@@ -34,6 +34,58 @@ import sys
 KRAL_KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ISCI_ID = "a4482c781a922b6a1"  # canli olculmus bir alt-ajan agent_id bicimi
 
+# === K268 (24 AGU 2026): CODEX VAKALARININ TASIYICISI TAZELENDI ===
+# 🔴 OLCULEN ARIZA (24 Agu tabani): KraL_5 / KraL_7 / KraL_10 KIRMIZI (237/240).
+# Uc vaka da "codex kalite kapisi: cikti dosyasi bayragi VARSA GECER" diyor; 27 Tem'de
+# yazildilar ve codex penceresi ACIK bir duvar saatine yasliydilar. K159 (17 Agu)
+# `CODEX_PENCERE_BITIS` kolunu ekledi, 20 Agu'da pencere kapandi ve KraL kapisi HAKLI
+# olarak RED veriyor. Kod dogru — vakalarin TASIYICISI bayat.
+#
+# 🔴 KOLAY VE YANLIS ONARIM beklentileri `deny` yapmakti: batarya "240/240 GECTI" basar,
+# CIKTI-BAYRAGI kolu HIC olculmez ve BaBa'nin "sart 6 evde gecerli" hukmu olcusuz kalirdi
+# ([[isci-yesil-tablo-ic-olcumu-bosaltir]]). Bunun yerine tarih, kapinin KENDI test
+# dikisinden (`PRUVO_BUGUN`, bkz. mimar-icra-kapisi `_codex_bugun`) ENJEKTE EDILIR:
+# iddia korunur, tasiyici tazelenir. Kural, kume, `CODEX_PENCERE_BITIS` DEGISMEDI.
+#
+# 🔴 KUTSAMA YASAGI: "enjekte tarihle GECER" ile "bugun REDDEDILIR" ayni anda civili
+# olmali. Duvar-saati ayagi (enjeksiyonsuz cagri -> RED + 'SURELI PENCERESI KAPANDI'
+# sebebi) KraL kapisinda `tools/mimar-kilit-test.py` vaka 930 ile olculur; burada
+# olculmez cunku KARDES EVLERIN kurulu kapilari K159 pencere kolunu tasimayabilir ve
+# ev-bazli sapmayi "beklenen sonuc" diye kodlamak yasagi kutsamak olurdu
+# ([[kabul-fiksturu-yasagi-kutsar]]). Sapma KALEM olarak bildirilir, fikstur olarak DEGIL.
+#
+# 🔴 IKIZ TANIM YASAGI: tarih `mimar_kimlik.CODEX_PENCERE_BITIS`'ten TURETILIR.
+# Okunamazsa vakalar sessizce yesile DUSMEZ -> KAPSAM_DISI (sayisi basilir, exit 1).
+KAPSAM_DISI_VAKALAR = {}  # vaka no -> sebep
+
+
+def _pencere_ici_env():
+    import datetime
+    import importlib.util
+    yol = os.path.join(KRAL_KOK, "tools", "mimar_kimlik.py")
+    try:
+        spec = importlib.util.spec_from_file_location("_k268_6ev_kimlik", yol)
+        modul = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(modul)
+        bitis = datetime.date.fromisoformat(modul.CODEX_PENCERE_BITIS)
+    except Exception:
+        return None
+    return {"PRUVO_BUGUN": str(bitis - datetime.timedelta(days=2))}
+
+
+PENCERE_ICI = _pencere_ici_env()
+# 17 Agu K159 model bayragi sarti: pencere ICINDEYKEN bayraksiz cagri REDDEDILIR.
+# Pozitif vakalar (5/7/10) bu yuzden izinli bir model tasir; olculen kol yine
+# CIKTI-BAYRAGI kolu — model bayragi onun ONUNDEKI kapiyi acan sarttir, iddiayi
+# degistirmez (kardes evlerde K159 kolu yoksa bayrak zararsiz bir argumandir).
+CODEX_MODEL = "-m gpt-5.6-luna"
+if PENCERE_ICI is None:
+    PENCERE_ICI = {}
+    for _no in (1, 2, 3, 4, 5, 6, 7, 9, 10):
+        KAPSAM_DISI_VAKALAR[_no] = (
+            "codex pencere tarihi TEK KAYNAKTAN (mimar_kimlik.CODEX_PENCERE_BITIS) "
+            "okunamadi -> CIKTI-BAYRAGI / ALT-KOMUT kollari OLCULEMEZ")
+
 # (mimar, ev koku, kapi dosyasi (ev-goreli))
 EVLER = (
     ("KraL", KRAL_KOK, "tools/mimar-icra-kapisi.py"),
@@ -61,18 +113,30 @@ PY_CAGRI = {
 # (sinif, no, komut, agent_id, beklenen)  — beklenen: "allow"/"deny" ya da ev->deger dict
 VAKALAR = [
     # --- CODEX: 27 TEM 2. TUR'DE KAPATILAN IKI KUSUR ---
-    ("CODEX", 1, 'codex exec --output-last-message=-o "x"', None, "deny"),
-    ("CODEX", 2, 'codex exec -o -v "x"', None, "deny"),
-    ("CODEX", 3, 'nice -n 10 codex exec "x"', None, "deny"),
-    ("CODEX", 4, 'env -u FOO codex exec "x"', None, "deny"),
+    # 🔴 K268: 7. alan = ortam eki (pencere ICI enjeksiyon), 8. alan = YALNIZ KraL evinde
+    # aranan RED sebebi jetonu. Sebep denetimi olmadan bu vakalar "deny aldi" diye yesil
+    # yanar ama reddin HANGI koldan geldigi olculmez — 24 Agu'da tam olarak bu oldu.
+    ("CODEX", 1, 'codex exec --output-last-message=-o "x"', None, "deny", "Bash",
+     PENCERE_ICI, "STANDARDINA uymuyor"),
+    ("CODEX", 2, 'codex exec -o -v "x"', None, "deny", "Bash",
+     PENCERE_ICI, "STANDARDINA uymuyor"),
+    ("CODEX", 3, 'nice -n 10 codex exec "x"', None, "deny", "Bash",
+     PENCERE_ICI, "STANDARDINA uymuyor"),
+    ("CODEX", 4, 'env -u FOO codex exec "x"', None, "deny", "Bash",
+     PENCERE_ICI, "STANDARDINA uymuyor"),
     # --- CODEX: kalite kapisinin cekirdegi ---
-    ("CODEX", 5, 'codex exec -o /tmp/son-mesaj.txt "x"', None, "allow"),
-    ("CODEX", 6, 'codex exec "x"', None, "deny"),
-    ("CODEX", 7, 'codex exec --output-last-message=/tmp/son-mesaj.txt "x"', None, "allow"),
+    ("CODEX", 5, 'codex exec ' + CODEX_MODEL + ' -o /tmp/son-mesaj.txt "x"', None,
+     "allow", "Bash", PENCERE_ICI),
+    ("CODEX", 6, 'codex exec "x"', None, "deny", "Bash",
+     PENCERE_ICI, "STANDARDINA uymuyor"),
+    ("CODEX", 7, 'codex exec ' + CODEX_MODEL +
+     ' --output-last-message=/tmp/son-mesaj.txt "x"', None, "allow", "Bash", PENCERE_ICI),
     ("CODEX", 8, "codex --version", None, "allow"),
-    ("CODEX", 9, "codex resume -o /tmp/son-mesaj.txt", None, "deny"),
+    ("CODEX", 9, "codex resume -o /tmp/son-mesaj.txt", None, "deny", "Bash",
+     PENCERE_ICI, "alt-komutu 'exec' DE"),
     # --- CODEX: YANLIS-POZITIF NOBETCILERI (daraltma + ikinci okuma bedeli) ---
-    ("CODEX", 10, 'nice -n 10 codex exec -o /tmp/son-mesaj.txt "x"', None, "allow"),
+    ("CODEX", 10, 'nice -n 10 codex exec ' + CODEX_MODEL + ' -o /tmp/son-mesaj.txt "x"',
+     None, "allow", "Bash", PENCERE_ICI),
     ("CODEX", 11, "time grep -rn codex {EV}/", None, "allow"),
     ("CODEX", 12, "grep -rn codex {EV}/", None, "allow"),
     # --- ISCI: agent_id DOLU -> codex kurali UYGULANMAZ (delegasyonun temeli) ---
@@ -138,13 +202,15 @@ VAKALAR = [
 
 
 def kapiyi_kostur(kapi_yolu, kok, komut, agent_id, tool_name="Bash", ortam_ek=None):
-    """Doner: (karar, iz_var). karar: allow/deny/EKSIK-KAPI/COKTU/PARSE-HATASI.
+    """Doner: (karar, iz_var, sebep). karar: allow/deny/EKSIK-KAPI/COKTU/PARSE-HATASI.
+    `sebep` = permissionDecisionReason (K268: red KOLUNUN atfi icin; yalniz KraL evinde
+    denetlenir — kardes evlerin kapi surumu farkli olabilir).
 
     tool_name VARSAYILAN 'Bash' (mevcut TUM vakalar aynen kosar — regresyon 0). MCP
     araclarinda karar YALNIZ tool_name'den cikar; arac-ozel girdi semasi TAKLIT EDILMEZ,
     tool_input BOS birakilir (8 Agu MCP-TARAYICI kapisi)."""
     if not os.path.exists(kapi_yolu):
-        return "EKSIK-KAPI", False
+        return "EKSIK-KAPI", False, ""
     payload = {
         "session_id": "6ev-test",
         "cwd": kok,
@@ -170,15 +236,17 @@ def kapiyi_kostur(kapi_yolu, kok, komut, agent_id, tool_name="Bash", ortam_ek=No
                            capture_output=True, text=True, env=ortam)
     iz = "MIMAR-KAPISI allow" in (sonuc.stderr or "")
     if sonuc.returncode != 0:
-        return "COKTU", iz
+        return "COKTU", iz, (sonuc.stderr or "")[:200]
     cikti = (sonuc.stdout or "").strip()
     if not cikti:
-        return "allow", iz
+        return "allow", iz, ""
     try:
         veri = json.loads(cikti)
     except Exception:
-        return "PARSE-HATASI", iz
-    return ((veri.get("hookSpecificOutput") or {}).get("permissionDecision") or "allow"), iz
+        return "PARSE-HATASI", iz, cikti[:200]
+    hso = veri.get("hookSpecificOutput") or {}
+    return (hso.get("permissionDecision") or "allow"), iz, (
+        hso.get("permissionDecisionReason") or "")
 
 
 def beklenen_coz(beklenen, ev):
@@ -195,28 +263,44 @@ def ev_kostur(ad, kok, goreli):
     print("=" * 88)
     if not os.path.isdir(kok):
         print("  EV YOK — atlanmadi, KIRMIZI sayilir (dogrulanamayan ev = kurulmamis ev)")
-        return [(ad, 0, "ev-yok", "EV YOK")]
+        return [(ad, 0, "ev-yok", "EV YOK")], []
     print("{:<6} {:<4} {:<8} {:<8} {:<4} {:<6} {}".format(
         "Sinif", "No", "Beklenen", "Olculen", "Iz", "Sonuc", "Komut"))
     print("-" * 88)
     basarisiz = []
+    kapsam_disi = []
     for vaka in VAKALAR:
-        # 5-elemanli = Bash vakasi (mevcut); 6-elemanli = tool_name tasiyan vaka (MCP).
+        # 5-elemanli = Bash vakasi (mevcut); 6-elemanli = tool_name tasiyan vaka (MCP);
+        # 7 = ortam eki; 8 = K268 KraL-evi RED sebebi jetonu (kol atfi).
         sinif, no, komut, agent_id, beklenen = vaka[:5]
         tool_name = vaka[5] if len(vaka) > 5 else "Bash"
         ortam_ek = vaka[6] if len(vaka) > 6 else None
+        kral_sebep = vaka[7] if len(vaka) > 7 else None
+        # 🔴 K268: olculemeyen vaka SESSIZCE YESILE cevrilmez — kova fail-LOUD.
+        if no in KAPSAM_DISI_VAKALAR:
+            kapsam_disi.append(no)
+            print("{:<6} {:<4} {:<8} {:<8} {:<4} {:<6} {}".format(
+                sinif, no, "-", "KAPSAM-DISI", "-", "ATLA",
+                KAPSAM_DISI_VAKALAR[no][:34]))
+            continue
         if komut == "<PY>":
             komut, beklenen = PY_CAGRI[ad]
         komut = komut.replace("{EV}", kok)
         bek = beklenen_coz(beklenen, ad)
-        olculen, iz = kapiyi_kostur(kapi, kok, komut, agent_id, tool_name, ortam_ek)
+        olculen, iz, sebep = kapiyi_kostur(kapi, kok, komut, agent_id, tool_name, ortam_ek)
         gecti = (olculen == bek)
-        if not gecti:
+        # KOL ATFI yalniz KraL evinde denetlenir: kardes evlerin kurulu kapi surumu
+        # farkli olabilir; oradaki metni sart kosmak ev sapmasini fikstur yapardi.
+        if gecti and kral_sebep is not None and ad == "KraL" and kral_sebep not in sebep:
+            gecti = False
+            basarisiz.append((ad, no, "sebep~" + kral_sebep,
+                              "sebep=" + " ".join(sebep.split())[:60]))
+        elif not gecti:
             basarisiz.append((ad, no, bek, olculen))
         print("{:<6} {:<4} {:<8} {:<8} {:<4} {:<6} {}".format(
             sinif, no, bek, olculen, "var" if iz else "yok",
             "OK" if gecti else "KIRMIZI", (tool_name if len(vaka) > 5 else komut)[:34]))
-    return basarisiz
+    return basarisiz, kapsam_disi
 
 
 def main():
@@ -225,21 +309,37 @@ def main():
     evler = [e for e in EVLER if (secilen is None or e[0] == secilen)]
 
     print("6 EV DOGRULAMASI — codex kalite kapisi (gercek codex CAGRILMAZ)")
-    print("VAKA/EV: {} | EV SAYISI: {}".format(len(VAKALAR), len(evler)))
+    print("VAKA/EV: {} | EV SAYISI: {} | KOSULACAK VAKA SAYISI: {}".format(
+        len(VAKALAR), len(evler), len(VAKALAR) * len(evler)))
+    print("KOL ATFI (yalniz KraL evinde denetlenir): {} vaka RED SEBEBIYLE civili".format(
+        sum(1 for v in VAKALAR if len(v) > 7 and v[7])))
 
     basarisiz = []
+    kapsam_disi = []
     for ad, kok, goreli in evler:
-        basarisiz += ev_kostur(ad, kok, goreli)
+        b, kd = ev_kostur(ad, kok, goreli)
+        basarisiz += b
+        kapsam_disi += kd
 
     print("")
     print("=" * 88)
     toplam = len(VAKALAR) * len(evler)
+    # 🔴 K268: KAPSAM_DISI AYRI ve SAYIYLA basilir; oran kapsam kaybini GOSTERMEZ
+    # ([[batarya-kapsam-tabani-sayiyla-civilenir]]).
+    print("KAPSAM_DISI VAKA (olculemeyen kol ADIYLA): {} {}".format(
+        len(kapsam_disi), sorted(set(kapsam_disi)) if kapsam_disi else ""))
+    for _no in sorted(set(kapsam_disi)):
+        print("  KAPSAM_DISI vaka {}: {}".format(_no, KAPSAM_DISI_VAKALAR.get(_no, "?")))
     if basarisiz:
         print("SONUC: {}/{} vaka GECTI — KIRMIZI:".format(toplam - len(basarisiz), toplam))
         for ad, no, bek, olculen in basarisiz:
             print("  {:<7} vaka {:<4} beklenen={:<6} olculen={}".format(ad, no, bek, olculen))
         sys.exit(1)
-    print("SONUC: {}/{} vaka GECTI ({} ev x {} vaka).".format(
+    if kapsam_disi:
+        print("SONUC: KIRMIZI — KAPSAM_DISI={}. Olculemeyen kol sessizce YESILE "
+              "cevrilmez.".format(len(kapsam_disi)))
+        sys.exit(1)
+    print("SONUC: {}/{} vaka GECTI ({} ev x {} vaka, KAPSAM_DISI 0).".format(
         toplam, toplam, len(evler), len(VAKALAR)))
     sys.exit(0)
 

@@ -313,8 +313,17 @@ MUTASYONLAR = [
         "    if not _codex_cikti_degerli(kalan[1:]):\n",
         "    if True:\n"),
      "26/27Tem: cikti-bayragi muafiyeti silinir (codex yeniden KOSULSUZ RED); K159 son kol: "
-     "910 yasak model cagrisinin yapisal izin yolunu da eklenen RED'a kat",
-     {232, 233, 273, 274, 281, 902, 910}, True, 7),
+     "910 yasak model cagrisinin yapisal izin yolunu da eklenen RED'a kat; K268: pencere-ici "
+     "vakalarin KOL ATFI da coker (red artik CIKTI-BAYRAGI kolundan gelir)",
+     # 🔴 K268 (24 AGU) — KUME BUYUDU, MUTANT GUCLENDI. 24 Agu tabaninda ME6 TAUTOLOJIK
+     # YESIL yaniyordu: bataryada zaten {232,233,273,274,281,902,910} KIRMIZI idi (codex
+     # penceresi kapali oldugu icin) ve mutant HICBIR SEY degistirmeden "== beklenen"
+     # tutturuyordu ([[isci-yesil-tablo-ic-olcumu-bosaltir]]). Taban yesillendikten sonra
+     # ayni mutant OLCULDU ve 14 vaka dusurdu: 7 eski POZITIF + 932 (sinir gunu pozitifi)
+     # + 900/901/904/905/930/931 (bunlarin RED SEBEBI artik kendi kollarindan degil
+     # cikti-bayragi kolundan geliyor, yani KOL ATFI cokuyor). Kume BUYUTULDU cunku mutant
+     # gercekten daha cok kol olduruyor; KUCULTMEK mimar karari olurdu.
+     {232, 233, 273, 274, 281, 900, 901, 902, 904, 905, 910, 930, 931, 932}, True, 14),
     ("ME7", lambda d: yama(
         d, ICRA,
         "    if all(t in CODEX_GOZLEM_BAYRAKLARI for t in kalan):\n"
@@ -689,8 +698,13 @@ MUTASYONLAR = [
         d, ICRA,
         '    if not _codex_pencere_acik_mi():\n',
         '    if False and not _codex_pencere_acik_mi():\n'),
-     "17Agu K159: pencere/tarih kontrolu kaldirilir (21 Agu tarihli codex GECER)",
-     {905}, True, 1),
+     "17Agu K159: pencere/tarih kontrolu kaldirilir (pencere SONRASI tarihli codex GECER)",
+     # 🔴 K268 (24 AGU): pencere kolunun nobetine IKI yeni vaka katildi — 930 (enjeksiyon
+     # YOK, DUVAR SAATI: 'bugun codex REDDEDILIR' ayagi) ve 931 (bitis gunu + 1). Ucu de
+     # AYNI kolun nobetcisidir, dolayisiyla mutant ucunu birden dusurur. 930 ozellikle
+     # onemli: pencere-ici enjeksiyon tasiyan vakalarin bataryayi bir "codex GECER"
+     # fiksturune cevirmesini engelleyen satir odur ([[kabul-fiksturu-yasagi-kutsar]]).
+     {905, 930, 931}, True, 3),
 ]
 
 # ===================== KONTROL MUTANTLARI (AYIRT EDICILIK OLCUMU) =====================

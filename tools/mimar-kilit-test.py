@@ -72,6 +72,74 @@ KAYITLI_WT_YOL = None  # main() icinde doldurulur; None ise vakalar CEVRE-ATLANA
 # Kosulamayan/karar uretmeyen sonuclar — "allow" diye YUTULMAZ.
 ATLANAN_ISARETLER = ("EKSIK-KANCA", "COKTU", "PARSE-HATASI", "IZSIZ-ALLOW")
 
+# === K268 (24 AGU 2026): BAYAT TASIYICI ONARIMI — DUVAR SAATI -> ENJEKTE TARIH ===
+#
+# 🔴 OLCULEN ARIZA. 17-27 Tem'de yazilan codex vakalari, codex penceresinin ACIK
+# oldugu bir DUVAR SAATINE yasliydi. K159 (17 Agu) pencere kolunu ekledi ve
+# `CODEX_PENCERE_BITIS = 2026-08-20` gecince kapi HAKLI olarak RED vermeye basladi.
+# Kod DOGRU; bayat olan VAKALARIN TASIYICISIDIR. 24 Agu tabani (olculdu):
+#   mimar-kilit-test      : 292/299, KIRMIZI = {232,233,273,274,281,902,910}
+#   mimar-kapi-6ev-test   : 237/240, KIRMIZI = KraL_5 / KraL_7 / KraL_10
+#   mimar-kapi-mutasyon   : 25/64 mutant hedefini vurdu, 39'u KALDI
+#
+# 🔴 KOLAY VE YANLIS ONARIM: her vakanin beklentisini `deny` yapmak. O, IDDIANIN
+# ADINI korur OLCUMUNU bosaltir ([[isci-yesil-tablo-ic-olcumu-bosaltir]]): batarya
+# "299/299 GECTI" basar ve codex kalite kapisinin HICBIR kolu olculmez. Tabandaki
+# 39 KALDI mutant bunun kanitidir — pencere kolu ONCE ciktigi icin
+#   · cikti-bayragi kolunu silen mutantlar (ME6/ME11/ME13/ME14) GOLGEDE HAYATTA KALIYOR
+#     (vaka yine `deny` doner, ama ARTIK PENCERE KOLUNDAN — [[ad-iki-rolde-mutanti-golgeler]]),
+#   · model/amiral/izinli-kume kollarini silen mutantlar (M_K159_1/2/3) HIC KIRMIZI YAKMIYOR,
+#   · ME6 vakasi tabandaki 7 kirmizi sayesinde TAUTOLOJIK YESIL yaniyordu.
+#
+# 🔴 SECILEN YOL — IDDIA KORUNUR, TASIYICI GUNCELLENIR: vakanin tarihi artik duvar
+# saatinden DEGIL `PRUVO_BUGUN` enjeksiyonundan gelir (kapinin KENDI test dikisi,
+# `_codex_bugun()`; gevsetme DEGIL). Boylece pencere-ici kollar (cikti bayragi, model
+# bayragi, amiral, izinli kume) yeniden ULASILIR olur ve mutantlari yeniden ateslenir.
+#
+# 🔴 KUTSAMA YASAGI ([[kabul-fiksturu-yasagi-kutsar]]): "enjekte tarihle codex GECER"
+# demek "bugun codex'e is verilebilir" DEMEK DEGILDIR. Ayni batarya, 930 vakasiyla
+# ENJEKSIYONSUZ (duvar saati) cagriyi RED olarak ve SEBEBIYLE ('SURELI PENCERESI
+# KAPANDI') civiler. Iki yon birden olculmezse bu blok yasagi kutsardi.
+#
+# 🔴 IKIZ TANIM YASAGI: tarihler `mimar_kimlik.CODEX_PENCERE_BITIS`'ten TURETILIR,
+# buraya ELLE yazilmaz ([[ikiz-tanim-sessiz-ayrisma]]). Kaynak okunamazsa vakalar
+# sessizce yesile DUSMEZ: KAPSAM_DISI kovasina girer, SAYISI basilir ve exit 1 olur.
+KAPSAM_DISI_VAKALAR = {}  # no -> sebep (olculemeyen kolun ADI dahil)
+
+
+def _pencere_tarihleri():
+    """(pencere_ici, sinir_gunu, sinir_ertesi) — TOOLS'taki tek kaynaktan turetilir.
+    Basarisizsa (None, None, None); cagiran KAPSAM_DISI'ya yazar (fail-loud)."""
+    import datetime
+    import importlib.util
+    yol = os.path.join(TOOLS, "mimar_kimlik.py")
+    try:
+        spec = importlib.util.spec_from_file_location("_k268_kimlik", yol)
+        modul = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(modul)
+        bitis = datetime.date.fromisoformat(modul.CODEX_PENCERE_BITIS)
+    except Exception:
+        return None, None, None
+    return (str(bitis - datetime.timedelta(days=2)), str(bitis),
+            str(bitis + datetime.timedelta(days=1)))
+
+
+_PENCERE_ICI_GUN, _PENCERE_SINIR_GUN, _PENCERE_ERTESI_GUN = _pencere_tarihleri()
+PENCERE_ICI = ({"PRUVO_BUGUN": _PENCERE_ICI_GUN} if _PENCERE_ICI_GUN else {})
+PENCERE_SINIRI = ({"PRUVO_BUGUN": _PENCERE_SINIR_GUN} if _PENCERE_SINIR_GUN else {})
+PENCERE_ERTESI = ({"PRUVO_BUGUN": _PENCERE_ERTESI_GUN} if _PENCERE_ERTESI_GUN else {})
+
+# Pencere kaynagina BAGLI vakalar: kaynak okunamazsa bunlar OLCULEMEZ.
+PENCEREYE_BAGLI_VAKALAR = (
+    25, 230, 231, 232, 233, 267, 268, 269, 270, 273, 274, 277, 278, 279, 280,
+    281, 283, 285, 900, 901, 902, 903, 904, 905, 910, 930, 931, 932, 940)
+if not _PENCERE_ICI_GUN:
+    for _no in PENCEREYE_BAGLI_VAKALAR:
+        KAPSAM_DISI_VAKALAR[_no] = (
+            "codex pencere tarihi TEK KAYNAKTAN (mimar_kimlik.CODEX_PENCERE_BITIS) "
+            "okunamadi -> pencere-ici kollar (cikti-bayragi / model-bayragi / amiral / "
+            "izinli-kume) OLCULEMEZ")
+
 # (no, beklenen, arac, hedef, agent_id, aciklama)
 VAKALAR = [
     (1, "deny", "Write", SCRATCH + "/analiz.py", None,
@@ -126,8 +194,11 @@ EK_VAKALAR = [
      "worktree yonetimi"),
     (24, "allow", "Bash", "grep -rn WHATSAPP " + REPO + "/index.html", None,
      "arama/okuma"),
+    # K268: pencere ICI enjeksiyon — RED'in PENCERE kolundan degil CIKTI-BAYRAGI
+    # kolundan geldigini garanti eder (yoksa ME6/ME11 mutantlari golgede yasar).
     (25, "deny", "Bash", "codex exec \"specteki isi yap\"", None,
-     "26Tem: codex DELEGE serbest ama cikti dosyasi bayraksiz cagri RED"),
+     "26Tem: codex DELEGE serbest ama cikti dosyasi bayraksiz cagri RED",
+     PENCERE_ICI),
     (26, "allow", "Write", REPO + "/tools/paket-yeni-is.md", None,
      "muhendislik paketi (spec)"),
     (27, "deny", "Bash", "python3 " + REPO + "/tools/parite-ege.js", None,
@@ -441,19 +512,24 @@ MIMAR_22TEM_VAKALARI = [
     (221, "deny", "Bash", "wget https://example.org", None, "canli dogrulama: wget"),
     # (3) codex — 26 TEM (BaBa hukmu): KOSULSUZ RED KALKTI, yerine KALITE KAPISI.
     #     Delege serbest; sart tek: sonuc bir DOSYAYA yazilsin (-o/--output-last-message).
+    # K268: 230 SEBEP DE DOGRULANIR — red CIKTI-BAYRAGI kolundan gelmeli, pencere
+    # kolundan degil (8. alan = RED sebebinde aranan jeton).
     (230, "deny", "Bash", "codex exec \"x\"", None,
-     "26Tem: cikti dosyasi bayragi YOK (raporsuz delege) = RED"),
+     "26Tem: cikti dosyasi bayragi YOK (raporsuz delege) = RED",
+     PENCERE_ICI, "STANDARDINA uymuyor"),
     (231, "deny", "Bash",
      "/Applications/ChatGPT.app/Contents/Resources/codex exec \"x\"", None,
-     "26Tem: tam yol da olsa bayraksiz = RED"),
+     "26Tem: tam yol da olsa bayraksiz = RED", PENCERE_ICI),
     (232, "allow", "Bash",
      "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec dosyasindaki isi yap\"", None,
-     "26Tem POZITIF: -o ile codex-isci standardi + 17Agu model bayragi = GECER"),
+     "26Tem POZITIF: -o ile codex-isci standardi + 17Agu model bayragi = GECER",
+     PENCERE_ICI),
     (233, "allow", "Bash",
      "/Applications/ChatGPT.app/Contents/Resources/codex exec -m gpt-5.6-luna "
      "--output-last-message " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
-     "26Tem POZITIF: tam yol + --output-last-message + 17Agu model bayragi = GECER"),
+     "26Tem POZITIF: tam yol + --output-last-message + 17Agu model bayragi = GECER",
+     PENCERE_ICI),
     (234, "allow", "Bash", "codex --version", None,
      "26Tem: zararsiz gozlem cagrisi = GECER"),
     (235, "deny", "Bash", "codex", None,
@@ -474,8 +550,12 @@ MIMAR_22TEM_VAKALARI = [
      "ls /Applications/ChatGPT.app/Contents/Resources/codex", None,
      "27Tem FP4: codex BINARY'sini ls'lemek -> kural TETIKLENMEZ"),
     # (3b) ALT-KOMUT KAPISI (fail-closed): yalniz 'exec' delegasyondur. Sentinel: ME10.
+    # K268 KONTROL EKSENI: alt-komut kolu pencere kolundan ONCE gelir, yani bu vaka
+    # 24 Agu'da da KENDI kolunu olcuyordu. Enjeksiyon YOK — kol atfi kapsam olcumunde
+    # "bayat tasiyicidan ETKILENMEYEN" tarafi temsil eder (metrik ayirt edici olsun).
     (264, "deny", "Bash", "codex resume -o /tmp/a.txt", None,
-     "27Tem: 'resume' etkilesimli TUI = delege DEGIL -> RED (cikti bayragi olsa da)"),
+     "27Tem: 'resume' etkilesimli TUI = delege DEGIL -> RED (cikti bayragi olsa da)",
+     {}, "alt-komutu 'exec' DE"),
     (265, "deny", "Bash", "codex mcp -o /tmp/a.txt", None,
      "27Tem: 'mcp' alt-komutu delege degil -> RED"),
     (266, "deny", "Bash", "codex login -o /tmp/a.txt", None,
@@ -483,18 +563,22 @@ MIMAR_22TEM_VAKALARI = [
     (275, "deny", "Bash", "codex apply -o /tmp/a.txt", None,
      "27Tem: 'apply' de beyaz listede degil -> RED"),
     # (3c) BAYRAK DEGER SARTI: bayragin VARLIGI yetmez. Sentinel: ME11 (ayrik) / ME13 (=).
+    # K268: 267-279/285 hepsi CIKTI-BAYRAGI kolunun nobetcisidir. Pencere ICI enjeksiyon
+    # olmadan bu kolu silen mutant (ME11/ME13/ME14) golgede yasar: vaka yine `deny`
+    # doner ama PENCERE kolundan. Enjeksiyonla mutantlar yeniden ateslenir.
     (267, "deny", "Bash", "codex exec -o", None,
-     "27Tem: '-o' DEGERSIZ (son token) -> kabul kapisi bos, RED"),
+     "27Tem: '-o' DEGERSIZ (son token) -> kabul kapisi bos, RED", PENCERE_ICI),
     (268, "deny", "Bash", "codex exec \"-o\"", None,
-     "27Tem: tirnakli '-o' de degersiz -> RED"),
+     "27Tem: tirnakli '-o' de degersiz -> RED", PENCERE_ICI),
     (269, "deny", "Bash", "codex exec -o -s workspace-write \"spec\"", None,
-     "27Tem: '-o'nun degeri BASKA BIR BAYRAK -> RED"),
+     "27Tem: '-o'nun degeri BASKA BIR BAYRAK -> RED", PENCERE_ICI),
     (270, "deny", "Bash", "codex exec --output-last-message= \"spec\"", None,
-     "27Tem: esitlikli bicimde deger BOS -> RED"),
+     "27Tem: esitlikli bicimde deger BOS -> RED", PENCERE_ICI),
     (277, "deny", "Bash", "codex exec --output-last-message -o /tmp/a.txt", None,
-     "27Tem CURUTME: ILK bayrak bozuksa aramaya DEVAM EDILMEZ -> RED"),
+     "27Tem CURUTME: ILK bayrak bozuksa aramaya DEVAM EDILMEZ -> RED", PENCERE_ICI),
     (278, "deny", "Bash", "codex exec -o=/tmp/a.txt \"spec\"", None,
-     "27Tem: bitisik/esitlikli KISA form ('-o=...') kabul EDILMEZ (fail-closed)"),
+     "27Tem: bitisik/esitlikli KISA form ('-o=...') kabul EDILMEZ (fail-closed)",
+     PENCERE_ICI),
     # (3d) GOZLEM SIMETRISI (-v/-V/-h/--help/--version tek sinif). Sentinel: ME7 / ME12.
     (271, "allow", "Bash", "codex -v", None,
      "27Tem: '-v' gozlem (eskiden '-V' geciyor '-v' gecmiyordu) = GECER"),
@@ -504,24 +588,31 @@ MIMAR_22TEM_VAKALARI = [
     (273, "allow", "Bash",
      "codex exec -m gpt-5.6-luna -C " + REPO + " --sandbox danger-full-access -o " +
      SCRATCH + "/son-mesaj.txt \"ag isi: feed dogrula\"", None,
-     "27Tem: ag isi recetesi (--sandbox danger-full-access) + 17Agu model bayragi = GECER"),
+     "27Tem: ag isi recetesi (--sandbox danger-full-access) + 17Agu model bayragi = GECER",
+     PENCERE_ICI),
     (274, "allow", "Bash",
      "codex exec -m gpt-5.6-luna --output-last-message=" + SCRATCH + "/son-mesaj.txt \"spec\"",
-     None, "27Tem: esitlikli bicim (DEGERLI) + 17Agu model bayragi = GECER"),
+     None, "27Tem: esitlikli bicim (DEGERLI) + 17Agu model bayragi = GECER",
+     PENCERE_ICI),
     # --- 27 TEM IKINCI TUR (BaBa: sart 6 EVE tasinir) — kapatilan IKI kusur ---
     # (3f) KUSUR-1: esitlikli bicimde '-' oneki denetimi YOKTU. Sentinel: ME13 / ME14.
     (279, "deny", "Bash", "codex exec --output-last-message=-o \"x\"", None,
-     "27Tem-2: '=' sonrasi deger BASKA BIR BAYRAK ('-o') -> DEGER SAYILMAZ, RED"),
+     "27Tem-2: '=' sonrasi deger BASKA BIR BAYRAK ('-o') -> DEGER SAYILMAZ, RED",
+     PENCERE_ICI),
     (285, "deny", "Bash", "codex exec -o -v \"x\"", None,
-     "27Tem-2: AYRIK bicimde de deger bayrak ('-v') -> RED (bicim SIMETRISI)"),
+     "27Tem-2: AYRIK bicimde de deger bayrak ('-v') -> RED (bicim SIMETRISI)",
+     PENCERE_ICI),
     # (3g) KUSUR-2: sarmalayici bayrak-DEGERI komut adayi sanilıyordu. Sentinel: ME15.
     (280, "deny", "Bash", "nice -n 10 codex exec \"x\"", None,
-     "27Tem-2: 'nice -n 10' -> '10' argv0 sanilip kural atlaniyordu; ikinci okuma RED"),
+     "27Tem-2: 'nice -n 10' -> '10' argv0 sanilip kural atlaniyordu; ikinci okuma RED",
+     PENCERE_ICI),
     (283, "deny", "Bash", "env -u FOO codex exec \"x\"", None,
-     "27Tem-2: ayni sizintinin env varyanti ('-u FOO') -> ikinci okuma RED"),
+     "27Tem-2: ayni sizintinin env varyanti ('-u FOO') -> ikinci okuma RED",
+     PENCERE_ICI),
     (281, "allow", "Bash",
      "nice -n 10 codex exec -m gpt-5.6-luna -o " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
-     "27Tem-2 POZITIF: ikinci okuma MESRU sarmalanmis cagriyi KAPATMAZ (17Agu model bayragi ekli)"),
+     "27Tem-2 POZITIF: ikinci okuma MESRU sarmalanmis cagriyi KAPATMAZ (17Agu model bayragi ekli)",
+     PENCERE_ICI),
     (282, "allow", "Bash", "time grep -rn codex " + REPO + "/tools/", None,
      "27Tem-2 FP NOBETCISI: sarmalayici + 'codex' KELIMESI -> kural TETIKLENMEZ"),
     # (4) python/node ALLOWLIST
@@ -552,35 +643,69 @@ MIMAR_22TEM_VAKALARI = [
 #      test enjekte edebilir; V6 vakasi icin sart)
 # Tarih enjekte kanalini kullanmak icin 7. tuple alani (ek_env) kullanildi; M1-M4
 # mutasyonlari bu vakalari kirmizi yakar (mimar-kapi-mutasyon-test.py).
+#
+# 🔴 K268 (24 AGU): V1/V2/V3/V5 DUVAR SAATINE yaslidir; pencere 20 Agu'da kapaninca V3
+# KIRMIZI yandi, V1/V2/V5 ise SESSIZCE bosaldi (yine `deny` ama PENCERE kolundan —
+# M_K159_1/2/3 mutantlari 24 Agu tabaninda HIC KIRMIZI YAKMIYORDU). Tasiyici artik
+# PENCERE_ICI enjeksiyonu; sebep jetonlari (8. alan) kolun ADINI civilliyor.
 K159_CODEX_VAKALARI = [
     (900, "deny", "Bash",
      "codex exec -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec\"", None,
-     "K159 V1: model bayragi (-m/--model) YOK -> RED (bayraksiz = amiral) [M1 sentinel]"),
+     "K159 V1: model bayragi (-m/--model) YOK -> RED (bayraksiz = amiral) [M1 sentinel]",
+     PENCERE_ICI, "MODEL BAYRAGI"),
     (901, "deny", "Bash",
      "codex exec -m gpt-5.6-sol -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec\"", None,
-     "K159 V2: amiral model (gpt-5.6-sol) -> RED (Okan emri) [M2 sentinel]"),
+     "K159 V2: amiral model (gpt-5.6-sol) -> RED (Okan emri) [M2 sentinel]",
+     PENCERE_ICI, "AMIRAL SINIFINDA"),
     (902, "allow", "Bash",
      "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec\"", None,
-     "K159 V3: izinli model (luna) + pencere ICINDE -> GECER"),
+     "K159 V3: izinli model (luna) + pencere ICINDE (enjekte) -> GECER",
+     PENCERE_ICI),
     (903, "deny", "Bash",
      "codex exec -m gpt-5.6-luna \"spec\"", None,
-     "K159 V4: model var, cikti bayragi YOK -> RED (eski kural korunuyor)"),
+     "K159 V4: model var, cikti bayragi YOK -> RED (eski kural korunuyor)",
+     PENCERE_ICI, "STANDARDINA uymuyor"),
     (904, "deny", "Bash",
      "codex exec -m gpt-9 -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec\"", None,
-     "K159 V5: bilinmeyen model -> RED (fail-closed: yarin eklenen model kapiyi ACMAZ) [M3 sentinel]"),
+     "K159 V5: bilinmeyen model -> RED (fail-closed: yarin eklenen model kapiyi ACMAZ) [M3 sentinel]",
+     PENCERE_ICI, "IZINLI KUMEDE DEGIL"),
     (905, "deny", "Bash",
      "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec\"", None,
-     "K159 V6: izinli model ama tarih 21 Agu (enjekte PRUVO_BUGUN) -> pencere KAPANDI, RED [M4 sentinel]",
-     {"PRUVO_BUGUN": "2026-08-21"}),
+     "K159 V6: izinli model ama tarih pencere SONRASI (enjekte) -> pencere KAPANDI, RED [M4 sentinel]",
+     PENCERE_ERTESI, "SURELI PENCERESI KAPANDI"),
     (906, "allow", "Bash",
      "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec\"", ISCI_ID,
      "K159 V7: ayni cagri agent_id DOLU (ISCI) -> GECER (muafiyet bozulmadi)"),
+]
+
+# === K268: PENCERE KOLUNUN **DUVAR SAATI** AYAGI (kutsama yasaginin nobetcisi) ===
+# 🔴 930 BU BLOGUN CEKIRDEGIDIR. Yukaridaki vakalar tarihi ENJEKTE ediyor; tek basina
+# birakilirlarsa batarya "codex GECER" diyen bir fikstur kumesine donusur ve bugunku
+# emeklilik hukmunu KUTSAR ([[kabul-fiksturu-yasagi-kutsar]]). 930 enjeksiyon YAPMAZ:
+# gercek duvar saatiyle cagirir, RED bekler ve REDDIN SEBEBINI de arar. Yani
+# "enjekte tarihle GECER" ile "bugun REDDEDILIR" AYNI bataryada, ZIT yonde civilidir.
+# 931/932 sinir ekseni: bitis gunu DAHIL (allow) / ertesi gun (deny) — `<=` karsilastirmasi
+# `<`e cevrilirse 932 kirmizi yanar.
+K268_PENCERE_VAKALARI = [
+    (930, "deny", "Bash",
+     "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
+     "/son-mesaj.txt \"spec\"", None,
+     "K268: ENJEKSIYONSUZ (duvar saati) -> pencere KAPALI RED + SEBEP dogrulanir",
+     {}, "SURELI PENCERESI KAPANDI"),
+    (931, "deny", "Bash",
+     "codex exec -m gpt-5.6-luna -o " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
+     "K268 SINIR+1: bitis gununun ERTESI -> RED",
+     PENCERE_ERTESI, "SURELI PENCERESI KAPANDI"),
+    (932, "allow", "Bash",
+     "codex exec -m gpt-5.6-luna -o " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
+     "K268 SINIR: bitis gunu DAHIL -> GECER ('<=' kolu; '<'e cevrilirse KIRMIZI)",
+     PENCERE_SINIRI),
 ]
 
 # === 28 TEM AGENT-KAPISI + 13 AGU SERT BLOK VAKALARI ===
@@ -989,10 +1114,20 @@ def kume_kostur(baslik, vakalar, cwd=REPO):
     basarisiz = []
     atlanan = []
     cevre_atlanan = []
+    kapsam_disi = []
     for vaka in vakalar:
         no, beklenen, arac, hedef, agent_id, aciklama = vaka[:6]
         ek_env = vaka[6] if len(vaka) > 6 else {}
         beklenen_iz = vaka[7] if len(vaka) > 7 else None
+        # 🔴 K268 KAPSAM_DISI KOVASI: olculemeyen bir vaka SESSIZCE YESILE cevrilmez.
+        # Kova fail-LOUD'dur (main() exit 1) — "yesile boyandi ama hicbir kol olcmuyor"
+        # hali ([[isci-yesil-tablo-ic-olcumu-bosaltir]]) bu satirla imkansiz kilinir.
+        if no in KAPSAM_DISI_VAKALAR:
+            kapsam_disi.append(no)
+            print("{:<4} {:<8} {:<12} {:<7} {:<6} {:<40}".format(
+                no, beklenen, "KAPSAM-DISI", "ISCI" if agent_id else "MIMAR",
+                "ATLA", KAPSAM_DISI_VAKALAR[no][:40]))
+            continue
         if KAYITLI_WT in hedef:
             if not KAYITLI_WT_YOL:
                 cevre_atlanan.append(no)
@@ -1012,7 +1147,7 @@ def kume_kostur(baslik, vakalar, cwd=REPO):
         print("{:<4} {:<8} {:<12} {:<7} {:<6} {:<40}".format(
             no, beklenen, olculen, "ISCI" if agent_id else "MIMAR",
             "OK" if gecti else "KIRMIZI", aciklama[:40]))
-    return basarisiz, atlanan, cevre_atlanan
+    return basarisiz, atlanan, cevre_atlanan, kapsam_disi
 
 
 def commit_kume_kostur(gecici_kok):
@@ -1216,10 +1351,22 @@ def k159_mesaj_denetim():
     mesaj bayatlar ve kullaniciyi yanlis bilgilendirir. Duzeltme sonrasi metin
     `mimar_kimlik.CODEX_YASAK_MODELLER` kumeden turetilmeli; bu kume degisince
     mesajin DA ICERIGI degismis olmali. Test kume sabitini import edip kontrol
-    EDER — elle 'substring aranir' yapmaz (bekci bayatlayan metni yakalar)."""
+    EDER — elle 'substring aranir' yapmaz (bekci bayatlayan metni yakalar).
+
+    🔴 K268 (24 AGU): bu prob 24 Agu'da AMIRAL kolunu HIC kosmuyordu. Pencere kolu
+    (`_codex_pencere_acik_mi`) amiral kolundan ONCE cikiyor; kapi RED veriyor ama
+    sebep 'SURELI PENCERESI KAPANDI' oluyor, yasak model ADI metinde bulunmuyor ve
+    vaka `eksik=gpt-5.6-sol` ile KIRMIZI yaniyordu. Mimar spec'i bunu KAPSAM_DISI
+    adayi saymisti; OLCUM tersini gosterdi: kol PRUVO_BUGUN enjeksiyonuyla ULASILIR.
+    Prob artik pencereyi ICERIDEN kurar (PENCERE_ICI) — iddia (mesaj/kaynak paritesi)
+    AYNEN korunur, yalnizca TASIYICI tazelenir. Enjeksiyon kaynagi okunamazsa vaka
+    sessizce yesile DUSMEZ: KAPSAM_DISI kovasina girer."""
     import importlib.util
     basarisiz = []
     atlanan = []
+    if 910 in KAPSAM_DISI_VAKALAR:
+        print("910  K159 son kol: KAPSAM_DISI — " + KAPSAM_DISI_VAKALAR[910])
+        return basarisiz, atlanan
     kimlik_yol = os.path.join(TOOLS, "mimar_kimlik.py")
     if not os.path.exists(kimlik_yol):
         basarisiz.append((910, "deny+tum yasak adi", "EKSIK-KIMLIK",
@@ -1248,6 +1395,7 @@ def k159_mesaj_denetim():
     ortam = dict(os.environ)
     ortam.pop("PRUVO_ISCI_KOSUMU", None)
     ortam.pop("PRUVO_CLAUDE_ISCI_IZNI", None)
+    ortam.update(PENCERE_ICI)  # K268: amiral kolu pencere kolunun GOLGESINDE kalmasin
     proc = subprocess.run([sys.executable, ICRA], input=json.dumps(payload),
                           capture_output=True, text=True, env=ortam)
     if proc.returncode != 0:
@@ -1281,6 +1429,88 @@ def k159_mesaj_denetim():
         return basarisiz, atlanan
     print("910  K159 son kol: olculen={} yasak-sayisi={} sebep-uzunluk={} | OK".format(
         karar, len(yasak), len(sebep)))
+    return basarisiz, atlanan
+
+
+# === K268: CODEX KOL ATFI + KAPSAM OLCUMU (oran DEGIL SAYI) ===
+# Jeton -> KOL ADI. Kapinin RED metninde aranan ayirt edici parca (80 karakterlik
+# `iz` kirpmasina SIGACAK sekilde secildi; GEREKCE_BASI 28 karakter tuketiyor).
+CODEX_KOL_JETONLARI = {
+    "STANDARDINA uymuyor": "CIKTI-BAYRAGI",
+    "alt-komutu 'exec' DE": "ALT-KOMUT",
+    "MODEL BAYRAGI": "MODEL-BAYRAGI",
+    "AMIRAL SINIFINDA": "AMIRAL",
+    "IZINLI KUMEDE DEGIL": "IZINLI-KUME",
+    "SURELI PENCERESI KAPANDI": "PENCERE",
+}
+# 🔴 KAPSAM TABANI — ORAN DEGIL SAYI ([[batarya-kapsam-tabani-sayiyla-civilenir]]).
+# Bir vaka silinir ya da 8. alani dusurulurse denetim "9/9 GECTI" diye YESIL basmasin:
+# kadro SAYIYLA civilidir, altina dusunce KIRMIZI yanar. Buyutmek serbest, KUCULTMEK
+# mimar karari.
+CODEX_KOL_VAKA_TABANI = 9
+CODEX_KOL_ADET_TABANI = 6
+
+
+def codex_kol_kapsam_denetim():
+    """K268 — codex ailesinin KOL ATFINI ve KAPSAM KAYBINI olcer.
+
+    Iki kolon uretir, ikisi de AYNI vakalarla:
+      ONCE  = vakanin tasiyicisi BAYAT (PRUVO_BUGUN soyulmus, duvar saati) iken
+              vaka KENDI kolunu mu olcuyor?
+      SONRA = bugunku tasiyiciyla (enjekte tarih) kendi kolunu mu olcuyor?
+
+    'Kendi kolunu olcuyor' = karar beklenen + RED sebebi o kolun jetonunu tasiyor.
+    Yalniz karara bakmak YETMEZ: 24 Agu tabaninda 900/901/904 `deny` donuyordu ve
+    YESIL yaniyordu, ama sebep PENCERE koluydu — iddia adiyla duruyor, olcumu
+    bostu ([[isci-yesil-tablo-ic-olcumu-bosaltir]]). ONCE<SONRA farki bu kaybin
+    SAYISIDIR; hicbir oran onu gosteremez."""
+    basarisiz = []
+    atlanan = []
+    kaynaklar = (EK_VAKALAR + MIMAR_22TEM_VAKALARI + K159_CODEX_VAKALARI +
+                 K268_PENCERE_VAKALARI)
+    kadro = [v for v in kaynaklar
+             if len(v) > 7 and v[7] in CODEX_KOL_JETONLARI]
+    print("")
+    print("=" * 84)
+    print("K268 CODEX KOL ATFI — KAPSAM OLCUMU (vaka SAYISI, oran degil)")
+    print("=" * 84)
+
+    if 940 in KAPSAM_DISI_VAKALAR:
+        print("940  KAPSAM_DISI — " + KAPSAM_DISI_VAKALAR[940])
+        return basarisiz, atlanan
+
+    once_vuran = 0
+    sonra_vuran = 0
+    for vaka in kadro:
+        no, beklenen, arac, hedef, agent_id, _aciklama = vaka[:6]
+        ek_env = dict(vaka[6] or {})
+        jeton = vaka[7]
+        bayat_env = {k: d for k, d in ek_env.items() if k != "PRUVO_BUGUN"}
+        k_once, iz_once = kancayi_kostur(arac, hedef, REPO, agent_id, bayat_env)
+        k_sonra, iz_sonra = kancayi_kostur(arac, hedef, REPO, agent_id, ek_env)
+        vurdu_once = (k_once == beklenen and jeton in iz_once)
+        vurdu_sonra = (k_sonra == beklenen and jeton in iz_sonra)
+        once_vuran += 1 if vurdu_once else 0
+        sonra_vuran += 1 if vurdu_sonra else 0
+        print("{:<4} kol={:<14} ONCE={:<5} SONRA={:<5} | {}".format(
+            no, CODEX_KOL_JETONLARI[jeton],
+            "vurdu" if vurdu_once else "BOS", "vurdu" if vurdu_sonra else "BOS",
+            ("" if vurdu_sonra else "olculen=" + k_sonra + " iz=" +
+             iz_sonra.replace("\n", " ")[:60])))
+        if not vurdu_sonra:
+            basarisiz.append((no, "kol=" + CODEX_KOL_JETONLARI[jeton],
+                              k_sonra, "K268 kol atfi: vaka KENDI kolunu olcmuyor"))
+
+    kollar = {CODEX_KOL_JETONLARI[v[7]] for v in kadro}
+    print("KOL_KAPSAMI: VAKA={} (taban {}) KOL={} (taban {}) "
+          "OLCULEN_KOL_ONCE={} OLCULEN_KOL_SONRA={}".format(
+              len(kadro), CODEX_KOL_VAKA_TABANI, len(kollar),
+              CODEX_KOL_ADET_TABANI, once_vuran, sonra_vuran))
+    if len(kadro) < CODEX_KOL_VAKA_TABANI or len(kollar) < CODEX_KOL_ADET_TABANI:
+        basarisiz.append((941, "vaka>=%d kol>=%d" % (CODEX_KOL_VAKA_TABANI,
+                                                     CODEX_KOL_ADET_TABANI),
+                          "vaka=%d kol=%d" % (len(kadro), len(kollar)),
+                          "K268 KAPSAM TABANI ASILDI — kadro kuculdu, sessiz kirpma yasak"))
     return basarisiz, atlanan
 
 
@@ -1615,6 +1845,8 @@ def main():
         ("CWD REPO DISINDA (F adiminin kalan isi) — MIMAR kimligi", DIS_CWD_VAKALARI, DIS_CWD),
         ("22 TEM SERTLESTIRME (olcum/curl/codex/python-allowlist/sh-nobetci)", MIMAR_22TEM_VAKALARI, REPO),
         ("17 AGU K159 CODEX SURELI PENCERESI + MODEL KAPISI (V1..V7)", K159_CODEX_VAKALARI, REPO),
+        ("24 AGU K268 PENCERE KOLU — DUVAR SAATI AYAGI + SINIR (930..932)",
+         K268_PENCERE_VAKALARI, REPO),
         ("28 TEM AGENT-KAPISI (Agent/Task beyan sarti) — MIMAR + ISCI ekseni", AGENT_VAKALARI, REPO),
         ("8 AGU MCP-TARAYICI KAPISI — ANA RED / ISCI GECER + YANLIS-POZITIF nobeti", MCP_VAKALARI, REPO),
         ("13 AGU ISCI-SARMALAYICI KAPISI — yol/argüman/motor/beyan + segment ayrimi",
@@ -1634,24 +1866,30 @@ def main():
     # `ek_vaka` ONDAN TURER; ikinci sabit BIRAKILMAZ.
     k159_mesaj_vaka_sayisi = 1 if not SADECE_KIMLIK_EKSENI else 0
     k214_vaka_sayisi = 5 if not SADECE_KIMLIK_EKSENI else 0
+    # K268 kol-atfi denetimi AYRI bir vaka gibi sayilir (kapsam tabani asilirsa 941).
+    k268_kol_vaka_sayisi = 1 if not SADECE_KIMLIK_EKSENI else 0
     ek_vaka = 0 if SADECE_KIMLIK_EKSENI else (
-        len(COMMIT_VAKALARI) + 3 + k159_mesaj_vaka_sayisi + k214_vaka_sayisi)
+        len(COMMIT_VAKALARI) + 3 + k159_mesaj_vaka_sayisi + k214_vaka_sayisi +
+        k268_kol_vaka_sayisi)
     toplam = sum(len(v) for _, v, _ in kumeler) + ek_vaka
-    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3 + K159 son kol {} + K214 claude kol {})".format(
-        toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI),
-        k159_mesaj_vaka_sayisi, k214_vaka_sayisi))
+    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3 + K159 son kol {} + "
+          "K214 claude kol {} + K268 kol atfi {})".format(
+              toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI),
+              k159_mesaj_vaka_sayisi, k214_vaka_sayisi, k268_kol_vaka_sayisi))
     print("TOOLS DIZINI: " + TOOLS)
     print("GECICI KAYITLI WORKTREE: " + (KAYITLI_WT_YOL or "KURULAMADI (cevre-atlanan)"))
 
     basarisiz = []
     atlanan = []
     cevre_atlanan = []
+    kapsam_disi = []
     try:
         for baslik, vakalar, cwd in kumeler:
-            b, a, c = kume_kostur(baslik, vakalar, cwd)
+            b, a, c, kd = kume_kostur(baslik, vakalar, cwd)
             basarisiz += b
             atlanan += a
             cevre_atlanan += c
+            kapsam_disi += kd
         if not SADECE_KIMLIK_EKSENI:
             b, a = commit_kume_kostur(gecici_kok)
             basarisiz += b
@@ -1662,6 +1900,13 @@ def main():
             b, a = k159_mesaj_denetim()
             basarisiz += b
             atlanan += a
+            if 910 in KAPSAM_DISI_VAKALAR:
+                kapsam_disi.append(910)
+            b, a = codex_kol_kapsam_denetim()
+            basarisiz += b
+            atlanan += a
+            if 940 in KAPSAM_DISI_VAKALAR:
+                kapsam_disi.append(940)
             b, a = k214_claude_kol_sirasi_denetim()
             basarisiz += b
             atlanan += a
@@ -1685,6 +1930,12 @@ def main():
             len(cevre_atlanan), cevre_atlanan))
     else:
         print("CEVRE-ATLANAN VAKA: 0")
+    # 🔴 K268: KAPSAM_DISI SAYISI AYRI BASILIR ve fail-LOUD'dur. "10/10 GECTI" tek
+    # basina kabul DEGILDIR: olculemeyen kol varsa SAYISI ve SEBEBI gorunmek zorunda.
+    print("KAPSAM_DISI VAKA (olculemeyen kol ADIYLA): {} {}".format(
+        len(kapsam_disi), sorted(kapsam_disi) if kapsam_disi else ""))
+    for _no in sorted(set(kapsam_disi)):
+        print("  KAPSAM_DISI vaka {}: {}".format(_no, KAPSAM_DISI_VAKALAR.get(_no, "?")))
     if sizinti:
         print("CEVRE SIZINTISI: gecici worktree KALDIRILAMADI — {}".format(sizinti))
     if basarisiz:
@@ -1695,12 +1946,17 @@ def main():
     if atlanan:
         print("SONUC: KIRMIZI — atlanan vaka var (sessiz kirpma yasak).")
         sys.exit(1)
+    if kapsam_disi:
+        print("SONUC: KIRMIZI — KAPSAM_DISI={}. Olculemeyen kol sessizce YESILE "
+              "cevrilmez.".format(len(kapsam_disi)))
+        sys.exit(1)
     if cevre_atlanan or sizinti:
         print("SONUC: KIRMIZI — CEVRE-ATLANAN={} SIZINTI={}. Takim MERGE KAPISIDIR; "
               "kosulmayan vaka ya da sizdirilan gecici worktree ile YESIL YANMAZ.".format(
                   len(cevre_atlanan), bool(sizinti)))
         sys.exit(1)
-    print("SONUC: {}/{} vaka GECTI (cevre-atlanan 0, sizinti yok).".format(toplam, toplam))
+    print("SONUC: {}/{} vaka GECTI (cevre-atlanan 0, KAPSAM_DISI 0, sizinti yok).".format(
+        toplam, toplam))
     sys.exit(0)
 
 
