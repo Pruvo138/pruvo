@@ -35,12 +35,13 @@ dosya (marka-artim-test, marka-sayac-kapisi) — sahipleri KAPANDI, kurtarma chi
   K277** defter/kutu ailesi: rotasyon vetosu · numara atomik DEGIL (bugun 3 cakisma) · rc=2
   gozcude CI_KIRMIZI · arsiv jetonu okunmadan tasiniyor. **Bes kalemin tam metni KUTUDA.**
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
-- 🔧 **K268 (ORTAK SATIR ARTIGI) — KABUL OLCULDU, HUKUM MIMARDA:** dal `kral/k268-ortak-satir`.
-  Tikayan satir IKI DEGIL UCTU: `24 Agu KAPANANLAR` · `19 Agu KAPANANLAR` (kimlik K188) · `K271`
-  kapanis satiri (main'e sonra indi). Kalem metnindeki (b) — `K245/K240/K241/K242/K244` — ortak
-  satir DEGILMIS, bastan 🔧 acik. Bolme sonrasi kanonik kosum: `SINIFLANAMAZ` 3->0 · `ACIK` 44->44
-  (negatif kontrol TUTTU) · `KAPALI` 0->4 · `TASINAN_MADDE=4` · 12279->11652 B / 125->120 satir ·
-  `LOSSLESS=EVET kayip=0 fazla_dusen=0 uydurulan=0`.
+- ✅ **K268 KAPANDI** (`740a0c06`): uc ortak satir EL ile bolundu, rotasyon ilk kez TASIDI —
+  `TASINAN_MADDE=4` · `SINIFLANAMAZ` 3->0 · `ACIK` 44 SABIT (negatif kontrol) · `LOSSLESS=EVET`.
+- 🔧 **K280:** main IKI marka kapisinda KIRMIZI (`marka-sayac-kapisi` HEAD rc=1 `SAPAN_MARKA=62`,
+  `marka-artim-test` HEAD rc=1); care `kurtarma/faz1b-marka-baslik` (`27cea889`) ama sekli
+  "once testi duzelt" — kabulun 3. kolu GEVSEME KONTROLU, o gecmeden merge YOK.
+- ⚠️ **K86 BABA basamaginda** (`SEBEP=YETENEK SAYAC=5`, tur 663 diske yazdi, kova `OKAN_KAPISI`) —
+  BaBa karari bekler. **K281 CURUDU:** canli kilit YOK, kilidi `yas >= DUSME_TUR_ESIGI` kolu kirdi.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
