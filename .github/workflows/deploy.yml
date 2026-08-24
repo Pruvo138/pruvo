@@ -149,6 +149,33 @@ jobs:
       - name: Ozet kart alani sozlesme mutasyon kabul testi
         run: python3 tools/ozet-alan-sozlesme-test.py --mutasyon
 
+      # EGE URETIM-SAHIPLIGI KAPISI (K285, 24 Agu) — BLOKLAYICI, continue-on-error YOK.
+      # ege-bilgi.md her Ege konusmasinda gomulu SISTEM_TALIMATI'nin YANINA enjekte edilir.
+      # Sahiplik satiri 24 Agu'ya kadar TEK YONLU idi: yalniz "isaretli kalemde 'ozel
+      # uretiyoruz' DEME" diyordu, TERS YON serbestti — Ege bizim GERCEKTEN urettigimiz
+      # bir parcaya "hazir / tedarikciden geliyor / orijinal urun" diyebilirdi. Talimat ise
+      # iki yonu de yasakliyor: ayni prompt icinde ZIT iki emir, model rastgele birini secer.
+      #
+      # 🔴 NEDEN BLOKLAYICI SERITTE (KraL hukmu, 24 Agu — serit turnusolu): kirmizisi
+      # MUSTERIYE giden TICARI BEYANI vuruyor. "Bu parcayi biz uretmiyoruz / orijinaldir"
+      # cumlesi urunun ne oldugu hakkinda yanlis beyandir ve satis/iade duzlemine dokunur.
+      # `deploy: needs: build` -> kapi kirmizi yanarsa yayin durur.
+      #
+      # 🔴 IKIZ TANIM YOK: adim `nobet.yml`den SILINDI, kopyalanmadi
+      # ([[ikiz-tanim-sessiz-ayrisma]]); orada yalnizca TASINDI notu durur.
+      # 🔴 TASIMADAN ONCE YESIL OLDUGU OLCULDU (bu dalda, ayni gun): kabul testi rc=0,
+      # 12 vaka x 2 kaynak ayrisma=0, 5 mutantin 5'i hedef kolundan KIRMIZI, kontrol YESIL.
+      # ⚠️ BILEREK KABUL EDILEN BEDEL: bu bir NESIR kapisidir. Sahiplik satirini yeniden
+      # yazan MESRU bir duzenleme, kural nesnesini turetemezse (capa/kosul isaretcisi
+      # kaybolursa) KIRMIZI yanar ve TUM yayini durdurur. Kapinin kendi teshisi hangi
+      # kolun dustugunu ADIYLA basar; satiri degistirmeden once YERELDE kostur:
+      #   python3 tools/ege-uretim-sahipligi-test.py
+      # ⚠️ KARDES ASIMETRI (olculdu 24 Agu): `ege-bilgi-tavan-test.py` ve
+      # `ege-kabiliyet-kapisi.py` HALA yalniz nobet.yml'de, yani BLOKLAYICI DEGIL. Ayni
+      # dosyanin uc kapisindan yalniz bu biri yayini durdurur.
+      - name: "Ege uretim-sahipligi kapisi (iki yon + celiski + esanlamli + mutasyon — BLOKLAYICI)"
+        run: python3 tools/ege-uretim-sahipligi-test.py
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 

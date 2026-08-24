@@ -3349,6 +3349,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/ege-bilgi-tavan-test.py
 
+      # EGE URETIM-SAHIPLIGI KAPISI (K285) — 🔴 BURADAN TASINDI (24 Agu, KraL hukmu).
+      # Adim artik `deploy.yml` `build` isinde kosuyor (= `deploy: needs: build`), yani
+      # BLOKLAYICI. Gerekce: kirmizisi musteriye giden TICARI BEYANI vuruyor ("bu parcayi
+      # biz uretmiyoruz / orijinaldir"), dolayisiyla serit turnusolune gore hijyen degil
+      # yayin seridine ait. Buraya KOPYA KONMADI — iki kopya zamanla sessizce ayrisir ve
+      # hangisinin hukum verdigi belirsizlesir ([[ikiz-tanim-sessiz-ayrisma]]).
+      # Kapi: tools/ege-uretim-sahipligi-test.py (mutasyon alt-kosumu her kosumda calisir).
+
       # EGE KABILIYET-SINIRI KAPISI (26 Tem): ege-bilgi.md musteriden URETIM olcusu/cizimi
       # ISTIYOR mu, ya da uretim/fiyat SOZU veriyor mu? Canli SISTEM_TALIMATI bunu katalog-bos
       # dalinda uc yerde yasakliyor (pruvo-bot worker/src/index.js :41, :52, :2467; ayrica :57
