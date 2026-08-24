@@ -53,6 +53,39 @@ FAZLAR = {
     "temizlik": (),  # main() dogrudan temizlik() cagirir
     "kutu-rotasyon": (),  # main() dogrudan kutu_rotasyon() cagirir
     "defter-rotasyon": (),  # main() dogrudan defter_rotasyon() cagirir
+    # --- K271: damga tasima onarimi + dusmus damganin geri yuklenmesi ---
+    "k271-taban": REGRESYON + (
+        ("k271-taban-kurulum", [sys.executable, os.path.join(
+            os.path.dirname(BU_DIZIN), "k271", "k271-kur.py")]),
+        ("k271-taban-k260-batarya", [sys.executable, BATARYA]),
+        ("k271-taban-kova", [sys.executable, BATARYA, "--canli"]),
+    ),
+    "k271-kur": (
+        ("k271-kurulum", [sys.executable, os.path.join(
+            os.path.dirname(BU_DIZIN), "k271", "k271-kur.py"), "--uygula"]),
+    ),
+    "k271-geri-yukle": (
+        ("k271-geri-yukle-KURU", [sys.executable, os.path.join(
+            os.path.dirname(BU_DIZIN), "k271", "k271-kur.py"),
+            "--geri-yukle", "--kuru"]),
+        ("k271-geri-yukle-GERCEK", [sys.executable, os.path.join(
+            os.path.dirname(BU_DIZIN), "k271", "k271-kur.py"), "--geri-yukle"]),
+    ),
+    "k271-kabul": (
+        ("k271-batarya", [sys.executable,
+                          os.path.join(CRON, "nobet-damga-tasima-test.py")]),
+        ("k271-mutasyon", [sys.executable,
+                           os.path.join(CRON, "nobet-damga-tasima-test.py"),
+                           "--mutasyon"]),
+        ("k271-k260-batarya-REGRESYON", [sys.executable, BATARYA]),
+        ("k271-kova-SONRA", [sys.executable, BATARYA, "--canli"]),
+    ) + tuple(("k271-sonra-" + ad, komut) for ad, komut in REGRESYON),
+    "k271-tur-kuru": (
+        ("k271-tur-kuru", [sys.executable, NOBET_KAPI, "--tur-kapat", "--kuru"]),
+    ),
+    "k271-tur-canli": (
+        ("k271-tur-canli", [sys.executable, NOBET_KAPI, "--tur-kapat"]),
+    ),
     # Merge oncesi kapi turu. CI KAPSAM kapisi IKI AGACTA da olculur: kardes
     # mimarin komutu ANA agaci gosteriyordu ama gerekcesi "dalin dosyalari ana
     # agacta gorunmez, sahte yesil verir" diyordu — celiski ikisini de olcup
@@ -91,6 +124,11 @@ TEMIZLENECEK = (
     os.path.join(CRON, "k260-kanit"),
     os.path.join(CRON, "k260-kanit2"),
     os.path.join(CRON, "k260-temizlik-izi"),   # bu kosumun kendi izi
+    os.path.join(CRON, "k260-merge-kanit"),
+    os.path.join(CRON, "k260-kutu-kanit"),
+    os.path.join(CRON, "k260-defter-kanit"),
+    os.path.join(CRON, "k271-kanit"),
+    os.path.join(CRON, "k271-kanit2"),
     os.path.join(CRON, "nobet-kapi.py.yedek-k260-20260824T125221Z"),
     os.path.join(CRON, "testler.py.yedek-k260-20260824T125221Z"),
 )
@@ -98,6 +136,12 @@ KORUNAN = (
     os.path.join(CRON, "nobet-kapi.py.yedek-k260-20260824T125857Z"),
     os.path.join(CRON, "testler.py.yedek-k260-20260824T125857Z"),
 )
+# K271 yedekleri KORUNUR: canli yamanin ve VERI ONARIMININ tek geri donus yolu.
+# Ozellikle `nobet-geri-iz.json.yedek-k271-*` — veri onarimi geri alinamazsa
+# damga restorasyonu tek yonlu bir islem olurdu.
+KORUNAN_ONEK = (os.path.join(CRON, "nobet-kapi.py.yedek-k271-"),
+                os.path.join(CRON, "testler.py.yedek-k271-"),
+                os.path.join(CRON, "nobet-geri-iz.json.yedek-k271-"))
 
 
 def _boyut_kb(yol):
@@ -138,6 +182,10 @@ def temizlik():
     for yol in KORUNAN:
         print("KORUNAN %-59s VAR=%s KB=%d"
               % (yol, "E" if os.path.exists(yol) else "H", _boyut_kb(yol)))
+    for ad in sorted(os.listdir(CRON)):
+        tam = os.path.join(CRON, ad)
+        if any(tam.startswith(o) for o in KORUNAN_ONEK):
+            print("KORUNAN %-59s VAR=E KB=%d" % (tam, _boyut_kb(tam)))
     print("TEMIZLIK ONCE_KB=%d SONRA_KB=%d KAZANC_KB=%d KALAN_HEDEF=%d"
           % (once, sonra, once - sonra, kalan))
     print("HUKUM=%s" % ("TEMIZ" if kalan == 0 else "KALINTI_VAR"))
