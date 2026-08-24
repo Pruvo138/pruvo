@@ -90,6 +90,9 @@ M_K86 = ("SERIT B'de UC mutasyon bataryasi ayni anda kapsam deligi bildiriyor; "
          "deploy'u bloklamiyor ama her push'ta Run failed maili uretiyor")
 M_K98 = ("K85 sinif tekrari + K80 ortak zincir; Build & deploy BLOKLU, "
          "`ebebb966` HEAD")
+M_K49 = ("`d1-sync.py` YAZICI yolunda kilit YOK — iki eszamanli tam-katalog "
+         "yazicisini hicbir sey engellemiyor; flock/PID kilidi + yazici ucusta "
+         "fail-closed kapisi gerekiyor")
 # Okan jetonu KOD ACIKLIGINDA — maskeleme burayi GORMEMELI (fail-closed).
 M_OKAN_KOD = "Bu is bir `okan kapisi` kalemidir; karar Okan'da"
 
@@ -227,6 +230,78 @@ def bolum_d(nk, ek=""):
 
 
 # ===========================================================================
+# F — HUKUM-1: EMEKLI ISCI KATINDAN GOCMUS KALEM MIMAR'A KILITLENMEZ
+# ===========================================================================
+
+# GERCEK kayit sekli (nobet-geri-iz.json, 24 Agu 2026):
+#   "K49": {"durum":"BAYAT_GOC","motor":"kimi","kat":"kimi",
+#           "eskalasyon_bayat":{"eski_motor":"codex",...},"dagitim_sayisi":3}
+def _goc_izi(nk, kalem_id, eski_motor="codex", yeni_motor=None, damgali=True):
+    yeni_motor = yeni_motor or nk.CANLI_ISCI_MOTORLARI[-1]
+    kayit = {"id": kalem_id, "durum": "BAYAT_GOC", "motor": yeni_motor,
+             "kat": yeni_motor, "dagitim_sayisi": 3, "tur": 269}
+    if damgali:
+        kayit["eskalasyon_bayat"] = {"eski_motor": eski_motor,
+                                     "eski_durum": "ESKALASYON", "damga": "D"}
+    return {"tur_no": 644, "kalemler": {kalem_id: kayit}}
+
+
+def bolum_f(nk, ek=""):
+    print("--- BOLUM F%s: HUKUM-1 (EMEKLI KATTAN GOC) ---" % ek)
+    canli = tuple(nk.CANLI_ISCI_MOTORLARI)
+    # K49 metni: "kilit"/"flock"/"fail-closed"/"kapisi" SERBEST metinde geciyor,
+    # yani maskeleme onu KURTARMAZ — kurtaran YAPISAL goc izidir.
+    k49 = _kalem(nk, "K49", M_K49)
+    vaka("F0-metin-tek-basina-mimar%s" % ek, nk.KOVA_MIMAR_GERCEK,
+         nk.kova_sec(k49))
+    gi = _goc_izi(nk, "K49")
+    # F1 — YAPISAL goc izi VARSA kalem DAGITILABILIR.
+    vaka("F1-goc-izi-dagitilabilir%s" % ek, nk.KOVA_DAGITILABILIR,
+         nk.kova_sec(k49, gi))
+    # F8 — ve gidecegi kat B4'un sectigi CANLI motordur (MIMAR DEGIL).
+    vaka("F8-kat-canli-motor%s" % ek, canli[-1], nk.kat_sec(k49, gi))
+    vaka("F8b-kat-mimar-degil%s" % ek, "DEGIL",
+         "MIMAR" if nk.kat_sec(k49, gi) == nk.KAT_MIMAR else "DEGIL")
+
+    # --- NEGATIF KOL: yuklem DAR mi? Her sarti AYRI AYRI dusur. ---
+    # F2: geri-iz VERILMEDI -> geriye donuk uyum, kalem MIMAR'da kalir.
+    vaka("F2-geri-iz-yok-mimar%s" % ek, nk.KOVA_MIMAR_GERCEK,
+         nk.kova_sec(k49, None))
+    # F3: kayit VAR ama B4 goc damgasi YOK -> emekli kattan gelmemis.
+    vaka("F3-damga-yok-mimar%s" % ek, nk.KOVA_MIMAR_GERCEK,
+         nk.kova_sec(k49, _goc_izi(nk, "K49", damgali=False)))
+    # F4: eski motor EMEKLI kumede DEGIL -> gerekce emekli-ad DEGIL.
+    vaka("F4-eski-motor-canli-mimar%s" % ek, nk.KOVA_MIMAR_GERCEK,
+         nk.kova_sec(k49, _goc_izi(nk, "K49", eski_motor=canli[0])))
+    # F5: yeni motor CANLI DEGIL -> goc tamamlanmamis.
+    vaka("F5-yeni-motor-emekli-mimar%s" % ek, nk.KOVA_MIMAR_GERCEK,
+         nk.kova_sec(k49, _goc_izi(nk, "K49", yeni_motor="codex")))
+    # F6: BASKA kalemin goc izi BU kalemi kurtarmaz (id eslesmesi).
+    vaka("F6-baska-id-kurtarmaz%s" % ek, nk.KOVA_MIMAR_GERCEK,
+         nk.kova_sec(k49, _goc_izi(nk, "K999")))
+    # F7 — 🔴 HUKUM 3: OKAN kalemi goc izi TASISA BILE dagitima GIRMEZ.
+    k98 = _kalem(nk, "K98", M_K98, kime="Okan")
+    vaka("F7-okan-goc-izine-ragmen%s" % ek, nk.KOVA_OKAN,
+         nk.kova_sec(k98, _goc_izi(nk, "K98")))
+    vaka("F7b-okan-kat-degismez%s" % ek, nk.KAT_OKAN,
+         nk.kat_sec(k98, _goc_izi(nk, "K98")))
+    # F9 — FAIL-CLOSED: EMEKLI kume OLCULEMEDIYSE goc yuklemi ATESLEMEZ.
+    eski = nk.EMEKLI_ISCI_MOTORLARI
+    try:
+        nk.EMEKLI_ISCI_MOTORLARI = ()
+        vaka("F9-emekli-kume-bos-mimar%s" % ek, nk.KOVA_MIMAR_GERCEK,
+             nk.kova_sec(k49, gi))
+    finally:
+        nk.EMEKLI_ISCI_MOTORLARI = eski
+    # F10 — insan kapisinda bekleyen kalem goc izine ragmen OKAN kovasinda.
+    dagitilmaz = tuple(nk.MERDIVEN.DAGITILMAZ_DURUMLAR)
+    gi_eskale = _goc_izi(nk, "K49")
+    gi_eskale["kalemler"]["K49"]["durum"] = dagitilmaz[0]
+    vaka("F10-eskale-goc-izine-ragmen%s" % ek, nk.KOVA_OKAN,
+         nk.kova_sec(k49, gi_eskale))
+
+
+# ===========================================================================
 # E — CAGRI YERI ([[kapinin-menzili-cagri-yeridir]])
 # ===========================================================================
 
@@ -259,6 +334,14 @@ def bolum_e(yol, ek=""):
     # E4 — OKAN kapisi HAM metinde (maskeli metinde DEGIL): fail-closed kaniti.
     vaka("E4-okan-ham-metinde%s" % ek, True,
          "_jeton_var(ham, OKAN_JETONLARI)" in kaynak)
+    # E5/E6 — hukum-1 DAGITIM KARARINA ulasiyor mu? (N4B kalintisi tam buydu:
+    # goc kaydi tasindi ama karar EZILMEDI.)
+    vaka("E5-fanout-geri-izi-goruyor%s" % ek, True,
+         "kat_sec(k, geri_iz) == KAT_MIMAR" in kaynak)
+    vaka("E6-dagitim-geri-izi-goruyor%s" % ek, True,
+         "kat = kat_sec(kalem, geri_iz)" in kaynak)
+    vaka("E7-basilan-kat-secilen-kat%s" % ek, True,
+         'kalem["id"], kat_sec(kalem, geri_iz),' in kaynak)
 
 
 # ===========================================================================
@@ -349,11 +432,21 @@ MUTANTLAR = (
     ("M3_OKAN_KAPISI_KALDIRILDI",
      '    if kime.startswith("okan") or _jeton_var(ham, OKAN_JETONLARI):\n',
      "    if _jeton_var(ham, OKAN_JETONLARI):\n",
-     ("B1-", "B1b-", "D6-"), False),
-    ("M4_EMEKLI_GOCU_KALDIRILDI",
+     ("B1-", "B1b-", "D6-", "F7-", "F7b-"), False),
+    ("M4_EMEKLI_KAT_GOCU_KALDIRILDI",
      "    return canli_kata_goc(kat) or (\n",
      "    return kat or (\n",
      ("C1-",), False),
+    ("M5_HUKUM1_YAPISAL_GOC_KALDIRILDI",
+     "        if _emekli_kattan_gocmus(kalem, geri_iz):\n"
+     "            return _gocmus_kat(kalem, geri_iz)\n",
+     "        if False:\n            return _gocmus_kat(kalem, geri_iz)\n",
+     ("F1-", "F8-", "F8b-"), False),
+    ("M6_GOC_YUKLEMI_GENISLEDI_EMEKLI_SARTI_DUSTU",
+     "    if damga.get(\"eski_motor\") not in EMEKLI_ISCI_MOTORLARI:\n"
+     "        return False\n",
+     "    if damga.get(\"eski_motor\") is None:\n        return False\n",
+     ("F4-",), False),
     ("K0_KONTROL_ILGISIZ_KOL",
      "    if _jeton_var(metin, FLASH_JETONLARI):\n"
      "        return _emekli_kat_gocur(KAT_FLASH)\n",
@@ -368,6 +461,7 @@ def _batarya(nk, yol, ek):
     bolum_b(nk, ek)
     bolum_c(nk, ek)
     bolum_d(nk, ek)
+    bolum_f(nk, ek)
     bolum_e(yol, ek)
     return list(VAKALAR)
 

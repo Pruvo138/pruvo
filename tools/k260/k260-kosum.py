@@ -47,6 +47,9 @@ FAZLAR = {
     "kur": (
         ("kurulum", [sys.executable, KUR, "--uygula"]),
     ),
+    # Tur-1 yamasini geri alip DUZELTILMIS yamayi uygular (ankorlar ORIJINAL
+    # metne yaslidir; ustune yazmak ANKOR_YOK verirdi).
+    "geri-al": (),   # komutu `--damga` ile main() kurar
     "kabul": (
         ("kabul-batarya", [sys.executable, BATARYA]),
         ("mutasyon", [sys.executable, BATARYA, "--mutasyon"]),
@@ -57,6 +60,10 @@ FAZLAR = {
     ),
     "tur-canli": (
         ("tur-canli", [sys.executable, NOBET_KAPI, "--tur-kapat"]),
+    ),
+    # Dagitim SONRASI kuru tur: dagitilan kalem UCUSTA gorunuyor mu?
+    "tur-kuru2": (
+        ("tur-kuru2", [sys.executable, NOBET_KAPI, "--tur-kapat", "--kuru"]),
     ),
 }
 
@@ -83,10 +90,18 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="K260 kosum paketi")
     ap.add_argument("--cikti", required=True)
     ap.add_argument("--faz", required=True, choices=sorted(FAZLAR))
+    ap.add_argument("--damga", help="faz=geri-al icin kurulum damgasi")
     args = ap.parse_args(argv)
     os.makedirs(args.cikti, exist_ok=True)
+    adimlar = FAZLAR[args.faz]
+    if args.faz == "geri-al":
+        if not args.damga:
+            print("HUKUM=OLCULEMEDI sebep=damga_verilmedi")
+            return 2
+        adimlar = (("geri-al", [sys.executable, KUR, "--geri-al", args.damga]),
+                   ("geri-al-sonrasi-olcum", [sys.executable, KUR]))
     rcler = []
-    for ad, komut in FAZLAR[args.faz]:
+    for ad, komut in adimlar:
         rcler.append((ad, kos(ad, komut, args.cikti)))
     print("FAZ=%s ADIM=%d RC_SIFIR=%d"
           % (args.faz, len(rcler), sum(1 for _, r in rcler if r == 0)))

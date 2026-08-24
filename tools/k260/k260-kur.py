@@ -146,6 +146,42 @@ def _emekli_kat_gocur(kat):
         CANLI_ISCI_MOTORLARI[0] if CANLI_ISCI_MOTORLARI else kat)
 
 
+def _emekli_kattan_gocmus(kalem, geri_iz):
+    """🔴 K260 HUKUM-1'in YAPISAL yuklemi: kalem EMEKLI bir ISCI katindan CANLI
+    kata GOCMUS mu?
+
+    Olculdu (24 Agu 2026, `nobet-geri-iz.json`): bugun MIMAR'a kilitli 11
+    kalemin 10'unun kaydi `durum=BAYAT_GOC motor=kimi eski_motor=codex
+    dagitim_sayisi=3`. Yani bu kalemler EMEKLI bir motora UC KEZ DAGITILMIS —
+    hicbiri hicbir zaman insan kati olmamistir; bugunku MIMAR hukmu yalnizca
+    `KAT_CODEX = KAT_MIMAR` TAKMA ADININ artigidir. B4 gocu kaydi CANLI kata
+    tasidi ama DAGITIM KARARINI ezmedi (N4B kapanisi: "gocen 15 kaydin 10'u
+    kat_sec ile yine MIMAR'a dusup DAGITILMAZ kaliyor") — K260 tam bu kalintidir.
+
+    🔴 FAIL-CLOSED. False doner (kalem MIMAR_KATI_GERCEK'te KALIR) su hallerde:
+      · geri-iz VERILMEDI ya da kaydi YOK        -> olcemedigimizi dagitmayiz
+      · B4 goc damgasi YOK                       -> emekli kattan gelmemis
+      · eski motor EMEKLI kumede DEGIL           -> gerekce emekli-ad DEGIL
+      · yeni motor CANLI kumede DEGIL            -> goc tamamlanmamis
+      · EMEKLI ya da CANLI kume BOS (olculemedi) -> toplu goc ETTIRILMEZ
+    Insan katindan gocmus olamaz: `bayat_eskalasyonlari_gocur` MIMAR/OKAN
+    kayitlarini KAPSAM DISI birakir (B4, kabul-3).
+    """
+    if geri_iz is None or not EMEKLI_ISCI_MOTORLARI or not CANLI_ISCI_MOTORLARI:
+        return False
+    kayit = (geri_iz.get("kalemler") or {}).get(kalem.get("id")) or {}
+    damga = kayit.get("eskalasyon_bayat") or {}
+    if damga.get("eski_motor") not in EMEKLI_ISCI_MOTORLARI:
+        return False
+    return (kayit.get("motor") or kayit.get("kat")) in CANLI_ISCI_MOTORLARI
+
+
+def _gocmus_kat(kalem, geri_iz):
+    """Gocmus kalemin CANLI kati — B4 zaten sectI, IKINCI secim YAPILMAZ."""
+    kayit = (geri_iz.get("kalemler") or {}).get(kalem.get("id")) or {}
+    return kayit.get("motor") or kayit.get("kat")
+
+
 # UC KOVA (H2, K260). Kova `kat_sec`ten ve eskale kumesinden TURER — ikinci
 # siniflama TUTULMAZ ([[ikiz-tanim-sessiz-ayrisma]]). Supheli kalem
 # MIMAR_KATI_GERCEK'te kalir ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
@@ -155,15 +191,24 @@ KOVA_OKAN = "OKAN_KAPISI"
 KOVA_ADLARI = (KOVA_DAGITILABILIR, KOVA_MIMAR_GERCEK, KOVA_OKAN)
 
 
-def kat_sec(kalem):
-    """H3 sinif tablosu. Claude iscisi HICBIR kosulda donmez."""
+def kat_sec(kalem, geri_iz=None):
+    """H3 sinif tablosu. Claude iscisi HICBIR kosulda donmez.
+
+    `geri_iz` VERILIRSE hukum-1 uygulanir: emekli isci katindan CANLI kata
+    gocmus kalem MIMAR'a KILITLENMEZ, B4'un sectigi CANLI kata gider.
+    Verilmezse davranis K260 oncesiyle AYNIDIR (geriye donuk uyum).
+    """
     ham = ((kalem.get("is") or "") + " " + (kalem.get("durum_ham") or "")).lower()
     kime = (kalem.get("kime") or "").lower()
-    # OKAN kapisi TAM METIN uzerinde olculur (maskeleme UYGULANMAZ).
+    # OKAN kapisi TAM METIN uzerinde olculur (maskeleme UYGULANMAZ) ve hukum-1
+    # gocunden ONCE gelir: Okan kalemi HICBIR kolda dagitima girmez (hukum 3).
     if kime.startswith("okan") or _jeton_var(ham, OKAN_JETONLARI):
         return KAT_OKAN
     metin = _serbest_metin(ham)
     if _jeton_var(metin, CODEX_JETONLARI):
+        # 🔴 HUKUM-1: emekli-kat artigi MIMAR hukmunu EZEMEZ.
+        if _emekli_kattan_gocmus(kalem, geri_iz):
+            return _gocmus_kat(kalem, geri_iz)
         return KAT_CODEX
     if _jeton_var(metin, PRO_JETONLARI):
         return _emekli_kat_gocur(KAT_PRO)
@@ -183,7 +228,7 @@ def kova_sec(kalem, geri_iz=None):
     """
     if not KAT_KAYNAGI_OLCULDU:
         return KOVA_MIMAR_GERCEK
-    kat = kat_sec(kalem)
+    kat = kat_sec(kalem, geri_iz)
     if kat == KAT_OKAN:
         return KOVA_OKAN
     if geri_iz is not None and kalem.get("id") in set(eskale_kalemler(geri_iz)):
@@ -223,6 +268,49 @@ P2_YENI = '''    satirlar.append("KAT_MIMAR=%d KAT_TARAMA=%d KAT_MEKANIK=%d KAT_
         if _kova[_kova_adi]:
             satirlar.append("K260_KOVA_%s=%s" % (
                 _kova_adi, ",".join(sorted(_kova[_kova_adi]))))
+'''
+
+# --- P3: HUKUM-1 DAGITIM KARARINA ULASSIN ----------------------------------
+# 🔴 N4B'nin kalintisi tam buradaydi: B4 gocu geri-izi tasidi ama `kat_sec`
+# geri-izi HIC GORMEDIGI icin karari EZMIYORDU. Uc cagri yerine `geri_iz`
+# gecirilir; boylece SECILEN kat, DAGITILAN kat ve BASILAN kat AYNI kaynaktan
+# gelir ([[ayni-alan-iki-hukum-biri-sessiz]]).
+P3A_ESKI = """    okan = [k for k in kalemler if kat_sec(k) == KAT_OKAN]
+    mimar = [k for k in kalemler if kat_sec(k) == KAT_MIMAR]
+"""
+P3A_YENI = """    okan = [k for k in kalemler if kat_sec(k, geri_iz) == KAT_OKAN]
+    mimar = [k for k in kalemler if kat_sec(k, geri_iz) == KAT_MIMAR]
+"""
+
+P3B_ESKI = """    calistirici = calistirici or (lambda komut, log: _gercek_calistirici(komut, log))
+    kat = kat_sec(kalem)
+"""
+P3B_YENI = """    calistirici = calistirici or (lambda komut, log: _gercek_calistirici(komut, log))
+    kat = kat_sec(kalem, geri_iz)
+"""
+
+P3C_ESKI = '''    kat_sayaci = {KAT_MIMAR: 0, KAT_TARAMA: 0, KAT_MEKANIK: 0, KAT_OKAN: 0}
+    for kalem in kalemler:
+        kat = kat_sec(kalem)
+        kat_sayaci[kat] = kat_sayaci.get(kat, 0) + 1
+    for kalem in plan["dagitilacak"]:
+        satirlar.append("KALEM %s -> %s [%s]" % (
+            kalem["id"], kat_sec(kalem),
+            "YENIDEN" if kalem["id"] in yeniden else "DAGITILACAK"))
+    for kalem in plan["sirada"]:
+        satirlar.append("KALEM %s -> %s [SIRADA]" % (kalem["id"], kat_sec(kalem)))
+'''
+P3C_YENI = '''    kat_sayaci = {KAT_MIMAR: 0, KAT_TARAMA: 0, KAT_MEKANIK: 0, KAT_OKAN: 0}
+    for kalem in kalemler:
+        kat = kat_sec(kalem, geri_iz)
+        kat_sayaci[kat] = kat_sayaci.get(kat, 0) + 1
+    for kalem in plan["dagitilacak"]:
+        satirlar.append("KALEM %s -> %s [%s]" % (
+            kalem["id"], kat_sec(kalem, geri_iz),
+            "YENIDEN" if kalem["id"] in yeniden else "DAGITILACAK"))
+    for kalem in plan["sirada"]:
+        satirlar.append("KALEM %s -> %s [SIRADA]" % (
+            kalem["id"], kat_sec(kalem, geri_iz)))
 '''
 
 
@@ -286,6 +374,17 @@ def olculer():
         ("P1b emekli kat gocu", "def _emekli_kat_gocur(" in nk),
         ("P1c UC KOVA yuklemi", "def kova_sec(" in nk),
         ("P1d kova dagilimi", "def kova_dagilimi(" in nk),
+        ("P1g hukum-1 yapisal yuklemi",
+         "def _emekli_kattan_gocmus(" in nk),
+        ("P1h kat_sec yuklemi CAGIRIYOR",
+         _cagri_var(nk, "kat_sec", "_emekli_kattan_gocmus")),
+        ("P3a fanout geri-izi goruyor",
+         "kat_sec(k, geri_iz) == KAT_MIMAR" in nk),
+        ("P3b dagitim geri-izi goruyor",
+         _cagri_var(nk, "kalem_dagit", "kat_sec")
+         and "kat = kat_sec(kalem, geri_iz)" in nk),
+        ("P3c basilan kat = secilen kat",
+         "kalem[\"id\"], kat_sec(kalem, geri_iz)," in nk),
         # Sinif jetonlari SERBEST metinde aranmali; OKAN kapisi HAM metinde.
         ("P1e kat_sec maskeyi KULLANIYOR",
          _cagri_var(nk, "kat_sec", "_serbest_metin")),
@@ -323,7 +422,10 @@ def uygula():
     for ad, eski, yeni in (("P0a emekli import", P0A_ESKI, P0A_YENI),
                            ("P0b fail-closed kume", P0B_ESKI, P0B_YENI),
                            ("P1 kat_sec + kovalar", P1_ESKI, P1_YENI),
-                           ("P2 cagri yeri", P2_ESKI, P2_YENI)):
+                           ("P2 cagri yeri", P2_ESKI, P2_YENI),
+                           ("P3a fanout geri-iz", P3A_ESKI, P3A_YENI),
+                           ("P3b dagitim geri-iz", P3B_ESKI, P3B_YENI),
+                           ("P3c basim geri-iz", P3C_ESKI, P3C_YENI)):
         nk, d = degistir(nk, eski, yeni)
         rapor.append((ad, d))
     yaz(NOBET_KAPI, nk)
