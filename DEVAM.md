@@ -2,16 +2,12 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 OTURUM KAPANISI — 24 Agu 2026 ~18:0xZ (KraL)
-**main=origin `7206cc89`** · worktree 4 (ana + 3 KOSAN chip) · agacta 2 YABANCI commit'siz dosya
-(`marka-artim-test.py`, `marka-sayac-kapisi.py`) — DOKUNULMADI, sahibi cikmazsa kalem.
-**CANLIYA GIDEN (bugun 13 merge/commit):** K247 `481ef295` · K259 `61736bed` · K263 `0b866f7a` ·
-K267 `eb89130e` · K86 `eee43a20` · K70 `6a45f3fd` · O4-B `12ad6238`+`a366c3d7` · K222 `7206cc89` ·
-defter `83cca44c`+`0bf8340f`+`b36f2ee7`. K184 = merge NO-OP (icerik zaten main'de).
-🔴 **KOSUYOR — ÖLDURME:** `KraL-BaglamMarji` (`claude/funny-wu-9ad73d`, agac gallant-nightingale,
-m3) CLAUDE.md tavana 77 bayt kaldi · `goofy-blackwell-71925f` (3 commit main DISI, K256 + K269) ·
-`kind-elbakyan-b81e21` (3 commit main DISI, K260 temizlik fazi). Ikisi de BUNDLE gerektirir.
-**Okan'da:** ① gecmis temizligi · ② K200(i) · ③ CLAUDE.md tavan (12.288) yukseltme ONERISI beklenir.
+## 🔁 CANLI DURUM — 24 Agu 2026 ~15:3xZ (KraL)
+**main=origin `56c24a89`** · bugun inen K260 `e1c2e4c4` (11 yeni dosya) + K256/K269/K276 · defter
+`6a435d0f`. Merge sonrasi D1 YESIL (29.654, alti eksen, hash uyusmaz 0). Agacta 2 YABANCI commit'siz
+dosya (marka-artim-test, marka-sayac-kapisi) — sahipleri KAPANDI, kurtarma chip'i sirada.
+🔴 **DEFTER TIKALI:** kanonik rotasyon `TASINAN=0` (5 blok, hepsi vetolu) — tikayan K268.
+**Okan'da:** ① gecmis temizligi · ② K200(i) · ③ CLAUDE.md tavan yukseltme ONERISI beklenir.
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
   sayac ISLE TASINIR, kapi reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
@@ -43,11 +39,10 @@ m3) CLAUDE.md tavana 77 bayt kaldi · `goofy-blackwell-71925f` (3 commit main DI
   ACIK ARTIKLAR` → SINIFLANAMAZ, kimlik K188) · (b) `K245/K240/K241/K242/K244` satiri. Kapali kalem
   mekanik olarak cikarilamiyor, EL ile bolunmeli. kabul: iki satir bolunur, kanonik kosum
   `SINIFLANAMAZ=0` basar, negatif kontrol (acik kalem sayisi) DEGISMEZ.
-- 🔧 **K271 (24 Agu, K260 kalintisi):** `kalem_dagit` `eskalasyon_bayat` damgasini tasimiyor; dusen
-  kalem yine MIMAR'a kilitleniyor (K86+K108 bugun dustu). kabul: onarim sonrasi ikisi DAGITILABILIR
-  (0->2). Tam metin `acik-kalemler` defterinde. · 🔧 **K275:** `ci-kapsam-test.py` kesfi yalniz
-  `tools/` DOGRUDAN altini tariyor — `tools/k260/`, `tools/n4b/` bataryalari MENZIL DISI, yesil
-  "kablolandi" DEGIL "gorulmedi" demek. kabul: alt dizin kesfedilir YA DA `MENZIL_DISI` jetonu BASILIR + mutant.
+- 🔧 **K271** `kalem_dagit` goc damgasini dusuruyor (K86+K108 kilitlendi); kabul 0->2. · 🔧 **K275**
+  `ci-kapsam` yalniz `tools/` DOGRUDAN altini tariyor (`k260/`,`n4b/` MENZIL DISI). · 🔧 **K272·K273·
+  K274·K277** defter/kutu ailesi: rotasyon vetosu · numara atomik DEGIL (bugun 3 cakisma) · rc=2
+  gozcude CI_KIRMIZI · arsiv jetonu okunmadan tasiniyor. **Bes kalemin tam metni KUTUDA.**
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
