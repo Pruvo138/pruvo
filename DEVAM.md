@@ -24,7 +24,19 @@ AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI (sayilar + yukseltme tetigi ARSIVDE)
   ya da `KAPSAM=0` jetonu BASAR).
 - 🔧 **K234:** CAYMA_RE "iade"yi yakalamiyor (m.15 disi hak vaadi gorunmez); kabul: olcer+3 mutant. ·
   🔧 **K235 (SINIF):** hukuki beyan kapilari `hijyen-a3`te, `deploy.needs` DISINDA — UCU BIRDEN
-  karara baglanir, tekil tasima YASAK. · 🔴 **K256:** `kimi-nabiz` KIRMIZI; `http=200 icerik=bos` — naif nabiz YESIL sayar. KUTUDA.
+  karara baglanir, tekil tasima YASAK.
+- ✅ **K256 KAPANDI (24 Agu):** nabiz 4 kova (CANLI/OLU/KARANTINA/OLCULEMEDI, fail-closed); icerik
+  kontrolu `content[0]` yerine TUM bloklari tarar. `icerik=bos` kota reddi DEGILMIS — modeller
+  `thinking_type: only`, ilk blok DUSUNCE blogu; 18-24 Agu'daki 7 satir YANLIS-KIRMIZI. Kabul
+  vaka=14/14 sayac=3/3 mutant=5/5 (`olen==hedef` + KONTROL); canli olcum `SAGLIK=CANLI out_tok=13`
+  → **yedek hat CANLI**. Log 17 satir: yeni `CANLI=2`, eski `ESKI=15` (geriye donuk KARANTINA=8 ·
+  OLCULEMEDI=7 · OLU=0). SHA `84313d27`. K269 DOGDU.
+- 🔧 **K269 (24 Agu, K256'dan DOGDU — CAGRI YERI YOK):** nabzin hukmunu OKUYAN taraf YOK. Olculdu:
+  `kimi-nabiz`e tum atiflar = crontab'in 2 kosum satiri + 1 crontab yedegi + ilgisiz
+  `baglam-olcum.tsv` etiketi; hicbir nobet/rotasyon/merdiven log'u ya da kovayi TUKETMIYOR
+  ([[kapinin-menzili-cagri-yeridir]]). kabul: hukmu okuyan EN AZ 1 tuketici + tuketicinin KOVAYA
+  GORE davranis degistirdigini kanitlayan mutant (kova sabitlenince tuketici KIRMIZI yanar);
+  jeton taramasi kabul DEGIL, davranis olculur.
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
 - ✅ **24 Agu KAPANANLAR: K243·K254·K262·K263·K247·K259·N3·K261·K213·K267 (tam metin ARSIVDE)** — 6/10 BIREBIR tasindi (K243/K263/N3 defterde bagimsiz satir yok; K247 K267'den sonra ARAC ELIYLE indi).
 - 🔧 **K268 (24 Agu, K267'den DOGDU — ORTAK SATIR ARTIGI):** kanonik kosum iki ortak satiri ADIYLA
