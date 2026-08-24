@@ -6,7 +6,7 @@
  *   GET  /api/shop/yonet/liste      -> JSON siparis listesi (son 50; ?durum= ile suzme)
  *   POST /api/shop/yonet/durum      -> {siparis_no, durum} durum makinesi (izinli gecisler)
  *   POST /api/shop/yonet/kargo      -> {siparis_no, kargo_firma, kargo_kodu} -> 'kargolandi' + e-posta
- *   POST /api/shop/yonet/havale-onay-> {siparis_no, dekont_ref, tutar?} -> 'odendi' + Purchase olcumu
+ *   POST (K284) havale kanit endpoint -> {siparis_no, dekont_ref, tutar?} -> 'odendi' + Purchase olcumu
  *   GET  /api/shop/yonet/stl        -> uretim dosyasi indir (parametrik: derleyici; normal: R2)
  *   POST /api/shop/yonet/wa-siparis -> WhatsApp (Ege) kanalindan gelen siparisi panele yazar
  *
@@ -138,10 +138,9 @@ function kargoGecisiGecerli(mevcut) {
  * hedefe. 'odendi'ye SADECE 'havale-bekliyor'dan ve SADECE dekont referansi verildiginde
  * gecilir.
  *
- * 🔴 `durumUcuKarari()` DEGISMEDI ve DEGISMEYECEK: /durum ucundan
- * 'havale-bekliyor' -> 'odendi' HALA 400 'odeme-durumu-elle-setlenemez' doner. Bu kol
- * K252'nin TAHSILAT YALANI ilkesini kaldirmaz, ona bir DELIL KAPISI ekler — referanssiz
- * onay yine imkansizdir. `ODENDI_GERI_ALMA` listesine de DOKUNULMADI.
+ * 🔴 `durumUcuKarari()` KORUNDU: /durum kanit-siz 'odendi' gecisini 400 ile engelliyor.
+ * /havale-onay (K284) tek ayri kanit kapisi; referanssiz tahsilat yine imkansiz.
+ * K252 tahsilat yalani sagiyor; `ODENDI_GERI_ALMA` listesine dokunulmadi.
  */
 function havaleGecisiGecerli(mevcut) {
   return mevcut === "havale-bekliyor";
