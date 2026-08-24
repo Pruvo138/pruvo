@@ -3349,25 +3349,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/ege-bilgi-tavan-test.py
 
-      # EGE URETIM-SAHIPLIGI (K285, 24 Agu): ege-bilgi.md'deki sahiplik satiri 24 Agu'ya
-      # kadar TEK YONLU idi — yalniz "isaretli kalemde 'ozel uretiyoruz' DEME" diyordu.
-      # TERS YON serbestti: Ege bizim GERCEKTEN urettigimiz bir parcaya "hazir /
-      # tedarikciden / orijinal urun" diyebilirdi. Canli SISTEM_TALIMATI ("STOK YOK"
-      # maddesi) IKI YONU de yasakliyor -> ayni prompt'a giren iki kaynak AYRISIYORDU ve
-      # bunu olcen kapi YOKTU. Kapi (a) iki yonu AYRI vaka olarak, (c) her vakayi IKI
-      # KAYNAGA sorup ayrismayi, (d) esanlamli ifadeleri TEK TEK olcer.
-      # 🔴 KELIME ARAMASI DEGIL: metinden KURAL NESNESI turetir (hangi kosul hangi
-      # iddiayi yasakliyor) ve yon bilgisini KOSUL ISARETCILERININ KONUMUNDAN alir;
-      # butun kelimeleri koruyup yonu ceviren mutasyon KIRMIZI yanar. Mutasyon
-      # alt-kosumu HER kosumda calisir (bayrakla acilmaz — bkz deploy.yml'deki
-      # "DOSYA kesfeder, BAYRAK KESFETMEZ" dersi) ve her mutant HEDEF KOL beyan eder:
-      # kirmizi yanmak yetmez, DOGRU koldan yanmali (yoksa YANLIS_KOL -> kirmizi).
-      # ⚠️ SISTEM_TALIMATI bu repoda YOK (pruvo-bot, HocA duzlemi) -> CIVILENMIS FIKSTUR.
-      # Tazelik pruvo-bot yerelde varsa BAYT BIREBIR olculur, CI'da OLCULEMEDI basilir
-      # (sessiz yesil verilmez). Offline, stdlib.
-      - name: Ege uretim-sahipligi kabul testi (iki yon + celiski + esanlamli + mutasyon)
-        if: ${{ !cancelled() }}
-        run: python3 tools/ege-uretim-sahipligi-test.py
+      # EGE URETIM-SAHIPLIGI KAPISI (K285) — 🔴 BURADAN TASINDI (24 Agu, KraL hukmu).
+      # Adim artik `deploy.yml` `build` isinde kosuyor (= `deploy: needs: build`), yani
+      # BLOKLAYICI. Gerekce: kirmizisi musteriye giden TICARI BEYANI vuruyor ("bu parcayi
+      # biz uretmiyoruz / orijinaldir"), dolayisiyla serit turnusolune gore hijyen degil
+      # yayin seridine ait. Buraya KOPYA KONMADI — iki kopya zamanla sessizce ayrisir ve
+      # hangisinin hukum verdigi belirsizlesir ([[ikiz-tanim-sessiz-ayrisma]]).
+      # Kapi: tools/ege-uretim-sahipligi-test.py (mutasyon alt-kosumu her kosumda calisir).
 
       # EGE KABILIYET-SINIRI KAPISI (26 Tem): ege-bilgi.md musteriden URETIM olcusu/cizimi
       # ISTIYOR mu, ya da uretim/fiyat SOZU veriyor mu? Canli SISTEM_TALIMATI bunu katalog-bos
