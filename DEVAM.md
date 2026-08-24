@@ -6,7 +6,8 @@
 **main=origin `56c24a89`** · bugun inen K260 `e1c2e4c4` (11 yeni dosya) + K256/K269/K276 · defter
 `6a435d0f`. Merge sonrasi D1 YESIL (29.654, alti eksen, hash uyusmaz 0). Agacta 2 YABANCI commit'siz
 dosya (marka-artim-test, marka-sayac-kapisi) — sahipleri KAPANDI, kurtarma chip'i sirada.
-🔴 **DEFTER TIKALI:** kanonik rotasyon `TASINAN=0` (5 blok, hepsi vetolu) — tikayan K268.
+🟢 **DEFTER ACILDI** (dal `kral/k268-ortak-satir`): uc ortak satir bolundu, kanonik rotasyon
+`TASINAN_MADDE=4` · `SINIFLANAMAZ` 3->0 · `ACIK` 44 DEGISMEDI · 12279->11652 B · `LOSSLESS=EVET`.
 **Okan'da:** ① gecmis temizligi · ② K200(i) · ③ CLAUDE.md tavan yukseltme ONERISI beklenir.
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
@@ -29,21 +30,17 @@ dosya (marka-artim-test, marka-sayac-kapisi) — sahipleri KAPANDI, kurtarma chi
 - 🔧 **K276 (24 Agu, K256'dan DOGDU — KABUL CI DISINDA):** `kimi-nabiz-test.py` repo DISINDA
   (`~/.claude/cron/`), kapsam kapisinin duzlemi repo ici → hicbir is akisindan kosmuyor, yalniz
   ELLE olculuyor. kabul: bir CI adimindan kosar (hijyen seridi) + `CI_KAPSAM_RC` basar + mutant:
-  kol bozulunca O ADIM kirmizi yanar. Muafiyet listesi kabul DEGIL.
-- 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
-- ✅ **24 Agu KAPANANLAR: K243·K254·K262·K263·K247·K259·N3·K261·K213·K267·K265·K266·K184·K222·K256·K260·K86·K70·O4-B (tam metin ARSIVDE/KUTUDA)** — 6/10 BIREBIR tasindi (K243/K263/N3 defterde bagimsiz satir yok; K247 K267'den sonra ARAC ELIYLE indi).
-  ✅ **CAKISMA COZULDU (24 Agu, KraL):** K268 = ORTAK SATIR artigi (asagida, ACIK); bayat-vaka
-  onarimi artik **K270** (KAPANDI; kutuda `KraL-K268BayatVaka` adiyla gecer, 10/10 canliya tasindi).
-- 🔧 **K268 (24 Agu, K267'den DOGDU — ORTAK SATIR ARTIGI):** kanonik kosum iki ortak satiri ADIYLA
-  bildiriyor ve ikisi de fail-closed takili: (a) `19 Agu KAPANANLAR` satiri (kapanis HALI + `KALAN
-  ACIK ARTIKLAR` → SINIFLANAMAZ, kimlik K188) · (b) `K245/K240/K241/K242/K244` satiri. Kapali kalem
-  mekanik olarak cikarilamiyor, EL ile bolunmeli. kabul: iki satir bolunur, kanonik kosum
-  `SINIFLANAMAZ=0` basar, negatif kontrol (acik kalem sayisi) DEGISMEZ.
-- ✅ **K271 KAPANDI:** damga tasiniyor, kova 0->2, canli tur 658 `DAGITILAN=2 ONARIM=2 rc=0`,
-  kabul 23/23 + mutant 3/3. · 🔧 **K275**
-  `ci-kapsam` yalniz `tools/` DOGRUDAN altini tariyor (`k260/`,`n4b/` MENZIL DISI). · 🔧 **K272·K273·
-  K274·K277** defter/kutu ailesi: rotasyon vetosu · numara atomik DEGIL (bugun 3 cakisma) · rc=2
+  kol bozulunca O ADIM kirmizi yanar. Muafiyet listesi kabul DEGIL. · 🔧 **K275** `ci-kapsam`
+  yalniz `tools/` DOGRUDAN altini tariyor (`k260/`,`n4b/` MENZIL DISI). · 🔧 **K272·K273·K274·
+  K277** defter/kutu ailesi: rotasyon vetosu · numara atomik DEGIL (bugun 3 cakisma) · rc=2
   gozcude CI_KIRMIZI · arsiv jetonu okunmadan tasiniyor. **Bes kalemin tam metni KUTUDA.**
+- 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
+- 🔧 **K268 (ORTAK SATIR ARTIGI) — KABUL OLCULDU, HUKUM MIMARDA:** dal `kral/k268-ortak-satir`.
+  Tikayan satir IKI DEGIL UCTU: `24 Agu KAPANANLAR` · `19 Agu KAPANANLAR` (kimlik K188) · `K271`
+  kapanis satiri (main'e sonra indi). Kalem metnindeki (b) — `K245/K240/K241/K242/K244` — ortak
+  satir DEGILMIS, bastan 🔧 acik. Bolme sonrasi kanonik kosum: `SINIFLANAMAZ` 3->0 · `ACIK` 44->44
+  (negatif kontrol TUTTU) · `KAPALI` 0->4 · `TASINAN_MADDE=4` · 12279->11652 B / 125->120 satir ·
+  `LOSSLESS=EVET kayip=0 fazla_dusen=0 uydurulan=0`.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
@@ -83,12 +80,12 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
 "kirli mi" olcuyor, TEK BASINA kaldirma gerekcesi DEGIL. · 🔧 **K188:** yarim yedek OLCULEBILIR;
 kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - 🔴 **T1 pencere muhasebesi + T3/T4 kaniti:** `OLCULEMEDI_TUR=2` ayri satir; nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. **Tam metin ARSIVDE.**
+  **19 Agu KALAN ACIK ARTIKLAR:** T3 `SAHIPSIZ=44→24 (Onarim dali olctu)` · T4/T5 canli kablo
+  (Okan kapisi) · T5 hareket damgasi 7/7 `OLCULEMEDI` · K188 kancasi BAGLI DEGIL · Escape olcumu
+  yok — hepsi chip'lerde.
 - 🔧 **K218 · K219 · K221:** tam metinler ARSIVDE. (K195 merge edildi `528da42d`.)
 - 🔧 **K198 (19 Agu — ⚖️ OKAN KAPISI):** izlenen yapilandirmada ticari alan var, nobetci o duzlemi
   taramiyor (muafiyette de yok). **Tam metin ARSIVDE.** kabul: OLCER ya da `KAPSAM DISI` + mutant.
-- ✅ **19 Agu KAPANANLAR: liste ARSIVDE.** **KALAN ACIK ARTIKLAR:** T3 `SAHIPSIZ=44→24 (Onarim
-  dali olctu)` · T4/T5 canli kablo (Okan kapisi) · T5 hareket damgasi 7/7 `OLCULEMEDI` ·
-  K188 kancasi BAGLI DEGIL · Escape olcumu yok — hepsi chip'lerde.
 - 🔧 **K179 (18 Agu):** `RECETE=9 REDDEDILEN=8 EVREN=390`; kalan 6 RED gercek. Hukum `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
