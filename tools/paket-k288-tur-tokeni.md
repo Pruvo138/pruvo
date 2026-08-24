@@ -62,13 +62,24 @@ HİÇ düşmez — ne sayı, ne `OLCULEMEDI`. Yani **satırın yokluğu** ile `O
 `grep -cE "^TUR_TOKEN" isci.log`.
 
 ## Kabul
-`python3 ~/.claude/cron/tur-token-test.py` → `KABUL=7/7`
-`python3 ~/.claude/cron/tur-token-test.py --mutasyon` → `MUTANT_OLDU=2/2 KONTROL=YESIL`
+```
+python3 ~/.claude/cron/tur-token-test.py             → KABUL=8/8 MUTANT=ATLANDI KONTROL=ATLANDI
+python3 ~/.claude/cron/tur-token-test.py --mutasyon  → KABUL=8/8 MUTANT=2/2 KONTROL=YESIL
+                                                        MUTANT m1 OLDU dusen_vakalar=T5,T6
+                                                        MUTANT m2 OLDU dusen_vakalar=T3,T4
+                                                        MUTANT m3 YESIL dusen_vakalar=yok
+```
 
-Mutasyon bataryası **tam yedi vakayı mutant kopyaya karşı koşar**. Çöken/sözdizimi bozuk
-mutant `BOZUK` sayılır, **öldürme sayılmaz**; mutasyon çapası bayatlayıp değişiklik hiç
+Mutasyon bataryası **sekiz vakanın tamamını mutant kopyaya karşı koşar** — mutantın çıktısına
+bakıp "mutant mutant mı" diye sormaz, **bataryanın onu yakaladığını** ölçer. Çöken/sözdizimi
+bozuk mutant `BOZUK` sayılır, **öldürme sayılmaz**; mutasyon çapası bayatlayıp değişiklik hiç
 olmadıysa `CAPA_BAYAT` basar (sessiz "hayatta kaldı" YOK). Kontrol mutantı `SEBEP` metnini
 değiştirir — batarya `OLCULEMEDI` jetonuna baktığı için yeşil kalması meşrudur.
+
+🔴 **`ATLANDI` ≠ `0` ≠ `KIRMIZI`.** Bayraksız koşum mutant çalıştırmaz; özet satırı bu yüzden
+`ATLANDI` yazar. Önceden `MUTANT=0/2 KONTROL=KIRMIZI` yazıyordu — **ölçülmemiş olanı başarısız
+diye raporluyordu** (iki yönlü zarar: yanlış alarm + "hepsi hayatta kaldı" yanlış güveni).
+`T8` bu regresyonu kilitler; T8 alt süreci `PRUVO_K288_T8=1` ile korunur (özyineleme yok).
 
 ## Ölçülen (25 Ağu 2026, canlı trafik — sentetik değil)
 | tur | `OLCUM TOPLAM_GIRDI` | `TUR_TOKEN toplam` | cache_read payı |
@@ -78,5 +89,17 @@ değiştirir — batarya `OLCULEMEDI` jetonuna baktığı için yeşil kalması 
 
 `OLCUM`'un sahte sıfır bastığı 12 turda `TUR_TOKEN=OLCULEMEDI` düştü; ters yönde sapma yok.
 
+Beş turun beşinde `girdi + cache_read = toplam` (cache_creation = 0) ve `cikti` = `OLCUM CIKTI`.
+Ölçülen cache-read aralığı **%86,99 – %93,90** (kimi turları dahil).
+
 `isci.sh`: **30.633 → 31.130 bayt** (+7 satır, −0).
-Yedek: `~/.claude/cron/isci.sh.yedek-k288-20260824T223100Z`
+Yedek: `~/.claude/cron/isci.sh.yedek-k288-20260824T223100Z` — `cp -p` ile alındı, mtime
+değişiklik ÖNCESİNİ (Ağu 20 16:51) taşıyor; git dışı dosyanın tek geri dönüş yolu.
+
+## ⛔ KAPANMADI — panel mutabakatı
+MiniMax panelinin oturumu **KAPALI** (`platform.minimax.io` → `account.minimax.io/unified-login`).
+İşçi giriş DENEMEDİ, şifre GİRMEDİ (yasak). Dolayısıyla `PANEL_TOPLAM=OLCULEMEDI`.
+Log tarafı hazır: **2026-08-24 22:00–23:00Z, minimax-m3, 5 sıfır-olmayan tur →
+`LOG_GIRDI=14.632.999 LOG_CIKTI=113.453 LOG_TOPLAM=14.746.452`.**
+Okan paneli açtığında mutabakat tek turda kapanır; beklenen fark kaynakları: panel kovayı
+İSTEK anına, log ise BİTİŞ anına yazar (saat sınırını aşan tur kayar) + panel gecikmesi.
