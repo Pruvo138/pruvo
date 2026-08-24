@@ -39,7 +39,8 @@ dosya (marka-artim-test, marka-sayac-kapisi) — sahipleri KAPANDI, kurtarma chi
   ACIK ARTIKLAR` → SINIFLANAMAZ, kimlik K188) · (b) `K245/K240/K241/K242/K244` satiri. Kapali kalem
   mekanik olarak cikarilamiyor, EL ile bolunmeli. kabul: iki satir bolunur, kanonik kosum
   `SINIFLANAMAZ=0` basar, negatif kontrol (acik kalem sayisi) DEGISMEZ.
-- 🔧 **K271** `kalem_dagit` goc damgasini dusuruyor (K86+K108 kilitlendi); kabul 0->2. · 🔧 **K275**
+- ✅ **K271 KAPANDI:** damga tasiniyor, kova 0->2, canli tur 658 `DAGITILAN=2 ONARIM=2 rc=0`,
+  kabul 23/23 + mutant 3/3. · 🔧 **K275**
   `ci-kapsam` yalniz `tools/` DOGRUDAN altini tariyor (`k260/`,`n4b/` MENZIL DISI). · 🔧 **K272·K273·
   K274·K277** defter/kutu ailesi: rotasyon vetosu · numara atomik DEGIL (bugun 3 cakisma) · rc=2
   gozcude CI_KIRMIZI · arsiv jetonu okunmadan tasiniyor. **Bes kalemin tam metni KUTUDA.**
