@@ -141,6 +141,37 @@ def kayit_bos_kume(dizin):
              "    return set()\n    kokler = set()\n    try:")
 
 
+# ===================== 20 AGU: TARAYICI EKSENI — KAPALI KOL NEREDE OLCULUR ============
+# 🔴 OLCULEN TUZAK (bu turda CANLI yakalandi): 20 Agu'da tarayici ekseni EV BAZLI acildi
+# ve bu takim KraL evinde, yani tarayiciya ACIK bir evde kosuyor. Acik evde MCP onek
+# kumesi HICBIR karari degistirmez — MC1 (kapsam daraltma), MC3 (kapsam tasma) ve MC4
+# (kimlik ekseni) 500-504 uzerinden DAVRANISSAL IZ BIRAKMAZ.
+#
+# 🔴 ILK COZUM DENENDI VE OLCULEREK CURUTULDU: "kopyada hem kapiyi hem kilit testinin
+# 500-504 beklentisini cevir" tabani KURMADI. SEBEP: bu arac mutasyon dizinindeki test
+# KOPYASINI kosturmaz — ORIJINAL tools/mimar-kilit-test.py'yi kosturup mutasyon dizinini
+# ARGUMAN olarak verir (bkz. modul docstring). Yani TESTDOSYA'ya atilan yama HICBIR ZAMAN
+# okunmaz; taban 5 sahte kirmizi uretti. Ders: "kopyaya yama attim" != "kosan kod degisti".
+#
+# 🔴 GECERLI COZUM: kapali kol, kilit testinin KENDI icinde ayri bir blokta yasiyor —
+# `tarayici_ev_ekseni_denetim()` (vaka 528-544). O blok kapi dosyasini gecici bir kopyaya
+# alir ve `TARAYICI_ACIK_EVLER` satirini IKI YONDE de ZORLAR (acik / kapali), yani kapali
+# kolu MUTANTLI kaynak uzerinde olcer. MC1-MC4 bu yuzden ARTIK SADE mutantlardir (taban
+# YOK) ve beklenen kirmizi kumeleri 5xx yerine 53x/54x'e tasindi.
+TARAYICI_ACIK_KAYNAK = 'TARAYICI_ACIK_EVLER = ("pruvo", "pruvo-hasat")\n'
+
+# 🔴 YAN EKSEN NOBETI (20 Agu): "hedef kol KIRMIZI" tek basina kanit degildir — YAN
+# eksenin YESIL kaldigini da olcmek zorundayiz. Aksi halde iki ekseni birden bozan kaba
+# bir mutant "ayrim kanitlandi" diye okunur. Kesisim BOS olmalidir; mutant kendi
+# ekseninin DISINA tasarsa GECTI YAZILMAZ.
+#   MT1 = Claude yasagini acar  -> TARAYICI vakalari YESIL kalmali
+#   MT2 = tarayiciyi kapatir    -> CLAUDE-ISCI vakalari YESIL kalmali
+YAN_EKSEN_YESIL = {
+    "MT1": {500, 501, 502, 503, 504, 528, 530, 531, 532, 533, 534, 535, 536, 537},
+    "MT2": {401, 403, 614},
+}
+
+
 # (ad, uygulayici, aciklama, beklenen_kirmizi_kumesi, tam_esitlik_mi, asgari_sayi)
 MUTASYONLAR = [
     ("M1", lambda d: kimligi_sabitle(d, "ISCI"),
@@ -429,16 +460,18 @@ MUTASYONLAR = [
     ("MC1", lambda d: yama(
         d, ICRA,
         '    "mcp__Claude_Browser__",\n', ""),
-     "8Agu MCP: onek kumesinden 'Claude_Browser' dusurulur (KAPSAM DELIGI)",
-     {501, 504}, True, 2),
+     "8Agu MCP: onek kumesinden 'Claude_Browser' dusurulur (KAPSAM DELIGI) "
+     "[20 Agu: KAPALI KOL blogunda olculur — 531/534]",
+     {531, 534}, True, 2),
     # MC2 (b): KURAL KOMPLE KAPATILIR — main() MCP kolu hic tetiklemez. Uc sunucunun
     # TUM ana-oturum vakalari acilir; ISCI (510-512) ve kapsam-disi (520+) YESIL kalir.
     ("MC2", lambda d: yama(
         d, ICRA,
         "    if _mcp_tarayici_mi(tool_name):\n",
         "    if False and _mcp_tarayici_mi(tool_name):\n"),
-     "8Agu MCP: main() MCP kolu komple kapatilir (ana dongude tarayici yeniden serbest)",
-     {500, 501, 502, 503, 504}, True, 5),
+     "8Agu MCP: main() MCP kolu komple kapatilir (KAPALI evlerde de tarayici serbest "
+     "kalir) [20 Agu: KAPALI KOL blogunda olculur — 530-534]",
+     {530, 531, 532, 533, 534}, True, 5),
     # MC3 (c): TERS YONLU — tanima daima True. Kapi "her MCP aracini" reddeder; ana-oturum
     # vakalari YESIL kalir ama KAPSAM DISI araclar (520-527) kizarir. Bu, K4'un
     # (yanlis-pozitif = bu depoda yayin durduran sinif) nobetcisidir: kapsami genisleten
@@ -455,20 +488,65 @@ MUTASYONLAR = [
         '    "mcp__Control_Chrome__",\n',
         '    "mcp__",\n'),
      "8Agu MCP: onek kumesi 'mcp__' ile GENISLETILIR (kapsam tasar) -> kapsam-disi "
-     "araclar YANLIS-POZITIF RED alir",
-     {520, 521, 522, 523, 524, 525, 526, 527}, True, 8),
+     "araclar YANLIS-POZITIF RED alir [20 Agu: KAPALI KOL blogunda olculur — 540-544]",
+     {540, 541, 542, 543, 544}, True, 5),
     # MC4 (d): KIMLIK EKSENI — kural, main() basindaki TEK ana-oturum tespitinin ONUNE
     # tasinir (yani "ikinci bir tespit uydurmak"in davranissal karsiligi). ISCI cagrilari
     # (510-512) reddedilir; ana-oturum ve kapsam-disi vakalar YESIL kalir. Kural ile
     # kimlik tespitinin AYRISMASI boylece kirmizi yakar.
+    # 🔴 MC4 (20 Agu ile YENIDEN NISANLANDI): mutant kurali ISCI muafiyetinin ONUNE tasir
+    # ama EV EKSENINI KORUR (`and not _tarayici_ekseni_acik_mi()`). Boylece mutant YALNIZ
+    # kimlik eksenini bozar. Ev eksenini de atlayan kaba bir surum 500-504 ve 528'i de
+    # kizartirdi ve MT2 ile AYIRT EDILEMEZ hale gelirdi (memory/ad-iki-rolde-mutanti-
+    # golgeler.md: ayirt edilemeyen kirmizi kanit degildir). Kimlik ekseni ACIK evde
+    # GOZLENEMEZ (muaf olunacak bir red yok), bu yuzden kirmizi YALNIZ kapali kol
+    # blogundan gelir: 535-537.
     ("MC4", lambda d: yama(
         d, ICRA,
         '    if kimlik(girdi) == "ISCI":\n',
-        '    if _mcp_tarayici_mi(girdi.get("tool_name") or ""):\n'
+        '    if (_mcp_tarayici_mi(girdi.get("tool_name") or "")\n'
+        '            and not _tarayici_ekseni_acik_mi()):\n'
         '        reddet(MCP_GEREKCE, sonu="")\n'
         '    if kimlik(girdi) == "ISCI":\n'),
-     "8Agu MCP: kural ISCI muafiyetinin ONUNE tasinir (isci tarayicisi RED)",
-     {510, 511, 512}, True, 3),
+     "8Agu MCP: kural ISCI muafiyetinin ONUNE tasinir (isci tarayicisi RED) "
+     "[20 Agu: KAPALI KOL blogunda olculur — 535-537]",
+     {535, 536, 537}, True, 3),
+    # --- 🔴 20 AGU: EKSEN AYRIMI NOBETCILERI (Okan emri: KraL+MaCiT tarayici ACIK) ------
+    # Bu iki mutant TEK BIR IDDIAYI olcer: "tarayici ekseni ile Claude-isci ekseni AYRI
+    # kumelerdir ve biri otekini surukleyemez." Ikisi ZIT yonde kirmizi yakar; biri
+    # hayatta kalirsa eksenler GERCEKTEN ayrilmamis demektir.
+    #
+    # MT1 (gorev metninde 'M1'): IKI EKSEN BIRLESTIRILIR — SERT_BLOK_EVLER bosaltilir,
+    # yani "tarayiciyi actim, ayni listeyi sadelestireyim" hatasinin BIREBIR karsiligi.
+    # Claude iscisi / Agent-Task yasagi ACILIR: 401/403 (Agent+Task, gecerli beyan) ve
+    # 762 (isci.sh claude + gecerli beyan) allow'a duser -> KIRMIZI.
+    # 🔴 TARAYICI VAKALARI (500-504) YESIL KALMALI: mutant tarayiciya DOKUNMAZ. Bu mutant
+    # tam da "sessizce ikinci yasagi actim" hatasini yakalar — hicbir yesil test
+    # gostermezdi (memory/ad-iki-rolde-mutanti-golgeler.md, K229 M6/M7).
+    ("MT1", lambda d: yama(
+        d, ICRA,
+        'SERT_BLOK_EVLER = ("pruvo", "pruvo-hasat")\n',
+        "SERT_BLOK_EVLER = ()\n"),
+     "20Agu EKSEN: SERT_BLOK_EVLER bosaltilir (tarayici ekseniyle BIRLESTIRME hatasi) -> "
+     "Claude iscisi / Agent-Task yasagi ACILIR; tarayici kolu ETKILENMEZ",
+     # TAM ESITLIK YOK (bilerek): sert blok kalkinca PRUVO_CLAUDE_ISCI_IZNI'nin
+     # fail-closed nobetcileri de acilir. Iddia "su uc kol MUTLAKA kirmizi" (alt kume) —
+     # hangi ek nobetcinin dustugu bu mutantin konusu DEGIL. Yan eksenin YESIL kaldigi
+     # ayrica ve ADIYLA olculur (YAN_EKSEN_YESIL).
+     # VAKA ID'LERI: 401 (Agent+beyan), 403 (Task+beyan), 614 (isci.sh claude + BEYANLI
+     # spec). 614 SATIR NUMARASI DEGIL VAKA NUMARASIDIR — ilk yazimda satir no ile
+     # karistirilip 762 yazilmisti ve MT1 "eksik=762" ile KALDI (kapi dogru calisiyordu,
+     # BEKLENTI yanlisti). Vaka id'si daima tuple'in ILK alanindan okunur.
+     {401, 403, 614}, False, 3),
+    # MT2 (gorev metninde 'M2'): TARAYICI ACMA KOLU GERI ALINIR — TARAYICI_ACIK_EVLER
+    # bosaltilir. Ana oturum tarayici vakalari (500-504) yeniden RED alir -> KIRMIZI.
+    # 🔴 CLAUDE-ISCI VAKALARI (401/403/762) YESIL KALMALI: mutant SERT_BLOK_EVLER'e
+    # DOKUNMAZ. MT1 ile MT2'nin kirmizi kumelerinin KESISIMI BOSTUR — atif budur.
+    ("MT2", lambda d: yama(
+        d, ICRA, TARAYICI_ACIK_KAYNAK, "TARAYICI_ACIK_EVLER = ()\n"),
+     "20Agu EKSEN: TARAYICI_ACIK_EVLER bosaltilir (tarayici acma kolu geri alinir) -> "
+     "ana oturum tarayicisi yeniden RED; Claude-isci yasagi ETKILENMEZ",
+     {500, 501, 502, 503, 504}, True, 5),
     # --- 13 AGU ISCI-SARMALAYICI KAPISI NOBETCILERI (AGENT/MCP turundeki desen) ---
     # Her mutant KURALIN BIR AYAGINI dusurur ve AYIRT EDICI bir kirmizi iz birakir:
     # I1 yol ekseni · I2 motor ekseni · I3 beyan ekseni · I4 fail-closed ekseni.
@@ -634,8 +712,8 @@ KONTROL_MUTANTLARI = [
      "MCP onek kumesi YENIDEN SIRALANIR (ayni kume, ayni karar) -> YESIL kalmali"),
     ("K2", lambda d: yama(
         d, ICRA,
-        'MCP_KURAL_SURUMU = "8agu-1"\n',
-        'MCP_KURAL_SURUMU = "8agu-1"\n_MCP_KONTROL_MUTANTI = True\n'),
+        'MCP_KURAL_SURUMU = "20agu-2"\n',
+        'MCP_KURAL_SURUMU = "20agu-2"\n_MCP_KONTROL_MUTANTI = True\n'),
      "MCP blogua OLU bir sabit eklenir (davranis degismez) -> YESIL kalmali"),
     # K3: 13 Agu ISCI blogunun AYIRT EDICILIK kontrolu. I1-I5'in kirmizisi ancak yeni
     # vakalar "her degisiklige" kizarmiyorsa kanittir (memory/beyan-edilmis-survivor.md).
@@ -649,6 +727,13 @@ KONTROL_MUTANTLARI = [
         'CODEX_KURAL_SURUMU = "17agu-1"\n',
         'CODEX_KURAL_SURUMU = "17agu-1"\n_K159_KONTROL_MUTANTI = True\n'),
      "17Agu K159 codex blogua OLU bir sabit eklenir (davranis degismez) -> YESIL kalmali"),
+    # 🔴 K6 (20 Agu): TARAYICI eksen kumesinin AYIRT EDICILIK kontrolu. MT1/MT2'nin
+    # kirmizisi ancak takim "her degisiklige" kizarmiyorsa kanittir. Kumeyi YENIDEN
+    # SIRALAMAK ayni kumeyi ve ayni karari verir (uyelik testi 'in', sira DEGIL).
+    ("K6", lambda d: yama(
+        d, ICRA, TARAYICI_ACIK_KAYNAK,
+        'TARAYICI_ACIK_EVLER = ("pruvo-hasat", "pruvo")\n'),
+     "TARAYICI_ACIK_EVLER YENIDEN SIRALANIR (ayni kume, ayni karar) -> YESIL kalmali"),
 ]
 
 # CEVRE-ARIZA ENJEKSIYONU (B6-yan): bu iki vaka mutasyonu KOPYALANMIS kabul testine
@@ -777,6 +862,16 @@ def main():
             tamam = (not eksik) and len(kirmizi) >= asgari
             if tam and kirmizi != beklenen:
                 tamam = False
+            # 🔴 20 AGU — YAN EKSEN NOBETI: bir mutantin "hedef kolu kirmizi yakmasi" TEK
+            # BASINA kanit degildir; YAN eksenin YESIL kaldigi da AYRI olculmelidir. MT1
+            # (Claude yasagini acar) tarayiciya, MT2 (tarayiciyi kapatir) Claude yasagina
+            # DOKUNMAMALIDIR. Yan eksen de kizariyorsa mutant "iki ekseni birden bozdu"
+            # demektir ve ayrimin kaniti COKER.
+            yan = YAN_EKSEN_YESIL.get(ad)
+            if yan and (yan & kirmizi):
+                tamam = False
+                aciklama += (" [YAN EKSEN KIRLENDI: " +
+                             str(sorted(yan & kirmizi)) + " — eksen ayrimi KANITLANMADI]")
             if ad == "M7" and (M7_YESIL_KALMALI & kirmizi):
                 tamam = False
                 aciklama += " [basename kalkani DELINDI: " + str(sorted(M7_YESIL_KALMALI & kirmizi)) + "]"

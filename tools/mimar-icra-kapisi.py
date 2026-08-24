@@ -458,17 +458,50 @@ MCP_TARAYICI_ONEKLERI = (
 # SURUM DAMGASI — tools/mimar-kapi-kur.py --mcp-kapisi bu dizeyi arayarak "bu evde
 # MCP-TARAYICI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev
 # dogrulamasi). Kurali degistirirsen damgayi da yukselt.
-MCP_KURAL_SURUMU = "8agu-1"
+MCP_KURAL_SURUMU = "20agu-2"
+
+# 🔴 20 AGU (Okan emri: "KraL ve MaCiT evlerinde tarayiciyi ac — ikinizi de ac"):
+# TARAYICI EKSENI ARTIK EV BAZLI. Bu iki evde ana oturum tarayiciyi KENDI SURER;
+# kalan dort evde 8 Agu kurali AYNEN durur.
+#
+# 🔴🔴 IKI EKSEN AYRIDIR VE AYRI KALIR — BIRLESTIRME YASAK:
+#   · SERT_BLOK_EVLER (yukarida)   -> CLAUDE ISCISI / Agent-Task yasagi (13 Agu Okan
+#     emri; tek kacis PRUVO_CLAUDE_ISCI_IZNI=OKAN). Okuyanlar: _agent_karari + _isci_karari.
+#   · TARAYICI_ACIK_EVLER (burasi) -> MCP tarayici araclarinin ANA OTURUMDA serbestligi.
+# Iki kume BUGUN AYNI IKI EVI sayiyor ama ZIT hukum tasiyor: ayni evde tarayici ACIK,
+# Claude iscisi KAPALI. Bu yuzden "ayni liste, sadelestirelim" DAVRANIS DEGISTIREN bir
+# hatadir. Kumeyi bosaltmak/silmek/otekiyle degistirmek ikinci yasagi SESSIZCE acar ve
+# hicbir yesil test gostermez — bu depoda olculdu (memory/ad-iki-rolde-mutanti-golgeler.md,
+# K229 M6/M7). Nobetciler: mimar-kapi-mutasyon-test.py M1 (kumeleri birlestir -> Claude
+# yasagi kolu KIRMIZI, tarayici kolu YESIL) + M2 (tarayici kolunu geri al -> tarayici kolu
+# KIRMIZI, Claude yasagi kolu YESIL).
+#
+# FAIL-CLOSED taraf BILEREK secildi: liste ACIK evleri sayar, kapali evleri DEGIL.
+# Tanimadik/yeni bir ev adi -> tarayici KAPALI (yeni ev sessizce acilmaz).
+TARAYICI_ACIK_EVLER = ("pruvo", "pruvo-hasat")
+
+# 🔴 ACIK EVDE KURAL VAR, BLOK YOK — MALIYET DISIPLINI (Okan, 20 Agu): tarayicida ONCE
+# METIN. `get_page_content` / `read_page` ile oku; EKRAN GORUNTUSU yalnizca aranan rakam
+# metinden okunamiyorsa ve TEK KARE alinir. Goruntu EN PAHALI token sinifidir — olculen
+# vaka: 1 saatte baglamin %58'i. Bu bir MAKINE KAPISI degil, mimarin uydugu KURALDIR;
+# kapi acik evde RED URETMEZ, disiplini mimar tasir.
+TARAYICI_MALIYET_KURALI = (
+    "TARAYICI MALİYET DİSİPLİNİ (20 Ağu): önce METİN — `get_page_content` / `read_page`. "
+    "Ekran görüntüsü YALNIZCA aranan rakam metinden okunamıyorsa ve TEK KARE. Görüntü en "
+    "pahalı token sınıfıdır (ölçülen vaka: 1 saatte bağlamın %58'i)."
+)
+
 MCP_GEREKCE = (
-    "MCP-TARAYICI KAPISI (8 Ağu): mimar ANA oturumu bir tarayıcı aracı çağırıyor. Ana "
-    "döngüde tarayıcı sürmek KAPALI — her tur ekran görüntüsü taşır ve görüntü EN PAHALI "
-    "token sınıfıdır (ölçülen vaka: 1 saatte bağlamın %58'i). ÇÖZÜM: TARAYICIYI "
-    "GÖRSEL-SINIF CLAUDE İŞÇİSİNE VER — Codex'e VERİLMEZ (görsel = codex-isci yasak "
-    "listesi). İŞÇİ ŞABLONU (Agent aracı: model sonnet + isolation worktree + background), "
-    "prompt'un ilk satırı: 'codex-muafiyet: tarayıcı ile <ne ölçülecek> — görsel'; spec'e "
-    "ÇALIŞTIRILABİLİR kabul yaz (hangi URL'de hangi sayı ölçülecek), işçi ölçsün, sen "
-    "SAYIYLA kapat. İşçi çağrılarında (agent_id dolu) bu kapı hiçbir kural uygulamaz — "
-    "tarayıcı orada SERBESTTİR."
+    "MCP-TARAYICI KAPISI (8 Ağu · 20 Ağu ev bazlı): mimar ANA oturumu bir tarayıcı aracı "
+    "çağırıyor ve BU EV tarayıcıya açık evler arasında DEĞİL (açık evler: " +
+    " / ".join(TARAYICI_ACIK_EVLER) + "). Bu evde ana döngüde tarayıcı sürmek KAPALI — her "
+    "tur ekran görüntüsü taşır ve görüntü EN PAHALI token sınıfıdır (ölçülen vaka: 1 "
+    "saatte bağlamın %58'i). ÇÖZÜM: TARAYICIYI GÖRSEL-SINIF CLAUDE İŞÇİSİNE VER — Codex'e "
+    "VERİLMEZ (görsel = codex-isci yasak listesi). İŞÇİ ŞABLONU (Agent aracı: model sonnet "
+    "+ isolation worktree + background), prompt'un ilk satırı: 'codex-muafiyet: tarayıcı "
+    "ile <ne ölçülecek> — görsel'; spec'e ÇALIŞTIRILABİLİR kabul yaz (hangi URL'de hangi "
+    "sayı ölçülecek), işçi ölçsün, sen SAYIYLA kapat. İşçi çağrılarında (agent_id dolu) bu "
+    "kapı hiçbir kural uygulamaz — tarayıcı orada SERBESTTİR. " + TARAYICI_MALIYET_KURALI
 )
 
 
@@ -486,6 +519,16 @@ def _mcp_tarayici_mi(tool_name):
         if ad.startswith(onek.lower()):
             return True
     return False
+
+
+def _tarayici_ekseni_acik_mi():
+    """Bu EVDE ana oturumun tarayici surmesi serbest mi? (20 Agu Okan emri)
+
+    🔴 SERT_BLOK_EVLER'e BAKMAZ ve BAKMAYACAK. O kume Claude iscisi / Agent-Task
+    yasagini tasir; bu fonksiyon YALNIZ tarayici eksenini yanitlar. Iki eksenin tek
+    yukleme indirgenmesi, tarayiciyi acan bir degisiklikte Claude yasagini da sessizce
+    acar (memory/ad-iki-rolde-mutanti-golgeler.md)."""
+    return EV_ADI in TARAYICI_ACIK_EVLER
 
 
 # ============ 13 AGU: ISCI-SARMALAYICI KAPISI (goc karari) ============
@@ -1207,13 +1250,24 @@ def main():
         iz_bas("MIMAR-agent-muafiyet")
         sys.exit(0)
 
-    # === 8 AGU MCP-TARAYICI KAPISI: mimar ANA oturumunda tarayici icrasi KAPALI.
+    # === 8 AGU MCP-TARAYICI KAPISI (20 AGU: EV BAZLI) ===
     # ISCI (agent_id dolu) YUKARIDA zaten muaf cikti — bu satirin kimlik testi TASIMAMASI
     # kasitlidir: tespit TEK KAYNAKTAN (main() basi) gelir, ikinci mekanizma yazilmaz.
     # Kapsam DISI hicbir arac bu koldan gecmez (_mcp_tarayici_mi onek kumesi); Bash/Agent/
     # Write kollarinin davranisi DEGISMEZ (regresyon 0).
+    #
+    # 🔴 20 AGU (Okan): ACIK EVLERDE (KraL/pruvo + MaCiT/pruvo-hasat) red YOK — mimar
+    # tarayiciyi kendi surer, maliyet disiplini KURAL olarak tasinir (bkz.
+    # TARAYICI_MALIYET_KURALI). Kalan dort evde 8 Agu reddi AYNEN durur. Bu kol
+    # SERT_BLOK_EVLER'e DOKUNMAZ: Claude iscisi / Agent-Task yasagi YUKARIDAKI ayri
+    # kolda, ayri kumeyle, DEGISMEDEN durur.
     if _mcp_tarayici_mi(tool_name):
-        reddet(MCP_GEREKCE, sonu="")
+        if not _tarayici_ekseni_acik_mi():
+            reddet(MCP_GEREKCE, sonu="")
+        # ACIK EV: hukum IMZADAN okunabilsin diye ayirt edici iz basilir
+        # (memory/rc-hukmu-kapi-imzasini-ezer.md — rc tek basina hukum degildir).
+        iz_bas("MIMAR-tarayici-acik-ev")
+        sys.exit(0)
 
     komut = (girdi.get("tool_input") or {}).get("command") or ""
     if not komut.strip():

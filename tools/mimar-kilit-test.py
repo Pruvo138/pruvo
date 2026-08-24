@@ -632,23 +632,39 @@ AGENT_VAKALARI = [
      {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
 ]
 
-# === 8 AGU MCP-TARAYICI KAPISI VAKALARI (Okan teftisi K17) ===
-# Mimar ANA oturumunda (agent_id YOK) uc tarayici MCP sunucusunun ARACLARI reddedilir;
-# ISCI'de (agent_id DOLU) serbest. IKI YON de olculur — yanlis-pozitif ekseni (kapsam
-# DISI benzer adli araclar) ayri vakalarla nobettedir; tek yonlu nobetci OLU nobetcidir.
-# MC1/MC2/MC3 mutasyonlari bu vakalari kirmizi yakar (mimar-kapi-mutasyon-test.py).
+# === 8 AGU MCP-TARAYICI KAPISI VAKALARI (Okan teftisi K17 · 20 AGU: EV BAZLI) ===
+# ISCI'de (agent_id DOLU) tarayici her zaman serbest. IKI YON de olculur — yanlis-pozitif
+# ekseni (kapsam DISI benzer adli araclar) ayri vakalarla nobettedir; tek yonlu nobetci
+# OLU nobetcidir.
+#
+# 🔴 20 AGU (Okan emri: "KraL ve MaCiT evlerinde tarayiciyi ac"): BU TEST KraL EVINDE
+# (REPO = /Users/okan/dev/pruvo) kosar, yani TARAYICIYA ACIK bir evde. 500-504'un
+# beklentisi bu yuzden deny -> ALLOW oldu. VAKA SAYISI DEGISMEDI (5 vaka, ayni id'ler):
+# eksen silinmedi, HUKMU dondu.
+#
+# 🔴🔴 EKSEN AYRIMININ BU DOSYADAKI KANITI 500-504 ile 401/403/762'nin ZIT olmasidir:
+#     500-504        (tarayici)      -> ALLOW  (KraL tarayiciya ACIK)
+#     401 / 403      (Agent/Task)    -> DENY   (KraL SERT_BLOK evi, gecerli beyan bile RED)
+#     762            (isci.sh claude)-> DENY   (ayni sert blok, sarmalayici kolu)
+# Ayni evde tarayici ACIK, Claude iscisi KAPALI. Iki eksen tek kumeye indirgenirse bu
+# satirlar AYNI anda yesil kalamaz (memory/ad-iki-rolde-mutanti-golgeler.md).
+#
+# NOBETCILER (mimar-kapi-mutasyon-test.py):
+#   M1 -> SERT_BLOK_EVLER bosaltilir : 401/403/762 KIRMIZI, 500-504 YESIL
+#   M2 -> TARAYICI_ACIK_EVLER bosalt.: 500-504 KIRMIZI, 401/403/762 YESIL
+#   MC1-MC4 -> kapsam/kimlik eksenleri, KAPALI-EV TABANI ile bilesik olculur
 MCP_VAKALARI = [
-    # --- ANA OTURUM: uc sunucu da REDDEDILIR (K1 red ayagi) ---
-    (500, "deny", "mcp__claude-in-chrome__computer", "", None,
-     "MIMAR + claude-in-chrome -> RED"),
-    (501, "deny", "mcp__Claude_Browser__computer", "", None,
-     "MIMAR + Claude_Browser -> RED"),
-    (502, "deny", "mcp__Control_Chrome__open_url", "", None,
-     "MIMAR + Control_Chrome -> RED"),
-    (503, "deny", "mcp__claude-in-chrome__navigate", "", None,
-     "MIMAR + ayni sunucu BASKA arac -> RED (onek kurali)"),
-    (504, "deny", "mcp__Claude_Browser__read_page", "", None,
-     "MIMAR + salt-okunur gorunen arac da RED (goruntu maliyeti)"),
+    # --- ANA OTURUM, TARAYICIYA ACIK EV (KraL): uc sunucu da GECER ---
+    (500, "allow", "mcp__claude-in-chrome__computer", "", None,
+     "MIMAR + claude-in-chrome -> GECER (KraL tarayiciya ACIK, 20 Agu)"),
+    (501, "allow", "mcp__Claude_Browser__computer", "", None,
+     "MIMAR + Claude_Browser -> GECER (KraL tarayiciya ACIK, 20 Agu)"),
+    (502, "allow", "mcp__Control_Chrome__open_url", "", None,
+     "MIMAR + Control_Chrome -> GECER (KraL tarayiciya ACIK, 20 Agu)"),
+    (503, "allow", "mcp__claude-in-chrome__navigate", "", None,
+     "MIMAR + ayni sunucu BASKA arac -> GECER (acik evde onek kurali RED URETMEZ)"),
+    (504, "allow", "mcp__Claude_Browser__read_page", "", None,
+     "MIMAR + salt-okunur arac -> GECER (maliyet disiplini KURAL, blok DEGIL)"),
     # --- ISCI: ayni cagrilar SERBEST (K1 gecer ayagi) ---
     (510, "allow", "mcp__claude-in-chrome__computer", "", ISCI_ID,
      "ISCI + claude-in-chrome -> GECER"),
@@ -1268,6 +1284,142 @@ def k159_mesaj_denetim():
     return basarisiz, atlanan
 
 
+def tarayici_ev_ekseni_denetim():
+    """20 AGU — TARAYICI EKSENININ **KAPALI** KOLUNU OLCER (528-544).
+
+    🔴 NEDEN AYRI BIR BLOK: 20 Agu'da tarayici ekseni EV BAZLI acildi ve bu takim KraL
+    evinde, yani tarayiciya ACIK bir evde kosuyor. Acik evde MCP onek kumesi HICBIR
+    karari degistirmez — yani kapsam (MC1/MC3) ve kimlik (MC4) nobetcileri 500-504
+    uzerinden OLCULEMEZ hale gelirdi ve mutantlar SESSIZCE hayatta kalirdi. Capa
+    cokerse arkasindaki capalar gizlenir (memory/capa-cokmesi-arkasindaki-capalari-gizler.md):
+    tek hamlede dort nobetci birden kaybedilirdi ve tablo yine "yesil" derdi.
+
+    🔴 KOPYA UZERINDE OLCULUR, CANLI KAPIYA DOKUNULMAZ: TOOLS dizininin TAMAMI gecici
+    bir yere KOPYALANIR (K214 blogundaki kanitlanmis desen) ve kapinin iki varyanti O
+    KOPYANIN ICINE yazilir. TEK DOSYA kopyalamak YETMEZ ve OLCULEREK ogrenildi: kapi
+    `from mimar_kimlik import ...` yapar, bu da betigin KENDI DIZININDEN cozulur —
+    yalniz kapiyi gecici dizine koyunca ImportError'a duser, rc!=0 olur ve 14 vakanin
+    HEPSI "COKTU" diye KIRMIZI yanar (yani nobetci degil GURULTU uretir).
+    Varyantlarda `TARAYICI_ACIK_EVLER` satiri IKI YONDE de ZORLANIR — bir kopya ACIK
+    ("pruvo",), bir kopya KAPALI (). Boylece:
+      · 528 (ACIK kopya  -> allow) ile 531 (KAPALI kopya -> deny) AYNI arac, AYNI kaynak,
+        TEK fark ev ekseni. Ikisi birlikte "karari GERCEKTEN bu kume veriyor" der.
+      · 529 CAPA NOBETI: satir bulunamazsa blok SESSIZ GECMEZ, KIRMIZI yanar
+        (bayat capa `raise` degil KAYIT olmali).
+
+    🔴 BU BLOK MT2'YI OLCMEZ ve olcmemelidir: iki kopyada da deger ZORLANDIGI icin
+    gercek kaynaktaki `TARAYICI_ACIK_EVLER` degeri buraya sizmaz. MT2 (acma kolunun geri
+    alinmasi) 500-504 STATIK beklentileriyle olculur — iddia hedefle birlikte kaymasin
+    diye (memory/isci-yesil-tablo-ic-olcumu-bosaltir.md: tautoloji hedefle beraber duser).
+    """
+    import re as _re
+    import shutil as _shutil
+    basarisiz = []
+    atlanan = []
+
+    icra_yol = os.path.join(TOOLS, "mimar-icra-kapisi.py")
+    if not os.path.exists(icra_yol):
+        basarisiz.append((529, "kapi var", "EKSIK", "mimar-icra-kapisi.py yok"))
+        print("529  TARAYICI ev ekseni: kapi dosyasi EKSIK (KIRMIZI)")
+        return basarisiz, atlanan
+
+    with open(icra_yol, encoding="utf-8") as _f:
+        ham = _f.read()
+    capa = _re.compile(r"^TARAYICI_ACIK_EVLER = .*$", _re.MULTILINE)
+    if not capa.search(ham):
+        # CAPA COKTU: sessiz yesil YOK. Kume adi degistiyse nobetci ONARILMALI.
+        basarisiz.append((529, "TARAYICI_ACIK_EVLER capasi", "BULUNAMADI",
+                          "kume adi degismis olabilir — bu blok OLCEMEDI"))
+        print("529  TARAYICI ev ekseni: CAPA BULUNAMADI (KIRMIZI — olculemedi)")
+        return basarisiz, atlanan
+    print("529  TARAYICI ev ekseni capasi: BULUNDU | OK")
+
+    gecici = tempfile.mkdtemp(prefix="tarayici-ev-ekseni-")
+    try:
+        # 🔴 TUM tools/ kopyalanir — kapi `mimar_kimlik`'i KENDI DIZININDEN import eder.
+        kopya_tools = os.path.join(gecici, "tools")
+        _shutil.copytree(TOOLS, kopya_tools)
+        acik_yol = os.path.join(kopya_tools, "kapi-acik-ev.py")
+        kapali_yol = os.path.join(kopya_tools, "kapi-kapali-ev.py")
+        with open(acik_yol, "w", encoding="utf-8") as _f:
+            _f.write(capa.sub('TARAYICI_ACIK_EVLER = ("pruvo",)', ham, count=1))
+        with open(kapali_yol, "w", encoding="utf-8") as _f:
+            _f.write(capa.sub("TARAYICI_ACIK_EVLER = ()", ham, count=1))
+
+        def _olc(kapi_yolu, tool_name, agent_id):
+            payload = {
+                "session_id": "tarayici-ev-ekseni", "cwd": REPO,
+                "permission_mode": "bypassPermissions",
+                "hook_event_name": "PreToolUse",
+                "tool_name": tool_name, "tool_input": {},
+            }
+            if agent_id is not None:
+                payload["agent_id"] = agent_id
+            ortam = dict(os.environ)
+            ortam.pop("PRUVO_ISCI_KOSUMU", None)
+            ortam.pop("PRUVO_CLAUDE_ISCI_IZNI", None)
+            proc = subprocess.run([sys.executable, kapi_yolu],
+                                  input=json.dumps(payload),
+                                  capture_output=True, text=True, env=ortam)
+            if proc.returncode != 0:
+                return "COKTU"
+            govde = (proc.stdout or "").strip()
+            if not govde:
+                return "allow"
+            try:
+                veri = json.loads(govde)
+            except Exception:
+                return "PARSE-HATASI"
+            return ((veri.get("hookSpecificOutput") or {}).get(
+                "permissionDecision") or "allow")
+
+        # (no, kopya, beklenen, arac, agent_id, aciklama)
+        vakalar = [
+            # POZITIF KONTROL: ayni kaynak, ACIK eve zorlanmis kopya -> GECER.
+            (528, acik_yol, "allow", "mcp__Claude_Browser__computer", None,
+             "ACIK eve zorlanan kopya -> GECER (531 ile TEK farki ev ekseni)"),
+            # KAPALI EV: ana oturumda uc sunucu da REDDEDILIR (MC1/MC2 hedefi).
+            (530, kapali_yol, "deny", "mcp__claude-in-chrome__computer", None,
+             "KAPALI ev + claude-in-chrome -> RED"),
+            (531, kapali_yol, "deny", "mcp__Claude_Browser__computer", None,
+             "KAPALI ev + Claude_Browser -> RED"),
+            (532, kapali_yol, "deny", "mcp__Control_Chrome__open_url", None,
+             "KAPALI ev + Control_Chrome -> RED"),
+            (533, kapali_yol, "deny", "mcp__claude-in-chrome__navigate", None,
+             "KAPALI ev + ayni sunucu BASKA arac -> RED (onek kurali)"),
+            (534, kapali_yol, "deny", "mcp__Claude_Browser__read_page", None,
+             "KAPALI ev + salt-okunur gorunen arac da RED"),
+            # KIMLIK EKSENI: ISCI kapali evde de SERBEST (MC4 hedefi).
+            (535, kapali_yol, "allow", "mcp__claude-in-chrome__computer", ISCI_ID,
+             "KAPALI ev + ISCI -> GECER (kimlik ekseni)"),
+            (536, kapali_yol, "allow", "mcp__Claude_Browser__computer", ISCI_ID,
+             "KAPALI ev + ISCI -> GECER (kimlik ekseni)"),
+            (537, kapali_yol, "allow", "mcp__Control_Chrome__open_url", ISCI_ID,
+             "KAPALI ev + ISCI -> GECER (kimlik ekseni)"),
+            # YANLIS-POZITIF NOBETI: kapsam DISI araclar kapali evde de GECER (MC3 hedefi).
+            (540, kapali_yol, "allow", "mcp__visualize__show_widget", None,
+             "KAPSAM DISI mcp__visualize__ -> GECER"),
+            (541, kapali_yol, "allow", "mcp__Blender__get_objects_summary", None,
+             "KAPSAM DISI mcp__Blender__ -> GECER"),
+            (542, kapali_yol, "allow", "mcp__ccd_session__mark_chapter", None,
+             "KAPSAM DISI mcp__ccd_session__ -> GECER"),
+            (543, kapali_yol, "allow", "mcp__Claude_Browser_Extra__computer", None,
+             "onek SINIRI: 'Claude_Browser_Extra' kapsamda DEGIL -> GECER"),
+            (544, kapali_yol, "allow", "mcp__chrome__computer", None,
+             "onek SINIRI: kisa 'mcp__chrome__' kapsamda DEGIL -> GECER"),
+        ]
+        for no, kapi_yolu, beklenen, arac, aid, aciklama in vakalar:
+            olculen = _olc(kapi_yolu, arac, aid)
+            ok = (olculen == beklenen)
+            print("{:<4} TARAYICI ev ekseni: {:<38} beklenen={:<5} olculen={:<5} | {}".format(
+                no, arac, beklenen, olculen, "OK" if ok else "KIRMIZI"))
+            if not ok:
+                basarisiz.append((no, beklenen, olculen, aciklama))
+    finally:
+        _shutil.rmtree(gecici, ignore_errors=True)
+    return basarisiz, atlanan
+
+
 def k214_claude_kol_sirasi_denetim():
     """K214: 'claude' motoru EMEKLI_ISCI_MOTORLARI'na eklenince sert blok kolu
     emekli_gerekcesi ile golgeleniyor mu? Bes ayak:
@@ -1511,6 +1663,11 @@ def main():
             basarisiz += b
             atlanan += a
             b, a = k214_claude_kol_sirasi_denetim()
+            basarisiz += b
+            atlanan += a
+            # 20 AGU: tarayici ekseninin KAPALI kolu (528-544). Acik evde 500-504
+            # uzerinden olculemeyen kapsam/kimlik nobetcileri burada yasar.
+            b, a = tarayici_ev_ekseni_denetim()
             basarisiz += b
             atlanan += a
     finally:

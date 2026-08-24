@@ -1014,7 +1014,7 @@ def agent_kapisi(uygula):
 # 🔴 KIMLIK TESPITI YENIDEN KULLANILIR: enjekte edilen blok kendi 'isci mi' testini
 # YAZMAZ, AGENT-KAPISI'nin _agent_isci_mi()'sini cagirir — bu yuzden AGENT_DAMGA bir
 # ZORUNLU SEMBOLDUR (yoksa eve dokunulmaz). Ikiz tanim sessizce ayrisir.
-MCP_DAMGA = 'MCP_KURAL_SURUMU = "8agu-1"'
+MCP_DAMGA = 'MCP_KURAL_SURUMU = "20agu-2"'
 MCP_TANIM_BAS = "# === PRUVO MCP-TARAYICI KAPISI BASLANGIC (mimar-kapi-kur.py enjekte etti) ==="
 MCP_TANIM_SON = "# === PRUVO MCP-TARAYICI KAPISI BITIS ==="
 MCP_CAGRI_BAS = "    # === PRUVO MCP-TARAYICI CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
@@ -1022,8 +1022,11 @@ MCP_CAGRI_SON = "    # === PRUVO MCP-TARAYICI CAGRI BITIS ==="
 MCP_ANKRAJ_TANIM = "\ndef main():\n"
 MCP_ANKRAJ_CAGRI = '    komut = (girdi.get("tool_input") or {}).get("command") or ""\n'
 # AGENT_DAMGA ZORUNLUDUR: blok _agent_isci_mi()'yi CAGIRIR (ikinci tespit yazilmaz).
+# 20 AGU: 'EV_ADI = ' de ZORUNLU — tarayici ekseni EV BAZLI oldu ve ev adini AGENT
+# blogundan OKUR (ikiz tanim yazmaz). AGENT blogu kurulmamis eve DOKUNULMAZ (fail-closed):
+# EV_ADI yoksa _tarayici_ekseni_acik_mi() NameError'a duser ve kapi cokerdi.
 MCP_ZORUNLU_SEMBOL = (
-    "def reddet(", "import os", "def _agent_isci_mi(", AGENT_DAMGA,
+    "def reddet(", "import os", "def _agent_isci_mi(", AGENT_DAMGA, "EV_ADI = ",
     MCP_ANKRAJ_TANIM, MCP_ANKRAJ_CAGRI,
 )
 
@@ -1047,16 +1050,50 @@ MCP_TARAYICI_ONEKLERI = (
     "mcp__Control_Chrome__",
 )
 ''' + MCP_DAMGA + '''
-MCP_GEREKCE = (
-    "MCP-TARAYICI KAPISI (8 Agu): mimar ANA oturumu bir tarayici araci cagiriyor. Ana "
-    "dongude tarayici surmek KAPALI — her tur ekran goruntusu tasir ve goruntu EN PAHALI "
-    "token sinifidir (olculen vaka: 1 saatte baglamin %58'i). COZUM: TARAYICIYI "
-    "GORSEL-SINIF CLAUDE ISCISINE VER — Codex'e VERILMEZ (gorsel = codex-isci yasak "
-    "listesi). ISCI SABLONU (Agent araci: model sonnet + isolation worktree + background), "
-    "prompt'un ilk satiri: 'codex-muafiyet: tarayici ile <ne olculecek> — gorsel'; spec'e "
-    "CALISTIRILABILIR kabul yaz (hangi URL'de hangi sayi olculecek), isci olcsun, sen "
-    "SAYIYLA kapat. Isci cagrilarinda (agent_id dolu) bu kapi hicbir kural uygulamaz."
+
+# 🔴 20 AGU (Okan emri: "KraL ve MaCiT evlerinde tarayiciyi ac — ikinizi de ac"):
+# TARAYICI EKSENI ARTIK EV BAZLI. Bu iki evde ana oturum tarayiciyi KENDI SURER;
+# kalan dort evde 8 Agu kurali AYNEN durur.
+#
+# 🔴🔴 IKI EKSEN AYRIDIR VE AYRI KALIR — BIRLESTIRME YASAK:
+#   · SERT_BLOK_EVLER (AGENT blogu) -> CLAUDE ISCISI / Agent-Task yasagi (13 Agu Okan
+#     emri; tek kacis PRUVO_CLAUDE_ISCI_IZNI=OKAN). Okuyanlar: _agent_karari + _isci_karari.
+#   · TARAYICI_ACIK_EVLER (burasi)  -> MCP tarayici araclarinin ANA OTURUMDA serbestligi.
+# Iki kume BUGUN AYNI IKI EVI sayiyor ama ZIT hukum tasiyor: ayni evde tarayici ACIK,
+# Claude iscisi KAPALI. "Ayni liste, sadelestirelim" DAVRANIS DEGISTIREN bir hatadir;
+# kumeyi bosaltmak/silmek/otekiyle degistirmek ikinci yasagi SESSIZCE acar ve hicbir
+# yesil test gostermez (memory/ad-iki-rolde-mutanti-golgeler.md, K229 M6/M7).
+#
+# FAIL-CLOSED taraf BILEREK secildi: liste ACIK evleri sayar, kapali evleri DEGIL.
+# Tanimadik/yeni bir ev adi -> tarayici KAPALI (yeni ev sessizce acilmaz).
+TARAYICI_ACIK_EVLER = ("pruvo", "pruvo-hasat")
+
+# ACIK EVDE KURAL VAR, BLOK YOK — maliyet disiplini mimarin uydugu KURALDIR.
+TARAYICI_MALIYET_KURALI = (
+    "TARAYICI MALIYET DISIPLINI (20 Agu): once METIN — `get_page_content` / `read_page`. "
+    "Ekran goruntusu YALNIZCA aranan rakam metinden okunamiyorsa ve TEK KARE. Goruntu en "
+    "pahali token sinifidir (olculen vaka: 1 saatte baglamin %58'i)."
 )
+MCP_GEREKCE = (
+    "MCP-TARAYICI KAPISI (8 Agu · 20 Agu ev bazli): mimar ANA oturumu bir tarayici araci "
+    "cagiriyor ve BU EV tarayiciya acik evler arasinda DEGIL (acik evler: " +
+    " / ".join(TARAYICI_ACIK_EVLER) + "). Bu evde ana dongude tarayici surmek KAPALI — her "
+    "tur ekran goruntusu tasir ve goruntu EN PAHALI token sinifidir (olculen vaka: 1 "
+    "saatte baglamin %58'i). COZUM: TARAYICIYI GORSEL-SINIF CLAUDE ISCISINE VER — Codex'e "
+    "VERILMEZ (gorsel = codex-isci yasak listesi). ISCI SABLONU (Agent araci: model sonnet "
+    "+ isolation worktree + background), prompt'un ilk satiri: 'codex-muafiyet: tarayici "
+    "ile <ne olculecek> — gorsel'; spec'e CALISTIRILABILIR kabul yaz (hangi URL'de hangi "
+    "sayi olculecek), isci olcsun, sen SAYIYLA kapat. Isci cagrilarinda (agent_id dolu) bu "
+    "kapi hicbir kural uygulamaz. " + TARAYICI_MALIYET_KURALI
+)
+
+
+def _tarayici_ekseni_acik_mi():
+    """Bu EVDE ana oturumun tarayici surmesi serbest mi? (20 Agu Okan emri)
+
+    🔴 SERT_BLOK_EVLER'e BAKMAZ ve BAKMAYACAK. EV_ADI AGENT blogundan gelir (ikiz tanim
+    yazilmaz; AGENT_DAMGA + 'EV_ADI = ' bu blogun ZORUNLU sembolleridir)."""
+    return EV_ADI in TARAYICI_ACIK_EVLER
 
 
 def _mcp_tarayici_mi(tool_name):
@@ -1088,7 +1125,8 @@ def _mcp_reddet(neden):
 MCP_CAGRI_SABLON = (
     MCP_CAGRI_BAS + "\n"
     '    _mcp_tool = girdi.get("tool_name") or ""\n'
-    "    if _mcp_tarayici_mi(_mcp_tool) and not _agent_isci_mi(girdi):\n"
+    "    if (_mcp_tarayici_mi(_mcp_tool) and not _agent_isci_mi(girdi)\n"
+    "            and not _tarayici_ekseni_acik_mi()):\n"
     "        _mcp_reddet(MCP_GEREKCE)\n"
     + MCP_CAGRI_SON + "\n"
 )
@@ -1181,12 +1219,27 @@ def _mcp_ev_settings(kok, goreli, uygula):
 
 
 # Enjeksiyon sonrasi CANLI FIKSTURLER: (tool_name, tool_input, agent_id, beklenen).
-# UC EKSEN BIRDEN: (a) ana-oturum RED, (b) ISCI GECER, (c) KAPSAM DISI yanlis-pozitif YOK,
-# + (d) REGRESYON (codex/agent/rutin kollari degismedi). Biri tutmazsa ev geri alinir.
+# UC EKSEN BIRDEN: (a) ana-oturum TARAYICI HUKMU (20 Agu: EV BAZLI), (b) ISCI GECER,
+# (c) KAPSAM DISI yanlis-pozitif YOK, + (d) REGRESYON (codex/agent/rutin kollari
+# degismedi). Biri tutmazsa ev geri alinir.
+#
+# 🔴 20 AGU: ilk uc vakanin beklentisi ARTIK EVE BAGLI — sabit "deny" YAZILMAZ, sentinel
+# ile isaretlenir ve _eve_mcp_enjekte icinde ev adindan TURETILIR. Sabit yazsaydik acik
+# evlerde (KraL/MaCiT) enjeksiyon her seferinde "fikstur tutmadi" deyip evi GERI ALIRDI —
+# yani kural kurulmus gibi gorunup hicbir eve inmezdi.
+#
+# 🔴 SON IKI VAKA = NEGATIF KONTROL (eksen ayriminin CANLI kaniti): ayni evde tarayici
+# ACILIRKEN Claude iscisi (Agent) yasagi AYNEN durmali. Beklentileri TERS yonde ev bazli
+# (tarayici: acik evde allow · Agent beyanli: acik evde deny) — iki eksen tek kumeye
+# indirgenirse bu ikili AYNI anda yesil kalamaz.
+MCP_TARAYICI_BEKLENTI = "<TARAYICI-EV-BAZLI>"
+# Tarayici ekseninde ACIK evlerin ADLARI (CODEX_EVLER'deki ad alani). Bu liste enjekte
+# edilen TARAYICI_ACIK_EVLER kumesinin DIZIN adlariyla ayni evleri gostermelidir.
+MCP_TARAYICI_ACIK_EV_ADLARI = ("KraL", "MaCiT")
 MCP_FIKSTURLERI = (
-    ("mcp__claude-in-chrome__computer", {}, None, "deny"),
-    ("mcp__Claude_Browser__computer", {}, None, "deny"),
-    ("mcp__Control_Chrome__open_url", {}, None, "deny"),
+    ("mcp__claude-in-chrome__computer", {}, None, MCP_TARAYICI_BEKLENTI),
+    ("mcp__Claude_Browser__computer", {}, None, MCP_TARAYICI_BEKLENTI),
+    ("mcp__Control_Chrome__open_url", {}, None, MCP_TARAYICI_BEKLENTI),
     ("mcp__claude-in-chrome__computer", {}, AGENT_ISCI_ID, "allow"),
     ("mcp__Claude_Browser__computer", {}, AGENT_ISCI_ID, "allow"),
     ("mcp__Control_Chrome__open_url", {}, AGENT_ISCI_ID, "allow"),
@@ -1197,7 +1250,11 @@ MCP_FIKSTURLERI = (
     ("Bash", {"command": 'codex exec "x"'}, None, "deny"),
     ("Bash", {"command": "codex exec -o /tmp/son-mesaj.txt \"x\""}, None, "allow"),
     ("Agent", {"prompt": "beyansiz mimar spec"}, None, "deny"),
-    ("Agent", {"prompt": "is X\ncodex-muafiyet: kapi kodu — sessiz-hata"}, None, "allow"),
+    # 🔴 NEGATIF KONTROL (20 Agu): gecerli BEYANLI Agent — SERT_BLOK evlerinde (KraL/MaCiT)
+    # RED kalmali. Tam da tarayicinin acildigi iki ev. Beklenti ISCI enjektorundeki
+    # 'beyanli_beklenen' ile AYNI kuraldan turer; burada da ev bazli sentinel kullanilir.
+    ("Agent", {"prompt": "is X\ncodex-muafiyet: kapi kodu — sessiz-hata"}, None,
+     "<AGENT-SERT-BLOK-EV-BAZLI>"),
 )
 
 
@@ -1240,7 +1297,17 @@ def _eve_mcp_enjekte(ad, kok, goreli, uygula, rapor):
         geri_al("SyntaxError: " + str(hata)[:60])
         return "GERI ALINDI (derlenmedi)", yedek
 
+    # 🔴 20 AGU: EV BAZLI beklentiler. IKI SENTINEL, TERS YONDE — bu evde tarayici ACIK
+    # ise Claude iscisi (beyanli Agent) hala KAPALI olmalidir. Ikisi ayni ev listesinden
+    # okunur ama ZIT hukum uretir; iki eksen tek kumeye indirgenirse ikisi AYNI anda
+    # tutamaz ve ev GERI ALINIR (sessiz gecis yok).
+    tarayici_acik = ad in MCP_TARAYICI_ACIK_EV_ADLARI
+    sert_blok_ev = ad in ("KraL", "MaCiT")
     for tn, ti, aid, beklenen in MCP_FIKSTURLERI:
+        if beklenen == MCP_TARAYICI_BEKLENTI:
+            beklenen = "allow" if tarayici_acik else "deny"
+        elif beklenen == "<AGENT-SERT-BLOK-EV-BAZLI>":
+            beklenen = "deny" if sert_blok_ev else "allow"
         olculen = _agent_fikstur(yol, kok, tn, ti, aid)
         if olculen != beklenen:
             geri_al("fikstur tn=" + tn + " beklenen=" + beklenen + " olculen=" + str(olculen))
