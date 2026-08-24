@@ -65,6 +65,7 @@ from mimar_kimlik import (  # noqa: E402
     CANLI_ISCI_MOTORLARI,
     EMEKLI_ISCI_MOTORLARI,
     ISCI_MOTORLARI,
+    isci_damgasi,
     motor_blogu_kaynagi,
 )
 
@@ -1384,7 +1385,7 @@ def mcp_kapisi(uygula):
 # AGENT-KAPISI'nin regex'ini ve _agent_isci_mi()'sini CAGIRIR. Bu yuzden AGENT_DAMGA bir
 # ZORUNLU SEMBOLDUR: AGENT-KAPISI kurulmamis eve DOKUNULMAZ (yoksa motor=claude beyan
 # sarti sessizce kaybolur ve sarmalayici AGENT-KAPISI'ni atlatan anahtara doner).
-ISCI_DAMGA = 'ISCI_KURAL_SURUMU = "20agu-k250"'
+ISCI_DAMGA = 'ISCI_KURAL_SURUMU = "' + isci_damgasi() + '"'
 ISCI_TANIM_BAS = "# === PRUVO ISCI-SARMALAYICI KAPISI BASLANGIC (mimar-kapi-kur.py enjekte etti) ==="
 ISCI_TANIM_SON = "# === PRUVO ISCI-SARMALAYICI KAPISI BITIS ==="
 ISCI_KIMLIK_CAGRI_BAS = "    # === PRUVO ISCI KIMLIK CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
@@ -1566,18 +1567,32 @@ def _isci_fikstur_specleri():
 
 def _eve_isci_enjekte(ad, kok, goreli, uygula, rapor):
     """Tek eve ISCI-SARMALAYICI kuralini enjekte eder. CODEX/AGENT/MCP ile AYNI desen.
-    Doner: (durum, yedek_yolu ya da None)."""
+    Doner: (durum, yedek_yolu ya da None).
+
+    K259 (24 Agu 2026) — DAMGA ICERIKTEN TURETILIR ([[emir-canliligi-kurulu-kopyadan-
+    olculur]]): 'ZATEN TAM' karari artik ICERIK ESITLIGIYLE verilir, damga esitligiyle
+    degil. Kurulu kopyadaki ISCI blogu tek kaynaktan uretilenle birebir ayniysa
+    ZATEN_AYNI (dosyaya dokunmaz; idempotent); degilse yeniden yazilir (DAGITILDI).
+    'IKINCI KAYNAK BIRAKMA' (mimar hukmu): kurulu kopyadaki deger tek kaynaktan EZILIR,
+    'zaten tanimliysa dokunma' davranisi KALDIRILDI."""
     yol = os.path.join(kok, goreli)
     if not os.path.exists(yol):
         return "KAPI-DOSYASI-YOK", None
     metin = _oku(yol)
-    if ISCI_DAMGA in metin:
-        return "ZATEN TAM", None
+
+    # K259: icerik esitligi. Kurulu kopyadaki ISCI blogu (marker'lar dahil) ile
+    # ISCI_TANIM_SABLON birebir ayniysa ZATEN_AYNI; yoksa yeniden yazilacak (DAGITILDI).
+    mevcut_isci_blogu = _isci_blogu(metin)
+    yeni_isci_blogu = ISCI_TANIM_SABLON
+    if (mevcut_isci_blogu and
+            mevcut_isci_blogu.strip() == yeni_isci_blogu.strip()):
+        rapor.append("      ZATEN_AYNI: kurulu kopya tek kaynakla birebir (icerik esit)")
+        return "ZATEN_AYNI", None
 
     eksik = [s for s in ISCI_ZORUNLU_SEMBOL if s not in metin]
     if eksik:
         rapor.append("      zorunlu sembol EKSIK: " + repr(eksik[0]))
-        return "UYUMSUZ-KAPI (dokunulmadi)", None
+        return "ATLANDI:UYUMSUZ-KAPI (dokunulmadi)", None
 
     if not uygula:
         return "ENJEKTE EDILECEK", None
@@ -1668,7 +1683,7 @@ def _eve_isci_enjekte(ad, kok, goreli, uygula, rapor):
     rapor.append("      yedek: " + yedek)
     rapor.append("      info/exclude: " + _yedeklerimi_gizle(kok) +
                  " | skip-worktree: " + _skip_worktree(kok, goreli))
-    return "KURULDU", yedek
+    return "DAGITILDI", yedek
 
 
 # Kural METNI icindeki yollarin ARAC tarafindaki ikizi (fikstur kurmak icin). Tek kaynak
@@ -1686,7 +1701,13 @@ ISCI_M3_YOLU_SABIT = os.path.expanduser("~/.claude/cron/m3-isci.sh")
 def isci_kapisi(uygula):
     """6 EVE ISCI-SARMALAYICI kapisini kurar/dogrular. Cikis 0 = 6 evin hepsi TAM.
     KraL 'kaynak' modda: kural commit'li tools/mimar-icra-kapisi.py'de yasar, bu arac
-    orayi YAZMAZ — yalnizca DOGRULAR (ISCI_DAMGA aranir)."""
+    orayi YAZMAZ — yalnizca DOGRULAR (icerik esitligi).
+
+    K259 (24 Agu 2026): dagitim SESSIZ ATLAMAZ — her ev icin sonuc BASILIR
+    (DAGITILDI / ZATEN_AYNI / ATLANDI:<sebep>). 'ZATEN TAM' hukmu YALNIZCA icerik
+    esitligi olculdukten sonra verilebilir; damga esitligi tek basina yeterli degildir.
+    'Zaten tanimliysa dokunma' davranisi KALDIRILDI: kurulu kopya tek kaynaktan EZILIR
+    (idempotent uretim)."""
     print("ISCI-SARMALAYICI KAPISI DAMGASI: " + ISCI_DAMGA)
     print("SARMALAYICI: " + ISCI_SARMALAYICI_YOLU_SABIT + " | YONLENDIRME: " +
           ISCI_M3_YOLU_SABIT)
@@ -1707,32 +1728,54 @@ def isci_kapisi(uygula):
             sys.exit(1)
     print("")
     eksik = 0
+    sayac = {"DAGITILDI": 0, "ZATEN_AYNI": 0, "ATLANDI": 0, "DIGER": 0}
     for ad, kok, _varsayilan_goreli, mod in CODEX_EVLER:
         rapor = []
         if not os.path.isdir(kok):
-            print("{:<7} {:<34} {:<9} {}".format(ad, "-", mod, "EV YOK"))
+            print("{:<7} {:<34} {:<9} {}".format(ad, "-", mod, "ATLANDI:EV YOK"))
+            sayac["ATLANDI"] += 1
             eksik += 1
             continue
         goreli, _kablo = _kapi_yolu_olc(kok)
         if goreli is None:
             print("{:<7} {:<34} {:<9} {}".format(
-                ad, "?", mod, "KAPI YOLU OLCULEMEDI (diskte aday yok) — DOKUNULMADI"))
+                ad, "?", mod, "ATLANDI:KAPI YOLU OLCULEMEDI (diskte aday yok)"))
+            sayac["ATLANDI"] += 1
             eksik += 1
             continue
         if mod == "kaynak":
+            # KraL: kural commit'li kaynakta yasar; bu arac orayi YAZMAZ, yalniz DOGRULAR.
+            # K259: 'ZATEN_AYNI' yalniz ICERIK ESITLIGIYLE; damga tek basina yeterli degil.
             try:
-                durum_metni = "ZATEN TAM" if ISCI_DAMGA in _oku(os.path.join(kok, goreli)) \
-                    else "EKSIK (kaynak dosya — dal ile guncellenir, arac YAZMAZ)"
+                kaynak_metin = _oku(os.path.join(kok, goreli))
             except Exception:
-                durum_metni = "KAPI-DOSYASI-YOK"
+                durum_metni = "ATLANDI:KAPI-DOSYASI-YOK"
+            else:
+                mevcut = _isci_blogu(kaynak_metin)
+                if (mevcut and
+                        mevcut.strip() == ISCI_TANIM_SABLON.strip()):
+                    durum_metni = "ZATEN_AYNI"
+                else:
+                    durum_metni = "ATLANDI:KAYNAK-EKSIK (dal ile guncellenir, arac YAZMAZ)"
         else:
             durum_metni, _ = _eve_isci_enjekte(ad, kok, goreli, uygula, rapor)
-        if durum_metni != "ZATEN TAM" and not (uygula and durum_metni == "KURULDU"):
+        if durum_metni in sayac:
+            sayac[durum_metni] += 1
+        elif durum_metni.startswith("ATLANDI"):
+            sayac["ATLANDI"] += 1
+        else:
+            sayac["DIGER"] += 1
+        if durum_metni not in ("ZATEN_AYNI", "DAGITILDI"):
             eksik += 1
         print("{:<7} {:<34} {:<9} {}".format(ad, goreli, mod, durum_metni))
         for satir in rapor:
             print(satir)
     print("")
+    # K259: dagitim Raporu — her ev icin sonuc ayri ayri BASILDI; burada TOPLAM.
+    print("DAGITIM OZETI: DAGITILDI=" + str(sayac["DAGITILDI"]) +
+          " · ZATEN_AYNI=" + str(sayac["ZATEN_AYNI"]) +
+          " · ATLANDI=" + str(sayac["ATLANDI"]) +
+          " · DIGER=" + str(sayac["DIGER"]))
     print("TAM OLMAYAN EV: " + str(eksik))
     print("KURULU_EV=" + str(len(CODEX_EVLER) - eksik) + "/" + str(len(CODEX_EVLER)))
     if not uygula:

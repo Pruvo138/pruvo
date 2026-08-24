@@ -82,6 +82,23 @@ def motor_imzasi():
     return hashlib.sha256(govde.encode("utf-8")).hexdigest()[:16]
 
 
+# === K259 (24 AGU 2026): ISCI DAMGASI ICERIKTEN TURETILIR ===
+# OLCULEN KUSUR (K259): ISCI_DAMGA kurucuya ELLE yazili sabit bir dize idi ve kaynak
+# kumeler degisse bile damga degismiyordu — boylece dagitici 'ZATEN TAM' diyip kurulu
+# kopyaya HIC dokunmuyor, 4 kardes ev 4 GUNDUR bayat kaliyordu ([[emir-canliligi-
+# kurulu-kopyadan-olculur]]). Mimar hukmu: damga, enjekte edilen ISCI blogunun
+# ICERIGINDEN (motor_blogu_kaynagi() ciktisinin sha256/12) turetilir; icerik degisince
+# damga KENDILIGINDEN degisir. Elle yazilan surum dizesi damga olarak KULLANILMAZ.
+def isci_damgasi():
+    """ISCI-SARMALAYICI blok damgasi: motor_blogu_kaynagi() ciktisinin sha256 ilk 12 hanesi.
+
+    Icerikten turetildigi icin tek kaynak (CANLI/EMEKLI/ISCI kumeleri) degisince damga
+    kendiliginden degisir; 'ZATEN TAM' karari artik icerik esitligine baglidir, damga
+    esitligine degil. Idempotent: ayni icerik icin ayni damga."""
+    import hashlib
+    return hashlib.sha256(motor_blogu_kaynagi().encode("utf-8")).hexdigest()[:12]
+
+
 def motor_blogu_kaynagi():
     """Kurulu kopyaya YAPISTIRILACAK Python blogunun metni (marker'lar DAHIL)."""
     satirlar = [
