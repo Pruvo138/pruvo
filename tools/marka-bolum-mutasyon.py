@@ -189,7 +189,13 @@ def uygula(taban, ciftler, ic_kontrol_kapali):
 def main():
     dokum = "--dokum" in sys.argv[1:]
     k86 = "--k86" in sys.argv[1:]
-    mutantlar = ([m for m in MUTANTLAR if m[0] == "X4_TUMUNU_GOSTER_OLU"]
+    # 🔴 K86: en az iki mutant İLERİ-SÜRÜLEN KOLu ÖLDÜRMELİ ve kümeler PARÇALI FARKLI
+    # olmalı (24 Ağu 2026, K86 spec). X4 (artım ölü) + X1 (SSR kart N yarıya) BÖLÜM
+    # kolunu farklı ailelerden vurur; aynı kümeye düşerlerse mutant ayırt edici değildir.
+    # X4 (artım ölü → ARTIM ailesi) + M1 (bölüm kimliği kaldır → KIMLIK ailesi) iki ayrı
+    # bölüm davranışını vurur; aynı kümeye düşerlerse mutant ayırt edici değildir.
+    K86_MUTANT = {"X4_TUMUNU_GOSTER_OLU", "M1_KIMLIK_KALDIR"}
+    mutantlar = ([m for m in MUTANTLAR if m[0] in K86_MUTANT]
                  if k86 else MUTANTLAR)
     # 🔴 CANLI AGACIN DAMGASI: bu surucu artik canli dosyaya YAZMIYOR ve bunu BEYAN
     # ETMIYOR, OLCUYOR. Bas/son damga esit degilse ya da artik `*-yedek` dosyasi kaldiysa
@@ -205,6 +211,19 @@ def main():
         taban = oku()
         taban_iz = iz()
         print("TABAN IZ =", taban_iz)
+        # ---------------------------------------------------------- TABAN B
+        # 🔴 KAPI'nin TABAN kırmızısı (örn. 62 KAPI:KAYIP "fazla > 0" düşüşü) MUTANT'tan
+        # gelmez — mutasyonun YENİ düşürdüğü kümeyi ölçmek için TABAN kırmızısını
+        # çıkarmamız gerek (24 Ağu 2026, K86). Yoksa KONTROL_YORUM hep BOZULDU olur ve
+        # "mutant öldü mü" ayrımı ölçülemez ([[ad-iki-rolde-mutanti-golgeler]]).
+        print()
+        print("== TABAN: KAPI/ARTIM'in mutasyonsuz düşen kümeleri ==")
+        yaz(taban)                        # mutasyon yok, kaynak taban
+        taban_r = kapiyi_kostur()
+        taban_dusen = taban_r["dusen"]
+        print("  TABAN dusen=%d aileler=%s"
+              % (len(taban_dusen), sorted(set(d.split(":")[0] for d in taban_dusen))))
+        print("  TABAN rc=%s iddia=%s" % (taban_r["rc"], taban_r["iddia"]))
         # ---------------------------------------------------------- KATMAN A
         print()
         print("== KATMAN A: JENERATÖRÜN İÇ FAIL-CLOSED'U (mutant TEK BAŞINA) ==")
@@ -270,17 +289,23 @@ def main():
             continue
         if not d["uygulandi"]:
             hatalar.append("%s mutasyonu UYGULANMADI (iz değişmedi)" % ad)
+        # YENİ düşenler = mutantın TABAN üstüne eklediği iddialar. TABAN'da zaten
+        # kırmızı olan (örn. KAPI:KAYIP "fazla > 0") KONTROL'de de görüneceğinden
+        # çıkarılmazsa "kol ölçülüyor" ile "kol ölçülmüyor" ayırt edilemez.
+        yeni_dusen = d["dusen"] - taban_dusen
         if d["kontrol"]:
-            if d["rc"] != 0:
-                hatalar.append("KONTROL mutantı BOZULDU (rc=%s, aileler=%s)"
-                               % (d["rc"], sorted(d["aileler"].items())))
+            if yeni_dusen:
+                hatalar.append("KONTROL mutantı TABAN üstüne %d yeni düşüş ekledi (aileler=%s)"
+                               % (len(yeni_dusen),
+                                  sorted(set(x.split(":")[0] for x in yeni_dusen))))
             continue
         if d["cokme"]:
             hatalar.append("%s ÇÖKEREK düştü — ÖLDÜRÜLMÜŞ SAYILMAZ" % ad)
-        elif d["rc"] != 1 or not d["dusen"]:
-            hatalar.append("%s HAYATTA KALDI (rc=%s)" % (ad, d["rc"]))
+        elif not yeni_dusen:
+            hatalar.append("%s HAYATTA KALDI (mutant TABAN kırmızısına yeni bir şey eklemedi)"
+                           % ad)
         else:
-            b_kumeleri[ad] = frozenset(d["dusen"])
+            b_kumeleri[ad] = frozenset(yeni_dusen)
     # KÜME AYIRT EDİCİLİĞİ: iki mutant AYNI iddia kümesine düşmemeli
     esler = []
     adlar = sorted(b_kumeleri)
@@ -303,7 +328,8 @@ def main():
               % (ad, len(b_kumeleri[ad]), sorted(aileler.items())))
     print("AYNI_KUMEYE_DUSEN =", esler if esler else "YOK")
     kontrol_d = sonuc.get(("B", KONTROL[0])) or {}
-    print("KONTROL =", "YESIL" if kontrol_d.get("rc") == 0 else "BOZULDU")
+    kontrol_yeni = kontrol_d.get("dusen", set()) - taban_dusen
+    print("KONTROL =", "YESIL" if not kontrol_yeni else "BOZULDU (yeni=%d)" % len(kontrol_yeni))
     if hatalar:
         print()
         for h in hatalar:

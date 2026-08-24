@@ -478,13 +478,134 @@ def _ilk_satirda_kapanis(metin):
     return False
 
 
+# === K267 (24 Agu 2026) — KAPALILIK HALDEN OKUNUR, JETONDAN DEGIL =========
+# OLCULEN ARIZA (24 Agu, kanonik kosum): `MADDE_KOVALARI ... KAPALI=0
+# SINIFLANAMAZ=2` — dokuz kapanmis kalemden HICBIRI arac eliyle tasinamadi,
+# besi ELLE kirpildi. Iki gercek sebep OLCULDU:
+#
+#  (1) HAL, KALEM BASLIGINDA yazilir — POZISYON 1'de degil. Defterin kanonik
+#      kapanis yazimi `- **K254 KAPANDI** canli 7/7 ...` bicimindedir: kalem
+#      KIMLIGI onde, kapanis jetonu hemen ARKASINDA, ikisi ayni `**...**`
+#      basliginda. `_ilk_satirda_kapanis` ise jetonun ILK ANLAMLI TOKEN
+#      olmasini sarti kosuyordu; `K254` kelimesini gorunce False donuyordu.
+#      Sonuc: gercekten kapanmis iki kalem (K254, K262) `SINIFLANAMAZ`
+#      kovasinda kaldi — yani arac defterin KENDI kapanis notasyonunu
+#      okuyamiyordu.
+#  (2) HAL > JETON. Kapanmis bir kalemin satirinda BAYAT bir 🔴/🔧 jetonu
+#      durabilir (kalem kapandi, jeton guncellenmedi). Eski sirada
+#      `_acik_eslesiyor` HER SEYDEN once geliyordu ve HALI eziyordu. Hukum
+#      TERSINE cevrildi: kalem basliginda kapanis HALI varsa, basliktan ONCE
+#      duran acik jeton BAYAT sayilir ve VETO ETMEZ.
+#
+# 🔴 GEVSEME DEGIL — ucuncu kol AYNI ANDA sikilastirir (ORTAK SATIR):
+# basliktan SONRA acik jeton geciyorsa satir kapali kalemle ACIK kalemleri
+# BIRLIKTE tasiyor demektir; kapali kalem mekanik olarak tek basina
+# cikarilamaz -> `SINIFLANAMAZ` (fail-closed) ve SEBEP ADIYLA basilir.
+# Bu kol olmasa hukum (2) fail-open olurdu: canli defterdeki
+# `- ✅ **19 Agu KAPANANLAR: ...** **KALAN ACIK ARTIKLAR:** T3 ...` satiri
+# HALI tasidigi halde ACIK is tasir; onu bugun yalnizca `arsivde` vetosu
+# tutuyor — yani IKINCI BIR SIGORTA. Tek sigortaya guvenen kol OLCULEMEZ
+# ([[ad-iki-rolde-mutanti-golgeler]]), o yuzden ortak-satir kolu KENDI
+# basina belirleyicidir ve kendi mutantiyla olculur.
+#
+# K128 KORUNUR: hal YALNIZ maddenin ILK SATIRINDAN ve YALNIZ kalem
+# basligindan okunur. Devam satirlarinda ya da baslik disinda parantez icinde
+# gecen `KAPANDI` (canli ornek: `... (K243 KAPANDI \`951059fa\`.) ...`)
+# TASIMA GEREKCESI OLAMAZ.
+
+
+def _ilk_satir(metin):
+    return metin.split("\n", 1)[0]
+
+
+def _kalem_basligi(ilk_satir):
+    """Maddenin ILK SATIRINDAKI KALEM BASLIGI bolgesi + basliktan SONRAKI kalan.
+
+    Defterin kanonik kalem yazimi: `- [bayat jeton ]**<KALEM BASLIGI>** <govde>`.
+    BASLIK = **BASTAKI** `**...**` cifti VE ondan onceki jeton bolgesi.
+
+    🔴 "BASTAKI" SARTI TASIYICIDIR — OLCULDU (24 Agu, kardes batarya F2/X6
+    fiksturu): ilk `**...**` ciftini SATIRIN HERHANGI BIR YERINDE aramak
+    `- ✅ KAPANDI: X5 listesi — kalan 🟠 **X6 K904** durmali.` satirini
+    "baslik = ... **X6 K904**" diye okuyup ACIK X6 jetonunu BASLIGIN ICINE
+    aliyor; boylece ortak-satir kolu KORLESIYOR ve ACIK kalem arsive
+    supuruluyordu. Bold cift ancak ONUNDE HIC KELIME YOKSA (yalniz jeton /
+    bosluk / noktalama) BASLIKTIR; aksi halde baslik YOKTUR ve hal yalniz
+    ILK ANLAMLI TOKEN kolundan okunabilir.
+    Donus: (baslik|None, basliktan sonraki kalan)
+    """
+    if not ilk_satir.startswith("- "):
+        return None, ""
+    s = ilk_satir[2:]
+    a = s.find("**")
+    if a == -1:
+        return None, s
+    if any(c.isalnum() for c in s[:a]):        # bold BASTA DEGIL -> baslik YOK
+        return None, s
+    b = s.find("**", a + 2)
+    if b == -1:
+        return None, s
+    return s[:b + 2], s[b + 2:]
+
+
+def _kapanis_hali(metin):
+    """HAL: madde KAPANMIS mi? (JETON degil HAL — K267 hukum 1)
+
+    Iki kol, ikisi de maddenin ILK SATIRINDA (K128 korunur):
+      (a) kapanis jetonu ILK ANLAMLI TOKEN (`- ✅ **...**`)  -> eski davranis,
+      (b) kapanis jetonu KALEM BASLIGI icinde (`- **K254 KAPANDI** ...`)
+          ya da baslik bolgesinde (`- 🔴 **K261 KAPANDI:** ...`).
+    (b) kolu, defterin kanonik kapanis notasyonunu okuyabilmek icin ACILDI;
+    ayni kol bayat acik jetonun HALI ezmesini de bitirir.
+    """
+    if not metin or not metin.startswith("- "):
+        return False
+    ilk = _ilk_satir(metin)
+    if _ilk_satirda_kapanis(ilk):
+        return True
+    baslik, _kalan = _kalem_basligi(ilk)
+    if baslik is None:
+        return False
+    return any(j in baslik for j in KAPANIS_ISARETCILER)
+
+
+def _ortak_satir_sebebi(metin):
+    """K267 hukum 3 — ORTAK SATIR: bir satirda kapali + ACIK kalem birlikte.
+
+    Kapanis HALI var AMA kalem basligindan SONRA acik jeton geciyorsa, satir
+    kapanan kalemi ACIK kalemlerle birlikte tasiyor demektir. Boyle bir satiri
+    birebir kirpmak ACIK kalemleri de arsive surukler (yasak 4), o yuzden madde
+    `SINIFLANAMAZ` kovasina duser — TASINMAZ ama SESSIZ KALMAZ: sebep ve satirin
+    tasidigi KALEM KIMLIKLERI ADIYLA basilir.
+
+    Donus: sebep dizesi (ortak satir ise) ya da None.
+    """
+    if not _kapanis_hali(metin):
+        return None
+    ilk = _ilk_satir(metin)
+    _baslik, kalan_ilk = _kalem_basligi(ilk)
+    kalan = "\n".join([kalan_ilk] + metin.split("\n")[1:])
+    if not _acik_eslesiyor(kalan):
+        return None
+    kimlikler = list(dict.fromkeys(_KIMLIK_RE.findall(metin)))
+    return ("ortak satir: %s — kapanis HALI var ama kalem basligindan SONRA "
+            "acik jeton geciyor; kapali kalem tek basina CIKARILAMIYOR"
+            % (", ".join(kimlikler) if kimlikler else "kalem kimligi YOK"))
+
+
 def _madde_tasinir_mi(metin):
-    """Madde kesme olcutunu uygula: suphede kalirsan (fail-closed) TASIMA."""
-    if _acik_eslesiyor(metin):
+    """Madde kesme olcutunu uygula: suphede kalirsan (fail-closed) TASIMA.
+
+    🔴 K267 SIRA: ortak satir -> HAL -> arsiv vetosu. `_acik_eslesiyor` artik
+    TEK BASINA veto DEGILDIR (hal > jeton); acik jetonun tasima engeli olmasi
+    ORTAK SATIR kolundan gecer. Hal TASIMAYAN madde zaten tasinmaz, yani
+    "ACIK KALEM ASLA TASINMAZ" yasagi iki koldan birden korunur.
+    """
+    if _ortak_satir_sebebi(metin) is not None:
+        return False
+    if not _kapanis_hali(metin):
         return False
     if _madde_arsiv_vetolu(metin):
-        return False
-    if not _ilk_satirda_kapanis(metin):
         return False
     return True
 
@@ -513,23 +634,29 @@ MADDE_KOVALARI = (MADDE_ACIK, MADDE_ARSIV_ISARETCISI, MADDE_KAPALI,
 
 
 def _madde_sinifi(metin):
-    """Maddenin KOVASI. Yuklem `_madde_tasinir_mi` ile AYNI uc kaynaktan
-    (`_acik_eslesiyor`, `_madde_arsiv_vetolu`, `_ilk_satirda_kapanis`) ve AYNI
-    SIRAYLA turer.
+    """Maddenin KOVASI. Yuklem `_madde_tasinir_mi` ile AYNI dort kaynaktan
+    (`_ortak_satir_sebebi`, `_madde_arsiv_vetolu`, `_kapanis_hali`,
+    `_acik_eslesiyor`) ve AYNI SIRAYLA turer (K267 sirasi: ortak satir ->
+    HAL -> arsiv -> jeton).
 
     🔴 IKIZ TANIM NOBETCISI: siniflama sayilariyla tasima hukmu ayrisirsa kova
     tablosu YALAN soyler ([[ikiz-tanim-sessiz-ayrisma]]). Ayrisma SESSIZ
     kalmaz: madde kendi kovasina (`TUTARSIZ`) dusulur, sayilir, basilir ve
     TASINMAZ (fail-closed). Sifir olsa bile satirda gorunur.
     """
-    if _acik_eslesiyor(metin):
-        sinif = MADDE_ACIK
+    if _ortak_satir_sebebi(metin) is not None:
+        sinif = MADDE_SINIFLANAMAZ
+    elif not _kapanis_hali(metin):
+        # 🔴 HAL YOKSA kalem KAPANMAMISTIR — arsiv vetosu bu dala GIRMEZ.
+        # OLCULDU (24 Agu, canli defter): arsiv vetosu HALDEN once konulunca
+        # metninde "ARSIVDE" gecen 19 ACIK kalem `ARSIV_ISARETCISI` kovasina
+        # kaydi (ACIK 43 -> 24) — kova adi yalan soylemeye basladi. Kova
+        # `arsive isaret eden KAPALI madde` demektir; ACIK madde oraya DUSMEZ.
+        sinif = MADDE_ACIK if _acik_eslesiyor(metin) else MADDE_SINIFLANAMAZ
     elif _madde_arsiv_vetolu(metin):
         sinif = MADDE_ARSIV_ISARETCISI
-    elif _ilk_satirda_kapanis(metin):
-        sinif = MADDE_KAPALI
     else:
-        sinif = MADDE_SINIFLANAMAZ
+        sinif = MADDE_KAPALI
     if (sinif == MADDE_KAPALI) != bool(_madde_tasinir_mi(metin)):
         return MADDE_TUTARSIZ
     return sinif
@@ -540,8 +667,9 @@ def _maddeleri_isle(govde, kova=None, ornekler=None):
 
     `kova` verilirse (collections.Counter) her madde AYRICA siniflandirilir ve
     sayilir; `ornekler` verilirse SINIFLANAMAZ/TUTARSIZ maddelerin ilk satiri
-    (kova, ilk_satir) ikilisi olarak eklenir. Ikisi de opsiyoneldir — tasima
-    davranisini DEGISTIRMEZLER, yalnizca gorunurluk uretirler.
+    (kova, ilk_satir, sebep) uclusu olarak eklenir — `sebep` K267 ORTAK SATIR
+    kolunda ADLI gerekce tasir, oteki hallerde None. Ikisi de opsiyoneldir —
+    tasima davranisini DEGISTIRMEZLER, yalnizca gorunurluk uretirler.
 
     Donus: (kalan_govde_satirlari, tasinacak_madde_metinleri).
     Madde = `- ` ile baslayan satir + ondan sonraki, `- ` ile baslamayan
@@ -575,7 +703,8 @@ def _maddeleri_isle(govde, kova=None, ornekler=None):
                 kova[sinif] += 1
                 if (ornekler is not None
                         and sinif in (MADDE_SINIFLANAMAZ, MADDE_TUTARSIZ)):
-                    ornekler.append((sinif, madde[0][:100]))
+                    ornekler.append((sinif, madde[0][:100],
+                                     _ortak_satir_sebebi(madde_metni)))
             if _madde_tasinir_mi(madde_metni):
                 tasinacak.append(madde_metni)
             else:
@@ -1329,8 +1458,13 @@ def _tek_gecis_calistir(defter_yol, arsiv_yol, tarih):
     # defteri ELLE kirpti. Cikti artik SAYIYLA (oran DEGIL) soyler: kac madde
     # INCELENDI ve her biri hangi kovaya dustu ([[batarya-kapsam-tabani-sayiyla-civilenir]]).
     print(_kova_satiri(kova, kapsayici_blok, len(bloklar)))
-    for sinif, ilk in ornekler:
-        print("TASINMADI-MADDE (%s): %s" % (sinif, ilk))
+    # 🔴 K267 hukum 3: SESSIZ "acik sayildi" YOK — ortak satirin sebebi ADIYLA
+    # basilir; sebepsiz SINIFLANAMAZ/TUTARSIZ maddeler eski bicimde kalir.
+    for sinif, ilk, sebep in ornekler:
+        if sebep:
+            print("TASINMADI-MADDE (%s): %s — SEBEP: %s" % (sinif, ilk, sebep))
+        else:
+            print("TASINMADI-MADDE (%s): %s" % (sinif, ilk))
 
     if not tasinacak_bloklar and not tasinacak_maddeler:
         defter_satir = _satir_sayisi(defter_metin)

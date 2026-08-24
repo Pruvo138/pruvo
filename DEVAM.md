@@ -14,8 +14,7 @@ AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI (sayilar + yukseltme tetigi ARSIVDE)
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
   sayac ISLE TASINIR, kapi reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
-- 🔴 **K247:** alan denetimini ATLAYAN `urunler.json` yazim kanali var (`4f855840`); kabul: kanal
-  bulunur+kapanir+mutant. · 🔧 **K245** bitis satiri isci ciktisinda belirir · 🔧 **K240**
+- 🔧 **K245** bitis satiri isci ciktisinda belirir · 🔧 **K240**
   kapi yardim metni bayat · 🔴 **K245 2. YUZ:** satir kutuya duser, SON PANEL MESAJINA dusmez ·
   🔧 **K241 (SINIF, UC YUZEY)** · 🔧 **K242** mutasyon kolu YOK · 🔧 **K244** kabul listesi ≠ CI
   kapsami. (K243 KAPANDI `951059fa`.) Tam metinler KUTUDA.
@@ -27,7 +26,12 @@ AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI (sayilar + yukseltme tetigi ARSIVDE)
   🔧 **K235 (SINIF):** hukuki beyan kapilari `hijyen-a3`te, `deploy.needs` DISINDA — UCU BIRDEN
   karara baglanir, tekil tasima YASAK. · 🔴 **K256:** `kimi-nabiz` KIRMIZI; `http=200 icerik=bos` — naif nabiz YESIL sayar. KUTUDA.
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
-- ✅ **24 Agu KAPANANLAR: K243·K254·K262·K263·K247·K259·N3·K261·K213 (tam metin ARSIVDE)** — 5/9 BIREBIR tasindi (K243/K263/N3/K247 defterde bagimsiz satir yok).
+- ✅ **24 Agu KAPANANLAR: K243·K254·K262·K263·K247·K259·N3·K261·K213·K267 (tam metin ARSIVDE)** — 6/10 BIREBIR tasindi (K243/K263/N3 defterde bagimsiz satir yok; K247 K267'den sonra ARAC ELIYLE indi).
+- 🔧 **K268 (24 Agu, K267'den DOGDU — ORTAK SATIR ARTIGI):** kanonik kosum iki ortak satiri ADIYLA
+  bildiriyor ve ikisi de fail-closed takili: (a) `19 Agu KAPANANLAR` satiri (kapanis HALI + `KALAN
+  ACIK ARTIKLAR` → SINIFLANAMAZ, kimlik K188) · (b) `K245/K240/K241/K242/K244` satiri. Kapali kalem
+  mekanik olarak cikarilamiyor, EL ile bolunmeli. kabul: iki satir bolunur, kanonik kosum
+  `SINIFLANAMAZ=0` basar, negatif kontrol (acik kalem sayisi) DEGISMEZ.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
