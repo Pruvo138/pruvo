@@ -35,6 +35,11 @@ m3) CLAUDE.md tavana 77 bayt kaldi · `goofy-blackwell-71925f` (3 commit main DI
   ACIK ARTIKLAR` → SINIFLANAMAZ, kimlik K188) · (b) `K245/K240/K241/K242/K244` satiri. Kapali kalem
   mekanik olarak cikarilamiyor, EL ile bolunmeli. kabul: iki satir bolunur, kanonik kosum
   `SINIFLANAMAZ=0` basar, negatif kontrol (acik kalem sayisi) DEGISMEZ.
+- 🔧 **K271 (24 Agu, K260 kalintisi):** `kalem_dagit` `eskalasyon_bayat` damgasini tasimiyor; dusen
+  kalem yine MIMAR'a kilitleniyor (K86+K108 bugun dustu). kabul: onarim sonrasi ikisi DAGITILABILIR
+  (0->2). Tam metin `acik-kalemler` defterinde. · 🔧 **K275:** `ci-kapsam-test.py` kesfi yalniz
+  `tools/` DOGRUDAN altini tariyor — `tools/k260/`, `tools/n4b/` bataryalari MENZIL DISI, yesil
+  "kablolandi" DEGIL "gorulmedi" demek. kabul: alt dizin kesfedilir YA DA `MENZIL_DISI` jetonu BASILIR + mutant.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
@@ -53,9 +58,6 @@ m3) CLAUDE.md tavana 77 bayt kaldi · `goofy-blackwell-71925f` (3 commit main DI
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
   ayri jeton + mutant hedef-kol atfi) · 🔧 **K191** (tarama SPEC'i isi ONCULDEN aliyor; sahibi
   MaCiT; kabul: ILK blok KAPSAM ON-OLCUMU + tazelik capasi). **Ikisinin tam metni ARSIVDE.**
-- ✅ **K184 KAPANDI** (24 Agu, KraL, chip `KraL-K184Merge`): merge NO-OP — icerik ZATEN main'de
-  (`adc6104b` squash, uc `6fca6f3f`); `merge-tree` == `main^{tree}` == `9e1bb385`, fark BOS. Kabul 9 kapi
-  kosuldu / 8 YESIL (parite-test 43/1331 TABAN → K228). Dal yerel+origin SILINDI. D1 drift 0. HocA E6 BLOKSUZ.
 - 🔧 **K192** (Okan: kalem ac DOKUNMA): `kimi` KURULU kapisinda YOK, dagitim kaniti VARLIK olcuyor. ARSIVDE.
 - 🔧 **K202-kendini-test** (M06 cokme + bayat capa) — 🔴 SAHIPSIZ: SeritB chip'i "bende HIC olmadi" diye olctu (onun uyesi K203'tu, YESIL kapandi). kabul: capa govdeden count==1, `beklentiyi tutmayan: 0`.
 - 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
