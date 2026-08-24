@@ -291,6 +291,20 @@ def olc(dokum=False):
     # uymalı; boş/bilinmeyen kimlik hiçbir kartta görünmemeli.
     urunler_id = {p.get("id"): p for p in products if p.get("id")}
     evren = mm.MarkaEvreni(index_html)
+    ek = mm.cip_evreni_markalari(products, index_html)
+    hedef_markalar = sorted({kan for p in products
+                              for kan in mm.marka_uyelikleri(p.get("marka") or [], evren, ek)})
+    ad_kanonu, azami_ad = mm.baslik_uyelik_hazirlik(hedef_markalar, evren)
+    urun_marka_set = {}
+    for p in products:
+        pid = p.get("id")
+        if not pid:
+            continue
+        uye = {mm._slug(evren.katla((x or "").strip()))
+               for x in (p.get("marka") or [])}
+        uye.update(mm._slug(evren.katla(kan)) for kan in
+                   mm.baslik_uyelikleri(p, evren, ad_kanonu, azami_ad, ek))
+        urun_marka_set[pid] = uye
     yanlis_marka = []
     gecersiz_kimlik = []
 
@@ -311,8 +325,7 @@ def olc(dokum=False):
             if not pid or p is None:
                 gecersiz_kimlik.append((rel, href))
                 continue
-            uye_sluglari = {mm._slug(evren.katla((x or "").strip()))
-                            for x in (p.get("marka") or [])}
+            uye_sluglari = urun_marka_set.get(pid, set())
             if marka_slug not in uye_sluglari:
                 yanlis_marka.append((rel, pid, sorted(uye_sluglari)))
         n_btn = len(BTN_RE.findall(ham))

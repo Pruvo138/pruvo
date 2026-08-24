@@ -403,7 +403,8 @@ def tara(tmp):
 
 def bagimsiz_uyelik(products, mm, index_html):
     """Katalogdaki GERÇEK marka üyeliği — sayfa üreticisinden BAĞIMSIZ türetme.
-    index.html marka filtresiyle aynı yüklem (`marka_uyelikleri`); gruplandir/uret ÇAĞRILMAZ."""
+    index.html marka filtresiyle aynı yüklem (`marka_uyelikleri` ∪ FAZ 1B başlık kolu);
+    gruplandir/uret ÇAĞRILMAZ."""
     evren = mm.MarkaEvreni(index_html)
     ek = mm.cip_evreni_markalari(products, index_html)
     uyelik = {}
@@ -415,6 +416,15 @@ def bagimsiz_uyelik(products, mm, index_html):
             uyelik.setdefault(kan, set()).add(pid)
     # SIRA iddiasının GİRDİSİ (iddiası değil): kovalar. Kapı tekilleştirmeyi KENDİ yazar.
     veri = mm.gruplandir(products, evren, ek)
+    # FAZ 1B başlık kolu: ürün başlığında TAM KELİME geçen markalar da üyedir.
+    hedef_markalar = sorted(veri)
+    ad_kanonu, azami_ad = mm.baslik_uyelik_hazirlik(hedef_markalar, evren)
+    for p in products:
+        pid = p.get("id")
+        if not pid:
+            continue
+        for kan in mm.baslik_uyelikleri(p, evren, ad_kanonu, azami_ad, ek):
+            uyelik.setdefault(kan, set()).add(pid)
     return uyelik, veri
 
 
