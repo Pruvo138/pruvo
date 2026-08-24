@@ -142,6 +142,7 @@ TEMIZLENECEK = (
     os.path.join(CRON, "k271-kanit"),
     os.path.join(CRON, "k271-kanit2"),
     os.path.join(CRON, "k271-kapanis-kanit"),
+    os.path.join(CRON, "k86-kanit"),
     os.path.join(CRON, "nobet-kapi.py.yedek-k260-20260824T125221Z"),
     os.path.join(CRON, "testler.py.yedek-k260-20260824T125221Z"),
 )
