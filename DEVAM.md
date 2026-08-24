@@ -26,17 +26,14 @@ m3) CLAUDE.md tavana 77 bayt kaldi · `goofy-blackwell-71925f` (3 commit main DI
 - 🔧 **K234:** CAYMA_RE "iade"yi yakalamiyor (m.15 disi hak vaadi gorunmez); kabul: olcer+3 mutant. ·
   🔧 **K235 (SINIF):** hukuki beyan kapilari `hijyen-a3`te, `deploy.needs` DISINDA — UCU BIRDEN
   karara baglanir, tekil tasima YASAK.
-- 🔧 **K269 (24 Agu, K256'dan DOGDU — CAGRI YERI YOK):** nabzin hukmunu OKUYAN taraf YOK. Olculdu:
-  `kimi-nabiz`e tum atiflar = crontab'in 2 kosum satiri + 1 crontab yedegi + ilgisiz
-  `baglam-olcum.tsv` etiketi; hicbir nobet/rotasyon/merdiven log'u ya da kovayi TUKETMIYOR
-  ([[kapinin-menzili-cagri-yeridir]]). kabul: hukmu okuyan EN AZ 1 tuketici + tuketicinin KOVAYA
-  GORE davranis degistirdigini kanitlayan mutant (kova sabitlenince tuketici KIRMIZI yanar);
-  jeton taramasi kabul DEGIL, davranis olculur.
-- 🔧 **K270 (24 Agu, K256'dan DOGDU — KABUL CI DISINDA):** `kimi-nabiz-test.py` repo DISINDA
-  (`~/.claude/cron/`); kapsam kapisinin duzlemi repo ici oldugu icin bu dosya o duzlemde DEGIL,
-  hicbir is akisindan kosmuyor — bugun yalniz ELLE kosuldugunda olculuyor. kabul: test bir CI
-  adimindan kosar (hijyen seridi) + `CI_KAPSAM_RC` basar + mutant: kol bozulunca O ADIM kirmizi
-  yanar. Muafiyet listesi kabul DEGIL.
+- 🔧 **K269 (24 Agu, K256'dan DOGDU — CAGRI YERI YOK):** nabiz hukmunu OKUYAN taraf YOK; atiflar =
+  2 crontab kosum satiri + 1 crontab yedegi + 1 ilgisiz `baglam-olcum.tsv` etiketi, kovayi TUKETEN
+  **0** ([[kapinin-menzili-cagri-yeridir]]). kabul: >=1 tuketici + tuketicinin KOVAYA GORE davranis
+  degistirdigini kanitlayan mutant; jeton taramasi kabul DEGIL.
+- 🔧 **K276 (24 Agu, K256'dan DOGDU — KABUL CI DISINDA):** `kimi-nabiz-test.py` repo DISINDA
+  (`~/.claude/cron/`), kapsam kapisinin duzlemi repo ici → hicbir is akisindan kosmuyor, yalniz
+  ELLE olculuyor. kabul: bir CI adimindan kosar (hijyen seridi) + `CI_KAPSAM_RC` basar + mutant:
+  kol bozulunca O ADIM kirmizi yanar. Muafiyet listesi kabul DEGIL.
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
 - ✅ **24 Agu KAPANANLAR: K243·K254·K262·K263·K247·K259·N3·K261·K213·K267·K265·K266·K184·K222·K256·K260·K86·K70·O4-B (tam metin ARSIVDE/KUTUDA)** — 6/10 BIREBIR tasindi (K243/K263/N3 defterde bagimsiz satir yok; K247 K267'den sonra ARAC ELIYLE indi).
   ✅ **CAKISMA COZULDU (24 Agu, KraL):** K268 = ORTAK SATIR artigi (asagida, ACIK); bayat-vaka
@@ -64,9 +61,6 @@ m3) CLAUDE.md tavana 77 bayt kaldi · `goofy-blackwell-71925f` (3 commit main DI
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
   ayri jeton + mutant hedef-kol atfi) · 🔧 **K191** (tarama SPEC'i isi ONCULDEN aliyor; sahibi
   MaCiT; kabul: ILK blok KAPSAM ON-OLCUMU + tazelik capasi). **Ikisinin tam metni ARSIVDE.**
-- ✅ **K184 KAPANDI** (24 Agu, KraL, chip `KraL-K184Merge`): merge NO-OP — icerik ZATEN main'de
-  (`adc6104b` squash, uc `6fca6f3f`); `merge-tree` == `main^{tree}` == `9e1bb385`, fark BOS. Kabul 9 kapi
-  kosuldu / 8 YESIL (parite-test 43/1331 TABAN → K228). Dal yerel+origin SILINDI. D1 drift 0. HocA E6 BLOKSUZ.
 - 🔧 **K192** (Okan: kalem ac DOKUNMA): `kimi` KURULU kapisinda YOK, dagitim kaniti VARLIK olcuyor. ARSIVDE.
 - 🔧 **K202-kendini-test** (M06 cokme + bayat capa) — 🔴 SAHIPSIZ: SeritB chip'i "bende HIC olmadi" diye olctu (onun uyesi K203'tu, YESIL kapandi). kabul: capa govdeden count==1, `beklentiyi tutmayan: 0`.
 - 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
