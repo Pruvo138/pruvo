@@ -10,7 +10,9 @@ calisir halde (K268 acti). Curuyen kalem: K281 (`KILIT_MUMKUN=0`, olcumle).
 KAYIP_KURAL=0 FARK=+866`. 15 hedefin 15'i grep'le dogrulandi, 13'u bugun HIC degismedi (mtime) —
 yani 1 blok gercekten TASINDI (`memory/guncel-mimari.md`), 14'u zaten okuyucusu VARDI ve silindi.
 Kayip kural YOK. Olculemeyen tek sey: baytin blok basina dagilimi (17:50 taban kopyasi YOK).
-🔴 **YARINA DEVIR:** K286 (K80 nobetcisi YORUM satirini cagri sayip sahte ZINCIR_DISI basiyor).
+🔴 **YARINA DEVIR:** K286 (K80 nobetcisi YORUM satirini cagri sayiyor) · K287 (birim-saglik
+kontrolu buyuk sapmayi kaciriyor: 1659x1659mm bbox gecti; kabul: buyuk-uc esigi + mutant).
+📌 **BICIM:** nobet hukmu TUR NUMARASIYLA yazilir (`HUKUM=<hal>@tur<N>`).
 **Okan'da:** ① gecmis temizligi · ② K200(i) · ③ CLAUDE.md tavan ONERISI · ④ K284 canli dogrulama.
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
