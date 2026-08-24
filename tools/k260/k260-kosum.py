@@ -51,6 +51,22 @@ FAZLAR = {
     # metne yaslidir; ustune yazmak ANKOR_YOK verirdi).
     "geri-al": (),   # komutu `--damga` ile main() kurar
     "temizlik": (),  # main() dogrudan temizlik() cagirir
+    "kutu-rotasyon": (),  # main() dogrudan kutu_rotasyon() cagirir
+    "defter-rotasyon": (),  # main() dogrudan defter_rotasyon() cagirir
+    # Merge oncesi kapi turu. CI KAPSAM kapisi IKI AGACTA da olculur: kardes
+    # mimarin komutu ANA agaci gosteriyordu ama gerekcesi "dalin dosyalari ana
+    # agacta gorunmez, sahte yesil verir" diyordu — celiski ikisini de olcup
+    # ETIKETLEYEREK cozulur, tahminle DEGIL.
+    "merge-kapisi": (
+        ("ci-kapsam-DALDA", [sys.executable, os.path.join(
+            os.path.dirname(BU_DIZIN), "ci-kapsam-test.py")]),
+        ("ci-kapsam-ANA-AGACTA", [sys.executable,
+                                  "/Users/okan/dev/pruvo/tools/ci-kapsam-test.py"]),
+        ("defter-kota-TAZE", [sys.executable,
+                              "/Users/okan/dev/pruvo/tools/defter-kota-kapisi.py"]),
+        ("batarya-TAZE", [sys.executable, os.path.join(
+            BU_DIZIN, "nobet-kat-kovasi-test.py")]),
+    ),
     "kabul": (
         ("kabul-batarya", [sys.executable, BATARYA]),
         ("mutasyon", [sys.executable, BATARYA, "--mutasyon"]),
@@ -128,6 +144,161 @@ def temizlik():
     return 0 if kalan == 0 else 1
 
 
+KUTU = ("/Users/okan/.claude/projects/-Users-okan-dev-pruvo/memory/"
+        "mimar-posta-kutusu.md")
+KUTU_ARSIV = ("/Users/okan/.claude/projects/-Users-okan-dev-pruvo/memory/"
+              "mimar-posta-kutusu-arsiv.md")
+KUTU_ARACI = "/Users/okan/dev/pruvo/tools/kutu-arsivle.py"
+KOTA_KAPISI = "/Users/okan/dev/pruvo/tools/defter-kota-kapisi.py"
+
+
+def _blok_basliklari(yol):
+    """Kutudaki `## ` blok baslıklarini SIRAYLA dondurur."""
+    try:
+        with open(yol, encoding="utf-8") as d:
+            return [s.rstrip("\n") for s in d if s.startswith("## ")]
+    except OSError:
+        return []
+
+
+def _olc(yol):
+    try:
+        with open(yol, "rb") as d:
+            ham = d.read()
+        return ham.count(b"\n"), len(ham)
+    except OSError:
+        return 0, 0
+
+
+def kutu_rotasyon(dizin):
+    """🔴 LOSSLESS iddiasi ARACIN SOZUNE BIRAKILMAZ: kutu+arsiv blok envanteri
+    ONCE ve SONRA cikarilir, KAYBOLAN baslik kumesi ayrica hesaplanir."""
+    os.makedirs(dizin, exist_ok=True)
+    once_k, once_kb = _olc(KUTU)
+    once_a, once_ab = _olc(KUTU_ARSIV)
+    once_basliklar = _blok_basliklari(KUTU)
+    once_arsiv_basliklar = _blok_basliklari(KUTU_ARSIV)
+    print("ONCE kutu_satir=%d kutu_bayt=%d arsiv_satir=%d arsiv_bayt=%d "
+          "kutu_blok=%d arsiv_blok=%d"
+          % (once_k, once_kb, once_a, once_ab,
+             len(once_basliklar), len(once_arsiv_basliklar)))
+
+    kos("kutu-arsivle-KURU", [sys.executable, KUTU_ARACI, "--kuru"], dizin)
+    kos("kutu-arsivle-GERCEK", [sys.executable, KUTU_ARACI], dizin)
+
+    sonra_k, sonra_kb = _olc(KUTU)
+    sonra_a, sonra_ab = _olc(KUTU_ARSIV)
+    sonra_basliklar = _blok_basliklari(KUTU)
+    sonra_arsiv_basliklar = _blok_basliklari(KUTU_ARSIV)
+    print("SONRA kutu_satir=%d kutu_bayt=%d arsiv_satir=%d arsiv_bayt=%d "
+          "kutu_blok=%d arsiv_blok=%d"
+          % (sonra_k, sonra_kb, sonra_a, sonra_ab,
+             len(sonra_basliklar), len(sonra_arsiv_basliklar)))
+
+    # LOSSLESS: ONCE'ki her baslik ya kutuda ya arsivde DURMALI.
+    once_kume = set(once_basliklar) | set(once_arsiv_basliklar)
+    sonra_kume = set(sonra_basliklar) | set(sonra_arsiv_basliklar)
+    kayip = sorted(once_kume - sonra_kume)
+    tasinan = sorted(set(once_basliklar) - set(sonra_basliklar))
+    for b in tasinan:
+        print("TASINAN_BLOK %s" % b[:150])
+    for b in kayip:
+        print("!! KAYIP_BLOK %s" % b[:150])
+    lossless = "GECTI" if not kayip else "DUSTU"
+    print("KUTU_ROTASYON once_satir=%d sonra_satir=%d tasinan_blok=%d "
+          "lossless=%s" % (once_k, sonra_k, len(tasinan), lossless))
+    print("BLOK_KORUNUMU once_toplam=%d sonra_toplam=%d kayip=%d"
+          % (len(once_kume), len(sonra_kume), len(kayip)))
+    rc = kos("kota-ROTASYON-SONRASI", [sys.executable, KOTA_KAPISI], dizin)
+    print("KOTA_SONRASI_RC=%d" % rc)
+    return 0 if lossless == "GECTI" else 1
+
+
+DEVAM = "/Users/okan/dev/pruvo/DEVAM.md"
+DEVAM_ARSIV = "/Users/okan/dev/pruvo/DEVAM-ARSIV.md"
+DEFTER_ARACI = "/Users/okan/dev/pruvo/tools/defter-rotasyon.py"
+# Kardes mimarin bu turda ekledigi YENI satirlar — tasima bolgesine DUSMEMELI.
+KORUNMASI_GEREKEN = ("K271", "K275")
+
+
+def _satir_kumesi(yol):
+    """Bos olmayan satirlarin KUMESI — lossless icin en sert olcum."""
+    try:
+        with open(yol, encoding="utf-8") as d:
+            return set(s.strip() for s in d if s.strip())
+    except OSError:
+        return set()
+
+
+def defter_rotasyon(dizin):
+    """🔴 DEVAM.md rotasyonu. Lossless ARACIN SOZUNE BIRAKILMAZ: DEVAM.md +
+    DEVAM-ARSIV.md'nin BOS OLMAYAN SATIR KUMESI once/sonra karsilastirilir."""
+    os.makedirs(dizin, exist_ok=True)
+
+    def _durum(etiket):
+        d_s, d_b = _olc(DEVAM)
+        a_s, a_b = _olc(DEVAM_ARSIV)
+        print("%s devam_satir=%d devam_bayt=%d arsiv_satir=%d arsiv_bayt=%d"
+              % (etiket, d_s, d_b, a_s, a_b))
+        return d_s, d_b, a_s, a_b
+
+    once_kume = _satir_kumesi(DEVAM) | _satir_kumesi(DEVAM_ARSIV)
+    once_devam = _satir_kumesi(DEVAM)
+    o_ds, o_db, o_as, o_ab = _durum("ONCE")
+    for jeton in KORUNMASI_GEREKEN:
+        print("ONCE_JETON %s devam_md=%s"
+              % (jeton, "VAR" if any(jeton in s for s in once_devam) else "YOK"))
+
+    # 🔴 ARAC IKI KONUMSAL ARGUMAN ISTER (`defter arsiv`) — olculdu: argumansiz
+    # cagri argparse `error: the following arguments are required` ile rc=2
+    # doner ve HICBIR SEY TASIMAZ. O hal "NO-OP" DEGILDIR, "KOSMADI"dir; ikisini
+    # ayni kovaya koymak K272'ye SAHTE kanit yazdirirdi.
+    kanonik = [sys.executable, DEFTER_ARACI, DEVAM, DEVAM_ARSIV,
+               "--tavan-kaynaktan", "--isaretciye-indir"]
+    acik_hedef = [sys.executable, DEFTER_ARACI, DEVAM, DEVAM_ARSIV,
+                  "--tavan-bayt", "11400"]
+
+    rc1 = kos("defter-rotasyon-KANONIK", kanonik, dizin)
+    ara = _durum("KANONIK_SONRASI")
+    degismedi = (ara[0], ara[1]) == (o_ds, o_db)
+    # UC HAL: KOSMADI (rc!=0) · NO_OP (rc=0 ama dosya degismedi) · TASIDI.
+    print("KANONIK_HAL=%s rc=%d"
+          % ("KOSMADI" if rc1 != 0 else ("NO_OP" if degismedi else "TASIDI"),
+             rc1))
+
+    rc2 = kos("defter-rotasyon-ACIK-HEDEF", acik_hedef, dizin)
+    s_ds, s_db, s_as, s_ab = _durum("SONRA")
+    print("ACIK_HEDEF_HAL=%s rc=%d"
+          % ("KOSMADI" if rc2 != 0
+             else ("NO_OP" if (s_ds, s_db) == (ara[0], ara[1]) else "TASIDI"),
+             rc2))
+
+    sonra_devam = _satir_kumesi(DEVAM)
+    sonra_kume = sonra_devam | _satir_kumesi(DEVAM_ARSIV)
+    kayip = sorted(once_kume - sonra_kume)
+    tasinan = sorted(once_devam - sonra_devam)
+    for s in tasinan[:40]:
+        print("TASINAN_SATIR %s" % s[:150])
+    if len(tasinan) > 40:
+        print("TASINAN_SATIR ... (+%d satir daha)" % (len(tasinan) - 40))
+    for s in kayip:
+        print("!! KAYIP_SATIR %s" % s[:150])
+    for jeton in KORUNMASI_GEREKEN:
+        print("SONRA_JETON %s devam_md=%s"
+              % (jeton, "VAR" if any(jeton in s for s in sonra_devam) else "YOK"))
+
+    lossless = "GECTI" if not kayip else "DUSTU"
+    print("DEFTER_ROTASYON once_bayt=%d sonra_bayt=%d tasinan_satir=%d "
+          "lossless=%s" % (o_db, s_db, len(tasinan), lossless))
+    print("SATIR_KORUNUMU once_toplam=%d sonra_toplam=%d kayip=%d"
+          % (len(once_kume), len(sonra_kume), len(kayip)))
+    print("BAYT_DEVRI devam_delta=%d arsiv_delta=%d"
+          % (s_db - o_db, s_ab - o_ab))
+    rc = kos("kota-DEFTER-SONRASI", [sys.executable, KOTA_KAPISI], dizin)
+    print("KOTA_SONRASI_RC=%d" % rc)
+    return 0 if lossless == "GECTI" else 1
+
+
 def kos(ad, komut, dizin):
     yol = os.path.join(dizin, "%s.txt" % ad)
     try:
@@ -156,6 +327,10 @@ def main(argv=None):
     adimlar = FAZLAR[args.faz]
     if args.faz == "temizlik":
         return temizlik()
+    if args.faz == "kutu-rotasyon":
+        return kutu_rotasyon(args.cikti)
+    if args.faz == "defter-rotasyon":
+        return defter_rotasyon(args.cikti)
     if args.faz == "geri-al":
         if not args.damga:
             print("HUKUM=OLCULEMEDI sebep=damga_verilmedi")
