@@ -140,7 +140,7 @@ def arama_yukle():
     except Exception as e:
         raise Olculemedi("tools/arama.py yuklenemedi (%s: %s)" % (type(e).__name__, e))
     for ad in ("altkategori_sebebi", "uyum_sebebi", "katalog_tip_ihlalleri",
-               "KATALOG_ALAN_TIPLERI"):
+               "boy_secenekleri_sebebi", "KATALOG_ALAN_TIPLERI"):
         if not hasattr(mod, ad):
             raise Olculemedi("arama.%s YOK -> sozlesme degismis (fail-closed)" % ad)
     return mod
@@ -223,6 +223,15 @@ def ihlalleri_olc(arama, degisenler):
                              % (uid, type(e).__name__, e))
         if uyum_sebep:
             ihlaller.append((uid, "uyum/marka", u.get("marka"), uyum_sebep))
+        try:
+            bs_deger = u.get("boy_secenekleri")
+            if "boy_secenekleri" in u and bs_deger is not None:
+                bs_sebep = arama.boy_secenekleri_sebebi(bs_deger)
+                if bs_sebep:
+                    ihlaller.append((uid, "boy_secenekleri", bs_deger, bs_sebep))
+        except Exception as e:
+            raise Olculemedi("arama.boy_secenekleri_sebebi cokti (id=%r, %s: %s)"
+                             % (uid, type(e).__name__, e))
     return ihlaller
 
 
