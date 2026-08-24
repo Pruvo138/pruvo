@@ -6,8 +6,11 @@
 **main=origin `d85a7ab9`** · bugun 9 merge: K260 · K256/K269/K276 · K271(x2) · K268 · K280 · K284 · K285.
 D1 alti eksen YESIL (29.763; EKSIK=0 FAZLA=0 hash uyusmaz=0). Defter rotasyonu 374 turdur ILK KEZ
 calisir halde (K268 acti). Curuyen kalem: K281 (`KILIT_MUMKUN=0`, olcumle).
-🔴 **YARINA DEVIR:** CLAUDE.md 1.130 bayt LOSSLESS KANITI (Okan 18:04 kirmizisi, chip kosuyor) ·
-K286 (K80 nobetcisi YORUM satirini cagri sayip sahte ZINCIR_DISI ihtari basiyor; bugun olculdu).
+✅ **OKAN'IN 18:04 KIRMIZISI KAPANDI** (b yolu): `BAGLAM_KANIT TASINAN=1 giden=1130 gelen=1996
+KAYIP_KURAL=0 FARK=+866`. 15 hedefin 15'i grep'le dogrulandi, 13'u bugun HIC degismedi (mtime) —
+yani 1 blok gercekten TASINDI (`memory/guncel-mimari.md`), 14'u zaten okuyucusu VARDI ve silindi.
+Kayip kural YOK. Olculemeyen tek sey: baytin blok basina dagilimi (17:50 taban kopyasi YOK).
+🔴 **YARINA DEVIR:** K286 (K80 nobetcisi YORUM satirini cagri sayip sahte ZINCIR_DISI basiyor).
 **Okan'da:** ① gecmis temizligi · ② K200(i) · ③ CLAUDE.md tavan ONERISI · ④ K284 canli dogrulama.
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
@@ -35,10 +38,6 @@ K286 (K80 nobetcisi YORUM satirini cagri sayip sahte ZINCIR_DISI ihtari basiyor;
   K277** defter/kutu ailesi: rotasyon vetosu · numara atomik DEGIL (bugun 3 cakisma) · rc=2
   gozcude CI_KIRMIZI · arsiv jetonu okunmadan tasiniyor. **Bes kalemin tam metni KUTUDA.**
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
-- ⚖️ **K284 (OKAN KAPISI — kod main'de `f0b48630`):** havale onayi AYRI+DAR uctan
-  (`POST /yonet/havale-onay`, dekont referansi ZORUNLU); `durumUcuKarari`/`ODENDI_GERI_ALMA`
-  DEGISMEDI. Kabul 7/7 (81 iddia) · mutant 6/6 + kontrol · batarya 13 rc=0. SIRA: ① `d1-sync --sema`
-  ② `wrangler deploy`. Kolon inmeden uc fail-closed 503 — ters sira veri BOZMAZ.
 - 🔧 **K283:** baslik kolunun capa ekseni
   ureticiden BAGIMSIZ degil; kabul: ayri capa + `M4` mutanti KIRMIZI. Tam metin KUTUDA.
 - ⚠️ **K86 BABA basamaginda** (`SEBEP=YETENEK SAYAC=5`, tur 663 diske yazdi, kova `OKAN_KAPISI`) —
