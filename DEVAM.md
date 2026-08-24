@@ -50,8 +50,9 @@ AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI (sayilar + yukseltme tetigi ARSIVDE)
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
   ayri jeton + mutant hedef-kol atfi) · 🔧 **K191** (tarama SPEC'i isi ONCULDEN aliyor; sahibi
   MaCiT; kabul: ILK blok KAPSAM ON-OLCUMU + tazelik capasi). **Ikisinin tam metni ARSIVDE.**
-- 🟠 **K184:** hukum VERILDI (merge edilecek, `parite-ege` HARIC — sahibi K228). Kabul olcutu
-  + yasaklar `tools/paket-k184-merge-kabul.md`de; chip `KraL-K184`. HocA E6 dumani buna bagli.
+- ✅ **K184 KAPANDI** (24 Agu, KraL, chip `KraL-K184Merge`): merge NO-OP — icerik ZATEN main'de
+  (`adc6104b` squash, uc `6fca6f3f`); `merge-tree` == `main^{tree}` == `9e1bb385`, fark BOS. Kabul 9 kapi
+  kosuldu / 8 YESIL (parite-test 43/1331 TABAN → K228). Dal yerel+origin SILINDI. D1 drift 0. HocA E6 BLOKSUZ.
 - 🔧 **K192** (Okan: kalem ac DOKUNMA): `kimi` KURULU kapisinda YOK, dagitim kaniti VARLIK olcuyor. ARSIVDE.
 - 🔧 **K202-kendini-test** (M06 cokme + bayat capa) — 🔴 SAHIPSIZ: SeritB chip'i "bende HIC olmadi" diye olctu (onun uyesi K203'tu, YESIL kapandi). kabul: capa govdeden count==1, `beklentiyi tutmayan: 0`.
 - 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
