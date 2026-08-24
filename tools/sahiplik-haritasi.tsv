@@ -37,7 +37,7 @@ cron:isci	cron:isci.sh	KraL	nobet	YOK
 cron:k96-kabul	cron:k96-kabul.py	KraL	hijyen	YOK
 cron:kilit-tatbikat	cron:kilit-tatbikat.py	KraL	nobet	YOK
 cron:kimi-nabiz-kur	cron:kimi-nabiz-kur.py	KraL	hijyen	YOK
-cron:kimi-nabiz	cron:kimi-nabiz.py	KraL	hijyen	YOK
+cron:kimi-nabiz	cron:kimi-nabiz.py	KraL	hijyen	python3 /Users/okan/.claude/cron/kimi-nabiz-test.py
 cron:kota-olcum	cron:kota-olcum.py	KraL	nobet	YOK
 cron:mail-supurme-kanit	cron:mail-supurme-kanit.py	KraL	hijyen	YOK
 cron:mail-supurme-kos	cron:mail-supurme-kos.sh	KraL	nobet	YOK
