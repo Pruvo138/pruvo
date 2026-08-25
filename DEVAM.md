@@ -2,19 +2,18 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 25 AGU — GUNLUK KAPANIS (Okan emri; merge turunun sayilari ARSIVDE)
-✅ **1 CLAUDE.md LOSSLESS:** budama oncesi kopya Drive `.Trash/AGENTS.md`de BULUNDU (12.070 B) →
-`CLAUDE-ARSIV.md` URETILDI (239 satir / 31.601 B, gitignore'da), `CLAUDE.md` DOKUNULMADI.
-✅ **2 KOK RAPORU:** 12 gundur kokte duran 524 satirlik ic rapor govdesi `DEVAM-ARSIV.md`ye
-tasindi → kokte 200+ satirli ARSIV-disi `.md` = **0**.
-✅ **3 GOZCU FANTOM ESKALASYONU (80 tur):** `nobet-kapi.py:538` eskale kalemleri ACIK id kumesiyle
-KESISTIRIYOR — bayat eskale kovaya GIRMIYOR; K86=KAPANDI (`e532032b`), K55=DEVREDILDI (MaCiT)
-deftere KANITLA yazildi → **t743 OKAN_KAPISI=0 KALEMLER=BOS**. Sayac kolu (`:1889`) IKI YONLU
-olculdu: kova bos turda `USTUSTE_ONARIMSIZ=0`, onarim DENENIP DUSTUGUNDE **1**.
-✅ **4 DEFTER** 130→116 satir (`DEVAM-ARSIV.md` +16) · ✅ **5 KUTU** 298→255 satir (arsiv +91).
-✅ **17:00:** kok raporu govdesi indi — arsiv blok **21578-21904** (326 satir/19.150 B, delta +19.249;
-onceki turun iddiasi BOSTU) · `isci.sh.yedek-*` **18→0** (Drive arsivine, `du` 321.208→320.828 KB) ·
-defter hukumleri aldi (K50·K74·K99·K107·K27 KAPANDI) → **borc kapisi rc 1→0**, 5 kabul komutu rc=0.
+## 🔚 25 AGU OTURUM KAPANISI (KraL) · main=origin `613d20fe` · MIMAR worktree'si 0 · KOSAN chip'im YOK
+**CANLIYA GITTI (6 merge, hepsini MIMAR kendi olctu):** K50 `8ac2b8d5` · K99 `0be7a7ea` · K107+K86
+`e532032b` · K74 portu `7a534cb2` · uyum sozlugu `0d9a861a` · **K228** `2194feeb` (parite
+ACIKLANAMAYAN 43→0). Ayrica veri commit'i `366865c3` + deploy zinciri onarimi `e6916c8d`.
+**BEKLIYOR:** ana agacta YABANCI ` M tools/arama.py` (sahibi yaziyor — DOKUNMADIM) · 3 chip agaci
+ARSIVLENEBILIR (`admiring-taussig`=K86 · `brave-fermat`=K107 · `admiring-thompson`=K289; isleri
+main'de, jetonu kendileri yazdi, Okan arsivleyince agac+dal duser).
+**OKAN'DA:** acik karar YOK.
+
+**BUGUN KAPANAN 5+2 KALEM** (Okan 15:10 + 17:00 emirleri; tam sayilar `DEVAM-ARSIV.md`de
+"25 AGU GUNLUK KAPANIS BLOGU" basligi altinda): CLAUDE lossless arsivi · kok raporu · gozcu
+fantom eskalasyonu (t743 `OKAN_KAPISI=0`) · defter+kutu kotasi · cron olu yedekleri 18→0.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
@@ -78,10 +77,6 @@ defter hukumleri aldi (K50·K74·K99·K107·K27 KAPANDI) → **borc kapisi rc 1�
 - 🔧 **K220 (KraL):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden besleniyor; liste iki rol tasiyor
   ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
   sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
-- ✅ **K228 KAPANDI (25 Agu, merge `2194feeb`):** yerel parite modeli `marka_kanon`u D1 URETIM
-  GOVDESINDEN turetiyor (`marka-kanon-uret.py`), uc ile AYNI yuklem — ikiz tanim kalkti.
-  ACIKLANAMAYAN **43→0**, Ege kolu 0, `marka-arama-d1-test` tabani BOZULMADI (51 gecti 3 kaldi),
-  mutant yeni kolun kostugunu kanitliyor. kabul: `node tools/parite-test.js`
 
 ## KraL ACIK ARTIKLAR (19 Agu anlati blogu ARSIVE TASINDI; kota uyarisi da orada)
 🔧 **K203:** tavan kapisi worktree ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami);
@@ -121,7 +116,6 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - ✅ 25 Agu penceresi: 9 kalem kapandi → [[okan-25agu-kapatilan-konular]]; 🔴 yeniden ACILMAZ.
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
-- ✅ 25 Agu: kuru kosum kosuldu+okundu → **Okan'da acik is YOK**; sonuc K200 satirinda.
 - 🟡 **ARSIVLENEBILIR 3 CHIP** (isleri main'de, jetonu kendileri yazdi): `admiring-taussig-065531`
   (K86) · `brave-fermat-1de783` (K107) · `admiring-thompson-5eab24` (K289). Okan arsivleyince agac
   silinir — YABANCI agaca dokunmadim.
