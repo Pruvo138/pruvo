@@ -5,22 +5,22 @@
 ## 🔁 CANLI TUR — 25 Agu ogleden sonra (KraL) · main=origin `4cd20a92`, agac TEMIZ
 📌 **BICIM:** nobet hukmu TUR NUMARASIYLA yazilir (`HUKUM=<hal>@tur<N>`).
 
-✅ **KAPANDI:** **K288** (kanit mimar elinde: git ucu ata + 38 sayili/12 fail-closed tur; ACIK tek
-kol panel mutabakati = ⚖️OKAN) · **sahipsiz lisans dali** (tek commit'i Okan'in 24 Agu emrinin
-yasakladigi kapiydi → lokal+origin SILINDI, SHA `0818f269`).
-🔴 **Kendi hatam:** `main..dal=0` "is inmedi" DEGIL "merge edildi" olabilir; ayiran olcum
-`merge-base --is-ancestor`. 🔵 **5 CHIP** (ana oturumda kosan is YOK): K289·K290·K287·K286·K295.
+✅ **KAPANDI:** **K288** (git ucu ata + 38 sayili/12 fail-closed tur, kanit mimar elinde; mutabakat
+kolu **`OLCULEMEDI`** — panel yuzeyinde saatlik satir YOK, 25 Agu Okan'in onayiyla acilip olculdu)
+· **sahipsiz lisans dali** (tek commit'i Okan'in 24 Agu emrinin yasakladigi kapiydi → SILINDI `0818f269`).
+🔴 **Kendi hatam:** `main..dal=0` "merge edildi" de olabilir; ayirici `merge-base --is-ancestor`.
+🔵 **5 CHIP** (ana oturumda kosan is YOK): K289·K290·K287·K286·K295.
+⏳ **TAVAN (Okan 25 Agu: "bir hafta daha olc"):** olcum **1 Eyl'de** turetilir — haftalik limit
+**31 Agu'a kadar %50 BOOST'lu** (panelde okundu), simdiki veriden turetilen esik SISIRILMIS olur.
 - 🔴 **K289 (KRAL EVI BLOKLU — turun 1. isi):** `parti-borc-kapisi --ev KraL` `ACIK=26` RED; okudugu
   `memory/acik-kalemler.md` BAYAT (K86 merge'li, K98 iki SHA'da success) → SINIF K201. kabul: 26/26
   hukum + SHA kaniti + LOSSLESS arsiv + olcutsuz kalemi REDDEDEN kol + mutant.
-- 🔴 **K291 (K87 KARDESI):** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor (5
-  vaka). kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
+- 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul:
+  okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
 - 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
   kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
   D1 senkron lease/race; kabul: fikstur + senkron bitmeden CIKMAZ ya da `OLCULEMEDI` + mutant.
   · 🔧 **K295:** `MEMORY.md` 19,6/24,4 KB; kabul <17,1 KB + `KAYIP_KAYIT=0`.
-- 🟠 **K294 (24 Agu OKAN KARARI, hic deftere yazilmamisti; SAHIBI TeKiN):** Boxer ust gogus evrak
-  tutucu TUM GOVDE/KAPAK modellensin (bes platformda model YOK → OZGUN URETIM). KUTUYLA devrettim.
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
   sayac ISLE TASINIR, kapi reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
@@ -65,7 +65,7 @@ yasakladigi kapiydi → lokal+origin SILINDI, SHA `0818f269`).
   her kayit ya TURETILIR ya kendi sayisiyla KABUL EDILIR, "EKLE" yetmez SAYI sart.
 - 🔧 **K196 (DEPO GENELI):** CI node 20 / yerel 25.8.1 → yerel JS yesilleri CI surumunde OLCULMEMIS. ARSIVDE.
 - 🔴 **K197: 19 Ağu mimara giden rapor içeriği (239 satır / 11.617 B) KAYBEDİLDİ — gitignore deseni + ağaç silme sırası.** Birebir cümle + öz KUTUDA.
-- 🔧 **K217:** tavan nobetcisi fikstur agaclarini MIMAR sayip sahte tavan ihlali yaziyor. KUTUDA.
+- 🔧 **K217** (tavan nobetcisi fiksturu MIMAR sayiyor) · 🔴 **T1/T3/T4/T5** (nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da). Ikisi de KUTUDA.
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
   ayri jeton + mutant hedef-kol atfi) · 🔧 **K191** (tarama SPEC'i isi ONCULDEN aliyor; sahibi
   MaCiT; kabul: ILK blok KAPSAM ON-OLCUMU + tazelik capasi). **Ikisinin tam metni ARSIVDE.**
@@ -89,7 +89,6 @@ yasakladigi kapiydi → lokal+origin SILINDI, SHA `0818f269`).
 K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204:** `OKSUZ` fiilen
 "kirli mi" olcuyor, TEK BASINA kaldirma gerekcesi DEGIL. · 🔧 **K188:** yarim yedek OLCULEBILIR;
 kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
-- 🔴 **T1/T3/T4/T5 (19 Agu artiklari):** nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. KUTUDA.
 - 🔧 **K218 · K219 · K221:** tam metinler ARSIVDE. (K195 merge edildi `528da42d`.)
 - 🔧 **K198 (19 Agu — ⚖️ OKAN KAPISI):** izlenen yapilandirmada ticari alan var, nobetci o duzlemi
   taramiyor (muafiyette de yok). **Tam metin ARSIVDE.** kabul: OLCER ya da `KAPSAM DISI` + mutant.
