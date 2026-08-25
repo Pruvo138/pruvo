@@ -2,21 +2,21 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 OTURUM KAPANISI — 25 Agu aksam (KraL) · main=origin `d3cf44d7`, agac TEMIZ
-📌 nobet hukmu TUR NUMARASIYLA (`HUKUM=<hal>@tur<N>`).
-✅ **CANLIYA GITTI — 3 merge, git eksenini MIMAR kendi olctu:** K290 `edae6a5c` (ASCII-disi urun id
-kapisi; canli katalogda 0 ihlal) · K287 `45210ada` (olcu-saglik TEK KAYNAK + buyuk-uc tavani) · K289
-`011a7b07` (`T4-OLCUTSUZ` sinif kolu). Kapsam 11 dosya +1389/−94; `urunler.json`·`index.html`·`shop/`
-·`worker/` YOK → site yuzeyi DEGISMEDI, sizinti taramasi 0. Deploy sonucu OLCULMEDI (kuyrukta).
-✅ **9 CHIP KAPANDI:** K288 · K289 · K290 · K287 · K286 · K295 · K296 (**canli shop BAYAT DEGIL →
-deploy GEREKMIYOR**) · K76 (IPTAL) · merge turu. Ayrica sahipsiz lisans dali hukumle SILINDI (`0818f269`).
-🔵 **KOSUYOR — OLDURME (5 chip, motor Claude):** K86 `kral/k86-batarya` · K107 `kral/k107-para-literali`
-· K99 `kral/k99-ref-bag` · K74+K27 `kral/k74-k27-olcum` (OLCUM turu, merge YOK) · K50 `kral/k50-dal-sahibi`.
-🟡 **BEKLIYOR:** `admiring-thompson-5eab24` (K289 sahibi CANLI; icerik main'de birebir, sahibi kapaninca
-agac+dal silinir) · borc kapisi `ACIK=9`, 5 chip kapandikca duser · 3 kalem kardes evde (K44·K29→ArTisT,
-K55→MaCiT). ⏳ **TAVAN:** olcum 1 Eyl'de (limit 31 Agu'a kadar %50 BOOST'lu → simdiki veri SISIRILMIS).
-🔴 **Kendi iki hatam:** `main..dal=0` "merge edildi" de olabilir (ayirici `merge-base --is-ancestor`) ·
-K76'yi BAYAT sayiyla Okan'a cikardim (canli 4/4'tu) — kalemi cikarmadan CANLI hali OLC.
+## 🔁 25 AGU — IKINCI TUR (birinci turun govdesi ARSIVDE) · main=origin `0d9a861a`, agac TEMIZ
+✅ **BES DAL MAIN'E — kapi sayilari chip raporundan DEGIL, MIMAR kosumundan:** K50 `8ac2b8d5`
+(`KABUL=14/14`·`MUTANT=7/7 IZ_AYRIMI=DOGRU`) · K99 `0be7a7ea` (`H1-H10 10/10`·kendini `6/6`) ·
+K107+K86 `e532032b` (`VAKA=8/8`·`MUTANT=5/5 KONTROL=1/1`·`KENDINI=37/37`; K86'nin CI'da
+`marka-sayfa-bataryasi`=**success**, TABANDA ayni is **failure**) · K74 portu `7a534cb2` (ikiz `9/0`,
+mutant `4 kacan 0`, port ONCESI taban `3 gecti 6 dustu`). Dallar+agaclar SILINDI; `is-akisi-kapisi.py`
+hunk'i (geri adim) BILEREK ALINMADI.
+🔴 **K99'u GERCEK kirmizi durdurdu:** dalin `index.html` yorumu ic dosya yollari tasiyordu (tarayiciya
+iner) — kapi rc=1, TABAN main 0 ihlal; onarildi rc=0, **calisan kod DEGISMEDI** (diff yalniz yorum).
+✅ **VERI+TeKiN:** kardes evin `marka` yazimi commit'siz+D1 bayatti → `366865c3` (veri-duzlemi kapisi,
+loglu), D1 **bes eksen YESIL**, port sonrasi `marka_kanon=GUNCEL`. `Lowrance` uyum kumesine alindi
+(`0d9a861a`, izinli+mimar eki AYNI turda, agirlik marka 1/uyum 0/baslik 35) → TeKiN `uyum[]` yazabilir.
+🔴 **IKI KIRMIZI, IKISI DE TARIHLE ATFEDILDI (benim degil):** parite `43/1331` = **K228** tarifi
+(20 Agu 47/1331; bes merge'in diff'inde `arama.py`/`marka_katla.py`/`worker/` YOK) · `marka-arama-d1-test`
+`51 gecti 3 kaldi` (C1·AL3·K3) port ONCESI/SONRASI/Lowrance dalinda BIREBIR ayni.
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
 - 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
   kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
@@ -48,17 +48,16 @@ K76'yi BAYAT sayiyla Okan'a cikardim (canli 4/4'tu) — kalemi cikarmadan CANLI 
   gozcude CI_KIRMIZI · arsiv jetonu okunmadan tasiniyor. **Bes kalemin tam metni KUTUDA.**
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
 - 🔧 **K283:** baslik kolunun capa ekseni ureticiden BAGIMSIZ degil; kabul: ayri capa + `M4` mutanti KIRMIZI. KUTUDA.
-- ⚠️ **K86 BABA basamaginda** (`SEBEP=YETENEK SAYAC=5`, tur 663 diske yazdi, kova `OKAN_KAPISI`) —
-  BaBa karari bekler. **K281 CURUDU** (`KILIT_MUMKUN=0`: isci her tur olse de 13 turda BABA'ya
-  cikiyor). · 🔧 **K282 (OLCULEMEDI):** `DURUM_BITMEYEN_TUR`, `DAGITILMAZ_DURUMLAR` disinda —
-  BABA'daki kalem geri dusebilir; kabulun 1. kolu ERISILEBILIRLIK, uretilemezse `KAPSAM_DISI`.
+- ⚠️ K86'nin merdiven kaydi (`SEBEP=YETENEK SAYAC=5`, kova `OKAN_KAPISI`) artik KONUSUZ — kalem
+  25 Agu'da kapandi+merge edildi. **K281 CURUDU** (`KILIT_MUMKUN=0`). · 🔧 **K282 (OLCULEMEDI):**
+  `DURUM_BITMEYEN_TUR`, `DAGITILMAZ_DURUMLAR` disinda; kabulun 1. kolu ERISILEBILIRLIK.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
-- 🔧 **K200 (TAM METIN ARSIVDE):** (i) kuru kosum OLCULDU 25 Agu (`TOPLAM=1512` `DISLAMA=234`, sir
-  elemesi 5/5; BULGU: gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a; kabul
-  ARSIVDE) · (ii) periyodik kablolama MIMARDA · (iii) kostugu kanit. Sira: sema→tesisat→trafik.
+- 🔧 **K200 (TAM METIN ARSIVDE):** (i) kuru kosum OLCULDU 25 Agu (1512/234, sir elemesi 5/5; BULGU:
+  gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a) · (ii) kablolama MIMARDA ·
+  (iii) kostugu kanit.
 - 🔧 **K199 (19 Agu, KraL):** `is-akisi-kapisi.py` "etkili tasiyici" tanimi LITERALE capali;
   varlik turetilmis mekanizmaya gecince korlesiyor (K193). Care: sonucu olc ya da makine-okunur
   beyani tasiyici say; mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT KENDINI OLCMEZ** — bes vaka;
@@ -123,6 +122,9 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
 - ✅ 25 Agu: kuru kosum kosuldu+okundu → **Okan'da acik is YOK**; sonuc K200 satirinda.
+- 🟡 **ARSIVLENEBILIR 3 CHIP** (isleri main'de, jetonu kendileri yazdi): `admiring-taussig-065531`
+  (K86) · `brave-fermat-1de783` (K107) · `admiring-thompson-5eab24` (K289). Okan arsivleyince agac
+  silinir — YABANCI agaca dokunmadim.
 
 ## ARSIVDE
 14-20 Agu kapananlar `DEVAM-ARSIV.md`'de.
