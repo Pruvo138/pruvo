@@ -5,10 +5,11 @@
 ## 🔚 26 AGU OTURUM KAPANISI (KraL) · main=origin `35fd480a` SHA-BIREBIR · worktree **1** · KOSAN chip **YOK**
 **CANLIYA GITTI:** `dd903d78` K305 yayin acildi · `bf51d521` urun silme GERI ALINDI · `dd7052fa` K302 kapi ·
 `033f9466`/`575c2bdd` K303 · 6 defter commit'i. Zincir YESIL: `32909205580` SUCCESS (deploy+yayin) ·
-D1 5/5 eksen · UYUSMAZ=0 · TASLAK=0 · katalog 30778. (25 Agu kapanisi ARSIVDE.)
-**BEKLIYOR:** K302 kok neden MaCiT'te · K250 kalan 4 ev kendi mimarlarinda · K306 pre-push.
-**TEMIZLIK:** 15 mimar + 37 isci gecici dosyasi silindi; scratchpad+worktrees `ls -A` BOS, kokte rapor YOK,
-87 yerel+33 uzak dal silindi, kutu 2 kez lossless. **OKAN'DA:** `PRUVO_CLAUDE_ISCI_IZNI` kalici mi? · K306.
+D1 5/5 eksen · UYUSMAZ=0 · TASLAK=0 · katalog 30778.
+**BEKLIYOR:** K302 kok neden MaCiT'te · K250 kalan 4 ev kendi mimarinda · K306.
+**TEMIZLIK:** 15 mimar + 37 isci gecici dosyasi silindi; scratchpad+worktrees BOS, kokte rapor YOK,
+87 yerel+33 uzak dal silindi, kutu 2 kez lossless.
+**OKAN KARARI:** Claude-isci izni KALDIRILDI · **K306 sonraki oturumun ILK isi** · bekleyen YOK.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu gecesi KAPANAN 4 KALEM — TAM METIN ARSIVDE** ("KAPANAN 4 KALEM" basligi): **K250**
