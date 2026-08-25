@@ -2,19 +2,19 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 CANLI DURUM — 25 Agu 2026 (KraL)
-**24 Agu: 12 merge** (K260·K256/K269/K276·K271·K268·K280·K284·K285·K86), D1 alti eksen YESIL,
-rotasyon 374 turdur calisir halde (K268 acti). Curuyen: **K281** (`KILIT_MUMKUN=0`).
-✅ **OKAN'IN 18:04 KIRMIZISI KAPANDI:** `BAGLAM_KANIT TASINAN=1 KAYIP_KURAL=0` — 15 hedefin 13'u
-o gun HIC degismemis (mtime), yani 1 blok TASINDI, 14'un okuyucusu ZATEN vardi. Tam metin KUTUDA.
-🔴 **ACIK:** K286 (K80 nobetcisi YORUM satirini cagri sayiyor) · K287 (birim-saglik buyuk sapmayi
-kaciriyor; kabul: buyuk-uc esigi + mutant).
+## 🔁 OTURUM KAPANISI — 25 Agu (KraL) · main=origin `5ad36f6d`, agac TEMIZ
+24 Agu 12 merge indi; D1 alti eksen YESIL; rotasyon calisir (K268 acti); **K281 CURUDU**.
+Okan'in 18:04 kirmizisi KAPANDI (`TASINAN=1 KAYIP_KURAL=0`, tam metin KUTUDA).
+🔵 **KOSUYOR — OLDURME:** `KraL-K288TurTokeni` · dal `kral/k288-tur-tokeni` · agac `sharp-noether`.
+🟡 **BEKLIYOR:** `kurtarma/canli-lisans-kapisi` (`0818f269`) SAHIPSIZ, lisans duzlemi — olculmeden
+merge YOK · K286 · K287.
 📌 **BICIM:** nobet hukmu TUR NUMARASIYLA yazilir (`HUKUM=<hal>@tur<N>`).
 - 🔧 **K288 (25 Agu, Okan: "olcumu chip'e ver, tavani sonra"):** `isci.log` tur basina token
   TASIMIYOR → baglam kucultme talimatinin OKUYUCUSU yok. kabul: tur basina tuketim satiri +
   kaynak mutabakati + dusen turda `OLCULEMEDI` (sahte sifir YOK) + mutant. TAVAN BU TURDA YOK.
   Olculen sayilar ve gerekce HAFIZADA (`sabit-kota-vs-token-tarifesi`).
-**Okan'da:** ① gecmis temizligi · ② K200(i) · ③ CLAUDE.md tavan ONERISI · ④ K284 canli dogrulama.
+**Okan'da:** ① gecmis temizligi · ② K200(i) · ③ CLAUDE.md tavan ONERISI · ④ K284 canli dogrulama
+· ⑤ 12 Eyl yenilemesinde kart gecerliligi (duserse kazanilmis fiyat gider).
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
   sayac ISLE TASINIR, kapi reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
