@@ -120,8 +120,10 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari. (K128; ARSIVDE.)
-- 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** $20 KALIR; kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi ($50 tek-saglayici yerine CESITLILIK). TAM GEREKCE ARSIVDE.
-- 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu).
+- ✅ **Okan penceresi 25 Agu: TARIFE KAPANDI ($39, konu kapali — $100/yanma olcumu ARANMAZ)** · ✅ **12
+  Eyl kart KAPANDI** · 🔧 **K200(i)** Okan "kuru kos" dedi, komut
+  `yedekle.py --kuru` (`--d1` bayragi YOK, kaynaktan dogrulandi), cikti bekleniyor · 🔧 **K296 chip:**
+  odeme bayatligi olculuyor, deploy komutu HAZIRLANIR ama KOSULMAZ.
 - 🔧 **ODEME WORKER DEPLOY (19 Agu 16:29Z · 20 Agu 14:2xZ TAZELENDI):** pruvo-shop bayatlik nabzi KIRMIZI **373,2 dk** / esik 120; yayinlanmamis fark artik 2 commit ve YORUM DEGIL — K252 siparis durum secici DAVRANISI canliya INMEDI. Kapatan eylem `npx wrangler deploy` = OKAN KAPISI. Detay ci-nobeti.log.
 
 ## ARSIVDE
