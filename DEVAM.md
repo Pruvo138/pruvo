@@ -56,8 +56,9 @@ K76'yi BAYAT sayiyla Okan'a cikardim (canli 4/4'tu) — kalemi cikarmadan CANLI 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
-- 🔧 **K200 (saklama YURURLUKTE — TAM METIN ARSIVDE):** (i) canli `--kuru --d1` ⚖️ OKAN KAPISI ·
-  (ii) periyodik kablolama MIMARDA · (iii) kablolamanin KOSTUGU kanit. Sira: sema→tesisat→trafik.
+- 🔧 **K200 (TAM METIN ARSIVDE):** (i) kuru kosum OLCULDU 25 Agu (`TOPLAM=1512` `DISLAMA=234`, sir
+  elemesi 5/5; BULGU: gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a; kabul
+  ARSIVDE) · (ii) periyodik kablolama MIMARDA · (iii) kostugu kanit. Sira: sema→tesisat→trafik.
 - 🔧 **K199 (19 Agu, KraL):** `is-akisi-kapisi.py` "etkili tasiyici" tanimi LITERALE capali;
   varlik turetilmis mekanizmaya gecince korlesiyor (K193). Care: sonucu olc ya da makine-okunur
   beyani tasiyici say; mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT KENDINI OLCMEZ** — bes vaka;
@@ -121,8 +122,7 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - ✅ 25 Agu penceresi: 9 kalem kapandi → [[okan-25agu-kapatilan-konular]]; 🔴 yeniden ACILMAZ.
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
-- 🔧 **K200(i) — OKAN'DA TEK ACIK IS:** "kuru kos" dedi; komut `python3 tools/yedekle.py --kuru`
-  (`--d1` bayragi YOK, kaynaktan dogrulandi), ciktiyi mimar yorumlayacak.
+- ✅ 25 Agu: kuru kosum kosuldu+okundu → **Okan'da acik is YOK**; sonuc K200 satirinda.
 
 ## ARSIVDE
 14-20 Agu kapananlar `DEVAM-ARSIV.md`'de.
