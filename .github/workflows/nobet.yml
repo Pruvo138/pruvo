@@ -2124,6 +2124,31 @@ jobs:
         run: |
           python3 tools/n2-kabul.py
 
+      # PARA LITERALI KAPISI — K107 (SINIF KAPISI, K106'nin dogus vakasi).
+      # K106 (15 Agu 2026): `eski-fiyat-test.py` fikstürü `eski_fiyat="1.200 TL"`
+      # SABIT yaziyordu; malzeme politikasi PETG->ABS olunca ILAN tutari
+      # 110.500 -> 136.000 kurusa cikti, eski fiyat ilanin ALTINDA kaldi,
+      # test kirmizi yandi, `serit-a2` kirmizi oldu, `deploy` SKIPPED kaldi ve
+      # CANLI SITE 7,5 SAAT main'in gerisinde kaldi. Tekil yama uygulanmisti;
+      # SINIFI koruyan nobetci YOKTU ([[tekil-yama-sinifi-kapatmaz]]).
+      # Kapi, hukmu KENDI regex'iyle vermez: `build._birim_kurus`'u IKI YONLU
+      # olcekleyip uretim fonksiyonunun ciktisi degisiyor mu diye olcer ->
+      # mesru negatif fiksturler (guncelin altinda / baska para birimi /
+      # parametrik / eski_fiyat yok) ve kanonik fonksiyondan TUREYEN fiksturler
+      # yapisal olarak YESIL kalir.
+      # 🔴 SERIT B (defter K107 plani): yanlis-pozitif tum ekibin yayinini
+      # durdurur; kapi once bloklamayan seritte kosar, IKI TUR temiz gorulunce
+      # serit A'ya alinmasi MIMARIN karari olur.
+      # Beyan: yayini BLOKLAMAYAN job (`serit-b`) — `deploy` bu job'a `needs:`
+      # ile BAGLI DEGIL. `continue-on-error` KULLANILMADI (fail-open yazimi bu
+      # depoda nobetci ihlalidir).
+      - name: "Para literali kapisi (K107) — canli tarama + kendini test + iki yonlu mutasyon"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/para-literali-kapisi.py --kendini-test
+          python3 tools/para-literali-kapisi.py --mutasyon
+          python3 tools/para-literali-kapisi.py
+
       # SERIT-B MASKELEME KAPISI — Paket K178 (18 Agu 2026, OLCULEN KUSUR).
       # SERIT B'nin 126 adimindan birinin kirmizisi geri kalani 114'u SKIP yapiyor ->
       # kapilar maskeleniyor ([[kirmizi-adim-sonrakini-maskeler]]). Bu kapi taranan

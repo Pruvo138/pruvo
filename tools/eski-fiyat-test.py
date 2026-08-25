@@ -782,7 +782,13 @@ def bolum_e1(urunler):
             "sapan: %s)" % (len(bastirilan), bas_sapan or "-"))
 
     # 4) BEYAN NOBETI: JSON-LD / Merchant feed fiyati GUNCEL fiyat kalir.
-    ld = _urun(eski_fiyat="1.200 TL")
+    # 🔴 K107 (25 Agu 2026): burada `_urun(eski_fiyat="1.200 TL")` yaziyordu —
+    # K106'nin BIREBIR sekli, yalniz baska bolumde. `render_product` eski fiyati
+    # `ilan_kurus` ile kiyasladigi icin malzeme politikasi degistiginde bu vaka
+    # da sessizce yon degistirirdi (once VAKUMLASIR, sonra kirmizi yanar).
+    # `tools/para-literali-kapisi.py` bu satiri fiilen yakaladi; deger artik
+    # kiyasin KENDI kaynagindan turuyor.
+    ld, ld_eski_kurus, _ld_taban = _gecerli_vaka()
     ld_html = build.render_product(ld, [ld])
     ld_bloklar = re.findall(r'<script type="application/ld\+json">(.*?)</script>',
                             ld_html, re.S)
@@ -790,8 +796,17 @@ def bolum_e1(urunler):
     kontrol(offer.get("price") == "850",
             "JSON-LD Offer.price GUNCEL fiyat kalir (%r) — eski_fiyat sizmadi"
             % offer.get("price"))
-    kontrol("1200" not in json.dumps(offer) and "1.200" not in json.dumps(offer),
-            "JSON-LD Offer'da eski fiyat/priceSpecification UYDURULMADI")
+    # Aranan jeton da SABIT yazilamaz: eski fiyat artik turedigi icin sabit
+    # "1200" aramak, fikstur degeri kayinca HICBIR SEYI aramayan bir VAKUM
+    # iddiasina doner ([[fikstur-degeri-mutasyon-koru]]). Jeton fiksturun KENDI
+    # degerinden cikarilir; hem noktali (1.185) hem duz (1185) bicim aranir.
+    _ld_jeton = str(ld_eski_kurus // 100)
+    _ld_noktali = "{:,}".format(ld_eski_kurus // 100).replace(",", ".")
+    _offer_metni = json.dumps(offer)
+    kontrol(_ld_jeton not in _offer_metni and _ld_noktali not in _offer_metni,
+            "JSON-LD Offer'da eski fiyat/priceSpecification UYDURULMADI "
+            "(aranan jeton %r/%r — fikstur degerinden TUREDI)"
+            % (_ld_jeton, _ld_noktali))
     feed_xml, _ = build.render_merchant_feed([ld])
     kontrol("<g:price>850 TRY</g:price>" in feed_xml,
             "Merchant feed fiyati GUNCEL fiyat kalir")
