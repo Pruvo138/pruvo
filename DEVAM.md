@@ -9,16 +9,17 @@
 kolu **`OLCULEMEDI`** — panel yuzeyinde saatlik satir YOK, 25 Agu Okan'in onayiyla acilip olculdu)
 · **sahipsiz lisans dali** (tek commit'i Okan'in 24 Agu emrinin yasakladigi kapiydi → SILINDI `0818f269`).
 🔴 **Kendi hatam:** `main..dal=0` "merge edildi" de olabilir; ayirici `merge-base --is-ancestor`.
-🔵 **5 CHIP** (ana oturumda kosan is YOK): K289·K290·K287·K286·K295.
+✅ **7 CHIP KAPANDI:** K289 (borc 26→10, `T4-OLCUTSUZ` kolu) · K290 (ASCII id kapisi, canli 0) · K287
+(buyuk-uc esigi, iki yon) · K286 (yorum≠cagri) · K295 (`MEMORY.md` kucultuldu) · K296 (**canli shop
+BAYAT DEGIL → deploy GEREKMIYOR**) · K76 (IPTAL, bayat sayi). Dallar merge turunda.
 ⏳ **TAVAN (Okan: "bir hafta daha olc"):** olcum **1 Eyl'de** turetilir — limit 31 Agu'a kadar %50 BOOST'lu (panelde okundu), simdiki veriden turetilen esik SISIRILMIS olur.
-- 🔴 **K289 (KRAL EVI BLOKLU — turun 1. isi):** `parti-borc-kapisi --ev KraL` `ACIK=26` RED; okudugu
-  `memory/acik-kalemler.md` BAYAT (K86 merge'li, K98 iki SHA'da success) → SINIF K201. kabul: 26/26
-  hukum + SHA kaniti + LOSSLESS arsiv + olcutsuz kalemi REDDEDEN kol + mutant.
+- 🔴 **KRAL EVI HALA BLOKLU (K289 sonrasi):** borc `ACIK=10` — onu da GERCEK; kapi hakli RED diyor.
+  **Okan emri 25 Agu: kalan 10 kalemin HEPSI chip'e verilecek.** Dagitim MIMARDA; liste K289'dan
+  dispatch biciminde alindi (tahminle spec YAZILMAZ — K76 dersi).
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
 - 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
   kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
   D1 senkron lease/race; kabul: fikstur + senkron bitmeden CIKMAZ ya da `OLCULEMEDI` + mutant.
-  · 🔧 **K295:** `MEMORY.md` 19,6/24,4 KB; kabul <17,1 KB + `KAYIP_KAYIT=0`.
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
   sayac ISLE TASINIR, kapi reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
@@ -124,7 +125,6 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - 🔧 **K200(i):** Okan "kuru kos" dedi; komut `yedekle.py --kuru` (`--d1` bayragi YOK, kaynaktan
   dogrulandi), cikti bekleniyor. · 🔧 **K296 chip:** odeme bayatligi olculuyor, deploy komutu
   HAZIRLANIR ama KOSULMAZ.
-- 🔧 **ODEME WORKER DEPLOY:** Okan "once olctur" dedi → **K296 chip'ine gecti**, deploy olcumden sonra.
 
 ## ARSIVDE
 14-20 Agu kapananlar `DEVAM-ARSIV.md`'de.
