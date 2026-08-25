@@ -79,16 +79,16 @@ function aramaKok(w) { return ref().aramaKok(w); }
 function haystack(p) { return ref().haystack(p); }
 function filtered(PRODUCTS, query, activeCat, activeBrand) {
   const R = ref();
+  const S = SINIF.markaSinifi(PRODUCTS);
   // Arama yuklemi: index.html'in TEK ARAMA PLANI (marka sorgusu -> uyelik ∪ baslikta tam
   // kelime; marka olmayan sorgu -> serbest metin). Ikinci kez yazilmaz.
   const plan = R.aramaPlani(query);
-  // Marka cipi: index.html filtered() ile AYNI GOVDE (markaUyeMi, KATLAMALI). Duz
-  // `indexOf(activeBrand)` yazsaydik "Mercedes" cipi "Mercedes-Benz"li urunu kacirirdi
-  // ve cip ile arama sessizce ayrisirdi.
-  const hedefMarka = activeBrand === "Tümü" ? null : R.markaKatla(activeBrand);
+  // Marka cipi: uc `marka=` yuklemiyle AYNI: p.marka ∋ HAM(activeBrand)
+  // OR p.marka_kanon ∋ katla(activeBrand). Duz `indexOf(activeBrand)` yazsaydik
+  // "Mercedes" cipi "Mercedes-Benz"li urunu kacirirdi ve cip ile arama sessizce ayrisirdi.
   return PRODUCTS.filter(function (p) {
     if (activeCat !== "Tümü" && p.kategori !== activeCat) { return false; }
-    if (hedefMarka && !R.markaUyeMi(p, hedefMarka)) { return false; }
+    if (activeBrand !== "Tümü" && !S.uyeMi(p, activeBrand)) { return false; }
     return R.aramaPlaniEsler(p, plan);
   });
 }

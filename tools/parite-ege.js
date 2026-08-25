@@ -44,8 +44,8 @@ const { pathToFileURL } = require("url");
 const ortak = require("./parite-ortak.js");
 const markaRef = require("./ege-marka-referansi.js");
 // MARKA KATLAMA SINIFI + `marka=` FILTRE ekseninin yerel yuklemi. Uyelik ELLE LISTE
-// DEGIL, index.html `markaKatla`sindan TURER; yuklem de index.html'in KENDI `markaUyeMi`
-// govdesidir (ikinci kopya YOK).
+// DEGIL; yerel yuklem ucun `marka=` yuklemiyle AYNI kaynaktan beslenir:
+// p.marka ∋ HAM(markaF) OR p.marka_kanon ∋ katla(markaF).
 const SINIF = require("./parite-marka-sinifi.js");
 
 const UC = process.env.ARA_UC || "https://pruvo-whatsapp-bot.gmlmz.workers.dev/ara";
@@ -371,8 +371,8 @@ async function main() {
         bekIds = markaDeger
           ? MARKA.kume(markaDeger).slice()
           : EGE.urunAra(idx, q, Infinity).map((u) => u.id);
-        // `marka=` FILTRE ekseni: yerel yuklem index.html'in KENDI `markaUyeMi`si
-        // (deger `markaKatla`dan gecer — cip ile arama ayni govdeyi kullanir).
+        // `marka=` FILTRE ekseni: yerel yuklem ucun `marka=` yuklemiyle AYNI:
+        // p.marka ∋ HAM(markaF) OR p.marka_kanon ∋ katla(markaF).
         // Ucun `mod=ege` marka kisiti /katalog'un IKIZIDIR; iki yuzeyin AYNI eksende
         // ayni kumeyi vermesi iddiasi TAM DA burada olculur.
         if (markaF) {

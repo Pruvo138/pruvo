@@ -126,7 +126,8 @@ let _bellek = null;
  * index.html'in arama yuklemini kurar ve DISA VERIR.
  * @returns {{norm:Function, aramaKok:Function, haystack:Function,
  *            aramaPlani:Function, aramaPlaniEsler:Function,
- *            markaKatla:Function, markaUyeMi:Function, kok:string}}
+ *            markaKatla:Function, markaUyeMi:Function,
+ *            baslikMarkalari:Function, markaSorgusuEsler:Function, kok:string}}
  */
 function referans() {
   if (_bellek) { return _bellek; }
@@ -157,11 +158,13 @@ function referans() {
   const ctx = vm.createContext({ window: { PRUVO_CIP_INDEKS: ix } });
   vm.runInContext(govde + "\n;({ norm: norm, aramaKok: aramaKok, haystack: haystack," +
     " aramaPlani: aramaPlani, aramaPlaniEsler: aramaPlaniEsler," +
-    " markaKatla: markaKatla, markaUyeMi: markaUyeMi });",
+    " markaKatla: markaKatla, markaUyeMi: markaUyeMi," +
+    " baslikMarkalari: baslikMarkalari, markaSorgusuEsler: markaSorgusuEsler });",
     ctx, { filename: indexYolu });
   const disa = vm.runInContext("({ norm: norm, aramaKok: aramaKok, haystack: haystack," +
     " aramaPlani: aramaPlani, aramaPlaniEsler: aramaPlaniEsler," +
-    " markaKatla: markaKatla, markaUyeMi: markaUyeMi })", ctx);
+    " markaKatla: markaKatla, markaUyeMi: markaUyeMi," +
+    " baslikMarkalari: baslikMarkalari, markaSorgusuEsler: markaSorgusuEsler })", ctx);
 
   _bellek = Object.assign({ kok: kok }, disa);
   return _bellek;
