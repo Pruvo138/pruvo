@@ -2,21 +2,18 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 25 AGU — IKINCI TUR (birinci turun govdesi ARSIVDE) · main=origin `0d9a861a`, agac TEMIZ
-✅ **BES DAL MAIN'E — kapi sayilari chip raporundan DEGIL, MIMAR kosumundan:** K50 `8ac2b8d5`
-(`KABUL=14/14`·`MUTANT=7/7 IZ_AYRIMI=DOGRU`) · K99 `0be7a7ea` (`H1-H10 10/10`·kendini `6/6`) ·
-K107+K86 `e532032b` (`VAKA=8/8`·`MUTANT=5/5 KONTROL=1/1`·`KENDINI=37/37`; K86'nin CI'da
-`marka-sayfa-bataryasi`=**success**, TABANDA ayni is **failure**) · K74 portu `7a534cb2` (ikiz `9/0`,
-mutant `4 kacan 0`, port ONCESI taban `3 gecti 6 dustu`). Dallar+agaclar SILINDI; `is-akisi-kapisi.py`
-hunk'i (geri adim) BILEREK ALINMADI.
-🔴 **K99'u GERCEK kirmizi durdurdu:** dalin `index.html` yorumu ic dosya yollari tasiyordu (tarayiciya
-iner) — kapi rc=1, TABAN main 0 ihlal; onarildi rc=0, **calisan kod DEGISMEDI** (diff yalniz yorum).
-✅ **VERI+TeKiN:** kardes evin `marka` yazimi commit'siz+D1 bayatti → `366865c3` (veri-duzlemi kapisi,
-loglu), D1 **bes eksen YESIL**, port sonrasi `marka_kanon=GUNCEL`. `Lowrance` uyum kumesine alindi
-(`0d9a861a`, izinli+mimar eki AYNI turda, agirlik marka 1/uyum 0/baslik 35) → TeKiN `uyum[]` yazabilir.
-🔴 **IKI KIRMIZI, IKISI DE TARIHLE ATFEDILDI (benim degil):** parite `43/1331` = **K228** tarifi
-(20 Agu 47/1331; bes merge'in diff'inde `arama.py`/`marka_katla.py`/`worker/` YOK) · `marka-arama-d1-test`
-`51 gecti 3 kaldi` (C1·AL3·K3) port ONCESI/SONRASI/Lowrance dalinda BIREBIR ayni.
+## 🔁 25 AGU — GUNLUK KAPANIS (Okan emri; merge turunun sayilari ARSIVDE)
+✅ **1 CLAUDE.md LOSSLESS:** budama oncesi kopya Drive `.Trash/AGENTS.md`de BULUNDU (12.070 B) →
+`CLAUDE-ARSIV.md` URETILDI (239 satir / 31.601 B, gitignore'da), `CLAUDE.md` DOKUNULMADI.
+✅ **2 KOK RAPORU:** 12 gundur kokte duran 524 satirlik ic rapor govdesi `DEVAM-ARSIV.md`ye
+tasindi → kokte 200+ satirli ARSIV-disi `.md` = **0**.
+✅ **3 GOZCU FANTOM ESKALASYONU (80 tur):** `nobet-kapi.py:538` eskale kalemleri ACIK id kumesiyle
+KESISTIRIYOR — bayat eskale kovaya GIRMIYOR; K86=KAPANDI (`e532032b`), K55=DEVREDILDI (MaCiT)
+deftere KANITLA yazildi → **t743 OKAN_KAPISI=0 KALEMLER=BOS**. Sayac kolu (`:1889`) IKI YONLU
+olculdu: kova bos turda `USTUSTE_ONARIMSIZ=0`, onarim DENENIP DUSTUGUNDE **1**.
+✅ **4 DEFTER** 130→116 satir (`DEVAM-ARSIV.md` +16) · ✅ **5 KUTU** 298→255 satir (arsiv +91).
+
+## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
 - 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
   kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
