@@ -5552,8 +5552,11 @@ def _k80_matrix_genislet(run, strategy):
     return sonuc
 
 
-def _k80_komut_envreni(metinler, tespit_acik=True):
-    """{dosya: yaml_metin} -> Counter((dosya, job, komut)); H1'in tek tespit noktasi."""
+def _k80_komut_envreni(metinler, tespit_acik=True, yorum_ayrimi=True):
+    """{dosya: yaml_metin} -> Counter((dosya, job, komut)); H1'in tek tespit noktasi.
+
+    `komut` HAM `run` metni DEGIL, `_k80_komut_kimligi` ile YORUMU DUSURULMUS argv
+    dizisidir (K286): adimin kimligi ICRA EDILEN seydir, dosyada yazan aciklama degil."""
     if not tespit_acik:  # MUTASYON CAPASI — `_k80_mutasyon_kontrol` bu kolu oldurur.
         return collections.Counter()
     sonuc = collections.Counter()
@@ -5577,7 +5580,8 @@ def _k80_komut_envreni(metinler, tespit_acik=True):
                 if not isinstance(run, str) or not run.strip():
                     raise Olculemedi("%s::%s run BOS/gecersiz" % (dosya, job_id))
                 for genis in _k80_matrix_genislet(run, job.get("strategy", {})):
-                    sonuc[(dosya, str(job_id), genis.strip())] += 1
+                    sonuc[(dosya, str(job_id),
+                           _k80_komut_kimligi(genis, yorum_ayrimi=yorum_ayrimi))] += 1
     return sonuc
 
 
@@ -5643,7 +5647,8 @@ def _k80_tasinan_mi(anahtar, once):
     return any(d == dosya and k == komut for (d, _j, k) in once)
 
 
-def _k80_yeni_komutlar(base, hedef, tespit_acik=True, tasinan_defteri=None):
+def _k80_yeni_komutlar(base, hedef, tespit_acik=True, tasinan_defteri=None,
+                       yorum_ayrimi=True):
     """GERCEKTEN yeni komutlar. Taşınanlar AYRI defterde raporlanir, push'u bloklamaz.
 
     🔴 NEDEN TASIMA MUAFIYETI VAR (15 Agu 2026, KraL hukmu — olculdu, gevsetme DEGIL):
@@ -5664,8 +5669,10 @@ def _k80_yeni_komutlar(base, hedef, tespit_acik=True, tasinan_defteri=None):
     kirilirsa kapi bunu YAKALAMAZ; gercek kosumda kirmizi yanar, mail uretir ve nobet
     onarir — ve tasima yalnizca HIJYEN isine yapildigi icin yayini durdurmaz.
     """
-    once = _k80_komut_envreni(_k80_workflow_metinleri(base), tespit_acik=tespit_acik)
-    sonra = _k80_komut_envreni(_k80_workflow_metinleri(hedef), tespit_acik=tespit_acik)
+    once = _k80_komut_envreni(_k80_workflow_metinleri(base), tespit_acik=tespit_acik,
+                              yorum_ayrimi=yorum_ayrimi)
+    sonra = _k80_komut_envreni(_k80_workflow_metinleri(hedef), tespit_acik=tespit_acik,
+                               yorum_ayrimi=yorum_ayrimi)
     gercek = []
     for anahtar in (sonra - once).elements():
         if _k80_tasinan_mi(anahtar, once):
@@ -5690,19 +5697,77 @@ def _k80_betik_yolu(argv):
     return adaylar[0]
 
 
-def _k80_satirlar(run):
+# ── K286 (25 Agu 2026) — YORUM CAGRI DEGILDIR, ve ayrim YAPIDAN turer ─────────────
+# OLCULEN KUSUR: K80 kimligi `(dosya, job, run_metni)` uclusuydu ve `run: |` govdesindeki
+# YORUM satirlari o metnin PARCASIYDI. Bir adimin yorumunu duzeltmek — komutu BIR HARF
+# degistirmeden — kimligi degistiriyor, adim GERCEKTEN YENI sayiliyordu. nobet.yml'in
+# HICBIR isi `deploy.needs`te olmadigi icin sonuc her seferinde sahte `ZINCIR_DISI=1`;
+# bloklayici bir dosyada ayni kusur komutu BOSUNA yeniden kosturur (push bloklama riski).
+#
+# 🔴 NEDEN DIZGE DEGIL YAPI: satir-basi `#` taramasi tek basina YETMEZ ve YANLISTIR —
+# `python3 tools/x.py '#etiket'` icindeki `#` yorum DEGILDIR, argumandir. Ayrim, adimin
+# ICRA EDILEN argv'sinden turer: satirlar YAML `run:` skalarindan gelir (dosya
+# satirlarindan DEGIL) ve yorumu shlex'in KENDI yorum kurali duser, yani tirnak icindeki
+# `#` KORUNUR. Kimlik ve kosturucu AYNI govdeden okur — ikiz tanim YOK
+# ([[ikiz-tanim-sessiz-ayrisma]]).
+#
+# 🔴 FAIL-CLOSED SINIR (bilerek, yazili): argv'ye cevrilemeyen govde (kabuk
+# metakarakteri, `\` devami, dengesiz tirnak) icin kimlik HAM metin olarak kalir —
+# oradaki yorum degisikligi HALA "yeni" sayilir. Olcemedigimiz yerde ESKI SERT davranis
+# korunur; gevsetme YOK.
+def _k80_yorumsuz_argv(satir, yorum_ayrimi=True):
+    """Bir `run` satirini argv'ye cevirir; satir TAMAMEN yorum/bosluksa BOS liste doner.
+
+    🔴 SIRA HAYATIDIR — once YORUM dusulur, SONRA kabuk-metakarakteri emniyeti olculur.
+    Ters sirada `# (kusur degil) ... kosar; "dosya var ama` gibi TAMAMEN YORUM bir satir
+    icindeki `;` yuzunden OLCULEMEDI'ye duser, kimlik ham metne geri sarar ve K286 kusuru
+    AYNEN yasardi — nobet.yml'deki N4A yorum blogu tam olarak bu sekildedir. Yorum satiri
+    ICRA EDILMEZ; ona icra emniyeti uygulamak olcum degil, korlukTUR.
+
+    MUTASYON CAPASI: `yorum_ayrimi=False` iken `#` siradan bir jetondur -> yorum satiri
+    komut sayilir (K286 ONCESI hal). `tools/k80-yorum-cagri-test.py` bu kolu oldurur.
+    """
+    try:
+        argv = shlex.split(satir, comments=yorum_ayrimi)
+    except ValueError as hata:
+        raise Olculemedi("shlex ayristiramadi: %s" % hata)
+    if not argv:
+        return []
+    if K80_META.search(satir) or "\\" in satir:
+        raise Olculemedi("kabuk metakarakteri/ifadesi var: %r" % satir)
+    return argv
+
+
+def _k80_komut_kimligi(run, yorum_ayrimi=True):
+    """Bir `run` govdesinin KIMLIGI — yorum/bosluk YAPIDAN dusurulmus argv dizisi.
+
+    Kimlik ICRA EDILEN sey uzerinden kurulur, dosyada YAZAN metin uzerinden degil.
+    Olculemeyen govde HAM metne duser (fail-closed: bir bayt degisirse YENIdir)."""
+    satirlar = []
+    try:
+        for ham in run.splitlines():
+            satir = ham.strip()
+            if not satir:
+                continue
+            argv = _k80_yorumsuz_argv(satir, yorum_ayrimi=yorum_ayrimi)
+            if not argv:
+                continue                      # satir TAMAMEN yorumdu -> CAGRI DEGIL
+            satirlar.append(" ".join(shlex.quote(jeton) for jeton in argv))
+    except Olculemedi:
+        return run.strip()
+    if not satirlar:
+        return run.strip()
+    return "\n".join(satirlar)
+
+
+def _k80_satirlar(run, yorum_ayrimi=True):
     """Yalniz duz yerel komutlari argv'ye cevir; belirsizlik OLCULEMEDI."""
     satirlar = []
     for ham in run.splitlines():
         satir = ham.strip()
-        if not satir or satir.startswith("#"):
+        if not satir:
             continue
-        if K80_META.search(satir) or "\\" in satir:
-            raise Olculemedi("kabuk metakarakteri/ifadesi var: %r" % satir)
-        try:
-            argv = shlex.split(satir)
-        except ValueError as hata:
-            raise Olculemedi("shlex ayristiramadi: %s" % hata)
+        argv = _k80_yorumsuz_argv(satir, yorum_ayrimi=yorum_ayrimi)
         if not argv:
             continue
         if argv[0] not in ("python3", "node"):
@@ -5842,7 +5907,7 @@ def _k80_araliklar(args):
     return [(base, hedef)]
 
 
-def yeni_ci_adimi_kontrol(args, tespit_acik=True):
+def yeni_ci_adimi_kontrol(args, tespit_acik=True, yorum_ayrimi=True):
     if os.environ.get(K80_IC_KOSUM) == "1":
         return [], 0, 0
     bulgular, yeni_sayisi, kosulan = [], 0, 0
@@ -5856,7 +5921,8 @@ def yeni_ci_adimi_kontrol(args, tespit_acik=True):
         for commit in commitler:
             ebeveyn = _k80_git(["rev-parse", commit + "^1"]).strip()
             yeni = _k80_yeni_komutlar(ebeveyn, commit, tespit_acik=tespit_acik,
-                                      tasinan_defteri=tasinan)
+                                      tasinan_defteri=tasinan,
+                                      yorum_ayrimi=yorum_ayrimi)
             # ZINCIR DISI (hijyen) ise eklenen yeni adim: RAPORLANIR, BLOKLAMAZ.
             bloklayici_harita = _k80_bloklayici_isler(_k80_workflow_metinleri(commit))
             zincir_disi = [a for a in yeni

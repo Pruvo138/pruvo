@@ -3096,6 +3096,21 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/is-akisi-kapisi.py
 
+      # K286 (25 Agu 2026) — K80 KOLU: YORUM SATIRI CAGRI SAYILMASIN.
+      # Olculen kusur: adim kimligi HAM `run` metniydi, `run: |` govdesindeki yorumlar o
+      # metnin parcasiydi. Bir adimin yorumunu duzeltmek — komut BIR HARF degismeden —
+      # adimi "yeni" yapiyor ve nobet.yml'de sahte `K80 ZINCIR_DISI=1` bastiriyordu.
+      # Batarya dort ekseni birlikte tutar: V1 kusuru URETEN girdi · V2 yanlis-negatif
+      # nobeti (gercekten yeni adim HALA yakalanir; bu kol duserse V1'in yesili
+      # anlamsizdir) · V3 ayrimin argv'den (YAPIDAN) turedigi — tirnakli `#` arguman
+      # kalir, yorumdaki `;` govdeyi OLCULEMEDI'ye dusurmez · M1 hedefli mutant +
+      # HEDEF-KOL ATFI (mutant V1'i kirmizi yakar ama V2'yi DEGISTIRMEZ).
+      # Hermetik: gecici git deposu + uretim govdesi importlib ile ithal (ikiz tanim YOK);
+      # canli repoya/canli git'e/aga SIFIR dokunus, ureten temizler. Offline, ~2 s.
+      - name: "K286 K80 yorum/cagri ayrimi bataryasi (V1/V2/V3 + hedefli mutant)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/k80-yorum-cagri-test.py
+
       # D1 UZLASTIRICI "ONARILAMADI" KOSUL KABULU (7 Agu 2026 onariminin nobetcisi).
       # d1-uzlastirici.yml'deki (3) ONARILAMADI adiminin `if:` kosulu GERCEK dosyadan
       # okunur ve GitHub kosul semantigi 5 vakada FIILEN calistirilir; 6. iddia bir
