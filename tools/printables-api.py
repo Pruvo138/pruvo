@@ -14,8 +14,12 @@ kullanmak isterse: `import importlib.util` ile yukler. Basitlik icin arama/meta 
 kendi kucuk gql() sarmalayicisini tutar; buradaki degerler (ENDPOINT, MEDIA, lisans kurali)
 tek dog­ruluk kaynagidir.
 """
-import json, re, struct, urllib.request, zipfile, io
+import json, os, re, struct, sys, urllib.request, zipfile, io
 import xml.etree.ElementTree as ET
+
+# Bbox saglik esikleri TEK KAYNAKTAN gelir (K287) — bu dosyada esik SAYISI YOKTUR.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import olcu_saglik
 
 ENDPOINT = "https://api.printables.com/graphql/"
 MEDIA = "https://media.printables.com/"   # + filePath  ->  tam gorsel URL'si
@@ -376,19 +380,9 @@ def stl_bbox(path):
     if not xs:
         return None
     d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
-    # BELIRSIZ-BIRIM (fail-closed): binary STL'de birim beyani YOK -> mm mi metre mi inc mi
-    # ayirt edilemez. EN BUYUK boyut < 2 birim ise olcu kaynak-dogrulanamaz. Eski kod bunu
-    # "buyuk ihtimalle metre" sanip x1000 ile 650mm gibi FIZIK-DISI bir bbox uretiyordu
-    # (0.65 inc bir parca ~16.5mm iken 650mm cikiyordu). Uydurma kucuk/buyuk olcu YAZMAK yerine
-    # None dondur (bu urunler "kalici olculemez" kovasina duser).
-    #   ⚠️ Esik EN BUYUK boyutta (max(d)), d[0] mantigina degil geometriye baglidir: ince bir
-    #   levha (100 x 100 x 0.5) max=100 -> tetiklenmez, dogru sekilde mm doner. SADECE en buyuk
-    #   boyutu < 2 olan parcalar belirsiz sayilir.
-    if max(d) < 2.0:
-        return None
-    if d[0] <= 0 or d[0] > 100000:
-        return None
-    return d
+    # SAGLIK HUKMU tools/olcu_saglik.py'de (kucuk uc = belirsiz birim · buyuk uc = orta
+    # boyut tavani). STL birim beyani TASIMAZ -> birim_beyanli=False.
+    return olcu_saglik.suz(d)
 
 
 # 3MF spec'i birim serbest birakir; olcuyu mm'ye cevirmek icin carpan.
@@ -567,9 +561,8 @@ def bbox_3mf(path):
         d = sorted([(max(xs) - min(xs)) * carpan,
                     (max(ys) - min(ys)) * carpan,
                     (max(zs) - min(zs)) * carpan], reverse=True)
-        if d[0] <= 0 or d[0] > 100000:
-            return None
-        return d
+        # 3MF `unit` BEYAN EDER (carpan yukarida uygulandi) -> belirsiz-birim kolu MUAF.
+        return olcu_saglik.suz(d, birim_beyanli=True)
     except Exception:
         return None                      # sozlesme: hicbir durumda firlatma, olcemezsen None
 
@@ -585,11 +578,11 @@ def obj_bbox(path):
     Bicim: 'v X Y Z [W]' satirlari koordinattir. 'vt' (doku) ve 'vn' (normal) satirlari
     koordinat DEGILDIR ve sayilmaz — ilk jeton TAM 'v' olmali.
 
-    stl_bbox ile AYNI fail-closed korumalari (bilerek tekrarlanmadi, ayni esikler):
+    stl_bbox ile AYNI fail-closed korumalari — ve 25 Agu 2026'dan beri "ayni" bir IDDIA
+    degil, TEK KAYNAK: saglik hukmu `tools/olcu_saglik.py`den gelir (K287; kopyalanan
+    esiklerin sessizce ayrismasi orada olculdu).
       * HTML/hata sayfasi -> None
-      * OBJ de BIRIM BEYANI TASIMAZ -> en buyuk boyut < 2 birim ise olcu kaynak-dogrulanamaz,
-        uydurma yerine None (STL'deki ayni tuzak; x1000 tahmini YAPILMAZ)
-      * <=0 ya da > 100000 -> None"""
+      * OBJ de BIRIM BEYANI TASIMAZ -> belirsiz-birim kolu UYGULANIR (x1000 tahmini YOK)"""
     with open(path, "rb") as f:
         data = f.read()
     head = data[:512].lstrip().lower()
@@ -607,11 +600,7 @@ def obj_bbox(path):
     if not xs:
         return None
     d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
-    if max(d) < 2.0:
-        return None
-    if d[0] <= 0 or d[0] > 100000:
-        return None
-    return d
+    return olcu_saglik.suz(d)
 
 
 def model_bbox(path):

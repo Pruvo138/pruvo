@@ -76,6 +76,10 @@ _KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
 if _KOK_UYARI:
     sys.stderr.write(_KOK_UYARI)
 
+# Bbox saglik esikleri TEK KAYNAKTAN gelir (K287) — bu dosyada esik SAYISI YOKTUR.
+sys.path.insert(0, _KENDI_DIZIN)
+import olcu_saglik
+
 # ---- endpoint'ler ----
 BASE = "https://www.myminifactory.com/api/v2"
 SEARCH = BASE + "/search"
@@ -282,9 +286,10 @@ def parse_dimensions(s):
             carpan = mm
             break
     d = sorted([v * carpan for v in vals], reverse=True)
-    if d[0] <= 0 or d[0] > 100000:
-        return None
-    return d
+    # SAGLIK HUKMU tools/olcu_saglik.py'de (K287). MMF `dimensions` string'i BIRIMI BEYAN
+    # EDER (carpan yukarida uygulandi) -> belirsiz-birim kolu MUAF; yoksa mesru "1,5 mm"
+    # bir conta reddedilirdi. Buyuk uc (orta boyut tavani) burada da uygulanir.
+    return olcu_saglik.suz(d, birim_beyanli=True)
 
 
 # ---- LISANS (fail-closed beyaz liste) ----

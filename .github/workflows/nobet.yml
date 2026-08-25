@@ -4008,6 +4008,18 @@ jobs:
         run: |
           python3 tools/gorsel-anahtar-test.py
           python3 tools/stl-bbox-binary-test.py
+      # K287 (25 Agu 2026) — bbox BIRIM/OLCU SAGLIK hukmu TEK KAYNAK (tools/olcu_saglik.py).
+      # Olculen ariza: buyuk ucta tek tavan 100 m idi, pid 4675433'un 1659 x 1659 x 100 mm
+      # bbox'i kapidan GECTI (gercek parca ~13 cm). TERS YON de gercek: pid 7173324'un
+      # 1860 x 145 x 104 mm bbox'i MESRU (tam boy marspiyel) — "buyukse reddet" onu oldururdu.
+      # Bu yuzden kabul IKI YONLUDUR ve her mutant HANGI IDDIAYI oldurdugunu BEYAN eder.
+      # Sentetik/offline/<2 s; ag YOK, stl/ YOK, urunler.json'a DOKUNMAZ.
+      # Kardesleri (stl-bbox-binary-test, test-bbox-3mf) gibi SERIT B'dedir: yayini DURDURMAZ.
+      - name: "Bbox birim/olcu saglik kabul testi + iki yonlu mutasyon (K287)"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/olcu-saglik-test.py
+          python3 tools/olcu-saglik-test.py --mutasyon
       - name: Urun-AI kapisi kabul testi (thing-codex izin kapisi varsayilan KAPALI)
         if: ${{ !cancelled() }}
         run: python3 tools/thing-codex-test.py
