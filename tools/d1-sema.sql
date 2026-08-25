@@ -495,3 +495,42 @@ CREATE TABLE IF NOT EXISTS siparisler (
 -- kolonlar canliya ASLA eklenemez (tam tikanma, kendi kuyrugunu yiyen goc). urunler_yayin
 -- indeksleri 31 Tem'de AYNI sebeple bu dosyadan cikarilmisti (bkz. 145. satir yorumu).
 -- Dogru yer: ALTER'lardan SONRA kosan ve kurulusu DOGRULANAN GOC_INDEKS kaydi.
+
+-- REKLAM ATIF HALKASI — REF -> click-id kalici eslemesi (OCI #1; shop/src/ref.js yazar).
+-- 🔴 K99 (25 Agu 2026): BU TABLO KANONIK SEMAYA ALINDI. Onceden YALNIZ
+-- `tools/d1-reklam-ref-gclid.sql` adli AYRI bir dosyada duruyordu ve canliya ELLE
+-- uygulanmisti -> `d1-sema.sql`de 0 hit, `d1-sync.py` tanimiyor, sema kapisi ve `--sema`
+-- gocu bu tabloyu GORMUYORDU. Sessiz kayip sinifi: tablo bir kez elden gitse (yeni ortam,
+-- yeniden kurulum, yanlislikla DROP) hicbir kapi konusmaz — `refKaydet` hatayi catch
+-- blogunda yutar (fire-and-forget beacon, HER durumda 204 doner) ve reklam atfi SESSIZCE
+-- olur. O elle dosya SILINDI; tanim artik TEK KAYNAK burasidir.
+--
+-- HALKA (uctan uca):
+--   landing attribution-ref.js -> REF:<SRC>-<GRUP>-<RND4> uretir (rizadan BAGIMSIZ)
+--   wa.me lead beacon          -> POST /api/shop/ref -> BU TABLO (ref -> gclid/gbraid/wbraid)
+--   odeme                      -> index.html PRUVO_ATIF.topla() `ref`i tasir
+--                              -> shop/src/index.js atifTemizle (REF_KALIBI, fail-closed)
+--                              -> siparisler.atif JSON'una yazilir
+--   JOIN anahtari              -> json_extract(siparisler.atif,'$.ref') == reklam_ref_gclid.ref
+-- Halkanin HER halkasi tools/reklam-ref-halkasi-kapisi.py'de FIILEN kosturularak olculur
+-- (jeton taramasi DEGIL: gercek sema sqlite'a yuklenir, gercek INSERT'ler kosar, gercek
+-- JOIN calistirilir; bir halka koparsa kapi KIRMIZI yanar).
+--
+-- first-write-wins: ref PRIMARY KEY + worker INSERT OR IGNORE -> ayni REF ikinci kez
+-- gelirse ILK kayit korunur (lead ani = tiklamaya en yakin an).
+-- Retention ~90 gun (landing localStorage TTL + Google OCI tik penceresi). Prune opsiyonel.
+--
+-- 🔴 INDEKS BU DOSYADA DEGIL: `idx_reklam_ref_gclid_created` d1-sync.py GOC_INDEKS kayit
+-- defterindedir — yukaridaki gerekce (bu dosya kolon gocunden ONCE kosar) tum tablolar icin
+-- TEK kural olsun diye; ayrica boylece indeksin hali `--durum` SEMA ekseninde CANLI olculur
+-- (kayit defterinde olmayan indeks olculemez, sessizce kaybolabilir).
+CREATE TABLE IF NOT EXISTS reklam_ref_gclid (
+  ref        TEXT PRIMARY KEY,   -- REF:<SRC>-<GRUP>-<RND4> (landing kanonigi REF_KALIBI)
+  gclid      TEXT,               -- Google Ads tik kimligi (organik/OG kayitta NULL)
+  gbraid     TEXT,               -- iOS app->web tik kimligi
+  wbraid     TEXT,               -- web->app tik kimligi
+  grup       TEXT,               -- reklam/urun grubu etiketi ([A-Z0-9]{2,4})
+  src        TEXT,               -- kaynak sinifi: 'GS' (paid) | 'OG' (organik)
+  ts         INTEGER,            -- landing damgasi (istemci)
+  created_at INTEGER             -- sunucu damgasi (Date.now(), beacon ani)
+);
