@@ -390,6 +390,20 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/chip-duzeni-test.py
 
+      # DAL TEK-SAHIP KAYDI (K50, 25 Agu 2026) — olculmus vaka: `kral/d1-tavsiye-kolon`
+      # merge'i IKI oturuma paralel verildi, ikinci oturum merge'i birincisi olcerken
+      # icra etti ([[paylasilan-defterde-mukerrer-tur]]). Kayip yalniz sans eseri olmadi.
+      # Kabul bataryasi yaris penceresini 24 surec + Barrier ile GERCEKTEN yeniden uretir;
+      # mutasyon takimi her sahiplik kolunu ADIYLA oldurup fiksturun kirmizi yandigini
+      # olcer (KONTROL kolu + IZ AYRIMI dahil). SERIT B: kirmizisi yayini DURDURMAZ.
+      - name: "Dal tek-sahip kaydi: kabul bataryasi (gercek yaris dahil)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/dal-sahibi-test.py
+
+      - name: "Dal tek-sahip kaydi: hedef-kol atifli mutasyon takimi"
+        if: ${{ !cancelled() }}
+        run: python3 tools/dal-sahibi-mutasyon.py
+
       # MOTOR TEK-KAYNAK KAPISI (K214, 19 Agu 2026) — TeKiN'in capraz-ev kirmizisi.
       # OLCULEN KUSUR: tools/mimar-kapi-kur.py isci motor kumesini KENDI govdesine
       # GOMUYORDU ve 13 Agu'da BES karde eve o donmus kopyayi kurdu (kimi YOK, emekli

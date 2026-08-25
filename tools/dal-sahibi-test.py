@@ -210,28 +210,39 @@ def vakalar(mod, kok, arac_yolu):
     # Bu vaka `PRUVO_DAL_SAHIP_KOK` zorlamasini ATLAR ve `_git_ortak_dizin`i
     # DOGRUDAN olcer; yoksa fikstur hep gecici dizine yazar ve K50'nin ta kendisi
     # (dal kaydi worktree basina AYRISIRSA yaris kapanmaz) olculmeden kalir.
-    bura = os.path.dirname(os.path.abspath(__file__))
-    ana_git = mod._git_ortak_dizin(bura)
+    # SENTETIK AGAC: gercek worktree'lere BAGLI DEGIL — CI checkout'unda worktree
+    # YOKTUR, gercek topolojiye dayanan bir vaka orada "olculemedi"ye duserdi
+    # ([[olculemedi-bypass-degil-menzil-daraltmasi]]). Bunun yerine git'in worktree
+    # duzeni birebir kurulur ve kol HER ORTAMDA deterministik olculur.
+    sahte = os.path.join(kok, "sahte-agac")
+    ana_kok = os.path.join(sahte, "ana")
+    ana_git = os.path.join(ana_kok, ".git")
+    wt_kok = os.path.join(sahte, "wt-bir")
+    os.makedirs(os.path.join(ana_git, "worktrees", "wt-bir"), exist_ok=True)
+    os.makedirs(os.path.join(wt_kok, "tools"), exist_ok=True)
+    with open(os.path.join(wt_kok, ".git"), "w", encoding="utf-8") as f:
+        f.write("gitdir: %s\n" % os.path.join(ana_git, "worktrees", "wt-bir"))
+
     kokler = {}
-    esit = False
+    for a in (ana_kok, wt_kok, os.path.join(wt_kok, "tools")):
+        kokler[a] = mod._git_ortak_dizin(a)
+    # Bu makinede gercek worktree KAYITLIYSA onlar da olcume katilir (ek kapsam).
+    gercek_git = mod._git_ortak_dizin(os.path.dirname(os.path.abspath(__file__)))
+    gercek = {}
     try:
-        wt_kayit = os.path.join(ana_git or "", "worktrees")
-        adaylar = [bura]
+        wt_kayit = os.path.join(gercek_git or "", "worktrees")
         for ad in sorted(os.listdir(wt_kayit)):
-            gd = os.path.join(wt_kayit, ad, "gitdir")
-            with open(gd, encoding="utf-8") as f:
-                adaylar.append(os.path.dirname(f.read().strip()))
-        adaylar.append(os.path.dirname(ana_git))  # ana checkout koku
-        for a in adaylar:
-            if os.path.isdir(a):
-                kokler[a] = mod._git_ortak_dizin(a)
-        cozulen = set(kokler.values())
-        esit = (len(cozulen) == 1 and ana_git in cozulen
-                and os.path.basename(ana_git) == ".git" and len(kokler) >= 3)
+            with open(os.path.join(wt_kayit, ad, "gitdir"), encoding="utf-8") as f:
+                yol = os.path.dirname(f.read().strip())
+            if os.path.isdir(yol):
+                gercek[yol] = mod._git_ortak_dizin(yol)
     except Exception:
         pass
-    ayrinti2 = "agac=%d cozulen_kok=%s (hepsi TEK koke cozmeli)" % (
-        len(kokler), sorted(set(kokler.values())))
+    esit = (set(kokler.values()) == {ana_git}
+            and (not gercek or set(gercek.values()) == {gercek_git}))
+    ayrinti2 = "sentetik_agac=%d cozulen=%s | gercek_worktree=%d cozulen=%s" % (
+        len(kokler), sorted(set(kokler.values())),
+        len(gercek), sorted(set(gercek.values())) or ["(bu ortamda worktree YOK)"])
     ekle("K50-14-ORTAK-KOK-TEK", esit, ayrinti2)
 
     return sonuc
