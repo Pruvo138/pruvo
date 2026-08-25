@@ -45,8 +45,7 @@ kolu **`OLCULEMEDI`** — panel yuzeyinde saatlik satir YOK, 25 Agu Okan'in onay
   K277** defter/kutu ailesi: rotasyon vetosu · numara atomik DEGIL (bugun 3 cakisma) · rc=2
   gozcude CI_KIRMIZI · arsiv jetonu okunmadan tasiniyor. **Bes kalemin tam metni KUTUDA.**
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
-- 🔧 **K283:** baslik kolunun capa ekseni
-  ureticiden BAGIMSIZ degil; kabul: ayri capa + `M4` mutanti KIRMIZI. Tam metin KUTUDA.
+- 🔧 **K283:** baslik kolunun capa ekseni ureticiden BAGIMSIZ degil; kabul: ayri capa + `M4` mutanti KIRMIZI. KUTUDA.
 - ⚠️ **K86 BABA basamaginda** (`SEBEP=YETENEK SAYAC=5`, tur 663 diske yazdi, kova `OKAN_KAPISI`) —
   BaBa karari bekler. **K281 CURUDU** (`KILIT_MUMKUN=0`: isci her tur olse de 13 turda BABA'ya
   cikiyor). · 🔧 **K282 (OLCULEMEDI):** `DURUM_BITMEYEN_TUR`, `DAGITILMAZ_DURUMLAR` disinda —
@@ -119,8 +118,9 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 
 - ✅ **KAPANDI — 25 Agu Okan penceresi: dokuz kalem karara baglandi.** Adlari ve hukumleri hafizada:
   [[okan-25agu-kapatilan-konular]]. 🔴 Bu konularda yeniden kalem ACILMAZ.
-- 🔧 **K76 (Okan ONAYLADI, chip acildi):** iki yasal sayfa 6502 m.11'den DAR (`/teslimat-iade` 0/4,
-  `/mesafeli-satis` 2/4); dort hak yazilir, metin yayindan ONCE Okan'a okutulur.
+- 🔧 **K297·K298·K299·K300·K301 (K289 chip'i olctu):** SERIT B hijyen kirmizisi (`KATEGORI_ALIAS`)
+  · iki ayri K29 (ID cakismasi) · K86 metni bayat · K55 sayisi 10 DEGIL **197** · `T4-OLCUTSUZ`
+  tum evlere bakiyor (duyuru MIMARDA). Tam metinler KUTUDA.
 - 🔧 **K200(i):** Okan "kuru kos" dedi; komut `yedekle.py --kuru` (`--d1` bayragi YOK, kaynaktan
   dogrulandi), cikti bekleniyor. · 🔧 **K296 chip:** odeme bayatligi olculuyor, deploy komutu
   HAZIRLANIR ama KOSULMAZ.
