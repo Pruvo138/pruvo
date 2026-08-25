@@ -6,6 +6,7 @@
 .codex/
 CLAUDE.md
 AGENTS.md
+CLAUDE-ARSIV.md
 .r2-credentials.json
 # 30 Tem 2026: ".eski"/".yedek"/".bak" turevleri de IPTAL EDILMIS jeton tasir ve tek
 # kural .git/info/exclude'daydi (MAKINEYE OZEL) -> baska klonda `git add -A` ile PUBLIC
