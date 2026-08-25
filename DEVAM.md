@@ -3,19 +3,24 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔚 25 AGU OTURUM KAPANISI (KraL) · main=origin `613d20fe` · MIMAR worktree'si 0 · KOSAN chip'im YOK
-**CANLIYA GITTI (6 merge, hepsini MIMAR kendi olctu):** K50 `8ac2b8d5` · K99 `0be7a7ea` · K107+K86
-`e532032b` · K74 portu `7a534cb2` · uyum sozlugu `0d9a861a` · **K228** `2194feeb` (parite
-ACIKLANAMAYAN 43→0). Ayrica veri commit'i `366865c3` + deploy zinciri onarimi `e6916c8d`.
-**BEKLIYOR:** ana agacta YABANCI ` M tools/arama.py` (sahibi yaziyor — DOKUNMADIM) · 3 chip agaci
-ARSIVLENEBILIR (`admiring-taussig`=K86 · `brave-fermat`=K107 · `admiring-thompson`=K289; isleri
-main'de, jetonu kendileri yazdi, Okan arsivleyince agac+dal duser).
-**OKAN'DA:** acik karar YOK.
-
-**BUGUN KAPANAN 5+2 KALEM** (Okan 15:10 + 17:00 emirleri; tam sayilar `DEVAM-ARSIV.md`de
-"25 AGU GUNLUK KAPANIS BLOGU" basligi altinda): CLAUDE lossless arsivi · kok raporu · gozcu
-fantom eskalasyonu (t743 `OKAN_KAPISI=0`) · defter+kutu kotasi · cron olu yedekleri 18→0.
+6 merge + 2 commit canliya gitti, bugun 5+2 kalem kapandi — TAM METIN+HASH'LER `DEVAM-ARSIV.md`
+"25 AGU GUNLUK KAPANIS BLOGU" basligi altinda (grep ile 1 baslik + 8 hash satiri dogrulandi).
+**BEKLIYOR:** ` M tools/arama.py` "yabanci" hukmu **CURUTULDU** → sahiplenildi, **K303**.
+**OKAN'DA:** acik karar YOK; arsivlenebilir 3 chip agaci asagida "OKAN'DA" bolumunde.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
+- 🔴 **K302 (SESSIZ HATA, sahibi KraL — MaCiT iki kez bildirdi BMW+Ford, DEFTERE HIC YAZILMAMISTI):**
+  `tools/hasat_ekle.py` — `ic["marka"]` 2-elemanli liste (`["BMW","E30"]`) gelince `uyum=[{"marka":
+  ic["marka"]}]` listeyi OLDUGU GIBI yaziyor; `arama.marka_uyumdan_turet()` string bekliyor →
+  top-level `marka` SESSIZCE `[]` kaliyor, urun marka filtresinde GORUNMEZ; `marka_kirli` kapisi
+  bos listeyi TEMIZ sayiyor. 61 canli BMW kaydinda oldu (elle `duzelt.py --toplu` ile onarildi).
+  🔴 ACIL: MaCiT'in Ford×TV EKLEME dilimi (56 kayit) ayni tuzaga dusecek. kabul: 2-elemanli girdide
+  `u["marka"]` BOS KALMIYOR + kapi bos listeyi KIRLI sayar + MUTANT (ayristirmayi bozunca KIRMIZI).
+- 🔧 **K303 (OKSUZ ONARIM, ana agacta commit'siz):** ` M tools/arama.py` (7+/5-) — K19 bayat
+  temizligi: `Seat|alhambra` capraz izni kaldirildi + `ROZET_CAPRAZ_IZINLI_SAYISI` 67→66 +
+  iki imza guncellendi. Iki ev de "yabanci" deyip DOKUNMADI; K19/K188/K205 atiflari KraL'in →
+  **SAHIPLENILDI**. kabul: `rozet_capraz_imzasi()`/`rozet_capraz_sinif_imzasi()` gerceklen kapida
+  dogrulanir (67→66 sayisi + iki imza rc=0) + commit. → [[oksuz-commitsiz-onarim-curur]].
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
 - 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
   kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
