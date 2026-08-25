@@ -8,21 +8,14 @@ GUNLUK KAPANIS BLOGU" basliginda (1 baslik + 8 hash satiri dogrulandi). Uc olu c
 (worktree 4→1). ` M tools/arama.py` "yabanci" hukmu CURUTULDU → sahiplenildi, **K303**.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
-- 🔴 **K302 (SESSIZ HATA, KraL; MaCiT iki kez bildirdi BMW+Ford, DEFTERE HIC YAZILMAMISTI):**
-  `hasat_ekle.py` 2-elemanli `ic["marka"]`'yi `uyum[0].marka`'ya liste olarak yaziyor → top-level
-  `marka` SESSIZCE `[]`, urun marka filtresinde GORUNMEZ, `marka_kirli` bos listeyi TEMIZ sayiyor.
-  61 canli BMW kaydinda oldu. **CANLI HASAR 0** (mimar jq: `uyum[].marka` liste=0/30423,
-  `BOS_MARKA_UYUMLU=0`; Ford partisi tetiklemedi) → ACIL DEGIL, kalan is ARAC ONARIMI.
-  kabul: ayristirma + fail-closed + kapi kolu + M1/M2. Chip hazir (`onarim/k302-hasat-marka`).
-- ✅ **K303 KAPANDI:** oksuz `arama.py` onarimi `575c2bdd` ile main'e girdi, imzalar SONRADAN dogrulandi:
-  kapi hesabi = yazan (`0fc3227eac1c6abb`·`b28c90e6e08f3909`), eleman 66 (mimar grep'i 66),
-  tuketici 1/1 rc=0, `alhambra` 12→12 etkilenen 0, M1/M2 KIRMIZI hedef-kol atifli. → [[oksuz-commitsiz-onarim-curur]].
-- 🔴 **K250 (25 Agu OLCULDU — KILITLI):** kok neden main'de (`d76ca45c`/`ba0e5e2a`); rollout araci
-  bes kardes evi FAIL-CLOSED ile atliyor — onceki rollout o evlerin DISKINE yazip HIC COMMIT ETMEMIS.
-  `HEAD=1/6 DISK=6/6`, ezmek KISMEN kayipli (~232-253 satir/ev). Iscinin IKI iddiasi da MIMAR
-  olcumuyle CURUTULDU: `git hash-object` → 4 ev BIREBIR AYNI, yalniz BaBa farkli (**IKI GOVDE**);
-  ikincisi + fail-closed gerekcesi ARSIVDE (sinif kapisi). ACIL DEGIL.
-  kabul: iki govde satir satir yargilanir (sablona al / ev-ozgu / sil).
+- ✅ **25-26 Agu gecesi KAPANAN 4 KALEM — TAM METIN ARSIVDE** ("KAPANAN 4 KALEM" basligi): **K250**
+  (rollout hukmu, `SABLONA_AL=0`) · **K302** (arac-bagimsiz kapi `dd7052fa`) · **K303** (rozet imzalari
+  kapiya hesaplatildi) · **K305** (yayin acildi `dd903d78`; `db33e358` urun silmesi `bf51d521` ile GERI ALINDI).
+- 🔧 **K250 KALAN:** KaaN·ArTisT·HocA·BaBa — her biri tek satirlik `expanduser` duzeltmesi, KENDI
+  mimarlarinda; KraL kardes depoya yazmaz. · 🔧 **K302 KALAN:** kok neden MaCiT'in `olcum/hasat_ekle.py`
+  dosyasinda, kutuda bildirildi.
+- 🔧 **K306 (SINIF, iki evi birden):** pre-push kancasi her push'ta 30.366 kapak tariyor, 600 sn
+  tavanini asiyor; vaka ARSIVDE. kabul: tarama ARTIMLI + olculen push suresi tavanin altinda.
 - 🔴 **K304 (SINIF: BAYAT TEK KAYNAK, 1 turu yanlis motorda yakti):** `skills/codex-isci` motor sirasini
   CLAUDE.md'den KOPYALIYORDU; uc kopya SILINDI. kabul: `yedekle.py` BORCLU (surum kontrolu disi dizin).
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
@@ -121,7 +114,7 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - 🔧 **K151 · K161 (17-19 Agu):** ikisinin de TAM METNI ARSIVDE (20 Agu 1:1 tasima blogu).
 
 ## OKAN'DA
-
+- 🔧 25 Agu 20:54Z: VW denetim-kapisi 3 ardisik FAIL tamamlandi (9eecd8ac VW dilim-1 → 35bf4229 VW dilim-2 → 9288e5eb Mazda); §3 DUR aktif; tek fix urunler.json content edit = YASAK + MaCiT tek-yazar; Okan insa karari bekleniyor.
 - ✅ 25 Agu penceresi: 9 kalem kapandi → [[okan-25agu-kapatilan-konular]]; 🔴 yeniden ACILMAZ.
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
