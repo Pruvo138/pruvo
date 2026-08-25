@@ -2,10 +2,13 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔚 25 AGU OTURUM KAPANISI (KraL) · main=origin `613d20fe` · MIMAR worktree'si 0 · KOSAN chip'im YOK
-6 merge + 2 commit canliya gitti, 5+2 kalem kapandi — TAM METIN+HASH'LER `DEVAM-ARSIV.md` "25 AGU
-GUNLUK KAPANIS BLOGU" basliginda (1 baslik + 8 hash satiri dogrulandi). Uc olu chip agaci KALDIRILDI
-(worktree 4→1). ` M tools/arama.py` "yabanci" hukmu CURUTULDU → sahiplenildi, **K303**.
+## 🔚 26 AGU OTURUM KAPANISI (KraL) · main=origin `35fd480a` SHA-BIREBIR · worktree **1** · KOSAN chip **YOK**
+**CANLIYA GITTI:** `dd903d78` K305 yayin acildi · `bf51d521` urun silme GERI ALINDI · `dd7052fa` K302 kapi ·
+`033f9466`/`575c2bdd` K303 · 6 defter commit'i. Zincir YESIL: `32909205580` SUCCESS (deploy+yayin) ·
+D1 5/5 eksen · UYUSMAZ=0 · TASLAK=0 · katalog 30778. (25 Agu kapanisi ARSIVDE.)
+**BEKLIYOR:** K302 kok neden MaCiT'te · K250 kalan 4 ev kendi mimarlarinda · K306 pre-push.
+**TEMIZLIK:** 15 mimar + 37 isci gecici dosyasi silindi; scratchpad+worktrees `ls -A` BOS, kokte rapor YOK,
+87 yerel+33 uzak dal silindi, kutu 2 kez lossless. **OKAN'DA:** `PRUVO_CLAUDE_ISCI_IZNI` kalici mi? · K306.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu gecesi KAPANAN 4 KALEM — TAM METIN ARSIVDE** ("KAPANAN 4 KALEM" basligi): **K250**
@@ -16,10 +19,8 @@ GUNLUK KAPANIS BLOGU" basliginda (1 baslik + 8 hash satiri dogrulandi). Uc olu c
   dosyasinda, kutuda bildirildi.
 - 🔧 **K306 (SINIF, iki evi birden):** pre-push kancasi her push'ta 30.366 kapak tariyor, 600 sn
   tavanini asiyor; vaka ARSIVDE. kabul: tarama ARTIMLI + olculen push suresi tavanin altinda.
-- ✅ **K307 KAPANDI:** D1 bayat hash 1→0 (senkron atlanmisti, Ege duzeltilmemis metni goruyordu);
-  345 taslagi CI'in `yayin` job'i akitti (`32909205580` SUCCESS @ `fa6989f9`). Kapanis: `deploy`+
-  `yayin` SUCCESS · D1 5/5 eksen · UYUSMAZ=0 · TASLAK=0. 🔧 Yan bulgu: isci probu `Range: bytes=0-0`
-  yollayip 206 alinca 345 sayfayi "canli DEGIL" saydi. → [[prob-kendi-baglamini-olcer]]
+- ✅ **K307 KAPANDI:** D1 bayat hash 1→0; 345 taslagi CI `yayin` job'i akitti (`32909205580`).
+  🔧 Yan bulgu: isci probu `Range: bytes=0-0` yollayip 206 alinca canli sayfayi "olu" saydi. → [[prob-kendi-baglamini-olcer]]
 - 🔴 **K304 (SINIF: BAYAT TEK KAYNAK, 1 turu yanlis motorda yakti):** `skills/codex-isci` motor sirasini
   CLAUDE.md'den KOPYALIYORDU; uc kopya SILINDI. kabul: `yedekle.py` BORCLU (surum kontrolu disi dizin).
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
@@ -122,6 +123,5 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - ✅ 25 Agu penceresi: 9 kalem kapandi → [[okan-25agu-kapatilan-konular]]; 🔴 yeniden ACILMAZ.
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
-- ✅ 3 arsivlenebilir chip agaci (K86·K107·K289) 25 Agu aksami KALDIRILDI — kayip 0 (main disi commit yok).
 
 ## ARSIVDE — 14-20 Agu `DEVAM-ARSIV.md`'de.
