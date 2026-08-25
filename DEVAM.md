@@ -3,24 +3,28 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔚 25 AGU OTURUM KAPANISI (KraL) · main=origin `613d20fe` · MIMAR worktree'si 0 · KOSAN chip'im YOK
-6 merge + 2 commit canliya gitti, bugun 5+2 kalem kapandi — TAM METIN+HASH'LER `DEVAM-ARSIV.md`
-"25 AGU GUNLUK KAPANIS BLOGU" basligi altinda (grep ile 1 baslik + 8 hash satiri dogrulandi).
-**BEKLIYOR:** ` M tools/arama.py` "yabanci" hukmu **CURUTULDU** → sahiplenildi, **K303**.
-**OKAN'DA:** acik karar YOK; arsivlenebilir 3 chip agaci asagida "OKAN'DA" bolumunde.
+6 merge + 2 commit canliya gitti, 5+2 kalem kapandi — TAM METIN+HASH'LER `DEVAM-ARSIV.md` "25 AGU
+GUNLUK KAPANIS BLOGU" basliginda (1 baslik + 8 hash satiri dogrulandi). Uc olu chip agaci KALDIRILDI
+(worktree 4→1). ` M tools/arama.py` "yabanci" hukmu CURUTULDU → sahiplenildi, **K303**.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
-- 🔴 **K302 (SESSIZ HATA, sahibi KraL — MaCiT iki kez bildirdi BMW+Ford, DEFTERE HIC YAZILMAMISTI):**
-  `tools/hasat_ekle.py` — `ic["marka"]` 2-elemanli liste (`["BMW","E30"]`) gelince `uyum=[{"marka":
-  ic["marka"]}]` listeyi OLDUGU GIBI yaziyor; `arama.marka_uyumdan_turet()` string bekliyor →
-  top-level `marka` SESSIZCE `[]` kaliyor, urun marka filtresinde GORUNMEZ; `marka_kirli` kapisi
-  bos listeyi TEMIZ sayiyor. 61 canli BMW kaydinda oldu (elle `duzelt.py --toplu` ile onarildi).
-  🔴 ACIL: MaCiT'in Ford×TV EKLEME dilimi (56 kayit) ayni tuzaga dusecek. kabul: 2-elemanli girdide
-  `u["marka"]` BOS KALMIYOR + kapi bos listeyi KIRLI sayar + MUTANT (ayristirmayi bozunca KIRMIZI).
-- 🔧 **K303 (OKSUZ ONARIM, ana agacta commit'siz):** ` M tools/arama.py` (7+/5-) — K19 bayat
-  temizligi: `Seat|alhambra` capraz izni kaldirildi + `ROZET_CAPRAZ_IZINLI_SAYISI` 67→66 +
-  iki imza guncellendi. Iki ev de "yabanci" deyip DOKUNMADI; K19/K188/K205 atiflari KraL'in →
-  **SAHIPLENILDI**. kabul: `rozet_capraz_imzasi()`/`rozet_capraz_sinif_imzasi()` gerceklen kapida
-  dogrulanir (67→66 sayisi + iki imza rc=0) + commit. → [[oksuz-commitsiz-onarim-curur]].
+- 🔴 **K302 (SESSIZ HATA, KraL; MaCiT iki kez bildirdi BMW+Ford, DEFTERE HIC YAZILMAMISTI):**
+  `hasat_ekle.py` 2-elemanli `ic["marka"]`'yi `uyum[0].marka`'ya liste olarak yaziyor → top-level
+  `marka` SESSIZCE `[]`, urun marka filtresinde GORUNMEZ, `marka_kirli` bos listeyi TEMIZ sayiyor.
+  61 canli BMW kaydinda oldu. ACIL: Ford EKLEME dilimi (56) ayni tuzakta. kabul: TABAN olcumu +
+  ayristirma + fail-closed + kapi kolu + M1/M2 mutant. Chip hazir (`onarim/k302-hasat-marka`).
+- 🔧 **K303 (OKSUZ ONARIM):** ana agactaki commit'siz ` M tools/arama.py` (7+/5-, `Seat|alhambra`
+  capraz izni kalkiyor, sayi 67→66, iki imza). Iki ev "yabanci" deyip birakmisti; K19/K188/K205
+  atiflari KraL'in → SAHIPLENILDI. kabul: iki imzayi KAPIYA HESAPLAT (oksuz degere guvenme) +
+  tuketici kapilar rc=0 + `alhambra` canli urun sayisi once/sonra + M1/M2. → [[oksuz-commitsiz-onarim-curur]].
+- 🔴 **K250 (HUKUM DEGISTI 25 Agu):** kok neden 20 Agu'da main'e girmis (`d76ca45c`/`ba0e5e2a`) ama
+  **ROLLOUT HIC KOSMAMIS** — `HEAD_KURAL_TASIYAN_EV=1/6` (eksik MaCiT·KaaN·ArTisT·HocA·BaBa, `git show
+  HEAD:` ile ev ev dogrulandi); MaCiT'in gecici cozumu HAKLI. Ilk isci turu "curutuldu" dedi ama YALNIZ
+  KraL evini olctu (zaten 1/6'nin kendisi) + zinciri `/bin/false` ile taklit etti →
+  [[emir-canliligi-kurulu-kopyadan-olculur]]. kabul: 2 komut SIRALI + `DISK=6/6`; `HEAD=6/6` kardes
+  evlerin commit'ine bagli. Okan onayladi.
+- 🔴 **K304 (SINIF: BAYAT TEK KAYNAK, 1 turu yanlis motorda yakti):** `skills/codex-isci` motor sirasini
+  CLAUDE.md'den KOPYALIYORDU; uc kopya SILINDI. kabul: `yedekle.py` BORCLU (surum kontrolu disi dizin).
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
 - 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
   kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
@@ -121,9 +125,6 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - ✅ 25 Agu penceresi: 9 kalem kapandi → [[okan-25agu-kapatilan-konular]]; 🔴 yeniden ACILMAZ.
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
-- 🟡 **ARSIVLENEBILIR 3 CHIP** (isleri main'de, jetonu kendileri yazdi): `admiring-taussig-065531`
-  (K86) · `brave-fermat-1de783` (K107) · `admiring-thompson-5eab24` (K289). Okan arsivleyince agac
-  silinir — YABANCI agaca dokunmadim.
+- ✅ 3 arsivlenebilir chip agaci (K86·K107·K289) 25 Agu aksami KALDIRILDI — kayip 0 (main disi commit yok).
 
-## ARSIVDE
-14-20 Agu kapananlar `DEVAM-ARSIV.md`'de.
+## ARSIVDE — 14-20 Agu `DEVAM-ARSIV.md`'de.
