@@ -99,8 +99,10 @@ T4_TEMIZ_JETON      = "T4-TEMIZ"
 T4_EV_JETON         = "T4-EV"
 T4_OLCULEMEDI_JETON = "T4-OLCULEMEDI"
 # 🔴 K289 (25 Agu 2026) — SINIF KOLU: OLCUTSUZ KALEM.
-# OLCULEN ARIZA: KraL defterindeki 26 acik kalemin 20'si makine-okunur bir
-# kapanis olcutu (`kabul:` alani) TASIMIYORDU. Olcutsuz kalem KAPANAMAZ, cunku
+# OLCULEN ARIZA: KraL defterindeki 26 acik kalemin 17'si makine-okunur bir
+# kapanis olcutu (`kabul:` alani) TASIMIYORDU — sayi TAHMIN DEGIL, kolun kendi
+# ciktisindan okundu: `--ev KraL` -> `OLCUTSUZ_KALEM: 17 -> K24,K26,K27,K29,K31,
+# K35,K36,K42,K44,K55,K57,K62,K67,K50,K74,K87,K92`. Olcutsuz kalem KAPANAMAZ, cunku
 # "kapandi" hukmu ne kosulacagini kimse bilmiyor — kalem defterde suresiz durur
 # ve ev makinece kilitli kalir ([[kayit-kendini-olcmez]] K201 ailesi).
 # KOL: bir evin ACIK kalemi `kabul:` tasimadan yeni is baslatilamaz.
