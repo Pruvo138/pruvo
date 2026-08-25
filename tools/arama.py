@@ -1257,8 +1257,10 @@ ROZET_CAPRAZ_IZINLI = {
                               "Mazda B-Serisi kamyonetiyle yalniz AD cakismasi var"),
     "Hyundai|coupe": ("ROZET", "Hyundai Coupe Hyundai'nin kendi modeli (Tiburon'un Avrupa "
                                "adi); Audi'de 'coupe' gövde tipi kelimesiyle AD cakismasi"),
-    "Seat|alhambra": ("ROZET", "Seat Alhambra Seat'in kendi MPV rozeti; VW'nin kardesi "
-                              "Sharan'dir (Alhambra VW rozeti DEGIL, o taraf ROZET_DISI)"),
+    # 25 Agu — K19 bayat temizligi: Seat Alhambra VW'nin rozeti DEGIL (VW=Sharan; VW|alhambra
+    # ROZET_DISI). Canon 'alhambra' Seat kolunda TEK — VW kolu deny oldugu icin capraz degil.
+    # Onceki izin 'Seat|alhambra' kapiyi kirmizi yakti (capraz_bayat envanterde var uretimde yok);
+    # VW|alhambra allow'a eklemek celiski (deny ∩ allow) dogurur. Tek dogru yol: izin kaldir.
     "Audi|coupe": ("BEKLER", "Audi 'Coupe' bir GOVDE TIPI kelimesidir (Audi 80 B3/B4 coupe); "
                              "ayri bir Audi Coupe (B2/B3) modeli de vardi. ROZET mi MODEL_"
                              "OLMAYAN mi — mimar hukmu bekliyor (Hyundai|Coupe ROZET'tir)"),
@@ -1317,8 +1319,8 @@ ROZET_CAPRAZ_IZINLI = {
                                   "yalniz AD cakismasi var — emsal birebir Vespa|largeframe"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 67
-ROZET_CAPRAZ_IZINLI_IMZA = "f3ccf9b717a42de5"  # K188 sonrasi: kapinin hesabiyla
+ROZET_CAPRAZ_IZINLI_SAYISI = 66
+ROZET_CAPRAZ_IZINLI_IMZA = "0fc3227eac1c6abb"  # K188 sonrasi: kapinin hesabiyla
 
 
 def rozet_capraz_imzasi():
@@ -1338,7 +1340,7 @@ def rozet_capraz_imzasi():
 # (yargisiz cift) olcer, bu eksen HUKMUN KENDISINI olcer; ikisi AYRI kalir cunku tek
 # imzaya baglansaydi sinif mutanti anahtar imzasina sirtini dayardi (yukaridaki not).
 # GEREKCE METNI IMZAYA GIRMEZ: yazim duzeltmesi kapiyi yakmasin, HUKUM degisimi yaksin.
-ROZET_CAPRAZ_SINIF_IMZA = "4fdb0b0c53f35094"  # K205: kapinin hesabiyla (main govdesinde kosuldu)
+ROZET_CAPRAZ_SINIF_IMZA = "b28c90e6e08f3909"  # K205: kapinin hesabiyla (main govdesinde kosuldu)
 
 
 def rozet_capraz_sinif_imzasi():
