@@ -1037,6 +1037,45 @@ def kapi_ifsa(urun):
     return {"sert": sert, "uyari": uyari, "muaf": muaf}
 
 
+# =============================================================================
+# KAPI 9: ASCII-DISI URUN ID (fail-closed) — KANONIK ADRES KORUMASI
+# =============================================================================
+# 🔴 OLCULDU (MaCiT, 25 Agu 2026 — Audi kampanyasi, Printables p1-6 / pid 1439815):
+#   uretilen id 'ğ' harfini TRANSLITERASYONSUZ tasidi; katalogun diger TUM id'leri
+#   ASCII-transliterated. Ne bu kapi ne atif-kapisi gordu — parti SESSIZCE gecti,
+#   merge sonrasi ELLE fark edilip `tools/duzelt.py --yeni-id` ile duzeltildi.
+# NEDEN IHLAL: kanonik urun adresi `/urun/<id>/`. ASCII-disi id yuzey/sitemap/D1/CDN
+#   zincirinde farkli normalizasyonlara (NFC/NFD, percent-encoding) ugrar -> CANLIDA
+#   KIRIK LINK riski. Urun SAGLAM, duzeltilecek olan ID'dir -> auto_sil'e DEGIL
+#   'ihlal'e gider (silme degil DUZELTME ister; `tools/duzelt.py --yeni-id`).
+# KAPSAM = YENI/DEGISEN id. Onceden VAR OLAN id BLOKLAMAZ: main()'in 'onceden' filtresi
+#   ayni fonksiyonu _urun_ihlalleri() uzerinden cagirir (kopya kural YOK). Mevcut
+#   kayitlarin TOPLU yeniden adlandirilmasi AYRI karardir (kanonik adres degisimi
+#   yonlendirme ister) — bu kapi onu TETIKLEMEZ.
+# OLCULDU (25 Agu 2026, canli urunler.json / 30.286 kayit, jq ile): ASCII_DISI=0.
+#   Yani kapi bugunku katalogu KIRMIZI yakmaz; koruma ILERI-YONLUDUR.
+# MAKINE-KESIN + FAIL-CLOSED: karar tek bir kod-noktasi karsilastirmasi (ord > 127);
+#   belirsizlik YOK. id metin DEGILSE de "gecerli" SAYILMAZ -> ihlal.
+ASCII_TAVANI = 127                   # ASCII'nin en buyuk kod noktasi (0x7F)
+
+
+def kapi_ascii_id(urun):
+    """(ihlal_kapi|None, gerekce) — KAPI 9. Urun id'si SAF ASCII olmali (fail-closed).
+
+    Kanonik adres `/urun/<id>/` oldugu icin ASCII-disi id canlida KIRIK LINK riskidir.
+    Ihlal SILME degil DUZELTME ister (`tools/duzelt.py --yeni-id`)."""
+    uid = urun.get("id")
+    if not isinstance(uid, str):
+        return "ascii-id", "id alani metin DEGIL: %r (fail-closed)" % (uid,)
+    disi = sorted({k for k in uid if ord(k) > ASCII_TAVANI})
+    if not disi:
+        return None, ""
+    return "ascii-id", ("id ASCII-disi karakter tasiyor: %s — kanonik adres /urun/%s/ "
+                        "KIRIK LINK riski; transliterasyonlu id ile duzeltilmeli "
+                        "(tools/duzelt.py --yeni-id)"
+                        % (", ".join("%r (U+%04X)" % (k, ord(k)) for k in disi), uid))
+
+
 def kapi_gorsel_cakisma(yeni, tum):
     """Yeni urunlerden gorseller[0] dosya adini (yeni ya da mevcut) baska urunle paylasan
     her biri icin eskalasyon kaydi. Silme."""
@@ -1121,6 +1160,10 @@ def denetle(urunler, yeni_ids, head_ids, kaynaklar):
         kapi, g = kapi_fiyat(u)
         if kapi:
             ihlal.append({"id": uid, "kapi": "fiyat", "gerekce": g})
+        # 9 ASCII-DISI ID (ihlal — silme DEGIL, `duzelt.py --yeni-id` ister)
+        kapi, g = kapi_ascii_id(u)
+        if kapi:
+            ihlal.append({"id": uid, "kapi": kapi, "gerekce": g})
         # 8 URETIM-SURECI IFSASI: sert -> ihlal (bloklar), uyari -> eskalasyon (bloklamaz)
         ifsa = kapi_ifsa(u)
         for s in ifsa["sert"]:
@@ -1256,7 +1299,7 @@ def _commit_farki_ids():
 
 
 def _urun_ihlalleri(u):
-    """Tek urunun IHLAL kumesi -> {(kapi, gerekce)}. denetle()'deki 7/8 kollariyla AYNI
+    """Tek urunun IHLAL kumesi -> {(kapi, gerekce)}. denetle()'deki 7/8/9 kollariyla AYNI
     fonksiyonlari cagirir (kopya kural YOK); 'onceden var miydi' karsilastirmasi icin."""
     s = set()
     if not isinstance(u, dict):
@@ -1264,6 +1307,9 @@ def _urun_ihlalleri(u):
     kapi, g = kapi_fiyat(u)
     if kapi:
         s.add(("fiyat", g))
+    kapi, g = kapi_ascii_id(u)
+    if kapi:
+        s.add((kapi, g))
     ifsa = kapi_ifsa(u)
     for it in ifsa["sert"]:
         s.add(("ifsa/" + it["kural"],
@@ -1532,6 +1578,7 @@ def _kt_onay_batarya(iddia):
 
 def kendini_test():
     """POZITIF (yanlis-pozitif nobeti) + NEGATIF (olu nobetci nobeti) + OLCULEMEDI + mutasyon."""
+    import hashlib
     import shutil
     import tempfile
     import types
@@ -1711,6 +1758,94 @@ def kendini_test():
     commit("temizlik: ifsa kaldirildi")
     rc, out = kos()
     iddia("P6 temizlik commit'i (ifsa kaldirildi) -> rc 0", rc == 0, "rc=%d" % rc)
+
+    # --- KAPI 9 (ASCII-DISI ID) UCTAN UCA: kapi gercekten CAGRILIYOR mu? -----------
+    # 🔴 MENZIL DERSI: kapi_ascii_id() birim olarak kusursuz olsa bile denetle()/main()
+    #   onu CAGIRMIYORSA kapi YOKTUR. Asagidaki uc vaka SUREC olarak olculur (gercek
+    #   `--commit-farki` kosumu + gercek rc), birim/mutant bataryasi ayrica _ASCII_MUTANT'ta.
+    _K290_KIRLI_ID = "audi-a4-conta-bağlantı"       # 'ğ' (U+011F) + 'ı' (U+0131)
+    p7 = p6 + [_kt_urun("audi-a4-conta-baglanti")]
+    yaz(p7)
+    commit("K290 P7: YENI urun, SAF ASCII id")
+    rc, out = kos()
+    iddia("P7 YENI urun SAF ASCII id -> rc 0 (yanlis-pozitif nobeti)",
+          rc == 0 and "ascii-id" not in out, "rc=%d, ciktida ascii-id=%s" % (rc, "ascii-id" in out))
+
+    n6 = p7 + [_kt_urun(_K290_KIRLI_ID)]
+    yaz(n6)
+    commit("K290 N6: YENI urun, ASCII-disi id")
+    rc, out = kos()
+    iddia("N6 YENI urunde ASCII-disi id -> rc 1 ve 'ascii-id' KAPI ADIYLA raporlanir",
+          rc == 1 and "ascii-id" in out, "rc=%d, ciktida ascii-id=%s" % (rc, "ascii-id" in out))
+
+    # P8: ONCEDEN VAR OLAN ASCII-disi id, urunun BASKA alani degisse bile BLOKLAMAZ.
+    #   (Toplu yeniden adlandirma AYRI karardir — kanonik adres degisimi yonlendirme ister.)
+    #   Bu vaka _urun_ihlalleri() kolunu olcer: urun DEGISEN oldugu icin partiye GIRER,
+    #   ihlali HEAD^'te de AYNI (kapi, gerekce) ile durdugu icin 'onceden' sayilir.
+    p8 = [dict(u) for u in n6]
+    p8[-1] = dict(p8[-1])
+    p8[-1]["gorseller"] = ["https://media.pruvo3d.com/urunler/k290-1-v2.jpg"]
+    yaz(p8)
+    commit("K290 P8: ASCII-disi id'li urunun gorseli degisti (id AYNI)")
+    rc, out = kos()
+    iddia("P8 ONCEDEN VAR OLAN ASCII-disi id DEGISEN urunde bile bloklamaz -> rc 0",
+          rc == 0, "rc=%d" % rc)
+
+    # --- MU3: denetle()'nin KAPI 9 kolu koparilirsa N6 SESSIZ gecmeli --------------
+    #   (cagri yeri mutasyonu — "kapi var ama kimse cagirmiyor" sinifini oldurur)
+    with open(kapi, encoding="utf-8") as f:
+        kaynak3 = f.read()
+    hedef3 = ('        # 9 ASCII-DISI ID (ihlal — silme DEGIL, `duzelt.py --yeni-id` ister)\n'
+              '        kapi, g = kapi_ascii_id(u)\n'
+              '        if kapi:\n'
+              '            ihlal.append({"id": uid, "kapi": kapi, "gerekce": g})\n')
+    mutant3 = os.path.join(depo, "tools", "_mutant3-denetim-kapisi.py")
+    if kaynak3.count(hedef3) == 1:
+        with open(mutant3, "w", encoding="utf-8") as f:
+            f.write(kaynak3.replace(hedef3, "", 1))
+        yaz(p8)
+        commit("MU3 tabani")
+        yaz(p8 + [_kt_urun("audi-a4-kelepçe-yuvasi")])   # 'ç' (U+00E7)
+        commit("MU3: YENI urun ASCII-disi id ile")
+        rc_s3, _ = kos()
+        rc_m3, _ = kos(betik=mutant3)
+        iddia("MU3 denetle() KAPI 9 kolu koparildi -> saglam KIRMIZI, mutant SESSIZ",
+              rc_s3 == 1 and rc_m3 == 0, "saglam rc=%d, mutant rc=%d" % (rc_s3, rc_m3))
+        os.remove(mutant3)
+    else:
+        iddia("MU3 mutasyon capasi TEK kez tutmadi (OLCULEMEDI)", False,
+              "capa sayisi=%d" % kaynak3.count(hedef3))
+
+    # --- MU4: _urun_ihlalleri()'nin KAPI 9 kolu koparilirsa P8 KIRMIZI olmali ------
+    #   TERS YON. P8'in YESILI (eski id bloklamaz) bir kola dayaniyor; o kol yoksa
+    #   ASCII-disi id'li urune dokunan HER parti bloklardi = mevcut kayitlarin ORTULU
+    #   toplu yeniden adlandirma zorlamasi. Mutant o kolu koparir ve YESIL vaka KIRMIZI
+    #   olur — yani P8 "kendiliginden yesil" DEGIL, bu kolun tasidigi bir yesildir.
+    hedef4 = ('    kapi, g = kapi_ascii_id(u)\n'
+              '    if kapi:\n'
+              '        s.add((kapi, g))\n')
+    mutant4 = os.path.join(depo, "tools", "_mutant4-denetim-kapisi.py")
+    if kaynak3.count(hedef4) == 1:
+        with open(mutant4, "w", encoding="utf-8") as f:
+            f.write(kaynak3.replace(hedef4, "", 1))
+        yaz(p8)
+        commit("MU4 tabani")
+        p8b = [dict(u) for u in p8]
+        p8b[-1] = dict(p8b[-1])
+        p8b[-1]["gorseller"] = ["https://media.pruvo3d.com/urunler/k290-1-v3.jpg"]
+        yaz(p8b)
+        commit("MU4: ASCII-disi id'li urunun gorseli YINE degisti (id AYNI)")
+        rc_s4, _ = kos()
+        rc_m4, _ = kos(betik=mutant4)
+        iddia("MU4 _urun_ihlalleri() KAPI 9 kolu koparildi -> saglam YESIL, mutant KIRMIZI",
+              rc_s4 == 0 and rc_m4 == 1, "saglam rc=%d, mutant rc=%d" % (rc_s4, rc_m4))
+        os.remove(mutant4)
+    else:
+        iddia("MU4 mutasyon capasi TEK kez tutmadi (OLCULEMEDI)", False,
+              "capa sayisi=%d" % kaynak3.count(hedef4))
+
+    yaz(p6)
+    commit("K290 vakalari geri alindi (MU2/MU1 tabani p6)")
 
     # --- MUTASYON 2: 'onceden' filtresi HER SEYI susturursa N1 SESSIZ gecmeli ------
     with open(kapi, encoding="utf-8") as f:
@@ -2046,6 +2181,82 @@ def kendini_test():
           % (len(_KOD_MUTANT) - len(_mutant_konustu) - len(_capasiz) - len(_saglam_sessiz),
              len(_KOD_MUTANT)),
           not _mutant_konustu, "sag kalan: %s" % (_mutant_konustu or "yok"))
+
+    # --- KAPI 9 BIRIM MUTASYONU (BELLEKTE) — IKI YONLU ------------------------------
+    # Iddia: (a) ASCII-disi id'li fikstur kapiyi KIRMIZI yakar, (b) mesru ASCII id YESIL
+    # gecer — ve bu iki hukum de OLU DEGIL. Her mutant hedef kolu oldurdugunu AYRICA
+    # kanitlar: (1) saglam kopya probu BEKLENEN tarafta olmali (MUT yoksa iddia zaten
+    # tersse mutant "kirmizi" gelmesi kanit degildir), (2) capa kaynakta TEK kez tutmali
+    # (OLCULEMEDI sessiz yesil yok), (3) mutant probu TARAF DEGISTIRMELI.
+    # A4 KONTROL mutanti ters yonu tutar: kapi HER id'yi reddeder olursa mesru ASCII id
+    # kirmizi yanar — yani (b)'nin yesili "kapi hicbir sey yapmiyor"dan gelmiyor.
+    _A_KIRLI = _kt_urun("audi-a4-conta-bağlantı")     # 'ğ' U+011F · 'ı' U+0131
+    _A_TEMIZ = _kt_urun("audi-a4-conta-baglanti")     # transliterasyonlu, SAF ASCII
+
+    def _ascii_kirmizi(mod, u):
+        return mod.kapi_ascii_id(u)[0] == "ascii-id"
+
+    # 🔴 CAPALAR PARCALI YAZILIR — bu batarya OLCTUGU DOSYANIN ICINDE yasiyor: capa
+    #   metni burada BUTUN halde gecseydi kaynakta IKI kez bulunurdu (kod + tablo) ve
+    #   "TEK kez tuttu" olcumu yapisal olarak imkansiz olurdu. Parcalar calisma aninda
+    #   birlestirilir; tam dizge dosyada YALNIZ kodun kendisinde durur.
+    # (ad, capa parcalari, yerine, prob urun, saglamda KIRMIZI mi)
+    _ASCII_MUTANT = [
+        ("A1 ASCII taramasi toptan olduruldu (fail-OPEN)",
+         ("    disi = sorted({k for k in uid ", "if ord(k) > ASCII_TAVANI})"),
+         "    disi = []", _A_KIRLI, True),
+        ("A2 ASCII tavani Unicode'un tamamina genisletildi",
+         ("ASCII_TAVANI = 127     ", "              # ASCII'nin en buyuk kod noktasi (0x7F)"),
+         "ASCII_TAVANI = 1114111", _A_KIRLI, True),
+        ("A3 'id metin DEGIL' fail-closed'u olduruldu (fail-OPEN)",
+         ('        return "ascii-id", "id alani metin ', 'DEGIL: %r (fail-closed)" % (uid,)'),
+         '        return None, ""', _kt_urun("k9", id=1439815), True),
+        ("A4 KONTROL: kapi HER id'yi reddeder oldu (yanlis-pozitif nobeti)",
+         ("    if not disi:\n", '        return None, ""'),
+         '    if False:\n        return None, ""', _A_TEMIZ, False),
+    ]
+
+    def _ascii_yukle(parcalar, yerine):
+        capa = "".join(parcalar)
+        with open(_KENDI, encoding="utf-8") as f:
+            if f.read().count(capa) != 1:
+                return None                       # capa TEK kez tutmadi -> OLCULEMEDI
+        return _yukle(lambda s: s.replace(capa, yerine, 1))
+
+    def _a_sha():
+        with open(_KENDI, "rb") as f:
+            return hashlib.sha256(f.read()).hexdigest()
+
+    _a_sha_once = _a_sha()
+    _a_ters, _a_capasiz, _a_sag = [], [], []
+    for _ad, _capa, _yerine, _prob, _saglam_kirmizi in _ASCII_MUTANT:
+        if _ascii_kirmizi(_saglam_mod, _prob) is not _saglam_kirmizi:
+            _a_ters.append(_ad)                   # saglam kopya iddiayi TASIMIYOR
+            continue
+        _mut = _ascii_yukle(_capa, _yerine)
+        if _mut is None:
+            _a_capasiz.append(_ad)
+            continue
+        if _ascii_kirmizi(_mut, _prob) is _saglam_kirmizi:
+            _a_sag.append(_ad)                    # mutant SAG KALDI = olu iddia
+    iddia("A-SAGLAM %d/%d probun hukmu saglam kopyada BEKLENEN tarafta"
+          % (len(_ASCII_MUTANT) - len(_a_ters), len(_ASCII_MUTANT)),
+          not _a_ters, "ters: %s" % (_a_ters or "yok"))
+    iddia("A-CAPA %d ASCII mutasyonunun capasi TEK kez TUTTU" % len(_ASCII_MUTANT),
+          not _a_capasiz, "capa tutmayan: %s" % (_a_capasiz or "yok"))
+    iddia("A-MUT %d/%d ASCII mutanti hedef kolu OLDURDU (sag kalan=olu iddia)"
+          % (len(_ASCII_MUTANT) - len(_a_sag) - len(_a_capasiz) - len(_a_ters),
+             len(_ASCII_MUTANT)),
+          not _a_sag, "sag kalan: %s" % (_a_sag or "yok"))
+    # (b) genis yanlis-pozitif nobeti: canli katalogun id gelenegindeki bicimler YESIL
+    _A_TEMIZ_IDLER = ["audi-a1-yakit-kapagi-lastik-kapak", "peugeot-206-anahtar-tu-tak-m",
+                      "gt2-20-dis-tahrik-kasnagi-nema17", "bmw-koltuk-klipsi-52-10-1-945-442",
+                      "toyota-4runner-3-nesil-arka-k-ll-k-i-ptal-ve-usb-panel-brake"]
+    _a_fp = [i for i in _A_TEMIZ_IDLER if _ascii_kirmizi(_saglam_mod, _kt_urun(i))]
+    iddia("A-FP %d gercek-bicimli ASCII id'nin HEPSI yesil (kapi toptan reddetmiyor)"
+          % len(_A_TEMIZ_IDLER), not _a_fp, "kirmizi yanan: %s" % (_a_fp or "yok"))
+    iddia("A-DISK denetim-kapisi.py sha256 ONCE==SONRA (mutant DISKE yazilmadi)",
+          _a_sha_once == _a_sha(), "sha=%s" % _a_sha_once[:16])
 
     shutil.rmtree(tmp, ignore_errors=True)
 
