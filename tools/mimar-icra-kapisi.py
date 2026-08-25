@@ -574,7 +574,7 @@ ISCI_ARGUMAN_SAYILARI = (3, 4)
 # ISCI-SARMALAYICI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev
 # dogrulamasi; --codex-kurali / --agent-kapisi / --mcp-kapisi ile AYNI kalip). Kurali
 # degistirirsen damgayi da yukselt.
-ISCI_KURAL_SURUMU = "20agu-k250"
+ISCI_KURAL_SURUMU = "e50b19892a39"
 ISCI_MOTOR_LISTESI = " / ".join(ISCI_MOTORLARI)
 # 19 AGU (K214): INSAN-OKUR metin CANLI kumeden turer. Eski hali "minimax-m3 /
 # deepseek-pro / deepseek-flash" diye ELLE yazilmisti — yani kapi reddederken mimara
