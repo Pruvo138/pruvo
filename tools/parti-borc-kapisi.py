@@ -9,7 +9,12 @@ REDDEDILIR. "Parti" = katalog/urun hattinda toplu is baslatan giris noktasi
 (ornek: `tools/urun-ekle.py` ve kardesleri). Bu kapi kapisi yazar, olcer,
 kendini-test eder; gercek parti AKISINI DURDURMAZ (ayri karar: Okan kapisi).
 
-4 kol — her biri MUTANT tarafindan hedef kolu kanitlanmistir:
+5 kol — her biri MUTANT tarafindan hedef kolu kanitlanmistir:
+  T4-OLCUTSUZ    : (K289, 25 Agu 2026) bir ACIK kalem makine-okunur kapanis
+                   olcutu (`kabul:` alani) TASIMIYORSA parti REDDEDILIR — ESIKTEN
+                   BAGIMSIZ ve T4-BORC'tan ONCE. Gerekce: olcutu olmayan borc
+                   SAYILABILIR ama KAPATILAMAZ; ev suresiz kilitli kalir.
+                   Mesaj `T4-OLCUTSUZ ` onekiyle baslar (kol ayrimi).
   T4-BORC        : evin acik kalem sayisi esigi ASIYORSA parti REDDEDILIR (rc!=0).
                    Mesaj `T4-BORC ` onekiyle baslar (kol ayrimi).
   T4-TEMIZ       : acik kalem sayisi esigin ALTINDAYSA parti GECER. Bu kol
@@ -27,14 +32,17 @@ kendini-test eder; gercek parti AKISINI DURDURMAZ (ayri karar: Okan kapisi).
 Isletim modlari:
   default (kontrol): gercek EV'in defterini okur, esikle karsilastirir, RED/GECER.
                      Tek bir EV ile calisir (--ev). YAZMAZ.
-  --kendini-test    : 4 mutant + izolasyon (tempfile.mkdtemp). Gercek deftere
-                      DOKUNMAZ.
+  --kendini-test    : 6 mutant + 1 kontrol + izolasyon (tempfile.mkdtemp).
+                      Gercek deftere DOKUNMAZ.
   --rapor           : gercek defterler uzerinde YAZMADAN; her ev icin acik kalem
                       sayisi + esik + RED/GECER hukumu basar. Salt okuma.
 
 KABUL (calistirilabilir):
   python3 tools/parti-borc-kapisi.py --kendini-test
-    -> rc=0, MUTANT=4/4, dort kol adi ciktida GECER.
+    -> rc=0, MUTANT=6/6 KONTROL=1/1, bes kol adi ciktida GECER.
+       M5/M6 hedef-kol atfi ESIK ALTINDA olculur (T4-BORC atesleyemez), ve
+       kol OLDURULUNCE/GEVSETILINCE ayni fikstur GECER'e doner — "kirmizi
+       geldi" tek basina kanit sayilmaz ([[ad-iki-rolde-mutanti-golgeler]]).
 
   python3 tools/parti-borc-kapisi.py --rapor
     -> her evin acik kalem sayisi + esik + RED/GECER.
@@ -90,6 +98,13 @@ T4_BORC_JETON       = "T4-BORC"
 T4_TEMIZ_JETON      = "T4-TEMIZ"
 T4_EV_JETON         = "T4-EV"
 T4_OLCULEMEDI_JETON = "T4-OLCULEMEDI"
+# 🔴 K289 (25 Agu 2026) — SINIF KOLU: OLCUTSUZ KALEM.
+# OLCULEN ARIZA: KraL defterindeki 26 acik kalemin 20'si makine-okunur bir
+# kapanis olcutu (`kabul:` alani) TASIMIYORDU. Olcutsuz kalem KAPANAMAZ, cunku
+# "kapandi" hukmu ne kosulacagini kimse bilmiyor — kalem defterde suresiz durur
+# ve ev makinece kilitli kalir ([[kayit-kendini-olcmez]] K201 ailesi).
+# KOL: bir evin ACIK kalemi `kabul:` tasimadan yeni is baslatilamaz.
+T4_OLCUTSUZ_JETON   = "T4-OLCUTSUZ"
 
 # (kod yolu — mutanti yok) T4-BORC-HUKUMSUZ: defter bos olsa bile RED
 # yerine GECER donerse (T4-BORC govdesi oldurulurse) M1 yakalar.
@@ -101,6 +116,10 @@ MUTANT_HEDEF = {
     "M2": T4_TEMIZ_JETON,
     "M3": T4_EV_JETON,
     "M4": T4_OLCULEMEDI_JETON,
+    # K289 — iki mutant kolun IKI AYRI yanini oldurur; tek mutant yetmez
+    # ([[ad-iki-rolde-mutanti-golgeler]] + K182 hedef-kol atfi).
+    "M5": T4_OLCUTSUZ_JETON,   # kol tamamen OLDURULUR  -> olcutsuz kalem GECER
+    "M6": T4_OLCUTSUZ_JETON,   # kol GEVSETILIR (kanit dolu olsun yeter)
 }
 
 
@@ -216,6 +235,41 @@ def acik_kalem_listesi(defter_yolu):
     return kalemler, True, None
 
 
+# ------------------------------------------------------------------------------
+# K289 — OLCUTSUZ KALEM KOLU (T4-OLCUTSUZ)
+# ------------------------------------------------------------------------------
+# Makine-okunur kapanis olcutu = satirda gecen `kabul:` alani. Alan `is` ya da
+# `kapanis kaniti` kolonunda olabilir (defterde ikisi de kullanilmis).
+#
+# 🔴 NEDEN `kabul:` VE "kanit dolu degil": defterdeki satirlarin cogu kanit
+# kolonunda serbest metin tasiyor ("kanama sessiz", "—", "kismi: <sha>"). Bunlar
+# KOSULABILIR bir olcut DEGIL. Kol yalnizca `kabul:` alanini arar; M6 mutanti tam
+# olarak bu ayrimi oldurur (kanit-dolu yeterli sayilirsa serbest metin olcut
+# gorunur ve kalem yine kapanamaz).
+KABUL_ALANI_RE = re.compile(r"kabul\s*:", re.IGNORECASE)
+
+
+def olcutsuz_kalemler(kalemler, *, mutant=None):
+    """`kabul:` alani TASIMAYAN ACIK kalemleri doner (kimlik listesi).
+
+    kalemler: `acik_kalem_listesi()` ciktisi (yalniz ACIK olanlar).
+    mutant:   None (gercek) | "M5" (kol OLDURULUR) | "M6" (kol GEVSETILIR).
+    """
+    if mutant == "M5":
+        # KOL OLU: hicbir kalem olcutsuz sayilmaz -> T4-OLCUTSUZ hic tetiklenmez.
+        return []
+    if mutant == "M6":
+        # KOL GEVSEK: `kabul:` yerine "kanit kolonu bos degil" yeter. Serbest
+        # metinli kanit tasiyan olcutsuz kalem GECER — kol korlesir.
+        return [k for k in kalemler if not (k.get("kanit") or "").strip()]
+    olcutsuz = []
+    for k in kalemler:
+        govde = "%s\n%s" % (k.get("is") or "", k.get("kanit") or "")
+        if not KABUL_ALANI_RE.search(govde):
+            olcutsuz.append(k)
+    return olcutsuz
+
+
 def acik_kalem_sayisi(defter_yolu):
     """Bir acik-kalemler.md dosyasindan ACIK kalem sayisini say.
 
@@ -229,7 +283,8 @@ def acik_kalem_sayisi(defter_yolu):
 # ------------------------------------------------------------------------------
 # KARAR FONKSIYONU
 # ------------------------------------------------------------------------------
-def parti_engeli_var_mi(ev, esik=DEFAULT_ESIK, *, koku_root=None, muafiyet_yok=None):
+def parti_engeli_var_mi(ev, esik=DEFAULT_ESIK, *, koku_root=None, muafiyet_yok=None,
+                        olcut_mutant=None):
     """Parti baslatma engeli var mi?
 
     ev: parti baslatan ev.
@@ -276,6 +331,9 @@ def parti_engeli_var_mi(ev, esik=DEFAULT_ESIK, *, koku_root=None, muafiyet_yok=N
         "DEFTER_YOLU": None,
         "ESIK_ASILDI": False,
         "DURUM": "BILINMIYOR",
+        # K289 — olcutsuz (kabul: alani olmayan) ACIK kalemler.
+        "OLCUTSUZ": [],
+        "OLCUTSUZ_SAYISI": 0,
     }
 
     kok, defter_yol, gecerli = acik_kalem_yolu(ev, koku_root=koku_root)
@@ -291,8 +349,9 @@ def parti_engeli_var_mi(ev, esik=DEFAULT_ESIK, *, koku_root=None, muafiyet_yok=N
         return sonuc
     sonuc["DEFTER_YOLU"] = defter_yol
 
-    # Defter oku
-    sayi, okundu, hata = acik_kalem_sayisi(defter_yol)
+    # Defter oku (TEK PARSER — `acik_kalem_listesi`)
+    kalemler, okundu, hata = acik_kalem_listesi(defter_yol)
+    sayi = len(kalemler)
     sonuc["ACIK_SAYISI"] = sayi
     if not okundu:
         # T4-OLCULEMEDI: fail-closed RED ("borc yok" SAYILMAZ).
@@ -307,6 +366,25 @@ def parti_engeli_var_mi(ev, esik=DEFAULT_ESIK, *, koku_root=None, muafiyet_yok=N
         sonuc["OLCULEMEDI"] = True
         sonuc["RED"] = True
         sonuc["DURUM"] = "BILINMIYOR"
+        return sonuc
+
+    # --- K289 KOL: T4-OLCUTSUZ (ESIKTEN BAGIMSIZ, T4-BORC'tan ONCE) -----------
+    # 🔴 SIRA KASITLIDIR: T4-BORC'tan SONRA konsaydi kol PRODUKSIYONDA OLU
+    # olurdu — varsayilan esik 0'dir, yani T4-BORC her acik kalemde once
+    # ateslenir ve olcut kolu HIC kosmazdi ([[kapinin-menzili-cagri-yeridir]]).
+    # Gerekce ayrica sirasal degil MANTIKSAL: olcutu olmayan bir borc SAYILABILIR
+    # ama KAPATILAMAZ; once olcut yazilir, sonra borc kapatilir.
+    olcutsuz = olcutsuz_kalemler(kalemler, mutant=olcut_mutant)
+    sonuc["OLCUTSUZ"] = [k.get("kimlik") or "?" for k in olcutsuz]
+    sonuc["OLCUTSUZ_SAYISI"] = len(olcutsuz)
+    if olcutsuz and not muafiyet_yok:
+        sonuc["RED"] = True
+        sonuc["DURUM"] = "ACIK"
+        sonuc["RED_SEBEBI"] = (
+            "%s ev=%s acik_kalem=%d olcutsuz=%d (satirda makine-okunur `kabul:` "
+            "alani YOK): %s"
+            % (T4_OLCUTSUZ_JETON, ev, sayi, len(olcutsuz),
+               ",".join(sonuc["OLCUTSUZ"])))
         return sonuc
 
     # Acik kalem sayisi > esik ise RED.
@@ -343,11 +421,22 @@ def _gvd_yedekten_geri(yol, yedek):
     os.unlink(yedek)
 
 
-def _sentetik_defter_yaz(defter_yol, acik_sayisi, durum_dagilimi=None):
+def _sentetik_defter_yaz(defter_yol, acik_sayisi, durum_dagilimi=None,
+                         olcut=True, kanit=None):
     """Sentetik bir acik-kalemler.md yaz. durum_dagilimi dict ise onu kullan;
-    None ise acik_sayisi kadar ACIK satiri uret."""
+    None ise acik_sayisi kadar ACIK satiri uret.
+
+    olcut: True ise her satir makine-okunur `kabul:` alani tasir (K289 kolu
+           tetiklenmez; M1..M4'un davranisi DEGISMEZ = regresyon 0).
+           False ise satir olcutsuzdur (K289 kolunun fikstur uretimi).
+    kanit: kanit kolonuna yazilacak metin. None ise olcut'e gore secilir.
+           `olcut=False` + dolu `kanit` = M6'nin ayirt ettigi hal (kanit VAR,
+           `kabul:` YOK).
+    """
     if durum_dagilimi is None:
         durum_dagilimi = {"ACIK": acik_sayisi}
+    if kanit is None:
+        kanit = ("kabul: python3 tools/sentetik-kabul.py" if olcut else "—")
     satirlar = [
         "# AÇIK KALEM DEFTERİ (sentetik — T4 kendini-test)",
         "",
@@ -358,8 +447,8 @@ def _sentetik_defter_yaz(defter_yol, acik_sayisi, durum_dagilimi=None):
     for durum, n in durum_dagilimi.items():
         for i in range(n):
             sayac += 1
-            satirlar.append("| K%03d | 2026-08-19 | sentetik→%s | sentetik kalem %d | %s | — |"
-                            % (sayac, durum, sayac, durum))
+            satirlar.append("| K%03d | 2026-08-19 | sentetik→%s | sentetik kalem %d | %s | %s |"
+                            % (sayac, durum, sayac, durum, kanit))
     dizin = os.path.dirname(defter_yol)
     if dizin and not os.path.isdir(dizin):
         os.makedirs(dizin, exist_ok=True)
@@ -368,12 +457,13 @@ def _sentetik_defter_yaz(defter_yol, acik_sayisi, durum_dagilimi=None):
 
 
 def kendini_test(repo_kok, esik, koku_root):
-    """4 mutant + izolasyon. Her biri hedef kolunu AYRICA kanitlar.
+    """6 mutant + 1 kontrol + izolasyon. Her biri hedef kolunu AYRICA kanitlar.
 
     koku_root: --kendini-test'te tempfile.mkdtemp(); gercek defterlere
     DOKUNULMAZ.
 
-    KABUL: MUTANT=4/4, T4-BORC, T4-TEMIZ, T4-EV, T4-OLCULEMEDI gecti.
+    KABUL: MUTANT=6/6 KONTROL=1/1 — T4-BORC, T4-TEMIZ, T4-EV, T4-OLCULEMEDI,
+    T4-OLCUTSUZ (M5 kol OLU + M6 kol GEVSEK) gecti ve kol olcutlu kalemde SUSTU.
     """
     adimlar = []
 
@@ -450,6 +540,79 @@ def kendini_test(repo_kok, esik, koku_root):
                 "(borc yok SAYILMAZ)")
     adimlar.append(("M4", T4_OLCULEMEDI_JETON, m4_reddetti, m4_mesaj, sonuc_m4))
 
+    # === K289 — T4-OLCUTSUZ KOLU ============================================
+    # 🔴 HEDEF-KOL ATFI (K182): fikstur ESIGIN ALTINDA kurulur (1 acik kalem,
+    # esik=5). Boylece T4-BORC ATESLENEMEZ ve kirmizinin TEK olasi sebebi
+    # T4-OLCUTSUZ kolu olur. Mutant "kirmizi geldi" diye kanit sayilmaz:
+    # kolu OLDURUNCE ayni fikstur GECER'e donmeli (asagida ayrica olculuyor).
+    defter_m5 = os.path.join(koku_root, "TeKiN", ACIK_KALEM_DOSYA)
+
+    # --- M5: kol OLDURULUR -> olcutsuz kalem GECER (kol OLU demektir) -------
+    _sentetik_defter_yaz(defter_m5, acik_sayisi=1, durum_dagilimi={"ACIK": 1},
+                         olcut=False)
+    sonuc_m5 = parti_engeli_var_mi("TeKiN", esik=5, koku_root=koku_root)
+    olu_m5 = parti_engeli_var_mi("TeKiN", esik=5, koku_root=koku_root,
+                                 olcut_mutant="M5")
+    m5_reddetti = (
+        # (a) GERCEK kol: esik ALTINDA olmasina ragmen RED, ve oneki T4-OLCUTSUZ
+        sonuc_m5["RED"] is True
+        and sonuc_m5["ESIK_ASILDI"] is False          # T4-BORC ATESLENMEDI
+        and sonuc_m5["ACIK_SAYISI"] == 1
+        and sonuc_m5["OLCUTSUZ_SAYISI"] == 1
+        and sonuc_m5["RED_SEBEBI"] is not None
+        and sonuc_m5["RED_SEBEBI"].startswith(T4_OLCUTSUZ_JETON + " ")
+        # (b) HEDEF KOL ATFI: kol oldurulunce AYNI fikstur GECER'e doner.
+        #     Kirmizinin sebebi baska bir kol olsaydi bu adim RED kalirdi.
+        and olu_m5["RED"] is False
+        and olu_m5["OLCUTSUZ_SAYISI"] == 0
+        and olu_m5["GECER_MESAJI"] is not None
+        and olu_m5["GECER_MESAJI"].startswith(T4_TEMIZ_JETON + " ")
+    )
+    m5_mesaj = ("ev=TeKiN acik=1 esik=5 olcut=YOK -> T4-OLCUTSUZ RED; kol "
+                "oldurulunce (M5) AYNI fikstur GECER -> kirmizinin sebebi BU kol")
+    adimlar.append(("M5", T4_OLCUTSUZ_JETON, m5_reddetti, m5_mesaj, sonuc_m5))
+
+    # --- M6: kol GEVSETILIR -> "kanit dolu" olcut sayilir -------------------
+    # Fikstur: kanit kolonu DOLU ama `kabul:` YOK (defterdeki gercek kalip:
+    # "kanama sessiz", "kismi: <sha>"). Gercek kol bunu OLCUTSUZ sayar; gevsek
+    # kol (M6) "kanit dolu" diye GECIRIR. Yalniz M5 kosulsaydi bu korluk
+    # GORUNMEZDI — M5'in fiksturunde kanit da bostu ([[ad-iki-rolde-mutanti-golgeler]]).
+    defter_m6 = os.path.join(koku_root, "MaCiT", ACIK_KALEM_DOSYA)
+    _sentetik_defter_yaz(defter_m6, acik_sayisi=1, durum_dagilimi={"ACIK": 1},
+                         olcut=False, kanit="kanama sessiz; kismi: 55b291f")
+    sonuc_m6 = parti_engeli_var_mi("MaCiT", esik=5, koku_root=koku_root)
+    gevsek_m6 = parti_engeli_var_mi("MaCiT", esik=5, koku_root=koku_root,
+                                    olcut_mutant="M6")
+    m6_reddetti = (
+        sonuc_m6["RED"] is True
+        and sonuc_m6["ESIK_ASILDI"] is False          # T4-BORC ATESLENMEDI
+        and sonuc_m6["OLCUTSUZ_SAYISI"] == 1
+        and sonuc_m6["RED_SEBEBI"] is not None
+        and sonuc_m6["RED_SEBEBI"].startswith(T4_OLCUTSUZ_JETON + " ")
+        # HEDEF KOL ATFI: gevsetilince AYNI fikstur GECER'e doner.
+        and gevsek_m6["RED"] is False
+        and gevsek_m6["OLCUTSUZ_SAYISI"] == 0
+    )
+    m6_mesaj = ("ev=MaCiT acik=1 esik=5 kanit=DOLU ama `kabul:` YOK -> "
+                "T4-OLCUTSUZ RED; kol gevsetilince (M6) GECER -> kol serbest "
+                "metni degil `kabul:` ALANINI okuyor")
+    adimlar.append(("M6", T4_OLCUTSUZ_JETON, m6_reddetti, m6_mesaj, sonuc_m6))
+
+    # --- KONTROL K5: olcut VARSA kol SUSAR (kor kapi degil) -----------------
+    # 🔴 Bu adim olmadan M5/M6 tautolojiye acik olurdu: "hep RED" diyen bos bir
+    # kol da ikisini gecerdi. K5, olcutlu kalemde kolun SUSTUGUNU olcer.
+    defter_k5 = os.path.join(koku_root, "TeKiN", ACIK_KALEM_DOSYA)
+    _sentetik_defter_yaz(defter_k5, acik_sayisi=1, durum_dagilimi={"ACIK": 1},
+                         olcut=True)
+    sonuc_k5 = parti_engeli_var_mi("TeKiN", esik=5, koku_root=koku_root)
+    k5_gecti = (
+        sonuc_k5["RED"] is False
+        and sonuc_k5["ACIK_SAYISI"] == 1
+        and sonuc_k5["OLCUTSUZ_SAYISI"] == 0
+        and sonuc_k5["GECER_MESAJI"] is not None
+        and sonuc_k5["GECER_MESAJI"].startswith(T4_TEMIZ_JETON + " ")
+    )
+
     # ---- ozet bas -------------------------------------------------------
     print("T4 PARTI BORC KAPISI — KENDINI-TEST")
     print("izolasyon koku (defterler): %s" % koku_root)
@@ -459,9 +622,10 @@ def kendini_test(repo_kok, esik, koku_root):
     for ad, jeton, gecti, mesaj, sonuc in adimlar:
         print("MUTANT %s -> hedef kol %s" % (ad, jeton))
         print("  mesaj: %s" % mesaj)
-        print("  EV=%s ACIK=%d ESIK=%d RED=%s OLCULEMEDI=%s"
+        print("  EV=%s ACIK=%d ESIK=%d RED=%s OLCULEMEDI=%s OLCUTSUZ=%d"
               % (sonuc["EV"], sonuc["ACIK_SAYISI"], sonuc["ESIK"],
-                 sonuc["RED"], sonuc["OLCULEMEDI"]))
+                 sonuc["RED"], sonuc["OLCULEMEDI"],
+                 sonuc.get("OLCUTSUZ_SAYISI", 0)))
         if sonuc.get("DEFTER_YOLU"):
             print("  DEFTER=%s" % sonuc["DEFTER_YOLU"])
         if sonuc["RED_SEBEBI"]:
@@ -477,8 +641,19 @@ def kendini_test(repo_kok, esik, koku_root):
             print("  SONUÇ: BEKLENDI YAKALANMADI (MUTANT YASARDI)")
         print("")
 
-    print("MUTANT=%d/4" % mutant_sayaci)
-    return 0 if mutant_sayaci == 4 else 1
+    # K289 kontrol vakasi — kol KOR degil (olcutlu kalemde SUSAR).
+    print("KONTROL K5 -> %s" % T4_OLCUTSUZ_JETON)
+    print("  mesaj: ev=TeKiN acik=1 esik=5 olcut=VAR -> kol SUSAR, T4-TEMIZ GECER")
+    print("  EV=%s ACIK=%d OLCUTSUZ=%d RED=%s"
+          % (sonuc_k5["EV"], sonuc_k5["ACIK_SAYISI"],
+             sonuc_k5["OLCUTSUZ_SAYISI"], sonuc_k5["RED"]))
+    print("  SONUÇ: %s" % ("YESIL (kol kor degil)" if k5_gecti
+                           else "KIRMIZI (kol HEP RED — kor kapi)"))
+    print("")
+
+    print("MUTANT=%d/%d" % (mutant_sayaci, len(adimlar)))
+    print("KONTROL=%d/1" % (1 if k5_gecti else 0))
+    return 0 if (mutant_sayaci == len(adimlar) and k5_gecti) else 1
 
 
 # ------------------------------------------------------------------------------
@@ -625,6 +800,10 @@ def kontrol(ev, esik):
     print("EV: %s" % sonuc["EV"])
     print("DEFTER: %s" % (sonuc["DEFTER_YOLU"] or "(yok)"))
     print("ACIK_KALEM: %d" % sonuc["ACIK_SAYISI"])
+    print("OLCUTSUZ_KALEM: %d%s"
+          % (sonuc.get("OLCUTSUZ_SAYISI", 0),
+             (" -> " + ",".join(sonuc.get("OLCUTSUZ") or []))
+             if sonuc.get("OLCUTSUZ") else ""))
     print("ESIK: %d" % sonuc["ESIK"])
     print("ESIK_ASILDI: %s" % sonuc["ESIK_ASILDI"])
     print("DURUM: %s" % sonuc["DURUM"])
@@ -647,8 +826,9 @@ def rapor(esik):
     print("T4 PARTI BORC KAPISI — RAPOR (salt-okunur, YAZMAZ)")
     print("esik: %d" % esik)
     print("")
-    print("%-10s %-12s %-8s %-12s %s" % ("EV", "ACIK_KALEM", "ESIK", "HUKUM", "DEFTER"))
-    print("-" * 80)
+    print("%-10s %-12s %-11s %-8s %-12s %s"
+          % ("EV", "ACIK_KALEM", "OLCUTSUZ", "ESIK", "HUKUM", "DEFTER"))
+    print("-" * 96)
     ozet = {"RED": 0, "GECER": 0, "OLCULEMEDI": 0}
     for ev in sorted(EV_BILINEN):
         sonuc = parti_engeli_var_mi(ev, esik=esik)
@@ -661,10 +841,10 @@ def rapor(esik):
         else:
             huk = "GECER"
             ozet["GECER"] += 1
-        print("%-10s %-12d %-8d %-12s %s"
-              % (ev, sonuc["ACIK_SAYISI"], sonuc["ESIK"], huk,
-                 sonuc["DEFTER_YOLU"] or "(yok)"))
-    print("-" * 80)
+        print("%-10s %-12d %-11d %-8d %-12s %s"
+              % (ev, sonuc["ACIK_SAYISI"], sonuc.get("OLCUTSUZ_SAYISI", 0),
+                 sonuc["ESIK"], huk, sonuc["DEFTER_YOLU"] or "(yok)"))
+    print("-" * 96)
     print("Ozet: RED=%d GECER=%d OLCULEMEDI=%d"
           % (ozet["RED"], ozet["GECER"], ozet["OLCULEMEDI"]))
     return 0
@@ -681,7 +861,8 @@ def main():
     ap.add_argument("--esik", type=int, default=DEFAULT_ESIK,
                     help="Acik kalem esigi (default: %d). Ustunde -> RED." % DEFAULT_ESIK)
     ap.add_argument("--kendini-test", action="store_true",
-                    help="4 mutantu izole kos (gercek defterlere DOKUNMAZ)")
+                    help="6 mutant + 1 kontrolu izole kos (gercek defterlere "
+                         "DOKUNMAZ)")
     ap.add_argument("--curutme-test", action="store_true",
                     help="4 alt kol govdesini yama ile oldur; farkin algilandigini kanitla")
     ap.add_argument("--rapor", action="store_true",
