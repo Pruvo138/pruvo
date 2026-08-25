@@ -1985,6 +1985,21 @@ GOC_INDEKS = [
      # mimar/Okan karari; arac yalniz KAC TANE oldugunu ve elle temizlik gerektigini soyler.
      "ikiz_sql": "SELECT kanal, dis_no, COUNT(*) AS n FROM siparisler WHERE dis_no <> '' "
                  "GROUP BY kanal, dis_no HAVING COUNT(*) > 1"},
+    # REKLAM ATIF HALKASI (K99, 25 Agu 2026) — `reklam_ref_gclid` tablosu kanonik semaya
+    # ALINDI (tools/d1-sema.sql). Indeksi buraya yazilir, oraya DEGIL: bu dosya kolon
+    # gocunden ONCE kosar ve indeks DDL'ini oraya koymak 1 Agu'da `siparisler`de olculmus
+    # bir tikanma sinifidir (yukaridaki gerekce). Kayit defterinde durunca hali AYRICA
+    # `--durum` SEMA ekseninde CANLI olculur — defterde olmayan indeks olculemez ve
+    # sessizce kaybolabilir; tablo zaten tam da bu yuzden (defter disi oldugu icin)
+    # aylarca hicbir kapinin gormedigi bir yerde durmustu.
+    # 🔴 CANLI HAL: tablo ve indeks canliya 30 Tem'de ELLE uygulanmisti (artik silinen
+    # tools/d1-reklam-ref-gclid.sql) -> beklenen hal KURULU. Indeks canlida yoksa hal
+    # INDEKS-YOK der ve `--sema` onu kurar; kolonlar zaten VAR oldugu icin "no such column"
+    # tikanma yolu bu kayitta YOKTUR (goc kolonu kullanmaz).
+    {"ad": "idx_reklam_ref_gclid_created", "tablo": "reklam_ref_gclid", "yayin": False,
+     "gerekli": ("ref", "created_at"), "benzersiz": False,
+     "sql": "CREATE INDEX IF NOT EXISTS idx_reklam_ref_gclid_created "
+            "ON reklam_ref_gclid(created_at);"},
 ]
 
 # SOZLESME SEMBOLU (tools/ara-maliyet-kapisi.py bunu ADIYLA import eder): atomik yayin

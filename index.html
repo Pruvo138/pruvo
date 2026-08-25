@@ -1684,11 +1684,28 @@
       urlKorunan: function(){
         return TIK_ALANLARI.concat(UTM_ALANLARI, EK_URL_ETIKET);
       },
-      // Ödeme anında çağrılır: kalıcı UTM + (YALNIZ rıza varsa) tıklama/oturum kimlikleri.
+      // Ödeme anında çağrılır: kalıcı UTM + landing REF + (YALNIZ rıza varsa) tıklama/oturum kimlikleri.
       topla: function(){
         if(!rizaVar()){ tikTemizle(); cerezTemizle(); }
         var kayit = oku(), cikti = {}, k, i;
         for(i=0;i<UTM_ALANLARI.length;i++){ k = UTM_ALANLARI[i]; if(kayit[k]){ cikti[k] = kayit[k]; } }
+        /* 🔗 REF HALKASI — K99 (25 Ağu 2026). attribution-ref.js'in ürettiği landing REF'ini
+           sipariş kaydına taşır. SUNUCU TARAFI BU ALANI ZATEN KABUL EDİYORDU (ref beyaz-listede
+           tutuluyor ve ayrı test kolunda yeşil ölçülmüştü) —
+           kopuk halka BURASIYDI: topla() `ref`i hiç göndermediği için canlı `siparisler.atif`
+           kayıtlarının HİÇBİRİ ref taşımıyordu ve "bu sipariş hangi reklamdan geldi" sorusu
+           (reklam_ref_gclid JOIN'i) D1'den cevaplanamıyordu. Yeşil sunucu testi, ölü istemci
+           bacağını gizliyordu.
+           RIZA KAPISININ DIŞINDA — bilerek: REF bir tıklama/kişi kimliği DEĞİL (src + grup +
+           4 rastgele karakter; click-id taşımaz). attribution-ref.js onu rıza yokken de üretir,
+           rıza temizliği REF'e DOKUNMAZ (ATIF_CLICK_FIELDS'te yoktur) ve REF zaten wa.me mesaj
+           metniyle rızasız sunucuya ulaşıyor. Buradaki kapı UTM ile aynı sınıftır.
+           KALIP DOĞRULAMASI SUNUCUDA (REF_KALIBI, fail-closed) — kalıba uymayan değer sessizce
+           düşer, kırpma YOK. pruvoRef yalnız yayın kopyasında vardır (yayın derlemesinde
+           attribution-ref.js inline basılır); yoksa alan hiç eklenmez — waRefliMetin ile AYNI
+           korumalı çağrı biçimi. */
+        var ref = (typeof window.pruvoRef === "function") ? window.pruvoRef() : "";
+        if(ref){ cikti.ref = ref; }
         if(rizaVar()){
           var gid = gaClientId(); if(gid){ cikti.ga_client_id = gid; }
           var fbp = cerez("_fbp"); if(fbp){ cikti.fbp = fbp; }

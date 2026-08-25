@@ -1299,6 +1299,26 @@ jobs:
           node shop/test/ref-route.mjs
           node shop/test/wa-siparis.mjs
 
+      # REKLAM ATIF HALKASI (K99, 25 Agu 2026) — "bu siparis hangi reklamdan geldi"
+      # sorusunun D1'den cevaplanabilir kaldigini olcer. SESSIZ-HATA SINIFI, PARA:
+      # halka koparsa siparis normal akar, hicbir sey patlamaz (beacon HER durumda 204
+      # doner, hata catch'te yutulur) — yalnizca reklam harcamasi olculemez hale gelir.
+      # 🔴 NEDEN AYRI BIR KAPI GEREKTI: sunucu bacagini olcen `shop/test/olcum.mjs`
+      # set 28 ("REF HALKASI") CI'da AYLARDIR YESILDI ve index.js'in kendi yorumu
+      # "halka kapali" diyordu; ama `index.html` PRUVO_ATIF.topla() `ref`i HIC
+      # gondermiyordu -> canli `siparisler.atif` kayitlarinin HICBIRI ref tasimiyordu.
+      # Yesil sunucu testi OLU ISTEMCI BACAGINI gizliyordu. Ayrica `reklam_ref_gclid`
+      # kanonik semada (tools/d1-sema.sql) YOKTU -> `--sema` gocu ve hicbir kapi
+      # tabloyu gormuyordu. Bu adim halkanin DORT bacagini da FIILEN kosturur:
+      #   index.html PRUVO_ATIF dilimi (vm) -> gercek worker /baslat -> gercek
+      #   d1-sema.sql'den kurulan sqlite -> gercek json_extract JOIN'i.
+      # Jeton/dizge taramasi DEGIL: tablo kanondan cikarsa INSERT "no such table" ile
+      # duser, istemci ref'i birakirsa JOIN bos doner. AG/wrangler/canli D1 YOK.
+      # Cift yonlu mutasyon (4 oldurucu KIRMIZI + K0 dar-eksen kontrolu YESIL) elle:
+      #   python3 tools/reklam-ref-halkasi-kapisi.py --kendini-test
+      - name: Reklam atif halkasi kapisi (REF -> siparis -> reklam_ref_gclid JOIN)
+        run: python3 tools/reklam-ref-halkasi-kapisi.py
+
       # ONIZLEME VAAT KAPISI (2026-08-03, PARA + MUSTERI BEYANI — SESSIZ-HATA).
       # OLCULEN ARIZA: sema kapisi (KONF.dogrula) 'gecerli:true' derken uretim ucu
       # (/ic-derle) AYNI seti assert ile reddediyordu; o bolgede fiyat URETILIYOR ve
