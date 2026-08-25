@@ -2871,6 +2871,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/marka-arama-d1-test.py
 
+      # K302 KAPI: urunler.json'da uyum tasir ama top-level marka bos olan kayitlari
+      # KIRLI sayar. TABAN_BOS_UYUMLU=0 olculdu — geriye donuk borc yok; kapinin isi
+      # yazim ONCESI koruma. CRITIC: girisim sirasinda mevcut 0 kalmazsa bile yeni
+      # kayitlar uretmiyor (sadece tara) -> MUTANT gerekmez.
+      - name: K302 marka=uyumdan-bos kapisi (uyum tasir + marka bos = KIRLI)
+        if: ${{ !cancelled() }}
+        run: python3 tools/marka-uyumdan-bos-kapisi.py --ci
+
       # ANA SAYFA VITRIN SIRALAMASI (Okan kurali, 31 Tem): Ev/Dekorasyon/Ofis urunleri
       # ana sayfanin ILK 20 SLOTUNDA gorunmez, 21. siradan itibaren normal gorunur
       # (urun ELENMEZ, geri itilir). Hata SESSIZ olurdu: ana sayfa kartlari ziyaretciye
