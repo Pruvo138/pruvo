@@ -69,7 +69,11 @@ SHAPE TEYIDI (2026-07-18 canli): license{code name(locale:EN)} DOGRU; price = Mo
 currency formatted} — value/cents CANLI dogrulandi (ucretli: value>0/cents>0; ucretsiz: 0).
 creator{nick} tek dogrulanmayan alan olarak kaldi (ekle akisi '?' fallback'i ile toleransli).
 """
-import base64, io, json, os, re, struct, urllib.request, urllib.error, urllib.parse, zipfile
+import base64, io, json, os, re, struct, sys, urllib.request, urllib.error, urllib.parse, zipfile
+
+# Bbox saglik esikleri TEK KAYNAKTAN gelir (K287) — bu dosyada esik SAYISI YOKTUR.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import olcu_saglik
 
 ENDPOINT = "https://cults3d.com/graphql"
 
@@ -419,11 +423,11 @@ def _stl_bbox(path):
     if not xs:
         return None
     d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
-    if d[0] < 2.0:
-        d = [x * 1000 for x in d]
-    if d[0] <= 0 or d[0] > 100000:
-        return None
-    return d
+    # 🔴 25 Agu 2026 (K287): buradaki "d[0] < 2 ise METRE sanip x1000 carp" tahmini
+    # KALDIRILDI. Kardes dosyalar (printables-api / thing-hazirla) bu tahmini FIZIK-DISI
+    # bbox urettigi icin coktan atmis ve "AYNI karar" diye IDDIA ediyorlardi; kod ayrismisti.
+    # Saglik hukmu artik TEK KAYNAK: tools/olcu_saglik.py. STL birim beyani TASIMAZ.
+    return olcu_saglik.suz(d)
 
 
 def model_bbox(path):

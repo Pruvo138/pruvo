@@ -37,6 +37,7 @@ STLDIR = os.path.join(ROOT, "stl"); os.makedirs(STLDIR, exist_ok=True)
 IMGROOT = os.path.join(ROOT, ".thing-cache"); os.makedirs(IMGROOT, exist_ok=True)
 sys.path.insert(0, TOOLS)
 import drive_yolu
+import olcu_saglik            # bbox saglik esikleri TEK KAYNAK (K287)
 
 
 # 🔴 TOKEN ARTIK MODUL SEVIYESINDE OKUNMUYOR (tembel + onbellekli). Eskiden
@@ -92,14 +93,11 @@ def bbox(data):
             for j in range(3, 12, 3): xs.append(v[j]); ys.append(v[j + 1]); zs.append(v[j + 2])
     if not xs: return None
     d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
-    # BELIRSIZ-BIRIM (fail-closed, printables-api.stl_bbox ile AYNI karar): binary STL birim
-    # beyani TASIMAZ. En buyuk boyut < 2 birim ise mm/metre/inc ayirt edilemez -> eski
-    # "buyuk ihtimalle metre => x1000" tahmini 0.65 inc bir parcayi 650mm gibi FIZIK-DISI
-    # yaziyordu. Uydurma yerine None don. Esik EN BUYUK boyutta (max(d)): ince levha
-    # (100 x 100 x 0.5, max=100) tetiklenmez, dogru mm doner.
-    if max(d) < 2.0: return None
-    if d[0] <= 0 or d[0] > 100000: return None   # 100 m ustu = saglıksiz sonuc -> olcme
-    return d
+    # SAGLIK HUKMU tools/olcu_saglik.py'de (K287). "printables-api ile AYNI karar" artik
+    # bir IDDIA degil TEK KAYNAK — kopyalar sessizce ayrisiyordu, olculdu. Binary STL
+    # birim beyani TASIMAZ -> belirsiz-birim kolu uygulanir; buyuk uc = orta boyut tavani
+    # (pid 4675433, 1659 x 1659 x 100 mm bu koldan REDDEDILIR).
+    return olcu_saglik.suz(d)
 
 
 def safe(name):
