@@ -31,6 +31,25 @@
  */
 
 const REFERANS = require("./index-arama-referansi.js");
+const path = require("node:path");
+const { execFileSync } = require("node:child_process");
+
+/** Katalog yolu: PARITE_URUNLER verilirse o, yoksa bu agacin urunler.json'u. */
+const URUNLER_YOLU = process.env.PARITE_URUNLER || path.join(__dirname, "..", "urunler.json");
+
+/**
+ * D1 uretim govdesinin urettigi marka_kanon haritasini al.
+ * Uc bu kolonu OKUR; yerel model de AYNI turetmeyi kullanir — ikiz tanim YOK.
+ * @param {string} urunlerYolu
+ * @returns {Object}  {id: JSON metin}
+ */
+function markaKanonHaritasiAl(urunlerYolu) {
+  const betik = path.join(__dirname, "marka-kanon-uret.py");
+  const cikti = execFileSync("python3", [betik, "--urunler", urunlerYolu], {
+    encoding: "utf8", maxBuffer: 64 * 1024 * 1024,
+  });
+  return JSON.parse(cikti);
+}
 
 /**
  * Kontrol capalari — KATLANMAYAN (markaKatla(V) === V) marka degerleri.
@@ -71,9 +90,11 @@ function markaSinifi(urunler) {
     throw new SinifHatasi("site arama referansi KURULAMADI (" + (e && e.message) +
       ") -> marka katlama sinifi TURETILEMEDI");
   }
-  if (typeof R.markaKatla !== "function" || typeof R.markaUyeMi !== "function") {
-    throw new SinifHatasi("referansta markaKatla/markaUyeMi YOK -> sinif turetilemez");
+  if (typeof R.markaKatla !== "function") {
+    throw new SinifHatasi("referansta markaKatla YOK -> sinif turetilemez");
   }
+
+  const markaKanon = markaKanonHaritasiAl(URUNLER_YOLU);
 
   const evren = [];
   const gorulen = new Set();
@@ -107,9 +128,20 @@ function markaSinifi(urunler) {
     uyeler,
     kontroller,
     kontrolDegerleri: secilen,
+    markaKanon,
     katla: (v) => R.markaKatla(v),
-    // Sitenin cip yuklemi (index.html filtered() ile AYNI govde) — ikinci kopya YOK.
-    uyeMi: (p, deger) => R.markaUyeMi(p, R.markaKatla(deger)),
+    // Uc yuklemi: p.marka ∋ HAM(v) OR p.marka_kanon ∋ katla(v).
+    // marka_kanon D1 uretim govdesi (d1-sync.py:1302) tarafindan doldurulur;
+    // yerel model AYNI govdeden beslenir — ikiz tanim / ikinci kopya YOK.
+    uyeMi: (p, deger) => {
+      const ham = deger;
+      const markaDizisi = (p && p.marka) || [];
+      if (markaDizisi.indexOf(ham) !== -1) return true;
+      const kanon = R.markaKatla(ham);
+      const mk = markaKanon[p && p.id];
+      if (!mk) return false;
+      try { return JSON.parse(mk).indexOf(kanon) !== -1; } catch (_) { return false; }
+    },
   };
   _bellek.set(urunler, sonuc);
   return sonuc;
