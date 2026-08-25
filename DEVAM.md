@@ -2,20 +2,21 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 CANLI TUR — 25 Agu ogleden sonra (KraL) · main=origin `4cd20a92`, agac TEMIZ
+## 🔁 OTURUM KAPANISI — 25 Agu aksam (KraL) · main=origin `d3cf44d7`, agac TEMIZ
 📌 nobet hukmu TUR NUMARASIYLA (`HUKUM=<hal>@tur<N>`).
-
-✅ **KAPANDI:** **K288** (git ucu ata + 38 sayili/12 fail-closed tur, kanit mimar elinde; mutabakat
-kolu **`OLCULEMEDI`** — panel yuzeyinde saatlik satir YOK, 25 Agu Okan'in onayiyla acilip olculdu)
-· **sahipsiz lisans dali** (tek commit'i Okan'in 24 Agu emrinin yasakladigi kapiydi → SILINDI `0818f269`).
-🔴 **Kendi hatam:** `main..dal=0` "merge edildi" de olabilir; ayirici `merge-base --is-ancestor`.
-✅ **7 CHIP KAPANDI:** K289 (borc 26→10, `T4-OLCUTSUZ` kolu) · K290 (ASCII id kapisi, canli 0) · K287
-(buyuk-uc esigi, iki yon) · K286 (yorum≠cagri) · K295 (`MEMORY.md` kucultuldu) · K296 (**canli shop
-BAYAT DEGIL → deploy GEREKMIYOR**) · K76 (IPTAL). Dallar merge'de.
-⏳ **TAVAN (Okan: "bir hafta daha olc"):** olcum **1 Eyl'de** turetilir — limit 31 Agu'a kadar %50 BOOST'lu (panelde okundu), simdiki veriden turetilen esik SISIRILMIS olur.
-- 🔵 **BORC DAGITILDI (Okan emri 25 Agu, "hepsi chip'e"):** `ACIK=10` → K76 BAYAT cikti (Okan kapatti)
-  = **9**. Alti KraL chip'inde: K86 · K107 · K99 · K74+K27 (OLCUM turu) · K50. Ucu kendi
-  evinde: **K44→ArTisT · K29→ArTisT · K55→MaCiT** (kutuya yazildi). Kapi kalemler kapandikca duser.
+✅ **CANLIYA GITTI — 3 merge, git eksenini MIMAR kendi olctu:** K290 `edae6a5c` (ASCII-disi urun id
+kapisi; canli katalogda 0 ihlal) · K287 `45210ada` (olcu-saglik TEK KAYNAK + buyuk-uc tavani) · K289
+`011a7b07` (`T4-OLCUTSUZ` sinif kolu). Kapsam 11 dosya +1389/−94; `urunler.json`·`index.html`·`shop/`
+·`worker/` YOK → site yuzeyi DEGISMEDI, sizinti taramasi 0. Deploy sonucu OLCULMEDI (kuyrukta).
+✅ **9 CHIP KAPANDI:** K288 · K289 · K290 · K287 · K286 · K295 · K296 (**canli shop BAYAT DEGIL →
+deploy GEREKMIYOR**) · K76 (IPTAL) · merge turu. Ayrica sahipsiz lisans dali hukumle SILINDI (`0818f269`).
+🔵 **KOSUYOR — OLDURME (5 chip, motor Claude):** K86 `kral/k86-batarya` · K107 `kral/k107-para-literali`
+· K99 `kral/k99-ref-bag` · K74+K27 `kral/k74-k27-olcum` (OLCUM turu, merge YOK) · K50 `kral/k50-dal-sahibi`.
+🟡 **BEKLIYOR:** `admiring-thompson-5eab24` (K289 sahibi CANLI; icerik main'de birebir, sahibi kapaninca
+agac+dal silinir) · borc kapisi `ACIK=9`, 5 chip kapandikca duser · 3 kalem kardes evde (K44·K29→ArTisT,
+K55→MaCiT). ⏳ **TAVAN:** olcum 1 Eyl'de (limit 31 Agu'a kadar %50 BOOST'lu → simdiki veri SISIRILMIS).
+🔴 **Kendi iki hatam:** `main..dal=0` "merge edildi" de olabilir (ayirici `merge-base --is-ancestor`) ·
+K76'yi BAYAT sayiyla Okan'a cikardim (canli 4/4'tu) — kalemi cikarmadan CANLI hali OLC.
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
 - 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
   kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
@@ -117,14 +118,11 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 
 ## OKAN'DA
 
-- ✅ **KAPANDI — 25 Agu Okan penceresi: dokuz kalem karara baglandi.** Adlari ve hukumleri hafizada:
-  [[okan-25agu-kapatilan-konular]]. 🔴 Bu konularda yeniden kalem ACILMAZ.
-- 🔧 **K297·K298·K299·K300·K301 (K289 chip'i olctu):** SERIT B hijyen kirmizisi (`KATEGORI_ALIAS`)
-  · iki ayri K29 (ID cakismasi) · K86 metni bayat · K55 sayisi 10 DEGIL **197** · `T4-OLCUTSUZ`
-  tum evlere bakiyor (duyuru MIMARDA). Tam metinler KUTUDA.
-- 🔧 **K200(i):** Okan "kuru kos" dedi; komut `yedekle.py --kuru` (`--d1` bayragi YOK, kaynaktan
-  dogrulandi), cikti bekleniyor. · 🔧 **K296 chip:** odeme bayatligi olculuyor, deploy komutu
-  HAZIRLANIR ama KOSULMAZ.
+- ✅ 25 Agu penceresi: 9 kalem kapandi → [[okan-25agu-kapatilan-konular]]; 🔴 yeniden ACILMAZ.
+- 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
+  K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
+- 🔧 **K200(i) — OKAN'DA TEK ACIK IS:** "kuru kos" dedi; komut `python3 tools/yedekle.py --kuru`
+  (`--d1` bayragi YOK, kaynaktan dogrulandi), ciktiyi mimar yorumlayacak.
 
 ## ARSIVDE
 14-20 Agu kapananlar `DEVAM-ARSIV.md`'de.
