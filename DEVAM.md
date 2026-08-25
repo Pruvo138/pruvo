@@ -78,10 +78,10 @@ defter hukumleri aldi (K50·K74·K99·K107·K27 KAPANDI) → **borc kapisi rc 1�
 - 🔧 **K220 (KraL):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden besleniyor; liste iki rol tasiyor
   ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
   sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
-- 🔧 **K228 (20 Agu, KraL — K220'nin KARDESI, ayni govde DEGIL):** `marka=` ekseninde iki yuzey
-  FARKLI yuklem kosuyor — uc `marka ∋ HAM` OR `marka_kanon ∋ katla(v)` (=`markaUyeMi ∪ baslikMarkalari`),
-  yerel (`parite-marka-sinifi.js`) YALNIZ `markaUyeMi` → yon DAIMA `/ara ≥ yerel` (47 ayrisim /
-  1331 sorgu). YON: iki yuzeyi TEK KAYNAKTAN turet ("once testi duzelt" DEGIL). TAM METIN+kabul ARSIVDE.
+- ✅ **K228 KAPANDI (25 Agu, merge `2194feeb`):** yerel parite modeli `marka_kanon`u D1 URETIM
+  GOVDESINDEN turetiyor (`marka-kanon-uret.py`), uc ile AYNI yuklem — ikiz tanim kalkti.
+  ACIKLANAMAYAN **43→0**, Ege kolu 0, `marka-arama-d1-test` tabani BOZULMADI (51 gecti 3 kaldi),
+  mutant yeni kolun kostugunu kanitliyor. kabul: `node tools/parite-test.js`
 
 ## KraL ACIK ARTIKLAR (19 Agu anlati blogu ARSIVE TASINDI; kota uyarisi da orada)
 🔧 **K203:** tavan kapisi worktree ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami);
