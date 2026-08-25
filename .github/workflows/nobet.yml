@@ -691,6 +691,28 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/panel-mutasyon-test.py
 
+      # 🔴 MARKA KATLAMA IKIZ-TANIM DRIFT KAPISI (10 Agu 2026): port ile site ARASINDA
+      # DEGIL, ve bu yuzden olculmus IKI ayrismayi KACIRDI: (1) markaNorm aksan kolu
+      # portta hala ELLE listeydi (`é/è/ë/ä`), site 6 Agu'da NFD + birlesen-isaret
+      # genel kuralina gecmisti; (2) MARKA_ALIAS (Vauxhall -> Opel) portta HIC YOKTU.
+      # Bu kapi sitenin KENDI govdesini (norm() + MARKA KURATORLUGU blogu) index.html'den
+      # SUSLU PARANTEZ SAYARAK keser, `node` ile GERCEKTEN calistirir ve portla ~3.5 bin
+      # degerlik korpusta (yapisal kaliplar + aksan sinir vakalari + alias + urunler.json
+      # ham marka jetonlari) DAVRANIS karsilastirir. node yoksa ya da capa bulunamazsa
+      # FAIL-CLOSED (cikis 3, "OLCULEMEDI") — sessiz yesil YOK. OFFLINE, ~1 s.
+      - name: Marka katlama ikiz-tanım drift kapısı (port ↔ index.html davranış)
+        if: ${{ !cancelled() }}
+        run: python3 tools/marka-katla-ikiz-kapisi.py
+
+      # ... ve ustteki kapinin KENDISI olculur: 4 mutant (NFD kurali elle listeye doner,
+      # ALIAS uygulamasi duser, ALIAS turetimi kesilir, +1 genel duyarlilik mutanti olarak
+      # onek kurali alt-dizeye gevser) TEK BASINA KIRMIZI yakmali; ayrica mutasyonsuz
+      # kopya (M00) YESIL kalmali — yoksa harness bozuktur ve tum sonuclar yalanci olur.
+      # Mutasyon gecici bir kopyaya uygulanir, calisma agacina YAZILMAZ. OFFLINE, ~2 s.
+      - name: Marka katlama ikiz mutasyon bataryası (drift kapısı gerçekten ölçüyor mu)
+        if: ${{ !cancelled() }}
+        run: python3 tools/marka-katla-ikiz-mutasyon-test.py
+
       # PANEL OTOMATIK TAZELEME DAVRANIS TESTI — KENDI ADIMI olarak kosar (BILEREK).
       # Ustteki marka-panel-test.py bu betigi DOLAYLI da cagirir, ama dolayli cagri
       # tools/ci-kapsam-test.py icin KAPSAM SAYILMAZ: cagiran satir silinse .js hicbir
