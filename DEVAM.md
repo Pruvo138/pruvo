@@ -12,6 +12,9 @@ KESISTIRIYOR — bayat eskale kovaya GIRMIYOR; K86=KAPANDI (`e532032b`), K55=DEV
 deftere KANITLA yazildi → **t743 OKAN_KAPISI=0 KALEMLER=BOS**. Sayac kolu (`:1889`) IKI YONLU
 olculdu: kova bos turda `USTUSTE_ONARIMSIZ=0`, onarim DENENIP DUSTUGUNDE **1**.
 ✅ **4 DEFTER** 130→116 satir (`DEVAM-ARSIV.md` +16) · ✅ **5 KUTU** 298→255 satir (arsiv +91).
+✅ **17:00:** kok raporu govdesi indi — arsiv blok **21578-21904** (326 satir/19.150 B, delta +19.249;
+onceki turun iddiasi BOSTU) · `isci.sh.yedek-*` **18→0** (Drive arsivine, `du` 321.208→320.828 KB) ·
+defter hukumleri aldi (K50·K74·K99·K107·K27 KAPANDI) → **borc kapisi rc 1→0**, 5 kabul komutu rc=0.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
