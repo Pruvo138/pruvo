@@ -16,6 +16,10 @@ GUNLUK KAPANIS BLOGU" basliginda (1 baslik + 8 hash satiri dogrulandi). Uc olu c
   dosyasinda, kutuda bildirildi.
 - 🔧 **K306 (SINIF, iki evi birden):** pre-push kancasi her push'ta 30.366 kapak tariyor, 600 sn
   tavanini asiyor; vaka ARSIVDE. kabul: tarama ARTIMLI + olculen push suresi tavanin altinda.
+- ✅ **K307 KAPANDI:** D1 bayat hash 1→0 (senkron atlanmisti, Ege duzeltilmemis metni goruyordu);
+  345 taslagi CI'in `yayin` job'i akitti (`32909205580` SUCCESS @ `fa6989f9`). Kapanis: `deploy`+
+  `yayin` SUCCESS · D1 5/5 eksen · UYUSMAZ=0 · TASLAK=0. 🔧 Yan bulgu: isci probu `Range: bytes=0-0`
+  yollayip 206 alinca 345 sayfayi "canli DEGIL" saydi. → [[prob-kendi-baglamini-olcer]]
 - 🔴 **K304 (SINIF: BAYAT TEK KAYNAK, 1 turu yanlis motorda yakti):** `skills/codex-isci` motor sirasini
   CLAUDE.md'den KOPYALIYORDU; uc kopya SILINDI. kabul: `yedekle.py` BORCLU (surum kontrolu disi dizin).
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
