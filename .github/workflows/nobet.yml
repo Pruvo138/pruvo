@@ -2217,7 +2217,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: "Marka tek-sayfa hukmu mutasyon bataryasi (13 oldurucu + 5 kontrol)"
+      # Adim adindaki kadro 25 Agu 2026'da BAYATTI (13+5 yaziyordu, fiili kadro 18+3).
+      # Sayi artik araca da civili (OLDURUCU_TABANI/KONTROL_TABANI/IDDIA_TABANI).
+      - name: "Marka tek-sayfa hukmu mutasyon bataryasi (18 oldurucu + 3 kontrol)"
         run: python3 tools/marka-sayfa-mutasyon.py
 
   # Model kapilarinin GERCEK katalog olcumleri deploy.yml serit-a3'te bloklayici
