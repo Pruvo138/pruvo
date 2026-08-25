@@ -897,6 +897,91 @@ if isinstance(_canli, list):
           % (len(_canli), len(_ihlalli), len(_fp_kirmizi)))
 
 
+# =============================================================================
+# KAPI 9: ASCII-DISI URUN ID (K290) — kanonik adres /urun/<id>/ korumasi
+# =============================================================================
+# OLCULDU (MaCiT, 25 Agu 2026): Printables p1-6 / pid 1439815 icin uretilen id 'ğ'
+# harfini transliterasyonsuz tasidi ve HICBIR kapi gormedi. Asagisi IKI YONLU:
+# (a) ASCII-disi id KIRMIZI, (b) mesru ASCII id YESIL (kapi toptan reddetmiyor).
+# 🔴 MENZIL NOTU: bu dosya CI'da KOSMAZ (bkz. ci-kapsam-test.py muafiyeti, R_YOL
+#   sinifi). KAPI 9'un CI'da kosan bataryasi `denetim-kapisi.py --kendini-test`
+#   icindeki A1-A4 + MU3/MU4 mutantlaridir; burasi ELLE kosumun ek nobetcisidir.
+def ascii_kirmizi(uid):
+    return dk.kapi_ascii_id({"id": uid})[0] == "ascii-id"
+
+
+# (a) POZITIF — ASCII-disi tasiyan id KIRMIZI
+check("K9 POZ: 'ğ' (U+011F) tasiyan id -> IHLAL",
+      ascii_kirmizi("audi-a4-yakit-kapagi-bağlanti"))
+check("K9 POZ: 'ı/ş/ç/ö/ü' tasiyan id -> IHLAL",
+      ascii_kirmizi("opel-vivaro-flanş-kapağı-ölçü-çünkü-ıspavlo"))
+check("K9 POZ: TEK ASCII-disi karakter yeter -> IHLAL", ascii_kirmizi("bmw-x5-braketé"))
+check("K9 POZ: GORUNMEZ NBSP -> IHLAL (goz denetimi bunu KACIRIR; kod noktasi KACIRMAZ)",
+      ascii_kirmizi("bmw-x5 braket"))
+#   ^ USTTEKI id'de bosluk gibi gorunen karakter GERCEK U+00A0'dir; duz bosluga
+#     CEVIRME, vaka aksi halde ASCII olur ve kontrol tautolojiye doner. Kaynak: bmw-x5 braket"))
+check("K9 POZ: id metin DEGIL (int) -> IHLAL (fail-closed)",
+      dk.kapi_ascii_id({"id": 1439815})[0] == "ascii-id")
+check("K9 POZ: id YOK -> IHLAL (fail-closed)", dk.kapi_ascii_id({})[0] == "ascii-id")
+# gerekce hangi karakterin sucladigini KOD NOKTASIYLA soyler (isciye eyleme donuk)
+check("K9 gerekce sucu karakteri U+XXXX ile adlandirir",
+      "U+011F" in dk.kapi_ascii_id({"id": "audi-bağ"})[1])
+
+# (b) NEGATIF — canli katalogun id gelenegindeki bicimler YESIL (yanlis-pozitif nobeti)
+for _tid in ["audi-a1-yakit-kapagi-lastik-kapak", "peugeot-206-anahtar-tu-tak-m",
+             "gt2-20-dis-tahrik-kasnagi-nema17", "bmw-koltuk-klipsi-52-10-1-945-442",
+             "skoda-octavia-kol-ak-kilidi", "raspberry-pi-kamera-mount-anet-a8",
+             "toyota-4runner-3-nesil-arka-k-ll-k-i-ptal-ve-usb-panel-brake"]:
+    check("K9 NEG: mesru ASCII id YESIL — %s" % _tid, not ascii_kirmizi(_tid))
+
+# --- GERCEK-VERI NOBETCISI: canli katalogda ASCII-disi id sayisi ----------------------
+# OLCULDU (25 Agu 2026, jq ile, 30.286 kayit): ASCII_DISI=0. Kapi ILERI-YONLUDUR —
+# mevcut kayitlarin TOPLU yeniden adlandirilmasi AYRI karardir (mimar kapisi).
+if isinstance(_canli, list):
+    _ascii_disi = [u.get("id") for u in _canli
+                   if isinstance(u, dict) and dk.kapi_ascii_id(u)[0] is not None]
+    print("KAPI 9 gercek-veri: %d urun · ASCII_DISI=%d" % (len(_canli), len(_ascii_disi)))
+    check("K9 gercek-veri: canli katalogda ASCII-disi id 0", len(_ascii_disi) == 0)
+    if _ascii_disi:
+        print("ASCII-DISI ID (%d): %s"
+              % (len(_ascii_disi), ", ".join(str(x) for x in _ascii_disi[:30])),
+              file=sys.stderr)
+    # GERCEK KAYIT SEKLIYLE: canli kaydin TAM sekli kopyalanir, yalniz `id` degistirilir
+    _k9_gercek = next((u for u in _canli if isinstance(u, dict)
+                       and isinstance(u.get("id"), str)), None)
+    check("K9 gercek-sekil fikstur: canli kayit bulundu", _k9_gercek is not None)
+    if _k9_gercek is not None:
+        _k9_neg = dict(_k9_gercek)
+        _k9_poz = dict(_k9_gercek)
+        _k9_poz["id"] = _k9_gercek["id"] + "-bağlantı"
+        check("K9 gercek-sekil NEG: canli kaydin KENDI id'si -> YESIL",
+              dk.kapi_ascii_id(_k9_neg)[0] is None)
+        check("K9 gercek-sekil POZ: ayni kayit ASCII-disi id ile -> IHLAL",
+              dk.kapi_ascii_id(_k9_poz)[0] == "ascii-id")
+
+# --- UCTAN UCA: kapi denetle()'de gercekten CAGRILIYOR mu (menzil nobeti) -------------
+# Birim dogru olsa bile denetle() cagirmiyorsa kapi YOKTUR. Rapor kovasinin
+# 'ihlal' oldugu da olculur: ASCII-disi id SILME degil DUZELTME ister.
+_k9_temiz = urun("k9-temiz-id", "Renault Clio Braketi")
+_k9_kirli = urun("k9-kirli-bağlantı", "Renault Clio Baglanti")
+_k9_rapor = dk.denetle([_k9_temiz, _k9_kirli], {"k9-temiz-id", "k9-kirli-bağlantı"},
+                       set(), {"k9-temiz-id": kaynak_cc("k9-temiz-id"),
+                               "k9-kirli-bağlantı": kaynak_cc("k9-kirli")})
+_k9_vurus = [it for it in _k9_rapor["ihlal"] if it["kapi"] == "ascii-id"]
+check("K9 UCTAN UCA: denetle() ASCII-disi id'yi 'ihlal' kovasinda raporluyor",
+      len(_k9_vurus) == 1 and _k9_vurus[0]["id"] == "k9-kirli-bağlantı")
+check("K9 UCTAN UCA: ASCII-disi id auto_sil'e GIRMEZ (silme degil DUZELTME ister)",
+      "k9-kirli-bağlantı" not in _k9_rapor["_sil_ids"])
+check("K9 UCTAN UCA: temiz id hicbir ascii-id ihlali uretmedi",
+      not [it for it in _k9_rapor["ihlal"]
+           if it["kapi"] == "ascii-id" and it["id"] == "k9-temiz-id"])
+# 'onceden var miydi' kolu AYNI fonksiyonu cagiriyor mu (kopya kural YOK)
+check("K9 _urun_ihlalleri() ASCII eksenini tasiyor (main 'onceden' filtresi icin)",
+      ("ascii-id", dk.kapi_ascii_id(_k9_kirli)[1]) in dk._urun_ihlalleri(_k9_kirli))
+check("K9 _urun_ihlalleri() temiz id'ye ascii-id EKLEMIYOR",
+      not [x for x in dk._urun_ihlalleri(_k9_temiz) if x[0] == "ascii-id"])
+
+
 if FAILS:
     print("\n%d KONTROL KALDI" % len(FAILS), file=sys.stderr)
     sys.exit(1)
