@@ -11,12 +11,12 @@ GUNLUK KAPANIS BLOGU" basliginda (1 baslik + 8 hash satiri dogrulandi). Uc olu c
 - 🔴 **K302 (SESSIZ HATA, KraL; MaCiT iki kez bildirdi BMW+Ford, DEFTERE HIC YAZILMAMISTI):**
   `hasat_ekle.py` 2-elemanli `ic["marka"]`'yi `uyum[0].marka`'ya liste olarak yaziyor → top-level
   `marka` SESSIZCE `[]`, urun marka filtresinde GORUNMEZ, `marka_kirli` bos listeyi TEMIZ sayiyor.
-  61 canli BMW kaydinda oldu. ACIL: Ford EKLEME dilimi (56) ayni tuzakta. kabul: TABAN olcumu +
-  ayristirma + fail-closed + kapi kolu + M1/M2 mutant. Chip hazir (`onarim/k302-hasat-marka`).
-- 🔧 **K303 (OKSUZ ONARIM):** ana agactaki commit'siz ` M tools/arama.py` (7+/5-, `Seat|alhambra`
-  capraz izni kalkiyor, sayi 67→66, iki imza). Iki ev "yabanci" deyip birakmisti; K19/K188/K205
-  atiflari KraL'in → SAHIPLENILDI. kabul: iki imzayi KAPIYA HESAPLAT (oksuz degere guvenme) +
-  tuketici kapilar rc=0 + `alhambra` canli urun sayisi once/sonra + M1/M2. → [[oksuz-commitsiz-onarim-curur]].
+  61 canli BMW kaydinda oldu. **CANLI HASAR 0** (mimar jq: `uyum[].marka` liste=0/30423,
+  `BOS_MARKA_UYUMLU=0`; Ford partisi tetiklemedi) → ACIL DEGIL, kalan is ARAC ONARIMI.
+  kabul: ayristirma + fail-closed + kapi kolu + M1/M2. Chip hazir (`onarim/k302-hasat-marka`).
+- ✅ **K303 KAPANDI:** oksuz `arama.py` onarimi `575c2bdd` ile main'e girdi, imzalar SONRADAN dogrulandi:
+  kapi hesabi = yazan (`0fc3227eac1c6abb`·`b28c90e6e08f3909`), eleman 66 (mimar grep'i 66),
+  tuketici 1/1 rc=0, `alhambra` 12→12 etkilenen 0, M1/M2 KIRMIZI hedef-kol atifli. → [[oksuz-commitsiz-onarim-curur]].
 - 🔴 **K250 (HUKUM DEGISTI 25 Agu):** kok neden 20 Agu'da main'e girmis (`d76ca45c`/`ba0e5e2a`) ama
   **ROLLOUT HIC KOSMAMIS** — `HEAD_KURAL_TASIYAN_EV=1/6` (eksik MaCiT·KaaN·ArTisT·HocA·BaBa, `git show
   HEAD:` ile ev ev dogrulandi); MaCiT'in gecici cozumu HAKLI. Ilk isci turu "curutuldu" dedi ama YALNIZ
