@@ -3012,10 +3012,12 @@ _KT_SIPARIS_ALTER = [
 ]
 
 
-def _kt_goc_conn(kanal_kolonu=True, yarim=False, ikiz=0, indeks=False):
+def _kt_goc_conn(kanal_kolonu=True, yarim=False, ikiz=0, indeks=False,
+                 reklam=False, reklam_yarim=False):
     """Goc fiksturu. kanal_kolonu: iki kolon da eklenmis mi · yarim: YALNIZ kanal eklendi
     (ALTER'lar yarida kaldi) · ikiz: ayni (kanal,dis_no) ile kac FAZLA satir · indeks:
-    kismi UNIQUE indeks ONCEDEN kurulu mu."""
+    kismi UNIQUE indeks ONCEDEN kurulu mu · reklam/reklam_yarim: reklam_ref_gclid
+    tablosu V75 HAL ayrimi icin kurulsun mu (tam ya da yalnizca 'ref' kolonuyla)."""
     conn = _kt_baglan()
     conn.executescript(_KT_SIPARIS_SEMA)
     if yarim:
@@ -3032,8 +3034,35 @@ def _kt_goc_conn(kanal_kolonu=True, yarim=False, ikiz=0, indeks=False):
             conn.execute("INSERT INTO siparisler (siparis_no,tarih,tutar_kurus,urunler)"
                          " VALUES (?,?,?,?)",
                          ("PR-%03d" % i, "2026-07-25T10:00:00Z", 1000, "[]"))
+    if reklam_yarim:
+        conn.executescript(
+            "CREATE TABLE IF NOT EXISTS reklam_ref_gclid (ref TEXT PRIMARY KEY);")
+    elif reklam or indeks:
+        # V75b/c fiksturu: son goc indeksi reklam_ref_gclid tablosuna; fiksturde
+        # siparisler disinda bu tablo yoksa CREATE INDEX patlar. Tablo en kucuk
+        # haliyle once kurulur (kanonik semayla ayni kolonlar, test sadece
+        # indeks varligini olcer).
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS reklam_ref_gclid (
+              ref        TEXT PRIMARY KEY,
+              gclid      TEXT,
+              gbraid     TEXT,
+              wbraid     TEXT,
+              grup       TEXT,
+              src        TEXT,
+              ts         INTEGER,
+              created_at INTEGER
+            );
+        """)
     if indeks:
-        conn.executescript(GOC_INDEKS[-1]["sql"])
+        # K99 oncecesi: tek "son goc indeksi" vardi; K99 sonrasi GOC_INDEKS'in SONUNDA
+        # reklam_ref_gclid indeksi var. V75c/d VEYA V79c/e2 fiksturu HEM siparisler indeksini
+        # (KOLON VAR + INDEKS VAR halini gostermek icin) HEM reklam_ref_gclid indeksini
+        # kurmak ister. Tablo adindan sec — konum kayan GOC_INDEKS'e bagimliligi
+        # ortadan kaldirir.
+        for ix in GOC_INDEKS:
+            if ix["tablo"] == "siparisler" or ix["tablo"] == "reklam_ref_gclid":
+                conn.executescript(ix["sql"])
     conn.commit()
     return conn
 
@@ -4138,20 +4167,23 @@ def kendini_test():
     # gecer. O pencerede olusan tek bir ikiz satir indeksi KALICI olarak kurulamaz yapar.
     # Once-kirmizi: bu vakalarin HEPSI eski kodda YESIL/SESSIZDI (--sema 0, --durum 0).
 
-    # V75 HAL AYRIMI: dort hal AYRI AYRI (biri digerini maskelemesin).
-    _ad = GOC_INDEKS[-1]["ad"]
+    # V75 HAL AYRIMI: dort hal AYRI AYRI (biri digerini maskelemesin). _ad = siparisler
+    # indeksi (Tablo adiyla sec) — K99 reklam_ref_gclid'i GOC_INDEKS'in SONUNA ekledi,
+    # GOC_INDEKS[-1] artik siparisler'i gostermiyor (testler fiksturu siparisler uzerinden
+    # kuruyor; reklam_ref_gclid orada YOK = IX_UYGULANMAZ = tum V75/V76/V79 yanlis hedef).
+    _ad = next(ix["ad"] for ix in GOC_INDEKS if ix["tablo"] == "siparisler")
     _h = lambda c: {x["ad"]: x["hal"] for x in _kt_goc_kos(c, sema_hali)[2]}   # noqa: E731
     dogrula("V75a HAL: kanal/dis_no kolonu YOK -> UYGULANMAZ (kirmizi DEGIL)",
             _h(_kt_goc_conn(kanal_kolonu=False))[_ad] == IX_UYGULANMAZ)
     dogrula("V75b HAL: kolon VAR + indeks YOK -> INDEKS-YOK (eskiden YESIL gorunuyordu)",
-            _h(_kt_goc_conn())[_ad] == IX_INDEKS_YOK)
+            _h(_kt_goc_conn(reklam=True))[_ad] == IX_INDEKS_YOK)
     dogrula("V75c HAL: kolon VAR + indeks VAR -> KURULU",
-            _h(_kt_goc_conn(indeks=True))[_ad] == IX_KURULU)
+            _h(_kt_goc_conn(reklam=True, indeks=True))[_ad] == IX_KURULU)
     dogrula("V75d HAL: ALTER'lar YARIDA (yalniz kanal eklendi) -> KOLON-YARIM",
             _h(_kt_goc_conn(yarim=True))[_ad] == IX_KOLON_YARIM)
 
     # V76 TEMIZ GOC: indeks kurulur, kurulusu DOGRULANIR, kolon_goc True doner.
-    _c = _kt_goc_conn()
+    _c = _kt_goc_conn(reklam=True)
     _kod, _cikti, _sonuc = _kt_goc_kos(_c, kolon_goc)
     dogrula("V76 TEMIZ GOC: kismi UNIQUE indeks KURULUR + kolon_goc True",
             _sonuc is True and _ad in _kt_indeks_adlari(_c), _cikti[-300:])
