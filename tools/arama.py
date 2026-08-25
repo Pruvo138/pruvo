@@ -803,6 +803,14 @@ UYUM_MARKA_IZINLI = frozenset({
     # (UYUM_MARKA_ONERI_SAYISI=169) ve UYUM_MARKA_YARGI_IMZA AYNEN korunur. Dordu de bugun
     # UYUM_MARKA_ELENEN'de DEGIL (olculdu) — yani elenmis bir jeton geri SIZMIYOR.
     "Huawei", "Stanley", "TomTom", "Webasto",
+    # 4. tur, C grubu (1) — mimar karari 25 Agu 2026. `Lowrance` marin GPS / balik bulucu /
+    #   sonar cihazi ureticisidir; uretilen parca (ekran braketi, montaj aparati) Lowrance
+    #   cihazina TAKILIR. Sinif: `Garmin` ve `TomTom` ile BIREBIR ayni ev-sahibi cihaz
+    #   ureticisi (ikisi de zaten kumede). Olculen katalog agirligi (30.286 urun):
+    #     marka[] tam yazimla: 1 · uyum[].marka: 0 · baslikta (buyuk-kucuk duyarsiz): 35
+    #   Kume KAPALI kalir; yargilanmis bolumleme (izinli−eki / uretici−eki / elenen)
+    #   degismez, elenmis bir jeton geri sizmaz.
+    "Lowrance",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -831,6 +839,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 3. tur (5 Agu 2026) — gerekce + olculen katalog agirligi UYUM_MARKA_IZINLI'nin
     # "C grubu" blogunda, ad ad yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
     "Huawei", "Stanley", "TomTom", "Webasto",
+    # 4. tur (25 Agu 2026) — gerekce + olculen katalog agirligi UYUM_MARKA_IZINLI'nin
+    # "C grubu" 4. tur basliginda yazili. Burada TEKRAR EDILMEZ.
+    "Lowrance",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
