@@ -3,7 +3,7 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔁 CANLI TUR — 25 Agu ogleden sonra (KraL) · main=origin `4cd20a92`, agac TEMIZ
-📌 **BICIM:** nobet hukmu TUR NUMARASIYLA yazilir (`HUKUM=<hal>@tur<N>`).
+📌 nobet hukmu TUR NUMARASIYLA (`HUKUM=<hal>@tur<N>`).
 
 ✅ **KAPANDI:** **K288** (git ucu ata + 38 sayili/12 fail-closed tur, kanit mimar elinde; mutabakat
 kolu **`OLCULEMEDI`** — panel yuzeyinde saatlik satir YOK, 25 Agu Okan'in onayiyla acilip olculdu)
@@ -11,11 +11,11 @@ kolu **`OLCULEMEDI`** — panel yuzeyinde saatlik satir YOK, 25 Agu Okan'in onay
 🔴 **Kendi hatam:** `main..dal=0` "merge edildi" de olabilir; ayirici `merge-base --is-ancestor`.
 ✅ **7 CHIP KAPANDI:** K289 (borc 26→10, `T4-OLCUTSUZ` kolu) · K290 (ASCII id kapisi, canli 0) · K287
 (buyuk-uc esigi, iki yon) · K286 (yorum≠cagri) · K295 (`MEMORY.md` kucultuldu) · K296 (**canli shop
-BAYAT DEGIL → deploy GEREKMIYOR**) · K76 (IPTAL, bayat sayi). Dallar merge turunda.
+BAYAT DEGIL → deploy GEREKMIYOR**) · K76 (IPTAL). Dallar merge'de.
 ⏳ **TAVAN (Okan: "bir hafta daha olc"):** olcum **1 Eyl'de** turetilir — limit 31 Agu'a kadar %50 BOOST'lu (panelde okundu), simdiki veriden turetilen esik SISIRILMIS olur.
-- 🔴 **KRAL EVI HALA BLOKLU (K289 sonrasi):** borc `ACIK=10` — onu da GERCEK; kapi hakli RED diyor.
-  **Okan emri 25 Agu: kalan 10 kalemin HEPSI chip'e verilecek.** Dagitim MIMARDA; liste K289'dan
-  dispatch biciminde alindi (tahminle spec YAZILMAZ — K76 dersi).
+- 🔵 **BORC DAGITILDI (Okan emri 25 Agu, "hepsi chip'e"):** `ACIK=10` → K76 BAYAT cikti (Okan kapatti)
+  = **9**. Alti KraL chip'inde: K86 · K107 · K99 · K74+K27 (OLCUM turu) · K50. Ucu kendi
+  evinde: **K44→ArTisT · K29→ArTisT · K55→MaCiT** (kutuya yazildi). Kapi kalemler kapandikca duser.
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
 - 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
   kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
