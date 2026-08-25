@@ -17,12 +17,12 @@ GUNLUK KAPANIS BLOGU" basliginda (1 baslik + 8 hash satiri dogrulandi). Uc olu c
 - ✅ **K303 KAPANDI:** oksuz `arama.py` onarimi `575c2bdd` ile main'e girdi, imzalar SONRADAN dogrulandi:
   kapi hesabi = yazan (`0fc3227eac1c6abb`·`b28c90e6e08f3909`), eleman 66 (mimar grep'i 66),
   tuketici 1/1 rc=0, `alhambra` 12→12 etkilenen 0, M1/M2 KIRMIZI hedef-kol atifli. → [[oksuz-commitsiz-onarim-curur]].
-- 🔴 **K250 (HUKUM DEGISTI 25 Agu):** kok neden 20 Agu'da main'e girmis (`d76ca45c`/`ba0e5e2a`) ama
-  **ROLLOUT HIC KOSMAMIS** — `HEAD_KURAL_TASIYAN_EV=1/6` (eksik MaCiT·KaaN·ArTisT·HocA·BaBa, `git show
-  HEAD:` ile ev ev dogrulandi); MaCiT'in gecici cozumu HAKLI. Ilk isci turu "curutuldu" dedi ama YALNIZ
-  KraL evini olctu (zaten 1/6'nin kendisi) + zinciri `/bin/false` ile taklit etti →
-  [[emir-canliligi-kurulu-kopyadan-olculur]]. kabul: 2 komut SIRALI + `DISK=6/6`; `HEAD=6/6` kardes
-  evlerin commit'ine bagli. Okan onayladi.
+- 🔴 **K250 (25 Agu OLCULDU — KILITLI):** kok neden main'de (`d76ca45c`/`ba0e5e2a`); rollout araci
+  bes kardes evi FAIL-CLOSED ile atliyor — onceki rollout o evlerin DISKINE yazip HIC COMMIT ETMEMIS.
+  `HEAD=1/6 DISK=6/6`, ezmek KISMEN kayipli (~232-253 satir/ev). Iscinin IKI iddiasi da MIMAR
+  olcumuyle CURUTULDU: `git hash-object` → 4 ev BIREBIR AYNI, yalniz BaBa farkli (**IKI GOVDE**);
+  ikincisi + fail-closed gerekcesi ARSIVDE (sinif kapisi). ACIL DEGIL.
+  kabul: iki govde satir satir yargilanir (sablona al / ev-ozgu / sil).
 - 🔴 **K304 (SINIF: BAYAT TEK KAYNAK, 1 turu yanlis motorda yakti):** `skills/codex-isci` motor sirasini
   CLAUDE.md'den KOPYALIYORDU; uc kopya SILINDI. kabul: `yedekle.py` BORCLU (surum kontrolu disi dizin).
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
