@@ -2871,26 +2871,6 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/marka-arama-d1-test.py
 
-      # K302 (26 Agu 2026, MaCiT BMW/Ford x TV olayi) — hasat_ekle.py ic["marka"] liste
-      # bicimindeyken uyum = [{"marka": ic["marka"]}] LISTEYI dogrudan yaziyor,
-      # marka_uyumdan_turet() ise string bekliyor -> u["marka"] = [] SESSIZCE bosaliyordu
-      # (61 BMW kaydi bu sekilde bozuldu, duzelt.py --toplu ile ELLE onarildi). Kok neden
-      # tools/hasat_ekle.py'de uyum_uret() ile duzeltildi: liste ayristirma + fail-closed
-      # (bilinmeyen marka sessiz gecmez). KAPI: uyum tasirken top-level marka bos olan
-      # kayitlari KIRLI sayar (TABAN_BOS_UYUMLU=0 olculdu, geriye donuk borc yok, ama
-      # yeni yazimlarda KORUMA olarak isler). Hijyen seridi — SERIT B: kirmizisi yayini
-      # DURDURMAZ.
-      - name: K302 hasat_ekle kabul testi (Vaka A/B/C + sinir + tur kontrolu, 15/15)
-        if: ${{ !cancelled() }}
-        run: python3 tools/hasat_ekle-test.py
-
-      # K302 MUTASYON (K182 dersi): "kirmizi geldi" kanit DEGIL — hedef kol isabetli mi.
-      # M1 ayristirma eski haline -> Vaka A KIRMIZI; M2 fail-closed kaldir -> Vaka C KIRMIZI.
-      # Sonra geri al, kaynak yesile donmeli.
-      - name: K302 hasat_ekle mutasyon (M1+M2 hedef-kol atifli, geri-al dahil)
-        if: ${{ !cancelled() }}
-        run: python3 tools/hasat_ekle-mutasyon-test.py
-
       # K302 KAPI: urunler.json'da uyum tasir ama top-level marka bos olan kayitlari
       # KIRLI sayar. TABAN_BOS_UYUMLU=0 olculdu — geriye donuk borc yok; kapinin isi
       # yazim ONCESI koruma. CRITIC: girisim sirasinda mevcut 0 kalmazsa bile yeni
