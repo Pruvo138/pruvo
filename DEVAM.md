@@ -2,18 +2,20 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ✅ 26 AGU 3. TUR · main=origin `6da4508d` · YAYIN ACILDI · TAM METIN KUTUDA
-✅ **YAYIN ACILDI `6da4508d`** (`32972808264` deploy+yayin `success`) — 4,7 saatlik kesinti bitti
-(onceki yesil 08:22Z; arada 11 failure/5 cancelled). Canli teyit CACHE-BUST'SIZ: 17/17 gorsel, bozuk 0.
-✅ **K313 tekil kol KAPANDI** (gorselsiz 9→0, katalog 30901→30901 SILME YOK) — **sinif kolu ACIK.**
-🔴 **K314 (IKI YUZ):** ① `serit-a3` ilk kirmizida durup KUYRUGU gizliyor (tek kesintide 4 adim) ·
-② `k309-d2` merge'i chip'in ic kosum raporlarini IZLENEN birakti → asil engel BUYDU; 10 artefakt cikti.
-✅ **K152 on sarti COZULDU: `claude/musing-shaw-2fb705` MERGE** (tek dosya `koken-bul.py` +487; kanit:
-kabul komutu `rc=2 dosya YOK`). Icra chip'te (kod kilidi → worktree merge + `--ff-only`).
-✅ **K291 "yapisal kilit" CURUTULDU:** `parti-kapisi.py:210/351` muafiyet TOKEN sinirinda —
-`isci.sh <motor> <repo> <spec> kabul-<is>` GECER; Temizlik26 4. argumani vermemisti. K308·K310·K311
-artik `OLCULEMEDI` DEGIL, OLCULEBILIR. K291 kaleminin kendisi ACIK (dizge-olcumu). K44=DEVREDILDI
-(ArTisT), **K53 yeniden ACIK** (kendi kabul komutu hic kosmadi). Kosan chip YOK · Okan'da karar YOK.
+## 🔚 26 AGU 3. OTURUM KAPANISI · main=origin `fef07780` · YAYIN ACILDI · TAM METIN KUTUDA
+**KOSUYOR:** `KraL-Surucu-26Agu` (kabul TATBIKAT: cron'un KENDI turu dilim isleyip commit+push).
+**SIRADA (yarinki Tamirci):** (a) `karar()` seviye okumasi · (b) canli tur `ACIK_KALEM=0` · (c) IKI
+TABAN KIRMIZISI TEK KALEMDE (`gozcu-mutasyon YAMA_TUTMADI=1` + dondurma `RC=1`) · (d) K308·K310·K314.
+**Temizlik:** worktree 7→3 · dal 40→36 · kutu 424→224. 🔴 `fef07780` deploy **PENDING** (gormeden
+kapaniyorum). Okan'da karar YOK.
+✅ **YAYIN ACILDI `6da4508d`** — 4,7 saat kesinti (son yesil 08:22Z, arada 11 failure/5 cancelled);
+kok neden BIZIM evde: `k309-d2` merge'i ic kosum raporlarini IZLENEN birakmisti. Canli teyit
+CACHE-BUST'SIZ 17/17 gorsel bozuk=0. ✅ KAPANAN: **K313** tekil kol (9→0, katalog 30901→30901 SILME
+YOK; **sinif kolu ACIK**) · **K53** (MaCiT rc=0) · **K302** (`fef07780`) · **K152 on sarti MERGE** ·
+**K44 DEVREDILDI** · bekci KURULDU · dondurma ① uygulandi.
+✅ **K291 "yapisal kilit" CURUTULDU** (muafiyet TOKEN sinirinda; eksik argumandi) → K308·K310·K311
+artik OLCULEBILIR; K291 kaleminin KENDISI ACIK. 🔴 **K314 ACILDI** (① `serit-a3` kuyrugu gizliyor
+② olcum aracinin cikti yolu git-disina civilenmemis).
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu gecesi KAPANAN 4 KALEM — TAM METIN ARSIVDE** ("KAPANAN 4 KALEM" basligi): **K250**
