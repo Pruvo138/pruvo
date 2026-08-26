@@ -58,10 +58,10 @@ Claude-isci izni KALDIRILDI · Okan'da bekleyen karar YOK.
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **26 AGU YENI KALEMLER — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada
   yalniz ISARETCI:** **K306** kapak taramasi (CHIP) · **K308** kanca yedek blogu hatayi YUTUYOR
-  (icra K306 sonrasi) · **K309** SINIF: kaynak-dogrusu K109'da KESILMIS, K110-K270 nobetin olcum
-  evreni DISINDA (CHIP; vaka: K212+K222 kodda onarilmis gorunuyor ama defterde ACIK) · **K310**
-  kutu blogunun BASLIGI dustu, govde oksuz, arac yine `lossless=GECTI` dedi — baslik GERI KONDU ·
-  **K212** CHIP'te (`KraL-K212Yedek`).
+  (icra K306 sonrasi) · **K309 DILIM-1 BITTI** (dal `k309-senkron`, MERGE MIMARDA): 73/112 hipotezi
+  CURUTULDU → defter satir 75 · benzersiz 74 · DEVAM 101 · MENZIL_DISI 92→90; kirilim+`kabul:`
+  sayaci DEFTERDE, DILIM-2 (90 kalem tasima) MIMARDA · **K310** kutu blok basligi dustu, geri kondu ·
+  **K212** satiri ACILDI (kaynak-dogrusu); hukum `KraL-K212Yedek` chip'inde.
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (TAM METIN ARSIVDE):** (i) kuru kosum OLCULDU 25 Agu (1512/234, sir elemesi 5/5; BULGU:
   gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a) · (ii) kablolama MIMARDA ·
@@ -81,8 +81,8 @@ Claude-isci izni KALDIRILDI · Okan'da bekleyen karar YOK.
 - 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
   AILE · gyro `doku=duz` · 8 fiyat ONAY (280/190/170/350=TAVAN/160/240/140/220); kupler render CELISKILI.
   PAKET main'de (`7ce644ae`). kabul (icra): ONIZLEME_AILELER 22→30 · taban-fiyat 21→29 · +8 sari kayit · 8 gorsel R2 200 · parite yesil.
-- 🔴 **K222:** `uzlastirici-onarim.py:161` `if rc == 0`, `:178` bayatlik kolundan ONCE; kapi yazmayi
-  bloklayip rc=0 donunce surucu "ONARILDI" cikiyor (`32272271453`). kabul: imza varsa TEKRAR
+- ✅ **K222 KAPANDI** (26 Agu, chip `KraL-K309Senkron`): iddia CURUTULDU — V18 (BAYATLIK imzasi +
+  rc=0 -> `ONARILDI` BASILMAZ) YESIL, M6 mutanti hedef kolu OLDURDU. Tam metin KAYNAK-DOGRUSUNDA.
 - 🔧 **K220 (KraL):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden besleniyor; liste iki rol tasiyor
   ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
   sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
