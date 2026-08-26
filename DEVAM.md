@@ -16,8 +16,8 @@ Claude-isci izni KALDIRILDI · Okan'da bekleyen karar YOK.
 - 🔧 **K306 — CHIP ACILDI 26 Agu (`KraL-K306`, `task_05ad146f`):** `thumbnail-uret.py:52` her kapak
   icin TEK TEK `head_object` (30.366 tur, sabit). Hukum+7 madde kabul+DOKUNULMAZ kol KUTUDA;
   `kabul:` alani DEFTERDE (`thumbnail-artimli-test.py`).
-- ✅ **K307 KAPANDI:** D1 bayat hash 1→0; 345 taslagi CI `yayin` job'i akitti (`32909205580`).
-  🔧 Yan bulgu: isci probu `Range: bytes=0-0` yollayip 206 alinca canli sayfayi "olu" saydi. → [[prob-kendi-baglamini-olcer]]
+- ✅ **K307 KAPANDI** (`32909205580`; tam metin kutuda) · 🔧 yan bulgu: isci probu 206'yi "olu"
+  saydi → [[prob-kendi-baglamini-olcer]]
 - 🔴 **K304 (SINIF: BAYAT TEK KAYNAK, 1 turu yanlis motorda yakti):** `skills/codex-isci` motor sirasini
   CLAUDE.md'den KOPYALIYORDU; uc kopya SILINDI. kabul: `yedekle.py` BORCLU (surum kontrolu disi dizin).
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
@@ -56,9 +56,12 @@ Claude-isci izni KALDIRILDI · Okan'da bekleyen karar YOK.
   `DURUM_BITMEYEN_TUR`, `DAGITILMAZ_DURUMLAR` disinda; kabulun 1. kolu ERISILEBILIRLIK.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🔴 **K212 — CHIP'TE (`KraL-K212Yedek`, `task_91665bf8`):** iki kusur da kodda ONARILMIS GORUNUYOR
-  (yorum KANIT DEGIL); chip olcuyor + K188 + bugunku canli ariza. · 🔧 **K308 (YENI):** pre-push yedek
-  blogu hatayi YUTUYOR (`>/dev/null 2>&1`), care ayni kancada 20 satir altta. ICRA K306 SONRASI. Ikisi de KUTUDA.
+- 🔴 **26 AGU YENI KALEMLER — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada
+  yalniz ISARETCI:** **K306** kapak taramasi (CHIP) · **K308** kanca yedek blogu hatayi YUTUYOR
+  (icra K306 sonrasi) · **K309** SINIF: kaynak-dogrusu K109'da KESILMIS, K110-K270 nobetin olcum
+  evreni DISINDA (CHIP; vaka: K212+K222 kodda onarilmis gorunuyor ama defterde ACIK) · **K310**
+  kutu blogunun BASLIGI dustu, govde oksuz, arac yine `lossless=GECTI` dedi — baslik GERI KONDU ·
+  **K212** CHIP'te (`KraL-K212Yedek`).
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (TAM METIN ARSIVDE):** (i) kuru kosum OLCULDU 25 Agu (1512/234, sir elemesi 5/5; BULGU:
   gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a) · (ii) kablolama MIMARDA ·
