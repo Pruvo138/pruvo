@@ -2,27 +2,28 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ▶️ 27 AGU ACILIS · main=origin `69a56122` · agac TEMIZ · worktree 1 · kosan cip 0
-**K316 ACILDI (UCUSTA)** — Okan penceresi gunun BIRINCI isini sectI: **iki taban kirmizisi TEK
-SINIF** (*turetilebilir deger ELLE KOPYALANMIS, kaynagindan sessizce ayrismis*). V1
-`gozcu-mutasyon YAMA_TUTMADI=1` (capa `gozcu.py`den ayristi; satir 217 kapsami SESSIZCE daraltir,
-225'in fail-loud emniyeti KORUNUR) · V2 `nobet-kabul-test VAKA=46 DUSEN=2` (`onarim-el-kitabi.md`
-`kimi` yazar, `kat_sec` `ISCI_MOTORLARI`ndan `minimax-m3` turetir). **Gerekce:** taban kirmiziyken
-kuyruktaki 4 kalemin kabulu ("mutant kirmizi yanar") OLCULEMEZ. Cip `KraL-TabanKirmizi-27Agu`
-(`task_bf7385f7`). **Tekil yama YASAK.** Kabul: `MUTANT=16/16` (15/15 KABUL DEGIL) · `DUSEN=0` +
-`VAKA>=46` · 2 hedef-kol atifli mutant + KONTROL yesil · iki tur. **KUYRUKTA:** K314①② ·
-`karar()` seviye okumasi · `ACIK_KALEM=0` · K240. **MaCiT'e IADE:** `hasat_ekle.py:419-440` kardes
-depoda; `mimar-kod-kilidi` CIPI kapsamiyor → MaCiT evinde tek ciple kapanir (gerekce KUTUDA).
+## ▶️ 27 AGU · main=origin · agac TEMIZ · **KOSAN CIP=2** (gerekceler+kabuller KUTUDA)
+Iki cip ayni SINIFI kovaliyor: *deger YAZILIYOR, TUKETICISI yok ya da BASKA sozlukten okuyor.*
+**Tekil yama YASAK.**
+- **K316 (UCUSTA) · `KraL-TabanKirmizi-27Agu` `task_bf7385f7`** — Okan penceresi gunun BIRINCI
+  isini sectI. V1 `gozcu-mutasyon YAMA_TUTMADI=1` (capa `gozcu.py`den ayristi; satir 217 kapsami
+  SESSIZCE daraltir, 225 fail-loud KORUNUR) · V2 `nobet-kabul-test VAKA=46 DUSEN=2`
+  (`onarim-el-kitabi.md` `kimi` yazar, `kat_sec` `ISCI_MOTORLARI`ndan `minimax-m3` turetir).
+  Gerekce: taban kirmiziyken oteki kalemlerin kabulu ("mutant kirmizi yanar") OLCULEMEZ. Kabul:
+  `MUTANT=16/16` (15/15 KABUL DEGIL) · `DUSEN=0`+`VAKA>=46` · 2 hedef-kol atifli mutant.
+- **K311 iki dar kalem · `KraL-KorGoz-27Agu` `task_4cdbbb65`** (YENI NUMARA YOK) — (a)
+  `kirmizi_toplam` yazan=1 okuyan=0 → **F2≡F3** (11 duran kirmizi ≡ 0 kirmizi) · (b)
+  `nobet-kapi.py:320` yalniz `🔧` sayiyor, N2B AYNI defterden `ACIK=<n>` okuyor. **DONDURMA
+  KORUNUR** — yalniz TESPIT kolu, `acilan_tur=1` TALEP EDILMEZ.
+**KUYRUKTA:** K314①② · K240. **MaCiT'e IADE:** `hasat_ekle.py` kardes depoda → MaCiT evinde ciple
+KAPANDI (`24b67c3b`; canli "6/6 EKLENDI" olcutu HALA ACIK, icerik modulu yok).
 
 ## 🔚 26 AGU 3. OTURUM KAPANISI — ISARETCI (tam metin KUTUDA; kalemler `acik-kalemler.md`de)
-Yayin acildi `6da4508d` (4,7 saat kesinti, kok neden BIZIM evde) · kapanan K313-tekil/K53/K302/
-K152-on-sart/K44 · K291 CURUTULDU → K308·K310·K311 OLCULEBILIR · K314 ACILDI. Kuyrugun guncel
-hali yukaridaki 27 AGU blogunda. **1:1 kurali:** bu blok bugunku acilis blogu icin isaretciye indi.
+Yayin acildi `6da4508d` (4,7 saat kesinti) · kapanan K313-tekil/K53/K302/K152-on-sart/K44 ·
+K291 CURUTULDU → K308·K310·K311 OLCULEBILIR · K314 ACILDI. **1:1:** blok isaretciye indi.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
-- ✅ **25-26 Agu gecesi KAPANAN 4 KALEM — TAM METIN ARSIVDE** ("KAPANAN 4 KALEM" basligi): **K250**
-  (rollout hukmu, `SABLONA_AL=0`) · **K302** (arac-bagimsiz kapi `dd7052fa`) · **K303** (rozet imzalari
-  kapiya hesaplatildi) · **K305** (yayin acildi `dd903d78`; `db33e358` urun silmesi `bf51d521` ile GERI ALINDI).
+- ✅ **25-26 Agu KAPANAN 4 KALEM (K250·K302·K303·K305) — TAM METIN ARSIVDE**, "KAPANAN 4 KALEM" basligi.
 - 🔧 **K250 KALAN:** KaaN·ArTisT·HocA·BaBa — her biri tek satirlik `expanduser` duzeltmesi, KENDI
   mimarlarinda; KraL kardes depoya yazmaz. · 🔧 **K302 KALAN:** kok neden MaCiT'in `olcum/hasat_ekle.py`
   dosyasinda, kutuda bildirildi.
