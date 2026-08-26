@@ -12,9 +12,6 @@
 - 🔧 **K250 KALAN:** KaaN·ArTisT·HocA·BaBa — her biri tek satirlik `expanduser` duzeltmesi, KENDI
   mimarlarinda; KraL kardes depoya yazmaz. · 🔧 **K302 KALAN:** kok neden MaCiT'in `olcum/hasat_ekle.py`
   dosyasinda, kutuda bildirildi.
-- ✅ **K306 MERGE (`df3b0d48`):** kapak-basina `head_object` yerine toplu envanter on-elemesi;
-  DOKUNULMAZ R6 sondasi GERCEK `head_object` KALDI (kod + M2 mutanti). kabul rc=0
-  IDDIA=4/4 MUTANT=3/3 KONTROL=1/1. TABAN/SONRA duvar saati: OLCULEMEDI (ag).
 - ✅ **K307 KAPANDI** (`32909205580`; tam metin kutuda) · 🔧 yan bulgu: isci probu 206'yi "olu"
   saydi → [[prob-kendi-baglamini-olcer]]
 - 🔴 **K304 (SINIF: BAYAT TEK KAYNAK):** `skills/codex-isci` motor sirasini KOPYALIYORDU; uc kopya
@@ -60,7 +57,11 @@
   (ACIK, icra sirada) · **K309 DILIM-1 MERGE EDILDI** (`25b38a82`): 73/112 hipotezi CURUTULDU →
   defter satir 75 · benzersiz 74 · DEVAM 101 · MENZIL_DISI 88 OLCEREK civilendi; kirilim+`kabul:`
   sayaci DEFTERDE, DILIM-2 (88 kalem tasima) MIMARDA · **K310** kutu blok basligi geri kondu (ACIK) ·
-  **K212 MERGE EDILDI** (`97370cc2`): taban rc=1 / 18 kirmizi / Traceback, dal rc=0 / 339 / 0.
+  **K212 MERGE EDILDI** (`97370cc2`): taban rc=1 / 18 kirmizi / Traceback, dal rc=0 / 339 / 0 ·
+  **K311 MERGE EDILDI** (`bcbdb1dd`, ACIK): ①②③ GECMEDI (`acilan_tur=1` 0→0 · `ONARIM/DAGITILAN`
+  0→0 · `kat_okan` 0→0), ④ CANLIDA KAPANDI (`tetik_rc` 10→11, `BITIS rc=1` ×2). Kok neden:
+  `onarim_kalemleri()` yalniz `🔧` sayiyor, defter `ACIK` yaziyor → `ACIK_KALEM=0` ×55 tur, ③
+  YAPISAL OLARAK ULASILAMAZ → [[defter-durum-sozlugu-onarim-bacagini-korlestirir]].
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (TAM METIN ARSIVDE):** (i) kuru kosum OLCULDU 25 Agu (1512/234, sir elemesi 5/5; BULGU:
   gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a) · (ii) kablolama MIMARDA ·
@@ -82,8 +83,6 @@
 - 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
   AILE · gyro `doku=duz` · 8 fiyat ONAY (280/190/170/350=TAVAN/160/240/140/220); kupler render CELISKILI.
   PAKET main'de (`7ce644ae`). kabul (icra): ONIZLEME_AILELER 22→30 · taban-fiyat 21→29 · +8 sari kayit · 8 gorsel R2 200 · parite yesil.
-- ✅ **K222 KAPANDI** (26 Agu, chip `KraL-K309Senkron`): iddia CURUTULDU — V18 (BAYATLIK imzasi +
-  rc=0 -> `ONARILDI` BASILMAZ) YESIL, M6 mutanti hedef kolu OLDURDU. Tam metin KAYNAK-DOGRUSUNDA.
 - 🔧 **K220 (KraL):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden besleniyor; liste iki rol tasiyor
   ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
   sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
