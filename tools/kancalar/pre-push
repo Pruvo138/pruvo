@@ -199,10 +199,22 @@ rm -f "$pruvo_gd_girdi"
 # FAIL-OPEN: yedek patlasa/Drive olmasa bile push ASLA durmaz (blokta 'exit' YOK).
 # UCUZ: --gerekliyse son damgadan beri degisiklik yoksa tek dosya bile kopyalamaz.
 # Gorunurluk: python3 tools/durum.py  -> "7) YEDEK TAZELIGI"
+# 🔴 K308 (27 Agu 2026) — BEYAN VAR, OLCUM YOK: cagri `>/dev/null 2>&1` ile
+# susturuluyordu, yani rc!=0'in SEBEBI hicbir yere dusmuyordu. Kullanici
+# `durum.py`ye yonlendiriliyordu ama pano SONUCU (⚠⚠ YARIM KALMIS YEDEK)
+# gosterir, SEBEBI degil -> "yedek alinamadi" her seferinde tanisiz kaliyordu.
+# CARE ICAT EDILMEDI: 20 satir asagidaki kutu-arsivle blogunun DESENI buraya
+# tasindi (cikti degiskene alinir; rc!=0 ise tani kuyrugu basilir).
+# 🔴 PUSH DAVRANISI DEGISMEDI: blokta hala 'exit' YOK -> fail-open, push DEVAM eder.
+# Basarili yedek yine SESSIZDIR (her push'a gurultu basilmaz).
 pruvo_kok=$(git rev-parse --show-toplevel 2>/dev/null)
 if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/yedekle.py" ]; then
-  if ! python3 "$pruvo_kok/tools/yedekle.py" --gerekliyse >/dev/null 2>&1; then
-    echo "!! YEDEK alinamadi (push DEVAM ediyor) — kontrol: python3 tools/durum.py"
+  pruvo_yedek_cikti=$(python3 "$pruvo_kok/tools/yedekle.py" --gerekliyse 2>&1)
+  pruvo_yedek_rc=$?
+  if [ "$pruvo_yedek_rc" -ne 0 ]; then
+    echo "!! YEDEK alinamadi (rc=$pruvo_yedek_rc, push DEVAM ediyor) — kontrol: python3 tools/durum.py"
+    printf '%s
+' "$pruvo_yedek_cikti" | tail -3
   fi
 fi
 # --- ORTAK POSTA KUTUSU ARSIVI (tools/kutu-arsivle.py) ---
