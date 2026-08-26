@@ -2,13 +2,12 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔴 26 AGU 3. TUR · main=origin `8f9b12f4` · YAYIN KAPALI · TAM METIN KUTUDA
-🔴 **YAYIN ~4,7 SAAT KAPALI:** son yesil `55056922` 08:22Z; sonra **11 failure + 5 cancelled**.
-✅ **K313 tekil-yama KAPANDI** (MaCiT `e450697c`, bagimsiz dogrulandi: gorselsiz **9→0**, katalog
-30901→30901 SILME YOK) — **sinif kolu ACIK.** 🔴 **K314 ACILDI (IKI YUZ):** ① `serit-a3` sirali kapi
-ariza kuyrugunu GIZLIYOR — tek kesintide DORT ayri kirmizi adim ardarda ciktir; ② su anki engel
-`kisisel-veri-test` KURAL A: `k309-d2` merge'i (`8f9b12f4`) IKI ic kosum raporunu IZLENEN biraktisti
-(`k309d2-*-rapor.txt`) — **bu turda artiklariyla birlikte depodan cikarildi.**
+## ✅ 26 AGU 3. TUR · main=origin `6da4508d` · YAYIN ACILDI · TAM METIN KUTUDA
+✅ **YAYIN ACILDI `6da4508d`** (`32972808264` deploy+yayin `success`) — 4,7 saatlik kesinti bitti
+(onceki yesil 08:22Z; arada 11 failure/5 cancelled). Canli teyit CACHE-BUST'SIZ: 17/17 gorsel, bozuk 0.
+✅ **K313 tekil kol KAPANDI** (gorselsiz 9→0, katalog 30901→30901 SILME YOK) — **sinif kolu ACIK.**
+🔴 **K314 (IKI YUZ):** ① `serit-a3` ilk kirmizida durup KUYRUGU gizliyor (tek kesintide 4 adim) ·
+② `k309-d2` merge'i chip'in ic kosum raporlarini IZLENEN birakti → asil engel BUYDU; 10 artefakt cikti.
 ✅ **K152 on sarti COZULDU: `claude/musing-shaw-2fb705` MERGE** (tek dosya `koken-bul.py` +487; kanit:
 kabul komutu `rc=2 dosya YOK`). Icra chip'te (kod kilidi → worktree merge + `--ff-only`).
 ✅ **K291 "yapisal kilit" CURUTULDU:** `parti-kapisi.py:210/351` muafiyet TOKEN sinirinda —
