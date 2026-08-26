@@ -14,6 +14,11 @@
     "azami_bayt": 4096,
     "gerekce": "Mimar karari 15 Agu 2026: bu dosya posta kutusu izleme cron'unun ROLLING ANKORUDUR — son islenen girdiyi tutar, eski girdiler dustukce KUCULUR (olculdu: 485 -> 185 -> 412 bayt). Kucultme burada normal calisma, veri kaybi degil. Tavan 4096 bayt BILEREK dardir: ankor birkac yuz bayt mertebesindedir, tavan hicbir gercek veri dosyasinin (or. 10 MB'lik kaynak kaydi) bu beyanla sessizce kaybolmasina izin vermez. Tavani asan bir dusus beyanla GECMEZ."
   },
+  "MEMORY.md": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": 1896,
+    "gerekce": "Mimar karari 26 Agu 2026 (KraL) — BaBa'nin m-beyin evindeki indeks kurasyonu. HUKUM BaBa'nin (baska evin hafizasi), BEYAN KraL'in duzleminde. 🔴 BEYAN YAZILMADAN ONCE UC EKSEN OLCULDU, BaBa'nin raporu KABUL EDILMEDI: (1) BOYUT — canli indeks 1896 B, arsiv kopyasi eski-indeks-arsiv-20260826.md 7258 B, kanonik yedekteki dusen indeks 6688 B (ls ile, ucu de dogrulandi). (2) ICERIK KAYIPSIZLIGI — kanonik yedekteki 6688 B'lik indeksin HER satiri arsiv dosyasinda aranmis, 'grep -Fxvf arsiv yedek' cikti BOS: yedekte olup arsivde OLMAYAN satir SIFIR. Yani 6688 B'lik kanonik kopyanin dusurulmesi kayip DEGIL, icerik tasindi. (3) MENZIL — dokuz canli MEMORY.md'nin boyutlari sayildi, 1896 B'ye esit olan TAM OLARAK BIR tane; tek-seferlik + tam boyut sarti diger sekizi KAPSAMIYOR (aracin kendi docstring'i: 'beyan TEK BASINA yetmez, daima bir SAYI sartiyla olculur'). AYRICA SUPHE CURUTULDU: BaBa'nin 04:00 crontab satirindaki derle.py MEMORY.md'ye HIC dokunmuyor ('grep -c MEMORY derle.py' = 0), yani yarin yeniden daraltma riski YOK. NEDEN GEREKLI: bu dusus 26 Agu'da yedek zincirini KILITLEMISTI — koruma karantinasi rc=1 donduruyor, her push'ta '!! YEDEK alinamadi' basiliyor ve HICBIR evin hafizasi Drive'a yazilmiyordu (uc ardisik push'ta olculdu; damga 10:24:33.858, kilit izi hata= 10 ms sonra -> kosum tamamlaniyor, dusus damga_yaz'dan SONRA). KAPI SUSTURULMADI, dogru calisiyordu. Kabul: beyan sonrasi ilk push'ta '!! YEDEK alinamadi' satiri YOK + karantina satiri temiz. NOT: ayni evin @gmail.com'lu IKINCI namespace'i (126 B, 25 Agu artigi) karantinada DEGIL, bu beyan onu kapsamaz, tekillestirme beyin oturumunun isi."
+  },
   "posta-kutusu-macit-izleme-ankor.txt": {
     "tur": "surekli",
     "azami_bayt": 4096,
