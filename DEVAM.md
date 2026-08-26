@@ -56,7 +56,9 @@ Claude-isci izni KALDIRILDI · Okan'da bekleyen karar YOK.
   `DURUM_BITMEYEN_TUR`, `DAGITILMAZ_DURUMLAR` disinda; kabulun 1. kolu ERISILEBILIRLIK.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
+- 🔴 **K212 — CHIP'TE (`KraL-K212Yedek`, `task_91665bf8`):** iki kusur da kodda ONARILMIS GORUNUYOR
+  (yorum KANIT DEGIL); chip olcuyor + K188 + bugunku canli ariza. · 🔧 **K308 (YENI):** pre-push yedek
+  blogu hatayi YUTUYOR (`>/dev/null 2>&1`), care ayni kancada 20 satir altta. ICRA K306 SONRASI. Ikisi de KUTUDA.
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (TAM METIN ARSIVDE):** (i) kuru kosum OLCULDU 25 Agu (1512/234, sir elemesi 5/5; BULGU:
   gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a) · (ii) kablolama MIMARDA ·
