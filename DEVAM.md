@@ -2,8 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔚 26 AGU KAPANISI — TAM METIN ARSIVDE (K272 rotasyon vetosu)
-**CANLI KALAN:** K302 MaCiT'te · K250 kalan 4 ev · Claude-isci izni KALDIRILDI · Okan'da karar YOK.
+## 🔚 26 AGU 2. KAPANIS · main=origin `bfd2cb80` · TAM METIN KUTUDA
+**KOSUYOR:** `KraL-Temizlik26` (`k309-d2` merge onda, m3). **BEKLIYOR:** K308·K310·K311 kabulleri
+`OLCULEMEDI (kapi reddi)` — kilit **K291 canli vakasi** (N2B `ACIK=9`). K302 MaCiT'te · K312 ACIK · Okan'da karar YOK.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu gecesi KAPANAN 4 KALEM — TAM METIN ARSIVDE** ("KAPANAN 4 KALEM" basligi): **K250**
