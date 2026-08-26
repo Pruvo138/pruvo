@@ -2,14 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔚 26 AGU OTURUM KAPANISI (KraL) · main=origin `35fd480a` SHA-BIREBIR · worktree **1** · KOSAN chip **YOK**
-**CANLIYA GITTI:** `dd903d78` K305 yayin acildi · `bf51d521` urun silme GERI ALINDI · `dd7052fa` K302 kapi ·
-`033f9466`/`575c2bdd` K303 · 6 defter commit'i. Zincir YESIL: `32909205580` SUCCESS (deploy+yayin) ·
-D1 5/5 eksen · UYUSMAZ=0 · TASLAK=0 · katalog 30778.
-**BEKLIYOR:** K302 kok neden MaCiT'te · K250 kalan 4 ev kendi mimarinda · K306.
-**TEMIZLIK:** 15 mimar + 37 isci gecici dosyasi silindi; scratchpad+worktrees BOS, kokte rapor YOK,
-87 yerel+33 uzak dal silindi, kutu 2 kez lossless.
-**OKAN KARARI:** Claude-isci izni KALDIRILDI · **K306 sonraki oturumun ILK isi** · bekleyen YOK.
+## 🔚 26 AGU KAPANISI — TAM METIN ARSIVDE (elle indirildi; rotasyon araci TASINAN=0 verdi, K272)
+**CANLI KALAN:** K302 kok neden MaCiT'te · K250 kalan 4 ev kendi mimarinda · K306 CHIP'TE ·
+Claude-isci izni KALDIRILDI · Okan'da bekleyen karar YOK.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu gecesi KAPANAN 4 KALEM — TAM METIN ARSIVDE** ("KAPANAN 4 KALEM" basligi): **K250**
@@ -18,8 +13,9 @@ D1 5/5 eksen · UYUSMAZ=0 · TASLAK=0 · katalog 30778.
 - 🔧 **K250 KALAN:** KaaN·ArTisT·HocA·BaBa — her biri tek satirlik `expanduser` duzeltmesi, KENDI
   mimarlarinda; KraL kardes depoya yazmaz. · 🔧 **K302 KALAN:** kok neden MaCiT'in `olcum/hasat_ekle.py`
   dosyasinda, kutuda bildirildi.
-- 🔧 **K306 (SINIF, iki evi birden):** pre-push kancasi her push'ta 30.366 kapak tariyor, 600 sn
-  tavanini asiyor; vaka ARSIVDE. kabul: tarama ARTIMLI + olculen push suresi tavanin altinda.
+- 🔧 **K306 — CHIP ACILDI 26 Agu (`KraL-K306`, `task_05ad146f`):** `thumbnail-uret.py:52` her kapak
+  icin TEK TEK `head_object` (30.366 tur, sabit). Hukum+7 madde kabul+DOKUNULMAZ kol KUTUDA;
+  `kabul:` alani DEFTERDE (`thumbnail-artimli-test.py`).
 - ✅ **K307 KAPANDI:** D1 bayat hash 1→0; 345 taslagi CI `yayin` job'i akitti (`32909205580`).
   🔧 Yan bulgu: isci probu `Range: bytes=0-0` yollayip 206 alinca canli sayfayi "olu" saydi. → [[prob-kendi-baglamini-olcer]]
 - 🔴 **K304 (SINIF: BAYAT TEK KAYNAK, 1 turu yanlis motorda yakti):** `skills/codex-isci` motor sirasini
