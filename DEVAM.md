@@ -52,29 +52,21 @@
   `DURUM_BITMEYEN_TUR`, `DAGITILMAZ_DURUMLAR` disinda; kabulun 1. kolu ERISILEBILIRLIK.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🔴 **26 AGU YENI KALEMLER — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada
-  yalniz ISARETCI:** **K306 MERGE EDILDI** (`df3b0d48`) · **K308** kanca yedek blogu hatayi YUTUYOR
-  (ACIK, icra sirada) · **K309 DILIM-1 MERGE EDILDI** (`25b38a82`): 73/112 hipotezi CURUTULDU →
-  defter satir 75 · benzersiz 74 · DEVAM 101 · MENZIL_DISI 88 OLCEREK civilendi; kirilim+`kabul:`
-  sayaci DEFTERDE, DILIM-2 (88 kalem tasima) MIMARDA · **K310** kutu blok basligi geri kondu (ACIK) ·
-  **K212 MERGE EDILDI** (`97370cc2`): taban rc=1 / 18 kirmizi / Traceback, dal rc=0 / 339 / 0 ·
-  **K311 MERGE EDILDI** (`bcbdb1dd`, ACIK): ①②③ GECMEDI (`acilan_tur=1` 0→0 · `ONARIM/DAGITILAN`
-  0→0 · `kat_okan` 0→0), ④ CANLIDA KAPANDI (`tetik_rc` 10→11, `BITIS rc=1` ×2). Kok neden:
-  `onarim_kalemleri()` yalniz `🔧` sayiyor, defter `ACIK` yaziyor → `ACIK_KALEM=0` ×55 tur, ③
-  YAPISAL OLARAK ULASILAMAZ → [[defter-durum-sozlugu-onarim-bacagini-korlestirir]].
+- 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
+  ISARETCI** (uzun hali `DEVAM-ARSIV.md` 26 Agu ROTASYON blogu 1/5): K306 MERGE `df3b0d48` · K308 ACIK ·
+  K309 DILIM-1 MERGE `25b38a82` (DILIM-2 MIMARDA) · K310 ACIK · K212 MERGE `97370cc2` KAPANDI · K222
+  KAPANDI · K311 MERGE `bcbdb1dd` ACIK (①②③ GECMEDI, ④ canlida kapandi; kok neden
+  [[defter-durum-sozlugu-onarim-bacagini-korlestirir]]) · **K312 ACILDI** (nobet hatti urunler.json'a yazdi).
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (TAM METIN ARSIVDE):** (i) kuru kosum OLCULDU 25 Agu (1512/234, sir elemesi 5/5; BULGU:
-  gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a) · (ii) kablolama MIMARDA ·
-  (iii) kostugu kanit.
+  gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a) · (ii) kablolama MIMARDA · (iii) kostugu kanit.
 - 🔧 **K199 (19 Agu, KraL):** `is-akisi-kapisi.py` "etkili tasiyici" tanimi LITERALE capali;
-  varlik turetilmis mekanizmaya gecince korlesiyor (K193). Care: sonucu olc ya da makine-okunur
-  beyani tasiyici say; mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT KENDINI OLCMEZ** — bes vaka;
+  varlik turetilmis mekanizmaya gecince korlesiyor (K193). Care: sonucu olc ya da makine-okunur beyani
+  tasiyici say; mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT KENDINI OLCMEZ** — bes vaka;
   her kayit ya TURETILIR ya kendi sayisiyla KABUL EDILIR, "EKLE" yetmez SAYI sart.
 - 🔧 **K196 (DEPO GENELI):** CI node 20 / yerel 25.8.1 → yerel JS yesilleri CI surumunde OLCULMEMIS. ARSIVDE.
 - 🔴 **K197: 19 Ağu mimara giden rapor içeriği (239 satır / 11.617 B) KAYBEDİLDİ — gitignore deseni + ağaç silme sırası.** Birebir cümle + öz KUTUDA.
-- 🔴🔴 **K311 (Okan, 3. TEKRAR) — CHIP'TE (`KraL-K311Nobet`):** nobet onarimi 2 HAFTADIR
-  hic is yapmadi, kendini YESIL raporluyor (`acilan_tur=1`=0/48 · `ONARIM=0`=56/56 · `kat_okan=0` ·
-  42 eskalasyon `deneme=3`). T1/T3/T4/T5 altta. · 🔧 **K217** tavan fiksturu.
+- 🔧 **K217** tavan fiksturu. (K311 tam metni kaynak-dogrusunda; defterdeki ikinci kopya ARSIVE indi 2/5.)
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
   ayri jeton + mutant hedef-kol atfi) · 🔧 **K191** (tarama SPEC'i isi ONCULDEN aliyor; sahibi
   MaCiT; kabul: ILK blok KAPSAM ON-OLCUMU + tazelik capasi). **Ikisinin tam metni ARSIVDE.**
@@ -90,8 +82,7 @@
 ## KraL ACIK ARTIKLAR (19 Agu anlati blogu ARSIVE TASINDI; kota uyarisi da orada)
 🔧 **K203:** tavan kapisi worktree ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami);
 K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204:** `OKSUZ` fiilen
-"kirli mi" olcuyor, TEK BASINA kaldirma gerekcesi DEGIL. · 🔧 **K188:** yarim yedek OLCULEBILIR;
-kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
+"kirli mi" olcuyor, TEK BASINA kaldirma gerekcesi DEGIL. · 🔧 **K188** → kaynak-dogrusunda (5/5).
 - 🔧 **K218 · K219 · K221:** tam metinler ARSIVDE. (K195 merge edildi `528da42d`.)
 - 🔧 **K198 (19 Agu — ⚖️ OKAN KAPISI):** izlenen yapilandirmada ticari alan var, nobetci o duzlemi
   taramiyor (muafiyette de yok). **Tam metin ARSIVDE.** kabul: OLCER ya da `KAPSAM DISI` + mutant.
@@ -110,18 +101,18 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - 🟠 **K144 (UCUSTAKI KOSUM):** ardarda push'lar build'i `cancelled` ediyor (ARIZA DEGIL);
   hukum her turda guncel uca tasiniyor. Tam metin ARSIVDE.
   kabul: guncel ucu ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
-- 🔧 **K140 (17 Agu — hukum verildi, icra kaldi):** kapi EVREN KAYNAGI hatasi (cip evreni kuratorlu). Tam metin ARSIVDE. kabul: `marka-invaryant-kapisi.py` 7 jeton DUSMUS + `Rover` DURUYOR + mutasyon 4/4.
+- 🔧 **K140** → kaynak-dogrusunda (ikinci kopya ARSIVE indi 4/5).
 - 🔧 **17 Agu KALEMLERI:** K163 · K162 · K157 (⚖️ Okan, 22 Agu) · K158 · K146 · K142 (MaCiT) · K118. TAM METIN ARSIVDE.
 - 🔴 **K104 / K104B:** nobet sicili + iki kapi main'de kirmizi. HUKUM MIMARDA. · **K99**
   bag kolonu · **K100** satir-sonu muafiyeti · **K102** yasakli ic dosya adi.
-- 🟠 **K152 (17 Agu — OKAN KARARI kapsami belirledi):** "sitede bulunan tum urunler satilabilir." Tam metin ARSIVDE.
-  kabul: `python3 tools/koken-bul.py --eksik` → `EKSIK` DUSER **VE** `--kendini-test` rc=0.
+- 🟠 **K152** → kaynak-dogrusunda (ikinci kopya ARSIVE indi 3/5).
 - 🔧 **Iki acik kapi kalemi:** (a) shop bayatlik TETIK ekseni ≠ bundle evreni; (b) `devam-sinif-kapisi.py`
   is-akisi muafiyeti `norm`/`ham` ayrisiyor. · 🟠 **K122:** `kurtarma/k122-yabanci-is` dali DURUYOR. ARSIVDE.
 - 🔧 **K151 · K161 (17-19 Agu):** ikisinin de TAM METNI ARSIVDE (20 Agu 1:1 tasima blogu).
 
 ## OKAN'DA
-- 🔧 25 Agu 20:54Z: VW denetim-kapisi 3 ardisik FAIL tamamlandi (9eecd8ac VW dilim-1 → 35bf4229 VW dilim-2 → 9288e5eb Mazda); §3 DUR aktif; tek fix urunler.json content edit = YASAK + MaCiT tek-yazar; Okan insa karari bekleniyor.
+- ✅ **KAPANDI 26 Agu** (25 Agu 20:54Z VW/Mazda denetim FAIL zinciri): duzeltme git'te DORT kez yapildi ve
+  yayin acildi → `5ad5879e`·`8759f3e2`·`1ab3426a`·`1026298c`; karar konusuz, beklenen YOK. Artik → **K312**.
 - ✅ 25 Agu penceresi: 9 kalem kapandi → [[okan-25agu-kapatilan-konular]]; 🔴 yeniden ACILMAZ.
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
