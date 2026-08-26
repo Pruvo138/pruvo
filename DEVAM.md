@@ -2,12 +2,12 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔚 26 AGU 3. OTURUM KAPANISI · main=origin `fef07780` · YAYIN ACILDI · TAM METIN KUTUDA
-**KOSUYOR:** `KraL-Surucu-26Agu` (kabul TATBIKAT: cron'un KENDI turu dilim isleyip commit+push).
-**SIRADA (yarinki Tamirci):** (a) `karar()` seviye okumasi · (b) canli tur `ACIK_KALEM=0` · (c) IKI
-TABAN KIRMIZISI TEK KALEMDE (`gozcu-mutasyon YAMA_TUTMADI=1` + dondurma `RC=1`) · (d) K308·K310·K314.
-**Temizlik:** worktree 7→3 · dal 40→36 · kutu 424→224. 🔴 `fef07780` deploy **PENDING** (gormeden
-kapaniyorum). Okan'da karar YOK.
+## 🔚 26 AGU 3. OTURUM KAPANISI · main=origin `54b3b201` · YAYIN ACILDI · TAM METIN KUTUDA
+**KOSUYOR: YOK.** 🔴 `KraL-Surucu-26Agu` KAPANIS NOTU BIRAKMADI; surucu CANLI
+(17:33→17:54 rc=0, MaCiT C3D d1-PREP uretti) ama "cron'un KENDI turu" atfi OLCULEMEDI.
+**SIRADA (Tamirci):** (a) `karar()` seviye okumasi · (b) `ACIK_KALEM=0` · (c) IKI TABAN KIRMIZISI TEK
+KALEMDE · (d) K308·K310·K314 · (e) K240: kurucu var-olan basligi TAZELEMIYOR.
+**Temizlik:** worktree 7→1 · dal 40→36 · gecici 115.219 B silindi. Okan'da karar YOK.
 ✅ **YAYIN ACILDI `6da4508d`** — 4,7 saat kesinti (son yesil 08:22Z, arada 11 failure/5 cancelled);
 kok neden BIZIM evde: `k309-d2` merge'i ic kosum raporlarini IZLENEN birakmisti. Canli teyit
 CACHE-BUST'SIZ 17/17 gorsel bozuk=0. ✅ KAPANAN: **K313** tekil kol (9→0, katalog 30901→30901 SILME
