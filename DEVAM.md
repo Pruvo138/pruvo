@@ -2,20 +2,22 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔚 26 AGU 3. OTURUM KAPANISI · main=origin `54b3b201` · YAYIN ACILDI · TAM METIN KUTUDA
-**KOSUYOR: YOK.** 🔴 `KraL-Surucu-26Agu` KAPANIS NOTU BIRAKMADI; surucu CANLI
-(17:33→17:54 rc=0, MaCiT C3D d1-PREP uretti) ama "cron'un KENDI turu" atfi OLCULEMEDI.
-**SIRADA (Tamirci):** (a) `karar()` seviye okumasi · (b) `ACIK_KALEM=0` · (c) IKI TABAN KIRMIZISI TEK
-KALEMDE · (d) K308·K310·K314 · (e) K240: kurucu var-olan basligi TAZELEMIYOR.
-**Temizlik:** worktree 7→1 · dal 40→36 · gecici 115.219 B silindi. Okan'da karar YOK.
-✅ **YAYIN ACILDI `6da4508d`** — 4,7 saat kesinti (son yesil 08:22Z, arada 11 failure/5 cancelled);
-kok neden BIZIM evde: `k309-d2` merge'i ic kosum raporlarini IZLENEN birakmisti. Canli teyit
-CACHE-BUST'SIZ 17/17 gorsel bozuk=0. ✅ KAPANAN: **K313** tekil kol (9→0, katalog 30901→30901 SILME
-YOK; **sinif kolu ACIK**) · **K53** (MaCiT rc=0) · **K302** (`fef07780`) · **K152 on sarti MERGE** ·
-**K44 DEVREDILDI** · bekci KURULDU · dondurma ① uygulandi.
-✅ **K291 "yapisal kilit" CURUTULDU** (muafiyet TOKEN sinirinda; eksik argumandi) → K308·K310·K311
-artik OLCULEBILIR; K291 kaleminin KENDISI ACIK. 🔴 **K314 ACILDI** (① `serit-a3` kuyrugu gizliyor
-② olcum aracinin cikti yolu git-disina civilenmemis).
+## ▶️ 27 AGU ACILIS · main=origin `69a56122` · agac TEMIZ · worktree 1 · kosan cip 0
+**K316 ACILDI (UCUSTA)** — Okan penceresi gunun BIRINCI isini sectI: **iki taban kirmizisi TEK
+SINIF** (*turetilebilir deger ELLE KOPYALANMIS, kaynagindan sessizce ayrismis*). V1
+`gozcu-mutasyon YAMA_TUTMADI=1` (capa `gozcu.py`den ayristi; satir 217 kapsami SESSIZCE daraltir,
+225'in fail-loud emniyeti KORUNUR) · V2 `nobet-kabul-test VAKA=46 DUSEN=2` (`onarim-el-kitabi.md`
+`kimi` yazar, `kat_sec` `ISCI_MOTORLARI`ndan `minimax-m3` turetir). **Gerekce:** taban kirmiziyken
+kuyruktaki 4 kalemin kabulu ("mutant kirmizi yanar") OLCULEMEZ. Cip `KraL-TabanKirmizi-27Agu`
+(`task_bf7385f7`). **Tekil yama YASAK.** Kabul: `MUTANT=16/16` (15/15 KABUL DEGIL) · `DUSEN=0` +
+`VAKA>=46` · 2 hedef-kol atifli mutant + KONTROL yesil · iki tur. **KUYRUKTA:** K314①② ·
+`karar()` seviye okumasi · `ACIK_KALEM=0` · K240. **MaCiT'e IADE:** `hasat_ekle.py:419-440` kardes
+depoda; `mimar-kod-kilidi` CIPI kapsamiyor → MaCiT evinde tek ciple kapanir (gerekce KUTUDA).
+
+## 🔚 26 AGU 3. OTURUM KAPANISI — ISARETCI (tam metin KUTUDA; kalemler `acik-kalemler.md`de)
+Yayin acildi `6da4508d` (4,7 saat kesinti, kok neden BIZIM evde) · kapanan K313-tekil/K53/K302/
+K152-on-sart/K44 · K291 CURUTULDU → K308·K310·K311 OLCULEBILIR · K314 ACILDI. Kuyrugun guncel
+hali yukaridaki 27 AGU blogunda. **1:1 kurali:** bu blok bugunku acilis blogu icin isaretciye indi.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu gecesi KAPANAN 4 KALEM — TAM METIN ARSIVDE** ("KAPANAN 4 KALEM" basligi): **K250**
@@ -24,8 +26,7 @@ artik OLCULEBILIR; K291 kaleminin KENDISI ACIK. 🔴 **K314 ACILDI** (① `serit
 - 🔧 **K250 KALAN:** KaaN·ArTisT·HocA·BaBa — her biri tek satirlik `expanduser` duzeltmesi, KENDI
   mimarlarinda; KraL kardes depoya yazmaz. · 🔧 **K302 KALAN:** kok neden MaCiT'in `olcum/hasat_ekle.py`
   dosyasinda, kutuda bildirildi.
-- ✅ **K307 KAPANDI** (`32909205580`; tam metin kutuda) · 🔧 yan bulgu: isci probu 206'yi "olu"
-  saydi → [[prob-kendi-baglamini-olcer]]
+- 🔧 K307 yan bulgu (kalem KAPANDI `32909205580`): isci probu 206'yi "olu" saydi → [[prob-kendi-baglamini-olcer]]
 - 🔴 **K304 (SINIF: BAYAT TEK KAYNAK):** `skills/codex-isci` motor sirasini KOPYALIYORDU; uc kopya
   SILINDI. kabul: `yedekle.py` BORCLU (surum kontrolu disi dizin).
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
@@ -59,10 +60,8 @@ artik OLCULEBILIR; K291 kaleminin KENDISI ACIK. 🔴 **K314 ACILDI** (① `serit
   gozcude CI_KIRMIZI · arsiv jetonu okunmadan tasiniyor. **Bes kalemin tam metni KUTUDA.**
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
 - 🔧 **K283:** baslik kolunun capa ekseni ureticiden BAGIMSIZ degil; kabul: ayri capa + `M4` mutanti KIRMIZI. KUTUDA.
-- ⚠️ K86'nin merdiven kaydi (`SEBEP=YETENEK SAYAC=5`, kova `OKAN_KAPISI`) artik KONUSUZ — kalem
-  25 Agu'da kapandi+merge edildi. **K281 CURUDU** (`KILIT_MUMKUN=0`). · 🔧 **K282 (OLCULEMEDI):**
-  `DURUM_BITMEYEN_TUR`, `DAGITILMAZ_DURUMLAR` disinda; kabulun 1. kolu ERISILEBILIRLIK.
-- 🧹 26 Agu disk: `~/.claude/cron` **344 MB -> 165M** (tarayici-profili 187->34); hedef <=200 ✅.
+- 🔧 **K282 (OLCULEMEDI):** `DURUM_BITMEYEN_TUR`, `DAGITILMAZ_DURUMLAR` disinda; kabulun 1. kolu
+  ERISILEBILIRLIK. (K86 merdiven kaydi KONUSUZ — kalem 25 Agu'da kapandi; **K281 CURUDU**.)
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
