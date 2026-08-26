@@ -2,9 +2,8 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔚 26 AGU KAPANISI — TAM METIN ARSIVDE (elle indirildi; rotasyon araci TASINAN=0 verdi, K272)
-**CANLI KALAN:** K302 kok neden MaCiT'te · K250 kalan 4 ev kendi mimarinda · K306 MERGE EDILDI ·
-Claude-isci izni KALDIRILDI · Okan'da bekleyen karar YOK.
+## 🔚 26 AGU KAPANISI — TAM METIN ARSIVDE (K272 rotasyon vetosu)
+**CANLI KALAN:** K302 MaCiT'te · K250 kalan 4 ev · Claude-isci izni KALDIRILDI · Okan'da karar YOK.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu gecesi KAPANAN 4 KALEM — TAM METIN ARSIVDE** ("KAPANAN 4 KALEM" basligi): **K250**
@@ -18,8 +17,8 @@ Claude-isci izni KALDIRILDI · Okan'da bekleyen karar YOK.
   IDDIA=4/4 MUTANT=3/3 KONTROL=1/1. TABAN/SONRA duvar saati: OLCULEMEDI (ag).
 - ✅ **K307 KAPANDI** (`32909205580`; tam metin kutuda) · 🔧 yan bulgu: isci probu 206'yi "olu"
   saydi → [[prob-kendi-baglamini-olcer]]
-- 🔴 **K304 (SINIF: BAYAT TEK KAYNAK, 1 turu yanlis motorda yakti):** `skills/codex-isci` motor sirasini
-  CLAUDE.md'den KOPYALIYORDU; uc kopya SILINDI. kabul: `yedekle.py` BORCLU (surum kontrolu disi dizin).
+- 🔴 **K304 (SINIF: BAYAT TEK KAYNAK):** `skills/codex-isci` motor sirasini KOPYALIYORDU; uc kopya
+  SILINDI. kabul: `yedekle.py` BORCLU (surum kontrolu disi dizin).
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
 - 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
   kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
@@ -72,7 +71,9 @@ Claude-isci izni KALDIRILDI · Okan'da bekleyen karar YOK.
   her kayit ya TURETILIR ya kendi sayisiyla KABUL EDILIR, "EKLE" yetmez SAYI sart.
 - 🔧 **K196 (DEPO GENELI):** CI node 20 / yerel 25.8.1 → yerel JS yesilleri CI surumunde OLCULMEMIS. ARSIVDE.
 - 🔴 **K197: 19 Ağu mimara giden rapor içeriği (239 satır / 11.617 B) KAYBEDİLDİ — gitignore deseni + ağaç silme sırası.** Birebir cümle + öz KUTUDA.
-- 🔧 **K217** (tavan nobetcisi fiksturu MIMAR sayiyor) · 🔴 **T1/T3/T4/T5** (nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da). Ikisi de KUTUDA.
+- 🔴🔴 **K311 (Okan, 3. TEKRAR) — CHIP'TE (`KraL-K311Nobet`):** nobet onarimi 2 HAFTADIR
+  hic is yapmadi, kendini YESIL raporluyor (`acilan_tur=1`=0/48 · `ONARIM=0`=56/56 · `kat_okan=0` ·
+  42 eskalasyon `deneme=3`). T1/T3/T4/T5 altta. · 🔧 **K217** tavan fiksturu.
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
   ayri jeton + mutant hedef-kol atfi) · 🔧 **K191** (tarama SPEC'i isi ONCULDEN aliyor; sahibi
   MaCiT; kabul: ILK blok KAPSAM ON-OLCUMU + tazelik capasi). **Ikisinin tam metni ARSIVDE.**
