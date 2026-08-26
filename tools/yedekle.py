@@ -1797,6 +1797,30 @@ def _drive_kopyala_karantinali(kaynak, varis):
         return False
 
 
+def karantina_etiketi(yol, backup):
+    """Karantinaya dusen dosyanin AYIRT EDICI etiketi = yedek kokune GORECE yol.
+
+    🔴 OLCULDU (26 Agu 2026, K212Yedek): bu satir `os.path.basename(yol)` basiyordu.
+    EK KAPSAM'la birlikte yedekte AYNI ADI tasiyan DOKUZ `MEMORY.md` var (her ev +
+    her hafiza uzayi birer tane) -> "ATLANDI: MEMORY.md" satiri HANGI dosyanin
+    dustugunu SOYLEMIYOR. 26 Agu'da her push'ta rc=1 ureten gercek vakada dosyayi
+    bulmak icin dokuz evin MEMORY.md'sini TEK TEK boyutlamak gerekti; kosumun kendi
+    kaydi ne suclayabildi ne akladi. Bir teshis satirinin TEK isi kaydi AYIRT
+    ETMEKTIR; ayirt etmiyorsa kayit YOK hukmundedir
+    ([[ikinci-silici-birincinin-emniyetini-sifirlar]] ucuncu sarti:
+    "ne yapildiginin kaydi — kimlik + insan-okur etiket").
+
+    Yedek kokunun disina dusen (beklenmeyen) yol MUTLAK haliyle basilir: bilgi
+    hicbir kolda DARALTILMAZ. `backup` bilinmiyorsa da mutlak yol doner."""
+    if not backup or not yol:
+        return yol
+    try:
+        gor = os.path.relpath(yol, backup)
+    except ValueError:                   # farkli surucu/kok: gorece yol YOK
+        return yol
+    return yol if gor == os.pardir or gor.startswith(os.pardir + os.sep) else gor
+
+
 def _kopyala_gerekliyse(kaynak, varis):
     """Idempotent kopya: hedef AYNI boyut ve >= mtime ise DOKUNMAZ.
     Doner: True = kopyalandi, False = zaten guncel.
@@ -2842,7 +2866,7 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
         print("KORUMA KARANTINASI: %d dosya ATLANDI (kanonik yedekleri DEGISMEDI); "
               "diger dosyalar yedeklendi." % len(_KORUMA_KARANTINA))
         for yol, sebep in _KORUMA_KARANTINA:
-            print("  ATLANDI: %s   -> %s" % (os.path.basename(yol), sebep))
+            print("  ATLANDI: %s   -> %s" % (karantina_etiketi(yol, backup), sebep))
         print("bitti (karantinali) ->", backup)
         return 1
     print("bitti ->", backup)
