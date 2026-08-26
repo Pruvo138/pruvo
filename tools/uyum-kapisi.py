@@ -632,14 +632,13 @@ def kabul(kok, katalog_yolu=None):
     # B4 — 7'LI CAPA NOBETI (fail-closed). MaCiT'in kova ayrimi bu sayiya dayanir: kume
     # kayarsa "Kova2 = 4 kayit" olcumu sessizce yanlislanir. Sayi DEGIL KIMLIK dondurulur
     # (S2 dersi: sayiyi sabit tutup uyeyi degistirmek gorunmez kalirdi).
-    # 🔴 8. UYE (26 Agu 2026, K302 kahve eki): `AeroPress` IZINLI'ye girince katalogdaki
-    # `"Aeropress"` (1 kayit) yazim varyanti sayilmaya BASLADI -> capa 7'den 8'e cikti.
-    # Bu capanin KIRILMASI DEGIL, tam olarak ISLEMESIDIR: kume kaydi, capa bagirdi.
-    # Kanonik yazim `AeroPress` secildi (gercek marka + katalog cogunlugu 3/1). Kalan
-    # 1 varyant kaydin normalizasyonu MaCiT duzlemindedir (duzelt.py); veri duzelince
-    # bu uye capadan DUSER ve capa yeniden 7'ye iner — o da fail-loud gorulecektir.
-    _b4_capa = {"BaoFeng", "Citroën", "Ikea", "KIA", "MINI", "SMART", "Ssangyong",
-                "Aeropress"}
+    # 🔴 8. UYE GELDI ve GITTI (26 Agu 2026, K302 kahve eki): `AeroPress` IZINLI'ye girince
+    # katalogdaki `"Aeropress"` (1 kayit) varyant sayilip capa 7->8 cikti; AYNI GUN o kayit
+    # kanoniklestirildi (`3c4ff3bb`, urunler.json 1 satir) -> katalogda `"Aeropress"` 0 ·
+    # `"AeroPress"` 4 OLCULDU ve uye capadan DUSTU. Bu, yukaridaki notun ONGORDUGU fail-loud
+    # inistir (kume kaydi, capa bagirdi): kume 7'ye indi, capa da 7'ye indirildi. Uye ELLE
+    # geri EKLENMEZ; katalogda varyant yeniden dogarsa capa yine KIRMIZI yakar.
+    _b4_capa = {"BaoFeng", "Citroën", "Ikea", "KIA", "MINI", "SMART", "Ssangyong"}
     _b4_jeton = set()
     for u in katalog:
         if isinstance(u, dict) and isinstance(u.get("marka"), list):
@@ -648,10 +647,10 @@ def kabul(kok, katalog_yolu=None):
                     _b4_jeton.add(x)
     _b4_olculen = {j for j in _b4_jeton
                    if not A.uyum_marka_kanonik(j) and A.marka_varyanti_sebebi("model", j)}
-    dogrula("B4 YAZIM VARYANTI CAPASI: `marka_varyanti_sebebi()` gercek katalogda TAM 8 "
+    dogrula("B4 YAZIM VARYANTI CAPASI: `marka_varyanti_sebebi()` gercek katalogda TAM 7 "
             "jeton yakaliyor ve KIMLIKLERI donmus deger ile birebir — sayi ya da uye "
             "kayarsa fail-closed KIRMIZI",
-            _b4_olculen == _b4_capa and len(_b4_olculen) == 8,
+            _b4_olculen == _b4_capa and len(_b4_olculen) == 7,
             "olculen(%d)=%s fazla=%s eksik=%s"
             % (len(_b4_olculen), sorted(_b4_olculen), sorted(_b4_olculen - _b4_capa),
                sorted(_b4_capa - _b4_olculen)))
