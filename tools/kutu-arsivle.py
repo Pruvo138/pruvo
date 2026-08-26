@@ -35,6 +35,10 @@ KURALLAR (hepsi kabul testiyle kilitli — tools/kutu-arsivle-test.py):
   * flock: kilit ALINDIKTAN SONRA okunur (bayat kopyayla yazmamak icin), atomik yazilir
     (gecici dosya + os.replace). Kilit alinamiyorsa exit 3, hicbir sey yazilmaz.
   * `--kuru`: hicbir sey yazmaz, ne yapacagini SAYIYLA basar (dogrulamayi yine kosar).
+  * BUTUNLUK (K310, 27 Agu): HER kosumda OKSUZ GOVDE (basliksiz dolu bolut) SAYILIR ve
+    ADIYLA BASILIR; sifir degilse `lossless_dogrulama` GECEMEZ ve hicbir sey yazilmaz —
+    tasinacak is olmasa bile. Ayrac (`---`) tasimayan bir kutuda bu eksen KORDUR ve
+    ciktida `EKSEN_KOR=` diye SOYLENIR (0 basilip "temiz" denmez).
 
 YAZMA SIRASI — NEDEN ONCE ARSIV: iki ayri dosya tek islemde atomik yazilamaz. Once ARSIV
 (ekleme), sonra KUTU (kisaltma) yazilir. Ikisinin arasinda cokme olursa sonuc MUKERRER
@@ -62,6 +66,9 @@ import tempfile
 
 VARSAYILAN_TAVAN = 300
 VARSAYILAN_KORU = 3
+# K310: arsiv KUYRUGU (rapor ekseni) varsayilan penceresi. Bugunun tasimalari bu
+# pencerenin icindedir; tarihsel arsivin tamami BILEREK kapsam disidir (bkz. AYRAC_RE notu).
+VARSAYILAN_ARSIV_KUYRUK = 400
 # O1 (16 Agu 2026): rotasyon sonrasi kutu tavanin bu kadarina kadar inmeli.
 # 0.8 = tavanin %80'i; gelecek birkac blok icin bas payi.
 SU_SEVIYESI_ORANI = 0.8
@@ -75,8 +82,134 @@ RC_OK = 0
 RC_KIRMIZI = 1      # bozuk girdi / lossless dogrulamasi gecmedi -> HICBIR SEY yazilmadi
 RC_KILIT = 3        # kilit baskasinda -> HICBIR SEY yazilmadi (fail-closed)
 
+# dogrula()'nin BASTIGI iddia eksenleri. `lossless_dogrulama=GECTI (iddia=N)` satirindaki
+# N BURADAN turer; elle yazilan sayi kaynagindan ayrisir ve beyan sessizce yalanlanir.
+IDDIA_EKSENLERI = ("D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D6b", "D6c", "D7",
+                   "D8", "D9", "D10", "D11", "D12", "D13")
+
 BLOK_RE = re.compile(r"^## ")
 FENCE_RE = re.compile(r"^\s*(```|~~~)")
+# Kutu blok AYRACI: cit DISINDA, tek basina duran yatay cizgi. Kutunun gercek sekli
+# (27 Agu olcumu): 11 blok / 11 ayrac — her blogun ARDINDAN bir ayrac gelir.
+AYRAC_RE = re.compile(r"^-{3,}[ \t]*$")
+
+# 🔴 K310 (27 Agu 2026) — "lossless_dogrulama=GECTI" BEYANI BLOK BUTUNLUGUNU OLCMUYORDU.
+# Olculen olay (26 Agu): `MaCiT-Seat-MW-Ekle` blogunun BASLIGI dustu, GOVDESI kutuda
+# oksuz kaldi; arac yine de `lossless_dogrulama=GECTI (iddia=10)` bastı. D1-D10 iddialarinin
+# HEPSI bu turun TASIMA ARITMETIGINI olcer (bayt/satir/blok korunumu) — dosyanin YAPISAL
+# BUTUNLUGUNU (her govdenin bir basligi var mi) HICBIRI olcmez. Yani ad "lossless" diyor,
+# olculen sey "bu turda bir sey kaybettim mi"; "elimdeki zaten kirik mi" sorusu hic
+# sorulmuyordu -> kirik kutu sessizce arsive kurekleniyordu.
+# CARE: OKSUZ GOVDE = ayraclar arasinda kalan, ICINDE DOLU SATIR OLAN ama `## ` basligi
+# TASIMAYAN bolut. Sayilir, ADIYLA BASILIR ve sifir degilse lossless GECEMEZ.
+# 🔴 KAPSAM DURUSTLUGU (bilerek dar): kapi yalniz KUTU ve bu turda ARSIVE EKLENEN metin
+# uzerinde caliсir. Tarihsel arsiv (50k satir) KARMA yazim gelenegi tasiyor (2333 baslik /
+# 479 ayrac: govde ici `---` yatay cizgileri + govde ici `## ` alt basliklari) — orada
+# ayrac ekseni YANLIS-POZITIF uretir ve bir hijyen aracini kalici kirmiziya cevirirdi
+# ([[kapi-ambiyansi-olcerse-komsu-kirmiziya-yakar]]). Arsiv KUYRUGU olculur ve BASILIR
+# ama cikis kodunu BELIRLEMEZ; hangi eksen kapi hangisi rapor, ciktida yazar.
+
+
+def bolutler(satirlar, bas=0):
+    """Ayracla bolunmus bolutler: [(bas_idx, son_idx_haric, baslik_sayisi, dolu_mu)].
+
+    Cit (```/~~~) icindeki `---` ve `## ` satirlari SAYILMAZ — blok_baslari() ile ayni
+    kural, ayni sebep (kod blogu icindeki metin yapi degildir).
+    """
+    cikti = []
+    ic = False
+    ilk = bas
+    baslik = 0
+    dolu = False
+    i = bas
+    while i < len(satirlar):
+        s = satirlar[i]
+        if FENCE_RE.match(s):
+            ic = not ic
+            dolu = True
+        elif ic:
+            if s.strip():
+                dolu = True
+        elif AYRAC_RE.match(s):
+            cikti.append((ilk, i, baslik, dolu))
+            ilk, baslik, dolu = i + 1, 0, False
+        elif BLOK_RE.match(s):
+            baslik += 1
+            dolu = True
+        elif s.strip():
+            dolu = True
+        i += 1
+    cikti.append((ilk, len(satirlar), baslik, dolu))
+    return cikti
+
+
+IMZA_RE = re.compile(r"^— \S")
+
+
+def imza_yigilmasi(metin, fm_atla=True):
+    """AYRACTAN BAGIMSIZ ikinci sinyal: bir bolutte >=2 satir-basi imzasi (`— Ad`).
+
+    Kutu geleneginde her blok kendi imzasiyla biter. Iki imza tek bolutte toplaniyorsa
+    aralarindaki `## ` basligi dusmus olabilir. Tarihsel arsivde bu gelenek her blokta
+    YOK (olculdu: 2333 baslik / 331 imza) -> bu eksen RAPORDUR, kapi DEGILDIR; kalibre
+    edilmeden cikis koduna baglanirsa komsuyu kirmiziya yakar.
+    """
+    satirlar = metin.splitlines(keepends=True)
+    bas = 0
+    if fm_atla:
+        fm_son, hata = frontmatter_sonu(satirlar)
+        if not hata and fm_son:
+            bas = fm_son
+    kac = 0
+    for b, s, _baslik, _dolu in bolutler(satirlar, bas):
+        imza = 0
+        j = b
+        while j < s:
+            if IMZA_RE.match(satirlar[j]):
+                imza += 1
+            j += 1
+        if imza >= 2:
+            kac += 1
+    return kac
+
+
+def ayrac_sayisi(metin, fm_atla=True):
+    """Cit disinda duran ayrac (`---`) sayisi. 0 ise OKSUZ GOVDE ekseni KORDUR."""
+    satirlar = metin.splitlines(keepends=True)
+    bas = 0
+    if fm_atla:
+        fm_son, hata = frontmatter_sonu(satirlar)
+        if not hata and fm_son:
+            bas = fm_son
+    return max(0, len(bolutler(satirlar, bas)) - 1)
+
+
+def oksuz_govdeler(metin, fm_atla=True):
+    """OKSUZ GOVDE listesi: [(1-indeksli bas satiri, ilk dolu satirin ozeti)].
+
+    OKSUZ GOVDE = dolu ama BASLIKSIZ bolut. Bir blogun basligi dustugunde govdesi tam
+    olarak bu hale gelir (K310 vakasi). Bos bolut (ardisik ayraclar, sondaki artik)
+    oksuz DEGILDIR — sayi gurultuyle sismesin.
+    """
+    satirlar = metin.splitlines(keepends=True)
+    bas = 0
+    if fm_atla:
+        fm_son, hata = frontmatter_sonu(satirlar)
+        if not hata and fm_son:
+            bas = fm_son
+    bulgu = []
+    for b, s, baslik, dolu in bolutler(satirlar, bas):
+        if not dolu or baslik:
+            continue
+        ornek = ""
+        j = b
+        while j < s:
+            if satirlar[j].strip():
+                ornek = satirlar[j].strip()[:70]
+                break
+            j += 1
+        bulgu.append((b + 1, ornek))
+    return bulgu
 
 
 # --------------------------------------------------------------------- okuma
@@ -383,10 +516,51 @@ def dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv, plan, t
     if sonra > tavan and plan.tasinacak_blok < plan.tasinabilir:
         h.append("D10 TAVAN: %d satir kaldi (tavan %d) ama %d tasinabilir blogun yalniz "
                  "%d'i tasindi" % (sonra, tavan, plan.tasinabilir, plan.tasinacak_blok))
+
+    # ---------------------------------------------------------------- K310 ekseni
+    # 11. OKSUZ GOVDE — KAYNAK KUTU. D1-D10 "bu turda kaybettim mi" diye sorar; bu iddia
+    #     "elimdeki zaten kirik mi" diye sorar. Kirik bir kutuyu arsive kureklemek, kaybi
+    #     iki dosyaya birden yayar -> once SOYLE, sonra tasi.
+    for satir_no, ornek in oksuz_govdeler(kutu_metin):
+        h.append("D11 OKSUZ GOVDE (KUTU): %d. satirda BASLIKSIZ dolu bolut -> bir blogun "
+                 "`## ` basligi DUSMUS olabilir | ilk satir: %s" % (satir_no, ornek))
+
+    # 12. OKSUZ GOVDE — BU TURDA ARSIVE EKLENEN METIN. Kutu temiz olsa bile kesim/uretim
+    #     kolu bir basligi geride birakirsa arsive oksuz govde yazilir; ayri iddia.
+    for satir_no, ornek in oksuz_govdeler(ek, fm_atla=False):
+        h.append("D12 OKSUZ GOVDE (EK): eklenen metnin %d. satirinda BASLIKSIZ dolu bolut "
+                 "| ilk satir: %s" % (satir_no, ornek))
+
+    # 13. BASLIK+GOVDE AYNI DUZLEME GITTI — tasinan HER blogun BASLIK satiri, yeni arsivin
+    #     eklenen kuyrugunda BIREBIR duruyor. (D4/D5 metnin sonda oldugunu olcer; bu iddia
+    #     BASLIK SAYISINI olcer -> "govde gitti, baslik gitmedi" hali ADIYLA yakalanir.)
+    ek_baslik = blok_sayisi(ek)
+    if ek_baslik != plan.tasinacak_blok:
+        h.append("D13 BASLIK SAYISI: plan %d blok tasiyor ama arsive eklenen metinde %d "
+                 "`## ` basligi var -> baslik ile govde AYRI dustu"
+                 % (plan.tasinacak_blok, ek_baslik))
     return h
 
 
 # ------------------------------------------------------------------- kilit + yazma
+def arsiv_kuyrugu(arsiv_metin, en_az_satir):
+    """(bas_satir_no_1indeksli, kuyruk_metni) — arsivin SON en_az_satir satirini kapsayan,
+    BLOK BASINDAN baslayan pencere.
+
+    NEDEN BLOK HIZALI: rastgele bir satirdan kesmek, pencerenin BASINDA yapay bir
+    "baslıksız govde" uretir ve raporu YALANLAR. Pencere daima bir `## ` basligindan
+    baslar; bulunamazsa dosyanin basindan baslar ve bu ciktida SOYLENIR.
+    """
+    satirlar = (arsiv_metin or "").splitlines(keepends=True)
+    if not satirlar:
+        return 1, ""
+    hedef = max(0, len(satirlar) - max(0, en_az_satir))
+    baslar = blok_baslari(satirlar)
+    uygun = [b for b in baslar if b <= hedef]
+    bas = uygun[-1] if uygun else (baslar[0] if baslar else 0)
+    return bas + 1, "".join(satirlar[bas:])
+
+
 def kilit_al(yol):
     """(fd, hata) — LOCK_EX|LOCK_NB. Kilit baskasindaysa fd None.
 
@@ -454,6 +628,10 @@ def main(argv=None):
                          "bloklar icin bas payi birakir.")
     ap.add_argument("--kuru", action="store_true",
                     help="hicbir sey yazma, ne yapacagini SAYIYLA bas")
+    ap.add_argument("--arsiv-kuyruk", type=int, default=VARSAYILAN_ARSIV_KUYRUK,
+                    help="arsivin son kac satirinda oksuz govde RAPORLANSIN (blok hizali; "
+                         "0 = kapali). RAPOR eksenidir, cikis kodunu BELIRLEMEZ — bkz. "
+                         "K310 kapsam notu")
     a = ap.parse_args(argv)
 
     if a.tavan < 1:
@@ -519,6 +697,34 @@ def main(argv=None):
               % (p.once_satir, p.blok_toplam, p.korunan, p.tasinabilir,
                  getattr(p, "su_seviye", int(a.tavan * a.su_seviye_orani))))
 
+        # 🔴 K310 — HER KOSUMDA olculur, is olsa da olmasa da. Bu arac kutunun TAMAMINI
+        # her push'ta okuyan TEK otomatik gozdur; yapisal butunlugu burada sormamak,
+        # hic sormamaktir.
+        kutu_oksuz = oksuz_govdeler(kutu_metin)
+        kutu_ayrac = ayrac_sayisi(kutu_metin)
+        print("oksuz_govde_kutu=%d ayrac_kutu=%d bolut_kutu=%d  [KAPI]"
+              % (len(kutu_oksuz), kutu_ayrac, kutu_ayrac + 1))
+        for satir_no, ornek in kutu_oksuz:
+            print("  ! KUTU %d. satir: BASLIKSIZ dolu bolut | %s" % (satir_no, ornek))
+        # 🔴 KORLUK BEYANI — "0" ile "olcemedim" AYNI SAYIYLA basilmaz. Ayracsiz bir
+        # kutuda dusen baslik govdeleri birlestirir ve YAPISAL iz birakmaz; bunu 0
+        # diye raporlamak K310'un kendi hatasini tekrar etmektir.
+        if kutu_ayrac == 0:
+            print("EKSEN_KOR=oksuz_govde_kutu sebep=kutuda ayrac (`---`) YOK -> tek bolut; "
+                  "dusen baslik bu eksende YAPISAL OLARAK gorunmez (0 = 'temiz' DEGIL, "
+                  "'olculemedi')")
+        print("imza_yigilmasi_kutu=%d  [RAPOR — ayractan bagimsiz ikinci sinyal; "
+              "cikis kodunu BELIRLEMEZ]" % imza_yigilmasi(kutu_metin))
+        if a.arsiv_kuyruk > 0:
+            k_bas, k_metin = arsiv_kuyrugu(arsiv_metin, a.arsiv_kuyruk)
+            k_oksuz = oksuz_govdeler(k_metin, fm_atla=False)
+            print("oksuz_govde_arsiv_kuyruk=%d  [RAPOR — kapsam: arsiv satir %d..%d "
+                  "(%d satir, blok hizali); cikis kodunu BELIRLEMEZ]"
+                  % (len(k_oksuz), k_bas, arsiv_once, arsiv_once - k_bas + 1))
+            for satir_no, ornek in k_oksuz:
+                print("  ! arsiv kuyrugunda OKSUZ GOVDE (pencere ici satir %d): %s"
+                      % (satir_no, ornek))
+
         if p.kesim is None:
             if p.tavan_asili_kaldi:
                 print("UYARI: %d satir tavani (%d) asiyor ama korunan %d blok disinda "
@@ -527,6 +733,14 @@ def main(argv=None):
             else:
                 print("tasinacak_blok=0 sonra_satir=%d" % p.once_satir)
                 print("TAVAN ALTINDA — is yok")
+            # 🔴 "Is yok" BUTUNLUK BEYANI DEGILDIR: tasima olmasa bile kirik kutu
+            # SESSIZ GECMEZ (K310'un ta kendisi — arac calisti, yesil dondu, kutu kirikti).
+            if kutu_oksuz:
+                print("BUTUNLUK KIRMIZI — HICBIR SEY YAZILMADI (tasima zaten yoktu):")
+                for satir_no, ornek in kutu_oksuz:
+                    print("  - D11 OKSUZ GOVDE (KUTU): %d. satirda BASLIKSIZ dolu bolut "
+                          "| ilk satir: %s" % (satir_no, ornek))
+                return RC_KIRMIZI
             return RC_OK
 
         yeni_kutu, tasinan, ek, yeni_arsiv = aday_metinler(
@@ -547,12 +761,18 @@ def main(argv=None):
             print("UYARI: tasinabilir bloklar tukendi, %d satir hala tavanin (%d) ustunde"
                   % (len(yeni_kutu.splitlines()), a.tavan))
 
+        ek_oksuz = oksuz_govdeler(ek, fm_atla=False)
+        print("oksuz_govde_ek=%d  [KAPI]" % len(ek_oksuz))
+
         if hatalar:
             print("LOSSLESS DOGRULAMASI KIRMIZI — HICBIR SEY YAZILMADI:")
             for x in hatalar:
                 print("  - %s" % x)
             return RC_KIRMIZI
-        print("lossless_dogrulama=GECTI (iddia=10)")
+        # 🔴 K310: beyan artik SAYIYA dayaniyor. `iddia` sayisi ELLE YAZILMAZ —
+        # IDDIA_EKSENLERI'nden turer (elle kopyalanan sayi kaynagindan ayrisir sinifi).
+        print("lossless_dogrulama=GECTI (iddia=%d, oksuz_govde_kutu=%d, oksuz_govde_ek=%d)"
+              % (len(IDDIA_EKSENLERI), len(kutu_oksuz), len(ek_oksuz)))
 
         if a.kuru:
             print("KURU KIP — hicbir sey yazilmadi")

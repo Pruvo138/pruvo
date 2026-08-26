@@ -27,12 +27,23 @@ VAKALAR (hepsi bloklayici):
   12. `--koru` tasinabilir blok birakmiyorsa: UYARI + hicbir sey yazilmaz
   13. kod CITI icindeki `## ` satiri blok basi SAYILMAZ
   14. arka arkaya iki kosum: ikincisi TAVAN ALTINDA der, toplam icerik KAYIPSIZ
+  17. 🔴 K310 — BASLIGI DUSMUS blok (oksuz govde): arac `GECTI` DEMEZ, sayaci ADIYLA
+      basar, rc!=0 doner ve HICBIR SEY yazmaz; kirmizinin METNI oksuz govde kolunu anar
+  18. K310 KONTROL — ayracli ve SAGLAM kutu: `oksuz_govde_kutu=0` basilir, lossless GECER
+  19. K310 KORLUK — ayracsiz kutuda `EKSEN_KOR=` beyani basilir (0 deyip GECILMEZ)
+
+🔴 17-19'UN FIKSTURU AYRI (`kutu_uret_ayracli`): 1-16 arasi fiksturler bloklari AYRAC
+(`---`) ile ayirmaz, CANLI kutu ayirir. Oksuz govde ekseni ayraca dayandigi icin bu uc
+vakanin fiksturu canli kutunun SEKLINI tasimak zorunda; yoksa olculen sey aracin
+davranisi degil fiksturun sekli olurdu.
 
 MUTASYON (cift yonlu, KOPYA uzerinde — canli dosyaya DOKUNMAZ):
     python3 tools/kutu-arsivle-test.py --mutasyon
-  (a) lossless dogrulamasini oldur -> suite KIRMIZI olmali
-  (b) flock cagrisini oldur        -> suite KIRMIZI olmali
-  (c) ilgisiz metin degisikligi    -> suite YESIL kalmali
+  (a) lossless dogrulamasini oldur   -> suite KIRMIZI olmali
+  (b) flock cagrisini oldur          -> suite KIRMIZI olmali
+  (d) oksuz govde kolunu oldur       -> suite KIRMIZI olmali (vaka 17)
+  (e) korluk beyanini oldur          -> suite KIRMIZI olmali (vaka 19)
+  (c) ilgisiz metin degisikligi      -> suite YESIL kalmali
   Mutasyon oncesi/sonrasi canli aracin sha256'si BASILIR ve ESITLIGI iddia edilir.
 
 Kullanim:
@@ -511,12 +522,88 @@ def v16_su_seviyesi_nop(arac, kok):
     iddia("16d 'TAVAN ALTINDA' basildi", "TAVAN ALTINDA" in cikti, cikti)
 
 
+# ------------------------------------------- K310: BLOK BUTUNLUGU (oksuz govde)
+# 🔴 NEDEN AYRI FIKSTUR: yukaridaki fiksturler bloklari AYRAC (`---`) ile ayirmaz;
+# CANLI kutu ayirir (27 Agu olcumu: 11 blok / 11 ayrac). Oksuz govde ekseni ayraca
+# dayandigi icin bu vakalarin fiksturu CANLI kutunun seklini tasimak ZORUNDA —
+# yoksa olculen sey aracin davranisi degil, fiksturun sekli olurdu.
+def kutu_uret_ayracli(n, baslik_dus=None):
+    """n blokluk, AYRACLI (canli kutu sekli) sentetik kutu.
+
+    baslik_dus verilirse o blogun `## ` BASLIK SATIRI dusurulur — govdesi ayraclar
+    arasinda OKSUZ kalir. K310'un olculen vakasinin birebir sekli."""
+    parcalar = [FM]
+    i = 0
+    while i < n:
+        g = blok(i)
+        if baslik_dus is not None and i == baslik_dus:
+            g = g.split("\n", 1)[1]          # yalniz BASLIK satiri dusurulur
+        parcalar.append(g + "---\n\n")
+        i += 1
+    return "".join(parcalar)
+
+
+def v17_oksuz_govde_kirmizi(arac, kok):
+    print("\n[17] K310 — BASLIGI DUSMUS blok (oksuz govde) -> GECTI DEMEZ, rc!=0")
+    metin = kutu_uret_ayracli(30, baslik_dus=20)
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    h1, h2 = sha(a.kutu), sha(a.arsiv)
+    iddia("17a fikstur GERCEKTEN tavani asiyor", len(metin.splitlines()) > 300,
+          "satir=%d" % len(metin.splitlines()))
+    iddia("17b fikstur GERCEKTEN ayracli (eksen KOR degil)",
+          metin.count("\n---\n") > 5, "ayrac=%d" % metin.count("\n---\n"))
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=300, koru=3)
+    iddia("17c rc SIFIR-DISI", rc != 0, "rc=%d\n%s" % (rc, cikti[-400:]))
+    iddia("17d 'lossless_dogrulama=GECTI' BASILMADI",
+          "lossless_dogrulama=GECTI" not in cikti, cikti[-300:])
+    iddia("17e oksuz govde sayaci ADIYLA basildi ve SIFIR DEGIL",
+          "oksuz_govde_kutu=" in cikti and "oksuz_govde_kutu=0" not in cikti,
+          cikti[-300:])
+    # 🔴 HEDEF-KOL ATFI: kirmizinin METNI oksuz govde kolunu adiyla anmali. Baska bir
+    # iddia (ornegin D7) kirmizi yakiyorsa mutant OLDURULMUS SAYILMAZ ([[K182]]).
+    iddia("17f kirmizinin SEBEBI oksuz govde kolu (hedef-kol atfi)",
+          "OKSUZ GOVDE" in cikti, cikti[-300:])
+    iddia("17g kutu DEGISMEDI", sha(a.kutu) == h1)
+    iddia("17h arsiv DEGISMEDI", sha(a.arsiv) == h2)
+
+
+def v18_ayracli_temiz_kontrol(arac, kok):
+    print("\n[18] K310 KONTROL — ayracli ve SAGLAM kutu: sayac 0, lossless GECER")
+    metin = kutu_uret_ayracli(30)
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=300, koru=3)
+    iddia("18a rc=0", rc == 0, cikti[-400:])
+    iddia("18b oksuz_govde_kutu=0 ADIYLA basildi", "oksuz_govde_kutu=0" in cikti,
+          cikti[-300:])
+    iddia("18c oksuz_govde_ek=0 ADIYLA basildi", "oksuz_govde_ek=0" in cikti,
+          cikti[-300:])
+    iddia("18d lossless beyani SAYACA dayaniyor",
+          "lossless_dogrulama=GECTI" in cikti and "oksuz_govde_kutu=0" in cikti.split(
+              "lossless_dogrulama=GECTI")[1][:120], cikti[-300:])
+    iddia("18e EKSEN_KOR basilmadi (ayrac VAR)", "EKSEN_KOR=" not in cikti,
+          cikti[-300:])
+    iddia("18f is GERCEKTEN yapildi (kutu kisaldi)",
+          len(oku(a.kutu).splitlines()) < len(metin.splitlines()))
+
+
+def v19_korluk_beyani(arac, kok):
+    print("\n[19] K310 — AYRACSIZ kutuda eksen KOR oldugunu SOYLER (0 deyip gecmez)")
+    metin = kutu_uret(30)                     # ayrac YOK (eski fikstur sekli)
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=300, koru=3)
+    iddia("19a rc=0 (ayracsizlik bir ARIZA degil)", rc == 0, cikti[-400:])
+    iddia("19b EKSEN_KOR beyani basildi", "EKSEN_KOR=oksuz_govde_kutu" in cikti,
+          cikti[-400:])
+    iddia("19c ayrac_kutu=0 ADIYLA basildi", "ayrac_kutu=0" in cikti, cikti[-300:])
+
+
 VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v04_frontmatter_ve_ust_bloklar, v05_blok_bolunmez,
            v06_arsiv_yoksa_frontmatter, v07_kilit, v08_bozuk_frontmatter,
            v09_bozuk_utf8, v10_kuru, v11_sentetik_ariza, v12_koru_tavani,
            v13_cit_ici_baslik, v14_iki_kosum,
-           v15_su_seviyesi_doldurur, v16_su_seviyesi_nop)
+           v15_su_seviyesi_doldurur, v16_su_seviyesi_nop,
+           v17_oksuz_govde_kirmizi, v18_ayracli_temiz_kontrol, v19_korluk_beyani)
 
 
 def suite(arac, sessiz=False):
@@ -545,6 +632,16 @@ MUTANTLAR = (
     ("b) FLOCK OLDURULDU (kilit hic alinmiyor)",
      "        fcntl.flock(fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)\n",
      "        pass  # MUTANT: flock kaldirildi\n",
+     True),
+    # K310 (27 Agu): oksuz govde kolu GERCEKTEN olcuyor mu? Kol olmezse v17 YESILE
+    # doner — yani "lossless=GECTI" yine kirik kutu icin basilir. Vakanin ta kendisi.
+    ("d) OKSUZ GOVDE KOLU OLDURULDU (oksuz_govdeler -> daima bos liste)",
+     "    bulgu = []\n    for b, s, baslik, dolu in bolutler(satirlar, bas):",
+     "    bulgu = []\n    return bulgu\n    for b, s, baslik, dolu in bolutler(satirlar, bas):",
+     True),
+    ("e) KORLUK BEYANI OLDURULDU (ayracsiz kutuda 0 basip susar)",
+     "        if kutu_ayrac == 0:",
+     "        if False:  # MUTANT: korluk beyani susturuldu",
      True),
     ("c) ILGISIZ metin degisikligi (tani satirinin bosluk hizalamasi)",
      'print("KUTU  : %s" % kutu_yolu)',

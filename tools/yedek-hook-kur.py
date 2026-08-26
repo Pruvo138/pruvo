@@ -67,10 +67,21 @@ BLOK = BAS + """
 # FAIL-OPEN: yedek patlasa/Drive olmasa bile push ASLA durmaz (blokta 'exit' YOK).
 # UCUZ: --gerekliyse son damgadan beri degisiklik yoksa tek dosya bile kopyalamaz.
 # Gorunurluk: python3 tools/durum.py  -> "7) YEDEK TAZELIGI"
+# 🔴 K308 (27 Agu 2026) — BEYAN VAR, OLCUM YOK: cagri `>/dev/null 2>&1` ile
+# susturuluyordu, yani rc!=0'in SEBEBI hicbir yere dusmuyordu. Kullanici
+# `durum.py`ye yonlendiriliyordu ama pano SONUCU (⚠⚠ YARIM KALMIS YEDEK)
+# gosterir, SEBEBI degil -> "yedek alinamadi" her seferinde tanisiz kaliyordu.
+# CARE ICAT EDILMEDI: 20 satir asagidaki kutu-arsivle blogunun DESENI buraya
+# tasindi (cikti degiskene alinir; rc!=0 ise tani kuyrugu basilir).
+# 🔴 PUSH DAVRANISI DEGISMEDI: blokta hala 'exit' YOK -> fail-open, push DEVAM eder.
+# Basarili yedek yine SESSIZDIR (her push'a gurultu basilmaz).
 pruvo_kok=$(git rev-parse --show-toplevel 2>/dev/null)
 if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/yedekle.py" ]; then
-  if ! python3 "$pruvo_kok/tools/yedekle.py" --gerekliyse >/dev/null 2>&1; then
-    echo "!! YEDEK alinamadi (push DEVAM ediyor) — kontrol: python3 tools/durum.py"
+  pruvo_yedek_cikti=$(python3 "$pruvo_kok/tools/yedekle.py" --gerekliyse 2>&1)
+  pruvo_yedek_rc=$?
+  if [ "$pruvo_yedek_rc" -ne 0 ]; then
+    echo "!! YEDEK alinamadi (rc=$pruvo_yedek_rc, push DEVAM ediyor) — kontrol: python3 tools/durum.py"
+    printf '%s\n' "$pruvo_yedek_cikti" | tail -3
   fi
 fi
 # --- ORTAK POSTA KUTUSU ARSIVI (tools/kutu-arsivle.py) ---
@@ -84,7 +95,7 @@ fi
 # GORUNUR: her push'a 6 satir gurultu basilmaz; yalniz ANLAMLI satir (YAZILDI/UYARI),
 # basarisizlikta ise uyari + tani kuyrugu basilir.
 if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/kutu-arsivle.py" ]; then
-  pruvo_kutu_cikti=$(true)
+  pruvo_kutu_cikti=$(python3 "$pruvo_kok/tools/kutu-arsivle.py" 2>&1)
   pruvo_kutu_rc=$?
   if [ "$pruvo_kutu_rc" -ne 0 ]; then
     echo "!! POSTA KUTUSU arsivlenemedi (rc=$pruvo_kutu_rc, push DEVAM ediyor) — kontrol: python3 tools/kutu-arsivle.py --kuru"
@@ -146,7 +157,14 @@ def _yedek_hook_kokleri():
     pruvo = drive_yolu.pruvo_dizini()
     if not pruvo:
         return []
-    evler = os.path.join(pruvo, "backup", yedekle.EK_KLASOR, "evler")
+    # 🔴 KOK ADI TEK KAYNAKTAN (27 Agu 2026): burada `"backup"` LITERALI duruyordu.
+    # `86e7a035` (14 Agu) kok adini `yedekle.YEDEK_KOK_ADI` sabitine tasidi ve degeri
+    # `backup-v2` yapti; commit "grep '\"backup\"' iki dosyada da 0" diyordu ama menzil
+    # yalniz `yedekle.py` + `durum.py` idi — BU DOSYA KAPSAM DISINDA KALDI. Sonuc:
+    # `--geri-yukle` VAR OLMAYAN bir klasore bakiyor, daima bos liste donuyor ve
+    # "Yedekte hook bulunamadi (Drive bagli mi?)" diyor -> yeni makinede kanca geri
+    # yukleme YAPISAL OLARAK OLU. Deger artik TURETILIYOR, kopyalanmiyor.
+    evler = os.path.join(pruvo, yedekle.YEDEK_KOK_ADI, yedekle.EK_KLASOR, "evler")
     if not os.path.isdir(evler):
         return []
     cikti = []
@@ -414,7 +432,15 @@ def main():
         return kendini_test()
 
     if "--geri-yukle" in sys.argv:
-        print("HOOK GERI YUKLEME (kaynak: Drive yedegi backup/ek/evler/*/GIT-HOOKS)")
+        # Kaynak yolu METNI de turetilir: 14 Agu'da kok adi degistiginde bu cumle
+        # ESKI adi soylemeye devam etseydi, tani okuyan kisi YANLIS klasore bakardi.
+        try:
+            import yedekle as _y
+            _kok_adi, _ek = _y.YEDEK_KOK_ADI, _y.EK_KLASOR
+        except Exception as _e:
+            _kok_adi, _ek = ("<OKUNAMADI: %s>" % type(_e).__name__), "?"
+        print("HOOK GERI YUKLEME (kaynak: Drive yedegi %s/%s/evler/*/GIT-HOOKS)"
+              % (_kok_adi, _ek))
         yazilan, atlanan, ev = hook_geri_yukle(kuru=kuru)
         print("%d ev, %d hook yazildi, %d zaten guncel.%s"
               % (ev, yazilan, atlanan, "  (KURU KOSUM — yazilmadi)" if kuru else ""))
