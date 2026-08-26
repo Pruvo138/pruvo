@@ -67,6 +67,17 @@ gorseller/
 /varlik/
 
 # >>> uretilen-icerik-dizinleri (otomatik — elle duzenleme; tools/gitignore-kapisi.py dogrular)
+/tekne-lumbuz-sinekligi-ve-perde-kaseti-plastik-parcasi-ozel-uretim/
+/tekne-tuvaleti-ve-lavabo-tesisati-plastik-parcasi-ozel-uretim/
+/oto-kapi-su-kanali-fitil-tutucusu-ve-oluk-parcasi-yaptirma/
+/oto-koltuk-kizagi-kapagi-ve-ray-takozu-yaptirma/
+/dis-klinigi-ve-dental-laboratuvar-ekipmani-plastik-parca-uretimi/
+/kumes-ve-tavukculuk-ekipmani-plastik-parca-uretimi/
+/akaryakit-istasyonu-ekipmani-plastik-parca-uretimi/
+/havalimani-yer-hizmetleri-ekipmani-plastik-parca-uretimi/
+/toprak-altina-gomulen-plastik-parca-uretimi/
+/ozel-uretim-parca-renk-solar-mi-sararir-mi/
+/antika-ve-eski-cihaz-parcasi-ozel-uretim/
 /medikal-cihaz-ve-fizyoterapi-ekipmani-plastik-parca-ozel-uretim/
 /itfaiye-ve-afet-mudahale-ekipmani-plastik-parca-ozel-uretim/
 /sunucu-kabini-ve-data-center-plastik-parca-ozel-uretim/
