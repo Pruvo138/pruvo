@@ -3335,6 +3335,22 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/r2-upload-test.py
 
+      # KAPAK THUMBNAIL ARTIMLI ON-ELEME (K306): pre-push kancasi her main push'unda
+      # thumbnail-uret.py'yi kosturur. Arac eskiden HER benzersiz kapak icin R2'ye tek
+      # tek head_object atiyordu (30.366 gidis-donus, 658,97 sn olculdu); tur 600 sn
+      # tavanini asinca ev `--no-verify`'a kaciyor, denetim kapisi atlaniyor ve ihlal
+      # canliya gidiyordu — yani bu bir hiz kalemi degil, YAYIN KESINTISI mekanizmasi.
+      # Onarim toplu envanter on-elemesidir (9,59 sn / 457 istek). Bu test o onarimin
+      # iki riskini birden olcer: (a) on-eleme gercekten artimli mi (kapak-basina-sorgu
+      # geri gelirse KIRMIZI), (b) `dogrula_ve_yukle`ye gecen R6 sondasi HALA GERCEK
+      # head_object mi — sonda listeden/onbellekten beslenirse ayni tur icinde bayatlar
+      # ve SESSIZ UZERINE-YAZMA dogar (memory/r2-sessiz-uzerine-yazma.md).
+      # Offline/mock: sahte S3, gercek R2'ye gitmez, kimlik okumaz; Pillow yoksa
+      # asgari PIL vekili kullanir ve hangi kipte kostugunu basar.
+      - name: Kapak thumbnail artimli on-eleme kabul + mutant testi
+        if: ${{ !cancelled() }}
+        run: python3 tools/thumbnail-artimli-test.py
+
       # DUZELT --toplu: mesru toplu duzeltme yolu (guard'in tek kapisi). Bloklayici: toplu kip
       # kilit/atomiklik kaybederse paralel yazicilar urun kaydi EZER. Test gercek urunler.json'a
       # DOKUNMAZ (tempfile'da sahte repo kurar), ag yok.
