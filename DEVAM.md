@@ -3,9 +3,14 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔴 26 AGU 3. TUR · main=origin `8f9b12f4` · YAYIN KAPALI · TAM METIN KUTUDA
-🔴 **K313 ACILDI — deploy 7 kosumdur dusuk (10:41Z'den beri), `deploy`+`yayin` SKIPPED.** Tek engel
-`serit-a3`/`varlik-test`; kok neden: `4a450346` kahve partisinin **9 kaydi GORSELSIZ** (main'de
-gorselsiz toplam = 9, hepsi ayni commit). Sahibi MaCiT · **SILME YASAK**, gorsel eklenir.
+🔴 **YAYIN ~4,7 SAAT KAPALI:** son yesil `55056922` 08:22Z; sonra **11 failure + 5 cancelled**.
+✅ **K313 tekil-yama KAPANDI** (MaCiT `e450697c`, bagimsiz dogrulandi: gorselsiz **9→0**, katalog
+30901→30901 SILME YOK) — **sinif kolu ACIK.** 🔴 **K314 ACILDI (IKI YUZ):** ① `serit-a3` sirali kapi
+ariza kuyrugunu GIZLIYOR — tek kesintide DORT ayri kirmizi adim ardarda ciktir; ② su anki engel
+`kisisel-veri-test` KURAL A: `k309-d2` merge'i (`8f9b12f4`) IKI ic kosum raporunu IZLENEN biraktisti
+(`k309d2-*-rapor.txt`) — **bu turda artiklariyla birlikte depodan cikarildi.**
+✅ **K152 on sarti COZULDU: `claude/musing-shaw-2fb705` MERGE** (tek dosya `koken-bul.py` +487; kanit:
+kabul komutu `rc=2 dosya YOK`). Icra chip'te (kod kilidi → worktree merge + `--ff-only`).
 ✅ **K291 "yapisal kilit" CURUTULDU:** `parti-kapisi.py:210/351` muafiyet TOKEN sinirinda —
 `isci.sh <motor> <repo> <spec> kabul-<is>` GECER; Temizlik26 4. argumani vermemisti. K308·K310·K311
 artik `OLCULEMEDI` DEGIL, OLCULEBILIR. K291 kaleminin kendisi ACIK (dizge-olcumu). K44=DEVREDILDI
@@ -117,8 +122,6 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
 - 🔧 **K151** (17-19 Agu): TAM METNI ARSIVDE (20 Agu 1:1 tasima blogu). · 🔧 **K161** → ISARETCI: KAYNAK-DOGRUSUNDA (26 Agu, `KraL-K309D2`).
 
 ## OKAN'DA
-- ✅ **KAPANDI 26 Agu** (25 Agu 20:54Z VW/Mazda denetim FAIL zinciri): duzeltme git'te DORT kez yapildi ve
-  yayin acildi → `5ad5879e`·`8759f3e2`·`1ab3426a`·`1026298c`; karar konusuz, beklenen YOK. Artik → **K312**.
 - ✅ 25 Agu penceresi: 9 kalem kapandi → [[okan-25agu-kapatilan-konular]]; 🔴 yeniden ACILMAZ.
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
