@@ -28,6 +28,11 @@ KAPILAR (her biri ayri, tek tek test edilebilir fonksiyon):
      olculemeyen kaynaklar (MakerWorld/Cults3D/MyMiniFactory/CGTrader — login/OAuth-gated indirme;
      bkz _olcu_muaf_kaynak). Printables/Thingiverse MUAF DEGIL (olculu gelir) -> olcusuzu auto_sil.
   4. GORSEL CAKISMA: gorseller[0] dosya adi iki urunde paylasiliyorsa -> eskalasyon (silme).
+  4b. GORSELSIZ KAYIT (KAPI 10 — IHLAL, silme DEGIL): `gorseller[0]` KART KAPAGI oldugu icin
+     gorselsiz kayit kataloga GIREMEZ. Karar TEK KAYNAKTAN gelir (parti-kontrol.py
+     `_gorselsiz_bulgulari`); DAR ISTISNA (acik `"gorselsiz": true` + `tur == "fiziksel"`)
+     orada tanimlidir ve BURADA TEKRAR YAZILMAZ. Care ONARIMDIR (gorsel ekle ya da beyan
+     et), SILME DEGIL — 26 Agu'da ayni ihlale silme uygulanip 3 urun kaybedilmisti (K312).
   5. PLATFORMLAR-ARASI + JENERIK DEDUP: normalize baslikla grupla. Grup>1:
      - Uyeler aciklama olarak BENZER (gercek ikiz) -> EN IYIYI tut, gerisi auto_sil.
      - BELIRGIN FARKLI (varyant) -> eskalasyon (mimar ayristir/sil karar versin).
@@ -1076,6 +1081,66 @@ def kapi_ascii_id(urun):
                         % (", ".join("%r (U+%04X)" % (k, ord(k)) for k in disi), uid))
 
 
+# --- KAPI 10 (gorselsiz kayit) TEK KAYNAK ------------------------------------------------
+# Kural `tools/parti-kontrol.py`de YASAR (Okan karari 1 Agu; dar istisna ucu birden ister:
+# acik `"gorselsiz": true` beyani + `tur == "fiziksel"` + gorselin GERCEKTEN hic olmamasi).
+# BURADA TEKRAR YAZILMAZ: ikinci kopya zamanla sessizce ayrisir ve ayrisma DAIMA gevsek
+# yonde olur ([[ayni-alan-iki-hukum-biri-sessiz]] · [[ikiz-tanim-sessiz-ayrisma]]).
+#
+# 🔴 TEMBEL YUKLEME (bilerek, modul duzeyinde DEGIL): parti-kontrol.py modul duzeyinde
+# `kategori-kapisi` -> index.html + tools/build.py okur. Modul-duzeyi import bu bagimliligi
+# GORSELI OLAN her kayit icin de YAYIN YOLUNA baglardi (deploy.yml `--commit-farki`) — kapi
+# kendi ekseni disinda bir sebeple yayini durdurabilirdi ([[kapi-ambiyansi-olcerse-komsu-
+# kirmiziya-yakar]]). Yukleme YALNIZ gorselsiz bir kayit gorulunce yapilir.
+_PK_MODUL = None
+
+
+def _parti_kontrol():
+    global _PK_MODUL
+    if _PK_MODUL is None:
+        _PK_MODUL = _load_adaptor("parti-kontrol.py", "pk_gorselsiz")
+    return _PK_MODUL
+
+
+def _gorselsiz_bulgulari(urun):
+    """parti-kontrol.py'nin ORTAK karar fonksiyonu (yeni-urun + backfill kollarinin TEK
+    kaynagi). Bos liste = dar istisna GERCEKTEN islendi.
+
+    FAIL-CLOSED: kural kaynagi yuklenemez/duserse (SystemExit dahil — parti-kontrol.py
+    kendi bagimliliklarini sys.exit ile reddeder) sessizce "ihlal yok" DEMEZ; OLCULEMEDI
+    bulgusu doner ve parti BLOKLANIR ([[olculemedi-bypass-degil-menzil-daraltmasi]])."""
+    try:
+        return _parti_kontrol()._gorselsiz_bulgulari(urun)
+    except BaseException as e:                                       # noqa: BLE001
+        return ["OLCULEMEDI: kural kaynagi (tools/parti-kontrol.py) yuklenemedi/dustu: "
+                "%s: %s (fail-closed)" % (type(e).__name__, e)]
+
+
+def kapi_gorselsiz(urun):
+    """(ihlal_kapi|None, gerekce) — KAPI 10. Gorselsiz kayit kataloga GIREMEZ.
+
+    NEDEN IHLAL, auto_sil DEGIL: `gorseller[0]` kart kapagidir ve eksikligi ONARILABILIR
+    bir kusurdur. 26 Agu'da `8759f3e2` tam bu sinifa silme uygulayip 3 urunu kaybetti
+    (K312) — [[okan-hukmu-urun-silinmez-koken-intern]]: urun SILINMEZ. Care: gorsel ekle,
+    ya da hazir ticari malsa acik beyan (`tools/duzelt.py`).
+
+    KOL SIRASI: gorseli OLAN kayit ERKEN doner — bu kapi "gorsel HIC YOK" ekseniyle
+    sinirlidir; gorsel URL bicimi ayri eksendir (KAPI 4 / parti-kontrol md. 5)."""
+    if not isinstance(urun, dict):
+        return None, ""
+    g = urun.get("gorseller")
+    if isinstance(g, list) and g:
+        return None, ""                # gorsel VAR — bu kapinin ekseni degil
+    bulgular = _gorselsiz_bulgulari(urun)
+    if not bulgular:
+        return None, ""                # dar istisna islendi
+    return "gorselsiz", (
+        "gorselsiz kayit kataloga giremez (`gorseller[0]` = KART KAPAGI): %s — CARE ONARIM: "
+        "gorsel ekle, ya da HAZIR TICARI MAL ise acik beyan et "
+        "(tools/duzelt.py <id> --alan gorselsiz=true --alan tur=fiziksel). SILME DEGIL."
+        % "; ".join(bulgular))
+
+
 def kapi_gorsel_cakisma(yeni, tum):
     """Yeni urunlerden gorseller[0] dosya adini (yeni ya da mevcut) baska urunle paylasan
     her biri icin eskalasyon kaydi. Silme."""
@@ -1162,6 +1227,10 @@ def denetle(urunler, yeni_ids, head_ids, kaynaklar):
             ihlal.append({"id": uid, "kapi": "fiyat", "gerekce": g})
         # 9 ASCII-DISI ID (ihlal — silme DEGIL, `duzelt.py --yeni-id` ister)
         kapi, g = kapi_ascii_id(u)
+        if kapi:
+            ihlal.append({"id": uid, "kapi": kapi, "gerekce": g})
+        # 10 GORSELSIZ KAYIT (ihlal — silme DEGIL, gorsel/beyan ister; bkz kapi_gorselsiz)
+        kapi, g = kapi_gorselsiz(u)
         if kapi:
             ihlal.append({"id": uid, "kapi": kapi, "gerekce": g})
         # 8 URETIM-SURECI IFSASI: sert -> ihlal (bloklar), uyari -> eskalasyon (bloklamaz)
@@ -1299,7 +1368,7 @@ def _commit_farki_ids():
 
 
 def _urun_ihlalleri(u):
-    """Tek urunun IHLAL kumesi -> {(kapi, gerekce)}. denetle()'deki 7/8/9 kollariyla AYNI
+    """Tek urunun IHLAL kumesi -> {(kapi, gerekce)}. denetle()'deki 7/8/9/10 kollariyla AYNI
     fonksiyonlari cagirir (kopya kural YOK); 'onceden var miydi' karsilastirmasi icin."""
     s = set()
     if not isinstance(u, dict):
@@ -1308,6 +1377,9 @@ def _urun_ihlalleri(u):
     if kapi:
         s.add(("fiyat", g))
     kapi, g = kapi_ascii_id(u)
+    if kapi:
+        s.add((kapi, g))
+    kapi, g = kapi_gorselsiz(u)
     if kapi:
         s.add((kapi, g))
     ifsa = kapi_ifsa(u)
@@ -2377,7 +2449,7 @@ def main():
           % (len(rapor["dedup"]), sum(len(d["sil"]) for d in rapor["dedup"])))
     print("  eskalasyon   : %d" % len(rapor["eskalasyon"]))
     print("  marka_kirli  : %d" % len(rapor["marka_kirli"]))
-    print("  IHLAL        : %d (fiyat tabani / uretim-sureci ifsasi%s)"
+    print("  IHLAL        : %d (fiyat tabani / uretim-sureci ifsasi / gorselsiz kayit%s)"
           % (len(rapor["ihlal"]), " — RAPORLAR, BLOKLAMAZ" if args.envanter else " — BLOKLAR"))
     print("  ifsa muaf    : %d (eslesti ama CIHAZ SOZLUGU gerekcesiyle dusuruldu)"
           % len(rapor.get("ifsa_muaf") or ()))
