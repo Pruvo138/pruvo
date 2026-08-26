@@ -2201,6 +2201,40 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/serit-b-maskeleme-test.py --kendini-test
 
+      # KALEM SENKRON KAPISI — K309 (26 Agu 2026, OLCULEN AYRISMA).
+      # Kaynak-dogrusu defteri (`memory/acik-kalemler.md`) ile calisma defteri
+      # (`DEVAM.md`) AYRISMIS: DEVAM.md'de id'si gecen 101 kalemin 92'sinin
+      # kaynak-dogrusunda SATIRI YOK. Defterin kendi kural blogu "deftere satir
+      # acmadan VERILMIS SAYILMAZ" ve "nobet kapisi `kabul:` komutunu KENDISI kosar"
+      # dedigi icin o 92 kalem nobetin olcum evreninin DISINDADIR
+      # ([[kapinin-menzili-cagri-yeridir]] ailesinin en buyuk vakasi).
+      #
+      # 🔴 NEDEN SERIT B (BLOKLAMAZ): kapi bir SAYIM ratchet'idir, "yanlis icerik
+      # canliya cikmasin" sinifinda DEGILDIR; bugunku 92'lik ayrisma kataloju
+      # ANINDA kirmiziya yakmamalidir ([[kapi-ambiyansi-olcerse-komsu-kirmiziya-yakar]]).
+      # `deploy` bu job'a `needs:` ile BAGLI DEGIL. `continue-on-error` KULLANILMADI.
+      #
+      # 🔴 NEDEN `--kendini-test` (canli kol DEGIL) — MUAFIYET DEGIL, MENZIL DARALTMASI:
+      # olculecek duzlem `~/.claude/projects/.../memory/` CI checkout'unda YOKTUR.
+      # Canli kolu burada kosturmak KALICI `OLCULEMEDI` kirmizisi uretir ve `serit-b`yi
+      # surekli kirmizi birakarak gercek regresyon sinyalini oldururdu. Bunun yerine CI,
+      # kapinin KENDI davranisini fikstur uzerinde olcer — canli kolun fail-closed'ligi
+      # DAHIL: V5/V5b/V6 "duzlem/taban YOK -> `OLCULEMEDI` + sifir-disi rc" vakalaridir
+      # ve M1 mutanti o kolu sessiz yesile cevirince UCU BIRDEN oluyor. Yani
+      # "CI'da dizin yok -> sessizce gecer" hali BURADA olculuyor
+      # ([[olculemedi-bypass-degil-menzil-daraltmasi]] — muafiyet listesi KULLANILMADI).
+      # Canli kol (`--rapor` / bayraksiz) defterin BULUNDUGU duzlemde kosar.
+      #
+      # Batarya: 10 vaka + 2 hedef-kol atifli mutant (M1 OLCULEMEDI kolu · M2 taban
+      # ratchet kolu) + KONTROL mutanti; ikisi de IZOLASYON olcer (hedef disi vakalar
+      # YASAMALI). Mutasyon GECICI KOPYADA kosar, canli dosyaya dokunmaz.
+      # Beyan: tools/is-akisi-kapisi.py :: SERIT_B (`serit-b` job'u).
+      - name: "Kalem senkron kapisi (K309) — kendini test + hedef-kol atifli mutasyon"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/kalem-senkron-kapisi.py --kendini-test
+          python3 tools/kalem-senkron-kapisi.py --mutasyon
+
       # ⚠️ DORT AGIR MUTASYON BATARYASI BU JOB'DAN CIKARILDI (10 Agu 2026) — bkz.
       # asagidaki `marka-bolum-bataryasi` · `marka-sayfa-bataryasi` ·
       # `model-uyelik-bataryasi` · `model-baslik-bataryasi` joblari. SILINMEDILER,
