@@ -2,21 +2,24 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ▶️ 27 AGU · main=origin · agac TEMIZ · **KOSAN CIP=2** (gerekceler+kabuller KUTUDA)
-Iki cip ayni SINIFI kovaliyor: *deger YAZILIYOR, TUKETICISI yok ya da BASKA sozlukten okuyor.*
-**Tekil yama YASAK.**
-- **K316 (UCUSTA) · `KraL-TabanKirmizi-27Agu` `task_bf7385f7`** — Okan penceresi gunun BIRINCI
-  isini sectI. V1 `gozcu-mutasyon YAMA_TUTMADI=1` (capa `gozcu.py`den ayristi; satir 217 kapsami
-  SESSIZCE daraltir, 225 fail-loud KORUNUR) · V2 `nobet-kabul-test VAKA=46 DUSEN=2`
-  (`onarim-el-kitabi.md` `kimi` yazar, `kat_sec` `ISCI_MOTORLARI`ndan `minimax-m3` turetir).
-  Gerekce: taban kirmiziyken oteki kalemlerin kabulu ("mutant kirmizi yanar") OLCULEMEZ. Kabul:
-  `MUTANT=16/16` (15/15 KABUL DEGIL) · `DUSEN=0`+`VAKA>=46` · 2 hedef-kol atifli mutant.
-- **K311 iki dar kalem · `KraL-KorGoz-27Agu` `task_4cdbbb65`** (YENI NUMARA YOK) — (a)
-  `kirmizi_toplam` yazan=1 okuyan=0 → **F2≡F3** (11 duran kirmizi ≡ 0 kirmizi) · (b)
-  `nobet-kapi.py:320` yalniz `🔧` sayiyor, N2B AYNI defterden `ACIK=<n>` okuyor. **DONDURMA
-  KORUNUR** — yalniz TESPIT kolu, `acilan_tur=1` TALEP EDILMEZ.
-**KUYRUKTA:** K314①② · K240. **MaCiT'e IADE:** `hasat_ekle.py` kardes depoda → MaCiT evinde ciple
-KAPANDI (`24b67c3b`; canli "6/6 EKLENDI" olcutu HALA ACIK, icerik modulu yok).
+## ▶️ 27 AGU · **KOSAN CIP=6, KUYRUKTA KALEM YOK** (K317 · gerekce+kabul KUTUDA)
+🔴 **ALTISI DA AYNI UST SINIFIN YUZU:** *URETILEN degerin tuketicisi ya YOK, ya BASKA sozlukten
+okur, ya SEBEBI YUTAR.* Alti spec'te de: **tekil yama YASAK** + hedef-kol atifli mutant + KONTROL
+yesil + `urunler.json` YASAK + **merge karari MIMARDA** (hicbiri push etmez).
+- **K316** `KraL-TabanKirmizi-27Agu` — `YAMA_TUTMADI=1` (capa ayristi, s.217 kapsami sessizce
+  daraltir) + `nobet-kabul VAKA=46 DUSEN=2` (el kitabi `kimi`, `kat_sec` `minimax-m3` turetir).
+- **K311 iki dar kalem** `KraL-KorGoz-27Agu` — (a) `kirmizi_toplam` yazan=1 okuyan=0 → **F2≡F3**
+  (11 duran kirmizi ≡ 0 kirmizi) · (b) `nobet-kapi.py:320` yalniz `🔧` sayar, N2B ayni defterden
+  `ACIK=<n>` okur. **DONDURMA KORUNUR** — yalniz TESPIT kolu, `acilan_tur=1` TALEP EDILMEZ.
+- **K314①②** `KraL-K314-27Agu` — serit ilk kirmizida durup kuyrugu gizler (4,7 saat kesinti,
+  DORT ayri kirmizi adim) + olcum araci ciktisi izlenen agacta.
+- **K308+K310** `KraL-BosBeyan-27Agu` — 🔴 **IKISI DE BUGUN BENIM PUSH'UMDA CANLI ATESLEDI:**
+  `!! YEDEK alinamadi` bastI, SEBEP yutuldu (care ayni kancada 20 satir asagida) · `lossless=GECTI`
+  bugun IKI kez bastI (9 blok/268 satir tasindi) ama oksuz-govde ekseni kaynakta **0**.
+- **K240 ailesi** `KraL-BayatYuzey-27Agu` — kurucu var-olan basligi TAZELEMIYOR; damgalar BAYT
+  BIREBIR korunacak. · **K313 SINIF** `KraL-K313Sinif-27Agu` — vaka temizlendi (9→0), mekanizma
+  konmadi; kapi curutebilir, o zaman "CURUDU" yazilir.
+**MaCiT:** `hasat_ekle.py` kapandi (`24b67c3b`) + C3D×Kahve **6/6** (`5dc23886`).
 
 ## 🔚 26 AGU 3. OTURUM KAPANISI — ISARETCI (tam metin KUTUDA; kalemler `acik-kalemler.md`de)
 Yayin acildi `6da4508d` (4,7 saat kesinti) · kapanan K313-tekil/K53/K302/K152-on-sart/K44 ·
@@ -72,10 +75,9 @@ K291 CURUTULDU → K308·K310·K311 OLCULEBILIR · K314 ACILDI. **1:1:** blok is
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (TAM METIN ARSIVDE):** (i) kuru kosum OLCULDU 25 Agu (1512/234, sir elemesi 5/5; BULGU:
   gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a) · (ii) kablolama MIMARDA · (iii) kostugu kanit.
-- 🔧 **K199 (19 Agu, KraL):** `is-akisi-kapisi.py` "etkili tasiyici" tanimi LITERALE capali;
-  varlik turetilmis mekanizmaya gecince korlesiyor (K193). Care: sonucu olc ya da makine-okunur beyani
-  tasiyici say; mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT KENDINI OLCMEZ** — bes vaka;
-  her kayit ya TURETILIR ya kendi sayisiyla KABUL EDILIR, "EKLE" yetmez SAYI sart.
+- 🔧 **K199 (19 Agu):** `is-akisi-kapisi.py` "etkili tasiyici" LITERALE capali; varlik turetilmis
+  mekanizmaya gecince korlesir (K193). Care: sonucu olc ya da makine-okunur beyani tasiyici say;
+  mutant+negatif sart. · 🔧 **K201 SINIF: KAYIT KENDINI OLCMEZ** — 5 vaka; ya TURETILIR ya SAYIYLA.
 - 🔧 **K196 (DEPO GENELI):** CI node 20 / yerel 25.8.1 → yerel JS yesilleri CI surumunde OLCULMEMIS. ARSIVDE.
 - 🔴 **K197: 19 Ağu mimara giden rapor içeriği (239 satır / 11.617 B) KAYBEDİLDİ — gitignore deseni + ağaç silme sırası.** Birebir cümle + öz KUTUDA.
 - 🔧 **K217** tavan fiksturu. (K311 tam metni kaynak-dogrusunda; defterdeki ikinci kopya ARSIVE indi 2/5.)
@@ -107,12 +109,10 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
   duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul `tools/paket-k171-kaynak-temizle.md`de.
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
   kalici `--yerel` yolu KraL'da, sonraki dilim oncesi. Tam metin ARSIVDE. `kabul:` alani BOS.
-- 🟠 **K139+N1 (CANLI CRON DURUMU, ekip bilmeli):** gozcu `8,23,38,53` (15 dk); ci-nobeti `7 * * * *`
-  artik KOSULSUZ DEGIL — `nobet-tetik.py` gozcunun kalbini okur (24 kayit replay: acilan tur
-  **24/gun → 0**; canli 21:07 `acilan_tur=0`). 🔧 N1-kalem: uzun tur kendi kalbini bayat gosterir.
-- 🟠 **K144 (UCUSTAKI KOSUM):** ardarda push'lar build'i `cancelled` ediyor (ARIZA DEGIL);
-  hukum her turda guncel uca tasiniyor. Tam metin ARSIVDE.
-  kabul: guncel ucu ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
+- 🟠 **K139+N1 (CANLI CRON, ekip bilmeli):** gozcu `8,23,38,53` (15 dk); ci-nobeti `7 * * * *` artik
+  KOSULSUZ DEGIL (`nobet-tetik.py` kalbi okur; 24/gun→0). 🔧 N1: uzun tur kalbini bayat gosterir.
+- 🟠 **K144 (UCUSTAKI KOSUM):** ardarda push'lar build'i `cancelled` eder (ARIZA DEGIL); hukum guncel
+  uca tasinir. kabul: guncel ucu ICEREN kosum `success` **VE** cache-bust'SIZ canli teyit. ARSIVDE.
 - 🔧 **K140** → kaynak-dogrusunda (ikinci kopya ARSIVE indi 4/5, `KraL-K309D2`: kosum kaniti orada).
 - 🔧 **17 Agu KALEMLERI:** K163 · K162 · K157 (⚖️ Okan, 22 Agu) · K158 · K146 · K142 (MaCiT) · K118. TAM METIN ARSIVDE.
 - 🔴 **K104 / K104B:** nobet sicili + iki kapi main'de kirmizi. HUKUM MIMARDA. · **K99**
