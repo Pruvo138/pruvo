@@ -728,7 +728,7 @@ jobs:
       # Ad-dezen keşfe GIRMEZ (adı -kapisi/-test/test- degil) → ci-kapsam-test.py
       # bunu otomatik saymaz; BU BAGLANTI kapıyı (c)→(a)'ya çevirir.
       - name: "K302 marka kabul bataryasi"
-        run: python3 tools/k302-marka-kabul.py
+        run: python3 tools/k302-marka-kabul-kapisi.py
 
       # YAZIM YOLU KOLU — yukaridaki IKI kapi (altkategori + uyum) KATALOG GENELINI
       # olcer ve YAYINDAN SONRA konusur; bu adim onlarin COMMIT ANINDAKI kardesini
