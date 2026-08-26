@@ -811,6 +811,27 @@ UYUM_MARKA_IZINLI = frozenset({
     #   Kume KAPALI kalir; yargilanmis bolumleme (izinli−eki / uretici−eki / elenen)
     #   degismez, elenmis bir jeton geri sizmaz.
     "Lowrance",
+    # 5. tur, C grubu (6) — mimar karari 26 Agu 2026, kahve sektoru. Sinif emsali
+    # ELDE MEVCUT: kume ZATEN `Krups`, `Moulinex`, `Saeco` tasiyor ve UCU DE kahve
+    # makinesi EV-SAHIBI markasi. Yani bu ek YENI BIR SINIF ACMAZ, yarim kalmis bir
+    # sinifi TAMAMLAR — `Krups` iceride `Lavazza` disarida olmasi kumenin KENDI
+    # tutarsizligiydi. Olcut ayrica `Garmin/TomTom/Stanley/Webasto` ile birebir ayni:
+    # ev sahibi cihaz ureticisi, uretilen parca ONA TAKILIR.
+    #   `AeroPress` el tipi espresso/demleme cihazi; filtre-tutucu ve kapak ONA takilir.
+    #   `Bialetti`  moka pot ureticisi; conta-tutucu / kulp ONA takilir.
+    #   `DeLonghi`  espresso makinesi ureticisi; damlalik ve tamper yuvasi ONA takilir.
+    #   `Jura`      tam otomatik kahve makinesi ureticisi; atik kabi / kanal ONA takilir.
+    #   `Lavazza`   kapsul kahve makinesi ureticisi (A Modo Mio); fincan alti ONA takilir.
+    #   `Mazzer`    kahve degirmeni ureticisi; cekirdek haznesi kapagi ONA takilir.
+    # 🔴 KUME KAPALI KALIR: altisi da yalnizca BU kumeye ve UYUM_MARKA_MIMAR_EKI'ne girer,
+    # yargilanmis bolumleme (izinli−eki / uretici−eki / elenen) DEGISMEZ -> S2 aritmetigi
+    # (UYUM_MARKA_ONERI_SAYISI=169) ve UYUM_MARKA_YARGI_IMZA AYNEN korunur.
+    # 🔴 YAZIM: `uyum_marka_kanonik()` HAM string uyelik testi yapar (normalize KULLANMAZ)
+    # ve `_MODEL_AYIRAC_RE` kesme isaretini KIRPMAZ -> `De'Longhi` != `DeLonghi`.
+    # `AeroPress` KANONIKTIR (mimar olcumu 26 Agu): gercek ticari marka bu yazimdir VE
+    # katalog cogunlugu da boyle (`"AeroPress"` 3 kayit / `"Aeropress"` 1 kayit). Kalan
+    # 1 varyant kayit B4 capasinda ADIYLA durur; veri normalizasyonu MaCiT duzlemindedir.
+    "AeroPress", "Bialetti", "DeLonghi", "Jura", "Lavazza", "Mazzer",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -842,6 +863,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 4. tur (25 Agu 2026) — gerekce + olculen katalog agirligi UYUM_MARKA_IZINLI'nin
     # "C grubu" 4. tur basliginda yazili. Burada TEKRAR EDILMEZ.
     "Lowrance",
+    # 5. tur (26 Agu 2026) — gerekce + sinif emsali UYUM_MARKA_IZINLI'nin "C grubu"
+    # 5. tur basliginda yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
+    "AeroPress", "Bialetti", "DeLonghi", "Jura", "Lavazza", "Mazzer",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni

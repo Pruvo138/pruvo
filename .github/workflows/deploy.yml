@@ -723,6 +723,13 @@ jobs:
       - name: "Uyum kapisi (kapali marka sozlugu + sema + ikiz tanim + enjeksiyon)"
         run: python3 tools/uyum-kapisi.py
 
+      # K302 MARK KABUL BATARYASI — AeroPress kanonik (6 jeton) ile A1-A5 eksenli kabul
+      # testleri ve M1/M2 mutant kapsami. Ağsız + deterministik; uyum-kapisi'nin kardeşi.
+      # Ad-dezen keşfe GIRMEZ (adı -kapisi/-test/test- degil) → ci-kapsam-test.py
+      # bunu otomatik saymaz; BU BAGLANTI kapıyı (c)→(a)'ya çevirir.
+      - name: "K302 marka kabul bataryasi"
+        run: python3 tools/k302-marka-kabul-kapisi.py
+
       # YAZIM YOLU KOLU — yukaridaki IKI kapi (altkategori + uyum) KATALOG GENELINI
       # olcer ve YAYINDAN SONRA konusur; bu adim onlarin COMMIT ANINDAKI kardesini
       # (tools/katalog-alan-kapisi.py + pre-commit adim 5) olcer.
