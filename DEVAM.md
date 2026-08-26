@@ -2,9 +2,14 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔚 26 AGU 2. KAPANIS · main=origin `bfd2cb80` · TAM METIN KUTUDA
-**KOSUYOR:** `KraL-Temizlik26` (`k309-d2` merge onda, m3). **BEKLIYOR:** K308·K310·K311 kabulleri
-`OLCULEMEDI (kapi reddi)` — kilit **K291 canli vakasi** (N2B `ACIK=9`). K302 MaCiT'te · K312 ACIK · Okan'da karar YOK.
+## 🔴 26 AGU 3. TUR · main=origin `8f9b12f4` · YAYIN KAPALI · TAM METIN KUTUDA
+🔴 **K313 ACILDI — deploy 7 kosumdur dusuk (10:41Z'den beri), `deploy`+`yayin` SKIPPED.** Tek engel
+`serit-a3`/`varlik-test`; kok neden: `4a450346` kahve partisinin **9 kaydi GORSELSIZ** (main'de
+gorselsiz toplam = 9, hepsi ayni commit). Sahibi MaCiT · **SILME YASAK**, gorsel eklenir.
+✅ **K291 "yapisal kilit" CURUTULDU:** `parti-kapisi.py:210/351` muafiyet TOKEN sinirinda —
+`isci.sh <motor> <repo> <spec> kabul-<is>` GECER; Temizlik26 4. argumani vermemisti. K308·K310·K311
+artik `OLCULEMEDI` DEGIL, OLCULEBILIR. K291 kaleminin kendisi ACIK (dizge-olcumu). K44=DEVREDILDI
+(ArTisT), **K53 yeniden ACIK** (kendi kabul komutu hic kosmadi). Kosan chip YOK · Okan'da karar YOK.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu gecesi KAPANAN 4 KALEM — TAM METIN ARSIVDE** ("KAPANAN 4 KALEM" basligi): **K250**
