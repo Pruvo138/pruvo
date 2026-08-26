@@ -3,7 +3,7 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔚 26 AGU KAPANISI — TAM METIN ARSIVDE (elle indirildi; rotasyon araci TASINAN=0 verdi, K272)
-**CANLI KALAN:** K302 kok neden MaCiT'te · K250 kalan 4 ev kendi mimarinda · K306 CHIP'TE ·
+**CANLI KALAN:** K302 kok neden MaCiT'te · K250 kalan 4 ev kendi mimarinda · K306 MERGE EDILDI ·
 Claude-isci izni KALDIRILDI · Okan'da bekleyen karar YOK.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
@@ -13,9 +13,9 @@ Claude-isci izni KALDIRILDI · Okan'da bekleyen karar YOK.
 - 🔧 **K250 KALAN:** KaaN·ArTisT·HocA·BaBa — her biri tek satirlik `expanduser` duzeltmesi, KENDI
   mimarlarinda; KraL kardes depoya yazmaz. · 🔧 **K302 KALAN:** kok neden MaCiT'in `olcum/hasat_ekle.py`
   dosyasinda, kutuda bildirildi.
-- 🔧 **K306 — CHIP ACILDI 26 Agu (`KraL-K306`, `task_05ad146f`):** `thumbnail-uret.py:52` her kapak
-  icin TEK TEK `head_object` (30.366 tur, sabit). Hukum+7 madde kabul+DOKUNULMAZ kol KUTUDA;
-  `kabul:` alani DEFTERDE (`thumbnail-artimli-test.py`).
+- ✅ **K306 MERGE (`df3b0d48`):** kapak-basina `head_object` yerine toplu envanter on-elemesi;
+  DOKUNULMAZ R6 sondasi GERCEK `head_object` KALDI (kod + M2 mutanti). kabul rc=0
+  IDDIA=4/4 MUTANT=3/3 KONTROL=1/1. TABAN/SONRA duvar saati: OLCULEMEDI (ag).
 - ✅ **K307 KAPANDI** (`32909205580`; tam metin kutuda) · 🔧 yan bulgu: isci probu 206'yi "olu"
   saydi → [[prob-kendi-baglamini-olcer]]
 - 🔴 **K304 (SINIF: BAYAT TEK KAYNAK, 1 turu yanlis motorda yakti):** `skills/codex-isci` motor sirasini
@@ -57,11 +57,11 @@ Claude-isci izni KALDIRILDI · Okan'da bekleyen karar YOK.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **26 AGU YENI KALEMLER — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada
-  yalniz ISARETCI:** **K306** kapak taramasi (CHIP) · **K308** kanca yedek blogu hatayi YUTUYOR
-  (icra K306 sonrasi) · **K309 DILIM-1 BITTI** (dal `k309-senkron`, MERGE MIMARDA): 73/112 hipotezi
-  CURUTULDU → defter satir 75 · benzersiz 74 · DEVAM 101 · MENZIL_DISI 92→90; kirilim+`kabul:`
-  sayaci DEFTERDE, DILIM-2 (90 kalem tasima) MIMARDA · **K310** kutu blok basligi dustu, geri kondu ·
-  **K212** satiri ACILDI (kaynak-dogrusu); hukum `KraL-K212Yedek` chip'inde.
+  yalniz ISARETCI:** **K306 MERGE EDILDI** (`df3b0d48`) · **K308** kanca yedek blogu hatayi YUTUYOR
+  (ACIK, icra sirada) · **K309 DILIM-1 MERGE EDILDI** (`25b38a82`): 73/112 hipotezi CURUTULDU →
+  defter satir 75 · benzersiz 74 · DEVAM 101 · MENZIL_DISI 88 OLCEREK civilendi; kirilim+`kabul:`
+  sayaci DEFTERDE, DILIM-2 (88 kalem tasima) MIMARDA · **K310** kutu blok basligi geri kondu (ACIK) ·
+  **K212 MERGE EDILDI** (`97370cc2`): taban rc=1 / 18 kirmizi / Traceback, dal rc=0 / 339 / 0.
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (TAM METIN ARSIVDE):** (i) kuru kosum OLCULDU 25 Agu (1512/234, sir elemesi 5/5; BULGU:
   gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a) · (ii) kablolama MIMARDA ·
