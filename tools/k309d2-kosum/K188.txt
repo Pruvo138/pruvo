@@ -1,0 +1,421 @@
+
+1) KAPSAM — gercek ~/.claude/skills agaci planda mi?
+  ✅ skills dizini var  — 19 dahil / 0 haric / 3 gurultu
+  ✅ planda: merge-kapisi/scripts/dal-olc.py
+  ✅ planda: merge-kapisi/evals/kabul-test.py
+  ✅ gurultu (pyc/__pycache__) plana GIRMEDI
+  ✅ gercek agacta sir nobeti ELEMESI yok (temiz agac)
+
+2) KURU KOSUM — --kuru listeler, hicbir sey yazmaz
+  ✅ --kuru exit 0  — rc=0
+  ✅ cikti 'KURU KOSUM' diyor
+  ✅ kuru listede: skills/merge-kapisi/scripts/dal-olc.py
+  ✅ kuru listede: skills/merge-kapisi/evals/kabul-test.py
+  ✅ kuru kosumda 'bitti ->' YOK (gercek yedek calismadi)
+
+3) KIRMIZI-MUTASYON (kapsam) — skills plandan cikarilirsa kontrol kirmizi mi?
+  ✅ mutant kosuyor (exit 0)  — rc=0
+  ✅ MUTANTTA zorunlu skill dosyalari listede YOK (kontrol KIRMIZI yanardi)  — kayip: 2/2
+
+4) SIR NOBETI — sentetik sir dosyalari pakete GIRMEMELI
+  ✅ normal dosya planda
+  ✅ sir pakete GIRMEDI: ornek-skill/.r2-credentials.json
+  ✅ sir SEBEPLE raporlandi: ornek-skill/.r2-credentials.json
+  ✅ sir pakete GIRMEDI: ornek-skill/notlar/gizli-token.txt
+  ✅ sir SEBEPLE raporlandi: ornek-skill/notlar/gizli-token.txt
+  ✅ sir pakete GIRMEDI: ornek-skill/kurulum.md
+  ✅ sir SEBEPLE raporlandi: ornek-skill/kurulum.md
+  ✅ pyc gurultu olarak ayrildi
+  ✅ sebep metni sirrin KENDISINI icermiyor  — ad kara listede | icerik imzasi: ozel anahtar blogu | ad deseni: *token*
+  ✅ iki parcali fikstur ICERIK IMZASI ile elendi (ad deseniyle DEGIL)  — icerik imzasi: ozel anahtar blogu
+  ✅ calisma anindaki fikstur dizesi TAM bicimde (bolme sizdirmadi)  — '-----BEGIN RSA PRIVATE KEY-----\nSA'
+
+5) KIRMIZI-MUTASYON (sir nobeti) — nobet kapatilirsa sirlar sizar mi?
+  ✅ MUTANTTA sirlar pakete SIZDI (kontrol KIRMIZI yanardi)  — sizan: 3/3
+
+6) IDEMPOTENS — iki kez kosmak mukerrer yigmaz/bozmaz
+  ✅ iki kosumda ayni dosya kumesi  — 1 dosya
+  ✅ yazilan sayisi sabit  — 1/1/1
+  ✅ hedefte sir dosyasi YOK
+
+7) BAYAT SIR NOBETI — filtresiz eski surumun biraktigi kopya yakalaniyor mu?
+  ✅ bayat sir kopyasi TESPIT edildi  — 1 bulundu
+  ✅ varsayilan SILMEZ (veri silme elle onaylanir)
+  ✅ --sir-temizle ile SILINDI
+
+8) FAIL-CLOSED — yazim hatasi olan bayrak GERCEK yedek baslatmasin
+  ✅ bilinmeyen bayrak exit != 0  — rc=2
+  ✅ bilinmeyen bayrakta yedek CALISMADI
+
+9) DAMGA + --gerekliyse — pano bunu okur, hook bunu kullanir
+  ✅ damga yoksa None (patlamaz)
+  ✅ damga yazilip okunuyor
+  ✅ damgada zaman VAR
+  ✅ bozuk damga None doner
+  ✅ damga yok  -> YEDEKLE
+  ✅ damga bozuk-> YEDEKLE
+  ✅ mtime olculemedi -> YEDEKLE
+  ✅ kaynak damgadan YENI -> YEDEKLE
+  ✅ kaynak damgadan ESKI -> ATLA
+  ✅ --gerekliyse gecerli bayrak
+  ✅ en_yeni_kaynak_mtime sayi donduruyor
+
+10) F1 SAHTE TAZELIK — kok WORKTREE'den de ANA agaci gostermeli
+  ✅ cozulen kok ANA agac (.git DIZIN)  — /Users/okan/dev/pruvo
+  ✅ modul ROOT'u da ANA agac  — /Users/okan/dev/pruvo
+  ✅ beklenen repo dosyalarinin HEPSI bulundu (kismi yedek YOK)  — eksik: -
+  ✅ _repo_dosyalari 4 dosya donduruyor  — 4
+  ✅ ajan baglam dosyasi (AGENTS.md) yedek planinda  — .urun-kaynaklari.json, AGENTS.md, DEVAM.md, DEVAM-ARSIV.md
+  ✅ BEKLENEN adlarin hicbiri symlink DEGIL (yoksa sessizce yedeksiz kalir)  — -
+  ✅ sahte kokte eksik YOK (taban)  — []
+  ✅ 🔴 BEKLENEN ad SYMLINK'e donunce 'eksik' sayiliyor (sessiz kayip yok)  — ['AGENTS.md']
+  ✅ symlink _repo_dosyalari'ndan da dusuyor (iki olcum tutarli)  — .urun-kaynaklari.json, DEVAM.md, DEVAM-ARSIV.md
+  ✅ MUTANTTA kok WORKTREE'ye dusuyor (kontrol KIRMIZI yanardi)  — /Users/okan/dev/pruvo
+
+11) F1 — eksik dosya varsa TAM GUVEN damgasi ATILMAMALI
+  ✅ damga tam=False
+  ✅ eksik listesi damgada
+  ✅ eksiksiz kosumda tam=True
+
+12) F4 — budanan gurultu dizini SESSIZCE yutulmamali
+  ✅ budanan dizin gurultu listesinde  — ['ornek-skill/scripts/__pycache__/ (dizin budandi)']
+  ✅ dizin oldugu belirtiliyor
+
+13) KILIT — kilit BASKASINDAYKEN kosum ATLAR, damga YALAN SOYLEMEZ
+  ✅ test hedefi gecici dizinde (gercek Drive DEGIL)  — /var/folders/z2/dzvytjpx4j78py5vn52yzk9m0000gn/T/tmp9lddyowc/drive/Pruvo/backup-v2
+  ✅ kilit doluyken exit 0 (FAIL-OPEN: push bloklanmaz)  — rc=0 
+  ✅ cikti 'yedek ATLANDI' diyor  — yedek ATLANDI — baska bir yedek kosuyor (pid=999999 baslangic=1787745429.941577 iso=2026-08-26 14:57:09).
+  ✅ ATLANAN kosum HICBIR dosya kopyalamadi (yalniz atlama kaydi)  — ['.son-yedek-atlama.json']
+  ✅ ATLANAN kosum DAMGAYA hic dokunmadi (damga YOK)
+  ✅ atlama kaydinda TAM GUVEN alani YOK ('zaman' yok)  — ['son_atlama', 'son_atlama_iso', 'son_atlama_kapsandi', 'son_atlama_sahip_baslangici', 'son_atlama_sebep']
+  ✅ atlama kaydi VAR
+  ✅ atlama sebebi yazili  — baska yedek kosuyordu (pid=999999 baslangic=1787745429.941577 iso=2026
+  ✅ kaynak degismemisken atlama KAPSANDI (pano bosuna uyarmaz)  — True
+  ✅ beklenen SAHIBIN baslangici TAM HASSAS kaydedildi  — 1787745429.941577 vs 1787745429.941577
+  ✅ kilit tutulurken degisen kaynak -> atlama KAPSANMADI  — False
+  ✅ kapsanmayan atlamada cikti UYARIYOR  —   ⚠️ kosan yedek bu degisiklikleri KAPSAMAYABILIR -> damgaya islendi; pano '7) Y
+  ✅ kapsanmayan atlamada da exit 0 (fail-open)
+  ✅ kilit birakilinca yedek GERCEKTEN alindi (exit 0 + 'bitti ->')  — rc=0
+  ✅ hedefte beklenen dosya sayisi  — 66/66
+  ✅ damga tam=True + sayilar dogru  — memory=40 skills=20
+  ✅ onceki ATLAMA kaydi KORUNDU (tamamlanan kosum onu silmez)
+  ✅ gecici damga dosyasi kalmadi
+
+13e) IMZA HASSASIYETI — 2000 ornek, yanlis karar 0 (flake kapisi)
+  ✅ imza TAM tur-donusu yapiyor (float(repr(x)) == x)  — 0/2000 kayip
+  ✅ 2000 ornek x 5 sapma = 10000 kararda YANLIS 0  — yanlis=0/10000
+  ✅ ESKI %.3f bicimi AYNI fikstürde yaniliyordu (kontrol olcuyor)  — eski bicim yanlis=4596/10000 (46%)
+
+13f) SAHIP BITIRMEDI — 'kapsandi' tek basina yeter mi? (pano ucu)
+  ✅ hazirlik: ilk yedek tamamlandi
+  ✅ hazirlik: pano bu noktada TAZE  —   taze: son yedek az once (2026-08-26 14:57:10) — esik 2 gun.
+     --- pano ciktisi (sahip bitirmedi) ---
+      ⚠⚠ KISMI YEDEK: son kosumdan SONRA bir yedek ATLANDI (2026-08-26 14:57:10) — baska yedek kosuyordu (pid=999999 baslangic=1787745430.319486 iso=2026-08-26 14:57:10); beklenen kosum damgayi HIC YAZMADI (asildi/oldu)
+      -> o kosumun degisiklikleri yedekte OLMAYABILIR (son tam kosum az once). Kos: python3 tools/yedekle.py
+  ✅ atlama 'kapsandi' olctu (degisiklik sahipten ONCE)  — True
+  ✅ damganin `baslangic`i HALA ilk kosumun (sahip yazmadi)
+  ✅ 🔴 PANO SUSMUYOR: 'taze' DEMIYOR  —   ⚠⚠ KISMI YEDEK: son kosumdan SONRA bir yedek ATLANDI (2026-08-26 14:57:10) — baska yedek kosuyordu (pid=999999 baslangic=1787745430.319486 iso=2026-08-26 14:57:10); beklenen kosum damgayi HIC YAZMADI (asildi/oldu)
+  ✅ pano sahibin bitirmedigini SOYLUYOR
+  ✅ atlanan kosum yine exit 0 (fail-open bozulmadi)
+  ✅ gercek kosumdan sonra uyari KENDILIGINDEN kapandi  —   taze: son yedek az once (2026-08-26 14:57:10) — esik 2 gun.
+
+13g) K1 — kosum ORTADA COKERSE iz `bitti=` TASIMAZ, pano 'yarim' der
+  ✅ 13g hazirlik: ilk yedek tamamlandi
+  ✅ 13g: BASARILI kosumun izi `bitti=` TASIYOR (pozitif nobetci)  — 5430.5194318 iso=2026-08-26 14:57:10 bitti=1787745430.531565
+  ✅ 13g: basarili kosumdan sonra kilit hali 'yok' (pano SESSIZ)  — yok
+     --- pano ciktisi (kosum ortada coktu) ---
+      ⚠⚠ YARIM KALMIS YEDEK: kilit izi 'bitti' isareti TASIMIYOR ve sahip surec (pid 12030) artik YOK -> kosum ortasinda kesilmis.
+      Kos: python3 tools/yedekle.py     (bir sonraki kosum izi temizler)
+  ✅ 13g: coken kosum exit!=0 (hata gizlenmiyor)  — rc=1
+  ✅ 🔴 13g: ISTISNA yolunda iz `bitti=` TASIMIYOR  — angic=1787745430.607619 iso=2026-08-26 14:57:10 hata=1787745430.611433
+  ✅ 13g: iz teshis icin `hata=` tasiyor (pid+baslangic korunuyor)  — angic=1787745430.607619 iso=2026-08-26 14:57:10 hata=1787745430.611433
+  ✅ 🔴 13g: pano hali 'yarim' (kosum ortasinda kesilmis)  — yarim
+  ✅ 13g: pano '⚠⚠ YARIM KALMIS YEDEK' diyor  —   ⚠⚠ YARIM KALMIS YEDEK: kilit izi 'bitti' isareti TASIMIYOR ve sahip surec (pid
+  ✅ 13g: degisiklik GERCEKTEN yedege girmedi (kayip gercek)
+  ✅ MUTANTTA (hep bitti=) coken kosum TEMIZ gorunuyor, pano SUSUYOR (kontrol KIRMIZI yanardi)  — hal=yok iz=62 iso=2026-08-26 14:57:10 bitti=1787745430.680285
+
+13i) KILIT CALINAMAZ — sahte `bitti=` izi flock'u DELMEZ
+  ✅ sahte `bitti=` izine RAGMEN kosum ATLADI (flock cekirdekte)  — rc=0 yedek ATLANDI — baska bir yedek kosuyor (pid=1 baslangic=178
+  ✅ sahte iz hedefe yedek YAZDIRMADI (damga YOK)
+  ✅ kilit gercekten birakilinca ayni kosum YEDEKLIYOR (kontrol olu degil)  — rc=0
+
+13h) K1 BIRIMI — kilit_birak(basardi=) fail-closed varsayilan
+  ✅ basardi=True -> iz `bitti=` tasiyor
+  ✅ basardi=False -> `bitti=` YOK, `hata=` VAR  — 45430.848222 iso=2026-08-26 14:57:10 hata=1787745430.8482502
+  ✅ bayrak verilmezse FAIL-CLOSED (`bitti=` yazilmaz)  — 745430.848324 iso=2026-08-26 14:57:10 hata=1787745430.848342
+  ✅ main() basari bayragini kilit_birak'a GERCEKTEN veriyor (kablolama)
+
+13c) KAPSAMA KARARI — olcemedigimiz her hal 'kapsanmadi' (fail-closed)
+  ✅ kaynak sahip baslangicindan ESKI -> kapsandi
+  ✅ kaynak sahip baslangiciyla AYNI -> kapsandi
+  ✅ kaynak sahip baslangicindan YENI -> KAPSANMADI
+  ✅ sahip baslangici bilinmiyor -> KAPSANMADI
+  ✅ kaynak mtime olculemedi -> KAPSANMADI
+
+13d) KILIT BIRIMI — al/birak, ikinci alis MESGUL, kurulamayan yol FAIL-OPEN
+  ✅ bos kilit ALINIYOR  — alindi
+  ✅ tutulurken ikinci alis MESGUL  — mesgul
+  ✅ sahip imzasi (pid+baslangic) okunabiliyor  — pid=11955 baslangic=1787745430.848724 iso=2026-08-26 14:57:1
+  ✅ sahip yasi hesaplaniyor (~0 sn)  — 4.506111145019531e-05
+  ✅ birakilinca yeniden ALINIYOR  — alindi
+  ✅ kilit dosyasi SILINMEDI (inode yarisi onlenir)
+  ✅ birakilan kilidin icerigi temizlendi (bayat sahip yaniltmasin)
+  ✅ acilamayan kilit yolu -> 'kurulamadi' (FAIL-OPEN, yedek yine alinir)  — kurulamadi / kilit dosyasi acilamadi: [Errno 2] No such file or
+  ✅ kilit_birak(None) patlamiyor
+  ✅ kilitsiz kosum damgada isaretli
+  ✅ kilitli kosumda isaret YOK
+  ✅ damgada baslangic alani var (gerekli_mi + pano referansi)
+  ✅ gerekli_mi ARTIK baslangici referans aliyor
+
+13b) KIRMIZI-MUTASYON — kilit kaldirilirsa eszamanli kosum GECER mi?
+  ✅ MUTANTTA kilit dinlenmedi, yedek YINE yazildi (kontrol KIRMIZI yanardi)  — rc=0
+
+14) ESZAMANLILIK — 3 turda 2'ser kosum: biri yedekler, obur ATLAR
+  ✅ tur1: TAM 1 kosum yedekledi, 1 kosum ATLADI  — yazan=1 atlayan=1
+  ✅ tur1: IKI kosum da exit 0 (push bloklanmadi)  — [0, 0]
+  ✅ tur1: hedefte yarim/karismis cikti YOK (556 dosya)  — beklenen 556, artik -
+  ✅ tur1: damga TAM OLARAK BIR tam kosum bildiriyor  — tam=True memory=400 skills=150
+  ✅ tur1: ATLAYAN kosum kendi kaydinda iz birakti
+  ✅ tur1: atlama KAPSANDI olarak isaretlendi (bos uyari yok)  — True
+  ✅ tur1: beklenen sahip damgayi YAZDI (baslangic == sahip baslangici)  — 1787745431.0481138 vs 1787745431.0481138
+  ✅ tur1: PANO SUSUYOR (normal eszamanli ciftte bos uyari yok)  —   taze: son yedek az once (2026-08-26 14:57:11) — esik 2 gun.
+  ✅ tur2: TAM 1 kosum yedekledi, 1 kosum ATLADI  — yazan=1 atlayan=1
+  ✅ tur2: IKI kosum da exit 0 (push bloklanmadi)  — [0, 0]
+  ✅ tur2: hedefte yarim/karismis cikti YOK (556 dosya)  — beklenen 556, artik -
+  ✅ tur2: damga TAM OLARAK BIR tam kosum bildiriyor  — tam=True memory=400 skills=150
+  ✅ tur2: ATLAYAN kosum kendi kaydinda iz birakti
+  ✅ tur2: atlama KAPSANDI olarak isaretlendi (bos uyari yok)  — True
+  ✅ tur2: beklenen sahip damgayi YAZDI (baslangic == sahip baslangici)  — 1787745431.298655 vs 1787745431.298655
+  ✅ tur2: PANO SUSUYOR (normal eszamanli ciftte bos uyari yok)  —   taze: son yedek az once (2026-08-26 14:57:11) — esik 2 gun.
+  ✅ tur3: TAM 1 kosum yedekledi, 1 kosum ATLADI  — yazan=1 atlayan=1
+  ✅ tur3: IKI kosum da exit 0 (push bloklanmadi)  — [0, 0]
+  ✅ tur3: hedefte yarim/karismis cikti YOK (556 dosya)  — beklenen 556, artik -
+  ✅ tur3: damga TAM OLARAK BIR tam kosum bildiriyor  — tam=True memory=400 skills=150
+  ✅ tur3: ATLAYAN kosum kendi kaydinda iz birakti
+  ✅ tur3: atlama KAPSANDI olarak isaretlendi (bos uyari yok)  — True
+  ✅ tur3: beklenen sahip damgayi YAZDI (baslangic == sahip baslangici)  — 1787745431.554174 vs 1787745431.554174
+  ✅ tur3: PANO SUSUYOR (normal eszamanli ciftte bos uyari yok)  —   taze: son yedek az once (2026-08-26 14:57:11) — esik 2 gun.
+
+14b) GERCEK YOL — paralel `--gerekliyse` cifti (kaynak DEGISMEDI)
+  ✅ 🔢 20 paralel `--gerekliyse` cifti: YANLIS UYARI 0  — yanlis=0/20  
+  ✅ 20 ciftte 'sahip bilgisi yok' 0 (kilit izi okunabiliyor)  — okunamadi=0/20
+  ✅ 20 ciftte exit!=0 yok (fail-open)  — hata=0/20
+  ✅ GUNCEL yolu damgayi DOGRULADI (baslangic ilerledi, zaman DOKUNULMADI)  — baslangic-zaman=1.414 sn
+  ✅ dogrulama sayaclara/tamlik iddiasina DOKUNMADI  — memory=40 skills=20
+
+14c) HER IKI DUZELTME DE GEREKLI — birini kapatinca yanlis uyari donuyor mu?
+  ✅ MUTANT [F1 kapali (kilit izi bosaltiliyor)] -> yanlis uyari GERI GELDI  — yanlis=4/10 sahip-okunamadi=4/10  ⚠⚠ KISMI YEDEK: son kosumdan SONRA bir yedek ATLANDI (2026-0
+  ✅ MUTANT [F2 kapali (GUNCEL yolu damga yazmiyor)] -> yanlis uyari GERI GELDI  — yanlis=10/10 sahip-okunamadi=0/10  ⚠⚠ KISMI YEDEK: son kosumdan SONRA bir yedek ATLANDI (2026-0
+
+14d) K3 — IMZA BIRIMI + dogrulama kaydi + `kilitsiz` KOSUM-YEREL
+  ✅ kaynak_imzasi adet/bayt/mtime donduruyor  — {'adet': 1600, 'bayt': 744985240, 'mtime': 1787745410.9110928}
+  ✅ kaynak_imzasi mtime'i en_yeni_kaynak_mtime ile AYNI (tek gezinme kodu)
+  ✅ imza_esit_mi ayni imzada True
+  ✅ imza_esit_mi 'adet' eksenindeki degisimi YAKALIYOR
+  ✅ imza_esit_mi 'bayt' eksenindeki degisimi YAKALIYOR
+  ✅ imza_esit_mi 'mtime' eksenindeki degisimi YAKALIYOR
+  ✅ imza_esit_mi eksik/bozuk imzada fail-closed (False)
+  ✅ gerekli_mi: imzalar FARKLIYSA mtime 'eski' dese bile YEDEKLE
+  ✅ gerekli_mi: imzalar AYNIYSA (ve mtime eski) yine ATLA
+  ✅ tam kosum damgaya `kaynak_imzasi` yaziyor  — {'adet': 64, 'bayt': 1056, 'mtime': 1787745436.045865}
+  ✅ GUNCEL yolu 'atla' dedi  — yedek GUNCEL (son damga: 2026-08-26 14:57:16) — degisiklik yok, kopyal
+  ✅ GUNCEL yolu `dogrulandi` + `dogrulama_imzasi` yaziyor  — dogrulandi=True
+  ✅ GUNCEL yolu `zaman`a ve sayaclara DOKUNMADI
+  ✅ hazirlik: kum havuzunun canli imzasi OLCULDU (fikstur ISIRIYOR)  — {'adet': 64, 'bayt': 1056, 'mtime': 1787745436.045865}
+     --- pano ciktisi (3 gun eski ama DOGRULANMIS) ---
+      ✅ GÜNCEL (son gercek yedek: 2026-08-26 14:57:16 / 3 gun once) — degisiklik YOK, dogrulandi az once.
+      damga iddiasi: memory 40 + skills 20 + repo 4   (esik 2 gun; kopyalamaya gerek olmadi)
+  ✅ 🔴 K3: 3 gun eski ama dogrulanmis yedek 'guncel' (BOSUNA BAYAT DEMIYOR)  — guncel
+  ✅ K5 hazirlik: mtime KORUNMUS degisim imzayi DEGISTIRDI (bayt ekseni)  — 1056 -> 1097
+  ✅ 🔴 K5 UCTAN UCA: kaynak degisti + damgaya kimse dokunmadi -> pano GUNCEL DEMIYOR  — kapsam-degisti |   ⚠⚠ YEDEK KAPSAMIYOR: kaynaklar son yedekten (2026-08-26 14:57:16 / 3
+  ✅ yeni dosya kaynak imzasini DEGISTIRDI (adet arttı)  — 64 -> 65
+  ✅ degisiklikten sonra `--gerekliyse` GERCEKTEN yedekliyor (atlamiyor)  — bitti -> /var/folders/z2/dzvytjpx4j78py5vn52yzk9m0000gn/T/tm
+  ✅ 🔴 mtime KORUNMUS icerik degisikligi ATLANMIYOR (bayt ekseni isiriyor)  — bitti -> /var/folders/z2/dzvytjpx4j78py5vn52yzk9m0000gn/T/tm
+  ✅ hazirlik: damgada miras `kilitsiz` bayragi VAR
+  ✅ 🔴 K3: kilitli dogrulama kosumu MIRAS `kilitsiz` notunu TEMIZLIYOR  — ['agac_sir_atlanan', 'agac_sir_bulunan', 'agac_sir_silinen', 'baslangic', 'cron', 'cron_haric', 'cron_yeni', 'dogrulama_imzasi', 'dogrulandi', 'dogrulandi_iso', 'eksik', 'gorev', 'gorev_haric', 'gorev_yeni', 'iso', 'kapsamdisi_atlanan', 'kapsamdisi_bulunan', 'kapsamdisi_silinen', 'kaynak_imzasi', 'kok', 'kok_sir_atlanan', 'kok_sir_bulunan', 'kok_sir_elenen', 'kok_sir_silinen', 'memory', 'plan', 'plan_haric', 'plan_yeni', 'repo', 'skills', 'skills_haric', 'surum', 'tam', 'zaman']
+  ✅ pano yapiskan KILITSIZ notunu artik BASMIYOR
+
+14e) K3 KIRMIZI-MUTASYON — imza yazilmazsa yesil iddia URETILMEZ
+  ✅ MUTANTTA (imzasiz dogrulama) pano GUNCEL DEMIYOR -> OLCULEMEDI/BAYAT  — dogrulama-olculemedi |   ⚠ ÖLÇÜLEMEDİ: son gercek yedek 3 gun once (2026-08-26 14:5
+
+15) IZOLASYON KANITI — gercek Drive damgasi + .stl-backup-dir DEGISMEDI
+  ✅ gercek damga yolu ile test yolu FARKLI  — /Users/okan/Library/CloudStorage/GoogleDrive-info@pruvo3d.com/Ortak Drive'lar/PRUVO/Pruvo/backup-v2/.son-yedek.json
+  ✅ GERCEK .stl-backup-dir bayt+mtime AYNI (test yazmadi)  — degismedi
+  ✅ GERCEK damga bayt+mtime AYNI (test yazmadi)  — degismedi
+  ✅ test GERCEK yola YAZAN cozucuyu HIC cagirmiyor (fail-closed)  — bulunan: -
+  ✅ igne olu DEGIL: ayni arama yedekle.py'de ISABET veriyor
+  ✅ gercek damga sayaclari korundu  — memory=333 skills=19 repo=4
+
+16) KOK GLOB — adsiz kok deseninin kapsami (fikstur adlari UYDURMA)
+  ✅ kok deseni EK_EVLER'de TANIMLI (fail-closed: yoksa olculemez)  — desen sayisi: 1
+  ✅ _kok_desen_tutuyor TEK TANIM (ikiz tanim yok)  — tanim: 1
+  ✅ _kok_desen_tutuyor iki karar noktasindan da CAGRILIYOR  — cagri: 2
+  ✅ hukum fonksiyonu modulde CANLI (cagrilabilir)  — function
+  ✅ fikstur TAZE: sir eksenli uydurma ad gercekten SIR sayiliyor  — ad deseni: *token*
+  ✅ fikstur TAZE: desen-disi kontrol dosyasi desene UYMUYOR  — KUMHAVUZU-KAPSAM-DISI-KAYDI.txt
+  ✅ fikstur TAZE: uzanti eksenli adlar TEMIZ desene UYMUYOR (negatif eksen olculebilir)  — uyan: -
+  ✅ fikstur TAZE: dizin eksenli ad TEMIZ desene UYUYOR (yalniz 'dosya degil' diye eleniyor)  — DEVAM-KUMHAVUZU-DIZIN.md
+  ✅ SAGLAM (a) kok deseni ayni bicimdeki 3 uydurma kaydi kapsama ALIR  — 3/3
+  ✅ SAGLAM (b) kapsanan kayit KAPSAM-DISI raporuna MUKERRER DUSMEZ  — dusen: 0
+  ✅ SAGLAM (c) kok deseni ALT AGAC dosyasini YUTMAZ ('/' ayirir)  — alt agac dosyasi kapsamda mi: False
+  ✅ SAGLAM (e) desene UYMAYAN kok dosyasi KAPSAM-DISI'nda GORUNUR (bosluk gizlenmiyor)  — kapsam-disi=True dahil=False
+  ✅ SAGLAM (f) git'te IZLENEN eslesme kapsama ALINMAZ  — dahil mi: False
+  ✅ SAGLAM (g) desene uyan SIR dosyasi yedege GIRMEZ, `haric`e duser  — dahil=False haric=True
+  ✅ SAGLAM (h) SIR dosyasi KAPSAM-DISI'na da MUKERRER dusmez  — kapsam-disi mi: False
+  ✅ SAGLAM (i) EK_EVLER'den OKUNAN desen SABIT uydurma adlarin HEPSINI tutuyor (desen DEGERI kilitli)  — 3/3 ad tutuluyor
+  ✅ SAGLAM (j) UZANTISIZ kok kaydi desene TAKILMAZ (kapsama girmez)  — dahil mi: False
+  ✅ SAGLAM (k) FARKLI UZANTILI kok kaydi desene TAKILMAZ ve KAPSAM-DISI'nda GORUNUR  — dahil=False kapsam-disi=[True, True]
+  ✅ SAGLAM (l) desene UYAN DIZIN yedege GIRMEZ, `haric`e de DUSMEZ, KAPSAM-DISI'nda GORUNUR  — dahil=False haric=False kapsam-disi=True
+  ✅ SAGLAM (m) EK_EVLER'den OKUNAN ALT-DIZIN desenleri SABIT uydurma yollarin HEPSINI tutuyor (deger + dizin bileseni kilitli)  — 3/3 yol tutuluyor
+  ✅ SAGLAM (n) BIRINCI dizin bileseni CANLI: o dizindeki 2 sabit kayit kapsama ALIR  — dahil: [True, True]
+  ✅ SAGLAM (o) IKINCI dizin bileseni CANLI: o dizindeki sabit kayit kapsama ALIR  — dahil: [True]
+  ✅ SAGLAM (p) alt-dizin deseni UZANTIYI suzuyor (uzantisiz + farkli uzantili kapsama GIRMEZ)  — uzantisiz=False baska=False
+  ✅ SAGLAM (q) alt-dizin deseni ALT AGACA INER (derin dosya KAPSANIR — olculmus davranis, kok glob'unun TERSI)  — dahil mi: True
+  ✅ SAGLAM (r) alt-dizin desenine UYAN DIZIN ne yedege GIRER ne `haric`e DUSER (kapsam_disi yalniz KOK girisleri sayar)  — dahil=False haric=False
+  ✅ SAGLAM KOD YESIL: butun kok-glob iddialari gecti  — gecen 17 / 17 iddia
+
+16b) KOK GLOB KIRMIZI-MUTASYON — hukum bozulunca iddia DUSUYOR mu?
+  ✅ MUTASYON CAPALARI TAZE (yedekle.py kaynagiyla hizali)  — 10 mutant tarifi
+  ✅ MUTANT-1 (eslesme hep False) MUTASYON YUKLENEN MODULDE CANLI (bayat bytecode degil)  — isaret='M1'
+  ✅ MUTANT-1 (eslesme hep False) COKMEDI (cokme KIRMIZI ile karismasin)  — cokme yok
+  ✅ MUTANT-1 (eslesme hep False) KIRMIZI: en az 1 iddia DUSTU  — dusen 2 / 17 iddia: (a) · (b)
+  ✅ MUTANT-2 (eslesme hep True) MUTASYON YUKLENEN MODULDE CANLI (bayat bytecode degil)  — isaret='M2'
+  ✅ MUTANT-2 (eslesme hep True) COKMEDI (cokme KIRMIZI ile karismasin)  — cokme yok
+  ✅ MUTANT-2 (eslesme hep True) KIRMIZI: en az 1 iddia DUSTU  — dusen 3 / 17 iddia: (e) · (j) · (k)
+  ✅ M-G (kok deseni TAMAMEN YANLIS degere kaydi) MUTASYON YUKLENEN MODULDE CANLI (bayat bytecode degil)  — isaret='MG'
+  ✅ M-G (kok deseni TAMAMEN YANLIS degere kaydi) COKMEDI (cokme KIRMIZI ile karismasin)  — cokme yok
+  ✅ M-G (kok deseni TAMAMEN YANLIS degere kaydi) KIRMIZI: en az 1 iddia DUSTU  — dusen 3 / 17 iddia: (a) · (b) · (i)
+  ✅ M-I (desenden UZANTI kontrolu dusuruldu) MUTASYON YUKLENEN MODULDE CANLI (bayat bytecode degil)  — isaret='MI'
+  ✅ M-I (desenden UZANTI kontrolu dusuruldu) COKMEDI (cokme KIRMIZI ile karismasin)  — cokme yok
+  ✅ M-I (desenden UZANTI kontrolu dusuruldu) KIRMIZI: en az 1 iddia DUSTU  — dusen 2 / 17 iddia: (j) · (k)
+  ✅ M-D (kok yolundaki isfile suzgeci dusuruldu) MUTASYON YUKLENEN MODULDE CANLI (bayat bytecode degil)  — isaret='MD'
+  ✅ M-D (kok yolundaki isfile suzgeci dusuruldu) COKMEDI (cokme KIRMIZI ile karismasin)  — cokme yok
+  ✅ M-D (kok yolundaki isfile suzgeci dusuruldu) KIRMIZI: en az 1 iddia DUSTU  — dusen 1 / 17 iddia: (l)
+  ✅ MA-G (alt-dizin deseni TAMAMEN YANLIS degere kaydi) MUTASYON YUKLENEN MODULDE CANLI (bayat bytecode degil)  — isaret='MAG'
+  ✅ MA-G (alt-dizin deseni TAMAMEN YANLIS degere kaydi) COKMEDI (cokme KIRMIZI ile karismasin)  — cokme yok
+  ✅ MA-G (alt-dizin deseni TAMAMEN YANLIS degere kaydi) KIRMIZI: en az 1 iddia DUSTU  — dusen 2 / 17 iddia: (m) · (n)
+  ✅ MA-DIR (alt-dizin deseninin DIZIN bileseni kaydi) MUTASYON YUKLENEN MODULDE CANLI (bayat bytecode degil)  — isaret='MADIR'
+  ✅ MA-DIR (alt-dizin deseninin DIZIN bileseni kaydi) COKMEDI (cokme KIRMIZI ile karismasin)  — cokme yok
+  ✅ MA-DIR (alt-dizin deseninin DIZIN bileseni kaydi) KIRMIZI: en az 1 iddia DUSTU  — dusen 2 / 17 iddia: (m) · (o)
+  ✅ MA-EXT (alt-dizin deseninden UZANTI kontrolu dusuruldu) MUTASYON YUKLENEN MODULDE CANLI (bayat bytecode degil)  — isaret='MAEXT'
+  ✅ MA-EXT (alt-dizin deseninden UZANTI kontrolu dusuruldu) COKMEDI (cokme KIRMIZI ile karismasin)  — cokme yok
+  ✅ MA-EXT (alt-dizin deseninden UZANTI kontrolu dusuruldu) KIRMIZI: en az 1 iddia DUSTU  — dusen 1 / 17 iddia: (p)
+  ✅ MA-DERIN (alt agac yuruyusu durduruldu) MUTASYON YUKLENEN MODULDE CANLI (bayat bytecode degil)  — isaret='MADERIN'
+  ✅ MA-DERIN (alt agac yuruyusu durduruldu) COKMEDI (cokme KIRMIZI ile karismasin)  — cokme yok
+  ✅ MA-DERIN (alt agac yuruyusu durduruldu) KIRMIZI: en az 1 iddia DUSTU  — dusen 1 / 17 iddia: (q)
+  ✅ MA-DIZIN (alt-dizin yolunda DIZINLER de dosya gibi islendi) MUTASYON YUKLENEN MODULDE CANLI (bayat bytecode degil)  — isaret='MADIZIN'
+  ✅ MA-DIZIN (alt-dizin yolunda DIZINLER de dosya gibi islendi) COKMEDI (cokme KIRMIZI ile karismasin)  — cokme yok
+  ✅ MA-DIZIN (alt-dizin yolunda DIZINLER de dosya gibi islendi) KIRMIZI: en az 1 iddia DUSTU  — dusen 1 / 17 iddia: (r)
+  ✅ her mutant EN AZ 1 iddia dusurdu (survivor yok)  — bos kume: -
+  ✅ 10 mutantin HEPSI AYIRT EDICI (hicbir cift AYNI kumeyi dusurmuyor)  — esit cift: - | kumeler: MUTANT-1:2 || MUTANT-2:3 || M-G:3 || M-I:2 || M-D:1 || MA-G:2 || MA-DIR:2 || MA-EXT:1 || MA-DERIN:1 || MA-DIZIN:1
+  ✅ KORELME YOK: mutasyondan SONRA saglam kod yine tam yesil  — 17/17 iddia
+  ✅ HERMETIK KUME ASGARIYI KARSILIYOR (>= 60 — kume kucultulurse KIRMIZI)  — 60 iddia
+  ✅ SERIT PARITESI: `--hermetik` kolu YERINDEKI hermetik kume ile AYNI SAYIDA iddia basiyor (cikis kodu YETMEZ)  — serit=60 yerinde=60 serit_rc=0
+
+17) CRON AGACI — .py deligi (16 Agu 2026) + sızıntı kapısı
+
+18) ALT AGAC + KAPSAM-DISI — kok disinda sir + artik kapsam-disi klasor
+  ✅ A) ic ice sir plana GIRDI: cron-nobet/.navlungo-kimlik.json  — {'cron-nobet/.navlungo-kimlik.json', 'cron-nobet/.yerelsiz-token', 'cron-nobet/.navlungo-kimlik.20260816-011600.json'}
+  ✅ A) ic ice sir icin YOL + BOYUT + SEBEP ucu de doner  — [('cron-nobet/.navlungo-kimlik.20260816-011600.json', 'ad deseni: *kimlik*', 30), ('cron-nobet/.navlungo-kimlik.json', 'ad deseni: *kimlik*', 29), ('cron-nobet/.yerelsiz-token', 'ad deseni: *token*', 46)]
+  ✅ B) surumlenmis kopya plana GIRDI: .navlungo-kimlik.20260816-011600.json  — {'cron-nobet/.navlungo-kimlik.json', 'cron-nobet/.yerelsiz-token', 'cron-nobet/.navlungo-kimlik.20260816-011600.json'}
+  ✅ C) masum dosya plana GIRMEDI: cron-nobet/isci.sh  — {'cron-nobet/.navlungo-kimlik.json', 'cron-nobet/.yerelsiz-token', 'cron-nobet/.navlungo-kimlik.20260816-011600.json'}
+  ✅ C) masum dosya plana GIRMEDI: gorev-tanimlari/x.md  — {'cron-nobet/.navlungo-kimlik.json', 'cron-nobet/.yerelsiz-token', 'cron-nobet/.navlungo-kimlik.20260816-011600.json'}
+  ✅ C) masum dizin plana GIRMEDI (cron-nobet ISIMLI dizinin kendisi)  — {'cron-nobet/.navlungo-kimlik.json', 'cron-nobet/.yerelsiz-token', 'cron-nobet/.navlungo-kimlik.20260816-011600.json'}
+  ✅ D) kapsam-disi VAR: cron-nobet/profil-kimi-x  — {'cron-nobet/profil-kimi-x', 'cron-nobet/tarayici-profili', 'cron-nobet/nobet-raporlar', 'cron-nobet/m3-profil-blabla'}
+  ✅ D) kapsam-disi VAR: cron-nobet/m3-profil-blabla  — {'cron-nobet/profil-kimi-x', 'cron-nobet/tarayici-profili', 'cron-nobet/nobet-raporlar', 'cron-nobet/m3-profil-blabla'}
+  ✅ D) kapsam-disi VAR: cron-nobet/tarayici-profili  — {'cron-nobet/profil-kimi-x', 'cron-nobet/tarayici-profili', 'cron-nobet/nobet-raporlar', 'cron-nobet/m3-profil-blabla'}
+  ✅ D) kapsam-disi VAR: cron-nobet/nobet-raporlar  — {'cron-nobet/profil-kimi-x', 'cron-nobet/tarayici-profili', 'cron-nobet/nobet-raporlar', 'cron-nobet/m3-profil-blabla'}
+  ✅ D) desene uymayan klasor plana GIRMEDI: cron-nobet/profil-baska  — {'cron-nobet/profil-kimi-x', 'cron-nobet/tarayici-profili', 'cron-nobet/nobet-raporlar', 'cron-nobet/m3-profil-blabla'}
+  ✅ F) yedek kok disi dosya plana GIRMEDI (`..` segmenti YOK)
+  ✅ H) yerel asli OLMAYAN sir de plana GIRDI (eleme daralmadi)  — {'cron-nobet/.navlungo-kimlik.json', 'cron-nobet/.yerelsiz-token', 'cron-nobet/.navlungo-kimlik.20260816-011600.json'}
+  ✅ E) sir temizle sonrasi YALNIZ fail-closed kalem kaldi  — ['cron-nobet/.yerelsiz-token']
+  ✅ E) sir temizle sonrasi kapsam-disi plani 0
+  ✅ E) yedek kok disi dosya HIC DOKUNULMAMAMALI (fail-closed)  — /var/folders/z2/dzvytjpx4j78py5vn52yzk9m0000gn/T/tmp50ournbv/komsu/.navlungo-kimlik.json
+  ✅ E) atlanan kalem YALNIZ fail-closed olan (kapsam-disi hepsi temizlendi)  — sir_atlanan=[('cron-nobet/.yerelsiz-token', 'yereldeki ASIL YOK (silinirse tek kopya gider)')] kap_atlanan=[]
+  ✅ E) atlama SEBEBI yereldeki asla ATIF yapiyor (sessiz atlama YOK)  — [('cron-nobet/.yerelsiz-token', 'yereldeki ASIL YOK (silinirse tek kopya gider)')]
+  ✅ E) ic ice sir dosyasi SILINDI (yerel asli VAR)  — /var/folders/z2/dzvytjpx4j78py5vn52yzk9m0000gn/T/tmp50ournbv/backup-v2/cron-nobet/.navlungo-kimlik.json
+  ✅ E) surumlenmis kopya SILINDI (asil = SURUMSUZ ad)  — /var/folders/z2/dzvytjpx4j78py5vn52yzk9m0000gn/T/tmp50ournbv/backup-v2/cron-nobet/.navlungo-kimlik.20260816-011600.json
+  ✅ H) yerel asli OLMAYAN sir kopyasi SILINMEDI (K212 fail-closed)  — /var/folders/z2/dzvytjpx4j78py5vn52yzk9m0000gn/T/tmp50ournbv/backup-v2/cron-nobet/.yerelsiz-token
+  ✅ E) kapsam-disi klasor SILINDI (profil-kimi-x)  — /var/folders/z2/dzvytjpx4j78py5vn52yzk9m0000gn/T/tmp50ournbv/backup-v2/cron-nobet/profil-kimi-x
+  ✅ G) REGRESYON — yedek_kok_sir_plani yine bos (yeni kod yok sir eklemedi)
+  ✅ G) REGRESYON — yedek_plani genisletildi/budanamadi (vaka sadece sir + kapsamdisi)  — 1600
+  ✅ G) REGRESYON — kronik doluluk (masum dosyalar hala vardi)  — [True, True]
+  ✅ 🔴 17) FIKSTUR CANLI: `sahte_cron` iddia aninda DURUYOR (tempfile blogu erken kapanmadi)  — /var/folders/z2/dzvytjpx4j78py5vn52yzk9m0000gn/T/tmp50ournbv/cron
+  ✅ SAHTE KOK GERCEK ~/.claude/cron DEGIL (güvenli kum havuzu)  — /var/folders/z2/dzvytjpx4j78py5vn52yzk9m0000gn/T/tmp50ournbv/cron
+  ✅ A) cron kokunde .py dosyasi yedek planinda VAR  — {'isci-baglam/ek-not.json', 'nobet-kapi.py', 'isci-baglam/deepseek-flash.md', 'isci-baglam/minimax-m3.md', 'isci-baglam/ORTAK.md', 'isci-baglam/BUTCE.md', 'isci-baglam/deepseek-pro.md'}
+  ✅ A) .py dosyasi haric listesinde DEGIL
+  ✅ B) cron'daki sir .kimi-anahtar plana GIRMEDI  — {'isci-baglam/ek-not.json', 'nobet-kapi.py', 'isci-baglam/deepseek-flash.md', 'isci-baglam/minimax-m3.md', 'isci-baglam/ORTAK.md', 'isci-baglam/BUTCE.md', 'isci-baglam/deepseek-pro.md'}
+  ✅ B) cron'daki sir .kimi-anahtar haric SEBEBIYLE sayildi  — ad deseni: *anahtar
+  ✅ B) cron'daki sir .deepseek-anahtar plana GIRMEDI  — {'isci-baglam/ek-not.json', 'nobet-kapi.py', 'isci-baglam/deepseek-flash.md', 'isci-baglam/minimax-m3.md', 'isci-baglam/ORTAK.md', 'isci-baglam/BUTCE.md', 'isci-baglam/deepseek-pro.md'}
+  ✅ B) cron'daki sir .deepseek-anahtar haric SEBEBIYLE sayildi  — ad deseni: *anahtar
+  ✅ B) cron'daki sir .cf-token plana GIRMEDI  — {'isci-baglam/ek-not.json', 'nobet-kapi.py', 'isci-baglam/deepseek-flash.md', 'isci-baglam/minimax-m3.md', 'isci-baglam/ORTAK.md', 'isci-baglam/BUTCE.md', 'isci-baglam/deepseek-pro.md'}
+  ✅ B) cron'daki sir .cf-token haric SEBEBIYLE sayildi  — ad deseni: *token*
+  ✅ B) cron'daki sir .gh-token plana GIRMEDI  — {'isci-baglam/ek-not.json', 'nobet-kapi.py', 'isci-baglam/deepseek-flash.md', 'isci-baglam/minimax-m3.md', 'isci-baglam/ORTAK.md', 'isci-baglam/BUTCE.md', 'isci-baglam/deepseek-pro.md'}
+  ✅ B) cron'daki sir .gh-token haric SEBEBIYLE sayildi  — ad deseni: *token*
+  ✅ B) cron'daki sir .ci-token plana GIRMEDI  — {'isci-baglam/ek-not.json', 'nobet-kapi.py', 'isci-baglam/deepseek-flash.md', 'isci-baglam/minimax-m3.md', 'isci-baglam/ORTAK.md', 'isci-baglam/BUTCE.md', 'isci-baglam/deepseek-pro.md'}
+  ✅ B) cron'daki sir .ci-token haric SEBEBIYLE sayildi  — ad deseni: *token*
+  ✅ B) cron'daki sir .cf-purge-token plana GIRMEDI  — {'isci-baglam/ek-not.json', 'nobet-kapi.py', 'isci-baglam/deepseek-flash.md', 'isci-baglam/minimax-m3.md', 'isci-baglam/ORTAK.md', 'isci-baglam/BUTCE.md', 'isci-baglam/deepseek-pro.md'}
+  ✅ B) cron'daki sir .cf-purge-token haric SEBEBIYLE sayildi  — ad deseni: *token*
+  ✅ B) cron'daki sir .navlungo-kimlik.json plana GIRMEDI  — {'isci-baglam/ek-not.json', 'nobet-kapi.py', 'isci-baglam/deepseek-flash.md', 'isci-baglam/minimax-m3.md', 'isci-baglam/ORTAK.md', 'isci-baglam/BUTCE.md', 'isci-baglam/deepseek-pro.md'}
+  ✅ B) cron'daki sir .navlungo-kimlik.json haric SEBEBIYLE sayildi  — ad deseni: *kimlik*
+  ✅ B) TUM sirlar ayni kategoride (sir nobeti yakaliyor)  — sebepler: ad deseni: *anahtar | ad deseni: *kimlik*
+  ✅ C) transient dizin profil-minimax-m3-pruvo/ plana GIRMEDI (dosyalar dahil)
+  ✅ C) transient dizin profil-minimax-m3-pruvo/ gurultu listesinde budandi  — {'tarayici-profili/ (dizin budandi)', 'profil-minimax-m3-pruvo/ (dizin budandi)', 'scripts/__pycache__/ (dizin budandi)', 'm3-profil-pruvo/ (dizin budandi)', 'nobet-raporlar/ (dizin budandi)'}
+  ✅ C) transient dizin m3-profil-pruvo/ plana GIRMEDI (dosyalar dahil)
+  ✅ C) transient dizin m3-profil-pruvo/ gurultu listesinde budandi  — {'tarayici-profili/ (dizin budandi)', 'profil-minimax-m3-pruvo/ (dizin budandi)', 'scripts/__pycache__/ (dizin budandi)', 'm3-profil-pruvo/ (dizin budandi)', 'nobet-raporlar/ (dizin budandi)'}
+  ✅ C) transient dizin tarayici-profili/ plana GIRMEDI (dosyalar dahil)
+  ✅ C) transient dizin tarayici-profili/ gurultu listesinde budandi  — {'tarayici-profili/ (dizin budandi)', 'profil-minimax-m3-pruvo/ (dizin budandi)', 'scripts/__pycache__/ (dizin budandi)', 'm3-profil-pruvo/ (dizin budandi)', 'nobet-raporlar/ (dizin budandi)'}
+  ✅ C) transient dizin nobet-raporlar/ plana GIRMEDI (dosyalar dahil)
+  ✅ C) transient dizin nobet-raporlar/ gurultu listesinde budandi  — {'tarayici-profili/ (dizin budandi)', 'profil-minimax-m3-pruvo/ (dizin budandi)', 'scripts/__pycache__/ (dizin budandi)', 'm3-profil-pruvo/ (dizin budandi)', 'nobet-raporlar/ (dizin budandi)'}
+  ✅ C) __pycache__/x.py + x.pyc plana GIRMEDI (mevcut GURULTU_DIZIN hâlâ calisiyor)
+  ✅ D) isci-baglam/ORTAK.md yedek planinda VAR  — {'isci-baglam/ek-not.json', 'nobet-kapi.py', 'isci-baglam/deepseek-flash.md', 'isci-baglam/minimax-m3.md', 'isci-baglam/ORTAK.md', 'isci-baglam/BUTCE.md', 'isci-baglam/deepseek-pro.md'}
+  ✅ D) isci-baglam/BUTCE.md yedek planinda VAR  — {'isci-baglam/ek-not.json', 'nobet-kapi.py', 'isci-baglam/deepseek-flash.md', 'isci-baglam/minimax-m3.md', 'isci-baglam/ORTAK.md', 'isci-baglam/BUTCE.md', 'isci-baglam/deepseek-pro.md'}
+  ✅ D) isci-baglam/minimax-m3.md VAR
+  ✅ D) isci-baglam/deepseek-flash.md VAR
+  ✅ D) isci-baglam/deepseek-pro.md VAR
+  ✅ D) isci-baglam/ dizini haric listesinde DEGIL (yalniz girisler kontrol)
+  ✅ D) isci-baglam/ dizini AGAC EK ATLA listesinde DEGIL (kullanici .md gibi dosyalar yedeklenir)  — ('profil-', 'm3-profil', 'tarayici-profili', 'nobet-raporlar')
+  ✅ E) eski kume .sh hâlâ VAR (regresyon)  — ['ayar.json', 'gorev.md', 'isci-baglam/BUTCE.md', 'isci-baglam/ORTAK.md', 'isci-baglam/deepseek-flash.md', 'isci-baglam/deepseek-pro.md', 'isci-baglam/ek-not.json', 'isci-baglam/minimax-m3.md', 'nober.sh', 'nobet-kapi.py', 'not.txt', 'zamanlama.crontab']
+  ✅ E) eski kume .md hâlâ VAR  — ['ayar.json', 'gorev.md', 'isci-baglam/BUTCE.md', 'isci-baglam/ORTAK.md', 'isci-baglam/deepseek-flash.md', 'isci-baglam/deepseek-pro.md', 'isci-baglam/ek-not.json', 'isci-baglam/minimax-m3.md', 'nober.sh', 'nobet-kapi.py', 'not.txt', 'zamanlama.crontab']
+  ✅ E) eski kume .crontab hâlâ VAR  — ['ayar.json', 'gorev.md', 'isci-baglam/BUTCE.md', 'isci-baglam/ORTAK.md', 'isci-baglam/deepseek-flash.md', 'isci-baglam/deepseek-pro.md', 'isci-baglam/ek-not.json', 'isci-baglam/minimax-m3.md', 'nober.sh', 'nobet-kapi.py', 'not.txt', 'zamanlama.crontab']
+  ✅ E) eski kume .txt hâlâ VAR  — ['ayar.json', 'gorev.md', 'isci-baglam/BUTCE.md', 'isci-baglam/ORTAK.md', 'isci-baglam/deepseek-flash.md', 'isci-baglam/deepseek-pro.md', 'isci-baglam/ek-not.json', 'isci-baglam/minimax-m3.md', 'nober.sh', 'nobet-kapi.py', 'not.txt', 'zamanlama.crontab']
+  ✅ E) eski kume .json hâlâ VAR  — ['ayar.json', 'gorev.md', 'isci-baglam/BUTCE.md', 'isci-baglam/ORTAK.md', 'isci-baglam/deepseek-flash.md', 'isci-baglam/deepseek-pro.md', 'isci-baglam/ek-not.json', 'isci-baglam/minimax-m3.md', 'nober.sh', 'nobet-kapi.py', 'not.txt', 'zamanlama.crontab']
+     17) bolumunun test sayisi: 311
+
+19) K212/A — yereldeki ASLI OLMAYAN kalem: KOK kolu DA alt agac kolu DA SILMEZ
+  ✅ 19) ANTI-TAUTOLOJI: alt agac plani yedek KOKUNDEKI kalemi DE gordu  — ['.thingiverse-token', 'cron-nobet/.r2-credentials.json', 'cron-nobet/.thingiverse-token']
+  ✅ 19) ANTI-TAUTOLOJI: alt agac plani ALT AGACTAKI kalemi de gordu  — ['.thingiverse-token', 'cron-nobet/.r2-credentials.json', 'cron-nobet/.thingiverse-token']
+  ✅ 🔴 19) KOK kolu: yerel asli OLMAYAN kalem SILINMEDI (fail-closed)  — {'kok_yerelsiz': True, 'kok_asilli': False, 'agac_yerelsiz': True, 'agac_asilli': False, 'kapsamdisi': False}
+  ✅ 🔴 19) ALT AGAC kolu: kok kolunun BIRAKTIGI kalemi SILMEDI (K212/K1 — sessiz veri kaybi kapali)  — atlanan=['.thingiverse-token', 'cron-nobet/.thingiverse-token']
+  ✅ 🔴 19) ALT AGACTAKI ayni ad da SILINMEDI  — atlanan=['.thingiverse-token', 'cron-nobet/.thingiverse-token']
+  ✅ 19) atlama SEBEBI yereldeki ASLA atif yapiyor (iki kolda da)  — kok=['yereldeki ASIL YOK (silinirse tek kopya gider)  [yerel: /var/folders/z2/dzvytjpx4j78py5vn52yzk9m0000gn/T/tmp0si_luhg/taban/sahte-root/.thingiverse-token]'] agac=['yereldeki ASIL YOK (silinirse tek kopya gider)', 'yereldeki ASIL YOK (silinirse tek kopya gider)']
+  ✅ 19) POZITIF: yerel asli VAR olan kalem KOK kolunda SILINDI  — ['.r2-credentials.json']
+  ✅ 19) POZITIF: yerel asli VAR olan kalem ALT AGAC kolunda SILINDI  — ['cron-nobet/.r2-credentials.json']
+  ✅ 19) POZITIF: kapsam-disi bayat klasor SILINDI (kontrol kolu CANLI)  — {'kok_yerelsiz': True, 'kok_asilli': False, 'agac_yerelsiz': True, 'agac_asilli': False, 'kapsamdisi': False}
+  ✅ 🔴 19-M) MUTANT A alt agac kolunu OLDURDU: fail-closed kalem SILINDI (saglam kodda YASIYORDU -> iddia bos degil)  — duruyor={'kok_yerelsiz': False, 'kok_asilli': False, 'agac_yerelsiz': False, 'agac_asilli': False, 'kapsamdisi': False} atlanan=[]
+  ✅ 🔴 19-M) MUTANT A KOK kolunu ETKILEMEDI (hedef-kol atfi iki yonlu)  — kok_atlanan=['.thingiverse-token'] kok_islenen=['.r2-credentials.json']
+  ✅ 19-K) KONTROL MUTANTI GERCEKTEN ETKIN (kapsam-disi klasor DURUYOR)  — {'kok_yerelsiz': True, 'kok_asilli': False, 'agac_yerelsiz': True, 'agac_asilli': False, 'kapsamdisi': True}
+  ✅ 🔴 19-K) KONTROL MUTANTINDA K212/A iddialari YESIL kaldi (mutant AYIRT EDICI, batarya toptan yanmiyor)  — duruyor={'kok_yerelsiz': True, 'kok_asilli': False, 'agac_yerelsiz': True, 'agac_asilli': False, 'kapsamdisi': True}
+
+20) K212/B — damga hem gorev/cron/plan hem alt-agac temizlik sayaclarini TASIR
+  ✅ 20) hazirlik: izole yedek TAMAMLANDI (rc=0, damga yazildi)  — rc=0 damga=dict
+  ✅ 🔴 20) damga gorev/cron/plan sayaclarinin HEPSINI tasiyor (K212/K2 — ezme geri gelmedi)
+  ✅ 20) damga alt-agac TEMIZLIK sayaclarini da tasiyor (iki sozluk YAN YANA)
+  ✅ 20) cron sayaci TURETILMIS: dosya=3, yeni=3, haric=1  — damga: cron=3 yeni=3 haric=1
+  ✅ 20) gorev sayaci TURETILMIS: dosya=4, yeni=4, haric=1  — damga: gorev=4 yeni=4 haric=1
+  ✅ 20) plan sayaci TURETILMIS: dosya=2, yeni=2, haric=1  — damga: plan=2 yeni=2 haric=1
+  ✅ 🔴 20-M) MUTANT B damgadan gorev/cron/plan sayaclarini DUSURDU (saglam kodda VARDI -> iddia bos degil)  — eksik=['cron', 'cron_haric', 'cron_yeni', 'gorev', 'gorev_haric', 'gorev_yeni', 'plan', 'plan_haric', 'plan_yeni']
+  ✅ 🔴 20-M) MUTANT B KOMSU ekseni (temizlik sayaclari) DUSURMEDI (hedef-kol atfi iki yonlu)
+  ✅ 🔴 20-K) KONTROL MUTANTINDA (K212/A kolu bozuk) K212/B iddialari YESIL kaldi — iki eksen BAGIMSIZ olculuyor  — rc=0 eksik=[]
+
+21) KARANTINA ETIKETI — ayni adli dosyalar AYIRT EDILIYOR mu?
+  ✅ 🔴 21) AYNI ADLI iki kalem FARKLI etiket aliyor (kayit ayirt ediyor)  — a=ek/memory-evler/-ev-a/MEMORY.md b=ek/memory-evler/-ev-b/MEMORY.md
+  ✅ 21) etiket kaydin EVINI adlandiriyor (yedek kokune gorece yol)  — a=ek/memory-evler/-ev-a/MEMORY.md b=ek/memory-evler/-ev-b/MEMORY.md
+  ✅ 21) yedek koku DISINDAKI yol MUTLAK basilir (bilgi daraltilmaz)  — /var/folders/z2/dzvytjpx4j78py5vn52yzk9m0000gn/T/tmp376syrfx/yedek-disi/MEMORY.md
+  ✅ 21) `backup` bilinmiyorsa mutlak yol doner (fail-open DEGIL, TAM bilgi)
+  ✅ 🔴 21-M) MUTANT etiketi COKERTTI: dokuz ayri kalem TEK ADA dustu (saglam kodda ayriliyorlardi -> iddia bos degil)  — a=MEMORY.md b=MEMORY.md
+  ✅ 🔴 21-K) KONTROL MUTANTINDA (kapsam-disi kolu bozuk) 21) iddialari YESIL kaldi — mutant AYIRT EDICI  — a=ek/memory-evler/-ev-a/MEMORY.md b=ek/memory-evler/-ev-b/MEMORY.md
+
+======================================================================
+TOPLAM 339 kontrol, 0 kirmizi
+SONUC: YESIL ✅

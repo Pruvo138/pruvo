@@ -1,6 +1,6 @@
 {
   "_nasil": "python3 tools/kalem-senkron-kapisi.py --taban-yaz  (ELLE YAZILMAZ)",
-  "menzil_disi": 88,
+  "menzil_disi": 84,
   "menzil_disi_ids": [
     "K100",
     "K102",
@@ -9,15 +9,12 @@
     "K122",
     "K135",
     "K139",
-    "K140",
     "K142",
     "K144",
     "K146",
     "K151",
-    "K152",
     "K157",
     "K158",
-    "K161",
     "K162",
     "K163",
     "K171",
@@ -25,7 +22,6 @@
     "K178",
     "K179",
     "K182",
-    "K188",
     "K189",
     "K191",
     "K192",
@@ -91,7 +87,7 @@
     "K305",
     "K307"
   ],
-  "kaynak_dogrusu_satir": 77,
-  "kaynak_dogrusu_benzersiz_id": 76,
-  "devam_md_benzersiz_id": 98
+  "kaynak_dogrusu_satir": 82,
+  "kaynak_dogrusu_benzersiz_id": 81,
+  "devam_md_benzersiz_id": 99
 }

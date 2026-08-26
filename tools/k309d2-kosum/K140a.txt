@@ -1,0 +1,77 @@
+MARKA=138 FILTRE_FARK=0/0 ARAMA_FARK=0/0
+  ayrinti: FILTRE_KAYIP=0/0 · FILTRE_FAZLA=0/0 · ARAMA_KAYIP=0/0 · ARAMA_FAZLA(bloklamaz)=0
+  katalog: 30887 urun · kanonik marka: 138
+
+  PASS  S: SAYFA kumesi buyuklugu = marka_urun_sayisi (ikinci toplama formulu YOK; sapan: 0 [])
+  PASS  CAPA sierra-hava-filtresi-18-7908 -> /marka/Volvo/ SAYFASINDA (onek katlamasi (Volvo Penta -> Volvo))
+  PASS  CAPA sierra-hava-filtresi-18-7908 -> 'Volvo' ARAMASINDA
+  PASS  CAPA peugeot-citroen-2-pinli-elektrik-konnektoru -> /marka/Citroen/ SAYFASINDA (aksan (Citroen yazimi))
+  PASS  CAPA peugeot-citroen-2-pinli-elektrik-konnektoru -> 'Citroen' ARAMASINDA
+  PASS  CAPA black-decker-zimpara-vakum-adaptoru -> /marka/Black+Decker/ SAYFASINDA (ayirac (and/& /+ tek bicim))
+  PASS  CAPA black-decker-zimpara-vakum-adaptoru -> 'Black+Decker' ARAMASINDA
+  PASS  CAPA hyundai-ve-kia-g-s-paneli-klipsi -> /marka/Kia/ SAYFASINDA (buyuk/kucuk harf (KIA -> Kia))
+  PASS  CAPA hyundai-ve-kia-g-s-paneli-klipsi -> 'Kia' ARAMASINDA
+  PASS  CAPA datsun-mido-far-arka-kapagi -> /marka/Datsun/ SAYFASINDA (onek katlamasi (Datsun MiDo -> Datsun))
+  PASS  CAPA datsun-mido-far-arka-kapagi -> 'Datsun' ARAMASINDA
+  PASS  Q: her kanonik marka adi MARKA SORGUSU olarak taniniyor (serbeste dusen: 0 [])
+  PASS  AKSAN FIKSTURU Citroën -> Citroen: SAYFA/CIP/ARAMA AYNI kume ['fx-citroen-aksan']
+  PASS  FIKSTUR UZUN-ONCE: bigram tutunca tekil 'Rover' URETILMEZ (farkli marque) | Land Rover Defender Kapi Kolu Kapagi -> ['Land Rover'] (eksik: - · sizan: -)
+  PASS  FIKSTUR KONTROL: 'Land' oneki YOKKEN tekil Rover DOGAR (kural 'Rover'i hep ezmek degil) | Rover 75 Torpido Klipsi -> ['Rover'] (eksik: - · sizan: -)
+  PASS  FIKSTUR ONEK KATLAMASI METINDE YOK: bitisik ikinci marka jetonu YUTULMAZ | Sierra 18-8076 Yamaha Mercury Ortak Tip Benzin -> ['Sierra', 'Yamaha', 'Mercury'] (eksik: - · sizan: -)
+  PASS  FIKSTUR COK KELIMELI marka BUTUN kalir | Alfa Romeo 156 Vites Topuzu -> ['Alfa Romeo'] (eksik: - · sizan: -)
+  PASS  FIKSTUR MORFOLOJIK GURULTU: 'Havalandirma' TAM KELIME 'Haval' DEGILDIR | Suzuki Samurai Kalorifer Havalandirma Dugmesi -> ['Suzuki'] (eksik: - · sizan: -)
+  PASS  FIKSTUR ALT-DIZE GURULTUSU: '43mm' icindeki '3m' marka DEGILDIR | Bagaj Ici 43mm Kece Montaj Aleti -> [] (eksik: - · sizan: -)
+  UYUM CAPA HAVUZU: 353 kalem / 58 marka -> secilen 3 (deterministik: kanonik marka sirasi, marka basina ilk id)
+  PASS  U0: en az 3 UYUM CAPASI OLCULDU (iddia sessizce kaybolamaz; secilen: 3)
+  PASS  UYUM CAPASI mazda-mx-5-nb-tiz-hoparlor-montaji-alpine x 'Alpine' -> gecis kurali ESLESTIRIYOR (uyelik YOK, baslik VAR)
+  PASS  UYUM CAPASI mazda-mx-5-nb-tiz-hoparlor-montaji-alpine x 'Alpine' -> ARAMA kumesinde
+  PASS  UYUM CAPASI mazda-mx-5-nb-tiz-hoparlor-montaji-alpine x 'Alpine' -> /marka/ SAYFASINDA (FAZ 1B: uyelik+baslik)
+  PASS  UYUM CAPASI mazda-cx5-konsol-apple-watch-sarj-yuvasi x 'Apple' -> gecis kurali ESLESTIRIYOR (uyelik YOK, baslik VAR)
+  PASS  UYUM CAPASI mazda-cx5-konsol-apple-watch-sarj-yuvasi x 'Apple' -> ARAMA kumesinde
+  PASS  UYUM CAPASI mazda-cx5-konsol-apple-watch-sarj-yuvasi x 'Apple' -> /marka/ SAYFASINDA (FAZ 1B: uyelik+baslik)
+  PASS  UYUM CAPASI 1021673 x 'Audi' -> gecis kurali ESLESTIRIYOR (uyelik YOK, baslik VAR)
+  PASS  UYUM CAPASI 1021673 x 'Audi' -> ARAMA kumesinde
+  PASS  UYUM CAPASI 1021673 x 'Audi' -> /marka/ SAYFASINDA (FAZ 1B: uyelik+baslik)
+  PASS  GURULTU CAPASI suzuki-samurai-kalorifer-havalandirma-dugmesi -> 'Haval' ARAMASINDA DEGIL (morfolojik (Havalandirma -> 'haval'))
+  PASS  GURULTU CAPASI nissan-altima-torpido-gozu-mandali -> 'MAN' ARAMASINDA DEGIL (morfolojik (Mandali -> 'man'))
+  PASS  GURULTU CAPASI land-rover-defender-orta-konsol-govdesi-1997-2000 -> 'Rover' ARAMASINDA DEGIL (farkli marque ayni ad (Land Rover -> 'Rover'; UZUN-ONCE kurali keser))
+
+  PASS  FILTRE_KAYIP: hicbir markada TABANIN USTUNE cikmadi (artan: 0 [])
+  PASS  FILTRE_KAYIP: taban GUNCEL (circir — dusus de kirmizidir; azalan: 0)
+  PASS  FILTRE_FAZLA: hicbir markada TABANIN USTUNE cikmadi (artan: 0 [])
+  PASS  FILTRE_FAZLA: taban GUNCEL (circir — dusus de kirmizidir; azalan: 0)
+  PASS  ARAMA_KAYIP: hicbir markada TABANIN USTUNE cikmadi (artan: 0 [])
+  PASS  ARAMA_KAYIP: taban GUNCEL (circir — dusus de kirmizidir; azalan: 0)
+  PASS  K: KALICI KIRMIZI (0 kayit) eksende hala ACIK (susturma yok: [])
+  FAIL  K: KALICI KIRMIZI sayisi 0'a dusmedi (kapali: [('ARAMA_KAYIP', 'Rover', 0)]; 0 = onarim ya da sessiz kayip — ikisi de kirmizi)
+  PASS  K: eksendeki HER kayip KALICI_KIRMIZI'da BEKLENIYOR olmali (M16 korlesme — beklenmeyen: [])
+  BILGI marka evreni degisti: taban 136 -> olculen 138 (taban --taban-yaz ile tazelenmeli)
+  BILGI ARAMA_FAZLA taban 0 -> olculen 0 (BLOKLAMAZ — gurultu kesimi ayri faz)
+
+NE OLCULMEDI (beyan):
+  1. CANLI UC KODU. Worker (`?marka=` / `?q=` kollari) BU DEPODA DEGIL. Kapi
+     D1 `marka_kanon` HEDEFINI ve yerel arama portunu modeller; canli kolon/uc
+     degisirse model SESSIZCE ayrisabilir. O ekseni ancak
+     canli olcum kapatir (ag cagrisi CI'da deterministik degildir).
+  2. ARAMA_FAZLA (aramada SAYFADAN FAZLA cikan urun) BLOKLAMAZ, yalnizca BASILIR.
+     Marka sorgusu uyelige baglandiktan sonra bu sayi artik GURULTU degil, GECIS
+     BORCUDUR: baslikta markayi TAM KELIME anip `marka[]` uyeligi olmayan gercek
+     urunler (Sierra/Teleflex marin parcalari, GoPro/TomTom aparatlari). Veri
+     tarafi tamamlandikca kendiliginden erir; KATALOG BUYUDUKCE de artar, o
+     yuzden civilenmez (her urun partisi kapiyi kirmizi yakardi).
+     🔴 AYNI SAYI UYUM CAPA HAVUZUDUR ve TUKENMESI BEKLENIR (6.503 -> 504 -> 75).
+     Havuz UYUM_CAPA_ASGARI'nin altina inince kapi YESIL DEMEZ, OLCULEMEDI der;
+     o an insan karari gerekir: ekseni emekli et ya da FIKSTURlerle surdur.
+  3. 🔴 ARAMA_KAYIP EKSENI ARTIK TOTOLOJIYE YAKINDIR. Marka sorgusu UYELIK ∪
+     BASLIK oldugundan ARAMA ⊇ SAYFA yapisaldir; bu eksenin 0 olmasi bir SONUC
+     degil, kurulusun sonucudur. Gercek olcum yuku UYUM/GURULTU CAPALARINA ve
+     Q eksenine (marka sorgusunun kablolu olmasi) tasinmistir.
+  4. D1 `marka_kanon` KOLONUNUN CANLI DEGERI. Kapi urunler.json'dan turetilen
+     HEDEF degeri olcer; canli D1'de ne yazdigini OLCMEZ (o `d1-sync --durum`).
+  5. 🔴 UCTAKI `?q=` KOLU HENUZ GECIS KURALINI UYGULAMIYOR. Worker (pruvo-bot,
+     HocA deposu) `hs` kolonunda alt-dize aramasi yapmaya DEVAM eder; bu depo
+     yalnizca kanonik yuklemi (arama.marka_sorgusu_esler) ve istemci yolunu
+     (index.html MARKA SORGUSU blogu) tasir. Uc benimseyene kadar CANLI `?q=`
+     sonuclari bu kapinin modelinden AYRIDIR — o eksen ancak canli olcum kapatir.
+
+SONUC: KIRMIZI ❌  (1 kontrol kaldi)

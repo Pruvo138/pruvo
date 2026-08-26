@@ -1,0 +1,68 @@
+[
+  {
+    "etiket": "K140a",
+    "kalem": "K140",
+    "komut": "python3 tools/marka-invaryant-kapisi.py",
+    "olcut": "kalemin kendi olcutu: 7 model jetonu DUSMUS VE `Rover` DURUYOR VE mutasyon 4/4. 🔴 Kalemin metni AYNEN: 'Hedef rc=0 DEGIL dogru kirmizi'.",
+    "cikti_dosyasi": "/Users/okan/dev/pruvo/.claude/worktrees/k309-d2/tools/k309d2-kosum/K140a.txt",
+    "rc": 1,
+    "OLCULEMEDI": false,
+    "son_satir": "SONUC: KIRMIZI ❌  (1 kontrol kaldi)",
+    "satir_sayisi": 73
+  },
+  {
+    "etiket": "K140b",
+    "kalem": "K140",
+    "komut": "python3 tools/marka-invaryant-mutasyon.py",
+    "olcut": "K140 olcutunun 3. kolu: mutasyon 4/4.",
+    "cikti_dosyasi": "/Users/okan/dev/pruvo/.claude/worktrees/k309-d2/tools/k309d2-kosum/K140b.txt",
+    "rc": 1,
+    "OLCULEMEDI": false,
+    "son_satir": "SONUC: KIRMIZI ❌  (6 mutant beklenen sonucu vermedi)",
+    "satir_sayisi": 25
+  },
+  {
+    "etiket": "K152",
+    "kalem": "K152",
+    "komut": "python3 tools/koken-bul.py --eksik",
+    "olcut": "olcut: `EKSIK` DUSER (taban EKSIK=259) VE `--kendini-test` rc=0.",
+    "cikti_dosyasi": "/Users/okan/dev/pruvo/.claude/worktrees/k309-d2/tools/k309d2-kosum/K152.txt",
+    "rc": 2,
+    "OLCULEMEDI": false,
+    "son_satir": "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python: can't open file '/Users/okan/dev/pruvo/tools/koken-bul.py': [Errno 2] No such file or directory",
+    "satir_sayisi": 2
+  },
+  {
+    "etiket": "K161",
+    "kalem": "K161",
+    "komut": "python3 tools/denetim-kapisi.py --tum-katalog --envanter",
+    "olcut": "olcut: vurus <=21.",
+    "cikti_dosyasi": "/Users/okan/dev/pruvo/.claude/worktrees/k309-d2/tools/k309d2-kosum/K161.txt",
+    "rc": 0,
+    "OLCULEMEDI": false,
+    "son_satir": "  temizlik partisi -> tools/duzelt.py --toplu (ayri is; bu kol RAPORDUR)",
+    "satir_sayisi": 27
+  },
+  {
+    "etiket": "K188",
+    "kalem": "K188",
+    "komut": "python3 /Users/okan/dev/pruvo/tools/yedekle-test.py",
+    "olcut": "olcut: `YEDEK=TAM/YARIM` jetonu FIKSTURLE olculmus olmali.",
+    "cikti_dosyasi": "/Users/okan/dev/pruvo/.claude/worktrees/k309-d2/tools/k309d2-kosum/K188.txt",
+    "rc": 0,
+    "OLCULEMEDI": false,
+    "son_satir": "SONUC: YESIL ✅",
+    "satir_sayisi": 386
+  },
+  {
+    "etiket": "REG",
+    "kalem": "-",
+    "komut": "python3 tools/kalem-senkron-kapisi.py --kendini-test",
+    "olcut": "dilim-1 bataryasi regresyonu (bozulmadi mi).",
+    "cikti_dosyasi": "/Users/okan/dev/pruvo/.claude/worktrees/k309-d2/tools/k309d2-kosum/REG.txt",
+    "rc": 0,
+    "OLCULEMEDI": false,
+    "son_satir": "KALEM-SENKRON KENDINI-TEST — IDDIA=10 GECTI=10 KALDI=0 HUKUM=YESIL",
+    "satir_sayisi": 11
+  }
+]
