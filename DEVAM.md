@@ -60,13 +60,13 @@ artik `OLCULEMEDI` DEGIL, OLCULEBILIR. K291 kaleminin kendisi ACIK (dizge-olcumu
 - ⚠️ K86'nin merdiven kaydi (`SEBEP=YETENEK SAYAC=5`, kova `OKAN_KAPISI`) artik KONUSUZ — kalem
   25 Agu'da kapandi+merge edildi. **K281 CURUDU** (`KILIT_MUMKUN=0`). · 🔧 **K282 (OLCULEMEDI):**
   `DURUM_BITMEYEN_TUR`, `DAGITILMAZ_DURUMLAR` disinda; kabulun 1. kolu ERISILEBILIRLIK.
+- 🧹 26 Agu disk: `~/.claude/cron` **344 MB -> 165M** (tarayici-profili 187->34); hedef <=200 ✅.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
   ISARETCI** (uzun hali `DEVAM-ARSIV.md` 26 Agu ROTASYON blogu 1/5): K306 MERGE `df3b0d48` · K308 ACIK ·
   K309 DILIM-1 MERGE `25b38a82` (DILIM-2 MIMARDA) · K310 ACIK · K212 MERGE `97370cc2` KAPANDI · K222
-  KAPANDI · K311 MERGE `bcbdb1dd` ACIK (①②③ GECMEDI, ④ canlida kapandi; kok neden
-  [[defter-durum-sozlugu-onarim-bacagini-korlestirir]]) · **K312 ACILDI** (nobet hatti urunler.json'a yazdi).
+  KAPANDI · K311 MERGE `bcbdb1dd` ACIK (①-④ GECMEDI; ④ GERI ALINDI) · **K312 ACILDI**.
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (TAM METIN ARSIVDE):** (i) kuru kosum OLCULDU 25 Agu (1512/234, sir elemesi 5/5; BULGU:
   gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a) · (ii) kablolama MIMARDA · (iii) kostugu kanit.
