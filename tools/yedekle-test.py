@@ -861,6 +861,100 @@ def hermetik_bolum(yedekle):
     return len(SONUC) - basla
 
 
+# ================= K212/A KUM HAVUZU — FAIL-CLOSED SILME (26 Agu 2026) =========
+# K212/K1 IDDIASI: alt agac silicisi (`yedek_agac_sir_sil`) kok kolunun fail-closed
+# emniyetini ATLATABILIYOR -> tek kopyasi olan dosya KAYBOLUR. yedekle.py:850-866 +
+# 1121-1137'de onarildigini SOYLEYEN yorum satirlari duruyor; yorum KANIT DEGILDIR
+# ([[aracin-teshis-cumlesi-olcum-degil]]). Asagisi AYNI kalemi yedek KOKUNDE ve ALT
+# AGACTA ayni anda kurar, IKI KOLU da kostururken UCUNCU bir gercegi de olcer:
+# alt agac yuruyusu yedek KOKUNU DE gezer, yani kok kolunun fail-closed ile
+# BIRAKTIGI kalemi ardindan kosan alt agac kolu ELINE ALIR. Olculen kusur tam
+# buydu; vaka bu yuzden "iki ayri dosya" degil "AYNI kalem, iki kol" kurar.
+#
+# 🔴 GERCEK KAYNAGA/DRIVE'A DOKUNULMAZ: modul globalleri (ROOT, AGAC_KAPSAMI) kum
+# havuzuna cevrilir ve `finally` ile GERI ALINIR. Silme YALNIZ tempfile icinde olur.
+
+K212A_YERELSIZ = ".thingiverse-token"      # SIR_ADLARI'nda -> kok kolunun kumesinde DE var
+K212A_ASILLI = ".r2-credentials.json"      # POZITIF kontrol: yerel asli VAR -> SILINMELI
+K212A_KAPSAMDISI = "profil-kontrol"        # AGAC_EK_ATLA["cron"] "profil-" onekine uyar
+
+
+def k212a_fikstur(td):
+    """Kum havuzu: yerel asli OLMAYAN ayni ad yedek KOKUNDE ve ALT AGACTA;
+    yerel asli OLAN ikinci ad yine ikisinde; + bir kapsam-disi bayat klasor.
+    Doner: (backup, sahte_root, sahte_cron, yollar)."""
+    backup = os.path.join(td, "backup-v2")
+    sahte_root = os.path.join(td, "sahte-root")
+    sahte_cron = os.path.join(td, "sahte-cron")
+    os.makedirs(os.path.join(backup, "cron-nobet"))
+    os.makedirs(os.path.join(backup, "cron-nobet", K212A_KAPSAMDISI))
+    os.makedirs(sahte_root)
+    os.makedirs(sahte_cron)
+    # POZITIF kontrol icin YEREL ASIL: yalniz K212A_ASILLI'nin asli VAR.
+    # K212A_YERELSIZ'in asli BILEREK YOK -> fail-closed kolun tek tetikleyicisi budur.
+    for kaynak_kok in (sahte_root, sahte_cron):
+        with open(os.path.join(kaynak_kok, K212A_ASILLI), "w") as fh:
+            fh.write("SIMULASYON: yerel ASIL VAR (silme izni bundan gelir)\n")
+    yollar = {}
+    for etiket, gor in (("kok_yerelsiz", K212A_YERELSIZ),
+                        ("kok_asilli", K212A_ASILLI),
+                        ("agac_yerelsiz", "cron-nobet/" + K212A_YERELSIZ),
+                        ("agac_asilli", "cron-nobet/" + K212A_ASILLI)):
+        tam = os.path.join(backup, *gor.split("/"))
+        with open(tam, "w") as fh:
+            fh.write("SIMULASYON fikstur govdesi — GERCEK SIR DEGIL\n")
+        yollar[etiket] = tam
+    kap = os.path.join(backup, "cron-nobet", K212A_KAPSAMDISI, ".claude.json")
+    with open(kap, "w") as fh:
+        fh.write("{}\n")
+    yollar["kapsamdisi"] = os.path.join(backup, "cron-nobet", K212A_KAPSAMDISI)
+    return backup, sahte_root, sahte_cron, yollar
+
+
+def k212a_kos(mod, td):
+    """AYNI fiksturu `mod` ile kostur (asil modul ya da bir MUTANT). Kollarin
+    sirasi GERCEK `yedek_al` ile AYNI: once kok (2770), sonra alt agac (2781).
+    Doner: olculen hal sozlugu (dosya varligi DISKTEN okunur —
+    [[silme-sayaci-diskten-dogrulanmali]]: sayaca degil diske bakilir)."""
+    backup, sahte_root, sahte_cron, yollar = k212a_fikstur(td)
+    eski_root, eski_kapsam = mod.ROOT, mod.AGAC_KAPSAMI
+    mod.ROOT = sahte_root
+    mod.AGAC_KAPSAMI = tuple(
+        (e, sahte_cron if h == "cron-nobet" else k, h, i)
+        for e, k, h, i in eski_kapsam)
+    try:
+        kok_islenen, kok_atlanan, _kb = mod.yedek_kok_sir_temizle(backup)
+        agac_plan = mod.yedek_agac_sir_plani(backup)
+        agac_islenen, agac_atlanan, _ab = mod.yedek_agac_sir_sil(agac_plan, backup)
+        kap_plan = mod.yedek_agac_kapsamdisi_plani(backup)
+        mod.yedek_agac_kapsamdisi_sil(kap_plan, backup)
+    finally:
+        mod.ROOT, mod.AGAC_KAPSAMI = eski_root, eski_kapsam
+    return {"kok_islenen": sorted(a for a, _y in kok_islenen),
+            "kok_atlanan": sorted(a for a, _s in kok_atlanan),
+            "kok_sebepler": [s for _a, s in kok_atlanan],
+            "agac_plan": sorted(g for g, _s, _b in agac_plan),
+            "agac_islenen": sorted(g for g, _y in agac_islenen),
+            "agac_atlanan": sorted(g for g, _s in agac_atlanan),
+            "agac_sebepler": [s for _g, s in agac_atlanan],
+            "duruyor": {k: os.path.exists(v) for k, v in yollar.items()}}
+
+
+# MUTANT TARIFLERI — her biri TEK bir kolu hedefler; capa bulunamazsa mutant_yaz
+# RuntimeError atar (bayat capa sessizce gecmesin).
+K212A_MUTANT_HEDEF = (
+    "        tamam, engel = yerel_asil_durumu(yedek_yerel_asli(gor))\n"
+    "        if not tamam:\n"
+    "            atlanan.append((gor, engel))\n"
+    "            continue\n",
+    "        tamam, engel = True, \"\"   # MUTANT K212/A: alt agac kolu EMNIYETSIZ\n")
+# KONTROL mutanti BASKA bir kolu bozar (kapsam-disi silici). K212/A iddialarini
+# DUSURMEMELI; ama OLU de olmamali -> kapsam-disi klasorun DURDUGU ayrica olculur.
+K212A_MUTANT_KONTROL = (
+    "            shutil.rmtree(tam)\n            islenen.append((gor, tam))\n",
+    "            islenen.append((gor, tam))   # MUTANT KONTROL: kapsam-disi SILINMIYOR\n")
+
+
 def main():
     yedekle = modul_yukle(YEDEKLE, "yedekle_gercek")
     izler_once = gercek_kritik_parmakizi(yedekle)
@@ -1833,14 +1927,24 @@ def main():
         with open(os.path.join(sahte_cron, "isci-baglam", "ek-not.json"), "w") as fh:
             fh.write('{"ek":1}\n')
         # ---------------- 18) ALT AGAC + KAPSAM-DISI PLAN (16 Agu 2026) ----------------
-    # Olculmus kusur: yedek_kok_sir_plani yalniz os.listdir(backup) ile KOKU arar;
-    # alt agactaki sir kopyalari (ornek: backup-v2/cron-nobet/.navlungo-kimlik.json)
-    # GORULMEDIGI icin hedefte bayat kaliyordu. Ayni delik her alt klasor icin acik.
-    # Yeni: yedek_agac_sir_plani (ozyinelemeli, sir_sebebi icerik_tara=False ile)
-    # + yedek_agac_kapsamdisi_plani (AGAC_EK_ATLA["cron"] desenleriyle hedef
-    # bayat klasor tarama). Bu bolum kum havuzunda vakalari sinar.
-    print("\n18) ALT AGAC + KAPSAM-DISI — kok disinda sir + artik kapsam-disi klasor")
-    with tempfile.TemporaryDirectory() as td:
+        # Olculmus kusur: yedek_kok_sir_plani yalniz os.listdir(backup) ile KOKU arar;
+        # alt agactaki sir kopyalari (ornek: backup-v2/cron-nobet/.navlungo-kimlik.json)
+        # GORULMEDIGI icin hedefte bayat kaliyordu. Ayni delik her alt klasor icin acik.
+        # Yeni: yedek_agac_sir_plani (ozyinelemeli, sir_sebebi icerik_tara=False ile)
+        # + yedek_agac_kapsamdisi_plani (AGAC_EK_ATLA["cron"] desenleriyle hedef
+        # bayat klasor tarama). Bu bolum kum havuzunda vakalari sinar.
+        #
+        # 🔴 26 Agu 2026 (K212Yedek) — OLCULEN KUSUR, ONARILDI: 18) bolumu KENDI
+        # `with tempfile.TemporaryDirectory() as td:` blogunu aciyordu ve 17)
+        # bolumunun blogu YUKARIDA, fiksturu kurar kurmaz KAPANIYORDU. 17)'nin
+        # IDDIALARI ise (bu blogun sonunda) `sahte_cron`a bakiyor — o yol artik
+        # SILINMIS bir tempfile dizini. Sonuc main'de OLCULDU: 17)'nin 18 iddiasi
+        # SESSIZCE KIRMIZI + sonuncusu FileNotFoundError ile TUM bataryayi kesiyor
+        # (taban: rc=1, 18 kirmizi, Traceback VAR). Onarim: 18) ayri bir kum havuzu
+        # ACMAZ, 17) ile AYNI `td`nin altinda kendi dizinlerini kurar; boylece
+        # `sahte_cron` iddialar kosana kadar YASAR. Alt dizinler cakismaz:
+        # 17) -> td/cron   ·   18) -> td/backup-v2, td/kaynak-cron, td/komsu.
+        print("\n18) ALT AGAC + KAPSAM-DISI — kok disinda sir + artik kapsam-disi klasor")
         backup = os.path.join(td, "backup-v2")
         os.makedirs(backup)
 
@@ -1973,6 +2077,14 @@ def main():
                 and os.path.exists(os.path.join(backup, "gorev-tanimlari", "x.md")),
                 [os.path.exists(os.path.join(backup, "cron-nobet", "isci.sh")),
                  os.path.exists(os.path.join(backup, "gorev-tanimlari", "x.md"))])
+        # 🔴 FIKSTUR CANLILIK NOBETCISI (26 Agu 2026, K212Yedek — SINIF KAPISI):
+        # asagidaki 17) iddialarinin TAMAMI `sahte_cron`a bakar. O dizin bir
+        # tempfile blogunun icindedir; blok erken kapanirsa iddialar "dosya yok"
+        # diye SESSIZCE KIRMIZI yanar ve sebep gorunmez (main'de tam bu oldu).
+        # Bu tek satir, sinifi SEBEBIYLE yakalar: fikstur olmeden iddia okunmaz.
+        kontrol("🔴 17) FIKSTUR CANLI: `sahte_cron` iddia aninda DURUYOR "
+                "(tempfile blogu erken kapanmadi)",
+                os.path.isdir(sahte_cron), sahte_cron)
         # Sahte AGAC_KAPSAMI girdisi: cron agaci etiketini kullanmak, gercek
         # koklerin yazilmasini ONLER (sadece bu kum havuzuna yazilir).
         sahte_agac = ("cron", sahte_cron, "cron-nobet-DUMMY", (".sh", ".crontab", ".md", ".txt", ".json", ".py"))
@@ -2063,6 +2175,240 @@ def main():
                 "ayar.json" in set(dahil2), dahil2)
         # 17 bolumunun toplam kontrol sayisi (sonraki serit paritesi icin)
         print("     17) bolumunun test sayisi: %d" % len([1 for _ in SONUC if _]))
+
+    # ======== 19) K212/A — FAIL-CLOSED SILME EMNIYETI: IKI KOL, TEK YUKLEM ======
+    # Kalem K212'nin BIRINCI yuzu. Bolum 18 (Vaka H) alt agac kolunu TEK BASINA
+    # olcuyordu; buradaki fark: AYNI kalem yedek KOKUNDE de duruyor ve alt agac
+    # yuruyusu KOKU DE geziyor -> kok kolunun BIRAKTIGI kalemi ikinci kol eline
+    # aliyor. Olculen veri kaybi tam bu geciste olmustu.
+    print("\n19) K212/A — yereldeki ASLI OLMAYAN kalem: KOK kolu DA alt agac kolu DA SILMEZ")
+    with tempfile.TemporaryDirectory() as td:
+        taban = k212a_kos(yedekle, os.path.join(td, "taban"))
+        # --- ANTI-TAUTOLOJI: iddia ancak IKINCI kol o kalemi GERCEKTEN gorursa
+        # anlamlidir. Gormuyorsa "silmedi" bedava dogru olurdu
+        # ([[isci-yesil-tablo-ic-olcumu-bosaltir]]).
+        kontrol("19) ANTI-TAUTOLOJI: alt agac plani yedek KOKUNDEKI kalemi DE gordu",
+                K212A_YERELSIZ in taban["agac_plan"], taban["agac_plan"])
+        kontrol("19) ANTI-TAUTOLOJI: alt agac plani ALT AGACTAKI kalemi de gordu",
+                "cron-nobet/" + K212A_YERELSIZ in taban["agac_plan"], taban["agac_plan"])
+        # --- ASIL IDDIA: iki kol da SILMEDI (disk teyidi) ---
+        kontrol("🔴 19) KOK kolu: yerel asli OLMAYAN kalem SILINMEDI (fail-closed)",
+                taban["duruyor"]["kok_yerelsiz"], taban["duruyor"])
+        kontrol("🔴 19) ALT AGAC kolu: kok kolunun BIRAKTIGI kalemi SILMEDI "
+                "(K212/K1 — sessiz veri kaybi kapali)",
+                taban["duruyor"]["kok_yerelsiz"]
+                and K212A_YERELSIZ in taban["agac_atlanan"],
+                "atlanan=%s" % taban["agac_atlanan"])
+        kontrol("🔴 19) ALT AGACTAKI ayni ad da SILINMEDI",
+                taban["duruyor"]["agac_yerelsiz"]
+                and "cron-nobet/" + K212A_YERELSIZ in taban["agac_atlanan"],
+                "atlanan=%s" % taban["agac_atlanan"])
+        kontrol("19) atlama SEBEBI yereldeki ASLA atif yapiyor (iki kolda da)",
+                any("ASIL" in s for s in taban["kok_sebepler"])
+                and any("ASIL" in s for s in taban["agac_sebepler"]),
+                "kok=%s agac=%s" % (taban["kok_sebepler"], taban["agac_sebepler"]))
+        # --- POZITIF KONTROL: "hicbir sey silmiyor" hali AYIRT EDILIR ---
+        kontrol("19) POZITIF: yerel asli VAR olan kalem KOK kolunda SILINDI",
+                not taban["duruyor"]["kok_asilli"]
+                and K212A_ASILLI in taban["kok_islenen"], taban["kok_islenen"])
+        kontrol("19) POZITIF: yerel asli VAR olan kalem ALT AGAC kolunda SILINDI",
+                not taban["duruyor"]["agac_asilli"]
+                and "cron-nobet/" + K212A_ASILLI in taban["agac_islenen"],
+                taban["agac_islenen"])
+        kontrol("19) POZITIF: kapsam-disi bayat klasor SILINDI (kontrol kolu CANLI)",
+                not taban["duruyor"]["kapsamdisi"], taban["duruyor"])
+
+        # ---- MUTANT A (HEDEF KOL): alt agac kolundan `yerel_asil_durumu` KALKAR ----
+        mut_yol = mutant_yaz(td, [K212A_MUTANT_HEDEF], ad="mutant-k212a.py")
+        mut_a = k212a_kos(modul_yukle(mut_yol, "mutant_k212a"), os.path.join(td, "ma"))
+        kontrol("🔴 19-M) MUTANT A alt agac kolunu OLDURDU: fail-closed kalem SILINDI "
+                "(saglam kodda YASIYORDU -> iddia bos degil)",
+                not mut_a["duruyor"]["agac_yerelsiz"]
+                and not mut_a["duruyor"]["kok_yerelsiz"]
+                and mut_a["agac_atlanan"] == [],
+                "duruyor=%s atlanan=%s" % (mut_a["duruyor"], mut_a["agac_atlanan"]))
+        # 🔴 IKI YONLU AYRIM: mutant HEDEF kolu oldururken KOMSU kolu (kok) DUSURMEMELI.
+        # Tek yonlu "hedef koldu oldu" kaniti tautolojiyi gormez.
+        kontrol("🔴 19-M) MUTANT A KOK kolunu ETKILEMEDI (hedef-kol atfi iki yonlu)",
+                K212A_YERELSIZ in mut_a["kok_atlanan"]
+                and K212A_ASILLI in mut_a["kok_islenen"],
+                "kok_atlanan=%s kok_islenen=%s"
+                % (mut_a["kok_atlanan"], mut_a["kok_islenen"]))
+
+        # ---- MUTANT KONTROL (ILGISIZ KOL): K212/A iddialari YESIL KALMALI ----
+        mut_k_yol = mutant_yaz(td, [K212A_MUTANT_KONTROL], ad="mutant-k212a-kontrol.py")
+        mut_k = k212a_kos(modul_yukle(mut_k_yol, "mutant_k212a_kontrol"),
+                          os.path.join(td, "mk"))
+        kontrol("19-K) KONTROL MUTANTI GERCEKTEN ETKIN (kapsam-disi klasor DURUYOR)",
+                mut_k["duruyor"]["kapsamdisi"], mut_k["duruyor"])
+        kontrol("🔴 19-K) KONTROL MUTANTINDA K212/A iddialari YESIL kaldi "
+                "(mutant AYIRT EDICI, batarya toptan yanmiyor)",
+                mut_k["duruyor"]["kok_yerelsiz"] and mut_k["duruyor"]["agac_yerelsiz"]
+                and not mut_k["duruyor"]["kok_asilli"]
+                and not mut_k["duruyor"]["agac_asilli"]
+                and mut_k["agac_atlanan"] == taban["agac_atlanan"]
+                and mut_k["kok_atlanan"] == taban["kok_atlanan"],
+                "duruyor=%s" % mut_k["duruyor"])
+
+    # ======== 20) K212/B — DAMGA KAPSAM SAYACLARI: IKI SOZLUK, IKI AD ==========
+    # Kalem K212'nin IKINCI yuzu. `agac_temizlik_sayilari` ONCEDEN `agac_sayilari`
+    # adiyla yaziliyordu -> AGAC_KAPSAMI'nin gorev/cron/plan sayaclari damgaya HIC
+    # girmiyordu ve "yedek TAM" beyani o eksen icin OLCULMEMIS kaliyordu.
+    # Asagisi damgayi GERCEK ICRA ile uretir ve sayaclarin TURETILMIS oldugunu
+    # (cipiplak sifir DEGIL, fiksturun dosya sayisi) olcer.
+    print("\n20) K212/B — damga hem gorev/cron/plan hem alt-agac temizlik sayaclarini TASIR")
+    # Fikstur boyutlari TEK KAYNAK: iddia bu sozlukten turer, elle yazilmaz.
+    K212B_AGAC = {
+        "gorev": (os.path.join(".claude", "scheduled-tasks"),
+                  ("gorev-a.md", "gorev-b.md", "gorev-c.md", "not.txt"), ("cikti.log",)),
+        "cron":  (os.path.join(".claude", "cron"),
+                  ("nobet.sh", "surucu.py", "ayar.json"), ("kosum.log",)),
+        "plan":  (os.path.join(".claude", "plans"),
+                  ("plan-a.md", "plan-b.md"), ("veri.bin",)),
+    }
+
+    def k212b_ortam(td):
+        o = izole_ortam(td, yedekle)
+        for _etiket, (gorece, dahil, haric) in K212B_AGAC.items():
+            kok = os.path.join(o["ev"], gorece)
+            os.makedirs(kok, exist_ok=True)
+            for ad in dahil + haric:
+                with open(os.path.join(kok, ad), "w") as fh:
+                    fh.write("izole fikstur: %s\n" % ad)
+        return o
+
+    def k212b_eksik_anahtarlar(damga):
+        """Damgada BULUNMAYAN gorev/cron/plan sayaclari (bos liste = tam kapsam)."""
+        if not isinstance(damga, dict):
+            return ["(damga YOK)"]
+        bek = [e + s for e in K212B_AGAC for s in ("", "_yeni", "_haric")]
+        return sorted(a for a in bek if a not in damga)
+
+    TEMIZLIK_ANAHTARLARI = ("agac_sir_bulunan", "agac_sir_silinen", "agac_sir_atlanan",
+                            "kapsamdisi_bulunan", "kapsamdisi_silinen",
+                            "kapsamdisi_atlanan")
+
+    with tempfile.TemporaryDirectory() as td:
+        o = k212b_ortam(td)
+        r = izole_kos(o)
+        d = damga_json(o["hedef"])
+        kontrol("20) hazirlik: izole yedek TAMAMLANDI (rc=0, damga yazildi)",
+                r.returncode == 0 and isinstance(d, dict),
+                "rc=%d damga=%s" % (r.returncode, type(d).__name__))
+        kontrol("🔴 20) damga gorev/cron/plan sayaclarinin HEPSINI tasiyor "
+                "(K212/K2 — ezme geri gelmedi)",
+                k212b_eksik_anahtarlar(d) == [], k212b_eksik_anahtarlar(d))
+        kontrol("20) damga alt-agac TEMIZLIK sayaclarini da tasiyor (iki sozluk YAN YANA)",
+                all(a in (d or {}) for a in TEMIZLIK_ANAHTARLARI),
+                [a for a in TEMIZLIK_ANAHTARLARI if a not in (d or {})])
+        # 🔴 SAYAC TURETILMIS OLMALI: ciplak sifir yanlis hipotez uretir
+        # ([[tasima-birimi-yanlis-seviyede]]). Her eksen fiksturun dosya sayisini basar.
+        for etiket, (_gorece, dahil, haric) in sorted(K212B_AGAC.items()):
+            kontrol("20) %s sayaci TURETILMIS: dosya=%d, yeni=%d, haric=%d"
+                    % (etiket, len(dahil), len(dahil), len(haric)),
+                    (d or {}).get(etiket) == len(dahil)
+                    and (d or {}).get(etiket + "_yeni") == len(dahil)
+                    and (d or {}).get(etiket + "_haric") == len(haric),
+                    "damga: %s=%s yeni=%s haric=%s"
+                    % (etiket, (d or {}).get(etiket), (d or {}).get(etiket + "_yeni"),
+                       (d or {}).get(etiket + "_haric")))
+
+    # ---- MUTANT B (HEDEF KOL): ezme GERI gelir -> gorev/cron/plan damgadan DUSER ----
+    K212B_MUTANT_HEDEF = [
+        ("    agac_temizlik_sayilari = yedek_agac_raporu(backup, sir_temizle=sir_temizle)",
+         "    agac_sayilari = yedek_agac_raporu(backup, sir_temizle=sir_temizle)"
+         "   # MUTANT K212/B: ezme"),
+        ("    sayilar.update(agac_temizlik_sayilari)     # alt agac sir + kapsam-disi temizligi",
+         "    sayilar.update(agac_sayilari)   # MUTANT K212/B: ikinci sozluk YOK"),
+    ]
+    with tempfile.TemporaryDirectory() as td:
+        o = k212b_ortam(td)
+        with open(YEDEKLE, encoding="utf-8") as fh:
+            gov = fh.read()
+        for eski, yeni in K212B_MUTANT_HEDEF:
+            if eski not in gov:
+                raise RuntimeError("MUTASYON CAPASI BULUNAMADI (yedekle.py degismis): %r"
+                                   % eski)
+            gov = gov.replace(eski, yeni, 1)
+        with open(o["betik"], "w", encoding="utf-8") as fh:
+            fh.write(gov)
+        r_m = izole_kos(o)
+        d_m = damga_json(o["hedef"])
+        eksik_m = k212b_eksik_anahtarlar(d_m)
+        kontrol("🔴 20-M) MUTANT B damgadan gorev/cron/plan sayaclarini DUSURDU "
+                "(saglam kodda VARDI -> iddia bos degil)",
+                r_m.returncode == 0 and len(eksik_m) == 9, "eksik=%s" % eksik_m)
+        kontrol("🔴 20-M) MUTANT B KOMSU ekseni (temizlik sayaclari) DUSURMEDI "
+                "(hedef-kol atfi iki yonlu)",
+                all(a in (d_m or {}) for a in TEMIZLIK_ANAHTARLARI),
+                [a for a in TEMIZLIK_ANAHTARLARI if a not in (d_m or {})])
+
+    # ---- MUTANT KONTROL (ILGISIZ KOL): K212/A mutanti B iddialarini DUSURMEMELI ----
+    with tempfile.TemporaryDirectory() as td:
+        o = k212b_ortam(td)
+        with open(YEDEKLE, encoding="utf-8") as fh:
+            gov = fh.read()
+        if K212A_MUTANT_HEDEF[0] not in gov:
+            raise RuntimeError("MUTASYON CAPASI BULUNAMADI (yedekle.py degismis)")
+        with open(o["betik"], "w", encoding="utf-8") as fh:
+            fh.write(gov.replace(K212A_MUTANT_HEDEF[0], K212A_MUTANT_HEDEF[1], 1))
+        r_k = izole_kos(o)
+        d_k = damga_json(o["hedef"])
+        kontrol("🔴 20-K) KONTROL MUTANTINDA (K212/A kolu bozuk) K212/B iddialari "
+                "YESIL kaldi — iki eksen BAGIMSIZ olculuyor",
+                r_k.returncode == 0 and k212b_eksik_anahtarlar(d_k) == []
+                and all(a in (d_k or {}) for a in TEMIZLIK_ANAHTARLARI),
+                "rc=%d eksik=%s" % (r_k.returncode, k212b_eksik_anahtarlar(d_k)))
+
+    # ======== 21) KARANTINA TESHIS ETIKETI — AYNI ADLI DOKUZ DOSYAYI AYIRIR =====
+    # 🔴 26 Agu 2026, GERCEK VAKA (K212Yedek, eksen C): canli kosum her push'ta
+    # rc=1 dondu ve kaydi sundan ibaretti: "ATLANDI: MEMORY.md". Yedekte AYNI ADI
+    # tasiyan DOKUZ dosya var -> satir hicbir seyi ayirt etmiyor. Kok neden ancak
+    # dokuz evin MEMORY.md'si TEK TEK boyutlanarak bulundu
+    # (ek/memory-evler/...-m-beyin/MEMORY.md: 6688 -> 1691 bayt).
+    print("\n21) KARANTINA ETIKETI — ayni adli dosyalar AYIRT EDILIYOR mu?")
+    with tempfile.TemporaryDirectory() as td:
+        kok_b = os.path.join(td, "backup-v2")
+        ev_a = os.path.join(kok_b, "ek", "memory-evler", "-ev-a", "MEMORY.md")
+        ev_b = os.path.join(kok_b, "ek", "memory-evler", "-ev-b", "MEMORY.md")
+        disarisi = os.path.join(td, "yedek-disi", "MEMORY.md")
+        e_a = yedekle.karantina_etiketi(ev_a, kok_b)
+        e_b = yedekle.karantina_etiketi(ev_b, kok_b)
+        kontrol("🔴 21) AYNI ADLI iki kalem FARKLI etiket aliyor (kayit ayirt ediyor)",
+                e_a != e_b, "a=%s b=%s" % (e_a, e_b))
+        kontrol("21) etiket kaydin EVINI adlandiriyor (yedek kokune gorece yol)",
+                e_a == os.path.join("ek", "memory-evler", "-ev-a", "MEMORY.md")
+                and "-ev-b" in e_b, "a=%s b=%s" % (e_a, e_b))
+        kontrol("21) yedek koku DISINDAKI yol MUTLAK basilir (bilgi daraltilmaz)",
+                yedekle.karantina_etiketi(disarisi, kok_b) == disarisi,
+                yedekle.karantina_etiketi(disarisi, kok_b))
+        kontrol("21) `backup` bilinmiyorsa mutlak yol doner (fail-open DEGIL, TAM bilgi)",
+                yedekle.karantina_etiketi(ev_a, None) == ev_a
+                and yedekle.karantina_etiketi(ev_a, "") == ev_a)
+        # ---- MUTANT (HEDEF KOL): eski `basename` davranisi geri gelir ----
+        mut21 = mutant_yaz(
+            td,
+            [("    if not backup or not yol:\n        return yol\n",
+              "    if True:\n        return os.path.basename(yol)"
+              "   # MUTANT 21: basename'e geri don\n")],
+            ad="mutant-karantina.py")
+        m21 = modul_yukle(mut21, "mutant_karantina")
+        kontrol("🔴 21-M) MUTANT etiketi COKERTTI: dokuz ayri kalem TEK ADA dustu "
+                "(saglam kodda ayriliyorlardi -> iddia bos degil)",
+                m21.karantina_etiketi(ev_a, kok_b) == m21.karantina_etiketi(ev_b, kok_b)
+                == "MEMORY.md",
+                "a=%s b=%s" % (m21.karantina_etiketi(ev_a, kok_b),
+                               m21.karantina_etiketi(ev_b, kok_b)))
+        # ---- KONTROL MUTANTI (ILGISIZ KOL): 21) iddialari YESIL kalmali ----
+        mutk21 = mutant_yaz(td, [K212A_MUTANT_KONTROL], ad="mutant-karantina-kontrol.py")
+        mk21 = modul_yukle(mutk21, "mutant_karantina_kontrol")
+        kontrol("🔴 21-K) KONTROL MUTANTINDA (kapsam-disi kolu bozuk) 21) iddialari "
+                "YESIL kaldi — mutant AYIRT EDICI",
+                mk21.karantina_etiketi(ev_a, kok_b) == e_a
+                and mk21.karantina_etiketi(ev_b, kok_b) == e_b
+                and e_a != e_b,
+                "a=%s b=%s" % (mk21.karantina_etiketi(ev_a, kok_b),
+                               mk21.karantina_etiketi(ev_b, kok_b)))
 
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok, _ in SONUC if not ok]
