@@ -99,7 +99,8 @@ KOPYALANAN = ("kapi_dagitim.py", "kapi-dagitim-kapisi.py", "kapi-dagitim-kur.py"
               "mimar-kapi-kur.py", "mimar_kimlik.py")
 
 
-def modul_dizini_kur(tmp, ad, kayitlar, mutasyon=None, mutasyon_dosyasi=None):
+def modul_dizini_kur(tmp, ad, kayitlar, mutasyon=None, mutasyon_dosyasi=None,
+                     ci_taklit=False):
     """Fikstur evlerini taniyan (ve istege bagli MUTANTLANMIS) bir ARAC DIZINI.
 
     Uretim koduna test kancasi eklemek yerine araclarin KOPYASI uzerinde calisilir:
@@ -117,8 +118,23 @@ def modul_dizini_kur(tmp, ad, kayitlar, mutasyon=None, mutasyon_dosyasi=None):
             if metin.count(eski_p) != 1:
                 return None
             metin = metin.replace(eski_p, yeni_p)
+        if ci_taklit and dosya == "kapi_dagitim.py":
+            # CI TAKLIDI: canli kok YOKMUS gibi davran (GitHub kosucusunda oyle).
+            # Bu kol olmadan CI'daki cozumleme yerel makinede HIC olculemiyordu —
+            # canli yol burada VAR oldugu icin yanlis cozum gorunmuyordu
+            # ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]).
+            metin = metin.replace(
+                'CANLI_KOK = "/Users/okan/dev/pruvo"',
+                'CANLI_KOK = "' + os.path.join(tmp, "olmayan-canli-kok") + '"')
         if dosya == "kapi_dagitim.py":
-            metin += ("\n\n# === TEST DIZINI: EVLER fikstur evleriyle EZILDI ===\n"
+            # 🔴 KAYNAK_KOK KOPYADA CIVILENIR. Modul, canli yol yoksa koku KENDI
+            # dosyasindan turetir (`dirname(dirname(__file__))`) — tempdir'e alinan
+            # KOPYA icin bu YANLIS koke cozer. Olculdu: canli makinede /Users/okan/dev/
+            # pruvo VAR oldugu icin gorunmedi, CI kosucusunda butun fiksturler dustu.
+            metin += ("\n\n# === TEST DIZINI: KAYNAK ve EVLER civilendi ===\n"
+                      "KAYNAK_KOK = " + repr(KD.KAYNAK_KOK) + "\n"
+                      "KAYNAK = KAYNAK_KOK + \"/tools/mimar-icra-kapisi.py\"\n"
+                      "KAYNAK_TOOLS = KAYNAK_KOK + \"/tools\"\n"
                       "EVLER = (\n"
                       + "".join("    " + repr(k) + ",\n" for k in kayitlar) + ")\n")
         with open(os.path.join(dizin, dosya), "w", encoding="utf-8") as f:
@@ -144,7 +160,7 @@ def tarayici_girdisi(ev):
 
 # ======================= ANA BATARYA (mutasyona TABI) =======================
 
-def batarya(kok, etiket="", mutasyon=None, mutasyon_dosyasi=None):
+def batarya(kok, etiket="", mutasyon=None, mutasyon_dosyasi=None, ci_taklit=False):
     """V1..V3, V5, V6b, V8. `mutasyon` verilirse MUTANTLANMIS modulle kosar (K182)."""
     os.makedirs(kok, exist_ok=True)
     ev_kapali, _ = fikstur_ev(kok, "pruvo-advisor", "test-wt-1")   # tarayici KAPALI ev
@@ -166,7 +182,7 @@ def batarya(kok, etiket="", mutasyon=None, mutasyon_dosyasi=None):
         ("F_KAYNAK", ev_kaynak, "tools/mimar-icra-kapisi.py", "kaynak"),
     )
     kuruldu = modul_dizini_kur(kok, "m" + etiket.replace("/", ""), kayitlar,
-                               mutasyon, mutasyon_dosyasi)
+                               mutasyon, mutasyon_dosyasi, ci_taklit)
     if kuruldu is None:
         iddia(etiket + "MUTASYON_CAPASI tam bir kez", True, False)
         return None
@@ -425,6 +441,11 @@ def main(argv):
     try:
         v0 = v0_gercek_filo()
         d = batarya(os.path.join(tmp, "taban"))
+        # V11 — AYNI BATARYA, CI TAKLIDIYLE. Kanit degeri: CI kosucusunda canli kok
+        # YOKTUR ve modulun tempdir'e alinan kopyasi koku KENDI konumundan turetir.
+        # Bu kol konmadan once tam da o cozumleme CI'da butun fiksturleri dusurdu;
+        # yerel kosum bunu GOREMIYORDU (canli yol burada var).
+        batarya(os.path.join(tmp, "ci-taklit"), etiket="V11-CI/", ci_taklit=True)
         v6ac(os.path.join(tmp, "fc"))
         if d:
             v7_macit_blokaji(os.path.join(tmp, "v7"), d["eski"])
