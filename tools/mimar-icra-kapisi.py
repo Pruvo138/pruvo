@@ -159,6 +159,7 @@ from mimar_kimlik import (
     emekli_gerekcesi,
     emekli_motor_mu,
     kimlik_ekseni,
+    rol_ekseni,
 )
 
 REPO_ONEKI = "/Users/okan/dev/pruvo/"
@@ -178,6 +179,15 @@ def kimlik(girdi):
 def kimlik_izi(girdi):
     eksen = kimlik_ekseni(girdi)
     return "ISCI(" + eksen + ")" if eksen is not None else "MIMAR"
+
+
+def rol(girdi):
+    """27 AGU (K318) — OTURUM ROLU. Doner: cip'in worktree koku ya da None (=ANA/olculemedi).
+
+    Govde YOK: tek kaynak mimar_kimlik.rol_ekseni'dir; burada yalnizca kayit kumesi
+    beslenir. Kapinin kendi 'cip mi' testi TASIMAMASI kasitlidir — ikinci mekanizma
+    sessizce ayrisir ([[ikiz-tanim-sessiz-ayrisma]])."""
+    return rol_ekseni(girdi, kayitli_worktree_kokleri())
 
 
 def iz_bas(etiket):
@@ -708,7 +718,10 @@ GEREKCE_SONU = (
     "çalıştırılabilir KABUL TESTİ yaz, mühendis repoya koysun, işçi koştursun. "
     "SERBEST (mimar eliyle): git (status/diff/log/merge-base/merge/commit/push/worktree), "
     "gh, ls, grep, jq, echo, cat; python yalnız 'python3 tools/durum.py' ve "
-    "'python3 tools/d1-sync.py --durum'; /.claude/worktrees/ içinden çalışan işçi oturumları."
+    "'python3 tools/d1-sync.py --durum'; /.claude/worktrees/ içinden çalışan işçi oturumları. "
+    "(27 Ağu K318 — ROL EKSENİ: bu son madde artık ÖLÇÜLÜYOR. Çip/worktree oturumunda "
+    "ölçüm komutları, curl ve python3/node ARAÇ koşumu SERBESTTİR; ana oturumda kapalıdır. "
+    "Rol, oturum damgasından okunur — `cd <worktree>` rolü DEĞİŞTİRMEZ.)"
 )
 
 
@@ -722,13 +735,21 @@ CODEX_GEREKCE_SONU = (
 )
 
 
+# 27 AGU (K318) — ROL TESHISI. main() doldurur, reddet() gerekcenin SONUNA ekler.
+# NEDEN VAR: rol ekseni FAIL-CLOSED'dur; olculemeyen bir baglam ANA sayilir ve REDDEDILIR.
+# Teshis satiri olmasaydi "neden hala reddediliyorum" sorusu yine HAFTALAR surerdi — bu
+# isin BEDELI zaten oydu. Satir yalniz TANI tasir, karar TASIMAZ.
+ROL_TANI = ""
+
+
 def reddet(neden, sonu=None):
     print(json.dumps({
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
             "permissionDecisionReason": GEREKCE_BASI + neden +
-                                        (GEREKCE_SONU if sonu is None else sonu),
+                                        (GEREKCE_SONU if sonu is None else sonu) +
+                                        ROL_TANI,
         }
     }, ensure_ascii=False))
     sys.exit(0)
@@ -1284,6 +1305,45 @@ def main():
     # cwd yalnizca GORELI yolu cozmek icin kullanilir; muafiyet vermez.
     cwd = girdi.get("cwd") or REPO_ONEKI.rstrip("/")
 
+    # === 27 AGU 2026 (K318) — ROL EKSENI: ANA OTURUM mu, CIP/WORKTREE OTURUMU mu? ===
+    # Gerekce ve olcum ekseninin TAMAMI mimar_kimlik.rol_ekseni'nin bas yorumundadir.
+    # Burada yalnizca KAPSAM yazilidir — ve kapsam BILEREK DARDIR:
+    #
+    #   CIP'TE ACILAN (mimarin "kendi elimle is yapmam" kollari — icra/olcum):
+    #     * OLCUM_KOMUTLARI (du/find/wc/head/tail/sed/awk/sort/stat/file ...)
+    #     * curl / wget (canli dogrulama — cip'in KABUL olcumu bunsuz kapanmaz)
+    #     * python3/node ALLOWLIST'i (durum.py + d1-sync.py disina cikis)
+    #
+    #   CIP'TE DE KAPALI KALAN (kapsam disi — bunlar "mimar eliyle is" kurali DEGIL,
+    #   Okan emri ya da repo hijyeni tasir; acilsalardi bu bir GEVSETME olurdu):
+    #     * AGENT-KAPISI (Claude iscisi / Agent-Task yasagi, 13 Agu Okan emri) — rol
+    #       kolundan ONCE, main() basinda kosar ve bu satira HIC ugramaz.
+    #     * ISCI-SARMALAYICI kapisi (isci.sh claude + sert blok evler) — dongude, rol
+    #       bayragina BAKMAZ.
+    #     * codex KALITE kapisi (-o <dosya> sarti) — delegasyon standardi herkese esittir.
+    #     * A) repo DISINDAKI betigi dogrudan cagirma, A2) yorumlayiciya env ile kod
+    #       enjeksiyonu, C) satir-ici kod (-c/-e/stdin), R2) argumanlarda repo DISI yol,
+    #       F) betigin repo ICINDE olmasi — hepsi cipte de AYNEN kosar. Yani cip
+    #       repo ICINDEKI araci kosturur; scratchpad betigi ve satir-ici kod ona da kapali
+    #       (CLAUDE.md komut stili: betigi .py'ye YAZ, sonra duz calistir).
+    #
+    # ANA OTURUM icin DAVRANIS DEGISMEDI: cip_koku None kalir, asagidaki her kol bugunku
+    # gibi REDDEDER (kontrol vakalari 800/801/805/806).
+    global ROL_TANI
+    cip_koku = rol(girdi)
+    cip = cip_koku is not None
+    if cip:
+        iz_bas("CIP(" + os.path.basename(cip_koku) + ")")
+    else:
+        ROL_TANI = (
+            " [ROL=ANA — bu oturum mimarin ANA oturumu sayildi. Rol ekseni "
+            "OTURUM DAMGASINDAN (transcript_path) olculur ve git'e KAYITLI worktree "
+            "kokleriyle TAM BILESEN esitligi aranir; cwd/beyan OKUNMAZ. Cip oturumunda "
+            "hala RED aliyorsan olculen sey su: damga=" +
+            (os.path.basename(os.path.dirname(str(girdi.get("transcript_path") or ""))) or
+             "<YOK>")[:80] + " kayitli_worktree=" + str(len(kayitli_worktree_kokleri())) + "]"
+        )
+
     for segment in segmentlere_ayir(komut):
         tokenlar, env_atamalari = sarmalayici_soy(parcala(segment))
         if not tokenlar:
@@ -1295,12 +1355,12 @@ def main():
         # Bu uc kural her SEGMENT icin kosar; 'git log | head -5' -> ikinci segment 'head'
         # (segmentlere_ayir '|'den boler) -> RED. Kimlik ekseni degismedi: ISCI cagrilari
         # main() basinda zaten muaf, bu blok yalniz MIMAR'da kosar.
-        if ad in OLCUM_KOMUTLARI:
+        if ad in OLCUM_KOMUTLARI and not cip:
             reddet(
                 "ölçüm / dosya-tarama komutu (" + ad + "). Boyut, sayım, arama, içerik "
                 "dökme, sıralama — bunlar İŞÇİNİN işidir; mimar okur, karar verir, ÖLÇTÜRÜR."
             )
-        if ad in ("curl", "wget"):
+        if ad in ("curl", "wget") and not cip:
             reddet(
                 "ağ / canlı doğrulama komutu (" + ad + "). Canonical URL, feed, deploy "
                 "çıktısı doğrulamasını İŞÇİYE yaptır (git ve gh serbest kalır)."
@@ -1358,12 +1418,18 @@ def main():
         if PY_NODE.match(ad):
             if _py_izinli(ad, argumanlar, cwd):
                 continue
-            reddet(
-                "python3/node ile bir araç/test koşturuyorsun (" + ad + " " +
-                (" ".join(argumanlar[:3]))[:70] + "). Mimar tarafında SERBEST yalnız iki "
-                "komut: 'python3 tools/durum.py' ve 'python3 tools/d1-sync.py --durum'. "
-                "Parite/build/filament/node --check ... = İŞÇİNİN işi."
-            )
+            # 27 AGU (K318): CIP'te ALLOWLIST atlanir — AMA SEGMENT KAPATILMAZ. Akis
+            # bilerek asagi duser: C (satir-ici kod), R2 (argumanlarda repo DISI yol) ve
+            # F (betik repo ICINDE mi) cipte de kosar. 'continue' yazmak, cipe
+            # 'python3 -c ...' ve 'python3 /private/tmp/x.py' yollarini acardi —
+            # o bir GEVSETME olurdu, kapsam duzeltmesi degil (vaka 808/809).
+            if not cip:
+                reddet(
+                    "python3/node ile bir araç/test koşturuyorsun (" + ad + " " +
+                    (" ".join(argumanlar[:3]))[:70] + "). Mimar tarafında SERBEST yalnız iki "
+                    "komut: 'python3 tools/durum.py' ve 'python3 tools/d1-sync.py --durum'. "
+                    "Parite/build/filament/node --check ... = İŞÇİNİN işi."
+                )
 
         # B) Surum/yardim: zararsiz (python/node yukarida ele alindi; bu satir sh vb. icin)
         if argumanlar and argumanlar[0] in SURUM_BAYRAKLARI:
