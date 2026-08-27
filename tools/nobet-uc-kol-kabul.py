@@ -114,16 +114,39 @@ def _modul(yol, ad):
 # =========================================================================
 _STUB = "#!/usr/bin/env python3\nimport sys\nprint('STUB %s')\nsys.exit(%d)\n"
 
+# 🔴 TETIK STUB'I ARTIK `sebep=` JETONU DA BASAR (A4, 27 Agu 2026).
+# Gerekce: gercek `nobet-tetik.py` her kararda `TUR ACIL(MADI|IYOR) sebep=<kol>`
+# satirini basar ve `ci-nobeti.sh` hukum adini ARTIK O SATIRDAN okur. Jetonsuz
+# stub, olctugu seyi taklit etmiyordu ([[prob-gercek-isi-taklit-etmeli]]);
+# jetonsuz hali A8'de AYRI bir vaka olarak (fail-closed kolu) olculur.
+_STUB_TETIK = ("#!/usr/bin/env python3\nimport sys\nprint('STUB TETIK')\n"
+               "%ssys.exit(%d)\n")
 
-def _a_kos(tetik_rc, kapi_rc, sh_yolu=None):
-    """ci-nobeti.sh'i STUB tetik/kapi ile kosar; (rc, log_metni) doner."""
+
+def _tetik_govdesi(sebep, acilir=False):
+    """sebep None -> jeton BASILMAZ (fail-closed kolunu olcmek icin)."""
+    if sebep is None:
+        return ""
+    if acilir:
+        return ("print('TUR ACILIYOR sebep=%s anahtar=- bayraklar=--tur "
+                "KIRMIZI=0')\n" % sebep)
+    return "print('TUR ACILMADI sebep=%s KIRMIZI=1')\n" % sebep
+
+
+def _a_kos(tetik_rc, kapi_rc, sh_yolu=None, tetik_sebebi=None):
+    """ci-nobeti.sh'i STUB tetik/kapi ile kosar; (rc, log_metni) doner.
+
+    `tetik_sebebi=None` -> stub `sebep=` jetonu BASMAZ.
+    """
     gecici = tempfile.mkdtemp(prefix="k320-a-")
     try:
         tetik = os.path.join(gecici, "tetik.py")
         kapi = os.path.join(gecici, "kapi.py")
         log = os.path.join(gecici, "nobet.log")
         with open(tetik, "w") as f:
-            f.write(_STUB % ("TETIK", tetik_rc))
+            f.write(_STUB_TETIK % (
+                _tetik_govdesi(tetik_sebebi, acilir=(tetik_rc in (0, 1))),
+                tetik_rc))
         with open(kapi, "w") as f:
             f.write(_STUB % ("KAPI", kapi_rc))
         cevre = dict(os.environ)
@@ -179,9 +202,9 @@ def kol_a(sh_yolu=None, yalniz=None):
     # 🔴 VAKANIN KENDISI: eskiden `nobet_rc=0` basiliyordu ve `BITIS rc=1`
     # ile CELISIYORDU. Kosmayan kapi SAYI BASMAZ.
     if istenir("A2"):
-        rc, log = _a_kos(11, 0, sh_yolu)
+        rc, log = _a_kos(11, 0, sh_yolu, tetik_sebebi="SEVIYE_KIRMIZI_2")
         olc("A2 seviye kirmizi -> nobet_rc KOSMADI",
-            ("SEVIYE_KIRMIZI", 1, "KOSMADI"),
+            ("SEVIYE_KIRMIZI_2", 1, "KOSMADI"),
             (_a_hukum(log), rc, _a_alan(log, "nobet_rc")))
 
     # A3 KONTROL: tetik AC/yesil + kapi yesil -> gercekten TEMIZ
@@ -209,10 +232,43 @@ def kol_a(sh_yolu=None, yalniz=None):
     if istenir("A6"):
         ihlal = []
         for t, k in ((10, 0), (11, 0), (0, 0), (0, 1), (99, 0)):
-            rc, log = _a_kos(t, k, sh_yolu)
+            rc, log = _a_kos(t, k, sh_yolu, tetik_sebebi="SEVIYE_KIRMIZI_2")
             if (_a_hukum(log) == "TEMIZ") != (rc == 0):
                 ihlal.append((t, k, _a_hukum(log), rc))
         olc("A6 degismezlik TEMIZ<=>rc0", [], ihlal)
+
+    # 🔴 A7 — VAKANIN KENDISI (27 Agu 2026, KraL-NobetTuru-27Agu).
+    # AYNI `tetik_rc=11`i ureten IKI FARKLI kol, IKI FARKLI `HUKUM` adi
+    # basmalidir. Olculen ariza: 13:07Z-20:07Z arasi yedi rc=11 turunun
+    # besi `ESKALASYON_ACIK`, biri `GOZCU_URETMEDI_OLCULEMEDI`, biri
+    # `SEVIYE_KIRMIZI_2` idi; UCU DE `HUKUM=SEVIYE_KIRMIZI` basiyordu.
+    # Ad, kolu DEGIL kabuktaki sabiti soyluyordu -> okuyan yanlis alani
+    # dogruladi ve "iki duzlem birbirini yalanliyor" hukmu verdi.
+    # Bu vaka BIR AD BEKLEMEZ, IKI ADIN FARKLI OLMASINI bekler: sabite
+    # geri donen her mutant burada olur.
+    if istenir("A7"):
+        rc1, log1 = _a_kos(11, 0, sh_yolu, tetik_sebebi="ESKALASYON_ACIK")
+        rc2, log2 = _a_kos(11, 0, sh_yolu, tetik_sebebi="GOZCU_URETMEDI_OLCULEMEDI")
+        olc("A7 ayni rc=11, kol adlari AYRISIR",
+            ("ESKALASYON_ACIK", "GOZCU_URETMEDI_OLCULEMEDI", 1, 1),
+            (_a_hukum(log1), _a_hukum(log2), rc1, rc2))
+
+    # A8 FAIL-CLOSED: tetik `sebep=` jetonu BASMAZSA ad SESSIZCE eski sabite
+    # DUSMEZ; `TETIK_SEBEBI_OKUNAMADI` basilir ve tur YINE KIRMIZI kapanir.
+    # "Adini okuyamadim" != "SEVIYE_KIRMIZI" ve kesinlikle != "TEMIZ".
+    if istenir("A8"):
+        rc, log = _a_kos(11, 0, sh_yolu, tetik_sebebi=None)
+        olc("A8 sebepsiz rc=11 -> fail-closed ad",
+            ("TETIK_SEBEBI_OKUNAMADI", 1, "KOSMADI"),
+            (_a_hukum(log), rc, _a_alan(log, "nobet_rc")))
+
+    # A9 KONTROL: tetik ciktisi LOGA AYNEN duser (yakalama, logu SUSTURMADI).
+    if istenir("A9"):
+        _rc, log = _a_kos(11, 0, sh_yolu, tetik_sebebi="ESKALASYON_ACIK")
+        olc("A9 tetik ciktisi loga duser",
+            (True, True),
+            ("STUB TETIK" in log,
+             "TUR ACILMADI sebep=ESKALASYON_ACIK" in log), kontrol=True)
 
 
 # =========================================================================
@@ -509,6 +565,23 @@ MUTANTLAR = [
      "  HUKUM=$TETIK_SINIFI\n  SON_RC=1",
      "  HUKUM=$TETIK_SINIFI\n  SON_RC=0",
      ["A2"], ["A3", "A4"], "A"),
+    # --- KOL A4 (ad kolu) — IKI YON, IKI MUTANT --------------------------
+    # (i) SABIT ADA GERI DONUS: rc=11'in TUM kollari yine tek adla basilir.
+    #     A7 (iki kol AYRISIR) ve A8 (fail-closed ad) KIRMIZI olmali;
+    #     A9 (cikti loga duser) ve A3/A4 YESIL kalmali -- mutant ADI bozdu,
+    #     logu ya da rc turemesini DEGIL.
+    ("M-A3-hukum-adi-sabite-doner", "SH",
+     "  11) KIRMIZI=1; TETIK_SINIFI=${TETIK_SEBEBI:-TETIK_SEBEBI_OKUNAMADI} ;;",
+     "  11) KIRMIZI=1; TETIK_SINIFI=SEVIYE_KIRMIZI ;;",
+     ["A2", "A7", "A8"], ["A3", "A4", "A9"], "A"),
+    # (ii) SEBEP AYIKLAMA KOLUNU oldurur: jeton BASILSA da okunmaz.
+    #     A2/A7 KIRMIZI olmali; A8 (jetonsuz vaka) YESIL KALMALI -- cunku
+    #     fail-closed ad zaten onun BEKLEDIGI addir. A8'in yesil kalmasi
+    #     mutantin "her seyi kirmadigini" kanitlar.
+    ("M-A4-sebep-ayiklama-korlesir", "SH",
+     "awk '/^TUR ACIL/ {",
+     "awk '/^ASLA_ESLESMEYEN_DESEN/ {",
+     ["A2", "A7"], ["A8", "A3", "A9"], "A"),
     ("M-B1-ucuncu-kova-olur", "KAPI",
      "        if dondurma_isirdi:\n            rc, hukum = 0, \"DAGITIM_DONDURULDU\"",
      "        if False:\n            rc, hukum = 0, \"DAGITIM_DONDURULDU\"",

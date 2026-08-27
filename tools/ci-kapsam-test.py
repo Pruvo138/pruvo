@@ -3210,6 +3210,18 @@ IZIN_LISTESI = {
     "tools/nobet-dagitilmaz-sebep-test.py": (
         "URETIM KAYNAGI CI'DA YOK: ~/.claude/cron/nobet-kapi.py repoya dahil degil; "
         "test Okan makinesinde canli cron karsisinda kosar."),
+    "tools/nobet-gorev-jeton-kapisi.py": (
+        "URETIM KAYNAGI CI'DA YOK — ayni sinif (bkz. bir ustteki giris). Kapinin uc "
+        "kolunun UCU DE ~/.claude/cron/ altini olcer: K1 `ci-nobeti-gorev.md` metnini, "
+        "K2/K3 `nobet-kapi.py`nin GERCEK davranisini. Ikisi de repoya dahil DEGILDIR. "
+        "SOMUT OLCUM (27 Agu 2026, kok bos bir dizine yoneltildi = CI kosucusunun "
+        "gordugu hal): rc=2, `ARAC HATASI: nobet-kapi.py yuklenemedi`. "
+        "🔴 FIKSTURE CEVIRMEK COZUM DEGIL: kapinin tum degeri EMRIN CANLI kopyasini "
+        "olcmesinden gelir; fikstur uzerinde yesil yanmak emrin canliligini "
+        "KANITLAMAZ ([[emir-canliligi-kurulu-kopyadan-olculur]]). Ayirt ediciligi "
+        "`--mutasyon` koluyla olculur (27 Agu: OLEN=4/4 ATIF=4/4). "
+        "Bu giris K276'nin (kabul CI DISINDA) kapsamindadir; o kalem kapaninca "
+        "bu muafiyet de yeniden degerlendirilir."),
 }
 
 

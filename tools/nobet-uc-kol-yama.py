@@ -184,6 +184,61 @@ fi
 A_CAPA2 = '''echo "TETIK_HUKMU tetik_rc=$TETIK_RC acilan_tur=$ACILACAK nobet_rc=$NOBET_RC" >> "$LOG"
 '''
 
+# ==========================================================================
+# KOL A4 — HUKUM ADI TETIGIN KENDI `sebep=` JETONUNDAN TURER
+# ==========================================================================
+# OLCULEN VAKA (ci-nobeti.log, 27 Agu 2026 13:07Z-20:07Z, sekiz ardisik tur):
+#   yedi tur `tetik_rc=11` verdi. Bu yedinin ic dagilimi:
+#       sebep=ESKALASYON_ACIK            5 tur (13:07 14:07 16:07 18:07 19:07)
+#       sebep=GOZCU_URETMEDI_OLCULEMEDI  1 tur (17:07)
+#       sebep=SEVIYE_KIRMIZI_2           1 tur (20:07)
+#   ve YEDISI DE `HUKUM=SEVIYE_KIRMIZI` basti.
+# KOK NEDEN: `TETIK_SINIFI` rc=11 icin SABIT yaziliydi, ve o sabit rc=11
+# ureten BES kolun (`GOZCU_URETMEDI_*`, `ESKALASYON_ACIK`, `SEVIYE_KIRMIZI_n`,
+# `SEVIYE_OLCULEMEDI`, `OLCULEMEDI`) YALNIZ BIRININ adiydi. Kabuk tarafinda
+# rc -> ad sozlugu vardi, ama sozluk `nobet-tetik.py`nin kol kumesiyle
+# ESLESMIYORDU; ikisi sessizce ayristi ([[ayni-alan-iki-hukum-biri-sessiz]]).
+# OLCULEN ZARAR: okuyan `HUKUM=SEVIYE_KIRMIZI` adini gorup adin isaret ettigi
+# alani (kalpteki `kirmizi_toplam`) dogruladi, tutmayinca "kalp `eskalasyon_acik=0`
+# diyor ama hat kirmizi -- iki duzlem birbirini yalanliyor" hukmu verildi.
+# Yalanlayan DUZLEM DEGILDI, ADDI ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]],
+# [[ad-iki-rolde-mutanti-golgeler]]).
+# SIMDI: ad TEK KAYNAKTAN okunur -- tetigin KENDI bastigi `sebep=` jetonundan.
+# Kabukta guncellenecek sozluk YOKTUR; `nobet-tetik.py`ye yeni bir kol eklenince
+# adi kendiliginden dogru basilir.
+# IKI EKSEN AYRI KALIR: `tetik_rc` (0/1/10/11) KAPALI SINIF kumesidir ve
+# gruplama/sayim onun uzerinden yapilir; `HUKUM` ATESLEYEN KOLUN ADIDIR.
+# FAIL-CLOSED: `sebep=` okunamazsa ad `TETIK_SEBEBI_OKUNAMADI`dir. Sessizce
+# eski sabite DUSULMEZ -- dusulseydi korluk tam olarak geri gelirdi.
+A4_CAPA = '''python3 "$TETIK" --karar >> "$LOG" 2>&1
+TETIK_RC=$?
+'''
+
+A4_YENI = '''# 🔴 KOL A4 (27 Agu 2026, cip KraL-NobetTuru-27Agu) — NOBET_HUKUM_KOLU=A4
+# Tetigin ciktisi ARTIK YAKALANIR: loga aynen duser (bicim degismedi) ve
+# `sebep=` jetonu hukum adina TEK KAYNAK olur. ONCE bu cikti dogrudan loga
+# akiyordu; kabuk sebebi HIC gormuyor, rc=11'in BES ayri kolunu tek sabit
+# adla ("SEVIYE_KIRMIZI") basiyordu.
+TETIK_CIKTISI=$(python3 "$TETIK" --karar 2>&1)
+TETIK_RC=$?
+if [[ -n "$TETIK_CIKTISI" ]]; then
+  printf '%s\\n' "$TETIK_CIKTISI" >> "$LOG"
+fi
+# Son `TUR ACILIYOR/ACILMADI` satirindaki `sebep=` degeri. Birden fazla satir
+# varsa (or. once `KALP BAYAT`) SONUNCUSU gecerlidir: karari o satir tasir.
+TETIK_SEBEBI=$(printf '%s\\n' "$TETIK_CIKTISI" | awk '/^TUR ACIL/ { for (i = 1; i <= NF; i++) if ($i ~ /^sebep=/) { sub(/^sebep=/, "", $i); s = $i } } END { if (s != "") print s }')
+'''
+
+A4B_CAPA = '''  1)  ACILACAK=1; KIRMIZI=1; TETIK_SINIFI=TETIK_KIRMIZI ;;
+  10) ;;
+  11) KIRMIZI=1; TETIK_SINIFI=SEVIYE_KIRMIZI ;;
+'''
+
+A4B_YENI = '''  1)  ACILACAK=1; KIRMIZI=1; TETIK_SINIFI=${TETIK_SEBEBI:-TETIK_SEBEBI_OKUNAMADI} ;;
+  10) ;;
+  11) KIRMIZI=1; TETIK_SINIFI=${TETIK_SEBEBI:-TETIK_SEBEBI_OKUNAMADI} ;;
+'''
+
 A_YENI2 = '''echo "TETIK_HUKMU tetik_rc=$TETIK_RC acilan_tur=$ACILACAK nobet_rc=$NOBET_RC hukum=$HUKUM" >> "$LOG"
 # Tek satirlik makine hukmu — Okan'in kabul olcutu ("HUKUM=TEMIZ ve rc=0")
 # bu satirla BITIS satiri arasindaki BLOKTAN okunur; logdaki elle yazilmis
@@ -594,6 +649,11 @@ YAMALAR = [
      "  if (( NOBET_RC != 0 )); then KOL_A_NOBET_KIRMIZI=1; NOBET_KIRMIZI=1; fi\n",
      "  if (( NOBET_RC != 0 )); then NOBET_KIRMIZI=1; fi\n",
      "if (( NOBET_RC != 0 )); then NOBET_KIRMIZI=1; fi"),
+    # A4/A4b: hukum ADI tetigin `sebep=` jetonundan turer (yukaridaki blogun
+    # gerekcesi + olculen 7 turluk dagilim). SIRA: A4 ciktiyi yakalar, A4b
+    # o degiskeni TUKETIR -- ters sirada A4b'nin okudugu degisken YOK olur.
+    ("A4", "SH",     A4_CAPA,  A4_YENI,  "TETIK_CIKTISI="),
+    ("A4b", "SH",    A4B_CAPA, A4B_YENI, "TETIK_SEBEBI:-TETIK_SEBEBI_OKUNAMADI"),
     ("B1", "KAPI",      B1_CAPA,  B1_YENI,  "dondurma_isirdi=False"),
     ("B2", "KAPI",      B2_CAPA,  B2_YENI,  "_dondurma_isirdi = bool"),
     ("B3", "KAPI",      B3_CAPA,  B3_YENI,  "DAGITIM_BACAGI_DUSTU"),
