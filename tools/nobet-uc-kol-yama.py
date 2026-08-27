@@ -61,11 +61,24 @@ C) KARANTINA OLCUTU MESAJI DA OKUR  (isci-karantina-karar.py)
      ister; bu metinde IKISI DE YOK -> tek kayit yazilmadi.
    - Cozum: ERISIM/YETKI reddi AYRI bir taninan imza olur, ve YANLIS POZITIF
      olmasin diye ARDISIK esige baglanir (tek seferlik rc!=0 karantina URETMEZ).
+D) IMZA TANINMASA DA ARDISIK ESIK YAZAR  (isci-karantina-karar.py)
+   - 🔴 27 Agu 2026 MIMAR HUKMU. Kol C yalniz BILINEN imzalari tanir; C'nin
+     ilk surumu bunun yanina "taninmayan metin ASLA yazmaz" diye bir KONTROL
+     koymustu. O kontrol, ayni gun OLCULEN korlugu KURAL HALINE getiriyordu
+     (13 ardisik `rc=1`, hepsinde `sebep=fatal-satir-yok`, sifir kayit).
+   - Kural IKI YONLUDUR: TEK seferlik taninmayan dusus YAZMAZ; ESIK kez
+     ARDISIK taninmayan dusus YAZAR ve sebep ADIYLA gecer
+     (`ardisik-basarisiz-imzasiz<n>`).
+   - Esik `GENEL_ARDISIK_ESIGI`dir ve TEK KAYNAKTAN turer
+     (`= ERISIM_ARDISIK_ESIGI`); ne vakaya ne yamaya SAYI kopyalanir.
+   - Bu kol 27 Agu'da kurulu kopyaya ELLE kondu, repoda tasiyicisi YOKTU;
+     D0/D0b/D1 kalemleri o boslugu kapatir (idempotent, iki yonlu).
 
 Kullanim:
     python3 tools/nobet-uc-kol-yama.py --kuru     # yazmadan farki basar
     python3 tools/nobet-uc-kol-yama.py            # uygular (yedekle)
     python3 tools/nobet-uc-kol-yama.py --durum    # kurulu kopya yamali mi
+    python3 tools/nobet-uc-kol-yama.py --kok DIZIN --durum   # baska agac
 Cikis: 0 = tum kollar KURULU · 1 = eksik/duşen · 2 = arac hatasi.
 """
 
@@ -75,13 +88,28 @@ import shutil
 import sys
 import time
 
-CRON = os.environ.get("PRUVO_NOBET_KOK") or os.path.join(
+VARSAYILAN_KOK = os.environ.get("PRUVO_NOBET_KOK") or os.path.join(
     os.path.expanduser("~"), ".claude", "cron")
 
-SH = os.path.join(CRON, "ci-nobeti.sh")
-KAPI = os.path.join(CRON, "nobet-kapi.py")
-GOZCU = os.path.join(CRON, "gozcu.py")
-KARANTINA = os.path.join(CRON, "isci-karantina-karar.py")
+CRON = VARSAYILAN_KOK
+SH = KAPI = GOZCU = KARANTINA = None
+
+
+def kok_ayarla(kok):
+    """Yamanin uygulanacagi KOKU ve dort hedef adini yeniden baglar.
+
+    `--kok` (27 Agu 2026): kabul bataryasiyla AYNI eksen. Hermetik bir
+    kopyaya uygulayip olcebilmek icin gerekli; bayraksiz davranis
+    DEGISMEZ (kurulu kopya)."""
+    global CRON, SH, KAPI, GOZCU, KARANTINA
+    CRON = kok
+    SH = os.path.join(CRON, "ci-nobeti.sh")
+    KAPI = os.path.join(CRON, "nobet-kapi.py")
+    GOZCU = os.path.join(CRON, "gozcu.py")
+    KARANTINA = os.path.join(CRON, "isci-karantina-karar.py")
+
+
+kok_ayarla(VARSAYILAN_KOK)
 
 
 # ==========================================================================
@@ -493,31 +521,105 @@ C3_YENI = '''    karar, sebep = imza_var(rc, cikti_yolu)
 '''
 
 
+# ==========================================================================
+# KOL D — imza TANINMASA DA ardisik esik yazar (27 Agu 2026, mimar hukmu)
+# ==========================================================================
+# 🔴 NEDEN REPODA: bu kol 27 Agu'da kurulu kopyaya ELLE kondu ve repoda
+# HICBIR tasiyicisi yoktu (`grep -c GENEL_ARDISIK_ESIGI` -> 0). Yani yama
+# temiz bir kopyaya uygulansa kol GELMEZ, `--durum` ise "hepsi KURULU"
+# derdi: yazan var, tasiyan yok. Bu iki kalem o bosluğu kapatir.
+#
+# 🔴 TEK KAYNAK: esik SAYISI burada TEKRAR YAZILMAZ. `GENEL_ARDISIK_ESIGI`
+# degeri `ERISIM_ARDISIK_ESIGI`den TURER; ayni rolu tasiyan iki literal
+# sessizce ayrisir ve "esigi degistirdim" diyen onarim yarisini kacirir.
+# Kabul bataryasi da adi MODULDEN okur, sayiyi kopyalamaz.
+D0_CAPA = '''# Kac ARDISIK basarisiz kosumdan sonra erisim reddi karantina yazar.
+# 1 OLAMAZ: tek seferlik rc!=0 karantina URETMEMELIDIR (yanlis pozitif yasagi).
+ERISIM_ARDISIK_ESIGI = 3
+'''
+
+D0_YENI = '''# Kac ARDISIK basarisiz kosumdan sonra erisim reddi karantina yazar.
+# 1 OLAMAZ: tek seferlik rc!=0 karantina URETMEMELIDIR (yanlis pozitif yasagi).
+ERISIM_ARDISIK_ESIGI = 3
+
+# 🔴 KOL D (27 Agu 2026) — Kol C yalniz BILINEN imzalari (kota, erisim
+# reddi) tanir. Yarinki hata metni bu regex'lerin HICBIRINE uymayabilir ve
+# ayni sessiz-13-ardisik-deneme deseni baska bir cikti metniyle TEKRAR
+# eder. Bu esik o kor noktayi kapatir: imza NE OLURSA OLSUN, ayni motor
+# ARDISIK bu kadar basarisiz olursa karantinaya yazilir.
+# Deger TEKRAR YAZILMAZ, yukaridaki TEK KAYNAKTAN turer.
+GENEL_ARDISIK_ESIGI = ERISIM_ARDISIK_ESIGI
+'''
+
+# D0b: kurulu kopyada kol ZATEN vardi ama esik IKINCI BIR LITERAL olarak
+# yaziliydi (`= 3`). Bu kalem onu tek kaynaga indirir; temiz kopyada D0
+# zaten dogru bicimi kurdugu icin ZATEN_KURULU gecer (idempotent).
+D0B_CAPA = '''GENEL_ARDISIK_ESIGI = 3
+'''
+
+D0B_YENI = '''GENEL_ARDISIK_ESIGI = ERISIM_ARDISIK_ESIGI
+'''
+
+D1_CAPA = '''        elif _erisim:
+            print(
+                "KARANTINA_KARAR motor=%s rc=%d imza=var yazildi=hayir "
+                "sebep=%s-esik-alti(%d/%d)"
+                % (motor, rc, _erisim_sebep, _ardisik, ERISIM_ARDISIK_ESIGI)
+            )
+            return 10
+'''
+
+D1_YENI = '''        elif _erisim:
+            print(
+                "KARANTINA_KARAR motor=%s rc=%d imza=var yazildi=hayir "
+                "sebep=%s-esik-alti(%d/%d)"
+                % (motor, rc, _erisim_sebep, _ardisik, ERISIM_ARDISIK_ESIGI)
+            )
+            return 10
+        elif rc != 0 and _ardisik >= GENEL_ARDISIK_ESIGI:
+            # 🔴 KOL D: bilinen imza YOK ama ayni motor ardisik esigi asti.
+            # Sebep ADIYLA gecer -- "imza taninmadi, ardisik n". TEK
+            # seferlik rc!=0 buraya DUSMEZ (esik >= 2), yanlis pozitif yok.
+            karar, sebep = True, "ardisik-basarisiz-imzasiz%d" % _ardisik
+'''
+
+
 YAMALAR = [
-    ("A",  SH,        A_CAPA,   A_YENI,   "NOBET_HUKUM_KOLU=A"),
-    ("A2", SH,        A_CAPA2,  A_YENI2,  'hukum=$HUKUM'),
+    ("A",  "SH",      A_CAPA,   A_YENI,   "NOBET_HUKUM_KOLU=A"),
+    ("A2", "SH",      A_CAPA2,  A_YENI2,  'hukum=$HUKUM'),
     # A3: ilk surumun OLU DEGISKENI (`KOL_A_NOBET_KIRMIZI`) atilir. Hicbir yerde
     # okunmuyordu; kapi dosyasinda okunmayan degisken birakmak, bu evde tam da
     # kacindigimiz "yazan var okuyan yok" desenidir.
-    ("A3", SH,
+    ("A3", "SH",
      "  if (( NOBET_RC != 0 )); then KOL_A_NOBET_KIRMIZI=1; NOBET_KIRMIZI=1; fi\n",
      "  if (( NOBET_RC != 0 )); then NOBET_KIRMIZI=1; fi\n",
      "if (( NOBET_RC != 0 )); then NOBET_KIRMIZI=1; fi"),
-    ("B1", KAPI,      B1_CAPA,  B1_YENI,  "dondurma_isirdi=False"),
-    ("B2", KAPI,      B2_CAPA,  B2_YENI,  "_dondurma_isirdi = bool"),
-    ("B3", KAPI,      B3_CAPA,  B3_YENI,  "DAGITIM_BACAGI_DUSTU"),
-    ("B4", GOZCU,     B4_CAPA,  B4_YENI,  "def icra_sebebini_ayikla"),
-    ("B4b", GOZCU,    B4B_CAPA, B4B_YENI, "icra_sebep = icra_sebebini_ayikla"),
-    ("B4c", GOZCU,    B4C_CAPA, B4C_YENI, '"icra_sebep": icra_sebep'),
-    ("B4d", GOZCU,    B4D_CAPA, B4D_YENI, "ICRA_HAL=%s ICRA_SEBEP=%s"),
-    ("B4e", GOZCU,    B4E_CAPA, B4E_YENI, 'kalp.get("icra_sebep") or "-"'),
-    ("C2", KARANTINA, C2_CAPA,  C2_YENI,  "import json"),
-    ("C",  KARANTINA, C_CAPA,   C_YENI,   "ERISIM_ARDISIK_ESIGI"),
+    ("B1", "KAPI",      B1_CAPA,  B1_YENI,  "dondurma_isirdi=False"),
+    ("B2", "KAPI",      B2_CAPA,  B2_YENI,  "_dondurma_isirdi = bool"),
+    ("B3", "KAPI",      B3_CAPA,  B3_YENI,  "DAGITIM_BACAGI_DUSTU"),
+    ("B4", "GOZCU",     B4_CAPA,  B4_YENI,  "def icra_sebebini_ayikla"),
+    ("B4b", "GOZCU",    B4B_CAPA, B4B_YENI, "icra_sebep = icra_sebebini_ayikla"),
+    ("B4c", "GOZCU",    B4C_CAPA, B4C_YENI, '"icra_sebep": icra_sebep'),
+    ("B4d", "GOZCU",    B4D_CAPA, B4D_YENI, "ICRA_HAL=%s ICRA_SEBEP=%s"),
+    ("B4e", "GOZCU",    B4E_CAPA, B4E_YENI, 'kalp.get("icra_sebep") or "-"'),
+    ("C2", "KARANTINA", C2_CAPA,  C2_YENI,  "import json"),
+    ("C",  "KARANTINA", C_CAPA,   C_YENI,   "ERISIM_ARDISIK_ESIGI"),
     # 🔴 ISARET METINDE BIREBIR GECMELIDIR. Ilk surumde `erisim-esik-alti`
     # yazmistim; kodda o dizge `%s-esik-alti(%d/%d)` bicimindedir ve BIREBIR
     # GECMEZ -> yama UYGULANDIGI HALDE `--durum` "CAPA_YOK" dedi (sahte eksik).
-    ("C3", KARANTINA, C3_CAPA,  C3_YENI,  "-esik-alti(%d/%d)"),
+    ("C3", "KARANTINA", C3_CAPA,  C3_YENI,  "-esik-alti(%d/%d)"),
+    # --- KOL D: C/C3'un URETTIGI metne dayanir, o yuzden SIRADA SONRA gelir.
+    ("D0",  "KARANTINA", D0_CAPA,  D0_YENI,  "GENEL_ARDISIK_ESIGI"),
+    ("D0b", "KARANTINA", D0B_CAPA, D0B_YENI,
+     "GENEL_ARDISIK_ESIGI = ERISIM_ARDISIK_ESIGI"),
+    ("D1",  "KARANTINA", D1_CAPA,  D1_YENI,  "ardisik-basarisiz-imzasiz"),
 ]
+
+
+def _yol(anahtar):
+    """YAMALAR tablosundaki ANAHTARI kosum anindaki gercek yola cevirir."""
+    return {"SH": SH, "KAPI": KAPI, "GOZCU": GOZCU,
+            "KARANTINA": KARANTINA}[anahtar]
 
 
 def _oku(yol):
@@ -541,7 +643,8 @@ def durum():
     """Her kol icin (ad, KURULU|EKSIK|CAPA_YOK|CAPA_COK) doner."""
     sonuc = []
     onbellek = {}
-    for ad, yol, capa, _yeni, isaret in YAMALAR:
+    for ad, anahtar, capa, _yeni, isaret in YAMALAR:
+        yol = _yol(anahtar)
         if yol not in onbellek:
             try:
                 onbellek[yol] = _oku(yol)
@@ -571,7 +674,8 @@ def uygula(kuru=False):
     uygulanan, atlanan, dusen = 0, 0, 0
     yedekler = set()
     icerik = {}
-    for ad, yol, capa, yeni, isaret in YAMALAR:
+    for ad, anahtar, capa, yeni, isaret in YAMALAR:
+        yol = _yol(anahtar)
         if yol not in icerik:
             try:
                 icerik[yol] = _oku(yol)
@@ -616,7 +720,18 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--kuru", action="store_true", help="yazmadan uygula/farki bas")
     ap.add_argument("--durum", action="store_true", help="kurulu kopya yamali mi")
+    ap.add_argument("--kok", default=None, metavar="DIZIN",
+                    help="yamanin uygulanacagi AGAC (varsayilan: kurulu kopya "
+                         "~/.claude/cron). Hermetik bir kopyayi yamalayip "
+                         "olcmek icin; bayraksiz davranis DEGISMEZ.")
     args = ap.parse_args(argv)
+    if args.kok:
+        kok = os.path.abspath(os.path.expanduser(args.kok))
+        if not os.path.isdir(kok):
+            print("HATA: --kok dizini YOK: %s" % kok)
+            return 2
+        kok_ayarla(kok)
+    print("KOK: %s (%s)" % (CRON, "BAYRAKLA" if args.kok else "VARSAYILAN/kurulu"))
     if args.durum:
         kotu = 0
         for ad, yol, hal in durum():

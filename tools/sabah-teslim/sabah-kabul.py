@@ -29,10 +29,17 @@ import sys
 import tempfile
 import time
 
-CRON = "/Users/okan/.claude/cron"
-ARAC = os.path.join(CRON, "kral-sabah.py")
+CRON = os.path.join(os.path.expanduser("~"), ".claude", "cron")
+VARSAYILAN_ARAC = os.path.join(CRON, "kral-sabah.py")
 SPEC_DIZINI = os.path.join(CRON, "tamirci-spec")
 PY = sys.executable or "python3"
+
+# 🔴 OLCULEN ARAC BAYRAKLA SECILIR (27 Agu 2026, mimar hukmu —
+# KraL-KarantinaHukmu-27Agu). ONCE: `ARAC` KURULU KOPYAYA cakiliydi; batarya
+# yesil yansa da o yesil DALIN dosyasini degil kurulu kopyayi tarif ediyordu
+# — ve o duzleme baska cipler de yazabiliyor. SIMDI `--arac <yol>` hedefi
+# degistirir; A4 MUTANTI da o dosyadan turer. Bayraksiz davranis AYNEN eski.
+ARAC = VARSAYILAN_ARAC
 
 SONUC = []
 
@@ -246,13 +253,24 @@ def a5_iki_tur():
 
 
 def main(argv=None):
+    global ARAC
     ap = argparse.ArgumentParser()
     ap.add_argument("--faz", choices=("on", "tam"), default="tam")
+    ap.add_argument("--arac", default=None, metavar="YOL",
+                    help="olculecek kral-sabah.py (varsayilan: kurulu kopya "
+                         "~/.claude/cron/kral-sabah.py). Dalin KENDI dosyasini "
+                         "olcmek icin: --arac tools/sabah-teslim/kral-sabah.py")
     args = ap.parse_args(argv)
+    if args.arac:
+        ARAC = os.path.abspath(os.path.expanduser(args.arac))
 
     print("KraL SABAH RUTINI KABUL BATARYASI — faz=%s" % args.faz)
-    print("damga=%s python=%s arac=%s" % (
-        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), PY, ARAC))
+    print("damga=%s python=%s" % (
+        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), PY))
+    # 🔴 OLCULEN YUZEY ADIYLA BASILIR: iki kosumun farki bu satirdan okunur.
+    print("OLCULEN_ARAC=%s (%s)" % (
+        ARAC, "BAYRAKLA" if args.arac else "VARSAYILAN/kurulu"))
+    print("SPEC_DIZINI=%s" % SPEC_DIZINI)
 
     if not os.path.isfile(ARAC):
         print("HATA: arac YOK -> %s" % ARAC)

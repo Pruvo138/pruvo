@@ -2,9 +2,17 @@
 # -*- coding: utf-8 -*-
 """K320 KABUL BATARYASI — nobet hatti UC KOL (A/B/C).
 
-🔴 OLCUM KURULU KOPYADAN YAPILIR ([[emir-canliligi-kurulu-kopyadan-olculur]]):
-her vaka `~/.claude/cron/` altindaki CANLI dosyayi yukler. Repodaki yama
-kaynagini olcmek YESIL yakar ama emrin canliligini KANITLAMAZ.
+🔴 OLCUM VARSAYILAN OLARAK KURULU KOPYADAN YAPILIR
+([[emir-canliligi-kurulu-kopyadan-olculur]]): bayraksiz kosumda her vaka
+`~/.claude/cron/` altindaki CANLI dosyayi yukler. Repodaki yama kaynagini
+olcmek YESIL yakar ama emrin canliligini KANITLAMAZ.
+
+🔴 `--kok <yol>` (27 Agu 2026, mimar hukmu): olculen AGAC secilebilir.
+Once bu bes ad ice aktarma aninda cakiliydi — batarya HANGI agaci olcerse
+olcsun `~/.claude/cron`u tarif eden bir yesil basiyordu, ve o duzleme
+baska cipler de yazabiliyordu. Bayrak verilmezse davranis AYNEN eskisidir.
+Ciktinin basindaki `OLCULEN KOK:` + `YUZEY` satirlari hangi dosyanin
+olculdugunu ADIYLA basar; iki kosumun farki bu satirlardan okunur.
 
 Her kol icin: VAKA'lar + en az bir KONTROL + HEDEF-KOL ATIFLI MUTANT.
 Mutant sozlesmesi ([[ikinci-gorus-vakasi-birinci-gorusu-tekrar-ederse-totolojidir]]):
@@ -29,12 +37,41 @@ import sys
 import tempfile
 import traceback
 
-CRON = os.environ.get("PRUVO_NOBET_KOK") or os.path.join(
+VARSAYILAN_KOK = os.environ.get("PRUVO_NOBET_KOK") or os.path.join(
     os.path.expanduser("~"), ".claude", "cron")
-SH = os.path.join(CRON, "ci-nobeti.sh")
-KAPI = os.path.join(CRON, "nobet-kapi.py")
-GOZCU = os.path.join(CRON, "gozcu.py")
-KARANTINA = os.path.join(CRON, "isci-karantina-karar.py")
+
+# 🔴 OLCULEN YUZEY BAYRAKLA SECILIR (27 Agu 2026, mimar hukmu —
+# KraL-KarantinaHukmu-27Agu). ONCE: bes ad ICE AKTARMA aninda BIR KEZ
+# baglaniyordu; batarya NE olcerse olcsun yalnizca `~/.claude/cron`u tarif
+# eden bir YESIL basiyordu — ve o duzleme baska cipler de yazabiliyor.
+# SIMDI `--kok <yol>` hedefi degistirir. VARSAYILAN DAVRANIS AYNIDIR:
+# bayrak verilmezse yine kurulu kopya olculur.
+CRON = VARSAYILAN_KOK
+SH = KAPI = GOZCU = KARANTINA = None
+
+
+def kok_ayarla(kok):
+    """Olculecek KOKU ve ondan tureyen dort dosya adini YENIDEN baglar.
+
+    🔴 MUTANT TABLOSU YOL DEGIL ANAHTAR TUTAR (`_mutant_yolu`): aksi halde
+    tablo ice aktarma anindaki yola CAKILI kalir ve `--kok` verildiginde
+    mutantlar YANLIS AGACTA atesler ([[spec-mutlak-yol-yanlis-agaci-olcer]]).
+    """
+    global CRON, SH, KAPI, GOZCU, KARANTINA
+    CRON = kok
+    SH = os.path.join(CRON, "ci-nobeti.sh")
+    KAPI = os.path.join(CRON, "nobet-kapi.py")
+    GOZCU = os.path.join(CRON, "gozcu.py")
+    KARANTINA = os.path.join(CRON, "isci-karantina-karar.py")
+
+
+kok_ayarla(VARSAYILAN_KOK)
+
+
+def _mutant_yolu(anahtar):
+    """MUTANTLAR tablosundaki ANAHTARI kosum anindaki gercek yola cevirir."""
+    return {"SH": SH, "KAPI": KAPI, "GOZCU": GOZCU,
+            "KARANTINA": KARANTINA}[anahtar]
 
 _SAYAC = {"vaka": 0, "gecen": 0, "kontrol": 0, "kontrol_gecen": 0}
 _DUSENLER = []
@@ -327,13 +364,25 @@ def kol_c(karantina_yolu=None, yalniz=None, etiket=""):
     try:
         kz = _modul(karantina_yolu or KARANTINA, "kz_k320" + etiket)
     except Exception as hata:
-        for ad in ("C1", "C2", "C3", "C4", "C5"):
+        for ad in ("C1", "C2", "C3", "C4", "C5a", "C5b", "C6"):
             if istenir(ad):
                 olc("%s (karantina YUKLENEMEDI)" % ad, "YUKLENDI",
                     "HATA:%s" % type(hata).__name__)
         return
 
-    # C1: ARDISIK erisim reddi -> esige varinca YAZILIR
+    # C1: ARDISIK erisim reddi -> esige varinca YAZILIR, ve KAYDI YAZAN KOL
+    #     ADIYLA gecer (`erisim-reddi-ardisik<n>`).
+    #
+    # 🔴 27 Agu 2026 — OLCULEN GOLGE ([[yeni-kol-onceki-kolun-golgesinde-olur]]).
+    # Bu vaka once YALNIZ davranisi olcuyordu (yazildi mi + rc). Kol D
+    # (imza taninmasa da ardisik esik yazar) eklendikten sonra o olcum
+    # AYIRT EDEMEZ oldu: `M-C2-erisim-imzasi-korlesir` mutanti ERISIM_RE'yi
+    # koru ettigi halde ayni dizi Kol D uzerinden YINE yaziliyor, C1 YESIL
+    # kaliyor ve mutant YASIYORDU (olculdu: hedef_dusen=1/2, MUTANT=9/10).
+    # Iki kol AYNI davranisi uretiyor; ayirt eden tek sey SEBEP ADIDIR --
+    # ki Kol C'nin butun degeri de zaten "hangi kol yazdi"yi ADIYLA
+    # soylemesidir. O yuzden iddia sebebi de olcer (C1 KONTROL DEGILDIR;
+    # kontrol vakalari gerekce dizgesi olcmez -- bkz. C2/C5a notu).
     if istenir("C1"):
         gecici = tempfile.mkdtemp(prefix="k320-c1-")
         try:
@@ -342,8 +391,9 @@ def kol_c(karantina_yolu=None, yalniz=None, etiket=""):
                 kod, cikti, kar = _c_kos(kz, gecici, 1, ERISIM_METNI)
                 son = (cikti, kod)
             yazildi = os.path.exists(kar) and "claude" in open(kar).read()
-            olc("C1 ardisik erisim reddi -> YAZILIR",
-                (True, 0), (yazildi, son[1]))
+            olc("C1 ardisik erisim reddi -> YAZILIR (sebep ADIYLA)",
+                (True, 0, True),
+                (yazildi, son[1], "erisim-reddi-ardisik" in son[0]))
         finally:
             shutil.rmtree(gecici, ignore_errors=True)
 
@@ -396,15 +446,51 @@ def kol_c(karantina_yolu=None, yalniz=None, etiket=""):
         finally:
             shutil.rmtree(gecici, ignore_errors=True)
 
-    # C5 KONTROL: TANINMAYAN hata metni kac kez tekrarlarsa tekrarlasin YAZMAZ
-    if istenir("C5"):
-        gecici = tempfile.mkdtemp(prefix="k320-c5-")
+    # ======================================================================
+    # C5a / C5b — TANINMAYAN IMZA: IKI YONLU KURAL
+    # ======================================================================
+    # 🔴 27 Agu 2026 MIMAR HUKMU (KraL-KarantinaHukmu-27Agu). Eski C5 sunu
+    # soyluyordu: "taninmayan metin kac kez tekrarlarsa tekrarlasin ASLA
+    # yazmaz". Bu kural, ayni gun OLCULEN korlugu KURAL HALINE getiriyordu:
+    # 13 ardisik `motor=claude rc=1` kosumunun HEPSINDE
+    # `sebep=fatal-satir-yok` basildi ve TEK karantina kaydi yazilmadi --
+    # cunku hata metni "taninan" listede degildi. Hat olu motoru saatlerce
+    # yeniden denedi.
+    #
+    # Kural IKI YONLUDUR ve iki AYRI vaka ile olculur:
+    #   C5a (KONTROL) TEK seferlik taninmayan dusus -> YAZMAZ  (yanlis pozitif yasagi)
+    #   C5b           ESIK kez ARDISIK taninmayan dusus -> YAZAR, sebep ADIYLA
+    #
+    # 🔴 ESIK SAYISI BURAYA KOPYALANMAZ: `kz.GENEL_ARDISIK_ESIGI` MODULDEN
+    # okunur. Sayiyi vakaya yazmak, esigi degistiren bir onarimin kabulu
+    # SESSIZCE yesil birakmasi demektir ([[ad-iki-rolde-mutanti-golgeler]]).
+    TANINMAYAN = "bilinmeyen bir hata\n"
+
+    # C5a KONTROL: tek dusus YAZMAZ. 🔴 Yalnizca DAVRANIS olculur (yazildi mi,
+    # rc ne), GEREKCE dizgesi DEGIL -- gerekceyi de olcen bir kontrol, hedef
+    # kolu olduren mutantlar tarafindan da dusurulur ve hedef-kol atfi
+    # kanitlanamaz ([[ikinci-gorus-vakasi-birinci-gorusu-tekrar-ederse-totolojidir]]).
+    if istenir("C5a"):
+        gecici = tempfile.mkdtemp(prefix="k320-c5a-")
         try:
-            kod = 0
-            for _ in range(kz.ERISIM_ARDISIK_ESIGI + 2):
-                kod, cikti, kar = _c_kos(kz, gecici, 1, "bilinmeyen bir hata\n")
-            olc("C5 taninmayan metin ASLA yazmaz (kontrol)",
+            kod, cikti, kar = _c_kos(kz, gecici, 1, TANINMAYAN)
+            olc("C5a tek taninmayan dusus YAZMAZ (kontrol)",
                 (False, 10), (os.path.exists(kar), kod), kontrol=True)
+        finally:
+            shutil.rmtree(gecici, ignore_errors=True)
+
+    # C5b: ESIK kez ARDISIK taninmayan dusus YAZAR ve sebep ADIYLA gecer.
+    if istenir("C5b"):
+        gecici = tempfile.mkdtemp(prefix="k320-c5b-")
+        try:
+            son = ("", 10)
+            for _ in range(kz.GENEL_ARDISIK_ESIGI):
+                kod, cikti, kar = _c_kos(kz, gecici, 1, TANINMAYAN)
+                son = (cikti, kod)
+            yazildi = os.path.exists(kar) and "claude" in open(kar).read()
+            olc("C5b esik kez ardisik taninmayan -> YAZAR",
+                (True, 0, True),
+                (yazildi, son[1], "ardisik-basarisiz-imzasiz" in son[0]))
         finally:
             shutil.rmtree(gecici, ignore_errors=True)
 
@@ -413,41 +499,58 @@ def kol_c(karantina_yolu=None, yalniz=None, etiket=""):
 # MUTANTLAR — hedef-kol atfi
 # =========================================================================
 MUTANTLAR = [
-    # (ad, dosya, eski, yeni, hedef_dusen, kontrol_yesil, kol)
-    ("M-A1-kosmayan-kapi-sayi-basar", SH,
+    # (ad, DOSYA_ANAHTARI, eski, yeni, hedef_dusen, kontrol_yesil, kol)
+    # 🔴 ikinci sutun bir YOL DEGIL ANAHTARDIR; `--kok` ile degisen gercek
+    # yola `_mutant_yolu()` kosum aninda cevirir.
+    ("M-A1-kosmayan-kapi-sayi-basar", "SH",
      "NOBET_RC=KOSMADI", "NOBET_RC=0",
      ["A2"], ["A3", "A4"], "A"),
-    ("M-A2-rc-hukumden-turemez", SH,
+    ("M-A2-rc-hukumden-turemez", "SH",
      "  HUKUM=$TETIK_SINIFI\n  SON_RC=1",
      "  HUKUM=$TETIK_SINIFI\n  SON_RC=0",
      ["A2"], ["A3", "A4"], "A"),
-    ("M-B1-ucuncu-kova-olur", KAPI,
+    ("M-B1-ucuncu-kova-olur", "KAPI",
      "        if dondurma_isirdi:\n            rc, hukum = 0, \"DAGITIM_DONDURULDU\"",
      "        if False:\n            rc, hukum = 0, \"DAGITIM_DONDURULDU\"",
      ["B1"], ["B2", "B3"], "B"),
-    ("M-B2-supurme-kapisi-korlesir", KAPI,
+    ("M-B2-supurme-kapisi-korlesir", "KAPI",
      '"ONARIM_ILERLIYOR",\n                      "DAGITIM_DONDURULDU"}',
      '"ONARIM_ILERLIYOR"}',
      ["B3"], ["B1", "B2"], "B"),
-    ("M-B3-tur-kapat-temiz-der", KAPI,
+    ("M-B3-tur-kapat-temiz-der", "KAPI",
      '"TEMIZ" if sonuc["rc"] == 0 else "DAGITIM_BACAGI_DUSTU"',
      '"TEMIZ"',
      ["B5"], ["B4"], "B"),
-    ("M-B4-sebep-olculemediye-doner", GOZCU,
+    ("M-B4-sebep-olculemediye-doner", "GOZCU",
      '        return "HUKUM=%s rc=%s" % (eslesme[-1], icra_rc)',
      '        return "OLCULEMEDI"',
      ["B6"], ["B7", "B8"], "B"),
-    ("M-C1-esik-1-yanlis-pozitif", KARANTINA,
+    ("M-C1-esik-1-yanlis-pozitif", "KARANTINA",
      "ERISIM_ARDISIK_ESIGI = 3", "ERISIM_ARDISIK_ESIGI = 1",
      ["C2"], ["C1", "C4"], "C"),
-    ("M-C2-erisim-imzasi-korlesir", KARANTINA,
+    ("M-C2-erisim-imzasi-korlesir", "KARANTINA",
      "    if ERISIM_RE.search(metin):", "    if False:",
-     ["C1", "C6"], ["C2", "C4", "C5"], "C"),
+     ["C1", "C6"], ["C2", "C4", "C5a"], "C"),
+    # --- KOL D (imza taninmasa da ARDISIK esik yazar) — IKI YON, IKI MUTANT ---
+    # (i) ARDISIK ESIK KOLUNU oldurur -> "esikte yazar" yonu KIRMIZI olmali,
+    #     "tek dususte yazmaz" yonu (C5a) ve bilinen imza kollari YESIL kalmali.
+    ("M-D1-ardisik-esik-kolu-olur", "KARANTINA",
+     "        elif rc != 0 and _ardisik >= GENEL_ARDISIK_ESIGI:",
+     "        elif False:",
+     ["C5b"], ["C5a", "C1", "C4"], "C"),
+    # (ii) TEK-SEFERLIK KORUMASINI oldurur (esik 1'e iner) -> "tek dususte
+    #     yazmaz" yonu (C5a) KIRMIZI olmali, "esikte yazar" yonu (C5b) YESIL
+    #     kalmali. C2 de yesil kalir: erisim kolu KENDI esigini okur.
+    ("M-D2-tek-seferlik-korumasi-olur", "KARANTINA",
+     "GENEL_ARDISIK_ESIGI = ERISIM_ARDISIK_ESIGI",
+     "GENEL_ARDISIK_ESIGI = 1",
+     ["C5a"], ["C5b", "C2", "C4"], "C"),
 ]
 
 
 def mutant_kos(mutant):
-    ad, dosya, eski, yeni, hedef, kontrol, kol = mutant
+    ad, anahtar, eski, yeni, hedef, kontrol, kol = mutant
+    dosya = _mutant_yolu(anahtar)     # `--kok` KOSUM ANINDA cozulur
     gecici = tempfile.mkdtemp(prefix="k320-m-")
     try:
         try:
@@ -462,7 +565,7 @@ def mutant_kos(mutant):
         kopya = os.path.join(gecici, os.path.basename(dosya))
         with open(kopya, "w", encoding="utf-8") as f:
             f.write(metin.replace(eski, yeni, 1))
-        if dosya == SH:
+        if anahtar == "SH":
             os.chmod(kopya, 0o755)
 
         onceki = dict(_SAYAC)
@@ -472,8 +575,8 @@ def mutant_kos(mutant):
             if kol == "A":
                 kol_a(sh_yolu=kopya, yalniz=set(hedef + kontrol))
             elif kol == "B":
-                kol_b(kapi_yolu=kopya if dosya == KAPI else None,
-                      gozcu_yolu=kopya if dosya == GOZCU else None,
+                kol_b(kapi_yolu=kopya if anahtar == "KAPI" else None,
+                      gozcu_yolu=kopya if anahtar == "GOZCU" else None,
                       yalniz=set(hedef + kontrol), etiket=etiket)
             else:
                 kol_c(karantina_yolu=kopya, yalniz=set(hedef + kontrol),
@@ -507,7 +610,26 @@ def main(argv=None):
     argv = list(argv if argv is not None else sys.argv[1:])
     yalniz_vaka = "--yalniz-vaka" in argv
 
-    print("=== K320 KABUL — KURULU KOPYA: %s ===" % CRON)
+    # --kok <yol> | --kok=<yol> : olculecek AGACI sec. Yoksa varsayilan
+    # (PRUVO_NOBET_KOK ya da ~/.claude/cron) — BUGUNKU DAVRANIS DEGISMEZ.
+    kok = None
+    for i, parca in enumerate(argv):
+        if parca == "--kok" and i + 1 < len(argv):
+            kok = argv[i + 1]
+        elif parca.startswith("--kok="):
+            kok = parca.split("=", 1)[1]
+    if kok:
+        kok = os.path.abspath(os.path.expanduser(kok))
+        if not os.path.isdir(kok):
+            sys.stderr.write("HATA: --kok dizini YOK: %s\n" % kok)
+            return 2
+        kok_ayarla(kok)
+
+    print("=== K320 KABUL — OLCULEN KOK: %s (%s) ===" % (
+        CRON, "BAYRAKLA" if kok else "VARSAYILAN/kurulu"))
+    for ad, yol in (("ci-nobeti.sh", SH), ("nobet-kapi.py", KAPI),
+                    ("gozcu.py", GOZCU), ("isci-karantina-karar.py", KARANTINA)):
+        print("  YUZEY %-24s %s var=%d" % (ad, yol, int(os.path.exists(yol))))
     kol_a()
     kol_b()
     kol_c()
