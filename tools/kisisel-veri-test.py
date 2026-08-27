@@ -298,6 +298,202 @@ def ic_rapor_isabetleri(yollar):
                   if ic_rapor_mu(y) and y not in IC_RAPOR_ISTISNA)
 
 
+# ==================================================================================
+# K314② — OLCUM CIKTISI x KURAL A: UCTAN UCA FIKSTUR (27 Agu 2026)
+# ==================================================================================
+# 26 Agu 2026: `tools/k309d2-kos.py` / `tools/k309d2-olcum.py` raporlarini
+# `os.path.join(os.path.dirname(__file__), "...-rapor.txt")` ile KENDI YANLARINA —
+# yani IZLENEN AGACA — yaziyordu. Iki dosya main'e girdi, KURAL A kirmizi yandi,
+# YAYIN 4,7 SAAT DURDU.
+#
+# 🔴 O IKI DOSYAYI SILMEK BU KALEMI KAPATMAZ. Silme VAKAYI temizler; bir sonraki
+# olcum turu ayni yere yeniden yazarsa ariza BIREBIR geri gelir. Bu yuzden onarim
+# YOL DUZLEMINDE yapildi (`tools/olcum_cikti.py` — kok SABIT ve depo DISI) ve
+# SINIF kapisiyla nobete alindi (`tools/olcum-cikti-kapisi.py`).
+#
+# BU FIKSTUR O ONARIMIN KURAL A TARAFINI OLCER — BEYANLA DEGIL, DAVRANISLA:
+#   (A) MUTANT-YOL: olcum ciktisi IZLENEN agaca DUSURULUNCE KURAL A kirmizi yanar,
+#       ve kirmizinin SEBEBI hedef koldur (ihlal listesi TAM OLARAK o dosyadir —
+#       "kirmizi geldi" kanit degil, [[K182 hedef-kol atfi]]).
+#   (B) KONTROL: ayni olcum `olcum_yolu()` ile CIVILI koke yazildiginda izlenen
+#       agacta HICBIR SEY olusmaz ve KURAL A YESIL kalir.
+#   (C) FAIL-CLOSED: `olcum_cikti` kokunu depo icine cevirmeye calisan her yol
+#       (env override, yol ayracli ad, `..`) REDDEDILIR — override BYPASS DEGILDIR.
+#   (D) IKI EKSEN AYRI (K5): `ic-rapor-adi-kapisi` YORUM/DOCSTRING METNI ekseninde
+#       calisir, KURAL A DOSYA ADI ekseninde. Ikisi de IKI YONLU olculur: biri
+#       "temiz" derken oteki kirmizi yanabilmeli VE tersi. Biri otekini KANITLAMAZ.
+def _olcum_cikti_modulu():
+    import importlib.util as _iu
+    yol = os.path.join(ROOT, "tools", "olcum_cikti.py")
+    spec = _iu.spec_from_file_location("pruvo_olcum_cikti_fikstur", yol)
+    if spec is None or spec.loader is None:
+        raise ImportError("olcum_cikti spec kurulamadi: %s" % yol)
+    m = _iu.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+def _sentetik_depo_izlenenler(d, yazilan):
+    """Gecici GERCEK git deposu kurar, `yazilan` dosyalarini ekler, ls-files doner."""
+    sentetik_git(d, "init", "-q", capture_output=True, text=True,
+                 kimlik_ad="pruvo-fikstur", kimlik_eposta="fikstur@example.invalid")
+    for goreli, icerik in yazilan.items():
+        tam = os.path.join(d, goreli)
+        os.makedirs(os.path.dirname(tam), exist_ok=True)
+        with open(tam, "w", encoding="utf-8") as f:
+            f.write(icerik)
+    sentetik_git(d, "add", "-A", capture_output=True, text=True,
+                 kimlik_ad="pruvo-fikstur", kimlik_eposta="fikstur@example.invalid")
+    p = sentetik_git(d, "ls-files", "-z", capture_output=True, text=True,
+                     kimlik_ad="pruvo-fikstur", kimlik_eposta="fikstur@example.invalid")
+    if p.returncode != 0:
+        raise RuntimeError("fikstur deposunda ls-files rc=%d" % p.returncode)
+    return [y for y in p.stdout.split("\0") if y]
+
+
+def olcum_cikti_e2e_hatalari():
+    """K314② uctan uca: olcum ciktisinin YERI ile KURAL A'nin hukmu."""
+    hatalar = []
+    try:
+        oc = _olcum_cikti_modulu()
+    except Exception as e:  # noqa: BLE001
+        return ["OLCUM CIKTI MODULU YUKLENEMEDI (fail-closed): %s: %s"
+                % (type(e).__name__, e)]
+
+    RAPOR_ADI = "k309d2-kosum-rapor.txt"          # 26 Agu'da main'e giren ADIN AILESI
+    GOVDE = "ETIKET=K140 rc=0\nDOSYA=/ornek/yol\n"
+
+    # --- (A) MUTANT-YOL: cikti IZLENEN agaca dusurulur -> KURAL A KIRMIZI --------
+    try:
+        with tempfile.TemporaryDirectory(prefix="pruvo-olcum-mutant-") as d:
+            izlenen = _sentetik_depo_izlenenler(d, {
+                "urunler.json": "[]\n",
+                "index.html": "<!doctype html>\n",
+                os.path.join("tools", "k309d2-kos.py"): "# olcum araci\n",
+                os.path.join("tools", RAPOR_ADI): GOVDE,   # <-- MUTANT: agaca dustu
+            })
+    except Exception as e:  # noqa: BLE001
+        hatalar.append("MUTANT-YOL FIKSTURU KURULAMADI (fail-closed): %s: %s"
+                       % (type(e).__name__, e))
+    else:
+        isabet = ic_rapor_isabetleri(izlenen)
+        beklenen = ["tools/" + RAPOR_ADI]
+        if not isabet:
+            hatalar.append(
+                "MUTANT-YOL KACTI: olcum ciktisi (%s) IZLENEN agaca dusuruldu ama "
+                "KURAL A KIRMIZI YANMADI — 26 Agu'nun yayin blokeri bugun sessiz "
+                "gecerdi" % RAPOR_ADI)
+        elif isabet != beklenen:
+            # HEDEF-KOL ATFI: kirmizi BASKA bir dosyadan geliyorsa fikstur o kolu
+            # olcmuyor demektir ("kirmizi geldi" kanit degil, SEBEBI olculur).
+            hatalar.append(
+                "MUTANT-YOL ATFI YANLIS: KURAL A kirmizi yandi ama ihlal listesi %r "
+                "(beklenen TAM OLARAK %r) — kirmizinin sebebi hedef kol DEGIL"
+                % (isabet, beklenen))
+
+    # --- (B) KONTROL: cikti CIVILI koke yazilir -> izlenen agac TEMIZ -----------
+    onceki = os.environ.get(oc.KOK_ENV)
+    try:
+        with tempfile.TemporaryDirectory(prefix="pruvo-olcum-kontrol-") as d, \
+                tempfile.TemporaryDirectory(prefix="pruvo-olcum-kok-") as kok:
+            os.environ[oc.KOK_ENV] = kok
+            yol = oc.olcum_yolu(RAPOR_ADI)
+            with open(yol, "w", encoding="utf-8") as f:
+                f.write(GOVDE)
+            izlenen = _sentetik_depo_izlenenler(d, {
+                "urunler.json": "[]\n",
+                os.path.join("tools", "k309d2-kos.py"): "# olcum araci\n",
+            })
+            if not os.path.exists(yol):
+                hatalar.append("KONTROL OLU: `olcum_yolu` dosyayi YAZMADI (%s) — "
+                               "kontrol kolu hicbir sey olcmuyor" % yol)
+            if os.path.realpath(yol).startswith(os.path.realpath(d) + os.sep):
+                hatalar.append("KONTROL: civili yol sentetik depo AGACINA dustu (%s)" % yol)
+            # 🔴 GERCEK DEPO EKSENI: modul bir gun regrese edip depo-ici bir yol
+            # dondurse (26 Agu'nun kalibi) bu kol yakalar. Sentetik depo kontrolu
+            # tek basina bunu ISPATLAMAZ.
+            if os.path.realpath(yol).startswith(os.path.realpath(ROOT) + os.sep):
+                hatalar.append("REGRESYON: `olcum_yolu` GERCEK DEPO agacinin icine "
+                               "cozdu (%s) — 26 Agu'nun yayin blokeri geri gelmis" % yol)
+            isabet = ic_rapor_isabetleri(izlenen)
+            if isabet:
+                hatalar.append("KONTROL YANLIS-POZITIF: cikti depo DISINA yazildigi "
+                               "halde KURAL A kirmizi yandi -> %r" % isabet)
+    except Exception as e:  # noqa: BLE001
+        hatalar.append("KONTROL FIKSTURU DUSTU (fail-closed): %s: %s"
+                       % (type(e).__name__, e))
+    finally:
+        if onceki is None:
+            os.environ.pop(oc.KOK_ENV, None)
+        else:
+            os.environ[oc.KOK_ENV] = onceki
+
+    # --- (C) FAIL-CLOSED: kok depo icine CEVRILEMEZ ----------------------------
+    onceki = os.environ.get(oc.KOK_ENV)
+    try:
+        for etiket, kur in (
+                ("env override depo icini gosteriyor",
+                 lambda: (os.environ.__setitem__(oc.KOK_ENV, os.path.join(ROOT, "tools")),
+                          oc.olcum_koku())[1]),
+                ("ad yol ayraci tasiyor",
+                 lambda: oc.olcum_yolu("alt/dizin/" + RAPOR_ADI)),
+                ("ad `..` ile yukari cikiyor",
+                 lambda: oc.olcum_yolu("..")),
+                ("ad MUTLAK yol",
+                 lambda: oc.olcum_yolu(os.path.join(ROOT, "tools", RAPOR_ADI))),
+                ("alt dizin yol ayraci tasiyor",
+                 lambda: oc.olcum_yolu(RAPOR_ADI, alt="a/b"))):
+            os.environ.pop(oc.KOK_ENV, None)
+            try:
+                sonuc = kur()
+            except oc.OlcumYoluReddi:
+                continue
+            except Exception as e:  # noqa: BLE001
+                hatalar.append("FAIL-CLOSED YANLIS ISTISNA (%s): %s: %s"
+                               % (etiket, type(e).__name__, e))
+                continue
+            hatalar.append("FAIL-CLOSED DELIK: %s REDDEDILMEDI -> %r" % (etiket, sonuc))
+    finally:
+        if onceki is None:
+            os.environ.pop(oc.KOK_ENV, None)
+        else:
+            os.environ[oc.KOK_ENV] = onceki
+
+    # --- (D) IKI EKSEN AYRI (K5) — IKI YONLU ----------------------------------
+    try:
+        import importlib.util as _iu
+        _y = os.path.join(ROOT, "tools", "ic-rapor-adi-kapisi.py")
+        _s = _iu.spec_from_file_location("pruvo_ic_rapor_adi_fikstur", _y)
+        _m = _iu.module_from_spec(_s)
+        _s.loader.exec_module(_m)
+    except Exception as e:  # noqa: BLE001
+        hatalar.append("IKI EKSEN OLCULEMEDI (fail-closed): ic-rapor-adi-kapisi "
+                       "yuklenemedi -> %s: %s" % (type(e).__name__, e))
+    else:
+        # YON 1: ADI ihlal eder, METNI temiz -> KURAL A KIRMIZI, oteki kapi TEMIZ.
+        ad_ihlali = ("tools/" + RAPOR_ADI, GOVDE)
+        if not ic_rapor_isabetleri([ad_ihlali[0]]):
+            hatalar.append("K5-YON1: ad ekseni ihlali KURAL A'da kirmizi yanmadi")
+        if _m.tara([ad_ihlali]):
+            hatalar.append("K5-YON1: metin ekseni kapisi ad ihlalinde kirmizi yandi -> "
+                           "iki eksen AYRISMIYOR (biri otekini kutsuyor)")
+        # YON 2: ADI mesru, METNI ihlal eder -> oteki kapi KIRMIZI, KURAL A YESIL.
+        # 🔴 DIZE PARCALARDAN KURULUR (birlestirilmis hali kaynakta GECMEZ): aksi
+        # halde bu satirin KENDISI `ic-rapor-adi-kapisi`nin yasakladigi deseni
+        # izlenen bir dosyada tasir ve yayini durdurur — olculdu, tur 1'de bu
+        # fikstur o kapiyi KIRMIZI yakti. Muafiyet listesine EKLEME YAPILMADI:
+        # dogru care deseni HIC tasimamaktir.
+        metin_ihlali = ("tools/ornek-arac.py",
+                        "# isci raporunu " + "RAPOR-" + "MIMARA" + ".md adiyla birak\n")
+        if not _m.tara([metin_ihlali]):
+            hatalar.append("K5-YON2: metin ekseni ihlali oteki kapida kirmizi yanmadi "
+                           "(o kapi olu -> ayrim iddiasi olculemez)")
+        if ic_rapor_isabetleri([metin_ihlali[0]]):
+            hatalar.append("K5-YON2: metin ihlali KURAL A'da da kirmizi yandi -> "
+                           "eksenler ayri DEGIL")
+    return hatalar
+
+
 def ic_rapor_fikstur_hatalari():
     """Nobetcinin KENDI hukmunu olcer (olu nobetci + asiri-genisleme korumasi).
     Bellekte calisir, diske/aga DOKUNMAZ."""
@@ -366,6 +562,10 @@ def ic_rapor_fikstur_hatalari():
         if ic_rapor_mu(yol):
             hatalar.append("FIKSTUR(yesil) YANLIS-POZITIF — kural DARALTILMALI: %s  [%s]"
                            % (yol, gerekce))
+    # (0e) K314② — OLCUM CIKTISININ YERI (uctan uca; gercek git fiksturu).
+    # BILEREK Kural A'nin HER ZAMAN kosan fikstur fonksiyonunda durur: cagrisi
+    # silinirse yukaridaki kollarla birlikte gorunur bicimde duser.
+    hatalar.extend(olcum_cikti_e2e_hatalari())
     return hatalar
 
 
