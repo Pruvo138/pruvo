@@ -64,6 +64,61 @@ SOZLESME = (
     ("", "OLCULEMEDI"),
 )
 
+# 🔴 KANONIK BOLUM — KURUCU KAYNAK. `ci-nobeti-gorev.md` surum kontrolu DISINDA
+# (`~/.claude/cron/`); metnin TEK KALICI KOPYASI burasidir. Makine yeniden
+# kurulursa `--kur` onu geri yazar. Yoksa onarim, yedegi silinen bir dosyada
+# yasar ve sessizce kaybolur (K304: yedek borcu).
+KANONIK_BOLUM = u"""
+## 7) MAKINE HUKUM JETONU — TURUN SON SATIRI (27 Agu 2026, cip KraL-NobetTuru-27Agu)
+
+🔴 **Bu turun SON CEVABININ (nihai yanit metninin) son satiri BIREBIR su olmalidir:**
+
+```
+HUKUM=<TEMIZ|KAPANDI|ONARIM_YOK|ONARIM_ILERLIYOR>
+```
+
+🔴 **HANGI CIKTI? — KARISTIRMA.** Jeton **SENIN NIHAI YANITINA** gider; nobet onu
+`isci.sh`in **stdout**'undan okur (`nobet-kapi.py:2357 kosum_tur_hukmu`).
+`ci-nobeti.log`'a elle yazdigin `[<UTC>] ...` blogundaki `HUKUM=` satiri
+**O CIKTI DEGILDIR** ve kapiya HIC ULASMAZ. Olculdu (20:23-20:25 turu):
+loga `[2026-08-27T20:24:54Z] HUKUM=TEMIZ` yazilmisti, buna ragmen nihai yanitta
+jeton olmadigi icin kapi `KOSUM_HUKMU=OLCULEMEDI ... TUR_HUKMU=-` yazdi.
+Loga yazmaya DEVAM ET — jeton ONUN YERINE degil, NIHAI YANITIN SONUNA gelir.
+
+**NEDEN (olculdu, iddia degil):** `nobet-kapi.py` turun hukmunu senin ciktindan
+`kosum_tur_hukmu()` ile AYIKLAR ve `KOSUM_HUKMU=` diye basar. Jeton YOKSA
+fail-closed `OLCULEMEDI` yazar; `gozcu.py` bunu `uretken=false` yapar,
+`nobet-tetik.py` `GOZCU_URETMEDI_OLCULEMEDI` koluyla `rc=11` doner ve
+**saatlik nobet hatti KIRMIZI kapanir** — CI tertemiz olsa bile.
+27 Agu 20:23:02Z turunda tam bu oldu: raporda "CI TEMIZ — eski failure'larin
+hepsinin green replacement'i var" yaziyordu, ama duz metindi; jeton yoktu ->
+`KOSUM_HUKMU=OLCULEMEDI MOTOR_RC=0 TUR_HUKMU=-` -> `BITIS rc=1`.
+Ayni desen 27 Agu 00:07-12:07 arasi **13 ardisik saat** olculdu.
+
+**SOZLUK KAPALIDIR** (tuketici `nobet-kapi.kosum_hukmu_coz()`; baska deger
+yazarsan `ONARIM_DENENDI` sayilir ve run-id denemesi ARTAR):
+
+| yazacagin jeton      | ne zaman                                              |
+|----------------------|-------------------------------------------------------|
+| `HUKUM=TEMIZ`        | CI kirmizisi YOK ya da duran kirmizinin hepsinin yesil |
+|                      | ardili var; onarilacak bir sey bulunmadi               |
+| `HUKUM=KAPANDI`      | kirmizi VARDI, bu turda ONARDIN ve olcerek dogruladin  |
+| `HUKUM=ONARIM_YOK`   | kirmizi var ama bu turun menzilinde DEGIL (baska ev /  |
+|                      | Okan kapisi / dondurma emri) — ve bunu ADIYLA yazdin   |
+| `HUKUM=ONARIM_ILERLIYOR` | onarima BASLADIN, bu turda bitmedi                 |
+
+**KURALLAR:**
+- Jeton **satirin basinda**, tek basina ve BUYUK HARF olmali. Cumle icine gomme
+  ("hukum temiz" DEGIL), tirnak/backtick icine alma.
+- Prose ozet YAZMAYA DEVAM ET — jeton onun YERINE degil, **SONUNA** gelir.
+- 🔴 **TAHMIN YAZMA.** Olcemedigin bir eksen varsa jetonu `HUKUM=ONARIM_ILERLIYOR`
+  yaz ve neyi olcemedigini ADIYLA belirt. `HUKUM=TEMIZ` bir BEYAN degil, bir
+  OLCUM sonucudur ([[isci-yesil-tablo-ic-olcumu-bosaltir]]).
+- `N2B HUKUM=...` satirlari kapi tarafindan ELENIR; onlar senin hukmun DEGILDIR.
+
+**Kabul:** `python3 /Users/okan/dev/pruvo/tools/nobet-gorev-jeton-kapisi.py`
+"""
+
 _SAYAC = {"kol": 0, "gecen": 0}
 _DUSEN = []
 
@@ -235,11 +290,47 @@ def mutasyon():
     return 0 if (olen == len(mutantlar) and atif == len(mutantlar)) else 1
 
 
+def kur():
+    """KANONIK_BOLUM'u kurulu gorev metnine YAZAR (yedek alarak, idempotent).
+
+    🔴 Bu kol VAR cunku hedef dosya surum kontrolu DISINDADIR. Metnin tek
+    kalici kopyasi bu dosyadadir; makine yeniden kurulursa ya da dosya
+    yedeklerle birlikte silinirse onarim BURADAN geri gelir.
+    """
+    import shutil
+    import time
+    yol = os.path.join(CRON, "ci-nobeti-gorev.md")
+    try:
+        with io.open(yol, encoding="utf-8") as f:
+            metin = f.read()
+    except OSError as hata:
+        print("KURULUM DUSTU: %s" % hata)
+        return 2
+    onceki = len(metin.encode("utf-8"))
+    if ISARET in metin:
+        print("ZATEN_KURULU bayt=%d — dokunulmadi." % onceki)
+        return 0
+    damga = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    yedek = "%s.yedek-nobetGorevJeton-%s" % (yol, damga)
+    shutil.copy2(yol, yedek)
+    with io.open(yol, "a", encoding="utf-8") as f:
+        f.write(KANONIK_BOLUM)
+    with io.open(yol, encoding="utf-8") as f:
+        sonra = len(f.read().encode("utf-8"))
+    print("KURULDU bayt %d -> %d" % (onceki, sonra))
+    print("YEDEK %s" % yedek)
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--mutasyon", action="store_true",
                     help="curutucu: kollari tek tek oldur, atfi olc")
+    ap.add_argument("--kur", action="store_true",
+                    help="kanonik bolumu kurulu gorev metnine yaz (idempotent)")
     args = ap.parse_args(argv)
+    if args.kur:
+        return kur()
     if args.mutasyon:
         taban = kos()
         if taban != 0 or _DUSEN:
