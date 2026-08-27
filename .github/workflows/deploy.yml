@@ -916,6 +916,16 @@ jobs:
       - name: "Kapi dagitim/bayatlik kabul testi (K304 — mekanizma + mutasyon)"
         run: python3 tools/kapi-dagitim-test.py --mutasyon
 
+      # K304-BOOTSTRAP — kurucunun KENDISI kapinin serbest kolunda tanimli mi.
+      # 🔴 MENZIL: bu batarya CANLI MAKINEYE BAGLI DEGILDIR — iki SENTETIK ev kurar
+      # (gercek `git init` + `git worktree add`), kapi govdesini o evlere homeler ve
+      # R2/F cagri yerlerini orada olcer; bu yuzden CI kosucusunda da AYNEN kosar.
+      # Gercek kardes evdeki KURULU shim'i suren kol AYRIDIR ve CI'da `OLCULEMEDI`
+      # basar (sessiz yesil DONMEZ). Kol dusunce kurulum cagrisi RED'e doner ve bes ev
+      # kendi kapisini bir daha kuramaz — bootstrap kilidi geri gelir.
+      - name: "K304-BOOTSTRAP kurucu serbest kolu (sentetik evler + mutasyon)"
+        run: python3 tools/kapi-dagitim-bootstrap-test.py
+
       # KAYNAK EVI KOLU — govde VAR, DERLENIYOR, CAPA SOZLESMESI ayakta. Capa sayisi
       # 1'den saparsa bes evin shim'i fail-closed DENY'a duser (bes ev birden kararir);
       # bu adim o kirilmayi push'tan ONCE yakalar. Kardes evler CI'da yok, olculmez.
