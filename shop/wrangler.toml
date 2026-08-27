@@ -112,6 +112,8 @@ enabled = true
 #   npx wrangler secret put GA4_DEBUG             # "1" -> GA4 DebugView + /debug/mp/collect dogrulama
 # Yerel gelistirme: .dev.vars (gitignore'da) — sablon: .dev.vars.example
 
-[[kv_namespaces]]
-binding = "TALEP_SAYAC"
-id = "c754169cdca84432b7c2b047c928bbe7"
+# TALEP_SAYAC KV binding'i 27 Agu 2026'da KALDIRILDI: tek tuketicisi `src/talep.js`
+# idi, K184 sihirbazi + `/talep` ucu Okan karariyla kokunden kaldirildi.
+# 🔴 NAMESPACE'IN KENDISI VE ICERIGI CLOUDFLARE'DA DURUYOR (silinmedi) — icerik yalniz
+# `talep_hata:<sebep>:<zaman>` sayaclaridir (30 gun TTL), MUSTERI VERISI DEGIL.
+# Namespace'in silinip silinmeyecegi OKAN KAPISI.
