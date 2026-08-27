@@ -238,6 +238,9 @@ ICRA_UZANTILARI = (
 # Mimar SERBEST kosabildigi YALNIZ IKI python komutu (tam-yol ya da repo-goreli TAM esitlik).
 DURUM_YOL = REPO_ONEKI + "tools/durum.py"
 D1_YOL = REPO_ONEKI + "tools/d1-sync.py"
+# 27 AGU (K320): '--durum' ARTIK SABIT. Eskiden hem KARAR kolunda (_py_izinli) hem de
+# RED METNINDE elle yaziliydi = iki kopya, ayrisabilir. Tek kaynak: bu sabit.
+D1_DURUM_BAYRAGI = "--durum"
 # === 18 AGU K168 H1: defter-rotasyon.py serbest birakildi (K168 paketi). ===
 # K168 sinif kararidir: "mimar DEVAM.md kota tavanini astiginda cabalayan CARE basar,
 #  ama cabalayan CAGIRAMIYOR" bilinen kusuruna karsi bu komut — Python'un argparse
@@ -310,6 +313,52 @@ OLCUM_KOMUTLARI = {
     "du", "df", "ps", "top", "vm_stat", "memory_pressure", "sysctl", "find",
     "wc", "head", "tail", "sed", "awk", "sort", "stat", "file",
 }
+
+
+# === 27 AGU 2026 (K320) — RED METNINDEKI KUME ARTIK TURETILIR ====================
+# OLCULEN ARIZA (taban: DRIFT=9): kapinin insan-okur "SERBEST / REDDEDILEN" metni
+# ELLE yazilmis IKINCI KOPYAYDI ve KARAR VEREN yapidan ayrismisti:
+#   * python ekseni: makine 4 komuta izin veriyordu (durum.py, d1-sync.py,
+#     defter-rotasyon.py, kutu-arsivle.py) — metin "yalniz IKI komut" diyordu.
+#     20 Agu'da K258 kovayi ACTI, metin 7 gun boyunca KAPALI dedi.
+#   * olcum ekseni: makine 16 komut reddediyordu — metin 9 tanesini sayiyordu
+#     (df/file/memory_pressure/stat/sysctl/top/vm_stat metinde YOKTU).
+# BEDELI TEK BIR YAZIM HATASI DEGILDI: mimar kendi kapisinin bastigi CAREYI okudu,
+# metne inandi, "care oteki kapida olu" hukmunu verdi ve defter uc kosum boyunca
+# TAVANIN USTUNDE kaldi. Metin YANLIS BILGI verdigi surece kapi, dogru karar verse
+# bile okuyani YANLIS YOLA sokar.
+#
+# 🔴 SINIF KURALI (tekil yama DEGIL): kapinin red metninde adi gecen her SERBEST ya
+# da YASAK kume, karari VEREN yapidan TURETILIR — ikinci kez ELLE YAZILMAZ.
+# Nobetci: tools/serbest-kume-tekkaynak-test.py (mutasyonlu; CI'da kosar).
+# Ilgili ders: [[ayni-alan-iki-hukum-biri-sessiz]] · [[ikiz-tanim-sessiz-ayrisma]]
+
+def _kisa(yol):
+    """Mutlak arac yolunu repo-goreli kisa ada indirger (/…/pruvo/tools/x.py -> tools/x.py)."""
+    return yol[len(REPO_ONEKI):] if yol.startswith(REPO_ONEKI) else yol
+
+
+def serbest_python_metni():
+    """Mimar tarafinda SERBEST python cagrilarinin insan-okur listesi — TURETILMIS.
+
+    Kaynak, `_py_izinli`nin okudugu yapinin TA KENDISIDIR: DURUM_YOL, D1_YOL,
+    D1_DURUM_BAYRAGI, DEFTER_BAKIMI_KONUMLARI, DEFTER_BAKIMI_BAYRAKLARI. Kovadan bir
+    arac DUSERSE hem cagri REDDEDILIR hem de bu metinden ADI SILINIR — ikisi ayni
+    yapidan besleniyor, ayrisamazlar."""
+    parcalar = ["'python3 " + _kisa(DURUM_YOL) + "'",
+                "'python3 " + _kisa(D1_YOL) + " " + D1_DURUM_BAYRAGI + "'"]
+    for yol in sorted(DEFTER_BAKIMI_BAYRAKLARI):
+        konumlar = " ".join(_kisa(k) for k in DEFTER_BAKIMI_KONUMLARI.get(yol, ()))
+        bayraklar = " ".join("[" + b + "]" for b in sorted(DEFTER_BAKIMI_BAYRAKLARI[yol]))
+        cagri = " ".join(x for x in ("python3 " + _kisa(yol), konumlar, bayraklar) if x)
+        parcalar.append("'" + cagri + "'")
+    return " · ".join(parcalar)
+
+
+def olcum_komut_metni():
+    """Mimar tarafinda REDDEDILEN olcum komutlarinin listesi — OLCUM_KOMUTLARI'ndan
+    TURETILIR. Metne elle komut eklemek/cikarmak artik MUMKUN DEGIL."""
+    return "/".join(sorted(OLCUM_KOMUTLARI))
 
 # python/node ailesi — mimar tarafinda YALNIZ iki izinli komut, digeri RED (araç/test
 # kosumu iscinin isi). sh/bash/ruby/perl/php/osascript bu kisitin DISINDA (asagida
@@ -713,12 +762,12 @@ GEREKCE_SONU = (
     "(ör. tools/mimar-kilit-test.py'ye vaka ekletip 'python3 tools/mimar-kilit-test.py' "
     "ile kapat). Uzun hali: işi MÜHENDİS/USTA/MARABA'ya ya da Codex'e DELEGE et (Agent aracı: "
     "model opus/sonnet + isolation worktree + background) ve kabul testini ona YAZDIR; "
-    "(b) TEST/ÖLÇÜM/CANLI DOĞRULAMA koşumu (parite, build, filament, curl, du/ps/find/wc/"
-    "head/tail/sed/awk/sort, node --check ...) mimarın DEĞİL işçinin işidir — spec'e "
+    "(b) TEST/ÖLÇÜM/CANLI DOĞRULAMA koşumu (parite, build, filament, curl, " +
+    olcum_komut_metni() + ", node --check ...) mimarın DEĞİL işçinin işidir — spec'e "
     "çalıştırılabilir KABUL TESTİ yaz, mühendis repoya koysun, işçi koştursun. "
     "SERBEST (mimar eliyle): git (status/diff/log/merge-base/merge/commit/push/worktree), "
-    "gh, ls, grep, jq, echo, cat; python yalnız 'python3 tools/durum.py' ve "
-    "'python3 tools/d1-sync.py --durum'; /.claude/worktrees/ içinden çalışan işçi oturumları. "
+    "gh, ls, grep, jq, echo, cat; python YALNIZ şunlar: " + serbest_python_metni() +
+    "; /.claude/worktrees/ içinden çalışan işçi oturumları. "
     "(27 Ağu K318 — ROL EKSENİ: bu son madde artık ÖLÇÜLÜYOR. Çip/worktree oturumunda "
     "ölçüm komutları, curl ve python3/node ARAÇ koşumu SERBESTTİR; ana oturumda kapalıdır. "
     "Rol, oturum damgasından okunur — `cd <worktree>` rolü DEĞİŞTİRMEZ.)"
@@ -1426,9 +1475,9 @@ def main():
             if not cip:
                 reddet(
                     "python3/node ile bir araç/test koşturuyorsun (" + ad + " " +
-                    (" ".join(argumanlar[:3]))[:70] + "). Mimar tarafında SERBEST yalnız iki "
-                    "komut: 'python3 tools/durum.py' ve 'python3 tools/d1-sync.py --durum'. "
-                    "Parite/build/filament/node --check ... = İŞÇİNİN işi."
+                    (" ".join(argumanlar[:3]))[:70] + "). Mimar tarafında SERBEST python "
+                    "çağrıları YALNIZ şunlar: " + serbest_python_metni() +
+                    ". Parite/build/filament/node --check ... = İŞÇİNİN işi."
                 )
 
         # B) Surum/yardim: zararsiz (python/node yukarida ele alindi; bu satir sh vb. icin)
@@ -1495,4 +1544,10 @@ def main():
     sys.exit(0)
 
 
-main()
+# 27 AGU (K320): koruma EKLENDI. Eskiden `main()` modul duzeyinde KOSULSUZ cagriliyordu;
+# modulu ice aktaran her sey (kabul testi dahil) stdin'i okuyup sys.exit(0) ile ANINDA
+# oluyordu. Nobetci, kapinin KARAR VEREN yapisini okuyabilmek icin modulu ice aktarir —
+# koruma olmadan tek kaynak DISARIDAN dogrulanamazdi. Kanca kapiyi BETIK olarak cagirir,
+# yani calisma davranisi DEGISMEZ (kabul: mimar-kilit-test.py 307/314 taban korunur).
+if __name__ == "__main__":
+    main()
