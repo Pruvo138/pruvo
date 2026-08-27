@@ -116,7 +116,9 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
 - ✅ 25 Agu penceresi: 9 kalem kapandi → [[okan-25agu-kapatilan-konular]]; 🔴 yeniden ACILMAZ.
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
-- 🔴 **K319 (27 Agu 15:40Z, nobet):** canli **shop (odeme) worker'i BAYAT** — `cc8f99a4` (K184 talep sihirbazi kokunden) yayinlanmadi, yas 128→172 dk (esik 120); tek kapanis yolu `shop/` dizininde `npx wrangler deploy` = **OKAN KAPISI** (K30 ile ayni sinif). Pages yayini YESIL, bloklamiyor.
+- ✅ **K319 KAPANDI:** shop worker bayatti → Okan onayiyla deploy; surum `913f4969`→**`45550c39`**, nabiz
+  `rc=1`→**`rc=0 TAZE`** (CI `33087739837` success), odeme yolu gerilemesiz (butona BASILMADI).
+  ⚠️ `TALEP_SAYAC` KV binding'i worker'dan KALKTI; namespace+icerik CF'de DURUYOR. (15:40Z nobet satiri bayatti.)
 
 ## 🔧 K318 CIP-ROL — MERGE EDILDI `594ca29e` · isci bacagi ACIK (K318 kanonu acik; 299→314 vaka; MaCiT'e merge ile GELMEZ)
 
