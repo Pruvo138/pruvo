@@ -704,104 +704,12 @@ def _canli_imza():
 
 
 # ==============================================================================
-# DUZLEM OLCUMU — MUTANT KOPYALARI (K3 #10 M5 + M-SABIT) + ORTAM UYGULAMA
+# KENDINI-TEST ALTYAPISI (K3 #10c — env bypass kaldirildi; mutasyon_kopya ile)
 # ==============================================================================
-# K3 #10 §2: "Mutantlar test içinde uygulanır; canlı dosyada mutasyon YASAK."
-# Canli _duzlem_status()'un govdesinde ortam degiskeni kontrolu YOKTUR (tek
-# tanim, kanonik govde, yukarida satir 95-127); bu mutant kopyalari yalniz
-# test ortaminda subprocess'e rebind edilir (asagidaki _ortam_mutant_uygula).
-# Bypass yuzeyi olmasin diye canli kapinin govdesi env bakmaz.
-def _m5_mutant_durum():
-    """M5 mutant (H1 revert): iki duzlem de olcumedi sanilir.
-
-    Test kosumunda _duzlem_status'a rebind edilir; canli kosumda cagrilmaz.
-    """
-    return {
-        "cron": {
-            "yollar": [_isci_sarmalayici_yolu(), _gozcu_yolu()],
-            "measured": False,
-            "sebep": "M5 mutant (H1 revert)",
-        },
-        "kardes_depo": {
-            "yollar": [_defteriz_ev_koku()],
-            "measured": False,
-            "sebep": "M5 mutant (H1 revert)",
-        },
-    }
-
-
-def _msabit_mutant_durum():
-    """M-SABIT mutant: cron olcumunden GOZCU kontrolu dusurulur.
-
-    BUG formulu: cron.measured = os.path.isfile(isci_yolu) (GOZCU kontrolu YOK).
-    Test kosumunda _duzlem_status'a rebind edilir; canli kosumda cagrilmaz.
-    """
-    isci = _isci_sarmalayici_yolu()
-    kardes = _defteriz_ev_koku()
-    isci_var = os.path.isfile(isci)
-    kardes_var = os.path.isdir(kardes)
-    return {
-        "cron": {
-            "yollar": [isci],
-            "measured": isci_var,  # M-SABIT: GOZCU KONTROLU YOK
-            "sebep": (None if isci_var
-                      else "M-SABIT: cron.measured = isci_var"),
-        },
-        "kardes_depo": {
-            "yollar": [kardes],
-            "measured": kardes_var,
-            "sebep": (None if kardes_var
-                      else "kardes_depo dizini yok (yol=%s)" % kardes),
-        },
-    }
-
-
-# _ortam_mutant_uygula: subprocess baslangicinda env uzerinden _duzlem_status'i
-# mutant kopyasina rebind eder + provokasyon override'larini kurar. CANLI
-# kosumda hicbir env set edilmedigi icin hicbir rebind gerceklesmez; canli
-# _duzlem_status kanonik govdesiyle (satir 95-127) kalir.
-_gecici_msabit_isci_yol = None
-
-
-def _ortam_mutant_uygula():
-    """Subprocess baslangicinda env uzerinden mutant rebind et.
-
-    YALNIZ test kosumunda cagrilir (kendini_test -> subprocess). Canli kosum
-    hicbir env set etmedigi icin burada hicbir sey degismez; _duzlem_status
-    clean kanonik haliyle kalir.
-    """
-    global _duzlem_status, _ISCI_YOL_OVERRIDE, _GOZCU_YOL_OVERRIDE
-    global _gecici_msabit_isci_yol
-    # M-SABIT provokasyonu: GOZCU'yu YOK, ISCI'yi VAR yap (mutant gercekten
-    # GOZCU kontrolu dusurdugu icin "measured=True" donerse A4/B4 proceed eder
-    # → A4 GOZCU'yu acar → FileNotFoundError → KUSUR; B4 copyfile → crash).
-    if os.environ.get("N2KABUL_MSABIT_ISCI_VAR") == "1":
-        fd, yol = tempfile.mkstemp(prefix="n2kabul-msabit-isci-", suffix=".sh")
-        os.close(fd)
-        with open(yol, "w", encoding="utf-8") as f:
-            f.write("# M-SABIT provokasyon: gecici ISCI (GOZCU kasitli yok)\n")
-        _gecici_msabit_isci_yol = yol
-        _ISCI_YOL_OVERRIDE = yol
-    if os.environ.get("N2KABUL_MSABIT_GOZCU_YOK") == "1":
-        _GOZCU_YOL_OVERRIDE = (
-            "/tmp/n2kabul-msabit-gozcu-nonexistent-%d.py" % os.getpid())
-    # Mutant rebind (M5 veya M-SABIT, ikisi ayni anda set edilmez).
-    if os.environ.get("N2KABUL_M5") == "1":
-        _duzlem_status = _m5_mutant_durum
-    elif os.environ.get("N2KABUL_MSABIT") == "1":
-        _duzlem_status = _msabit_mutant_durum
-
-
-def _ortam_mutant_temizle():
-    """Subprocess sonunda provokasyon dosyalarini sil (Okan iz birakma kurali)."""
-    global _gecici_msabit_isci_yol
-    yol = _gecici_msabit_isci_yol
-    if yol:
-        try:
-            os.unlink(yol)
-        except OSError:
-            pass
-        _gecici_msabit_isci_yol = None
+# Canli _duzlem_status()'un govdesinde ortam degiskeni kontrolu YOKTUR — K3 #10c
+# ile ONCEDEN beri yok; kendini-test artik mutasyonu CANLI dosyaya YAZMAZ.
+# Bypass yuzeyi olmasin diye canli govde env bakmaz, test alt surecte KOPYA
+# UZERINDE mutasyon uygular (`mutasyon_kopya.mutant_metni`).
 
 
 # ==============================================================================
@@ -837,203 +745,281 @@ def main():
                     help="cron duzlemi olculemedi san (HAL B)")
     ap.add_argument("--iki-duzlem-yok", action="store_true",
                     help="her iki duzlem de olculemedi san (rc=2)")
+    ap.add_argument("--msabit-senaryo", action="store_true",
+                    help="M-SABIT provokasyonu: ISCI gercek, GOZCU YOK")
     ap.add_argument("--kendini-test", action="store_true",
                     help="M5 + M-SABIT + KONTROL bataryasini kos (subprocess)")
     args = ap.parse_args()
 
-    # MUTANT ORTAMI — yalniz test kosumunda (subprocess env ile) aktif.
-    # Canli kosum hicbir env set etmedigi icin bu satir NO-OP.
-    _ortam_mutant_uygula()
+    if args.kendini_test:
+        return kendini_test()
 
+    # CLI senaryolari: canli ~/.claude/cron/ ve /Users/okan/dev/pruvo-bot
+    # SILINMEZ; override'lar non-existent path'lere yonlendirilir.
+    global _ISCI_YOL_OVERRIDE, _GOZCU_YOL_OVERRIDE, _DEFTERSIZ_EV_KOKU_OVERRIDE
+    if args.hal_b:
+        _ISCI_YOL_OVERRIDE = "/tmp/n2kabul-hal-b-isci-nonexistent-%d" % os.getpid()
+        _GOZCU_YOL_OVERRIDE = "/tmp/n2kabul-hal-b-gozcu-nonexistent-%d" % os.getpid()
+    if args.iki_duzlem_yok:
+        if not args.hal_b:
+            _ISCI_YOL_OVERRIDE = "/tmp/n2kabul-hal-c-isci-nonexistent-%d" % os.getpid()
+            _GOZCU_YOL_OVERRIDE = "/tmp/n2kabul-hal-c-gozcu-nonexistent-%d" % os.getpid()
+        _DEFTERSIZ_EV_KOKU_OVERRIDE = "/tmp/n2kabul-hal-c-kardes-nonexistent-%d" % os.getpid()
+    if args.msabit_senaryo:
+        # M-SABIT provokasyonu: ISCI gercek yola, GOZCU nonexistent'e yonlendirilir.
+        _ISCI_YOL_OVERRIDE = KURUCU.ISCI_SARMALAYICI_YOLU_SABIT
+        _GOZCU_YOL_OVERRIDE = (
+            "/tmp/n2kabul-msabit-gozcu-nonexistent-%d.py" % os.getpid())
+
+    # Yol override baski: kapinin NEREYE baktigini CIKIDA goster — override
+    # etkin degilken bu satir YOK (HAL A'da kapi kendi kanonik yolunu kullanir).
+    if _ISCI_YOL_OVERRIDE is not None or _GOZCU_YOL_OVERRIDE is not None \
+        or _DEFTERSIZ_EV_KOKU_OVERRIDE is not None:
+        print("--- YONLENDIRME ---")
+        if _ISCI_YOL_OVERRIDE is not None:
+            print("ISCI_YOL_OVERRIDE: %s" % _ISCI_YOL_OVERRIDE)
+        if _GOZCU_YOL_OVERRIDE is not None:
+            print("GOZCU_YOL_OVERRIDE: %s" % _GOZCU_YOL_OVERRIDE)
+        if _DEFTERSIZ_EV_KOKU_OVERRIDE is not None:
+            print("DEFTERSIZ_EV_KOKU_OVERRIDE: %s" % _DEFTERSIZ_EV_KOKU_OVERRIDE)
+        print("")
+
+    print("N2 KABUL — 'kirleten onarir' (spec §2, Okan onayli doktrin)")
+    print("depo koku: %s" % _REPO_KOK)
+    print("")
+    once = _canli_imza()
+    calisma = tempfile.mkdtemp(prefix="n2-kabul-")
     try:
-        # CLI senaryolari: canli ~/.claude/cron/ ve /Users/okan/dev/pruvo-bot
-        # SILINMEZ; override'lar non-existent path'lere yonlendirilir.
-        global _ISCI_YOL_OVERRIDE, _GOZCU_YOL_OVERRIDE, _DEFTERSIZ_EV_KOKU_OVERRIDE
-        if args.hal_b:
-            _ISCI_YOL_OVERRIDE = "/tmp/n2kabul-hal-b-isci-nonexistent-%d" % os.getpid()
-            _GOZCU_YOL_OVERRIDE = "/tmp/n2kabul-hal-b-gozcu-nonexistent-%d" % os.getpid()
-        if args.iki_duzlem_yok:
-            if not args.hal_b:
-                _ISCI_YOL_OVERRIDE = "/tmp/n2kabul-hal-c-isci-nonexistent-%d" % os.getpid()
-                _GOZCU_YOL_OVERRIDE = "/tmp/n2kabul-hal-c-gozcu-nonexistent-%d" % os.getpid()
-            _DEFTERSIZ_EV_KOKU_OVERRIDE = "/tmp/n2kabul-hal-c-kardes-nonexistent-%d" % os.getpid()
-
-        if args.kendini_test:
-            return kendini_test()
-
-        print("N2 KABUL — 'kirleten onarir' (spec §2, Okan onayli doktrin)")
-        print("depo koku: %s" % _REPO_KOK)
+        print("--- A: SAHIP TESPITI ---")
+        kabul_A(calisma)
         print("")
-        once = _canli_imza()
-        calisma = tempfile.mkdtemp(prefix="n2-kabul-")
-        try:
-            print("--- A: SAHIP TESPITI ---")
-            kabul_A(calisma)
-            print("")
-            print("--- B: IS-BASLATMA KAPISI ---")
-            kabul_B(calisma)
-            print("")
-            print("--- C: 4 SAATLIK DEVIR ---")
-            kabul_C(calisma)
-            print("")
-            print("--- Z: MUTANT + IZ ---")
-            kabul_Z(calisma, once)
-        finally:
-            # Ureten temizler (Okan disk kurali).
-            shutil.rmtree(calisma, ignore_errors=True)
+        print("--- B: IS-BASLATMA KAPISI ---")
+        kabul_B(calisma)
         print("")
-
-        gecen = sum(1 for _a, d, _d in SONUCLAR if d == DURUM_GECTI)
-        kusurlu = [a for a, d, _d in SONUCLAR if d == DURUM_KUSUR]
-        olcumeyen = [a for a, d, _d in SONUCLAR if d == DURUM_OLCULEMEDI]
-        yargilanan = sum(1 for _a, d, _det in SONUCLAR
-                         if d in (DURUM_GECTI, DURUM_KUSUR))
-
-        # OLCULEMEYEN_DUZLEM raporu (virgulle sirali)
-        olcum_duzlemler = set()
-        for ad in olcumeyen:
-            d = _VAKA_DUZLEMI.get(ad)
-            if d:
-                olcum_duzlemler.add(d)
-        olcum_duzlem_str = ",".join(sorted(olcum_duzlemler)) if olcum_duzlemler else "-"
-
-        if olcumeyen:
-            print("OLCULEMEYEN VAKALAR (yargilanmaz) — kapi YANMAZ:")
-            for a in olcumeyen:
-                d = _VAKA_DUZLEMI.get(a, "?")
-                print("  %s  (duzlem=%s)" % (a, d))
-
-        duzlem = _duzlem_status()
-        her_iki_yok = (not duzlem["cron"]["measured"]
-                       and not duzlem["kardes_depo"]["measured"])
-
-        return _kabul_durdur_ve_ozet(gecen, yargilanan, olcumeyen, olcum_duzlem_str,
-                                    kusurlu, her_iki_yok)
+        print("--- C: 4 SAATLIK DEVIR ---")
+        kabul_C(calisma)
+        print("")
+        print("--- Z: MUTANT + IZ ---")
+        kabul_Z(calisma, once)
     finally:
-        # Provokasyon dosyalarini (M-SABIT icin uretilen gecici ISCI) sil —
-        # Okan "iz birakma" kurali. Canli kosumda _gecici_msabit_isci_yol None.
-        _ortam_mutant_temizle()
+        # Ureten temizler (Okan disk kurali).
+        shutil.rmtree(calisma, ignore_errors=True)
+    print("")
+
+    gecen = sum(1 for _a, d, _d in SONUCLAR if d == DURUM_GECTI)
+    kusurlu = [a for a, d, _d in SONUCLAR if d == DURUM_KUSUR]
+    olcumeyen = [a for a, d, _d in SONUCLAR if d == DURUM_OLCULEMEDI]
+    yargilanan = sum(1 for _a, d, _det in SONUCLAR
+                     if d in (DURUM_GECTI, DURUM_KUSUR))
+
+    # OLCULEMEYEN_DUZLEM raporu (virgulle sirali)
+    olcum_duzlemler = set()
+    for ad in olcumeyen:
+        d = _VAKA_DUZLEMI.get(ad)
+        if d:
+            olcum_duzlemler.add(d)
+    olcum_duzlem_str = ",".join(sorted(olcum_duzlemler)) if olcum_duzlemler else "-"
+
+    if olcumeyen:
+        print("OLCULEMEYEN VAKALAR (yargilanmaz) — kapi YANMAZ:")
+        for a in olcumeyen:
+            d = _VAKA_DUZLEMI.get(a, "?")
+            print("  %s  (duzlem=%s)" % (a, d))
+
+    duzlem = _duzlem_status()
+    her_iki_yok = (not duzlem["cron"]["measured"]
+                   and not duzlem["kardes_depo"]["measured"])
+
+    return _kabul_durdur_ve_ozet(gecen, yargilanan, olcumeyen, olcum_duzlem_str,
+                                kusurlu, her_iki_yok)
 
 
 # ==============================================================================
-# KENDINI-TEST (M5 + M-SABIT + KONTROL) — subprocess izolasyonu ile
+# KENDINI-TEST (M5 + M-SABIT + KONTROL) — mutasyon_kopya ile
 # ==============================================================================
 def kendini_test():
-    """K3 #10 §2 mutant + kontrol bataryasi (subprocess izolasyonu ile).
+    """K3 #10c §2 mutant + kontrol bataryasi (mutasyon_kopya ile).
 
-    M5 + M-SABIT + KONTROL. M5 ve KONTROL subprocess kosumudur; M-SABIT
-    formulun hedef kolunu dogrudan ispat eder. CANLI dosya degismez.
+    Canli dosyaya MUTASYON YAZILMAZ; `mutasyon_kopya` ile gecici bir `tools/`
+    kopyasinda mutasyon uygulanir ve alt surecte kosulur. rc + vaka bazinda
+    olculur. CANLI govde env anahtari UZERINDEN mutant rebind ETMEZ (K3 #10c).
+
+      M5       : _duzlem_status()'in her iki duzlemini False yapar
+                 (cron_ok tersi + kardes_depo.measured=False). HAL A'da 3
+                 vaka OLCUME → her_iki_yok → rc=2.
+      M-SABIT  : cron olcumunden GOZCU kontrolunu dusurur
+                 (isci_var and gozcu_var → isci_var). --msabit-senaryo ile
+                 ISCI=gercek + GOZCU=YOK provokasyonunda A4 KUSUR.
+      KONTROL  : mutasyonsuz kopya HAL A senaryosunda 14/14 YESIL.
+      CAPA_FAIL_CLOSED : etkisiz donusum (no-op) CapaHatasi yükseltmeli.
     """
-    print("N2 KABUL KENDINI-TEST (K3 #10 §2)")
+    import mutasyon_kopya as mk
+
+    print("N2 KABUL KENDINI-TEST (K3 #10c §2 — mutasyon_kopya ile)")
     print("")
 
     adimlar = []
 
-    # ---- M5 (H1 revert) ----
-    print("M5 mutant — HAL A senaryosunda A4/B4/C4 OLCUME sayilir")
-    ortam_m5 = {**os.environ, "N2KABUL_M5": "1"}
-    proc_m5 = subprocess.run(
-        [sys.executable, os.path.abspath(__file__)],
-        capture_output=True, text=True, env=ortam_m5)
-    out_m5 = (proc_m5.stdout or "") + (proc_m5.stderr or "")
-    m5_ok = (
-        "OLCULEMEYEN_VAKA=3" in out_m5
-        and "OLCULEMEYEN_DUZLEM=cron,kardes_depo" in out_m5
-        and "N2_KABUL=14/14" not in out_m5
-        # M5 → iki duzlem de olcumedi → her_iki_yok → rc=2 (HAL A'dan sapma)
-        and proc_m5.returncode in (0, 2)
-    )
-    adimlar.append(("M5", m5_ok))
-    print("  rc=%d | OLCUME=3 goruldu=%s | HAL_A 14/14 kirildi=%s | son: %s"
-          % (proc_m5.returncode,
-             "OLCULEMEYEN_VAKA=3" in out_m5,
-             "N2_KABUL=14/14" not in out_m5,
-             [s for s in out_m5.splitlines() if s.strip()][-1] if out_m5.strip() else ""))
-    print("  rc=%d | OLCUME=3 goruldu=%s | HAL_A 14/14 kirildi=%s | son: %s"
-          % (proc_m5.returncode,
-             "OLCULEMEYEN_VAKA=3" in out_m5,
-             "N2_KABUL=14/14" not in out_m5,
-             [s for s in out_m5.splitlines() if s.strip()][-1] if out_m5.strip() else ""))
-    print("")
+    gecici = tempfile.mkdtemp(prefix="n2-kabul-kendini-")
+    artik = []
+    try:
+        kok = mk.kopya_kok(gecici)
+        kopya_dosya = os.path.join(kok, "tools", "n2-kabul.py")
 
-    # ---- M-SABIT: GOZCU kontrolu dusurulmus (sabit yollu bagimlilik kacti)
-    print("M-SABIT mutant — cron olcumunden GOZCU dusurulur")
-    print("  senaryo: ISCI override=GERCK dosya, GOZCU override=YOK")
-    print("  BUG formula sadece ISCI'a bakar → cron.measured=True → A4/B4 proceed → kirmizi")
-    # Provokasyon: subprocess'e 3 ENV gonder:
-    #   N2KABUL_MSABIT=1           → _ortam_mutant_uygula _duzlem_status'i
-    #                                 _duzlem_status_msabit_buggy'ye rebind eder.
-    #   N2KABUL_MSABIT_ISCI_VAR=1  → gecici /tmp ISCI dosyasi olusturur.
-    #   N2KABUL_MSABIT_GOZCU_YOK=1 → GOZCU override=/tmp/...nonexistent yapar.
-    # Sonuc: cron.measured=True → A4 `with open(GOZCU)` → FileNotFoundError → KUSUR;
-    #         B4 `shutil.copyfile(_gozcu_yolu(), ...)` → FileNotFoundError → crash → rc!=0.
-    # CANLI makinede bile MUTLAKA ateşler.
-    ortam_ms = dict(os.environ)
-    ortam_ms["N2KABUL_MSABIT"] = "1"
-    ortam_ms["N2KABUL_MSABIT_ISCI_VAR"] = "1"
-    ortam_ms["N2KABUL_MSABIT_GOZCU_YOK"] = "1"
-    proc_ms = subprocess.run(
-        [sys.executable, os.path.abspath(__file__)],
-        capture_output=True, text=True, env=ortam_ms)
-    out_ms = (proc_ms.stdout or "") + (proc_ms.stderr or "")
-    a4_dustu = "A4   KUSUR" in out_ms or "KUSURLU: A4" in out_ms
-    b4_dustu = "B4   KUSUR" in out_ms or "KUSURLU: B4" in out_ms
-    dusen_vakalar = []
-    if a4_dustu:
-        dusen_vakalar.append("A4")
-    if b4_dustu:
-        dusen_vakalar.append("B4")
-    msabit_batarya = (
-        proc_ms.returncode != 0
-        and bool(dusen_vakalar)
-    )
-    if msabit_batarya:
-        msabit_ok = True
-        msabit_durum = "OLDURULDU (rc=%d, düsen=%s)" % (
-            proc_ms.returncode, ",".join(dusen_vakalar))
-    else:
-        msabit_ok = False
-        msabit_durum = ("KACTI (rc=%d, a4=%s, b4=%s, OLAN_KUSURLU_SATIR=YOK)"
+        # Kopya metnini + modulunu BIR KEZ yukle (ciftler KAYNAGI buradan turer).
+        with open(kopya_dosya, encoding="utf-8") as f:
+            orjinal_metin = f.read()
+        kopya_modul = mk.modul_yukle(kopya_dosya, "n2_kabul_kopya")
+
+        # ---- M5 (H1 revert) ----
+        print("M5 mutant — duzlem hükmünü tersine çeviren mutasyon")
+        try:
+            m5_metin = mk.mutant_metni(kopya_modul, orjinal_metin, [
+                # _duzlem_status: cron_ok formulu tersine
+                ("_duzlem_status",
+                 r"cron_ok = isci_var and gozcu_var",
+                 lambda s: s.replace("isci_var and gozcu_var",
+                                     "not (isci_var and gozcu_var)")),
+                # _duzlem_status: kardes_depo.measured kati False
+                ("_duzlem_status",
+                 r'"measured": kardes_var,',
+                 lambda s: s.replace('"measured": kardes_var,',
+                                     '"measured": False,')),
+            ])
+        except mk.CapaHatasi as e:
+            m5_metin = None
+            m5_capa = str(e)
+        if m5_metin is not None:
+            with open(kopya_dosya, "w", encoding="utf-8") as f:
+                f.write(m5_metin)
+            proc_m5 = subprocess.run(
+                [sys.executable, kopya_dosya],
+                capture_output=True, text=True)
+            out_m5 = (proc_m5.stdout or "") + (proc_m5.stderr or "")
+            m5_olcume3 = "OLCULEMEYEN_VAKA=3" in out_m5
+            m5_olcume_d = "OLCULEMEYEN_DUZLEM=cron,kardes_depo" in out_m5
+            m5_halA_kirik = "N2_KABUL=14/14" not in out_m5
+            m5_ok = (m5_olcume3 and m5_olcume_d and m5_halA_kirik
+                     and proc_m5.returncode in (0, 2))
+            m5_durum = ("OLDURULDU (rc=%d, dusen=A4,B4,C4)"
+                        % proc_m5.returncode if m5_ok else
+                        "KACTI (rc=%d, OLCUME3=%s, OLMEYEN_DUZLEM=%s, 14kirildi=%s)"
+                        % (proc_m5.returncode, m5_olcume3, m5_olcume_d, m5_halA_kirik))
+            son_m5 = ([s for s in out_m5.splitlines() if s.strip()][-1]
+                      if out_m5.strip() else "")
+        else:
+            proc_m5 = None
+            m5_ok = False
+            m5_durum = "CapaHatasi: %s" % m5_capa
+            son_m5 = ""
+        print("  rc=%s | %s" % (getattr(proc_m5, "returncode", "?"), m5_durum))
+        if son_m5:
+            print("  son: %s" % son_m5)
+        print("")
+        adimlar.append(("M5", m5_ok))
+
+        # ---- KOPYA SIFIRLAMA ----
+        with open(kopya_dosya, "w", encoding="utf-8") as f:
+            f.write(orjinal_metin)
+        kopya_modul = mk.modul_yukle(kopya_dosya, "n2_kabul_kopya")
+
+        # ---- M-SABIT (GOZCU kontrolu dusurulmus) ----
+        print("M-SABIT mutant — cron olcumunden GOZCU kontrolu dusurulur")
+        print("  senaryo: --msabit-senaryo (ISCI=gercek, GOZCU=YOK)")
+        print("  BUG formula sadece ISCI'a bakar → cron.measured=True → A4 proceed → kirmizi")
+        try:
+            ms_metin = mk.mutant_metni(kopya_modul, orjinal_metin, [
+                ("_duzlem_status",
+                 r"cron_ok = isci_var and gozcu_var",
+                 lambda s: s.replace("isci_var and gozcu_var", "isci_var")),
+            ])
+        except mk.CapaHatasi as e:
+            ms_metin = None
+            ms_capa = str(e)
+        if ms_metin is not None:
+            with open(kopya_dosya, "w", encoding="utf-8") as f:
+                f.write(ms_metin)
+            proc_ms = subprocess.run(
+                [sys.executable, kopya_dosya, "--msabit-senaryo"],
+                capture_output=True, text=True)
+            out_ms = (proc_ms.stdout or "") + (proc_ms.stderr or "")
+            a4_dustu = "A4   KUSUR" in out_ms or "KUSURLU: A4" in out_ms
+            b4_dustu = "B4   KUSUR" in out_ms or "KUSURLU: B4" in out_ms
+            dusen = []
+            if a4_dustu: dusen.append("A4")
+            if b4_dustu: dusen.append("B4")
+            ms_ok = (proc_ms.returncode != 0 and bool(dusen))
+            ms_durum = ("OLDURULDU (rc=%d, dusen=%s)"
+                        % (proc_ms.returncode, ",".join(dusen))
+                        if ms_ok else
+                        "KACTI (rc=%d, a4=%s, b4=%s)"
                         % (proc_ms.returncode, a4_dustu, b4_dustu))
-    print("  rc=%d | A4 dustu=%s | B4 dustu=%s | %s"
-          % (proc_ms.returncode, a4_dustu, b4_dustu, msabit_durum))
-    print("  son: %s" % ([s for s in out_ms.splitlines() if s.strip()][-1]
-                         if out_ms.strip() else ""))
-    adimlar.append(("M-SABIT", msabit_ok))
+            son_ms = ([s for s in out_ms.splitlines() if s.strip()][-1]
+                      if out_ms.strip() else "")
+        else:
+            proc_ms = None
+            ms_ok = False
+            ms_durum = "CapaHatasi: %s" % ms_capa
+            son_ms = ""
+        print("  rc=%s | %s" % (getattr(proc_ms, "returncode", "?"), ms_durum))
+        if son_ms:
+            print("  son: %s" % son_ms)
+        print("")
+        adimlar.append(("M-SABIT", ms_ok))
 
-    print("")
-    # ---- KONTROL: kozmetik degisiklik (label adini degistir, mantik yok)
-    print("KONTROL — kozmetik degisiklik (label SPACE ekle)")
-    print("  beklenen yesil: tum vakalar GECTI kalir")
-    # Bu SUREKLI KENDISI icindeki bir kosum — etiket yazisini boslukla degistir
-    # ve main'i kos. n2_kabul.run bir kez daha mi? Bu siddetli tekrar modu —
-    # state contamination olur. En temizi: KOZMETIK degisikligin hala 14/14
-    # verdigini gostermek icin KONTROL senaryosu olarak HAL A defaulta
-    # davranir — ki kendisi de kontrolun kendisidir (zaten HAL A 14/14).
-    # Onerilen kontrol: adimin altinda N2_KABUL=14/14 gorunmesini bekle.
-    ortam_k = dict(os.environ)  # KONTROL env yok → default
-    proc_k = subprocess.run(
-        [sys.executable, os.path.abspath(__file__)],
-        capture_output=True, text=True, env=ortam_k)
-    out_k = (proc_k.stdout or "") + (proc_k.stderr or "")
-    kontrol_ok = (
-        proc_k.returncode == 0
-        and "N2_KABUL=14/14" in out_k
-        and "KUSURLU:" not in out_k
-    )
-    adimlar.append(("KONTROL", kontrol_ok))
-    print("  rc=%d | N2_KABUL=14/14 goruldu=%s"
-          % (proc_k.returncode, "N2_KABUL=14/14" in out_k))
+        # ---- KOPYA SIFIRLAMA ----
+        with open(kopya_dosya, "w", encoding="utf-8") as f:
+            f.write(orjinal_metin)
 
-    print("")
-    mutant_etiketler = ("M5", "M-SABIT")
-    kontrol_etiket = "KONTROL"
-    mutant_basarili = sum(1 for ad, b in adimlar if ad in mutant_etiketler and b)
-    kontrol_basarili = 1 if (kontrol_ok,) else 0
-    print("MUTANT=%d/%d HEDEF_KOL_ATFI=%d/2 KONTROL=%d/1"
-          % (mutant_basarili, len(mutant_etiketler),
-             mutant_basarili, kontrol_basarili))
-    if mutant_basarili == len(mutant_etiketler) and kontrol_basarili == 1:
+        # ---- KONTROL ----
+        print("KONTROL — mutasyonsuz kopya HAL A senaryosunda 14/14 beklenir")
+        proc_k = subprocess.run(
+            [sys.executable, kopya_dosya],
+            capture_output=True, text=True)
+        out_k = (proc_k.stdout or "") + (proc_k.stderr or "")
+        kontrol_14 = "N2_KABUL=14/14" in out_k
+        kontrol_kusur = "KUSURLU:" not in out_k
+        kontrol_ok = (proc_k.returncode == 0 and kontrol_14 and kontrol_kusur)
+        adimlar.append(("KONTROL", kontrol_ok))
+        print("  rc=%d | N2_KABUL=14/14=%s | KUSURLU yok=%s"
+              % (proc_k.returncode, kontrol_14, kontrol_kusur))
+        print("")
+
+        # ---- CAPA FAIL-CLOSED ----
+        # mk.mutant_metni'nin 4. kolu: etkisiz donusum (no-op) CapaHatasi
+        # yükseltmeli; yoksa mutant sessizce no-op olurdu (bayat capanin yuzuyu).
+        print("CAPA_FAIL_CLOSED — etkisiz donusum CapaHatasi yükseltmeli")
+        try:
+            mk.mutant_metni(kopya_modul, orjinal_metin, [
+                ("_duzlem_status",
+                 r"cron_ok = isci_var and gozcu_var",
+                 lambda s: s),  # no-op
+            ])
+            capa_ok = False
+            capa_durum = "DUSTU (CapaHatasi BEKLENIYORDU, gelmedi)"
+        except mk.CapaHatasi:
+            capa_ok = True
+            capa_durum = "GECTI"
+        print("  %s" % capa_durum)
+        print("")
+
+        # Canli agac ARTIK kontrolu: uretim temizlendi mi?
+        artik = mk.artik_yedekler()
+
+    finally:
+        # Ureten temizler (Okan disk kurali).
+        shutil.rmtree(gecici, ignore_errors=True)
+
+    mutant_basarili = sum(1 for ad, b in adimlar if ad in ("M5", "M-SABIT") and b)
+    kontrol_basarili = 1 if next((b for ad, b in adimlar if ad == "KONTROL"), False) else 0
+
+    print("MUTANT=%d/2 HEDEF_KOL_ATFI=%d/2 KONTROL=%d/1 CAPA_FAIL_CLOSED=%s"
+          % (mutant_basarili, mutant_basarili, kontrol_basarili,
+             "GECTI" if capa_ok else "DUSTU"))
+    if artik:
+        print("UYARI: artik yedek kaldi=%s" % artik)
+
+    if mutant_basarili == 2 and kontrol_basarili == 1 and capa_ok and not artik:
         return 0
     return 1
 
