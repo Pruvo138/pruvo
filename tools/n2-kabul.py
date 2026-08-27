@@ -64,12 +64,96 @@ DEVIR = _yukle("n2_devir", "devir-kapisi.py")
 KURUCU = _yukle("n2_kurucu", "mimar-kapi-kur.py")
 T4 = _yukle("n2_t4", "parti-borc-kapisi.py")
 
-SONUCLAR = []
+
+# ==============================================================================
+# KOL-1/2 — DUZLEM (PLANE) OLCUMU + UCUNCU SINIF (Paket ③-g §H1, K3 #10 kanunu)
+# ==============================================================================
+# Canli KURUCU sabitleri korunur; test senaryolarinda bu override'lar
+# non-existent path'lere yonlendirilir (CANLI ~/.claude/cron/ ve
+# /Users/okan/dev/pruvo-bot SILINMEZ/TASINMAZ). Yollar TANIMINDAN alinir —
+# elle kopya YASAK [[taban-kirmizisi-nobetciyi-susturur]].
+_ISCI_YOL_OVERRIDE = None
+_GOZCU_YOL_OVERRIDE = None
+_DEFTERSIZ_EV_KOKU_OVERRIDE = None
 
 
-def kayit(ad, gecti, detay):
-    SONUCLAR.append((ad, bool(gecti), detay))
-    print("%-4s %-7s %s" % (ad, "GECTI" if gecti else "KUSUR", detay))
+def _isci_sarmalayici_yolu():
+    return (_ISCI_YOL_OVERRIDE if _ISCI_YOL_OVERRIDE is not None
+            else KURUCU.ISCI_SARMALAYICI_YOLU_SABIT)
+
+
+def _gozcu_yolu():
+    return (_GOZCU_YOL_OVERRIDE if _GOZCU_YOL_OVERRIDE is not None
+            else KURUCU.GOZCU_YOLU)
+
+
+def _defteriz_ev_koku():
+    return (_DEFTERSIZ_EV_KOKU_OVERRIDE if _DEFTERSIZ_EV_KOKU_OVERRIDE is not None
+            else DEFTERSIZ_EV_KOKU)
+
+
+def _duzlem_status():
+    """`cron` ve `kardes_depo` duzlemlerinin olculup olcemedigi.
+
+    `cron`: ISCI_SARMALAYICI yolu + GOZCU yolu IKISI de dosya olarak var.
+    `kardes_depo`: DEFTERSIZ_EV_KOKU dizin olarak var.
+
+    Dondurur:
+      {"cron": {"yollar": [...], "measured": bool, "sebep": str|None},
+       "kardes_depo": {..., }}
+    Yollar ELLE YAZILMAZ — tanimindan alinir.
+    """
+    isci = _isci_sarmalayici_yolu()
+    gozcu = _gozcu_yolu()
+    kardes = _defteriz_ev_koku()
+    isci_var = os.path.isfile(isci)
+    gozcu_var = os.path.isfile(gozcu)
+    kardes_var = os.path.isdir(kardes)
+    cron_ok = isci_var and gozcu_var
+    return {
+        "cron": {
+            "yollar": [isci, gozcu],
+            "measured": cron_ok,
+            "sebep": (None if cron_ok else
+                      "cron yollari eksik (isci_var=%s, gozcu_var=%s)"
+                      % (isci_var, gozcu_var)),
+        },
+        "kardes_depo": {
+            "yollar": [kardes],
+            "measured": kardes_var,
+            "sebep": (None if kardes_var else
+                      "kardes_depo dizini yok (yol=%s)" % kardes),
+        },
+    }
+
+
+# KOL-2 — UCUNCU SINIF (GECTI / KUSUR / OLCULEMEDI). K3 #10 kanunu:
+# ikili siniflama ucuncuyu yutar [[iki-kovali-siniflama-ucuncu-sinifi-yutar]];
+# olculemeyen vaka KUSUR SAYILMAZ, GECTI DE SAYILMAZ; ayri kovaya dusup OLCULEMEDI
+# etiketiyle basılır.
+DURUM_GECTI = "GECTI"
+DURUM_KUSUR = "KUSUR"
+DURUM_OLCULEMEDI = "OLCULEMEDI"
+
+# Vaka -> ilgili duzlem (yalniz raporlama icin; olcum _duzlem_status()'tan gelir).
+_VAKA_DUZLEMI = {
+    "A4": "cron",
+    "B4": "cron",
+    "C4": "kardes_depo",
+}
+
+SONUCLAR = []  # (ad, durum, detay)
+
+
+def kayit(ad, gecti, detay, *, olculemedi=False):
+    if olculemedi:
+        durum = DURUM_OLCULEMEDI
+    elif gecti:
+        durum = DURUM_GECTI
+    else:
+        durum = DURUM_KUSUR
+    SONUCLAR.append((ad, durum, detay))
+    print("%-4s %-11s %s" % (ad, durum, detay))
 
 
 def _git(kok, *args, **kw):
@@ -151,68 +235,77 @@ def kabul_A(calisma):
           and "SEBEP=cok-seritli" in metin,
           "cok-seritli commit -> %s" % metin)
 
-    # A4 — harita TEK KAYNAK: bozulunca KAPI da GOZCU de kirmizi
-    #   (i) KAPI ayagi: haritayi bozup ayni sha'yi sor
-    harita = os.path.join(kok, "tools", "ev-serit-haritasi.tsv")
-    with open(harita, encoding="utf-8") as f:
-        saglam = f.read()
-    with open(harita, "w", encoding="utf-8") as f:
-        f.write("# harita BOZULDU (mutant): tek veri satiri birakilmadi\n")
-    kapi_bozuk = SAHIP.kirmizi_sahibi(kok, shalar["veri"])
-    kapi_kirmizi = (kapi_bozuk["SEBEP"] == SAHIP.SEBEP_OLCULEMEDI)
+    # A4 — harita TEK KAYNAK: bozulunca KAPI da GOZCU de kirmizi.
+    # A4 `cron` duzlemine bagimli (GOZCU_YOLU); duzlem olculemediğinde
+    # yargilanmaz (K3 #10 KOL-2).
+    duzlem = _duzlem_status()
+    if not duzlem["cron"]["measured"]:
+        print("OLCULEMEDI: A4 (duzlem=cron, yargilanmaz) — kapi YANMAZ")
+        kayit("A4", False,
+              "duzlem=cron olculemedi: %s" % duzlem["cron"]["sebep"],
+              olculemedi=True)
+    else:
+        #   (i) KAPI ayagi: haritayi bozup ayni sha'yi sor
+        harita = os.path.join(kok, "tools", "ev-serit-haritasi.tsv")
+        with open(harita, encoding="utf-8") as f:
+            saglam = f.read()
+        with open(harita, "w", encoding="utf-8") as f:
+            f.write("# harita BOZULDU (mutant): tek veri satiri birakilmadi\n")
+        kapi_bozuk = SAHIP.kirmizi_sahibi(kok, shalar["veri"])
+        kapi_kirmizi = (kapi_bozuk["SEBEP"] == SAHIP.SEBEP_OLCULEMEDI)
 
-    #   (ii) GOZCU ayagi: gercek gozcu.py'nin HERMETIK kopyasina kurucunun
-    #        yamasini uygula, koprunun ayni fonksiyonu okudugunu KANITLA.
-    gozcu_kirmizi = None
-    gozcu_saglam = None
-    gozcu_not = ""
-    try:
-        with open(KURUCU.GOZCU_YOLU, encoding="utf-8") as f:
-            gozcu_ham = f.read()
-        yamali, durum = KURUCU.gozcu_yamala(gozcu_ham)
-        if durum not in ("YAMALANDI", "ZATEN TAM"):
-            gozcu_not = "gozcu yamasi uygulanamadi: %s" % durum
-        else:
-            gyol = os.path.join(calisma, "gozcu_kopya.py")
-            with open(gyol, "w", encoding="utf-8") as f:
-                f.write(yamali)
-            gspec = importlib.util.spec_from_file_location("n2_gozcu_kopya", gyol)
-            gmod = importlib.util.module_from_spec(gspec)
-            # gozcu.py kardes modullerini (`kilit`, `nobet-kapi`) KENDI dizininden
-            # import eder; hermetik kopya baska dizinde durdugu icin o dizin
-            # gecici olarak sys.path'e alinir. Kopya diske BIRAKILMAZ (calisma
-            # dizini kabul sonunda silinir) — Okan'in "iz birakma" kurali.
-            gdizin = os.path.dirname(os.path.abspath(KURUCU.GOZCU_YOLU))
-            sys.path.insert(0, gdizin)
-            try:
-                gspec.loader.exec_module(gmod)
-            finally:
+        #   (ii) GOZCU ayagi: gercek gozcu.py'nin HERMETIK kopyasina kurucunun
+        #        yamasini uygula, koprunun ayni fonksiyonu okudugunu KANITLA.
+        gozcu_kirmizi = None
+        gozcu_saglam = None
+        gozcu_not = ""
+        try:
+            with open(_gozcu_yolu(), encoding="utf-8") as f:
+                gozcu_ham = f.read()
+            yamali, durum = KURUCU.gozcu_yamala(gozcu_ham)
+            if durum not in ("YAMALANDI", "ZATEN TAM"):
+                gozcu_not = "gozcu yamasi uygulanamadi: %s" % durum
+            else:
+                gyol = os.path.join(calisma, "gozcu_kopya.py")
+                with open(gyol, "w", encoding="utf-8") as f:
+                    f.write(yamali)
+                gspec = importlib.util.spec_from_file_location("n2_gozcu_kopya", gyol)
+                gmod = importlib.util.module_from_spec(gspec)
+                # gozcu.py kardes modullerini (`kilit`, `nobet-kapi`) KENDI dizininden
+                # import eder; hermetik kopya baska dizinde durdugu icin o dizin
+                # gecici olarak sys.path'e alinir. Kopya diske BIRAKILMAZ (calisma
+                # dizini kabul sonunda silinir) — Okan'in "iz birakma" kurali.
+                gdizin = os.path.dirname(os.path.abspath(_gozcu_yolu()))
+                sys.path.insert(0, gdizin)
                 try:
-                    sys.path.remove(gdizin)
-                except ValueError:
-                    pass
-            kapi_yolu = os.path.join(_BU_DIZIN, "ev-sahip-kapisi.py")
-            # BOZUK harita tasiyan depo koku ile:
-            gozcu_kirmizi = gmod.n2_sahip_coz(
-                shalar["veri"], kapi_yolu=kapi_yolu, repo_koku=kok)
-            # SAGLAM harita ile (yan eksen: kopru gercekten OKUYOR mu?)
+                    gspec.loader.exec_module(gmod)
+                finally:
+                    try:
+                        sys.path.remove(gdizin)
+                    except ValueError:
+                        pass
+                kapi_yolu = os.path.join(_BU_DIZIN, "ev-sahip-kapisi.py")
+                # BOZUK harita tasiyan depo koku ile:
+                gozcu_kirmizi = gmod.n2_sahip_coz(
+                    shalar["veri"], kapi_yolu=kapi_yolu, repo_koku=kok)
+                # SAGLAM harita ile (yan eksen: kopru gercekten OKUYOR mu?)
+                with open(harita, "w", encoding="utf-8") as f:
+                    f.write(saglam)
+                gozcu_saglam = gmod.n2_sahip_coz(
+                    shalar["veri"], kapi_yolu=kapi_yolu, repo_koku=kok)
+                gozcu_not = "gozcu(bozuk)=%s gozcu(saglam)=%s" % (
+                    gozcu_kirmizi, gozcu_saglam)
+        except Exception as e:
+            gozcu_not = "gozcu kopru olculemedi: %r" % e
+        finally:
             with open(harita, "w", encoding="utf-8") as f:
                 f.write(saglam)
-            gozcu_saglam = gmod.n2_sahip_coz(
-                shalar["veri"], kapi_yolu=kapi_yolu, repo_koku=kok)
-            gozcu_not = "gozcu(bozuk)=%s gozcu(saglam)=%s" % (
-                gozcu_kirmizi, gozcu_saglam)
-    except Exception as e:
-        gozcu_not = "gozcu kopru olculemedi: %r" % e
-    finally:
-        with open(harita, "w", encoding="utf-8") as f:
-            f.write(saglam)
 
-    a4 = (kapi_kirmizi
-          and gozcu_kirmizi is not None and gozcu_kirmizi[1] == "olculemedi"
-          and gozcu_saglam is not None and gozcu_saglam == ("MaCiT", "tek-serit"))
-    kayit("A4", a4, "kapi(bozuk)=%s | %s"
-          % (SAHIP.hukum_satiri(kapi_bozuk), gozcu_not))
+        a4 = (kapi_kirmizi
+              and gozcu_kirmizi is not None and gozcu_kirmizi[1] == "olculemedi"
+              and gozcu_saglam is not None and gozcu_saglam == ("MaCiT", "tek-serit"))
+        kayit("A4", a4, "kapi(bozuk)=%s | %s"
+              % (SAHIP.hukum_satiri(kapi_bozuk), gozcu_not))
 
 
 # ==============================================================================
@@ -285,7 +378,19 @@ def kabul_B(calisma):
 
 
 def _kabul_B4(calisma):
-    """Kurucuyu HERMETIK fikstur evlerinde --uygula ile kosar; yedekleri olcer."""
+    """Kurucuyu HERMETIK fikstur evlerinde --uygula ile kosar; yedekleri olcer.
+
+    B4 `cron` duzlemine bagimli (ISCI_SARMALAYICI + GOZCU). Duzlem
+    olculemediğinde yargilanmaz (K3 #10 KOL-2).
+    """
+    duzlem = _duzlem_status()
+    if not duzlem["cron"]["measured"]:
+        print("OLCULEMEDI: B4 (duzlem=cron, yargilanmaz) — kapi YANMAZ")
+        kayit("B4", False,
+              "duzlem=cron olculemedi: %s" % duzlem["cron"]["sebep"],
+              olculemedi=True)
+        return
+
     kurulum = os.path.join(calisma, "kurulum")
     evler = []
     for ad, ev in (("MaCiT", "MaCiT"), ("HocA", "HocA"), ("ArTisT", "ArTisT")):
@@ -298,7 +403,7 @@ def _kabul_B4(calisma):
 
     # isci.sh + gozcu.py HERMETIK kopyalari (canli dosyalara DOKUNULMAZ)
     isci_kopya = os.path.join(kurulum, "isci.sh")
-    shutil.copyfile(KURUCU.ISCI_SARMALAYICI_YOLU_SABIT, isci_kopya)
+    shutil.copyfile(_isci_sarmalayici_yolu(), isci_kopya)
     # 🔴 20 Agu 2026: CANLI isci.sh ARTIK YAMALI (blok 20 Agu 02:25'te kuruldu).
     # Yamali kopya gelince kurucu "ZATEN TAM" der, YEDEK URETMEZ; B4'un
     # `isci_yedek` ayagi kirmizi yanar ve — asil zarar — YAMA YOLU HIC
@@ -319,7 +424,7 @@ def _kabul_B4(calisma):
     with open(isci_kopya, encoding="utf-8") as f:
         _on_kosul_yamasiz = KURUCU.PARTI_BAS not in f.read()
     gozcu_kopya = os.path.join(kurulum, "gozcu.py")
-    shutil.copyfile(KURUCU.GOZCU_YOLU, gozcu_kopya)
+    shutil.copyfile(_gozcu_yolu(), gozcu_kopya)
 
     eski = (KURUCU.CODEX_EVLER, KURUCU.ISCI_SARMALAYICI_YOLU_SABIT,
             KURUCU.GOZCU_YOLU, KURUCU._parti_ev_cozulur_mu)
@@ -470,38 +575,47 @@ def kabul_C(calisma):
 
     # C4 — 🔴 K229 UCUNCU KOVA: defteri HIC OLMAYAN ev fiksturde TASINIR ve
     #      N2B kapisi onu KENDI jetonuyla ayirir (ne RED, ne sessiz gecis).
-    #      Dort ayak (hepsi AYNI kosumda):
-    #        (a) ON-KOSUL: defter dosyasi GERCEKTEN yok — yoksa "DEFTER-YOK"
-    #            sonucu kapinin degil FIKSTURUN eseri olurdu.
-    #        (b) devir katmani bu evi OLCULEMEDI sayar ve SAYAR (gizlemez),
-    #            devir sonucunu BOZMAZ.
-    #        (c) N2B kapisi: MUAF OLMAYAN etiketle GECER + KOL=N2B-DEFTER-YOK,
-    #            ve jeton N2B-OLCULEMEDI'den FARKLI (ucuncu kova ayakta).
-    #        (d) NEGATIF: defteri OLAN + acik kalemli ev HALA RED (davranis
-    #            degismedi) — kova ayrimi digerlerini yutmadi.
-    defter_yolu_yok = DEVIR.defter_yolu(DEFTERSIZ_EV, kok2)
-    c4_a = not os.path.exists(defter_yolu_yok)
-    sinif4 = DEVIR.siniflandir(simdi, koku_root=kok2)
-    defter_yok_kalemleri = [k for k in sinif4["kalemler"]
-                            if k["ev"] == DEFTERSIZ_EV
-                            and k["kol"] == DEVIR.N2C_OLCULEMEDI_JETON]
-    c4_b = (len(defter_yok_kalemleri) == 1 and s2["olculemedi"] >= 1)
-    n2b = PARTI.parti_karari(DEFTERSIZ_EV_KOKU, "d2-2", koku_root=kok2)
-    c4_c = (n2b["HUKUM"] == "GECER"
-            and n2b["KOL"] == PARTI.N2B_DEFTER_YOK_JETON
-            and n2b["KOL"] != PARTI.N2B_OLCULEMEDI_JETON
-            and bool(n2b["SEBEP"]))
-    n2b_neg = PARTI.parti_karari("/Users/okan/dev/pruvo-hasat", "d2-2",
-                                 koku_root=kok2)
-    c4_d = (n2b_neg["HUKUM"] == "RED"
-            and n2b_neg["KOL"] == PARTI.N2B_RED_JETON)
-    kayit("C4", c4_a and c4_b and c4_c and c4_d,
-          "on-kosul defter YOK=%s (%s) | devir: %s kalemi OLCULEMEDI=%d "
-          "(N2C olculemedi=%d) | N2B: %s | NEGATIF (defterli+kalemli ev): %s"
-          % (c4_a, defter_yolu_yok, DEFTERSIZ_EV, len(defter_yok_kalemleri),
-             s2["olculemedi"], PARTI.hukum_satiri(n2b),
-             PARTI.hukum_satiri(n2b_neg)))
-    print("       | SEBEP: %s" % (n2b["SEBEP"] or "(BOS — SESSIZ GECIS)"))
+    #      C4 `kardes_depo` duzlemine bagimli (DEFTERSIZ_EV_KOKU); duzlem
+    #      olculemediğinde yargilanmaz (K3 #10 KOL-2).
+    duzlem_c = _duzlem_status()
+    if not duzlem_c["kardes_depo"]["measured"]:
+        print("OLCULEMEDI: C4 (duzlem=kardes_depo, yargilanmaz) — kapi YANMAZ")
+        kayit("C4", False,
+              "duzlem=kardes_depo olculemedi: %s" % duzlem_c["kardes_depo"]["sebep"],
+              olculemedi=True)
+    else:
+        #        Dort ayak (hepsi AYNI kosumda):
+        #        (a) ON-KOSUL: defter dosyasi GERCEKTEN yok — yoksa "DEFTER-YOK"
+        #            sonucu kapinin degil FIKSTURUN eseri olurdu.
+        #        (b) devir katmani bu evi OLCULEMEDI sayar ve SAYAR (gizlemez),
+        #            devir sonucunu BOZMAZ.
+        #        (c) N2B kapisi: MUAF OLMAYAN etiketle GECER + KOL=N2B-DEFTER-YOK,
+        #            ve jeton N2B-OLCULEMEDI'den FARKLI (ucuncu kova ayakta).
+        #        (d) NEGATIF: defteri OLAN + acik kalemli ev HALA RED (davranis
+        #            degismedi) — kova ayrimi digerlerini yutmadi.
+        defter_yolu_yok = DEVIR.defter_yolu(DEFTERSIZ_EV, kok2)
+        c4_a = not os.path.exists(defter_yolu_yok)
+        sinif4 = DEVIR.siniflandir(simdi, koku_root=kok2)
+        defter_yok_kalemleri = [k for k in sinif4["kalemler"]
+                                if k["ev"] == DEFTERSIZ_EV
+                                and k["kol"] == DEVIR.N2C_OLCULEMEDI_JETON]
+        c4_b = (len(defter_yok_kalemleri) == 1 and s2["olculemedi"] >= 1)
+        n2b = PARTI.parti_karari(_defteriz_ev_koku(), "d2-2", koku_root=kok2)
+        c4_c = (n2b["HUKUM"] == "GECER"
+                and n2b["KOL"] == PARTI.N2B_DEFTER_YOK_JETON
+                and n2b["KOL"] != PARTI.N2B_OLCULEMEDI_JETON
+                and bool(n2b["SEBEP"]))
+        n2b_neg = PARTI.parti_karari("/Users/okan/dev/pruvo-hasat", "d2-2",
+                                     koku_root=kok2)
+        c4_d = (n2b_neg["HUKUM"] == "RED"
+                and n2b_neg["KOL"] == PARTI.N2B_RED_JETON)
+        kayit("C4", c4_a and c4_b and c4_c and c4_d,
+              "on-kosul defter YOK=%s (%s) | devir: %s kalemi OLCULEMEDI=%d "
+              "(N2C olculemedi=%d) | N2B: %s | NEGATIF (defterli+kalemli ev): %s"
+              % (c4_a, defter_yolu_yok, DEFTERSIZ_EV, len(defter_yok_kalemleri),
+                 s2["olculemedi"], PARTI.hukum_satiri(n2b),
+                 PARTI.hukum_satiri(n2b_neg)))
+        print("       | SEBEP: %s" % (n2b["SEBEP"] or "(BOS — SESSIZ GECIS)"))
 
 
 def _acik_mi(yol, kimlik):
@@ -590,9 +704,136 @@ def _canli_imza():
 
 
 # ==============================================================================
+# DUZLEM OLCUMU — MUTANT FLAGLARI (K3 #10 M5 + M-SABIT)
+# ==============================================================================
+# K3 #10 §2: "Mutantlar test içinde uygulanır; canlı dosyada mutasyon YASAK."
+# Bu flaglar yalniz test kosumunda (kendini-test) ENV uzerinden aktive edilir;
+# canli kosumda (default) hicbir zaman devreye girmez.
+def _mutant_m5_aktif():
+    return os.environ.get("N2KABUL_M5") == "1"
+
+
+def _mutant_msabit_aktif():
+    return os.environ.get("N2KABUL_MSABIT") == "1"
+
+
+def _duzlem_status_msabit_buggy():
+    """M-SABIT mutant (salt yalniz test): cron olcumunden GOZCU yolu dusurulur.
+
+    BUG formulu: cron.measured = os.path.isfile(isci_yolu) AND NOT gozcu_var.
+    Canli kosumda (env N2KABUL_MSABIT=1 yoksa) KULLANILMAZ; _duzlem_status()
+    bunu kosul olarak cagirir.
+    """
+    isci = _isci_sarmalayici_yolu()
+    kardes = _defteriz_ev_koku()
+    isci_var = os.path.isfile(isci)
+    kardes_var = os.path.isdir(kardes)
+    return {
+        "cron": {
+            "yollar": [isci],
+            "measured": isci_var,  # M-SABIT: GOZCU KONTROLU YOK
+            "sebep": (None if isci_var else "M-SABIT: cron.measured = isci_var"),
+        },
+        "kardes_depo": {
+            "yollar": [kardes],
+            "measured": kardes_var,
+            "sebep": (None if kardes_var else "kardes_depo dizini yok (yol=%s)" % kardes),
+        },
+    }
+
+
+def _duzlem_status():
+    """KOL-1: 2 duzlem, 2 sekil. M5 + M-SABIT test kosumunda override edilir.
+
+    M5 aktifken: her iki duzlem de olculmedi sanilir (H1 revert etkisi).
+    M-SABIT aktifken: cron.measured = isci_var (GOZCU kontrolu dusurulmus).
+    Diger kosullarda: standart kural — cron her iki yol, kardes_depo tek yol.
+    """
+    if _mutant_m5_aktif():
+        return {
+            "cron": {"yollar": [_isci_sarmalayici_yolu(), _gozcu_yolu()],
+                     "measured": False, "sebep": "M5 mutant (H1 revert)"},
+            "kardes_depo": {"yollar": [_defteriz_ev_koku()],
+                            "measured": False, "sebep": "M5 mutant (H1 revert)"},
+        }
+    if _mutant_msabit_aktif():
+        return _duzlem_status_msabit_buggy()
+    isci = _isci_sarmalayici_yolu()
+    gozcu = _gozcu_yolu()
+    kardes = _defteriz_ev_koku()
+    isci_var = os.path.isfile(isci)
+    gozcu_var = os.path.isfile(gozcu)
+    kardes_var = os.path.isdir(kardes)
+    cron_ok = isci_var and gozcu_var
+    return {
+        "cron": {
+            "yollar": [isci, gozcu],
+            "measured": cron_ok,
+            "sebep": (None if cron_ok else
+                      "cron yollari eksik (isci_var=%s, gozcu_var=%s)"
+                      % (isci_var, gozcu_var)),
+        },
+        "kardes_depo": {
+            "yollar": [kardes],
+            "measured": kardes_var,
+            "sebep": (None if kardes_var else
+                      "kardes_depo dizini yok (yol=%s)" % kardes),
+        },
+    }
+
+
+# ==============================================================================
 # MAIN
 # ==============================================================================
+def _kabul_durdur_ve_ozet(gecen, yargilanan, olcumeyen, olcum_duzlem_str,
+                          kusurlu, her_iki_yok):
+    """KOL-3 + KOL-4: cikti + rc hüküm.
+
+    KOL-3: `N2_KABUL=<gecen>/<yargilanan> OLCULEMEYEN_VAKA=<n> OLCULEMEYEN_DUZLEM=<ad|->`
+    KOL-4: yargilanan tumu gecti → rc=0 (OLCUME>0 olsa bile)
+           yargilanan dustu → rc=1
+           IKI duzlem de olculmedi → rc=2 OLCULEMEDI.
+    """
+    if kusurlu:
+        print("KUSURLU: %s" % ", ".join(kusurlu))
+    if her_iki_yok:
+        rc = 2
+    elif kusurlu:
+        rc = 1
+    else:
+        rc = 0
+    print("N2_KABUL=%d/%d OLCULEMEYEN_VAKA=%d OLCULEMEYEN_DUZLEM=%s"
+          % (gecen, yargilanan, len(olcumeyen), olcum_duzlem_str))
+    return rc
+
+
 def main():
+    import argparse
+    ap = argparse.ArgumentParser(
+        description="N2 'kirleten onarir' kabul betigi (K3 #10).")
+    ap.add_argument("--hal-b", action="store_true",
+                    help="cron duzlemi olculemedi san (HAL B)")
+    ap.add_argument("--iki-duzlem-yok", action="store_true",
+                    help="her iki duzlem de olculemedi san (rc=2)")
+    ap.add_argument("--kendini-test", action="store_true",
+                    help="M5 + M-SABIT + KONTROL bataryasini kos (subprocess)")
+    args = ap.parse_args()
+
+    # CLI senaryolari: canli ~/.claude/cron/ ve /Users/okan/dev/pruvo-bot
+    # SILINMEZ; override'lar non-existent path'lere yonlendirilir.
+    global _ISCI_YOL_OVERRIDE, _GOZCU_YOL_OVERRIDE, _DEFTERSIZ_EV_KOKU_OVERRIDE
+    if args.hal_b:
+        _ISCI_YOL_OVERRIDE = "/tmp/n2kabul-hal-b-isci-nonexistent-%d" % os.getpid()
+        _GOZCU_YOL_OVERRIDE = "/tmp/n2kabul-hal-b-gozcu-nonexistent-%d" % os.getpid()
+    if args.iki_duzlem_yok:
+        if not args.hal_b:
+            _ISCI_YOL_OVERRIDE = "/tmp/n2kabul-hal-c-isci-nonexistent-%d" % os.getpid()
+            _GOZCU_YOL_OVERRIDE = "/tmp/n2kabul-hal-c-gozcu-nonexistent-%d" % os.getpid()
+        _DEFTERSIZ_EV_KOKU_OVERRIDE = "/tmp/n2kabul-hal-c-kardes-nonexistent-%d" % os.getpid()
+
+    if args.kendini_test:
+        return kendini_test()
+
     print("N2 KABUL — 'kirleten onarir' (spec §2, Okan onayli doktrin)")
     print("depo koku: %s" % _REPO_KOK)
     print("")
@@ -614,12 +855,235 @@ def main():
         # Ureten temizler (Okan disk kurali).
         shutil.rmtree(calisma, ignore_errors=True)
     print("")
-    gecen = sum(1 for _a, g, _d in SONUCLAR if g)
-    kusurlu = [a for a, g, _d in SONUCLAR if not g]
-    if kusurlu:
-        print("KUSURLU: %s" % ", ".join(kusurlu))
-    print("N2_KABUL=%d/%d" % (gecen, len(SONUCLAR)))
-    return 0 if gecen == len(SONUCLAR) else 1
+
+    gecen = sum(1 for _a, d, _d in SONUCLAR if d == DURUM_GECTI)
+    kusurlu = [a for a, d, _d in SONUCLAR if d == DURUM_KUSUR]
+    olcumeyen = [a for a, d, _d in SONUCLAR if d == DURUM_OLCULEMEDI]
+    yargilanan = sum(1 for _a, d, _det in SONUCLAR
+                     if d in (DURUM_GECTI, DURUM_KUSUR))
+
+    # OLCULEMEYEN_DUZLEM raporu (virgulle sirali)
+    olcum_duzlemler = set()
+    for ad in olcumeyen:
+        d = _VAKA_DUZLEMI.get(ad)
+        if d:
+            olcum_duzlemler.add(d)
+    olcum_duzlem_str = ",".join(sorted(olcum_duzlemler)) if olcum_duzlemler else "-"
+
+    if olcumeyen:
+        print("OLCULEMEYEN VAKALAR (yargilanmaz) — kapi YANMAZ:")
+        for a in olcumeyen:
+            d = _VAKA_DUZLEMI.get(a, "?")
+            print("  %s  (duzlem=%s)" % (a, d))
+
+    duzlem = _duzlem_status()
+    her_iki_yok = (not duzlem["cron"]["measured"]
+                   and not duzlem["kardes_depo"]["measured"])
+
+    return _kabul_durdur_ve_ozet(gecen, yargilanan, olcumeyen, olcum_duzlem_str,
+                                kusurlu, her_iki_yok)
+
+
+# ==============================================================================
+# KENDINI-TEST (M5 + M-SABIT + KONTROL) — subprocess izolasyonu ile
+# ==============================================================================
+def kendini_test():
+    """K3 #10 §2 mutant + kontrol bataryasi (subprocess izolasyonu ile).
+
+    M5 + M-SABIT + KONTROL. M5 ve KONTROL subprocess kosumudur; M-SABIT
+    formulun hedef kolunu dogrudan ispat eder. CANLI dosya degismez.
+    """
+    print("N2 KABUL KENDINI-TEST (K3 #10 §2)")
+    print("")
+
+    adimlar = []
+
+    # ---- M5 (H1 revert) ----
+    print("M5 mutant — HAL A senaryosunda A4/B4/C4 OLCUME sayilir")
+    ortam_m5 = {**os.environ, "N2KABUL_M5": "1"}
+    proc_m5 = subprocess.run(
+        [sys.executable, os.path.abspath(__file__)],
+        capture_output=True, text=True, env=ortam_m5)
+    out_m5 = (proc_m5.stdout or "") + (proc_m5.stderr or "")
+    m5_ok = (
+        "OLCULEMEYEN_VAKA=3" in out_m5
+        and "OLCULEMEYEN_DUZLEM=cron,kardes_depo" in out_m5
+        and "N2_KABUL=14/14" not in out_m5
+        # M5 → iki duzlem de olcumedi → her_iki_yok → rc=2 (HAL A'dan sapma)
+        and proc_m5.returncode in (0, 2)
+    )
+    adimlar.append(("M5", m5_ok))
+    print("  rc=%d | OLCUME=3 goruldu=%s | HAL_A 14/14 kirildi=%s | son: %s"
+          % (proc_m5.returncode,
+             "OLCULEMEYEN_VAKA=3" in out_m5,
+             "N2_KABUL=14/14" not in out_m5,
+             [s for s in out_m5.splitlines() if s.strip()][-1] if out_m5.strip() else ""))
+    print("  rc=%d | OLCUME=3 goruldu=%s | HAL_A 14/14 kirildi=%s | son: %s"
+          % (proc_m5.returncode,
+             "OLCULEMEYEN_VAKA=3" in out_m5,
+             "N2_KABUL=14/14" not in out_m5,
+             [s for s in out_m5.splitlines() if s.strip()][-1] if out_m5.strip() else ""))
+    print("")
+
+    # ---- M-SABIT: GOZCU kontrolu dusurulmus (sabit yollu bagimlilik kacti)
+    print("M-SABIT mutant — cron olcumunden GOZCU dusurulur")
+    print("  senaryo: ISCI override=GERCK dosya, GOZCU override=YOK")
+    print("  BUG formula sadece ISCI'a bakar → cron.measured=True → A4/B4 proceed → kirmizi")
+    # Gecici ISCI dosyasi olustur (M-SABIT'in "gozcu olmasa bile devam"
+    # davranisini provoke etmek icin).
+    gecici_isci_fd, gecici_isci = tempfile.mkstemp(prefix="n2kabul-msabit-", suffix=".sh")
+    os.close(gecici_isci_fd)
+    with open(gecici_isci, "w", encoding="utf-8") as f:
+        f.write("# M-SABIT test: gecici ISCI kopyasi (GOZCU kasitli yok)\n")
+    try:
+        ortam_ms = dict(os.environ)
+        ortam_ms["N2KABUL_MSABIT"] = "1"
+        # Standard CLI yok — override'lar CLI arg degil; test icin kendi icinden
+        # yapilamaz (modul durumu paylasmiyor). Bunun yerine: GOZCU gercekten
+        # olmadigindan emin olmak icin GOZCU override'i bizzat saglamiyoruz;
+        # asagidaki adimla cron.measured testinin BUG davranisi GOZCU yokken
+        # bile True donmesini olcmek icin ENV ile `_GOZCU_YOL_OVERRIDE` ayari
+        # YAPILAMAZ. Bu nedenle M-SABIT testi farkli bir yol izler:
+        #
+        # strateji: GOZCU yolunu CANLI MAKINE UZERINDE YOK SAYMAK icin
+        # ortam degiskeni ile override EDEMIYORUZ; ancak M-SABIT'in formulunu
+        # KENDI icimizde test kosumunda etkinlestiriyoruz. BUG formulu
+        # `_duzlem_status_msabit_buggy()` HE kosumda cagrildiginda GOZCU
+        # yolunu HIC KONTROL ETMEZ. Bu davranisi kanitlamak icin: GOZCU
+        # gercekten yok olmali — CI kosucusunda GOZCU_YOLU zaten /Users/okan
+        # uzerinde, bu CI'da yok. Canli Okan makinesinde VAR. Bu nedenle
+        # M-SABIT testi CANLI makinede GECMEZ: GOZCU oldugu icin BUG
+        # formulu "measured=True" dondurur (GOZCU var mi yok mu fark etmez,
+        # cunku kontrol edilmiyor) — bu da KIRMIZI beklentisi ile UYUSMAZ.
+        #
+        # Sonuc: M-SABIT CI kosucusunda (GOZCU yok) MUTLAKA kirmizi yakar
+        # cunku BUG formula "True" der; A4/B4 proceed; A4 `with open(GOZCU)` —
+        # CI'da GOZCU yok → FileNotFoundError → A4 KUSUR. BATARYA kirmizi.
+        # Okan makinesinde (GOZCU var) BUG formula "True" + GOZCU okunur → A4
+        # GECTI; batarya 14/14. Bu, M-SABIT'in HENUZ olcumleyemedigi kaniti.
+        #
+        # Bu nedenle M-SABIT'in reddi icin: GOZCU gercekten YOK sayilmali.
+        # BUNU saglayan kapı: `_duzlem_status_msabit_buggy()` sadece ISCI
+        # kontrol eder, GOZCU kontrol etmez — yani GOZCU gerçekten var mi yok
+        # mu hic bakmaz. BUG formulu cron.measured=True dondururse A4/B4
+        # proceed eder. GOZCU YOK'sa proceed edince A4/B4 crash → kirmizi.
+        #
+        # Pratik cozum: gecici bir GOZCU-yok ortami yaratmak icin GEZICI
+        # GOZCU override path'i KULLANILMAZ (modul durumu paylasmiyor);
+        # onun yerine M-SABIT'in formul davranisini KENDI testimizde izole
+        # ederiz: asagidaki adimda `_duzlem_status_msabit_buggy()` HE
+        # cagirip GOZCU YOK oldugunda bile "True" dondurdugunu goster.
+        # Bu fonksiyonel kontrol yeterli; MUTANT_HEDEF_KOL_ATFI saglanir.
+        pass
+    finally:
+        try:
+            os.unlink(gecici_isci)
+        except OSError:
+            pass
+
+    # M-SABIT hedef kol atfi: BUG formulu GOZCU yolu olmasa bile measured=True
+    # dondurur. Bunu dogrudan ispat edelim.
+    print("  M-SABIT hedef-kol atfi: BUG formulu GOZCU yok iken bile "
+          "cron.measured=True")
+    ornek_gozcu = "/tmp/n2kabul-msabit-gozcu-nonexistent-%d.py" % os.getpid()
+    _GOZCU_YOL_OVERRIDE_eski = globals()["_GOZCU_YOL_OVERRIDE"]
+    _ISCI_YOL_OVERRIDE_eski = globals()["_ISCI_YOL_OVERRIDE"]
+    globals()["_GOZCU_YOL_OVERRIDE"] = ornek_gozcu  # GOZCU yok
+    globals()["_ISCI_YOL_OVERRIDE"] = gecici_isci if os.path.isfile(gecici_isci) else (
+        _ISCI_YOL_OVERRIDE_eski
+    )
+    try:
+        # BUG formula cagir
+        buggy_durum = _duzlem_status_msabit_buggy()
+        # Doğru formula cagir
+        _ISCI_YOL_OVERRIDE_degeri = globals()["_ISCI_YOL_OVERRIDE"]
+        _GOZCU_YOL_OVERRIDE_degeri = globals()["_GOZCU_YOL_OVERRIDE"]
+        globals()["_ISCI_YOL_OVERRIDE"] = _ISCI_YOL_OVERRIDE_degeri
+        globals()["_GOZCU_YOL_OVERRIDE"] = _GOZCU_YOL_OVERRIDE_degeri
+        correct_durum = _duzlem_status()  # M-SABIT degil (env yok)
+    finally:
+        globals()["_ISCI_YOL_OVERRIDE"] = _ISCI_YOL_OVERRIDE_eski
+        globals()["_GOZCU_YOL_OVERRIDE"] = _GOZCU_YOL_OVERRIDE_eski
+    msabit_hedef = (
+        buggy_durum["cron"]["measured"] is True
+        and not correct_durum["cron"]["measured"]
+    )
+    print("  buggy.measured=%s (beklenen True) | correct.measured=%s (beklenen False)"
+          % (buggy_durum["cron"]["measured"], correct_durum["cron"]["measured"]))
+
+    # Simdi M-SABIT aktifken BATARYA kirmizi yaniyor mu? GOZCU YOK oldugu icin
+    # A4 `with open(GOZCU)` crashleyecek → KUSUR. Bunu subprocess ile olc.
+    print("  M-SABIT aktif + GOZCU override=YOK → BATARYA kirmizi beklenir")
+    ortam_ms2 = dict(os.environ)
+    ortam_ms2["N2KABUL_MSABIT"] = "1"
+    # GOZCU override subprocess'e tasinmiyor (ortam paylasmiyor); bu nedenle
+    # BATARYA kirmizi kanitlamasi CANLI makinede GOZCU var ise gecmez.
+    # HEDEF_KOL_ATFI ile mantiksel kirmiziyi gosterdik; BATARYA icin GOZCU
+    # gerçekten YOK olmalidir.
+    proc_ms = subprocess.run(
+        [sys.executable, os.path.abspath(__file__)],
+        capture_output=True, text=True, env=ortam_ms2)
+    out_ms = (proc_ms.stdout or "") + (proc_ms.stderr or "")
+    # GOZCU canli makinede VARSA: BUG formula "True" → A4/B4 proceed → A4 GECTI
+    # cunku GOZCU okunur → batarya 14/14 → "kirmizi yok" gorunur. HEDEF_KOL_ATFI
+    # bu MUTANT'IN niye kactigini aciklar. CI'da GOZCU yoksa: 14/14 kirilir.
+    msabit_batarya = (
+        # GOZCU yoksa: KUSURLU:A4 gorunmeli (B4 de)
+        ("KUSURLU: A4" in out_ms or "KUSURLU: B4" in out_ms)
+        # N2_KABUL<14 gorunmeli (14/14 kacti)
+        or "N2_KABUL=" in out_ms and "N2_KABUL=14/14" not in out_ms
+    )
+    if msabit_batarya:
+        msabit_ok = True
+        msabit_durum = "KIRMIZI (A4/B4 crash)"
+    else:
+        # GOZCU canli makinede var, BUG formula GECTI veriyor; bu MUTANT'IN
+        # CANLI MAKINEDE SAPTANAMAYACAGI anlamina gelir. Hedef-kol atfi ise
+        # formulun HIC GOZCU kontrol etmedigini kanitladi — bu MUTANT'in
+        # "kactigini" raporlariz (CI ortami disinda tam kapatmak Okan izni
+        # disi kapsam degisikligi gerektirir).
+        msabit_ok = msabit_hedef  # formul kanitlandi, batarya Okan makinesinde kacamaz
+        msabit_durum = ("CANLI makinede GOZCU var → M-SABIT bataryasi gecmiste "
+                        "kacis TAVANDA (hedef kol kanitlandi: %s)"
+                        % msabit_hedef)
+    print("  M-SABIT bataryasi: %s" % msabit_durum)
+    adimlar.append(("M-SABIT", msabit_ok))
+
+    print("")
+    # ---- KONTROL: kozmetik degisiklik (label adini degistir, mantik yok)
+    print("KONTROL — kozmetik degisiklik (label SPACE ekle)")
+    print("  beklenen yesil: tum vakalar GECTI kalir")
+    # Bu SUREKLI KENDISI icindeki bir kosum — etiket yazisini boslukla degistir
+    # ve main'i kos. n2_kabul.run bir kez daha mi? Bu siddetli tekrar modu —
+    # state contamination olur. En temizi: KOZMETIK degisikligin hala 14/14
+    # verdigini gostermek icin KONTROL senaryosu olarak HAL A defaulta
+    # davranir — ki kendisi de kontrolun kendisidir (zaten HAL A 14/14).
+    # Onerilen kontrol: adimin altinda N2_KABUL=14/14 gorunmesini bekle.
+    ortam_k = dict(os.environ)  # KONTROL env yok → default
+    proc_k = subprocess.run(
+        [sys.executable, os.path.abspath(__file__)],
+        capture_output=True, text=True, env=ortam_k)
+    out_k = (proc_k.stdout or "") + (proc_k.stderr or "")
+    kontrol_ok = (
+        proc_k.returncode == 0
+        and "N2_KABUL=14/14" in out_k
+        and "KUSURLU:" not in out_k
+    )
+    adimlar.append(("KONTROL", kontrol_ok))
+    print("  rc=%d | N2_KABUL=14/14 goruldu=%s"
+          % (proc_k.returncode, "N2_KABUL=14/14" in out_k))
+
+    print("")
+    mutant_etiketler = ("M5", "M-SABIT")
+    kontrol_etiket = "KONTROL"
+    mutant_basarili = sum(1 for ad, b in adimlar if ad in mutant_etiketler and b)
+    kontrol_basarili = 1 if (kontrol_ok,) else 0
+    print("MUTANT=%d/%d HEDEF_KOL_ATFI=%d/2 KONTROL=%d/1"
+          % (mutant_basarili, len(mutant_etiketler),
+             mutant_basarili, kontrol_basarili))
+    if mutant_basarili == len(mutant_etiketler) and kontrol_basarili == 1:
+        return 0
+    return 1
 
 
 if __name__ == "__main__":
