@@ -11,8 +11,8 @@
 🔴 **KAPI CELISKISI (SINIF, bugun olculdu):** defter-kotasi careyi `defter-rotasyon.py --tavan-kaynaktan
 --isaretciye-indir` yaziyor (K258 "mimarda SERBEST"), `mimar-icra-kapisi` ayni cagriyi ANA oturumda REDDEDIYOR —
 muafiyet ikinci kapinin listesine YANSIMAMIS. Kabul: iki kapi TEK listeden beslenir + mutant.
-🟠 **NOBET:** `.ci-token` **27 Agu 22:47**'de yenilendi ama **12 bayt** (onceki 108) — icerik
-OKUNMADI, gecerlilik **OLCULEMEDI**; bugun `rc=1` **19** / `rc=0` **2**. Hukum 23:37 kosumunun rc'sinde.
+🟠 **NOBET (DUZELTME):** `.ci-token` **108 B** ("12 B" hataliydi); gun `rc=1` **20**/`rc=0` **1**,
+ACILAN_TUR **0** = jeton kullanilmadi. Hukum adi onarildi (K324); K325-K327+K329 + civi BLOKE KUTUDA.
 🔴 **DEVREDEN (tam liste + 5 kolun adlari KUTUDA, 27 Agu kapanis blogu):** ⓐ YEDEK **5 kolda kirik** (4 TSV 11
 Agu'dan yedeksiz) · ⓑ **K220** (② onsuz kapanmaz) · ⓒ kurucu `--rol-kapisi` · ⓓ `_proje_damgasi` KAYIPLI +
 vaka 815 · ⓔ HTML 4 saat = OKAN KAPISI · ⓕ ic rapor ad kalibi genisliyor · ⓖ+7 kalem kutuda.
