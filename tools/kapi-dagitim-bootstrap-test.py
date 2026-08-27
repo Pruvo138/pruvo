@@ -39,6 +39,7 @@ CAPA_WT = 'GIT_WORKTREE_KAYIT = "/Users/okan/dev/pruvo/.git/worktrees"'
 
 sys.path.insert(0, BURASI)
 import kapi_dagitim as KD  # noqa: E402
+from git_ortami import sentetik_git  # noqa: E402
 from mimar_kimlik import _proje_damgasi  # noqa: E402
 
 # Kayitli bir EV KOKU — muafiyetin izinli kumesi bundan turer. Dizinin DISKTE olmasi
@@ -50,8 +51,14 @@ for _ad, _kok, _g, _m in KD.EVLER:
 
 
 def _git(kok, *argv):
-    subprocess.run(["git", "-C", kok] + list(argv), check=True,
-                   capture_output=True, text=True)
+    """Sentetik depolarda git — KANONIK yardimciyla.
+
+    🔴 Duz `subprocess.run(["git", ...])` KULLANILMAZ: miras alinan GIT_DIR/GIT_INDEX_FILE
+    gibi baglam degiskenleri depo kesfini BASKA bir depoya kaydirir. Bu batarya hem CI'da
+    hem (kapi zincirinden) kanca baglaminda kosabildigi icin risk kuramsal degil
+    ([[kanca-git-dir-kok-cozumu]]). Ikinci bir sentetik-git govdesi de YAZILMAZ —
+    tek kaynak tools/git_ortami.py ([[ikiz-tanim-sessiz-ayrisma]])."""
+    sentetik_git(kok, *argv, check=True, capture_output=True, text=True)
 
 
 def sentetik_ev(tmp, ad, kurucu_tasi):
@@ -66,9 +73,8 @@ def sentetik_ev(tmp, ad, kurucu_tasi):
     """
     kok = os.path.join(tmp, ad)
     os.makedirs(os.path.join(kok, "tools"))
-    _git(os.path.dirname(kok) if False else tmp, "init", "-q", ad)
-    _git(kok, "config", "user.email", "t@t")
-    _git(kok, "config", "user.name", "t")
+    _git(tmp, "init", "-q", ad)
+    # Kimlik `-c` ile verilir (sentetik_git varsayilani); hicbir config dosyasina YAZILMAZ.
     with open(os.path.join(kok, "tohum.txt"), "w") as f:
         f.write("x\n")
     _git(kok, "add", "-A")
@@ -352,8 +358,7 @@ def main():
         for _ad in ("kaynak-ev", "kardes-ev"):
             _k = os.path.join(tmp, _ad)
             if os.path.isdir(_k):
-                subprocess.run(["git", "-C", _k, "worktree", "prune"],
-                               capture_output=True, text=True)
+                sentetik_git(_k, "worktree", "prune", capture_output=True, text=True)
         shutil.rmtree(tmp, ignore_errors=True)
         print("GECICI_SILINDI=" + str(not os.path.exists(tmp)) + " YOL=" + tmp)
 
