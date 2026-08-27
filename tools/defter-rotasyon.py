@@ -662,6 +662,83 @@ def _madde_sinifi(metin):
     return sinif
 
 
+# === K324 (27 Agu 2026) — TASIMA BIRIMI, DEFTERIN **IKINCI** NOTASYONU =====
+# OLCULEN ARIZA (27 Agu, canli DEVAM.md, `k324-kota-prob.py` ON-OLCUMU):
+# kanonik rotasyon `TASIRMADI: blok=6, hepsi vetolu` dedi. Kova dokumu sebebi
+# ADIYLA soyledi ve mimarin "veto yanlis pozitif" hipotezini KISMEN CURUTTU:
+#
+#   OLCEK-2 (bugunku `- ` madde birimi): MADDE=46 -> ACIK=44 ARSIV_ISARETCISI=1
+#   KAPALI=0. Yani defterin 46 maddesinin HICBIRI kapali degil; madde
+#   duzeyinde veto DOGRUDUR, gevsetilecek bir sey YOK.
+#
+#   OLCEK-1 (blok birimi): 6 blogun 6'si vetolu, INDIRILEBILIR_BLOK_BAYT=0.
+#
+# 🔴 GERCEK KUSUR UCUNCU OLCEKTE CIKTI: defterin EN BUYUK blogu
+# (`## 🔚 27 AGU TUR-2`, 1926 bayt) tek bir `- ` maddesi TASIMIYOR. O blok
+# defterin IKINCI yazim notasyonuyla yazilmis: SUTUN 0'da hal jetonuyla
+# baslayan PARAGRAFLAR (`🟢 ...`, `✅ ...`, `🔴 ...`). `_maddeleri_isle`
+# yalniz `- ` onekine bakiyordu, dolayisiyla o 1926 baytta **SIFIR birim**
+# goruyor; blok yalnizca MONOLIT olarak yargilanabiliyor ve iceride duran
+# TEK BIR acik jeton butun blogu kilitliyordu. Olculdu:
+# `OLCEK3_BUGUN_GORUNMEZ_BAYT=2618` — arac defterin 2.618 baytini hic
+# BIRIM olarak gormuyordu.
+#
+# ONARIM = K243'un AYNI EKSENI, bir kademe daha ince: TASIMA BIRIMI dogru
+# seviyeye indirilir. Yuklem DEGISMEZ — ayni `_madde_tasinir_mi` /
+# `_madde_sinifi` cagirilir (IKINCI HUKUM TABLOSU ACILMAZ), yalnizca birimin
+# TANIMI defterin gercek yazimini kapsar.
+#
+# 🔴 UC EMNIYET, HEPSI FAIL-CLOSED YONUNDE:
+#  (1) SUTUN 0 SARTI: girintili satir DEVAM satiridir, birim ACMAZ. Aksi
+#      halde `  🔧 **K241 ...` gibi bir madde DEVAM satiri kendi birimi
+#      sayilir ve maddeyi ORTADAN BOLERDI (prob bunu once yanlis yapti).
+#  (2) PROSE BOLGESI SARTI: segment YALNIZ govdenin ILK `- ` maddesinden
+#      ONCEKI bolgesinde taninir. Mevcut madde sinirlarina TEK BIR SATIR
+#      bile dokunulmaz — yani bu onarimin `- ` maddeleri uzerinde SIFIR
+#      regresyon yuzeyi vardir.
+#  (3) ACIK SEGMENT TASINMAZ: yuklem ortak oldugu icin `🔴 **YENI
+#      KALEMLER:** ...` segmenti ACIK kovasina duser ve DEFTERDE KALIR;
+#      ortak satir tasiyan `✅ ... 🔴 ... K318 CANLI` segmenti
+#      SINIFLANAMAZ olur ve yine KALIR. Ikisi de KONTROL vakasidir.
+HAL_SEGMENT_JETONLARI = tuple(dict.fromkeys(
+    [j for j in KAPANIS_ISARETCILER if not any(c.isalpha() for c in j)]
+    + list(_EMOJI_JETONLAR)))
+
+
+def _hal_segmenti_baslangici(satir):
+    """Satir SUTUN 0'da hal jetonu tasiyip yeni bir HAL SEGMENTI aciyor mu?
+
+    `- ` maddesi DEGIL (o kendi birimidir) ve GIRINTISIZ olmali: girintili
+    satir bir maddenin ya da segmentin DEVAM satiridir.
+    """
+    if satir.startswith("- "):
+        return False
+    if satir[:1].isspace():
+        return False
+    return any(satir.startswith(j) for j in HAL_SEGMENT_JETONLARI)
+
+
+def _kanonik_madde_metni(metin):
+    """Birim metnini madde yuklemlerinin bekledigi `- ` onekli bicime getirir.
+
+    `- ` maddeleri icin BIREBIR AYNI dizeyi dondurur (kimlik) — yani mevcut
+    davranis bit-bit korunur. Hal segmenti icin YALNIZ yuklem cagrisi
+    sirasinda onek eklenir; ARSIVE YAZILAN metin her zaman ONEKSIZ ORIJINALDIR
+    (taşıma birebirdir, bir karakter bile uydurulmaz).
+    """
+    return metin if metin.startswith("- ") else "- " + metin
+
+
+def _birim_tasinir_mi(metin):
+    """Birim (madde ya da hal segmenti) tasinir mi? — TEK yuklem kaynagi."""
+    return _madde_tasinir_mi(_kanonik_madde_metni(metin))
+
+
+def _birim_sinifi(metin):
+    """Birimin KOVASI — TEK siniflama kaynagi (`_madde_sinifi`)."""
+    return _madde_sinifi(_kanonik_madde_metni(metin))
+
+
 def _maddeleri_isle(govde, kova=None, ornekler=None):
     """Acik kalan bir blogun govdesindeki maddeleri isle.
 
@@ -679,14 +756,35 @@ def _maddeleri_isle(govde, kova=None, ornekler=None):
     tasinacak = []
     i = 0
     n = len(govde)
+    # K324 (2): MADDE SINIRINA DOKUNULMAZ. `- ` maddesinin kapsama kurali
+    # AYNEN kalir (bir sonraki `- `'e kadar her seyi yutar); dolayisiyla bir
+    # `- ` maddesinden SONRA gelen sutun-0 hal satiri o maddenin DEVAMI
+    # sayilmaya devam eder ve segment kolu oraya HIC ULASMAZ.
+    #
+    # 🔴 BURADA ESKIDEN AYRI BIR "prose bolgesi" (`i < ilk_madde`) SARTI
+    # DURUYORDU. Kabul bataryasi onu M3 mutantiyla OLDUREMEDI: madde kolu
+    # ayni girdiyi HER ZAMAN daha once yakaladigi icin sart ULASILAMAZDI
+    # ([[yeni-kol-onceki-kolun-golgesinde-olur]]). Olculmeyen emniyet
+    # emniyet DEGILDIR — kaldirildi; yerine segment sinirinin `- ` satirinda
+    # durdugu ACIKCA yazildi ve o kol M3 ile ATESLENIR HALDE olculuyor.
     while i < n:
         satir = govde[i]
-        if satir.startswith("- "):
+        segment_mi = _hal_segmenti_baslangici(satir)
+        if satir.startswith("- ") or segment_mi:
             madde = [satir]
             j = i + 1
-            while j < n and not govde[j].startswith("- "):
-                madde.append(govde[j])
-                j += 1
+            if segment_mi:
+                # Segment SINIRI: bir sonraki `- ` maddesi ya da bir sonraki
+                # sutun-0 hal jetonu. `- ` sarti TASIYICIDIR — olmazsa segment
+                # ardindaki ACIK maddeleri de yutar (M3 bunu olduruyor).
+                while (j < n and not govde[j].startswith("- ")
+                        and not _hal_segmenti_baslangici(govde[j])):
+                    madde.append(govde[j])
+                    j += 1
+            else:
+                while j < n and not govde[j].startswith("- "):
+                    madde.append(govde[j])
+                    j += 1
             # 🔴 Maddenin SONUNDAKI bos satirlar madde ICERIGI degil, blok
             # AYIRACIDIR; maddeyle birlikte tasinirlarsa iki sey birden bozulur:
             #   (1) defterin blok ayiraclari her rotasyonda ERIR (eski kod bunu
@@ -699,13 +797,14 @@ def _maddeleri_isle(govde, kova=None, ornekler=None):
                 artik.insert(0, madde.pop())
             madde_metni = "\n".join(madde)
             if kova is not None:
-                sinif = _madde_sinifi(madde_metni)
+                sinif = _birim_sinifi(madde_metni)
                 kova[sinif] += 1
                 if (ornekler is not None
                         and sinif in (MADDE_SINIFLANAMAZ, MADDE_TUTARSIZ)):
                     ornekler.append((sinif, madde[0][:100],
-                                     _ortak_satir_sebebi(madde_metni)))
-            if _madde_tasinir_mi(madde_metni):
+                                     _ortak_satir_sebebi(
+                                         _kanonik_madde_metni(madde_metni))))
+            if _birim_tasinir_mi(madde_metni):
                 tasinacak.append(madde_metni)
             else:
                 kalan.extend(madde)
