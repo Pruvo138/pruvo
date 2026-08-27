@@ -47,6 +47,40 @@ AYNA_DOSYALAR = (DUZELT, ARAMA, KOKEN, TEST)
 
 EKSENLER = ("D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8")
 
+# K325: ORTAK capa altyapisi (ikinci bir tane YAZILMADI). `mutant_metni` capayi hedefin
+# KENDI kaynagindan turetir ve bes fail-closed kolla korur.
+sys.path.insert(0, TOOLS)
+import mutasyon_kopya  # noqa: E402
+
+_TEMIZ_MODUL = {}
+
+
+def temiz_modul(hedef):
+    """TURETILMIS capalarin kapsam kaynagi — CANLI (mutasyonsuz) dosyadan yuklenir.
+
+    🔴 Modul BIR KEZ yuklenir ve onbellege alinir: capa, olculen seyin MUTANT halinden
+    etkilenmemeli (`mutasyon_kopya.kapsam_haritasi` doktrini). Ayna dosyalari mutantla
+    yeniden yazildigi icin kapsami AYNADAN cozmek capayi olculene bagimli yapardi."""
+    if hedef not in _TEMIZ_MODUL:
+        yol = DUZELT if hedef == "duzelt" else ARAMA
+        _TEMIZ_MODUL[hedef] = mutasyon_kopya.modul_yukle(yol, "k325_temiz_" + hedef)
+    return _TEMIZ_MODUL[hedef]
+
+
+class Turetilmis(tuple):
+    """TURETILMIS CAPA isareti: `[(kapsam, desen, donusum), ...]` ciftleri tasir.
+
+    🔴 NEDEN (27 Agu 2026, K325): ELLE yazili literal capa, hedef kaynak yeniden
+    yazildiginda SESSIZCE eslesmez olur. M12'nin capasi bunu UC KEZ yasadi — dosyanin
+    kendi yorumu 19 Agu'daki ikinci tazelemeyi anlatiyor, ucuncusu 27 Agu'da olculdu
+    (`HARNESS BAYAT (M12): mutasyon dayanagi 0 kez bulundu`): `DEGISTIRILEBILIR` kumesi
+    iki satira yayilip `boy_secenekleri` eklenince capa dustu ve surucu HICBIR SEY
+    olcmedi. Ucuncu tekrar => tekil yama YASAK, sinif onarimi ZORUNLU.
+    Capa artik hedefin KENDI kaynagindan turer: ortak altyapi
+    `mutasyon_kopya.mutant_metni` (dort fail-closed kol) + K325'te eklenen BESINCI kol
+    (modul duzeyi atama). IKINCI BIR ALTYAPI KURULMADI."""
+
+
 FAILS = []
 
 
@@ -171,12 +205,16 @@ M11 = ("M11", "TOPLU yolda MARKA TURETIM KABLOSU kesildi (marka bayat kalir, K5 
 
 M12 = ("M12", "`uyum` DEGISTIRILEBILIR kumesinden tamamen CIKARILDI (yol yeniden kapali)",
        "duzelt",
-       # 🔴 DAYANAK 19 Agu'da TAZELENDI (SERIT B onarimi): kumeye
-       # `tavsiyeFilament` eklenince eski uc-elemanli capa 0 eslesmeye dustu ve
-       # HARNESS BAYAT ile arac HICBIR SEY olcmuyordu. Iddia ayni: yalniz `uyum`
-       # kumeden cikarilir, komsu alanlar durur.
-       [('                    "tur", "gorselsiz", "uyum", "tavsiyeFilament"}',
-         '                    "tur", "gorselsiz", "tavsiyeFilament"}')],
+       # 🔴 CAPA ARTIK ELLE YAZILI DEGIL (27 Agu, K325). Onceki iki literal capa da
+       # bayatladi: 19 Agu'da `tavsiyeFilament` eklenince, 27 Agu'da kume iki satira
+       # yayilip `boy_secenekleri` eklenince — ikisinde de 0 eslesme, arac HICBIR SEY
+       # olcmedi. Capa hedefin KENDI kaynagindan turer: kapsam `DEGISTIRILEBILIR`
+       # (modul duzeyi atama), desen `uyum` jetonunu tasiyan TEK satir, donusum o
+       # jetonu (ve ardindaki ayraci) dusurur. Iddia DEGISMEDI: yalniz `uyum` kumeden
+       # cikar, komsu alanlar durur. Kume yeniden bicimlenirse capa KENDILIGINDEN izler;
+       # izlenemezse `CapaHatasi` -> HARNESS BAYAT (sessiz gecis YOK).
+       Turetilmis([("DEGISTIRILEBILIR", r'"uyum"',
+                    lambda s: s.replace('"uyum", ', "").replace(', "uyum"', ""))]),
        # CAPRAZ: alanin tumden kapanmasi `uyum` YAZAN her ekseni birden dusurur; ayirt
        # edici DEGILDIR, ama "kabul kumesi gercekten yuk tasiyor mu" sorusunu yanitlar.
        ["D1", "D2", "D3", "D4", "D8"], "ESIT")
@@ -232,9 +270,26 @@ def symlinkleri_bul(kok):
     return bulunan
 
 
-def mutasyonla(pristine, degisimler, kod):
+def mutasyonla(pristine, degisimler, kod, mod=None):
     """Mutasyonu METNE uygular. Dayanak yoksa/coklu ise HARNESS BAYATTIR -> gurultulu
-    duser; 'olctum' deyip hicbir sey olcmemek en kotu haldir."""
+    duser; 'olctum' deyip hicbir sey olcmemek en kotu haldir.
+
+    `degisimler` TURETILMIS ise capa ELLE yazili degildir: ortak altyapiya devredilir ve
+    oradaki dort/bes fail-closed kol (kapsam YOK · blok tekil degil · capa tekil degil ·
+    donusum ETKISIZ · modul atamasi tekil degil) `CapaHatasi` yukseltir. O hata da
+    HARNESS BAYAT ile AYNI sinifta, ayni gurultuyle duser — sessiz gecis YOK."""
+    if isinstance(degisimler, Turetilmis):
+        if mod is None:
+            raise SystemExit("HARNESS BAYAT (%s): turetilmis capa istendi ama hedef MODUL "
+                             "yuklenmedi (kapsam cozulemez)" % (kod,))
+        try:
+            return mutasyon_kopya.mutant_metni(mod, pristine, list(degisimler))
+        except mutasyon_kopya.CapaHatasi as e:
+            raise SystemExit(
+                "HARNESS BAYAT (%s): TURETILMIS capa cozulemedi -> %s\n"
+                "(hedef kaynak degismis olabilir; capa ELLE yazili DEGIL, yine de "
+                "cozulemiyorsa kapsam adi ya da desen bayattir — bu arac HICBIR SEY "
+                "olcmuyor demektir)" % (kod, e))
     metin = pristine
     for eski, yeni in degisimler:
         adet = metin.count(eski)
@@ -292,6 +347,14 @@ def main():
         check("aynada SYMLINK yok (kaynaga giden yol fiziksel olarak kapali)",
               not baglar, "symlink: %s" % (baglar[:6] or "-"))
 
+        # --- 0b) K325 TURETILMIS CAPA KOLUNUN NOBETI --------------------------
+        # 🔴 Kolun nobetcisi OLCTUGU SEYIN YANINDA durur (hafiza: capa altyapisi
+        # yazildi ama vakalar tasinmadi -> borc gorunmez oldu). Ayri bir CI adimi
+        # EKLENMEDI: bu surucu nerede kosarsa kol da orada olculur.
+        oz = mutasyon_kopya.atama_kolu_oz_test(ayna)
+        check("K325 turetilmis-capa kolu: 6 vaka (P1 · N1-N4 fail-closed · M1 hedef-kol atfi)",
+              not oz, "basarisiz: %s" % (oz or "-"))
+
         # --- 1) TABAN -----------------------------------------------------------
         print("\n1) TABAN KOSUMU (mutasyonsuz ayna — YESIL olmali)")
         t_rc, t_iddia, t_kirmizi, t_kuyruk = kos(ayna, pristine)
@@ -316,7 +379,10 @@ def main():
         tek_kirmizi = {}          # eksen -> [mutant kodlari] (kirmizi kume TAM {eksen})
         for kod, aciklama, hedef, degisimler, beyan, olcut in MUTANTLAR:
             dosya = "duzelt.py" if hedef == "duzelt" else "arama.py"
-            metin = mutasyonla(pristine[dosya], degisimler, kod)
+            # K325: TURETILMIS capa hedefin KENDI kaynagindan cozulur. Modul TEMIZ
+            # kaynaktan yuklenir (mutasyon ONCESI) — `kapsam_haritasi` doktrini: capa,
+            # olculen seyin mutant halinden ETKILENMEZ.
+            metin = mutasyonla(pristine[dosya], degisimler, kod, mod=temiz_modul(hedef))
             rc, iddia, kirmizi, kuyruk = kos(ayna, pristine, {dosya: metin})
             sayi_ok = (iddia == t_iddia)
             if beyan:

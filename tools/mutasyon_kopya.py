@@ -26,6 +26,7 @@
       kaynağından TÜRETİLİR. Türetilemezse ya da dönüşüm ETKİSİZ kalırsa hüküm
       `OLCULEMEDI` DEĞİL **KIRMIZI**'dır — bayatlama sessiz kalamaz.
 """
+import ast
 import hashlib
 import importlib.util
 import inspect
@@ -94,9 +95,53 @@ def modul_yukle(yol, ad="mutasyon_hedefi"):
     return mod
 
 
+def _atama_kaynagi(mod, kapsam):
+    """MODÜL DÜZEYİ ATAMA çapası: `KAPSAM = <ifade>` deyiminin KENDİ kaynak parçası.
+
+    🔴 NEDEN EKLENDİ (27 Ağu 2026, K325 — ölçülen kapsam boşluğu): `kapsam_kaynagi`
+    yalnız FONKSİYON (`inspect.getsource`) ve DİZE niteliğini çapalayabiliyordu. Hedef
+    bir modül düzeyi SABİT ise (`set`/`dict`/`tuple`) `getattr` onu bulur, `isinstance(str)`
+    tutmaz ve `inspect.getsource(<set>)` `TypeError` ile patlar — yani altyapı o vakayı
+    TAŞIYAMIYORDU ve sürücüler mecburen ELLE yazılı çapada kalıyordu. Ölçüldü:
+    `duzelt-uyum-mutasyon.py::M12` çapası `duzelt.DEGISTIRILEBILIR` kümesini hedefliyor;
+    küme iki satıra yayılıp `boy_secenekleri` eklenince çapa ÜÇÜNCÜ kez bayatladı
+    (`HARNESS BAYAT: mutasyon dayanagi 0 kez bulundu`) ve sürücü HİÇBİR ŞEY ölçmedi.
+    Bu kol İKİNCİ BİR ALTYAPI DEĞİL — mevcut `kapsam_kaynagi`nın kapsayamadığı tek
+    nitelik sınıfını aynı sözleşmeye (tek kaynak + fail-closed) bağlar.
+
+    FAIL-CLOSED: dosya okunamaz / ayrıştırılamaz / atama 0 ya da 1'den çok ise
+    `CapaHatasi` (KIRMIZI). "Bulamadım" sessizce boş çapaya dönmez."""
+    yol = getattr(mod, "__file__", None)
+    if not yol:
+        raise CapaHatasi("kapsam %s bir modül sabiti ama modülün __file__'ı YOK" % (kapsam,))
+    linecache.checkcache(yol)
+    try:
+        with open(yol, encoding="utf-8") as f:
+            ham = f.read()
+        agac = ast.parse(ham, filename=yol)
+    except (OSError, SyntaxError) as e:
+        raise CapaHatasi("kapsam %s için kaynak okunamadı/ayrıştırılamadı: %s" % (kapsam, e))
+    parcalar = []
+    for dugum in agac.body:            # YALNIZ modül düzeyi: iç içe atamalar çapa OLAMAZ
+        hedefler = []
+        if isinstance(dugum, ast.Assign):
+            hedefler = dugum.targets
+        elif isinstance(dugum, ast.AnnAssign):
+            hedefler = [dugum.target]
+        if any(isinstance(t, ast.Name) and t.id == kapsam for t in hedefler):
+            parca = ast.get_source_segment(ham, dugum)
+            if parca:
+                parcalar.append(parca)
+    if len(parcalar) != 1:
+        raise CapaHatasi("kapsam %s modül düzeyinde %d kez atanıyor (1 olmalı) — çapa "
+                         "tekil değil" % (kapsam, len(parcalar)))
+    return parcalar[0]
+
+
 def kapsam_kaynagi(mod, kapsam):
-    """`kapsam` = modüldeki bir NİTELİK adı. Fonksiyon ise KENDİ kaynağı (inspect),
-    dize ise dizenin kendisi (JS gövdeleri, CSS). Çapa TEK KAYNAKTAN türer.
+    """`kapsam` = modüldeki bir NİTELİK adı. Fonksiyon/sınıf ise KENDİ kaynağı (inspect),
+    dize ise dizenin kendisi (JS gövdeleri, CSS), modül düzeyi SABİT ise atama deyiminin
+    kaynağı (`_atama_kaynagi`). Çapa TEK KAYNAKTAN türer.
 
     `mod` bir SÖZLÜK ise önceden çözülmüş harita olarak kullanılır (bkz. kapsam_haritasi)."""
     if isinstance(mod, dict):
@@ -113,7 +158,91 @@ def kapsam_kaynagi(mod, kapsam):
     # `inspect` BAYAT satır önbelleğinden okuyabiliyor ve `lineno is out of bounds`
     # ile patlıyordu (ölçüldü: 2. mutantta). Kaynak her çağrıda diskten doğrulanır.
     linecache.checkcache(getattr(mod, "__file__", None) or "")
+    # K325: `inspect` YALNIZ kod nesnelerinde çalışır. Sınıf/fonksiyon DIŞINDAKİ her
+    # nitelik (set/dict/tuple/list sabitleri) modül düzeyi atama koluna gider — eskiden
+    # burada `TypeError` ile patlıyordu, yani vaka altyapıya HİÇ giremiyordu.
+    if not (inspect.isfunction(hedef) or inspect.ismethod(hedef)
+            or inspect.isclass(hedef) or inspect.isgenerator(hedef)):
+        return _atama_kaynagi(mod, kapsam)
     return inspect.getsource(hedef)
+
+
+_OZ_TEST_TEMIZ = (
+    'KUME = {"a", "b", "uyum", "c"}\n'
+    "\n"
+    "\n"
+    "def govde():\n"
+    "    return 1\n"
+)
+_OZ_TEST_IKI_ATAMA = _OZ_TEST_TEMIZ + '\nKUME = {"a"}\n'
+_OZ_TEST_ICERDE = (
+    "def govde():\n"
+    '    KUME = {"a", "uyum"}\n'
+    "    return KUME\n"
+)
+
+
+def atama_kolu_oz_test(tmp_kok):
+    """K325 BESINCI KOL NOBETCISI — `_atama_kaynagi`nin KENDI kabul takimi.
+
+    🔴 NEDEN BURADA: bu altyapinin (5 surucunun dayandigi ortak govde) BUGUNE KADAR
+    HICBIR nobetcisi yoktu — olculdu, `tools/*test*.py` ve `nobet.yml` icinde
+    `mutasyon_kopya` gecen TEK dosya yok. Yeni bir kol eklerken ayni bosluga bir kol
+    daha koymak, uc kez kayan capayi dorduncu kez kaymaya birakmak olurdu.
+
+    ALTI VAKA — besi FAIL-CLOSED kollari, biri KOLUN YUK TASIDIGINI kanitlar:
+      P1 POZITIF     : modul duzeyi SET capasi turer ve donusum uygulanir
+      N1 kapsam YOK  : CapaHatasi
+      N2 iki atama   : CapaHatasi (capa TEKIL degil)
+      N3 yalniz fonksiyon icinde atama : CapaHatasi (modul duzeyi sart)
+      N4 donusum ETKISIZ               : CapaHatasi (mutant no-op olurdu)
+      M1 HEDEF-KOL ATFI: AYNI kapsamda ESKI yol (`inspect.getsource`) TypeError verir
+         -> kol dekoratif DEGIL, yuk tasiyor. M1 gecmezse P1 hicbir sey kanitlamaz.
+    Doner: basarisiz vaka adlarinin listesi (bos = YESIL)."""
+    basarisiz = []
+
+    def _mod(ad, kaynak):
+        yol = os.path.join(tmp_kok, ad + ".py")
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write(kaynak)
+        return modul_yukle(yol, "k325_oz_" + ad)
+
+    temiz = _mod("temiz", _OZ_TEST_TEMIZ)
+    try:
+        yeni = mutant_metni(temiz, _OZ_TEST_TEMIZ,
+                            [("KUME", r'"uyum"', lambda s: s.replace('"uyum", ', ""))])
+        if '"uyum"' in yeni or "KUME" not in yeni:
+            basarisiz.append("P1 (donusum uygulanmadi)")
+    except CapaHatasi as e:
+        basarisiz.append("P1 (%s)" % e)
+
+    def _bekle_capa_hatasi(ad, mod, metin, ciftler):
+        try:
+            mutant_metni(mod, metin, ciftler)
+        except CapaHatasi:
+            return
+        basarisiz.append(ad + " (CapaHatasi BEKLENIYORDU, gelmedi)")
+
+    _bekle_capa_hatasi("N1", temiz, _OZ_TEST_TEMIZ,
+                       [("YOK_BOYLE_BIR_AD", r".", lambda s: s + "x")])
+    iki = _mod("iki", _OZ_TEST_IKI_ATAMA)
+    _bekle_capa_hatasi("N2", iki, _OZ_TEST_IKI_ATAMA,
+                       [("KUME", r'"a"', lambda s: s.replace('"a"', '"z"'))])
+    icerde = _mod("icerde", _OZ_TEST_ICERDE)
+    _bekle_capa_hatasi("N3", icerde, _OZ_TEST_ICERDE,
+                       [("KUME", r'"uyum"', lambda s: s.replace('"uyum"', '"z"'))])
+    _bekle_capa_hatasi("N4", temiz, _OZ_TEST_TEMIZ,
+                       [("KUME", r'"uyum"', lambda s: s)])
+
+    # M1 — HEDEF-KOL ATFI: eski yol AYNI girdide patliyor mu?
+    try:
+        inspect.getsource(getattr(temiz, "KUME"))
+        basarisiz.append("M1 (eski yol da calisiyor -> yeni kol YUK TASIMIYOR)")
+    except TypeError:
+        pass
+    except Exception:                                  # noqa: BLE001 — sinif fark etmez
+        pass
+    return basarisiz
 
 
 def kapsam_haritasi(mod, kapsamlar):

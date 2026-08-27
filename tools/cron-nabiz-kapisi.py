@@ -1316,6 +1316,53 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
     return (1 if alarm else 0), satirlar
 
 
+# === 27 AGU 2026 (K326) — SONUC SATIRI DUSEN KOLU ADIYLA YAZAR ==================
+# 🔴 OLCULEN ARIZA: `rc == 1` kolu, HANGI kolun dustugune BAKMADAN sabit bir metin
+# basiyordu: "katalog-D1 sapmasi esigi asan suredir DENETLENMEDI". 27 Agu kosumu
+# 33073947444'te o satir basildi, ama A0 (katalog-D1) o kosumda **YESILDI** (2.4 sa);
+# dusen kollar **A4 PAKET** (9.6 sa — CANLI FIYAT YOLU) ve **A3 NABIZ
+# paket-tazelik-alarmi.yml** idi. Sonuc: ekip bir gun boyunca YANLIS is akisina bakti;
+# gercek kirmizi musteriye degen taraftaydi (kapinin kendi A4 metni "Musteri..." diye
+# baslar). Yanlis teshis, sessiz kirmizidan zararlidir: kirmizi GORUNUR ama YANLIS YERE
+# baktirir. Kardes sinif: bilesik yuklemde GECEN yariyi basmak (K322).
+# KAPSAM DAR: adim ADI ve CIKIS KODU DEGISMEZ — degisen tek sey teshis metnidir.
+_DUSEN_ETIKET = ("A0", "A1", "A2", "A3", "A4", "A5")
+
+
+def dusen_ozeti(satirlar):
+    """🔴 ile baslayan kollarin ETIKETI + hedefini ozetle. Bos ise fail-loud metin.
+
+    Etiket satirin ILK jetonlarindan okunur (ornek: '🔴 A4 PAKET -> ...'); is akisi adi
+    varsa (`*.yml`) o da tasinir ki okuyan DOGRU dosyaya baksin."""
+    # 🔴 IS AKISI ADI YALNIZ SATIRIN KENDISINDEN OKUNUR, TABLO TUTULMAZ. A3/A5 satirlari
+    # akis adini ICINDE tasir; A0/A4 TASIMAZ (olculdu — raporun basindaki
+    # "(A0 capasi: ...)" satiri `satirlar`a HIC girmiyor, dogrudan print ediliyor).
+    # Bu yuzden ozet A0/A4 icin akis adi YAZMAZ ve UYDURMAZ: ikinci bir "hangi kol hangi
+    # akis" listesi yazmak ayrisan ikiz tanim olurdu ([[ikiz-tanim-sessiz-ayrisma]]).
+    # A0/A4 satirlarinin akis adi tasimamasi AYRI ve daha kucuk bir kalemdir.
+    bulunan = []
+    for s in satirlar:
+        if not s.startswith("🔴"):
+            continue
+        jetonlar = s.split()
+        etiket = next((j for j in jetonlar[1:3] if j in _DUSEN_ETIKET), None)
+        akis = next((j for j in jetonlar if j.endswith(".yml")), None)
+        ad = etiket or "?"
+        bulunan.append(ad + ("(" + akis + ")" if akis else ""))
+    if not bulunan:
+        # rc==1 iken 🔴 satir YOKSA rapor ile hukum AYRISMIS demektir — sessizce
+        # "bir sey dustu" demek yerine bu hali ADIYLA basariz (fail-loud).
+        return ("DUSEN KOL ADLANDIRILAMADI (rc=1 ama raporda 🔴 satir YOK — hukum ile "
+                "rapor AYRISMIS)")
+    # Ayni etiket birden cok is akisi icin dusebilir; sira KORUNUR, tekrar EDILMEZ.
+    tekil = []
+    for b in bulunan:
+        if b not in tekil:
+            tekil.append(b)
+    return ("esigi asan sure boyunca DENETLENMEDI (ya da cron sessiz) — DUSEN KOL: "
+            + " · ".join(tekil))
+
+
 def rapor(rc, satirlar):
     print("UZLASTIRMA NABIZ KAPISI — depo %s" % DEPO)
     for s in satirlar:
@@ -1328,9 +1375,8 @@ def rapor(rc, satirlar):
             print("SONUC: DENETIM TAZE ✅ (son basarili uzlastirma esigin icinde · "
                   "zamanlanmis isler fiilen kosuyor)")
     elif rc == 1:
-        print("SONUC: 🔴 ALARM — katalog-D1 sapmasi esigi asan suredir DENETLENMEDI "
-              "(ya da cron sessiz). Bu isin yaptigi denetim YAPILMIYOR ve baska hicbir "
-              "kapi bunu gormez.")
+        print("SONUC: 🔴 ALARM — %s. Bu denetim(ler) YAPILMIYOR ve baska hicbir kapi "
+              "bunu gormez." % dusen_ozeti(satirlar))
     else:
         print("SONUC: 🔴 OLCULEMEDI (fail-closed) — denetim yasi OLCULEMEDI, "
               "'yesil' SAYILMAZ.")
@@ -3881,6 +3927,40 @@ def kendini_test():
           "A4 KIRMIZI (iki eksen AYNI kodu paylasir ama AYRI capadan olcer)",
           any(x.startswith("✅ A0 DAMGA") for x in s)
           and any(x.startswith("🔴 A4 PAKET") and "CRON YAPMADI" in x for x in s), s)
+
+    # === K326 SONUC TESHISI — IKI YONLU (tek yon bu arizayi YAKALAMAZ) ============
+    # 27 Agu kosumu 33073947444: A0 YESIL, A4+A3 KIRMIZI iken SONUC satiri
+    # "katalog-D1 sapmasi ... DENETLENMEDI" bastı ve ekip bir gun boyunca YANLIS is
+    # akisina bakti. Iddia SABIT METNIN YOKLUGUNU degil, DUSEN KOLUN ADININ VARLIGINI
+    # ve YESIL KOLUN ADININ YOKLUGUNU olcer — ikisi birden olmazsa "her kolu yaz" gibi
+    # kaba bir cozum de gecerdi ve teshis yine ayirt edici olmazdi.
+    _ozet = dusen_ozeti(s)
+    iddia("K326 (a) A0 YESIL + A4 KIRMIZI -> SONUC ozeti 'A4' ICERIR", "A4" in _ozet, _ozet)
+    iddia("K326 (a) ... ve YESIL kolun adini (A0) ICERMEZ", "A0" not in _ozet, _ozet)
+    iddia("K326 (a) ... ve eski SABIT metni ('katalog-D1') ICERMEZ",
+          "katalog-D1" not in _ozet, _ozet)
+    # IS AKISI ADI: satirin KENDISINDE varsa ozete TASINIR (A3/A5), yoksa UYDURULMAZ.
+    # Bu vaka A3 uzerinden olculur; A0/A4 satirlarinin akis adi tasimamasi AYRI kalemdir.
+    _rc_a3, _s_a3 = kos(D, _sahte_api(kosum_sayisi=137, yas_saat=12.0,
+                                      damgalar=[_damga_kaydi(0.5)]), damga_ile=True)
+    iddia("K326 (a2) satirda IS AKISI varsa ozet onu da TASIR (okuyan dogru dosyaya baksin)",
+          _rc_a3 == 1 and "d1-uzlastirici.yml" in dusen_ozeti(_s_a3),
+          "rc=%d %s" % (_rc_a3, dusen_ozeti(_s_a3)))
+
+    # TERS YON: A0 KIRMIZI + A3 YESIL. Ayni ozet fonksiyonu bu kez 'A0' yazmali, 'A3'
+    # yazmamali — yoksa "hep A4 yaz" gibi bir hile de (a)'yi gecerdi.
+    _rc_t, _s_t = kos(D, _sahte_api(kosum_sayisi=137, yas_saat=0.4,
+                                    damgalar=[_damga_kaydi(12.0)]), damga_ile=True)
+    _ozet_t = dusen_ozeti(_s_t)
+    iddia("K326 (b) TERS YON: A0 KIRMIZI + A3 YESIL -> ozet 'A0' ICERIR",
+          _rc_t == 1 and "A0" in _ozet_t, "rc=%d %s" % (_rc_t, _ozet_t))
+    iddia("K326 (b) ... ve YESIL kolun adini (A3) ICERMEZ", "A3" not in _ozet_t, _ozet_t)
+
+    # FAIL-LOUD: rc=1 iddia edilen ama 🔴 satir TASIMAYAN rapor sessizce "bir sey dustu"
+    # dememeli; hukum ile rapor AYRISMASI ADIYLA basilmali.
+    iddia("K326 (c) 🔴 satir YOKKEN ozet AYRISMAYI adiyla yazar",
+          "ADLANDIRILAMADI" in dusen_ozeti(["✅ A0 DAMGA -> x", "✅ A3 NABIZ -> y"]),
+          dusen_ozeti(["✅ A0 DAMGA -> x"]))
 
     # EKSEN AYRIMI: A0 taze iken A4 bayat olabilir (ve tersi) — ikisi AYRI raporlanir.
     rc, s = kos(P, paket_api([_damga_kaydi(14.5)]), damga_ile=True, paket_ile=True)

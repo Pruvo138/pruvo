@@ -1387,7 +1387,28 @@ def kendini_test():
             basarisiz.append(ad + " [uygulanmadi]")
             kirmizi_vaka += 1
             continue
-        bulgu = cikarim_kaybi(sayfa, mutant)
+        # === 27 AGU 2026 (K323) — BEYAN TABLOSU IZOLASYONU ======================
+        # 🔴 OLCULEN ARIZA: cagri `cikarim_kaybi(sayfa, mutant)` idi, yani beyan tablosu
+        # None geciyordu ve `_beyan_uygula` MODUL CAPINDAKI BILEREK_DEGISEN_METIN'i
+        # devreye sokuyordu. O tablo ESKI->YENI donusumunu YALNIZ ESKI tarafa uygular —
+        # eksen 2'de DOGRUDUR (eski uretecin sayfasi ile yeninin kiyasi), ama BU
+        # BATARYADA IKI TARAF DA AYNI GUNCEL URETECTEN gelir: aralarinda beyan edilmis
+        # bir degisiklik YOKTUR. Sonuc: sayfa bir beyanin ESKI metnini tasiyorsa eski
+        # taraf yeniden yazilir, yeni taraf yazilmaz ve KIYAS ASIMETRIK olur.
+        # OLCULDU (27 Agu, fikstur sayfasi): tablo 3 girisli, ikisinin ESKI'si sayfada
+        # geciyor; #1 (10 Agu teslim beyani) fiiliyen atesliyor ve YENI'si sayfada YOK
+        # (maskeleme kolu bu yuzden devreye girmiyor) ->
+        #     cikarim_kaybi(sayfa, sayfa, None) -> ['GORUNUR METIN degisti']
+        #     cikarim_kaybi(sayfa, sayfa, ())   -> []
+        # Yani kapi HICBIR SEY DEGISMEDIGINDE kirmizi yakiyordu: UC KONTROL vakasi birden
+        # (hicbir-sey-degismedi · fazladan-bosluk · mesru-kapsam-parametresi) yanlis-KIRMIZI
+        # aliyor, olduruculerin bir kismi da kendi ekseni yerine bu sahte metin bulgusundan
+        # kirmizi aliyordu. SAHTE KIRMIZI GERCEK KIRMIZIYI GORUNMEZ YAPAR.
+        # COZUM KAPIYI GEVSETMEZ: tablo BOS gecilir; oldurucu vakalar sayfayi GERCEKTEN
+        # degistirdigi icin aynen kirmizi kalir (olculdu: 9/9). Eksen 2'nin uretim
+        # kiyasinda tablo AYNEN kullanilmaya devam eder — burada degisen sey yalnizca
+        # SELF-TEST'in kendi kiyasini izole etmesidir.
+        bulgu = cikarim_kaybi(sayfa, mutant, ())
         gercek = "KIRMIZI" if bulgu else "YESIL"
         if beklenen == "KIRMIZI":
             kirmizi_vaka += 1
@@ -1403,6 +1424,27 @@ def kendini_test():
                  sebep or (bulgu[0][:70] if bulgu else "")))
         if not ok:
             basarisiz.append(ad + (" [YANLIS EKSEN]" if sebep else ""))
+    # === 27 AGU 2026 (K323) — IZOLASYON NOBETCISI (kol yerinde MUTANT) =============
+    # Yukaridaki `()` tek karakterlik bir duzeltmedir ve tam da bu yuzden SESSIZCE geri
+    # alinabilir. Nobetci onu YERINDE olcer: ayni sayfa iki tarafa da verilir ve
+    #   (a) IZOLE kiyas BOS bulgu vermeli (kolun kendisi),
+    #   (b) MODUL TABLOSUYLA ayni kiyas bulgu URETMELI — yani kaldirilan asimetri
+    #       GERCEKTEN vardi (hedef-kol atfi: bu uretilmiyorsa (a) bir sey KANITLAMAZ).
+    # (b) fikstur sayfasinin bir beyanin ESKI metnini tasimasina baglidir; tasimiyorsa
+    # mutant yonu OLCULEMEZ ve bu ADIYLA basilir — sessiz yesil YOK.
+    izole = cikarim_kaybi(sayfa, sayfa, ())
+    tablolu = cikarim_kaybi(sayfa, sayfa, None)
+    if izole:
+        print("  HATA %-58s IZOLE kiyas BOS olmali -> %s"
+              % ("K323 BEYAN TABLOSU IZOLASYONU", izole[:2]))
+        basarisiz.append("K323 izolasyon [izole kiyas kirmizi]")
+    elif not tablolu:
+        print("  OLCULEMEDI %-49s mutant yonu uretilemedi: fikstur sayfasi hicbir "
+              "beyanin ESKI metnini tasimiyor" % "K323 BEYAN TABLOSU IZOLASYONU")
+    else:
+        print("  OK   %-58s izole=[] · modul tablosuyla=%s (asimetri GERCEK)"
+              % ("K323 BEYAN TABLOSU IZOLASYONU", tablolu[:1]))
+
     print()
     print("  vaka=%d (oldurucu=%d · kontrol=%d) · fikstur urun=%s"
           % (len(vakalar), kirmizi_vaka, len(vakalar) - kirmizi_vaka, aday[0]["id"]))

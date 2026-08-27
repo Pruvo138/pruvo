@@ -257,16 +257,48 @@ def ham_say(marka):
     return n
 
 
+# === 27 AGU 2026 (K322) — IKI RAPOR KUSURU ONARILDI =============================
+# 🔴 KUSUR 1 — SESSIZ KIRPMA: C3 sapan listesini `sapan[:4]` ile basiyordu. 27 Agu'da
+# olculdu: 19 marka sapiyor, CI ciktisinda YALNIZ 4'u gorunuyordu. Kalan 15'i hicbir
+# yerde yazmiyordu ve bu ONARIMI ENGELLIYORDU — listeyi gormeden 19 sapma duzeltilemez.
+# Kirpmanin kendisi yasak degil; SAYISIZ kirpma yasak. Artik `gosterilen=<n> toplam=<N>`
+# ile birlikte basilir ve KIRMIZI halde kirpma HIC yapilmaz (onarim listesi tam gorunur).
+#
+# 🔴 KUSUR 2 — BILESIK YUKLEMDE GECEN YARIYI BASMAK: C4'un yuklemi bir VE idi
+# (`sum >= 100` VE `her kurtarilan markada kanon == sayfa`). Mesaj kosuldan ONCE
+# kuruluyor ve VE'nin GECEN yarisini ("602 kalem KURTARILDI") basiyordu; DUSEN yari
+# hic yazilmiyordu. Okuyan "kurtarildi" gorup KALDI okuyunca testi karisik saniyordu —
+# karisik olan mesajdi. Artik cikti DUSEN yariyi adiyla yazar.
+def _liste_ozet(kayitlar, kirmizi, tavan=4):
+    """Kirpma KIRMIZI halde YAPILMAZ; yapildiginda sayisiyla birlikte basilir."""
+    toplam = len(kayitlar)
+    if kirmizi or toplam <= tavan:
+        return "%s (toplam=%d)" % (kayitlar, toplam)
+    return "%s (gosterilen=%d toplam=%d)" % (kayitlar[:tavan], tavan, toplam)
+
+
 sapan = [(m, sayfa_adet[m], kanon_say(m)) for m in veri if kanon_say(m) != sayfa_adet[m]]
 dogrula("C3 🔴 kanonik sayim = MARKA SAYFASI adedi, %d/%d markada BIREBIR (sapan: %s)"
-        % (len(veri) - len(sapan), len(veri), sapan[:4]), not sapan)
+        % (len(veri) - len(sapan), len(veri), _liste_ozet(sapan, bool(sapan))), not sapan)
 
 kurtarilan = {m: sayfa_adet[m] - ham_say(m) for m in veri if sayfa_adet[m] != ham_say(m)}
-dogrula("C4 🔴 ham esitligin KACIRDIGI %d kalem (%d marka) kolonla KURTARILDI: %s"
-        % (sum(kurtarilan.values()), len(kurtarilan),
-           sorted(kurtarilan.items(), key=lambda t: -t[1])[:4]),
-        sum(kurtarilan.values()) >= 100 and all(
-            kanon_say(m) == sayfa_adet[m] for m in kurtarilan))
+_c4_hacim = sum(kurtarilan.values()) >= 100
+_c4_kapali = [m for m in kurtarilan if kanon_say(m) != sayfa_adet[m]]
+if _c4_hacim and not _c4_kapali:
+    _c4_metin = "C4 🔴 ham esitligin KACIRDIGI %d kalem (%d marka) kolonla KURTARILDI: %s" % (
+        sum(kurtarilan.values()), len(kurtarilan),
+        _liste_ozet(sorted(kurtarilan.items(), key=lambda t: -t[1]), False))
+else:
+    # DUSEN yari adiyla yazilir; gecen yari tek basina BASILMAZ.
+    _dusen = []
+    if not _c4_hacim:
+        _dusen.append("HACIM: kurtarilan %d < 100" % sum(kurtarilan.values()))
+    if _c4_kapali:
+        _dusen.append("KAPANMA: kurtarilan %d markanin %d'inde kanon != sayfa: %s" % (
+            len(kurtarilan), len(_c4_kapali),
+            _liste_ozet([(m, sayfa_adet[m], kanon_say(m)) for m in _c4_kapali], True)))
+    _c4_metin = "C4 🔴 kolon ham esitligin KACIRDIGINI kapatmali — DUSEN: " + " | ".join(_dusen)
+dogrula(_c4_metin, _c4_hacim and not _c4_kapali)
 dogrula("C5 ornek — Volvo: sayfa %d · HAM esitlik %d · marka_kanon %d"
         % (sayfa_adet.get("Volvo", 0), ham_say("Volvo"), kanon_say("Volvo")),
         kanon_say("Volvo") == sayfa_adet.get("Volvo") > ham_say("Volvo"))
