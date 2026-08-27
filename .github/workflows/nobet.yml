@@ -2373,6 +2373,62 @@ jobs:
         run: python3 tools/marka-invaryant-sayac-mutasyon.py
 
   # ═════════════════════════════════════════════════════════════════════════════
+  # CIKTI_KOK YONLENDIRME MUTASYON BATARYASI (K3, 27 Agu 2026) — SERIT B, AYRI JOB
+  # ═════════════════════════════════════════════════════════════════════════════
+  # NE OLCER: `tools/build.py --cikti-kok <yol>` ve `PRUVO_CIKTI_KOK` yonlendirmesinin
+  # GERCEKTEN onurlandirildigini. M-KOK mutanti parametreyi OKUYUP YOK SAYAR (yine ortak
+  # agaca yazar); batarya ortak agacin UC EKSENDE degisip degismedigini olcer
+  # (A=izlenen · B=gitignored VARLIK · C=bilinen cikti yollarinin sha256) ve KONTROL
+  # mutantiyla yanlis-pozitif kolunu AYRICA kapatir. Kabul cikis kodu DEGIL, basilan
+  # bayraklardir: `M_KOK=OLDURULDU` + `KONTROL=YESIL`.
+  #
+  # 🔴 NEDEN AYRI JOB — `serit-b`ye EKLENMEDI (iki ayri olculmus sinif):
+  #   (a) BU ARAC CALISMA AGACINI BILEREK KIRLETIR: M-KOK mutanti build ciktilarini
+  #       (taban-fiyatlar.js · index.built.html · urun/ · varlik/ · _yayin/ ...) job'un
+  #       checkout KOKUNE yazar, sonra `finally` icinde BILINEN yollardan siler.
+  #       `serit-b`de kossaydi o kirletme penceresi 60+ komsu adimla AYNI agaci
+  #       paylasirdi; tam o pencerede dosya yuzeyi/`git status` olcen bir komsu adim
+  #       SAHTE KIRMIZI yanar ve sebep yanlis adima atfedilirdi
+  #       ([[kapi-ambiyansi-olcerse-komsu-kirmiziya-yakar]]). Ayri job = ayri checkout:
+  #       kirletme penceresi hicbir komsuyu GOREMEZ.
+  #   (b) `hijyen-build` HIC UYGUN DEGIL (ters yonde ayni sinif): orada `tools/build.py`
+  #       kosar ve SONRAKI adimlar (JSON-LD brand/sku kapilari) uretilen `urun/`
+  #       ciktisina MUHTACTIR — bu aracin temizlik kolu tam o yollari SILER, komsu
+  #       adimlar girdisiz kalirdi.
+  #   Emsal BIREBIR yukaridadir: agir/izole bataryalar 10 Agu 2026'da `serit-b`den AYRI
+  #   job'a alindi — ayni adim adi, ayni komut, ayni ortam, ayni fail-closed cikis kodu.
+  #
+  # 🔴 YAYINI BLOKLAMAZ: `needs:` YOK ve hicbir is buna bagli DEGIL; `deploy.yml`e
+  # DOKUNULMADI -> `deploy` ile PARALEL kosar, yayin penceresini tek saniye uzatmaz.
+  # ⚠️ `continue-on-error` KULLANILMADI (fail-open yazimi bu depoda nobetci ihlalidir):
+  #    rc dogrudan konusur, job KIRMIZI yanar.
+  # ⚠️ Kurulum adimlari `serit-b` ile BIREBIR AYNIDIR (checkout fetch-depth: 0 · python
+  #    3.12 · boto3+pyyaml · node 20) — ortam farki sessiz bir davranis farki uretirdi.
+  #    `fetch-depth: 0` ZORUNLU: temizlik kolu 4 yasal sayfayi `git show HEAD:<yol>` ile
+  #    bilinen HEAD iceriginden yeniden yazar.
+  # ⚠️ `timeout-minutes: 30` — batarya `build.py`yi IKI kez (mutant + kontrol) kosar;
+  #    asilan bir kol job'u sahte-yesil bekletmesin ([[fail-slow-fail-opendir]]).
+  # 🔴 IDDIA SAYISI BURAYA YAZILMAZ (bayat sayi yanlis guven verir) — betigin KENDISI
+  #    `M_KOK=` · `KONTROL=` · `YAKALAYAN_EKSEN=` satirlarini basar.
+  k3-cikti-kok-bataryasi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python bagimliliklari (boto3 - R2 testleri icin; pyyaml - is akisi kapisi)
+        run: pip install boto3 pyyaml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: "CIKTI_KOK yonlendirme mutasyon bataryasi (M-KOK oldurucu + KONTROL)"
+        run: python3 tools/k3-cikti-kok-mutasyon.py
+
+  # ═════════════════════════════════════════════════════════════════════════════
   # R2 ONEK GELENEGI NOBETI (7 Agu 2026) — ONCEDEN VAR OLAN CANLI GERCEGI RAPORLAR
   # ═════════════════════════════════════════════════════════════════════════════
   # OLCULEN BOSLUK: tools/r2_anahtar.py ONEKLER tablosu bir kaynak platformu HIC

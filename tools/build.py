@@ -66,10 +66,30 @@ import arama
 SITE = "https://pruvo3d.com"
 WHATSAPP = "905451386526"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# CIKTI_KOK — yazma kökü. OKUMA kökü ROOT olarak KALIR; YALNIZ yazma yolları
+# (URUN_DIR, VARLIK_DIR, _yayin/, sitemap/robots/feed, ürün/kategori/legal
+# sayfaları, ...) buradan türetilir. Varsayılan = ROOT; --cikti-kok <yol>
+# bayrağı veya PRUVO_CIKTI_KOK ortam değişkeni ile yönlendirilir. Mimari 27 Ağu:
+# minimum arayüz — başka parametre EKLENMEZ.
+def _coz_cikti_kok():
+    """(abs_yol, yonlendirildi) döner. Yönlendirme yoksa (ROOT, False)."""
+    kok = None
+    if "--cikti-kok" in sys.argv:
+        i = sys.argv.index("--cikti-kok")
+        if 0 <= i < len(sys.argv) - 1:
+            kok = sys.argv[i + 1]
+    if kok is None:
+        kok = os.environ.get("PRUVO_CIKTI_KOK")
+    return (os.path.abspath(kok) if kok else ROOT), bool(
+        kok and os.path.abspath(kok) != os.path.abspath(ROOT))
+
+CIKTI_KOK, _CIKTI_YONLENDIRILDI = _coz_cikti_kok()
+print("CIKTI_KOK=%s (%s)" % (CIKTI_KOK, "YONLENDIRILMIS" if _CIKTI_YONLENDIRILDI else "varsayilan"))
 JSON_PATH = os.path.join(ROOT, "urunler.json")
-URUN_DIR = os.path.join(ROOT, "urun")
+URUN_DIR = os.path.join(CIKTI_KOK, "urun")
 # Parametrik ("Ölçüye Özel" sarı seri) konfigüratör şemaları — jenerator/urunler/<id>.json.
 # Şeması olan parametrik ürünün sayfasına konfigüratör UI basılır; olmayana dokunulmaz.
+# Şema KAYNAĞI — OKUMA; ROOT'ta kalır.
 JEN_URUN_DIR = os.path.join(ROOT, "jenerator", "urunler")
 CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi"]
 # GİZLİ kategoriler (Okan, 17 Tem): ana sayfa menüsünde GÖRÜNMEZ ama ürün sayfaları,
@@ -580,13 +600,18 @@ def _yayin_js_sozdizimi(hedef):
 
 def yayin_js_yaz(rel):
     """<rel> JS kaynagini yorumu soyulmus olarak _yayin/<rel>'e yazar; yolu doner.
-    Kaynak DEGISMEZ. Dosya yoksa (lokalde uretilmemis) None doner."""
-    kaynak = os.path.join(ROOT, rel)
+    Kaynak DEGISMEZ. Dosya yoksa (lokalde uretilmemis) None doner.
+
+    Kaynak ONCELIGI: CIKTI_KOK ONCE (build.py'nin az once urettigi filament-veri.js /
+    taban-fiyatlar.js burada), yoksa ROOT (tracked JS kaynaklari)."""
+    kaynak = os.path.join(CIKTI_KOK, rel)
+    if not os.path.isfile(kaynak):
+        kaynak = os.path.join(ROOT, rel)
     if not os.path.isfile(kaynak):
         return None
     with open(kaynak, encoding="utf-8") as f:
         metin = f.read()
-    hedef = os.path.join(ROOT, YAYIN_DIR, rel)
+    hedef = os.path.join(CIKTI_KOK, YAYIN_DIR, rel)
     d = os.path.dirname(hedef)
     if d and not os.path.isdir(d):
         os.makedirs(d)
@@ -599,8 +624,9 @@ def yayin_js_yaz(rel):
 
 def _yayin_yolu(rel):
     """Bir varligin YAYINLANAN kopyasinin yolu: _yayin/<rel> varsa o, yoksa kaynak.
-    ?v=<hash> boylece TARAYICIYA GIDEN baytlardan turer (soyma sonrasi da dogru)."""
-    y = os.path.join(ROOT, YAYIN_DIR, rel)
+    ?v=<hash> boylece TARAYICIYA GIDEN baytlardan turer (soyma sonrasi da dogru).
+    YAYIN_DIR artik CIKTI_KOK altinda."""
+    y = os.path.join(CIKTI_KOK, YAYIN_DIR, rel)
     return y if os.path.isfile(y) else os.path.join(ROOT, rel)
 
 
@@ -659,7 +685,7 @@ surumle_scriptler = yayin_html
 # [[gorsel-anahtar-cakismasi]]). Icerik degismezse ad AYNI kalir (gereksiz cache-miss yok);
 # bir bayt degisirse ad DEGISIR (bayat CSS/JS servis edilmesi imkansiz).
 VARLIK_DIR_ADI = "varlik"
-VARLIK_DIR = os.path.join(ROOT, VARLIK_DIR_ADI)
+VARLIK_DIR = os.path.join(CIKTI_KOK, VARLIK_DIR_ADI)
 VARLIK_URL_ONEK = "/" + VARLIK_DIR_ADI + "/"
 VARLIK_HASH_UZUNLUK = 10
 # icerik -> url onbellegi: ayni blok 16.874 kez uretilse de dosya BIR kez yazilir.
@@ -4989,7 +5015,7 @@ def uret_taban_fiyatlar():
             taban = sema.get("tabanFiyatTL")
             if taban is not None:
                 harita[pid] = taban
-    with open(os.path.join(ROOT, "taban-fiyatlar.js"), "w", encoding="utf-8") as f:
+    with open(os.path.join(CIKTI_KOK, "taban-fiyatlar.js"), "w", encoding="utf-8") as f:
         f.write("/* Sayfa ureteci uretir — ELLE DUZENLEME. "
                 "Tek kaynak: jenerator/urunler/<id>.json tabanFiyatTL */\n"
                 "window.PRUVO_TABAN_FIYATLAR = "
@@ -5103,7 +5129,9 @@ def main():
             statik_html = f.read()
         yenilenmis = top_btn_ekle(meta_ekle(attribution_ekle(statik_html)))
         if yenilenmis != statik_html:
-            with open(statik_yol, "w", encoding="utf-8") as f:
+            statik_yaz_yol = os.path.join(CIKTI_KOK, slug, "index.html")
+            os.makedirs(os.path.dirname(statik_yaz_yol), exist_ok=True)
+            with open(statik_yaz_yol, "w", encoding="utf-8") as f:
                 f.write(yenilenmis)
 
     # eski urun/ klasörünü temizle (silinen ürünler kalmasın)
@@ -5117,8 +5145,8 @@ def main():
     # hash'ini basar -> aynı varlık için İKİ ayrı ?v=, gereksiz önbellek kaybı).
     # Eski çıktı önce silinir: kaynaktan kaldırılan bir varlık _yayin'de kalırsa
     # deploy BAYAT dosya yayınlar (sessiz hata).
-    if os.path.isdir(os.path.join(ROOT, YAYIN_DIR)):
-        shutil.rmtree(os.path.join(ROOT, YAYIN_DIR))
+    if os.path.isdir(os.path.join(CIKTI_KOK, YAYIN_DIR)):
+        shutil.rmtree(os.path.join(CIKTI_KOK, YAYIN_DIR))
     # VARLIK DIZINI ayni gerekce: kaynaktan kalkan bir blok varlik/ icinde kalirsa deploy
     # BAYAT dosya yayinlar. Icerik-adresli oldugu icin bayat dosyaya artik referans veren
     # yoktur ama yayina girip yer kaplar; her kosumda sifirdan uretilir.
@@ -5152,7 +5180,7 @@ def main():
 
     # içerik/yasal sayfalar (/<slug>/index.html)
     for slug, title, meta, fn in CONTENT_PAGES:
-        cdir = os.path.join(ROOT, slug)
+        cdir = os.path.join(CIKTI_KOK, slug)
         os.makedirs(cdir, exist_ok=True)
         with open(os.path.join(cdir, "index.html"), "w", encoding="utf-8") as f:
             f.write(render_content_page(slug, title, meta, fn()))
@@ -5174,18 +5202,18 @@ def main():
     # marka->model üst dizini ("marka") + landing hub dizini + kategori hub dizini. CI bu
     # dosyayı okuyup her slug'ı _site'a kopyalar; böylece yeni CONTENT_PAGES/marka/hub/kategori
     # eklenince deploy.yml elle güncellenmese de SESSİZCE 404 olmaz.
-    with open(os.path.join(ROOT, "_yayin-icerik-dizinleri.txt"), "w", encoding="utf-8") as f:
+    with open(os.path.join(CIKTI_KOK, "_yayin-icerik-dizinleri.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(SITEMAP_SLUGS + marka_sonuc["dizinler"] + hub_sonuc["dizinler"]
                          + kategori_sonuc["dizinler"]) + "\n")
 
     # sitemap.xml (marka->model + landing hub + kategori hub URL'leri lastmod'lu eklenir)
-    with open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8") as f:
+    with open(os.path.join(CIKTI_KOK, "sitemap.xml"), "w", encoding="utf-8") as f:
         f.write(render_sitemap(products, extra_urls=marka_sonuc["sitemap"] + hub_sonuc["sitemap"]
                                + kategori_sonuc["sitemap"]))
 
     # merchant-feed.xml  (Google Merchant Center — sadece sabit fiyatli urunler)
     feed_xml, feed_n = render_merchant_feed(products)
-    with open(os.path.join(ROOT, MERCHANT_FEED), "w", encoding="utf-8") as f:
+    with open(os.path.join(CIKTI_KOK, MERCHANT_FEED), "w", encoding="utf-8") as f:
         f.write(feed_xml)
 
     # filament-veri.js — ana sayfa kart çipleri (index.html) filament kuralını buradan
@@ -5193,7 +5221,7 @@ def main():
     # "_" ile başlayan iç notlar ve "kaynaklar" siteye TAŞINMAZ (sadece gereken veri).
     fil_ref = {k: v for k, v in filament_ortak.referans().items()
                if not k.startswith("_") and k != "kaynaklar"}
-    with open(os.path.join(ROOT, "filament-veri.js"), "w", encoding="utf-8") as f:
+    with open(os.path.join(CIKTI_KOK, "filament-veri.js"), "w", encoding="utf-8") as f:
         f.write("/* Sayfa ureteci uretir — ELLE DUZENLEME. Tek kaynak: malzeme tablosu */\n"
                 "window.PRUVO_FILAMENT = "
                 + json.dumps(fil_ref, ensure_ascii=False, separators=(",", ":"))
@@ -5211,29 +5239,29 @@ def main():
 
     # CI beyaz listesi için TEK KAYNAK manifesti. Her satır bir _yayin/ göreli
     # yoludur; workflow okuyucusu dosya yoksa fail-closed durur.
-    with open(os.path.join(ROOT, YAYIN_DIR, "site-varliklari.txt"), "w", encoding="utf-8") as f:
+    with open(os.path.join(CIKTI_KOK, YAYIN_DIR, "site-varliklari.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(SOYULACAK_JS) + "\n")
 
     # index.built.html — ana sayfanin YAYIN kopyasi: script src'leri ?v=<hash> ile
     # surumlenir (KAYNAK index.html degismez). deploy.yml bunu _site/index.html yapar.
     # taban-fiyatlar.js YUKARIDA uretildi -> hash'i artik hesaplanabilir.
-    with open(os.path.join(ROOT, "index.built.html"), "w", encoding="utf-8") as f:
+    with open(os.path.join(CIKTI_KOK, "index.built.html"), "w", encoding="utf-8") as f:
         f.write(yayin_index(marka_sonuc, products))
 
     # robots.txt
-    with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:
+    with open(os.path.join(CIKTI_KOK, "robots.txt"), "w", encoding="utf-8") as f:
         f.write(render_robots())
 
     # ozet.json  (FAZ 3 — ana sayfanin ilk boyamasi; bayrak kapaliyken URETILIR ama
     # site onu CEKMEZ. Uretmeye devam etmemizin sebebi: bayrak acildigi an dosya
     # yayindaymis gibi hazir olsun + faz3-yuk/faz3-bayrak testleri her zaman kosabilsin.)
     ozet_json = render_ozet(products)
-    with open(os.path.join(ROOT, OZET_JSON), "w", encoding="utf-8") as f:
+    with open(os.path.join(CIKTI_KOK, OZET_JSON), "w", encoding="utf-8") as f:
         f.write(ozet_json)
     ozet_bayt = len(ozet_json.encode("utf-8"))
 
     # .nojekyll  (GitHub Pages tüm dosyaları olduğu gibi sunsun)
-    open(os.path.join(ROOT, ".nojekyll"), "w").close()
+    open(os.path.join(CIKTI_KOK, ".nojekyll"), "w").close()
 
     # VARLIK FAIL-CLOSED: bir sayfa uretildiyse en az bir CSS + bir JS varligi yazilmis
     # OLMALI. Bos varlik dizini = sayfalar ciplak (stilsiz/JS'siz) yayinlanmis demektir;
