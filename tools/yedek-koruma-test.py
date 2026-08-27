@@ -292,10 +292,23 @@ def tam_batarya():
             kok, "mutant-karantina-sessiz",
             "        _KORUMA_KARANTINA.append((varis, str(e)))",
             "        pass  # MUTANT: atlama sessiz kaldi")
+        # 🔴 CAPA KOMSUYA DEGIL FONKSIYONUN KENDI GOVDESINE BAGLI (27 Agu 2026,
+        # K308 turunda OLCULDU): eski capa `"        return False\n\n\ndef
+        # _kopyala_gerekliyse"` idi — yani "atlama kolunun HEMEN ARDINDAN gelen
+        # fonksiyon" varsayimina. 26 Agu'da araya `karantina_etiketi()` girince
+        # capa 1 -> 0 esleseme dustu, `mutant_yaz` RuntimeError atti ve TUM
+        # batarya (7 vaka + 12 mutant) o gunden beri HIC KOSMADI: rc=1, ama
+        # sebep "koruma bozuldu" degil "capa bayat"ti. Bir mutant capasi, test
+        # ettigi kolun KOMSULUGUNU olcmemelidir
+        # ([[mutant-capasi-giris-noktasinin-okumadigi-degerde-olmez]] ·
+        #  [[capa-cokmesi-arkasindaki-capalari-gizler]]).
         mutant_yeniden_at = mutant_yaz(
             kok, "mutant-karantina-yeniden-at",
-            "        return False\n\n\ndef _kopyala_gerekliyse",
-            "        raise  # MUTANT: kosum yine oluyor\n\n\ndef _kopyala_gerekliyse")
+            "    except YedekKorumaHatasi as e:\n"
+            "        _KORUMA_KARANTINA.append((varis, str(e)))",
+            "    except YedekKorumaHatasi as e:\n"
+            "        raise  # MUTANT: kosum yine oluyor\n"
+            "        _KORUMA_KARANTINA.append((varis, str(e)))")
         # Beyanin UC yonu ayri ayri oldurulur:
         #  M6 — beyan blanket olursa (her cagriya EVET) tur/boyut sarti olur, vaka KIRMIZI;
         #  M7 — "surekli" tavani kalkarsa 10 MB'lik dosya rolling ilan edilebilirdi, KIRMIZI;
