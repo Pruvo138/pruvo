@@ -2,24 +2,25 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔚 27 AGU TUR-2 · main=origin `3eee64d4` · agac TEMIZ · worktree 3 · kosan cip 0
-🟢 **GUNUN KILIDI ACILDI (`051b74d0`, 4 dosya):** kutu tavani bugun **BES** commit'i durdurdu
-(oturum kapanisi · DefterIndirme · SabahTeslim · K314 ×2). Tekil yama YASAKLANDI, sinif onarildi:
-① jeton yalniz KAPANIS konumunda sayilir ② korumali blok kuyrugu kilitlemez (YERINDE atlanir)
-③ commit kapisi `kutu-arsivle.py`'nin HUKMUNU tuketir. Canli: kutu **570→220** (tavan 300),
-`KAYIP=0` uc eksende (satir/bayt/blok), `KORUMALI_BEKLEYEN 5→1`, gercek bekleyen KUTUDA kaldi.
-Kabul: `VAKA 24→30 IDDIA 149→205 MUTANT=10/10 HEDEF_KOL_ATFI=7/7` · kapi `VAKA 10/10 MUTANT 6/6`.
-✅ **UC MERGE INDI, CI TAM YESIL:** `051b74d0`(ff) · `2c6640ac` · `3eee64d4`; kosum `33063266161`
-**deploy+yayin success**. Iki SAHTE kirmizi `cancelled` cikti (paralel push); hukum
-ARDIL kosumdan okundu. 🔴 Rotasyon GERCEK kutuda atesledi: **331→230**, KAYIP=0 iki
-eksende, `bitisik_mi=HAYIR/YERINDE_ATLANDI`, bekleyen 3 jeton KUTUDA → K318 ②/③ CANLI.
-🔴 **YENI KALEMLER:** ⑥ **kol ③ canlida ATESLEMEDI** (yalniz sentetik vaka) → *kutu tavani asip
-`tasinabilir=0` iken jeton canli ciktida gorulsun* · ⑦ **bekci kabul bataryasi 4 vaka BAYAT**
-(`kanal=YOK` iddiasi, `kanal=cip` karariyla gecersiz) + `kur.py --kuru` **5 yama KURULU DEGIL**
-→ *vakalar TEK KAYNAKTAN turetilsin, sonra `--faz tam` rc=0* · ⑧ **kurulu kanca kopyasi SAPMISTI**
-→ *sapmayi commit disinda olcen kol* · ⑨ **13 ardisik `motor=claude rc=1`de karantina kaydi YOK**
-(`fatal-satir-yok`) → *olcut mesaji DA okusun*. ①-⑤ ve K314 acik ucu (gercek kirmizi CI kosumunda
-`SERIT_A3_KIRMIZI=n`) DURUYOR. **Okan'da bekleyen karar: YOK.**
+## 🔚 27 AGU KAPANIS · main=origin `25b2879b` SHA-BIREBIR · agac TEMIZ · worktree 9→5 · kosan cip 4
+✅ **CANLIYA GIDEN (7 merge):** `051b74d0` kutu kilidi SINIF · `2c6640ac` sabah teslim · `3eee64d4`
+K314 · `05d5df85` **K184 sihirbazi KOKUNDEN kalkti** (canli: buton VAR→YOK, konsol 0, odeme yolu
+davranisla saglam) · `34ca7283` defter rotasyon birimi · `23098ae2` ORTAM kolu TURETIYOR ·
+`25b2879b` yedek dususu sessiz gecemez. Uc merge BAGIMSIZ dogrulayici tarafindan olculdu; git
+ekseni mimar elinde: 14 dosya hepsi `tools/`, `urunler.json` DOKUNULMADI, sizinti taramasi **0**.
+🟢 **GUNUN SINIFI:** *olcut yanlis ekseni okuyunca koruma yayin durdurur* — kutu kilidi 5 commit'i
+durdurmustu; ① jeton yalniz KAPANIS satirinda sayilir ② korumali blok rotasyona GIRMEZ ③ kapi
+aracin HUKMUNU okur.
+Canli kanit: kutu 570→220, sonra 331→230, `KAYIP=0` uc eksende.
+🔴 **KOSUYOR (4, motor Claude):** `KraL-IcraKapisiKimlik` (dal `kral/icra-kapisi-kimlik-27agu`
+`82a30b41` — kapi cipteki isciyi mimar sayiyor, MaCiT hatti haftalardir BLOKE) · `KraL-BelgeOnbellegi`
+(HTML belgesi `max-age=14400`) · `KraL-KarantinaHukmu` (dal `kral/nobet-turu-27agu`) · `KraL-DogrulaMerge`.
+🔴 **BEKLIYOR — "neyi olcmek kapatir":** ⓐ `nobet-turu` **MERGE YOK** (iddia 21/21, olculen **20/21**
+`DUSEN=C5`) → *hukum indi: ardisik ESIK kazanir, C5 iki yonlu yazilir; rc=0 + KONTROL 10/10* ·
+ⓑ `--yaz-sonrasi` kolu main'de ama **KABLOSUZ** → *kilit-guvenli + tavan altinda no-op + eszamanli
+cagride bayt-birebir olcusun, sonra mimar kabloyu takar* · ⓒ **HTML 4 saat** → *belge TTL dusuk,
+varlik TTL sabit, `Age` serisiyle* · ⓓ K321 karantina · ⓔ ⑦ bekci vakalari · ⓕ K314 acik ucu.
+**Okan'da bekleyen: `pruvo-jenerator` icin GitHub App repository access (TeKiN talebi).**
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu KAPANAN 4 KALEM (K250·K302·K303·K305) — TAM METIN ARSIVDE**, "KAPANAN 4 KALEM" basligi.
