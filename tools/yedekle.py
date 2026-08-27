@@ -124,12 +124,31 @@ import time
 
 
 class YedekKorumaHatasi(RuntimeError):
-    """Saglam kanonik yedegin supheli kaynakla ezilmesini fail-closed durdurur."""
+    """Saglam kanonik yedegin supheli kaynakla ezilmesini fail-closed durdurur.
+
+    🔴 K308 (27 Agu 2026): mesaj METNI zaten sayilari tasiyordu ama SAYI olarak
+    hicbir yerde yoktu -> kosum "kac bayt kaybettim" sorusunu cevaplayamiyordu.
+    Alanlar (sinif/eski/yeni/kaynak) o sayilari makine-okunur kilar; metin AYNEN
+    korunur (mevcut kabul testleri metni olcuyor)."""
+
+    def __init__(self, mesaj, sinif="bilinmeyen", eski=None, yeni=None, kaynak=None):
+        RuntimeError.__init__(self, mesaj)
+        self.sinif = sinif
+        self.eski = eski
+        self.yeni = yeni
+        self.kaynak = kaynak
 
 
 # Korumanin ATLADIGI dosyalar: (hedef_yolu, sebep). Kosum sonunda basilir ve cikis
 # kodunu KIRMIZI yapar — atlama SESSIZ olamaz, yoksa "yedek alindi" yalan olur.
 _KORUMA_KARANTINA = []
+
+# AYNI atlamalarin MAKINE-OKUNUR yuzu (K308). _KORUMA_KARANTINA'nin (yol, sebep)
+# bicimi DEGISTIRILMEDI — yedek-koruma-test.py o bicimi ve `.append((varis, str(e)))`
+# satirini MUTANT CIPASI olarak kullaniyor; bicimi degistirmek o capayi oldururdu
+# ([[mutant-capasi-giris-noktasinin-okumadigi-degerde-olmez]]). Bu yuzden sayilar
+# PARALEL listede tutulur, mevcut cipa AYNEN yerinde kalir.
+_KORUMA_AYRINTI = []
 
 
 # Bir kaynagin bayt VEYA JSON kayit sayisi onceki kanonigin yarısından aza dusuyorsa
@@ -168,6 +187,32 @@ DUSUS_BEYAN_YOLU = None
 # Kullanilan beyanlar: (dosya_adi, tur, gerekce). Kosum sonunda BASILIR — beyanla
 # gecen bir dusus de SESSIZ olamaz.
 _BEYAN_KULLANILDI = []
+
+# ---- K308: DUSUSUN KALICI KAYDI + ARDISIK SAYAC -------------------------------
+# 🔴 VAKA (27 Agu 2026, AYNI GUN IKI PUSH): pre-push `!! YEDEK alinamadi (rc=1,
+# push DEVAM ediyor)` bastı ve push fail-open gecti. Cikti TERMINALDE kaldi: bir
+# sonraki komut ekrani kaydirinca sebep de gitti. Yani "kac kez dustu, ne zamandan
+# beri, neden" sorusunun cevabini TUTAN BIR YER YOKTU -> ayni arıza gun icinde iki
+# kez oldu ve ikisi de fark edilmedi. Sayac tutulmadigi icin KRONIK olma hali,
+# TEK SEFERLIK olma halinden ayirt edilemiyordu ([[silme-sayaci-diskten-dogrulanmali]]
+# ailesinin yedek yuzu: arac kendi sonucunu raporluyor, kalici kayit yok).
+#
+# CARE (bu tur): dusus HER ZAMAN iki duzleme yazilir ve ardisik sayac tutulur.
+#   1) KALP  = <backup>/.yedek-dusus-kaydi.json — damganin (`.son-yedek.json`)
+#      YANINDA, ayni duzlemde; `durum.py` oradan SEBEBI okuyabilir.
+#   2) YEDEK DUZLEM = ~/.claude/cron/yedek-dusus.log (append) — Drive'in KENDISI
+#      cozulemediginde 1. duzlem YAZILAMAZ; o hal tam da en tehlikeli haldir ve
+#      sessiz kalmamalidir. Bu, ops-log duzleminin mevcut kullanimidir (gozcu.log,
+#      ci-nobeti.log ayni yerde).
+# Kayit yazimi ASLA kosumu dusurmez/patlatmaz (fail-safe): kaydin kendisi bir
+# emniyet cihazidir, emniyetin patlamasi yedegi engellemez.
+DUSUS_KAYIT_ADI = ".yedek-dusus-kaydi.json"
+DUSUS_KAYIT_LOG = os.path.expanduser("~/.claude/cron/yedek-dusus.log")
+# Kayitta saklanan gecmis derinligi (dosya sinirsiz buyumesin).
+DUSUS_GECMIS_TAVANI = 20
+# Bu sayida ARDISIK dususte cikti ESKALASYON banneri basar. 🔴 PUSH DURMAZ —
+# gerekce `_dusus_eskalasyon_notu()` docstring'inde yazili.
+DUSUS_ESKALASYON_TAVANI = 3
 _BEYAN_UYARISI = []
 
 
@@ -257,7 +302,9 @@ def _yedek_korumasi(kaynak, varis):
                 return
             raise YedekKorumaHatasi(
                 "YEDEK REDDEDILDI: kaynak 0 bayt; kanonik yedek DEGISMEDI (%s)" %
-                os.path.basename(kaynak))
+                os.path.basename(kaynak),
+                sinif="sifir-bayt", eski=os.path.getsize(varis), yeni=0,
+                kaynak=kaynak)
         return
     if not os.path.isfile(varis):
         return
@@ -268,7 +315,9 @@ def _yedek_korumasi(kaynak, varis):
                 "YEDEK REDDEDILDI: bayt olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI"
                 " (%s) — kasitliysa %s icine BEYAN yaz"
                 % (yedek_boyut, kaynak_boyut, os.path.basename(kaynak),
-                   DUSUS_BEYAN_ADI))
+                   DUSUS_BEYAN_ADI),
+                sinif="bayt-dususu", eski=yedek_boyut, yeni=kaynak_boyut,
+                kaynak=kaynak)
         return
     kaynak_kayit = _json_kayit_sayisi(kaynak)
     yedek_kayit = _json_kayit_sayisi(varis)
@@ -279,7 +328,9 @@ def _yedek_korumasi(kaynak, varis):
         raise YedekKorumaHatasi(
             "YEDEK REDDEDILDI: kayit olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI"
             " (%s) — kasitliysa %s icine BEYAN yaz"
-            % (yedek_kayit, kaynak_kayit, os.path.basename(kaynak), DUSUS_BEYAN_ADI))
+            % (yedek_kayit, kaynak_kayit, os.path.basename(kaynak), DUSUS_BEYAN_ADI),
+            sinif="kayit-dususu", eski=yedek_kayit, yeni=kaynak_kayit,
+            kaynak=kaynak)
 
 
 def _surum_yolu(varis):
@@ -1794,6 +1845,14 @@ def _drive_kopyala_karantinali(kaynak, varis):
         return _drive_kopyala(kaynak, varis)
     except YedekKorumaHatasi as e:
         _KORUMA_KARANTINA.append((varis, str(e)))
+        _KORUMA_AYRINTI.append({
+            "varis": varis,
+            "kaynak": getattr(e, "kaynak", None) or kaynak,
+            "sebep": str(e),
+            "sinif": getattr(e, "sinif", "bilinmeyen"),
+            "eski": getattr(e, "eski", None),
+            "yeni": getattr(e, "yeni", None),
+        })
         return False
 
 
@@ -1819,6 +1878,249 @@ def karantina_etiketi(yol, backup):
     except ValueError:                   # farkli surucu/kok: gorece yol YOK
         return yol
     return yol if gor == os.pardir or gor.startswith(os.pardir + os.sep) else gor
+
+
+def _dusus_kaydi_yolu(backup):
+    return os.path.join(backup, DUSUS_KAYIT_ADI) if backup else None
+
+
+def _dusus_kalp_yerel():
+    """ARDISIK sayacinin TEK KAYNAGI — Drive'dan BAGIMSIZ, daima yazilabilir.
+
+    🔴 NEDEN Drive kalbi sayac kaynagi DEGIL: dususun en agir hali "Drive hic
+    cozulemedi"dir; o halde Drive'daki kalbe yazilamaz, dolayisiyla sayac hic
+    artmaz ve KRONIK Drive yoklugu sonsuza kadar `ARDISIK=1` gorunur — yani
+    sayac tam olcmesi gereken vakada korlesir ([[kapinin-menzili-cagri-yeridir]]).
+    Bu yuzden sayac YERELDE tutulur; Drive kopyasi `durum.py` icin AYNADIR."""
+    return os.path.join(os.path.dirname(DUSUS_KAYIT_LOG), "yedek-dusus-kalp.json")
+
+
+def _dusus_kaydi_oku(backup=None):
+    """Mevcut kayit (YEREL kalpten); yok/bozuksa BOS sozluk. ASLA patlamaz."""
+    try:
+        with open(_dusus_kalp_yerel(), "r", encoding="utf-8") as f:
+            veri = json.load(f)
+    except Exception:                                              # noqa: BLE001
+        return {}
+    return veri if isinstance(veri, dict) else {}
+
+
+def _dusus_log_yaz(satir):
+    """Yedek duzlem (append). Drive cozulemedigi zaman TEK kayit budur.
+
+    Doner: yazildiysa dosya yolu, yazilamadiysa None. ASLA patlamaz."""
+    try:
+        dizin = os.path.dirname(DUSUS_KAYIT_LOG)
+        if dizin and not os.path.isdir(dizin):
+            os.makedirs(dizin)
+        with open(DUSUS_KAYIT_LOG, "a", encoding="utf-8") as f:
+            f.write(satir.rstrip("\n") + "\n")
+        return DUSUS_KAYIT_LOG
+    except Exception:                                              # noqa: BLE001
+        return None
+
+
+def dusus_ozeti(ayrintilar, backup=None):
+    """Atlanan dosyalarin SAYILI ozeti: (atlanan, bayt_farki, siniflar, satirlar).
+
+    🔴 `bayt_farki` YALNIZ bayt eksenli dususlerden toplanir; `kayit-dususu`
+    JSON KAYIT sayisidir, bayt degildir — ikisini ayni kovaya atmak
+    [[iki-kovali-siniflama-ucuncu-sinifi-yutar]] hatasidir. Bayt ekseni hic
+    yoksa `bayt_farki` None doner ve cikti `BAYT_FARKI=OLCULEMEDI` basar,
+    sessizce 0 DEMEZ ([[silme-sayaci-diskten-dogrulanmali]])."""
+    siniflar = []
+    bayt_farki = None
+    satirlar = []
+    for a in ayrintilar:
+        sinif = a.get("sinif") or "bilinmeyen"
+        if sinif not in siniflar:
+            siniflar.append(sinif)
+        eski, yeni = a.get("eski"), a.get("yeni")
+        if sinif in ("bayt-dususu", "sifir-bayt") and isinstance(eski, int) and isinstance(yeni, int):
+            bayt_farki = (bayt_farki or 0) + (yeni - eski)
+        if isinstance(eski, int) and isinstance(yeni, int):
+            olcu = "eski=%d -> yeni=%d, fark=%+d" % (eski, yeni, yeni - eski)
+        else:
+            olcu = "olcu=OLCULEMEDI"
+        satirlar.append("  ATLANDI: %s   (%s, sinif=%s)   -> %s" % (
+            karantina_etiketi(a.get("varis"), backup), olcu, sinif, a.get("sebep")))
+    return len(ayrintilar), bayt_farki, siniflar, satirlar
+
+
+def dusus_kaydi_guncelle(backup, ayrintilar, rc, zaman=None):
+    """Dususu KALICI kayda yazar ve ARDISIK sayaci gunceller. ASLA patlamaz.
+
+    `ayrintilar` BOS ise kosum saglikli demektir -> sayac SIFIRLANIR ve
+    `son_basari` damgalanir. Sifirlamayi atlamak, dun dusen bir zincirin
+    bugun de dusuyor gorunmesine yol acar; sayac o zaman "ardisik" olmaz.
+
+    Doner: yazilan kayit sozlugu (yazilamadiysa da hesaplanan sozluk doner —
+    cagiran `kayit_yolu`/`log_yolu` alanlarindan NEREYE dustugunu okur)."""
+    zaman = zaman if zaman is not None else time.time()
+    iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(zaman))
+    onceki = _dusus_kaydi_oku(backup)
+    atlanan, bayt_farki, siniflar, _ = dusus_ozeti(ayrintilar, backup)
+
+    # 🔴 SAGLIKLI KOSUM HICBIR SEY YAZMAZ (ancak sifirlanacak bir sayac varsa yazar).
+    # OLCULDU (27 Agu 2026, bu turun ILK sürümü): kalp `~/.claude/cron/` altinda ve
+    # o dizin yedegin KAYNAK KUMESINDE (damgada `cron: 184`). Kosulsuz yazim, aracin
+    # HER kosumda kendi kaynagini kirletmesi demekti -> `kaynak_imzasi` her turda
+    # degisir, `--gerekliyse` bir daha ASLA "guncel" diyemez, her push tam yedek
+    # kosar. `yedekle-test.py` bunu 7 kirmizi ile yakaladi ("GUNCEL yolu 'atla'
+    # dedi" ailesi). Emniyet cihazi, olctugu sistemi bozmamalidir.
+    if not ayrintilar:
+        if not onceki or int(onceki.get("ardisik") or 0) == 0:
+            return {"ardisik": 0, "kayit_yolu": None, "ayna_yolu": None,
+                    "log_yolu": None, "yazildi": False}
+        kayit = dict(onceki)
+        kayit["ardisik"] = 0
+        kayit["son_basari_iso"] = iso
+        kayit["son_rc"] = rc
+    else:
+        kayit = dict(onceki)
+        kayit["ardisik"] = int(onceki.get("ardisik") or 0) + 1
+        kayit["son_iso"] = iso
+        kayit["son_rc"] = rc
+        kayit["son_siniflar"] = siniflar
+        kayit["son_atlanan"] = [{
+            "yol": karantina_etiketi(a.get("varis"), backup),
+            "sinif": a.get("sinif"),
+            "eski": a.get("eski"),
+            "yeni": a.get("yeni"),
+            "sebep": a.get("sebep"),
+        } for a in ayrintilar]
+        kayit["son_atlanan_adet"] = atlanan
+        kayit["son_bayt_farki"] = bayt_farki
+        if kayit["ardisik"] == 1 or not onceki.get("ilk_iso"):
+            kayit["ilk_iso"] = iso
+        gecmis = list(onceki.get("gecmis") or [])
+        gecmis.append({"iso": iso, "rc": rc, "atlanan": atlanan,
+                       "bayt_farki": bayt_farki, "siniflar": siniflar})
+        kayit["gecmis"] = gecmis[-DUSUS_GECMIS_TAVANI:]
+
+    # 1) YEREL KALP — sayacin tek kaynagi; ONCE bu yazilir.
+    yerel_yolu = None
+    try:
+        yerel = _dusus_kalp_yerel()
+        dizin = os.path.dirname(yerel)
+        if dizin and not os.path.isdir(dizin):
+            os.makedirs(dizin)
+        gecici = yerel + ".tmp"
+        with open(gecici, "w", encoding="utf-8") as f:
+            json.dump(kayit, f, ensure_ascii=False, indent=1, sort_keys=True)
+        os.replace(gecici, yerel)
+        yerel_yolu = yerel
+    except Exception:                                              # noqa: BLE001
+        yerel_yolu = None
+
+    # 2) DRIVE AYNASI — `durum.py` panosu SEBEBI buradan okuyabilsin diye.
+    # 🔴 SAGLIKLI KOSUMDA AYNA YARATILMAZ (yalniz ZATEN VARSA tazelenir). Iki
+    # gerekce: (a) hicbir sey bozuk degilken yedek koku SESSIZCE yeni bir dosya
+    # kazanmaz ([[diskte-iz-birakma-yasagi]]); (b) OLCULDU — kosulsuz yazim
+    # `yedekle-test.py`nin dosya-sayimi iddialarini dusurdu (66->67, 556->557),
+    # yani bu araci olcen bataryayi kendi artefaktimla kirmis oldum.
+    kayit_yolu = None
+    yol = _dusus_kaydi_yolu(backup)
+    if yol and (ayrintilar or os.path.isfile(yol)):
+        try:
+            gecici = yol + ".tmp"
+            with open(gecici, "w", encoding="utf-8") as f:
+                json.dump(kayit, f, ensure_ascii=False, indent=1, sort_keys=True)
+            os.replace(gecici, yol)
+            kayit_yolu = yol
+        except Exception:                                          # noqa: BLE001
+            kayit_yolu = None
+
+    log_yolu = None
+    if ayrintilar:
+        # Kalp yazilabildiyse de yazilamadiysa da log satiri DUSER: kalp tek
+        # dosyadir ve uzerine yazilir, log ise gecmisi tasir.
+        log_yolu = _dusus_log_yaz(
+            "%s rc=%s ARDISIK=%s ATLANAN=%s BAYT_FARKI=%s SINIF=%s KALP=%s AYNA=%s" % (
+                iso, rc, kayit["ardisik"], atlanan,
+                bayt_farki if bayt_farki is not None else "OLCULEMEDI",
+                ",".join(siniflar) or "yok", yerel_yolu or "YAZILAMADI",
+                kayit_yolu or "YAZILAMADI"))
+    kayit["kayit_yolu"] = yerel_yolu
+    kayit["ayna_yolu"] = kayit_yolu
+    kayit["log_yolu"] = log_yolu
+    return kayit
+
+
+def karantina_hukmu_bas(backup):
+    """Kosum sonu HUKMU: karantina ozeti + kalici kayit + makine-okunur son satir.
+
+    Doner: 1 = karantinali (YARIM yedek), 0 = temiz (TAM yedek).
+
+    🔴 NEDEN AYRI FONKSIYON: bu blok `_yedekle`'nin govdesindeyken kabul testi
+    onu ancak GERCEK bir Drive kosumuyla tetikleyebilirdi — yani agsiz/fikstursuz
+    olculemezdi ve pratikte hic olculmedi ([[prob-gercek-isi-taklit-etmeli]]).
+    Ayri fonksiyon, hukmun fikstur uzerinde BIREBIR ayni kodla kosturulmasini
+    saglar; test taklit bir ozet YAZMAZ, uretimin kendisini cagirir."""
+    if _KORUMA_KARANTINA:
+        print("KORUMA KARANTINASI: %d dosya ATLANDI (kanonik yedekleri DEGISMEDI); "
+              "diger dosyalar yedeklendi." % len(_KORUMA_KARANTINA))
+        # 🔴 K308-B: her atlanan dosya ADIYLA ve SAYIYLA basilir. "Kanonik degismedi"
+        # TEK BASINA yeterli DEGILDIR — atlanan dosyanin GUNCEL yedegi YOK demektir;
+        # kac bayt yedeksiz kaldigi burada okunur.
+        atlanan, bayt_farki, siniflar, satirlar = dusus_ozeti(_KORUMA_AYRINTI, backup)
+        if satirlar:
+            for satir in satirlar:
+                print(satir)
+        else:
+            # Ayrinti uretilememis (beklenmeyen yol): bilgi DARALTILMAZ, eski
+            # bicim AYNEN basilir — sessiz kalmaktansa olcusuz basmak yeglenir.
+            for yol, sebep in _KORUMA_KARANTINA:
+                print("  ATLANDI: %s   (olcu=OLCULEMEDI)   -> %s"
+                      % (karantina_etiketi(yol, backup), sebep))
+            atlanan = len(_KORUMA_KARANTINA)
+        kayit = dusus_kaydi_guncelle(backup, _KORUMA_AYRINTI, 1)
+        if kayit.get("ardisik", 0) >= DUSUS_ESKALASYON_TAVANI:
+            print(_dusus_eskalasyon_notu(kayit["ardisik"]))
+        print("bitti (karantinali) ->", backup)
+        # 🔴 SON SATIR MAKINE-OKUNUR olmak ZORUNDA: kanca ciktiyi kirparsa (bugune
+        # kadar `tail -3` yapiyordu) once BASLIK satiri dusuyordu ve "kac dosya
+        # atlandi" kayboluyordu. Bu satir tek basina TUM hukmu tasir; en SONDA
+        # oldugu icin hicbir kirpma onu dusuremez.
+        print("YEDEK=YARIM OLCULEMEDI=YEDEK_KARANTINA ATLANAN=%d BAYT_FARKI=%s "
+              "SINIF=%s ARDISIK=%s KALP=%s LOG=%s"
+              % (atlanan,
+                 bayt_farki if bayt_farki is not None else "OLCULEMEDI",
+                 ",".join(siniflar) or "bilinmeyen",
+                 kayit.get("ardisik", "OLCULEMEDI"),
+                 kayit.get("kayit_yolu") or "YAZILAMADI",
+                 kayit.get("log_yolu") or "YAZILMADI"))
+        return 1
+    # Saglikli kosum: ardisik sayac SIFIRLANIR (yoksa dunun zinciri bugun de
+    # kirikmis gibi gorunur) ve YEDEK=TAM jetonu basilir (K188).
+    kayit = dusus_kaydi_guncelle(backup, [], 0)
+    print("bitti ->", backup)
+    print("YEDEK=TAM ATLANAN=0 ARDISIK=%s" % kayit.get("ardisik", 0))
+    return 0
+
+
+def _dusus_eskalasyon_notu(ardisik):
+    """ESKALASYON banneri — ve NEDEN PUSH DURMUYOR.
+
+    🔴 SECIM VE GEREKCESI (27 Agu 2026, K308 · bu tur): mimar iki yol birakti —
+    (a) push DURSUN, (b) dusus GORUNUR + KALICI + SAYILI olsun. (b) SECILDI.
+    Gerekce olculmus vakalardan gelir, tercih degil:
+      * [[yavas-kanca-kapiyi-atlattirir-yayini-durdurur]] — pre-push'ta duran bir
+        kol evleri `--no-verify`'a kacirtti; o push'ta DENETIM KAPISI kosmadi,
+        ihlal canliya gitti, `serit-a3` kirmizi yandi, yayin 178 dk durdu. Yani
+        "durdurmak" burada guvenligi ARTIRMIYOR, denetimi TOPTAN kapatiyor.
+      * [[koruma-kurali-korudugunu-durdurur]] — 15 Agu'da tam bu dosyada, veri
+        kaybina karsi konan kural yedek zincirini kapatarak veri kaybi riskini
+        ARTIRDI. Ayni sinifin ucuncu tekrarini uretmiyoruz.
+      * Yedek bir HIJYEN aracidir, YAYIN KAPISI degil; blogun kendi sozlesmesi
+        (`tools/kancalar/pre-push`) bunu zaten boyle yaziyor.
+    Kapatilan sey "dusmek" degil **SESSIZ dusmek**: her dusus artik kalici kayda
+    duser, ardisik sayilir ve tavan asilinca cikti BAGIRIR. Durdurma kolu bir
+    satirlik degisikliktir ve MIMAR KARARIDIR — chip kendi basina almaz."""
+    return ("ESKALASYON=YEDEK_ZINCIRI_KIRIK ARDISIK=%d TAVAN=%d — yedek zinciri "
+            "ust uste dusuyor; push DURDURULMADI (gerekce: kanca-bloklari "
+            "`--no-verify` kacisi uretiyor), ama bu hal ARTIK KRONIKTIR."
+            % (ardisik, DUSUS_ESKALASYON_TAVANI))
 
 
 def _kopyala_gerekliyse(kaynak, varis):
@@ -2640,6 +2942,21 @@ def main():
     pruvo_drive = drive_yolu.pruvo_dizini(sessiz=gerekliyse)   # .../Pruvo
     if not pruvo_drive:
         print("Yedek ALINMADI — Drive yolu cozulemedi (yukaridaki uyariya bak).")
+        # 🔴 K308: bu, dususun EN TEHLIKELI hali — hicbir sey yedeklenmedi ve KALP
+        # duzlemi (Drive) de yazilamaz. Kayit YALNIZ log duzlemine duser; sessiz
+        # gecmesi, "yedek var" sanip haftalarca yedeksiz kalmak demektir.
+        kayit = dusus_kaydi_guncelle(None, [{
+            "varis": None, "kaynak": None, "sinif": "drive-cozulemedi",
+            "eski": None, "yeni": None,
+            "sebep": "Drive yolu cozulemedi (mount yok / hesap adi degismis)",
+        }], 1)
+        if kayit.get("ardisik", 0) >= DUSUS_ESKALASYON_TAVANI:
+            print(_dusus_eskalasyon_notu(kayit["ardisik"]))
+        print("YEDEK=YOK OLCULEMEDI=DRIVE_COZULEMEDI ATLANAN=1 BAYT_FARKI=OLCULEMEDI "
+              "SINIF=drive-cozulemedi ARDISIK=%s KALP=%s LOG=%s"
+              % (kayit.get("ardisik", "OLCULEMEDI"),
+                 kayit.get("kayit_yolu") or "YAZILAMADI",
+                 kayit.get("log_yolu") or "YAZILMADI"))
         return 1
     backup = os.path.join(pruvo_drive, YEDEK_KOK_ADI)
 
@@ -2862,15 +3179,7 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
               "GUNCELLENDI)" % len(_BEYAN_KULLANILDI))
         for ad, tur, gerekce in _BEYAN_KULLANILDI:
             print("  BEYANLI: %s [%s] -> %s" % (ad, tur, gerekce))
-    if _KORUMA_KARANTINA:
-        print("KORUMA KARANTINASI: %d dosya ATLANDI (kanonik yedekleri DEGISMEDI); "
-              "diger dosyalar yedeklendi." % len(_KORUMA_KARANTINA))
-        for yol, sebep in _KORUMA_KARANTINA:
-            print("  ATLANDI: %s   -> %s" % (karantina_etiketi(yol, backup), sebep))
-        print("bitti (karantinali) ->", backup)
-        return 1
-    print("bitti ->", backup)
-    return 0
+    return karantina_hukmu_bas(backup)
 
 
 if __name__ == "__main__":

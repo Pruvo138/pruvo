@@ -947,7 +947,94 @@ def atomik_yaz(yol, metin):
 
 
 # --------------------------------------------------------------------------- main
+# === K324 (27 Agu 2026) — ESIK, YAZIM HIZINA YETISMIYORDU ==================
+# OLCULEN ARIZA (27 Agu, canli kutu): rotasyon gun icinde IKI KEZ atesledi
+# (570->220 ve 331->230) ve kutu HER IKISINDEN SONRA yeniden tasti — aksam
+# olcumu 333 satir / tavan 300. Sebep tavanin kucuklugu DEGIL, TETIGIN YERI:
+# kanonik rotasyon yalniz `pre-push` kancasindan kosuyor, yani kutu ancak
+# "biri PUSH edince" doner. Oysa kutuya yazan sey PUSH degil, cipin kapanis
+# BLOGUDUR; iki push arasinda onlarca blok birikebiliyor ve tavan asimi
+# GUN BOYU KALICI oluyor.
+#
+# CARE (tavan BUYUTULMEDEN): rotasyonu YAZIMA baglayan ikinci bir tetik.
+# `--yaz-sonrasi <duzenlenen_yol>` bir PostToolUse kancasindan cagrilir;
+# kutuya her yazimdan SONRA kosar ve tavan asilmissa AYNI kanonik rotasyonu
+# AYNI --tavan/--koru ile atesler.
+#
+# 🔴 UC SART, ucu de bu kolun GEVSETME OLMADIGINI garanti eder:
+#  (1) TAVAN/KORU DEGISMEZ — ikinci bir esik tanimlanmaz, ayni main() govdesi
+#      bayraksiz yeniden cagrilir ([[ikiz-tanim-sessiz-ayrisma]]).
+#  (2) HEDEF SARTI — duzenlenen dosya KUTU degilse hicbir sey yapilmaz; kol
+#      baska hicbir dosyaya dokunmaz.
+#  (3) FAIL-OPEN — bu kol bir YAZIM kancasinda kosar. Kirmizi donerse
+#      mimarin `Edit`i bloklanir ve kutu YAZILAMAZ hale gelir; o yuzden kol
+#      her halde rc=0 doner ve gercek rc'yi `YAZ_SONRASI_IC_RC=` ile BASAR
+#      (yutmaz, gorunur kilar).
+def _kanca_stdin_yolu():
+    """PostToolUse kancasinin stdin JSON'undan duzenlenen dosya yolunu cikarir.
+
+    AYRI BIR SARMALAYICI DOSYA ACILMAZ: kanca dogrudan bu araci cagirir
+    (`--yaz-sonrasi -`). Ikinci bir betik, ikinci bir bakim yuzeyi ve
+    kablolamada ikinci bir yol demektir; kanca ne kadar az parcadan
+    olusursa o kadar az sessizce kopar.
+    """
+    import json
+    ham = sys.stdin.read()
+    veri = json.loads(ham)
+    girdi = veri.get("tool_input") or {}
+    yol = girdi.get("file_path") or girdi.get("notebook_path") or ""
+    if not yol:
+        raise ValueError("kanca stdin'inde file_path YOK")
+    return yol
+
+
+def _yaz_sonrasi_kolu(argv, yaz_sonrasi_yolu, kutu_yolu, tavan):
+    """Yazim tetikli rotasyon kolu. HER ZAMAN RC_OK doner (fail-open)."""
+    try:
+        if yaz_sonrasi_yolu == "-":
+            yaz_sonrasi_yolu = _kanca_stdin_yolu()
+        hedef = os.path.abspath(os.path.expanduser(yaz_sonrasi_yolu))
+        if hedef != kutu_yolu:
+            print("YAZ_SONRASI=ATLANDI sebep=hedef-kutu-degil hedef=%s" % hedef)
+            return RC_OK
+        if not os.path.exists(kutu_yolu):
+            print("YAZ_SONRASI=ATLANDI sebep=kutu-yok")
+            return RC_OK
+        with open(kutu_yolu, "rb") as f:
+            satir = len(f.read().splitlines())
+        if satir <= tavan:
+            print("YAZ_SONRASI=ATLANDI sebep=tavan-altinda satir=%d tavan=%d"
+                  % (satir, tavan))
+            return RC_OK
+        # ATESLE: AYNI govde, AYNI esik — yalnizca kendi bayragi cikarilir.
+        temiz = []
+        atla = False
+        for parca in argv:
+            if atla:
+                atla = False
+                continue
+            if parca == "--yaz-sonrasi":
+                atla = True
+                continue
+            if parca.startswith("--yaz-sonrasi="):
+                continue
+            temiz.append(parca)
+        print("YAZ_SONRASI=ATESLEDI once_satir=%d tavan=%d" % (satir, tavan))
+        ic_rc = main(temiz)
+        with open(kutu_yolu, "rb") as f:
+            sonra = len(f.read().splitlines())
+        print("YAZ_SONRASI_IC_RC=%s once_satir=%d sonra_satir=%d"
+              % (ic_rc, satir, sonra))
+    except Exception as hata:                              # noqa: BLE001
+        # (3) FAIL-OPEN: yazim kancasi ASLA bloklanmaz; sebep GORUNUR kalir.
+        print("YAZ_SONRASI=OLCULEMEDI sebep=%s" % type(hata).__name__)
+        print("  ayrinti: %s" % str(hata)[:200])
+    return RC_OK
+
+
 def main(argv=None):
+    if argv is None:
+        argv = sys.argv[1:]
     ap = argparse.ArgumentParser(
         description="Ortak posta kutusunu tavana indir; en eski bloklari arsive TASI.")
     ap.add_argument("--kutu", default=KUTU_VARSAYILAN)
@@ -967,6 +1054,15 @@ def main(argv=None):
                          "bloklar icin bas payi birakir.")
     ap.add_argument("--kuru", action="store_true",
                     help="hicbir sey yazma, ne yapacagini SAYIYLA bas")
+    ap.add_argument("--yaz-sonrasi", default=None, metavar="DUZENLENEN_YOL",
+                    help="K324: YAZIM TETIKLI rotasyon. Kutuya bir blok EKLENDIKTEN "
+                         "hemen sonra cagrilmak icindir (PostToolUse kancasi). "
+                         "DUZENLENEN_YOL kutu DEGILSE ya da kutu tavan ALTINDAYSA "
+                         "hicbir sey yapmaz. TAVANI DEGISTIRMEZ — ayni kanonik "
+                         "rotasyonu ayni --tavan/--koru ile koşturur. FAIL-OPEN: "
+                         "her hâlde rc=0 doner, yazim islemini ASLA bloklamaz. "
+                         "DEGER `-` ise yol PostToolUse kancasinin stdin JSON'undan "
+                         "okunur (ayri sarmalayici betik GEREKMEZ).")
     ap.add_argument("--arsiv-kuyruk", type=int, default=VARSAYILAN_ARSIV_KUYRUK,
                     help="arsivin son kac satirinda oksuz govde RAPORLANSIN (blok hizali; "
                          "0 = kapali). RAPOR eksenidir, cikis kodunu BELIRLEMEZ — bkz. "
@@ -996,6 +1092,12 @@ def main(argv=None):
     else:
         kilit_yolu = os.path.join(os.path.dirname(kutu_yolu),
                                   "." + os.path.basename(kutu_yolu) + ".lock")
+
+    # K324: YAZIM TETIKLI kol — karar burada verilir (kutu yolu cozuldukten
+    # sonra, KILIT alinmadan once). Atesleyecekse ayni main() bayraksiz
+    # yeniden cagrilir; ikinci bir rotasyon govdesi ACILMAZ.
+    if a.yaz_sonrasi is not None:
+        return _yaz_sonrasi_kolu(argv, a.yaz_sonrasi, kutu_yolu, a.tavan)
 
     print("KUTU  : %s" % kutu_yolu)
     print("ARSIV : %s" % arsiv_yolu)

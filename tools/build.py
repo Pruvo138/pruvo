@@ -551,7 +551,6 @@ YAYIN_DIR = "_yayin"
 # varlıklardır; son ikili build sırasında üretilir. CI beyaz listeyi bu kümenin
 # build tarafından yazdığı _yayin/site-varliklari.txt manifestinden okur.
 SOYULACAK_JS = ("secenekler.js", "konfigur.js",
-                "talep-alanlari.js",
                 "jenerator/hacim.js", "jenerator/konfigurator.js", "jenerator/viewer.js",
                 "filament-veri.js", "taban-fiyatlar.js")
 

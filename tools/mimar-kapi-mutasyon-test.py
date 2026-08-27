@@ -291,7 +291,7 @@ MUTASYONLAR = [
      {140, 141}, True, 2),
     # --- 22 TEM SERTLESTIRME NOBETCILERI (her yeni rule = bir kirmizi-mutasyon) ---
     ("ME1", lambda d: yama(d, ICRA,
-                           "        if ad in OLCUM_KOMUTLARI:\n",
+                           "        if ad in OLCUM_KOMUTLARI and not cip:\n",
                            "        if False and ad in OLCUM_KOMUTLARI:\n"),
      "22Tem: OLCUM/dosya-tarama denetimi kapatilir (du/ps/find/wc/head/... acilir)",
      {200, 201, 202, 203, 216}, False, 5),
@@ -404,7 +404,7 @@ MUTASYONLAR = [
      "27Tem-2: SARMALAYICI ikinci okumasi silinir ('nice -n 10 codex exec' acilir)",
      {280, 283}, True, 2),
     ("ME3", lambda d: yama(d, ICRA,
-                           '        if ad in ("curl", "wget"):\n',
+                           '        if ad in ("curl", "wget") and not cip:\n',
                            '        if False and ad in ("curl", "wget"):\n'),
      "22Tem: curl/wget denetimi kapatilir (canli dogrulama acilir)",
      {220, 221}, False, 2),
@@ -442,8 +442,12 @@ MUTASYONLAR = [
         '        if agent_karari != "gecer":\n',
         "        if False:\n"),
      "28Tem AGENT: main() AGENT kolu daima izin verir (reddet hic tetiklenmez)",
-     {400, 401, 402, 403, 406, 407, 408, 409, 700, 701, 702, 704, 705, 710, 711},
-     True, 15),
+     # 27 AGU (K318): 811 EKLENDI — cip oturumundan gelen beyansiz Agent cagrisi. Vaka
+     # ROL ekseninin DISINDA, AGENT kolunda karara baglanir (rol kolu Agent'a HIC
+     # ugramaz); bu mutant onu da acmali. Cakinin buyumesi kasitli: "cipte de kapali"
+     # iddiasi ancak AGENT kolunu olduren mutant o vakayi da kizartirsa TASIYICIDIR.
+     {400, 401, 402, 403, 406, 407, 408, 409, 700, 701, 702, 704, 705, 710, 711, 811},
+     True, 16),
     # MA3 (c): agent_id MUAFIYETI TERSINE — ICRA kimlik daima MIMAR (isci muafiyeti duser).
     # Boylece beyansiz ISCI Agent/Task cagrilari (404/405) reddedilir. Tekil dosya (ICRA)
     # patch'i M2'den (KILIT+ICRA birlikte) ayrisir; beklenen AGENT worker vakalaridir.
@@ -592,7 +596,10 @@ MUTASYONLAR = [
      # diye OLCULEMEDI'ye duser (K214 turunda birebir yasandi: beklenen 5, gelen 7).
      # 923/924 OKAN yetkili cikisini olcer ve bu mutant altinda ALLOW kaldigi icin
      # YESIL kalir — yani I3 ile I5 hala AYRISIR (iki eksen tek ize erimedi).
-     {613, 614, 615, 707, 712, 921, 922}, True, 7),
+     # 27 AGU (K318): 810 EKLENDI — cip oturumundan gelen 'isci.sh claude' (beyansiz).
+     # ISCI-SARMALAYICI kolu ROL bayragina BAKMAZ; bu mutant o kolu oldurdugu icin cip
+     # vakasi da kizarir. Yukaridaki "beklenen kume ELLE tasinir" uyarisinin geregi.
+     {613, 614, 615, 707, 712, 810, 921, 922}, True, 8),
     # I4: spec OKUNAMADIGINDA red yerine 'gecer' (FAIL-OPEN). "Beyani olcemedim" yesile
     # doner. I3'ten AYRISIR: 613 (spec OKUNUYOR, beyan yok) YESIL kalir — mutantin
     # kirmizisi yalniz 615'tir, yani iki eksen tek ize erimemistir.
@@ -691,6 +698,92 @@ MUTASYONLAR = [
         '    if False and not _codex_pencere_acik_mi():\n'),
      "17Agu K159: pencere/tarih kontrolu kaldirilir (21 Agu tarihli codex GECER)",
      {905}, True, 1),
+    # === 27 AGU 2026 (K318) — ROL EKSENI NOBETCILERI =========================
+    # Her mutant, rol ekseninin FARKLI bir kolunu oldurur ve HEDEF kolun vakalari
+    # CAKILI bir kumeyle kirmizi yanar. Kumeler AYNI DEGILDIR — MR2 tekil (ad benzerligi),
+    # MR1 'cwd menzili', MR3 pozitif kol, MR5 sinir kollari — hangi kolun oldugu ayrica
+    # okunabilsin diye ([[ikinci-gorus-vakasi-birinci-gorusu-tekrar-ederse-totolojidir]]).
+    # Kumeler OLCULDU, tahmin edilmedi: ilk turda MR1/MR4/MR5 icin yazdigim cakilar
+    # EKSIKTI (MR1'e 807/812, MR5'e iz-iddiasi dusen 5 pozitif vaka, MR4'e 61 vaka daha
+    # geldi) ve takim bunlari KIRMIZI yakti; cakilar OLCULEN degere gore duzeltildi.
+    #
+    # MR1 — OLCUM -> BEYAN: rol, oturum damgasindan degil KAYDIRILABILIR cwd'den okunur
+    # (20 Tem'de kaldirilmis regresyonun ta kendisi). Hedef kol: KONTROL/fail-closed.
+    # ANA oturum cwd'sini bir worktree'ye kaydirdiginda kapi ACILIR -> 805/806 KIRMIZI.
+    ("MR1", lambda d: yama(
+        d, KIMLIKORTAK,
+        "    yol = girdi.get(ROL_KANALI)\n"
+        "    if not isinstance(yol, str) or not yol.strip():\n"
+        "        return None\n"
+        "    if not worktree_kokleri:\n"
+        "        return None\n",
+        '    yol = girdi.get("cwd")\n'
+        "    if not isinstance(yol, str) or not yol.strip():\n"
+        "        return None\n"
+        "    if not worktree_kokleri:\n"
+        "        return None\n"
+        "    for _kok in sorted(worktree_kokleri):\n"
+        '        if yol == _kok or yol.startswith(_kok + "/"):\n'
+        "            return _kok\n"
+        "    return None\n"),
+     "K318: rol OLCUMDEN degil BEYANDAN (cwd) okunur -> ANA oturum 'cd worktree' ile acilir",
+     # OLCULDU: cwd'si bir worktree'ye kaydirilmis DORT ANA vakasinin hepsi acilir
+     # (805 damgasi ANA · 806 damgasiz · 807 alt-dize · 812 kayitsiz uydurma). cwd'si
+     # ana checkout olan 800/801 KAPALI KALIR — mutantin menzili tam olarak 'cwd'.
+     {805, 806, 807, 812}, True, 4),
+    # MR2 — TAM BILESEN esitligi ALT-DIZE'ye gevser. Hedef kol: ad-benzerligi kalkani.
+    ("MR2", lambda d: yama(
+        d, KIMLIKORTAK,
+        "        if adaylar & bilesenler:\n",
+        "        if any(a in yol for a in adaylar):\n"),
+     "K318: damga karsilastirmasi TAM BILESEN yerine ALT-DIZE olur -> benzer ad acilir",
+     {807}, True, 1),
+    # MR3 — OLCUM EKSENI BOZULUR (damga kimlik fonksiyonuna cevrilir). Hedef kol: POZITIF.
+    # Hat fail-closed'a duser: hicbir cip eslesmez, ANA kollari YESIL kalir. Bu mutantin
+    # nobetcisi POZITIF vakalardir — "olculemedi = RED" kolu dogru tarafa dustugu icin.
+    ("MR3", lambda d: yama(
+        d, KIMLIKORTAK,
+        '    return "".join(k if k.isalnum() else "-" for k in yol)\n',
+        "    return yol\n"),
+     "K318: proje damgasi uretimi bozulur -> hicbir cip olculemez, hat KAPANIR",
+     {802, 803, 804, 813, 814}, True, 5),
+    # MR4 — FAIL-CLOSED SOKULUR: damga OLCULEMEDIGINDE ANA yerine ilk worktree koku
+    # dondurulur ("OLCULEMEDI = gecis"). Hedef kol: damgasiz baglamlar.
+    ("MR4", lambda d: yama(
+        d, KIMLIKORTAK,
+        "    yol = girdi.get(ROL_KANALI)\n"
+        "    if not isinstance(yol, str) or not yol.strip():\n"
+        "        return None\n",
+        "    yol = girdi.get(ROL_KANALI)\n"
+        "    if not isinstance(yol, str) or not yol.strip():\n"
+        "        return sorted(worktree_kokleri)[0] if worktree_kokleri else None\n"),
+     "K318: damga YOKKEN fail-closed kalkar (olculemedi -> gecis) -> 800/806 acilir",
+     # 🔴 TAM ESITLIK KULLANILMAZ VE BU BIR TAVIZ DEGIL, BULGUNUN KENDISIDIR: olculdu,
+     # net=63. Kabul takimindaki eski vakalarin hicbiri `transcript_path` TASIMAZ, yani
+     # fail-closed kolu kalkinca TUM mimar redleri (olcum, curl, python allowlist, isci
+     # sarmalayici...) birden acilir. "OLCULEMEDI = gecis" tekil bir delik degil, kapinin
+     # TOPTAN dusmesidir; patlama yaricapi burada gorunur kalsin diye asgari esikle
+     # olculur. Hedef kol atfi 800 (damgasiz ANA) + 806 (damgasiz, cwd worktree).
+     {800, 806}, False, 2),
+    # MR5 — KAPSAM ASIMI: cip kolu ICRA kapisinin TAMAMINI atlar (ISCI gibi TAM muaf).
+    # Hedef kol: "kapsam duzeltmesi, GEVSETME degil" siniri. Cipte de kapali kalmasi
+    # gereken kollar (Okan emri + repo hijyeni) acilir -> 808/809/810/811 KIRMIZI.
+    ("MR5", lambda d: yama(
+        d, ICRA,
+        '    if kimlik(girdi) == "ISCI":\n'
+        "        iz_bas(kimlik_izi(girdi))\n"
+        "        sys.exit(0)\n",
+        '    if kimlik(girdi) == "ISCI" or rol(girdi) is not None:\n'
+        "        iz_bas(kimlik_izi(girdi))\n"
+        "        sys.exit(0)\n"),
+     "K318: cip main() basinda TAM muaf olur -> Okan emri kollari + repo hijyeni acilir",
+     # OLCULDU, IKI ETKI birden ve ikisi de KASITLI olarak cakili:
+     #  (a) SINIR kollari acilir: 808 satir-ici kod · 809 repo-disi betik ·
+     #      810 isci.sh claude sert blok (Okan emri) · 811 AGENT-KAPISI (Okan emri).
+     #  (b) POZITIF vakalarin IZ iddiasi duser: erken cikis 'MIMAR' izi basar, oysa
+     #      802/803/804/813/814 'CIP(' izi bekler. Yani iz iddiasi SUS PAYI DEGIL,
+     #      yuk tasiyor — kaldirilirsa bu mutant yari korlesirdi.
+     {802, 803, 804, 808, 809, 810, 811, 813, 814}, True, 9),
 ]
 
 # ===================== KONTROL MUTANTLARI (AYIRT EDICILIK OLCUMU) =====================
@@ -734,6 +827,14 @@ KONTROL_MUTANTLARI = [
         d, ICRA, TARAYICI_ACIK_KAYNAK,
         'TARAYICI_ACIK_EVLER = ("pruvo-hasat", "pruvo")\n'),
      "TARAYICI_ACIK_EVLER YENIDEN SIRALANIR (ayni kume, ayni karar) -> YESIL kalmali"),
+    # 🔴 K7 (27 Agu, K318): ROL EKSENININ AYIRT EDICILIK kontrolu. MR1..MR5'in kirmizisi
+    # ancak yeni 15 vaka "her degisiklige" kizarmiyorsa kanittir. Rol blogua OLU bir sabit
+    # eklemek kaynagi degistirir, davranisi DEGISTIRMEZ ([[beyan-edilmis-survivor]]).
+    ("K7", lambda d: yama(
+        d, KIMLIKORTAK,
+        'ROL_KANALI = "transcript_path"\n',
+        'ROL_KANALI = "transcript_path"\n_ROL_KONTROL_MUTANTI = True\n'),
+     "ROL blogua OLU bir sabit eklenir (davranis degismez) -> YESIL kalmali"),
 ]
 
 # CEVRE-ARIZA ENJEKSIYONU (B6-yan): bu iki vaka mutasyonu KOPYALANMIS kabul testine
@@ -849,6 +950,22 @@ def mutasyonu_kostur(ad, uygulayici, kendi_testi=False, yalniz_kimlik=False):
     return kirmizi, sonuc.returncode
 
 
+# === 27 AGU 2026 (K318) — TABAN OLCUMU (mutant NE EKLEDI?) ====================
+# 🔴 OLCULEN KUSUR (27 Agu, bu turda): takim mutantin kirmizi kumesini HAM okuyordu.
+# Kabul testinin MUTASYONSUZ halinde de kirmizi vakalar varsa (bugun 7 tane: 232/233/
+# 273/274/281/902/910 — hepsi codex SURELI PENCERESI 'CODEX_PENCERE_BITIS' gectigi icin)
+# o sabit kirmizilar HER mutantin kumesine karisiyor ve `tam=True` olan HER mutant
+# "KALDI" okunuyordu; KONTROL mutantlari da (sifir kirmizi + exit 0 beklerler) KALDI
+# oluyordu. Yani nobetci OLU: hicbir mutant hukum uretemiyordu, ama takim bunu
+# "mutasyonlar tutmadi" diye rapor ediyordu — sahte kirmizi, gercek kirmiziyi gizler.
+# HUKUM ([[olcut-civilenirken-taban-olculmeli]]): olcut TABANDAN cikarilarak civilenir.
+# Mutantin ISARETI = kirmizi_kume - TABAN. TABAN'in KENDISI ayrica ve GORUNUR bildirilir;
+# bos degilse takim YINE exit 1 verir — taban kirmizisi 'net yesil' ile YUTULMAZ.
+def taban_kirmizisi():
+    """MUTASYONSUZ kopyanin kirmizi kumesi + cikis kodu. Uygulayici HICBIR yama yapmaz."""
+    return mutasyonu_kostur("TABAN", lambda d: None)
+
+
 def main():
     global MUTASYON_KOK
     MUTASYON_KOK = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-kapi-mutasyon-"))
@@ -856,12 +973,25 @@ def main():
 
     basarisiz = []
     try:
+        TABAN, TABAN_CIKIS = taban_kirmizisi()
+        print("TABAN (mutasyonsuz kopya) | kirmizi={:<3} | vakalar={} | exit={}".format(
+            len(TABAN), sorted(TABAN), TABAN_CIKIS))
+        print("          Asagidaki her mutantin ISARETI = kirmizi - TABAN (net). "
+              "TABAN bos degilse takim yine KIRMIZI kapanir.")
         for ad, uygulayici, aciklama, beklenen, tam, asgari in MUTASYONLAR:
-            kirmizi, _ = mutasyonu_kostur(ad, uygulayici, yalniz_kimlik=ad.startswith("J"))
+            ham, _ = mutasyonu_kostur(ad, uygulayici, yalniz_kimlik=ad.startswith("J"))
+            kirmizi = ham - TABAN
             eksik = beklenen - kirmizi
             tamam = (not eksik) and len(kirmizi) >= asgari
             if tam and kirmizi != beklenen:
                 tamam = False
+            # OLCULEMEZ MUTANT: sentinel vakasi ZATEN tabanda kirmizi ise bu mutant
+            # hakkinda hukum verilemez. Sessizce yesil SAYILMAZ.
+            olculemez = beklenen & TABAN
+            if olculemez:
+                tamam = False
+                aciklama += (" [OLCULEMEZ: sentinel vakalari TABANDA kirmizi: " +
+                             str(sorted(olculemez)) + "]")
             # 🔴 20 AGU — YAN EKSEN NOBETI: bir mutantin "hedef kolu kirmizi yakmasi" TEK
             # BASINA kanit degildir; YAN eksenin YESIL kaldigi da AYRI olculmelidir. MT1
             # (Claude yasagini acar) tarayiciya, MT2 (tarayiciyi kapatir) Claude yasagina
@@ -878,7 +1008,7 @@ def main():
             if not kirmizi:
                 tamam = False
                 aciklama += " [NOBETSIZ BOLGE: sifir kirmizi]"
-            print("MUTASYON {:<4} | kirmizi={:<3} | vakalar={} | BEKLENEN>={} {} | {}".format(
+            print("MUTASYON {:<4} | net={:<3} | vakalar={} | BEKLENEN>={} {} | {}".format(
                 ad, len(kirmizi), sorted(kirmizi), asgari,
                 ("== " + str(sorted(beklenen))) if tam else ("uzerinde " + str(sorted(beklenen))),
                 "GECTI" if tamam else "KALDI"))
@@ -897,11 +1027,14 @@ def main():
         # KONTROL MUTANTLARI: kriter TERSTIR — SIFIR kirmizi + exit 0 beklenir. Takimin
         # "her degisiklige kirmizi yaniyor" olmadiginin, yani AYIRT EDICI oldugunun kaniti.
         for ad, uygulayici, aciklama in KONTROL_MUTANTLARI:
-            kirmizi, cikis = mutasyonu_kostur(ad, uygulayici)
-            tamam = (not kirmizi) and cikis == 0
-            print("KONTROL {:<4} | kirmizi={:<3} | vakalar={} | exit={} (0 + SIFIR "
-                  "kirmizi BEKLENIR) | {}".format(
-                      ad, len(kirmizi), sorted(kirmizi), cikis,
+            ham, cikis = mutasyonu_kostur(ad, uygulayici)
+            kirmizi = ham - TABAN
+            # K318: kriter TABANA GORE. Cikis kodu da tabanla karsilastirilir — taban
+            # zaten 1 iken "exit 0 bekle" demek kontrol mutantlarini olcumsuz birakirdi.
+            tamam = (not kirmizi) and cikis == TABAN_CIKIS
+            print("KONTROL {:<4} | net={:<3} | vakalar={} | exit={} (taban exit={} + "
+                  "SIFIR net kirmizi BEKLENIR) | {}".format(
+                      ad, len(kirmizi), sorted(kirmizi), cikis, TABAN_CIKIS,
                       "GECTI" if tamam else "KALDI"))
             print("          {}".format(aciklama))
             if not tamam:
@@ -911,8 +1044,14 @@ def main():
         for ad, uygulayici, aciklama in sorted(KENDI_TESTINI_KOSAN):
             _, cikis = mutasyonu_kostur(ad, uygulayici, kendi_testi=True)
             tamam = (cikis != 0)
-            print("CEVRE-ARIZA {:<3} | exit={} (0 OLMAMALI) | {}".format(
-                ad, cikis, "GECTI" if tamam else "KALDI"))
+            not_ = ""
+            if TABAN_CIKIS != 0:
+                # K318 GORUNURLUK: taban ZATEN exit 1 iken "exit 0 olmamali" olcutu
+                # BOSA DONER — mutant kaldirilsa da yesil yanar. Sessiz yesil YASAK.
+                not_ = " [BOSA DONUYOR: taban exit={} — olcut ayirt etmiyor]".format(
+                    TABAN_CIKIS)
+            print("CEVRE-ARIZA {:<3} | exit={} (0 OLMAMALI) | {}{}".format(
+                ad, cikis, "GECTI" if tamam else "KALDI", not_))
             print("          {}".format(aciklama))
             if not tamam:
                 basarisiz.append(ad)
@@ -925,8 +1064,20 @@ def main():
     toplam = (len(MUTASYONLAR) + len(SERT_MUTASYONLAR) + len(KENDI_TESTINI_KOSAN) +
               len(KONTROL_MUTANTLARI))
     print("")
+    print("TABAN KIRMIZI (mutasyondan BAGIMSIZ): {} {}".format(
+        len(TABAN), sorted(TABAN) or ""))
     if basarisiz:
         print("SONUC: KIRMIZI — esigi tutturamayan mutasyonlar: " + ", ".join(basarisiz))
+        sys.exit(1)
+    if TABAN:
+        # K318: net olcum yesil olsa BILE taban kirmizisi yutulmaz. Mutantlarin hukmu
+        # yukarida vaka vaka basildi; burada kapanan sey TABAN'dir, mutasyon degil.
+        print("SONUC: KIRMIZI — mutantlarin NET isareti tam ({}/{}) ama TABAN kirmizi: {}. "
+              "Kabul testinin MUTASYONSUZ hali once yesillenmeli.".format(
+                  len(MUTASYONLAR) + len(SERT_MUTASYONLAR) + len(KENDI_TESTINI_KOSAN) +
+                  len(KONTROL_MUTANTLARI),
+                  len(MUTASYONLAR) + len(SERT_MUTASYONLAR) + len(KENDI_TESTINI_KOSAN) +
+                  len(KONTROL_MUTANTLARI), sorted(TABAN)))
         sys.exit(1)
     print("SONUC: {}/{} mutant beklenen isareti verdi "
           "({} kural mutasyonu KIRMIZI + {} kontrol mutanti YESIL + {} cevre-ariza "

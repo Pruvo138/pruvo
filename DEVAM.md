@@ -2,26 +2,23 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔚 27 AGU TUR-2 · main=origin `3eee64d4` · agac TEMIZ · worktree 3 · kosan cip 0
-🟢 **GUNUN KILIDI ACILDI (`051b74d0`, 4 dosya):** kutu tavani bugun **BES** commit'i durdurdu
-(oturum kapanisi · DefterIndirme · SabahTeslim · K314 ×2). Tekil yama YASAKLANDI, sinif onarildi:
-① jeton yalniz KAPANIS konumunda sayilir ② korumali blok kuyrugu kilitlemez (YERINDE atlanir)
-③ commit kapisi `kutu-arsivle.py`'nin HUKMUNU tuketir. Canli: kutu **570→220** (tavan 300),
-`KAYIP=0` uc eksende (satir/bayt/blok), `KORUMALI_BEKLEYEN 5→1`, gercek bekleyen KUTUDA kaldi.
-Kabul: `VAKA 24→30 IDDIA 149→205 MUTANT=10/10 HEDEF_KOL_ATFI=7/7` · kapi `VAKA 10/10 MUTANT 6/6`.
-✅ **BEKLEYEN IKI COMMIT INDI:** `cada4b41` sabah-teslim · `015ad8ab` K314. K314: `SERIT_A3_KIRMIZI=0`
-CANLI (39 kapi), `YESIL=40 OLCULEMEDI=1(pip) KAPI=41`, M3 mutanti `IHLAL 0→1`, K6 iki tur birebir.
-✅ **UC MERGE INDI, CI TAM YESIL:** `051b74d0`(ff) · `2c6640ac` · `3eee64d4`; kosum `33063266161`
-**deploy+yayin success**. Iki SAHTE kirmizi `cancelled` cikti (paralel push); hukum
-ARDIL kosumdan okundu. 🔴 Rotasyon GERCEK kutuda atesledi: **331→230**, KAYIP=0 iki
-eksende, `bitisik_mi=HAYIR/YERINDE_ATLANDI`, bekleyen 3 jeton KUTUDA → K318 ②/③ CANLI.
-🔴 **YENI KALEMLER:** ⑥ **kol ③ canlida ATESLEMEDI** (yalniz sentetik vaka) → *kutu tavani asip
-`tasinabilir=0` iken jeton canli ciktida gorulsun* · ⑦ **bekci kabul bataryasi 4 vaka BAYAT**
-(`kanal=YOK` iddiasi, `kanal=cip` karariyla gecersiz) + `kur.py --kuru` **5 yama KURULU DEGIL**
-→ *vakalar TEK KAYNAKTAN turetilsin, sonra `--faz tam` rc=0* · ⑧ **kurulu kanca kopyasi SAPMISTI**
-→ *sapmayi commit disinda olcen kol* · ⑨ **13 ardisik `motor=claude rc=1`de karantina kaydi YOK**
-(`fatal-satir-yok`) → *olcut mesaji DA okusun*. ①-⑤ ve K314 acik ucu (gercek kirmizi CI kosumunda
-`SERIT_A3_KIRMIZI=n`) DURUYOR. **Okan'da bekleyen karar: YOK.**
+## 🔴 27 AGU AKSAM — CANLI · main=origin `594ca29e` · agac TEMIZ · worktree 6 (MIMAR 1 · CIP 5)
+✅ **INEN:** `d8e955e6` defter rotasyonu · `9f5544fb` MaCiT 7 urun metni · **`594ca29e` K318 ROL EKSENI**
+(bagimsiz curutuldu: kapi ONCESI `deny`→SONRASI `allow`, KONTROL `deny`; vaka 299→314, kirmizi 7→7 ARTMADI).
+🔴 **K318 KISMI — yalniz CIP bacagi:** isci bacagi ACIK · BaBa UCUNCU koldan duser · **MaCiT'e GELMEZ**
+(her ev kendi kapali kopyasini tasir) → kurucu `--rol-kapisi`; **SART: pozitif-kol fiksturu olculmeden
+hicbir eve yazilmaz**, BaBa ATLANIR. **DELIK:** `_proje_damgasi` KAYIPLI (`dev/pruvo`==`dev-pruvo`) →
+"aday damga ANA koke esitse RED" + vaka 815.
+🔴 **KOSAN 3 CIP:** SERIT B onarimi (`kral/serit-b-onarim-27agu`) · SERIT B **K3 kovasi** · `kral/nobet-turu-27agu` cakisma+curutme.
+🔴 **SERIT B (Okan ②):** 21 adim / 6 kova / `OLCULEMEDI=0`; #8+#9 K184 kaldirmasiyla KAPANDI.
+⛔ **② ULASILAMAZ, IKI ENGEL:** kalan adimlar **ve K220** (19 sapanin hepsi MODEL jetonu; ayrilmadan
+dokunmak CANLI marka sayfasi oldurur — onarim YASAK). SINIF: [[taban-kirmizisi-nobetciyi-susturur]] (4 mekanizma).
+🔴 **PARA YUZEYI:** civi bayatti (`kol=11`/10) → `POST /yonet/havale-onay` KASITLI+GUVENLI, ama nobetci
+**3 GUN** hukum vermedi. Civi SAYI degil **AD KUMESI**; sayi yamasi YASAK.
+🔧 **ACIK:** ⓑ `--yaz-sonrasi` KABLOSUZ · ⓒ HTML 4 saat CF'de, repoda kol YOK → **OKAN KAPISI** · ⓓ sessiz
+kirpma ~34 aday · ⓔ ⑦ bekci · ⓕ K314 · ⓖ ayni sayinin IKI kaynagi (761'de 1 sapan).
+⛔ `claude/ecstatic-maxwell-5a6f40` (`4b68adda`) MERGE EDILMEZ — K269.
+**Okan'da bekleyen: `pruvo-jenerator` icin GitHub App repository access (TeKiN talebi).**
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu KAPANAN 4 KALEM (K250·K302·K303·K305) — TAM METIN ARSIVDE**, "KAPANAN 4 KALEM" basligi.
@@ -124,5 +121,8 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
 - ✅ 25 Agu penceresi: 9 kalem kapandi → [[okan-25agu-kapatilan-konular]]; 🔴 yeniden ACILMAZ.
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
+
+## 🔧 K318 CIP-ROL — dal `kral/icra-kapisi-kimlik-27agu` `82a30b41`, MERGE BEKLIYOR
+Kapi ROL olcer: ANA RED, cip GECER, olculemez RED. 299→314 vaka. MaCiT'e merge ile GELMEZ.
 
 ## ARSIVDE — 14-20 Agu `DEVAM-ARSIV.md`'de.
