@@ -123,4 +123,7 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
 
+## 🔧 K318 CIP-ROL — dal `kral/icra-kapisi-kimlik-27agu` `82a30b41`, MERGE BEKLIYOR
+Kapi ROL olcer: ANA RED, cip GECER, olculemez RED. 299→314 vaka. MaCiT'e merge ile GELMEZ.
+
 ## ARSIVDE — 14-20 Agu `DEVAM-ARSIV.md`'de.

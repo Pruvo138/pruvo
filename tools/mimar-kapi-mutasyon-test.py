@@ -442,8 +442,12 @@ MUTASYONLAR = [
         '        if agent_karari != "gecer":\n',
         "        if False:\n"),
      "28Tem AGENT: main() AGENT kolu daima izin verir (reddet hic tetiklenmez)",
-     {400, 401, 402, 403, 406, 407, 408, 409, 700, 701, 702, 704, 705, 710, 711},
-     True, 15),
+     # 27 AGU (K318): 811 EKLENDI — cip oturumundan gelen beyansiz Agent cagrisi. Vaka
+     # ROL ekseninin DISINDA, AGENT kolunda karara baglanir (rol kolu Agent'a HIC
+     # ugramaz); bu mutant onu da acmali. Cakinin buyumesi kasitli: "cipte de kapali"
+     # iddiasi ancak AGENT kolunu olduren mutant o vakayi da kizartirsa TASIYICIDIR.
+     {400, 401, 402, 403, 406, 407, 408, 409, 700, 701, 702, 704, 705, 710, 711, 811},
+     True, 16),
     # MA3 (c): agent_id MUAFIYETI TERSINE — ICRA kimlik daima MIMAR (isci muafiyeti duser).
     # Boylece beyansiz ISCI Agent/Task cagrilari (404/405) reddedilir. Tekil dosya (ICRA)
     # patch'i M2'den (KILIT+ICRA birlikte) ayrisir; beklenen AGENT worker vakalaridir.
@@ -592,7 +596,10 @@ MUTASYONLAR = [
      # diye OLCULEMEDI'ye duser (K214 turunda birebir yasandi: beklenen 5, gelen 7).
      # 923/924 OKAN yetkili cikisini olcer ve bu mutant altinda ALLOW kaldigi icin
      # YESIL kalir — yani I3 ile I5 hala AYRISIR (iki eksen tek ize erimedi).
-     {613, 614, 615, 707, 712, 921, 922}, True, 7),
+     # 27 AGU (K318): 810 EKLENDI — cip oturumundan gelen 'isci.sh claude' (beyansiz).
+     # ISCI-SARMALAYICI kolu ROL bayragina BAKMAZ; bu mutant o kolu oldurdugu icin cip
+     # vakasi da kizarir. Yukaridaki "beklenen kume ELLE tasinir" uyarisinin geregi.
+     {613, 614, 615, 707, 712, 810, 921, 922}, True, 8),
     # I4: spec OKUNAMADIGINDA red yerine 'gecer' (FAIL-OPEN). "Beyani olcemedim" yesile
     # doner. I3'ten AYRISIR: 613 (spec OKUNUYOR, beyan yok) YESIL kalir — mutantin
     # kirmizisi yalniz 615'tir, yani iki eksen tek ize erimemistir.
@@ -692,9 +699,13 @@ MUTASYONLAR = [
      "17Agu K159: pencere/tarih kontrolu kaldirilir (21 Agu tarihli codex GECER)",
      {905}, True, 1),
     # === 27 AGU 2026 (K318) — ROL EKSENI NOBETCILERI =========================
-    # Her mutant, rol ekseninin FARKLI bir kolunu oldurur ve HEDEF kolun vakalari TAM
-    # ESITLIKLE kirmizi yanar (tam=True). Kumeler kesismez: hangi kolun oldugu ayrica
+    # Her mutant, rol ekseninin FARKLI bir kolunu oldurur ve HEDEF kolun vakalari
+    # CAKILI bir kumeyle kirmizi yanar. Kumeler AYNI DEGILDIR — MR2 tekil (ad benzerligi),
+    # MR1 'cwd menzili', MR3 pozitif kol, MR5 sinir kollari — hangi kolun oldugu ayrica
     # okunabilsin diye ([[ikinci-gorus-vakasi-birinci-gorusu-tekrar-ederse-totolojidir]]).
+    # Kumeler OLCULDU, tahmin edilmedi: ilk turda MR1/MR4/MR5 icin yazdigim cakilar
+    # EKSIKTI (MR1'e 807/812, MR5'e iz-iddiasi dusen 5 pozitif vaka, MR4'e 61 vaka daha
+    # geldi) ve takim bunlari KIRMIZI yakti; cakilar OLCULEN degere gore duzeltildi.
     #
     # MR1 — OLCUM -> BEYAN: rol, oturum damgasindan degil KAYDIRILABILIR cwd'den okunur
     # (20 Tem'de kaldirilmis regresyonun ta kendisi). Hedef kol: KONTROL/fail-closed.
@@ -716,7 +727,10 @@ MUTASYONLAR = [
         "            return _kok\n"
         "    return None\n"),
      "K318: rol OLCUMDEN degil BEYANDAN (cwd) okunur -> ANA oturum 'cd worktree' ile acilir",
-     {805, 806}, True, 2),
+     # OLCULDU: cwd'si bir worktree'ye kaydirilmis DORT ANA vakasinin hepsi acilir
+     # (805 damgasi ANA · 806 damgasiz · 807 alt-dize · 812 kayitsiz uydurma). cwd'si
+     # ana checkout olan 800/801 KAPALI KALIR — mutantin menzili tam olarak 'cwd'.
+     {805, 806, 807, 812}, True, 4),
     # MR2 — TAM BILESEN esitligi ALT-DIZE'ye gevser. Hedef kol: ad-benzerligi kalkani.
     ("MR2", lambda d: yama(
         d, KIMLIKORTAK,
@@ -744,7 +758,13 @@ MUTASYONLAR = [
         "    if not isinstance(yol, str) or not yol.strip():\n"
         "        return sorted(worktree_kokleri)[0] if worktree_kokleri else None\n"),
      "K318: damga YOKKEN fail-closed kalkar (olculemedi -> gecis) -> 800/806 acilir",
-     {800, 806}, True, 2),
+     # 🔴 TAM ESITLIK KULLANILMAZ VE BU BIR TAVIZ DEGIL, BULGUNUN KENDISIDIR: olculdu,
+     # net=63. Kabul takimindaki eski vakalarin hicbiri `transcript_path` TASIMAZ, yani
+     # fail-closed kolu kalkinca TUM mimar redleri (olcum, curl, python allowlist, isci
+     # sarmalayici...) birden acilir. "OLCULEMEDI = gecis" tekil bir delik degil, kapinin
+     # TOPTAN dusmesidir; patlama yaricapi burada gorunur kalsin diye asgari esikle
+     # olculur. Hedef kol atfi 800 (damgasiz ANA) + 806 (damgasiz, cwd worktree).
+     {800, 806}, False, 2),
     # MR5 — KAPSAM ASIMI: cip kolu ICRA kapisinin TAMAMINI atlar (ISCI gibi TAM muaf).
     # Hedef kol: "kapsam duzeltmesi, GEVSETME degil" siniri. Cipte de kapali kalmasi
     # gereken kollar (Okan emri + repo hijyeni) acilir -> 808/809/810/811 KIRMIZI.
@@ -757,7 +777,13 @@ MUTASYONLAR = [
         "        iz_bas(kimlik_izi(girdi))\n"
         "        sys.exit(0)\n"),
      "K318: cip main() basinda TAM muaf olur -> Okan emri kollari + repo hijyeni acilir",
-     {808, 809, 810, 811}, True, 4),
+     # OLCULDU, IKI ETKI birden ve ikisi de KASITLI olarak cakili:
+     #  (a) SINIR kollari acilir: 808 satir-ici kod · 809 repo-disi betik ·
+     #      810 isci.sh claude sert blok (Okan emri) · 811 AGENT-KAPISI (Okan emri).
+     #  (b) POZITIF vakalarin IZ iddiasi duser: erken cikis 'MIMAR' izi basar, oysa
+     #      802/803/804/813/814 'CIP(' izi bekler. Yani iz iddiasi SUS PAYI DEGIL,
+     #      yuk tasiyor — kaldirilirsa bu mutant yari korlesirdi.
+     {802, 803, 804, 808, 809, 810, 811, 813, 814}, True, 9),
 ]
 
 # ===================== KONTROL MUTANTLARI (AYIRT EDICILIK OLCUMU) =====================
