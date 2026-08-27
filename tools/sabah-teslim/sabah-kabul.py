@@ -40,10 +40,17 @@ import sys
 import tempfile
 import time
 
-CRON = "/Users/okan/.claude/cron"
-ARAC = os.path.join(CRON, "kral-sabah.py")
+CRON = os.path.join(os.path.expanduser("~"), ".claude", "cron")
+VARSAYILAN_ARAC = os.path.join(CRON, "kral-sabah.py")
 SPEC_DIZINI = os.path.join(CRON, "tamirci-spec")
 PY = sys.executable or "python3"
+
+# 🔴 OLCULEN ARAC BAYRAKLA SECILIR (27 Agu 2026, mimar hukmu —
+# KraL-KarantinaHukmu-27Agu). ONCE: `ARAC` KURULU KOPYAYA cakiliydi; batarya
+# yesil yansa da o yesil DALIN dosyasini degil kurulu kopyayi tarif ediyordu
+# — ve o duzleme baska cipler de yazabiliyor. SIMDI `--arac <yol>` hedefi
+# degistirir; A4 MUTANTI da o dosyadan turer. Bayraksiz davranis AYNEN eski.
+ARAC = VARSAYILAN_ARAC
 
 SONUC = []
 
@@ -566,18 +573,40 @@ def a7_kurucu_idempotens():
 
 
 def main(argv=None):
-    global KURUCU_YOLU
+    # 🔴 CAKISMA COZUMU (27 Agu 2026, KraL-DogrulaMerge-27Agu) — BIRLESIM, taraf
+    # secimi DEGIL. Iki dal main()'e AYRI birer bayrak ekledi ve bayraklar AYRI
+    # yuzey seciyor; birini dusurmek otekinin olcumunu KORLESTIRIRDI:
+    #   * `--kurucu` (main, sabah dalindan) -> A7'nin olctugu **kur.py**. Yoksa
+    #     dal olculurken ANA CHECKOUT'un kurucusu olculur (sabah dalinin kendi
+    #     yan bulgusu; o tur 3 vaka bu yuzden dusmustu).
+    #   * `--arac`   (nobet dali)           -> A1/A6'nin olctugu **kral-sabah.py**.
+    #     Yoksa daima KURULU KOPYA olculur ve batarya yesili dalin dosyasini
+    #     tarif etmez ([[kayipli-damga-korunani-korunmayana-benzetir]] komsusu:
+    #     olculen duzlem != onarilan duzlem).
+    # Ikisi ayni `args` uzerinde durur, birbirine DOKUNMAZ; bayraksiz davranis
+    # her iki eksende de ESKISIYLE ayni kalir.
+    global KURUCU_YOLU, ARAC
     ap = argparse.ArgumentParser()
     ap.add_argument("--faz", choices=("on", "tam"), default="tam")
     ap.add_argument("--kurucu", default=None,
                     help="A7'de olculecek kur.py (dal olcumu icin ZORUNLU — "
                          "aksi halde ANA CHECKOUT'un kopyasi olculur)")
+    ap.add_argument("--arac", default=None, metavar="YOL",
+                    help="olculecek kral-sabah.py (varsayilan: kurulu kopya "
+                         "~/.claude/cron/kral-sabah.py). Dalin KENDI dosyasini "
+                         "olcmek icin: --arac tools/sabah-teslim/kral-sabah.py")
     args = ap.parse_args(argv)
     KURUCU_YOLU = args.kurucu
+    if args.arac:
+        ARAC = os.path.abspath(os.path.expanduser(args.arac))
 
     print("KraL SABAH RUTINI KABUL BATARYASI — faz=%s" % args.faz)
-    print("damga=%s python=%s arac=%s" % (
-        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), PY, ARAC))
+    print("damga=%s python=%s" % (
+        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), PY))
+    # 🔴 OLCULEN YUZEY ADIYLA BASILIR: iki kosumun farki bu satirdan okunur.
+    print("OLCULEN_ARAC=%s (%s)" % (
+        ARAC, "BAYRAKLA" if args.arac else "VARSAYILAN/kurulu"))
+    print("SPEC_DIZINI=%s" % SPEC_DIZINI)
 
     if not os.path.isfile(ARAC):
         print("HATA: arac YOK -> %s" % ARAC)
