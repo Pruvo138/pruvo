@@ -745,7 +745,7 @@ def _sentetik_defter(yol, kalemler):
 # Sentetik vakalar: (ad, ev_koku, etiket, komut, beklenen_hukum, beklenen_kol)
 # `ev_koku` gercek depo koklerini KULLANIR (yalniz yol cozumu icin); defterler
 # `koku_root` ile gecici dizine yonlendirilir — gercek deftere DOKUNULMAZ.
-def _vakalar(kok_hasat, kok_kral, kok_bot, kok_jen):
+def _vakalar(kok_hasat, kok_kral, kok_bot, kok_jen, kok_advisor):
     isci = "/Users/okan/.claude/cron/isci.sh"
     return (
         # MaCiT'in evinde acik kalem VAR -> yeni parti REDDEDILIR
@@ -774,6 +774,16 @@ def _vakalar(kok_hasat, kok_kral, kok_bot, kok_jen):
         ("tekin-defter-bos", kok_jen, "parti-surucusu",
          "%s kimi %s /tmp/s.md parti-surucusu" % (isci, kok_jen),
          "RED", N2B_OLCULEMEDI_JETON),
+        # 🔴 27 Agu 2026 — EV COZUMU KAPSAMI (regresyon capasi):
+        # BaBa'nin kendi deposu (`pruvo-advisor`) T4 EV_DIZIN'de YOKKEN
+        # `ev_coz` onu hicbir eve cozemiyor, kol `N2B-OLCULEMEDI` -> RED
+        # veriyordu; BaBa'nin isci kanali BU YUZDEN kapaliydi. Bu vaka
+        # kapsamin ALTI EVI de tasidigini olcer. Vaka DUSERSE mesaj sudur:
+        # "ev tablosu diskteki gercekten yeniden AYRISTI" — dizge degil,
+        # DAVRANIS olculur (hukum + kol).
+        ("baba-advisor", kok_advisor, "parti-surucusu",
+         "%s minimax-m3 %s /tmp/s.md parti-surucusu" % (isci, kok_advisor),
+         "GECER", N2B_SUREN_JETON),
     )
 
 
@@ -847,6 +857,7 @@ def kendini_test(gecici_kok):
     kok_kral = "/Users/okan/dev/pruvo"
     kok_bot = "/Users/okan/dev/pruvo-bot"          # HocA — defteri HIC YOK
     kok_jen = "/Users/okan/dev/pruvo-jenerator"    # TeKiN — defteri VAR ama BOS
+    kok_advisor = "/Users/okan/dev/pruvo-advisor"  # BaBa — kendi deposu (6. ev)
 
     # Izole defterler: MaCiT'te 2 acik kalem, KraL'de hepsi KAPANDI.
     _sentetik_defter(os.path.join(gecici_kok, "MaCiT", "memory",
@@ -855,6 +866,11 @@ def kendini_test(gecici_kok):
     _sentetik_defter(os.path.join(gecici_kok, "KraL", "memory",
                                   "acik-kalemler.md"),
                      [("K800", "KAPANDI"), ("K801", "KAPANDI")])
+    # BaBa (6. ev) — defteri VAR ve kalemleri KAPANDI: bu vakada olculen sey
+    # DEFTER degil, EV COZUMU kapsamidir (advisor koku -> BaBa).
+    _sentetik_defter(os.path.join(gecici_kok, "BaBa", "memory",
+                                  "acik-kalemler.md"),
+                     [("K850", "KAPANDI")])
     # 🔴 K229 fiksturu — UC ayri hal AYNI kosumda bulunur, yoksa uc kova
     # birbirinden ayrildigi ISPATLANAMAZ:
     #   HocA  : defter DOSYASI hic YOK    -> UCUNCU KOVA (GECER + kendi jetonu)
@@ -880,7 +896,7 @@ def kendini_test(gecici_kok):
                                else "HAYIR sebep=%s" % T4_HATA))
     print("")
 
-    vakalar = _vakalar(kok_hasat, kok_kral, kok_bot, kok_jen)
+    vakalar = _vakalar(kok_hasat, kok_kral, kok_bot, kok_jen, kok_advisor)
 
     def kos(mutant=None):
         out = {}

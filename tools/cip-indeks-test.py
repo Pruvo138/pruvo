@@ -52,6 +52,24 @@ KOSUM = os.path.join(DIR, "cip-indeks-kosum.js")
 # SESSIZCE dusurulurse ya da bir mod hic kosmazsa kapi KIRMIZI yanar.
 BEKLENEN_IDDIA = 91
 
+# === 27 AGU 2026 (K328) — M3-B ZENGINLESTIRME CIVISI: SAYI DEGIL AD ==============
+# 🔴 SAYI BIR ANLIK GORUNTUDUR, AD BIR IDDIADIR. Bugun ayni depoda bunun bedeli
+# olculdu: `shop/test/uretim-kaynak.mjs` yetki yuzeyini SAYIYLA civilemisti
+# (`KOL_TABANI = 10`); 24 Agu'da mesru bir uc eklenince (`POST /yonet/havale-onay`)
+# civi bayatladi ve yetki-yuzeyi nobetcisi UC GUN hic hukum vermedi. Ayni hata burada
+# tekrarlanmasin: `cip \ sayfa` farkinin BUYUKLUGU degil, HANGI KOVALARDA oldugu civili.
+# Kumeye YENI bir ad girerse KIRMIZI (yeni bir ayrisma dogdu, hukum gerekir);
+# kumeden bir ad DUSERSE de KIRMIZI (civi bayatladi ya da davranis sessizce degisti).
+#
+# BUGUNKU TEK UYE — olculdu (761 dugum, replikasyon kapiyla BIREBIR):
+#   ('Otomobil', 'Citroen', 'ami') -> citroen-ami-6-i-ayd-nlatma-anahtar-par-as
+#   `Ami` (2020 EV) ile `Ami 6` (1960'lar) KARDES MODEL; urunun kendi jeton kovasi
+#   `ami6`, ama cipin BASLIK kolu basliktaki "Ami"yi tam kelime yakalayip onu `ami`
+#   kovasina da yaziyor. Sayfa ureticisi yazmiyor. Bu bir ONTOLOJI sorusudur (kardes
+#   model ↔ sasi kodu/pazarlama adi ayrimi) ve mekanik kuralla cozulemez — o yuzden
+#   ONARILMADI, CIVILENDI: buyurse gorunur olsun.
+M3_ZENGIN_CIVI = frozenset({("Otomobil", "Citroen", "ami")})
+
 
 _EVREN_BELLEK = {}
 
@@ -196,7 +214,9 @@ def kabul(kok):
     # --- A) GERCEK KATALOG: indeks esikleri + SIFIR kombinasyon YOK -----------
     with open(os.path.join(kok, "urunler.json"), encoding="utf-8") as f:
         gercek = json.load(f)
-    ix = ci.indeks_uret(gercek, index_metni)
+    # K328: cip UYELIK kovasi — sayan kolun KENDISI doldurur (ikinci turetim YOK).
+    cip_uyelik = {}
+    ix = ci.indeks_uret(gercek, index_metni, uyelik=cip_uyelik)
     marka_ihlal, model_ihlal, sifir, tek_model = [], [], [], []
     for kat, kd in ix["kat"].items():
         for mk, d in kd.items():
@@ -316,7 +336,8 @@ def kabul(kok):
         _ids |= set(_p.get("id") for _p in (_d["marka_only"] + _d.get("ikincil", [])))
         marka_sayfa_ids[_marka] = _ids
 
-    mukerrer, jeton_ihlal, sayi_sapan, sayfasiz = [], [], [], []
+    mukerrer, jeton_ihlal, sayfasiz = [], [], []
+    kayip_uye, zengin_kova = [], set()          # K328: KOL A bulgulari · KOL B kovalari
     cip_canon = {}      # (kat, marka) -> {canon: cip adi}
     for kat, kd in ix["kat"].items():
         for mk, d in kd.items():
@@ -337,11 +358,16 @@ def kabul(kok):
                     jeton_ihlal.append("%s/%s/%s: MODEL OLMAYAN cift" % (kat, mk, md))
                 if (mk, canon) in mmb.ROZET_DISI:
                     jeton_ihlal.append("%s/%s/%s: ROZET DISI cift" % (kat, mk, md))
-                # (d) sinifi: cipin gosterdigi sayi == o modelin SAYFASINDAKI sayi
+                # (d) sinifi: KAPSAMA (K328). Eski iddia `cip_n == sayfa_n` idi ve
+                # TABAN OLARAK YANLISTI — asagidaki M3 blogunun basindaki gerekceye bak.
                 _kats = sayfa_kova.get((mk, canon))
-                _n = len(_kats.get(kat, ())) if _kats else None
-                if _n != y["n"]:
-                    sayi_sapan.append("%s/%s/%s: cip=%s sayfa=%s" % (kat, mk, md, y["n"], _n))
+                _sayfa_ids = set(_kats.get(kat, ())) if _kats else set()
+                _cip_ids = cip_uyelik.get((kat, mk, canon), set())
+                if _sayfa_ids - _cip_ids:                       # KOL A — musteri guvencesi
+                    kayip_uye.append("%s/%s/%s: sayfada VAR cipte YOK -> %s"
+                                     % (kat, mk, md, sorted(_sayfa_ids - _cip_ids)))
+                if _cip_ids - _sayfa_ids:                       # KOL B — zenginlestirme
+                    zengin_kova.add((kat, mk, canon))
                 if (mk, canon) not in sayfa_yayim:
                     sayfasiz.append("%s/%s/%s" % (kat, mk, md))
     dogrula("M1 MODEL CIPI MUKERRER YOK (ayni kanonik degere iki cip dusmez)",
@@ -349,9 +375,43 @@ def kabul(kok):
             % (toplam_model, len(mukerrer), mukerrer[:3]))
     dogrula("M2 MODEL CIPI MODEL-OLMAYAN JETON TASIMAZ (marka/grup/rozet elenmis)",
             not jeton_ihlal, "ihlal=%d %s" % (len(jeton_ihlal), jeton_ihlal[:3]))
-    dogrula("M3 CIP SAYISI == O MODELIN SAYFASINDAKI SAYI (tek kaynak)",
-            not sayi_sapan, "model=%d sapan=%d %s"
-            % (toplam_model, len(sayi_sapan), sayi_sapan[:3]))
+    # === 27 AGU 2026 (K328) — M3 ARTIK IKI KOLLU KAPSAMA (eski `==` KALDIRILDI) ======
+    # 🔴 ESKI IDDIA TABAN OLARAK YANLISTI: `cip_n == sayfa_n`. Cip uyeligi IKI koldan
+    # dogar (jeton ∪ BASLIK), sayfa ureticisi KENDI kuralindan; ikisi 433 kovada
+    # 2211 uyelikte BILEREK ayrisir ve o ayrisma MESRUDUR (olculdu 27 Agu:
+    # `w204`->`cclass`, `w639`->`vito|viano`, `w169`->`aclass` — sasi kodu ↔ pazarlama
+    # adi zenginlestirmesi). Boyle bir yerde `==` iddia etmek, kapinin 761 dugumun
+    # 760'inda SANS ESERI yesil yanmasi demekti; yesilligi sansa bagli kapi kapi degildir.
+    # 🔴 YENI IDDIA ESKISINDEN GUCLUDUR, GEVSETME DEGIL: `==` tek bir sayiyi kiyasliyordu;
+    # KOL A + KOL B birlikte UYE KUMESINI iki yonden birden baglar.
+    #   KOL A (MUSTERI GUVENCESI): `sayfa \ cip` BOS olmali. Bos degilse sayfada gorunen
+    #     bir urun cip suzgecinde KAYBOLUYOR demektir — gercek zarar, KIRMIZI.
+    #     Olculdu 27 Agu: 761 dugumun 761'inde BOS.
+    #   KOL B (ZENGINLESTIRME MUHASEBESI): `cip \ sayfa` farki AD KUMESIYLE civilenir,
+    #     SAYIYLA degil. Sayi bir anlik goruntudur; ad kumesi degisince KIRMIZI yanar.
+    #     Bugunku tek uye: ('Otomobil','Citroen','ami') — `Ami` ile `Ami 6` KARDES MODEL
+    #     ve cipin BASLIK kolu "Ami"yi tam kelime yakaliyor. Kume BUYURSE hukum gerekir.
+    # Sinir: bu tur YALNIZ IDDIAYI degistirdi; `cip-indeks.py`nin katlama koluna ve
+    # `urunler.json`a DOKUNULMADI.
+    dogrula("M3-A KAPSAMA: sayfada VAR olan her urun CIPTE DE VAR (musteri guvencesi)",
+            not kayip_uye, "model=%d kayip_kova=%d %s"
+            % (toplam_model, len(kayip_uye), kayip_uye[:3]))
+    _zengin_fazla = sorted(zengin_kova - M3_ZENGIN_CIVI)
+    _zengin_eksik = sorted(M3_ZENGIN_CIVI - zengin_kova)
+    dogrula("M3-B ZENGINLESTIRME KUMESI CIVILI (ad ile, sayi ile DEGIL)",
+            not _zengin_fazla and not _zengin_eksik,
+            "civi=%d olculen=%d YENI=%s KAYBOLAN=%s"
+            % (len(M3_ZENGIN_CIVI), len(zengin_kova), _zengin_fazla, _zengin_eksik))
+    # 🔴 M3-B NOBETI — MUTASYON BATARYASINDA DEGIL, BURADA (sebep: `_kok_kostur` CANLI
+    # test dosyasini kosturdugu icin testin KENDI sabitine mutant uygulanamiyor; K328②/③
+    # bu yuzden KALDIRILDI). Iddia IKI YONLU ve civinin YUK TASIDIGINI olcer:
+    #   (a) olculen kume BOS OLMAMALI — bos olsaydi `{ami}` civisi ile bos olcum
+    #       birbirini goturur ve M3-B "yesil" gorunurken hicbir sey baglamazdi;
+    #   (b) civi BOSALTILSA hukum KIRMIZI olurdu (`zengin_kova - frozenset()` dolu).
+    # Ikisi ayni olguyu iki yonden yazar: `zengin_kova` bugun DOLU, o yuzden civi canli.
+    dogrula("M3-B NOBET: civi YUK TASIYOR (olculen kume BOS DEGIL; bosaltilsa KIRMIZI)",
+            bool(zengin_kova) and bool(zengin_kova - frozenset()),
+            "olculen=%d ornek=%s" % (len(zengin_kova), sorted(zengin_kova)[:2]))
     dogrula("M4 HER MODEL CIPININ YAYIMLANAN SAYFASI VAR (olu cip yok)",
             not sayfasiz, "sayfasiz=%d %s" % (len(sayfasiz), sayfasiz[:3]))
 
@@ -682,6 +742,50 @@ MUTANTLAR = [
      "    if not hamlar:\n        return None\n    return sorted(hamlar.items(), key=lambda t: (-t[1], t[0]))[0][0]",
      "KIRMIZI",
      "HER MARKAYA `e` YAZ: kanonik=ham olanda da alan dogar (gereksiz bayt + kontrol ekseni duser)"),
+    # --- K328 M3 IKI KOLLU KAPSAMA (mimar sarti: uc mutant, ucuncusu KONTROL) ----
+    # ① KOL A, GENIS MENZIL: JETON kolunun uyelik kaydini sustur -> o yoldan gelen her
+    #    uyelik duser. Bu, "sayfada gorunen urun cip suzgecinde KAYBOLUYOR" halinin
+    #    KATALOG OLCEGINDEKI halidir.
+    #    🔴 ILK YAZIMDA "KOL B de kizarir, bu kasitli" demistim — OLCUM BUNU CURUTTU:
+    #    BASLIK kolunun kaydi YERINDE kaldigi icin `cip \ sayfa` DEGISMIYOR ve KOL B
+    #    YESIL kaliyor. Olculen: `kayip_kova=761`, kirmizi iddia sayisi 1 (yalniz M3-A).
+    #    Yani ① de A'yi ISOLE ediyor; ④'ten farki MENZIL (761 kova ↔ 1 kova), sinif degil.
+    ("cip-indeks.py",
+     "                if uyelik is not None:                  # K328: SAYAN kol kaydeder\n"
+     "                    uyelik.setdefault((kat, b, canon), set()).add(u.get(\"id\"))\n",
+     "",
+     "KIRMIZI",
+     "K328① UYELIK KAYDINI SUSTUR: `sayfa \\ cip` patlar -> KOL A KIRMIZI "
+     "(musteri guvencesi kolu yuk tasiyor mu)"),
+    # ② KOL B: civili ad kumesinden `ami` DUSURULUR -> olculen kume cividen BUYUK
+    #    gorunur ve "YENI ayrisma dogdu" hukmu yanar. KOL A ETKILENMEZ (ayrim kaniti).
+    # 🔴 K328② ve ③ KALDIRILDI — YAPISAL OLARAK OLCULEMEZLER, OLCULDU:
+    # `_kok_kostur()` (satir 911) mutant KOPYAYI degil `os.path.abspath(__file__)`i,
+    # yani CANLI test dosyasini kosturur; kopyaya yalnizca `--kok` ile ISARET eder.
+    # Dolayisiyla `cip-indeks-test.py`ye uygulanan bir mutant test davranisini HIC
+    # degistirmez. Olculdu (27 Agu): ② `MUTANT FIILEN UYGULANDI 40/40` oldugu halde
+    # sonuc YESIL (0 iddia kirmizi) — mutant uygulandi ama OLCULEMEDI; ③ ise ayni
+    # sebeple SAHTE YESIL veriyordu (kontrol vakasi hicbir sey kanitlamiyordu).
+    # Bu tabloda BIRAKMAK, ikisini de kalici yalanci yapardi ([[kabul-fiksturu-yasagi-kutsar]]).
+    # KOL B'nin nobeti mutasyon bataryasinda DEGIL, testin ICINDE iki yonlu iddia
+    # olarak durur (asagida "M3-B NOBET"); mutant yoklugu ADIYLA raporlanir.
+    # ④ KOL A'NIN TEKIL AYRIM MUTANTI (mimar sarti): kaydi SUSTURMA — TEK BIR uyeligi
+    #    dusur. O urun `sayfa`da kalir, `cip` kaydindan cikar -> KOL A KIRMIZI, KOL B
+    #    YESIL (cip \ sayfa DEGISMEZ). ①'in aksine bu mutant iki kolu birden bozmaz,
+    #    yani A'nin bagimsizligini KANITLAR. Kosucu dusen iddialari ADIYLA bastigi icin
+    #    ayrim ciktidan okunur (`oldu[:3]`).
+    ("cip-indeks.py",
+     "                if uyelik is not None:                  # K328: SAYAN kol kaydeder\n"
+     "                    uyelik.setdefault((kat, b, canon), set()).add(u.get(\"id\"))\n",
+     "                if uyelik is not None and u.get(\"id\") != "
+     "\"citroen-ami-kap-kilidi-bo-luk-kapa\":\n"
+     "                    uyelik.setdefault((kat, b, canon), set()).add(u.get(\"id\"))\n",
+     "KIRMIZI",
+     "K328④ TEK UYELIGI DUSUR: o urun sayfada VAR cipte YOK -> KOL A KIRMIZI, "
+     "KOL B YESIL (A'nin BAGIMSIZ ayrim kaniti)"),
+    # ③ KONTROL: davranis DEGISTIRMEYEN bir dokunus YESIL kalmali. Bugun `varlik-test`te
+    #    bunun TERSINI yasadik (hicbir sey degismedigi halde kapi kirmizi yaniyordu);
+    #    kontrol vakasi olmadan ①/② kirmizisi "her degisiklige kizariyor" ile karisir.
     # --- KURATORLUK KAPSAM ESIGI EKSENI (ESIK_UYUM_KAPSAM) -------------------
     ("cip-indeks.py", "ESIK_UYUM_KAPSAM = 0.50", "ESIK_UYUM_KAPSAM = 1.01", "KIRMIZI",
      "ESIGI TAVANA CEK: HER kategori gevser -> arac kategorilerinde model kodlari cip olur"),
