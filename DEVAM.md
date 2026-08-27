@@ -2,28 +2,24 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ▶️ 27 AGU · **KOSAN CIP=6, KUYRUKTA KALEM YOK** (K317 · gerekce+kabul KUTUDA)
-🔴 **ALTISI DA AYNI UST SINIFIN YUZU:** *URETILEN degerin tuketicisi ya YOK, ya BASKA sozlukten
-okur, ya SEBEBI YUTAR.* Alti spec'te de: **tekil yama YASAK** + hedef-kol atifli mutant + KONTROL
-yesil + `urunler.json` YASAK + **merge karari MIMARDA** (hicbiri push etmez).
-- **K316** `KraL-TabanKirmizi-27Agu` — `YAMA_TUTMADI=1` (capa ayristi, s.217 kapsami sessizce
-  daraltir) + `nobet-kabul VAKA=46 DUSEN=2` (el kitabi `kimi`, `kat_sec` `minimax-m3` turetir).
-- **K311 iki dar kalem** `KraL-KorGoz-27Agu` — (a) `kirmizi_toplam` yazan=1 okuyan=0 → **F2≡F3**
-  (11 duran kirmizi ≡ 0 kirmizi) · (b) `nobet-kapi.py:320` yalniz `🔧` sayar, N2B ayni defterden
-  `ACIK=<n>` okur. **DONDURMA KORUNUR** — yalniz TESPIT kolu, `acilan_tur=1` TALEP EDILMEZ.
-- **K314①②** `KraL-K314-27Agu` — serit ilk kirmizida durup kuyrugu gizler (4,7 saat kesinti,
-  DORT ayri kirmizi adim) + olcum araci ciktisi izlenen agacta.
-- **K308+K310** `KraL-BosBeyan-27Agu` — 🔴 **IKISI DE BUGUN BENIM PUSH'UMDA CANLI ATESLEDI:**
-  `!! YEDEK alinamadi` bastI, SEBEP yutuldu (care ayni kancada 20 satir asagida) · `lossless=GECTI`
-  bugun IKI kez bastI (9 blok/268 satir tasindi) ama oksuz-govde ekseni kaynakta **0**.
-- **K240 ailesi** `KraL-BayatYuzey-27Agu` — kurucu var-olan basligi TAZELEMIYOR; damgalar BAYT
-  BIREBIR korunacak. · **K313 SINIF** `KraL-K313Sinif-27Agu` — vaka temizlendi (9→0), mekanizma
-  konmadi; kapi curutebilir, o zaman "CURUDU" yazilir.
-**MaCiT:** `hasat_ekle.py` kapandi (`24b67c3b`) + C3D×Kahve **6/6** (`5dc23886`).
-
-## 🔚 26 AGU 3. OTURUM KAPANISI — ISARETCI (tam metin KUTUDA; kalemler `acik-kalemler.md`de)
-Yayin acildi `6da4508d` (4,7 saat kesinti) · kapanan K313-tekil/K53/K302/K152-on-sart/K44 ·
-K291 CURUTULDU → K308·K310·K311 OLCULEBILIR · K314 ACILDI. **1:1:** blok isaretciye indi.
+## 🔚 27 AGU TUR-2 · main `051b74d0` (kutu kilidi INDI) · agac: yalniz `M DEVAM.md` · kosan cip 1
+🟢 **GUNUN KILIDI ACILDI (`051b74d0`, 4 dosya):** kutu tavani bugun **BES** commit'i durdurdu
+(oturum kapanisi · DefterIndirme · SabahTeslim · K314 ×2). Tekil yama YASAKLANDI, sinif onarildi:
+① jeton yalniz KAPANIS konumunda sayilir ② korumali blok kuyrugu kilitlemez (YERINDE atlanir)
+③ commit kapisi `kutu-arsivle.py`'nin HUKMUNU tuketir. Canli: kutu **570→220** (tavan 300),
+`KAYIP=0` uc eksende (satir/bayt/blok), `KORUMALI_BEKLEYEN 5→1`, gercek bekleyen KUTUDA kaldi.
+Kabul: `VAKA 24→30 IDDIA 149→205 MUTANT=10/10 HEDEF_KOL_ATFI=7/7` · kapi `VAKA 10/10 MUTANT 6/6`.
+✅ **BEKLEYEN IKI COMMIT INDI:** `cada4b41` sabah-teslim (6 dosya/+2185) · `015ad8ab` K314
+(7 dosya/+1486-8). K314: `SERIT_A3_KIRMIZI=0` CANLI (39 kapi kostu), `YESIL=40 OLCULEMEDI=1(pip)
+KAPI=41`, M3 mutanti `IHLAL 0→1 @77/@149`, K6 iki tur birebir.
+🔴 **KOSUYOR (1):** `KraL-UcDalMerge-27Agu` — D1 INDI, D2/D3 sirada; D3'un bloklayici kapisi
+BIRLESMIS agacta kosturuluyor, kirmizi ise push YOK.
+🔴 **YENI KALEMLER:** ⑥ **kol ③ canlida ATESLEMEDI** (yalniz sentetik vaka) → *kutu tavani asip
+`tasinabilir=0` iken jeton canli ciktida gorulsun* · ⑦ **bekci kabul bataryasi 4 vaka BAYAT**
+(`kanal=YOK` iddiasi, `kanal=cip` karariyla gecersiz) + `kur.py --kuru` **5 yama KURULU DEGIL**
+→ *vakalar TEK KAYNAKTAN turetilsin, sonra `--faz tam` rc=0* · ⑧ **kurulu kanca kopyasi SAPMISTI**
+→ *sapmayi commit denemesi DISINDA olcen kol*. ①-⑤ ve K314 acik ucu (gercek kirmizi CI kosumunda
+`SERIT_A3_KIRMIZI=n`) DURUYOR. **Okan'da bekleyen karar: YOK.**
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu KAPANAN 4 KALEM (K250·K302·K303·K305) — TAM METIN ARSIVDE**, "KAPANAN 4 KALEM" basligi.
