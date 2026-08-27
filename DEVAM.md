@@ -2,22 +2,20 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 DEVIR — 27 Agu 2026, eski hesap → yeni · main=origin `71585a1a` · agac TEMIZ
-**SIRADAKI TEK IS:** `tools/k3-cikti-kok-mutasyon.py`'yi CI kapsamina sok — dal `kral/serit-b-k3-27agu` bu yuzden ITILEMIYOR (kapi hakli: tuketicisiz arac = K269); sonra #14(a) kabulu → #14(b).
-**Nerede kaldim:** 6 merge canliya (`594ca29e` ROL EKSENI · `77013008` nobet UC KOL · `0d0af5b5` SERIT B
-onarimi · `fcab2371` yedek beyani · defter/kutu rotasyonu) + shop deploy `45550c39`. SERIT B 21 adim/6 kova,
-kapanan 8; `cc8f99a4` **1 kapatti 1 ACTI** (`Talep temizlik surucusu` = K184 artigi).
-**Acik worktree/dal:** `kral/serit-b-k3-27agu` @`a06f22ce` **ITILEMEDI** (kapi hakli, atlatilmadi; ref
-paylasilan `.git`'te, kayip YOK) · `kral/m3-kapsama-27agu` @`99e5337f` **ITILDI** (kabul: `Cip satirlari
-capraz daralma` CI'da `success`; tam mutasyon bataryasi HIC KOSMADI).
-**Baskasinin kopyasinda duran:** yok.
-**Zamanlanmis nobetler:** `gunluk-mimar-ihtar` `0 9,15 * * *` (09:00 KALDIRILAMAZ = cip-dogum TESLIM KOLU) ·
-`teftis-takip` `0 17,23 * * *` · crontab `37 * * * *` CI nobeti (**`.ci-token` HESABA BAGLI, TAZELE**).
-**Okan'da bekleyen karar:** `pruvo-jenerator` GitHub App repository access (TeKiN).
+## 🔁 DEVIR DEVRALINDI — 27 Agu 22:45, yeni hesap · main=origin `847d7509` · agac TEMIZ (devir bloğunun TAM metni `847d7509`'da)
+**SIRADAKI TEK IS:** `tools/k3-cikti-kok-mutasyon.py`'yi CI kapsamina sok (kapi hakli: tuketicisiz arac = K269)
+— cip `KraL-K3CiKapsam-27Agu` (`task_5a86defe`) DUSURULDU, agac `ecstatic-maxwell-5a6f40` @`a06f22ce`; sonra #14(a)→#14(b).
+**ACILISTA OLCULEN:** worktree **3→2** (`busy-ishizaka` kaldirildi; dali `kral/m3-kapsama-27agu` origin'de, kayip 0) ·
+rutin kaydi **once=1 sonra=5**: `gunluk-mimar-ihtar` (`0 9,15`, fiili ates **09:08** = ESIK_SAAT 9'dan SONRA, dogru
+pencere) + `teftis-takip` (`0 17,23`) BEN kurdum; `macit-parti-surucusu`+`posta-kutusu-macit-izleme` ilk olcumde
+YOKTU, ikincisinde belirdi (MaCiT duzlemi — hicbir kayit ezilmedi, catisan=0).
+🔴 **OKAN KAPISI — NOBET KOSUYOR AMA OLCMUYOR:** `~/.claude/cron/.ci-token` **20 Agu** tarihli (eski hesap);
+bugunku log `rc=1` **19** / `rc=0` **2**. Jeton tazelenmeden CI nobeti yesil gorunur, olcmez.
 🔴 **DEVREDEN (tam liste KUTUDA, 27 Agu kapanis blogu):** ⓐ YEDEK **5 kolda kirik** (kenar/SEVIYE · sifirlama
 global · esik no-op · yuklem SONRAKI boyutu okur · beyan **ADA** bagli) — 4 TSV 11 Agu'dan yedeksiz ·
 ⓑ **K220** (② onsuz KAPANMAZ) · ⓒ kurucu `--rol-kapisi` · ⓓ `_proje_damgasi` KAYIPLI + vaka 815 ·
 ⓔ HTML 4 saat → **OKAN KAPISI** · ⓕ ic rapor ad kalibi cip-basina genisliyor · ⓖ+7 kalem kutuda.
+**Okan'da bekleyen karar:** `pruvo-jenerator` GitHub App repository access (TeKiN).
 🔴 **UYDURMA:** bir `minimax-m3` turu olmayan `02a0e2c0` SHA'sini + olmayan gorevi uydurdu, gercek raporu EZDI;
 13 SHA dogrulandi, baskasi YOK. → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
 ⛔ `claude/ecstatic-maxwell-5a6f40` MERGE EDILMEZ (K269) · **ISCI TURU TAVANI $10**, spec BOLUNUR.
