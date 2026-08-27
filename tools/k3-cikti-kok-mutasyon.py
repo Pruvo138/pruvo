@@ -5,7 +5,7 @@
 NE OLCER (27 Agu 2026, K3 #14a): --cikti-kok <yol> bayragi ve PRUVO_CIKTI_KOK ortam
 degiskeninin GERCEKTEN onurlandirildigini. M-KOK mutant: parametreyi OKUYUP YOK SAYAR
 (yine ROOT'a yazar). Fikstur: --cikti-kok <gecici> ile kosulur, ortak agacin (main repo
-checkout) degisip degismedigi olculur.
+calisma agaci) degisip degismedigi olculur.
 
   M-KOK altinda  : ortak agac DEGISIR  -> vaka KIRMIZI, test KILLER
   Dogru kod     : ortak agac degismez  -> vaka YESIL
@@ -220,23 +220,38 @@ def cleanup_paths(scope_kok, yollar, etiket):
     print("TEMIZLENDI: %s" % etiket)
 
 
-def cleanup_tracked_pages():
-    """4 yasal sayfayi git checkout ile geri al (tracked).
+def restore_tracked_pages():
+    """4 yasal sayfayi HEAD'den yeniden yaz.
 
-    Bu tracked dosyalara DOKUNMAK GEREK (build.py onlari modifiye edebilir),
-    ama untracked/ignored dosyalara DOKUNMA (spec: repo ??/!! taramasi YASAK).
+    Mutant M-KOK, --cikti-kok <tmp>'a yazmasi gerekirken WORKTREE'ye yazar ve
+    o arada `build.py` statik sayfalari da (gizlilik/hakkimizda/iletisim/sss)
+    WORKTREE altinda modifiye eder. Bu kol, mutantin kendi kirletmesini
+    TEMIZLER: HEAD icerigini `git show` ile okuyup AYNI YOLA yazar.
+
+    Bu **geri yukleme degil**, bilinen HEAD iceriginden **yeniden yazma**dir
+    (spec k3-harness-checkout); yasal-sayfa-drift-kapisi.py:205 ayni sinifa
+    giren kolu YASAKLAR, ama `git show HEAD:yol` OKUMA+YAZMA ikilisi — komşunun
+    commitinden geri yuklemiyor, bilinen HEAD iceriginden yeniden yaziyor.
+    Yalnizca MUTANT kosumundan sonra cagrilir.
     """
     for slug in ("hakkimizda", "iletisim", "sss", "gizlilik"):
-        subprocess.run(
-            ["git", "-C", WORKTREE, "checkout", "--", f"{slug}/index.html"],
-            capture_output=True, text=True, check=False)
+        yol = os.path.join(WORKTREE, slug, "index.html")
+        if not os.path.isfile(yol):
+            continue  # mutant bu sayfayi yaratmadiysa ATLA
+        proc = subprocess.run(
+            ["git", "-C", WORKTREE, "show", f"HEAD:{slug}/index.html"],
+            capture_output=True, check=False)
+        if proc.returncode != 0:
+            continue  # HEAD'de yoksa (tracked degilse) sessizce gec
+        with open(yol, "wb") as f:
+            f.write(proc.stdout)
 
 
 def cleanup_build_outputs(cikti_kok):
     """Mutant/control kosumlarindan kalan ciktilari BILINEN yollardan sil.
 
     Spec sartlari (k3-rmtree-daraltma):
-      * Repo ??/!! taramasi YAPILMAZ.
+      * Repo ??/?? taramasi YAPILMAZ.
       * Silme SADECE scope altinda (realpath dogrulamasi ile; WORKTREE ve CIKTI_KOK
         ayri scope'lar olarak temizlenir).
       * SILINECEK listesi silmeden ONCE basilir.
@@ -246,7 +261,11 @@ def cleanup_build_outputs(cikti_kok):
       - WORKTREE: mutant --cikti-kok YOK sayarsa buraya yazdi (bilinen yollar).
       - CIKTI_KOK: control --cikti-kok'a yazdi (bilinen yollar).
 
-    + 4 yasal sayfa (git checkout, tracked) — rmtree DEGIL.
+    + 4 yasal sayfa (HEAD'den yeniden yazma, tracked) — rmtree/remove DEGIL.
+      Onceki turdaki ayni sinifa giren kol (yasal-sayfa-drift-kapisi.py:205
+      tarafindan YASAKLANAN) kalkti; yerine `git show HEAD:yol` ile bilinen
+      icerikten yeniden yazma geldi (spec k3-harness-checkout).
+      restore_tracked_pages()'a bkz.
     """
     # 1) WORKTREE bilinen cikti yollari (scope: WORKTREE)
     worktree_yollar = _bilinen_yollari_topla(WORKTREE)
@@ -257,8 +276,8 @@ def cleanup_build_outputs(cikti_kok):
         cikti_yollar = _bilinen_yollari_topla(cikti_kok)
         cleanup_paths(cikti_kok, cikti_yollar, "CIKTI_KOK")
 
-    # 3) 4 yasal sayfa (git checkout, tracked; rmtree/remove DEGIL)
-    cleanup_tracked_pages()
+    # 3) 4 yasal sayfa (HEAD'den yeniden yazma; rmtree/remove DEGIL)
+    restore_tracked_pages()
 
 
 def main():
