@@ -9,8 +9,6 @@
 ③ commit kapisi `kutu-arsivle.py`'nin HUKMUNU tuketir. Canli: kutu **570→220** (tavan 300),
 `KAYIP=0` uc eksende (satir/bayt/blok), `KORUMALI_BEKLEYEN 5→1`, gercek bekleyen KUTUDA kaldi.
 Kabul: `VAKA 24→30 IDDIA 149→205 MUTANT=10/10 HEDEF_KOL_ATFI=7/7` · kapi `VAKA 10/10 MUTANT 6/6`.
-✅ **BEKLEYEN IKI COMMIT INDI:** `cada4b41` sabah-teslim · `015ad8ab` K314. K314: `SERIT_A3_KIRMIZI=0`
-CANLI (39 kapi), `YESIL=40 OLCULEMEDI=1(pip) KAPI=41`, M3 mutanti `IHLAL 0→1`, K6 iki tur birebir.
 ✅ **UC MERGE INDI, CI TAM YESIL:** `051b74d0`(ff) · `2c6640ac` · `3eee64d4`; kosum `33063266161`
 **deploy+yayin success**. Iki SAHTE kirmizi `cancelled` cikti (paralel push); hukum
 ARDIL kosumdan okundu. 🔴 Rotasyon GERCEK kutuda atesledi: **331→230**, KAYIP=0 iki
