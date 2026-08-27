@@ -363,14 +363,10 @@ jobs:
         with:
           node-version: "20"
 
-      - name: "Talep hatti davranis testi (CI kapsam envanteri)"
-        if: ${{ !cancelled() }}
-        run: node shop/test/talep.mjs
-      - name: "Talep hatti TAM batarya + mutasyon (SERIT B)"
-        if: ${{ !cancelled() }}
-        # Tam 50'li olcum burada nobet olarak kalir; bloklayici 17'li sizinti kolu
-        # deploy.yml/serit-a3'tedir. G5-G7 iki kolda da ayni test kaynagindan kosar.
-        run: python3 tools/talep-hatti-test.py
+      # K184 sihirbazi + `/talep` ucu 27 Agu 2026'da KOKUNDEN KALDIRILDI (Okan karari):
+      # `talep.mjs` ve `talep-hatti-test.py` adimlari kaldirilan kodla BIRLIKTE dustu.
+      # 🔴 `talepler` TABLOSU ve icindeki MUSTERI KAYITLARI YERINDE DURUYOR -> saklama
+      # surucusunun kendini-test adimi KALIR (veri yonetimsiz birakilmaz).
       - name: "Talep temizlik surucusu: kendini test (iki yonlu, SERIT B)"
         if: ${{ !cancelled() }}
         run: python3 tools/talep-temizlik.py --kendini-test
@@ -459,15 +455,6 @@ jobs:
       - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
         if: ${{ !cancelled() }}
         run: python3 tools/diriltme-kapisi.py --kendini-test
-
-      # Bu kapi agsiz, deterministik ve saniyeler icinde kosar. Kirmizisi musteriye
-      # yanlis para odettirmez veya veri sizdirmaz; olctugu sey sihirbaz metni/kapsami
-      # hijyenidir, bu nedenle yayini bloklamayan SERIT B'de tutulur.
-      - name: "Talep sihirbazi kabul testi + mutasyon bataryasi (hijyen, SERIT B)"
-        if: ${{ !cancelled() }}
-        run: |
-          python3 tools/talep-sihirbazi-test.py
-          python3 tools/talep-sihirbazi-test.py --kendini-test
 
       # T5 DURGUN KALEM KAPISI (19 Agu 2026, K193 paketi) — 4 saat hareketsiz
       # kalem OTOMATIK DEVREDILIR kapisi. 4 kol (T5-DURGUN, T5-TAZE, T5-IZ,
