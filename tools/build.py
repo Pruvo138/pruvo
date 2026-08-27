@@ -66,10 +66,29 @@ import arama
 SITE = "https://pruvo3d.com"
 WHATSAPP = "905451386526"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# CIKTI_KOK — yazma kökü. OKUMA kökü ROOT olarak KALIR; YALNIZ yazma yolları
+# (URUN_DIR, VARLIK_DIR, _yayin/, sitemap/robots/feed, ürün/kategori/legal
+# sayfaları, ...) buradan türetilir. Varsayılan = ROOT; --cikti-kok <yol>
+# bayrağı veya PRUVO_CIKTI_KOK ortam değişkeni ile yönlendirilir. Mimari 27 Ağu:
+# minimum arayüz — başka parametre EKLENMEZ.
+def _coz_cikti_kok():
+    """(abs_yol, yonlendirildi) döner. Yönlendirme yoksa (ROOT, False)."""
+    kok = None
+    if "--cikti-kok" in sys.argv:
+        i = sys.argv.index("--cikti-kok")
+        if 0 <= i < len(sys.argv) - 1:
+            kok = sys.argv[i + 1]
+    if kok is None:
+        kok = os.environ.get("PRUVO_CIKTI_KOK")
+    return (os.path.abspath(kok) if kok else ROOT), bool(
+        kok and os.path.abspath(kok) != os.path.abspath(ROOT))
+
+CIKTI_KOK, _CIKTI_YONLENDIRILDI = _coz_cikti_kok()
 JSON_PATH = os.path.join(ROOT, "urunler.json")
-URUN_DIR = os.path.join(ROOT, "urun")
+URUN_DIR = os.path.join(CIKTI_KOK, "urun")
 # Parametrik ("Ölçüye Özel" sarı seri) konfigüratör şemaları — jenerator/urunler/<id>.json.
 # Şeması olan parametrik ürünün sayfasına konfigüratör UI basılır; olmayana dokunulmaz.
+# Şema KAYNAĞI — OKUMA; ROOT'ta kalır.
 JEN_URUN_DIR = os.path.join(ROOT, "jenerator", "urunler")
 CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi"]
 # GİZLİ kategoriler (Okan, 17 Tem): ana sayfa menüsünde GÖRÜNMEZ ama ürün sayfaları,
@@ -580,13 +599,18 @@ def _yayin_js_sozdizimi(hedef):
 
 def yayin_js_yaz(rel):
     """<rel> JS kaynagini yorumu soyulmus olarak _yayin/<rel>'e yazar; yolu doner.
-    Kaynak DEGISMEZ. Dosya yoksa (lokalde uretilmemis) None doner."""
-    kaynak = os.path.join(ROOT, rel)
+    Kaynak DEGISMEZ. Dosya yoksa (lokalde uretilmemis) None doner.
+
+    Kaynak ONCELIGI: CIKTI_KOK ONCE (build.py'nin az once urettigi filament-veri.js /
+    taban-fiyatlar.js burada), yoksa ROOT (tracked JS kaynaklari)."""
+    kaynak = os.path.join(CIKTI_KOK, rel)
+    if not os.path.isfile(kaynak):
+        kaynak = os.path.join(ROOT, rel)
     if not os.path.isfile(kaynak):
         return None
     with open(kaynak, encoding="utf-8") as f:
         metin = f.read()
-    hedef = os.path.join(ROOT, YAYIN_DIR, rel)
+    hedef = os.path.join(CIKTI_KOK, YAYIN_DIR, rel)
     d = os.path.dirname(hedef)
     if d and not os.path.isdir(d):
         os.makedirs(d)
@@ -599,8 +623,9 @@ def yayin_js_yaz(rel):
 
 def _yayin_yolu(rel):
     """Bir varligin YAYINLANAN kopyasinin yolu: _yayin/<rel> varsa o, yoksa kaynak.
-    ?v=<hash> boylece TARAYICIYA GIDEN baytlardan turer (soyma sonrasi da dogru)."""
-    y = os.path.join(ROOT, YAYIN_DIR, rel)
+    ?v=<hash> boylece TARAYICIYA GIDEN baytlardan turer (soyma sonrasi da dogru).
+    YAYIN_DIR artik CIKTI_KOK altinda."""
+    y = os.path.join(CIKTI_KOK, YAYIN_DIR, rel)
     return y if os.path.isfile(y) else os.path.join(ROOT, rel)
 
 
@@ -659,7 +684,7 @@ surumle_scriptler = yayin_html
 # [[gorsel-anahtar-cakismasi]]). Icerik degismezse ad AYNI kalir (gereksiz cache-miss yok);
 # bir bayt degisirse ad DEGISIR (bayat CSS/JS servis edilmesi imkansiz).
 VARLIK_DIR_ADI = "varlik"
-VARLIK_DIR = os.path.join(ROOT, VARLIK_DIR_ADI)
+VARLIK_DIR = os.path.join(CIKTI_KOK, VARLIK_DIR_ADI)
 VARLIK_URL_ONEK = "/" + VARLIK_DIR_ADI + "/"
 VARLIK_HASH_UZUNLUK = 10
 # icerik -> url onbellegi: ayni blok 16.874 kez uretilse de dosya BIR kez yazilir.
