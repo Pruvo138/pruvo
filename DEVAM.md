@@ -4,9 +4,8 @@
 
 ## 🔁 DEVIR DEVRALINDI — 27 Agu 22:45, yeni hesap · main=origin `847d7509` · agac TEMIZ (devir bloğunun TAM metni `847d7509`'da)
 **SIRADAKI TEK IS:** `tools/k3-cikti-kok-mutasyon.py`'yi CI kapsamina sok (kapi hakli: tuketicisiz arac = K269)
-— cip `KraL-K3CiKapsam` (`task_5a86defe`) KOSUYOR; sonra #14(a)→#14(b). **2.YARIM IS:** `kral/m3-kapsama-27agu`
-@`99e5337f` KABUL KOSULMADI → cip `KraL-M3Kabul` (`task_1e908ce3`), civi CI `Cip satirlari capraz daralma`=success
-(yerel 125/125 YETMEZ). **3.** `BelgeOnbellegi` BLOKE = OKAN KAPISI (ⓔ, `.cf-token` zone'da yetkisiz).
+— cip `KraL-K3CiKapsam` (`task_5a86defe`) KOSUYOR; sonra #14(a)→#14(b). ✅ **2.YARIM IS KAPANDI:** CI `33110761047` adim57 `Cip satirlari`=**success**
+(TABAN `33090233203`=failure) · mutasyon 38/38 (taban 1/40) · merge **`d74d71e6`** · dal SILINDI. **3.** `BelgeOnbellegi` BLOKE = OKAN KAPISI (ⓔ, `.cf-token` zone'da yetkisiz).
 **ACILISTA OLCULEN** (tam dokum KUTUDA, 22:45 devralma blogu): worktree 3→2 · rutin once=1 sonra=5 kurulan=2 catisan=0.
 🔴 **KAPI CELISKISI (SINIF, bugun olculdu):** defter-kotasi careyi `defter-rotasyon.py --tavan-kaynaktan
 --isaretciye-indir` yaziyor (K258 "mimarda SERBEST"), `mimar-icra-kapisi` ayni cagriyi ANA oturumda REDDEDIYOR —
