@@ -4,20 +4,21 @@
 
 ## 🔁 DEVIR DEVRALINDI — 27 Agu 22:45, yeni hesap · main=origin `847d7509` · agac TEMIZ (devir bloğunun TAM metni `847d7509`'da)
 **SIRADAKI TEK IS:** `tools/k3-cikti-kok-mutasyon.py`'yi CI kapsamina sok (kapi hakli: tuketicisiz arac = K269)
-— cip `KraL-K3CiKapsam-27Agu` (`task_5a86defe`) DUSURULDU, agac `ecstatic-maxwell-5a6f40` @`a06f22ce`; sonra #14(a)→#14(b).
-**ACILISTA OLCULEN:** worktree **3→2** (`busy-ishizaka` kaldirildi; dali `kral/m3-kapsama-27agu` origin'de, kayip 0) ·
-rutin kaydi **once=1 sonra=5**: `gunluk-mimar-ihtar` (`0 9,15`, fiili ates **09:08** = ESIK_SAAT 9'dan SONRA, dogru
-pencere) + `teftis-takip` (`0 17,23`) BEN kurdum; `macit-parti-surucusu`+`posta-kutusu-macit-izleme` ilk olcumde
-YOKTU, ikincisinde belirdi (MaCiT duzlemi — hicbir kayit ezilmedi, catisan=0).
+— cip `KraL-K3CiKapsam` (`task_5a86defe`) KOSUYOR; sonra #14(a)→#14(b). **2.YARIM IS:** `kral/m3-kapsama-27agu`
+@`99e5337f` KABUL KOSULMADI → cip `KraL-M3Kabul` (`task_1e908ce3`), civi CI `Cip satirlari capraz daralma`=success
+(yerel 125/125 YETMEZ). **3.** `BelgeOnbellegi` BLOKE = OKAN KAPISI (ⓔ, `.cf-token` zone'da yetkisiz).
+**ACILISTA OLCULEN** (tam dokum KUTUDA, 22:45 devralma blogu): worktree 3→2 · rutin once=1 sonra=5 kurulan=2 catisan=0.
+🔴 **KAPI CELISKISI (SINIF, bugun olculdu):** defter-kotasi careyi `defter-rotasyon.py --tavan-kaynaktan
+--isaretciye-indir` yaziyor (K258 "mimarda SERBEST"), `mimar-icra-kapisi` ayni cagriyi ANA oturumda REDDEDIYOR —
+muafiyet ikinci kapinin listesine YANSIMAMIS. Kabul: iki kapi TEK listeden beslenir + mutant.
 🔴 **OKAN KAPISI — NOBET KOSUYOR AMA OLCMUYOR:** `~/.claude/cron/.ci-token` **20 Agu** tarihli (eski hesap);
 bugunku log `rc=1` **19** / `rc=0` **2**. Jeton tazelenmeden CI nobeti yesil gorunur, olcmez.
-🔴 **DEVREDEN (tam liste KUTUDA, 27 Agu kapanis blogu):** ⓐ YEDEK **5 kolda kirik** (kenar/SEVIYE · sifirlama
-global · esik no-op · yuklem SONRAKI boyutu okur · beyan **ADA** bagli) — 4 TSV 11 Agu'dan yedeksiz ·
-ⓑ **K220** (② onsuz KAPANMAZ) · ⓒ kurucu `--rol-kapisi` · ⓓ `_proje_damgasi` KAYIPLI + vaka 815 ·
-ⓔ HTML 4 saat → **OKAN KAPISI** · ⓕ ic rapor ad kalibi cip-basina genisliyor · ⓖ+7 kalem kutuda.
+🔴 **DEVREDEN (tam liste + 5 kolun adlari KUTUDA, 27 Agu kapanis blogu):** ⓐ YEDEK **5 kolda kirik** (4 TSV 11
+Agu'dan yedeksiz) · ⓑ **K220** (② onsuz kapanmaz) · ⓒ kurucu `--rol-kapisi` · ⓓ `_proje_damgasi` KAYIPLI +
+vaka 815 · ⓔ HTML 4 saat = OKAN KAPISI · ⓕ ic rapor ad kalibi genisliyor · ⓖ+7 kalem kutuda.
 **Okan'da bekleyen karar:** `pruvo-jenerator` GitHub App repository access (TeKiN).
-🔴 **UYDURMA:** bir `minimax-m3` turu olmayan `02a0e2c0` SHA'sini + olmayan gorevi uydurdu, gercek raporu EZDI;
-13 SHA dogrulandi, baskasi YOK. → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
+🔴 **UYDURMA:** m3 turu olmayan `02a0e2c0` SHA'si + olmayan gorev uydurdu, gercek raporu EZDI (13 SHA dogrulandi,
+baskasi YOK; tam metin KUTUDA) → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
 ⛔ `claude/ecstatic-maxwell-5a6f40` MERGE EDILMEZ (K269) · **ISCI TURU TAVANI $10**, spec BOLUNUR.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
