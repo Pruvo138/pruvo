@@ -250,6 +250,104 @@ DEFTER_ROTASYON_DEFTER = REPO_ONEKI + "DEVAM.md"
 DEFTER_ROTASYON_ARSIV = REPO_ONEKI + "DEVAM-ARSIV.md"
 KUTU_ARSIVLE_YOL = REPO_ONEKI + "tools/kutu-arsivle.py"
 
+# === 28 AGU 2026 (K304-BOOTSTRAP) — KAPI DAGITIM KURUCUSU: ADLI SERBEST KOL =====
+# OLCULEN KILIT (28 Agu, IKI TARAFTAN BIRDEN — tahmin degil, ikisi de kosturularak):
+#   * KraL evinde  -> R2 (argumanlarda repo DISI yol). '--ev /Users/okan/dev/pruvo-hasat'
+#     TANIMI GEREGI repo disidir: kurucunun ISLEVI kardes eve yazmaktir. Yani kurucu,
+#     dogru calistigi icin reddediliyordu.
+#   * kardes evde  -> R2 + F. Kurucunun KENDISI (kanonik tools/kapi-dagitim-kur.py) o evin
+#     repo agacinin DISINDADIR; govde tek kaynakta yasadigi icin baska turlu olamaz.
+# Sonuc: YENI kapiyi kuracak komut, HENUZ KURULMAMIS/BAYAT eski kapi tarafindan bloke
+# ediliyordu (MaCiT 27 Agu'da KURU kosumda bile RED aldi). Klasik BOOTSTRAP KILIDI: kilit,
+# kendi anahtarini iceride birakiyor.
+#
+# 🔴 KOVA ADLIDIR, TURETILMISTIR, TEK ARACI KAPSAR — KAPI GEVSETILMEDI:
+#   * kovaya YALNIZ kanonik `tools/kapi-dagitim-kur.py` girer, TAM ESITLIKLE ve MUTLAK
+#     yolla. basename/goreli ad KABUL EDILMEZ — aksi halde 'kapi-dagitim-kur.py' adli HER
+#     betik repo-disi bir muafiyet ANAHTARI olurdu (ISCI_SARMALAYICI_YOLU'nun 27 Tem'de
+#     ogrendigi ders).
+#   * muafiyet YALNIZ R2 ve F kollarini, YALNIZ o cagri icin susturur. C (satir-ici kod),
+#     A2 (tehlikeli env), AGENT-KAPISI, isci sarmalayici kapisi ve K318 ROL EKSENI AYNEN
+#     kosar -> ANA oturumda kurucu HALA RED alir (PY_NODE kolu R2'den ONCE reddeder).
+#     Fail-closed KORUNDU; muafiyet bir "her seye izin" kolu DEGILDIR.
+#   * disari cozulen HER token denetlenir, `dis_yol`un dondurdugu ILKI degil: her biri ya
+#     kanonik kurucunun kendisi ya da KAYITLI bir EV KOKU olmalidir. Biri bile bu kumenin
+#     disinda kalirsa muafiyet YOKTUR.
+#   * ev kumesi ve kaynak kok BURADA ELLE YAZILMAZ; `tools/kapi_dagitim.py:EVLER`den
+#     CALISMA ANINDA turetilir ([[ikiz-tanim-sessiz-ayrisma]]). Modul okunamazsa muafiyet
+#     YOK (fail-closed) — olculemeyen bir kume "izinli" sayilmaz.
+KAPI_DAGITIM_KURUCU_ADI = "tools/kapi-dagitim-kur.py"
+
+
+def _kapi_dagitim_evreni():
+    """(kurucu_mutlak_yolu, {kayitli ev kokleri}) — TEK KAYNAK tools/kapi_dagitim.py.
+
+    Fail-closed: modul bulunamaz/okunamaz/sozlesmesi degismisse (None, set()) doner ve
+    muafiyet ISLEMEZ. Kaynak kok de modulden okunur; bu sayede kural BES KARDES EVDE de
+    ayni kurucuyu tanir (shim REPO_ONEKI'yi eve cevirir, KAYNAK_KOK'u cevirmez)."""
+    try:
+        tools = os.path.dirname(os.path.abspath(__file__))
+        if tools not in sys.path:
+            sys.path.insert(0, tools)
+        import kapi_dagitim as _KD
+        kok = _KD.KAYNAK_KOK
+        kokler = set()
+        for _kayit in _KD.EVLER:
+            kokler.add(os.path.normpath(_kayit[1]))
+        if not kok or not kokler:
+            return (None, set())
+        return (os.path.normpath(kok + "/" + KAPI_DAGITIM_KURUCU_ADI), kokler)
+    except Exception:
+        return (None, set())
+
+
+def _kapi_dagitim_muaf(ad, argumanlar, cwd):
+    """R2/F kollari icin ADLI muafiyet. True = bu cagri kanonik kapi dagitim KURUCUSUDUR
+    ve argumanlarindaki repo-disi yollarin HEPSI kayitli ev koku (ya da kurucunun kendisi).
+
+    MENZIL = CAGRI YERI ([[kapinin-menzili-cagri-yeridir]]): bu yuklem R2 ve F'nin cagri
+    yerinde TUKETILIR, kurallarin kendisi DEGISMEZ. Dizge eslemesi YAPILMAZ — komut metni
+    degil, COZULMUS yollar olculur ([[n2b-kapisi-dizge-olcer]])."""
+    if not re.match(r"^python3(\.\d+)?$", ad):
+        return False
+    if not argumanlar:
+        return False
+    kurucu, ev_kokleri = _kapi_dagitim_evreni()
+    if kurucu is None:
+        return False
+    # 1) CAGRILAN BETIK kanonik kurucu olacak (ilk bayraksiz token, TAM ESITLIK).
+    betik = None
+    for t in argumanlar:
+        if t.startswith("-"):
+            continue
+        betik = t
+        break
+    if betik is None or _coz(betik, cwd) != kurucu:
+        return False
+    # 2) DISARI COZULEN HER token izinli kumede olacak (ilki degil, HEPSI).
+    izinli = set(ev_kokleri)
+    izinli.add(kurucu)
+    for t in argumanlar:
+        adaylar = []
+        if t.startswith("-"):
+            if "/" in t:
+                adaylar.append(t)
+                adaylar.append(t[t.index("/"):])
+            if "=" in t:
+                adaylar.append(t.split("=", 1)[1])
+        elif "/" in t or t.startswith("."):
+            adaylar.append(t)
+        for aday in adaylar:
+            if not aday:
+                continue
+            if "/" not in aday and not aday.startswith("."):
+                continue
+            if repo_ici(aday, cwd):
+                continue
+            if _coz(aday, cwd) not in izinli:
+                return False
+    return True
+
 # === 20 AGU 2026 (K258) — "DEFTER BAKIMI" KOVASI ===========================
 # OLCULEN ARIZA: kota kapilarinin BASTIGI carenin kendisi mimarin komut
 # kumesinde YASAKTI. `defter-kota-kapisi.py` "CARE: ... defter-rotasyon.py ...
@@ -1461,6 +1559,12 @@ def main():
 
         # E2/R2) YOL TARAMASI — argumanlarda repo DISINA cozulen parca varsa RED.
         disari = dis_yol(argumanlar, cwd)
+        # 28 AGU (K304-BOOTSTRAP) — CAGRI YERI MUAFIYETI. Kural DEGISMEDI; yalnizca
+        # kanonik kapi dagitim kurucusunun KAYITLI EV KOKLERINE cozulen argumanlari bu
+        # cagri yerinde tuketilir. Baska her cagri icin R2 aynen kosar.
+        if disari and _kapi_dagitim_muaf(ad, argumanlar, cwd):
+            iz_bas("KAPI-DAGITIM-KURUCU(R2)")
+            disari = None
         if disari:
             reddet(
                 "komutun argümanlarında repo DIŞINA çözülen bir yol var (" + disari + "). "
@@ -1483,6 +1587,13 @@ def main():
                 "çıplak '" + ad + "' çağrısı stdin'den/etkileşimli kod çalıştırır "
                 "(ör. 'cat betik.py | python3'). Kapalı."
             )
+
+        # 28 AGU (K304-BOOTSTRAP) — F kolunun CAGRI YERI MUAFIYETI. Kardes evlerde kurucu
+        # ZORUNLU olarak repo DISINDADIR (govde tek kaynakta yasar); bu kol olmadan bes
+        # evin HICBIRI kendi kapisini kuramaz.
+        if not repo_ici(betik, cwd) and _kapi_dagitim_muaf(ad, argumanlar, cwd):
+            iz_bas("KAPI-DAGITIM-KURUCU(F)")
+            continue
 
         if not repo_ici(betik, cwd):
             reddet(
