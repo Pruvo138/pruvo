@@ -82,7 +82,18 @@ EV_DIZIN = {
     "ArTisT":  "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-pazarlama",
     "HocA":    "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-bot",
     "TeKiN":   "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-jenerator",
-    "BaBa":    "/Users/okan/.claude/projects/-Users-okan-dev-pruvo",   # BaBa KraL'da oturur
+    # 🔴 27 Agu 2026 (KraL-N2BEvHaritasi-27Agu) — BaBa'nin satiri BAYATTI.
+    # Eskiden `-Users-okan-dev-pruvo` idi ("BaBa KraL'da oturur"); BaBa'nin
+    # kendi deposu (`/Users/okan/dev/pruvo-advisor`) acildiktan sonra bu satir
+    # ARTIK DOGRU DEGILDI ve iki sonucu vardi:
+    #   (1) `parti-kapisi.ev_coz()` bu tablonun TERSINI kurar; advisor koku
+    #       hicbir anahtara duşmedigi icin `N2B-OLCULEMEDI depo koku bilinen
+    #       bir eve cozulemedi` -> HUKUM=RED -> sarmalayici exit 3. BaBa'nin
+    #       isci kanali fiilen KAPALIYDI (olculdu, 27 Agu).
+    #   (2) BaBa'nin defteri/postasi KraL'in dizininde ARANIYORDU.
+    # Bu satir bir DIZGE yamasi degil, tablonun DISKTEKI gercege
+    # esitlenmesidir; bilinmeyen kok HALA cozulemez (fail-closed KORUNUR).
+    "BaBa":    "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-advisor",
     "ORTAK":   "/Users/okan/.claude/projects/-Users-okan-dev-pruvo",
 }
 
