@@ -26,8 +26,9 @@ baskasi YOK; tam metin KUTUDA) → [[isci-gorevi-de-uydurabilir-sha-dogrulanmada
   mimarlarinda; KraL kardes depoya yazmaz. · 🔧 **K302 KALAN:** kok neden MaCiT'in `olcum/hasat_ekle.py`
   dosyasinda, kutuda bildirildi.
 - 🔧 K307 yan bulgu (kalem KAPANDI `32909205580`): isci probu 206'yi "olu" saydi → [[prob-kendi-baglamini-olcer]]
-- 🔴 **K304 (BAYAT TEK KAYNAK):** ① codex-isci 3 kopya SILINDI, yedekle.py BORCLU. ② kapi 6 evde 6
-  sha → SHIM+kol (kral/k304-27agu); 5 ev kendi mimarinda, SPEC kutuda.
+- 🔧 **K304:** ① 3 kopya SILINDI, yedekle.py BORCLU. ✅ ② BOOTSTRAP ACILDI (`e630bce7`): kurucu hicbir
+  evde kosmuyordu → ADLI serbest kol, ANA oturum RED; VAKA=10 MUTANT 3/3, kilit-test=TABAN.
+  MaCiT→`2a3b76d3`, filo 1→2. 4 EV KALDI
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
 - 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
   kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
