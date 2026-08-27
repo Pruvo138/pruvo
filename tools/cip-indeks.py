@@ -367,11 +367,23 @@ def uc_etiketi(hamlar, kanonik):
 
 
 # ---------------------------------------------------------------- indeks uretimi
-def indeks_uret(urunler, index_metni):
+def indeks_uret(urunler, index_metni, uyelik=None):
     """kategori -> marka -> {n, a{altIx:n}, m{model:{n, a{altIx:n}}}} (+ katalt, alt)
 
     Yalnizca DOLU kombinasyon tasinir; SIFIR sayi HIC yazilmaz (menu veriden turer,
-    kartezyen DEGIL)."""
+    kartezyen DEGIL).
+
+    === 27 AGU 2026 (K328) — `uyelik` KAYIT KOVASI (opsiyonel, DAVRANIS DEGISTIRMEZ) ===
+    🔴 NEDEN: cip dugumu bugune kadar YALNIZ SAYI (`n`) tasiyordu, UYE KUMESINI degil.
+    Sonuc: "cip ile sayfa ayrisiyor mu" sorusunu soran herkes (M3 iddiasi, kabul testi,
+    bir cip) uyeligi SIFIRDAN YENIDEN TURETMEK zorunda kaliyordu — ve o turetim IKINCI
+    BIR TANIM oldugu icin sessizce ayrisiyordu. Olculdu (27 Agu): elle yazilmis bir
+    replikasyon 761 dugumun 759'unda tuttu, 2'sinde tutmadi; sebep `uyum[].marka`nin
+    KATLANMAMASIYDI (satir 413) ve o iki dugum "sayfada var cipte yok" gibi GORUNDU —
+    katalogda OLMAYAN bir kusur icat edilmesine ramak kaldi ([[ayni-alan-iki-hukum-biri-sessiz]]).
+    COZUM: sayan kod uyeligi ZATEN biliyor; `uyelik` verilirse AYNI iki noktada kaydeder.
+    Ikinci bir sayim yolu YAZILMAZ, mevcut kollar DEGISMEZ; `uyelik=None` iken tek bayt
+    fark yoktur. Kova ISTEMCIYE GIDEN indekse GIRMEZ — yalniz cagirana verilir."""
     evren = MarkaEvreni(index_metni)
     # MODEL EKSENI evreni — sayfa ureticisiyle AYNI sinif (kanonik anahtar + kusak katlamasi
     # + eleme yuklemleri). Marka ekseni kendi evrenini (kuratorluk kolu) kullanmaya devam eder.
@@ -453,6 +465,8 @@ def indeks_uret(urunler, index_metni):
                     continue
                 kat_marka_model[(kat, b, canon)] = kat_marka_model.get((kat, b, canon), 0) + 1
                 kat_alt_mm[(kat, altk, b, canon)] = kat_alt_mm.get((kat, altk, b, canon), 0) + 1
+                if uyelik is not None:                  # K328: SAYAN kol kaydeder
+                    uyelik.setdefault((kat, b, canon), set()).add(u.get("id"))
                 if canon not in tam:
                     continue                            # etiket YALNIZ kendi yazimindan
                 mm_tam.add((kat, b, canon))
@@ -500,6 +514,8 @@ def indeks_uret(urunler, index_metni):
                     continue
                 kat_marka_model[(kat, b, canon)] = kat_marka_model.get((kat, b, canon), 0) + 1
                 kat_alt_mm[(kat, altk, b, canon)] = kat_alt_mm.get((kat, altk, b, canon), 0) + 1
+                if uyelik is not None:                  # K328: BASLIK kolu da kaydeder
+                    uyelik.setdefault((kat, b, canon), set()).add(u.get("id"))
                 baslik_katkili.add((b, canon))
 
     gecerli_marka = set(k for k, v in kat_marka.items() if v >= ESIK_MARKA)

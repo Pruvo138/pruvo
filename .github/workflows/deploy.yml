@@ -908,6 +908,20 @@ jobs:
       - name: "Kanca kablolama nobeti (izlenen kaynak fail-closed mi)"
         run: python3 tools/kanca-kablolama-nobeti.py --ci
 
+      # K304 — mimar icra kapisinin ALTI EVDE tek kaynaktan besleniyor olmasi.
+      # 🔴 MENZIL: CI kosucusunda kardes evler YOKTUR; burada olculen sey MEKANIZMADIR
+      # (fikstur evleri + 5 mutantli batarya). FILO olcumu (V0) canli makinenin isidir
+      # ve orada `tools/kapi-dagitim-kapisi.py --filo` ile kosar; kabul testi CI'da o
+      # vakayi ADIYLA `OLCULEMEDI` basar, sessizce yesile saymaz.
+      - name: "Kapi dagitim/bayatlik kabul testi (K304 — mekanizma + mutasyon)"
+        run: python3 tools/kapi-dagitim-test.py --mutasyon
+
+      # KAYNAK EVI KOLU — govde VAR, DERLENIYOR, CAPA SOZLESMESI ayakta. Capa sayisi
+      # 1'den saparsa bes evin shim'i fail-closed DENY'a duser (bes ev birden kararir);
+      # bu adim o kirilmayi push'tan ONCE yakalar. Kardes evler CI'da yok, olculmez.
+      - name: "K304 kaynak evi kolu (capa sozlesmesi + derleme)"
+        run: python3 tools/kapi-dagitim-kapisi.py --kaynak
+
       # SERIT DERINLIK OLCUMU (K314①) — gerekce `build` isindeki uzun blokta.
       # Olculen kanit tam da BU SERITTE: kosum 32995765098'de adim 19 `failure`,
       # adim 20-28 `skipped` — dokuz kapinin hukmu o kosumdan HIC okunamadi.

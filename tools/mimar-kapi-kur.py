@@ -443,7 +443,36 @@ def _oku(yol):
 
 
 def _yaz(yol, metin):
+    _shim_uzerine_yazma_kapisi(yol, metin)
     io.open(yol, "w", encoding="utf-8").write(metin)
+
+
+# === 27 AGU 2026 (K304) — SHIM UZERINE YAZMA YASAGI ===
+# OLCULEN RISK: bu betigin butun enjeksiyon modlari kardes evdeki DONMUS TAM GOVDE
+# kopyasina blok yamalar. K304 cozumu o kopyayi kaldirip yerine SHIM koyar (govde tek
+# kaynakta yasar, shim onu calisma aninda okur). Bu betik shim'in uzerine eski model
+# bir govde yazarsa ev SESSIZCE yeniden bayatlar — hastalik geri gelir.
+# Kol FAIL-CLOSED ve GURULTULU: yazmayi iptal etmez, KOSUMU durdurur.
+# SHIM imzasi TEK KAYNAKTAN okunur (tools/kapi_dagitim.py) — ikinci tanim tutulmaz.
+def _shim_uzerine_yazma_kapisi(yol, metin):
+    if os.path.basename(yol) != "mimar-icra-kapisi.py":
+        return
+    try:
+        from kapi_dagitim import SHIM_IMZASI
+    except Exception:
+        return
+    try:
+        mevcut = io.open(yol, encoding="utf-8").read()
+    except Exception:
+        return
+    if SHIM_IMZASI in mevcut and SHIM_IMZASI not in metin:
+        raise RuntimeError(
+            "K304 SHIM KORUNDU — " + yol + " artik bir SHIM'dir (govde tek kaynakta: "
+            "tools/mimar-icra-kapisi.py). Bu betigin enjeksiyon modlari shim'in "
+            "uzerine DONMUS govde yazamaz; yazsaydi ev sessizce yeniden bayatlardi. "
+            "Kural degisikligi GOVDEYE yapilir ve bes evde ANINDA canli olur. "
+            "Olcum: python3 /Users/okan/dev/pruvo/tools/kapi-dagitim-kapisi.py --filo"
+        )
 
 
 def _blogu_sok(metin, bas, son):
