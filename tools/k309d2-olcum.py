@@ -24,6 +24,15 @@ import sys
 BURASI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BURASI)
 
+# 🔴 K314② (27 Agu 2026) — OLCUM CIKTISI IZLENEN AGACA YAZILMAZ.
+# Bu betik raporunu 26 Agu'ya kadar `os.path.join(BURASI, "...-rapor.txt")` ile
+# KENDI YANINA yaziyordu; `tools/k309d2-olcum-rapor.txt` boylece PUBLIC depoya
+# girdi ve `kisisel-veri-test.py` KURAL A yayini 4,7 saat durdurdu. Cikti koku
+# artik BU BETIGIN SECIMI DEGIL: `olcum_cikti` modulunde SABITTIR ve depo
+# agacinin DISINDADIR. Nobetci: `tools/olcum-cikti-kapisi.py` (sinif kapisi —
+# yarin yazilacak ucuncu olcum araci ayni kalibi kopyalayamaz).
+from olcum_cikti import olcum_yolu  # noqa: E402
+
 import importlib.util
 
 _spec = importlib.util.spec_from_file_location(
@@ -140,12 +149,12 @@ def main():
     blok_duzeyi = sum(1 for kid, v in o["menzil_disi_kayit"].items() if v["kabul_var"])
     sonuc["BLOK_DUZEYI_KABUL_VAR_dilim1_yontemi"] = blok_duzeyi
 
-    ham = os.path.join(BURASI, "k309d2-olcum-ham.json")
+    ham = olcum_yolu("k309d2-olcum-ham.json")
     with io.open(ham, "w", encoding="utf-8") as f:
         json.dump(sonuc, f, ensure_ascii=False, indent=2)
 
     # Rapor AYNI ANDA dosyaya dokulur — isci prozasina degil bu dosyaya bakilir.
-    rapor_yolu = os.path.join(BURASI, "k309d2-olcum-rapor.txt")
+    rapor_yolu = olcum_yolu("k309d2-olcum-rapor.txt")
     _rf = io.open(rapor_yolu, "w", encoding="utf-8")
 
     def yaz(satir=""):

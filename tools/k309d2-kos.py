@@ -15,8 +15,16 @@ import subprocess
 import sys
 
 BURASI = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BURASI)
 REPO = "/Users/okan/dev/pruvo"          # 🔴 KANONIK ana checkout (worktree DEGIL)
-CIKTI = os.path.join(BURASI, "k309d2-kosum")
+
+# 🔴 K314② (27 Agu 2026) — OLCUM CIKTISI IZLENEN AGACA YAZILMAZ.
+# 26 Agu'ya kadar hem ham dokumler (`CIKTI = os.path.join(BURASI, ...)`) hem
+# `k309d2-kosum-rapor.txt` bu betigin YANINA — izlenen agaca — yaziliyordu; o
+# rapor PUBLIC depoya girdi ve `kisisel-veri-test.py` KURAL A yayini 4,7 saat
+# durdurdu. Cikti koku artik BU BETIGIN SECIMI DEGIL: `olcum_cikti` modulunde
+# SABITTIR ve depo agacinin DISINDADIR. Nobetci: `tools/olcum-cikti-kapisi.py`.
+from olcum_cikti import olcum_dizini, olcum_yolu  # noqa: E402
 
 # (etiket, kalem_id, komut listesi, aciklama)
 KOSUMLAR = [
@@ -39,11 +47,10 @@ TAVAN_SN = 900
 
 
 def main():
-    if not os.path.isdir(CIKTI):
-        os.makedirs(CIKTI)
+    cikti = olcum_dizini(alt="k309d2-kosum")
     sonuc = []
     for etiket, kid, komut, aciklama in KOSUMLAR:
-        dosya = os.path.join(CIKTI, "%s.txt" % etiket)
+        dosya = os.path.join(cikti, "%s.txt" % etiket)
         kayit = {"etiket": etiket, "kalem": kid, "komut": " ".join(komut),
                  "olcut": aciklama, "cikti_dosyasi": dosya}
         try:
@@ -69,11 +76,11 @@ def main():
         kayit["satir_sayisi"] = len(satirlar)
         sonuc.append(kayit)
 
-    ham_json = os.path.join(BURASI, "k309d2-kosum-ham.json")
+    ham_json = olcum_yolu("k309d2-kosum-ham.json")
     with io.open(ham_json, "w", encoding="utf-8") as f:
         json.dump(sonuc, f, ensure_ascii=False, indent=2)
 
-    rapor = os.path.join(BURASI, "k309d2-kosum-rapor.txt")
+    rapor = olcum_yolu("k309d2-kosum-rapor.txt")
     with io.open(rapor, "w", encoding="utf-8") as rf:
         def yaz(s=""):
             sys.stdout.write(s + "\n")

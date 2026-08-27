@@ -325,6 +325,12 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # 🔴 K314① — DERINLIK OLCERI BU ADIMI YENIDEN KOSTURMAZ. Adim CANLI D1'e
+          # yazar; olcum ugruna canli katalogu ikinci kez ellemek kabul edilemez.
+          # Sessiz kirpma DEGIL: olcer adimi ADIYLA `ATLANDI` basar ve `..._ATLANDI`
+          # sayacina yazar (tools/serit-derinlik.py).
+          SERIT_DERINLIK: atla
+          SERIT_DERINLIK_SEBEP: "canli D1'e yazar (secret + yan etki)"
         # Bu adim TEK python3 cagrisi: bash metakarakterleri YOK (K80 — YENI CI ADIMI
         # HUKUM KAPISI bash metakarakterli yeni satirlari OLCULEMEDI sayip push'u
         # reddediyor). TUM onceki bash mantigi (secret/bayatlik/rc=4 atlama)
@@ -334,6 +340,31 @@ jobs:
         # gercek hata → d1-sync.py'nin rc'si disari). Adim `continue-on-error`
         # ALMAZ (K129 acik kural: kol kendisi susturur, is AKTARILMAZ).
         run: python3 tools/d1-sync.py --adim
+
+      # ══════════════════════════════════════════════════════════════════════════
+      # SERIT DERINLIK OLCUMU (K314①, 27 Agu 2026) — "kac kirmizi KALDI"
+      # ──────────────────────────────────────────────────────────────────────────
+      # 26 Agu: yayin 4,7 saat kapali kaldi (son yesil 08:22:49Z; ardindan 11
+      # `failure` + 5 `cancelled`, sifir success) ve kirmizi ADIM her turda DEGISTI
+      # (Urun denetim -> Varlik -> Uretici butunluk -> Kisisel veri). Sebep: bir job
+      # ILK kirmizidan sonra kalan adimlari `skipped` yapar; kuyrugun yalniz BASI
+      # gorunur. Olculen kanit — kosum 32995765098 / serit-a2: adim 19 `failure`,
+      # adim 20-28 `skipped` (dokuz kapi HIC kosmadi). Her ev kendi adimini duzeltip
+      # "yayin acildi" sandi; acilmadi.
+      #
+      # 🔴 HIZLI-BASARISIZLIK KALDIRILMADI — DERINLIK OLCULDU. Adim sirasi ve
+      # `continue-on-error` YOKLUGU AYNEN durur; job yine ILK kirmizida `failure`
+      # hukmunu alir. Bu adim YALNIZ `if: failure()` ile kosar, yani bedeli SADECE
+      # kirmizi kosumda odenir — yesil kosum bir saniye bile uzamaz.
+      # 🔴 IKIZ TANIM YOK: olcer kapi listesini ELDE TUTMAZ, bu dosyayi okuyup
+      # TURETIR ([[ikiz-tanim-sessiz-ayrisma]]). Yarin eklenen kapi kendiliginden
+      # olcume girer; jeton adi da job id'sinden turer (`serit-a3` -> SERIT_A3_KIRMIZI).
+      # 🔴 `continue-on-error: true` BILEREK: olcum RAPORDUR, hukum DEGIL. Job'un
+      # kirmizisini bu adim ne kurtarir ne agirlastirir ([[rc-hukmu-kapi-imzasini-ezer]]).
+      - name: "Serit derinlik olcumu (kalan kirmizi sayisi — yalniz kirmizi kosumda)"
+        if: failure()
+        continue-on-error: true
+        run: python3 tools/serit-derinlik.py --serit build
 
   # ══════════════════════════════════════════════════════════════════════════════
   # SERIT A2 — agir bagimsiz kapilar (yasal sayfa drift capasi)
@@ -877,6 +908,14 @@ jobs:
       - name: "Kanca kablolama nobeti (izlenen kaynak fail-closed mi)"
         run: python3 tools/kanca-kablolama-nobeti.py --ci
 
+      # SERIT DERINLIK OLCUMU (K314①) — gerekce `build` isindeki uzun blokta.
+      # Olculen kanit tam da BU SERITTE: kosum 32995765098'de adim 19 `failure`,
+      # adim 20-28 `skipped` — dokuz kapinin hukmu o kosumdan HIC okunamadi.
+      - name: "Serit derinlik olcumu (kalan kirmizi sayisi — yalniz kirmizi kosumda)"
+        if: failure()
+        continue-on-error: true
+        run: python3 tools/serit-derinlik.py --serit serit-a2
+
   serit-a3:
     runs-on: ubuntu-latest
     steps:
@@ -914,6 +953,23 @@ jobs:
 
       - name: Kisisel veri korumasi testi
         run: python3 tools/kisisel-veri-test.py
+
+      # OLCUM CIKTI KAPISI (K314②, 27 Agu 2026) — SINIF kapisi, tekil yama DEGIL.
+      # 26 Agu: `tools/k309d2-kosum-rapor.txt` + `tools/k309d2-olcum-rapor.txt`
+      # main'e girdi ve YUKARIDAKI adimi (KURAL A) kirmizi yakti -> yayin 4,7 saat
+      # durdu. Kok sebep DOSYALAR degil, araclarin YAZMA YERI idi: her ikisi de
+      # raporunu `os.path.dirname(__file__)` ile KENDI YANINA, yani IZLENEN AGACA
+      # yaziyordu. Iki dosyayi silmek VAKAYI kapatir, SINIFI kapatmaz — bir sonraki
+      # olcum turu ayni yere yeniden yazar ([[ucuncu-tekrar-sinif-kapisi]]).
+      # Bu kapi kalibi yasaklar: adi IC-RAPOR ADLANDIRMA AILESINE uyan bir dosya
+      # DEPODAN TURETILEN bir dizine YAZMA kipiyle acilamaz. Aile TANIMI burada
+      # YENIDEN YAZILMAZ — `kisisel-veri-test.py::ic_rapor_mu` dosyadan yuklenip
+      # cagrilir (tek kaynak); yuklenemezse rc=2 OLCULEMEDI, yani YESIL DEGIL.
+      # Dogru yol: `from olcum_cikti import olcum_yolu` (kok SABIT + depo DISI).
+      # 🔴 BLOKLAYICI SERITTE (serit-a3, `deploy: needs`): bu kapinin kirmizisi tam
+      # olarak 26 Agu'da yayini durduran sinifi onler. Offline, stdlib, yazma yok.
+      - name: "Olcum cikti kapisi (olcum raporu izlenen agaca yazilamaz — SINIF)"
+        run: python3 tools/olcum-cikti-kapisi.py
 
       # DIRILTME KAPISI — "silinmis urun sessizce geri geldi mi". BLOKLAYICI
       # (continue-on-error YOK): yerel + deterministik, ag ISTEMEZ.
@@ -1421,6 +1477,13 @@ jobs:
       - name: "Model baslik kolu kabul (uc kol + tehlike sinifi + yargisiz sayfa dogmaz)"
         run: python3 tools/model-baslik-kolu-test.py
 
+      # SERIT DERINLIK OLCUMU (K314①) — gerekce `build` isindeki uzun blokta.
+      # Bu serit 39 kapi tasir; ilk kirmizidan sonrasi bugune kadar HIC olculmedi.
+      # Jeton adi job id'sinden TURER: `serit-a3` -> `SERIT_A3_KIRMIZI=<n>`.
+      - name: "Serit derinlik olcumu (kalan kirmizi sayisi — yalniz kirmizi kosumda)"
+        if: failure()
+        continue-on-error: true
+        run: python3 tools/serit-derinlik.py --serit serit-a3
 
   serit-a4:
     runs-on: ubuntu-latest
