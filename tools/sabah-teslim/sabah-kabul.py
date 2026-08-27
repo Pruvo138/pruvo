@@ -15,12 +15,23 @@ konusuz: kacirilacak taban DOSYASI yok, ve TABAN SAYILARI her kosumda BASILIR.
       basarili gorunur); KONTROL (normal kosum) DEGISMEZ. Hedef-kol atfi ayrica.
   A5  Iki ardisik kosumda A1·A2 BIREBIR ayni.
 
+27 Agu 2026, `KraL-SabahYorumlayici-27Agu` — IKI KOL EKLENDI:
+
+  A6  ORTAM KOLU DOGRUYU OLCUYOR MU: asgari surum ELLE YAZILMIS LITERAL degil,
+      kaynagin KENDISINDEN TURETILMIS mi. Fikstur = 27 Agu sabahinin ta kendisi
+      (`__future__` satiri YOK). MUTANT literal'e geri cevirir. A6g kolun
+      SINIRINI ORTMEZ, OLCER.
+  A7  KURUCU IDEMPOTENSI (K320): `capa ⊂ yeni` sinifi. TAZE kurulum + ARGUMANSIZ
+      IKINCI KOSUM bayt-birebir olmali (cogaltma=0). MUTANT eski kolu geri
+      getirir ve ikinci kosumu COGALTIR.
+
 Fazlar:
-  --faz on   : yalniz A1 (yazim YAPMAZ — canli spec'e dokunmaz)
-  --faz tam  : A1..A5 (A2 canli spec'i URETIR)
+  --faz on   : A1 + A6 + A7 (yazim YAPMAZ — canli spec'e dokunmaz)
+  --faz tam  : A1..A7 (A2 canli spec'i URETIR)
 """
 
 import argparse
+import hashlib
 import os
 import re
 import shutil
@@ -245,10 +256,324 @@ def a5_iki_tur():
         print("      T2 A2:\n        " + "\n        ".join(_kararli(c2b)))
 
 
+# --------------------------------------------------------------------- A6
+# ORTAM KOLU DOGRUYU OLCUYOR MU — asgari surum LITERAL degil TURETILMIS mi.
+#
+# 🔴 27 Agu 2026, `KraL-SabahYorumlayici-27Agu`. Kalemin vakasi: 06:20 cron
+# kosumunda arac `TypeError` ile COKTU ve ayni log'a `ASGARI=3.7 UYUM=EVET`
+# yazdi — yani arac KENDI CALISAMADIGI surumu "uyumlu" ilan etti.
+#
+# ⚠️ DURUST SINIR (iddia edilmiyor, YAZILIYOR): bir dosya IMPORT ANINDA
+# coktugunde (annotation'lar `def` aninda degerlendirilir) `main()` hic
+# calismaz — hicbir IC kol o cokusu "adiyla" raporlayamaz. Bu yuzden turetme
+# kolunun degeri iki yerdedir: (1) `--asgari` ON-UCUS kontrolu olarak
+# KOSTURULMADAN once dogru sayiyi verir, (2) capraz-ortam kolu (A1) gercek
+# cokusu yakalar. A6e bu siniri OLCER, ortmez.
+
+# 🔴 MUTANT, TURETMENIN KENDISINI oldurur — modul duzeyi degiskeni DEGIL.
+# Ilk denemede capa `ASGARI_SURUM, ... = asgari_surum_turet()` satiriydi ve
+# mutant A6b'yi OLDURMEDI (olculdu: 3.10 -> 3.10): cunku `--asgari` yolu o
+# degiskeni HIC okumaz, fonksiyonu DOGRUDAN cagirir. Yani capa hedef kolun
+# uzerinde DEGILDI ([[ad-iki-rolde-mutanti-golgeler]] ailesi). Dogru capa,
+# KANITI SAYIYA CEVIREN satirdir.
+MUT_A6_CAPA = '    return max(k[0] for k in kanit), kanit, ""\n'
+MUT_A6_YAMA = '    return _SURUM_TABANI, [], ""  # MUTANT: kanit YOK SAYILIR (literal)\n'
+
+FUTURE_SATIRI = "from __future__ import annotations\n"
+
+
+def _alan(satir, ad):
+    """'ASGARI=3.10' gibi bir alani satirdan cikarir."""
+    for parca in (satir or "").split():
+        if parca.startswith(ad + "="):
+            return parca[len(ad) + 1:]
+    return "-"
+
+
+def a6_ortam_turetme():
+    baslik("A6 — ORTAM KOLU: asgari surum TURETILIR (literal DEGIL) + MUTANT")
+    with open(ARAC, encoding="utf-8") as f:
+        kaynak = f.read()
+
+    with tempfile.TemporaryDirectory(prefix="sabah-a6-") as td:
+        # --- A6a KONTROL: canli arac kendi asgarisini TURETIR ve UYUMLU der
+        rcA, ciktiA = kos([PY, ARAC, "--asgari"], 120)
+        satirA = jeton(ciktiA, "ASGARI_TURETME ")
+        asgari_a = _alan(satirA, "ASGARI")
+        kaynak_a = _alan(satirA, "ASGARI_KAYNAK")
+        kayit("A6a KONTROL canli arac: UYUM=EVET + kaynak ADLI",
+              rcA == 0 and _alan(satirA, "UYUM") == "EVET"
+              and asgari_a not in ("-", "OLCULEMEDI") and kaynak_a != "-",
+              "rc=%d ASGARI=%s KAYNAK=%s" % (rcA, asgari_a, kaynak_a))
+
+        # --- A6b FIKSTUR: 27 Agu sabahinin ta kendisi — `__future__` satiri YOK,
+        #     `str | None` annotation'lari DURUYOR. Dogru cevap 3.10, UYUM=HAYIR.
+        if kaynak.count(FUTURE_SATIRI) != 1:
+            kayit("A6b FIKSTUR (__future__ YOK) -> ASGARI 3.10 + UYUM=HAYIR", None,
+                  "future satiri adedi=%d (1 bekleniyor)" % kaynak.count(FUTURE_SATIRI))
+            asgari_b = "-"
+            rcB = -1
+        else:
+            fx = os.path.join(td, "kral-sabah-futuresiz.py")
+            with open(fx, "w", encoding="utf-8") as f:
+                f.write(kaynak.replace(FUTURE_SATIRI, "", 1))
+            rcB, ciktiB = kos([PY, ARAC, "--asgari", fx], 120)
+            satirB = jeton(ciktiB, "ASGARI_TURETME ")
+            asgari_b = _alan(satirB, "ASGARI")
+            kayit("A6b FIKSTUR (__future__ YOK) -> ASGARI 3.10 + UYUM=HAYIR",
+                  rcB == 3 and asgari_b == "3.10" and _alan(satirB, "UYUM") == "HAYIR",
+                  "rc=%d ASGARI=%s KAYNAK=%s" % (rcB, asgari_b, _alan(satirB, "ASGARI_KAYNAK")))
+
+        # --- A6c FAIL-CLOSED: bu yorumlayicinin DERLEYEMEDIGI kaynak.
+        #     `match/case` 3.10 sozdizimidir; 3.9'da `ast.parse` DUSER ->
+        #     hukum "OLCULEMEDI + UYUM=HAYIR" olmali, sessiz yesil DEGIL.
+        fx2 = os.path.join(td, "match-kullanan.py")
+        with open(fx2, "w", encoding="utf-8") as f:
+            f.write("def f(x):\n    match x:\n        case 1:\n            return 'bir'\n"
+                    "    return '-'\n")
+        rcC, ciktiC = kos([PY, ARAC, "--asgari", fx2], 120)
+        satirC = jeton(ciktiC, "ASGARI_TURETME ")
+        asgari_c = _alan(satirC, "ASGARI")
+        uyum_c = _alan(satirC, "UYUM")
+        # 3.10+ yorumlayicida ayni dosya DERLENIR -> ASGARI=3.10, UYUM=EVET.
+        # Iki hal de DOGRUDUR; olculen sey "sessiz yesil YOK".
+        derleyebiliyor = sys.version_info[:2] >= (3, 10)
+        beklenen = (rcC == 0 and asgari_c == "3.10" and uyum_c == "EVET") if derleyebiliyor \
+            else (rcC == 3 and asgari_c == "OLCULEMEDI" and uyum_c == "HAYIR")
+        kayit("A6c FAIL-CLOSED: derlenemeyen kaynak sessiz YESIL DONMEZ", beklenen,
+              "kosan=%s rc=%d ASGARI=%s UYUM=%s KAYNAK=%s" % (
+                  ".".join(str(x) for x in sys.version_info[:2]), rcC, asgari_c, uyum_c,
+                  _alan(satirC, "ASGARI_KAYNAK")))
+
+        # --- A6d MUTANT: turetme LITERAL'e geri cevrilir -> A6b YESILE DONER
+        capa_adedi = kaynak.count(MUT_A6_CAPA)
+        if capa_adedi != 1 or rcB == -1:
+            kayit("A6d MUTANT capasi TEK", capa_adedi == 1,
+                  "capa_adedi=%d (1 bekleniyor)" % capa_adedi)
+            kayit("A6e MUTANT A6b'yi YESILE cevirir (hedef-kol atifli)", None,
+                  "mutant kosturulamadi")
+            kayit("A6f MUTANT KONTROL (A6a) DEGISMEDI", None, "mutant kosturulamadi")
+        else:
+            kayit("A6d MUTANT capasi TEK", True, "capa_adedi=1")
+            mut = os.path.join(td, "kral-sabah-mutant-literal.py")
+            with open(mut, "w", encoding="utf-8") as f:
+                f.write(kaynak.replace(MUT_A6_CAPA, MUT_A6_YAMA, 1))
+            fx = os.path.join(td, "kral-sabah-futuresiz.py")
+            rcMB, ciktiMB = kos([PY, mut, "--asgari", fx], 120)
+            satirMB = jeton(ciktiMB, "ASGARI_TURETME ")
+            # HEDEF-KOL ATFI: mutant yalniz MODUL DUZEYI degeri literal yapar;
+            # `--asgari` yolu hala turetiyor olsaydi mutant OLMEZDI. Bu yuzden
+            # mutant ayrica `--asgari` yolunun da ayni fonksiyondan besledigini
+            # kanitlar: A6b'nin 3.10'u KAYBOLMALI.
+            kayit("A6e MUTANT A6b'yi YESILE cevirir (hedef-kol atifli)",
+                  asgari_b == "3.10" and _alan(satirMB, "ASGARI") != "3.10",
+                  "taban ASGARI=%s -> mutant ASGARI=%s (rc %d->%d)" % (
+                      asgari_b, _alan(satirMB, "ASGARI"), rcB, rcMB))
+            rcMA, ciktiMA = kos([PY, mut, "--asgari"], 120)
+            kayit("A6f MUTANT KONTROL (A6a) DEGISMEDI",
+                  rcMA == rcA == 0 and _alan(jeton(ciktiMA, "ASGARI_TURETME "), "UYUM") == "EVET",
+                  "kontrol taban_rc=%d mutant_rc=%d" % (rcA, rcMA))
+
+        # --- A6g SINIR OLCUMU (ortulmuyor): future'suz fikstur BU yorumlayiciyla
+        #     DOGRUDAN kosturulunca ne olur? Import aninda coker -> IC kol
+        #     ulasilmaz. Kolun degeri ON-UCUS (`--asgari`) + capraz ortamdadir.
+        fx = os.path.join(td, "kral-sabah-futuresiz.py")
+        if os.path.isfile(fx):
+            rcG, ciktiG = kos([PY, fx, "--kuru"], 120)
+            if sys.version_info[:2] >= (3, 10):
+                kayit("A6g SINIR: fikstur BU yorumlayicida (>=3.10) KOSAR", rcG in (0, 1, 3),
+                      "rc=%d (3.10+ zaten destekliyor)" % rcG)
+            else:
+                kayit("A6g SINIR: fikstur import aninda COKER, ic kol ULASILMAZ",
+                      rcG != 0 and "TypeError" in (ciktiG or ""),
+                      "rc=%d TypeError=%d — bu yuzden A6b ON-UCUS kolu SART" % (
+                          rcG, int("TypeError" in (ciktiG or ""))))
+
+
+# --------------------------------------------------------------------- A7
+# KURUCU IDEMPOTENSI (K320) — `capa ⊂ yeni` sinifi.
+#
+# Eski kol: `if metin.count(yeni) >= 1 and capa_adedi == 0: ZATEN`. EKLEME tipi
+# yamalarda capa eklenen metnin ICINDE kalir -> kurulumdan sonra da
+# `capa_adedi == 1` -> her kosum yeniden UYGULA -> ICERIK COGALIR.
+# Kusur `--geri-al`li yordamla maskelenmisti; kanit ARGUMANSIZ IKINCI KOSUMDUR.
+
+MUT_A7_CAPA = "        if yeni_adedi == 1:\n"
+MUT_A7_YAMA = "        if yeni_adedi == 1 and capa_adedi == 0:  # MUTANT: eski kol\n"
+
+YAMA_HEDEFLERI = ("cip_dogum_bekcisi.py", "bekci-kabul.py", "bekci-kur.py")
+
+
+KURUCU_YOLU = None  # --kurucu ile civilenir
+
+
+def _kurucu_yolu():
+    """🔴 OLCUM DUZLEMI ADIYLA SECILIR — ilk surumde SESSIZ dusuluyordu.
+
+    Olculdu (27 Agu): batarya KURULU kopyadan (`~/.claude/cron/`) kostugu icin
+    `dirname(__file__)/kur.py` YOKTU ve akis sessizce ANA CHECKOUT'un kur.py'sine
+    dusuyordu — yani DALDAKI onarim degil, main'deki ESKI kurucu olculuyordu
+    (`rc=2 unrecognized arguments`, `capa_adedi=0`). Bu tam olarak bu kalemin
+    sinifi: OLCULEN DUZLEM ile ONARILAN DUZLEM ayrisirsa hukum yalandir
+    ([[emir-canliligi-kurulu-kopyadan-olculur]]). Artik yol ya ACIKCA verilir
+    ya da hangi adayin secildigi BASILIR.
+    """
+    if KURUCU_YOLU:
+        return (KURUCU_YOLU, "--kurucu") if os.path.isfile(KURUCU_YOLU) else (None, "--kurucu YOK")
+    aday = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kur.py")
+    if os.path.isfile(aday):
+        return aday, "batarya_yani"
+    aday = "/Users/okan/dev/pruvo/tools/sabah-teslim/kur.py"
+    if os.path.isfile(aday):
+        return aday, "ana_checkout"
+    return None, "BULUNAMADI"
+
+
+def _en_eski_yedek(ad):
+    import glob
+    adaylar = sorted(glob.glob(os.path.join(CRON, ad + ".yedek-sabahteslim-*")))
+    return adaylar[0] if adaylar else None
+
+
+def _dizin_parmak_izi(dizin):
+    """Dizindeki her dosyanin (bayt, sha256) izi — BIREBIR kiyas icin."""
+    izler = {}
+    for ad in sorted(os.listdir(dizin)):
+        yol = os.path.join(dizin, ad)
+        if os.path.isfile(yol):
+            with open(yol, "rb") as f:
+                ham = f.read()
+            izler[ad] = (len(ham), hashlib.sha256(ham).hexdigest()[:16])
+    return izler
+
+
+def a7_kurucu_idempotens():
+    baslik("A7 — KURUCU IDEMPOTENSI: `capa ⊂ yeni` + ARGUMANSIZ IKINCI KOSUM")
+    kurucu, nereden = _kurucu_yolu()
+    if not kurucu:
+        kayit("A7a SINIF sayimi: kac yama `capa ⊂ yeni`", None, "kur.py YOK (%s)" % nereden)
+        kayit("A7b TAZE kurulum + IKINCI kosum BIREBIR", None, "kur.py YOK (%s)" % nereden)
+        kayit("A7c MUTANT capasi TEK", None, "kur.py YOK (%s)" % nereden)
+        return
+    print("  kurucu=%s (kaynak: %s)" % (kurucu, nereden))
+
+    with open(kurucu, encoding="utf-8") as f:
+        kur_kaynak = f.read()
+
+    # 🔴 DUZLEM PROBU: olculecek kurucu FIKSTUR destekliyor mu. Desteklemiyorsa
+    #    "dustu" DEMEYIZ — `OLCULEMEDI` + SEBEP yazariz (bayat duzlem ≠ arizali kol).
+    if "--cron-dizin" not in kur_kaynak:
+        kayit("A7a SINIF sayimi: kac yama `capa ⊂ yeni`", None,
+              "BAYAT DUZLEM: %s `--cron-dizin` TASIMIYOR (kaynak: %s)" % (kurucu, nereden))
+        kayit("A7b TAZE kurulum + IKINCI kosum BIREBIR", None, "bayat duzlem")
+        kayit("A7c MUTANT capasi TEK", None, "bayat duzlem")
+        return
+
+    # --- A7a: SINIFIN BUYUKLUGU SAYIYLA basilir (iddia degil).
+    rcS, ciktiS = kos([PY, "-c",
+                       "import sys; sys.path.insert(0, %r); "
+                       "import importlib.util as u; "
+                       "s = u.spec_from_file_location('kurmod', %r); "
+                       "m = u.module_from_spec(s); s.loader.exec_module(m); "
+                       "Y = m.yamalar(); "
+                       "print('YAMA_SINIF toplam=%%d capa_alt_kume=%%d' %% "
+                       "(len(Y), sum(1 for h, c, y, a in Y if c in y)))"
+                       % (os.path.dirname(kurucu), kurucu)], 120)
+    satirS = jeton(ciktiS, "YAMA_SINIF ")
+    alt = _alan(satirS, "capa_alt_kume")
+    kayit("A7a SINIF sayimi: kac yama `capa ⊂ yeni`",
+          rcS == 0 and alt not in ("-", ""),
+          "%s (bu yamalarda capa kurulumdan SONRA da gorunur)" % satirS[:110])
+
+    with tempfile.TemporaryDirectory(prefix="sabah-a7-") as td:
+        sahte_cron = os.path.join(td, "cron")
+        os.makedirs(sahte_cron)
+        eksik = []
+        for ad in YAMA_HEDEFLERI:
+            y = _en_eski_yedek(ad)
+            if not y:
+                eksik.append(ad)
+                continue
+            shutil.copy2(y, os.path.join(sahte_cron, ad))
+        if eksik:
+            # 🔴 Sessiz yesil YOK: taban olculemedi, sebebi ADIYLA yazilir.
+            kayit("A7b TAZE kurulum + IKINCI kosum BIREBIR", None,
+                  "TABAN OLCULEMEDI — yedek YOK: %s" % ", ".join(eksik))
+            kayit("A7c MUTANT eski kolu geri getirir -> COGALTIR", None, "taban yok")
+            return
+
+        cikti_d = os.path.join(td, "log")
+        ortak = ["--cron-dizin", sahte_cron, "--cikti-dizin", cikti_d]
+
+        rc1, c1 = kos([PY, kurucu] + ortak, 240)
+        ozet1 = jeton(c1, "YAMA_OZET ")
+        iz1 = _dizin_parmak_izi(sahte_cron)
+
+        rc2, c2 = kos([PY, kurucu] + ortak, 240)
+        ozet2 = jeton(c2, "YAMA_OZET ")
+        iz2 = _dizin_parmak_izi(sahte_cron)
+
+        birebir = iz1 == iz2
+        uygulanan2 = _alan(ozet2, "uygulanan")
+        kayit("A7b TAZE kurulum + IKINCI kosum BIREBIR (cogaltma=0)",
+              rc1 == 0 and rc2 == 0 and birebir and uygulanan2 == "0",
+              "T1 rc=%d %s | T2 rc=%d %s | bayt_birebir=%d" % (
+                  rc1, ozet1[:64], rc2, ozet2[:64], int(birebir)))
+        if not birebir:
+            for ad in sorted(set(list(iz1) + list(iz2))):
+                if iz1.get(ad) != iz2.get(ad):
+                    print("      SAPMA %s: T1=%s T2=%s" % (ad, iz1.get(ad), iz2.get(ad)))
+
+        # --- A7c MUTANT: idempotens kolunu ESKI hale (capa_adedi == 0) cevir.
+        capa_adedi = kur_kaynak.count(MUT_A7_CAPA)
+        if capa_adedi != 1:
+            kayit("A7c MUTANT capasi TEK", False,
+                  "capa_adedi=%d (1 bekleniyor)" % capa_adedi)
+            kayit("A7d MUTANT ikinci kosumu COGALTIR (hedef-kol atifli)", None, "capa yok")
+            return
+        kayit("A7c MUTANT capasi TEK", True, "capa_adedi=1")
+
+        mut_dizin = os.path.join(td, "mutant-kaynak")
+        shutil.copytree(os.path.dirname(kurucu), mut_dizin)
+        mut_kurucu = os.path.join(mut_dizin, "kur.py")
+        with open(mut_kurucu, "w", encoding="utf-8") as f:
+            f.write(kur_kaynak.replace(MUT_A7_CAPA, MUT_A7_YAMA, 1))
+
+        m_cron = os.path.join(td, "cron-mutant")
+        os.makedirs(m_cron)
+        for ad in YAMA_HEDEFLERI:
+            shutil.copy2(_en_eski_yedek(ad), os.path.join(m_cron, ad))
+        m_ortak = ["--cron-dizin", m_cron, "--cikti-dizin", os.path.join(td, "log-m")]
+
+        rcM1, cM1 = kos([PY, mut_kurucu] + m_ortak, 240)
+        izM1 = _dizin_parmak_izi(m_cron)
+        rcM2, cM2 = kos([PY, mut_kurucu] + m_ortak, 240)
+        izM2 = _dizin_parmak_izi(m_cron)
+        m_birebir = izM1 == izM2
+        # HEDEF-KOL ATFI: mutant YALNIZ idempotens sartini degistirir. Ilk kosum
+        # AYNI kalir (rc ve uygulanan), ikinci kosum COGALTIR. Yani olen sey tam
+        # olarak "sonuc ekseninden okuyan idempotens kolu"dur.
+        kayit("A7d MUTANT ikinci kosumu COGALTIR (hedef-kol atifli)",
+              birebir and not m_birebir,
+              "taban T1==T2 %d | mutant T1==T2 %d | mutant T1 %s / T2 %s" % (
+                  int(birebir), int(m_birebir),
+                  jeton(cM1, "YAMA_OZET ")[:52], jeton(cM2, "YAMA_OZET ")[:52]))
+        kayit("A7e MUTANT KONTROL: ILK kosum DEGISMEDI",
+              rcM1 == rc1 and _alan(jeton(cM1, "YAMA_OZET "), "uygulanan")
+              == _alan(ozet1, "uygulanan"),
+              "taban ilk=%s mutant ilk=%s" % (
+                  _alan(ozet1, "uygulanan"), _alan(jeton(cM1, "YAMA_OZET "), "uygulanan")))
+
+
 def main(argv=None):
+    global KURUCU_YOLU
     ap = argparse.ArgumentParser()
     ap.add_argument("--faz", choices=("on", "tam"), default="tam")
+    ap.add_argument("--kurucu", default=None,
+                    help="A7'de olculecek kur.py (dal olcumu icin ZORUNLU — "
+                         "aksi halde ANA CHECKOUT'un kopyasi olculur)")
     args = ap.parse_args(argv)
+    KURUCU_YOLU = args.kurucu
 
     print("KraL SABAH RUTINI KABUL BATARYASI — faz=%s" % args.faz)
     print("damga=%s python=%s arac=%s" % (
@@ -259,6 +584,9 @@ def main(argv=None):
         return 2
 
     a1_ortam()
+    # A6/A7 CANLI DUZLEME YAZMAZ (yalniz gecici dizin + salt-okuma) -> her fazda.
+    a6_ortam_turetme()
+    a7_kurucu_idempotens()
     if args.faz == "tam":
         a2_gercek_kosum()
         a3_a4_sonuc_kolu()

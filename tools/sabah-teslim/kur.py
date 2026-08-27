@@ -351,13 +351,33 @@ def kur(kuru=False):
     zaten = 0
     dusen = []
 
+    cogalmis = 0
     for hedef, capa, yeni, aciklama in Y:
         metin = metinler[hedef]
         capa_adedi = metin.count(capa)
-        zaten_var = metin.count(yeni) >= 1
-        if zaten_var and capa_adedi == 0:
+        yeni_adedi = metin.count(yeni)
+
+        # 🔴 27 Agu 2026 — `KraL-SabahYorumlayici-27Agu` / K320: IDEMPOTENS
+        # OLCUTU SONUC EKSENINDEN OKUNUR. Eski kol soyleydi:
+        #     zaten_var = metin.count(yeni) >= 1
+        #     if zaten_var and capa_adedi == 0: ZATEN
+        # `capa_adedi == 0` sarti EKLEME tipi yamalarda ASLA saglanmaz, cunku
+        # o yamalarda `capa` eklenen metnin ICINDE durur (capa ⊂ yeni) →
+        # kurulumdan SONRA da capa_adedi == 1 kalir → akis her kosumda
+        # UYGULA'ya iner → ICERIK COGALIR. Kusur `--geri-al`li kosum
+        # yordamiyla maskelenmisti; ARGUMANSIZ IKINCI KOSUM idempotens kanitidir.
+        # Dogru soru "capa tuketildi mi" DEGIL, "HEDEF METIN BIR KEZ VAR MI".
+        if yeni_adedi == 1:
             zaten += 1
-            yaz("YAMA  [ZATEN] %-14s %s" % (hedef, aciklama))
+            yaz("YAMA  [ZATEN] %-14s %s  (capa_adedi=%d — capa ⊂ yeni ise 1 KALIR)"
+                % (hedef, aciklama, capa_adedi))
+            continue
+        if yeni_adedi > 1:
+            # Onceki COGALTAN kosumlarin birakabilecegi hal: sessizce
+            # "zaten kurulu" DEMEYIZ, fail-closed'a dusuruz.
+            cogalmis += 1
+            dusen.append("%s :: %s (COGALMIS yeni_adedi=%d)" % (hedef, aciklama, yeni_adedi))
+            yaz("YAMA  [COGALMIS] %-12s %s  yeni_adedi=%d" % (hedef, aciklama, yeni_adedi))
             continue
         if capa_adedi != 1:
             dusen.append("%s :: %s (capa_adedi=%d)" % (hedef, aciklama, capa_adedi))
@@ -367,8 +387,8 @@ def kur(kuru=False):
         uygulanan += 1
         yaz("YAMA  [UYGULANDI] %-10s %s" % (hedef, aciklama))
 
-    yaz("YAMA_OZET toplam=%d uygulanan=%d zaten=%d capa_yok=%d" % (
-        len(Y), uygulanan, zaten, len(dusen)))
+    yaz("YAMA_OZET toplam=%d uygulanan=%d zaten=%d capa_yok=%d cogalmis=%d" % (
+        len(Y), uygulanan, zaten, len(dusen) - cogalmis, cogalmis))
 
     if dusen:
         # 🔴 FAIL-CLOSED: tek bir capa bile bulunamazsa HICBIR SEY yazilmaz.
@@ -441,5 +461,18 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--kuru", action="store_true")
     ap.add_argument("--geri-al", action="store_true")
+    # 🔴 Idempotens FIKSTURU icin: kurucuyu CANLI duzleme (`~/.claude/cron/`)
+    # dokunmadan, tek kullanimlik bir kopya uzerinde kosturabilmek sart —
+    # yoksa "ikinci kosum icerigi cogaltiyor mu" sorusu ancak canli dosyalari
+    # bozarak olculebilirdi.
+    ap.add_argument("--cron-dizin", default=None,
+                    help="hedef dizin (varsayilan ~/.claude/cron) — YALNIZ fikstur icin")
+    ap.add_argument("--cikti-dizin", default=None,
+                    help="kurulum log dizini (varsayilan /private/tmp/pruvo-sabah-teslim)")
     a = ap.parse_args()
+    if a.cron_dizin:
+        CRON = os.path.abspath(a.cron_dizin)
+    if a.cikti_dizin:
+        CIKTI_DIZINI = os.path.abspath(a.cikti_dizin)
+        HAM = os.path.join(CIKTI_DIZINI, "kurulum.log")
     sys.exit(geri_al() if a.geri_al else kur(a.kuru))
