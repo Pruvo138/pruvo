@@ -2,23 +2,25 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔴 27 AGU AKSAM — CANLI · main=origin `0d0af5b5` · 🔴 **MAIN'E PUSH DONDURULDU** (kosum `33090233203` bitene dek)
-✅ **INEN:** `594ca29e` K318 ROL EKSENI (`deny`→`allow`, KONTROL `deny`) · `77013008` nobet UC KOL (22/22 10/10) ·
-`0d0af5b5` SERIT B onarimi (K322·K323·K325·K326·K327) · `fcab2371` yedek beyani · defter+kutu rotasyonu ·
-shop **deploy** `45550c39` (nabiz `rc=0 TAZE`, odeme yolu gerilemesiz).
-🔴 **K318 KISMI — yalniz CIP:** isci ACIK · BaBa UCUNCU kol · **MaCiT'e GELMEZ** → kurucu `--rol-kapisi`,
-SART: pozitif-kol fiksturu olculmeden yazilmaz. **DELIK:** `_proje_damgasi` KAYIPLI (`dev/pruvo`==`dev-pruvo`).
-🔴 **SERIT B (Okan ②):** 21 adim / 6 kova. Kapanan 8: 3 `0d0af5b5` · 3 `cc8f99a4` · 2 `9f5544fb`. Kredi tablosu KOSUMDA.
-⛔ **② ULASILAMAZ, UC ENGEL:** kalan adimlar · **K220** (19 sapan MODEL jetonu; dokunmak CANLI marka sayfasi
-oldurur — YASAK) · **DIS:** `cron-nabzi` GitHub schedule teslimine bagli (%18, 11 sa sessizlik olculdu).
-🔴 **PARA YUZEYI:** civi bayatti (`kol=11`/10; uc KASITLI+GUVENLI) → nobetci **3 GUN** hukum vermedi. Civi AD KUMESI.
-🔴 **YEDEK:** 4 TSV 11 Agu'dan beri yedeksiz (beyan indi; kapanis: kanonik kopya ILERLEDI mi). Mekanizma 5 kolda
-kirik — kenar/SEVIYE · sifirlama global · esik no-op · yuklem SONRAKI boyutu okur · beyan **ADA** bagli
-(tek `DEVAM.md` beyani **14 dosyayi** kapsiyor, evler arasi).
-🔧 **ACIK:** ⓑ `--yaz-sonrasi` KABLOSUZ · ⓒ HTML 4 saat CF'de → **OKAN KAPISI** · ⓓ sessiz kirpma ~34 · ⓔ ⑦ bekci ·
-ⓕ K314 · ⓖ K322 nobetcisiz · ⓗ nobetcisiz ortak altyapi · ⓘ sabit mutlak yollar · ⓙ defter `BAYAT_TABAN` kolu.
-⛔ `claude/ecstatic-maxwell-5a6f40` (`4b68adda`) MERGE EDILMEZ — K269. 🔴 **ISCI TURU TAVANI $10** — buyuk spec BOLUNUR.
-**Okan'da bekleyen: `pruvo-jenerator` icin GitHub App repository access (TeKiN talebi).**
+## 🔁 DEVIR — 27 Agu 2026, eski hesap → yeni · main=origin `71585a1a` · agac TEMIZ
+**SIRADAKI TEK IS:** `tools/k3-cikti-kok-mutasyon.py`'yi CI kapsamina sok — dal `kral/serit-b-k3-27agu` bu yuzden ITILEMIYOR (kapi hakli: tuketicisiz arac = K269); sonra #14(a) kabulu → #14(b).
+**Nerede kaldim:** 6 merge canliya (`594ca29e` ROL EKSENI · `77013008` nobet UC KOL · `0d0af5b5` SERIT B
+onarimi · `fcab2371` yedek beyani · defter/kutu rotasyonu) + shop deploy `45550c39`. SERIT B 21 adim/6 kova,
+kapanan 8; `cc8f99a4` **1 kapatti 1 ACTI** (`Talep temizlik surucusu` = K184 artigi).
+**Acik worktree/dal:** `kral/serit-b-k3-27agu` @`a06f22ce` **ITILEMEDI** (kapi hakli, atlatilmadi; ref
+paylasilan `.git`'te, kayip YOK) · `kral/m3-kapsama-27agu` @`99e5337f` **ITILDI** (kabul: `Cip satirlari
+capraz daralma` CI'da `success`; tam mutasyon bataryasi HIC KOSMADI).
+**Baskasinin kopyasinda duran:** yok.
+**Zamanlanmis nobetler:** `gunluk-mimar-ihtar` `0 9,15 * * *` (09:00 KALDIRILAMAZ = cip-dogum TESLIM KOLU) ·
+`teftis-takip` `0 17,23 * * *` · crontab `37 * * * *` CI nobeti (**`.ci-token` HESABA BAGLI, TAZELE**).
+**Okan'da bekleyen karar:** `pruvo-jenerator` GitHub App repository access (TeKiN).
+🔴 **DEVREDEN (tam liste KUTUDA, 27 Agu kapanis blogu):** ⓐ YEDEK **5 kolda kirik** (kenar/SEVIYE · sifirlama
+global · esik no-op · yuklem SONRAKI boyutu okur · beyan **ADA** bagli) — 4 TSV 11 Agu'dan yedeksiz ·
+ⓑ **K220** (② onsuz KAPANMAZ) · ⓒ kurucu `--rol-kapisi` · ⓓ `_proje_damgasi` KAYIPLI + vaka 815 ·
+ⓔ HTML 4 saat → **OKAN KAPISI** · ⓕ ic rapor ad kalibi cip-basina genisliyor · ⓖ+7 kalem kutuda.
+🔴 **UYDURMA:** bir `minimax-m3` turu olmayan `02a0e2c0` SHA'sini + olmayan gorevi uydurdu, gercek raporu EZDI;
+13 SHA dogrulandi, baskasi YOK. → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
+⛔ `claude/ecstatic-maxwell-5a6f40` MERGE EDILMEZ (K269) · **ISCI TURU TAVANI $10**, spec BOLUNUR.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu KAPANAN 4 KALEM (K250·K302·K303·K305) — TAM METIN ARSIVDE**, "KAPANAN 4 KALEM" basligi.
