@@ -49,6 +49,10 @@ from datetime import datetime, timedelta, timezone
 _BU_DIZIN = os.path.dirname(os.path.abspath(__file__))
 _REPO_KOK = os.path.dirname(_BU_DIZIN)
 
+# Sentetik git deposu kurucusunun TEK kaynagi (FALLBACK YOK).
+sys.path.insert(0, _BU_DIZIN)
+from git_ortami import sentetik_git   # noqa: E402
+
 
 def _yukle(ad, dosya):
     yol = os.path.join(_BU_DIZIN, dosya)
@@ -73,16 +77,17 @@ def kayit(ad, gecti, detay):
 
 
 def _git(kok, *args, **kw):
-    ortam = dict(os.environ)
-    ortam.update({
+    # Sentetik depoda git DAIMA kanonik yardimciyla kosar (miras GIT_* baglami
+    # temizlenir, cwd sabitlenir); kimlik damgalari ek_ortam ile verilir.
+    ek = {
         "GIT_AUTHOR_NAME": "N2", "GIT_AUTHOR_EMAIL": "n2@pruvo.local",
         "GIT_COMMITTER_NAME": "N2", "GIT_COMMITTER_EMAIL": "n2@pruvo.local",
         "GIT_CONFIG_GLOBAL": os.path.join(kok, ".gitconfig-yok"),
         "GIT_CONFIG_SYSTEM": os.path.join(kok, ".gitconfig-yok"),
-    })
-    ortam.update(kw.pop("ek_ortam", {}) or {})
-    return subprocess.run(["git", "-C", kok] + list(args),
-                          capture_output=True, text=True, env=ortam)
+    }
+    ek.update(kw.pop("ek_ortam", {}) or {})
+    return sentetik_git(kok, *args, ek_ortam=ek,
+                        capture_output=True, text=True)
 
 
 def _dosya(kok, goreli, icerik):
