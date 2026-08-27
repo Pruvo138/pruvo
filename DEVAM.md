@@ -2,15 +2,22 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔚 27 AGU KAPANIS · main=origin `25b2879b` SHA-BIREBIR · agac TEMIZ · worktree 9→5 · kosan cip 4
-🔴 **KOSUYOR (4, motor Claude):** `KraL-IcraKapisiKimlik` (dal `kral/icra-kapisi-kimlik-27agu`
-`82a30b41` — kapi cipteki isciyi mimar sayiyor, MaCiT hatti haftalardir BLOKE) · `KraL-BelgeOnbellegi`
-(HTML belgesi `max-age=14400`) · `KraL-KarantinaHukmu` (dal `kral/nobet-turu-27agu`) · `KraL-DogrulaMerge`.
-🔴 **BEKLIYOR — "neyi olcmek kapatir":** ⓐ `nobet-turu` **MERGE YOK** (iddia 21/21, olculen **20/21**
-`DUSEN=C5`) → *hukum indi: ardisik ESIK kazanir, C5 iki yonlu yazilir; rc=0 + KONTROL 10/10* ·
-ⓑ `--yaz-sonrasi` kolu main'de ama **KABLOSUZ** → *kilit-guvenli + tavan altinda no-op + eszamanli
-cagride bayt-birebir olcusun, sonra mimar kabloyu takar* · ⓒ **HTML 4 saat** → *belge TTL dusuk,
-varlik TTL sabit, `Age` serisiyle* · ⓓ K321 karantina · ⓔ ⑦ bekci vakalari · ⓕ K314 acik ucu.
+## 🔴 27 AGU AKSAM — CANLI · main=origin `594ca29e` · agac TEMIZ · worktree 6 (MIMAR 1 · CIP 5)
+✅ **INEN:** `d8e955e6` defter rotasyonu · `9f5544fb` MaCiT 7 urun metni · **`594ca29e` K318 ROL EKSENI**
+(bagimsiz curutuldu: kapi ONCESI `deny`→SONRASI `allow`, KONTROL `deny`; vaka 299→314, kirmizi 7→7 ARTMADI).
+🔴 **K318 KISMI — yalniz CIP bacagi:** isci bacagi ACIK · BaBa UCUNCU koldan duser · **MaCiT'e GELMEZ**
+(her ev kendi kapali kopyasini tasir) → kurucu `--rol-kapisi`; **SART: pozitif-kol fiksturu olculmeden
+hicbir eve yazilmaz**, BaBa ATLANIR. **DELIK:** `_proje_damgasi` KAYIPLI (`dev/pruvo`==`dev-pruvo`) →
+"aday damga ANA koke esitse RED" + vaka 815.
+🔴 **KOSAN 3 CIP:** SERIT B onarimi (`kral/serit-b-onarim-27agu`) · SERIT B **K3 kovasi** · `kral/nobet-turu-27agu` cakisma+curutme.
+🔴 **SERIT B (Okan ②):** 21 adim / 6 kova / `OLCULEMEDI=0`; #8+#9 K184 kaldirmasiyla KAPANDI.
+⛔ **② ULASILAMAZ, IKI ENGEL:** kalan adimlar **ve K220** (19 sapanin hepsi MODEL jetonu; ayrilmadan
+dokunmak CANLI marka sayfasi oldurur — onarim YASAK). SINIF: [[taban-kirmizisi-nobetciyi-susturur]] (4 mekanizma).
+🔴 **PARA YUZEYI:** civi bayatti (`kol=11`/10) → `POST /yonet/havale-onay` KASITLI+GUVENLI, ama nobetci
+**3 GUN** hukum vermedi. Civi SAYI degil **AD KUMESI**; sayi yamasi YASAK.
+🔧 **ACIK:** ⓑ `--yaz-sonrasi` KABLOSUZ · ⓒ HTML 4 saat CF'de, repoda kol YOK → **OKAN KAPISI** · ⓓ sessiz
+kirpma ~34 aday · ⓔ ⑦ bekci · ⓕ K314 · ⓖ ayni sayinin IKI kaynagi (761'de 1 sapan).
+⛔ `claude/ecstatic-maxwell-5a6f40` (`4b68adda`) MERGE EDILMEZ — K269.
 **Okan'da bekleyen: `pruvo-jenerator` icin GitHub App repository access (TeKiN talebi).**
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
