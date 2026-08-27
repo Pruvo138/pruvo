@@ -27,16 +27,28 @@ VAKALAR (kutu ekseni — BES KOVA + tek kaynak)
   V4 KUTU_MAKINEDE_YOK hafiza dizini HIC yok -> rc=0 (kosucu; kusur DEGIL)
   V5 KUTU_SAHIPSIZ    <kok>/tools/kutu-arsivle.py YOK -> rc=0 (kardes depo/fikstur)
   V6 TEK_KAYNAK       esik IKINCI bir sabite kopyalanmis -> rc=1                  [⑤]
+  V7 KORUMA USTU      tavan ASILDI ama sahip arac `HUKUM=KORUMA_TUTTU` +
+                      `tasinabilir=0` diyor -> rc=0, `KUTU_TAVAN_USTU_KORUMA_
+                      NEDENIYLE` jetonu + once_satir/tavan/korumali_bekleyen  [K318③]
+  V8 HUKUM ALINAMADI  tavan ASILDI ve sahip aracin CLI kolu KIRIK -> rc=1
+                      (`KUTU_HUKUM_ALINAMADI`); fail-open YASAK             [K318③]
+
+🔴 V1 AYNI ZAMANDA K318 KOL-3'UN KONTROLUDUR: o fiksturde koruma YOKTUR, yani kota
+kirmizisi BLOKLAMAYA DEVAM ETMELI. Kolu "tavan ustunu hep gecir"e cevirmek kotayi
+butunuyle oldururdu; M5 tam bunu olcer.
 
 YAN EKSEN (defter kolu — M1 altinda YASAMALI)
   Y1 defter staged + tavan USTU -> rc=1, "DEFTER KOTASI ASILDI"
   Y2 defter staged + tavan ALTI -> rc=0
 
 MUTANTLAR (K182 hedef-kol atfi: olen kume == hedef kume)
-  M1 KUTU KOLU KALDIRILIR      -> V1..V6'dan kutu vakalari olur, Y1+Y2 YASAR      [④]
+  M1 KUTU KOLU KALDIRILIR      -> V1..V8'den kutu vakalari olur, Y1+Y2 YASAR      [④]
   M2 TEK KAYNAK NOBETI KALKAR  -> YALNIZ V6 olur
   M3 UCUNCU KOVA YUTULUR       -> YALNIZ V3 olur (OLCULEMEDI, MAKINEDE_YOK'a
                                   dusurulurse fail-closed kaybolur)
+  M4 KOL-3 KAPANIR             -> YALNIZ V7 olur (koruma hali de bloklanir)
+  M5 KOL-3 KOTAYI OLDURUR      -> YALNIZ V1 olur (her tavan asimi gecer)
+  M6 FAIL-OPEN                 -> YALNIZ V8 olur (hukum alinamayinca sessiz devam)
   K0 KONTROL: ILGISIZ KOL BOZULUR (bypass sayaci) -> HICBIR vaka olmemeli         [⑥]
 
 MENZIL (⑦ — [[kapinin-menzili-cagri-yeridir]]): `--kendini-test` yesili YETMEZ.
@@ -74,6 +86,9 @@ CAPA_M3 = ("    if not dizin_var:\n"
            "    if not dosya_var or satir is None or tavan is None:\n"
            "        return KUTU_OLCULEMEDI")
 CAPA_K0 = '        _sayaç_yaz(kok, satir, bayt, sinif="BYPASS")'
+# K318 KOL-3 capalari (BENZERSIZ dizeler; _mutant_kapi_uret bunu ayrica dogrular)
+CAPA_M4 = '    return hukum == "KORUMA_TUTTU" and tasinabilir == 0'
+CAPA_M6 = "        if hhata is not None:"
 
 
 def _yukle(yol, ad):
@@ -93,6 +108,55 @@ def _git(kok, *args):
     return sentetik_git(kok, *args, kimlik_ad="test", kimlik_eposta="test@pruvo",
                         ayarlar=["-c", "core.hooksPath=/dev/null"],
                         capture_output=True, text=True)
+
+
+# 🔴 JETON BURADA LITERAL YAZILIR, ARACTAN ITHAL EDILMEZ. Olcutunu test edilen
+# modulden okuyan vaka mutantla OLMEZ ve batarya yine yesil yanar
+# ([[ikinci-gorus-vakasi-birinci-gorusu-tekrar-ederse-totolojidir]]).
+BEKLEYEN_SATIR = "✅ İŞ BİTTİ — ARŞİVLENEBİLİRİM"
+
+# K318 KOL-3 jetonlari — kapinin ciktisinda ARANAN dizeler (literal).
+KORUMA_USTU_JETON = "KUTU_TAVAN_USTU_KORUMA_NEDENIYLE"
+HUKUM_ALINAMADI_JETON = "KUTU_HUKUM_ALINAMADI"
+
+
+def _kutu_metni_korumali(satir_hedef):
+    """Her blogu KAPANIS KONUMUNDA bekleyen jeton tasiyan sentetik kutu.
+
+    Sonuc: `koru` disindaki HER blok korumali -> sahip arac `tasinabilir=0` +
+    `HUKUM=KORUMA_TUTTU` basar. Kapinin K318 KOL-3 kolunun GIRDISI budur.
+    """
+    bas = "---\nname: sentetik-kutu\ndescription: kabul testi fiksturu\n---\n"
+    govde = []
+    i = 0
+    while len(bas.splitlines()) + len(govde) < satir_hedef:
+        govde.append("## 2026-08-27 — sentetik korumali blok %d\n" % i)
+        govde.append("govde satiri\n")
+        govde.append(BEKLEYEN_SATIR + "\n")
+        govde.append("\n")
+        govde.append("---\n")
+        govde.append("\n")
+        i += 1
+    return bas + "".join(govde)
+
+
+def _kirik_sahip_yaz(yol, tavan, kutu_yolu):
+    """Modul olarak YUKLENEN ama CLI kolu KASTEN KIRIK sahip kopyasi.
+
+    Kapinin tavan/yol cozumu (import ekseni) CALISIR — yani vaka
+    `KUTU_OLCULEMEDI`ye DUSMEZ; kirilan yalnizca HUKUM kolu (subprocess).
+    Boylece olculen sey "hukum alinamadiginda ne oluyor" sorusudur.
+    """
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write("# SENTETIK KIRIK SAHIP — kabul testi fiksturu\n"
+                "import sys\n"
+                "VARSAYILAN_TAVAN = %d\n"
+                "KUTU_VARSAYILAN = %r\n"
+                "ARSIV_VARSAYILAN = %r\n"
+                "if __name__ == '__main__':\n"
+                "    sys.stderr.write('SENTETIK: arac kasten kirildi\\n')\n"
+                "    sys.exit(7)\n"
+                % (tavan, kutu_yolu, kutu_yolu + "-arsiv.md"))
 
 
 def _kutu_metni(satir):
@@ -173,10 +237,17 @@ def _kur_asildi(kok, hafiza):
 
 
 def _hukum_asildi(r, f):
-    """① rc!=0 + dosya adi + olculen satir/bayt + tavan + CARE komutu BIRLIKTE."""
+    """① rc!=0 + dosya adi + olculen satir/bayt + tavan + CARE komutu BIRLIKTE.
+
+    🔴 K318 KOL-3 KONTROLU DE BURADADIR: bu fiksturde HICBIR blok korumali degil,
+    yani sahip arac hala is yapabiliyor -> kota kirmizisi BLOKLAMAYA DEVAM ETMELI.
+    Kolu gevsetmek kotayi butunuyle oldururdu (mimar uyarisi, 27 Agu: kutu satiri
+    paralel yazimla YUKARI gidiyor; ③ yalnizca KORUMA halini gecirir, kotayi degil).
+    """
     c = r.stdout + r.stderr
     iyi = (r.returncode != 0
            and "KUTU_ASILDI" in c
+           and KORUMA_USTU_JETON not in c
            and os.path.basename(f["kutu"]) in c
            and ("%d satir" % f["satir"]) in c
            and ("%d bayt" % f["bayt"]) in c
@@ -200,6 +271,64 @@ def _kur_yesil(kok, hafiza):
     with open(kutu, "w", encoding="utf-8") as f:
         f.write(metin)
     return {"kapi": kapi, "kutu": kutu}
+
+
+# ------------------------------- V7 KUTU_TAVAN_USTU_KORUMA_NEDENIYLE (K318 KOL-3)
+def _kur_koruma_ustu(kok, hafiza):
+    kapi = _depo_kur(kok)
+    os.makedirs(hafiza, exist_ok=True)
+    kutu = os.path.join(hafiza, "mimar-posta-kutusu.md")
+    metin = _kutu_metni_korumali(KUTU_TAVAN + 40)
+    with open(kutu, "w", encoding="utf-8") as f:
+        f.write(metin)
+    return {"kapi": kapi, "kutu": kutu, "satir": len(metin.splitlines())}
+
+
+def _hukum_koruma_ustu(r, f):
+    """🔴 K318 KOL-3: tavan ASILDI ama sahip arac 'yapilacak is YOK' diyor.
+
+    Kapi SATIR SAYISINA TEK BASINA bakmaz — hukmu TUKETIR: commit BLOKLANMAZ,
+    ama hal GIZLENMEZ (once_satir / tavan / korumali_bekleyen SAYIYLA basilir).
+    """
+    c = r.stdout + r.stderr
+    iyi = (r.returncode == 0
+           and KORUMA_USTU_JETON in c
+           and ("once_satir=%d" % f["satir"]) in c
+           and ("tavan=%d" % KUTU_TAVAN) in c
+           and "korumali_bekleyen=" in c
+           and "korumali_bekleyen=0" not in c
+           and "tasinabilir=0" in c
+           and "KUTU_ASILDI" not in c)
+    return iyi, ("rc=%d jeton=%s satir=%s tavan=%s korumali=%s tasinabilir0=%s "
+                 "asildi_yok=%s"
+                 % (r.returncode, KORUMA_USTU_JETON in c,
+                    ("once_satir=%d" % f["satir"]) in c,
+                    ("tavan=%d" % KUTU_TAVAN) in c,
+                    "korumali_bekleyen=" in c, "tasinabilir=0" in c,
+                    "KUTU_ASILDI" not in c))
+
+
+# ---------------------------------------- V8 KUTU_HUKUM_ALINAMADI (K318 KOL-3)
+def _kur_hukum_alinamadi(kok, hafiza):
+    kapi = _depo_kur(kok)
+    os.makedirs(hafiza, exist_ok=True)
+    kutu = os.path.join(hafiza, "mimar-posta-kutusu.md")
+    with open(kutu, "w", encoding="utf-8") as f:
+        f.write(_kutu_metni(KUTU_TAVAN + 40))       # tavan USTU
+    # Sahip modul olarak YUKLENIR ama CLI kolu KIRIK -> hukum ALINAMAZ.
+    _kirik_sahip_yaz(os.path.join(kok, "tools", "kutu-arsivle.py"), KUTU_TAVAN, kutu)
+    return {"kapi": kapi, "kutu": kutu}
+
+
+def _hukum_hukum_alinamadi(r, f):
+    """🔴 FAIL-CLOSED: hukum alinamiyorsa commit GECIRILMEZ. Fail-open YASAK."""
+    c = r.stdout + r.stderr
+    iyi = (r.returncode != 0
+           and HUKUM_ALINAMADI_JETON in c
+           and KORUMA_USTU_JETON not in c)
+    return iyi, ("rc=%d jeton=%s koruma_ustu_yok=%s"
+                 % (r.returncode, HUKUM_ALINAMADI_JETON in c,
+                    KORUMA_USTU_JETON not in c))
 
 
 def _hukum_yesil(r, f):
@@ -315,13 +444,19 @@ VAKALAR = [
     ("V4 KUTU_MAKINEDE_YOK (kosucu)", _vaka(_kur_makinede_yok, _hukum_makinede_yok)),
     ("V5 KUTU_SAHIPSIZ (kardes depo)", _vaka(_kur_sahipsiz, _hukum_sahipsiz)),
     ("V6 TEK_KAYNAK ihlali yakalanir", _vaka(_kur_tek_kaynak, _hukum_tek_kaynak)),
+    ("V7 KORUMA USTU GECER (K318 KOL-3)", _vaka(_kur_koruma_ustu,
+                                                _hukum_koruma_ustu)),
+    ("V8 HUKUM ALINAMADI BLOKLAR (fail-closed)", _vaka(_kur_hukum_alinamadi,
+                                                       _hukum_hukum_alinamadi)),
     ("Y1 YAN defter asimi BLOKLAR", _vaka(_kur_defter_asan, _hukum_defter_asan)),
     ("Y2 YAN defter temiz GECER", _vaka(_kur_defter_temiz, _hukum_defter_temiz)),
 ]
 
 KUTU_VAKALARI = {"V1 KUTU_ASILDI (care+sayi)", "V2 KUTU_YESIL (yanlis-pozitif yok)",
                  "V3 KUTU_OLCULEMEDI (fail-closed)", "V4 KUTU_MAKINEDE_YOK (kosucu)",
-                 "V5 KUTU_SAHIPSIZ (kardes depo)"}
+                 "V5 KUTU_SAHIPSIZ (kardes depo)",
+                 "V7 KORUMA USTU GECER (K318 KOL-3)",
+                 "V8 HUKUM ALINAMADI BLOKLAR (fail-closed)"}
 
 MUTANTLAR = [
     ("M1 KUTU KOLU KALDIRILIR", CAPA_M1, "    kutu_rc = 0", KUTU_VAKALARI),
@@ -331,6 +466,17 @@ MUTANTLAR = [
      ("    if not dizin_var or not dosya_var or satir is None or tavan is None:\n"
       "        return KUTU_MAKINEDE_YOK"),
      {"V3 KUTU_OLCULEMEDI (fail-closed)"}),
+    # 🔴 K318 KOL-3 — HUKUM TUKETME KOLU IKI YONDE de olculur; tek yon YETMEZ:
+    #   M4 kol KAPANIR  -> koruma hali de bloklanir  (V7 olur, V1 YASAR)
+    #   M5 kol ACIK KALIR -> her tavan asimi gecer   (V1 olur, V7 YASAR)
+    # Ikisi birlikte "kapi hukmu GERCEKTEN okuyor VE kotayi oldurmuyor" der.
+    ("M4 KOL-3 KAPANIR (koruma hali de bloklanir)", CAPA_M4,
+     "    return False  # MUTANT", {"V7 KORUMA USTU GECER (K318 KOL-3)"}),
+    ("M5 KOL-3 KOTAYI OLDURUR (her tavan asimi gecer)", CAPA_M4,
+     "    return True  # MUTANT", {"V1 KUTU_ASILDI (care+sayi)"}),
+    ("M6 FAIL-OPEN (hukum alinamayinca sessizce devam)", CAPA_M6,
+     "        if False:  # MUTANT: fail-closed kolu susturuldu",
+     {"V8 HUKUM ALINAMADI BLOKLAR (fail-closed)"}),
 ]
 
 KONTROLLER = [

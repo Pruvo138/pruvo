@@ -50,8 +50,26 @@ KUTU HUKUM KOVALARI (BES KOVA — ucuncu kovanin yutulmamasi icin AYRI jetonlar,
     KUTU_OLCULEMEDI   rc 1  — hafiza dizini VAR ama kutu dosyasi yok/okunamiyor,
                               ya da sahip modul/tavan/yol cozulemedi. FAIL-CLOSED:
                               "bakamadim" YESIL DEGILDIR.
-    KUTU_ASILDI       rc 1  — olculdu ve tavan asildi. CARE satiri basilir.
+    KUTU_ASILDI       rc 1  — olculdu, tavan asildi VE rotasyon araci hala is
+                              yapabiliyor. CARE satiri basilir.
     KUTU_YESIL        rc 0  — olculdu, tavanin altinda.
+    KUTU_TAVAN_USTU_KORUMA_NEDENIYLE
+                      rc 0  — (K318 KOL-3) tavan asildi AMA sahip arac
+                              `HUKUM=KORUMA_TUTTU` + `tasinabilir=0` diyor: bekleyen
+                              kapanis blogu rotasyona GIRMEZ, yani yapilacak is YOK.
+                              Hal GIZLENMEZ, sayilariyla BASILIR; commit BLOKLANMAZ.
+    KUTU_HUKUM_ALINAMADI
+                      rc 1  — (K318 KOL-3) tavan asildi ve sahip aracin HUKMU
+                              ALINAMADI (arac kosmadi / sifir-disi rc / jeton yok).
+                              FAIL-CLOSED: fail-open bu kolda YASAK.
+
+🔴 K318 KOL-3 — KAPI HUKMU TUKETIR, SATIRI TEK BASINA OKUMAZ (27 Agu 2026):
+Olculen delik: kutu 518 satir (tavan 300) iken `kutu-arsivle.py` `HUKUM=KORUMA_TUTTU`
+`tasinabilir=0` basiyordu — arac "yapilacak is YOK, bu BILINCLI bir duraklama" hukmunu
+vermisti. Kapi o hukmu HIC OKUMUYORDU: yalnizca 518 > 300 diye TEK GUNDE DORT ayri
+commit'i durdurdu, iki dal (13 dosya) commit'lenemedi. Iki karar mercii ayni olguya
+bakip celisiyordu ([[ayni-alan-iki-hukum-biri-sessiz]]). Celiski ARACIN HUKMU LEHINE
+kapatildi — kapi tavani da tavan SAHIBINDEN okuyor, hukmu de SAHIPTEN okur.
 
 🔴 EKSEN `kok`TUR: sahip dosyasi YARGILANAN DEPO KOKUNDEN cozulur, kapinin kendi
 konumundan DEGIL. Aksi halde sentetik fikstur depolarini yargilarken de GERCEK
@@ -134,12 +152,23 @@ KUTU_OLCULEMEDI = "KUTU_OLCULEMEDI"
 KUTU_ASILDI = "KUTU_ASILDI"
 KUTU_YESIL = "KUTU_YESIL"
 
+# --- K318 KOL-3: TAVAN USTU ama SEBEBI KORUMA olan hal (iki AYRI jeton) ----
+# 🔴 Bu iki jeton yukaridaki BES KOVANIN ICINE DUSURULEMEZ: "tavan asildi ve
+# yapilacak is var" ile "tavan asildi ama arac ISI KASITLI OLARAK yapmiyor"
+# AYNI SEY DEGILDIR ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]). Ilkinde
+# commit'i durdurmak dogru (birinin rotasyonu kosturmasi gerek), ikincisinde
+# durdurmak Okan kurali ⑤'in bedelini masum bir commit'e odetmektir.
+KUTU_KORUMA_USTU = "KUTU_TAVAN_USTU_KORUMA_NEDENIYLE"
+KUTU_HUKUM_ALINAMADI = "KUTU_HUKUM_ALINAMADI"
+
 KUTU_RC = {
     KUTU_SAHIPSIZ: 0,
     KUTU_MAKINEDE_YOK: 0,
     KUTU_OLCULEMEDI: 1,
     KUTU_ASILDI: 1,
     KUTU_YESIL: 0,
+    KUTU_KORUMA_USTU: 0,
+    KUTU_HUKUM_ALINAMADI: 1,
 }
 
 # Kota ekseninde esik sabiti TASIMASINA IZIN VERILEN (dosya, ad) ciftleri.
@@ -333,6 +362,90 @@ def kutu_hali(sahip_var, dizin_var, dosya_var, satir, tavan):
     return KUTU_YESIL
 
 
+def _jeton_degeri(ham, onek):
+    """Cikti metninde `<onek><deger>` bicimindeki BOSLUKLA AYRILMIS jetonu okur.
+
+    Tam eslesmeli onek arar (`tasinabilir=` -> `tasinabilir=3`); satir icinde
+    nerede durdugu onemsizdir. Bulunamazsa None — "okuyamadim" 0 DEGILDIR.
+    """
+    for satir in ham.splitlines():
+        for parca in satir.split():
+            if parca.startswith(onek):
+                return parca[len(onek):]
+    return None
+
+
+def kutu_hukmu_al(sahip_yolu, kutu_yolu, calistir=None):
+    """(hukum, tasinabilir, korumali, ham, hata) — SAHIP ARACIN KURU KOSUMUNDAN.
+
+    🔴 K318 KOL-3 — KAPI ARTIK SATIR SAYISINA TEK BASINA BAKMAZ. Olculen delik
+    (27 Agu): kutu tavanin ustundeydi, `kutu-arsivle.py` `HUKUM=KORUMA_TUTTU`
+    `tasinabilir=0` diyordu — yani arac "yapilacak is YOK, bu bilincli bir
+    duraklama" hukmunu vermisti — ama kapi o hukmu HIC OKUMUYORDU ve yalnizca
+    518 > 300 diye DORT ayri commit'i durdurdu. Iki karar mercii ayni olguya
+    bakip celisiyordu; celiskiyi kapatmanin dogru yonu, HUKMU TUKETMEKTIR
+    ([[ayni-alan-iki-hukum-biri-sessiz]]).
+
+    🔴 FAIL-CLOSED: hukum ALINAMAZSA (arac kosmadi / sifir-disi rc / jeton yok)
+    bu fonksiyon HATA dondurur ve cagiran BLOKLAR. "Olcemedim" YESIL DEGILDIR
+    ([[olculemedi-bypass-degil-menzil-daraltmasi]]); fail-open bu kolda YASAK.
+
+    `calistir`: kabul testinin arac kosumunu DEGISTIRMEDEN gozleyebilmesi icin
+    enjeksiyon noktasi (varsayilan: gercek subprocess).
+    """
+    if calistir is None:
+        def calistir(komut):
+            return subprocess.run(komut, capture_output=True, text=True, timeout=180)
+    komut = [sys.executable, sahip_yolu, "--kutu", kutu_yolu, "--kuru"]
+    try:
+        r = calistir(komut)
+    except Exception as e:                                    # noqa: BLE001
+        return None, None, None, "", "sahip arac KOSTURULAMADI: %s" % e
+    ham = (r.stdout or "") + (r.stderr or "")
+    if r.returncode != 0:
+        return None, None, None, ham, ("sahip arac SIFIR-DISI rc=%d dondu — hukum "
+                                       "GUVENILIR DEGIL" % r.returncode)
+    hukum = None
+    for satir in ham.splitlines():
+        if satir.startswith("HUKUM="):
+            parcalar = satir[len("HUKUM="):].split()
+            hukum = parcalar[0] if parcalar else ""
+            break
+    ham_tasinabilir = _jeton_degeri(ham, "tasinabilir=")
+    ham_korumali = _jeton_degeri(ham, "KORUMALI_BEKLEYEN=")
+    if hukum is None:
+        return None, None, None, ham, "ciktida `HUKUM=` satiri YOK"
+    try:
+        tasinabilir = int(ham_tasinabilir)
+    except (TypeError, ValueError):
+        return None, None, None, ham, "ciktida `tasinabilir=<sayi>` jetonu YOK/OKUNAMADI"
+    try:
+        korumali = int(ham_korumali)
+    except (TypeError, ValueError):
+        korumali = None            # RAPOR ekseni; hukmu BELIRLEMEZ
+    return hukum, tasinabilir, korumali, ham, None
+
+
+def koruma_gecirir_mi(hukum, tasinabilir):
+    """SAF HUKUM (IO YOK) — kapi tavan ustu kutuyu GECIRSIN mi?
+
+    Spec K318 KOL-3, birebir: `HUKUM=KORUMA_TUTTU` **ve** `tasinabilir=0`.
+    Iki sart da gerekli:
+      * yalniz HUKUM'e bakmak KISMI hali de gecirirdi. Arac o hal icin AYRI bir
+        jeton basar (`KORUMA_TUTTU_KISMI`, bosluklu degil) — orada arac HALA is
+        yapabiliyor demektir ve gecirmek kilidi kalicilastirir.
+      * yalniz `tasinabilir=0`a bakmak `KORU_TUTTU` halini de gecirirdi; o hal
+        korumayla ILGISIZDIR (`--koru` cok buyuk) ve gorunurluk gerekcesi YOKTUR.
+
+    🔴 KOTA OLDURULMEZ: bu kol YALNIZCA "arac ISI KASITLI OLARAK yapmiyor" halini
+    gecirir. Koruma YOKKEN tavan asimi BLOKLAMAYA DEVAM EDER — aksi halde kota
+    butunuyle olurdu (olculdu 27 Agu: paralel cipler yazdikca kutu satiri asagi
+    degil YUKARI gidiyor; 668 -> 548 -> 570). Kabul testi bunu IKI YONLU mutantla
+    (M4/M5) olcer.
+    """
+    return hukum == "KORUMA_TUTTU" and tasinabilir == 0
+
+
 def _kutu_olc(yol):
     """(satir, bayt) — okunamazsa (None, None)."""
     try:
@@ -401,6 +514,32 @@ def kutu_kontrol(kok, kol_no_op=False):
         return KUTU_RC[KUTU_OLCULEMEDI]
 
     if hal == KUTU_ASILDI:
+        # 🔴 K318 KOL-3 — SATIR SAYISI TEK BASINA HUKUM DEGILDIR: rotasyon aracinin
+        # KENDI hukmu TUKETILIR. Hukum alinamazsa BLOKLANIR (fail-open YASAK).
+        hukum, tasinabilir, korumali, ham, hhata = kutu_hukmu_al(sahip_yolu, kutu_yolu)
+        if hhata is not None:
+            print("!! %s — kutu tavanin USTUNDE (%d satir > %d) ve sahip aracin "
+                  "(%s) HUKMU ALINAMADI: %s. Fail-closed: hal belirsizken commit "
+                  "GECIRILMEZ; 'olcemedim' YESIL DEGILDIR."
+                  % (KUTU_HUKUM_ALINAMADI, satir, tavan, sahip_yolu, hhata),
+                  file=sys.stderr)
+            if ham.strip():
+                print("!!   arac ciktisi (son 5 satir): %s"
+                      % " | ".join(ham.strip().splitlines()[-5:]), file=sys.stderr)
+            return KUTU_RC[KUTU_HUKUM_ALINAMADI]
+        if koruma_gecirir_mi(hukum, tasinabilir):
+            # HAL GIZLENMEZ, SAYILARIYLA BASILIR — gorunurluk kota kirmizisina
+            # tercih edilir (Okan kurali ⑤), ama tercih HER KOSUMDA yeniden soylenir.
+            print("%s once_satir=%d tavan=%d korumali_bekleyen=%s tasinabilir=%d "
+                  "HUKUM=%s kutu=%s"
+                  % (KUTU_KORUMA_USTU, satir, tavan,
+                     "OLCULEMEDI" if korumali is None else korumali,
+                     tasinabilir, hukum, kutu_yolu))
+            print("   (Kutu tavanin USTUNDE ama rotasyon araci ISI KASITLI OLARAK "
+                  "yapmiyor: bekleyen kapanis blogu rotasyona GIRMEZ. Commit "
+                  "BLOKLANMADI — kilidi acan sey Okan'in o cip(ler)i arsivlemesi ve "
+                  "jetonun cevrilmesidir; ARA komut: python3 %s)" % sahip_yolu)
+            return KUTU_RC[KUTU_KORUMA_USTU]
         print("!! %s — ORTAK POSTA KUTUSU KOTASI ASILDI: %s %d satir / %d bayt "
               "(tavan satir=%d, TAVAN SAHIBI=%s::VARSAYILAN_TAVAN)."
               % (KUTU_ASILDI, kutu_yolu, satir, bayt, tavan, sahip_yolu),

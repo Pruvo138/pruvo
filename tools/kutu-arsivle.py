@@ -41,6 +41,11 @@ KURALLAR (hepsi kabul testiyle kilitli — tools/kutu-arsivle-test.py):
     ciktida `EKSEN_KOR=` diye SOYLENIR (0 basilip "temiz" denmez).
   * KORUMA (K313g, 27 Agu): ISLENMEMIS kapanis jetonu tasiyan blok ROTASYONA GIRMEZ.
     Bkz. asagidaki "GORUNURLUK" blogu.
+  * JETON KONUMU (K318 KOL-1, 27 Agu): jeton yalniz blogun KAPANIS KONUMUNDA
+    bekleyen sayilir; GOVDE ICINDEKI anma koruma URETMEZ. Bkz. "YANLIS POZITIF".
+  * GRANULERLIK (K318 KOL-2, 27 Agu): rotasyon BITISIK KUYRUK sartina bagli DEGIL —
+    korumali blok YERINDE ATLANIR, altindaki/ustundeki korumasiz eski bloklar tasinir.
+    Bkz. "GRANULERLIK".
 
 🔴 GORUNURLUK — LOSSLESS OLMAK GORUNUR OLMAK DEGILDIR (K313g, 27 Agu 2026)
 OLCULEN VAKA (mimarin kendi elinden, bugun): iki cip (`KraL-BayatYuzey-27Agu`,
@@ -62,6 +67,37 @@ KOTA KILIDI ACILMAZ: korunan bloklar yuzunden kutu tavanin ustunde kalabilir. Bu
 arac SESSIZCE PES ETMEZ — `KORUMALI_BEKLEYEN=<n>` + `HUKUM=KORUMA_TUTTU` basar ve ne
 yapilmasi gerektigini SOYLER. Gorunurluk kota kirmizisina TERCIH EDILIR, ama hal GIZLENMEZ.
 
+🔴 YANLIS POZITIF — GOVDEDEKI ANMA KORUMA URETMEZ (K318 KOL-1, 27 Agu 2026)
+OLCULEN VAKA: K313g tespiti BILEREK GENISTI (blogun HER satiri taranir). Bedeli olculdu —
+canli kutuda jeton 7 konumda geciyordu ama yalnizca 3'u GERCEK kapanis satiriydi; kalan 4'u
+KURALIN KENDISINI TARTISAN govde metniydi (bu modulu anlatan raporlar, kapanis satirlarini
+sayan olcum bloklari). Yanlis pozitifler blogu SUSUZ YERE kilitledi ve kilit yukari dogru
+yayildi. BEDEL SAYILDI: `tools/defter-kota-kapisi.py` tek gunde DORT ayri commit'i
+`KUTU_ASILDI` ile durdurdu; iki dal (13 dosya) commit'lenemedi. UCUNCU TEKRAR -> tekil yama
+YASAK ([[ucuncu-tekrar-sinif-kapisi]]), sinif onarildi.
+CARE: jeton yalniz blogun KAPANIS KONUMUNDA bekleyen sayilir. KAPANIS KONUMU = blogun SON
+ICERIK satiri; sondaki bos satirlar ve `---` ayraci YOK SAYILIR (cit ICINDEKI `---` ayrac
+DEGILDIR, o icerik sayilir). Okan kurali ⑤ zaten "kapanisinin EN SONUNA" diyor — olcut
+kuralin kendi metnidir, gevsetme degil DARALTMA.
+FAIL-CLOSED KORUNDU: blok siniri AYRISTIRILAMAZSA (kapanmamis cit, icerik satiri olmayan
+blok) ve blokta jeton GECIYORSA blok yine KORUMALI sayilir — "bilmiyorsam tasimam".
+GOVDE ANMASI GIZLENMEZ: kac blogun jetonu yalniz govdesinde tasidigi `govde_anmasi=<n>`
+diye HER kosumda basilir (0 ile n ayni satirdan okunur).
+TEK KAYNAK: ICRA kolu (planla) ve DENETIM kolu (dogrula D14) AYNI `korumali_bloklar()`
+fonksiyonunu cagirir; tanim ikinci bir yere KOPYALANMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
+
+🔴 GRANULERLIK — KORUMALI BLOK KUYRUGU REHIN ALMAZ (K318 KOL-2, 27 Agu 2026)
+OLCULEN VAKA: rotasyon BITISIK KUYRUK tasiyordu (tek `kesim` indeksi, sondan k blok). Bu
+tasarimda EN DIPTEKI bir korumali blok, tek basina USTUNDEKI HER SEYI kilitler — mesru bir
+bekleyen cip (ArTisT) tavan asimini tek basina kalici hale getirdi.
+CARE: korumali blok YERINDE ATLANIR. Adaylar `koru` tabanindan asagisi EKSI korumali kume;
+en ESKIDEN baslanarak, kutu SU SEVIYESINE inene kadar secilir. Korumali bloklar KUTUDA
+KALIR, arsive giden bloklar OZGUN SIRADA (artan blok indeksi = yeni->eski) eklenir.
+KAYIPSIZLIK IKI EKSENDE: `tasinan + kalan == once` hem BLOK hem BAYT ekseninde dogrulanir
+ve UCU DE BASILIR — tek eksen kabul DEGILDIR ([[lossless-beyani-blok-butunlugu-olcmez]]).
+GERILEME YOK: korumali blok YOKKEN secim bitisik kuyruga OZDES duser (D1 partisyonu ve
+kabul testi bunu ayrica olcer).
+
 YAZMA SIRASI — NEDEN ONCE ARSIV: iki ayri dosya tek islemde atomik yazilamaz. Once ARSIV
 (ekleme), sonra KUTU (kisaltma) yazilir. Ikisinin arasinda cokme olursa sonuc MUKERRER
 icerik olur (arsivde var, kutuda da duruyor) — geri alinabilir. Ters sirada sonuc KAYIP
@@ -72,7 +108,7 @@ degiskeni set edilmediginde HICBIR ETKISI YOKTUR. Set edildiginde aday metinler
 dogrulamadan ONCE kasten bozulur; kabul testi boylece "lossless dogrulamasi GERCEKTEN
 kirmizi yakiyor mu" sorusunu OLCEBILIR (dogrulamayi silen mutant KIRMIZI yanar).
 Degerler: arsiv-satir-dus | kutu-satir-dus | arsiv-onek-boz | arsiv-sira-boz |
-          koruma-jeton-sizdir
+          koruma-jeton-sizdir | kutu-blok-dus
 
 Kullanim:
     python3 tools/kutu-arsivle.py --kuru
@@ -107,8 +143,9 @@ RC_KILIT = 3        # kilit baskasinda -> HICBIR SEY yazilmadi (fail-closed)
 
 # dogrula()'nin BASTIGI iddia eksenleri. `lossless_dogrulama=GECTI (iddia=N)` satirindaki
 # N BURADAN turer; elle yazilan sayi kaynagindan ayrisir ve beyan sessizce yalanlanir.
-IDDIA_EKSENLERI = ("D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D6b", "D6c", "D7",
-                   "D8", "D9", "D10", "D11", "D12", "D13", "D14")
+IDDIA_EKSENLERI = ("D1", "D1b", "D1c", "D2", "D3", "D4", "D5", "D5b", "D6", "D6b",
+                   "D6c", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14",
+                   "D15", "D16")
 
 # 🔴 KAPANIS JETONU — TEK KAYNAK (K313g). Kural ⑤ (Okan, baglayici) isi biten cipin
 # kapanisinin SONUNA birebir `✅ İŞ BİTTİ — ARŞİVLENEBİLİRİM` koymasini ister; satir
@@ -316,47 +353,124 @@ def blok_sayisi(metin):
 
 
 # ------------------------------------------------------------------- KORUMA KOLU
-def korumali_bloklar(satirlar, baslar):
-    """[(blok_indeksi, 1-indeksli satir_no, satir_ozeti)] — BEKLEYEN jeton tasiyan bloklar.
+def blok_araliklari(satirlar, baslar):
+    """[(bas, son_haric)] — her `## ` blogunun satir araligi. Son blok dosya sonuna kadar.
 
-    Blok araligi `## ` basliklariyla tanimlanir (AYRACA DAYANMAZ): oksuz-govde ekseni
-    ayracsiz kutuda KORDUR, ama koruma kolu KOR OLAMAZ — kapanis blogu her zaman bir
-    baslikla baslar. Blogun ICINDEKI her satir taranir (cit ici dahil): fazla korumak
-    guvenli yon, eksik korumak aranan kaybin ta kendisi.
+    Blogun ARDINDAN gelen ayrac (`---`) ve bos satirlar BLOGUN ICINDEDIR: bir sonraki
+    blogun BASINA kadar her sey o bloga aittir. Bu, tasinan metnin kendi ayracini da
+    goturmesini saglar (arsivde bloklar birbirine yapismaz).
     """
-    bulgu = []
+    araliklar = []
     i = 0
     while i < len(baslar):
-        bas = baslar[i]
         son = baslar[i + 1] if i + 1 < len(baslar) else len(satirlar)
-        j = bas
-        while j < son:
-            if BEKLEYEN_JETON in satirlar[j]:
-                bulgu.append((i, j + 1, satirlar[j].strip()[:70]))
-                break
-            j += 1
+        araliklar.append((baslar[i], son))
         i += 1
-    return bulgu
+    return araliklar
 
 
-def etkin_koru_hesapla(koru, korumali_indeksler):
-    """KORUMA KOLU — TEK KAYNAK. `koru` bir TABANDIR, tavan degil.
+def kapanis_satiri(satirlar, bas, son):
+    """(kapanis_indeksi, hata) — blogun KAPANIS KONUMU = SON ICERIK satiri.
 
-    Bloklar YENI -> ESKI sirali ve rotasyon daima KUYRUGU tasir; dolayisiyla bir blogu
-    korumak, ondan SONRAKI blogun basindan once kesmemek demektir. Bekleyen jeton tasiyan
-    EN DERIN blok indeksi d ise, tasinabilir kume ancak d+1'den baslar.
-    Sayilar ELLE KOPYALANMAZ, buradan TURER ([[capa-turetme-altyapisi-kullanilmadan-kaldi]]).
+    🔴 K318 KOL-1 TEK KAYNAGI. Okan kurali ⑤: kapanis jetonu blogun EN SONUNA konur.
+    Dolayisiyla "bekleyen mi" sorusu blogun SON ICERIK SATIRINA sorulur, govdesine degil.
+
+    Sondan geriye yururken YOK SAYILAN iki sey (ve YALNIZ bu ikisi):
+      * bos satir (blok sonu bosluklari),
+      * CIT DISINDA duran ayrac satiri (`---`) — blogu bir sonrakinden ayiran cizgi.
+    Cit ICINDEKI `---` bir ayrac DEGIL, kod/metin ICERIGIDIR ve atlanmaz; atlansaydi
+    tarama gercek icerigin GERISINE kayar, kapanis satirini kacirirdi.
+
+    FAIL-CLOSED iki hal (hata dolu doner):
+      * blokta hic ICERIK satiri yok (yalniz bosluk/ayrac),
+      * cit ACILDI ama KAPANMADI -> hangi satirin icerik oldugu bilinemez.
+    Cagiran bu hallerde blogu KORUMALI sayar (bkz. korumali_bloklar).
     """
-    if korumali_indeksler:
-        return max(koru, max(korumali_indeksler) + 1)
-    return koru
+    if son <= bas:
+        return None, "BOS BLOK ARALIGI (bas=%d son=%d)" % (bas, son)
+    cit_ici = []
+    ic = False
+    j = bas
+    while j < son:
+        if FENCE_RE.match(satirlar[j]):
+            # Cit ACAN satirin KENDISI cit disidir; kapatan satir cit icidir.
+            cit_ici.append(ic)
+            ic = not ic
+        else:
+            cit_ici.append(ic)
+        j += 1
+    if ic:
+        return None, "CIT (```/~~~) ACILDI ama KAPANMADI -> blok yapisi AYRISTIRILAMADI"
+    j = son - 1
+    while j >= bas:
+        s = satirlar[j]
+        if not s.strip():
+            j -= 1
+            continue
+        if not cit_ici[j - bas] and AYRAC_RE.match(s):
+            j -= 1
+            continue
+        return j, None
+    return None, "blokta ICERIK satiri YOK (yalniz bosluk/ayrac)"
+
+
+def korumali_bloklar(satirlar, baslar):
+    """([(blok_idx, satir_no_1indeksli, ozet, sinif)], govde_anmasi) — TEK KAYNAK.
+
+    🔴 BU FONKSIYON HEM ICRA HEM DENETIM KOLUNUN OKUDUGU TEK TANIMDIR. `planla()`
+    (icra) ve `dogrula()` D14 (denetim) BUNU cagirir; ikinci bir "jeton var mi"
+    testi HICBIR YERDE yazilmaz ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    KORUMALI sayilan iki sinif:
+      "KAPANIS"     — blogun KAPANIS KONUMUNDAKI satir BEKLEYEN jeton tasiyor.
+      "FAIL_CLOSED" — blokta jeton GECIYOR ama kapanis konumu AYRISTIRILAMADI.
+    GOVDE ANMASI korumali DEGILDIR: blokta jeton var, kapanis konumunda YOK -> blok
+    rotasyona ACIK. Bu bilgi YUTULMAZ, ikinci donus degeriyle SAYILIR ve basilir.
+    """
+    bulgu = []
+    govde_anmasi = 0
+    i = 0
+    araliklar = blok_araliklari(satirlar, baslar)
+    while i < len(araliklar):
+        bas, son = araliklar[i]
+        metin = "".join(satirlar[bas:son])
+        if BEKLEYEN_JETON not in metin:
+            i += 1
+            continue
+        idx, hata = kapanis_satiri(satirlar, bas, son)
+        if hata is not None:
+            bulgu.append((i, bas + 1, "AYRISTIRILAMADI: %s" % hata, "FAIL_CLOSED"))
+        elif BEKLEYEN_JETON in satirlar[idx]:
+            bulgu.append((i, idx + 1, satirlar[idx].strip()[:70], "KAPANIS"))
+        else:
+            govde_anmasi += 1
+        i += 1
+    return bulgu, govde_anmasi
+
+
+def sabit_indeksler(blok_sayisi_, koru, korumali_indeksler):
+    """ROTASYONA GIRMEYECEK blok indeksleri kumesi — TEK KAYNAK.
+
+    Iki kaynaktan TURER, elle kopyalanmaz:
+      * `koru` TABANI: en ustteki `koru` blok her zaman dokunulmaz,
+      * KORUMA: bekleyen kapanis jetonu tasiyan blok, NEREDE OLURSA OLSUN dokunulmaz.
+    🔴 K318 KOL-2: korumali blok artik ALTINDAKI bloklari REHIN ALMAZ — kume bir
+    ARALIK degil, ayrik bir KUMEDIR; rotasyon korumaliyi YERINDE ATLAR.
+    """
+    sabit = set(range(min(koru, blok_sayisi_)))
+    sabit.update(korumali_indeksler)
+    return sabit
 
 
 # --------------------------------------------------------------------- planlama
 class Plan(object):
     def __init__(self):
         self.hata = None
-        self.kesim = None          # kutu satir indeksi (bu indeksten SONRASI tasinir)
+        # 🔴 K318 KOL-2: karar birimi artik tek bir `kesim` INDEKSI degil, tasinacak
+        # BLOK INDEKSLERI kumesidir (korumali blok yerinde atlanabilsin diye).
+        self.tasinan_bloklar = []   # artan sirada blok indeksleri (ozgun sira)
+        self.araliklar = []         # [(bas, son)] her blok icin
+        self.onek_son = 0           # frontmatter + onsoz bitis indeksi (baslar[0])
         self.tasinacak_blok = 0
         self.blok_toplam = 0
         self.korunan = 0
@@ -364,11 +478,16 @@ class Plan(object):
         self.once_satir = 0
         self.sonra_satir = 0
         self.tasinan_satir = 0
+        self.once_bayt = 0
+        self.sonra_bayt = 0
+        self.tasinan_bayt = 0
         self.tavan_asili_kaldi = False
-        # KORUMA KOLU (K313g)
-        self.etkin_koru = 0
-        self.korumali = []          # [(blok_idx, satir_no, ozet)]
-        self.korumali_kilitledi = 0  # `koru` penceresinin ALTINDA kalip rotasyonu tutan
+        # KORUMA KOLU (K313g + K318)
+        self.korumali = []          # [(blok_idx, satir_no, ozet, sinif)]
+        self.govde_anmasi = 0       # jetonu YALNIZ govdesinde anan blok sayisi
+        self.sabit = set()          # rotasyona GIRMEYEN blok indeksleri
+        self.korumali_kilitledi = 0  # `koru` tabaninin ALTINDA kalip yerinde atlanan
+        self.yerinde_atlanan = 0     # tasinanlarin USTUNDE kalan korumali blok sayisi
         self.koruma_tuttu = False    # is YOKLUGUNUN sebebi KORUMA mi
 
 
@@ -386,6 +505,8 @@ def planla(kutu_metin, tavan, koru):
     satirlar = kutu_metin.splitlines(keepends=True)
     p.once_satir = len(satirlar)
     p.sonra_satir = len(satirlar)
+    p.once_bayt = len(kutu_metin)
+    p.sonra_bayt = len(kutu_metin)
 
     fm_son, hata = frontmatter_sonu(satirlar)
     if hata:
@@ -394,15 +515,17 @@ def planla(kutu_metin, tavan, koru):
 
     baslar = blok_baslari(satirlar, fm_son)
     p.blok_toplam = len(baslar)
+    p.araliklar = blok_araliklari(satirlar, baslar)
+    p.onek_son = baslar[0] if baslar else len(satirlar)
 
-    # 🔴 KORUMA KOLU (K313g) — `koru` TABAN, bekleyen kapanis blogu TAVANI yukari iter.
-    p.korumali = korumali_bloklar(satirlar, baslar)
-    korumali_idx = [b for b, _s, _o in p.korumali]
-    p.etkin_koru = etkin_koru_hesapla(koru, korumali_idx)
+    # 🔴 KORUMA KOLU (K313g + K318 KOL-1) — TEK KAYNAK: kapanis konumu olcutu.
+    p.korumali, p.govde_anmasi = korumali_bloklar(satirlar, baslar)
+    korumali_idx = [b for b, _s, _o, _k in p.korumali]
     p.korumali_kilitledi = len([b for b in korumali_idx if b >= koru])
+    p.sabit = sabit_indeksler(len(baslar), koru, korumali_idx)
 
-    p.korunan = min(p.etkin_koru, len(baslar))
-    p.tasinabilir = max(0, len(baslar) - p.etkin_koru)
+    p.korunan = len(p.sabit)
+    p.tasinabilir = max(0, len(baslar) - len(p.sabit))
 
     # Su seviyesi: tavanin bu kadarina kadar dus (varsayilan 0.8). Esik
     # mutlak olarak > 0 ve <= 1 olmali.
@@ -411,34 +534,69 @@ def planla(kutu_metin, tavan, koru):
         su_seviye = 1
 
     if p.once_satir <= tavan:
-        p.kesim = None                      # tavan altinda -> is yok
-        return p
+        return p                            # tavan altinda -> is yok
     if p.tasinabilir <= 0:
-        p.kesim = None
         p.tavan_asili_kaldi = True
         # SEBEP AYRIMI: is yoklugunun sebebi `koru` mu, KORUMA mi? Iki hal ayni
         # ciktiyi basarsa kota kilidi SESSIZ kalir — tam da yasaklanan sey.
-        p.koruma_tuttu = p.etkin_koru > koru
+        p.koruma_tuttu = p.korumali_kilitledi > 0
         return p
 
-    # Adaylar: baslar[koru:] — en ESKI blok listenin SONUNDA. SONDAN k blok tasi.
-    # Hedef: kesim (kalan satir sayisi) <= su_seviye (tavanin %80'i). Bu,
-    # gelecek bloklar icin bas gostermesi payi birakir.
-    k = 1
-    secilen = None
-    while k <= p.tasinabilir:
-        kesim = baslar[len(baslar) - k]
-        secilen = (k, kesim)
-        if kesim <= su_seviye:
+    # 🔴 K318 KOL-2 SECIM — EN ESKIDEN baslanir, KORUMALI blok YERINDE ATLANIR.
+    # Korumali blok YOKKEN bu dongu bitisik kuyrugu secer ve eski davranisa OZDES
+    # duser (kalan satir sayisi = baslar[n-k]); kabul testi bunu ayrica olcer.
+    secilenler = []
+    kalan_satir = p.once_satir
+    i = len(p.araliklar) - 1
+    while i >= 0:
+        if kalan_satir <= su_seviye:
             break
-        k += 1
-    k, kesim = secilen
-    p.tasinacak_blok = k
-    p.kesim = kesim
-    p.sonra_satir = kesim
-    p.tasinan_satir = len(satirlar) - kesim
-    p.tavan_asili_kaldi = kesim > tavan
+        if i not in p.sabit:
+            bas, son = p.araliklar[i]
+            secilenler.append(i)
+            kalan_satir -= (son - bas)
+        i -= 1
+    secilenler.sort()
+    p.tasinan_bloklar = secilenler
+    p.tasinacak_blok = len(secilenler)
+
+    yeni_kutu, tasinan = bolumle(kutu_metin, p)
+    p.sonra_satir = len(yeni_kutu.splitlines())
+    p.tasinan_satir = len(tasinan.splitlines())
+    p.sonra_bayt = len(yeni_kutu)
+    p.tasinan_bayt = len(tasinan)
+    p.tavan_asili_kaldi = p.sonra_satir > tavan
+    # Tasinan EN YENI blogun USTUNDE kalan korumali blok sayisi — "yerinde atlandi"
+    # halinin SAYISI (0 ise rotasyon bitisik kuyruk olmustur).
+    if secilenler:
+        p.yerinde_atlanan = len([b for b in korumali_idx if b > secilenler[0]])
     return p
+
+
+def bolumle(kutu_metin, plan):
+    """(yeni_kutu, tasinan) — plani metne uygular. DISKE YAZMAZ, YARGI VERMEZ.
+
+    🔴 Bu fonksiyon TEK BOLME NOKTASIDIR: hem `planla()` (sayilari bilmek icin) hem
+    `aday_metinler()` (metni uretmek icin) BUNU cagirir. Ikinci bir bolme kodu
+    yazilirsa iki kol sessizce ayrisir ve "plan 4 blok diyor, metinde 3 var" sinifi
+    dogar ([[ikiz-tanim-sessiz-ayrisma]]).
+    """
+    satirlar = kutu_metin.splitlines(keepends=True)
+    tasinan_kume = set(plan.tasinan_bloklar)
+    kalan = [satirlar[:plan.onek_son]]
+    giden = []
+    i = 0
+    while i < len(plan.araliklar):
+        bas, son = plan.araliklar[i]
+        (giden if i in tasinan_kume else kalan).append(satirlar[bas:son])
+        i += 1
+    duz = []
+    for parca in kalan:
+        duz.extend(parca)
+    duz2 = []
+    for parca in giden:
+        duz2.extend(parca)
+    return "".join(duz), "".join(duz2)
 
 
 # ------------------------------------------------------------------ aday metinler
@@ -462,9 +620,7 @@ def arsiv_frontmatter(arsiv_yolu):
 
 def aday_metinler(kutu_metin, arsiv_metin, plan, arsiv_yolu):
     """(yeni_kutu, tasinan, ek, yeni_arsiv) — DISKE YAZILMAZ, yalniz uretilir."""
-    satirlar = kutu_metin.splitlines(keepends=True)
-    yeni_kutu = "".join(satirlar[:plan.kesim])
-    tasinan = "".join(satirlar[plan.kesim:])
+    yeni_kutu, tasinan = bolumle(kutu_metin, plan)
     ek = tasinan if tasinan.endswith("\n") else tasinan + "\n"
     if arsiv_metin is None or arsiv_metin == "":
         yeni_arsiv = arsiv_frontmatter(arsiv_yolu) + ek
@@ -512,14 +668,24 @@ def ariza_uygula(yeni_kutu, ek, yeni_arsiv):
         satir = "✅ IS BITTI — %s\n" % BEKLEYEN_JETON
         yeni_arsiv = yeni_arsiv + satir
         ek = ek + satir
+    elif ariza == "kutu-blok-dus":
+        # 🔴 K318 KOL-2 DENETIM KOLUNUN OLCU ALETI: GRANULER birlestirme, bitisik
+        # dilimlemenin URETEMEYECEGI yeni bir ariza sinifi acar — KALAN bloklardan
+        # birinin birlestirmede DUSMESI. Bitisik kesimde "kalan" tek dilimdi ve
+        # boyle bir kayip imkansizdi; artik kalan, parcalarin birlestirilmesidir.
+        # Bu ariza D1/D1c/D2/D6 tarafindan YAKALANMAK ZORUNDADIR.
+        s = yeni_kutu.splitlines(keepends=True)
+        yeni_baslar = blok_baslari(s)
+        if len(yeni_baslar) >= 2:
+            b1 = yeni_baslar[len(yeni_baslar) - 1]
+            yeni_kutu = "".join(s[:b1])        # SON kalan blok sessizce DUSURULDU
     else:
         return yeni_kutu, ek, yeni_arsiv, "BILINMEYEN ariza kodu: %s" % ariza
     return yeni_kutu, ek, yeni_arsiv, None
 
 
 # --------------------------------------------------------------------- dogrulama
-def dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv, plan, tavan,
-            koru):
+def dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv, plan, tavan):
     """LOSSLESS + butunluk iddialari. Bos liste = GECTI. Dolu liste = HICBIR SEY YAZMA.
 
     🔴 BU FONKSIYON ARACIN OMURGASIDIR. Silinirse arac "sessizce kaybeden" bir budayiciya
@@ -532,16 +698,36 @@ def dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv, plan, t
     ek_satir = ek.splitlines()
     yeni_arsiv_satir = yeni_arsiv.splitlines()
 
-    # 1. BAYT KORUNUMU — kutu ikiye bolundu, hicbir bayt eklenmedi/silinmedi.
-    if yeni_kutu + tasinan != kutu_metin:
-        h.append("D1 BAYT KORUNUMU: yeni_kutu + tasinan != orijinal kutu "
-                 "(%d + %d bayt, orijinal %d)"
-                 % (len(yeni_kutu), len(tasinan), len(kutu_metin)))
+    # 1. PARTISYON — orijinal metin, PLANIN BEYAN ETTIGI blok kumesine gore BAGIMSIZ
+    #    yeniden bolunur ve uretilen iki metinle BIREBIR karsilastirilir.
+    #    🔴 K318 KOL-2: bolunme artik BITISIK olmak zorunda degil, bu yuzden eski
+    #    `yeni_kutu + tasinan == kutu_metin` yuklemi ARTIK GECERLI DEGIL; yerine
+    #    ayni korunum UC AYRI eksende (partisyon / bayt toplami / satir toplami)
+    #    kurulur. Tek eksen kabul DEGILDIR ([[lossless-beyani-blok-butunlugu-olcmez]]).
+    bek_kutu, bek_tasinan = bolumle(kutu_metin, plan)
+    if bek_kutu != yeni_kutu:
+        h.append("D1 PARTISYON (KUTU): uretilen yeni kutu, planin blok kumesinden "
+                 "bagimsiz turetilen metinle esit DEGIL (%d != %d bayt)"
+                 % (len(yeni_kutu), len(bek_kutu)))
+    if bek_tasinan != tasinan:
+        h.append("D1b PARTISYON (TASINAN): uretilen tasinan metin, planin blok "
+                 "kumesinden bagimsiz turetilen metinle esit DEGIL (%d != %d bayt)"
+                 % (len(tasinan), len(bek_tasinan)))
 
-    # 2. SATIR KORUNUMU — satir ekseninde de tam.
-    if yeni_kutu_satir + tasinan_satir != kutu_satir:
-        h.append("D2 SATIR KORUNUMU: yeni_kutu(%d) + tasinan(%d) != kutu(%d) satir"
-                 % (len(yeni_kutu_satir), len(tasinan_satir), len(kutu_satir)))
+    # 1c. BAYT TOPLAMI — `tasinan + kalan == once`, UTF-8 BAYT ekseninde (karakter
+    #     DEGIL: kapi kutuyu gercek baytla olcer, iki yuzey ayni birimden konusur).
+    b_once = len(kutu_metin.encode("utf-8"))
+    b_kalan = len(yeni_kutu.encode("utf-8"))
+    b_tas = len(tasinan.encode("utf-8"))
+    if b_kalan + b_tas != b_once:
+        h.append("D1c BAYT KORUNUMU: kalan(%d) + tasinan(%d) = %d != once(%d) bayt"
+                 % (b_kalan, b_tas, b_kalan + b_tas, b_once))
+
+    # 2. SATIR KORUNUMU — `tasinan + kalan == once`, SATIR ekseninde.
+    if len(yeni_kutu_satir) + len(tasinan_satir) != len(kutu_satir):
+        h.append("D2 SATIR KORUNUMU: kalan(%d) + tasinan(%d) = %d != once(%d) satir"
+                 % (len(yeni_kutu_satir), len(tasinan_satir),
+                    len(yeni_kutu_satir) + len(tasinan_satir), len(kutu_satir)))
 
     # 3. ESKI ARSIV DOKUNULMADI — yalniz EKLEME yapildi.
     eski = arsiv_metin or ""
@@ -596,21 +782,22 @@ def dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv, plan, t
         if not yeni_kutu.startswith(fm_metin):
             h.append("D8 FRONTMATTER KAYBI: yeni kutu frontmatter ile baslamiyor")
     baslar = blok_baslari(kutu_satirlar_ke, fm_son or 0)
-    korunacak = baslar[:min(koru, len(baslar))]
-    yeni_baslar = blok_baslari(yeni_kutu.splitlines(keepends=True),
-                               fm_son or 0)
-    if len(yeni_baslar) < len(korunacak):
-        h.append("D9 KORUNAN BLOK KAYBI: en ustteki %d blok korunmali, yeni kutuda %d "
-                 "blok var" % (len(korunacak), len(yeni_baslar)))
-    else:
-        i = 0
-        while i < len(korunacak):
-            if kutu_satirlar_ke[korunacak[i]] != yeni_kutu.splitlines(
-                    keepends=True)[yeni_baslar[i]]:
-                h.append("D9 KORUNAN BLOK SAPMASI: %d. korunan blogun basligi degisti" %
-                         (i + 1))
-                break
-            i += 1
+    # 🔴 K318 KOL-2: "korunan" artik en ustteki N blogun ONEKI degil, `plan.sabit`
+    # AYRIK KUMESIDIR (koru tabani + nerede olursa olsun korumali bloklar). Iddia:
+    # o kumedeki HER blogun BASLIK satiri yeni kutuda BIREBIR duruyor.
+    yk_satir = yeni_kutu.splitlines(keepends=True)
+    yeni_baslik_satirlari = [yk_satir[b] for b in blok_baslari(yk_satir)]
+    eksik = []
+    for bi in sorted(plan.sabit):
+        if bi >= len(baslar):
+            continue
+        basl = kutu_satirlar_ke[baslar[bi]]
+        if yeni_baslik_satirlari.count(basl) != 1:
+            eksik.append((bi, basl.strip()[:60]))
+    if eksik:
+        for bi, ozet in eksik[:5]:
+            h.append("D9 SABIT BLOK KAYBI: rotasyona GIRMEMESI gereken %d. blok yeni "
+                     "kutuda tam olarak bir kez BULUNMUYOR | %s" % (bi + 1, ozet))
 
     # 10. TAVAN — tasinabilir blok TUKENMEDIYSE tavan saglanmis olmali.
     sonra = len(yeni_kutu_satir)
@@ -646,12 +833,49 @@ def dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv, plan, t
     #     planla() ICRA eder (kesimi yukari iter), bu iddia DENETLER. Ikisi ayri kol:
     #     icra kolu bozulur/silinirse burasi KIRMIZI yakar ve HICBIR SEY yazilmaz —
     #     yani gerileme "sessiz kayip" degil "gurultulu duraklama" uretir.
-    if BEKLEYEN_JETON in ek:
-        h.append("D14 KORUMA IHLALI: tasinan metin ISLENMEMIS kapanis jetonu (%s) "
-                 "tasiyor -> blok Okan'in bakacagi yuzeyden GORUNMEZ olurdu. "
-                 "Fail-closed: hicbir sey yazilmadi. (Jeton `%s` bicimine cevrilince "
-                 "blok rotasyona ACILIR.)" % (BEKLEYEN_JETON, ISLENMIS_JETON))
+    # 🔴 K318 KOL-1: iddia artik "ek'te jeton GECIYOR mu" DEGIL — o olcut GOVDE
+    #    ANMASINI da ihlal sayardi ve icra kolundan AYRISIRDI (icra tasir, denetim
+    #    kirmizi yakar -> arac kalici kilitlenirdi). DENETIM, ICRANIN OKUDUGU AYNI
+    #    fonksiyonu cagirir: tasinan metin BLOKLARINA ayrilir ve KAPANIS KONUMU
+    #    olcutu ORADA yeniden uygulanir ([[ikiz-tanim-sessiz-ayrisma]]).
+    ek_satir_ke = ek.splitlines(keepends=True)
+    ek_korumali, ek_govde = korumali_bloklar(ek_satir_ke, blok_baslari(ek_satir_ke))
+    for _bi, satir_no, ozet, sinif in ek_korumali:
+        h.append("D14 KORUMA IHLALI (%s): tasinan metnin %d. satirinda ISLENMEMIS "
+                 "kapanis jetonu (%s) KAPANIS KONUMUNDA -> blok Okan'in bakacagi "
+                 "yuzeyden GORUNMEZ olurdu. Fail-closed: hicbir sey yazilmadi. "
+                 "(Jeton `%s` bicimine cevrilince blok rotasyona ACILIR.) | %s"
+                 % (sinif, satir_no, BEKLEYEN_JETON, ISLENMIS_JETON, ozet))
+
+    # ---------------------------------------------------------------- K318 KOL-2 ekseni
+    # 15/16. SIRA — ozgun sira KORUNDU mu? D1 partisyonu metnin AYNI oldugunu olcer;
+    #     bu iki iddia BAGIMSIZ bir eksenden sorar: tasinan basliklar ve kalan basliklar,
+    #     orijinal baslik dizisinin (ayri ayri) ALT DIZILERI mi? Blok siralamasi bozan
+    #     bir gerileme partisyon kimligini korusa bile burada KIRMIZI yanar.
+    orij_baslik = [kutu_satirlar_ke[b] for b in baslar]
+    tas_satir_ke = tasinan.splitlines(keepends=True)
+    tas_baslik = [tas_satir_ke[b] for b in blok_baslari(tas_satir_ke)]
+    if not alt_dizi_mi(tas_baslik, orij_baslik):
+        h.append("D15 SIRA (TASINAN): tasinan bloklarin basliklari orijinal sirayi "
+                 "KORUMUYOR (%d baslik) -> arsive ozgun sira DISINDA yazilirdi"
+                 % len(tas_baslik))
+    if not alt_dizi_mi(yeni_baslik_satirlari, orij_baslik):
+        h.append("D16 SIRA (KALAN): kutuda kalan bloklarin basliklari orijinal sirayi "
+                 "KORUMUYOR (%d baslik)" % len(yeni_baslik_satirlari))
     return h
+
+
+def alt_dizi_mi(kucuk, buyuk):
+    """`kucuk`, `buyuk` dizisinin SIRA KORUYAN bir alt dizisi mi (bitisik olmak zorunda
+    degil)."""
+    j = 0
+    for oge in kucuk:
+        while j < len(buyuk) and buyuk[j] != oge:
+            j += 1
+        if j >= len(buyuk):
+            return False
+        j += 1
+    return True
 
 
 # ------------------------------------------------------------------- kilit + yazma
@@ -734,8 +958,9 @@ def main(argv=None):
     ap.add_argument("--tavan", type=int, default=VARSAYILAN_TAVAN)
     ap.add_argument("--koru", type=int, default=VARSAYILAN_KORU,
                     help="en ustteki kac blok DOKUNULMAZ (varsayilan 3). TABANDIR: "
-                         "bekleyen kapanis jetonu tasiyan blok bu sayiyi yukari iter "
-                         "(bkz. KORUMA / etkin_koru)")
+                         "bekleyen kapanis jetonu tasiyan blok NEREDE OLURSA OLSUN "
+                         "ayrica dokunulmaz sayilir ve YERINDE ATLANIR "
+                         "(bkz. KORUMA / sabit_indeksler)")
     ap.add_argument("--su-seviye-orani", type=float, default=SU_SEVIYESI_ORANI,
                     help="rotasyon sonrasi kutu tavanin bu kadarina kadar iner "
                          "(varsayilan: 0.8 = %%80). O1 (16 Agu) caresi: gelecek "
@@ -811,13 +1036,21 @@ def main(argv=None):
               % (p.once_satir, p.blok_toplam, p.korunan, p.tasinabilir,
                  getattr(p, "su_seviye", int(a.tavan * a.su_seviye_orani))))
 
-        # 🔴 K313g KORUMA KOLU — HER kosumda basilir, is olsa da olmasa da.
-        # "0" ile "n" ayni satirdan okunur; sayi ADIYLA gecer.
-        print("KORUMALI_BEKLEYEN=%d etkin_koru=%d (taban koru=%d) kilitledi=%d  [KAPI]"
-              % (len(p.korumali), p.etkin_koru, a.koru, p.korumali_kilitledi))
-        for blok_idx, satir_no, ornek in p.korumali:
-            print("  * KORUMALI blok %d/%d (satir %d): ISLENMEMIS kapanis jetonu | %s"
-                  % (blok_idx + 1, p.blok_toplam, satir_no, ornek))
+        # 🔴 K313g + K318 KORUMA KOLU — HER kosumda basilir, is olsa da olmasa da.
+        # "0" ile "n" ayni satirdan okunur; sayi ADIYLA gecer. `govde_anmasi` de
+        # BURADADIR: yanlis pozitiflerin ELENDIGI hal GIZLENMEZ, SAYILIR.
+        print("KORUMALI_BEKLEYEN=%d govde_anmasi=%d taban_koru=%d kilitledi=%d "
+              "yerinde_atlanan=%d  [KAPI]"
+              % (len(p.korumali), p.govde_anmasi, a.koru, p.korumali_kilitledi,
+                 p.yerinde_atlanan))
+        for blok_idx, satir_no, ornek, sinif in p.korumali:
+            print("  * KORUMALI blok %d/%d (satir %d, sinif=%s): ISLENMEMIS kapanis "
+                  "jetonu KAPANIS KONUMUNDA | %s"
+                  % (blok_idx + 1, p.blok_toplam, satir_no, sinif, ornek))
+        if p.govde_anmasi:
+            print("  · GOVDE ANMASI=%d blok: jeton blogun ICINDE geciyor ama KAPANIS "
+                  "KONUMUNDA DEGIL -> koruma URETMEZ (K318 KOL-1), blok rotasyona ACIK."
+                  % p.govde_anmasi)
         if p.korumali:
             print("NE YAPILMALI: bu cip(ler)in kapanisi ISLENSIN (Okan arsivlesin); sonra "
                   "o blokta `%s` -> `%s` cevrilir ve blok rotasyona ACILIR."
@@ -851,7 +1084,7 @@ def main(argv=None):
                 print("  ! arsiv kuyrugunda OKSUZ GOVDE (pencere ici satir %d): %s"
                       % (satir_no, ornek))
 
-        if p.kesim is None:
+        if not p.tasinan_bloklar:
             if p.tavan_asili_kaldi:
                 print("UYARI: %d satir tavani (%d) asiyor ama korunan %d blok disinda "
                       "tasinabilir blok YOK -> is yapilmadi"
@@ -861,16 +1094,22 @@ def main(argv=None):
                 # EDILIR ve bu tercih her kosumda TEKRAR BASILIR.
                 if p.koruma_tuttu:
                     print("HUKUM=KORUMA_TUTTU rc=0 sebep=bekleyen kapanis blogu rotasyona "
-                          "GIRMEZ (KORUMALI_BEKLEYEN=%d, etkin_koru=%d > taban koru=%d). "
+                          "GIRMEZ (KORUMALI_BEKLEYEN=%d, kilitledi=%d, taban koru=%d). "
                           "Kutu tavanin USTUNDE kalabilir — GORUNURLUK kota kirmizisina "
                           "tercih edilir (Okan kurali ⑤); hal GIZLENMEDI, BASILDI."
-                          % (len(p.korumali), p.etkin_koru, a.koru))
+                          % (len(p.korumali), p.korumali_kilitledi, a.koru))
                 else:
                     print("HUKUM=KORU_TUTTU rc=0 sebep=--koru %d tasinabilir blok "
                           "birakmiyor (koruma kolu DEVREDE DEGIL)" % a.koru)
             else:
                 print("tasinacak_blok=0 sonra_satir=%d" % p.once_satir)
                 print("TAVAN ALTINDA — is yok")
+                # 🔴 K318 KOL-3: HUKUM EKSENI TOTALDIR. Kapi bu satiri TUKETIR;
+                # yalnizca "duraklama" hallerinde basilirsa kapi "HUKUM yok" diye
+                # fail-closed bloklar ve masum bir commit durur. Her kosum TAM BIR
+                # `HUKUM=` satiri basar — 0 ile n ayni satirdan okunur.
+                print("HUKUM=TAVAN_ALTINDA rc=0 once_satir=%d tavan=%d"
+                      % (p.once_satir, a.tavan))
             # 🔴 "Is yok" BUTUNLUK BEYANI DEGILDIR: tasima olmasa bile kirik kutu
             # SESSIZ GECMEZ (K310'un ta kendisi — arac calisti, yesil dondu, kutu kirikti).
             if kutu_oksuz:
@@ -888,22 +1127,49 @@ def main(argv=None):
             print("KIRMIZI: %s" % ahata)
             return RC_KIRMIZI
 
-        # D9'a `etkin_koru` verilir: korunan ONEK artik `koru` degil, koruma kolunun
-        # yukari ittigi penceredir; eski sayiyla denetlemek kolu ORTUK olarak es gecerdi.
+        # D9 artik `plan.sabit` AYRIK KUMESINI okur (koru tabani + korumali bloklar);
+        # ikinci bir sayi parametresi GECMEZ — kume planin kendisinden TURER.
         hatalar = dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv,
-                          p, a.tavan, p.etkin_koru)
+                          p, a.tavan)
         print("tasinacak_blok=%d tasinacak_satir=%d sonra_satir=%d sonra_blok=%d"
               % (p.tasinacak_blok, p.tasinan_satir, len(yeni_kutu.splitlines()),
                  blok_sayisi(yeni_kutu)))
+        # 🔴 K318 KOL-2 KAYIPSIZLIK BEYANI — IKI EKSEN, UC SAYI, HER KOSUMDA.
+        # `tasinan + kalan == once` hem BLOK hem BAYT ekseninde BASILIR; tek eksen
+        # kabul DEGILDIR. Sayilar dogrula() D1c/D2/D6 tarafindan AYRICA denetlenir.
+        print("KAYIPSIZLIK blok: once=%d kalan=%d tasinan=%d toplam=%d  [KAPI]"
+              % (p.blok_toplam, blok_sayisi(yeni_kutu), blok_sayisi(tasinan),
+                 blok_sayisi(yeni_kutu) + blok_sayisi(tasinan)))
+        # 🔴 BAYT DENINCE BAYT: UTF-8 kodlanmis uzunluk. `len(str)` KARAKTER sayar ve
+        # bu kutuda (emoji + em-dash) ikisi AYRISIR; kapi kutuyu gercek BAYTLA olcuyor,
+        # arac "bayt" derken karakter basarsa iki yuzey sessizce ayrisirdi.
+        print("KAYIPSIZLIK bayt: once=%d kalan=%d tasinan=%d toplam=%d  [KAPI]"
+              % (len(kutu_metin.encode("utf-8")), len(yeni_kutu.encode("utf-8")),
+                 len(tasinan.encode("utf-8")),
+                 len(yeni_kutu.encode("utf-8")) + len(tasinan.encode("utf-8"))))
+        # 🔴 TEK `HUKUM=` SATIRI — hukum TEK KAYNAKTAN, TEK KEZ basilir. Kapi ilk
+        # `HUKUM=` satirini okur; iki satir basmak hangi hukmun tuketildigini
+        # BELIRSIZ birakirdi ([[ayni-alan-iki-hukum-biri-sessiz]]).
+        if not p.tavan_asili_kaldi:
+            print("HUKUM=TASIMA_YAPILABILIR rc=0 tasinacak_blok=%d sonra_satir=%d "
+                  "tavan=%d" % (p.tasinacak_blok, p.sonra_satir, a.tavan))
+        elif p.korumali_kilitledi > 0:
+            print("HUKUM=KORUMA_TUTTU_KISMI rc=0 sebep=%d bekleyen kapanis blogu "
+                  "YERINDE ATLANDI ve kutuda kaldi; tasinabilen %d blok tasindi ama "
+                  "kutu (%d satir) tavanin (%d) USTUNDE kaldi"
+                  % (p.korumali_kilitledi, p.tasinacak_blok, p.sonra_satir, a.tavan))
+        else:
+            print("HUKUM=TASIMA_YETMEDI rc=0 sebep=tasinabilir bloklar TUKENDI, kutu "
+                  "(%d satir) tavanin (%d) USTUNDE kaldi (koruma kolu DEVREDE DEGIL)"
+                  % (p.sonra_satir, a.tavan))
+        print("tasinan_blok_indeksleri=%s (ozgun sira; bitisik_mi=%s)"
+              % (",".join(str(x + 1) for x in p.tasinan_bloklar) or "-",
+                 "EVET" if p.yerinde_atlanan == 0 else "HAYIR/YERINDE_ATLANDI"))
         print("arsiv_once_satir=%d arsiv_sonra_satir=%d arsiv_yeni_dosya=%s"
               % (arsiv_once, len(yeni_arsiv.splitlines()), "hayir" if arsiv_var else "EVET"))
         if p.tavan_asili_kaldi:
             print("UYARI: tasinabilir bloklar tukendi, %d satir hala tavanin (%d) ustunde"
                   % (len(yeni_kutu.splitlines()), a.tavan))
-            if p.etkin_koru > a.koru:
-                print("HUKUM=KORUMA_TUTTU (kismi) sebep=%d bekleyen kapanis blogu "
-                      "rotasyonun ustunde KILITLI; yalniz onlarin ALTINDAKI %d blok "
-                      "tasindi" % (len(p.korumali), p.tasinacak_blok))
 
         ek_oksuz = oksuz_govdeler(ek, fm_atla=False)
         print("oksuz_govde_ek=%d  [KAPI]" % len(ek_oksuz))
