@@ -480,6 +480,16 @@ def dogrula(evren, harita, *, plane_status=None, test_modu=False, mutant=None):
 
     # Olculemeyen duzlem(ler)in tek adini raporla (ilk olcumde kullanici dostu)
     olculemeyen_duzlem = ",".join(sorted(k for k, v in plane_status.items() if not v["measured"]))
+    # === 27 AGU 2026 (K327) — OLCULEN DUZLEM DE ADIYLA BASILIR ==================
+    # 🔴 OLCULEN ARIZA: `EVREN`/`EKSIK` YERE BAGLIDIR ve sayi TEK BASINA yalan soyler.
+    # Ayni gun ayni depoda: CI'da `EVREN=186 EKSIK=19 OLCULEMEYEN_DUZLEM=cron`,
+    # yerelde `EVREN=224 EKSIK=39 OLCULEMEYEN_SATIR=0` — cunku CI checkout'unda
+    # `~/.claude/cron` YOK, yerelde VAR. Iki sayi AYNI SEYI OLCMUYOR; yan yana konursa
+    # "borc buyudu/kuculdu" diye YANLIS hukum dogar. Rapor bugune kadar yalnizca
+    # OLCULEMEYENI yaziyordu — yani okuyucunun sayinin kapsamini CIKARMASI gerekiyordu.
+    # Artik OLCULEN duzlem de ADIYLA basilir; ikisi AYNI kaynaktan (plane_status) turer,
+    # ikinci bir liste TUTULMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
+    olculen_duzlem = ",".join(sorted(k for k, v in plane_status.items() if v["measured"]))
 
     # Mutant modunda: beklenen RED gorulmediyse mutasyon YASAMIS demektir,
     # duzeltmemiz gerekir. test_modu sonuc olarak (mutant_basarili=n/7) soyler.
@@ -490,6 +500,7 @@ def dogrula(evren, harita, *, plane_status=None, test_modu=False, mutant=None):
         "BAYAT": bayat,
         "OLCULEMEYEN_SATIR": olculemeyen_satir,
         "OLCULEMEYEN_DUZLEM": olculemeyen_duzlem,
+        "OLCULEN_DUZLEM": olculen_duzlem,
         "OLCULEMEYEN_SATIRLAR": olculemeyen_satirlar,
         "SAHIPSIZ": sahipsiz,
         "KIRMIZI": kirmizi_satirlar,
@@ -517,9 +528,13 @@ def ozet_satir(sonuc, harita=None, mutant_basari=None, kontrol_basari=None):
         kabul_dolu = len(harita) - kabul_yok - kabul_bos
     od = sonuc.get("OLCULEMEYEN_DUZLEM", "") or ""
     od_ek = (" OLCULEMEYEN_DUZLEM=" + od) if od else ""
-    temel = ("EVREN=%d HARITADA=%d EKSIK=%d BAYAT=%d OLCULEMEYEN_SATIR=%d SAHIPSIZ=%d "
+    # K327: sayinin KAPSAMI sayinin YANINDA durur. `OLCULEN_DUZLEM` bos ise bunu da
+    # ADIYLA yaz — "hicbir duzlem olculemedi" hali sessizce EVREN=0'a benzemesin.
+    olculen = sonuc.get("OLCULEN_DUZLEM", "") or "-"
+    temel = ("OLCULEN_DUZLEM=%s EVREN=%d HARITADA=%d EKSIK=%d BAYAT=%d "
+             "OLCULEMEYEN_SATIR=%d SAHIPSIZ=%d "
              "KABUL_DOLU=%d KABUL_YOK=%d KABUL_BOS=%d"
-             % (sonuc["EVREN"], sonuc["HARITADA"],
+             % (olculen, sonuc["EVREN"], sonuc["HARITADA"],
                 len(sonuc["EKSIK"]), len(sonuc["BAYAT"]),
                 sonuc.get("OLCULEMEYEN_SATIR", 0),
                 len(sonuc["SAHIPSIZ"]),
