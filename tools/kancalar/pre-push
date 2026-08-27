@@ -213,8 +213,17 @@ if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/yedekle.py" ]; then
   pruvo_yedek_rc=$?
   if [ "$pruvo_yedek_rc" -ne 0 ]; then
     echo "!! YEDEK alinamadi (rc=$pruvo_yedek_rc, push DEVAM ediyor) — kontrol: python3 tools/durum.py"
+    # 🔴 K308-B (27 Agu 2026, IKINCI TUR) — `tail -3` KOR NOKTASIYDI: karantina
+    # ozeti BASLIK + dosya-basina-1 satir + "bitti" seklinde basiliyor. Bugunun
+    # SABAHKI dususu DORT dosyaydi (4 Audi MW .tsv) -> tail -3 basligi ve iki
+    # dosyayi DUSURURDU; "kac dosya atlandi" gorunmezdi. Kirpma yerine ANLAMLI
+    # satirlar suzulur; hicbiri tutmazsa (beklenmeyen hata sinifi) son 5 satir
+    # basilir — bilgi hicbir kolda DARALTILMAZ.
     printf '%s
-' "$pruvo_yedek_cikti" | tail -3
+' "$pruvo_yedek_cikti" \
+      | grep -E '^(KORUMA KARANTINASI|  ATLANDI:|BEYAN UYARISI:|ESKALASYON=|YEDEK=)' \
+      || printf '%s
+' "$pruvo_yedek_cikti" | tail -5
   fi
 fi
 # --- ORTAK POSTA KUTUSU ARSIVI (tools/kutu-arsivle.py) ---
