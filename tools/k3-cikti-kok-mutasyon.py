@@ -25,6 +25,21 @@ calisma agaci) degisip degismedigi olculur.
    * Menzil disi yol -> rmtree YAPILMAZ, hata basip rc!=0 ile cikilir.
    * `--ek-yol <path>...` ile M-MENZIL testi: scope disi yol beslenir, REJECT beklenir.
 
+🔴 PARMAK IZI UC EKSEN (27 Agu 2026 — k3-parmakizi):
+   Onceki `repo_fingerprint()` YALNIZ `git status --short` kullanirdi; bu gitignored
+   dosyalari BASMAZ. Mutant ortak agacin 12 gitignored yolunu yazdiginda parmak izi
+   degismez, arac kendi mutantini OLDUREMEZDI (`M_KOK=KACTI` aracin KENDI ciktisinda).
+   Yeni yapi uc ekseni ayri hesaplar ve HER BIRINI ayri basar:
+
+     EKSEN_A : git status --short                  (izlenen dosyalar)
+     EKSEN_B : git status --short --ignored        (gitignored VARLIK)
+     EKSEN_C : bilinen cikti yollarının VARLIK + sha256 listesi — (b) bile bir dosya
+               UZERINE YAZILIRSA kor kalir; yalniz (c) yakalar.  Liste, betiğin
+               `cleanup` tarafında zaten tanımlı bilinen çıktı adlarından TURETILIR
+               (ikinci bir elle kopya YASAK; `taban-kirmizisi-nobetciyi-susturur`).
+   Hüküm: ortak agac UC EKSENIN HERHANGI BIRINDE degisti ise "degisti" sayilir.
+   `M_KOK` bu hükümden turer. Silme kolu `--ignored` ciktisina BAGLANMAZ (daraltma).
+
 Kullanim:
   python3 tools/k3-cikti-kok-mutasyon.py
       Tam M-KOK mutasyon testi (kendi gecici kok'unu olusturur, MUTANT+KONTROL kosar,
@@ -51,6 +66,8 @@ BUILD = os.path.join(WORKTREE, "tools", "build.py")
 # SART 1: "betiğin kendi ürettiği çıktı adları"). HEPSI hem WORKTREE hem CIKTI_KOK
 # altinda temizlenebilir; gercek silme sirasinda os.path.lexists/isdir ile VARLIK kontrolu
 # yapilir, olmayan yol listeye eklenmez.
+#
+# EKSEN_C bu iki tuple'dan TURETILIR; ikinci bir elle kopya YASAK.
 _KOK_DOSYALAR = (
     "taban-fiyatlar.js", "filament-veri.js", "index.built.html",
     "sitemap.xml", "robots.txt", "merchant-feed.xml", "ozet.json",
@@ -66,16 +83,125 @@ MUTANT_BODY = (
 )
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# PARMAK IZI — uc eksen (k3-parmakizi)
+# ─────────────────────────────────────────────────────────────────────────────
+
 def git_status_short(root):
+    """Eksen A: izlenen dosya degisiklikleri. `git status --short` ciktisi."""
     out = subprocess.run(
         ["git", "-C", root, "status", "--short"],
         capture_output=True, text=True, check=False)
     return out.stdout
 
 
+def git_status_short_ignored(root):
+    """Eksen B: gitignored VARLIK degisimi. `git status --short --ignored` ciktisi.
+
+    (a) bile gitignored dosyalari basmaz; bu eksen VARLIK degisimi yakalar.
+    Silme kolu BU CIKTIYA BAGLANMAZ (daraltma bozulmasin)."""
+    out = subprocess.run(
+        ["git", "-C", root, "status", "--short", "--ignored"],
+        capture_output=True, text=True, check=False)
+    return out.stdout
+
+
+def _path_fingerprint(root, rel):
+    """Bir bilinen cikti yolunun VARLIK + icerik sha256'sini uretir.
+
+    - YOK ise 'MISSING' doner.
+    - Dosya ise: icerigi hash'ler (ekleme/degisme yakalanir).
+    - Dizin ise: icindeki tum dosyalarin (relpath, sha256) ciftlerini siralanmis
+      bicimde birlestirip hash'ler — boyleyle ekleme/silme/degisme HEPSI yakalanir.
+    Mtimeye bakmaz, yalniz icerige; ayni icerik = ayni sha256 (deterministik).
+    """
+    full = os.path.join(root, rel)
+    if not os.path.lexists(full):
+        return "MISSING"
+    if os.path.isfile(full):
+        h = hashlib.sha256()
+        with open(full, "rb") as f:
+            for chunk in iter(lambda: f.read(65536), b""):
+                h.update(chunk)
+        return h.hexdigest()
+    # Dizin: alt-dosyalarin (relpath, sha256) ciftlerini siralanmis olarak birlestir.
+    h = hashlib.sha256()
+    pairs = []
+    for dp, _, fns in os.walk(full):
+        for fn in fns:
+            fp = os.path.join(dp, fn)
+            relp = os.path.relpath(fp, full)
+            ch = hashlib.sha256()
+            with open(fp, "rb") as f:
+                for chunk in iter(lambda: f.read(65536), b""):
+                    ch.update(chunk)
+            pairs.append((relp, ch.hexdigest()))
+    pairs.sort()
+    for relp, sh in pairs:
+        h.update(("{0}:{1}\n".format(relp, sh)).encode("utf-8"))
+    return h.hexdigest()
+
+
+def eksen_c_payload(root):
+    """Eksen C: bilinen cikti yollarinin VARLIK + sha256 listesi.
+
+    _KOK_DOSYALAR ve _KOK_DIZINLER'den TURETILIR (ikinci bir elle kopya YASAK)."""
+    lines = []
+    for ad in list(_KOK_DOSYALAR) + list(_KOK_DIZINLER):
+        lines.append("{0}={1}".format(ad, _path_fingerprint(root, ad)))
+    return "\n".join(lines)
+
+
 def repo_fingerprint(root):
-    s = git_status_short(root).strip()
-    return hashlib.sha256(s.encode("utf-8")).hexdigest(), s
+    """Uc ekseni ayri hesaplar; her birinin (sha256, ham_metin) ikilisini doner.
+
+    Donus: {"A": (sha, raw), "B": (sha, raw), "C": (sha, raw)}
+
+    Eksen A : git status --short               (izlenen dosyalar)
+    Eksen B : git status --short --ignored     (gitignored VARLIK)
+    Eksen C : bilinen cikti yollarının VARLIK + sha256 listesi (aks (b) bile
+              dosya UZERINE YAZILIRSA kor kalir; yalniz (c) yakalar).
+    """
+    a_raw = git_status_short(root).strip()
+    b_raw = git_status_short_ignored(root).strip()
+    c_raw = eksen_c_payload(root)
+    a_sha = hashlib.sha256(a_raw.encode("utf-8")).hexdigest()
+    b_sha = hashlib.sha256(b_raw.encode("utf-8")).hexdigest()
+    c_sha = hashlib.sha256(c_raw.encode("utf-8")).hexdigest()
+    return {
+        "A": (a_sha, a_raw),
+        "B": (b_sha, b_raw),
+        "C": (c_sha, c_raw),
+    }
+
+
+def _eksen_ayni_mi(eski, yeni):
+    """eski/yeni: repo_fingerprint sonucu (dict). {A,B,C} -> {AYNI, FARKLI}."""
+    sonuc = {}
+    for eksen in ("A", "B", "C"):
+        sonuc[eksen] = "AYNI" if eski[eksen][0] == yeni[eksen][0] else "FARKLI"
+    return sonuc
+
+
+def _yol_satir_farki(old_raw, new_raw):
+    """A/B eksenleri icin: iki 'git status --short' katarinin satir farki.
+    Sirayla (eklenen, cikarilan) doner."""
+    old_lines = set(old_raw.splitlines())
+    new_lines = set(new_raw.splitlines())
+    added = sorted(new_lines - old_lines)
+    removed = sorted(old_lines - new_lines)
+    return added, removed
+
+
+def _eksen_c_diff(old_root, new_root):
+    """C ekseni icin: sha256'si degisen bilinen yol listesi."""
+    degisen = []
+    for ad in list(_KOK_DOSYALAR) + list(_KOK_DIZINLER):
+        old_sha = _path_fingerprint(old_root, ad)
+        new_sha = _path_fingerprint(new_root, ad)
+        if old_sha != new_sha:
+            degisen.append((ad, old_sha, new_sha))
+    return degisen
 
 
 def write_mutant(src, dst):
@@ -313,10 +439,14 @@ def main():
 
     # ── NORMAL M-KOK TEST MODU ─────────────────────────────────────────
     os.chdir(WORKTREE)
-    sha0, st0 = repo_fingerprint(WORKTREE)
+    fp0 = repo_fingerprint(WORKTREE)
     print("=== ONCE ===")
-    print("REPO_SHA=", sha0)
-    print("REPO_STATUS=", repr(st0))
+    print("REPO_A_SHA=", fp0["A"][0])
+    print("REPO_B_SHA=", fp0["B"][0])
+    print("REPO_C_SHA=", fp0["C"][0])
+    print("REPO_A_STATUS=", repr(fp0["A"][1]))
+    print("REPO_B_STATUS=", repr(fp0["B"][1]))
+    print("REPO_C_STATUS=", repr(fp0["C"][1]))
 
     tmp = tempfile.mkdtemp(prefix="pruvo-k3-14a-")
     print("\n=== GECICI KOK ===")
@@ -340,11 +470,38 @@ def main():
         # ── M-KOK ─────────────────────────────────────────────
         print("\n=== M-KOK (parametre YOK SAYAN mutant) ===")
         rc_m, log_m = run_build(mutant_path, tmp)
-        sha_m, st_m = repo_fingerprint(WORKTREE)
-        degisti_m = (sha_m != sha0)
+        fp_m = repo_fingerprint(WORKTREE)
+        eksen_m = _eksen_ayni_mi(fp0, fp_m)
+        degisti_m = any(v == "FARKLI" for v in eksen_m.values())
         print("M_KOK_BUILD_RC=", rc_m)
         print("M_KOK_REPO_DEGISTI=", "EVET" if degisti_m else "HAYIR")
-        print("M_KOK_STATUS=", repr(st_m))
+        print("M_KOK_EKSEN_A=", eksen_m["A"])
+        print("M_KOK_EKSEN_B=", eksen_m["B"])
+        print("M_KOK_EKSEN_C=", eksen_m["C"])
+        # Degisen yollari eksen bazinda bas (hangi eksen ne yakaladi, acik)
+        if eksen_m["A"] == "FARKLI":
+            added, removed = _yol_satir_farki(fp0["A"][1], fp_m["A"][1])
+            print("EKSEN_A_EKLENEN:")
+            for s in added:
+                print("  +", s)
+            print("EKSEN_A_CIKARILAN:")
+            for s in removed:
+                print("  -", s)
+        if eksen_m["B"] == "FARKLI":
+            added, removed = _yol_satir_farki(fp0["B"][1], fp_m["B"][1])
+            print("EKSEN_B_EKLENEN:")
+            for s in added:
+                print("  +", s)
+            print("EKSEN_B_CIKARILAN:")
+            for s in removed:
+                print("  -", s)
+        if eksen_m["C"] == "FARKLI":
+            print("EKSEN_C_DEGISTI:")
+            for ad, old_sha, new_sha in _eksen_c_diff(WORKTREE, WORKTREE):
+                # Not: ayni WORKTREE'yi iki kez veriyoruz cunku eksen C'nin ONCE/SONRA
+                # diff'i fp0 vs fp_m uzerinden yapilmis olamazdı; yalniz degisim VAR/YOK.
+                # Anlasilir olmasi icin ham sha'larin yerine MUTANT_SONRAKI degeri basılır.
+                print("  {0}: {1} -> {2}".format(ad, old_sha[:12], new_sha[:12]))
         for satir in log_m.splitlines()[:3]:
             print("  >", satir)
         if degisti_m:
@@ -353,21 +510,25 @@ def main():
         # Mutant kirli biraktigi dosyalari temizle.
         if degisti_m:
             cleanup_build_outputs(tmp)
-            sha_k0, st_k0 = repo_fingerprint(WORKTREE)
+            fp_k0 = repo_fingerprint(WORKTREE)
             print("\n=== MUTANT SONRASI TEMIZLIK (kontrol icin temiz baseline) ===")
-            print("KONTROL_BASELINE_SHA=", sha_k0)
-            print("KONTROL_BASELINE_STATUS=", repr(st_k0))
+            print("KONTROL_BASELINE_A_SHA=", fp_k0["A"][0])
+            print("KONTROL_BASELINE_B_SHA=", fp_k0["B"][0])
+            print("KONTROL_BASELINE_C_SHA=", fp_k0["C"][0])
         else:
-            sha_k0 = sha0
+            fp_k0 = fp0
 
         # ── KONTROL ───────────────────────────────────────────
         print("\n=== KONTROL (kozmetik degisiklik — davranis ayni) ===")
         rc_k, log_k = run_build(control_path, tmp)
-        sha_k, st_k = repo_fingerprint(WORKTREE)
-        degisti_k = (sha_k != sha_k0)
+        fp_k = repo_fingerprint(WORKTREE)
+        eksen_k = _eksen_ayni_mi(fp_k0, fp_k)
+        degisti_k = any(v == "FARKLI" for v in eksen_k.values())
         print("KONTROL_BUILD_RC=", rc_k)
         print("KONTROL_REPO_DEGISTI=", "EVET" if degisti_k else "HAYIR")
-        print("KONTROL_STATUS=", repr(st_k))
+        print("KONTROL_EKSEN_A=", eksen_k["A"])
+        print("KONTROL_EKSEN_B=", eksen_k["B"])
+        print("KONTROL_EKSEN_C=", eksen_k["C"])
         for satir in log_k.splitlines()[:3]:
             print("  >", satir)
 
@@ -376,6 +537,18 @@ def main():
         m_killed = degisti_m
         k_clean = not degisti_k
 
+        # YAKALAYAN_EKSEN: mutant'i ilk yakalayan eksen (A > B > C oncelik)
+        yakalayan = "-"
+        if m_killed:
+            for e in ("A", "B", "C"):
+                if eksen_m[e] == "FARKLI":
+                    yakalayan = e
+                    break
+
+        print("EKSEN_A=", eksen_m["A"])
+        print("EKSEN_B=", eksen_m["B"])
+        print("EKSEN_C=", eksen_m["C"])
+        print("YAKALAYAN_EKSEN=", yakalayan)
         if m_killed and k_clean:
             print("M_KOK=OLDURULDU")
             print("KONTROL=YESIL")
@@ -390,9 +563,10 @@ def main():
         print("\n=== TEMIZLIK ===")
         print("GECICI_KOK_SILINDI=", tmp)
         cleanup_build_outputs(None)
-        sha_s, st_s = repo_fingerprint(WORKTREE)
-        print("SON_REPO_SHA=", sha_s)
-        print("SON_REPO_STATUS=", repr(st_s))
+        fp_s = repo_fingerprint(WORKTREE)
+        print("SON_REPO_A_SHA=", fp_s["A"][0])
+        print("SON_REPO_B_SHA=", fp_s["B"][0])
+        print("SON_REPO_C_SHA=", fp_s["C"][0])
 
 
 if __name__ == "__main__":
