@@ -34,13 +34,17 @@ import sys
 import tempfile
 import hashlib
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from mutasyon_kopya import kopya_kok  # noqa: E402
+
 WORKTREE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD = os.path.join(WORKTREE, "tools", "build.py")
 
 MUTANT_BODY = (
     "def _coz_cikti_kok():\n"
-    "    \"\"\"M-KOK mutant: hardcoded ROOT, --cikti-kok ve PRUVO_CIKTI_KOK YOK SAYILIR.\"\"\"\n"
-    "    return ROOT, False\n"
+    "    \"\"\"M-KOK mutant: --cikti-kok ve PRUVO_CIKTI_KOK YOK SAYILIR; "
+    "PRUVO_K3_WORKTREE env'den alinan yol (ortak agac) CIKTI_KOK olarak kullanilir.\"\"\"\n"
+    "    return os.environ.get('PRUVO_K3_WORKTREE', ROOT), False\n"
 )
 
 
@@ -71,14 +75,13 @@ def write_mutant(src, dst):
 
 
 def write_control(src, dst):
-    """Kozmetik degisiklik: print satirinin yanina '  # KONTROL' notu ekle (davranis ayni).
-    print satiri Turkce karakterler icerdigi icin REPLACE hedefi olarak tam yaziyi
-    degil, sadece 'CIKTI_KOK=' substring'ini kullanir — bu benzersiz ve Turkce'siz."""
+    """Kozmetik degisiklik: print satirinin SONUNA yorum ekle (davranis ayni).
+    Marker TAM print satiri; sonuna `# KONTROL` yorumu ekler — string'in
+    icine girmez, syntax korunur."""
     with open(src, encoding="utf-8") as f:
         text = f.read()
-    # Print satiri: print("CIKTI_KOK=%s (%s)" ...)
-    # Yanina # KONTROL notu ekle (davranis degistirmez, yorum degisikligi)
-    marker = "print(\"CIKTI_KOK=%s (%s)\""
+    marker = ("print(\"CIKTI_KOK=%s (%s)\" % (CIKTI_KOK, "
+              "\"YONLENDIRILMIS\" if _CIKTI_YONLENDIRILDI else \"varsayilan\"))")
     if marker not in text:
         raise SystemExit("HATA: kontrol marker bulunamadi (CIKTI_KOK print satiri yok)")
     mutated = text.replace(
@@ -91,6 +94,12 @@ def write_control(src, dst):
 def run_build(build_path, cikti_kok):
     env = os.environ.copy()
     env.pop("PRUVO_CIKTI_KOK", None)
+    # Mutant `_coz_cikti_kok()` bu env'den WORKTREE'yi okur; ortak agacin
+    # kirletilmesini garanti eder.
+    env["PRUVO_K3_WORKTREE"] = WORKTREE
+    # Mutant dosyasi gecici dizinde -> cwd sys.path'e eklenmez (Python 3);
+    # `from sayfalar import ...` calismasi icin PYTHONPATH=WORKTREE/tools.
+    env["PYTHONPATH"] = os.path.join(WORKTREE, "tools")
     proc = subprocess.run(
         [sys.executable, build_path, "--cikti-kok", cikti_kok],
         capture_output=True, text=True, cwd=WORKTREE, env=env, check=False)
@@ -166,10 +175,19 @@ def main():
     print("GECICI_KOK=", tmp)
 
     try:
-        mutant_path = os.path.join(tmp, "mutant_build.py")
-        control_path = os.path.join(tmp, "control_build.py")
-        write_mutant(BUILD, mutant_path)
-        write_control(BUILD, control_path)
+        # kopya_kok: tools/ KOPYALANMIS, geri kalanı sembolik bagli gecici bir
+        # depo koku kur. Boylece mutant + kontrol dosyalarinin `__file__` adresleri
+        # gecici kopya koke isaret eder ve tools/cip-indeks.py gibi tum alt
+        # moduller bulunur (PYTHONPATH trick'i yetmez, dosya yolu da lazim).
+        kopya = kopya_kok(tmp, WORKTREE)
+        mutant_src = os.path.join(kopya, "tools", "build.py")
+        # Mutant ve kontrol dosyalari KOPYA icinde olusturulur (kopya/tools/ altinda)
+        # -> __file__ = kopya/tools/build_*.py, dirname(dirname) = kopya/,
+        #    cip-indeks.py ve diger alt moduller bulunur.
+        mutant_path = os.path.join(kopya, "tools", "build_mutant.py")
+        control_path = os.path.join(kopya, "tools", "build_control.py")
+        write_mutant(mutant_src, mutant_path)
+        write_control(mutant_src, control_path)
 
         # ── M-KOK ─────────────────────────────────────────────
         print("\n=== M-KOK (parametre YOK SAYAN mutant) ===")
