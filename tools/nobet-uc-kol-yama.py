@@ -496,6 +496,13 @@ C3_YENI = '''    karar, sebep = imza_var(rc, cikti_yolu)
 YAMALAR = [
     ("A",  SH,        A_CAPA,   A_YENI,   "NOBET_HUKUM_KOLU=A"),
     ("A2", SH,        A_CAPA2,  A_YENI2,  'hukum=$HUKUM'),
+    # A3: ilk surumun OLU DEGISKENI (`KOL_A_NOBET_KIRMIZI`) atilir. Hicbir yerde
+    # okunmuyordu; kapi dosyasinda okunmayan degisken birakmak, bu evde tam da
+    # kacindigimiz "yazan var okuyan yok" desenidir.
+    ("A3", SH,
+     "  if (( NOBET_RC != 0 )); then KOL_A_NOBET_KIRMIZI=1; NOBET_KIRMIZI=1; fi\n",
+     "  if (( NOBET_RC != 0 )); then NOBET_KIRMIZI=1; fi\n",
+     "if (( NOBET_RC != 0 )); then NOBET_KIRMIZI=1; fi"),
     ("B1", KAPI,      B1_CAPA,  B1_YENI,  "dondurma_isirdi=False"),
     ("B2", KAPI,      B2_CAPA,  B2_YENI,  "_dondurma_isirdi = bool"),
     ("B3", KAPI,      B3_CAPA,  B3_YENI,  "DAGITIM_BACAGI_DUSTU"),
