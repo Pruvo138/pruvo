@@ -23,5 +23,25 @@
     "tur": "surekli",
     "azami_bayt": 4096,
     "gerekce": "Mimar karari 15 Agu 2026 (IKINCI KEZ yazildi — ilk yazim dosyadan dustu ve yedek zinciri rc=1 ile karantinaya girdi): kaan ankorunun KARDESI, ayni sinif ayni yordam. Posta kutusu izleme cron'unun ROLLING ANKORU; son islenen girdiyi tutar, eski girdiler dustukce KUCULUR (olculdu: 618 -> 188 bayt). Beyan AILE olarak yazilir: ayni sinifin bir uyesi beyanli, kardesi beyansiz birakilirsa koruma tek uyede sessizce rc=1 uretir. Tavan 4096 bayt kaan ikiziyle BIREBIR aynidir; tavani asan bir dusus beyanla GECMEZ."
+  },
+  "hasat-audi-makerworld-aday.tsv": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": 4746,
+    "gerekce": "Mimar karari 27 Agu 2026 (MaCiT, KraL'in olcumu uzerine — pruvo-hasat/kalibrasyon/DENETIM-yedek-dususu-27Agu.md). OLCULDU (beyan degil): kanonik yedek 10601 B (11 Agu tarihli, BAYAT) -> canli 4746 B = -5855 (-55%). Kok neden git'te izlenebilir: commit 02c3b447 (\"hasat: Audi TV/PR/MW tarama + huni + karar, dilim-1\") tarama havuzundaki dusuk-degerli/marka-disi ADAY kayitlarini huni asamasinda eledi — hasat_tara -> huni -> karar zincirinin dogal isleyisi, veri kaybi DEGIL. Audi x MakerWorld kampanyasi TAMAMEN KAPANDI (734 islendi/657 canli/77 RED, ikinci kapanis commit'i asagida); bu dosyaya kampanyanin kapanisindan bu yana (20 Agu 13:52'den beri) TEK SATIR dokunulmadi (git log dogrulandi). TUR BILEREK 'tek-seferlik', 'surekli' DEGIL: dosya adi markaya OZGU (audi-makerworld) — bir SONRAKI kampanya (ör. BMW x MakerWorld) bu dosyayi BUYUTMEZ, KENDI YENI dosya adini alir (hasat-bmw-makerworld-aday.tsv). Yani bu spesifik dosyanin salinim araligi YOK, kampanyanin kapanisiyla birlikte KALICI OLARAK sabitlendi (4746 B). Kaynak_bayt tam esitligi bu yuzden dogru sinif: gelecekte bu TAM dosyada beklenmeyen HERHANGI bir degisiklik (yukari veya asagi) yeniden yargi gerektirir — surekli bir tavan bunu ORTULERDI. Hasat huni dosyalari (hasat-*-{aday,onsinif,detay,denetim}.tsv) SINIF olarak periyodik kucculmeye acik olsa da (her marka kendi dosyasinda ayni deseni uretir), SINIF-bazli genel muafiyet ayri bir mekanizma karari (KraL'in onerisi, karari KraL'in); bu beyan yalnizca bu 4 KAPANMIS Audi dosyasini kapsar."
+  },
+  "hasat-audi-makerworld-denetim.tsv": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": 8103,
+    "gerekce": "Mimar karari 27 Agu 2026 (MaCiT) — kardes dosya, ayni sinif/yordam bkz. hasat-audi-makerworld-aday.tsv gerekcesi. OLCULDU: kanonik yedek 17845 B (11 Agu, BAYAT) -> canli 8103 B = -9742 (-55%). Kok neden AYRI bir islem: commit 5cd0dab3 (\"defter: Audi MakerWorld kapandi (2 canli, 0 RED) - TUM EKLE KAMPANYASI TAMAMLANDI\") kampanya kapanisinda denetim tablosunu final duruma guncelledi (178 satir degisti) — bu da veri kaybi degil, kapanis islemenin dogal sonucu. Dosyaya 25 Agu 15:21'den beri (kapanis commit'inden bu yana) TEK SATIR dokunulmadi (git log dogrulandi). Tek-seferlik + kaynak_bayt=8103 tam esitligi: kapanmis kampanyanin bu dosyasi artik SABIT, salinim araligi yok, dosya adi audi-makerworld'e OZGU (baska kampanya bu dosyayi tekrar buyutemez, kendi yeni adini alir)."
+  },
+  "hasat-audi-makerworld-detay.tsv": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": 22492,
+    "gerekce": "Mimar karari 27 Agu 2026 (MaCiT) — kardes dosya, ayni sinif/yordam bkz. hasat-audi-makerworld-aday.tsv gerekcesi. OLCULDU: kanonik yedek 47367 B (11 Agu, BAYAT) -> canli 22492 B = -24875 (-53%). Kok neden commit 02c3b447 ile birebir ayni (huni elemesi). Dosyaya 20 Agu 13:52'den beri TEK SATIR dokunulmadi (git log dogrulandi). Tek-seferlik + kaynak_bayt=22492 tam esitligi: kapanmis kampanyanin bu dosyasi artik SABIT, dosya adi audi-makerworld'e OZGU, salinim araligi yok."
+  },
+  "hasat-audi-makerworld-onsinif.tsv": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": 9320,
+    "gerekce": "Mimar karari 27 Agu 2026 (MaCiT) — kardes dosya, ayni sinif/yordam bkz. hasat-audi-makerworld-aday.tsv gerekcesi. OLCULDU: kanonik yedek 20116 B (11 Agu, BAYAT) -> canli 9320 B = -10796 (-54%). Kok neden commit 02c3b447 ile birebir ayni (huni elemesi). Dosyaya 20 Agu 13:52'den beri TEK SATIR dokunulmadi (git log dogrulandi). Tek-seferlik + kaynak_bayt=9320 tam esitligi: kapanmis kampanyanin bu dosyasi artik SABIT, dosya adi audi-makerworld'e OZGU, salinim araligi yok."
   }
 }
