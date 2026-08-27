@@ -56,6 +56,10 @@ import tempfile
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KUR_YOLU = os.path.join(KOK, "tools", "mimar-kapi-kur.py")
 
+# Sentetik git deposu kurucusunun TEK kaynagi (FALLBACK YOK).
+sys.path.insert(0, os.path.join(KOK, "tools"))
+from git_ortami import sentetik_git   # noqa: E402
+
 # Prob ortamindan SOKULEN kimlik degiskenleri (civi 2). Bu liste kapinin kimlik
 # eksenini olusturan HER kaynagi kapsar; biri unutulursa prob kendi baglamini olcer.
 KIMLIK_DEGISKENLERI = ("PRUVO_ISCI_KOSUMU", "CLAUDE_AGENT_ID", "PRUVO_CLAUDE_ISCI_IZNI")
@@ -72,8 +76,9 @@ def _kur_modulu():
 
 
 def _git(kok, *args):
-    return subprocess.run(["git", "-C", kok] + list(args),
-                          capture_output=True, text=True)
+    # Sentetik depolarda git DAIMA kanonik yardimciyla kosar: miras alinan GIT_*
+    # baglami temizlenir ve cwd acikca sabitlenir (fikstur-git-sizinti-kapisi.py).
+    return sentetik_git(kok, *args, capture_output=True, text=True)
 
 
 def _oku(yol):
