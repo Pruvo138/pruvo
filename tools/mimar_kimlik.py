@@ -152,6 +152,94 @@ def canli_kata_goc(motor):
     return motor if canli_motor_mu(motor) else CANLI_ISCI_MOTORLARI[0]
 
 
+# === 27 AGU 2026 (K318) — OTURUM ROL EKSENI (KIMLIK EKSENINDEN AYRIDIR) =========
+#
+# OLCULEN ARIZA (uc ev, ucuncu tekrar): `mimar-icra-kapisi` yalnizca KIMLIK olcuyordu
+# (agent_id / PRUVO_ISCI_KOSUMU). Bir CIP OTURUMU (kendi worktree'sinde acilmis ayri
+# Claude oturumu) bu iki eksenin ikisini de TASIMAZ — yani kapi onu "mimarin ANA
+# oturumu" sayip `python3` kosumunu REDDEDIYORDU. Bedeli sayiyla: pruvo-hasat main
+# tepesi `1bea450d` = "Marin x MakerWorld ekleme dilim-1 BLOKE kaydi (mimar-icra-kapisi
+# python3 kosumunu bu iscide reddediyor)"; ayni sinif BMW x CGTrader dilim-3'te (K291)
+# tekrarladi; hat haftalardir duruyor, islenen urun 0. Yani kapi, korumak icin var
+# oldugu duzenin (mimar YARGILAR, cip ICRA EDER) tam olarak ICRA ayagini kesiyordu.
+#
+# 🔴 SINIR DUZELTMESIDIR, GEVSETME DEGIL: mimarin ANA oturumu AYNEN reddedilmeye devam
+# eder. Degisen tek sey, kapinin artik "kim" (kimlik) yaninda "NEREDEN" (rol) sorusunu
+# da sormasidir.
+#
+# 🔴 NEDEN `transcript_path` — VE NEDEN `cwd` DEGIL:
+#   20 Tem'de tam da bu muafiyet `cwd` uzerine kurulmus ve KALDIRILMISTI, cunku cwd
+#   KAYDIRILABILIR bir sinyaldir: kabuk cwd'si cagrilar arasi kalicidir, `cd` makine
+#   olarak engellenmez ve gercek worktree dizinleri diskte durur — yani "cd <worktree>"
+#   TEK KOMUTLUK bir muafiyet anahtari olurdu. O teshis DOGRUDUR ve burada KORUNUR:
+#   cwd bu fonksiyonda HIC OKUNMAZ.
+#   `transcript_path` ise oturum ACILIRKEN damgalanir; oturumun kendi kostudugu hicbir
+#   komut (cd, env atamasi, dosya yazimi) onu oynatamaz. Yani BEYAN degil OLCUMDUR.
+#   Karsilastirma da ADA gore degil KAYDA gore yapilir: aday, git'in `.git/worktrees/`
+#   kaydindaki GERCEK worktree koklerinin damgasiyla TAM BILESEN ESITLIGI ile aranir
+#   (alt-dize DEGIL) — "…claude-worktrees…" gecen uydurma bir ad kapiyi ACMAZ.
+#   Ana checkout hicbir zaman worktree olarak KAYITLI olmadigi icin ANA oturum bu
+#   eksende yapisal olarak eslesemez.
+#
+# 🔴 FAIL-CLOSED: `transcript_path` yoksa/okunamiyorsa, kayit kumesi bossa ya da hicbir
+#   kok eslesmiyorsa donus `None`'dur ve `None` = ANA = RED tarafi. "OLCULEMEDI" bir
+#   gecis gerekcesi DEGILDIR ([[olculemedi-bypass-degil-menzil-daraltmasi]]).
+#
+# 🔴 TEK KAYNAK: rol sorusunun cevabi YALNIZ burada uretilir. Kapilar bu fonksiyonu
+#   CAGIRIR; kendi govdelerinde ikinci bir "cip mi" testi TASIMAZ
+#   ([[ikiz-tanim-sessiz-ayrisma]]). Muafiyet LISTESI yoktur ve eklenmez — care liste
+#   degil EKSENDIR ([[tekil-yama-sinifi-kapatmaz]]).
+#
+# 🔴 KIMLIK EKSENIYLE BIRLESTIRILMEZ: `kimlik_ekseni()` "bu cagri bir ISCI'den mi
+#   geliyor" sorusunu yanitlar ve ISCI kapidan TAM muaftir. `rol_ekseni()` ise
+#   "bu OTURUM mimarin ana oturumu mu, yoksa cip/worktree oturumu mu" sorusunu
+#   yanitlar ve cip TAM muaf DEGILDIR (Okan emirlerini tasiyan kollar cipte de kosar).
+#   Iki fonksiyonu tek yuklemeye indirmek, cipe Claude-isci yasagini SESSIZCE acar
+#   ([[ad-iki-rolde-mutanti-golgeler]]).
+ROL_KANALI = "transcript_path"
+
+
+def _proje_damgasi(yol):
+    """Claude Code'un proje-dizini damgasi: alfanumerik OLMAYAN her karakter '-'.
+
+    Olculdu (27 Agu, canli oturum): `/Users/okan/dev/pruvo/.claude/worktrees/
+    busy-ishizaka-73d101` -> `-Users-okan-dev-pruvo--claude-worktrees-busy-ishizaka-73d101`
+    ve `/Users/okan/dev/pruvo` -> `-Users-okan-dev-pruvo`. Damga KAYIPLIDIR (farkli
+    yollar ayni damgaya dusebilir) ama ADAYLARIN HEPSI git'e kayitli mesru worktree
+    kokleridir; kayipli eslesmenin acabilecegi tek sey yine kayitli bir koktur."""
+    return "".join(k if k.isalnum() else "-" for k in yol)
+
+
+def rol_ekseni(girdi, worktree_kokleri):
+    """OTURUM ROLU — TEK KAYNAK. Doner: eslesen worktree koku (str) ya da ``None``.
+
+    ``None`` IKI hali birden ifade eder ve IKISI DE RED tarafidir:
+      * oturum mimarin ANA oturumudur, ya da
+      * rol OLCULEMEDI (transcript damgasi yok / kayit okunamadi / eslesme yok).
+    Cagiran bu ikisini ayirt etmeye CALISMAZ; ayirt etmek "olculemedi"yi bir gecis
+    gerekcesine cevirmenin kapisi olurdu.
+    """
+    yol = girdi.get(ROL_KANALI)
+    if not isinstance(yol, str) or not yol.strip():
+        return None
+    if not worktree_kokleri:
+        return None
+    # TAM BILESEN esitligi: alt-dize testi degil. '/a/b/-Users-...-wt-ek/x.jsonl'
+    # gibi damgayi ICINDE gecirenler eslesmez.
+    bilesenler = set(yol.split("/"))
+    for kok in sorted(worktree_kokleri):
+        if not kok:
+            continue
+        adaylar = {_proje_damgasi(kok)}
+        try:
+            adaylar.add(_proje_damgasi(os.path.realpath(kok)))
+        except OSError:
+            pass
+        if adaylar & bilesenler:
+            return kok
+    return None
+
+
 def kimlik_ekseni(girdi, ortam=None):
     """Kimlik kaynagini dondur; ``None`` her zaman MIMAR demektir."""
     aid = girdi.get("agent_id")

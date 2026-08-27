@@ -2,15 +2,22 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔚 27 AGU KAPANIS · main=origin `25b2879b` SHA-BIREBIR · agac TEMIZ · worktree 9→5 · kosan cip 4
-🔴 **KOSUYOR (4, motor Claude):** `KraL-IcraKapisiKimlik` (dal `kral/icra-kapisi-kimlik-27agu`
-`82a30b41` — kapi cipteki isciyi mimar sayiyor, MaCiT hatti haftalardir BLOKE) · `KraL-BelgeOnbellegi`
-(HTML belgesi `max-age=14400`) · `KraL-KarantinaHukmu` (dal `kral/nobet-turu-27agu`) · `KraL-DogrulaMerge`.
-🔴 **BEKLIYOR — "neyi olcmek kapatir":** ⓐ `nobet-turu` **MERGE YOK** (iddia 21/21, olculen **20/21**
-`DUSEN=C5`) → *hukum indi: ardisik ESIK kazanir, C5 iki yonlu yazilir; rc=0 + KONTROL 10/10* ·
-ⓑ `--yaz-sonrasi` kolu main'de ama **KABLOSUZ** → *kilit-guvenli + tavan altinda no-op + eszamanli
-cagride bayt-birebir olcusun, sonra mimar kabloyu takar* · ⓒ **HTML 4 saat** → *belge TTL dusuk,
-varlik TTL sabit, `Age` serisiyle* · ⓓ K321 karantina · ⓔ ⑦ bekci vakalari · ⓕ K314 acik ucu.
+## 🔴 27 AGU AKSAM — CANLI · main=origin `594ca29e` · agac TEMIZ · worktree 6 (MIMAR 1 · CIP 5)
+✅ **INEN:** `d8e955e6` defter rotasyonu · `9f5544fb` MaCiT 7 urun metni · **`594ca29e` K318 ROL EKSENI**
+(bagimsiz curutuldu: kapi ONCESI `deny`→SONRASI `allow`, KONTROL `deny`; vaka 299→314, kirmizi 7→7 ARTMADI).
+🔴 **K318 KISMI — yalniz CIP bacagi:** isci bacagi ACIK · BaBa UCUNCU koldan duser · **MaCiT'e GELMEZ**
+(her ev kendi kapali kopyasini tasir) → kurucu `--rol-kapisi`; **SART: pozitif-kol fiksturu olculmeden
+hicbir eve yazilmaz**, BaBa ATLANIR. **DELIK:** `_proje_damgasi` KAYIPLI (`dev/pruvo`==`dev-pruvo`) →
+"aday damga ANA koke esitse RED" + vaka 815.
+🔴 **KOSAN 3 CIP:** SERIT B onarimi (`kral/serit-b-onarim-27agu`) · SERIT B **K3 kovasi** · `kral/nobet-turu-27agu` cakisma+curutme.
+🔴 **SERIT B (Okan ②):** 21 adim / 6 kova / `OLCULEMEDI=0`; #8+#9 K184 kaldirmasiyla KAPANDI.
+⛔ **② ULASILAMAZ, IKI ENGEL:** kalan adimlar **ve K220** (19 sapanin hepsi MODEL jetonu; ayrilmadan
+dokunmak CANLI marka sayfasi oldurur — onarim YASAK). SINIF: [[taban-kirmizisi-nobetciyi-susturur]] (4 mekanizma).
+🔴 **PARA YUZEYI:** civi bayatti (`kol=11`/10) → `POST /yonet/havale-onay` KASITLI+GUVENLI, ama nobetci
+**3 GUN** hukum vermedi. Civi SAYI degil **AD KUMESI**; sayi yamasi YASAK.
+🔧 **ACIK:** ⓑ `--yaz-sonrasi` KABLOSUZ · ⓒ HTML 4 saat CF'de, repoda kol YOK → **OKAN KAPISI** · ⓓ sessiz
+kirpma ~34 aday · ⓔ ⑦ bekci · ⓕ K314 · ⓖ ayni sayinin IKI kaynagi (761'de 1 sapan).
+⛔ `claude/ecstatic-maxwell-5a6f40` (`4b68adda`) MERGE EDILMEZ — K269.
 **Okan'da bekleyen: `pruvo-jenerator` icin GitHub App repository access (TeKiN talebi).**
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
@@ -86,26 +93,21 @@ varlik TTL sabit, `Age` serisiyle* · ⓓ K321 karantina · ⓔ ⑦ bekci vakala
 K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204:** `OKSUZ` fiilen
 "kirli mi" olcuyor, TEK BASINA kaldirma gerekcesi DEGIL. · 🔧 **K188** → kaynak-dogrusunda (5/5, `KraL-K309D2`: rc=0 ama eksen bataryada YOK).
 - 🔧 **K218 · K219 · K221:** tam metinler ARSIVDE. (K195 merge edildi `528da42d`.)
-- 🔧 **K198 (19 Agu — ⚖️ OKAN KAPISI):** izlenen yapilandirmada ticari alan var, nobetci o duzlemi
-  taramiyor (muafiyette de yok). **Tam metin ARSIVDE.** kabul: OLCER ya da `KAPSAM DISI` + mutant.
-- 🔧 **K179 (18 Agu):** `RECETE=9 REDDEDILEN=8 EVREN=390`; kalan 6 RED gercek. Hukum `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
+- 🔧 **K198** → ARSIVDE · izlenen yapilandirmada ticari alan var, nobetci o duzlemi
+- 🔧 **K179** → ARSIVDE · `RECETE=9 REDDEDILEN=8 EVREN=390`; kalan 6 RED gercek. Hukum `tools/paket-k179-recete-ayiklama.md` · kabul: `AYIKLANAMADI` ayri kova + 3...
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
-- 🔧 **K176:** D1 kilit mesaji YANLIS PID basiyor (`d1-sync.py:157`); yayini bloklamaz. kabul: tutani basar ya da OLCULEMEDI + mutant. · ⛔ `origin/k152-link-temiz` MERGE EDILMEZ (icerik `83aaf4e2`de) — SILINEBILIR.
-- 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR `cc6fece2`, icra bekliyor):** gizli kaynak
-  duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul `tools/paket-k171-kaynak-temizle.md`de.
-- 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
-  kalici `--yerel` yolu KraL'da, sonraki dilim oncesi. Tam metin ARSIVDE. `kabul:` alani BOS.
-- 🟠 **K139+N1 (CANLI CRON, ekip bilmeli):** gozcu `8,23,38,53` (15 dk); ci-nobeti `7 * * * *` artik
-  KOSULSUZ DEGIL (`nobet-tetik.py` kalbi okur; 24/gun→0). 🔧 N1: uzun tur kalbini bayat gosterir.
-- 🟠 **K144 (UCUSTAKI KOSUM):** ardarda push'lar build'i `cancelled` eder (ARIZA DEGIL); hukum guncel
-  uca tasinir. kabul: guncel ucu ICEREN kosum `success` **VE** cache-bust'SIZ canli teyit. ARSIVDE.
-- 🔧 **K140** → kaynak-dogrusunda (ikinci kopya ARSIVE indi 4/5, `KraL-K309D2`: kosum kaniti orada).
+- 🔧 **K176** → ARSIVDE · D1 kilit mesaji YANLIS PID basiyor (`d1-sync.py:157`); yayini bloklamaz · kabul: tutani basar ya da OLCULEMEDI + mutant.
+- 🔧 **K171** → ARSIVDE · gizli kaynak
+- 🔧 **K135** → ARSIVDE · `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
+- 🟠 **K139** → ARSIVDE · gozcu `8,23,38,53` (15 dk); ci-nobeti `7
+- 🟠 **K144** → ARSIVDE · ardarda push'lar build'i `cancelled` eder (ARIZA DEGIL); hukum guncel
+- 🔧 **K140** → ACIK_KALEMLER · → (ikinci kopya ARSIVE indi 4/5, `KraL-K309D2`: kosum kaniti orada)
 - 🔧 **17 Agu KALEMLERI:** K163 · K162 · K157 (⚖️ Okan, 22 Agu) · K158 · K146 · K142 (MaCiT) · K118. TAM METIN ARSIVDE.
 - 🔴 **K104 / K104B:** nobet sicili + iki kapi main'de kirmizi. HUKUM MIMARDA. · **K99**
   bag kolonu · **K100** satir-sonu muafiyeti · **K102** yasakli ic dosya adi.
-- 🟠 **K152** → kaynak-dogrusunda (ikinci kopya ARSIVE indi 3/5, `KraL-K309D2`: kabul araci main'de YOK).
+- 🟠 **K152** → ACIK_KALEMLER · → (ikinci kopya ARSIVE indi 3/5, `KraL-K309D2`: kabul araci main'de YOK)
 - 🔧 **Iki acik kapi kalemi:** (a) shop bayatlik TETIK ekseni ≠ bundle evreni; (b) `devam-sinif-kapisi.py`
   is-akisi muafiyeti `norm`/`ham` ayrisiyor. · 🟠 **K122:** `kurtarma/k122-yabanci-is` dali DURUYOR. ARSIVDE.
 - 🔧 **K151** (17-19 Agu): TAM METNI ARSIVDE (20 Agu 1:1 tasima blogu). · 🔧 **K161** → ISARETCI: KAYNAK-DOGRUSUNDA (26 Agu, `KraL-K309D2`).
@@ -114,5 +116,7 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
 - ✅ 25 Agu penceresi: 9 kalem kapandi → [[okan-25agu-kapatilan-konular]]; 🔴 yeniden ACILMAZ.
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
+
+## 🔧 K318 CIP-ROL — MERGE EDILDI `594ca29e` · isci bacagi ACIK (K318 kanonu acik; 299→314 vaka; MaCiT'e merge ile GELMEZ)
 
 ## ARSIVDE — 14-20 Agu `DEVAM-ARSIV.md`'de.

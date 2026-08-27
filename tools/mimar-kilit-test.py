@@ -914,7 +914,83 @@ BYPASS_MUHASEBESI = {
 }
 
 
-def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None, ek_env=None):
+# === 27 AGU 2026 (K318): OTURUM ROL EKSENI (cip/worktree oturumu vs mimarin ANA oturumu)
+#
+# Vaka tuple'inin 9. alani EK_PAYLOAD'dur: PreToolUse JSON'una BIREBIR eklenen alanlar
+# (or. `transcript_path`, `cwd`). Rol ekseni oturum damgasindan olculur; bu alan olmadan
+# ROL vakalari kurulamazdi.
+#
+# 🔴 ORACLE BAGIMSIZLIGI: asagidaki damga fonksiyonu, kapinin `_proje_damgasi`'ni
+# CAGIRMAZ — bilerek IKINCI ve BAGIMSIZ bir yazimdir. Fikstür kapidan turetilseydi,
+# damgayi bozan bir mutant fikstürü de bozar ve mutant GORUNMEZ olurdu; kabul o zaman
+# kendi kendini kutsayan bir totoloji olurdu ([[kabul-fiksturu-yasagi-kutsar]]).
+TRANSCRIPT_KOK = "/Users/okan/.claude/projects"
+KAYITLI_WT_DAMGA = "<<KAYITLI_WT_DAMGA>>"
+
+
+def _damga_oracle(yol):
+    """Kapidan BAGIMSIZ damga yazimi (ASCII): alfanumerik olmayan her karakter '-'."""
+    cikti = []
+    for k in yol:
+        cikti.append(k if (("a" <= k <= "z") or ("A" <= k <= "Z") or ("0" <= k <= "9"))
+                     else "-")
+    return "".join(cikti)
+
+
+# ANA oturumun damgasi: ana checkout HICBIR ZAMAN git'e worktree olarak KAYITLI degildir.
+TP_ANA = TRANSCRIPT_KOK + "/" + _damga_oracle(REPO) + "/oturum.jsonl"
+# CIP oturumu: damga, testin KENDI kurdugu KAYITLI gecici worktree'den turer (hermetik).
+TP_CIP = TRANSCRIPT_KOK + "/" + KAYITLI_WT_DAMGA + "/oturum.jsonl"
+# Kayitsiz uydurma: adinda '-claude-worktrees-' gecer ama git kaydinda YOKTUR.
+TP_SAHTE = TRANSCRIPT_KOK + "/-private-tmp-sahte--claude-worktrees-kotu/oturum.jsonl"
+# ALT-DIZE tuzagi: gercek damgayi ICINDE gecirir ama BILESEN olarak esit DEGILDIR.
+TP_BENZER = TRANSCRIPT_KOK + "/" + KAYITLI_WT_DAMGA + "-ek/oturum.jsonl"
+
+_CIP = {"transcript_path": TP_CIP, "cwd": KAYITLI_WT}
+
+ROL_VAKALARI = [
+    # --- KONTROL: mimarin ANA oturumu HALA REDDEDILIR (bu kol olurse is gecersiz) ---
+    (800, "deny", "Bash", "python3 tools/mimar-kilit-test.py", None,
+     "KONTROL: ANA oturum (damga YOK) -> RED", {}, None, {}),
+    (801, "deny", "Bash", "python3 tools/mimar-kilit-test.py", None,
+     "KONTROL: ANA oturum damgasi (ana checkout) -> RED", {}, None,
+     {"transcript_path": TP_ANA}),
+    (805, "deny", "Bash", "python3 tools/mimar-kilit-test.py", None,
+     "KONTROL: cwd worktree'ye KAYDIRILMIS ama rol ANA -> RED (cwd eksen DEGIL)", {}, None,
+     {"transcript_path": TP_ANA, "cwd": KAYITLI_WT}),
+    (806, "deny", "Bash", "python3 tools/mimar-kilit-test.py", None,
+     "FAIL-CLOSED: cwd worktree, damga YOK (olculemedi) -> RED", {}, None,
+     {"cwd": KAYITLI_WT}),
+    (807, "deny", "Bash", "python3 tools/mimar-kilit-test.py", None,
+     "FAIL-CLOSED: damga ALT-DIZE olarak geciyor, BILESEN esit degil -> RED", {}, None,
+     {"transcript_path": TP_BENZER, "cwd": KAYITLI_WT}),
+    (812, "deny", "Bash", "python3 tools/mimar-kilit-test.py", None,
+     "FAIL-CLOSED: kayitsiz uydurma 'worktrees' damgasi -> RED", {}, None,
+     {"transcript_path": TP_SAHTE, "cwd": KAYITLI_WT}),
+    # --- POZITIF: cip/worktree oturumu ICRA EDEBILIR ---
+    (802, "allow", "Bash", "python3 tools/mimar-kilit-test.py", None,
+     "CIP: repo-ici araci kosturur (bloke edilen ASIL vaka)", {}, "CIP(", _CIP),
+    (803, "allow", "Bash", "head -5 DEVAM.md", None,
+     "CIP: olcum komutu serbest", {}, "CIP(", _CIP),
+    (804, "allow", "Bash", "curl -s https://pruvo3d.com/", None,
+     "CIP: canli dogrulama serbest", {}, "CIP(", _CIP),
+    (813, "allow", "Bash", "git -C " + REPO + " status -sb", None,
+     "CIP: git regresyonu (zaten serbestti, oyle kalir)", {}, "CIP(", _CIP),
+    (814, "allow", "Bash", "node --check " + REPO + "/secenekler.js", None,
+     "CIP: node --check serbest (repo ICI hedef)", {}, "CIP(", _CIP),
+    # --- SINIR: cip TAM MUAF DEGILDIR (kapsam duzeltmesi, gevsetme degil) ---
+    (808, "deny", "Bash", "python3 -c \"import os\"", None,
+     "CIP'te de KAPALI: yorumlayiciya satir-ici kod", {}, None, _CIP),
+    (809, "deny", "Bash", "python3 /private/tmp/analiz.py", None,
+     "CIP'te de KAPALI: repo DISI betik", {}, None, _CIP),
+    (810, "deny", "Bash", ISCI_W + " claude " + REPO + " " + ISCI_SPEC_BEYANSIZ, None,
+     "CIP'te de KAPALI: 13 Agu Okan emri (isci.sh claude, sert blok ev)", {}, None, _CIP),
+    (811, "deny", "Agent", "worktree'de olcum yap", None,
+     "CIP'te de KAPALI: AGENT-KAPISI (Claude iscisi yasagi)", {}, None, _CIP),
+]
+
+
+def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None, ek_env=None, ek_payload=None):
     """PreToolUse kancasini gercek payload'la kosturur.
     Doner: (karar, gerekce_ozeti). Karar: allow/deny/EKSIK-KANCA/COKTU/
     PARSE-HATASI/IZSIZ-ALLOW."""
@@ -950,6 +1026,9 @@ def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None, ek_env=None):
     # agent_id YALNIZCA verildiginde konur — mimar payload'unda ANAHTAR HIC YOKTUR.
     if agent_id is not None:
         payload["agent_id"] = agent_id
+    # K318: ROL vakalarinin payload alanlari (transcript_path / cwd). Anahtar HIC
+    # konmadiginda rol OLCULEMEZ ve fail-closed ANA sayilir — 800/806 tam bunu olcer.
+    payload.update(ek_payload or {})
 
     ortam = dict(os.environ)
     ortam.pop("CLAUDE_PROJECT_DIR", None)
@@ -993,7 +1072,13 @@ def kume_kostur(baslik, vakalar, cwd=REPO):
         no, beklenen, arac, hedef, agent_id, aciklama = vaka[:6]
         ek_env = vaka[6] if len(vaka) > 6 else {}
         beklenen_iz = vaka[7] if len(vaka) > 7 else None
-        if KAYITLI_WT in hedef:
+        ek_payload = dict(vaka[8]) if len(vaka) > 8 else {}
+        # K318: gecici worktree isaretleri hem hedefte hem payload alanlarinda cozulur
+        # (rol vakalarinin damgasi o worktree'den turer — hermetiklik korunur).
+        payload_isaretli = any(
+            isinstance(v, str) and (KAYITLI_WT in v or KAYITLI_WT_DAMGA in v)
+            for v in ek_payload.values())
+        if KAYITLI_WT in hedef or payload_isaretli:
             if not KAYITLI_WT_YOL:
                 cevre_atlanan.append(no)
                 print("{:<4} {:<8} {:<12} {:<7} {:<6} {:<40}".format(
@@ -1001,7 +1086,12 @@ def kume_kostur(baslik, vakalar, cwd=REPO):
                     "ATLA", aciklama[:40]))
                 continue
             hedef = hedef.replace(KAYITLI_WT, KAYITLI_WT_YOL)
-        olculen, iz = kancayi_kostur(arac, hedef, cwd, agent_id, ek_env)
+            damga = _damga_oracle(KAYITLI_WT_YOL)
+            ek_payload = {
+                a: (v.replace(KAYITLI_WT_DAMGA, damga).replace(KAYITLI_WT, KAYITLI_WT_YOL)
+                    if isinstance(v, str) else v)
+                for a, v in ek_payload.items()}
+        olculen, iz = kancayi_kostur(arac, hedef, cwd, agent_id, ek_env, ek_payload)
         gecti = (olculen == beklenen and
                  (beklenen_iz is None or beklenen_iz in iz))
         if olculen in ATLANAN_ISARETLER:
@@ -1621,6 +1711,8 @@ def main():
          ISCI_SARMALAYICI_VAKALARI, REPO),
         ("13 AGU-2 ISCI KIMLIK EKSENI — vaka-bazli env + ayrisik iz",
          ISCI_KIMLIK_EKSENI_VAKALARI, REPO),
+        ("27 AGU K318 ROL EKSENI — ANA oturum RED / CIP oturumu GECER + fail-closed + sinir",
+         ROL_VAKALARI, REPO),
     ]
 
     if SADECE_KIMLIK_EKSENI:
