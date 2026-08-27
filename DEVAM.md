@@ -3,10 +3,6 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔁 DEVIR DEVRALINDI — 27 Agu 22:45, yeni hesap · main=origin `847d7509` · agac TEMIZ (devir bloğunun TAM metni `847d7509`'da)
-**SIRADAKI TEK IS:** `tools/k3-cikti-kok-mutasyon.py`'yi CI kapsamina sok (kapi hakli: tuketicisiz arac = K269)
-— cip `KraL-K3CiKapsam` (`task_5a86defe`) KOSUYOR; sonra #14(a)→#14(b). ✅ **2.YARIM IS KAPANDI:** CI `33110761047` adim57 `Cip satirlari`=**success**
-(TABAN `33090233203`=failure) · mutasyon 38/38 (taban 1/40) · merge **`d74d71e6`** · dal SILINDI. **3.** `BelgeOnbellegi` BLOKE = OKAN KAPISI (ⓔ, `.cf-token` zone'da yetkisiz).
-**ACILISTA OLCULEN** (tam dokum KUTUDA, 22:45 devralma blogu): worktree 3→2 · rutin once=1 sonra=5 kurulan=2 catisan=0.
 🔴 **KAPI CELISKISI (SINIF, bugun olculdu):** defter-kotasi careyi `defter-rotasyon.py --tavan-kaynaktan
 --isaretciye-indir` yaziyor (K258 "mimarda SERBEST"), `mimar-icra-kapisi` ayni cagriyi ANA oturumda REDDEDIYOR —
 muafiyet ikinci kapinin listesine YANSIMAMIS. Kabul: iki kapi TEK listeden beslenir + mutant.
@@ -18,7 +14,13 @@ vaka 815 · ⓔ HTML 4 saat = OKAN KAPISI · ⓕ ic rapor ad kalibi genisliyor �
 **Okan'da bekleyen karar:** `pruvo-jenerator` GitHub App repository access (TeKiN).
 🔴 **UYDURMA:** m3 turu olmayan `02a0e2c0` SHA'si + olmayan gorev uydurdu, gercek raporu EZDI (13 SHA dogrulandi,
 baskasi YOK; tam metin KUTUDA) → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
-⛔ `claude/ecstatic-maxwell-5a6f40` MERGE EDILMEZ (K269) · **ISCI TURU TAVANI $10**, spec BOLUNUR.
+✅ **K3 MERGE `e59c0bcc`** (28 Agu): 4 dosya 1183+/124-, CI `k3-cikti-kok-bataryasi`=**success**
+(`33121714135`), D1 30928 ✅, yeni kirmizi YOK, dal+worktree SILINDI. K269 DUSTU.
+🔴 **K330 (28 Agu, SINIF):** `k3-cikti-kok-mutasyon.py` AYNI agacta ardisik iki kosumda ZIT
+hukum: #1 `M_KOK=KACTI rc!=0`, #2 `M_KOK=OLDURULDU KONTROL=YESIL EKSEN=B rc=0`. Fark: #1'in
+temizligi 12 gitignored ARTIK yolu sildi — artik varken uc eksen de kor, `porcelain` BOS = agac "temiz".
+Fail-CLOSED. Kok: temizlik landing dizinlerini KAPSAMIYOR. kabul: olcum oncesi cikti
+yollari sifirlanir ya da `OLCULEMEDI: taban artikli` + mutant. → [[artik-yuzey-mutant-dedektorunu-korlestirir]]
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu KAPANAN 4 KALEM (K250·K302·K303·K305) — TAM METIN ARSIVDE**, "KAPANAN 4 KALEM" basligi.
