@@ -3,15 +3,6 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔚 27 AGU KAPANIS · main=origin `25b2879b` SHA-BIREBIR · agac TEMIZ · worktree 9→5 · kosan cip 4
-✅ **CANLIYA GIDEN (7 merge):** `051b74d0` kutu kilidi SINIF · `2c6640ac` sabah teslim · `3eee64d4`
-K314 · `05d5df85` **K184 sihirbazi KOKUNDEN kalkti** (canli: buton VAR→YOK, konsol 0, odeme yolu
-davranisla saglam) · `34ca7283` defter rotasyon birimi · `23098ae2` ORTAM kolu TURETIYOR ·
-`25b2879b` yedek dususu sessiz gecemez. Uc merge BAGIMSIZ dogrulayici tarafindan olculdu; git
-ekseni mimar elinde: 14 dosya hepsi `tools/`, `urunler.json` DOKUNULMADI, sizinti taramasi **0**.
-🟢 **GUNUN SINIFI:** *olcut yanlis ekseni okuyunca koruma yayin durdurur* — kutu kilidi 5 commit'i
-durdurmustu; ① jeton yalniz KAPANIS satirinda sayilir ② korumali blok rotasyona GIRMEZ ③ kapi
-aracin HUKMUNU okur.
-Canli kanit: kutu 570→220, sonra 331→230, `KAYIP=0` uc eksende.
 🔴 **KOSUYOR (4, motor Claude):** `KraL-IcraKapisiKimlik` (dal `kral/icra-kapisi-kimlik-27agu`
 `82a30b41` — kapi cipteki isciyi mimar sayiyor, MaCiT hatti haftalardir BLOKE) · `KraL-BelgeOnbellegi`
 (HTML belgesi `max-age=14400`) · `KraL-KarantinaHukmu` (dal `kral/nobet-turu-27agu`) · `KraL-DogrulaMerge`.
