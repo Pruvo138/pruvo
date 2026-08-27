@@ -47,6 +47,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import datetime as dt
 import os
 import re
@@ -62,9 +63,44 @@ REPO = Path("/Users/okan/dev/pruvo")
 SPEC_DIR = Path.home() / ".claude/cron/tamirci-spec"
 
 # ---- ORTAM SÖZLEŞMESİ (① + ②) ----
-# `from __future__ import annotations` 3.7'de geldi; asgari sürüm ONDAN türer.
-ASGARI_SURUM = (3, 7)
 BU_BETIK = Path(os.path.abspath(__file__))
+
+# ============================================================================
+# 🔴 27 AĞU 2026 — `KraL-SabahYorumlayici-27Agu`: ASGARİ SÜRÜM ARTIK LİTERAL DEĞİL
+# ----------------------------------------------------------------------------
+# ESKİ HÂL: `ASGARI_SURUM = (3, 7)` — ELLE yazılmış bir sayı; gerekçesi yalnız
+# üstündeki YORUM SATIRINDA duruyordu. Kusur bu evin tekrar eden sınıfının bir
+# yüzü: bir yerde ÜRETİLEN değerin tüketicisi BAŞKA EKSENİ okur. Burada tüketici
+# (`ortam_uyumlu`) "kodun gerçekten neye ihtiyacı var" sorusunu değil, "birinin
+# bir gün yazdığı sayı" sorusunu okuyordu. Sonuç: dosyaya çalıştırma anında
+# değerlendirilen bir `X | Y` ya da `match` girdiği anda literal 3.7'de KALIR,
+# kol 3.9'da `UYUM=EVET` basar ve araç KENDİ ÇALIŞAMAYACAĞI sürümü ONAYLAR.
+# 27 Ağu sabahı `kral-sabah.log`a düşen tam olarak buydu: TypeError'ın hemen
+# ardından `ASGARI=3.7 UYUM=EVET`.
+#
+# YENİ HÂL: asgari sürüm KAYNAĞIN KENDİSİNDEN türetilir (AST taraması). Yarın
+# eklenecek sözdizimi de kapsanır, çünkü ölçülen şey METNİN KENDİSİDİR.
+# 🔴 FAIL-CLOSED: türetme yapılamıyorsa (kaynak okunamadı / bu yorumlayıcı
+# kaynağı DERLEYEMİYOR) hüküm `ASGARI=OLCULEMEDI UYUM=HAYIR`dır — sessiz yeşil
+# YOK. "Çalışamayacağım sürümde yeşil yakmak" bu kalemin ta kendisiydi.
+#
+# ⚠️ SINIR (bilerek yazıldı, iddia edilmiyor): bu tarama SÖZDİZİMİ eksenini
+# ölçer, KÜTÜPHANE eksenini (`str.removeprefix`, `zoneinfo`, …) DEĞİL. Kütüphane
+# sapması ② ÇAPRAZ ORTAM kolunun işidir — orada araç crontab'ın kendi
+# yorumlayıcısıyla FİİLEN koşturulur.
+# ============================================================================
+
+# Sözdizimi-kapısı olmayan bir dosyanın tabanı: f-string (3.6).
+_SURUM_TABANI = (3, 7)
+
+# PEP 585 — yerleşik jenerikler (`list[int]`), 3.9.
+_PEP585_ADLARI = ("list", "dict", "set", "frozenset", "tuple", "type")
+# PEP 604 — `X | Y` yalnız BU adlar/`None` arasında görülürse tip birleşimi
+# sayılır. Amaç yanlış-pozitifi kesmek: `bayrak | MASKE` bir tip ifadesi DEĞİL,
+# ve yanlış-pozitif fail-closed kolu yüzünden aracı DURDURURDU.
+_TIP_ADLARI = ("str", "int", "float", "bool", "bytes", "bytearray", "complex",
+               "object", "list", "dict", "set", "frozenset", "tuple", "type",
+               "Path", "Any")
 
 
 def surum_dizgesi(vi=None) -> str:
@@ -72,14 +108,158 @@ def surum_dizgesi(vi=None) -> str:
     return "%d.%d.%d" % (vi[0], vi[1], vi[2])
 
 
+def _annotation_dugumleri(agac):
+    """Annotation BAĞLAMINDA duran düğümlerin kimlik kümesi.
+
+    `from __future__ import annotations` YALNIZ bu bağlamı dizgeye çevirir;
+    çalıştırma bağlamındaki aynı yazım hâlâ o sürümü İSTER. Ayrım bu yüzden şart.
+    """
+    kokler = []
+    for d in ast.walk(agac):
+        if isinstance(d, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if d.returns is not None:
+                kokler.append(d.returns)
+            a = d.args
+            gruplar = [getattr(a, "posonlyargs", None) or [], a.args, a.kwonlyargs]
+            for grup in gruplar:
+                for arg in grup:
+                    if arg.annotation is not None:
+                        kokler.append(arg.annotation)
+            for arg in (a.vararg, a.kwarg):
+                if arg is not None and arg.annotation is not None:
+                    kokler.append(arg.annotation)
+        elif isinstance(d, ast.AnnAssign) and d.annotation is not None:
+            kokler.append(d.annotation)
+    icinde = set()
+    for k in kokler:
+        for d in ast.walk(k):
+            icinde.add(id(d))
+    return icinde
+
+
+def _tip_ifadesi_mi(d) -> bool:
+    """`X | Y`nin operandı bir TİP gibi mi duruyor (yanlış-pozitif kesici)."""
+    if isinstance(d, ast.Constant):
+        return d.value is None
+    if isinstance(d, ast.Name):
+        return d.id in _TIP_ADLARI
+    if isinstance(d, ast.Attribute):
+        return d.attr in _TIP_ADLARI or d.attr[:1].isupper()
+    if isinstance(d, ast.Subscript):
+        return _pep585_mi(d) or _tip_ifadesi_mi(d.value)
+    if isinstance(d, ast.BinOp) and isinstance(d.op, ast.BitOr):
+        return _tip_ifadesi_mi(d.left) and _tip_ifadesi_mi(d.right)
+    return False
+
+
+def _pep585_mi(d) -> bool:
+    return isinstance(d, ast.Subscript) and isinstance(d.value, ast.Name) \
+        and d.value.id in _PEP585_ADLARI
+
+
+def asgari_surum_turet(kaynak=None, yol=None):
+    """KAYNAK METNİN gerçek asgari Python sürümünü TÜRETİR (literal YOK).
+
+    Döner: (surum|None, kanit, sebep)
+      * `surum is None` ⇒ `sebep` doludur ve hüküm FAIL-CLOSED'dur.
+      * `kanit` = [(surum, etiket, satir), ...] — sayının NEREDEN geldiği.
+    """
+    yol = str(yol or BU_BETIK)
+    if kaynak is None:
+        try:
+            with open(yol, encoding="utf-8") as f:
+                kaynak = f.read()
+        except Exception as e:
+            return None, [], "KAYNAK_OKUNAMADI %s: %s" % (type(e).__name__, str(e)[:120])
+    try:
+        agac = ast.parse(kaynak, filename=yol)
+    except SyntaxError as e:
+        # 🔴 Bu KESİN OLUMSUZ bir hükümdür, "ölçemedim" değil: koşan yorumlayıcı
+        #    bu kaynağı DERLEYEMİYOR. Sürüm numarası kıyaslamaya bile gerek yok.
+        return None, [], "SOZDIZIM satir=%s: %s" % (
+            getattr(e, "lineno", "-"), str(getattr(e, "msg", e))[:120])
+
+    annot = _annotation_dugumleri(agac)
+    kanit = []
+
+    def talep(surum, etiket, dugum):
+        kanit.append((surum, etiket, int(getattr(dugum, "lineno", 0) or 0)))
+
+    gelecek_annot = False
+    for d in ast.walk(agac):
+        if isinstance(d, ast.ImportFrom) and d.module == "__future__":
+            for al in d.names:
+                if al.name == "annotations":
+                    gelecek_annot = True
+                    talep((3, 7), "from __future__ import annotations", d)
+
+    Match = getattr(ast, "Match", None)
+    TryStar = getattr(ast, "TryStar", None)
+    NamedExpr = getattr(ast, "NamedExpr", None)
+
+    for d in ast.walk(agac):
+        annot_icinde = id(d) in annot
+        if NamedExpr is not None and isinstance(d, NamedExpr):
+            talep((3, 8), "walrus ':='", d)
+        elif isinstance(d, ast.arguments) and getattr(d, "posonlyargs", None):
+            talep((3, 8), "yalniz-konumsal parametre '/'", d)
+        elif Match is not None and isinstance(d, Match):
+            talep((3, 10), "match/case", d)
+        elif TryStar is not None and isinstance(d, TryStar):
+            talep((3, 11), "except*", d)
+        elif isinstance(d, ast.BinOp) and isinstance(d.op, ast.BitOr) \
+                and _tip_ifadesi_mi(d.left) and _tip_ifadesi_mi(d.right):
+            if annot_icinde and gelecek_annot:
+                continue  # dizgeye döner; çalıştırma anında DEĞERLENDİRİLMEZ
+            talep((3, 10), "PEP604 'X | Y'%s" % (
+                " (annotation, __future__ YOK)" if annot_icinde else " (calistirma baglami)"), d)
+        elif _pep585_mi(d):
+            if annot_icinde and gelecek_annot:
+                continue
+            talep((3, 9), "PEP585 '%s[...]'%s" % (
+                d.value.id,
+                " (annotation, __future__ YOK)" if annot_icinde else " (calistirma baglami)"), d)
+
+    if not kanit:
+        return _SURUM_TABANI, [], ""
+    return max(k[0] for k in kanit), kanit, ""
+
+
+# 🔴 TÜRETİLİR — modül yüklenirken, KENDİ kaynağından. Elle atanmaz.
+ASGARI_SURUM, ASGARI_KANIT, ASGARI_SEBEP = asgari_surum_turet()
+
+
+def asgari_dizgesi(surum=-1) -> str:
+    """(3, 10) -> '3.10' · None -> 'OLCULEMEDI'. Varsayılan: bu betiğinki."""
+    if surum == -1:
+        surum = ASGARI_SURUM
+    if surum is None:
+        return "OLCULEMEDI"
+    return "%d.%d" % (surum[0], surum[1])
+
+
+def asgari_kaynagi() -> str:
+    """Sayının NEREDEN türediği — tek satır, makine-okunur."""
+    if ASGARI_SEBEP:
+        return ASGARI_SEBEP.replace(" ", "_")
+    if not ASGARI_KANIT:
+        return "TABAN_%d.%d(surum-kapili_sozdizimi_YOK)" % _SURUM_TABANI
+    en = max(k[0] for k in ASGARI_KANIT)
+    etiket, satir = [(k[1], k[2]) for k in ASGARI_KANIT if k[0] == en][0]
+    return "%s@satir%d" % (etiket.replace(" ", "_"), satir)
+
+
 def ortam_satiri() -> str:
     """Koşum ortamının TEK SATIRLIK, makine-okunur raporu."""
-    uyum = "EVET" if sys.version_info[:2] >= ASGARI_SURUM else "HAYIR"
-    return "ORTAM yorumlayici=%s surum=%s ASGARI=%d.%d UYUM=%s" % (
-        sys.executable or "-", surum_dizgesi(), ASGARI_SURUM[0], ASGARI_SURUM[1], uyum)
+    uyum = "EVET" if ortam_uyumlu() else "HAYIR"
+    return "ORTAM yorumlayici=%s surum=%s ASGARI=%s ASGARI_KAYNAK=%s UYUM=%s" % (
+        sys.executable or "-", surum_dizgesi(), asgari_dizgesi(), asgari_kaynagi(), uyum)
 
 
 def ortam_uyumlu() -> bool:
+    # 🔴 FAIL-CLOSED: türetilemediyse UYUMLU SAYILMAZ.
+    if ASGARI_SURUM is None:
+        return False
     return sys.version_info[:2] >= ASGARI_SURUM
 
 
@@ -439,14 +619,39 @@ def main() -> int:
                     help="modülü yükler, tek satır ortam raporu basar (çapraz ölçüm hedefi)")
     ap.add_argument("--spec-dizin", default=None,
                     help="spec'in yazılacağı dizin (A3 fikstürü; varsayılan ~/.claude/cron/tamirci-spec)")
+    ap.add_argument("--asgari", nargs="?", const="", default=None, metavar="YOL",
+                    help="verilen dosyanın (varsayılan: bu betik) asgari sürümünü TÜRETİP basar")
     args = ap.parse_args()
+
+    # --- --asgari: türetme kolunun FİKSTÜRE UYGULANABİLİR yüzü. Bir 3.10
+    #     yorumlayıcısı olmadan da "bu kaynak 3.10 ister" hükmü ölçülebilsin
+    #     diye ayrı bayrak; ORTAM kolundan ÖNCE, çünkü uyumsuz kaynağı da
+    #     ölçebilmeli. ---
+    if args.asgari is not None:
+        hedef = args.asgari or str(BU_BETIK)
+        surum, kanit, sebep = asgari_surum_turet(yol=hedef)
+        uyum = "HAYIR" if surum is None else (
+            "EVET" if sys.version_info[:2] >= surum else "HAYIR")
+        en = None if surum is None else max(k[0] for k in kanit) if kanit else surum
+        if sebep:
+            kaynak_alani = sebep.replace(" ", "_")
+        elif not kanit:
+            kaynak_alani = "TABAN_%d.%d(surum-kapili_sozdizimi_YOK)" % _SURUM_TABANI
+        else:
+            etiket, satir = [(k[1], k[2]) for k in kanit if k[0] == en][0]
+            kaynak_alani = "%s@satir%d" % (etiket.replace(" ", "_"), satir)
+        print("ASGARI_TURETME hedef=%s ASGARI=%s ASGARI_KAYNAK=%s kanit=%d UYUM=%s" % (
+            hedef, asgari_dizgesi(surum), kaynak_alani, len(kanit), uyum))
+        for s, etiket, satir in sorted(kanit, reverse=True):
+            print("  KANIT %d.%d  %-52s satir=%d" % (s[0], s[1], etiket, satir))
+        return 0 if uyum == "EVET" else 3
 
     # --- ① ORTAM: her koşumun İLK satırı; uyumsuzluk ADIYLA basılır ---
     print(ortam_satiri())
     if not ortam_uyumlu():
-        print("ORTAM_UYUMSUZ: bu araç en az Python %d.%d ister, koşum %s ile yapıldı. "
-              "SESSIZ COKME YERINE ADIYLA DURDUM." % (
-                  ASGARI_SURUM[0], ASGARI_SURUM[1], surum_dizgesi()), file=sys.stderr)
+        print("ORTAM_UYUMSUZ: bu araç en az Python %s ister, koşum %s ile yapıldı "
+              "(kaynak: %s). SESSIZ COKME YERINE ADIYLA DURDUM." % (
+                  asgari_dizgesi(), surum_dizgesi(), asgari_kaynagi()), file=sys.stderr)
         return 3
 
     # --- --ortam-testi: çapraz ölçümün HEDEFİ. Modül YÜKLENDİ (annotation'lar
