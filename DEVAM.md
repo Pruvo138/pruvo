@@ -116,9 +116,7 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
 - ✅ 25 Agu penceresi: 9 kalem kapandi → [[okan-25agu-kapatilan-konular]]; 🔴 yeniden ACILMAZ.
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
-- ✅ **K319 KAPANDI:** shop worker bayatti → Okan onayiyla deploy; surum `913f4969`→**`45550c39`**, nabiz
-  `rc=1`→**`rc=0 TAZE`** (CI `33087739837` success), odeme yolu gerilemesiz (butona BASILMADI).
-  ⚠️ `TALEP_SAYAC` KV binding'i worker'dan KALKTI; namespace+icerik CF'de DURUYOR. (15:40Z nobet satiri bayatti.)
+- 🔧 **K329 (28 Agu, CI nobeti):** iki kapi dosyasi kanonik `git_ortami.sentetik_git`'e gecirildi, yerelde YESIL olculdu; main'e INEMEDI — kutu 306>300, 6 blok `ARŞİVLENEBİLİRİM` bekliyor (**Okan arsivi**), is `ci-nobet-git-ortami` dalinda stage'li.
 
 ## 🔧 K318 CIP-ROL — MERGE EDILDI `594ca29e` · isci bacagi ACIK (K318 kanonu acik; 299→314 vaka; MaCiT'e merge ile GELMEZ)
 
