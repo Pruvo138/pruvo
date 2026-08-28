@@ -21,48 +21,7 @@ OnarimZinciri` (`task_0fe4a08f`, K332 MAIN'DE DEGIL) · `KuyrukEvreni` · `Telef
 🔴 **YENI KALEM K330-K340** (11 kalem, K333 kapandi; tam metin+kabul `acik-kalemler.md`).
 **BEKLIYOR:** MaCiT iki dilim-3 (bisiklet 40 · Marin 9 pid) K332'ye bloke.
 
-## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
-- ✅ **25-26 Agu KAPANAN 4 KALEM (K250·K302·K303·K305) — TAM METIN ARSIVDE**, "KAPANAN 4 KALEM" basligi.
-- 🔧 **K250 KALAN:** KaaN·ArTisT·HocA·BaBa — her biri tek satirlik `expanduser` duzeltmesi, KENDI
-  mimarlarinda; KraL kardes depoya yazmaz. · 🔧 **K302 KALAN:** kok neden MaCiT'in `olcum/hasat_ekle.py`
-  dosyasinda, kutuda bildirildi.
-- 🔧 K307 yan bulgu (kalem KAPANDI `32909205580`): isci probu 206'yi "olu" saydi → [[prob-kendi-baglamini-olcer]]
-- 🔧 **K304:** ① 3 kopya SILINDI, yedekle.py BORCLU. ✅ ② KAPANDI: bootstrap (`e630bce7`) + **FILO 6/6**
-  (4 ev 4/4 KILITLIYDI, KraL elinden kuruldu; MUTANT=OLDURULDU ATIF=HEDEF_TEK, KONTROL yesil; ROL
-  EKSENI GELDI HocA/ArTisT, TeKiN/BaBa wt yok=OLCULEMEDI + shim skip-worktree, commit ev sahibinde)
-- 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
-- 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
-  kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
-  D1 senkron lease/race; kabul: fikstur + senkron bitmeden CIKMAZ ya da `OLCULEMEDI` + mutant.
-- 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
-- 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
-  sayac ISLE TASINIR, kapi reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
-- 🔧 **K245** bitis satiri isci ciktisinda belirir · 🔧 **K240**
-  kapi yardim metni bayat · 🔴 **K245 2. YUZ:** satir kutuya duser, SON PANEL MESAJINA dusmez ·
-  🔧 **K241 (SINIF, UC YUZEY)** · 🔧 **K242** mutasyon kolu YOK · 🔧 **K244** kabul listesi ≠ CI
-  kapsami. (K243 KAPANDI `951059fa`.) Tam metinler KUTUDA.
-- 🔧 **K260:** N4B gocunun 15 kaydindan 10'u `kat_sec` ile yine MIMAR'a dusup `[DAGITILMAZ]` kaliyor. kabul: yuklem + mutant.
-- 🔧 **K233:** batarya beklenen kumeleri ELLE tasiniyor (SINIF; kabul: sayi TURETILIR + mutant) ·
-  🔧 **K238:** `marka-sayfa-mutasyon` taban kirmizisinda KENDINI KAPATIYOR (kabul: bagimsiz kosar
-  ya da `KAPSAM=0` jetonu BASAR).
-- 🔧 **K234:** CAYMA_RE "iade"yi yakalamiyor (m.15 disi hak vaadi gorunmez); kabul: olcer+3 mutant. ·
-  🔧 **K235 (SINIF):** hukuki beyan kapilari `hijyen-a3`te, `deploy.needs` DISINDA — UCU BIRDEN
-  karara baglanir, tekil tasima YASAK.
-- 🔧 **K269 (24 Agu, K256'dan DOGDU — CAGRI YERI YOK):** nabiz hukmunu OKUYAN taraf YOK; atiflar =
-  2 crontab kosum satiri + 1 crontab yedegi + 1 ilgisiz `baglam-olcum.tsv` etiketi, kovayi TUKETEN
-  **0** ([[kapinin-menzili-cagri-yeridir]]). kabul: >=1 tuketici + tuketicinin KOVAYA GORE davranis
-  degistirdigini kanitlayan mutant; jeton taramasi kabul DEGIL.
-- 🔧 **K276 (24 Agu, K256'dan DOGDU — KABUL CI DISINDA):** `kimi-nabiz-test.py` repo DISINDA
-  (`~/.claude/cron/`), kapsam kapisinin duzlemi repo ici → hicbir is akisindan kosmuyor, yalniz
-  ELLE olculuyor. kabul: bir CI adimindan kosar (hijyen seridi) + `CI_KAPSAM_RC` basar + mutant:
-  kol bozulunca O ADIM kirmizi yanar. Muafiyet listesi kabul DEGIL. · 🔧 **K275** `ci-kapsam`
-  yalniz `tools/` DOGRUDAN altini tariyor (`k260/`,`n4b/` MENZIL DISI). · 🔧 **K272·K273·K274·
-  K277** defter/kutu ailesi: rotasyon vetosu · numara atomik DEGIL (bugun 3 cakisma) · rc=2
-  gozcude CI_KIRMIZI · arsiv jetonu okunmadan tasiniyor. **Bes kalemin tam metni KUTUDA.**
-- 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
-- 🔧 **K283:** baslik kolunun capa ekseni ureticiden BAGIMSIZ degil; kabul: ayri capa + `M4` mutanti KIRMIZI. KUTUDA.
-- 🔧 **K282 (OLCULEMEDI):** `DURUM_BITMEYEN_TUR`, `DAGITILMAZ_DURUMLAR` disinda; kabulun 1. kolu
-  ERISILEBILIRLIK. (K86 merdiven kaydi KONUSUZ — kalem 25 Agu'da kapandi; **K281 CURUDU**.)
+defter kotasi 28 Agu: 12.287 B -> 8113 B (rotasyon, kayipsiz; arsiv 22204 -> 22254 satir)
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
@@ -120,7 +79,5 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
 - 🔧 **K329 (28 Agu, CI nobeti):** iki kapi dosyasi kanonik `git_ortami.sentetik_git`'e gecirildi, yerelde YESIL olculdu; main'e INEMEDI — kutu 306>300, 6 blok `ARŞİVLENEBİLİRİM` bekliyor (**Okan arsivi**), is `ci-nobet-git-ortami` dalinda stage'li.
 
-## ✅ K342 gecici worktree artigi KAPANDI
-## 🔧 K318 CIP-ROL — MERGE EDILDI `594ca29e` · isci bacagi ACIK (K318 kanonu acik; 299→314 vaka; MaCiT'e merge ile GELMEZ)
 
 ## ARSIVDE — 14-20 Agu `DEVAM-ARSIV.md`'de.
