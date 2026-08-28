@@ -517,9 +517,16 @@ jobs:
       # fazladan bir ad eklemek nobetciyi GECIYORDU (dis mutasyon bataryasinda olculdu).
       # TERS YON kollari (A3/A4) + M5 mutanti eklendi: metnin ilgili parcasi turetilmis
       # dizgeye BIREBIR esitlenir, iki yonde de sapma KIRMIZI yakar.
-      # Kollar: turetilmislik + TERS YON + CAGRI YERI + mutantlar + NEGATIF kontrol.
-      # Vaka sayisi aracin kendisi basar (buraya YAZILMAZ — bayatlar).
-      # Mutantlar git-DISI tempdir'de kosar. SERIT B. ~<2 s.
+      # 🔴 K344 (28 Agu) IKI EKSEN EKLENDI:
+      #   A) her OLDURUCU mutant artik HEDEF KOLU adiyla civiler ve KOMSU KOLUN YESIL
+      #      kaldigini AYRICA kanitlar (toptan devirme ile hedefli oldurme ayrilir).
+      #   B) ARAC -> KAYNAK yonu (C5/C6): araca eklenip tabloya yazilmayan bayrak
+      #      KIRMIZI yanar. `--kapanislari-isle` tam o bosluktan dusmustu.
+      # Kollar: turetilmislik + TERS YON (metin) + CAGRI YERI + TERS YON (arac) +
+      #         mutantlar + NEGATIF kontrol.
+      # Vaka sayisi aracin kendisi basar (buraya YAZILMAZ — bayatlar); arac ayrica
+      # KAPSAM TABANINI kendi icinde civiler (taban altina dusen kosum rc=1).
+      # Mutantlar git-DISI tempdir'de kosar. SERIT B. ~2 s.
       - name: Serbest kume tek kaynak nobetcisi (mutasyonlu + negatif kontrol)
         if: ${{ !cancelled() }}
         run: python3 tools/serbest-kume-tekkaynak-test.py
@@ -2450,6 +2457,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      # 🔴 K330 (28 Agu 2026) — TABAN SIFIRLAMA KOLLARININ KENDI MUTASYON TESTI.
+      #    ~1 sn; bataryanin YERINE GECMEZ, ONUNDE kosar. Neden ayri adim: bu iki
+      #    kolun capalari `taban_artik_yollari` / `yapisal_artik_yollari`
+      #    kaynagindan TURETILIR; kollar yeniden yazilirsa capa bayatlar ve
+      #    bayatlik yalnizca ~590 sn'lik bataryanin SONUNDA gorulurdu.
+      #    → [[capa-turetme-altyapisi-kullanilmadan-kaldi]]
+      - name: "K330 taban-sifirlama kollari kendini-testi (MUTANT + HEDEF_KOL_ATFI + KONTROL)"
+        run: python3 tools/k3-cikti-kok-mutasyon.py --kendini-test
       - name: "CIKTI_KOK yonlendirme mutasyon bataryasi (M-KOK oldurucu + KONTROL)"
         run: python3 tools/k3-cikti-kok-mutasyon.py
 

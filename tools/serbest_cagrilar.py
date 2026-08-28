@@ -99,7 +99,14 @@ ROTASYON_BAKIM_BAYRAKLARI = (ROTASYON_TAVAN_BAYRAGI, ROTASYON_INDIRME_BAYRAGI)
 
 # === SEKILLER — MIMAR ELINDE SERBEST OLAN HER SEY, TEK YERDE ==================
 SEKILLER = (
-    Sekil("durum", DURUM_YOL),
+    # 🔴 K344-B (28 Agu) — `--ne-olculmedi` TERS YONDEN BULUNDU. Taban olculdu:
+    # `python3 tools/durum.py --ne-olculmedi` -> RED. Oysa `durum.py` OLCULEMEDI
+    # gordugu her kosumda okuyana TAM BU KOMUTU CARE olarak basiyordu — yani arac
+    # bir cagriyi tarif ediyor, kapi o cagriyi reddediyordu. Ariza `--kapanislari-isle`
+    # ile AYNI SINIF (arac -> kaynak yonu), ve o yon 28 Agu sabahina kadar HIC
+    # OLCULMUYORDU. Bayrak SALT-OKUR (yalniz ilan edilmis kor noktalari basar), arac
+    # zaten bayraksiz SERBEST — kova genislemiyor, ayni aracin ikinci ciktisi aciliyor.
+    Sekil("durum", DURUM_YOL, serbest=("--ne-olculmedi",)),
 
     Sekil("d1-durum", D1_YOL, zorunlu=("--durum",), ornek=("--durum",)),
 
@@ -131,9 +138,11 @@ SEKILLER = (
     # oteki (K258/K168) cagri SEKILLERINI bu tabloya tasidi. Tabloya yazilmayan
     # kol, ANA oturumda kapidan GECMEZ — yani defter/kutu kotasi kirmizi yandiginda
     # mimar, kapinin KENDI onerdigi careyi kosamazdi ([[kapi-red-metni-ikinci-kopyadir]]).
-    # NOT — C3 kolu bu bosluğu GORMEZ: C3 'kaynaktaki her bayrak aracin CLI'sinda
-    # VAR mi' diye sorar (kaynak -> arac); buradaki eksiklik TERS yondedir
-    # (arac -> kaynak) ve o eksen henuz OLCULMUYOR. ACIK KALEM olarak birakildi.
+    # NOT — C3 kolu bu bosluğu GORMEZDI: C3 'kaynaktaki her bayrak aracin CLI'sinda
+    # VAR mi' diye sorar (kaynak -> arac); buradaki eksiklik TERS yondeydi
+    # (arac -> kaynak). 🔴 K344-B (28 Agu) o ekseni OLCUME BAGLADI: asagidaki
+    # DISARIDA tablosu + nobetcinin C5/C6 kollari. Ayni sinifin ikinci vakasi
+    # (`durum.py --ne-olculmedi`) o kol tarafindan BULUNDU.
     Sekil("kutu-arsivle", KUTU_ARSIVLE_YOL,
           serbest=("--kuru", "--kapanislari-isle")),
 
@@ -154,6 +163,107 @@ SEKILLER = (
 )
 
 SEKIL_ETIKETLERI = {s.etiket: s for s in SEKILLER}
+
+
+# === 🔴 K344-B (28 AGU 2026) — TERS YON: ARAC -> KAYNAK =======================
+# OLCULEN ARIZA. K320 (ad ekseni) ve K258/K168 (cagri sekli ekseni) kapandiktan
+# SONRA da bir bosluk DURUYORDU ve nobetci onu GORMUYORDU:
+#
+#   Nobetcinin C3 kolu yalnizca `kaynak -> arac` yonunu olcer ("bu tablodaki her
+#   bayrak aracin CLI'sinda VAR MI"). Ters yon — `arac -> kaynak` — yani ARACA
+#   EKLENMIS ama TABLOYA YAZILMAMIS bir bayrak, hicbir kolun menzilinde degildi.
+#
+# Bu bosluktan IKI ariza dustu (ikisi de ayni gun olculdu):
+#   * `kutu-arsivle.py --kapanislari-isle` (K341'de araca eklendi) — tabloya
+#     yazilmadigi icin ANA oturumda kapidan GECMIYORDU; kutu kotasi kirmizi
+#     yandiginda mimar kapinin KENDI bastigi CAREYI kosamiyordu. Elle kapatildi
+#     (`a5fc8f22`), yani ariza ONARILDI ama OLCUM eklenmedi.
+#   * `durum.py --ne-olculmedi` — TABAN RED (olculdu). `durum.py`, OLCULEMEDI gordugu
+#     her kosumda okuyana bu komutu CARE olarak basiyordu; kapi onu reddediyordu.
+#     Bu ikincisi, ters yon kolu icin cikarilan CLI ENVANTERINDE gorundu — yani
+#     araniyor degildi, olcumun kendisi ortaya cikardi. Nobetcinin MB3 mutanti bu
+#     vakayi GERI SARAR (bayragi tablodan dusurur) ve C5'in onu KIRMIZI yaktigini
+#     kanitlar; ayrica toplayicinin `sys.argv` kolunu olcer (durum.py argparse
+#     KULLANMAZ — yalniz add_argument okuyan bir toplayici bu vakada SESSIZ kalirdi).
+#
+# 🔴 SINIF KURALI: bu tablo, hukum verdigi HER ARACIN CLI'sindaki HER bayrak
+# hakkinda BIR HUKUM tasir — ya bir SEKILDE serbesttir, ya BURADA gerekcesiyle
+# DISARIDADIR. Ucuncu bir hal ("tablo bu bayragi hic duymamis") KIRMIZIDIR:
+# nobetcinin ters yon kolu (C5) onu yakalar ve karar MIMARDAN istenir. Bu, sessiz
+# ayrismanin tek fail-closed caresidir — [[kapi-red-metni-ikinci-kopyadir]] ·
+# [[tuketici-yazilirken-tum-okuyucular-sayilir]].
+#
+# DISARIDA olmak "bu bayrak kotu" demek DEGIL; "mimarin ELINDE serbest DEGIL"
+# demek — cogu isci/CI kolu, yazan kol ya da ayar bayragidir.
+DISARIDA = {
+    DURUM_YOL: {},
+
+    D1_YOL: {
+        # D1'e YAZAN / sema kuran kollar: deploy sinifi, OKAN KAPISI.
+        "--sema": "semayi KURAR (yazar) — deploy sinifi",
+        "--seq-normalize": "D1'de seq kolonunu YAZAR",
+        "--karantina-damgasi": "deger YOL alir; silme karantinasini yonetir",
+        "--adim": "CI senkron adiminin ikamesi — CI kolu, mimar eli degil",
+        # Olcum/test kollari: iscinin isi (K318 rol ekseni).
+        "--kuru": "senkron PLANI basar — senkron kolunun provasi, isci isi",
+        "--kendini-test": "offline kabul testi — test kosumu iscinin isi",
+        "--bayatlik": "CI on-kosulu; agac uc mu diye olcer — isci isi",
+        "--hizli": "--durum'un ICERIK eksenini ATLAR: eksik olcum, mimar tam olcum ister",
+        # Katalog KAYNAGINI degistirenler: sessiz kaynak degisimi riski.
+        "--kaynak": "deger YOL alir; katalog kaynagini DEGISTIRIR",
+        "--head": "katalogu HEAD'den okur — kaynak degistirir",
+    },
+
+    DEFTER_ROTASYON_YOL: {
+        # Tavani ELLE veren bayraklar: kota kapisinin okudugu tek kaynagi bypass
+        # eder. Nobetcinin B2 kolu `--tavan-sayi`nin RED KALDIGINI ayrica olcer.
+        "--tavan-sayi": "tavani ELLE verir — kaynaktan turetmeyi bypass eder",
+        "--tavan-bayt": "tavani ELLE verir — kaynaktan turetmeyi bypass eder",
+        "--tarih": "rotasyon tarihini ELLE verir — fikstur/test kolu",
+    },
+
+    KUTU_ARSIVLE_YOL: {
+        # Deger alan YOL bayraklari: repo-disi yol tasima anahtari olurlardi.
+        "--kutu": "deger YOL alir — kutu dosyasini DEGISTIRIR",
+        "--arsiv": "deger YOL alir — arsiv dosyasini DEGISTIRIR",
+        "--kilit": "deger YOL alir — kilit dosyasini DEGISTIRIR",
+        "--yaz-sonrasi": "deger YOL alir — duzenlenen dosyayi DEGISTIRIR",
+        # Sayisal ayar bayraklari: esikleri ELLE oynatir.
+        "--tavan": "tavani ELLE verir — esigi oynatir",
+        "--koru": "korunan kalem sayisini ELLE verir",
+        "--su-seviye-orani": "su seviyesi oranini ELLE verir",
+        "--arsiv-kuyruk": "arsiv kuyruk boyunu ELLE verir",
+    },
+
+    CIP_BEKCI_YOL: {},
+}
+
+
+def araclar():
+    """Bu tablonun hukum verdigi ARAC yollari (tekil, sirali)."""
+    return sorted({s.arac for s in SEKILLER})
+
+
+def serbest_bayraklar(arac):
+    """Bir ARAC icin tablodaki TUM sekillerin izin verdigi bayraklarin birlesimi."""
+    kume = set()
+    for s in SEKILLER:
+        if s.arac == arac:
+            kume |= set(s.tum_bayraklar)
+    return kume
+
+
+def disarida_bayraklar(arac):
+    """Bir ARAC icin BILINCLI olarak disarida birakilmis bayraklar (ad -> gerekce)."""
+    return dict(DISARIDA.get(arac, {}))
+
+
+def hukumlu_bayraklar(arac):
+    """Tablonun bu arac icin BIR HUKUM tasidigi bayraklar (serbest ∪ disarida).
+
+    Ters yon kolu (nobetci C5) aracin CLI'sini bu kumeye karsi olcer: kumede
+    OLMAYAN her CLI bayragi, tablonun HIC DUYMADIGI bir koldur -> KIRMIZI."""
+    return serbest_bayraklar(arac) | set(DISARIDA.get(arac, {}))
 
 
 def _deger_guvenli(deger):
