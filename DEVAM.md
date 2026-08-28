@@ -28,6 +28,17 @@ agaclarin hepsinin oturumu CANLI ya da uzerinde birlesmemis is var -> dusurulmed
 
 defter kotasi 28 Agu: 12.287 B -> 8113 B (rotasyon, kayipsiz; arsiv 22204 -> 22254 satir)
 
+🟢 **K344 OKSUZ AGACLAR KAPANDI (cip `KraL-OksuzAgaclar-28Agu`, main `a5fc8f22`):** iki dalin isi de main'de.
+`44c92f6e` (A) +978/-303 · `a24550ce`+`c665031f` (B) +525/-50, ikisi de TASINDI (SUBSUME degil). 🔴 **Katalog
+GERI SARILMADI: `urunler.json` 693.472 -> 693.472 satir BIREBIR**; "1828 satir silme" iki-nokta artefaktiydi.
+`serbest-kume-tekkaynak-test` **19 vaka/4 KIRMIZI -> 22 vaka/0 KIRMIZI** · `mimar-kilit-test` 314/307 DEGISMEDI ·
+bekci `--teslim-karari` YESIL · `kutu-arsivle --kapanislari-isle --kuru` ana agacta **`CEVRIM=1`** (K341'in civisi).
+Worktree 11->10, disk 504M->454M. 🔴 **YENI KALEM K344-A:** A ve main'in K343'u AYNI sinif isi iki kez yapmisti;
+K343'un M6/M7/M8 mutantlari bekci tablosunu bozup DEFTER CARE'inin RED olmasini bekledigi icin kirmiziydi (yanlis
+eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GECER). 🔴 **YENI KALEM K344-B:**
+`C3` yalniz kaynak->arac yonunu olcuyor; arac->kaynak yonu (araca eklenen bayrak tabloya yazilmamis) HIC olculmuyor —
+`--kapanislari-isle` tam bu bosluktan dustu, elle kapatildi (`a5fc8f22`). Kabul: ters yon kolu + onu olduren mutant.
+
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
   ISARETCI** (uzun hali `DEVAM-ARSIV.md` 26 Agu ROTASYON blogu 1/5): K306 MERGE `df3b0d48` · K308 ACIK ·
