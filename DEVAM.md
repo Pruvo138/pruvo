@@ -17,11 +17,11 @@ K325-K327+K329 + civi BLOKE KUTUDA).
 🔴 **UYDURMA (27 Agu):** m3 turu olmayan SHA+gorev uydurdu → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
 ✅ **K3 MERGE `e59c0bcc`** (28 Agu): 4 dosya 1183+/124-, CI `k3-cikti-kok-bataryasi`=**success**
 (`33121714135`), D1 30928 ✅, yeni kirmizi YOK, dal+worktree SILINDI. K269 DUSTU.
-🔴 **K330 (28 Agu, SINIF):** `k3-cikti-kok-mutasyon.py` AYNI agacta ardisik iki kosumda ZIT
-hukum: #1 `M_KOK=KACTI rc!=0`, #2 `M_KOK=OLDURULDU KONTROL=YESIL EKSEN=B rc=0`. Fark: #1'in
-temizligi 12 gitignored ARTIK yolu sildi — artik varken uc eksen de kor, `porcelain` BOS = agac "temiz".
-Fail-CLOSED. Kok: temizlik landing dizinlerini KAPSAMIYOR. kabul: olcum oncesi cikti
-yollari sifirlanir ya da `OLCULEMEDI: taban artikli` + mutant. → [[artik-yuzey-mutant-dedektorunu-korlestirir]]
+✅ **K330 KAPANDI** (`c1070d3d`, CI job `success` `33165127457`): batarya kendi tabanini sifirliyor
+(3 beyanin birlesimi, izlenen yola DOKUNMAZ) + beyandan BAGIMSIZ fail-closed on kontrol
+(`OLCULEMEDI: taban artikli` rc=3). Kok DARALDI: hukmu landing degil BILINEN yollarin tabanda
+durmasi ceviriyor — uretilebilir. Ardisik UC kosum `TABAN_ARTIK_ONCE` 425-0-0, ucu de
+`OLDURULDU rc=0`; `--kendini-test` MUTANT=4/4 KONTROL=3/3. → [[artik-yuzey-mutant-dedektorunu-korlestirir]]
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu KAPANAN 4 KALEM (K250·K302·K303·K305) — TAM METIN ARSIVDE**, "KAPANAN 4 KALEM" basligi.
