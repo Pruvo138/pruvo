@@ -126,20 +126,26 @@ _STUB_TETIK = ("#!/usr/bin/env python3\nimport sys\nprint('STUB TETIK')\n"
                "%ssys.exit(%d)\n")
 
 
-def _tetik_govdesi(sebep, acilir=False):
+def _tetik_govdesi(sebep, acilir=False, kol_hali=None):
     """sebep None -> jeton BASILMAZ (fail-closed kolunu olcmek icin)."""
     if sebep is None:
         return ""
     if acilir:
-        return ("print('TUR ACILIYOR sebep=%s anahtar=- bayraklar=--tur "
+        govde = ("print('TUR ACILIYOR sebep=%s anahtar=- bayraklar=--tur "
                 "KIRMIZI=0')\n" % sebep)
-    return "print('TUR ACILMADI sebep=%s KIRMIZI=1')\n" % sebep
+    else:
+        govde = "print('TUR ACILMADI sebep=%s KIRMIZI=1')\n" % sebep
+    if kol_hali is not None:
+        # print'in kapanis ') kesilir, kol_hali ARAYA yazilir, kapatilir.
+        govde = govde.rstrip("\n")[:-2] + " kol_hali=%s')\n" % kol_hali
+    return govde
 
 
-def _a_kos(tetik_rc, kapi_rc, sh_yolu=None, tetik_sebebi=None):
+def _a_kos(tetik_rc, kapi_rc, sh_yolu=None, tetik_sebebi=None, kol_hali=None):
     """ci-nobeti.sh'i STUB tetik/kapi ile kosar; (rc, log_metni) doner.
 
     `tetik_sebebi=None` -> stub `sebep=` jetonu BASMAZ.
+    `kol_hali=None` -> stub `kol_hali=` alani BASMAZ.
     """
     gecici = tempfile.mkdtemp(prefix="k320-a-")
     try:
@@ -148,7 +154,8 @@ def _a_kos(tetik_rc, kapi_rc, sh_yolu=None, tetik_sebebi=None):
         log = os.path.join(gecici, "nobet.log")
         with open(tetik, "w") as f:
             f.write(_STUB_TETIK % (
-                _tetik_govdesi(tetik_sebebi, acilir=(tetik_rc in (0, 1))),
+                _tetik_govdesi(tetik_sebebi, acilir=(tetik_rc in (0, 1)),
+                               kol_hali=kol_hali),
                 tetik_rc))
         with open(kapi, "w") as f:
             f.write(_STUB % ("KAPI", kapi_rc))
@@ -301,6 +308,30 @@ def kol_a(sh_yolu=None, yalniz=None):
         olc("A10 CAGRI_YERI yok: bu betik hicbir halde kapiyi cagirmaz",
             (0, True, True),
             (kosan, "AC" in kararlar, "ACMA" in kararlar))
+
+    # 🔴 A12 — FAIL-CLOSED: tetik alani BASMAZSA kabuk 'ACIK' DEMEZ.
+    if istenir("A12"):
+        _rc, log = _a_kos(10, 0, sh_yolu, tetik_sebebi="YESIL")
+        olc("A12 alan yoksa kol_hali=OLCULEMEDI (fail-closed)",
+            "OLCULEMEDI", _a_alan(log, "kol_hali"))
+
+    # 🔴 A13 — SART ②: alan HER IKI degeri de tasiyabiliyor mu?
+    if istenir("A13"):
+        _rc1, log1 = _a_kos(10, 0, sh_yolu, tetik_sebebi="LLM_KOLU_KAPALI",
+                            kol_hali="LLM_KOLU_KAPALI")
+        _rc2, log2 = _a_kos(10, 0, sh_yolu, tetik_sebebi="YESIL",
+                            kol_hali="ACIK")
+        olc("A13 alan IKI degeri de tasir (tek deger = olculemez)",
+            ("LLM_KOLU_KAPALI", "ACIK"),
+            (_a_alan(log1, "kol_hali"), _a_alan(log2, "kol_hali")))
+
+    # A14 KONTROL: yeni alan `BITIS` sozlesmesini BOZMADI.
+    if istenir("A14"):
+        _rc, log = _a_kos(10, 0, sh_yolu, tetik_sebebi="YESIL", kol_hali="ACIK")
+        olc("A14 KONTROL BITIS satiri hala sozlesmeye uyar",
+            True,
+            any(s.strip().endswith("===") and " BITIS rc=" in s
+                for s in log.splitlines()), kontrol=True)
 
 
 # =========================================================================
@@ -679,8 +710,8 @@ MUTANTLAR = [
     #     fail-closed ad zaten onun BEKLEDIGI addir. A8'in yesil kalmasi
     #     mutantin "her seyi kirmadigini" kanitlar.
     ("M-A4-sebep-ayiklama-korlesir", "SH",
-     "awk '/^TUR ACIL/ {",
-     "awk '/^ASLA_ESLESMEYEN_DESEN/ {",
+     "awk '/^TUR ACIL/ { for (i = 1; i <= NF; i++) if ($i ~ /^sebep=/)",
+     "awk '/^ASLA_ESLESMEYEN_DESEN/ { for (i = 1; i <= NF; i++) if ($i ~ /^sebep=/)",
      ["A2", "A7"], ["A8", "A3", "A9"], "A"),
     # --- KOL CAGRI-YERI (28 Agu 2026) — CAGRI GERI KONURSA KABUL OLMELI ---
     # 🔴 Bu mutant "LLM turu acildi mi"yi DEGIL, "bu betik kapiyi cagirdi mi"yi
@@ -753,6 +784,14 @@ MUTANTLAR = [
      'URETKEN_KOSUM_HUKUMLERI = ("TEMIZ", "ONARIM_DENENDI")',
      'URETKEN_KOSUM_HUKUMLERI = ("TEMIZ", "ONARIM_DENENDI", "LLM_KOLU_KAPALI")',
      ["B23"], ["B6", "B8"], "B"),
+    # 🔴 M-A6 — `kol_hali` alani SABIT ACIK'e cekilirse kapali kol GORUNMEZ
+    # olur (sart ②'nin tam karsiligi). A12 (fail-closed) + A13 (iki deger)
+    # KIRMIZI olmali; A1/A9/A14 YESIL kalmali (alanin var olmasi yetmez,
+    # dogru degeri tasimali).
+    ("M-A6-kol-hali-sabitlenir", "SH",
+     "kol_hali=$KOL_HALI\" >> \"$LOG\"",
+     "kol_hali=ACIK\" >> \"$LOG\"",
+     ["A12", "A13"], ["A1", "A9", "A14"], "A"),
 ]
 
 

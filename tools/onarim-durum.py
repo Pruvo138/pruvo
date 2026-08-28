@@ -43,10 +43,12 @@ BUGUN = datetime.date.today().isoformat()
 # Ama SESSIZ KALMAZ: `tools/nobet-uc-kol-kabul.py` B22 vakasi iki duzlemin
 # jetonunu KIYASLAR ve ayrisirsa KIRMIZI yanar.
 KOL_KAPALI_JETONU = "LLM_KOLU_KAPALI"
-KOL_KAPALI_IZI = "HUKUM=" + KOL_KAPALI_JETONU
-# 28 Agu 2026 GECIS PENCERESI: jetondan ONCEKI govde yamasi bu satiri yaziyordu.
-# Log rotasyonundan sonra KALDIRILABILIR; bugun yalniz geriye donuk okuma icin.
-ESKI_IZ_28AGU = "LLM_KOLU=KAPALI"
+# 🔴 TEK ALAN, TEK OKUMA YOLU (mimar sarti ③): hal `ci-nobeti.log`'daki
+# `kol_hali=` alanindan okunur. Govde log satirindan `HUKUM=` greplemek
+# IKINCI yoldu ve BIRAKILDI — iki okuma yolu sessizce ayrisir.
+KOL_ALANI = "kol_hali="
+KOL_KAPALI_IZI = KOL_ALANI + KOL_KAPALI_JETONU
+KOL_ACIK_IZI = KOL_ALANI + "ACIK"
 TUR_ACILDI_IZI = "acilan_tur=1"
 
 RC_ACTI = 0
@@ -65,14 +67,13 @@ def kol_hali():
     """LLM tur kolunun HALI: 'KAPALI' | 'ACIK' | 'OLCULEMEDI'.
 
     Hal DIZGEDEN degil DAVRANISTAN okunur: govde bir turu REDDETTIGINDE loga
-    `HUKUM=LLM_KOLU_KAPALI` yazar, bir tur ACILDIGINDA `acilan_tur=1` duser.
+    `kol_hali=LLM_KOLU_KAPALI` yazar, bir tur ACILDIGINDA `kol_hali=ACIK` duser.
     Son soz LOGDAKI SON KANITTIR — kol yeniden acilirsa hal kendiliginden
     'ACIK'a doner; tek yonlu kilit URETILMEZ.
 
     🔴 KANIT YOKSA 'ACIK' DENMEZ. Bu araci Okan terminale girmeden hat sormak
     icin kullaniyor; hicbir markor ESLESMIYORSA arac KENDINDEN EMIN VE YANLIS
-    bir sey soylemez, `OLCULEMEDI` basar. `acilan_tur=0` KANIT DEGILDIR: o alan
-    artik kolun halinden BAGIMSIZ olarak her turda 0 basilir.
+    bir sey soylemez, `OLCULEMEDI` basar.
     """
     if not os.path.exists(CINOBETI):
         return "OLCULEMEDI"
@@ -80,9 +81,9 @@ def kol_hali():
     try:
         with open(CINOBETI, "r", encoding="utf-8", errors="replace") as f:
             for i, satir in enumerate(f):
-                if KOL_KAPALI_IZI in satir or ESKI_IZ_28AGU in satir:
+                if KOL_KAPALI_IZI in satir:
                     son_red = i
-                if TUR_ACILDI_IZI in satir:
+                if KOL_ACIK_IZI in satir:
                     son_acilis = i
     except OSError:
         return "OLCULEMEDI"
@@ -115,12 +116,9 @@ def olc():
                    else ("OLCULEMEDI" if kol == "OLCULEMEDI" else acilan)),
         "KOL": kol,
         "ACILAN_TARIHSEL": acilan,
-        # 🔴 GECIS PENCERESI: 28 Agu 2026 onceki govde yazisi (`LLM_KOLU=KAPALI`)
-        # ile yeni jeton (`HUKUM=LLM_KOLU_KAPALI`) AYNI olayin IKI gostergesi.
-        # SAYAC her ikisini de saymali; yoksa geriye donuk okuma eski logu
-        # `0` gosterir ve operator "kol hic reddedilmedi" yanilmasina dusar.
-        "KOL_REDDI": _say(CINOBETI, lambda s: KOL_KAPALI_IZI in s
-                          or ESKI_IZ_28AGU in s),
+        # SAYAC yalniz yeni alani saysin; eski `LLM_KOLU=KAPALI` yazisi artik
+        # gelmiyor (gecis penceresi kapandi) ve yalniz yeni iz birakilir.
+        "KOL_REDDI": _say(CINOBETI, lambda s: KOL_KAPALI_IZI in s),
         "GOZCU": _say(GOZCU, lambda s: BUGUN in s and "GOZCU " in s),
         "KIRMIZI": _say(GOZCU, lambda s: BUGUN in s and "YENI_KIRMIZI=1" in s),
     }
@@ -204,17 +202,18 @@ def _kendini_test():
         kapali_y = _log_yaz("kapali.log", [
             "TETIK_HUKMU tetik_rc=0 acilan_tur=1 nobet_rc=0 hukum=TEMIZ",
             "=== 2026-08-28T18:11:48Z BITIS rc=0 ===",
-            "LLM_KOLU=KAPALI sebep=OKAN_EMRI_28AGU motor=minimax-m3",
-            "LLM_KOLU=KAPALI sebep=OKAN_EMRI_28AGU motor=minimax-m3",
+            "TETIK_HUKMU ... kol_hali=%s" % KOL_KAPALI_JETONU,
+            "TETIK_HUKMU ... kol_hali=%s" % KOL_KAPALI_JETONU,
         ])
         # ACIK-yeniden: red ONCE, acilis SONRA -> hal kendiliginden ACIK'a doner
         yeniden_y = _log_yaz("yeniden.log", [
-            "LLM_KOLU=KAPALI sebep=OKAN_EMRI_28AGU motor=minimax-m3",
-            "TETIK_HUKMU tetik_rc=0 acilan_tur=1 nobet_rc=0 hukum=TEMIZ",
+            "TETIK_HUKMU ... kol_hali=%s" % KOL_KAPALI_JETONU,
+            "TETIK_HUKMU tetik_rc=0 acilan_tur=1 nobet_rc=0 hukum=TEMIZ kol_hali=ACIK",
         ])
-        # ACIK ama tur acilmamis: red YOK, acilis YOK
-        acmadi_y = _log_yaz("acmadi.log", [
-            "TETIK_HUKMU tetik_rc=11 acilan_tur=0 nobet_rc=KOSMADI hukum=X",
+        # ACIK ama tur acilmamis: kol=ACIK, acilan_tur=0 YOK (D10 vakasi)
+        acik_y = _log_yaz("acik.log", [
+            "TETIK_HUKMU tetik_rc=10 acilan_tur=0 nobet_rc=KOSMADI hukum=TEMIZ "
+            "tetik_karari=ACMA kol_hali=ACIK",
         ])
         yok_y = os.path.join(kok, "olmayan.log")
 
@@ -241,12 +240,18 @@ def _kendini_test():
         olcvaka("D4 KONTROL kol yeniden ACILDI -> sayi doner rc=0",
                 ("1", "ACIK", RC_ACTI), (s2["ONARIM"], s2["KOL"], rc2), kontrol=True)
 
-        s3, (_m3, _rc3) = _olc_ile(acmadi_y)
+        s3, (m3, rc3) = _olc_ile(acik_y)
+
+        # 🔴 D5/D6 — BIRIM DUZEYI. `D10` ayni kolu FIKSTURLE olcer; bu ikisi
+        # `huküm()`u DOGRUDAN cagirir ve kolun IKI YONUNU birden civiler:
+        # kirmizi VARKEN cumle DENIR, kirmizi YOKKEN DENMEZ. Tek yon olculurse
+        # "her halde ayni cumleyi basan" bir gerileme GORUNMEZ.
         m5, rc5 = huküm({"KOL": "ACIK", "ONARIM": "0", "KIRMIZI": "2"})
-        olcvaka("D5 KONTROL kol ACIK + tur 0 -> rc=1 (sahte yesil YOK)",
-                RC_ACMADI, rc5, kontrol=True)
-        olcvaka("D6 KONTROL o halde YANLIS_OKUMA cumlesi DENIR",
-                True, YANLIS_OKUMA in m5, kontrol=True)
+        olcvaka("D5 birim: kol ACIK + tur 0 + kirmizi VAR -> rc=1 + cumle",
+                (RC_ACMADI, True), (rc5, YANLIS_OKUMA in m5))
+        m6, rc6 = huküm({"KOL": "ACIK", "ONARIM": "0", "KIRMIZI": "0"})
+        olcvaka("D6 KONTROL kirmizi YOKKEN cumle DENMEZ",
+                (RC_ACMADI, False), (rc6, YANLIS_OKUMA in m6), kontrol=True)
 
         s4, (_m4, rc4) = _olc_ile(yok_y)
         olcvaka("D7 KONTROL log YOK -> OLCULEMEDI rc=1",
@@ -264,16 +269,21 @@ def _kendini_test():
         olcvaka("D8b mesaj 'ACIK' IDDIA ETMEZ", False, "ACIK" in m8)
 
         yeni_jeton_y = _log_yaz("yenijeton.log", [
-            "TETIK_HUKMU tetik_rc=0 acilan_tur=1 nobet_rc=0 hukum=TEMIZ",
-            "HUKUM=%s sebep=OKAN_EMRI_28AGU motor=minimax-m3" % KOL_KAPALI_JETONU,
+            "TETIK_HUKMU tetik_rc=10 acilan_tur=0 nobet_rc=KOSMADI hukum=TEMIZ "
+            "tetik_karari=ACMA kol_hali=%s" % KOL_KAPALI_JETONU,
         ])
         s9, (_m9, rc9) = _olc_ile(yeni_jeton_y)
         olcvaka("D9 KONTROL yeni jeton markoru taninir",
                 ("KAPALI", RC_KOL_KAPALI), (s9["KOL"], rc9), kontrol=True)
 
-        s10, (_m10, rc10) = _olc_ile(kapali_y)
-        olcvaka("D10 KONTROL eski markor (gecis penceresi) hala taninir",
-                ("KAPALI", RC_KOL_KAPALI), (s10["KOL"], rc10), kontrol=True)
+        # 🔴 D10 artik `kol_hali=ACIK` vakasi: `acik_y` -> kol=ACIK,
+        # `ONARIM="0"` (log'da `acilan_tur=1` YOK) -> rc=1 + YANLIS_OKUMA
+        # cumlesi. Eski hal (D5/D6 huküm() dogrudan cagrisi) BIRAKILDI: ayni
+        # kol AYNI ANDA iki duzeyle (donus metni + fikstur) olculuyor.
+        olcvaka("D10 KONTROL kol ACIK + tur 0 -> bakiyor-onarmiyor",
+                (RC_ACMADI, "ACIK", "0", True),
+                (rc3, s3["KOL"], s3["ONARIM"], YANLIS_OKUMA in m3),
+                kontrol=True)
 
         # --- MUTANT: hal ayrimi kaldirilir -> DONMUS SAYI GERI GELIR --------
         # 🔴 CAPA KENDI METNINDE GECMEMELI: duz yazilinca `kaynak.count(CAPA)`
@@ -307,7 +317,7 @@ def _kendini_test():
             # HEDEF: D1/D2 olmeli (donmus sayi + yanlis hukum geri gelir)
             mutant_oldu = (m_s["ONARIM"] == "1" and m_rc == 0
                            and YANLIS_OKUMA not in m_mesaj)
-            mut.CINOBETI = acmadi_y
+            mut.CINOBETI = kanitsiz_y
             k_s = mut.olc()
             _k_mesaj, k_rc = mut.huküm(k_s)
             mut.CINOBETI = yok_y
