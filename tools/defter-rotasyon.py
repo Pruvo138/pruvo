@@ -874,6 +874,22 @@ TAVAN_SATIR = _tab_mod.TAVAN_SATIR
 TAVAN_BAYT = _tab_mod.TAVAN_BAYT
 _tavan_asi_mi = _tab_mod.tavan_asi_mi
 
+# === 28 AGU — KISA FORMUN KANONIK KONUMSAL VARSAYILANLARI ====================
+# 🔴 BAGIMLILIK BILEREK TERSTIR (olculdu). Ilk surumde bu iki sabit
+# `tools/serbest_cagrilar.py`den CALISMA ANINDA okunuyordu. Olcum: bu aracin
+# govdesini gecici dizine KOPYALAYIP kosturan YEDI harness birden kirildi
+# (`defter-isaretciye-indirme-test`, `defter-kapalilik-kabul`,
+# `defter-rotasyon-cifti-test`, `defter-rotasyon-test` ...) — kopyanin yaninda
+# modul olmadigi icin arac import'ta coktu ve cokme "mutant hedefini vurdu" diye
+# okundu ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
+# Ders: bir ARACIN kendi CLI sozlesmesi (bayrak adlari + varsayilanlari) ARACIN
+# malidir; kapinin IZIN kumesi kapinin. Ikisini calisma aninda birbirine baglamak
+# araci tasinamaz kilar. Ayrisma RUNTIME'da degil, NOBETCIDE olculur:
+# `tools/serbest-kume-tekkaynak-test.py` :: C3 (bayrak adlari) ve C4 (bu iki yol)
+# kaynak ile araci BIREBIR esitler; drift CI'da KIRMIZI yanar.
+_KANONIK_DEFTER = "/Users/okan/dev/pruvo/DEVAM.md"
+_KANONIK_ARSIV = "/Users/okan/dev/pruvo/DEVAM-ARSIV.md"
+
 
 def _kendini_test():
     """K178: tavan-bagli rotasyonun satir + bayt eksenlerini dogru
@@ -1234,8 +1250,16 @@ def main(argv=None):
     if "--kendini-test" in argv:
         return _kendini_test()
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    p.add_argument("defter", help="kaynak defter (ornek: DEVAM.md)")
-    p.add_argument("arsiv", help="hedef arsiv (ornek: DEVAM-ARSIV.md)")
+    # 🔴 28 AGU (SINIF ISI): konumsal argumanlar OPSIYONEL. Kutuda/CARE atfinda gecen
+    # KISA FORM (`--tavan-kaynaktan --isaretciye-indir`, konumsuz) mimar kapisindan
+    # artik GECIYOR; kapinin gecirdigi bir cagrinin ARACTA COKMESI, K320'nin kapattigi
+    # arizanin ta kendisi olurdu ("metin/kapi calismayan bir sey vaat eder").
+    # Varsayilanlar TEK KAYNAKTAN gelir (`tools/serbest_cagrilar.py`) — kanonik yollar
+    # burada IKINCI KEZ yazilmaz. Iki-argumanli form AYNEN calisir (geriye uyum).
+    p.add_argument("defter", nargs="?", default=_KANONIK_DEFTER,
+                   help="kaynak defter (varsayilan: kanonik DEVAM.md)")
+    p.add_argument("arsiv", nargs="?", default=_KANONIK_ARSIV,
+                   help="hedef arsiv (varsayilan: kanonik DEVAM-ARSIV.md)")
     p.add_argument("--tarih", default=None,
                    help="rotasyon tarihi YYYY-MM-DD (varsayilan: bugun)")
     p.add_argument("--tavan-sayi", type=int, default=None,

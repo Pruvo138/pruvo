@@ -67,6 +67,15 @@ VAKALAR (hepsi bloklayici):
   36. 🔴 K329 REGRESYON — UC GERCEK vakanin BASLIK SARMALI (arsiv :52842 ASCII+backtick ·
       :53553 ad BACKTICK'SIZ · :53601 emoji+Turkce): ucu de vetolanir, ADIYLA basilir,
       SINIFI ayri ayri gorunur; rotasyon yine de eski dolgu bloklarini tasir
+  37. 🔴 K341 ASIL — `--kapanislari-isle` KAPANIS KONUMUNDAKI jetonu cevirir, koruma
+      3'ten 1'e duser ve blok rotasyona ACILIR. MINIMAL CIFT: ayni fikstur once
+      BAYRAKSIZ (taban: koruma tutar, `CEVRIM=0 kip=KAPALI`) sonra BAYRAKLI kosulur
+  38. 🔴 K341 DOKUNULMAZLIK — cevrim GOVDE ANMASINA ve AYRISTIRILAMAYAN (fail-closed)
+      bloga DOKUNMAZ; cevrilen satirda jeton DISINDA tek bayt degismez
+  39. 🔴 K341 DENETIM — sentetik cevrim arizasi (satir dus / govde cevir / icerik boz)
+      C1-C8'i KIRMIZI yakar; kutu VE arsiv sha256'lari DEGISMEZ
+  40. 🔴 K341 GERILEME — bayrak YOKKEN jetona DOKUNULMAZ, koruma AYNEN tutar ve
+      cevrim iddiasi HIC basilmaz (yeni kol eski yolu sessizce degistirmedi)
 
 🔴 17-19'UN FIKSTURU AYRI (`kutu_uret_ayracli`): 1-16 arasi fiksturler bloklari AYRAC
 (`---`) ile ayirmaz, CANLI kutu ayirir. Oksuz govde ekseni ayraca dayandigi icin bu uc
@@ -240,12 +249,14 @@ def oracle_kesim(metin, tavan, koru, su_seviye_orani=0.8):
 
 # --------------------------------------------------------------------- kosucu
 def kos(arac, kutu, arsiv, kilit, tavan=300, koru=3, kuru=False, ortam=None,
-        su_seviye_orani=0.8):
+        su_seviye_orani=0.8, kapanislari_isle=False):
     komut = [sys.executable, arac, "--kutu", kutu, "--arsiv", arsiv, "--kilit", kilit,
              "--tavan", str(tavan), "--koru", str(koru),
              "--su-seviye-orani", str(su_seviye_orani)]
     if kuru:
         komut.append("--kuru")
+    if kapanislari_isle:
+        komut.append("--kapanislari-isle")
     env = dict(os.environ)
     env.pop("PRUVO_KUTU_ARSIVLE_ARIZA", None)
     if ortam:
@@ -1386,6 +1397,190 @@ def v36_gercek_vaka_regresyonu(arac, kok):
           blok(201).splitlines()[0] in oku(a.arsiv), cikti[-900:])
 
 
+# ------------------------------- K341: KAPANIS JETONU CEVRIMI (--kapanislari-isle)
+# 🔴 NEDEN VAR (Okan, 28 Agu): K313g korumasi bekleyen kapanislari dogru kilitliyordu,
+# ama kilidi ACAN cevrim ARACTA YOKTU -> her gun bir mimar kutuyu ELLE duzenliyordu.
+# Elle duzenleme kutuya dokunmaktir ve o dokunus 27 Agu'da kutuyu SILDI
+# ([[ortak-kutu-silinebilir-kurtarma-disiplini]]). Bu vakalar cevrimin ARACTA,
+# KILIT ALTINDA, DOGRULAMALI ve DOKUNULMAZLIK sinirlariyla calistigini olcer.
+CEVRIM_TAVAN = 300
+CEVRIM_GOVDE_IDX = 5      # jetonu YALNIZ govdesinde anan blok (dokunulmaz)
+CEVRIM_KAPANIS_IDX = (10, 20)   # gercek kapanis jetonu tasiyan bloklar (cevrilir)
+CEVRIM_FAILCLOSED_IDX = 29      # kapanmamis cit -> AYRISTIRILAMAZ (dokunulmaz)
+
+
+def kutu_uret_k341():
+    """30 blokluk kutu: 2 gercek kapanis + 1 govde anmasi + 1 fail-closed blok."""
+    jetonlar = {}
+    for i in CEVRIM_KAPANIS_IDX:
+        jetonlar[i] = BEKLEYEN_SATIR
+    jetonlar[CEVRIM_FAILCLOSED_IDX] = BEKLEYEN_SATIR
+    return kutu_uret_jetonlu(
+        30, jetonlar,
+        govde={CEVRIM_GOVDE_IDX: "not: bu blok %s kuralini TARTISIYOR" % BEKLEYEN_SATIR},
+        acik_cit={CEVRIM_FAILCLOSED_IDX})
+
+
+def _blok_basligi(metin, idx):
+    satirlar = metin.splitlines(keepends=True)
+    bas, _son = _blok_dilimleri(metin)[idx]
+    return satirlar[bas].rstrip("\n")
+
+
+def v37_cevrim_kilidi_acar(arac, kok):
+    """[37] 🔴 K341 ASIL — cevrim KORUMAYI KALDIRIR ve blok rotasyona ACILIR.
+
+    IKI YONLU MINIMAL CIFT: AYNI fikstur bayraksiz ve bayrakli kosulur. Tek degisken
+    bayraktir; bayraksiz kosum TABANDIR ([[olcut-civilenirken-taban-olculmeli]]).
+    """
+    print("\n[37] K341 ASIL — `--kapanislari-isle` bekleyen kapanisi ACAR")
+    metin = kutu_uret_k341()
+    kapanis_basliklari = [_blok_basligi(metin, i) for i in CEVRIM_KAPANIS_IDX]
+
+    # ---- TABAN: bayraksiz kosum (bugunku davranis) ----
+    t = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    rc0, cikti0 = kos(arac, t.kutu, t.arsiv, t.kilit, tavan=CEVRIM_TAVAN, koru=3)
+    iddia("37a TABAN rc=0", rc0 == 0, cikti0[-600:])
+    iddia("37b TABAN: 3 blok KORUMALI (2 kapanis + 1 fail-closed)",
+          "KORUMALI_BEKLEYEN=3 " in cikti0, cikti0[-900:])
+    iddia("37c TABAN: cevrim KAPALI oldugu ADIYLA basildi",
+          "CEVRIM=0 kip=KAPALI" in cikti0, cikti0[-900:])
+    for b in kapanis_basliklari:
+        iddia("37d TABAN: kapanis blogu KUTUDA kaldi (koruma tuttu) | %s" % b[:40],
+              b in oku(t.kutu) and b not in oku(t.arsiv))
+
+    # ---- CEVRIMLI kosum ----
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=CEVRIM_TAVAN, koru=3,
+                    kapanislari_isle=True)
+    kutu_s, arsiv_s = oku(a.kutu), oku(a.arsiv)
+    iddia("37e rc=0", rc == 0, "rc=%d\n%s" % (rc, cikti[-1200:]))
+    iddia("37f CEVRIM=2 ADIYLA basildi (fail-closed blok CEVRILMEDI)",
+          "CEVRIM=2 " in cikti, cikti[-1400:])
+    iddia("37g atlanan_fail_closed=1 ADIYLA basildi (sessiz atlama YASAK)",
+          "atlanan_fail_closed=1 " in cikti, cikti[-1400:])
+    iddia("37h cevrim dogrulamasi GECTI ve iddia sayisi TURETILDI",
+          "cevrim_dogrulama=GECTI (iddia=8," in cikti, cikti[-1400:])
+    # 🔴 ASIL OLCUM: kilit ACILDI mi — koruma 3'ten 1'e dustu ve bloklar TASINDI.
+    iddia("37i 🔴 KORUMALI_BEKLEYEN 3 -> 1 (yalniz fail-closed blok kaldi)",
+          "KORUMALI_BEKLEYEN=1 " in cikti, cikti[-1400:])
+    # 🔴 BAGIMSIZ ORACLE: cevrimden SONRA sabit kume yalniz {fail-closed blok}. Hangi
+    # blogun TASINDIGI su seviyesinden turer — "hepsi arsive iner" diye ELLE yazilan
+    # beklenti kaynagindan ayrisirdi ([[capa-turetme-altyapisi-kullanilmadan-kaldi]]).
+    bek_tasinan, _bek_kalan = oracle_granuler(metin, CEVRIM_TAVAN, 3,
+                                              [CEVRIM_FAILCLOSED_IDX])
+    iddia("37j0 oracle: cevrilen bloklardan EN AZ biri tasinir, EN AZ biri kalir "
+          "(vaka iki yonu de olcuyor)",
+          any(i in bek_tasinan for i in CEVRIM_KAPANIS_IDX)
+          and any(i not in bek_tasinan for i in CEVRIM_KAPANIS_IDX),
+          "tasinan=%r kapanis=%r" % (bek_tasinan, CEVRIM_KAPANIS_IDX))
+    for i, b in zip(CEVRIM_KAPANIS_IDX, kapanis_basliklari):
+        if i in bek_tasinan:
+            iddia("37j 🔴 cevrilen blok %d ARSIVE gitti (rotasyona ACILDI) | %s"
+                  % (i + 1, b[:40]),
+                  b in arsiv_s and b not in kutu_s,
+                  "kutuda=%s arsivde=%s" % (b in kutu_s, b in arsiv_s))
+        else:
+            # Su seviyesi doldugu icin tasinmadi — ama jetonu CEVRILDI, yani
+            # BIR SONRAKI turda rotasyona ACIK. Koruma artik onu KILITLEMIYOR.
+            iddia("37j 🔴 cevrilen blok %d kutuda kaldi (su seviyesi) ama KORUMASIZ "
+                  "| %s" % (i + 1, b[:40]),
+                  b in kutu_s and b not in arsiv_s,
+                  "kutuda=%s arsivde=%s" % (b in kutu_s, b in arsiv_s))
+    cevrilmis_satir = BEKLEYEN_SATIR.replace("ARŞİVLENEBİLİRİM", "ARŞİVLENDİ")
+    iddia("37k 🔴 ISLENMIS bicimli kapanis satiri HEM arsivde HEM kutuda GORUNUYOR",
+          cevrilmis_satir in arsiv_s and cevrilmis_satir in kutu_s,
+          "arsiv=%s kutu=%s" % (cevrilmis_satir in arsiv_s, cevrilmis_satir in kutu_s))
+    iddia("37l 🔴 cevrilen bloklarin BEKLEYEN jetonu HICBIR duzlemde kalmadi "
+          "(yalniz fail-closed + govde anmasi kutuda)",
+          arsiv_s.count(BEKLEYEN_SATIR) == 0 and kutu_s.count(BEKLEYEN_SATIR) == 2,
+          "kutu=%d arsiv=%d" % (kutu_s.count(BEKLEYEN_SATIR),
+                                arsiv_s.count(BEKLEYEN_SATIR)))
+    iddia("37m rotasyon lossless GECTI (cevrim kayipsizligi BOZMADI)",
+          "lossless_dogrulama=GECTI" in cikti, cikti[-800:])
+    iddia("37n kutu tavanin ALTINA indi (kota kilidi ACILDI)",
+          len(kutu_s.splitlines()) <= CEVRIM_TAVAN,
+          "sonra=%d" % len(kutu_s.splitlines()))
+    iddia("37o arac BAGIMSIZ oracle ile ayni sayida blok tasidi (%d)"
+          % len(bek_tasinan),
+          ("tasinacak_blok=%d " % len(bek_tasinan)) in cikti, cikti[-1400:])
+
+
+def v38_cevrim_dokunulmazliklari(arac, kok):
+    """[38] 🔴 K341 DOKUNULMAZLIK — cevrim GOVDE ANMASINA ve AYRISTIRILAMAYAN bloga
+    DOKUNMAZ; kapanis satirinda da JETON DISINDA tek bayt degismez."""
+    print("\n[38] K341 DOKUNULMAZLIK — govde anmasi + fail-closed blok DOKUNULMAZ")
+    metin = kutu_uret_k341()
+    govde_satiri = "not: bu blok %s kuralini TARTISIYOR" % BEKLEYEN_SATIR
+    fc_baslik = _blok_basligi(metin, CEVRIM_FAILCLOSED_IDX)
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=CEVRIM_TAVAN, koru=3,
+                    kapanislari_isle=True)
+    kutu_s, arsiv_s = oku(a.kutu), oku(a.arsiv)
+    iddia("38a rc=0", rc == 0, cikti[-1200:])
+    iddia("38b 🔴 GOVDE ANMASI satiri BIREBIR duruyor (cevrilmedi)",
+          govde_satiri in kutu_s, "govde satiri degisti")
+    iddia("38c govde anmasi SAYILDI ve ADIYLA basildi",
+          "CEVRIM GOVDE ANMASI=1 blok" in cikti, cikti[-1400:])
+    iddia("38d 🔴 FAIL_CLOSED blok CEVRILMEDI ve sinifi ADIYLA basildi",
+          "sinif=FAIL_CLOSED): blok yapisi AYRISTIRILAMADI" in cikti, cikti[-1400:])
+    iddia("38e FAIL_CLOSED blok HALA kutuda, BEKLEYEN jetonuyla",
+          fc_baslik in kutu_s and BEKLEYEN_SATIR in kutu_s)
+    iddia("38f FAIL_CLOSED blok arsive SIZMADI", fc_baslik not in arsiv_s)
+    # 🔴 SATIR ICI DOKUNULMAZLIK: cevrilen satirda jeton DISINDA hicbir sey degismez.
+    # Olcut: cevrilen satirin ISLENMIS hali, BEKLEYEN halinin tek ikamesine ESIT.
+    bek_islenmis = BEKLEYEN_SATIR.replace("ARŞİVLENEBİLİRİM", "ARŞİVLENDİ")
+    iddia("38g 🔴 cevrilen satir = eski satirin TEK JETON IKAMESI (%r)" % bek_islenmis,
+          bek_islenmis in arsiv_s, "cevrilen satir sarmali bozuldu")
+    iddia("38h cevrilen blok sayisi kadar ✓ satiri basildi (2)",
+          cikti.count("  ✓ CEVRILDI blok ") == 2, cikti[-1400:])
+
+
+def v39_cevrim_sentetik_ariza(arac, kok):
+    """[39] 🔴 K341 DENETIM — cevrim dogrulamasi (C1-C8) GERCEKTEN kirmizi yakiyor mu?
+
+    Uc ariza sinifi: satir dusurme (C1/C2), govde anmasini da cevirme (C2 —
+    DOKUNULMAZLIK ihlali), ilgisiz satiri bozma (C2). Her birinde HICBIR SEY
+    yazilmamali: kutu VE arsiv sha'lari DEGISMEMELI.
+    """
+    print("\n[39] K341 DENETIM — sentetik cevrim arizasi -> KIRMIZI, hicbir sey yazilmaz")
+    metin = kutu_uret_k341()
+    for kod in ("cevrim-satir-dus", "cevrim-govde-cevir", "cevrim-icerik-boz"):
+        a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+        h1, h2 = sha(a.kutu), sha(a.arsiv)
+        rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=CEVRIM_TAVAN, koru=3,
+                        kapanislari_isle=True,
+                        ortam={"PRUVO_KUTU_ARSIVLE_ARIZA": kod})
+        iddia("39a %s -> rc=1 (KIRMIZI)" % kod, rc == 1,
+              "rc=%d\n%s" % (rc, cikti[-1000:]))
+        iddia("39b %s -> 'CEVRIM DOGRULAMASI KIRMIZI' beyani basildi" % kod,
+              "CEVRIM DOGRULAMASI KIRMIZI" in cikti, cikti[-1000:])
+        iddia("39c %s -> KUTU diskte DEGISMEDI" % kod, sha(a.kutu) == h1)
+        iddia("39d %s -> ARSIV diskte DEGISMEDI" % kod, sha(a.arsiv) == h2)
+
+
+def v40_cevrim_bayraksiz_gerileme_yok(arac, kok):
+    """[40] 🔴 K341 GERILEME KONTROLU — bayrak YOKKEN davranis BIREBIR eskisi gibi.
+
+    Yeni bir kol eklemenin en sessiz bedeli, eski yolun farkinda olmadan degismesidir.
+    Bu vaka bayraksiz kosumun jetona DOKUNMADIGINI ve korumanin AYNEN tuttugunu olcer.
+    """
+    print("\n[40] K341 GERILEME — bayraksiz kosum jetona DOKUNMAZ")
+    metin = kutu_uret_jetonlu(30, {29: BEKLEYEN_SATIR})
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=300, koru=3)
+    kutu_s = oku(a.kutu)
+    iddia("40a rc=0", rc == 0, cikti[-600:])
+    iddia("40b BEKLEYEN jeton BIREBIR duruyor (cevrim CALISMADI)",
+          BEKLEYEN_SATIR in kutu_s and ISLENMIS_SATIR not in kutu_s)
+    iddia("40c KORUMALI_BEKLEYEN=1 (koruma AYNEN tutuyor)",
+          "KORUMALI_BEKLEYEN=1 " in cikti, cikti[-900:])
+    iddia("40d CEVRIM=0 kip=KAPALI basildi (0 ile n AYNI SATIRDAN okunur)",
+          "CEVRIM=0 kip=KAPALI" in cikti, cikti[-900:])
+    iddia("40e cevrim iddiasi HIC basilmadi (kol calismadi)",
+          "cevrim_dogrulama=" not in cikti, cikti[-900:])
+
+
 VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v04_frontmatter_ve_ust_bloklar, v05_blok_bolunmez,
            v06_arsiv_yoksa_frontmatter, v07_kilit, v08_bozuk_frontmatter,
@@ -1401,7 +1596,9 @@ VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v29_blok_dus_arizasi, v30_tasinabilir_sifir_koruma_tuttu,
            v31_acik_basliyorum_veto, v32_kapanisli_blok_hala_tasinir,
            v33_yanlis_eslesme, v34_d17_denetimi, v35_basliyorum_govde_anmasi,
-           v36_gercek_vaka_regresyonu)
+           v36_gercek_vaka_regresyonu,
+           v37_cevrim_kilidi_acar, v38_cevrim_dokunulmazliklari,
+           v39_cevrim_sentetik_ariza, v40_cevrim_bayraksiz_gerileme_yok)
 
 
 def suite(arac, sessiz=False):
@@ -1459,13 +1656,21 @@ MUTANTLAR = (
      # 28 de OLUR ve bu DOGRUDUR: v28'in BAGIMSIZ oracle'i blok 25'i korumali
      # varsayarak tasinan kumeyi hesaplar; koruma kalkinca arac baska bir kume
      # tasir ve BAYT ekseni tutmaz. Yani v28 koruma-duyarli bir vakadir.
-     True, {"20", "22", "26", "27", "28", "30"}),
+     # 🔴 37/38/40 EKLENDI (K341, 28 Agu): uc K341 vakasinin TABAN (bayraksiz) bacagi
+     # "koruma tuttu" hukmunu olcer — 37d/38e/38f/40b/40c dogrudan bu ICRA bacagina
+     # bagimlidir. Bacak olunce fail-closed blok bile arsive gider ve o iddialar
+     # duser. GERCEK bagimlilik, atif kirliligi DEGIL.
+     True, {"20", "22", "26", "27", "28", "30", "37", "38", "40"}),
     ("g) KORUMALI BLOK TESPITI OLDURULDU (korumali_bloklar -> daima bos liste)",
      "    bulgu = []\n    govde_anmasi = 0\n    i = 0\n",
      "    bulgu = []\n    govde_anmasi = 0\n    return bulgu, govde_anmasi\n    i = 0\n",
      # 25 de OLUR ve bu DOGRUDUR: tespit kolu bos donunce `govde_anmasi` sayaci da
      # 0'a duser, v25 sayiyi ADIYLA ariyor. 28 icin gerekce f) ile ayni.
-     True, {"20", "22", "23", "25", "26", "27", "28", "30"}),
+     # 🔴 37/38/40 EKLENDI (K341, 28 Agu): `korumali_bloklar()` K313g korumasinin VE
+     # K341 cevriminin TEK KAYNAGIDIR (`cevrilecek_kapanislar` onu cagirir). Tespit
+     # olunce hem koruma hem cevrim korlesir — tek kaynagin tek mutantla iki kolu
+     # birden oldurmesi TASARIMIN KENDISIDIR ([[ikiz-tanim-sessiz-ayrisma]] caresi).
+     True, {"20", "22", "23", "25", "26", "27", "28", "30", "37", "38", "40"}),
     ("h) D14 KORUMA DENETIMI OLDURULDU (sizan jeton sessizce yazilir)",
      "    for _bi, satir_no, ozet, sinif in ek_korumali:\n",
      "    for _bi, satir_no, ozet, sinif in []:  # MUTANT: D14 susturuldu\n",
@@ -1477,7 +1682,10 @@ MUTANTLAR = (
     ("i) KAPANIS KONUMU OLCUTU OLDURULDU (jeton NEREDE gecerse koruma uretir)",
      "        elif BEKLEYEN_JETON in satirlar[idx]:\n",
      "        elif True:  # MUTANT: KAPANIS KONUMU olcutu KALDIRILDI\n",
-     True, {"25"}),
+     # 🔴 37/38 EKLENDI (K341, 28 Agu): cevrim de KAPANIS KONUMUNU hedefler (ayni
+     # olcut, ayni fonksiyon). Olcut gevserse GOVDE ANMASI satiri da cevrilir —
+     # 38b'nin ("govde satiri BIREBIR duruyor") olctugu sey tam olarak budur.
+     True, {"25", "37", "38"}),
     # 🔴 K318 KOL-2 (27 Agu): rotasyon GRANULERLIGI. Mutant secimi BITISIK KUYRUGA
     # geri dondurur (korumali bloga carpinca DUR) -> dipteki (20) ve ortadaki (22)
     # koruma vakalari OLMELI; korumasiz vakalar (21, 28...) YASAMALI.
@@ -1503,7 +1711,11 @@ MUTANTLAR = (
      # budur — yani bu uc vaka GRANULERLIGE DUYARLIDIR ve mutantin onlari
      # oldurmesi GERCEK bir bagimliliktir, atif kirliligi DEGIL. Hedefi
      # daraltmak icin vakayi zayiflatmak, olculen ozelligi olcumden cikarirdi.
-     True, {"20", "22", "28", "31", "32", "33"}),
+     # 🔴 37/38 EKLENDI (K341, 28 Agu): K341 fiksturunde de EN DIPTEKI blok (29)
+     # fail-closed ve SABIT kumededir; bitisik kuyruga donen bir secim onun
+     # ustundeki hicbir blogu tasiyamaz -> 37j/37n/37o duser. Cevrimin AMACI
+     # ("kilit acildi") ancak granuler secimle olculebilir.
+     True, {"20", "22", "28", "31", "32", "33", "37", "38"}),
     # 🔴 K318 KOL-2 (27 Agu): kayipsizligin IKI EKSENDE BASILMASI sarti. Beyan
     # susturulursa 28 OLMELI; hesap dogru kalsa bile "basilmayan sayi olculmemis
     # sayidir" ([[aracin-teshis-cumlesi-olcum-degil]]).
@@ -1543,6 +1755,27 @@ MUTANTLAR = (
      "            gevsek = gevsek_cip_adi(baslik)\n",
      "            gevsek = None  # MUTANT: gevsek ad kolu kaldirildi\n",
      True, {"36"}),
+    # 🔴 K341 (28 Agu) — CEVRIM KOLU UC PARCADIR ve her biri AYRI mutantla oldurulur:
+    # ICRA (cevrilecek satirlarin tespiti), DENETIM (dogrula_cevrim C1-C8) ve SINIF
+    # SUZGECI (yalniz sinif=="KAPANIS" cevrilir). `q` ve `s` AYNI vaka kumesini
+    # oldurur ve bu ORTUSME BEKLENENDIR — iki K341 davranis vakasi (37/38) tek
+    # fiksturu paylasir. Ayirt edici iz ciktida durur: `q`da arac rc=0 doner ve
+    # `CEVRIM=0` basar (kol sessizce hicbir sey yapmaz), `s`de arac rc=1 ile
+    # KIRMIZI yanar (C3 jeton ikamesi tutmaz). Ortusme ADIYLA yazildi ki "atif
+    # kirli" diye okunmasin ([[ikinci-gorus-vakasi-birinci-gorusu-tekrar-ederse-totolojidir]]).
+    ("q) 🔴 CEVRIM ICRA KOLU OLDURULDU (cevrilecek kapanis HIC bulunmuyor)",
+     "    cikti = []\n    atlanan = []\n    for blok_idx, satir_no, ozet, sinif in bulgu:\n",
+     "    cikti = []\n    atlanan = []\n    return cikti, atlanan, govde_anmasi\n"
+     "    for blok_idx, satir_no, ozet, sinif in bulgu:\n",
+     True, {"37", "38"}),
+    ("r) 🔴 CEVRIM DENETIMI OLDURULDU (dogrula_cevrim -> daima bos liste)",
+     "    h = []\n    e = eski_metin.splitlines(keepends=True)\n",
+     "    return []\n    h = []\n    e = eski_metin.splitlines(keepends=True)\n",
+     True, {"39"}),
+    ("s) 🔴 CEVRIM SINIF SUZGECI GEVSETILDI (AYRISTIRILAMAYAN blok da cevriliyor)",
+     '        if sinif != "KAPANIS":\n',
+     '        if False:  # MUTANT: fail-closed suzgeci kaldirildi\n',
+     True, {"37", "38"}),
     ("c) ILGISIZ metin degisikligi (tani satirinin bosluk hizalamasi)",
      'print("KUTU  : %s" % kutu_yolu)',
      'print("KUTU : %s" % kutu_yolu)',

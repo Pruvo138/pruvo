@@ -242,25 +242,56 @@ def bolum_s3(kaynak, ek=""):
             if n:
                 yazici += n
                 sahip = dugum.name
-    vaka("S3c-tek-yazici%s" % ek, "1@tur_sayacini_kaydet",
+    # 🔴 BEKLENEN 1 -> 2 (28 Agu 2026, K341). Vaka 25 Agu'dan (D-sayac/IS_YOK)
+    # beri BAYATTI ve K0 kontrol mutantini kirmizi tutup BATARYAYI KARARSIZ
+    # yapiyordu — yani sayacin cikis yollarini bekleyen kol UC GUNDUR OLUYDU.
+    # Yazici HALA `tur_sayacini_kaydet` ICINDE (tek sahip); sayi 2 cunku
+    # sifirlayici kol (IS_YOK/DONDURULDU) ile normal kol AYRI `return`lar.
+    vaka("S3c-tek-yazici%s" % ek, "2@tur_sayacini_kaydet",
          "%d@%s" % (yazici, sahip))
 
-    # S3d — tur_kapat kapiya onarim>0 kosuluyla ugruyor mu?
+    # S3d — tur_kapat kapiya HANGI hal zinciriyle ugruyor?
+    # 🔴 Zincir artik DORT dallidir; eski surum yalniz iki dalli IfExp
+    # okuyabiliyordu ve "kosulsuz:..." diye YANLIS teshis basiyordu.
     kapat = _fonksiyon(agac, "tur_kapat")
     ifade = "-"
     if kapat:
         for alt in ast.walk(kapat):
             if isinstance(alt, ast.Call) and isinstance(alt.func, ast.Name) \
                     and alt.func.id == "tur_sayacini_kaydet" and alt.args:
-                ilk = alt.args[0]
-                if isinstance(ilk, ast.IfExp) \
-                        and isinstance(ilk.body, ast.Constant) \
-                        and isinstance(ilk.orelse, ast.Constant):
-                    ifade = "%s/%s" % (ilk.body.value, ilk.orelse.value)
-                else:
-                    ifade = "kosulsuz:%s" % ast.dump(ilk)[:24]
+                parcalar = []
+                dugum = alt.args[0]
+                while isinstance(dugum, ast.IfExp):
+                    if isinstance(dugum.body, ast.Constant):
+                        parcalar.append(str(dugum.body.value))
+                    else:
+                        parcalar.append("?")
+                    dugum = dugum.orelse
+                if isinstance(dugum, ast.Constant):
+                    parcalar.append(str(dugum.value))
+                elif parcalar:
+                    parcalar.append("?")
+                ifade = "/".join(parcalar) if parcalar \
+                    else "kosulsuz:%s" % ast.dump(alt.args[0])[:24]
                 break
-    vaka("S3d-tur_kapat-onarim-kolu%s" % ek, "KOSTU_ONARDI/KOSTU_DUSTU", ifade)
+    vaka("S3d-tur_kapat-hal-zinciri%s" % ek,
+         "IS_YOK/KOSTU_ONARDI/DONDURULDU/KOSTU_DUSTU", ifade)
+
+    # S3f — DONDURULDU hali TUR_HALLERI'nde TANIMLI mi? (K341)
+    # Zincirde adi gecen bir hal kapida tanimli degilse kapi ValueError atar
+    # ve tur COKER; iki taraf AYNI turda olculur.
+    haller = "-"
+    for dugum in ast.walk(agac):
+        if isinstance(dugum, ast.Assign) and dugum.targets \
+                and isinstance(dugum.targets[0], ast.Name) \
+                and dugum.targets[0].id == "TUR_HALLERI":
+            try:
+                haller = "/".join(sorted(ast.literal_eval(dugum.value)))
+            except (ValueError, SyntaxError):
+                haller = "OKUNAMADI"
+            break
+    vaka("S3f-tur-halleri-kumesi%s" % ek,
+         "ATLANDI/DONDURULDU/IS_YOK/KOSTU_DUSTU/KOSTU_ONARDI", haller)
 
     # S3e — tur_kos icinde kapiya DOGRUDAN tek cagri (ATLANDI kolu)
     vaka("S3e-tur_kos-dogrudan-cagri%s" % ek, 1,
@@ -325,23 +356,54 @@ def bolum_s4(kapi, kaynak, tmp):
         "N1-erken-return-atlar", n1, tmp,
         ("S2-E2-tavan-sayac", "S2-E2-tavan-jeton", "S3b"),
         ("S1", "S2-E1", "S2-E2-tavan-rc", "S2-E3", "S2-E4", "S2-E5",
-         "S3a", "S3c", "S3d", "S3e")))
+         "S3a", "S3c", "S3d", "S3e", "S3f")))
+
+    # 🔴 N3/N4'un capalari 25 Agu (D-sayac/IS_YOK) ve 28 Agu (K341/DONDURULDU)
+    # degisikliklerinden sonra BAYATLAMISTI: `.replace()` hicbir seyi
+    # degistirmiyor, mutant KAYNAGA HIC DOKUNMADAN "yasadi" gorunuyordu
+    # (MUTANT=2/4). Capalar 28 Agu'da CANLI kaynaktan yenilendi.
+    # Ders: mutant capasi da bir CAPADIR — degisim sayisi 1 degilse mutant
+    # OLCMEZ ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]).
+    _ZINCIR = ('            "IS_YOK" if kova_bos_hali\n'
+               '            else "KOSTU_ONARDI" if onarim > 0\n'
+               '            else "DONDURULDU" if _dondurma_isirdi\n'
+               '            else "KOSTU_DUSTU", onarim, '
+               'sebep=_dondu_sebep if _dondu else None)\n')
 
     # N3 — TEK KAPI delindi: tur_kapat yazicIyi DOGRUDAN cagiriyor
     n3 = kaynak.replace(
         '        ustuste_onarimsiz, _ = tur_sayacini_kaydet(   # B8 TEK KAPI\n'
-        '            "KOSTU_ONARDI" if onarim > 0 else "KOSTU_DUSTU", onarim)\n',
+        + _ZINCIR,
         "        ustuste_onarimsiz = ustuste_onarimsiz_guncelle(onarim)\n", 1)
     sonuclar.append(("N3-tek-kapi-delindi",) + mutant_kaynak_kos(
         "N3-tek-kapi-delindi", n3, tmp,
-        ("S3c", "S3d"), ("S1", "S2", "S3a", "S3b", "S3e")))
+        ("S3c", "S3d"), ("S1", "S2", "S3a", "S3b", "S3e", "S3f")))
 
     # N4 — tur_kapat onarim kolu bozuldu (pozitif kol OLU olmasin)
-    n4 = kaynak.replace('"KOSTU_ONARDI" if onarim > 0 else "KOSTU_DUSTU"',
-                        '"KOSTU_DUSTU"', 1)
+    n4 = kaynak.replace('            else "KOSTU_ONARDI" if onarim > 0\n',
+                        "", 1)
     sonuclar.append(("N4-onarim-kolu-bozuldu",) + mutant_kaynak_kos(
         "N4-onarim-kolu-bozuldu", n4, tmp,
-        ("S3d",), ("S1", "S2", "S3a", "S3b", "S3c", "S3e")))
+        ("S3d",), ("S1", "S2", "S3a", "S3b", "S3c", "S3e", "S3f")))
+
+    # N5 — K341: DONDURULDU kolu zincirden DUSURULUR. Okan'in DONDURMA emri
+    # yeniden "onarim DENENDI ve DUSTU" sayilir ve sayac her turda +1'e doner
+    # (olculen ariza: 89 -> 129 -> 154). S3d bunu ADIYLA yakalamali.
+    n5 = kaynak.replace('            else "DONDURULDU" if _dondurma_isirdi\n',
+                        "", 1)
+    sonuclar.append(("N5-dondurma-kolu-dusuruldu",) + mutant_kaynak_kos(
+        "N5-dondurma-kolu-dusuruldu", n5, tmp,
+        ("S3d",), ("S1", "S2", "S3a", "S3b", "S3c", "S3e", "S3f")))
+
+    # N6 — K341: hal kumesinden DONDURULDU cikarilir. Zincir o adi HALA
+    # veriyor -> kapi fail-closed ValueError atar; S3f bunu yakalar.
+    n6 = kaynak.replace('TUR_HALLERI = ("KOSTU_ONARDI", "KOSTU_DUSTU", '
+                        '"ATLANDI", "IS_YOK",\n               "DONDURULDU")',
+                        'TUR_HALLERI = ("KOSTU_ONARDI", "KOSTU_DUSTU", '
+                        '"ATLANDI", "IS_YOK")', 1)
+    sonuclar.append(("N6-hal-kumesinden-dusuruldu",) + mutant_kaynak_kos(
+        "N6-hal-kumesinden-dusuruldu", n6, tmp,
+        ("S3f",), ("S3a", "S3b", "S3c", "S3d", "S3e")))
 
     # N2 — ATLANDI turu de sayiliyor (calisma zamani yamasi)
     isaret = len(VAKALAR)

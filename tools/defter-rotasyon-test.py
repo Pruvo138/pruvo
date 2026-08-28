@@ -1240,9 +1240,14 @@ def _sentetik_depo(tmp, sayac_yol):
     shutil.copy(os.path.join(TOOLS, "defter-kota-kapisi.py"),
                 os.path.join(kanca_tools, "defter-kota-kapisi.py"))
     # K178: tek kaynaktan (defter-kota-taban.py) okuyan kapinin de ihtiyaci.
-    taban_yol = os.path.join(TOOLS, "defter-kota-taban.py")
-    if os.path.exists(taban_yol):
-        shutil.copy(taban_yol, os.path.join(kanca_tools, "defter-kota-taban.py"))
+    # 28 AGU: kapinin IKINCI tek kaynagi `serbest_cagrilar.py` (CARE satirlari
+    # oradan turer). Kopyalanmazsa kapi import'ta COKER, CARE satiri HIC basilmaz
+    # ve olcut "CARE_SATIRI=YOK" der — cokme, davranis degisikligi sanilir
+    # ([[capa-cokmesi-arkasindaki-capalari-gizler]]). Olculdu: FIKSTUR 23/23 -> 19/23.
+    for _yan in ("defter-kota-taban.py", "serbest_cagrilar.py"):
+        _kaynak = os.path.join(TOOLS, _yan)
+        if os.path.exists(_kaynak):
+            shutil.copy(_kaynak, os.path.join(kanca_tools, _yan))
     kanca_dizin = os.path.join(tmp, ".git", "hooks")
     os.makedirs(kanca_dizin, exist_ok=True)
     kanca_yol = os.path.join(kanca_dizin, "pre-commit")

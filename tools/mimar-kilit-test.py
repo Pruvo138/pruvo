@@ -47,6 +47,12 @@ import subprocess
 import sys
 import tempfile
 
+# Gecici worktree fiksturunun TEK KAYNAGI (damga + sinyal temizligi + siniflama).
+# `sys.path[0]` bu betigin bulundugu dizindir; MUTANT KOPYA olarak kosarken de yanindaki
+# kopyayi yukler — bu yuzden `mimar-kapi-mutasyon-test.py::KAPI_DOSYALARI` bu modulu de
+# kopyalar (aksi halde her mutant kosumu ImportError ile coker).
+import gecici_worktree  # noqa: E402
+
 SADECE_KIMLIK_EKSENI = "--kimlik-ekseni" in sys.argv[1:]
 TOOLS_ARGUMANLARI = [a for a in sys.argv[1:] if a != "--kimlik-ekseni"]
 TOOLS = os.path.abspath(TOOLS_ARGUMANLARI[0]) if TOOLS_ARGUMANLARI else os.path.dirname(
@@ -1725,11 +1731,15 @@ def k214_claude_kol_sirasi_denetim():
 def gecici_worktree_kur(temel):
     """Repo DISINDA, git'e KAYITLI gecici bir worktree kurar (hermetiklik).
     '--no-checkout' sayesinde dosya kopyalanmaz — yalniz .git/worktrees kaydi olusur.
-    Doner: yol ya da None (kurulamadiysa vakalar CEVRE-ATLANAN olur)."""
+    Doner: yol ya da None (kurulamadiysa vakalar CEVRE-ATLANAN olur).
+
+    Kayit tools/gecici_worktree.py uzerinden yapilir: boylece SIGTERM/SIGINT/SIGHUP ile
+    erken olen kosumda da fikstur kaldirilir. `finally` TEK BASINA YETMEZ — bu batarya
+    `mimar-kapi-mutasyon-test.py`nin ALT SURECI olarak kosar ve ust surec zaman asiminda
+    onu SIGTERM'ler; o halde `finally` HIC KOSMAZ ([[diskte-iz-birakma-yasagi]])."""
     yol = os.path.join(temel, "kayitli-wt")
-    sonuc = subprocess.run(
-        ["git", "-C", REPO, "worktree", "add", "--no-checkout", "--detach", yol, "HEAD"],
-        capture_output=True, text=True)
+    sonuc = gecici_worktree.kaydet(
+        REPO, yol, "--no-checkout", "--detach", commitish="HEAD")
     if sonuc.returncode != 0 or not os.path.isdir(yol):
         print("CEVRE: gecici worktree kurulamadi — " +
               (sonuc.stderr or "").strip().splitlines()[-1:][0] if sonuc.stderr else "?")
@@ -1744,10 +1754,9 @@ def gecici_worktree_kaldir(yol):
     etkilenir = hermetiklik kaybi). Doner: hata metni ya da None."""
     if not yol:
         return None
-    sonuc = subprocess.run(["git", "-C", REPO, "worktree", "remove", "--force", yol],
-                           capture_output=True, text=True)
-    if sonuc.returncode != 0:
-        return (sonuc.stderr or "?").strip().splitlines()[-1:] or ["?"]
+    hata = gecici_worktree.kaldir(REPO, yol)
+    if hata:
+        return hata
     if os.path.exists(yol):
         return ["dizin hala diskte: " + yol]
     return None
@@ -1757,7 +1766,7 @@ def main():
     global KAYITLI_WT_YOL
     # realpath ZORUNLU: macOS'ta /var -> /private/var symlink'i; git kayda GERCEK yolu
     # yazar, kapi da kaydi oyle okur (olculdu: symlink'li yol deny aliyordu).
-    temel = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-kapi-test-"))
+    temel = gecici_worktree.damgali_mkdtemp("pruvo-kapi-test-")
     gecici_kok = os.path.join(temel, ".test-gitdir")
     os.makedirs(gecici_kok, exist_ok=True)
     KAYITLI_WT_YOL = None if SADECE_KIMLIK_EKSENI else gecici_worktree_kur(temel)

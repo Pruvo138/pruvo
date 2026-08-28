@@ -24,18 +24,29 @@ import sys
 import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
+if TOOLS not in sys.path:
+    sys.path.insert(0, TOOLS)
+import gecici_worktree  # noqa: E402
 KOK = os.path.dirname(TOOLS)
 MUTASYON_KOK = None  # main() icinde tempfile.mkdtemp ile doldurulur
 TEST = os.path.join(TOOLS, "mimar-kilit-test.py")
 
 KAPI_DOSYALARI = (
     "mimar_kimlik.py",
+    # 28 AGU: serbest cagri SEKILLERININ tek kaynagi. Mutant dizinine KOPYALANMAZSA
+    # kapinin kopyasi `import serbest_cagrilar` ile COKER ve her mutant "RED" diye
+    # okunur ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
+    "serbest_cagrilar.py",
     "mimar-kod-kilidi.py",
     "mimar-icra-kapisi.py",
     "mimar-commit-kapisi.py",
     "mimar-kapi-kur.py",
     "mimar-kilit-test.py",
+    # `mimar-kilit-test.py` bu modulu YANINDAN yukler (sys.path[0] = mutant dizini).
+    # Kopyalanmazsa her mutant kosumu ImportError ile coker ve batarya hukumsuz kalir.
+    "gecici_worktree.py",
 )
+SERBEST = "serbest_cagrilar.py"
 
 KILIT = "mimar-kod-kilidi.py"
 KIMLIKORTAK = "mimar_kimlik.py"
@@ -465,12 +476,20 @@ MUTASYONLAR = [
         "        return False\n"),
      "22Tem: _py_izinli daima True (tum python/node araclari acilir)",
      {240, 241, 244}, False, 3),
+    # 28 AGU: HEDEF DEGISMEDI (durum.py'nin EKSTRA argüman toleransi), CAPA yer
+    # degistirdi. Konumsal argüman SAYISI kontrolu artik kapida degil, cagri
+    # SEKILLERININ tek kaynagindadir; capayi eski yerinde birakmak mutanti
+    # sessizce `ANKRAJ BULUNAMADI`ya dusururdu ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
+    # HEDEF KOLU (vaka 129 `durum.py -smth`, 241 `durum.py --ekstra-bayrak`) BAYRAK
+    # UYELIK kontrolu tasir — konumsal SAYI kontrolu DEGIL. Ilk retargette konum
+    # koluna nisanlandi ve ME5 YASADI: mutant hedefe ULASMADI, "kol saglam" degil
+    # "kol olculemedi" demekti ([[ad-iki-rolde-mutanti-golgeler]]).
     ("ME5", lambda d: yama(
-        d, ICRA,
-        "    if ilk == DURUM_YOL:\n"
-        "        return len(argumanlar) == 1\n",
-        "    if ilk == DURUM_YOL:\n"
-        "        return True\n"),
+        d, SERBEST,
+        "            if t not in sekil.tum_bayraklar:\n"
+        "                return False\n",
+        "            if False:  # ME5 MUTANT: bayrak TAM ESITLIGI gevsedi\n"
+        "                return False\n"),
      "22Tem: durum.py EKSTRA argüman toleransi (allowlist tam-esitlik gevser)",
      {129, 241}, False, 2),
     # --- 28 TEM AGENT-KAPISI NOBETCILERI (BaBa'nin '-o' turundaki 3-mutant standardi) ---
@@ -965,6 +984,7 @@ def sert_mutasyonu_kostur(ad, uygulayici, ek_env):
     os.makedirs(dizin)
     shutil.copyfile(os.path.join(TOOLS, ICRA), os.path.join(dizin, ICRA))
     shutil.copyfile(os.path.join(TOOLS, KIMLIKORTAK), os.path.join(dizin, KIMLIKORTAK))
+    shutil.copyfile(os.path.join(TOOLS, SERBEST), os.path.join(dizin, SERBEST))
     uygulayici(dizin)
     payload = {
         "session_id": "sert-mutasyon",
@@ -1032,7 +1052,7 @@ def taban_kirmizisi():
 
 def main():
     global MUTASYON_KOK
-    MUTASYON_KOK = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-kapi-mutasyon-"))
+    MUTASYON_KOK = gecici_worktree.damgali_mkdtemp("pruvo-kapi-mutasyon-")
     print("MUTASYON DIZINI (gecici): " + MUTASYON_KOK)
 
     basarisiz = []
@@ -1121,9 +1141,32 @@ def main():
                 basarisiz.append(ad)
     finally:
         shutil.rmtree(MUTASYON_KOK, ignore_errors=True)
-        # C1/C2 enjeksiyonlari gecici worktree kaydi birakmis olabilir — temizle.
-        subprocess.run(["git", "-C", KOK, "worktree", "prune"],
-                       capture_output=True, text=True)
+        # 🔴 ESKI KOL `git worktree prune` IDI ve TAM DA KAPATMASI GEREKEN ARIZADA
+        # NO-OP'TU (olculdu 28 Agu 2026): bu takim her mutant icin `mimar-kilit-test.py`yi
+        # ALT SUREC olarak kosturur ve o alt surec GERCEK repoya bir
+        # `pruvo-kapi-test-*/kayitli-wt` KAYDEDER. Alt surec SIGKILL/timeout ile olurse
+        # hem dizin hem kayit KALIR; dizin diskte durdugu icin kayit "prunable" DEGILDIR
+        # ve `prune` onu GORMEZ. Ustelik `pruvo-kapi-test-*`, MUTASYON_KOK'un KARDESIDIR,
+        # ALTINDA degil — yani ustteki `rmtree` menzilinde de degil. Sonuc: Okan'in
+        # 13 Agu DISK EMRI sessizce ihlal ediliyordu ([[diskte-iz-birakma-yasagi]]).
+        #
+        # YENI KOL sahiplik damgasindan turer: YALNIZ sahibi OLU olan kayit kaldirilir.
+        # CANLI (komsu evin O AN kosan bataryasi) ve OLCULEMEDI (damgasiz/yabanci)
+        # kayitlara DOKUNULMAZ — aksi halde bu temizlik, baska bir cipin kosumunu
+        # ortasindan keserdi.
+        kaldirilan, temizlik_hatalari = gecici_worktree.sizintilari_temizle(KOK)
+        if kaldirilan:
+            print("GECICI WORKTREE SIZINTISI TEMIZLENDI: {} {}".format(
+                len(kaldirilan), kaldirilan))
+        for yol, hata in temizlik_hatalari:
+            print("GECICI WORKTREE TEMIZLENEMEDI: {} -> {}".format(yol, hata))
+        # OLCUM KOLU: temizlikten SONRA hala sahibi olu kayit varsa takim KIRMIZI kapanir.
+        kalan_sizinti = [y for y, s, _p in gecici_worktree.gecici_kayitlar(KOK)
+                         if s == gecici_worktree.SIZINTI]
+        if kalan_sizinti or temizlik_hatalari:
+            basarisiz.append("GECICI-WORKTREE-SIZINTISI")
+            print("GECICI WORKTREE SIZINTISI SURUYOR: {} {}".format(
+                len(kalan_sizinti), kalan_sizinti))
 
     toplam = (len(MUTASYONLAR) + len(SERT_MUTASYONLAR) + len(KENDI_TESTINI_KOSAN) +
               len(KONTROL_MUTANTLARI))

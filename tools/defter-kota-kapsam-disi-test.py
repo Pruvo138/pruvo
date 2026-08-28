@@ -38,6 +38,7 @@ sys.dont_write_bytecode = True
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 KAPI = os.path.join(TOOLS, "defter-kota-kapisi.py")
 TABAN = os.path.join(TOOLS, "defter-kota-taban.py")
+SERBEST = os.path.join(TOOLS, "serbest_cagrilar.py")
 
 # --- mutasyon capalari: kapi kaynagindaki BENZERSIZ dizeler --------------
 CAPA_M1 = "        return _kapsam_disi_olc(kok)"
@@ -119,7 +120,12 @@ def _mutant_kapi(kok_dizin, capa, yeni):
     hedef = os.path.join(kok_dizin, "defter-kota-kapisi.py")
     with open(hedef, "w", encoding="utf-8") as f:
         f.write(kaynak.replace(capa, yeni))
-    shutil.copy2(TABAN, os.path.join(kok_dizin, "defter-kota-taban.py"))
+    # 28 AGU: kapinin TEK KAYNAKLARI yaninda olmali. `serbest_cagrilar.py` CARE
+    # satirlarini besliyor; kopyalanmazsa mutant import'ta COKER ve cokme "hedefini
+    # vurdu" diye okunur — olculdu: HEDEF_KOL_ATFI 4/4 -> 0/4
+    # ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
+    for _yan in (TABAN, SERBEST):
+        shutil.copy2(_yan, os.path.join(kok_dizin, os.path.basename(_yan)))
     return hedef
 
 
