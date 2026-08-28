@@ -14,8 +14,6 @@ vaka 815 · ⓔ HTML 4 saat = OKAN KAPISI · ⓕ ic rapor ad kalibi genisliyor �
 **Okan'da bekleyen karar:** `pruvo-jenerator` GitHub App repository access (TeKiN).
 🔴 **UYDURMA:** m3 turu olmayan `02a0e2c0` SHA'si + olmayan gorev uydurdu, gercek raporu EZDI (13 SHA dogrulandi,
 baskasi YOK; tam metin KUTUDA) → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
-✅ **K3 MERGE `e59c0bcc`** (28 Agu): 4 dosya 1183+/124-, CI `k3-cikti-kok-bataryasi`=**success**
-(`33121714135`), D1 30928 ✅, yeni kirmizi YOK, dal+worktree SILINDI. K269 DUSTU.
 🔴 **K330 (28 Agu, SINIF):** `k3-cikti-kok-mutasyon.py` AYNI agacta ardisik iki kosumda ZIT
 hukum: #1 `M_KOK=KACTI rc!=0`, #2 `M_KOK=OLDURULDU KONTROL=YESIL EKSEN=B rc=0`. Fark: #1'in
 temizligi 12 gitignored ARTIK yolu sildi — artik varken uc eksen de kor, `porcelain` BOS = agac "temiz".
@@ -122,5 +120,6 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
 - 🔧 **K329 (28 Agu, CI nobeti):** iki kapi dosyasi kanonik `git_ortami.sentetik_git`'e gecirildi, yerelde YESIL olculdu; main'e INEMEDI — kutu 306>300, 6 blok `ARŞİVLENEBİLİRİM` bekliyor (**Okan arsivi**), is `ci-nobet-git-ortami` dalinda stage'li.
 
 ## 🔧 K318 CIP-ROL — MERGE EDILDI `594ca29e` · isci bacagi ACIK (K318 kanonu acik; 299→314 vaka; MaCiT'e merge ile GELMEZ)
+## 🔧 K332+K331 (28 Agu, `KraL-OnarimZinciri`): rol R2/F'de TUKETILDI (kilit 307/314→313/320, ANA hala RED) · bekci DOGUM ekseni (118/4, mutant B2b) · dal MERGE BEKLIYOR
 
 ## ARSIVDE — 14-20 Agu `DEVAM-ARSIV.md`'de.
