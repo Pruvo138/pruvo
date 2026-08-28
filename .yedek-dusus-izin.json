@@ -1,4 +1,8 @@
 {
+  "mimar-icra-kapisi.py": {
+    "tur": "tek-seferlik",
+    "gerekce": "Mimar karari 28 Agu 2026 (KraL). OLCULDU (beyan degil): K304 kapi dagitimi kardes evlerin BAGIMSIZ KOPYASINI kanonik SHIM'e cevirdi; yedek karantinasi bunu dusus sanip reddetti (push ciktisi: YEDEK=YARIM OLCULEMEDI=YEDEK_KARANTINA ATLANAN=2 BAYT_FARKI=-90401). Kuculme KASITLI ve TASARLANMIS: pruvo-bot 56617 B (1320 satir) -> ~2658 B, pruvo-pazarlama 39122 B (965 satir) -> ~2680 B; ayni turda pruvo-jenerator ve pruvo-advisor da shim'e dondu (2678 / 2670 B). Icerik KAYBOLMADI, TEK KAYNAGA TASINDI: shim gövdesi KAYNAK = /Users/okan/dev/pruvo/tools/mimar-icra-kapisi.py (85019 B) dosyasini okur; yani alti evin toplam kapi mantigi AZALMADI, coklanmasi bitti. Sebep kalemi K304 (bayat tek kaynak, besе katlanmis): onarim bir evde kalinca kardes mimar kilitleniyordu — MaCiT bu yuzden 3 gun kaybetti, dort evde de kilit OLCULDU (12/12 deny). TUR BILEREK 'tek-seferlik': kopya->shim donusumu ev basina BIR KEZ olur, salinim araligi YOK. 🔴 KAPSAM UYARISI: bu anahtar dosya ADI ekseninde eslesiyor ve ayni ad KraL'in KAYNAK dosyasini da tasiyor (tools/mimar-icra-kapisi.py, 85019 B) — KAYNAGIN kuculmesi ARIZADIR ve bu beyan onu KUTSAMAZ; azami_bayt/kaynak_bayt bilerek YAZILMADI ki tavan ile sessiz muafiyet uretilmesin, her yeni dusus yeniden yargi ister. ILGILI ACIK KALEM K335: TeKiN ve BaBa evlerinde shim tracked + skip-worktree — diskte yeni ama COMMIT'LI surum hala bayat; o iki evde kalicilik ev sahiplerinde, kalem kapanmadan filo 6/6 'kalici' SAYILMAZ."
+  },
   "DEVAM.md": {
     "tur": "surekli",
     "azami_bayt": 24576,
