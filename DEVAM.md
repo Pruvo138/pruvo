@@ -37,23 +37,31 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 `--kapanislari-isle` tam bu bosluktan dustu, elle kapatildi (`a5fc8f22`). Kabul: ters yon kolu + onu olduren mutant.
 
 ## 🔁 28 AGU 23:3x — OKAN EMIRLERI SIRAYA KONDU (mimar oturumu; icra chip'te)
-- 🔴 **CLAUDE YAKIMI DURDU (Okan ~20:2xZ):** K340 cipine (`frosty-meitner-deb9f0`, main disi 6 commit)
-  SAYILI KAPANIS emri gonderildi; yeni Claude cipi YOK — istisna urun kirmizisi + Okan isi.
-  ⚠️ **ATIF DUZELTMESI:** `nice-swanson-706912` oturumu K337 DEGIL — Okan islerini kosuyor (CF ana sayfa TTL
-  **YESIL: `BELGE_TTL_SN=600`**, Okan Save'e basti + panel tasarimi); kapanis emri ona yanlislikla gitti, GERI ALINDI.
-  **K337 = dal `claude/nice-swanson-706912` (1 commit ileri), sahibi oturum ölü görünüyor → META=RAF + oksuz-dal kalemi.**
-  🔴 **CAKISMA:** panel tasarimini o oturum da yaziyordu; hakem mimar — otorite hukmu KUTUDAKI KraL blogudur,
-  o oturum ikinci tasarim YAZMAZ, yalniz DELTA + siparis-verisi olcumu getirir.
+- 🔴 **CLAUDE YAKIMI DURDU (Okan ~20:2xZ):** K340 cipine (`frosty-meitner-deb9f0`, main disi 6 commit) SAYILI
+  KAPANIS emri gonderildi; yeni Claude cipi YOK — istisna urun kirmizisi + Okan isi. ⚠️ ATIF: `nice-swanson`
+  K337 DEGIL, Okan islerini kosuyor (**CF ana sayfa TTL YESIL `BELGE_TTL_SN=600`**, Okan Save'e basti) —
+  kapanis emri geri alindi, dali `relaxed-wiles-04ee6e` CANLI (merge karari bende). **K337 = dal
+  `claude/nice-swanson-706912`, sahibi olu → META=RAF + oksuz-dal kalemi.**
 - 🔴 **NOBETIN LLM TUR-ACMA KOLU KAPATILIYOR (Okan ~20:0xZ, icra KraL):** cip `KraL-NobetLlmKolu-28Agu`
   acildi (`task_99f60179`). Hedef `~/.claude/cron/ci-nobeti.sh` `if (( ACILACAK )) → nobet-kapi.py --tur`
   blogu; tetik+seviye hukmu DETERMINISTIK kalir, `acilan_tur=0` her kosumda, `tetik_karari=AC|ACMA` SONA
   eklenir, `ONARIMSIZ_TUR` olu kolu SILINIR, `BITIS` bicimi (`t1-kiyas.py:34` sozlesmesi) DOKUNULMAZ.
-  Taban (kapanista kiyaslanacak): `onarim-durum.py` → **ONARIM=2 GOZCU=33 KIRMIZI=10**.
-- 🏗️ **SHOP YONETIM PANELI (`/api/shop/yonet`, Okan emri):** tasarim + T1 teslim tanimi KUTUYA yazildi.
-  Otorite hukmu: **taban=`urunler.json`/git (MaCiT tek yazar) · ust yazim=D1 `panel_ustyazim` (Okan tek yazar)**;
-  `d1-sync.py` ust yazimi ne okur ne yazar → ezme SEMAYLA imkansiz, yeni kapi YOK. Cikarma=`gizli:true`.
-  T1 kabul: panelden fiyat degistir → `d1-sync.py` TAM kosum → fiyat DURUYOR **ve** `urunler.json` birebir ayni.
-  Sira: MaCiT yayin yolu + CF Save tiki ONCE, T1 icra cipi SONRA. Ondan once tek olcum: siparis verisi NEREDE.
+  Taban (cip olctu): `nobet-tetik-test` VAKA=81/0 · `nobet-kabul-test` VAKA=51/0 · `nobet-kapi-mutasyon`
+  MUTANT=12/12 · `nobet-uc-kol-kabul` 25/25 · `onarim-durum` ONCE **ONARIM=2 GOZCU=33 KIRMIZI=10**.
+  🟢 **KOD YAZILDI, hukme BIREBIR uyuyor** (28 Agu ~00:0x): `acilan_tur` daima 0, `tetik_karari=AC|ACMA` SONA
+  eklendi, olu `ONARIMSIZ_TUR` kolu SILINDI, fail-closed KIRMIZI ayagi ve `BITIS` bicimi DURUYOR.
+  **A1-A6 SAYILARI HENUZ GELMEDI** — kod goruldu, kabul OLCULMEDI; ayrica cip ANA agaca yazdi
+  (`tools/nobet-uc-kol-kabul.py` M) → kendi dalina tasiyip yeniden olcmesi soylendi.
+- 🔴 **K346 → ISARETCI: TAM METIN KUTUDA** (`~00:2xZ` KraL blogu). Sinif: `cf-durum.py` kimlik kolu; care ayni
+  cipe **IS B** olarak verildi, kabul olcutu kutuda. Dosyanin tazelenmesi **OKAN KAPISI** — Okan'a cikarildi.
+- 🏗️ **SHOP PANELI — TASARIM DEGISTI (tam hukum KUTUDA ~00:1xZ).** Ilk tasarimimdaki "okuma yolu taban ⊕ ust
+  yazim" OLCUMLE CURUTULDU: urun sayfasi statik, fiyat+JSON-LD gomulu, `urunler.json` fetch=**0**. YENI HUKUM:
+  `panel_ustyazim` duzlem DEGIL **YAZMA KUYRUGU**; **CI uygulayicisi git'e yazan TEK kol**, `urunler.json` TEK
+  okuma kaynagi KALIR; public uc + index.html merge + kenar-yazim REDDEDILDI (ikinci kopya = ayrisma). Bedel:
+  yayin ANINDA degil bir sonraki build'de. Gizli alanlar (kaynak/uyelik/STL) tabana ASLA inmez.
+  **T4 ZATEN CANLI** (`yonet.js`, sirsizda 404 `index.js:1091`) → korunacak; **T1 = panele "Urunler" sekmesi.**
+  T1 kabul (eskisi GECERSIZ): fiyat → `beklemede` → uygulayici → `urunler.json` diff TAM o alan · `islendi` ·
+  canlida+JSON-LD'de yeni fiyat · `d1-sync` 5/5 · 31224=31224. Siparis: D1 `siparisler`, `index.js:521,632`.
 - 📮 Kutu 399 → **229 satir** (tavan 300; `kutu-arsivle --kapanislari-isle`, CEVRIM=6, lossless GECTI, 5 blok arsive).
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
