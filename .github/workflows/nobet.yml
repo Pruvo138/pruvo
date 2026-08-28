@@ -2425,6 +2425,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      # 🔴 K330 (28 Agu 2026) — TABAN SIFIRLAMA KOLLARININ KENDI MUTASYON TESTI.
+      #    ~1 sn; bataryanin YERINE GECMEZ, ONUNDE kosar. Neden ayri adim: bu iki
+      #    kolun capalari `taban_artik_yollari` / `yapisal_artik_yollari`
+      #    kaynagindan TURETILIR; kollar yeniden yazilirsa capa bayatlar ve
+      #    bayatlik yalnizca ~590 sn'lik bataryanin SONUNDA gorulurdu.
+      #    → [[capa-turetme-altyapisi-kullanilmadan-kaldi]]
+      - name: "K330 taban-sifirlama kollari kendini-testi (MUTANT + HEDEF_KOL_ATFI + KONTROL)"
+        run: python3 tools/k3-cikti-kok-mutasyon.py --kendini-test
       - name: "CIKTI_KOK yonlendirme mutasyon bataryasi (M-KOK oldurucu + KONTROL)"
         run: python3 tools/k3-cikti-kok-mutasyon.py
 
