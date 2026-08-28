@@ -186,6 +186,12 @@ def _a_hukum(metin):
     return None
 
 
+def _kapi_kostu(metin):
+    """Nobet kapisi FIILEN cagrildi mi? Stub kapi loga `STUB KAPI` yazar.
+    Iddia degil OLCUM: cagri olduysa iz vardir, olmadiysa yoktur."""
+    return "STUB KAPI" in metin
+
+
 def kol_a(sh_yolu=None, yalniz=None):
     """yalniz=None -> hepsi; aksi halde yalniz o vaka adlarini kos."""
     def istenir(ad):
@@ -207,26 +213,32 @@ def kol_a(sh_yolu=None, yalniz=None):
             ("SEVIYE_KIRMIZI_2", 1, "KOSMADI"),
             (_a_hukum(log), rc, _a_alan(log, "nobet_rc")))
 
-    # A3 KONTROL: tetik AC/yesil + kapi yesil -> gercekten TEMIZ
+    # A3: tetik AC dese BILE kapi KOSMAZ (LLM tur kolu KAPALI — Okan emri
+    # 28 Agu 2026). ONCE bu vaka `nobet_rc=0` bekliyordu; kapi artik hic
+    # kosmadigi icin cakisi YENIDEN cakildi.
     if istenir("A3"):
         rc, log = _a_kos(0, 0, sh_yolu)
-        olc("A3 ac/yesil + kapi yesil -> TEMIZ",
-            ("TEMIZ", 0, "0"),
-            (_a_hukum(log), rc, _a_alan(log, "nobet_rc")), kontrol=True)
+        olc("A3 tetik AC der ama kapi KOSMAZ",
+            ("TEMIZ", 0, "KOSMADI", "AC", False),
+            (_a_hukum(log), rc, _a_alan(log, "nobet_rc"),
+             _a_alan(log, "tetik_karari"), _kapi_kostu(log)), kontrol=True)
 
-    # A4 KONTROL: kapi GERCEKTEN dustu -> hala KIRMIZI (gevsetme YOK)
+    # A4: kapi stub'i rc=1 dondurmeye HAZIR olsa bile CAGRILMAZ; `ONARIMSIZ_TUR`
+    # kolu Okan emriyle KALDIRILDI (erisilemez kol = bakim noktasi).
     if istenir("A4"):
         rc, log = _a_kos(0, 1, sh_yolu)
-        olc("A4 kapi dustu -> ONARIMSIZ_TUR rc1",
-            ("ONARIMSIZ_TUR", 1, "1"),
-            (_a_hukum(log), rc, _a_alan(log, "nobet_rc")), kontrol=True)
+        olc("A4 kapi rc=1 olsa da CAGRILMAZ",
+            ("TEMIZ", 0, "KOSMADI", False),
+            (_a_hukum(log), rc, _a_alan(log, "nobet_rc"),
+             _kapi_kostu(log)), kontrol=True)
 
     # A5: BILINMEYEN tetik rc -> fail-closed (tur ACILIR, hukum KIRMIZI)
     if istenir("A5"):
         rc, log = _a_kos(99, 0, sh_yolu)
-        olc("A5 bilinmeyen tetik rc -> fail-closed",
-            ("TETIK_BILINMEYEN_RC", 1, "1"),
-            (_a_hukum(log), rc, _a_alan(log, "acilan_tur")))
+        olc("A5 bilinmeyen tetik rc -> fail-closed KIRMIZI ayak DURUR",
+            ("TETIK_BILINMEYEN_RC", 1, "0", "AC"),
+            (_a_hukum(log), rc, _a_alan(log, "acilan_tur"),
+             _a_alan(log, "tetik_karari")), kontrol=True)
 
     # A6 DEGISMEZLIK: HUKUM=TEMIZ <=> rc=0, dort senaryonun HEPSINDE.
     if istenir("A6"):
@@ -269,6 +281,23 @@ def kol_a(sh_yolu=None, yalniz=None):
             (True, True),
             ("STUB TETIK" in log,
              "TUR ACILMADI sebep=ESKALASYON_ACIK" in log), kontrol=True)
+
+    # 🔴 A10 — LLM_TUR_KOLU (Okan emri, 28 Agu 2026). Bu hat HICBIR tetik
+    # halinde nobet kapisini CAGIRMAZ. Bes tetik hali de kosulur: kapi
+    # cagrisi TOPLAM 0 olmali VE en az bir kosumda tetik "AC", en az birinde
+    # "ACMA" demis olmali — tek yonlu olcum hukum vermez ("hic AC cikmadi"
+    # hali de 0 cagri uretir ve sahte yesil yakar).
+    if istenir("A10"):
+        kosan = 0
+        kararlar = []
+        for _t, _k in ((10, 0), (11, 0), (0, 0), (0, 1), (99, 0)):
+            _rc, log = _a_kos(_t, _k, sh_yolu, tetik_sebebi="SEVIYE_KIRMIZI_2")
+            if _kapi_kostu(log):
+                kosan += 1
+            kararlar.append(_a_alan(log, "tetik_karari"))
+        olc("A10 LLM_TUR_KOLU kapali: hicbir halde kapi kosmaz",
+            (0, True, True),
+            (kosan, "AC" in kararlar, "ACMA" in kararlar))
 
 
 # =========================================================================
@@ -558,9 +587,13 @@ MUTANTLAR = [
     # (ad, DOSYA_ANAHTARI, eski, yeni, hedef_dusen, kontrol_yesil, kol)
     # 🔴 ikinci sutun bir YOL DEGIL ANAHTARDIR; `--kok` ile degisen gercek
     # yola `_mutant_yolu()` kosum aninda cevirir.
+    # 🔴 KONTROL LISTESI 28 Agu 2026'da TAZELENDI: A3/A4 artik `nobet_rc=KOSMADI`
+    # bekliyor (LLM tur kolu kapandi) — yani bu mutantin HEDEF alanini okuyorlar
+    # ve kontrol olamazlar. Kontrol, mutantin DOKUNMADIGI eksenlerden secilir:
+    # A5 (fail-closed ad + acilan_tur) ve A9 (tetik ciktisi loga duser).
     ("M-A1-kosmayan-kapi-sayi-basar", "SH",
      "NOBET_RC=KOSMADI", "NOBET_RC=0",
-     ["A2"], ["A3", "A4"], "A"),
+     ["A2", "A3", "A4"], ["A5", "A9"], "A"),
     ("M-A2-rc-hukumden-turemez", "SH",
      "  HUKUM=$TETIK_SINIFI\n  SON_RC=1",
      "  HUKUM=$TETIK_SINIFI\n  SON_RC=0",
@@ -582,6 +615,20 @@ MUTANTLAR = [
      "awk '/^TUR ACIL/ {",
      "awk '/^ASLA_ESLESMEYEN_DESEN/ {",
      ["A2", "A7"], ["A8", "A3", "A9"], "A"),
+    # --- KOL LLM (28 Agu 2026) — TUR-ACMA KOLU GERI KONURSA KABUL OLMELI ---
+    # Hedef: A10 (cagri sayisi) + A3/A4 (kapi kosmadi cakisi). KONTROL: A1
+    # (tetik ACMA der -> mutant onu HIC etkilemez), A5 (fail-closed KIRMIZI
+    # ayak), A9 (tetik ciktisi loga duser). Kontroller yesil kalmazsa mutant
+    # "her seyi kirdi" demektir ve kirmizinin SEBEBI hedef kol OLDUGU
+    # KANITLANMAZ -> YAMA_TUTMADI.
+    ("M-A5-llm-tur-kolu-geri-kondu", "SH",
+     "if (( ACILACAK )); then TETIK_KARARI=AC; else TETIK_KARARI=ACMA; fi",
+     "if (( ACILACAK )); then TETIK_KARARI=AC; else TETIK_KARARI=ACMA; fi\n"
+     "if (( ACILACAK )); then\n"
+     "  python3 \"$KAPI\" --tur >> \"$LOG\" 2>&1\n"
+     "  NOBET_RC=$?\n"
+     "fi",
+     ["A10", "A3", "A4"], ["A1", "A5", "A9"], "A"),
     ("M-B1-ucuncu-kova-olur", "KAPI",
      "        if dondurma_isirdi:\n            rc, hukum = 0, \"DAGITIM_DONDURULDU\"",
      "        if False:\n            rc, hukum = 0, \"DAGITIM_DONDURULDU\"",

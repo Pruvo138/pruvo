@@ -54,15 +54,50 @@ def _maske(deger, n=6):
     return (deger[:n] + "…") if deger else "—"
 
 
+# 🔴 28 Agu 2026 — TOKEN_BICIM_KOLU (Okan emri sinifi: canli sizinti yolu).
+# ONCE: `~/.claude/cron/.cf-token` BOS DEGILSE token sayiliyordu ve icerik
+# dogrudan `Authorization: Bearer <icerik>` basligina gidiyordu. Dosyaya bir ic
+# hatirlatma metni yazilinca her kosum o metni ucuncu tarafa GONDERDI (401 doner
+# ama baytlar GITMISTIR). Cloudflare API token'lari tek satir, `[A-Za-z0-9_-]`
+# alfabesinde ve uzun olur; prose bu bicime UYMAZ.
+# SIMDI: bicim tutmuyorsa icerik TOKEN DEGILDIR — dosya kolu sessizce ATLANIR ve
+# sonraki kaynaga (wrangler OAuth) dusulur. Bu bir GEVSETME degil DARALTMADIR:
+# gecerli bicimli token AYNEN kabul edilir, bos dosya AYNEN sessiz gecer.
+# 🔴 ICERIK HICBIR YERE BASILMAZ — uyari satiri yalnizca BAYT SAYISI tasir.
+# Kabul: python3 tools/cf-durum.py --kendini-test
+_CF_TOKEN_BICIMI = re.compile(r"^[A-Za-z0-9_-]{30,}$")
+
+
+def _dosya_tokeni(yol=None):
+    """`.cf-token` icerigini YALNIZ token bicimindeyse dondur; aksi halde None."""
+    hedef = yol or CF_TOKEN_DOSYA
+    if not os.path.exists(hedef):
+        return None
+    try:
+        with open(hedef, encoding="utf-8", errors="replace") as dosya:
+            ham = dosya.read()
+    except OSError:
+        return None
+    icerik = ham.strip()
+    if not icerik:
+        return None                      # bos dosya: eskisi gibi SESSIZ gec
+    if "\n" in icerik or not _CF_TOKEN_BICIMI.match(icerik):
+        sys.stderr.write(
+            "UYARI: %s TOKEN BICIMINDE DEGIL (%d bayt) — kimlik kaynagi olarak "
+            "KULLANILMADI, sonraki kaynaga dusuldu. Icerik BASILMAZ; token "
+            "yenileme OKAN KAPISI'dir.\n" % (hedef, len(ham)))
+        return None
+    return icerik
+
+
 def kimlik_bul():
     """(token, account_id|None, kaynak) dondur; bulamazsa YetkiEksik."""
     tok = os.environ.get("CLOUDFLARE_API_TOKEN")
     if tok:
         return tok, os.environ.get("CLOUDFLARE_ACCOUNT_ID"), "ortam(CLOUDFLARE_API_TOKEN)"
-    if os.path.exists(CF_TOKEN_DOSYA):
-        tok = open(CF_TOKEN_DOSYA).read().strip()
-        if tok:
-            return tok, os.environ.get("CLOUDFLARE_ACCOUNT_ID"), "dosya(~/.claude/cron/.cf-token)"
+    tok = _dosya_tokeni()
+    if tok:
+        return tok, os.environ.get("CLOUDFLARE_ACCOUNT_ID"), "dosya(~/.claude/cron/.cf-token)"
     if os.path.exists(WRANGLER_TOML):
         icerik = open(WRANGLER_TOML).read()
         m = re.search(r'oauth_token\s*=\s*"([^"]+)"', icerik)
@@ -253,6 +288,186 @@ def _kosu(ad, fn):
         return RC_AG
 
 
+def _baslik_sizintisi_olc(token_dosyasi, wrangler_yolu):
+    """Verilen `.cf-token` dosyasiyla kimlik kolunu kosar ve `Authorization`
+    basligina FIILEN GIDEN degeri dondurur. AG'A CIKILMAZ (`urlopen` sahte).
+
+    🔴 Olculen sey "fonksiyon None dondu" DEGIL, BASLIGA NE GITTIGIDIR. Mutant
+    kosucusu ayni fonksiyonu MUTANT MODULDEN cagirir — iki tarafta AYNI olcum.
+    Kimlik hic bulunamazsa "" doner.
+    """
+    yakalanan = []
+    gercek_urlopen = urllib.request.urlopen
+
+    def _sahte_urlopen(istek, timeout=None):
+        yakalanan.append(istek.get_header("Authorization") or "")
+        raise urllib.error.URLError("SAHTE UC — kendini-test, ag'a CIKILMADI")
+
+    eski_dosya = globals()["CF_TOKEN_DOSYA"]
+    eski_toml = globals()["WRANGLER_TOML"]
+    eski_env = os.environ.pop("CLOUDFLARE_API_TOKEN", None)
+    globals()["CF_TOKEN_DOSYA"] = token_dosyasi
+    globals()["WRANGLER_TOML"] = wrangler_yolu
+    urllib.request.urlopen = _sahte_urlopen
+    try:
+        try:
+            tok, _hesap, _kaynak = kimlik_bul()
+        except YetkiEksik:
+            return ""
+        try:
+            _cf_istek("/user/tokens/verify", tok, "kendini-test")
+        except (YetkiEksik, AgHatasi):
+            pass
+        return "".join(yakalanan)
+    finally:
+        urllib.request.urlopen = gercek_urlopen
+        globals()["CF_TOKEN_DOSYA"] = eski_dosya
+        globals()["WRANGLER_TOML"] = eski_toml
+        if eski_env is not None:
+            os.environ["CLOUDFLARE_API_TOKEN"] = eski_env
+
+
+def _kendini_test():
+    """`--kendini-test` — dosya kimlik kolu + hedef-kol atifli MUTANT. Ag YOK."""
+    import importlib.util
+    import io
+    import shutil
+    import tempfile
+
+    sayac = {"vaka": 0, "gecen": 0, "kontrol": 0, "kontrol_gecen": 0}
+    dusenler = []
+
+    def olc(ad, beklenen, gozlenen, kontrol=False):
+        sayac["vaka"] += 1
+        if kontrol:
+            sayac["kontrol"] += 1
+        tamam = (beklenen == gozlenen)
+        if tamam:
+            sayac["gecen"] += 1
+            if kontrol:
+                sayac["kontrol_gecen"] += 1
+        else:
+            dusenler.append(ad)
+            sys.stderr.write("[DUSTU] %s\n  beklenen=%r\n  gozlenen=%r\n"
+                             % (ad, beklenen, gozlenen))
+        print("VAKA %-50s %s%s" % (ad, "GECTI" if tamam else "DUSTU",
+                                   " (KONTROL)" if kontrol else ""))
+        return tamam
+
+    kok = tempfile.mkdtemp(prefix="cf-token-kendini-test-")
+    try:
+        # 🔴 FIKSTURLER SENTETIKTIR — gercek `.cf-token` OKUNMAZ.
+        SAHTE_TOKEN = "aB3" + ("x" * 30) + "_-9"
+        GIZLI_JETON = "ICYAZISMA_BU_BIR_TOKEN_DEGILDIR_0001"
+        gecerli = os.path.join(kok, "gecerli")
+        prose = os.path.join(kok, "prose")
+        bos = os.path.join(kok, "bos")
+        yok_toml = os.path.join(kok, "olmayan.toml")
+        var_toml = os.path.join(kok, "wrangler.toml")
+        WRANGLER_TOKEN = "wr" + ("y" * 34)
+        with open(gecerli, "w") as d:
+            d.write(SAHTE_TOKEN + "\n")
+        with open(prose, "w") as d:
+            d.write(GIZLI_JETON + " — hatirlatma metni, " + ("z" * 700) + "\n")
+        with open(bos, "w") as d:
+            d.write("")
+        with open(var_toml, "w") as d:
+            d.write('oauth_token = "%s"\n' % WRANGLER_TOKEN)
+
+        def _uyari_ile(yol):
+            eski = sys.stderr
+            sys.stderr = tampon = io.StringIO()
+            try:
+                sonuc = _dosya_tokeni(yol)
+            finally:
+                sys.stderr = eski
+            return sonuc, tampon.getvalue()
+
+        # --- B1: bicim kolu ucu ucuna ---------------------------------------
+        t1, u1 = _uyari_ile(gecerli)
+        olc("B1a gecerli bicimli token KABUL", (SAHTE_TOKEN, ""), (t1, u1),
+            kontrol=True)
+        t2, u2 = _uyari_ile(prose)
+        olc("B1b prose REDDEDILIR + uyari basilir",
+            (None, True), (t2, "TOKEN BICIMINDE DEGIL" in u2))
+        olc("B1c uyari ICERIGI TASIMAZ", False, GIZLI_JETON in u2)
+        t3, u3 = _uyari_ile(bos)
+        olc("B1d bos dosya SESSIZ gecer (gerileme YOK)", (None, ""), (t3, u3),
+            kontrol=True)
+
+        # --- B2: ASIL KANIT — basliga NE GITTI ------------------------------
+        # 🔴 POZITIF KONTROL ONCE: "sizmadi" iddiasi ancak YAKALAMA CALISIYORSA
+        # anlam tasir; kopuk yakalamada da bos dizge gorunur (K182 sinifi).
+        b2a = _baslik_sizintisi_olc(gecerli, yok_toml)
+        olc("B2a POZITIF KONTROL: yakalama CANLI (gecerli token basliga gider)",
+            True, SAHTE_TOKEN in b2a, kontrol=True)
+        b2b = _baslik_sizintisi_olc(prose, yok_toml)
+        olc("B2b prose'un BIR BAYTI BILE basliga GITMEZ",
+            False, GIZLI_JETON in b2b)
+        b2c = _baslik_sizintisi_olc(prose, var_toml)
+        olc("B2c prose atlanir, WRANGLER koluna DUSULUR",
+            (False, True), (GIZLI_JETON in b2c, WRANGLER_TOKEN in b2c))
+
+        # --- B3: MUTANT — hedef kol ADIYLA ----------------------------------
+        # Bicim kontrolu oldurulur: B2b/B2c KIRMIZI yanmali, B1a/B1d YESIL
+        # kalmali (mutant "her seyi kirdi" ise kirmizinin SEBEBI hedef kol
+        # OLDUGU KANITLANMAZ).
+        CAPA = '    if "\\n" in icerik or not _CF_TOKEN_BICIMI.match(icerik):'
+        MUTANT_ADI = "M-CF1-token-bicim-kolu-olur"
+        HEDEF_KOL = "TOKEN_BICIM_KOLU"
+        kaynak_yolu = os.path.abspath(__file__)
+        with open(kaynak_yolu, encoding="utf-8") as d:
+            kaynak = d.read()
+        mutant_oldu = mutant_atif = False
+        mutant_not = ""
+        if kaynak.count(CAPA) != 1:
+            mutant_not = "CAPA_SAYISI=%d" % kaynak.count(CAPA)
+        else:
+            kopya = os.path.join(kok, "cf_durum_mutant.py")
+            with open(kopya, "w", encoding="utf-8") as d:
+                d.write(kaynak.replace(CAPA, "    if False:", 1))
+            spec = importlib.util.spec_from_file_location("cf_durum_mutant", kopya)
+            mut = importlib.util.module_from_spec(spec)
+            onceki = sys.dont_write_bytecode
+            sys.dont_write_bytecode = True
+            try:
+                spec.loader.exec_module(mut)
+            finally:
+                sys.dont_write_bytecode = onceki
+            m_b2b = mut._baslik_sizintisi_olc(prose, yok_toml)
+            m_b2c = mut._baslik_sizintisi_olc(prose, var_toml)
+            m_t1, _m_u1 = mut._dosya_tokeni(gecerli), ""
+            m_t3 = mut._dosya_tokeni(bos)
+            mutant_oldu = (GIZLI_JETON in m_b2b) and (GIZLI_JETON in m_b2c)
+            kontrol_yesil = (m_t1 == SAHTE_TOKEN) and (m_t3 is None)
+            mutant_atif = mutant_oldu and kontrol_yesil
+            mutant_not = "oldurdugu=%s (B2b,B2c) kontrol_yesil=%s" % (
+                HEDEF_KOL, kontrol_yesil)
+        print("MUTANT %-34s %s ATIF=%s %s" % (
+            MUTANT_ADI, "OLDU" if mutant_oldu else "YASADI",
+            "EVET" if mutant_atif else "HAYIR", mutant_not))
+
+        # --- CANLI DOSYANIN HALI (icerik OKUNMAZ, yalnizca BICIM hukmu) -----
+        canli = "YOK"
+        if os.path.exists(CF_TOKEN_DOSYA):
+            eski = sys.stderr
+            sys.stderr = io.StringIO()
+            try:
+                canli = "TOKEN_BICIMI" if _dosya_tokeni() else "BICIM_DISI"
+            finally:
+                sys.stderr = eski
+        print("CANLI_CF_TOKEN=%s (icerik OKUNMADI/BASILMADI)" % canli)
+
+        print("CF-KENDINI-TEST VAKA=%d/%d DUSEN=%d MUTANT=%d/1 ATIF=%d/1 "
+              "KONTROL=%d/%d"
+              % (sayac["gecen"], sayac["vaka"], len(dusenler),
+                 1 if mutant_oldu else 0, 1 if mutant_atif else 0,
+                 sayac["kontrol_gecen"], sayac["kontrol"]))
+        return RC_OK if (not dusenler and mutant_atif) else 1
+    finally:
+        shutil.rmtree(kok, ignore_errors=True)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -262,7 +477,11 @@ def main():
     ap.add_argument("--dns", action="store_true", help="pruvo3d.com DNS kayitlari (maskeli)")
     ap.add_argument("--hepsi", action="store_true", help="hepsini sirayla")
     ap.add_argument("-n", type=int, default=5, help="--pages icin dagitim sayisi (vars. 5)")
+    ap.add_argument("--kendini-test", action="store_true",
+                    help="dosya kimlik kolunun fail-closed davranisini OLCER (ag YOK)")
     a = ap.parse_args()
+    if a.kendini_test:
+        return _kendini_test()
     if not (a.d1 or a.r2 or a.pages or a.dns or a.hepsi):
         ap.print_help()
         return RC_OK
