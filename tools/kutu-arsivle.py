@@ -46,6 +46,9 @@ KURALLAR (hepsi kabul testiyle kilitli — tools/kutu-arsivle-test.py):
   * GRANULERLIK (K318 KOL-2, 27 Agu): rotasyon BITISIK KUYRUK sartina bagli DEGIL —
     korumali blok YERINDE ATLANIR, altindaki/ustundeki korumasiz eski bloklar tasinir.
     Bkz. "GRANULERLIK".
+  * CEVRIM (K341, 28 Agu): `--kapanislari-isle` KAPANIS KONUMUNDAKI BEKLEYEN jetonu
+    ISLENMIS bicime cevirir ve o bloklari rotasyona ACAR. Kilidi ACAN kol artik
+    ARACTADIR, mimarin ELINDE DEGIL. Bkz. "K341 CEVRIM KOLU" bolumu.
 
 🔴 GORUNURLUK — LOSSLESS OLMAK GORUNUR OLMAK DEGILDIR (K313g, 27 Agu 2026)
 OLCULEN VAKA (mimarin kendi elinden, bugun): iki cip (`KraL-BayatYuzey-27Agu`,
@@ -141,13 +144,16 @@ degiskeni set edilmediginde HICBIR ETKISI YOKTUR. Set edildiginde aday metinler
 dogrulamadan ONCE kasten bozulur; kabul testi boylece "lossless dogrulamasi GERCEKTEN
 kirmizi yakiyor mu" sorusunu OLCEBILIR (dogrulamayi silen mutant KIRMIZI yanar).
 Degerler: arsiv-satir-dus | kutu-satir-dus | arsiv-onek-boz | arsiv-sira-boz |
-          koruma-jeton-sizdir | kutu-blok-dus | basliyorum-sizdir
+          koruma-jeton-sizdir | kutu-blok-dus | basliyorum-sizdir |
+          cevrim-satir-dus | cevrim-govde-cevir | cevrim-icerik-boz
 
 Kullanim:
     python3 tools/kutu-arsivle.py --kuru
     python3 tools/kutu-arsivle.py
     python3 tools/kutu-arsivle.py --tavan 300 --koru 3
     python3 tools/kutu-arsivle.py --kutu /yol/kutu.md --arsiv /yol/arsiv.md
+    python3 tools/kutu-arsivle.py --kapanislari-isle --kuru   # once GOR
+    python3 tools/kutu-arsivle.py --kapanislari-isle          # sonra UYGULA
 """
 import argparse
 import fcntl
@@ -479,6 +485,197 @@ def korumali_bloklar(satirlar, baslar):
             govde_anmasi += 1
         i += 1
     return bulgu, govde_anmasi
+
+
+# ------------------------------------------------------- K341 CEVRIM KOLU (--kapanislari-isle)
+# 🔴 NEDEN VAR (Okan, 28 Agu 2026, baglayici): "16 kapanis blogunun 15'i ARSIVLENEBILIRIM
+# satiri tasiyor, HEPSI arsive iner" — yani bekleyen kapanislar ISLENMIS SAYILIR. K313g
+# korumasi bu bloklari dogru sekilde kilitliyordu; kilidi acan CEVRIM ise ARACTA YOKTU ve
+# elle yapiliyordu. ELLE YAPILAN CEVRIM ERTESI GUN GERI GELIR: kutu her gun bekleyen
+# kapanislarla dolar, her gun bir mimar elle 13 satir duzenler, ve o duzenleme kutuya
+# `Write`/`Edit` ile dokunmaktir — yani [[ortak-kutu-silinebilir-kurtarma-disiplini]]
+# kaza sinifinin ta kendisini her gun tekrar acar. Cevrim ARACIN ICINDE olmali, kilit
+# altinda, DOGRULAMALI ve fail-closed.
+#
+# NE YAPAR: KAPANIS KONUMUNDAKI `BEKLEYEN_JETON` -> `ISLENMIS_JETON`. Baska HICBIR SEY.
+# NE YAPMAZ (uc dokunulmazlik, ucu de ayri iddiayla olculur):
+#   * GOVDE ANMASI — jeton blogun icinde geciyor ama kapanis konumunda degilse
+#     DOKUNULMAZ (K318 KOL-1 ile AYNI olcut, AYNI fonksiyondan: korumali_bloklar()).
+#   * FAIL_CLOSED — blok yapisi ayristirilamadiysa (kapanmamis cit, icerik satiri yok)
+#     DOKUNULMAZ. "Bilmiyorsam tasimam"in kardesi: bilmiyorsam CEVIRMEM.
+#   * KAPANIS SATIRININ GERI KALANI — satirda jeton disinda tek bayt degismez.
+#
+# TEK KAYNAK: cevrilecek satirlar `korumali_bloklar()`den TURER; ikinci bir "bu blok
+# bekliyor mu" testi yazilmaz ([[ikiz-tanim-sessiz-ayrisma]]). Cevrim kolu olurse
+# bloklar KORUMALI kalir ve rotasyona ACILMAZ -> kabul testi KIRMIZI yanar.
+def cevrilecek_kapanislar(satirlar, baslar):
+    """([(blok_idx, satir_idx0, eski_satir)], atlanan_fail_closed, govde_anmasi).
+
+    Yalnizca sinif=="KAPANIS" cevrilir. sinif=="FAIL_CLOSED" ATLANIR ve SAYILIR —
+    sessizce yutulmaz, cikitida ADIYLA basilir.
+    """
+    bulgu, govde_anmasi = korumali_bloklar(satirlar, baslar)
+    cikti = []
+    atlanan = []
+    for blok_idx, satir_no, ozet, sinif in bulgu:
+        if sinif != "KAPANIS":
+            atlanan.append((blok_idx, satir_no, ozet, sinif))
+            continue
+        cikti.append((blok_idx, satir_no - 1, satirlar[satir_no - 1]))
+    return cikti, atlanan, govde_anmasi
+
+
+def cevir(kutu_metin):
+    """(yeni_metin, cevrilen, atlanan, govde_anmasi, hata).
+
+    `cevrilen` = [(blok_idx, satir_idx0, eski_satir, yeni_satir)].
+    Hata dolu donerse cagiran HICBIR SEY YAZMAZ.
+    """
+    satirlar = kutu_metin.splitlines(keepends=True)
+    fm_son, hata = frontmatter_sonu(satirlar)
+    if hata:
+        return None, [], [], 0, hata
+    baslar = blok_baslari(satirlar, fm_son)
+    if not baslar:
+        return kutu_metin, [], [], 0, None
+    adaylar, atlanan, govde_anmasi = cevrilecek_kapanislar(satirlar, baslar)
+    yeni = list(satirlar)
+    cevrilen = []
+    for blok_idx, idx, eski in adaylar:
+        yeni_satir = eski.replace(BEKLEYEN_JETON, ISLENMIS_JETON)
+        yeni[idx] = yeni_satir
+        cevrilen.append((blok_idx, idx, eski, yeni_satir))
+    return "".join(yeni), cevrilen, atlanan, govde_anmasi, None
+
+
+def cevrim_ariza_uygula(yeni_metin, cevrilen):
+    """SENTETIK ARIZA — yalniz PRUVO_KUTU_ARSIVLE_ARIZA set ise (cevrim kolu icin).
+
+    `ariza_uygula()`nin kardesi: enjekte edilen her ariza sinifini `dogrula_cevrim()`
+    YAKALAMAK ZORUNDADIR. Dogrulama silinirse bu arizalar SESSIZCE diske yazilir ->
+    kabul testi KIRMIZI yanar.
+    """
+    ariza = os.environ.get("PRUVO_KUTU_ARSIVLE_ARIZA", "").strip()
+    if not ariza or not ariza.startswith("cevrim-"):
+        return yeni_metin, None
+    s = yeni_metin.splitlines(keepends=True)
+    if ariza == "cevrim-satir-dus":
+        # CEVRIM sirasinda bir satir ucuruldu = KAYIP (C1/C2 yakalamali).
+        return "".join(s[:-1]), None
+    if ariza == "cevrim-govde-cevir":
+        # GOVDE ANMASI da cevrildi = DOKUNULMAZLIK ihlali (C2 yakalamali).
+        j = 0
+        while j < len(s):
+            if BEKLEYEN_JETON in s[j]:
+                s[j] = s[j].replace(BEKLEYEN_JETON, ISLENMIS_JETON)
+                return "".join(s), None
+            j += 1
+        return "".join(s), "ARIZA UYGULANAMADI: cevrilecek govde anmasi YOK"
+    if ariza == "cevrim-icerik-boz":
+        # Cevrimle ILGISIZ bir satir degisti (C2 yakalamali).
+        j = 0
+        while j < len(s):
+            if s[j].strip() and BEKLEYEN_JETON not in s[j] and ISLENMIS_JETON not in s[j]:
+                s[j] = "BOZULDU " + s[j]
+                return "".join(s), None
+            j += 1
+        return "".join(s), "ARIZA UYGULANAMADI: bozulacak notr satir YOK"
+    return yeni_metin, "BILINMEYEN cevrim ariza kodu: %s" % ariza
+
+
+# `dogrula_cevrim()`in BASTIGI iddia eksenleri — `iddia=N` BURADAN turer, elle yazilmaz.
+CEVRIM_IDDIA_EKSENLERI = ("C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8")
+
+
+def dogrula_cevrim(eski_metin, yeni_metin, cevrilen, atlanan):
+    """KAYIPSIZLIK + DOKUNULMAZLIK iddialari. Bos liste = GECTI, dolu = HICBIR SEY YAZMA.
+
+    🔴 CEVRIM KOLUNUN OMURGASI. Silinirse arac "kutuya sessizce dokunan" bir duzenleyiciye
+    doner — tam da kacinilmak istenen sey ([[ortak-kutu-silinebilir-kurtarma-disiplini]]).
+    """
+    h = []
+    e = eski_metin.splitlines(keepends=True)
+    y = yeni_metin.splitlines(keepends=True)
+    cevrilen_idx = {}
+    for _bi, idx, eskisi, yenisi in cevrilen:
+        cevrilen_idx[idx] = (eskisi, yenisi)
+
+    # C1 — SATIR SAYISI DEGISMEZ. Cevrim yerinde bir DIZGE ikamesidir, satir eklemez/siler.
+    if len(e) != len(y):
+        h.append("C1 SATIR SAYISI DEGISTI: once=%d sonra=%d (cevrim satir ekleyemez/silemez)"
+                 % (len(e), len(y)))
+        return h  # hizalama bozuk -> C2 anlamsiz olur
+    # C2 — DOKUNULMAZLIK: cevrilen satirlar DISINDA her satir BIREBIR ayni.
+    ihlal = []
+    j = 0
+    while j < len(e):
+        if j not in cevrilen_idx and e[j] != y[j]:
+            ihlal.append((j + 1, e[j].strip()[:60], y[j].strip()[:60]))
+        j += 1
+    if ihlal:
+        h.append("C2 CEVRIM DISI SATIR DEGISTI (%d adet, ilk: satir %d %r -> %r) — "
+                 "cevrim YALNIZ kapanis satirina dokunur"
+                 % (len(ihlal), ihlal[0][0], ihlal[0][1], ihlal[0][2]))
+    # C3 — CEVRILEN SATIR YALNIZ JETONDA degisti (satirin geri kalani birebir).
+    for _bi, idx, eskisi, yenisi in cevrilen:
+        if idx >= len(y):
+            h.append("C3 cevrilen satir indeksi TASTI: %d" % idx)
+            continue
+        if y[idx] != yenisi:
+            h.append("C3 cevrilen satir diskteki adayla UYUSMUYOR (satir %d)" % (idx + 1))
+        if eskisi.replace(BEKLEYEN_JETON, ISLENMIS_JETON) != yenisi:
+            h.append("C3 cevrim JETON IKAMESINDEN FAZLASINI yapti (satir %d): %r -> %r"
+                     % (idx + 1, eskisi.strip()[:60], yenisi.strip()[:60]))
+        if BEKLEYEN_JETON in yenisi:
+            h.append("C3 cevrilen satirda BEKLEYEN jeton HALA duruyor (satir %d)" % (idx + 1))
+        if ISLENMIS_JETON not in yenisi:
+            h.append("C3 cevrilen satirda ISLENMIS jeton YOK (satir %d)" % (idx + 1))
+    # C4 — BAYT ARITMETIGI TURETILIR: delta, satir bazindaki ikamelerin toplamina ESIT.
+    bek_delta = 0
+    for _bi, _idx, eskisi, yenisi in cevrilen:
+        bek_delta += len(yenisi.encode("utf-8")) - len(eskisi.encode("utf-8"))
+    ger_delta = len(yeni_metin.encode("utf-8")) - len(eski_metin.encode("utf-8"))
+    if bek_delta != ger_delta:
+        h.append("C4 BAYT DELTASI TUTMADI: beklenen=%d gercek=%d (cevrim disi bayt degisti)"
+                 % (bek_delta, ger_delta))
+    # C5 — BLOK YAPISI DEGISMEZ: blok sayisi ve BASLIK satirlari birebir.
+    if blok_sayisi(eski_metin) != blok_sayisi(yeni_metin):
+        h.append("C5 BLOK SAYISI DEGISTI: once=%d sonra=%d"
+                 % (blok_sayisi(eski_metin), blok_sayisi(yeni_metin)))
+    eb = [x for x in e if BLOK_RE.match(x)]
+    yb = [x for x in y if BLOK_RE.match(x)]
+    if eb != yb:
+        h.append("C5 BASLIK SATIRLARI DEGISTI (cevrim baslik satirina dokunamaz)")
+    # C6 — KOL GERCEKTEN ISLEDI: cevrilen bloklar artik KORUMALI DEGIL.
+    #      Bu iddia cevrimin AMACINI olcer: "kilit acildi mi". Kol olurse burasi ates alir.
+    y_fm, y_hata = frontmatter_sonu(y)
+    if y_hata:
+        h.append("C6 cevrilmis metnin frontmatter'i AYRISTIRILAMADI: %s" % y_hata)
+    else:
+        y_baslar = blok_baslari(y, y_fm)
+        y_korumali, _y_govde = korumali_bloklar(y, y_baslar)
+        hala = set(bi for bi, _sn, _oz, sinif in y_korumali if sinif == "KAPANIS")
+        cevrilen_bloklar = set(bi for bi, _i, _e, _y in cevrilen)
+        kesisim = hala & cevrilen_bloklar
+        if kesisim:
+            h.append("C6 CEVRILEN BLOK HALA KORUMALI (rotasyona ACILMADI): blok %s"
+                     % ",".join(str(x + 1) for x in sorted(kesisim)))
+    # C7 — BEKLEYEN JETON SAYISI tam olarak cevrilen kadar DUSTU (ne fazla ne eksik).
+    dusen = 0
+    for _bi, _idx, eskisi, yenisi in cevrilen:
+        dusen += eskisi.count(BEKLEYEN_JETON) - yenisi.count(BEKLEYEN_JETON)
+    if eski_metin.count(BEKLEYEN_JETON) - yeni_metin.count(BEKLEYEN_JETON) != dusen:
+        h.append("C7 BEKLEYEN JETON SAYISI beklenenden FARKLI dustu: once=%d sonra=%d "
+                 "beklenen_dusus=%d"
+                 % (eski_metin.count(BEKLEYEN_JETON), yeni_metin.count(BEKLEYEN_JETON),
+                    dusen))
+    # C8 — YAPISAL BUTUNLUK GERILEMEDI: oksuz govde sayisi ARTMADI (K310 ekseni).
+    if len(oksuz_govdeler(yeni_metin)) > len(oksuz_govdeler(eski_metin)):
+        h.append("C8 OKSUZ GOVDE SAYISI ARTTI: once=%d sonra=%d"
+                 % (len(oksuz_govdeler(eski_metin)), len(oksuz_govdeler(yeni_metin))))
+    # ATLANAN, iddia URETMEZ ama SAYILIR — cagiran onu ADIYLA basar (sessiz atlama yasak).
+    del atlanan
+    return h
 
 
 # ---------------------------------------------------------------- K329 ACIK CIP KOLU
@@ -1305,6 +1502,14 @@ def main(argv=None):
                          "bloklar icin bas payi birakir.")
     ap.add_argument("--kuru", action="store_true",
                     help="hicbir sey yazma, ne yapacagini SAYIYLA bas")
+    ap.add_argument("--kapanislari-isle", action="store_true",
+                    help="K341: KAPANIS KONUMUNDAKI `%s` jetonunu `%s` bicimine cevirir "
+                         "ve o bloklari rotasyona ACAR. Rotasyondan ONCE, AYNI KILIT "
+                         "altinda calisir. GOVDE ANMASI ve AYRISTIRILAMAYAN blok "
+                         "DOKUNULMAZ. Dogrulama (C1-C8) gecmezse HICBIR SEY yazilmaz. "
+                         "Okan kurali ⑤ geregi bu cevrim 'Okan arsivledi' hukmudur — "
+                         "bayrak KOSULSUZ degil, CAGIRANIN hukmuyle verilir."
+                         % (BEKLEYEN_JETON, ISLENMIS_JETON))
     ap.add_argument("--yaz-sonrasi", default=None, metavar="DUZENLENEN_YOL",
                     help="K324: YAZIM TETIKLI rotasyon. Kutuya bir blok EKLENDIKTEN "
                          "hemen sonra cagrilmak icindir (PostToolUse kancasi). "
@@ -1375,6 +1580,53 @@ def main(argv=None):
             arsiv_var = True
         else:
             arsiv_metin, arsiv_var = None, False
+
+        # 🔴 K341 CEVRIM KOLU — ROTASYONDAN ONCE, AYNI KILIT ALTINDA. Sira zorunlu:
+        # cevrim korumayi KALDIRIR, rotasyon o kalkmis korumayla planlar. Ters sirada
+        # cevrim ancak ERTESI kosumda ise yarardi (bugunku el isinin ta kendisi).
+        cevrim_yazilmali = False
+        cevrilen = []
+        disk_once_bayt = len(kutu_metin.encode("utf-8"))
+        if a.kapanislari_isle:
+            yeni_kutu_cevrim, cevrilen, cev_atlanan, cev_govde, chata = cevir(kutu_metin)
+            if chata:
+                print("KIRMIZI (cevrim: bozuk/yarim kutu): %s" % chata)
+                return RC_KIRMIZI
+            yeni_kutu_cevrim, ahata = cevrim_ariza_uygula(yeni_kutu_cevrim, cevrilen)
+            if ahata:
+                print("KIRMIZI: %s" % ahata)
+                return RC_KIRMIZI
+            chatalar = dogrula_cevrim(kutu_metin, yeni_kutu_cevrim, cevrilen, cev_atlanan)
+            print("CEVRIM=%d atlanan_fail_closed=%d govde_anmasi=%d "
+                  "bayt_once=%d bayt_sonra=%d delta=%+d  [KAPI]"
+                  % (len(cevrilen), len(cev_atlanan), cev_govde, disk_once_bayt,
+                     len(yeni_kutu_cevrim.encode("utf-8")),
+                     len(yeni_kutu_cevrim.encode("utf-8")) - disk_once_bayt))
+            for blok_idx, idx, eskisi, _yenisi in cevrilen:
+                print("  ✓ CEVRILDI blok %d (satir %d): %s -> %s | %s"
+                      % (blok_idx + 1, idx + 1, BEKLEYEN_JETON, ISLENMIS_JETON,
+                         eskisi.strip()[:70]))
+            # 🔴 SESSIZ ATLAMA YASAK: cevrilMEYEN korumali blok ADIYLA/SINIFIYLA basilir,
+            # yoksa "13 vardi 11 cevrildi" farki gorunmez ve kutu sebepsiz tavan ustunde kalir.
+            for blok_idx, satir_no, ozet, sinif in cev_atlanan:
+                print("  ! CEVRILMEDI blok %d (satir %d, sinif=%s): blok yapisi "
+                      "AYRISTIRILAMADI -> DOKUNULMADI (fail-closed) | %s"
+                      % (blok_idx + 1, satir_no, sinif, ozet))
+            if cev_govde:
+                print("  · CEVRIM GOVDE ANMASI=%d blok: jeton KAPANIS KONUMUNDA DEGIL -> "
+                      "DOKUNULMADI (K318 KOL-1 ile AYNI olcut)" % cev_govde)
+            if chatalar:
+                print("CEVRIM DOGRULAMASI KIRMIZI — HICBIR SEY YAZILMADI:")
+                for x in chatalar:
+                    print("  - %s" % x)
+                return RC_KIRMIZI
+            print("cevrim_dogrulama=GECTI (iddia=%d, cevrilen=%d, atlanan=%d)"
+                  % (len(CEVRIM_IDDIA_EKSENLERI), len(cevrilen), len(cev_atlanan)))
+            if cevrilen:
+                kutu_metin = yeni_kutu_cevrim
+                cevrim_yazilmali = True
+        else:
+            print("CEVRIM=0 kip=KAPALI (--kapanislari-isle verilmedi)  [KAPI]")
 
         p = planla(kutu_metin, a.tavan, a.koru)
         p.su_seviye = int(a.tavan * a.su_seviye_orani)
@@ -1496,6 +1748,14 @@ def main(argv=None):
                     print("  - D11 OKSUZ GOVDE (KUTU): %d. satirda BASLIKSIZ dolu bolut "
                           "| ilk satir: %s" % (satir_no, ornek))
                 return RC_KIRMIZI
+            # 🔴 K341: TASIMA YOKSA BILE CEVRIM YAZILIR. Cevrim rotasyondan BAGIMSIZ bir
+            # is birimidir (jetonu isaretler); tasima olmadi diye onu YUTMAK, ertesi
+            # kosumda ayni eli tekrar gerektirirdi — kalemin ta kendisi.
+            if cevrim_yazilmali and not a.kuru:
+                atomik_yaz(kutu_yolu, kutu_metin)
+                print("YAZILDI: %d kapanis jetonu CEVRILDI (tasima yok)" % len(cevrilen))
+            elif cevrim_yazilmali:
+                print("KURU KIP — cevrim de yazilmadi (%d jeton) " % len(cevrilen))
             return RC_OK
 
         yeni_kutu, tasinan, ek, yeni_arsiv = aday_metinler(
@@ -1570,8 +1830,10 @@ def main(argv=None):
         # ONCE ARSIV, SONRA KUTU (bkz. modul basligi: fail-toward-duplication).
         atomik_yaz(arsiv_yolu, yeni_arsiv)
         atomik_yaz(kutu_yolu, yeni_kutu)
-        print("YAZILDI: %d blok / %d satir arsive tasindi" % (p.tasinacak_blok,
-                                                              p.tasinan_satir))
+        print("YAZILDI: %d blok / %d satir arsive tasindi (cevrilen kapanis jetonu=%d; "
+              "kutu diskte %d -> %d bayt)"
+              % (p.tasinacak_blok, p.tasinan_satir, len(cevrilen), disk_once_bayt,
+                 len(yeni_kutu.encode("utf-8"))))
         return RC_OK
     finally:
         kilit_birak(kilit)
