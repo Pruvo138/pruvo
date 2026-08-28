@@ -282,7 +282,7 @@ def kol_a(sh_yolu=None, yalniz=None):
             ("STUB TETIK" in log,
              "TUR ACILMADI sebep=ESKALASYON_ACIK" in log), kontrol=True)
 
-    # 🔴 A10 — LLM_TUR_KOLU (Okan emri, 28 Agu 2026). Bu hat HICBIR tetik
+    # 🔴 A10 — CAGRI_YERI (Okan emri, 28 Agu 2026). Bu BETIK hicbir tetik
     # halinde nobet kapisini CAGIRMAZ. Bes tetik hali de kosulur: kapi
     # cagrisi TOPLAM 0 olmali VE en az bir kosumda tetik "AC", en az birinde
     # "ACMA" demis olmali — tek yonlu olcum hukum vermez ("hic AC cikmadi"
@@ -295,7 +295,7 @@ def kol_a(sh_yolu=None, yalniz=None):
             if _kapi_kostu(log):
                 kosan += 1
             kararlar.append(_a_alan(log, "tetik_karari"))
-        olc("A10 LLM_TUR_KOLU kapali: hicbir halde kapi kosmaz",
+        olc("A10 CAGRI_YERI yok: bu betik hicbir halde kapiyi cagirmaz",
             (0, True, True),
             (kosan, "AC" in kararlar, "ACMA" in kararlar))
 
@@ -615,13 +615,15 @@ MUTANTLAR = [
      "awk '/^TUR ACIL/ {",
      "awk '/^ASLA_ESLESMEYEN_DESEN/ {",
      ["A2", "A7"], ["A8", "A3", "A9"], "A"),
-    # --- KOL LLM (28 Agu 2026) — TUR-ACMA KOLU GERI KONURSA KABUL OLMELI ---
+    # --- KOL CAGRI-YERI (28 Agu 2026) — CAGRI GERI KONURSA KABUL OLMELI ---
+    # 🔴 Bu mutant "LLM turu acildi mi"yi DEGIL, "bu betik kapiyi cagirdi mi"yi
+    # olcer; enforcement `nobet-kapi.py` govdesindedir.
     # Hedef: A10 (cagri sayisi) + A3/A4 (kapi kosmadi cakisi). KONTROL: A1
     # (tetik ACMA der -> mutant onu HIC etkilemez), A5 (fail-closed KIRMIZI
     # ayak), A9 (tetik ciktisi loga duser). Kontroller yesil kalmazsa mutant
     # "her seyi kirdi" demektir ve kirmizinin SEBEBI hedef kol OLDUGU
     # KANITLANMAZ -> YAMA_TUTMADI.
-    ("M-A5-llm-tur-kolu-geri-kondu", "SH",
+    ("M-A5-cagri-yeri-geri-kondu", "SH",
      "if (( ACILACAK )); then TETIK_KARARI=AC; else TETIK_KARARI=ACMA; fi",
      "if (( ACILACAK )); then TETIK_KARARI=AC; else TETIK_KARARI=ACMA; fi\n"
      "if (( ACILACAK )); then\n"

@@ -163,11 +163,12 @@ SEKILLER = (
           ornek=("--teslim-kaydet",), repo_disi=True),
 
     # 🔴 28 AGU (bu is): `onarim-durum.py` — hattin onarim turu acmis mi diskten
-    # okuyan SALT-OKUR arac. Konumsal arguman ALMAZ, hicbir bayrak TANIMAZ (aracin
-    # CLI'si YOK). Mimar elinde SERBEST: Okan'in "terminale girmeden soracagim bir
-    # sey yap" emri (28 Agu); taban canli ONARIM/GOZCU/KIRMIZI sayilarini cevap
-    # olarak verir. Guvenli: dosya DEGISTIRMEZ, aga cikmaz, LLM/agent turu acmaz
-    # — bu yuzden mimar katinda serbest birakilmasi SAKINCALI degil.
+    # okuyan SALT-OKUR arac. Konumsal arguman ALMAZ; tek bayragi `--kendini-test`
+    # DISARIDADIR (kabul kosumu). Mimar elinde SERBEST olan BAYRAKSIZ haldir:
+    # Okan'in "terminale girmeden soracagim bir sey yap" emri (28 Agu); taban canli
+    # ONARIM/GOZCU/KIRMIZI sayilarini cevap olarak verir. Guvenli: dosya DEGISTIRMEZ,
+    # aga cikmaz, LLM/agent turu acmaz — bu yuzden mimar katinda serbest birakilmasi
+    # SAKINCALI degil.
     Sekil("onarim-durum", ONARIM_DURUM_YOL),
 )
 
@@ -246,9 +247,12 @@ DISARIDA = {
 
     CIP_BEKCI_YOL: {},
 
-    # `onarim-durum.py` SALT-OKUR: konumsal arguman YOK, hicbir bayrak TANIMAZ
-    # (aracin CLI'si yok). Dolayisiyla DISARIDA'da hicbir bayrak gerekceli degil.
-    ONARIM_DURUM_YOL: {},
+    # `onarim-durum.py` SALT-OKUR: konumsal arguman YOK. TEK bayragi
+    # `--kendini-test`tir (K347, 28 Agu 2026) ve DISARIDADIR: kabul kosumu,
+    # isci kosturur. Mimarin serbest cagrisi BAYRAKSIZ haldir.
+    ONARIM_DURUM_YOL: {
+        "--kendini-test": "kabul kosumu — mimar elinde degil, isci kosturur",
+    },
 }
 
 
