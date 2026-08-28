@@ -32,12 +32,18 @@ onun BOZULMADIĞINI da (ad+URL hâlâ var) regresyon olarak doğrular.
   ÖLÇÜLEMEYEN TEK HAL (açıkça beyan edilir, her koşumda basılır): numarası kaynakta
   literal geçmeyen, JS'te değişkenle kurulan link parçası — bugünkü tek örneği
   attribution-ref.js eşleştirme dizesi, onun numarası TARGET_PHONE assert'iyle kapanır.
-  Kural (CLAUDE.md): WhatsApp hattı = tüm wa.me linkleri · arama hattı = YALNIZ tel:/
-  JSON-LD contactPoint. İki yön de denetlenir (arama hattı wa.me'de YOK, WhatsApp
-  hattı tel:/contactPoint'te YOK).
-  ⚠️ Numaralar bu dosyaya HARDCODE EDİLMEZ: build.py'nin kendi sabitlerinden türetilir
-  (WhatsApp = build.WHATSAPP, arama = build.SELLER["tel"]) — aksi halde sabit değişince
-  nöbetçi sessizce bayatlar.
+  🔴 KURAL DEĞİŞTİ — TEK HAT (Okan emri, 28 Ağu 2026). ESKİ kural (GEÇERSİZ):
+  "WhatsApp hattı = tüm wa.me linkleri · arama hattı = YALNIZ tel:/JSON-LD
+  contactPoint; iki yön de denetlenir". Sitede artık TEK telefon hattı var: aynı numara
+  hem wa.me'de hem tel:/contactPoint/künye'de GEÇERLİDİR. Bugünkü kural:
+    (a) telefon taşıyan HER yüzey (wa.me · tel: · JSON-LD · pv künye · JS sabiti ·
+        görünür literal) AYNI numarayı taşır — başkası KIRMIZI;
+    (b) yayından çıkarılan kişisel hat HİÇBİR yerde geçmez (pv-parçalı hâli dahil).
+  Bu daraltmadır, gevşetme değil: eskiden arama alanlarında "arama hattı olan her şey"
+  meşruydu, şimdi TEK bir numara meşru.
+  ⚠️ Numaralar bu dosyaya HARDCODE EDİLMEZ: TEK HAT build.py sabitinden (build.WHATSAPP
+  / build.SELLER["tel"]), YASAKLI numara kisisel-veri-test.py'deki kanonik parça
+  kümesinden türetilir — aksi halde sabit değişince nöbetçi sessizce bayatlar.
 
 🔴 KAPSAM GENİŞLETMESİ — ANA SAYFA + YASAL/İÇERİK SAYFALARI (26 Tem, ikinci ölçüm):
   Yukarıdaki numara nöbeti YALNIZ ürün sayfası düzlemini (build.render_product)
@@ -244,8 +250,12 @@ def _kodlama_kontrol(ad, href, metin, fails):
     """Ortak kodlama/numara nöbetleri (her wa.me linki için aynı sözleşme)."""
     if ("wa.me/" + build.WHATSAPP) not in href:
         fails.append("%s: doğru WhatsApp numarasını kullanmıyor" % ad)
-    if "4005" in href:
-        fails.append("%s: arama numarası (4005) var — yasak" % ad)
+    # 🔴 Yasaklı numara KANONİK kaynaktan türetilir (bu dosyaya literal YAZILMAZ):
+    # eskiden burada çıplak bir "4005" alt-dizgesi aranıyordu; hem ikiz tanımdı hem de
+    # bağlamsız bir sayı dizisine takılabiliyordu.
+    _yasak, _ = yasak_numara()
+    if _yasak and _yasak in _rakam(href):
+        fails.append("%s: YASAKLI numara var — o hat 28 Ağu'da yayından çıkarıldı" % ad)
     # Ham (kodlanmamış) Türkçe karakter / boşluk URL'de OLMAMALI.
     for ham in u"çğıöşü ":
         if ham in href:
@@ -261,13 +271,69 @@ def _rakam(s):
 
 
 def numaralar():
-    """(whatsapp, arama) — İKİSİ DE build.py'nin kendi sabitlerinden TÜRETİLİR.
+    """(whatsapp, künye) — İKİSİ DE build.py'nin kendi sabitlerinden TÜRETİLİR.
 
     whatsapp = build.WHATSAPP (tüm wa.me linklerinin numarası)
-    arama    = build.SELLER["tel"] (künye/yasal sayfa telefonu = arama hattı)
-    Teste hardcode edilmemesinin sebebi: sabit değişince nöbetçi sessizce bayatlar
-    (eski numarayı doğru sanıp yeni yanlışı görmez)."""
+    künye    = build.SELLER["tel"] (künye/yasal sayfa telefonu)
+    🔴 TEK HAT (Okan emri, 28 Ağu): bu ikisi ARTIK AYNI NUMARA OLMALIDIR. Eskiden iki
+    ayrı hattı ifade ediyorlardı ve nöbetin işi onları AYIRMAKTI; bugün sitede tek hat
+    var. Eşitliği aşağıdaki tek_hat_kontrol() YAPISAL olarak çiviler — fonksiyon
+    imzası korunuyor ki çağrı yerlerinde "hangi sabit" ayrımı okunabilir kalsın.
+    Teste hardcode edilmemesinin sebebi: sabit değişince nöbetçi sessizce bayatlar."""
     return _rakam(build.WHATSAPP), _rakam((build.SELLER or {}).get("tel"))
+
+
+# 🔴 YASAKLI NUMARANIN TEK KAYNAĞI — İKİZ TANIM YOK ([[ikiz-tanim-sessiz-ayrisma]]):
+# Okan'ın kişisel hattı 28 Ağu'da repodan çıkarıldı ve yasaklandı. O yasağın kanonik
+# yeri kisisel-veri-test.py'deki `_ARAMA_PARCA` parça kümesidir; buraya İKİNCİ bir
+# literal YAZILMAZ, oradan TÜRETİLİR. Numara bir gün değişirse iki dosya ayrışmaz.
+# FAIL-CLOSED: kanonik kaynak okunamazsa fikstürler ÖLÇÜLEMEDİ sayılır, yeşil verilmez.
+_YASAK_ONBELLEK = {}
+
+
+def yasak_numara():
+    """(numara, hata) — yayından çıkarılmış kişisel hattın rakamları, kanonik kaynaktan."""
+    if "n" in _YASAK_ONBELLEK:
+        return _YASAK_ONBELLEK["n"], _YASAK_ONBELLEK["h"]
+    numara = hata = None
+    try:
+        import importlib.util
+        yol = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "kisisel-veri-test.py")
+        spec = importlib.util.spec_from_file_location("pruvo_kvt", yol)
+        if spec is None or spec.loader is None:
+            hata = "kanonik yasak-numara kaynağı yüklenemedi (spec yok): %s" % yol
+        else:
+            m = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(m)
+            numara = "90" + "".join(m._ARAMA_PARCA)
+    except Exception as e:                                    # noqa: BLE001
+        numara, hata = None, "kanonik yasak-numara kaynağı yüklenemedi: %s" % e
+    _YASAK_ONBELLEK["n"], _YASAK_ONBELLEK["h"] = numara, hata
+    return numara, hata
+
+
+def tek_hat_kontrol(fails):
+    """YAPISAL ÇİVİ: sitede TEK telefon hattı olduğu build.py sabitlerinden ölçülür.
+
+    Bu kontrol kaldırılırsa/gevşetilirse iki hatlı düzene sessizce dönülebilirdi; o
+    dönüş bu satırda KIRMIZI yanar. Ayrıca yasaklı numaranın build.py sabitlerinden
+    HİÇBİRİNDE olmadığı doğrulanır (kaynağa geri sızma kolu)."""
+    wa, kunye = numaralar()
+    if len(wa) < 10:
+        fails.append("TEK HAT: build.WHATSAPP türetilemedi (fail-closed)")
+        return
+    if kunye != wa:
+        fails.append("TEK HAT İHLALİ: build.SELLER['tel'] (%s) build.WHATSAPP'tan (%s) "
+                     "FARKLI. Okan emri (28 Ağu): sitede tek telefon hattı var, künye "
+                     "telefonu da WhatsApp hattıdır." % (kunye, wa))
+    yasak, hata = yasak_numara()
+    if not yasak:
+        fails.append("TEK HAT ÖLÇÜLEMEDİ: %s" % hata)
+        return
+    for ad, deger in (("build.WHATSAPP", wa), ("build.SELLER['tel']", kunye)):
+        if yasak in _rakam(deger):
+            fails.append("YASAK NUMARA KAYNAĞA GERİ GELDİ: %s = %r" % (ad, deger))
 
 
 def wa_numara_adaylari(url):
@@ -342,14 +408,15 @@ def numara_kontrol(ad, doc, fails, taban=None, sessiz=False):
     if len(wa) < 10:
         fails.append("%s: build.WHATSAPP geçersiz/boş (%r) — numara nöbeti kurulamaz" % (ad, wa))
         return (0, 0, 0)
-    # Arama hattı yalnız TEŞHİSİ zenginleştirir (hangi yanlış numara?) — türetilemese
+    # Künye hattı yalnız TEŞHİSİ zenginleştirir (hangi yanlış numara?) — türetilemese
     # bile wa.me küme taraması SÜRER (kırmızı yine yanar), sadece kaydedilir.
+    # 🔴 EŞİTLİK ARTIK KIRMIZI DEĞİL, ŞART (Okan emri, 28 Ağu — TEK HAT): burada eskiden
+    # `wa == arama` ihlal sayılıyordu ("CLAUDE.md hat ayrımı çökmüş"). Sitede tek hat
+    # olduğu için o kural TERSİNE döndü; eşitliği ölçen yapısal çivi tek_hat_kontrol()
+    # içindedir ve AYRILMAYI kırmızı yakar. Burada ikinci kez ölçülmez (ikiz hüküm).
     if len(arama) < 10:
-        fails.append("%s: arama hattı build.SELLER['tel']'den türetilemedi (%r) — "
+        fails.append("%s: künye hattı build.SELLER['tel']'den türetilemedi (%r) — "
                      "ters yön denetimi kör kalır" % (ad, arama))
-    elif wa == arama:
-        fails.append("%s: WhatsApp ve arama numarası AYNI (%s) — CLAUDE.md hat ayrımı "
-                     "çökmüş" % (ad, wa))
 
     bulunan = []          # (url, numara) — GEÇERLİ ayrıştırılmış numaralar (HAM metinden)
     dinamik = []          # numara LİTERALİ taşımayan link parçası (JS'te değişkenle kurulan)
@@ -469,17 +536,22 @@ def pv_coz(parca):
 
 
 def ters_yon_kontrol(ad, doc, fails, sessiz=False):
-    """TERS YÖN: WhatsApp numarası ARAMA alanlarında GEÇMEZ + oradaki numara TANINIR.
+    """ARAMA ALANLARI: oradaki numara TEK HAT numarasıdır — başkası GEÇMEZ.
 
-    Arama hattı alanları: tel: href · JSON-LD telephone/contactPoint/faxNumber ·
-    yasal sayfa künyesindeki pv-kodlu "Telefon" hücresi (+ data-pv-link="tel" bağı).
-    İki yönlü fail-closed:
-      * alanda WhatsApp numarası -> KIRMIZI (hat ayrımı ihlali)
-      * alandaki numara arama hattı DEĞİLSE (tanınmayan/ayrıştırılamayan) -> KIRMIZI;
-        sessizce "bilmiyorum" denip geçilmez.
+    Arama alanları: tel: href · JSON-LD telephone/contactPoint/faxNumber · yasal sayfa
+    künyesindeki pv-kodlu "Telefon" hücresi (+ data-pv-link="tel" bağı).
+
+    🔴 EKSEN DEĞİŞTİ (Okan emri, 28 Ağu — TEK HAT): eski kural *"bu alanlarda WhatsApp
+    numarası OLMAZ"* idi ve iki hattı birbirinden ayırırdı. Site artık tek hat taşıyor:
+    WhatsApp numarasının tel:/contactPoint/künye içinde olması ARTIK DOĞRUDUR. Yeni
+    kural gevşetme DEĞİL daraltmadır — eskiden bu alanlarda "arama hattı olan her şey"
+    meşruydu, şimdi TEK bir numara meşru.
+    Fail-closed korundu: alandaki numara tanınmıyorsa/ayrıştırılamıyorsa KIRMIZI;
+    sessizce "bilmiyorum" denip geçilmez.
     Ürün sayfasında bu alanların hiçbiri basılmaz -> orada BOŞ KÜMEYE bakar ve bunu
     açıkça yazar (uydurma pozitif assert eklenmez)."""
-    wa, arama = numaralar()
+    wa, _kunye = numaralar()
+    yasak, _hata = yasak_numara()
     if len(wa) < 10:
         return 0
     alanlar = []          # (nerede, ham değer)
@@ -512,17 +584,20 @@ def ters_yon_kontrol(ad, doc, fails, sessiz=False):
     for m in PV_TEL_BAG_RE.finditer(doc):
         for deger in pv_coz(m.group(1)):
             alanlar.append(('data-pv-link="tel" bağı', deger))
-    # KÜRESEL NEGATİF pv nöbeti: HİÇBİR pv bloğu WhatsApp numarası taşımaz (künye
-    # tablosu dışında düz cümle içinde de pv telefon basılıyor — ör. "cayma bildirimini
-    # ... numarasından iletin"). Pozitif "arama hattı OLMALI" kuralı yalnız Telefon
-    # hücresine uygulanır: pv blokları adres/VKN gibi rakam taşıyan başka değerler de
-    # içerir, hepsine numara şartı koymak alakasız kırmızı üretirdi.
-    # (negatif küresel · pozitif sayfa bazlı — bu repoda ölçülmüş kapsam kuralı)
-    for deger in set(pv_coz(doc)):
-        if wa in _rakam(deger):
-            fails.append("%s: pv-kodlu (kişisel veri korumalı) blokta WHATSAPP numarası "
-                         "(%s) var — pv blokları satıcı künyesi/arama hattı içindir: %r"
-                         % (ad, wa, deger[:120]))
+    # KÜRESEL NEGATİF pv nöbeti — EKSENİ ÇEVRİLDİ (28 Ağu): eskiden "hiçbir pv bloğu
+    # WhatsApp numarası taşımaz" diyordu; TEK HAT'ta künye telefonu ZATEN WhatsApp
+    # numarasıdır, o kural bugün her yasal sayfayı kırmızı yakardı. Yerine geçen kural
+    # DAHA GÜÇLÜ: hiçbir pv bloğu YASAKLI numarayı taşımaz.
+    # 🔴 NEDEN AYRI KOL: pv blokları numarayı 2-3 karakterlik parçalara bölüp karışık
+    # sırada basar; ham metin taraması (ve `grep`) o yüzeye KÖRDÜR. Ölçüldü (28 Ağu):
+    # iletisim/index.html künye telefonu düz metinde HİÇ geçmiyordu, numara ancak pv
+    # çözücüsüyle bulundu. Bu kol olmasa yasaklı numara pv içinde sessizce yaşardı.
+    if yasak:
+        for deger in set(pv_coz(doc)):
+            if yasak in _rakam(deger):
+                fails.append("%s: pv-kodlu (kişisel veri korumalı) blokta YASAKLI numara "
+                             "var — o hat 28 Ağu'da yayından çıkarıldı: %r"
+                             % (ad, deger[:120]))
     if not alanlar:
         if not sessiz:
             print("  [%s] TERS YÖN ÖLÇÜLEMEDİ: sayfada hiç tel: href / JSON-LD %s alanı / "
@@ -532,9 +607,9 @@ def ters_yon_kontrol(ad, doc, fails, sessiz=False):
         print("  [%s] ters yön alan sayısı=%d" % (ad, len(alanlar)))
     for nerede, deger in alanlar:
         d = _rakam(deger)
-        if wa in d:
-            fails.append("%s: %s alanında WHATSAPP numarası (%s) var — orada YALNIZ "
-                         "arama hattı olur: %r" % (ad, nerede, wa, deger[:120]))
+        if yasak and yasak in d:
+            fails.append("%s: %s alanında YASAKLI numara var — o hat 28 Ağu'da yayından "
+                         "çıkarıldı, hiçbir alanda geçemez: %r" % (ad, nerede, deger[:120]))
             continue
         if not d:
             # KAPSAYICI alan (contactPoint) numarasız olabilir (yalnız e-posta/saat
@@ -548,10 +623,10 @@ def ters_yon_kontrol(ad, doc, fails, sessiz=False):
                 fails.append("%s: %s alanında hiç rakam YOK (%r) — arama hattı alanı "
                              "numarasız kalamaz, sessizce ATLANMAZ" % (ad, nerede, deger[:120]))
             continue
-        if len(arama) >= 10 and d != arama:
-            fails.append("%s: %s alanındaki numara TANINMIYOR (%s; beklenen arama hattı "
+        if d != wa:
+            fails.append("%s: %s alanındaki numara TANINMIYOR (%s; beklenen TEK HAT "
                          "%s) — fail-closed KIRMIZI: %r"
-                         % (ad, nerede, d, arama, deger[:120]))
+                         % (ad, nerede, d, wa, deger[:120]))
     return len(alanlar)
 
 
@@ -560,10 +635,11 @@ def js_sabit_kontrol(ad, doc, fails, sessiz=False):
 
     index.html'in sipariş butonlarının TAMAMI `var WHATSAPP = "..."` sabitinden
     kuruluyor -> sayfada o linklerin numara literali YOK, URL taraması onları göremez.
-    Sabit arama hattına çevrilirse tüm sipariş trafiği sessizce telefona giderdi.
-    Hangi hatta ait olduğu ADINDAN belirlenir (ARAMA kümesi önce bakılır ki
-    "CALL_PHONE" gibi iki kümeye de uyan ad WhatsApp sanılmasın). Adı hiçbir kümeye
-    uymayan telefon-benzeri sabit YARGILANMAZ ve kör nokta olarak SAYILIR."""
+    Sabit başka bir numaraya çevrilirse tüm sipariş trafiği sessizce oraya giderdi.
+    🔴 TEK HAT (28 Ağu): ad sınıflandırması (ARAMA/WA kümeleri) KORUNDU ama artık iki
+    farklı BEKLENEN üretmiyor — her iki kümede de beklenen numara AYNIDIR. Sınıflandırma
+    yine de duruyor: adı hiçbir kümeye uymayan telefon-benzeri sabit YARGILANMAZ ve
+    kör nokta olarak SAYILIR; o sayı kuralın kapsamını görünür tutar."""
     wa, arama = numaralar()
     if len(wa) < 10:
         return (0, 0)
@@ -584,11 +660,13 @@ def js_sabit_kontrol(ad, doc, fails, sessiz=False):
         if len(beklenen) < 10:
             continue                      # sabit türetilemedi (yukarıda zaten kırmızı)
         if d != beklenen:
+            _yasak, _ = yasak_numara()
             fails.append(
-                "%s: JS sabiti %s = %r %s hattı OLMALI (%s) ama %s taşıyor%s — bu sabitten "
-                "kurulan TÜM linkler yanlış hatta gider"
-                % (ad, isim, ham, hat, beklenen, d,
-                   " (bu DİĞER hat)" if d in (wa, arama) else " (TANINMAYAN numara)"))
+                "%s: JS sabiti %s = %r TEK HAT numarasını taşımalı (%s) ama %s taşıyor%s "
+                "— bu sabitten kurulan TÜM linkler yanlış numaraya gider"
+                % (ad, isim, ham, beklenen, d,
+                   " (YAYINDAN ÇIKARILAN hat)" if _yasak and _yasak in d
+                   else " (TANINMAYAN numara)"))
     if not sessiz:
         print("  [%s] JS telefon sabiti: yargılanan=%d, adı sınıflanamayan=%d"
               % (ad, yargilanan, yargisiz))
@@ -875,10 +953,19 @@ def _korpus_fikstur(fails):
 
 
 def fikstur_kontrol(fails):
-    wa, arama = numaralar()
-    if len(wa) < 10 or len(arama) < 10:
-        fails.append("FİKSTÜR: numara sabitleri türetilemedi — mutasyon fikstürleri "
-                     "koşturulamaz (fail-closed)")
+    wa, _kunye = numaralar()
+    # 🔴 MUTASYON HEDEFİ ARTIK "DİĞER HAT" DEĞİL, YASAKLI NUMARADIR (28 Ağu). Eskiden
+    # fikstürler `wa -> arama` çevirisiyle kırmızı yakıyordu; TEK HAT'ta o iki sabit
+    # AYNI değerdir, yani o mutasyonlar hiçbir şeyi değiştirmeyen NO-OP'a dönüşür ve
+    # fikstür sessizce ölürdü (bu depoda ölçülmüş arıza sınıfı: ölü fikstür = ölü kapı).
+    arama, yasak_hata = yasak_numara()
+    if len(wa) < 10 or not arama:
+        fails.append("FİKSTÜR: numara sabitleri türetilemedi (%s) — mutasyon fikstürleri "
+                     "koşturulamaz (fail-closed)" % (yasak_hata or "build sabiti"))
+        return
+    if arama == wa:
+        fails.append("FİKSTÜR ÖLÜ: yasaklı numara TEK HAT numarasıyla AYNI türetildi — "
+                     "mutasyonlar no-op olur, nöbetçi hiçbir şey ölçmez")
         return
     arama_yazi = gorunur_bicim(arama)
     idx = ana_sayfa_metni()
@@ -888,35 +975,38 @@ def fikstur_kontrol(fails):
     yasal = ornek_sayfa(lambda d: PV_TELEFON_HUCRE_RE.search(d) is not None)
 
     # ---------------- KIRMIZI beklenen: index.html numara ihlalleri
-    _mutasyon("index.html wa.me -> arama hattı", idx,
+    _mutasyon("index.html wa.me -> YASAK hat", idx,
               "wa.me/" + wa, "wa.me/" + arama, fails, True)
-    _mutasyon("index.html JSON-LD contactPoint -> WhatsApp", idx,
-              '"telephone":"+' + arama + '"', '"telephone":"+' + wa + '"', fails, True)
-    _mutasyon("index.html var WHATSAPP -> arama hattı", idx,
+    _mutasyon("index.html JSON-LD contactPoint -> YASAK hat", idx,
+              '"telephone":"+' + wa + '"', '"telephone":"+' + arama + '"', fails, True)
+    _mutasyon("index.html var WHATSAPP -> YASAK hat", idx,
               'WHATSAPP = "' + wa + '"', 'WHATSAPP = "' + arama + '"', fails, True)
     _mutasyon("index.html wa.me -> AYRIŞTIRILAMAZ numara", idx,
               "wa.me/" + wa, "wa.me/90 545-138.65", fails, True)
     # Kural bazında ÖLÜ NÖBETÇİ kontrolü — bu üç kuralın fikstürü YOKTU (çürütücü bulgusu):
     #   (1) VARLIK-KODLU (entity) ikinci tarama  (2) harf-duyarsız host  (3) türetilmiş
     #   literal-pozitif nöbeti
-    _mutasyon("index.html VARLIK-KODLU (entity) gizlenmiş arama hattı", idx,
+    _mutasyon("index.html VARLIK-KODLU (entity) gizlenmiş YASAK hat", idx,
               "</body>",
               '<a href="https://wa&#46;me/' + arama + '">gizli</a>\n</body>', fails, True)
-    _mutasyon("index.html BÜYÜK HARF WA.ME + arama hattı", idx,
+    _mutasyon("index.html BÜYÜK HARF WA.ME + YASAK hat", idx,
               "</body>",
               '<a href="https://WA.ME/' + arama + '">buyuk</a>\n</body>', fails, True)
     _mutasyon("index.html literal tarayıcı körlenmesi (pozitif nöbet)", idx,
               "https://wa.me/" + wa, "https://xwa.me/" + wa, fails, True)
 
     # ---------------- KIRMIZI beklenen: sayfalar.py ÜRETİLEN çıktı düzlemi
-    _mutasyon("sayfalar.py çıktısı wa.me -> arama hattı", icerik,
+    _mutasyon("sayfalar.py çıktısı wa.me -> YASAK hat", icerik,
               "wa.me/" + wa, "wa.me/" + arama, fails, True)
-    _mutasyon("sayfalar.py çıktısı görünür metin -> arama hattı", gorunur_s,
+    _mutasyon("sayfalar.py çıktısı görünür metin -> YASAK hat", gorunur_s,
               gorunur_literal_bul(gorunur_s, wa) or "", arama_yazi, fails, True)
-    _mutasyon("sayfalar.py künye pv Telefon -> WhatsApp", yasal,
+    # 🔴 pv KOLU — bu fikstür ölürse yayın KÖR kalır: künye telefonu düz metin değil,
+    # data-a..l parçalarına bölünüp KARIŞIK SIRADA basılıyor. 28 Ağu'da yasaklı numara
+    # tam olarak bu yüzeyde saklıydı ve `grep` onu bulamıyordu.
+    _mutasyon("sayfalar.py künye pv Telefon -> YASAK hat", yasal,
               sayfalar.pv_html(sayfalar.SELLER["tel"]),
-              sayfalar.pv_html(gorunur_bicim(wa)), fails, True)
-    _mutasyon("sayfalar.py TARGET_PHONE -> arama hattı", icerik,
+              sayfalar.pv_html(arama_yazi), fails, True)
+    _mutasyon("sayfalar.py TARGET_PHONE -> YASAK hat", icerik,
               'TARGET_PHONE = "' + wa + '"', 'TARGET_PHONE = "' + arama + '"', fails, True)
 
     # ⛔ CTA VARLIK fikstürleri (5 adet) 27 Tem'de kuralla birlikte GERİ ALINDI —
@@ -1116,9 +1206,12 @@ def main():
             fails.append("orderAlt (REF) 'ilgileniyorum' niyetini kaybetti — regresyon")
 
     # -------------------------------------- NUMARA SINIFI (küme nöbeti, 3 ürün tipi)
-    wa_num, arama_num = numaralar()
-    print("\nNUMARA NÖBETİ — WhatsApp=%s (build.WHATSAPP), arama=%s (build.SELLER['tel'])"
-          % (wa_num or "?", arama_num or "?"))
+    tek_hat_kontrol(fails)
+    wa_num, kunye_num = numaralar()
+    _yasak_num, _yasak_hata = yasak_numara()
+    print("\nNUMARA NÖBETİ — TEK HAT=%s (build.WHATSAPP), künye=%s (build.SELLER['tel']), "
+          "YASAK=%s" % (wa_num or "?", kunye_num or "?",
+                        _yasak_num or ("ÖLÇÜLEMEDİ: %s" % _yasak_hata)))
     for ad, urun, doc in (
             ("normal", URUN, html_doc),
             ("lisanslı", URUN_LISANSLI, None),
@@ -1146,9 +1239,10 @@ def main():
     print("\nPASS: organik + malzeme-not prefill'leri sayfa bağlamı taşıyor, niyetleri "
           "DOĞRU ve AYRI; REF butonu sağlam; ÜRÜN SAYFASI + ANA SAYFA + YASAL/İÇERİK "
           "sayfalarının hepsinde TÜM WhatsApp linkleri (wa.me · api./web.whatsapp.com · "
-          "whatsapp://), JS telefon sabitleri ve görünür telefon literalleri WhatsApp "
-          "hattını taşıyor; arama hattı (tel:/JSON-LD/pv künye) WhatsApp numarasından "
-          "temiz; fikstürler kırmızıyı yakıyor, İLGİSİZ rutin düzenleme YEŞİL kalıyor.")
+          "whatsapp://), JS telefon sabitleri, görünür telefon literalleri VE arama "
+          "alanları (tel:/JSON-LD/pv künye) AYNI TEK HATTI taşıyor; yayından çıkarılan "
+          "kişisel hat hiçbir alanda ve hiçbir pv bloğunda YOK; fikstürler kırmızıyı "
+          "yakıyor, İLGİSİZ rutin düzenleme YEŞİL kalıyor.")
     return 0
 
 
