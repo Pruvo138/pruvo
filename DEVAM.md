@@ -3,14 +3,6 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔁 28 AGU 18:00 CANLI DURUM — OKAN 17:00 EMRININ BES KALEMI DE KAPANDI (onceden -> sonra)
-✅ **① DEFTER** 12.287 B -> **8.113 B** (tavana 44 B kalmisti, simdi 4.175 B pay) · arsiv 22.204 -> 22.254 satir · `c58a6adb`
-✅ **④ ORTAK KUTU** 901 -> 385 -> **279 satir** (tavan 300) · kutu arsivi 54.810 -> 54.970 (+160 = tasinan blogun tamami, kayipsiz)
-✅ **③ ONARIM SAYACI** `ustuste_onarimsiz` 153 -> **0**, canli `tur986` damgasiyla · `02e7ed87` (K341)
-✅ **② KAPI CELISKISI (4 GUNDUR ACIKTI)** — `08f7313e`+`8a7cca11`: bekci cagrisi TEK KAYNAK tabloya girdi,
-`defter-kota-kapisi.py` ayni haritadan turer. **Kanit dizge degil DAVRANIS:** `cip_dogum_bekcisi.py
---teslim-karari` ANA oturumdan kosturuldu, `HUKUM=YESIL SEBEP=KANIT_VAR_CIP_DOGDU` -> gecti.
-✅ **⑤ DISK FIKSTURU** `git worktree list | grep -c "/private/var/folders"` -> **0**; kalici ayak `54336174`
-(gecici agac sahiplik damgasi) + `08e209a7` (nobetci prob tabani kolu), ikisi de main'de; ayrinti KUTUDA.
 🔴 **YENI OLCULEN SINIF — CLAUDE.md'nin kendi kurali isci hattini kilitliyor:** `echo "" | isci.sh … <ETIKET>`
 cagrisi N2B kapisinda HER ZAMAN `KOL=N2B-RED` aliyor; `parti-kapisi.py:702` etiketi komutun SON token'indan
 cikariyor, boru oneki gorunce cikarim bosa dusuyor ve `:705` "bos etiket MUAF DEGILDIR" diyor. Boru
@@ -45,8 +37,13 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 `--kapanislari-isle` tam bu bosluktan dustu, elle kapatildi (`a5fc8f22`). Kabul: ters yon kolu + onu olduren mutant.
 
 ## 🔁 28 AGU 23:3x — OKAN EMIRLERI SIRAYA KONDU (mimar oturumu; icra chip'te)
-- 🔴 **CLAUDE YAKIMI DURDU (Okan ~20:2xZ):** acik iki Claude cipine (K337 `nice-swanson-706912` · K340
-  `frosty-meitner-deb9f0`) SAYILI KAPANIS emri gonderildi; yeni Claude cipi YOK — istisna urun kirmizisi + Okan isi.
+- 🔴 **CLAUDE YAKIMI DURDU (Okan ~20:2xZ):** K340 cipine (`frosty-meitner-deb9f0`, main disi 6 commit)
+  SAYILI KAPANIS emri gonderildi; yeni Claude cipi YOK — istisna urun kirmizisi + Okan isi.
+  ⚠️ **ATIF DUZELTMESI:** `nice-swanson-706912` oturumu K337 DEGIL — Okan islerini kosuyor (CF ana sayfa TTL
+  **YESIL: `BELGE_TTL_SN=600`**, Okan Save'e basti + panel tasarimi); kapanis emri ona yanlislikla gitti, GERI ALINDI.
+  **K337 = dal `claude/nice-swanson-706912` (1 commit ileri), sahibi oturum ölü görünüyor → META=RAF + oksuz-dal kalemi.**
+  🔴 **CAKISMA:** panel tasarimini o oturum da yaziyordu; hakem mimar — otorite hukmu KUTUDAKI KraL blogudur,
+  o oturum ikinci tasarim YAZMAZ, yalniz DELTA + siparis-verisi olcumu getirir.
 - 🔴 **NOBETIN LLM TUR-ACMA KOLU KAPATILIYOR (Okan ~20:0xZ, icra KraL):** cip `KraL-NobetLlmKolu-28Agu`
   acildi (`task_99f60179`). Hedef `~/.claude/cron/ci-nobeti.sh` `if (( ACILACAK )) → nobet-kapi.py --tur`
   blogu; tetik+seviye hukmu DETERMINISTIK kalir, `acilan_tur=0` her kosumda, `tetik_karari=AC|ACMA` SONA
