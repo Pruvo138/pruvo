@@ -286,7 +286,13 @@ def dondurma_seviyesi(yol=None, simdi=None, env=None):
         baslangic = datetime.datetime.strptime(damga[:10], "%Y-%m-%d").date()
     except ValueError:
         return (None, "DAMGA_BOZUK:%s" % damga[:16])
-    bugun = (simdi or datetime.datetime.utcnow()).date()
+    # 🔴 `utcnow()` DEGIL: canli gozcu `/opt/homebrew/bin/python3` **3.14.6**
+    # ile kosuyor ve nobet-kapi'yi `sys.executable` ile cagiriyor; orada
+    # `utcnow()` HER TURDA `DeprecationWarning` basar (olculdu; 3.9.6'da
+    # basmiyor — kabuk yesili canli davranisi ANLATMAZ,
+    # [[patha-sorulan-ikili-cron-da-yok]] ailesi). Ikame timezone-aware'dir;
+    # `.date()` iki tarafta da ayni gunu verir.
+    bugun = (simdi or datetime.datetime.now(datetime.timezone.utc)).date()
     return (max(0, (bugun - baslangic).days), "DAMGA=%s" % damga[:10])
 
 
