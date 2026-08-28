@@ -120,7 +120,7 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
 - 🔧 **K329 (28 Agu, CI nobeti):** iki kapi dosyasi kanonik `git_ortami.sentetik_git`'e gecirildi, yerelde YESIL olculdu; main'e INEMEDI — kutu 306>300, 6 blok `ARŞİVLENEBİLİRİM` bekliyor (**Okan arsivi**), is `ci-nobet-git-ortami` dalinda stage'li.
 
-## ✅ K341 gecici worktree artigi KAPANDI
+## ✅ K342 gecici worktree artigi KAPANDI
 ## 🔧 K318 CIP-ROL — MERGE EDILDI `594ca29e` · isci bacagi ACIK (K318 kanonu acik; 299→314 vaka; MaCiT'e merge ile GELMEZ)
 
 ## ARSIVDE — 14-20 Agu `DEVAM-ARSIV.md`'de.

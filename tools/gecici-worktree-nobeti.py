@@ -182,7 +182,13 @@ def vakalar():
         temel = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-nobet-vaka-"))
         return temel, _sentetik_depo(temel)
 
-    def kapat(temel, depo, prob=None):
+    def kapat(temel, depo, prob=None, prob_taban=None):
+        """🔴 `prob_taban` AYRI bir parametredir ve ATLANAMAZ: uretici probunun gecici
+        tabani SISTEM temp kokunde dogar (`damgali_mkdtemp`), vakanin kendi `temel`inin
+        ALTINDA DEGIL — yani `rmtree(temel)` onu KAPSAMAZ. V6 probu bilerek SIGKILL'ledigi
+        icin probun kendi atexit/sinyal kolu da kosamaz. Olculdu (28 Agu): bu kol yokken
+        bataryanin kendisi kosum basina birkac dizin sizdirdi ve 34 artik birikti — yani
+        SIZINTIYI OLCEN ARAC SIZDIRIYORDU. Ureten temizler, arac kendine de uygulanir."""
         if prob is not None and prob.poll() is None:
             prob.kill()
             prob.wait(timeout=20)
@@ -190,6 +196,8 @@ def vakalar():
             subprocess.run(["git", "-C", depo, "worktree", "remove", "--force",
                             entry["yol"]], capture_output=True, text=True)
         shutil.rmtree(temel, ignore_errors=True)
+        if prob_taban:
+            shutil.rmtree(prob_taban, ignore_errors=True)
 
     # --- V1: sahibi OLU damgali fikstur -> SIZINTI + rc=1 --------------------
     temel, depo = ortam()
@@ -236,7 +244,7 @@ def vakalar():
 
     # --- V4: sahibi CANLI fikstur -> CANLI, rc=0, --temizle DOKUNMAZ --------
     temel, depo = ortam()
-    prob = None
+    prob, taban = None, None
     try:
         prob, taban = _prob_baslat(depo)
         if not taban:
@@ -250,11 +258,11 @@ def vakalar():
                   "rc=%s var=%s | %s" % (rc, os.path.exists(prob_wt),
                                          cikti.strip().splitlines()[-1:]))
     finally:
-        kapat(temel, depo, prob)
+        kapat(temel, depo, prob, taban)
 
     # --- V5: SIGTERM -> URETICININ KOLU temizler (fikstur KALMAZ) -----------
     temel, depo = ortam()
-    prob = None
+    prob, taban = None, None
     try:
         prob, taban = _prob_baslat(depo)
         if not taban:
@@ -270,11 +278,11 @@ def vakalar():
                   "diskte_kaldi=%s rc=%s | %s" % (kaldi, rc,
                                                   cikti.strip().splitlines()[-1:]))
     finally:
-        kapat(temel, depo, prob)
+        kapat(temel, depo, prob, taban)
 
     # --- V6: SIGKILL -> uretici kolu KOSAMAZ, OLCUM KOLU yakalar ------------
     temel, depo = ortam()
-    prob = None
+    prob, taban = None, None
     try:
         prob, taban = _prob_baslat(depo)
         if not taban:
@@ -287,7 +295,7 @@ def vakalar():
                   rc == RC_SIZINTI and "SIZINTI=1" in cikti,
                   "rc=%s | %s" % (rc, cikti.strip().splitlines()[-1:]))
     finally:
-        kapat(temel, depo, prob)
+        kapat(temel, depo, prob, taban)
 
     print("")
     print("VAKA KIRMIZI: %d %s" % (len(kirmizi), sorted(kirmizi) or ""))
