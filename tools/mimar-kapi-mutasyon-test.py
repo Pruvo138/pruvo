@@ -169,11 +169,56 @@ TARAYICI_ACIK_KAYNAK = 'TARAYICI_ACIK_EVLER = ("pruvo", "pruvo-hasat")\n'
 YAN_EKSEN_YESIL = {
     "MT1": {500, 501, 502, 503, 504, 528, 530, 531, 532, 533, 534, 535, 536, 537},
     "MT2": {401, 403, 614},
+    # 🔴 28 AGU (K340): iki eksen AYRI olmali. ① (env -C / cd normalizasyonu) mutantı
+    # ②'yi (betik-ici cagri) KIRLETMEMELI ve tersi; ayrica IKI EKSENIN de KONTROL
+    # vakalari (846/847/852) yesil kalmali — kapi "her cagriya yanan alarm" degildir.
+    "M_K340_1": {846, 847, 850, 851, 852, 853},
+    "M_K340_2": {840, 841, 842, 843, 844, 845, 846, 847, 852},
+    "M_K340_3": {840, 846, 847, 850, 851, 852, 853},
+    "M_K340_4": {840, 846, 847, 850, 851, 852, 853},
 }
 
 
 # (ad, uygulayici, aciklama, beklenen_kirmizi_kumesi, tam_esitlik_mi, asgari_sayi)
 MUTASYONLAR = [
+    # === 28 AGU 2026 (K340) — HEDEF-KOL ATIFLI MUTANTLAR (K182) ====================
+    # Her mutant TEK BIR KOLU oldurur ve o kolun KENDI vakalarini kirmizi yakar; yan
+    # eksen YAN_EKSEN_YESIL ile AYRICA olculur. `tam=True` secildi: kirmizi kume
+    # BEKLENENE ESIT olmali — "fazladan kirmizi" da bir ariza sayilir, cunku mutant
+    # komsu kolu bozuyorsa eksen ayrimi KANITLANMAMIS demektir.
+    ("M_K340_1", lambda d: yama(
+        d, ICRA,
+        "        if ikinci and ikinci != tokenlar:\n",
+        "        if False and ikinci != tokenlar:\n"),
+     "K340 ①a: SARMALAYICI IKINCI OKUMASI oldurulur -> 'env -C <dizin> ...' ve "
+     "'nice -n 10 ...' segmentleri yeniden TUMDEN atlanir (bayrak degeri argv0 sanilir). "
+     "843 BILEREK DISARIDA: '--chdir=<dizin>' esitlikli formunda argv0 zaten 'python3' "
+     "okunuyor, onu tutan kol IKINCI OKUMA degil ETKIN CWD kolu (M_K340_3 oldurur)",
+     {841, 842, 844}, True, 3),
+    ("M_K340_2", lambda d: yama(
+        d, ICRA,
+        "    for m in BETIK_ICI_EXEC_RE.finditer(kaynak):\n",
+        "    for m in []:\n"),
+     "K340 ②: BETIK-ICI CAGRI kolu oldurulur -> .py govdesindeki repo-disi cagri "
+     "yeniden gorunmez olur (canli vaka: 16 gorsel R2'ye boyle yuklendi). 853 de HEDEF "
+     "koldur: kol olunce sinirin `BETIK-ICI-OLCULEMEDI=` izi de kaybolur — yani 'sinir "
+     "ADIYLA basilir' iddiasi SUS PAYI DEGIL, yuk tasiyor",
+     {850, 851, 853}, True, 3),
+    ("M_K340_3", lambda d: yama(
+        d, ICRA,
+        "    adaylar = []\n\n    def ekle(deger):\n",
+        "    adaylar = []\n    return adaylar\n\n    def ekle(deger):\n"),
+     "K340 ①b: ETKIN CWD kolu oldurulur (_sarmalayici_cwd_adaylari bos doner) -> "
+     "'env -C /private/tmp ...' ve '--chdir=/private/tmp ...' goreceli yolu yine "
+     "ORIJINAL cwd'ye cozer ve allowlist'i YANLIS agactan saglar",
+     {842, 843}, True, 2),
+    ("M_K340_4", lambda d: yama(
+        d, ICRA,
+        '    if not tokenlar or os.path.basename(tokenlar[0]) != "cd":\n',
+        "    if True:\n"),
+     "K340 ①c: 'cd <dizin>' okumasi oldurulur -> 'cd /private/tmp && python3 tools/...' "
+     "yeniden ORIJINAL cwd'ye cozulur",
+     {845}, True, 1),
     ("M1", lambda d: kimligi_sabitle(d, "ISCI"),
      "kimlik() daima ISCI (kimlik ekseni komple acilir)",
      {1, 6, 19, 30, 45, 80, 81}, False, 8),
@@ -263,8 +308,11 @@ MUTASYONLAR = [
     # RED (sentinel ME4).
     # M18 (22 Tem REPOINT): F (betik repo_ici) ARTIK YALNIZ sh/bash icin canli (python
     # short-circuit ile allowlist'e gider). Sentinel: sh vakasi 250 (bash x.sh, cwd repo DISI).
+    # 28 AGU (K340) ANKRAJ TAZELEMESI: F kolunun cagrisi artik TEK cwd yerine CWD OKUMA
+    # LISTESI aliyor ('cwd' -> 'cwdler'). Ankraj metni tazelendi; mutantin OLDURDUGU KOL
+    # ve sentinel vakasi (250) DEGISMEDI.
     ("M18", lambda d: yama(d, ICRA,
-                           "        if not repo_ici(betik, cwd):",
+                           "        if not repo_ici(betik, cwdler):",
                            "        if False:"),
      "F: betik repo_ici kontrolu silinir (sh betigi cwd repo DISI acilir)",
      {250}, True, 1),
@@ -746,7 +794,11 @@ MUTASYONLAR = [
         '    return "".join(k if k.isalnum() else "-" for k in yol)\n',
         "    return yol\n"),
      "K318: proje damgasi uretimi bozulur -> hicbir cip olculemez, hat KAPANIR",
-     {802, 803, 804, 813, 814}, True, 5),
+     # 28 AGU (K340) KAPSAM BUYUMESI: K340'in CIP-ALLOW vakalari (852 kontrol, 853 sinir
+     # izi) da bu mutantin menziline MESRU olarak girdi — damga bozulunca onlar da ANA
+     # sayilip RED aliyor. Mutantin ANLAMI degismedi; civili kume kapsamla BIRLIKTE
+     # buyutuldu ([[batarya-kapsam-tabani-sayiyla-civilenir]]).
+     {802, 803, 804, 813, 814, 852, 853}, True, 7),
     # MR4 — FAIL-CLOSED SOKULUR: damga OLCULEMEDIGINDE ANA yerine ilk worktree koku
     # dondurulur ("OLCULEMEDI = gecis"). Hedef kol: damgasiz baglamlar.
     ("MR4", lambda d: yama(
@@ -783,7 +835,10 @@ MUTASYONLAR = [
      #  (b) POZITIF vakalarin IZ iddiasi duser: erken cikis 'MIMAR' izi basar, oysa
      #      802/803/804/813/814 'CIP(' izi bekler. Yani iz iddiasi SUS PAYI DEGIL,
      #      yuk tasiyor — kaldirilirsa bu mutant yari korlesirdi.
-     {802, 803, 804, 808, 809, 810, 811, 813, 814}, True, 9),
+     #  (c) 28 AGU (K340) KAPSAM BUYUMESI: cip main() basinda TAM muaf olunca K340'in
+     #      BETIK-ICI kolu da hic kosmaz -> 850/851 (repo-disi cagri) acilir ve 853'un
+     #      OLCULEMEDI izi kaybolur. Mutantin ANLAMI degismedi, menzili olculdu.
+     {802, 803, 804, 808, 809, 810, 811, 813, 814, 850, 851, 853}, True, 12),
 ]
 
 # ===================== KONTROL MUTANTLARI (AYIRT EDICILIK OLCUMU) =====================
@@ -794,6 +849,15 @@ MUTASYONLAR = [
 # degildir ve MC1-MC4'un kirmizisi da kanit sayilmaz.
 # (ad, uygulayici, aciklama)
 KONTROL_MUTANTLARI = [
+    # 🔴 K8 (28 Agu, K340): ETKI EKSENININ AYIRT EDICILIK kontrolu — kabul ③(c). M_K340_1
+    # ve M_K340_2'nin kirmizisi ancak takim "her degisiklige" kizarmiyorsa kanittir.
+    # Surum damgasina eklenen KULLANILMAYAN bir sabit davranisi degistirmez; 12 K340
+    # vakasinin (840-853) hepsi YESIL kalmali — ozellikle mesru repo-ici cagrilar.
+    ("K8", lambda d: yama(
+        d, ICRA,
+        'K340_KURAL_SURUMU = "28agu-1"\n',
+        'K340_KURAL_SURUMU = "28agu-1"\n_K340_KONTROL_MUTANTI = True\n'),
+     "K340 etki blogua OLU bir sabit eklenir (davranis degismez) -> YESIL kalmali"),
     ("K1", lambda d: yama(
         d, ICRA,
         '    "mcp__claude-in-chrome__",\n'

@@ -990,6 +990,74 @@ ROL_VAKALARI = [
 ]
 
 
+# === 28 AGU 2026 (K340): KAPI KOMUTUN METNINI DEGIL ETKISINI OLCER ==================
+#
+# 🔴 VAKALAR SENTETIK DEGIL — ikisi CANLI (cip `clever-rubin-3974c0`, 28 Agu, kutuya
+# raporlandi), digerleri o iki vakanin SINIFINI ayiran ayirt edici/kontrol vakalaridir.
+#
+# ① `env -C <dizin> python3 tools/x.py`: sarmalayici_soy '-C'yi atlayip DEGERINI argv0
+#    sandigi icin `ad` bir dizin adi ('pruvo') oluyor, YORUMLAYICI tutmuyor ve SEGMENT
+#    TUMDEN atlaniyordu — yani "mutlak-yol taramasi tetiklenmedi" degil, HICBIR KOL
+#    KOSMADI. Ayni delik her sarmalayici bayrak-degerinde vardi ('nice -n 10 grep ...').
+# ② `.py` betiginin ICINDEN repo-disi arac cagrisi: kapi yalniz BASH METNINI tariyordu.
+#
+# KONTROL VAKALARI (846/847/852) BU ISIN GECERLILIK SARTIDIR: kapi "her env -C'yi kes"
+# ya da "subprocess goren her betigi kes" gibi kaba bir coze kacarsa 5 evin hatti durur.
+# 840 bilerek ALLOW'dur: canli vakanin BIREBIR kendisi, ve normalizasyon SONRASI dogru
+# cevap yine allow'dur (etkisi allowlist'teki komuttur) — kapi komutun SEKLINI degil
+# ETKISINI olcuyorsa bu vaka gecer.
+# 🔴 FIKSTUR YOLU `TOOLS`TAN TURETILMEZ — testin KENDI dizininden turer. Mutasyon
+# bataryasi gecici bir dizine YALNIZ kapi dosyalarini kopyalar; fikstur oradan
+# turetilseydi her mutant kosumunda DISKTEN KAYBOLUR, kapi dosyayi okuyamaz, kol
+# 'OLCULEMEDI' deyip RED uretmez ve mutant YANLIS SEBEPLE yesil gorunurdu (bu tam da
+# oldu: M_K340_2 ilk kosumda net=0 verdi). Fikstür VERIDIR, olculen ARAC degil.
+K340_FIK = os.path.join(os.path.dirname(os.path.abspath(__file__)), "k340", "fikstur")
+
+K340_VAKALARI = [
+    # --- ① SARMALAYICI / ETKIN CWD ---
+    (840, "allow", "Bash", "env -C " + REPO + " python3 tools/d1-sync.py --durum", None,
+     "🔴 CANLI VAKA ① BIREBIR: etkisi allowlist komutu -> normalizasyondan SONRA allow",
+     {}, None, {}),
+    (841, "deny", "Bash", "env -C " + REPO + " python3 tools/build.py", None,
+     "ASIL DELIK: bugun segment TUMDEN atlanip GECIYORDU; etki olculunce allowlist disi",
+     {}, None, {}),
+    (842, "deny", "Bash", "env -C /private/tmp python3 tools/d1-sync.py --durum", None,
+     "ETKIN CWD repo DISI: goreceli yol orada cozulunce allowlist saglanmaz (fail-closed)",
+     {}, None, {}),
+    (843, "deny", "Bash", "env --chdir=/private/tmp python3 tools/d1-sync.py --durum", None,
+     "ESITLIKLI form da soyulur ('--chdir=<dizin>') — bitisik yazim muafiyet degil",
+     {}, None, {}),
+    # NOT: burada 'grep' KULLANILAMAZ — grep mimara ZATEN serbesttir (CLAUDE.md), yani
+    # vaka delikten degil kuraldan gecerdi. Ayirt edici olmasi icin OLCUM_KOMUTLARI
+    # kumesinden gercek bir olcum komutu ('head') secildi.
+    (844, "deny", "Bash", "nice -n 10 head -5 " + REPO + "/DEVAM.md", None,
+     "AYNI SINIF, baska sarmalayici: bayrak degeri ('10') argv0 sanilinca olcum kolu atlaniyordu",
+     {}, None, {}),
+    (845, "deny", "Bash", "cd /private/tmp && python3 tools/d1-sync.py --durum", None,
+     "'cd' SONRAKI segmentin cwd'sini degistirir; kapi 'cd'yi hicbir kola sokmuyordu",
+     {}, None, {}),
+    (846, "allow", "Bash", "python3 tools/d1-sync.py --durum", None,
+     "🔴 KONTROL: sarmalayicisiz mesru cagri AYNEN serbest (regresyon nobetcisi)",
+     {}, None, {}),
+    (847, "allow", "Bash", "env python3 tools/d1-sync.py --durum", None,
+     "🔴 KONTROL: BAYRAKSIZ sarmalayici cwd adayi URETMEZ -> mesru cagri kapanmaz",
+     {}, None, {}),
+    # --- ② BETIK-ICI CAGRI (cip ekseninde izole: ANA'da allowlist zaten reddederdi) ---
+    (850, "deny", "Bash", "python3 " + K340_FIK + "/kardes-ev-cagiran.py", None,
+     "🔴 CANLI VAKA ② AYNASI: betik ICINDEN kardes evin araci (F' kolu)",
+     {}, None, _CIP),
+    (851, "deny", "Bash", "python3 " + K340_FIK + "/dogrudan-disari.py", None,
+     "② A' kolu: betik ICINDEN DOGRUDAN repo-disi calistirilabilir",
+     {}, None, _CIP),
+    (852, "allow", "Bash", "python3 " + K340_FIK + "/iceri-cagiran.py", None,
+     "🔴 KONTROL: repo-ICI betik-ici cagri SERBEST — kapi her cagriya yanan alarm DEGIL",
+     {}, None, _CIP),
+    (853, "allow", "Bash", "python3 " + K340_FIK + "/literalsiz.py", None,
+     "SINIR S1 ADIYLA: literal okunamaz -> RED YOK ama iz OLCULEMEDI diye BASAR",
+     {}, "BETIK-ICI-OLCULEMEDI=", _CIP),
+]
+
+
 def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None, ek_env=None, ek_payload=None):
     """PreToolUse kancasini gercek payload'la kosturur.
     Doner: (karar, gerekce_ozeti). Karar: allow/deny/EKSIK-KANCA/COKTU/
@@ -1713,6 +1781,8 @@ def main():
          ISCI_KIMLIK_EKSENI_VAKALARI, REPO),
         ("27 AGU K318 ROL EKSENI — ANA oturum RED / CIP oturumu GECER + fail-closed + sinir",
          ROL_VAKALARI, REPO),
+        ("28 AGU K340 ETKI EKSENI — env -C/cd normalizasyonu + betik-ici cagri + KONTROL",
+         K340_VAKALARI, REPO),
     ]
 
     if SADECE_KIMLIK_EKSENI:

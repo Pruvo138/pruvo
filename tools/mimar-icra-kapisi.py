@@ -302,6 +302,16 @@ def _kapi_dagitim_evreni():
 
 
 def _kapi_dagitim_muaf(ad, argumanlar, cwd):
+    """28 AGU (K340) — OKUMA SARMALAYICISI. Muafiyet bir IZIN kolu oldugu icin fail-closed
+    yon 'HER okumada muaf' olmaktir: `env -C <dizin>` ile kaydirilmis bir cwd, kurucu
+    muafiyetini TEK okumada saglayip digerinde saglamiyorsa muafiyet DOGMAZ."""
+    for c in _cwd_listesi(cwd):
+        if not _kapi_dagitim_muaf_tek(ad, argumanlar, c):
+            return False
+    return True
+
+
+def _kapi_dagitim_muaf_tek(ad, argumanlar, cwd):
     """R2/F kollari icin ADLI muafiyet. True = bu cagri kanonik kapi dagitim KURUCUSUDUR
     ve argumanlarindaki repo-disi yollarin HEPSI kayitli ev koku (ya da kurucunun kendisi).
 
@@ -921,18 +931,108 @@ def sarmalayici_soy(tokenlar):
     return tokenlar, atamalar
 
 
+def _yol_gibi(t):
+    """Token bir YOL gibi mi goruunuyor? (dis_yol'un kullandigi olcutle ayni aile.)"""
+    return bool(t) and ("/" in t or t.startswith(".") or t.startswith("~"))
+
+
+def _sarmalayici_cwd_adaylari(tokenlar, cwd):
+    """28 AGU 2026 (K340) — SARMALAYICI ONEKINDEKI DIZIN DEGERLERI = ETKIN CWD ADAYLARI.
+
+    OLCULEN ARIZA (canli vaka ①): `env -C /Users/okan/dev/pruvo python3 tools/d1-sync.py
+    --durum` calisti ve kapinin HICBIR kolu kosmadi. Iki ayri kok vardi:
+      (a) sarmalayici_soy 'env'i soyup '-C'yi atliyor, ama bayragin DEGERINI
+          ('/Users/okan/dev/pruvo') argv0 saniyor -> ad='pruvo' -> YORUMLAYICI tutmuyor
+          -> SEGMENT TUMDEN atlaniyordu. Bunu _sarmalayici_ikinci_okuma zaten cozuyor;
+          K340 onu codex kolundan alip TUM kural kumesine tasidi (main dongusu).
+      (b) '-C' ile DEGISEN cwd hic okunmuyordu; goreceli yol daima ORIJINAL cwd'ye
+          cozuluyordu. Bu fonksiyon (b)'yi kapatir.
+
+    HANGI BAYRAGIN DEGER ALDIGINA DAIR TABLO TUTULMAZ (parser taklidi yasak —
+    _sarmalayici_ikinci_okuma ile ayni idiom): sarmalayici onekinde ATLANAN ve YOL GIBI
+    gorunen her token bir cwd ADAYIDIR. '--chdir=<dizin>' esitlikli formu da soyulur.
+    'env -u FOO' ('FOO') ve 'nice -n 10' ('10') yol gibi gorunmedigi icin aday URETMEZ
+    -> sarmalayicili mevcut vakalarda (281/282/283) regresyon 0.
+
+    KABUL EDILEN BEDEL: 'time -o /tmp/t codex ...' cagrisinda '/tmp/t' bir DOSYA olmasina
+    ragmen cwd adayi sayilir; o okumada goreceli yollar repo DISINA duser ve RED gelir.
+    Fail-closed yon bilerek secildi: belirsizlik DISARI. Dizge degil COZULMUS yol olculur
+    ([[n2b-kapisi-dizge-olcer]])."""
+    adaylar = []
+
+    def ekle(deger):
+        if _yol_gibi(deger):
+            coz = _coz(deger, cwd)
+            if coz not in adaylar:
+                adaylar.append(coz)
+
+    okuma = list(tokenlar)
+    while okuma:
+        if re.match(r"^([A-Za-z_][A-Za-z0-9_]*)=", okuma[0]):
+            okuma = okuma[1:]
+            continue
+        if os.path.basename(okuma[0]) in SARMALAYICI:
+            okuma = okuma[1:]
+            while okuma and okuma[0].startswith("-"):
+                bayrak = okuma[0]
+                okuma = okuma[1:]
+                if "=" in bayrak:
+                    ekle(bayrak.split("=", 1)[1])
+                if okuma and not okuma[0].startswith("-"):
+                    ekle(okuma[0])
+                    okuma = okuma[1:]
+            continue
+        break
+    return adaylar
+
+
+def _cd_hedefi(tokenlar, cwd):
+    """28 AGU (K340) — 'cd <dizin>' SONRAKI segmentlerin cwd'sini degistirir
+    ('cd /x && python3 tools/y.py'). Kapi 'cd'yi hicbir kola sokmuyordu (YORUMLAYICI
+    degil, ICRA uzantisi yok) -> segment sessizce geciyor ve DEGISEN cwd hic okunmuyordu.
+
+    Burada 'cd' YALNIZ OKUNUR; 'cd' YASAGI bu kapinin isi DEGIL (CLAUDE.md komut stili
+    -> tools/komut-stili-kapisi.py). Orijinal cwd okumasi LISTEDEN DUSMEZ: hedef bir
+    IKINCI okuma olarak eklenir, karar yine iki okumanin uzerinden verilir."""
+    if not tokenlar or os.path.basename(tokenlar[0]) != "cd":
+        return None
+    konumlar = [t for t in tokenlar[1:] if not t.startswith("-")]
+    if len(konumlar) != 1:
+        return None
+    return _coz(konumlar[0], cwd)
+
+
+def _cwd_listesi(cwd):
+    """28 AGU 2026 (K340) — ETKIN CWD OKUMALARI. cwd artik TEK bir dizin degil, bir
+    OKUMA LISTESIDIR; listenin ILKI daima kabugun bildirdigi orijinal cwd'dir.
+
+    OLCULEN ARIZA (canli vaka): `env -C /Users/okan/dev/pruvo python3 tools/d1-sync.py
+    --durum` cagrisinda kapi goreceli yolu DAIMA orijinal cwd'ye cozuyordu; komutun
+    ETKISI baska bir dizinde dogdugu icin hukum YANLIS AGACI olcuyordu.
+
+    KARAR IKI OKUMANIN DA UZERINDEN verilir ve yonler AYRIDIR (fail-closed):
+      * repo_ici / _py_izinli (IZIN veren yon) -> HER okumada saglanmali (all)
+      * dis_yol               (RED veren yon)  -> HERHANGI okumada disi ise RED (any)
+    Belirsizlik DISARI sayilir — dis_yol'un zaten kullandigi idiom."""
+    if isinstance(cwd, (list, tuple)):
+        return [c for c in cwd if c] or [REPO_ONEKI.rstrip("/")]
+    return [cwd or REPO_ONEKI.rstrip("/")]
+
+
 def _coz(yol, cwd):
-    """Token'i mutlak yola cozer (goreli ise cwd'ye gore)."""
+    """Token'i mutlak yola cozer (goreli ise cwd'ye gore). cwd bir OKUMA LISTESI ise
+    BIRINCIL (orijinal) okuma kullanilir — TAM ESITLIK kiyaslari icin. Okuma COKLUGU
+    hukum veren yerlerde (repo_ici / _py_izinli / _kapi_dagitim_muaf) tek tek dolasilir,
+    burada DEGIL: _coz tek bir yol dondurmek zorundadir."""
     yol = os.path.expanduser(yol)
     if not os.path.isabs(yol):
-        yol = os.path.join(cwd, yol)
+        yol = os.path.join(_cwd_listesi(cwd)[0], yol)
     return os.path.normpath(yol)
 
 
-def repo_ici(yol, cwd):
-    """Repo agacinin ICINDE mi? Ana checkout ONEKI ya da git'e KAYITLI bir worktree koku.
-    Kayit ekseni P2'nin (repo DISINDAKI mesru worktree, or. /private/tmp/pruvo-toka-jenerator)
-    kimlikten BAGIMSIZ yedegidir: agent_id gelmese bile o betik kosar."""
+def _repo_ici_tek(yol, cwd):
+    """TEK bir cwd okumasina gore 'repo agacinin icinde mi'. Govde 28 Agu oncesi
+    repo_ici'nin BIREBIR govdesidir — davranis degismedi, yalnizca okuma basina ayrildi."""
     yol = _coz(yol, cwd)
     if yol.startswith(REPO_ONEKI):
         return True
@@ -940,6 +1040,19 @@ def repo_ici(yol, cwd):
         if yol == kok or yol.startswith(kok + "/"):
             return True
     return False
+
+
+def repo_ici(yol, cwd):
+    """Repo agacinin ICINDE mi? Ana checkout ONEKI ya da git'e KAYITLI bir worktree koku.
+    Kayit ekseni P2'nin (repo DISINDAKI mesru worktree, or. /private/tmp/pruvo-toka-jenerator)
+    kimlikten BAGIMSIZ yedegidir: agent_id gelmese bile o betik kosar.
+
+    28 AGU (K340): cwd bir OKUMA LISTESI olabilir — 'icerisi' hukmu ancak HER okumada
+    saglanirsa verilir. Tek okuma gelirse davranis 28 Agu oncesiyle BIREBIR aynidir."""
+    for c in _cwd_listesi(cwd):
+        if not _repo_ici_tek(yol, c):
+            return False
+    return True
 
 
 def _codex_programi(argv0):
@@ -1257,6 +1370,17 @@ def _agent_karari(girdi):
 
 
 def _py_izinli(ad, argumanlar, cwd):
+    """28 AGU (K340) — OKUMA SARMALAYICISI. ALLOWLIST bir IZIN kolu oldugu icin
+    fail-closed yon 'HER okumada izinli' olmaktir: `env -C <dizin> python3 tools/x.py`
+    cagrisinda hem orijinal hem etkin cwd okumasi allowlist'i saglamadikca gecmez.
+    Tek okuma gelirse davranis 28 Agu oncesiyle BIREBIR aynidir."""
+    for c in _cwd_listesi(cwd):
+        if not _py_izinli_tek(ad, argumanlar, c):
+            return False
+    return True
+
+
+def _py_izinli_tek(ad, argumanlar, cwd):
     """22 Tem — mimar tarafinda python/node ALLOWLIST'i. YALNIZ uc tam komut serbest:
         python3 tools/durum.py                          (baska argüman YOK)
         python3 tools/d1-sync.py --durum                (yalniz --durum)
@@ -1341,6 +1465,200 @@ def dis_yol(argumanlar, cwd):
             if not repo_ici(aday, cwd):
                 return aday
     return None
+
+
+# === 28 AGU 2026 (K340) — BETIK-ICI CAGRI EKSENI ============================
+# OLCULEN ARIZA (canli vaka ②): bir cip `tools/r2-upload.py`yi Bash'ten HIC cagirmadi;
+# worktree'sindeki bir .py betiginin ICINDEN
+#     subprocess.run(["python3", "/Users/okan/dev/pruvo/tools/r2-upload.py", ...])
+# ile calistirdi. Kapi yalniz BASH KOMUT METNINI tariyordu -> 16 gorsel R2'ye yuklendi.
+# SINIF: kapi DAVRANIS degil DIZGE olcuyordu ([[n2b-kapisi-dizge-olcer]]); menzil
+# CAGRI YERI olmaliydi ([[kapinin-menzili-cagri-yeridir]]).
+#
+# 🔴 MENZIL TAHMINLE DEGIL OLCUMLE SECILDI (tools/k340/k340-olc.py + k340-olc2.py,
+#    tum tools/ agaci taranarak):
+#      KABA  (dosyada exec primitifi + HERHANGI yerde repo-disi literal) -> 125 dosya
+#      ORTA  (exec cagrisinin ARGUMAN METNINDE repo-disi yol)            ->   3 dosya
+#            ucu de ZARARSIZ cikti: '/api/shop/fiyat' (URL parcasi),
+#            '/tmp/spec-prob.md' (kapiya verilen SAHTE prob yolu), '/bin/zsh' (sistem)
+#      KESIN (A' + F' = kapinin KENDI A ve F kollarinin betik-ici karsiligi;
+#            olculen sey CALISTIRILAN PROGRAMIN konumudur)               ->   0 dosya
+#    KESIN menzil secildi: mesru hicbir araci yakmiyor (kabul ③c'nin kontrol sarti).
+#
+# 🔴 SINIRIN ADI `OLCULEMEDI`'DIR, MUAFIYET DEGIL
+#    ([[olculemedi-bypass-degil-menzil-daraltmasi]]). Bu kolun OLCMEDIGI seyler:
+#      S1) LITERAL OLMAYAN argv (degisken / f-string / os.path.join / sozluk) — ayni
+#          taramada 65 cagri yeri boyle. RED URETMEZ, izde SAYIYLA basilir.
+#      S2) DERINLIK 2+ : A betigi B'yi cagirir, B disariyi cagirir. OLCULMEZ.
+#      S3) shell=True DIZGE formu ('python3 ' + yol). OLCULMEZ.
+#      S4) Kosum aninda URETILEN betik (once yazilir, sonra kosulur). OLCULMEZ.
+#      S5) Yalniz .py/.js/.mjs/.cjs govdesi taranir; .sh/.rb/.pl OLCULMEZ.
+#      S6) 1 MB ustu ya da okunamayan govde OLCULMEZ.
+#      S7) GORECELI literal: betigin KOSUM ANINDAKI cwd'si bilinmedigi icin hakkinda
+#          HUKUM VERILMEZ (uydurma cozum kurulmadi) — S1 kovasina yazilir.
+#    Bes/yedi sinirin hicbiri SESSIZ GECIT degildir: hepsi burada ADIYLA yazilidir ve
+#    S1/S6/S7 kovasi ALLOW izinde 'BETIK-ICI-OLCULEMEDI=<n>' diye basilir. Kapatilmalari
+#    AYRI KALEMDIR — bu tur da cozulmus gibi gosterilmez.
+K340_KURAL_SURUMU = "28agu-1"
+BETIK_ICI_UZANTILARI = (".py", ".js", ".mjs", ".cjs")
+BETIK_ICI_TAVAN = 1024 * 1024
+BETIK_ICI_EXEC_RE = re.compile(
+    r"(subprocess\.(run|call|check_call|check_output|Popen)"
+    r"|os\.(system|popen|execv|execvp|execve|spawnv)"
+    r"|child_process\.(exec|execSync|spawn|spawnSync|execFile|execFileSync))\s*\(")
+BETIK_ICI_STR_RE = re.compile(r"""^\s*['"]([^'"\n]*)['"]\s*$""")
+# [0] = literali okunamayan cagri yeri sayisi (S1/S7), [1] = govdesi hic okunamayan
+# betik sayisi (S6). ALLOW izinde ADIYLA basilir — sinir sessiz kalmasin.
+BETIK_ICI_IZ = [0, 0]
+
+
+def _betik_ici_cagri_metni(kaynak, baslangic):
+    """EXEC primitifinin acilis parantezinden esleyen kapanisina kadarki metin.
+    Parser DEGIL — kaba parantez eslemesi, 4000 karakterle tavanli."""
+    try:
+        i = kaynak.index("(", baslangic)
+    except ValueError:
+        return ""
+    derinlik, n, j = 0, len(kaynak), i
+    while j < n and j - i < 4000:
+        c = kaynak[j]
+        if c == "(":
+            derinlik += 1
+        elif c == ")":
+            derinlik -= 1
+            if derinlik == 0:
+                return kaynak[i:j + 1]
+        j += 1
+    return kaynak[i:i + 4000]
+
+
+def _betik_ici_argv(metin):
+    """Cagri metnindeki ILK liste literalinin ogeleri. STRING literali OLMAYAN oge
+    None konur = 'okunamadi' (S1 siniri) — None asla RED uretmez."""
+    m = re.search(r"\[(.*?)\]", metin, re.S)
+    if not m:
+        return None
+    ogeler, derinlik, parca = [], 0, ""
+    for c in m.group(1):
+        if c in "([{":
+            derinlik += 1
+        elif c in ")]}":
+            derinlik -= 1
+        if c == "," and derinlik == 0:
+            ogeler.append(parca)
+            parca = ""
+            continue
+        parca += c
+    if parca.strip():
+        ogeler.append(parca)
+    out = []
+    for o in ogeler:
+        sm = BETIK_ICI_STR_RE.match(o)
+        out.append(sm.group(1) if sm else None)
+    return out
+
+
+def _betik_ici_mutlak_disari(t, cwd):
+    """YALNIZ MUTLAK literal olculur (S7): betigin KOSUM ANINDAKI cwd'si bilinmedigi
+    icin goreceli yol hakkinda hukum VERILMEZ."""
+    if not t:
+        return False
+    if not (t.startswith("/") or t.startswith("~")):
+        return False
+    return not repo_ici(t, cwd)
+
+
+def _betik_ici_red(betik, cwd):
+    """Doner: (red_sebebi ya da None, olculemedi_sayisi).
+
+    A') exec cagrisinin argv[0] LITERALI repo DISINA cozulur ve ICRA uzantisi tasir
+    F') argv[0] bir YORUMLAYICI ve ondan sonraki ilk tiresiz LITERAL repo DISINA cozulur
+    Baska hicbir sey tetiklemez (veri yollari, URL'ler, sistem ikilileri DEGIL)."""
+    yol = _coz(betik, cwd)
+    if not yol.lower().endswith(BETIK_ICI_UZANTILARI):
+        return None, 0
+    try:
+        if os.path.getsize(yol) > BETIK_ICI_TAVAN:
+            return None, -1
+        with open(yol, "r", encoding="utf-8", errors="replace") as f:
+            kaynak = f.read()
+    except Exception:
+        return None, -1
+    kisa = os.path.basename(yol)
+    olculemedi = 0
+    for m in BETIK_ICI_EXEC_RE.finditer(kaynak):
+        argv = _betik_ici_argv(_betik_ici_cagri_metni(kaynak, m.start()))
+        if not argv or argv[0] is None:
+            olculemedi += 1
+            continue
+        argv0 = argv[0]
+        ad0 = os.path.basename(argv0)
+        if ("/" in argv0 or argv0.startswith(".")) and argv0.lower().endswith(ICRA_UZANTILARI):
+            if _betik_ici_mutlak_disari(argv0, cwd):
+                return ("çağırdığın betiğin (" + kisa + ") İÇİNDE repo DIŞINDAKİ bir "
+                        "programı çalıştıran çağrı var (" + argv0 + ")"), olculemedi
+            continue
+        if YORUMLAYICI.match(ad0):
+            for t in argv[1:]:
+                if t is None:
+                    olculemedi += 1
+                    break
+                if t.startswith("-"):
+                    continue
+                if _betik_ici_mutlak_disari(t, cwd):
+                    return ("çağırdığın betiğin (" + kisa + ") İÇİNDE repo DIŞINDAKİ bir "
+                            "betiği yorumlayıcıya veren çağrı var (" + t + ")"), olculemedi
+                break
+    return None, olculemedi
+
+
+def _betik_ici_denetle(betik, cwd):
+    """Cagri yerinde TUKETILEN yuklem. RED sebebi doner ya da None; OLCULEMEDI sayaci
+    BETIK_ICI_IZ'e yazilir ki ALLOW izinde ADIYLA basilabilsin."""
+    sebep, olculemedi = _betik_ici_red(betik, cwd)
+    if olculemedi < 0:
+        BETIK_ICI_IZ[1] += 1
+    else:
+        BETIK_ICI_IZ[0] += olculemedi
+    return sebep
+
+
+def _denetim_okumalari(komut, cwd):
+    """28 AGU 2026 (K340) — HER SEGMENT ICIN (TOKEN OKUMASI x CWD OKUMALARI) URETECI.
+
+    ONCEKI HAL: her segment TEK bicimde okunuyordu ve okuma sarmalayicinin bayrak
+    DEGERINI argv0 sanirsa segment TUMDEN atlaniyordu. Canli vaka ①:
+      `env -C /Users/okan/dev/pruvo python3 tools/d1-sync.py --durum`
+      -> sarmalayici_soy 'env'i soyar, '-C'yi atlar, '/Users/okan/dev/pruvo'yu argv0
+         sanir -> ad='pruvo' -> YORUMLAYICI tutmaz -> HICBIR KOL KOSMAZ.
+    Ayni delik sarmalayicinin her bayrak-degerinde vardi ('nice -n 10 grep ...' da
+    olcum kolunu atliyordu). _sarmalayici_ikinci_okuma bu belirsizligi 27 Tem'de zaten
+    cozmustu ama YALNIZ codex kolunda kullaniliyordu; K340 onu TUM kural kumesine tasir.
+
+    Uretilen her demet AYRI AYRI denetlenir; govdedeki `continue` artik 'sonraki OKUMA'
+    demektir — yani bir okumada temiz gorunmek digerini SUSTURMAZ (fail-closed).
+    Sarmalayicisiz komutlarda iki okuma AYNIDIR ve ikincisi URETILMEZ -> regresyon 0.
+
+    CWD tarafinda ayni disiplin: orijinal cwd + onceki segmentlerin 'cd <dizin>'
+    hedefleri + sarmalayici onekindeki dizin degerleri bir OKUMA LISTESI olarak
+    asagi verilir (bkz. _cwd_listesi)."""
+    ek_cwdler = []
+    for segment in segmentlere_ayir(komut):
+        ham = parcala(segment)
+        tokenlar, env_atamalari = sarmalayici_soy(list(ham))
+        cwdler = [cwd]
+        for c in list(ek_cwdler) + _sarmalayici_cwd_adaylari(ham, cwd):
+            if c not in cwdler:
+                cwdler.append(c)
+        hedef = _cd_hedefi(tokenlar, cwd)
+        if hedef is not None and hedef not in ek_cwdler:
+            ek_cwdler.append(hedef)
+        okumalar = [tokenlar]
+        ikinci = _sarmalayici_ikinci_okuma(list(ham))
+        if ikinci and ikinci != tokenlar:
+            okumalar.append(ikinci)
+        for sira, okuma in enumerate(okumalar):
+            yield segment, okuma, env_atamalari, cwdler, sira
 
 
 def main():
@@ -1442,8 +1760,11 @@ def main():
              "<YOK>")[:80] + " kayitli_worktree=" + str(len(kayitli_worktree_kokleri())) + "]"
         )
 
-    for segment in segmentlere_ayir(komut):
-        tokenlar, env_atamalari = sarmalayici_soy(parcala(segment))
+    # 28 AGU (K340): tek okuma -> COKLU OKUMA. `continue` artik 'sonraki OKUMA' demek;
+    # bir okumada temiz gorunmek digerini SUSTURMAZ. Govde AYNEN durur (regresyon 0),
+    # degisen tek sey neyin uzerinden kostugudur: cwd yerine cwdler (okuma listesi).
+    for segment, tokenlar, env_atamalari, cwdler, okuma_sirasi in _denetim_okumalari(
+            komut, cwd):
         if not tokenlar:
             continue
         argv0 = tokenlar[0]
@@ -1469,7 +1790,12 @@ def main():
         # dizisine 'codex' + '-o' serpistirmek TUM kapiyi atlatan bir anahtar olurdu.
         # 27 TEM (2. tur): karar IKI OKUMA ile alinir — 'nice -n 10 codex exec' gibi
         # sarmalayici bayrak-degeri sizintisi kapanir (_codex_segment_karari).
-        codex_karari = _codex_segment_karari(segment, tokenlar)
+        # 28 AGU (K340): codex kolu YALNIZ BIRINCI okumada kosar — kendi IKI OKUMASINI
+        # zaten iceride yapiyor (_codex_segment_karari -> _sarmalayici_ikinci_okuma).
+        # Ikinci kez kosturmak ayni belirsizligi IKI KEZ daraltir ve vaka 281/282'de
+        # yanlis-pozitif uretirdi.
+        codex_karari = (_codex_segment_karari(segment, tokenlar)
+                        if okuma_sirasi == 0 else None)
         if codex_karari is not None and codex_karari != "gecer":
             reddet(codex_karari, sonu=CODEX_GEREKCE_SONU)
 
@@ -1486,11 +1812,16 @@ def main():
 
         # A) Repo disi calistirilabilir dosyayi dogrudan cagirma (./x.sh, /tmp/.../x.py)
         if ("/" in argv0 or argv0.startswith(".")) and argv0.lower().endswith(ICRA_UZANTILARI):
-            if not repo_ici(argv0, cwd):
+            if not repo_ici(argv0, cwdler):
                 reddet(
                     "repo DIŞINDAKİ bir betiği doğrudan çalıştırıyorsun (" + argv0 + "). "
                     "Mimar kendi yazdığı programı koşturmaz — icra MÜHENDİSİN işidir."
                 )
+            # K340 ②: repo ICINDEKI betik SERBEST degil, ICI OKUNUR. Cagri yeri burasidir.
+            betik_ici = _betik_ici_denetle(argv0, cwdler)
+            if betik_ici:
+                reddet(betik_ici + ". Kapı artık komutun METNINI değil ETKİSİNİ ölçüyor: "
+                                   "çağrıyı betiğin içine saklamak menzilden çıkarmaz.")
             continue
 
         if not YORUMLAYICI.match(ad):
@@ -1514,7 +1845,7 @@ def main():
         # d1-sync.py --durum' allowlist'e ULASMADAN env yuzunden reddedilir.
         # sh/bash/ruby/perl/php/osascript BU kisitin DISINDA (asagida C/E2/F ile denetlenir).
         if PY_NODE.match(ad):
-            if _py_izinli(ad, argumanlar, cwd):
+            if _py_izinli(ad, argumanlar, cwdler):
                 continue
             # 27 AGU (K318): CIP'te ALLOWLIST atlanir — AMA SEGMENT KAPATILMAZ. Akis
             # bilerek asagi duser: C (satir-ici kod), R2 (argumanlarda repo DISI yol) ve
@@ -1558,11 +1889,11 @@ def main():
         #    noktadan itibaren yalniz sh/bash/ruby/perl/php/osascript kalir; onlarda -m yok.
 
         # E2/R2) YOL TARAMASI — argumanlarda repo DISINA cozulen parca varsa RED.
-        disari = dis_yol(argumanlar, cwd)
+        disari = dis_yol(argumanlar, cwdler)
         # 28 AGU (K304-BOOTSTRAP) — CAGRI YERI MUAFIYETI. Kural DEGISMEDI; yalnizca
         # kanonik kapi dagitim kurucusunun KAYITLI EV KOKLERINE cozulen argumanlari bu
         # cagri yerinde tuketilir. Baska her cagri icin R2 aynen kosar.
-        if disari and _kapi_dagitim_muaf(ad, argumanlar, cwd):
+        if disari and _kapi_dagitim_muaf(ad, argumanlar, cwdler):
             iz_bas("KAPI-DAGITIM-KURUCU(R2)")
             disari = None
         if disari:
@@ -1591,17 +1922,32 @@ def main():
         # 28 AGU (K304-BOOTSTRAP) — F kolunun CAGRI YERI MUAFIYETI. Kardes evlerde kurucu
         # ZORUNLU olarak repo DISINDADIR (govde tek kaynakta yasar); bu kol olmadan bes
         # evin HICBIRI kendi kapisini kuramaz.
-        if not repo_ici(betik, cwd) and _kapi_dagitim_muaf(ad, argumanlar, cwd):
+        if not repo_ici(betik, cwdler) and _kapi_dagitim_muaf(ad, argumanlar, cwdler):
             iz_bas("KAPI-DAGITIM-KURUCU(F)")
             continue
 
-        if not repo_ici(betik, cwd):
+        if not repo_ici(betik, cwdler):
             reddet(
                 "repo DIŞINDAKİ bir betiği koşturuyorsun (" + betik + "). Scratchpad'e "
                 "yazılmış analiz/ölçüm betikleri de buna dahildir — mimar kod yazmaz, "
                 "kod YAZDIRIR; sonucu testle kapatır."
             )
 
+        # === K340 ② — BETIK-ICI CAGRI. Cagri yeri BURASIDIR: betik repo ICINDE cikti,
+        # ama ICINDE repo DISINDAKI bir programi calistiran literal cagri olabilir
+        # (canli vaka: worktree icindeki .py -> subprocess.run(["python3",
+        # "/Users/okan/dev/pruvo/tools/r2-upload.py", ...]) -> 16 gorsel yuklendi).
+        betik_ici = _betik_ici_denetle(betik, cwdler)
+        if betik_ici:
+            reddet(betik_ici + ". Kapı artık komutun METNINI değil ETKİSİNİ ölçüyor: "
+                               "çağrıyı betiğin içine saklamak menzilden çıkarmaz.")
+
+    # 28 AGU (K340): ② ekseninin OLCULEMEDIGI yerler ADIYLA basilir — sessiz gecit yok
+    # ([[olculemedi-bypass-degil-menzil-daraltmasi]]).
+    if BETIK_ICI_IZ[0] or BETIK_ICI_IZ[1]:
+        iz_bas("MIMAR-kural-yok BETIK-ICI-OLCULEMEDI=" + str(BETIK_ICI_IZ[0]) +
+               " GOVDE-OKUNAMADI=" + str(BETIK_ICI_IZ[1]))
+        sys.exit(0)
     iz_bas("MIMAR-kural-yok")
     sys.exit(0)
 
