@@ -2,18 +2,19 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 DEVIR DEVRALINDI — 27 Agu 22:45, yeni hesap · main=origin `847d7509` · agac TEMIZ (devir bloğunun TAM metni `847d7509`'da)
-🔴 **KAPI CELISKISI (SINIF, bugun olculdu):** defter-kotasi careyi `defter-rotasyon.py --tavan-kaynaktan
---isaretciye-indir` yaziyor (K258 "mimarda SERBEST"), `mimar-icra-kapisi` ayni cagriyi ANA oturumda REDDEDIYOR —
-muafiyet ikinci kapinin listesine YANSIMAMIS. Kabul: iki kapi TEK listeden beslenir + mutant.
-🟠 **NOBET (DUZELTME):** `.ci-token` **108 B** ("12 B" hataliydi); gun `rc=1` **20**/`rc=0` **1**,
-ACILAN_TUR **0** = jeton kullanilmadi. Hukum adi onarildi (K324); K325-K327+K329 + civi BLOKE KUTUDA.
-🔴 **DEVREDEN (tam liste + 5 kolun adlari KUTUDA, 27 Agu kapanis blogu):** ⓐ YEDEK **5 kolda kirik** (4 TSV 11
-Agu'dan yedeksiz) · ⓑ **K220** (② onsuz kapanmaz) · ⓒ kurucu `--rol-kapisi` · ⓓ `_proje_damgasi` KAYIPLI +
-vaka 815 · ⓔ HTML 4 saat = OKAN KAPISI · ⓕ ic rapor ad kalibi genisliyor · ⓖ+7 kalem kutuda.
+## 🔁 28 AGU CANLI DURUM (27 Agu devir blogu `847d7509`'da)
+🔴 **ONARIM ZINCIRI KIRIK** (cip `task_0fe4a08f` kosuyor): **K332** `~/.claude/cron/` duzlemi HICBIR mesru
+oturumdan kosulamiyor (rol muafiyeti R2'yi tuketmiyor, kapi 5. kez) → **K331** bekci "spec var"i "cip dogdu"
+sayiyor, 28 Agu cipi DOGMADI (elle dusuruldu) → **K333** sabah kolu PATH'siz, gunun CI listesi BOS uretiliyor.
+Ucunun tam metni+kabulu `acik-kalemler.md`.
+🔴 **KAPI CELISKISI (SINIF):** defter-kotasi careyi `defter-rotasyon.py --tavan-kaynaktan --isaretciye-indir`
+yaziyor (K258 "mimarda SERBEST"), `mimar-icra-kapisi` ayni cagriyi ANA oturumda REDDEDIYOR. Kabul: TEK liste + mutant.
+🟠 **NOBET:** `.ci-token` 108 B; gun `rc=1` 20/`rc=0` 1, ACILAN_TUR **0** = jeton kullanilmadi (K324 onarildi;
+K325-K327+K329 + civi BLOKE KUTUDA).
+🔴 **DEVREDEN (tam liste KUTUDA):** ⓐ YEDEK **5 kolda kirik** (4 TSV 11 Agu'dan yedeksiz) · ⓑ **K220** ·
+ⓒ kurucu `--rol-kapisi` · ⓓ `_proje_damgasi` KAYIPLI · ⓔ HTML 4 saat = OKAN KAPISI · ⓕ ic rapor ad kalibi · ⓖ+7.
 **Okan'da bekleyen karar:** `pruvo-jenerator` GitHub App repository access (TeKiN).
-🔴 **UYDURMA:** m3 turu olmayan `02a0e2c0` SHA'si + olmayan gorev uydurdu, gercek raporu EZDI (13 SHA dogrulandi,
-baskasi YOK; tam metin KUTUDA) → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
+🔴 **UYDURMA (27 Agu):** m3 turu olmayan SHA+gorev uydurdu → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
 ✅ **K3 MERGE `e59c0bcc`** (28 Agu): 4 dosya 1183+/124-, CI `k3-cikti-kok-bataryasi`=**success**
 (`33121714135`), D1 30928 ✅, yeni kirmizi YOK, dal+worktree SILINDI. K269 DUSTU.
 🔴 **K330 (28 Agu, SINIF):** `k3-cikti-kok-mutasyon.py` AYNI agacta ardisik iki kosumda ZIT
