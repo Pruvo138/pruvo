@@ -504,6 +504,20 @@ _TR_SADE = str.maketrans({
 CIP_ADI_RE = re.compile(r"`([^`\n]+)`")
 _AD_YASAK = (" ", "\t", "/", ".", ",", "*", "(", ")", ":", "`")
 
+# 🔴 GEVSEK AD — YALNIZ ACIK BLOGU ADLANDIRMAK ICIN (28 Agu, ucuncu canli vaka).
+# Olculen: uc gercek vakadan BIRI adini backtick'siz yazmisti
+# (`## 2026-08-28 — KraL-K333-SabahPATH-28Agu · **BASLIYORUM**`, arsiv :53553). Dar
+# cikarim onu `ACIK_ADSIZ` sayardi — blok yine KORUNURDU (fail-closed dogru calisir)
+# ama "atladigini ADIYLA bas" sarti yalnizca baslik ozetiyle karsilanirdi ve blok
+# kapanisi gelse bile ACILAMAZDI.
+# 🔴 ASIMETRI KASITLIDIR VE TEK YONLUDUR: gevsek cikarim YALNIZ `BASLIYORUM` blogunu
+# adlandirirken kullanilir; KAPANAN cip adlari DAIMA DAR (backtick'li) cikarimla
+# toplanir. Boylece gevsetmenin uretebilecegi tek hata "yanlis ada bakip blogu
+# KORUMAK"tir — belirsizlik daima KORUMA yonune duser, ASLA serbest birakma yonune.
+# Sekil sarti: en az IKI tire + en az bir BUYUK harf + en az bir RAKAM. `2026-08-28`
+# (buyuk harf yok) ve `cip-raporu` (rakam yok) bu suzgecten GECMEZ.
+GEVSEK_AD_RE = re.compile(r"(?<![`\w-])([A-Za-z][\w]*-[\w]+-[\w-]+)(?![\w-])")
+
 
 def sadelestir(metin):
     """Turkce harfleri ASCII'ye katlar + BUYUK HARFE cevirir (jeton karsilastirmasi icin)."""
@@ -511,12 +525,32 @@ def sadelestir(metin):
 
 
 def cip_adi(baslik):
-    """Baslik satirindaki ILK CIP ADI jetonu, yoksa None."""
+    """Baslik satirindaki ILK backtick'li CIP ADI jetonu, yoksa None (DAR cikarim).
+
+    KARAR EKSENI BUDUR: hem `kapanan_cipler()` hem acik blogun eslestirmesi bu adi
+    okur. Backtick sarti bilerek DARDIR — ayni baslikta gecen dosya yollari
+    (`tools/kutu-arsivle.py`), commit sha'lari (`e59c0bcc`) ad SANILMAZ.
+    """
     for aday in CIP_ADI_RE.findall(baslik):
         ad = aday.strip()
         if len(ad) < 5 or "-" not in ad:
             continue
         if any(k in ad for k in _AD_YASAK):
+            continue
+        return ad
+    return None
+
+
+def gevsek_cip_adi(baslik):
+    """Backtick'siz yazilmis CIP ADI adayi, yoksa None. Bkz. GEVSEK_AD_RE asimetrisi.
+
+    🔴 Bu ad KAPANAN kumesine ASLA girmez; yalnizca ACIK blogu adlandirir.
+    """
+    for aday in GEVSEK_AD_RE.findall(baslik):
+        ad = aday.strip()
+        if ad.count("-") < 2 or len(ad) < 8:
+            continue
+        if not any(k.isupper() for k in ad) or not any(k.isdigit() for k in ad):
             continue
         return ad
     return None
@@ -571,9 +605,11 @@ def acik_cip_bloklari(satirlar, baslar, kapanan=None):
     ICRADAN AYRISIP masum bir tasimayi kirmiziya yakardi. Karar ANINDAKI kutu, iki
     kol icin de TEK TABANDIR.
 
-    KORUMALI iki sinif:
+    KORUMALI UC sinif:
       "ACIK_BASLIYORUM" — baslikta `BASLIYORUM` var, cipin kapanisi kutuda YOK.
-      "ACIK_ADSIZ"      — baslikta `BASLIYORUM` var ama CIP ADI cikarilamadi.
+      "ACIK_GEVSEK_AD"  — ad backtick'siz yazilmis, GEVSEK cikarimla okundu (gercek
+                          vaka, arsiv :53553); eslestirme yine yapilir.
+      "ACIK_ADSIZ"      — baslikta `BASLIYORUM` var ama CIP ADI hic cikarilamadi.
     SAYILAN ama KORUMASIZ iki hal (GIZLENMEZ, donus degeriyle basilir):
       `kapanmis`      — `BASLIYORUM` blogu, kapanisi VAR -> rotasyona ACIK.
       `govde_anmasi`  — `BASLIYORUM` yalniz GOVDEDE geciyor -> veto URETMEZ.
@@ -595,7 +631,17 @@ def acik_cip_bloklari(satirlar, baslar, kapanan=None):
             continue
         ad = cip_adi(baslik)
         if ad is None:
-            acik.append((i, None, baslik.strip()[:70], "ACIK_ADSIZ"))
+            # GEVSEK cikarim: backtick'siz yazilmis adi YAKALA (gercek vaka, arsiv
+            # :53553). Ad bulunursa eslestirme YINE yapilir — ama `kapanan` kumesi
+            # DAR cikarimla kuruldugu icin gevsek ad ancak DUZGUN yazilmis bir
+            # kapanisla eslesebilir; gevsetme serbest birakma yonune AKMAZ.
+            gevsek = gevsek_cip_adi(baslik)
+            if gevsek is None:
+                acik.append((i, None, baslik.strip()[:70], "ACIK_ADSIZ"))
+            elif gevsek in kapanan:
+                kapanmis += 1
+            else:
+                acik.append((i, gevsek, baslik.strip()[:70], "ACIK_GEVSEK_AD"))
         elif ad in kapanan:
             kapanmis += 1
         else:

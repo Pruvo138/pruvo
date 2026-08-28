@@ -64,6 +64,9 @@ VAKALAR (hepsi bloklayici):
       D17 KIRMIZI yakar, hicbir sey yazilmaz; kirmizinin SEBEBI ADIYLA aranir
   35. 🔴 K329 KONUM OLCUTU — `BASLIYORUM` yalniz GOVDEDE geciyorsa veto URETMEZ,
       blok tasinir ve `basliyorum_govde_anmasi=1` ADIYLA basilir (yanlis pozitif)
+  36. 🔴 K329 REGRESYON — UC GERCEK vakanin BASLIK SARMALI (arsiv :52842 ASCII+backtick ·
+      :53553 ad BACKTICK'SIZ · :53601 emoji+Turkce): ucu de vetolanir, ADIYLA basilir,
+      SINIFI ayri ayri gorunur; rotasyon yine de eski dolgu bloklarini tasir
 
 🔴 17-19'UN FIKSTURU AYRI (`kutu_uret_ayracli`): 1-16 arasi fiksturler bloklari AYRAC
 (`---`) ile ayirmaz, CANLI kutu ayirir. Oksuz govde ekseni ayraca dayandigi icin bu uc
@@ -1330,6 +1333,59 @@ def v35_basliyorum_govde_anmasi(arac, kok):
           "lossless_dogrulama=GECTI" in cikti, cikti[-600:])
 
 
+def v36_gercek_vaka_regresyonu(arac, kok):
+    """[36] 🔴 K329 REGRESYON — UC GERCEK VAKANIN BASLIK SEKLI (sentetik degil).
+
+    Mimarin olcumu (28 Agu): kalem bir gunde UC KEZ atesledi ve ucu de ayni sekilde
+    arsive dustu:
+      ① `mimar-posta-kutusu-arsiv.md:52842` — ASCII `BASLIYORUM`, backtick'li ad
+      ② `...:53553`                          — ad BACKTICK'SIZ, jeton **kalin**
+      ③ `...:53601`                          — emoji + Turkce `BAŞLIYORUM`, backtick'li
+    Ucu de AYNI kolu olcer ama UC AYRI YAZIM SARMALINDAN gecer; biri kacarsa kol o
+    sarmalda KORDUR. ②'nin sekli bu vakayi yazarken KOL DEGISTIRDI — dar cikarim onu
+    `ACIK_ADSIZ` sayiyordu (korunuyordu ama ADI basilamiyordu), gevsek cikarim eklendi.
+    🔴 Fikstur yalnizca BASLIK SEKLINI tasir; gercek blok govdeleri (ic rapor metni)
+    KOPYALANMAZ.
+    """
+    print("\n[36] K329 REGRESYON — uc GERCEK vakanin baslik sarmali (52842/53553/53601)")
+    vakalar = [
+        ("## 2026-08-27 — BASLIYORUM · cip `KraL-NobetTuru-27Agu` — nobet turu teshisi",
+         "KraL-NobetTuru-27Agu", "ACIK_BASLIYORUM", "arsiv:52842"),
+        ("## 2026-08-28 — KraL-K333-SabahPATH-28Agu · **BAŞLIYORUM**",
+         "KraL-K333-SabahPATH-28Agu", "ACIK_GEVSEK_AD", "arsiv:53553"),
+        ("## 2026-08-28 — 🟡 BAŞLIYORUM · çip `KraL-K330-ArtikKorlugu-28Agu` (kalem K330)",
+         "KraL-K330-ArtikKorlugu-28Agu", "ACIK_BASLIYORUM", "arsiv:53601"),
+    ]
+    parcalar = [FM]
+    n = 0
+    while n < 3:                                   # koru tabani (BASLIYORUM TASIMAZ)
+        parcalar.append(cip_blogu(n, "## 2026-08-28 — MimarA → MimarB: koru dolgusu %d"
+                                  % n) + "---\n\n")
+        n += 1
+    for k, (baslik, _ad, _sinif, _kaynak) in enumerate(vakalar):
+        parcalar.append(cip_blogu(10 + k, baslik) + "---\n\n")
+    j = 0
+    while j < 2:
+        parcalar.append(blok(200 + j) + "---\n\n")
+        j += 1
+    metin = "".join(parcalar)
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=K329_TAVAN, koru=3)
+    iddia("36a rc=0", rc == 0, "rc=%d\n%s" % (rc, cikti[-900:]))
+    iddia("36b UCU DE acik sayildi (ACIK_BASLIYORUM=3)",
+          "ACIK_BASLIYORUM=3 " in cikti, cikti[-1200:])
+    for baslik, ad, sinif, kaynak in vakalar:
+        iddia("36c %s — cip ADIYLA basildi (%s)" % (kaynak, ad),
+              ad in cikti, cikti[-1400:])
+        iddia("36d %s — sinif=%s ADIYLA basildi" % (kaynak, sinif),
+              ("sinif=%s" % sinif) in cikti, cikti[-1400:])
+        iddia("36e %s — blok KUTUDA kaldi, arsive SIZMADI" % kaynak,
+              baslik in oku(a.kutu) and baslik not in oku(a.arsiv))
+    # 🔴 KONTROL: veto ucunu de tuttu ama rotasyon YINE is yapti (dolgu bloklari gitti).
+    iddia("36f rotasyon KILITLENMEDI — eski dolgu bloklari tasindi",
+          blok(201).splitlines()[0] in oku(a.arsiv), cikti[-900:])
+
+
 VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v04_frontmatter_ve_ust_bloklar, v05_blok_bolunmez,
            v06_arsiv_yoksa_frontmatter, v07_kilit, v08_bozuk_frontmatter,
@@ -1344,7 +1400,8 @@ VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v27_ayristirilamayan_blok_fail_closed, v28_kayipsizlik_iki_eksen,
            v29_blok_dus_arizasi, v30_tasinabilir_sifir_koruma_tuttu,
            v31_acik_basliyorum_veto, v32_kapanisli_blok_hala_tasinir,
-           v33_yanlis_eslesme, v34_d17_denetimi, v35_basliyorum_govde_anmasi)
+           v33_yanlis_eslesme, v34_d17_denetimi, v35_basliyorum_govde_anmasi,
+           v36_gercek_vaka_regresyonu)
 
 
 def suite(arac, sessiz=False):
@@ -1465,7 +1522,7 @@ MUTANTLAR = (
     ("l) K329 VETO ICRA KOLU OLDURULDU (acik cip sabit kumeye GIRMIYOR)",
      "    sabit.update(acik_indeksler)\n",
      "    pass  # MUTANT: K329 acik cip bacagi kaldirildi\n",
-     True, {"31", "32", "33"}),
+     True, {"31", "32", "33", "36"}),
     ("m) D17 ACIK CIP DENETIMI OLDURULDU (sizan acik blok sessizce yazilir)",
      "    for _bi, ad, ozet, sinif in ek_acik:\n",
      "    for _bi, ad, ozet, sinif in []:  # MUTANT: D17 susturuldu\n",
@@ -1477,7 +1534,15 @@ MUTANTLAR = (
     ("o) K329 ESLESTIRME KOLU GEVSETILDI (adi ANAN her blok KAPANIS sayiliyor)",
      "        if kapanis:\n",
      "        if True:  # MUTANT: her blok KAPANIS sayiliyor\n",
-     True, {"31", "32", "33"}),
+     True, {"31", "32", "33", "36"}),
+    # 🔴 GEVSEK AD kolu (28 Agu, ucuncu canli vaka) — backtick'siz yazilmis cip adini
+    # okuyan asimetrik bacak. Olmezse vaka 36'nin ② sarmali `ACIK_ADSIZ`a duser: blok
+    # HALA korunur (fail-closed dogru) ama SINIFI degisir — yani kol "kismen" olur ve
+    # yalnizca sinif jetonu bunu gorur. Hedef TEK vaka: 36.
+    ("p) GEVSEK AD KOLU OLDURULDU (backtick'siz cip adi okunmuyor)",
+     "            gevsek = gevsek_cip_adi(baslik)\n",
+     "            gevsek = None  # MUTANT: gevsek ad kolu kaldirildi\n",
+     True, {"36"}),
     ("c) ILGISIZ metin degisikligi (tani satirinin bosluk hizalamasi)",
      'print("KUTU  : %s" % kutu_yolu)',
      'print("KUTU : %s" % kutu_yolu)',
