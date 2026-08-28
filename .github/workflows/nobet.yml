@@ -499,6 +499,23 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/recete-kapisi.py --kendini-test
 
+      # SERBEST KUME TEK KAYNAK (27 Agu 2026, K320) — mimar-icra-kapisi'nin RED METNINDEKI
+      # "serbest / reddedilen" kumesi, KARARI VEREN yapidan TURETILIYOR mu? Olculmus ariza:
+      # metin ELLE yazilmis ikinci kopyaydi ve DRIFT=9 ile ayrismisti (python ekseninde 2,
+      # olcum ekseninde 7 kalem). Bedeli yazim hatasi degildi: mimar kendi kapisinin bastigi
+      # CAREYI okudu, metne inandi ve "care oteki kapida olu" hukmunu verdi; defter uc kosum
+      # tavanin USTUNDE kaldi — oysa cagri O TARIHTE ZATEN geciyordu.
+      # 28 AGU (K320Merge): ILK SURUM YARIM OLCUYORDU — yalnizca `makine ⊆ metin`. Metne ELLE
+      # fazladan bir ad eklemek nobetciyi GECIYORDU (dis mutasyon bataryasinda olculdu).
+      # TERS YON kollari (A3/A4) + M5 mutanti eklendi: metnin ilgili parcasi turetilmis
+      # dizgeye BIREBIR esitlenir, iki yonde de sapma KIRMIZI yakar.
+      # Kollar: turetilmislik + TERS YON + CAGRI YERI + mutantlar + NEGATIF kontrol.
+      # Vaka sayisi aracin kendisi basar (buraya YAZILMAZ — bayatlar).
+      # Mutantlar git-DISI tempdir'de kosar. SERIT B. ~<2 s.
+      - name: Serbest kume tek kaynak nobetcisi (mutasyonlu + negatif kontrol)
+        if: ${{ !cancelled() }}
+        run: python3 tools/serbest-kume-tekkaynak-test.py
+
       # GIT BAGLAM SCRUB'I — TEK KAYNAK DRIFT NOBETI (6 Agu 2026).
       # tools/git_ortami.py bu depoda `GIT_BAGLAM_DEGISKENLERI` listesinin TEK
       # tanimidir; uc kapi (diriltme · ic-rapor-adi · spec-ifsa) kok turetimini
