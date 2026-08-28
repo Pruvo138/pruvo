@@ -2,24 +2,29 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 28 AGU CANLI DURUM (27 Agu devir blogu `847d7509`'da)
-🔴 **ONARIM ZINCIRI KIRIK** (cip `task_0fe4a08f` kosuyor): **K332** `~/.claude/cron/` duzlemi HICBIR mesru
-oturumdan kosulamiyor (rol muafiyeti R2'yi tuketmiyor, kapi 5. kez) → **K331** bekci "spec var"i "cip dogdu"
-sayiyor, 28 Agu cipi DOGMADI (elle dusuruldu) → **K333 KAPANDI**: `gh` TAM YOLDAN cozuluyor, olculemeyen CI
-BOS LISTE degil ACIK KALEM + rc!=0; `cron/k333-ci-hukum-bataryasi.py` 23/23, onceki govdede 12 DUSTU
-(taban: KIRMIZI=0 iken gercek 2). K331/K332 ACIK; tam metin `acik-kalemler.md`.
-🔴 **KAPI CELISKISI (SINIF):** defter-kotasi careyi `defter-rotasyon.py --tavan-kaynaktan --isaretciye-indir`
-yaziyor (K258 "mimarda SERBEST"), `mimar-icra-kapisi` ayni cagriyi ANA oturumda REDDEDIYOR. Kabul: TEK liste + mutant.
-🟠 **NOBET:** `.ci-token` 108 B; ACILAN_TUR **0** (K324 onarildi; K325-K327 + civi BLOKE KUTUDA).
-🔴 **DEVREDEN (tam liste KUTUDA):** ⓐ YEDEK 5 kolda kirik · ⓑ K220 · ⓒ `--rol-kapisi` · ⓓ `_proje_damgasi` ·
-ⓔ HTML 4 saat=OKAN · ⓕ ic rapor ad kalibi · ⓖ+7. **OKAN'DA:** `pruvo-jenerator` GitHub App erisimi (TeKiN).
-🔵 **KOSUYOR (6 cip — OLDURME):** `K330-ArtikKorlugu` (taban CIVILENDI, onarim 4/4 mutant) · `K331+K332
-OnarimZinciri` (`task_0fe4a08f`, K332 MAIN'DE DEGIL) · `KuyrukEvreni` · `TelefonTekHat` (Okan emri) ·
-`K340` kacak-yol kapatma (**K332'den SONRA merge**) · `K333` (kapandi). Motor `minimax-m3` (7 tur 7/7 rc=0).
-✅ **CANLIYA GIDEN (28 Agu):** `e59c0bcc` K3 · `d74d71e6` M3 · `58d79364` K304 bootstrap · `fdfee29b` kapi dagitimi ·
-`677647e5` K329 · `70813ea7`+`5303929c` yedek beyani · `6859addf` Marin d3 (katalog **31036**).
-🔴 **YENI KALEM K330-K340** (11 kalem, K333 kapandi; tam metin+kabul `acik-kalemler.md`).
-**BEKLIYOR:** MaCiT iki dilim-3 (bisiklet 40 · Marin 9 pid) K332'ye bloke.
+## 🔁 28 AGU 18:00 CANLI DURUM — OKAN 17:00 EMRININ BES KALEMI DE KAPANDI (onceden -> sonra)
+✅ **① DEFTER** 12.287 B -> **8.113 B** (tavana 44 B kalmisti, simdi 4.175 B pay) · arsiv 22.204 -> 22.254 satir · `c58a6adb`
+✅ **④ ORTAK KUTU** 901 -> 385 -> **279 satir** (tavan 300) · kutu arsivi 54.810 -> 54.970 (+160 = tasinan blogun tamami, kayipsiz)
+✅ **③ ONARIM SAYACI** `ustuste_onarimsiz` 153 -> **0**, canli `tur986` damgasiyla · `02e7ed87` (K341)
+✅ **② KAPI CELISKISI (4 GUNDUR ACIKTI)** — `08f7313e`+`8a7cca11`: bekci cagrisi TEK KAYNAK tabloya girdi,
+`defter-kota-kapisi.py` ayni haritadan turer. **Kanit dizge degil DAVRANIS:** `cip_dogum_bekcisi.py
+--teslim-karari` ANA oturumdan kosturuldu, `HUKUM=YESIL SEBEP=KANIT_VAR_CIP_DOGDU` -> gecti.
+✅ **⑤ DISK FIKSTURU** `git worktree list | grep -c "/private/var/folders"` -> **0**; kalici ayak `54336174`
+(gecici agac sahiplik damgasi) + `08e209a7` (nobetci prob tabani kolu), ikisi de main'de; ayrinti KUTUDA.
+🔴 **YENI OLCULEN SINIF — CLAUDE.md'nin kendi kurali isci hattini kilitliyor:** `echo "" | isci.sh … <ETIKET>`
+cagrisi N2B kapisinda HER ZAMAN `KOL=N2B-RED` aliyor; `parti-kapisi.py:702` etiketi komutun SON token'indan
+cikariyor, boru oneki gorunce cikarim bosa dusuyor ve `:705` "bos etiket MUAF DEGILDIR" diyor. Boru
+kaldirilinca ilk denemede `KOL=N2B-MUAF`. `echo "" |` kurali yalniz emekli `codex exec` icindi.
+🔴 **K337 CANLI, IKI KEZ:** isci turlarinin ikisi de `Error: Exceeded USD budget (10)` ile kesildi ve sade
+`rc=1` dondu; karantina bunu dusus sayiyor (3 ardisik = motor 6 saat yanar). Birinci turun isi UZAGA
+push edilmisti — yerel agacta "iz yok" olcumu FETCH'siz yapilinca YANILTTI (duzeltildi).
+🟠 **OKSUZ AGAC (2):** `practical-dirac-a95ed1` -> `44c92f6e` (K258/K168 tek-kaynak modulu `serbest_cagrilar.py`)
+ve `sweet-cartwright-b59181` -> `a24550ce` (`kutu-arsivle.py` jeton isleme) — oturumlari OLU, commit'leri
+main'de DEGIL, tabanlari bayat (iki-nokta diff `urunler.json`'da 1828 satiri yanlislikla "silinmis" gosteriyor).
+Cip `KraL-OksuzAgaclar-28Agu` tasiyor; **katalog geri sarilmayacak** (kabul sarti).
+🔵 **WORKTREE 13 -> 11** (`trusting-sutherland-157a62` birlesmisti + oturumu oludu, kaldirildi). Kalan
+agaclarin hepsinin oturumu CANLI ya da uzerinde birlesmemis is var -> dusurulmedi.
+**BEKLIYOR:** MaCiT dilim'leri (K332 blokeri kalkti).
 
 defter kotasi 28 Agu: 12.287 B -> 8113 B (rotasyon, kayipsiz; arsiv 22204 -> 22254 satir)
 
