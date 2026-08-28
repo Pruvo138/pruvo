@@ -64,6 +64,12 @@ KUME_DISI = ("python3 /Users/okan/dev/pruvo/tools/defter-rotasyon.py "
              "/Users/okan/dev/pruvo/DEVAM.md /Users/okan/dev/pruvo/DEVAM-ARSIV.md "
              "--tavan-sayi 130")
 OLCUM_CAGRISI = "tail -5 /Users/okan/dev/pruvo/DEVAM.md"
+# K343: bekci CARE cagrilari — kapinin bekciyi gecirdigini kanitlar.
+BEKCI_CARE_KARARI = "python3 /Users/okan/.claude/cron/cip_dogum_bekcisi.py --teslim-karari"
+BEKCI_CARE_KAYDET = ("python3 /Users/okan/.claude/cron/cip_dogum_bekcisi.py "
+                     "--teslim-kaydet --anahtar 20260828")
+BEKCI_KUME_DISI = ("python3 /Users/okan/.claude/cron/cip_dogum_bekcisi.py "
+                   "--teslim-karari --sahte-bayrak")
 
 sonuclar = []
 
@@ -152,9 +158,18 @@ def ters_yon(modul):
 
 
 def kisa_adlar(modul):
-    """Kapinin KARAR VEREN yapisindan serbest arac adlari (ikinci liste TUTULMAZ)."""
+    """Kapinin KARAR VEREN yapisindan serbest arac adlari (ikinci liste TUTULMAZ).
+
+    K343-SINIF-KAPISI: bekci de TEK KAYNAK birlesik haritadan okunur
+    (_BILINEN_BAYRAK_HARITASI); eski sabit DEFTER_BAKIMI_BAYRAKLARI'
+    bekciyi icermezdi (bekci repo DISINDA, ayri kova). Ikinci kopya
+    OLUSAMAZ diye bekciyi de ayni tablodan okuyoruz."""
     adlar = {modul.DURUM_YOL, modul.D1_YOL}
-    adlar |= set(modul.DEFTER_BAKIMI_BAYRAKLARI.keys())
+    if hasattr(modul, "_BILINEN_BAYRAK_HARITASI"):
+        adlar |= set(modul._BILINEN_BAYRAK_HARITASI.keys())
+    else:
+        # Eski davranisa duşmesin diye geri-uyumluluk katmani (K320 yapisinda)
+        adlar |= set(modul.DEFTER_BAKIMI_BAYRAKLARI.keys())
     return {y.rsplit("/", 1)[-1] for y in adlar}
 
 
@@ -193,6 +208,20 @@ kaydet("B3 RED sebebi okuyana TAM kumeyi gosterir (tail reddinde)",
        hukum_olcum == "RED" and turetilmis_gorunur,
        "hukum=%s tam_kume=%s" % (hukum_olcum, turetilmis_gorunur))
 
+# K343: bekci CARE kapsami. Tek-anahtar tablo BEKCI_BAYRAKLARI'ni icermezse
+# bekci cagrisi RED olur (drift=9 tabani yeniden oluşur). Burada bekcinin
+# MEŞRU iki kolu (--teslim-karari / --teslim-kaydet) GECTI, kume disi bayrak RED
+# vermeli. Bu uc CARE, mutant M6/M7/M8'in neyi vurdugunu olcer.
+hukum_bk, _ = kapi_kos(KAPI, BEKCI_CARE_KARARI)
+kaydet("B4 BEKCI CARE: --teslim-karari gecer",
+       hukum_bk == "GECTI", "hukum=" + hukum_bk)
+hukum_bkd, _ = kapi_kos(KAPI, BEKCI_CARE_KAYDET)
+kaydet("B5 BEKCI CARE: --teslim-kaydet + --anahtar gecer",
+       hukum_bkd == "GECTI", "hukum=" + hukum_bkd)
+hukum_bkd_evi, _ = kapi_kos(KAPI, BEKCI_KUME_DISI)
+kaydet("B6 BEKCI: kume disi bayrak (--sahte-bayrak) RED kalir",
+       hukum_bkd_evi == "RED", "hukum=" + hukum_bkd_evi)
+
 # ---------------------------------------------------------------- MUTASYONLAR
 with open(KAPI) as f:
     TABAN_KAYNAK = f.read()
@@ -207,6 +236,37 @@ MUTANTLAR = (
      "    KUTU_ARSIVLE_YOL: frozenset((\"--kuru\",)),\n",
      "",
      "GECTI", "kutu-arsivle.py"),
+    # K343 BEKCI MUTANTLARI (4 adet — sinif kurali tabani):
+    # M6 LISTE BOZULUR: _BILINEN_BAYRAK_HARITASI'na BEKCI_BAYRAKLARI
+    # eklenmezse bekci CARE kucuk tepe'den RED'e doner + bekci adi
+    # serbest_python_metni'nden de SILINMELI (tek kaynak). Hedef kol: B4/B5
+    # (bekci CARE) + A3 (ters yon).
+    ("M6 LISTE BOZULUR: _BILINEN_BAYRAK_HARITASI bekciyi icermez",
+     "_BILINEN_BAYRAK_HARITASI.update(BEKCI_BAYRAKLARI)\n",
+     "",
+     "RED", "cip_dogum_bekcisi.py"),
+    # M7 OGE DUSURULUR: BEKCI_BAYRAKLARI'nin --teslim-karari ogesi
+    # silinirse --teslim-karari CARE RED olur (kume-disi). Hedef kol: B4.
+    ("M7 OGE DUSURULUR: bekci --teslim-karari bayrak listesinden cikarildi",
+     "BEKCI_BAYRAKLARI = {\n    BEKCI_YOL: frozenset((\"--teslim-karari\", \"--teslim-kaydet\",\n                          \"--anahtar\", \"--task-id\", \"--sebep\")),\n}",
+     "BEKCI_BAYRAKLARI = {\n    BEKCI_YOL: frozenset((\"--teslim-kaydet\",\n                          \"--anahtar\", \"--task-id\", \"--sebep\")),\n}",
+     "RED", None),
+    # M8 BAYRAK BICIMI DEGISIR: --teslim-karari -> --teslim_karari
+    # olursa bekci cagrisi TAM ESITLIKLI kontrol yuzunden RED olur.
+    # Hedef kol: B4/B5.
+    ("M8 BAYRAK BICIMI BEKCI: --teslim-karari -> --teslim_karari (alt-cizgi)",
+     "frozenset((\"--teslim-karari\", \"--teslim-kaydet\",",
+     "frozenset((\"--teslim_karari\", \"--teslim-kaydet\",",
+     "RED", None),
+    # M9 TUKETICI OKUMAYI BIRAKIR: serbest_python_metni bekciyi
+    # okumayi birakir (DEFTER_BAKIMI_BAYRAKLARI'na doner) → bekci adi
+    # metinden SILINIR + bekci CARE hala GECTI olur (karar veren yapida
+    # hala var, metinde yok) → DRIFT. Hedef kol: A3 (ters yon) —
+    # bekci hala karar verir ama metin onu ANMAZ, makine ⊆ metin BOZULUR.
+    ("M9 TUKETICI OKUMAZ: serbest_python_metni bekciyi anmaz (eski haline doner)",
+     "for yol in sorted(_BILINEN_BAYRAK_HARITASI):\n",
+     "for yol in sorted(DEFTER_BAKIMI_BAYRAKLARI):\n",
+     "GECTI", "cip_dogum_bekcisi.py"),
 )
 
 with tempfile.TemporaryDirectory(prefix="pruvo-k320-") as gecici:
@@ -226,12 +286,21 @@ with tempfile.TemporaryDirectory(prefix="pruvo-k320-") as gecici:
         hukum_m, _ = kapi_kos(yol, CARE)
         mutant_modul = modul_yukle(yol, "kapi_mutant_" + ad[:2])
         metin_m = mutant_modul.GEREKCE_SONU
-        ad_dustu = dusen_ad not in metin_m
+        # M6/M7/M8 bekci CARE'ini de bozar; M1/M2/M9 yalnizca DEFTER/kumasini
+        # etkiler, bekci yoluna DOKUNMAZ. Yalniz bekci hedefleyen mutantlarda
+        # bekci CARE'i sinayiz — boylece "M1 bekciyi etkilemedi" KIRMIZI yanmaz.
+        bekci_hedef = "BEKCI" in ad.upper() or "LISTE" in ad.upper()
+        bekci_hukum = "—"
+        bekci_red = True
+        if bekci_hedef:
+            bekci_hukum, _ = kapi_kos(yol, BEKCI_CARE_KARARI)
+            bekci_red = (bekci_hukum == "RED")
+        ad_dustu = (dusen_ad not in metin_m) if dusen_ad is not None else True
 
-        gecti = (hukum_m == care_beklenen) and ad_dustu
+        gecti = (hukum_m == care_beklenen) and ad_dustu and bekci_red
         kaydet(ad, gecti,
-               "CARE=%s (beklenen %s) · '%s' metinden dustu=%s"
-               % (hukum_m, care_beklenen, dusen_ad, ad_dustu))
+               "CARE=%s (beklenen %s) · bekci_CARE=%s · '%s' metinden dustu=%s"
+               % (hukum_m, care_beklenen, bekci_hukum, dusen_ad, ad_dustu))
 
     # M3 — olcum ekseni gercekten turetilmis mi?
     UYDURMA = "zzolcum"

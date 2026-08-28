@@ -138,6 +138,23 @@ TAVAN_SATIR = _mod.TAVAN_SATIR
 TAVAN_BAYT = _mod.TAVAN_BAYT
 tavan_asi_mi = _mod.tavan_asi_mi
 
+# === K343-SINIF-KAPISI: CARE cagrilari MIMAR ICRA KAPISI'ndan turetilir ===
+# ONCEKI ARIZA (DRIFT=9 tabani): defter/kutu CARE satirlari ELLE yaziliydi
+# ("/Users/okan/dev/pruvo/tools/defter-rotasyon.py ...", "...kutu-arsivle.py ...").
+# Iki kopya drift olusturuyordu: kapi DEFTER_BAKIMI_BAYRAKLARI'ndan gecirdigi
+# aracin adini elden degistirse, CARE satiri eski adi basip kapinin GERCEK
+# izninden farkli bir care uretiyordu (karar + care AYNI tablodan beslenmeli).
+# TEK KAYNAK (mimar-icra-kapisi.py::_BILINEN_BAYRAK_HARITASI) okunur ve
+# CARE satiri TURETILIR — ikinci kopya OLUSAMAZ.
+_mik = _ilu.spec_from_file_location("_mimar_kapi", os.path.join(TOOLS, "mimar-icra-kapisi.py"))
+_mimar_kapi = _ilu.module_from_spec(_mik)
+_mik.loader.exec_module(_mimar_kapi)
+DEFTER_ROTASYON_BEKLENEN = _mimar_kapi.DEFTER_ROTASYON_YOL
+KUTU_ARSIVLE_BEKLENEN = _mimar_kapi.KUTU_ARSIVLE_YOL
+DEFTER_ROTASYON_BAYRAKLAR = tuple(sorted(_mimar_kapi.DEFTER_BAKIMI_BAYRAKLARI[DEFTER_ROTASYON_BEKLENEN]))
+KUTU_ARSIVLE_BAYRAKLAR = tuple(sorted(_mimar_kapi.DEFTER_BAKIMI_BAYRAKLARI[KUTU_ARSIVLE_BEKLENEN]))
+DEFTER_ROTASYON_KONUMLAR = _mimar_kapi.DEFTER_BAKIMI_KONUMLARI[DEFTER_ROTASYON_BEKLENEN]
+
 SAYAC_YOLU = os.environ.get("PRUVO_DEFTER_KOTA_SAYAC",
                             os.path.expanduser("~/.claude/cron/defter-kota-bypass.tsv"))
 
@@ -321,9 +338,9 @@ def _hukum_red(satir, bayt, eksen, kok):
     # sonuc her oturumda ELLE cumle budamaktı. Tavanli + isaretciye indirmeli
     # bicim yaziliyor ve tavan sayisi komuta ELLE YAZILMIYOR (--tavan-kaynaktan
     # ayni TEK KAYNAKTAN okur; yordama yazilan sayi ikinci kopya olurdu).
-    print("!! CARE: python3 /Users/okan/dev/pruvo/tools/defter-rotasyon.py "
-          "/Users/okan/dev/pruvo/DEVAM.md /Users/okan/dev/pruvo/DEVAM-ARSIV.md "
-          "--tavan-kaynaktan --isaretciye-indir", file=sys.stderr)
+    print("!! CARE: python3 " + DEFTER_ROTASYON_BEKLENEN + " "
+          + " ".join(DEFTER_ROTASYON_KONUMLAR) + " "
+          + " ".join(DEFTER_ROTASYON_BAYRAKLAR), file=sys.stderr)
     print("!!   (K258, 20 Agu: bu cagri artik MIMARIN elinde de SERBEST — kapinin "
           "adlandirilmis DEFTER BAKIMI kovasi iki bayragi TAM ESITLIKLE gecirir. "
           "Kume disi bayrak (--tavan-sayi / --tarih) RED kalir.)", file=sys.stderr)
@@ -544,7 +561,8 @@ def kutu_kontrol(kok, kol_no_op=False):
               "(tavan satir=%d, TAVAN SAHIBI=%s::VARSAYILAN_TAVAN)."
               % (KUTU_ASILDI, kutu_yolu, satir, bayt, tavan, sahip_yolu),
               file=sys.stderr)
-        print("!! CARE: python3 /Users/okan/dev/pruvo/tools/kutu-arsivle.py",
+        print("!! CARE: python3 " + KUTU_ARSIVLE_BEKLENEN
+              + (" " + " ".join(KUTU_ARSIVLE_BAYRAKLAR) if KUTU_ARSIVLE_BAYRAKLAR else ""),
               file=sys.stderr)
         print("!!   (LOSSLESS: hicbir sey SILINMEZ — en eski bloklar %s dosyasina "
               "TASINIR. Kapi kutuyu YALNIZ OKUR; tasimayi insan ya da rotasyon "
