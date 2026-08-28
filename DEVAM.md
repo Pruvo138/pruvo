@@ -10,17 +10,16 @@ BOS LISTE degil ACIK KALEM + rc!=0; `cron/k333-ci-hukum-bataryasi.py` 23/23, onc
 (taban: KIRMIZI=0 iken gercek 2). K331/K332 ACIK; tam metin `acik-kalemler.md`.
 🔴 **KAPI CELISKISI (SINIF):** defter-kotasi careyi `defter-rotasyon.py --tavan-kaynaktan --isaretciye-indir`
 yaziyor (K258 "mimarda SERBEST"), `mimar-icra-kapisi` ayni cagriyi ANA oturumda REDDEDIYOR. Kabul: TEK liste + mutant.
-🟠 **NOBET:** `.ci-token` 108 B; gun `rc=1` 20/`rc=0` 1, ACILAN_TUR **0** = jeton kullanilmadi (K324 onarildi;
-K325-K327+K329 + civi BLOKE KUTUDA).
-🔴 **DEVREDEN (tam liste KUTUDA):** ⓐ YEDEK **5 kolda kirik** (4 TSV 11 Agu'dan yedeksiz) · ⓑ **K220** ·
-ⓒ kurucu `--rol-kapisi` · ⓓ `_proje_damgasi` KAYIPLI · ⓔ HTML 4 saat = OKAN KAPISI · ⓕ ic rapor ad kalibi · ⓖ+7.
-**Okan'da bekleyen karar:** `pruvo-jenerator` GitHub App repository access (TeKiN).
-🔴 **UYDURMA (27 Agu):** m3 turu olmayan SHA+gorev uydurdu → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
-🔴 **K330 (28 Agu, SINIF):** `k3-cikti-kok-mutasyon.py` AYNI agacta ardisik iki kosumda ZIT
-hukum: #1 `M_KOK=KACTI rc!=0`, #2 `M_KOK=OLDURULDU KONTROL=YESIL EKSEN=B rc=0`. Fark: #1'in
-temizligi 12 gitignored ARTIK yolu sildi — artik varken uc eksen de kor, `porcelain` BOS = agac "temiz".
-Fail-CLOSED. Kok: temizlik landing dizinlerini KAPSAMIYOR. kabul: olcum oncesi cikti
-yollari sifirlanir ya da `OLCULEMEDI: taban artikli` + mutant. → [[artik-yuzey-mutant-dedektorunu-korlestirir]]
+🟠 **NOBET:** `.ci-token` 108 B; ACILAN_TUR **0** (K324 onarildi; K325-K327 + civi BLOKE KUTUDA).
+🔴 **DEVREDEN (tam liste KUTUDA):** ⓐ YEDEK 5 kolda kirik · ⓑ K220 · ⓒ `--rol-kapisi` · ⓓ `_proje_damgasi` ·
+ⓔ HTML 4 saat=OKAN · ⓕ ic rapor ad kalibi · ⓖ+7. **OKAN'DA:** `pruvo-jenerator` GitHub App erisimi (TeKiN).
+🔵 **KOSUYOR (6 cip — OLDURME):** `K330-ArtikKorlugu` (taban CIVILENDI, onarim 4/4 mutant) · `K331+K332
+OnarimZinciri` (`task_0fe4a08f`, K332 MAIN'DE DEGIL) · `KuyrukEvreni` · `TelefonTekHat` (Okan emri) ·
+`K340` kacak-yol kapatma (**K332'den SONRA merge**) · `K333` (kapandi). Motor `minimax-m3` (7 tur 7/7 rc=0).
+✅ **CANLIYA GIDEN (28 Agu):** `e59c0bcc` K3 · `d74d71e6` M3 · `58d79364` K304 bootstrap · `fdfee29b` kapi dagitimi ·
+`677647e5` K329 · `70813ea7`+`5303929c` yedek beyani · `6859addf` Marin d3 (katalog **31036**).
+🔴 **YENI KALEM K330-K340** (11 kalem, K333 kapandi; tam metin+kabul `acik-kalemler.md`).
+**BEKLIYOR:** MaCiT iki dilim-3 (bisiklet 40 · Marin 9 pid) K332'ye bloke.
 
 ## 🔁 25 AGU — IKINCI TUR — aktif kalemler (header ARSIVDE)
 - ✅ **25-26 Agu KAPANAN 4 KALEM (K250·K302·K303·K305) — TAM METIN ARSIVDE**, "KAPANAN 4 KALEM" basligi.
