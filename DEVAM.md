@@ -15,8 +15,8 @@ K325-K327+K329 + civi BLOKE KUTUDA).
 ⓒ kurucu `--rol-kapisi` · ⓓ `_proje_damgasi` KAYIPLI · ⓔ HTML 4 saat = OKAN KAPISI · ⓕ ic rapor ad kalibi · ⓖ+7.
 **Okan'da bekleyen karar:** `pruvo-jenerator` GitHub App repository access (TeKiN).
 🔴 **UYDURMA (27 Agu):** m3 turu olmayan SHA+gorev uydurdu → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
-✅ **K3 MERGE `e59c0bcc`** (28 Agu): 4 dosya 1183+/124-, CI `k3-cikti-kok-bataryasi`=**success**
-(`33121714135`), D1 30928 ✅, yeni kirmizi YOK, dal+worktree SILINDI. K269 DUSTU.
+🟢 **ROTASYON `4cfdbba4` (K329):** `kutu-arsivle.py` kapanissiz `BASLIYORUM` blogunu TASIMIYOR,
+atladigini `ACIK_BASLIYORUM_ADLARI=` ile basiyor (eslesme=CIP ADI, konum=BASLIK, denetim=D17).
 🔴 **K330 (28 Agu, SINIF):** `k3-cikti-kok-mutasyon.py` AYNI agacta ardisik iki kosumda ZIT
 hukum: #1 `M_KOK=KACTI rc!=0`, #2 `M_KOK=OLDURULDU KONTROL=YESIL EKSEN=B rc=0`. Fark: #1'in
 temizligi 12 gitignored ARTIK yolu sildi — artik varken uc eksen de kor, `porcelain` BOS = agac "temiz".
