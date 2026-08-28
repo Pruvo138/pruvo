@@ -376,16 +376,49 @@ DEFTER_BAKIMI_KONUMLARI = {
     KUTU_ARSIVLE_YOL: (),
 }
 
+# === 28 AGU 2026 (K343-SINIF-KAPISI) — BEKCI KOVASI ===========================
+# NEDEN AYRI KOVA: bekci (`~/.claude/cron/cip_dogum_bekcisi.py`) REPO DISINDA
+# yasar; DEFTER_BAKIMI_BAYRAKLARI'na koymak, R2/F kollarini kirma gerektirirdi.
+# Onun yerine AYNI sabit kalibinin yaninda durur ve asagidaki _bilinen_arac_*
+# yardimcilari iki kumeyi TEK ILISKI olarak okur — karar veren ve metin ureten
+# ayni sozlukten beslenir, drift olusamaz.
+#
+# Bekci cagrisi TEK aracin kendisi (cip_dogum_bekcisi.py), iki kollu:
+#   `--teslim-karari`               — kanit/teslim kararini okur, ek arguman almaz
+#   `--teslim-kaydet [--anahtar X]  — teslim kaydini yazar (--anahtar/--task-id/--sebep
+#     [--task-id Y] [--sebep Z]]      opsiyonel; bekcinin argparse'i store_true + default=None)
+# Bu kol kumesi disindaki HER bayrak (--teslim-iptal, --bypass, --kuru ...) RED.
+# Konumsal arg bekci almaz (kanit/saat dizini bekcinin TEK KAYNAGI).
+BEKCI_YOL = os.path.expanduser("~/.claude/cron/cip_dogum_bekcisi.py")
+BEKCI_BAYRAKLARI = {
+    BEKCI_YOL: frozenset(("--teslim-karari", "--teslim-kaydet",
+                          "--anahtar", "--task-id", "--sebep")),
+}
+
+# Tek-anahtar birlesik sozluk: karar metni + test + CARE tek yerden okur.
+_BILINEN_BAYRAK_HARITASI = {}
+_BILINEN_BAYRAK_HARITASI.update(DEFTER_BAKIMI_BAYRAKLARI)
+_BILINEN_BAYRAK_HARITASI.update(BEKCI_BAYRAKLARI)
+
+
+def _bilinen_arac_bayraklari(arac_yolu):
+    """TUM bakim kovalarinin bayrak haritasi (TEK KAYNAK)."""
+    return _BILINEN_BAYRAK_HARITASI.get(arac_yolu)
+
 
 def _bakim_bayraklari_izinli(arac_yolu, kalan_argumanlar):
-    """DEFTER BAKIMI kovasi: bayrak kumesi TAM ESITLIK ile dogrulanir.
+    """TEK KAYNAKLI bayrak kontrolu: TUM bakim kovalarini (defter + bekci) kapsar.
 
     True yalnizca su durumda: her bayrak aracin izinli kumesinde VE hicbiri
     tekrarlanmamis. Deger alan bayrak (`--tavan-sayi 130`) izinli kumede
     OLMADIGI icin zaten RED; `=`li yazim (`--tavan-sayi=130`) da kumeye TAM
     ESIT olmadigindan RED. Bilinmeyen arac -> RED (fail-closed).
-    """
-    izinli = DEFTER_BAKIMI_BAYRAKLARI.get(arac_yolu)
+
+    🔴 IKI ESKI BAGIMSIZ TABLO tek fonksiyona indirildi (K343): ayni kurali iki
+    sozluk icin tutmak tam da K320'nin kapattigi DRIFT=9 tabani — ikinci elle
+    kopya tek bir satirda dogabilirdi (bekci bayrak kumesi eklenince birinin
+    unutulmasi, listeyi yarim birakmasi)."""
+    izinli = _bilinen_arac_bayraklari(arac_yolu)
     if izinli is None:
         return False
     bayraklar = [a for a in kalan_argumanlar if a.startswith("-")]
@@ -395,7 +428,11 @@ def _bakim_bayraklari_izinli(arac_yolu, kalan_argumanlar):
 
 
 def _bakim_konumlari_izinli(arac_yolu, kalan_argumanlar, cwd):
-    """DEFTER BAKIMI kovasi: konumsal argumanlar kanonik yola TAM ESIT mi?"""
+    """Bakim kovasi: konumsal argumanlar kanonik yola TAM ESIT mi?
+
+    Bekci icin konumsal beklenen = () (yok); bos tuple ile eslesen bekci araci
+    otomatik gecer — bekci yalniz bayrak kolu denetlenir. Bilinmeyen arac
+    (BEKCI_BAYRAKLARI + DEFTER_BAKIMI_BAYRAKLARI disinda kalan) RED."""
     beklenen = DEFTER_BAKIMI_KONUMLARI.get(arac_yolu)
     if beklenen is None:
         return False
@@ -440,14 +477,16 @@ def serbest_python_metni():
     """Mimar tarafinda SERBEST python cagrilarinin insan-okur listesi — TURETILMIS.
 
     Kaynak, `_py_izinli`nin okudugu yapinin TA KENDISIDIR: DURUM_YOL, D1_YOL,
-    D1_DURUM_BAYRAGI, DEFTER_BAKIMI_KONUMLARI, DEFTER_BAKIMI_BAYRAKLARI. Kovadan bir
-    arac DUSERSE hem cagri REDDEDILIR hem de bu metinden ADI SILINIR — ikisi ayni
-    yapidan besleniyor, ayrisamazlar."""
+    D1_DURUM_BAYRAGI, _BILINEN_BAYRAK_HARITASI, DEFTER_BAKIMI_KONUMLARI.
+    Kova/defter/bekci birlesik haritadan okur — bir oge dusurse hem cagri REDDEDILIR
+    hem de bu metinden ADI SILINIR (ikiz kopya YOK). Yeni bir kova eklendiginde
+    sadece DEFTER_BAKIMI_BAYRAKLARI/BEKCI_BAYRAKLARI kumesine yazmak yeterli,
+    bu metin OTOMATIK genisler (tek kaynak = kucuk + kapsamli)."""
     parcalar = ["'python3 " + _kisa(DURUM_YOL) + "'",
                 "'python3 " + _kisa(D1_YOL) + " " + D1_DURUM_BAYRAGI + "'"]
-    for yol in sorted(DEFTER_BAKIMI_BAYRAKLARI):
+    for yol in sorted(_BILINEN_BAYRAK_HARITASI):
         konumlar = " ".join(_kisa(k) for k in DEFTER_BAKIMI_KONUMLARI.get(yol, ()))
-        bayraklar = " ".join("[" + b + "]" for b in sorted(DEFTER_BAKIMI_BAYRAKLARI[yol]))
+        bayraklar = " ".join("[" + b + "]" for b in sorted(_bilinen_arac_bayraklari(yol)))
         cagri = " ".join(x for x in ("python3 " + _kisa(yol), konumlar, bayraklar) if x)
         parcalar.append("'" + cagri + "'")
     return " · ".join(parcalar)
@@ -1361,6 +1400,32 @@ def _py_izinli(ad, argumanlar, cwd):
         if not _bakim_bayraklari_izinli(KUTU_ARSIVLE_YOL, argumanlar[1:]):
             return False
         return _bakim_konumlari_izinli(KUTU_ARSIVLE_YOL, argumanlar[1:], cwd)
+    # === 28 AGU 2026 (K343-SINIF-KAPISI) — BEKCI KOLU ==========================
+    # cip_dogum_bekcisi.py `~/.claude/cron/` altinda (REPO DISI) — kapinin R2/F
+    # kollari yapisal olarak reddederdi. Bu kol, _py_izinli'yi 'continue' ile
+    # kapattigi icin R2/F YAPISIYOR; oyleyse bekci yolu + bayrak kumesi
+    # tek-anahtar tabloya (BEKCI_BAYRAKLARI) yazilmak yeterli.
+    # Bekci'nin bilinen iki kolu var:
+    #   `--teslim-karari` (yalniz)
+    #   `--teslim-kaydet [--anahtar X] [--task-id Y] [--sebep Z]`
+    # `--anahtar/--task-id/--sebep` deger alan bayraklar; degerleri tireyle
+    # BASLAMAYAN tek bir token (`argparse` TAM ESITLIK modeli). Bu tokenlar
+    # pozisyonel SEKLINDE gorunse de bayrak DEGERIDIR — kume disi yol DEGIL.
+    # O yuzden tek-anahtar kontrol yalniz `-` ile baslayanlari okur; geri
+    # kalan tokenlar 'flag degeri' sayilir ve RED sebebi DEGILDIR.
+    if ilk == BEKCI_YOL:
+        if not _bakim_bayraklari_izinli(BEKCI_YOL, argumanlar[1:]):
+            return False
+        # Konumsal SEKLINDEki tokenlar (flag degerleri: YYYYAAGG, task_id, sebep)
+        # '/' ICEREMEZ — bekci YOL/arg ALMAZ, kendi kanit/saat dizinini
+        # TEK KAYNAGINDAN okur. Boylece '_py_izinli -> continue' R2/F'yi
+        # atlatirken bile patolojik yol enjeksiyonu kapali.
+        for t in argumanlar[1:]:
+            if t.startswith("-"):
+                continue
+            if "/" in t or t.startswith("."):
+                return False
+        return True
     return False
 
 

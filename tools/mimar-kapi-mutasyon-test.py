@@ -24,6 +24,9 @@ import sys
 import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
+if TOOLS not in sys.path:
+    sys.path.insert(0, TOOLS)
+import gecici_worktree  # noqa: E402
 KOK = os.path.dirname(TOOLS)
 MUTASYON_KOK = None  # main() icinde tempfile.mkdtemp ile doldurulur
 TEST = os.path.join(TOOLS, "mimar-kilit-test.py")
@@ -35,6 +38,9 @@ KAPI_DOSYALARI = (
     "mimar-commit-kapisi.py",
     "mimar-kapi-kur.py",
     "mimar-kilit-test.py",
+    # `mimar-kilit-test.py` bu modulu YANINDAN yukler (sys.path[0] = mutant dizini).
+    # Kopyalanmazsa her mutant kosumu ImportError ile coker ve batarya hukumsuz kalir.
+    "gecici_worktree.py",
 )
 
 KILIT = "mimar-kod-kilidi.py"
@@ -968,7 +974,7 @@ def taban_kirmizisi():
 
 def main():
     global MUTASYON_KOK
-    MUTASYON_KOK = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-kapi-mutasyon-"))
+    MUTASYON_KOK = gecici_worktree.damgali_mkdtemp("pruvo-kapi-mutasyon-")
     print("MUTASYON DIZINI (gecici): " + MUTASYON_KOK)
 
     basarisiz = []
@@ -1057,9 +1063,32 @@ def main():
                 basarisiz.append(ad)
     finally:
         shutil.rmtree(MUTASYON_KOK, ignore_errors=True)
-        # C1/C2 enjeksiyonlari gecici worktree kaydi birakmis olabilir — temizle.
-        subprocess.run(["git", "-C", KOK, "worktree", "prune"],
-                       capture_output=True, text=True)
+        # 🔴 ESKI KOL `git worktree prune` IDI ve TAM DA KAPATMASI GEREKEN ARIZADA
+        # NO-OP'TU (olculdu 28 Agu 2026): bu takim her mutant icin `mimar-kilit-test.py`yi
+        # ALT SUREC olarak kosturur ve o alt surec GERCEK repoya bir
+        # `pruvo-kapi-test-*/kayitli-wt` KAYDEDER. Alt surec SIGKILL/timeout ile olurse
+        # hem dizin hem kayit KALIR; dizin diskte durdugu icin kayit "prunable" DEGILDIR
+        # ve `prune` onu GORMEZ. Ustelik `pruvo-kapi-test-*`, MUTASYON_KOK'un KARDESIDIR,
+        # ALTINDA degil — yani ustteki `rmtree` menzilinde de degil. Sonuc: Okan'in
+        # 13 Agu DISK EMRI sessizce ihlal ediliyordu ([[diskte-iz-birakma-yasagi]]).
+        #
+        # YENI KOL sahiplik damgasindan turer: YALNIZ sahibi OLU olan kayit kaldirilir.
+        # CANLI (komsu evin O AN kosan bataryasi) ve OLCULEMEDI (damgasiz/yabanci)
+        # kayitlara DOKUNULMAZ — aksi halde bu temizlik, baska bir cipin kosumunu
+        # ortasindan keserdi.
+        kaldirilan, temizlik_hatalari = gecici_worktree.sizintilari_temizle(KOK)
+        if kaldirilan:
+            print("GECICI WORKTREE SIZINTISI TEMIZLENDI: {} {}".format(
+                len(kaldirilan), kaldirilan))
+        for yol, hata in temizlik_hatalari:
+            print("GECICI WORKTREE TEMIZLENEMEDI: {} -> {}".format(yol, hata))
+        # OLCUM KOLU: temizlikten SONRA hala sahibi olu kayit varsa takim KIRMIZI kapanir.
+        kalan_sizinti = [y for y, s, _p in gecici_worktree.gecici_kayitlar(KOK)
+                         if s == gecici_worktree.SIZINTI]
+        if kalan_sizinti or temizlik_hatalari:
+            basarisiz.append("GECICI-WORKTREE-SIZINTISI")
+            print("GECICI WORKTREE SIZINTISI SURUYOR: {} {}".format(
+                len(kalan_sizinti), kalan_sizinti))
 
     toplam = (len(MUTASYONLAR) + len(SERT_MUTASYONLAR) + len(KENDI_TESTINI_KOSAN) +
               len(KONTROL_MUTANTLARI))
