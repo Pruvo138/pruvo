@@ -5,8 +5,9 @@
   ONARIM TURU       = ci-nobeti.log içinde "acilan_tur=1" geçen satır sayısı (TÜM dosya)
   KOL               = LLM tur kolunun HALI: KAPALI | ACIK | OLCULEMEDI
                       (KAPALI, "0" DEGILDIR — bkz. kol_hali())
-  GOZCU TURU (bugün)= gozcu.log içinde BUGÜNÜN tarihi (YYYY-AA-GG) VE "GOZCU " geçen satır sayısı
-  KIRMIZI GORULDU   = gozcu.log içinde BUGÜNÜN tarihi VE "YENI_KIRMIZI=1" geçen satır sayısı
+  GOZCU TURU (bugün)= gozcu.log içinde BUGUNUN UTC tarihi (kaynak damgasiyla ayni duzlem) VE "GOZCU " geçen satır sayısı
+  KIRMIZI GORULDU   = gozcu.log içinde BUGUNUN UTC tarihi VE "YENI_KIRMIZI=1" geçen satır sayısı
+                      bugune ait hic satir yoksa OLCULEMEDI (0 DEGIL)
 
 BİLEREK ölçMEDİĞİ:
   - "onarim commit'i sayısı" ya da "son 24 saat commit" — bunlar cip/mimar işini de
@@ -30,7 +31,17 @@ import sys
 
 CINOBETI = os.path.expanduser("~/.claude/cron/ci-nobeti.log")
 GOZCU = os.path.expanduser("~/.claude/cron/gozcu.log")
-BUGUN = datetime.date.today().isoformat()
+# 🔴 TARIH EKSENI UTC'DIR (29 Agu 2026). Kaynagin damgasi UTC
+# (`gozcu.log`: `2026-08-28T22:07:00Z`); kiyasi YEREL gunden yapmak, yerel
+# gun UTC'den ILERIDEYKEN (Turkiye'de her gece 00:00-03:00) bugunun satirini
+# SIFIR esitler ve arac "bugun hic gozcu turu yok / hic kirmizi yok" der.
+# Ikinci bir tarih sozlugu URETILMEZ: tek duzlem, UTC.
+def bugun_utc():
+    """Kaynak damgalariyla AYNI duzlemde gun anahtari (UTC)."""
+    return datetime.datetime.now(datetime.timezone.utc).date().isoformat()
+
+
+BUGUN = bugun_utc()
 
 # 🔴 K347 (28 Agu 2026) — UCUNCU HAL AYRIDIR.
 # Iki kovali sozluk ("tur acildi" / "acilmadi") ucuncu hali YUTAR: 28 Agu'da
@@ -106,6 +117,33 @@ def _say(dosya_yolu, kosul):
     return str(n)
 
 
+def _say_gunluk(dosya_yolu, gun, kosul):
+    """Bugunun satirlari icinde `kosul`u saglayanlari say — UC HAL.
+
+    dosya YOK                      -> 'OLCULEMEDI'
+    bugune ait HIC satir YOK       -> 'OLCULEMEDI'  (kayit yok)
+    bugune ait satir VAR, kosul 0  -> '0'           (gercek sifir)
+
+    🔴 "Bugunun kaydi yok" ile "bugun hic olmadi" AYRI HALLERDIR. Iki kovali
+    sozluk ucuncuyu yutar; yutulan hal SAHTE 0 olarak gorunur ve okuyan onu
+    "hat sessiz" diye okur.
+    """
+    if not os.path.exists(dosya_yolu):
+        return "OLCULEMEDI"
+    gunun_satiri = 0
+    n = 0
+    with open(dosya_yolu, "r", encoding="utf-8", errors="replace") as f:
+        for satir in f:
+            if gun not in satir:
+                continue
+            gunun_satiri += 1
+            if kosul(satir):
+                n += 1
+    if gunun_satiri == 0:
+        return "OLCULEMEDI"
+    return str(n)
+
+
 def olc():
     kol = kol_hali()
     acilan = _say(CINOBETI, lambda s: TUR_ACILDI_IZI in s)
@@ -118,9 +156,11 @@ def olc():
         "ACILAN_TARIHSEL": acilan,
         # SAYAC yalniz yeni alani saysin; eski `LLM_KOLU=KAPALI` yazisi artik
         # gelmiyor (gecis penceresi kapandi) ve yalniz yeni iz birakilir.
-        "KOL_REDDI": _say(CINOBETI, lambda s: KOL_KAPALI_IZI in s),
-        "GOZCU": _say(GOZCU, lambda s: BUGUN in s and "GOZCU " in s),
-        "KIRMIZI": _say(GOZCU, lambda s: BUGUN in s and "YENI_KIRMIZI=1" in s),
+        # 🔴 SATIR sayar, TUR DEGIL: tek turun IKI satiri da `kol_hali=` tasir
+        # (tetigin kendi satiri + TETIK_HUKMU). Ad olctugunu SOYLESIN.
+        "KOL_KAPALI_SATIR": _say(CINOBETI, lambda s: KOL_KAPALI_IZI in s),
+        "GOZCU": _say_gunluk(GOZCU, BUGUN, lambda s: "GOZCU " in s),
+        "KIRMIZI": _say_gunluk(GOZCU, BUGUN, lambda s: "YENI_KIRMIZI=1" in s),
     }
 
 
@@ -234,7 +274,8 @@ def _kendini_test():
         olcvaka("D2 KAPALI halinde YANLIS_OKUMA cumlesi DENMEZ",
                 False, YANLIS_OKUMA in m1)
         olcvaka("D3 KAPALI halinde sayilar KAYBOLMAZ (ayrinta duser)",
-                ("1", "2"), (s1["ACILAN_TARIHSEL"], s1["KOL_REDDI"]))
+                ("1", "2"),
+                (s1["ACILAN_TARIHSEL"], s1["KOL_KAPALI_SATIR"]))
 
         s2, (_m2, rc2) = _olc_ile(yeniden_y)
         olcvaka("D4 KONTROL kol yeniden ACILDI -> sayi doner rc=0",
@@ -284,6 +325,33 @@ def _kendini_test():
                 (RC_ACMADI, "ACIK", "0", True),
                 (rc3, s3["KOL"], s3["ONARIM"], YANLIS_OKUMA in m3),
                 kontrol=True)
+
+        # 🔴 D12 — SINIR PENCERESI: yerel gun UTC'den ILERIDEYKEN. Fikstur
+        # satirlari UTC gununu tasir; YEREL gun anahtariyla sorulunca eslesme
+        # SIFIRDIR ve arac `0` DEMEZ, `OLCULEMEDI` der. Bu vaka olmadan ariza
+        # yarin gece BIREBIR geri gelir (bugun tam bu pencereden dustu).
+        utc_gun = "2026-08-28"
+        yerel_ileri_gun = "2026-08-29"
+        gunluk_y = _log_yaz("gunluk.log", [
+            "GOZCU %sT22:07:00Z TETIK=CI_KIRMIZI YENI_KIRMIZI=1 rc=1" % utc_gun,
+            "GOZCU %sT22:23:00Z TETIK=YOK YENI_KIRMIZI=0 rc=0" % utc_gun,
+        ])
+        olcvaka("D12a UTC gunuyle sayilir (2 satir, 1 kirmizi)",
+                ("2", "1"),
+                (_say_gunluk(gunluk_y, utc_gun, lambda s: "GOZCU " in s),
+                 _say_gunluk(gunluk_y, utc_gun, lambda s: "YENI_KIRMIZI=1" in s)))
+        olcvaka("D12b gunun satiri YOKKEN '0' DEGIL OLCULEMEDI",
+                ("OLCULEMEDI", "OLCULEMEDI"),
+                (_say_gunluk(gunluk_y, yerel_ileri_gun, lambda s: "GOZCU " in s),
+                 _say_gunluk(gunluk_y, yerel_ileri_gun,
+                             lambda s: "YENI_KIRMIZI=1" in s)))
+        olcvaka("D12c KONTROL gunun satiri VAR ama kosul yok -> GERCEK 0",
+                "0",
+                _say_gunluk(gunluk_y, utc_gun, lambda s: "ASLA_YOK" in s),
+                kontrol=True)
+        olcvaka("D12d gun anahtari UTC duzleminde",
+                datetime.datetime.now(datetime.timezone.utc).date().isoformat(),
+                bugun_utc())
 
         # --- MUTANT: hal ayrimi kaldirilir -> DONMUS SAYI GERI GELIR --------
         # 🔴 CAPA KENDI METNINDE GECMEMELI: duz yazilinca `kaynak.count(CAPA)`
@@ -385,14 +453,77 @@ def _kendini_test():
             MUTANT_ADI2, "OLDU" if mutant2_oldu else "YASADI",
             "EVET" if mutant2_atif else "HAYIR", mutant2_not))
 
-        toplam_mutant_oldu = (1 if mutant_oldu else 0) + (1 if mutant2_oldu else 0)
-        toplam_mutant_atif = (1 if mutant_atif else 0) + (1 if mutant2_atif else 0)
-        print("OD-KENDINI-TEST VAKA=%d/%d DUSEN=%d MUTANT=%d/2 ATIF=%d/2 "
+        # --- MUTANT 3: sahte-sifir-geri-gelir -------------------------------
+        # CAPA parcaciklara bolunmus (kaynakta bitisik GECMEZ, calisma aninda
+        # AYNI dizgeyi verir — [[kurucu-capa-yeni-icinde-cogaltir]]).
+        CAPA3 = "    if gunun_satiri == " + "0:"
+        MUTANT_ADI3 = "M-OD3-sahte-sifir-geri-gelir"
+        HEDEF_KOL3 = "GUN_KAYDI_YOK_OLCULEMEDI"
+        mutant3_oldu = mutant3_atif = False
+        if kaynak.count(CAPA3) != 1:
+            mutant3_not = "CAPA_SAYISI=%d" % kaynak.count(CAPA3)
+        else:
+            kopya3 = os.path.join(kok, "onarim_durum_mutant3.py")
+            with open(kopya3, "w", encoding="utf-8") as d:
+                d.write(kaynak.replace(CAPA3, "    if False:", 1))
+            spec3 = importlib.util.spec_from_file_location(
+                "onarim_durum_mutant3", kopya3)
+            mut3 = importlib.util.module_from_spec(spec3)
+            onceki3 = sys.dont_write_bytecode
+            sys.dont_write_bytecode = True
+            try:
+                spec3.loader.exec_module(mut3)
+            finally:
+                sys.dont_write_bytecode = onceki3
+            # HEDEF: D12b olmeli (yerel-ileri gun anahtariyla sorulunca
+            # mutantta `gunun_satiri > 0` gibi davranip "0" doner; original
+            # OLCULEMEDI basar -> mutant bu vakayi oldurur).
+            mut3.CINOBETI, mut3.GOZCU = kapali_y, gunluk_y
+            _ = mut3.olc()
+            mut3.GOZCU = gunluk_y
+            d12b_gozcu = mut3._say_gunluk(
+                gunluk_y, yerel_ileri_gun, lambda s: "GOZCU " in s)
+            d12b_kirmizi = mut3._say_gunluk(
+                gunluk_y, yerel_ileri_gun, lambda s: "YENI_KIRMIZI=1" in s)
+            mutant3_oldu = (d12b_gozcu == "0" and d12b_kirmizi == "0")
+            # KONTROL: D12a (UTC gunuyle sayim), D12c (gercek 0), D8 (kanit
+            # yoksa OLCULEMEDI) — mutant bu kapilara DOKUNMAMALI.
+            mut3.CINOBETI = kapali_y
+            mut3.GOZCU = gunluk_y
+            d12a_gozcu = mut3._say_gunluk(
+                gunluk_y, utc_gun, lambda s: "GOZCU " in s)
+            d12a_kirmizi = mut3._say_gunluk(
+                gunluk_y, utc_gun, lambda s: "YENI_KIRMIZI=1" in s)
+            d12c = mut3._say_gunluk(
+                gunluk_y, utc_gun, lambda s: "ASLA_YOK" in s)
+            mut3.CINOBETI = kanitsiz_y
+            mut3.GOZCU = gunluk_y
+            d8_s = mut3.olc()
+            _, d8_rc = mut3.huküm(d8_s)
+            kontrol3_yesil = (d12a_gozcu == "2" and d12a_kirmizi == "1"
+                              and d12c == "0"
+                              and d8_s["ONARIM"] == "OLCULEMEDI"
+                              and d8_rc == RC_ACMADI)
+            mutant3_atif = mutant3_oldu and kontrol3_yesil
+            mutant3_not = "oldurdugu=%s (D12b) kontrol_yesil=%s" % (
+                HEDEF_KOL3, kontrol3_yesil)
+        print("MUTANT %-26s %s ATIF=%s %s" % (
+            MUTANT_ADI3, "OLDU" if mutant3_oldu else "YASADI",
+            "EVET" if mutant3_atif else "HAYIR", mutant3_not))
+
+        toplam_mutant_oldu = ((1 if mutant_oldu else 0)
+                              + (1 if mutant2_oldu else 0)
+                              + (1 if mutant3_oldu else 0))
+        toplam_mutant_atif = ((1 if mutant_atif else 0)
+                              + (1 if mutant2_atif else 0)
+                              + (1 if mutant3_atif else 0))
+        print("OD-KENDINI-TEST VAKA=%d/%d DUSEN=%d MUTANT=%d/3 ATIF=%d/3 "
               "KONTROL=%d/%d"
               % (sayac["gecen"], sayac["vaka"], len(dusenler),
                  toplam_mutant_oldu, toplam_mutant_atif,
                  sayac["kontrol_gecen"], sayac["kontrol"]))
-        return 0 if (not dusenler and mutant_atif and mutant2_atif) else 1
+        return 0 if (not dusenler and mutant_atif and mutant2_atif
+                     and mutant3_atif) else 1
     finally:
         shutil.rmtree(kok, ignore_errors=True)
 
@@ -420,8 +551,9 @@ def main():
     )
     # AYRINTI satiri: hal degisince sayilar KAYBOLMAZ, ayri alanda durur.
     print(
-        "AYRINTI: kol={} acilan_tur_tarihsel={} kol_reddi={}".format(
-            sayilar["KOL"], sayilar["ACILAN_TARIHSEL"], sayilar["KOL_REDDI"]
+        "AYRINTI: kol={} acilan_tur_tarihsel={} kol_kapali_satir={}".format(
+            sayilar["KOL"], sayilar["ACILAN_TARIHSEL"],
+            sayilar["KOL_KAPALI_SATIR"]
         )
     )
     mesaj, rc = huküm(sayilar)
