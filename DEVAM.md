@@ -15,8 +15,6 @@ K325-K327+K329 + civi BLOKE KUTUDA).
 ⓒ kurucu `--rol-kapisi` · ⓓ `_proje_damgasi` KAYIPLI · ⓔ HTML 4 saat = OKAN KAPISI · ⓕ ic rapor ad kalibi · ⓖ+7.
 **Okan'da bekleyen karar:** `pruvo-jenerator` GitHub App repository access (TeKiN).
 🔴 **UYDURMA (27 Agu):** m3 turu olmayan SHA+gorev uydurdu → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
-✅ **K3 MERGE `e59c0bcc`** (28 Agu): 4 dosya 1183+/124-, CI `k3-cikti-kok-bataryasi`=**success**
-(`33121714135`), D1 30928 ✅, yeni kirmizi YOK, dal+worktree SILINDI. K269 DUSTU.
 🔴 **K330 (28 Agu, SINIF):** `k3-cikti-kok-mutasyon.py` AYNI agacta ardisik iki kosumda ZIT
 hukum: #1 `M_KOK=KACTI rc!=0`, #2 `M_KOK=OLDURULDU KONTROL=YESIL EKSEN=B rc=0`. Fark: #1'in
 temizligi 12 gitignored ARTIK yolu sildi — artik varken uc eksen de kor, `porcelain` BOS = agac "temiz".
@@ -29,9 +27,9 @@ yollari sifirlanir ya da `OLCULEMEDI: taban artikli` + mutant. → [[artik-yuzey
   mimarlarinda; KraL kardes depoya yazmaz. · 🔧 **K302 KALAN:** kok neden MaCiT'in `olcum/hasat_ekle.py`
   dosyasinda, kutuda bildirildi.
 - 🔧 K307 yan bulgu (kalem KAPANDI `32909205580`): isci probu 206'yi "olu" saydi → [[prob-kendi-baglamini-olcer]]
-- 🔧 **K304:** ① 3 kopya SILINDI, yedekle.py BORCLU. ✅ ② BOOTSTRAP ACILDI (`e630bce7`): kurucu hicbir
-  evde kosmuyordu → ADLI serbest kol, ANA oturum RED; VAKA=10 MUTANT 3/3, kilit-test=TABAN.
-  MaCiT→`2a3b76d3`, filo 1→2. 4 EV KALDI
+- 🔧 **K304:** ① 3 kopya SILINDI, yedekle.py BORCLU. ✅ ② KAPANDI: bootstrap (`e630bce7`) + **FILO 6/6**
+  (4 ev 4/4 KILITLIYDI, KraL elinden kuruldu; MUTANT=OLDURULDU ATIF=HEDEF_TEK, KONTROL yesil; ROL
+  EKSENI GELDI HocA/ArTisT, TeKiN/BaBa wt yok=OLCULEMEDI + shim skip-worktree, commit ev sahibinde)
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
 - 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
   kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
