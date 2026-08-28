@@ -380,8 +380,51 @@ def _bakim_gorunumu():
             konumlar[s.arac] = s.konumlar
     return bayraklar, konumlar
 
+# === 28 AGU 2026 (K343-SINIF-KAPISI) — BEKCI KOVASI ===========================
+# NEDEN AYRI KOVA: bekci (`~/.claude/cron/cip_dogum_bekcisi.py`) REPO DISINDA
+# yasar; DEFTER_BAKIMI_BAYRAKLARI'na koymak, R2/F kollarini kirma gerektirirdi.
+# Onun yerine AYNI sabit kalibinin yaninda durur ve asagidaki _bilinen_arac_*
+# yardimcilari iki kumeyi TEK ILISKI olarak okur — karar veren ve metin ureten
+# ayni sozlukten beslenir, drift olusamaz.
+#
+# Bekci cagrisi TEK aracin kendisi (cip_dogum_bekcisi.py), iki kollu:
+#   `--teslim-karari`               — kanit/teslim kararini okur, ek arguman almaz
+#   `--teslim-kaydet [--anahtar X]  — teslim kaydini yazar (--anahtar/--task-id/--sebep
+#     [--task-id Y] [--sebep Z]]      opsiyonel; bekcinin argparse'i store_true + default=None)
+# Bu kol kumesi disindaki HER bayrak (--teslim-iptal, --bypass, --kuru ...) RED.
+# Konumsal arg bekci almaz (kanit/saat dizini bekcinin TEK KAYNAGI).
+BEKCI_YOL = SC.CIP_BEKCI_YOL
 
+# 🔴 K344 MERGE (28 Agu) — main'in K343 kolu BEKCI_BAYRAKLARI'ni BURAYA ELLE
+# yaziyordu; o kume `serbest_cagrilar.SEKILLER`de ZATEN duruyor (bekci-teslim-karari
+# + bekci-teslim-kaydet). Elle kopyayi birakmak, K343'un kendi gerekcesindeki
+# "ikinci elle kopya" tabanini geri acardi — bu yuzden kume artik TURETILIR.
 DEFTER_BAKIMI_BAYRAKLARI, DEFTER_BAKIMI_KONUMLARI = _bakim_gorunumu()
+# FAIL-CLOSED: bekci sekli KAYNAKTAN DUSERSE kova BOS kalir (KeyError ile
+# COKMEZ) — cagri RED'e doner ve adi turetilmis metinden de duser. Mutant
+# bataryasi tam bu yolu olcer; cokme, "mutant ulasmadi"yi maskelerdi.
+BEKCI_BAYRAKLARI = ({BEKCI_YOL: DEFTER_BAKIMI_BAYRAKLARI[BEKCI_YOL]}
+                    if BEKCI_YOL in DEFTER_BAKIMI_BAYRAKLARI else {})
+
+# Tek-anahtar birlesik sozluk: karar metni + test + CARE tek yerden okur.
+# (Bekci ZATEN gorunumun icinde; `update` yalniz K343'un okuyucu sozlesmesini
+# korur — sozluk tek kaynaktan, SEKILLER'den doludur.)
+_BILINEN_BAYRAK_HARITASI = {}
+_BILINEN_BAYRAK_HARITASI.update(DEFTER_BAKIMI_BAYRAKLARI)
+_BILINEN_BAYRAK_HARITASI.update(BEKCI_BAYRAKLARI)
+
+
+def _bilinen_arac_bayraklari(arac_yolu):
+    """TUM bakim kovalarinin bayrak haritasi (TEK KAYNAK)."""
+    return _BILINEN_BAYRAK_HARITASI.get(arac_yolu)
+
+# K344 MERGE NOTU (28 Agu): main'in K343 kolu burada iki yardimci tutuyordu
+# (`_bakim_bayraklari_izinli` / `_bakim_konumlari_izinli`). O yardimcilar
+# `serbest_cagrilar._sekil_uyuyor` TARAFINDAN KAPSANDI ve daha DAR: tekrarlanan
+# bayrak, kume disi bayrak, '='li yazim ve kanonik olmayan konumsal yol AYNEN
+# RED kalir; ustune deger alan bayragin DEGERI de denetlenir (`_deger_guvenli`:
+# '/' iceren ya da '.' ile baslayan deger RED) — K343'un bekci kolundaki
+# "flag degeri yol OLAMAZ" korumasi bu yolla KORUNDU, bayraga BAGLI olarak.
 
 # Olcum / dosya-tarama komutlari: bunlar mimarin elinden kacan siniftir (boyut, sayim,
 # arama, icerik dokme). Komut zincirinin HERHANGI bir segmentinde (pipe dahil —
@@ -1309,6 +1352,11 @@ def _py_izinli(ad, argumanlar, cwd):
     # dusunce cagri REDDEDILIR **ve** adi metinden DUSER (ikisi birden).
     # Kova AYNEN DAR: kume disi bayrak (--tavan-sayi / --tarih), '=' li yazim,
     # tekrarlanan bayrak, kanonik olmayan konumsal yol — hepsi RED kalir.
+    # K344: main'in K343 kolu ayni kovalari ELLE yazilmis `if ilk == ...`
+    # zinciriyle denetliyordu (defter / kutu / bekci). Zincirin HER kuralı
+    # SEKILLER tablosunda duruyor — bekci kolunun "flag degeri yol OLAMAZ"
+    # korumasi dahil (`_deger_guvenli`). Zinciri YANINDA birakmak ikinci karar
+    # kopyasi olurdu; kaldirildi, kural KAYBOLMADI.
     sekil = SC.eslesen_sekil(argumanlar, _coz, cwd)
     if sekil is None:
         return False

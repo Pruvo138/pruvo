@@ -149,6 +149,12 @@ tavan_asi_mi = _mod.tavan_asi_mi
 if TOOLS not in sys.path:
     sys.path.insert(0, TOOLS)
 import serbest_cagrilar as _SC
+# K344 MERGE NOTU (28 Agu): main'in K343 kolu AYNI hedefi baska bir yoldan
+# tutuyordu — CARE'yi `mimar-icra-kapisi::_BILINEN_BAYRAK_HARITASI`den turetmek.
+# O kol BURADA KAPSANDI, silinmedi: `serbest_cagrilar.SEKILLER` ayni tabloyu
+# TASIR ve ustune zorunlu/serbest bayrak ayrimi + konumsal argumanlari da tasir,
+# yani K343'un turettigi her sey buradan da turer. Iki turetim kolunu YAN YANA
+# birakmak K320'nin kapattigi DRIFT tabanini geri acardi (ikinci kopya).
 
 SAYAC_YOLU = os.environ.get("PRUVO_DEFTER_KOTA_SAYAC",
                             os.path.expanduser("~/.claude/cron/defter-kota-bypass.tsv"))

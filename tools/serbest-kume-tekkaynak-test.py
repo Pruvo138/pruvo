@@ -516,6 +516,36 @@ with tempfile.TemporaryDirectory(prefix="pruvo-k320-") as gecici:
                "C2 mutant altinda %s (KIRMIZI olmali) · basilan=%r"
                % ("YESIL" if c2_mx4_gecerdi else "KIRMIZI", mx4_satirlar[:1]))
 
+    # 🔴 MX5 — BEKCI SEKLI DUSER (K344'te main'in K343 bataryasindan PORT EDILDI).
+    # main'in M6/M7 mutantlari `_BILINEN_BAYRAK_HARITASI` / `BEKCI_BAYRAKLARI`
+    # ELLE yazilmis sozluklerini hedefliyordu; K344 merge'inde o sozlukler
+    # SEKILLER'den TURETILIR oldu, yani eski capalar COKERDI ([[capa-cokmesi-...]]).
+    # Eksen SILINMEDI, YENI KAYNAGA TASINDI: bekci sekli dusunce (a) bekci cagrisi
+    # RED olmali, (b) bekci adi turetilmis RED metninden DUSMELI, (c) KOMSU eksen
+    # (defter CARE) ETKILENMEMELI — yani mutant DAR olmali, toptan degil.
+    altM5b = os.path.join(gecici, "MX5")
+    os.makedirs(altM5b)
+    ESKI_BEKCI = ('    Sekil("bekci-teslim-karari", CIP_BEKCI_YOL,\n'
+                  '          zorunlu=("--teslim-karari",), serbest=("--kuru",),\n'
+                  '          ornek=("--teslim-karari",), repo_disi=True),\n')
+    dM5b, hM5b = evren_kur(altM5b, SERBEST, ESKI_BEKCI,
+                           "    # MX5 MUTANT: bekci-teslim-karari sekli dusuruldu\n")
+    if dM5b is None:
+        kaydet("MX5 BEKCI SEKLI DUSER: bekci RED + ad duser + KOMSU defter GECER",
+               False, hM5b)
+    else:
+        kapi5b = os.path.join(dM5b, os.path.basename(KAPI))
+        h5b_bekci, _ = kapi_kos(kapi5b, BEKCI_KARAR, dM5b)
+        h5b_defter, _ = kapi_kos(kapi5b, CARE, dM5b)
+        m5bmod = modul_yukle(kapi5b, "kapi_mutant_MX5", dM5b)
+        # --teslim-karari kolu dustu; --teslim-kaydet kolu DURUYOR, dolayisiyla
+        # arac ADI metinde kalir. Dusmesi gereken sey BAYRAGIN KENDISIDIR.
+        bayrak_dustu = "--teslim-karari" not in m5bmod.GEREKCE_SONU
+        kaydet("MX5 BEKCI SEKLI DUSER: bekci RED + bayrak metinden duser + KOMSU defter GECER",
+               h5b_bekci == "RED" and bayrak_dustu and h5b_defter == "GECTI",
+               "BEKCI=%s (bekl RED) · bayrak_dustu=%s · KOMSU(defter)=%s (bekl GECTI)"
+               % (h5b_bekci, bayrak_dustu, h5b_defter))
+
     # M3 — olcum ekseni gercekten turetilmis mi?
     UYDURMA = "zzolcum"
     ara3 = "    \"wc\", \"head\", \"tail\", \"sed\", \"awk\", \"sort\", \"stat\", \"file\",\n"
