@@ -95,5 +95,7 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
 - 🔧 **K329 (28 Agu, CI nobeti):** iki kapi dosyasi kanonik `git_ortami.sentetik_git`'e gecirildi, yerelde YESIL olculdu; main'e INEMEDI — kutu 306>300, 6 blok `ARŞİVLENEBİLİRİM` bekliyor (**Okan arsivi**), is `ci-nobet-git-ortami` dalinda stage'li.
 
+## 🔴 K340 ETKI EKSENI — dalda HAZIR, **MERGE MIMARDA** · dal `claude/frosty-meitner-deb9f0` `427bb991`
+Kapi komutun METNINI degil ETKISINI olcer: sarmalayici iki okuma + etkin cwd normalizasyonu, ve betik-ici cagri kolu (A'/F'). ONCE/SONRA olculdu: main'in kapisinda **7 vaka da ACIK**, dalda 7'si KAPALI, mesru cagrilarda **0 bozulma**; kanit araci taban saglamlik kapili (taban guvenilmezse rc=2 ile DURUR). VAKA 314→326 (12/12 yesil), kirmizi set DEGISMEDI; MUTANT 4/4 + KONTROL K8; esigi tutturamayan liste tabanla BIREBIR (11). K343/K344 komsu ekseni REGRESYONSUZ (serbest kume 22/22, kutu-arsivle 40/303, bekci `--teslim-karari` YESIL). ② menzili civili: KESIN **0** (`k340-menzil-testi.py`; rc=1 olursa kapi mesru araci reddediyor demektir), sinir S1..S7 adiyla yazili. Ayrinti KUTUDA.
 
 ## ARSIVDE — 14-20 Agu `DEVAM-ARSIV.md`'de.
