@@ -98,6 +98,39 @@ ve UCU DE BASILIR — tek eksen kabul DEGILDIR ([[lossless-beyani-blok-butunlugu
 GERILEME YOK: korumali blok YOKKEN secim bitisik kuyruga OZDES duser (D1 partisyonu ve
 kabul testi bunu ayrica olcer).
 
+🔴 ACIK CIP — KAPANISSIZ `BASLIYORUM` BLOGU TASINMAZ (K329, 27-28 Agu 2026)
+OLCULEN VAKA (iki kez): cip `KraL-NobetTuru-27Agu` 23:30'da kutuya `BASLIYORUM` blogunu yazdi;
+23:38'de BASKA bir cipin bu araci kosumu (342 -> 222 satir) o blogu CIP HALA KOSARKEN
+`mimar-posta-kutusu-arsiv.md:52842`'ye tasidi. Kayip YOK (`lossless` dogru calisti) ama canli
+kutu artik ACIK cipi GOSTERMIYOR: "su an kim kosuyor" sorusunun cevabi arsive dustu. 28 Agu'da
+ayni sey ikinci kez oldu ve `KraL-OnarimZinciri-28Agu` tasinacak UC blogun kapanisli oldugunu
+TEK TEK ELLE dogrulamak zorunda kaldi — yani veto ARACTA degil, INSANIN DIKKATINDEYDI.
+SINIF: K313g'nin kardesi. K313g "isi BITMIS ama Okan HENUZ ARSIVLEMEMIS" blogu korur; K329
+"isi HENUZ BITMEMIS" blogu korur. Ikisi AYRI eksendir ve AYRI SAYILARLA basilir — tek kovaya
+konursa ucuncu hal yutulur ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+CARE: basliginda `BASLIYORUM` gecen bir blok, ESLESEN KAPANISI kutuda YOKSA rotasyona GIRMEZ.
+ESLESTIRME EKSENI = CIP ADI, blok siniri DEGIL (olculdu: ayni cipin `BASLIYORUM` ve kapanis
+bloklari kutuda AYRI YERLERDE durur — `MaCiT-MarinMwEkleD1-28Agu` kapanisi 100. satirda,
+`BASLIYORUM`u 125. satirdaydi). Ad, BASLIK satirindaki ILK backtick'li `<Ev>-<Is>` jetonudur.
+Bir blok su iki yoldan BIRIYLE o cipin KAPANISI sayilir: basliginda `SAYILI KAPANIS` gecer,
+YA DA blogun KAPANIS KONUMUNDA kapanis jetonu (BEKLEYEN ya da ISLENMIS) vardir.
+YANLIS ESLESME KAPALIDIR: eslesme ADIN BIREBIR ESITLIGIDIR — bir blogun basliginda cipin adi
+GECMESI onu o cipin kapanisi YAPMAZ (olculdu: `## … 🔍 MaCiT bagimsiz dogrulama: <ad> cip-raporu
+DOGRULANDI` blogu adi tasir ama kapanis DEGILDIR).
+KONUM OLCUTU (K318 KOL-1'in kardesi): `BASLIYORUM` yalniz BASLIK satirinda sayilir. Govdedeki
+anma (bu kurali TARTISAN raporlar, kapanis sayan olcum bloklari — canli kutuda bugun IKI TANE
+vardi) veto URETMEZ; sayilir ve `basliyorum_govde_anmasi=` diye BASILIR.
+FAIL-CLOSED: basliginda `BASLIYORUM` gecen ama CIP ADI CIKARILAMAYAN blok da KORUNUR
+(`sinif=ACIK_ADSIZ`) — "bilmiyorsam tasimam".
+SESSIZ ATLAMA YASAK: atlanan her blok CIP ADIYLA basilir (`ACIK_BASLIYORUM_ADLARI=`), 0 ile n
+AYNI SATIRDAN okunur. Kutu tavan ustunde kalirsa sebebi GORUNUR.
+KILITLENME YOK (kabul ③): kapanisi OLAN `BASLIYORUM` blogu YINE TASINIR ve korumali blok
+K318 KOL-2 uyarinca YERINDE ATLANIR — veto kuyrugu rehin ALMAZ.
+SIRA DEGISMEZLIGI (neden kalici kilit olusmaz): kutu YENI->ESKI sirali ve bir kapanis daima
+kendi `BASLIYORUM`undan SONRA yazilir, yani ONUN USTUNDE durur. Rotasyon DIPTEN sectigi icin
+`BASLIYORUM` blogu kapanisindan ONCE arsive gider; "kapanis arsivde, `BASLIYORUM` kutuda
+kilitli" hali bu siradan dogamaz. Cip kapanis YAZMADAN olurse blok kalir — ZATEN ISTENEN budur.
+
 YAZMA SIRASI — NEDEN ONCE ARSIV: iki ayri dosya tek islemde atomik yazilamaz. Once ARSIV
 (ekleme), sonra KUTU (kisaltma) yazilir. Ikisinin arasinda cokme olursa sonuc MUKERRER
 icerik olur (arsivde var, kutuda da duruyor) — geri alinabilir. Ters sirada sonuc KAYIP
@@ -108,7 +141,7 @@ degiskeni set edilmediginde HICBIR ETKISI YOKTUR. Set edildiginde aday metinler
 dogrulamadan ONCE kasten bozulur; kabul testi boylece "lossless dogrulamasi GERCEKTEN
 kirmizi yakiyor mu" sorusunu OLCEBILIR (dogrulamayi silen mutant KIRMIZI yanar).
 Degerler: arsiv-satir-dus | kutu-satir-dus | arsiv-onek-boz | arsiv-sira-boz |
-          koruma-jeton-sizdir | kutu-blok-dus
+          koruma-jeton-sizdir | kutu-blok-dus | basliyorum-sizdir
 
 Kullanim:
     python3 tools/kutu-arsivle.py --kuru
@@ -145,7 +178,7 @@ RC_KILIT = 3        # kilit baskasinda -> HICBIR SEY yazilmadi (fail-closed)
 # N BURADAN turer; elle yazilan sayi kaynagindan ayrisir ve beyan sessizce yalanlanir.
 IDDIA_EKSENLERI = ("D1", "D1b", "D1c", "D2", "D3", "D4", "D5", "D5b", "D6", "D6b",
                    "D6c", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14",
-                   "D15", "D16")
+                   "D15", "D16", "D17")
 
 # 🔴 KAPANIS JETONU — TEK KAYNAK (K313g). Kural ⑤ (Okan, baglayici) isi biten cipin
 # kapanisinin SONUNA birebir `✅ İŞ BİTTİ — ARŞİVLENEBİLİRİM` koymasini ister; satir
@@ -448,17 +481,142 @@ def korumali_bloklar(satirlar, baslar):
     return bulgu, govde_anmasi
 
 
-def sabit_indeksler(blok_sayisi_, koru, korumali_indeksler):
+# ---------------------------------------------------------------- K329 ACIK CIP KOLU
+# 🔴 KAPANISSIZ `BASLIYORUM` = ACIK CIP. Gerekce ve olculen vaka: modul basligindaki
+# "ACIK CIP" blogu. Bu bolum o kolun TEK KAYNAGIDIR; ikinci bir "acik mi" testi
+# HICBIR YERDE yazilmaz ([[ikiz-tanim-sessiz-ayrisma]]).
+BASLIYORUM_JETON = "BASLIYORUM"
+KAPANIS_BASLIK_JETON = "SAYILI KAPANIS"
+
+# Kutu Turkce yazilir ve AYNI jeton hem Turkce hem ASCII sarmalda gecer (canli olcum:
+# `BAŞLIYORUM` ve `BASLIYORUM`, `SAYILI KAPANIŞ` ve `SAYILI KAPANIS` ayni gun ayni
+# kutuda). Dar bir desen sarmallarin bir kismini kacirir ve tam da onarmaya calistigimiz
+# kaybi uretir -> karsilastirma DAIMA sadelestirilmis metin uzerinde yapilir.
+_TR_SADE = str.maketrans({
+    "Ç": "C", "ç": "C", "Ğ": "G", "ğ": "G", "İ": "I", "ı": "I",
+    "Ö": "O", "ö": "O", "Ş": "S", "ş": "S", "Ü": "U", "ü": "U",
+})
+
+# CIP ADI = baslik satirindaki ILK backtick'li `<Ev>-<Is>` jetonu. Ayirt edici sart
+# ADIN SEKLIDIR: tire ICERIR, bosluk/egik-cizgi/nokta ICERMEZ. Boylece ayni baslikta
+# gecen dosya yollari (`tools/kutu-arsivle.py`), commit sha'lari (`e59c0bcc`) ve
+# vurgu isaretleri ad SANILMAZ. Ad CIKARILAMAZSA blok KORUNUR (fail-closed).
+CIP_ADI_RE = re.compile(r"`([^`\n]+)`")
+_AD_YASAK = (" ", "\t", "/", ".", ",", "*", "(", ")", ":", "`")
+
+
+def sadelestir(metin):
+    """Turkce harfleri ASCII'ye katlar + BUYUK HARFE cevirir (jeton karsilastirmasi icin)."""
+    return metin.translate(_TR_SADE).upper()
+
+
+def cip_adi(baslik):
+    """Baslik satirindaki ILK CIP ADI jetonu, yoksa None."""
+    for aday in CIP_ADI_RE.findall(baslik):
+        ad = aday.strip()
+        if len(ad) < 5 or "-" not in ad:
+            continue
+        if any(k in ad for k in _AD_YASAK):
+            continue
+        return ad
+    return None
+
+
+def blok_kapanis_mi(satirlar, bas, son):
+    """(kapanis_mi, hata) — blok bir CIP KAPANISI mi?
+
+    IKI YOLDAN BIRI YETER (canli kutuda ikisi de gecmektedir):
+      * BASLIK satirinda `SAYILI KAPANIS` geciyor,
+      * blogun KAPANIS KONUMUNDA kapanis jetonu var — BEKLEYEN **ya da** ISLENMIS.
+        Ikisi de "is BITTI" demektir; aralarindaki fark Okan'in ARSIVLEYIP
+        arsivlemedigidir ve K329 acisindan ONEMSIZDIR (K313g o ayrimi zaten kendi
+        ekseninde tutuyor — burada tekrar edilirse iki kol sessizce ayrisir).
+    Kapanis konumu AYRISTIRILAMAZSA hata dondurulur ve blok kapanis SAYILMAZ; yani
+    belirsizlik yine KORUMA yonundedir (o cipin `BASLIYORUM`u acik kalir).
+    """
+    if son <= bas:
+        return False, "BOS BLOK ARALIGI (bas=%d son=%d)" % (bas, son)
+    if KAPANIS_BASLIK_JETON in sadelestir(satirlar[bas]):
+        return True, None
+    idx, hata = kapanis_satiri(satirlar, bas, son)
+    if hata is not None:
+        return False, hata
+    if BEKLEYEN_JETON in satirlar[idx] or ISLENMIS_JETON in satirlar[idx]:
+        return True, None
+    return False, None
+
+
+def kapanan_cipler(satirlar, baslar):
+    """Kutuda KAPANISI BULUNAN cip adlari kumesi (ad -> birebir esitlik)."""
+    adlar = set()
+    araliklar = blok_araliklari(satirlar, baslar)
+    i = 0
+    while i < len(araliklar):
+        bas, son = araliklar[i]
+        kapanis, _hata = blok_kapanis_mi(satirlar, bas, son)
+        if kapanis:
+            ad = cip_adi(satirlar[bas])
+            if ad:
+                adlar.add(ad)
+        i += 1
+    return adlar
+
+
+def acik_cip_bloklari(satirlar, baslar, kapanan=None):
+    """([(blok_idx, ad, ozet, sinif)], kapanmis, govde_anmasi, kapanan) — TEK KAYNAK.
+
+    🔴 ICRA kolu (`planla`) ve DENETIM kolu (`dogrula` D17) BU fonksiyonu cagirir.
+    DENETIM kolu `kapanan` kumesini DISARIDAN alir: tasinan metin TEK BASINA
+    okundugunda cipin kapanisi (kutuda kalmis olabilecegi icin) GORUNMEZ ve denetim
+    ICRADAN AYRISIP masum bir tasimayi kirmiziya yakardi. Karar ANINDAKI kutu, iki
+    kol icin de TEK TABANDIR.
+
+    KORUMALI iki sinif:
+      "ACIK_BASLIYORUM" — baslikta `BASLIYORUM` var, cipin kapanisi kutuda YOK.
+      "ACIK_ADSIZ"      — baslikta `BASLIYORUM` var ama CIP ADI cikarilamadi.
+    SAYILAN ama KORUMASIZ iki hal (GIZLENMEZ, donus degeriyle basilir):
+      `kapanmis`      — `BASLIYORUM` blogu, kapanisi VAR -> rotasyona ACIK.
+      `govde_anmasi`  — `BASLIYORUM` yalniz GOVDEDE geciyor -> veto URETMEZ.
+    """
+    araliklar = blok_araliklari(satirlar, baslar)
+    if kapanan is None:
+        kapanan = kapanan_cipler(satirlar, baslar)
+    acik = []
+    kapanmis = 0
+    govde_anmasi = 0
+    i = 0
+    while i < len(araliklar):
+        bas, son = araliklar[i]
+        baslik = satirlar[bas]
+        if BASLIYORUM_JETON not in sadelestir(baslik):
+            if BASLIYORUM_JETON in sadelestir("".join(satirlar[bas:son])):
+                govde_anmasi += 1
+            i += 1
+            continue
+        ad = cip_adi(baslik)
+        if ad is None:
+            acik.append((i, None, baslik.strip()[:70], "ACIK_ADSIZ"))
+        elif ad in kapanan:
+            kapanmis += 1
+        else:
+            acik.append((i, ad, baslik.strip()[:70], "ACIK_BASLIYORUM"))
+        i += 1
+    return acik, kapanmis, govde_anmasi, kapanan
+
+
+def sabit_indeksler(blok_sayisi_, koru, korumali_indeksler, acik_indeksler=()):
     """ROTASYONA GIRMEYECEK blok indeksleri kumesi — TEK KAYNAK.
 
-    Iki kaynaktan TURER, elle kopyalanmaz:
+    UC kaynaktan TURER, elle kopyalanmaz:
       * `koru` TABANI: en ustteki `koru` blok her zaman dokunulmaz,
-      * KORUMA: bekleyen kapanis jetonu tasiyan blok, NEREDE OLURSA OLSUN dokunulmaz.
-    🔴 K318 KOL-2: korumali blok artik ALTINDAKI bloklari REHIN ALMAZ — kume bir
-    ARALIK degil, ayrik bir KUMEDIR; rotasyon korumaliyi YERINDE ATLAR.
+      * KORUMA (K313g): bekleyen kapanis jetonu tasiyan blok, NEREDE OLURSA OLSUN,
+      * ACIK CIP (K329): kapanissiz `BASLIYORUM` blogu, NEREDE OLURSA OLSUN.
+    🔴 K318 KOL-2: hicbiri ALTINDAKI bloklari REHIN ALMAZ — kume bir ARALIK degil,
+    ayrik bir KUMEDIR; rotasyon sabit blogu YERINDE ATLAR.
     """
     sabit = set(range(min(koru, blok_sayisi_)))
     sabit.update(korumali_indeksler)
+    sabit.update(acik_indeksler)
     return sabit
 
 
@@ -489,6 +647,12 @@ class Plan(object):
         self.korumali_kilitledi = 0  # `koru` tabaninin ALTINDA kalip yerinde atlanan
         self.yerinde_atlanan = 0     # tasinanlarin USTUNDE kalan korumali blok sayisi
         self.koruma_tuttu = False    # is YOKLUGUNUN sebebi KORUMA mi
+        # ACIK CIP KOLU (K329) — K313g'den AYRI KOVA, AYRI SAYI
+        self.acik_cip = []                 # [(blok_idx, ad, ozet, sinif)]
+        self.kapanmis_basliyorum = 0       # kapanisi BULUNAN `BASLIYORUM` blogu
+        self.basliyorum_govde_anmasi = 0   # `BASLIYORUM` yalniz GOVDEDE geciyor
+        self.acik_kilitledi = 0            # `koru` tabaninin ALTINDA kalan acik cip
+        self.kapanan_adlar = set()         # denetim kolunun (D17) okudugu TABAN
 
 
 def planla(kutu_metin, tavan, koru):
@@ -522,7 +686,16 @@ def planla(kutu_metin, tavan, koru):
     p.korumali, p.govde_anmasi = korumali_bloklar(satirlar, baslar)
     korumali_idx = [b for b, _s, _o, _k in p.korumali]
     p.korumali_kilitledi = len([b for b in korumali_idx if b >= koru])
-    p.sabit = sabit_indeksler(len(baslar), koru, korumali_idx)
+
+    # 🔴 ACIK CIP KOLU (K329) — AYRI EKSEN, AYRI SAYI. `koru` tabani ve K313g ile
+    # ayni kumeye AKAR ama ayni SAYIYA akmaz: sinif adini kol adi olarak basmak
+    # ucuncu hali yutar ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+    (p.acik_cip, p.kapanmis_basliyorum, p.basliyorum_govde_anmasi,
+     p.kapanan_adlar) = acik_cip_bloklari(satirlar, baslar)
+    acik_idx = [b for b, _a, _o, _k in p.acik_cip]
+    p.acik_kilitledi = len([b for b in acik_idx if b >= koru])
+
+    p.sabit = sabit_indeksler(len(baslar), koru, korumali_idx, acik_idx)
 
     p.korunan = len(p.sabit)
     p.tasinabilir = max(0, len(baslar) - len(p.sabit))
@@ -539,7 +712,10 @@ def planla(kutu_metin, tavan, koru):
         p.tavan_asili_kaldi = True
         # SEBEP AYRIMI: is yoklugunun sebebi `koru` mu, KORUMA mi? Iki hal ayni
         # ciktiyi basarsa kota kilidi SESSIZ kalir — tam da yasaklanan sey.
-        p.koruma_tuttu = p.korumali_kilitledi > 0
+        # K329: ACIK CIP de bir GORUNURLUK korumasidir; kota kapisi (K318 KOL-3)
+        # tam olarak "arac ISI KASITLI OLARAK yapmiyor" halini tuketir ve bu hal
+        # odur. Bu yuzden AYNI hukme akar — ama SAYILARI ayri basilir.
+        p.koruma_tuttu = (p.korumali_kilitledi + p.acik_kilitledi) > 0
         return p
 
     # 🔴 K318 KOL-2 SECIM — EN ESKIDEN baslanir, KORUMALI blok YERINDE ATLANIR.
@@ -569,7 +745,8 @@ def planla(kutu_metin, tavan, koru):
     # Tasinan EN YENI blogun USTUNDE kalan korumali blok sayisi — "yerinde atlandi"
     # halinin SAYISI (0 ise rotasyon bitisik kuyruk olmustur).
     if secilenler:
-        p.yerinde_atlanan = len([b for b in korumali_idx if b > secilenler[0]])
+        p.yerinde_atlanan = len([b for b in (korumali_idx + acik_idx)
+                                 if b > secilenler[0]])
     return p
 
 
@@ -668,6 +845,18 @@ def ariza_uygula(yeni_kutu, ek, yeni_arsiv):
         satir = "✅ IS BITTI — %s\n" % BEKLEYEN_JETON
         yeni_arsiv = yeni_arsiv + satir
         ek = ek + satir
+    elif ariza == "basliyorum-sizdir":
+        # 🔴 K329 DENETIM KOLUNUN OLCU ALETI: planla() dogru calissa bile, tasinan
+        # metne KAPANISSIZ bir `BASLIYORUM` blogu SIZARSA D17 bunu YAKALAMAK
+        # ZORUNDADIR. D17 silinirse bu ariza sessizce diske yazilir -> kabul testi
+        # KIRMIZI yanar. (Baska iddialar da atesler; kabul testi bu yuzden kirmiziyi
+        # ADIYLA arar, "kirmizi geldi" ile yetinmez — [[K182]] hedef-kol atfi.)
+        blok = ("## 2026-08-28 — 🚀 %s · cip `ZzZ-Sizinti-28Agu`\n"
+                "\n"
+                "sentetik sizinti govdesi\n"
+                "\n" % BASLIYORUM_JETON)
+        yeni_arsiv = yeni_arsiv + blok
+        ek = ek + blok
     elif ariza == "kutu-blok-dus":
         # 🔴 K318 KOL-2 DENETIM KOLUNUN OLCU ALETI: GRANULER birlestirme, bitisik
         # dilimlemenin URETEMEYECEGI yeni bir ariza sinifi acar — KALAN bloklardan
@@ -846,6 +1035,22 @@ def dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv, plan, t
                  "yuzeyden GORUNMEZ olurdu. Fail-closed: hicbir sey yazilmadi. "
                  "(Jeton `%s` bicimine cevrilince blok rotasyona ACILIR.) | %s"
                  % (sinif, satir_no, BEKLEYEN_JETON, ISLENMIS_JETON, ozet))
+
+    # ---------------------------------------------------------------- K329 ekseni
+    # 17. 🔴 ACIK CIP — TASINAN METINDE KAPANISSIZ `BASLIYORUM` BLOGU OLAMAZ.
+    #     planla() ICRA eder (blogu sabit kumeye koyar), bu iddia DENETLER. Ikisi
+    #     AYNI `acik_cip_bloklari()` fonksiyonunu cagirir; `kapanan` kumesi karar
+    #     ANINDAKI KUTUDAN gelir (plan.kapanan_adlar) — tasinan metin tek basina
+    #     okunsaydi kutuda KALAN kapanislar gorunmez, denetim ICRADAN AYRISIR ve
+    #     mesru bir tasimayi kalici kirmiziya cevirirdi ([[ikiz-tanim-sessiz-ayrisma]]).
+    ek_acik, _ek_kapanmis, _ek_govde, _ek_adlar = acik_cip_bloklari(
+        ek_satir_ke, blok_baslari(ek_satir_ke), kapanan=plan.kapanan_adlar)
+    for _bi, ad, ozet, sinif in ek_acik:
+        h.append("D17 ACIK CIP IHLALI (%s): tasinan metinde ESLESEN KAPANISI OLMAYAN "
+                 "bir `%s` blogu var (cip `%s`) -> cip HALA KOSUYOR olabilir ve "
+                 "'su an kim kosuyor' sorusunun cevabi Okan'in bakacagi yuzeyden "
+                 "GORUNMEZ olurdu. Fail-closed: hicbir sey yazilmadi. | %s"
+                 % (sinif, BASLIYORUM_JETON, ad or "AD_YOK", ozet))
 
     # ---------------------------------------------------------------- K318 KOL-2 ekseni
     # 15/16. SIRA — ozgun sira KORUNDU mu? D1 partisyonu metnin AYNI oldugunu olcer;
@@ -1158,6 +1363,28 @@ def main(argv=None):
                   "o blokta `%s` -> `%s` cevrilir ve blok rotasyona ACILIR."
                   % (BEKLEYEN_JETON, ISLENMIS_JETON))
 
+        # 🔴 K329 ACIK CIP KOLU — HER kosumda basilir, is olsa da olmasa da; 0 ile n
+        # AYNI SATIRDAN okunur. "Sessizce atlamak" YASAK: atlanan blok CIP ADIYLA
+        # basilir, cunku kutu tavan ustunde kalirsa SEBEBI gorunmelidir.
+        print("ACIK_BASLIYORUM=%d kapanmis_basliyorum=%d basliyorum_govde_anmasi=%d "
+              "kilitledi=%d  [KAPI]"
+              % (len(p.acik_cip), p.kapanmis_basliyorum, p.basliyorum_govde_anmasi,
+                 p.acik_kilitledi))
+        print("ACIK_BASLIYORUM_ADLARI=%s"
+              % (",".join((ad or "AD_YOK") for _b, ad, _o, _k in p.acik_cip) or "-"))
+        for blok_idx, ad, ornek, sinif in p.acik_cip:
+            print("  * ACIK CIP blok %d/%d (sinif=%s): cip `%s` — ESLESEN KAPANIS "
+                  "kutuda YOK -> blok ROTASYONA GIRMEZ (YERINDE ATLANDI) | %s"
+                  % (blok_idx + 1, p.blok_toplam, sinif, ad or "AD_YOK", ornek))
+        if p.basliyorum_govde_anmasi:
+            print("  · BASLIYORUM GOVDE ANMASI=%d blok: jeton blogun ICINDE geciyor ama "
+                  "BASLIK satirinda DEGIL -> veto URETMEZ (K329 konum olcutu), blok "
+                  "rotasyona ACIK." % p.basliyorum_govde_anmasi)
+        if p.acik_cip:
+            print("NE YAPILMALI: bu cip(ler) sayili KAPANISINI kutuya YAZSIN "
+                  "(`SAYILI KAPANIS` basligi ya da kapanis jetonu); ayni ADLA bir "
+                  "kapanis blogu goruldugu anda `BASLIYORUM` blogu rotasyona ACILIR.")
+
         # 🔴 K310 — HER KOSUMDA olculur, is olsa da olmasa da. Bu arac kutunun TAMAMINI
         # her push'ta okuyan TEK otomatik gozdur; yapisal butunlugu burada sormamak,
         # hic sormamaktir.
@@ -1195,11 +1422,14 @@ def main(argv=None):
                 # Sessiz pes etme yasak (spec K313g); gorunurluk kota kirmizisina TERCIH
                 # EDILIR ve bu tercih her kosumda TEKRAR BASILIR.
                 if p.koruma_tuttu:
-                    print("HUKUM=KORUMA_TUTTU rc=0 sebep=bekleyen kapanis blogu rotasyona "
-                          "GIRMEZ (KORUMALI_BEKLEYEN=%d, kilitledi=%d, taban koru=%d). "
-                          "Kutu tavanin USTUNDE kalabilir — GORUNURLUK kota kirmizisina "
-                          "tercih edilir (Okan kurali ⑤); hal GIZLENMEDI, BASILDI."
-                          % (len(p.korumali), p.korumali_kilitledi, a.koru))
+                    print("HUKUM=KORUMA_TUTTU rc=0 sebep=bekleyen kapanis blogu ve/veya "
+                          "ACIK CIP blogu rotasyona GIRMEZ (KORUMALI_BEKLEYEN=%d "
+                          "kilitledi=%d · ACIK_BASLIYORUM=%d kilitledi=%d, taban "
+                          "koru=%d). Kutu tavanin USTUNDE kalabilir — GORUNURLUK kota "
+                          "kirmizisina tercih edilir (Okan kurali ⑤); hal GIZLENMEDI, "
+                          "BASILDI."
+                          % (len(p.korumali), p.korumali_kilitledi,
+                             len(p.acik_cip), p.acik_kilitledi, a.koru))
                 else:
                     print("HUKUM=KORU_TUTTU rc=0 sebep=--koru %d tasinabilir blok "
                           "birakmiyor (koruma kolu DEVREDE DEGIL)" % a.koru)
@@ -1255,11 +1485,12 @@ def main(argv=None):
         if not p.tavan_asili_kaldi:
             print("HUKUM=TASIMA_YAPILABILIR rc=0 tasinacak_blok=%d sonra_satir=%d "
                   "tavan=%d" % (p.tasinacak_blok, p.sonra_satir, a.tavan))
-        elif p.korumali_kilitledi > 0:
-            print("HUKUM=KORUMA_TUTTU_KISMI rc=0 sebep=%d bekleyen kapanis blogu "
-                  "YERINDE ATLANDI ve kutuda kaldi; tasinabilen %d blok tasindi ama "
-                  "kutu (%d satir) tavanin (%d) USTUNDE kaldi"
-                  % (p.korumali_kilitledi, p.tasinacak_blok, p.sonra_satir, a.tavan))
+        elif (p.korumali_kilitledi + p.acik_kilitledi) > 0:
+            print("HUKUM=KORUMA_TUTTU_KISMI rc=0 sebep=%d bekleyen kapanis + %d ACIK "
+                  "CIP blogu YERINDE ATLANDI ve kutuda kaldi; tasinabilen %d blok "
+                  "tasindi ama kutu (%d satir) tavanin (%d) USTUNDE kaldi"
+                  % (p.korumali_kilitledi, p.acik_kilitledi, p.tasinacak_blok,
+                     p.sonra_satir, a.tavan))
         else:
             print("HUKUM=TASIMA_YETMEDI rc=0 sebep=tasinabilir bloklar TUKENDI, kutu "
                   "(%d satir) tavanin (%d) USTUNDE kaldi (koruma kolu DEVREDE DEGIL)"

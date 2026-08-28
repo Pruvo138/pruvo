@@ -53,6 +53,17 @@ VAKALAR (hepsi bloklayici):
       (`kutu-blok-dus` arizasi) D1/D1c/D2 KIRMIZI yakar, hicbir sey yazilmaz
   30. KOL-3 GIRDISI — `koru` disindaki HER blok korumaliysa `tasinabilir=0` +
       `HUKUM=KORUMA_TUTTU` jetonlari basilir (kapinin TUKETTIGI hal)
+  31. 🔴 K329 ASIL — eslesen kapanisi OLMAYAN `BASLIYORUM` blogu TASINMAZ; atlandigi
+      CIP ADIYLA basilir (`ACIK_BASLIYORUM_ADLARI=`), blok kutuda KALIR
+  32. 🔴 K329 KONTROL — kapanisi OLAN `BASLIYORUM` blogu YINE TASINIR ve kutu tavanin
+      ALTINA iner: veto rotasyonu KILITLEMEZ (yeni tikanma URETMEDI)
+  33. 🔴 K329 ESLESTIRME (MINIMAL CIFT, iki yonlu) — (A) cipin adini ANAN ama kapanis
+      OLMAYAN blok vetoyu KALDIRMAZ; (B) ayni fiksture TEK SATIR eklenip o blok
+      GERCEK kapanis olunca veto KALKAR ve blok tasinir
+  34. 🔴 K329 DENETIM — tasinan metne acik blok SIZARSA (`basliyorum-sizdir` arizasi)
+      D17 KIRMIZI yakar, hicbir sey yazilmaz; kirmizinin SEBEBI ADIYLA aranir
+  35. 🔴 K329 KONUM OLCUTU — `BASLIYORUM` yalniz GOVDEDE geciyorsa veto URETMEZ,
+      blok tasinir ve `basliyorum_govde_anmasi=1` ADIYLA basilir (yanlis pozitif)
 
 🔴 17-19'UN FIKSTURU AYRI (`kutu_uret_ayracli`): 1-16 arasi fiksturler bloklari AYRAC
 (`---`) ile ayirmaz, CANLI kutu ayirir. Oksuz govde ekseni ayraca dayandigi icin bu uc
@@ -68,6 +79,13 @@ MUTASYON (cift yonlu, KOPYA uzerinde — canli dosyaya DOKUNMAZ):
   (f) koruma ICRA kolunu oldur       -> suite KIRMIZI olmali (vaka 20/22)
   (g) korumali blok TESPITINI oldur  -> suite KIRMIZI olmali (vaka 20/22)
   (h) D14 koruma DENETIMINI oldur    -> suite KIRMIZI olmali (vaka 23)
+  (i) kapanis KONUMU olcutunu oldur  -> suite KIRMIZI olmali (vaka 25)
+  (j) granulerligi oldur             -> suite KIRMIZI olmali (20/22/28 + 31/32/33)
+  (k) kayipsizlik beyanini sustur    -> suite KIRMIZI olmali (vaka 28)
+  (l) K329 veto ICRA kolunu oldur    -> suite KIRMIZI olmali (vaka 31/32/33)
+  (m) D17 acik cip DENETIMINI oldur  -> suite KIRMIZI olmali (vaka 34)
+  (n) K329 KONUM olcutunu oldur      -> suite KIRMIZI olmali (vaka 35)
+  (o) K329 ESLESTIRMEyi gevset       -> suite KIRMIZI olmali (vaka 31/32/33)
   (c) ilgisiz metin degisikligi      -> suite YESIL kalmali
   Mutasyon oncesi/sonrasi canli aracin sha256'si BASILIR ve ESITLIGI iddia edilir.
 
@@ -1073,6 +1091,245 @@ def v30_tasinabilir_sifir_koruma_tuttu(arac, kok):
     iddia("30h arsiv DEGISMEDI", sha(a.arsiv) == h2)
 
 
+# =========================== K329 — ACIK CIP (KAPANISSIZ `BASLIYORUM`) ===========
+# 🔴 OLCULEN VAKA (27 Agu 23:38 + 28 Agu, ikinci kez): cip `KraL-NobetTuru-27Agu`
+# `BASLIYORUM` blogunu yazdi, BASKA bir cipin rotasyonu o blogu CIP KOSARKEN arsive
+# tasidi. Kayip yok, GORUNURLUK yok. Fikstur o vakanin SEKLINI tasir.
+ACIK_AD = "KraL-NobetTuru-27Agu"      # kapanisi OLMAYAN cip -> VETO
+KAPALI_AD = "KraL-Kapanan-27Agu"      # kapanisi OLAN cip    -> KONTROL, tasinmali
+
+CIP_GOVDE = ("\n"
+             "**Olcum:** sentetik cip blogu %d — kabul testi fiksturu.\n"
+             "\n"
+             "- Sayi: %d kayit, sapma 0.\n"
+             "- Karar: kapi fail-closed kalir.\n"
+             "\n"
+             "— MimarA\n"
+             "\n")
+
+
+def cip_blogu(i, baslik, kuyruk=None):
+    g = baslik + "\n" + (CIP_GOVDE % (i, 100 + i))
+    if kuyruk:
+        g += kuyruk + "\n\n"
+    return g
+
+
+def kutu_uret_k329(tuzak_kapanis=False, dolgu=2):
+    """K329 fiksturu — 27 Agu vakasinin SEKLI (AYRACLI, canli kutu gelenegi).
+
+    Blok sirasi (YENI -> ESKI, 1-tabanli):
+      1-3  `koru` tabani dolgusu (dokunulmaz)
+      4    `KAPALI_AD` KAPANIS blogu  -> 6. blogu SERBEST birakan tek sey
+      5    TUZAK: baslikta `ACIK_AD` GECER ama blok KAPANIS DEGIL
+      6    `KAPALI_AD` BASLIYORUM     -> KONTROL: TASINMALI
+      7    `ACIK_AD`   BASLIYORUM     -> VETO: TASINMAMALI
+      8..  eski generic dolgu bloklari
+
+    tuzak_kapanis=True -> 5. bloga TEK SATIR (`ISLENMIS_SATIR`) eklenir ve blok
+    o cipin GERCEK kapanisi olur. Iki fikstur MINIMAL CIFTTIR: aralarindaki tek
+    fark o satirdir, yani 7. blogun kaderindeki degisiklik YALNIZCA eslestirme
+    olcutune atfedilebilir.
+    """
+    basliklar = [
+        # 🔴 Dolgu bloklari BILEREK `BASLIYORUM` TASIMAZ: tasisalardi `koru` tabani
+        # onlari zaten korurdu ama sayaca girer ve `ACIK_BASLIYORUM=1` iddiasi
+        # olcmek istedigimiz bloktan BASKA bir sebeple dogru/yanlis cikardi.
+        ("## 2026-08-28 — MimarA → MimarB: koru dolgusu 1", None),
+        ("## 2026-08-28 — ✅ SAYILI KAPANIS · cip `KraL-Yeni2-28Agu`", None),
+        ("## 2026-08-28 — ✅ SAYILI KAPANIS · cip `KraL-Yeni3-28Agu`", None),
+        ("## 2026-08-27 — ✅ SAYILI KAPANIŞ · çip `%s` — is bitti" % KAPALI_AD, None),
+        ("## 2026-08-27 — 🔍 MimarB bagimsiz dogrulama · cip `%s` — rapor DOGRULANDI"
+         % ACIK_AD, ISLENMIS_SATIR if tuzak_kapanis else None),
+        ("## 2026-08-27 — 🟢 BAŞLIYORUM · çip `%s`" % KAPALI_AD, None),
+        ("## 2026-08-27 — 🚀 BAŞLIYORUM · çip `%s`" % ACIK_AD, None),
+    ]
+    parcalar = [FM]
+    i = 0
+    while i < len(basliklar):
+        baslik, kuyruk = basliklar[i]
+        parcalar.append(cip_blogu(i, baslik, kuyruk) + "---\n\n")
+        i += 1
+    j = 0
+    while j < dolgu:
+        parcalar.append(blok(100 + j) + "---\n\n")
+        j += 1
+    return "".join(parcalar)
+
+
+# TAVAN, fikstur olçüsüne göre seçildi: veto TUTARKEN bile kutu tavanin ALTINA
+# inmeli (v32h). Aksi halde "kutu tavan ustunde kaldi" hali vetodan mi fikstur
+# darligindan mi geliyor AYIRT EDILEMEZDI.
+K329_TAVAN = 55
+K329_ACIK_IDX = 6        # 0-tabanli: `ACIK_AD` BASLIYORUM blogu
+K329_KONTROL_IDX = 5     # 0-tabanli: `KAPALI_AD` BASLIYORUM blogu
+K329_TUZAK_IDX = 4       # 0-tabanli: adi ANAN ama kapanis OLMAYAN blok
+
+
+def _k329_baslik(metin, idx):
+    """idx. blogun BASLIK satiri — araci CAGIRMADAN, fikstur metninden."""
+    satirlar = metin.splitlines(keepends=True)
+    bas, _son = _blok_dilimleri(metin)[idx]
+    return satirlar[bas].rstrip("\n")
+
+
+def v31_acik_basliyorum_veto(arac, kok):
+    """[31] 🔴 K329 ASIL — kapanissiz `BASLIYORUM` blogu TASINMAZ ve ADIYLA basilir."""
+    print("\n[31] K329 ASIL — kapanisi OLMAYAN `BASLIYORUM` blogu ROTASYONA GIRMEZ")
+    metin = kutu_uret_k329()
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    acik_baslik = _k329_baslik(metin, K329_ACIK_IDX)
+    iddia("31a fikstur GERCEKTEN tavani asiyor",
+          len(metin.splitlines()) > K329_TAVAN, "satir=%d" % len(metin.splitlines()))
+    # 🔴 BAGIMSIZ ORACLE: beklenen tasima kumesi aracin kodundan DEGIL, "6. blok
+    # sabittir" varsayimindan TURER (elle yazilan sayi kaynagindan ayrisirdi).
+    bek_tasinan, bek_kalan = oracle_granuler(metin, K329_TAVAN, 3, [K329_ACIK_IDX])
+    iddia("31b oracle: acik blok DISINDA tasinacak blok VAR", len(bek_tasinan) > 0,
+          "oracle bos")
+    iddia("31c oracle: acik blok (%d) tasinanlarda DEGIL" % (K329_ACIK_IDX + 1),
+          K329_ACIK_IDX not in bek_tasinan, "%r" % bek_tasinan)
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=K329_TAVAN, koru=3)
+    iddia("31d rc=0", rc == 0, "rc=%d\n%s" % (rc, cikti[-900:]))
+    iddia("31e ACIK_BASLIYORUM=1 ADIYLA basildi", "ACIK_BASLIYORUM=1 " in cikti,
+          cikti[-900:])
+    iddia("31f 🔴 atlanan blok CIP ADIYLA basildi (sessiz atlama YASAK)",
+          ("ACIK_BASLIYORUM_ADLARI=%s" % ACIK_AD) in cikti, cikti[-900:])
+    iddia("31g sinif=ACIK_BASLIYORUM ADIYLA basildi", "sinif=ACIK_BASLIYORUM" in cikti,
+          cikti[-900:])
+    iddia("31h 🔴 acik blok HALA KUTUDA (gorunurluk KORUNDU)",
+          acik_baslik in oku(a.kutu), "baslik kutudan dustu: %s" % acik_baslik)
+    iddia("31i 🔴 acik blok ARSIVE SIZMADI", acik_baslik not in oku(a.arsiv))
+    iddia("31j arac BAGIMSIZ oracle ile ayni sayida blok tasidi (%d)"
+          % len(bek_tasinan),
+          ("tasinacak_blok=%d " % len(bek_tasinan)) in cikti, cikti[-900:])
+    iddia("31k lossless GECTI (veto KIRMIZI yakmadi, ATLADI)",
+          "lossless_dogrulama=GECTI" in cikti, cikti[-600:])
+    iddia("31l 'NE YAPILMALI' yonergesi basildi (ne yapilacagi SOYLENDI)",
+          "sayili KAPANISINI kutuya YAZSIN" in cikti, cikti[-900:])
+
+
+def v32_kapanisli_blok_hala_tasinir(arac, kok):
+    """[32] 🔴 K329 KONTROL — veto rotasyonu KILITLEMEZ; kapanisli blok YINE tasinir.
+
+    Bugun kutu UC KEZ tavana dayandi; tasimayi tumden durduran bir kol onarim degil
+    YENI BIR TIKANMA olurdu. Bu vaka o gerilemeyi olcer.
+    """
+    print("\n[32] K329 KONTROL — kapanisi OLAN `BASLIYORUM` blogu YINE TASINIR")
+    metin = kutu_uret_k329()
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    h1 = sha(a.kutu)
+    kontrol_baslik = _k329_baslik(metin, K329_KONTROL_IDX)
+    bek_tasinan, bek_kalan = oracle_granuler(metin, K329_TAVAN, 3, [K329_ACIK_IDX])
+    iddia("32a oracle: KONTROL blogu (%d) TASINANLARDA" % (K329_KONTROL_IDX + 1),
+          K329_KONTROL_IDX in bek_tasinan, "%r" % bek_tasinan)
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=K329_TAVAN, koru=3)
+    iddia("32b rc=0", rc == 0, cikti[-900:])
+    iddia("32c 🔴 is GERCEKTEN yapildi — kutu DEGISTI (veto her seyi kilitlemedi)",
+          sha(a.kutu) != h1)
+    iddia("32d KONTROL blogu ARSIVE gitti", kontrol_baslik in oku(a.arsiv),
+          "kapanisli blok tasinmadi -> veto KILITLEDI")
+    iddia("32e KONTROL blogu kutudan CIKTI", kontrol_baslik not in oku(a.kutu))
+    iddia("32f kapanmis_basliyorum=1 ADIYLA basildi (serbest birakilan SAYILDI)",
+          "kapanmis_basliyorum=1 " in cikti, cikti[-900:])
+    iddia("32g kutu BAGIMSIZ oracle'in hesapladigi satira indi (%d)" % bek_kalan,
+          len(oku(a.kutu).splitlines()) == bek_kalan,
+          "arac %d, oracle %d" % (len(oku(a.kutu).splitlines()), bek_kalan))
+    iddia("32h kutu tavanin ALTINA indi (kilit ACILDI)",
+          len(oku(a.kutu).splitlines()) <= K329_TAVAN,
+          "sonra=%d tavan=%d" % (len(oku(a.kutu).splitlines()), K329_TAVAN))
+    iddia("32i yerinde_atlanan=1 (bitisik kuyruk DEGIL — acik blok YERINDE atlandi)",
+          "yerinde_atlanan=1 " in cikti, cikti[-900:])
+
+
+def v33_yanlis_eslesme(arac, kok):
+    """[33] 🔴 K329 ESLESTIRME EKSENI — MINIMAL CIFT, iki yonlu.
+
+    (A) Adi ANAN ama KAPANIS OLMAYAN blok vetoyu KALDIRMAZ (yanlis eslesme kapali).
+    (B) AYNI fiksture TEK SATIR eklenip o blok GERCEK kapanis olunca veto KALKAR.
+    Fark tek satir oldugu icin davranis degisikligi YALNIZCA eslestirme olcutune
+    atfedilebilir ([[ikinci-gorus-vakasi-birinci-gorusu-tekrar-ederse-totolojidir]]).
+    """
+    print("\n[33] K329 ESLESTIRME — adi ANMAK kapanis DEGILDIR (minimal cift)")
+    tuzakli = kutu_uret_k329(tuzak_kapanis=False)
+    kapanisli = kutu_uret_k329(tuzak_kapanis=True)
+    iddia("33a MINIMAL CIFT: iki fikstur TEK SATIR farkli",
+          kapanisli.replace("\n" + ISLENMIS_SATIR + "\n\n", "\n", 1) == tuzakli,
+          "fiksturler kapanis satiri disinda da ayrisiyor")
+    iddia("33b tuzak blogun basliginda acik cipin ADI GERCEKTEN geciyor",
+          ACIK_AD in _k329_baslik(tuzakli, K329_TUZAK_IDX),
+          _k329_baslik(tuzakli, K329_TUZAK_IDX))
+
+    acik_baslik = _k329_baslik(tuzakli, K329_ACIK_IDX)
+    os.makedirs(os.path.join(kok, "a"), exist_ok=True)
+    a = Alan(os.path.join(kok, "a"), tuzakli, "## eski arsiv blogu\n\ngovde\n")
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=K329_TAVAN, koru=3)
+    iddia("33c (A) rc=0", rc == 0, cikti[-900:])
+    iddia("33d (A) 🔴 ACIK_BASLIYORUM=1 — adi ANMAK vetoyu KALDIRMADI",
+          "ACIK_BASLIYORUM=1 " in cikti, cikti[-900:])
+    iddia("33e (A) acik blok kutuda KALDI", acik_baslik in oku(a.kutu))
+
+    os.makedirs(os.path.join(kok, "b"), exist_ok=True)
+    b = Alan(os.path.join(kok, "b"), kapanisli, "## eski arsiv blogu\n\ngovde\n")
+    rc2, cikti2 = kos(arac, b.kutu, b.arsiv, b.kilit, tavan=K329_TAVAN, koru=3)
+    iddia("33f (B) rc=0", rc2 == 0, cikti2[-900:])
+    iddia("33g (B) 🔴 ACIK_BASLIYORUM=0 — GERCEK kapanis vetoyu KALDIRDI",
+          "ACIK_BASLIYORUM=0 " in cikti2, cikti2[-900:])
+    iddia("33h (B) acik blok ARTIK tasindi", acik_baslik in oku(b.arsiv),
+          "kapanis geldi ama blok hala kutuda -> veto KALICI kilit")
+    iddia("33i (B) kapanmis_basliyorum=2 (iki cipin de kapanisi bulundu)",
+          "kapanmis_basliyorum=2 " in cikti2, cikti2[-900:])
+
+
+def v34_d17_denetimi(arac, kok):
+    """[34] 🔴 K329 DENETIM — tasinan metne acik blok SIZARSA D17 KIRMIZI yakar."""
+    print("\n[34] K329 DENETIM — `basliyorum-sizdir` arizasi D17'de yakalanmali")
+    metin = kutu_uret_k329()
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    h1, h2 = sha(a.kutu), sha(a.arsiv)
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=K329_TAVAN, koru=3,
+                    ortam={"PRUVO_KUTU_ARSIVLE_ARIZA": "basliyorum-sizdir"})
+    iddia("34a rc SIFIR-DISI", rc != 0, "rc=%d\n%s" % (rc, cikti[-900:]))
+    iddia("34b kutu DEGISMEDI", sha(a.kutu) == h1)
+    iddia("34c arsiv DEGISMEDI", sha(a.arsiv) == h2)
+    iddia("34d 'HICBIR SEY YAZILMADI' beyani", "HICBIR SEY YAZILMADI" in cikti,
+          cikti[-600:])
+    # 🔴 HEDEF-KOL ATFI: kirmizinin SEBEBI D17 olmali — "kirmizi geldi" YETMEZ.
+    iddia("34e kirmizinin SEBEBI D17 ACIK CIP kolu (hedef-kol atfi)",
+          "D17 ACIK CIP IHLALI" in cikti, cikti[-1200:])
+    iddia("34f sizan cipin ADI kirmizida geciyor", "ZzZ-Sizinti-28Agu" in cikti,
+          cikti[-1200:])
+
+
+def v35_basliyorum_govde_anmasi(arac, kok):
+    """[35] 🔴 K329 KONUM OLCUTU — GOVDEDE anilan `BASLIYORUM` veto URETMEZ.
+
+    K318 KOL-1'in kardesi: genis tespit, kuralin kendisini TARTISAN bloklari susuz
+    yere kilitler ve kilit yukari yayilir (o vaka DORT commit'i durdurmustu).
+    """
+    print("\n[35] K329 KONUM OLCUTU — jeton GOVDEDE, BASLIKTA degil -> veto YOK")
+    metin = kutu_uret_jetonlu(
+        30, {},
+        govde={29: "Not: bu blok `BASLIYORUM` kuralini TARTISIYOR, kendisi acik "
+                   "bir cip DEGIL."})
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    iddia("35a fikstur jetonu GOVDESINDE tasiyor, BASLIKTA degil",
+          metin.count("BASLIYORUM") == 1
+          and "BASLIYORUM" not in blok(29).splitlines()[0],
+          "sayi=%d" % metin.count("BASLIYORUM"))
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=300, koru=3)
+    iddia("35b rc=0", rc == 0, cikti[-900:])
+    iddia("35c 🔴 ACIK_BASLIYORUM=0 (govde anmasi veto URETMEDI)",
+          "ACIK_BASLIYORUM=0 " in cikti, cikti[-900:])
+    iddia("35d basliyorum_govde_anmasi=1 ADIYLA basildi (hal GIZLENMEDI, SAYILDI)",
+          "basliyorum_govde_anmasi=1 " in cikti, cikti[-900:])
+    iddia("35e blok GERCEKTEN tasindi (govdesindeki anma onu tutmadi)",
+          blok(29).splitlines()[0] in oku(a.arsiv))
+    iddia("35f kutu tavanin ALTINA indi", len(oku(a.kutu).splitlines()) <= 300,
+          "sonra=%d" % len(oku(a.kutu).splitlines()))
+    iddia("35g lossless GECTI (D17 govde anmasina KIRMIZI YAKMADI)",
+          "lossless_dogrulama=GECTI" in cikti, cikti[-600:])
+
+
 VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v04_frontmatter_ve_ust_bloklar, v05_blok_bolunmez,
            v06_arsiv_yoksa_frontmatter, v07_kilit, v08_bozuk_frontmatter,
@@ -1085,7 +1342,9 @@ VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v23_koruma_denetimi, v24_iki_kosum_birebir,
            v25_govde_anmasi_koruma_uretmez, v26_kapanis_jetonu_hala_korur,
            v27_ayristirilamayan_blok_fail_closed, v28_kayipsizlik_iki_eksen,
-           v29_blok_dus_arizasi, v30_tasinabilir_sifir_koruma_tuttu)
+           v29_blok_dus_arizasi, v30_tasinabilir_sifir_koruma_tuttu,
+           v31_acik_basliyorum_veto, v32_kapanisli_blok_hala_tasinir,
+           v33_yanlis_eslesme, v34_d17_denetimi, v35_basliyorum_govde_anmasi)
 
 
 def suite(arac, sessiz=False):
@@ -1133,10 +1392,13 @@ MUTANTLAR = (
     # K313g (27 Agu): koruma kolu IKI PARCADIR — ICRA (sabit kume) ve DENETIM
     # (dogrula/D14). Ikisi AYRI mutantla oldurulur; biri otekini gizlemesin diye
     # beklenen kirmizi vakalari da AYRI.
-    ("f) KORUMA ICRA KOLU OLDURULDU (sabit kume koruma bacagini yok sayar)",
-     "    sabit = set(range(min(koru, blok_sayisi_)))\n"
-     "    sabit.update(korumali_indeksler)\n    return sabit\n",
-     "    sabit = set(range(min(koru, blok_sayisi_)))\n    return sabit\n",
+    # 🔴 CAPA NOTU (K329, 28 Agu): `sabit_indeksler` artik UC bacaklidir (koru /
+    # K313g korumasi / K329 acik cip). Capa bu yuzden TEK BACAGA daraltildi —
+    # govdenin tamamina capalanmis eski desen yeni bacak eklenince TUTMAZ ve mutant
+    # sessizce URETILEMEDI'ye duserdi ([[capa-turetme-altyapisi-kullanilmadan-kaldi]]).
+    ("f) KORUMA ICRA KOLU OLDURULDU (sabit kume K313g bacagini yok sayar)",
+     "    sabit.update(korumali_indeksler)\n",
+     "    pass  # MUTANT: K313g koruma bacagi kaldirildi\n",
      # 28 de OLUR ve bu DOGRUDUR: v28'in BAGIMSIZ oracle'i blok 25'i korumali
      # varsayarak tasinan kumeyi hesaplar; koruma kalkinca arac baska bir kume
      # tasir ve BAYT ekseni tutmaz. Yani v28 koruma-duyarli bir vakadir.
@@ -1178,7 +1440,13 @@ MUTANTLAR = (
      # 29 YASAR ve bu DOGRUDUR: `kutu-blok-dus` arizasi granulerlikten BAGIMSIZ
      # enjekte edilir; bitisik kuyrukta da is yapilir, ariza yine yakalanir. 29'u
      # hedefe yazmak mutanti olculmedigi bir kola atfetmek olurdu.
-     True, {"20", "22", "28"}),
+     # 🔴 31/32/33 EKLENDI (K329, 28 Agu): K329 fiksturunde ACIK CIP blogu SABIT
+     # kumededir, yani bitisik kuyruga donen bir secim onun ALTINDAKI hicbir blogu
+     # tasiyamaz. Vaka 32'nin ("veto rotasyonu KILITLEMEZ") tam olarak olctugu sey
+     # budur — yani bu uc vaka GRANULERLIGE DUYARLIDIR ve mutantin onlari
+     # oldurmesi GERCEK bir bagimliliktir, atif kirliligi DEGIL. Hedefi
+     # daraltmak icin vakayi zayiflatmak, olculen ozelligi olcumden cikarirdi.
+     True, {"20", "22", "28", "31", "32", "33"}),
     # 🔴 K318 KOL-2 (27 Agu): kayipsizligin IKI EKSENDE BASILMASI sarti. Beyan
     # susturulursa 28 OLMELI; hesap dogru kalsa bile "basilmayan sayi olculmemis
     # sayidir" ([[aracin-teshis-cumlesi-olcum-degil]]).
@@ -1186,6 +1454,30 @@ MUTANTLAR = (
      '        print("KAYIPSIZLIK blok: once=%d kalan=%d tasinan=%d toplam=%d  [KAPI]"',
      '        print("kayipsizlik gizlendi %d %d %d %d"',
      True, {"28"}),
+    # 🔴 K329 (28 Agu) — ACIK CIP KOLU DORT PARCADIR ve her biri AYRI mutantla
+    # oldurulur: ICRA (sabit kume bacagi), DENETIM (D17), KONUM OLCUTU (baslik mi
+    # govde mi), ESLESTIRME (hangi blok o cipin kapanisi sayilir).
+    # `l` ve `o` AYNI vaka kumesini oldurur ve bu BEKLENEN bir ortusme: uc K329
+    # vakasi (31/32/33) TEK fiksturu paylasir. Ayirt edici iz ciktida durur —
+    # `l`de `ACIK_BASLIYORUM=1` HALA basilir (tespit yasiyor, ICRA olmus), `o`da
+    # sayi 0'a duser (tespit olmus). Ortusme ADIYLA yazildi ki "atif kirli" diye
+    # okunmasin.
+    ("l) K329 VETO ICRA KOLU OLDURULDU (acik cip sabit kumeye GIRMIYOR)",
+     "    sabit.update(acik_indeksler)\n",
+     "    pass  # MUTANT: K329 acik cip bacagi kaldirildi\n",
+     True, {"31", "32", "33"}),
+    ("m) D17 ACIK CIP DENETIMI OLDURULDU (sizan acik blok sessizce yazilir)",
+     "    for _bi, ad, ozet, sinif in ek_acik:\n",
+     "    for _bi, ad, ozet, sinif in []:  # MUTANT: D17 susturuldu\n",
+     True, {"34"}),
+    ("n) K329 KONUM OLCUTU OLDURULDU (BASLIYORUM govdede gecse de veto uretir)",
+     "        if BASLIYORUM_JETON not in sadelestir(baslik):\n",
+     "        if BASLIYORUM_JETON not in sadelestir(\"\".join(satirlar[bas:son])):\n",
+     True, {"35"}),
+    ("o) K329 ESLESTIRME KOLU GEVSETILDI (adi ANAN her blok KAPANIS sayiliyor)",
+     "        if kapanis:\n",
+     "        if True:  # MUTANT: her blok KAPANIS sayiliyor\n",
+     True, {"31", "32", "33"}),
     ("c) ILGISIZ metin degisikligi (tani satirinin bosluk hizalamasi)",
      'print("KUTU  : %s" % kutu_yolu)',
      'print("KUTU : %s" % kutu_yolu)',
