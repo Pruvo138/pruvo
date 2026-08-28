@@ -180,6 +180,11 @@ def _depo_kur(kok, sahip_ver=True, defter_satir=20, defter_stage_de=False):
     os.makedirs(tools, exist_ok=True)
     shutil.copy2(KAPI, os.path.join(tools, "defter-kota-kapisi.py"))
     shutil.copy2(TABAN, os.path.join(tools, "defter-kota-taban.py"))
+    # 28 AGU: kapinin CARE satirlari `serbest_cagrilar.py`den turetiliyor; modul
+    # kopyanin YANINDA olmazsa kapi import'ta COKER ve cokme "vaka dustu" diye
+    # okunur (olculdu: VAKA 10/10 -> 0/10).
+    shutil.copy2(os.path.join(TOOLS, "serbest_cagrilar.py"),
+                 os.path.join(tools, "serbest_cagrilar.py"))
     if sahip_ver:
         shutil.copy2(SAHIP, os.path.join(tools, "kutu-arsivle.py"))
     with open(os.path.join(kok, "README.md"), "w", encoding="utf-8") as f:

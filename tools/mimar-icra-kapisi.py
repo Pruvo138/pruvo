@@ -161,6 +161,12 @@ from mimar_kimlik import (
     kimlik_ekseni,
     rol_ekseni,
 )
+# === 28 AGU 2026 — SERBEST CAGRI SEKILLERI: TEK KAYNAK ========================
+# K320 (27 Agu) red metnindeki ARAC ADLARINI turetti; CAGRI SEKLI (bayrak + konumsal
+# argüman) hala her tuketicide ELLE yaziliydi. `serbest_cagrilar` o ekseni kapatir:
+# KARAR (_py_izinli), RED METNI (serbest_python_metni) ve oteki tuketicilerin CARE
+# satirlari AYNI YAPIDAN beslenir. Ayrintili gerekce modulun bas yorumundadir.
+import serbest_cagrilar as SC
 
 REPO_ONEKI = "/Users/okan/dev/pruvo/"
 GIT_WORKTREE_KAYIT = "/Users/okan/dev/pruvo/.git/worktrees"
@@ -234,21 +240,18 @@ ICRA_UZANTILARI = (
     ".sh", ".bash", ".zsh", ".command", ".rb", ".pl",
 )
 
-# === 22 TEM (mimarin HAFIF-OLCUM kacisi kapatilir) ===
-# Mimar SERBEST kosabildigi YALNIZ IKI python komutu (tam-yol ya da repo-goreli TAM esitlik).
-DURUM_YOL = REPO_ONEKI + "tools/durum.py"
-D1_YOL = REPO_ONEKI + "tools/d1-sync.py"
-# === 18 AGU K168 H1: defter-rotasyon.py serbest birakildi (K168 paketi). ===
-# K168 sinif kararidir: "mimar DEVAM.md kota tavanini astiginda cabalayan CARE basar,
-#  ama cabalayan CAGIRAMIYOR" bilinen kusuruna karsi bu komut — Python'un argparse
-# izniyle — TAM ESITLIKLE serbest. Kapsam bilerek DAR: iki konumsal arg, DEVAM.md ve
-#  DEVAM-ARSIV.md (kanonik yollar), bayrak YOK, kabuk operatoru YOK. Daha genis
-#  erisim (or. --tavan-sayi, --tarih) mimar hukmu KAPALI tutar (K168 §2.H1).
-# Yetki genisletme: tools/recete-kapisi.py bu komutu kapida kuru kontrol eder.
-DEFTER_ROTASYON_YOL = REPO_ONEKI + "tools/defter-rotasyon.py"
-DEFTER_ROTASYON_DEFTER = REPO_ONEKI + "DEVAM.md"
-DEFTER_ROTASYON_ARSIV = REPO_ONEKI + "DEVAM-ARSIV.md"
-KUTU_ARSIVLE_YOL = REPO_ONEKI + "tools/kutu-arsivle.py"
+# === 22 TEM / 18 AGU K168 H1 / 20 AGU K258 / 28 AGU SINIF ISI ===
+# 🔴 BU ADLAR ARTIK TANIM DEGIL, TEK KAYNAGA ACILAN PENCEREDIR. Kanonik yollar,
+# izinli bayraklar ve konumsal argumanlar `tools/serbest_cagrilar.py:SEKILLER`de
+# yasar; burada yalnizca eski adlarla erisim korunur (geriye uyum). Bir yolu BURADA
+# degistirmek hicbir seyi degistirmez — kaynagi degistir.
+DURUM_YOL = SC.DURUM_YOL
+D1_YOL = SC.D1_YOL
+DEFTER_ROTASYON_YOL = SC.DEFTER_ROTASYON_YOL
+DEFTER_ROTASYON_DEFTER = SC.DEFTER_ROTASYON_DEFTER
+DEFTER_ROTASYON_ARSIV = SC.DEFTER_ROTASYON_ARSIV
+KUTU_ARSIVLE_YOL = SC.KUTU_ARSIVLE_YOL
+CIP_BEKCI_YOL = SC.CIP_BEKCI_YOL
 
 # === 28 AGU 2026 (K304-BOOTSTRAP) — KAPI DAGITIM KURUCUSU: ADLI SERBEST KOL =====
 # OLCULEN KILIT (28 Agu, IKI TARAFTAN BIRDEN — tahmin degil, ikisi de kosturularak):
@@ -363,43 +366,65 @@ def _kapi_dagitim_muaf(ad, argumanlar, cwd):
 #   * konumsal argumanlar kanonik yola TAM ESITLIKLE dogrulanir.
 # Kapinin olcum/icra yasaginin GERI KALANI (curl / sort / tail / head / find /
 # wc ve genel python) GEVSETILMEZ — bu kova onlara DOKUNMAZ.
-DEFTER_BAKIMI_BAYRAKLARI = {
-    DEFTER_ROTASYON_YOL: frozenset(("--tavan-kaynaktan", "--isaretciye-indir")),
-    KUTU_ARSIVLE_YOL: frozenset(("--kuru",)),
-}
-# Aracin bekledigi KANONIK konumsal argumanlar (bos tuple = konumsal arg YOK).
-DEFTER_BAKIMI_KONUMLARI = {
-    DEFTER_ROTASYON_YOL: (DEFTER_ROTASYON_DEFTER, DEFTER_ROTASYON_ARSIV),
-    KUTU_ARSIVLE_YOL: (),
-}
+# 🔴 28 AGU SINIF ISI: bu iki sozluk KALDIRILDI. Bayrak/konum kumeleri artik
+# `serbest_cagrilar.SEKILLER`de CAGRI SEKLI olarak yasar ve kararla RED METNI ayni
+# yapidan turer. Geriye uyum icin ayni bicimde bir GORUNUM turetilir — bu bir ikinci
+# tanim DEGIL, tek kaynagin okunmasidir (kaynaktan bir sekil duserse gorunum de duser).
+def _bakim_gorunumu():
+    """{arac_yolu: frozenset(bayraklar)} ve {arac_yolu: konumlar} — TUReTILMIS."""
+    bayraklar, konumlar = {}, {}
+    for s in SC.SEKILLER:
+        bayraklar[s.arac] = frozenset(bayraklar.get(s.arac, frozenset())) | s.tum_bayraklar
+        # En COK konumsal argüman isteyen sekil kanonik gorunumdur.
+        if s.arac not in konumlar or len(s.konumlar) > len(konumlar[s.arac]):
+            konumlar[s.arac] = s.konumlar
+    return bayraklar, konumlar
+
+# === 28 AGU 2026 (K343-SINIF-KAPISI) — BEKCI KOVASI ===========================
+# NEDEN AYRI KOVA: bekci (`~/.claude/cron/cip_dogum_bekcisi.py`) REPO DISINDA
+# yasar; DEFTER_BAKIMI_BAYRAKLARI'na koymak, R2/F kollarini kirma gerektirirdi.
+# Onun yerine AYNI sabit kalibinin yaninda durur ve asagidaki _bilinen_arac_*
+# yardimcilari iki kumeyi TEK ILISKI olarak okur — karar veren ve metin ureten
+# ayni sozlukten beslenir, drift olusamaz.
+#
+# Bekci cagrisi TEK aracin kendisi (cip_dogum_bekcisi.py), iki kollu:
+#   `--teslim-karari`               — kanit/teslim kararini okur, ek arguman almaz
+#   `--teslim-kaydet [--anahtar X]  — teslim kaydini yazar (--anahtar/--task-id/--sebep
+#     [--task-id Y] [--sebep Z]]      opsiyonel; bekcinin argparse'i store_true + default=None)
+# Bu kol kumesi disindaki HER bayrak (--teslim-iptal, --bypass, --kuru ...) RED.
+# Konumsal arg bekci almaz (kanit/saat dizini bekcinin TEK KAYNAGI).
+BEKCI_YOL = SC.CIP_BEKCI_YOL
+
+# 🔴 K344 MERGE (28 Agu) — main'in K343 kolu BEKCI_BAYRAKLARI'ni BURAYA ELLE
+# yaziyordu; o kume `serbest_cagrilar.SEKILLER`de ZATEN duruyor (bekci-teslim-karari
+# + bekci-teslim-kaydet). Elle kopyayi birakmak, K343'un kendi gerekcesindeki
+# "ikinci elle kopya" tabanini geri acardi — bu yuzden kume artik TURETILIR.
+DEFTER_BAKIMI_BAYRAKLARI, DEFTER_BAKIMI_KONUMLARI = _bakim_gorunumu()
+# FAIL-CLOSED: bekci sekli KAYNAKTAN DUSERSE kova BOS kalir (KeyError ile
+# COKMEZ) — cagri RED'e doner ve adi turetilmis metinden de duser. Mutant
+# bataryasi tam bu yolu olcer; cokme, "mutant ulasmadi"yi maskelerdi.
+BEKCI_BAYRAKLARI = ({BEKCI_YOL: DEFTER_BAKIMI_BAYRAKLARI[BEKCI_YOL]}
+                    if BEKCI_YOL in DEFTER_BAKIMI_BAYRAKLARI else {})
+
+# Tek-anahtar birlesik sozluk: karar metni + test + CARE tek yerden okur.
+# (Bekci ZATEN gorunumun icinde; `update` yalniz K343'un okuyucu sozlesmesini
+# korur — sozluk tek kaynaktan, SEKILLER'den doludur.)
+_BILINEN_BAYRAK_HARITASI = {}
+_BILINEN_BAYRAK_HARITASI.update(DEFTER_BAKIMI_BAYRAKLARI)
+_BILINEN_BAYRAK_HARITASI.update(BEKCI_BAYRAKLARI)
 
 
-def _bakim_bayraklari_izinli(arac_yolu, kalan_argumanlar):
-    """DEFTER BAKIMI kovasi: bayrak kumesi TAM ESITLIK ile dogrulanir.
+def _bilinen_arac_bayraklari(arac_yolu):
+    """TUM bakim kovalarinin bayrak haritasi (TEK KAYNAK)."""
+    return _BILINEN_BAYRAK_HARITASI.get(arac_yolu)
 
-    True yalnizca su durumda: her bayrak aracin izinli kumesinde VE hicbiri
-    tekrarlanmamis. Deger alan bayrak (`--tavan-sayi 130`) izinli kumede
-    OLMADIGI icin zaten RED; `=`li yazim (`--tavan-sayi=130`) da kumeye TAM
-    ESIT olmadigindan RED. Bilinmeyen arac -> RED (fail-closed).
-    """
-    izinli = DEFTER_BAKIMI_BAYRAKLARI.get(arac_yolu)
-    if izinli is None:
-        return False
-    bayraklar = [a for a in kalan_argumanlar if a.startswith("-")]
-    if len(bayraklar) != len(set(bayraklar)):
-        return False
-    return all(b in izinli for b in bayraklar)
-
-
-def _bakim_konumlari_izinli(arac_yolu, kalan_argumanlar, cwd):
-    """DEFTER BAKIMI kovasi: konumsal argumanlar kanonik yola TAM ESIT mi?"""
-    beklenen = DEFTER_BAKIMI_KONUMLARI.get(arac_yolu)
-    if beklenen is None:
-        return False
-    konumlar = [a for a in kalan_argumanlar if not a.startswith("-")]
-    if len(konumlar) != len(beklenen):
-        return False
-    return all(_coz(v, cwd) == b for v, b in zip(konumlar, beklenen))
+# K344 MERGE NOTU (28 Agu): main'in K343 kolu burada iki yardimci tutuyordu
+# (`_bakim_bayraklari_izinli` / `_bakim_konumlari_izinli`). O yardimcilar
+# `serbest_cagrilar._sekil_uyuyor` TARAFINDAN KAPSANDI ve daha DAR: tekrarlanan
+# bayrak, kume disi bayrak, '='li yazim ve kanonik olmayan konumsal yol AYNEN
+# RED kalir; ustune deger alan bayragin DEGERI de denetlenir (`_deger_guvenli`:
+# '/' iceren ya da '.' ile baslayan deger RED) — K343'un bekci kolundaki
+# "flag degeri yol OLAMAZ" korumasi bu yolla KORUNDU, bayraga BAGLI olarak.
 
 # Olcum / dosya-tarama komutlari: bunlar mimarin elinden kacan siniftir (boyut, sayim,
 # arama, icerik dokme). Komut zincirinin HERHANGI bir segmentinde (pipe dahil —
@@ -408,6 +433,45 @@ OLCUM_KOMUTLARI = {
     "du", "df", "ps", "top", "vm_stat", "memory_pressure", "sysctl", "find",
     "wc", "head", "tail", "sed", "awk", "sort", "stat", "file",
 }
+
+
+# === 27 AGU 2026 (K320) — RED METNINDEKI KUME ARTIK TURETILIR ====================
+# OLCULEN ARIZA (taban: DRIFT=9): kapinin insan-okur "SERBEST / REDDEDILEN" metni
+# ELLE yazilmis IKINCI KOPYAYDI ve KARAR VEREN yapidan ayrismisti:
+#   * python ekseni: makine 4 komuta izin veriyordu (durum.py, d1-sync.py,
+#     defter-rotasyon.py, kutu-arsivle.py) — metin "yalniz IKI komut" diyordu.
+#     20 Agu'da K258 kovayi ACTI, metin 7 gun boyunca KAPALI dedi.
+#   * olcum ekseni: makine 16 komut reddediyordu — metin 9 tanesini sayiyordu
+#     (df/file/memory_pressure/stat/sysctl/top/vm_stat metinde YOKTU).
+# BEDELI TEK BIR YAZIM HATASI DEGILDI: mimar kendi kapisinin bastigi CAREYI okudu,
+# metne inandi, "care oteki kapida olu" hukmunu verdi ve defter uc kosum boyunca
+# TAVANIN USTUNDE kaldi. Metin YANLIS BILGI verdigi surece kapi, dogru karar verse
+# bile okuyani YANLIS YOLA sokar.
+#
+# 🔴 SINIF KURALI (tekil yama DEGIL): kapinin red metninde adi gecen her SERBEST ya
+# da YASAK kume, karari VEREN yapidan TURETILIR — ikinci kez ELLE YAZILMAZ.
+# Nobetci: tools/serbest-kume-tekkaynak-test.py (mutasyonlu; CI'da kosar).
+# Ilgili ders: [[ayni-alan-iki-hukum-biri-sessiz]] · [[ikiz-tanim-sessiz-ayrisma]]
+
+def _kisa(yol):
+    """Mutlak arac yolunu okunur kisa ada indirger — TEK KAYNAK: serbest_cagrilar."""
+    return SC._kisa(yol)
+
+
+def serbest_python_metni():
+    """Mimar tarafinda SERBEST python cagrilarinin insan-okur listesi — TURETILMIS.
+
+    Kaynak, `_py_izinli`nin okudugu yapinin TA KENDISIDIR: `serbest_cagrilar.SEKILLER`.
+    Kaynaktan bir SEKIL DUSERSE hem cagri REDDEDILIR hem de bu metinden DUSER — ikisi
+    ayni yapidan besleniyor, ayrisamazlar. 28 AGU: turetim artik ARAC ADIYLA degil
+    CAGRI SEKLIYLE (bayraklar + konumsal argumanlar dahil) yapilir."""
+    return SC.serbest_python_metni()
+
+
+def olcum_komut_metni():
+    """Mimar tarafinda REDDEDILEN olcum komutlarinin listesi — OLCUM_KOMUTLARI'ndan
+    TURETILIR. Metne elle komut eklemek/cikarmak artik MUMKUN DEGIL."""
+    return "/".join(sorted(OLCUM_KOMUTLARI))
 
 # python/node ailesi — mimar tarafinda YALNIZ iki izinli komut, digeri RED (araç/test
 # kosumu iscinin isi). sh/bash/ruby/perl/php/osascript bu kisitin DISINDA (asagida
@@ -811,12 +875,12 @@ GEREKCE_SONU = (
     "(ör. tools/mimar-kilit-test.py'ye vaka ekletip 'python3 tools/mimar-kilit-test.py' "
     "ile kapat). Uzun hali: işi MÜHENDİS/USTA/MARABA'ya ya da Codex'e DELEGE et (Agent aracı: "
     "model opus/sonnet + isolation worktree + background) ve kabul testini ona YAZDIR; "
-    "(b) TEST/ÖLÇÜM/CANLI DOĞRULAMA koşumu (parite, build, filament, curl, du/ps/find/wc/"
-    "head/tail/sed/awk/sort, node --check ...) mimarın DEĞİL işçinin işidir — spec'e "
+    "(b) TEST/ÖLÇÜM/CANLI DOĞRULAMA koşumu (parite, build, filament, curl, " +
+    olcum_komut_metni() + ", node --check ...) mimarın DEĞİL işçinin işidir — spec'e "
     "çalıştırılabilir KABUL TESTİ yaz, mühendis repoya koysun, işçi koştursun. "
     "SERBEST (mimar eliyle): git (status/diff/log/merge-base/merge/commit/push/worktree), "
-    "gh, ls, grep, jq, echo, cat; python yalnız 'python3 tools/durum.py' ve "
-    "'python3 tools/d1-sync.py --durum'; /.claude/worktrees/ içinden çalışan işçi oturumları. "
+    "gh, ls, grep, jq, echo, cat; python YALNIZ şunlar: " + serbest_python_metni() +
+    "; /.claude/worktrees/ içinden çalışan işçi oturumları. "
     "(27 Ağu K318 — ROL EKSENİ: bu son madde artık ÖLÇÜLÜYOR. Çip/worktree oturumunda "
     "ölçüm komutları, curl ve python3/node ARAÇ koşumu SERBESTTİR; ana oturumda kapalıdır. "
     "Rol, oturum damgasından okunur — `cd <worktree>` rolü DEĞİŞTİRMEZ.)"
@@ -1281,38 +1345,22 @@ def _py_izinli(ad, argumanlar, cwd):
         return False
     if not argumanlar:
         return False
-    ilk = _coz(argumanlar[0], cwd)
-    if ilk == DURUM_YOL:
-        return len(argumanlar) == 1
-    if ilk == D1_YOL:
-        return len(argumanlar) == 2 and argumanlar[1] == "--durum"
-    if ilk == DEFTER_ROTASYON_YOL:
-        # K168 H1 + K258 DEFTER BAKIMI KOVASI. Eskiden HER bayrak kesiliyordu
-        # ('hicbir arg "-" ile baslayamaz'); kapinin kendi bastigi CARE de o
-        # yuzden reddediliyordu. Bayrak artik TOPTAN serbest DEGIL: yalnizca
-        # DEFTER_BAKIMI_BAYRAKLARI kumesindekiler (TAM ESITLIK) gecer, kume
-        # disindaki her bayrak — '--tavan-sayi 130' ve '--tavan-sayi=130'
-        # dahil — RED kalir. Konumsal arg sayisi ve kanonik yol dogrulamasi
-        # AYNEN durur.
-        if not _bakim_bayraklari_izinli(DEFTER_ROTASYON_YOL, argumanlar[1:]):
-            return False
-        if not _bakim_konumlari_izinli(DEFTER_ROTASYON_YOL, argumanlar[1:], cwd):
-            return False
-        konumlar = [a for a in argumanlar[1:] if not a.startswith("-")]
-        d1 = _coz(konumlar[0], cwd)
-        d2 = _coz(konumlar[1], cwd)
-        return d1 == DEFTER_ROTASYON_DEFTER and d2 == DEFTER_ROTASYON_ARSIV
-    if ilk == KUTU_ARSIVLE_YOL:
-        # K258: ORTAK POSTA KUTUSU bakimi. Kapida ONCEDEN HIC gecmiyordu ->
-        # genel `return False`. Kanonik cagri konumsal arg ALMAZ (kutu/arsiv
-        # yollari aracin kendi TEK KAYNAGINDAN gelir); izinli tek bayrak
-        # '--kuru'. '--tavan 300' gibi sayi tasiyan hicbir bayrak GECMEZ —
-        # tavan sahibi araciN kendisidir, komuta ELLE yazilan sayi ikinci
-        # kopya olurdu ([[ikiz-tanim-sessiz-ayrisma]]).
-        if not _bakim_bayraklari_izinli(KUTU_ARSIVLE_YOL, argumanlar[1:]):
-            return False
-        return _bakim_konumlari_izinli(KUTU_ARSIVLE_YOL, argumanlar[1:], cwd)
-    return False
+    # 🔴 28 AGU SINIF ISI — KARAR TEK KAYNAKTAN. Eskiden her arac icin ayri bir
+    # `if ilk == ...` dali vardi ve her dal bayrak/konum kurallarini ELLE tekrar
+    # ediyordu; RED METNI de o dallardan AYRI bir yerde toplaniyordu. Artik hem
+    # KARAR hem METIN `serbest_cagrilar.SEKILLER`den turer: bir sekil kaynaktan
+    # dusunce cagri REDDEDILIR **ve** adi metinden DUSER (ikisi birden).
+    # Kova AYNEN DAR: kume disi bayrak (--tavan-sayi / --tarih), '=' li yazim,
+    # tekrarlanan bayrak, kanonik olmayan konumsal yol — hepsi RED kalir.
+    # K344: main'in K343 kolu ayni kovalari ELLE yazilmis `if ilk == ...`
+    # zinciriyle denetliyordu (defter / kutu / bekci). Zincirin HER kuralı
+    # SEKILLER tablosunda duruyor — bekci kolunun "flag degeri yol OLAMAZ"
+    # korumasi dahil (`_deger_guvenli`). Zinciri YANINDA birakmak ikinci karar
+    # kopyasi olurdu; kaldirildi, kural KAYBOLMADI.
+    sekil = SC.eslesen_sekil(argumanlar, _coz, cwd)
+    if sekil is None:
+        return False
+    return True
 
 
 def dis_yol(argumanlar, cwd):
@@ -1524,9 +1572,9 @@ def main():
             if not cip:
                 reddet(
                     "python3/node ile bir araç/test koşturuyorsun (" + ad + " " +
-                    (" ".join(argumanlar[:3]))[:70] + "). Mimar tarafında SERBEST yalnız iki "
-                    "komut: 'python3 tools/durum.py' ve 'python3 tools/d1-sync.py --durum'. "
-                    "Parite/build/filament/node --check ... = İŞÇİNİN işi."
+                    (" ".join(argumanlar[:3]))[:70] + "). Mimar tarafında SERBEST python "
+                    "çağrıları YALNIZ şunlar: " + serbest_python_metni() +
+                    ". Parite/build/filament/node --check ... = İŞÇİNİN işi."
                 )
 
         # B) Surum/yardim: zararsiz (python/node yukarida ele alindi; bu satir sh vb. icin)
@@ -1606,4 +1654,10 @@ def main():
     sys.exit(0)
 
 
-main()
+# 27 AGU (K320): koruma EKLENDI. Eskiden `main()` modul duzeyinde KOSULSUZ cagriliyordu;
+# modulu ice aktaran her sey (kabul testi dahil) stdin'i okuyup sys.exit(0) ile ANINDA
+# oluyordu. Nobetci, kapinin KARAR VEREN yapisini okuyabilmek icin modulu ice aktarir —
+# koruma olmadan tek kaynak DISARIDAN dogrulanamazdi. Kanca kapiyi BETIK olarak cagirir,
+# yani calisma davranisi DEGISMEZ (kabul: mimar-kilit-test.py 307/314 taban korunur).
+if __name__ == "__main__":
+    main()

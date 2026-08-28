@@ -12,6 +12,7 @@ import time
 
 from git_ortami import (GIT_BAGLAM_DEGISKENLERI, git_ortami,
                         sentetik_git)
+import gecici_worktree
 
 
 TAVAN_MIMAR = 2
@@ -98,29 +99,12 @@ def chip_agaci_mi(yol, ana_kok):
     return os.path.realpath(yol).startswith(chip_koku + os.sep)  # WORKTREE_MUTANT_ROLE
 
 
-def _gecici_kokler():
-    """FIKSTUR yukleminin GECICI-DIZIN kolu — sabit yol listesi YAZILMAZ, TURETILIR.
-
-    Kaynaklar: (a) bu surecin gercek gecici dizini `tempfile.gettempdir()` (macOS'ta
-    TMPDIR=/var/folders/..., Linux CI'da /tmp), (b) platformun kanonik gecici koku
-    `/tmp`, (c) macOS TMPDIR tabani `/var/folders` — baska bir kapinin fiksturu BIZIM
-    TMPDIR'imizin altinda olmayabilir (farkli oturum/kullanici) ama yine de platformun
-    gecici agacindadir. Hepsi `realpath`lenir: macOS'ta /var -> /private/var symlink'i
-    yuzunden ham karsilastirma esleseni SESSIZCE kaciriyordu."""
-    kokler = []
-    for aday in (tempfile.gettempdir(), "/tmp", "/var/folders", "/private/var/folders"):
-        try:
-            gercek = os.path.realpath(aday)
-        except OSError:
-            continue
-        if gercek and gercek != os.sep and gercek not in kokler:
-            kokler.append(gercek)
-    return kokler
-
-
-def gecici_altinda_mi(yol):
-    gercek = os.path.realpath(yol)
-    return any(gercek.startswith(kok + os.sep) for kok in _gecici_kokler())
+# 🔴 IKIZ TANIM KAPATILDI (28 Agu 2026, cip `KraL-DiskFikstur-28Agu`): "gecici kok"
+# turetimi burada AYRI bir govde olarak yaziliydi ve `tools/gecici_worktree.py` ayni
+# yuklemi ikinci kez tanimlamak zorunda kalacakti. Iki govde SESSIZCE ayrisir
+# ([[ikiz-tanim-sessiz-ayrisma]]) — tanim artik TEK KAYNAKTA.
+_gecici_kokler = gecici_worktree.gecici_kokler
+gecici_altinda_mi = gecici_worktree.gecici_altinda_mi
 
 
 def fikstur_agaci_mi(entry):
@@ -586,9 +570,10 @@ def mutasyon():
     kontrol_yesil = 0
     hayatta = []
     try:
-        shutil.copyfile(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                     "git_ortami.py"),
-                        os.path.join(gecici, "git_ortami.py"))
+        for _yardimci in ("git_ortami.py", "gecici_worktree.py"):
+            shutil.copyfile(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                         _yardimci),
+                            os.path.join(gecici, _yardimci))
         yeni_adlar = {"tavan-mimar", "tavan-chip", "rol-siniflama",
                       "rol-tersine", "olu-chip",
                       "fikstur-tanima", "fikstur-detached", "fikstur-gorunur"}
@@ -605,9 +590,11 @@ def mutasyon():
                 try:
                     taban_yol = os.path.join(hukum_kok, "taban.py")
                     yaz(taban_yol, kaynak_metin)
-                    shutil.copyfile(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                                 "git_ortami.py"),
-                                   os.path.join(hukum_kok, "git_ortami.py"))
+                    for _yardimci in ("git_ortami.py", "gecici_worktree.py"):
+                        shutil.copyfile(
+                            os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                         _yardimci),
+                            os.path.join(hukum_kok, _yardimci))
                     taban_hukum = _mutant_hukumlari(taban_yol, hukum_kok, ad)
                     mutant_hukum = _mutant_hukumlari(yol, hukum_kok, ad)
                     print("MUTANT_HUKUM=%s MUTANTSIZ=%s MUTANTLI=%s" %

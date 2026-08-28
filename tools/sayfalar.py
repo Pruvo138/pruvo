@@ -20,7 +20,10 @@ SELLER = {
     "adres": "Akarca Mah. Adnan Menderes (BBT) Blv. No:303 Daire No:203, Fethiye / Muğla",
     "vd": "Fethiye Vergi Dairesi",
     "vkn": "3910052435",
-    "tel": "+90 532 595 4005",
+    # 🔴 TEK HAT (Okan emri, 28 Ağu): sitede görünen tek telefon Ege'nin WhatsApp
+    # hattıdır. Kişisel arama hattı repodan ve yayından TAMAMEN çıkarıldı; o numara
+    # artık kisisel-veri-test.py'de YASAKLI desendir (beklenen/izinli değil).
+    "tel": "+90 545 138 65 26",
     "eposta": "info@pruvo3d.com",
     "kargo": "anlaşmalı kargo",
     # 🔴 "teslim" anahtarı KALDIRILDI (10 Ağu): değeri "ölçü onayından sonra 3-5 iş günü"

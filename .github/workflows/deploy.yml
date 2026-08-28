@@ -830,7 +830,8 @@ jobs:
       # WA PREFILL KAPISI: urun sayfasindaki BAGLAM-KOR olmamasi gereken iki WhatsApp
       # linki (organik "Bizimle Iletisime Gecin" help-cta-btn + mühendislik malzeme notu)
       # prefill'inde urun ADI + canonical URL tasir; Turkce karakterler TEK KEZ dogru
-      # percent-kodlanir (double-encode yok, numara = WHATSAPP sabiti, arama 4005 asla).
+      # percent-kodlanir (double-encode yok, numara = WHATSAPP sabiti = TEK HAT;
+      # yayindan cikarilan kisisel hat asla).
       # NIYET EKSENI de olculur: help-cta "aradigimi bulamadim" niyetini tasir ve
       # "bu urunu istiyorum" DEMEZ (yanlis niyet Ege'yi yanlis akisa sokar, baglamsizdan
       # beter); malzeme notu ise KENDI niyetini (malzeme/ozel uretim) korur. REF/atif

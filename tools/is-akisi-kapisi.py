@@ -172,6 +172,10 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 WORKFLOW_DIZIN = os.path.join(ROOT, ".github", "workflows")
 
+if TOOLS not in sys.path:
+    sys.path.insert(0, TOOLS)
+import gecici_worktree  # noqa: E402
+
 OLCULEMEDI = 2
 
 
@@ -5734,13 +5738,17 @@ def _k80_commit_agacinda_kos(hedef, yeni):
     """Yeni komutlari hedef commitin ayri, gecici worktree'sinde kos; ureten temizler."""
     if not yeni:
         return [], 0
-    gecici = tempfile.mkdtemp(prefix="pruvo-k80-")
+    # Damgali onek + sinyal temizligi: bu kapi pre-push kancasindan kosar ve kullanici
+    # Ctrl-C ile push'u kesebilir; `finally` SIGKILL'de hic kosmaz. Damga sayesinde
+    # boyle bir artik `tools/gecici-worktree-nobeti.py` tarafindan SIZINTI olarak
+    # GORULEBILIR ve toplanabilir ([[diskte-iz-birakma-yasagi]]).
+    gecici = gecici_worktree.damgali_mkdtemp("pruvo-k80-")
     eklendi = False
     bulgular = []
     kosulan = 0
     try:
-        r = subprocess.run(["git", "-C", ROOT, "worktree", "add", "--detach", "--quiet",
-                            gecici, hedef], capture_output=True, text=True, timeout=60)
+        r = gecici_worktree.kaydet(ROOT, gecici, "--detach", "--quiet",
+                                   commitish=hedef, zaman_asimi=60)
         if r.returncode != 0:
             raise Olculemedi("gecici commit agaci acilamadi: %s" % r.stderr.strip())
         eklendi = True
@@ -5778,8 +5786,7 @@ def _k80_commit_agacinda_kos(hedef, yeni):
                                     % (etiket, sonuc.returncode, kuyruk))
     finally:
         if eklendi:
-            subprocess.run(["git", "-C", ROOT, "worktree", "remove", "--force", gecici],
-                           capture_output=True, text=True, timeout=60)
+            gecici_worktree.kaldir(ROOT, gecici, zaman_asimi=60)
         shutil.rmtree(gecici, ignore_errors=True)
     return bulgular, kosulan
 

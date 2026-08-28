@@ -88,6 +88,45 @@ PYTHON3_BASLANGIC_RE = re.compile(r"\bpython3(?:\.\d+)?\s+")
 # gorulurse recete ISCI KATINA yazilmistir — mimar-icra sorgusu atlanir (isci
 # kosumunda o kapi kural uygulamaz), yol nobeti surer. Buyuk/kucuk duyarsiz.
 ISCI_ISARETI_RE = re.compile(r"\bisciye:", re.IGNORECASE)
+
+# === 28 AGU 2026 — TURETILMIS RECETE (olculmus ariza) ========================
+# Bu tarayici recetenin `python3 ...` DIZGESINI arar. CARE satirlari tek kaynaktan
+# TURETILMEYE baslayinca (K258/K168 sinif isi) o dizge kaynakta artik YOKTUR:
+#   print("!! CARE: " + _SC.cagri_ornegi("rotasyon-bakim"), file=sys.stderr)
+# Olculdu: bu degisiklikten sonra K1 kontrol vakasi KIRMIZI yandi — recete "kayboldu"
+# gibi gorundu. Bu, [[pv-parcali-veri-grepe-gorunmez]] sinifinin ta kendisidir:
+# CALISMA ANINDA kurulan veri, DURAGAN tarayiciya gorunmez ve tarayici "yok" der.
+# Cozum kaynagi geri sabitlemek DEGIL, tarayiciya turetimi COZDURMEKTIR: etiket
+# gorulunce gercek fonksiyon cagrilir ve komut metni yerine konur. Etiket
+# cozulemezse yerine konmaz -> recete AYIKLANAMADI kovasina duser (fail-closed).
+TURETILMIS_RECETE_RE = re.compile(r"cagri_ornegi\(\s*[\"']([A-Za-z0-9_\-]+)[\"']\s*\)")
+_SERBEST_MODUL = None
+
+
+def _serbest_modul():
+    global _SERBEST_MODUL
+    if _SERBEST_MODUL is None:
+        import importlib.util as _ilu
+        yol = os.path.join(TOOLS, "serbest_cagrilar.py")
+        spec = _ilu.spec_from_file_location("serbest_cagrilar_recete", yol)
+        modul = _ilu.module_from_spec(spec)
+        spec.loader.exec_module(modul)
+        _SERBEST_MODUL = modul
+    return _SERBEST_MODUL
+
+
+def turetilmis_receteyi_coz(metin):
+    """`cagri_ornegi("<etiket>")` cagrilarini GERCEK komut metniyle degistirir."""
+    if "cagri_ornegi(" not in metin:
+        return metin
+
+    def _yerine(m):
+        try:
+            return _serbest_modul().cagri_ornegi(m.group(1))
+        except Exception:                                   # noqa: BLE001
+            return m.group(0)      # cozulemedi -> dokunma (AYIKLANAMADI'ya dussun)
+
+    return TURETILMIS_RECETE_RE.sub(_yerine, metin)
 KOD_SINIRI_KELIMELERI = re.compile(r"\b(?:return|if|else)\b")
 GEREKCE_UST = 200
 # Tek satirdaki birden fazla python3 komutunun ayrilmasi (kucuk olcum; ayni satir
@@ -274,6 +313,10 @@ def dosyada_receteler(yol, kok=REPO):
             continue
         # On-ekten SONRAKI 250 char icinde python3 ara
         sonrasi = grup[onek_index + len(bulunan_onek):]
+        # 28 AGU: TURETILMIS receteyi COZ — `cagri_ornegi("etiket")` yerine gercek
+        # komut metni konur. Yakinlik penceresi (250) bu COZUMDEN SONRA olculur;
+        # cozulmus komut cozulmemis cagriya gore UZUN oldugu icin sira onemlidir.
+        sonrasi = turetilmis_receteyi_coz(sonrasi)
         # Python3 icin \" temizleme (print(\"CARE: python3 ...\") gibi)
         sonrasi = sonrasi.replace("\\\"", "\"")
         sonrasi = sonrasi.replace("\\'", "'")
@@ -465,28 +508,44 @@ def _mutant_yaz(dosya_yol, icerik):
     return yol, tmpdir
 
 
+# 🔴 28 AGU: CAPALAR YER DEGISTIRDI, HEDEF DEGISMEDI. `_py_izinli` artik her arac
+# icin ayri bir `if ilk == ...` dali TASIMIYOR; karar `serbest_cagrilar.SEKILLER`
+# tek kaynagindan turuyor ve kapida TEK bir devir satiri kaliyor. Eski regex capasi
+# ("if ilk == DEFTER_ROTASYON_YOL: ... return d1 == ...") artik HICBIR SEYE
+# ISABET ETMEZ; birakilsaydi `re.sub` sessizce 0 degisiklik yapar, mutant TABANLA
+# AYNI kalir ve M1/M3 "gecti" diye okunurdu — mutant ULASMAMIS olurdu
+# ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]). O yuzden ULASIM da olculur.
+_H1_CAPA = (
+    "    sekil = SC.eslesen_sekil(argumanlar, _coz, cwd)\n"
+    "    if sekil is None:\n"
+    "        return False\n"
+    "    return True\n"
+)
+
+
+def _capa_isabet(icerik):
+    """Capanin kaynakta KAC KEZ gectigi — 1 degilse mutant ULASMAMIS sayilir."""
+    return icerik.count(_H1_CAPA)
+
+
 def _mutant_yap_h1_iptal(icerik):
-    """M1: H1 geri al — `if ilk == DEFTER_ROTASYON_YOL:` blogunu sil.
+    """M1: H1 geri al — serbest cagri devri kaldirilir.
     Bu durumda defter-rotasyon.py reddedilir (kontrol disi)."""
-    return re.sub(
-        r"\s*if ilk == DEFTER_ROTASYON_YOL:.*?return d1 == DEFTER_ROTASYON_DEFTER and d2 == DEFTER_ROTASYON_ARSIV\n",
-        "\n    return False  # M1 MUTANT: H1 serbest birakimi kaldirildi\n",
-        icerik,
-        count=1,
-        flags=re.DOTALL,
+    return icerik.replace(
+        _H1_CAPA,
+        "    return False  # M1 MUTANT: H1 serbest birakimi kaldirildi\n",
+        1,
     )
 
 
 def _mutant_yap_h1_genislet(icerik):
-    """M3: H1'i serbest-biçim argümana genişlet — sadece yol kontrolü, argüman
-    sayısı/kanonik yol doğrulaması YOK. Bu durumda 'python3 defter-rotasyon.py
-    DEVAM.md DEVAM-ARSIV.md --tavan-sayi 130' GECER."""
-    return re.sub(
-        r"\s*if ilk == DEFTER_ROTASYON_YOL:.*?return d1 == DEFTER_ROTASYON_DEFTER and d2 == DEFTER_ROTASYON_ARSIV\n",
-        "\n    if ilk == DEFTER_ROTASYON_YOL:  # M3 MUTANT: serbest-biçim arg kabul\n        return True\n",
-        icerik,
-        count=1,
-        flags=re.DOTALL,
+    """M3: H1'i serbest-biçim argümana genişlet — sekil dogrulamasi (bayrak kumesi,
+    argüman sayisi, kanonik yol) TAMAMEN atlanir. Bu durumda
+    'python3 defter-rotasyon.py DEVAM.md DEVAM-ARSIV.md --tavan-sayi 130' GECER."""
+    return icerik.replace(
+        _H1_CAPA,
+        "    return True  # M3 MUTANT: serbest-biçim arg kabul\n",
+        1,
     )
 
 
@@ -527,12 +586,23 @@ def _kendini_test_eski():
 
     sonuclar = []  # (ad, bekleneen_rc, gecti_mi, not)
 
+    # 🔴 ULASIM OLCUMU (28 Agu): capa kaynakta TEKIL mi? Degilse mutant kaynagi
+    # HIC degistirmez ve "gecti" bulgusu mutantin degil, mutasyonsuz tabanin
+    # bulgusudur ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]).
+    isabet = _capa_isabet(kaynak)
+    if isabet != 1:
+        sonuclar.append(("M0 CAPA-ULASIMI", isabet, False,
+                         "capa %d kez bulundu (1 bekleniyordu) — M1/M3 OLCULEMEDI" % isabet))
+    else:
+        sonuclar.append(("M0 CAPA-ULASIMI", isabet, True, "capa TEKIL, mutantlar ulasir"))
+
     # --- M1: H1 geri al ---
     m1_yol, _ = _mutant_yaz(gercek, _mutant_yap_h1_iptal(kaynak))
     rc, out, err = _kuru_cagrir(m1_yol)
     # M1 beklentisi: defter-rotasyon.py recetesi REDDEDILEN listesinde (rc=1)
     # VE tools/defter-kota-kapisi.py:124 RECETE-RED olmali.
-    m1_gecti = (rc == 1) and ("tools/defter-kota-kapisi.py:124" in out and "RECETE-RED" in out)
+    m1_gecti = (isabet == 1 and rc == 1
+                and "tools/defter-kota-kapisi.py:124" in out and "RECETE-RED" in out)
     sonuclar.append(("M1 H1-IPTAL", rc, m1_gecti, "defter-rotasyon.py geri alindi, RECETE-RED"))
 
     # --- M2: evren bos ---
@@ -547,7 +617,8 @@ def _kendini_test_eski():
     # diger FP'ler (marka-invaryant-kapisi.py:123, sema-bundle-kapisi.py:259, vs.) YINE RED.
     # Bu durumda recete karisik cikti uretir; ozel KONTROL: defter-kota-kapisi.py:124
     # RECETE-OK OLMALI (yetki genislemesi yuzunden). Hala REDDEDILEN sayisi > 0.
-    m3_gecti = (rc == 1) and ("tools/defter-kota-kapisi.py:124" in out and "RECETE-OK" in out)
+    m3_gecti = (isabet == 1 and rc == 1
+                and "tools/defter-kota-kapisi.py:124" in out and "RECETE-OK" in out)
     sonuclar.append(("M3 H1-GENISLET", rc, m3_gecti, "yetki genislemesi -> defter-kota:124 OK"))
 
     # --- K1: Bugün mimara serbest olan iki komut (durum.py, d1-sync.py --durum)

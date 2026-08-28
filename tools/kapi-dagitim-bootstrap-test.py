@@ -85,6 +85,10 @@ def sentetik_ev(tmp, ad, kurucu_tasi):
 
     shutil.copy2(os.path.join(BURASI, "mimar_kimlik.py"),
                  os.path.join(kok, "tools", "mimar_kimlik.py"))
+    # 28 AGU: `mimar-icra-kapisi.py` serbest cagri SEKILLERINI bu modulden okur;
+    # kopyanin yaninda olmazsa kapi import'ta COKER ve cokme "RED" diye okunur.
+    shutil.copy2(os.path.join(BURASI, "serbest_cagrilar.py"),
+                 os.path.join(kok, "tools", "serbest_cagrilar.py"))
     with open(os.path.join(BURASI, "kapi_dagitim.py"), encoding="utf-8") as f:
         modul = f.read()
     if kurucu_tasi:
