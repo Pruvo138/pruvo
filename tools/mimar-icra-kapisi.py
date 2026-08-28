@@ -161,6 +161,12 @@ from mimar_kimlik import (
     kimlik_ekseni,
     rol_ekseni,
 )
+# === 28 AGU 2026 — SERBEST CAGRI SEKILLERI: TEK KAYNAK ========================
+# K320 (27 Agu) red metnindeki ARAC ADLARINI turetti; CAGRI SEKLI (bayrak + konumsal
+# argüman) hala her tuketicide ELLE yaziliydi. `serbest_cagrilar` o ekseni kapatir:
+# KARAR (_py_izinli), RED METNI (serbest_python_metni) ve oteki tuketicilerin CARE
+# satirlari AYNI YAPIDAN beslenir. Ayrintili gerekce modulun bas yorumundadir.
+import serbest_cagrilar as SC
 
 REPO_ONEKI = "/Users/okan/dev/pruvo/"
 GIT_WORKTREE_KAYIT = "/Users/okan/dev/pruvo/.git/worktrees"
@@ -234,24 +240,18 @@ ICRA_UZANTILARI = (
     ".sh", ".bash", ".zsh", ".command", ".rb", ".pl",
 )
 
-# === 22 TEM (mimarin HAFIF-OLCUM kacisi kapatilir) ===
-# Mimar SERBEST kosabildigi YALNIZ IKI python komutu (tam-yol ya da repo-goreli TAM esitlik).
-DURUM_YOL = REPO_ONEKI + "tools/durum.py"
-D1_YOL = REPO_ONEKI + "tools/d1-sync.py"
-# 27 AGU (K320): '--durum' ARTIK SABIT. Eskiden hem KARAR kolunda (_py_izinli) hem de
-# RED METNINDE elle yaziliydi = iki kopya, ayrisabilir. Tek kaynak: bu sabit.
-D1_DURUM_BAYRAGI = "--durum"
-# === 18 AGU K168 H1: defter-rotasyon.py serbest birakildi (K168 paketi). ===
-# K168 sinif kararidir: "mimar DEVAM.md kota tavanini astiginda cabalayan CARE basar,
-#  ama cabalayan CAGIRAMIYOR" bilinen kusuruna karsi bu komut — Python'un argparse
-# izniyle — TAM ESITLIKLE serbest. Kapsam bilerek DAR: iki konumsal arg, DEVAM.md ve
-#  DEVAM-ARSIV.md (kanonik yollar), bayrak YOK, kabuk operatoru YOK. Daha genis
-#  erisim (or. --tavan-sayi, --tarih) mimar hukmu KAPALI tutar (K168 §2.H1).
-# Yetki genisletme: tools/recete-kapisi.py bu komutu kapida kuru kontrol eder.
-DEFTER_ROTASYON_YOL = REPO_ONEKI + "tools/defter-rotasyon.py"
-DEFTER_ROTASYON_DEFTER = REPO_ONEKI + "DEVAM.md"
-DEFTER_ROTASYON_ARSIV = REPO_ONEKI + "DEVAM-ARSIV.md"
-KUTU_ARSIVLE_YOL = REPO_ONEKI + "tools/kutu-arsivle.py"
+# === 22 TEM / 18 AGU K168 H1 / 20 AGU K258 / 28 AGU SINIF ISI ===
+# 🔴 BU ADLAR ARTIK TANIM DEGIL, TEK KAYNAGA ACILAN PENCEREDIR. Kanonik yollar,
+# izinli bayraklar ve konumsal argumanlar `tools/serbest_cagrilar.py:SEKILLER`de
+# yasar; burada yalnizca eski adlarla erisim korunur (geriye uyum). Bir yolu BURADA
+# degistirmek hicbir seyi degistirmez — kaynagi degistir.
+DURUM_YOL = SC.DURUM_YOL
+D1_YOL = SC.D1_YOL
+DEFTER_ROTASYON_YOL = SC.DEFTER_ROTASYON_YOL
+DEFTER_ROTASYON_DEFTER = SC.DEFTER_ROTASYON_DEFTER
+DEFTER_ROTASYON_ARSIV = SC.DEFTER_ROTASYON_ARSIV
+KUTU_ARSIVLE_YOL = SC.KUTU_ARSIVLE_YOL
+CIP_BEKCI_YOL = SC.CIP_BEKCI_YOL
 
 # === 28 AGU 2026 (K304-BOOTSTRAP) — KAPI DAGITIM KURUCUSU: ADLI SERBEST KOL =====
 # OLCULEN KILIT (28 Agu, IKI TARAFTAN BIRDEN — tahmin degil, ikisi de kosturularak):
@@ -366,43 +366,22 @@ def _kapi_dagitim_muaf(ad, argumanlar, cwd):
 #   * konumsal argumanlar kanonik yola TAM ESITLIKLE dogrulanir.
 # Kapinin olcum/icra yasaginin GERI KALANI (curl / sort / tail / head / find /
 # wc ve genel python) GEVSETILMEZ — bu kova onlara DOKUNMAZ.
-DEFTER_BAKIMI_BAYRAKLARI = {
-    DEFTER_ROTASYON_YOL: frozenset(("--tavan-kaynaktan", "--isaretciye-indir")),
-    KUTU_ARSIVLE_YOL: frozenset(("--kuru",)),
-}
-# Aracin bekledigi KANONIK konumsal argumanlar (bos tuple = konumsal arg YOK).
-DEFTER_BAKIMI_KONUMLARI = {
-    DEFTER_ROTASYON_YOL: (DEFTER_ROTASYON_DEFTER, DEFTER_ROTASYON_ARSIV),
-    KUTU_ARSIVLE_YOL: (),
-}
+# 🔴 28 AGU SINIF ISI: bu iki sozluk KALDIRILDI. Bayrak/konum kumeleri artik
+# `serbest_cagrilar.SEKILLER`de CAGRI SEKLI olarak yasar ve kararla RED METNI ayni
+# yapidan turer. Geriye uyum icin ayni bicimde bir GORUNUM turetilir — bu bir ikinci
+# tanim DEGIL, tek kaynagin okunmasidir (kaynaktan bir sekil duserse gorunum de duser).
+def _bakim_gorunumu():
+    """{arac_yolu: frozenset(bayraklar)} ve {arac_yolu: konumlar} — TUReTILMIS."""
+    bayraklar, konumlar = {}, {}
+    for s in SC.SEKILLER:
+        bayraklar[s.arac] = frozenset(bayraklar.get(s.arac, frozenset())) | s.tum_bayraklar
+        # En COK konumsal argüman isteyen sekil kanonik gorunumdur.
+        if s.arac not in konumlar or len(s.konumlar) > len(konumlar[s.arac]):
+            konumlar[s.arac] = s.konumlar
+    return bayraklar, konumlar
 
 
-def _bakim_bayraklari_izinli(arac_yolu, kalan_argumanlar):
-    """DEFTER BAKIMI kovasi: bayrak kumesi TAM ESITLIK ile dogrulanir.
-
-    True yalnizca su durumda: her bayrak aracin izinli kumesinde VE hicbiri
-    tekrarlanmamis. Deger alan bayrak (`--tavan-sayi 130`) izinli kumede
-    OLMADIGI icin zaten RED; `=`li yazim (`--tavan-sayi=130`) da kumeye TAM
-    ESIT olmadigindan RED. Bilinmeyen arac -> RED (fail-closed).
-    """
-    izinli = DEFTER_BAKIMI_BAYRAKLARI.get(arac_yolu)
-    if izinli is None:
-        return False
-    bayraklar = [a for a in kalan_argumanlar if a.startswith("-")]
-    if len(bayraklar) != len(set(bayraklar)):
-        return False
-    return all(b in izinli for b in bayraklar)
-
-
-def _bakim_konumlari_izinli(arac_yolu, kalan_argumanlar, cwd):
-    """DEFTER BAKIMI kovasi: konumsal argumanlar kanonik yola TAM ESIT mi?"""
-    beklenen = DEFTER_BAKIMI_KONUMLARI.get(arac_yolu)
-    if beklenen is None:
-        return False
-    konumlar = [a for a in kalan_argumanlar if not a.startswith("-")]
-    if len(konumlar) != len(beklenen):
-        return False
-    return all(_coz(v, cwd) == b for v, b in zip(konumlar, beklenen))
+DEFTER_BAKIMI_BAYRAKLARI, DEFTER_BAKIMI_KONUMLARI = _bakim_gorunumu()
 
 # Olcum / dosya-tarama komutlari: bunlar mimarin elinden kacan siniftir (boyut, sayim,
 # arama, icerik dokme). Komut zincirinin HERHANGI bir segmentinde (pipe dahil —
@@ -432,25 +411,18 @@ OLCUM_KOMUTLARI = {
 # Ilgili ders: [[ayni-alan-iki-hukum-biri-sessiz]] · [[ikiz-tanim-sessiz-ayrisma]]
 
 def _kisa(yol):
-    """Mutlak arac yolunu repo-goreli kisa ada indirger (/…/pruvo/tools/x.py -> tools/x.py)."""
-    return yol[len(REPO_ONEKI):] if yol.startswith(REPO_ONEKI) else yol
+    """Mutlak arac yolunu okunur kisa ada indirger — TEK KAYNAK: serbest_cagrilar."""
+    return SC._kisa(yol)
 
 
 def serbest_python_metni():
     """Mimar tarafinda SERBEST python cagrilarinin insan-okur listesi — TURETILMIS.
 
-    Kaynak, `_py_izinli`nin okudugu yapinin TA KENDISIDIR: DURUM_YOL, D1_YOL,
-    D1_DURUM_BAYRAGI, DEFTER_BAKIMI_KONUMLARI, DEFTER_BAKIMI_BAYRAKLARI. Kovadan bir
-    arac DUSERSE hem cagri REDDEDILIR hem de bu metinden ADI SILINIR — ikisi ayni
-    yapidan besleniyor, ayrisamazlar."""
-    parcalar = ["'python3 " + _kisa(DURUM_YOL) + "'",
-                "'python3 " + _kisa(D1_YOL) + " " + D1_DURUM_BAYRAGI + "'"]
-    for yol in sorted(DEFTER_BAKIMI_BAYRAKLARI):
-        konumlar = " ".join(_kisa(k) for k in DEFTER_BAKIMI_KONUMLARI.get(yol, ()))
-        bayraklar = " ".join("[" + b + "]" for b in sorted(DEFTER_BAKIMI_BAYRAKLARI[yol]))
-        cagri = " ".join(x for x in ("python3 " + _kisa(yol), konumlar, bayraklar) if x)
-        parcalar.append("'" + cagri + "'")
-    return " · ".join(parcalar)
+    Kaynak, `_py_izinli`nin okudugu yapinin TA KENDISIDIR: `serbest_cagrilar.SEKILLER`.
+    Kaynaktan bir SEKIL DUSERSE hem cagri REDDEDILIR hem de bu metinden DUSER — ikisi
+    ayni yapidan besleniyor, ayrisamazlar. 28 AGU: turetim artik ARAC ADIYLA degil
+    CAGRI SEKLIYLE (bayraklar + konumsal argumanlar dahil) yapilir."""
+    return SC.serbest_python_metni()
 
 
 def olcum_komut_metni():
@@ -1330,38 +1302,17 @@ def _py_izinli(ad, argumanlar, cwd):
         return False
     if not argumanlar:
         return False
-    ilk = _coz(argumanlar[0], cwd)
-    if ilk == DURUM_YOL:
-        return len(argumanlar) == 1
-    if ilk == D1_YOL:
-        return len(argumanlar) == 2 and argumanlar[1] == "--durum"
-    if ilk == DEFTER_ROTASYON_YOL:
-        # K168 H1 + K258 DEFTER BAKIMI KOVASI. Eskiden HER bayrak kesiliyordu
-        # ('hicbir arg "-" ile baslayamaz'); kapinin kendi bastigi CARE de o
-        # yuzden reddediliyordu. Bayrak artik TOPTAN serbest DEGIL: yalnizca
-        # DEFTER_BAKIMI_BAYRAKLARI kumesindekiler (TAM ESITLIK) gecer, kume
-        # disindaki her bayrak — '--tavan-sayi 130' ve '--tavan-sayi=130'
-        # dahil — RED kalir. Konumsal arg sayisi ve kanonik yol dogrulamasi
-        # AYNEN durur.
-        if not _bakim_bayraklari_izinli(DEFTER_ROTASYON_YOL, argumanlar[1:]):
-            return False
-        if not _bakim_konumlari_izinli(DEFTER_ROTASYON_YOL, argumanlar[1:], cwd):
-            return False
-        konumlar = [a for a in argumanlar[1:] if not a.startswith("-")]
-        d1 = _coz(konumlar[0], cwd)
-        d2 = _coz(konumlar[1], cwd)
-        return d1 == DEFTER_ROTASYON_DEFTER and d2 == DEFTER_ROTASYON_ARSIV
-    if ilk == KUTU_ARSIVLE_YOL:
-        # K258: ORTAK POSTA KUTUSU bakimi. Kapida ONCEDEN HIC gecmiyordu ->
-        # genel `return False`. Kanonik cagri konumsal arg ALMAZ (kutu/arsiv
-        # yollari aracin kendi TEK KAYNAGINDAN gelir); izinli tek bayrak
-        # '--kuru'. '--tavan 300' gibi sayi tasiyan hicbir bayrak GECMEZ —
-        # tavan sahibi araciN kendisidir, komuta ELLE yazilan sayi ikinci
-        # kopya olurdu ([[ikiz-tanim-sessiz-ayrisma]]).
-        if not _bakim_bayraklari_izinli(KUTU_ARSIVLE_YOL, argumanlar[1:]):
-            return False
-        return _bakim_konumlari_izinli(KUTU_ARSIVLE_YOL, argumanlar[1:], cwd)
-    return False
+    # 🔴 28 AGU SINIF ISI — KARAR TEK KAYNAKTAN. Eskiden her arac icin ayri bir
+    # `if ilk == ...` dali vardi ve her dal bayrak/konum kurallarini ELLE tekrar
+    # ediyordu; RED METNI de o dallardan AYRI bir yerde toplaniyordu. Artik hem
+    # KARAR hem METIN `serbest_cagrilar.SEKILLER`den turer: bir sekil kaynaktan
+    # dusunce cagri REDDEDILIR **ve** adi metinden DUSER (ikisi birden).
+    # Kova AYNEN DAR: kume disi bayrak (--tavan-sayi / --tarih), '=' li yazim,
+    # tekrarlanan bayrak, kanonik olmayan konumsal yol — hepsi RED kalir.
+    sekil = SC.eslesen_sekil(argumanlar, _coz, cwd)
+    if sekil is None:
+        return False
+    return True
 
 
 def dis_yol(argumanlar, cwd):

@@ -8,8 +8,8 @@ oturumdan kosulamiyor (rol muafiyeti R2'yi tuketmiyor, kapi 5. kez) → **K331**
 sayiyor, 28 Agu cipi DOGMADI (elle dusuruldu) → **K333 KAPANDI**: `gh` TAM YOLDAN cozuluyor, olculemeyen CI
 BOS LISTE degil ACIK KALEM + rc!=0; `cron/k333-ci-hukum-bataryasi.py` 23/23, onceki govdede 12 DUSTU
 (taban: KIRMIZI=0 iken gercek 2). K331/K332 ACIK; tam metin `acik-kalemler.md`.
-🔴 **KAPI CELISKISI (SINIF):** defter-kotasi careyi `defter-rotasyon.py --tavan-kaynaktan --isaretciye-indir`
-yaziyor (K258 "mimarda SERBEST"), `mimar-icra-kapisi` ayni cagriyi ANA oturumda REDDEDIYOR. Kabul: TEK liste + mutant.
+✅ **KAPI CELISKISI (SINIF) KAPANDI** (K258/K168): sekiller `tools/serbest_cagrilar.py`de; KARAR+RED+CARE
+turetilir. Bekci teslim + kisa form RED->GECTI; dizge 35->17; nobetci 12->**21/21**, mutant **4/4**; K332 SAGLAM.
 🟠 **NOBET:** `.ci-token` 108 B; ACILAN_TUR **0** (K324 onarildi; K325-K327 + civi BLOKE KUTUDA).
 🔴 **DEVREDEN (tam liste KUTUDA):** ⓐ YEDEK 5 kolda kirik · ⓑ K220 · ⓒ `--rol-kapisi` · ⓓ `_proje_damgasi` ·
 ⓔ HTML 4 saat=OKAN · ⓕ ic rapor ad kalibi · ⓖ+7. **OKAN'DA:** `pruvo-jenerator` GitHub App erisimi (TeKiN).

@@ -138,6 +138,18 @@ TAVAN_SATIR = _mod.TAVAN_SATIR
 TAVAN_BAYT = _mod.TAVAN_BAYT
 tavan_asi_mi = _mod.tavan_asi_mi
 
+# === 28 AGU 2026 — CARE SATIRLARI ARTIK ELLE YAZILMIYOR ======================
+# OLCULEN ARIZA (K320'nin ikinci ekseni): bu kapi CARE olarak tam bir komut
+# BASIYORDU ve o komutun SEKLI (yol + konumlar + bayraklar) burada ELLE yaziliydi
+# — yani mimar-icra-kapisi'nin KARAR yapisinin IKINCI KOPYASIYDI. Iki yapi
+# ayrisirsa kapi, oteki kapinin REDDEDECEGI bir care basar; bunun bedeli
+# 27 Agu'da olculdu (defter uc kosum tavanin ustunde kaldi).
+# Artik CARE, kararin okudugu TEK KAYNAKTAN turetilir: bir sekil kaynaktan
+# duserse buradaki CARE de degisir. [[kapi-red-metni-ikinci-kopyadir]]
+if TOOLS not in sys.path:
+    sys.path.insert(0, TOOLS)
+import serbest_cagrilar as _SC
+
 SAYAC_YOLU = os.environ.get("PRUVO_DEFTER_KOTA_SAYAC",
                             os.path.expanduser("~/.claude/cron/defter-kota-bypass.tsv"))
 
@@ -321,12 +333,13 @@ def _hukum_red(satir, bayt, eksen, kok):
     # sonuc her oturumda ELLE cumle budamaktı. Tavanli + isaretciye indirmeli
     # bicim yaziliyor ve tavan sayisi komuta ELLE YAZILMIYOR (--tavan-kaynaktan
     # ayni TEK KAYNAKTAN okur; yordama yazilan sayi ikinci kopya olurdu).
-    print("!! CARE: python3 /Users/okan/dev/pruvo/tools/defter-rotasyon.py "
-          "/Users/okan/dev/pruvo/DEVAM.md /Users/okan/dev/pruvo/DEVAM-ARSIV.md "
-          "--tavan-kaynaktan --isaretciye-indir", file=sys.stderr)
+    print("!! CARE: " + _SC.cagri_ornegi("rotasyon-bakim"), file=sys.stderr)
     print("!!   (K258, 20 Agu: bu cagri artik MIMARIN elinde de SERBEST — kapinin "
-          "adlandirilmis DEFTER BAKIMI kovasi iki bayragi TAM ESITLIKLE gecirir. "
-          "Kume disi bayrak (--tavan-sayi / --tarih) RED kalir.)", file=sys.stderr)
+          "adlandirilmis DEFTER BAKIMI kovasi bayraklari TAM ESITLIKLE gecirir. "
+          "Kume disi bayrak (--tavan-sayi / --tarih) RED kalir. Izinli kume: " +
+          " ".join(sorted(_SC.bayrak_kumesi("rotasyon-bakim"))) +
+          ". KISA FORM da serbesttir: " + _SC.cagri_ornegi("rotasyon-kisa") + ")",
+          file=sys.stderr)
     _sayaç_yaz(kok, satir, bayt)
     return 1
 
@@ -544,14 +557,14 @@ def kutu_kontrol(kok, kol_no_op=False):
               "(tavan satir=%d, TAVAN SAHIBI=%s::VARSAYILAN_TAVAN)."
               % (KUTU_ASILDI, kutu_yolu, satir, bayt, tavan, sahip_yolu),
               file=sys.stderr)
-        print("!! CARE: python3 /Users/okan/dev/pruvo/tools/kutu-arsivle.py",
-              file=sys.stderr)
+        print("!! CARE: " + _SC.cagri_ornegi("kutu-arsivle"), file=sys.stderr)
         print("!!   (LOSSLESS: hicbir sey SILINMEZ — en eski bloklar %s dosyasina "
               "TASINIR. Kapi kutuyu YALNIZ OKUR; tasimayi insan ya da rotasyon "
-              "araci yapar. Once kuru kosum: --kuru. K258, 20 Agu: iki bicim de "
-              "mimarin elinde SERBEST — kapinin DEFTER BAKIMI kovasi yalnizca "
-              "'--kuru' bayragini gecirir, baska bayrak RED.)"
-              % (arsiv_yolu or "<kutu>-arsiv.md"), file=sys.stderr)
+              "araci yapar. Once KURU kosum. K258, 20 Agu: iki bicim de "
+              "mimarin elinde SERBEST — kapinin DEFTER BAKIMI kovasi yalnizca su "
+              "bayraklari gecirir: %s; baska bayrak RED.)"
+              % (arsiv_yolu or "<kutu>-arsiv.md",
+                 " ".join(sorted(_SC.bayrak_kumesi("kutu-arsivle")))), file=sys.stderr)
         return KUTU_RC[KUTU_ASILDI]
 
     print("%s satir=%d bayt=%d tavan=%d kutu=%s" % (KUTU_YESIL, satir, bayt,

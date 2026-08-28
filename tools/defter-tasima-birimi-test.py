@@ -51,16 +51,27 @@ ROTASYON = os.path.join(TOOLS, "defter-rotasyon.py")
 KAPI = os.path.join(TOOLS, "mimar-icra-kapisi.py")
 TABAN = os.path.join(TOOLS, "defter-kota-taban.py")
 KIMLIK = os.path.join(TOOLS, "mimar_kimlik.py")
+# 🔴 28 AGU: serbest cagri SEKILLERININ tek kaynagi. Bayrak/konum kurallari artik
+# kapinin govdesinde DEGIL burada yasar — MUT-C/D/E ve KONTROL mutantlari bu dosyayi
+# hedefler. Capalari kapinin govdesinde birakmak, mutantlari sessizce "CAPA BAYAT"a
+# dusururdu ([[capa-turetme-altyapisi-kullanilmadan-kaldi]]).
+SERBEST = os.path.join(TOOLS, "serbest_cagrilar.py")
 
 # Kapi TAM-YOL sabitleri ana checkout'a capalidir (REPO_ONEKI); prob komutlari
 # da o yollari kullanir — yoksa kapi yolu tanimaz ve prob kendi kurgusunu olcer.
 ANA = "/Users/okan/dev/pruvo"
-CARE_DEFTER = ("python3 " + ANA + "/tools/defter-rotasyon.py "
-               + ANA + "/DEVAM.md " + ANA + "/DEVAM-ARSIV.md "
-               "--tavan-kaynaktan --isaretciye-indir")
-KANONIK_BAYRAKSIZ = ("python3 " + ANA + "/tools/defter-rotasyon.py "
-                     + ANA + "/DEVAM.md " + ANA + "/DEVAM-ARSIV.md")
-CARE_KUTU = "python3 " + ANA + "/tools/kutu-arsivle.py --kuru"
+# 🔴 28 AGU: POZITIF fikstuler (gecmesi BEKLENEN cagrilar) TEK KAYNAKTAN turer.
+# Elle yazilsalardi bu dosya kararin UCUNCU kopyasi olurdu ve kaynak degistiginde
+# test "hala yesil" diyerek ayrismayi GIZLERDI. NEGATIF fikstuler (asagida) ELLE
+# kalir: onlar bilerek kaynagin DISINDA olan cagrilardir — turetilemezler.
+_sp = __import__("importlib.util", fromlist=["util"]).spec_from_file_location(
+    "serbest_cagrilar_fikstur", SERBEST)
+_SC = __import__("importlib.util", fromlist=["util"]).module_from_spec(_sp)
+_sp.loader.exec_module(_SC)
+CARE_DEFTER = _SC.cagri_ornegi("rotasyon-bakim")
+KANONIK_BAYRAKSIZ = _SC.cagri_ornegi("rotasyon-klasik")
+CARE_KUTU = ("python3 " + _SC.KUTU_ARSIVLE_YOL + " "
+             + " ".join(sorted(_SC.bayrak_kumesi("kutu-arsivle"))))
 YASAK_TAVAN_SAYI = ("python3 " + ANA + "/tools/defter-rotasyon.py "
                     + ANA + "/DEVAM.md " + ANA + "/DEVAM-ARSIV.md "
                     "--tavan-sayi 130")
@@ -135,8 +146,14 @@ F4 = (
 # KOSUM YARDIMCILARI
 # ---------------------------------------------------------------------------
 def _taban_kopyala(dizin):
-    """Mutant, tavan TEK KAYNAGINI kendi dizininden yukler; yaninda olmali."""
-    shutil.copy2(TABAN, os.path.join(dizin, os.path.basename(TABAN)))
+    """Mutant, TEK KAYNAKLARINI kendi dizininden yukler; yaninda olmalilar.
+
+    28 AGU: liste IKI dosya oldu. `defter-rotasyon.py` artik kanonik konumsal
+    varsayilanlarini `serbest_cagrilar.py`den okuyor ve modul yaninda yoksa
+    FAIL-LOUD coker. Kopyalanmazsa her rotasyon mutanti coker ve cokme
+    "hedefini vurdu" diye okunur ([[capa-cokmesi-arkasindaki-capalari-gizler]])."""
+    for kaynak in (TABAN, SERBEST):
+        shutil.copy2(kaynak, os.path.join(dizin, os.path.basename(kaynak)))
 
 
 def _kos_rotasyon(rotasyon_yol, defter_icerik, ek_argv=()):
@@ -418,25 +435,29 @@ CAPA_KONTROL_YENI = (
     "def _blok_anlamli_govde_satiri(blok):\n"
     "    return 0  # KONTROL MUTANTI: ilgisiz kol (yalniz isaretciye-indirme okur)\n")
 
+# 🔴 28 AGU: DORT CAPA DA `serbest_cagrilar.py`ye tasindi (HEDEFLER DEGISMEDI).
+# MUT-C ve MUT-D ayni satiri hedefler ama ZIT yonde bozar: C bayragi TOPTAN keser
+# (kova kalkar), D bayrak TAM ESITLIGINI kaldirir (kova sinirsizlasir). Ayni capa
+# uzerinde iki yonlu mutasyon, kolun "acilma" ve "kapanma" gerilemelerini birden
+# olcer ([[hukum-tuketen-kapi-total-hukum-ister]]).
 CAPA_C_ESKI = (
-    "        if not _bakim_bayraklari_izinli(DEFTER_ROTASYON_YOL, argumanlar[1:]):\n"
-    "            return False\n")
+    "            if t not in sekil.tum_bayraklar:\n"
+    "                return False\n")
 CAPA_C_YENI = (
-    "        if any(a.startswith(\"-\") for a in argumanlar[1:]):\n"
     "            return False  # MUT-C: DEFTER BAKIMI kovasi kaldirildi\n")
 
-CAPA_D_ESKI = "    return all(b in izinli for b in bayraklar)\n"
-CAPA_D_YENI = "    return True  # MUT-D: bayrak TAM ESITLIGI kaldirildi\n"
+CAPA_D_ESKI = CAPA_C_ESKI
+CAPA_D_YENI = (
+    "            if False:  # MUT-D: bayrak TAM ESITLIGI kaldirildi\n"
+    "                return False\n")
 
-CAPA_E_ESKI = "    if ilk == KUTU_ARSIVLE_YOL:\n"
-CAPA_E_YENI = "    if False:  # MUT-E: kutu bakim kolu kaldirildi\n"
+CAPA_E_ESKI = '    Sekil("kutu-arsivle", KUTU_ARSIVLE_YOL, serbest=("--kuru",)),\n'
+CAPA_E_YENI = "    # MUT-E: kutu bakim sekli kaynaktan dusuruldu\n"
 
 CAPA_KAPI_KONTROL_ESKI = (
-    "    if ilk == D1_YOL:\n"
-    "        return len(argumanlar) == 2 and argumanlar[1] == \"--durum\"\n")
+    '    Sekil("d1-durum", D1_YOL, zorunlu=("--durum",), ornek=("--durum",)),\n')
 CAPA_KAPI_KONTROL_YENI = (
-    "    if ilk == D1_YOL:\n"
-    "        return False  # KONTROL MUTANTI: ilgisiz kol (d1-sync --durum)\n")
+    "    # KONTROL MUTANTI: ilgisiz sekil (d1-sync --durum) dusuruldu\n")
 
 
 # ---------------------------------------------------------------------------
@@ -478,10 +499,25 @@ def _rotasyon_mutant_kosumu(ad, eski, yeni, hedef_vakalar, disi_vakalar):
                            % (",".join(olen), ",".join(v for v, _ in disi_vakalar)))
 
 
+def _kapi_kurulumu(tmp, eski, yeni):
+    """Mutasyonu `serbest_cagrilar.py`ye uygular; kosulacak KAPI yolunu dondurur.
+
+    28 AGU: karar yapisi kapinin govdesinden TEK KAYNAGA tasindigi icin mutant da
+    oraya iner. Kapi AYNEN kopyalanir (mutasyonsuz) — boylece olculen sey "kapi
+    tek kaynagi GERCEKTEN okuyor mu"dur. Kopya `tmp`dedir ve betik olarak kosuldugu
+    icin `sys.path[0]` = tmp; mutant kopya PYTHONPATH'teki gercegi EZER."""
+    yol, hata = _mutant_kur(SERBEST, eski, yeni, tmp)
+    if yol is None:
+        return None, hata
+    kapi_kopya = os.path.join(tmp, os.path.basename(KAPI))
+    shutil.copy2(KAPI, kapi_kopya)
+    return kapi_kopya, None
+
+
 def _kapi_mutant_kosumu(ad, eski, yeni, olmeli, yasamali):
     """Kapi mutanti. olmeli/yasamali: [(komut_adi, komut, beklenen_karar)]."""
     with tempfile.TemporaryDirectory(prefix="k258-mut-") as tmp:
-        yol, hata = _mutant_kur(KAPI, eski, yeni, tmp)
+        yol, hata = _kapi_kurulumu(tmp, eski, yeni)
         if yol is None:
             return "OLCULEMEDI", hata
         shutil.copy2(KIMLIK, os.path.join(tmp, os.path.basename(KIMLIK)))
@@ -688,8 +724,8 @@ def main():
     print("\n--- 6) KONTROL MUTANTI (kapi) — ilgisiz kol bozulur, BAKIM VAKALARI YASAMALI ---")
     kontrol_sayisi += 1
     with tempfile.TemporaryDirectory(prefix="k258-kontrol-") as tmp:
-        yol, hata = _mutant_kur(KAPI, CAPA_KAPI_KONTROL_ESKI,
-                                CAPA_KAPI_KONTROL_YENI, tmp)
+        yol, hata = _kapi_kurulumu(tmp, CAPA_KAPI_KONTROL_ESKI,
+                                   CAPA_KAPI_KONTROL_YENI)
         if yol is None:
             olculemedi += 1
             print("  OLCULEMEDI  KONTROL (kapi)               %s" % hata)

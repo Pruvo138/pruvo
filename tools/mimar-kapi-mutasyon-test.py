@@ -30,12 +30,17 @@ TEST = os.path.join(TOOLS, "mimar-kilit-test.py")
 
 KAPI_DOSYALARI = (
     "mimar_kimlik.py",
+    # 28 AGU: serbest cagri SEKILLERININ tek kaynagi. Mutant dizinine KOPYALANMAZSA
+    # kapinin kopyasi `import serbest_cagrilar` ile COKER ve her mutant "RED" diye
+    # okunur ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
+    "serbest_cagrilar.py",
     "mimar-kod-kilidi.py",
     "mimar-icra-kapisi.py",
     "mimar-commit-kapisi.py",
     "mimar-kapi-kur.py",
     "mimar-kilit-test.py",
 )
+SERBEST = "serbest_cagrilar.py"
 
 KILIT = "mimar-kod-kilidi.py"
 KIMLIKORTAK = "mimar_kimlik.py"
@@ -417,12 +422,20 @@ MUTASYONLAR = [
         "        return False\n"),
      "22Tem: _py_izinli daima True (tum python/node araclari acilir)",
      {240, 241, 244}, False, 3),
+    # 28 AGU: HEDEF DEGISMEDI (durum.py'nin EKSTRA argüman toleransi), CAPA yer
+    # degistirdi. Konumsal argüman SAYISI kontrolu artik kapida degil, cagri
+    # SEKILLERININ tek kaynagindadir; capayi eski yerinde birakmak mutanti
+    # sessizce `ANKRAJ BULUNAMADI`ya dusururdu ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
+    # HEDEF KOLU (vaka 129 `durum.py -smth`, 241 `durum.py --ekstra-bayrak`) BAYRAK
+    # UYELIK kontrolu tasir — konumsal SAYI kontrolu DEGIL. Ilk retargette konum
+    # koluna nisanlandi ve ME5 YASADI: mutant hedefe ULASMADI, "kol saglam" degil
+    # "kol olculemedi" demekti ([[ad-iki-rolde-mutanti-golgeler]]).
     ("ME5", lambda d: yama(
-        d, ICRA,
-        "    if ilk == DURUM_YOL:\n"
-        "        return len(argumanlar) == 1\n",
-        "    if ilk == DURUM_YOL:\n"
-        "        return True\n"),
+        d, SERBEST,
+        "            if t not in sekil.tum_bayraklar:\n"
+        "                return False\n",
+        "            if False:  # ME5 MUTANT: bayrak TAM ESITLIGI gevsedi\n"
+        "                return False\n"),
      "22Tem: durum.py EKSTRA argüman toleransi (allowlist tam-esitlik gevser)",
      {129, 241}, False, 2),
     # --- 28 TEM AGENT-KAPISI NOBETCILERI (BaBa'nin '-o' turundaki 3-mutant standardi) ---
@@ -901,6 +914,7 @@ def sert_mutasyonu_kostur(ad, uygulayici, ek_env):
     os.makedirs(dizin)
     shutil.copyfile(os.path.join(TOOLS, ICRA), os.path.join(dizin, ICRA))
     shutil.copyfile(os.path.join(TOOLS, KIMLIKORTAK), os.path.join(dizin, KIMLIKORTAK))
+    shutil.copyfile(os.path.join(TOOLS, SERBEST), os.path.join(dizin, SERBEST))
     uygulayici(dizin)
     payload = {
         "session_id": "sert-mutasyon",

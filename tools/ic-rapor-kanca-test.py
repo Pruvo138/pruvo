@@ -96,6 +96,10 @@ def depo_kur(d, kol_var=True, kapi_var=True, kapi_eki=None):
                     os.path.join(d, "tools", "defter-kota-kapisi.py"))
     shutil.copyfile(os.path.join(TOOLS, "defter-kota-taban.py"),
                     os.path.join(d, "tools", "defter-kota-taban.py"))
+    # 28 AGU: kota kapisinin IKINCI tek kaynagi — CARE satirlari buradan turer.
+    # Kopyalanmazsa kapi import'ta COKER (olculdu: 21/21 -> 17/21).
+    shutil.copyfile(os.path.join(TOOLS, "serbest_cagrilar.py"),
+                    os.path.join(d, "tools", "serbest_cagrilar.py"))
     sentetik_git(d, "init", "-q", capture_output=True, text=True,
                  kimlik_ad="t", kimlik_eposta="t@t.local")
     return d
