@@ -85,6 +85,7 @@ DEFTER_ROTASYON_DEFTER = REPO_ONEKI + "DEVAM.md"
 DEFTER_ROTASYON_ARSIV = REPO_ONEKI + "DEVAM-ARSIV.md"
 KUTU_ARSIVLE_YOL = REPO_ONEKI + "tools/kutu-arsivle.py"
 CIP_BEKCI_YOL = CRON_ONEKI + "cip_dogum_bekcisi.py"
+ONARIM_DURUM_YOL = REPO_ONEKI + "tools/onarim-durum.py"
 
 # Defter bakimi bayraklari — arac ADINA degil, SEKLE baglidir.
 # 🔴 HER BAYRAK ADI TEK BIR YERDE YAZILIR. Ilk surumde '--tavan-kaynaktan' HEM
@@ -160,6 +161,14 @@ SEKILLER = (
           zorunlu=("--teslim-kaydet",),
           degerli=("--anahtar", "--task-id", "--sebep"),
           ornek=("--teslim-kaydet",), repo_disi=True),
+
+    # 🔴 28 AGU (bu is): `onarim-durum.py` — hattin onarim turu acmis mi diskten
+    # okuyan SALT-OKUR arac. Konumsal arguman ALMAZ, hicbir bayrak TANIMAZ (aracin
+    # CLI'si YOK). Mimar elinde SERBEST: Okan'in "terminale girmeden soracagim bir
+    # sey yap" emri (28 Agu); taban canli ONARIM/GOZCU/KIRMIZI sayilarini cevap
+    # olarak verir. Guvenli: dosya DEGISTIRMEZ, aga cikmaz, LLM/agent turu acmaz
+    # — bu yuzden mimar katinda serbest birakilmasi SAKINCALI degil.
+    Sekil("onarim-durum", ONARIM_DURUM_YOL),
 )
 
 SEKIL_ETIKETLERI = {s.etiket: s for s in SEKILLER}
@@ -236,6 +245,10 @@ DISARIDA = {
     },
 
     CIP_BEKCI_YOL: {},
+
+    # `onarim-durum.py` SALT-OKUR: konumsal arguman YOK, hicbir bayrak TANIMAZ
+    # (aracin CLI'si yok). Dolayisiyla DISARIDA'da hicbir bayrak gerekceli degil.
+    ONARIM_DURUM_YOL: {},
 }
 
 
