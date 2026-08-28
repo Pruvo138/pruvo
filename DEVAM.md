@@ -5,8 +5,9 @@
 ## 🔁 28 AGU CANLI DURUM (27 Agu devir blogu `847d7509`'da)
 🔴 **ONARIM ZINCIRI KIRIK** (cip `task_0fe4a08f` kosuyor): **K332** `~/.claude/cron/` duzlemi HICBIR mesru
 oturumdan kosulamiyor (rol muafiyeti R2'yi tuketmiyor, kapi 5. kez) → **K331** bekci "spec var"i "cip dogdu"
-sayiyor, 28 Agu cipi DOGMADI (elle dusuruldu) → **K333** sabah kolu PATH'siz, gunun CI listesi BOS uretiliyor.
-Ucunun tam metni+kabulu `acik-kalemler.md`.
+sayiyor, 28 Agu cipi DOGMADI (elle dusuruldu) → **K333 KAPANDI**: `gh` TAM YOLDAN cozuluyor, olculemeyen CI
+BOS LISTE degil ACIK KALEM + rc!=0; `cron/k333-ci-hukum-bataryasi.py` 23/23, onceki govdede 12 DUSTU
+(taban: KIRMIZI=0 iken gercek 2). K331/K332 ACIK; tam metin `acik-kalemler.md`.
 🔴 **KAPI CELISKISI (SINIF):** defter-kotasi careyi `defter-rotasyon.py --tavan-kaynaktan --isaretciye-indir`
 yaziyor (K258 "mimarda SERBEST"), `mimar-icra-kapisi` ayni cagriyi ANA oturumda REDDEDIYOR. Kabul: TEK liste + mutant.
 🟠 **NOBET:** `.ci-token` 108 B; gun `rc=1` 20/`rc=0` 1, ACILAN_TUR **0** = jeton kullanilmadi (K324 onarildi;
@@ -15,8 +16,6 @@ K325-K327+K329 + civi BLOKE KUTUDA).
 ⓒ kurucu `--rol-kapisi` · ⓓ `_proje_damgasi` KAYIPLI · ⓔ HTML 4 saat = OKAN KAPISI · ⓕ ic rapor ad kalibi · ⓖ+7.
 **Okan'da bekleyen karar:** `pruvo-jenerator` GitHub App repository access (TeKiN).
 🔴 **UYDURMA (27 Agu):** m3 turu olmayan SHA+gorev uydurdu → [[isci-gorevi-de-uydurabilir-sha-dogrulanmadan-kayda-girmez]]
-🟢 **ROTASYON `4cfdbba4` (K329):** `kutu-arsivle.py` kapanissiz `BASLIYORUM` blogunu TASIMIYOR,
-atladigini `ACIK_BASLIYORUM_ADLARI=` ile basiyor (eslesme=CIP ADI, konum=BASLIK, denetim=D17).
 🔴 **K330 (28 Agu, SINIF):** `k3-cikti-kok-mutasyon.py` AYNI agacta ardisik iki kosumda ZIT
 hukum: #1 `M_KOK=KACTI rc!=0`, #2 `M_KOK=OLDURULDU KONTROL=YESIL EKSEN=B rc=0`. Fark: #1'in
 temizligi 12 gitignored ARTIK yolu sildi — artik varken uc eksen de kor, `porcelain` BOS = agac "temiz".
@@ -29,9 +28,9 @@ yollari sifirlanir ya da `OLCULEMEDI: taban artikli` + mutant. → [[artik-yuzey
   mimarlarinda; KraL kardes depoya yazmaz. · 🔧 **K302 KALAN:** kok neden MaCiT'in `olcum/hasat_ekle.py`
   dosyasinda, kutuda bildirildi.
 - 🔧 K307 yan bulgu (kalem KAPANDI `32909205580`): isci probu 206'yi "olu" saydi → [[prob-kendi-baglamini-olcer]]
-- 🔧 **K304:** ① 3 kopya SILINDI, yedekle.py BORCLU. ✅ ② BOOTSTRAP ACILDI (`e630bce7`): kurucu hicbir
-  evde kosmuyordu → ADLI serbest kol, ANA oturum RED; VAKA=10 MUTANT 3/3, kilit-test=TABAN.
-  MaCiT→`2a3b76d3`, filo 1→2. 4 EV KALDI
+- 🔧 **K304:** ① 3 kopya SILINDI, yedekle.py BORCLU. ✅ ② KAPANDI: bootstrap (`e630bce7`) + **FILO 6/6**
+  (4 ev 4/4 KILITLIYDI, KraL elinden kuruldu; MUTANT=OLDURULDU ATIF=HEDEF_TEK, KONTROL yesil; ROL
+  EKSENI GELDI HocA/ArTisT, TeKiN/BaBa wt yok=OLCULEMEDI + shim skip-worktree, commit ev sahibinde)
 - 🔴 **K291:** parti kapisi DAVRANIS degil DIZGE olcuyor, SALT-OKUMA reddediliyor. kabul: okuma↔baslatma AYRI kol + mutant. → [[n2b-kapisi-dizge-olcer]].
 - 🔧 **K292 (MaCiT 4 belirti/3+ tekrar, SINIF):** `merge_safe()` id-soneki yardimci ize yansimiyor;
   kabul: ORTAK yardimci + >=1 TUKETICI okur + davranis mutanti. · 🔧 **K293 (MaCiT 3 kez):** pre-push
