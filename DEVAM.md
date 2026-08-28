@@ -25,6 +25,11 @@ Cip `KraL-OksuzAgaclar-28Agu` tasiyor; **katalog geri sarilmayacak** (kabul sart
 🔵 **WORKTREE 13 -> 11** (`trusting-sutherland-157a62` birlesmisti + oturumu oludu, kaldirildi). Kalan
 agaclarin hepsinin oturumu CANLI ya da uzerinde birlesmemis is var -> dusurulmedi.
 **BEKLIYOR:** MaCiT dilim'leri (K332 blokeri kalkti).
+✅ **K330 KAPANDI** (`c1070d3d`, CI job `success` `33165127457`): batarya kendi tabanini sifirliyor
+(3 beyanin birlesimi, izlenen yola DOKUNMAZ) + beyandan BAGIMSIZ fail-closed on kontrol
+(`OLCULEMEDI: taban artikli` rc=3). Kok DARALDI: hukmu landing degil BILINEN yollarin tabanda
+durmasi ceviriyor — uretilebilir. Ardisik UC kosum `TABAN_ARTIK_ONCE` 425-0-0, ucu de
+`OLDURULDU rc=0`; `--kendini-test` MUTANT=4/4 KONTROL=3/3. → [[artik-yuzey-mutant-dedektorunu-korlestirir]]
 
 defter kotasi 28 Agu: 12.287 B -> 8113 B (rotasyon, kayipsiz; arsiv 22204 -> 22254 satir)
 

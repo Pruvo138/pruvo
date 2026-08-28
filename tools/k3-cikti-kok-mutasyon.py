@@ -57,6 +57,7 @@ import tempfile
 import hashlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import git_ortami  # noqa: E402
 from mutasyon_kopya import kopya_kok  # noqa: E402
 
 WORKTREE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -74,6 +75,41 @@ _KOK_DOSYALAR = (
     "_yayin-icerik-dizinleri.txt", ".nojekyll",
 )
 _KOK_DIZINLER = ("urun", "varlik", "_yayin")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🔴 K330 — TABAN ARTIK YUZEYI (28 Agu 2026)
+# ─────────────────────────────────────────────────────────────────────────────
+# Yukaridaki iki liste build.py'nin yazdigi yuzeyin YALNIZ BIR PARCASI. build.py
+# ayrica her CONTENT_PAGES slug'i icin CIKTI_KOK/<slug>/index.html, artı marka/,
+# kategori/ ve landing hub dizinlerini yazar. OLCULDU (bu dal): tek bir batarya
+# kosumu ortak agaca **410 IZLENMEYEN dizin** birakiyor (+13 MB), temizlik kolu
+# onlari KAPSAMADIGI icin arac kendi tabanini yalnizca KISMEN sifirliyordu.
+#
+# NEDEN OLDURUCU: uc eksen de FARK olcer, VARLIK degil. Bilinen yollar tabanda
+# ZATEN duruyorsa A onlari hic basmaz (gitignored), B'nin oncesi/sonrasi ayni
+# satirlari verir, C ise build deterministik oldugu icin ayni sha256'yi uretir —
+# mutant yazar, hicbir eksende iz kalmaz ve arac KENDI mutantini olduremez.
+#
+# AYNI COMMIT, AYNI AGAC, olculen iki hal:
+#   bilinen yollar tabanda YOK -> A/B/C = AYNI/FARKLI/FARKLI · M_KOK=OLDURULDU rc=0
+#   bilinen yollar tabanda VAR -> A/B/C = AYNI/AYNI/AYNI     · M_KOK=KACTI    rc!=0
+# `git status --porcelain` IKI HALDE DE BOS — yani korlugun kendisi GORUNMEZ.
+# → [[artik-yuzey-mutant-dedektorunu-korlestirir]]
+#
+# Onarim IKI KOL: (1) `taban_artik_yollari` olcumden ONCE yuzeyi sifirlar,
+# (2) `yapisal_artik_yollari` beyandan BAGIMSIZ olarak artik kalmadigini dogrular
+# ve kalmissa `OLCULEMEDI: taban artikli` + rc=3 ile DURUR (sessiz devam YOK
+# → [[olculemedi-bypass-degil-menzil-daraltmasi]]).
+_ARTIK_MANIFEST = "_yayin-icerik-dizinleri.txt"
+
+# HARIC — BILEREK. `sitemap-damgalari.json` lastmod ONBELLEGIDIR, render ciktisi
+# DEGIL: (a) hicbir ekseni korlestiremez (EKSEN_C listesinde yok, bir kosum icinde
+# oncesi/sonrasi bayt-ayni kalir); (b) silinirse KONTROL build'i git gecmisini
+# IKINCI kez yurur (+~175 sn olculdu) ve `nobet.yml` job tavanini yer
+# (tavan 1800 sn, son olculen kosum 1330 sn = %74). Bu yuzden sifirlama
+# yuzeyinin DISINDA birakildi — bir sonraki tur "neden haric" diye yeniden
+# kesfetmesin diye ADIYLA yaziliyor.
+_ARTIK_HARIC = ("sitemap-damgalari.json",)
 
 MUTANT_BODY = (
     "def _coz_cikti_kok():\n"
@@ -265,6 +301,140 @@ def run_build(build_path, cikti_kok):
 #   * Menzil disi yol -> SystemExit(2), rmtree YAPILMAZ, yol adıyla basar.
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _izlenen_kok_girdileri(kok):
+    """<kok> altinda git'in IZLEDIGI UST DUZEY girdi adlari (TEK git cagrisi).
+
+    🔴 SIFIRLAMA KOLUNUN DEGISMEZ KURALI: izlenen hicbir yol SILINMEZ ve yeniden
+    YAZILMAZ. Bu suzgec olmadan reset dort yasal sayfayi (`hakkimizda` `iletisim`
+    `sss` `gizlilik`) `rmtree` ederdi — cunku onlar `SITEMAP_SLUGS` icindedir ve
+    build.py'nin manifestinde de gecerler. Suzgeci M-IZLENEN mutanti korur.
+
+    Ortam `git_ortami()` ile temizlenir: miras alinan GIT_DIR/GIT_INDEX_FILE depo
+    kesfini BASKA depoya kaydirabilir. → [[kanca-git-dir-kok-cozumu]]
+    """
+    out = subprocess.run(
+        ["git", "-C", kok, "ls-files"],
+        capture_output=True, text=True, check=False,
+        env=git_ortami.git_ortami())
+    return {s.split("/", 1)[0] for s in out.stdout.splitlines() if s}
+
+
+def _manifest_dizin_adlari(kok):
+    """BEYAN 2 — build.py'nin KENDI yazdigi manifestten ust dizin adlari.
+
+    `_yayin-icerik-dizinleri.txt` = SITEMAP_SLUGS + marka + landing hub + kategori
+    dizinleri; build.py bunu deploy beyaz-listesi icin TEK KAYNAK olarak uretir.
+    Yarim kalan bir kosumda manifest YOK olabilir — bu yuzden TEK BASINA YETMEZ.
+    """
+    yol = os.path.join(kok, _ARTIK_MANIFEST)
+    adlar = []
+    if not os.path.isfile(yol):
+        return adlar
+    try:
+        with open(yol, encoding="utf-8") as f:
+            for satir in f:
+                ad = satir.strip().strip("/").split("/", 1)[0]
+                if ad:
+                    adlar.append(ad)
+    except OSError:
+        return []
+    return adlar
+
+
+def _gitignore_kok_dizin_adlari(kok):
+    """BEYAN 3 — .gitignore'un KOKE CIVILENMIS `/<ad>/` dizin girdileri.
+
+    Deponun KENDI "bu dizinler build ciktisidir" beyani. Manifest YOKKEN landing
+    yuzeyini tasiyan kaynak budur; iki beyan birbirinin yedegidir.
+    Joker (`*`/`?`) iceren desenler ATLANIR — kapsamlari belirsizdir ve sifirlama
+    kolu belirsiz kapsamla SILMEZ.
+    """
+    yol = os.path.join(kok, ".gitignore")
+    adlar = []
+    if not os.path.isfile(yol):
+        return adlar
+    try:
+        with open(yol, encoding="utf-8") as f:
+            for satir in f:
+                satir = satir.strip()
+                if not satir.startswith("/") or not satir.endswith("/"):
+                    continue
+                ad = satir.strip("/")
+                if ad and "*" not in ad and "?" not in ad and "/" not in ad:
+                    adlar.append(ad)
+    except OSError:
+        return []
+    return adlar
+
+
+def taban_artik_yollari(kok):
+    """KOL 1 — olcumden ONCE sifirlanacak bilinen cikti yollari (K330).
+
+    UC BEYAN KAYNAGININ BIRLESIMI; hicbiri tek basina yeterli DEGIL:
+      1) bu betigin acik listesi (_KOK_DOSYALAR + _KOK_DIZINLER),
+      2) build.py'nin kendi manifesti  (yarim kosumda YOK olabilir),
+      3) .gitignore'un koke civilenmis dizin girdileri (landing yuzeyi).
+    SUZGEC: izlenen ad listeye GIRMEZ; `_ARTIK_HARIC` disarida kalir.
+    """
+    izlenen = _izlenen_kok_girdileri(kok)
+    adlar = list(_KOK_DOSYALAR) + list(_KOK_DIZINLER)
+    adlar += _manifest_dizin_adlari(kok)
+    adlar += _gitignore_kok_dizin_adlari(kok)
+    yollar, gorulen = [], set()
+    for ad in adlar:
+        if ad in gorulen or ad in _ARTIK_HARIC:
+            continue
+        gorulen.add(ad)
+        if ad in izlenen:
+            continue
+        yol = os.path.join(kok, ad)
+        if os.path.lexists(yol):
+            yollar.append(yol)
+    return yollar
+
+
+def yapisal_artik_yollari(kok):
+    """KOL 2 — BEYANDAN BAGIMSIZ artik dedektoru (K330 fail-closed on kontrolu).
+
+    Uc beyan kaynagini da atlatan bir build ciktisi tabanda kalirsa olcum
+    GECERSIZDIR — ama beyan listesine bakan bir kol bunu TANIMI GEREGI goremez
+    (korlugun kaynagi zaten "listede olmayan yol"du). Bu kol YAPIYA bakar:
+    build.py'nin urettigi her sayfa <kok>/<ad>/index.html ya da
+    <kok>/<ad>/<alt>/index.html seklindedir (landing · marka · kategori · urun).
+
+    KAPSAM DISI (bilerek — KONTROL kolunun sarti): nokta ile baslayan girdiler
+    (.git/.claude build ciktisi degil) ve IZLENEN dizinler (dort yasal sayfa
+    buraya duser). Boylece arac "her artiga yanan alarm" haline GELMEZ.
+    """
+    izlenen = _izlenen_kok_girdileri(kok)
+    bulunan = []
+    try:
+        girdiler = sorted(os.listdir(kok))
+    except OSError:
+        return []
+    for ad in girdiler:
+        if ad.startswith(".") or ad in izlenen:
+            continue
+        yol = os.path.join(kok, ad)
+        if os.path.islink(yol) or not os.path.isdir(yol):
+            continue
+        if os.path.isfile(os.path.join(yol, "index.html")):
+            bulunan.append(yol)
+            continue
+        try:
+            with os.scandir(yol) as it:
+                for sayac, girdi in enumerate(it):
+                    if sayac >= 50:
+                        break
+                    if girdi.is_dir() and os.path.isfile(
+                            os.path.join(girdi.path, "index.html")):
+                        bulunan.append(yol)
+                        break
+        except OSError:
+            continue
+    return bulunan
+
+
 def _scope_kontrol(scope_kok, yol):
     """yol'un scope_kok'un ALTINDA olup olmadigini realpath ile dogrular.
 
@@ -394,7 +564,10 @@ def cleanup_build_outputs(cikti_kok):
       restore_tracked_pages()'a bkz.
     """
     # 1) WORKTREE bilinen cikti yollari (scope: WORKTREE)
-    worktree_yollar = _bilinen_yollari_topla(WORKTREE)
+    # 🔴 K330: yuzey `_bilinen_yollari_topla` DEGIL `taban_artik_yollari` — eskisi
+    # yalniz 12 sabit yolu biliyordu ve landing/marka/kategori dizinleri her
+    # kosumda BIRIKIYORDU (olculdu: kosum basina 410 dizin).
+    worktree_yollar = taban_artik_yollari(WORKTREE)
     cleanup_paths(WORKTREE, worktree_yollar, "WORKTREE")
 
     # 2) CIKTI_KOK bilinen cikti yollari (scope: CIKTI_KOK)
@@ -406,8 +579,174 @@ def cleanup_build_outputs(cikti_kok):
     restore_tracked_pages()
 
 
+def _oz_yaz(yol, metin):
+    dizin = os.path.dirname(yol)
+    if dizin and not os.path.isdir(dizin):
+        os.makedirs(dizin)
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(metin)
+
+
+def _k330_fikstur(kok):
+    """K330 kendini-testinin sentetik deposu — her artik SINIFINDAN bir ornek:
+
+      hakkimizda/    IZLENEN  (manifestte de GECER — suzgec tutmazsa SILINIR)
+      urun/          beyan 1  (betigin sabit listesi; index.html DERINLIK 2'de)
+      landing-a/     beyan 3  (yalniz .gitignore biliyor)
+      landing-b/     beyan 2  (yalniz manifest biliyor)
+      sahte-artik/   BEYANSIZ (hicbir kaynak bilmiyor -> yalniz YAPISAL kol gorur)
+      duz-dizin/     KONTROL  (index.html YOK -> artik SAYILMAMALI)
+
+    Sentetik git YALNIZ `git_ortami.sentetik_git` ile kurulur (ikinci govde
+    YASAK; `tools/fikstur-git-sizinti-kapisi.py` bunu CI'da olcer).
+    """
+    _oz_yaz(os.path.join(kok, ".gitignore"), "/landing-a/\n/urun/\n")
+    _oz_yaz(os.path.join(kok, "hakkimizda", "index.html"), "izlenen\n")
+    _oz_yaz(os.path.join(kok, _ARTIK_MANIFEST), "hakkimizda\nlanding-b\n")
+    _oz_yaz(os.path.join(kok, "urun", "1", "index.html"), "urun\n")
+    _oz_yaz(os.path.join(kok, "landing-a", "index.html"), "a\n")
+    _oz_yaz(os.path.join(kok, "landing-b", "index.html"), "b\n")
+    _oz_yaz(os.path.join(kok, "sahte-artik", "index.html"), "beyansiz\n")
+    _oz_yaz(os.path.join(kok, "duz-dizin", "not.txt"), "artik degil\n")
+    git_ortami.sentetik_git(kok, "init", "-q", capture_output=True, text=True)
+    git_ortami.sentetik_git(kok, "add", "hakkimizda/index.html",
+                            capture_output=True, text=True)
+    git_ortami.sentetik_git(kok, "commit", "-q", "-m", "fikstur",
+                            capture_output=True, text=True)
+
+
+def kendini_test():
+    """K330'un IKI KOLUNU mutasyonla olcer (~1 sn). BATARYANIN YERINE GECMEZ.
+
+    Capa ELLE YAZILMAZ: hedef fonksiyonun KENDI kaynagindan turetilir
+    (`mutasyon_kopya.mutant_metni`); donusum etkisiz kalirsa `CapaHatasi`
+    yukselir. → [[capa-turetme-altyapisi-kullanilmadan-kaldi]]
+
+    Neden ayri ve HIZLI bir kol: ayni bayatligi yalnizca ~590 sn'lik tam
+    bataryanin SONUNDA gorebilmek geri besleme suresini yuzlerce kat uzatir.
+    """
+    import mutasyon_kopya as mk
+
+    # realpath ZORUNLU: macOS'ta /var -> /private/var bagi yuzunden git COZULMUS
+    # yolu yazar; fikstur cozulmemis yolu kullanirsa vaka aracin kusuru gibi
+    # duser. → [[sentetik-git-fiksturunde-realpath-sart]]
+    gecici = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-k330-oz-"))
+    adimlar = []
+    capa_ok = False
+    try:
+        fikstur = os.path.join(gecici, "depo")
+        os.makedirs(fikstur)
+        _k330_fikstur(fikstur)
+
+        kendi_yol = os.path.abspath(__file__)
+        with open(kendi_yol, encoding="utf-8") as f:
+            orjinal = f.read()
+        mod = mk.modul_yukle(kendi_yol, "k330_canli")
+
+        def adlar(yollar):
+            return {os.path.basename(y) for y in yollar}
+
+        canli_taban = adlar(taban_artik_yollari(fikstur))
+        canli_yapisal = adlar(yapisal_artik_yollari(fikstur))
+        print("=== K330 KENDINI-TEST ===")
+        print("CANLI_TABAN=", sorted(canli_taban))
+        print("CANLI_YAPISAL=", sorted(canli_yapisal))
+
+        # KONTROL 1 — IZLENEN yol (4 yasal sayfa sinifi) sifirlama listesine GIRMEZ
+        k1 = "hakkimizda" not in canli_taban
+        adimlar.append(("KONTROL-IZLENEN", k1))
+        print("KONTROL-IZLENEN: hakkimizda silme listesinde=%s -> %s"
+              % (not k1, "YESIL" if k1 else "KIRMIZI"))
+        # KONTROL 2 — index.html TASIMAYAN izlenmeyen dizin ARTIK sayilmaz
+        k2 = "duz-dizin" not in canli_yapisal
+        adimlar.append(("KONTROL-ALARM-DEGIL", k2))
+        print("KONTROL-ALARM-DEGIL: duz-dizin artik sayildi=%s -> %s"
+              % (not k2, "YESIL" if k2 else "KIRMIZI"))
+
+        def mutant_modul(ad, ciftler):
+            metin = mk.mutant_metni(mod, orjinal, ciftler)
+            yol = os.path.join(gecici, "mutant_%s.py" % ad)
+            with open(yol, "w", encoding="utf-8") as f:
+                f.write(metin)
+            return mk.modul_yukle(yol, "k330_%s" % ad)
+
+        # Her vaka: (ad, kapsam, desen, eski, yeni, HEDEF YOL, hangi kume).
+        # `yeni` vaka basina ayri: bir ifadeyi `[]` ile degistirmek ile bir
+        # `return` deyimini degistirmek AYNI SEY DEGIL — ikincisi cıplak ifade
+        # birakip fonksiyonu sessizce `None` dondurur (olculdu, ilk kosumda).
+        vakalar = (
+            ("M-MANIFEST", "taban_artik_yollari", r"_manifest_dizin_adlari",
+             "_manifest_dizin_adlari(kok)", "[]", "landing-b", "taban"),
+            ("M-GITIGNORE", "taban_artik_yollari", r"_gitignore_kok_dizin_adlari",
+             "_gitignore_kok_dizin_adlari(kok)", "[]", "landing-a", "taban"),
+            ("M-YAPISAL", "yapisal_artik_yollari", r"^    return bulunan$",
+             "return bulunan", "return []", "sahte-artik", "yapisal"),
+        )
+        for ad, kapsam, desen, eski, yeni, hedef_yol, kume in vakalar:
+            mutant = mutant_modul(ad, [(
+                kapsam, desen,
+                lambda s, _e=eski, _y=yeni: s.replace(_e, _y, 1))])
+            fn = (mutant.taban_artik_yollari if kume == "taban"
+                  else mutant.yapisal_artik_yollari)
+            mutant_adlar = adlar(fn(fikstur))
+            canli_kume = canli_taban if kume == "taban" else canli_yapisal
+            ok = (hedef_yol in canli_kume) and (hedef_yol not in mutant_adlar)
+            adimlar.append((ad, ok))
+            print("%s: hedef=%s canli=%s mutant=%s -> %s"
+                  % (ad, hedef_yol, hedef_yol in canli_kume,
+                     hedef_yol in mutant_adlar, "OLDURULDU" if ok else "KACTI"))
+
+        # M-IZLENEN — TERS YONLU vaka: suzgec dusunce IZLENEN yasal sayfa silme
+        # listesine GIRER. Digerleri "kol dusunce yol KAYBOLUYOR mu" diye sorar,
+        # bu "kol dusunce silinmemesi gereken yol EKLENIYOR mu" diye sorar.
+        mi = mutant_modul("izlenen", [(
+            "taban_artik_yollari", r"if ad in izlenen:",
+            lambda s: s.replace("if ad in izlenen:", "if ad in ():", 1))])
+        mi_adlar = adlar(mi.taban_artik_yollari(fikstur))
+        mi_ok = ("hakkimizda" not in canli_taban) and ("hakkimizda" in mi_adlar)
+        adimlar.append(("M-IZLENEN", mi_ok))
+        print("M-IZLENEN: hedef=hakkimizda canli=%s mutant=%s -> %s"
+              % ("hakkimizda" in canli_taban, "hakkimizda" in mi_adlar,
+                 "OLDURULDU" if mi_ok else "KACTI"))
+
+        # KONTROL 3 — sifirlama KOSULUNCA beyanli artik gider, BEYANSIZ kalir
+        # (yani fail-closed kol gercekten devreye girecek) ve IZLENEN sayfa DURUR.
+        cleanup_paths(fikstur, taban_artik_yollari(fikstur), "OZ_TEST")
+        kalan = adlar(yapisal_artik_yollari(fikstur))
+        sayfa_duruyor = os.path.isfile(
+            os.path.join(fikstur, "hakkimizda", "index.html"))
+        k3 = (kalan == {"sahte-artik"}) and sayfa_duruyor
+        adimlar.append(("KONTROL-SIFIRLAMA", k3))
+        print("KONTROL-SIFIRLAMA: kalan=%s izlenen_sayfa_duruyor=%s -> %s"
+              % (sorted(kalan), sayfa_duruyor, "YESIL" if k3 else "KIRMIZI"))
+
+        # CAPA FAIL-CLOSED — ETKISIZ donusum `CapaHatasi` yukseltmeli; yoksa
+        # bayat bir capa sessizce no-op mutant uretir ve kol kor kalir.
+        try:
+            mk.mutant_metni(mod, orjinal, [(
+                "taban_artik_yollari", r"if ad in izlenen:", lambda s: s)])
+            capa_ok = False
+        except mk.CapaHatasi:
+            capa_ok = True
+        print("CAPA_FAIL_CLOSED: %s" % ("GECTI" if capa_ok else "DUSTU"))
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)   # ureten temizler (Okan disk kurali)
+
+    mutantlar = [b for ad, b in adimlar if ad.startswith("M-")]
+    kontroller = [b for ad, b in adimlar if ad.startswith("KONTROL")]
+    tamam = all(mutantlar) and all(kontroller) and capa_ok
+    print("K330_KENDINI_TEST MUTANT=%d/%d HEDEF_KOL_ATFI=%d/%d KONTROL=%d/%d "
+          "CAPA_FAIL_CLOSED=%s"
+          % (sum(mutantlar), len(mutantlar), sum(mutantlar), len(mutantlar),
+             sum(kontroller), len(kontroller), "GECTI" if capa_ok else "DUSTU"))
+    return 0 if tamam else 1
+
+
 def main():
     args = sys.argv[1:]
+
+    if "--kendini-test" in args:
+        return kendini_test()
 
     # ── M-MENZIL TEST MODU ─────────────────────────────────────────────
     # `--ek-yol <path>...` ile cagirilirsa, sadece cleanup test moduna gir:
@@ -439,6 +778,37 @@ def main():
 
     # ── NORMAL M-KOK TEST MODU ─────────────────────────────────────────
     os.chdir(WORKTREE)
+
+    # ── K330 KOL 1: TABAN SIFIRLAMA (fp0'DAN ONCE) ─────────────────────
+    # Olcum "agac DEGISTI mi" sorusunu sorar; taban artikliysa cevap uc eksende
+    # de kor kalir. Bu yuzden fp0 ALINMADAN once bilinen cikti yuzeyi sifirlanir.
+    print("=== TABAN SIFIRLAMA (K330) ===")
+    taban_adaylar = taban_artik_yollari(WORKTREE)
+    print("TABAN_ARTIK_ONCE=%d" % len(taban_adaylar))
+    for yol in taban_adaylar[:20]:
+        print("  %s" % yol)
+    if len(taban_adaylar) > 20:
+        print("  ... (+%d yol daha)" % (len(taban_adaylar) - 20))
+    if taban_adaylar:
+        cleanup_paths(WORKTREE, taban_adaylar, "TABAN_SIFIRLAMA")
+
+    # ── K330 KOL 2: FAIL-CLOSED ON KONTROL ─────────────────────────────
+    # Beyan kaynaklarinin UCUNU DE atlatan bir artik kaldiysa taban sifirlanmis
+    # DEGILDIR; sessizce devam etmek yanlis hukum uretir (bugun `KACTI`, yarin
+    # yanlis YESIL). `OLCULEMEDI` bir KALEMDIR, bos sonuc degil.
+    taban_kalan = yapisal_artik_yollari(WORKTREE)
+    print("TABAN_ARTIK_SONRA=%d" % len(taban_kalan))
+    for yol in taban_kalan[:20]:
+        print("  %s" % yol)
+    if taban_kalan:
+        if len(taban_kalan) > 20:
+            print("  ... (+%d yol daha)" % (len(taban_kalan) - 20))
+        print("OLCULEMEDI: taban artikli")
+        print("HUKUM=OLCULEMEDI")
+        print("RC!=0")
+        return 3
+    print("TABAN=ARTIKSIZ")
+
     fp0 = repo_fingerprint(WORKTREE)
     print("=== ONCE ===")
     print("REPO_A_SHA=", fp0["A"][0])
