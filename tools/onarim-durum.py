@@ -38,7 +38,15 @@ BUGUN = datetime.date.today().isoformat()
 # bir daha 1 olmayacak. Eski sayac o gunun sayisinda DONAR ve okuyan onu "hat
 # onariyor" diye okur. `ONARIM=0` "acabilirdi, acmadi"; `ONARIM=KAPALI`
 # "acmasi yapisal olarak IMKANSIZ" demektir — ikisi AYNI SEY DEGILDIR.
-KOL_KAPALI_IZI = "LLM_KOLU=KAPALI"
+# 🔴 CAPRAZ DUZLEM: enforcement `~/.claude/cron/` duzlemindedir (git DISI) ve
+# CI'da o dizin YOKTUR -> jeton ITHAL EDILEMEZ, ikinci literal KACINILMAZDIR.
+# Ama SESSIZ KALMAZ: `tools/nobet-uc-kol-kabul.py` B22 vakasi iki duzlemin
+# jetonunu KIYASLAR ve ayrisirsa KIRMIZI yanar.
+KOL_KAPALI_JETONU = "LLM_KOLU_KAPALI"
+KOL_KAPALI_IZI = "HUKUM=" + KOL_KAPALI_JETONU
+# 28 Agu 2026 GECIS PENCERESI: jetondan ONCEKI govde yamasi bu satiri yaziyordu.
+# Log rotasyonundan sonra KALDIRILABILIR; bugun yalniz geriye donuk okuma icin.
+ESKI_IZ_28AGU = "LLM_KOLU=KAPALI"
 TUR_ACILDI_IZI = "acilan_tur=1"
 
 RC_ACTI = 0
@@ -56,20 +64,30 @@ YANLIS_OKUMA = "Hat bakiyor, onarmiyor."
 def kol_hali():
     """LLM tur kolunun HALI: 'KAPALI' | 'ACIK' | 'OLCULEMEDI'.
 
-    Hal DIZGEDEN degil DAVRANISTAN okunur: govde (`nobet-kapi.py`) bir turu
-    REDDETTIGINDE loga `LLM_KOLU=KAPALI` yazar. Son soz LOGDAKI SON KANITTIR
-    — kol yeniden acilirsa (yeni bir `acilan_tur=1` dusunce) hal kendiliginden
+    Hal DIZGEDEN degil DAVRANISTAN okunur: govde bir turu REDDETTIGINDE loga
+    `HUKUM=LLM_KOLU_KAPALI` yazar, bir tur ACILDIGINDA `acilan_tur=1` duser.
+    Son soz LOGDAKI SON KANITTIR — kol yeniden acilirsa hal kendiliginden
     'ACIK'a doner; tek yonlu kilit URETILMEZ.
+
+    🔴 KANIT YOKSA 'ACIK' DENMEZ. Bu araci Okan terminale girmeden hat sormak
+    icin kullaniyor; hicbir markor ESLESMIYORSA arac KENDINDEN EMIN VE YANLIS
+    bir sey soylemez, `OLCULEMEDI` basar. `acilan_tur=0` KANIT DEGILDIR: o alan
+    artik kolun halinden BAGIMSIZ olarak her turda 0 basilir.
     """
     if not os.path.exists(CINOBETI):
         return "OLCULEMEDI"
     son_red = son_acilis = -1
-    with open(CINOBETI, "r", encoding="utf-8", errors="replace") as f:
-        for i, satir in enumerate(f):
-            if KOL_KAPALI_IZI in satir:
-                son_red = i
-            if TUR_ACILDI_IZI in satir:
-                son_acilis = i
+    try:
+        with open(CINOBETI, "r", encoding="utf-8", errors="replace") as f:
+            for i, satir in enumerate(f):
+                if KOL_KAPALI_IZI in satir or ESKI_IZ_28AGU in satir:
+                    son_red = i
+                if TUR_ACILDI_IZI in satir:
+                    son_acilis = i
+    except OSError:
+        return "OLCULEMEDI"
+    if son_red < 0 and son_acilis < 0:
+        return "OLCULEMEDI"
     if son_red > son_acilis:
         return "KAPALI"
     return "ACIK"
@@ -91,11 +109,18 @@ def olc():
     kol = kol_hali()
     acilan = _say(CINOBETI, lambda s: TUR_ACILDI_IZI in s)
     return {
-        # 🔴 UCUNCU HAL: kol kapaliyken sayi BASILMAZ, HAL basilir.
-        "ONARIM": "KAPALI" if kol == "KAPALI" else acilan,
+        # 🔴 Hal OLCULEMEDIYSE sayi da basilmaz: "0" bir CEVAPTIR, bilmedigimiz
+        # yerde cevap vermeyiz.
+        "ONARIM": ("KAPALI" if kol == "KAPALI"
+                   else ("OLCULEMEDI" if kol == "OLCULEMEDI" else acilan)),
         "KOL": kol,
         "ACILAN_TARIHSEL": acilan,
-        "KOL_REDDI": _say(CINOBETI, lambda s: KOL_KAPALI_IZI in s),
+        # 🔴 GECIS PENCERESI: 28 Agu 2026 onceki govde yazisi (`LLM_KOLU=KAPALI`)
+        # ile yeni jeton (`HUKUM=LLM_KOLU_KAPALI`) AYNI olayin IKI gostergesi.
+        # SAYAC her ikisini de saymali; yoksa geriye donuk okuma eski logu
+        # `0` gosterir ve operator "kol hic reddedilmedi" yanilmasina dusar.
+        "KOL_REDDI": _say(CINOBETI, lambda s: KOL_KAPALI_IZI in s
+                          or ESKI_IZ_28AGU in s),
         "GOZCU": _say(GOZCU, lambda s: BUGUN in s and "GOZCU " in s),
         "KIRMIZI": _say(GOZCU, lambda s: BUGUN in s and "YENI_KIRMIZI=1" in s),
     }
@@ -114,6 +139,12 @@ def huküm(sayilar):
         return ("LLM tur kolu KAPALI (Okan emri, 28 Agu) — hat tur ACAMAZ. "
                 "Bu hal '0' DEGILDIR: kol YOK, ihmal YOK. Onarim gunluk "
                 "TAMIRCI cipindedir.", RC_KOL_KAPALI)
+    # 🔴 UCUNCU HAL'IN KARDESI: hal OLCULEMEDI. 'ACIK' DEMEK YASAK — bu arac
+    # Okan'a hat durumu soyluyor; emin olmadigi yerde emin konusmaz.
+    if sayilar.get("KOL") == "OLCULEMEDI":
+        return ("LLM tur kolunun hali OLCULEMEDI (logda markor YOK). "
+                "Hal hakkinda hukum VERMIYORUM: olculemeyen hal, yanlis "
+                "cevaba cevrilemez.", RC_ACMADI)
     raw = sayilar["ONARIM"]
     try:
         onarim = int(raw)
@@ -210,16 +241,39 @@ def _kendini_test():
         olcvaka("D4 KONTROL kol yeniden ACILDI -> sayi doner rc=0",
                 ("1", "ACIK", RC_ACTI), (s2["ONARIM"], s2["KOL"], rc2), kontrol=True)
 
-        s3, (m3, rc3) = _olc_ile(acmadi_y)
-        olcvaka("D5 KONTROL acabilirdi acmadi -> 0 rc=1",
-                ("0", "ACIK", RC_ACMADI), (s3["ONARIM"], s3["KOL"], rc3), kontrol=True)
+        s3, (_m3, _rc3) = _olc_ile(acmadi_y)
+        m5, rc5 = huküm({"KOL": "ACIK", "ONARIM": "0", "KIRMIZI": "2"})
+        olcvaka("D5 KONTROL kol ACIK + tur 0 -> rc=1 (sahte yesil YOK)",
+                RC_ACMADI, rc5, kontrol=True)
         olcvaka("D6 KONTROL o halde YANLIS_OKUMA cumlesi DENIR",
-                True, YANLIS_OKUMA in m3, kontrol=True)
+                True, YANLIS_OKUMA in m5, kontrol=True)
 
         s4, (_m4, rc4) = _olc_ile(yok_y)
         olcvaka("D7 KONTROL log YOK -> OLCULEMEDI rc=1",
                 ("OLCULEMEDI", "OLCULEMEDI", RC_ACMADI),
                 (s4["ONARIM"], s4["KOL"], rc4), kontrol=True)
+
+        kanitsiz_y = _log_yaz("kanitsiz.log", [
+            "TETIK_HUKMU tetik_rc=10 acilan_tur=0 nobet_rc=KOSMADI hukum=TEMIZ",
+            "=== 2026-08-28T21:07:00Z BITIS rc=0 ===",
+        ])
+        s8, (m8, rc8) = _olc_ile(kanitsiz_y)
+        olcvaka("D8 kanit YOK -> OLCULEMEDI, 'ACIK' DENMEZ",
+                ("OLCULEMEDI", "OLCULEMEDI", RC_ACMADI),
+                (s8["ONARIM"], s8["KOL"], rc8))
+        olcvaka("D8b mesaj 'ACIK' IDDIA ETMEZ", False, "ACIK" in m8)
+
+        yeni_jeton_y = _log_yaz("yenijeton.log", [
+            "TETIK_HUKMU tetik_rc=0 acilan_tur=1 nobet_rc=0 hukum=TEMIZ",
+            "HUKUM=%s sebep=OKAN_EMRI_28AGU motor=minimax-m3" % KOL_KAPALI_JETONU,
+        ])
+        s9, (_m9, rc9) = _olc_ile(yeni_jeton_y)
+        olcvaka("D9 KONTROL yeni jeton markoru taninir",
+                ("KAPALI", RC_KOL_KAPALI), (s9["KOL"], rc9), kontrol=True)
+
+        s10, (_m10, rc10) = _olc_ile(kapali_y)
+        olcvaka("D10 KONTROL eski markor (gecis penceresi) hala taninir",
+                ("KAPALI", RC_KOL_KAPALI), (s10["KOL"], rc10), kontrol=True)
 
         # --- MUTANT: hal ayrimi kaldirilir -> DONMUS SAYI GERI GELIR --------
         # 🔴 CAPA KENDI METNINDE GECMEMELI: duz yazilinca `kaynak.count(CAPA)`
@@ -259,7 +313,12 @@ def _kendini_test():
             mut.CINOBETI = yok_y
             y_s = mut.olc()
             _y_mesaj, y_rc = mut.huküm(y_s)
-            kontrol_yesil = (k_s["ONARIM"] == "0" and k_rc == RC_ACMADI
+            # 🔴 UCUNCU HAL/kanit-yoksa-ACIK kapilari (`if son_red < 0 and
+            # son_acilis < 0: return "OLCULEMEDI"`) `son_red > son_acilis`
+            # satirindan ONCE geldigi icin mutant yalniz KAPALI/ACIK
+            # ayrimini oldurur — "kanit YOK -> OLCULEMEDI" davranisi iki
+            # kontrolde de AYNI kalir.
+            kontrol_yesil = (k_s["ONARIM"] == "OLCULEMEDI" and k_rc == RC_ACMADI
                              and y_s["ONARIM"] == "OLCULEMEDI" and y_rc == RC_ACMADI)
             mutant_atif = mutant_oldu and kontrol_yesil
             mutant_not = "oldurdugu=%s (D1,D2) kontrol_yesil=%s" % (
@@ -268,12 +327,62 @@ def _kendini_test():
             MUTANT_ADI, "OLDU" if mutant_oldu else "YASADI",
             "EVET" if mutant_atif else "HAYIR", mutant_not))
 
-        print("OD-KENDINI-TEST VAKA=%d/%d DUSEN=%d MUTANT=%d/1 ATIF=%d/1 "
+        # --- MUTANT 2: kanit-yoksa-ACIK-der --------------------------------
+        # CAPA parcaciklara bolunmus (kaynakta bitisik GECMEZ, calisma aninda
+        # AYNI dizgeyi verir — [[kurucu-capa-yeni-icinde-cogaltir]]).
+        CAPA2 = "    if son_red < 0 and " + "son_acilis < 0:"
+        MUTANT_ADI2 = "M-OD2-kanit-yoksa-acik-der"
+        HEDEF_KOL2 = "KANIT_YOKSA_OLCULEMEDI"
+        mutant2_oldu = mutant2_atif = False
+        if kaynak.count(CAPA2) != 1:
+            mutant2_not = "CAPA_SAYISI=%d" % kaynak.count(CAPA2)
+        else:
+            kopya2 = os.path.join(kok, "onarim_durum_mutant2.py")
+            with open(kopya2, "w", encoding="utf-8") as d:
+                d.write(kaynak.replace(CAPA2, "    if False:", 1))
+            spec2 = importlib.util.spec_from_file_location(
+                "onarim_durum_mutant2", kopya2)
+            mut2 = importlib.util.module_from_spec(spec2)
+            onceki2 = sys.dont_write_bytecode
+            sys.dont_write_bytecode = True
+            try:
+                spec2.loader.exec_module(mut2)
+            finally:
+                sys.dont_write_bytecode = onceki2
+            mut2.CINOBETI, mut2.GOZCU = kanitsiz_y, gozcu_y
+            m2_s = mut2.olc()
+            _m2_mesaj, _m2_rc = mut2.huküm(m2_s)
+            # HEDEF: D8 olmeli (mutantta kanitsiz log -> kol=ACIK, ONARIM=0;
+            # original OLCULEMEDI basar, mutant ACIK der -> kirmizi)
+            mutant2_oldu = (m2_s["ONARIM"] != "OLCULEMEDI"
+                            and m2_s["KOL"] != "OLCULEMEDI")
+            mut2.CINOBETI = yeni_jeton_y
+            d9_s = mut2.olc()
+            _, d9_rc = mut2.huküm(d9_s)
+            mut2.CINOBETI = kapali_y
+            d10_s = mut2.olc()
+            _, d10_rc = mut2.huküm(d10_s)
+            mut2.CINOBETI = yok_y
+            d7_s = mut2.olc()
+            _, d7_rc = mut2.huküm(d7_s)
+            kontrol2_yesil = (d9_s["KOL"] == "KAPALI" and d9_rc == RC_KOL_KAPALI
+                              and d10_s["KOL"] == "KAPALI" and d10_rc == RC_KOL_KAPALI
+                              and d7_s["KOL"] == "OLCULEMEDI" and d7_rc == RC_ACMADI)
+            mutant2_atif = mutant2_oldu and kontrol2_yesil
+            mutant2_not = "oldurdugu=%s (D8) kontrol_yesil=%s" % (
+                HEDEF_KOL2, kontrol2_yesil)
+        print("MUTANT %-26s %s ATIF=%s %s" % (
+            MUTANT_ADI2, "OLDU" if mutant2_oldu else "YASADI",
+            "EVET" if mutant2_atif else "HAYIR", mutant2_not))
+
+        toplam_mutant_oldu = (1 if mutant_oldu else 0) + (1 if mutant2_oldu else 0)
+        toplam_mutant_atif = (1 if mutant_atif else 0) + (1 if mutant2_atif else 0)
+        print("OD-KENDINI-TEST VAKA=%d/%d DUSEN=%d MUTANT=%d/2 ATIF=%d/2 "
               "KONTROL=%d/%d"
               % (sayac["gecen"], sayac["vaka"], len(dusenler),
-                 1 if mutant_oldu else 0, 1 if mutant_atif else 0,
+                 toplam_mutant_oldu, toplam_mutant_atif,
                  sayac["kontrol_gecen"], sayac["kontrol"]))
-        return 0 if (not dusenler and mutant_atif) else 1
+        return 0 if (not dusenler and mutant_atif and mutant2_atif) else 1
     finally:
         shutil.rmtree(kok, ignore_errors=True)
 

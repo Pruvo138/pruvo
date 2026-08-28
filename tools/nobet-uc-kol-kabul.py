@@ -71,7 +71,10 @@ kok_ayarla(VARSAYILAN_KOK)
 def _mutant_yolu(anahtar):
     """MUTANTLAR tablosundaki ANAHTARI kosum anindaki gercek yola cevirir."""
     return {"SH": SH, "KAPI": KAPI, "GOZCU": GOZCU,
-            "KARANTINA": KARANTINA}[anahtar]
+            "KARANTINA": KARANTINA,
+            # REPO duzlemi: `--kok` bunu DEGISTIRMEZ (o bayrak cron agacini secer).
+            "OD": os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "onarim-durum.py")}[anahtar]
 
 _SAYAC = {"vaka": 0, "gecen": 0, "kontrol": 0, "kontrol_gecen": 0}
 _DUSENLER = []
@@ -303,7 +306,7 @@ def kol_a(sh_yolu=None, yalniz=None):
 # =========================================================================
 # KOL B — ucuncu kova + KOSUM_HUKMU jetonu + sebep adiyla
 # =========================================================================
-def kol_b(kapi_yolu=None, gozcu_yolu=None, yalniz=None, etiket=""):
+def kol_b(kapi_yolu=None, gozcu_yolu=None, od_yolu=None, yalniz=None, etiket=""):
     def istenir(ad):
         return yalniz is None or ad in yalniz
 
@@ -363,10 +366,57 @@ def kol_b(kapi_yolu=None, gozcu_yolu=None, yalniz=None, etiket=""):
                 ("KOSUM_HUKMU=DAGITIM_BACAGI_DUSTU" in metin,
                  "KOSUM_HUKMU=TEMIZ" in metin), kontrol=True)
 
+        # 🔴 B20 — UCTAN UCA: kapali kolun hukmu ZINCIRDEN GECIYOR MU?
+        # Onceki tur `karar()`i ELDE KURULMUS kalple sinadi ve kalbi DOLDURAN
+        # zinciri hic olcmedi; zincir kopuktu ve kabul YESIL yandi. Bu vaka
+        # tam o bosluktur: turun DONUS METNI -> `kosum_tur_hukmu` ->
+        # `kosum_hukmu_coz` yolu, ELDE JETON YAZILMADAN kosulur.
+        # 🔴 Canli loga YAZILMAZ: `NOBET_LOGU` gecici dosyaya cevrilir.
+        # 🔴 AD: eskiden `B9`'du; `("B6","B7","B8","B9")` gozcunun YUKLENEMEDI
+        # dusus demeti olarak ZATEN AYRILMIS (`gz` fail blogu) — ayni ad iki
+        # rolde mutant koşucusunun `d.split()[0]==h` eslemesini golgeliyordu.
+        if istenir("B20"):
+            _log_yedek = nk.NOBET_LOGU
+            _gec = tempfile.mkdtemp(prefix="k320-b20-")
+            try:
+                nk.NOBET_LOGU = os.path.join(_gec, "nobet.log")
+                _rc, _metin = nk._nobet_turunu_kos("minimax-m3")
+                _zincir = nk.kosum_hukmu_coz(_rc, nk.kosum_tur_hukmu(_metin))
+            except Exception as hata:
+                _zincir = "PATLADI:%s" % type(hata).__name__
+            finally:
+                nk.NOBET_LOGU = _log_yedek
+                shutil.rmtree(_gec, ignore_errors=True)
+            olc("B20 uctan uca: kapali kol hukmu ZINCIRDEN GECER",
+                nk.HUKUM_LLM_KOLU_KAPALI, _zincir)
+
+        # B21 KONTROL: zincir SAGLAM — ureten tur hala TEMIZ'e cozulur.
+        # (Mutant "her seyi kirdi" ise kirmizinin SEBEBI hedef kol OLDUGU
+        # KANITLANMAZ; bu vaka onu ayirir.)
+        if istenir("B21"):
+            olc("B21 KONTROL ureten tur hala TEMIZ'e cozulur",
+                "TEMIZ",
+                nk.kosum_hukmu_coz(0, nk.kosum_tur_hukmu("HUKUM=TEMIZ")),
+                kontrol=True)
+
+        # 🔴 B22 — CAPRAZ DUZLEM JETON ESITLIGI. Enforcement cron duzleminde,
+        # okuyucu (`tools/onarim-durum.py`) repo duzleminde; CI'da cron dizini
+        # YOKTUR, jeton ITHAL EDILEMEZ ve iki literal KACINILMAZDIR. Ayrisirlarsa
+        # okuyucu kapali kolu GORMEZ ve Okan'a yanlis hal soyler. Bu vaka o
+        # ayrismayi KIRMIZI yakar ([[tuketici-yazilirken-tum-okuyucular-sayilir]]).
+        if istenir("B22"):
+            try:
+                _od = _modul(od_yolu or _mutant_yolu("OD"), "od_b22" + etiket)
+                repo_jeton = getattr(_od, "KOL_KAPALI_JETONU", None)
+            except Exception as hata:
+                repo_jeton = "YUKLENEMEDI:%s" % type(hata).__name__
+            olc("B22 capraz duzlem: cron jetonu == repo jetonu",
+                nk.HUKUM_LLM_KOLU_KAPALI, repo_jeton)
+
     try:
         gz = _modul(gozcu_yolu or GOZCU, "gz_k320" + etiket)
     except Exception as hata:
-        for ad in ("B6", "B7", "B8", "B9"):
+        for ad in ("B6", "B7", "B8", "B9", "B23"):
             if istenir(ad):
                 olc("%s (gozcu YUKLENEMEDI)" % ad, "YUKLENDI",
                     "HATA:%s" % type(hata).__name__)
@@ -401,6 +451,23 @@ def kol_b(kapi_yolu=None, gozcu_yolu=None, yalniz=None, etiket=""):
         except Exception as hata:
             gozlenen = "PATLADI:%s" % type(hata).__name__
         olc("B9 kalp satiri ICRA alanlarini tasir", True, gozlenen)
+
+    # 🔴 B23 — BEYAZ LISTE CIVISI. Yeni hal URETKEN SAYILMAZ.
+    # Vaka bir ADIM KALA yakalandi: jeton `kosum_hukmu_coz`un catch-all
+    # kovasina (`ONARIM_DENENDI`) duserse ve o kova
+    # `gozcu.URETKEN_KOSUM_HUKUMLERI` icindeyse KAPALI bir kol "IS GORDU"
+    # diye okunur — sahte kirmizi, sahte YESILE doner. Yarin birisi
+    # "hukum taninmiyor" diye jetonu listeye EKLERSE o sahte yesil
+    # GERCEKTEN uretilir. Bu vaka o kolu kapatir: hal uretken DEGILDIR ve
+    # `uretken_mi` onu uretken SAYMAZ.
+    # 🔴 `gz` bu noktada yuklenmis, `nk` hala erisilebilir; ikinci yuke EK YOK.
+    if istenir("B23"):
+        olc("B23 yeni hal URETKEN beyaz listesinde DEGIL",
+            (False, False),
+            (nk.HUKUM_LLM_KOLU_KAPALI in gz.URETKEN_KOSUM_HUKUMLERI,
+             gz.uretken_mi({"icra_denendi": True,
+                            "icra_hal": "KOSTU_BASARILI",
+                            "kosum_hukmu": nk.HUKUM_LLM_KOLU_KAPALI})[0]))
 
 
 class _Yakala:
@@ -667,6 +734,25 @@ MUTANTLAR = [
      "GENEL_ARDISIK_ESIGI = ERISIM_ARDISIK_ESIGI",
      "GENEL_ARDISIK_ESIGI = 1",
      ["C5a"], ["C5b", "C2", "C4"], "C"),
+    # Zincirin son halkasi oldurulur: jeton kovalara duser. B20 KIRMIZI olmali,
+    # B21 (ureten tur) ve B1/B2 YESIL kalmali.
+    ("M-X1-jeton-kovalara-duser", "KAPI",
+     "    if hukum == HUKUM_LLM_KOLU_KAPALI:\n        return HUKUM_LLM_KOLU_KAPALI",
+     "    if False:\n        return HUKUM_LLM_KOLU_KAPALI",
+     ["B20"], ["B21", "B1", "B2"], "B"),
+    # Repo duzlemindeki jeton cron jetonundan AYRISIRSA B22 KIRMIZI yanmali;
+    # oteki vakalar ETKILENMEMELI.
+    ("M-X2-capraz-jeton-ayrisir", "OD",
+     'KOL_KAPALI_JETONU = "LLM_KOLU_KAPALI"',
+     'KOL_KAPALI_JETONU = "LLM_KOLU_KAPALI_ZZ"',
+     ["B22"], ["B20", "B21"], "B"),
+    # Beyaz listeye jeton EKLENIRSE kapali kol "uretken" sayilir ve hat
+    # sahte YESIL doner. B23 bunu KIRMIZI yakmali; gozcunun oteki kollari
+    # (B6 sebep adiyla, B8 dusmeyen icra) YESIL kalmali.
+    ("M-X3-jeton-beyaz-listeye-girer", "GOZCU",
+     'URETKEN_KOSUM_HUKUMLERI = ("TEMIZ", "ONARIM_DENENDI")',
+     'URETKEN_KOSUM_HUKUMLERI = ("TEMIZ", "ONARIM_DENENDI", "LLM_KOLU_KAPALI")',
+     ["B23"], ["B6", "B8"], "B"),
 ]
 
 
@@ -699,6 +785,7 @@ def mutant_kos(mutant):
             elif kol == "B":
                 kol_b(kapi_yolu=kopya if anahtar == "KAPI" else None,
                       gozcu_yolu=kopya if anahtar == "GOZCU" else None,
+                      od_yolu=kopya if anahtar == "OD" else None,
                       yalniz=set(hedef + kontrol), etiket=etiket)
             else:
                 kol_c(karantina_yolu=kopya, yalniz=set(hedef + kontrol),
