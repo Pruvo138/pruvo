@@ -44,6 +44,21 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 `C3` yalniz kaynak->arac yonunu olcuyor; arac->kaynak yonu (araca eklenen bayrak tabloya yazilmamis) HIC olculmuyor —
 `--kapanislari-isle` tam bu bosluktan dustu, elle kapatildi (`a5fc8f22`). Kabul: ters yon kolu + onu olduren mutant.
 
+## 🔁 28 AGU 23:3x — OKAN EMIRLERI SIRAYA KONDU (mimar oturumu; icra chip'te)
+- 🔴 **CLAUDE YAKIMI DURDU (Okan ~20:2xZ):** acik iki Claude cipine (K337 `nice-swanson-706912` · K340
+  `frosty-meitner-deb9f0`) SAYILI KAPANIS emri gonderildi; yeni Claude cipi YOK — istisna urun kirmizisi + Okan isi.
+- 🔴 **NOBETIN LLM TUR-ACMA KOLU KAPATILIYOR (Okan ~20:0xZ, icra KraL):** cip `KraL-NobetLlmKolu-28Agu`
+  acildi (`task_99f60179`). Hedef `~/.claude/cron/ci-nobeti.sh` `if (( ACILACAK )) → nobet-kapi.py --tur`
+  blogu; tetik+seviye hukmu DETERMINISTIK kalir, `acilan_tur=0` her kosumda, `tetik_karari=AC|ACMA` SONA
+  eklenir, `ONARIMSIZ_TUR` olu kolu SILINIR, `BITIS` bicimi (`t1-kiyas.py:34` sozlesmesi) DOKUNULMAZ.
+  Taban (kapanista kiyaslanacak): `onarim-durum.py` → **ONARIM=2 GOZCU=33 KIRMIZI=10**.
+- 🏗️ **SHOP YONETIM PANELI (`/api/shop/yonet`, Okan emri):** tasarim + T1 teslim tanimi KUTUYA yazildi.
+  Otorite hukmu: **taban=`urunler.json`/git (MaCiT tek yazar) · ust yazim=D1 `panel_ustyazim` (Okan tek yazar)**;
+  `d1-sync.py` ust yazimi ne okur ne yazar → ezme SEMAYLA imkansiz, yeni kapi YOK. Cikarma=`gizli:true`.
+  T1 kabul: panelden fiyat degistir → `d1-sync.py` TAM kosum → fiyat DURUYOR **ve** `urunler.json` birebir ayni.
+  Sira: MaCiT yayin yolu + CF Save tiki ONCE, T1 icra cipi SONRA. Ondan once tek olcum: siparis verisi NEREDE.
+- 📮 Kutu 399 → **229 satir** (tavan 300; `kutu-arsivle --kapanislari-isle`, CEVRIM=6, lossless GECTI, 5 blok arsive).
+
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
   ISARETCI** (uzun hali `DEVAM-ARSIV.md` 26 Agu ROTASYON blogu 1/5): K306 MERGE `df3b0d48` · K308 ACIK ·
