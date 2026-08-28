@@ -3,13 +3,8 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔁 28 AGU 18:00 CANLI DURUM — OKAN 17:00 EMRININ BES KALEMI DE KAPANDI (onceden -> sonra)
-🔴 **YENI OLCULEN SINIF — CLAUDE.md'nin kendi kurali isci hattini kilitliyor:** `echo "" | isci.sh … <ETIKET>`
-cagrisi N2B kapisinda HER ZAMAN `KOL=N2B-RED` aliyor; `parti-kapisi.py:702` etiketi komutun SON token'indan
-cikariyor, boru oneki gorunce cikarim bosa dusuyor ve `:705` "bos etiket MUAF DEGILDIR" diyor. Boru
-kaldirilinca ilk denemede `KOL=N2B-MUAF`. `echo "" |` kurali yalniz emekli `codex exec` icindi.
-🔴 **K337 CANLI, IKI KEZ:** isci turlarinin ikisi de `Error: Exceeded USD budget (10)` ile kesildi ve sade
-`rc=1` dondu; karantina bunu dusus sayiyor (3 ardisik = motor 6 saat yanar). Birinci turun isi UZAGA
-push edilmisti — yerel agacta "iz yok" olcumu FETCH'siz yapilinca YANILTTI (duzeltildi).
+🔴 **N2B BORU ONEKI SINIFI → HAFIZADA:** [[isci-cagrisinda-echo-stdin-etiketi-yutar]] (K345 ile kapandi).
+🔴 **K337:** butce kesintisi sade `rc=1` donuyor, karantina dusus sayiyor (3 ardisik = 6 saat). META=RAF.
 🟠 **OKSUZ AGAC (2):** `practical-dirac-a95ed1` -> `44c92f6e` (K258/K168 tek-kaynak modulu `serbest_cagrilar.py`)
 ve `sweet-cartwright-b59181` -> `a24550ce` (`kutu-arsivle.py` jeton isleme) — oturumlari OLU, commit'leri
 main'de DEGIL, tabanlari bayat (iki-nokta diff `urunler.json`'da 1828 satiri yanlislikla "silinmis" gosteriyor).
@@ -50,10 +45,18 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
   → rc=1, degismezlik tuttu). 19:11:59Z'den beri `acilan_tur=1` sayisi **0**.
   🔴 **MENZIL DUZELTMESI:** tur acan tek yer `ci-nobeti.sh` DEGILMIS, `gozcu.py:831,857` de cagiriyor.
   HUKUM: **gövde (`nobet-kapi.py`) ENFORCER, `ci-nobeti.sh` olu cagri TEMIZLIGI**; "LLM turu 0" TEK eksende.
-- 🔧 **K347 (cipte):** `onarim-durum.py` ONARIM'i `acilan_tur=1` sayiyor → sayac **2'de DONAR**, Okan'in
-  okudugu arac yaniltir. Hukum: **`KAPALI` AYRI HAL** (`0`="acmadi" ≠ `KAPALI`="acamaz"). Duzeltme kosuyor.
-- 🔴 **K348 (olcum emri verildi):** 20:07 turunun sebebi `GOZCU_URETMEDI_OLCULEMEDI` — **gozcu SUSMUS.**
-  Fail-closed dogru yandi, gozcunun kendisi OLCULMEDI. Bekci gozcuye ILISIK → susarsa bekci de KOR olabilir.
+- 🟢 **K347+K348 BIRLESTI, SAATLIK SABIT KIRMIZI BITTI.** Teshis: gozcu susmuyordu, susan TURUN HUKMU;
+  govde donusu jetonsuzdu → fail-closed `OLCULEMEDI` → nobet her saat KIRMIZI (bilgi tasimayan kirmizi).
+  Care: adlandirilmis ucuncu hal `LLM_KOLU_KAPALI`, TEK KAYNAK, tum okuyucular ayni teslimde.
+  **CANLI: 19:07 rc=1 · 20:07 rc=1 · 21:07 rc=0** (`sebep=LLM_KOLU_KAPALI KIRMIZI=0`, `BITIS` bozulmamis).
+  🔴 **IKI TUZAK OLCULDU** (birim 8/8 YESIL iken): jeton kardes desene uydu → yama INERT; dogru desen TEK
+  BASINA catch-all `ONARIM_DENENDI` → `URETKEN` beyaz listesi → **SAHTE YESIL** olurdu.
+  → [[yeni-hal-cozucunun-varsayilan-kovasina-duser]]
+  🔴 **CIVI CELISKISI, HUKUM (c):** hal `HUKUM=` satirina YAZILMAZ (degismez `HUKUM=TEMIZ ⇔ rc=0` kirilirdi);
+  `TETIK_HUKMU` SONUNA `kol_hali=` alani eklenir (`tetik_karari` emsali). Kabul: **22:07 + 23:07**.
+  ⑤ `onarim-durum.py` markoru YALNIZ o alandan okur; ara pencerede `ACIK` DEMEZ, `OLCULEMEDI` der.
+- 🔴 **ISCI YALANI SAYACI = 2** (ikisi de `serbest-kume` icin "onceden vardi" atfi; temiz agacta 30/30
+  KIRMIZI=0 olculdu, kirmizi iscinin `tools/` altina biraktigi ARTIKtan). **UCUNCUDE tekil yama YASAK.**
 - 📌 **MERGE (K347+K348 sonrasi):** `wonderful-cerf-9d42fc` + `relaxed-wiles-04ee6e`.
 - 🏗️ **SHOP PANELI — TASARIM DEGISTI; TAM HUKUM KUTUDA (`~00:1xZ`), burada ISARETCI.** Ilk tasarimin "okuma
   yolu taban ⊕ ust yazim" maddesi OLCUMLE CURUTULDU (urun sayfasi statik, fetch=0). YENI: `panel_ustyazim`
