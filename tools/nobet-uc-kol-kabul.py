@@ -71,7 +71,10 @@ kok_ayarla(VARSAYILAN_KOK)
 def _mutant_yolu(anahtar):
     """MUTANTLAR tablosundaki ANAHTARI kosum anindaki gercek yola cevirir."""
     return {"SH": SH, "KAPI": KAPI, "GOZCU": GOZCU,
-            "KARANTINA": KARANTINA}[anahtar]
+            "KARANTINA": KARANTINA,
+            # REPO duzlemi: `--kok` bunu DEGISTIRMEZ (o bayrak cron agacini secer).
+            "OD": os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "onarim-durum.py")}[anahtar]
 
 _SAYAC = {"vaka": 0, "gecen": 0, "kontrol": 0, "kontrol_gecen": 0}
 _DUSENLER = []
@@ -123,20 +126,26 @@ _STUB_TETIK = ("#!/usr/bin/env python3\nimport sys\nprint('STUB TETIK')\n"
                "%ssys.exit(%d)\n")
 
 
-def _tetik_govdesi(sebep, acilir=False):
+def _tetik_govdesi(sebep, acilir=False, kol_hali=None):
     """sebep None -> jeton BASILMAZ (fail-closed kolunu olcmek icin)."""
     if sebep is None:
         return ""
     if acilir:
-        return ("print('TUR ACILIYOR sebep=%s anahtar=- bayraklar=--tur "
+        govde = ("print('TUR ACILIYOR sebep=%s anahtar=- bayraklar=--tur "
                 "KIRMIZI=0')\n" % sebep)
-    return "print('TUR ACILMADI sebep=%s KIRMIZI=1')\n" % sebep
+    else:
+        govde = "print('TUR ACILMADI sebep=%s KIRMIZI=1')\n" % sebep
+    if kol_hali is not None:
+        # print'in kapanis ') kesilir, kol_hali ARAYA yazilir, kapatilir.
+        govde = govde.rstrip("\n")[:-2] + " kol_hali=%s')\n" % kol_hali
+    return govde
 
 
-def _a_kos(tetik_rc, kapi_rc, sh_yolu=None, tetik_sebebi=None):
+def _a_kos(tetik_rc, kapi_rc, sh_yolu=None, tetik_sebebi=None, kol_hali=None):
     """ci-nobeti.sh'i STUB tetik/kapi ile kosar; (rc, log_metni) doner.
 
     `tetik_sebebi=None` -> stub `sebep=` jetonu BASMAZ.
+    `kol_hali=None` -> stub `kol_hali=` alani BASMAZ.
     """
     gecici = tempfile.mkdtemp(prefix="k320-a-")
     try:
@@ -145,7 +154,8 @@ def _a_kos(tetik_rc, kapi_rc, sh_yolu=None, tetik_sebebi=None):
         log = os.path.join(gecici, "nobet.log")
         with open(tetik, "w") as f:
             f.write(_STUB_TETIK % (
-                _tetik_govdesi(tetik_sebebi, acilir=(tetik_rc in (0, 1))),
+                _tetik_govdesi(tetik_sebebi, acilir=(tetik_rc in (0, 1)),
+                               kol_hali=kol_hali),
                 tetik_rc))
         with open(kapi, "w") as f:
             f.write(_STUB % ("KAPI", kapi_rc))
@@ -186,6 +196,12 @@ def _a_hukum(metin):
     return None
 
 
+def _kapi_kostu(metin):
+    """Nobet kapisi FIILEN cagrildi mi? Stub kapi loga `STUB KAPI` yazar.
+    Iddia degil OLCUM: cagri olduysa iz vardir, olmadiysa yoktur."""
+    return "STUB KAPI" in metin
+
+
 def kol_a(sh_yolu=None, yalniz=None):
     """yalniz=None -> hepsi; aksi halde yalniz o vaka adlarini kos."""
     def istenir(ad):
@@ -207,26 +223,32 @@ def kol_a(sh_yolu=None, yalniz=None):
             ("SEVIYE_KIRMIZI_2", 1, "KOSMADI"),
             (_a_hukum(log), rc, _a_alan(log, "nobet_rc")))
 
-    # A3 KONTROL: tetik AC/yesil + kapi yesil -> gercekten TEMIZ
+    # A3: tetik AC dese BILE kapi KOSMAZ (LLM tur kolu KAPALI — Okan emri
+    # 28 Agu 2026). ONCE bu vaka `nobet_rc=0` bekliyordu; kapi artik hic
+    # kosmadigi icin cakisi YENIDEN cakildi.
     if istenir("A3"):
         rc, log = _a_kos(0, 0, sh_yolu)
-        olc("A3 ac/yesil + kapi yesil -> TEMIZ",
-            ("TEMIZ", 0, "0"),
-            (_a_hukum(log), rc, _a_alan(log, "nobet_rc")), kontrol=True)
+        olc("A3 tetik AC der ama kapi KOSMAZ",
+            ("TEMIZ", 0, "KOSMADI", "AC", False),
+            (_a_hukum(log), rc, _a_alan(log, "nobet_rc"),
+             _a_alan(log, "tetik_karari"), _kapi_kostu(log)), kontrol=True)
 
-    # A4 KONTROL: kapi GERCEKTEN dustu -> hala KIRMIZI (gevsetme YOK)
+    # A4: kapi stub'i rc=1 dondurmeye HAZIR olsa bile CAGRILMAZ; `ONARIMSIZ_TUR`
+    # kolu Okan emriyle KALDIRILDI (erisilemez kol = bakim noktasi).
     if istenir("A4"):
         rc, log = _a_kos(0, 1, sh_yolu)
-        olc("A4 kapi dustu -> ONARIMSIZ_TUR rc1",
-            ("ONARIMSIZ_TUR", 1, "1"),
-            (_a_hukum(log), rc, _a_alan(log, "nobet_rc")), kontrol=True)
+        olc("A4 kapi rc=1 olsa da CAGRILMAZ",
+            ("TEMIZ", 0, "KOSMADI", False),
+            (_a_hukum(log), rc, _a_alan(log, "nobet_rc"),
+             _kapi_kostu(log)), kontrol=True)
 
     # A5: BILINMEYEN tetik rc -> fail-closed (tur ACILIR, hukum KIRMIZI)
     if istenir("A5"):
         rc, log = _a_kos(99, 0, sh_yolu)
-        olc("A5 bilinmeyen tetik rc -> fail-closed",
-            ("TETIK_BILINMEYEN_RC", 1, "1"),
-            (_a_hukum(log), rc, _a_alan(log, "acilan_tur")))
+        olc("A5 bilinmeyen tetik rc -> fail-closed KIRMIZI ayak DURUR",
+            ("TETIK_BILINMEYEN_RC", 1, "0", "AC"),
+            (_a_hukum(log), rc, _a_alan(log, "acilan_tur"),
+             _a_alan(log, "tetik_karari")), kontrol=True)
 
     # A6 DEGISMEZLIK: HUKUM=TEMIZ <=> rc=0, dort senaryonun HEPSINDE.
     if istenir("A6"):
@@ -270,11 +292,52 @@ def kol_a(sh_yolu=None, yalniz=None):
             ("STUB TETIK" in log,
              "TUR ACILMADI sebep=ESKALASYON_ACIK" in log), kontrol=True)
 
+    # 🔴 A10 — CAGRI_YERI (Okan emri, 28 Agu 2026). Bu BETIK hicbir tetik
+    # halinde nobet kapisini CAGIRMAZ. Bes tetik hali de kosulur: kapi
+    # cagrisi TOPLAM 0 olmali VE en az bir kosumda tetik "AC", en az birinde
+    # "ACMA" demis olmali — tek yonlu olcum hukum vermez ("hic AC cikmadi"
+    # hali de 0 cagri uretir ve sahte yesil yakar).
+    if istenir("A10"):
+        kosan = 0
+        kararlar = []
+        for _t, _k in ((10, 0), (11, 0), (0, 0), (0, 1), (99, 0)):
+            _rc, log = _a_kos(_t, _k, sh_yolu, tetik_sebebi="SEVIYE_KIRMIZI_2")
+            if _kapi_kostu(log):
+                kosan += 1
+            kararlar.append(_a_alan(log, "tetik_karari"))
+        olc("A10 CAGRI_YERI yok: bu betik hicbir halde kapiyi cagirmaz",
+            (0, True, True),
+            (kosan, "AC" in kararlar, "ACMA" in kararlar))
+
+    # 🔴 A12 — FAIL-CLOSED: tetik alani BASMAZSA kabuk 'ACIK' DEMEZ.
+    if istenir("A12"):
+        _rc, log = _a_kos(10, 0, sh_yolu, tetik_sebebi="YESIL")
+        olc("A12 alan yoksa kol_hali=OLCULEMEDI (fail-closed)",
+            "OLCULEMEDI", _a_alan(log, "kol_hali"))
+
+    # 🔴 A13 — SART ②: alan HER IKI degeri de tasiyabiliyor mu?
+    if istenir("A13"):
+        _rc1, log1 = _a_kos(10, 0, sh_yolu, tetik_sebebi="LLM_KOLU_KAPALI",
+                            kol_hali="LLM_KOLU_KAPALI")
+        _rc2, log2 = _a_kos(10, 0, sh_yolu, tetik_sebebi="YESIL",
+                            kol_hali="ACIK")
+        olc("A13 alan IKI degeri de tasir (tek deger = olculemez)",
+            ("LLM_KOLU_KAPALI", "ACIK"),
+            (_a_alan(log1, "kol_hali"), _a_alan(log2, "kol_hali")))
+
+    # A14 KONTROL: yeni alan `BITIS` sozlesmesini BOZMADI.
+    if istenir("A14"):
+        _rc, log = _a_kos(10, 0, sh_yolu, tetik_sebebi="YESIL", kol_hali="ACIK")
+        olc("A14 KONTROL BITIS satiri hala sozlesmeye uyar",
+            True,
+            any(s.strip().endswith("===") and " BITIS rc=" in s
+                for s in log.splitlines()), kontrol=True)
+
 
 # =========================================================================
 # KOL B — ucuncu kova + KOSUM_HUKMU jetonu + sebep adiyla
 # =========================================================================
-def kol_b(kapi_yolu=None, gozcu_yolu=None, yalniz=None, etiket=""):
+def kol_b(kapi_yolu=None, gozcu_yolu=None, od_yolu=None, yalniz=None, etiket=""):
     def istenir(ad):
         return yalniz is None or ad in yalniz
 
@@ -334,10 +397,57 @@ def kol_b(kapi_yolu=None, gozcu_yolu=None, yalniz=None, etiket=""):
                 ("KOSUM_HUKMU=DAGITIM_BACAGI_DUSTU" in metin,
                  "KOSUM_HUKMU=TEMIZ" in metin), kontrol=True)
 
+        # 🔴 B20 — UCTAN UCA: kapali kolun hukmu ZINCIRDEN GECIYOR MU?
+        # Onceki tur `karar()`i ELDE KURULMUS kalple sinadi ve kalbi DOLDURAN
+        # zinciri hic olcmedi; zincir kopuktu ve kabul YESIL yandi. Bu vaka
+        # tam o bosluktur: turun DONUS METNI -> `kosum_tur_hukmu` ->
+        # `kosum_hukmu_coz` yolu, ELDE JETON YAZILMADAN kosulur.
+        # 🔴 Canli loga YAZILMAZ: `NOBET_LOGU` gecici dosyaya cevrilir.
+        # 🔴 AD: eskiden `B9`'du; `("B6","B7","B8","B9")` gozcunun YUKLENEMEDI
+        # dusus demeti olarak ZATEN AYRILMIS (`gz` fail blogu) — ayni ad iki
+        # rolde mutant koşucusunun `d.split()[0]==h` eslemesini golgeliyordu.
+        if istenir("B20"):
+            _log_yedek = nk.NOBET_LOGU
+            _gec = tempfile.mkdtemp(prefix="k320-b20-")
+            try:
+                nk.NOBET_LOGU = os.path.join(_gec, "nobet.log")
+                _rc, _metin = nk._nobet_turunu_kos("minimax-m3")
+                _zincir = nk.kosum_hukmu_coz(_rc, nk.kosum_tur_hukmu(_metin))
+            except Exception as hata:
+                _zincir = "PATLADI:%s" % type(hata).__name__
+            finally:
+                nk.NOBET_LOGU = _log_yedek
+                shutil.rmtree(_gec, ignore_errors=True)
+            olc("B20 uctan uca: kapali kol hukmu ZINCIRDEN GECER",
+                nk.HUKUM_LLM_KOLU_KAPALI, _zincir)
+
+        # B21 KONTROL: zincir SAGLAM — ureten tur hala TEMIZ'e cozulur.
+        # (Mutant "her seyi kirdi" ise kirmizinin SEBEBI hedef kol OLDUGU
+        # KANITLANMAZ; bu vaka onu ayirir.)
+        if istenir("B21"):
+            olc("B21 KONTROL ureten tur hala TEMIZ'e cozulur",
+                "TEMIZ",
+                nk.kosum_hukmu_coz(0, nk.kosum_tur_hukmu("HUKUM=TEMIZ")),
+                kontrol=True)
+
+        # 🔴 B22 — CAPRAZ DUZLEM JETON ESITLIGI. Enforcement cron duzleminde,
+        # okuyucu (`tools/onarim-durum.py`) repo duzleminde; CI'da cron dizini
+        # YOKTUR, jeton ITHAL EDILEMEZ ve iki literal KACINILMAZDIR. Ayrisirlarsa
+        # okuyucu kapali kolu GORMEZ ve Okan'a yanlis hal soyler. Bu vaka o
+        # ayrismayi KIRMIZI yakar ([[tuketici-yazilirken-tum-okuyucular-sayilir]]).
+        if istenir("B22"):
+            try:
+                _od = _modul(od_yolu or _mutant_yolu("OD"), "od_b22" + etiket)
+                repo_jeton = getattr(_od, "KOL_KAPALI_JETONU", None)
+            except Exception as hata:
+                repo_jeton = "YUKLENEMEDI:%s" % type(hata).__name__
+            olc("B22 capraz duzlem: cron jetonu == repo jetonu",
+                nk.HUKUM_LLM_KOLU_KAPALI, repo_jeton)
+
     try:
         gz = _modul(gozcu_yolu or GOZCU, "gz_k320" + etiket)
     except Exception as hata:
-        for ad in ("B6", "B7", "B8", "B9"):
+        for ad in ("B6", "B7", "B8", "B9", "B23"):
             if istenir(ad):
                 olc("%s (gozcu YUKLENEMEDI)" % ad, "YUKLENDI",
                     "HATA:%s" % type(hata).__name__)
@@ -372,6 +482,23 @@ def kol_b(kapi_yolu=None, gozcu_yolu=None, yalniz=None, etiket=""):
         except Exception as hata:
             gozlenen = "PATLADI:%s" % type(hata).__name__
         olc("B9 kalp satiri ICRA alanlarini tasir", True, gozlenen)
+
+    # 🔴 B23 — BEYAZ LISTE CIVISI. Yeni hal URETKEN SAYILMAZ.
+    # Vaka bir ADIM KALA yakalandi: jeton `kosum_hukmu_coz`un catch-all
+    # kovasina (`ONARIM_DENENDI`) duserse ve o kova
+    # `gozcu.URETKEN_KOSUM_HUKUMLERI` icindeyse KAPALI bir kol "IS GORDU"
+    # diye okunur — sahte kirmizi, sahte YESILE doner. Yarin birisi
+    # "hukum taninmiyor" diye jetonu listeye EKLERSE o sahte yesil
+    # GERCEKTEN uretilir. Bu vaka o kolu kapatir: hal uretken DEGILDIR ve
+    # `uretken_mi` onu uretken SAYMAZ.
+    # 🔴 `gz` bu noktada yuklenmis, `nk` hala erisilebilir; ikinci yuke EK YOK.
+    if istenir("B23"):
+        olc("B23 yeni hal URETKEN beyaz listesinde DEGIL",
+            (False, False),
+            (nk.HUKUM_LLM_KOLU_KAPALI in gz.URETKEN_KOSUM_HUKUMLERI,
+             gz.uretken_mi({"icra_denendi": True,
+                            "icra_hal": "KOSTU_BASARILI",
+                            "kosum_hukmu": nk.HUKUM_LLM_KOLU_KAPALI})[0]))
 
 
 class _Yakala:
@@ -558,9 +685,13 @@ MUTANTLAR = [
     # (ad, DOSYA_ANAHTARI, eski, yeni, hedef_dusen, kontrol_yesil, kol)
     # 🔴 ikinci sutun bir YOL DEGIL ANAHTARDIR; `--kok` ile degisen gercek
     # yola `_mutant_yolu()` kosum aninda cevirir.
+    # 🔴 KONTROL LISTESI 28 Agu 2026'da TAZELENDI: A3/A4 artik `nobet_rc=KOSMADI`
+    # bekliyor (LLM tur kolu kapandi) — yani bu mutantin HEDEF alanini okuyorlar
+    # ve kontrol olamazlar. Kontrol, mutantin DOKUNMADIGI eksenlerden secilir:
+    # A5 (fail-closed ad + acilan_tur) ve A9 (tetik ciktisi loga duser).
     ("M-A1-kosmayan-kapi-sayi-basar", "SH",
      "NOBET_RC=KOSMADI", "NOBET_RC=0",
-     ["A2"], ["A3", "A4"], "A"),
+     ["A2", "A3", "A4"], ["A5", "A9"], "A"),
     ("M-A2-rc-hukumden-turemez", "SH",
      "  HUKUM=$TETIK_SINIFI\n  SON_RC=1",
      "  HUKUM=$TETIK_SINIFI\n  SON_RC=0",
@@ -579,9 +710,25 @@ MUTANTLAR = [
     #     fail-closed ad zaten onun BEKLEDIGI addir. A8'in yesil kalmasi
     #     mutantin "her seyi kirmadigini" kanitlar.
     ("M-A4-sebep-ayiklama-korlesir", "SH",
-     "awk '/^TUR ACIL/ {",
-     "awk '/^ASLA_ESLESMEYEN_DESEN/ {",
+     "awk '/^TUR ACIL/ { for (i = 1; i <= NF; i++) if ($i ~ /^sebep=/)",
+     "awk '/^ASLA_ESLESMEYEN_DESEN/ { for (i = 1; i <= NF; i++) if ($i ~ /^sebep=/)",
      ["A2", "A7"], ["A8", "A3", "A9"], "A"),
+    # --- KOL CAGRI-YERI (28 Agu 2026) — CAGRI GERI KONURSA KABUL OLMELI ---
+    # 🔴 Bu mutant "LLM turu acildi mi"yi DEGIL, "bu betik kapiyi cagirdi mi"yi
+    # olcer; enforcement `nobet-kapi.py` govdesindedir.
+    # Hedef: A10 (cagri sayisi) + A3/A4 (kapi kosmadi cakisi). KONTROL: A1
+    # (tetik ACMA der -> mutant onu HIC etkilemez), A5 (fail-closed KIRMIZI
+    # ayak), A9 (tetik ciktisi loga duser). Kontroller yesil kalmazsa mutant
+    # "her seyi kirdi" demektir ve kirmizinin SEBEBI hedef kol OLDUGU
+    # KANITLANMAZ -> YAMA_TUTMADI.
+    ("M-A5-cagri-yeri-geri-kondu", "SH",
+     "if (( ACILACAK )); then TETIK_KARARI=AC; else TETIK_KARARI=ACMA; fi",
+     "if (( ACILACAK )); then TETIK_KARARI=AC; else TETIK_KARARI=ACMA; fi\n"
+     "if (( ACILACAK )); then\n"
+     "  python3 \"$KAPI\" --tur >> \"$LOG\" 2>&1\n"
+     "  NOBET_RC=$?\n"
+     "fi",
+     ["A10", "A3", "A4"], ["A1", "A5", "A9"], "A"),
     ("M-B1-ucuncu-kova-olur", "KAPI",
      "        if dondurma_isirdi:\n            rc, hukum = 0, \"DAGITIM_DONDURULDU\"",
      "        if False:\n            rc, hukum = 0, \"DAGITIM_DONDURULDU\"",
@@ -618,6 +765,33 @@ MUTANTLAR = [
      "GENEL_ARDISIK_ESIGI = ERISIM_ARDISIK_ESIGI",
      "GENEL_ARDISIK_ESIGI = 1",
      ["C5a"], ["C5b", "C2", "C4"], "C"),
+    # Zincirin son halkasi oldurulur: jeton kovalara duser. B20 KIRMIZI olmali,
+    # B21 (ureten tur) ve B1/B2 YESIL kalmali.
+    ("M-X1-jeton-kovalara-duser", "KAPI",
+     "    if hukum == HUKUM_LLM_KOLU_KAPALI:\n        return HUKUM_LLM_KOLU_KAPALI",
+     "    if False:\n        return HUKUM_LLM_KOLU_KAPALI",
+     ["B20"], ["B21", "B1", "B2"], "B"),
+    # Repo duzlemindeki jeton cron jetonundan AYRISIRSA B22 KIRMIZI yanmali;
+    # oteki vakalar ETKILENMEMELI.
+    ("M-X2-capraz-jeton-ayrisir", "OD",
+     'KOL_KAPALI_JETONU = "LLM_KOLU_KAPALI"',
+     'KOL_KAPALI_JETONU = "LLM_KOLU_KAPALI_ZZ"',
+     ["B22"], ["B20", "B21"], "B"),
+    # Beyaz listeye jeton EKLENIRSE kapali kol "uretken" sayilir ve hat
+    # sahte YESIL doner. B23 bunu KIRMIZI yakmali; gozcunun oteki kollari
+    # (B6 sebep adiyla, B8 dusmeyen icra) YESIL kalmali.
+    ("M-X3-jeton-beyaz-listeye-girer", "GOZCU",
+     'URETKEN_KOSUM_HUKUMLERI = ("TEMIZ", "ONARIM_DENENDI")',
+     'URETKEN_KOSUM_HUKUMLERI = ("TEMIZ", "ONARIM_DENENDI", "LLM_KOLU_KAPALI")',
+     ["B23"], ["B6", "B8"], "B"),
+    # 🔴 M-A6 — `kol_hali` alani SABIT ACIK'e cekilirse kapali kol GORUNMEZ
+    # olur (sart ②'nin tam karsiligi). A12 (fail-closed) + A13 (iki deger)
+    # KIRMIZI olmali; A1/A9/A14 YESIL kalmali (alanin var olmasi yetmez,
+    # dogru degeri tasimali).
+    ("M-A6-kol-hali-sabitlenir", "SH",
+     "kol_hali=$KOL_HALI\" >> \"$LOG\"",
+     "kol_hali=ACIK\" >> \"$LOG\"",
+     ["A12", "A13"], ["A1", "A9", "A14"], "A"),
 ]
 
 
@@ -650,6 +824,7 @@ def mutant_kos(mutant):
             elif kol == "B":
                 kol_b(kapi_yolu=kopya if anahtar == "KAPI" else None,
                       gozcu_yolu=kopya if anahtar == "GOZCU" else None,
+                      od_yolu=kopya if anahtar == "OD" else None,
                       yalniz=set(hedef + kontrol), etiket=etiket)
             else:
                 kol_c(karantina_yolu=kopya, yalniz=set(hedef + kontrol),
