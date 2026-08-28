@@ -2,7 +2,7 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## K350 KAPANDI — teslim tatbikati (poz+neg, 2 kol, olu kol) + K331 kabulu; TAM HUKUM KUTUDA (~02:0xZ)
+## K350 KAPANDI — teslim tatbikati + K331 kabulu + C: `llm_turu` bayat okuyucu; TAM HUKUM KUTUDA
 `bekci-kabul` rc 1->0 (103/8 -> 111/0), NET VAKA 0, M2/M2b `F-SEBEP` ile yeniden OLUYOR; canli duzlem ONCE=SONRA.
 K350-A: K332 CANLI DEGIL (`_ortak_altyapi_muaf` diskte YOK, yalniz `6941b626`). K350-B: `bekci-kabul.py` git DISI.
 
@@ -121,6 +121,5 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
 - 🔧 **K297·K298·K299·K300·K301:** SERIT B hijyen kirmizisi · iki ayri K29 · K86 metni bayat ·
   K55 sayisi **197** · `T4-OLCUTSUZ` tum evlerde. Tam metinler KUTUDA.
 - 🔧 **K329 (28 Agu, CI nobeti):** iki kapi dosyasi kanonik `git_ortami.sentetik_git`'e gecirildi, yerelde YESIL olculdu; main'e INEMEDI — kutu 306>300, 6 blok `ARŞİVLENEBİLİRİM` bekliyor (**Okan arsivi**), is `ci-nobet-git-ortami` dalinda stage'li.
-
 
 ## ARSIVDE — 14-20 Agu `DEVAM-ARSIV.md`'de.
