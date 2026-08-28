@@ -5,8 +5,9 @@
 ## 🔁 28 AGU CANLI DURUM (27 Agu devir blogu `847d7509`'da)
 🔴 **ONARIM ZINCIRI KIRIK** (cip `task_0fe4a08f` kosuyor): **K332** `~/.claude/cron/` duzlemi HICBIR mesru
 oturumdan kosulamiyor (rol muafiyeti R2'yi tuketmiyor, kapi 5. kez) → **K331** bekci "spec var"i "cip dogdu"
-sayiyor, 28 Agu cipi DOGMADI (elle dusuruldu) → **K333** sabah kolu PATH'siz, gunun CI listesi BOS uretiliyor.
-Ucunun tam metni+kabulu `acik-kalemler.md`.
+sayiyor, 28 Agu cipi DOGMADI (elle dusuruldu) → **K333 KAPANDI**: `gh` TAM YOLDAN cozuluyor, olculemeyen CI
+BOS LISTE degil ACIK KALEM + rc!=0; `cron/k333-ci-hukum-bataryasi.py` 23/23, onceki govdede 12 DUSTU
+(taban: KIRMIZI=0 iken gercek 2). K331/K332 ACIK; tam metin `acik-kalemler.md`.
 🔴 **KAPI CELISKISI (SINIF):** defter-kotasi careyi `defter-rotasyon.py --tavan-kaynaktan --isaretciye-indir`
 yaziyor (K258 "mimarda SERBEST"), `mimar-icra-kapisi` ayni cagriyi ANA oturumda REDDEDIYOR. Kabul: TEK liste + mutant.
 🟠 **NOBET:** `.ci-token` 108 B; gun `rc=1` 20/`rc=0` 1, ACILAN_TUR **0** = jeton kullanilmadi (K324 onarildi;
