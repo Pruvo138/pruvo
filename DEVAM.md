@@ -37,31 +37,28 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 `--kapanislari-isle` tam bu bosluktan dustu, elle kapatildi (`a5fc8f22`). Kabul: ters yon kolu + onu olduren mutant.
 
 ## 🔁 28 AGU 23:3x — OKAN EMIRLERI SIRAYA KONDU (mimar oturumu; icra chip'te)
-- 🔴 **CLAUDE YAKIMI DURDU (Okan ~20:2xZ):** K340 cipine (`frosty-meitner-deb9f0`, main disi 6 commit) SAYILI
-  KAPANIS emri gonderildi; yeni Claude cipi YOK — istisna urun kirmizisi + Okan isi. ⚠️ ATIF: `nice-swanson`
-  K337 DEGIL, Okan islerini kosuyor (**CF ana sayfa TTL YESIL `BELGE_TTL_SN=600`**, Okan Save'e basti) —
-  kapanis emri geri alindi, dali `relaxed-wiles-04ee6e` CANLI (merge karari bende). **K337 = dal
-  `claude/nice-swanson-706912`, sahibi olu → META=RAF + oksuz-dal kalemi.**
+- 🔴 **CLAUDE YAKIMI DURDU (Okan ~20:2xZ):** K340 cipine (`frosty-meitner-deb9f0`) SAYILI KAPANIS emri;
+  yeni Claude cipi YOK — istisna urun kirmizisi + Okan isi. **CF ana sayfa TTL YESIL `BELGE_TTL_SN=600`**
+  (Okan Save'e basti). K337 = dal `claude/nice-swanson-706912`, sahibi olu → META=RAF + oksuz-dal kalemi.
 - 🔴 **NOBETIN LLM TUR-ACMA KOLU KAPATILIYOR (Okan ~20:0xZ, icra KraL):** cip `KraL-NobetLlmKolu-28Agu`
-  acildi (`task_99f60179`). Hedef `~/.claude/cron/ci-nobeti.sh` `if (( ACILACAK )) → nobet-kapi.py --tur`
-  blogu; tetik+seviye hukmu DETERMINISTIK kalir, `acilan_tur=0` her kosumda, `tetik_karari=AC|ACMA` SONA
-  eklenir, `ONARIMSIZ_TUR` olu kolu SILINIR, `BITIS` bicimi (`t1-kiyas.py:34` sozlesmesi) DOKUNULMAZ.
-  Taban (cip olctu): `nobet-tetik-test` VAKA=81/0 · `nobet-kabul-test` VAKA=51/0 · `nobet-kapi-mutasyon`
-  MUTANT=12/12 · `nobet-uc-kol-kabul` 25/25 · `onarim-durum` ONCE **ONARIM=2 GOZCU=33 KIRMIZI=10**.
-  🟢 **KOD YAZILDI, hukme BIREBIR uyuyor** (28 Agu ~00:0x): `acilan_tur` daima 0, `tetik_karari=AC|ACMA` SONA
-  eklendi, olu `ONARIMSIZ_TUR` kolu SILINDI, fail-closed KIRMIZI ayagi ve `BITIS` bicimi DURUYOR.
-  **A1-A6 SAYILARI HENUZ GELMEDI** — kod goruldu, kabul OLCULMEDI; ayrica cip ANA agaca yazdi
-  (`tools/nobet-uc-kol-kabul.py` M) → kendi dalina tasiyip yeniden olcmesi soylendi.
-- 🔴 **K346 → ISARETCI: TAM METIN KUTUDA** (`~00:2xZ` KraL blogu). Sinif: `cf-durum.py` kimlik kolu; care ayni
-  cipe **IS B** olarak verildi, kabul olcutu kutuda. Dosyanin tazelenmesi **OKAN KAPISI** — Okan'a cikarildi.
-- 🏗️ **SHOP PANELI — TASARIM DEGISTI (tam hukum KUTUDA ~00:1xZ).** Ilk tasarimimdaki "okuma yolu taban ⊕ ust
-  yazim" OLCUMLE CURUTULDU: urun sayfasi statik, fiyat+JSON-LD gomulu, `urunler.json` fetch=**0**. YENI HUKUM:
-  `panel_ustyazim` duzlem DEGIL **YAZMA KUYRUGU**; **CI uygulayicisi git'e yazan TEK kol**, `urunler.json` TEK
-  okuma kaynagi KALIR; public uc + index.html merge + kenar-yazim REDDEDILDI (ikinci kopya = ayrisma). Bedel:
-  yayin ANINDA degil bir sonraki build'de. Gizli alanlar (kaynak/uyelik/STL) tabana ASLA inmez.
-  **T4 ZATEN CANLI** (`yonet.js`, sirsizda 404 `index.js:1091`) → korunacak; **T1 = panele "Urunler" sekmesi.**
-  T1 kabul (eskisi GECERSIZ): fiyat → `beklemede` → uygulayici → `urunler.json` diff TAM o alan · `islendi` ·
-  canlida+JSON-LD'de yeni fiyat · `d1-sync` 5/5 · 31224=31224. Siparis: D1 `siparisler`, `index.js:521,632`.
+  acildi ve **A+B SAYIYLA KAPANDI:** `nobet-tetik-test` 81/0 KABLO=36/36 · `nobet-uc-kol-kabul` 26/26
+  MUTANT=13/13 HEDEF_KOL_ATFI=13/13 · `cf-durum --kendini-test` 7/7 (taban 81/0·25/25·12/12, dusme YOK).
+- 🟢 **K346 KAPANDI** (tam metin+sayilar KUTUDA `~00:2xZ`): kimlik kolu fail-closed; Okan token'i tazeledi,
+  canli `--hepsi` **rc=0** `kimlik: dosya(...)`, DNS dahil eksenler yesil. Analytics OLCULMEDI (eksik degil).
+- 🟢 **NOBET A5 CANLI=YESIL:** 20:07:01Z gercek cron turu — `acilan_tur=0` · `tetik_karari=ACMA` SONDA ·
+  `nobet_rc=KOSMADI` · `BITIS` bicimi BOZULMAMIS · fail-closed KIRMIZI ayagi CANLIDA calisti (`tetik_rc=11`
+  → rc=1, degismezlik tuttu). 19:11:59Z'den beri `acilan_tur=1` sayisi **0**.
+  🔴 **MENZIL DUZELTMESI:** tur acan tek yer `ci-nobeti.sh` DEGILMIS, `gozcu.py:831,857` de cagiriyor.
+  HUKUM: **gövde (`nobet-kapi.py`) ENFORCER, `ci-nobeti.sh` olu cagri TEMIZLIGI**; "LLM turu 0" TEK eksende.
+- 🔧 **K347 (cipte):** `onarim-durum.py` ONARIM'i `acilan_tur=1` sayiyor → sayac **2'de DONAR**, Okan'in
+  okudugu arac yaniltir. Hukum: **`KAPALI` AYRI HAL** (`0`="acmadi" ≠ `KAPALI`="acamaz"). Duzeltme kosuyor.
+- 🔴 **K348 (olcum emri verildi):** 20:07 turunun sebebi `GOZCU_URETMEDI_OLCULEMEDI` — **gozcu SUSMUS.**
+  Fail-closed dogru yandi, gozcunun kendisi OLCULMEDI. Bekci gozcuye ILISIK → susarsa bekci de KOR olabilir.
+- 📌 **MERGE (K347+K348 sonrasi):** `wonderful-cerf-9d42fc` + `relaxed-wiles-04ee6e`.
+- 🏗️ **SHOP PANELI — TASARIM DEGISTI; TAM HUKUM KUTUDA (`~00:1xZ`), burada ISARETCI.** Ilk tasarimin "okuma
+  yolu taban ⊕ ust yazim" maddesi OLCUMLE CURUTULDU (urun sayfasi statik, fetch=0). YENI: `panel_ustyazim`
+  duzlem DEGIL **YAZMA KUYRUGU**, **CI git'e yazan TEK kol**, `urunler.json` TEK okuma kaynagi. **T4 ZATEN
+  CANLI** → korunacak; **T1 = panele "Urunler" sekmesi.** T1 kabulu ve gizli-alan siniri kutuda.
 - 📮 Kutu 399 → **229 satir** (tavan 300; `kutu-arsivle --kapanislari-isle`, CEVRIM=6, lossless GECTI, 5 blok arsive).
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
