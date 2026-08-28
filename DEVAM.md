@@ -2,6 +2,10 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## K350 KAPANDI — teslim tatbikati (poz+neg, 2 kol, olu kol) + K331 kabulu; TAM HUKUM KUTUDA (~02:0xZ)
+`bekci-kabul` rc 1->0 (103/8 -> 111/0), NET VAKA 0, M2/M2b `F-SEBEP` ile yeniden OLUYOR; canli duzlem ONCE=SONRA.
+K350-A: K332 CANLI DEGIL (`_ortak_altyapi_muaf` diskte YOK, yalniz `6941b626`). K350-B: `bekci-kabul.py` git DISI.
+
 ## 🔁 28 AGU 18:00 CANLI DURUM — OKAN 17:00 EMRININ BES KALEMI DE KAPANDI (onceden -> sonra)
 🔴 **N2B BORU ONEKI SINIFI → HAFIZADA:** [[isci-cagrisinda-echo-stdin-etiketi-yutar]] (K345 ile kapandi).
 🔴 **K337:** butce kesintisi sade `rc=1` donuyor, karantina dusus sayiyor (3 ardisik = 6 saat). META=RAF.
@@ -38,8 +42,6 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 - 🔴 **NOBETIN LLM TUR-ACMA KOLU KAPATILIYOR (Okan ~20:0xZ, icra KraL):** cip `KraL-NobetLlmKolu-28Agu`
   acildi ve **A+B SAYIYLA KAPANDI:** `nobet-tetik-test` 81/0 KABLO=36/36 · `nobet-uc-kol-kabul` 26/26
   MUTANT=13/13 HEDEF_KOL_ATFI=13/13 · `cf-durum --kendini-test` 7/7 (taban 81/0·25/25·12/12, dusme YOK).
-- 🟢 **K346 KAPANDI** (tam metin+sayilar KUTUDA `~00:2xZ`): kimlik kolu fail-closed; Okan token'i tazeledi,
-  canli `--hepsi` **rc=0** `kimlik: dosya(...)`, DNS dahil eksenler yesil. Analytics OLCULMEDI (eksik degil).
 - 🟢 **NOBET A5 CANLI=YESIL:** 20:07:01Z gercek cron turu — `acilan_tur=0` · `tetik_karari=ACMA` SONDA ·
   `nobet_rc=KOSMADI` · `BITIS` bicimi BOZULMAMIS · fail-closed KIRMIZI ayagi CANLIDA calisti (`tetik_rc=11`
   → rc=1, degismezlik tuttu). 19:11:59Z'den beri `acilan_tur=1` sayisi **0**.
