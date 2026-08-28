@@ -125,7 +125,17 @@ SEKILLER = (
 
     # K258 (20 Agu): ORTAK POSTA KUTUSU bakimi. Konumsal arg ALMAZ (yollar aracin
     # kendi tek kaynagindan gelir); ornekte '--kuru' YOK — CARE ISLEK bicimi basar.
-    Sekil("kutu-arsivle", KUTU_ARSIVLE_YOL, serbest=("--kuru",)),
+    # 🔴 K344 (28 Agu) — `--kapanislari-isle` BURAYA SONRADAN EKLENDI, sebebi
+    # OLCULDU: iki oksuz dal ayni gun BIRBIRINDEN HABERSIZ indi. Biri (K341)
+    # araca YENI BIR KOL ekledi (`--kapanislari-isle`: kapanis jetonu cevrimi),
+    # oteki (K258/K168) cagri SEKILLERINI bu tabloya tasidi. Tabloya yazilmayan
+    # kol, ANA oturumda kapidan GECMEZ — yani defter/kutu kotasi kirmizi yandiginda
+    # mimar, kapinin KENDI onerdigi careyi kosamazdi ([[kapi-red-metni-ikinci-kopyadir]]).
+    # NOT — C3 kolu bu bosluğu GORMEZ: C3 'kaynaktaki her bayrak aracin CLI'sinda
+    # VAR mi' diye sorar (kaynak -> arac); buradaki eksiklik TERS yondedir
+    # (arac -> kaynak) ve o eksen henuz OLCULMUYOR. ACIK KALEM olarak birakildi.
+    Sekil("kutu-arsivle", KUTU_ARSIVLE_YOL,
+          serbest=("--kuru", "--kapanislari-isle")),
 
     # 🔴 28 AGU (bu is): CIP-DOGUM BEKCISININ TESLIM KOLU.
     # OLCULEN ARIZA: bekcinin teslim kolu (`tools/sabah-teslim/kos.py`) tam bu iki
