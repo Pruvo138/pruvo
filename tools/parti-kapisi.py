@@ -80,6 +80,7 @@ import io
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -181,6 +182,38 @@ N2B_CAGRI_YERI_JETON = "N2B-CAGRI-YERI"
 # ucuncu sinif ikinci kovaya yutulur ve olcememe "basari" gibi okunur.
 N2B_DEFTER_YOK_JETON = "N2B-DEFTER-YOK"
 
+# ==============================================================================
+# 🔴 K345 (28 Agu 2026) — REDDIN SEBEBI IKI AYRI KOVADIR
+# ==============================================================================
+# OLCULEN ARIZA (mimar, iki kez): `echo "" | isci.sh ... tamir-x` cagrisi
+# `KOL=N2B-RED` aldi ve red METNI 30 acik kalemi siralayip "yarim partine devam
+# et" dedi. Sebep acik kalem DEGILDI — etiket okunamamisti. Iki kovali
+# siniflama (MUAF / RED) ucuncu hali YUTTU ve okuyan YANLIS sebebi kapatmaya
+# calisti ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+# Cozum: etiketi okunamayan cagri KENDI jetonunu + KENDI sebep kodunu alir.
+# 🔴 Gevsetme DEGIL: hukum yine RED (fail-closed korunur), yalniz SEBEBI dogru.
+N2B_ETIKET_OKUNAMADI_JETON = "N2B-ETIKET-OKUNAMADI"
+# Asagidaki iki jeton hukum satirinda GORUNMEZ; mutant ATFININ kol ADIDIR
+# (her mutant YALNIZ kendi kolunu kirmizi yakmali — K182).
+N2B_RED_METNI_JETON      = "N2B-RED-METNI"
+N2B_ETIKET_CIKARIM_JETON = "N2B-ETIKET-CIKARIM"
+# 🔴 K345-C (28 Agu 2026) — OKUMA ile BASLATMA AYRI KOLDUR.
+# CANLI VAKA (mimar, ayni gun): `grep -n "kimi" .../isci.sh` -> `KOL=N2B-RED
+# ACIK=30`. Komut hicbir is BASLATMIYOR; kapi yalnizca komut METNINDE
+# sarmalayici adi gectigi icin "yeni parti" saydi ([[n2b-kapisi-dizge-olcer]]).
+# Bedel tersine tesviktir: git-DISI kanit OKUMAK pahali, OLCMEMEK ucuz.
+N2B_OKUMA_JETON = "N2B-OKUMA"
+
+# Sebep KODLARI — hukum satirinin `SEBEP=` alaninda tasinir. Kod, KOL'dan
+# AYRIDIR: KOL "hangi kol karar verdi", SEBEP "neden" der. Uc kovanin uc AYRI
+# kodu vardir; ikisi ayni koda indirgenirse ucuncu sinif yeniden kaybolur.
+SEBEP_MUAF             = "MUAF"
+SEBEP_ACIK_KALEM       = "ACIK_KALEM"
+SEBEP_ETIKET_OKUNAMADI = "ETIKET_OKUNAMADI"
+SEBEP_OLCULEMEDI       = "OLCULEMEDI"
+SEBEP_DEFTER_YOK       = "DEFTER_YOK"
+SEBEP_TEMIZ            = "TEMIZ"
+
 MUTANT_HEDEF = {
     "M1": N2B_YENI_JETON,
     "M2": N2B_SUREN_JETON,
@@ -200,6 +233,20 @@ MUTANT_HEDEF = {
     #                            bunu GORMEZ — jeton kontrolu SART)
     "M8": N2B_DEFTER_YOK_JETON,
     "M9": N2B_DEFTER_YOK_JETON,
+    # 🔴 K345 — dort AYRI oldurme yolu, dort AYRI kol:
+    #   M10 red metninin TURETILMISLIGI (elle ikinci kopya geri gelir)
+    #   M11 etiket cikariminin BORU ONEKI normalizasyonu geri alinir
+    #   M12 fail-closed GEVSETILIR (okunamayan etiket MUAF sayilir) -> KIRMIZI
+    #   M13 sebep kovalari BIRLESTIRILIR (ucuncu kova yutulur)
+    "M10": N2B_RED_METNI_JETON,
+    "M11": N2B_ETIKET_CIKARIM_JETON,
+    "M12": N2B_ETIKET_OKUNAMADI_JETON,
+    "M13": N2B_ETIKET_OKUNAMADI_JETON,
+    # 🔴 K345-C — okuma/baslatma kolunun IKI ayri oldurme yolu:
+    #   M14 okuma kolu KALDIRILIR  -> salt-okuma yine RED yer (canli vaka geri)
+    #   M15 baslatma "okuma" sayilir -> GERCEK baslatma SIZAR (kabul edilemez)
+    "M14": N2B_OKUMA_JETON,
+    "M15": N2B_OKUMA_JETON,
 }
 
 # 🔴 MUAF ETIKETLER — onarim hattinin KENDINI bloklamasini engeller.
@@ -208,6 +255,43 @@ MUTANT_HEDEF = {
 # `posta` = posta kutusu izleyicisi — evin kalemi OGRENDIGI yol; bloklanirsa
 # ev haberi hic almaz (Okan'in vakasinin ta kendisi).
 MUAF_ETIKET_ONEKLERI = ("tamir", "onarim", "kabul", "nobet", "posta", "devir")
+
+# ==============================================================================
+# 🔴 K345 — SARMALAYICI DILBILGISI: TEK KAYNAK
+# ==============================================================================
+# ONCEDEN iki yerde yaziliydi: (a) `_ETIKET_INDEKS` sozlugu ayristiriciyi
+# besliyordu, (b) arguman ADLARI yalnizca bir YORUM satirindaydi ve red metnine
+# HIC ulasmiyordu. Sonuc: kapi dogru karar verirken red metni okuyana CALISAN
+# CAGRI BICIMINI hic soylemedi; mimar dogru formu ancak KAYNAGI okuyarak buldu
+# ([[kapi-red-metni-ikinci-kopyadir]]).
+# Artik TEK tablo var: ayristiricinin ETIKET indeksi de, red metnindeki cagri
+# bicimi de BURADAN turetilir. Tabloya bir arguman eklenirse metin KENDILIGINDEN
+# degisir; degismezse K11 kontrolu KIRMIZI yanar.
+SARMALAYICI_DIZINI = "/Users/okan/.claude/cron"
+ETIKET_YERI = "<ETIKET>"
+SARMALAYICI_ARGUMANLARI = {
+    "isci.sh":    ("<MOTOR>", "<EV_KOKU>", "<SPEC.md>", ETIKET_YERI),
+    "m3-isci.sh": ("<EV_KOKU>", "<SPEC.md>", ETIKET_YERI),
+    # `parti-surucusu.sh` BILEREK YOK: argumansizdir, etiket govdesinde
+    # GOMULUDUR ve cikarilamaz -> tablodan cozulemeyen sarmalayici
+    # `ETIKET_OKUNAMADI` kovasina duser (fail-closed).
+}
+
+
+def muaf_onek_dizgesi():
+    """Red metninin bastigi MUAF onek listesi — `MUAF_ETIKET_ONEKLERI`den TURER.
+
+    🔴 Bu dizge ELLE YAZILMAZ. K11 kontrolu metindeki karsiligini bu ciktiya
+    BIREBIR esitler (iki yonlu: `makine ⊆ metin` VE `metin ⊆ makine`).
+    """
+    return " · ".join(MUAF_ETIKET_ONEKLERI)
+
+
+def dogru_cagri_bicimi():
+    """Etiketi OKUNABILEN cagri sekilleri — `SARMALAYICI_ARGUMANLARI`dan TURER."""
+    return ["%s/%s %s" % (SARMALAYICI_DIZINI, ad,
+                          " ".join(SARMALAYICI_ARGUMANLARI[ad]))
+            for ad in sorted(SARMALAYICI_ARGUMANLARI)]
 
 # ==============================================================================
 # 🔴 N4A (20 Agu 2026) — MUAFIYET, JETON LISTESIYLE DEGIL CAGRI YERIYLE OLCULUR
@@ -472,20 +556,121 @@ def _fikstur_kaynaklari(dizin):
             (sh_yolu, False, "parti-hatti-fikstur"))
 
 
+# ------------------------------------------------------------------------------
+# K345-C — OKUMA ↔ BASLATMA AYRIMI
+# ------------------------------------------------------------------------------
+# Sarmalayiciyi FIILEN CALISTIRAN sekiller. Liste DAR tutulur: burada olmayan
+# her sey "okuma" degil, once DIREKT CAGRI testinden gecer.
+_BASLATICI_SARMALAYICILAR = ("env", "nohup", "time", "sudo", "command", "exec",
+                             "stdbuf", "caffeinate", "xargs", "parallel",
+                             "watch", "setsid", "doas")
+_YORUMLAYICILAR = ("sh", "bash", "zsh", "ksh", "dash", "ash", "fish",
+                   "python", "python3", "perl", "ruby", "node", "eval",
+                   "source", ".")
+# Komut ikamesi / geri tirnak: govde CALISTIRILIR ve icerigi ayristirilamaz.
+_IKAME_RE = re.compile(r"\$\(|`|\$\{")
+# Pipeline ayraclari (boru DEGIL — boru pipeline'in ICINDEDIR).
+_PIPELINE_AYRAC_RE = re.compile(r"&&|\|\||;|\n")
+
+
+def _sarmalayici_mi(token):
+    """Bir token, YENI_IS_DESENLERI'nin tanidigi bir sarmalayici yolu mu?"""
+    if not token:
+        return False
+    return any(d.search(token) or d.search(token + " ")
+               for d in YENI_IS_DESENLERI)
+
+
+def _segment_tokenlari(segment):
+    """Segmenti token'lara ayirir. Ayristirilamazsa None (= fail-closed)."""
+    try:
+        return shlex.split(segment)
+    except ValueError:
+        return None
+
+
+def yeni_is_hukmu(komut, *, mutant=None):
+    """Bir Bash komutunun UC halinden hangisi? (SUREN / OKUMA / YENI)
+
+    🔴 K345-C: `N2B-OKUMA` UCUNCU KOVADIR, `N2B-SUREN`e indirgenmez. Ikisi de
+    GECER verir ama AYRI sebeple: SUREN = "sarmalayici hic gecmiyor",
+    OKUMA = "sarmalayici geciyor ama ARGUMAN olarak; is BASLAMIYOR". Ayni
+    jetona indirgenirse okuma kolunun fiilen calisip calismadigi olculemez
+    ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+
+    🔴 FAIL-CLOSED: hangi kolda oldugu OKUNAMIYORSA hukum YENI'dir (= kapiya
+    tabi). Gevsetme yalniz ISPATLANMIS okuma icindir.
+
+    Return: ("SUREN"|"OKUMA"|"YENI", sebep)
+    """
+    if not isinstance(komut, str) or not komut.strip():
+        return "SUREN", "komut bos"
+    if not any(d.search(komut) for d in YENI_IS_DESENLERI):
+        return "SUREN", "sarmalayici komutta HIC gecmiyor"
+    if mutant == "M14":
+        # OKUMA KOLU KALDIRILIR — canli vaka geri gelir (salt-okuma RED yer).
+        return "YENI", "M14: okuma kolu yok"
+    if mutant == "M15":
+        # 🔴 SIZMA MUTANTI: baslatma "okuma" sayilir. KIRMIZI YANMALIDIR.
+        return "OKUMA", "M15: baslatma okuma sayildi"
+    if _IKAME_RE.search(komut):
+        return "YENI", ("komut ikamesi/geri tirnak var — govde ayristirilamaz "
+                        "(fail-closed)")
+
+    for pipeline in _PIPELINE_AYRAC_RE.split(komut):
+        if not any(d.search(pipeline) for d in YENI_IS_DESENLERI):
+            continue
+        segmentler = pipeline.split("|")
+        pipeline_sarmalayici_gordu = False
+        for segment in segmentler:
+            for ayrac in _YONLENDIRME_AYRACLARI:
+                i = segment.find(ayrac)
+                if i >= 0:
+                    segment = segment[:i]
+            tokenlar = _segment_tokenlari(segment)
+            if tokenlar is None:
+                return "YENI", "segment ayristirilamadi (fail-closed): %r" % (
+                    segment.strip()[:60])
+            if not tokenlar:
+                continue
+            segmentte_sarmalayici = any(_sarmalayici_mi(t) for t in tokenlar)
+            # ortam atamalarini (`X=Y`) atla — komut adi ONLARDAN SONRA gelir
+            i = 0
+            while i < len(tokenlar) and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=",
+                                                 tokenlar[i]):
+                i += 1
+            if i >= len(tokenlar):
+                continue
+            komut_adi = os.path.basename(tokenlar[i])
+            if _sarmalayici_mi(tokenlar[i]):
+                return "YENI", "DIREKT CAGRI: segmentin komutu sarmalayici"
+            if (komut_adi in _BASLATICI_SARMALAYICILAR
+                    and segmentte_sarmalayici):
+                return "YENI", ("BASLATICI SARMALAYICI (%s) ayni segmentte "
+                                "sarmalayiciyi calistiriyor" % komut_adi)
+            if komut_adi in _YORUMLAYICILAR and (segmentte_sarmalayici
+                                                 or pipeline_sarmalayici_gordu):
+                return "YENI", ("YORUMLAYICI (%s) sarmalayici govdesini "
+                                "calistirabilir" % komut_adi)
+            if segmentte_sarmalayici:
+                pipeline_sarmalayici_gordu = True
+    return "OKUMA", ("sarmalayici yalniz ARGUMAN olarak geciyor — hicbir "
+                     "segment onu CALISTIRMIYOR")
+
+
 def yeni_is_mi(komut, *, mutant=None):
     """Bir Bash komutu YENI is baslatiyor mu? (N2B-YENI / N2B-SUREN ayrimi)
 
     🔴 Fail-OPEN yon BILEREK: taninmayan komut `SUREN` sayilir ve GECER.
     Bu kapi yeni is baslatmayi durdurur; suren/yarim isi DURDURMAZ. Yanlis
     pozitif burada YARIM IS KESER — kabul edilemez zarar (Okan'in vakasi).
+    🔴 K345-C: SALT-OKUMA da yeni is DEGILDIR (bkz. `yeni_is_hukmu`).
     """
     if mutant == "M1":
         return False          # yeni-is tanima oldurulur -> parti hep gecer
     if mutant == "M2":
         return True           # her komut yeni-is sayilir -> YARIM IS KESILIR
-    if not isinstance(komut, str) or not komut.strip():
-        return False
-    return any(d.search(komut) for d in YENI_IS_DESENLERI)
+    return yeni_is_hukmu(komut, mutant=mutant)[0] == "YENI"
 
 
 # ------------------------------------------------------------------------------
@@ -504,16 +689,59 @@ def parti_karari(ev_koku, etiket, *, esik=None, koku_root=None, mutant=None,
     t4, hata_t4 = _t4_coz(t4, t4_hata)
     sonuc = {"HUKUM": "RED", "KOL": N2B_OLCULEMEDI_JETON, "EV": None,
              "ACIK": 0, "KALEMLER": [], "KABUL_KOMUTU": None,
-             "SEBEP": None, "HATA": None}
+             "SEBEP": None, "SEBEP_KODU": SEBEP_OLCULEMEDI, "HATA": None,
+             "ETIKET": etiket}
 
     if muaf_etiket_mi(etiket, mutant=mutant):
         sonuc["HUKUM"] = "GECER"
         sonuc["KOL"] = N2B_MUAF_JETON
-        sonuc["SEBEP"] = ("%s onarim/nobet/posta hatti — kilitlenmemek icin "
-                          "muaf (etiket=%s)" % (N2B_MUAF_JETON, etiket))
+        sonuc["SEBEP_KODU"] = SEBEP_MUAF
+        # 🔴 K345: onek listesi burada IKINCI KEZ YAZILMAZ — TURETILIR.
+        sonuc["SEBEP"] = ("%s onarim hatti — kilitlenmemek icin muaf "
+                          "(etiket=%s · muaf onekler: %s)"
+                          % (N2B_MUAF_JETON, etiket, muaf_onek_dizgesi()))
         if ev is None and t4 is not None:
             ev, _h = ev_coz(ev_koku, t4=t4)
         sonuc["EV"] = ev
+        return sonuc
+
+    # 🔴 K345 — UCUNCU KOVA: ETIKET OKUNAMADI.
+    # Bos etiket zaten MUAF DEGILDI (yukaridaki kol onu gecirmez); ONCEDEN
+    # sessizce "muaf olmayan etiket" kovasina dusuyor ve acik kalem sayimina
+    # gidiyordu. Sonuc: red metni YANLIS SEBEBI gosteriyordu (30 kalem
+    # siralaniyordu, oysa kusur etiketteydi) — ve kalemsiz evde HIC olcum
+    # yapilmadan GECIYORDU (fail-OPEN sizintisi). Artik KENDI kovasi var:
+    # hukum RED (fail-closed KORUNUR), sebep ETIKET_OKUNAMADI.
+    if not (etiket or "").strip():
+        if mutant == "M12":
+            # GEVSETME MUTANTI: okunamayan etiket MUAF sayilir. Bu mutant
+            # KIRMIZI YANMALIDIR — muafiyeti etiketin ICERIGI degil
+            # OKUNABILMESI verir ([[isci-cagrisinda-echo-stdin-etiketi-yutar]]).
+            sonuc["HUKUM"] = "GECER"
+            sonuc["KOL"] = N2B_MUAF_JETON
+            sonuc["SEBEP_KODU"] = SEBEP_MUAF
+            sonuc["SEBEP"] = "M12: okunamayan etiket MUAF sayildi"
+        elif mutant == "M13":
+            # KOVA BIRLESTIRME MUTANTI: ucuncu kova ikinciye indirgenir.
+            # HUKUM ayni kalabilir (RED) — yalniz HUKUM'e bakan bir test bunu
+            # GORMEZ; JETON + SEBEP KODU kontrolu SART ([[M9 dersi]]).
+            sonuc["KOL"] = N2B_RED_JETON
+            sonuc["SEBEP_KODU"] = SEBEP_ACIK_KALEM
+            sonuc["SEBEP"] = "M13: etiket kovasi acik-kalem kovasina yutuldu"
+        else:
+            sonuc["KOL"] = N2B_ETIKET_OKUNAMADI_JETON
+            sonuc["SEBEP_KODU"] = SEBEP_ETIKET_OKUNAMADI
+            sonuc["SEBEP"] = (
+                "%s cagrinin ETIKETI okunamadi (yok / gomulu / belirsiz). "
+                "Muafiyeti etiketin ICERIGI degil OKUNABILMESI verir; "
+                "okunamayan etiket fail-closed REDDEDILIR."
+                % N2B_ETIKET_OKUNAMADI_JETON)
+        if ev is None and t4 is not None:
+            ev, _h = ev_coz(ev_koku, t4=t4)
+        sonuc["EV"] = ev
+        if mutant == "M13":
+            # birlestirilmis kovada acik kalem sayisi da basilirdi
+            sonuc["KABUL_KOMUTU"] = kabul_komutu(ev)
         return sonuc
 
     if t4 is None:
@@ -550,6 +778,7 @@ def parti_karari(ev_koku, etiket, *, esik=None, koku_root=None, mutant=None,
             sonuc["HUKUM"] = "GECER"
             sonuc["KOL"] = (N2B_OLCULEMEDI_JETON if mutant == "M9"
                             else N2B_DEFTER_YOK_JETON)
+            sonuc["SEBEP_KODU"] = SEBEP_DEFTER_YOK
             sonuc["SEBEP"] = (
                 "%s ev=%s defter DOSYASI yok (%s) — defter gelenegini hic "
                 "benimsememis evi o gelenekle bloklamak KILITLENMEDIR; kalem "
@@ -572,12 +801,14 @@ def parti_karari(ev_koku, etiket, *, esik=None, koku_root=None, mutant=None,
         sonuc["KALEMLER"] = kalemler
         sonuc["KOL"] = N2B_RED_JETON
         sonuc["HUKUM"] = "RED"
+        sonuc["SEBEP_KODU"] = SEBEP_ACIK_KALEM
         sonuc["KABUL_KOMUTU"] = kabul_komutu(ev)
         sonuc["SEBEP"] = borc["RED_SEBEBI"]
         return sonuc
 
     sonuc["HUKUM"] = "GECER"
     sonuc["KOL"] = N2B_SUREN_JETON
+    sonuc["SEBEP_KODU"] = SEBEP_TEMIZ
     sonuc["SEBEP"] = borc["GECER_MESAJI"]
     return sonuc
 
@@ -591,32 +822,276 @@ def kabul_komutu(ev):
     return ("python3 %s --ev %s" % (T4_YOLU or _T4_KANONIK, ev))
 
 
-def red_metni(sonuc):
-    """RED gerekcesinin insan-okur govdesi: kalem KIMLIGI + `kabul:` komutu."""
+# Red metnindeki TURETILMIS bloklarin sinir dizgeleri. K11 kontrolu metni bu
+# sinirlarla parcalayip turetilmis ciktiya BIREBIR esitler; sinir tekil degilse
+# hukum `OLCULEMEDI` = KIRMIZI (fail-closed) — yoksa metin yeniden yazildiginda
+# kol sessizce yesile donerdi ([[kapi-red-metni-ikinci-kopyadir]]).
+RED_METNI_ONEK_SINIRI = "MUAF ETIKET ONEKLERI: "
+RED_METNI_CAGRI_BASLIGI = ("GECEN CAGRI BICIMI (kaynaktan TURETILDI — bu "
+                           "metinde ikinci liste YOKTUR):")
+RED_METNI_CAGRI_ONEKI = "  $ "
+
+
+def red_metni(sonuc, *, mutant=None):
+    """RED gerekcesinin insan-okur govdesi.
+
+    🔴 K345 — bu metin artik UC seyi birden tasir:
+      (1) SEBEP AYRIMI: `ACIK_KALEM` ile `ETIKET_OKUNAMADI` **AYRI SATIRLARDIR**
+          ve hangisinin atesledigi isaretlenir. Onceden tek gerekce vardi
+          ("acik kalem varken yeni parti BASLATILAMAZ") ve etiketi okunamayan
+          bir cagri o metni okuyup YANLIS kusuru kapatmaya calisiyordu.
+      (2) CALISAN CAGRI BICIMI — `SARMALAYICI_ARGUMANLARI`den TURETILIR.
+      (3) MUAF ONEKLER — `MUAF_ETIKET_ONEKLERI`den TURETILIR.
+    (2) ve (3) ELLE YAZILMAZ; K11 kontrolu iki yonlu esitlikle olcer.
+    """
+    kod = sonuc.get("SEBEP_KODU") or "-"
     satirlar = []
+    satirlar.append("N2B PARTI KAPISI — YENI IS REDDEDILDI (ev=%s · sebep=%s)."
+                    % (sonuc["EV"], kod))
+    satirlar.append("🔴 SUREN IS KESILMEZ — bu kapi yalnizca YENI is acmayi "
+                    "durdurur.")
+
+    # --- SEBEP AYRIMI: IKI KOVA, IKI AYRI SATIR ---------------------------
+    def _im(bu_kod):
+        return "→ " if kod == bu_kod else "  "
     satirlar.append(
-        "N2B PARTI KAPISI — YENI IS REDDEDILDI (ev=%s, acik kalem=%d)."
-        % (sonuc["EV"], sonuc["ACIK"]))
+        "%sSEBEP[%s]: bu evde acik 🔧 kalem VAR (acik=%d) — yarim partini "
+        "KAPAT, sonra yenisini ac."
+        % (_im(SEBEP_ACIK_KALEM), SEBEP_ACIK_KALEM, sonuc["ACIK"]))
     satirlar.append(
-        "Bu evde acik 🔧 kalem varken YENI parti/isci BASLATILAMAZ. "
-        "🔴 SUREN IS KESILMEZ — yarim partine devam et, KAPAT, sonra yenisini ac.")
-    if sonuc["KALEMLER"]:
-        satirlar.append("ACIK KALEMLER:")
-        for k in sonuc["KALEMLER"]:
-            satirlar.append("  - %s [%s] %s" % (k["kimlik"], k["durum"], k["is"]))
-    else:
-        satirlar.append("ACIK KALEMLER: (kimlik cozulemedi — defteri elle ac)")
+        "%sSEBEP[%s]: cagrinin ETIKETI okunamadi (yok / gomulu / belirsiz) — "
+        "okunan etiket=%r. Acik kalem sayimi bu kovada YAPILMAZ."
+        % (_im(SEBEP_ETIKET_OKUNAMADI), SEBEP_ETIKET_OKUNAMADI,
+           sonuc.get("ETIKET") or ""))
+
+    if kod == SEBEP_ACIK_KALEM:
+        if sonuc["KALEMLER"]:
+            satirlar.append("ACIK KALEMLER:")
+            for k in sonuc["KALEMLER"]:
+                satirlar.append("  - %s [%s] %s"
+                                % (k["kimlik"], k["durum"], k["is"]))
+        else:
+            satirlar.append("ACIK KALEMLER: (kimlik cozulemedi — defteri elle ac)")
     satirlar.append("kabul: %s" % (sonuc["KABUL_KOMUTU"] or "-"))
     satirlar.append("(kalem KAPANDI olunca ayni komut GECER doner; kapi "
                     "kalici kilit DEGILDIR.)")
+
+    # --- TURETILMIS BLOK: CALISAN CAGRI YOLU ------------------------------
+    satirlar.append(RED_METNI_CAGRI_BASLIGI)
+    for bicim in dogru_cagri_bicimi():
+        satirlar.append(RED_METNI_CAGRI_ONEKI + bicim)
+    if mutant == "M10":
+        # TURETIM KIRMA MUTANTI: onek listesi ELLE yazilir (ikinci kopya geri
+        # gelir). K11 iki yonlu esitlikte bunu KIRMIZI yakmalidir.
+        satirlar.append(RED_METNI_ONEK_SINIRI + "tamir · onarim · kabul")
+    else:
+        satirlar.append(RED_METNI_ONEK_SINIRI + muaf_onek_dizgesi())
+    # 🔴 Ornek etiket de TURETILIR (elle ikinci onek yazilmaz): listenin ILK
+    # onegi alinir ve token-sinirini gosteren bir ornek uretilir.
+    _ornek_onek = MUAF_ETIKET_ONEKLERI[0]
+    satirlar.append(
+        "ETIKET KURALI 1/2: eslesme TOKEN sinirindadir — `ci-%si` de MUAF'tir "
+        "(`%s` onegiyle BASLAYAN bir token tasir), dize BASI sart degildir."
+        % (_ornek_onek, _ornek_onek))
+    satirlar.append(
+        "ETIKET KURALI 2/2: boru/yonlendirme SERBESTTIR (onekteki `echo \"\" |` "
+        "artik etiketi YUTMAZ); ama etiket okunamazsa hukum fail-closed RED'dir "
+        "— muafiyeti etiketin ICERIGI degil OKUNABILMESI verir.")
     return "\n".join(satirlar)
 
 
 def hukum_satiri(sonuc):
-    """Makine-okur tek satir. Kabul testleri BU satiri arar."""
+    """Makine-okur tek satir. Kabul testleri BU satiri arar.
+
+    🔴 K345: `SEBEP=` alani SONA EKLENDI (mevcut alanlarin sirasi/adi
+    DEGISMEDI — eski okuyucular kirilmaz). Uc kova artik UC AYRI satir basar:
+    `KOL=N2B-MUAF ... SEBEP=MUAF` · `KOL=N2B-RED ... SEBEP=ACIK_KALEM` ·
+    `KOL=N2B-ETIKET-OKUNAMADI ... SEBEP=ETIKET_OKUNAMADI`.
+    """
     kalem = ",".join(k["kimlik"] for k in sonuc["KALEMLER"]) or "-"
-    return "N2B HUKUM=%s KOL=%s EV=%s ACIK=%d KALEM=%s" % (
-        sonuc["HUKUM"], sonuc["KOL"], sonuc["EV"] or "-", sonuc["ACIK"], kalem)
+    return "N2B HUKUM=%s KOL=%s EV=%s ACIK=%d KALEM=%s SEBEP=%s" % (
+        sonuc["HUKUM"], sonuc["KOL"], sonuc["EV"] or "-", sonuc["ACIK"], kalem,
+        sonuc.get("SEBEP_KODU") or "-")
+
+
+# ------------------------------------------------------------------------------
+# K345 — RED METNI TURETIM PROBU (K11'in olcen govdesi)
+# ------------------------------------------------------------------------------
+def red_metni_turetim_hukmu(*, mutant=None):
+    """Red metnindeki TURETILMIS bloklari kaynaga BIREBIR esitler.
+
+    🔴 IKI YONLU: `makine ⊆ metin` YETMEZ — `metin ⊆ makine` de olculur, yoksa
+    metin makinenin izin VERMEDIGI bir seyi vaat edebilir ve nobetci susar
+    ([[kapi-red-metni-ikinci-kopyadir]] 28 Agu eki).
+    🔴 Sinir dizgesi TEKIL degilse hukum `OLCULEMEDI` = KIRMIZI (fail-closed).
+
+    Return: {"HUKUM": "GECER"|"RED"|"OLCULEMEDI", "IHLAL": [...],
+             "ELLE_KOPYA": int}
+    """
+    ornek = {"HUKUM": "RED", "KOL": N2B_RED_JETON, "EV": "MaCiT", "ACIK": 30,
+             "KALEMLER": [{"kimlik": "K901", "durum": "🔧", "is": "ornek"}],
+             "KABUL_KOMUTU": kabul_komutu("MaCiT"),
+             "SEBEP_KODU": SEBEP_ACIK_KALEM, "SEBEP": None, "HATA": None,
+             "ETIKET": "parti-surucusu"}
+    metin = red_metni(ornek, mutant=mutant)
+    satirlar = metin.splitlines()
+    ihlal = []
+
+    # (a) MUAF ONEK BLOGU — sinir TEKIL mi?
+    onek_satirlari = [s for s in satirlar if s.startswith(RED_METNI_ONEK_SINIRI)]
+    if len(onek_satirlari) != 1:
+        return {"HUKUM": "OLCULEMEDI", "ELLE_KOPYA": -1,
+                "IHLAL": ["muaf-onek siniri TEKIL DEGIL (adet=%d)"
+                          % len(onek_satirlari)]}
+    metindeki = onek_satirlari[0][len(RED_METNI_ONEK_SINIRI):]
+    turetilen = muaf_onek_dizgesi()
+    if metindeki != turetilen:
+        ihlal.append("muaf onek: metin=%r != turetilen=%r"
+                     % (metindeki, turetilen))
+
+    # (b) CAGRI BICIMI BLOGU — sinir TEKIL mi?
+    baslik_indeksleri = [i for i, s in enumerate(satirlar)
+                         if s == RED_METNI_CAGRI_BASLIGI]
+    if len(baslik_indeksleri) != 1:
+        return {"HUKUM": "OLCULEMEDI", "ELLE_KOPYA": -1,
+                "IHLAL": ["cagri-bicimi basligi TEKIL DEGIL (adet=%d)"
+                          % len(baslik_indeksleri)]}
+    blok = []
+    for s in satirlar[baslik_indeksleri[0] + 1:]:
+        if not s.startswith(RED_METNI_CAGRI_ONEKI):
+            break
+        blok.append(s[len(RED_METNI_CAGRI_ONEKI):])
+    if blok != dogru_cagri_bicimi():
+        ihlal.append("cagri bicimi: metin=%r != turetilen=%r"
+                     % (blok, dogru_cagri_bicimi()))
+
+    # (c) ELLE IKINCI KOPYA SAYIMI — metnin GERI KALANINDA muaf onek listesi
+    #     yeniden sayiliyor mu? (turetilmis satirlar HARIC tutulur)
+    elle = 0
+    for s in satirlar:
+        if s.startswith(RED_METNI_ONEK_SINIRI):
+            continue
+        parcalar = [p for p in re.split(r"[^a-z0-9]+", s.lower()) if p]
+        kac = len({on for p in parcalar for on in MUAF_ETIKET_ONEKLERI
+                   if p.startswith(on)})
+        if kac >= 2:
+            elle += 1
+            ihlal.append("ELLE IKINCI KOPYA (>=2 muaf onek tek satirda): %r"
+                         % s[:80])
+    return {"HUKUM": "RED" if ihlal else "GECER", "IHLAL": ihlal,
+            "ELLE_KOPYA": elle}
+
+
+# 🔴 K345 — PROB KORLUK FIKSTURU (hermetik, git'e ve ortama BAGIMSIZ).
+# `URETIM=0` iki AYRI seyin cikti olabilir: "kaynak temiz" ya da "prob kor".
+# Bu fikstur ikisini ayirir: probun GORMESI GEREKEN bir uretim kopyasi ve
+# GORMEMESI gereken bir mutant yuku ayni metinde durur.
+# Uretim satiri HEAD'deki GERCEK kopyanin birebir kendisidir (512. satir).
+# 🔴 Fikstur METNI de TURETILIR: govdesine elle bir onek listesi yazsaydik
+# probun KENDI kaynagi bir "uretim kopyasi" sayilirdi (ilk surumde tam bu
+# oldu, K11 KIRMIZI yandi — kurucu kendi kapisina takilir).
+_KORLUK_BEKLENEN = {"URETIM": 1, "DOCSTRING": 1, "MUTANT_YUKU": 1}
+
+
+def _korluk_fiksturu():
+    liste = "/".join(MUAF_ETIKET_ONEKLERI[:3])
+    return (
+        "def f(etiket, *, mutant=None):\n"
+        '    """belge: %s"""\n'
+        "    if muaf_etiket_mi(etiket, mutant=mutant):\n"
+        '        return "%s hatti — kilitlenmemek icin muaf"\n'
+        "    if mutant == 'M10':\n"
+        '        return "%s"\n'
+        '    return ""\n' % (liste, liste, " · ".join(MUAF_ETIKET_ONEKLERI)))
+
+
+def elle_kopya_kaynak_sayimi(yol=None, *, kaynak=None):
+    """KAYNAKTA kalan ELLE muaf-onek listesi sayisi (uretim yolunda).
+
+    🔴 `red_metni_turetim_hukmu` URETILEN METNI olcer; bu fonksiyon KAYNAGI
+    olcer. Ikisi ayri eksendir: metin bugun temiz olabilir ve kaynakta uyuyan
+    ikinci bir liste yarin baska bir kolda basilabilir.
+
+    HARIC TUTULANLAR (ve NEDEN):
+      * docstring'ler — cikti degil, BELGEdir (ayri sayilir, ayri basilir).
+      * `if mutant == ...` govdesindeki literaller — MUTANT YUKUDUR; M10'un
+        elle listesi olmadan turetim kolunun isirdigi ISPATLANAMAZ
+        ([[kabul-fiksturu-yasagi-kutsar]] tersi: burada fikstur yasagi
+        KUTSAMIYOR, mutantin KENDISI oluyor).
+    Return: {"URETIM": int, "DOCSTRING": int, "MUTANT_YUKU": int,
+             "SATIRLAR": [...], "HATA": str|None}
+    """
+    import ast
+    yol = yol or os.path.abspath(__file__)
+    try:
+        if kaynak is not None:
+            pass                              # cagiran kaynagi DOGRUDAN verdi
+        elif isinstance(yol, str) and yol.startswith("git:"):
+            # `git:<ref>` — ONCE/SONRA sayisini ayni tanimla olcmek icin.
+            ref = yol[4:]
+            kaynak = subprocess.run(
+                ["git", "-C", os.path.dirname(os.path.abspath(__file__)),
+                 "show", "%s:tools/parti-kapisi.py" % ref],
+                capture_output=True, text=True, check=True).stdout
+        else:
+            kaynak = open(yol, encoding="utf-8").read()
+        agac = ast.parse(kaynak)
+    except Exception as e:                      # fail-closed: olculemedi
+        return {"URETIM": -1, "DOCSTRING": -1, "MUTANT_YUKU": -1,
+                "SATIRLAR": [], "HATA": "%s: %s" % (type(e).__name__, e)}
+
+    docstring_idleri = set()
+    for d in ast.walk(agac):
+        govde = getattr(d, "body", None) or []
+        if isinstance(d, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef,
+                          ast.ClassDef)) and govde:
+            ilk = govde[0]
+            if (isinstance(ilk, ast.Expr)
+                    and isinstance(ilk.value, ast.Constant)
+                    and isinstance(ilk.value.value, str)):
+                docstring_idleri.add(id(ilk.value))
+
+    # `if mutant == "MXX":` govdelerindeki tum literalleri isaretle.
+    # 🔴 KOSUL DAR TUTULUR: SOL TARAFI CIPLAK `mutant` ADI olan bir
+    # KARSILASTIRMA. Gevsek eslesme (kosul metninde "mutant" GECIYOR mu?)
+    # `if muaf_etiket_mi(etiket, mutant=mutant):` govdesini de muaf sayardi ve
+    # URETIM yolundaki GERCEK ikinci kopyayi (HEAD'deki SEBEP dizgesi) MUTANT
+    # YUKU diye AKLARDI — olculdu, ilk surumde tam bu oldu.
+    mutant_idleri = set()
+    for d in ast.walk(agac):
+        if not isinstance(d, ast.If):
+            continue
+        test = d.test
+        if not (isinstance(test, ast.Compare)
+                and isinstance(test.left, ast.Name)
+                and test.left.id == "mutant"):
+            continue
+        for alt in d.body:
+            for x in ast.walk(alt):
+                if isinstance(x, ast.Constant) and isinstance(x.value, str):
+                    mutant_idleri.add(id(x))
+
+    sayac = {"URETIM": 0, "DOCSTRING": 0, "MUTANT_YUKU": 0}
+    satirlar = []
+    for d in ast.walk(agac):
+        if not (isinstance(d, ast.Constant) and isinstance(d.value, str)):
+            continue
+        parcalar = [p for p in re.split(r"[^a-z0-9]+", d.value.lower()) if p]
+        kac = len({on for p in parcalar for on in MUAF_ETIKET_ONEKLERI
+                   if p.startswith(on)})
+        if kac < 2:
+            continue
+        if id(d) in docstring_idleri:
+            sayac["DOCSTRING"] += 1
+        elif id(d) in mutant_idleri:
+            sayac["MUTANT_YUKU"] += 1
+        else:
+            sayac["URETIM"] += 1
+            satirlar.append("satir %d: %r" % (d.lineno,
+                                              d.value[:70].replace("\n", " ")))
+    sayac["SATIRLAR"] = satirlar
+    sayac["HATA"] = None
+    return sayac
 
 
 # ------------------------------------------------------------------------------
@@ -665,12 +1140,25 @@ def kanca(girdi, *, esik=None, koku_root=None, mutant=None, t4=_MIRAS,
         return 0                                  # kapsam disi — sessiz gec
     komut = (girdi.get("tool_input") or {}).get("command") or ""
 
-    if not yeni_is_mi(komut, mutant=mutant):
+    hal, hal_sebebi = ("YENI", "-")
+    if mutant == "M1":
+        hal = "SUREN"
+    elif mutant == "M2":
+        hal = "YENI"
+    else:
+        hal, hal_sebebi = yeni_is_hukmu(komut, mutant=mutant)
+    if hal == "SUREN":
         # 🔴 N2B-SUREN: yeni is DEGIL. Suren/yarim is ASLA kesilmez.
+        return 0
+    if hal == "OKUMA":
+        # 🔴 K345-C UCUNCU KOVA: GECER ama SESSIZ DEGIL — kolun fiilen
+        # calistigi ancak bu satirdan olculebilir (kablolanmamis kol bir
+        # mesajdir → [[kapinin-menzili-cagri-yeridir]]).
+        sys.stderr.write("%s %s\n" % (N2B_OKUMA_JETON, hal_sebebi))
         return 0
 
     ev_koku = girdi.get("cwd") or ""
-    etiket = _etiket_cikar(komut)
+    etiket = _etiket_cikar(komut, mutant=mutant)
     sonuc = parti_karari(ev_koku, etiket, esik=esik, koku_root=koku_root,
                          mutant=mutant, t4=t4, t4_hata=t4_hata)
     if sonuc["HUKUM"] == "RED":
@@ -693,36 +1181,77 @@ _ETIKET_RE = re.compile(
     r"(isci\.sh|m3-isci\.sh|[\w.-]*parti-surucusu\.sh)((?:\s+\S+)*)\s*$")
 
 # sarmalayici -> ETIKET'in kacinci arguman oldugu (0-indeksli).
-# isci.sh      : <MOTOR> <EV_KOKU> <SPEC> <ETIKET>   -> 3
-# m3-isci.sh   : <EV_KOKU> <SPEC> <ETIKET>           -> 2
-# parti-surucusu.sh: argumansiz — etiket govdesinde gomulu, ciakarilamaz -> None
-_ETIKET_INDEKS = {"isci.sh": 3, "m3-isci.sh": 2}
+# 🔴 K345: bu sozluk ARTIK ELLE YAZILMIYOR — `SARMALAYICI_ARGUMANLARI`den
+# TURETILIYOR. Tabloda olmayan sarmalayici (or. argumansiz `parti-surucusu.sh`)
+# `None` doner ve etiket OKUNAMADI sayilir.
+_ETIKET_INDEKS = {ad: args.index(ETIKET_YERI)
+                  for ad, args in SARMALAYICI_ARGUMANLARI.items()
+                  if ETIKET_YERI in args}
+
+# Komut zinciri ayraclari. `||` `&&`den once denenir ki tek `|`ye dusmesin.
+_AYRAC_RE = re.compile(r"\|\||&&|\||;|\n")
+# Yonlendirme kuyrugu (segment ICINDE, etiketten SONRA gelir). `2>` `>`den
+# once gelmeli, yoksa `2>&1` yanlis yerden kirpilir.
+_YONLENDIRME_AYRACLARI = (">>", "2>", ">", "<")
 
 
-def _etiket_cikar(komut):
+def _komut_segmentleri(komut, *, mutant=None):
+    """Bash komutunu boru/zincir SEGMENTLERINE ayirir, kuyruklarini kirpar.
+
+    🔴 OLCULEN ARIZA (28 Agu 2026, mimar iki kez yasadi): eski kod komutu
+    `ham.find(ayrac)` ile ILK ayracta kesiyordu. Bu, ayrac KUYRUKTAYSA dogru
+    (`... tamir-x >> log 2>&1`), ama ayrac ONEKTEYSE (`echo "" | isci.sh ...
+    tamir-x`) komut GOVDESININ TAMAMINI atiyordu: geriye `echo ""` kaliyor,
+    sarmalayici bulunamiyor, etiket BOS donuyor ve muaf bir onarim cagrisi
+    `KOL=N2B-RED` yiyordu. Kapi dogru davraniyordu, GORDUGU dizge yanlisti.
+
+    Cozum SEGMENTASYONdur, kirpma degil: her segment ayri degerlendirilir.
+    🔴 fail-closed KORUNUR — bu fonksiyon etiketi OKUNUR kilar, MUAF kilmaz;
+    `_etiket_cikar` birden cok sarmalayici gorursa BELIRSIZ deyip BOS doner.
+    """
+    if mutant == "M11":
+        # REGRESYON MUTANTI: K345 oncesi davranis (ilk ayracta kes).
+        ham = (komut or "").strip()
+        for ayrac in (">>", "2>", ">", "|", "&&", ";"):
+            i = ham.find(ayrac)
+            if i >= 0:
+                ham = ham[:i]
+        return [ham.strip()] if ham.strip() else []
+    parcalar = []
+    for ham in _AYRAC_RE.split(komut or ""):
+        for ayrac in _YONLENDIRME_AYRACLARI:
+            i = ham.find(ayrac)
+            if i >= 0:
+                ham = ham[:i]
+        ham = ham.strip()
+        if ham:
+            parcalar.append(ham)
+    return parcalar
+
+
+def _etiket_cikar(komut, *, mutant=None):
     """`isci.sh <motor> <ev> <spec> <etiket>` icindeki ETIKET'i cikarir.
 
     🔴 Bulamazsa BOS doner ve bos etiket MUAF DEGILDIR (fail-closed yon):
     etiketi okuyamadigimiz bir cagriyi "onarim hatti" sayip gecirmeyiz.
-    Yonlendirme/boru kuyrugu (`>> log 2>&1`, `| tee`) once ATILIR — aksi
-    halde etiket son token olmaz ve MUAF cagrilar bosuna bloklanirdi.
+    Boru/yonlendirme artik KORLESTIRMEZ (bkz. `_komut_segmentleri`), ama
+    BELIRSIZLIK hala fail-closed: bir komutta IKI sarmalayici cagrisi varsa
+    hangisinin hukme girecegi bilinemez -> BOS doner (= ETIKET_OKUNAMADI).
     """
-    ham = (komut or "").strip()
-    # yonlendirme/boru kuyrugunu at (etiket bunlardan ONCE gelir)
-    for ayrac in (">>", "2>", ">", "|", "&&", ";"):
-        i = ham.find(ayrac)
-        if i >= 0:
-            ham = ham[:i]
-    m = _ETIKET_RE.search(ham.strip())
-    if not m:
-        return ""
+    adaylar = [m for m in
+               (_ETIKET_RE.search(seg)
+                for seg in _komut_segmentleri(komut, mutant=mutant))
+               if m]
+    if len(adaylar) != 1:
+        return ""                    # 0 = sarmalayici yok · >1 = BELIRSIZ
+    m = adaylar[0]
     sarmalayici = os.path.basename(m.group(1))
     indeks = _ETIKET_INDEKS.get(sarmalayici)
     if indeks is None:
-        return ""
+        return ""                    # tabloda yok (or. argumansiz surucu)
     argumanlar = (m.group(2) or "").split()
     if len(argumanlar) <= indeks:
-        return ""
+        return ""                    # etiket HIC verilmemis
     return argumanlar[indeks].strip().strip("\"'")
 
 
@@ -794,6 +1323,44 @@ SUREN_KOMUTLARI = (
     "git -C /Users/okan/dev/pruvo-hasat push",
     "ls tools/",
     "python3 tools/d1-sync.py --durum",
+)
+
+# ------------------------------------------------------------------------------
+# K345 — BORU ONEKLI CANLI VAKA (mimarin iki kez yasadigi cagrinin BIREBIR hali)
+# ------------------------------------------------------------------------------
+# 🔴 Bu iki dizge UYDURULMUS degil: CLAUDE.md 28 Agu'ya kadar `echo "" |` onekini
+# ZORUNLU kiliyordu ve o formdaki HER cagri `KOL=N2B-RED` aliyordu. Sarmalayici
+# yolu `SARMALAYICI_DIZINI`den TURER (ikinci literal yol yazilmaz).
+_ISCI_SARMALAYICI = SARMALAYICI_DIZINI + "/isci.sh"
+K345_BORU_KOMUTU = ('echo "" | %s minimax-m3 /Users/okan/dev/pruvo-hasat '
+                    '/tmp/s.md tamir-boru-k345' % _ISCI_SARMALAYICI)
+# NEGATIF yon: boru VAR ama etiket YOK -> HALA RED (gevsetme olmadi).
+K345_BORU_ETIKETSIZ = ('echo "" | %s minimax-m3 /Users/okan/dev/pruvo-hasat '
+                       '/tmp/s.md' % _ISCI_SARMALAYICI)
+
+# ------------------------------------------------------------------------------
+# K345-C — OKUMA ↔ BASLATMA VAKALARI (ikisi de CANLI vakadan turedi)
+# ------------------------------------------------------------------------------
+# 🔴 OKUMA vakalari: mimarin bugun RED yedigi komutlar. Hicbiri is BASLATMAZ.
+K345_OKUMA_KOMUTLARI = (
+    'grep -n "kimi" %s' % _ISCI_SARMALAYICI,
+    'cat %s' % _ISCI_SARMALAYICI,
+    'wc -c %s' % _ISCI_SARMALAYICI,
+    'git commit -m "kapi: %s dokunuldu"' % _ISCI_SARMALAYICI,
+    'grep -c BASLANGIC %s | head -1' % _ISCI_SARMALAYICI,
+)
+# 🔴 BASLATMA vakalari: hepsi HALA kapiya tabidir. Bu kume GEVSETILMEZ —
+# okuma kolunun bir KACIS YOLUNA donmedigini olcer.
+K345_BASLATMA_KOMUTLARI = (
+    '%s minimax-m3 /Users/okan/dev/pruvo-hasat /tmp/s.md parti-surucusu'
+    % _ISCI_SARMALAYICI,
+    'cat %s | sh' % _ISCI_SARMALAYICI,                    # boruyla YORUMLAYICI
+    'sh -c "%s kimi /tmp/e /tmp/s.md parti"' % _ISCI_SARMALAYICI,
+    'env -C /tmp %s kimi /tmp/e /tmp/s.md parti' % _ISCI_SARMALAYICI,
+    'nohup %s kimi /tmp/e /tmp/s.md parti' % _ISCI_SARMALAYICI,
+    'echo $(%s kimi /tmp/e /tmp/s.md parti)' % _ISCI_SARMALAYICI,  # IKAME
+    'PRUVO_ISCI_BAGLAM=kapali %s kimi /tmp/e /tmp/s.md parti'
+    % _ISCI_SARMALAYICI,
 )
 
 
@@ -913,6 +1480,26 @@ def kendini_test(gecici_kok):
         out["_cagri_yeri"] = cagri_yeri_hukmu(fikstur_kaynaklari,
                                               mutant=mutant,
                                               taban=FIKSTUR_TABANI)
+        # 🔴 K345 — BORU ONEKI ve UCUNCU KOVA vakalar (kanca yuzeyinin girdisi
+        # KOMUT METNIDIR; etiket oradan CIKARILIR, argv'den DEGIL).
+        out["_boru"] = parti_karari(
+            kok_hasat, _etiket_cikar(K345_BORU_KOMUTU, mutant=mutant),
+            koku_root=gecici_kok, mutant=mutant)
+        out["_boru_etiketsiz"] = parti_karari(
+            kok_hasat, _etiket_cikar(K345_BORU_ETIKETSIZ, mutant=mutant),
+            koku_root=gecici_kok, mutant=mutant)
+        # 🔴 KALEMSIZ evde de okunamayan etiket RED'dir. Bu vaka M13'un
+        # (kova birlestirme) FAIL-OPEN sizintisini gorunur kilar: kovalar
+        # birlesince kalemsiz ev "temiz" diye GECER verir.
+        out["_etiketsiz_temiz_ev"] = parti_karari(
+            kok_kral, "", koku_root=gecici_kok, mutant=mutant)
+        out["_red_metni"] = red_metni_turetim_hukmu(mutant=mutant)
+        # 🔴 K345-C — OKUMA / BASLATMA kollari (kume HUKUMLERI, tek tek degil:
+        # bir vakanin sizmasi kumeyi bozmali)
+        out["_okuma"] = [yeni_is_hukmu(k, mutant=mutant)[0]
+                         for k in K345_OKUMA_KOMUTLARI]
+        out["_baslatma"] = [yeni_is_hukmu(k, mutant=mutant)[0]
+                            for k in K345_BASLATMA_KOMUTLARI]
         return out
 
     normal = kos(None)
@@ -937,7 +1524,43 @@ def kendini_test(gecici_kok):
           "(beklenen GECER) %s"
           % ("cagri-yeri", cy["HUKUM"], cy["SAYI"], cy["TABAN"],
              len(cy["IHLAL"]), "✓" if cy_ok else "✗"))
-    taban_ok = taban_ok and yeni_ok and suren_ok and cy_ok
+    # 🔴 K345 tabani — UC KOVA + turetilmis metin (hepsi ONCE olculur)
+    k345_beklenen = (
+        ("_boru", "GECER", N2B_MUAF_JETON, SEBEP_MUAF),
+        ("_boru_etiketsiz", "RED", N2B_ETIKET_OKUNAMADI_JETON,
+         SEBEP_ETIKET_OKUNAMADI),
+        ("_etiketsiz_temiz_ev", "RED", N2B_ETIKET_OKUNAMADI_JETON,
+         SEBEP_ETIKET_OKUNAMADI),
+    )
+    k345_ok = True
+    for ad, b_h, b_k, b_s in k345_beklenen:
+        s = normal[ad]
+        ok = (s["HUKUM"] == b_h and s["KOL"] == b_k
+              and s["SEBEP_KODU"] == b_s)
+        k345_ok = k345_ok and ok
+        print("  %-20s %s  (beklenen %s/%s/%s) %s"
+              % (ad, hukum_satiri(s), b_h, b_k, b_s, "✓" if ok else "✗"))
+    rm = normal["_red_metni"]
+    rm_ok = (rm["HUKUM"] == "GECER" and rm["ELLE_KOPYA"] == 0)
+    print("  %-20s HUKUM=%s ELLE_KOPYA=%d ihlal=%d (beklenen GECER/0) %s"
+          % ("red-metni-turetim", rm["HUKUM"], rm["ELLE_KOPYA"],
+             len(rm["IHLAL"]), "✓" if rm_ok else "✗"))
+    for i in rm["IHLAL"]:
+        print("      | %s" % i)
+    okuma_ok = all(h == "OKUMA" for h in normal["_okuma"])
+    baslatma_ok = all(h == "YENI" for h in normal["_baslatma"])
+    print("  %-20s %d vaka -> %s (beklenen hepsi OKUMA) %s"
+          % ("okuma-kolu", len(normal["_okuma"]),
+             sorted(set(normal["_okuma"])), "✓" if okuma_ok else "✗"))
+    for k, h in zip(K345_OKUMA_KOMUTLARI, normal["_okuma"]):
+        print("      | %-6s %s" % (h, k[:88]))
+    print("  %-20s %d vaka -> %s (beklenen hepsi YENI) %s"
+          % ("baslatma-kolu", len(normal["_baslatma"]),
+             sorted(set(normal["_baslatma"])), "✓" if baslatma_ok else "✗"))
+    for k, h in zip(K345_BASLATMA_KOMUTLARI, normal["_baslatma"]):
+        print("      | %-6s %s" % (h, k[:88]))
+    taban_ok = (taban_ok and yeni_ok and suren_ok and cy_ok and k345_ok
+                and rm_ok and okuma_ok and baslatma_ok)
     print("")
     if not taban_ok:
         print("TABAN KIRMIZI — mutant olcumu ANLAMSIZ.")
@@ -945,7 +1568,7 @@ def kendini_test(gecici_kok):
             print("    | cagri-yeri %s etiket=%r beklenen=%s gercek=%s %s"
                   % (b["ROL"], b["ETIKET"], b["BEKLENEN"], b["GERCEK"],
                      b["HATA"] or ""))
-        print("MUTANT=0/9 HEDEF_KOL_ATFI=0/9 KONTROL=0/10")
+        print("MUTANT=0/13 HEDEF_KOL_ATFI=0/13 KONTROL=0/12")
         return 1
 
     # --- MUTANTLAR ---------------------------------------------------------
@@ -960,13 +1583,28 @@ def kendini_test(gecici_kok):
         "M4": ("_olculemedi", "tekin-defter-bos"),
         # M5 muafiyeti KOKTEN oldurur; `_cagri_yeri` MUAF'in downstream'idir,
         # bu yuzden hedef kumeye DAHILDIR (yan eksen degil — sahte KUSUR olmasin).
-        "M5": ("macit-tamir", "macit-posta", "_cagri_yeri"),
+        # `_boru` de MUAF'in downstream'idir (borulu cagrinin etiketi MUAF bir
+        # onek tasir) — yan eksene yazilirsa M5'in ATFI sahte KUSUR okunur.
+        "M5": ("macit-tamir", "macit-posta", "_cagri_yeri", "_boru"),
         # N4A: cagri yeri kolu — iki AYRI oldurme yolu
         "M6": ("_cagri_yeri",),                 # kapsam tabani (tarayici korlesir)
         "M7": ("_cagri_yeri",),                 # regresyon (startswith-only)
         # K229: ucuncu kova — iki AYRI oldurme yolu (eski adlari M6/M7 idi)
         "M8": ("hoca-defter-yok",),             # ucuncu kova — kol BOZULUR
         "M9": ("hoca-defter-yok",),             # ucuncu kova — kol BIRLESTIRILIR
+        # 🔴 K345 — dort AYRI kol, dort AYRI hedef kume
+        "M10": ("_red_metni",),                 # metin TURETIMI kirilir
+        "M11": ("_boru",),                      # boru ONEKI normalizasyonu
+        # M12/M13 ETIKET_OKUNAMADI kovasinin IKI ayri oldurme yolu; ikisi de
+        # HEM borulu HEM kalemsiz-ev vakasini bozar (kova tek yerde yasamaz).
+        "M12": ("_boru_etiketsiz", "_etiketsiz_temiz_ev"),
+        "M13": ("_boru_etiketsiz", "_etiketsiz_temiz_ev"),
+        # K345-C: M14 okuma kolunu kaldirir (yalniz `_okuma` bozulur);
+        # M15 baslatmayi okuma sayar -> `_baslatma` SIZAR ve `_yeni` de duser
+        # (ikisi ayni kolun iki yuzu; `_yeni` yan eksene yazilirsa M15'in
+        # ATFI sahte KUSUR okunur).
+        "M14": ("_okuma",),
+        "M15": ("_baslatma", "_yeni"),
     }
     mutant_sayaci = 0
     atif_sayaci = 0
@@ -1013,7 +1651,42 @@ def kendini_test(gecici_kok):
                               % (b["ROL"], b["ETIKET"], b["BEKLENEN"],
                                  b["GERCEK"]))
                     continue
-                if (n["HUKUM"], n["KOL"]) != (mm["HUKUM"], mm["KOL"]):
+                if hv in ("_yeni", "_suren"):
+                    # bool / bool-listesi eksenleri (dict DEGIL)
+                    n, mm = normal[hv], m[hv]
+                    if n != mm:
+                        hedef_kirmizi = True
+                    print("  %s: normal=%s | mutant=%s" % (hv, n, mm))
+                    continue
+                if hv in ("_okuma", "_baslatma"):
+                    n, mm = normal[hv], m[hv]
+                    if n != mm:
+                        hedef_kirmizi = True
+                    print("  %s: normal=%s | mutant=%s"
+                          % (hv, sorted(set(n)), sorted(set(mm))))
+                    if hv == "_baslatma" and "OKUMA" in mm:
+                        sizan = [k for k, h in
+                                 zip(K345_BASLATMA_KOMUTLARI, mm)
+                                 if h == "OKUMA"]
+                        print("      | 🔴 SIZAN BASLATMA (%d): %s"
+                              % (len(sizan), sizan[0][:80]))
+                    continue
+                if hv == "_red_metni":
+                    # Turetim kolu: normalde GECER; mutant altinda GECER
+                    # OLMAMALIDIR (elle ikinci kopya geri gelmis olur).
+                    if n["HUKUM"] == "GECER" and mm["HUKUM"] != "GECER":
+                        hedef_kirmizi = True
+                    print("  _red_metni: normal=HUKUM=%s elle_kopya=%d | "
+                          "mutant=HUKUM=%s elle_kopya=%d"
+                          % (n["HUKUM"], n["ELLE_KOPYA"],
+                             mm["HUKUM"], mm["ELLE_KOPYA"]))
+                    for i in mm["IHLAL"]:
+                        print("      | IHLAL %s" % i)
+                    continue
+                # 🔴 SEBEP KODU da karsilastirilir: yalniz (HUKUM,KOL)'a bakan
+                # bir test M13'u (kova birlestirme) YASATABILIRDI.
+                if ((n["HUKUM"], n["KOL"], n.get("SEBEP_KODU"))
+                        != (mm["HUKUM"], mm["KOL"], mm.get("SEBEP_KODU"))):
                     hedef_kirmizi = True
                 print("  %s: normal=%s | mutant=%s"
                       % (hv, hukum_satiri(n), hukum_satiri(mm)))
@@ -1043,6 +1716,20 @@ def kendini_test(gecici_kok):
         if ("_cagri_yeri" not in HEDEF_VAKA[ad]
                 and normal["_cagri_yeri"]["HUKUM"] != m["_cagri_yeri"]["HUKUM"]):
             yan_bozulan.append("_cagri_yeri")
+        # 🔴 K345 yan eksenleri — hedef DISINDAKI dort kol da bozulmamali
+        for k345_ad in ("_boru", "_boru_etiketsiz", "_etiketsiz_temiz_ev"):
+            if k345_ad in HEDEF_VAKA[ad]:
+                continue
+            n, mm = normal[k345_ad], m[k345_ad]
+            if ((n["HUKUM"], n["KOL"], n.get("SEBEP_KODU"))
+                    != (mm["HUKUM"], mm["KOL"], mm.get("SEBEP_KODU"))):
+                yan_bozulan.append(k345_ad)
+        if ("_red_metni" not in HEDEF_VAKA[ad]
+                and normal["_red_metni"]["HUKUM"] != m["_red_metni"]["HUKUM"]):
+            yan_bozulan.append("_red_metni")
+        for c_ad in ("_okuma", "_baslatma"):
+            if c_ad not in HEDEF_VAKA[ad] and normal[c_ad] != m[c_ad]:
+                yan_bozulan.append(c_ad)
         yan_yesil = not yan_bozulan
         print("  yan eksen bozulan: %s" % (",".join(yan_bozulan) or "-"))
 
@@ -1370,10 +2057,144 @@ def kendini_test(gecici_kok):
           % (hukum_satiri(c9), c9["HATA"] or "-"))
     kontrol += 1 if k10 else 0
 
+    # K11: 🔴 K345 — RED METNI TURETILMIS MI? (iki yonlu esitlik + elle kopya)
+    #      Kapinin dogru karar vermesi YETMEZ: okuyan METNE gore davranir.
+    #      Bu kontrol metnin CALISAN CAGRI YOLUNU tasidigini olcer.
+    t11 = red_metni_turetim_hukmu()
+    ornek11 = {"HUKUM": "RED", "KOL": N2B_ETIKET_OKUNAMADI_JETON, "EV": "KraL",
+               "ACIK": 0, "KALEMLER": [], "KABUL_KOMUTU": kabul_komutu("KraL"),
+               "SEBEP_KODU": SEBEP_ETIKET_OKUNAMADI, "SEBEP": None,
+               "HATA": None, "ETIKET": ""}
+    metin11 = red_metni(ornek11)
+    # metin, CALISAN cagri bicimini ve muaf onekleri GERCEKTEN tasiyor mu?
+    tasiyor = (all(b in metin11 for b in dogru_cagri_bicimi())
+               and muaf_onek_dizgesi() in metin11)
+    kaynak11 = elle_kopya_kaynak_sayimi()
+    # 🔴 KORLUK AYRIMI: `URETIM=0` "kaynak temiz" DE olabilir "prob kor" DA.
+    # Fikstur, probun GORMESI GEREKENI gorup GORMEMESI GEREKENI birakmasini
+    # ayni kosumda kanitlar; tutmazsa K11 KIRMIZI ([[batarya-kapsam-tabani-
+    # sayiyla-civilenir]]).
+    korluk = elle_kopya_kaynak_sayimi(kaynak=_korluk_fiksturu())
+    korluk_ok = all(korluk[k] == v for k, v in _KORLUK_BEKLENEN.items())
+    k11 = (t11["HUKUM"] == "GECER" and t11["ELLE_KOPYA"] == 0 and tasiyor
+           and kaynak11["URETIM"] == 0      # -1 (olculemedi) de KUSUR'dur
+           and korluk_ok)
+    print("KONTROL K11 red metni TURETILMIS (iki yonlu) + elle kopya=0: %s"
+          % ("GECTI" if k11 else "KUSUR"))
+    print("    | hukum=%s metin_elle_kopya=%d ihlal=%d cagri_bicimi_metinde=%s"
+          % (t11["HUKUM"], t11["ELLE_KOPYA"], len(t11["IHLAL"]), tasiyor))
+    print("    | KAYNAK elle kopya: URETIM=%d (beklenen 0) · docstring=%d · "
+          "mutant_yuku=%d · hata=%s"
+          % (kaynak11["URETIM"], kaynak11["DOCSTRING"],
+             kaynak11["MUTANT_YUKU"], kaynak11["HATA"] or "-"))
+    for s in kaynak11["SATIRLAR"]:
+        print("    |   🔴 %s" % s)
+    print("    | PROB KOR DEGIL (fikstur): URETIM=%d/%d DOCSTRING=%d/%d "
+          "MUTANT_YUKU=%d/%d %s"
+          % (korluk["URETIM"], _KORLUK_BEKLENEN["URETIM"],
+             korluk["DOCSTRING"], _KORLUK_BEKLENEN["DOCSTRING"],
+             korluk["MUTANT_YUKU"], _KORLUK_BEKLENEN["MUTANT_YUKU"],
+             "✓" if korluk_ok else "✗"))
+    for i in t11["IHLAL"]:
+        print("    | IHLAL %s" % i)
+    for satir in metin11.splitlines():
+        print("    | %s" % satir)
+    kontrol += 1 if k11 else 0
+
+    # K12: 🔴 K345 — UC KOVA, UC AYRI HUKUM, **30 ACIK KALEMLI** fikstur.
+    #      Mimarin gercek vakasi buydu: 30 kalem varken borulu MUAF cagri
+    #      RED yiyordu ve metin 30 kalemi siralayip yanlis careyi veriyordu.
+    #      UCU DE AYNI KOSUMDA olculur — yoksa kovalarin AYRILDIGI
+    #      ispatlanamaz ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+    _sentetik_defter(os.path.join(gecici_kok, "MaCiT", "memory",
+                                  "acik-kalemler.md"),
+                     [("K%03d" % (900 + i), "🔧") for i in range(30)])
+    kova_a = parti_karari(kok_hasat, _etiket_cikar(K345_BORU_KOMUTU),
+                          koku_root=gecici_kok)
+    kova_b = parti_karari(kok_hasat, "parti-surucusu", koku_root=gecici_kok)
+    kova_c = parti_karari(kok_hasat, _etiket_cikar(K345_BORU_ETIKETSIZ),
+                          koku_root=gecici_kok)
+    hukumler = {hukum_satiri(kova_a), hukum_satiri(kova_b), hukum_satiri(kova_c)}
+    k12 = (kova_a["HUKUM"] == "GECER" and kova_a["KOL"] == N2B_MUAF_JETON
+           and kova_a["SEBEP_KODU"] == SEBEP_MUAF
+           and kova_b["HUKUM"] == "RED" and kova_b["KOL"] == N2B_RED_JETON
+           and kova_b["SEBEP_KODU"] == SEBEP_ACIK_KALEM and kova_b["ACIK"] == 30
+           and kova_c["HUKUM"] == "RED"
+           and kova_c["KOL"] == N2B_ETIKET_OKUNAMADI_JETON
+           and kova_c["SEBEP_KODU"] == SEBEP_ETIKET_OKUNAMADI
+           and len(hukumler) == 3)          # UC AYRI hukum satiri
+    print("KONTROL K12 uc kova / uc AYRI hukum (30 acik kalemli fikstur): %s"
+          % ("GECTI" if k12 else "KUSUR"))
+    print("    | (a) muaf etiket + boru ONEKI : %s" % hukum_satiri(kova_a))
+    print("    | (b) muaf-DISI etiket + kalem : %s" % hukum_satiri(kova_b))
+    print("    | (c) etiket OKUNAMADI (boru)  : %s" % hukum_satiri(kova_c))
+    print("    | ayri hukum satiri sayisi=%d (beklenen 3)" % len(hukumler))
+    # 🔴 Sebep AYRIMI metne de yansiyor mu? (b) ve (c) AYNI metni BASMAMALI
+    print("    | (c) red metni sebep satirlari:")
+    for satir in red_metni(kova_c).splitlines():
+        if "SEBEP[" in satir:
+            print("    |   %s" % satir)
+    kontrol += 1 if k12 else 0
+    # fikstur higyeni: defteri onceki haline dondur
+    _sentetik_defter(os.path.join(gecici_kok, "MaCiT", "memory",
+                                  "acik-kalemler.md"),
+                     [("K901", "🔧"), ("K902", "ACIK"), ("K903", "KAPANDI")])
+
+    # K13: 🔴 K345-C — OKUMA GECER **ve** BASLATMA HALA RED, ikisi de KANCA
+    #      yuzeyinde UCTAN UCA (karar fonksiyonu degil, GERCEK hook girdisi).
+    #      Ev MaCiT: 2 acik kalem VAR — yani okuma kolu "ev temiz oldugu icin"
+    #      degil, GERCEKTEN okuma oldugu icin geciyor.
+    def _kanca_deny(komut):
+        girdi = {"tool_name": "Bash", "tool_input": {"command": komut},
+                 "cwd": kok_hasat}
+        tampon = io.StringIO()
+        hata = io.StringIO()
+        with redirect_stdout(tampon):
+            _stderr, sys.stderr = sys.stderr, hata
+            try:
+                kanca(girdi, koku_root=gecici_kok)
+            finally:
+                sys.stderr = _stderr
+        ham = tampon.getvalue().strip()
+        if not ham:
+            return False, hata.getvalue().strip()
+        try:
+            return (json.loads(ham).get("hookSpecificOutput", {})
+                    .get("permissionDecision") == "deny"), hata.getvalue().strip()
+        except Exception:
+            return False, hata.getvalue().strip()
+
+    okuma_denyleri = []
+    okuma_jetonu = 0
+    for komut in K345_OKUMA_KOMUTLARI:
+        deny, err = _kanca_deny(komut)
+        if deny:
+            okuma_denyleri.append(komut)
+        if N2B_OKUMA_JETON in err:
+            okuma_jetonu += 1
+    baslatma_gecenler = [k for k in K345_BASLATMA_KOMUTLARI
+                         if not _kanca_deny(k)[0]]
+    k13 = (not okuma_denyleri
+           and okuma_jetonu == len(K345_OKUMA_KOMUTLARI)
+           and not baslatma_gecenler)
+    print("KONTROL K13 OKUMA gecer + BASLATMA hala RED (kanca yuzeyi, "
+          "acik kalemli ev): %s" % ("GECTI" if k13 else "KUSUR"))
+    print("    | okuma  : %d vaka · deny=%d (beklenen 0) · %s jetonu=%d/%d"
+          % (len(K345_OKUMA_KOMUTLARI), len(okuma_denyleri), N2B_OKUMA_JETON,
+             okuma_jetonu, len(K345_OKUMA_KOMUTLARI)))
+    for k in okuma_denyleri:
+        print("    |   🔴 REDDEDILDI (olmamaliydi): %s" % k[:88])
+    print("    | baslatma: %d vaka · GECEN=%d (beklenen 0)"
+          % (len(K345_BASLATMA_KOMUTLARI), len(baslatma_gecenler)))
+    for k in baslatma_gecenler:
+        print("    |   🔴 SIZDI (kapiya tabi olmaliydi): %s" % k[:88])
+    kontrol += 1 if k13 else 0
+
     print("")
-    print("MUTANT=%d/9 HEDEF_KOL_ATFI=%d/9 KONTROL=%d/10"
+    print("MUTANT=%d/15 HEDEF_KOL_ATFI=%d/15 KONTROL=%d/13"
           % (mutant_sayaci, atif_sayaci, kontrol))
-    return 0 if (mutant_sayaci == 9 and atif_sayaci == 9 and kontrol == 10) else 1
+    return 0 if (mutant_sayaci == 15 and atif_sayaci == 15
+                 and kontrol == 13) else 1
 
 
 # ------------------------------------------------------------------------------
@@ -1390,6 +2211,10 @@ def main(argv=None):
     ap.add_argument("--ev", help="--kontrol icin EV adi")
     ap.add_argument("--esik", type=int, default=None)
     ap.add_argument("--kendini-test", action="store_true")
+    ap.add_argument("--elle-kopya", nargs="?", const="", metavar="YOL",
+                    help="K345: kaynakta kalan ELLE muaf-onek listesi sayisi. "
+                         "YOL bos ise bu dosya; `git:<ref>` bicimi o ref'teki "
+                         "surumu olcer (ONCE/SONRA ayni tanimla).")
     ap.add_argument("--cagri-yeri", action="store_true",
                     help="N4A: muafiyet sozlesmesini GERCEK cagri yerlerine "
                          "karsi olcer (0 GECER · 1 RED · 2 OLCULEMEDI)")
@@ -1428,6 +2253,15 @@ def main(argv=None):
         if sonuc["HUKUM"] == "GECER":
             return RC_GECER
         return RC_RED if sonuc["HUKUM"] == "RED" else RC_OLCULEMEDI
+
+    if args.elle_kopya is not None:
+        s = elle_kopya_kaynak_sayimi(args.elle_kopya or None)
+        print("N2B-ELLE-KOPYA URETIM=%d DOCSTRING=%d MUTANT_YUKU=%d HATA=%s"
+              % (s["URETIM"], s["DOCSTRING"], s["MUTANT_YUKU"],
+                 s["HATA"] or "-"))
+        for satir in s["SATIRLAR"]:
+            print("  %s" % satir)
+        return RC_GECER if s["URETIM"] == 0 else RC_RED
 
     if args.kendini_test:
         gecici = tempfile.mkdtemp(prefix="n2b-kendinitest-")

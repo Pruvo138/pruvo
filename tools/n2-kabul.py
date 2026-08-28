@@ -666,7 +666,12 @@ def kabul_Z(calisma, once_imza):
         # -> KONTROL 8 -> 10. Sayilar BUYUDU: kapsam kaybi oranla gizlenemez.
         # 🔴 K229 dalinda bu mutantlar M6/M7 idi; N4A ayni numaralari ALDIGI icin
         # tazeleme sirasinda M8/M9'a TASINDI [[ad-iki-rolde-mutanti-golgeler]].
-        "parti-kapisi.py":    "MUTANT=9/9 HEDEF_KOL_ATFI=9/9 KONTROL=10/10",
+        # K345 (28 Agu 2026): 9->15 mutant, 10->13 kontrol. Eklenen kollar:
+        # M10 red metni turetimi · M11 boru oneki normalizasyonu · M12 fail-
+        # closed gevsetme · M13 sebep kovalarinin birlestirilmesi · M14/M15
+        # okuma↔baslatma ayrimi. Kontroller: K11 turetim + K12 uc kova +
+        # K13 okuma gecer/baslatma RED.
+        "parti-kapisi.py":    "MUTANT=15/15 HEDEF_KOL_ATFI=15/15 KONTROL=13/13",
         "devir-kapisi.py":    "MUTANT=5/5 HEDEF_KOL_ATFI=5/5 KONTROL=4/4",
     }
     satirlar, hepsi = [], True
