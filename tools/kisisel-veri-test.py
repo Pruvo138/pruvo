@@ -49,6 +49,11 @@ import build  # noqa: E402  (render_content_page + CONTENT_PAGES)
 # ------------------------------------------------------------------ aranan düz metin kalıpları
 # Not: kalıplar boşluksuz NORMALİZE metinde aranır (boşluk/nbsp/tire farkları
 # kaçamak yaratmasın diye). Hepsi kişisel veri; JSON-LD dışında SIFIR olmalı.
+# 🔴 TELEFON İSTİSNASI (Okan emri, 28 Ağu — TEK HAT): aşağıdaki 4 telefon biçimi bu
+# listede "JSON-LD dışında sıfır" kuralından DAHA SIKI bir kurala tabidir. O numara
+# artık hiçbir yerde — JSON-LD dahil, izlenen HERHANGİ bir dosyada — geçemez; ölçen
+# kol bu döngü değil, aşağıdaki T1 (düz metin) + T2 (pv-parçalı) iddialarıdır.
+# Biçimler SİLİNMEZ: yasaklı desen olarak kalmaları bu nöbetçinin asıl işidir.
 KALIPLAR = [
     "okangemalmaz", "gemalmaz",
     "+905325954005", "905325954005", "05325954005", "5325954005",
@@ -59,7 +64,10 @@ KALIPLAR = [
 ]
 
 # ------------------------------------------------------------------ pozitif kontrol beklentileri
-TEL = "+90 532 595 4005"
+# 🔴 TEK HAT (Okan emri, 28 Agu): kunyede gorunen telefon artik Ege'nin WhatsApp
+# hattidir. Kisisel arama hatti repodan CIKARILDI ve yukaridaki KALIPLAR listesinde
+# YASAKLI desen olarak kaldi (asagidaki T1/T2 iddialari onu olcer).
+TEL = "+90 545 138 65 26"
 EPOSTA = "info@pruvo3d.com"
 ADRES_KISA = "Adnan Menderes Blv. No:303, 48300 Fethiye/Muğla"
 ADRES_TAM = "Akarca Mah. Adnan Menderes (BBT) Blv. No:303 Daire No:203, Fethiye / Muğla"
@@ -1813,6 +1821,13 @@ def _cmk():
 # ([[nobetci-kendi-dosyasinda-sizinti]]). Parcalar zaten sitede acik olan WhatsApp
 # numarasi ile JSON-LD'deki arama numarasidir; kural onlarin VARLIGI degil BAGLAMI
 # hakkindadir, o yuzden tam numarayi yeni bir duz literal olarak eklemeye gerek yok.
+#
+# 🔴 EKSEN DEGISTI (Okan emri, 28 Agu — TEK HAT): asagidaki iki parca kumesinin ROLU
+# artik ayni DEGIL. `_WA_PARCA` = sitenin TEK telefon hatti (Ege/WhatsApp), meşru ve
+# her baglamda serbest. `_ARAMA_PARCA` = Okan'in kisisel numarasi, repodan CIKARILDI ve
+# YASAKLI desendir. Silinmedi: bir daha sizmamasini olcen kol budur.
+# ESKI KURAL (GECERSIZ): "iki hat birbirinden ayrilir; WA numarasi tel:'de olmaz".
+# O kural bugun kaldirildi — WhatsApp numarasinin tel:/contactPoint'te olmasi DOGRU.
 _WA_PARCA = ("545", "138", "6526")
 _ARAMA_PARCA = ("532", "595", "4005")
 
@@ -1835,6 +1850,20 @@ _ARAMA_RE = _numara_deseni(_ARAMA_PARCA)
 _ARAMA_BAGLAM_RE = re.compile(r"tel:[+0-9]|telephone|contact_?point", re.I)
 _WA_BAGLAM_RE = re.compile(r"wa\.me|whats_?app|wa_?me", re.I)
 
+# 🔴 YASAKLI NUMARANIN TEK MESRU BULUNDUGU YER: bu nobetcinin KENDI yasakli desen
+# listesi (KALIPLAR, dosyanin basi). Muafiyet YOL BAZLIDIR ve gerekcelidir — kural
+# "numara hicbir yerde gecmez" oldugu icin, kurali TASIYAN dosya kendini yakardi
+# ([[nobetci-kendi-dosyasinda-sizinti]]). Muafiyeti GENISLETMEK = sizinti riski
+# USTLENMEKTIR: baska bir yola izin vermek, numarayi o dosyada YAYINLAMAK demektir.
+_YASAK_TEL_MUAFIYET = {
+    "tools/kisisel-veri-test.py":
+        "KALIPLAR = bu kapinin KENDI yasakli desen listesi; numaranin yasaklandigi "
+        "yer olmasi kacinilmaz (kural burada TANIMLANIR, ihlal edilmez)",
+}
+# pv (kisisel veri koruması) span cozucusu bu dosyada zaten var (pv_birlestir);
+# T2 onu kullanir — duz metin taramasi pv-parcalanmis numarayi GORMEZ (olculdu,
+# 28 Agu: iletisim/index.html'deki kunye telefonu `grep "4005"` ile BULUNAMIYORDU).
+
 
 def _satir(metin, konum):
     """konum indeksini iceren SATIRI dondurur (baglam yargisi satir duzeyindedir)."""
@@ -1844,25 +1873,36 @@ def _satir(metin, konum):
 
 
 def telefon_baglam_kusurlari(yol, metin):
-    """[(iddia, mesaj), ...] — CAPRAZ baglam ihlalleri.
+    """[(iddia, mesaj), ...] — YASAKLI NUMARA ihlalleri (TEK HAT kurali).
 
-    IDDIA T1: WhatsApp numarasi ARAMA baglaminda (tel: / telephone / contactPoint) GECMEZ.
-    IDDIA T2: ARAMA numarasi WhatsApp baglaminda (wa.me / whatsapp) GECMEZ.
-    🔴 KURAL CAPRAZ SECILDI (numaranin KENDI baglaminda OLMASI sarti DEGIL): olculdu,
-    "kendi baglaminda olmali" kurali bugun 8 MESRU satiri kirmiziya boyardi
-    (attribution-ref.js TARGET_PHONE sabiti, 4 statik sayfadaki ayni sabit, test
-    docstring'leri). Capraz kural ise CLAUDE.md'nin YAZILI hukmunun birebir kendisidir."""
+    IDDIA T1 (DUZ METIN): yasakli numara (Okan'in kisisel arama hatti) izlenen HICBIR
+      dosyada, HICBIR baglamda gecmez. Muafiyet: yalniz _YASAK_TEL_MUAFIYET.
+    IDDIA T2 (PV-PARCALI): ayni numara, pv (kisisel veri koruma) span'larinin
+      data-a..data-l parcalarindan GERI KURULAMAZ.
+
+    🔴 NEDEN IKI IDDIA VE NEDEN TOTOLOJI DEGIL: T1 ham metne bakar, T2 pv COZULMUS
+    metne. Ikisi FARKLI mekanizmadir ve T1 tek basina KORDUR — olculdu (28 Agu):
+    iletisim/index.html'de kunye telefonu `data-a="+9" data-c="32 " data-e=" 40"`
+    seklinde 2-3 karakterlik parcalara BOLUNUP KARISIK SIRADA basiliyordu; ham metinde
+    "4005" alt-dizgesi HIC gecmiyor, `grep -rn "4005"` o satiri BULMUYOR. Numara
+    kaldirilirken bu yuzey ancak pv cozucusuyle gorulebildi.
+
+    🔴 ESKI KURAL KALDIRILDI (Okan emri, 28 Agu): eski T1 "WhatsApp numarasi arama
+    baglaminda gecmez", eski T2 "arama numarasi WhatsApp baglaminda gecmez" idi. Site
+    artik TEK hat tasiyor: WhatsApp numarasinin tel:/telephone/contactPoint icinde
+    olmasi DOGRUDUR, kirmizi DEGILDIR. Capraz kural bu yuzden dustu; yerine gecen kural
+    DAHA GENISTIR (baglam sarti yok), yani gevsetme degil daraltma."""
     kusurlar = []
-    for m in _WA_RE.finditer(metin):
-        if _ARAMA_BAGLAM_RE.search(_satir(metin, m.start())):
-            kusurlar.append(("T1", "TELEFON BAGLAM IHLALI (T1): %s — WhatsApp numarasi "
-                                   "ARAMA baglaminda (tel:/telephone/contactPoint) geciyor. "
-                                   "CLAUDE.md: WhatsApp numarasi arama/tel:'de olmaz." % yol))
-    for m in _ARAMA_RE.finditer(metin):
-        if _WA_BAGLAM_RE.search(_satir(metin, m.start())):
-            kusurlar.append(("T2", "TELEFON BAGLAM IHLALI (T2): %s — ARAMA numarasi "
-                                   "WhatsApp baglaminda (wa.me/whatsapp) geciyor. "
-                                   "CLAUDE.md: arama numarasi asla wa.me'de olmaz." % yol))
+    if yol in _YASAK_TEL_MUAFIYET:
+        return kusurlar
+    if _ARAMA_RE.search(metin):
+        kusurlar.append(("T1", "YASAK NUMARA (T1): %s — Okan'in kisisel arama hatti duz "
+                               "metin geciyor. Okan emri (28 Agu): o numara repodan ve "
+                               "yayindan tamamen cikarildi, hicbir baglamda gecemez." % yol))
+    if _ARAMA_RE.search(pv_birlestir(metin)):
+        kusurlar.append(("T2", "YASAK NUMARA (T2): %s — ayni numara pv (data-a..l) "
+                               "parcalarindan GERI KURULUYOR. Duz metin taramasi bu "
+                               "yuzeye kordur; numara pv span'indan da silinmeli." % yol))
     return kusurlar
 
 
@@ -1959,20 +1999,33 @@ def iletisim_fikstur_hatalari(cmk, kayit, markalar):
     hatalar = []
     wa = "".join(_WA_PARCA)
     ara = "".join(_ARAMA_PARCA)
-    # --- T1/T2 KIRMIZI fiksturler
+    # --- T1/T2 KIRMIZI fiksturler (TEK HAT kurali: yasakli numara HICBIR yerde gecmez)
+    # 🔴 T2 fiksturu pv (data-a..l) KODLU kurulur: duz metin kolu (T1) bu satiri
+    # GORMEZ — mekanizma farki fiksturle CIVILENIR, yoksa T2 sessizce T1'in kopyasi
+    # olur ve gercek kor noktayi (28 Agu iletisim kunyesi) bir daha yakalamaz.
+    # a..f dogru sirada birlesince yasakli numaranin TAMAMI cikar; kaynakta karisik
+    # sirada ve PARCALI durur (bu dosya kendi yasakli literalini cogaltmaz — bu yorum
+    # da parcalari yan yana YAZMAZ, aksi halde sayac 4 yerine 5 gosterirdi).
+    _ara_pv = ('<span class="pv pv-blok" data-b="0 5" data-d="' + _ARAMA_PARCA[1]
+               + '" data-f="05" data-a="+9" data-c="'
+               + _ARAMA_PARCA[0][1:] + ' " data-e=" 40"></span>')
     for iddia, satir, gerekce in (
-            ("T1", 'contactPoint telephone "+90' + wa + '"', "WA numarasi arama baglaminda"),
-            ("T1", 'href="tel:+90' + wa + '"', "WA numarasi tel: baglaminda"),
-            ("T2", "https://wa.me/90" + ara, "arama numarasi wa.me baglaminda"),
-            ("T2", "WhatsApp hatti: 0" + ara, "arama numarasi whatsapp baglaminda")):
+            ("T1", 'contactPoint telephone "+90' + ara + '"', "yasak numara arama baglaminda"),
+            ("T1", "https://wa.me/90" + ara, "yasak numara wa.me baglaminda"),
+            ("T1", "# baglamsiz yorum: 0" + ara, "yasak numara BAGLAMSIZ (eski kural kacirirdi)"),
+            ("T2", _ara_pv, "yasak numara pv parcalarindan geri kuruluyor")):
         if iddia not in [i for i, _m in telefon_baglam_kusurlari("f/fikstur.py", satir)]:
             hatalar.append("FIKSTUR(kirmizi) KACTI — %s zayifladi: %s" % (iddia, gerekce))
     # --- T1/T2 YESIL fiksturler (yanlis-pozitif butcesi: bugun MESRU olan satirlar)
+    # 🔴 ILK IKISI EKSEN CIVISI: TEK HAT numarasinin arama baglaminda olmasi artik
+    # DOGRUDUR. Eski kural bu iki satiri KIRMIZI yakiyordu; kural geri donerse bu
+    # fiksturler yanar (sessiz geri alma korumasi).
     for satir, gerekce in (
-            ('href="https://wa.me/90' + wa + '?text=Merhaba"', "WA numarasi KENDI baglaminda"),
-            ('"telephone":"+90' + ara + '"', "arama numarasi KENDI baglaminda"),
-            ('var TARGET_PHONE = "90' + wa + '";', "baglamsiz sabit — capraz ihlal DEGIL"),
-            ("# numara sabitinden turetilen yazim: 90" + wa, "yorum icinde baglamsiz"),
+            ('href="tel:+90' + wa + '"', "TEK HAT numarasi tel: icinde — ARTIK DOGRU"),
+            ('"telephone":"+90' + wa + '"', "TEK HAT numarasi contactPoint icinde — ARTIK DOGRU"),
+            ('href="https://wa.me/90' + wa + '?text=Merhaba"', "TEK HAT numarasi wa.me'de"),
+            ('var TARGET_PHONE = "90' + wa + '";', "TEK HAT sabiti"),
+            ("# numara sabitinden turetilen yazim: 90" + wa, "yorum icinde TEK HAT"),
             ("tel: destek hatti 0850 000 0000", "ILGISIZ numara, arama baglami")):
         bulunan = telefon_baglam_kusurlari("f/fikstur.py", satir)
         if bulunan:
@@ -2033,10 +2086,11 @@ def iletisim_fikstur_hatalari(cmk, kayit, markalar):
     # MUTASYONUNU OLDURUR: defter kapisi susturulsa bile, planlanmis ihlalleri BULMAYAN
     # bir tarama burada kirmizi yanar. Ozyineleme kapisi: fikstur=False.
     _korpus = {
-        "s/tel1.html": 'x <a href="tel:+90' + wa + '">ara</a>',          # T1 ihlali
-        "s/tel2.js": 'const u = "https://wa.me/90' + ara + '";',          # T2 ihlali
+        "s/tel1.js": 'const u = "https://wa.me/90' + ara + '";',          # T1 ihlali
+        "s/tel2.html": "<td>Telefon</td><td>" + _ara_pv + "</td>",        # T2 ihlali
         "s/mail.py": "# iletisim: satis@" + _uv,                          # E1 ihlali
         "s/temiz.js": 'href="https://wa.me/90' + wa + '?text=Merhaba"',   # YESIL
+        "s/temiz3.html": '<a href="tel:+90' + wa + '">ara</a>',           # YESIL (TEK HAT)
         "s/temiz2.py": "# bildirim: info@pruvo3d.com",                    # YESIL
         KAPI_YOLU: "# canlilik capasi",
     }

@@ -338,18 +338,23 @@ else:
 olu_fonksiyonlar = re.findall(r"^def\s+(_(?:sss|gizlilik|hakkimizda|iletisim))\s*\(", sayfalar_py, re.M)
 kontrol(7, "tools/sayfalar.py içinde ölü statik gövde fonksiyonları yok", not olu_fonksiyonlar, ", ".join(olu_fonksiyonlar))
 
-# 8) Telefon ayrımı korunuyor (statik + landing).
+# 8) TEK HAT korunuyor (statik + landing).
+# 🔴 EKSEN DEĞİŞTİ (Okan emri, 28 Ağu): burada eskiden İKİ hattın birbirine karışmaması
+# ölçülüyordu ("wa.me içinde 4005 yok, tel: içinde 6526 yok"). Sitede artık TEK telefon
+# hattı var; ikinci koşul (WhatsApp numarası tel:'de olmasın) BUGÜN YANLIŞTIR ve her
+# künyeyi kırmızı yakardı. Yerine geçen kural DAHA GENİŞ: yayından çıkarılan kişisel
+# hat HİÇBİR telefon yüzeyinde (wa.me · tel:) geçemez — bağlam şartı yok.
 def _telefon_tara(etiket, ham):
     ihlal = []
     if re.search(r"https?://wa\.me/[^\"'\s>]*4005", ham):
-        ihlal.append("%s:wa.me 4005" % etiket)
-    if re.search(r"tel:[^\"'\s>]*6526", ham):
-        ihlal.append("%s:tel 6526" % etiket)
+        ihlal.append("%s:wa.me YASAK hat" % etiket)
+    if re.search(r"tel:[^\"'\s>]*4005", ham):
+        ihlal.append("%s:tel YASAK hat" % etiket)
     return ihlal
 
 
-kapsamli_kontrol(8, "wa.me içinde 4005 yok, tel: içinde 6526 yok (statik + landing)",
-                 _telefon_tara)
+kapsamli_kontrol(8, "yayından çıkarılan kişisel hat wa.me'de de tel:'de de YOK "
+                    "(statik + landing)", _telefon_tara)
 
 # 9) Parametrik ödeme AÇIKKEN "parametrik/ölçüye özel ... WhatsApp kanalından ilerler" iddiası YOK.
 #    ÇAPRAZ DOĞRULAMA: beklenti secenekler.js:PARAMETRIK_ODEME_ACIK bayrağından türetilir.

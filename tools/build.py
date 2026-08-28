@@ -2801,7 +2801,8 @@ def help_cta_href(p, url):
     Kodlama sözleşmesi wa_href ile BİREBİR AYNI: metin quote() ile TEK KEZ
     percent-kodlanır (boşluk=%20, Türkçe ç/ğ/ı/ö/ş/ü UTF-8 %XX), döndürülen URL
     format() içinde esc() ile HTML-escape edilir (quote çıktısında &/<>/" olmadığı
-    için esc no-op) — double-encode YOK. Numara = WHATSAPP sabiti (arama 4005 ASLA).
+    için esc no-op) — double-encode YOK. Numara = WHATSAPP sabiti (TEK HAT; yayından
+    çıkarılan kişisel hat ASLA).
     REF/atıf butonu (orderAlt) AYRIDIR; buraya dokunmak onu etkilemez."""
     from urllib.parse import quote
     msg = (u"Merhaba, şu sayfadaydım: " + (p.get("baslik") or "")
