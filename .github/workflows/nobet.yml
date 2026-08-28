@@ -517,9 +517,16 @@ jobs:
       # fazladan bir ad eklemek nobetciyi GECIYORDU (dis mutasyon bataryasinda olculdu).
       # TERS YON kollari (A3/A4) + M5 mutanti eklendi: metnin ilgili parcasi turetilmis
       # dizgeye BIREBIR esitlenir, iki yonde de sapma KIRMIZI yakar.
-      # Kollar: turetilmislik + TERS YON + CAGRI YERI + mutantlar + NEGATIF kontrol.
-      # Vaka sayisi aracin kendisi basar (buraya YAZILMAZ — bayatlar).
-      # Mutantlar git-DISI tempdir'de kosar. SERIT B. ~<2 s.
+      # 🔴 K344 (28 Agu) IKI EKSEN EKLENDI:
+      #   A) her OLDURUCU mutant artik HEDEF KOLU adiyla civiler ve KOMSU KOLUN YESIL
+      #      kaldigini AYRICA kanitlar (toptan devirme ile hedefli oldurme ayrilir).
+      #   B) ARAC -> KAYNAK yonu (C5/C6): araca eklenip tabloya yazilmayan bayrak
+      #      KIRMIZI yanar. `--kapanislari-isle` tam o bosluktan dusmustu.
+      # Kollar: turetilmislik + TERS YON (metin) + CAGRI YERI + TERS YON (arac) +
+      #         mutantlar + NEGATIF kontrol.
+      # Vaka sayisi aracin kendisi basar (buraya YAZILMAZ — bayatlar); arac ayrica
+      # KAPSAM TABANINI kendi icinde civiler (taban altina dusen kosum rc=1).
+      # Mutantlar git-DISI tempdir'de kosar. SERIT B. ~2 s.
       - name: Serbest kume tek kaynak nobetcisi (mutasyonlu + negatif kontrol)
         if: ${{ !cancelled() }}
         run: python3 tools/serbest-kume-tekkaynak-test.py
