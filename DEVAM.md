@@ -3,7 +3,8 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## T1+T2 KAPANDI (29 Agu) — panel "Urunler": ustyazim kuyrugu + gorsel/STL/kaynak-link; TAM HUKUM KUTUDA
-T2 canli 2x: gorseller kuyruk->main(`dccb46af`,`d2ae7a86`)->canli; HEAD katalog SABIT. ACIK: worker deploy=OKAN + T1a (gorseller ayni sinif, beyanli).
+T2 canli 2x: kuyruk->main(`dccb46af`,`d2ae7a86`)->canli; katalog SABIT. 🔴 **ACIK: worker deploy=OKAN** + T1a —
+kutunun "deploy edildi (`b26cedd8`)" iddiasi CURUTULDU: SHA 5 evin HICBIRINDE yok (`cat-file -t` 5/5 fatal).
 ## 🔁 28 AGU 18:00 CANLI DURUM — OKAN 17:00 EMRININ BES KALEMI DE KAPANDI (onceden -> sonra)
 🔴 **N2B BORU ONEKI SINIFI → HAFIZADA:** [[isci-cagrisinda-echo-stdin-etiketi-yutar]] (K345 ile kapandi).
 🔴 **K337:** butce kesintisi sade `rc=1` donuyor, karantina dusus sayiyor (3 ardisik = 6 saat). META=RAF.
@@ -20,8 +21,8 @@ agaclarin hepsinin oturumu CANLI ya da uzerinde birlesmemis is var -> dusurulmed
 durmasi ceviriyor — uretilebilir. Ardisik UC kosum `TABAN_ARTIK_ONCE` 425-0-0, ucu de
 `OLDURULDU rc=0`; `--kendini-test` MUTANT=4/4 KONTROL=3/3. → [[artik-yuzey-mutant-dedektorunu-korlestirir]]
 
-defter kotasi 29 Agu: **12.533 B -> 11.375 B** (rotasyon+isaretci, kayipsiz; arsiv 22.283 -> 22.289 satir).
-🔴 **KOTA KAPISI SUPURMEDE SILINDI** — tavan duruyor, tutan el YOK; asim bu yuzden commit'lenebildi.
+defter kotasi 29 Agu: **12.533 B -> 11.486 B** (rotasyon+isaretci, kayipsiz; arsiv 22.283 -> 22.289 satir).
+🔴 KOTA KAPISI SUPURMEDE SILINDI — tavan var, tutan el YOK.
 
 🟢 **K344 OKSUZ AGACLAR KAPANDI (cip `KraL-OksuzAgaclar-28Agu`, main `a5fc8f22`):** iki dalin isi de main'de.
 `44c92f6e` (A) +978/-303 · `a24550ce`+`c665031f` (B) +525/-50, ikisi de TASINDI (SUBSUME degil). 🔴 **Katalog
@@ -36,16 +37,16 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 
 ## 🔁 29 AGU ~05:0x — MIMAR OTURUM KAPANISI (tam metinler KUTUDA; burada yalniz canli durum)
 - 🏃 **KOSUYOR (DOKUNMA):** cip `nice-swanson-706912` / dal `claude/dazzling-satoshi-8ff5e2`, oturumu CANLI.
-- ✅ **K332 MERGE `26064356`** (dal `trusting-khayyam-b3171f`): kilit 307/314->313/320, kirmizi seti BIREBIR
-  ayni (taban 7, "KIRMIZI=0" olcutum tabansiz civilenmisti), MR6-MR9 4/4 hedef-kol atfiyla oldu, vaka 821
-  fikstur kutsanmasini yakar. 🔴 **MERGE CAKISMASI BIR SILME ORTAYA CIKARDI:** supurme main'den
-  `mimar-kilit-test.py` + `mimar-kapi-mutasyon-test.py`'yi SILMIS (Okan/BaBa yalniz kapi KAYNAKLARINI geri
-  yuklemis) — kapi canli, nobetcisi yoktu; dalin surumuyle geri geldi. `kurtarma/nervous-leavitt-28agu`
-  ARTIK GEREKSIZ (yamasi alindi, dal merge EDILMEDI). 🔧 Kalem: yama 5 evin hicbirine DAGITILMADI.
-- ✅ **K350-B MERGE** (dal `awesome-ellis-9554ac`): `yedekle-test` 339/0->354/0, 8/8 geri yukleme SHA256
-  birebir, canli mutant kapsami 8/8->1/8 KIRMIZI yakti. Oncul CURUDU: yedek zaten vardi, delik kapsamin
-  UZANTIYLA kurulu olmasiydi (ad olculmuyordu, sessiz duserdi). 🔧 Kalem: `~/.claude/cron`'da 175 `.yedek-*`
-  (5,2 MB) + 97 `*.log` (1,8 MB) birikti; budama hukmu bende.
+- ✅ **K332 MERGE `26064356`** (`trusting-khayyam-b3171f`): kilit 307/314->313/320, kirmizi seti BIREBIR ayni
+  (taban 7; "KIRMIZI=0" olcutum tabansiz civilenmisti), MR6-MR9 4/4 hedef-kol atfiyla oldu, vaka 821 fikstur
+  kutsanmasini yakar. 🔴 **CAKISMA BIR SILME ORTAYA CIKARDI:** supurme `mimar-kilit-test` +
+  `mimar-kapi-mutasyon-test`'i main'den SILMIS (Okan/BaBa yalniz kapi KAYNAKLARINI geri yuklemis) — kapi
+  canli, nobetcisi yoktu; dalin surumuyle geri geldi + `ci-kapsam` gerekceli muafiyeti (`b74c5ebc`).
+  `kurtarma/nervous-leavitt-28agu` ARTIK GEREKSIZ. 🔧 Kalem: yama 5 evin hicbirine DAGITILMADI.
+- ✅ **K350-B MERGE** (`awesome-ellis-9554ac`): `yedekle-test` 339/0->354/0, 8/8 geri yukleme SHA256 birebir,
+  canli mutant kapsami 8/8->1/8 yakti. Oncul CURUDU: yedek vardi, delik kapsamin UZANTIYLA kurulu
+  olmasiydi (ad olculmuyor, sessiz duserdi). 🔧 Kalem: `~/.claude/cron`'da 175 `.yedek-*` (5,2 MB) +
+  97 `*.log`; budama hukmu bende.
 - 🔴 **K349 (isci yalani) — SAYAC 3, SINIF ESIGI DOLDU.** Ucunde de bagimsiz kosum yalanladi (temiz agacta
   `30/30 KIRMIZI=0`). Yordam `skill: codex-isci` §3.7-3.8'e ISLENDI: isci KIRMIZISI da iddiadir, bagimsiz
   kosum olmadan kayda GIRMEZ · koda ATIF yapmaz · `tools/`a gecici dosya yazmaz · `git stash` YASAK ·
