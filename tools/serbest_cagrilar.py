@@ -95,7 +95,16 @@ ONARIM_DURUM_YOL = REPO_ONEKI + "tools/onarim-durum.py"
 # Yani tek kaynagin KENDI ICINDE ikinci kopyasi vardi ([[ikiz-tanim-sessiz-ayrisma]]).
 ROTASYON_TAVAN_BAYRAGI = "--tavan-kaynaktan"
 ROTASYON_INDIRME_BAYRAGI = "--isaretciye-indir"
-ROTASYON_BAKIM_BAYRAKLARI = (ROTASYON_TAVAN_BAYRAGI, ROTASYON_INDIRME_BAYRAGI)
+# 🔴 K351 (29 Agu) — ONLEM BAYRAGI. `--tavan-kaynaktan` YALNIZ tavan ASILDIKTAN
+# sonra is yapar (olculdu: defter 12.284 B / tavan 12.288 B iken cikti
+# `TASINAN=0 ... TAVAN=DOLU_NO_OP`), ama tavan asildigi anda kota kapisi evin tum
+# commit'ini zaten kilitlemistir — yani yordamin emrettigi komut, emredildigi
+# HALDE inert. `--onlem` hedefi tavandan TURETILMIS daha alcak esige cekerek
+# araci tavan ALTINDA da calisir kilar. Sayi komut satirina YAZILMAZ; esik
+# `defter-kota-taban.py::onlem_esikleri()`den gelir.
+ROTASYON_ONLEM_BAYRAGI = "--onlem"
+ROTASYON_BAKIM_BAYRAKLARI = (ROTASYON_TAVAN_BAYRAGI, ROTASYON_INDIRME_BAYRAGI,
+                             ROTASYON_ONLEM_BAYRAGI)
 
 
 # === SEKILLER — MIMAR ELINDE SERBEST OLAN HER SEY, TEK YERDE ==================
@@ -126,9 +135,14 @@ SEKILLER = (
     # KAPIDA OLUYDU (taban T2=RED). Aracin konumsal argumanlari artik BU TEK
     # KAYNAKTAN varsayilan alir (defter-rotasyon.py nargs='?'), yani kapinin
     # gecirdigi cagri gercekten KOSAR — kapi calismayan bir sey vaat etmez.
+    # 🔴 K351 (29 Agu): `--onlem` BU SEKLE DE ACILDI. Acilmasaydi kova
+    # `ornek=ROTASYON_BAKIM_BAYRAKLARI` uzerinden KENDI ORNEGINI reddederdi —
+    # kapinin "calismayan bir sey vaat etmeme" kurali (B6) tam bunu olcuyor ve
+    # eklemenin ilk halinde KIRMIZI yandi. Onlem bayragi zaten bu KISA formun
+    # (tavan altinda kosulan bakim turu) asil musterisidir.
     Sekil("rotasyon-kisa", DEFTER_ROTASYON_YOL,
           zorunlu=(ROTASYON_TAVAN_BAYRAGI,),
-          serbest=(ROTASYON_INDIRME_BAYRAGI,),
+          serbest=(ROTASYON_INDIRME_BAYRAGI, ROTASYON_ONLEM_BAYRAGI),
           ornek=ROTASYON_BAKIM_BAYRAKLARI),
 
     # K258 (20 Agu): ORTAK POSTA KUTUSU bakimi. Konumsal arg ALMAZ (yollar aracin

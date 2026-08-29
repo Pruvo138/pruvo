@@ -30,6 +30,59 @@ import os
 TAVAN_SATIR = 130
 TAVAN_BAYT = 12288
 
+# ---------------------------------------------------------------------------
+# ONLEM ESIGI (K351, 29 Agu 2026) — TAVANIN ALTINDA KALAN IKINCI EKSEN
+# ---------------------------------------------------------------------------
+# 🔴 OLCULEN ARIZA (29 Agu, cip `KraL-Tamirci-29Agu`; iddia degil, iki kosum):
+# defter 12.284 B iken (tavana 4 BAYT) yordamin emrettigi
+# `defter-rotasyon.py --tavan-kaynaktan` **`TASINAN=0 ... TAVAN=DOLU_NO_OP`**
+# dondu ve dosya BIREBIR ayni kaldi. Sebep yapisal: rotasyon aracinin tavan
+# dongusu daha ilk adimda `if not _tavan_asildi_mi(...): return 0` ile cikiyor,
+# ve ONARIM MEKANIZMASININ TAMAMI (cok-gecisli tasima + `--isaretciye-indir`)
+# o dongunun ICINDE yasiyor. Yani arac ancak tavan ASILDIKTAN sonra is yapabilir
+# — ama tavan asildigi anda `defter-kota-kapisi.py` EVIN TUM COMMIT'INI zaten
+# kilitlemis olur. Koruma, korudugu isi ancak zarar olustuktan sonra yapabiliyor
+# ([[koruma-kurali-korudugunu-durdurur]]).
+#
+# COZUM EKSENI: tavan TEK basina yetmez; tavanin ALTINDA, arac icin ERISILEBILIR
+# ikinci bir esik gerekir. Bu esik BURADA, tavanin sahibi olan TEK KAYNAKTA
+# durur ve tavandan TURETILIR — yordama ya da komut satirina elle yazilan her
+# sayi ikinci bir kopyadir ve sessizce ayrisir
+# ([[kapi-red-metni-ikinci-kopyadir]]).
+#
+# 🔴 KAPSAM — ONLEM ESIGI KAPININ HUKMUNU DEGISTIRMEZ: `tavan_asi_mi()` ve
+# dolayisiyla `defter-kota-kapisi.py` KIRMIZI/YESIL hukmu YALNIZ tavandan
+# turer. Onlem esigi ayri bir eksendir ve yalniz ROTASYON ARACINA hedef verir.
+# Onlemi kapinin hukmune baglamak, kilidi 130/12288'den 117/11059'a CEKMEK
+# olurdu — yani arizayi onarmak yerine ONE ALMAK. Kapi mutantiyla civilenmistir.
+ONLEM_ORANI = 0.90
+
+
+def onlem_esikleri():
+    """(onlem_satir, onlem_bayt) — TAVANDAN TURETILIR, ayrica YAZILMAZ.
+
+    Ikinci bir sabit tablo ACILMAZ: oran degisirse iki esik de birlikte kayar.
+    """
+    return int(TAVAN_SATIR * ONLEM_ORANI), int(TAVAN_BAYT * ONLEM_ORANI)
+
+
+def onlem_asi_mi(satir, bayt):
+    """Onlem esigi ekseni. Donus `tavan_asi_mi` ile AYNI bicimde.
+
+    🔴 Bu fonksiyon KAPI HUKMU URETMEZ — yalniz rotasyon aracinin "daha
+    tasiyacak isim var mi" sorusunu cevaplar.
+    """
+    o_satir, o_bayt = onlem_esikleri()
+    satir_as = satir > o_satir
+    bayt_as = bayt > o_bayt
+    if satir_as and bayt_as:
+        return True, "IKISI", satir, bayt
+    if satir_as:
+        return True, "SATIR", satir, bayt
+    if bayt_as:
+        return True, "BAYT", satir, bayt
+    return False, "", satir, bayt
+
 # Kutu tavaninin/yolunun MEVCUT sahibi. Ad burada yazilir, SAYI YAZILMAZ.
 KUTU_SAHIBI_ADI = "kutu-arsivle.py"
 

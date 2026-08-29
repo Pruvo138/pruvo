@@ -4,8 +4,6 @@
 
 ## T1 KAPANDI (29 Agu) — shop paneli "Urunler"+`panel_ustyazim` kuyrugu+CI uygulayici; TAM HUKUM KUTUDA
 Canli 2x: kuyruk->main(`b9cfd786`,`d6e9e378`)->canli; D1 6/6, katalog SABIT. ACIK: worker deploy=OKAN + T1a.
-## K350 KAPANDI — teslim+K331+C; sayilar KUTUDA. K350-A: K332 CANLI DEGIL (`6941b626`). K350-B: `bekci-kabul.py` git DISI.
-
 ## 🔁 28 AGU 18:00 CANLI DURUM — OKAN 17:00 EMRININ BES KALEMI DE KAPANDI (onceden -> sonra)
 🔴 **N2B BORU ONEKI SINIFI → HAFIZADA:** [[isci-cagrisinda-echo-stdin-etiketi-yutar]] (K345 ile kapandi).
 🔴 **K337:** butce kesintisi sade `rc=1` donuyor, karantina dusus sayiyor (3 ardisik = 6 saat). META=RAF.
@@ -91,6 +89,7 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 - 🔧 **K220 (KraL):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden besleniyor; liste iki rol tasiyor
   ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
   sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
+- 🔧 **K351 UCUSTA · K352 ACIK · CI-OLCULEMEDI KAPANDI adet=5** (29 Agu Tamirci; metin kaynak-dogrusunda).
 
 ## KraL ACIK ARTIKLAR (19 Agu anlati blogu ARSIVE TASINDI; kota uyarisi da orada)
 🔧 **K203:** tavan kapisi worktree ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami);

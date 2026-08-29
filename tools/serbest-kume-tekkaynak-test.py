@@ -183,8 +183,14 @@ OLCUM_CAGRISI = "tail -5 /Users/okan/dev/pruvo/DEVAM.md"
 TABAN_ARAC_ADLARI = sorted(SC.arac_adlari())
 
 # C2 capasi — kaynaktan BIR bayrak dusuren mutasyon (kol govdesinde kullanilir).
+# 🔴 29 Agu (K351): capa, kaynagin SATIR BICIMINE bagli bir DIZGE kopyasidir; ucuncu
+# bayrak (`--onlem`) eklenince tuple iki satira yayildi ve capa 0 kez eslesti —
+# mutant SESSIZ degil, "MUTANT ULASMADI" ile GURULTULU dustu (bekci calisti,
+# [[mutant-capasi-giris-noktasinin-okumadigi-degerde-olmez]]). Capa kaynakla birlikte
+# TAZELENIR; kaynagin bicimi degisirse burasi da degisir.
 BAYRAK_DUSUR_ESKI = ("ROTASYON_BAKIM_BAYRAKLARI = (ROTASYON_TAVAN_BAYRAGI, "
-                     "ROTASYON_INDIRME_BAYRAGI)\n")
+                     "ROTASYON_INDIRME_BAYRAGI,\n"
+                     "                             ROTASYON_ONLEM_BAYRAGI)\n")
 BAYRAK_DUSUR_YENI = "ROTASYON_BAKIM_BAYRAKLARI = (ROTASYON_TAVAN_BAYRAGI,)\n"
 
 

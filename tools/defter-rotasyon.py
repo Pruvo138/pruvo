@@ -873,6 +873,11 @@ _tab_spec.loader.exec_module(_tab_mod)
 TAVAN_SATIR = _tab_mod.TAVAN_SATIR
 TAVAN_BAYT = _tab_mod.TAVAN_BAYT
 _tavan_asi_mi = _tab_mod.tavan_asi_mi
+# K351: ONLEM esikleri de AYNI tek kaynaktan gelir. `getattr` ile aliyoruz ama
+# YOKLUGU SESSIZ DEGILDIR: `--onlem` verilmis bir kosumda esik cozulemezse arac
+# OLCULEMEDI ile durur (asagida), tavana SESSIZCE geri dusmez — cunku tavana
+# geri dusmek tam da bu bayragin kapatmak icin var oldugu NO-OP'tur.
+_onlem_esikleri = getattr(_tab_mod, "onlem_esikleri", None)
 
 # === 28 AGU — KISA FORMUN KANONIK KONUMSAL VARSAYILANLARI ====================
 # 🔴 BAGIMLILIK BILEREK TERSTIR (olculdu). Ilk surumde bu iki sabit
@@ -1282,6 +1287,15 @@ def main(argv=None):
                         " okudugu TEK KAYNAK) al. Komut satirina SAYI YAZILMAZ:"
                         " yordama elle yazilan her tavan ikinci bir kopyadir ve"
                         " sessizce ayrisir. Acikca verilen --tavan-* bunu ezer.")
+    p.add_argument("--onlem", action="store_true",
+                   help="K351: hedefi TAVAN yerine ONLEM esigine cek"
+                        " (defter-kota-taban.py::onlem_esikleri, tavandan"
+                        " TURETILIR). `--tavan-kaynaktan` YALNIZ tavan asilinca"
+                        " is yapar; o an kota kapisi evin commit'ini zaten"
+                        " kilitlemistir. Bu bayrak araci tavan ALTINDA da"
+                        " calisir kilar. Sayi komut satirina YAZILMAZ."
+                        " `--tavan-kaynaktan` ile birlikte verilirse ONLEM"
+                        " kazanir (daha alcak hedef = kesin ustkume).")
     a = p.parse_args(argv)
 
     if a.tavan_kaynaktan:
@@ -1289,6 +1303,23 @@ def main(argv=None):
             a.tavan_sayi = TAVAN_SATIR
         if a.tavan_bayt is None:
             a.tavan_bayt = TAVAN_BAYT
+
+    if a.onlem:
+        # FAIL-CLOSED: esik cozulemiyorsa TAVANA GERI DUSME — sessiz no-op
+        # bu bayragin kapatmak icin var oldugu arizanin ta kendisidir.
+        if _onlem_esikleri is None:
+            print("OLCULEMEDI: --onlem istendi ama tek kaynakta"
+                  " `onlem_esikleri()` YOK (%s)" % _TABAN_YOL, file=sys.stderr)
+            return 4
+        o_satir, o_bayt = _onlem_esikleri()
+        # Acikca verilen --tavan-* kullanicinin iradesidir, ezilmez.
+        if a.tavan_sayi is None or a.tavan_kaynaktan:
+            a.tavan_sayi = o_satir
+        if a.tavan_bayt is None or a.tavan_kaynaktan:
+            a.tavan_bayt = o_bayt
+        print("ONLEM_HEDEFI satir=%d bayt=%d (tavan %d/%d, oran=%s)"
+              % (a.tavan_sayi, a.tavan_bayt, TAVAN_SATIR, TAVAN_BAYT,
+                 getattr(_tab_mod, "ONLEM_ORANI", "?")))
 
     tarih = a.tarih if a.tarih is not None else _bugun()
 

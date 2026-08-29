@@ -2542,6 +2542,16 @@ jobs:
       # cagrilmayan batarya olculmemis bataryadir ([[kapinin-menzili-cagri-yeridir]]).
       - name: "Defter kapalilik yuklemi (K267: hal>jeton + ortak satir, agsiz)"
         run: python3 tools/defter-kapalilik-kabul.py
+      # K351 (29 Agu 2026) — ONLEM ESIGI. Olculen ariza: defter 12.284 B / tavan
+      # 12.288 B iken yordamin emrettigi `--tavan-kaynaktan` `TAVAN=DOLU_NO_OP`
+      # dondu; onarim mekanizmasinin TAMAMI tavan asildiktan SONRA calisiyordu,
+      # yani ancak kota kapisi evin commit'ini kilitledikten sonra
+      # ([[koruma-kurali-korudugunu-durdurur]]). Batarya BES ekseni civiler ve
+      # V5 ile "onlem kapinin HUKMUNU degistirmesin" sinirini de olcer. Kardes
+      # bataryalarla AYNI seritte (SERIT B, `needs:` YOK): kirmizisi GORUNUR ama
+      # yayini durdurmaz.
+      - name: "Defter onlem esigi (K351: tavan alti erisilebilir onarim, agsiz)"
+        run: python3 tools/defter-onlem-esigi-test.py
       - name: "Defter kota olcumu (RAPOR-ONLY — yayini durdurmaz)"
         run: python3 tools/defter-kota-kapisi.py --bypass-kontrol
 
