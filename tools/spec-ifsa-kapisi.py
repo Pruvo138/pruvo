@@ -627,6 +627,17 @@ _MUAFIYET_GOVDESI = [
      "bf61a1cbcb3d44fbb749929c1d974f5edf05f5f7561315611626e244f75afc83",
      "Cloudflare KV namespace binding ID (TALEP_SAYAC) — public altyapi tanimlayici, "
      "credential degil; Wrangler kv_namespaces binding'i ID olmadan calismaz."),
+    # shop/wrangler.toml:103 — T2 (30 Agu 2026): panel gorsel yukleme icin MEDYA
+    # binding'i. bucket_name CALISAN KONFIGURASYONDUR (Wrangler r2_buckets binding'i
+    # kova adi olmadan calismaz) ve kovanin sundugu adres public HTML'de zaten durur;
+    # ad credential degil, erisim vermez. OZEL_DOSYA/pruvo-ozel satirinin birebir emsali
+    # (o satir eko elemesiyle geciyor; bu ad deponun icra yuzeyinde ILK kez geciyor,
+    # eko havuzu bos oldugu icin muafiyet hash'le kayda baglandi).
+    ("shop/wrangler.toml",
+     "4b948e26e8ce25bdcbb1d35ae6f9b77c9c9231221d3727b5cbed8dcd68b2c5c9",
+     "R2 medya kovasi binding adi (MEDYA) — public altyapi tanimlayici, credential "
+     "degil; Wrangler r2_buckets binding'i kova adi olmadan calismaz, adres zaten "
+     "public yuzeyde."),
 ]
 
 
