@@ -215,9 +215,13 @@ ol("V7a Worker kalem nesnesi ticari alan TASIMIYOR (kaynagindan olculdu)",
   TICARI.filter((a) => listeKolu.indexOf(a + ":") >= 0).join(","));
 ol("V7b kalem nesnesi `kaynak_link` alanini TASIYOR (yalniz link)",
   listeKolu.indexOf("kaynak_link:") > 0);
-ol("V7c D1'den YALNIZ id+link cekiliyor (SELECT genisletilmedi)",
-  KAYNAK.indexOf("SELECT id, link FROM urun_kaynak") > 0 &&
-  (KAYNAK.match(/FROM urun_kaynak/g) || []).length === 1,
+// 30 Agu 2026 (T2): /urun-kaynak ucu urun_kaynak'a IKINCI (tekil) sorguyu ekledi;
+// iddianin RUHU korunarak taban 1->2 BILEREK artirildi ve GUCLENDIRILDI: her
+// gecis "SELECT id, link" ile baslamak ZORUNDA (uclerden biri genisletilirse
+// sayaclar ayrisir ve bu iddia kirmizi yanar).
+ol("V7c D1'den YALNIZ id+link cekiliyor (2 sorgu, ikisi de dar SELECT)",
+  (KAYNAK.match(/SELECT id, link FROM urun_kaynak/g) || []).length === 2 &&
+  (KAYNAK.match(/FROM urun_kaynak/g) || []).length === 2,
   String((KAYNAK.match(/FROM urun_kaynak/g) || []).length));
 
 // VAKA 8 — 🔴 G2 KAPISI: musteriye donen yollar urun_kaynak'a SORGU ATMAZ
@@ -294,7 +298,10 @@ ol("V9c durum degistirme kontrolu (secici+Uygula) + 'Yerel komut kopyala' kartta
 // (GET /urunler, GET /urunler-kuyruk, POST /urunler-ustyazim, POST /urunler-ustyazim-sil;
 // hepsi yonetim anahtari arkasinda, EGE_ANAHTAR acamaz) -> taban 11'den 15'e BILEREK
 // ve TARIHLI artirildi. Uclarin kendi kurallari shop/test/urunler-panel.mjs'te olculur.
-const KOL_TABANI = 15, CD_TABANI = 2;
+// 30 Agu 2026 (T2, Okan emri — gorsel/STL/kaynak link): 6 uc daha (GET /urun-gorseller,
+// POST /gorsel-yukle, POST /stl-yukle, POST /stl-cikar, GET /urun-kaynak,
+// POST /kaynak-yaz; hepsi ayni kapinin arkasinda) -> taban 15'ten 21'e BILEREK artirildi.
+const KOL_TABANI = 21, CD_TABANI = 2;
 const kolSayisi = (KAYNAK.match(/altYol === "/g) || []).length;
 ol("V9d YETKI YUZEYI GENISLEMEDI: yonlendirici kolu " + KOL_TABANI + " (yeni uc yok)",
   kolSayisi === KOL_TABANI, "kol=" + kolSayisi);

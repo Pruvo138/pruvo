@@ -584,6 +584,13 @@ async function liste(env, url) {
         "SELECT id, link FROM urun_kaynak WHERE id IN (" + yertut + ")").bind(...idler).all(),
       () => ({ results: [] }));
     for (const x of (kr.results || [])) { kaynakMap.set(x.id, x.link); }
+    // T2 — panel-dogumlu kaynak (panel_kaynak) SYNC degerini GOLGELER: satir varsa o
+    // kazanir; link='' (cikarildi) suzgecten bos doner ve ekran "kaynak kaydı yok" yazar.
+    const pr = await tabloMerdiveni(
+      () => env.KATALOG.prepare(
+        "SELECT id, link FROM panel_kaynak WHERE id IN (" + yertut + ")").bind(...idler).all(),
+      () => ({ results: [] }));
+    for (const x of (pr.results || [])) { kaynakMap.set(x.id, x.link); }
   }
 
   const cikti = cozulmus.map(({ satir: s, urunler }) => {
@@ -1637,11 +1644,36 @@ async function konfigurGolge(env, url) {
 // listenin OTORITESI uygulayicidadir; buradaki es kontrol erken-uyaridir, ayrisirsa
 // satir uygulayicida hal='hata'+sebep olur (sessiz kaybolmaz). Kaynak link / uyelik /
 // STL yeri gibi gizli alanlar bu kuyruga HIC girmez.
-const USTYAZIM_ALANLAR = new Set(["fiyat", "baslik", "aciklama"]);
-const USTYAZIM_DEGER_TAVAN = { fiyat: 20, baslik: 200, aciklama: 4000 };
+const USTYAZIM_ALANLAR = new Set(["fiyat", "baslik", "aciklama", "gorseller"]);
+const USTYAZIM_DEGER_TAVAN = { fiyat: 20, baslik: 200, aciklama: 4000, gorseller: 4000 };
 // Katalog fiyat sozlesmesi "N TL" (uygulayicidaki FIYAT_BICIMI ile es).
 const FIYAT_BICIM_RX = /^[1-9][0-9]{0,5} TL$/;
 const URUN_ID_RX = /^[a-z0-9-]{1,200}$/;
+// T2 — gorsel listesi ustyazimi. Deger JSON DIZI metnidir (tam liste; cikarma =
+// listeden dusurulmus TAM listenin ustyazimi, R2 nesnesi SILINMEZ). Otorite yine
+// uygulayicida (tools/panel-uygulayici.py gorsel_listesi_sebebi) — burasi erken uyari.
+const GORSEL_ONEK = "https://media.pruvo3d.com/";
+const GORSEL_SAYI_TAVANI = 24;
+function gorselListesiSebebi(deger) {
+  let liste;
+  try { liste = JSON.parse(deger); } catch (e) { return "gorseller JSON dizi olmali"; }
+  if (!Array.isArray(liste) || !liste.length) {
+    return "gorsel listesi bos olamaz (en az 1 gorsel kalir; urun silme yok)";
+  }
+  if (liste.length > GORSEL_SAYI_TAVANI) {
+    return "gorsel sayisi tavani " + GORSEL_SAYI_TAVANI;
+  }
+  const gorulen = new Set();
+  for (const u of liste) {
+    if (typeof u !== "string" || !u.startsWith(GORSEL_ONEK)) {
+      return "her gorsel " + GORSEL_ONEK + " ile baslamali";
+    }
+    if (/[\s"'<>\\]/.test(u)) { return "gorsel adresinde gecersiz karakter"; }
+    if (gorulen.has(u)) { return "ayni gorsel listede iki kez"; }
+    gorulen.add(u);
+  }
+  return null;
+}
 
 function likeKacisla(s) {
   return String(s || "").replace(/[\\%_]/g, (m) => "\\" + m);
@@ -1720,6 +1752,10 @@ async function panelUstyazimYaz(request, env, ctx) {
   if (alan === "fiyat" && !FIYAT_BICIM_RX.test(deger)) {
     return yjson({ hata: "fiyat bicimi \"500 TL\" olmali (yalniz tam sayi + TL)" }, 400);
   }
+  if (alan === "gorseller") {
+    const sebep = gorselListesiSebebi(deger);
+    if (sebep) { return yjson({ hata: sebep }, 400); }
+  }
   const ur = await env.KATALOG.prepare(
     "SELECT id, parametrik FROM urunler WHERE id = ?").bind(uid).first();
   if (!ur) { return yjson({ hata: "urun katalogda yok" }, 404); }
@@ -1788,6 +1824,231 @@ function uygulayiciTetikle(env, ctx) {
   }).catch(() => {}));
 }
 
+// ═══════════════ URUNLER SEKMESI T2 — gorsel + STL + kaynak link ═══════════════
+// TASARIM (BaBa cercevesi 30 Agu 2026, T1 hakem modeli AYNEN):
+//  · GORSEL listesi GORUNURLUGE giden degisikliktir -> kuyruk->uygulayici->taban TEK
+//    yoldan iner (alan='gorseller', deger=TAM listenin JSON'u). Panel tabana YAZMAZ.
+//    Mevcut listeyi panel CANLI urunler.json'dan okur — taban TEK okuma kaynagi KALIR;
+//    D1'e kopya gorsel-listesi kolonu ACILMADI (ikinci kopya = sessiz ayrisma sinifi).
+//  · GORSEL yukleme R2'ye icerik-hash anahtarla gider; PUT'tan once head — mevcut
+//    anahtar ASLA ezilmez. "Cikarma" = listeden dusurulmus TAM listenin ustyazimi;
+//    R2 nesnesi SILINMEZ (hicbir gorsel-silme ucu YOK).
+//  · STL: mevcut OZEL_DOSYA binding + /stl uclari duzleminde yukle/cikar. Yukleme
+//    head-once (var olan ad 409). Cikarma = arsiv-teyitli tasima: arsiv/stl/... kopyasi
+//    head ile dogrulanmadan orijinal SILINMEZ (fail-closed; veri kaybolmaz, liste duser).
+//  · KAYNAK LINK yalniz GIZLI D1 duzleminde (panel_kaynak) yasar; tabana ve public
+//    hicbir yuzeye ISLENMEZ (tedarikci gizliligi). urun_kaynak'a YAZILMAZ —
+//    d1-kaynak-sync oradaki yabanci satiri SILERDI (sema dosyasindaki gerekce).
+
+/** GET /yonet/urun-gorseller?id= -> {id, gorseller, bekleyen} — CANLI tabandan.
+ *  urunler.json buyuk (5-15 MB) oldugu icin TAM JSON.parse YAPILMAZ: tools/duzelt.py
+ *  `_atomic_write` (json.dump indent=2) sozlesmesiyle urun blogu dilimlenir — urun
+ *  acilisi "\n  {", kapanisi "\n  }", alanlar 4 bosluk girintide. Dilim parse
+ *  EDILEMEZSE 502 taban-bicimi doner (sessiz bos liste YOK — fail-loud). */
+async function urunGorseller(env, url) {
+  const uid = url.searchParams.get("id") || "";
+  if (!URUN_ID_RX.test(uid)) { return yjson({ hata: "gecersiz-id" }, 400); }
+  const taban = ((env && env.SITE_URL) || "https://pruvo3d.com").replace(/\/$/, "");
+  let metin;
+  try {
+    const c = await fetch(taban + "/urunler.json", {
+      headers: { "Cache-Control": "no-cache" },
+      cf: { cacheTtl: 0, cacheEverything: false },
+    });
+    if (!c.ok) { return yjson({ hata: "taban-okunamadi", kod: c.status }, 502); }
+    metin = await c.text();
+  } catch (e) {
+    return yjson({ hata: "taban-okunamadi" }, 502);
+  }
+  // Igne 4-bosluk girintili "id" alanidir: aciklama METNI icindeki ham '"id":' bu
+  // desene uyamaz (JSON dizesinde ham satir sonu olamaz, ic nesneler daha derindedir).
+  const igne = "\n    \"id\": " + JSON.stringify(uid);
+  const i = metin.indexOf(igne);
+  if (i < 0) { return yjson({ hata: "urun-tabanda-yok" }, 404); }
+  const bas = metin.lastIndexOf("\n  {", i);
+  const son = metin.indexOf("\n  }", i);
+  if (bas < 0 || son < 0) { return yjson({ hata: "taban-bicimi" }, 502); }
+  let urun;
+  try { urun = JSON.parse(metin.slice(bas + 1, son + 4)); } catch (e) {
+    return yjson({ hata: "taban-bicimi" }, 502);
+  }
+  let bekleyen = null;
+  const b = await tabloMerdiveni(
+    () => env.KATALOG.prepare(
+      "SELECT id, deger, ts FROM panel_ustyazim WHERE hal = 'beklemede'" +
+      " AND urun_id = ? AND alan = 'gorseller'").bind(uid).first(),
+    () => null);
+  if (b) { bekleyen = { id: b.id, deger: b.deger, ts: b.ts }; }
+  return yjson({ id: uid, gorseller: urun.gorseller || [], bekleyen: bekleyen }, 200);
+}
+
+// Gorsel yukleme: govde ham dosya baytlaridir. Tur DOSYA IMZASINDAN okunur
+// (Content-Type basligina guvenilmez); katalog normu jpg (88953/89008), png azinlik.
+const GORSEL_BOYUT_TAVANI = 8 * 1024 * 1024;
+
+/** POST /yonet/gorsel-yukle?id= -> {tamam, url, zaten_vardi} */
+async function gorselYukle(request, env, url) {
+  const uid = url.searchParams.get("id") || "";
+  if (!URUN_ID_RX.test(uid)) { return yjson({ hata: "gecersiz-id" }, 400); }
+  if (!env.MEDYA) {
+    return yjson({ hata: "medya-r2-baglanti-yok — MEDYA binding'li deploy gerekli" }, 503);
+  }
+  const bayt = await request.arrayBuffer();
+  if (!bayt.byteLength) { return yjson({ hata: "bos govde" }, 400); }
+  if (bayt.byteLength > GORSEL_BOYUT_TAVANI) {
+    return yjson({ hata: "boyut tavani 8 MB" }, 400);
+  }
+  const b = new Uint8Array(bayt);
+  let uzanti = null, tip = null;
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) { uzanti = "jpg"; tip = "image/jpeg"; }
+  else if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) {
+    uzanti = "png"; tip = "image/png";
+  } else {
+    return yjson({ hata: "yalniz JPEG/PNG (tur dosya imzasindan okunur)" }, 400);
+  }
+  const ozet = await crypto.subtle.digest("SHA-256", bayt);
+  const hex = [...new Uint8Array(ozet)].map((x) => x.toString(16).padStart(2, "0")).join("");
+  // ICERIK-HASH ANAHTAR: ayni icerik ayni anahtara duser; farkli icerik farkli
+  // anahtara — mevcut bir anahtarin USTUNE farkli baytlar YAZILAMAZ (yapisal).
+  // head-once yine de uygulanir: var olan anahtara PUT HIC atilmaz.
+  const anahtar = "urunler/panel-" + hex.slice(0, 20) + "." + uzanti;
+  const mevcut = await env.MEDYA.head(anahtar);
+  if (!mevcut) {
+    await env.MEDYA.put(anahtar, bayt, { httpMetadata: { contentType: tip } });
+    const teyit = await env.MEDYA.head(anahtar);
+    if (!teyit) { return yjson({ hata: "r2-yazim-teyit-edilemedi" }, 502); }
+  }
+  const medyaTaban = ((env && env.MEDYA_TABAN) || "https://media.pruvo3d.com")
+    .replace(/\/$/, "");
+  return yjson({ tamam: true, url: medyaTaban + "/" + anahtar,
+                 zaten_vardi: !!mevcut }, 200);
+}
+
+// STL yukleme/cikarma — stlIndir'in savunma duzeni AYNEN (ayirac/ust-dizin yok,
+// yalniz .stl/.3mf). 280 MB'lik dosyalar var (bkz. /stl yorumu) -> govde belege
+// ALINMAZ, stream PUT edilir; tavan Content-Length'ten olculur.
+const STL_BOYUT_TAVANI = 300 * 1024 * 1024;
+const STL_DOSYA_ADI_RX = /^[A-Za-z0-9][A-Za-z0-9._ -]{0,180}$/;
+
+function stlDosyaAdiGecersiz(dosya) {
+  return dosya.includes("/") || dosya.includes("\\") || dosya.includes("..") ||
+    !IZINLI_UZANTI.test(dosya) || !STL_DOSYA_ADI_RX.test(dosya);
+}
+
+/** POST /yonet/stl-yukle?id=&dosya= (govde=ham dosya) -> {tamam, dosya, boyut} */
+async function stlYukle(request, env, url) {
+  const uid = url.searchParams.get("id") || "";
+  const dosya = url.searchParams.get("dosya") || "";
+  if (!/^[a-z0-9-]{1,120}$/.test(uid)) { return yjson({ hata: "gecersiz-id" }, 400); }
+  if (!env.OZEL_DOSYA) { return yjson({ hata: "r2-baglanti-yok" }, 503); }
+  if (stlDosyaAdiGecersiz(dosya)) {
+    return yjson({ hata: "gecersiz dosya adi (yalniz .stl/.3mf, ayirac/ust-dizin yok)" }, 400);
+  }
+  const boy = parseInt(request.headers.get("Content-Length") || "0", 10);
+  if (boy > STL_BOYUT_TAVANI) { return yjson({ hata: "boyut tavani 300 MB" }, 400); }
+  const anahtar = "stl/" + uid + "/" + dosya;
+  const mevcut = await env.OZEL_DOSYA.head(anahtar);
+  if (mevcut) {
+    return yjson({ hata: "dosya zaten var — mevcut anahtar EZILMEZ; farkli ad kullanin",
+                   dosya: dosya }, 409);
+  }
+  await env.OZEL_DOSYA.put(anahtar, request.body);
+  const teyit = await env.OZEL_DOSYA.head(anahtar);
+  if (!teyit) { return yjson({ hata: "r2-yazim-teyit-edilemedi" }, 502); }
+  return yjson({ tamam: true, dosya: dosya, boyut: teyit.size }, 200);
+}
+
+/** POST /yonet/stl-cikar {id, dosya} -> {tamam, arsiv} — arsiv-teyitli tasima.
+ *  Kopya (arsiv/stl/<id>/<ts>-<dosya>) head ile boyut dahil DOGRULANMADAN orijinal
+ *  SILINMEZ: teyit dusmezse dosya YERINDE kalir ve uc 502 doner (veri kaybi yolu yok). */
+async function stlCikar(request, env) {
+  let govde;
+  try { govde = await request.json(); } catch (e) {
+    return yjson({ hata: "gecersiz istek govdesi" }, 400);
+  }
+  const uid = typeof (govde && govde.id) === "string" ? govde.id.trim() : "";
+  const dosya = typeof (govde && govde.dosya) === "string" ? govde.dosya : "";
+  if (!/^[a-z0-9-]{1,120}$/.test(uid)) { return yjson({ hata: "gecersiz-id" }, 400); }
+  if (!env.OZEL_DOSYA) { return yjson({ hata: "r2-baglanti-yok" }, 503); }
+  if (stlDosyaAdiGecersiz(dosya)) { return yjson({ hata: "dosya-yok" }, 404); }
+  // stlIndir savunma 2 deseni: LISTEDE olmayan ad 404.
+  const parcalar = await parcalariListele(env, uid);
+  const parca = parcalar.find((p) => p.dosya === dosya);
+  if (!parca) { return yjson({ hata: "dosya-yok" }, 404); }
+  const anahtar = "stl/" + uid + "/" + dosya;
+  const nesne = await env.OZEL_DOSYA.get(anahtar);
+  if (!nesne) { return yjson({ hata: "dosya-yok" }, 404); }
+  const ts = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  const arsiv = "arsiv/stl/" + uid + "/" + ts + "-" + dosya;
+  await env.OZEL_DOSYA.put(arsiv, nesne.body);
+  const teyit = await env.OZEL_DOSYA.head(arsiv);
+  if (!teyit || teyit.size !== parca.boyut) {
+    return yjson({ hata: "arsiv-kopyasi-teyit-edilemedi — orijinal SILINMEDI" }, 502);
+  }
+  await env.OZEL_DOSYA.delete(anahtar);
+  return yjson({ tamam: true, arsiv: arsiv }, 200);
+}
+
+// Kaynak link — gizli duzlem. Okuma birlesimi: panel_kaynak satiri VARSA o kazanir
+// (link='' = cikarildi golgesi), yoksa urun_kaynak (d1-kaynak-sync duzlemi). Iki deger
+// de kaynakLinkSuz'dan gecer (https disi/bozuk deger panele HIC cikmaz).
+const KAYNAK_LINK_TAVANI = 500;
+
+/** GET /yonet/urun-kaynak?id= -> {link, duzlem, cikarildi} */
+async function urunKaynak(env, url) {
+  const uid = url.searchParams.get("id") || "";
+  if (!URUN_ID_RX.test(uid)) { return yjson({ hata: "gecersiz-id" }, 400); }
+  const p = await tabloMerdiveni(
+    () => env.KATALOG.prepare(
+      "SELECT id, link FROM panel_kaynak WHERE id = ?").bind(uid).first(),
+    () => null);
+  if (p) {
+    return yjson({ link: kaynakLinkSuz(p.link), duzlem: "panel",
+                   cikarildi: !p.link }, 200);
+  }
+  const s = await tabloMerdiveni(
+    () => env.KATALOG.prepare(
+      "SELECT id, link FROM urun_kaynak WHERE id = ?").bind(uid).first(),
+    () => null);
+  return yjson({ link: kaynakLinkSuz(s && s.link), duzlem: s ? "sync" : "",
+                 cikarildi: false }, 200);
+}
+
+/** POST /yonet/kaynak-yaz {id, link} — link https://... = ekle/ust yazim;
+ *  link "" = cikar (golge satir; sync linkini de listeden dusurur). */
+async function kaynakYaz(request, env) {
+  let govde;
+  try { govde = await request.json(); } catch (e) {
+    return yjson({ hata: "gecersiz istek govdesi" }, 400);
+  }
+  const uid = typeof (govde && govde.id) === "string" ? govde.id.trim() : "";
+  const link = typeof (govde && govde.link) === "string" ? govde.link.trim() : null;
+  if (!URUN_ID_RX.test(uid)) { return yjson({ hata: "urun_id bicimsiz" }, 400); }
+  if (link === null) {
+    return yjson({ hata: "link metin olmali (cikarma icin bos dize)" }, 400);
+  }
+  if (link.length > KAYNAK_LINK_TAVANI) { return yjson({ hata: "link cok uzun" }, 400); }
+  if (link && (!/^https:\/\//i.test(link) || /[\s"'<>\\]/.test(link) ||
+      /[\u0000-\u001f]/.test(link))) {
+    return yjson({ hata: "link https:// ile baslamali (bosluk/tirnak tasiyamaz)" }, 400);
+  }
+  const ur = await env.KATALOG.prepare(
+    "SELECT id FROM urunler WHERE id = ?").bind(uid).first();
+  if (!ur) { return yjson({ hata: "urun katalogda yok" }, 404); }
+  try {
+    await env.KATALOG.prepare(
+      "INSERT INTO panel_kaynak (id, link, ts) VALUES (?, ?, ?)" +
+      " ON CONFLICT(id) DO UPDATE SET link = excluded.link, ts = excluded.ts")
+      .bind(uid, link, new Date().toISOString()).run();
+  } catch (e) {
+    if (tabloYokMu(e)) {
+      return yjson({ hata: "panel_kaynak tablosu yok — sema kosulmamis" }, 503);
+    }
+    throw e;
+  }
+  return yjson({ tamam: true, cikarildi: !link }, 200);
+}
+
 /**
  * /yonet* yonlendirici. altYol = "/", "/liste", "/durum", "/kargo", "/havale-onay", "/stl",
  * "/konfigur-golge".
@@ -1845,6 +2106,13 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/urunler-kuyruk" && m === "GET") { return panelKuyruk(env); }
   if (altYol === "/urunler-ustyazim" && m === "POST") { return panelUstyazimYaz(request, env, ctx); }
   if (altYol === "/urunler-ustyazim-sil" && m === "POST") { return panelUstyazimSil(request, env); }
+  // URUNLER SEKMESI (T2) — gorsel + STL + kaynak link; ayni kapinin ARKASINDA.
+  if (altYol === "/urun-gorseller" && m === "GET") { return urunGorseller(env, url); }
+  if (altYol === "/gorsel-yukle" && m === "POST") { return gorselYukle(request, env, url); }
+  if (altYol === "/stl-yukle" && m === "POST") { return stlYukle(request, env, url); }
+  if (altYol === "/stl-cikar" && m === "POST") { return stlCikar(request, env); }
+  if (altYol === "/urun-kaynak" && m === "GET") { return urunKaynak(env, url); }
+  if (altYol === "/kaynak-yaz" && m === "POST") { return kaynakYaz(request, env); }
   return yon404();
 }
 
@@ -1919,6 +2187,13 @@ details[open]>summary.ust::after{content:"▾"}
 .sekme.aktif{background:#fff;color:var(--lacivert);font-weight:bold}
 .alan-form{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .alan-form label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:#374151}
+/* URUNLER SEKMESI (T2) — gorsel seridi + STL + kaynak link bolumleri */
+.t2bolum{border-top:1px dashed var(--kenar);margin-top:10px;padding-top:8px;font-size:13px}
+.t2bolum h4{margin:0 0 6px;font-size:13px;color:var(--lacivert)}
+.gserit{display:flex;flex-wrap:wrap;gap:8px}
+.gkutu{display:flex;flex-direction:column;align-items:center;gap:2px}
+.gkutu img{width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--kenar)}
+.gkutu .sil{font-size:11px;padding:1px 6px}
 .alan-form input,.alan-form textarea{font-family:inherit;font-size:15px;padding:7px 10px;
  border:1px solid var(--kenar);border-radius:6px}
 .siparis-grubu{margin:0 0 20px}
@@ -2292,7 +2567,7 @@ async function urunYukle(){
   var fiyatAlan=x.parametrik?
    '<label>Fiyat <input id="uf-'+esc(x.id)+'" disabled placeholder="parametrik — taban fiyat şemadan"></label>':
    '<label>Fiyat <input id="uf-'+esc(x.id)+'" value="'+esc(x.fiyat||"")+'" placeholder="örn. 500 TL"></label>';
-  return '<details class="kart" data-uid="'+esc(x.id)+'">'+
+  return '<details class="kart" data-uid="'+esc(x.id)+'" ontoggle="urunKartAc(this)">'+
    '<summary class="ust">'+gorsel+'<span class="no">'+esc(x.baslik)+'</span>'+
    '<span class="kucuk">'+esc(x.id)+'</span>'+
    '<span class="rozet">'+esc(x.fiyat||(x.parametrik?"parametrik":"fiyat yok"))+'</span></summary>'+
@@ -2301,7 +2576,11 @@ async function urunYukle(){
    '<label>Başlık <input id="ub-'+esc(x.id)+'" value="'+esc(x.baslik||"")+'"></label>'+
    '<label>Açıklama <textarea id="ua-'+esc(x.id)+'" rows="5">'+esc(x.aciklama||"")+'</textarea></label>'+
    '<div class="eylemler"><button onclick="urunKaydet(\\''+esc(x.id)+'\\')">Kaydet (kuyruğa)</button></div>'+
-   '</div></details>';
+   '</div>'+
+   '<div class="t2bolum" id="ug-'+esc(x.id)+'"><span class="kucuk">Görseller yükleniyor…</span></div>'+
+   '<div class="t2bolum" id="us-'+esc(x.id)+'"></div>'+
+   '<div class="t2bolum" id="uk-'+esc(x.id)+'"></div>'+
+   '</details>';
  }).join("");
  kutu.innerHTML=html;
  kuyrukYukle();
@@ -2354,6 +2633,145 @@ async function kuyrukIptal(id){
   body:JSON.stringify({id:id})});
  if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));}
  urunYukle();
+}
+// ---- URUNLER SEKMESI (T2) — gorsel / STL / kaynak link ------------------------
+// GORSEL degisikligi KUYRUK yoluyla tabana iner (dakikalar). STL ve kaynak link
+// tabana INMEZ: STL R2'de, kaynak link GIZLI D1'de yasar — ikisi ANINDA etkilidir.
+// Ekran bu farki her bolumun kendi notunda soyler.
+var urunGorselDurum={};
+async function apiHam(yol,govde){
+ var c=await fetch("/api/shop/yonet"+yol,{method:"POST",credentials:"same-origin",body:govde});
+ var v=null;try{v=await c.json();}catch(e){}
+ return {kod:c.status,govde:v};
+}
+function urunKartAc(el){
+ if(!el||!el.open||el.dataset.t2yuklendi)return;
+ el.dataset.t2yuklendi="1";
+ var id=el.getAttribute("data-uid");
+ gorselCek(id);stlCek(id);kaynakCek(id);
+}
+async function gorselCek(id){
+ var kutu=document.getElementById("ug-"+id);if(!kutu)return;
+ var r=await api("/urun-gorseller?id="+encodeURIComponent(id));
+ if(r.kod!==200){kutu.innerHTML='<span class="hata">Görsel listesi alınamadı ('+
+  esc((r.govde&&r.govde.hata)||r.kod)+') — sessiz boşluk değil, taban okunamadı.</span>';return;}
+ var liste=(r.govde&&r.govde.gorseller)||[];
+ var bek=r.govde&&r.govde.bekleyen;
+ if(bek){try{liste=JSON.parse(bek.deger)||liste;}catch(e){}}
+ urunGorselDurum[id]={liste:liste.slice(),bekleyen:!!bek};
+ gorselCiz(id);
+}
+function gorselCiz(id){
+ var kutu=document.getElementById("ug-"+id);if(!kutu)return;
+ var d=urunGorselDurum[id];
+ var h='<h4>🖼️ Görseller ('+d.liste.length+')</h4>';
+ if(d.bekleyen){h+='<div class="yok">Kuyrukta bekleyen görsel üst yazımı var — aşağıdaki liste onu gösterir.</div>';}
+ h+='<div class="gserit">'+d.liste.map(function(u,i){
+  return '<span class="gkutu"><img src="'+esc(u)+'" alt="" loading="lazy">'+
+   '<button class="sil" onclick="gorselCikarUI(\\''+esc(id)+'\\','+i+')">çıkar</button></span>';
+ }).join("")+'</div>';
+ h+='<div class="eylemler" style="margin-top:6px">'+
+  '<input type="file" id="gf-'+esc(id)+'" accept="image/jpeg,image/png">'+
+  '<button class="ikincil" onclick="gorselYukleUI(\\''+esc(id)+'\\')">Yükle + listeye ekle</button>'+
+  '<button onclick="gorselKaydetUI(\\''+esc(id)+'\\')">Görselleri kaydet (kuyruğa)</button></div>'+
+  '<div class="kucuk">Kaydet kuyruğa yazar; uygulayıcı işleyip site yayınlanınca canlıya çıkar. '+
+  'Çıkarma listeden düşürür, R2 dosyası silinmez. En az 1 görsel kalır.</div>';
+ kutu.innerHTML=h;
+}
+function gorselCikarUI(id,i){
+ var d=urunGorselDurum[id];if(!d)return;
+ if(d.liste.length<=1){alert("En az 1 görsel kalmalı (ürün silme yok).");return;}
+ d.liste.splice(i,1);gorselCiz(id);
+}
+async function gorselYukleUI(id){
+ var inp=document.getElementById("gf-"+id);
+ if(!inp||!inp.files||!inp.files.length){alert("Önce dosya seçin (JPEG/PNG).");return;}
+ var r=await apiHam("/gorsel-yukle?id="+encodeURIComponent(id),inp.files[0]);
+ if(r.kod!==200){alert("Yüklenemedi: "+(r.govde&&r.govde.hata||r.kod));return;}
+ var d=urunGorselDurum[id];
+ if(d.liste.indexOf(r.govde.url)>=0){alert("Bu görsel zaten listede (aynı içerik = aynı adres).");return;}
+ d.liste.push(r.govde.url);gorselCiz(id);
+ alert("Yüklendi ve listeye eklendi. Kalıcı olması için \\"Görselleri kaydet\\" ile kuyruğa yazın.");
+}
+async function gorselKaydetUI(id){
+ var d=urunGorselDurum[id];if(!d)return;
+ var r=await api("/urunler-ustyazim",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({urun_id:id,alan:"gorseller",deger:JSON.stringify(d.liste)})});
+ if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));return;}
+ alert("Görsel listesi kuyruğa yazıldı. Uygulayıcı işleyip site yayınlanınca canlıya çıkar.");
+ kuyrukYukle();gorselCek(id);
+}
+async function stlCek(id){
+ var kutu=document.getElementById("us-"+id);if(!kutu)return;
+ kutu.innerHTML='<h4>🧱 Baskı dosyaları</h4> yükleniyor…';
+ var r=await api("/stl-liste?id="+encodeURIComponent(id));
+ var h='<h4>🧱 Baskı dosyaları</h4>';
+ if(r.kod!==200){kutu.innerHTML=h+'<span class="hata">liste alınamadı ('+r.kod+')</span>';return;}
+ var p=(r.govde&&r.govde.parcalar)||[];
+ if(!p.length){h+='<div class="yok">'+esc((r.govde&&r.govde.not)||"dosya yok")+'</div>';}
+ else{h+=p.map(function(x){
+  return '<div class="satir"><a class="indir" href="/api/shop/yonet/stl?id='+
+   encodeURIComponent(id)+'&dosya='+encodeURIComponent(x.dosya)+'">'+esc(x.dosya)+
+   esc(boyutMetni(x.boyut))+'</a> <button class="sil" onclick="stlCikarUI(\\''+esc(id)+
+   '\\',\\''+esc(x.dosya)+'\\')">çıkar</button></div>';
+ }).join("");}
+ h+='<div class="eylemler" style="margin-top:6px">'+
+  '<input type="file" id="sf-'+esc(id)+'" accept=".stl,.3mf">'+
+  '<button class="ikincil" onclick="stlYukleUI(\\''+esc(id)+'\\')">STL/3MF yükle</button></div>'+
+  '<div class="kucuk">Yükleme/çıkarma ANINDA etkilidir (R2, kuyruk yok). Mevcut adın üstüne '+
+  'yazılamaz; çıkarma dosyayı arşive taşır, kalıcı silme yok.</div>';
+ kutu.innerHTML=h;
+}
+async function stlYukleUI(id){
+ var inp=document.getElementById("sf-"+id);
+ if(!inp||!inp.files||!inp.files.length){alert("Önce dosya seçin (.stl/.3mf).");return;}
+ var f=inp.files[0];
+ var r=await apiHam("/stl-yukle?id="+encodeURIComponent(id)+
+  "&dosya="+encodeURIComponent(f.name),f);
+ if(r.kod!==200){alert("Yüklenemedi: "+(r.govde&&r.govde.hata||r.kod));return;}
+ alert("Yüklendi: "+f.name);stlCek(id);
+}
+async function stlCikarUI(id,dosya){
+ if(!confirm("Baskı dosyası listeden çıkarılsın mı? (Arşive taşınır, kalıcı silme yok.)"))return;
+ var r=await api("/stl-cikar",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({id:id,dosya:dosya})});
+ if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));return;}
+ stlCek(id);
+}
+async function kaynakCek(id){
+ var kutu=document.getElementById("uk-"+id);if(!kutu)return;
+ var r=await api("/urun-kaynak?id="+encodeURIComponent(id));
+ var h='<h4>🔗 Üretici kaynağı (gizli — siteye çıkmaz)</h4>';
+ if(r.kod!==200){kutu.innerHTML=h+'<span class="hata">okunamadı ('+r.kod+')</span>';return;}
+ var u=r.govde&&r.govde.link;
+ if(u&&/^https:\\/\\//i.test(u)){
+  h+='<div><a class="indir" href="'+esc(u)+'" target="_blank" rel="noopener">kaynak sayfası</a>'+
+   ' <span class="kucuk">('+esc(r.govde.duzlem==="panel"?"panelden":"kaynak kaydından")+')</span></div>';
+ }else if(r.govde&&r.govde.cikarildi){h+='<div class="yok">kaynak panelden çıkarıldı</div>';}
+ else{h+='<div class="yok">kaynak kaydı yok</div>';}
+ h+='<div class="eylemler" style="margin-top:6px">'+
+  '<input id="kl-'+esc(id)+'" placeholder="https://..." style="flex:1;min-width:220px">'+
+  '<button onclick="kaynakKaydetUI(\\''+esc(id)+'\\')">Kaydet</button>'+
+  '<button class="sil" onclick="kaynakCikarUI(\\''+esc(id)+'\\')">Çıkar</button></div>'+
+  '<div class="kucuk">Yalnız gizli yönetim kaydında tutulur; ürün sayfasına, kataloğa ve '+
+  'Ege\\'ye HİÇ çıkmaz. Kaydet/çıkar ANINDA etkilidir.</div>';
+ kutu.innerHTML=h;
+}
+async function kaynakKaydetUI(id){
+ var el=document.getElementById("kl-"+id);
+ var u=(el&&el.value||"").trim();
+ if(!u){alert("Link boş — çıkarmak için Çıkar düğmesini kullanın.");return;}
+ var r=await api("/kaynak-yaz",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({id:id,link:u})});
+ if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));return;}
+ kaynakCek(id);
+}
+async function kaynakCikarUI(id){
+ if(!confirm("Kaynak link listeden çıkarılsın mı?"))return;
+ var r=await api("/kaynak-yaz",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({id:id,link:""})});
+ if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));return;}
+ kaynakCek(id);
 }
 document.getElementById("yenile").onclick=yukle;
 document.getElementById("durumSuzgec").onchange=yukle;

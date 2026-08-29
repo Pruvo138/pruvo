@@ -86,9 +86,21 @@ simple = { limit = 60, period = 60 }
 
 # Uretim dosyalari (STL/3MF) OZEL R2 kovasinda (pruvo-media DEGIL — ticari dosya public'e
 # sizmaz). Yonetim /stl ucu SALT-OKUMA ile stream eder; toplu yukleme tools/stl-r2-yukle.py.
+# T2 (30 Agu 2026): /stl-yukle ve /stl-cikar uclari da BU binding'i kullanir — yukleme
+# head-once (mevcut anahtar EZILMEZ, varsa 409), cikarma arsiv-kopyasi-teyitli tasima
+# (arsiv/stl/... kopyasi head ile dogrulanmadan orijinal SILINMEZ).
 [[r2_buckets]]
 binding = "OZEL_DOSYA"
 bucket_name = "pruvo-ozel"
+
+# Urun gorselleri PUBLIC medya kovasi (media.pruvo3d.com bu kovayi sunar). T2: panelin
+# /gorsel-yukle ucu icerik-hash anahtarla (urunler/panel-<sha256ilk20>.<uzanti>) yazar;
+# ayni icerik = ayni anahtar, PUT'tan once head — MEVCUT ANAHTAR ASLA EZILMEZ
+# ([[r2-sessiz-uzerine-yazma]] sinifina yapisal kapak). Binding deploy edilene kadar
+# uc 503 doner (fail-closed; kod merge olur, canliyi bozmaz — META_CAPI_TOKEN deseni).
+[[r2_buckets]]
+binding = "MEDYA"
+bucket_name = "pruvo-media"
 
 [observability]
 enabled = true

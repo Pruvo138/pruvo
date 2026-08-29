@@ -61,12 +61,43 @@ SEMA_DOSYASI = os.path.join(os.path.dirname(ARAC_YOLU), "panel-ustyazim-sema.sql
 # ayni kurali erken-uyari olarak uygular; ayrisirsa satir burada hal='hata' olur,
 # yani drift sessiz kalamaz (gorunur yuzey: panel kuyruk ekrani + bu aracin cikti
 # satiri).
-ALAN_BEYAZ_LISTESI = ("fiyat", "baslik", "aciklama")
+ALAN_BEYAZ_LISTESI = ("fiyat", "baslik", "aciklama", "gorseller")
 # Katalog fiyat sozlesmesi "N TL" (olculdu 30 Agu: 30626/31264 kayit bu bicimde;
 # legacy "N.N TL" YENI yazima acilmaz — kanonik bicime yakinsansin).
 FIYAT_BICIMI = re.compile(r"^[1-9][0-9]{0,5} TL$")
-DEGER_TAVANI = {"fiyat": 20, "baslik": 200, "aciklama": 4000}
+DEGER_TAVANI = {"fiyat": 20, "baslik": 200, "aciklama": 4000, "gorseller": 4000}
 KONTROL_KARAKTERI = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+# T2 — gorsel listesi ustyazimi: deger TAM listenin JSON dizisidir (cikarma =
+# dusurulmus tam listenin ustyazimi; R2 nesnesi SILINMEZ). Katalog normu olculdu
+# (30 Agu): 89008 gorselin tamami media.pruvo3d.com altinda -> onek disi adres
+# tabana INMEZ (baska alan adi = sizinti/typo sinifi, sessiz gecmez).
+GORSEL_ONEK = "https://media.pruvo3d.com/"
+GORSEL_SAYI_TAVANI = 24
+GORSEL_KOTU_KARAKTER = re.compile(r"[\s\"'<>\\\\]")
+
+
+def gorsel_listesi_sebebi(deger):
+    """gorseller degeri gecersizse sebep, gecerliyse None (satir_sebebi cagirir)."""
+    try:
+        liste = json.loads(deger)
+    except ValueError:
+        return "GORSELLER_BICIMI"
+    if not isinstance(liste, list) or not liste:
+        # En az 1 gorsel kalir: kart kapagi (gorseller[0]) bos birakilamaz,
+        # urun silme yolu bu kuyruktan ACILMAZ.
+        return "GORSEL_BOS_LISTE"
+    if len(liste) > GORSEL_SAYI_TAVANI:
+        return "GORSEL_SAYI_TAVANI"
+    gorulen = set()
+    for u in liste:
+        if not isinstance(u, str) or not u.startswith(GORSEL_ONEK):
+            return "GORSEL_ONEK_DISI"
+        if GORSEL_KOTU_KARAKTER.search(u):
+            return "GORSEL_KARAKTER"
+        if u in gorulen:
+            return "GORSEL_TEKRAR"
+        gorulen.add(u)
+    return None
 
 
 def simdi_utc():
@@ -208,6 +239,10 @@ def satir_sebebi(satir, katalog):
         return "DEGER_KONTROL_KARAKTERI"
     if alan == "fiyat" and not FIYAT_BICIMI.match(deger):
         return "FIYAT_BICIMI"
+    if alan == "gorseller":
+        sebep = gorsel_listesi_sebebi(deger)
+        if sebep:
+            return sebep
     kayit = katalog.get(uid)
     if kayit is None:
         return "URUN_YOK"
@@ -215,6 +250,17 @@ def satir_sebebi(satir, katalog):
         # Sari seri: fiyat BOS kalir, taban fiyat semadan basilir (kapi zorlar).
         return "PARAMETRIK_FIYAT"
     return None
+
+
+def taban_esit(kayit, alan, deger):
+    """Kuyruk degeri tabandakiyle ES mi? gorseller JSON dizidir — kiyas PARSE
+    edilmis degerle yapilir (bicimsel bosluk farki sahte 'degisti' uretmesin)."""
+    if alan == "gorseller":
+        try:
+            return kayit.get("gorseller") == json.loads(deger)
+        except ValueError:
+            return False
+    return kayit.get(alan) == deger
 
 
 def sinifla(satirlar, katalog):
@@ -235,7 +281,7 @@ def sinifla(satirlar, katalog):
         sebep = satir_sebebi(s, katalog)
         if sebep:
             hata.append((s, sebep))
-        elif katalog[s["urun_id"]].get(s["alan"]) == s["deger"]:
+        elif taban_esit(katalog[s["urun_id"]], s["alan"], s["deger"]):
             zaten_esit.append(s)
         else:
             uygulanacak.append(s)
@@ -258,13 +304,23 @@ def duzelt_kos(kok, islemler):
         os.unlink(yol)
 
 
+def duzelt_degeri(satir):
+    """Kuyruk TEXT tasir; duzelt --toplu HAM JSON degeri bekler ("liste liste,
+    metin metin" — duzelt.py toplu sema notu). gorseller JSON-dizi METNIDIR ->
+    parse edilerek verilir; aksi halde taban'a dizi yerine DIZE yazilirdi
+    (V12a bunu olctu). Metin alanlari (fiyat/baslik/aciklama) AYNEN gider."""
+    if satir["alan"] == "gorseller":
+        return json.loads(satir["deger"])
+    return satir["deger"]
+
+
 def tabana_isle(kok, uygulanacak, hata):
     """duzelt --toplu; toplu RED olursa satir satir daralt (tek bozuk satir tum
     kuyrugu KILITLEMESIN — atomiklik duzelt'in kendi cagrisi duzeyinde kalir).
     Uygulanabilenlerin listesini dondurur; dusenler hata kovasina eklenir."""
     if not uygulanacak:
         return []
-    islemler = [{"id": s["urun_id"], "alan": s["alan"], "deger": s["deger"]}
+    islemler = [{"id": s["urun_id"], "alan": s["alan"], "deger": duzelt_degeri(s)}
                 for s in uygulanacak]
     rc, cikti = duzelt_kos(kok, islemler)
     if rc == 0:
@@ -273,7 +329,7 @@ def tabana_isle(kok, uygulanacak, hata):
     uygulanan = []
     for s in uygulanacak:
         rc1, cikti1 = duzelt_kos(kok, [{"id": s["urun_id"], "alan": s["alan"],
-                                        "deger": s["deger"]}])
+                                        "deger": duzelt_degeri(s)}])
         if rc1 == 0:
             uygulanan.append(s)
         else:
@@ -627,6 +683,69 @@ def kendini_test():
         ol("V11 yabanci push sonrasi tazele+isle (fiyat tabanda, rc=0)",
            rc == 0 and kat["test-urun-1"]["fiyat"] == "175 TL", cikti)
 
+        # ── V12 (T2): gorseller ustyazimi — gecerli liste iner, bozuklar sebep
+        #    ADIYLA hata kovasina, esit liste bicim farkina ragmen TABAN_ZATEN_ESIT.
+        G1 = GORSEL_ONEK + "urunler/tg-1.jpg"
+        G2 = GORSEL_ONEK + "urunler/tg-2.jpg"
+        GORSELLI = {"id": "test-gorselli", "kategori": "Ofis", "marka": [], "uyum": [],
+                    "baslik": "Test Gorselli", "aciklama": "aciklama g",
+                    "fiyat": "100 TL", "gorseller": [G1, G2]}
+        repo9, bare9, db9 = _fikstur_kur(tmp, katalog_ek=[json.loads(json.dumps(GORSELLI))])
+        _satir_ekle(db9, "test-gorselli", "gorseller", json.dumps([G2]))
+        once9 = subprocess.run(["git", "-C", repo9, "rev-parse", "HEAD"],
+                               capture_output=True, text=True).stdout.strip()
+        rc, cikti = _uygulayici_kos(ARAC_YOLU, repo9, db9)
+        kat = _katalog_oku(repo9)
+        dok = _kuyruk_dok(db9)
+        fark9 = subprocess.run(["git", "-C", repo9, "diff", "--name-only",
+                                once9, "HEAD"], capture_output=True, text=True).stdout
+        ol("V12a gorsel cikarma tabana islendi (tam liste ustyazimi, rc=0)",
+           rc == 0 and kat["test-gorselli"]["gorseller"] == [G2],
+           "rc=%d gorseller=%r | %s" % (rc, kat["test-gorselli"].get("gorseller"), cikti))
+        ol("V12b diff yalniz urunler.json + satir islendi",
+           fark9.split() == ["urunler.json"] and dok[0]["hal"] == "islendi",
+           fark9 + str(dok))
+        ol("V12c dokunulmayan alanlar ayni",
+           kat["test-gorselli"]["fiyat"] == "100 TL"
+           and kat["test-urun-1"]["fiyat"] == "100 TL")
+
+        repo10, bare10, db10 = _fikstur_kur(tmp, katalog_ek=[json.loads(json.dumps(GORSELLI))])
+        _satir_ekle(db10, "test-gorselli", "gorseller", "bozuk json [")
+        _satir_ekle(db10, "test-gorselli", "baslik", "gecerli ama farkli urun-alan")
+        _satir_ekle(db10, "test-urun-1", "gorseller", json.dumps(["https://kotu.example/x.jpg"]))
+        _satir_ekle(db10, "test-urun-2", "gorseller", "[]")
+        _satir_ekle(db10, "test-urun-3", "gorseller", json.dumps([G1, G1]))
+        rc, cikti = _uygulayici_kos(ARAC_YOLU, repo10, db10)
+        dok = _kuyruk_dok(db10)
+        sebepler = {(s["urun_id"], s["alan"]): s["sebep"] for s in dok}
+        ol("V12d bozuk JSON -> GORSELLER_BICIMI",
+           sebepler.get(("test-gorselli", "gorseller")) == "GORSELLER_BICIMI", str(dok))
+        ol("V12e onek disi adres -> GORSEL_ONEK_DISI (tabana INMEDI)",
+           sebepler.get(("test-urun-1", "gorseller")) == "GORSEL_ONEK_DISI"
+           and _katalog_oku(repo10)["test-urun-1"].get("gorseller") != ["https://kotu.example/x.jpg"],
+           str(dok))
+        ol("V12f bos liste -> GORSEL_BOS_LISTE (urun silme yolu yok)",
+           sebepler.get(("test-urun-2", "gorseller")) == "GORSEL_BOS_LISTE")
+        ol("V12g tekrarli oge -> GORSEL_TEKRAR",
+           sebepler.get(("test-urun-3", "gorseller")) == "GORSEL_TEKRAR")
+
+        # Esitlik PARSE ile olculur: ayni liste, FARKLI tek-satir bicimlendirme
+        # (worker JSON.stringify bosluksuz, Python json.dumps ", " ayracli) ->
+        # commit YOK, TABAN_ZATEN_ESIT (sahte 'degisti' uretilmez). COK SATIRLI
+        # deger BILEREK mesru degil: kontrol-karakteri kolu onu hata kovasina atar.
+        repo11, bare11, db11 = _fikstur_kur(tmp, katalog_ek=[json.loads(json.dumps(GORSELLI))])
+        once11 = subprocess.run(["git", "-C", bare11, "rev-parse", "main"],
+                                capture_output=True, text=True).stdout.strip()
+        _satir_ekle(db11, "test-gorselli", "gorseller",
+                    json.dumps([G1, G2]))
+        rc, cikti = _uygulayici_kos(ARAC_YOLU, repo11, db11)
+        sonra11 = subprocess.run(["git", "-C", bare11, "rev-parse", "main"],
+                                 capture_output=True, text=True).stdout.strip()
+        dok = _kuyruk_dok(db11)
+        ol("V12h esit liste (farkli JSON bicimi) -> commit yok + TABAN_ZATEN_ESIT",
+           rc == 0 and once11 == sonra11 and dok[0]["hal"] == "islendi"
+           and dok[0]["sebep"] == "TABAN_ZATEN_ESIT", cikti + str(dok))
+
         # ── MUTANTLAR: canli govdeye DOKUNULMAZ; gecici KOPYA mutasyonlanir.
         #    Once kopyanin KONTROL kosumu (mutasyonsuz, ayni argumanlar) yesil olmali.
         with open(ARAC_YOLU, encoding="utf-8") as f:
@@ -678,6 +797,26 @@ def kendini_test():
         m2_oldu = any(s["hal"] == "islendi" for s in dokM2) or rc2 == 0
         mutant_sonuc.append(("M2-islendi-pushtan-once", m2_oldu, "PUSH-OLMADI"))
         ol("M2 mutant V10 iddiasini dusurdu (push oncesi islendi yakalanir)", m2_oldu, cikti2)
+
+        # M3-gorsel-dogrulama-kalkar (T2): hedef kol = GORSEL_ONEK_DISI (V12e sinifi).
+        # Capa PARCALI (M1 gerekcesi ayni: tek literal bu dosyada da gecer, CAPA=2 olur).
+        capa3 = "sebep = gorsel_" + "listesi_sebebi(deger)"
+        ol("M3 capasi canli govdede tekil", govde.count(capa3) == 1)
+        m3 = os.path.join(tmp, "mutant-m3.py")
+        with open(m3, "w", encoding="utf-8") as f:
+            f.write(govde.replace(capa3, "sebep = None"))
+        repoM3, bareM3, dbM3 = _fikstur_kur(tmp)
+        _satir_ekle(dbM3, "test-urun-1", "gorseller",
+                    json.dumps(["https://kotu.example/x.jpg"]))
+        rc3, cikti3 = _uygulayici_kos(m3, repoM3, dbM3)
+        dokM3 = _kuyruk_dok(dbM3)
+        katM3 = _katalog_oku(repoM3)
+        # Mutant altinda onek-disi adres ya TABANA INER ya sebep adini kaybeder —
+        # iki yonden biri bile V12e iddiasini dusurur.
+        m3_oldu = (katM3["test-urun-1"].get("gorseller") == ["https://kotu.example/x.jpg"]
+                   or all(s["sebep"] != "GORSEL_ONEK_DISI" for s in dokM3))
+        mutant_sonuc.append(("M3-gorsel-dogrulama-kalkar", m3_oldu, "GORSEL_ONEK_DISI"))
+        ol("M3 mutant V12e iddiasini dusurdu (gorsel dogrulama kolu canli)", m3_oldu, cikti3)
 
         olen = sum(1 for _, oldu, _ in mutant_sonuc if oldu)
         print("SONUC: VAKA=%d DUSEN=%d MUTANT=%d/%d KONTROL=%s"

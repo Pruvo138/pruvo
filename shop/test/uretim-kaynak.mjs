@@ -234,7 +234,9 @@ ol("K39 stl-liste/stl indirme yollari DEGISMEDI",
 // GET /urunler-kuyruk, POST /urunler-ustyazim, POST /urunler-ustyazim-sil — hepsi
 // yonetim anahtari arkasinda, EGE_ANAHTAR acamaz; kurallari shop/test/urunler-panel.mjs)
 // -> taban BILEREK ve TARIHLI olarak 15. panel-kaynak.mjs V9d ayni sayiyi olcer.
-const KOL_TABANI = 15, CD_TABANI = 2;
+// 30 Agu 2026 (T2, Okan emri — gorsel/STL/kaynak link): 6 uc daha ayni kapinin
+// arkasinda -> taban 15'ten 21'e BILEREK artirildi (V9d ile es).
+const KOL_TABANI = 21, CD_TABANI = 2;
 const kolSayisi = (KAYNAK.match(/altYol === "/g) || []).length;
 ol("K40 YETKI YUZEYI GENISLEMEDI: yonlendirici kolu " + KOL_TABANI + " (yeni uc yok)",
   kolSayisi === KOL_TABANI, "kol=" + kolSayisi);
