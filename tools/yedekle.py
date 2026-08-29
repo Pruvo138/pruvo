@@ -506,6 +506,33 @@ REPO_BEKLENEN = (".urun-kaynaklari.json", "AGENTS.md", "DEVAM.md", "DEVAM-ARSIV.
 REPO_SIR = (".thingiverse-token", ".r2-credentials.json", ".stl-backup-dir",
             ".onizleme-kapat-anahtar", ".mukerrer-istisna.json")
 
+# ---- CRON DUZLEMI: ADIYLA BEKLENEN KRITIK BAKIM BETIKLERI (29 Agu 2026, K350-B) ----
+# 🔴 NEDEN VAR: `~/.claude/cron` bir git deposu DEGIL ve mimar hukmu geregi bu
+# betikler PUBLIC repoya COMMIT EDILMEZ (ev altyapisi betigi kisisel yol/isleyis
+# tasir). Yani TEK kopyalari bu makinededir; disk kaybinda nobet/isci hatti
+# yeniden uretilemez -> tek savunma hatti bu yedektir.
+#
+# AGAC_KAPSAMI["cron"] onlari zaten UZANTIYLA (.py/.sh) kapsiyor. Ama uzanti
+# tabanli kapsam bir ADI olcmez: allowlist daralirsa ya da bir betik uzantisiz /
+# baska uzantiyla yeniden adlandirilirsa dosya SESSIZCE yedek disi kalir ve damga
+# "tam": true demeye DEVAM EDER. Bu tam olarak REPO_BEKLENEN'in kapattigi delikle
+# AYNI SINIF (30 Tem, CLAUDE.md symlink'e donunce AGENTS.md sessizce yedeksiz
+# kalmisti) -> ayni cozum: ADIYLA beklenen kume + damga tam=False.
+#
+# 🔴 TEK KAYNAK — IKINCI LISTE ACILMAZ: kosum da, `--dogrula` da, yedekle-test de
+# BU demetten okur. Kume crontab'dan TURETILEMEDI ve bu OLCULDU (29 Agu 2026):
+# canli crontab 12 betik adliyor (gozcu.py, ci-nobeti.sh, kral-sabah.py, ...) ve
+# asagidaki 8'in HICBIRI orada DOGRUDAN gecmiyor — hepsi bir ust katmandan
+# (gozcu.py import'u, ci-nobeti.sh cagrisi, elle bakim) ulasiliyor. Gecisli kapanis
+# turetmek de secilmedi: kapanis kaynagi yine bu agacin kendisi olurdu, yani
+# "kapsam disi kalan dosya" tam da kapanisin GORMEDIGI dosya olurdu (kor nokta
+# kendini olcemez). Bu yuzden adlar ACIKCA yazilir; degisirse BURASI degisir.
+CRON_KRITIK = (
+    "bekci-kabul.py", "bekci-kur.py", "bekci-kos.py", "bekci-temizlik.py",
+    "cip_dogum_bekcisi.py", "isci.sh", "isci-hal-cozucu.py",
+    "isci-karantina-karar.py",
+)
+
 # ============================ EK KAPSAM (31 Tem 2026) ========================
 # 🔴 NEDEN: hesap tasima denetiminde olculdu — bu betik 5 evin YALNIZ BIRINI
 # (KraL) ve o evin yalniz 4 kok dosyasini yedekliyordu. HICBIR DEPODA olmayan su
@@ -1440,6 +1467,58 @@ def repo_eksikleri():
         if not os.path.exists(p) or os.path.islink(p):
             eksik.append(a)
     return eksik
+
+
+CRON_KRITIK_HALLERI = ("OLCULDU", "AGAC_YOK", "OLCULEMEDI")
+
+
+def cron_kritik_durumu(dahil, kok=None):
+    """CRON_KRITIK'in UC KOVASI + agac HALI — ikili siniflama YOK.
+
+    `dahil` = agac_plani(cron)[0], yani koke GORECE yollar. `kok` verilmezse CRON.
+    Doner: (kapsanan, kapsam_disi, yerelde_yok, hal)
+      kapsanan    : yerelde VAR ve plana GIRDI      -> saglikli
+      kapsam_disi : yerelde VAR ama plana GIRMEDI   -> 🔴 SESSIZ KAYIP RISKI (BLOKLAR)
+      yerelde_yok : yerelde HIC YOK                 -> 🟡 AYRI KOVA (bloklamaz)
+      hal         : CRON_KRITIK_HALLERI'nden biri
+
+    🔴 UCUNCU KOVA NEDEN AYRI: "yerelde yok" ile "yedege girmedi" AYNI SEY DEGIL.
+    Birincisinde yedek sucsuzdur (kopyalanacak dosya yok; betik emekli olmus da
+    olabilir), ikincisinde yedek DELIKTIR. Iki kovaya sikistirsaydik ya emekli bir
+    ad her kosumda sonsuza dek kirmizi yakardi (kol susturulurdu), ya da gercek
+    delik "zaten yok" diye YUTULURDU. Ucuncu kova ADIYLA basilir, `eksik`e GIRMEZ.
+
+    🔴 AGAC_YOK ile OLCULEMEDI DE AYRI HALLERDIR (ayni sinif hata, bir kat yukarida):
+      * AGAC_YOK   — bu makinede `~/.claude/cron` HIC YOK (baska makine, CI kum
+        havuzu, kardes ev). Yedek bir dosyayi ATLAMADI; ortada agac yok. main()
+        zaten "cron yedegi ATLANDI" basar. BLOKLAMAZ — bloklasaydi cron duzlemi
+        olmayan her makinede damga SONSUZA DEK tam=False olur, kol susturulurdu.
+      * OLCULEMEDI — agac VAR ama okunamadi (izin/IO). Burada "0 kapsam disi"
+        demek, olculemeyen bir hali TEMIZ ilan etmektir -> FAIL-CLOSED, BLOKLAR.
+    Ilk surumde ikisi tek kovaya konmustu ve TABAN OLCUMU bunu yakaladi: 339/0
+    olan batarya 350/14'e dustu, cunku kum havuzu kosumlarinda cron koku yoktur.
+    """
+    kok = kok or CRON
+    if not os.path.isdir(kok):
+        return [], [], [], "AGAC_YOK"
+    try:
+        os.listdir(kok)                    # agac VAR ama okunabiliyor mu?
+    except OSError:
+        return [], [], [], "OLCULEMEDI"
+    dahil_kume = set(dahil or ())
+    kapsanan, kapsam_disi, yerelde_yok = [], [], []
+    for ad in CRON_KRITIK:
+        try:
+            varmi = os.path.isfile(os.path.join(kok, ad))
+        except OSError:
+            return [], [], [], "OLCULEMEDI"
+        if not varmi:
+            yerelde_yok.append(ad)
+        elif ad in dahil_kume:
+            kapsanan.append(ad)
+        else:
+            kapsam_disi.append(ad)
+    return kapsanan, kapsam_disi, yerelde_yok, "OLCULDU"
 
 
 # ===================== EK KAPSAM: plan / kopyalama / dogrulama ===============
@@ -2624,6 +2703,13 @@ def damga_tazele(backup, baslangic, imza=None, kilitsiz=False):
     else:
         veri.pop("kilitsiz", None)
     eksik = repo_eksikleri()
+    # 🔴 K350-B: bu yol cron duzlemini YENIDEN OLCMEZ (kopyalama yapilmadi), bu
+    # yuzden onceki kosumun `cron-kritik:*` hukmunu SILEMEZ — silseydi damga
+    # `tam: false` kalir ama SEBEBI bosalirdi ("kayip gorunur, ozet gorunmez"
+    # sinifi: pano neden kismi oldugunu bir daha soyleyemez). Olculmemis bir
+    # ekseni temiz ilan etmek yerine onceki hukum AYNEN tasinir.
+    eksik += [a for a in (onceki.get("eksik") or [])
+              if isinstance(a, str) and a.startswith("cron-kritik:")]
     veri["eksik"] = eksik
     veri["tam"] = (not eksik) and bool(onceki.get("tam", True))
     return _damga_dosyasi_yaz(backup, veri)
@@ -2850,9 +2936,12 @@ def main():
         # ---- ~/.claude ELLE YAZILMIS AGACLAR (gorev / cron / plan) --------
         agac_toplam = 0
         agac_haric_toplam = 0
+        kuru_cron_dahil = None
         for agac in AGAC_KAPSAMI:
             etiket, kok, hedef_klasor, _izinli = agac
             a_dahil, a_haric, a_gurultu = agac_plani(agac)
+            if etiket == "cron":
+                kuru_cron_dahil = a_dahil
             agac_toplam += len(a_dahil)
             agac_haric_toplam += len(a_haric)
             print("[%s] %d dosya  <- %s" % (hedef_klasor, len(a_dahil), kok))
@@ -2863,6 +2952,19 @@ def main():
             for g, sebep in a_haric:
                 print("    %s/%s   -> DISLANDI: %s" % (hedef_klasor, g, sebep))
             print("[%s-gurultu (turetilmis)] %d giris" % (etiket, len(a_gurultu)))
+        # 🔴 K350-B: KURU KOSUM DA AYNI HUKMU BASAR. Ayri bir liste/yuklem YOK —
+        # gercek kosumla AYNI fonksiyon cagrilir. Bunu atlasaydik kapsam deligi
+        # yalniz GERCEK kosumda gorunurdu; oysa insanin baktigi yer kuru kosumdur
+        # (tuketici yazilirken TUM okuyucular sayilir).
+        k_kaps, k_disi, k_yok, k_hal = cron_kritik_durumu(kuru_cron_dahil)
+        print("[cron-KRITIK BAKIM BETIKLERI] hal=%s  kapsanan=%d/%d"
+              % (k_hal, len(k_kaps), len(CRON_KRITIK)))
+        for a in k_yok:
+            print("    🟡 %s   -> YERELDE YOK (yedek sucsuz; AYRI KOVA)" % a)
+        for a in k_disi:
+            print("    🔴 %s   -> YERELDE VAR AMA YEDEGE GIRMIYOR: damga 'tam: false'" % a)
+        if k_hal == "OLCULEMEDI":
+            print("    🔴 cron agaci VAR ama OKUNAMADI -> damga 'tam: false' (fail-closed)")
         repo, kok_elenen = repo_kok_ayrimi()
         print("[repo] %d dosya  <- %s" % (len(repo), ROOT))
         for a in repo:
@@ -3065,9 +3167,12 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     # geri getirilemez. Her biri sir nobeti + ACIK ALLOWLIST'ten gecer — `cron`
     # agacinin ICINDE gercek jetonlar duruyor (bkz. AGAC_KAPSAMI gerekcesi).
     agac_sayilari = {}
+    cron_dahil = None                      # K350-B: kritik betik hukmu icin saklanir
     for agac in AGAC_KAPSAMI:
         etiket, kok, hedef_klasor, _izinli = agac
         a_dahil, a_haric, a_gurultu = agac_plani(agac)
+        if etiket == "cron":
+            cron_dahil = a_dahil
         olan = yeni_a = 0
         if os.path.isdir(kok):
             a_hedef = os.path.join(backup, hedef_klasor)
@@ -3140,7 +3245,29 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
         print("⚠️ KISMI YEDEK — repo kokunde BULUNAMAYAN beklenen dosya(lar): %s"
               % ", ".join(eksik))
         print("   kok: %s   (damga 'tam: false' isaretlenecek, pano TAZE SAYMAYACAK)" % ROOT)
-    sayilar = {"memory": len(_agac_dosyalari(MEMORY)),
+
+    # K350-B (29 Agu 2026) — CRON DUZLEMI KRITIK BETIK HUKMU. Uzanti-tabanli
+    # kapsam bir ADI olcmez; bu kol adlari olcer ve deligi damgaya tasir.
+    c_kapsanan, c_disi, c_yoksa, c_hal = cron_kritik_durumu(cron_dahil)
+    if c_hal == "AGAC_YOK":
+        print("CRON KRITIK: AGAC_YOK — %s bu makinede yok (bloklamaz)" % CRON)
+    elif c_hal == "OLCULEMEDI":
+        print("⚠️ CRON KRITIK: OLCULEMEDI — %s VAR ama okunamadi (hukum SIFIR DEGIL)" % CRON)
+        eksik.append("cron-kritik:OLCULEMEDI")
+    else:
+        print("CRON KRITIK BETIKLER: %d/%d kapsandi"
+              % (len(c_kapsanan), len(CRON_KRITIK)))
+        if c_yoksa:
+            print("   🟡 YERELDE YOK (yedek sucsuz, AYRI KOVA): %s" % ", ".join(c_yoksa))
+        if c_disi:
+            print("   🔴 YERELDE VAR AMA YEDEGE GIRMEDI: %s" % ", ".join(c_disi))
+            print("      (damga 'tam: false' — kapsam sessizce daralmis olabilir)")
+            eksik.extend("cron-kritik:" + a for a in c_disi)
+    sayilar = {"cron_kritik": len(c_kapsanan),
+               "cron_kritik_disi": len(c_disi),
+               "cron_kritik_yereldeYok": len(c_yoksa),
+               "cron_kritik_hal": c_hal,
+               "memory": len(_agac_dosyalari(MEMORY)),
                "skills": yazilan, "skills_haric": len(haric),
                "repo": len(repo_adlari), "kok_sir_elenen": len(kok_elenen)}
     sayilar.update(kok_sir_sayilari)
