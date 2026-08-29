@@ -88,8 +88,8 @@ BEKLENEN = (
          "urun verisi self-healing guard (izinsiz urunler.json degisimi HEAD'e geri alinir)"),
         ("tools/mukerrer-kontrol.py",
          "mukerrer id/baslik/kaynak linki commit'i BLOKLAR"),
-        ("tools/mimar-commit-kapisi.py",
-         "mimar kod-kilidi git backstop (ana repodan onaysiz kaynak/veri commit'i)"),
+        # (KraL-KapiSupurmesi-29Agu: mimar-commit-kapisi girdisi kaldirildi —
+        # kapi silindi, pre-commit adimi bosaltildi.)
         # 6 Agu 2026 eklendi. GEREKCE: CI kolu TEK ATIMLIKTIR — diriltme
         # commit'lendigi an bir sonraki koşumun TABANI id'yi icerir, id
         # "silinmis" olmaktan cikar ve alarm KENDILIGINDEN soner (olculdu:

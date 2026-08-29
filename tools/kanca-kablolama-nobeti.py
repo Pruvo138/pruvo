@@ -127,9 +127,8 @@ FAIL_CLOSED = {
     ("pre-commit", "tools/mukerrer-kontrol.py"):
         "mukerrer id/baslik/kaynak linki commit'i BLOKLAR; yutulursa mukerrer "
         "urun katalogda yayina cikar.",
-    ("pre-commit", "tools/mimar-commit-kapisi.py"):
-        "mimar kod-kilidi backstop'u; yutulursa ana repodan onaysiz kaynak/veri "
-        "commit'i gecer.",
+    # (KraL-KapiSupurmesi-29Agu: mimar-commit-kapisi capasi kaldirildi — kapi
+    # BaBa 28 Agu filo karariyla silindi, pre-commit adimi bosaltildi.)
     ("pre-commit", "tools/diriltme-kapisi.py"):
         "yazim oncesi diriltme kolu. CI kolu TEK ATIMLIKTIR: diriltme "
         "commit'lendigi an bir sonraki koşumun TABANI id'yi icerir, id 'silinmis' "

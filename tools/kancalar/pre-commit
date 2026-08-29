@@ -98,16 +98,8 @@ else
   fi
 fi
 
-# --- 3) MIMAR KOD-KILIDI git backstop (FAIL-CLOSED) -------------------------
-# Ana repo'dan kaynak/veri commit'i worker onayi (PRUVO_MIMAR_ONAY=worker)
-# yoksa BLOKLANIR. Worktree'den serbest (kapinin kendi hukmu).
-pruvo_gate="$pruvo_kok/tools/mimar-commit-kapisi.py"
-if [ ! -f "$pruvo_gate" ]; then
-  echo "!! COMMIT DURDURULDU — tools/mimar-commit-kapisi.py YOK." >&2
-  echo "!! Mimar kod-kilidi backstop'u OLCULEMEDI." >&2
-  exit 1
-fi
-python3 "$pruvo_gate" || exit 1
+# --- 3) (KraL-KapiSupurmesi-29Agu) mimar-commit-kapisi SILINDI ---------------
+# BaBa 28 Agu filo karari: rol/kilit kapilari kaldirildi; adim bos birakildi.
 
 # --- 4) DIRILTME KAPISI — YAZIM ONCESI kol (FAIL-CLOSED) --------------------
 # 🔴 6 AGU 2026 ONARIMI — "TEK ATIMLIK SONME" SINIFI KAPATILDI (olculdu):
@@ -268,19 +260,7 @@ if [ "$pruvo_icrapor_rc" -ne 0 ]; then
   exit 1
 fi
 
-# --- 8) DEFTER KOTASI KAPISI — INDEX (COMMIT ANI) kolu (FAIL-CLOSED) ----------
-# DEVAM.md 130 satirdan buyukse commit RED; CARE satiri rotasyon aracini gosterir.
-# Eksen INDEX'tir: baska oturumun stage'de olmayan yarim defteri bu commit'i
-# bloklamaz. Sayaç yazimi commit'i etkilemez (yazim hatasi RED'i degistirmez).
-pruvo_defter_kota="$pruvo_kok/tools/defter-kota-kapisi.py"
-if [ ! -f "$pruvo_defter_kota" ]; then
-  echo "!! COMMIT DURDURULDU — tools/defter-kota-kapisi.py YOK." >&2
-  echo "!! Defter kota korumasi OLCULEMEDI; olculemeyen sey yesil sayilmaz." >&2
-  exit 1
-fi
-python3 "$pruvo_defter_kota" "$pruvo_kok"
-pruvo_defter_kota_rc=$?
-if [ "$pruvo_defter_kota_rc" -ne 0 ]; then
-  exit 1
-fi
+# --- 8) (KraL-KapiSupurmesi-29Agu) defter-kota-kapisi SILINDI ----------------
+# K351 vakasi: kapi evin TUM commit'ini kilitliyordu (onarim kolu zarar esiginin
+# arkasinda). Defter bakimi defter-rotasyon.py + kutu-arsivle.py ile surer.
 exit 0
