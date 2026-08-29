@@ -2684,6 +2684,24 @@ R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VI
 
 # ---- IZIN LISTESI (muaf test -> GEREKCE). Bos gerekce = exit 1. ----------
 IZIN_LISTESI = {
+    # --- Izin-kancasi KAYNAKLARI (silinemez sinif — BaBa 29 Agu FILO FELCI karari) ---
+    # 29 Agu supurmesi (ca8c3815) bu iki govdeyi silmisti; oturum kancalari bunlari
+    # calisma aninda OKUDUGU icin filodaki her oturumun Bash'i fail-closed kilitlendi
+    # (kutu ~19:xZ teshisi). Geri yuklendiler. CI tuketicileri (deploy.yml K304 adimlari,
+    # nobet.yml) supurmede BILEREK sokuldu ve geri TAKILMADI — bunlar CI'da kosan kabul
+    # testleri degil, PreToolUse kancasinin calisma aninda okudugu izin-kapisi
+    # govdeleridir; canliliklari her Bash cagrisinda olculur (dosya yoksa oturumlar
+    # aninda DENY basar, sessiz curume yapisal olarak imkansiz).
+    "tools/mimar-icra-kapisi.py": (
+        "IZIN-KANCASI KAYNAGI, kabul testi DEGIL: 6 evin .claude shim'i bu govdeyi her "
+        "Bash cagrisinda calisma aninda okur (K304 tek kaynak). 29 Agu supurmesi silince "
+        "tum filo fail-closed kilitlendi; BaBa'nin silinemez-sinif kurali ile geri "
+        "yuklendi. CI'da kosturulmaz; canliligi kancanin kendisi olcer."),
+    "tools/kapi-dagitim-kapisi.py": (
+        "IZIN-KANCASI KAYNAGI, kabul testi DEGIL: supurme oncesi settings ile acik "
+        "canli oturumlarin Bash kancasi bu dosyayi calisma aninda okur (MaCiT "
+        "blokajinda stub ciftiyle olculdu, kutu 29 Agu). Ayni silinemez-sinif kurali "
+        "ile geri yuklendi; CI tuketicisi supurmede bilerek sokuldu, geri takilmadi."),
     # --- Ayri dagitim hedefleri (shop / onizleme / jenerator) ---
     # "shop/test/eposta.mjs" MUAFIYETI KALDIRILDI (31 Tem) — R_AYRI'nin cekirdek cumlesi
     # ("bu suite o projenin CI hattinda kosulur") bu dosya icin OLCULEREK YANLIS: oyle bir
