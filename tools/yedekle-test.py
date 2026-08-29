@@ -954,6 +954,38 @@ K212A_MUTANT_KONTROL = (
     "            shutil.rmtree(tam)\n            islenen.append((gor, tam))\n",
     "            islenen.append((gor, tam))   # MUTANT KONTROL: kapsam-disi SILINMIYOR\n")
 
+# ---- K350-B MUTANTLARI (29 Agu 2026) — her biri TEK kol, hedef-kol atifli ----
+# M1: cron allowlist'inden ".py" DUSER -> 7 kritik betik yedek disi kalir.
+#     Bu, mimar hukmunun tam olarak korkulan hali: kapsam SESSIZCE daralir.
+K350B_MUTANT_ALLOWLIST = (
+    '("cron", CRON, "cron-nobet", (".sh", ".crontab", ".md", ".txt", ".json", ".py")),',
+    '("cron", CRON, "cron-nobet", (".sh", ".crontab", ".md", ".txt", ".json")),'
+    '   # MUTANT K350-B/M1: .py DUSTU')
+# M2: UCUNCU KOVA YUTULUR — "yerelde yok" hali "kapsanan"a katlanir (iki kovali
+#     siniflama). Delik degil, AYIRT ETME kabiliyeti olur.
+K350B_MUTANT_UCUNCU_KOVA = (
+    "        if not varmi:\n            yerelde_yok.append(ad)\n",
+    "        if not varmi:\n            kapsanan.append(ad)"
+    "   # MUTANT K350-B/M2: ucuncu kova YUTULDU\n")
+# M3: FAIL-CLOSED kolu OLUR — okunamayan agac "OLCULDU" diye TEMIZ ilan edilir.
+K350B_MUTANT_FAILCLOSED = (
+    "    try:\n        os.listdir(kok)                    "
+    "# agac VAR ama okunabiliyor mu?\n    except OSError:\n"
+    '        return [], [], [], "OLCULEMEDI"\n',
+    '    pass   # MUTANT K350-B/M3: okunabilirlik kolu OLDU\n')
+# M5: AGAC_YOK ile OLCULEMEDI TEK KOVAYA katlanir — cron duzlemi olmayan makinede
+#     damga sonsuza dek tam=False olur (kol susturulur). Taban olcumu bu hatayi
+#     GERCEKTEN yakaladi (339/0 -> 350/14), mutant onu geri getirir.
+K350B_MUTANT_AGACYOK = (
+    '    if not os.path.isdir(kok):\n        return [], [], [], "AGAC_YOK"\n',
+    '    if not os.path.isdir(kok):\n        return [], [], [], "OLCULEMEDI"'
+    "   # MUTANT K350-B/M5: AGAC_YOK, OLCULEMEDI'ye katlandi\n")
+# M4: damga_tazele onceki `cron-kritik:*` hukmunu KORUMAZ (silinen sebep).
+K350B_MUTANT_TAZELE = (
+    '    eksik += [a for a in (onceki.get("eksik") or [])\n'
+    '              if isinstance(a, str) and a.startswith("cron-kritik:")]\n',
+    "    pass   # MUTANT K350-B/M4: cron-kritik hukmu tazelemede SILINIYOR\n")
+
 
 def main():
     yedekle = modul_yukle(YEDEKLE, "yedekle_gercek")
@@ -2409,6 +2441,173 @@ def main():
                 and e_a != e_b,
                 "a=%s b=%s" % (mk21.karantina_etiketi(ev_a, kok_b),
                                mk21.karantina_etiketi(ev_b, kok_b)))
+
+    # ------- 22) K350-B: CRON DUZLEMI KRITIK BAKIM BETIKLERI (29 Agu 2026) -------
+    # MIMAR HUKMU (29 Agu): `~/.claude/cron/` git deposu DEGIL ve bu betikler PUBLIC
+    # repoya COMMIT EDILMEZ -> tek savunma hatti yedek zinciridir. Kapsam UZANTIYLA
+    # kuruludur; uzanti bir ADI olcmez. Bu bolum ADI olcen kolu sinar.
+    #
+    # 🔴 KUM HAVUZU, CANLI DUZLEM DEGIL: CI'da (ve baska makinede) ~/.claude/cron
+    # YOKTUR; canli agaca iddia baglasaydik test orada sessizce sartlanir ya da
+    # kirmizi yanardi. Burada olculen sey YUKLEMDIR; canli duzlemin sayilari
+    # cipin olcum kosumunda ayrica alinir (bkz. RAPOR).
+    print("\n22) K350-B — CRON KRITIK BETIK KAPSAMI (uc kova + iki agac hali + 5 mutant)")
+    with tempfile.TemporaryDirectory() as td:
+        k350_cron = os.path.join(td, "cron")
+        os.makedirs(k350_cron)
+
+        def k350_fikstur(modul, kok):
+            """CRON_KRITIK adlarini + GURULTU'yu sahte cron kokune yazar."""
+            for ad in modul.CRON_KRITIK:
+                with open(os.path.join(kok, ad), "w") as fh:
+                    fh.write("#!/usr/bin/env python3\n# sahte bakim betigi %s\n" % ad)
+            # GURULTU: yedege SIZMAMALI (spec ④)
+            with open(os.path.join(kok, "bekci-kabul.py.yedek-K999-20260829T000000Z"),
+                      "w") as fh:
+                fh.write("# eski surum\n")
+            with open(os.path.join(kok, "gozcu.log"), "w") as fh:
+                fh.write("tur 1 tamam\n")
+            with open(os.path.join(kok, ".isci-log.lock"), "w") as fh:
+                fh.write("")
+
+        def k350_plan(modul, kok):
+            """Sahte kokle cron agacinin planini uretir (gercek kok OKUNMAZ)."""
+            agac = ("cron", kok, "cron-nobet",
+                    dict((e, i) for e, _k, _h, i in modul.AGAC_KAPSAMI)["cron"])
+            return modul.agac_plani(agac)
+
+        k350_fikstur(yedekle, k350_cron)
+        dahil22, _h22, _g22 = k350_plan(yedekle, k350_cron)
+        kaps, disi, yok, hal = yedekle.cron_kritik_durumu(dahil22, kok=k350_cron)
+        kontrol("22) CRON_KRITIK bos degil (tek kaynak demeti duruyor)",
+                len(yedekle.CRON_KRITIK) >= 8, "adet=%d" % len(yedekle.CRON_KRITIK))
+        kontrol("22) SAGLAM KODDA 8/8 kritik betik KAPSANDI",
+                len(kaps) == len(yedekle.CRON_KRITIK) and not disi and not yok
+                and hal == "OLCULDU",
+                "kapsanan=%d disi=%s yok=%s hal=%s" % (len(kaps), disi, yok, hal))
+        # ④ NEGATIF — gurultu plana SIZMADI
+        sizan = [g for g in dahil22
+                 if ".yedek-" in g or g.endswith(".log") or g.endswith(".lock")]
+        kontrol("22) ④ NEGATIF: .yedek-* / *.log / *.lock plana SIZMADI (adet 0)",
+                not sizan, "sizan=%s" % (sizan or "-"))
+        # UCUNCU KOVA — yerelde OLMAYAN ad 'kapsam disi' DEGIL 'yerelde yok'tur
+        os.remove(os.path.join(k350_cron, "bekci-temizlik.py"))
+        d23, _h, _g = k350_plan(yedekle, k350_cron)
+        kaps3, disi3, yok3, _o3 = yedekle.cron_kritik_durumu(d23, kok=k350_cron)
+        kontrol("22) UCUNCU KOVA: yerelde YOK olan ad 'yerelde_yok'a dustu, "
+                "'kapsam_disi'na DEGIL",
+                yok3 == ["bekci-temizlik.py"] and not disi3
+                and len(kaps3) == len(yedekle.CRON_KRITIK) - 1,
+                "yok=%s disi=%s kapsanan=%d" % (yok3, disi3, len(kaps3)))
+        with open(os.path.join(k350_cron, "bekci-temizlik.py"), "w") as fh:
+            fh.write("# geri kondu\n")
+        # AGAC_YOK — cron duzlemi OLMAYAN makine: bloklamayan AYRI hal
+        _kA, _dA, _yA, halA = yedekle.cron_kritik_durumu([], kok=os.path.join(td, "hic-yok"))
+        kontrol("22) AGAC_YOK: cron koku HIC YOKKEN hal 'AGAC_YOK' (OLCULEMEDI DEGIL — "
+                "cron duzlemi olmayan makinede damga sonsuza dek tam=false olmasin)",
+                halA == "AGAC_YOK", "hal=%s" % halA)
+        # FAIL-CLOSED — agac VAR ama OKUNAMIYOR: hukum SIFIR degil OLCULEMEDI
+        kilitli = os.path.join(td, "okunamaz-cron")
+        os.makedirs(kilitli, exist_ok=True)
+        os.chmod(kilitli, 0o000)
+        try:
+            kapsF, disiF, yokF, halF = yedekle.cron_kritik_durumu([], kok=kilitli)
+        finally:
+            os.chmod(kilitli, 0o700)
+        kontrol("22) FAIL-CLOSED: cron agaci VAR ama OKUNAMIYORKEN hal 'OLCULEMEDI' "
+                "(temiz sifir DEGIL)",
+                halF == "OLCULEMEDI" and not kapsF and not disiF and not yokF,
+                "hal=%s kapsanan=%d disi=%d yok=%d"
+                % (halF, len(kapsF), len(disiF), len(yokF)))
+
+        # ---- MUTANT M1: cron allowlist'inden .py DUSER ----
+        m1 = modul_yukle(mutant_yaz(td, [K350B_MUTANT_ALLOWLIST], ad="mut-k350b-m1.py"),
+                         "mut_k350b_m1")
+        d_m1, _h, _g = k350_plan(m1, k350_cron)
+        k_m1, disi_m1, yok_m1, _o = m1.cron_kritik_durumu(d_m1, kok=k350_cron)
+        py_kritik = [a for a in m1.CRON_KRITIK if a.endswith(".py")]
+        kontrol("🔴 22-M1) MUTANT (cron allowlist'inden .py dustu) KIRMIZI YAKTI: "
+                "%d kritik betik yedek DISINDA" % len(py_kritik),
+                sorted(disi_m1) == sorted(py_kritik) and not yok_m1
+                and len(k_m1) == len(m1.CRON_KRITIK) - len(py_kritik),
+                "disi=%d kapsanan=%d" % (len(disi_m1), len(k_m1)))
+        # ---- MUTANT M2: ucuncu kova YUTULUR ----
+        m2 = modul_yukle(mutant_yaz(td, [K350B_MUTANT_UCUNCU_KOVA], ad="mut-k350b-m2.py"),
+                         "mut_k350b_m2")
+        os.remove(os.path.join(k350_cron, "bekci-temizlik.py"))
+        d_m2, _h, _g = k350_plan(m2, k350_cron)
+        k_m2, disi_m2, yok_m2, _o = m2.cron_kritik_durumu(d_m2, kok=k350_cron)
+        kontrol("🔴 22-M2) MUTANT (ucuncu kova 'kapsanan'a katlandi) KIRMIZI YAKTI: "
+                "yerelde OLMAYAN ad KAPSANDI diye sayildi",
+                not yok_m2 and len(k_m2) == len(m2.CRON_KRITIK),
+                "yok=%s kapsanan=%d" % (yok_m2, len(k_m2)))
+        with open(os.path.join(k350_cron, "bekci-temizlik.py"), "w") as fh:
+            fh.write("# geri kondu\n")
+        # ---- MUTANT M3: okunabilirlik (fail-closed) kolu OLUR ----
+        m3 = modul_yukle(mutant_yaz(td, [K350B_MUTANT_FAILCLOSED], ad="mut-k350b-m3.py"),
+                         "mut_k350b_m3")
+        os.chmod(kilitli, 0o000)
+        try:
+            _k, _d, _y, hal_m3 = m3.cron_kritik_durumu([], kok=kilitli)
+        finally:
+            os.chmod(kilitli, 0o700)
+        kontrol("🔴 22-M3) MUTANT (okunabilirlik kolu oldu) KIRMIZI YAKTI: "
+                "OKUNAMAYAN agac 'OLCULEMEDI' demedi",
+                hal_m3 != "OLCULEMEDI", "hal=%s" % hal_m3)
+        # ---- MUTANT M5: AGAC_YOK, OLCULEMEDI'ye katlanir ----
+        m5 = modul_yukle(mutant_yaz(td, [K350B_MUTANT_AGACYOK], ad="mut-k350b-m5.py"),
+                         "mut_k350b_m5")
+        _k, _d, _y, hal_m5 = m5.cron_kritik_durumu([], kok=os.path.join(td, "hic-yok"))
+        kontrol("🔴 22-M5) MUTANT (AGAC_YOK, OLCULEMEDI'ye katlandi) KIRMIZI YAKTI: "
+                "cron duzlemi olmayan makine BLOKLANIR hale geldi",
+                hal_m5 == "OLCULEMEDI", "hal=%s" % hal_m5)
+        # ---- MUTANT M4: damga_tazele cron hukmunu SILER ----
+        m4 = modul_yukle(mutant_yaz(td, [K350B_MUTANT_TAZELE], ad="mut-k350b-m4.py"),
+                         "mut_k350b_m4")
+        for etiket, mod in (("SAGLAM", yedekle), ("MUTANT", m4)):
+            bck = os.path.join(td, "damga-" + etiket)
+            os.makedirs(bck, exist_ok=True)
+            mod.damga_yaz(bck, {"cron": 1}, eksik=["cron-kritik:isci.sh"],
+                          baslangic=1.0, imza={"adet": 0, "bayt": 0, "mtime": 0.0})
+            mod.damga_tazele(bck, 2.0, imza={"adet": 0, "bayt": 0, "mtime": 0.0})
+            with open(os.path.join(bck, mod.DAMGA_ADI)) as fh:
+                d = json.load(fh)
+            if etiket == "SAGLAM":
+                kontrol("22) damga_tazele SAGLAM: onceki 'cron-kritik:*' hukmu KORUNDU "
+                        "(tam=false'un SEBEBI duruyor)",
+                        "cron-kritik:isci.sh" in (d.get("eksik") or [])
+                        and d.get("tam") is False,
+                        "eksik=%s tam=%s" % (d.get("eksik"), d.get("tam")))
+            else:
+                kontrol("🔴 22-M4) MUTANT (tazeleme cron hukmunu siliyor) KIRMIZI YAKTI: "
+                        "damga tam=false ama SEBEP bosaldi",
+                        "cron-kritik:isci.sh" not in (d.get("eksik") or []),
+                        "eksik=%s tam=%s" % (d.get("eksik"), d.get("tam")))
+        # ---- TUKETICI ENVANTERI: hukum TEK yerde degil, HER okuyucuda basiliyor mu ----
+        # ⚠️ BU BIR DIZGE OLCUMUDUR, DAVRANIS DEGIL (n2b-kapisi-dizge-olcer): amaci
+        # "iki cagri yeri var mi" sorusunu ucuza tutmaktir. GERCEK kosum kolu
+        # yukaridaki davranis iddialariyla, kuru kosum kolu cipin canli olcumuyle
+        # kapandi. Ucuncu bir okuyucu eklenirse bu sayi degisir ve gozden gecirilir.
+        with open(YEDEKLE, encoding="utf-8") as fh:
+            gov22 = fh.read()
+        cagri = gov22.count("cron_kritik_durumu(")
+        kontrol("22) TUKETICI ENVANTERI: cron_kritik_durumu EN AZ 3 yerde geciyor "
+                "(tanim + gercek kosum + kuru kosum) — kuru kosum SESSIZ KALMIYOR",
+                cagri >= 3, "cagri sayisi=%d" % cagri)
+        kontrol("22) KURU KOSUM kolu hukmu BASIYOR (cikti capasi kaynakta duruyor)",
+                "[cron-KRITIK BAKIM BETIKLERI]" in gov22)
+
+        # ---- KONTROL MUTANTI: ILGISIZ kol bozuk -> 22) iddialari YESIL kalmali ----
+        mk = modul_yukle(mutant_yaz(td, [K212A_MUTANT_KONTROL], ad="mut-k350b-kontrol.py"),
+                         "mut_k350b_kontrol")
+        d_mk, _h, _g = k350_plan(mk, k350_cron)
+        k_mk, disi_mk, yok_mk, hal_mk = mk.cron_kritik_durumu(d_mk, kok=k350_cron)
+        kontrol("🔴 22-K) KONTROL MUTANTINDA (ilgisiz kol bozuk) 22) iddialari YESIL "
+                "kaldi — mutantlar AYIRT EDICI",
+                len(k_mk) == len(mk.CRON_KRITIK) and not disi_mk and not yok_mk
+                and hal_mk == "OLCULDU",
+                "kapsanan=%d disi=%d yok=%d hal=%s"
+                % (len(k_mk), len(disi_mk), len(yok_mk), hal_mk))
 
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok, _ in SONUC if not ok]
