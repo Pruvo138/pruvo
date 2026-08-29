@@ -2,8 +2,8 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## T1 KAPANDI (29 Agu) — shop paneli "Urunler"+`panel_ustyazim` kuyrugu+CI uygulayici; TAM HUKUM KUTUDA
-Canli 2x: kuyruk->main(`b9cfd786`,`d6e9e378`)->canli; D1 6/6, katalog SABIT. ACIK: worker deploy=OKAN + T1a.
+## T1+T2 KAPANDI (29 Agu) — panel "Urunler": ustyazim kuyrugu + gorsel/STL/kaynak-link; TAM HUKUM KUTUDA
+T2 canli 2x: gorseller kuyruk->main(`dccb46af`,`d2ae7a86`)->canli; HEAD katalog SABIT. ACIK: worker deploy=OKAN + T1a (gorseller ayni sinif, beyanli).
 ## 🔁 28 AGU 18:00 CANLI DURUM — OKAN 17:00 EMRININ BES KALEMI DE KAPANDI (onceden -> sonra)
 🔴 **N2B BORU ONEKI SINIFI → HAFIZADA:** [[isci-cagrisinda-echo-stdin-etiketi-yutar]] (K345 ile kapandi).
 🔴 **K337:** butce kesintisi sade `rc=1` donuyor, karantina dusus sayiyor (3 ardisik = 6 saat). META=RAF.
