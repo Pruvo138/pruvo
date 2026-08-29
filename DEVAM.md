@@ -2,9 +2,6 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## SUPURME KAPANDI (29 Agu, Okan emri + BaBa filo karari) — TAM HUKUM KUTUDA
-47 denetim dosyasi silindi (mimar rol/kilit, kapi-dagitim, chip/defter-kota/sahiplik kati); main `4c80278f`, Build&deploy SUCCESS. Dokunulmaz cekirdek AYNEN. → [[kapi-supurmesi-29agu]]
-
 ## T1+T2 KAPANDI (29 Agu) — panel "Urunler": ustyazim kuyrugu + gorsel/STL/kaynak-link; TAM HUKUM KUTUDA
 T2 canli 2x: gorseller kuyruk->main(`dccb46af`,`d2ae7a86`)->canli; HEAD katalog SABIT. ACIK: worker deploy=OKAN + T1a (gorseller ayni sinif, beyanli).
 ## 🔁 28 AGU 18:00 CANLI DURUM — OKAN 17:00 EMRININ BES KALEMI DE KAPANDI (onceden -> sonra)
@@ -23,7 +20,8 @@ agaclarin hepsinin oturumu CANLI ya da uzerinde birlesmemis is var -> dusurulmed
 durmasi ceviriyor — uretilebilir. Ardisik UC kosum `TABAN_ARTIK_ONCE` 425-0-0, ucu de
 `OLDURULDU rc=0`; `--kendini-test` MUTANT=4/4 KONTROL=3/3. → [[artik-yuzey-mutant-dedektorunu-korlestirir]]
 
-defter kotasi 28 Agu: 12.287 B -> 8113 B (rotasyon, kayipsiz; arsiv 22204 -> 22254 satir)
+defter kotasi 29 Agu: **12.533 B -> 11.375 B** (rotasyon+isaretci, kayipsiz; arsiv 22.283 -> 22.289 satir).
+🔴 **KOTA KAPISI SUPURMEDE SILINDI** — tavan duruyor, tutan el YOK; asim bu yuzden commit'lenebildi.
 
 🟢 **K344 OKSUZ AGACLAR KAPANDI (cip `KraL-OksuzAgaclar-28Agu`, main `a5fc8f22`):** iki dalin isi de main'de.
 `44c92f6e` (A) +978/-303 · `a24550ce`+`c665031f` (B) +525/-50, ikisi de TASINDI (SUBSUME degil). 🔴 **Katalog
@@ -38,24 +36,16 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 
 ## 🔁 29 AGU ~05:0x — MIMAR OTURUM KAPANISI (tam metinler KUTUDA; burada yalniz canli durum)
 - 🏃 **KOSUYOR (DOKUNMA):** cip `nice-swanson-706912` / dal `claude/dazzling-satoshi-8ff5e2`, oturumu CANLI.
-- 🔴 **BEKLIYOR — `kurtarma/nervous-leavitt-28agu` MERGE EDILMEZ:** tabani BAYAT; `diff main <dal>`
-  **-14.536 satir** (`urunler.json` -4976 dahil) = iki-nokta artefakti, dalin sildigi degil main'in ekledigi.
-  Icindeki tek gerekli sey K332 yamasi `_ortak_altyapi_muaf` — **diskte HICBIR YERDE YOK**, yalniz `6941b626`.
-  **Kapatan olcum:** yamayi GUNCEL main uzerine YENIDEN uygula + cipin `~/.claude/cron/` bataryalarini
-  DOGRUDAN kosabildigini goster (bugun R2 RED, olcum isci katindan gelmek zorunda).
-  🏃 **CIP `KraL-K332Diriltme-29Agu` TASIYOR (29 Agu).** Diskte YOK dogrulandi (grep: yalniz transcript/hafiza
-  metni, hicbir kaynak dosyada degil). Kanca `${CLAUDE_PROJECT_DIR}/tools/mimar-icra-kapisi.py` -> cipin KENDI
-  agacindaki kopya o cip icin CANLI kapidir, yani once/sonra kaniti agac icinde alinabilir. Civili kabul:
-  kilit-test taban+6/KIRMIZI=0 · MR6-MR9 dordu de hedef-kol atfiyla oldu (MR3 net=6, MR5 net=13) ·
-  CANLI PROB `cip_dogum_bekcisi.py --teslim-karari` RED -> GECER + `ORTAK-ALTYAPI(` izi · NEGATIF iki vaka
-  (duzlem disi betik + duzlem disi ikinci arguman) HALA RED. Dal MERGE EDILMEZ, yalniz `6941b626` YAMASI alinir.
-- 🔧 **K350-B:** `bekci-kabul.py` git DISI + tek yedekle yasiyor (`*.yedek-K350-...`, bilerek birakildi).
-  **Kapatan olcum:** ya git'e alinir ya yedek zincirine baglanir; ikisi de degilse tek kopya riski surer.
-  ⚖️ **MIMAR HUKMU (29 Agu): GIT DEGIL, YEDEK ZINCIRI.** Repo PUBLIC; ev altyapisi betigi kisisel yol/isleyis
-  tasir, `urunler.json` duzlemine ait degil. `~/.claude/cron/` git deposu OLMADIGI olculdu. 🏃 Cip
-  `KraL-K350B-YedekZinciri-29Agu` tasiyor; civili kabul: `tools/yedekle.py` 8 kritik betigi kapsar ·
-  GERI YUKLEME ile SHA256 birebir · kapsami dusuren MUTANT kabulu KIRMIZI yakar · gurultu deseni
-  (`.yedek-*`/`*.log`) kapsama GIRMEZ, adet 0 · mevcut yedekler SILINMEZ (yalniz adet+boyut raporlanir).
+- ✅ **K332 MERGE `26064356`** (dal `trusting-khayyam-b3171f`): kilit 307/314->313/320, kirmizi seti BIREBIR
+  ayni (taban 7, "KIRMIZI=0" olcutum tabansiz civilenmisti), MR6-MR9 4/4 hedef-kol atfiyla oldu, vaka 821
+  fikstur kutsanmasini yakar. 🔴 **MERGE CAKISMASI BIR SILME ORTAYA CIKARDI:** supurme main'den
+  `mimar-kilit-test.py` + `mimar-kapi-mutasyon-test.py`'yi SILMIS (Okan/BaBa yalniz kapi KAYNAKLARINI geri
+  yuklemis) — kapi canli, nobetcisi yoktu; dalin surumuyle geri geldi. `kurtarma/nervous-leavitt-28agu`
+  ARTIK GEREKSIZ (yamasi alindi, dal merge EDILMEDI). 🔧 Kalem: yama 5 evin hicbirine DAGITILMADI.
+- ✅ **K350-B MERGE** (dal `awesome-ellis-9554ac`): `yedekle-test` 339/0->354/0, 8/8 geri yukleme SHA256
+  birebir, canli mutant kapsami 8/8->1/8 KIRMIZI yakti. Oncul CURUDU: yedek zaten vardi, delik kapsamin
+  UZANTIYLA kurulu olmasiydi (ad olculmuyordu, sessiz duserdi). 🔧 Kalem: `~/.claude/cron`'da 175 `.yedek-*`
+  (5,2 MB) + 97 `*.log` (1,8 MB) birikti; budama hukmu bende.
 - 🔴 **K349 (isci yalani) — SAYAC 3, SINIF ESIGI DOLDU.** Ucunde de bagimsiz kosum yalanladi (temiz agacta
   `30/30 KIRMIZI=0`). Yordam `skill: codex-isci` §3.7-3.8'e ISLENDI: isci KIRMIZISI da iddiadir, bagimsiz
   kosum olmadan kayda GIRMEZ · koda ATIF yapmaz · `tools/`a gecici dosya yazmaz · `git stash` YASAK ·
