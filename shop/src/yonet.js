@@ -1629,6 +1629,165 @@ async function konfigurGolge(env, url) {
   }, 200);
 }
 
+// ═══════════════ URUNLER SEKMESI — panel_ustyazim YAZMA KUYRUGU (T1) ═══════════════
+// TASARIM (mimar hakem hukmu, 29 Agu 2026): panel urunler.json'a ASLA yazmaz. Kaydet =
+// D1 `panel_ustyazim` tablosuna hal='beklemede' SATIR (yazma KUYRUGU). Tabana isleyen
+// TEK kol CI uygulayicisidir (tools/panel-uygulayici.py); fiyat/JSON-LD bir sonraki
+// Build & deploy'da TABANDAN dogar — panel bunu kullaniciya ACIKCA soyler. Beyaz
+// listenin OTORITESI uygulayicidadir; buradaki es kontrol erken-uyaridir, ayrisirsa
+// satir uygulayicida hal='hata'+sebep olur (sessiz kaybolmaz). Kaynak link / uyelik /
+// STL yeri gibi gizli alanlar bu kuyruga HIC girmez.
+const USTYAZIM_ALANLAR = new Set(["fiyat", "baslik", "aciklama"]);
+const USTYAZIM_DEGER_TAVAN = { fiyat: 20, baslik: 200, aciklama: 4000 };
+// Katalog fiyat sozlesmesi "N TL" (uygulayicidaki FIYAT_BICIMI ile es).
+const FIYAT_BICIM_RX = /^[1-9][0-9]{0,5} TL$/;
+const URUN_ID_RX = /^[a-z0-9-]{1,200}$/;
+
+function likeKacisla(s) {
+  return String(s || "").replace(/[\\%_]/g, (m) => "\\" + m);
+}
+
+/** panel_ustyazim'a dokunan cagrilar icin tablo merdiveni: tablo yoksa OKUMA bos
+ *  doner (ekran "sema kosulmamis" YAZAR — sessiz bosluk degil), YAZMA 503 doner
+ *  (fail-closed: kuyruga yazilamayan kayit "kaydedildi" gorunemez). */
+function tabloYokMu(e) {
+  return /no such table/i.test(String((e && e.message) || e));
+}
+
+async function panelUrunListe(env, url) {
+  const q = (url.searchParams.get("q") || "").trim().slice(0, 80);
+  const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get("limit") || "30", 10) || 30));
+  const SECIM = "SELECT id, baslik, fiyat, aciklama, kategori, parametrik, gorsel FROM urunler";
+  const sorgu = q
+    ? env.KATALOG.prepare(SECIM + " WHERE id LIKE ? ESCAPE '\\' OR baslik LIKE ? ESCAPE '\\'" +
+        " ORDER BY seq DESC LIMIT ?")
+        .bind("%" + likeKacisla(q) + "%", "%" + likeKacisla(q) + "%", limit)
+    : env.KATALOG.prepare(SECIM + " ORDER BY seq DESC LIMIT ?").bind(limit);
+  const r = await sorgu.all();
+  const urunler = r.results || [];
+  // Listelenen urunlerin BEKLEYEN ustyazimlari (kart "kuyrukta bekliyor" gosterir).
+  let bekleyen = {};
+  let kuyrukTablosu = true;
+  if (urunler.length) {
+    const idler = urunler.map((u) => u.id);
+    const yertut = idler.map(() => "?").join(",");
+    const b = await tabloMerdiveni(
+      () => env.KATALOG.prepare(
+        "SELECT id, urun_id, alan, deger, ts FROM panel_ustyazim" +
+        " WHERE hal = 'beklemede' AND urun_id IN (" + yertut + ")").bind(...idler).all(),
+      () => { kuyrukTablosu = false; return { results: [] }; });
+    for (const s of (b.results || [])) {
+      (bekleyen[s.urun_id] = bekleyen[s.urun_id] || {})[s.alan] =
+        { id: s.id, deger: s.deger, ts: s.ts };
+    }
+  }
+  return yjson({ urunler, bekleyen, kuyruk_tablosu: kuyrukTablosu }, 200);
+}
+
+async function panelKuyruk(env) {
+  const r = await tabloMerdiveni(
+    () => env.KATALOG.prepare(
+      "SELECT id, urun_id, alan, deger, yazan, ts, hal, islendi_ts, islendi_commit, sebep" +
+      " FROM panel_ustyazim ORDER BY id DESC LIMIT 100").all(),
+    () => null);
+  if (r === null) { return yjson({ satirlar: [], tablo_yok: true }, 200); }
+  return yjson({ satirlar: r.results || [], tablo_yok: false }, 200);
+}
+
+async function panelUstyazimYaz(request, env, ctx) {
+  let govde;
+  try { govde = await request.json(); } catch (e) {
+    return yjson({ hata: "gecersiz istek govdesi" }, 400);
+  }
+  const uid = typeof (govde && govde.urun_id) === "string" ? govde.urun_id.trim() : "";
+  const alan = typeof (govde && govde.alan) === "string" ? govde.alan : "";
+  let deger = typeof (govde && govde.deger) === "string" ? govde.deger : null;
+  if (!URUN_ID_RX.test(uid)) { return yjson({ hata: "urun_id bicimsiz" }, 400); }
+  if (!USTYAZIM_ALANLAR.has(alan)) {
+    return yjson({ hata: "alan beyaz liste disi (fiyat | baslik | aciklama)" }, 400);
+  }
+  if (deger === null) { return yjson({ hata: "deger metin olmali" }, 400); }
+  deger = deger.replace(/\r\n?/g, "\n").trim();
+  if (!deger) { return yjson({ hata: "deger bos" }, 400); }
+  if (deger.length > USTYAZIM_DEGER_TAVAN[alan]) {
+    return yjson({ hata: "deger cok uzun (tavan " + USTYAZIM_DEGER_TAVAN[alan] + ")" }, 400);
+  }
+  const satirsiz = alan === "aciklama" ? deger.replace(/\n/g, "") : deger;
+  if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(satirsiz) ||
+      (alan !== "aciklama" && deger.indexOf("\n") >= 0)) {
+    return yjson({ hata: "deger kontrol karakteri tasiyor" }, 400);
+  }
+  if (alan === "fiyat" && !FIYAT_BICIM_RX.test(deger)) {
+    return yjson({ hata: "fiyat bicimi \"500 TL\" olmali (yalniz tam sayi + TL)" }, 400);
+  }
+  const ur = await env.KATALOG.prepare(
+    "SELECT id, parametrik FROM urunler WHERE id = ?").bind(uid).first();
+  if (!ur) { return yjson({ hata: "urun katalogda yok" }, 404); }
+  if (alan === "fiyat" && ur.parametrik) {
+    // Sari seri sozlesmesi: fiyat BOS kalir, taban fiyat semadan basilir.
+    return yjson({ hata: "parametrik (sari) urunde fiyat degistirilemez — taban fiyat semadan gelir" }, 400);
+  }
+  const ts = new Date().toISOString();
+  try {
+    // Ayni (urun, alan) icin bekleyen satir varsa YENISI ONUN YERINE GECER (kuyruk
+    // sisirilmez); yoksa INSERT. islendi/hata satirlarina DOKUNULMAZ (gecmis kayittir).
+    const g = await env.KATALOG.prepare(
+      "UPDATE panel_ustyazim SET deger = ?, ts = ?, yazan = 'panel'" +
+      " WHERE urun_id = ? AND alan = ? AND hal = 'beklemede'").bind(deger, ts, uid, alan).run();
+    const degisen = (g && g.meta && g.meta.changes) || 0;
+    if (!degisen) {
+      await env.KATALOG.prepare(
+        "INSERT INTO panel_ustyazim (urun_id, alan, deger, yazan, ts, hal)" +
+        " VALUES (?, ?, ?, 'panel', ?, 'beklemede')").bind(uid, alan, deger, ts).run();
+    }
+  } catch (e) {
+    if (tabloYokMu(e)) { return yjson({ hata: "kuyruk tablosu yok — sema kosulmamis" }, 503); }
+    throw e;
+  }
+  uygulayiciTetikle(env, ctx);
+  return yjson({ tamam: true, urun_id: uid, alan: alan, hal: "beklemede" }, 200);
+}
+
+async function panelUstyazimSil(request, env) {
+  let govde;
+  try { govde = await request.json(); } catch (e) {
+    return yjson({ hata: "gecersiz istek govdesi" }, 400);
+  }
+  const id = parseInt(govde && govde.id, 10);
+  if (!Number.isInteger(id) || id <= 0) { return yjson({ hata: "id gecersiz" }, 400); }
+  try {
+    // YALNIZ beklemede satir iptal edilir: islendi kaydi tabana COKMUS gecmistir,
+    // hata kaydi teshis izidir — ikisi de silinmez.
+    const g = await env.KATALOG.prepare(
+      "DELETE FROM panel_ustyazim WHERE id = ? AND hal = 'beklemede'").bind(id).run();
+    const silinen = (g && g.meta && g.meta.changes) || 0;
+    if (!silinen) { return yjson({ hata: "satir beklemede degil ya da yok" }, 409); }
+  } catch (e) {
+    if (tabloYokMu(e)) { return yjson({ hata: "kuyruk tablosu yok — sema kosulmamis" }, 503); }
+    throw e;
+  }
+  return yjson({ tamam: true, silinen: 1 }, 200);
+}
+
+/** Kuyruga satir dusunce CI uygulayicisini repository_dispatch ile durt. OPSIYONEL:
+ *  GH_DISPATCH_TOKEN secret'i tanimli degilse SESSIZCE atlanir (cron/elle kol kapsar)
+ *  — META_CAPI_TOKEN deseni: kod merge olur, canliyi bozmaz, Okan secret basinca
+ *  canlanir. Hata da yutulur: kuyruk kaydi ZATEN basarili, tetik en-iyi-cabadir. */
+function uygulayiciTetikle(env, ctx) {
+  if (!env.GH_DISPATCH_TOKEN || !ctx || typeof ctx.waitUntil !== "function") { return; }
+  const depo = env.GH_DEPO || "Pruvo138/pruvo";
+  ctx.waitUntil(fetch("https://api.github.com/repos/" + depo + "/dispatches", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + env.GH_DISPATCH_TOKEN,
+      "Accept": "application/vnd.github+json",
+      "User-Agent": "pruvo-shop-panel",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ event_type: "panel-ustyazim" }),
+  }).catch(() => {}));
+}
+
 /**
  * /yonet* yonlendirici. altYol = "/", "/liste", "/durum", "/kargo", "/havale-onay", "/stl",
  * "/konfigur-golge".
@@ -1680,6 +1839,12 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/stl-liste" && m === "GET") { return stlListe(env, url); }
   // FAZ 3 kontrol kipi — SALT OKUMA (yazma/yan etki YOK).
   if (altYol === "/konfigur-golge" && m === "GET") { return konfigurGolge(env, url); }
+  // URUNLER SEKMESI (T1) — hepsi yonetim anahtarinin ARKASINDA. EGE_ANAHTAR bu
+  // uclari ACAMAZ: o anahtar yalniz yukaridaki /wa-siparis kolunda okunur.
+  if (altYol === "/urunler" && m === "GET") { return panelUrunListe(env, url); }
+  if (altYol === "/urunler-kuyruk" && m === "GET") { return panelKuyruk(env); }
+  if (altYol === "/urunler-ustyazim" && m === "POST") { return panelUstyazimYaz(request, env, ctx); }
+  if (altYol === "/urunler-ustyazim-sil" && m === "POST") { return panelUstyazimSil(request, env); }
   return yon404();
 }
 
@@ -1745,6 +1910,17 @@ details[open]>summary.ust::after{content:"▾"}
 .rozet.uretimde{background:#ede9fe;color:#5b21b6}
 .rozet.bekliyor{background:#f3f4f6;color:#4b5563}
 .rozet.basarisiz{background:#fce7f3;color:#9d174d}
+/* URUNLER SEKMESI (T1) — kuyruk halleri + sekme cubugu + duzenleme formu */
+.rozet.beklemede{background:#fef9c3;color:#854d0e}
+.rozet.islendi{background:#dcfce7;color:#166534}
+.rozet.hata{background:#fee2e2;color:#991b1b}
+.sekmeler{display:flex;gap:6px}
+.sekme{background:transparent;color:#fff;border:1px solid #ffffff55;border-radius:6px;cursor:pointer}
+.sekme.aktif{background:#fff;color:var(--lacivert);font-weight:bold}
+.alan-form{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.alan-form label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:#374151}
+.alan-form input,.alan-form textarea{font-family:inherit;font-size:15px;padding:7px 10px;
+ border:1px solid var(--kenar);border-radius:6px}
 .siparis-grubu{margin:0 0 20px}
 .grup-baslik{display:block;margin:0 0 9px;padding:7px 12px;border-radius:8px;font-size:15px}
 /* KANAL rozeti — yalniz site DISI kanalda basilir (WhatsApp/Ege). Site siparisinde
@@ -1779,8 +1955,12 @@ a.indir{display:inline-block;padding:6px 10px;background:#374151;color:#fff;bord
 .gecmis{font-size:12px;color:#6b7280;margin-top:6px}
 </style></head><body>
 <header>
- <h1>PRUVO Sipariş Yönetimi</h1>
- <div class="araclar">
+ <h1>PRUVO Yönetim</h1>
+ <nav class="sekmeler">
+  <button id="sekmeSiparis" class="sekme aktif">Siparişler</button>
+  <button id="sekmeUrun" class="sekme">Ürünler</button>
+ </nav>
+ <div class="araclar" id="siparisAraclar">
   <select id="durumSuzgec">
    <option value="">Tümü</option>
    <option value="odendi">Ödendi</option>
@@ -1795,6 +1975,19 @@ a.indir{display:inline-block;padding:6px 10px;background:#374151;color:#fff;bord
  </div>
 </header>
 <main id="liste"><p>Yükleniyor…</p></main>
+<main id="urunler" hidden>
+ <div class="kart">
+  <div class="ust">
+   <input id="urunAra" placeholder="Ürün ara (id ya da başlık)" style="flex:1;min-width:180px">
+   <button id="urunAraBtn">Ara</button>
+  </div>
+  <p class="kucuk">Kaydet <b>kuyruğa</b> yazar; değişiklik uygulayıcı işleyip site yeniden
+  yayınlanınca canlıya çıkar (dakikalar). Parametrik (sarı) üründe fiyat değiştirilemez;
+  ürün silme yok.</p>
+ </div>
+ <section id="kuyrukKutu"></section>
+ <section id="urunListe"></section>
+</main>
 <script>
 var PANEL_TUM_DURUMLAR=${JSON.stringify([...TUM_DURUMLAR])};
 var PANEL_GRUP_SIRASI=${JSON.stringify(PANEL_GRUP_SIRASI)};
@@ -2063,7 +2256,110 @@ async function havaleOnayla(no){
 }
 function komutKopyala(t){navigator.clipboard&&navigator.clipboard.writeText(t);
  alert("Panoya kopyalandı:\\n"+t);}
+// ---- URUNLER SEKMESI (T1) — kuyruk gorunumu + duzenleme -----------------------
+// Kaydet SITEYI DEGISTIRMEZ: /urunler-ustyazim kuyruga hal='beklemede' satir yazar;
+// tabana isleyen tek kol CI uygulayicisidir. Ekran bunu acikca soyler.
+var urunVeri={};
+function sekmeSec(u){
+ document.getElementById("liste").hidden=u;
+ document.getElementById("urunler").hidden=!u;
+ document.getElementById("sekmeSiparis").className="sekme"+(u?"":" aktif");
+ document.getElementById("sekmeUrun").className="sekme"+(u?" aktif":"");
+ document.getElementById("siparisAraclar").style.display=u?"none":"flex";
+ if(u){urunYukle();}
+}
+async function urunYukle(){
+ var q=document.getElementById("urunAra").value.trim();
+ var kutu=document.getElementById("urunListe");
+ kutu.innerHTML="<p>Yükleniyor…</p>";
+ var r=await api("/urunler"+(q?"?q="+encodeURIComponent(q):""));
+ if(r.kod!==200){kutu.innerHTML='<p class="hata">Liste alınamadı ('+r.kod+
+  '). Oturum düşmüş olabilir — sayfayı yenileyin.</p>';return;}
+ urunVeri={};
+ var u=(r.govde&&r.govde.urunler)||[];
+ var bek=(r.govde&&r.govde.bekleyen)||{};
+ var html=(r.govde&&r.govde.kuyruk_tablosu===false)?
+  '<p class="yok">Kuyruk tablosu yok — şema koşulmamış; Kaydet çalışmaz.</p>':"";
+ if(!u.length){kutu.innerHTML=html+"<p>Ürün bulunamadı.</p>";kuyrukYukle();return;}
+ html+=u.map(function(x){
+  urunVeri[x.id]={fiyat:x.fiyat||"",baslik:x.baslik||"",aciklama:x.aciklama||"",
+   parametrik:!!x.parametrik};
+  var b=bek[x.id]||{};
+  var bekNot=Object.keys(b).length?
+   '<div class="yok">Kuyrukta bekleyen üst yazım: '+Object.keys(b).map(esc).join(", ")+'</div>':"";
+  var gorsel=x.gorsel?'<img src="'+esc(x.gorsel)+'" alt="" loading="lazy" '+
+   'style="width:44px;height:44px;object-fit:cover;border-radius:6px">':"";
+  var fiyatAlan=x.parametrik?
+   '<label>Fiyat <input id="uf-'+esc(x.id)+'" disabled placeholder="parametrik — taban fiyat şemadan"></label>':
+   '<label>Fiyat <input id="uf-'+esc(x.id)+'" value="'+esc(x.fiyat||"")+'" placeholder="örn. 500 TL"></label>';
+  return '<details class="kart" data-uid="'+esc(x.id)+'">'+
+   '<summary class="ust">'+gorsel+'<span class="no">'+esc(x.baslik)+'</span>'+
+   '<span class="kucuk">'+esc(x.id)+'</span>'+
+   '<span class="rozet">'+esc(x.fiyat||(x.parametrik?"parametrik":"fiyat yok"))+'</span></summary>'+
+   bekNot+
+   '<div class="alan-form">'+fiyatAlan+
+   '<label>Başlık <input id="ub-'+esc(x.id)+'" value="'+esc(x.baslik||"")+'"></label>'+
+   '<label>Açıklama <textarea id="ua-'+esc(x.id)+'" rows="5">'+esc(x.aciklama||"")+'</textarea></label>'+
+   '<div class="eylemler"><button onclick="urunKaydet(\\''+esc(x.id)+'\\')">Kaydet (kuyruğa)</button></div>'+
+   '</div></details>';
+ }).join("");
+ kutu.innerHTML=html;
+ kuyrukYukle();
+}
+async function urunKaydet(id){
+ var t=urunVeri[id];if(!t)return;
+ var alanlar=[["fiyat",document.getElementById("uf-"+id)],
+  ["baslik",document.getElementById("ub-"+id)],
+  ["aciklama",document.getElementById("ua-"+id)]];
+ var isler=[];
+ for(var i=0;i<alanlar.length;i++){
+  var ad=alanlar[i][0],el=alanlar[i][1];
+  if(!el||el.disabled)continue;
+  var deger=(ad==="aciklama")?el.value.replace(/\\r\\n?/g,"\\n").trim():el.value.trim();
+  if(deger===t[ad])continue;
+  if(!deger){alert(ad+" boş bırakılamaz (silme yok).");return;}
+  if(ad==="fiyat"&&!new RegExp("^[1-9][0-9]{0,5} TL$").test(deger)){
+   alert('Fiyat biçimi "500 TL" olmalı (yalnız tam sayı + TL).');return;}
+  isler.push([ad,deger]);
+ }
+ if(!isler.length){alert("Değişiklik yok.");return;}
+ for(var j=0;j<isler.length;j++){
+  var r=await api("/urunler-ustyazim",{method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({urun_id:id,alan:isler[j][0],deger:isler[j][1]})});
+  if(r.kod!==200){alert("Olmadı ("+isler[j][0]+"): "+(r.govde&&r.govde.hata||r.kod));return;}
+ }
+ alert(isler.length+" alan kuyruğa yazıldı. Uygulayıcı işleyip site yeniden yayınlanınca canlıya çıkar.");
+ urunYukle();
+}
+async function kuyrukYukle(){
+ var kutu=document.getElementById("kuyrukKutu");
+ var r=await api("/urunler-kuyruk");
+ if(r.kod!==200){kutu.innerHTML='<p class="hata">Kuyruk alınamadı ('+r.kod+')</p>';return;}
+ if(r.govde&&r.govde.tablo_yok){
+  kutu.innerHTML='<div class="kart"><p class="yok">Kuyruk tablosu yok — şema koşulmamış.</p></div>';return;}
+ var s=(r.govde&&r.govde.satirlar)||[];
+ if(!s.length){kutu.innerHTML='<div class="kart"><p class="kucuk">Kuyruk boş.</p></div>';return;}
+ kutu.innerHTML='<div class="kart"><b>Kuyruk (son '+s.length+')</b>'+s.map(function(x){
+  var iptal=x.hal==="beklemede"?
+   ' <button class="sil" onclick="kuyrukIptal('+(+x.id)+')">İptal</button>':"";
+  var sebep=x.sebep?' <span class="kucuk">'+esc(x.sebep)+'</span>':"";
+  return '<div class="satir"><span class="rozet '+esc(x.hal)+'">'+esc(x.hal)+'</span> '+
+   '<b>'+esc(x.urun_id)+'</b> · '+esc(x.alan)+' → '+esc((x.deger||"").slice(0,80))+sebep+
+   ' <span class="kucuk">'+esc((x.ts||"").slice(0,16).replace("T"," "))+'</span>'+iptal+'</div>';
+ }).join("")+'</div>';
+}
+async function kuyrukIptal(id){
+ if(!confirm("Bekleyen üst yazım iptal edilsin mi?"))return;
+ var r=await api("/urunler-ustyazim-sil",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({id:id})});
+ if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));}
+ urunYukle();
+}
 document.getElementById("yenile").onclick=yukle;
 document.getElementById("durumSuzgec").onchange=yukle;
+document.getElementById("sekmeSiparis").onclick=function(){sekmeSec(false);};
+document.getElementById("sekmeUrun").onclick=function(){sekmeSec(true);};
+document.getElementById("urunAraBtn").onclick=urunYukle;
+document.getElementById("urunAra").onkeydown=function(e){if(e.key==="Enter"){urunYukle();}};
 yukle();
 </script></body></html>`;

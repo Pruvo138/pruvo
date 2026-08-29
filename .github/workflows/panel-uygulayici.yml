@@ -1,0 +1,75 @@
+name: Panel ustyazim uygulayici
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NEDEN VAR (T1, mimar hakem hukmu 29 Agu 2026): yonetim paneli ("Urunler"
+# sekmesi) urunler.json'a ASLA yazmaz; D1 `panel_ustyazim` KUYRUGUNA satir yazar.
+# Bu is akisi o kuyrugu tabana isleyen TEK UYGULAYICI ve git'e yazan TEK koldur —
+# ikinci bir merge noktasi (public ustyazim ucu / kenar-yeniden-yazim) BILEREK
+# YOKTUR. urunler.json TEK okuma kaynagi KALIR; fiyat/JSON-LD Build & deploy
+# kosunca TABANDAN dogar. Mekanizma tools/panel-uygulayici.py bas blogunda.
+#
+# DURUST BEDEL: Okan'in panel duzenlemesi ANINDA degil, uygulayici + build
+# kosunca yayina cikar — bugun sitedeki her degisiklikle ayni gecikme sinifi.
+#
+# TETIKLER — cron TEK KOL DEGILDIR (bu depoda OLCULDU: zamanlanmis kosum teslimi
+# ~%5, en uzun bosluk 17,6 saat; bkz. d1-uzlastirici.yml bas blogu). Gercek
+# tetik `repository_dispatch`tir: shop worker'i (yonet.js) kuyruga satir yazinca
+# GH_DISPATCH_TOKEN secret'i TANIMLIYSA bu olayi gonderir (tanimli degilse
+# sessizce atlanir, cron/elle kol kapsar). Dakikalar ceyrek-saat sinirlarindan
+# kacinir (GitHub'in en yogun tetikleme dakikalari — `*/15` HIC ateslenmedi).
+on:
+  schedule:
+    - cron: "8,23,38,53 * * * *"
+  workflow_dispatch:
+  repository_dispatch:
+    types: [panel-ustyazim]
+
+# contents: write — uygulayici duzelt.py ile isledigi urunler.json'u main'e
+# ITER (git'e yazan tek kol burasi). actions: write — GITHUB_TOKEN push'u
+# `push` tetikleyicilerini CALISTIRMAZ (GitHub ozyineleme korumasi; istisna
+# workflow_dispatch/repository_dispatch), bu yuzden uygulayici Build & deploy'u
+# workflow_dispatch ile KENDISI cagirir; izin dusurulurse fiyat main'e girer
+# ama canliya HIC cikmazdi (sessiz sinif — arac o hali rc=1 ile GORUNUR kilar).
+permissions:
+  contents: write
+  actions: write
+
+# TEK UYGULAYICI concurrency ile de kilitli: ayni anda iki kosum urunler.json'a
+# yarisamaz. cancel-in-progress: false — yazmanin ORTASINDA kesmek yerine siraya
+# gir (GitHub grup basina 1 kosan + 1 bekleyen tutar, kuyruk sismez).
+concurrency:
+  group: panel-uygulayici
+  cancel-in-progress: false
+
+jobs:
+  uygula:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # npx wrangler — d1-sync.py'nin D1 istemcisi (uygulayici kuyrugu onunla okur).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Uygulayici once KENDI kabulunu kosar: batarya kirmiziysa kuyruga HIC
+      # dokunulmaz (fail-closed; bozuk uygulayici canli katalogu isleyemez).
+      # Offline, sentetik git fiksturu + sqlite; canli D1'e/aga DOKUNMAZ, ~30 s.
+      - name: Uygulayici kendini-testi (bozuk uygulayici kuyruga dokunmasin)
+        run: python3 tools/panel-uygulayici.py --kendini-test
+
+      # Kuyrugu tabana isle: beklemede satirlari duzelt.py --toplu ile
+      # urunler.json'a yazar, commit'i main'e iter, satirlari damgalar,
+      # Build & deploy'u workflow_dispatch ile tetikler. Secret yoksa exit 0
+      # (aktuator, kapi degil — is-akisi kapisinin agacta kosturdugu prova
+      # kosumu da bu koldan yesil cikar).
+      - name: Kuyrugu tabana isle
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/panel-uygulayici.py --uygula

@@ -229,7 +229,12 @@ ol("K39 stl-liste/stl indirme yollari DEGISMEDI",
 // YETKI YUZEYI: yeni uc EKLENMEDI. Sayilar bu isten ONCEKI HEAD'de OLCULDU
 // (git show HEAD:shop/src/yonet.js -> altYol kolu 10, Content-Disposition 2);
 // tahmin DEGIL. Artarsa yeni bir yetkili uc ya da yeni bir dosya akisi acilmis demektir.
-const KOL_TABANI = 10, CD_TABANI = 2;
+// 30 Agu 2026 (T1, Okan emri — manuel shop paneli): ara donemde eklenen kollarla
+// birlikte olculen taban 11'di; "Urunler" sekmesi 4 uc ekledi (GET /urunler,
+// GET /urunler-kuyruk, POST /urunler-ustyazim, POST /urunler-ustyazim-sil — hepsi
+// yonetim anahtari arkasinda, EGE_ANAHTAR acamaz; kurallari shop/test/urunler-panel.mjs)
+// -> taban BILEREK ve TARIHLI olarak 15. panel-kaynak.mjs V9d ayni sayiyi olcer.
+const KOL_TABANI = 15, CD_TABANI = 2;
 const kolSayisi = (KAYNAK.match(/altYol === "/g) || []).length;
 ol("K40 YETKI YUZEYI GENISLEMEDI: yonlendirici kolu " + KOL_TABANI + " (yeni uc yok)",
   kolSayisi === KOL_TABANI, "kol=" + kolSayisi);

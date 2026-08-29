@@ -594,6 +594,20 @@ jobs:
       - name: Uretici kaynak linki + acilir kart (panel gizlilik kapisi)
         run: node shop/test/panel-kaynak.mjs
 
+      # T1 (30 Agu 2026, Okan emri — manuel shop paneli): "URUNLER" SEKMESI kabulu.
+      # Panel "Kaydet"i urunler.json'a DEGIL D1 `panel_ustyazim` KUYRUGUNA yazar; tabana
+      # isleyen TEK kol CI uygulayicisidir (panel-uygulayici.yml). Bu kapi WORKER yuzeyini
+      # olcer: 4 yeni ucun yonetim anahtari ARKASINDA kaldigi (EGE_ANAHTAR hicbirini
+      # ACAMAZ, secret'siz kurulum 404), beyaz liste (fiyat|baslik|aciklama) + fiyat
+      # bicimi + parametrik-fiyat reddi, ayni (urun, alan) bekleyen satirin COGALMADIGI,
+      # yalniz 'beklemede' satirin iptal edilebildigi, sema yokken YAZMANIN 503 ile
+      # fail-closed durdugu, dispatch tetiginin token'siz DISARI CIKMADIGI. Uygulayici
+      # ekseni BURADA OLCULMEZ (ikiz iddia yok): tools/panel-uygulayici.py --kendini-test
+      # kendi is akisinin ILK adimidir. Ag/wrangler/D1 GEREKMEZ; yonet.js dogrudan import
+      # edilir, sahte env.KATALOG ile kosar (~1 s). continue-on-error YOK.
+      - name: Urunler sekmesi kabul testi (panel ustyazim kuyrugu — worker yuzeyi)
+        run: node shop/test/urunler-panel.mjs
+
       # K252 — SIPARIS DURUM SECICI (kargosuz tamamlama + geri alma + tahsilat yalani kapisi).
       # OLCULEN HUKUM (tools/paket-siparis-durum-secici.md §2, Okan karari 20 Agu 2026):
       #   ① 'uretimde' -> 'tamamlandi' 200 ve UPDATE kargo kolonlarina DOKUNMAZ (takip kodu

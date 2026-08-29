@@ -290,7 +290,11 @@ ol("V9c durum degistirme kontrolu (secici+Uygula) + 'Yerel komut kopyala' kartta
 // ve TARIHLI olarak bir artirildi. Ucun KENDI kurallari shop/test/havale-onay.mjs'te
 // olculur; burada YALNIZ "kac kol var" sayilir. Taban degistirmeden gecmek isteyen biri
 // bu satiri gormeden gececek olsaydi tripwire islevini yitirirdi.
-const KOL_TABANI = 11, CD_TABANI = 2;
+// 30 Agu 2026 (T1, Okan emri — manuel shop paneli): "Urunler" sekmesi 4 uc ekledi
+// (GET /urunler, GET /urunler-kuyruk, POST /urunler-ustyazim, POST /urunler-ustyazim-sil;
+// hepsi yonetim anahtari arkasinda, EGE_ANAHTAR acamaz) -> taban 11'den 15'e BILEREK
+// ve TARIHLI artirildi. Uclarin kendi kurallari shop/test/urunler-panel.mjs'te olculur.
+const KOL_TABANI = 15, CD_TABANI = 2;
 const kolSayisi = (KAYNAK.match(/altYol === "/g) || []).length;
 ol("V9d YETKI YUZEYI GENISLEMEDI: yonlendirici kolu " + KOL_TABANI + " (yeni uc yok)",
   kolSayisi === KOL_TABANI, "kol=" + kolSayisi);
