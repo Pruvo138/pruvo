@@ -2684,6 +2684,26 @@ R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VI
 
 # ---- IZIN LISTESI (muaf test -> GEREKCE). Bos gerekce = exit 1. ----------
 IZIN_LISTESI = {
+    # --- Izin-kancasi BATARYALARI (ayni supurmenin ikinci dalgasi — KraL 29 Agu) ---
+    # 29 Agu supurmesi kapi KAYNAKLARINI silmisti (asagidaki blok geri yukledi) ama bu iki
+    # BATARYAYI kimse geri takmamisti: kapi canli, nobetcisi YOKTU. K332 merge cakismasinda
+    # (modify/delete) ortaya cikti ve dalin surumuyle geri geldi. CI'da KOSTURULAMAZLAR ve
+    # bu bir tercih degil olculmus bir sinirdir: vakalar MUTLAK yerel yollara capalidir
+    # (`/Users/okan/.claude/cron/isci.sh`), rol ekseni OTURUM DAMGASINDAN (transcript_path)
+    # okunur ve git'e KAYITLI worktree kokleriyle tam bilesen esitligi arar — runner'da bu
+    # duzlemin ucu de yoktur, kosum "yesil" degil ANLAMSIZ olurdu.
+    # 🔴 KALAN RISK ADIYLA (K196 sinifi): yesilleri YALNIZ yerelde olculur; kapiyi degistiren
+    # her is bu iki bataryayi kendi agacinda kosturmak ZORUNDADIR (kabul sarti), yoksa
+    # regresyon CI'ya hic ugramadan main'e iner.
+    "tools/mimar-kilit-test.py": (
+        "YEREL-DUZLEM BATARYASI: mimar-icra-kapisi'nin izin tablosunu olcer; vakalar mutlak "
+        "yerel yollara + oturum damgasina + kayitli worktree koklerine capali, CI runner'da "
+        "bu duzlem YOK. 29 Agu supurmesinde silindi, K332 merge'unde geri geldi. Canliligi "
+        "kapiyi degistiren isin KABUL SARTI olarak yerelde olculur."),
+    "tools/mimar-kapi-mutasyon-test.py": (
+        "YEREL-DUZLEM BATARYASI (yukaridakinin mutant ciftı): ayni damga/worktree duzlemine "
+        "capali, CI'da kosturulamaz. Kapi kolunu olduren mutantlarin hedef-kol atfini olcer; "
+        "supurmede silindi, K332 merge'unde geri geldi."),
     # --- Izin-kancasi KAYNAKLARI (silinemez sinif — BaBa 29 Agu FILO FELCI karari) ---
     # 29 Agu supurmesi (ca8c3815) bu iki govdeyi silmisti; oturum kancalari bunlari
     # calisma aninda OKUDUGU icin filodaki her oturumun Bash'i fail-closed kilitlendi
