@@ -734,6 +734,15 @@ ISCI_M3 = "/Users/okan/.claude/cron/m3-isci.sh"
 # kaydirir ve vaka hep YESIL yanardi ([[prob-kendi-baglamini-olcer]]).
 CRON_KOK = os.path.dirname(ISCI_W)
 
+# 🔴 29 AGU (K332-DIRILTME) — FIKSTUR KUTSANAMAZ.
+# Yama 28 Agu'da yazildi ve fiksturu `cip_dogum_bekcisi.py --teslim-karari` idi.
+# Aradan gecen surede main'e K343/K344 "BEKCI KOVASI" girdi ve TAM O CAGRIYI
+# ROLDEN BAGIMSIZ actı. Sonuc olculdu: 815 gecti ama IZI 'ORTAK-ALTYAPI(' DEGIL,
+# 816 (ANA oturum) ve 820 (damgasiz) ise KUTSANDI -> beklenen deny'lar allow oldu.
+# Yani vakalar K332'yi degil, komsu bir kolu olcuyordu.
+# CARE: fikstur, kapinin BASKA hicbir kolunun acmadigi bir duzlem araci olmali.
+K332_ARAC = CRON_KOK + "/gozcu.py"
+
 # 🔴 19 AGU (K214): DAGITIM vakalari CANLI motorla ('kimi') kosar. Eskiden hepsi
 # 'deepseek-flash' idi — 15 Agu'da EMEKLI edilen bir kat. Vakalar o hâliyle "delegasyon
 # yolu ACIK" diye YESIL yanarken CANLI birincil kat (kimi) hic olculmuyordu; kurulu
@@ -1003,21 +1012,21 @@ ROL_VAKALARI = [
     # 815 ASIL vakadir; 816/820 kolun bir GEVSETME olmadigini, 817/818/819 menzilin
     # duzlemle SINIRLI oldugunu civiler.
     (815, "allow", "Bash",
-     "python3 " + CRON_KOK + "/cip_dogum_bekcisi.py --teslim-karari", None,
+     "python3 " + K332_ARAC, None,
      "K332 POZITIF: CIP ortak altyapi duzlemindeki araci kosturur",
      {}, "ORTAK-ALTYAPI(", _CIP),
     (816, "deny", "Bash",
-     "python3 " + CRON_KOK + "/cip_dogum_bekcisi.py --teslim-karari", None,
+     "python3 " + K332_ARAC, None,
      "K332 KONTROL: ANA oturum AYNI cagriyi HALA REDDEDER", {}, None,
      {"transcript_path": TP_ANA}),
     (820, "deny", "Bash",
-     "python3 " + CRON_KOK + "/cip_dogum_bekcisi.py --teslim-karari", None,
+     "python3 " + K332_ARAC, None,
      "K332 FAIL-CLOSED: damga YOK (rol OLCULEMEDI) -> RED", {}, None, {}),
     (817, "deny", "Bash",
      "python3 " + CRON_KOK + "/../../dev/pruvo-hasat/tools/x.py", None,
      "K332 SINIR: '..' ile duzlemden KACIS -> RED", {}, None, _CIP),
     (818, "deny", "Bash",
-     "python3 " + CRON_KOK + "/cip_dogum_bekcisi.py --spec /private/tmp/spec.md", None,
+     "python3 " + K332_ARAC + " --spec /private/tmp/spec.md", None,
      "K332 SINIR: duzlem DISI ikinci yol argumani -> RED", {}, None, _CIP),
     (819, "deny", "Bash",
      "python3 " + CRON_KOK + "-sahte/cip_dogum_bekcisi.py", None,
@@ -1330,6 +1339,57 @@ def kablo_kume_kostur(gecici_kok):
     canli = subprocess.run([sys.executable, KUR, "--durum"], capture_output=True, text=True)
     print("BILGI canli kablo exit={} | {}".format(
         canli.returncode, " ".join((canli.stdout or "").split())[:120]))
+    return basarisiz, atlanan
+
+
+def k332_fikstur_kutsanma_denetimi():
+    """🔴 29 AGU (K332-DIRILTME): 815/816/818/820'nin FIKSTURU KUTSANMIS OLAMAZ.
+
+    OLCULEN ARIZA (bugun): fikstur `cip_dogum_bekcisi.py --teslim-karari` idi;
+    komsu bir kol (K343/K344 BEKCI KOVASI) main'e girip TAM O CAGRIYI rolden
+    bagimsiz acinca 815 YANLIS KOLDAN gecti, 816/820 ise KUTSANDI. Vakalar
+    K332'yi degil komsu kolu olcmeye basladi ve bunu hicbir sey soylemedi.
+
+    Bu nobetci fiksturu kapinin BILINEN-ARAC haritasina karsi olcer: fikstur o
+    haritada gorunurse KIRMIZI (sessiz kalmaz). Vaka 821."""
+    import importlib.util
+    basarisiz = []
+    atlanan = []
+    kapi_yol = os.path.join(TOOLS, "mimar-icra-kapisi.py")
+    if not os.path.exists(kapi_yol):
+        basarisiz.append((821, "fikstur-kutsanmamis", "EKSIK-KAPI",
+                          "mimar-icra-kapisi.py bulunamadi: " + kapi_yol))
+        print("821  K332 fikstur kutsanma: EKSIK-KAPI")
+        return basarisiz, atlanan
+    spec = importlib.util.spec_from_file_location("_k332_kapi", kapi_yol)
+    kapi = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(kapi)
+    except Exception as hata:  # noqa: BLE001 — olculemedi, sessiz gecmez
+        basarisiz.append((821, "fikstur-kutsanmamis", "KAPI-IMPORT-COKTU",
+                          "kapi ice aktarilamadi: " + repr(hata)[:120]))
+        print("821  K332 fikstur kutsanma: KAPI-IMPORT-COKTU")
+        return basarisiz, atlanan
+
+    harita = getattr(kapi, "_BILINEN_BAYRAK_HARITASI", None)
+    if harita is None:
+        # FAIL-CLOSED: haritanin adi degisirse "kutsanma yok" DIYEMEYIZ.
+        basarisiz.append((821, "fikstur-kutsanmamis", "OLCULEMEDI",
+                          "_BILINEN_BAYRAK_HARITASI kapida YOK — kutsanma olculemez"))
+        print("821  K332 fikstur kutsanma: OLCULEMEDI (harita adi kaydi)")
+        return basarisiz, atlanan
+
+    if K332_ARAC in harita:
+        basarisiz.append((821, "fikstur-kutsanmamis", "FIKSTUR-KUTSANMIS",
+                          "K332 fiksturu (" + K332_ARAC + ") kapinin BILINEN-ARAC "
+                          "haritasinda — 815 yanlis koldan gecer, 816/820 kutsanir. "
+                          "Fiksturu hicbir recete kumesinde OLMAYAN bir duzlem "
+                          "aracina tasi."))
+        print("821  K332 fikstur kutsanma: FIKSTUR-KUTSANMIS ({})".format(K332_ARAC))
+        return basarisiz, atlanan
+
+    print("821  K332 fikstur kutsanma: TEMIZ (fikstur={} recete disi, harita={} arac)"
+          .format(os.path.basename(K332_ARAC), len(harita)))
     return basarisiz, atlanan
 
 
@@ -1787,6 +1847,9 @@ def main():
             basarisiz += b
             atlanan += a
             b, a = kablo_kume_kostur(gecici_kok)
+            basarisiz += b
+            atlanan += a
+            b, a = k332_fikstur_kutsanma_denetimi()
             basarisiz += b
             atlanan += a
             b, a = k159_mesaj_denetim()
