@@ -2946,38 +2946,15 @@ IZIN_LISTESI = {
         "217,1 s — tek build job'unu blokar (M14 asilma nobeti tek basina ~120 s). "
         "Kardesleri (parite-sozlesme + parite-fikstur) artik CI'da kosuyor; bu dosya "
         "izole/ayri bir job'a alinmadan Pages hattina EKLENMEZ."),
-    # --- tools/ python: mimar-disiplin (mutlak yol + commit'siz kablolama) ---
-    "tools/mimar-kilit-test.py": R_YOL,
-    "tools/mimar-commit-kapisi-test.py": R_YOL,
-    "tools/mimar-kapi-mutasyon-test.py": R_YOL,
-    # MAKINEYE BAGIMLI: kardes mimar evi dizinleri (~/dev/pruvo-hasat, -jenerator, -pazarlama,
-    # -bot, -advisor) CI runner'inda YOK -> fail-closed test orada yapisal KIRMIZI yanar ve
-    # bloklayici adim olarak TUM yayini durdurur (yedekle-test.py / yedek-hook-test.py emsali).
-    "tools/mimar-kapi-6ev-test.py": (
-        R_YOL + " Somut olarak: olcum girdisi 5 KARDES MIMAR EVININ dizini (~/dev/pruvo-hasat, "
-        "-jenerator, -pazarlama, -bot, -advisor) ve o evlerin commit EDILMEYEN "
-        ".claude/mimar-icra-kapisi.py kapilari. CI fresh checkout'unda bu evlerin hicbiri "
-        "YOKTUR -> 6 evin 5'i olculemez, fail-closed test KIRMIZI yanar."),
+    # --- tools/ python: mimar-disiplin ---
+    # (KraL-KapiSupurmesi-29Agu: mimar-kilit/commit/kapi-mutasyon/6ev/kod-kilidi/
+    # agent-kapisi test muafiyetleri kaldirildi — dosyalar BaBa 28 Agu filo
+    # karariyla silindi.)
     "tools/kapi-envanteri-test.py": R_YOL,
-    "tools/kod-kilidi-test.py": R_YOL,  # E paketi YESILLEDI; mutlak /Users/okan/dev/pruvo yoluna bagli -> fresh checkout'ta yapisal KIRMIZI
-    "tools/agent-kapisi-test.py": (
-        R_YOL + " Somut: AGENT-KAPISI kabul testi (28 Tem) — mimar-icra-kapisi.py'nin "
-        "Agent/Task kolu + mimar-kapi-kur.py kablosu; mimar-kilit/6ev/mutasyon/kod-kilidi ile "
-        "AYNI aile. Girdisi kardes mimar evi gate'leri (/Users/okan/dev/pruvo-hasat, -advisor "
-        "... .claude/mimar-icra-kapisi.py) ve o evlerin commit EDILMEYEN kablolamasi. "
-        "🔴 GEREKCE DUZELTILDI (31 Tem, OLCULDU): eski metin 'Bolum A+B offline-YESIL, C "
-        "guarded-CEVRE-ATLANAN (skip=exit 0)' diyordu — bu YANLIS. `git clone --local` ile "
-        "kurulan TEMIZ checkout'ta bayraksiz kosum rc=1 verdi "
-        "(\"SONUC: KIRMIZI — basarisiz: ('MaCiT','ZATEN TAM',[]) ('BaBa','ZATEN TAM',[])\"), "
-        "yani atlanan degil KIRMIZI yanan bir kol var. Bloklayici adim olarak eklenirse "
-        "CI'da yapisal olarak TUM yayini durdururdu. Muafiyet MESRU; gerekce artik "
-        "olculen davranisi anlatiyor."),
     # --- tools/ NOBETCILER (*-kapisi.py) — kesif 21 Tem genisletildi, CI'da kosmayanlar ---
     "tools/komut-stili-kapisi.py": R_HOOK,
-    "tools/mimar-icra-kapisi.py": R_HOOK,
-    "tools/mimar-commit-kapisi.py": (
-        R_HOOK + " Ayrica git commit backstop'u olarak commit EDILMEYEN .git/hooks kablolamasina "
-        "ve ana-checkout/worktree ayrimina bagli (R_YOL ile ayni sinif)."),
+    # (KraL-KapiSupurmesi-29Agu: mimar-icra-kapisi ve mimar-commit-kapisi
+    # muafiyetleri kaldirildi — kapilar silindi.)
     # "tools/denetim-kapisi.py" MUAFIYETI KALDIRILDI (31 Tem, madde 32) — R_GIZLI gerekcesi
     # (shop/test/kabul.js vakasinin AYNISI) YARI DOGRUYDU ve tam da bu yuzden tehlikeliydi:
     #  (a) "parti CI'da BOS kalir -> anlamsiz YESIL" kismi OLCULEREK DOGRULANDI (git archive
@@ -3210,18 +3187,8 @@ IZIN_LISTESI = {
     "tools/nobet-dagitilmaz-sebep-test.py": (
         "URETIM KAYNAGI CI'DA YOK: ~/.claude/cron/nobet-kapi.py repoya dahil degil; "
         "test Okan makinesinde canli cron karsisinda kosar."),
-    "tools/nobet-gorev-jeton-kapisi.py": (
-        "URETIM KAYNAGI CI'DA YOK — ayni sinif (bkz. bir ustteki giris). Kapinin uc "
-        "kolunun UCU DE ~/.claude/cron/ altini olcer: K1 `ci-nobeti-gorev.md` metnini, "
-        "K2/K3 `nobet-kapi.py`nin GERCEK davranisini. Ikisi de repoya dahil DEGILDIR. "
-        "SOMUT OLCUM (27 Agu 2026, kok bos bir dizine yoneltildi = CI kosucusunun "
-        "gordugu hal): rc=2, `ARAC HATASI: nobet-kapi.py yuklenemedi`. "
-        "🔴 FIKSTURE CEVIRMEK COZUM DEGIL: kapinin tum degeri EMRIN CANLI kopyasini "
-        "olcmesinden gelir; fikstur uzerinde yesil yanmak emrin canliligini "
-        "KANITLAMAZ ([[emir-canliligi-kurulu-kopyadan-olculur]]). Ayirt ediciligi "
-        "`--mutasyon` koluyla olculur (27 Agu: OLEN=4/4 ATIF=4/4). "
-        "Bu giris K276'nin (kabul CI DISINDA) kapsamindadir; o kalem kapaninca "
-        "bu muafiyet de yeniden degerlendirilir."),
+    # (KraL-KapiSupurmesi-29Agu: nobet-gorev-jeton-kapisi muafiyeti kaldirildi —
+    # kapi silindi.)
 }
 
 
