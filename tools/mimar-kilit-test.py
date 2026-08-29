@@ -729,6 +729,10 @@ ISCI_SPEC_YOK = os.path.join(_ISCI_FIKSTUR_DIZINI, "hic-yazilmadi.md")
 
 ISCI_W = "/Users/okan/.claude/cron/isci.sh"
 ISCI_M3 = "/Users/okan/.claude/cron/m3-isci.sh"
+# K332 ORTAK ALTYAPI DUZLEMI. Test tarafinda BAGIMSIZ literalden turer — kapinin kendi
+# ORTAK_ALTYAPI_KOKU sabitinden okunsaydi, sabiti kaydiran bir mutant probu da birlikte
+# kaydirir ve vaka hep YESIL yanardi ([[prob-kendi-baglamini-olcer]]).
+CRON_KOK = os.path.dirname(ISCI_W)
 
 # 🔴 19 AGU (K214): DAGITIM vakalari CANLI motorla ('kimi') kosar. Eskiden hepsi
 # 'deepseek-flash' idi — 15 Agu'da EMEKLI edilen bir kat. Vakalar o hâliyle "delegasyon
@@ -993,6 +997,31 @@ ROL_VAKALARI = [
      "CIP'te de KAPALI: 13 Agu Okan emri (isci.sh claude, sert blok ev)", {}, None, _CIP),
     (811, "deny", "Agent", "worktree'de olcum yap", None,
      "CIP'te de KAPALI: AGENT-KAPISI (Claude iscisi yasagi)", {}, None, _CIP),
+    # === 28 AGU 2026 (K332) — ORTAK ALTYAPI DUZLEMI: ROL EKSENI R2/F'DE TUKETILIR ===
+    # OLCULEN ARIZA: rol ekseni cipi TANIYORDU (802 YESIL) ama R2/F kollari rol
+    # parametresi ALMIYORDU -> '~/.claude/cron/' duzleminin TAMAMI cipe de kapaliydi.
+    # 815 ASIL vakadir; 816/820 kolun bir GEVSETME olmadigini, 817/818/819 menzilin
+    # duzlemle SINIRLI oldugunu civiler.
+    (815, "allow", "Bash",
+     "python3 " + CRON_KOK + "/cip_dogum_bekcisi.py --teslim-karari", None,
+     "K332 POZITIF: CIP ortak altyapi duzlemindeki araci kosturur",
+     {}, "ORTAK-ALTYAPI(", _CIP),
+    (816, "deny", "Bash",
+     "python3 " + CRON_KOK + "/cip_dogum_bekcisi.py --teslim-karari", None,
+     "K332 KONTROL: ANA oturum AYNI cagriyi HALA REDDEDER", {}, None,
+     {"transcript_path": TP_ANA}),
+    (820, "deny", "Bash",
+     "python3 " + CRON_KOK + "/cip_dogum_bekcisi.py --teslim-karari", None,
+     "K332 FAIL-CLOSED: damga YOK (rol OLCULEMEDI) -> RED", {}, None, {}),
+    (817, "deny", "Bash",
+     "python3 " + CRON_KOK + "/../../dev/pruvo-hasat/tools/x.py", None,
+     "K332 SINIR: '..' ile duzlemden KACIS -> RED", {}, None, _CIP),
+    (818, "deny", "Bash",
+     "python3 " + CRON_KOK + "/cip_dogum_bekcisi.py --spec /private/tmp/spec.md", None,
+     "K332 SINIR: duzlem DISI ikinci yol argumani -> RED", {}, None, _CIP),
+    (819, "deny", "Bash",
+     "python3 " + CRON_KOK + "-sahte/cip_dogum_bekcisi.py", None,
+     "K332 SINIR: kardes dizin onek tuzagi ('<kok>-sahte') -> RED", {}, None, _CIP),
 ]
 
 

@@ -739,6 +739,98 @@ ISCI_SARMALAYICI_YOLU = os.path.expanduser("~/.claude/cron/isci.sh")
 # basina bu motor konmus gibi degerlendirilir — ayri bir kural govdesi YAZILMAZ.
 ISCI_M3_SARMALAYICI_YOLU = os.path.expanduser("~/.claude/cron/m3-isci.sh")
 ISCI_M3_CIVILI_MOTOR = "minimax-m3"
+
+# ============ 28 AGU 2026 (K332): ORTAK ALTYAPI DUZLEMI — ROL EKSENI R2/F'DE TUKETILIR ==
+# OLCULEN ARIZA (bes kez ayni gerekce, [[ucuncu-tekrar-sinif-kapisi]]): K318 ROL EKSENI
+# cipi TANIYOR (rol_ekseni worktree kokunu donduruyor, iz 'CIP(...)' basiliyor) ama R2
+# (argumanlarda repo DISI yol) ve F (betik repo ICINDE mi) kollari rol parametresi
+# ALMIYORDU. Sonuc: '~/.claude/cron/' duzleminin TAMAMI — cip_dogum_bekcisi.py, gozcu.py,
+# nobet kollari ve KAPININ KENDI ONERDIGI CARENIN ARACI olan isci.sh dahil — ana
+# oturumdan da, cipten de kapali; yalnizca agent_id dolu isciyle erisilebilir.
+# BOOTSTRAP KILIDI: kapi, cozum diye onerdigi araci calistirmayi yasakliyordu.
+#
+# 🔴 BU BIR AD LISTESI DEGILDIR — K319'un "serbest listeye <arac adi> ekle" ayagi
+# DUSURULDU ve o yola DONULMEDI. Menzil CAGRI YERIYLE olculur
+# ([[kapinin-menzili-cagri-yeridir]]) ve karar COZULMUS YOLDAN cikar, komut dizgesinden
+# DEGIL ([[n2b-kapisi-dizge-olcer]]). Duzlemin koku de ELLE ikinci kez YAZILMAZ: zaten
+# tek kaynak olan ISCI_SARMALAYICI_YOLU'ndan TURETILIR ([[ikiz-tanim-sessiz-ayrisma]]),
+# yani alti kardes evin hepsinde AYNI duzlemi gosterir ve isci.sh tasinirsa birlikte
+# tasinir.
+#
+# 🔴 GEVSETME DEGIL, KAPSAM DUZELTMESI — SINIRLAR (hepsi vaka ile cakili):
+#   * ANA oturumda hicbir sey degismez: muafiyet 'cip' YUKLEMINE bagli, rol OLCULEMEDIYSE
+#     (damga yok/kayitsiz/alt-dize) fail-closed ANA sayilir ve RED durur (vaka 816/820).
+#   * YALNIZ R2 ve F kollarini, YALNIZ o cagri icin susturur. A2 (tehlikeli env),
+#     C (satir-ici kod), AGENT-KAPISI, ISCI-SARMALAYICI kapisi (isci.sh claude sert blok)
+#     ve codex kalite kapisi AYNEN kosar (vaka 808/810/811 degismeden YESIL kalir).
+#   * Cagrilan betik duzlemin ICINDE olacak VE disari cozulen HER token ya repo ICI ya
+#     duzlem ICI olacak — 'dis_yol'un dondurdugu ILKI degil, HEPSI (vaka 818).
+#   * COZUMLEME repo_ici ile AYNI kalibi kullanir (_coz = expanduser + normpath) ve onek
+#     siniri '/' ile kapatilir: '..' kacisi (vaka 817) ve kardes dizin onek tuzagi
+#     '<duzlem>-sahte' (vaka 819) ICERDE SAYILMAZ.
+#   * SIMGESEL BAG (symlink) COZULMEZ — bilerek: repo_ici de cozmuyor, yani duzlemin
+#     sinir modeli repo sinirinin MODELIYLE AYNI. Ikinci bir realpath okumasi yazmadim
+#     cunku onu OLDUREBILECEK bir fikstur ortak altyapi duzlemine symlink yazmadan
+#     kurulamiyordu; nobetcisiz kural yazmaktansa ([[kapi-disiplin-ilkesi]]) mevcut
+#     modelle AYNI kalmak dogrudur. Sinir buradadir ve ADIYLA yazilidir.
+ORTAK_ALTYAPI_KOKU = os.path.dirname(ISCI_SARMALAYICI_YOLU)
+
+
+def _ortak_altyapi_ici(yol, cwd):
+    """Cozulmus yol ORTAK ALTYAPI DUZLEMI'nin ICINDE mi? (repo_ici ile AYNI kalip)"""
+    # Kok mutlak DEGILSE (HOME cozulemedi -> '~' oneki kalir, ya da kok bos) muafiyet
+    # YOKTUR. Bos kok olsaydi startswith("/") HER mutlak yolu icerde sayardi.
+    if not os.path.isabs(ORTAK_ALTYAPI_KOKU):
+        return False
+    hedef = _coz(yol, cwd)
+    return (hedef == ORTAK_ALTYAPI_KOKU or
+            hedef.startswith(ORTAK_ALTYAPI_KOKU + "/"))
+
+
+def _ortak_altyapi_muaf(argumanlar, cwd, cip):
+    """R2/F kollari icin ROL muafiyeti. True = bu CIP cagrisi ORTAK ALTYAPI DUZLEMI'ndeki
+    bir araci kosturuyor ve argumanlarindaki repo-disi yollarin HEPSI o duzlemin icinde.
+
+    MENZIL = CAGRI YERI: yuklem R2 ve F'nin cagri yerinde TUKETILIR; kurallarin govdesi
+    DEGISMEZ. 'cip' parametresi K318 rol ekseninden gelir — dusurulurse (mutant MR6/MR7)
+    cip yine RED alir."""
+    if not cip:
+        return False
+    if not argumanlar:
+        return False
+    # 1) CAGRILAN BETIK duzlemin icinde olacak (ilk bayraksiz token).
+    betik = None
+    for t in argumanlar:
+        if t.startswith("-"):
+            continue
+        betik = t
+        break
+    if betik is None or not _ortak_altyapi_ici(betik, cwd):
+        return False
+    # 2) DISARI COZULEN HER token ya repo ICI ya duzlem ICI olacak (ilki degil, HEPSI).
+    #    Aday cikarimi dis_yol ile AYNI okumadir (bayraga bitisik / '='li formlar dahil).
+    for t in argumanlar:
+        adaylar = []
+        if t.startswith("-"):
+            if "/" in t:
+                adaylar.append(t)
+                adaylar.append(t[t.index("/"):])
+            if "=" in t:
+                adaylar.append(t.split("=", 1)[1])
+        elif "/" in t or t.startswith("."):
+            adaylar.append(t)
+        for aday in adaylar:
+            if not aday:
+                continue
+            if "/" not in aday and not aday.startswith("."):
+                continue
+            if repo_ici(aday, cwd):
+                continue
+            if not _ortak_altyapi_ici(aday, cwd):
+                return False
+    return True
+
+
 # KAPALI KUME ortak mimar_kimlik.py kaynagindan gelir; burada ikinci tablo tutulmaz.
 # Argument sayisi (motor DAHIL): 3 (<motor> <ev> <spec>) ya da 4 (+ <etiket>).
 ISCI_ARGUMAN_SAYILARI = (3, 4)
@@ -1613,6 +1705,12 @@ def main():
         if disari and _kapi_dagitim_muaf(ad, argumanlar, cwd):
             iz_bas("KAPI-DAGITIM-KURUCU(R2)")
             disari = None
+        # 28 AGU (K332) — ORTAK ALTYAPI DUZLEMI. Kural DEGISMEDI; K318 rol ekseni BU
+        # CAGRI YERINDE tuketilir: cip, '~/.claude/cron/' duzlemindeki araci kosturur.
+        # ANA oturumda 'cip' False'tur -> yuklem daima False -> RED aynen durur.
+        if disari and _ortak_altyapi_muaf(argumanlar, cwd, cip):
+            iz_bas("ORTAK-ALTYAPI(R2)")
+            disari = None
         if disari:
             reddet(
                 "komutun argümanlarında repo DIŞINA çözülen bir yol var (" + disari + "). "
@@ -1641,6 +1739,12 @@ def main():
         # evin HICBIRI kendi kapisini kuramaz.
         if not repo_ici(betik, cwd) and _kapi_dagitim_muaf(ad, argumanlar, cwd):
             iz_bas("KAPI-DAGITIM-KURUCU(F)")
+            continue
+
+        # 28 AGU (K332) — F kolunun CAGRI YERI: R2 ile AYNI yuklem, AYNI rol parametresi.
+        # Iki kol da tuketilmezse cip duzlemi kosturamaz (R2 gecse F reddeder).
+        if not repo_ici(betik, cwd) and _ortak_altyapi_muaf(argumanlar, cwd, cip):
+            iz_bas("ORTAK-ALTYAPI(F)")
             continue
 
         if not repo_ici(betik, cwd):

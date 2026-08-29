@@ -765,7 +765,11 @@ MUTASYONLAR = [
         '    return "".join(k if k.isalnum() else "-" for k in yol)\n',
         "    return yol\n"),
      "K318: proje damgasi uretimi bozulur -> hicbir cip olculemez, hat KAPANIR",
-     {802, 803, 804, 813, 814}, True, 5),
+     # 28 AGU (K332): kume 815 ile GENISLEDI ve bu bir TAVIZ DEGIL, kolun DOGRU
+     # calistiginin kanitidir — 815 de bir CIP POZITIFIDIR; damga uretimi bozulunca
+     # cip TANINMAZ ve ortak altyapi muafiyeti de dusmelidir. Deger OLCULDU
+     # (net=6, vakalar=[802,803,804,813,814,815]), tahmin EDILMEDI.
+     {802, 803, 804, 813, 814, 815}, True, 6),
     # MR4 — FAIL-CLOSED SOKULUR: damga OLCULEMEDIGINDE ANA yerine ilk worktree koku
     # dondurulur ("OLCULEMEDI = gecis"). Hedef kol: damgasiz baglamlar.
     ("MR4", lambda d: yama(
@@ -802,7 +806,56 @@ MUTASYONLAR = [
      #  (b) POZITIF vakalarin IZ iddiasi duser: erken cikis 'MIMAR' izi basar, oysa
      #      802/803/804/813/814 'CIP(' izi bekler. Yani iz iddiasi SUS PAYI DEGIL,
      #      yuk tasiyor — kaldirilirsa bu mutant yari korlesirdi.
-     {802, 803, 804, 808, 809, 810, 811, 813, 814}, True, 9),
+     #  (c) 28 AGU (K332) — KUME DORT VAKA BUYUDU, OLCULDU (net=13):
+     #      815 POZITIF'in IZ iddiasi duser (erken cikis 'MIMAR' izi basar, oysa vaka
+     #      'ORTAK-ALTYAPI(' bekler) · 817/818/819 SINIR vakalari ACILIR (cip TAM muaf
+     #      olunca R2/F hic kosmaz). Yani bu mutant K332 kolunun da "kapsam duzeltmesi,
+     #      GEVSETME degil" sinirini olduruyor — nobetci menzili genisledi, gevsemedi.
+     {802, 803, 804, 808, 809, 810, 811, 813, 814, 815, 817, 818, 819}, True, 13),
+    # === 28 AGU 2026 (K332) — ORTAK ALTYAPI DUZLEMI ===
+    # Dort mutant, DORT AYRI KOL. Hedef kol atiflari OLCULDU, tahmin edilmedi; her
+    # mutantin kirmizi kumesi TEK vakadir, yani ayirt edicilik yuksek: mutant kapinin
+    # TAMAMINI degil, adlandirilan tek ayagi oldurur.
+    #
+    # MR6 — R2 CAGRI YERINDEKI ROL PARAMETRESI DUSER (Okan'in istedigi mutant).
+    # Hedef kol: R2. Yuklem daima False doner -> cip yine "repo DISI yol" REDDI alir,
+    # yani K332 ONCESI hâl geri gelir. ANA vakalari (816/820) zaten RED oldugu icin
+    # DEGISMEZ — mutantin menzili tam olarak 'cip' parametresidir.
+    ("MR6", lambda d: yama(
+        d, ICRA,
+        "        if disari and _ortak_altyapi_muaf(argumanlar, cwd, cip):\n",
+        "        if disari and _ortak_altyapi_muaf(argumanlar, cwd, False):\n"),
+     "K332: R2 cagri yerinde rol parametresi duser -> cip ortak altyapiya yine erisemez",
+     {815}, True, 1),
+    # MR7 — F CAGRI YERINDEKI ROL PARAMETRESI DUSER. Hedef kol: F. R2 gecer (iz basilir)
+    # ama betik repo DISINDA oldugu icin F reddeder. Iki kolun DA tuketilmesi gerektigini
+    # kanitlar: tek kol yamamak yetmez.
+    ("MR7", lambda d: yama(
+        d, ICRA,
+        "        if not repo_ici(betik, cwd) and _ortak_altyapi_muaf(argumanlar, cwd, cip):\n",
+        "        if not repo_ici(betik, cwd) and _ortak_altyapi_muaf(argumanlar, cwd, False):\n"),
+     "K332: F cagri yerinde rol parametresi duser -> R2 gecse de betik kolu reddeder",
+     {815}, True, 1),
+    # MR8 — 'DISARI COZULEN HER TOKEN' TARAMASI KALKAR. Hedef kol: arguman kacakciligi.
+    # Betik duzlemin icinde oldugu surece YANINDAKI repo-disi/duzlem-disi yollar
+    # denetlenmez olur -> 818 acilir. 817/819 KAPALI kalir (onlarin BETIGI zaten duzlem
+    # disi, birinci adimda dusuyorlar) — menzil atfi bu yuzden tek vaka.
+    ("MR8", lambda d: yama(
+        d, ICRA,
+        "            if not _ortak_altyapi_ici(aday, cwd):\n"
+        "                return False\n",
+        "            if False:\n"
+        "                return False\n"),
+     "K332: yan argumanlarin duzlem denetimi kalkar (duzlem disi ikinci yol acilir)",
+     {818}, True, 1),
+    # MR9 — DUZLEM ONEK SINIRI '/' KAYBOLUR (alt-dize gevsemesi). Hedef kol: kardes
+    # dizin tuzagi. '<kok>-sahte' artik ICERDE sayilir -> 819 acilir.
+    ("MR9", lambda d: yama(
+        d, ICRA,
+        '            hedef.startswith(ORTAK_ALTYAPI_KOKU + "/"))\n',
+        "            hedef.startswith(ORTAK_ALTYAPI_KOKU))\n"),
+     "K332: duzlem onek siniri '/' kalkar -> kardes dizin ('<kok>-sahte') icerde sayilir",
+     {819}, True, 1),
 ]
 
 # ===================== KONTROL MUTANTLARI (AYIRT EDICILIK OLCUMU) =====================
