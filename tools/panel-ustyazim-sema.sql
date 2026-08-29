@@ -32,3 +32,22 @@ CREATE TABLE IF NOT EXISTS panel_ustyazim (
 );
 CREATE INDEX IF NOT EXISTS panel_ustyazim_hal ON panel_ustyazim (hal);
 CREATE INDEX IF NOT EXISTS panel_ustyazim_urun ON panel_ustyazim (urun_id, alan);
+
+-- panel_kaynak — PANEL-DOGUMLU URETICI KAYNAK LINKI (T2, gizli D1 duzlemi).
+--
+-- 🔴 NEDEN `urun_kaynak`'a YAZILMAZ: o tabloyu tools/d1-kaynak-sync.py gizli kayittan
+-- diff-upsert + SILME ile yonetir — panelden oraya yazilan satir "gizli kayitta yok"
+-- sayilip SONRAKI senkronda SILINIRDI ([[d1-bayat-yazici-silme]] sinifi). Ayri tablo =
+-- semayla izolasyon (panel_ustyazim/d1-sync ile ayni desen); d1-kaynak-sync bu tabloya
+-- ne okur ne yazar.
+--
+-- 🔒 GIZLILIK: bu tablo tabana (urunler.json) ve hicbir public yuzeye ISLENMEZ;
+-- kuyruk beyaz listesine giremez. Okuyan tek yer yonetim uclari (yonet.js). Okuma
+-- birlesimi: panel_kaynak satiri VARSA o kazanir (link='' = "cikarildi" golgesi —
+-- sync'ten gelen linki de listeden dusurur), yoksa urun_kaynak. MaCiT'in mukerrer/
+-- kaynak taramasi bu tabloyu DA sayar (kutu mutabakati, 30 Agu 2026).
+CREATE TABLE IF NOT EXISTS panel_kaynak (
+  id   TEXT PRIMARY KEY,
+  link TEXT NOT NULL,
+  ts   TEXT NOT NULL
+);
