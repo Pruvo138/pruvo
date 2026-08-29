@@ -35,36 +35,28 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 `C3` yalniz kaynak->arac yonunu olcuyor; arac->kaynak yonu (araca eklenen bayrak tabloya yazilmamis) HIC olculmuyor —
 `--kapanislari-isle` tam bu bosluktan dustu, elle kapatildi (`a5fc8f22`). Kabul: ters yon kolu + onu olduren mutant.
 
-## 🔁 28 AGU 23:3x — OKAN EMIRLERI SIRAYA KONDU (mimar oturumu; icra chip'te)
-- 🔴 **CLAUDE YAKIMI DURDU (Okan ~20:2xZ):** K340 cipine (`frosty-meitner-deb9f0`) SAYILI KAPANIS emri;
-  yeni Claude cipi YOK — istisna urun kirmizisi + Okan isi. **CF ana sayfa TTL YESIL `BELGE_TTL_SN=600`**
-  (Okan Save'e basti). K337 = dal `claude/nice-swanson-706912`, sahibi olu → META=RAF + oksuz-dal kalemi.
-- 🔴 **NOBETIN LLM TUR-ACMA KOLU KAPATILIYOR (Okan ~20:0xZ, icra KraL):** cip `KraL-NobetLlmKolu-28Agu`
-  acildi ve **A+B SAYIYLA KAPANDI:** `nobet-tetik-test` 81/0 KABLO=36/36 · `nobet-uc-kol-kabul` 26/26
-  MUTANT=13/13 HEDEF_KOL_ATFI=13/13 · `cf-durum --kendini-test` 7/7 (taban 81/0·25/25·12/12, dusme YOK).
-- 🟢 **NOBET A5 CANLI=YESIL:** 20:07:01Z gercek cron turu — `acilan_tur=0` · `tetik_karari=ACMA` SONDA ·
-  `nobet_rc=KOSMADI` · `BITIS` bicimi BOZULMAMIS · fail-closed KIRMIZI ayagi CANLIDA calisti (`tetik_rc=11`
-  → rc=1, degismezlik tuttu). 19:11:59Z'den beri `acilan_tur=1` sayisi **0**.
-  🔴 **MENZIL DUZELTMESI:** tur acan tek yer `ci-nobeti.sh` DEGILMIS, `gozcu.py:831,857` de cagiriyor.
-  HUKUM: **gövde (`nobet-kapi.py`) ENFORCER, `ci-nobeti.sh` olu cagri TEMIZLIGI**; "LLM turu 0" TEK eksende.
-- 🟢 **K347+K348 BIRLESTI, SAATLIK SABIT KIRMIZI BITTI.** Teshis: gozcu susmuyordu, susan TURUN HUKMU;
-  govde donusu jetonsuzdu → fail-closed `OLCULEMEDI` → nobet her saat KIRMIZI (bilgi tasimayan kirmizi).
-  Care: adlandirilmis ucuncu hal `LLM_KOLU_KAPALI`, TEK KAYNAK, tum okuyucular ayni teslimde.
-  **CANLI: 19:07 rc=1 · 20:07 rc=1 · 21:07 rc=0** (`sebep=LLM_KOLU_KAPALI KIRMIZI=0`, `BITIS` bozulmamis).
-  🔴 **IKI TUZAK OLCULDU** (birim 8/8 YESIL iken): jeton kardes desene uydu → yama INERT; dogru desen TEK
-  BASINA catch-all `ONARIM_DENENDI` → `URETKEN` beyaz listesi → **SAHTE YESIL** olurdu.
-  → [[yeni-hal-cozucunun-varsayilan-kovasina-duser]]
-  🔴 **CIVI CELISKISI, HUKUM (c):** hal `HUKUM=` satirina YAZILMAZ (degismez `HUKUM=TEMIZ ⇔ rc=0` kirilirdi);
-  `TETIK_HUKMU` SONUNA `kol_hali=` alani eklenir (`tetik_karari` emsali). Kabul: **22:07 + 23:07**.
-  ⑤ `onarim-durum.py` markoru YALNIZ o alandan okur; ara pencerede `ACIK` DEMEZ, `OLCULEMEDI` der.
-- 🔴 **ISCI YALANI SAYACI = 2** (ikisi de `serbest-kume` icin "onceden vardi" atfi; temiz agacta 30/30
-  KIRMIZI=0 olculdu, kirmizi iscinin `tools/` altina biraktigi ARTIKtan). **UCUNCUDE tekil yama YASAK.**
-- 📌 **MERGE (K347+K348 sonrasi):** `wonderful-cerf-9d42fc` + `relaxed-wiles-04ee6e`.
-- 🏗️ **SHOP PANELI — TASARIM DEGISTI; TAM HUKUM KUTUDA (`~00:1xZ`), burada ISARETCI.** Ilk tasarimin "okuma
-  yolu taban ⊕ ust yazim" maddesi OLCUMLE CURUTULDU (urun sayfasi statik, fetch=0). YENI: `panel_ustyazim`
-  duzlem DEGIL **YAZMA KUYRUGU**, **CI git'e yazan TEK kol**, `urunler.json` TEK okuma kaynagi. **T4 ZATEN
-  CANLI** → korunacak; **T1 = panele "Urunler" sekmesi.** T1 kabulu ve gizli-alan siniri kutuda.
-- 📮 Kutu 399 → **229 satir** (tavan 300; `kutu-arsivle --kapanislari-isle`, CEVRIM=6, lossless GECTI, 5 blok arsive).
+## 🔁 29 AGU ~05:0x — MIMAR OTURUM KAPANISI (tam metinler KUTUDA; burada yalniz canli durum)
+- ✅ **CANLIYA GIDEN:** main **`89b382b7`**, `origin/main` ile BIREBIR, agac TEMIZ. Nobet onarimi
+  (`LLM_KOLU_KAPALI` adlandirilmis hal + `cf-durum` fail-closed + `onarim-durum` uc halli) merge **`4d8ee014`**,
+  main'de. Saatlik sabit kirmizi bitti: **19:07 rc=1 · 20:07 rc=1 → 21:07 · 22:07 · 23:07 rc=0.**
+- 🏃 **KOSUYOR (DOKUNMA):** cip `nice-swanson-706912` / dal `claude/dazzling-satoshi-8ff5e2`, oturumu CANLI.
+- 🔴 **BEKLIYOR — `kurtarma/nervous-leavitt-28agu` MERGE EDILMEZ:** tabani BAYAT; `diff main <dal>`
+  **-14.536 satir** (`urunler.json` -4976 dahil) = iki-nokta artefakti, dalin sildigi degil main'in ekledigi.
+  Icindeki tek gerekli sey K332 yamasi `_ortak_altyapi_muaf` — **diskte HICBIR YERDE YOK**, yalniz `6941b626`.
+  **Kapatan olcum:** yamayi GUNCEL main uzerine YENIDEN uygula + cipin `~/.claude/cron/` bataryalarini
+  DOGRUDAN kosabildigini goster (bugun R2 RED, olcum isci katindan gelmek zorunda).
+- 🔧 **K350-B:** `bekci-kabul.py` git DISI + tek yedekle yasiyor (`*.yedek-K350-...`, bilerek birakildi).
+  **Kapatan olcum:** ya git'e alinir ya yedek zincirine baglanir; ikisi de degilse tek kopya riski surer.
+- 🔴 **K349 (isci yalani) — SAYAC 3, SINIF ESIGI DOLDU.** Ucunde de bagimsiz kosum yalanladi (temiz agacta
+  `30/30 KIRMIZI=0`). Yordam `skill: codex-isci` §3.7-3.8'e ISLENDI: isci KIRMIZISI da iddiadir, bagimsiz
+  kosum olmadan kayda GIRMEZ · koda ATIF yapmaz · `tools/`a gecici dosya yazmaz · `git stash` YASAK ·
+  isciye giden metinde cok anlamli fiil yok. → [[isci-kirmizi-iddiasi-kendi-baglamindan-dogar]]
+- 🔴 **BAYAT HAFIZA DUZELTILDI:** `rol-muafiyeti-repo-sinirini-tuketmez` "✅ KAPANDI" diyordu, CANLIDA YOK —
+  hem dosya govdesinde hem MEMORY.md indeksinde duzeltme blogu var. *Kayit kapandi demek, sistem kapandi demek degildir.*
+- 🧹 **TEMIZLIK (kanit):** worktree **5 → 2**; kaldirilanlar `pensive-tharp-1bee19` + `zen-curie-1724fb`
+  (ikisi de main'de, `022c99e7`/`4d8ee014`) + `frosty-meitner-deb9f0` (icerik `claude/jolly-yalow-489ba9`
+  dalinda KORUNDU, uzakta da var). Ucunun de `status --porcelain` cikti BOSTU — commit'siz is kaybi 0.
+  Bu oturumdan gecici dosya/scratchpad artigi: **0**.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
