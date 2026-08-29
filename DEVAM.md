@@ -2,6 +2,13 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ K353 KAPANDI (29 Agu) — esik sinifi + SILINEN kota kapisi (`KraL-EsikVeKota-29Agu`; TAM metin KUTUDA)
+Onarim hedefi = ceza esigi -> komut INERT ([[onarim-kolu-zarar-esiginin-arkasinda]]). KUTU tavan 300->**250**,
+kutu 253->**196** (dusen 57 == giren 57, kayip=0). DEFTER `SU_SEVIYESI_*` 12.288 vs **9.830** + BEST-EFFORT;
+inert DEGIL (fiksturde eski 11.878, yeni 9.172). 🔴 `ca8c3815`in sildigi kota kapisi `3cea0b19`'dan geri
+kuruldu + kanca adim 8 + nobet.yml SERIT B; asim rc=1 RED, tavan alti GECER, mutant KIRMIZI yakti, bataryalar
+tabanla AYNI. 🔴 **MERGE SONRASI `kanca-kur.py`** (once kosulursa filo felci).
+
 ## T1+T2 KAPANDI (29 Agu) — panel "Urunler": ustyazim kuyrugu + gorsel/STL/kaynak-link; TAM HUKUM KUTUDA
 T2 canli 2x: kuyruk->main(`dccb46af`,`d2ae7a86`)->canli; katalog SABIT. 🔴 **ACIK: worker deploy=OKAN** + T1a —
 kutunun "deploy edildi (`b26cedd8`)" iddiasi CURUTULDU: SHA 5 evin HICBIRINDE yok (`cat-file -t` 5/5 fatal).

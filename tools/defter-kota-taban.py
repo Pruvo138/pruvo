@@ -30,6 +30,44 @@ import os
 TAVAN_SATIR = 130
 TAVAN_BAYT = 12288
 
+# 🔴 SU SEVIYESI — ONARIM HEDEFI, CEZA ESIGINDEN AYRIDIR (K353, 29 Agu 2026).
+# OLCULEN ARIZA: `defter-rotasyon.py --tavan-kaynaktan`in dongu cikis kosulu
+# `not _tavan_asildi_mi(...)` idi — yani rotasyon TAVANA DEGER DEGMEZ duruyordu.
+# 29 Agu olcumu: hedef 11.500 iken rotasyon 12.266'da durdu, tavanin (12.288)
+# ALTINDA yalnizca 22 BAYT pay birakti. Deftere yazilan bir sonraki satir kotayi
+# ANINDA yeniden asar; kapi yeniden kirmizi yanar, yordamin emrettigi komut ise
+# `TAVAN=DOLU_NO_OP rc=0` ile INERT doner ([[onarim-kolu-zarar-esiginin-arkasinda]]).
+# Bu, kota kapisinin 29 Agu supurmesinde SILINMESININ de gerekcesiydi (kanca
+# adim 8: "kapi evin TUM commit'ini kilitliyordu") — yani sinif onarilmadan kapi
+# geri kurulursa kilit de geri gelir.
+# CARE: CEZA esigi (TAVAN_*) ile ONARIM hedefi (SU_SEVIYESI_*) AYRI sayilardir.
+# Kapi TAVANDA kirmizi yakar; rotasyon SU SEVIYESINE iner ve arada BAS PAYI kalir.
+# Oran kutu tarafiyla ayni desendir (`kutu-arsivle.py::SU_SEVIYESI_ORANI`).
+# 🔴 BEST-EFFORT: su seviyesine INILEMEZSE ama defter tavanin ALTINA indiyse bu
+# BASARIDIR (kota saglandi) — pay kisaligi ADIYLA BASILIR, kilit URETILMEZ.
+# Aksi halde onarim kolu yeni bir yerde yeniden zarar esiginin arkasina duserdi.
+SU_SEVIYESI_ORANI = 0.8
+
+
+def su_seviyesi(tavan):
+    """Tavandan ONARIM hedefini turetir. None ise o eksen yok sayilir.
+
+    DAIMA tavanin ALTINDA kalir (en az 1 birim); tavanla ESITLENEMEZ — esitlik
+    tam da onarilan arizanin kendisidir.
+    """
+    if tavan is None:
+        return None
+    hedef = int(tavan * SU_SEVIYESI_ORANI)
+    if hedef >= tavan:
+        hedef = tavan - 1
+    if hedef < 1:
+        hedef = 1
+    return hedef
+
+
+SU_SEVIYESI_SATIR = su_seviyesi(TAVAN_SATIR)
+SU_SEVIYESI_BAYT = su_seviyesi(TAVAN_BAYT)
+
 # Kutu tavaninin/yolunun MEVCUT sahibi. Ad burada yazilir, SAYI YAZILMAZ.
 KUTU_SAHIBI_ADI = "kutu-arsivle.py"
 

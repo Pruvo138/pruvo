@@ -1582,8 +1582,21 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kutu-esik-kapisi-mutasyon.py
 
-      # (KraL-KapiSupurmesi-29Agu: defter-kota kapisi ve kapsam-disi kolu SILINDI —
-      # K351 vakasi: kapi evin TUM commit'ini kilitliyordu, urun hatasi yakalamadi.)
+      # DEFTER KOTA KAPISI (tools/defter-kota-kapisi.py) — GERI KURULDU
+      # (KraL-EsikVeKota-29Agu). 29 Agu supurmesi (`ca8c3815`) kapiyi SILDI; gerekce
+      # ("kapi evin TUM commit'ini kilitliyordu") DOGRUYDU ama CARE YANLIS KATMANDAYDI:
+      # kilidi ureten sey kapi degil, ONARIM HEDEFI ile CEZA ESIGININ AYNI SAYI olmasiydi
+      # ([[onarim-kolu-zarar-esiginin-arkasinda]]). Kapi gidince TAVAN yerinde kaldi ama
+      # TUTAN EL gitti -> 12.533 B'lik defter asimi commit'lenebildi (Okan tespiti).
+      # SINIF K353'te onarildi: `defter-kota-taban.py::SU_SEVIYESI_*` onarim hedefini
+      # ceza esiginden AYIRDI (12.288 vs 9.830); rotasyon su seviyesine iner, inemezse
+      # ama tavan altina indiyse BEST-EFFORT basarisi doner ve KILIT URETMEZ.
+      # NEDEN SERIT B: yayinlanan icerigi DEGIL defter hijyenini olcer; `--kendini-test`
+      # tamamen offline (tempfile fiksturleri), GERCEK deftere DOKUNMAZ. ZORLAYICI
+      # hukum kancalar/pre-commit adim 8'dedir (INDEX ekseni).
+      - name: "Defter kota kapisi kabul testi (6 fikstur + 6 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/defter-kota-kapisi.py --kendini-test
 
       # (KraL-KapiSupurmesi-29Agu: kota kapisi ve KUTU ekseni testi SILINDI —
       # K351: kapi evin TUM commit'ini kilitliyordu; kutu tasmasi kutu-esik-kapisi
