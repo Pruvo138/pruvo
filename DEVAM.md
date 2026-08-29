@@ -2,9 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## K350 KAPANDI — teslim tatbikati + K331 kabulu + C: `llm_turu` bayat okuyucu; TAM HUKUM KUTUDA
-`bekci-kabul` rc 1->0 (103/8 -> 111/0), NET VAKA 0, M2/M2b `F-SEBEP` ile yeniden OLUYOR; canli duzlem ONCE=SONRA.
-K350-A: K332 CANLI DEGIL (`_ortak_altyapi_muaf` diskte YOK, yalniz `6941b626`). K350-B: `bekci-kabul.py` git DISI.
+## T1 KAPANDI (29 Agu) — shop paneli "Urunler"+`panel_ustyazim` kuyrugu+CI uygulayici; TAM HUKUM KUTUDA
+Canli 2x: kuyruk->main(`b9cfd786`,`d6e9e378`)->canli; D1 6/6, katalog SABIT. ACIK: worker deploy=OKAN + T1a.
+## K350 KAPANDI — teslim+K331+C; sayilar KUTUDA. K350-A: K332 CANLI DEGIL (`6941b626`). K350-B: `bekci-kabul.py` git DISI.
 
 ## 🔁 28 AGU 18:00 CANLI DURUM — OKAN 17:00 EMRININ BES KALEMI DE KAPANDI (onceden -> sonra)
 🔴 **N2B BORU ONEKI SINIFI → HAFIZADA:** [[isci-cagrisinda-echo-stdin-etiketi-yutar]] (K345 ile kapandi).
