@@ -2,6 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## SUPURME KAPANDI (29 Agu, Okan emri + BaBa filo karari) — TAM HUKUM KUTUDA
+47 denetim dosyasi silindi (mimar rol/kilit, kapi-dagitim, chip/defter-kota/sahiplik kati); main `4c80278f`, Build&deploy SUCCESS. Dokunulmaz cekirdek AYNEN. → [[kapi-supurmesi-29agu]]
+
 ## T1+T2 KAPANDI (29 Agu) — panel "Urunler": ustyazim kuyrugu + gorsel/STL/kaynak-link; TAM HUKUM KUTUDA
 T2 canli 2x: gorseller kuyruk->main(`dccb46af`,`d2ae7a86`)->canli; HEAD katalog SABIT. ACIK: worker deploy=OKAN + T1a (gorseller ayni sinif, beyanli).
 ## 🔁 28 AGU 18:00 CANLI DURUM — OKAN 17:00 EMRININ BES KALEMI DE KAPANDI (onceden -> sonra)
