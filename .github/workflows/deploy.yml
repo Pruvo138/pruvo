@@ -720,6 +720,36 @@ jobs:
       - name: Terk supurmesi mutasyon bataryasi (once-kirmizi)
         run: python3 tools/terk-supurme-mutasyon.py
 
+      # KANAL/KAYNAK GORUNURLUGU (30 Agu 2026) — IKI AYAK, TEK KAYNAK.
+      # OLCULEN BASLANGIC DURUMU: `siparisler.atif` (utm_*/ref/ga_client_id/fbp/fbc) her
+      # site siparisinde TOPLANIYORDU ama YALNIZ siparisGetir'de SELECT edilip Meta CAPI
+      # govdesine akiyordu; panel HTML'inde `utm_source`/`utm_campaign` HIC basilmiyordu ve
+      # tools/ altinda reklam_ref_gclid okuyan bir raporlayici YOKTU. Yani reklam ROI'si
+      # veri VARKEN olculemiyordu.
+      #   (a) PANEL: siparis kartina "Kaynak" satiri — kanal + utm_* + ref + kampanya grubu.
+      #   (b) RAPOR: tools/kanal-kirilimi.py — DORT kova (site-ucretli / site-organik /
+      #       whatsapp / atif-yok) adet + ciro.
+      # 🔴 TEK KAYNAK: siniflandirma shop/src/kanal-sinifi.js'te TEK yerde yasar; panel
+      # etiketini de rapor kovasini da O uretir. Kanit: ayni JS mutanti (atif-yok kovasini
+      # organige katlamak) HEM bu bataryayi HEM asagidaki Python bataryasini kirmizi yakar.
+      # 🔒 NEGATIF EKSEN: ga_client_id / fbp / fbc panele ve /liste JSON'una HIC girmez
+      # (uc ad AYRI AYRI aranir; tek dizge aramasi birini gecirip otekini gizleyebilirdi).
+      # wrangler GEREKMEZ: gercek liste() ve kaynakSatiriHtml() govdeleri yonet.js metninden
+      # cikarilip sahte D1 binding'i ile calistirilir. continue-on-error YOK.
+      - name: Kanal/kaynak gorunurlugu kabul kapisi (panel)
+        run: node shop/test/kanal-gorunurluk.mjs
+
+      # KANAL KIRILIMI RAPORU kabul kapisi (fikstur SQLite; CANLI D1'E DOKUNMAZ).
+      # 🔴 UCUNCU/DORDUNCU SINIF YUTULMAZ: `atif-yok` AYRI kova olarak sayilir ve ciktida
+      # ADIYLA gorunur; tanimadigimiz bir kanal degeri kovaya YAZILMAZ, ayri OLCULEMEDI
+      # satirina duser. 🔴 FAIL-CLOSED: `siparisler.kanal` kolonu YOKKEN hukum OLCULEMEDI
+      # ve rc=2 — "kolon yok, demek ki hepsi site" CIKARIMI YASAK.
+      # Mutantlar (hedef-kol atfiyla): R1 atif-yok organige katlanir · R2 kolon yokken
+      # sessizce 'site' sayilir · R3 'iptal' ciroya girer · R4 bilinmeyen kanal kovaya
+      # yutulur · KONTROL (davranis degismez, YESIL kalmali).
+      - name: Kanal kirilimi raporu kabul kapisi
+        run: python3 tools/kanal-kirilimi-test.py
+
       # ALT KATEGORI (`altkategori`) veri yolu — kategori ICINDEKI daraltma etiketi.
       # OLCULEN BASLANGIC DURUMU (1 Agu): alan urunler.json'da 134 kayitta DOLUYDU ama
       # hicbir yerde ISLENMIYORDU (index.html/build.py/d1-sync/arama/d1-sema/duzelt YOK)

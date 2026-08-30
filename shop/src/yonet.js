@@ -40,6 +40,9 @@ import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
 } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
+// KAYNAK/KANAL siniflandirmasi TEK KAYNAK — panel etiketi ve tools/kanal-kirilimi.py
+// kovalari AYNI govdeden turer (ikinci liste yok). Gerekce: kanal-sinifi.js basligi.
+import { kaynakOzeti, atifCoz } from "./kanal-sinifi.js";
 
 // ---- durum makinesi -----------------------------------------------------------
 // 🔴 K252 (Okan karari, 20 Agu 2026 — tools/paket-siparis-durum-secici.md).
@@ -521,6 +524,15 @@ export function kaynakLinkSuz(deger) {
   return (typeof deger === "string" && /^https:\/\//i.test(deger)) ? deger : "";
 }
 
+/** Siparis satirinin ham `atif` degerinden REF anahtari. TEK yerde: toplu sorgunun
+ *  ANAHTAR KUMESI ile satir basina yapilan ARAMA ayni cozucuden gecsin — biri JSON'u
+ *  baska turlu cozerse eslesme sessizce kaybolur ve panel grup/src'yi HIC gostermez.
+ *  Cozucu kanal-sinifi.js'te (siniflandirmanin kullandiginin AYNISI). */
+function kaynakRefi(atif) {
+  const r = atifCoz(atif).ref;
+  return typeof r === "string" ? r : "";
+}
+
 function yjson(veri, kod) {
   return new Response(JSON.stringify(veri), {
     status: kod || 200,
@@ -538,7 +550,7 @@ async function liste(env, url) {
   const siteUrl = ((env && env.SITE_URL) || "https://pruvo3d.com").replace(/\/$/, "");
   const TABAN =
     "SELECT id, siparis_no, tarih, durum, tutar_kurus, kargo_kurus, kdv_kurus, odeme_yontemi," +
-    " urunler, kargo_firma, kargo_kodu, durum_gecmisi," +
+    " urunler, kargo_firma, kargo_kodu, durum_gecmisi, atif," +
     " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, musteri_notu";
   // kanal/dis_no OPSIYONEL (goc kosmadiysa yok) -> merdiven; yoksa alanlar undefined kalir
   // ve asagida 'site'/'' varsayilanina duser (bugunku ekranin AYNISI).
@@ -591,6 +603,30 @@ async function liste(env, url) {
         "SELECT id, link FROM panel_kaynak WHERE id IN (" + yertut + ")").bind(...idler).all(),
       () => ({ results: [] }));
     for (const x of (pr.results || [])) { kaynakMap.set(x.id, x.link); }
+  }
+
+  // REKLAM HALKASI — siparisin `atif.ref`i uzerinden kampanya GRUBU + KAYNAK KODU.
+  // TEK toplu sorgu (kalem basina sorgu ATILMAZ; kaynakMap ile ayni N+1 karari).
+  // 🔒 YALNIZ `grup` + `src` cekilir: `gclid`/`gbraid`/`wbraid` TIKLAMA KIMLIGIDIR ve
+  // fbp/fbc ile AYNI sinifta oldugu icin SELECT'e bile alinmaz — panele tasimak bir yana,
+  // Worker belleginde de dolasmasinlar.
+  // Tablo OPSIYONEL (`reklam_ref_gclid` 30 Tem'de elle kuruldu): tabloMerdiveni ile
+  // "no such table" yutulur -> grup/src bos kalir, panel yine kanal + utm satirini basar.
+  const refKume = new Set();
+  for (const { satir: s } of cozulmus) {
+    const r = kaynakRefi(s.atif);
+    if (r) { refKume.add(r); }
+  }
+  const reklamMap = new Map();
+  if (refKume.size) {
+    const refler = [...refKume];
+    const yertut = refler.map(() => "?").join(",");
+    const rr = await tabloMerdiveni(
+      () => env.KATALOG.prepare(
+        "SELECT ref, grup, src FROM reklam_ref_gclid WHERE ref IN (" + yertut + ")"
+      ).bind(...refler).all(),
+      () => ({ results: [] }));
+    for (const x of (rr.results || [])) { reklamMap.set(x.ref, x); }
   }
 
   const cikti = cozulmus.map(({ satir: s, urunler }) => {
@@ -647,6 +683,16 @@ async function liste(env, url) {
       // KANAL: kolon yoksa (goc oncesi) ya da bos gelirse 'site' — mevcut satirlarin
       // TAMAMI site siparisidir, ekran bugunku gibi rozet basmaz.
       kanal: s.kanal || KANAL_SITE,
+      // 🔴 KAYNAK OZETI (kanal + utm_* + ref + kampanya grubu). TURETILMIS: kural
+      // shop/src/kanal-sinifi.js'te TEK yerde yasar, panel bunu OLDUGU GIBI basar ve
+      // tools/kanal-kirilimi.py AYNI govdeyi cagirir — etiket ile rapor kovasi ayrisamaz.
+      // 🔒 SUZGEC BURADA (sunucu tarafi): `ga_client_id`/`fbp`/`fbc` beyaz listede OLMADIGI
+      // icin bu JSON'a HIC girmez — tarayiciya ulasmazlar, istemci suzgecine guvenilmez.
+      // `kanal` kolonu yoksa (goc kosmadi) yukaridaki 'site' varsayilani BILEREK verilir:
+      // ekranin bugunku davranisi korunur. Raporun fail-closed kolu AYRIDIR ve D1'i
+      // dogrudan okur — "kolon yok, demek ki hepsi site" cikarimi ORADA YASAKTIR.
+      kaynak: kaynakOzeti({ kanal: s.kanal || KANAL_SITE, atif: s.atif },
+                          reklamMap.get(kaynakRefi(s.atif))),
       // Ege'nin KENDI numarasi (PR-yyMMdd-HHmmss, sonek YOK) — Sheet kaydiyla eslesme icin.
       // Panel ID'si ile KARISTIRILMAZ: panelin siparis_no'su yine bu tabloda uretilir.
       dis_no: s.dis_no || "",
@@ -2185,6 +2231,17 @@ details[open]>summary.ust::after{content:"▾"}
 .rozet.uretimde{background:#ede9fe;color:#5b21b6}
 .rozet.bekliyor{background:#f3f4f6;color:#4b5563}
 .rozet.basarisiz{background:#fce7f3;color:#9d174d}
+/* KAYNAK SINIFI rozeti (siparisi getiren kanal/kampanya). DORT kova + olculemedi hali;
+   'atif-yok' GORUNUR bir renk alir — sessizce organige benzemesin.
+   (Bu blok SAYFA_HTML sablon dizesinin ICINDE yasar: ters tirnak KULLANILAMAZ,
+    sablonu erken bitirir ve tum panel derlenmez.) */
+.rozet.kaynak-sinif{background:#e5e7eb;color:#374151;font-weight:600}
+.rozet.site-ucretli{background:#fef3c7;color:#92400e}
+.rozet.site-organik{background:#d1fae5;color:#065f46}
+.rozet.whatsapp{background:#dcfce7;color:#14532d}
+.rozet.atif-yok{background:#f3f4f6;color:#6b7280}
+.rozet.olculemedi{background:#fee2e2;color:#991b1b}
+.kaynak{margin-top:4px}
 /* URUNLER SEKMESI (T1) — kuyruk halleri + sekme cubugu + duzenleme formu */
 .rozet.beklemede{background:#fef9c3;color:#854d0e}
 .rozet.islendi{background:#dcfce7;color:#166534}
@@ -2321,6 +2378,51 @@ function kaynakLinkHtml(k){
  return '<a class="indir" href="'+esc(u)+'" title="'+esc(u)+
   '" target="_blank" rel="noopener">kaynak sayfası</a>';
 }
+// 🔴 KAYNAK SATIRI (siparis kartinda) — siparisi HANGI KANAL/KAMPANYA getirdi.
+// Veri TOPLANIYORDU (siparisler.atif) ama HICBIR EKRANA basilmiyordu; yalniz Meta CAPI
+// govdesine akiyordu, yani Okan kendi reklam-ROI'sini panelden GOREMIYORDU.
+//
+// 🔒 GIZLILIK: burada basilabilecek alanlar SUNUCUDA suzuldu (kanal-sinifi.js
+// ATIF_GORUNUR_ALANLAR beyaz listesi) — ga_client_id / fbp / fbc bu JSON'a HIC GELMEZ.
+// Bu yuzden asagida "sunu basma" diye bir kara liste YOKTUR: basacak veri zaten yok.
+// Gerekce (kodda kalsin diye): o ucu kisiye baglanan reklam-eslestirme kimlikleridir;
+// siparisin kaynagini utm_* / ref zaten soyler, operasyonel degerleri YOKTUR ve ekrana
+// tasimak (omuz-ustu okuma, ekran goruntusu, tarayici gecmisi) gizlilik yuzeyini buyutur.
+//
+// 🔴 SESSIZ BOSLUK YASAK — kartin uretici-kaynak kolundaki kalibin AYNISI: kayit yoksa
+// "kaynak kaydı yok" ACIKCA yazilir. Bos birakmak "kaynak YOK"u degil "OLCULEMEDI"yi
+// gizlerdi. Etiket sunucudan gelir (KOVA_ETIKET); burada ikinci sozluk ACILMAZ.
+// 🔴 "kaynak kaydı yok" dili SUNUCUDAN VERIYLE gelir (k.yok) — burada TEKRAR YAZILMAZ.
+// Bu bolgeye sunucu degeri enjeksiyonla konamaz: sayfa JS'ini olcen komsu bataryalar
+// kaynagi ham metinden dilimliyor ve dilimdeki bir sablon ifadesi onu ayristirilamaz
+// yapar (30 Agu 2026: 3 batarya birden kirmizi yandi).
+function kaynakSatiriHtml(s){
+ var k=s&&s.kaynak;
+ // AYRI HAL: sunucu "kaynak" alanini HIC gondermemis (eski yanit / kirpilmis JSON).
+ // Bu "atif yok" DEGILDIR, "olcemedim"dir — ayni cumleye cokertmek ikisini karistirirdi.
+ if(!k){return '<div class="kucuk kaynak"><b>Kaynak:</b> '+
+  '<span class="yok">kaynak alanı yanıtta yok — panel yanıtı eski olabilir</span></div>';}
+ var parcalar=[];
+ var a=k.atif||{};
+ // Sira SABIT: kaynak → ortam → kampanya → kampanya kimligi. Alan bossa satira GIRMEZ
+ // (bos "utm_medium: —" gurultusu kartlari okunmaz yapardi); hicbiri yoksa asagida
+ // "kaynak kaydı yok" yazilir, yani bosluk sessiz kalmaz.
+ if(a.utm_source){parcalar.push('kaynak <b>'+esc(a.utm_source)+'</b>');}
+ if(a.utm_medium){parcalar.push('ortam <b>'+esc(a.utm_medium)+'</b>');}
+ if(a.utm_campaign){parcalar.push('kampanya <b>'+esc(a.utm_campaign)+'</b>');}
+ if(a.utm_id){parcalar.push('utm_id <b>'+esc(a.utm_id)+'</b>');}
+ if(a.ref){parcalar.push('ref <b>'+esc(a.ref)+'</b>');}
+ // reklam_ref_gclid halkasindan: kampanya grubu + kaynak kodu (GS=ucretli, OG=organik).
+ // Click-id'ler (gclid/gbraid/wbraid) BURAYA GELMEZ — SELECT'e bile alinmadilar.
+ if(k.grup){parcalar.push('grup <b>'+esc(k.grup)+'</b>');}
+ if(k.src){parcalar.push('src <b>'+esc(k.src)+'</b>');}
+ var etiket='<span class="rozet kaynak-sinif '+esc(k.sinif||"olculemedi")+'">'+
+  esc(k.etiket||k.yok)+'</span>';
+ var govde=parcalar.length
+  ?parcalar.join(' · ')
+  :'<span class="yok">'+esc(k.yok)+'</span>';
+ return '<div class="kucuk kaynak"><b>Kaynak:</b> '+etiket+' '+govde+'</div>';
+}
 function satirHtml(no,k){
  var indir;
  if(k.parametrik){
@@ -2424,6 +2526,7 @@ function kartHtml(s){
  var disNo=s.dis_no?'<div class="kucuk">Ege sipariş no: '+esc(s.dis_no)+'</div>':'';
  var musteriNotu=s.musteri_notu?'<div class="kucuk" style="white-space:pre-wrap"><b>Not:</b> '+
   esc(s.musteri_notu)+'</div>':'';
+ var kaynakSatiri=kaynakSatiriHtml(s);
  // 🔒 KAPALI BASLIK (summary) OMUZ-USTU GIZLILIGI: siparis no · durum · kanal · tarih ·
  // toplam · kalem sayisi. Musteri adi/telefon/e-posta/adres BURAYA GIRMEZ — onlar
  // yalnizca kart ACILINCA (govdede) gorunur.
@@ -2440,6 +2543,7 @@ function kartHtml(s){
   '<div class="mus"><b>'+esc(s.musteri.ad)+'</b> · '+esc(s.musteri.tel)+'<br>'+esc(s.musteri.adres)+
    ' · '+esc(s.musteri.eposta)+'</div>'+
   musteriNotu+
+  kaynakSatiri+
   '<div class="kucuk">Toplam '+tl(s.tutar_kurus)+' + kargo '+tl(s.kargo_kurus)+
    ' · KDV '+tl(s.kdv_kurus)+'</div>'+
   kalem+kargoBilgi+
