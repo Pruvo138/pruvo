@@ -2123,6 +2123,7 @@ const GIRIS_HTML = `<!doctype html><html lang="tr"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>PRUVO</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2312294d'/><text x='50' y='55' font-family='Arial,Helvetica,sans-serif' font-size='72' font-weight='800' fill='%23f59e0b' text-anchor='middle' dominant-baseline='central'>P</text></svg>">
 <style>
 body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
  background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#1f2937}
@@ -2145,6 +2146,7 @@ const SAYFA_HTML = `<!doctype html><html lang="tr"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>PRUVO — Sipariş Yönetimi</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2312294d'/><text x='50' y='55' font-family='Arial,Helvetica,sans-serif' font-size='72' font-weight='800' fill='%23f59e0b' text-anchor='middle' dominant-baseline='central'>P</text></svg>">
 <style>
 :root{--lacivert:#12294d;--gri:#f3f4f6;--kenar:#e5e7eb;--kirmizi:#b91c1c;--sari:#f59e0b}
 *{box-sizing:border-box}
