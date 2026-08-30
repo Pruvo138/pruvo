@@ -22,7 +22,6 @@ Cip `KraL-OksuzAgaclar-28Agu` tasiyor; **katalog geri sarilmayacak** (kabul sart
 🔵 **WORKTREE 13 -> 11** (`trusting-sutherland-157a62` birlesmisti + oturumu oludu, kaldirildi). Kalan
 agaclarin hepsinin oturumu CANLI ya da uzerinde birlesmemis is var -> dusurulmedi.
 **BEKLIYOR:** MaCiT dilim'leri (K332 blokeri kalkti).
-🔴 KOTA KAPISI SUPURMEDE SILINDI — tavan var, tutan el YOK.
 
 🟢 **K344 OKSUZ AGACLAR KAPANDI (cip `KraL-OksuzAgaclar-28Agu`, main `a5fc8f22`):** iki dalin isi de main'de.
 `44c92f6e` (A) +978/-303 · `a24550ce`+`c665031f` (B) +525/-50, ikisi de TASINDI (SUBSUME degil). 🔴 **Katalog
@@ -56,13 +55,15 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
   `pensive-tharp-1bee19`+`xenodochial-volhard-d4754a` git tarafindan REDDEDILDI (uzakta yerelde olmayan
   commit) — ZORLANMADI. Cip oturumu arsivlendi. 🔴 **K353 IDDIASI TUTMADI:** "su seviyesine iniyor" dedi;
   tetik hala TAVAN (12.116'da `TAVAN=DOLU_NO_OP`). Histerezis dogru ama 11.500 hedefi bu komutla TUTMAZ.
-- 🔴 **K354 — 47 DOSYA COMMIT'SIZ DURUYORDU (temizlik yakaladi):** `nice-swanson-706912` agacinda
-  `ca8c3815` supurmesinin sildigi 47 kapi/batarya `??` halinde; agac kaldirilsa HEPSI olurdu. Main'de
-  YOK olan **40**; var olan 7 (`mimar-icra-kapisi`, `mimar-kilit-test`, `mimar-kapi-mutasyon-test`,
-  `mimar-kod-kilidi`, `kapi_dagitim`, `kapi-dagitim-kapisi`, `defter-kota-kapisi`) DAHA YENI, UZERINE
-  YAZILMAZ. Cip `KraL-SupurmeKurtarma-30Agu` (`bold-keller-82f052`) tasiyor. 🔴 **O AGAC, 47'si kalici
-  olana kadar KALDIRILMAZ.** CLAUDE.md'nin zorunlu kildigi 5 arac (`worktree-tavan-nobeti`,
-  `mimar-commit-kapisi`, `chip-duzeni-kapisi` + 2) hala CANLI DEGIL: kural yazili, zorlayan yok.
+- 🔴 **K354 — ONCULUM YANLISTI, DUZELTTIM:** `nice-swanson-706912` agacindaki 47 commit'siz dosyayi
+  "kazayla silinen, geri alinacak is" sandim. O oturumun KENDI sayili kapanisi cururttu: `ca8c3815`
+  **KASITLI** — *30-gun urun-kaniti testi*, 47 denetim dosyasi bilerek silindi (kapi **112->97**),
+  cekirdek yerinde, yayin YESIL (`4c80278f`). Dosyalar STUB DEGIL, tam govde (60/51/46 KB).
+  ⚖️ **OKAN HUKMU (30 Agu): supurme SURUYOR; yalniz CLAUDE.md'nin ZORUNLU KILDIGI araclar doner** —
+  kural/zorlayan celiskisi kapanir, ~34 supurulmus KALIR. Inecek 3 (+bataryalari): `worktree-tavan-nobeti`
+  `mimar-commit-kapisi` `chip-duzeni-kapisi`; `mimar-kod-kilidi`+`mimar-icra-kapisi` main'de VAR.
+  Cip kapsami daraltildi. 🔴 **O AGAC, 3'u kalici olana kadar KALDIRILMAZ.**
+  *Ders: silme kaza mi karar mi — silinen dosyaya degil SILENIN KAPANISINA bakilir.*
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
