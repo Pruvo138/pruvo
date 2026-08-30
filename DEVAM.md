@@ -22,13 +22,6 @@ Cip `KraL-OksuzAgaclar-28Agu` tasiyor; **katalog geri sarilmayacak** (kabul sart
 🔵 **WORKTREE 13 -> 11** (`trusting-sutherland-157a62` birlesmisti + oturumu oludu, kaldirildi). Kalan
 agaclarin hepsinin oturumu CANLI ya da uzerinde birlesmemis is var -> dusurulmedi.
 **BEKLIYOR:** MaCiT dilim'leri (K332 blokeri kalkti).
-✅ **K330 KAPANDI** (`c1070d3d`, CI job `success` `33165127457`): batarya kendi tabanini sifirliyor
-(3 beyanin birlesimi, izlenen yola DOKUNMAZ) + beyandan BAGIMSIZ fail-closed on kontrol
-(`OLCULEMEDI: taban artikli` rc=3). Kok DARALDI: hukmu landing degil BILINEN yollarin tabanda
-durmasi ceviriyor — uretilebilir. Ardisik UC kosum `TABAN_ARTIK_ONCE` 425-0-0, ucu de
-`OLDURULDU rc=0`; `--kendini-test` MUTANT=4/4 KONTROL=3/3. → [[artik-yuzey-mutant-dedektorunu-korlestirir]]
-
-defter kotasi 29 Agu: **12.533 B -> 11.486 B** (rotasyon+isaretci, kayipsiz; arsiv 22.283 -> 22.289 satir).
 🔴 KOTA KAPISI SUPURMEDE SILINDI — tavan var, tutan el YOK.
 
 🟢 **K344 OKSUZ AGACLAR KAPANDI (cip `KraL-OksuzAgaclar-28Agu`, main `a5fc8f22`):** iki dalin isi de main'de.
@@ -43,7 +36,6 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 `--kapanislari-isle` tam bu bosluktan dustu, elle kapatildi (`a5fc8f22`). Kabul: ters yon kolu + onu olduren mutant.
 
 ## 🔁 29 AGU ~05:0x — MIMAR OTURUM KAPANISI (tam metinler KUTUDA; burada yalniz canli durum)
-- 🏃 **KOSUYOR (DOKUNMA):** cip `nice-swanson-706912` / dal `claude/dazzling-satoshi-8ff5e2`, oturumu CANLI.
 - ✅ **K332 MERGE `26064356`** (`trusting-khayyam-b3171f`): kilit 307/314->313/320, kirmizi seti BIREBIR ayni
   (taban 7; "KIRMIZI=0" olcutum tabansiz civilenmisti), MR6-MR9 4/4 hedef-kol atfiyla oldu, vaka 821 fikstur
   kutsanmasini yakar. 🔴 **CAKISMA BIR SILME ORTAYA CIKARDI:** supurme `mimar-kilit-test` +
@@ -60,10 +52,17 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
   isciye giden metinde cok anlamli fiil yok. → [[isci-kirmizi-iddiasi-kendi-baglamindan-dogar]]
 - 🔴 **BAYAT HAFIZA DUZELTILDI:** `rol-muafiyeti-repo-sinirini-tuketmez` "✅ KAPANDI" diyordu, CANLIDA YOK —
   hem dosya govdesinde hem MEMORY.md indeksinde duzeltme blogu var. *Kayit kapandi demek, sistem kapandi demek degildir.*
-- 🧹 **TEMIZLIK (kanit):** worktree **5 → 2**; kaldirilanlar `pensive-tharp-1bee19` + `zen-curie-1724fb`
-  (ikisi de main'de, `022c99e7`/`4d8ee014`) + `frosty-meitner-deb9f0` (icerik `claude/jolly-yalow-489ba9`
-  dalinda KORUNDU, uzakta da var). Ucunun de `status --porcelain` cikti BOSTU — commit'siz is kaybi 0.
-  Bu oturumdan gecici dosya/scratchpad artigi: **0**.
+- 🧹 **TEMIZLIK 30 AGU (kanit):** K353 merge `055d2a44`. Worktree 4->3, yerel dal 16 silindi (hepsi main'de);
+  `pensive-tharp-1bee19`+`xenodochial-volhard-d4754a` git tarafindan REDDEDILDI (uzakta yerelde olmayan
+  commit) — ZORLANMADI. Cip oturumu arsivlendi. 🔴 **K353 IDDIASI TUTMADI:** "su seviyesine iniyor" dedi;
+  tetik hala TAVAN (12.116'da `TAVAN=DOLU_NO_OP`). Histerezis dogru ama 11.500 hedefi bu komutla TUTMAZ.
+- 🔴 **K354 — 47 DOSYA COMMIT'SIZ DURUYORDU (temizlik yakaladi):** `nice-swanson-706912` agacinda
+  `ca8c3815` supurmesinin sildigi 47 kapi/batarya `??` halinde; agac kaldirilsa HEPSI olurdu. Main'de
+  YOK olan **40**; var olan 7 (`mimar-icra-kapisi`, `mimar-kilit-test`, `mimar-kapi-mutasyon-test`,
+  `mimar-kod-kilidi`, `kapi_dagitim`, `kapi-dagitim-kapisi`, `defter-kota-kapisi`) DAHA YENI, UZERINE
+  YAZILMAZ. Cip `KraL-SupurmeKurtarma-30Agu` (`bold-keller-82f052`) tasiyor. 🔴 **O AGAC, 47'si kalici
+  olana kadar KALDIRILMAZ.** CLAUDE.md'nin zorunlu kildigi 5 arac (`worktree-tavan-nobeti`,
+  `mimar-commit-kapisi`, `chip-duzeni-kapisi` + 2) hala CANLI DEGIL: kural yazili, zorlayan yok.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
