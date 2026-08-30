@@ -2087,6 +2087,37 @@ jobs:
           python3 tools/kalem-senkron-kapisi.py --kendini-test
           python3 tools/kalem-senkron-kapisi.py --mutasyon
 
+      # ═══════════════════════════════════════════════════════════════════════
+      # CLAUDE.md'NIN ZORUNLU KILDIGI KAPILARIN BATARYALARI (30 Agu, Okan hukmu)
+      # ═══════════════════════════════════════════════════════════════════════
+      # `ca8c3815` supurmesi SURUYOR (BaBa filo karari + Okan "supur" emri) —
+      # geri donen TEK sinif, CLAUDE.md'nin ZORUNLU KURAL olarak atif yaptigi
+      # araclardir: yazili kural ile canli sistem celisemez. Bu adim o kapilarin
+      # NOBETCILERINI kosturur; kapiyi nobetcisiz indirmek bu depoda olculmus bir
+      # ariza sinifidir.
+      #
+      # Kume TAHMIN EDILMEDI, DARALTILMIS AGAC UZERINDE OLCULDU (40'lik onceki
+      # olcum DEVREDILMEDI): temiz klon (`git clone --no-local`) + sokulmus HOME
+      # ile bu dordu gercek iddia basip rc=0 verdi. Ayni kosumda `sahiplik-kapisi`
+      # (rc=1, yerel duzlem) ve `mimar-commit-kapisi` (SIFIR iddia, kapi govdesi)
+      # KABLOLANMADI -> ci-kapsam-test.py::IZIN_LISTESI'ne sinif gerekcesiyle
+      # yazildi.
+      #
+      # 🔴 `worktree-tavan-nobeti.py` BU ADIMDA YOK ve bu bir unutma DEGILDIR:
+      # DIS bataryasi HIC YOK (olculdu — ne `ca8c3815^`da ne kaynak agacta boyle
+      # bir dosya var). Nobetcisi kendi `--kendini-test` kolu; ayrica pre-push'ta
+      # rapor-only kosuyor. Uydurma batarya adi YAZILMADI.
+      #
+      # serit-b `deploy.needs`te DEGIL -> K80 bunu ZINCIR_DISI raporlar, yayin
+      # sartina baglamaz. `continue-on-error` KULLANILMADI.
+      - name: "CLAUDE.md zorunlu kapilari — chip duzeni + mimar commit kapisi bataryalari"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/chip-duzeni-kapisi.py --kendini-test
+          python3 tools/chip-duzeni-test.py
+          python3 tools/mimar-commit-kapisi-test.py
+          python3 tools/mimar-commit-kapisi-mutasyon.py
+
       # ⚠️ DORT AGIR MUTASYON BATARYASI BU JOB'DAN CIKARILDI (10 Agu 2026) — bkz.
       # asagidaki `marka-bolum-bataryasi` · `marka-sayfa-bataryasi` ·
       # `model-uyelik-bataryasi` · `model-baslik-bataryasi` joblari. SILINMEDILER,

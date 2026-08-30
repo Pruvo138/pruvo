@@ -2684,6 +2684,32 @@ R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VI
 
 # ---- IZIN LISTESI (muaf test -> GEREKCE). Bos gerekce = exit 1. ----------
 IZIN_LISTESI = {
+    # ═══════════════════════════════════════════════════════════════════════
+    # CLAUDE.md ZORUNLU KAPI KURTARMASI — CI'DA KOSTURULAMAYAN 2 KALEM
+    # (cip KraL-SupurmeKurtarma-30Agu; Okan 30 Agu hukmu)
+    # ═══════════════════════════════════════════════════════════════════════
+    # `ca8c3815` supurmesi SURUYOR; geri donen tek sinif CLAUDE.md'nin zorunlu
+    # kural olarak atif yaptigi kapilardir. Bunlarin dordunun bataryasi
+    # nobet.yml::serit-b'ye KABLOLANDI. Asagidaki iki kalem, DARALTILMIS agac
+    # uzerinde temiz klon + sokulmus HOME ile kosuldu ve baglanamaz cikti:
+    "tools/mimar-commit-kapisi.py": (
+        "KAPI GOVDESI, KABUL TESTI DEGIL: adi `-kapisi.py` oldugu icin kesfe girer, "
+        "ama bayraksiz kosumu SIFIR iddia basar (30 Agu olcumu: rc=0, cikti 0 satir) "
+        "— CI'ya baglamak olculen hicbir sey eklemez, yalnizca sahte bir kapsam "
+        "rakami uretirdi. Gercek nobetcileri AYRI dosyalardadir ve serit-b'de "
+        "FIILEN kosuyor: `mimar-commit-kapisi-test.py` (26/26 vaka) + "
+        "`mimar-commit-kapisi-mutasyon.py` (9 mutant, her biri en az bir vakayi "
+        "kirmizi yakiyor)."),
+    "tools/sahiplik-kapisi.py": (
+        "YEREL-DUZLEM KAPISI: vakalar `~/.claude/cron` hattina, kardes ev koklerine "
+        "ve kayitli worktree koklerine capali; CI runner'da bu duzlemin ucu de YOK. "
+        "30 Agu temiz-klon olcumu: rc=1, MUTANT=7/7 (yedi mutantin YEDISI de "
+        "olduruldu — ayirt edicilik saglam) fakat KONTROL=1/2. 🔴 BU DOSYA KENDI "
+        "BASINA ISTENMEDI: CLAUDE.md'nin zorunlu kildigi `chip-duzeni-kapisi.py` "
+        "onu `EV_BILINEN_YUKLE()` icinde TEK KAYNAK olarak yukler; yokken kapinin "
+        "canli kolu `OLCULEMEDI (cikis 2)` veriyordu, varken `YESIL (cikis 0) "
+        "KALEM=12`. Yani kapali kumenin zorunlu parcasidir. Canliligi, kapiyi "
+        "degistiren isin KABUL SARTI olarak yerelde olculur (K196 sinifi)."),
     # --- Izin-kancasi BATARYALARI (ayni supurmenin ikinci dalgasi — KraL 29 Agu) ---
     # 29 Agu supurmesi kapi KAYNAKLARINI silmisti (asagidaki blok geri yukledi) ama bu iki
     # BATARYAYI kimse geri takmamisti: kapi canli, nobetcisi YOKTU. K332 merge cakismasinda
