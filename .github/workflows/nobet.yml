@@ -2088,62 +2088,35 @@ jobs:
           python3 tools/kalem-senkron-kapisi.py --mutasyon
 
       # ═══════════════════════════════════════════════════════════════════════
-      # 29 AGU SUPURMESINDEN (ca8c3815) GERI YUKLENEN BATARYALAR — KABLOLANDI
+      # CLAUDE.md'NIN ZORUNLU KILDIGI KAPILARIN BATARYALARI (30 Agu, Okan hukmu)
       # ═══════════════════════════════════════════════════════════════════════
-      # Bu 16 adim, `ca8c3815`in sildigi 40 dosyanin CI'DA GERCEKTEN KOSABILEN
-      # alt kumesidir. Kume TAHMIN EDILMEDI, OLCULDU: her aday TEMIZ BIR KLONDA
-      # (`git clone --no-local`) ve SOKULMUS `HOME` ile kosuldu — yani ne
-      # `~/.claude`, ne kardes evler (`/Users/okan/dev/pruvo-*`), ne oturum
-      # damgasi, ne `~/.claude/cron` duzlemi vardi. 25 aday oyle kosuldu; 16'si
-      # GERCEK IDDIA basarak rc=0 verdi ve BURAYA baglandi, 9'u sifir-disi dondu
-      # ya da SIFIR IDDIA kosturdu -> onlar ci-kapsam-test.py::IZIN_LISTESI'ne
-      # SINIF BAZLI gerekceyle yazildi (toptan muafiyet YAZILMADI).
+      # `ca8c3815` supurmesi SURUYOR (BaBa filo karari + Okan "supur" emri) —
+      # geri donen TEK sinif, CLAUDE.md'nin ZORUNLU KURAL olarak atif yaptigi
+      # araclardir: yazili kural ile canli sistem celisemez. Bu adim o kapilarin
+      # NOBETCILERINI kosturur; kapiyi nobetcisiz indirmek bu depoda olculmus bir
+      # ariza sinifidir.
       #
-      # 🔴 "rc=0" TEK BASINA KABUL SAYILMADI: temiz duzlemde sifir-dis
-      # dondurmeyen ama duzlem yoklugunda ATLAYAN kollar ayrica arandi
-      # ([[olculemedi-bypass-degil-menzil-daraltmasi]]). Iki tanesi oyle cikti ve
-      # KABLOLANMADI/BEYAN EDILDI: `mimar-commit-kapisi.py` bayraksiz kosumda
-      # SIFIR iddia basiyor (kapi govdesi, batarya degil — nobetcileri `-test` ve
-      # `-mutasyon` asagida kosuyor); `defter-rotasyon-test.py` cekirdek
-      # bataryasini (FIKSTUR 23/23 · YENI_VAKA 14/14 · MUTANT 7/7) GERCEKTEN
-      # kosuyor ama iki kenar kolu (KAPSAM_DISI / KUTU_SAHIPSIZ) duzlem
-      # olmadiginda kendi kendini "OLCULEMEDI" ilan edip rc=0 donduruyor ->
-      # BAGLANDI (cekirdek gercek) ama bu FAIL-OPEN kenari ADIYLA raporlandi.
+      # Kume TAHMIN EDILMEDI, DARALTILMIS AGAC UZERINDE OLCULDU (40'lik onceki
+      # olcum DEVREDILMEDI): temiz klon (`git clone --no-local`) + sokulmus HOME
+      # ile bu dordu gercek iddia basip rc=0 verdi. Ayni kosumda `sahiplik-kapisi`
+      # (rc=1, yerel duzlem) ve `mimar-commit-kapisi` (SIFIR iddia, kapi govdesi)
+      # KABLOLANMADI -> ci-kapsam-test.py::IZIN_LISTESI'ne sinif gerekcesiyle
+      # yazildi.
       #
-      # 🔴 SERIT/YAYIN ETKISI YOK: `serit-b` `deploy.needs` listesinde DEGILDIR;
-      # K80 bu adimlari ZINCIR_DISI olarak raporlar, yayin sartina BAGLAMAZ.
-      # `continue-on-error` KULLANILMADI (bu depoda beyansiz fail-open ihlaldir).
-      - name: "Supurme kurtarmasi — chip/dal sahipligi bataryalari (K50/K331)"
+      # 🔴 `worktree-tavan-nobeti.py` BU ADIMDA YOK ve bu bir unutma DEGILDIR:
+      # DIS bataryasi HIC YOK (olculdu — ne `ca8c3815^`da ne kaynak agacta boyle
+      # bir dosya var). Nobetcisi kendi `--kendini-test` kolu; ayrica pre-push'ta
+      # rapor-only kosuyor. Uydurma batarya adi YAZILMADI.
+      #
+      # serit-b `deploy.needs`te DEGIL -> K80 bunu ZINCIR_DISI raporlar, yayin
+      # sartina baglamaz. `continue-on-error` KULLANILMADI.
+      - name: "CLAUDE.md zorunlu kapilari — chip duzeni + mimar commit kapisi bataryalari"
         if: ${{ !cancelled() }}
         run: |
           python3 tools/chip-duzeni-kapisi.py --kendini-test
           python3 tools/chip-duzeni-test.py
-          python3 tools/dal-sahibi-test.py
-          python3 tools/dal-sahibi-mutasyon.py
-
-      - name: "Supurme kurtarmasi — defter rotasyon/kota bataryalari (K309)"
-        if: ${{ !cancelled() }}
-        run: |
-          python3 tools/defter-isaretciye-indirme-test.py
-          python3 tools/defter-kota-kapsam-disi-test.py
-          python3 tools/defter-rotasyon-cifti-test.py
-          python3 tools/defter-rotasyon-test.py
-
-      - name: "Supurme kurtarmasi — mimar commit kapisi + kod kilidi (K304/K332)"
-        if: ${{ !cancelled() }}
-        run: |
           python3 tools/mimar-commit-kapisi-test.py
           python3 tools/mimar-commit-kapisi-mutasyon.py
-          python3 tools/kod-kilidi-test.py
-          python3 tools/kapi-dagitim-bootstrap-test.py
-
-      - name: "Supurme kurtarmasi — tek kaynak / yol / yonlendirme kapilari"
-        if: ${{ !cancelled() }}
-        run: |
-          python3 tools/motor-tek-kaynak-kapisi.py --kendini-test
-          python3 tools/mutlak-yol-kapisi.py --kendini-test
-          python3 tools/serbest-kume-tekkaynak-test.py
-          python3 tools/t3-yonlendirme-kapisi.py --kendini-test
 
       # ⚠️ DORT AGIR MUTASYON BATARYASI BU JOB'DAN CIKARILDI (10 Agu 2026) — bkz.
       # asagidaki `marka-bolum-bataryasi` · `marka-sayfa-bataryasi` ·
