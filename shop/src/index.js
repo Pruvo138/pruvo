@@ -826,7 +826,98 @@ async function donus(request, env, ctx) {
   ).bind(token).first();
   if (!siparis) return json({ hata: "bilinmeyen-token" }, 404, env);
 
-  // SUNUCU-TARAFI DOGRULAMA: sonuc iyzico'dan retrieve ile alinir; istemciye guvenilmez.
+  // 🔴 SUNUCU-TARAFI DOGRULAMA + dogrulanmis odemenin 'odendi' KAPANISI: TEK KAYNAK
+  // `odemeHukmu()` (asagida). Cron terk supurmesi de AYNI fonksiyonu cagirir — ikinci
+  // dogrulama kopyasi YOKTUR. Bu fonksiyon YALNIZ 'odendi' yazar; asagidaki ODENMEMIS
+  // kollarin D1 yazmasi cagirana (yani buraya) aittir.
+  const h = await odemeHukmu(env, ctx, token, siparis, {
+    // istemci{ip,ua}: Meta eslesme kalitesi icin (client_ip_address / client_user_agent).
+    // Bu istek MUSTERININ tarayicisindan gelir (iyzico redirect'i) -> IP/UA gercekten
+    // musteriye aittir. Cron kolunda BOSTUR (orada IP/UA Cloudflare'indir, musterinin degil).
+    istemci: {
+      ip: request.headers.get("CF-Connecting-IP") || "",
+      ua: request.headers.get("User-Agent") || "",
+    },
+  });
+  const det = h.det;
+
+  // ALTYAPI HATASI: retrieve CEVAP VEREMEDI -> odemenin gercek durumu BILINMIYOR.
+  // 'basarisiz' yazmak parasi cekilmis musteriyi sessizce dusurur; 'incele' + yuksek sesli
+  // bildirim. Otomatik onay YOK. Sonraki gecerli callback'te retrieve duzelirse 'odendi'ye
+  // ilerleyebilir (asagidaki UPDATE'ler durum <> 'odendi' kosuluyla calisir).
+  if (h.hal === "altyapi-hatasi") {
+    await env.KATALOG.prepare(
+      "UPDATE siparisler SET durum = 'incele' WHERE token = ? AND durum = 'bekliyor'"
+    ).bind(token).run();
+    ctx.waitUntil(telegram(env,
+      "⚠️ PRUVO shop RETRIEVE HATASI — " + siparis.siparis_no +
+      "\niyzico cevabi: " + (det ? (det.errorCode || "?") + " " + (det.errorMessage || "") : "yok") +
+      "\nOdeme durumu BILINMIYOR — siparis 'incele' durumunda, elle bak."));
+    return yonlendir(env, "hata", siparis.siparis_no);
+  }
+
+  // Retrieve CEVAP VERDI ve odeme basarili degil (or. kart reddi) -> gercek 'basarisiz'.
+  if (h.hal === "basarisiz") {
+    await env.KATALOG.prepare(
+      "UPDATE siparisler SET durum = 'basarisiz' WHERE token = ? AND durum = 'bekliyor'"
+    ).bind(token).run();
+    return yonlendir(env, "hata", siparis.siparis_no);
+  }
+
+  // Odeme iyzico'da BASARILI ama bizim kayitla uyusmuyor: otomatik onaylanmaz,
+  // insan incelemesine dusurulur + yuksek sesle bildirilir.
+  if (h.hal === "uyusmazlik") {
+    const beklenenTahsilat = siparis.tutar_kurus + (siparis.kargo_kurus || 0);
+    await env.KATALOG.prepare(
+      "UPDATE siparisler SET durum = 'incele', iyzico_odeme_id = ? WHERE token = ? AND durum <> 'odendi'"
+    ).bind(String(det.paymentId || ""), token).run();
+    ctx.waitUntil(telegram(env,
+      "⚠️ PRUVO shop TUTARSIZLIK — " + siparis.siparis_no +
+      "\niyzico paidPrice: " + det.paidPrice + " / bizim: " + kurusTL(beklenenTahsilat) +
+      " (urun " + kurusTL(siparis.tutar_kurus) + " + kargo " + kurusTL(siparis.kargo_kurus || 0) + ")" +
+      "\nconversationId: " + det.conversationId + "\nToken: " + token.slice(0, 12) + "…" +
+      "\nSiparis 'incele' durumunda, elle bak."));
+    // Musteri iyzico'dan donerken TARAYICIDADIR: ham 409 JSON gostermek yerine siteye
+    // yonlendir (retrieve-altyapi-hatasi kolu ile AYNI desen — ikisi de 'incele' durumu).
+    return yonlendir(env, "hata", siparis.siparis_no);
+  }
+
+  // Donus sayfasi KDV dokumu (kalem 8): tahsilat + kdv paramlari — istemci dokumu basar.
+  // 🔴 BILET YALNIZ GERCEK GECISTE URL'YE KONUR (odemeHukmu degisti=false ise "" doner):
+  // changes=0 demek "bu siparis ZATEN kapanmisti" demektir (ayni token 2. kez / geri tusu /
+  // yenileme): sunucu CAPI olayini da TEKRARLAMADI, tarayici da TEKRARLAMAMALI.
+  return yonlendir(env, "ok", siparis.siparis_no, {
+    tahsilatKurus: siparis.tutar_kurus + (siparis.kargo_kurus || 0),
+    kdvKurus: siparis.kdv_kurus || 0,
+    bilet: h.bilet,
+  });
+}
+
+/**
+ * 🔴 TEK KAYNAK — ODEME HUKMU: iyzico `retrieve` ile sunucu-tarafi dogrulama + dogrulanmis
+ * odemenin 'odendi' KAPANISI (atomik CAS UPDATE + uc katmanli idempotens + Purchase olcumu
+ * + Telegram + onay e-postasi).
+ *
+ * IKI CAGIRAN VAR, IKINCI KOPYA YOK:
+ *   1) `donus()`     — musteri iyzico'dan donunce (tarayici baglami VAR),
+ *   2) `terkSupur()` — `scheduled` (cron) kolu, terk edilmis eski 'bekliyor' satirlari icin
+ *                      (tarayici baglami YOK).
+ * Supurmenin kendi dogrulamasini yazmasi bu yuzden YAPISAL OLARAK imkansizdir: "kor iptal"
+ * sinifi ancak bu fonksiyon atlanarak uretilebilir.
+ *
+ * 🔴 D1 YAZMASI — SINIR: bu fonksiyon YALNIZ 'odendi' gecisini yazar. ODENMEMIS/BILINMEYEN
+ * kollarin ('incele' / 'basarisiz' / 'iptal' / hic dokunmama) yazmasi CAGIRANA aittir,
+ * cunku iki cagiranin hukmu FARKLIDIR: musteri callback'i 'basarisiz' yazar; terk supurmesi
+ * 'iptal' + makine-okunur 'terk' sebebi yazar ve retrieve ULASILAMAZSA HICBIR SEY yazmaz.
+ *
+ * Doner: { hal, det, degisti, bilet }
+ *   hal     : "altyapi-hatasi" | "basarisiz" | "uyusmazlik" | "odendi"
+ *   det     : iyzico retrieve cevabi (altyapi hatasinda null/failure govdesi olabilir)
+ *   degisti : YALNIZ hal="odendi" — bu cagri gecisi GERCEKTEN yapti mi (CAS changes>0)
+ *   bilet   : YALNIZ degisti=true — tarayici Purchase bileti; aksi halde ""
+ */
+export async function odemeHukmu(env, ctx, token, siparis, secenek) {
+  const s = secenek || {};
   const det = await cfDetay(env, token);
 
   // ALTYAPI HATASI (or. 1001 anahtar/URL uyusmazligi, gecici iyzico hatasi; DEVAM.md bulgusu,
@@ -839,14 +930,10 @@ async function donus(request, env, ctx) {
     // bosluk birakma — "bu siparisin Purchase'i neden yok?" sorusu loglardan cevaplanabilsin.
     olcumLog({ olay: "Purchase", siparis_no: siparis.siparis_no, kaynak: "kart",
                atlandi: "retrieve-hatasi" });
-    await env.KATALOG.prepare(
-      "UPDATE siparisler SET durum = 'incele' WHERE token = ? AND durum = 'bekliyor'"
-    ).bind(token).run();
-    ctx.waitUntil(telegram(env,
-      "⚠️ PRUVO shop RETRIEVE HATASI — " + siparis.siparis_no +
-      "\niyzico cevabi: " + (det ? (det.errorCode || "?") + " " + (det.errorMessage || "") : "yok") +
-      "\nOdeme durumu BILINMIYOR — siparis 'incele' durumunda, elle bak."));
-    return yonlendir(env, "hata", siparis.siparis_no);
+    // 🔴 FAIL-CLOSED: HICBIR D1 YAZMASI YAPILMAZ. Hukum cagiranindir — musteri callback'i
+    // 'incele' yazar, cron supurmesi HIC DOKUNMAZ (bilinmeyen odemeyi iptal etmek parayi
+    // gorunmez yapar). Iki farkli hukum burada birlestirilirse biri digerini ezerdi.
+    return { hal: "altyapi-hatasi", det: det || null, degisti: false, bilet: "" };
   }
 
   // Retrieve CEVAP VERDI ve odeme basarili degil (or. kart reddi) -> gercek 'basarisiz'.
@@ -860,10 +947,8 @@ async function donus(request, env, ctx) {
   if (!odendi) {
     olcumLog({ olay: "Purchase", siparis_no: siparis.siparis_no, kaynak: "kart",
                atlandi: "odeme-basarisiz" });
-    await env.KATALOG.prepare(
-      "UPDATE siparisler SET durum = 'basarisiz' WHERE token = ? AND durum = 'bekliyor'"
-    ).bind(token).run();
-    return yonlendir(env, "hata", siparis.siparis_no);
+    // D1 yazmasi CAGIRANIN: callback 'basarisiz' yazar, terk supurmesi 'iptal' + 'terk'.
+    return { hal: "basarisiz", det: det, degisti: false, bilet: "" };
   }
 
   // Tutar/kimlik denetimi: iyzico'daki odeme bizim hesapladigimiz siparisle eslesmeli.
@@ -875,24 +960,12 @@ async function donus(request, env, ctx) {
   const kimlikUyar = (det.conversationId && det.conversationId !== siparis.siparis_no) ||
                      (det.basketId && det.basketId !== siparis.siparis_no);
   if (paraUyar || kimlikUyar) {
-    // Odeme iyzico'da BASARILI ama bizim kayitla uyusmuyor: otomatik onaylanmaz,
-    // insan incelemesine dusurulur + yuksek sesle bildirilir.
+    // Odeme iyzico'da BASARILI ama bizim kayitla uyusmuyor: otomatik ONAYLANMAZ ve
+    // asla IPTAL EDILMEZ — para ORTADA, insan incelemesine dusurulur (yazma cagiranda).
     // OLCUM IZI: Purchase GONDERILMEZ (tutar guvenilmez — yanlis ciro ogretmeyelim).
     olcumLog({ olay: "Purchase", siparis_no: siparis.siparis_no, kaynak: "kart",
                atlandi: "tutar-uyusmazligi" });
-    await env.KATALOG.prepare(
-      "UPDATE siparisler SET durum = 'incele', iyzico_odeme_id = ? WHERE token = ? AND durum <> 'odendi'"
-    ).bind(String(det.paymentId || ""), token).run();
-    ctx.waitUntil(telegram(env,
-      "⚠️ PRUVO shop TUTARSIZLIK — " + siparis.siparis_no +
-      "\niyzico paidPrice: " + det.paidPrice + " / bizim: " + kurusTL(beklenenTahsilat) +
-      " (urun " + kurusTL(siparis.tutar_kurus) + " + kargo " + kurusTL(siparis.kargo_kurus || 0) + ")" +
-      "\nconversationId: " + det.conversationId + "\nToken: " + token.slice(0, 12) + "…" +
-      "\nSiparis 'incele' durumunda, elle bak."));
-    // Musteri iyzico'dan donerken TARAYICIDADIR: ham 409 JSON gostermek yerine siteye
-    // yonlendir (retrieve-altyapi-hatasi kolu ile AYNI desen — ikisi de 'incele' durumu).
-    // Durum/Telegram/log yukarida bitti; burada yalniz musteri gorunumu degisir.
-    return yonlendir(env, "hata", siparis.siparis_no);
+    return { hal: "uyusmazlik", det: det, degisti: false, bilet: "" };
   }
 
   // IDEMPOTENT kapanis: ayni token ikinci kez gelirse changes=0 -> bildirim de tekrarlanmaz.
@@ -933,12 +1006,13 @@ async function donus(request, env, ctx) {
     // musteriye aittir. 🔒 GIZLILIK: olcum.js bunlari YALNIZCA atif'ta fbp varsa gonderir
     // (fbp = riza kapisindan gecmis piksel kaniti) — karar ve gerekce metaGovdesi()'nde.
     // event_time verilmez: odeme SU AN dogrulandi, "simdi" dogru damgadir.
+    // 🔒 GIZLILIK/DOGRULUK: `istemci` YALNIZ musteri tarayicisindan gelen cagrida (callback)
+    // doludur. Cron terk supurmesinde BOS gecilir — oradaki IP/UA Cloudflare'in cron
+    // calistiricisinindir, MUSTERININ DEGIL; yanlis kisiyi eslestirmek hic eslestirmemekten
+    // kotudur (yonet.js havaleOlcumu'ndaki AYNI karar).
     olcumGonder(env, ctx, siparis, undefined, {
       kaynak: "kart",
-      istemci: {
-        ip: request.headers.get("CF-Connecting-IP") || "",
-        ua: request.headers.get("User-Agent") || "",
-      },
+      istemci: s.istemci,
     });
     // Musteriye onay e-postasi (tetik 1, kart odemesi onaylandi) + satici kopyasi.
     // IDEMPOTENT: yalniz changes>0'da (ayni token 2. kez -> e-posta da tekrarlanmaz).
@@ -950,17 +1024,144 @@ async function donus(request, env, ctx) {
       tahsilatKurus: siparis.tutar_kurus + (siparis.kargo_kurus || 0),
     }, false);
   }
-  // Donus sayfasi KDV dokumu (kalem 8): tahsilat + kdv paramlari — istemci dokumu basar.
-  // 🔴 BILET YALNIZ GERCEK GECISTE URL'YE KONUR. changes=0 demek "bu siparis ZATEN kapanmisti"
-  // demektir (ayni token 2. kez / geri tusu / yenileme): sunucu CAPI olayini da TEKRARLAMADI,
-  // tarayici da TEKRARLAMAMALI. Bilet D1'e inmediginden zaten dogrulanamazdi; URL'ye koymamak
-  // gereksiz bir uc cagrisini da onler.
-  const biletUrl = (g.meta && g.meta.changes > 0) ? pikselBileti : "";
-  return yonlendir(env, "ok", siparis.siparis_no, {
-    tahsilatKurus: siparis.tutar_kurus + (siparis.kargo_kurus || 0),
-    kdvKurus: siparis.kdv_kurus || 0,
-    bilet: biletUrl,
-  });
+  // 🔴 BILET YALNIZ GERCEK GECISTE DISARI CIKAR. changes=0 demek "bu siparis ZATEN
+  // kapanmisti" demektir (ayni token 2. kez / geri tusu / yenileme / cron ile callback'in
+  // YARISI): sunucu CAPI olayini da TEKRARLAMADI, tarayici da TEKRARLAMAMALI. Bilet D1'e
+  // inmediginden zaten dogrulanamazdi; disari vermemek gereksiz bir uc cagrisini da onler.
+  const degisti = !!(g.meta && g.meta.changes > 0);
+  return { hal: "odendi", det: det, degisti: degisti, bilet: degisti ? pikselBileti : "" };
+}
+
+// ------------------------------------------------ terk edilmis 'bekliyor' supurmesi (cron)
+
+/**
+ * 🔴 TERK ESIGI — TEK SABIT (mimar karari 30 Agu 2026). Koda SERPILMEZ: esigi okuyan tek
+ * yer `terkSupur()`, yazan tek yer burasi.
+ *
+ * NEDEN 24 SAAT: iyzico'nun hosted odeme sayfasi bundan cok daha kisa surede olur; 24 saat
+ * "musteri gercekten odedi ama callback dusmedi" ihtimaline comert bir pay birakir. Esigi
+ * KISALTMAK, odemesi tamamlanmis ama callback'i gecikmis bir satiri erken degerlendirme
+ * riskini buyutur — ve o satir zaten `retrieve` ile DOGRULANDIGI icin iptal degil 'odendi'
+ * olur; yine de sabiti buyuk tutmak hatanin maliyetini dusurur.
+ */
+export const TERK_ESIK_SAAT = 24;
+
+/**
+ * 🔴 SUPURMENIN DOKUNABILECEGI TEK DURUM. Beyaz liste tektir ve TEK YERDE yazilidir:
+ * asagidaki SELECT bunu bind eder, iki UPDATE'in CAS kosulu da BUNU bind eder.
+ *   - 'havale-bekliyor' GERCEK SIPARISTIR (musteri banka havalesi gonderecek) — ne kadar
+ *     eski olursa olsun DOKUNULMAZ. Adinin 'bekliyor' ile bitmesi bir tuzaktir: esitlik
+ *     testi kullanilir, alt-dize/LIKE ASLA.
+ *   - 'odendi' ve sonrasi (uretimde/kargolandi/tamamlandi), 'iptal', 'incele', 'basarisiz'
+ *     de kapsam DISIDIR.
+ */
+export const TERK_KAYNAK_DURUM = "bekliyor";
+
+/** `durum_gecmisi` kaydina dusen MAKINE-OKUNUR sebep (yonet.js gecmiseEkle -> {"s":"terk"}). */
+export const TERK_SEBEP = "terk";
+
+/** Bir cron turunda islenecek satir sayisi; artani sonraki tur alir. Amac tur suresini ve
+ *  D1 yazma yukunu olculu tutmak. */
+const TERK_TUR_TAVANI = 200;
+
+/**
+ * TERK EDILMIS ODEME DENEMELERINI SUPUR — ama ONCE DOGRULA.
+ *
+ * NEDEN VAR: kart akisinda `bekliyor` satiri, musteri iyzico odeme sayfasina YONLENDIRILIRKEN
+ * (odemeden ONCE) yazilir; token saklanmak zorundadir, yoksa `/donus` dogrulamasi yapilamaz.
+ * Musteri sayfayi kapatirsa o satir SONSUZA KADAR `bekliyor` kalir ve panelde gercek is
+ * bekleyen siparislerden ayirt edilemez. Bunlari kapatan HICBIR SEY yoktu.
+ *
+ * 🔴 KOR IPTAL YASAK: bir `bekliyor` satiri, musterinin ODEYIP callback'i dusmemis GERCEK bir
+ * tahsilati olabilir. Kor iptal parayi gorunmez yapar. Bu yuzden her satir icin `odemeHukmu()`
+ * — yani `/donus` ile AYNI iyzico `retrieve` dogrulamasi — CAGRILIR; ikinci kopya YOK.
+ *
+ * HUKUM TABLOSU (odemeHukmu'nun dondugu hal -> burada yapilan):
+ *   odendi         -> 'odendi' (odemeHukmu YAZDI). Bu TEMIZLIK DEGIL **PARA KURTARMADIR**:
+ *                     Purchase olcumu + Telegram + onay e-postasi `/donus` ile AYNI yoldan
+ *                     ve AYNI uc katmanli idempotensle gecer (ikinci kez SAYILMAZ).
+ *   basarisiz      -> 'iptal' + gecmiste {"d":"iptal","s":"terk"}. Odeme YOK/expired.
+ *   uyusmazlik     -> 'incele' + Telegram. Para ORTADA ama tutar/kimlik tutmuyor: IPTAL EDILMEZ.
+ *   altyapi-hatasi -> 🔴 HICBIR SEY. FAIL-CLOSED: retrieve ULASILAMADIYSA odemenin durumu
+ *                     BILINMIYOR; sessizce iptal etmek tam da kacinilan zarardir. Satir
+ *                     `bekliyor` kalir, sayac artar, sonraki tur yeniden dener.
+ *
+ * IDEMPOTENS: her yazma CAS'tir (`WHERE siparis_no = ? AND durum = ?`). Ayni supurme ikinci
+ * kez kosunca islenen satirlar artik 'bekliyor' olmadigi icin SELECT'e bile girmez -> degisen=0.
+ * Musteri callback'i supurme ile YARISIRSA yalniz biri changes>0 alir; Purchase TEK kalir.
+ *
+ * Doner: sayac nesnesi (asagida loglanir). Kisisel veri ICERMEZ.
+ */
+export async function terkSupur(env, ctx, simdi) {
+  const an = Number.isFinite(simdi) ? simdi : Date.now();
+  const esikISO = new Date(an - TERK_ESIK_SAAT * 3600 * 1000).toISOString();
+  const sonuc = {
+    esik_saat: TERK_ESIK_SAAT, esik: esikISO, bakilan: 0,
+    odendi: 0, iptal: 0, incele: 0, ulasilamadi: 0, tokensiz: 0, degisen: 0,
+  };
+
+  // `tarih` ISO-8601 UTC metnidir (INSERT: new Date().toISOString()) -> sozlukbilimsel
+  // karsilastirma kronolojik siralamayla BIREBIR ortusur.
+  const q = await env.KATALOG.prepare(
+    "SELECT siparis_no, token, tarih, durum, durum_gecmisi, tutar_kurus, kargo_kurus," +
+    " kdv_kurus, urunler, atif, musteri_ad, musteri_tel, musteri_eposta, musteri_adres," +
+    " musteri_notu FROM siparisler WHERE durum = ? AND tarih < ? ORDER BY tarih ASC LIMIT ?"
+  ).bind(TERK_KAYNAK_DURUM, esikISO, TERK_TUR_TAVANI).all();
+  const satirlar = (q && q.results) || [];
+
+  for (const s of satirlar) {
+    sonuc.bakilan++;
+    // Kart akisinda token DAIMA doludur; bossa dogrulama YAPILAMAZ -> FAIL-CLOSED, dokunma.
+    if (!s.token) { sonuc.tokensiz++; continue; }
+
+    let h;
+    try {
+      // 🔴 `istemci` GECILMEZ: bu tur Cloudflare'in cron calistiricisindan kosar; buradaki
+      // IP/UA musteriye AIT DEGILDIR (yonet.js havaleOlcumu ile AYNI karar).
+      h = await odemeHukmu(env, ctx, s.token, s, {});
+    } catch (e) {
+      // Beklenmeyen hata da "bilinmiyor"dur -> FAIL-CLOSED, yazma YOK.
+      console.error("terk supurmesi odemeHukmu hatasi:", s.siparis_no, (e && e.stack) || e);
+      sonuc.ulasilamadi++;
+      continue;
+    }
+
+    if (h.hal === "altyapi-hatasi") { sonuc.ulasilamadi++; continue; }
+
+    if (h.hal === "odendi") {
+      // Yazmayi odemeHukmu yapti (CAS + idempotens + olcum + bildirim + e-posta).
+      if (h.degisti) { sonuc.odendi++; }
+      continue;
+    }
+
+    if (h.hal === "uyusmazlik") {
+      const gu = await env.KATALOG.prepare(
+        "UPDATE siparisler SET durum = 'incele', iyzico_odeme_id = ?" +
+        " WHERE siparis_no = ? AND durum = ?"
+      ).bind(String((h.det && h.det.paymentId) || ""), s.siparis_no, TERK_KAYNAK_DURUM).run();
+      if (gu.meta && gu.meta.changes > 0) { sonuc.incele++; }
+      ctx.waitUntil(telegram(env,
+        "⚠️ PRUVO shop TERK SUPURMESI — TUTARSIZLIK: " + s.siparis_no +
+        "\niyzico paidPrice: " + (h.det && h.det.paidPrice) +
+        " / bizim: " + kurusTL(s.tutar_kurus + (s.kargo_kurus || 0)) +
+        "\nOdeme VAR ama kayitla uyusmuyor — IPTAL EDILMEDI, 'incele' durumunda, elle bak."));
+      continue;
+    }
+
+    // h.hal === "basarisiz": retrieve CEVAP VERDI ve odeme YOK/expired -> terk edilmis deneme.
+    const yeniGecmis = gecmiseEkle(s.durum_gecmisi, "iptal", { sebep: TERK_SEBEP });
+    const gi = await env.KATALOG.prepare(
+      "UPDATE siparisler SET durum = 'iptal', durum_gecmisi = ?" +
+      " WHERE siparis_no = ? AND durum = ?"
+    ).bind(yeniGecmis, s.siparis_no, TERK_KAYNAK_DURUM).run();
+    if (gi.meta && gi.meta.changes > 0) { sonuc.iptal++; }
+  }
+
+  sonuc.degisen = sonuc.odendi + sonuc.iptal + sonuc.incele;
+  // Sessiz bosluk birakma: "bu tur ne yapti?" sorusu Cloudflare Logs'tan cevaplanabilsin.
+  // Kisisel veri YOK — yalniz sayaclar (siparis numarasi bile basilmaz).
+  console.log("terk-supurme", JSON.stringify(sonuc));
+  return sonuc;
 }
 
 /**
@@ -1098,6 +1299,22 @@ export default {
     } catch (e) {
       console.error("pruvo-shop hata:", e && e.stack || e);
       return json({ hata: "sunucu-hatasi" }, 500, env);
+    }
+  },
+
+  /**
+   * CRON KOLU (wrangler.toml [triggers] crons) — terk edilmis 'bekliyor' satirlarinin
+   * DOGRULAYAN supurmesi. Tek is budur; baska yan etki yoktur.
+   *
+   * Sikligi BILEREK DUSUK (saatlik): is aciliyet tasimaz (esik 24 saat) ve her tur D1
+   * yazma kotasi harcar. Hata TUM turu dusurur ama bir sonraki tur temiz baslar —
+   * yarim kalan satirlar `bekliyor` kaldigi icin yeniden ele alinir (fail-closed).
+   */
+  async scheduled(controller, env, ctx) {
+    try {
+      await terkSupur(env, ctx, controller && controller.scheduledTime);
+    } catch (e) {
+      console.error("pruvo-shop cron (terk supurmesi) dustu:", (e && e.stack) || e);
     }
   },
 };

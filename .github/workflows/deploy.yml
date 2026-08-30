@@ -684,6 +684,42 @@ jobs:
       - name: Havale onay ucu mutasyon bataryasi (K284 once-kirmizi)
         run: python3 tools/havale-onay-mutasyon.py
 
+      # TERK EDILMIS ODEME DENEMESI SUPURMESI (30 Agu 2026) — DOGRULAYAN cron kolu.
+      # OLCULEN BASLANGIC DURUMU: kart akisinda `bekliyor` satiri ODEMEDEN ONCE yazilir
+      # (token saklanmak zorunda, yoksa /donus dogrulamasi yapilamaz); musteri odeme
+      # sayfasini terk ederse satir SONSUZA KADAR `bekliyor` kalir. Worker'da `scheduled`
+      # kolu HIC YOKTU (wrangler.toml'da cron da yoktu) -> bu satirlari kapatan HICBIR SEY
+      # yoktu ve panel onlari gercek is bekleyen siparislerden AYIRMIYORDU.
+      # 🔴 KOR IPTAL YASAK: bir `bekliyor` satiri, musterinin ODEYIP callback'i dusmemis
+      # GERCEK tahsilati olabilir; kor iptal parayi gorunmez yapar. Bu yuzden supurme,
+      # `/donus` ile AYNI `odemeHukmu()` fonksiyonunu cagirir (ikinci dogrulama kopyasi YOK).
+      # OLCULEN HUKUM:
+      #   (a) 24 saatten YENI 'bekliyor' -> retrieve BILE denenmez,
+      #   (b) eski + retrieve ODENDI -> 'odendi' (PARA KURTARMA) + Purchase BIR KEZ,
+      #   (c) eski + retrieve ODENMEMIS -> 'iptal' + gecmiste makine-okunur {"s":"terk"},
+      #   (d) eski + retrieve HATA -> DEGISMEDI (fail-closed); tokensiz satir da DOKUNULMAZ,
+      #   (e) 'havale-bekliyor' (adi 'bekliyor' ile BITER) eski olsa da retrieve BILE edilmez,
+      #   (f) 'odendi'/'iptal'/'uretimde'/'incele'/'basarisiz' DOKUNULMAZ,
+      #   (g) IDEMPOTENS: ikinci supurmede degisen=0,
+      #   (h) YARIS: cron ile musteri callback'i AYNI satirda -> Purchase yine BIR KEZ (CAS),
+      #   (i) tutar/kimlik uyusmazligi -> 'incele' + Telegram, ASLA 'iptal' (para ORTADA),
+      #   (j) esik TEK SABIT (TERK_ESIK_SAAT), `scheduled` kolu bagli, wrangler.toml'da
+      #       [triggers] crons VAR ve siklik dakikalik DEGIL (D1 yazma kotasi).
+      # Ag/wrangler/D1 GEREKMEZ: GERCEK index.js import edilip GERCEK `scheduled()` kolu
+      # SQL'i YORUMLAYAN sahte D1 ile cagrilir, `fetch` stub'lanir. continue-on-error YOK.
+      - name: Terk edilmis odeme supurmesi kabul kapisi
+        run: node shop/test/terk-supurme.mjs
+
+      # ONCE-KIRMIZI KANITI. Yukaridaki kapinin YESIL olmasi tek basina bir sey kanitlamaz.
+      # Batarya GECICI AYNAYA yazar (calisma agaci KIRLENMEZ, sonunda ayrica dogrulanir) ve
+      # her mutant icin IKI EKSENI AYRI basar: (a) hedef kol kirmizi yandi mi, (b) yan eksen
+      # yesil kaldi mi. M1 kapsam beyaz listesi 'havale-bekliyor'u da alir · M2 fail-closed
+      # duser (retrieve hatasinda IPTAL eder) · M3 esik 0'a duser · M4 'odendi' CAS kosulu
+      # kalkar (Purchase iki kez sayilir) · K0 kontrol (ilgisiz kol, HICBIR iddia olmemeli).
+      # Dayanak metni tekil degilse mutant ATLANMAZ, 'HARNESS BAYAT' ile KIRMIZI doner.
+      - name: Terk supurmesi mutasyon bataryasi (once-kirmizi)
+        run: python3 tools/terk-supurme-mutasyon.py
+
       # ALT KATEGORI (`altkategori`) veri yolu — kategori ICINDEKI daraltma etiketi.
       # OLCULEN BASLANGIC DURUMU (1 Agu): alan urunler.json'da 134 kayitta DOLUYDU ama
       # hicbir yerde ISLENMIYORDU (index.html/build.py/d1-sync/arama/d1-sema/duzelt YOK)

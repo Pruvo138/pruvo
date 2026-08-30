@@ -696,6 +696,11 @@ export function gecmiseEkle(mevcutJson, hedef, ekstra) {
   // halinde bileti donus URL'sine KOYMAMALIDIR — yoksa idempotent 2. callback tarayiciya
   // yakilabilir bilet verir ve mukerrer koruma coker.
   if (ekstra && ekstra.pikselBileti) { kayit.pb = String(ekstra.pikselBileti); }
+  // "s" -> MAKINE-OKUNUR SEBEP. Bugunku tek uretici cron terk supurmesidir ("terk"):
+  // musterinin acip terk ettigi odeme sayfasinin siparis satiri, iyzico `retrieve` ile
+  // ODENMEDIGI DOGRULANDIKTAN sonra 'iptal'e cekilir. Sebep olmadan bu satirlar musterinin
+  // vazgectigi gercek siparislerden AYIRT EDILEMEZDI (panel/rapor ikisini ayni gosterirdi).
+  if (ekstra && ekstra.sebep) { kayit.s = String(ekstra.sebep); }
   g.push(kayit);
   if (g.length > 50) { g = g.slice(-50); } // sinirla (same-row buyumesin)
   return JSON.stringify(g);
