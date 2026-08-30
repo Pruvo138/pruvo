@@ -260,7 +260,34 @@ if [ "$pruvo_icrapor_rc" -ne 0 ]; then
   exit 1
 fi
 
-# --- 8) (KraL-KapiSupurmesi-29Agu) defter-kota-kapisi SILINDI ----------------
-# K351 vakasi: kapi evin TUM commit'ini kilitliyordu (onarim kolu zarar esiginin
-# arkasinda). Defter bakimi defter-rotasyon.py + kutu-arsivle.py ile surer.
+# --- 8) DEFTER KOTASI KAPISI — INDEX (COMMIT ANI) kolu (FAIL-CLOSED) ----------
+# 🔴 GERI KURULDU (KraL-EsikVeKota-29Agu). 29 Agu supurmesi (`ca8c3815`) bu kapiyi
+# SILDI; gerekce dogruydu ama CARE YANLIS KATMANDAYDI: "kapi evin TUM commit'ini
+# kilitliyordu (onarim kolu zarar esiginin arkasinda)". OLCULEN BEDEL: tavan
+# YERINDE kaldi, TUTAN EL gitti -> 12.533 B'lik asim commit'lenebildi.
+# SINIF: kilidin sebebi KAPI DEGILDI, ONARIM HEDEFI ile CEZA ESIGININ AYNI SAYI
+# olmasiydi ([[onarim-kolu-zarar-esiginin-arkasinda]]) — rotasyon tavana deger
+# degmez duruyor, bir sonraki satir kotayi yeniden asiyordu (olculdu: 12.266 /
+# tavan 12.288 = 22 bayt pay). Kapiyi silmek SEMPTOMU susturdu, sinifi degil.
+# CARE (K353, ayni gun): `defter-kota-taban.py::SU_SEVIYESI_*` ile ONARIM hedefi
+# CEZA esiginden AYRILDI (12.288 vs 9.830) ve rotasyon su seviyesine iniyor;
+# inemezse ama tavan altina indiyse BEST-EFFORT basarisi doner (kilit URETMEZ).
+# Sinif onarildigi icin kapi ARTIK GUVENLE tutabilir; olculdu: ayni fiksturde
+# eski govde 11.878'de duruyordu, yeni govde 9.172'ye iniyor.
+# Eksen INDEX'tir: baska oturumun stage'de olmayan yarim defteri bu commit'i
+# bloklamaz. rc=2 (OLCULEMEDI) YESIL SAYILMAZ -> commit DURUR.
+pruvo_defter_kota="$pruvo_kok/tools/defter-kota-kapisi.py"
+if [ ! -f "$pruvo_defter_kota" ]; then
+  echo "!! COMMIT DURDURULDU — tools/defter-kota-kapisi.py YOK." >&2
+  echo "!! Defter kota korumasi OLCULEMEDI; olculemeyen sey yesil sayilmaz." >&2
+  exit 1
+fi
+python3 "$pruvo_defter_kota" "$pruvo_kok"
+pruvo_defter_kota_rc=$?
+if [ "$pruvo_defter_kota_rc" -ne 0 ]; then
+  echo "!! COMMIT DURDURULDU — defter kota kapisi rc=$pruvo_defter_kota_rc." >&2
+  echo "!!   COZUM: python3 tools/defter-rotasyon.py --tavan-kaynaktan --isaretciye-indir" >&2
+  echo "!!   Kapali maddeler DEVAM-ARSIV.md'ye (git DISI) TASINIR. Silme YOK, tasima VAR." >&2
+  exit 1
+fi
 exit 0

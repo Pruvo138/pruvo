@@ -854,6 +854,23 @@ def _tavan_asildi_mi(defter_yol, tavan_sayi, tavan_bayt):
     return False
 
 
+def _su_seviyesi_ustunde_mi(defter_yol, tavan_sayi, tavan_bayt):
+    """Dosya ONARIM HEDEFININ (su seviyesi) ustunde mi? (K353, 29 Agu 2026)
+
+    `_tavan_asildi_mi`nin KARDESIDIR ve ondan AYRI bir esik olcer: tavan CEZA
+    noktasidir (kapi orada kirmizi yakar), su seviyesi ONARIM hedefidir
+    (rotasyon buraya iner). Ikisi esitlenirse rotasyon tavanda durur, bir
+    sonraki yazim kotayi yeniden asar ve kilit geri gelir — 29 Agu'da olculdu
+    (12.266 / tavan 12.288 = 22 bayt pay).
+
+    Esikler TEK KAYNAKTAN (`defter-kota-taban.py::su_seviyesi`) turetilir;
+    ikinci bir oran/sabit BURAYA YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
+    """
+    return _tavan_asildi_mi(defter_yol,
+                            _tab_mod.su_seviyesi(tavan_sayi),
+                            _tab_mod.su_seviyesi(tavan_bayt))
+
+
 def _bugun():
     import datetime
     return datetime.date.today().isoformat()
@@ -1353,11 +1370,12 @@ def main(argv=None):
                     toplam_isaretci += 1
                     print("ISARETCIYE_INDIRILDI blok=%s kazanc_bayt=%d" % (
                         aciklama, kazanc))
-                    if not _tavan_asildi_mi(defter_yol, a.tavan_sayi,
-                                             a.tavan_bayt):
+                    if not _su_seviyesi_ustunde_mi(defter_yol, a.tavan_sayi,
+                                                   a.tavan_bayt):
                         print(_kota_kendi_olcumu(defter_yol))
                         print("TAVAN_BASARILI GECIS=%d TASINAN=%d "
-                              "TASINAN_MADDE=%d ISARETCIYE_INDIRILEN=%d" % (
+                              "TASINAN_MADDE=%d ISARETCIYE_INDIRILEN=%d "
+                              "SU_SEVIYESI=ULASILDI" % (
                                   gecis, toplam_blok, toplam_madde,
                                   toplam_isaretci))
                         return 0
@@ -1391,15 +1409,31 @@ def main(argv=None):
                 # Kapali icerik tukendi (savunmada; I1 zaten yakalar).
                 son_rc = 1
                 break
-            if not _tavan_asildi_mi(defter_yol, a.tavan_sayi, a.tavan_bayt):
+            # K353: cikis olcutu TAVAN degil SU SEVIYESIDIR. Tavanda durmak
+            # bas payi BIRAKMAZ ve bir sonraki yazim kotayi yeniden asar.
+            if not _su_seviyesi_ustunde_mi(defter_yol, a.tavan_sayi, a.tavan_bayt):
                 print(_kota_kendi_olcumu(defter_yol))
-                print("TAVAN_BASARILI GECIS=%d TASINAN=%d TASINAN_MADDE=%d" % (
-                    gecis, toplam_blok, toplam_madde))
+                print("TAVAN_BASARILI GECIS=%d TASINAN=%d TASINAN_MADDE=%d "
+                      "SU_SEVIYESI=ULASILDI" % (
+                          gecis, toplam_blok, toplam_madde))
                 return 0
         with open(defter_yol, "rb") as f:
             ham = f.read()
         satir = len(ham.splitlines())
         bayt = len(ham)
+        # 🔴 K353 BEST-EFFORT: su seviyesine INILEMEDI ama defter TAVANIN ALTINA
+        # indiyse KOTA SAGLANMISTIR -> BASARI. Burada fail-loud vermek, onarim
+        # kolunu YENI BIR YERDE zarar esiginin arkasina dusururdu: kapi yesil
+        # olurdu ama arac rc!=0 dondugu icin yordam "onarilamadi" derdi.
+        # Pay kisaligi GIZLENMEZ, ADIYLA BASILIR (0 ile n AYNI SATIRDAN okunur).
+        if son_rc != 0 and not _tavan_asildi_mi(defter_yol, a.tavan_sayi,
+                                                a.tavan_bayt):
+            print(_kota_kendi_olcumu(defter_yol))
+            print("TAVAN_BASARILI GECIS=%d TASINAN=%d TASINAN_MADDE=%d "
+                  "SU_SEVIYESI=ULASILAMADI SEBEP_RC=%d PAY_BAYT=%s" % (
+                      gecis, toplam_blok, toplam_madde, son_rc,
+                      str(a.tavan_bayt - bayt) if a.tavan_bayt is not None else "-"))
+            return 0
         if son_rc == 1:
             print("TAVAN_FAIL_LOUD: defter hâlâ tavanin ustunde — kapali madde yok",
                   file=sys.stderr)

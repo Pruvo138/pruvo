@@ -162,7 +162,20 @@ import re
 import sys
 import tempfile
 
-VARSAYILAN_TAVAN = 300
+# 🔴 TAVAN OKAN'IN HEDEFININ ALTINDA KALIR (K353, 29 Agu 2026 — olculdu).
+# ESKI DEGER 300'DU ve Okan'in emrettigi hedef 250'ydi. Ikisi arasindaki BANT
+# aracin KOR ALANIYDI: kutu 298 satirken `--kapanislari-isle` kosuldu ve arac
+# `HUKUM=TAVAN_ALTINDA rc=0 once_satir=298 tavan=300 tasinacak_blok=0` dedi —
+# yani EMREDILDIGI HALDE INERT kaldi, cunku kendi tavani emrin hedefinin
+# USTUNDEYDI. Kutu 250-300 bandinda hedefi asmis ama arac icin "temiz"di.
+# SINIF: [[onarim-kolu-zarar-esiginin-arkasinda]] — CEZA esigi ile ONARIM esigi
+# ayni/yanlis sirada olunca yordamin emrettigi komut sessizce hicbir sey yapmaz.
+# CARE: tavan = emrin hedefi (250); su seviyesi ONDAN TURETILIR ve DAIMA ALTINDA
+# kalir (asagidaki SU_SEVIYESI_ORANI). Iki esik AYRI kalir: tavan CEZA noktasi
+# (kapi burada kirmizi yakar), su seviyesi ONARIM hedefi (rotasyon buraya iner).
+# Ikisi esitlenirse rotasyon tavanda durur, bir sonraki blok yeniden asar ve
+# kilit geri gelir — bedeli 29 Agu'da olculdu.
+VARSAYILAN_TAVAN = 250
 VARSAYILAN_KORU = 3
 # K310: arsiv KUYRUGU (rapor ekseni) varsayilan penceresi. Bugunun tasimalari bu
 # pencerenin icindedir; tarihsel arsivin tamami BILEREK kapsam disidir (bkz. AYRAC_RE notu).
