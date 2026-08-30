@@ -102,6 +102,17 @@ bucket_name = "pruvo-ozel"
 binding = "MEDYA"
 bucket_name = "pruvo-media"
 
+# TERK EDILMIS ODEME DENEMESI SUPURMESI (30 Agu 2026) — src/index.js `scheduled` kolu.
+# NE YAPAR: 24 SAATTEN eski 'bekliyor' satirlarini iyzico `retrieve` ile DOGRULAR; odenmisse
+# 'odendi' (PARA KURTARMA, /donus ile ayni yol), odenmemisse 'iptal' + gecmiste sebep "terk",
+# retrieve ULASILAMAZSA HICBIR SEY (fail-closed). 'havale-bekliyor'/'odendi'/'iptal' DOKUNULMAZ.
+# 🔴 SIKLIK BILEREK DUSUK: is aciliyet tasimaz (esik zaten 24 saat) ve her tur D1 gunluk yazma
+# kotasindan harcar. Saatlik = gunde 24 tur; dakikalik bir cron kotayi bosuna yakardi.
+# Esik SABITI koda gomulu DEGIL, tek yerde: src/index.js TERK_ESIK_SAAT.
+# ⚠️ Bu blok deploy EDILENE KADAR cron kosmaz (kod merge olur, canliyi bozmaz) — DEPLOY = OKAN.
+[triggers]
+crons = ["17 * * * *"]
+
 [observability]
 enabled = true
 

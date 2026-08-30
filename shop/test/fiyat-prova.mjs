@@ -2133,8 +2133,20 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
   const m8Orta = m8Satirlar.slice(0, Math.floor(m8Satirlar.length / 2)).join("\n").length + 1;
   const m8Konumlar = [["BAS", 0], ["ORTA", m8Orta], ["SON", m8Kaynak.length]];
   const m8Temiz = yanlisGuvenceTara([{ ad: "index.js (mutantsiz)", metin: m8Kaynak }]);
+  // 🔴 BOS SATIR YASTIGI (30 Agu 2026, OLCULEREK eklendi): enjeksiyon KOMSU METINDEN
+  // YALITILIR. Yastiksiz halde ORTA kolu, dosyanin ORTASINA hangi metnin denk geldigine
+  // BAGLIYDI: muafiyet penceresi (1 satir geri / 2 satir ileri) komsudaki bir "DEGIL"/"YOK"
+  // sozcugune uzanip enjekte edilen YANLIS IDDIAYI MUAF kilabiliyordu. Olculen vaka: index.js
+  // ~160 satir buyuyunce orta nokta `/fiyat` hiz siniri JSDoc'unun icine kaydi (o blok
+  // olumsuzlama sozcugu bakimindan yogundur) ve ORTA sayisi 2 -> 1'e dustu; yani M8, ILGISIZ
+  // bir commit'in dosya UZUNLUGUNU degistirmesiyle KIRMIZI yandi. Taban zaten esikte (2) idi.
+  // Yastik olcumu komsu metinden BAGIMSIZ kilar — nobetciyi GEVSETMEZ, sadece "yanlis iddia
+  // yakalaniyor mu?" sorusunu tek degiskenli hale getirir. BAS/SON kollarinda etki yok
+  // (dosya basi/sonu zaten yalitikti).
+  const M8_YASTIK = "\n\n";
   const m8Sonuc = m8Konumlar.map(([etiket, konum]) => {
-    const metin = m8Kaynak.slice(0, konum) + M8_IDDIA + m8Kaynak.slice(konum);
+    const metin = m8Kaynak.slice(0, konum) + M8_YASTIK + M8_IDDIA + M8_YASTIK +
+                  m8Kaynak.slice(konum);
     return { etiket, sayi: yanlisGuvenceTara([{ ad: "index.js (M8/" + etiket + ")", metin }])
                              .bulgu.length };
   });
