@@ -2684,6 +2684,93 @@ R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VI
 
 # ---- IZIN LISTESI (muaf test -> GEREKCE). Bos gerekce = exit 1. ----------
 IZIN_LISTESI = {
+    # ═══════════════════════════════════════════════════════════════════════
+    # 29 AGU SUPURMESI (ca8c3815) KURTARMASI — CI'DA KOSTURULAMAYAN 9 KALEM
+    # (cip KraL-SupurmeKurtarma-30Agu)
+    # ═══════════════════════════════════════════════════════════════════════
+    # Supurmenin sildigi 40 dosya geri yuklendi. Kablolama karari TAHMINLE degil
+    # OLCUMLE verildi: 25 kesfedilen aday TEMIZ BIR KLONDA (`git clone --no-local`)
+    # ve SOKULMUS `HOME` ile kosuldu (ne `~/.claude`, ne kardes evler, ne oturum
+    # damgasi, ne `~/.claude/cron`). 16'si gercek iddia basip rc=0 verdi ve
+    # nobet.yml::serit-b'ye BAGLANDI. Asagidaki 9 kalem o kosumda sifir-disi dondu
+    # ya da SIFIR iddia kosturdu. Gerekce TOPTAN DEGIL, dort SINIFTA:
+    #
+    #   S1 — 6-EV KURULU KAPI DUZLEMI: vakalar kardes evlerin `.claude/` altina
+    #        KURULU kapi kopyalarini okur (`/Users/okan/dev/pruvo-*`). Runner'da o
+    #        alti evin hicbiri yoktur; kosum "yesil" degil ANLAMSIZ olurdu.
+    #   S2 — ~/.claude/cron HATTI: vakalar isci hattinin kurulu govdelerine capali.
+    #   S3 — CANLI DEFTER/KUTU DUZLEMI: olculen `DEVAM.md` / posta kutusu CI
+    #        checkout'unda YOKTUR; capalar CI'da ayrica BAYATLAMIS durumda.
+    #   S4 — KAPI GOVDESI, BATARYA DEGIL: bayraksiz kosum SIFIR iddia basar;
+    #        nobetcileri ayri dosyalarda ve CI'da FIILEN kosuyor.
+    #
+    # 🔴 KALAN RISK ADIYLA (K196 sinifi, mevcut emsalle ayni): bu 9'un yesili
+    # YALNIZ yerelde olculur. Bunlara dokunan her is kendi agacinda kosturmak
+    # ZORUNDADIR, yoksa regresyon CI'ya hic ugramadan main'e iner.
+    # 🔴 SUPURME ANINDAKI HALLERIYLE geri geldiler (govdeler `ca8c3815^` ile
+    # BIREBIR). 30 Agu olcumunde 8'i sifir-disi donuyor ve sebep DOSYA BOZUKLUGU
+    # DEGIL, TABANIN KAYMASIDIR (fikstur/capa 29 Agu duzlemine civili, main o
+    # tarihten sonra K332 + filo dagitimi ile ilerledi). Adiyla raporlandi;
+    # tabanlarini tazelemek AYRI bir istir, bu kurtarmanin menzilinde DEGILDIR.
+    "tools/agent-kapisi-test.py": (
+        "S1 6-EV KURULU KAPI DUZLEMI: C bolumu kardes evlerin `.claude/` altindaki "
+        "KURULU kapi kopyasina Agent/Task blogu enjekte edip geri alir; runner'da o "
+        "evler YOK. 30 Agu temiz-klon olcumu: rc=1, MaCiT ve BaBa `UYUMSUZ-KAPI "
+        "(dokunulmadi)` — kurulu govde K332 sonrasi degistigi icin eski fikstur "
+        "sembolu bulamiyor. Dosya saglam (derleniyor, A/B bolumleri yesil)."),
+    "tools/mimar-kapi-6ev-test.py": (
+        "S1 6-EV KURULU KAPI DUZLEMI (yukaridakinin kardesi): alti evin kurulu "
+        "izin tablosunu tek tek olcer. 30 Agu temiz-klon olcumu: rc=1, BaBa vaka 37 "
+        "`beklenen=allow olculen=deny` — BaBa'nin kurulu kopyasi taban fiksturden "
+        "yeni. CI'da olculecek ev YOK."),
+    "tools/kapi-dagitim-test.py": (
+        "S1 6-EV KURULU KAPI DUZLEMI: alti evin KURULU_SHA envanterini kaynak SHA "
+        "ile karsilastirir. 30 Agu temiz-klon olcumu: rc=1 ama DUSEN vakalar "
+        "V0a/V0c/V1b — hepsi `ESKI_KOPYA beklenen=5 gozlenen=0`, yani fikstur 29 "
+        "Agu'nun BES BAYAT EV tabanini civilemis, oysa filo O TARIHTEN SONRA "
+        "dagitilmis. Ayni kosumun CANLI kolu YESIL: OLCULEN_EV=6 YESIL=6 KIRMIZI=0 "
+        "HUKUM=GUNCEL. Yani kirmizi bir GERILEME DEGIL, BAYAT TABANDIR."),
+    "tools/isci-sablon-kapisi.py": (
+        "S1 6-EV KURULU KAPI DUZLEMI: taban sablonu MaCiT evinin kurulu "
+        "`.claude/mimar-icra-kapisi.py` govdesinden alir ve isci bloklarini sokup "
+        "geri enjekte eder. 30 Agu temiz-klon olcumu: rc=1, FAZ B "
+        "`ATLANDI:UYUMSUZ-KAPI — zorunlu sembol EKSIK: 'def reddet('` (K332 sonrasi "
+        "govde o sembolu tasimiyor) ve FAZ A negatif tabani gelmedigi icin kapi "
+        "kendini TAUTOLOJI ilan edip fail-closed durdu — dogru davranis."),
+    "tools/sahiplik-kapisi.py": (
+        "S2 ~/.claude/cron HATTI + 6-ev: vakalar isci hattina ve kayitli worktree "
+        "koklerine capali. 30 Agu temiz-klon olcumu: rc=1, MUTANT=7/7 (yedi "
+        "mutantin YEDISI de olduruldu) fakat KONTROL=1/2 — K1 kontrol mutanti "
+        "duzlem yoklugunda beklentiyi tutturamiyor. Ayirt edicilik saglam, "
+        "kosturulacak duzlem CI'da yok."),
+    "tools/nobet-gorev-jeton-kapisi.py": (
+        "S2 ~/.claude/cron HATTI: nobet gorev jetonunu kurulu `nobet-kapi.py` "
+        "govdesinden okur. 30 Agu temiz-klon olcumu: rc=2 `ARAC HATASI: "
+        "nobet-kapi.py yuklenemedi: [Errno 2]` — fail-closed, dogru davranis; "
+        "runner'da o hat YOK. Yerelde kosuyor: KAPI KOL=3/3 DUSEN=-."),
+    "tools/defter-tasima-birimi-test.py": (
+        "S3 CANLI DEFTER DUZLEMI + BAYAT CAPA: 30 Agu temiz-klon olcumu rc=2 ve "
+        "KIRMIZI=0 OLCULEMEDI=1 — tek eksik MUT-E, `CAPA BAYAT "
+        "(serbest_cagrilar.py): beklenen 1 isabet, bulunan 0`, yani mutantin "
+        "yamalayacagi dizge o dosyada artik YOK "
+        "([[capa-cokmesi-arkasindaki-capalari-gizler]]). Digerlerinin tamami yesil "
+        "(VAKA=4 MUTANT=5 KONTROL=2 KAPI=11). rc=2 fail-closed'dir, gerileme degil."),
+    "tools/kutu-kota-kapisi-test.py": (
+        "S3 CANLI KUTU DUZLEMI + BAYAT MENZIL DETEKTORU: 30 Agu temiz-klon olcumu "
+        "rc=1 ama VAKA=10/10 MUTANT=6/6 HEDEF_KOL_ATFI=6/6 KONTROL=1/1 — tek DUSEN "
+        "MENZIL kolu, `C rc sifir-disi -> exit 1 (yayilim) YOK` iddiasi. 🔴 BU "
+        "IDDIA BAGIMSIZ IKINCI OLCUMLE CURUTULDU: `tools/kancalar/pre-commit` "
+        "285-292 satirlari rc'yi FIILEN yayiyor (`pruvo_defter_kota_rc` -ne 0 -> "
+        "exit 1). Yani kancada kusur YOK, testin desen eslestiricisi bayat."),
+    "tools/mimar-commit-kapisi.py": (
+        "S4 KAPI GOVDESI, KABUL TESTI DEGIL: adi `-kapisi.py` oldugu icin kesfe "
+        "giriyor, ama bayraksiz kosumu SIFIR iddia basar (30 Agu temiz-klon "
+        "olcumu: rc=0, cikti 0 satir) — CI'ya baglamak olculen hicbir sey "
+        "eklemezdi, yalnizca sahte bir kapsam rakami uretirdi. Gercek nobetcileri "
+        "AYRI dosyalardadir ve nobet.yml::serit-b'de FIILEN kosuyor: "
+        "`mimar-commit-kapisi-test.py` (26/26 vaka) + "
+        "`mimar-commit-kapisi-mutasyon.py` (9 mutant, her biri en az bir vakayi "
+        "kirmizi yakiyor)."),
     # --- Izin-kancasi BATARYALARI (ayni supurmenin ikinci dalgasi — KraL 29 Agu) ---
     # 29 Agu supurmesi kapi KAYNAKLARINI silmisti (asagidaki blok geri yukledi) ama bu iki
     # BATARYAYI kimse geri takmamisti: kapi canli, nobetcisi YOKTU. K332 merge cakismasinda
