@@ -8,9 +8,12 @@ K352 `23bc7b0b` · K356 `f283d8e2` (errorCode logu) · K357 kanal gorunurlugu `f
 **KOSUYOR:** 0. `KraL-Raymarine-31Agu` KAPANDI — MUKERRER OLCULDU (dal `68e32d3f` kayit olarak durur,
 MERGE EDILMEDI: davranis main ile ozdes + bayat taban DEVAM.md'den 2 satir dusururdu). `nice-swanson-706912`
 yabanci, DOKUNULMADI.
-**BEKLIYOR:** MEMORY.md **21.983 B** (kanca hedefi 17,1 KB; 20,2 KB'dan BUYUDU) — ortak indeks, sikistirmasi
-komsu evlerin satirlarini siler ([[indeks-ile-silme-komsuyu-siler]]), sahibi KraL. **Kapatan olcum:** komsu
-ev satir adedi ONCE=SONRA. · 🟠 K359 (asagida) · Okan tikini bekleyen cip: `task_9166f0e8` (K358).
+**BEKLIYOR:** 🟠 K359 (asagida) · Okan tikini bekleyen 2 cip: `task_9166f0e8` (K358 odeme) ·
+`task_c50a1c41` (K360 hafiza indeksi). **K360 SPEC'LENDI:** MEMORY.md **22.222 B** (kanca hedefi 17,1 KB,
+okuma siniri 24,4 KB — asilirsa indeks HIC okunmaz, hafiza sessizce korlesir; pay ~2,7 KiB). Indekste
+KOMSU EVLERIN satirlari da var ([[indeks-ile-silme-komsuyu-siler]]) → GIRDI SILINMEZ, yalniz metin
+kisalir. Taban: 283 bag / 280 benzersiz hedef / hedefsiz bag 0 / 385 dosya / 20 bolum sayaci civilendi.
+**Kapatan olcum:** bayt < 17.510 VE bag 283=283 VE 20 bolum sayaci BIREBIR.
 **OKAN'DA:** 0 karar. Deploy borcu YOK — `14:45:00Z` dogrulandi.
 
 **TEMIZLIK:** worktree **6 -> 3** (`sharp-hamilton-2796ff` · `KraL-TerkEdilmisOdeme-30Agu` ·
