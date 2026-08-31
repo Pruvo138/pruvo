@@ -119,9 +119,16 @@ def fiyat_normalize(p):
 
 
 def load_products(path=JSON_PATH):
-    """Katalogu yukler; fiyat tipini tum tuketicilerden once tek noktada duzeltir."""
+    """Katalogu yukler; fiyat tipini tum tuketicilerden once tek noktada duzeltir.
+
+    `gizli: true` kayitlar BURADA duser: build'in urettigi HER yuzey (urun sayfasi,
+    marka/model, kategori hub, sitemap, merchant feed, ozet.json, anasayfa SSR) ayni
+    listeden turedigi icin gizleme TEK alandan tek noktada uygulanir; yuzey basina
+    ikinci bir filtre defteri ACILMAZ. Kayit urunler.json'da DURUR (silme yok);
+    gorunur yapmak = alani kaldirmak (yayina donus yayin-kapisi'nin normal yolu)."""
     with open(path, encoding="utf-8") as f:
         products = json.load(f)
+    products = [p for p in products if not p.get("gizli")]
     for p in products:
         fiyat_normalize(p)
     return products

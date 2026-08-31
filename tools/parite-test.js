@@ -100,7 +100,10 @@ function filtered(PRODUCTS, query, activeCat, activeBrand) {
 let _URUNLER_ONBELLEK = null;
 function urunleriYukle() {
   if (!_URUNLER_ONBELLEK) {
-    _URUNLER_ONBELLEK = JSON.parse(fs.readFileSync(URUNLER_YOLU, "utf8"));
+    // `gizli` kayitlar yerel korpusa GIRMEZ: index.html filtered() da, canli uc da
+    // (D1 `yayinda=1`; gizli = kalici taslak) onlari gostermez — parite ayni kumeyi olcer.
+    _URUNLER_ONBELLEK = JSON.parse(fs.readFileSync(URUNLER_YOLU, "utf8"))
+      .filter((p) => !p.gizli);
   }
   return _URUNLER_ONBELLEK;
 }

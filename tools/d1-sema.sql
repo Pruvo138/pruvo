@@ -259,6 +259,10 @@ CREATE TABLE IF NOT EXISTS urunler (
   --              yuzeyinde (arama/katalog/Ege) GOSTERILMEZ. Yeni satir DAIMA 0 girer.
   --   yayinda=1  YAYINDA — o id'nin /urun/<id>/ sayfasi CANLIDA 200 dondugu FIILEN
   --              dogrulandiktan sonra tools/yayin-kapisi.py yazar. Tek yon: 0 -> 1.
+  --              TEK, ALAN-BAGLI ISTISNA (31 Agu): urunler.json'da `gizli: true` olan
+  --              urunu `yayin-kapisi.py --gizle` 0'a indirir ve orada TUTAR (kalici
+  --              taslak = tum kesif yuzeylerinden gizli; kayit SILINMEZ, para/kayit
+  --              yollari `yayinda` okumaz). Keyfi/elle unpublish yolu YINE YOKTUR.
   --   release_id yayina alan commit SHA'si (denetim izi; hangi deploy yayinladi).
   -- 🔴 CONTENT UPSERT'E KARISMAZ: d1-sync KOLONLAR listesinde YOK -> mevcut (yayinda=1)
   --   bir urunun icerigi degisince satir yeniden yazilir ama yayinda 1 KALIR. Aksi halde

@@ -180,10 +180,12 @@ URL_GUVENLI_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 # boy_secenekleri_sebebi) olmadan denetlenmemis fiyat verisi yazilabilirdi. Ikisi
 # BIRLIKTE inmek zorundadir; kabul testi (duzelt-toplu-test.test_boy_secenekleri)
 # kablonun canli oldugunu MUTANTLA kanitlar.
+# `gizli`: mevcut urunu yayin yuzeylerinden dusurmenin KURALLI tek yolu duzelt.py'dir
+# (ham JSON yazimi guard'a takilir); alan bool, kaldirilinca urun geri gorunur.
 DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "eski_fiyat",
                     "gorseller", "lisans", "konfigur", "altkategori",
                     "tur", "gorselsiz", "uyum", "tavsiyeFilament",
-                    "boy_secenekleri"}
+                    "boy_secenekleri", "gizli"}
 
 UYUM_ALANI = "uyum"
 MARKA_ALANI = "marka"

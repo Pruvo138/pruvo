@@ -50,7 +50,9 @@ const URETEC_PY = [
   "sys.path.insert(0, tools)",
   "spec = importlib.util.spec_from_file_location('d1sync', os.path.join(tools, 'd1-sync.py'))",
   "mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)",
-  "urunler = json.load(open(katalog, encoding='utf-8'))",
+  // `gizli` kayitlar referans evrenine GIRMEZ: canli evren `yayinda=1` suzer ve
+  // gizli urun kalici taslaktir (yayin-kapisi --gizle) — iki taraf ayni kumeyi olcer.
+  "urunler = [u for u in json.load(open(katalog, encoding='utf-8')) if not u.get('gizli')]",
   "harita, sebep = mod.marka_arama_haritasi(urunler)",
   "print(json.dumps({'sebep': sebep, 'harita': {k: json.loads(v) for k, v in harita.items()}}," +
     " ensure_ascii=False))",

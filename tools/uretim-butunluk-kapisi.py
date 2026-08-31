@@ -17,12 +17,16 @@ URETMEMESI (ya da URL'i dosya yoluyla ayrisan bir id). O halde kart 200, sayfa 4
 olur ve bunu bugune kadar HICBIR kapi olcmuyordu.
 
 Bu kapi tam o iddiayi olcer ve BIREBIR ister:
-  (1) urunler.json'daki her BENZERSIZ id icin urun/<id>/index.html VAR ve BOS DEGIL,
+  (1) urunler.json'daki her GORUNUR (gizli olmayan) BENZERSIZ id icin
+      urun/<id>/index.html VAR ve BOS DEGIL,
   (2) urun/ altinda JSON'da KARSILIGI OLMAYAN sayfa YOK (ters yon: oksuz sayfa),
   (3) sitemap.xml'deki her /urun/<id>/ URL'inin dosyasi VAR (SEO ekseni),
   (4) merchant-feed.xml'deki her urun link'inin dosyasi VAR (Merchant ekseni),
   (5) her id URL-GUVENLI (kart linki ile dosya yolu ayrisamaz: bosluk/%/slash/nokta-nokta
-      tasiyan id sayfa uretse bile canlida 404 ya da baska sayfa acar).
+      tasiyan id sayfa uretse bile canlida 404 ya da baska sayfa acar),
+  (6) `gizli: true` kayit icin sayfa URETILMEMIS ve id sitemap/feed'de GECMIYOR —
+      gizleme tek alandan turer (build.load_products filtresi); filtre duserse bu
+      eksen KIRMIZIDIR (gizlenmis urun sessizce yayina donemez).
 🔴 continue-on-error TASIMAZ. Olculemezse (urun/ yok, JSON bozuk) OLCULEMEDI basip
    SIFIR-DISI doner — sessiz YESIL imkansiz.
 """
@@ -81,18 +85,23 @@ def denetle(kok):
 
     json_idler = [u.get("id") for u in urunler]
     bos = [i for i, x in enumerate(json_idler) if not x]
-    benzersiz = set(x for x in json_idler if x)
+    tum_benzersiz = set(x for x in json_idler if x)
+    # `gizli: true` = katalogda durur, yayin yuzeyinde YOK. Beklenen sayfa kumesi
+    # gorunur kayitlardan turer; gizli id'nin sayfasi/sitemap-feed kaydi ayri KIRMIZIDIR.
+    gizli_idler = set(u.get("id") for u in urunler if u.get("gizli") and u.get("id"))
+    benzersiz = tum_benzersiz - gizli_idler
 
     sayfalar = sayfa_idleri(kok)
     if sayfalar is None:
         return 1, ["OLCULEMEDI: urun/ dizini YOK — build.py kosmadan bu kapi hukum VERMEZ."]
 
     eksik = sorted(benzersiz - sayfalar)
-    oksuz = sorted(sayfalar - benzersiz)
-    guvensiz = sorted(x for x in benzersiz if not GUVENLI_ID.match(x))
+    gizli_sayfa = sorted(sayfalar & gizli_idler)
+    oksuz = sorted(sayfalar - benzersiz - gizli_idler)
+    guvensiz = sorted(x for x in tum_benzersiz if not GUVENLI_ID.match(x))
 
-    cikti.append("urunler.json id (benzersiz): %d  (ham kayit: %d)"
-                 % (len(benzersiz), len(json_idler)))
+    cikti.append("urunler.json id (benzersiz): %d  (ham kayit: %d, gizli: %d, gorunur: %d)"
+                 % (len(tum_benzersiz), len(json_idler), len(gizli_idler), len(benzersiz)))
     cikti.append("uretilen urun sayfasi      : %d" % len(sayfalar))
 
     hata = 0
@@ -102,6 +111,10 @@ def denetle(kok):
     if eksik:
         cikti.append("HATA: SAYFASI URETILMEMIS urun: %d -> %s"
                      % (len(eksik), ", ".join(eksik[:10])))
+        hata = 1
+    if gizli_sayfa:
+        cikti.append("HATA: GIZLI urunun sayfasi URETILMIS (build filtresi dusmus): %d -> %s"
+                     % (len(gizli_sayfa), ", ".join(gizli_sayfa[:10])))
         hata = 1
     if oksuz:
         cikti.append("HATA: JSON'da KARSILIGI OLMAYAN sayfa: %d -> %s"
@@ -120,10 +133,15 @@ def denetle(kok):
             hata = 1
             continue
         sapan = sorted(idler - sayfalar)
+        gizli_listede = sorted(idler & gizli_idler)
         cikti.append("%s icindeki urun URL'i: %d" % (ad, len(idler)))
         if sapan:
             cikti.append("HATA: %s'de olup SAYFASI OLMAYAN urun: %d -> %s"
                          % (ad, len(sapan), ", ".join(sapan[:10])))
+            hata = 1
+        if gizli_listede:
+            cikti.append("HATA: GIZLI urun %s'de listeleniyor: %d -> %s"
+                         % (ad, len(gizli_listede), ", ".join(gizli_listede[:10])))
             hata = 1
 
     cikti.append("SONUC: " + ("KIRMIZI ❌" if hata else "YESIL ✅ — yayinlanan her id'nin sayfasi var"))
@@ -133,10 +151,13 @@ def denetle(kok):
 # ═══════════════════════════════════════════════════════════════════════════════
 # KENDINI TEST — hermetik (gecici dizin; depo agacina DOKUNMAZ, ag YOK)
 # ═══════════════════════════════════════════════════════════════════════════════
-def _agac(kok, idler, sayfa_idleri_=None, sitemap_idleri=None, feed_idleri=None):
+def _agac(kok, idler, sayfa_idleri_=None, sitemap_idleri=None, feed_idleri=None,
+          gizli_idler_=()):
     os.makedirs(os.path.join(kok, "urun"), exist_ok=True)
     with open(os.path.join(kok, "urunler.json"), "w", encoding="utf-8") as f:
-        json.dump([{"id": i, "baslik": i} for i in idler], f)
+        json.dump([dict({"id": i, "baslik": i},
+                        **({"gizli": True} if i in set(gizli_idler_) else {}))
+                   for i in idler], f)
     for i in (idler if sayfa_idleri_ is None else sayfa_idleri_):
         d = os.path.join(kok, "urun", i)
         os.makedirs(d, exist_ok=True)
@@ -241,6 +262,34 @@ def kendini_test():
         kod, sat = denetle(k)
         dogrula("B10 POZITIF: mukerrer id tek sayfayla karsilanir -> exit 0 (yanlis-pozitif yok)",
                 kod == 0, (kod, sat))
+
+        # N10 POZITIF: gizli kayit sayfasiz/listesiz -> YESIL (gizleme dogru hali)
+        k = os.path.join(tmp, "n10")
+        _agac(k, ["a", "b", "saklanan"], sayfa_idleri_=["a", "b"],
+              sitemap_idleri=["a", "b"], feed_idleri=["a", "b"],
+              gizli_idler_=["saklanan"])
+        kod, sat = denetle(k)
+        dogrula("B14 POZITIF: gizli kayit sayfasiz+listesiz -> exit 0 (eksik SAYILMAZ)",
+                kod == 0 and any("gizli: 1" in s for s in sat), (kod, sat))
+
+        # N11 NEGATIF: gizli kaydin sayfasi URETILMIS (build filtresi dusmus)
+        k = os.path.join(tmp, "n11")
+        _agac(k, ["a", "saklanan"], sayfa_idleri_=["a", "saklanan"],
+              sitemap_idleri=["a"], feed_idleri=["a"], gizli_idler_=["saklanan"])
+        kod, sat = denetle(k)
+        dogrula("B15 NEGATIF: gizli urunun sayfasi uretilmis -> exit 1 + 'GIZLI'",
+                kod == 1 and any("GIZLI urunun sayfasi URETILMIS" in s for s in sat),
+                (kod, sat))
+
+        # N12 NEGATIF: gizli id sitemap'te geciyor (sayfasi olmasa bile)
+        k = os.path.join(tmp, "n12")
+        _agac(k, ["a", "saklanan"], sayfa_idleri_=["a"],
+              sitemap_idleri=["a", "saklanan"], feed_idleri=["a"],
+              gizli_idler_=["saklanan"])
+        kod, sat = denetle(k)
+        dogrula("B16 NEGATIF: gizli id sitemap'te -> exit 1 + 'GIZLI urun'",
+                kod == 1 and any("GIZLI urun sitemap.xml'de listeleniyor" in s for s in sat),
+                (kod, sat))
 
         # ── KIRMIZI-MUTASYON: kapinin KARSILASTIRMA satirlari bozulunca kaciriyor mu?
         # M1: 'eksik' kumesi ters yonde hesaplanirsa (sayfalar - json) asil vaka KACAR.

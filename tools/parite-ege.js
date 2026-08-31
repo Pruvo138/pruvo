@@ -225,7 +225,9 @@ async function main() {
   }
 
   const EGE = await egeKodu();
-  const PRODUCTS = JSON.parse(fs.readFileSync(URUNLER, "utf8"));
+  // `gizli` kayitlar korpusa GIRMEZ: uc onlari `yayinda=1` ile suzer (gizli = kalici
+  // taslak, yayin-kapisi --gizle) — referans ayni kumeyi olcmezse her kosum sapardi.
+  const PRODUCTS = JSON.parse(fs.readFileSync(URUNLER, "utf8")).filter((p) => !p.gizli);
   const idx = EGE.katalogIndeksle(PRODUCTS);
   const YEREL_IDLER = [...new Set(PRODUCTS.map((p) => p.id))];
   const YEREL_ID_KUME = new Set(YEREL_IDLER);

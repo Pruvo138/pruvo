@@ -1601,6 +1601,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      # `gizli: true` urunler (urunler.json TEK KAYNAK) D1'de kalici TASLAGA indirilir:
+      # tum kesif uclari `yayinda=1` suzdugu icin urun dinamik/Ege yuzeylerinden duser.
+      # --yayinla'dan ONCE kosar — ayni kosumda "gizle sonra geri ac" penceresi olmasin.
+      - name: "Gizleme: urunler.json `gizli` -> yayinda=0 (kesiften dusur)"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: python3 tools/yayin-kapisi.py --gizle
       - name: "Atomik yayin: canli 200 dogrulanan taslaklari yayina al"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

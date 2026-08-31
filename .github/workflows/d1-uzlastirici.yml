@@ -281,6 +281,15 @@ jobs:
           fi
           exit "$rc"
 
+      # Gizleme yakinsamasi: `gizli` urun (urunler.json tek kaynak) yanlislikla
+      # yayinda=1'e donmusse (elle yazim / bayat arac) her turda geri indirilir.
+      # Yakinsak halde tek SELECT'lik no-op. --yayinla'dan ONCE kosar.
+      - name: Gizleme yakinsamasi (gizli -> yayinda=0)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: python3 tools/yayin-kapisi.py --gizle
+
       # Geri yazilan satir TASLAK dogar; Ege taslagi GORMEZ. Canlida 200 donen
       # taslaklari yayina al -> onarim fiilen musteriye ulasir.
       - name: Onarim sonrasi atomik yayin (canlida 200 donen taslaklar)
