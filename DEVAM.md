@@ -14,9 +14,9 @@ onceden civilenen tabana karsi): MEMORY.md **22.222 → 17.036 B** (olcut <17.51
 hedefi olmayan bag **0** · `memory/*.md` **385 = 385** (SILME YOK) · 20 bolumun 20'sinde sayac BIREBIR.
 ⚠️ Kabul betigim ilk kosumda 5 bolumu KIRMIZI yakti — sebep CIP DEGIL benim esleyicimdi: bolum
 BASLIKLARI kisalmisti (spec IZIN VERIYORDU), ben eski basliga capalamistim.
-**KOSAN CIP:** `task_c6f5192b` (K359, `cool-albattani-bb4a31`). **OKAN'IN TIKINI BEKLEYEN: 5 oturum**
-arsiv izni yazmis (KesinBasarisiz · Raymarine x2 · HafizaIndeksi · SupurmeKanit) — kutu 297/250'yi
-o tik acar, rotasyon KASITLI olarak bekliyor.
+**KOSAN CIP:** `task_c6f5192b` (K359, `cool-albattani-bb4a31`). ✅ **KUTU KAPANDI:** 4 oturum
+arsivlendi, `--kapanislari-isle` kostu — 4 blok/140 satir arsive, cevrilen jeton **5**,
+`lossless_dogrulama=GECTI`, kutu **302 → 175** satir (tavan 250), arsiv 58.221 → 58.361.
 **OKAN'DA:** 0. ✅ **DEPLOY KOSULDU (Okan, 20:47Z) ve OLCULDU:** canli surum `d2d78692` @ `20:47:02Z`,
 yayinlanmamis commit **0**, `shop-bayatlik-kapisi` **TAZE rc=0**; 5 saattir bekleyen K357 de indi.
 (Onceki "deploy borcu YOK — 14:45:00Z" satiri **6 DAKIKA sonra** bayatlamisti; yas 324,9 dk'ya cikti.)
