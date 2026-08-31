@@ -788,6 +788,10 @@ UYUM_MARKA_IZINLI = frozenset({
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
     # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 42 jeton) ──
+    # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
+    # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
+    # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
+    # `len(UYUM_MARKA_MIMAR_EKI)` ile karsilastiran bir iddia YOK; kalem ACIK.
     # 1. tur: paket §2'nin ornek degerleri.
     "Volvo Penta", "Yanmar",
     # 2. tur, A grubu (17) — arac / tekne / deniz motoru markasi. Heuristik bunlari
@@ -861,6 +865,21 @@ UYUM_MARKA_IZINLI = frozenset({
     #   MaCiT Raymarine dilim-1'i K302'de fail-closed durdu — bu girisin tetigi o.)
     #   Kume KAPALI kalir; yargilanmis bolumleme (izinli−eki / uretici−eki / elenen)
     #   degismez, `Raymarine` ELENEN'de DEGIL (olculdu) — elenmis bir jeton geri sizmaz.
+    # 🔴 IKINCI ROL OLCULDU — K220 NEGATIFI (cip KraL-Raymarine-31Agu, 31 Agu 2026).
+    #   Bu kume `marka_varyanti_sebebi()` uzerinden AYNI ZAMANDA bir "MODEL OLAMAZ"
+    #   jetonu uretir; K220'nin olculmus emsalinde (`Range Rover`) tam bu ikinci rol
+    #   CANLI bir sayfayi (`/marka/land-rover/range-rover/`, 6 urun) OLDURMUSTU.
+    #   `Raymarine` icin o kol OLCULDU ve YOK:
+    #     `uyum[].model` = 0 kayit · `uyum[].motor` = 0 kayit (katalog 31.923,
+    #     `model_normalize` ile tarandi) -> jeton HICBIR mevcut kaydi gecersiz kilmaz.
+    #   Uretilen sayfa/URL kumesi ekleme ONCESI ve SONRASI TAM kosuldu (jenerator
+    #   izole temp ROOT'a): 1757 = 1757, KAYBOLAN URL = 0, dogan = 0. Kume IKI
+    #   BAGIMSIZ eksenden toplandi — sitemap `loc` (jeneratorun BEYANI) ve diskteki
+    #   fiziksel `index.html` yollari (beyandan bagimsiz) — ikisi birebir esitti.
+    # 🔴 KIYAS KUME FARKIYLA YAPILIR, SAYIYLA DEGIL: bir sayfa olup yerine baskasi
+    #   dogsaydi TOPLAM SABIT kalirdi. Mutantla kanitlandi — gercek bir sayfa
+    #   oldurulup bir dogumla takas edildiginde sayi-only kiyas 0 dedi (KOR),
+    #   kume farki YAKALADI. Yeni bir jeton eklenirken bu iki olcum ONCEDEN kosulur.
     "Raymarine",
 })
 
