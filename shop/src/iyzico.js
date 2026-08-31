@@ -69,6 +69,52 @@ export function hataKodu(det) {
 }
 
 /**
+ * 🔴 KESIN-BASARISIZ IYZICO KODLARI — KAPALI, ELLE SAYILMIS KUME (K358, 31 Agu 2026).
+ *
+ * NEDEN VAR: `odemeHukmu()` IKI KOVALIYDI — "retrieve cevap verdi + odeme basarili" ya da
+ * "her sey bilinmiyor" (fail-closed). iyzico CEVAP VERDIGI halde (`status:"failure"` + dolu
+ * `errorCode`) hukum ikinci kovaya dusuyordu; terk supurmesinin ZATEN VAR OLAN `iptal` kolu
+ * bu yuzden hic kosmadi (K356 canli olcumu, 31 Agu 15:17Z turu: 5/5 satir `ulasilamadi`,
+ * `degisen=0`). Bu kume UCUNCU SINIFI ADIYLA ayirir.
+ *
+ * 🔴 KAPALI KUME — GENISLETILMEZ, "basarisiz gorunen her cevap" YAPILMAZ. Amaci tam da bu:
+ * yeni/bilinmeyen bir iyzico kodu ortaya cikarsa KOR IPTAL degil, ESKI fail-closed davranis
+ * surer. Uye eklemek, o kodun "para ORTADA DEGIL" anlamina geldiginin ELLE dogrulanmasini
+ * gerektirir; gerekcesiz uye EKLENMEZ. Emniyet cekirdegi budur.
+ *
+ * Bugunku uyeler ve OLCULMUS gerekceleri:
+ *   5122  — "Gonderilen tokena ait odeme bilgisi bulunamadi": o token icin iyzico'da odeme
+ *           kaydi HIC YOK = musteri odeme sayfasini kapatmis. Para ortada DEGIL.
+ *   10054 — "Son kullanma tarihi hatali": kart reddi, tahsilat OLMADI.
+ *   10057 — "Kart sahibi bu islemi yapamaz": kart reddi, tahsilat OLMADI.
+ */
+export const IYZICO_KESIN_BASARISIZ = Object.freeze([
+  "5122",   // token'a ait odeme kaydi HIC YOK -> musteri sayfayi kapatti, para ortada degil
+  "10054",  // son kullanma tarihi hatali -> kart REDDEDILDI, tahsilat yok
+  "10057",  // kart sahibi bu islemi yapamaz -> kart REDDEDILDI, tahsilat yok
+]);
+
+/**
+ * 🔴 TEK YUKLEM — "bu cevap KESIN olarak basarisiz mi?". Ikinci bir sozluk/yuklem ACILMAZ:
+ * iki tuketici de (`donus()` musteri callback'i ve `terkSupur()` cron kolu) BUNU cagirir.
+ *
+ * `true` icin UCU BIRDEN gerekir:
+ *   (a) `det` VAR            — ag/altyapi kopmasinda `det` null olur; "cevap yok" KESIN DEGIL
+ *   (b) `det.status === "failure"` — iyzico CEVAP VERDI ve basarisizligi KENDISI beyan etti
+ *   (c) `hataKodu(det)` KAPALI kumede
+ *
+ * Bunun disindaki HER SEY `false` -> eski FAIL-CLOSED yolu: bilinmeyen kod, bos kod
+ * ("YOK" sozlesmesi kumede yoktur), `status` baska bir deger ya da HIC YOK, `det` yok.
+ * Kodun kendisi TEK BASINA yetmez: iyzico'nun "failure" beyani olmadan bir kod, taninmayan
+ * bir govdeden de gelebilir ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+ */
+export function kesinBasarisizMi(det) {
+  if (!det) { return false; }
+  if (det.status !== "failure") { return false; }
+  return IYZICO_KESIN_BASARISIZ.includes(hataKodu(det));
+}
+
+/**
  * Hata METNI — `hataKodu` ile ayni "YOK" sozlesmesi + IKI GIZLILIK KAPISI:
  *   ① TOKEN MASKESI: JSON parse edilemeyen cevapta `errorMessage` iyzico'nun HAM govdesidir
  *      ve istegimizi ECHO edebilir; istegin icinde odeme token'i vardir. `gizle` verilirse

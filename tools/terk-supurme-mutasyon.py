@@ -50,7 +50,9 @@ TEST_BAGIL = os.path.join("shop", "test", "terk-supurme.mjs")
 # GORMEZDI ([[tuketici-yazilirken-tum-okuyucular-sayilir]]).
 MUTASYON_DOSYALARI = (HEDEF_BAGIL, IYZICO_BAGIL)
 
-TUM_IDDIALAR = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "n", "p", "s"]
+# k/q/r: K358 (31 Agu 2026) — kesin-basarisiz UCUNCU SINIF (pozitif), kume DISINDA kalan
+# her seyin FAIL-CLOSED kalmasi (emniyet cekirdegi), ve IKINCI TUKETICI `/donus`.
+TUM_IDDIALAR = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "n", "p", "q", "r", "s"]
 
 # (kimlik, aciklama, eski_metin, yeni_metin, oldurmesi_gerekenler, hedef_dosya)
 # `yasamasi gerekenler` TURETILIR: TUM_IDDIALAR - oldurmesi_gerekenler. Ikinci bir elle
@@ -77,7 +79,10 @@ MUTANTLAR = [
         '    if (false) { sonuc.ulasilamadi++; continue; }  /* MUTANT: fail-closed dusuruldu */',
         # (n) K356 neden-logu kolu sayacin fail-closed sozlesmesini de iddia eder
         # (ulasilamadi=1 / degisen=0) -> bu mutant orayi da oldurur ve BEYAN EDILIR.
-        ["d", "g", "n", "s"],
+        # (q) K358 EMNIYET kolunun TAM HEDEFI: kume disinda kalan her sey fail-closed kalmali;
+        # fail-closed dusunce bilinmeyen kod / det-yok satirlari IPTAL'e akar.
+        # (k) karisik turun sayac iddiasi (iptal=3) da olur: fail-closed satirlar da iptal olur.
+        ["d", "g", "k", "n", "q", "s"],
     ),
     (
         "M3_ESIK",
@@ -104,22 +109,26 @@ MUTANTLAR = [
         "M5_ALAN",
         "K356 NEDEN LOGU KORELIR: errorCode/errorMessage alanlari olcum satirindan DUSER "
         "(satir basilir ama 'neden' yine yazilmaz — bu tam da onarilan hal)",
-        "               atlandi: \"retrieve-hatasi\",\n"
+        "               atlandi: kesin ? \"kesin-basarisiz\" : \"retrieve-hatasi\",\n"
         "               errorCode: hataKodu(det), errorMessage: hataMetni(det, token) });",
-        "               atlandi: \"retrieve-hatasi\" });  /* MUTANT: neden alanlari dusuruldu */",
+        "               atlandi: kesin ? \"kesin-basarisiz\" : \"retrieve-hatasi\" });"
+        "  /* MUTANT: neden alanlari dusuruldu */",
         # (p) de oldurulur: gizlilik kolu 'errorMessage YAZILDI ama maskeli' diye iddia eder;
         # alan hic yoksa o iddia da olur. BEYAN EDILIR (sessiz coklu olum yasak).
-        ["n", "p"],
+        # (k) K358: kesin-basarisiz kolu da errorCode'u iyzico'nun DONDURDUGU kod diye iddia eder.
+        ["k", "n", "p"],
     ),
     (
         "M5b_SATIR",
         "K356 LOG SATIRI TAMAMEN DUSER: 'altyapi-hatasi' kolunda olcumLog HIC cagrilmaz "
         "(sessiz bosluk — 'kol kosmadi' ile 'alan yoktu' ayni goruntuye coker)",
         "    olcumLog({ olay: \"Purchase\", siparis_no: siparis.siparis_no, kaynak: \"kart\",\n"
-        "               atlandi: \"retrieve-hatasi\",\n"
+        "               atlandi: kesin ? \"kesin-basarisiz\" : \"retrieve-hatasi\",\n"
         "               errorCode: hataKodu(det), errorMessage: hataMetni(det, token) });",
         "    /* MUTANT: olcum satiri tamamen dusuruldu */",
-        ["n", "p"],
+        # K358: bu TEK satir artik UC halin de olcum izidir -> k/q/r'nin `atlandi` iddialari
+        # da onunla birlikte olur (satir hic basilmayinca "hangi hal?" cevapsiz kalir).
+        ["k", "n", "p", "q", "r"],
     ),
     (
         "M6_SIZINTI",
@@ -139,6 +148,70 @@ MUTANTLAR = [
         "  if (g.length >= MASKE_ASGARI) { s = s.split(g).join(\"***\"); }",
         "  if (false) { s = s.split(g).join(\"***\"); }  /* MUTANT: maske devre disi */",
         ["p"],
+        IYZICO_BAGIL,
+    ),
+    # ---------------------------------------------------------------- K358 (31 Agu 2026)
+    # KESIN-BASARISIZ UCUNCU SINIF. Dordu de yuklemin UC kosulunu (det VAR + iyzico "failure"
+    # BEYAN ETTI + kod KAPALI kumede) AYRI AYRI kirar; her biri hangi iddiayi oldurdugunu
+    # ADIYLA beyan eder ([[k182]]: "kirmizi geldi" kanit DEGIL).
+    (
+        "MK1_KUME_GENIS",
+        "🔴 KAPALI KUME ACILIR: yuklem 'cevap veren HER failure kesin basarisizdir'a doner "
+        "(kor iptal sinifi — bilinmeyen/bos kod da IPTAL edilir)",
+        "  return IYZICO_KESIN_BASARISIZ.includes(hataKodu(det));",
+        "  return true;  /* MUTANT: kume genisledi, cevap veren her failure kesin sayilir */",
+        # (q) HEDEF: bilinmeyen kod / bos kod / kod-alani-yok artik fail-closed KALMAZ.
+        # Yan olumler BEYAN EDILIR: (d)+(n)+(p) 1001/HTTP-400 gibi GERCEK altyapi hatalarini
+        # da kesin sayar, (g)+(s) o satirlar iptal olunca sayac+idempotens sozlesmesi kayar,
+        # (k) karisik turda iptal 3 yerine 4 olur, (r) /donus'ta 1001 de 'basarisiz' yazar.
+        ["d", "g", "k", "n", "p", "q", "r", "s"],
+        IYZICO_BAGIL,
+    ),
+    (
+        "MK2_KUME_BOS",
+        "KUME BOSALTILIR: 5122/10054/10057 artik uye degil -> ucuncu sinif kaybolur, "
+        "her sey eski iki kovali hale doner",
+        "  \"5122\",   // token'a ait odeme kaydi HIC YOK -> musteri sayfayi kapatti, "
+        "para ortada degil\n"
+        "  \"10054\",  // son kullanma tarihi hatali -> kart REDDEDILDI, tahsilat yok\n"
+        "  \"10057\",  // kart sahibi bu islemi yapamaz -> kart REDDEDILDI, tahsilat yok\n",
+        "  /* MUTANT: kume bosaltildi */\n",
+        # (k) HEDEF: 5122/10054/10057 artik 'iptal' olmaz. (r) /donus'ta da 'basarisiz'
+        # yerine 'incele'+Telegram'a doner. (p) gizlilik kolunun KESIN-BASARISIZ vakasi
+        # (token maskesi + PII damgasi) olculecek kolu bulamaz — kume bosalinca o kol YOK.
+        # (q) YASAR ve bu MK1'in TERSI kanittir: fail-closed davranis kume bosken de korunur.
+        ["k", "p", "r"],
+        IYZICO_BAGIL,
+    ),
+    (
+        "MK3_DET_YOK",
+        "🔴 `det` YOKLUGU da KESIN sayilir: retrieve HIC CEVAP VERMEDIGINDE (ag kopmasi) "
+        "siparis iptal edilir — tam da kacinilan kor iptal",
+        "  if (!det) { return false; }",
+        "  if (!det) { return true; }  /* MUTANT: cevap YOKKEN de kesin basarisiz */",
+        # (q) HEDEF: 'det-yok' vakasi + yuklemin dogrudan iddiasi. (k) karisik turun
+        # sayac iddiasi da olur (det-yok satiri iptal'e akinca iptal=4 / ulasilamadi=1).
+        ["k", "q"],
+        IYZICO_BAGIL,
+    ),
+    (
+        "MK4_STATUS_GEVSEK",
+        "iyzico'nun 'failure' BEYANI ARANMAZ: kodun kumede olmasi TEK BASINA yeter "
+        "(taninmayan bir govdeden gelen kod da iptal ettirir)",
+        "  if (det.status !== \"failure\") { return false; }",
+        "  if (false) { return false; }  /* MUTANT: status kosulu dusuruldu */",
+        # (q) HEDEF: 'status-yok-kod-kumede' + 'status-baska-kod-kumede' vakalari ve
+        # yuklemin dogrudan iddiasi. Baska hicbir eksen etkilenmez (izole mutant).
+        ["q"],
+        IYZICO_BAGIL,
+    ),
+    (
+        "MK0_KONTROL",
+        "ILGISIZ/ESDEGER kol: uyelik sinamasi `includes` yerine `indexOf(...) >= 0` ile "
+        "yazilir (DAVRANIS AYNI). Kabul testinin dizge degil DAVRANIS olctugunu gosterir",
+        "  return IYZICO_KESIN_BASARISIZ.includes(hataKodu(det));",
+        "  return IYZICO_KESIN_BASARISIZ.indexOf(hataKodu(det)) >= 0;",
+        [],
         IYZICO_BAGIL,
     ),
     (

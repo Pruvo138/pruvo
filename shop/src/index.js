@@ -28,7 +28,7 @@
 
 import AYAR from "../config.json";
 import "../../secenekler.js";
-import { cfBaslat, cfDetay, hataKodu, hataMetni } from "./iyzico.js";
+import { cfBaslat, cfDetay, hataKodu, hataMetni, kesinBasarisizMi } from "./iyzico.js";
 import { parametrikHesapla } from "./parametrik.js";
 import { SEMALAR } from "./semalar.js";
 import { konfigurHesapla, d1Coz } from "./konfigur.js";
@@ -857,6 +857,10 @@ async function donus(request, env, ctx) {
   }
 
   // Retrieve CEVAP VERDI ve odeme basarili degil (or. kart reddi) -> gercek 'basarisiz'.
+  // 🔴 K358: iyzico'nun KESIN-BASARISIZ kodlari (5122/10054/10057) da BU kola akar — eskiden
+  // 'incele' + Telegram'a dusuyorlardi. Kart reddi INSAN INCELEMESI GEREKTIRMEZ (para ortada
+  // degil, iyzico bunu kendisi beyan etti); o kol yalnizca gurultu uretiyordu. Telegram
+  // BILEREK gitmez. Gercek altyapi hatasi ve `uyusmazlik` kollari AYNEN durur.
   if (h.hal === "basarisiz") {
     await env.KATALOG.prepare(
       "UPDATE siparisler SET durum = 'basarisiz' WHERE token = ? AND durum = 'bekliyor'"
@@ -912,6 +916,9 @@ async function donus(request, env, ctx) {
  *
  * Doner: { hal, det, degisti, bilet }
  *   hal     : "altyapi-hatasi" | "basarisiz" | "uyusmazlik" | "odendi"
+ *             ("basarisiz"in IKI kaynagi vardir ve ikisi de AYNI sozlesmedir: (1) retrieve
+ *              basarili ama `paymentStatus !== "SUCCESS"`, (2) K358 KESIN-BASARISIZ —
+ *              iyzico "failure" beyan etti ve kod KAPALI kumede.)
  *   det     : iyzico retrieve cevabi (altyapi hatasinda null/failure govdesi olabilir)
  *   degisti : YALNIZ hal="odendi" — bu cagri gecisi GERCEKTEN yapti mi (CAS changes>0)
  *   bilet   : YALNIZ degisti=true — tarayici Purchase bileti; aksi halde ""
@@ -926,6 +933,14 @@ export async function odemeHukmu(env, ctx, token, siparis, secenek) {
   // onay YOK. Sonraki gecerli callback'te retrieve duzelirse 'odendi'ye ilerleyebilir
   // (asagidaki UPDATE'ler durum <> 'odendi' kosuluyla calisir).
   if (!det || det.status !== "success") {
+    // 🔴 K358 (31 Agu 2026) — UCUNCU SINIF: "KESIN BASARISIZ". Bu kapi IKI KOVALIYDI ve
+    // iyzico CEVAP VERDIGI halde (`status:"failure"` + KAPALI kumede bir `errorCode`) hukum
+    // "bilinmiyor" kovasina dusuyordu; fail-closed oldugu icin terk supurmesinin ZATEN VAR
+    // OLAN `iptal` kolu hic kosmadi (K356 canli olcumu: 5/5 `ulasilamadi`, `degisen=0`).
+    // Yuklem TEK KAYNAKTIR (iyzico.js kesinBasarisizMi) ve UCU BIRDEN arar: det VAR +
+    // iyzico "failure" BEYAN ETTI + kod KAPALI kumede. Bilinmeyen/bos kod, taninmayan
+    // `status` ve `det` yoklugu ASAGIDAKI fail-closed yolunda KALIR — kor iptal YASAK.
+    const kesin = kesinBasarisizMi(det);
     // OLCUM IZI: burada Purchase GONDERILMEZ (odemenin gercek durumu BILINMIYOR). Sessiz
     // bosluk birakma — "bu siparisin Purchase'i neden yok?" sorusu loglardan cevaplanabilsin.
     //
@@ -939,9 +954,16 @@ export async function odemeHukmu(env, ctx, token, siparis, secenek) {
     // 🔒 GIZLILIK: alanlar olcum.js LOG_ALANLARI BEYAZ LISTESINDEN gecer — musteri_*, atif
     // (fbp/fbc/ga_client_id) ve token listede OLMADIGI icin yapisal olarak basilamaz; metin
     // ayrica token maskesinden ve kirpmadan gecer (iyzico.js hataMetni).
+    // 🔴 IKINCI LOG CAGRISI ACILMADI: `atlandi` iki hali AYIRIR ("kesin-basarisiz" ile
+    // "retrieve-hatasi" ASLA ayni dizge degildir, yoksa logda birbirine karisirlardi);
+    // alan listesi TEK yerde kalir, ikinci kopya sessizce ayrisamaz.
     olcumLog({ olay: "Purchase", siparis_no: siparis.siparis_no, kaynak: "kart",
-               atlandi: "retrieve-hatasi",
+               atlandi: kesin ? "kesin-basarisiz" : "retrieve-hatasi",
                errorCode: hataKodu(det), errorMessage: hataMetni(det, token) });
+    // KESIN BASARISIZ: iyzico "bu odeme OLMADI" dedi -> MEVCUT `basarisiz` sozlesmesi.
+    // D1 yazmasi yine CAGIRANIN: callback 'basarisiz' yazar (Telegram GITMEZ — kart reddi
+    // insan incelemesi gerektirmez), terk supurmesi 'iptal' + makine-okunur 'terk' sebebi.
+    if (kesin) { return { hal: "basarisiz", det: det, degisti: false, bilet: "" }; }
     // 🔴 FAIL-CLOSED: HICBIR D1 YAZMASI YAPILMAZ. Hukum cagiranindir — musteri callback'i
     // 'incele' yazar, cron supurmesi HIC DOKUNMAZ (bilinmeyen odemeyi iptal etmek parayi
     // gorunmez yapar). Iki farkli hukum burada birlestirilirse biri digerini ezerdi.
@@ -1093,6 +1115,9 @@ const TERK_TUR_TAVANI = 200;
  *                     Purchase olcumu + Telegram + onay e-postasi `/donus` ile AYNI yoldan
  *                     ve AYNI uc katmanli idempotensle gecer (ikinci kez SAYILMAZ).
  *   basarisiz      -> 'iptal' + gecmiste {"d":"iptal","s":"terk"}. Odeme YOK/expired.
+ *                     K358: iyzico'nun KESIN-BASARISIZ kodlari (iyzico.js KAPALI kume) da
+ *                     buraya akar — canlida bu satirlarin TAMAMI 'altyapi-hatasi' kovasina
+ *                     dusuyor ve bu kol HIC KOSMUYORDU.
  *   uyusmazlik     -> 'incele' + Telegram. Para ORTADA ama tutar/kimlik tutmuyor: IPTAL EDILMEZ.
  *   altyapi-hatasi -> 🔴 HICBIR SEY. FAIL-CLOSED: retrieve ULASILAMADIYSA odemenin durumu
  *                     BILINMIYOR; sessizce iptal etmek tam da kacinilan zarardir. Satir
