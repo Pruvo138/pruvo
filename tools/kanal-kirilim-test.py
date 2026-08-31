@@ -166,6 +166,24 @@ ol("5c bilinmeyen kova hicbir toplama KATILMADI",
    (kova_satiri(metin5, "site-ucretli") or (None,))[0] == 0 and
    "hicbir toplama KATILMADI" in metin5)
 
+# ── 5b) SESSIZ SIFIR + TARIH DOGRULAMASI ──────────────────────────────────────
+# 🔴 CANLI KOSUMDA OLCULEN GERCEK HATA (31 Agu): `--baslangic 2026-13-01` kalip
+# suzgecinden GECIYOR, SQL dizge kiyasi hicbir satirla eslesmiyor ve rapor
+# "HUKUM=TAMAM · 0 satir" basiyordu -> yazim hatasi, "o aralikta siparis yok" gibi
+# GORUNUYORDU. Iki kol birden civilenir: takvim dogrulamasi + bos aralik uyarisi.
+print("5b) sessiz sifir yasagi + takvim dogrulamasi")
+ol("5b1 gecerli gun kabul (2026-08-31)", R.tarih_gecerli("2026-08-31"))
+ol("5b2 13. AY reddedilir (kalip gecirirdi)", not R.tarih_gecerli("2026-13-01"))
+ol("5b3 32. GUN reddedilir", not R.tarih_gecerli("2026-08-32"))
+ol("5b4 subat 30 reddedilir (takvim, kalip degil)", not R.tarih_gecerli("2026-02-30"))
+ol("5b5 bos/bicimsiz deger reddedilir",
+   not R.tarih_gecerli("31-08-2026") and not R.tarih_gecerli("2026-8-1") and
+   not R.tarih_gecerli("bugun"))
+metin5b, rc5b = R.hukum([], True, [], SOZ, "2026-01-01 .. 2026-01-02")
+ol("5b6 BOS aralik ACIKCA yazilir (sessiz bos tablo YOK)",
+   "HIC SIPARIS YOK" in metin5b and "ARALIK bos" in metin5b, metin5b)
+ol("5b7 bos aralik HATA DEGIL (rc=0) — ama gorunur", rc5b == R.RC_TAMAM, "rc=%s" % rc5b)
+
 # ── 6) GIZLILIK — YASAK ALANLAR RAPOR CIKTISINDA HIC GECMEZ ───────────────────
 print("6) gizlilik — ga_client_id / fbp / fbc rapora sizmiyor")
 FBP = "fb.1.9999999999999.1234567890"

@@ -144,6 +144,26 @@ MUTANTLAR = [
         ekle("%-24s %8d %10d %16s"
              % (kova, v["adet"], v["ciro_adet"], tl(v["ciro_kurus"])))""")]),
 
+    ("M8 RAPOR: takvim dogrulamasi kalip suzgecine geri dondu", RAPOR,
+     {KOL_RAPOR: KIRMIZI},
+     "CANLI KOSUMDA OLCULEN GERCEK HATA: '2026-13-01' kaliptan gecer, SQL hicbir "
+     "satirla eslesmez ve rapor 'TAMAM · 0 satir' basar -> yazim hatasi 'o aralikta "
+     "siparis yok' gibi gorunur (sessiz sifir)",
+     [("""        datetime.date.fromisoformat(deger)
+        return True
+    except ValueError:
+        return False""",
+       """        return len(deger) == 10 and deger[4] == "-" and deger[7] == "-"
+    except ValueError:
+        return False""")]),
+
+    ("M9 RAPOR: bos aralik uyarisi kaldirildi (sessiz bos tablo)", RAPOR,
+     {KOL_RAPOR: KIRMIZI},
+     "bos tablo 'hic siparis yok' ile 'aralik/suzgec yanlis'i AYNI bos ekrana "
+     "dusururdu",
+     [("""        ekle("  ⚠️ BU ARALIKTA HIC SIPARIS YOK — tablo bos degil, ARALIK bos.")""",
+       """        pass""")]),
+
     ("N1 NOTR: yalnizca yeni bir sabit eklendi (KONTROL)", SINIF,
      {},
      "davranis degismiyor; batarya 'her degisiklige kirmizi' DEGIL",

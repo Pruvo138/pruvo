@@ -30,10 +30,10 @@ ikinci wrangler sarmalayicisi yazilmadi).
 CIKIS KODU: 0 rapor uretildi · 2 kullanim/ortam hatasi · 3 OLCULEMEDI (fail-closed).
 """
 import argparse
+import datetime
 import importlib.util
 import json
 import os
-import re
 import subprocess
 import sys
 
@@ -45,7 +45,17 @@ RC_TAMAM = 0
 RC_ORTAM = 2
 RC_OLCULEMEDI = 3
 
-TARIH_KALIBI = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+def tarih_gecerli(deger):
+    """🔴 KALIP YETMEZ, TAKVIM GEREKIR. Ilk surumde `^\\d{4}-\\d{2}-\\d{2}$` kullanildi ve
+    `--baslangic 2026-13-01` (13. ay) SUZGECTEN GECTI: SQL dizge kiyasi hicbir satirla
+    eslesmedi, rapor da "HUKUM=TAMAM · 0 satir" bastı. Yani yazim hatasi, "o aralikta
+    siparis yok" gibi GORUNDU — sessiz sifir, yanlis sayidan beter. Takvim dogrulamasi
+    bunu kullanim hatasina (rc=2) cevirir."""
+    try:
+        datetime.date.fromisoformat(deger)
+        return True
+    except ValueError:
+        return False
 
 
 # ── KANONIK D1 ISTEMCISI (tools/d1-sync.py) ───────────────────────────────────
@@ -143,6 +153,11 @@ def hukum(satirlar, kanal_kolonu_var, siniflar, soz, aralik_metni):
 
     ciro_durumlari = soz["ciro_durumlari"]
     ekle("Toplam siparis: %d satir" % len(satirlar))
+    if not satirlar:
+        # SESSIZ SIFIR YASAK: bos tablo "hic siparis yok" ile "aralik/suzgec yanlis"i
+        # ayni bos ekrana dusururdu. Durum ACIKCA yazilir (hata DEGIL, ama gorunur).
+        ekle("  ⚠️ BU ARALIKTA HIC SIPARIS YOK — tablo bos degil, ARALIK bos.")
+        ekle("     (Tarih suzgecini genislet ya da bayraksiz kos: tum siparisler.)")
     ekle("")
     ekle("BEYAN — CIROYA HANGI DURUMLAR GIRIYOR (karar acik yazilir):")
     ekle("  GIRER : %s" % ", ".join(ciro_durumlari))
@@ -224,8 +239,9 @@ def main():
     a = ap.parse_args()
 
     for ad, deger in (("--baslangic", a.baslangic), ("--bitis", a.bitis)):
-        if deger and not TARIH_KALIBI.match(deger):
-            print("KULLANIM HATASI: %s YYYY-MM-DD olmali (verilen: %r)" % (ad, deger))
+        if deger and not tarih_gecerli(deger):
+            print("KULLANIM HATASI: %s GECERLI bir takvim gunu olmali (YYYY-MM-DD) "
+                  "— verilen: %r" % (ad, deger))
             return RC_ORTAM
     if a.baslangic and a.bitis and a.baslangic > a.bitis:
         print("KULLANIM HATASI: --baslangic > --bitis")
