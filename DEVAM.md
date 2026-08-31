@@ -5,20 +5,35 @@
 ## 🔁 31 AGU ~21:1x — MIMAR OTURUM KAPANISI
 **CANLIYA GIDEN:** main **`d31d2613`** = `origin/main` BIREBIR, agac TEMIZ. Bu oturumda merge edilenler:
 K352 `23bc7b0b` · K356 `f283d8e2` (errorCode logu) · K357 kanal gorunurlugu `ff1a7870`.
-**KOSUYOR (DOKUNMA):** cip `KraL-Raymarine-31Agu` / dal ayni ad @ `68e32d3f`, agac `bold-keller-82f052`,
-oturum CANLI — 🔴 isi `96edd859` ile MUKERRER olabilir (ayni Raymarine eklemesi zaten main'de); kapanisi
-gelince kiyasla. · `nice-swanson-706912` / `claude/angry-elion-e75dc8` yabanci, DOKUNULMADI.
-**BEKLIYOR:** 🟠 asagidaki ACIK KARAR · MEMORY.md **20,2 KB** (kanca hedefi 17,1 KB) — ortak indeks,
-sikistirmasi komsu evlerin satirlarini siler ([[indeks-ile-silme-komsuyu-siler]]), sahibi KraL.
-**Kapatan olcum:** komsu satir adedi ONCE=SONRA.
-**OKAN'DA:** yalniz yukaridaki ACIK KARAR (odeme duzlemi). Deploy borcu YOK — `14:45:00Z` dogrulandi.
+**KOSUYOR:** 0. `KraL-Raymarine-31Agu` KAPANDI — MUKERRER OLCULDU (dal `68e32d3f` kayit olarak durur,
+MERGE EDILMEDI: davranis main ile ozdes + bayat taban DEVAM.md'den 2 satir dusururdu). `nice-swanson-706912`
+yabanci, DOKUNULMADI.
+**BEKLIYOR:** MEMORY.md **21.983 B** (kanca hedefi 17,1 KB; 20,2 KB'dan BUYUDU) — ortak indeks, sikistirmasi
+komsu evlerin satirlarini siler ([[indeks-ile-silme-komsuyu-siler]]), sahibi KraL. **Kapatan olcum:** komsu
+ev satir adedi ONCE=SONRA. · 🟠 K359 (asagida) · Okan tikini bekleyen cip: `task_9166f0e8` (K358).
+**OKAN'DA:** 0 karar. Deploy borcu YOK — `14:45:00Z` dogrulandi.
+
 **TEMIZLIK:** worktree **6 -> 3** (`sharp-hamilton-2796ff` · `KraL-TerkEdilmisOdeme-30Agu` ·
 `infallible-benz-e131fe`; ucunun de `status --porcelain` BOS, ucu de main'de) · yerel dal **5 silindi**
 (hepsi main'de) · bu oturumun gecici dosyasi: **0**.
 
-## ✅ RAYMARINE + YAYIN ONARIMI KAPANDI (31 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
-`96edd859` (sozluk) · `77d1caae` (yayin onarimi: boy kapisi yalniz `.js` kopyaliyordu, K357'nin `.mjs`i
-disarida kalmis, yayin `ff1a7870`den beri KAPALIYMIS) · `e8569823` (goc testi filtresi). CI SUCCESS.
+## ✅ ODEME KARARI VERILDI (Okan, 31 Agu penceresi) → K358 SPEC'LENDI, cip `task_9166f0e8` sirada
+Karar: kesin-basarisiz iyzico kodlari otomatik `iptal`e cekilsin. 🔴 **ONCUL DUZELTILDI:** kalem "yeni iptal
+kolu ac" diye tasiniyordu — kol `terkSupur()`'de ZATEN VAR; kosmuyor cunku `odemeHukmu()` IKI KOVALI ve
+`status!="success"` her seyi `altyapi-hatasi`ya atiyor, iyzico CEVAP VERDIGI (kod dolu) hal de oraya dusuyor
+([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]). Is = ucuncu sinifi ADIYLA ayirmak: KAPALI kod kumesi
+(`5122`/`10054`/`10057`, her uyenin gerekcesi yazili) + TEK yuklem; bilinmeyen/bos kod ve `det===null`
+FAIL-CLOSED KALIR (emniyet cekirdegi, ayri kabul ekseni). Iki tuketici de ayni turda olculur — `donus()`
+canli musteri yolunda artik `incele`+Telegram yerine `basarisiz` yazacak, bu KASITLI ve ADIYLA olculecek.
+**Taban civilendi:** `terk-supurme.mjs` **98/0** · `terk-supurme-mutasyon.py` **10/10 YESIL**. Kabul: test
+toplami 98'den BUYUK + 0 kirmizi · mutant >=13, her biri HEDEF iddiayi oldurdugunu ADIYLA kanitlar.
+
+- 🟠 **K359 (YENI, `KraL-Raymarine-31Agu` cipinden devraldim — sinif, her evde tekrar edecek):**
+  `tools/kutu-arsivle.py` `✅ ... KAPANDI` bloklarinin KENDISINI ACIK "BASLIYORUM" sayiyor (govdede alt-dizge
+  geciyor, #10/#15) VE kapanisi yalniz `SAYILI KAPANIS` basligindan taniyor — MaCiT cron'u `KAPANDI (delta=0…)`
+  yazdigi icin kutuda 3 kapanis VARKEN arac 7 blogun hepsine "eslesen kapanis YOK" diyor. Kusur ARACTA mi
+  BICIMDE mi: hukum mimarda. **Kapatan olcum:** eslestirici alt-dizge yerine BASLIK ROLUNDEN turetilir +
+  fikstur (kapanisli/kapanissiz cift) ONCE yanlis SONRA dogru sayar + mutant.
 
 ## ✅ K355+K356 KAPANDI (31 Agu) — SUPURME "INERT" DEGILMIS: ODENMEMIS SEPET, tahsil edilecek para YOK
 K356 `f283d8e2` main'de, deploy `14:45:00Z` dogrulandi, 18:17 supurmesi 5/5 SEBEP basti. DAGILIM
@@ -27,48 +42,13 @@ ADIYLA **odenmemis sepet** — tahsil edilecek para YOK, `degisen=0` DOGRU. Tam 
 🟠 ACIK KARAR (Okan/mimar): kesin-basarisiz (`5122/10057/10054`) aged `bekliyor` → `iptal` kolu
 acilsin mi — odeme duzlemi, yeni spec + kabul testi ister; elle gecis YOK.
 
-## ✅ K353 KAPANDI (29 Agu) — esik sinifi + SILINEN kota kapisi (`KraL-EsikVeKota-29Agu`; TAM metin KUTUDA)
-Onarim hedefi = ceza esigi -> komut INERT ([[onarim-kolu-zarar-esiginin-arkasinda]]). KUTU tavan 300->**250**,
-kutu 253->**196** (dusen 57 == giren 57, kayip=0). DEFTER `SU_SEVIYESI_*` 12.288 vs **9.830** + BEST-EFFORT;
-inert DEGIL (fiksturde eski 11.878, yeni 9.172). 🔴 `ca8c3815`in sildigi kota kapisi `3cea0b19`'dan geri
-kuruldu + kanca adim 8 + nobet.yml SERIT B; asim rc=1 RED, tavan alti GECER, mutant KIRMIZI yakti, bataryalar
-tabanla AYNI. 🔴 **MERGE SONRASI `kanca-kur.py`** (once kosulursa filo felci).
-
-## T1+T2 KAPANDI (29 Agu) — panel "Urunler": ustyazim kuyrugu + gorsel/STL/kaynak-link; TAM HUKUM KUTUDA
-T2 canli 2x: kuyruk->main(`dccb46af`,`d2ae7a86`)->canli; katalog SABIT. 🔴 **ACIK: worker deploy=OKAN** + T1a —
-kutunun "deploy edildi (`b26cedd8`)" iddiasi CURUTULDU: SHA 5 evin HICBIRINDE yok (`cat-file -t` 5/5 fatal).
-## 🔁 28 AGU 18:00 CANLI DURUM — OKAN 17:00 EMRININ BES KALEMI DE KAPANDI (onceden -> sonra)
-🔴 **N2B BORU ONEKI SINIFI → HAFIZADA:** [[isci-cagrisinda-echo-stdin-etiketi-yutar]] (K345 ile kapandi).
-🔴 **K337:** butce kesintisi sade `rc=1` donuyor, karantina dusus sayiyor (3 ardisik = 6 saat). META=RAF.
-🟠 **OKSUZ AGAC (2):** `practical-dirac-a95ed1` -> `44c92f6e` (K258/K168 tek-kaynak modulu `serbest_cagrilar.py`)
-ve `sweet-cartwright-b59181` -> `a24550ce` (`kutu-arsivle.py` jeton isleme) — oturumlari OLU, commit'leri
-main'de DEGIL, tabanlari bayat (iki-nokta diff `urunler.json`'da 1828 satiri yanlislikla "silinmis" gosteriyor).
-Cip `KraL-OksuzAgaclar-28Agu` tasiyor; **katalog geri sarilmayacak** (kabul sarti).
-🔵 **WORKTREE 13 -> 11** (`trusting-sutherland-157a62` birlesmisti + oturumu oludu, kaldirildi). Kalan
-agaclarin hepsinin oturumu CANLI ya da uzerinde birlesmemis is var -> dusurulmedi.
-**BEKLIYOR:** MaCiT dilim'leri (K332 blokeri kalkti).
-
-🟢 **K344 OKSUZ AGACLAR KAPANDI (cip `KraL-OksuzAgaclar-28Agu`, main `a5fc8f22`):** iki dalin isi de main'de.
-`44c92f6e` (A) +978/-303 · `a24550ce`+`c665031f` (B) +525/-50, ikisi de TASINDI (SUBSUME degil). 🔴 **Katalog
-GERI SARILMADI: `urunler.json` 693.472 -> 693.472 satir BIREBIR**; "1828 satir silme" iki-nokta artefaktiydi.
-`serbest-kume-tekkaynak-test` **19 vaka/4 KIRMIZI -> 22 vaka/0 KIRMIZI** · `mimar-kilit-test` 314/307 DEGISMEDI ·
-bekci `--teslim-karari` YESIL · `kutu-arsivle --kapanislari-isle --kuru` ana agacta **`CEVRIM=1`** (K341'in civisi).
-Worktree 11->10, disk 504M->454M. 🔴 **YENI KALEM K344-A:** A ve main'in K343'u AYNI sinif isi iki kez yapmisti;
-K343'un M6/M7/M8 mutantlari bekci tablosunu bozup DEFTER CARE'inin RED olmasini bekledigi icin kirmiziydi (yanlis
-eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GECER). 🔴 **YENI KALEM K344-B:**
-`C3` yalniz kaynak->arac yonunu olcuyor; arac->kaynak yonu (araca eklenen bayrak tabloya yazilmamis) HIC olculmuyor —
-`--kapanislari-isle` tam bu bosluktan dustu, elle kapatildi (`a5fc8f22`). Kabul: ters yon kolu + onu olduren mutant.
-
-## 🔁 29 AGU ~05:0x — MIMAR OTURUM KAPANISI (tam metinler KUTUDA; burada yalniz canli durum)
-- 🔴 **K354 — ONCULUM YANLISTI, DUZELTTIM:** `nice-swanson-706912` agacindaki 47 commit'siz dosyayi
-  "kazayla silinen, geri alinacak is" sandim. O oturumun KENDI sayili kapanisi cururttu: `ca8c3815`
-  **KASITLI** — *30-gun urun-kaniti testi*, 47 denetim dosyasi bilerek silindi (kapi **112->97**),
-  cekirdek yerinde, yayin YESIL (`4c80278f`). Dosyalar STUB DEGIL, tam govde (60/51/46 KB).
-  ⚖️ **OKAN HUKMU (30 Agu): supurme SURUYOR; yalniz CLAUDE.md'nin ZORUNLU KILDIGI araclar doner** —
-  kural/zorlayan celiskisi kapanir, ~34 supurulmus KALIR. Inecek 3 (+bataryalari): `worktree-tavan-nobeti`
-  `mimar-commit-kapisi` `chip-duzeni-kapisi`; `mimar-kod-kilidi`+`mimar-icra-kapisi` main'de VAR.
-  Cip kapsami daraltildi. 🔴 **O AGAC, 3'u kalici olana kadar KALDIRILMAZ.**
-  *Ders: silme kaza mi karar mi — silinen dosyaya degil SILENIN KAPANISINA bakilir.*
+## ✅ K353 + T1/T2 + K354 (29-30 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
+🔴 **CANLI TALIMAT, SILINMEZ:** K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
+🔴 **CANLI TALIMAT, SILINMEZ:** `nice-swanson-706912` agaci, Okan'in 30 Agu hukmundeki 3 arac
+(`worktree-tavan-nobeti` · `mimar-commit-kapisi` · `chip-duzeni-kapisi`) KALICI olana kadar KALDIRILMAZ;
+`ca8c3815` KAZA DEGIL KASITLI supurmedir ([[silme-kaza-mi-karar-mi-silenin-kapanisina-bakilir]]).
+🔧 **ACIK:** T1a — worker deploy = OKAN kapisi; kutunun "deploy edildi (`b26cedd8`)" iddiasi CURUTULDU
+(SHA 5 evin HICBIRINDE yok). K353'un sayilari (kutu 253->196, defter esikleri, mutant kanitlari) arsivde.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
@@ -95,6 +75,12 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 - 🔧 **K220 (KraL):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden besleniyor; liste iki rol tasiyor
   ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
   sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
+  · 31 Agu K220-NEGATIFI OLCULDU (`Raymarine`, dal `68e32d3f`; main icin de GECERLI — dal/main turetilmis
+  kumeler 5/5 OZDES, kontrol capasi dejenere degil): `uyum[].model`/`motor`/`marka`/`oem` = 0 · URL 1757=1757 ·
+  kaybolan 0 · dogan 0. Yordam: izole ROOT, kume IKI bagimsiz eksenden (sitemap BEYANI + diskteki fiziksel
+  yollar), ekleme ONCESI+SONRASI kosum, kiyas SAYIYLA DEGIL KUME FARKIYLA. Sayi-only kolun korlugu mutantla
+  kanitli (bir sayfa oldurulup bir dogumla takas edildi: sayi-only 0 dedi, kume-farki YAKALADI). Yeni jeton
+  bu iki olcumle ONCEDEN sinanir.
 
 ## KraL ACIK ARTIKLAR (19 Agu anlati blogu ARSIVE TASINDI; kota uyarisi da orada)
 🔧 **K203:** tavan kapisi worktree ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami);
