@@ -3,47 +3,54 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔁 31 AGU ~21:1x — MIMAR OTURUM KAPANISI
-**CANLIYA GIDEN:** main **`d31d2613`** = `origin/main` BIREBIR, agac TEMIZ. Bu oturumda merge edilenler:
-K352 `23bc7b0b` · K356 `f283d8e2` (errorCode logu) · K357 kanal gorunurlugu `ff1a7870`.
-**KOSUYOR:** 0. `KraL-Raymarine-31Agu` KAPANDI — MUKERRER OLCULDU (dal `68e32d3f` kayit olarak durur,
-MERGE EDILMEDI: davranis main ile ozdes + bayat taban DEVAM.md'den 2 satir dusururdu). `nice-swanson-706912`
-yabanci, DOKUNULMADI.
+**CANLIYA GIDEN:** main **`38b2d512`** = `origin/main` BIREBIR, agac TEMIZ. Merge edilenler: K352
+`23bc7b0b` · K356 `f283d8e2` · K357 `ff1a7870` · Raymarine `13f0ecbc` (Okan emri) · **K358 `38b2d512`**.
+**KOSUYOR:** 0. 🔴 **`KraL-Raymarine-31Agu` MERGE EDILDI `13f0ecbc` — benim "merge etme" hukmumu
+OKAN'IN DOGRUDAN EMRI gecersiz kildi** (peer hukmu Okan'i ezmez, dogru is bu). Hukmun DAVRANIS kismi
+yine de dogruydu: katki `tools/arama.py` **+19/-0**, BASKA DOSYA YOK, davranis ozdes (181/42/139, imza
+True) — kazanc yalniz YORUM + K220 ikinci-rol olcumu (main'de, `HEAD:tools/arama.py` 1 isabet, ben
+ayrica deftere de tasimistim). 🔴 **BAYAT TABAN UYARISI OLCUMLE BUYUDU:** "2 satir dusurur" dedigim
+zarar, merge aninda **38 SATIR SILME** cikti (K359 · `task_9166f0e8` · MEMORY.md kalemleri dahil);
+cip yakalayip `DEVAM.md`'yi `origin/main`'den aynen geri aldi. Bagimsiz teyit ettim: main'de K359 **2**
+isabet, `task_c50a1c41` **1** isabet — **geri sarma YOK.** `nice-swanson-706912` = K358 dalinin agaci.
 **BEKLIYOR:** 🟠 K359 (asagida) · Okan tikini bekleyen 2 cip: `task_9166f0e8` (K358 odeme) ·
 `task_c50a1c41` (K360 hafiza indeksi). **K360 SPEC'LENDI:** MEMORY.md **22.222 B** (kanca hedefi 17,1 KB,
 okuma siniri 24,4 KB — asilirsa indeks HIC okunmaz, hafiza sessizce korlesir; pay ~2,7 KiB). Indekste
 KOMSU EVLERIN satirlari da var ([[indeks-ile-silme-komsuyu-siler]]) → GIRDI SILINMEZ, yalniz metin
 kisalir. Taban: 283 bag / 280 benzersiz hedef / hedefsiz bag 0 / 385 dosya / 20 bolum sayaci civilendi.
 **Kapatan olcum:** bayt < 17.510 VE bag 283=283 VE 20 bolum sayaci BIREBIR.
-**OKAN'DA:** 0 karar. Deploy borcu YOK — `14:45:00Z` dogrulandi.
+**OKAN'DA:** 🔴 **DEPLOY BORCU VAR — 2 commit** (onceki satirdaki "deploy borcu YOK" 6 dakika sonra
+BAYATLADI: `14:45:00Z` olcumu `ff1a7870`den ONCEydi). Kapi olctu (`shop-bayatlik-kapisi`, kosum
+`33435114046`): canli surum `975e0c40` @ **`14:44:52Z`** · yayinlanmamis `ff1a7870` (K357 kanal
+gorunurlugu, 14:51Z) + `f7695966` (K358) · esik 120 dk, **en eski yayinlanmamis commit yasi 324,9 dk**
+→ `DURUM: BAYAT rc=1`. Yayini DURDURMAZ ama **K358 deploy edilene kadar INERT**: supurme eski kodla
+kosar, satirlar `bekliyor` kalir. Yayin: `shop` dizininden `npx wrangler deploy` = OKAN.
+
+## ✅ K358 MERGE EDILDI `38b2d512` (dal `claude/jovial-engelbart-1a1040` @ `f7695966`)
+Kesin-basarisiz iyzico kodlari UCUNCU SINIF oldu; `terkSupur()`'un ZATEN VAR olan `iptal` kolu fiilen
+acildi. Kume KAPALI + elle sayili (`5122`/`10054`/`10057`), yuklem TEK KAYNAK (`iyzico.js::
+kesinBasarisizMi`) ve UCU BIRDEN arar (det VAR + iyzico "failure" BEYAN ETTI + kod kumede) —
+bilinmeyen/bos kod, taninmayan `status`, `det` yoklugu ESKI fail-closed yolunda KALIR.
+**MIMARIN BAGIMSIZ OLCUMU** (dalin kendi worktree'sinde, cipin raporundan DEGIL): `terk-supurme.mjs`
+**98/0 → 204/0** · mutasyon **10/10 → 15/15 YESIL** (12 hedef oldu, 3 kontrol hicbir iddiayi
+oldurmedi, `CALISMA AGACI DOKUNULMADI: True`; `MK1_KUME_GENIS → d,g,k,n,p,q,r,s` · `MK2_KUME_BOS →
+k,p,r` · `MK3_DET_YOK → k,q` · `MK4_STATUS_GEVSEK → q` · `MK0_KONTROL → -`) · `olcum.mjs` 198/0 ·
+`ci-kapsam-test` YESIL · `kisisel-veri-test` 5 nobetci YESIL, dalin ekledigi satirlarda siparis-no
+deseni **0** · kapsam 4 dosya/+446-9, spec disi dosya YOK · D1 **6/6, hash UYUSMAZ 0, 31.944 birebir**.
+🔴 **PR-260831-175451-MEC ZAMANLAMASI OLCULDU (Okan'in "yarin sabahki tur" beklentisi YANLIS):**
+siparis no `Europe/Istanbul` uretir (`siparis-no.js`), yani 17:54:51 **+03** = `14:54:51Z`; esik 24 sa,
+cron `17 * * * *` (UTC) → satir supurme penceresine **1 Eyl 14:54:51Z**'de girer, onu goren ILK tur
+**1 Eyl 15:17Z = 18:17 yerel**. Sabah turu DEGIL, aksam turu — ve yalnizca deploy YAPILMISSA.
 
 **TEMIZLIK:** worktree **6 -> 3** (`sharp-hamilton-2796ff` · `KraL-TerkEdilmisOdeme-30Agu` ·
 `infallible-benz-e131fe`; ucunun de `status --porcelain` BOS, ucu de main'de) · yerel dal **5 silindi**
 (hepsi main'de) · bu oturumun gecici dosyasi: **0**.
 
-## ✅ ODEME KARARI VERILDI (Okan, 31 Agu penceresi) → K358 SPEC'LENDI, cip `task_9166f0e8` sirada
-Karar: kesin-basarisiz iyzico kodlari otomatik `iptal`e cekilsin. 🔴 **ONCUL DUZELTILDI:** kalem "yeni iptal
-kolu ac" diye tasiniyordu — kol `terkSupur()`'de ZATEN VAR; kosmuyor cunku `odemeHukmu()` IKI KOVALI ve
-`status!="success"` her seyi `altyapi-hatasi`ya atiyor, iyzico CEVAP VERDIGI (kod dolu) hal de oraya dusuyor
-([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]). Is = ucuncu sinifi ADIYLA ayirmak: KAPALI kod kumesi
-(`5122`/`10054`/`10057`, her uyenin gerekcesi yazili) + TEK yuklem; bilinmeyen/bos kod ve `det===null`
-FAIL-CLOSED KALIR (emniyet cekirdegi, ayri kabul ekseni). Iki tuketici de ayni turda olculur — `donus()`
-canli musteri yolunda artik `incele`+Telegram yerine `basarisiz` yazacak, bu KASITLI ve ADIYLA olculecek.
-**Taban civilendi:** `terk-supurme.mjs` **98/0** · `terk-supurme-mutasyon.py` **10/10 YESIL**. Kabul: test
-toplami 98'den BUYUK + 0 kirmizi · mutant >=13, her biri HEDEF iddiayi oldurdugunu ADIYLA kanitlar.
-
-- 🟠 **K359 (YENI, `KraL-Raymarine-31Agu` cipinden devraldim — sinif, her evde tekrar edecek):**
-  `tools/kutu-arsivle.py` `✅ ... KAPANDI` bloklarinin KENDISINI ACIK "BASLIYORUM" sayiyor (govdede alt-dizge
-  geciyor, #10/#15) VE kapanisi yalniz `SAYILI KAPANIS` basligindan taniyor — MaCiT cron'u `KAPANDI (delta=0…)`
-  yazdigi icin kutuda 3 kapanis VARKEN arac 7 blogun hepsine "eslesen kapanis YOK" diyor. Kusur ARACTA mi
-  BICIMDE mi: hukum mimarda. **Kapatan olcum:** eslestirici alt-dizge yerine BASLIK ROLUNDEN turetilir +
-  fikstur (kapanisli/kapanissiz cift) ONCE yanlis SONRA dogru sayar + mutant.
-
-## ✅ K355+K356 KAPANDI (31 Agu) — SUPURME "INERT" DEGILMIS: ODENMEMIS SEPET, tahsil edilecek para YOK
-K356 `f283d8e2` main'de, deploy `14:45:00Z` dogrulandi, 18:17 supurmesi 5/5 SEBEP basti. DAGILIM
-`5122`x3 + `10057` + `10054`. HUKUM: "gecici ariza" ve "token omru yapisal" IKISI DE CURUDU; ucuncu hal
-ADIYLA **odenmemis sepet** — tahsil edilecek para YOK, `degisen=0` DOGRU. Tam metin ARSIVDE.
-🟠 ACIK KARAR (Okan/mimar): kesin-basarisiz (`5122/10057/10054`) aged `bekliyor` → `iptal` kolu
-acilsin mi — odeme duzlemi, yeni spec + kabul testi ister; elle gecis YOK.
+## ✅ K355/K356 + K358 SPEC TURU — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
+Ikisinin de acik kalemi yukaridaki **K358 MERGE** blogunda KAPANDI. Arsivde duran: K356'nin canli
+`errorCode` dagilimi (`5122`x3 + `10057` + `10054`, tahsil edilecek para YOK, `degisen=0` DOGRU) ·
+"gecici ariza" ve "token omru yapisal" hipotezlerinin CURUTULMESI · K358'in spec turu (oncul
+duzeltmesi: kol zaten vardi, sinif iki kovaliydi) ve civilenen taban (98/0, 10/10).
 
 ## ✅ K353 + T1/T2 + K354 (29-30 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
 🔴 **CANLI TALIMAT, SILINMEZ:** K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
