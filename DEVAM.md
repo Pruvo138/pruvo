@@ -2,6 +2,14 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ RAYMARINE SOZLUKTE + YAYIN ONARIMI (31 Agu, cip KraL-RaymarineUyum-31Agu)
+`96edd859` main'de: 6. tur C grubu (Lowrance emsali), iki kumeye birden -> fark=139 + yargi imzasi AYNEN;
+kabul KAPSAR (uyum-kapisi V1 + Raymarine; mutantta V1+S7 KIRMIZI olculdu). ONCE=SONRA: uyum-kapisi 39/39 ·
+K302 9/9 · parite 1334+896 BIREBIR · D1 6/6. MaCiT dilim-1'in K302 bloku ACIK (izleyicisi :12/:42 otomatik).
+🔴 Yol ustunde bulundu: yayin `ff1a7870`den beri KAPALIYMIS (boy kapisi kopyasi yalniz .js, K357'nin
+kanal-sinif.mjs'i disarida, 3 kosum ayni failure) -> onarim `77d1caae` (.mjs de kopyalanir; once yerel
+KIRMIZI uretildi, sonra TEST_RC=0, CI 33413000092 SUCCESS). Goc testindeki ayni filtre: chip task_42c49bd2.
+
 ## ✅ K355+K356 KAPANDI (31 Agu) — SUPURME "INERT" DEGILMIS: ODENMEMIS SEPET, tahsil edilecek para YOK
 K356 main'de (`f283d8e2`; 98 iddia + mutant 10/10 BAGIMSIZ yeniden olculdu, D1 senkron 6/6) · deploy
 Okan tiki, `modified_on 14:45:00Z` ile dogrulandi · 18:17 supurmesi 5/5 SEBEP basti (`telemetry/query`,
