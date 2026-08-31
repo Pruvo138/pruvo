@@ -2,6 +2,13 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔴 K355 (31 Agu) — TERK SUPURMESI CANLIDA INERT, 3. ARDISIK TEYIT · PARA 4.160 TL
+`terk-supurme {bakilan=OLCULEMEDI degisen=0 ulasilamadi=OLCULEMEDI}` — `degisen=0` OLCULDU (3 tur);
+digerleri D1'den GORULEMEZ (`ulasilamadi` hicbir sey yazmaz -> kostu/kosmadi AYIRT EDILEMEZ).
+5 satir **4.160 TL**, en eski `JL5` 9 gunluk. 🔴 **KAPATAN OLCUM:** `odemeHukmu` :936 `det`i LOGLAMIYOR;
+retrieve `errorCode`+`errorMessage` (siparis_no ile, kisisel kolon YOK) yazilmadan "token omru YAPISAL"
+ile "gecici ARIZA" ayrilamaz. Ucuncu hal ADIYLA yazilir. → [[terk-supurmesi-canlida-inert]]
+
 ## ✅ K353 KAPANDI (29 Agu) — esik sinifi + SILINEN kota kapisi (`KraL-EsikVeKota-29Agu`; TAM metin KUTUDA)
 Onarim hedefi = ceza esigi -> komut INERT ([[onarim-kolu-zarar-esiginin-arkasinda]]). KUTU tavan 300->**250**,
 kutu 253->**196** (dusen 57 == giren 57, kayip=0). DEFTER `SU_SEVIYESI_*` 12.288 vs **9.830** + BEST-EFFORT;
@@ -35,26 +42,8 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 `--kapanislari-isle` tam bu bosluktan dustu, elle kapatildi (`a5fc8f22`). Kabul: ters yon kolu + onu olduren mutant.
 
 ## 🔁 29 AGU ~05:0x — MIMAR OTURUM KAPANISI (tam metinler KUTUDA; burada yalniz canli durum)
-- ✅ **K332 MERGE `26064356`** (`trusting-khayyam-b3171f`): kilit 307/314->313/320, kirmizi seti BIREBIR ayni
-  (taban 7; "KIRMIZI=0" olcutum tabansiz civilenmisti), MR6-MR9 4/4 hedef-kol atfiyla oldu, vaka 821 fikstur
-  kutsanmasini yakar. 🔴 **CAKISMA BIR SILME ORTAYA CIKARDI:** supurme `mimar-kilit-test` +
-  `mimar-kapi-mutasyon-test`'i main'den SILMIS (Okan/BaBa yalniz kapi KAYNAKLARINI geri yuklemis) — kapi
-  canli, nobetcisi yoktu; dalin surumuyle geri geldi + `ci-kapsam` gerekceli muafiyeti (`b74c5ebc`).
-  `kurtarma/nervous-leavitt-28agu` ARTIK GEREKSIZ. 🔧 Kalem: yama 5 evin hicbirine DAGITILMADI.
-- ✅ **K350-B MERGE** (`awesome-ellis-9554ac`): `yedekle-test` 339/0->354/0, 8/8 geri yukleme SHA256 birebir,
-  canli mutant kapsami 8/8->1/8 yakti. Oncul CURUDU: yedek vardi, delik kapsamin UZANTIYLA kurulu
-  olmasiydi (ad olculmuyor, sessiz duserdi). 🔧 Kalem: `~/.claude/cron`'da 175 `.yedek-*` (5,2 MB) +
-  97 `*.log`; budama hukmu bende.
-- 🔴 **K349 (isci yalani) — SAYAC 3, SINIF ESIGI DOLDU.** Ucunde de bagimsiz kosum yalanladi (temiz agacta
-  `30/30 KIRMIZI=0`). Yordam `skill: codex-isci` §3.7-3.8'e ISLENDI: isci KIRMIZISI da iddiadir, bagimsiz
-  kosum olmadan kayda GIRMEZ · koda ATIF yapmaz · `tools/`a gecici dosya yazmaz · `git stash` YASAK ·
-  isciye giden metinde cok anlamli fiil yok. → [[isci-kirmizi-iddiasi-kendi-baglamindan-dogar]]
-- 🔴 **BAYAT HAFIZA DUZELTILDI:** `rol-muafiyeti-repo-sinirini-tuketmez` "✅ KAPANDI" diyordu, CANLIDA YOK —
-  hem dosya govdesinde hem MEMORY.md indeksinde duzeltme blogu var. *Kayit kapandi demek, sistem kapandi demek degildir.*
-- 🧹 **TEMIZLIK 30 AGU (kanit):** K353 merge `055d2a44`. Worktree 4->3, yerel dal 16 silindi (hepsi main'de);
-  `pensive-tharp-1bee19`+`xenodochial-volhard-d4754a` git tarafindan REDDEDILDI (uzakta yerelde olmayan
-  commit) — ZORLANMADI. Cip oturumu arsivlendi. 🔴 **K353 IDDIASI TUTMADI:** "su seviyesine iniyor" dedi;
-  tetik hala TAVAN (12.116'da `TAVAN=DOLU_NO_OP`). Histerezis dogru ama 11.500 hedefi bu komutla TUTMAZ.
+- ✅ K332/K350-B MERGE · K349 sinif esigi · bayat hafiza duzeltmesi · 30 Agu temizlik kaniti →
+  **TAM METIN `DEVAM-ARSIV.md`'ye TASINDI** (31 Agu, kural 11; arsiv 22.303 -> buyudu).
 - 🔴 **K354 — ONCULUM YANLISTI, DUZELTTIM:** `nice-swanson-706912` agacindaki 47 commit'siz dosyayi
   "kazayla silinen, geri alinacak is" sandim. O oturumun KENDI sayili kapanisi cururttu: `ca8c3815`
   **KASITLI** — *30-gun urun-kaniti testi*, 47 denetim dosyasi bilerek silindi (kapi **112->97**),
