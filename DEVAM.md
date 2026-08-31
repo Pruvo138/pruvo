@@ -2,25 +2,16 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔴 K355 (31 Agu) — TERK SUPURMESI CANLIDA INERT, 3. ARDISIK TEYIT · PARA 4.160 TL
-`terk-supurme {bakilan=OLCULEMEDI degisen=0 ulasilamadi=OLCULEMEDI}` — `degisen=0` OLCULDU (3 tur);
-digerleri D1'den GORULEMEZ (`ulasilamadi` hicbir sey yazmaz -> kostu/kosmadi AYIRT EDILEMEZ).
-5 satir **4.160 TL**, en eski `JL5` 9 gunluk. 🔴 **KAPATAN OLCUM:** `odemeHukmu` :936 `det`i LOGLAMIYOR;
-retrieve `errorCode`+`errorMessage` (siparis_no ile, kisisel kolon YOK) yazilmadan "token omru YAPISAL"
-ile "gecici ARIZA" ayrilamaz. Ucuncu hal ADIYLA yazilir. → [[terk-supurmesi-canlida-inert]]
-
-## 🟠 K356 (31 Agu) — NEDEN LOGU YAZILDI (`KraL-ErrorCodeLog-31Agu`); DEPLOY=OKAN, DAGILIM=OLCULEMEDI
-`odemeHukmu` `altyapi-hatasi` kolu artik `errorCode`+`errorMessage`i `siparis_no` ile basiyor.
-IKINCI BICIM ACILMADI: mevcut `olcum {...}` satirina 2 alan (olcum.js beyaz listesi -> musteri_*/
-fbp/fbc/ga_client_id/token YAPISAL olarak giremez); metin token maskeli+kirpik (iyzico.js tek kaynak).
-`det` bosken `YOK` basar. Dal `claude/determined-chaplygin-e8f029`. SAYILAR: taban 23 kol 23 YESIL
-`KIRMIZI_SETI=[]` -> is sonrasi AYNI · `terk-supurme.mjs` 60->**98 iddia/0** · mutant **10/10**
-(8 hedefli oldu + 2 KONTROL yesil, calisma agaci sha AYNI).
-🔴 **LOG OKUMA=OLCULEMEDI, IKI AYRI SEBEP:** (1) kod CANLIDA YOK (merge+deploy Okan kapisi),
-(2) `~/.claude/cron/.cf-token`in **WORKERS YETKISI HIC YOK** — bagimsiz 2. kosum: `observability/
-query` **403**, `observability/keys` **403**, KONTROL ucu `workers/scripts` de **403** (hepsi code
-10000); ayni token D1/R2/Pages'i OKUYOR, yani ariza AG DEGIL YETKI. `wrangler tail` de ayni
-token'la kosar -> deploy sonrasi bile okunamaz. Sirf `Observability: Read` YETMEZ. Hukum mimarin.
+## ✅ K355+K356 KAPANDI (31 Agu) — SUPURME "INERT" DEGILMIS: ODENMEMIS SEPET, tahsil edilecek para YOK
+K356 main'de (`f283d8e2`; 98 iddia + mutant 10/10 BAGIMSIZ yeniden olculdu, D1 senkron 6/6) · deploy
+Okan tiki, `modified_on 14:45:00Z` ile dogrulandi · 18:17 supurmesi 5/5 SEBEP basti (`telemetry/query`,
+token yetkisi acildi). DAGILIM: `5122`x3 (`JL5`/`7AG`/`F8G` — token'a odeme kaydi YOK = terk sepet) ·
+`10057` (`KEJ`, kart reddi) · `10054` (`ENR`, son kullanma hatali). HUKUM: "gecici ariza" CURUDU (0
+ag/auth hatasi) · "token omru yapisal" CURUDU (4 gunluk `KEJ`/`ENR` token'lari gercek odeme halini
+dondurdu) · UCUNCU HAL ADIYLA: **odenmemis sepet** — `odendi`ye cekilecek satir YOK, `degisen=0`
+DOGRU davranis, musteri magduriyeti YOK. Tam metin arsivde; [[terk-supurmesi-canlida-inert]] guncellendi.
+🟠 ACIK KARAR (Okan/mimar): kesin-basarisiz (`5122/10057/10054`) aged `bekliyor` → `iptal` kolu
+acilsin mi — odeme duzlemi, yeni spec + kabul testi ister; elle gecis YOK.
 
 ## ✅ K353 KAPANDI (29 Agu) — esik sinifi + SILINEN kota kapisi (`KraL-EsikVeKota-29Agu`; TAM metin KUTUDA)
 Onarim hedefi = ceza esigi -> komut INERT ([[onarim-kolu-zarar-esiginin-arkasinda]]). KUTU tavan 300->**250**,
