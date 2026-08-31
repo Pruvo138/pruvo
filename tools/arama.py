@@ -787,7 +787,7 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 34 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 42 jeton) ──
     # 1. tur: paket §2'nin ornek degerleri.
     "Volvo Penta", "Yanmar",
     # 2. tur, A grubu (17) — arac / tekne / deniz motoru markasi. Heuristik bunlari
@@ -850,6 +850,18 @@ UYUM_MARKA_IZINLI = frozenset({
     # katalog cogunlugu da boyle (`"AeroPress"` 3 kayit / `"Aeropress"` 1 kayit). Kalan
     # 1 varyant kayit B4 capasinda ADIYLA durur; veri normalizasyonu MaCiT duzlemindedir.
     "AeroPress", "Bialetti", "DeLonghi", "Jura", "Lavazza", "Mazzer",
+    # 6. tur, C grubu (1) — mimar karari 31 Agu 2026. `Raymarine` deniz elektronigi
+    #   (GPS / sonar / radar / otopilot) ureticisidir; uretilen parca (ekran braketi,
+    #   montaj aparati, kapak) Raymarine cihazina TAKILIR. Sinif: `Lowrance` (4. tur),
+    #   `Garmin` ve `TomTom` ile BIREBIR ayni ev-sahibi cihaz ureticisi (ucu de zaten
+    #   kumede); pazar agirligiyla sinifin en buyuk uyesi. Olculen katalog agirligi
+    #   (31.923 urun):
+    #     marka[] tam yazimla: 32 · uyum[].marka: 0 · baslikta (buyuk-kucuk duyarsiz): 41
+    #   (32 kayit eski koddan `uyum` DOLDURULMADAN girmis; jeton kumede olmadigi icin
+    #   MaCiT Raymarine dilim-1'i K302'de fail-closed durdu — bu girisin tetigi o.)
+    #   Kume KAPALI kalir; yargilanmis bolumleme (izinli−eki / uretici−eki / elenen)
+    #   degismez, `Raymarine` ELENEN'de DEGIL (olculdu) — elenmis bir jeton geri sizmaz.
+    "Raymarine",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -884,6 +896,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 5. tur (26 Agu 2026) — gerekce + sinif emsali UYUM_MARKA_IZINLI'nin "C grubu"
     # 5. tur basliginda yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
     "AeroPress", "Bialetti", "DeLonghi", "Jura", "Lavazza", "Mazzer",
+    # 6. tur (31 Agu 2026) — gerekce + olculen katalog agirligi UYUM_MARKA_IZINLI'nin
+    # "C grubu" 6. tur basliginda yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
+    "Raymarine",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
