@@ -5,17 +5,16 @@
 ## 🔁 31 AGU ~21:1x — MIMAR OTURUM KAPANISI
 **CANLIYA GIDEN:** main **`38b2d512`** = `origin/main` BIREBIR, agac TEMIZ. Merge edilenler: K352
 `23bc7b0b` · K356 `f283d8e2` · K357 `ff1a7870` · Raymarine `13f0ecbc` (Okan emri) · **K358 `38b2d512`**.
-**KOSUYOR:** 0. 🔴 **`KraL-Raymarine-31Agu` MERGE EDILDI `13f0ecbc` — benim "merge etme" hukmumu
-OKAN'IN DOGRUDAN EMRI gecersiz kildi** (peer hukmu Okan'i ezmez, dogru is bu). Hukmun DAVRANIS kismi
-yine de dogruydu: katki `tools/arama.py` **+19/-0**, BASKA DOSYA YOK, davranis ozdes (181/42/139, imza
-True) — kazanc yalniz YORUM + K220 ikinci-rol olcumu (main'de, `HEAD:tools/arama.py` 1 isabet, ben
-ayrica deftere de tasimistim). 🔴 **BAYAT TABAN UYARISI OLCUMLE BUYUDU:** "2 satir dusurur" dedigim
-zarar, merge aninda **38 SATIR SILME** cikti (K359 · `task_9166f0e8` · MEMORY.md kalemleri dahil);
-cip yakalayip `DEVAM.md`'yi `origin/main`'den aynen geri aldi. Bagimsiz teyit ettim: main'de K359 **2**
-isabet, `task_c50a1c41` **1** isabet — **geri sarma YOK.** `nice-swanson-706912` = K358 dalinin agaci.
-**KOSAN CIP:** `task_c50a1c41` **K360** (`youthful-montalcini-2e348f`) — MEMORY.md 22.222 B'dan 17,1 KB
-altina; indekste KOMSU EV satirlari var, GIRDI SILINMEZ ([[indeks-ile-silme-komsuyu-siler]]).
-**Kapatan olcum:** bayt < 17.510 VE bag 283=283 VE 20 bolum sayaci BIREBIR. · 🟠 K359 (asagida).
+**RAYMARINE (`13f0ecbc`):** "merge etme" hukmumu OKAN'IN EMRI gecersiz kildi — dogru is bu. Hukmun
+DAVRANIS kismi yine de dogru cikti (katki `arama.py` +19/-0, davranis ozdes). 🔴 Bayat-taban uyarim
+OLCUMLE BUYUDU: "2 satir" dedigim zarar merge aninda **38 SATIR SILME**ydi; cip yakaladi, bagimsiz
+teyit ettim (main'de K359 2 · `task_c50a1c41` 1 isabet) — geri sarma YOK.
+✅ **K360 KABUL — MIMAR BAGIMSIZ OLCTU, 5 EKSENIN 5'I DE TUTTU** (cipin raporuna bakmadan, spec'te
+onceden civilenen tabana karsi): MEMORY.md **22.222 → 17.036 B** (olcut <17.510) · bag **283 = 283** ·
+hedefi olmayan bag **0** · `memory/*.md` **385 = 385** (SILME YOK) · 20 bolumun 20'sinde sayac BIREBIR.
+⚠️ Kabul betigim ilk kosumda 5 bolumu KIRMIZI yakti — sebep CIP DEGIL benim esleyicimdi: bolum
+BASLIKLARI kisalmisti (spec IZIN VERIYORDU), ben eski basliga capalamistim.
+**KOSAN CIP:** `task_77e7c185` (K358 uctan uca kanit, `vigilant-mestorf-f6ba7f`).
 **OKAN'DA:** 0. ✅ **DEPLOY KOSULDU (Okan, 20:47Z) ve OLCULDU:** canli surum `d2d78692` @ `20:47:02Z`,
 yayinlanmamis commit **0**, `shop-bayatlik-kapisi` **TAZE rc=0**; 5 saattir bekleyen K357 de indi.
 (Onceki "deploy borcu YOK — 14:45:00Z" satiri **6 DAKIKA sonra** bayatlamisti; yas 324,9 dk'ya cikti.)
@@ -29,15 +28,13 @@ bilinmeyen/bos kod, taninmayan `status`, `det` yoklugu ESKI fail-closed yolunda 
 204/0** · mutasyon **10/10 → 15/15 YESIL** (12 hedef oldu, 3 kontrol oldurmedi, agac dokunulmadi;
 mutant hedef-kol atfi `38b2d512` mesajinda) · `olcum.mjs` 198/0 · `ci-kapsam-test` YESIL ·
 `kisisel-veri-test` 5/5, siparis-no deseni **0** · kapsam 4 dosya/+446-9 · D1 **6/6, uyusmaz 0**.
-🔴 **ZAMANLAMA OLCULDU (Okan'in "yarin sabahki tur" beklentisi YANLIS):** siparis no
-`Europe/Istanbul` uretir (`siparis-no.js`) → bugunku 17:54:51 **+03** = `14:54:51Z`; esik 24 sa, cron
-`17 * * * *` UTC → o satir pencereye **1 Eyl 14:54:51Z**'de girer, goren ILK tur **15:17Z = 18:17
-yerel**. Sabah DEGIL aksam turu. Eskiyen 5 satir icin ilk tur ise **31 Agu 21:17Z** (deploy 20:47Z).
-🔧 **ACIK — UCTAN UCA KANIT (cip `task_77e7c185`, SALT OKUMA):** 21:17Z turunda beklenen ve ONCEDEN
-civilenen sayilar: `bakilan`=5 · `iptal`=5 · `degisen`=5 · `ulasilamadi`=0 · `odendi`=0 · `incele`=0,
-`atlandi`=`kesin-basarisiz`; ikinci eksen D1 `bekliyor` **6 → 1**. `ulasilamadi>0` cikarsa kod KAPALI
-KUMEDE DEGIL demektir — kumeye kendiliginden EKLENMEZ, hukum mimarin. `odendi>0` = para kurtarildi,
-"terk" onculu o satir icin YANLISTI → derhal Okan'a.
+🔴 **ZAMANLAMA OLCULDU** (Okan'in "yarin sabahki tur"u YANLIS): siparis no `Europe/Istanbul` uretir
+(`siparis-no.js`) → 31 Agu 17:54:51 **+03** = `14:54:51Z`; esik 24 sa + cron `17 * * * *` UTC → o
+satir **1 Eyl 15:17Z = 18:17 yerel** turunda gorulur. Eskiyen 5 satirin ilk turu **31 Agu 21:17Z**.
+🔧 **ACIK — UCTAN UCA KANIT (cip `task_77e7c185` KOSUYOR, SALT OKUMA):** 21:17Z icin ONCEDEN civilendi:
+`bakilan`=5 `iptal`=5 `degisen`=5 `ulasilamadi`=0 `odendi`=0 `incele`=0, `atlandi`=`kesin-basarisiz`;
+2. eksen D1 `bekliyor` **6 → 1**. `ulasilamadi>0` = kod KAPALI KUMEDE DEGIL (kumeye kendiliginden
+EKLENMEZ, hukum mimarin) · `odendi>0` = para kurtarildi, "terk" onculu YANLISTI → derhal Okan'a.
 
 **TEMIZLIK (bu oturum):** worktree **4 -> 2** — kaldirilan `bold-keller-82f052` + `nice-swanson-706912`;
 IKISININ DE `status --porcelain` ciktisini **kendim** okudum (cipin beyaniyla DEGIL — beyan bir kez
@@ -47,24 +44,27 @@ main'de. Kalan 2 = ana agac + CANLI K360 cipi (`youthful-montalcini-2e348f`, DOK
 bekledigi spec, scratchpad'de.
 
 ## ✅ K355/K356 + K358 SPEC TURU — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
-Ikisinin de acik kalemi yukaridaki **K358 MERGE** blogunda KAPANDI. Arsivde duran: K356'nin canli
-`errorCode` dagilimi (`5122`x3 + `10057` + `10054`, tahsil edilecek para YOK, `degisen=0` DOGRU) ·
-"gecici ariza" ve "token omru yapisal" hipotezlerinin CURUTULMESI · K358'in spec turu (oncul
-duzeltmesi: kol zaten vardi, sinif iki kovaliydi) ve civilenen taban (98/0, 10/10).
+Acik kalemleri yukaridaki **K358 MERGE** blogunda KAPANDI. Arsivde: canli `errorCode` dagilimi,
+iki curutulen hipotez, K358'in spec turu ve civilenen taban.
 
 ## ✅ K353 + T1/T2 + K354 (29-30 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
 🔴 **CANLI TALIMAT, SILINMEZ:** K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
-✅ **O TALIMAT KAPANDI — SARTI OLCTUM, TUTUYOR** (`nice-swanson-706912` KALDIRILDI): Okan'in 30 Agu
-hukmundeki 3 arac main'de KALICI — `git ls-tree HEAD` 5 dosya (`chip-duzeni-kapisi.py` ·
-`mimar-commit-kapisi.py` + `-test` + `-mutasyon` · `worktree-tavan-nobeti.py`). Dosya varligi YETMEZ
-diye kablolamayi da olctum: `nobet.yml:2116-2119` chip-duzeni + mimar-commit bataryalarini KOSUYOR
-(`continue-on-error` YOK). `worktree-tavan-nobeti` o adimda BILEREK yok — gerekce dosyada YAZILI
-(dis batarya HIC yok, olculdu; nobetcisi kendi `--kendini-test`i + pre-push rapor-only kolu).
-`ca8c3815` KAZA DEGIL KASITLI supurmeydi ([[silme-kaza-mi-karar-mi-silenin-kapanisina-bakilir]]).
-🔧 **ACIK:** T1a — worker deploy = OKAN kapisi; kutunun "deploy edildi (`b26cedd8`)" iddiasi CURUTULDU
-(SHA 5 evin HICBIRINDE yok). K353'un sayilari (kutu 253->196, defter esikleri, mutant kanitlari) arsivde.
+✅ **"3 ARAC KALICI OLANA KADAR AGAC KALDIRILMAZ" SARTI OLCTUM, TUTUYOR** → `nice-swanson-706912`
+KALDIRILDI (olcum: `ls-tree HEAD` 5 dosya + `nobet.yml:2116-2119` iki bataryayi KOSUYOR; ucuncusunun
+disarida kalmasi dosyada GEREKCELI. Ayrinti arsivde.)
+🔧 **ACIK:** T1a — worker deploy = OKAN kapisi; "deploy edildi (`b26cedd8`)" iddiasi CURUTULDU.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
+- 🟠 **K359 (cip `task_c6f5192b` sirada) — 🔴 DEVRALDIGIM TARIF YANLISTI, YENIDEN OLCTUM.** Bana
+  "`kutu-arsivle.py` `✅…KAPANDI` bloklarinin KENDISINI acik sayiyor, 7 blok" diye geldi. Kutuyu blok
+  blok olctum: **17 blok GERCEKTEN acik** (cip kapanis HIC yazmamis — arac HAKLI) · **1 blok sahte**
+  (kapanis bloginin basliginda `basliyorum` yalniz TIRNAK ICINDE proza) · ve `macit-parti-surucusu`
+  adinin **9 blogu**, kapanislari kutuda DURDUGU HALDE kilitli (arac `✅ … **KAPANDI (delta=0…)**`
+  bicimini kapanis SAYMIYOR). **Kutunun 309 satira cikmasinin bas sebebi ARAC DEGIL, kapanis yazmayan
+  17 cip.** Taban: `--kuru` `ACIK_BASLIYORUM=21 kilitledi=21`, test **40 vaka/303 iddia/0 kirmizi**.
+  Kabul: test >303 + 0 kirmizi · sahte blok duser · `macit-parti-surucusu` listeden CIKAR ·
+  kapanisi OLMAYAN adlar LISTEDE KALIR (hepsi duserse KIRMIZI) · 4 negatif fikstur · mutant >=4.
+  🔴 `kilitledi=0` HEDEF DEGIL — 17 cipi serbest birakan onarim KUSURDUR.
 - 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
   ISARETCI** (uzun hali `DEVAM-ARSIV.md` 26 Agu ROTASYON blogu 1/5): K306 MERGE `df3b0d48` · K308 ACIK ·
   K309 DILIM-1 MERGE `25b38a82` (DILIM-2 MIMARDA) · K310 ACIK · K212 MERGE `97370cc2` KAPANDI · K222
