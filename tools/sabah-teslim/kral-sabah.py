@@ -395,16 +395,136 @@ def acik_kalemleri_topla(kalemler_txt: str) -> tuple[list[dict], int]:
     return out, len(out)
 
 
-def bugunun_kirmizilari() -> tuple[str, int]:
-    """gh run list bugünün kırmızılarını döner. gh yoksa/başarısızsa ('CI=OLCULEMEDI', 0).
-    Dönüş: (metin_blok, adet)."""
+# ============================================================================
+# 🔴 28 AĞU 2026 — K333 (`KraL-K333-SabahPATH-28Agu`): `gh` ARTIK PATH'E SORULMUYOR
+# ----------------------------------------------------------------------------
+# ESKİ HÂL: `subprocess.run(["gh", ...])`. Bu çağrı `gh`'ı ÇAĞIRAN KABUĞUN PATH'inde
+# arar. Etkileşimli kabukta PATH `/opt/homebrew/bin` içerir ve araç YEŞİL koşar;
+# cron'un PATH'i `/usr/bin:/bin:/usr/sbin:/sbin`tir ve `gh` ORADA YOK. Yani araç,
+# GERÇEK koşumunda (cron) ölçemediği bir alanı, TEST koşumunda (kabuk) ölçüyordu.
+# Aynı ortam-farkı ailesi 27 Ağu'da `X | Y` TypeError'ıyla düşmüştü — o gün de kabuk
+# yeşildi. **Etkileşimli kabukta yeşil görmek bu araç için KANIT DEĞİLDİR.**
+#
+# ÖLÇÜLDÜ (28 Ağu, cron ortamı taklidiyle): çıplak `gh` → FileNotFoundError ·
+# `/opt/homebrew/bin/gh --version` → rc=0 (2.96.0) · aynı yolla `gh run list`,
+# `GH_TOKEN` OLMADAN → rc=0 ve veri döndü. Yani kimlik ekseni temizdi; kırılan
+# YALNIZ PATH ekseniydi. Bu yüzden çare de yalnız PATH ekseninde: aday tam yollar.
+#
+# 🔴 ENJEKSİYON AYRIMI ([[mutant-canli-govdede-yasamaz]]): `_KRAL_SABAH_GH_YOL`
+# bir **YOL** enjeksiyonudur — aracın NEREYE baktığını değiştirir, NE HÜKMETTİĞİNİ
+# DEĞİL. Karar dalı açan bir env (`if _mutant_aktif(): return ...`) bu gövdede YOKTUR.
+# Yol enjeksiyonunun şartı yerine getirilir: **kullanılan yol çıktıda basılır**
+# (`GH_YOL=`), böylece yönlendirilmiş koşum gerçek koşum sanılamaz.
+# ============================================================================
+
+# Aday tam yollar — PATH'ten ÖNCE denenir; sıra "en olası" düzenindedir.
+GH_ADAY_YOLLARI = (
+    "/opt/homebrew/bin/gh",   # Apple Silicon Homebrew (bu makine)
+    "/usr/local/bin/gh",      # Intel Homebrew / elle kurulum
+    "/opt/local/bin/gh",      # MacPorts
+    "/usr/bin/gh",            # sistem paketi
+)
+
+# PATH'e güvenmek zorunda kalırsak önce onu TAZELE: cron'un daralttığı PATH'e
+# bilinen bin dizinlerini ekle. (Aday listesi zaten kapsıyor; bu son çare.)
+_PATH_EKLERI = ("/opt/homebrew/bin", "/usr/local/bin", "/opt/local/bin")
+
+
+def gh_yolu() -> tuple[str | None, str]:
+    """`gh`'ı ORTAMDAN BAĞIMSIZ çözer.
+
+    Döner: (yol|None, kaynak_etiketi). `kaynak` çıktıda basılır — hangi ikilinin
+    koştuğu (ya da neden koşmadığı) her zaman GÖRÜNÜR olsun diye.
+    """
+    ov = os.environ.get("_KRAL_SABAH_GH_YOL")
+    if ov is not None:
+        # YOL enjeksiyonu: yalnız NEREYE bakıldığını değiştirir. Var olmayan bir
+        # yol verilirse hüküm `OLCULEMEDI` olur — bu bir bypass DEĞİL, ölçüm kolunun
+        # kendisidir (mutant fikstürü bunu kullanır).
+        uygun = os.path.isfile(ov) and os.access(ov, os.X_OK)
+        return (ov if uygun else None), "OVERRIDE:%s%s" % (ov, "" if uygun else "(YOK)")
+    for aday in GH_ADAY_YOLLARI:
+        if os.path.isfile(aday) and os.access(aday, os.X_OK):
+            return aday, "ADAY"
+    import shutil
+    yol = shutil.which("gh")
+    if yol:
+        return yol, "PATH"
+    tazelenmis = os.pathsep.join(list(_PATH_EKLERI) + [os.environ.get("PATH", "")])
+    yol = shutil.which("gh", path=tazelenmis)
+    if yol:
+        return yol, "PATH_TAZELENMIS"
+    return None, "BULUNAMADI(aday=%d)" % len(GH_ADAY_YOLLARI)
+
+
+def _repo_slug() -> str | None:
+    """`owner/repo` — TEK KAYNAK `tools/gh_repo.py`; o okunamazsa git remote'tan
+    TÜRETİLİR. Hiçbir kolda ELLE YAZILMAZ; çözülemezse `None` döner (`""` DEĞİL)."""
+    try:
+        if str(REPO / "tools") not in sys.path:
+            sys.path.insert(0, str(REPO / "tools"))
+        import gh_repo  # type: ignore
+        return gh_repo.slug()
+    except Exception:
+        pass
+    try:
+        r = subprocess.run(["git", "-C", str(REPO), "remote", "get-url", "origin"],
+                           capture_output=True, text=True, timeout=15)
+        if r.returncode != 0:
+            return None
+        url = r.stdout.strip()
+        if url.endswith(".git"):
+            url = url[:-4]
+        if url.startswith("git@") and ":" in url:
+            url = url.split(":", 1)[1]
+        elif "://" in url:
+            url = url.split("://", 1)[1]
+            url = url.split("/", 1)[1] if "/" in url else url
+        parcalar = [p for p in url.split("/") if p]
+        return "/".join(parcalar[-2:]) if len(parcalar) >= 2 else None
+    except Exception:
+        return None
+
+
+def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
+    """Bugünün kırmızı CI koşumlarını ölçer.
+
+    🔴 K333 — DÖNÜŞ ARTIK BİR HÜKÜM BİTİ TAŞIYOR. Eskiden dönüş `(metin, 0)` idi ve
+    "ölçemedim" ile "bugün kırmızı yok" AYNI SAYIYA (0) çöküyordu; tüketici (spec +
+    log satırı) ikisini AYIRT EDEMİYORDU. `OLCULEMEDI ≠ TEMİZ`
+    ([[olculemedi-bypass-degil-menzil-daraltmasi]]) — bu yüzden ölçülemeyen hâlde
+    adet artık `None`dır, `0` DEĞİL. Sıfırı kim yazarsa yazsın, ölçülmüş bir sıfırdır.
+
+    Döner: (hukum, metin_blok, adet|None, gh_kaynak)
+        hukum ∈ {OK, OLCULEMEDI}
+    """
+    yol, kaynak = gh_yolu()
+    if yol is None:
+        return ("OLCULEMEDI",
+                "CI=OLCULEMEDI (gh ikilisi bulunamadı; aranan: %s · kaynak=%s)"
+                % (", ".join(GH_ADAY_YOLLARI), kaynak), None, kaynak)
+    # 🔴 K352 (30 Ağu 2026) — `gh` REPOYU cwd'DEN ÇÖZER, VE CRON `$HOME`'DAN KOŞAR.
+    # K333 `gh` İKİLİSİNİN yerini çözmüştü; repo ekseni AÇIK kalmıştı ve sabah
+    # spec'i 29+30 Ağu'da `rc=1 failed to determine base repo: … not a git
+    # repository` ile KÖR doğdu. Çare İKİ ÇİVİ birden (biri düşerse öbürü tutar):
+    #   ① `-R <slug>` — slug TEK KAYNAKTAN (`tools/gh_repo.py` → git remote) TÜRER,
+    #      elle yazılmaz; çözülemezse `None`dır, uydurulmaz.
+    #   ② `cwd=REPO`  — argv çivisi hiç kurulamasa bile çağrı repo kökünden koşar.
+    # Ölçen: `tools/gh-civi-nobetcisi.py` (AST, üç kova, mutant 4/4).
+    argv = [yol, "run", "list", "--limit", "30",
+            "--json", "conclusion,name,createdAt,headBranch"]
+    slug = _repo_slug()
+    if slug:
+        argv += ["-R", slug]
     try:
         r = subprocess.run(
-            ["gh", "run", "list", "--limit", "30", "--json", "conclusion,name,createdAt,headBranch"],
-            capture_output=True, text=True, timeout=20,
+            argv,
+            capture_output=True, text=True, timeout=20, cwd=str(REPO),
         )
         if r.returncode != 0:
-            return "CI=OLCULEMEDI (gh run list rc={})\n{}".format(r.returncode, r.stderr.strip()[:200]), 0
+            return ("OLCULEMEDI",
+                    "CI=OLCULEMEDI (gh run list rc={} · yol={})\n{}".format(
+                        r.returncode, yol, r.stderr.strip()[:200]), None, kaynak)
         import json
         data = json.loads(r.stdout or "[]")
         bugun = dt.datetime.now(dt.timezone.utc).date()
@@ -422,14 +542,17 @@ def bugunun_kirmizilari() -> tuple[str, int]:
                 continue
             kirmizi.append("- [{}] {} · dal={}".format(conc, run.get("name", "?"), run.get("headBranch", "?")))
         if not kirmizi:
-            return "Bugün kırmızı CI yok (ölçülen 30 koşumun filtresi: sadece bugün + failure/cancelled/timed_out).", 0
-        return "\n".join(kirmizi), len(kirmizi)
+            return ("OK",
+                    "Bugün kırmızı CI yok (ÖLÇÜLDÜ: 30 koşum tarandı, filtre: bugün + "
+                    "failure/cancelled/timed_out · gh=%s)." % yol, 0, kaynak)
+        return "OK", "\n".join(kirmizi), len(kirmizi), kaynak
     except FileNotFoundError:
-        return "CI=OLCULEMEDI (gh PATH'ta yok)", 0
+        return ("OLCULEMEDI", "CI=OLCULEMEDI (gh yolu koşturulamadı: %s)" % yol, None, kaynak)
     except subprocess.TimeoutExpired:
-        return "CI=OLCULEMEDI (gh timeout 20s)", 0
+        return ("OLCULEMEDI", "CI=OLCULEMEDI (gh timeout 20s · yol=%s)" % yol, None, kaynak)
     except Exception as e:
-        return "CI=OLCULEMEDI ({}: {})".format(type(e).__name__, str(e)[:120]), 0
+        return ("OLCULEMEDI",
+                "CI=OLCULEMEDI ({}: {} · yol={})".format(type(e).__name__, str(e)[:120], yol), None, kaynak)
 
 
 def merge_kuyrugu() -> tuple[str, int]:
@@ -548,10 +671,37 @@ def sonuc_kolu(hedef, kuru: bool, yazim_hatasi=None) -> tuple[str, bool]:
     return "SONUC_KOLU=SPEC_VAR yol=%s boyut=%d" % (hedef, boyut), False
 
 
+# 🔴 K333 — ÖLÇÜLEMEYEN CI, BOŞ LİSTE DEĞİL **AÇIK KALEM**DİR.
+# Spec'in tüketicisi (o günün Tamirci çipi) "bugün ne yapacağım"ı AÇIK KALEMLER
+# bölümünden okur. `CI=OLCULEMEDI` yalnız KIRMIZILAR bölümünde bir cümle olarak
+# dururken, kalem listesi ondan HABERSİZDİ: en pahalı halka (hangi işi yapacağız)
+# sessizce boşalıyordu. Ölçülemeyen alan artık kalem listesine ADIYLA girer.
+CI_OLCULEMEDI_KALEM_ID = "CI-OLCULEMEDI"
+
+
+def ci_olculemedi_kalemi(kirmizi_blok: str) -> dict:
+    """Ölçülemeyen CI alanını, defter kalemleriyle AYNI ŞEKİLDE taşınan bir kaleme çevirir."""
+    return {
+        "id": CI_OLCULEMEDI_KALEM_ID,
+        "tarih": dt.date.today().isoformat(),
+        "kimden": "kral-sabah.py (K333 kolu — üretim anında doğdu, defterde YOK)",
+        "is": ("🔴 **BUGÜNÜN CI KIRMIZI LİSTESİ ÖLÇÜLEMEDİ — bu spec'te CI alanı BOŞ DEĞİL, "
+               "BİLİNMİYOR.** Sebep: %s · Bu kalem kapanmadan 'bugün kırmızı yok' HÜKMÜ VERİLEMEZ."
+               % kirmizi_blok.splitlines()[0][:180]),
+        "durum": "ACIK",
+        "kanit": ("kabul: `gh run list --limit 30` ORTAMDAN BAĞIMSIZ koşturulur (cron'un kendi "
+                  "PATH'i + yorumlayıcısıyla) ve günün kırmızı sayısı SAYIYLA yazılır."),
+    }
+
+
 def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok: str,
-               kutu_blok: str, devam_blok: str, kirmizi_n: int, dal_n: int, kutu_n: int,
-               okunabilir: dict) -> str:
+               kutu_blok: str, devam_blok: str, kirmizi_n, dal_n: int, kutu_n: int,
+               okunabilir: dict, ci_hukum: str = "OK", gh_kaynak: str = "-") -> str:
     """Spec gövdesini kurar. ZORUNLU bölümler: KIRMIZI · MERGE · KALEMLER · KUTUDA YENİ · DİSİPLİN."""
+    # 🔴 K333: hüküm biti ölçülür, dizge aranmaz. `ci_hukum` OLCULEMEDI ise
+    # ölçülemeyen alan kalem listesine BAŞA eklenir (sıra: en pahalı bilinmezlik önce).
+    if ci_hukum != "OK":
+        kalemler = [ci_olculemedi_kalemi(kirmizi_blok)] + list(kalemler)
     baslik = "# KraL-Tamirci-{} — sabah spec'i\n".format(tarih.isoformat())
     meta = (
         "Ev: KraL · Etiket: `kabul-sabah-rutini` · Üretici: `/Users/okan/.claude/cron/kral-sabah.py`\n"
@@ -581,8 +731,10 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
         "- İşçi etiketi `kabul-` içerir; `kabul:` alanı doluysa kalem kapatılabilir.\n"
         "- Bu rutin İŞÇİ DAĞITMAZ / TUR AÇMAZ — yalnız spec üretir; çipi teslim kolu düşürür.\n"
         "- Ölçülemeyen alana `OLCULEMEDI` yazılır; SESSİZCE sıfır yazılmaz.\n"
+        "- 🔴 Ölçülemeyen CI alanı BOŞ LİSTE DEĞİL, AÇIK KALEMDİR (`{ci_kalem}`): kapanmadan "
+        "'bugün kırmızı yok' hükmü verilemez.\n"
         "- Dosya yolu: `~/.claude/cron/tamirci-spec/` (git-dışı; diske yazılır, repoya GİRMEZ).\n"
-    )
+    ).format(ci_kalem=CI_OLCULEMEDI_KALEM_ID)
 
     giris_durumu = (
         "## GİRİŞ DURUMU (okunabilirlik)\n"
@@ -590,18 +742,34 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
         "- acik-kalemler.md: {kalemler}\n"
         "- DEVAM.md: {devam}\n"
         "- gh run list: {gh}\n"
+        "- gh ikilisi (K333 — ortamdan bağımsız çözüm): {gh_kaynak}\n"
         "- git branch: {git}\n".format(
             kutu="OK" if okunabilir["kutu"] else "OLCULEMEDI",
             kalemler="OK" if okunabilir["kalemler"] else "OLCULEMEDI",
             devam="OK" if okunabilir["devam"] else "OLCULEMEDI",
             gh="OK" if okunabilir["gh"] else "OLCULEMEDI",
+            gh_kaynak=gh_kaynak,
             git="OK" if okunabilir["git"] else "OLCULEMEDI",
         )
     )
 
+    # 🔴 K333: bölüm başlığı artık HÜKMÜ taşır. Ölçülemeyen hâlde başlığın kendisi
+    # "liste boş" okunmasını ENGELLER ve kalemin adını verir.
+    ci_basligi = (
+        "## BUGÜNÜN KIRMIZILARI (CI — bugün UTC) · HÜKÜM={hukum} · ADET={adet}\n".format(
+            hukum=ci_hukum,
+            adet=("OLCULEMEDI" if kirmizi_n is None else kirmizi_n),
+        )
+    )
+    if ci_hukum != "OK":
+        ci_basligi += (
+            "> 🔴 BU BÖLÜM BOŞ DEĞİL, **BİLİNMİYOR.** Ölçülemeyen CI aşağıda "
+            "`{kalem}` kimlikli AÇIK KALEM olarak taşınıyor.\n".format(kalem=CI_OLCULEMEDI_KALEM_ID)
+        )
+
     return "\n".join([
         baslik, meta,
-        "## BUGÜNÜN KIRMIZILARI (CI — bugün UTC)\n" + kirmizi_blok + "\n",
+        ci_basligi + kirmizi_blok + "\n",
         "## MERGE KUYRUĞU (main dışı dallar)\n" + dal_blok + "\n",
         "## AÇIK KALEMLER (defter — `acik-kalemler.md`, durum ∈ {ACIK, 🔧})\n" + kalem_blok + "\n",
         "## KUTUDA YENİ (son 24 saat — bugün+dün)\n" + kutu_blok + "\n",
@@ -669,23 +837,34 @@ def main() -> int:
 
     # --- toplama ---
     kalemler, kalem_n = acik_kalemleri_topla(kalem_txt)
-    kirmizi_blok, kirmizi_n = bugunun_kirmizilari()
+    ci_hukum, kirmizi_blok, kirmizi_n, gh_kaynak = bugunun_kirmizilari()
     dal_blok, dal_n = merge_kuyrugu()
     kutu_blok, kutu_n = kutuda_yeni(kutu_txt)
     devam_blok = devam_ozet(devam_txt)
 
-    okunabilir["gh"] = not kirmizi_blok.startswith("CI=OLCULEMEDI")
+    # 🔴 K333: hüküm BİTİ okunur, dizge ARANMAZ. Eskiden burada
+    # `kirmizi_blok.startswith("CI=OLCULEMEDI")` vardı: hükmü metnin şeklinden
+    # türetiyordu. Metin bir gün değişse hüküm SESSİZCE tersine dönerdi
+    # ([[isci-yesil-tablo-ic-olcumu-bosaltir]] sınıfı: iddianın ADI durur, ölçümü boşalır).
+    okunabilir["gh"] = (ci_hukum == "OK")
     okunabilir["git"] = not dal_blok.startswith("DAL=OLCULEMEDI")
 
     # --- spec inşası ---
     bugun = dt.date.today()
     spec = build_spec(bugun, kalemler, kirmizi_blok, dal_blok, kutu_blok, devam_blok,
-                      kirmizi_n, dal_n, kutu_n, okunabilir)
+                      kirmizi_n, dal_n, kutu_n, okunabilir,
+                      ci_hukum=ci_hukum, gh_kaynak=gh_kaynak)
 
     # --- fail-loud: KALEMLER okunamadıysa ---
     rc = 0
     if not okunabilir["kalemler"]:
         rc = 1
+
+    # 🔴 K333 fail-loud: CI ölçülemediyse koşum SESSİZ YEŞİL DÖNEMEZ. `OLCULEMEDI`
+    # bir "temiz" hâli DEĞİLDİR ([[olculemedi-bypass-degil-menzil-daraltmasi]]);
+    # cron log'unda rc=0 görmek tam da bugünkü arızanın gizlenme biçimiydi.
+    if ci_hukum != "OK":
+        rc = max(rc, 1)
 
     # --- yazma ---
     # `--kendini-test` YAZMAZ (27 Ağu): sağlık kontrolünün yan etkisi günün
@@ -696,8 +875,14 @@ def main() -> int:
     sabah_spec_alan = "KURU" if kuru else str(hedef)
 
     # --- çıktı: tek özet satırı ---
-    print("SABAH_SPEC={} KALEM={} KIRMIZI={} DAL={} KUTU_YENI={} rc={}".format(
-        sabah_spec_alan, kalem_n, kirmizi_n, dal_n, kutu_n, rc
+    # 🔴 K333: `KIRMIZI=` alanı ölçülemeyen hâlde ARTIK `0` BASMAZ. Eski satır
+    # "ölçemedim" ile "bugün kırmızı yok"u aynı sayıya çöktürüyordu; log'a bakan
+    # (insan ya da kol) ikisini ayırt edemiyordu. `CI_HUKUM` ve `GH_YOL` alanları
+    # ölçümün KENDİSİNİ görünür kılar — yönlendirilmiş koşum gerçek sanılmasın.
+    print("SABAH_SPEC={} KALEM={} KIRMIZI={} CI_HUKUM={} GH_YOL={} DAL={} KUTU_YENI={} rc={}".format(
+        sabah_spec_alan, kalem_n,
+        ("OLCULEMEDI" if kirmizi_n is None else kirmizi_n),
+        ci_hukum, gh_kaynak, dal_n, kutu_n, rc
     ))
 
     # --- ③ SONUÇ KOLU: rc'den BAĞIMSIZ, diskten ölçer ---
