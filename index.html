@@ -2564,7 +2564,10 @@
         .then(function(data){
           var bilinen = {};
           PRODUCTS.forEach(function(p){ bilinen[p.id] = true; });
-          data.forEach(function(p){ if(!bilinen[p.id]){ PRODUCTS.push(p); } });
+          // `gizli` ürün sepete de tamamlanmaz — edge yolundaki /katalog?ids= zaten
+          // `yayinda=1` süzer; yerel yol aynı sözleşmeyi uygular. Satır `kayip` kalır,
+          // müşteri çarpıyla kaldırır (ödeme o satır dururken kilitli — bilinçli).
+          data.forEach(function(p){ if(!bilinen[p.id] && !p.gizli){ PRODUCTS.push(p); } });
           renderCartPanel();
           updateCartFab();
         })
@@ -3605,6 +3608,10 @@
     // "Mercedes-Benz"li ürünü de bulur (görünümde tek kalem + eşleşmede aynı kural).
     var hedefMarka = activeBrand === "Tümü" ? null : markaKatla(activeBrand);
     return PRODUCTS.filter(function(p){
+      // GİZLİ ürün hiçbir keşif görünümüne girmez (build/ozet/Worker `yayinda=1` ile
+      // AYNI kural; kaynak alan urunler.json `gizli`). PRODUCTS girişte de filtrelenir,
+      // bu satır sözleşmenin müşteri-görünür kopyasıdır (ikiz tanım değil, aynı alan).
+      if(p.gizli){ return false; }
       // "Jeneratör" görünümü kategori adını paylaşan genel jeneratör parçalarını değil,
       // yalnız gizli sarı/parametrik seriyi temsil eder. Diğer kategoriler tam eşitliktir.
       var catOk = activeCat === "Tümü" ||
@@ -4716,7 +4723,9 @@
   fetch("urunler.json", { cache: "no-cache" })
     .then(function(r){ return r.json(); })
     .then(function(data){
-      PRODUCTS = data;
+      // `gizli` kayıtlar müşteri kataloğuna hiç girmez (Worker/edge yolunda aynı işi
+      // D1 `yayinda=1` filtresi yapar — tek kaynak urunler.json `gizli` alanı).
+      PRODUCTS = data.filter(function(p){ return !p.gizli; });
       katalogYuklendi = true;           // fırsat tazelemesi artık ateşlenebilir (openCart kapısı)
       buildHomeOrder();
       // SEPET, KATALOGU DÜŞÜREMEZ (17 Tem hotfix): sepet çağrıları try/catch içinde —

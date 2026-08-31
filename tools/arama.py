@@ -430,6 +430,24 @@ def tur_kanonik(u):
     return _TUR_FIZIKSEL if u.get("tur") == _TUR_FIZIKSEL else ""
 
 
+def gizli_sebebi(u):
+    """`gizli` alaninin IS KURALI (tip kontrolu degil — o KATALOG_ALAN_TIPLERI'nde):
+    tur='fiziksel' (satin-alma sinifi) urun GIZLI DOGAR ve GIZLI KALIR (Okan emri
+    31 Agu 2026: bu sinif sitenin hicbir kesif yuzeyinde gorunmez; kayit katalogda
+    DURUR, silinmez). Kural commit aninda zorlanir ki hangi yazim yolu kullanilirsa
+    kullanilsin (duzelt.py, toplu ekleme, gelecekteki bir arac) sinifin yeni uyesi
+    gorunur DOGAMAZ ve mevcut uyesi sessizce gorunur YAPILAMAZ — geri acma karari
+    bu kuralin kendisini degistiren ACIK bir mimar/Okan karari olmak zorundadir.
+    Doner: None = temiz, metin = ihlal sebebi."""
+    if tur_kanonik(u) != _TUR_FIZIKSEL:
+        return None
+    if u.get("gizli") is True:
+        return None
+    return ("tur='fiziksel' urun `gizli: true` tasimak ZORUNDA (31 Agu emri: satin-alma "
+            "sinifi sitede gorunmez; yaz: tools/duzelt.py --toplu ile alan=gizli, "
+            "deger=true — geri acma alan silmekle degil KURAL degisikligiyle olur)")
+
+
 def stokta_kanonik(u):
     """D1'e yazilan `stokta` degeri: -1 bilinmiyor / 0 stokta degil / 1 stokta."""
     if "stokta" not in u:
@@ -2621,6 +2639,9 @@ KATALOG_ALAN_TIPLERI = {
     "baslik": str,
     "boy_secenekleri": list,
     "fiyat": str,
+    # true => kayit katalogda DURUR ama hicbir kesif yuzeyinde gorunmez (statik build,
+    # ozet.json, sitemap/feed, D1 kesif kollari). Gorunur yapmak = alani kaldirmak.
+    "gizli": bool,
     "gorseller": list,
     "id": str,
     "kategori": str,

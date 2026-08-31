@@ -95,12 +95,23 @@ def gen_and_parse(products):
 
 def main():
     with open(build.JSON_PATH, encoding="utf-8") as f:
-        products = json.load(f)
-    print("urunler.json: %d urun yuklendi (%s)" % (len(products), build.JSON_PATH))
+        ham = json.load(f)
+    # Uretim yolunda feed'e giden liste build.load_products'tan gecer ve `gizli`
+    # kayitlar orada duser; bu test renderer'i HAM okumayla besledigi icin ayni
+    # dusumu kendisi uygular ("gizli feed'de yok" kanitini uretim-butunluk-kapisi
+    # B16 ekseni + gercek build olcer, burasi sayi sozlesmesini olcer).
+    products = [p for p in ham if not p.get("gizli")]
+    print("urunler.json: %d urun yuklendi, %d gizli dusuldu (%s)"
+          % (len(ham), len(ham) - len(products), build.JSON_PATH))
 
     # feed'e girmesi GEREKEN urunler (bagimsiz filtre; render_merchant_feed ile ayni kural) ----
     eligible = []
     for p in products:
+        # `gizli` urun feed'e giremez: uretim tarafinda ayni dusum build.load_products
+        # icinde olur (render_merchant_feed gizli kaydi HIC gormez); bu bagimsiz filtre
+        # ham JSON okudugu icin ayni kurali kendisi uygulamak zorunda.
+        if p.get("gizli"):
+            continue
         if p.get("parametrik"):
             continue
         if not build.feed_price((p.get("fiyat") or "").strip()):

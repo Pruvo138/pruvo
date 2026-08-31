@@ -4,6 +4,7 @@
 
   python3 tools/yayin-kapisi.py --durum          # sayilar (D1 taslak/yayinda + canli)
   python3 tools/yayin-kapisi.py --yayinla        # deploy'dan SONRA: canli 200 -> yayinda=1
+  python3 tools/yayin-kapisi.py --gizle          # urunler.json `gizli:true` -> yayinda=0
   python3 tools/yayin-kapisi.py --geriye-doldur  # TEK SEFERLIK goc: canlidakileri yayinda=1
   python3 tools/yayin-kapisi.py --hal-json       # MAKINE-OKUNUR: stdin'deki id'lerin yayin hali
   python3 tools/yayin-kapisi.py --kendini-test   # OFFLINE kabul testi (ag/D1 GEREKMEZ)
@@ -182,7 +183,7 @@ def yukle_d1sync():
 # ═══════════════════════════════════════════════════════════════════════════════
 # SAF KARAR MANTIGI (D1'e / aga DOKUNMAZ -> kabul testi burayi dogrudan cagirir)
 # ═══════════════════════════════════════════════════════════════════════════════
-def adaylari_sec(taslaklar, yerel_idler, canli_idler):
+def adaylari_sec(taslaklar, yerel_idler, canli_idler, gizli_idler=()):
     """Yayina ALINABILECEK id'ler.
 
     KOSUL (fail-closed, UCU BIRDEN): id D1'de TASLAK olmali + YAYINLANAN (yerel, yani
@@ -190,12 +191,18 @@ def adaylari_sec(taslaklar, yerel_idler, canli_idler):
     Canli JSON sarti, "CI daha yeni bir commit yayinladi / deploy henuz oturmadi"
     halinde yanlislikla yayina almayi engeller (canli JSON ile /urun/ AYNI artefaktta
     yayinlanir — deploy.yml `_site` beyaz listesi).
+    `gizli_idler`: urunler.json'da `gizli: true` tasiyan id'ler — KALICI taslaktir,
+    UC SART TUTSA BILE aday olmaz (--gizle indirir; yayina donus yolu alani kaldirip
+    normal yayin adimindan gecmektir, buradan degil).
     Doner: (adaylar_sirali, atlanan_sebep_haritasi)"""
     yerel = set(yerel_idler)
     canli = set(canli_idler)
+    gizli = set(gizli_idler)
     adaylar, atlanan = [], {}
     for uid in taslaklar:
-        if uid not in yerel:
+        if uid in gizli:
+            atlanan[uid] = "gizli (kalici taslak — yayina alinmaz)"
+        elif uid not in yerel:
             atlanan[uid] = "yerel urunler.json'da YOK (silinmis/bayat satir)"
         elif uid not in canli:
             atlanan[uid] = "canli urunler.json'da HENUZ YOK (deploy oturmadi)"
@@ -611,9 +618,21 @@ def parcala(idler, boy=PARCA):
 
 def yayin_sql(idler, release, alinti):
     """Tek yon: 0 -> 1. `WHERE yayinda=0` sarti BILEREK var — zaten yayinda olan satirin
-    release_id'sini ezmez (denetim izi korunur) ve gereksiz yazma uretmez."""
+    release_id'sini ezmez (denetim izi korunur) ve gereksiz yazma uretmez.
+    (1 -> 0 yonu AYRI ve ALAN-BAGLIDIR: gizle_sql, yalniz urunler.json `gizli` alanindan
+    turer — elle/keyfi unpublish yolu YOKTUR.)"""
     return ("UPDATE urunler SET yayinda=1, release_id=%s WHERE yayinda=0 AND id IN (%s);"
             % (alinti(release), ",".join(alinti(i) for i in idler)))
+
+
+def gizle_sql(idler, alinti):
+    """GIZLEME YONU (1 -> 0) — tek-yon kuralinin TEK, ALAN-BAGLI istisnasi (Okan emri
+    31 Agu: ~940 urun siteden gizlenir, SILINMEZ). YALNIZ yerel urunler.json'da
+    `gizli: true` tasiyan id'ler icin uretilir (`--gizle`); keyfi id listesiyle
+    unpublish YAPILMAZ. `WHERE yayinda=1` gereksiz yazmayi onler; `release_id`
+    KORUNUR (son yayinin denetim izi silinmez — geri acilista tazelenir)."""
+    return ("UPDATE urunler SET yayinda=0 WHERE yayinda=1 AND id IN (%s);"
+            % ",".join(alinti(i) for i in idler))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -623,6 +642,15 @@ def yerel_idler():
     with open(URUNLER, encoding="utf-8") as f:
         d = json.load(f)
     return [u["id"] for u in d if u.get("id")]
+
+
+def yerel_gizli_idler():
+    """LOKAL urunler.json'da `gizli: true` olan id'ler. Gizli urun KALICI TASLAKTIR:
+    yayina alinmaz, geriye doldurulmaz; `--gizle` bu kumeyi D1'de yayinda=0'a indirir.
+    Kaynak TEK ALAN'dir (statik build filtresiyle ayni: build.load_products)."""
+    with open(URUNLER, encoding="utf-8") as f:
+        d = json.load(f)
+    return set(u["id"] for u in d if u.get("id") and u.get("gizli"))
 
 
 def canli_getir(yol, ikili=False):
@@ -861,14 +889,27 @@ def komut_durum(m):
             print("HUKUM: OLCULEMEDI (rc=%d)" % RC_OLCULEMEDI)
             return RC_OLCULEMEDI
         print("canli urunler.json id: %d" % len(set(canli)))
-        print("YAYIN GECIKMESI (canli JSON'da olup D1'de TASLAK olan): %d"
-              % len(set(taslak_idler(m)) & set(canli)))
-        ihlal = ihlal_idler(yayinda_idler(m), canli)
+        gizli = yerel_gizli_idler()
+        yay_kume = set(yayinda_idler(m))
+        tas_kume = set(taslak_idler(m))
+        print("yerel GIZLI (kalici taslak): %d" % len(gizli))
+        # Gizli urun canli JSON'da DURUR (silinmez) ve D1'de bilerek taslaktir; onu
+        # "gecikme" saymak sayaci kalici sisirir ve gercek gecikmeyi gizlerdi.
+        print("YAYIN GECIKMESI (canli JSON'da olup D1'de TASLAK olan, gizli HARIC): %d"
+              % len((tas_kume & set(canli)) - gizli))
+        # GIZLI AMA YAYINDA = kesif yuzeyi urunu GOSTERIYOR ama statik sayfasi build
+        # filtresiyle DUSTU/dusecek -> "404 veren kart" sinifi: KIRMIZI. Coz: --gizle.
+        gizli_yayinda = sorted(gizli & yay_kume)
+        print("GIZLI AMA YAYINDA (yayinda=1 & yerel gizli — coz: --gizle): %d%s"
+              % (len(gizli_yayinda),
+                 ("  -> " + ", ".join(gizli_yayinda[:10])) if gizli_yayinda else ""))
+        ihlal = ihlal_idler(sorted(yay_kume), canli)
         print("DEGISMEZ IHLALI (yayinda=1 olup canli JSON'da OLMAYAN): %d%s"
               % (len(ihlal), ("  -> " + ", ".join(ihlal[:10])) if ihlal else ""))
-        print("HUKUM: %s (rc=%d)" % ((HUKUM_KIRMIZI, RC_KIRMIZI) if ihlal
+        kirmizi = bool(ihlal or gizli_yayinda)
+        print("HUKUM: %s (rc=%d)" % ((HUKUM_KIRMIZI, RC_KIRMIZI) if kirmizi
                                      else (HUKUM_YESIL, RC_YESIL)))
-        return RC_KIRMIZI if ihlal else RC_YESIL
+        return RC_KIRMIZI if kirmizi else RC_YESIL
     except Exception as e:
         print("!! ISTISNA: %s: %s" % (type(e).__name__, e))
         print("HUKUM: OLCULEMEDI (rc=%d) — wrangler/D1 arizasi 'site bozuk' DEMEK DEGIL"
@@ -970,7 +1011,7 @@ def artefakt_yasi():
 
 
 def komut_yayinla(m, release, prob=None, canli_kaynak=None, yerel_kaynak=None,
-                  yas_kaynak=None):
+                  yas_kaynak=None, gizli_kaynak=None):
     """DEPLOY'DAN SONRA kosar. IKI IS BIR ARADA, AMA AYRI RAPORLANIR:
 
       1. YAYINA ALMA (yazma): canli 200 dogrulanmadan hicbir satir yayina alinmaz.
@@ -1015,10 +1056,14 @@ def komut_yayinla(m, release, prob=None, canli_kaynak=None, yerel_kaynak=None,
             # yani gorunmez — 404 uretilemez). Yuzey de bos kalir -> hukum OLCULEMEDI.
             print("!! CANLI KATALOG OKUNAMADI: %s" % hata)
 
-        adaylar, atlanan = adaylari_sec(taslaklar, yerel_kaynak(), canli_sirali)
+        # `gizli` urunler kalici taslaktir: aday secimine kume olarak verilir ki sayfa
+        # probu bile atilmasin (940'lik kume HTTP butcesini yakar ve hepsi 404'tur).
+        gizli = set(gizli_kaynak() if gizli_kaynak else yerel_gizli_idler())
+        adaylar, atlanan = adaylari_sec(taslaklar, yerel_kaynak(), canli_sirali,
+                                        gizli_idler=gizli)
         d["atlanan"] = atlanan
-        print("D1 TASLAK: %d · yayin adayi: %d · aday-disi: %d"
-              % (len(taslaklar), len(adaylar), len(atlanan)))
+        print("D1 TASLAK: %d · yayin adayi: %d · aday-disi: %d (yerel gizli: %d)"
+              % (len(taslaklar), len(adaylar), len(atlanan), len(gizli)))
         for uid, sebep in sorted(atlanan.items())[:20]:
             print("   aday DEGIL %s — %s" % (uid, sebep))
 
@@ -1030,7 +1075,10 @@ def komut_yayinla(m, release, prob=None, canli_kaynak=None, yerel_kaynak=None,
             adaylar = []      # yazma yapilmaz; yuzey hukmu YINE DE olculur
 
         # ── OLCUM: taslak adaylari + canli katalog kesiti + nobet satiri ───────────
-        plan = olcum_plani(adaylar, canli_sirali)
+        # Kesit/yeni kollari da gizli'den ARINDIRILIR: gizli urunun sayfasi BILEREK
+        # 404'tur (build filtresi); kesite dusmesi her kosumda sahte KIRMIZI uretirdi.
+        canli_gorunur = [u for u in canli_sirali if u not in gizli]
+        plan = olcum_plani(adaylar, canli_gorunur)
         d["olcumler"] = olcumleri_yap(plan, prob=prob)
         d["hukum"], d["sebep"], d["sayac"] = yuzey_hukmu(d["olcumler"], d["yas"])
 
@@ -1098,25 +1146,30 @@ def komut_yayinla(m, release, prob=None, canli_kaynak=None, yerel_kaynak=None,
                   % (type(e2).__name__, e2))
 
 
-def komut_geriye_doldur(m, release):
+def komut_geriye_doldur(m, release, canli_kaynak=None, gizli_kaynak=None):
     """TEK SEFERLIK goc: CANLI urunler.json'da olan her id -> yayinda=1.
     KANIT: canli urunler.json ile /urun/ sayfalari AYNI Pages artefaktindan yayinlanir
     (deploy.yml `_site`), yani canli JSON'daki id'nin sayfasi da canlidadir. Bu yuzden
     15.000 tekil HTTP istegi ATILMAZ — ve ORNEKLEME de yapilmaz: karar TEK bir kanit
     kumesi (canli JSON) uzerinden TAM uygulanir.
-    🔴 AYNI UC-JETON POLITIKASI: olcum engeli -> rc=2; geri-okuma basarisiz -> rc=1."""
+    🔴 `gizli` HARIC: gizli urun canli JSON'da DURUR ama sayfasi build filtresiyle
+    dusmustur — doldurmak "404 veren kart" uretirdi (tam da bu kapinin kapattigi hal).
+    🔴 AYNI UC-JETON POLITIKASI: olcum engeli -> rc=2; geri-okuma basarisiz -> rc=1.
+    canli_kaynak / gizli_kaynak: kabul testi IO dikisleri (AG YOK)."""
     if not kolon_hazir(m):
         print("HUKUM: OLCULEMEDI (rc=%d) — sema eksigi OLCUM ENGELI" % RC_OLCULEMEDI)
         return RC_OLCULEMEDI
-    canli, hata = canli_urun_idleri()
+    canli, hata = (canli_kaynak or canli_urun_idleri)()
     if canli is None:
         print("OLCULEMEDI: %s — geriye doldurma YAPILMADI (fail-closed)." % hata)
         print("HUKUM: OLCULEMEDI (rc=%d)" % RC_OLCULEMEDI)
         return RC_OLCULEMEDI
+    gizli = set(gizli_kaynak() if gizli_kaynak else yerel_gizli_idler())
     taslaklar = set(taslak_idler(m))
-    hedef = sorted(taslaklar & set(canli))
-    print("D1 taslak: %d · canli JSON id: %d · doldurulacak: %d"
-          % (len(taslaklar), len(set(canli)), len(hedef)))
+    hedef = sorted((taslaklar & set(canli)) - gizli)
+    print("D1 taslak: %d · canli JSON id: %d · gizli haric tutulan: %d · doldurulacak: %d"
+          % (len(taslaklar), len(set(canli)),
+             len(taslaklar & set(canli) & gizli), len(hedef)))
     if not hedef:
         print("Doldurulacak satir yok (exit 0).")
         return 0
@@ -1124,12 +1177,61 @@ def komut_geriye_doldur(m, release):
         m.dosya_calistir(yayin_sql(parca, release, m.q))
     toplam, yayinda, taslak = d1_sayilar(m)
     print("SONRASI — toplam=%d yayinda=%d taslak=%d" % (toplam, yayinda, taslak))
-    kalan = sorted(set(taslak_idler(m)) & set(canli))
+    kalan = sorted((set(taslak_idler(m)) & set(canli)) - gizli)
     if kalan:
         print("!! GERI-OKUMA: %d id hala TASLAK (or. %s)" % (len(kalan), ", ".join(kalan[:5])))
         return 1
-    print("GERIYE DOLDURMA DOGRULANDI: canli JSON'daki hicbir id TASLAK degil.")
+    print("GERIYE DOLDURMA DOGRULANDI: canli JSON'daki hicbir gizli-olmayan id TASLAK degil.")
     return 0
+
+
+def komut_gizle(m, gizli_kaynak=None):
+    """Yerel urunler.json'da `gizli: true` olan urunleri D1'de KALICI TASLAGA
+    (yayinda=0) indirir — 940-gizleme emrinin dinamik-yuzey kolu.
+
+    Kesif uclarinin TAMAMI (`/ara`, `/katalog`, `/katalog?ids=`, Ege dallari, marka
+    evreni) `yayinda=1` suzer -> bu komut gizli urunu tum dinamik/Ege yuzeylerinden
+    dusurur; worker degisikligi GEREKMEZ. Para/kayit yollari (`sepetiFiyatla`,
+    siparis zenginlestirme) `yayinda` okumaz ve BILEREK etkilenmez (kayit silinmez,
+    eski siparis fiyatlanabilir kalir). Statik yuzey AYNI alandan build.load_products
+    ile duser; iki yuzeyin tek kaynagi urunler.json `gizli` alanidir.
+    🔴 UC-JETON: olcum engeli/istisna -> rc=2; geri-okuma basarisiz -> rc=1; yoksa 0."""
+    try:
+        if not kolon_hazir(m):
+            print("HUKUM: OLCULEMEDI (rc=%d) — sema eksigi OLCUM ENGELI" % RC_OLCULEMEDI)
+            return RC_OLCULEMEDI
+        gizli = sorted(set(gizli_kaynak() if gizli_kaynak else yerel_gizli_idler()))
+        print("yerel GIZLI id: %d" % len(gizli))
+        if not gizli:
+            print("Gizlenecek urun yok (exit 0).")
+            return 0
+        harita = yayin_hali_harita(m, gizli)
+        satirsiz = [u for u in gizli if u not in harita]
+        hedef = [u for u in gizli if int(harita.get(u) or 0) == 1]
+        print("D1 satiri olmayan gizli id: %d (senkron isi — dokunulmadi) · "
+              "zaten taslak: %d · indirilecek (yayinda=1): %d"
+              % (len(satirsiz), len(gizli) - len(satirsiz) - len(hedef), len(hedef)))
+        for parca in parcala(hedef):
+            m.dosya_calistir(gizle_sql(parca, m.q))
+        # GERI-OKUMA: iddia degil, D1'den TEYIT (yayin_sql'un yazma-dogrulama deseni).
+        kalan = []
+        for parca in parcala(gizli):
+            r = m.sorgu("SELECT id, yayinda FROM urunler WHERE id IN (%s)"
+                        % ",".join(m.q(i) for i in parca))
+            kalan += [s["id"] for s in (r[0].get("results") or [])
+                      if int(s.get("yayinda") or 0) == 1]
+        if kalan:
+            print("!! GIZLEME DOGRULANAMADI: %d id hala yayinda=1 (or. %s)"
+                  % (len(kalan), ", ".join(kalan[:5])))
+            return RC_KIRMIZI
+        print("GIZLENDI: %d urun yayinda=0'a indirildi; gizli kumede yayinda=1 "
+              "KALMADI (geri-okuma ile dogrulandi)." % len(hedef))
+        return 0
+    except Exception as e:
+        print("!! ISTISNA: %s: %s" % (type(e).__name__, e))
+        print("HUKUM: OLCULEMEDI (rc=%d) — wrangler/D1 arizasi 'site bozuk' DEMEK DEGIL"
+              % RC_OLCULEMEDI)
+        return RC_OLCULEMEDI
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1157,6 +1259,14 @@ class SahteD1:
     def sorgu(self, sql):
         if self.sorgu_patlar:
             raise RuntimeError("wrangler d1 execute basarisiz (sahte ag/kota hatasi)")
+        if "COUNT(*)" in sql:
+            t = len(self.satirlar)
+            y = sum(1 for v in self.satirlar.values() if int(v or 0) == 1)
+            return [{"results": [{"toplam": t, "yayinda": y, "taslak": t - y}]}]
+        if sql.startswith("SELECT id, yayinda"):   # yayin_hali_harita / gizle geri-okumasi
+            secili = [i for i in self.satirlar if self.q(i) in sql]
+            return [{"results": [{"id": i, "yayinda": self.satirlar[i]}
+                                 for i in sorted(secili)]}]
         if "IN (" in sql:               # geri-okuma: WHERE yayinda=0 AND id IN (...)
             secili = [i for i in self.satirlar if self.q(i) in sql]
             return [{"results": [{"id": i} for i in sorted(secili)
@@ -1170,6 +1280,11 @@ class SahteD1:
         if self.yazma_patlar:
             raise RuntimeError("wrangler d1 dosya calistirma basarisiz (sahte kota)")
         self.yazilan_sql.append(sql)
+        if "SET yayinda=0" in sql:      # gizleme yonu (gizle_sql): 1 -> 0
+            for i in list(self.satirlar):
+                if self.q(i) in sql and int(self.satirlar[i] or 0) == 1:
+                    self.satirlar[i] = 0
+            return
         for i in list(self.satirlar):
             if self.q(i) in sql and int(self.satirlar[i] or 0) == 0:
                 self.satirlar[i] = 1
@@ -1670,9 +1785,10 @@ def kendini_test():
 
     def kos(d1_satirlari, canli_liste, kod_haritasi, varsayilan=404, canli_hata=None,
             yerel=None, yas=0, govde_haritasi=None, kolon=True, sorgu_patlar=False,
-            yazma_patlar=False, yas_notu=None):
+            yazma_patlar=False, yas_notu=None, gizli=None):
         """komut_yayinla'yi FIKSTURLE kosar; stdout yakalanir (dokum gurultusu tasmasin).
-        `yas` = artefakt yasi (rollout affinin saati). Doner: (rc, d1, prob, cikti)"""
+        `yas` = artefakt yasi (rollout affinin saati). `gizli` = yerel gizli id kumesi
+        (hermetiklik: gercek urunler.json OKUNMAZ). Doner: (rc, d1, prob, cikti)"""
         m = SahteD1(d1_satirlari, kolon=kolon, sorgu_patlar=sorgu_patlar,
                     yazma_patlar=yazma_patlar)
         prob = sahte_prob(kod_haritasi, varsayilan, govde_haritasi)
@@ -1683,7 +1799,8 @@ def kendini_test():
                                yerel_kaynak=(lambda: list(yerel if yerel is not None
                                                           else canli_liste)),
                                yas_kaynak=(lambda: (yas, yas_notu)
-                                           if yas_notu is not None else yas))
+                                           if yas_notu is not None else yas),
+                               gizli_kaynak=(lambda: set(gizli or [])))
         return rc, m, prob, tampon.getvalue()
 
     def hukum_of(cikti):
@@ -1981,6 +2098,77 @@ def kendini_test():
     dogrula("Y66 KORELME: yerel JSON'da OLMAYAN taslak aday olmaz -> yazma YOK",
             kos({"hayalet-z": 0}, canli12, tum_200, yerel=canli12)[1].yazilan_sql == [])
 
+    # ══════════════════════════════════════════════════════════════════════════════
+    # GIZLI EKSENI (940-gizleme, 31 Agu): gizli = KALICI TASLAK; --gizle indirir,
+    # --yayinla/--geriye-doldur GERI ACAMAZ.
+    # ══════════════════════════════════════════════════════════════════════════════
+    ag_g, atl_g = adaylari_sec(["g1", "t1"], ["g1", "t1"], ["g1", "t1"],
+                               gizli_idler={"g1"})
+    dogrula("Y80 GIZLI ADAY: uc sart TUTSA da gizli id aday OLMAZ", ag_g == ["t1"],
+            (ag_g, atl_g))
+    dogrula("Y80b GIZLI ADAY: atlama sebebi 'gizli' der ve gorunur",
+            "gizli" in atl_g.get("g1", ""), atl_g)
+    # MUTASYON: gizli kumesi verilmeyen (eski) secim gizli urunu ADAY yapar -> filtre
+    # olu degil, davranisi fiilen degistiriyor.
+    am_g, _ = adaylari_sec(["g1"], ["g1"], ["g1"])
+    dogrula("Y80c GIZLI MUTASYON: kume verilmezse gizli id aday OLURDU (filtre canli)",
+            am_g == ["g1"], am_g)
+    sql_g = gizle_sql(["g1", "g2"], alinti)
+    dogrula("Y81 GIZLE-SQL: SET yayinda=0 + WHERE yayinda=1 (yalniz yayindakini indirir)",
+            "SET yayinda=0" in sql_g and "WHERE yayinda=1" in sql_g, sql_g)
+    dogrula("Y81b GIZLE-SQL: release_id'ye DOKUNMAZ (son yayinin denetim izi korunur)",
+            "release_id" not in sql_g, sql_g)
+    dogrula("Y81c GIZLE-SQL: id'ler alintilanir (enjeksiyon nobeti)",
+            gizle_sql(["a'b"], alinti).count("''") == 1, gizle_sql(["a'b"], alinti))
+    mg = SahteD1({"g1": 1, "g2": 0, "x": 1})
+    with contextlib.redirect_stdout(io.StringIO()):
+        rc_g = komut_gizle(mg, gizli_kaynak=lambda: {"g1", "g2"})
+    dogrula("Y82 GIZLE UCTAN UCA: yayindaki gizli 0'a iner, taslak gizli dokunulmaz, "
+            "gizli-olmayan korunur, rc=0",
+            rc_g == 0 and mg.satirlar == {"g1": 0, "g2": 0, "x": 1}, (rc_g, mg.satirlar))
+    dogrula("Y82b GIZLE: tek yazma, yalniz yayindaki gizli icin ('g2' SQL'e girmez)",
+            len(mg.yazilan_sql) == 1 and "'g1'" in mg.yazilan_sql[0]
+            and "'g2'" not in mg.yazilan_sql[0], mg.yazilan_sql)
+    mg2 = SahteD1({"g1": 1}, yazma_patlar=True)
+    with contextlib.redirect_stdout(io.StringIO()):
+        rc_g2 = komut_gizle(mg2, gizli_kaynak=lambda: {"g1"})
+    dogrula("Y82c GIZLE ARIZA: yazma istisnasi -> rc=2 OLCULEMEDI (1'e COKMEZ), "
+            "satir DEGISMEZ", rc_g2 == RC_OLCULEMEDI and mg2.satirlar == {"g1": 1},
+            (rc_g2, mg2.satirlar))
+    mg3 = SahteD1({"x": 1})
+    with contextlib.redirect_stdout(io.StringIO()):
+        rc_g3 = komut_gizle(mg3, gizli_kaynak=lambda: set())
+    dogrula("Y82d GIZLE BOS: gizli yokken hicbir sey yazilmaz, rc=0 (yanlis-pozitif yok)",
+            rc_g3 == 0 and mg3.yazilan_sql == [], (rc_g3, mg3.yazilan_sql))
+    # KORELME + GIZLI: sayfasi 200 VERSE BILE gizli taslak yayina alinmaz, PROBLANMAZ.
+    ile_gz = dict(tum_200)
+    ile_gz[urun_yolu("gizli-t")] = 200
+    rc_gz, m_gz, prob_gz, ck_gz = kos({"gizli-t": 0}, canli12 + ["gizli-t"], ile_gz,
+                                      gizli={"gizli-t"})
+    dogrula("Y83 YAYINLA+GIZLI: sayfasi 200 olsa da gizli taslak YAYINA ALINMAZ, rc=0",
+            rc_gz == 0 and m_gz.satirlar["gizli-t"] == 0 and m_gz.yazilan_sql == [],
+            (rc_gz, m_gz.satirlar, m_gz.yazilan_sql))
+    dogrula("Y83b YAYINLA+GIZLI: gizli taslagin sayfasi HIC problanmaz (HTTP butcesi)",
+            urun_yolu("gizli-t") not in prob_gz.cagrilan, prob_gz.cagrilan)
+    dogrula("Y83c YAYINLA+GIZLI: dokumde 'gizli' atlama sebebi gorunur",
+            "gizli (kalici taslak" in ck_gz, ck_gz[-400:])
+    # GERIYE-DOLDUR + GIZLI (dikislerle offline): gizli taslak DOLDURULMAZ.
+    mgd = SahteD1({"g1": 0, "n1": 0})
+    with contextlib.redirect_stdout(io.StringIO()):
+        rc_gd = komut_geriye_doldur(mgd, "test",
+                                    canli_kaynak=lambda: (["g1", "n1"], None),
+                                    gizli_kaynak=lambda: {"g1"})
+    dogrula("Y84 GERIYE-DOLDUR+GIZLI: gizli taslak DOLDURULMAZ, digeri dolar, rc=0",
+            rc_gd == 0 and mgd.satirlar == {"g1": 0, "n1": 1}, (rc_gd, mgd.satirlar))
+    # MUTASYON: gizli dususu olmadan ayni fikstur gizli id'yi de doldururdu.
+    mgd2 = SahteD1({"g1": 0, "n1": 0})
+    with contextlib.redirect_stdout(io.StringIO()):
+        komut_geriye_doldur(mgd2, "test", canli_kaynak=lambda: (["g1", "n1"], None),
+                            gizli_kaynak=lambda: set())
+    dogrula("Y84b GERIYE-DOLDUR MUTASYON: gizli kumesi bos verilirse g1 de DOLARDI "
+            "(dusus canli, tautoloji degil)", mgd2.satirlar == {"g1": 1, "n1": 1},
+            mgd2.satirlar)
+
     print("\nSONUC: %d gecti, %d kaldi" % (gecen[0], kalan[0]))
     return 0 if kalan[0] == 0 else 1
 
@@ -2002,6 +2190,7 @@ def main():
     ap = KullanimAyristirici()
     ap.add_argument("--durum", action="store_true")
     ap.add_argument("--yayinla", action="store_true")
+    ap.add_argument("--gizle", action="store_true", dest="gizle")
     ap.add_argument("--geriye-doldur", action="store_true", dest="geriye")
     ap.add_argument("--hal-json", action="store_true", dest="hal")
     ap.add_argument("--kendini-test", action="store_true", dest="kendini")
@@ -2014,13 +2203,15 @@ def main():
         ham = sys.stdin.read()
         idler = [s.strip() for s in ham.replace(",", "\n").splitlines() if s.strip()]
         sys.exit(komut_hal_json(idler))
-    if not (a.durum or a.yayinla or a.geriye):
+    if not (a.durum or a.yayinla or a.geriye or a.gizle):
         ap.print_help()
         sys.exit(RC_KULLANIM)      # KULLANIM hatasi — OLCULEMEDI (2) ile KARISTIRILMAZ
 
     m = yukle_d1sync()
     if a.durum:
         sys.exit(komut_durum(m))
+    if a.gizle:
+        sys.exit(komut_gizle(m))
     if a.geriye:
         sys.exit(komut_geriye_doldur(m, "geriye-doldur"))
     sys.exit(komut_yayinla(m, a.release))
