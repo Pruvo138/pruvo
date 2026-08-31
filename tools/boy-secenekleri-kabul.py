@@ -135,7 +135,9 @@ def js_ekseni():
     gecici = tempfile.mkdtemp(prefix="src-boy-kabul-", dir=SHOP)
     try:
         for ad in os.listdir(SRC):
-            if not ad.endswith(".js"):
+            # .mjs de kopyalanir: yonet.js `./kanal-sinif.mjs` import eder (K357);
+            # yalniz-.js filtresi kopyada modulu birakmayip ERR_MODULE_NOT_FOUND uretti.
+            if not ad.endswith((".js", ".mjs")):
                 continue
             kaynak = open(os.path.join(SRC, ad), encoding="utf-8").read()
             def json_gom(eslesme):
