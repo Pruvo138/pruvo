@@ -8,7 +8,9 @@ kabul KAPSAR (uyum-kapisi V1 + Raymarine; mutantta V1+S7 KIRMIZI olculdu). ONCE=
 K302 9/9 · parite 1334+896 BIREBIR · D1 6/6. MaCiT dilim-1'in K302 bloku ACIK (izleyicisi :12/:42 otomatik).
 🔴 Yol ustunde bulundu: yayin `ff1a7870`den beri KAPALIYMIS (boy kapisi kopyasi yalniz .js, K357'nin
 kanal-sinif.mjs'i disarida, 3 kosum ayni failure) -> onarim `77d1caae` (.mjs de kopyalanir; once yerel
-KIRMIZI uretildi, sonra TEST_RC=0, CI 33413000092 SUCCESS). Goc testindeki ayni filtre: chip task_42c49bd2.
+KIRMIZI uretildi, sonra TEST_RC=0, CI 33413000092 SUCCESS). Goc testi filtresi de KAPANDI `e8569823`:
+.js+.mjs okur, fikstur 0->1, semadisi kolon RED, wa civisi yonet.js (civisiz SAHTE YESIL olculdu),
+taban 31/31 BIREBIR, D1 6/6, deploy SUCCESS (SERIT B kirmizisi ONCEDEN, imza ayni).
 
 ## ✅ K355+K356 KAPANDI (31 Agu) — SUPURME "INERT" DEGILMIS: ODENMEMIS SEPET, tahsil edilecek para YOK
 K356 main'de (`f283d8e2`; 98 iddia + mutant 10/10 BAGIMSIZ yeniden olculdu, D1 senkron 6/6) · deploy
@@ -54,8 +56,6 @@ eksene civili) — eksen `MX5`'e TASINDI (dar mutant: bekci RED, komsu defter GE
 `--kapanislari-isle` tam bu bosluktan dustu, elle kapatildi (`a5fc8f22`). Kabul: ters yon kolu + onu olduren mutant.
 
 ## 🔁 29 AGU ~05:0x — MIMAR OTURUM KAPANISI (tam metinler KUTUDA; burada yalniz canli durum)
-- ✅ K332/K350-B MERGE · K349 sinif esigi · bayat hafiza duzeltmesi · 30 Agu temizlik kaniti →
-  **TAM METIN `DEVAM-ARSIV.md`'ye TASINDI** (31 Agu, kural 11; arsiv 22.303 -> buyudu).
 - 🔴 **K354 — ONCULUM YANLISTI, DUZELTTIM:** `nice-swanson-706912` agacindaki 47 commit'siz dosyayi
   "kazayla silinen, geri alinacak is" sandim. O oturumun KENDI sayili kapanisi cururttu: `ca8c3815`
   **KASITLI** — *30-gun urun-kaniti testi*, 47 denetim dosyasi bilerek silindi (kapi **112->97**),
