@@ -16,28 +16,28 @@ isabet, `task_c50a1c41` **1** isabet — **geri sarma YOK.** `nice-swanson-70691
 **KOSAN CIP:** `task_c50a1c41` **K360** (`youthful-montalcini-2e348f`) — MEMORY.md 22.222 B'dan 17,1 KB
 altina; indekste KOMSU EV satirlari var, GIRDI SILINMEZ ([[indeks-ile-silme-komsuyu-siler]]).
 **Kapatan olcum:** bayt < 17.510 VE bag 283=283 VE 20 bolum sayaci BIREBIR. · 🟠 K359 (asagida).
-**OKAN'DA:** 🔴 **DEPLOY BORCU VAR — 2 commit** (onceki satirdaki "deploy borcu YOK" 6 dakika sonra
-BAYATLADI: `14:45:00Z` olcumu `ff1a7870`den ONCEydi). Kapi olctu (`shop-bayatlik-kapisi`, kosum
-`33435114046`): canli surum `975e0c40` @ **`14:44:52Z`** · yayinlanmamis `ff1a7870` (K357 kanal
-gorunurlugu, 14:51Z) + `f7695966` (K358) · esik 120 dk, **en eski yayinlanmamis commit yasi 324,9 dk**
-→ `DURUM: BAYAT rc=1`. Yayini DURDURMAZ ama **K358 deploy edilene kadar INERT**: supurme eski kodla
-kosar, satirlar `bekliyor` kalir. Yayin: `shop` dizininden `npx wrangler deploy` = OKAN.
+**OKAN'DA:** 0. ✅ **DEPLOY KOSULDU (Okan, 20:47Z) ve OLCULDU:** canli surum `d2d78692` @ `20:47:02Z`,
+yayinlanmamis commit **0**, `shop-bayatlik-kapisi` **TAZE rc=0**; 5 saattir bekleyen K357 de indi.
+(Onceki "deploy borcu YOK — 14:45:00Z" satiri **6 DAKIKA sonra** bayatlamisti; yas 324,9 dk'ya cikti.)
 
 ## ✅ K358 MERGE EDILDI `38b2d512` (dal `claude/jovial-engelbart-1a1040` @ `f7695966`)
 Kesin-basarisiz iyzico kodlari UCUNCU SINIF oldu; `terkSupur()`'un ZATEN VAR olan `iptal` kolu fiilen
 acildi. Kume KAPALI + elle sayili (`5122`/`10054`/`10057`), yuklem TEK KAYNAK (`iyzico.js::
 kesinBasarisizMi`) ve UCU BIRDEN arar (det VAR + iyzico "failure" BEYAN ETTI + kod kumede) —
 bilinmeyen/bos kod, taninmayan `status`, `det` yoklugu ESKI fail-closed yolunda KALIR.
-**MIMARIN BAGIMSIZ OLCUMU** (dalin kendi worktree'sinde, cipin raporundan DEGIL): `terk-supurme.mjs`
-**98/0 → 204/0** · mutasyon **10/10 → 15/15 YESIL** (12 hedef oldu, 3 kontrol hicbir iddiayi
-oldurmedi, `CALISMA AGACI DOKUNULMADI: True`; `MK1_KUME_GENIS → d,g,k,n,p,q,r,s` · `MK2_KUME_BOS →
-k,p,r` · `MK3_DET_YOK → k,q` · `MK4_STATUS_GEVSEK → q` · `MK0_KONTROL → -`) · `olcum.mjs` 198/0 ·
-`ci-kapsam-test` YESIL · `kisisel-veri-test` 5 nobetci YESIL, dalin ekledigi satirlarda siparis-no
-deseni **0** · kapsam 4 dosya/+446-9, spec disi dosya YOK · D1 **6/6, hash UYUSMAZ 0, 31.944 birebir**.
-🔴 **PR-260831-175451-MEC ZAMANLAMASI OLCULDU (Okan'in "yarin sabahki tur" beklentisi YANLIS):**
-siparis no `Europe/Istanbul` uretir (`siparis-no.js`), yani 17:54:51 **+03** = `14:54:51Z`; esik 24 sa,
-cron `17 * * * *` (UTC) → satir supurme penceresine **1 Eyl 14:54:51Z**'de girer, onu goren ILK tur
-**1 Eyl 15:17Z = 18:17 yerel**. Sabah turu DEGIL, aksam turu — ve yalnizca deploy YAPILMISSA.
+**MIMARIN BAGIMSIZ OLCUMU** (dalin agacinda, cipin raporundan DEGIL): `terk-supurme.mjs` **98/0 →
+204/0** · mutasyon **10/10 → 15/15 YESIL** (12 hedef oldu, 3 kontrol oldurmedi, agac dokunulmadi;
+mutant hedef-kol atfi `38b2d512` mesajinda) · `olcum.mjs` 198/0 · `ci-kapsam-test` YESIL ·
+`kisisel-veri-test` 5/5, siparis-no deseni **0** · kapsam 4 dosya/+446-9 · D1 **6/6, uyusmaz 0**.
+🔴 **ZAMANLAMA OLCULDU (Okan'in "yarin sabahki tur" beklentisi YANLIS):** siparis no
+`Europe/Istanbul` uretir (`siparis-no.js`) → bugunku 17:54:51 **+03** = `14:54:51Z`; esik 24 sa, cron
+`17 * * * *` UTC → o satir pencereye **1 Eyl 14:54:51Z**'de girer, goren ILK tur **15:17Z = 18:17
+yerel**. Sabah DEGIL aksam turu. Eskiyen 5 satir icin ilk tur ise **31 Agu 21:17Z** (deploy 20:47Z).
+🔧 **ACIK — UCTAN UCA KANIT (cip `task_77e7c185`, SALT OKUMA):** 21:17Z turunda beklenen ve ONCEDEN
+civilenen sayilar: `bakilan`=5 · `iptal`=5 · `degisen`=5 · `ulasilamadi`=0 · `odendi`=0 · `incele`=0,
+`atlandi`=`kesin-basarisiz`; ikinci eksen D1 `bekliyor` **6 → 1**. `ulasilamadi>0` cikarsa kod KAPALI
+KUMEDE DEGIL demektir — kumeye kendiliginden EKLENMEZ, hukum mimarin. `odendi>0` = para kurtarildi,
+"terk" onculu o satir icin YANLISTI → derhal Okan'a.
 
 **TEMIZLIK (bu oturum):** worktree **4 -> 2** — kaldirilan `bold-keller-82f052` + `nice-swanson-706912`;
 IKISININ DE `status --porcelain` ciktisini **kendim** okudum (cipin beyaniyla DEGIL — beyan bir kez
