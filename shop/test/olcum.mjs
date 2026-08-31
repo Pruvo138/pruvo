@@ -1384,7 +1384,9 @@ async function refMutantYukle(capa, yerine) {
   fs.rmSync(temp, { recursive: true, force: true });
   fs.mkdirSync(temp, { recursive: true });
   for (const ad of fs.readdirSync(SRC_D)) {
-    if (!ad.endsWith(".js")) { continue; }
+    // 🔴 `.mjs` DE KOPYALANIR (31 Agu 2026): ayna shop/src'in TAMAMINI temsil etmeli;
+    // `.js` suzgeci shop/src/kanal-sinif.mjs'i disarida birakip yonet.js'i dusuruyordu.
+    if (!/\.m?js$/.test(ad)) { continue; }
     fs.writeFileSync(path.join(temp, ad),
       ad === "index.js" ? kaynak.replace(capa, yerine)
                         : fs.readFileSync(path.join(SRC_D, ad), "utf8"));

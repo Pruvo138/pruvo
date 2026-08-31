@@ -92,7 +92,9 @@ function jsonGom(kaynak, etiket) {
 
 const KOK_DOSYALAR = ["secenekler.js", "konfigur.js",
                       "jenerator/konfigurator.js", "jenerator/hacim.js"];
-const SRC_DOSYALAR = fs.readdirSync(SRC).filter((a) => a.endsWith(".js"));
+// 🔴 `.mjs` DE ALINIR (31 Agu 2026): ayna shop/src'in TAMAMINI temsil etmeli;
+// `.js` suzgeci shop/src/kanal-sinif.mjs'i disarida birakip yonet.js'i dusuruyordu.
+const SRC_DOSYALAR = fs.readdirSync(SRC).filter((a) => /\.m?js$/.test(a));
 
 const GECICI_KOK = fs.mkdtempSync(path.join(os.tmpdir(), "pruvo-iki-renk-"));
 process.on("exit", () => { fs.rmSync(GECICI_KOK, { recursive: true, force: true }); });

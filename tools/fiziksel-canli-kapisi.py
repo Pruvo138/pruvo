@@ -211,7 +211,9 @@ fs.mkdirSync(dizin, { recursive: true });
 process.on("exit", () => { fs.rmSync(dizin, { recursive: true, force: true }); });
 
 for (const ad of fs.readdirSync(SRC)) {
-  if (!ad.endsWith(".js")) { continue; }
+  // 🔴 `.mjs` DE KOPYALANIR (31 Agu 2026): ayna shop/src'in TAMAMINI temsil etmeli;
+  // `.js` suzgeci shop/src/kanal-sinif.mjs'i disarida birakip yonet.js'i dusuruyordu.
+  if (!/\.m?js$/.test(ad)) { continue; }
   const ham = fs.readFileSync(path.join(SRC, ad), "utf8");
   const gomulu = ham.replace(
     /^import\s+([A-Za-z_$][\w$]*)\s+from\s+"([^"]+\.json)";[ \t]*$/gm,

@@ -2393,14 +2393,19 @@ async function parcalar(no,id,kutuId){
  }).join("");
 }
 /* KAYNAK SATIRI — siparis hangi kanaldan/hangi reklamdan geldi.
- * 🔴 BURADA SINIFLAMA YOK: `s.kaynak` sunucuda shop/src/kanal-sinif.mjs
+ * 🔴 BURADA SINIFLAMA YOK: s.kaynak alani sunucuda shop/src/kanal-sinif.mjs
  * kaynakOzeti() ile uretilir; bu fonksiyon YALNIZCA BASAR. Tarayiciya ikinci bir
  * kural yazilsaydi, rapor ile ekran ayni siparis icin farkli sey soylerdi.
  * 🔒 ga_client_id / fbp / fbc BURAYA GELMEZ — /liste JSON'unda zaten YOKLAR
  * (kaynakOzeti beyaz-listesi). Gerekce: kanal-sinif.mjs gizlilik blogu.
  * SESSIZ BOSLUK YASAK: atif yoksa "kaynak kaydı yok" ACIKCA yazilir (kaynakLinkHtml
  * ile AYNI dil; ikinci sozluk acilmaz) — bos hucre "kaynak YOK"u "OLCULEMEDI"den
- * ayirt ettirmezdi. */
+ * ayirt ettirmezdi.
+ * ⚠️ BU YORUM SAYFA_HTML SABLON DIZESININ ICINDE YASAR: buraya tek bir backtick
+ * girerse sablon ERKEN KAPANIR ve yonet.js modulu ARTIK IMPORT EDILEMEZ. (Bu is
+ * sirasinda GERCEKLESTI: "node --check yonet.js" YESIL kaldi — .js dosyasi
+ * CommonJS olarak ayristirildigi icin gormedi; kirmizi yalnizca kardes testlerde
+ * yandi. Kod ornegi yazarken tirnak kullan, backtick DEGIL.) */
 function kaynakSatiriHtml(s){
  var k=s&&s.kaynak;
  if(!k){return '';}

@@ -2877,6 +2877,22 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/panel-kaynak-mutasyon.py
 
+      # SIPARIS KAYNAGI (kanal + reklam atfi) — mutasyon bataryasi.
+      # IKI kabul kolunu (shop/test/panel-atif.mjs + tools/kanal-kirilim-test.py) 11
+      # mutantla olcer ve her mutantin HANGI kolu oldurmesi gerektigini BEYAN eder:
+      # yanlis koldan yanan kirmizi, o kol icin kanit URETMEZ. Oldurucu mutantlar
+      # spec'in adiyla andigi dort hatayi kapsar — M1 'atif-yok' organige katlanir ·
+      # M2/M2b `kanal` yokken sessizce 'site' sayilir (panel + rapor ikizi) · M3/M3b
+      # fbp beyaz-listeye sizar / ham atif /liste JSON'una konur · M4 'iptal' ciroya
+      # girer — ustune M5 (ucuncu sinif yutulur), M6 (sessiz bosluk), M7 (sifir kova
+      # tablodan duser). Iki NOTR mutant her iki kolda da YESIL kalmali: batarya "her
+      # degisiklige kirmizi" degil. Mutasyon GECICI AYNAYA uygulanir (calisma agacina
+      # YAZILMAZ; sha256 her mutanttan sonra dogrulanir, ayna finally ile silinir).
+      # ~3,1 s; ag/wrangler ISTEMEZ. continue-on-error YOK.
+      - name: Siparis kaynagi (kanal + atif) — mutasyon bataryasi (nobetci canli mi)
+        if: ${{ !cancelled() }}
+        run: python3 tools/kanal-gorunurluk-mutasyon.py
+
       # ALT KATEGORI TAKSONOMISI + UC GECISLI SINIFLANDIRICI (tools/altkategori-sinifla.py).
       # Yukaridaki kapi alanin VERI YOLUNU olcer; bu test KUMENIN KENDISINI ve urunu gruba
       # DUSUREN KURALI olcer. OLCULEN BASLANGIC (2 Agu): alt kategori tanimli TEK kategori

@@ -76,7 +76,10 @@ function tempKur() {
   tempSupur();
   fs.mkdirSync(TEMP_DIZIN, { recursive: true });
   for (const ad of fs.readdirSync(SRC)) {
-    if (!ad.endsWith(".js")) { continue; }
+    // 🔴 `.mjs` DE KOPYALANIR (31 Agu 2026): ayna shop/src'in TAMAMINI temsil etmeli.
+    // `.js` suzgeci shop/src/kanal-sinif.mjs'i sessizce disarida birakiyordu -> onu
+    // import eden yonet.js aynada ERR_MODULE_NOT_FOUND ile dusuyordu.
+    if (!/\.m?js$/.test(ad)) { continue; }
     fs.writeFileSync(path.join(TEMP_DIZIN, ad),
                      jsonGom(fs.readFileSync(path.join(SRC, ad), "utf8"), SRC, ad));
   }

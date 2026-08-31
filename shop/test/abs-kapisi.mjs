@@ -228,7 +228,9 @@ function workerAgaci(secenekKaynak, srcDosyalari) {
 function srcKaynaklari(dizin) {
   const d = {};
   for (const ad of fs.readdirSync(dizin)) {
-    if (ad.endsWith(".js")) { d[ad] = fs.readFileSync(path.join(dizin, ad), "utf8"); }
+    // 🔴 `.mjs` DE ALINIR (31 Agu 2026): ayna shop/src'in TAMAMINI temsil etmeli;
+    // `.js` suzgeci shop/src/kanal-sinif.mjs'i disarida birakip yonet.js'i dusuruyordu.
+    if (/\.m?js$/.test(ad)) { d[ad] = fs.readFileSync(path.join(dizin, ad), "utf8"); }
   }
   return d;
 }
