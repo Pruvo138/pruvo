@@ -13,12 +13,9 @@ ayrica deftere de tasimistim). 🔴 **BAYAT TABAN UYARISI OLCUMLE BUYUDU:** "2 s
 zarar, merge aninda **38 SATIR SILME** cikti (K359 · `task_9166f0e8` · MEMORY.md kalemleri dahil);
 cip yakalayip `DEVAM.md`'yi `origin/main`'den aynen geri aldi. Bagimsiz teyit ettim: main'de K359 **2**
 isabet, `task_c50a1c41` **1** isabet — **geri sarma YOK.** `nice-swanson-706912` = K358 dalinin agaci.
-**BEKLIYOR:** 🟠 K359 (asagida) · Okan tikini bekleyen 2 cip: `task_9166f0e8` (K358 odeme) ·
-`task_c50a1c41` (K360 hafiza indeksi). **K360 SPEC'LENDI:** MEMORY.md **22.222 B** (kanca hedefi 17,1 KB,
-okuma siniri 24,4 KB — asilirsa indeks HIC okunmaz, hafiza sessizce korlesir; pay ~2,7 KiB). Indekste
-KOMSU EVLERIN satirlari da var ([[indeks-ile-silme-komsuyu-siler]]) → GIRDI SILINMEZ, yalniz metin
-kisalir. Taban: 283 bag / 280 benzersiz hedef / hedefsiz bag 0 / 385 dosya / 20 bolum sayaci civilendi.
-**Kapatan olcum:** bayt < 17.510 VE bag 283=283 VE 20 bolum sayaci BIREBIR.
+**KOSAN CIP:** `task_c50a1c41` **K360** (`youthful-montalcini-2e348f`) — MEMORY.md 22.222 B'dan 17,1 KB
+altina; indekste KOMSU EV satirlari var, GIRDI SILINMEZ ([[indeks-ile-silme-komsuyu-siler]]).
+**Kapatan olcum:** bayt < 17.510 VE bag 283=283 VE 20 bolum sayaci BIREBIR. · 🟠 K359 (asagida).
 **OKAN'DA:** 🔴 **DEPLOY BORCU VAR — 2 commit** (onceki satirdaki "deploy borcu YOK" 6 dakika sonra
 BAYATLADI: `14:45:00Z` olcumu `ff1a7870`den ONCEydi). Kapi olctu (`shop-bayatlik-kapisi`, kosum
 `33435114046`): canli surum `975e0c40` @ **`14:44:52Z`** · yayinlanmamis `ff1a7870` (K357 kanal
@@ -42,9 +39,12 @@ siparis no `Europe/Istanbul` uretir (`siparis-no.js`), yani 17:54:51 **+03** = `
 cron `17 * * * *` (UTC) → satir supurme penceresine **1 Eyl 14:54:51Z**'de girer, onu goren ILK tur
 **1 Eyl 15:17Z = 18:17 yerel**. Sabah turu DEGIL, aksam turu — ve yalnizca deploy YAPILMISSA.
 
-**TEMIZLIK:** worktree **6 -> 3** (`sharp-hamilton-2796ff` · `KraL-TerkEdilmisOdeme-30Agu` ·
-`infallible-benz-e131fe`; ucunun de `status --porcelain` BOS, ucu de main'de) · yerel dal **5 silindi**
-(hepsi main'de) · bu oturumun gecici dosyasi: **0**.
+**TEMIZLIK (bu oturum):** worktree **4 -> 2** — kaldirilan `bold-keller-82f052` + `nice-swanson-706912`;
+IKISININ DE `status --porcelain` ciktisini **kendim** okudum (cipin beyaniyla DEGIL — beyan bir kez
+curudu, [[temizlik-beyani-dogrulama-turuyle-curur]]), ikisi de BOS ve icerikleri `--is-ancestor` ile
+main'de. Kalan 2 = ana agac + CANLI K360 cipi (`youthful-montalcini-2e348f`, DOKUNULMADI). Yerel dal
+**13 silindi** (`durum.py` "artik" siniflamasi + 2 merge edilen dal). Gecici dosya: yalniz 2 cipin
+bekledigi spec, scratchpad'de.
 
 ## ✅ K355/K356 + K358 SPEC TURU — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
 Ikisinin de acik kalemi yukaridaki **K358 MERGE** blogunda KAPANDI. Arsivde duran: K356'nin canli
@@ -54,9 +54,13 @@ duzeltmesi: kol zaten vardi, sinif iki kovaliydi) ve civilenen taban (98/0, 10/1
 
 ## ✅ K353 + T1/T2 + K354 (29-30 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
 🔴 **CANLI TALIMAT, SILINMEZ:** K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
-🔴 **CANLI TALIMAT, SILINMEZ:** `nice-swanson-706912` agaci, Okan'in 30 Agu hukmundeki 3 arac
-(`worktree-tavan-nobeti` · `mimar-commit-kapisi` · `chip-duzeni-kapisi`) KALICI olana kadar KALDIRILMAZ;
-`ca8c3815` KAZA DEGIL KASITLI supurmedir ([[silme-kaza-mi-karar-mi-silenin-kapanisina-bakilir]]).
+✅ **O TALIMAT KAPANDI — SARTI OLCTUM, TUTUYOR** (`nice-swanson-706912` KALDIRILDI): Okan'in 30 Agu
+hukmundeki 3 arac main'de KALICI — `git ls-tree HEAD` 5 dosya (`chip-duzeni-kapisi.py` ·
+`mimar-commit-kapisi.py` + `-test` + `-mutasyon` · `worktree-tavan-nobeti.py`). Dosya varligi YETMEZ
+diye kablolamayi da olctum: `nobet.yml:2116-2119` chip-duzeni + mimar-commit bataryalarini KOSUYOR
+(`continue-on-error` YOK). `worktree-tavan-nobeti` o adimda BILEREK yok — gerekce dosyada YAZILI
+(dis batarya HIC yok, olculdu; nobetcisi kendi `--kendini-test`i + pre-push rapor-only kolu).
+`ca8c3815` KAZA DEGIL KASITLI supurmeydi ([[silme-kaza-mi-karar-mi-silenin-kapanisina-bakilir]]).
 🔧 **ACIK:** T1a — worker deploy = OKAN kapisi; kutunun "deploy edildi (`b26cedd8`)" iddiasi CURUTULDU
 (SHA 5 evin HICBIRINDE yok). K353'un sayilari (kutu 253->196, defter esikleri, mutant kanitlari) arsivde.
 
