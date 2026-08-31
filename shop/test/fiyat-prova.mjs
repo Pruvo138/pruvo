@@ -112,7 +112,10 @@ process.on("exit", () => {
 function guncelKaynaklar() {
   const d = {};
   for (const ad of fs.readdirSync(SRC)) {
-    if (ad.endsWith(".js")) { d[ad] = fs.readFileSync(path.join(SRC, ad), "utf8"); }
+    // 🔴 `.mjs` DE ALINIR (31 Agu 2026): ayna shop/src'in TAMAMINI temsil etmeli;
+    // `.js` suzgeci shop/src/kanal-sinif.mjs'i disarida birakip onu import eden
+    // yonet.js'i aynada ERR_MODULE_NOT_FOUND ile dusuruyordu.
+    if (/\.m?js$/.test(ad)) { d[ad] = fs.readFileSync(path.join(SRC, ad), "utf8"); }
   }
   return d;
 }
@@ -122,7 +125,9 @@ function headKaynaklari() {
                              { encoding: "utf8" }).trim().split("\n");
   const d = {};
   for (const yol of liste) {
-    if (!yol.endsWith(".js")) { continue; }
+    // `.mjs` DE ALINIR — guncelKaynaklar() ile AYNI suzgec olmali, yoksa iki ayna
+    // farkli dosya kumesi tasir ve "esdegerlik" karsilastirmasi anlamini yitirir.
+    if (!/\.m?js$/.test(yol)) { continue; }
     d[path.basename(yol)] = execFileSync("git", ["-C", KOK, "show", "HEAD:" + yol],
                                          { encoding: "utf8" });
   }
@@ -1474,7 +1479,9 @@ function yanlisGuvenceTara(dosyalar) {
 function guvenceDosyalari() {
   const liste = [{ ad: "shop/wrangler.toml", metin: WRANGLER }];
   for (const ad of fs.readdirSync(SRC)) {
-    if (ad.endsWith(".js")) {
+    // `.mjs` DE TARANIR: yanlis-guvence nobetcisinin menzili "worker kaynagi"dir,
+    // uzanti degil — disarida kalan bir modul, yasak ifade icin GUVENLI LIMAN olurdu.
+    if (/\.m?js$/.test(ad)) {
       liste.push({ ad: "shop/src/" + ad, metin: fs.readFileSync(path.join(SRC, ad), "utf8") });
     }
   }

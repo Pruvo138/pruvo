@@ -40,6 +40,9 @@ import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
 } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
+// KANAL + REKLAM ATFI siniflamasi TEK KAYNAK (panel etiketi ile
+// tools/kanal-kirilim-raporu.py kovasi AYNI fonksiyondan turer; ikinci sozluk YOK).
+import { KANAL_SITE, WA_KANAL, kaynakOzeti } from "./kanal-sinif.mjs";
 
 // ---- durum makinesi -----------------------------------------------------------
 // 🔴 K252 (Okan karari, 20 Agu 2026 — tools/paket-siparis-durum-secici.md).
@@ -463,10 +466,10 @@ function egeAnahtarGecerli(request, env) {
 // ---- yanit yardimcilari (CORS YOK — yonetim same-origin) ----------------------
 
 // ---- KANAL ayraci -------------------------------------------------------------
-// 'site'     -> pruvo3d.com self-servis akisi (index.js /baslat). D1 kolonunun DEFAULT'u.
-// 'whatsapp' -> Ege'nin (WhatsApp botu) kapattigi siparis (/wa-siparis).
-const KANAL_SITE = "site";
-const WA_KANAL = "whatsapp";
+// 🔴 KANAL_SITE / WA_KANAL burada TANIMLI DEGIL, ./kanal-sinif.mjs'ten IMPORT edilir
+// (yukari bak). Daha once bu iki sabit burada elle yaziliydi; kanal kirilim raporu
+// da ayni iki degeri kendi tarafinda tanimlayacak olsaydi iki kopya sessizce
+// ayrisabilirdi ([[ayni-alan-iki-hukum-biri-sessiz]]). Tek kaynak: kanal-sinif.mjs.
 
 /**
  * OPSIYONEL KOLON MERDIVENI (index.js sepetiFiyatla'daki desenin AYNISI).
@@ -539,6 +542,12 @@ async function liste(env, url) {
   const TABAN =
     "SELECT id, siparis_no, tarih, durum, tutar_kurus, kargo_kurus, kdv_kurus, odeme_yontemi," +
     " urunler, kargo_firma, kargo_kodu, durum_gecmisi," +
+    // `atif` (reklam atfi JSON): panelin "Kaynak" satiri buradan turer. Kolon GOC
+    // KOLONU DEGIL — d1-sync GOC_KOLON_SIPARIS'te DEFAULT '' ile tanimli, yani
+    // siparisler tablosu varsa bu kolon da vardir (merdiven gerekmez).
+    // 🔒 HAM DEGER PANELE GITMEZ: asagida kaynakOzeti() beyaz-listeden gecirir —
+    // ga_client_id/fbp/fbc /liste JSON'una HIC girmez (bkz. kanal-sinif.mjs gizlilik).
+    " atif," +
     " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, musteri_notu";
   // kanal/dis_no OPSIYONEL (goc kosmadiysa yok) -> merdiven; yoksa alanlar undefined kalir
   // ve asagida 'site'/'' varsayilanina duser (bugunku ekranin AYNISI).
@@ -647,6 +656,12 @@ async function liste(env, url) {
       // KANAL: kolon yoksa (goc oncesi) ya da bos gelirse 'site' — mevcut satirlarin
       // TAMAMI site siparisidir, ekran bugunku gibi rozet basmaz.
       kanal: s.kanal || KANAL_SITE,
+      // 🔴 KAYNAK OZETI (kanal + reklam atfi) — kartin "Kaynak" satiri. HAM `s.kanal`
+      // verilir, YUKARIDAKI 'site' VARSAYILANI UYGULANMADAN: varsayilan uygulansaydi
+      // "kolon yok" hali "site" halinden ayirt edilemez olurdu ve ekran olculmemis bir
+      // seyi olculmus gibi gosterirdi. Ozet zaten kendi icinde "kanal ölçülemedi" der.
+      // Siniflama TARAYICIDA DEGIL BURADA yapilir: panel karar vermez, karari basar.
+      kaynak: kaynakOzeti(s.kanal, s.atif),
       // Ege'nin KENDI numarasi (PR-yyMMdd-HHmmss, sonek YOK) — Sheet kaydiyla eslesme icin.
       // Panel ID'si ile KARISTIRILMAZ: panelin siparis_no'su yine bu tabloda uretilir.
       dis_no: s.dis_no || "",
@@ -2377,6 +2392,36 @@ async function parcalar(no,id,kutuId){
    esc(x.dosya)+esc(boyutMetni(x.boyut))+'</a>';
  }).join("");
 }
+/* KAYNAK SATIRI — siparis hangi kanaldan/hangi reklamdan geldi.
+ * 🔴 BURADA SINIFLAMA YOK: s.kaynak alani sunucuda shop/src/kanal-sinif.mjs
+ * kaynakOzeti() ile uretilir; bu fonksiyon YALNIZCA BASAR. Tarayiciya ikinci bir
+ * kural yazilsaydi, rapor ile ekran ayni siparis icin farkli sey soylerdi.
+ * 🔒 ga_client_id / fbp / fbc BURAYA GELMEZ — /liste JSON'unda zaten YOKLAR
+ * (kaynakOzeti beyaz-listesi). Gerekce: kanal-sinif.mjs gizlilik blogu.
+ * SESSIZ BOSLUK YASAK: atif yoksa "kaynak kaydı yok" ACIKCA yazilir (kaynakLinkHtml
+ * ile AYNI dil; ikinci sozluk acilmaz) — bos hucre "kaynak YOK"u "OLCULEMEDI"den
+ * ayirt ettirmezdi.
+ * ⚠️ BU YORUM SAYFA_HTML SABLON DIZESININ ICINDE YASAR: buraya tek bir backtick
+ * girerse sablon ERKEN KAPANIR ve yonet.js modulu ARTIK IMPORT EDILEMEZ. (Bu is
+ * sirasinda GERCEKLESTI: "node --check yonet.js" YESIL kaldi — .js dosyasi
+ * CommonJS olarak ayristirildigi icin gormedi; kirmizi yalnizca kardes testlerde
+ * yandi. Kod ornegi yazarken tirnak kullan, backtick DEGIL.) */
+function kaynakSatiriHtml(s){
+ var k=s&&s.kaynak;
+ if(!k){return '';}
+ var parcalar=[];
+ if(k.utm_source){parcalar.push('kaynak: '+esc(k.utm_source));}
+ if(k.utm_medium){parcalar.push('ortam: '+esc(k.utm_medium));}
+ if(k.utm_campaign){parcalar.push('kampanya: '+esc(k.utm_campaign));}
+ if(k.utm_id){parcalar.push('utm_id: '+esc(k.utm_id));}
+ if(k.ref){parcalar.push('ref: '+esc(k.ref));}
+ if(k.grup){parcalar.push('grup: '+esc(k.grup));}
+ if(k.src){parcalar.push('src: '+esc(k.src));}
+ var govde=parcalar.length?parcalar.join(' · ')
+  :'<span class="yok">kaynak kaydı yok</span>';
+ return '<div class="kucuk kaynak-atif">📣 Kaynak: <b>'+esc(k.etiket||k.kova||'')+
+  '</b> <span class="kucuk">('+esc(k.sebep||'')+')</span> — '+govde+'</div>';
+}
 function kartHtml(s){
  var kalem=s.kalemler.map(function(k){return satirHtml(s.siparis_no,k);}).join("");
  // 🔴 SUNUCU TEK KAYNAK (K252): secenekler s.izinli_gecisler'ten OLDUGU GIBI turer.
@@ -2436,6 +2481,7 @@ function kartHtml(s){
  var acik=s.durum==="odendi"?" open":"";
  return '<details class="kart"'+acik+' ontoggle="kartAc(this)">'+ozet+
   '<div class="kucuk">'+esc(s.odeme_yontemi)+'</div>'+
+  kaynakSatiriHtml(s)+
   disNo+
   '<div class="mus"><b>'+esc(s.musteri.ad)+'</b> · '+esc(s.musteri.tel)+'<br>'+esc(s.musteri.adres)+
    ' · '+esc(s.musteri.eposta)+'</div>'+

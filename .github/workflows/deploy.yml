@@ -594,6 +594,35 @@ jobs:
       - name: Uretici kaynak linki + acilir kart (panel gizlilik kapisi)
         run: node shop/test/panel-kaynak.mjs
 
+      # SIPARIS KAYNAGI: KANAL + REKLAM ATFI GORUNURLUGU (31 Agu 2026).
+      # OLCULEN BASLANGIC: `siparisler.atif` (utm_* / REF) ve `siparisler.kanal` verisi
+      # TOPLANIYORDU ama HICBIR YERDE GORUNMUYORDU — atif yalniz siparisGetir'de SELECT
+      # edilip Meta CAPI'ye besleniyor, panel HTML'inde utm_source/utm_campaign HIC
+      # basilmiyordu; tools/ altinda okuyan raporlayici da YOKTU.
+      # OLCULEN HUKUM (shop/src/kanal-sinif.mjs TEK KAYNAK — panel etiketi ile
+      # tools/kanal-kirilim-raporu.py kovasi AYNI fonksiyondan turer, ikinci sozluk YOK):
+      #   * DORT is kovasi + IKI GORUNUR "bilmiyorum" kovasi. 'atif-yok/siniflanamaz'
+      #     ORGANIGE KATLANMAZ (katlansa organik ROI sahte buyurdu); `kanal` kolonu
+      #     yokken satir 'site' SAYILMAZ (kanal-olculemedi) ve tanimadigi bir kanal
+      #     degeri de site/whatsapp'a yutulmaz (kanal-bilinmiyor),
+      #   * GIZLILIK — POZITIF beyaz-liste: ga_client_id / fbp / fbc ne /liste JSON'una
+      #     ne panel HTML'ine GIRER (kisiye baglanan reklam-eslestirme kimlikleri;
+      #     panelde operasyonel degeri yok). Uc ad AYRI AYRI, hem ADI hem DEGERI
+      #     aranarak olculur; click-id (gclid/gbraid/wbraid) de basilmaz,
+      #   * SESSIZ BOSLUK YASAK: atif yoksa "kaynak kaydı yok" ACIKCA yazilir — ve iddia
+      #     KART GENELINDE DEGIL KENDI SATIRINDA olculur (kalem satirindaki ayni metin
+      #     iddiayi golgeliyordu; mutant M6 bunu gosterdi),
+      #   * CIRO KAPSAMI: 'odendi ve sonrasi' GIRER, bekliyor/iptal GIRMEZ; kanal kolonu
+      #     yoksa rapor HUKUM=OLCULEMEDI + sifir-disi rc doner (sayi URETMEZ).
+      # Iddialar deploy edilen GERCEK kaynaktan cekilir, KOPYA yazilmaz; rapor testi de
+      # GERCEK hukum()/siniflandir() yolunu kosar (yalniz canli D1 atlanir). Ag/wrangler
+      # GEREKMEZ, calisma agaci KIRLENMEZ (~0,1 + ~0,2 s). continue-on-error YOK.
+      - name: Siparis kaynagi — kanal + reklam atfi panelde gorunur mu (gizlilik kapisi)
+        run: node shop/test/panel-atif.mjs
+
+      - name: Kanal kirilim raporu — dort kova + fail-closed OLCULEMEDI kabulu
+        run: python3 tools/kanal-kirilim-test.py
+
       # T1 (30 Agu 2026, Okan emri — manuel shop paneli): "URUNLER" SEKMESI kabulu.
       # Panel "Kaydet"i urunler.json'a DEGIL D1 `panel_ustyazim` KUYRUGUNA yazar; tabana
       # isleyen TEK kol CI uygulayicisidir (panel-uygulayici.yml). Bu kapi WORKER yuzeyini
