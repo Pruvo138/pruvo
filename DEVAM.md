@@ -2,24 +2,28 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ✅ RAYMARINE SOZLUKTE + YAYIN ONARIMI (31 Agu, cip KraL-RaymarineUyum-31Agu)
-`96edd859` main'de: 6. tur C grubu (Lowrance emsali), iki kumeye birden -> fark=139 + yargi imzasi AYNEN;
-kabul KAPSAR (uyum-kapisi V1 + Raymarine; mutantta V1+S7 KIRMIZI olculdu). ONCE=SONRA: uyum-kapisi 39/39 ·
-K302 9/9 · parite 1334+896 BIREBIR · D1 6/6. MaCiT dilim-1'in K302 bloku ACIK (izleyicisi :12/:42 otomatik).
-🔴 Yol ustunde bulundu: yayin `ff1a7870`den beri KAPALIYMIS (boy kapisi kopyasi yalniz .js, K357'nin
-kanal-sinif.mjs'i disarida, 3 kosum ayni failure) -> onarim `77d1caae` (.mjs de kopyalanir; once yerel
-KIRMIZI uretildi, sonra TEST_RC=0, CI 33413000092 SUCCESS). Goc testi filtresi de KAPANDI `e8569823`:
-.js+.mjs okur, fikstur 0->1, semadisi kolon RED, wa civisi yonet.js (civisiz SAHTE YESIL olculdu),
-taban 31/31 BIREBIR, D1 6/6, deploy SUCCESS (SERIT B kirmizisi ONCEDEN, imza ayni).
+## 🔁 31 AGU ~21:1x — MIMAR OTURUM KAPANISI
+**CANLIYA GIDEN:** main **`d31d2613`** = `origin/main` BIREBIR, agac TEMIZ. Bu oturumda merge edilenler:
+K352 `23bc7b0b` · K356 `f283d8e2` (errorCode logu) · K357 kanal gorunurlugu `ff1a7870`.
+**KOSUYOR (DOKUNMA):** cip `KraL-Raymarine-31Agu` / dal ayni ad @ `68e32d3f`, agac `bold-keller-82f052`,
+oturum CANLI — 🔴 isi `96edd859` ile MUKERRER olabilir (ayni Raymarine eklemesi zaten main'de); kapanisi
+gelince kiyasla. · `nice-swanson-706912` / `claude/angry-elion-e75dc8` yabanci, DOKUNULMADI.
+**BEKLIYOR:** 🟠 asagidaki ACIK KARAR · MEMORY.md **20,2 KB** (kanca hedefi 17,1 KB) — ortak indeks,
+sikistirmasi komsu evlerin satirlarini siler ([[indeks-ile-silme-komsuyu-siler]]), sahibi KraL.
+**Kapatan olcum:** komsu satir adedi ONCE=SONRA.
+**OKAN'DA:** yalniz yukaridaki ACIK KARAR (odeme duzlemi). Deploy borcu YOK — `14:45:00Z` dogrulandi.
+**TEMIZLIK:** worktree **6 -> 3** (`sharp-hamilton-2796ff` · `KraL-TerkEdilmisOdeme-30Agu` ·
+`infallible-benz-e131fe`; ucunun de `status --porcelain` BOS, ucu de main'de) · yerel dal **5 silindi**
+(hepsi main'de) · bu oturumun gecici dosyasi: **0**.
+
+## ✅ RAYMARINE + YAYIN ONARIMI KAPANDI (31 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
+`96edd859` (sozluk) · `77d1caae` (yayin onarimi: boy kapisi yalniz `.js` kopyaliyordu, K357'nin `.mjs`i
+disarida kalmis, yayin `ff1a7870`den beri KAPALIYMIS) · `e8569823` (goc testi filtresi). CI SUCCESS.
 
 ## ✅ K355+K356 KAPANDI (31 Agu) — SUPURME "INERT" DEGILMIS: ODENMEMIS SEPET, tahsil edilecek para YOK
-K356 main'de (`f283d8e2`; 98 iddia + mutant 10/10 BAGIMSIZ yeniden olculdu, D1 senkron 6/6) · deploy
-Okan tiki, `modified_on 14:45:00Z` ile dogrulandi · 18:17 supurmesi 5/5 SEBEP basti (`telemetry/query`,
-token yetkisi acildi). DAGILIM: `5122`x3 (`JL5`/`7AG`/`F8G` — token'a odeme kaydi YOK = terk sepet) ·
-`10057` (`KEJ`, kart reddi) · `10054` (`ENR`, son kullanma hatali). HUKUM: "gecici ariza" CURUDU (0
-ag/auth hatasi) · "token omru yapisal" CURUDU (4 gunluk `KEJ`/`ENR` token'lari gercek odeme halini
-dondurdu) · UCUNCU HAL ADIYLA: **odenmemis sepet** — `odendi`ye cekilecek satir YOK, `degisen=0`
-DOGRU davranis, musteri magduriyeti YOK. Tam metin arsivde; [[terk-supurmesi-canlida-inert]] guncellendi.
+K356 `f283d8e2` main'de, deploy `14:45:00Z` dogrulandi, 18:17 supurmesi 5/5 SEBEP basti. DAGILIM
+`5122`x3 + `10057` + `10054`. HUKUM: "gecici ariza" ve "token omru yapisal" IKISI DE CURUDU; ucuncu hal
+ADIYLA **odenmemis sepet** — tahsil edilecek para YOK, `degisen=0` DOGRU. Tam metin ARSIVDE.
 🟠 ACIK KARAR (Okan/mimar): kesin-basarisiz (`5122/10057/10054`) aged `bekliyor` → `iptal` kolu
 acilsin mi — odeme duzlemi, yeni spec + kabul testi ister; elle gecis YOK.
 
