@@ -153,7 +153,7 @@ def kabul(kok, katalog_yolu=None):
     # V1 kapali kume
     icerden = [d for d in ("Ford", "Volkswagen", "Mercedes", "Tofaş", "Volvo",
                            "Volvo Penta", "Yanmar", "Fiat", "Vauxhall", "Johnson Pump",
-                           "GoPro", "Raspberry Pi", "Kia", "Smart")
+                           "GoPro", "Raspberry Pi", "Kia", "Smart", "Raymarine")
                if A.uyum_marka_kanonik(d) != d]
     disardan = [d for d in ("Focus", "F-150", "NGK", "Teleflex", "Bosch", "PSA", "VAG",
                             "Alpine", "Brodit", "Gurtner", "Sierra", "Johnson",

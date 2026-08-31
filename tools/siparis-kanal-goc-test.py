@@ -21,9 +21,9 @@ uzerinde FIILEN kosarak olcer.
      kanal='site', dis_no='' alir -> geriye doldurma GEREKMEZ, hicbir satir NULL olmaz.
   D. ESKI OKUMA YOLU CALISMAYA DEVAM EDER: worker'in goc oncesi SELECT'i (kanal/dis_no
      ICERMEYEN kolon listesi) ayni satirlari aynen dondurur.
-  E. WORKER YAZMASI SEMAYA UYAR: shop/src/*.js icindeki HER `INSERT INTO siparisler`
-     kolon listesi goc SONRASI semanin ALT KUMESIDIR (drift kapisi: worker olmayan bir
-     kolona yazarsa CI'da kirmizi yanar, canlida 500 ile degil).
+  E. WORKER YAZMASI SEMAYA UYAR: shop/src/*.js VE *.mjs icindeki HER `INSERT INTO
+     siparisler` kolon listesi goc SONRASI semanin ALT KUMESIDIR (drift kapisi: worker
+     olmayan bir kolona yazarsa CI'da kirmizi yanar, canlida 500 ile degil).
   F. DIS NUMARA TEKILLIGI: kismi UNIQUE indeks ayni (kanal, dis_no) ciftini REDDEDER ama
      dis_no='' olan (site) satirlarin SAYISIZ olmasina izin verir.
   G. GOC IDEMPOTENT: ikinci kosumda eklenecek kolon kalmaz (kor ALTER patlardi).
@@ -116,10 +116,16 @@ def siparis_indeks_kayitlari():
 
 
 def worker_insert_kolonlari():
-    """shop/src/*.js icindeki her `INSERT INTO siparisler (...)` icin kolon listesi."""
+    """shop/src/*.js ve *.mjs icindeki her `INSERT INTO siparisler (...)` icin kolon listesi.
+
+    🔴 .mjs NEDEN KAPSAMDA (31 Agu 2026): worker govdesi ES modulu de tasiyor
+    (K357 `kanal-sinif.mjs`); yalniz-.js filtresi ayni gun `boy-secenekleri-kabul.py`de
+    yayini 3 kosum durdurmustu (77d1caae). Buradaki es filtre .mjs'e konacak bir
+    INSERT'i SESSIZCE kacirirdi — fiksturle olculdu: once 0, genisletince 1 sayildi.
+    """
     sonuc = []
     for ad in sorted(os.listdir(SHOP_SRC)):
-        if not ad.endswith(".js"):
+        if not ad.endswith((".js", ".mjs")):
             continue
         metin = oku(os.path.join(SHOP_SRC, ad))
         # JS'te SQL cok satirli dize birlestirmesiyle yazilir: `"..." +\n  "..."`.
@@ -252,7 +258,12 @@ ol("shop/src icinde INSERT INTO siparisler bulundu", len(insertler) >= 3,
 for dosya, kolonlar in insertler:
     fazla = [k for k in kolonlar if k not in sema_kolonlari]
     ol("%s INSERT kolonlari semada var (%d kolon)" % (dosya, len(kolonlar)), not fazla, fazla)
-wa = [k for a, k in insertler if "kanal" in k]
+# 🔴 POZITIF KANIT DOSYAYA CIVILI: kanal yazan INSERT'in sorumlusu yonet.js. Tarama
+# .mjs'e genisleyince "herhangi bir dosyada kanal gecsin" sarti buyuyen kumede anlamini
+# yitirirdi ([[kapi-kapsam-genisletme-tuzagi]]) — olculdu: yonet.js'ten kanal+dis_no
+# dusuruldugunde, kanal tasiyan bir .mjs varsa civisiz hal YESIL kaliyordu. INSERT mesru
+# olarak baska dosyaya tasinirsa bu satir KIRMIZI yanar; civi bilerek guncellenir.
+wa = [k for a, k in insertler if a == "yonet.js" and "kanal" in k]
 ol("WhatsApp INSERT'i kanal + dis_no yaziyor",
    bool(wa) and "dis_no" in wa[0], wa)
 

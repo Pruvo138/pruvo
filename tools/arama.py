@@ -788,11 +788,10 @@ UYUM_MARKA_IZINLI = frozenset({
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
     # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 42 jeton) ──
-    # 🔴 SAYI OLCULDU, SAYILMADI (31 Agu): bu yorum Raymarine ONCESINDE de "34" diyordu
-    # ama kumenin GERCEK boyu 41'di — yani sayi 3./4./5. tur eklerinde guncellenmemis,
-    # BAYAT bir yorumdu. Yorumu hicbir kapi OLCMUYOR (grep'lendi: len(MIMAR_EKI) ile
-    # karsilastiran iddia YOK), o yuzden bayatlik kirmizi yakmadan 3 tur yasadi.
-    # Buradaki 42 = 41 (taban, olculdu) + 1 (Raymarine).
+    # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
+    # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
+    # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
+    # `len(UYUM_MARKA_MIMAR_EKI)` ile karsilastiran bir iddia YOK; kalem ACIK.
     # 1. tur: paket §2'nin ornek degerleri.
     "Volvo Penta", "Yanmar",
     # 2. tur, A grubu (17) — arac / tekne / deniz motoru markasi. Heuristik bunlari
@@ -855,27 +854,32 @@ UYUM_MARKA_IZINLI = frozenset({
     # katalog cogunlugu da boyle (`"AeroPress"` 3 kayit / `"Aeropress"` 1 kayit). Kalan
     # 1 varyant kayit B4 capasinda ADIYLA durur; veri normalizasyonu MaCiT duzlemindedir.
     "AeroPress", "Bialetti", "DeLonghi", "Jura", "Lavazza", "Mazzer",
-    # 6. tur, C grubu (1) — mimar karari 31 Agu 2026. `Raymarine` marin elektronigi
-    #   ureticisidir (chartplotter / balik bulucu / otopilot / ruzgar-hiz enstrumani);
-    #   uretilen parca (ekran braketi, montaj standi, kapatma basligi, VESA adaptoru)
-    #   Raymarine CIHAZINA TAKILIR. Sinif: `Garmin` ve `Lowrance` ile BIREBIR ayni ev-sahibi
-    #   marin/GPS cihaz ureticisi — IKISI DE ZATEN KUMEDE (`Garmin` 2. tur B grubu,
-    #   `Lowrance` 4. tur C grubu, 25 Agu). Yani bu ek YENI BIR SINIF ACMAZ, ayni sinifin
-    #   ucuncu uyesini tamamlar. Olculen katalog agirligi (31.923 urun, 31 Agu):
-    #     marka[] TAM yazimla: 32 · marka[] baska yazim: 0 · uyum[].marka: 0
-    #     baslikta (buyuk-kucuk duyarsiz): 41
-    #   Emsal kiyasi: `Lowrance` ayni olcumde marka[] 1 · baslik 37 ile kumeye alinmisti;
-    #   `Raymarine` her iki eksende de DAHA AGIR.
-    # 🔴 IKINCI ROL OLCULDU (K220 negatifi, 31 Agu): bu kume `marka_varyanti_sebebi()`
-    #   uzerinden AYNI ZAMANDA "MODEL OLAMAZ" jetonu uretir. `uyum[].model` = 0 kayit ve
-    #   `uyum[].motor` = 0 kayit -> jeton HICBIR mevcut kaydi gecersiz kilmaz, yani
-    #   `Range Rover` emsalindeki (canli model sayfasi olumu) kol BURADA YOK. Olcum
-    #   ekleme ONCESI yapildi ve ekleme SONRASI uretilen sayfa/URL kumesi ile
-    #   dogrulandi: kaybolan URL adedi 0.
-    # 🔴 KUME KAPALI KALIR: yalnizca BU kumeye ve UYUM_MARKA_MIMAR_EKI'ne girer,
-    # yargilanmis bolumleme (izinli−eki / uretici−eki / elenen) DEGISMEZ -> S2 aritmetigi
-    # (UYUM_MARKA_ONERI_SAYISI=169) ve UYUM_MARKA_YARGI_IMZA AYNEN korunur. Bugun
-    # UYUM_MARKA_ELENEN'de DEGIL (olculdu) — elenmis bir jeton geri SIZMIYOR.
+    # 6. tur, C grubu (1) — mimar karari 31 Agu 2026. `Raymarine` deniz elektronigi
+    #   (GPS / sonar / radar / otopilot) ureticisidir; uretilen parca (ekran braketi,
+    #   montaj aparati, kapak) Raymarine cihazina TAKILIR. Sinif: `Lowrance` (4. tur),
+    #   `Garmin` ve `TomTom` ile BIREBIR ayni ev-sahibi cihaz ureticisi (ucu de zaten
+    #   kumede); pazar agirligiyla sinifin en buyuk uyesi. Olculen katalog agirligi
+    #   (31.923 urun):
+    #     marka[] tam yazimla: 32 · uyum[].marka: 0 · baslikta (buyuk-kucuk duyarsiz): 41
+    #   (32 kayit eski koddan `uyum` DOLDURULMADAN girmis; jeton kumede olmadigi icin
+    #   MaCiT Raymarine dilim-1'i K302'de fail-closed durdu — bu girisin tetigi o.)
+    #   Kume KAPALI kalir; yargilanmis bolumleme (izinli−eki / uretici−eki / elenen)
+    #   degismez, `Raymarine` ELENEN'de DEGIL (olculdu) — elenmis bir jeton geri sizmaz.
+    # 🔴 IKINCI ROL OLCULDU — K220 NEGATIFI (cip KraL-Raymarine-31Agu, 31 Agu 2026).
+    #   Bu kume `marka_varyanti_sebebi()` uzerinden AYNI ZAMANDA bir "MODEL OLAMAZ"
+    #   jetonu uretir; K220'nin olculmus emsalinde (`Range Rover`) tam bu ikinci rol
+    #   CANLI bir sayfayi (`/marka/land-rover/range-rover/`, 6 urun) OLDURMUSTU.
+    #   `Raymarine` icin o kol OLCULDU ve YOK:
+    #     `uyum[].model` = 0 kayit · `uyum[].motor` = 0 kayit (katalog 31.923,
+    #     `model_normalize` ile tarandi) -> jeton HICBIR mevcut kaydi gecersiz kilmaz.
+    #   Uretilen sayfa/URL kumesi ekleme ONCESI ve SONRASI TAM kosuldu (jenerator
+    #   izole temp ROOT'a): 1757 = 1757, KAYBOLAN URL = 0, dogan = 0. Kume IKI
+    #   BAGIMSIZ eksenden toplandi — sitemap `loc` (jeneratorun BEYANI) ve diskteki
+    #   fiziksel `index.html` yollari (beyandan bagimsiz) — ikisi birebir esitti.
+    # 🔴 KIYAS KUME FARKIYLA YAPILIR, SAYIYLA DEGIL: bir sayfa olup yerine baskasi
+    #   dogsaydi TOPLAM SABIT kalirdi. Mutantla kanitlandi — gercek bir sayfa
+    #   oldurulup bir dogumla takas edildiginde sayi-only kiyas 0 dedi (KOR),
+    #   kume farki YAKALADI. Yeni bir jeton eklenirken bu iki olcum ONCEDEN kosulur.
     "Raymarine",
 })
 
@@ -911,9 +915,8 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 5. tur (26 Agu 2026) — gerekce + sinif emsali UYUM_MARKA_IZINLI'nin "C grubu"
     # 5. tur basliginda yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
     "AeroPress", "Bialetti", "DeLonghi", "Jura", "Lavazza", "Mazzer",
-    # 6. tur (31 Agu 2026) — gerekce + olculen katalog agirligi + IKINCI ROL (K220)
-    # olcumu UYUM_MARKA_IZINLI'nin "C grubu" 6. tur basliginda yazili. Burada TEKRAR
-    # EDILMEZ (ikiz metin yasagi).
+    # 6. tur (31 Agu 2026) — gerekce + olculen katalog agirligi UYUM_MARKA_IZINLI'nin
+    # "C grubu" 6. tur basliginda yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
     "Raymarine",
 })
 
