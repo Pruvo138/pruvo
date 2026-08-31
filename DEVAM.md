@@ -17,8 +17,10 @@ fbp/fbc/ga_client_id/token YAPISAL olarak giremez); metin token maskeli+kirpik (
 `KIRMIZI_SETI=[]` -> is sonrasi AYNI · `terk-supurme.mjs` 60->**98 iddia/0** · mutant **10/10**
 (8 hedefli oldu + 2 KONTROL yesil, calisma agaci sha AYNI).
 🔴 **LOG OKUMA=OLCULEMEDI, IKI AYRI SEBEP:** (1) kod CANLIDA YOK (merge+deploy Okan kapisi),
-(2) `~/.claude/cron/.cf-token` observability sorgusunu **HTTP 403 (code 10000)** ile reddetti ->
-deploy sonrasi bile okunamaz; token'a `Workers Observability: Read` GEREKIR. Hukum mimarin.
+(2) `~/.claude/cron/.cf-token`in **WORKERS YETKISI HIC YOK** — bagimsiz 2. kosum: `observability/
+query` **403**, `observability/keys` **403**, KONTROL ucu `workers/scripts` de **403** (hepsi code
+10000); ayni token D1/R2/Pages'i OKUYOR, yani ariza AG DEGIL YETKI. `wrangler tail` de ayni
+token'la kosar -> deploy sonrasi bile okunamaz. Sirf `Observability: Read` YETMEZ. Hukum mimarin.
 
 ## ✅ K353 KAPANDI (29 Agu) — esik sinifi + SILINEN kota kapisi (`KraL-EsikVeKota-29Agu`; TAM metin KUTUDA)
 Onarim hedefi = ceza esigi -> komut INERT ([[onarim-kolu-zarar-esiginin-arkasinda]]). KUTU tavan 300->**250**,
