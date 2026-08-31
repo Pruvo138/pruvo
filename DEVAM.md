@@ -3,8 +3,8 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔁 31 AGU ~21:1x — MIMAR OTURUM KAPANISI
-**CANLIYA GIDEN:** main **`38b2d512`** = `origin/main` BIREBIR, agac TEMIZ. Merge edilenler: K352
-`23bc7b0b` · K356 `f283d8e2` · K357 `ff1a7870` · Raymarine `13f0ecbc` (Okan emri) · **K358 `38b2d512`**.
+**CANLIYA GIDEN:** main = `origin/main` BIREBIR, agac TEMIZ. Bu oturumun merge'leri: K352 `23bc7b0b` ·
+K356 `f283d8e2` · K357 `ff1a7870` · Raymarine `13f0ecbc` (Okan emri) · **K358 `38b2d512` (DEPLOY'LU)**.
 **RAYMARINE (`13f0ecbc`):** "merge etme" hukmumu OKAN'IN EMRI gecersiz kildi — dogru is bu. Hukmun
 DAVRANIS kismi yine de dogru cikti (katki `arama.py` +19/-0, davranis ozdes). 🔴 Bayat-taban uyarim
 OLCUMLE BUYUDU: "2 satir" dedigim zarar merge aninda **38 SATIR SILME**ydi; cip yakaladi, bagimsiz
@@ -14,34 +14,29 @@ onceden civilenen tabana karsi): MEMORY.md **22.222 → 17.036 B** (olcut <17.51
 hedefi olmayan bag **0** · `memory/*.md` **385 = 385** (SILME YOK) · 20 bolumun 20'sinde sayac BIREBIR.
 ⚠️ Kabul betigim ilk kosumda 5 bolumu KIRMIZI yakti — sebep CIP DEGIL benim esleyicimdi: bolum
 BASLIKLARI kisalmisti (spec IZIN VERIYORDU), ben eski basliga capalamistim.
-**KOSAN CIP:** `task_77e7c185` (K358 uctan uca kanit, `vigilant-mestorf-f6ba7f`).
+**KOSAN CIP:** `task_c6f5192b` (K359, `cool-albattani-bb4a31`). **OKAN'IN TIKINI BEKLEYEN: 5 oturum**
+arsiv izni yazmis (KesinBasarisiz · Raymarine x2 · HafizaIndeksi · SupurmeKanit) — kutu 297/250'yi
+o tik acar, rotasyon KASITLI olarak bekliyor.
 **OKAN'DA:** 0. ✅ **DEPLOY KOSULDU (Okan, 20:47Z) ve OLCULDU:** canli surum `d2d78692` @ `20:47:02Z`,
 yayinlanmamis commit **0**, `shop-bayatlik-kapisi` **TAZE rc=0**; 5 saattir bekleyen K357 de indi.
 (Onceki "deploy borcu YOK — 14:45:00Z" satiri **6 DAKIKA sonra** bayatlamisti; yas 324,9 dk'ya cikti.)
 
-## ✅ K358 MERGE EDILDI `38b2d512` (dal `claude/jovial-engelbart-1a1040` @ `f7695966`)
-Kesin-basarisiz iyzico kodlari UCUNCU SINIF oldu; `terkSupur()`'un ZATEN VAR olan `iptal` kolu fiilen
-acildi. Kume KAPALI + elle sayili (`5122`/`10054`/`10057`), yuklem TEK KAYNAK (`iyzico.js::
-kesinBasarisizMi`) ve UCU BIRDEN arar (det VAR + iyzico "failure" BEYAN ETTI + kod kumede) —
-bilinmeyen/bos kod, taninmayan `status`, `det` yoklugu ESKI fail-closed yolunda KALIR.
-**MIMARIN BAGIMSIZ OLCUMU** (dalin agacinda, cipin raporundan DEGIL): `terk-supurme.mjs` **98/0 →
-204/0** · mutasyon **10/10 → 15/15 YESIL** (12 hedef oldu, 3 kontrol oldurmedi, agac dokunulmadi;
-mutant hedef-kol atfi `38b2d512` mesajinda) · `olcum.mjs` 198/0 · `ci-kapsam-test` YESIL ·
-`kisisel-veri-test` 5/5, siparis-no deseni **0** · kapsam 4 dosya/+446-9 · D1 **6/6, uyusmaz 0**.
-🔴 **ZAMANLAMA OLCULDU** (Okan'in "yarin sabahki tur"u YANLIS): siparis no `Europe/Istanbul` uretir
-(`siparis-no.js`) → 31 Agu 17:54:51 **+03** = `14:54:51Z`; esik 24 sa + cron `17 * * * *` UTC → o
-satir **1 Eyl 15:17Z = 18:17 yerel** turunda gorulur. Eskiyen 5 satirin ilk turu **31 Agu 21:17Z**.
-🔧 **ACIK — UCTAN UCA KANIT (cip `task_77e7c185` KOSUYOR, SALT OKUMA):** 21:17Z icin ONCEDEN civilendi:
-`bakilan`=5 `iptal`=5 `degisen`=5 `ulasilamadi`=0 `odendi`=0 `incele`=0, `atlandi`=`kesin-basarisiz`;
-2. eksen D1 `bekliyor` **6 → 1**. `ulasilamadi>0` = kod KAPALI KUMEDE DEGIL (kumeye kendiliginden
-EKLENMEZ, hukum mimarin) · `odendi>0` = para kurtarildi, "terk" onculu YANLISTI → derhal Okan'a.
+## ✅ K358 KAPANDI UCTAN UCA (`38b2d512`) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
+Kesin-basarisiz iyzico kodlari UCUNCU SINIF oldu, `iptal` kolu fiilen acildi; kume KAPALI
+(`5122`/`10054`/`10057`), bilinmeyen kod FAIL-CLOSED kalir. Deploy `d2d78692` @ `20:47:02Z`.
+**KANIT:** `21:17:33Z` turu `bakilan5/iptal5/degisen5/ulasilamadi0/odendi0/incele0` — **6/6 civili sayi
+TUTTU**; ayni 5 satir deploy ONCESI `19:17Z`+`20:17Z` turlarinda `ulasilamadi:5 degisen:0` idi
+(KARSIT TUR: gecis deploy anini ortasina aliyor). D1 `bekliyor` **6 → 1**; kalan tek satir
+`PR-260831-175451-MEC` (1 Eyl 15:17Z turunda gorulecek). Testler 98/0→**204/0**, mutant 10/10→**15/15**.
+**Para ekseni (K355/K356/K358) KAPANDI — tahsil edilecek para YOK, kurtarilan para da YOK.**
 
-**TEMIZLIK (bu oturum):** worktree **4 -> 2** — kaldirilan `bold-keller-82f052` + `nice-swanson-706912`;
-IKISININ DE `status --porcelain` ciktisini **kendim** okudum (cipin beyaniyla DEGIL — beyan bir kez
-curudu, [[temizlik-beyani-dogrulama-turuyle-curur]]), ikisi de BOS ve icerikleri `--is-ancestor` ile
-main'de. Kalan 2 = ana agac + CANLI K360 cipi (`youthful-montalcini-2e348f`, DOKUNULMADI). Yerel dal
-**13 silindi** (`durum.py` "artik" siniflamasi + 2 merge edilen dal). Gecici dosya: yalniz 2 cipin
-bekledigi spec, scratchpad'de.
+**TEMIZLIK (bu oturum):** worktree **6 -> 2** (`bold-keller-82f052` · `nice-swanson-706912` ·
+`vigilant-mestorf-f6ba7f` · `youthful-montalcini-2e348f`); DORDUNUN DE `status --porcelain` ciktisini
+**kendim** okudum (cipin beyaniyla DEGIL — beyan bu oturumda bir kez curudu,
+[[temizlik-beyani-dogrulama-turuyle-curur]]), dordu de BOS, icerikleri `--is-ancestor` ile main'de.
+Kalan 2 = ana agac + KOSAN K359 cipi. Yerel dal **15 silindi**; `durum.py` artik-dal **0** (kalan 40
+dalin hicbirinin icerigi main'de DEGIL — silinmez, kasitli arsiv). Scratchpad **12K** = yalnizca
+kosan cipin spec'i. Bu oturumun geride biraktigi gecici dosya: **0**.
 
 ## ✅ K355/K356 + K358 SPEC TURU — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
 Acik kalemleri yukaridaki **K358 MERGE** blogunda KAPANDI. Arsivde: canli `errorCode` dagilimi,
