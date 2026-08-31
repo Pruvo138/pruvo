@@ -75,6 +75,15 @@ const LOG_ALANLARI = [
   "hata",            // istisna metni
   "yas_sn",          // olayin yasi (saniye) — pencere kararinin gerekcesi
   "kaynak",          // "kart" | "havale" (hangi akistan tetiklendi)
+  // 🔴 K356 (31 Agu 2026) — iyzico `retrieve` HATA KIMLIGI. YALNIZ hata yolunda dolar
+  // (odemeHukmu 'altyapi-hatasi' kolu); basarili/odenmis turlarda bu alanlar HIC gecmez.
+  // NEDEN: cron terk supurmesi uc ardisik turda `degisen=0` verdi ve tek acilan kol
+  // 'altyapi-hatasi' oldu; NEDEN ulasilamadigi HICBIR YERE yazilmiyordu -> "iyzico token
+  // omru esikten KISA (yapisal)" ile "gecici iyzico arizasi" ayirt edilemiyordu.
+  // Ikisi de iyzico'nun KENDI teknik yaniti; musteri verisi DEGIL (sekli tek yerde:
+  // iyzico.js hataKodu()/hataMetni() — metin token maskesinden ve kirpmadan gecer).
+  "errorCode",       // iyzico hata kodu (or. "1001") — yoksa "YOK"
+  "errorMessage",    // iyzico hata metni, token maskeli + kirpik — yoksa "YOK"
 ];
 
 /** Sir kalintisi maskele (savunma katmani — normalde govdede token OLMAZ, yine de). */

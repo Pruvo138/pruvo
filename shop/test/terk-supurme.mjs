@@ -299,6 +299,13 @@ function ortamKur(satirlar, detayCoz) {
   const db = sahteD1(satirlar);
   const cagrilar = [];
   const eskiFetch = globalThis.fetch;
+  // SUNUCU LOGU YAKALAMA (K356): uretim kodunun Cloudflare Logs'a BASTIGI satirlar.
+  // TEE'dir, yutma DEGIL — test kendi ciktisini basmaya devam eder; yutulsaydi bu dosyanin
+  // kendi ✅/❌ satirlari da kaybolurdu.
+  const satirLoglari = [];
+  const eskiLog = console.log, eskiHata = console.error;
+  console.log = (...a) => { satirLoglari.push(a.join(" ")); eskiLog(...a); };
+  console.error = (...a) => { satirLoglari.push(a.join(" ")); eskiHata(...a); };
   globalThis.fetch = async (u, opt) => {
     const adres = String(u);
     let govde = null;
@@ -319,6 +326,18 @@ function ortamKur(satirlar, detayCoz) {
     async bitir() {
       await Promise.all(bekleyenler);
       globalThis.fetch = eskiFetch;
+      console.log = eskiLog; console.error = eskiHata;
+    },
+    /** Uretim kodunun bastigi TUM log satirlari (test kendi ✅/❌ satirlarini da yazar —
+     *  onlar `bitir()`den SONRA basildigi icin bu diziye girmez). */
+    loglar() { return satirLoglari.slice(); },
+    /** `olcum {...}` satirlari, JSON'u COZULMUS halde. Bicim bozuksa `bozuk:true` doner —
+     *  "parse edilemedi" ile "alan yok" ayni goruntuye cokmesin. */
+    olcumKayitlari() {
+      return satirLoglari.filter((s) => s.startsWith("olcum ")).map((s) => {
+        try { return JSON.parse(s.slice("olcum ".length)); }
+        catch (e) { return { bozuk: true, ham: s }; }
+      });
     },
     purchaseSayisi() {
       return cagrilar.filter((c) => c.url.indexOf("graph.facebook.com") >= 0 ||
@@ -591,6 +610,155 @@ console.log("\n--- 6) TEK SABIT + cron kablolamasi ---");
   // Siklik DUSUK tutulmali: dakikalik cron D1 yazma kotasini bosuna yakar.
   ol("j", "cron siklıgı dakikalik DEGIL (ilk alan '*' degil)",
     !!cronSatiri && !/["']\s*\*\s+/.test(cronSatiri[1]), cronSatiri ? cronSatiri[1] : "yok");
+}
+
+// ================================================================ 7) (n) NEDEN LOGU
+//
+// K356 (mimar emri 31 Agu 2026): cron supurmesi UC ardisik turda `degisen=0` verdi, aged
+// 'bekliyor' satirlari icin acilan TEK kol 'altyapi-hatasi' oldu ve fail-closed oldugu icin
+// HICBIR SEY yazmadi. `odemeHukmu` retrieve cevabini `det` olarak ELDE TUTUYOR ama loga
+// yazmiyordu -> "iyzico checkout token omru esikten KISA (yapisal)" ile "gecici iyzico
+// arizasi" AYIRT EDILEMIYOR. 5 siparis / 4.160 TL bu ayrimin arkasinda bekliyor.
+//
+// 🔴 OLCUT DAVRANISTIR, DIZGE DEGIL: iddialar uretim kodunun GERCEKTEN BASTIGI satiri
+// (yakalanan console ciktisi) okur; kaynakta "errorCode" kelimesi ARANMAZ — o, kolu hic
+// kosmadan yesil yakan bir dizge testi olurdu ([[n2b-kapisi-dizge-olcer]]).
+
+console.log("\n--- 7) (n) NEDEN LOGU: retrieve hatasinda errorCode + errorMessage ---");
+{
+  const no = "PR-TEST-NEDEN";
+  const satirlar = [satirYap(no, "bekliyor", 30)];
+  const o = ortamKur(satirlar, () => DETAY.altyapiHatasi());
+  const r = await MODUL.terkSupur(o.env, o.ctx, SIMDI);
+  await o.bitir();
+
+  const kayitlar = o.olcumKayitlari();
+  const hata = kayitlar.find((k) => k.atlandi === "retrieve-hatasi");
+  ol("n", "retrieve hatasinda 'retrieve-hatasi' olcum satiri BASILDI", !!hata,
+    "olcum-satiri=" + kayitlar.length);
+  ol("n", "satirin bicimi BOZULMADI (tek satir JSON, parse edildi)",
+    !!hata && hata.bozuk !== true, JSON.stringify(hata));
+  ol("n", "🔴 errorCode LOGLANDI ve iyzico'nun DONDURDUGU kod (1001)",
+    !!hata && String(hata.errorCode) === "1001", String(hata && hata.errorCode));
+  ol("n", "🔴 errorMessage LOGLANDI ve iyzico'nun DONDURDUGU metin",
+    !!hata && String(hata.errorMessage) === "uydurma hata", String(hata && hata.errorMessage));
+  ol("n", "🔴 siparis_no AYNI satirda (hangi siparis oldugu okunur)",
+    !!hata && hata.siparis_no === no, String(hata && hata.siparis_no));
+  ol("n", "sayac hala fail-closed: ulasilamadi=1, degisen=0", r.ulasilamadi === 1 && r.degisen === 0,
+    JSON.stringify(r));
+  ol("n", "🔴 IKINCI LOG BICIMI ACILMADI: uretimin bastigi her satir bilinen bir etiketle "
+    + "baslar (olcum / terk-supurme / terk supurmesi)",
+    o.loglar().every((s) => s.startsWith("olcum ") || s.startsWith("terk-supurme ") ||
+                            s.startsWith("terk supurmesi ")),
+    JSON.stringify(o.loglar().filter((s) => !s.startsWith("olcum ") &&
+      !s.startsWith("terk-supurme ") && !s.startsWith("terk supurmesi "))));
+  ol("n", "sayac satiri (terk-supurme {...}) YERINDE DURUYOR — ikinci bicim onun YERINI ALMADI",
+    o.loglar().some((s) => s.startsWith("terk-supurme ")));
+}
+
+// `det` BOSKEN de satir BASILIR — sessiz bos satir yasak. Ucu de AYRI hal:
+//   (1) errorCode/errorMessage alanlari BOS, (2) govde bos nesne, (3) alanlar HIC YOK.
+// Ucu de tek bir varsayilan kovaya ("YOK") DUSER ama satirin KENDISI kaybolmaz — "alan
+// yoktu" ile "kol hic kosmadi" ayni goruntuye cokmesin ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+{
+  const haller = [
+    ["bos-degerler", { status: "failure", errorCode: "", errorMessage: "" }],
+    ["bos-govde", { status: "failure" }],
+    ["status-yok", {}],
+  ];
+  for (const [ad, det] of haller) {
+    const no = "PR-TEST-BOSDET-" + ad;
+    const satirlar = [satirYap(no, "bekliyor", 30)];
+    const o = ortamKur(satirlar, () => det);
+    const r = await MODUL.terkSupur(o.env, o.ctx, SIMDI);
+    await o.bitir();
+    const hata = o.olcumKayitlari().find((k) => k.atlandi === "retrieve-hatasi");
+    ol("n", "det=" + ad + ": satir yine BASILDI (sessiz bosluk YOK)", !!hata,
+      JSON.stringify(o.loglar()));
+    ol("n", "det=" + ad + ": errorCode='YOK' (bicim bozulmadi, alan DUSMEDI)",
+      !!hata && hata.errorCode === "YOK", String(hata && hata.errorCode));
+    ol("n", "det=" + ad + ": errorMessage='YOK'",
+      !!hata && hata.errorMessage === "YOK", String(hata && hata.errorMessage));
+    ol("n", "det=" + ad + ": siparis_no yine YERINDE", !!hata && hata.siparis_no === no);
+    ol("n", "det=" + ad + ": fail-closed korundu (ulasilamadi=1, yazma YOK)",
+      r.ulasilamadi === 1 && o.db.izler.length === 0, JSON.stringify(r));
+  }
+}
+
+// GURULTU KAPISI: basarili/odenmis turda bu kol HIC basmamali.
+{
+  const no = "PR-TEST-SESSIZ";
+  const satirlar = [satirYap(no, "bekliyor", 30)];
+  const o = ortamKur(satirlar, () => DETAY.odendi(no));
+  await MODUL.terkSupur(o.env, o.ctx, SIMDI);
+  await o.bitir();
+  const kayitlar = o.olcumKayitlari();
+  ol("n", "🔴 ODENMIS turda 'retrieve-hatasi' satiri BASILMADI",
+    !kayitlar.some((k) => k.atlandi === "retrieve-hatasi"), JSON.stringify(kayitlar));
+  ol("n", "🔴 ODENMIS turda HICBIR satirda errorCode/errorMessage GECMEZ (gurultu yok)",
+    !kayitlar.some((k) => "errorCode" in k || "errorMessage" in k), JSON.stringify(kayitlar));
+}
+
+// ================================================================ 8) (p) GIZLILIK — NEGATIF
+//
+// 🔴 Bu kol hata logu ciktisinda YEDI+BIR adin HIC gecmedigini AYRI AYRI arar. Fikstur
+// bilerek AYIRT EDICI degerler tasir: "1.1" gibi kisa bir deger sahte-yesil verirdi
+// (baska bir sayinin icinde gecebilirdi) — negatif iddia, ARANAN degerin ciktida
+// gecebilecegi bir bicimde kurulmazsa hicbir sey olcmez.
+
+console.log("\n--- 8) (p) GIZLILIK: hata logunda kisisel kolon / atif kimligi / token YOK ---");
+{
+  const no = "PR-TEST-GIZLILIK";
+  const PII = {
+    musteri_ad: "PIIADXQ-Ayse Yilmaz",
+    musteri_tel: "PIITELXQ-05321234567",
+    musteri_eposta: "PIIEPOSTAXQ@ornek.invalid",
+    musteri_adres: "PIIADRESXQ Cumhuriyet Mah. 12/3",
+    musteri_notu: "PIINOTXQ kapida teslim",
+    atif: JSON.stringify({ ga_client_id: "PIIGAXQ-9.9", fbp: "PIIFBPXQ.fb.1", fbc: "PIIFBCXQ.fb.1" }),
+    token: "PIITOKENXQ-uydurma-odeme-token-0123456789",
+  };
+  const satirlar = [satirYap(no, "bekliyor", 30, PII)];
+  // iyzico HAM govdeyi echo ediyor gibi davran: errorMessage'in ICINE token'i koy.
+  // `istek()` JSON parse edemedigi cevapta tam da bunu yapar (metin.slice(0,300)).
+  const o = ortamKur(satirlar, (t) => ({
+    status: "failure", errorCode: "HTTP-400",
+    errorMessage: 'Bad Request: {"locale":"tr","token":"' + t + '"}',
+  }));
+  await MODUL.terkSupur(o.env, o.ctx, SIMDI);
+  await o.bitir();
+
+  const cikti = o.loglar().join("\n");
+  ol("p", "hata satiri GERCEKTEN basildi (negatif iddia BOS ciktida sahte-yesil vermesin)",
+    o.olcumKayitlari().some((k) => k.atlandi === "retrieve-hatasi"), cikti);
+
+  // SEKIZ AD, AYRI AYRI (spec'in yedisi + `musteri_notu`; superset BILEREK).
+  const YASAKLI = [
+    ["musteri_ad", PII.musteri_ad],
+    ["musteri_tel", PII.musteri_tel],
+    ["musteri_eposta", PII.musteri_eposta],
+    ["musteri_adres", PII.musteri_adres],
+    ["musteri_notu", PII.musteri_notu],
+    ["fbp", "PIIFBPXQ.fb.1"],
+    ["fbc", "PIIFBCXQ.fb.1"],
+    ["ga_client_id", "PIIGAXQ-9.9"],
+    ["token", PII.token],
+  ];
+  for (const [ad, deger] of YASAKLI) {
+    ol("p", "🔒 " + ad + " degeri hata logunda HIC GECMEZ",
+      cikti.indexOf(deger) < 0,
+      cikti.slice(Math.max(0, cikti.indexOf(deger) - 60), cikti.indexOf(deger) + 60));
+  }
+  // Ayirt edici damganin KENDISI de hicbir yerde olmamali (alan adi degisse de yakalar).
+  ol("p", "🔒 fikstur PII damgasi ('XQ') ciktinin HICBIR YERINDE yok",
+    cikti.indexOf("XQ") < 0, cikti.slice(0, 400));
+  // Token maskesi GERCEKTEN calisti mi — yoksa yukaridaki 'token yok' iddiasi, satirin
+  // hic basilmamis olmasindan da yesil yanabilirdi.
+  const h = o.olcumKayitlari().find((k) => k.atlandi === "retrieve-hatasi");
+  ol("p", "errorMessage YAZILDI ama token'in yerinde maske var",
+    !!h && String(h.errorMessage).indexOf("***") >= 0, String(h && h.errorMessage));
+  ol("p", "errorCode teknik kod olarak GECTI (HTTP-400)",
+    !!h && h.errorCode === "HTTP-400", String(h && h.errorCode));
 }
 
 // ================================================================ SONUC
