@@ -9,6 +9,17 @@ digerleri D1'den GORULEMEZ (`ulasilamadi` hicbir sey yazmaz -> kostu/kosmadi AYI
 retrieve `errorCode`+`errorMessage` (siparis_no ile, kisisel kolon YOK) yazilmadan "token omru YAPISAL"
 ile "gecici ARIZA" ayrilamaz. Ucuncu hal ADIYLA yazilir. → [[terk-supurmesi-canlida-inert]]
 
+## 🟠 K356 (31 Agu) — NEDEN LOGU YAZILDI (`KraL-ErrorCodeLog-31Agu`); DEPLOY=OKAN, DAGILIM=OLCULEMEDI
+`odemeHukmu` `altyapi-hatasi` kolu artik `errorCode`+`errorMessage`i `siparis_no` ile basiyor.
+IKINCI BICIM ACILMADI: mevcut `olcum {...}` satirina 2 alan (olcum.js beyaz listesi -> musteri_*/
+fbp/fbc/ga_client_id/token YAPISAL olarak giremez); metin token maskeli+kirpik (iyzico.js tek kaynak).
+`det` bosken `YOK` basar. Dal `claude/determined-chaplygin-e8f029`. SAYILAR: taban 23 kol 23 YESIL
+`KIRMIZI_SETI=[]` -> is sonrasi AYNI · `terk-supurme.mjs` 60->**98 iddia/0** · mutant **10/10**
+(8 hedefli oldu + 2 KONTROL yesil, calisma agaci sha AYNI).
+🔴 **LOG OKUMA=OLCULEMEDI, IKI AYRI SEBEP:** (1) kod CANLIDA YOK (merge+deploy Okan kapisi),
+(2) `~/.claude/cron/.cf-token` observability sorgusunu **HTTP 403 (code 10000)** ile reddetti ->
+deploy sonrasi bile okunamaz; token'a `Workers Observability: Read` GEREKIR. Hukum mimarin.
+
 ## ✅ K353 KAPANDI (29 Agu) — esik sinifi + SILINEN kota kapisi (`KraL-EsikVeKota-29Agu`; TAM metin KUTUDA)
 Onarim hedefi = ceza esigi -> komut INERT ([[onarim-kolu-zarar-esiginin-arkasinda]]). KUTU tavan 300->**250**,
 kutu 253->**196** (dusen 57 == giren 57, kayip=0). DEFTER `SU_SEVIYESI_*` 12.288 vs **9.830** + BEST-EFFORT;

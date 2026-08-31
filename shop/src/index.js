@@ -28,7 +28,7 @@
 
 import AYAR from "../config.json";
 import "../../secenekler.js";
-import { cfBaslat, cfDetay } from "./iyzico.js";
+import { cfBaslat, cfDetay, hataKodu, hataMetni } from "./iyzico.js";
 import { parametrikHesapla } from "./parametrik.js";
 import { SEMALAR } from "./semalar.js";
 import { konfigurHesapla, d1Coz } from "./konfigur.js";
@@ -928,8 +928,20 @@ export async function odemeHukmu(env, ctx, token, siparis, secenek) {
   if (!det || det.status !== "success") {
     // OLCUM IZI: burada Purchase GONDERILMEZ (odemenin gercek durumu BILINMIYOR). Sessiz
     // bosluk birakma — "bu siparisin Purchase'i neden yok?" sorusu loglardan cevaplanabilsin.
+    //
+    // 🔴 K356 (31 Agu 2026) — NEDEN ULASILAMADIGI DA YAZILIR. Cron terk supurmesi UC ardisik
+    // turda `degisen=0` verdi; aged 'bekliyor' satirlari icin acilan TEK kol buydu ve
+    // fail-closed oldugu icin hicbir sey yazmiyordu. Kod/metin loglanmadan "iyzico checkout
+    // token omru esikten KISA (yapisal)" ile "gecici iyzico arizasi" AYIRT EDILEMIYOR.
+    // 🔴 IKINCI LOG BICIMI ACILMADI: mevcut `olcum {...}` tek-satir JSON'una IKI ALAN eklendi
+    // (terk supurmesinin `terk-supurme {...}` sayac satiriyla ayni sekil: etiket + tek satir
+    // JSON). Yeni bir etiket/desen uretmek, grep'i ve gizlilik kapisini ikiye bolerdi.
+    // 🔒 GIZLILIK: alanlar olcum.js LOG_ALANLARI BEYAZ LISTESINDEN gecer — musteri_*, atif
+    // (fbp/fbc/ga_client_id) ve token listede OLMADIGI icin yapisal olarak basilamaz; metin
+    // ayrica token maskesinden ve kirpmadan gecer (iyzico.js hataMetni).
     olcumLog({ olay: "Purchase", siparis_no: siparis.siparis_no, kaynak: "kart",
-               atlandi: "retrieve-hatasi" });
+               atlandi: "retrieve-hatasi",
+               errorCode: hataKodu(det), errorMessage: hataMetni(det, token) });
     // 🔴 FAIL-CLOSED: HICBIR D1 YAZMASI YAPILMAZ. Hukum cagiranindir — musteri callback'i
     // 'incele' yazar, cron supurmesi HIC DOKUNMAZ (bilinmeyen odemeyi iptal etmek parayi
     // gorunmez yapar). Iki farkli hukum burada birlestirilirse biri digerini ezerdi.

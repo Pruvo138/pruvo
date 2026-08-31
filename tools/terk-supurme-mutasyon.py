@@ -42,11 +42,17 @@ import tempfile
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HEDEF_BAGIL = os.path.join("shop", "src", "index.js")
+IYZICO_BAGIL = os.path.join("shop", "src", "iyzico.js")
 TEST_BAGIL = os.path.join("shop", "test", "terk-supurme.mjs")
 
-TUM_IDDIALAR = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "s"]
+# 🔴 MUTASYONA ACIK TUM DOSYALAR. Capa tazeligi ve "calisma agaci degismedi" kontrolu
+# BUNUN uzerinden doner; tek dosyaya bakan bir kontrol, ikinci dosyaya sizan mutanti
+# GORMEZDI ([[tuketici-yazilirken-tum-okuyucular-sayilir]]).
+MUTASYON_DOSYALARI = (HEDEF_BAGIL, IYZICO_BAGIL)
 
-# (kimlik, aciklama, eski_metin, yeni_metin, oldurmesi_gerekenler)
+TUM_IDDIALAR = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "n", "p", "s"]
+
+# (kimlik, aciklama, eski_metin, yeni_metin, oldurmesi_gerekenler, hedef_dosya)
 # `yasamasi gerekenler` TURETILIR: TUM_IDDIALAR - oldurmesi_gerekenler. Ikinci bir elle
 # yazilmis liste, sessizce ayrisan ikinci bir hukum olurdu ([[ayni-alan-iki-hukum-biri-sessiz]]).
 MUTANTLAR = [
@@ -69,7 +75,9 @@ MUTANTLAR = [
         "(kor iptal = parayi gorunmez yapma)",
         '    if (h.hal === "altyapi-hatasi") { sonuc.ulasilamadi++; continue; }',
         '    if (false) { sonuc.ulasilamadi++; continue; }  /* MUTANT: fail-closed dusuruldu */',
-        ["d", "g", "s"],
+        # (n) K356 neden-logu kolu sayacin fail-closed sozlesmesini de iddia eder
+        # (ulasilamadi=1 / degisen=0) -> bu mutant orayi da oldurur ve BEYAN EDILIR.
+        ["d", "g", "n", "s"],
     ),
     (
         "M3_ESIK",
@@ -88,6 +96,51 @@ MUTANTLAR = [
         'durum_gecmisi = ?" +\n    " WHERE token = ?"',
         ["h"],
     ),
+    # ---------------------------------------------------------------- K356 (31 Agu 2026)
+    # Neden-logu kolu (n) + gizlilik kolu (p). Dordu de "kol GERCEKTEN isiriyor mu"yu ayri
+    # bir yoldan sorar: alan dusmesi · satirin tamamen dusmesi · IZINLI alanin DEGERINE
+    # sizinti · maskenin devre disi kalmasi.
+    (
+        "M5_ALAN",
+        "K356 NEDEN LOGU KORELIR: errorCode/errorMessage alanlari olcum satirindan DUSER "
+        "(satir basilir ama 'neden' yine yazilmaz — bu tam da onarilan hal)",
+        "               atlandi: \"retrieve-hatasi\",\n"
+        "               errorCode: hataKodu(det), errorMessage: hataMetni(det, token) });",
+        "               atlandi: \"retrieve-hatasi\" });  /* MUTANT: neden alanlari dusuruldu */",
+        # (p) de oldurulur: gizlilik kolu 'errorMessage YAZILDI ama maskeli' diye iddia eder;
+        # alan hic yoksa o iddia da olur. BEYAN EDILIR (sessiz coklu olum yasak).
+        ["n", "p"],
+    ),
+    (
+        "M5b_SATIR",
+        "K356 LOG SATIRI TAMAMEN DUSER: 'altyapi-hatasi' kolunda olcumLog HIC cagrilmaz "
+        "(sessiz bosluk — 'kol kosmadi' ile 'alan yoktu' ayni goruntuye coker)",
+        "    olcumLog({ olay: \"Purchase\", siparis_no: siparis.siparis_no, kaynak: \"kart\",\n"
+        "               atlandi: \"retrieve-hatasi\",\n"
+        "               errorCode: hataKodu(det), errorMessage: hataMetni(det, token) });",
+        "    /* MUTANT: olcum satiri tamamen dusuruldu */",
+        ["n", "p"],
+    ),
+    (
+        "M6_SIZINTI",
+        "KISISEL KOLON LOGA SIZAR: musteri e-postasi IZINLI bir alanin (errorMessage) "
+        "DEGERINE eklenir — beyaz liste alan ADINI korur, DEGERINI degil",
+        "errorCode: hataKodu(det), errorMessage: hataMetni(det, token) });",
+        "errorCode: hataKodu(det),\n"
+        "               errorMessage: hataMetni(det, token) + \" \" + siparis.musteri_eposta });",
+        # (n) de olur: neden-logu kolu errorMessage'in iyzico'nun DONDURDUGU metne birebir
+        # esit oldugunu iddia eder; kuyruga eklenen e-posta o esitligi bozar.
+        ["n", "p"],
+    ),
+    (
+        "M6b_MASKE",
+        "TOKEN MASKESI DEVRE DISI: iyzico ham govdeyi echo edince odeme token'i logda "
+        "ACIK yazilir (sitede kart formu yok ama token oturum sirridir)",
+        "  if (g.length >= MASKE_ASGARI) { s = s.split(g).join(\"***\"); }",
+        "  if (false) { s = s.split(g).join(\"***\"); }  /* MUTANT: maske devre disi */",
+        ["p"],
+        IYZICO_BAGIL,
+    ),
     (
         "K0_KONTROL",
         "ILGISIZ kol: tek turda islenecek satir tavani 200 -> 199",
@@ -95,7 +148,19 @@ MUTANTLAR = [
         "const TERK_TUR_TAVANI = 199;",
         [],
     ),
+    (
+        "K1_KONTROL_IYZICO",
+        "ILGISIZ kol (IKINCI DOSYA): hata metni log tavani 200 -> 199. iyzico.js'e uygulanan "
+        "mutasyonun kendi basina kirmizi yakmadigini gosterir (M6b'nin atfi anlamli kalsin)",
+        "const METIN_TAVANI = 200;",
+        "const METIN_TAVANI = 199;",
+        [],
+        IYZICO_BAGIL,
+    ),
 ]
+
+# 5'li eski girdiler HEDEF_BAGIL'i varsayar; 6. eleman hedefi ACIKCA soyler.
+MUTANTLAR = [(m + (HEDEF_BAGIL,)) if len(m) == 5 else m for m in MUTANTLAR]
 
 # Aynaya kopyalanacak agac (havale-onay harness'iyle AYNI gerekce: shop/src/konfigur.js
 # kok konfigur.js'i `../../konfigur.js` diye, index.js `../../secenekler.js`'i import eder;
@@ -134,18 +199,21 @@ def testi_kos(ayna, kaynak_yolu):
 
 
 def main():
-    kaynak_tam = os.path.join(KOK, HEDEF_BAGIL)
-    if not os.path.exists(kaynak_tam):
-        print("HATA: %s yok" % HEDEF_BAGIL)
-        return 1
-    ham = open(kaynak_tam, encoding="utf-8").read()
+    ham = {}
+    for bagil in MUTASYON_DOSYALARI:
+        tam = os.path.join(KOK, bagil)
+        if not os.path.exists(tam):
+            print("HATA: %s yok" % bagil)
+            return 1
+        ham[bagil] = open(tam, encoding="utf-8").read()
 
     # --- HARNESS TAZELIK KONTROLU (capalar TEKIL mi?) --------------------------
     bayat = []
-    for kimlik, _aciklama, eski, _yeni, _oldur in MUTANTLAR:
-        n = ham.count(eski)
+    for kimlik, _aciklama, eski, _yeni, _oldur, hedef in MUTANTLAR:
+        n = ham[hedef].count(eski)
         if n != 1:
-            bayat.append("%s: dayanak metni %d kez geciyor (TEKIL olmali)" % (kimlik, n))
+            bayat.append("%s: dayanak metni %s icinde %d kez geciyor (TEKIL olmali)"
+                         % (kimlik, hedef, n))
     if bayat:
         print("HARNESS BAYAT — mutasyon dayanaklari kaynakla ortusmuyor:")
         for s in bayat:
@@ -169,19 +237,22 @@ def main():
             return 1
 
         # --- MUTANTLAR ---------------------------------------------------------
-        for kimlik, aciklama, eski, yeni, oldur in MUTANTLAR:
+        for kimlik, aciklama, eski, yeni, oldur, hedef in MUTANTLAR:
             yasa = [i for i in TUM_IDDIALAR if i not in oldur]
             dizin = os.path.join(gecici, kimlik)
             os.makedirs(dizin)
             ayna_kur(dizin)
-            yol = os.path.join(dizin, HEDEF_BAGIL)
+            yol = os.path.join(dizin, hedef)
             metin = open(yol, encoding="utf-8").read()
             if metin.count(eski) != 1:
-                hatalar.append("%s: aynada dayanak TEKIL degil" % kimlik)
+                hatalar.append("%s: aynada dayanak TEKIL degil (%s)" % (kimlik, hedef))
                 continue
             open(yol, "w", encoding="utf-8").write(metin.replace(eski, yeni))
 
-            rc, olen, cikti = testi_kos(dizin, yol)
+            # Kabul testi DAIMA index.js'i yukler; mutasyon iyzico.js'e uygulansa bile
+            # zincir aynanin icinden gecer (index.js -> ./iyzico.js), yani mutant CANLI
+            # govdede yasar ([[mutant-canli-govdede-yasamaz]]).
+            rc, olen, cikti = testi_kos(dizin, os.path.join(dizin, HEDEF_BAGIL))
             hedef_tam = [i for i in oldur if i in olen]
             hedef_kacan = [i for i in oldur if i not in olen]
             yan_kirilan = [i for i in yasa if i in olen]
@@ -212,10 +283,18 @@ def main():
         shutil.rmtree(gecici, ignore_errors=True)
 
     # --- CALISMA AGACI DOKUNULMADI MI? ----------------------------------------
-    simdi = open(kaynak_tam, encoding="utf-8").read()
-    if simdi != ham:
-        hatalar.append("CALISMA AGACI DEGISTI — mutant diskte kaldi (asla olmamali)")
-    print("\nCALISMA AGACI: shop/src/index.js BASTAKIYLE AYNI: %s" % (simdi == ham))
+    # 🔴 MUTASYONA ACIK HER DOSYA icin ayri ayri: tek dosyaya bakan kontrol, ikinci dosyaya
+    # kalan mutanti gormezdi ve "temiz" der gecerdi.
+    dokunulmadi = True
+    for bagil in MUTASYON_DOSYALARI:
+        simdi = open(os.path.join(KOK, bagil), encoding="utf-8").read()
+        ayni = (simdi == ham[bagil])
+        if not ayni:
+            dokunulmadi = False
+            hatalar.append("CALISMA AGACI DEGISTI (%s) — mutant diskte kaldi "
+                           "(asla olmamali)" % bagil)
+        print("\nCALISMA AGACI: %s BASTAKIYLE AYNI: %s" % (bagil, ayni))
+    print("CALISMA AGACI DOKUNULMADI: %s" % dokunulmadi)
     print("HEDEF_KOL_ATFI: " + " | ".join(atif_satirlari))
 
     kotu = len([h for h in hatalar if "KACTI" in h or "KIRILDI" in h
@@ -226,7 +305,12 @@ def main():
         for h in hatalar:
             print("  ✗ " + h)
         return 1
-    print("SONUC: YESIL ✅ — 4 hedef mutant OLDU, kontrol mutanti hicbir iddiayi OLDURMEDI")
+    # Sayi ELLE YAZILMAZ: kontrol mutantlarinin sayisi degistiginde metin sessizce yalan
+    # soylerdi. Hedefli/kontrol ayrimi MUTANTLAR listesinden TURETILIR.
+    hedefli = len([m for m in MUTANTLAR if m[4]])
+    kontrol = len(MUTANTLAR) - hedefli
+    print("SONUC: YESIL ✅ — %d hedef mutant OLDU, %d kontrol mutanti hicbir iddiayi OLDURMEDI"
+          % (hedefli, kontrol))
     return 0
 
 

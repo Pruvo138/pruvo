@@ -42,6 +42,50 @@ async function istek(env, yol, govde) {
   }
 }
 
+/** Hata metninde token'i maskelemeden ONCE istenen ASGARI uzunluk. Kisa/bos bir "gizle"
+ *  degeriyle `split` yapmak metni parcalar (bos dizge her karakteri boler) ya da yaygin bir
+ *  alt-dizeyi kor ederdi; boyle bir deger maskelenmeden GECER (metin zaten kirpilir). */
+const MASKE_ASGARI = 8;
+
+/** Hata metninin log tavani. iyzico'nun ham 4xx govdesi 300 karaktere kadar gelebilir;
+ *  logda teshis icin gereken bas kisimdir, tamami degil. */
+const METIN_TAVANI = 200;
+
+/**
+ * 🔴 RETRIEVE HATA KIMLIGI — TEK KAYNAK (K356, 31 Agu 2026).
+ *
+ * `istek()` iyzico'nun basarisiz cevabini `{ status:"failure", errorCode, errorMessage }`
+ * seklinde yukari tasir (JSON parse edilemezse de AYNI sekli uydurur: "HTTP-<kod>").
+ * Bu iki yardimci o seklin TEK okuyucusudur; cagiran yerde `det.errorCode` diye elle
+ * okumak ikinci bir hukum acardi.
+ *
+ * 🔴 "YOK" BILEREK BIR DEGERDIR: `det` null/bos ya da alan bossa sessiz bos satir basmak,
+ * bu kolun varolus sebebini (NEDEN ulasilamadi?) cevapsiz birakirdi — "alan yoktu" ile
+ * "satir hic basilmadi" ayni goruntuye coker.
+ */
+export function hataKodu(det) {
+  const k = det && det.errorCode;
+  return (k === undefined || k === null || k === "") ? "YOK" : String(k);
+}
+
+/**
+ * Hata METNI — `hataKodu` ile ayni "YOK" sozlesmesi + IKI GIZLILIK KAPISI:
+ *   ① TOKEN MASKESI: JSON parse edilemeyen cevapta `errorMessage` iyzico'nun HAM govdesidir
+ *      ve istegimizi ECHO edebilir; istegin icinde odeme token'i vardir. `gizle` verilirse
+ *      metinden CIKARILIR. (Kart verisi bize hic ugramaz — sitede kart formu YOK.)
+ *   ② KIRPMA: teshis icin bas kisim yeter; siniri asan kuyruk loga girmez.
+ * Musteri alanlari (ad/tel/eposta/adres) buraya YAPISAL OLARAK giremez: girdi yalniz
+ * iyzico'nun kendi cevabidir, D1 satiri DEGIL.
+ */
+export function hataMetni(det, gizle) {
+  const m = det && det.errorMessage;
+  if (m === undefined || m === null || m === "") { return "YOK"; }
+  let s = String(m);
+  const g = String(gizle == null ? "" : gizle);
+  if (g.length >= MASKE_ASGARI) { s = s.split(g).join("***"); }
+  return s.slice(0, METIN_TAVANI);
+}
+
 export function cfBaslat(env, govde) {
   return istek(env, INIT_YOL, govde);
 }
