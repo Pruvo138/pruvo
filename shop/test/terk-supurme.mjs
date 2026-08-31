@@ -22,6 +22,17 @@
  *   (i) UYUSMAZLIK : para VAR ama tutar tutmuyor -> 'incele' (ASLA 'iptal') + Telegram
  *   (j) TEK SABIT  : esik tek yerde (TERK_ESIK_SAAT) + wrangler.toml'da [triggers] crons VAR
  *
+ * K358 (31 Agu 2026) — UCUNCU SINIF. Yukaridaki (c) kolu CANLIDA HIC KOSMADI: `odemeHukmu`
+ * IKI KOVALIYDI ve iyzico CEVAP VERDIGI halde (`status:"failure"` + dolu `errorCode`) hukum
+ * fail-closed 'altyapi-hatasi' kovasina dusuyordu (canli olcum: 5/5 `ulasilamadi`, dagilim
+ * 5122x3 / 10057 / 10054, `degisen=0`). Uc yeni eksen:
+ *   (k) KESIN-BAS.  : KAPALI kumedeki kod (5122/10054/10057) -> 'iptal' + {"s":"terk"}
+ *   (q) EMNIYET     : 🔴 kume DISINDA kalan HER SEY fail-closed — bilinmeyen kod, bos kod,
+ *                     taninmayan `status`, `det` yoklugu. Kor iptal YASAK; islerin kalbi bu.
+ *   (r) IKINCI TUK. : `/donus` (canli musteri yolu) da AYNI yuklemi kullanir — kesin-basarisiz
+ *                     'basarisiz' yazar ve Telegram GITMEZ; gercek altyapi hatasi ve
+ *                     `uyusmazlik` kollari AYNEN 'incele' + Telegram olarak durur.
+ *
  * NASIL (shop/test/olcum.mjs + havale-onay.mjs deseni — kopya uretim kodu YAZILMAZ):
  *   GERCEK `shop/src/index.js` import edilir ve **GERCEK `scheduled()` kolu** cagrilir; yani
  *   cron kablolamasi da olculur (kol hic bagli degilse bu dosya kirmizi yanar).
@@ -287,6 +298,12 @@ const DETAY = {
                      conversationId: no, basketId: no, paymentId: "PAY-" + no }),
   odenmemis: () => ({ status: "success", paymentStatus: "FAILURE", paidPrice: "0" }),
   altyapiHatasi: () => ({ status: "failure", errorCode: "1001", errorMessage: "uydurma hata" }),
+  // K358: iyzico CEVAP VERDI ve basarisizligi KENDISI beyan etti; kod KAPALI kumede.
+  kesinBasarisiz: (kod) => ({ status: "failure", errorCode: kod,
+                              errorMessage: "uydurma iyzico basarisiz cevabi" }),
+  // Kume DISI ama ayni sekilde "cevap veren failure": kor iptal edilmemeli.
+  bilinmeyenKod: () => ({ status: "failure", errorCode: "9999",
+                          errorMessage: "uydurma bilinmeyen hata" }),
   tutarsiz: (no) => ({ status: "success", paymentStatus: "SUCCESS", paidPrice: "1.00",
                        conversationId: no, basketId: no, paymentId: "PAY-" + no }),
 };
@@ -759,6 +776,282 @@ console.log("\n--- 8) (p) GIZLILIK: hata logunda kisisel kolon / atif kimligi / 
     !!h && String(h.errorMessage).indexOf("***") >= 0, String(h && h.errorMessage));
   ol("p", "errorCode teknik kod olarak GECTI (HTTP-400)",
     !!h && h.errorCode === "HTTP-400", String(h && h.errorCode));
+}
+
+// ================================================================ 9) (k) KESIN-BASARISIZ: POZITIF
+//
+// K358 (mimar emri 31 Agu 2026): `odemeHukmu` IKI KOVALIYDI; iyzico CEVAP VERDIGI halde
+// (`status:"failure"` + dolu `errorCode`) hukum 'altyapi-hatasi' kovasina dusuyor, o kova
+// fail-closed oldugu icin terk supurmesinin ZATEN VAR OLAN `iptal` kolu HIC KOSMUYORDU
+// (canli olcum: 5/5 `ulasilamadi`, dagilim 5122x3 / 10057 / 10054, `degisen=0`).
+// Burada UCUNCU SINIF ADIYLA olculur: KAPALI kumedeki kod -> 'iptal' + {"s":"terk"}.
+
+console.log("\n--- 9) (k) KESIN-BASARISIZ kod -> 'iptal' (kapali kumenin UC uyesi) ---");
+for (const kod of ["5122", "10054", "10057"]) {
+  const no = "PR-TEST-KESIN-" + kod;
+  const satirlar = [satirYap(no, "bekliyor", 30)];
+  const o = ortamKur(satirlar, () => DETAY.kesinBasarisiz(kod));
+  const r = await MODUL.terkSupur(o.env, o.ctx, SIMDI);
+  await o.bitir();
+
+  const s = satirlar[0];
+  ol("k", kod + ": iyzico 'failure' beyan etti + kod KAPALI kumede -> durum 'iptal'",
+    s.durum === "iptal", "durum=" + s.durum);
+  ol("k", kod + ": gecmiste MAKINE-OKUNUR sebep {\"d\":\"iptal\",\"s\":\"terk\"}",
+    gecmisKayitlari(s).some((x) => x.d === "iptal" && x.s === "terk"), s.durum_gecmisi);
+  ol("k", kod + ": sayac iptal=1, ulasilamadi=0, degisen=1",
+    r.iptal === 1 && r.ulasilamadi === 0 && r.degisen === 1, JSON.stringify(r));
+  ol("k", kod + ": tahsilat YOK -> Purchase GITMEDI", o.purchaseSayisi() === 0,
+    "olcum-post=" + o.purchaseSayisi());
+  ol("k", kod + ": Telegram gurultusu YOK", o.telegramSayisi() === 0,
+    "tg=" + o.telegramSayisi());
+
+  // OLCUM IZI — iki hal logda BIRBIRINE KARISMAMALI: `atlandi` dizgesi AYRI olmali.
+  const kayitlar = o.olcumKayitlari();
+  const kesin = kayitlar.find((x) => x.atlandi === "kesin-basarisiz");
+  ol("k", kod + ": olcum satirinda atlandi='kesin-basarisiz'", !!kesin,
+    JSON.stringify(kayitlar));
+  ol("k", kod + ": 🔴 'retrieve-hatasi' dizgesi KULLANILMADI (iki hal ayirt edilebilir)",
+    !kayitlar.some((x) => x.atlandi === "retrieve-hatasi"), JSON.stringify(kayitlar));
+  ol("k", kod + ": errorCode iyzico'nun DONDURDUGU kod olarak loglandi",
+    !!kesin && String(kesin.errorCode) === kod, String(kesin && kesin.errorCode));
+  ol("k", kod + ": siparis_no AYNI satirda", !!kesin && kesin.siparis_no === no,
+    String(kesin && kesin.siparis_no));
+  ol("k", kod + ": bicim BOZULMADI (tek satir JSON, ikinci etiket ACILMADI)",
+    !!kesin && kesin.bozuk !== true &&
+    o.loglar().every((x) => x.startsWith("olcum ") || x.startsWith("terk-supurme ") ||
+                            x.startsWith("terk supurmesi ")),
+    JSON.stringify(o.loglar()));
+}
+
+// KARISIK TUR: uc kesin kod + bir BILINMEYEN kod + `det` YOK bir arada. Tek tek verilen
+// fikstur, siniflarin BIRLIKTE gorulunce ayrisip ayrismadigini gizlerdi (bu dosyanin 1.
+// bolumundeki ayni gerekce).
+{
+  const satirlar = [
+    satirYap("PR-TEST-KARISIK-5122", "bekliyor", 30),
+    satirYap("PR-TEST-KARISIK-10054", "bekliyor", 30),
+    satirYap("PR-TEST-KARISIK-10057", "bekliyor", 30),
+    satirYap("PR-TEST-KARISIK-9999", "bekliyor", 30),     // BILINMEYEN -> fail-closed
+    satirYap("PR-TEST-KARISIK-DETYOK", "bekliyor", 30),   // retrieve `null` -> fail-closed
+  ];
+  const o = ortamKur(satirlar, (t) => {
+    const s = String(t);
+    if (s.indexOf("KARISIK-5122") >= 0) { return DETAY.kesinBasarisiz("5122"); }
+    if (s.indexOf("KARISIK-10054") >= 0) { return DETAY.kesinBasarisiz("10054"); }
+    if (s.indexOf("KARISIK-10057") >= 0) { return DETAY.kesinBasarisiz("10057"); }
+    if (s.indexOf("KARISIK-9999") >= 0) { return DETAY.bilinmeyenKod(); }
+    return null;   // JSON "null" -> istek() `null` dondurur = det YOK
+  });
+  const r = await MODUL.terkSupur(o.env, o.ctx, SIMDI);
+  await o.bitir();
+  ol("k", "karisik tur: iptal=3 (yalniz kapali kumenin uyeleri)", r.iptal === 3,
+    JSON.stringify(r));
+  ol("k", "karisik tur: ulasilamadi=2 (bilinmeyen kod + det yok)", r.ulasilamadi === 2,
+    JSON.stringify(r));
+  ol("k", "karisik tur: degisen=3", r.degisen === 3, JSON.stringify(r));
+  ol("q", "karisik tur: BILINMEYEN kod satiri 'bekliyor' KALDI",
+    bul(satirlar, "PR-TEST-KARISIK-9999").durum === "bekliyor",
+    bul(satirlar, "PR-TEST-KARISIK-9999").durum);
+  ol("q", "karisik tur: det YOK satiri 'bekliyor' KALDI",
+    bul(satirlar, "PR-TEST-KARISIK-DETYOK").durum === "bekliyor",
+    bul(satirlar, "PR-TEST-KARISIK-DETYOK").durum);
+  ol("q", "karisik tur: fail-closed satirlara HIC UPDATE gitmedi",
+    !db_izVar(o.db, "PR-TEST-KARISIK-9999") && !db_izVar(o.db, "PR-TEST-KARISIK-DETYOK"),
+    JSON.stringify(o.db.izler.map((i) => i.siparis_no)));
+}
+
+// ================================================================ 10) (q) EMNIYET: FAIL-CLOSED
+//
+// 🔴 ISIN KALBI. Kume KAPALIDIR: "basarisiz gorunen her cevap" iptal edilmez. Yeni/bilinmeyen
+// bir iyzico kodu, bos kod, taninmayan `status` ve `det` yoklugu ESKI fail-closed yolunda
+// KALIR — kor iptal parayi gorunmez yapar ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]],
+// [[yeni-hal-cozucunun-varsayilan-kovasina-duser]]: yeni bir HAL, cozucunun varsayilan
+// kovasina dusup SAHTE YESIL uretmemeli).
+//
+// 🔴 KOD TEK BASINA YETMEZ: son iki vaka kumede OLAN bir kodu, iyzico'nun "failure" beyani
+// OLMADAN tasir. Bunlar taninmayan bir govdeden de gelebilir -> fail-closed.
+
+console.log("\n--- 10) (q) EMNIYET: kapali kume DISINDA kalan her sey FAIL-CLOSED ---");
+{
+  const HALLER = [
+    ["bilinmeyen-kod", DETAY.bilinmeyenKod()],
+    ["bos-kod", { status: "failure", errorCode: "", errorMessage: "" }],
+    ["kod-alani-yok", { status: "failure" }],
+    ["det-yok", null],
+    ["status-yok-kod-kumede", { errorCode: "5122", errorMessage: "uydurma" }],
+    ["status-baska-kod-kumede", { status: "pending", errorCode: "5122", errorMessage: "uydurma" }],
+  ];
+  for (const [ad, det] of HALLER) {
+    const no = "PR-TEST-FAILCLOSED-" + ad;
+    const satirlar = [satirYap(no, "bekliyor", 30)];
+    const o = ortamKur(satirlar, () => det);
+    const r = await MODUL.terkSupur(o.env, o.ctx, SIMDI);
+    await o.bitir();
+
+    ol("q", ad + ": durum DEGISMEDI ('bekliyor')", satirlar[0].durum === "bekliyor",
+      "durum=" + satirlar[0].durum);
+    ol("q", ad + ": 🔴 D1'e HIC YAZILMADI (UPDATE sayisi 0)", o.db.izler.length === 0,
+      JSON.stringify(o.db.izler.map((i) => i.siparis_no)));
+    ol("q", ad + ": sayac ulasilamadi=1, iptal=0, degisen=0",
+      r.ulasilamadi === 1 && r.iptal === 0 && r.degisen === 0, JSON.stringify(r));
+    ol("q", ad + ": gecmise de yazilmadi", satirlar[0].durum_gecmisi === "",
+      satirlar[0].durum_gecmisi);
+    const kayitlar = o.olcumKayitlari();
+    ol("q", ad + ": olcum satiri 'retrieve-hatasi' (kesin-basarisiz DEGIL)",
+      kayitlar.some((x) => x.atlandi === "retrieve-hatasi") &&
+      !kayitlar.some((x) => x.atlandi === "kesin-basarisiz"), JSON.stringify(kayitlar));
+  }
+}
+
+// ODENMIS KOL BOZULMADI: yeni sinif, 'odendi' para-kurtarma kolunun ONUNE gecmemeli.
+{
+  const no = "PR-TEST-ODENDI-BOZULMADI";
+  const satirlar = [satirYap(no, "bekliyor", 30)];
+  const o = ortamKur(satirlar, () => DETAY.odendi(no));
+  const r = await MODUL.terkSupur(o.env, o.ctx, SIMDI);
+  await o.bitir();
+  ol("q", "status='success' + paymentStatus='SUCCESS' -> durum 'odendi' (kol BOZULMADI)",
+    satirlar[0].durum === "odendi", satirlar[0].durum);
+  ol("q", "odendi kolunda iptal=0, odendi=1", r.iptal === 0 && r.odendi === 1,
+    JSON.stringify(r));
+  ol("q", "odendi turunda 'kesin-basarisiz' satiri BASILMADI (gurultu yok)",
+    !o.olcumKayitlari().some((x) => x.atlandi === "kesin-basarisiz"),
+    JSON.stringify(o.olcumKayitlari()));
+}
+
+// 🔒 GIZLILIK — YENI KOLDA DA AYNI KAPI. Yeni bir log cagrisi acilmadigi icin ayni beyaz
+// liste + token maskesi gecerlidir; ama bu CIKARIM DEGIL, OLCUM olmali (kol ayri bir
+// dizgeyle basiyor: "kesin-basarisiz").
+{
+  const no = "PR-TEST-KESIN-GIZLILIK";
+  const PII = {
+    musteri_ad: "PIIADXQ-Ayse Yilmaz",
+    musteri_tel: "PIITELXQ-05321234567",
+    musteri_eposta: "PIIEPOSTAXQ@ornek.invalid",
+    musteri_adres: "PIIADRESXQ Cumhuriyet Mah. 12/3",
+    musteri_notu: "PIINOTXQ kapida teslim",
+    atif: JSON.stringify({ ga_client_id: "PIIGAXQ-9.9", fbp: "PIIFBPXQ.fb.1", fbc: "PIIFBCXQ.fb.1" }),
+    token: "PIITOKENXQ-uydurma-odeme-token-0123456789",
+  };
+  const satirlar = [satirYap(no, "bekliyor", 30, PII)];
+  // Kesin-basarisiz cevap, ham govdeyi ECHO ediyor gibi: token metnin ICINDE.
+  const o = ortamKur(satirlar, (t) => ({
+    status: "failure", errorCode: "5122",
+    errorMessage: 'Odeme bulunamadi: {"locale":"tr","token":"' + t + '"}',
+  }));
+  await MODUL.terkSupur(o.env, o.ctx, SIMDI);
+  await o.bitir();
+
+  const cikti = o.loglar().join("\n");
+  const h = o.olcumKayitlari().find((x) => x.atlandi === "kesin-basarisiz");
+  ol("p", "kesin-basarisiz satiri GERCEKTEN basildi (negatif iddia sahte-yesil vermesin)",
+    !!h, cikti);
+  ol("p", "🔒 kesin-basarisiz kolunda fikstur PII damgasi ('XQ') ciktinin HICBIR YERINDE yok",
+    cikti.indexOf("XQ") < 0, cikti.slice(0, 400));
+  ol("p", "🔒 kesin-basarisiz kolunda token'in yerinde MASKE var",
+    !!h && String(h.errorMessage).indexOf("***") >= 0, String(h && h.errorMessage));
+  ol("p", "kesin-basarisiz kolunda errorCode teknik kod olarak GECTI",
+    !!h && h.errorCode === "5122", String(h && h.errorCode));
+}
+
+// ================================================================ 11) (r) IKINCI TUKETICI
+//
+// [[tuketici-yazilirken-tum-okuyucular-sayilir]]: `odemeHukmu` IKI yerden cagrilir. Yeni
+// sinif CANLI MUSTERI YOLUNU da (`/donus`) degistirir ve bu KASITLIDIR — kart reddi insan
+// incelemesi gerektirmez, 'incele' + Telegram yalnizca gurultu uretiyordu. Sessiz bir yan
+// etki DEGIL, ADIYLA olculen bir eksendir. Gercek altyapi hatasi kolu AYNEN durur.
+
+console.log("\n--- 11) (r) IKINCI TUKETICI: /donus callback'i (canli musteri yolu) ---");
+async function donusKos(no, det) {
+  const satirlar = [satirYap(no, "bekliyor", 1)];
+  const o = ortamKur(satirlar, () => det);
+  const istek = new Request("https://pruvo3d.invalid/api/shop/donus", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: satirlar[0].token }),
+  });
+  await MODUL.default.fetch(istek, o.env, o.ctx);
+  await o.bitir();
+  return { satir: satirlar[0], o };
+}
+
+for (const kod of ["5122", "10054", "10057"]) {
+  const { satir, o } = await donusKos("PR-TEST-DONUS-KESIN-" + kod, DETAY.kesinBasarisiz(kod));
+  ol("r", kod + ": /donus KESIN-BASARISIZ -> durum 'basarisiz'", satir.durum === "basarisiz",
+    "durum=" + satir.durum);
+  ol("r", kod + ": 🔴 'incele' DEGIL (insan incelemesine dusurulmez)", satir.durum !== "incele",
+    "durum=" + satir.durum);
+  ol("r", kod + ": Telegram GITMEDI (kart reddi gurultusu kesildi)", o.telegramSayisi() === 0,
+    "tg=" + o.telegramSayisi());
+  ol("r", kod + ": Purchase GITMEDI", o.purchaseSayisi() === 0,
+    "olcum-post=" + o.purchaseSayisi());
+  ol("r", kod + ": olcum satirinda atlandi='kesin-basarisiz'",
+    o.olcumKayitlari().some((x) => x.atlandi === "kesin-basarisiz"),
+    JSON.stringify(o.olcumKayitlari()));
+}
+
+// GERCEK ALTYAPI HATASI + BILINMEYEN KOD: eski kol AYNEN durur ('incele' + Telegram).
+for (const [ad, det] of [["altyapi-1001", DETAY.altyapiHatasi()],
+                         ["bilinmeyen-9999", DETAY.bilinmeyenKod()]]) {
+  const { satir, o } = await donusKos("PR-TEST-DONUS-" + ad, det);
+  ol("r", ad + ": /donus 'incele' YAZDI (fail-closed kol AYNEN duruyor)",
+    satir.durum === "incele", "durum=" + satir.durum);
+  ol("r", ad + ": 🔴 ASLA 'basarisiz' degil (odeme durumu BILINMIYOR)",
+    satir.durum !== "basarisiz", "durum=" + satir.durum);
+  ol("r", ad + ": Telegram uyarisi HALA GIDIYOR", o.telegramSayisi() === 1,
+    "tg=" + o.telegramSayisi());
+  ol("r", ad + ": olcum satiri 'retrieve-hatasi' (kesin-basarisiz DEGIL)",
+    o.olcumKayitlari().some((x) => x.atlandi === "retrieve-hatasi") &&
+    !o.olcumKayitlari().some((x) => x.atlandi === "kesin-basarisiz"),
+    JSON.stringify(o.olcumKayitlari()));
+}
+
+// UYUSMAZLIK kolu (para ORTADA) /donus'ta da BOZULMADI: asla 'basarisiz'/'iptal'.
+{
+  const no = "PR-TEST-DONUS-UYUSMAZ";
+  const { satir, o } = await donusKos(no, DETAY.tutarsiz(no));
+  ol("r", "uyusmazlik: /donus 'incele' YAZDI (para ORTADA)", satir.durum === "incele",
+    "durum=" + satir.durum);
+  ol("r", "uyusmazlik: 🔴 ne 'basarisiz' ne 'iptal'",
+    satir.durum !== "basarisiz" && satir.durum !== "iptal", "durum=" + satir.durum);
+  ol("r", "uyusmazlik: Telegram uyarisi GITTI", o.telegramSayisi() === 1,
+    "tg=" + o.telegramSayisi());
+}
+
+// ================================================================ 12) (k) KAPALI KUME TEK KAYNAK
+//
+// Kume ve yuklem TEK dosyada (shop/src/iyzico.js) ve DISA ACIK olmali: ikinci bir sozluk
+// ya da `det.errorCode` ile elle karsilastirma, sessizce ayrisan ikinci bir hukum acardi
+// ([[ayni-alan-iki-hukum-biri-sessiz]]). Olcut DAVRANISTIR: yuklem GERCEKTEN cagrilir.
+
+console.log("\n--- 12) (k) KAPALI KUME + TEK YUKLEM: tek kaynak ---");
+{
+  const IYZ = await import(url.pathToFileURL(
+    path.join(path.dirname(KAYNAK_YOL), "iyzico.js")).href);
+  ol("k", "kume DISA ACIK ve DONDURULMUS (Object.freeze)",
+    Array.isArray(IYZ.IYZICO_KESIN_BASARISIZ) && Object.isFrozen(IYZ.IYZICO_KESIN_BASARISIZ),
+    JSON.stringify(IYZ.IYZICO_KESIN_BASARISIZ));
+  ol("k", "kume BOS DEGIL ve uyeleri dizge",
+    IYZ.IYZICO_KESIN_BASARISIZ.length > 0 &&
+    IYZ.IYZICO_KESIN_BASARISIZ.every((x) => typeof x === "string" && x.length > 0),
+    JSON.stringify(IYZ.IYZICO_KESIN_BASARISIZ));
+  ol("k", "yuklem: kumedeki her uye 'failure' beyaniyla TRUE",
+    IYZ.IYZICO_KESIN_BASARISIZ.every((kod) =>
+      IYZ.kesinBasarisizMi({ status: "failure", errorCode: kod }) === true),
+    JSON.stringify(IYZ.IYZICO_KESIN_BASARISIZ));
+  ol("q", "yuklem: det YOK -> false", IYZ.kesinBasarisizMi(null) === false);
+  ol("q", "yuklem: status 'failure' DEGIL -> false (kod kumede olsa bile)",
+    IYZ.kesinBasarisizMi({ errorCode: "5122" }) === false &&
+    IYZ.kesinBasarisizMi({ status: "pending", errorCode: "5122" }) === false);
+  ol("q", "yuklem: bilinmeyen/bos kod -> false",
+    IYZ.kesinBasarisizMi({ status: "failure", errorCode: "9999" }) === false &&
+    IYZ.kesinBasarisizMi({ status: "failure", errorCode: "" }) === false &&
+    IYZ.kesinBasarisizMi({ status: "failure" }) === false);
+  // Kume KAPALI: "YOK" sozlesme degeri uye OLAMAZ (bos kod kor iptale donusurdu).
+  ol("q", "kume 'YOK' sozlesme degerini ICERMEZ",
+    IYZ.IYZICO_KESIN_BASARISIZ.indexOf("YOK") < 0,
+    JSON.stringify(IYZ.IYZICO_KESIN_BASARISIZ));
 }
 
 // ================================================================ SONUC
