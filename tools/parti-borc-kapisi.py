@@ -50,11 +50,14 @@ KABUL (calistirilabilir):
 Disiplin:
   - urunler.json / .urun-kaynaklari.json'a YAZMAZ (bu kapinin isi degil).
   - --kendini-test gercek defterlere DOKUNMAZ; tempfile.mkdtemp altinda kosar.
-  - esik ve ev->defter eslemesi TEK KAYNAKTA sabit (buradaki sabitler); ikinci
-    kopya YASAK.
+  - esik burada sabit; ev->dizin eslemesi REPO DISINDA tek kaynaktir
+    (`~/.claude/cron/evler.json`, K361) ve buradan YUKLENIR — ikinci kopya
+    YASAK. Yukleyici fail-closed'dir: yok/bozuk/bos -> `EV_DIZIN is None`
+    (bos dict DEGIL) ve her kol `T4-OLCULEMEDI` sinifindan RED verir.
 """
 import argparse
 import datetime
+import json
 import os
 import re
 import shutil
@@ -73,33 +76,155 @@ DEFAULT_ESIK = 0
 # Burada yalniz KAPANDI "kapali" sayilir; diger dort deger acik.
 ACIK_DURUMLAR = frozenset({"ACIK", "UCUSTA", "OKAN-KAPISI", "🔧"})
 
-# EV -> defter yolu koku. Tek kaynak: /Users/okan/.claude/projects/-Users-okan-
-# dev-pruvo-<EV>/memory/acik-kalemler.md. (T3 ile ayni EV_DIZIN yapisi; burada
-# acik_kalem_yolu(ev) uretip ozellikle sade tutuldu.)
-EV_DIZIN = {
-    "KraL":    "/Users/okan/.claude/projects/-Users-okan-dev-pruvo",
-    "MaCiT":   "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-hasat",
-    "ArTisT":  "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-pazarlama",
-    "HocA":    "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-bot",
-    "TeKiN":   "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-jenerator",
-    # 🔴 27 Agu 2026 (KraL-N2BEvHaritasi-27Agu) — BaBa'nin satiri BAYATTI.
-    # Eskiden `-Users-okan-dev-pruvo` idi ("BaBa KraL'da oturur"); BaBa'nin
-    # kendi deposu (`/Users/okan/dev/pruvo-advisor`) acildiktan sonra bu satir
-    # ARTIK DOGRU DEGILDI ve iki sonucu vardi:
-    #   (1) `parti-kapisi.ev_coz()` bu tablonun TERSINI kurar; advisor koku
-    #       hicbir anahtara duşmedigi icin `N2B-OLCULEMEDI depo koku bilinen
-    #       bir eve cozulemedi` -> HUKUM=RED -> sarmalayici exit 3. BaBa'nin
-    #       isci kanali fiilen KAPALIYDI (olculdu, 27 Agu).
-    #   (2) BaBa'nin defteri/postasi KraL'in dizininde ARANIYORDU.
-    # Bu satir bir DIZGE yamasi degil, tablonun DISKTEKI gercege
-    # esitlenmesidir; bilinmeyen kok HALA cozulemez (fail-closed KORUNUR).
-    "BaBa":    "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-advisor",
-    "ORTAK":   "/Users/okan/.claude/projects/-Users-okan-dev-pruvo",
-}
+# ==============================================================================
+# 🔴 K361 (2 Eyl 2026, Okan emri / BaBa) — EV -> DIZIN TABLOSU REPO DISINDA
+# ==============================================================================
+# OLCULEN ARIZA (iki ayri kusur, ikisi de yapisal):
+#   (1) Tablo BU DOSYADA sabitti. Sonucu: **yeni bir ev acmak PRUVO kodu
+#       degistirmeyi gerektiriyordu.** PRUVO-disi yeni is Faralya (FaR,
+#       `/Users/okan/dev/faralya`) ayni `isci.sh` hattini paylastigi icin,
+#       hattin ev listesine girebilmek adina PRUVO reposunda **commit'siz bir
+#       satir** birakti (`git status` -> `M tools/parti-borc-kapisi.py`) ve
+#       MaCiT `git add -A` yapsa urun partisine karisacakti.
+#   (2) Depo ZATEN IKI TABLOLUYDU: `tools/sahiplik-kapisi.py:107` icinde elle
+#       yazilmis ikinci bir kume vardi ve icinde `FaR` YOKTU — sessizce
+#       ayrismisti ([[ikiz-tanim-sessiz-ayrisma]]). O kume SILINDI; artik bu
+#       yukleyiciden TURETILIR.
+#
+# TEK KAYNAK: `~/.claude/cron/evler.json` (duz eslesme; `_` ile baslayan
+# anahtarlar NOT'tur, ev sayilmaz). Gerekce yorumlari — JSON yorum tasimadigi
+# icin — yanindaki `evler-NOT.md`'de BIREBIR durur (kayipsizlik
+# `tools/ev-haritasi-kapisi-test.py::NOT_KAYIPSIZ` kolunda olculur).
+#
+# 🔴 FAIL-CLOSED, ISIN EMNIYET CEKIRDEGI: dosya YOK / bozuk / gecerli-ama-BOS
+# ise tablo **BOS SAYILMAZ**. Bos tablo "hicbir evde acik kalem yok" demeye
+# gelir ve kapiyi SESSIZCE ACAR ([[yeni-hal-cozucunun-varsayilan-kovasina-duser]]).
+# Bu uc halde `EV_DIZIN` **None**'dir (bos dict DEGIL) ve her okuyucu
+# `T4-OLCULEMEDI` sinifindan sifir-disi rc ile RED verir. Bilinmeyen depo koku
+# HALA cozulemez (mevcut fail-closed davranis AYNEN korundu).
+EVLER_JSON_VARSAYILAN = "/Users/okan/.claude/cron/evler.json"
+# Ortam degiskeni YALNIZ hermetik bataryalar icindir (uretimde verilmez).
+EVLER_JSON_ORTAM = "PRUVO_EVLER_JSON"
+
+# Ev adi: bos olamaz, `_` ile baslayamaz (o anahtarlar NOT'tur).
+_EV_ADI_RE = re.compile(r"^[^_\W][\w.-]*$", re.UNICODE)
+
+
+class EvHaritasiOlculemedi(RuntimeError):
+    """Ev haritasi OKUNAMADI. Fail-closed: cagiran BOS TABLO SAYAMAZ."""
+
+
+def evler_json_yolu():
+    """Tek kaynagin yolu. Ortam degiskeni yalniz hermetik batarya icindir."""
+    return os.environ.get(EVLER_JSON_ORTAM) or EVLER_JSON_VARSAYILAN
+
+
+def ev_haritasi_yukle(yol=None):
+    """`evler.json`'u okur ve {EV: dizin} doner.
+
+    🔴 ASLA bos sozluk DONMEZ: yok / bozuk / bos / sema disi hallerin HEPSI
+    `EvHaritasiOlculemedi` FIRLATIR. Hata metni aranan YOLU ve sebebi tasir
+    (fail-loud) — "OLCULEMEDI" demek yetmez.
+    """
+    yol = yol or evler_json_yolu()
+    try:
+        with open(yol, encoding="utf-8") as f:
+            ham = f.read()
+    except OSError as e:
+        raise EvHaritasiOlculemedi(
+            "EV_HARITASI okunamadi (yol=%s): %s: %s" % (yol, type(e).__name__, e))
+    try:
+        veri = json.loads(ham)
+    except ValueError as e:
+        raise EvHaritasiOlculemedi(
+            "EV_HARITASI BOZUK JSON (yol=%s): %s: %s" % (yol, type(e).__name__, e))
+    if not isinstance(veri, dict):
+        raise EvHaritasiOlculemedi(
+            "EV_HARITASI sema disi (yol=%s): kok nesne degil, %s"
+            % (yol, type(veri).__name__))
+    harita = {}
+    for anahtar, deger in veri.items():
+        if not isinstance(anahtar, str) or anahtar.startswith("_"):
+            continue                      # `_` onekli anahtar = NOT, ev DEGIL
+        if not _EV_ADI_RE.match(anahtar):
+            raise EvHaritasiOlculemedi(
+                "EV_HARITASI sema disi (yol=%s): gecersiz ev adi %r" % (yol, anahtar))
+        if not isinstance(deger, str) or not deger.strip():
+            raise EvHaritasiOlculemedi(
+                "EV_HARITASI sema disi (yol=%s): %s icin dizin bos/dizge degil (%r)"
+                % (yol, anahtar, deger))
+        if not deger.startswith("/"):
+            raise EvHaritasiOlculemedi(
+                "EV_HARITASI sema disi (yol=%s): %s icin dizin MUTLAK degil (%r)"
+                % (yol, anahtar, deger))
+        harita[anahtar] = deger.rstrip("/")
+    if not harita:
+        # 🔴 EN ONEMLI KOL: gecerli JSON ama SIFIR ev. "Ev yok" != "borc yok".
+        raise EvHaritasiOlculemedi(
+            "EV_HARITASI BOS (yol=%s): 0 ev — bos tablo GECERLI SAYILMAZ "
+            "(bos tablo kapiyi sessizce acar)" % yol)
+    return harita
+
+
+def _harita_baglayici(yol=None):
+    """(harita|None, hata|None) — modul duzeyindeki isimleri baglar."""
+    try:
+        return ev_haritasi_yukle(yol), None
+    except EvHaritasiOlculemedi as e:
+        return None, str(e)
+
+
+def ev_haritasi_tazele(yol=None):
+    """Modul duzeyindeki EV_DIZIN/EV_BILINEN'i YENIDEN baglar.
+
+    Okuyucularin hepsi bu isimleri CAGRI ANINDA okur; boylece hermetik
+    bataryalar canli `evler.json`'a HIC dokunmadan kosabilir.
+    Return: (EV_DIZIN|None, EV_HARITASI_HATA|None).
+    """
+    global EV_DIZIN, EV_BILINEN, EV_HARITASI_HATA
+    EV_DIZIN, EV_HARITASI_HATA = _harita_baglayici(yol)
+    EV_BILINEN = frozenset(EV_DIZIN) if EV_DIZIN else None
+    return EV_DIZIN, EV_HARITASI_HATA
+
+
+def fikstur_haritasi_yaz(yol, harita):
+    """HERMETIK BATARYA KOLU — uretimde CAGRILMAZ.
+
+    Verilen {EV: dizin} haritasini `yol`a yazar, `PRUVO_EVLER_JSON`'u ona
+    isaretler (alt sureclere de miras kalir) ve modul duzeyindeki tabloyu
+    yeniden baglar. Boylece batarya CANLI `evler.json`'a HIC dokunmaz —
+    kosucuda (CI) o dosya YOKTUR ([[patha-sorulan-ikili-cron-da-yok]]).
+    """
+    kok = os.path.dirname(os.path.abspath(yol))
+    if kok and not os.path.isdir(kok):
+        os.makedirs(kok, exist_ok=True)
+    with open(yol, "w", encoding="utf-8") as f:
+        json.dump(dict(harita), f, ensure_ascii=False, indent=2)
+    os.environ[EVLER_JSON_ORTAM] = yol
+    ev_haritasi_tazele(yol)
+    return yol
+
+
+def fikstur_haritasi_kur(koku, evler):
+    """Fikstur dizinleri KOKUN ALTINDA: canli yol literali (`-Users-okan-dev-*`)
+    TASIMAZ. `fikstur_haritasi_yaz`in kisayolu."""
+    return fikstur_haritasi_yaz(os.path.join(koku, "evler.json"),
+                                {ev: os.path.join(koku, ev) for ev in evler})
+
+
+# HERMETIK BATARYA fikstur EV ADLARI — canli tablonun kopyasi DEGIL, yalnizca
+# izole kok altinda kullanilan sentetik adlardir (yol literali TASIMAZ).
+# Kardes bataryalar (parti-kapisi / devir-kapisi / chip-duzeni) ayni demeti
+# BURADAN okur; ikinci liste YAZILMAZ.
+FIKSTUR_EVLERI = ("KraL", "MaCiT", "ArTisT", "HocA", "TeKiN", "BaBa", "ORTAK")
 
 ACIK_KALEM_DOSYA = "memory/acik-kalemler.md"
 
-EV_BILINEN = frozenset(EV_DIZIN.keys())
+# Modul duzeyi baglama — IMPORT ASLA COKMEZ (okuyucular kendi kovalarinda
+# hukum verebilsin diye), fakat hata halinde EV_DIZIN **None**'dir: bos dict
+# DEGIL. Bos dict fail-OPEN olurdu.
+EV_DIZIN, EV_HARITASI_HATA = _harita_baglayici()
+EV_BILINEN = frozenset(EV_DIZIN) if EV_DIZIN else None
 
 # Hedef kol jetonlari — cikti satirinda ve mutant dogrulamada kullanilir.
 # Kol ATIFI mesajin BASINDA gecer; mutant dogrulamasi `startswith(kol + " ")`
@@ -150,7 +275,12 @@ def acik_kalem_yolu(ev, koku_root=None):
     <EV>/memory/acik-kalemler.md'ye yazilir. Gercek modda EV_DIZIN[ev] kullanilir.
 
     Return: (kok, acik_kalem_yolu, EV_gecerli_mi). Gecersiz EV icin hepsi None.
+
+    🔴 K361: harita OLCULEMEDIYSE (EV_BILINEN is None) `EvHaritasiOlculemedi`
+    FIRLATILIR — "gecersiz EV" ile KARISTIRILMAZ, ve BOS KUME sayilmaz.
     """
+    if EV_BILINEN is None:
+        raise EvHaritasiOlculemedi(EV_HARITASI_HATA or "EV_HARITASI OLCULEMEDI")
     if ev not in EV_BILINEN:
         return None, None, False
     if koku_root is not None:
@@ -349,7 +479,14 @@ def parti_engeli_var_mi(ev, esik=DEFAULT_ESIK, *, koku_root=None, muafiyet_yok=N
         "OLCUTSUZ_SAYISI": 0,
     }
 
-    kok, defter_yol, gecerli = acik_kalem_yolu(ev, koku_root=koku_root)
+    try:
+        kok, defter_yol, gecerli = acik_kalem_yolu(ev, koku_root=koku_root)
+    except EvHaritasiOlculemedi as e:
+        # 🔴 K361 FAIL-CLOSED: harita yok/bozuk/bos -> "borc yok" SAYILMAZ.
+        sonuc["OLCULEMEDI"] = True
+        sonuc["RED"] = True
+        sonuc["HATA"] = "%s %s" % (T4_OLCULEMEDI_JETON, e)
+        return sonuc
     if not gecerli:
         # Gecersiz EV — T4-OLCULEMEDI sinifinin alt turu (kol ayrimi: bu mesaj
         # T4-OLCULEMEDI onekiyle baslar ki M4 yanlis tetiklenmesin; M4
@@ -802,8 +939,25 @@ def curutme_testi(repo_kok, esik, koku_root):
 # ------------------------------------------------------------------------------
 # ANALIZ / KONTROL (default, yazmaz)
 # ------------------------------------------------------------------------------
+def harita_olculemedi_bas(nerede):
+    """🔴 K361 fail-closed cikisi. Harita okunabiliyorsa None doner."""
+    if EV_BILINEN is not None:
+        return None
+    print("T4 PARTI BORC KAPISI — %s" % nerede)
+    print("HATA: %s %s" % (T4_OLCULEMEDI_JETON,
+                           EV_HARITASI_HATA or "EV_HARITASI OLCULEMEDI"))
+    print("KAYNAK: %s" % evler_json_yolu())
+    print("HUKUM: RED (%s fail-closed — BOS TABLO GECERLI SAYILMAZ; "
+          "bos tablo 'hicbir evde acik kalem yok' demeye gelir ve kapiyi "
+          "SESSIZCE ACAR)" % T4_OLCULEMEDI_JETON)
+    return 2
+
+
 def kontrol(ev, esik):
     """Tek bir EV icin parti kararini bas. YAZMAZ. --kendini-test degil."""
+    rc = harita_olculemedi_bas("KONTROL")
+    if rc is not None:
+        return rc
     if ev not in EV_BILINEN:
         print("HATA: gecersiz EV: %r" % ev)
         print("bilinen EV'ler: %s" % ", ".join(sorted(EV_BILINEN)))
@@ -836,6 +990,9 @@ def kontrol(ev, esik):
 def rapor(esik):
     """Tum bilinen EV'ler icin acik kalem sayisi + esik + RED/GECER hukumu.
     Salt okuma. YAZMAZ."""
+    rc = harita_olculemedi_bas("RAPOR")
+    if rc is not None:
+        return rc
     print("T4 PARTI BORC KAPISI — RAPOR (salt-okunur, YAZMAZ)")
     print("esik: %d" % esik)
     print("")
@@ -902,6 +1059,10 @@ def main():
         for ev in ("KraL", "MaCiT", "ArTisT", "TeKiN"):
             os.makedirs(os.path.join(koku, ev, "memory"), exist_ok=True)
         # HocA'yi kasten olusturma; M4 onu kullanir.
+        # 🔴 K361: batarya HERMETIKTIR — canli `evler.json`'a DOKUNMAZ.
+        # Fikstur haritasi kokun altina yazilir; kosucuda (CI) canli config
+        # OLMADIGI icin bu ZORUNLUDUR ([[patha-sorulan-ikili-cron-da-yok]]).
+        fikstur_haritasi_kur(koku, FIKSTUR_EVLERI)
         rc = kendini_test(repo_kok, args.esik, koku)
         # Is bitince gecici koku temizle (Okan diski).
         if not args.defter_koku_root:
@@ -918,6 +1079,7 @@ def main():
                 return 1
         for ev in ("KraL", "ArTisT"):
             os.makedirs(os.path.join(koku, ev, "memory"), exist_ok=True)
+        fikstur_haritasi_kur(koku, FIKSTUR_EVLERI)   # K361 — hermetik
         rc = curutme_testi(repo_kok, args.esik, koku)
         if not args.defter_koku_root:
             shutil.rmtree(koku, ignore_errors=True)

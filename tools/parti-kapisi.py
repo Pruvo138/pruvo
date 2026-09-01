@@ -385,8 +385,15 @@ def ev_coz(depo_kok, *, t4=_MIRAS, t4_hata=None):
     t4, hata_t4 = _t4_coz(t4, t4_hata)
     if t4 is None:
         return None, hata_t4
+    # 🔴 K361: EV_DIZIN artik repo DISINDAN yuklenir (`~/.claude/cron/evler.json`)
+    # ve OKUNAMAZSA **None**'dir (bos dict DEGIL). Bos/None tablo "hicbir ev yok"
+    # -> her kok cozulemez -> fail-closed. Sebep METNI tasinir (fail-loud).
+    harita = getattr(t4, "EV_DIZIN", None)
+    if not harita:
+        return None, ("T4 EV_DIZIN OLCULEMEDI/bos: %s"
+                      % (getattr(t4, "EV_HARITASI_HATA", None) or "bos tablo"))
     ters = {}
-    for ev, dizin in t4.EV_DIZIN.items():
+    for ev, dizin in harita.items():
         ters.setdefault(os.path.abspath(dizin).rstrip("/"), []).append(ev)
     if not ters:
         return None, "T4 EV_DIZIN bos"
@@ -757,7 +764,13 @@ def parti_karari(ev_koku, etiket, *, esik=None, koku_root=None, mutant=None,
     if ev is None:
         ev, hata = ev_coz(ev_koku, t4=t4)
     sonuc["EV"] = ev
-    if ev is None or ev not in t4.EV_BILINEN:
+    # 🔴 K361: EV_BILINEN OLCULEMEDIYSE None'dir — `in` TypeError atardi.
+    # Fail-closed: harita yoksa HIC bir ev bilinmiyor sayilir.
+    _bilinen = getattr(t4, "EV_BILINEN", None)
+    if ev is None or not _bilinen or ev not in _bilinen:
+        if _bilinen is None:
+            hata = hata or ("EV_HARITASI OLCULEMEDI: %s"
+                            % (getattr(t4, "EV_HARITASI_HATA", None) or "-"))
         sonuc["HATA"] = "%s %s" % (N2B_OLCULEMEDI_JETON, hata or "EV bilinmiyor")
         if mutant == "M4":
             sonuc["HUKUM"] = "GECER"
@@ -1425,6 +1438,25 @@ def kendini_test(gecici_kok):
     kok_bot = "/Users/okan/dev/pruvo-bot"          # HocA — defteri HIC YOK
     kok_jen = "/Users/okan/dev/pruvo-jenerator"    # TeKiN — defteri VAR ama BOS
     kok_advisor = "/Users/okan/dev/pruvo-advisor"  # BaBa — kendi deposu (6. ev)
+
+    # 🔴 K361 — BATARYA HERMETIKTIR: ev->dizin tablosu artik repo DISINDA
+    # (`~/.claude/cron/evler.json`) ve KOSUCUDA (CI) O DOSYA YOKTUR. Bu batarya
+    # canli tabloya BAGLI KALAMAZ; kendi fiksturunu izolasyon kokune yazar.
+    # Fikstur bir TABLO KOPYASI DEGILDIR: yukaridaki depo koklerinden
+    # `_proje_dizini()` ile TURETILIR — yol literali IKINCI KEZ YAZILMAZ
+    # ([[tuketici-yazilirken-tum-okuyucular-sayilir]]).
+    if T4 is not None and hasattr(T4, "fikstur_haritasi_yaz"):
+        T4.fikstur_haritasi_yaz(
+            os.path.join(gecici_kok, "evler.json"),
+            {ev: _proje_dizini(kok) for ev, kok in (
+                ("KraL", kok_kral),
+                ("ORTAK", kok_kral),
+                ("MaCiT", kok_hasat),
+                ("HocA", kok_bot),
+                ("TeKiN", kok_jen),
+                ("BaBa", kok_advisor),
+                ("ArTisT", "/Users/okan/dev/pruvo-pazarlama"),
+            )})
 
     # Izole defterler: MaCiT'te 2 acik kalem, KraL'de hepsi KAPANDI.
     _sentetik_defter(os.path.join(gecici_kok, "MaCiT", "memory",

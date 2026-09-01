@@ -1985,6 +1985,27 @@ jobs:
           python3 tools/parti-borc-kapisi.py --kendini-test
           python3 tools/parti-borc-kapisi.py --curutme-test
 
+      # 🔴 K361 (2 Eyl 2026, Okan emri / BaBa) — EV->DIZIN TABLOSU REPO DISINDA.
+      # Tablo `tools/parti-borc-kapisi.py` icinde sabitti; sonucu yapisaldi:
+      # YENI EV ACMAK PRUVO KODU DEGISTIRMEYI GEREKTIRIYORDU (Faralya/FaR bu
+      # yuzden repoda commit'siz bir satir birakmisti) ve depo ZATEN IKI
+      # TABLOLUYDU (`sahiplik-kapisi.py:107`, icinde FaR YOK — sessizce
+      # ayrismis). Tek kaynak artik `~/.claude/cron/evler.json`.
+      # BU ADIM O TASIMANIN EMNIYET CEKIRDEGINI OLCER: konfig yok/bozuk/bos
+      # ise tablo BOS SAYILMAZ — kapi `T4-OLCULEMEDI` sinifindan sifir-disi rc
+      # ile RED verir (bos tablo "hicbir evde acik kalem yok" demeye gelir ve
+      # kapiyi SESSIZCE ACAR).
+      # Batarya HERMETIKTIR: her vaka kendi fiksturunu `tempfile.mkdtemp()`
+      # altina yazar ve `PRUVO_EVLER_JSON` ile gosterir; CANLI `evler.json`'a
+      # DOKUNMAZ. Kosucuda `~/.claude/cron` YOKTUR — yalniz F7 (gerekce
+      # yorumlarinin kayipsizligi) yerel-duzlemdir ve orada KAPSAM_DISI sayilir
+      # (kusur DEGIL, ayri kovada raporlanir); kapsam tabani (6) SAYIYLA
+      # civilidir, altina duserse batarya rc=2 OLCULEMEDI verir. Offline, ag YOK.
+      - name: "K361 ev haritasi bataryasi (fail-closed fiksturleri + 3 mutant + esdeger kontrol)"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/ev-haritasi-kapisi-test.py
+
       # N2 "KIRLETEN ONARIR" — Okan onayli doktrin (19 Agu 2026).
       # Okan'in vakasi: "MaCiT 100-100 urun ekliyor, iletiyi gormedi, isine devam
       # etti; tamirat yapilmadigi icin tum mimarlar MaCiT'i bekledi."

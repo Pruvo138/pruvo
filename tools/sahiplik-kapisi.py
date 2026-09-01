@@ -46,6 +46,7 @@ Kullanim:
     python3 tools/sahiplik-kapisi.py --json            # makine-okunur cikti
 """
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -102,10 +103,61 @@ TOHUM_6 = (
 )
 TOHUM_6_YOL = tuple("tools/" + t for t in TOHUM_6)
 
-# Kabul edilen EV degerleri — spec §2a'dan; BILINMIYOR sozlesmeli gecersiz EV
-# yerine kullanilir (sahipsiz sayilir ama kapiyi YAKMAZ — spec §2b).
-EV_BILINEN = {"KraL", "MaCiT", "TeKiN", "ArTisT", "HocA", "BaBa", "ORTAK"}
-EV_OLARAK_KABUL = EV_BILINEN | {"BILINMIYOR"}
+# ==============================================================================
+# 🔴 K361 (2 Eyl 2026) — IKINCI TABLO SILINDI, TEK KAYNAKTAN TURETILIR
+# ==============================================================================
+# OLCULEN ARIZA: burada ELLE yazilmis, YEDI ev adi tasiyan bir ikinci kume
+# duruyordu (satir 107) ve **`FaR` YOKTU** — kume metni buraya YENIDEN
+# YAZILMAZ, cunku yorumdaki kopya da bir IKINCI KOPYADIR
+# ([[kapi-red-metni-ikinci-kopyadir]]); tam metin icin `git show <onceki>`.
+# `parti-borc-kapisi.py`'nin tablosu 2 Eyl'de FaR'i
+# tanidiginda bu kume sessizce AYRISTI ([[ikiz-tanim-sessiz-ayrisma]]).
+# Ikiz tanim tutulmaz: kume artik TEK KAYNAKTAN (`~/.claude/cron/evler.json`,
+# T4 yukleyicisi uzerinden) TURETILIR.
+#
+# 🔴 FAIL-CLOSED: kaynak yok/bozuk/bos ise `EV_BILINEN_COZ()` **None** doner
+# (bos kume DEGIL) ve `denetle()` OLCULEMEDI hukmuyle sifir-disi rc verir.
+# Bos kume "her EV gecersiz" demeye gelir ve butun haritayi kirmizi yakardi;
+# None ise ayri bir kova ve sebebi ADIYLA basar.
+# BILINMIYOR sozlesmeli gecersiz EV yerine kullanilir (sahipsiz sayilir ama
+# kapiyi YAKMAZ — spec §2b).
+_T4_ADAYLARI = (
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "parti-borc-kapisi.py"),
+    "/Users/okan/dev/pruvo/tools/parti-borc-kapisi.py",
+)
+
+
+def _t4_yukle():
+    denemeler = []
+    for aday in _T4_ADAYLARI:
+        try:
+            if not os.path.isfile(aday):
+                raise FileNotFoundError(aday)
+            spec = importlib.util.spec_from_file_location("pruvo_t4_sahiplik", aday)
+            if spec is None or spec.loader is None:
+                raise ImportError("spec/loader COZULEMEDI")
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            return mod, None
+        except Exception as e:            # noqa: BLE001 — fail-loud sebep tasinir
+            denemeler.append("%s -> %s: %s" % (aday, type(e).__name__, e))
+    return None, "T4 YUKLENEMEDI: %s" % " | ".join(denemeler)
+
+
+def EV_BILINEN_COZ():
+    """Tek kaynaktan ev kumesi. (kume|None, hata|None) — bos kume DONMEZ."""
+    mod, hata = _t4_yukle()
+    if mod is None:
+        return None, hata
+    bilinen = getattr(mod, "EV_BILINEN", None)
+    if not bilinen:
+        return None, ("EV_HARITASI OLCULEMEDI: %s"
+                      % (getattr(mod, "EV_HARITASI_HATA", None) or "bos tablo"))
+    return set(bilinen), None
+
+
+EV_BILINEN, EV_BILINEN_HATA = EV_BILINEN_COZ()
+EV_OLARAK_KABUL = (EV_BILINEN | {"BILINMIYOR"}) if EV_BILINEN else None
 
 # SERIT degerleri — spec §2a. Olcut spec'te TAM verilmemis; ELLE yazildi.
 SERIT_OLARAK_KABUL = {"yayin", "veri", "nobet", "hijyen", "arac"}
@@ -356,7 +408,14 @@ def dogrula(evren, harita, *, plane_status=None, test_modu=False, mutant=None):
     Paket ③-g §H1: Olculemeyen duzleme ait harita satirlari BAYAT hesabina
     GIRMEZ; OLCULEMEYEN_SATIR olarak sayilir. M5 bu davranisin mutanti:
     mutasyon aktifken olculemeyen duzlem satirlari yeniden BAYAT'a katilir.
+
+    🔴 K361 fail-closed: ev kumesi TEK KAYNAKTAN gelir; okunamazsa hukum
+    OLCULEMEDI'dir (rc!=0) — "her EV gecersiz" DEMEZ, sebebi ADIYLA basar.
     """
+    # Harita OLCULEMEDIYSE hicbir EV kabul edilmez (fail-closed). Temiz cikis
+    # `main()`de rc=2 OLCULEMEDI olarak verilir; burasi dogrudan API cagiranin
+    # sessizce YESIL almasini engeller.
+    ev_olarak_kabul = EV_OLARAK_KABUL if EV_OLARAK_KABUL is not None else frozenset()
     # plane_status verilmediyse tum duzlemler olculmus varsay (geri-uyumluluk)
     if plane_status is None:
         plane_status = {
@@ -405,7 +464,7 @@ def dogrula(evren, harita, *, plane_status=None, test_modu=False, mutant=None):
             continue
         haritada_var.add(e["yol"])
         for h in harita_yol_indexi[e["yol"]]:
-            if h["EV"] not in EV_OLARAK_KABUL:
+            if h["EV"] not in ev_olarak_kabul:
                 kirmizi_satirlar.append((h["SATIR_NO"], "EV gecersiz: %r" % h["EV"]))
             elif h["EV"] == "BILINMIYOR":
                 sahipsiz.append((h["YOL"], h["MEKANIZMA"], h["SATIR_NO"]))
@@ -797,6 +856,15 @@ def main():
     ap.add_argument("--kendini-test", action="store_true",
                     help="7 mutant + 2 kontrolu kosar, MUTANT/KONTROL ozetini basar")
     args = ap.parse_args()
+
+    # 🔴 K361 FAIL-CLOSED: ev kumesi TEK KAYNAKTAN (`~/.claude/cron/evler.json`)
+    # gelir. Okunamazsa hukum OLCULEMEDI'dir (rc=2) — "her EV gecersiz" diye
+    # butun haritayi kirmizi yakmayiz, ve sessizce YESIL de yanmayiz.
+    if EV_OLARAK_KABUL is None:
+        print("KAPI/NOBET HARITA KAPISI (salt-okunur)")
+        print("HUKUM: OLCULEMEDI (EV_HARITASI okunamadi — K361 fail-closed)")
+        print("SEBEP: %s" % (EV_BILINEN_HATA or "-"))
+        return 2
 
     # Paket ③-f §H1: --repo verilmediyse turetilmis koke dus (CANON'a degil).
     # Paket ③-f §H3: hedef belirlemede CANON-style sabit mutlak yol YOK.
