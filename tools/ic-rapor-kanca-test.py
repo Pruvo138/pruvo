@@ -88,8 +88,23 @@ def depo_kur(d, kol_var=True, kapi_var=True, kapi_eki=None):
                 f.write(kapi_eki)
     if kol_var:
         shutil.copyfile(os.path.join(TOOLS, KOL_ADI), os.path.join(d, "tools", KOL_ADI))
-    # (KraL-KapiSupurmesi-29Agu: pre-commit adim 8 [defter-kota-kapisi] silindi;
-    # fiksturun o adim icin kopyaladigi dosyalar da kaldirildi.)
+    # 🔴 ADIM 8 (defter kota) FIKSTURE GERI KONDU — 1 Eyl 2026, KraL-Tamirci-1Eyl.
+    # OLCULEN ARIZA: `KraL-KapiSupurmesi-29Agu` pre-commit adim 8'i silmis ve
+    # fiksturun o adim icin kopyaladigi dosyalari da kaldirmisti. Ertesi gun K353
+    # (30 Agu) adimi KANCAYA GERI KOYDU (`tools/kancalar/pre-commit`, "COMMIT
+    # DURDURULDU — tools/defter-kota-kapisi.py YOK" blogu CANLI) ama FIKSTUR geride
+    # kaldi. Bu dosya kanca govdesini `BLOK_CAPASI`'ndan dosya SONUNA kadar VERBATIM
+    # aldigi icin adim 8 de e2e vakalarda kosuyor; dosya sentetik depoda olmayinca
+    # kanca "temiz commit GECER" vakalarinda bile exit 1 veriyordu.
+    # SONUC (CI kosumu 33445049998, hijyen-a3): 21 vakanin 4'u (B2/B5/B6/B7) her
+    # kosumda KIRMIZI — ve gerekce ic rapor ekseni DEGIL, EKSIK FIKSTUR dosyasiydi.
+    # SINIF: kanca govdesi TEK KAYNAKTAN aliniyor ama govdenin BAGIMLILIKLARI elle
+    # tutuluyor; ikisi ayrisinca batarya kendi ekseni disinda kirmizi yanar.
+    for _bagimlilik in ("defter-kota-kapisi.py", "defter-kota-taban.py",
+                        "serbest_cagrilar.py"):
+        _kaynak = os.path.join(TOOLS, _bagimlilik)
+        if os.path.exists(_kaynak):
+            shutil.copyfile(_kaynak, os.path.join(d, "tools", _bagimlilik))
     sentetik_git(d, "init", "-q", capture_output=True, text=True,
                  kimlik_ad="t", kimlik_eposta="t@t.local")
     return d

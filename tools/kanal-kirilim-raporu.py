@@ -146,8 +146,19 @@ def hukum(satirlar, kanal_kolonu_var, siniflar, soz, aralik_metni):
         ekle("  `kanal` kolonu olmadan bir siparisin site mi WhatsApp mi oldugu")
         ekle("  BILINEMEZ. 'Kolon yok, demek hepsi site' cikarimi bu raporda YASAKTIR:")
         ekle("  site kovasini olculmemis WhatsApp siparisleriyle sisirirdi.")
-        ekle("  COZUM: `python3 tools/d1-sync.py --sema` (kanal kolonu gocu) kosulsun,")
-        ekle("  sonra bu rapor tekrar calistirilsin.")
+        # 🔴 `ISCIYE:` isareti ZORUNLU (1 Eyl 2026, KraL-Tamirci-1Eyl). `recete-kapisi.py`
+        # her CARE/COZUM recetesini `mimar-icra-kapisi`ne SORAR: mimar tarafinda serbest
+        # python cagrilari kapali bir kumedir ve `d1-sync.py --sema` o kumede DEGILDIR.
+        # Isaretsiz hali RECETE-RED uretiyordu, yani kapi "bu care mimarin
+        # KOSAMAYACAGI bir komut" diyerek `serit-b`yi kirmiziya yakiyordu (CI kosumu
+        # 33445049998: `RECETE=9 REDDEDILEN=1`). Isaret, kararin OKUDUGU TEK KAYNAKTAN
+        # turer ve komutu ucuz kata devreder — kardes araclarin (sema-bundle-kapisi,
+        # konfigur-bundle-kapisi, yasal-sayfa-drift-kapisi) kullandigi ayni idiom.
+        # Goc ADDITIVE + idempotenttir (mevcut tabloda CREATE atlanir, eksik kolon
+        # ALTER ile tamamlanir) — yine de canli D1'e dokundugu icin kosum karari
+        # mimarin/Okan'in kalir; bu isaret yalnizca receteyi KOSULABILIR yapar.
+        ekle("  COZUM: ISCIYE: python3 tools/d1-sync.py --sema")
+        ekle("  (kanal kolonu gocu) kosulsun, sonra bu rapor tekrar calistirilsin.")
         ekle("  KOVA ADI (gorunur kalsin diye): %s" % soz["kova_kanal_olculemedi"])
         return "\n".join(satir), RC_OLCULEMEDI
 

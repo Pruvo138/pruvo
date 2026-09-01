@@ -78,6 +78,41 @@ def git_ortami(korunan_baglam=()):
     return ort
 
 
+# Sentetik fiksturlerin varsaydigi ilk dal adi. Tek kaynak: cagri yerleri bunu
+# TEKRAR ETMEZ ([[ikiz-tanim-sessiz-ayrisma]]).
+ILK_DAL = "main"
+
+
+def _ilk_dal_civile(args):
+    """`git init` cagrilarina `-b main` CIVILER (zaten verilmisse DOKUNMAZ).
+
+    🔴 OLCULEN KUSUR (1 Eyl 2026, KraL-Tamirci-1Eyl — SERIT B `Merge-kanit tablosu`
+    kirmizisinin KOK NEDENI, CI benzesimiyle yeniden uretildi):
+    `git init`'in urettigi ilk dal adi GIT SURUMUNE/AYARINA BAGLIDIR. Okan'in
+    makinesindeki Apple Git 2.50.1 `main` uretir; GitHub runner'indaki git 2.55.0
+    `master` uretir ("hint: Using 'master' as the name for the initial branch" —
+    kirmizi kosumun checkout logunda BIREBIR duruyor). Dolayisiyla `init` sonrasi
+    `checkout main` yapan her sentetik fikstur OKAN'DA YESIL, CI'DA KIRMIZI kosar;
+    kusur ne kodda ne veride, ORTAMDADIR ve 'bende geciyor' savunmasi onu gizler.
+
+    NEDEN CAGRI YERINDE DEGIL BURADA (sinif onarimi, [[ucuncu-tekrar-sinif-kapisi]]):
+    olculdu — bu depodaki `sentetik_git(..., "init", ...)` cagri yerlerinin bir kismi
+    `-b main` yaziyor, bir kismi YAZMIYOR. Ayni invaryanti her cagri yerinde elle
+    tekrarlamak tam da sessizce ayrisan ikiz tanimdir: yeni yazilan her fikstur
+    kurali unutmaya adaydir. Kanonik yardimci onu TEK YERDE garanti eder.
+
+    Hicbir cagri yeri `master` BEKLEMIYOR (olculdu, 1 Eyl); acikca `-b`/
+    `--initial-branch` veren cagri yerinin secimi KORUNUR.
+    """
+    args = list(args)
+    if not args or args[0] != "init":
+        return args
+    for a in args:
+        if a == "-b" or a == "--initial-branch" or str(a).startswith("--initial-branch="):
+            return args
+    return [args[0], "-b", ILK_DAL] + args[1:]
+
+
 def sentetik_git(calisma_dizini, *args, kimlik_ad="fikstur",
                  kimlik_eposta="fikstur@ornek.gecersiz", ek_ortam=None,
                  korunan_baglam=(), ayarlar=(), **run_kw):
@@ -102,7 +137,7 @@ def sentetik_git(calisma_dizini, *args, kimlik_ad="fikstur",
     komut = ["git", "-c", "user.name=" + kimlik_ad,
              "-c", "user.email=" + kimlik_eposta]
     komut.extend(ayarlar)
-    komut.extend(args)
+    komut.extend(_ilk_dal_civile(args))
     return subprocess.run(komut, cwd=calisma_dizini, env=ortam, **run_kw)
 
 

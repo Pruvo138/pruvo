@@ -260,8 +260,12 @@ def write_control(src, dst):
     icine girmez, syntax korunur."""
     with open(src, encoding="utf-8") as f:
         text = f.read()
+    # 🔴 IKIZ TANIM (1 Eyl 2026): build.py'deki satir STDERR'e basar (`file=sys.stderr`).
+    # Marker o satirin TAMAMIDIR — build.py degisirse bu dize de degismeli; tutmazsa
+    # asagidaki `raise SystemExit` KIRMIZI yakar (sessiz kontrol-mutanti kaybi YOK).
     marker = ("print(\"CIKTI_KOK=%s (%s)\" % (CIKTI_KOK, "
-              "\"YONLENDIRILMIS\" if _CIKTI_YONLENDIRILDI else \"varsayilan\"))")
+              "\"YONLENDIRILMIS\" if _CIKTI_YONLENDIRILDI else \"varsayilan\"), "
+              "file=sys.stderr)")
     if marker not in text:
         raise SystemExit("HATA: kontrol marker bulunamadi (CIKTI_KOK print satiri yok)")
     mutated = text.replace(
