@@ -44,10 +44,25 @@ def _dagitim(mod, saat_once, sha="268da994aaaa"):
     return {"sha": sha, "id": 1, "olusma": SIMDI - timedelta(hours=saat_once)}
 
 
-def _kiyas(durum="ahead", ileri=1, geri=0, yas_saat=None, sha="7a695700bbbb"):
+def _kiyas(durum="ahead", ileri=1, geri=0, yas_saat=None, sha="7a695700bbbb",
+           giris_saat="=", giris_sha="9c3b21ddcccc", giris_hata=None):
+    """`yas_saat` = en eski bekleyen commit'in YAZILMA yasi (rapor ekseni).
+
+    `giris_saat` = main'in dagitilan SHA'dan ILK KEZ ileri gittigi anin yasi
+    (HUKUM ekseni). Varsayilan `"="` dogrudan push'u modeller (yazilma == giris);
+    SAYI verilirse merge senaryosu (yazilma ESKI, giris YENI), `None` verilirse
+    zincir kurulamamis demektir.
+    """
+    en_eski = None if yas_saat is None else SIMDI - timedelta(hours=yas_saat)
+    if giris_saat == "=":
+        giris, giris_sha = en_eski, sha
+    elif giris_saat is None:
+        giris = None
+    else:
+        giris = SIMDI - timedelta(hours=giris_saat)
     return {"durum": durum, "ileri": ileri, "geri": geri,
-            "en_eski": None if yas_saat is None else SIMDI - timedelta(hours=yas_saat),
-            "en_eski_sha": sha}
+            "en_eski": en_eski, "en_eski_sha": sha,
+            "giris": giris, "giris_sha": giris_sha, "giris_hata": giris_hata}
 
 
 class _SahteApi:
@@ -205,6 +220,92 @@ def vakalar(mod):
             iddia("K15c bozuk damga (%r) -> OlcumHatasi" % (bozuk,), False,
                   "yanlis istisna: %s" % type(e).__name__)
 
+    # ---- K17 CANLI OLAY (2 Eyl 2026): MERGE EDILEN ESKI DAL ---------------
+    # Kosum 33593105401 (`7ac9880f`, 05:02:44Z) "🔴 YAYIN BAYAT: 2 commit ... en
+    # eskisi (08276ead) 108 sa 20 dk" bastirdi. Gercek: `08276ead` 28 Agu'da
+    # YAZILDI ama main'e 04:58:03Z'de merge ile GIRDI (4 dk) ve deploy 2 dk sonra
+    # YESIL kapandi (`bc79d6d5`). Yani yayin saglikliydi; alarm YANLIS yandi.
+    s, rc, ozet, tani = hukum(_dagitim(mod, 1.87),
+                              _kiyas(ileri=2, yas_saat=108.33, giris_saat=4 / 60.0,
+                                     sha="08276ead", giris_sha="7ac9880f"))
+    iddia("K17 OLAY: 108 SAAT once YAZILMIS dal 4 DK once merge edildi -> ACIK "
+          "(yazilma yasi bekleme suresi SAYILMAZ)",
+          s == "ACIK" and rc == 0, "%s rc=%d | %s" % (s, rc, tani[:70]))
+    iddia("K17b yazilma yasi SUSTURULMAZ, ayri satirda RAPORLANIR",
+          "08276ead" in tani and "GIRIS aninden" in tani, tani[:100])
+    iddia("K17c hukum SHA'si GIRIS commit'idir (merge), yazan commit DEGIL",
+          ozet.get("giris_sha") == "7ac9880f", str(ozet.get("giris_sha")))
+
+    # ---- K18 KOR ETMEME: giris-ani olcusu alarmi SUSTURMAZ -----------------
+    s, rc, _o, _t = hukum(_dagitim(mod, 30),
+                          _kiyas(ileri=2, yas_saat=200, giris_saat=5,
+                                 sha="08276ead", giris_sha="7ac9880f"))
+    iddia("K18 merge 5 SAAT once oldu ve yayin AKMADI -> BAYAT (rc 1)",
+          s == "BAYAT" and rc == 1, "%s rc=%d" % (s, rc))
+
+    # ---- K19 FAIL-CLOSED: giris okunamazsa YAZILMAYA DUSULMEZ --------------
+    s, rc, _o, tani = hukum(_dagitim(mod, 2),
+                            _kiyas(ileri=3, yas_saat=99, giris_saat=None,
+                                   giris_hata="dalin ucu compare listesinde YOK"))
+    iddia("K19 GIRIS ani okunamadi -> OLCULEMEDI (rc 2) + sebep; 99 saatlik yazilma "
+          "tarihine DUSULMEZ (uydurma kirmizi de YOK)",
+          s == "OLCULEMEDI" and rc == 2 and "GIRIS ani okunamadi" in tani
+          and "compare listesinde YOK" in tani, "%s rc=%d | %s" % (s, rc, tani[:60]))
+
+    # ---- K20 ZINCIR: merge fiksturunde GIRIS merge commit'idir -------------
+    _mrg = _SahteApi({"/compare/": {
+        "status": "ahead", "ahead_by": 2, "behind_by": 0,
+        "commits": [
+            {"sha": "08276ead", "parents": [{"sha": "eskitaban"}],
+             "commit": {"committer": {"date": "2026-08-28T16:42:45Z"}}},
+            {"sha": "7ac9880f", "parents": [{"sha": "3930fe33"}, {"sha": "08276ead"}],
+             "commit": {"committer": {"date": "2026-09-02T04:58:03Z"}}}]}})
+    k = mod.kiyasla("o/r", "jeton", "3930fe33", api=_mrg)
+    iddia("K20 merge: GIRIS = merge commit'i (ilk-ebeveyni taban-disi), commits[0] DEGIL",
+          k.get("giris_sha") == "7ac9880f"
+          and k.get("giris") == datetime(2026, 9, 2, 4, 58, 3, tzinfo=timezone.utc)
+          and k.get("giris_hata") is None,
+          "%s %s %s" % (k.get("giris_sha"), k.get("giris"), k.get("giris_hata")))
+    iddia("K20b ayni fiksturde yazilma ekseni KORUNUR (rapor icin)",
+          k.get("en_eski_sha") == "08276ead", str(k.get("en_eski_sha")))
+
+    # ---- K21 ZINCIR: dogrudan push zincirinin EN ESKI halkasi --------------
+    def _c(sha, ebeveyn, damga):
+        return {"sha": sha, "parents": [{"sha": ebeveyn}],
+                "commit": {"committer": {"date": damga}}}
+
+    _duz = _SahteApi({"/compare/": {
+        "status": "ahead", "ahead_by": 3, "behind_by": 0,
+        "commits": [_c("a1", "taban", "2026-08-16T07:00:00Z"),
+                    _c("a2", "a1", "2026-08-16T11:00:00Z"),
+                    _c("a3", "a2", "2026-08-16T11:50:00Z")]}})
+    k3 = mod.kiyasla("o/r", "jeton", "taban", api=_duz)
+    iddia("K21 uc dogrudan commit: GIRIS zincirin EN ESKI halkasidir (a1, 5 sa), "
+          "ucun yasi (10 dk) DEGIL", k3.get("giris_sha") == "a1", str(k3.get("giris_sha")))
+    s, rc, _o, _t = hukum(_dagitim(mod, 6), k3)
+    iddia("K21b ayni yigin -> BAYAT (5 sa > tavan): ucun yasina bakan olcu alarmi "
+          "SUSTURURDU", s == "BAYAT" and rc == 1, "%s rc=%d" % (s, rc))
+
+    # ---- K22 ZINCIR KURULAMADI: sebep AYRI AYRI raporlanir -----------------
+    _yok = _SahteApi({"/compare/": {
+        "status": "ahead", "ahead_by": 1, "behind_by": 0,
+        "commits": [{"sha": "b1",
+                     "commit": {"committer": {"date": "2026-08-16T07:00:00Z"}}}]}})
+    ky = mod.kiyasla("o/r", "jeton", "taban", api=_yok)
+    iddia("K22 `parents` alani YOK -> giris None + 'parents' tanisi (sessiz yesil YOK)",
+          ky.get("giris") is None and "parents" in (ky.get("giris_hata") or ""),
+          "%s | %s" % (ky.get("giris"), ky.get("giris_hata")))
+
+    _kirpik = _SahteApi({"/compare/": {
+        "status": "ahead", "ahead_by": 400, "behind_by": 0,
+        "commits": [_c("c1", "taban", "2026-08-16T07:00:00Z"),
+                    {"sha": None, "parents": [{"sha": "c1"}],
+                     "commit": {"committer": {"date": "2026-08-16T09:00:00Z"}}}]}})
+    kk = mod.kiyasla("o/r", "jeton", "taban", api=_kirpik)
+    iddia("K22b dalin ucu listede YOK (kirpilmis compare) -> giris None + AYRI tani",
+          kk.get("giris") is None and "ucu compare listesinde YOK" in (kk.get("giris_hata") or ""),
+          "%s | %s" % (kk.get("giris"), kk.get("giris_hata")))
+
     # ---- K16 UCTAN UCA: OlcumHatasi rc 2'ye cevrilir, patlamaz -------------
     def _patlat(*a, **kw):
         raise mod.OlcumHatasi("sahte ariza")
@@ -235,9 +336,23 @@ MUTASYONLAR = [
      "esigi olayin suresinin ustune cikarir (21 saat sessiz gecerdi)"),
     ('if yas >= ozet["tavan_sn"]:', 'if yas > ozet["tavan_sn"] * 2:',
      "esik karsilastirmasi gevsetilir"),
-    ('yas = (simdi - en_eski).total_seconds()',
-     'yas = (simdi - dagitim["olusma"]).total_seconds()',
+    ('    yas = (simdi - giris).total_seconds()',
+     '    yas = (simdi - dagitim["olusma"]).total_seconds()',
      "hukum BEKLEYENIN degil DAGITIMIN yasindan verilir (sakin gece yanlis alarm)"),
+    # 🔴 2 Eyl 2026'da CANLIDA kosan govde tam olarak budur; K17 onu yakalar.
+    ('    yas = (simdi - giris).total_seconds()',
+     '    yas = (simdi - en_eski).total_seconds()',
+     "hukum GIRIS aninin degil YAZILMA aninin yasindan verilir (merge edilen eski "
+     "dal her seferinde yanlis BAYAT yakar — 2 Eyl canli olayi)"),
+    ('    if giris is None:', '    if giris is None and False:',
+     "giris ani okunamayinca fail-closed kol atlanir"),
+    ('        dugum = harita[ilk_sha]', '        break',
+     "ilk-ebeveyn zinciri UCTA durur; yigin yasi ucun yasina duser (alarm susar)"),
+    ('    uc_sha = (commitler[-1] or {}).get("sha")',
+     '    uc_sha = (commitler[0] or {}).get("sha")',
+     "zincir dalin UCUNDEN degil listenin BASINDAN kurulur (merge yine yanlis okunur)"),
+    ('        if ebeveynler is None:', '        if False:',
+     "`parents` alani olmayan kayit sessizce GIRIS sayilir (tanisiz)"),
     ('    if yas < 0:', '    if False:',
      "negatif yas (saat/damga arizasi) sessizce 'cok taze' sayilir"),
     ('    if en_eski is None:', '    if en_eski is None and False:',

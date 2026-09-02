@@ -26,7 +26,12 @@ saglikli bir durumdur; boyle bir esik her sakin gece yanlis alarm verir ve
 kanikstirir. Olculen kusur "dagitim eski" degil **"main ilerledi, canli KALDI"**
 idi. Olculen buyukluk bu yuzden:
 
-    yas = simdi − (dagitilan SHA'dan SONRAKI EN ESKI commit'in tarihi)
+    yas = simdi − (main'in dagitilan SHA'dan ILK KEZ ILERI GITTIGI an)
+
+  🔴 GIRIS ANI, YAZILMA ANI DEGIL (2 Eyl 2026, canli yanlis alarm): merge
+    ile gelen dal commit'i gunler once YAZILMIS olabilir; yayin sirasina GIRISI
+    merge anidir. Olcu main'in UCUNDEN ilk-ebeveyn zinciriyle turer
+    (`_ilk_ebeveyn_girisi`); yazilma yasi yalniz RAPORLANIR.
 
   * main == dagitilan SHA  -> yas TANIMSIZ degil, **0**; ne kadar zaman gecerse
     gecsin YESIL (yayinlanacak bir sey yok).
@@ -133,7 +138,8 @@ def degerlendir(dagitim, kiyas, simdi, tavan_saat=TAVAN_SAAT):
     """
     ozet = {"dagitim_sha": (dagitim or {}).get("sha"),
             "dagitim_yasi_sn": None, "bekleyen": None, "yas_sn": None,
-            "tavan_sn": tavan_saat * 3600.0, "en_eski_sha": None, "durum": None}
+            "tavan_sn": tavan_saat * 3600.0, "en_eski_sha": None, "durum": None,
+            "giris_sha": None}
 
     if not dagitim or not dagitim.get("sha") or not dagitim.get("olusma"):
         return ("OLCULEMEDI", 2,
@@ -177,7 +183,19 @@ def degerlendir(dagitim, kiyas, simdi, tavan_saat=TAVAN_SAAT):
                  "yas olculemedi (tarihsiz bekleyen commit 'taze' SAYILMAZ)." % ileri],
                 ozet)
 
-    yas = (simdi - en_eski).total_seconds()
+    # 🔴 HUKUM SAATI YAZILMA DEGIL GIRIS ANIDIR ([[yayin-yasi-giris-ani]]): merge
+    # edilen eski dal, yayin sirasinda 108 saat BEKLEMIS SAYILMAZ; sirada gectigi
+    # an merge anidir. Zincir kurulamadiysa hukum YOK -> rc 2 (yesil DEGIL).
+    giris = (kiyas or {}).get("giris")
+    ozet["giris_sha"] = (kiyas or {}).get("giris_sha")
+    if giris is None:
+        return ("OLCULEMEDI", 2,
+                ["🔴 %d commit yayina girmemis ama main'e GIRIS ani okunamadi (%s) -> "
+                 "yas olculemedi (yazilma tarihi bekleme suresi SAYILMAZ)."
+                 % (ileri, (kiyas or {}).get("giris_hata") or "sebep bildirilmedi")],
+                ozet)
+
+    yas = (simdi - giris).total_seconds()
     ozet["yas_sn"] = yas
     ozet["en_eski_sha"] = (kiyas or {}).get("en_eski_sha")
 
@@ -188,23 +206,33 @@ def degerlendir(dagitim, kiyas, simdi, tavan_saat=TAVAN_SAAT):
                 ["🔴 bekleyen en eski commit GELECEK tarihli (yas %.0f sn) -> saat/damga "
                  "arizasi, hukum verilemez." % yas], ozet)
 
-    kim = "%s%s" % (str(ozet["en_eski_sha"] or "")[:8],
-                    "" if ozet["en_eski_sha"] else "(sha yok)")
+    kim = "%s%s" % (str(ozet["giris_sha"] or "")[:8],
+                    "" if ozet["giris_sha"] else "(sha yok)")
+
+    # Merge ile gelen eski dal: yazilma yasi RAPORLANIR ama HUKUM VERMEZ.
+    ek = []
+    if en_eski is not None and (giris - en_eski).total_seconds() >= 60.0:
+        ek.append("   ℹ en eski YAZILAN bekleyen commit %s (%s once yazildi) — merge/"
+                  "rebase ile geldi; bekleme suresi GIRIS aninden olculur."
+                  % (str(ozet["en_eski_sha"] or "")[:8],
+                     _sure_metni((simdi - en_eski).total_seconds())))
+
     if yas >= ozet["tavan_sn"]:
         return ("BAYAT", 1,
-                ["🔴 YAYIN BAYAT: %d commit yayina girmemis; en eskisi (%s) **%s**tir "
-                 "bekliyor (tavan %.1f sa)."
-                 % (ileri, kim, _sure_metni(yas), tavan_saat),
+                ["🔴 YAYIN BAYAT: %d commit yayina girmemis; main %s once (%s) "
+                 "ileri gitti ve yayin AKMADI (tavan %.1f sa)."
+                 % (ileri, _sure_metni(yas), kim, tavan_saat),
                  "   son basarili dagitim: %s · %s once."
                  % (str(ozet["dagitim_sha"])[:8], _sure_metni(ozet["dagitim_yasi_sn"])),
                  "   🔴 `deploy` isi SKIPPED olmus olabilir (needs zinciri kirmizi): "
-                 "kosum listesinde YESIL gorunur ama YAYIN AKMAZ."], ozet)
+                 "kosum listesinde YESIL gorunur ama YAYIN AKMAZ."] + ek, ozet)
 
     return ("ACIK", 0,
-            ["✔ %d commit yayin sirasinda; en eskisi (%s) %s bekliyor — tavan %.1f sa."
-             % (ileri, kim, _sure_metni(yas), tavan_saat),
+            ["✔ %d commit yayin sirasinda; main %s once (%s) ileri gitti — tavan %.1f sa."
+             % (ileri, _sure_metni(yas), kim, tavan_saat),
              "   son basarili dagitim: %s · %s once."
-             % (str(ozet["dagitim_sha"])[:8], _sure_metni(ozet["dagitim_yasi_sn"]))], ozet)
+             % (str(ozet["dagitim_sha"])[:8], _sure_metni(ozet["dagitim_yasi_sn"]))]
+            + ek, ozet)
 
 
 # ═══════════════════════════════════════════════════════════ API (KENAR KATMAN)
@@ -283,8 +311,65 @@ def son_basarili_dagitim(depo, jeton, api=None, ortam=ORTAM, tavan=DAGITIM_TAVAN
                       % (min(len(kayitlar), tavan), BASARI_DURUMU))
 
 
+def _ilk_ebeveyn_girisi(commitler):
+    """compare(commits) -> (giris, giris_sha, hata) — main'e GIRIS ani.
+
+    🔴 NEDEN AYRI BIR OLCU (2 Eyl 2026, CANLI YANLIS ALARM):
+    `commits[0]` compare kumesinin en ESKI YAZILAN commit'idir. Bir dal merge
+    edilince o commit GUNLERCE once yazilmis olabilir — ama yayin SIRASINA
+    girisi merge ANIDIR. `7ac9880f` merge'u (K337) `08276ead`'i (28 Agu,
+    **108 sa 20 dk**) main'e tasidi; nobetci onun YAZILMA yasini bekleme
+    suresi sandi ve merge'den 4 DAKIKA sonra "YAYIN BAYAT" bastirdi. Deploy
+    o sirada saglikliydi (`bc79d6d5` Build&deploy = success).
+    Betigin KENDI kapsam cumlesi zaten "dagitim eski" degil **"main ilerledi,
+    canli KALDI"** der; yazilma yasi o buyuklugu OLCMEZ.
+
+    Olculen buyukluk: main'in UCUNDEN ILK-EBEVEYN zinciriyle geriye yurunur;
+    zincirin taban-disina cikmadan onceki SON halkasi, main'in dagitilan
+    SHA'dan ILK KEZ ileri gittigi commit'tir. Merge commit'inin damgasi merge
+    ANIDIR; dogrudan push'ta commit'in kendi damgasidir.
+
+    🔴 FAIL-CLOSED: zincir kurulamazsa (liste kirpilmis, `parents` yok, dongu)
+    hata metni doner ve hukum rc 2 olur — sessiz yesil de, uydurma kirmizi de YOK.
+    """
+    if not commitler:
+        return (None, None, "compare listesi BOS")
+    harita = {}
+    for c in commitler:
+        sha = (c or {}).get("sha")
+        if sha:
+            harita[sha] = c
+    uc_sha = (commitler[-1] or {}).get("sha")
+    if not uc_sha or uc_sha not in harita:
+        return (None, None, "dalin ucu compare listesinde YOK (liste kirpilmis olabilir)")
+    dugum = harita[uc_sha]
+    gorulen = set()
+    while True:
+        sha = (dugum or {}).get("sha")
+        if not sha or sha in gorulen:
+            return (None, None, "ilk-ebeveyn zincirinde dongu ya da sha eksik")
+        gorulen.add(sha)
+        ebeveynler = (dugum or {}).get("parents")
+        if ebeveynler is None:
+            return (None, sha, "commit kaydinda `parents` alani YOK")
+        ilk_sha = ((ebeveynler[0] or {}).get("sha") if ebeveynler else None)
+        if not ilk_sha or ilk_sha not in harita:
+            break                    # taban-disina cikildi -> `dugum` GIRIS commit'i
+        dugum = harita[ilk_sha]
+    giris_sha = (dugum or {}).get("sha")
+    cd = (((dugum or {}).get("commit") or {}).get("committer") or {}).get("date")
+    if not cd:
+        return (None, giris_sha, "giris commit'inin (%s) tarihi YOK" % str(giris_sha)[:8])
+    return (zaman_ayristir(cd), giris_sha, None)
+
+
 def kiyasla(depo, jeton, taban_sha, dal="main", api=None):
-    """compare(taban_sha...dal) -> {"durum","ileri","geri","en_eski","en_eski_sha"}."""
+    """compare(taban_sha...dal) -> {"durum","ileri","geri","en_eski","en_eski_sha",
+    "giris","giris_sha","giris_hata"}.
+
+    `en_eski*` = en eski YAZILAN bekleyen commit (RAPOR icin).
+    `giris*`   = main'in dagitilan SHA'dan ILK KEZ ileri gittigi an (HUKUM icin).
+    """
     api = api or (lambda yol: _api(yol, jeton))
     c = api("/repos/%s/compare/%s...%s" % (depo, taban_sha, dal))
     if not isinstance(c, dict) or "status" not in c:
@@ -298,8 +383,10 @@ def kiyasla(depo, jeton, taban_sha, dal="main", api=None):
         cd = ((ilk.get("commit") or {}).get("committer") or {}).get("date")
         if cd:
             en_eski = zaman_ayristir(cd)
+    giris, giris_sha, giris_hata = _ilk_ebeveyn_girisi(commitler)
     return {"durum": c.get("status"), "ileri": c.get("ahead_by"),
-            "geri": c.get("behind_by"), "en_eski": en_eski, "en_eski_sha": en_eski_sha}
+            "geri": c.get("behind_by"), "en_eski": en_eski, "en_eski_sha": en_eski_sha,
+            "giris": giris, "giris_sha": giris_sha, "giris_hata": giris_hata}
 
 
 def olc(dal="main", tavan_saat=TAVAN_SAAT, cevre=None, simdi=None):
@@ -314,7 +401,7 @@ def olc(dal="main", tavan_saat=TAVAN_SAAT, cevre=None, simdi=None):
         return ("OLCULEMEDI", 2, ["🔴 OLCULEMEDI: %s" % e],
                 {"dagitim_sha": None, "yas_sn": None, "bekleyen": None,
                  "tavan_sn": tavan_saat * 3600.0, "durum": None,
-                 "dagitim_yasi_sn": None, "en_eski_sha": None})
+                 "dagitim_yasi_sn": None, "en_eski_sha": None, "giris_sha": None})
     return degerlendir(dagitim, kiyas, simdi, tavan_saat=tavan_saat)
 
 

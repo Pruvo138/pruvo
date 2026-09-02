@@ -2,6 +2,13 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ 2 EYL — K372 MERGE EDILDI: `yayin-yasi-nobetcisi` YANLIS ALARM kokunden onarildi
+Bekleme suresi commit'in YAZILMA damgasindan okunuyordu; olcu main'e GIRIS anidir (ilk-ebeveyn
+zinciri). 3 sa'ten eski HER dal merge'i "108 sa bayat" yakardi -> alarm kanikmasi. MIMARIN
+BAGIMSIZ OLCUMU (uc agac): main `23/23 · 9/9` -> merge `34/34 · 14/14` SURVIVOR=0; **CAPRAZ**
+(dalin testi + main'in ESKI govdesi) `26/34 · 8/14 · UYGULANMADI=6 rc=1` — yani vakalar kusuru
+FIILEN olcuyor. Gerileme 0. Dalin CI hukmu YOK -> "yesil" DENMEDI, OLCULEMEDI. Tam metin ARSIVDE.
+
 ## ✅ 2 EYL — SERIT B: KIRMIZI ADIM **17 → 10** (CI'nin kendi adim listesinden, kume farkiyla)
 Taban kosum `33445049998` (1769c88a, 17 kirmizi) ↔ `33585307968` (3930fe33, 10 kirmizi).
 ③ **K337 merge** `7ac9880f`: 4 `.py` (1566 satir) alindi, 2 ic olcum `.txt`i **MERGE DISI** —
