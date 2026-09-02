@@ -766,11 +766,71 @@ def gevsek_cip_adi(baslik):
     return None
 
 
+# ------------------------------------------------------- K359 ROL OLCUTU (1 Eyl 2026)
+# 🔴 OLCULEN VAKA (canli kutu, 1 Eyl, blok 15): bir KAPANIS blogunun basligi meshguliyet
+# olcumunu ANLATIRKEN `"MaCiT-* başlıyorum" notu yok` cumlesini tasiyordu. ALT-DIZGE
+# olcutu o ALINTIYI marker sandi ve KAPANISIN KENDISI "acik cip" sayilip kutuda
+# SONSUZA KADAR kilitlendi (kapanis blogu asla rotasyona giremez).
+# ONARIM: jeton ROL olarak aranir — TIRNAK ICINDEKI gecis ALINTIDIR, marker DEGILDIR.
+# 🔴 DARLIK SARTI (K329'u OLDURMEMEK icin): "marker olmak icin kalin sarmal ya da 🚧
+# SART" demek GERCEK acik cipleri SERBEST BIRAKIRDI — v36'nin ① sarmali (arsiv :52842)
+# GERCEK bir vakadir ve duz `BASLIYORUM` yazar. Bu yuzden kalin sarmal / 🚧 rolu
+# TARTISMASIZ KILAR (tirnak elemesi onlari iptal EDEMEZ), ama YOKLUKLARI marker'i
+# gecersiz KILMAZ: tirnak DISINDA gecen jeton ROLDUR. Yani bu olcut ESKI davranisin
+# ALT KUMESIDIR ve yalnizca "SADECE tirnak icinde gecen" hali eler.
+BASLIYORUM_KALIN = "**" + BASLIYORUM_JETON
+BASLIYORUM_ISARETI = "🚧"
+_TIRNAK_RE = re.compile("\"[^\"\n]*\"|“[^”\n]*”")
+
+
+def tirnak_disi(metin):
+    """KAPANMIS tirnak ciftlerini metinden cikarir (ROL olcutu icin).
+
+    Yalniz KAPANMIS cift silinir; tek/acik tirnak OLDUGU GIBI kalir -> belirsizlik
+    yine KORUMA yonundedir (jeton yerinde kalir, blok ACIK sayilir).
+    """
+    return _TIRNAK_RE.sub(" ", metin)
+
+
+def basliyorum_rolu(metin):
+    """`BASLIYORUM` jetonu bu metinde MARKER ROLUNDE mi geciyor? (K359)"""
+    sade = sadelestir(metin)
+    if BASLIYORUM_JETON not in sade:
+        return False
+    if BASLIYORUM_KALIN in sade or BASLIYORUM_ISARETI in metin:
+        return True
+    return BASLIYORUM_JETON in sadelestir(tirnak_disi(metin))
+
+
+# --------------------------------------------- K359 UCUNCU KAPANIS KOLU (1 Eyl 2026)
+# 🔴 OLCULEN VAKA: MaCiT cron'u kapanisini `## … — ✅ MaCiT 11. cron `macit-parti-surucusu`
+# **KAPANDI (delta=0, gate-only) …**` diye yaziyor — sayili, GERCEK bir kapanis; ama ne
+# `SAYILI KAPANIS` basligi ne de kapanis JETONU var. Arac gormedigi icin o adin DOKUZ
+# `BASLIYORUM` blogu kutuda kilitli kaldi.
+# 🔴 GENISLETME TUZAGI: CIPLAK `KAPANDI` kapanis SAYILMAZ. K329'un varlik sebebi "is
+# bitmeden `BASLIYORUM` blogunun arsive kacmasi"ni onlemekti; kolu gevsetmek tam da o
+# nobetciyi oldurur. UC SART BIRDEN aranir, biri bile eksikse kapanis DEGILDIR:
+#   ① kapanis DURUM isareti (`✅`)  ② `KAPANDI` sozu (TIRNAK DISINDA)  ③ CIP ADI (DAR).
+KAPANIS_DURUM_ISARETI = "✅"
+KAPANIS_SOZU = "KAPANDI"
+
+
+def kapanis_baslik_ucbirlik(baslik):
+    """UC SART BIRDEN saglaniyorsa baslik bir CIP KAPANISIDIR (K359). Yoksa HAYIR."""
+    if KAPANIS_DURUM_ISARETI not in baslik:
+        return False
+    if KAPANIS_SOZU not in sadelestir(tirnak_disi(baslik)):
+        return False
+    return cip_adi(baslik) is not None
+
+
 def blok_kapanis_mi(satirlar, bas, son):
     """(kapanis_mi, hata) — blok bir CIP KAPANISI mi?
 
-    IKI YOLDAN BIRI YETER (canli kutuda ikisi de gecmektedir):
+    UC YOLDAN BIRI YETER (canli kutuda UCU DE gecmektedir):
       * BASLIK satirinda `SAYILI KAPANIS` geciyor,
+      * BASLIK satiri UC SARTI BIRDEN tasiyor (`✅` + `KAPANDI` + CIP ADI) — K359;
+        biri bile eksikse bu kol SUSAR (bkz. `kapanis_baslik_ucbirlik`),
       * blogun KAPANIS KONUMUNDA kapanis jetonu var — BEKLEYEN **ya da** ISLENMIS.
         Ikisi de "is BITTI" demektir; aralarindaki fark Okan'in ARSIVLEYIP
         arsivlemedigidir ve K329 acisindan ONEMSIZDIR (K313g o ayrimi zaten kendi
@@ -781,6 +841,8 @@ def blok_kapanis_mi(satirlar, bas, son):
     if son <= bas:
         return False, "BOS BLOK ARALIGI (bas=%d son=%d)" % (bas, son)
     if KAPANIS_BASLIK_JETON in sadelestir(satirlar[bas]):
+        return True, None
+    if kapanis_baslik_ucbirlik(satirlar[bas]):
         return True, None
     idx, hata = kapanis_satiri(satirlar, bas, son)
     if hata is not None:
@@ -816,7 +878,8 @@ def acik_cip_bloklari(satirlar, baslar, kapanan=None):
     kol icin de TEK TABANDIR.
 
     KORUMALI UC sinif:
-      "ACIK_BASLIYORUM" — baslikta `BASLIYORUM` var, cipin kapanisi kutuda YOK.
+      "ACIK_BASLIYORUM" — baslikta `BASLIYORUM` MARKER ROLUNDE var (K359: tirnak
+                          icindeki gecis ALINTIDIR), cipin kapanisi kutuda YOK.
       "ACIK_GEVSEK_AD"  — ad backtick'siz yazilmis, GEVSEK cikarimla okundu (gercek
                           vaka, arsiv :53553); eslestirme yine yapilir.
       "ACIK_ADSIZ"      — baslikta `BASLIYORUM` var ama CIP ADI hic cikarilamadi.
@@ -834,8 +897,8 @@ def acik_cip_bloklari(satirlar, baslar, kapanan=None):
     while i < len(araliklar):
         bas, son = araliklar[i]
         baslik = satirlar[bas]
-        if BASLIYORUM_JETON not in sadelestir(baslik):
-            if BASLIYORUM_JETON in sadelestir("".join(satirlar[bas:son])):
+        if not basliyorum_rolu(baslik):
+            if basliyorum_rolu("".join(satirlar[bas:son])):
                 govde_anmasi += 1
             i += 1
             continue
