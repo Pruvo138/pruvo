@@ -2,6 +2,22 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ 2 EYL — ACIK KUYRUK BOSALTILDI (kalan tek olcum: 15:47Z A3 teyidi)
+`~/.claude/cron` **VERSIYONLANDI** (yerel depo, uzak YOK): 328 betik, BEYAZ LISTE
+(`*` reddedilir, yalniz betik uzantilari acilir) — dizinde CANLI API anahtarlari + tarayici
+profili + m3 jsonl'lari var; kara liste unutulan tek deseni SESSIZCE gecirirdi. Kabul: izlenen kumede sir
+isabeti **0** (fail-closed; isabet olsaydi depo geri alinacakti). SONRA `.yedek` supurmesi
+MESRU oldu: **175/175 kaldirildi (5,18 MB)**, her biri silinmeden once `cat-file -e` ile
+gecmiste KANITLANDI; 4 tanesi beyaz liste disi kaldigi icin ONCE versiyonlandi SONRA silindi.
+`kral-sabah.py` ayrismasi KAPANDI (`067d473e`): K356 yalniz CANLI kopyadaydi; repodaki 10
+"fazla" satirin hepsi K356'nin degistirdigi ESKI kod cikti, yon TEK (canli→repo). `kur.py`
+KOSULMADI (K357). Cron `parti-surucusu` satiri **GERI ACILDI** (BaBa hukmu) — oncul
+SINANDI: hasat'ta `isci/parti-28`+`isci/parti-yamaha-d9` duruyor, KAPI-1 gorunce m3
+cagirmaz, ilk tik $0. crontab 81→82 satir, hedef disi satirlar BIREBIR.
+TEMIZLIK: 3 cip agaci kaldirildi (raporlari once arsive tasindi, 38 KB) · **47 dal silindi**
+(6 yerel + 41 uzak; olcut UC KATLI, `ileri>0` olan 79 dala DOKUNULMADI — K337 dersi) ·
+`yedek/k337-olcum-08276ead` KORUNDU. Kapanista 6 kapi YESIL, agac temiz, worktree 1.
+
 ## ✅ 2 EYL — GUNUN INEN ISLERI (TAM METIN ARSIVDE; hepsi `origin/main`de, `is-ancestor` ile teyitli)
 K361 `2562741f` (ev tablosu repo DISINA) · SERIT B tamiri `4b28c796` (5 kirmizi kokunden) ·
 onarim `3930fe33` (K361'in CI'da biraktigi kirmizi — kendi simulasyon hatam) · K337 `7ac9880f`
