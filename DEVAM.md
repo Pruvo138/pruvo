@@ -56,11 +56,13 @@ Kalan sart (Raymarine emsalinin kendi yazdigi): URL kumesi ekleme ONCESI/SONRASI
 IKI bagimsiz eksenden, kiyas KUME FARKIYLA (kaybolan=0 ∧ dogan=0). Kume 181→182, mimar eki 42→43.
 **OKAN'DA:** panel-tik pozitif kolu (tek tik) · 24 bitmis oturum arsivi (liste kutuda).
 
+✅ **KUTU KILIDI ACILDI (2 Eyl, `--kapanislari-isle`):** kutu **296→198** (tavan 250), arsiv **60087→60185**;
+CEVRIM=8 · blok 26=18+8 · bayt 52679=31618+21061 · `lossless=GECTI` · oksuz=0 · 10 ACIK BASLIYORUM YERINDE.
+
 ## 🔴 CANLI TALIMAT (K353 blogu ARSIVE indi, tam metin `DEVAM-ARSIV.md`'de)
 K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci). 🔧 ACIK: T1a — worker deploy = OKAN kapisi.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- ✅ **K359 KAPANDI** (merge `9e6d32b7`, 2 Eyl) — tam metin `DEVAM-ARSIV.md`'de; canli etki kilitli blok 24→11.
 - 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
   ISARETCI** (uzun hali `DEVAM-ARSIV.md` 26 Agu ROTASYON blogu 1/5): K306 MERGE `df3b0d48` · K308 ACIK ·
   K309 DILIM-1 MERGE `25b38a82` (DILIM-2 MIMARDA) · K310 ACIK · K212 MERGE `97370cc2` KAPANDI · K222
