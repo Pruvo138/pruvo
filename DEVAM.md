@@ -2,45 +2,43 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 31 AGU ~21:1x — MIMAR OTURUM KAPANISI
-**CANLIYA GIDEN:** main = `origin/main` BIREBIR, agac TEMIZ. Bu oturumun merge'leri: K352 `23bc7b0b` ·
-K356 `f283d8e2` · K357 `ff1a7870` · Raymarine `13f0ecbc` (Okan emri) · **K358 `38b2d512` (DEPLOY'LU)**.
-**RAYMARINE (`13f0ecbc`):** "merge etme" hukmumu OKAN'IN EMRI gecersiz kildi — dogru is bu. Hukmun
-DAVRANIS kismi yine de dogru cikti (katki `arama.py` +19/-0, davranis ozdes). 🔴 Bayat-taban uyarim
-OLCUMLE BUYUDU: "2 satir" dedigim zarar merge aninda **38 SATIR SILME**ydi; cip yakaladi, bagimsiz
-teyit ettim (main'de K359 2 · `task_c50a1c41` 1 isabet) — geri sarma YOK.
-✅ **K360 KABUL — MIMAR BAGIMSIZ OLCTU, 5 EKSENIN 5'I DE TUTTU** (cipin raporuna bakmadan, spec'te
-onceden civilenen tabana karsi): MEMORY.md **22.222 → 17.036 B** (olcut <17.510) · bag **283 = 283** ·
-hedefi olmayan bag **0** · `memory/*.md` **385 = 385** (SILME YOK) · 20 bolumun 20'sinde sayac BIREBIR.
-⚠️ Kabul betigim ilk kosumda 5 bolumu KIRMIZI yakti — sebep CIP DEGIL benim esleyicimdi: bolum
-BASLIKLARI kisalmisti (spec IZIN VERIYORDU), ben eski basliga capalamistim.
-**KOSAN CIP:** `task_c6f5192b` (K359, `cool-albattani-bb4a31`). ✅ **KUTU KAPANDI:** 4 oturum
-arsivlendi, `--kapanislari-isle` kostu — 4 blok/140 satir arsive, cevrilen jeton **5**,
-`lossless_dogrulama=GECTI`, kutu **302 → 175** satir (tavan 250), arsiv 58.221 → 58.361.
-**OKAN'DA:** 0. ✅ **DEPLOY KOSULDU (Okan, 20:47Z) ve OLCULDU:** canli surum `d2d78692` @ `20:47:02Z`,
-yayinlanmamis commit **0**, `shop-bayatlik-kapisi` **TAZE rc=0**; 5 saattir bekleyen K357 de indi.
-(Onceki "deploy borcu YOK — 14:45:00Z" satiri **6 DAKIKA sonra** bayatlamisti; yas 324,9 dk'ya cikti.)
+## 🔁 2 EYL ~03:3x — MIMAR OTURUM KAPANISI
+**CANLIYA GIDEN:** main **`619c642e`** = `origin/main` BIREBIR. Onceki oturumun merge'leri canlida:
+K352 `23bc7b0b` · K356 `f283d8e2` · K357 `ff1a7870` · Raymarine `13f0ecbc` · **K358 `38b2d512`
+(DEPLOY'LU, `d2d78692` @ `20:47:02Z`)**. ✅ K360 kabul 5/5 · ✅ kutu 302 → 175 satir.
 
-## ✅ K358 KAPANDI UCTAN UCA (`38b2d512`) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
-Kesin-basarisiz iyzico kodlari UCUNCU SINIF oldu, `iptal` kolu fiilen acildi; kume KAPALI
-(`5122`/`10054`/`10057`), bilinmeyen kod FAIL-CLOSED kalir. Deploy `d2d78692` @ `20:47:02Z`.
-**KANIT:** `21:17:33Z` turu `bakilan5/iptal5/degisen5/ulasilamadi0/odendi0/incele0` — **6/6 civili sayi
-TUTTU**; ayni 5 satir deploy ONCESI `19:17Z`+`20:17Z` turlarinda `ulasilamadi:5 degisen:0` idi
-(KARSIT TUR: gecis deploy anini ortasina aliyor). D1 `bekliyor` **6 → 1**; kalan tek satir
-`PR-260831-175451-MEC` (1 Eyl 15:17Z turunda gorulecek). Testler 98/0→**204/0**, mutant 10/10→**15/15**.
-**Para ekseni (K355/K356/K358) KAPANDI — tahsil edilecek para YOK, kurtarilan para da YOK.**
+🔴 **AGAC TEMIZ DEGIL VE BU KAPANISIN TEK KIRMIZISI — SEBEBI BENDE DEGIL:**
+`git status` = ` M tools/parti-borc-kapisi.py` (BENIM, commit'siz) + `M  urunler.json` (MaCiT, INDEX).
+`.git/index.lock` TUTULU. Sebep olculdu: **MaCiT'in `git commit`i PID 1913, `etime 03:25:21` —
+3,4 SAATTIR asili**, ustune ayni dilimin ikinci commit'i (PID 21884) binmis. `619c642e`den beri
+repoya hicbir sey inmedi. Surece ve kilide DOKUNMADIM (yabanci), MaCiT'e iki kez yazdim.
+**BEKLEYEN IKI IS, ikisi de MaCiT'in partisine DOKUNMUYOR:**
+ ① `tools/parti-borc-kapisi.py` tek satirlik commit — **Faralya evinin isci kanalini ayakta tutan
+    koltuk degnegi**; su an CALISIYOR ama COMMIT'SIZ, biri `git checkout` derse o ev duser.
+    (Olculdu: `ev_coz('/Users/okan/dev/faralya')` (None,'cozulemedi') → ('FaR',None); kapilar
+    6/6·1/1·4/4 taban ile AYNI; bilinmeyen kok HALA fail-closed.) 3 commit denemesi kilitte dustu.
+ ② **K359 merge** — dal `claude/cool-albattani-bb4a31` @ `953549c6`, kapanisi YAZILI.
+    Mimar BAGIMSIZ olctu: `kutu-arsivle-test` **303/0 → 335/0** · CANLI kutuda ayni an iki arac
+    surumu: `kilitledi` **28 → 13**, dusen 15 blogun HEPSI `macit-parti-surucusu` (kapanisi kutuda
+    olan tek ad), kapanis yazmamis hicbir cip serbest KALMADI. Kapsam 2 dosya/+361-10, cakisma YOK.
+    **Kapatan olcum:** kilit acilir acilmaz merge + push.
 
-**TEMIZLIK (bu oturum):** worktree **6 -> 2** (`bold-keller-82f052` · `nice-swanson-706912` ·
-`vigilant-mestorf-f6ba7f` · `youthful-montalcini-2e348f`); DORDUNUN DE `status --porcelain` ciktisini
-**kendim** okudum (cipin beyaniyla DEGIL — beyan bu oturumda bir kez curudu,
-[[temizlik-beyani-dogrulama-turuyle-curur]]), dordu de BOS, icerikleri `--is-ancestor` ile main'de.
-Kalan 2 = ana agac + KOSAN K359 cipi. Yerel dal **15 silindi**; `durum.py` artik-dal **0** (kalan 40
-dalin hicbirinin icerigi main'de DEGIL — silinmez, kasitli arsiv). Scratchpad **12K** = yalnizca
-kosan cipin spec'i. Bu oturumun geride biraktigi gecici dosya: **0**.
+**KOSUYOR (ULDURME):** cip `KraL-EvHaritasi-2Eyl` (`task_e3e6dfc4`) · oturum `cool-albattani-bb4a31-59`
+· dal `claude/determined-babbage-333b90` @ `4dfa0147` · agac `.claude/worktrees/cool-albattani-bb4a31`
+· motor **Claude** (kapi kodu, ucuz kata inmez) · spec: **K361** — ev→dizin eslemesi PRUVO reposundan
+`~/.claude/cron/evler.json`'a. Ek hukum gonderildi: runtime'da SESSIZ DUSUS YOK (yok/bozuk/bos → RED
++ sifir-disi rc), fakat RED cikmaz sokak degil — kurtarma komutu basilir, gomulu tablo `--ev-haritasi-kur`
+TOHUMU olarak kalir (mevcut dosyayi EZMEZ); ayrimi `ME4` mutanti olcer.
+🔴 **K361'in dogurdugu sinif:** tasima IKI DUZLEME dokunuyor — `~/.claude/cron/` **versiyonsuz,
+yazildigi AN canli**; yukleyici **versiyonlu, merge bekliyor**. Config once indi, koltuk degnegi
+kaldirildi, yukleyici inmedi → arada Faralya'nin hatti KAPANDI. **Koltuk degnegi, yerine gececek
+mekanizma CANLI olmadan kaldirilmaz.**
 
-## ✅ K355/K356 + K358 SPEC TURU — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
-Acik kalemleri yukaridaki **K358 MERGE** blogunda KAPANDI. Arsivde: canli `errorCode` dagilimi,
-iki curutulen hipotez, K358'in spec turu ve civilenen taban.
+**BEKLIYOR:** 🔧 `claude/gallant-khayyam-30669f` @ `6ec3fa82` (SERIT B, 6 kirmizi adim onarimi,
+7 dosya) — **kutuda KAPANISI YOK**, merge edilmedi. **Kapatan olcum:** cipin sayili kapanisi + git
+ekseni. · 🟠 K359 (yukarida) · 🟠 FaR notu: `~/.claude/cron/` hicbir deponun icinde degil
+(`GUVENLI_EV_KOKLERI` dahil) — versiyonlanmasi sonraki kalem, sahibi KraL.
+**OKAN'DA:** 0 karar.
 
 ## ✅ K353 + T1/T2 + K354 (29-30 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
 🔴 **CANLI TALIMAT, SILINMEZ:** K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).

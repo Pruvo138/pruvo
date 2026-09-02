@@ -95,6 +95,20 @@ EV_DIZIN = {
     # esitlenmesidir; bilinmeyen kok HALA cozulemez (fail-closed KORUNUR).
     "BaBa":    "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-advisor",
     "ORTAK":   "/Users/okan/.claude/projects/-Users-okan-dev-pruvo",
+    # 🔴 2 Eyl 2026 — GECICI KOLTUK DEGNEGI, K361 BUNU KALDIRACAK. Faralya evi
+    # (`/Users/okan/dev/faralya`, PRUVO-disi is) acildi; tablo onu tanimadigi icin
+    # `parti-kapisi.ev_coz()` cozemiyor -> `N2B-OLCULEMEDI` -> HUKUM=RED -> o evin
+    # ucuz-kat isci kanali KAPALI. BaBa'nin 27 Agu vakasinin birebir AYNISI.
+    # 🔴 SATIR NEDEN IKINCI KEZ YAZILDI: FaR ayni satiri commit'siz birakmisti;
+    # K361 cipi tasima sirasinda ana checkout'taki o dirty satiri geri aldi ama
+    # YUKLEYICI HENUZ MERGE EDILMEDI (merge, MaCiT'in INDEX'indeki parti yuzunden
+    # bekliyor). Arada Faralya'nin hatti KAPANDI — olculdu: ev_coz('/Users/okan/
+    # dev/faralya') -> (None, 'depo koku bilinen bir eve cozulemedi').
+    # DERS: bir koltuk degnegi, yerine gececek mekanizma CANLI olmadan KALDIRILMAZ
+    # ([[koltuk-degnegi-yenisi-canli-olmadan-kaldirilmaz]]).
+    # K361 merge'unde bu blok ve `EV_DIZIN`in tamami `~/.claude/cron/evler.json`
+    # yukleyicisine devredilecek; catisma cikarsa DALIN tarafi alinir.
+    "FaR":     "/Users/okan/.claude/projects/-Users-okan-dev-faralya",
 }
 
 ACIK_KALEM_DOSYA = "memory/acik-kalemler.md"
