@@ -2,6 +2,14 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ 2 EYL — K361 MERGE EDILDI (`2562741f` = `origin/main`) — TAM METIN ARSIVDE
+Ev→dizin tablosu repodan CIKTI; tek kaynak `~/.claude/cron/evler.json` (8 ev, FaR dahil) + tohum
+`tools/evler-tohum.json` (runtime OKUMAZ). BAGIMSIZ olcum (taban `619c642e` TEMIZ KLON):
+**kirmizi seti DEGISMEDI** (iki rc=1 kapinin govdesi taban↔dal BIREBIR, FARK=0) · yeni batarya
+`VAKA=9/9 MUTANT=4/4` · CI duzlem sim. 7/7 AYNI · `ev_coz` faralya→FaR, bilinmeyen→fail-closed · D1 **32202/32202** ✅. 🔴 SERIT B "yesil" OLAMAZ (400 kosumda 0 success) →
+olcut KIRMIZI SETI. 🔴 `worktrees/cool-albattani-bb4a31` SILINMEDI: icindeki 191 satirlik mimar
+raporu (dal `claude/gallant-khayyam-30669f`) izlenmiyor, TEK KOPYA — agac kalkarsa kaybolur.
+
 ## 🔁 2 EYL ~03:3x — MIMAR OTURUM KAPANISI
 **CANLIYA GIDEN:** main **`619c642e`** = `origin/main` BIREBIR. Onceki oturumun merge'leri canlida:
 K352 `23bc7b0b` · K356 `f283d8e2` · K357 `ff1a7870` · Raymarine `13f0ecbc` · **K358 `38b2d512`
