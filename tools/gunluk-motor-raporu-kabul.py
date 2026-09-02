@@ -333,6 +333,23 @@ def vakalar(betik, kok):
          "mevcut kutu icerigi KORUNMALI (silme yok)")
     vaka("V19-motor-orani-satiri", "MOTOR ORANI:" in kutu_sonra,
          "kutu blogunda zorunlu MOTOR ORANI satiri")
+
+    # 🔴 V20 — AYNI GUNUN BLOGU IKI KEZ EKLENEMEZ. Ozdes baslik,
+    # `kutu-arsivle.py`nin "blok tam olarak BIR KEZ bulunur" degismezini curutur;
+    # rotasyon rc=1 doner ve kota kapisi TUM EVIN commitini kilitler. 2 Eyl'de
+    # CANLI olarak olculdu (kutu 221 -> 260, iki ozdes baslik, commit DURDU).
+    baslik = "## %s — 📊 GÜNLÜK MOTOR RAPORU (23:00)" % GUN
+    kosa(betik, kok, projects, isci_log, kutu, ek=["--kutu-yaz"])
+    kutu_ucuncu = kutu.read_text(encoding="utf-8")
+    baslik_n = kutu_ucuncu.count(baslik)
+    vaka("V20-ayni-gun-blogu-cogalmaz",
+         baslik_n == 1 and len(kutu_ucuncu.splitlines()) == len(yeni_satirlar),
+         "ikinci `--kutu-yaz` blogu COGALTMAMALI, DEGISTIRMELI: baslik=%d "
+         "(1 olmali) · satir %d -> %d (ayni olmali)"
+         % (baslik_n, len(yeni_satirlar), len(kutu_ucuncu.splitlines())))
+    vaka("V21-tekrar-yazimda-silme-yok",
+         all(satir in kutu_ucuncu.splitlines() for satir in eski_satirlar),
+         "tekrar yazimda da mevcut kutu icerigi KORUNMALI")
     return cikti
 
 
@@ -410,7 +427,21 @@ def m_esdeger_kontrol(metin):
         1)
 
 
+def m_kutu_hep_ekle(metin):
+    """DEGISTIR kolu kapanir: ayni gunun blogu HER kosumda yeniden EKLENIR.
+    2 Eyl'de canli olan ariza budur — iki ozdes baslik `kutu-arsivle.py`nin
+    lossless degismezini curutur, rotasyon rc=1, TUM EVIN commiti kilitlenir."""
+    capa = "    bulunan_idx = mevcut.find(baslik)"
+    if metin.count(capa) != 1:
+        return None
+    return metin.replace(
+        capa,
+        "    bulunan_idx = -1  # MUTANT-M6: degistirme kapali, hep ekle\n"
+        "    _capa = mevcut.find(baslik)", 1)
+
+
 MUTANTLAR = [
+    ("M6-kutu-degistirme-kapali", m_kutu_hep_ekle, "V20-ayni-gun-blogu-cogalmaz"),
     ("M1-katlama-kapali", m_katlama_kapat, "V04-katlama-POZITIF"),
     ("M2-katlama-cikplak-onek", m_katlama_onek, "V05-katlama-NEGATIF"),
     ("M3-pencere-tam-gun", m_pencere_tam_gun, "V06-gun-penceresi"),
