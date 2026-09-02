@@ -2,6 +2,16 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔁 2 EYL ~12:0xZ — MIMAR OTURUM KAPANISI (`856cf08b` = `origin/main`, BIREBIR)
+**CANLIYA GIDEN (bu oturum):** K361 `2562741f` · SERIT B tamiri `4b28c796` · onarim `3930fe33` ·
+K337 `7ac9880f` · K372 `765eeb29` · K373 `7e14eeaa` · K375 `bdf5425e` + defter/temizlik commit'leri.
+**KOSUYOR (OLDURMEYIN):** cip `frosty-robinson-4ec3be` (canli, dal ayni ad @ `460d8726`,
+motor Claude) + yabanci agac `awesome-raman-f08ab2` (detached `e35f092d`) — ikisine de DOKUNULMADI.
+**BEKLIYOR:** 🟠 15:47Z ilk `schedule` kosumu → `cron-nabiz` A3 kolu (kapatan olcum: A3 satiri
+yesil). · 🟠 MaCiT `isci/parti-*` dallarini tuketene kadar parti cron'u "BEKLEYEN DAL"da kalir
+(kapatan olcum: bir tikte `HAL=SAGLIKLI (urun=N)`). · 79 dal merge bekliyor, hicbiri bu oturumun.
+**OKAN'DA:** worker deploy tiki (panel silme hatti, baska oturumun kalemi).
+
 ## ✅ 2 EYL — PANEL TEKIL URUN SILME CANLI (Okan emri; cip KraL-UrunSilmeButonu-2Eyl)
 Merge `8c018800` (dal commit `e35f092d`, origin/main atasi rc=0). Hat: /urun-sil (cift onay+
 gerekce, yonetim anahtari) -> panel_ustyazim alan='sil' -> uygulayici duzelt --toplu {id,sil} +
