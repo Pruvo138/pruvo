@@ -92,6 +92,11 @@ def _govde(metin, etiket):
 # (kod, aciklama, hedef_dosya, [(bulunacak, yerine), ...], KIRMIZI_olmali_mi)
 # ═══════════════════════════════════════════════════════════════════════════
 NEEDS_SATIRI = "    needs: [build, serit-a2, serit-a3, serit-a4]\n"
+# K373 CAPALARI — CANLI nobet.yml metnindeki parcalar. Capa bayatlarsa mutant
+# "URETILEMEDI" der (sessiz yesil DEGIL); tek yerde durmasi bunu garanti eder.
+SCHEDULE_TETIGI = '  schedule:\n    - cron: "47 3,15 * * *"\n'
+SCHEDULE_KOLU = "github.event_name == 'schedule' && 'schedule'"
+PUSH_KOLU_SONU = " || 'push' }}"
 
 MUTANTLAR = (
     ("M1", "🔴 BLOKLAMAYAN ALARM JOB'U YAYIN IS AKISINA GERI KONDU: kirmizisi yayini "
@@ -138,7 +143,33 @@ MUTANTLAR = (
               "      - uses: actions/deploy-pages@v4\n"
               "      - name: \"Katalog envanteri: onceden var olan uretim-sureci "
               "ifsasi (RAPOR — yayini DURDURMAZ)\"\n")], True),
+    # ── K373: UC KOLLU SOZLESME (yeni kol KENDI iddialariyla gelir) ───────────
+    # Her satirin 6. alani EKSEN BEYANIDIR: {"olmeli": (...), "olmemeli": (...)}.
+    # Beyan MIMAR tarafindan yazilir, ciktidan TURETILMEZ. "Kapiyi kendi
+    # degisikligime uydurdum" tuzagi tam burada kapanir: yeni kol POZITIF iddiasini
+    # (G12/G13 YANMALI) ve ESKI korumalarin CANLILIGINI (G9/G10/G11 SUSMALI ya da
+    # kendi mutantinda YANMALI) AYRI AYRI ispatlamak zorunda.
+    ("M10", "🔴 SCHEDULE KOLU PUSH KOLU ILE AYNI YAPILDI: `schedule` tetigi eklenmis "
+            "GORUNUR ama zamanlanmis kosum push kuyruguna yazilir ve ilk push'ta "
+            "kuyruktan DUSER — K373'un cozdugu korlugun TA KENDISI geri gelir",
+     NOBET, [(SCHEDULE_KOLU, "github.event_name == 'schedule' && 'push'")], True,
+     {"olmeli": ("G12",), "olmemeli": ("G9", "G10", "G11", "G13")}),
+    ("M11", "🔴 `on.schedule` TETIGI KALDIRILDI: grup ifadesi UC kollu kalir (G12 sekli "
+            "YESIL) ama kol OLU KODdur — HEAD garantili hukum ALMAZ (olculdu: 400 "
+            "kosumda 0 success, 0 schedule kosumu)",
+     NOBET, [(SCHEDULE_TETIGI, "")], True,
+     {"olmeli": ("G13",), "olmemeli": ("G9", "G10", "G11", "G12")}),
+    ("M12", "🔴 PUSH KOLU `github.run_id` ALDI: uc kola cikarma ESKI maliyet korumasini "
+            "KALDIRMADI — her push kendi grubunu alir, gunde onlarca ~93 dk'lik kosum "
+            "birikir (G9) ve dispatch push koluyla ayniya duser (G11)",
+     NOBET, [(PUSH_KOLU_SONU, " || github.run_id }}")], True,
+     {"olmeli": ("G9", "G11"), "olmemeli": ("G12", "G13")}),
     # ── KONTROLLER (YESIL kalmali; mimarin adiyla istedigi uc eksen) ──────────
+    ("K6", "KONTROL: schedule kosulunda BOSLUK cogaltildi — GitHub ifadesi bosluga "
+           "duyarsizdir, anlam AYNI; G12 'bosluk normalize sonrasi' vaadini tutmali "
+           "(naif dizge esitligi olsaydi bu satir KIRMIZI yanardi)",
+     NOBET, [("github.event_name == 'schedule'",
+              "github.event_name   ==   'schedule'")], False, None),
     ("K1", "KONTROL: JOB SIRASI degistirildi (`yayin` job'u `deploy`den ONCE yazildi) "
            "— `needs:` grafigi AYNI, GitHub sirayi grafikten cozer",
      DEPLOY, "JOB_SIRASI", False),
@@ -276,12 +307,21 @@ def main():
             kusur.append("KAPI TABANI KIRMIZI: mutasyonsuz kopyada %d hata -> mutant "
                          "sinyali GURULTUYE gomulur (%s)"
                          % (taban_hata, taban_liste[0].splitlines()[0]))
-        if taban_iddia < 7:
-            kusur.append("KAPI TABANI BOS: %d iddia olculdu (en az 7 bekleniyor) -> "
-                         "kapi govdesi bosaltilmis olabilir" % taban_iddia)
+        # 🔴 TAM ESITLIK (K182 disiplini, K373'te kaynagi TEKLESTI): sabit `7` taban
+        # kozmetiklesmisti (gercek 11, pay 4) — pay kadar eksen sessizce silinebilirdi.
+        # Taban artik kapinin KENDI beyanindan okunur; eksen sayisi bilerek
+        # degistiginde IKI dosya degil TEK sabit guncellenir.
+        if taban_iddia != IAK.G_IDDIA_TABANI:
+            kusur.append("KAPI TABANI SAPTI: %d iddia olculdu, kapinin beyani "
+                         "G_IDDIA_TABANI=%d (fark %+d) -> ya bir eksen atlandi ya "
+                         "taban guncellenmeden eksen eklendi"
+                         % (taban_iddia, IAK.G_IDDIA_TABANI,
+                            taban_iddia - IAK.G_IDDIA_TABANI))
         print("   TABAN: %d hata · %d iddia" % (taban_hata, taban_iddia))
 
-        for kod, aciklama, hedef, degisimler, kirmizi_olmali in MUTANTLAR:
+        for satir in MUTANTLAR:
+            kod, aciklama, hedef, degisimler, kirmizi_olmali = satir[:5]
+            eksen_beyani = satir[5] if len(satir) > 5 else None
             temel = dep_metin if hedef == DEPLOY else nob_metin
             mutant, uygulanan = _mutant_metni(kod, temel, degisimler)
             olculen += 1
@@ -303,17 +343,38 @@ def main():
                     f.write(temel)
             if hata is None:
                 continue
-            if iddia < 7:
-                kusur.append("%s: IDDIA SAYISI DUSTU (%d) -> kapi kirmizi degil COKMUS "
-                             "olabilir" % (kod, iddia))
+            if iddia != IAK.G_IDDIA_TABANI:
+                kusur.append("%s: IDDIA SAYISI SAPTI (%d, taban %d) -> kapi kirmizi "
+                             "degil COKMUS olabilir"
+                             % (kod, iddia, IAK.G_IDDIA_TABANI))
             oldu = hata > 0
             if oldu != kirmizi_olmali:
                 kusur.append("%s: beklenen %s, olculen %s -> %s"
                              % (kod, "KIRMIZI" if kirmizi_olmali else "YESIL",
                                 "KIRMIZI" if oldu else "YESIL", aciklama))
-            print("   %s %s %-6s %s" % (
+            # 🔴 EKSEN ATFI (K373): "kirmizi yandi" YETMEZ — mutant BEYAN EDILEN
+            # ekseni mi oldurdu, yoksa baska bir eksen mi bagirdi? Beyan edilmeyen
+            # eksenin SUSTUGU da ayrica olculur: yeni kolu eklerken eski korumalari
+            # (G9/G10/G11) sessizce gevsetmis olsaydik `olmemeli` kolu yakalardi.
+            yanan = sorted({h.split(" ", 1)[0] for h in liste})
+            if eksen_beyani:
+                for kol in eksen_beyani.get("olmeli", ()):
+                    if kol not in yanan:
+                        kusur.append(
+                            "%s: HEDEF EKSEN OLMEDI -> %s yanmadi (yanan: %s). "
+                            "Kirmizi BASKA koldan geldi; beyan yanlis ya da eksen OLU."
+                            % (kod, kol, ", ".join(yanan) or "(hicbiri)"))
+                for kol in eksen_beyani.get("olmemeli", ()):
+                    if kol in yanan:
+                        kusur.append(
+                            "%s: YAN HASAR -> %s de yandi ama beyan SUSMASINI "
+                            "istiyordu (yanan: %s). Eksenler birbirinin arkasina "
+                            "saklaniyor olabilir."
+                            % (kod, kol, ", ".join(yanan)))
+            print("   %s %s %-6s %-52s %s" % (
                 "✔" if oldu == kirmizi_olmali else "✘", kod,
-                "KIRMIZI" if oldu else "YESIL", aciklama.split(":")[0][:70]))
+                "KIRMIZI" if oldu else "YESIL", aciklama.split(":")[0][:52],
+                ("yanan eksen: " + ", ".join(yanan)) if yanan else ""))
     finally:
         shutil.rmtree(gecici, ignore_errors=True)
 
