@@ -3,13 +3,7 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔁 2 EYL 15:3xZ — MIMAR OTURUMU (supurme turu; katalog 32.790, MaCiT partileri akiyor)
-**SILME HATTI KAPANDI (Okan deploy etti):** `pruvo-shop` surum `1a964648` **13:52:59Z**; CANLI
-bundle (387.811 B, CF API) `/urun-sil`=2 · `panelUrunSil`=4 · buton `Sil (arşive)`=1 (esbuild
-ASCII kacisi — duz `arşive` aramasi 0 doner, TUZAK). Anonim uctan olculemez: yanlis anahtar da
-yok-uc da 404 (tasarim) → hukum BUNDLE ICERIGINDEN verildi. Panelde buton RENDER ediyor;
-🟢 **NEGATIF KOL CANLIDA:** yanlis onay id'si → "birebir ayni degil, kuyruga YAZILMADI", kuyruk
-9/9 max id 9 bekleyen 0 DEGISMEDI, gerekce sorusu hic sorulmadi. 🔧 **POZITIF KOL BENDE BLOKLANDI**
-(izin siniflandiricisi) → Okan panelden tiklarsa kuyruk satirini olcup Iptal ile geri alirim.
+**SILME HATTI CANLI (Okan deploy etti; tam olcum ARSIVDE):** `pruvo-shop` `1a964648` 13:52:59Z · canli bundle'da `/urun-sil`=2 · buton RENDER ediyor · NEGATIF KOL canlida yesil (yanlis onay id'si kuyruga YAZMADI, kuyruk 9/9 degismedi). 🔧 POZITIF KOL: Okan tiki.
 **SUPURME:** cip agaclari **237→107 MB** (`eager-shtern-b4ec5c` + `frosty-robinson-4ec3be`;
 capalari `origin/claude/quizzical-nobel-b53ffb`'de DURUYOR — izlenmeyen 48 MB render `--force`
 ile gitti, V5 HTML dalda commit'li, gorseller Okan'a teslim edilmisti). 3 dal silindi;
@@ -35,8 +29,16 @@ akisinin 4'u de saat-alti/saatlik, teslim etmeyen TEK is akisi 12 saatlikti (pen
 sans). 🔴 **SAATLIK YAPILAMAZ — OLCTUM:** iptal EDILMEYEN kosum suresi ort **95,0 dk** / medyan
 99,6 / max 131,9 (n=13); `schedule` kolu TEK kuyruk + `cancel-in-progress:false` oldugundan
 saatlik aralik kuyrugu SINIRSIZ buyuturdu. `47 */4` = gunde 6 sans, 240 dk > 131,9 dk max.
-`is-akisi-kapisi` YESIL (228 kendini-test iddiasi), A1 yeni cron'u kabul etti. A3 hala KIRMIZI —
-**kapatan olcum: ilk `event=schedule` kosumu; en yakin pencere 20:47Z.**
+`is-akisi-kapisi` YESIL (228 kendini-test iddiasi), A1 yeni cron'u kabul etti.
+🔴 **20:47Z PENCERESI DE ATESLEMEDI (21:20Z'de olculdu) — KADANS HIPOTEZI TEK BASINA YETMEDI.**
+Yeni cron `47 */4` origin/main'e **16:48Z**'de indi, pencereden 3 sa 59 dk once; yine de
+`event=schedule` sayisi **0**. O gece GitHub zamanlayicisi bu depoda CALISIYORDU (kiyas kolu:
+`d1-uzlastirici` 20:56Z · `yayin-yasi` 21:15Z schedule kosumu aldi) → global kesinti/yuk DEGIL.
+Ek hipotez de ELENDI: GitHub `updated_at` damgasinin bayat olmasi engel degil (`d1-uzlastirici`
+damgasi 31 Tem, dosyasi 31 Agu degismis, teslim EDIYOR). Ayakta kalan tek aciklama: **tetigi YENI
+eklenen/degistirilen cron ilk penceresini atliyor** — iki kacan pencerenin ikisi de "degisiklikten
+sonraki ILK pencere". Bunu ayiran olcum: **00:47Z** (degisiklikten 8 sa sonraki IKINCI pencere).
+Nobetci yeniden kuruldu; 01:20Z'ye kadar gelmezse hipotez de duser ve kurulum eksenine inilir.
 🟠 parti cron 20:33 yerel. 🟠 MaCiT sahipli 1 CI kirmizisi (`cbfc3721` failure) — onun duzlemi.
 ✅ **V5 GUVEN BLOGU CANLIDA — merge `2d2510bf`** (cip `jovial-mirzakhani`; defter kalemini mimara
 birakti). MIMAR BAGIMSIZ TEYIDI (kanonik URL, cache-bust'siz): ana sayfa 200 · **5 rozet
@@ -54,12 +56,8 @@ Kalan sart (Raymarine emsalinin kendi yazdigi): URL kumesi ekleme ONCESI/SONRASI
 IKI bagimsiz eksenden, kiyas KUME FARKIYLA (kaybolan=0 ∧ dogan=0). Kume 181→182, mimar eki 42→43.
 **OKAN'DA:** panel-tik pozitif kolu (tek tik) · 24 bitmis oturum arsivi (liste kutuda).
 
-## ✅ K353 + T1/T2 + K354 (29-30 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
-🔴 **CANLI TALIMAT, SILINMEZ:** K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
-✅ **"3 ARAC KALICI OLANA KADAR AGAC KALDIRILMAZ" SARTI OLCTUM, TUTUYOR** → `nice-swanson-706912`
-KALDIRILDI (olcum: `ls-tree HEAD` 5 dosya + `nobet.yml:2116-2119` iki bataryayi KOSUYOR; ucuncusunun
-disarida kalmasi dosyada GEREKCELI. Ayrinti arsivde.)
-🔧 **ACIK:** T1a — worker deploy = OKAN kapisi; "deploy edildi (`b26cedd8`)" iddiasi CURUTULDU.
+## 🔴 CANLI TALIMAT (K353 blogu ARSIVE indi, tam metin `DEVAM-ARSIV.md`'de)
+K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci). 🔧 ACIK: T1a — worker deploy = OKAN kapisi.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - ✅ **K359 KAPANDI** (merge `9e6d32b7`, 2 Eyl) — tam metin `DEVAM-ARSIV.md`'de; canli etki kilitli blok 24→11.
