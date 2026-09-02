@@ -2,51 +2,23 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ✅ 2 EYL — K361 MERGE EDILDI (`2562741f` = `origin/main`) — TAM METIN ARSIVDE
-Ev→dizin tablosu repodan CIKTI; tek kaynak `~/.claude/cron/evler.json` (8 ev, FaR dahil) + tohum
-`tools/evler-tohum.json` (runtime OKUMAZ). BAGIMSIZ olcum (taban `619c642e` TEMIZ KLON):
-**kirmizi seti DEGISMEDI** (iki rc=1 kapinin govdesi taban↔dal BIREBIR, FARK=0) · yeni batarya
-`VAKA=9/9 MUTANT=4/4` · CI duzlem sim. 7/7 AYNI · `ev_coz` faralya→FaR, bilinmeyen→fail-closed · D1 **32202/32202** ✅. 🔴 SERIT B "yesil" OLAMAZ (400 kosumda 0 success) →
-olcut KIRMIZI SETI. 🔴 `worktrees/cool-albattani-bb4a31` SILINMEDI: icindeki 191 satirlik mimar
-raporu (dal `claude/gallant-khayyam-30669f`) izlenmiyor, TEK KOPYA — agac kalkarsa kaybolur.
+## ✅ 2 EYL — IKI MERGE INDI (`4b28c796` = `origin/main`) — TAM METIN ARSIVDE
+① **K361** `2562741f`: ev→dizin tablosu repo DISINA (`~/.claude/cron/evler.json`, 8 ev). Kirmizi seti
+DEGISMEDI (iki rc=1 kapinin govdesi taban↔dal FARK=0) · yeni batarya `VAKA=9/9 MUTANT=4/4` · CI duzlem
+sim. 7/7 AYNI · `ev_coz` faralya→FaR, bilinmeyen→fail-closed · D1 32202/32202 ✅ · deploy YESIL.
+② **SERIT B tamiri** `4b28c796` (dal `gallant-khayyam-30669f`, 7 dosya): iki izole klon + CI benzesimi
+(`init.defaultBranch=master`) ile **5 kirmizi ONARILDI, GERILEME 0** (merge-kanit `VAKA=8 MUTANT=6/6` ·
+kart-ikiz.js · sentetik-git fikstur kapisi · ic-rapor-kanca **17/21→21/21** · recete `REDDEDILEN 1→0`);
+`nobet.yml` oksuz cagri yeri **1→0**; yasal-sayfa-drift A/B YESIL; D1 HEAD 32204 = D1 32204.
+🔴 **MIMAR HUKMU (b): K309 ARTIK KAPISIZ KALEM** — `kalem-senkron-kapisi.py` silinmisti, cagri yeri
+kalmisti (`serit-b` yapisal olarak yesillenemiyordu); adim kaldirildi, arac GERI GETIRILMEDI (Okan'in
+30 Agu kapsam daraltmasi korunur). 🟠 K196: JS kolu yerel node v25.8.1, CI node 20 → CI'da OLCULMEDI.
+🔴 SERIT B'nin kendisi "yesil" olcut DEGIL: son 400 kosumda 0 success (kuyruk tahliyesi).
+🔴 `worktrees/cool-albattani-bb4a31` SILINMEDI: icindeki 191 satirlik mimar raporu izlenmiyor, TEK KOPYA.
 
-## 🔁 2 EYL ~03:3x — MIMAR OTURUM KAPANISI
-**CANLIYA GIDEN:** main **`619c642e`** = `origin/main` BIREBIR. Onceki oturumun merge'leri canlida:
-K352 `23bc7b0b` · K356 `f283d8e2` · K357 `ff1a7870` · Raymarine `13f0ecbc` · **K358 `38b2d512`
-(DEPLOY'LU, `d2d78692` @ `20:47:02Z`)**. ✅ K360 kabul 5/5 · ✅ kutu 302 → 175 satir.
-
-🔴 **AGAC TEMIZ DEGIL VE BU KAPANISIN TEK KIRMIZISI — SEBEBI BENDE DEGIL:**
-`git status` = ` M tools/parti-borc-kapisi.py` (BENIM, commit'siz) + `M  urunler.json` (MaCiT, INDEX).
-`.git/index.lock` TUTULU. Sebep olculdu: **MaCiT'in `git commit`i PID 1913, `etime 03:25:21` —
-3,4 SAATTIR asili**, ustune ayni dilimin ikinci commit'i (PID 21884) binmis. `619c642e`den beri
-repoya hicbir sey inmedi. Surece ve kilide DOKUNMADIM (yabanci), MaCiT'e iki kez yazdim.
-**BEKLEYEN IKI IS, ikisi de MaCiT'in partisine DOKUNMUYOR:**
- ① `tools/parti-borc-kapisi.py` tek satirlik commit — **Faralya evinin isci kanalini ayakta tutan
-    koltuk degnegi**; su an CALISIYOR ama COMMIT'SIZ, biri `git checkout` derse o ev duser.
-    (Olculdu: `ev_coz('/Users/okan/dev/faralya')` (None,'cozulemedi') → ('FaR',None); kapilar
-    6/6·1/1·4/4 taban ile AYNI; bilinmeyen kok HALA fail-closed.) 3 commit denemesi kilitte dustu.
- ② **K359 merge** — dal `claude/cool-albattani-bb4a31` @ `953549c6`, kapanisi YAZILI.
-    Mimar BAGIMSIZ olctu: `kutu-arsivle-test` **303/0 → 335/0** · CANLI kutuda ayni an iki arac
-    surumu: `kilitledi` **28 → 13**, dusen 15 blogun HEPSI `macit-parti-surucusu` (kapanisi kutuda
-    olan tek ad), kapanis yazmamis hicbir cip serbest KALMADI. Kapsam 2 dosya/+361-10, cakisma YOK.
-    **Kapatan olcum:** kilit acilir acilmaz merge + push.
-
-**KOSUYOR (ULDURME):** cip `KraL-EvHaritasi-2Eyl` (`task_e3e6dfc4`) · oturum `cool-albattani-bb4a31-59`
-· dal `claude/determined-babbage-333b90` @ `4dfa0147` · agac `.claude/worktrees/cool-albattani-bb4a31`
-· motor **Claude** (kapi kodu, ucuz kata inmez) · spec: **K361** — ev→dizin eslemesi PRUVO reposundan
-`~/.claude/cron/evler.json`'a. Ek hukum gonderildi: runtime'da SESSIZ DUSUS YOK (yok/bozuk/bos → RED
-+ sifir-disi rc), fakat RED cikmaz sokak degil — kurtarma komutu basilir, gomulu tablo `--ev-haritasi-kur`
-TOHUMU olarak kalir (mevcut dosyayi EZMEZ); ayrimi `ME4` mutanti olcer.
-🔴 **K361'in dogurdugu sinif:** tasima IKI DUZLEME dokunuyor — `~/.claude/cron/` **versiyonsuz,
-yazildigi AN canli**; yukleyici **versiyonlu, merge bekliyor**. Config once indi, koltuk degnegi
-kaldirildi, yukleyici inmedi → arada Faralya'nin hatti KAPANDI. **Koltuk degnegi, yerine gececek
-mekanizma CANLI olmadan kaldirilmaz.**
-
-**BEKLIYOR:** 🔧 `claude/gallant-khayyam-30669f` @ `6ec3fa82` (SERIT B, 6 kirmizi adim onarimi,
-7 dosya) — **kutuda KAPANISI YOK**, merge edilmedi. **Kapatan olcum:** cipin sayili kapanisi + git
-ekseni. · 🟠 K359 (yukarida) · 🟠 FaR notu: `~/.claude/cron/` hicbir deponun icinde degil
-(`GUVENLI_EV_KOKLERI` dahil) — versiyonlanmasi sonraki kalem, sahibi KraL.
-**OKAN'DA:** 0 karar.
+## 🔁 2 EYL ~03:3x — ONCEKI OTURUM KAPANISI → **BEKLEYEN IKI IS DE INDI, ARSIVE TASINDI.**
+Koltuk degnegi commit'i (`4353c32f`) + K359 merge (`487fcff3`) kardes oturumda; K361 ve SERIT B
+tamiri bu oturumda. MaCiT'in 3,4 saat asili commit'i cozuldu. Tam metin `DEVAM-ARSIV.md`de.
 
 ## ✅ K353 + T1/T2 + K354 (29-30 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
 🔴 **CANLI TALIMAT, SILINMEZ:** K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
