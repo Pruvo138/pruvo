@@ -85,6 +85,19 @@ VAKALAR (hepsi bloklayici):
       TIRNAK ICINDE `KAPANDI`. "ad YOK" bacagi UCTAN UCA GORUNMEZDIR (adsiz kapanis
       hicbir cipi serbest birakamaz) -> o tek bacak aracin KENDI fonksiyonu cagrilarak
       olculur (`_arac_modulu`, mutant yolu da gecerlidir)
+  43. 🔴 K359-B KUSUR A — KAPANIS ADI IMZA ONAYLI GEVSEK cikarimla da okunur.
+      Olculen vaka: `✅ <ad> (çip: …) **SAYILI KAPANIŞ**` — ad BACKTICK'SIZ, Turkce
+      `Ş`, `KAPANDI` sozcugu YOK. Blok KAPANIS SAYILIYORDU ama SAHIBI okunamiyordu,
+      yani acilis ile kapanis AYRI ALFABEDEN okunuyordu. DORT NEGATIF FIKSTUR:
+      kapanisi BASKASI imzalamis · KAPANIS OLMAYAN ama adi anan+imzali blok · ad
+      yalniz KOMSU kapanisin GOVDESINDE · kapanis sozu TIRNAK ICINDE. 🔴 `kilitledi=0`
+      HEDEF DEGIL: 2 cip serbest kalir, 4 cip KILITLI kalir ve bu ADIYLA olculur
+  44. 🔴 K359-B KUSUR B — ACILISI KUTUDA KALAN KAPANIS ROTASYONA GIRMEZ (cift
+      butunlugu). Iki POZITIF sekil (`ACILIS_SABIT` · `ACILIS_DAHA_YENI`) + BIR
+      NEGATIF (normal yon: acilis kapanistan ESKI konumda -> cift birlikte TASINIR).
+      Negatif olmasa "her kapanisi pinleyen" bir kol da yesil yanardi
+  45. 🔴 K359-B DENETIM — `cift-bolunmesi-sizdir` arizasi D18'de yakalanmali: tasinan
+      metne acilisi kutuda kalan bir KAPANIS sizarsa rc!=0 + HICBIR SEY yazilmaz
 
 🔴 17-19'UN FIKSTURU AYRI (`kutu_uret_ayracli`): 1-16 arasi fiksturler bloklari AYRAC
 (`---`) ile ayirmaz, CANLI kutu ayirir. Oksuz govde ekseni ayraca dayandigi icin bu uc
@@ -110,6 +123,12 @@ MUTASYON (cift yonlu, KOPYA uzerinde — canli dosyaya DOKUNMAZ):
   (t) MP1 ROL olcutu alt-dizgeye     -> suite KIRMIZI olmali (vaka 41)
   (u) MP2 uc sart "herhangi biri"ne  -> suite KIRMIZI olmali (vaka 42 + 31/32/33/36)
   (v) MP3 tirnak elemesi kalkar      -> suite KIRMIZI olmali (vaka 41/42)
+  (x) K359-B gevsek KAPANIS adi olur -> suite KIRMIZI olmali (vaka 43)
+  (y) K359-B IMZA onayi kalkar       -> suite KIRMIZI olmali (vaka 43, TERS YON)
+  (z) K359-B cift butunlugu ICRA olur-> suite KIRMIZI olmali (vaka 44)
+  (aa) K359-B konum bacagi (`o<c`)   -> suite KIRMIZI olmali (vaka 44)
+  (bb) K359-B D18 denetimi olur      -> suite KIRMIZI olmali (vaka 45)
+  (cc) MP0 ESDEGER yeniden yazim     -> suite YESIL kalmali (imza taramasi ters yonde)
   (w) MP0 ESDEGER yeniden yazim      -> suite YESIL kalmali (hicbir sey oldurmemeli)
   (c) ilgisiz metin degisikligi      -> suite YESIL kalmali
   Mutasyon oncesi/sonrasi canli aracin sha256'si BASILIR ve ESITLIGI iddia edilir.
@@ -1815,6 +1834,320 @@ def v42_ucuncu_kapanis_kolu(arac, kok):
           is False)
 
 
+# ================ K359-B — KAPANIS ADI (A) + CIFT BUTUNLUGU (B) (2 Eyl 2026) ======
+# 🔴 OLCULEN IKI VAKA (canli kutu 2 Eyl, mimar ELIYLE gosterdi):
+#   A) `KraL-UrunSilmeButonu-2Eyl` kapanisi
+#      `## … — ✅ <ad> (çip: …) **SAYILI KAPANIŞ — …**` seklindeydi: BACKTICK'SIZ ad,
+#      Turkce `Ş`, `KAPANDI` sozcugu YOK. Arac blogu KAPANIS SAYDI ama sahibini DAR
+#      cikarimla aradi -> ad kumeye GIRMEDI -> ayni cipin `BASLIYORUM` blogu, kapanisi
+#      kutuda DURURKEN "ESLESEN KAPANIS kutuda YOK" diye kilitlendi.
+#   B) O acilis YERINDE ATLANIRKEN rotasyon onun USTUNDEKI bloklara devam etti ve AYNI
+#      CIPIN KAPANISINI arsive tasidi (arsiv :59559) -> acilis artik HICBIR ZAMAN
+#      eslesemez: kutuda KALICI OLU SLOT.
+# 🔴 FIKSTUR yalnizca BASLIK/IMZA SEKLINI tasir; gercek govdeler KOPYALANMAZ, gercek
+# cip adlari KULLANILMAZ (MimarT/MimarU/MimarV/MimarW/MimarY/MimarZ uydurmadir).
+K359B_TAVAN = 55
+
+# --- (A) KAPANIS ADI: 1 POZITIF SEKIL + 1 REGRESYON + 4 NEGATIF -------------------
+K359B_POZ_AD = "MimarT-UrunSil-2Eyl"     # backticksiz ad + IMZA -> kapanis SAYILIR
+K359B_REG_AD = "MimarU-Cron-2Eyl"        # backtick'li ad (eski yol) -> AYNEN calisir
+K359B_N1_AD = "MimarN1-Imzasiz-2Eyl"     # kapanis BASKASI tarafindan IMZALI -> HAYIR
+K359B_N2_AD = "MimarN2-Prozada-2Eyl"     # adi ANAN ama KAPANIS OLMAYAN blok -> HAYIR
+K359B_N3_AD = "MimarN3-Govdede-2Eyl"     # ad yalniz GOVDEDE geciyor -> HAYIR
+K359B_N4_AD = "MimarN4-Tirnakli-2Eyl"    # `KAPANDI` TIRNAK ICINDE -> HAYIR
+
+# POZITIF: gercek vakanin BIREBIR SEKLI (Turkce `Ş`, `KAPANDI` sozcugu YOK, ad
+# BACKTICK'SIZ) + blogun kendi IMZASI ayni ad.
+K359B_POZ_KAPANIS = ("## 2026-09-02 — ✅ %s (çip: sentetik-cip-a1 · model: X) "
+                     "**SAYILI KAPANIŞ — is bitti, sayilar asagida.**" % K359B_POZ_AD)
+K359B_POZ_ACIK = ("## 2026-09-02 — 🚧 %s (çip: sentetik-cip-a1 · model: X) "
+                  "**BAŞLIYORUM: sentetik is.**" % K359B_POZ_AD)
+K359B_REG_KAPANIS = ("## 2026-09-02 — ✅ MimarU 5. cron `%s` **KAPANDI (delta=0, "
+                     "gate-only) — yapisal kilit ayni.**" % K359B_REG_AD)
+K359B_REG_ACIK = ("## 2026-09-02 — 🚧 MimarU 5. cron (`%s`) **BAŞLIYORUM: yapisal "
+                  "kilit ayni.**" % K359B_REG_AD)
+# N1 — kapanis SEKLI TAM ama blogu BASKASI imzalamis: ANMAK != SAHIPLENMEK.
+K359B_N1_KAPANIS = ("## 2026-09-02 — ✅ %s **SAYILI KAPANIŞ — devralan mimar "
+                    "kapatti.**" % K359B_N1_AD)
+K359B_N1_ACIK = "## 2026-09-02 — 🚧 %s **BAŞLIYORUM: sentetik is.**" % K359B_N1_AD
+# N2 — blogu O CIP IMZALAMIS ve adi baslikta GECIYOR ama blok KAPANIS DEGIL.
+K359B_N2_RAPOR = ("## 2026-09-02 — 🔍 %s ara raporu — olcum surdu, karar YOK."
+                  % K359B_N2_AD)
+K359B_N2_ACIK = "## 2026-09-02 — 🚧 %s **BAŞLIYORUM: sentetik is.**" % K359B_N2_AD
+# N3 — GERCEK bir kapanis ama BASKA cipin; N3'un adi yalniz GOVDEDE anilir.
+K359B_N3_KAPANIS = ("## 2026-09-02 — ✅ MimarZ-Komsu-2Eyl **SAYILI KAPANIŞ — komsu "
+                    "is bitti.**")
+K359B_N3_ACIK = "## 2026-09-02 — 🚧 %s **BAŞLIYORUM: sentetik is.**" % K359B_N3_AD
+# N4 — ad + IMZA var ama kapanis sozu TIRNAK ICINDE: blok KAPANIS DEGIL.
+K359B_N4_KAPANIS = ('## 2026-09-02 — ✅ %s ara notu — ust blokta "KAPANDI" yaziyor '
+                    'ama bu is SURUYOR.' % K359B_N4_AD)
+K359B_N4_ACIK = "## 2026-09-02 — 🚧 %s **BAŞLIYORUM: sentetik is.**" % K359B_N4_AD
+
+
+def imzali_blok(i, baslik, imza):
+    """Blok govdesi + SATIR BASI imzasi (`— <imza>`) — kutu geleneginin sahiplik isareti."""
+    return cip_blogu(i, baslik) + "— %s\n\n" % imza
+
+
+def kutu_uret_k359b_ad():
+    """(A) fiksturu: kapanislar USTTE, acilislar ALTTA (kutu gelenegi: YENI -> ESKI)."""
+    parcalar = [FM]
+    sira = [
+        ("## 2026-09-02 — MimarA → MimarB: koru dolgusu 0", "MimarA"),
+        ("## 2026-09-02 — MimarA → MimarB: koru dolgusu 1", "MimarA"),
+        ("## 2026-09-02 — MimarA → MimarB: koru dolgusu 2", "MimarA"),
+        (K359B_POZ_KAPANIS, K359B_POZ_AD),      # IMZA = ad -> SAHIPLENME
+        (K359B_REG_KAPANIS, "MimarU"),          # backtick'li: imza gerekmez
+        (K359B_N1_KAPANIS, "MimarZ-Devralan"),  # IMZA BASKASI -> kapanis SAYILMAZ
+        (K359B_N2_RAPOR, K359B_N2_AD),          # KAPANIS DEGIL
+        (K359B_N3_KAPANIS, "MimarZ-Komsu-2Eyl"),
+        (K359B_N4_KAPANIS, K359B_N4_AD),        # TIRNAK -> kapanis DEGIL
+        (K359B_POZ_ACIK, K359B_POZ_AD),
+        (K359B_REG_ACIK, "MimarU"),
+        (K359B_N1_ACIK, K359B_N1_AD),
+        (K359B_N2_ACIK, K359B_N2_AD),
+        (K359B_N3_ACIK, K359B_N3_AD),
+        (K359B_N4_ACIK, K359B_N4_AD),
+    ]
+    i = 0
+    while i < len(sira):
+        baslik, imza = sira[i]
+        # N3'un adi, KOMSU cipin kapanis blogunun GOVDESINDE anilir (gercek tuzak).
+        kuyruk = None
+        if baslik == K359B_N3_KAPANIS:
+            kuyruk = "not: `%s` isi ayrica surmektedir." % K359B_N3_AD
+        parcalar.append(cip_blogu(i, baslik, kuyruk) + "— %s\n\n" % imza + "---\n\n")
+        i += 1
+    j = 0
+    while j < 2:
+        parcalar.append(blok(500 + j) + "---\n\n")
+        j += 1
+    return "".join(parcalar)
+
+
+def v43_kapanis_adi_imza_onayli(arac, kok):
+    """[43] 🔴 K359-B KUSUR A — BACKTICK'SIZ kapanis adi IMZA ONAYIYLA okunur.
+
+    POZITIF (gercek vakanin sekli): `✅ <ad> … **SAYILI KAPANIŞ**`, ad BACKTICK'SIZ,
+    blok O ADLA IMZALI -> kapanis SAYILIR, cipin `BASLIYORUM` blogu SERBEST KALIR.
+    REGRESYON: backtick'li `✅ … `ad` … **KAPANDI**` sekli AYNEN calismaya devam eder.
+    DORT NEGATIF (gevsetme SERBEST BIRAKMA yonune AKMASIN diye):
+      N1 kapanis sekli TAM ama blogu BASKASI imzalamis -> kapanis DEGIL
+      N2 blogu O CIP imzalamis ama blok KAPANIS DEGIL   -> kapanis DEGIL
+      N3 ad yalniz KOMSU kapanisin GOVDESINDE aniliyor  -> kapanis DEGIL
+      N4 kapanis sozu TIRNAK ICINDE                     -> kapanis DEGIL
+    🔴 `kilitledi=0` HEDEF DEGIL: bu fiksturde 2 cip SERBEST KALIR, 4 cip KILITLI
+    KALIR. Hepsi duserse kol GEVSEMISTIR — 43g o hali ADIYLA yakalar.
+    """
+    print("\n[43] K359-B KAPANIS ADI — backticksiz ad + IMZA ONAYI (4 negatif fikstur)")
+    metin = kutu_uret_k359b_ad()
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    iddia("43a fikstur tavani GERCEKTEN asiyor",
+          len(metin.splitlines()) > K359B_TAVAN, "satir=%d" % len(metin.splitlines()))
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=K359B_TAVAN, koru=3)
+    kutu_s, arsiv_s = oku(a.kutu), oku(a.arsiv)
+    adlar = satir_al(cikti, "ACIK_BASLIYORUM_ADLARI=")
+    iddia("43b rc=0", rc == 0, "rc=%d\n%s" % (rc, cikti[-1200:]))
+
+    # POZITIF — GERCEK VAKANIN SEKLI
+    iddia("43c 🔴 POZITIF: backticksiz+IMZALI `SAYILI KAPANIŞ` TANINDI, `%s` ACIK "
+          "AD LISTESINDEN CIKTI" % K359B_POZ_AD, K359B_POZ_AD not in adlar, adlar)
+    iddia("43d 🔴 POZITIF: o cipin `BASLIYORUM` blogu GERCEKTEN arsive gitti",
+          K359B_POZ_ACIK in arsiv_s and K359B_POZ_ACIK not in kutu_s,
+          "blok hala kutuda -> kapanis TANINMADI")
+    # REGRESYON — eski (backtick'li) yol OLMEDI
+    iddia("43e REGRESYON: backtick'li `KAPANDI` sekli AYNEN calisiyor (`%s` serbest)"
+          % K359B_REG_AD, K359B_REG_AD not in adlar, adlar)
+    iddia("43f REGRESYON: o cipin `BASLIYORUM` blogu arsive gitti",
+          K359B_REG_ACIK in arsiv_s)
+
+    # DORT NEGATIF — hicbiri SERBEST BIRAKMAMALI
+    iddia("43g 🔴 N1: kapanisi BASKASI imzalamis -> `%s` ACIK KALDI (ANMAK != "
+          "SAHIPLENMEK)" % K359B_N1_AD, K359B_N1_AD in adlar, adlar)
+    iddia("43h 🔴 N1: acilis blogu KUTUDA kaldi, arsive SIZMADI",
+          K359B_N1_ACIK in kutu_s and K359B_N1_ACIK not in arsiv_s)
+    iddia("43i 🔴 N2: KAPANIS OLMAYAN (adi ANAN + O CIP imzali) blok serbest BIRAKMADI"
+          " -> `%s` ACIK KALDI" % K359B_N2_AD, K359B_N2_AD in adlar, adlar)
+    iddia("43j 🔴 N2: acilis blogu KUTUDA kaldi",
+          K359B_N2_ACIK in kutu_s and K359B_N2_ACIK not in arsiv_s)
+    iddia("43k 🔴 N3: ad yalniz KOMSU kapanisin GOVDESINDE aniliyor -> `%s` ACIK KALDI"
+          % K359B_N3_AD, K359B_N3_AD in adlar, adlar)
+    iddia("43l 🔴 N3: acilis blogu KUTUDA kaldi",
+          K359B_N3_ACIK in kutu_s and K359B_N3_ACIK not in arsiv_s)
+    iddia("43m 🔴 N4: kapanis sozu TIRNAK ICINDE -> `%s` ACIK KALDI" % K359B_N4_AD,
+          K359B_N4_AD in adlar, adlar)
+    iddia("43n 🔴 N4: acilis blogu KUTUDA kaldi",
+          K359B_N4_ACIK in kutu_s and K359B_N4_ACIK not in arsiv_s)
+    iddia("43o 🔴 kilitledi=0 HEDEF DEGIL: TAM 4 cip ACIK kaldi (2 serbest, 4 kilitli)",
+          "ACIK_BASLIYORUM=4 " in cikti, cikti[-1600:])
+    iddia("43p kapanmis_basliyorum=2 ADIYLA basildi (serbest birakilan SAYILDI)",
+          "kapanmis_basliyorum=2 " in cikti, cikti[-1600:])
+    iddia("43q lossless GECTI", "lossless_dogrulama=GECTI" in cikti, cikti[-900:])
+
+    # 🔴 BIRIM EKSENI — aracin KENDI fonksiyonu (mutant yolu da gecerlidir).
+    try:
+        mod = _arac_modulu(arac)
+        olcut = mod.kapanis_cip_adi
+    except Exception as exc:                                  # noqa: BLE001
+        iddia("43r BIRIM: arac modulu yuklendi", False, "%r" % (exc,))
+        return
+
+    def _ad(baslik, imza):
+        s = (baslik + "\n" + (CIP_GOVDE % (0, 100)) + "— %s\n" % imza).splitlines(
+            keepends=True)
+        return olcut(s, 0, len(s))
+
+    iddia("43r BIRIM POZITIF: backticksiz ad + AYNI ADLA IMZA -> ad OKUNDU",
+          _ad(K359B_POZ_KAPANIS, K359B_POZ_AD) == K359B_POZ_AD,
+          "%r" % (_ad(K359B_POZ_KAPANIS, K359B_POZ_AD),))
+    iddia("43s 🔴 BIRIM N1: ayni baslik, IMZA BASKASI -> ad OKUNMADI (None)",
+          _ad(K359B_POZ_KAPANIS, "MimarZ-Devralan") is None,
+          "%r" % (_ad(K359B_POZ_KAPANIS, "MimarZ-Devralan"),))
+    iddia("43t 🔴 BIRIM MINIMAL CIFT: 43r ile 43s arasindaki TEK fark IMZA satiridir",
+          K359B_POZ_KAPANIS == K359B_POZ_KAPANIS)
+    iddia("43u BIRIM REGRESYON: backtick'li ad IMZA ARANMADAN okunur",
+          _ad(K359B_REG_KAPANIS, "MimarU") == K359B_REG_AD,
+          "%r" % (_ad(K359B_REG_KAPANIS, "MimarU"),))
+    govdede = (K359B_POZ_KAPANIS + "\nnot: bu is — %s tarafindan surduruluyor.\n"
+               % K359B_POZ_AD).splitlines(keepends=True)
+    iddia("43v 🔴 BIRIM: IMZA satir BASINDA degilse (govde icinde) ad OKUNMAZ",
+          olcut(govdede, 0, len(govdede)) is None,
+          "%r" % (olcut(govdede, 0, len(govdede)),))
+
+
+# --- (B) CIFT BUTUNLUGU: acilisi kutuda kalan KAPANIS TASINMAZ --------------------
+K359B_B1_AD = "MimarV-Cift-2Eyl"      # ACILIS_DAHA_YENI (o < c) -> kapanis PINLENIR
+K359B_B2_AD = "MimarW-Koru-2Eyl"      # ACILIS_SABIT (`koru` tabaninda) -> PINLENIR
+K359B_BN_AD = "MimarY-Normal-2Eyl"    # NORMAL yon (o > c) -> kapanis TASINIR
+
+K359B_B1_ACIK = "## 2026-09-02 — 🚧 MimarV (`%s`) **BAŞLIYORUM: is.**" % K359B_B1_AD
+K359B_B1_KAPANIS = ("## 2026-09-01 — ✅ MimarV (`%s`) **KAPANDI (delta=0)**"
+                    % K359B_B1_AD)
+K359B_B2_ACIK = "## 2026-09-02 — 🚧 MimarW (`%s`) **BAŞLIYORUM: is.**" % K359B_B2_AD
+K359B_B2_KAPANIS = ("## 2026-09-01 — ✅ MimarW (`%s`) **KAPANDI (delta=0)**"
+                    % K359B_B2_AD)
+K359B_BN_KAPANIS = ("## 2026-09-01 — ✅ MimarY (`%s`) **KAPANDI (delta=0)**"
+                    % K359B_BN_AD)
+K359B_BN_ACIK = "## 2026-08-30 — 🚧 MimarY (`%s`) **BAŞLIYORUM: is.**" % K359B_BN_AD
+
+# 🔴 (B) ICIN AYRI TAVAN — ELLE CIVILENDI, sonuca gore secilmedi: fikstur 141 satir,
+# bloklar 0-7 = 11'er satir, 8-10 = 15'er satir. su_seviye = int(100*0.8) = 80; secim
+# 10,9,8,7 ve (6/5 PINLI atlanip) 4'u alir, kalan 74 <= 80 oldugu icin B1 ACILISINDAN
+# (blok 3) ONCE DURUR. Boylece "kapanis PINLENDI" iddiasi, acilisin da tasinmis
+# olmasindan BAGIMSIZ okunur ve cift GERCEKTEN bolunmemis olur.
+K359B_CIFT_TAVAN = 100
+
+
+def kutu_uret_k359b_cift():
+    """(B) fiksturu — blok sirasi (YENI -> ESKI, 0-tabanli):
+
+      0  koru dolgusu
+      1  B2 ACILIS  (`koru` tabaninda -> SABIT)
+      2  koru dolgusu
+      3  B1 ACILIS  (tasinabilir, ama KAPANISINDAN DAHA YENI konumda)
+      4  BN KAPANIS (acilisi 7'de, yani o > c -> NORMAL yon, TASINMALI)
+      5  B1 KAPANIS (acilisi 3'te, o < c -> PINLENMELI)
+      6  B2 KAPANIS (acilisi 1'de, SABIT -> PINLENMELI)
+      7  BN ACILIS  (tasinabilir)
+      8+ eski dolgu
+    """
+    basliklar = [
+        "## 2026-09-02 — MimarA → MimarB: koru dolgusu 0",
+        K359B_B2_ACIK,
+        "## 2026-09-02 — MimarA → MimarB: koru dolgusu 2",
+        K359B_B1_ACIK,
+        K359B_BN_KAPANIS,
+        K359B_B1_KAPANIS,
+        K359B_B2_KAPANIS,
+        K359B_BN_ACIK,
+    ]
+    parcalar = [FM]
+    i = 0
+    while i < len(basliklar):
+        parcalar.append(cip_blogu(i, basliklar[i]) + "---\n\n")
+        i += 1
+    j = 0
+    while j < 3:
+        parcalar.append(blok(600 + j) + "---\n\n")
+        j += 1
+    return "".join(parcalar)
+
+
+def v44_cift_butunlugu(arac, kok):
+    """[44] 🔴 K359-B KUSUR B — ACILISI KUTUDA KALAN KAPANIS ARSIVE TASINMAZ.
+
+    Olculen zarar: acilis YERINDE ATLANIRKEN rotasyon onun USTUNDEKI bloklara devam
+    edip AYNI CIPIN KAPANISINI arsive tasidi -> acilis bir daha ASLA eslesemez, kutuda
+    KALICI OLU SLOT. Iki POZITIF sekil (`ACILIS_SABIT` + `ACILIS_DAHA_YENI`) ve BIR
+    NEGATIF (NORMAL yon: acilis kapanistan ESKI konumda -> kapanis TASINIR) ayni
+    fiksturde olculur: `CIFT_KORUMASI` her kapanisi pinleyen bir kol OLMAMALI.
+    """
+    print("\n[44] K359-B CIFT BUTUNLUGU — acilisi kalan KAPANIS rotasyona GIRMEZ")
+    metin = kutu_uret_k359b_cift()
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    iddia("44a fikstur tavani GERCEKTEN asiyor",
+          len(metin.splitlines()) > K359B_CIFT_TAVAN,
+          "satir=%d" % len(metin.splitlines()))
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=K359B_CIFT_TAVAN, koru=3)
+    kutu_s, arsiv_s = oku(a.kutu), oku(a.arsiv)
+    iddia("44b rc=0", rc == 0, "rc=%d\n%s" % (rc, cikti[-1400:]))
+    iddia("44c 🔴 CIFT_KORUMASI=2 ADIYLA basildi (SESSIZ ATLAMA YASAK)",
+          "CIFT_KORUMASI=2 " in cikti, cikti[-1800:])
+    iddia("44d 🔴 sebep ACILIS_SABIT ADIYLA basildi",
+          "sebep=ACILIS_SABIT" in cikti, cikti[-1800:])
+    iddia("44e 🔴 sebep ACILIS_DAHA_YENI ADIYLA basildi",
+          "sebep=ACILIS_DAHA_YENI" in cikti, cikti[-1800:])
+
+    # POZITIF 1 — ACILIS_DAHA_YENI: kapanis KUTUDA kaldi, cift BOLUNMEDI
+    iddia("44f 🔴 B1: kapanis KUTUDA kaldi, arsive SIZMADI",
+          K359B_B1_KAPANIS in kutu_s and K359B_B1_KAPANIS not in arsiv_s,
+          "kapanis arsive kacti -> acilis bir daha eslesemez (OLU SLOT)")
+    iddia("44g 🔴 B1: acilis da KUTUDA -> cift BOLUNMEDI",
+          K359B_B1_ACIK in kutu_s)
+    # POZITIF 2 — ACILIS_SABIT (`koru` tabani)
+    iddia("44h 🔴 B2: kapanis KUTUDA kaldi, arsive SIZMADI",
+          K359B_B2_KAPANIS in kutu_s and K359B_B2_KAPANIS not in arsiv_s)
+    iddia("44i 🔴 B2: acilis `koru` tabaninda KUTUDA", K359B_B2_ACIK in kutu_s)
+    # NEGATIF — NORMAL yon: kol HER kapanisi pinlemez
+    iddia("44j 🔴 NEGATIF: NORMAL yondeki (acilisi DAHA ESKI) kapanis TASINDI",
+          K359B_BN_KAPANIS in arsiv_s and K359B_BN_KAPANIS not in kutu_s,
+          "kol her kapanisi pinliyor -> rotasyon KILITLENIR")
+    iddia("44k 🔴 NEGATIF: o ciftin acilisi da TASINDI (cift birlikte dustu)",
+          K359B_BN_ACIK in arsiv_s and K359B_BN_ACIK not in kutu_s)
+    # 🔴 Rotasyon GERCEKTEN is yapti: kol "her seyi pinleyip durdum" ile "cifti
+    # koruyup geri kalani tasidim"i AYIRT EDILEBILIR kilmali. Sayi ONCEDEN civilendi
+    # (bkz. K359B_CIFT_TAVAN gerekcesi): tasinan kume {10,9,8,7,4} = 5 blok.
+    iddia("44l rotasyon GERCEKTEN is yapti — tasinacak_blok=5 (onceden civili)",
+          "tasinacak_blok=5 " in cikti, satir_al(cikti, "tasinacak_blok="))
+    iddia("44n kutu tavanin ALTINA indi (cift korumasi rotasyonu KILITLEMEDI)",
+          "HUKUM=TAMAM" in cikti or "sonra_satir=74" in cikti, cikti[-900:])
+    iddia("44m lossless GECTI", "lossless_dogrulama=GECTI" in cikti, cikti[-900:])
+
+
+def v45_d18_denetimi(arac, kok):
+    """[45] 🔴 K359-B DENETIM — `cift-bolunmesi-sizdir` arizasi D18'de yakalanmali.
+
+    ICRA kolu (planla) dogru calissa bile, tasinan metne ACILISI KUTUDA KALAN bir
+    KAPANIS blogu SIZARSA denetim KIRMIZI YAKMALI ve HICBIR SEY yazilmamali.
+    """
+    print("\n[45] K359-B DENETIM — `cift-bolunmesi-sizdir` arizasi D18'de yakalanmali")
+    metin = kutu_uret_k359b_cift()
+    a = Alan(kok, metin, "## eski arsiv blogu\n\ngovde\n")
+    h1, h2 = sha(a.kutu), sha(a.arsiv)
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=K359B_CIFT_TAVAN, koru=3,
+                    ortam={"PRUVO_KUTU_ARSIVLE_ARIZA": "cift-bolunmesi-sizdir"})
+    iddia("45a rc SIFIR-DISI", rc != 0, "rc=%d\n%s" % (rc, cikti[-1200:]))
+    iddia("45b kutu DEGISMEDI", sha(a.kutu) == h1)
+    iddia("45c arsiv DEGISMEDI", sha(a.arsiv) == h2)
+    iddia("45d 'HICBIR SEY YAZILMADI' beyani", "HICBIR SEY YAZILMADI" in cikti,
+          cikti[-700:])
+    # 🔴 HEDEF-KOL ATFI: kirmizinin SEBEBI D18 olmali — "kirmizi geldi" YETMEZ.
+    iddia("45e kirmizinin SEBEBI D18 CIFT BOLUNMESI kolu (hedef-kol atfi)",
+          "D18 CIFT BOLUNMESI" in cikti, cikti[-1600:])
+    iddia("45f sizan ciftin CIP ADI kirmizida geciyor",
+          (K359B_B2_AD in cikti or K359B_B1_AD in cikti), cikti[-1600:])
+
+
 VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v04_frontmatter_ve_ust_bloklar, v05_blok_bolunmez,
            v06_arsiv_yoksa_frontmatter, v07_kilit, v08_bozuk_frontmatter,
@@ -1833,7 +2166,8 @@ VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v36_gercek_vaka_regresyonu,
            v37_cevrim_kilidi_acar, v38_cevrim_dokunulmazliklari,
            v39_cevrim_sentetik_ariza, v40_cevrim_bayraksiz_gerileme_yok,
-           v41_rol_olcutu_alinti, v42_ucuncu_kapanis_kolu)
+           v41_rol_olcutu_alinti, v42_ucuncu_kapanis_kolu,
+           v43_kapanis_adi_imza_onayli, v44_cift_butunlugu, v45_d18_denetimi)
 
 
 def suite(arac, sessiz=False):
@@ -1955,7 +2289,12 @@ MUTANTLAR = (
      # ULASAMAZ ve 42d ("kapanan cipin blogu ARSIVE gitti") duser. Vakanin olctugu sey
      # "kapanis TANINDI -> blok GERCEKTEN tasindi"dir; o tasima granuler secime
      # BAGIMLIDIR — atif kirliligi DEGIL.
-     True, {"20", "22", "28", "31", "32", "33", "37", "38", "42"}),
+     # 🔴 43/44 EKLENDI (K359-B, 2 Eyl): 43'te SERBEST BIRAKILAN iki acilis, KILITLI
+     # dort acilisin USTUNDEDIR — bitisik kuyruga donen secim onlara ULASAMAZ (43d/43f
+     # duser). 44'te ise PINLENEN iki kapanis, tasinacak bloklarin ARASINDADIR: bitisik
+     # kuyruk ilk pinli bloga carpip DURUR ve NEGATIF bacak (44j/44k "normal yondeki
+     # cift TASINDI") olculemez. Ikisi de GERCEK bagimlilik.
+     True, {"20", "22", "28", "31", "32", "33", "37", "38", "42", "43", "44"}),
     # 🔴 K318 KOL-2 (27 Agu): kayipsizligin IKI EKSENDE BASILMASI sarti. Beyan
     # susturulursa 28 OLMELI; hesap dogru kalsa bile "basilmayan sayi olculmemis
     # sayidir" ([[aracin-teshis-cumlesi-olcum-degil]]).
@@ -1978,7 +2317,11 @@ MUTANTLAR = (
      # ve 42g/42i/42k) "gercek acik blok HALA kilitler"i olcer — yani ICRA bacagina
      # DOGRUDAN bagimlidirlar. Bacak olunce acik bloklar arsive kacar ve o iddialar
      # duser. Bu vakalarin VARLIK SEBEBI zaten "daraltma K329'u OLDURMEDI"dir.
-     True, {"31", "32", "33", "36", "41", "42"}),
+     # 🔴 43 EKLENDI (K359-B, 2 Eyl): 43'un DORT NEGATIF bacagi (43h/43j/43l/43n)
+     # "acik blok KUTUDA kaldi, arsive SIZMADI" der — dogrudan ICRA bacagi. 44 OLMEZ
+     # ve bu DOGRUDUR: 44'un pinlemesi K329 vetosundan DEGIL, `koru` tabani ile konum
+     # olcutunden turer; iki kol AYRI kaldi (golgelenme YOK).
+     True, {"31", "32", "33", "36", "41", "42", "43"}),
     ("m) D17 ACIK CIP DENETIMI OLDURULDU (sizan acik blok sessizce yazilir)",
      "    for _bi, ad, ozet, sinif in ek_acik:\n",
      "    for _bi, ad, ozet, sinif in []:  # MUTANT: D17 susturuldu\n",
@@ -1995,15 +2338,23 @@ MUTANTLAR = (
      # 🔴 42 EKLENDI (K359, 1 Eyl): "her blok kapanis" demek K359'un DORT NEGATIF
      # fiksturunu de serbest birakir (N1/N3/N4 ADLARI listeden duser) — vaka 42 tam
      # olarak bu gevsemeyi olcmek icin yazildi.
-     True, {"31", "32", "33", "36", "42"}),
+     # 🔴 43 EKLENDI (K359-B, 2 Eyl): ayni gevseme 43'un DORT negatifini de serbest
+     # birakir — ozellikle N2 ("adi ANAN + O CIP imzali ama KAPANIS OLMAYAN blok"),
+     # ki bu mutant altinda o blok kapanis SAYILIR ve imza onayi da tuttugu icin cip
+     # SERBEST KALIR. GERCEK bagimlilik.
+     True, {"31", "32", "33", "36", "42", "43"}),
     # 🔴 GEVSEK AD kolu (28 Agu, ucuncu canli vaka) — backtick'siz yazilmis cip adini
     # okuyan asimetrik bacak. Olmezse vaka 36'nin ② sarmali `ACIK_ADSIZ`a duser: blok
     # HALA korunur (fail-closed dogru) ama SINIFI degisir — yani kol "kismen" olur ve
-    # yalnizca sinif jetonu bunu gorur. Hedef TEK vaka: 36.
+    # yalnizca sinif jetonu bunu gorur.
+    # 🔴 43 EKLENDI (K359-B, 2 Eyl): 43'un POZITIF cipinin ACILISI da backtick'siz
+    # yazilmistir (gercek vakanin sekli). Bacak olunce o acilis `ACIK_ADSIZ`a duser,
+    # adi HIC cikarilamaz ve kapanis TANINSA BILE eslesemez -> 43c/43d duser. Yani
+    # (A) kolunun IKI UCU da (kapanis tarafi `x`, acilis tarafi `p`) olculur.
     ("p) GEVSEK AD KOLU OLDURULDU (backtick'siz cip adi okunmuyor)",
      "            gevsek = gevsek_cip_adi(baslik)\n",
      "            gevsek = None  # MUTANT: gevsek ad kolu kaldirildi\n",
-     True, {"36"}),
+     True, {"36", "43"}),
     # 🔴 K341 (28 Agu) — CEVRIM KOLU UC PARCADIR ve her biri AYRI mutantla oldurulur:
     # ICRA (cevrilecek satirlarin tespiti), DENETIM (dogrula_cevrim C1-C8) ve SINIF
     # SUZGECI (yalniz sinif=="KAPANIS" cevrilir). `q` ve `s` AYNI vaka kumesini
@@ -2049,11 +2400,56 @@ MUTANTLAR = (
      "    if KAPANIS_SOZU in sadelestir(baslik):\n"
      "        return True\n"
      "    return cip_adi(baslik) is not None\n",
-     True, {"31", "32", "33", "36", "42"}),
+     # 🔴 43 EKLENDI (K359-B, 2 Eyl): `o` ile ayni yaricap — uc sart gevseyince 43'un
+     # negatifleri de kapanis sayilir. Ortusme BEKLENENDIR; ayirt edici iz ciktida
+     # durur (`o` HER blogu kapanis yapar, `u` yalniz uc sarttan BIRINI tasiyanlari).
+     True, {"31", "32", "33", "36", "42", "43"}),
     ("v) 🔴 MP3: TIRNAK ELEMESI KALDIRILDI (alintidaki jeton yine sayilir)",
      "    return _TIRNAK_RE.sub(\" \", metin)\n",
      "    return metin  # MUTANT MP3: TIRNAK elemesi KALDIRILDI\n",
      True, {"41", "42"}),
+    # 🔴 K359-B (2 Eyl) — IKI YENI KOL, DORT MUTANT + BIR ESDEGER KONTROL.
+    # (A) KAPANIS ADI iki bacaklidir ve HER IKI YONDE de olculur: `x` bacagi SILER
+    # (gercek kapanis yine gorunmez -> POZITIF duser), `y` bacagi GEVSETIR (imza
+    # onayi kalkar -> NEGATIF fiksturler serbest kalir). Tek yonlu olcum, "gevsetme
+    # serbest birakma yonune akmadi" iddiasini OLCEMEZDI.
+    ("x) 🔴 K359-B: GEVSEK KAPANIS ADI KOLU OLDURULDU (backticksiz kapanis okunmuyor)",
+     "    gevsek = gevsek_cip_adi(satirlar[bas])\n",
+     "    gevsek = None  # MUTANT: K359-B gevsek kapanis adi kaldirildi\n",
+     True, {"43"}),
+    ("y) 🔴 K359-B: IMZA ONAYI KALDIRILDI (adi ANAN her kapanis SAHIPLENIYOR sayilir)",
+     "    if gevsek is not None and _imzada_geciyor(satirlar, bas, son, gevsek):\n",
+     "    if gevsek is not None:  # MUTANT: IMZA onayi kaldirildi\n",
+     True, {"43"}),
+    # (B) CIFT BUTUNLUGU de iki parcadir — ICRA (pinleme) ve DENETIM (D18) — ve AYRI
+    # mutantlarla oldurulur; ayrica OLCUTUN KONUM BACAGI (`o < c`) tek basina olculur,
+    # cunku `ACILIS_SABIT` bacagi onu GOLGELEYEBILIR ([[yeni-kol-onceki-kolun-golgesinde-olur]]).
+    ("z) 🔴 K359-B: CIFT BUTUNLUGU ICRA KOLU OLDURULDU (kapanis sabit kumeye GIRMIYOR)",
+     "        p.sabit = p.sabit | set(c for c, _ad, _s in p.cift_korumasi)\n",
+     "        pass  # MUTANT: cift butunlugu ICRA bacagi kaldirildi\n",
+     True, {"44"}),
+    ("aa) 🔴 K359-B: KONUM BACAGI (`o < c`) OLDURULDU (yalniz ACILIS_SABIT pinlenir)",
+     '                elif o < c:\n',
+     '                elif False:  # MUTANT: ACILIS_DAHA_YENI bacagi kaldirildi\n',
+     True, {"44"}),
+    ("bb) 🔴 K359-B: D18 CIFT DENETIMI OLDURULDU (bolunen cift sessizce yazilir)",
+     "        if kap_ad in kalan_acilis:\n",
+     "        if False:  # MUTANT: D18 susturuldu\n",
+     True, {"45"}),
+    ("cc) MP0 ESDEGER KONTROL: IMZA taramasi while yerine ERKEN DONUSLE yazildi",
+     "    j = bas\n"
+     "    while j < son:\n"
+     "        if IMZA_RE.match(satirlar[j]) and desen.search(satirlar[j]):\n"
+     "            return True\n"
+     "        j += 1\n"
+     "    return False\n",
+     "    j = son - 1\n"
+     "    while j >= bas:\n"
+     "        if IMZA_RE.match(satirlar[j]) and desen.search(satirlar[j]):\n"
+     "            return True\n"
+     "        j -= 1\n"
+     "    return False\n",
+     False, set()),
     ("w) MP0 ESDEGER KONTROL: uc-sart kontrollerinin SIRASI degisti (anlam AYNI)",
      "    if KAPANIS_DURUM_ISARETI not in baslik:\n"
      "        return False\n"
