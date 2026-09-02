@@ -2,6 +2,18 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔧 2 EYL — K372 MERGE BEKLIYOR: `yayin-yasi-nobetcisi` YANLIS ALARM (dal `claude/vigorous-wozniak-196057` @ `47e408ff`)
+Kosum `33593105401` (05:02:44Z) "YAYIN BAYAT ... `08276ead` **108 sa 20 dk**" bastirdi; yayin SAGLIKLIYDI —
+o commit K337 merge'uyle (`7ac9880f`) **4 dk once** GIRDI, deploy 2 dk sonra YESIL (`bc79d6d5`).
+Kok: saat `compare.commits[0]`in **YAZILMA** damgasindan okunuyordu; olcu **GIRIS** ani olmali (ilk-ebeveyn
+zinciri). 3 sa'ten eski HER dal merge'i yakardi -> alarm kanikmasi. Olcum: batarya
+**23/23 -> 34/34 · mutant 9/9 -> 14/14 · SURVIVOR=0**; **taban**: yeni vakalar ESKI govdede **26/34 rc=1**;
+olayin GERCEK compare yaniti iki govdede **ESKI=BAYAT / YENI=ACIK**; **gerileme 7 kapi, YENI KIRMIZI=0**.
+**MERGE HUKMU MIMARDA.** Ayrintili olcum dokumu cip agacinda, izlenmeyen mimar raporunda
+(1 Eyl bolumu KORUNDU, ustune EKLENDI — silme YOK).
+🟠 SERIT B `33593199841` **106 dk** `in_progress` (sonraki push iptal ediyor = K339'un mekanigi) ·
+🔴 spec ureteci `cancelled`i KIRMIZI sayiyor (K356'nin kardesi).
+
 ## ✅ 2 EYL — SERIT B: KIRMIZI ADIM **17 → 10** (CI'nin kendi adim listesinden, kume farkiyla)
 Taban kosum `33445049998` (1769c88a, 17 kirmizi) ↔ `33585307968` (3930fe33, 10 kirmizi).
 ③ **K337 merge** `7ac9880f`: 4 `.py` (1566 satir) alindi, 2 ic olcum `.txt`i **MERGE DISI** —
