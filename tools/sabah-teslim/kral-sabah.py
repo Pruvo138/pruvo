@@ -515,7 +515,7 @@ def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
     #   ② `cwd=REPO`  — argv çivisi hiç kurulamasa bile çağrı repo kökünden koşar.
     # Ölçen: `tools/gh-civi-nobetcisi.py` (AST, üç kova, mutant 4/4).
     argv = [yol, "run", "list", "--limit", "30",
-            "--json", "conclusion,name,createdAt,headBranch"]
+            "--json", "conclusion,name,createdAt,headBranch,status"]
     slug = _repo_slug()
     if slug:
         argv += ["-R", slug]
@@ -531,11 +531,25 @@ def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
         import json
         data = json.loads(r.stdout or "[]")
         bugun = dt.datetime.now(dt.timezone.utc).date()
+        # 🔴 K356 (31 Ağu 2026) — ÜÇÜNCÜ KOVA: "HÜKMÜ HENÜZ OLMAYAN KOŞUM".
+        # Eski döngü İKİ kova tanıyordu: kırmızı küme ve "geri kalan". Sürmekte
+        # olan koşumun `conclusion`u null'dur → ikinci kovaya düşer → SESSİZCE
+        # YEŞİL sayılırdı ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]],
+        # [[yeni-hal-cozucunun-varsayilan-kovasina-duser]]).
+        # ÖLÇÜLDÜ (31 Ağu, iddia değil): `Nöbet şeridi (SERIT B)` koşumu
+        # 02:24:45Z başladı, **03:30:16Z `failure` kapandı**; spec 03:20:02Z
+        # üretildi → o an `status=in_progress, conclusion=null`, atlandı ve
+        # başlık "HÜKÜM=OK · ADET=0 (ÖLÇÜLDÜ)" bastı. AYNI KOD 09:5xZ'de tek
+        # satır değiştirilmeden `KIRMIZI=1` verdi. Tarihsel tarama (300 koşum,
+        # 28–31 Ağu): 4 günün 2'sinde kesim anında hükümsüz bir koşum vardı ve
+        # İKİSİ DE sonradan `failure` kapandı; 1 gün TAM SAHTE YEŞİL doğdu.
+        # "Yeşil yok" bir KIRMIZI değildir, HÜKMÜN YOKLUĞUDUR (K339 sınıfı) →
+        # kırmızı yoksa ve hükümsüz varsa alan `OLCULEMEDI`dir, `0` DEĞİL.
+        KIRMIZI_KUME = ("failure", "cancelled", "timed_out")
+        YESIL_KUME = ("success", "neutral", "skipped")
         kirmizi = []
+        hukumsuz = []
         for run in data:
-            conc = (run.get("conclusion") or "").lower()
-            if conc not in ("failure", "cancelled", "timed_out"):
-                continue
             ts = run.get("createdAt", "")
             try:
                 run_date = dt.datetime.fromisoformat(ts.replace("Z", "+00:00")).date()
@@ -543,12 +557,36 @@ def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
                 continue
             if run_date != bugun:
                 continue
-            kirmizi.append("- [{}] {} · dal={}".format(conc, run.get("name", "?"), run.get("headBranch", "?")))
-        if not kirmizi:
-            return ("OK",
-                    "Bugün kırmızı CI yok (ÖLÇÜLDÜ: 30 koşum tarandı, filtre: bugün + "
-                    "failure/cancelled/timed_out · gh=%s)." % yol, 0, kaynak)
-        return "OK", "\n".join(kirmizi), len(kirmizi), kaynak
+            durum = (run.get("status") or "").lower()
+            conc = (run.get("conclusion") or "").lower()
+            ad = run.get("name", "?")
+            dal = run.get("headBranch", "?")
+            if durum != "completed":
+                hukumsuz.append("- [{}] {} · dal={} (HÜKÜM YOK: koşum sürüyor)".format(
+                    durum or "durum-yok", ad, dal))
+            elif conc in KIRMIZI_KUME:
+                kirmizi.append("- [{}] {} · dal={}".format(conc, ad, dal))
+            elif conc not in YESIL_KUME:
+                # Bilinmeyen sonuç (action_required/stale/yeni bir hâl) da varsayılan
+                # yeşil kovasına DÜŞMEZ; adıyla hükümsüz sayılır.
+                hukumsuz.append("- [{}] {} · dal={} (BİLİNMEYEN SONUÇ)".format(
+                    conc or "sonuc-yok", ad, dal))
+        if kirmizi:
+            blok = "\n".join(kirmizi)
+            if hukumsuz:
+                blok += ("\n\n> ⚠️ AYRICA HÜKMÜ OLMAYAN {} koşum var — ADET'e GİRMEZLER, "
+                         "kırmızı çıkabilirler; hüküm kapanınca YENİDEN ölç:\n".format(len(hukumsuz))
+                         + "\n".join(hukumsuz))
+            return "OK", blok, len(kirmizi), kaynak
+        if hukumsuz:
+            return ("OLCULEMEDI",
+                    "CI=OLCULEMEDI (kapanmış kırmızı YOK ama {} koşumun HÜKMÜ YOK — "
+                    "sürüyor/bilinmeyen sonuç; hüküm kapandıktan sonra YENİDEN ölçülmeli "
+                    "· gh={})\n{}".format(len(hukumsuz), yol, "\n".join(hukumsuz)),
+                    None, kaynak)
+        return ("OK",
+                "Bugün kırmızı CI yok (ÖLÇÜLDÜ: 30 koşum tarandı, filtre: bugün + "
+                "failure/cancelled/timed_out; HÜKMÜ OLMAYAN koşum da YOK · gh=%s)." % yol, 0, kaynak)
     except FileNotFoundError:
         return ("OLCULEMEDI", "CI=OLCULEMEDI (gh yolu koşturulamadı: %s)" % yol, None, kaynak)
     except subprocess.TimeoutExpired:
@@ -697,6 +735,9 @@ def ci_olculemedi_kalemi(kirmizi_blok: str) -> dict:
     }
 
 
+# 🔴 K375 (2 Eyl 2026) — `gunluk-motor-raporu.py` K375 ile zenginleşti;
+# sabah raporu bu modülü import edip `tablo_metni(...)` çıktısını SONA ekler.
+# Fail-soft: hata olursa OLCULEMEDI yazıp devam eder, sabah raporunu ÇÖKERTMEZ.
 def _motor_raporu_bolumu(tarih: dt.date) -> str:
     """`gunluk-motor-raporu.py`'dan `tablo_metni(...)` çağırır; hata olursa OLCULEMEDI.
 
