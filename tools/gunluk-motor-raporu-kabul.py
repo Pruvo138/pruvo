@@ -13,6 +13,24 @@ Iki bacak:
   (varsayilan: ikisi de)
 
 Cikis: rc=0 hepsi yesil · rc=1 kirmizi vaka / survivor · rc=2 olculemedi.
+
+🔴 BU BATARYA CI'DA KOSMAZ — VE KOSTURULMAMALIDIR. GEREKCESI:
+Olctugu ozne `~/.claude/cron/gunluk-motor-raporu.py`'dir ve o dosya HICBIR deponun
+icinde DEGILDIR (`git rev-parse` -> fatal). CI kosucusunda `~/.claude/cron/` yoktur;
+bu batarya orada YAPISAL OLARAK `rc=2 OLCULEMEDI` doner. `deploy.yml`deki nobetler
+`continue-on-error`suz kosar -> CI'a baglamak TUM EKIBIN yayinini KALICI kirmiziya
+cevirirdi (yanlis-pozitif, skill: merge-kapisi).
+
+Bu yuzden dosya adi BILEREK `-kabul.py`dir: `tools/ci-kapsam-test.py` kesif kumesi
+(`TOOLS_PAT`) `*-test.py` / `test-*.py` / `*-kapisi.py` / `*-mutasyon.py` yakalar,
+`-kabul.py` YAKALAMAZ. Ad, kapsam disiligin TASIYICISIDIR — yeniden adlandirmak
+ya da `ACIK_KESIF`e eklemek kosulamaz bir testi yayin yoluna baglar.
+
+🔴 BEDELI (sessiz degil, YAZILI): bu batarya CI tarafindan izlenmez; curur ve kimse
+duymaz. Elle kosulur, ozellikle `gunluk-motor-raporu.py` her degistiginde:
+  /opt/homebrew/bin/python3 tools/gunluk-motor-raporu-kabul.py --python /usr/bin/python3
+`--python` cron satirinin KENDI yorumlayicisidir (`/usr/bin/python3`, macOS 3.9.6);
+varsayilani kullanmak 3.9'a ozgu arizalari (`X | None` tanim aninda cozulur) KACIRIR.
 """
 
 import argparse
