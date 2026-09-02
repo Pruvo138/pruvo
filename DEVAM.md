@@ -2,6 +2,14 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔧 K373 (ACIK, cip `task_038a795a`) — SERIT B YAPISAL OLARAK HUKUM URETMIYOR
+400 kosumda **0 success** (154 failure · 246 cancelled, 19 Agu). Sebep kirmizi ADIM DEGIL
+**TETIK**: tur 85-180 dk, push araligi daha kisa, push `concurrency` grubu TEK -> bekleyen kosum
+DUSUYOR (bugun: `33593199841` ~3 saat `in_progress`, hukum YOK). Yalniz `schedule` eklemek YETMEZ:
+`is-akisi-kapisi::G11` kosulu BIREBIR `workflow_dispatch`a civili -> schedule `'push'` koluna duser.
+Is: kapi sozlesmesi **2 -> 3 kol** + her kol icin ADIYLA olduren mutant; G9 korumasi KORUNUR.
+Cadence secimi MIMARDA (cip iki secenegin kosucu-dakikasini getirir).
+
 ## ✅ 2 EYL — K372 MERGE EDILDI: `yayin-yasi-nobetcisi` YANLIS ALARM kokunden onarildi
 Bekleme suresi commit'in YAZILMA damgasindan okunuyordu; olcu main'e GIRIS anidir (ilk-ebeveyn
 zinciri). 3 sa'ten eski HER dal merge'i "108 sa bayat" yakardi -> alarm kanikmasi. MIMARIN
