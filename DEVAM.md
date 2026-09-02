@@ -2,15 +2,23 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 2 EYL ~12:0xZ — MIMAR OTURUM KAPANISI (`856cf08b` = `origin/main`, BIREBIR)
-**CANLIYA GIDEN (bu oturum):** K361 `2562741f` · SERIT B tamiri `4b28c796` · onarim `3930fe33` ·
-K337 `7ac9880f` · K372 `765eeb29` · K373 `7e14eeaa` · K375 `bdf5425e` + defter/temizlik commit'leri.
-**KOSUYOR (OLDURMEYIN):** cip `frosty-robinson-4ec3be` (canli, dal ayni ad @ `460d8726`,
-motor Claude) + yabanci agac `awesome-raman-f08ab2` (detached `e35f092d`) — ikisine de DOKUNULMADI.
-**BEKLIYOR:** 🟠 15:47Z ilk `schedule` kosumu → `cron-nabiz` A3 kolu (kapatan olcum: A3 satiri
-yesil). · 🟠 MaCiT `isci/parti-*` dallarini tuketene kadar parti cron'u "BEKLEYEN DAL"da kalir
-(kapatan olcum: bir tikte `HAL=SAGLIKLI (urun=N)`). · 79 dal merge bekliyor, hicbiri bu oturumun.
-**OKAN'DA:** worker deploy tiki (panel silme hatti, baska oturumun kalemi).
+## 🔁 2 EYL 12:1xZ — MIMAR OTURUMU ACIK (`75831a04` = `origin/main`, agac temiz, ileri/geri 0/0)
+**ONCEKI TURDAN CANLIYA GIDEN:** K361 `2562741f` · SERIT B tamiri `4b28c796` · onarim `3930fe33` ·
+K337 `7ac9880f` · K372 `765eeb29` · K373 `7e14eeaa` · K375 `bdf5425e` · Yamaha d10 `856cf08b`
+(katalog **32607** = 940 gizli / 31667 gorunur, urunler.json'dan sayildi).
+**BU TURDA:** cip agaci `awesome-raman-f08ab2` KALDIRILDI (52 MB; olcum: temiz + `e35f092d`
+origin/main atasi rc=0 + ileri commit 0 + cip ✅ arsiv izni yazili). Kutu **257→212 satir**
+(`kutu-arsivle.py`, KAYIPSIZLIK 26=21+5 blok / 34422=25688+8734 bayt, lossless GECTI).
+Cron ölçüldü: `macit-parti-surucusu` satiri CANLI (crontab 81 satir, 11 etkin).
+🔴 **K359'a YENI KOL (bugun uretildi):** arsivleyici, acilisi YERINDE ATLANAN bir bloğun
+KAPANISINI arsive tasidi → `KraL-UrunSilmeButonu-2Eyl` acilisi (kutu:96) artik HIC eslesemez.
+Cip `task_cd35b252` (`KraL-K359-KutuEslesme`) acildi; taban civili: test **42 vaka/335 iddia/0
+kirmizi**, `--kuru` `TAVAN_ALTINDA rc=0 once_satir=212` + **21/21 blok** rotasyona kapali.
+**KOSUYOR (OLDURMEYIN):** cip `frosty-robinson-4ec3be` (oturum CANLI, ListAgents'ta gorundu).
+**BEKLIYOR:** 🟠 15:47Z `schedule` → `cron-nabiz` A3 (kapatan olcum: A3 satiri yesil; su an 12:1xZ,
+penceresi ACILMADI). · 🟠 parti cron'u siradaki tik 20:33 yerel (kapatan olcum: `HAL=SAGLIKLI
+(urun=N)`). · 🟠 44 uzak / 42 yerel dal duruyor, hicbiri bu oturumun isi.
+**OKAN'DA:** worker deploy tiki (panel tekil silme hatti; canli `/urun-sil` ucu 404 olculdu).
 
 ## ✅ 2 EYL — PANEL TEKIL URUN SILME CANLI (Okan emri; cip KraL-UrunSilmeButonu-2Eyl)
 Merge `8c018800` (dal commit `e35f092d`, origin/main atasi rc=0). Hat: /urun-sil (cift onay+
@@ -39,15 +47,6 @@ TEMIZLIK: 3 cip agaci kaldirildi (raporlari once arsive tasindi, 38 KB) · **47 
 (6 yerel + 41 uzak; olcut UC KATLI, `ileri>0` olan 79 dala DOKUNULMADI — K337 dersi) ·
 `yedek/k337-olcum-08276ead` KORUNDU. Kapanista 6 kapi YESIL, agac temiz, worktree 1.
 
-## ✅ 2 EYL — GUNUN INEN ISLERI (TAM METIN ARSIVDE; hepsi `origin/main`de, `is-ancestor` ile teyitli)
-K361 `2562741f` (ev tablosu repo DISINA) · SERIT B tamiri `4b28c796` (5 kirmizi kokunden) ·
-onarim `3930fe33` (K361'in CI'da biraktigi kirmizi — kendi simulasyon hatam) · K337 `7ac9880f`
-(2 ic olcum dosyasi MERGE DISI, girseydi `kisisel-veri-test` rc=1 ile TUM EKIBIN yayinini durdururdu) ·
-K372 `765eeb29` (yayin-yasi nobetcisi yanlis alarmi: bekleme yasi YAZILMA degil GIRIS anindan) ·
-K373 `7e14eeaa` (kapi sozlesmesi 2->3 kol + `schedule`; SERIT B artik garantili hukum alir) ·
-K375 `bdf5425e` (23:00 gunluk motor raporu; cron CANLI, kabul 21/21 mutasyon 6/6).
-**SERIT B kirmizi adim 17 -> 10** (CI'nin kendi adim listesinden, kume farkiyla).
-
 ## ✅ K353 + T1/T2 + K354 (29-30 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
 🔴 **CANLI TALIMAT, SILINMEZ:** K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
 ✅ **"3 ARAC KALICI OLANA KADAR AGAC KALDIRILMAZ" SARTI OLCTUM, TUTUYOR** → `nice-swanson-706912`
@@ -56,7 +55,7 @@ disarida kalmasi dosyada GEREKCELI. Ayrinti arsivde.)
 🔧 **ACIK:** T1a — worker deploy = OKAN kapisi; "deploy edildi (`b26cedd8`)" iddiasi CURUTULDU.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🟠 **K359 (cip `task_c6f5192b` sirada) — 🔴 DEVRALDIGIM TARIF YANLISTI, YENIDEN OLCTUM.** Bana
+- 🟠 **K359 (cip `task_cd35b252`, 2 Eyl; bayat `task_c6f5192b` geri cekildi) — 🔴 TARIF YENIDEN OLCULDU.** Bana
   "`kutu-arsivle.py` `✅…KAPANDI` bloklarinin KENDISINI acik sayiyor, 7 blok" diye geldi. Kutuyu blok
   blok olctum: **17 blok GERCEKTEN acik** (cip kapanis HIC yazmamis — arac HAKLI) · **1 blok sahte**
   (kapanis bloginin basliginda `basliyorum` yalniz TIRNAK ICINDE proza) · ve `macit-parti-surucusu`
