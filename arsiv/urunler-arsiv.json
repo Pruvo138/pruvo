@@ -1,1 +1,25 @@
-[]
+[
+  {
+    "silinme_ts": "2026-09-02T10:57:09Z",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 9,
+    "kayit": {
+      "id": "bisiklet-krank-civatasi-sokme-takma-ucu",
+      "kategori": "Bisiklet",
+      "marka": [],
+      "uyum": [],
+      "baslik": "Bisiklet Krank Cıvatası Sökme/Takma Ucu",
+      "aciklama": "Krank cıvatasını sökmek/takmak için kullanılan özel uçtur.\n- Standart krank cıvatası başına oturur\n- Elle veya anahtarla döndürmeyi kolaylaştırır\n- Özel alet gerektirmeden bakım yapmayı sağlar\nYaklaşık dış ölçüler: 15 × 15 × 8 mm.",
+      "fiyat": "200 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/th92353-1.jpg",
+        "https://media.pruvo3d.com/urunler/th92353-2.jpg",
+        "https://media.pruvo3d.com/urunler/th92353-3.jpg"
+      ],
+      "lisans": {
+        "tasarimci": "fastryan",
+        "tur": "CC BY 4.0"
+      }
+    }
+  }
+]
