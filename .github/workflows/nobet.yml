@@ -3384,6 +3384,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/duzelt-toplu-test.py
 
+      # URUN GERI YUKLEME (tekil silmenin geri kolu, BaBa (2)): arsivden en yeni
+      # kayit basa doner + diriltme beyani yazilir; ZATEN_TABANDA/ARSIVDE_YOK
+      # kollarinda taban byte-esit kalir. Offline: tempfile fikstur, ag/D1 yok.
+      - name: urun-geri-yukle kabul testi
+        if: ${{ !cancelled() }}
+        run: python3 tools/urun-geri-yukle.py --kendini-test
+
       # LANDING/HUKUK KAPISI: huni (landing) sayfasindaki ticari beyanlar ile baglayici yasal
       # sayfalarin (kapsam + revizyon/cayma cercevesi) uyumu. Bloklayici (odeme-beyani deseni):
       # uyumsuzluk = musteriye yanlis hukuki beyan. Offline, build.py'den ONCE kosar.
