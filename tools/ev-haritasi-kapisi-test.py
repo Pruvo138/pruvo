@@ -11,6 +11,7 @@ BU BATARYA NE OLCER (hepsi HERMETIK — canli `evler.json`'a DOKUNMAZ; her vaka
 gecici bir fikstur yazar ve `PRUVO_EVLER_JSON` ile onu gosterir):
 
   F1 KONFIG_YOK     : dosya yok        -> RED + sifir-disi rc + OLCULEMEDI jetonu
+                      **+ KURTARMA komutu ciktida GECER** (RED cikmaz sokak degil)
   F2 KONFIG_BOZUK   : gecersiz JSON    -> ayni
   F3 KONFIG_BOS     : gecerli ama `{}` -> ayni  (🔴 en tehlikeli hal: bos tablo
                       "hicbir evde acik kalem yok" demeye gelir ve kapiyi
@@ -22,17 +23,35 @@ gecici bir fikstur yazar ve `PRUVO_EVLER_JSON` ile onu gosterir):
   F6 TEK_KAYNAK     : `sahiplik-kapisi.EV_BILINEN` ile T4'un kumesi AYNI
                       kaynaktan gelir (ikinci tablo YOK)
   F7 NOT_KAYIPSIZ   : BaBa (27 Agu) ve FaR (2 Eyl) gerekce yorumlari
-                      `evler-NOT.md`'de KAYIPSIZ duruyor
+                      `evler-NOT.md`'de KAYIPSIZ duruyor  [YEREL DUZLEM]
+  F8 TOHUM_KAPSAM   : CANLI tablodaki her ev `tools/evler-tohum.json`da DA var —
+                      yoksa yeni makinede bootstrap o evi SESSIZCE kaybeder
+                      (tam da FaR vakasinin tekrari)  [YEREL DUZLEM]
+  F9 KUR_EZMEZ      : `--ev-haritasi-kur` bos makinede dosyayi URETIR (1. kosum)
+                      ve ikinci kosumda UZERINE YAZMAZ (2. kosum) — ezmek,
+                      tabloya sonradan eklenen evleri yok ederdi
+
+🔴 UCUNCU YOL (mimar hukmu, 2 Eyl): FaR "dosya yoksa gomulu tabloya DUSSUN"
+onerdi; hukum REDDETTI ama RED'i cikmaz sokak birakmadi. Ayrim BUDUR:
+  * RUNTIME  : sessiz dusus YOK (F1/F2/F3) + kurtarma komutu ciktida
+  * ELLE KOL : `--ev-haritasi-kur` tohumu okur, config YOKSA uretir, VARSA EZMEZ
+Iki yolun ayristigi OLCULUR — bkz. ME4.
 
 MUTANTLAR (her biri OLDURDUGU vakayi ADIYLA kanitlar — [[K182 hedef-kol atfi]]):
-  ME1 yukleyici hatada BOS DICT doner        -> F1+F2+F3'u oldurmeli
-  ME2 sahiplik kumesi TEKRAR SABITLENIR      -> F6'yi oldurmeli
-  ME3 bilinmeyen kok COZULUR olur            -> F4'u oldurmeli
+  ME1 yukleyici hatada BOS DICT doner         -> F1+F2+F3'u oldurmeli
+  ME2 sahiplik kumesi TEKRAR SABITLENIR       -> F6'yi oldurmeli
+  ME3 bilinmeyen kok COZULUR olur             -> F4'u oldurmeli
+  ME4 TOHUM runtime yukleyicisine BAGLANIR    -> F1'i oldurmeli (FaR'in
+      (dosya yokken kendiliginden tohumdan okur)  reddedilen onerisi birebir)
   ME0 ESDEGER KONTROL (davranisi degistirmez) -> HICBIR SEYI oldurmemeli
+🔴 ME1 ile ME4 AYNI DEGILDIR ve kume esitligiyle ayrilir: ME1 uc bozuk hali de
+oldurur (bos tablo GECERLI sayilir), ME4 YALNIZ "dosya yok" halini oldurur
+(dosya VAR ama bozuk/bos ise sessiz dusus tetiklenmez). Ayni hedefe atanmis iki
+mutant birbirini golgeler ([[ad-iki-rolde-mutanti-golgeler]]).
 
 KABUL:
   python3 tools/ev-haritasi-kapisi-test.py
-    -> rc=0, `VAKA=7/7 MUTANT=3/3 KONTROL=1/1`.
+    -> rc=0, `VAKA=9/9 MUTANT=4/4 KONTROL=1/1` (yerel duzlem).
 
 Disiplin: canli `~/.claude/cron/evler.json`'a YAZMAZ, canli defterlere
 DOKUNMAZ, ag YOK. Butun fiksturler `tempfile.mkdtemp()` altinda ve is bitince
@@ -54,8 +73,13 @@ SAHIPLIK = os.path.join(BU_DIZIN, "sahiplik-kapisi.py")
 # Canli tek kaynak + not dosyasi (F7 icin OKUNUR, yazilmaz).
 CANLI_KONFIG = "/Users/okan/.claude/cron/evler.json"
 CANLI_NOT = "/Users/okan/.claude/cron/evler-NOT.md"
+TOHUM = os.path.join(BU_DIZIN, "evler-tohum.json")
 
 OLCULEMEDI_JETON = "T4-OLCULEMEDI"
+# 🔴 RED'i cikmaz sokak olmaktan cikaran satirin SABIT jetonu + bayragi.
+# "hata verdi" YETMEZ: fikstur TAM KOMUTUN basildigini iddia eder.
+KURTARMA_JETON = "KURTARMA:"
+KURTARMA_BAYRAK = "--ev-haritasi-kur"
 
 # F7 — tasinan gerekce yorumlarinin AYIRT EDICI cumleleri. Bunlar bulunmuyorsa
 # tasima KAYIPLIDIR. (Kisa parcalar secildi: bicimlendirme degisse de anlam
@@ -115,25 +139,18 @@ MUTANT_YAMALARI = {
     # ikinci katman mutanti KURTARIR ve mutant "ulasmadi" olur
     # ([[artik-yuzey-mutant-dedektorunu-korlestirir]]).
     "ME1": [
-        # (a) yukleyici: uc hata yolunun HEPSI bos dict doner
+        # (a) yukleyici sarmali: HER hata yolu bos dict doner (tek capa, uc
+        # hata yolunu birden kapsar — yukleyicinin ICINDEKI raise'lar
+        # `_olculemedi()` sarmalindan gectigi icin ayri ayri yamalanmaz).
         (T4,
-         "    if not harita:\n"
-         "        # 🔴 EN ONEMLI KOL: gecerli JSON ama SIFIR ev.",
-         "    if not harita:\n"
-         "        return {}   # ME1 MUTANT: bos tablo GECERLI sayilir\n"
-         "        # 🔴 EN ONEMLI KOL: gecerli JSON ama SIFIR ev."),
-        (T4,
-         "    except OSError as e:\n"
-         "        raise EvHaritasiOlculemedi(",
-         "    except OSError as e:\n"
-         "        return {}   # ME1 MUTANT\n"
-         "        raise EvHaritasiOlculemedi("),
-        (T4,
-         "    except ValueError as e:\n"
-         "        raise EvHaritasiOlculemedi(",
-         "    except ValueError as e:\n"
-         "        return {}   # ME1 MUTANT\n"
-         "        raise EvHaritasiOlculemedi("),
+         "    try:\n"
+         "        return ev_haritasi_yukle(yol), None\n"
+         "    except EvHaritasiOlculemedi as e:\n"
+         "        return None, str(e)",
+         "    try:\n"
+         "        return ev_haritasi_yukle(yol), None\n"
+         "    except EvHaritasiOlculemedi as e:\n"
+         "        return {}, None   # ME1 MUTANT: bos tablo GECERLI sayilir"),
         # (b) modul baglamasi: bos dict artik None'a CEVRILMEZ.
         # 🔴 CAPA IKI SATIRLIDIR: tek satirlik hali `ev_haritasi_tazele()`
         # govdesindeki GIRINTILI kopyayla da eslesir ve mutant YANLIS YERE
@@ -164,6 +181,24 @@ MUTANT_YAMALARI = {
         (N2B,
          "    return None, \"depo koku bilinen bir eve cozulemedi: %s\" % depo_kok",
          "    return \"KraL\", None   # ME3 MUTANT: bilinmeyen kok cozulur"),
+    ],
+    # 🔴 ME4 — FaR'IN REDDEDILEN ONERISI BIREBIR: "dosya yoksa gomulu tabloya
+    # DUSSUN". Tohum RUNTIME yukleyicisine baglanir -> config yokken kapi
+    # sessizce gecer. Bu mutant F1'i (ve YALNIZ F1'i) oldurmelidir: dosya VAR
+    # ama bozuk/bos oldugunda dusus tetiklenmez, yani ME1'den AYRISIR.
+    "ME4": [
+        (T4,
+         "    try:\n"
+         "        return ev_haritasi_yukle(yol), None\n"
+         "    except EvHaritasiOlculemedi as e:\n"
+         "        return None, str(e)",
+         "    try:\n"
+         "        return ev_haritasi_yukle(yol), None\n"
+         "    except EvHaritasiOlculemedi as e:\n"
+         "        if not os.path.exists(yol or evler_json_yolu()):\n"
+         "            return ev_haritasi_yukle(tohum_yolu()), None"
+         "   # ME4 MUTANT: SESSIZ DUSUS\n"
+         "        return None, str(e)"),
     ],
     # ME0 — ESDEGER KONTROL: yalnizca bir yorum satiri eklenir.
     "ME0": [
@@ -266,11 +301,16 @@ def vakalar(kok, tools_dizini):
                             if s.strip().startswith(("KraL", "MaCiT", "ArTisT",
                                                      "HocA", "TeKiN", "BaBa",
                                                      "ORTAK", "FaR")))
-        gecti = (rc != 0) and jeton and red and not gecer_iddiasi
+        # 🔴 UCUNCU YOL: RED cikmaz sokak OLMAMALI — kurtaran TAM KOMUT basilmali.
+        kurtarma = [s for s in cikti.splitlines() if s.startswith(KURTARMA_JETON)]
+        kurtarma_var = bool(kurtarma) and KURTARMA_BAYRAK in kurtarma[0]
+        gecti = (rc != 0) and jeton and red and not gecer_iddiasi and kurtarma_var
         sonuc.append((ad, gecti,
                       "%s -> rc=%d (sifir-disi=%s) OLCULEMEDI_JETON=%s RED=%s "
-                      "ACIK_KALEM_YOK_IDDIASI=%s"
-                      % (etiket, rc, rc != 0, jeton, red, gecer_iddiasi)))
+                      "ACIK_KALEM_YOK_IDDIASI=%s KURTARMA_KOMUTU=%s"
+                      % (etiket, rc, rc != 0, jeton, red, gecer_iddiasi,
+                         (kurtarma[0][len(KURTARMA_JETON):].strip()
+                          if kurtarma_var else "🔴 YOK"))))
 
     # --- F4: bilinmeyen depo koku HALA cozulemez ------------------------------
     rc, cikti = _ev_coz_kos(kok, tools_dizini, farsiz, FAR_DEPO_KOKU)
@@ -314,6 +354,63 @@ def vakalar(kok, tools_dizini):
                   "T4={%s} SAHIPLIK={%s} (esit olmali — ikinci tablo YOK)"
                   % (t4_kume, sh_kume)))
 
+    # --- F9: `--ev-haritasi-kur` URETIR ama EZMEZ (hermetik, iki kosum) -------
+    # 🔴 IKI KOSUM DA GOSTERILIR. Ezme yasagi bos bir iddia degil: 1. kosumdan
+    # sonra dosyaya ELLE bir ev eklenir (FaR'in satirinin benzeri) ve 2. kosumun
+    # onu KORUDUGU olculur. Yalniz "ZATEN VAR dedi"ye bakmak, ezip ayni metni
+    # basan bir gerileme icin KOR olurdu.
+    kur_hedef = os.path.join(kok, "yeni-mac", "evler.json")
+    rc1, c1 = _kos([t4, "--ev-haritasi-kur", "--ev-haritasi-hedef", kur_hedef], None)
+    uretildi = os.path.isfile(kur_hedef)
+    ev_sayisi_1 = 0
+    if uretildi:
+        try:
+            with open(kur_hedef, encoding="utf-8") as f:
+                v = json.load(f)
+            ev_sayisi_1 = len([k for k in v if not k.startswith("_")])
+            v["ZzTest"] = "/Users/okan/.claude/projects/-Users-okan-dev-zztest"
+            with open(kur_hedef, "w", encoding="utf-8") as f:
+                json.dump(v, f, ensure_ascii=False, indent=2)
+        except (OSError, ValueError):
+            uretildi = False
+    rc2, c2 = _kos([t4, "--ev-haritasi-kur", "--ev-haritasi-hedef", kur_hedef], None)
+    korundu = False
+    if uretildi:
+        try:
+            with open(kur_hedef, encoding="utf-8") as f:
+                korundu = "ZzTest" in json.load(f)
+        except (OSError, ValueError):
+            korundu = False
+    gecti = (rc1 == 0 and uretildi and ev_sayisi_1 > 0
+             and rc2 == 0 and "ZATEN VAR" in c2 and korundu
+             and "YAZILDI" in c1)
+    sonuc.append(("F9 KUR_EZMEZ", gecti,
+                  "1.kosum rc=%d URETTI=%s ev=%d · 2.kosum rc=%d ZATEN_VAR=%s "
+                  "ELLE_EKLENEN_KORUNDU=%s"
+                  % (rc1, uretildi, ev_sayisi_1, rc2, "ZATEN VAR" in c2, korundu)))
+
+    # --- F8: TOHUM KAPSAMI — canli tablodaki her ev tohumda DA var mi? -------
+    # 🔴 YEREL DUZLEM. Neden kapi: Okan yeni Mac'e geciyor; `~/.claude/cron`
+    # tasinmazsa bootstrap TOHUMDAN yapilir. Tohum bir evi tasimiyorsa o ev
+    # yeni makinede SESSIZCE kaybolur — FaR vakasinin birebir tekrari.
+    if not os.path.isfile(CANLI_KONFIG):
+        sonuc.append(("F8 TOHUM_KAPSAM", None,
+                      "KAPSAM_DISI — %s bu duzlemde YOK (yerel-duzlem vakasi)"
+                      % CANLI_KONFIG))
+    else:
+        def _evler(yol):
+            with open(yol, encoding="utf-8") as f:
+                return {k for k in json.load(f) if not k.startswith("_")}
+        try:
+            canli, tohum_evleri = _evler(CANLI_KONFIG), _evler(TOHUM)
+            eksik_ev = sorted(canli - tohum_evleri)
+            sonuc.append(("F8 TOHUM_KAPSAM", not eksik_ev,
+                          "canli=%d tohum=%d · tohumda EKSIK=%s"
+                          % (len(canli), len(tohum_evleri),
+                             ",".join(eksik_ev) or "yok")))
+        except (OSError, ValueError) as e:
+            sonuc.append(("F8 TOHUM_KAPSAM", False, "OKUNAMADI: %s" % e))
+
     # --- F7: gerekce yorumlari KAYIPSIZ --------------------------------------
     # 🔴 UC HAL, IKI KOVA DEGIL: dosya YOKSA bu vaka KAPSAM_DISI'dir (kusur
     # DEGIL) — kosucuda (CI) `~/.claude/cron` hattinin ucu de yoktur. Sessizce
@@ -343,13 +440,14 @@ def vakalar(kok, tools_dizini):
 # ---------------------------------------------------------------------------
 # MAIN
 # ---------------------------------------------------------------------------
-# F1-F6 HER duzlemde kosar (hermetik); yalniz F7 yerel-duzlemdir.
-KAPSAM_TABANI = 6
+# F1-F6 + F9 HER duzlemde kosar (hermetik); F7 ve F8 yerel-duzlemdir.
+KAPSAM_TABANI = 7
 
 MUTANT_HEDEFI = {
     "ME1": ("F1 KONFIG_YOK", "F2 KONFIG_BOZUK", "F3 KONFIG_BOS"),
     "ME2": ("F6 TEK_KAYNAK",),
     "ME3": ("F4 BILINMEYEN_KOK",),
+    "ME4": ("F1 KONFIG_YOK",),
 }
 
 

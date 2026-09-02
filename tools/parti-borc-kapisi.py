@@ -36,6 +36,11 @@ Isletim modlari:
                       Gercek deftere DOKUNMAZ.
   --rapor           : gercek defterler uzerinde YAZMADAN; her ev icin acik kalem
                       sayisi + esik + RED/GECER hukumu basar. Salt okuma.
+  --ev-haritasi-kur : KURTARMA (elle kosulur, RUNTIME FALLBACK DEGIL).
+                      `~/.claude/cron/evler.json` YOKSA `tools/evler-tohum.json`
+                      dan uretir; VARSA **EZMEZ** (`ZATEN VAR`, rc=0). Her
+                      fail-closed RED metni bu komutu ADIYLA basar — RED cikmaz
+                      sokak degildir.
 
 KABUL (calistirilabilir):
   python3 tools/parti-borc-kapisi.py --kendini-test
@@ -102,9 +107,27 @@ ACIK_DURUMLAR = frozenset({"ACIK", "UCUSTA", "OKAN-KAPISI", "🔧"})
 # Bu uc halde `EV_DIZIN` **None**'dir (bos dict DEGIL) ve her okuyucu
 # `T4-OLCULEMEDI` sinifindan sifir-disi rc ile RED verir. Bilinmeyen depo koku
 # HALA cozulemez (mevcut fail-closed davranis AYNEN korundu).
+#
+# 🔴 UCUNCU YOL (mimar hukmu, 2 Eyl — FaR'in "dosya yoksa gomulu tabloya DUS"
+# onerisi REDDEDILDI, ama cikmaz sokak da birakilmadi):
+#   (a) CALISMA ZAMANINDA SESSIZ DUSUS YOK — yukaridaki fail-closed AYNEN.
+#       FaR'in onerisi su sinifi uretirdi: biri `evler.json`'a yazar, TEK
+#       KARAKTER bozar, arac SESSIZCE tohuma duser -> o kisinin degisikligi
+#       HIC ETKI ETMEZ ve kapi YESIL yanar (yama INERT).
+#   (b) RED CIKMAZ SOKAK DEGIL — her RED metni KURTARAN TAM KOMUTU basar.
+#   (c) Gomulu tablo TOHUM olarak yasar (`tools/evler-tohum.json`), RUNTIME
+#       FALLBACK olarak DEGIL: yalniz `--ev-haritasi-kur` onu okur ve config
+#       YOKSA uretir; VARSA EZMEZ (`ZATEN VAR`, rc=0).
+#   Iki yolun AYRISTIGINI `ev-haritasi-kapisi-test.py::ME4` mutanti olcer:
+#   tohumu runtime yukleyicisine baglayan mutant, "config yokken RED" iddiasini
+#   OLDURMELIDIR.
+# 🔴 TOHUM BIR `.py` TABLOSU DEGILDIR (veri dosyasidir): ev listesi hicbir
+# Python kaynaginda tablo olarak durmaz — K361 kabul olcutu 3 boyle korunur.
 EVLER_JSON_VARSAYILAN = "/Users/okan/.claude/cron/evler.json"
 # Ortam degiskeni YALNIZ hermetik bataryalar icindir (uretimde verilmez).
 EVLER_JSON_ORTAM = "PRUVO_EVLER_JSON"
+TOHUM_DOSYA_ADI = "evler-tohum.json"
+KURTARMA_BAYRAGI = "--ev-haritasi-kur"
 
 # Ev adi: bos olamaz, `_` ile baslayamaz (o anahtarlar NOT'tur).
 _EV_ADI_RE = re.compile(r"^[^_\W][\w.-]*$", re.UNICODE)
@@ -119,27 +142,52 @@ def evler_json_yolu():
     return os.environ.get(EVLER_JSON_ORTAM) or EVLER_JSON_VARSAYILAN
 
 
+def tohum_yolu():
+    """Tohum veri dosyasi (`tools/evler-tohum.json`) — RUNTIME'da OKUNMAZ."""
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        TOHUM_DOSYA_ADI)
+
+
+def kurtarma_komutu():
+    """RED'i cikmaz sokak olmaktan cikaran TAM KOMUT (fikstur bunu ARAR).
+
+    Betigin KENDI mutlak yolunu kullanir: kopyada/worktree'de de KOSULABILIR
+    bir komut basar, kanonik ama yanlis bir yol DEGIL.
+    """
+    return "python3 %s %s" % (os.path.abspath(__file__), KURTARMA_BAYRAGI)
+
+
+def _olculemedi(mesaj):
+    """🔴 RED CIKMAZ SOKAK DEGIL: her hata metni KURTARAN KOMUTU tasir.
+
+    Metin makinece aranabilir olsun diye jeton SABIT: `KURTARMA:`. Fikstur
+    "hata verdi" ile yetinmez, TAM KOMUTUN basildigini iddia eder.
+    """
+    return EvHaritasiOlculemedi("%s | KURTARMA: %s" % (mesaj, kurtarma_komutu()))
+
+
 def ev_haritasi_yukle(yol=None):
     """`evler.json`'u okur ve {EV: dizin} doner.
 
     🔴 ASLA bos sozluk DONMEZ: yok / bozuk / bos / sema disi hallerin HEPSI
-    `EvHaritasiOlculemedi` FIRLATIR. Hata metni aranan YOLU ve sebebi tasir
-    (fail-loud) — "OLCULEMEDI" demek yetmez.
+    `EvHaritasiOlculemedi` FIRLATIR. Hata metni aranan YOLU, sebebi ve
+    KURTARMA KOMUTUNU tasir (fail-loud) — "OLCULEMEDI" demek yetmez.
+    🔴 TOHUMA DUSMEZ: tohum yalniz `--ev-haritasi-kur` kolunda okunur.
     """
     yol = yol or evler_json_yolu()
     try:
         with open(yol, encoding="utf-8") as f:
             ham = f.read()
     except OSError as e:
-        raise EvHaritasiOlculemedi(
+        raise _olculemedi(
             "EV_HARITASI okunamadi (yol=%s): %s: %s" % (yol, type(e).__name__, e))
     try:
         veri = json.loads(ham)
     except ValueError as e:
-        raise EvHaritasiOlculemedi(
+        raise _olculemedi(
             "EV_HARITASI BOZUK JSON (yol=%s): %s: %s" % (yol, type(e).__name__, e))
     if not isinstance(veri, dict):
-        raise EvHaritasiOlculemedi(
+        raise _olculemedi(
             "EV_HARITASI sema disi (yol=%s): kok nesne degil, %s"
             % (yol, type(veri).__name__))
     harita = {}
@@ -147,20 +195,20 @@ def ev_haritasi_yukle(yol=None):
         if not isinstance(anahtar, str) or anahtar.startswith("_"):
             continue                      # `_` onekli anahtar = NOT, ev DEGIL
         if not _EV_ADI_RE.match(anahtar):
-            raise EvHaritasiOlculemedi(
+            raise _olculemedi(
                 "EV_HARITASI sema disi (yol=%s): gecersiz ev adi %r" % (yol, anahtar))
         if not isinstance(deger, str) or not deger.strip():
-            raise EvHaritasiOlculemedi(
+            raise _olculemedi(
                 "EV_HARITASI sema disi (yol=%s): %s icin dizin bos/dizge degil (%r)"
                 % (yol, anahtar, deger))
         if not deger.startswith("/"):
-            raise EvHaritasiOlculemedi(
+            raise _olculemedi(
                 "EV_HARITASI sema disi (yol=%s): %s icin dizin MUTLAK degil (%r)"
                 % (yol, anahtar, deger))
         harita[anahtar] = deger.rstrip("/")
     if not harita:
         # 🔴 EN ONEMLI KOL: gecerli JSON ama SIFIR ev. "Ev yok" != "borc yok".
-        raise EvHaritasiOlculemedi(
+        raise _olculemedi(
             "EV_HARITASI BOS (yol=%s): 0 ev — bos tablo GECERLI SAYILMAZ "
             "(bos tablo kapiyi sessizce acar)" % yol)
     return harita
@@ -185,6 +233,47 @@ def ev_haritasi_tazele(yol=None):
     EV_DIZIN, EV_HARITASI_HATA = _harita_baglayici(yol)
     EV_BILINEN = frozenset(EV_DIZIN) if EV_DIZIN else None
     return EV_DIZIN, EV_HARITASI_HATA
+
+
+def ev_haritasi_kur(hedef=None, tohum=None):
+    """🔴 KURTARMA KOLU — tohumdan `evler.json` URETIR. RUNTIME'da CAGRILMAZ.
+
+    Sozlesme (mimar hukmu, 2 Eyl):
+      * hedef VARSA: **EZMEZ** -> `ZATEN VAR`, rc=0. Ezmek, canli tabloya
+        sonradan eklenen evleri (or. FaR'in satiri) YOK EDERDI.
+      * hedef YOKSA: tohumu DOGRULAYIP yazar -> `YAZILDI`, rc=0.
+      * tohum okunamiyorsa: rc=2 (`TOHUM_OLCULEMEDI`) — bos dosya URETILMEZ.
+    Return: (rc, [cikti satirlari]).
+    """
+    hedef = hedef or evler_json_yolu()
+    tohum = tohum or tohum_yolu()
+    cikti = ["EV HARITASI KUR — tohumdan tek kaynagi uretir (RUNTIME FALLBACK DEGIL)",
+             "TOHUM : %s" % tohum,
+             "HEDEF : %s" % hedef]
+    if os.path.exists(hedef):
+        cikti.append("HUKUM : ZATEN VAR — UZERINE YAZILMADI (mevcut tabloya "
+                     "sonradan eklenen evler korunur)")
+        return 0, cikti
+    try:
+        harita = ev_haritasi_yukle(tohum)
+    except EvHaritasiOlculemedi as e:
+        cikti.append("HATA  : TOHUM_OLCULEMEDI %s" % e)
+        cikti.append("HUKUM : RED — bos/bozuk tohumdan config URETILMEZ")
+        return 2, cikti
+    dizin = os.path.dirname(os.path.abspath(hedef))
+    try:
+        if dizin and not os.path.isdir(dizin):
+            os.makedirs(dizin, exist_ok=True)
+        with open(hedef, "w", encoding="utf-8") as f:
+            json.dump(harita, f, ensure_ascii=False, indent=2, sort_keys=True)
+            f.write("\n")
+    except OSError as e:
+        cikti.append("HATA  : YAZILAMADI %s: %s" % (type(e).__name__, e))
+        return 2, cikti
+    cikti.append("HUKUM : YAZILDI — %d ev: %s"
+                 % (len(harita), ", ".join(sorted(harita))))
+    cikti.append("NOT   : gerekce metinleri /Users/okan/.claude/cron/evler-NOT.md")
+    return 0, cikti
 
 
 def fikstur_haritasi_yaz(yol, harita):
@@ -947,6 +1036,8 @@ def harita_olculemedi_bas(nerede):
     print("HATA: %s %s" % (T4_OLCULEMEDI_JETON,
                            EV_HARITASI_HATA or "EV_HARITASI OLCULEMEDI"))
     print("KAYNAK: %s" % evler_json_yolu())
+    # 🔴 RED CIKMAZ SOKAK DEGIL — kurtaran TAM KOMUT burada BASILIR.
+    print("KURTARMA: %s" % kurtarma_komutu())
     print("HUKUM: RED (%s fail-closed — BOS TABLO GECERLI SAYILMAZ; "
           "bos tablo 'hicbir evde acik kalem yok' demeye gelir ve kapiyi "
           "SESSIZCE ACAR)" % T4_OLCULEMEDI_JETON)
@@ -1035,6 +1126,13 @@ def main():
                          "DOKUNMAZ)")
     ap.add_argument("--curutme-test", action="store_true",
                     help="4 alt kol govdesini yama ile oldur; farkin algilandigini kanitla")
+    ap.add_argument("--ev-haritasi-kur", action="store_true",
+                    help="KURTARMA: `~/.claude/cron/evler.json` YOKSA "
+                         "`tools/evler-tohum.json`dan uretir. VARSA EZMEZ. "
+                         "Runtime fallback DEGILDIR — elle kosulur.")
+    ap.add_argument("--ev-haritasi-hedef", default=None,
+                    help="--ev-haritasi-kur icin hedef yol (hermetik fikstur; "
+                         "uretimde verilmez)")
     ap.add_argument("--rapor", action="store_true",
                     help="Tum EV'ler icin acik kalem sayisi + RED/GECER bas "
                          "(salt-okunur)")
@@ -1044,6 +1142,14 @@ def main():
     args = ap.parse_args()
 
     repo_kok = _repo_kok()
+
+    # 🔴 KURTARMA KOLU EN BASTA: tam da harita YOKKEN kosulacak komut budur,
+    # bu yuzden fail-closed kapilarindan ONCE dagitilir.
+    if args.ev_haritasi_kur:
+        rc, satirlar = ev_haritasi_kur(args.ev_haritasi_hedef)
+        for s in satirlar:
+            print(s)
+        return rc
 
     if args.kendini_test:
         koku = args.defter_koku_root or tempfile.mkdtemp(prefix="t4-kendinitest-")
