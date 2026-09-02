@@ -18,11 +18,18 @@ ile gitti, V5 HTML dalda commit'li, gorseller Okan'a teslim edilmisti). 3 dal si
 (ASCII), ureticinin AYRAC yazimi KORUNUR, celiski karara tasinir, `arama.py` marka listesine
 DOKUNULMAZ (K220). Rehbere yazildi. 🔴 **Onculu olctum, rapor YANLISTI:** 32.790 kayit/1534
 model yazimi, celiski **0** → is migrasyon degil YAZIM KURALI; katalog verisi degismez.
-**K359:** arac "tasinabilir blok tukendi 267>250" dedi (ev kilitleniyordu) → 7 bayat 31 Agu ACILIS
-blogu ELLE, KAYIPSIZ arsive (kutu −5440 B / arsiv +5438 B, 7/7 birebir dogrulandi); kutu **218**.
-**KOSAN CIPLER:** `task_cd35b252` K359 kalici onarim · `task_5b33bae3` V5 ana sayfa uygulamasi.
-**BEKLIYOR:** 🟠 15:47Z `schedule` → `cron-nabiz` A3 · 🟠 parti cron tik 20:33 yerel ·
-🟠 40 dal ileri. **OKAN'DA:** panel-tik pozitif kolu (tek tik, kobay kartinda).
+✅ **K359 KAPANDI — MERGE `9e6d32b7`** (cip oturumu kapanis yazmadan dustu, dali mimar olctu+aldi;
+merge-kapisi yordami). (A) imzali `SAYILI KAPANIS` backticksiz taninir + ANMAK≠SAHIPLENMEK ·
+(B) acilisi yerinde atlanan blogun KAPANISI arsive TASINMAZ (olu slot dogmuyor). Dal agacinda
+**45 vaka/377 iddia/0 kirmizi** (taban 42/335), 4 negatif fikstur, hedef-kol atifli mutant,
+`kilitledi=0 HEDEF DEGIL` sayiyla civili. Merge oncesi: kapsam 2 dosya · cakisma 0 ·
+ci-kapsam DAL AGACINDA YESIL · D1 SAYI+SAYAC+SEQ+SEMA yesil (32790). **CANLI ETKI: kilitli acik
+blok 24 → 11**, `kapanmis_basliyorum=2`, `CIFT_KORUMASI=0`, kutu 244/250. Once ELLE tek seferlik
+rotasyon gerekmisti (7 bayat 31 Agu ACILIS blogu, kutu −5440 B / arsiv +5438 B, 7/7 birebir).
+Cip agaci+dal temizlendi (52 MB). **KOSAN CIP:** V5 ana sayfa canliya alma (`jovial-mirzakhani`;
+benim mukerrer onerim GERI CEKILDI). **BEKLIYOR:** 🟠 15:47Z `schedule` → A3 (`nobet.yml`de
+`cron "47 3,15"` main'de DOGRULANDI, ilk atesleme henuz olmadi) · 🟠 parti cron 20:33 yerel.
+**OKAN'DA:** panel-tik pozitif kolu (tek tik) · 24 bitmis oturum arsivi (liste kutuda).
 
 ## ✅ 2 EYL — PANEL TEKIL URUN SILME CANLI (Okan emri; cip KraL-UrunSilmeButonu-2Eyl)
 Merge `8c018800` (dal commit `e35f092d`, origin/main atasi rc=0). Hat: /urun-sil (cift onay+
