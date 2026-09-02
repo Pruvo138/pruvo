@@ -2,6 +2,17 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ 2 EYL — PANEL TEKIL URUN SILME CANLI (Okan emri; cip KraL-UrunSilmeButonu-2Eyl)
+Merge `8c018800` (dal commit `e35f092d`, origin/main atasi rc=0). Hat: /urun-sil (cift onay+
+gerekce, yonetim anahtari) -> panel_ustyazim alan='sil' -> uygulayici duzelt --toplu {id,sil} +
+arsiv/urunler-arsiv.json (GEREKCE public'e YAZILMAZ) -> build/D1 otomatik. Offline: uygulayici
+VAKA=51 MUTANT=5/5 · urunler-panel 127 iddia · geri-yukle VAKA=7 · komsu bataryalar yesil
+(V9d kol tabani 21'e karsi 22 TARIHLI beyan). CANLI KOBAY: kuyruk id=9 -> commit `460d8726`
+(sil=1; katalog 32544->32543 commit sinirinda) -> sayfa 200->404 -> feed/sitemap iz 0 -> D1 6/6
+(32543) -> GERI: `urun-geri-yukle.py` + `94096e9d` -> D1 6/6 (32544). 🔧 ACIK: worker deploy =
+OKAN TIKI (`cd /Users/okan/dev/pruvo/shop && npx wrangler deploy`); deploy sonrasi panel-tik
+provasi (Sil (arsive) butonu + STL'li urunde M12 kolu) olculecek. Yordam: tools/urun-silme-yordami.md.
+
 ## ✅ 2 EYL — ACIK KUYRUK BOSALTILDI (kalan tek olcum: 15:47Z A3 teyidi)
 `~/.claude/cron` **VERSIYONLANDI** (yerel depo, uzak YOK): 328 betik, BEYAZ LISTE
 (`*` reddedilir, yalniz betik uzantilari acilir) — dizinde CANLI API anahtarlari + tarayici
