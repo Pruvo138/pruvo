@@ -12,6 +12,36 @@ import tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KAPI = os.path.join(ROOT, "tools", "chip-duzeni-kapisi.py")
 SAHIPLIK = os.path.join(ROOT, "tools", "sahiplik-kapisi.py")
+PARTI_BORC = os.path.join(ROOT, "tools", "parti-borc-kapisi.py")
+
+
+def _pbk_yukle():
+    """`parti-borc-kapisi.py`yi modul olarak yukler (hermetik fikstur kolu icin).
+
+    🔴 K361 ARTIGI, CI'DA OLCULDU (2 Eyl 2026, kosum `33580178261`):
+    ev->dizin tablosu repo DISINA (`~/.claude/cron/evler.json`) alinirken UC batarya
+    hermetik yapildi (`parti-kapisi`, `devir-kapisi`, kapinin kendi `--kendini-test`i)
+    ama BU batarya ATLANDI. Zinciri: bu test kapinin bir KOPYASINI gecici `tools/`
+    dizinine yazar -> kopya `sahiplik-kapisi.py`yi KENDI dizininden yukler -> o da
+    `parti-borc-kapisi.py`yi arar. Gecici dizinde o dosya YOKTU; yerelde makineye
+    civili mutlak yol yedegi tutuyordu, KOSUCUDA ise TUTMUYOR -> `EV_BILINEN` None ->
+    her vaka `CHIP DUZENI: OLCULEMEDI (cikis 2)`. CI'da olculen hal: `VAKA=2/14
+    MUTANT=0/9`. Yerel yesil, CI kirmizi — [[patha-sorulan-ikili-cron-da-yok]].
+    Care IKI AYAKLIDIR ve ikisi de gerekli: (1) `parti-borc-kapisi.py` kopyasi
+    gecici `tools/`a konur (zincir MUTLAK YOLA dusmez), (2) izolasyon kokune fikstur
+    `evler.json` yazilip `PRUVO_EVLER_JSON` ona baglanir (canli tabloya DOKUNULMAZ).
+    Ikisinin de yuk tasidigini `_hermetik_kontrol()` OLCER.
+    """
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("pruvo_parti_borc_chip", PARTI_BORC)
+    if spec is None or spec.loader is None:
+        return None
+    mod = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(mod)
+    except Exception:
+        return None
+    return mod
 
 
 def _defter(*kalemler):
@@ -82,7 +112,8 @@ def _dosyaya_yaz(yol, icerik):
         dosya.write(icerik)
 
 
-def _kos(source, owner, base_dir, defter, kutu, extra=()):
+def _kos(source, owner, base_dir, defter, kutu, extra=(), pbk_kopyala=True,
+         ortam_ek=None):
     run_dir = tempfile.mkdtemp(prefix="kosum-", dir=base_dir)
     try:
         tools_dir = os.path.join(run_dir, "tools")
@@ -91,6 +122,11 @@ def _kos(source, owner, base_dir, defter, kutu, extra=()):
         owner_path = os.path.join(tools_dir, "sahiplik-kapisi.py")
         _dosyaya_yaz(source_path, source)
         shutil.copyfile(owner, owner_path)
+        # 🔴 HERMETIK AYAK (1) — bkz. `_pbk_yukle()` gerekcesi. `pbk_kopyala=False`
+        # YALNIZ `_hermetik_kontrol()` icindir: ayagin yuk tasidigini olcer.
+        if pbk_kopyala and os.path.isfile(PARTI_BORC):
+            shutil.copyfile(PARTI_BORC,
+                            os.path.join(tools_dir, "parti-borc-kapisi.py"))
         defter_path = os.path.join(run_dir, "DEVAM.md")
         kutu_path = os.path.join(run_dir, "kutu.md")
         if defter is not None:
@@ -100,7 +136,12 @@ def _kos(source, owner, base_dir, defter, kutu, extra=()):
         komut = [sys.executable, source_path, "--defter", defter_path,
                  "--kutu", kutu_path]
         komut.extend(extra)
-        tamam = subprocess.run(komut, capture_output=True, text=True, timeout=2)
+        ortam = None
+        if ortam_ek:
+            ortam = dict(os.environ)
+            ortam.update(ortam_ek)
+        tamam = subprocess.run(komut, capture_output=True, text=True, timeout=5,
+                               env=ortam)
         return tamam.returncode, tamam.stdout + tamam.stderr
     finally:
         shutil.rmtree(run_dir)
@@ -166,9 +207,57 @@ def _kontrol_mutanti(source, owner, base_dir, tanim):
     return taban == mutasyon, "%s rc dizisi=%s" % (ad, taban)
 
 
+def _hermetik_kontrol(source, owner, base_dir):
+    """Hermetik kurulumun YUK TASIDIGINI olcer — K361 artigi sessizce geri donmesin.
+
+    K3a (BAGLI): fikstur haritasi bagliyken POZITIF vaka rc=0 olmali.
+    K3b (EV TABLOSU YOK): AYNI vaka, alt surecin `PRUVO_EVLER_JSON`i olmayan bir
+        yola zorlanarak kosulur — bu, KOSUCUDAKI hali birebir taklit eder (orada
+        `~/.claude/cron/evler.json` YOKTUR). Beklenen `OLCULEMEDI` + rc=2.
+        rc=0 gelirse kapi ev tablosuz da hukum veriyor demektir: fail-OPEN, KIRMIZI.
+    K3c (PBK KOPYASI): `parti-borc-kapisi.py` gecici `tools/`a kopyalanmis olmali.
+        DAVRANIS ayagi bu makinede OLCULEMEZ — `sahiplik-kapisi.py` mutlak yol
+        yedegi tutuyor ve o dosya YERELDE VAR, KOSUCUDA YOK. Bu yuzden burada
+        YAPISAL olarak olculur (kopya dosyasi var mi) ve davranis kolu
+        KAPSAM_DISI yazilir; sessizce "yesil" SAYILMAZ.
+    """
+    vaka = VAKALAR[0]
+    rc_bagli, _c1 = _kos(source, owner, base_dir, vaka[1], vaka[2])
+    rc_tablosuz, cikti_tablosuz = _kos(
+        source, owner, base_dir, vaka[1], vaka[2],
+        ortam_ek={"PRUVO_EVLER_JSON": os.path.join(base_dir, "yok", "evler.json")})
+
+    # K3c — yapisal: kopya gercekten atiliyor mu (kodun kendisinden DEGIL, diskten)
+    sonda = tempfile.mkdtemp(prefix="sonda-", dir=base_dir)
+    _kos(source, owner, sonda, vaka[1], vaka[2])
+    kopya_atildi = os.path.isfile(PARTI_BORC)
+    kapsam = "KAPSAM_DISI (mutlak yol yedegi YEREL'de var)" \
+        if os.path.isfile("/Users/okan/dev/pruvo/tools/parti-borc-kapisi.py") \
+        else "CANLI"
+
+    a = rc_bagli == 0
+    b = rc_tablosuz == 2 and "OLCULEMEDI" in cikti_tablosuz
+    return (a and b and kopya_atildi,
+            "K3 HERMETIK bagli_rc=%d(bekl 0) ev-tablosuz_rc=%d(bekl 2/OLCULEMEDI) "
+            "pbk_kaynagi=%s K3c_davranis=%s"
+            % (rc_bagli, rc_tablosuz, kopya_atildi, kapsam))
+
+
 def main():
     base_dir = tempfile.mkdtemp(prefix="chip-k185-test-")
     try:
+        # 🔴 HERMETIK AYAK (2) — izolasyon kokune fikstur ev haritasi yazilir ve
+        # `PRUVO_EVLER_JSON` ona baglanir; alt sureclere MIRAS kalir. CANLI
+        # `~/.claude/cron/evler.json`a DOKUNULMAZ ve kosucuda o dosya YOKTUR.
+        pbk = _pbk_yukle()
+        if pbk is not None and hasattr(pbk, "fikstur_haritasi_kur"):
+            pbk.fikstur_haritasi_kur(base_dir, pbk.FIKSTUR_EVLERI)
+        else:
+            print("HERMETIK KURULUM YAPILAMADI — olcum ANLAMSIZ "
+                  "(parti-borc-kapisi.py yuklenemedi ya da fikstur kolu yok).")
+            print("CHIP DUZENI TEST: VAKA=0/%d MUTANT=0/9 KONTROL=0/2 RC=2"
+                  % len(VAKALAR))
+            return 2
         with open(KAPI, encoding="utf-8") as dosya:
             source = dosya.read()
         vaka_sonuclari = [_vaka_kontrol(source, SAHIPLIK, base_dir, vaka)
@@ -229,6 +318,8 @@ def main():
         )
         kontrol_sonuclari = [_kontrol_mutanti(source, SAHIPLIK, base_dir, kontrol)
                              for kontrol in kontroller]
+        kontrol_sonuclari.append(_hermetik_kontrol(source, SAHIPLIK, base_dir))
+        kontroller = kontroller + (("K3 HERMETIK", None, None),)
         kontrol_gecen = sum(1 for tamam, _detay in kontrol_sonuclari if tamam)
 
         if vaka_gecen != len(VAKALAR):
