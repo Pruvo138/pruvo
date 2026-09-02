@@ -787,11 +787,17 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 42 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 43 jeton) ──
     # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
     # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
     # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
     # `len(UYUM_MARKA_MIMAR_EKI)` ile karsilastiran bir iddia YOK; kalem ACIK.
+    # 7. tur (2 Eyl 2026, KraL-SYMMarka-2Eyl): sayi 42 -> 43 ELLE guncellendi ve o turda
+    # `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (42 -> 43, esitlik TUTTU).
+    # 🔴 KALEM HALA ACIK: bu bir MAKINE iddiasi degil, tek seferlik bir olcumdur —
+    # bir sonraki tur yine guncellemeyi UNUTABILIR. Kalici cozum bu sayiyi `len()`ten
+    # TURETMEK ya da bir kapiya iddia olarak KOYMAKTIR; ikisi de mimar hukmunu bekliyor
+    # (import aninda `assert` tum evi fail-closed kilitleyebilecegi icin cip ELI SURMEDI).
     # 1. tur: paket §2'nin ornek degerleri.
     "Volvo Penta", "Yanmar",
     # 2. tur, A grubu (17) — arac / tekne / deniz motoru markasi. Heuristik bunlari
@@ -881,6 +887,47 @@ UYUM_MARKA_IZINLI = frozenset({
     #   oldurulup bir dogumla takas edildiginde sayi-only kiyas 0 dedi (KOR),
     #   kume farki YAKALADI. Yeni bir jeton eklenirken bu iki olcum ONCEDEN kosulur.
     "Raymarine",
+    # 7. tur, C grubu (1) — mimar karari 2 Eyl 2026. `SYM` (Sanyang Motor Co., Tayvan)
+    #   motosiklet / skuter URETICISIDIR = EV SAHIBI arac markasi; uretilen parca ONA
+    #   TAKILIR ("bu urun SYM Fiddle III'e takilir" anlamli). Bu ek YENI BIR SINIF ACMAZ:
+    #   sinif emsali kumede ZATEN VAR ve ucu de motosiklet/skuter ureticisidir —
+    #   `Kymco`, `Zontes`, `Mondial`. Olculen katalog agirligi (32.944 urun,
+    #   `model_normalize` ile tarandi):
+    #     marka[] tam yazimla: 0 · uyum[].marka: 0 · uyum[].model: 0 · uyum[].motor: 0 ·
+    #     uyum[].oem: 0
+    #   Sifir olmasi olcut DEGIL (2. tur B grubu hukmu: sozluk "gecerli mi"yi belirler,
+    #   "sayfasi acilir mi"yi degil). Giris MaCiT'in hazir 9 SYM x Thingiverse urununun
+    #   `hasat_ekle.py`de fail-closed durmasindan dogdu — tetik `Raymarine`inkiyle AYNI.
+    #   Kume KAPALI kalir; yargilanmis bolumleme (izinli−eki / uretici−eki / elenen)
+    #   degismez, `SYM` ELENEN'de DEGIL ve URETICI_MARKA'da DEGIL (ikisi de olculdu) —
+    #   elenmis bir jeton geri sizmaz.
+    # 🔴 IKINCI ROL OLCULDU — K220 NEGATIFI (cip KraL-SYMMarka-2Eyl, 2 Eyl 2026).
+    #   `marka_varyanti_sebebi()` bu kumeden AYNI ZAMANDA bir "MODEL OLAMAZ" jetonu uretir;
+    #   K220'nin emsalinde (`Range Rover`) tam bu ikinci rol CANLI bir sayfayi oldurmustu.
+    #   `SYM` icin o kol OLCULDU ve YOK: normalize'i TAM `sym` olan `uyum[].model` = 0 ·
+    #   `uyum[].motor` = 0 kayit -> jeton hicbir mevcut kaydi gecersiz kilmaz.
+    #   YAPISAL alanlarda (`marka[]` + `uyum.*`) `sym`i ALT DIZGE olarak tasiyan ayrik
+    #   deger de 0'dir. SERBEST METINDE (baslik/slug/aciklama) `sym` gecen 33 kayit VAR
+    #   (`Clio Symbol`, `Sound Symposer`) — bunlar sozluk yoluna GIRMEZ ve normalize'leri
+    #   `sym`e DUSMEZ (`symbol` != `sym`), yani K220 kolu icin zararsizdir. ⚠️ Mimarin
+    #   on-olcumu bu ekseni "0" saymisti; SAPMA raporlandi, dogru sayi 33 ve HUKMU
+    #   DEGISTIRMEZ (iki eksen ayri: yapisal alan 0, serbest metin 33).
+    #   Uretilen sayfa/URL kumesi ekleme ONCESI ve SONRASI TAM kosuldu: 34599 = 34599,
+    #   KAYBOLAN URL = 0, dogan = 0. Kume IKI BAGIMSIZ eksenden toplandi — sitemap `loc`
+    #   (jeneratorun BEYANI) ve diskteki fiziksel `index.html` yollari (beyandan bagimsiz)
+    #   — ikisi birebir esitti.
+    # 🔴 IZOLASYON TUZAGI (olculdu, bu tur — 6. turda GORULMEMISTI): `build.py
+    #   --cikti-kok <temp>` TAM IZOLE DEGILDIR. `marka_model_build`/`landing_hub_build`/
+    #   `kategori_hub_build` `ctx["ROOT"]`e yazar (build.py:5059), yani `/marka`,
+    #   `/kategori` ve landing sayfalari CIKTI_KOK'e DEGIL KAYNAK AGACA duser — ve hepsi
+    #   gitignore'da oldugu icin `git status` TEMIZ kalir, sizinti GORUNMEZ. O kosumda iki
+    #   eksen 34599 (sitemap) vs 32414 (disk) ile AYRISTI; fark 2185 = tam da /marka +
+    #   /kategori + landing. Dogru izolasyon: `git archive HEAD` ile AYRI bir ROOT kopyasi
+    #   kur, build.py'yi ORADAN kos. Iki eksenin ESITLIGI bu izolasyonun kendisinin de
+    #   olcusudur — ayrisiyorlarsa once izolasyondan supheleneceksin.
+    # 🔴 KIYAS KUME FARKIYLA YAPILIR, SAYIYLA DEGIL: bir sayfa olup yerine baskasi dogsaydi
+    #   TOPLAM SABIT kalirdi (mutantla kanitli, 6. tur). Kaybolan ve dogan AYRI AYRI basilir.
+    "SYM",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -918,6 +965,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 6. tur (31 Agu 2026) — gerekce + olculen katalog agirligi UYUM_MARKA_IZINLI'nin
     # "C grubu" 6. tur basliginda yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
     "Raymarine",
+    # 7. tur (2 Eyl 2026) — gerekce + olculen katalog agirligi + K220 ikinci-rol olcumu
+    # UYUM_MARKA_IZINLI'nin "C grubu" 7. tur basliginda yazili. Burada TEKRAR EDILMEZ.
+    "SYM",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
