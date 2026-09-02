@@ -1664,6 +1664,9 @@ async function konfigurGolge(env, url) {
 // listenin OTORITESI uygulayicidadir; buradaki es kontrol erken-uyaridir, ayrisirsa
 // satir uygulayicida hal='hata'+sebep olur (sessiz kaybolmaz). Kaynak link / uyelik /
 // STL yeri gibi gizli alanlar bu kuyruga HIC girmez.
+// TEKIL SILME (2 Eyl 2026): alan='sil' satiri da AYNI kuyruktan akar ama YALNIZ
+// /urun-sil ucundan yazilir (cift onay + gerekce); /urunler-ustyazim beyaz listesi
+// onu KABUL ETMEZ (asagida USTYAZIM_ALANLAR — silme, alan duzenlemesine sizamaz).
 const USTYAZIM_ALANLAR = new Set(["fiyat", "baslik", "aciklama", "gorseller"]);
 const USTYAZIM_DEGER_TAVAN = { fiyat: 20, baslik: 200, aciklama: 4000, gorseller: 4000 };
 // Katalog fiyat sozlesmesi "N TL" (uygulayicidaki FIYAT_BICIMI ile es).
@@ -1678,7 +1681,7 @@ function gorselListesiSebebi(deger) {
   let liste;
   try { liste = JSON.parse(deger); } catch (e) { return "gorseller JSON dizi olmali"; }
   if (!Array.isArray(liste) || !liste.length) {
-    return "gorsel listesi bos olamaz (en az 1 gorsel kalir; urun silme yok)";
+    return "gorsel listesi bos olamaz (en az 1 gorsel kalir; urun silme ayri uctan: Sil (arsive))";
   }
   if (liste.length > GORSEL_SAYI_TAVANI) {
     return "gorsel sayisi tavani " + GORSEL_SAYI_TAVANI;
@@ -1783,10 +1786,20 @@ async function panelUstyazimYaz(request, env, ctx) {
     // Sari seri sozlesmesi: fiyat BOS kalir, taban fiyat semadan basilir.
     return yjson({ hata: "parametrik (sari) urunde fiyat degistirilemez — taban fiyat semadan gelir" }, 400);
   }
+  const kuyrukHata = await kuyrugaYaz(env, uid, alan, deger);
+  if (kuyrukHata) { return kuyrukHata; }
+  uygulayiciTetikle(env, ctx);
+  return yjson({ tamam: true, urun_id: uid, alan: alan, hal: "beklemede" }, 200);
+}
+
+/** Kuyruga hal='beklemede' satir yaz — panelUstyazimYaz ve panelUrunSil'in ORTAK tek
+ *  yazim yolu. Ayni (urun, alan) icin bekleyen satir varsa YENISI ONUN YERINE GECER
+ *  (kuyruk sisirilmez); yoksa INSERT. islendi/hata satirlarina DOKUNULMAZ (gecmis
+ *  kayittir). Tablo yoksa 503 Response doner (fail-closed: "kaydedildi" yalani
+ *  imkansiz); basarida null. */
+async function kuyrugaYaz(env, uid, alan, deger) {
   const ts = new Date().toISOString();
   try {
-    // Ayni (urun, alan) icin bekleyen satir varsa YENISI ONUN YERINE GECER (kuyruk
-    // sisirilmez); yoksa INSERT. islendi/hata satirlarina DOKUNULMAZ (gecmis kayittir).
     const g = await env.KATALOG.prepare(
       "UPDATE panel_ustyazim SET deger = ?, ts = ?, yazan = 'panel'" +
       " WHERE urun_id = ? AND alan = ? AND hal = 'beklemede'").bind(deger, ts, uid, alan).run();
@@ -1800,8 +1813,77 @@ async function panelUstyazimYaz(request, env, ctx) {
     if (tabloYokMu(e)) { return yjson({ hata: "kuyruk tablosu yok — sema kosulmamis" }, 503); }
     throw e;
   }
+  return null;
+}
+
+// TEKIL URUN SILME — "Sil (arsive)" (Okan emri 2 Eyl 2026 + BaBa cercevesi (1)-(5)).
+// T2'nin "urun silme yolu YOK" kisitini Okan'in bu emri TEKIL manuel silme olarak
+// kaldirdi; TOPLU silme ucu BILEREK ACILMADI (tek istek = tek urun; okan-hukmu-
+// urun-silinmez toplu duzlemde gecerli kalir).
+//  · Silme de fiyat/gorsel gibi KUYRUKTAN akar: alan='sil', deger=GEREKCE. Tabana
+//    isleyen tek kol yine CI uygulayicisidir (duzelt.py --toplu {"id","sil"} yolu +
+//    arsiv/urunler-arsiv.json kaydi) — ikinci yazim yolu YOK.
+//  · CIFT ONAYIN SUNUCU AYAGI: `onay` alani urun id'sini BIREBIR tekrarlamak zorunda
+//    (UI zaten yazdirtir; sunucu istemciye guvenmez). Yanlis tik tek basina bir
+//    musteri-gorunur urunu dusuremez.
+//  · R2 GORSELLERI SILINMEZ (mevcut kural). STL parcalari kuyruga yazmadan ONCE
+//    stlCikar'in arsiv-teyitli tasima desenine BIREBIR uyarak arsiv/stl/'e tasinir;
+//    teyit dusmezse silme kuyruga YAZILMAZ (fail-closed, veri kaybi yolu yok).
+//  · GEREKCE yalniz D1 kuyruk satirinda + yerel guard logunda yasar; PUBLIC repoya
+//    (arsiv dosyasi, commit mesaji) ISLENMEZ — tedarikci/kisi adi sizamasin.
+//  · `gizli` alanindan AYRI kavram: gizle = yayindan dusur (kayit tabanda kalir),
+//    sil = kaydi tabandan arsive tasi (geri yukleme: tools/urun-geri-yukle.py).
+const SIL_GEREKCE_TAVANI = 200;
+
+async function panelUrunSil(request, env, ctx) {
+  let govde;
+  try { govde = await request.json(); } catch (e) {
+    return yjson({ hata: "gecersiz istek govdesi" }, 400);
+  }
+  const uid = typeof (govde && govde.urun_id) === "string" ? govde.urun_id.trim() : "";
+  const onay = typeof (govde && govde.onay) === "string" ? govde.onay.trim() : "";
+  const gerekce = typeof (govde && govde.gerekce) === "string" ? govde.gerekce.trim() : "";
+  if (!URUN_ID_RX.test(uid)) { return yjson({ hata: "urun_id bicimsiz" }, 400); }
+  if (onay !== uid) {
+    return yjson({ hata: "onay, urun id'siyle birebir ayni olmali (cift onay)" }, 400);
+  }
+  if (!gerekce) { return yjson({ hata: "gerekce bos olamaz" }, 400); }
+  if (gerekce.length > SIL_GEREKCE_TAVANI) {
+    return yjson({ hata: "gerekce cok uzun (tavan " + SIL_GEREKCE_TAVANI + ")" }, 400);
+  }
+  if (/[\u0000-\u001f]/.test(gerekce)) {
+    return yjson({ hata: "gerekce kontrol karakteri/satir sonu tasiyamaz" }, 400);
+  }
+  const ur = await env.KATALOG.prepare(
+    "SELECT id FROM urunler WHERE id = ?").bind(uid).first();
+  if (!ur) { return yjson({ hata: "urun katalogda yok" }, 404); }
+  // STL parcalari ONCE arsive: binding yoksa parcalarin VARLIGI OLCULEMEZ ->
+  // fail-closed 503 (arsivlenmemis STL birakma yolu acilmaz).
+  if (!env.OZEL_DOSYA) {
+    return yjson({ hata: "r2-baglanti-yok — STL arsivlenemeden silme kuyruklanmaz" }, 503);
+  }
+  const parcalar = await parcalariListele(env, uid);
+  const ts0 = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  let tasinan = 0;
+  for (const parca of parcalar) {
+    const anahtar = "stl/" + uid + "/" + parca.dosya;
+    const nesne = await env.OZEL_DOSYA.get(anahtar);
+    if (!nesne) { continue; } // listeyle yaris: dosya bu arada dusmus, tasinacak sey yok
+    const arsiv = "arsiv/stl/" + uid + "/" + ts0 + "-" + parca.dosya;
+    await env.OZEL_DOSYA.put(arsiv, nesne.body);
+    const teyit = await env.OZEL_DOSYA.head(arsiv);
+    if (!teyit || teyit.size !== parca.boyut) {
+      return yjson({ hata: "arsiv-kopyasi-teyit-edilemedi — orijinaller SILINMEDI, " +
+                     "silme kuyruga YAZILMADI (tasinan=" + tasinan + ")" }, 502);
+    }
+    await env.OZEL_DOSYA.delete(anahtar);
+    tasinan++;
+  }
+  const kuyrukHata = await kuyrugaYaz(env, uid, "sil", gerekce);
+  if (kuyrukHata) { return kuyrukHata; }
   uygulayiciTetikle(env, ctx);
-  return yjson({ tamam: true, urun_id: uid, alan: alan, hal: "beklemede" }, 200);
+  return yjson({ tamam: true, urun_id: uid, alan: "sil", hal: "beklemede",
+                 stl_arsivlenen: tasinan }, 200);
 }
 
 async function panelUstyazimSil(request, env) {
@@ -2126,6 +2208,8 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/urunler-kuyruk" && m === "GET") { return panelKuyruk(env); }
   if (altYol === "/urunler-ustyazim" && m === "POST") { return panelUstyazimYaz(request, env, ctx); }
   if (altYol === "/urunler-ustyazim-sil" && m === "POST") { return panelUstyazimSil(request, env); }
+  // TEKIL urun silme (Okan emri 2 Eyl) — ayni kapinin ARKASINDA, cift onayli.
+  if (altYol === "/urun-sil" && m === "POST") { return panelUrunSil(request, env, ctx); }
   // URUNLER SEKMESI (T2) — gorsel + STL + kaynak link; ayni kapinin ARKASINDA.
   if (altYol === "/urun-gorseller" && m === "GET") { return urunGorseller(env, url); }
   if (altYol === "/gorsel-yukle" && m === "POST") { return gorselYukle(request, env, url); }
@@ -2279,8 +2363,9 @@ a.indir{display:inline-block;padding:6px 10px;background:#374151;color:#fff;bord
    <button id="urunAraBtn">Ara</button>
   </div>
   <p class="kucuk">Kaydet <b>kuyruğa</b> yazar; değişiklik uygulayıcı işleyip site yeniden
-  yayınlanınca canlıya çıkar (dakikalar). Parametrik (sarı) üründe fiyat değiştirilemez;
-  ürün silme yok.</p>
+  yayınlanınca canlıya çıkar (dakikalar). Parametrik (sarı) üründe fiyat değiştirilemez.
+  Ürün silme TEKİLDİR: karttaki "Sil (arşive)" kuyruğa yazar; taban kaydı arşive taşınır
+  (geri getirilebilir), R2 görselleri silinmez. Gizle ile karışmaz: gizli ürün tabanda kalır.</p>
  </div>
  <section id="kuyrukKutu"></section>
  <section id="urunListe"></section>
@@ -2628,7 +2713,8 @@ async function urunYukle(){
    '<div class="alan-form">'+fiyatAlan+
    '<label>Başlık <input id="ub-'+esc(x.id)+'" value="'+esc(x.baslik||"")+'"></label>'+
    '<label>Açıklama <textarea id="ua-'+esc(x.id)+'" rows="5">'+esc(x.aciklama||"")+'</textarea></label>'+
-   '<div class="eylemler"><button onclick="urunKaydet(\\''+esc(x.id)+'\\')">Kaydet (kuyruğa)</button></div>'+
+   '<div class="eylemler"><button onclick="urunKaydet(\\''+esc(x.id)+'\\')">Kaydet (kuyruğa)</button>'+
+   '<button class="sil" onclick="urunSil(\\''+esc(x.id)+'\\')">Sil (arşive)</button></div>'+
    '</div>'+
    '<div class="t2bolum" id="ug-'+esc(x.id)+'"><span class="kucuk">Görseller yükleniyor…</span></div>'+
    '<div class="t2bolum" id="us-'+esc(x.id)+'"></div>'+
@@ -2661,6 +2747,27 @@ async function urunKaydet(id){
   if(r.kod!==200){alert("Olmadı ("+isler[j][0]+"): "+(r.govde&&r.govde.hata||r.kod));return;}
  }
  alert(isler.length+" alan kuyruğa yazıldı. Uygulayıcı işleyip site yeniden yayınlanınca canlıya çıkar.");
+ urunYukle();
+}
+// TEKIL SILME — cift onay: urun id'si AYNEN yazdirilir (yanlis tik bir musteri-gorunur
+// urunu dusurmesin), gerekce zorunlu. Kuyruga alan='sil' yazilir; taban kaydi arsive
+// tasinir (yok edilmez), R2 gorselleri silinmez, STL'ler arsiv/stl/'e tasinir.
+// "gizli"den AYRI kavramdir (gizle=yayindan dusur, sil=tabandan arsive tasi).
+async function urunSil(id){
+ var onay=prompt("ÜRÜN SİLME (arşive taşıma) — canlıdan düşer, arşivden geri getirilebilir.\\n"+
+  "Onay için ürün id'sini AYNEN yazın:\\n"+id);
+ if(onay===null)return;
+ if(onay.trim()!==id){alert("Onay, id ile birebir aynı değil — silme kuyruğa YAZILMADI.");return;}
+ var gerekce=prompt("Kısa gerekçe (yalnız kuyruk kaydında kalır; siteye/repoya çıkmaz):");
+ if(gerekce===null)return;
+ gerekce=gerekce.trim();
+ if(!gerekce){alert("Gerekçe boş olamaz — silme kuyruğa YAZILMADI.");return;}
+ var r=await api("/urun-sil",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({urun_id:id,onay:onay.trim(),gerekce:gerekce})});
+ if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));return;}
+ alert("Silme kuyruğa yazıldı"+(r.govde&&r.govde.stl_arsivlenen?
+  " (arşive taşınan STL: "+r.govde.stl_arsivlenen+")":"")+
+  ". Uygulayıcı işleyince taban kaydı arşive taşınır; site yayınlanınca canlıdan düşer.");
  urunYukle();
 }
 async function kuyrukYukle(){
@@ -2733,7 +2840,7 @@ function gorselCiz(id){
 }
 function gorselCikarUI(id,i){
  var d=urunGorselDurum[id];if(!d)return;
- if(d.liste.length<=1){alert("En az 1 görsel kalmalı (ürün silme yok).");return;}
+ if(d.liste.length<=1){alert("En az 1 görsel kalmalı (ürün silme ayrı: Sil (arşive)).");return;}
  d.liste.splice(i,1);gorselCiz(id);
 }
 async function gorselYukleUI(id){

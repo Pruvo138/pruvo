@@ -301,7 +301,11 @@ ol("V9c durum degistirme kontrolu (secici+Uygula) + 'Yerel komut kopyala' kartta
 // 30 Agu 2026 (T2, Okan emri — gorsel/STL/kaynak link): 6 uc daha (GET /urun-gorseller,
 // POST /gorsel-yukle, POST /stl-yukle, POST /stl-cikar, GET /urun-kaynak,
 // POST /kaynak-yaz; hepsi ayni kapinin arkasinda) -> taban 15'ten 21'e BILEREK artirildi.
-const KOL_TABANI = 21, CD_TABANI = 2;
+// 2 Eyl 2026 (Okan emri — TEKIL urun silme): 1 uc daha (POST /urun-sil; ayni yonetim
+// anahtarinin arkasinda, cift onay + zorunlu gerekce, kuyruga alan='sil' yazar) ->
+// taban 21'den 22'ye BILEREK ve TARIHLI artirildi. Ucun kendi kurallari
+// shop/test/urunler-panel.mjs M bolumunde olculur; burada YALNIZ kol sayilir.
+const KOL_TABANI = 22, CD_TABANI = 2;
 const kolSayisi = (KAYNAK.match(/altYol === "/g) || []).length;
 ol("V9d YETKI YUZEYI GENISLEMEDI: yonlendirici kolu " + KOL_TABANI + " (yeni uc yok)",
   kolSayisi === KOL_TABANI, "kol=" + kolSayisi);

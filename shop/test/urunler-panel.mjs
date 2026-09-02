@@ -5,8 +5,9 @@
  *   node shop/test/urunler-panel.mjs
  *
  * NE OLCER (wrangler/ag/D1 YOK — wa-siparis.mjs deseni, env.KATALOG mock):
- *   A. YETKI: 10 uc (T1: 4 + T2: 6) yonetim anahtarinin ARKASINDA; EGE_ANAHTAR
- *      HICBIRINI acamaz (en az yetki), secret'siz kurulumda 404, cerez de acar.
+ *   A. YETKI: 11 uc (T1: 4 + T2: 6 + sil: 1) yonetim anahtarinin ARKASINDA;
+ *      EGE_ANAHTAR HICBIRINI acamaz (en az yetki), secret'siz kurulumda 404,
+ *      cerez de acar.
  *   B. KUYRUK YAZIMI: gecerli deger hal='beklemede' satir olur; ayni (urun, alan)
  *      bekleyen satiri YENISI degistirir (INSERT cogaltmaz); beyaz liste disi alan,
  *      bozuk fiyat bicimi, parametrik urunde fiyat, olmayan urun, bicimsiz id,
@@ -26,10 +27,14 @@
  *   J. (T2) /stl-cikar: arsiv kopyasi TEYIT edilmeden orijinal SILINMEZ.
  *   K. (T2) kaynak link: yalniz gizli D1 (panel_kaynak); panel satiri sync'i
  *      GOLGELER, link='' cikarildi; https disi RED; tablo yoksa 503.
+ *   M. TEKIL SILME (/urun-sil, Okan emri 2 Eyl): cift onay (onay=id birebir) +
+ *      zorunlu gerekce; kuyruga alan='sil' yazilir; /urunler-ustyazim alan='sil'
+ *      KABUL ETMEZ; STL parcalari kuyruktan ONCE arsiv-teyitli tasinir (teyit
+ *      dusmezse silme kuyruklanmaz); RED'lerde kuyruga sifir yazim.
  *
  * 🔴 FIKSTUR UYDURMADIR: gercek urun/tedarikci/musteri verisi yazilmaz.
  * Tabana isleme bu dosyanin MENZILI DISIDIR — o eksen tools/panel-uygulayici.py
- * --kendini-test bataryasinda olculur (38 vaka + 3 mutant); iki test ayni iddiayi
+ * --kendini-test bataryasinda olculur (51 vaka + 5 mutant); iki test ayni iddiayi
  * iki yerde OLCMEZ: burasi worker yuzeyi, orasi uygulayici.
  */
 import { register } from "node:module";
@@ -218,12 +223,13 @@ async function cagir(env, altYol, secenek) {
 }
 
 // ---------------------------------------------------------------- A. YETKI
-console.log("A. YETKI (T1+T2 10 uc yonetim anahtari arkasinda; EGE acamaz)");
+console.log("A. YETKI (T1+T2+sil 11 uc yonetim anahtari arkasinda; EGE acamaz)");
 {
   const UCLAR = [["/urunler", "GET", undefined],
                  ["/urunler-kuyruk", "GET", undefined],
                  ["/urunler-ustyazim", "POST", { urun_id: "test-urun-a", alan: "fiyat", deger: "500 TL" }],
                  ["/urunler-ustyazim-sil", "POST", { id: 1 }],
+                 ["/urun-sil", "POST", { urun_id: "test-urun-a", onay: "test-urun-a", gerekce: "x" }],
                  ["/urun-gorseller", "GET", undefined],
                  ["/gorsel-yukle", "POST", new Uint8Array([0xff, 0xd8, 0xff, 1]).buffer],
                  ["/stl-yukle", "POST", new Uint8Array([1, 2, 3]).buffer],
@@ -587,6 +593,97 @@ console.log("K. kaynak link (gizli D1; panel golgeler; https disi RED)");
      r10.kod === 200 && r10.govde.link === "", JSON.stringify(r10.govde));
 }
 
+// ---------------------------------------------------------------- M. TEKIL SILME
+console.log("M. /urun-sil (cift onay + gerekce; alan='sil' kuyrugu; STL arsiv-teyitli)");
+{
+  const env = mockEnv();
+  const r1 = await cagir(env, "/urun-sil",
+    { govde: { urun_id: "test-urun-a", onay: "test-urun-a", gerekce: "telif riski" } });
+  ol("M1 gecerli sil -> 200 + kuyrukta TEK satir alan='sil' deger=gerekce",
+     r1.kod === 200 && r1.govde.hal === "beklemede" && env.kuyruk.length === 1 &&
+     env.kuyruk[0].alan === "sil" && env.kuyruk[0].deger === "telif riski" &&
+     env.kuyruk[0].hal === "beklemede", JSON.stringify(env.kuyruk));
+  const r2 = await cagir(env, "/urun-sil",
+    { govde: { urun_id: "test-urun-a", onay: "test-urun-a", gerekce: "yeni gerekce" } });
+  ol("M2 bekleyen sil yeniden -> yenisi eskisinin YERINE (satir sayisi 1 kalir)",
+     r2.kod === 200 && env.kuyruk.length === 1 && env.kuyruk[0].deger === "yeni gerekce",
+     JSON.stringify(env.kuyruk));
+}
+{
+  const RED = [
+    ["M3 onay eksik", { urun_id: "test-urun-a", gerekce: "x" }, 400],
+    ["M4 onay id ile eslesmiyor (cift onayin sunucu ayagi)",
+     { urun_id: "test-urun-a", onay: "test-urun-b", gerekce: "x" }, 400],
+    ["M5 gerekce bos", { urun_id: "test-urun-a", onay: "test-urun-a", gerekce: "  " }, 400],
+    ["M6 gerekce tavan asimi (201)",
+     { urun_id: "test-urun-a", onay: "test-urun-a", gerekce: "g".repeat(201) }, 400],
+    ["M7 gerekce kontrol karakteri",
+     { urun_id: "test-urun-a", onay: "test-urun-a", gerekce: "a\u0007b" }, 400],
+    ["M8 bicimsiz id", { urun_id: "Kotu_Id", onay: "Kotu_Id", gerekce: "x" }, 400],
+    ["M9 olmayan urun", { urun_id: "boyle-urun-yok", onay: "boyle-urun-yok", gerekce: "x" }, 404],
+    ["M10 bozuk govde", "BOZUK", 400],
+  ];
+  for (const [ad, govde, kod] of RED) {
+    const env = mockEnv();
+    const r = await cagir(env, "/urun-sil", { govde });
+    ol(ad + " -> " + kod + " + kuyruga sifir yazim",
+       r.kod === kod && env.kuyruk.length === 0,
+       "kod=" + r.kod + " kuyruk=" + env.kuyruk.length);
+  }
+  // Silme yalniz cift-onayli uctan: /urunler-ustyazim alan='sil' KABUL ETMEZ.
+  const e2 = mockEnv();
+  const r = await cagir(e2, "/urunler-ustyazim",
+    { govde: { urun_id: "test-urun-a", alan: "sil", deger: "gerekce" } });
+  ol("M11 /urunler-ustyazim alan='sil' -> 400 (silme yalniz /urun-sil'den)",
+     r.kod === 400 && e2.kuyruk.length === 0, "kod=" + r.kod);
+}
+{
+  // STL parcalari kuyruk yazimindan ONCE arsiv-teyitli tasinir (stlCikar deseni).
+  const ozel = r2Mock([["stl/test-urun-a/parca.stl", 42], ["stl/test-urun-a/kapak.3mf", 7]]);
+  const env = mockEnv({ ozel });
+  const r1 = await cagir(env, "/urun-sil",
+    { govde: { urun_id: "test-urun-a", onay: "test-urun-a", gerekce: "kobay" } });
+  const arsivler = [...ozel.depo.keys()].filter((k) => k.startsWith("arsiv/stl/test-urun-a/"));
+  ol("M12 STL parcalari arsive tasindi + kuyruk yazildi",
+     r1.kod === 200 && r1.govde.stl_arsivlenen === 2 && arsivler.length === 2 &&
+     !ozel.depo.has("stl/test-urun-a/parca.stl") &&
+     !ozel.depo.has("stl/test-urun-a/kapak.3mf") && env.kuyruk.length === 1,
+     JSON.stringify({ kod: r1.kod, govde: r1.govde, arsivler }));
+  // Teyit-dusme kolu (J3 deseni): arsiv kopyasi bozuk -> 502 + kuyruga SIFIR yazim
+  // + orijinal YERINDE.
+  const bozuk = r2Mock([["stl/test-urun-b/p.stl", 42]]);
+  const gercekPut = bozuk.put.bind(bozuk);
+  bozuk.put = async (k, g, s) => { await gercekPut(k, "KISA", s); };
+  const env2 = mockEnv({ ozel: bozuk });
+  const r2 = await cagir(env2, "/urun-sil",
+    { govde: { urun_id: "test-urun-b", onay: "test-urun-b", gerekce: "kobay" } });
+  ol("M13 arsiv teyidi dusunce 502 + kuyruga sifir yazim + orijinal yerinde",
+     r2.kod === 502 && env2.kuyruk.length === 0 &&
+     bozuk.depo.has("stl/test-urun-b/p.stl") && bozuk.sayac.sil === 0,
+     "kod=" + r2.kod + " kuyruk=" + env2.kuyruk.length);
+  const env3 = mockEnv({ ozel: null });
+  const r3 = await cagir(env3, "/urun-sil",
+    { govde: { urun_id: "test-urun-a", onay: "test-urun-a", gerekce: "kobay" } });
+  ol("M14 OZEL_DOSYA binding yok -> 503 (STL varligi OLCULEMEZ, fail-closed)",
+     r3.kod === 503 && env3.kuyruk.length === 0, "kod=" + r3.kod);
+  const env4 = mockEnv({ tabloYok: true });
+  const r4 = await cagir(env4, "/urun-sil",
+    { govde: { urun_id: "test-urun-a", onay: "test-urun-a", gerekce: "kobay" } });
+  ol("M15 kuyruk tablosu yok -> YAZMA 503 (fail-closed)", r4.kod === 503, "kod=" + r4.kod);
+  // Tetik: sil de uygulayiciyi durtukler (E2 deseni; ayni uygulayiciTetikle kolu).
+  const eskiFetch = globalThis.fetch;
+  const cagrilar = [];
+  globalThis.fetch = (adres, sec) => { cagrilar.push(adres); return Promise.resolve({ ok: true }); };
+  try {
+    const env5 = mockEnv({ ghToken: "t".repeat(20) });
+    const r5 = await cagir(env5, "/urun-sil",
+      { govde: { urun_id: "test-urun-a", onay: "test-urun-a", gerekce: "kobay" } });
+    await Promise.all(r5.ctx.isler);
+    ol("M16 sil de repository_dispatch tetigini durtukler",
+       r5.kod === 200 && cagrilar.length === 1, "fetch=" + cagrilar.length);
+  } finally { globalThis.fetch = eskiFetch; }
+}
+
 // ---------------------------------------------------------------- L. SAYFA SCRIPT'I
 console.log("L. panel sayfa script'i DERLENIR (sablon kacis hatasi tum paneli kirar)");
 {
@@ -599,8 +696,9 @@ console.log("L. panel sayfa script'i DERLENIR (sablon kacis hatasi tum paneli ki
   ol("L1 sayfa 200 + <script> blogu var", y.status === 200 && !!m);
   ol("L2 script SOZDIZIMSEL derlenir (new Function)", derlendi, hata);
   const KABLOLAR = ["urunKartAc", "gorselKaydetUI", "gorselYukleUI", "gorselCikarUI",
-                    "stlYukleUI", "stlCikarUI", "kaynakKaydetUI", "kaynakCikarUI"];
-  ol("L3 T2 ekran kablolari sayfada (8 fonksiyon)",
+                    "stlYukleUI", "stlCikarUI", "kaynakKaydetUI", "kaynakCikarUI",
+                    "urunSil"];
+  ol("L3 T2+sil ekran kablolari sayfada (9 fonksiyon)",
      m && KABLOLAR.every((f) => m[1].indexOf("function " + f) >= 0),
      m ? KABLOLAR.filter((f) => m[1].indexOf("function " + f) < 0).join(",") : "script yok");
 }
