@@ -28,11 +28,15 @@ blok 24 → 11**, `kapanmis_basliyorum=2`, `CIFT_KORUMASI=0`, kutu 244/250. Once
 rotasyon gerekmisti (7 bayat 31 Agu ACILIS blogu, kutu −5440 B / arsiv +5438 B, 7/7 birebir).
 Cip agaci+dal temizlendi (52 MB). **KOSAN CIP:** V5 ana sayfa canliya alma (`jovial-mirzakhani`;
 benim mukerrer onerim GERI CEKILDI).
-🔴 **A3 BEKLENTISI TUTMADI — 15:47Z KOSUMU HIC ATESLEMEDI (16:2xZ'de olculdu, kapandi sanilmasin).**
-Iki bagimsiz eksen: `cron-nabiz-kapisi` A3(nobet.yml) hala KIRMIZI (`event=schedule` kosum sayisi
-SIFIR, is akisi 647 sa kayitli+aktif) · `gh run list --workflow=nobet.yml` son 8 kosumun 8'i de
-`event=push`. `cron "47 3,15"` main'de DURUYOR (dogrulandi) — yani tanim degil TESLIM eksik.
-Siradaki pencere **03:47Z**; o da bos gecerse sebep GitHub tarafinda degil KURULUMDA aranir.
+🔴 **A3: 15:47Z KOSUMU HIC ATESLEMEDI → KADANS 12 sa'ten 4 sa'e CEKILDI (Okan karari).** Yapisal
+hipotezler ELENDI: YAML `on:` dogru ayrisiyor (schedule ICERIDE), `state=active`, depo
+fork/arsiv/disabled DEGIL, concurrency masum. Kalan tek fark KADANS: schedule TESLIM EDEN 4 is
+akisinin 4'u de saat-alti/saatlik, teslim etmeyen TEK is akisi 12 saatlikti (pencere basina TEK
+sans). 🔴 **SAATLIK YAPILAMAZ — OLCTUM:** iptal EDILMEYEN kosum suresi ort **95,0 dk** / medyan
+99,6 / max 131,9 (n=13); `schedule` kolu TEK kuyruk + `cancel-in-progress:false` oldugundan
+saatlik aralik kuyrugu SINIRSIZ buyuturdu. `47 */4` = gunde 6 sans, 240 dk > 131,9 dk max.
+`is-akisi-kapisi` YESIL (228 kendini-test iddiasi), A1 yeni cron'u kabul etti. A3 hala KIRMIZI —
+**kapatan olcum: ilk `event=schedule` kosumu; en yakin pencere 20:47Z.**
 🟠 parti cron 20:33 yerel. 🟠 MaCiT sahipli 1 CI kirmizisi (`cbfc3721` failure) — onun duzlemi.
 ✅ **V5 GUVEN BLOGU CANLIDA — merge `2d2510bf`** (cip `jovial-mirzakhani`; defter kalemini mimara
 birakti). MIMAR BAGIMSIZ TEYIDI (kanonik URL, cache-bust'siz): ana sayfa 200 · **5 rozet

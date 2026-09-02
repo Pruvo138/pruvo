@@ -40,15 +40,31 @@ on:
   # hicbir kosum rapor edemiyor.
   # `schedule` tetigi bunu asagidaki KENDI esszamanlilik koluyla birlikte cozer:
   # zamanlanmis kosum push kuyruguna GIRMEZ, ezilmez, HEAD garantili hukum alir.
-  # Kadans 12 saatte bir (gunde 2 kosum) — GUNDE 1 KEZ YAZILAMAZ: cron-nabiz
-  # kapisi A3 ekseninin esik TAVANI 20 saattir (`ESIK_TAVAN_SAAT`), 24 saatlik
-  # nominal aralik MUKEMMEL teslimde bile o tavani asar ve nobetciyi kronik
-  # kirmiziya yakardi. Dakika 47: yogun ceyrek-saat sinirlarindan (0/15/30/45)
-  # ve depodaki oteki cron dakikalarindan UZAK (A1 bicim hukmu).
+  # Kadans GUNDE 1 KEZ YAZILAMAZ: cron-nabiz kapisi A3 ekseninin esik TAVANI 20
+  # saattir (`ESIK_TAVAN_SAAT`), 24 saatlik nominal aralik MUKEMMEL teslimde bile
+  # o tavani asar ve nobetciyi kronik kirmiziya yakardi. Dakika 47: yogun
+  # ceyrek-saat sinirlarindan (0/15/30/45) ve depodaki oteki cron dakikalarindan
+  # UZAK (A1 bicim hukmu).
+  # 🔴 KADANS 12 SAAT -> 4 SAAT (mimar, 2 Eyl 2026 aksami; Okan karari). GEREKCE
+  # ILK KADANSIN OLCULEN BASARISIZLIGI: `47 3,15` tanimi main'de 5 sa 11 dk
+  # durdugu halde 15:47Z penceresi HIC ATESLEMEDI (iki bagimsiz eksen: cron-nabiz
+  # A3 `event=schedule` sayisi 0 · `gh run list` son 8 kosumun 8'i de push).
+  # Yapisal hipotezler ELENDI: YAML `on:` blogu dogru ayrisiyor (schedule ICERIDE),
+  # is akisi `state=active`, depo fork/arsiv/disabled DEGIL, concurrency masum.
+  # Kalan tek fark KADANS: depoda schedule TESLIM EDEN 4 is akisinin 4'u de
+  # saat-alti/saatlik (`9,24,39,54` · `13,28,43,58` · `26 * * * *` · `41 * * * *`);
+  # 12 saatlik olan TEK bu is akisi ve teslim eden TEK o degil. Dusuk frekansta
+  # pencere basina TEK sans var; GitHub yogunlukta o kosumu DUSURUNCE "hic
+  # kosmadi" gorunur. 4 saat = gunde 6 sans.
+  # 🔴 SAATLIK YAPILAMAZ — OLCULDU: iptal EDILMEYEN kosumlarin suresi
+  # ort **95,0 dk** · medyan 99,6 · max 131,9 (n=13, `gh run list` son 40 kosum).
+  # `schedule` kolu TEK SABIT kuyruk + `cancel-in-progress: false` oldugundan
+  # 60 dakikalik aralik kuyrugu SINIRSIZ buyuturdu. 4 saat > 131,9 dk max ->
+  # zamanlanmis turlar UST USTE BINMEZ.
   # Kapi: tools/is-akisi-kapisi.py :: G13 (tetik) + G12 (kol) — mutantlar
   # K373-M1/M2/M3, her biri oldurdugu ekseni ADIYLA gosterir.
   schedule:
-    - cron: "47 3,15 * * *"
+    - cron: "47 */4 * * *"
 
 permissions:
   contents: read
