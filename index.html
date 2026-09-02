@@ -948,6 +948,90 @@
     .side-close{ display:none; }
     body{ margin-left:220px; }
   }
+
+  /* ---------- GÜVEN BLOĞU — V5 (Okan seçimi 2 Eyl 2026: "mobilde iyi olmuş, elleme, v5 kalsın").
+     Taslak kaynağı: dal claude/quizzical-nobel-b53ffb @01a9fe22 taslak/anasayfa-v5.html.
+     Rozetler ŞEFFAF, header'ın lacivert zemini üstünde, beyaz bant YOK. Ödeme satırı EN ÜSTTE
+     (mobilde marka satırının üstünde; masaüstünde sağ-üst köşede absolute → header yüksekliği
+     ARTMAZ). Kargo kümesi (Yurtiçi + hepsijet logoları + ücretsiz kargo metni) AYRI ve altta.
+     Varlıklar R2'de (media.pruvo3d.com/rozet/<ad>-<sha8>, içerik-hash anahtar, üzerine
+     YAZILMAZ) — data-URI DEĞİL. Kargo metni #hgKargoMetinYazi JS ile secenekler.js eşiğinden
+     TÜRER (elle sayı YOK). Taslak ölçümü @375: header 180,8px (önce 207,5), taşma 0, küme arası
+     64px; @1366: 163,5px değişmedi, küme arası 26px. ---------- */
+  .hg-item{
+    display:inline-flex;align-items:center;gap:8px;flex:none;
+    font-size:12.5px;font-weight:600;color:#dfe7f2;
+  }
+  .hg-item img{display:block}
+  /* min-height: metin JS ile dolar; satır yüksekliği ÖNCEDEN ayrılır → yerleşim kayması (CLS) 0 */
+  .hg-kargo-metin{color:#9fe3b5;font-weight:800;min-height:16px}
+  .hg-iyzico{height:20px;width:auto}
+  .hg-visa{height:12px;width:auto}
+  .hg-mc{height:20px;width:auto}
+  .hg-yk{height:15px;width:auto}
+  .hg-hj{height:13px;width:auto}
+  @media(max-width:760px){
+    .hg-item{font-size:11px;gap:6px}
+    .hg-iyzico{height:16px}
+    .hg-visa{height:10px}
+    .hg-mc{height:16px}
+    .hg-yk{height:13px}
+    .hg-hj{height:11px}
+  }
+
+  /* ---------- MOBİL-ÖNCELİK: header dikey ritmi (V5 ② bloğu) ----------
+     Ölçülen taban (375px): header ~208px yer yiyordu; marka satırı + çekmece düğmesi TEK
+     satıra alınır, boşluklar sıkılır. Dokunma hedefi ≥44px korunur; arama 16px kalır (iOS
+     zoom tetiklenmez). Taslaktaki `main{padding}` satırı kapsam kilidi (yalnız header) gereği
+     ALINMADI. */
+  @media (max-width:760px){
+    header{padding:12px 14px 0}
+    .header-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    /* marka bloğu DARALABİLİR, düğme daralamaz — geniş font metriğinde bile düğme ekran
+       dışına itilmez (taslakta headless ölçümünde yakalandı) */
+    .header-top > div:first-child{min-width:0;flex:1 1 auto;overflow:hidden}
+    .brand{font-size:26px;letter-spacing:2px}
+    .brand-sub{font-size:10px;letter-spacing:1.4px;margin-top:3px;white-space:nowrap}
+    .mobile-nav-toggles{margin-top:0;flex:0 0 auto}
+    .drawer-toggle{padding:10px 14px;font-size:13px;min-height:44px}
+    .search-wrap{margin:12px auto 0}
+  }
+
+  /* ---------- V5: ödeme satırı EN ÜSTTE · kargo kümesi AYRI altta · rozet mobil 20px /
+     masaüstü 24px sınıfı. Bu blok mobil bloğundan SONRA durur (header padding'ini ezer). ---------- */
+  .hg5-odeme{
+    display:flex;align-items:center;justify-content:flex-end;gap:12px;
+    margin:0 0 10px;
+  }
+  .hg5-odeme img{display:block}
+  .hg5-odeme .hg-iyzico{height:24px}
+  .hg5-odeme .hg-visa{height:15px}
+  .hg5-odeme .hg-mc{height:24px}
+  .hg5-kargo{
+    display:flex;flex-direction:column;align-items:center;gap:5px;margin-top:14px;
+  }
+  .hg5-kargo .hg-kargo-logolar{display:inline-flex;align-items:center;gap:12px}
+  .hg5-kargo .hg-kargo-metin{font-size:11.5px}
+  @media(min-width:1024px){
+    /* masaüstü: ödeme sağ-ÜST köşede marka satırı hizasında; kargo kümesi tek satır,
+       26px aşağıda; ikisi de absolute → header yüksekliği ARTMAZ */
+    .header-inner{position:relative}
+    .hg5-odeme{position:absolute;top:0;right:0;margin:0}
+    .hg5-kargo{
+      position:absolute;top:50px;right:0;margin:0;
+      flex-direction:row;align-items:center;gap:14px;
+    }
+    .hg5-kargo .hg-kargo-metin{font-size:12px}
+  }
+  @media(max-width:760px){
+    header{padding-top:8px}
+    .hg5-odeme{gap:10px;margin:0 0 8px}
+    .hg5-odeme .hg-iyzico{height:20px}
+    .hg5-odeme .hg-visa{height:13px}
+    .hg5-odeme .hg-mc{height:20px}
+    .hg5-kargo{gap:4px;margin-top:12px}
+    .hg5-kargo .hg-kargo-metin{font-size:10.5px}
+  }
 </style>
 </head>
 <body>
@@ -967,15 +1051,40 @@
 
 <header>
   <div class="header-inner">
+    <!-- GÜVEN BLOĞU V5 (Okan 2 Eyl): ÖDEME satırı header'ın EN ÜSTÜNDE — mobilde marka satırının
+         üstünde, masaüstünde sağ-üst köşede (CSS .hg5-odeme). Resmî rozetler R2'de
+         (rozet/<ad>-<sha8>): içerik-hash anahtar, ÜZERİNE YAZILMAZ; yeni sürüm = yeni anahtar.
+         width/height = doğal en-boy oranı (yüklenmeden önce yer ayırır, CLS 0); yüksekliği CSS
+         belirler. fetchpriority=low: LCP banner'ın (fetchpriority=high, tek) önüne GEÇMEZ. -->
+    <div class="hg5-odeme" role="note" aria-label="Güvenli ödeme: iyzico, Visa, Mastercard">
+      <img class="hg-iyzico" src="https://media.pruvo3d.com/rozet/iyzico-pay-tr-d484f012.png" width="69" height="24" alt="iyzico ile öde" decoding="async" fetchpriority="low">
+      <img class="hg-visa" src="https://media.pruvo3d.com/rozet/visa-beyaz-9038ca36.svg" width="46" height="15" alt="Visa" decoding="async" fetchpriority="low">
+      <img class="hg-mc" src="https://media.pruvo3d.com/rozet/mastercard-79534478.svg" width="31" height="24" alt="Mastercard" decoding="async" fetchpriority="low">
+    </div>
     <div class="header-top">
       <div>
         <div class="brand">PRUVO</div>
         <div class="brand-sub">Endüstriyel Parça Üretimi</div>
       </div>
+      <!-- çekmece düğmesi marka satırında (mobilde ~46px dikey kazanç); masaüstünde CSS gizler -->
+      <div class="mobile-nav-toggles" id="mobileNavToggles">
+        <button class="drawer-toggle" id="catDrawerToggle" aria-label="Kategorileri aç">&#9776; Kategoriler</button>
+      </div>
     </div>
 
-    <div class="mobile-nav-toggles" id="mobileNavToggles">
-      <button class="drawer-toggle" id="catDrawerToggle" aria-label="Kategorileri aç">&#9776; Kategoriler</button>
+    <!-- V5 KARGO kümesi: logolar + ücretsiz kargo metni, ödeme satırından belirgin dikey
+         mesafeyle AYRI (mobilde arada marka satırı var). #hgKargoMetinYazi BOŞ gelir; aşağıdaki
+         inline script secenekler.js KARGO_BEDAVA_ESIK_KURUS'tan (>= eşik, TEK KAYNAK) doldurur —
+         burada elle sayı YAZILMAZ. Troy rozeti YOK (resmî paket yok). -->
+    <div class="hg5-kargo" role="note" aria-label="Kargo bilgisi">
+      <span class="hg-kargo-logolar">
+        <img class="hg-yk" src="https://media.pruvo3d.com/rozet/yurtici-beyaz-6b55d1de.svg" width="61" height="15" alt="Yurtiçi Kargo" decoding="async" fetchpriority="low">
+        <img class="hg-hj" src="https://media.pruvo3d.com/rozet/hepsijet-beyaz-f73f09bd.svg" width="62" height="13" alt="hepsijet" decoding="async" fetchpriority="low">
+      </span>
+      <span class="hg-item hg-kargo-metin" id="hgKargoMetin">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="#9fe3b5" aria-hidden="true"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9 1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+        <span id="hgKargoMetinYazi"></span>
+      </span>
     </div>
 
     <div class="search-wrap">
@@ -1367,6 +1476,21 @@
      yüzey aynı sayıyı gösterir. Dosya inmezse (build'siz/404) kural güvenli varsayılana
      düşer ve kart bugünkü metni basar — fail-closed, sessiz sapma yok. -->
 <script src="/filament-veri.js"></script>
+
+<!-- V5 header kargo rozeti METNİ: eşik secenekler.js KARGO_BEDAVA_ESIK_KURUS (>= eşik, Worker'ın
+     tahsil ettiği kuralla AYNI sabit) — TEK KAYNAK, burada elle sayı YOK. Tam TL'de ondalık
+     basılmaz ("2.500 TL"), kuruşlu eşikte iki hane. secenekler.js inmezse metin BOŞ kalır
+     (logolar durur), uydurma tutar basılmaz. -->
+<script>
+(function(){
+  var yazi = document.getElementById("hgKargoMetinYazi");
+  var S = window.PRUVO_SECENEK;
+  if(!yazi || !S || !(S.KARGO_BEDAVA_ESIK_KURUS > 0)) return;
+  var k = S.KARGO_BEDAVA_ESIK_KURUS, hane = (k % 100) ? 2 : 0;
+  yazi.textContent = (k / 100).toLocaleString("tr-TR",
+    { minimumFractionDigits: hane, maximumFractionDigits: hane }) + " TL üzeri ücretsiz kargo";
+})();
+</script>
 
 <script>
 (function(){
