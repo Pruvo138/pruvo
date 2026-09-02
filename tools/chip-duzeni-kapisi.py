@@ -45,9 +45,16 @@ def EV_BILINEN_YUKLE():
         raise RuntimeError("sahiplik-kapisi.py yüklenemedi")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    if not hasattr(mod, "EV_BILINEN"):
-        raise RuntimeError("EV_BILINEN yok")
-    return set(mod.EV_BILINEN)
+    # 🔴 K361: `sahiplik-kapisi` artik ikinci tablo TUTMAZ — kümeyi tek
+    # kaynaktan (`~/.claude/cron/evler.json`) TÜRETİR ve okunamazsa
+    # `EV_BILINEN` **None**'dur (boş küme DEĞİL). Boş küme "hiçbir ev
+    # bilinmiyor" demeye gelir ve her chip adını sessizce kırmızı yakardı;
+    # burada fail-closed OLCULEMEDI'ye çeviriyoruz (çağıran yakalıyor).
+    bilinen = getattr(mod, "EV_BILINEN", None)
+    if not bilinen:
+        raise RuntimeError("EV_BILINEN yok/boş: %s"
+                           % (getattr(mod, "EV_BILINEN_HATA", None) or "-"))
+    return set(bilinen)
 
 
 def _acik_bolge(defter):

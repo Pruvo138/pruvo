@@ -1,0 +1,15 @@
+{
+  "_sema": "evler-tohum/1",
+  "_not": "🔴 TOHUM — RUNTIME FALLBACK DEGIL. Bu dosya YALNIZ `python3 tools/parti-borc-kapisi.py --ev-haritasi-kur` tarafindan okunur ve `~/.claude/cron/evler.json` YOKSA onu URETIR. Calisma zamaninda HICBIR kod buraya DUSMEZ: config yok/bozuk/bos ise hukum RED'dir (T4-OLCULEMEDI, sifir-disi rc). Sessiz dusus, degisikligi INERT birakip kapiyi yesil yakan siniftir ([[yeni-hal-cozucunun-varsayilan-kovasina-duser]]) — bu ayrimi `ev-haritasi-kapisi-test.py::ME4` mutanti OLCER.",
+  "_not_ezmez": "`--ev-haritasi-kur` MEVCUT dosyayi ASLA EZMEZ (`ZATEN VAR` deyip rc=0 doner). Ezmek, canli tabloya sonradan eklenen evleri (or. FaR) yok ederdi.",
+  "_not_kapsam": "Bu tohum CANLI tablonun EN AZ kadar ev tasimalidir; eksigi `ev-haritasi-kapisi-test.py::F8 TOHUM_KAPSAM` kolunda YEREL DUZLEMDE olculur. Yeni ev once `~/.claude/cron/evler.json`'a yazilir; F8 kirmizi yanarsa tohum da tazelenir. Gerekce metinleri `~/.claude/cron/evler-NOT.md`'dedir.",
+
+  "KraL":   "/Users/okan/.claude/projects/-Users-okan-dev-pruvo",
+  "MaCiT":  "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-hasat",
+  "ArTisT": "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-pazarlama",
+  "HocA":   "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-bot",
+  "TeKiN":  "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-jenerator",
+  "BaBa":   "/Users/okan/.claude/projects/-Users-okan-dev-pruvo-advisor",
+  "ORTAK":  "/Users/okan/.claude/projects/-Users-okan-dev-pruvo",
+  "FaR":    "/Users/okan/.claude/projects/-Users-okan-dev-faralya"
+}

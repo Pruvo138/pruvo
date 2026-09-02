@@ -122,7 +122,12 @@ def ev_koku(ev, koku_root=None):
         return os.path.join(koku_root, ev, "memory")
     if T4 is None:
         return None
-    dizin = T4.EV_DIZIN.get(ev)
+    # 🔴 K361: EV_DIZIN repo DISINDAN yuklenir; okunamazsa None'dir (bos dict
+    # DEGIL) -> hicbir ev cozulmez (fail-closed).
+    harita = getattr(T4, "EV_DIZIN", None)
+    if not harita:
+        return None
+    dizin = harita.get(ev)
     return os.path.join(dizin, "memory") if dizin else None
 
 
@@ -150,8 +155,24 @@ def izlenen_evler():
     """Devir taramasina giren evler: TAMIRCI HARIC bilinen evler."""
     if T4 is None:
         return []
-    return [e for e in sorted(T4.EV_BILINEN)
+    # 🔴 K361: EV_BILINEN okunamazsa None (bos kume DEGIL). Bos liste "taranacak
+    # ev yok" demeye gelir; cagiran taraf bunu OLCULEMEDI kovasinda gorur
+    # (`izlenen_evler_hatasi()`), sessiz YESIL uretilmez.
+    bilinen = getattr(T4, "EV_BILINEN", None)
+    if not bilinen:
+        return []
+    return [e for e in sorted(bilinen)
             if e not in (TAMIRCI, "BaBa", "ORTAK")]
+
+
+def izlenen_evler_hatasi():
+    """Ev listesi OLCULEMEDIYSE sebep metni, aksi halde None (K361)."""
+    if T4 is None:
+        return "T4 yuklenemedi"
+    if not getattr(T4, "EV_BILINEN", None):
+        return ("EV_HARITASI OLCULEMEDI: %s"
+                % (getattr(T4, "EV_HARITASI_HATA", None) or "bos tablo"))
+    return None
 
 
 # ------------------------------------------------------------------------------
@@ -211,6 +232,12 @@ def siniflandir(simdi, *, koku_root=None, mutant=None):
     out = {"kalemler": [], "durum": {}, "hata": None}
     if T4 is None or T5 is None:
         out["hata"] = "%s T4/T5 yuklenemedi" % N2C_OLCULEMEDI_JETON
+        return out
+    # 🔴 K361 FAIL-CLOSED: ev listesi okunamiyorsa tarama BOS DEGIL, OLCULEMEDI.
+    # Bos liste "hicbir evde durgun kalem yok" demeye gelirdi (fail-open).
+    _harita_hatasi = izlenen_evler_hatasi()
+    if _harita_hatasi:
+        out["hata"] = "%s %s" % (N2C_OLCULEMEDI_JETON, _harita_hatasi)
         return out
 
     dyol = durum_yolu(koku_root)
@@ -505,6 +532,13 @@ def kendini_test(gecici_kok):
         print("T4/T5 YUKLENEMEDI — olcum ANLAMSIZ.")
         print("MUTANT=0/5 HEDEF_KOL_ATFI=0/5 KONTROL=0/4")
         return 1
+
+    # 🔴 K361 — BATARYA HERMETIKTIR: ev listesi artik repo DISINDAN
+    # (`~/.claude/cron/evler.json`) yuklenir ve KOSUCUDA (CI) o dosya YOKTUR.
+    # Fikstur haritasi izolasyon kokune yazilir; defter yollari zaten
+    # `koku_root` uzerinden cozuldugu icin YALNIZ EV ADLARI gerekir.
+    if hasattr(T4, "fikstur_haritasi_kur"):
+        T4.fikstur_haritasi_kur(gecici_kok, T4.FIKSTUR_EVLERI)
 
     def senaryo(yas_dk, mutant=None, uygula=False, alt="s"):
         kok = os.path.join(gecici_kok, "%s-%s-%s" % (alt, yas_dk, mutant))
