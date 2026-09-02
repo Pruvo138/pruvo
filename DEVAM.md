@@ -27,8 +27,13 @@ ci-kapsam DAL AGACINDA YESIL · D1 SAYI+SAYAC+SEQ+SEMA yesil (32790). **CANLI ET
 blok 24 → 11**, `kapanmis_basliyorum=2`, `CIFT_KORUMASI=0`, kutu 244/250. Once ELLE tek seferlik
 rotasyon gerekmisti (7 bayat 31 Agu ACILIS blogu, kutu −5440 B / arsiv +5438 B, 7/7 birebir).
 Cip agaci+dal temizlendi (52 MB). **KOSAN CIP:** V5 ana sayfa canliya alma (`jovial-mirzakhani`;
-benim mukerrer onerim GERI CEKILDI). **BEKLIYOR:** 🟠 15:47Z `schedule` → A3 (`nobet.yml`de
-`cron "47 3,15"` main'de DOGRULANDI, ilk atesleme henuz olmadi) · 🟠 parti cron 20:33 yerel.
+benim mukerrer onerim GERI CEKILDI).
+🔴 **A3 BEKLENTISI TUTMADI — 15:47Z KOSUMU HIC ATESLEMEDI (16:2xZ'de olculdu, kapandi sanilmasin).**
+Iki bagimsiz eksen: `cron-nabiz-kapisi` A3(nobet.yml) hala KIRMIZI (`event=schedule` kosum sayisi
+SIFIR, is akisi 647 sa kayitli+aktif) · `gh run list --workflow=nobet.yml` son 8 kosumun 8'i de
+`event=push`. `cron "47 3,15"` main'de DURUYOR (dogrulandi) — yani tanim degil TESLIM eksik.
+Siradaki pencere **03:47Z**; o da bos gecerse sebep GitHub tarafinda degil KURULUMDA aranir.
+🟠 parti cron 20:33 yerel. 🟠 MaCiT sahipli 1 CI kirmizisi (`cbfc3721` failure) — onun duzlemi.
 ✅ **V5 GUVEN BLOGU CANLIDA — merge `2d2510bf`** (cip `jovial-mirzakhani`; defter kalemini mimara
 birakti). MIMAR BAGIMSIZ TEYIDI (kanonik URL, cache-bust'siz): ana sayfa 200 · **5 rozet
 varliginin 5'i R2'den GET 200** (icerik-hash'li ad) · `hgKargoMetinYazi`+`KARGO_BEDAVA_ESIK_KURUS`
@@ -53,16 +58,7 @@ disarida kalmasi dosyada GEREKCELI. Ayrinti arsivde.)
 🔧 **ACIK:** T1a — worker deploy = OKAN kapisi; "deploy edildi (`b26cedd8`)" iddiasi CURUTULDU.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🟠 **K359 (cip `task_cd35b252`, 2 Eyl; bayat `task_c6f5192b` geri cekildi) — 🔴 TARIF YENIDEN OLCULDU.** Bana
-  "`kutu-arsivle.py` `✅…KAPANDI` bloklarinin KENDISINI acik sayiyor, 7 blok" diye geldi. Kutuyu blok
-  blok olctum: **17 blok GERCEKTEN acik** (cip kapanis HIC yazmamis — arac HAKLI) · **1 blok sahte**
-  (kapanis bloginin basliginda `basliyorum` yalniz TIRNAK ICINDE proza) · ve `macit-parti-surucusu`
-  adinin **9 blogu**, kapanislari kutuda DURDUGU HALDE kilitli (arac `✅ … **KAPANDI (delta=0…)**`
-  bicimini kapanis SAYMIYOR). **Kutunun 309 satira cikmasinin bas sebebi ARAC DEGIL, kapanis yazmayan
-  17 cip.** Taban: `--kuru` `ACIK_BASLIYORUM=21 kilitledi=21`, test **40 vaka/303 iddia/0 kirmizi**.
-  Kabul: test >303 + 0 kirmizi · sahte blok duser · `macit-parti-surucusu` listeden CIKAR ·
-  kapanisi OLMAYAN adlar LISTEDE KALIR (hepsi duserse KIRMIZI) · 4 negatif fikstur · mutant >=4.
-  🔴 `kilitledi=0` HEDEF DEGIL — 17 cipi serbest birakan onarim KUSURDUR.
+- ✅ **K359 KAPANDI** (merge `9e6d32b7`, 2 Eyl) — tam metin `DEVAM-ARSIV.md`'de; canli etki kilitli blok 24→11.
 - 🔴 **26 AGU KALEMLERI — TAM METIN KAYNAK-DOGRUSUNDA (`acik-kalemler.md`) + KUTUDA; burada yalniz
   ISARETCI** (uzun hali `DEVAM-ARSIV.md` 26 Agu ROTASYON blogu 1/5): K306 MERGE `df3b0d48` · K308 ACIK ·
   K309 DILIM-1 MERGE `25b38a82` (DILIM-2 MIMARDA) · K310 ACIK · K212 MERGE `97370cc2` KAPANDI · K222
