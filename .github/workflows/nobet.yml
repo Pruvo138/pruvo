@@ -30,6 +30,25 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # 🔴 K373 (2 Eyl 2026) — SERIT B'nin TEK GARANTILI HUKUM YOLU.
+  # OLCULDU (`gh api`, son 400 kosum): **0 success** · 238 cancelled · 160 failure
+  # · 1 pending · 1 in_progress; event kirilimi 392 push · 8 dispatch · 0 schedule.
+  # 19 Agu'dan beri boyle. Mekanizma bir "kirmizi adim" DEGIL: tur suresi (duvar
+  # saati ort. 93,1 dk · min 65,3 · max 131,9, n=8) push araligindan UZUN ve
+  # `concurrency` grubu push icin TEK oldugundan BEKLEYEN kosum her yeni push'la
+  # kuyruktan DUSUYOR. Sonuc: seritteki HER nobetci fiilen KOR — kirmizilari
+  # hicbir kosum rapor edemiyor.
+  # `schedule` tetigi bunu asagidaki KENDI esszamanlilik koluyla birlikte cozer:
+  # zamanlanmis kosum push kuyruguna GIRMEZ, ezilmez, HEAD garantili hukum alir.
+  # Kadans 12 saatte bir (gunde 2 kosum) — GUNDE 1 KEZ YAZILAMAZ: cron-nabiz
+  # kapisi A3 ekseninin esik TAVANI 20 saattir (`ESIK_TAVAN_SAAT`), 24 saatlik
+  # nominal aralik MUKEMMEL teslimde bile o tavani asar ve nobetciyi kronik
+  # kirmiziya yakardi. Dakika 47: yogun ceyrek-saat sinirlarindan (0/15/30/45)
+  # ve depodaki oteki cron dakikalarindan UZAK (A1 bicim hukmu).
+  # Kapi: tools/is-akisi-kapisi.py :: G13 (tetik) + G12 (kol) — mutantlar
+  # K373-M1/M2/M3, her biri oldurdugu ekseni ADIYLA gosterir.
+  schedule:
+    - cron: "47 3,15 * * *"
 
 permissions:
   contents: read
@@ -40,8 +59,17 @@ permissions:
 # `conclusion` `cancelled` olur ve nobet HIC rapor etmez — bu, cozulen kusurun
 # TERSI (gorunurluk kaybi). Grup `pages` DEGIL: yayin kosumuyla ayni kuyruga
 # girseydi nobetler yayini geciktirirdi ([[kapi-birikimi-yayin-gecikmesi]]).
+# 🔴 UC KOL (K373, 2 Eyl 2026 — sozlesme IKI koldan UC kola cikti):
+#   dispatch -> `github.run_id`  : her elle tetikleme KENDI grubunu alir (SHA secilebilir)
+#   schedule -> `'schedule'`     : zamanlanmis tur KENDI SABIT kuyrugunda; push
+#                                  kuyruguna DUSMEZ, bir sonraki push'la EZILMEZ
+#   push     -> `'push'`         : TEK SABIT kuyruk — maliyet korumasi AYNEN DURUYOR
+# Push kolunu bolmek (her push kendi grubu) de kuyruk ezilmesini cozerdi ama gunde
+# onlarca ~93 dakikalik kosum demekti; G9 tam bunu yasaklar ve K373 o korumayi
+# KALDIRMADI. Kollarin AYNI olmasi (schedule == push) tetigi eklemis GORUNUP hicbir
+# sey cozmezdi — G12 o hali KIRMIZI yakar.
 concurrency:
-  group: nobet-serit-b-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'push' }}
+  group: nobet-serit-b-${{ github.event_name == 'workflow_dispatch' && github.run_id || github.event_name == 'schedule' && 'schedule' || 'push' }}
   cancel-in-progress: false
 
 jobs:

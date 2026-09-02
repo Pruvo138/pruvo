@@ -1950,7 +1950,15 @@ TABLO_TABANLARI = (
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
-    ("G_MUTANTLAR", 17), ("G_SIMULASYON", 6),
+    # 2 Eyl 2026 (K373): 17 -> 21. Esszamanlilik sozlesmesi IKI koldan UC kola cikti
+    # (push SABIT · dispatch `run_id` · schedule KENDI grubu). Yeni kol KENDI iddiasini
+    # getirmeden eklenemezdi, o yuzden 4 giris: K373-M1 (schedule kolu push koluyla AYNI
+    # -> yalniz G12), K373-M2 (`on.schedule` tetigi silindi -> yalniz G13), K373-M3
+    # (tetik var ama cron BOS -> yalniz G13) ve 1 ESDEGER KONTROL (schedule kosulunda
+    # bosluk cogaltildi -> HICBIR eksen yanmamali; G12'nin naif dizge esitligi
+    # OLMADIGINI olcer). Eski G9/G10/G11 mutantlari DURUYOR ve hâlâ kendi eksenlerini
+    # yakiyor — uc kola cikarma maliyet korumasini KALDIRMADI.
+    ("G_MUTANTLAR", 21), ("G_SIMULASYON", 6),
 )
 
 TABLO_TANI = (
@@ -2728,38 +2736,65 @@ G1_TANI = (
 
 
 def _grup_parcala(grup):
-    """(kosul, dispatch_kolu, push_kolu, tani) — K183 ifade ayristiricisi.
+    """(d_kosul, d_kolu, s_kosul, s_kolu, p_kolu, tani) — K373 UC KOL ayristiricisi.
 
-    `concurrency.group` icindeki `${{ ... }}` ifadesini uc parcaya ayirir:
-        kosul         = "&&" oncesi
-        dispatch_kolu = "&&" ile "||" arası
-        push_kolu     = "||" sonrasi
+    `concurrency.group` icindeki `${{ ... }}` ifadesini UC kola ayirir:
+        `<d_kosul> && <d_kolu> || <s_kosul> && <s_kolu> || <p_kolu>`
+    GitHub ifade semantigi soldan saga deger dondurur (JS gibi):
+        d_kosul DOGRU  -> d_kolu   (dispatch: `github.run_id`, her kosum KENDI grubu)
+        s_kosul DOGRU  -> s_kolu   (schedule: KENDI sabit grubu, push kuyruguna DUSMEZ)
+        aksi halde     -> p_kolu   (push: TEK SABIT kuyruk; maliyet korumasi)
+
+    🔴 NIYE IKI KOL YETMEDI (K373, 2 Eyl 2026 — OLCULDU): `push` kolu TEK grup
+    oldugu icin bekleyen bir SERIT B kosumu her yeni push'ta kuyruktan DUSUYOR.
+    `gh api` ile son 400 kosum: **0 success** · 238 cancelled · 160 failure
+    (event: 392 push · 8 dispatch · 0 schedule); tur suresi ort. 93,1 dk
+    (min 65,3 · max 131,9) push araligindan UZUN. Yani seritteki HER nobetci
+    fiilen KOR: kirmizilari hicbir kosum rapor edemiyor. Cozum `schedule`
+    tetigi + o tetige AYRI bir esszamanlilik kolu; push kolu (G9 maliyet
+    korumasi) AYNEN korunur.
 
     K183 ONCESI DIZGE AVI (`'push' in grup` gibi) yapisal olarak yalan
     soyleyebilirdi: `github.run_id` yoksa ve push kolu zaten `'push'` ise
     "PUSH GRUBU BENZERSIZLESTIRILMIS" derdi ama gercek BOZULMA dispatch
-    kolunun run_id'siz olmasiydi. Bu parser uc parcayi ayri uretir; her
+    kolunun run_id'siz olmasiydi. Bu parser bes parcayi ayri uretir; her
     kol YALNIZ kendi ozelligini olcer, otekilerin arkasina saklanamaz.
 
-    AYRISTIRMA BASARISIZSA (uc isaretten biri yok ya da `${{ ... }}` yok)
-    tani dolu doner — uc kol da OLCULEMEDI (fail-closed KIRMIZI) vermeli,
-    biri bile yesil kalamaz.
+    AYRISTIRMA BASARISIZSA tani dolu doner — G9/G10/G11/G12 DORDU DE
+    OLCULEMEDI (fail-closed KIRMIZI) vermeli, biri bile yesil kalamaz.
     """
+    bos = (None, None, None, None, None)
     if not isinstance(grup, str):
-        return None, None, None, "concurrency.group STRING degil"
+        return bos + ("concurrency.group STRING degil",)
     s = grup.strip()
     if "${{" not in s or "}}" not in s:
-        return None, None, None, "concurrency.group icinde `${{ ... }}` yok"
+        return bos + ("concurrency.group icinde `${{ ... }}` yok",)
     ic = s.split("${{", 1)[1].split("}}", 1)[0].strip()
-    if "&&" not in ic:
-        return None, None, None, "kosul/dispatch ayraci `&&` yok"
-    if "||" not in ic:
-        return None, None, None, "dispatch/push ayraci `||` yok"
-    kosul, sonrasi = ic.split("&&", 1)
-    if "||" not in sonrasi:
-        return None, None, None, "dispatch/push ayraci `||` kosul sonrasinda yok"
-    dkolu, pkolu = sonrasi.split("||", 1)
-    return kosul.strip(), dkolu.strip(), pkolu.strip(), None
+    parcalar = [p.strip() for p in ic.split("||")]
+    if len(parcalar) != 3:
+        return bos + (
+            "esszamanlilik ifadesi UC KOLLU degil: `||` ile ayrilmis %d parca "
+            "bulundu, 3 bekleniyor (`<dispatch> || <schedule> || <push>`). "
+            "K373'ten once IKI kolluydu; schedule kolu eklenmeden HEAD garantili "
+            "hukum ALMAZ." % len(parcalar),)
+    kosullular, p_kolu = parcalar[:2], parcalar[2]
+    if "&&" in p_kolu:
+        return bos + ("push kolu (`||` sonrasi son parca) `&&` tasiyor: %r — son "
+                      "parca KOSULSUZ geri dusme olmali" % p_kolu,)
+    cozulen = []
+    for etiket, parca in (("dispatch", kosullular[0]), ("schedule", kosullular[1])):
+        if "&&" not in parca:
+            return bos + ("%s kolunda `&&` yok: %r" % (etiket, parca),)
+        kosul, kol = parca.split("&&", 1)
+        cozulen.extend((kosul.strip(), kol.strip()))
+    return (cozulen[0], cozulen[1], cozulen[2], cozulen[3], p_kolu, None)
+
+
+def _sabit_mi(ifade):
+    """Kol tirnakli bir SABIT mi (ve `github.` baglami TASIMIYOR mu)."""
+    return (isinstance(ifade, str) and len(ifade) >= 2
+            and ifade.startswith("'") and ifade.endswith("'")
+            and "github." not in ifade)
 
 
 def yayin_sinyali_kontrol(dizin, nobet_dosyasi=None):
@@ -2896,20 +2931,21 @@ def yayin_sinyali_kontrol(dizin, nobet_dosyasi=None):
                 "gorunurluk kaybi. (`false` ya da hic yazmamak dogrudur.)"
                 % nobet_dosyasi)
 
-    # ---- G9 / G10 / G11: K183 eszamanlilik kol ayrimi (IFADE AYRISTIRMASI) ---
-    # Tek bir parser uc parcaya ayirir; uc kol da YALNIZ kendi ozelligini olcer.
+    # ---- G9 / G10 / G11 / G12: K183+K373 eszamanlilik kol ayrimi -------------
+    # Tek bir parser bes parcaya ayirir; her kol YALNIZ kendi ozelligini olcer.
     # Eski "dizge avi" yapisal olarak yalan soyleyebilirdi (bkz. _grup_parcala).
-    # Ayristirma basarisizsa uc kol da OLCULEMEDI (fail-closed KIRMIZI) — biri
+    # Ayristirma basarisizsa DORT kol da OLCULEMEDI (fail-closed KIRMIZI) — biri
     # bile yesil kalamaz.
     _grup_raw = ""
-    _grup_kosul = _grup_dkolu = _grup_pkolu = None
+    _grup_kosul = _grup_dkolu = _grup_skosul = _grup_skolu = _grup_pkolu = None
     _grup_tani = None
     if isinstance(n_govde, dict):
         _ham_conc = n_govde.get("concurrency")
         if isinstance(_ham_conc, dict):
             _g = _ham_conc.get("group")
             _grup_raw = str(_g).strip() if _g is not None else ""
-        _grup_kosul, _grup_dkolu, _grup_pkolu, _grup_tani = _grup_parcala(_grup_raw)
+        (_grup_kosul, _grup_dkolu, _grup_skosul, _grup_skolu, _grup_pkolu,
+         _grup_tani) = _grup_parcala(_grup_raw)
 
     # ---- G9: push kolu SABIT, github. ICERMEMELI -----------------------------
     iddia += 1
@@ -2917,14 +2953,16 @@ def yayin_sinyali_kontrol(dizin, nobet_dosyasi=None):
         hatalar.append("G9 OLCULEMEDI (fail-closed KIRMIZI): %s" % n_tani)
     elif _grup_tani:
         hatalar.append("G9 OLCULEMEDI (fail-closed KIRMIZI): %s" % _grup_tani)
-    elif not (_grup_pkolu.startswith("'") and _grup_pkolu.endswith("'") and
-              "github." not in _grup_pkolu):
+    elif not _sabit_mi(_grup_pkolu):
         hatalar.append(
             "G9 PUSH KOLU SABIT DEGIL: %s :: push kolu %r — tirnakli bir "
             "SABIT olmali ve `github.` ICERMEMELI.\n"
             "   -> Push'a ozel bir degisken verildiyse her push kendi grubunu "
-            "alir, bekleyen kosumlar ezilmez AMA ~85 dakikalik kosum maliyeti "
-            "patlar; push seridi TEK kalmalidir."
+            "alir, bekleyen kosumlar ezilmez AMA ~93 dakikalik kosum maliyeti "
+            "patlar; push seridi TEK kalmalidir.\n"
+            "   🔴 K373 BU KORUMAYI KALDIRMADI: schedule kolu eklendi, push kolu "
+            "AYNEN SABIT kaldi — HEAD'in garantili hukmu `schedule` kolundan gelir, "
+            "push kuyrugunu bolerek DEGIL."
             % (nobet_dosyasi, _grup_pkolu))
 
     # ---- G10: dispatch kolu github.run_id ICERMELI ----------------------------
@@ -2960,6 +2998,72 @@ def yayin_sinyali_kontrol(dizin, nobet_dosyasi=None):
                 "G11 KOLLAR AYNI: %s :: dispatch_kolu %r == push_kolu %r.\n"
                 "   -> Iki kol ayniysa dispatch push kuyruguna yazilir ve SHA "
                 "secimi bozulur." % (nobet_dosyasi, _grup_dkolu, _grup_pkolu))
+
+    # ---- G12: schedule kolu VAR, SABIT ve push kuyruguna DUSMUYOR (K373) -----
+    # 🔴 YENI KOLUN KENDI POZITIF IDDIASI. G9/G10/G11 bu ekseni SOYLEYEMEZ: uc kol
+    # da schedule kolu YOKKEN de yesil yanabiliyordu (2 kolluykenki hal). Olculen
+    # zarar: 400 kosumda 0 success — cron tetigi olmadan HEAD hic hukum ALMIYOR.
+    iddia += 1
+    if n_govde is None:
+        hatalar.append("G12 OLCULEMEDI (fail-closed KIRMIZI): %s" % n_tani)
+    elif _grup_tani:
+        hatalar.append("G12 OLCULEMEDI (fail-closed KIRMIZI): %s" % _grup_tani)
+    else:
+        _sn = " ".join(_grup_skosul.split())
+        if _sn != "github.event_name == 'schedule'":
+            hatalar.append(
+                "G12 SCHEDULE KOSULU YANLIS: %s :: kosul %r — tam olarak "
+                "`github.event_name == 'schedule'` olmali (bosluk normalize "
+                "sonrasi)." % (nobet_dosyasi, _grup_skosul))
+        elif not _sabit_mi(_grup_skolu):
+            hatalar.append(
+                "G12 SCHEDULE KOLU SABIT DEGIL: %s :: schedule kolu %r — tirnakli "
+                "bir SABIT olmali ve `github.` ICERMEMELI.\n"
+                "   -> Zamanlanmis kosum her seferinde KENDI benzersiz grubunu "
+                "alirsa ust uste binen turlar birikir; garantili hukum icin TEK "
+                "sabit schedule kuyrugu yeter." % (nobet_dosyasi, _grup_skolu))
+        elif _grup_skolu == _grup_pkolu:
+            hatalar.append(
+                "G12 SCHEDULE KOLU PUSH KUYRUGUNA DUSUYOR: %s :: schedule_kolu %r "
+                "== push_kolu %r.\n"
+                "   🔴 K373'un TA KENDISI: iki kol ayniysa zamanlanmis kosum push "
+                "kuyruguna yazilir ve bir sonraki push'la kuyruktan DUSER — tetik "
+                "eklenmis gorunur ama HEAD yine hukum ALMAZ (olculdu: 400 kosum, "
+                "0 success)." % (nobet_dosyasi, _grup_skolu, _grup_pkolu))
+        elif _grup_skolu == _grup_dkolu:
+            hatalar.append(
+                "G12 SCHEDULE KOLU DISPATCH KOLUYLA AYNI: %s :: schedule_kolu %r "
+                "== dispatch_kolu %r -> iki tetik ayni kuyrukta birbirini ezer."
+                % (nobet_dosyasi, _grup_skolu, _grup_dkolu))
+
+    # ---- G13: `on.schedule` tetigi GERCEKTEN var (K373 — kolun NEGATIFI) -----
+    # 🔴 G12 kolun SEKLINI olcer, bu eksen kolun BESLENDIGINI olcer. Tetik yoksa
+    # schedule kolu OLU KODdur: ifade dogru yazilmis gorunur, `event_name` asla
+    # `schedule` olmaz ve HEAD yine garantili hukum ALMAZ. Iki eksen ayri cunku
+    # iki AYRI yolla bozulurlar (biri ifadeyi, oteki tetigi siler).
+    iddia += 1
+    if n_govde is None:
+        hatalar.append("G13 OLCULEMEDI (fail-closed KIRMIZI): %s" % n_tani)
+    elif not tetikleyici_var(n_govde, "schedule"):
+        hatalar.append(
+            "G13 ZAMANLANMIS TETIK YOK: %s `on.schedule` TASIMIYOR (alt anahtarlar: "
+            "%s).\n"
+            "   🔴 SERIT B'nin TEK garantili hukum yolu budur: tur suresi (ort. 93,1 "
+            "dk; min 65,3 · max 131,9) push araligindan UZUN oldugu icin push tetikli "
+            "kosumlar kuyrukta ezilir. OLCULDU (400 kosum): 0 success · 238 cancelled "
+            "· 160 failure · 0 schedule kosumu."
+            % (nobet_dosyasi, _on_alt_anahtarlari(n_govde)))
+    else:
+        _on_dgm, _ = _on_dugumu(n_govde)
+        _zaman = _on_dgm.get("schedule") if isinstance(_on_dgm, dict) else None
+        if not (isinstance(_zaman, list) and _zaman
+                and all(isinstance(g, dict) and str(g.get("cron") or "").strip()
+                        for g in _zaman)):
+            hatalar.append(
+                "G13 ZAMANLANMIS TETIK BOS/BOZUK: %s :: `on.schedule` = %r — en az "
+                "bir `- cron: \"...\"` girisi olmali.\n"
+                "   -> Anahtar var ama cron yoksa GitHub HICBIR zamanlanmis kosum "
+                "uretmez; tetik BEYAN duzeyinde kalir." % (nobet_dosyasi, _zaman))
 
     # ---- G7: SERIT_B kapsami nobet dosyasini TASIYOR -------------------------
     iddia += 1
@@ -4731,8 +4835,10 @@ name: "Sentetik G — nobet seridi"
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "47 3,15 * * *"
 concurrency:
-  group: nobet-serit-b-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'push' }}
+  group: nobet-serit-b-${{ github.event_name == 'workflow_dispatch' && github.run_id || github.event_name == 'schedule' && 'schedule' || 'push' }}
   cancel-in-progress: false
 jobs:
   alarm:
@@ -4744,6 +4850,13 @@ jobs:
     steps:
       - run: echo ikinci
 """
+
+# K373 MUTANT CAPALARI — fikstur metnindeki kol PARCALARI. Capa tek yerde durur ki
+# ifade ileride yeniden yazildiginda mutantlar SESSIZCE bayatlamasin (bayat capa =
+# "MUTANT URETILEMEDI" degil, bu tabloda sessiz YESIL olurdu).
+G_DISPATCH_KOLU = "github.event_name == 'workflow_dispatch' && github.run_id"
+G_SCHEDULE_KOSULU = "github.event_name == 'schedule'"
+G_SCHEDULE_KOLU = "%s && 'schedule'" % G_SCHEDULE_KOSULU
 
 # (ad, yayin_metni_donusturucu, nobet_metni_donusturucu, KIRMIZI_olmali_mi, hedef_kollar)
 # K182: hedef_kollar tuple'i bu mutant'in YAKMASI BEKLENEN kol(lar)i. Beyan MIMAR
@@ -4788,19 +4901,37 @@ G_MUTANTLAR = (
      None, lambda n: n.replace("  cancel-in-progress: false\n",
                                "  cancel-in-progress: true\n"), True, ("G6",)),
     # K183-M2: dispatch kolu `'dispatch'` oluyor (run_id yok). YALNIZ G10 yakar:
-    # G9 (push hâlâ 'push') ve G11 (dispatch != push) susar.
+    # G9 (push hâlâ 'push') · G11 (dispatch != push) · G12 (schedule kolu saglam) susar.
     ("K183-M2: dispatch kolundan `run_id` kaldirildi (G10)",
-     None, lambda n: n.replace(
-         "github.event_name == 'workflow_dispatch' && github.run_id || 'push'",
-         "github.event_name == 'workflow_dispatch' && 'dispatch' || 'push'"),
-     True, ("G10",)),
+     None, lambda n: n.replace(G_DISPATCH_KOLU, "'dispatch'"), True, ("G10",)),
     # K183-M3: push kolu da `github.run_id` oluyor. G9 (push SABIT degil) + G11
     # (dispatch == push) YANAR; G10 (dispatch'te hâlâ run_id var) susar.
+    # 🔴 K373 ESKI KORUMANIN CANLILIK KANITI: uc kola cikarma G9'u KORUDU.
     ("K183-M3: push kolu da `run_id` ile benzersizlestirildi (G9/G11)",
-     None, lambda n: n.replace(
-         "github.event_name == 'workflow_dispatch' && github.run_id || 'push'",
-         "github.event_name == 'workflow_dispatch' && github.run_id || github.run_id"),
+     None, lambda n: n.replace(" || 'push' }}", " || github.run_id }}"),
      True, ("G9", "G11")),
+    # ── K373: SCHEDULE KOLU (yeni sozlesme) — POZITIF ve NEGATIF ayri mutant ──
+    # K373-M1: schedule kolu push kolu ile AYNI yapildi. Ifade hâlâ UC kollu ve
+    # kosul dogru; bozulan tek sey kolun HEDEFI. YALNIZ G12 yanar — G9 (push
+    # hâlâ 'push' sabiti) · G10 (run_id duruyor) · G11 (dispatch != push) · G13
+    # (tetik duruyor) SUSAR. Bu mutant "yeni kol kendi iddiasini tasiyor mu"
+    # sorusunu cevaplar: eski uc kol bu bozulmayi GORMUYOR.
+    ("K373-M1: schedule kolu push kolu ile AYNI yapildi -> zamanlanmis kosum push "
+     "kuyruguna duser, ilk push'ta ezilir (G12)",
+     None, lambda n: n.replace(G_SCHEDULE_KOLU, "'push'"), True, ("G12",)),
+    # K373-M2: `on.schedule` tetigi SILINDI. Grup ifadesi DOKUNULMADAN durur —
+    # yani G12 (sekil) YESIL kalir ve bozulmayi TEK BASINA G13 yakar. Iki eksen
+    # birbirinin arkasina saklanamaz.
+    ("K373-M2: `on.schedule` tetigi kaldirildi -> schedule kolu OLU KOD, HEAD "
+     "garantili hukum ALMAZ (G13, TEK BASINA)",
+     None, lambda n: n.replace('  schedule:\n    - cron: "47 3,15 * * *"\n', ""),
+     True, ("G13",)),
+    # K373-M3: tetik anahtari DURUYOR ama cron girisi bosaltildi (beyan duzeyinde
+    # tetik). G13'un IKINCI kolu; sekil ekseni (G12) yine susar.
+    ("K373-M3: `on.schedule` var ama cron girisi BOS -> GitHub hicbir zamanlanmis "
+     "kosum uretmez (G13)",
+     None, lambda n: n.replace('  schedule:\n    - cron: "47 3,15 * * *"\n',
+                               "  schedule: []\n"), True, ("G13",)),
     ("nobet is akisi SILINDI (G2/G3/G4/G6 fail-closed)",
      None, "SIL", True, ("G2", "G3", "G4", "G6")),
     # --- KONTROLLER (mimarin istedigi uc eksen) ---
@@ -4826,6 +4957,13 @@ G_MUTANTLAR = (
                          "      - run: echo ucuncu\n", False, ()),
     ("KONTROL: yayin ARDILI (`yayin`) duruyor — ardil bagsiz DEGILDIR",
      lambda y: y, None, False, ()),
+    # 🔴 K373 ESDEGER KONTROLU: schedule kosulunun ICINDEKI bosluklar cogaltildi.
+    # Anlam AYNI (GitHub ifadesi bosluga duyarsiz) -> G12 YESIL kalmali. Bu satir
+    # G12'nin naif bir dizge esitligi OLMADIGINI olcer; duserse eksen "bosluk
+    # normalize sonrasi" vaadini tutmuyor demektir.
+    ("KONTROL: schedule kosulunda BOSLUK cogaltildi (anlam AYNI, G12 normalize eder)",
+     None, lambda n: n.replace(G_SCHEDULE_KOSULU,
+                               "github.event_name   ==   'schedule'"), False, ()),
 )
 
 # (ad, kirmizi_job, beklenen_conclusion, deploy_kosmali_mi) — KOSUM SONUCU SIMULATORU
@@ -4854,12 +4992,19 @@ G_SIMULASYON = (
 # YANLIS-POZITIF RISKI OLCULDU: sayac FIKSTUR-BAGIMSIZ — 17 G mutantinin 17'si de, ayrica
 # GERCEK .github/workflows kosumu da 11 verdi. Yani tam esitlik fikstur degisiminden
 # sahte-kirmizi yakmaz; yalniz EKSEN sayisi degisince konusur (ve o zaman konusmalidir).
-G_IDDIA_TABANI = 11
+G_IDDIA_TABANI = 13
 # 18 Agu 2026 (K183b yeniden numaralama): 77bb3195 ile gelen "G8 push benzersiz /
 # G9 dispatch / G10 ayrim" uc kolunun kimlikleri G9 / G10 / G11'e tasindi. Eksen
 # SAYISI ayni (11): G1, G2, G3, G4, G5, G6, G7, G8 (needs listesi), G9, G10, G11.
-# Toplam degismedigi icin G_IDDIA_TABANI AYNI (11); yine de bu notu birakmak
-# gerekli — sayac degerinin niye 11 oldugu ileride sorulursa cevap burada.
+# 🔴 2 Eyl 2026 (K373 — 11 -> 13, BILEREK, AYNI COMMIT'te): esszamanlilik sozlesmesi
+# IKI koldan UC kola cikti ve YENI kol KENDI iki eksenini getirdi:
+#   G12 = schedule kolunun SEKLI (kosul dogru · SABIT · push/dispatch kuyruguna
+#         DUSMUYOR) — kolun POZITIF iddiasi,
+#   G13 = `on.schedule` tetiginin GERCEKTEN var + cron tasiyor olmasi — kolun
+#         BESLENDIGI eksen; tetik yoksa G12 yesilken kol OLU KODdur.
+# Iki eksen AYRI cunku iki AYRI yolla bozulurlar (biri ifadeyi, oteki tetigi siler);
+# birinin arkasina oteki saklanamaz (K373-M1 yalniz G12'yi, K373-M2/M3 yalniz G13'u
+# yakar). Eksenler: G1..G13 = 13.
 
 
 def _hedef_kol_dogrula(ad, bulgu, hedef_kollar):
@@ -4957,9 +5102,7 @@ def _g_kendini_test():
         # OLU` ile mimara bildirilir. Bu vaka `iddia` sayacini da artirir.
         iddia += 1
         yaz(G_YAYIN_FIKSTUR,
-             G_NOBET_FIKSTUR.replace(
-                 "github.event_name == 'workflow_dispatch' && github.run_id || 'push'",
-                 "github.event_name == 'workflow_dispatch' && 'dispatch' || 'push'"))
+             G_NOBET_FIKSTUR.replace(G_DISPATCH_KOLU, "'dispatch'"))
         meta_bulgu, _ = yayin_sinyali_kontrol(gecici)
         # IKI YONLU ATIF DOGRULAMASI (K183b TUR 2): K183-M2 mutasyonu uygulandi;
         # gercek kol G10 (dispatch), biz iki ayri beyanla TEK GOVDEYI
