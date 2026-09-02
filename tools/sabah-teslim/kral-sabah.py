@@ -49,6 +49,7 @@ from __future__ import annotations
 import argparse
 import ast
 import datetime as dt
+import importlib.util
 import os
 import re
 import subprocess
@@ -61,6 +62,8 @@ KALEMLER = Path("/Users/okan/.claude/projects/-Users-okan-dev-pruvo/memory/acik-
 DEVAM = Path("/Users/okan/dev/pruvo/DEVAM.md")
 REPO = Path("/Users/okan/dev/pruvo")
 SPEC_DIR = Path.home() / ".claude/cron/tamirci-spec"
+# Günlük motor raporu (cron-dir, git-dışı); tablo_metni import edilir.
+MOTOR_RAPORU_DOSYA = Path("/Users/okan/.claude/cron/gunluk-motor-raporu.py")
 
 # ---- ORTAM SÖZLEŞMESİ (① + ②) ----
 BU_BETIK = Path(os.path.abspath(__file__))
@@ -694,6 +697,30 @@ def ci_olculemedi_kalemi(kirmizi_blok: str) -> dict:
     }
 
 
+def _motor_raporu_bolumu(tarih: dt.date) -> str:
+    """`gunluk-motor-raporu.py`'dan `tablo_metni(...)` çağırır; hata olursa OLCULEMEDI.
+
+    Fail-soft: sabah raporunun geri kalanını ÇÖKERTMEZ (bilgi bölümü), ama
+    sessiz boş da bırakmaz.
+    """
+    try:
+        if not MOTOR_RAPORU_DOSYA.is_file():
+            return ("## GÜNLÜK MOTOR RAPORU\n\n"
+                    "GÜNLÜK MOTOR RAPORU: OLCULEMEDI (dosya yok: %s)" % MOTOR_RAPORU_DOSYA)
+        spec = importlib.util.spec_from_file_location(
+            "gunluk_motor_raporu", str(MOTOR_RAPORU_DOSYA))
+        if spec is None or spec.loader is None:
+            return ("## GÜNLÜK MOTOR RAPORU\n\n"
+                    "GÜNLÜK MOTOR RAPORU: OLCULEMEDI (spec_from_file_location=None)")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        tablo = mod.tablo_metni(tarih.isoformat())
+        return "## GÜNLÜK MOTOR RAPORU\n\n" + tablo
+    except Exception as e:
+        return ("## GÜNLÜK MOTOR RAPORU\n\n"
+                "GÜNLÜK MOTOR RAPORU: OLCULEMEDI (%s: %s)" % (type(e).__name__, e))
+
+
 def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok: str,
                kutu_blok: str, devam_blok: str, kirmizi_n, dal_n: int, kutu_n: int,
                okunabilir: dict, ci_hukum: str = "OK", gh_kaynak: str = "-") -> str:
@@ -774,6 +801,7 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
         "## AÇIK KALEMLER (defter — `acik-kalemler.md`, durum ∈ {ACIK, 🔧})\n" + kalem_blok + "\n",
         "## KUTUDA YENİ (son 24 saat — bugün+dün)\n" + kutu_blok + "\n",
         "## DEVAM (canlı — ilk 40 satır özeti)\n```\n" + devam_blok + "\n```\n",
+        _motor_raporu_bolumu(tarih) + "\n",
         disiplin,
         giris_durumu,
     ])
