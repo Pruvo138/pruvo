@@ -29,18 +29,21 @@ rotasyon gerekmisti (7 bayat 31 Agu ACILIS blogu, kutu −5440 B / arsiv +5438 B
 Cip agaci+dal temizlendi (52 MB). **KOSAN CIP:** V5 ana sayfa canliya alma (`jovial-mirzakhani`;
 benim mukerrer onerim GERI CEKILDI). **BEKLIYOR:** 🟠 15:47Z `schedule` → A3 (`nobet.yml`de
 `cron "47 3,15"` main'de DOGRULANDI, ilk atesleme henuz olmadi) · 🟠 parti cron 20:33 yerel.
+✅ **V5 GUVEN BLOGU CANLIDA — merge `2d2510bf`** (cip `jovial-mirzakhani`; defter kalemini mimara
+birakti). MIMAR BAGIMSIZ TEYIDI (kanonik URL, cache-bust'siz): ana sayfa 200 · **5 rozet
+varliginin 5'i R2'den GET 200** (icerik-hash'li ad) · `hgKargoMetinYazi`+`KARGO_BEDAVA_ESIK_KURUS`
+duruyor (metin JS'te esikten TURUYOR, HTML'de rakam YOK) · `3d bask`=0 · `fethiye`=1 (yalniz
+JSON-LD) · `gocek`=0 · `2d2510bf` origin/main atasi rc=0. Cipin olcumu: @375 header **208→185,5px**,
+@1366 **164=164**, tasma 0. Kargo kapisina **DAR muafiyet** (BaBa+Okan pencere onayi; kapi
+GEVSETILMEDI, 4 yeni mutant KIRMIZI + kontrol YESIL). 🔧 Kapsam disi kalan: taslaktaki
+`main{padding}` + sepet `pay-pill` resmi logo — istenirse ayri kalem.
+🔴 **SYM BLOKE — MaCiT'in 9 urunu bekliyor; cip `task_afe886fb` acildi.** `"SYM"`
+`UYUM_MARKA_IZINLI`de YOK, `hasat_ekle.py` fail-closed dusuyor. K220 IKINCI ROL KOLU MIMARCA
+OLCULDU (katalog 32.944): `uyum[].model`/`motor`/`oem`/`marka` ve `urun.marka[]` **hepsi 0**,
+alt-dize 0, ayni koke inen mevcut marka YOK → jeton hicbir mevcut kaydi gecersiz kilmaz.
+Kalan sart (Raymarine emsalinin kendi yazdigi): URL kumesi ekleme ONCESI/SONRASI izole ROOT'ta,
+IKI bagimsiz eksenden, kiyas KUME FARKIYLA (kaybolan=0 ∧ dogan=0). Kume 181→182, mimar eki 42→43.
 **OKAN'DA:** panel-tik pozitif kolu (tek tik) · 24 bitmis oturum arsivi (liste kutuda).
-
-## ✅ 2 EYL — PANEL TEKIL URUN SILME CANLI (Okan emri; cip KraL-UrunSilmeButonu-2Eyl)
-Merge `8c018800` (dal commit `e35f092d`, origin/main atasi rc=0). Hat: /urun-sil (cift onay+
-gerekce, yonetim anahtari) -> panel_ustyazim alan='sil' -> uygulayici duzelt --toplu {id,sil} +
-arsiv/urunler-arsiv.json (GEREKCE public'e YAZILMAZ) -> build/D1 otomatik. Offline: uygulayici
-VAKA=51 MUTANT=5/5 · urunler-panel 127 iddia · geri-yukle VAKA=7 · komsu bataryalar yesil
-(V9d kol tabani 21'e karsi 22 TARIHLI beyan). CANLI KOBAY: kuyruk id=9 -> commit `460d8726`
-(sil=1; katalog 32544->32543 commit sinirinda) -> sayfa 200->404 -> feed/sitemap iz 0 -> D1 6/6
-(32543) -> GERI: `urun-geri-yukle.py` + `94096e9d` -> D1 6/6 (32544). 🔧 ACIK: worker deploy =
-OKAN TIKI (`cd /Users/okan/dev/pruvo/shop && npx wrangler deploy`); deploy sonrasi panel-tik
-provasi (Sil (arsive) butonu + STL'li urunde M12 kolu) olculecek. Yordam: tools/urun-silme-yordami.md.
 
 ## ✅ K353 + T1/T2 + K354 (29-30 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
 🔴 **CANLI TALIMAT, SILINMEZ:** K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
