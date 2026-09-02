@@ -2,51 +2,14 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ✅ 2 EYL — K373 MERGE EDILDI (`7e14eeaa`): SERIT B garantili hukum aliyor
-Olgu (400 kosum): **0 success** · 238 cancelled · 160 failure; event 392 push / 8 dispatch /
-**0 schedule**. `on.schedule` 12 sa'te bir (`47 3,15`) + grup IKI->UC kol (dispatch `run_id` ·
-schedule `'schedule'` · push `'push'` SABIT — G9 KORUNDU). Yeni eksen **G12** +
-**G13** (tetik + cron); tabanlar 11->13, 17->21. Mutant ADIYLA: kol=push -> G12 · tetik yok -> G13
-· push run_id -> G9+G11 · bosluk -> hicbiri. 12 arac: kirmizi ∅->∅, batarya 62->66 iddia, 0 kusur.
-**Gunde 1 kez YAZILAMAZ:** cron-nabiz A3 tavani 20 sa < 24 sa. D1 32317/32317 ✅.
-
-## ✅ 2 EYL — K372 MERGE EDILDI: `yayin-yasi-nobetcisi` YANLIS ALARM kokunden onarildi
-Bekleme suresi commit'in YAZILMA damgasindan okunuyordu; olcu main'e GIRIS anidir (ilk-ebeveyn
-zinciri). 3 sa'ten eski HER dal merge'i "108 sa bayat" yakardi -> alarm kanikmasi. MIMARIN
-BAGIMSIZ OLCUMU (uc agac): main `23/23 · 9/9` -> merge `34/34 · 14/14` SURVIVOR=0; **CAPRAZ**
-(dalin testi + main'in ESKI govdesi) `26/34 · 8/14 · UYGULANMADI=6 rc=1` — yani vakalar kusuru
-FIILEN olcuyor. Gerileme 0. Dalin CI hukmu YOK -> "yesil" DENMEDI, OLCULEMEDI. Tam metin ARSIVDE.
-
-## ✅ 2 EYL — SERIT B: KIRMIZI ADIM **17 → 10** (CI'nin kendi adim listesinden, kume farkiyla)
-Taban kosum `33445049998` (1769c88a, 17 kirmizi) ↔ `33585307968` (3930fe33, 10 kirmizi).
-③ **K337 merge** `7ac9880f`: 4 `.py` (1566 satir) alindi, 2 ic olcum `.txt`i **MERGE DISI** —
-uc agacta olculdu: dalin TAMAMI girseydi `kisisel-veri-test` **rc=1** (CI BLOKLAYICI, tum ekibin
-yayinini durdururdu); 2 dosya haric tutulunca dort kapi da yesil. Icerikleri `DEVAM-ARSIV.md`de
-(git DISI) + yerel yedek dal `yedek/k337-olcum-08276ead` (blob'lar `cat-file` ile KANITLI, 462+878 B).
-Uzak dal SILINDI → `ic-rapor-adi-kapisi --uzak` **2 isabet → 0**, rc=0 (kapanis olcumu kolun KENDISI).
-🔴 **KENDI HATAM, KAYDA GECTI:** "merge CI'yi kirmiyor" hukmumun bir bacagi CURUKTU — K361 bir
-kapiyi CI'da kirmizi biraktti (`chip-duzeni-test` `VAKA=2/14 MUTANT=0/9`), simulasyonum yanlis
-okumustu. Onarim `3930fe33`: batarya IKI AYAKLA hermetik (pbk kopyasi + fikstur `evler.json`);
-`14/14 9/9 3/3` iki duzlemde; mutant MH1 CI kirmizisinin BIREBIR AYNISINI doguruyor, MH0 hicbir
-kolu oldurmuyor. Yeni `K3c` ayagi bu makinede OLCULEMEZ ve bunu `KAPSAM_DISI` diye BASIYOR.
-
-## ✅ 2 EYL — IKI MERGE INDI (`4b28c796` = `origin/main`) — TAM METIN ARSIVDE
-① **K361** `2562741f`: ev→dizin tablosu repo DISINA (`~/.claude/cron/evler.json`, 8 ev). Kirmizi seti
-DEGISMEDI (iki rc=1 kapinin govdesi taban↔dal FARK=0) · yeni batarya `VAKA=9/9 MUTANT=4/4` · CI duzlem
-sim. 7/7 AYNI · `ev_coz` faralya→FaR, bilinmeyen→fail-closed · D1 32202/32202 ✅ · deploy YESIL.
-② **SERIT B tamiri** `4b28c796` (dal `gallant-khayyam-30669f`, 7 dosya): iki izole klon + CI benzesimi
-(`init.defaultBranch=master`) ile **5 kirmizi ONARILDI, GERILEME 0** (merge-kanit `VAKA=8 MUTANT=6/6` ·
-kart-ikiz.js · sentetik-git fikstur kapisi · ic-rapor-kanca **17/21→21/21** · recete `REDDEDILEN 1→0`);
-`nobet.yml` oksuz cagri yeri **1→0**; yasal-sayfa-drift A/B YESIL; D1 HEAD 32204 = D1 32204.
-🔴 **MIMAR HUKMU (b): K309 ARTIK KAPISIZ KALEM** — `kalem-senkron-kapisi.py` silinmisti, cagri yeri
-kalmisti (`serit-b` yapisal olarak yesillenemiyordu); adim kaldirildi, arac GERI GETIRILMEDI (Okan'in
-30 Agu kapsam daraltmasi korunur). 🟠 K196: JS kolu yerel node v25.8.1, CI node 20 → CI'da OLCULMEDI.
-🔴 SERIT B'nin kendisi "yesil" olcut DEGIL: son 400 kosumda 0 success (kuyruk tahliyesi).
-🔴 `worktrees/cool-albattani-bb4a31` SILINMEDI: icindeki 191 satirlik mimar raporu izlenmiyor, TEK KOPYA.
-
-## 🔁 2 EYL ~03:3x — ONCEKI OTURUM KAPANISI → **BEKLEYEN IKI IS DE INDI, ARSIVE TASINDI.**
-Koltuk degnegi commit'i (`4353c32f`) + K359 merge (`487fcff3`) kardes oturumda; K361 ve SERIT B
-tamiri bu oturumda. MaCiT'in 3,4 saat asili commit'i cozuldu. Tam metin `DEVAM-ARSIV.md`de.
+## ✅ 2 EYL — GUNUN INEN ISLERI (TAM METIN ARSIVDE; hepsi `origin/main`de, `is-ancestor` ile teyitli)
+K361 `2562741f` (ev tablosu repo DISINA) · SERIT B tamiri `4b28c796` (5 kirmizi kokunden) ·
+onarim `3930fe33` (K361'in CI'da biraktigi kirmizi — kendi simulasyon hatam) · K337 `7ac9880f`
+(2 ic olcum dosyasi MERGE DISI, girseydi `kisisel-veri-test` rc=1 ile TUM EKIBIN yayinini durdururdu) ·
+K372 `765eeb29` (yayin-yasi nobetcisi yanlis alarmi: bekleme yasi YAZILMA degil GIRIS anindan) ·
+K373 `7e14eeaa` (kapi sozlesmesi 2->3 kol + `schedule`; SERIT B artik garantili hukum alir) ·
+K375 `bdf5425e` (23:00 gunluk motor raporu; cron CANLI, kabul 21/21 mutasyon 6/6).
+**SERIT B kirmizi adim 17 -> 10** (CI'nin kendi adim listesinden, kume farkiyla).
 
 ## ✅ K353 + T1/T2 + K354 (29-30 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
 🔴 **CANLI TALIMAT, SILINMEZ:** K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
