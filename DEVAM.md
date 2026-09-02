@@ -2,6 +2,19 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ 2 EYL — SERIT B: KIRMIZI ADIM **17 → 10** (CI'nin kendi adim listesinden, kume farkiyla)
+Taban kosum `33445049998` (1769c88a, 17 kirmizi) ↔ `33585307968` (3930fe33, 10 kirmizi).
+③ **K337 merge** `7ac9880f`: 4 `.py` (1566 satir) alindi, 2 ic olcum `.txt`i **MERGE DISI** —
+uc agacta olculdu: dalin TAMAMI girseydi `kisisel-veri-test` **rc=1** (CI BLOKLAYICI, tum ekibin
+yayinini durdururdu); 2 dosya haric tutulunca dort kapi da yesil. Icerikleri `DEVAM-ARSIV.md`de
+(git DISI) + yerel yedek dal `yedek/k337-olcum-08276ead` (blob'lar `cat-file` ile KANITLI, 462+878 B).
+Uzak dal SILINDI → `ic-rapor-adi-kapisi --uzak` **2 isabet → 0**, rc=0 (kapanis olcumu kolun KENDISI).
+🔴 **KENDI HATAM, KAYDA GECTI:** "merge CI'yi kirmiyor" hukmumun bir bacagi CURUKTU — K361 bir
+kapiyi CI'da kirmizi biraktti (`chip-duzeni-test` `VAKA=2/14 MUTANT=0/9`), simulasyonum yanlis
+okumustu. Onarim `3930fe33`: batarya IKI AYAKLA hermetik (pbk kopyasi + fikstur `evler.json`);
+`14/14 9/9 3/3` iki duzlemde; mutant MH1 CI kirmizisinin BIREBIR AYNISINI doguruyor, MH0 hicbir
+kolu oldurmuyor. Yeni `K3c` ayagi bu makinede OLCULEMEZ ve bunu `KAPSAM_DISI` diye BASIYOR.
+
 ## ✅ 2 EYL — IKI MERGE INDI (`4b28c796` = `origin/main`) — TAM METIN ARSIVDE
 ① **K361** `2562741f`: ev→dizin tablosu repo DISINA (`~/.claude/cron/evler.json`, 8 ev). Kirmizi seti
 DEGISMEDI (iki rc=1 kapinin govdesi taban↔dal FARK=0) · yeni batarya `VAKA=9/9 MUTANT=4/4` · CI duzlem
