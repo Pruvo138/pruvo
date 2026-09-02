@@ -323,6 +323,18 @@ yazma yolu **`tools/duzelt.py`**'dir.
   TÜRETİLİR (= tekilleştir(uyum[].marka + uyum[].model)) ve `duzelt.py` onu AYNI işlemde kendisi
   yazar. Aynı çağrıda hem `uyum` hem `marka` vermek REDDEDİLİR (iki kaynak yarışamaz).
 - `uyum` boş/yok olan eski kayıtlarda `marka` serbesttir (regresyon yok).
+- 🔴 **`model` YAZIM KURALI (KraL hükmü, 2 Eyl 2026 — MaCiT'in iki kez bildirdiği Ténéré/YZF-R1/
+  FJR1300 tıkanması bunun için açıldı; ekleyen artık BEKLEMEZ):**
+  (a) **Aksan İNER, ASCII yazılır:** `Ténéré`→`Tenere`, `Citroën`→`Citroen`. Ölçüldü (2 Eyl,
+  32.790 kayıt): 1534 benzersiz model yazımı, aksan/ayraç **çelişkisi 0**, mevcut kayıtlar zaten
+  ASCII (`Tenere` 4 · `Tenere 700` 7) — kural veriyi DEĞİŞTİRMEZ, mevcut hâli yazıya döker.
+  (b) **Üreticinin AYRAÇ yazımı KORUNUR:** `YZF-R6` · `YZF 450` · `FJR 1300` aynen kalır; tire
+  ekleme/kaldırma/boşluk normalleştirme YOK. Aramada ayraç+aksan farkını `model_kanon` türetilmiş
+  kolonu zaten eşitler; ikinci bir normalleştirme katmanı AÇILMAZ.
+  (c) Aynı model katalogda **iki farklı yazımla** görünürse bu bir ÇELİŞKİdir: ekleyen kendi
+  kafasına göre birini seçmez, kaydı KARARA taşır (mimar hükmü) — (a)+(b) çelişkiyi çözmüyorsa.
+  (d) Bu kural `arama.py` marka listelerine (`marka_yazimlari`/`taninmis_mi`) **DOKUNMAZ** —
+  o liste iki rol taşıyor ve canlı marka sayfalarını düşürebilir (K220).
 
 **Neden doğrudan `urunler.json`'a yazmak YASAK (ölçüldü, 8 Ağu 2026):** toplu ekleme yolu dosyaya
 doğrudan yazıp `duzelt.py`'nin iki fail-closed kapısını birden atladı; bir partide 5 kayıt bozuk

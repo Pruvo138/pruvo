@@ -2,23 +2,27 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 2 EYL 12:1xZ — MIMAR OTURUMU ACIK (`75831a04` = `origin/main`, agac temiz, ileri/geri 0/0)
-**ONCEKI TURDAN CANLIYA GIDEN:** K361 `2562741f` · SERIT B tamiri `4b28c796` · onarim `3930fe33` ·
-K337 `7ac9880f` · K372 `765eeb29` · K373 `7e14eeaa` · K375 `bdf5425e` · Yamaha d10 `856cf08b`
-(katalog **32607** = 940 gizli / 31667 gorunur, urunler.json'dan sayildi).
-**BU TURDA:** cip agaci `awesome-raman-f08ab2` KALDIRILDI (52 MB; olcum: temiz + `e35f092d`
-origin/main atasi rc=0 + ileri commit 0 + cip ✅ arsiv izni yazili). Kutu **257→212 satir**
-(`kutu-arsivle.py`, KAYIPSIZLIK 26=21+5 blok / 34422=25688+8734 bayt, lossless GECTI).
-Cron ölçüldü: `macit-parti-surucusu` satiri CANLI (crontab 81 satir, 11 etkin).
-🔴 **K359'a YENI KOL (bugun uretildi):** arsivleyici, acilisi YERINDE ATLANAN bir bloğun
-KAPANISINI arsive tasidi → `KraL-UrunSilmeButonu-2Eyl` acilisi (kutu:96) artik HIC eslesemez.
-Cip `task_cd35b252` (`KraL-K359-KutuEslesme`) acildi; taban civili: test **42 vaka/335 iddia/0
-kirmizi**, `--kuru` `TAVAN_ALTINDA rc=0 once_satir=212` + **21/21 blok** rotasyona kapali.
-**KOSUYOR (OLDURMEYIN):** cip `frosty-robinson-4ec3be` (oturum CANLI, ListAgents'ta gorundu).
-**BEKLIYOR:** 🟠 15:47Z `schedule` → `cron-nabiz` A3 (kapatan olcum: A3 satiri yesil; su an 12:1xZ,
-penceresi ACILMADI). · 🟠 parti cron'u siradaki tik 20:33 yerel (kapatan olcum: `HAL=SAGLIKLI
-(urun=N)`). · 🟠 44 uzak / 42 yerel dal duruyor, hicbiri bu oturumun isi.
-**OKAN'DA:** worker deploy tiki (panel tekil silme hatti; canli `/urun-sil` ucu 404 olculdu).
+## 🔁 2 EYL 15:3xZ — MIMAR OTURUMU (supurme turu; katalog 32.790, MaCiT partileri akiyor)
+**SILME HATTI KAPANDI (Okan deploy etti):** `pruvo-shop` surum `1a964648` **13:52:59Z**; CANLI
+bundle (387.811 B, CF API) `/urun-sil`=2 · `panelUrunSil`=4 · buton `Sil (arşive)`=1 (esbuild
+ASCII kacisi — duz `arşive` aramasi 0 doner, TUZAK). Anonim uctan olculemez: yanlis anahtar da
+yok-uc da 404 (tasarim) → hukum BUNDLE ICERIGINDEN verildi. Panelde buton RENDER ediyor;
+🟢 **NEGATIF KOL CANLIDA:** yanlis onay id'si → "birebir ayni degil, kuyruga YAZILMADI", kuyruk
+9/9 max id 9 bekleyen 0 DEGISMEDI, gerekce sorusu hic sorulmadi. 🔧 **POZITIF KOL BENDE BLOKLANDI**
+(izin siniflandiricisi) → Okan panelden tiklarsa kuyruk satirini olcup Iptal ile geri alirim.
+**SUPURME:** cip agaclari **237→107 MB** (`eager-shtern-b4ec5c` + `frosty-robinson-4ec3be`;
+capalari `origin/claude/quizzical-nobel-b53ffb`'de DURUYOR — izlenmeyen 48 MB render `--force`
+ile gitti, V5 HTML dalda commit'li, gorseller Okan'a teslim edilmisti). 3 dal silindi;
+`yedek/k337-*` + `ileri>0` 40 dal DURUYOR. Canli iki agaca dokunulmadi.
+**MaCiT'e HUKUM VERILDI (2 kez bildirmisti, 16 urun tikaniyordu):** `model` yazimi = aksan INER
+(ASCII), ureticinin AYRAC yazimi KORUNUR, celiski karara tasinir, `arama.py` marka listesine
+DOKUNULMAZ (K220). Rehbere yazildi. 🔴 **Onculu olctum, rapor YANLISTI:** 32.790 kayit/1534
+model yazimi, celiski **0** → is migrasyon degil YAZIM KURALI; katalog verisi degismez.
+**K359:** arac "tasinabilir blok tukendi 267>250" dedi (ev kilitleniyordu) → 7 bayat 31 Agu ACILIS
+blogu ELLE, KAYIPSIZ arsive (kutu −5440 B / arsiv +5438 B, 7/7 birebir dogrulandi); kutu **218**.
+**KOSAN CIPLER:** `task_cd35b252` K359 kalici onarim · `task_5b33bae3` V5 ana sayfa uygulamasi.
+**BEKLIYOR:** 🟠 15:47Z `schedule` → `cron-nabiz` A3 · 🟠 parti cron tik 20:33 yerel ·
+🟠 40 dal ileri. **OKAN'DA:** panel-tik pozitif kolu (tek tik, kobay kartinda).
 
 ## ✅ 2 EYL — PANEL TEKIL URUN SILME CANLI (Okan emri; cip KraL-UrunSilmeButonu-2Eyl)
 Merge `8c018800` (dal commit `e35f092d`, origin/main atasi rc=0). Hat: /urun-sil (cift onay+
@@ -30,22 +34,6 @@ VAKA=51 MUTANT=5/5 · urunler-panel 127 iddia · geri-yukle VAKA=7 · komsu bata
 (32543) -> GERI: `urun-geri-yukle.py` + `94096e9d` -> D1 6/6 (32544). 🔧 ACIK: worker deploy =
 OKAN TIKI (`cd /Users/okan/dev/pruvo/shop && npx wrangler deploy`); deploy sonrasi panel-tik
 provasi (Sil (arsive) butonu + STL'li urunde M12 kolu) olculecek. Yordam: tools/urun-silme-yordami.md.
-
-## ✅ 2 EYL — ACIK KUYRUK BOSALTILDI (kalan tek olcum: 15:47Z A3 teyidi)
-`~/.claude/cron` **VERSIYONLANDI** (yerel depo, uzak YOK): 328 betik, BEYAZ LISTE
-(`*` reddedilir, yalniz betik uzantilari acilir) — dizinde CANLI API anahtarlari + tarayici
-profili + m3 jsonl'lari var; kara liste unutulan tek deseni SESSIZCE gecirirdi. Kabul: izlenen kumede sir
-isabeti **0** (fail-closed; isabet olsaydi depo geri alinacakti). SONRA `.yedek` supurmesi
-MESRU oldu: **175/175 kaldirildi (5,18 MB)**, her biri silinmeden once `cat-file -e` ile
-gecmiste KANITLANDI; 4 tanesi beyaz liste disi kaldigi icin ONCE versiyonlandi SONRA silindi.
-`kral-sabah.py` ayrismasi KAPANDI (`067d473e`): K356 yalniz CANLI kopyadaydi; repodaki 10
-"fazla" satirin hepsi K356'nin degistirdigi ESKI kod cikti, yon TEK (canli→repo). `kur.py`
-KOSULMADI (K357). Cron `parti-surucusu` satiri **GERI ACILDI** (BaBa hukmu) — oncul
-SINANDI: hasat'ta `isci/parti-28`+`isci/parti-yamaha-d9` duruyor, KAPI-1 gorunce m3
-cagirmaz, ilk tik $0. crontab 81→82 satir, hedef disi satirlar BIREBIR.
-TEMIZLIK: 3 cip agaci kaldirildi (raporlari once arsive tasindi, 38 KB) · **47 dal silindi**
-(6 yerel + 41 uzak; olcut UC KATLI, `ileri>0` olan 79 dala DOKUNULMADI — K337 dersi) ·
-`yedek/k337-olcum-08276ead` KORUNDU. Kapanista 6 kapi YESIL, agac temiz, worktree 1.
 
 ## ✅ K353 + T1/T2 + K354 (29-30 Agu) — TAM METIN `DEVAM-ARSIV.md`'de (kural 11)
 🔴 **CANLI TALIMAT, SILINMEZ:** K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
