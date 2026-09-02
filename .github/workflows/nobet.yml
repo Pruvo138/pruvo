@@ -2102,11 +2102,28 @@ jobs:
       # ratchet kolu) + KONTROL mutanti; ikisi de IZOLASYON olcer (hedef disi vakalar
       # YASAMALI). Mutasyon GECICI KOPYADA kosar, canli dosyaya dokunmaz.
       # Beyan: tools/is-akisi-kapisi.py :: SERIT_B (`serit-b` job'u).
-      - name: "Kalem senkron kapisi (K309) — kendini test + hedef-kol atifli mutasyon"
-        if: ${{ !cancelled() }}
-        run: |
-          python3 tools/kalem-senkron-kapisi.py --kendini-test
-          python3 tools/kalem-senkron-kapisi.py --mutasyon
+      #
+      # 🔴🔴 ADIM KALDIRILDI — 1 Eyl 2026, KraL-Tamirci-1Eyl. ARACIN KENDISI YOK.
+      # OLCULDU: `tools/kalem-senkron-kapisi.py` `ca8c3815` supurmesinde silindi
+      # ("48 kapi/nobetci/batarya silindi", BaBa filo karari + Okan "supur" emri) ve
+      # `b985ebd2`'nin KAPSAM DARALTMASINDA (Okan 30 Agu hukmu, 33 dosya geri geldi)
+      # BILEREK geri getirilmedi. CAGRI YERI ise burada KALDI. Sonuc: adim her
+      # kosumda `python3: can't open file ... [Errno 2]` -> **rc=2**, yani
+      # `serit-b` job'u BU SATIR YUZUNDEN bir daha ASLA yesillenemezdi. Bu bir
+      # olcum DEGIL, KURU KIRMIZIDIR: hicbir sey olcmuyordu, yalnizca serit
+      # hukmunu korlestiriyordu ([[eskalasyon-kapali-sayilir-duran-kirmizi-korlesir]]).
+      # Sinif taramasi ayni gun kosuldu: `.github/workflows`'taki **430** cagri
+      # yerinden OKSUZ olan **yalniz bu 2 satirdi** — yayilmis bir hastalik degil,
+      # supurmenin tek artigi ([[cagri-yeri-envanterden-duserse-onarildi-sanilir]]).
+      #
+      # 🔴 KAYIP SESSIZ DEGILDIR — MIMARIN KARARINA BIRAKILIR: adim kalkinca K309
+      # (kaynak-dogrusu defteri <-> DEVAM.md ayrismasi) ARTIK HICBIR KAPIYLA
+      # OLCULMUYOR. Iki mesru yol var ve ikisi de OKAN/MIMAR duzlemindedir:
+      #   (a) araci geri getir (`git show ca8c3815^:tools/kalem-senkron-kapisi.py`)
+      #       — bu, Okan'in 30 Agu kapsam daraltmasini GENISLETMEK demektir;
+      #   (b) K309'u kapisiz kalem olarak kabul et ve deftere OYLE yaz.
+      # Bu cip (b)'yi de (a)'yi da SECMEDI: yalnizca hicbir sey olcmeyen kuru
+      # kirmiziyi kaldirdi ve kaybi BURAYA + kaleme YAZDI.
 
       # ═══════════════════════════════════════════════════════════════════════
       # CLAUDE.md'NIN ZORUNLU KILDIGI KAPILARIN BATARYALARI (30 Agu, Okan hukmu)

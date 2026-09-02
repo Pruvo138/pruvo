@@ -478,6 +478,36 @@ def durum():
 
 
 # ── kendini-test ─────────────────────────────────────────────────────────────────
+#
+# 🔴 SENTETIK GIT = KANONIK YARDIMCI (1 Eyl 2026, KraL-Tamirci-1Eyl).
+# `tools/fikstur-git-sizinti-kapisi.py` bu dosyayi SIZDIRIYOR sinifina koyuyordu:
+# fikstur depolari `subprocess.run(["git", ...])` ile DOGRUDAN kuruluyordu, yani
+# cagiran surecten MIRAS ALINAN GIT_DIR/GIT_WORK_TREE baglami temizlenmiyordu. Bir
+# git kancasi altinda kosuldugunda o baglam acik `-C <yol>` hedefini SESSIZCE ezer
+# ve fikstur YANLIS agaca yazar. Kanonik `sentetik_git` scrub + cwd sabitlemeyi tek
+# yerden verir; UYGULAMA yolundaki `git()` (satir ~212) GERCEK depoda kosar ve
+# fikstur DEGILDIR — o BILEREK degistirilmedi.
+def _fg(dizin, *args, **run_kw):
+    """Fikstur git cagrisi — kanonik scrub'li tek yol.
+
+    🔴 IMPORT TEMBEL, MODUL DUZEYINDE DEGIL (1 Eyl 2026, olculdu): bu dosyanin
+    MUTANT KOPYALARI gecici bir dizine yazilip `--uygula` ile kosuluyor (kendini-test
+    M1/M2/M3 kollari). Kopyanin `VARSAYILAN_KOK`'u o gecici dizindir; modul duzeyinde
+    `from git_ortami import ...` yazildiginda kopya ImportError ile OLUYOR ve mutant
+    'hedefledigi iddiayi dusurdu' yerine 'KACTI' olarak sayiliyordu — yani YESIL bir
+    adim (VAKA=38 DUSEN=0 MUTANT=3/3) KIRMIZIYA donuyordu (DUSEN=2 MUTANT=2/3).
+    Tembel import yalniz FIKSTUR yolunda kosar; `--uygula` yoluna hic dokunmaz.
+    Dusus yolu (`try/except ImportError -> yerel tanim`) YAZILMAZ: o ikizin ta
+    kendisidir — modul yoksa cagri COKSUN (git_ortami.py bas blogu)."""
+    tools_dizin = os.path.join(VARSAYILAN_KOK, "tools")
+    if tools_dizin not in sys.path:
+        sys.path.insert(0, tools_dizin)
+    from git_ortami import sentetik_git
+    run_kw.setdefault("capture_output", True)
+    run_kw.setdefault("text", True)
+    return sentetik_git(dizin, *args, kimlik_ad="panel-uyg-test",
+                        kimlik_eposta="test@pruvo.test", **run_kw)
+
 
 def _fikstur_kur(tmp, katalog_ek=None):
     """Sentetik repo (duzelt-toplu-test.sahte_repo TEK KAYNAK) + gercek git +
@@ -492,16 +522,15 @@ def _fikstur_kur(tmp, katalog_ek=None):
         katalog.extend(katalog_ek)
     repo = os.path.realpath(dt.sahte_repo(katalog))  # realpath: sentetik git fiksturu sarti
     bare = os.path.realpath(tempfile.mkdtemp(prefix="panel-uyg-bare-", dir=tmp))
-    subprocess.run(["git", "init", "-q", "--bare", bare], check=True)
+    _fg(os.path.dirname(bare), "init", "-q", "--bare", bare, check=True)
     for k in (["init", "-q"], ["config", "user.email", "test@pruvo.test"],
               ["config", "user.name", "panel-uyg-test"], ["add", "-A"],
               ["commit", "-q", "-m", "taban"], ["remote", "add", "origin", bare],
               ["push", "-q", "origin", "HEAD:main"]):
-        subprocess.run(["git", "-C", repo] + k, check=True, capture_output=True)
+        _fg(repo, *k, check=True)
     # Bare uzagin HEAD'i main'e cevrilir — yoksa `git clone` (V11 yaris fiksturu)
     # "remote HEAD refers to nonexistent ref" ile checkout'suz dusebilir.
-    subprocess.run(["git", "-C", bare, "symbolic-ref", "HEAD", "refs/heads/main"],
-                   check=True, capture_output=True)
+    _fg(bare, "symbolic-ref", "HEAD", "refs/heads/main", check=True)
     db = os.path.join(tmp, "kuyruk-%s.sqlite" % os.path.basename(repo))
     with open(SEMA_DOSYASI, encoding="utf-8") as f:
         sema = f.read()
@@ -571,10 +600,8 @@ def kendini_test():
         rc, cikti = _uygulayici_kos(ARAC_YOLU, repo, db)
         kat = _katalog_oku(repo)
         dok = _kuyruk_dok(db)
-        uzak_sha = subprocess.run(["git", "-C", bare, "rev-parse", "main"],
-                                  capture_output=True, text=True).stdout.strip()
-        yerel_sha = subprocess.run(["git", "-C", repo, "rev-parse", "HEAD"],
-                                   capture_output=True, text=True).stdout.strip()
+        uzak_sha = _fg(bare, "rev-parse", "main").stdout.strip()
+        yerel_sha = _fg(repo, "rev-parse", "HEAD").stdout.strip()
         ol("V1a rc=0", rc == 0, cikti)
         ol("V1b fiyat tabana islendi", kat["test-urun-1"]["fiyat"] == "150 TL")
         ol("V1c baslik tabana islendi", kat["test-urun-2"]["baslik"] == "Test Urun 2 Yeni Ad")
@@ -627,12 +654,10 @@ def kendini_test():
 
         # ── V7: taban zaten esit -> commit YOK, satir islendi TABAN_ZATEN_ESIT.
         repo5, bare5, db5 = _fikstur_kur(tmp)
-        once_sha = subprocess.run(["git", "-C", bare5, "rev-parse", "main"],
-                                  capture_output=True, text=True).stdout.strip()
+        once_sha = _fg(bare5, "rev-parse", "main").stdout.strip()
         _satir_ekle(db5, "test-urun-1", "fiyat", "100 TL")
         rc, cikti = _uygulayici_kos(ARAC_YOLU, repo5, db5)
-        sonra_sha = subprocess.run(["git", "-C", bare5, "rev-parse", "main"],
-                                   capture_output=True, text=True).stdout.strip()
+        sonra_sha = _fg(bare5, "rev-parse", "main").stdout.strip()
         dok = _kuyruk_dok(db5)
         ol("V7a commit uretilmedi (uzak SHA ayni)", once_sha == sonra_sha)
         ol("V7b satir islendi sebep=TABAN_ZATEN_ESIT",
@@ -658,8 +683,8 @@ def kendini_test():
         #        yoksa kosum uca-tazelede duser ve PUSH koluna HIC ulasilmazdi
         #        (mutant da ulasamazdi: tabanla ayni kosum mutanti olduremez).
         repo7, bare7, db7 = _fikstur_kur(tmp)
-        subprocess.run(["git", "-C", repo7, "remote", "set-url", "--push", "origin",
-                        os.path.join(tmp, "olmayan-uzak")], check=True)
+        _fg(repo7, "remote", "set-url", "--push", "origin",
+            os.path.join(tmp, "olmayan-uzak"), check=True)
         _satir_ekle(db7, "test-urun-1", "fiyat", "150 TL")
         rc, cikti = _uygulayici_kos(ARAC_YOLU, repo7, db7)
         dok = _kuyruk_dok(db7)
@@ -670,13 +695,13 @@ def kendini_test():
         #        uca tazele sonrasi yine dogru tabana islenir.
         repo8, bare8, db8 = _fikstur_kur(tmp)
         yaris = os.path.realpath(tempfile.mkdtemp(prefix="panel-uyg-yaris-", dir=tmp))
-        subprocess.run(["git", "clone", "-q", bare8, yaris], check=True)
+        _fg(os.path.dirname(yaris), "clone", "-q", bare8, yaris, check=True)
         with open(os.path.join(yaris, "NOT.txt"), "w", encoding="utf-8") as f:
             f.write("yabanci commit\n")
         for k in (["config", "user.email", "y@t"], ["config", "user.name", "y"],
                   ["add", "-A"], ["commit", "-q", "-m", "yabanci"],
                   ["push", "-q", "origin", "HEAD:main"]):
-            subprocess.run(["git", "-C", yaris] + k, check=True, capture_output=True)
+            _fg(yaris, *k, check=True)
         _satir_ekle(db8, "test-urun-1", "fiyat", "175 TL")
         rc, cikti = _uygulayici_kos(ARAC_YOLU, repo8, db8)
         kat = _katalog_oku(repo8)
@@ -692,13 +717,11 @@ def kendini_test():
                     "fiyat": "100 TL", "gorseller": [G1, G2]}
         repo9, bare9, db9 = _fikstur_kur(tmp, katalog_ek=[json.loads(json.dumps(GORSELLI))])
         _satir_ekle(db9, "test-gorselli", "gorseller", json.dumps([G2]))
-        once9 = subprocess.run(["git", "-C", repo9, "rev-parse", "HEAD"],
-                               capture_output=True, text=True).stdout.strip()
+        once9 = _fg(repo9, "rev-parse", "HEAD").stdout.strip()
         rc, cikti = _uygulayici_kos(ARAC_YOLU, repo9, db9)
         kat = _katalog_oku(repo9)
         dok = _kuyruk_dok(db9)
-        fark9 = subprocess.run(["git", "-C", repo9, "diff", "--name-only",
-                                once9, "HEAD"], capture_output=True, text=True).stdout
+        fark9 = _fg(repo9, "diff", "--name-only", once9, "HEAD").stdout
         ol("V12a gorsel cikarma tabana islendi (tam liste ustyazimi, rc=0)",
            rc == 0 and kat["test-gorselli"]["gorseller"] == [G2],
            "rc=%d gorseller=%r | %s" % (rc, kat["test-gorselli"].get("gorseller"), cikti))
@@ -734,13 +757,11 @@ def kendini_test():
         # commit YOK, TABAN_ZATEN_ESIT (sahte 'degisti' uretilmez). COK SATIRLI
         # deger BILEREK mesru degil: kontrol-karakteri kolu onu hata kovasina atar.
         repo11, bare11, db11 = _fikstur_kur(tmp, katalog_ek=[json.loads(json.dumps(GORSELLI))])
-        once11 = subprocess.run(["git", "-C", bare11, "rev-parse", "main"],
-                                capture_output=True, text=True).stdout.strip()
+        once11 = _fg(bare11, "rev-parse", "main").stdout.strip()
         _satir_ekle(db11, "test-gorselli", "gorseller",
                     json.dumps([G1, G2]))
         rc, cikti = _uygulayici_kos(ARAC_YOLU, repo11, db11)
-        sonra11 = subprocess.run(["git", "-C", bare11, "rev-parse", "main"],
-                                 capture_output=True, text=True).stdout.strip()
+        sonra11 = _fg(bare11, "rev-parse", "main").stdout.strip()
         dok = _kuyruk_dok(db11)
         ol("V12h esit liste (farkli JSON bicimi) -> commit yok + TABAN_ZATEN_ESIT",
            rc == 0 and once11 == sonra11 and dok[0]["hal"] == "islendi"
@@ -789,8 +810,8 @@ def kendini_test():
         with open(m2, "w", encoding="utf-8") as f:
             f.write(govde.replace(capa2, "push_ok = True  # susturuldu"))
         repoM2, bareM2, dbM2 = _fikstur_kur(tmp)
-        subprocess.run(["git", "-C", repoM2, "remote", "set-url", "--push", "origin",
-                        os.path.join(tmp, "olmayan-uzak-2")], check=True)
+        _fg(repoM2, "remote", "set-url", "--push", "origin",
+            os.path.join(tmp, "olmayan-uzak-2"), check=True)
         _satir_ekle(dbM2, "test-urun-1", "fiyat", "150 TL")
         rc2, cikti2 = _uygulayici_kos(m2, repoM2, dbM2)
         dokM2 = _kuyruk_dok(dbM2)

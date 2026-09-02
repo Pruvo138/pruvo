@@ -84,7 +84,18 @@ def _coz_cikti_kok():
         kok and os.path.abspath(kok) != os.path.abspath(ROOT))
 
 CIKTI_KOK, _CIKTI_YONLENDIRILDI = _coz_cikti_kok()
-print("CIKTI_KOK=%s (%s)" % (CIKTI_KOK, "YONLENDIRILMIS" if _CIKTI_YONLENDIRILDI else "varsayilan"))
+# 🔴 STDERR — STDOUT DEGIL (1 Eyl 2026, KraL-Tamirci-1Eyl; SERIT B `Kart ikiz tanimi`
+# kirmizisinin KOK NEDENI). Bu satir MODUL YUKLEME aninda kosar; build.py `__main__`
+# olarak degil, `importlib` ile BELLEGE yuklenip `kart_ozeti` gibi tekil fonksiyonlari
+# okunan bir KANONIK KAYNAK'tir (jenerator/test/kart-ikiz-test.js). O tuketici yardimci
+# surecin STDOUT'unu JSON olarak ayristirir; tanilama satiri STDOUT'a basildiginda
+# uretilen govde `CIKTI_KOK=... \n[{...}]` olur ve `JSON.parse` "Unexpected token 'C'"
+# ile duser — VERI KANALINA TANILAMA KARISMASI. STDERR tanilamayi KAYBETTIRMEZ: CI
+# adim logu iki akisi da gosterir ve k3 bataryasi (tools/k3-cikti-kok-mutasyon.py
+# `run_build`) zaten `proc.stdout + proc.stderr` BIRLESIGINI olcer.
+# ⚠️ TEK SATIR KALMALI: tools/k3-cikti-kok-mutasyon.py `write_control()` bu satirin
+# TAMAMINI marker olarak arar ve sonuna yorum ekler (marker tutmazsa KIRMIZI yanar).
+print("CIKTI_KOK=%s (%s)" % (CIKTI_KOK, "YONLENDIRILMIS" if _CIKTI_YONLENDIRILDI else "varsayilan"), file=sys.stderr)
 JSON_PATH = os.path.join(ROOT, "urunler.json")
 URUN_DIR = os.path.join(CIKTI_KOK, "urun")
 # Parametrik ("Ölçüye Özel" sarı seri) konfigüratör şemaları — jenerator/urunler/<id>.json.
