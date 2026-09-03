@@ -787,13 +787,17 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 43 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 44 jeton) ──
     # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
     # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
     # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
     # `len(UYUM_MARKA_MIMAR_EKI)` ile karsilastiran bir iddia YOK; kalem ACIK.
     # 7. tur (2 Eyl 2026, KraL-SYMMarka-2Eyl): sayi 42 -> 43 ELLE guncellendi ve o turda
     # `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (42 -> 43, esitlik TUTTU).
+    # 8. tur (4 Eyl 2026, KraL-ZeroMarka-4Eyl): sayi 43 -> 44 ELLE guncellendi ve YINE
+    # `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (43 -> 44, esitlik TUTTU).
+    # Ayni turda `len(UYUM_MARKA_IZINLI)` 182 -> 183 ve FARK (izinli − eki) 139 SABIT
+    # kaldi -> jeton IKI kumeye de girdi, yargilanmis bolumleme kirilmadi.
     # 🔴 KALEM HALA ACIK: bu bir MAKINE iddiasi degil, tek seferlik bir olcumdur —
     # bir sonraki tur yine guncellemeyi UNUTABILIR. Kalici cozum bu sayiyi `len()`ten
     # TURETMEK ya da bir kapiya iddia olarak KOYMAKTIR; ikisi de mimar hukmunu bekliyor
@@ -928,6 +932,56 @@ UYUM_MARKA_IZINLI = frozenset({
     # 🔴 KIYAS KUME FARKIYLA YAPILIR, SAYIYLA DEGIL: bir sayfa olup yerine baskasi dogsaydi
     #   TOPLAM SABIT kalirdi (mutantla kanitli, 6. tur). Kaybolan ve dogan AYRI AYRI basilir.
     "SYM",
+    # 8. tur, C grubu (1) — mimar karari 4 Eyl 2026. `Zero` (Zero Motorcycles, ABD)
+    #   ELEKTRIKLI MOTOSIKLET URETICISIDIR = EV SAHIBI arac markasi; uretilen parca ONA
+    #   TAKILIR ("bu urun Zero SR/F'e takilir" anlamli). Bu ek YENI BIR SINIF ACMAZ:
+    #   sinif emsali kumede ZATEN VAR ve dordu de motosiklet/skuter ureticisidir —
+    #   `Zontes`, `Mondial`, `CFMoto`, `SYM` (sonuncusu 7. turun kendi girisi).
+    #   Olculen katalog agirligi (33688 urun, `model_normalize` ile tarandi):
+    #     marka[] tam yazimla: 0 · uyum[].marka: 0 · uyum[].model: 0 · uyum[].motor: 0 ·
+    #     uyum[].oem: 0  — ve bes alanin BESINDE de ALT-DIZGE taramasi da 0.
+    #   Sifir olmasi olcut DEGIL (2. tur B grubu hukmu: sozluk "gecerli mi"yi belirler,
+    #   "sayfasi acilir mi"yi degil). Giris MaCiT'in hazir 26 Zero x Thingiverse urununun
+    #   `hasat_ekle.py`de fail-closed durmasindan dogdu (cip `suspicious-chatelet-65f719`)
+    #   — tetik `Raymarine` (6. tur) ve `SYM` (7. tur) ile BIREBIR AYNI.
+    #   Kume KAPALI kalir; yargilanmis bolumleme (izinli−eki / uretici−eki / elenen)
+    #   degismez, `Zero` ELENEN'de DEGIL ve URETICI_MARKA'da DEGIL (ikisi de olculdu) —
+    #   elenmis bir jeton geri sizmaz.
+    # 🔴 IKINCI ROL OLCULDU — K220 NEGATIFI (cip KraL-ZeroMarka-4Eyl, 4 Eyl 2026).
+    #   `marka_varyanti_sebebi()` bu kumeden AYNI ZAMANDA bir "MODEL OLAMAZ" jetonu uretir;
+    #   K220'nin emsalinde (`Range Rover`) tam bu ikinci rol CANLI bir sayfayi oldurmustu.
+    #   `Zero` icin o kol OLCULDU ve YOK: normalize'i TAM `zero` olan `uyum[].model` = 0 ·
+    #   `uyum[].motor` = 0 kayit -> jeton hicbir mevcut kaydi gecersiz kilmaz.
+    #   SERBEST METINDE (baslik/id/aciklama, kucuk-harf alt dizge) `zero` gecen 2 kayit VAR
+    #   ve ADIYLA kayda geciyor:
+    #     `bisiklet-speedplay-pedal-platform-adaptoru`  (ingilizce metinde "zero" sozcugu)
+    #     `peugeot-ion-citroen-c-zero-mitsubishi-i-miev-saat-tutucu-apa`  (Citroen C-Zero)
+    #   Ikisi de sozluk yoluna GIRMEZ ve normalize'leri `zero`ya DUSMEZ (`czero` != `zero`)
+    #   — AYRI EKSEN, hukmu DEGISTIRMEZ.
+    #   Uretilen sayfa/URL kumesi ekleme ONCESI ve SONRASI TAM kosuldu: 35356 = 35356,
+    #   KAYBOLAN URL = 0, DOGAN = 0. Kume IKI BAGIMSIZ eksenden toplandi — sitemap `loc`
+    #   (jeneratorun BEYANI) 35356 ve diskteki fiziksel `index.html` yollari (beyandan
+    #   bagimsiz) 35356 — ikisi birebir esitti; DORT kumenin (once-A/once-B/sonra-A/
+    #   sonra-B) DORDU DE ayni.
+    # 🔴 ESLESME TAM/EXACT'tir — ALT DIZGE/ONEK YOK: `uyum_marka_kanonik()` HAM string
+    #   uyelik testi yapar (`deger not in UYUM_MARKA_IZINLI`, strip() YOK) ve ikinci rol
+    #   `n not in _UYUM_MARKA_ANAHTARLARI` ile calisir. Bu tur VARSAYILMADI, IDDIAYLA
+    #   DOGRULANDI: `"zero"` · `"ZERO"` · `" Zero"` · `"Zero "` · `"Zero Waste"` ·
+    #   `"zero clearance"` · `"Zeross"` · `"C-Zero"` sekizi de REDDEDILDI; yalniz `"Zero"`
+    #   kabul edildi ve AYNEN dondu. Jenerik "zero" kullanimi sozluge DEGMEZ.
+    # 🔴 IZOLASYON: `build.py --cikti-kok <temp>` KULLANILMADI (7. turda olculen sizinti —
+    #   marka_model/landing/kategori_hub `ctx["ROOT"]`e yazar, build.py:5059, ve gitignore
+    #   yuzunden `git status` TEMIZ kalir, sizinti GORUNMEZ). Izolasyon `git archive` ile
+    #   AYRI bir ROOT kopyasi kurularak saglandi, build.py ORADAN kosuldu (log `CIKTI_KOK=
+    #   <izole ROOT> (varsayilan)` diyor — yonlendirme YOK). Iki eksenin ESITLIGI
+    #   izolasyonun KENDISININ de olcusudur; ayrisirlarsa once izolasyondan suphelenilir.
+    # 🔴 KIYAS KUME FARKIYLA YAPILIR, SAYIYLA DEGIL: bir sayfa olup yerine baskasi dogsaydi
+    #   TOPLAM SABIT kalirdi (mutantla kanitli, 6. tur). Kaybolan ve dogan AYRI AYRI basilir.
+    # 🔴 MUTANT HEDEF KOLU ADIYLA OLDURULDU (K182: "kirmizi geldi" tek basina kanit DEGIL):
+    #   `Zero` kumeden CIKARILINCA `{"marka":"Zero","model":"SR/F"}` fiksturu
+    #   `uyum_ogesi_sebebi()`de RED aldi VE red metni HEDEF koldan geldi ("marka ZORUNLU ve
+    #   KAPALI kumeden olmali"); geri konunca YESIL. Ilgisiz bir KONTROL mutanti da kosuldu.
+    "Zero",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -968,6 +1022,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 7. tur (2 Eyl 2026) — gerekce + olculen katalog agirligi + K220 ikinci-rol olcumu
     # UYUM_MARKA_IZINLI'nin "C grubu" 7. tur basliginda yazili. Burada TEKRAR EDILMEZ.
     "SYM",
+    # 8. tur (4 Eyl 2026) — gerekce + olculen katalog agirligi + K220 ikinci-rol olcumu
+    # UYUM_MARKA_IZINLI'nin "C grubu" 8. tur basliginda yazili. Burada TEKRAR EDILMEZ.
+    "Zero",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
