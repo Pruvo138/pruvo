@@ -2,62 +2,32 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 2 EYL 15:3xZ — MIMAR OTURUMU (supurme turu; katalog 32.790, MaCiT partileri akiyor)
-**SILME HATTI CANLI (Okan deploy etti; tam olcum ARSIVDE):** `pruvo-shop` `1a964648` 13:52:59Z · canli bundle'da `/urun-sil`=2 · buton RENDER ediyor · NEGATIF KOL canlida yesil (yanlis onay id'si kuyruga YAZMADI, kuyruk 9/9 degismedi). 🔧 POZITIF KOL: Okan tiki.
-**SUPURME:** cip agaclari **237→107 MB** (`eager-shtern-b4ec5c` + `frosty-robinson-4ec3be`;
-capalari `origin/claude/quizzical-nobel-b53ffb`'de DURUYOR — izlenmeyen 48 MB render `--force`
-ile gitti, V5 HTML dalda commit'li, gorseller Okan'a teslim edilmisti). 3 dal silindi;
-`yedek/k337-*` + `ileri>0` 40 dal DURUYOR. Canli iki agaca dokunulmadi.
-**MaCiT'e HUKUM VERILDI (2 kez bildirmisti, 16 urun tikaniyordu):** `model` yazimi = aksan INER
-(ASCII), ureticinin AYRAC yazimi KORUNUR, celiski karara tasinir, `arama.py` marka listesine
-DOKUNULMAZ (K220). Rehbere yazildi. 🔴 **Onculu olctum, rapor YANLISTI:** 32.790 kayit/1534
-model yazimi, celiski **0** → is migrasyon degil YAZIM KURALI; katalog verisi degismez.
-✅ **K359 KAPANDI — MERGE `9e6d32b7`** (cip oturumu kapanis yazmadan dustu, dali mimar olctu+aldi;
-merge-kapisi yordami). (A) imzali `SAYILI KAPANIS` backticksiz taninir + ANMAK≠SAHIPLENMEK ·
-(B) acilisi yerinde atlanan blogun KAPANISI arsive TASINMAZ (olu slot dogmuyor). Dal agacinda
-**45 vaka/377 iddia/0 kirmizi** (taban 42/335), 4 negatif fikstur, hedef-kol atifli mutant,
-`kilitledi=0 HEDEF DEGIL` sayiyla civili. Merge oncesi: kapsam 2 dosya · cakisma 0 ·
-ci-kapsam DAL AGACINDA YESIL · D1 SAYI+SAYAC+SEQ+SEMA yesil (32790). **CANLI ETKI: kilitli acik
-blok 24 → 11**, `kapanmis_basliyorum=2`, `CIFT_KORUMASI=0`, kutu 244/250. Once ELLE tek seferlik
-rotasyon gerekmisti (7 bayat 31 Agu ACILIS blogu, kutu −5440 B / arsiv +5438 B, 7/7 birebir).
-Cip agaci+dal temizlendi (52 MB). **KOSAN CIP:** V5 ana sayfa canliya alma (`jovial-mirzakhani`;
-benim mukerrer onerim GERI CEKILDI).
-🔴 **A3: 15:47Z KOSUMU HIC ATESLEMEDI → KADANS 12 sa'ten 4 sa'e CEKILDI (Okan karari).** Yapisal
-hipotezler ELENDI: YAML `on:` dogru ayrisiyor (schedule ICERIDE), `state=active`, depo
-fork/arsiv/disabled DEGIL, concurrency masum. Kalan tek fark KADANS: schedule TESLIM EDEN 4 is
-akisinin 4'u de saat-alti/saatlik, teslim etmeyen TEK is akisi 12 saatlikti (pencere basina TEK
-sans). 🔴 **SAATLIK YAPILAMAZ — OLCTUM:** iptal EDILMEYEN kosum suresi ort **95,0 dk** / medyan
-99,6 / max 131,9 (n=13); `schedule` kolu TEK kuyruk + `cancel-in-progress:false` oldugundan
-saatlik aralik kuyrugu SINIRSIZ buyuturdu. `47 */4` = gunde 6 sans, 240 dk > 131,9 dk max.
-`is-akisi-kapisi` YESIL (228 kendini-test iddiasi), A1 yeni cron'u kabul etti.
-✅ **A3 KAPANDI — SERIT B ARTIK ZAMANLANMIS HUKUM ALIYOR.** `cron-nabiz-kapisi` **rc=0**,
-`SONUC: DENETIM TAZE ✅ (zamanlanmis isler fiilen kosuyor)`; A3 dusen kol listesinden CIKTI.
-Kanit: `event=schedule` kosumu **id 33692387773**, created **22:51:33Z**, completed
-(conclusion=failure — SERIT B'nin ISI zaten kirmiziyi RAPORLAMAK; K373'un istedigi "garantili
-hukum" tam da bu).
-🔴 **BENIM 21:20Z "ATESLEMEDI" HUKMUM ERKENDI — DUZELTME:** kosum 20:47Z penceresine ait ve
-**125 dakika GECIKMEYLE** dustu; ben yalniz 33 dk pay birakmistim. Yani teslim YOK degil, GEC.
-Kadans hipotezi de bu yuzden "curudu" diye yazilmisti — dogrusu: OLCUM PENCERESI DARDI.
-`47 */4` yine de KALIYOR (12 saatlik kadans + 2 saatlik jitter kirilgandi; 4 saat = gunde 6 sans).
-🟠 parti cron 20:33 yerel. 🟠 MaCiT sahipli 1 CI kirmizisi (`cbfc3721` failure) — onun duzlemi.
-✅ **V5 GUVEN BLOGU CANLIDA — merge `2d2510bf`** (cip `jovial-mirzakhani`; defter kalemini mimara
-birakti). MIMAR BAGIMSIZ TEYIDI (kanonik URL, cache-bust'siz): ana sayfa 200 · **5 rozet
-varliginin 5'i R2'den GET 200** (icerik-hash'li ad) · `hgKargoMetinYazi`+`KARGO_BEDAVA_ESIK_KURUS`
-duruyor (metin JS'te esikten TURUYOR, HTML'de rakam YOK) · `3d bask`=0 · `fethiye`=1 (yalniz
-JSON-LD) · `gocek`=0 · `2d2510bf` origin/main atasi rc=0. Cipin olcumu: @375 header **208→185,5px**,
-@1366 **164=164**, tasma 0. Kargo kapisina **DAR muafiyet** (BaBa+Okan pencere onayi; kapi
-GEVSETILMEDI, 4 yeni mutant KIRMIZI + kontrol YESIL). 🔧 Kapsam disi kalan: taslaktaki
-`main{padding}` + sepet `pay-pill` resmi logo — istenirse ayri kalem.
-🔴 **SYM BLOKE — MaCiT'in 9 urunu bekliyor; cip `task_afe886fb` acildi.** `"SYM"`
-`UYUM_MARKA_IZINLI`de YOK, `hasat_ekle.py` fail-closed dusuyor. K220 IKINCI ROL KOLU MIMARCA
-OLCULDU (katalog 32.944): `uyum[].model`/`motor`/`oem`/`marka` ve `urun.marka[]` **hepsi 0**,
-alt-dize 0, ayni koke inen mevcut marka YOK → jeton hicbir mevcut kaydi gecersiz kilmaz.
-Kalan sart (Raymarine emsalinin kendi yazdigi): URL kumesi ekleme ONCESI/SONRASI izole ROOT'ta,
-IKI bagimsiz eksenden, kiyas KUME FARKIYLA (kaybolan=0 ∧ dogan=0). Kume 181→182, mimar eki 42→43.
-**OKAN'DA:** panel-tik pozitif kolu (tek tik) · 24 bitmis oturum arsivi (liste kutuda).
-
-✅ **KUTU KILIDI ACILDI (2 Eyl, `--kapanislari-isle`):** kutu **296→198** (tavan 250), arsiv **60087→60185**;
-CEVRIM=8 · blok 26=18+8 · bayt 52679=31618+21061 · `lossless=GECTI` · oksuz=0 · 10 ACIK BASLIYORUM YERINDE.
+## 🔁 3 EYL 07:2xZ — MIMAR OTURUM KAPANISI (`49ebe540` = `origin/main` BIREBIR, agac temiz)
+**CANLIYA GIDEN (hepsi main'de):** K359 `9e6d32b7` (kutu arsivleyici kapanis eslesmesi + cift
+butunlugu; canli etkide kilitli blok 24→11) · V5 guven blogu `2d2510bf` (mimar teyidi: ana sayfa
+200, 5 rozet R2'den GET 200, `3d bask`=0, `fethiye`=1 yalniz JSON-LD) · `uyum[].model` yazim kurali
+`3872767e` · nobet kadans 12sa→4sa `49405800` · **SYM jetonu `f6438a94`** + defter commit'leri.
+✅ **A3 KAPANDI** — `cron-nabiz-kapisi` rc=0, "zamanlanmis isler fiilen kosuyor"; kanit
+`event=schedule` id **33692387773** (created 22:51:33Z = 20:47Z penceresi **+125 dk**).
+🔴 Ders: "atesleMEDI" hukmumu 33 dk payla verdim, ERKENDI — bu is akisinda pay **>=3 saat**.
+✅ **SYM ZINCIRI UCTAN UCA KAPANDI (mimar bagimsiz teyidi):** `UYUM_MARKA_IZINLI` **182**,
+`UYUM_MARKA_MIMAR_EKI` **43**, `k302-marka-kabul-kapisi` **rc=0** (A1-A5+KONTROL+M1/M2 GECTI),
+canli katalogda `uyum[].marka=="SYM"` **9 urun** — MaCiT'in bloke 9 urunu YAYINDA (katalog 33.113).
+**KOSUYOR — OLDURMEYIN:** cip `friendly-carson-1440e3` (KraL-Tamirci-3Eyl, dal ayni ad, motor
+Claude; spec `KraL-Tamirci-20260903.md`, isi: panel STL yukleyicide salt-ASCII `STL_DOSYA_ADI_RX`
+sinif onarimi + merge kuyrugu kapsam olcumu). Yabanci agac `amazing-ishizaka-2d4a0f` — DOKUNULMADI.
+**BEKLIYOR — neyi olcmek kapatir:** 🟠 panel-tik POZITIF kolu → *kapatan olcum:* Okan panelden
+kobayi silince kuyruk satiri (`alan='sil'`, `beklemede`) yazilir; ben olcup Iptal ile geri alirim
+(bende izin siniflandiricisi blokladi). · 🟠 39 yerel / 43 uzak dal `ileri>0` — hicbiri bu
+oturumun isi. · 🟠 STL yukleyici Turkce karakter kalemi → kosan Tamirci cipinde.
+**OKAN'DA:** panel-tik (tek tik) · 24 bitmis oturum arsivi (12x `Teftis takip` + 12x `Gunluk mimar
+ihtar`; `archive_session` mimarca CAGRILMAZ — merge-kapisi §7).
+**TEMIZLIK KANITI:** cip agaci `jovial-mirzakhani-f6336b` kaldirildi (porcelain TEMIZ + dal
+`charming-dubinsky-2769fd` is-ancestor rc=0 + ileri commit 0) → worktrees **1,2 GB → 104 MB**;
+dal silindi. Bu oturumda toplam 4 cip agaci + 4 dal temizlendi. Scratchpad kapanista 0 B.
+**MOTOR ORANI:** m3 0 · kimi 0 · Claude tam. Bu turun isi kapi/olcum kodu, merge hukmu, CI kadansi
+ve marka-jetonu yargisi — CLAUDE.md "Claude'da kalan" kumesi; deterministik olcumler ($0 betik):
+kutu/defter rotasyonu, dal envanteri, bundle jeton sayimi, kosum suresi istatistigi.
 
 ## 🔴 CANLI TALIMAT (K353 blogu ARSIVE indi, tam metin `DEVAM-ARSIV.md`'de)
 K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci). 🔧 ACIK: T1a — worker deploy = OKAN kapisi.
