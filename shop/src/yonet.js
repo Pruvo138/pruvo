@@ -222,8 +222,13 @@ const DRIVE_TABAN = "https://drive.google.com/file/d/";
  */
 const DRIVE_ID_RX = /Drive\s*file[ _-]?Id\s*[:=]?\s*([A-Za-z0-9_-]{16,200})/gi;
 
-/** Uretim dosyasi adi (yalniz .stl/.3mf) — baglantinin NE oldugunu soyler. */
-const URETIM_DOSYA_RX = /([A-Za-z0-9][A-Za-z0-9._-]*\.(?:stl|3mf))/gi;
+/** Uretim dosyasi adi (yalniz .stl/.3mf) — baglantinin NE oldugunu soyler.
+ *  🔴 UNICODE: salt-ASCII sinif Turkce harfte ADI SESSIZCE KIRPIYORDU —
+ *  "crf-zincir-kilavuz-ara.stl" notta `lavuz-ara.stl` diye okunuyordu, yani
+ *  panel YANLIS DOSYA ADI gosteriyordu (bu duzlemde yanlis dosya = pahali
+ *  uretim hatasi). Yakalanan deger href DEGIL etikettir (href ekseni
+ *  DRIVE_ID_RX; o DAR kalir) ve render `esc()` ile basilir. */
+const URETIM_DOSYA_RX = /([\p{L}\p{N}][\p{L}\p{N}._-]*\.(?:stl|3mf))/giu;
 
 /**
  * SINIF ISARETLERI — sira ONEMLI: metinde bir fileId'den ONCE gelen EN YAKIN isaret
@@ -1344,6 +1349,16 @@ function tirnaksiz(s) { return String(s || "").replace(/["\r\n]/g, ""); }
 
 const IZINLI_UZANTI = /\.(stl|3mf)$/i;
 
+/** Dosya adinin KANONIK bicimi (NFC).
+ *  🔴 NEDEN ZORUNLU: macOS dosya adlarini NFD verir — `ğ` = `g` + U+0306.
+ *  Birlesik isaret \p{M} sinifindadir, \p{L}/\p{N} DEGILDIR; normalize
+ *  edilmeden Turkce ad hem REDDEDILIR hem de ayni ad iki FARKLI R2 anahtari
+ *  uretir (yuklenen dosya listede gorunmez). Dogrulama, anahtar kurulumu ve
+ *  liste karsilastirmasi AYNI kanonik bicim uzerinde yapilir. */
+function stlAdiNormal(dosya) {
+  return typeof dosya === "string" ? dosya.normalize("NFC") : "";
+}
+
 /** Urunun R2'deki parca dosyalari: [{dosya, boyut}]. */
 async function parcalariListele(env, urunId) {
   const liste = await env.OZEL_DOSYA.list({ prefix: "stl/" + urunId + "/" });
@@ -1373,7 +1388,7 @@ async function stlListe(env, url) {
 async function stlIndir(env, url) {
   const siparisNo = url.searchParams.get("siparis_no") || "";
   const idParam = url.searchParams.get("id") || "";
-  const dosyaParam = url.searchParams.get("dosya") || "";
+  const dosyaParam = stlAdiNormal(url.searchParams.get("dosya") || "");
 
   // --- Normal urun parcasi: id + dosya ---
   if (idParam && dosyaParam) {
@@ -2030,9 +2045,14 @@ async function gorselYukle(request, env, url) {
 // yalniz .stl/.3mf). 280 MB'lik dosyalar var (bkz. /stl yorumu) -> govde belege
 // ALINMAZ, stream PUT edilir; tavan Content-Length'ten olculur.
 const STL_BOYUT_TAVANI = 300 * 1024 * 1024;
-const STL_DOSYA_ADI_RX = /^[A-Za-z0-9][A-Za-z0-9._ -]{0,180}$/;
+// 🔴 UNICODE IZIN LISTESI (blocklist DEGIL): harf/rakam siniflari + `. _ -` ve
+// bosluk. Ayirac, `..`, tirnak, kontrol karakteri, `%`, `:`, `?` bu sinifin
+// DISINDA kalir ve REDDEDILIR — savunma daralmadi, yalnizca ALFABE genisledi.
+// Ilk karakter harf/rakam: bastaki `.`/`-`/bosluk YINE gecmez.
+const STL_DOSYA_ADI_RX = /^[\p{L}\p{N}][\p{L}\p{N}._ -]{0,180}$/u;
 
-function stlDosyaAdiGecersiz(dosya) {
+function stlDosyaAdiGecersiz(ham) {
+  const dosya = stlAdiNormal(ham);
   return dosya.includes("/") || dosya.includes("\\") || dosya.includes("..") ||
     !IZINLI_UZANTI.test(dosya) || !STL_DOSYA_ADI_RX.test(dosya);
 }
@@ -2040,7 +2060,7 @@ function stlDosyaAdiGecersiz(dosya) {
 /** POST /yonet/stl-yukle?id=&dosya= (govde=ham dosya) -> {tamam, dosya, boyut} */
 async function stlYukle(request, env, url) {
   const uid = url.searchParams.get("id") || "";
-  const dosya = url.searchParams.get("dosya") || "";
+  const dosya = stlAdiNormal(url.searchParams.get("dosya") || "");
   if (!/^[a-z0-9-]{1,120}$/.test(uid)) { return yjson({ hata: "gecersiz-id" }, 400); }
   if (!env.OZEL_DOSYA) { return yjson({ hata: "r2-baglanti-yok" }, 503); }
   if (stlDosyaAdiGecersiz(dosya)) {
@@ -2069,7 +2089,8 @@ async function stlCikar(request, env) {
     return yjson({ hata: "gecersiz istek govdesi" }, 400);
   }
   const uid = typeof (govde && govde.id) === "string" ? govde.id.trim() : "";
-  const dosya = typeof (govde && govde.dosya) === "string" ? govde.dosya : "";
+  const dosya = stlAdiNormal(typeof (govde && govde.dosya) === "string"
+    ? govde.dosya : "");
   if (!/^[a-z0-9-]{1,120}$/.test(uid)) { return yjson({ hata: "gecersiz-id" }, 400); }
   if (!env.OZEL_DOSYA) { return yjson({ hata: "r2-baglanti-yok" }, 503); }
   if (stlDosyaAdiGecersiz(dosya)) { return yjson({ hata: "dosya-yok" }, 404); }

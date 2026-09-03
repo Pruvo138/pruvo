@@ -594,6 +594,22 @@ jobs:
       - name: Uretici kaynak linki + acilir kart (panel gizlilik kapisi)
         run: node shop/test/panel-kaynak.mjs
 
+      # URETIM DOSYASI ADI: KARAKTER KUMESI EKSENI (shop/test/stl-dosya-adi.mjs).
+      # OLCULEN BASLANGIC (Okan bildirdi 2 Eyl): panel STL yukleyicisi Turkce karakterli
+      # dosya adini REDDEDIYORDU — `STL_DOSYA_ADI_RX` salt-ASCII idi. Kapi TEKIL YAMAYI
+      # DEGIL SINIFI kilitler; adin karakter kumesini okuyan UC yuzey birden olculur:
+      #   * R1 stlDosyaAdiGecersiz (yukleme/cikarma)   -> Turkce ad GECER,
+      #   * R2 stlIndir savunmasi + R2 liste esleme    -> ayni kanonik bicimden okur,
+      #   * R3 URETIM_DOSYA_RX (uretim notu ayristirma) -> adi KIRPMAZ; ASCII kalsaydi
+      #     panel "...kilavuz-ara.stl" yerine "lavuz-ara.stl" gosterirdi = YANLIS DOSYA.
+      # NFC EKSENI: macOS adlari NFD verir (yumusak g = g + U+0306); normalize edilmezse
+      # ayni ad IKI FARKLI R2 anahtari uretir ve yuklenen dosya listede GORUNMEZ.
+      # SAVUNMA DARALMADI: ayirac/`..`/tirnak/NUL/kontrol karakteri/%/:/? YINE REDDEDILIR
+      # (20 negatif vaka). Iddialar deploy edilen GERCEK kaynaktan dilimlenir, KOPYA
+      # yazilmaz. Ag/wrangler GEREKMEZ; calisma agaci KIRLENMEZ. continue-on-error YOK.
+      - name: Uretim dosyasi adi (Unicode kabul + savunma daralmadi)
+        run: node shop/test/stl-dosya-adi.mjs
+
       # SIPARIS KAYNAGI: KANAL + REKLAM ATFI GORUNURLUGU (31 Agu 2026).
       # OLCULEN BASLANGIC: `siparisler.atif` (utm_* / REF) ve `siparisler.kanal` verisi
       # TOPLANIYORDU ama HICBIR YERDE GORUNMUYORDU — atif yalniz siparisGetir'de SELECT
