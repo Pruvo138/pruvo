@@ -1618,6 +1618,26 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/arsiv-kapisi.py --mutasyon
 
+      # CIP KAPANIS KANCASI (tools/cip-kapanis-kancasi.py) — 4 Eyl 2026.
+      # `Stop` kancasi olarak BES EVIN HER OTURUMUNDA kosar: biten cip, kapisi
+      # yesillenmeden duramaz. Iki felaket kipi de bataryada olculur — bloklamasi
+      # gerekirken gecirmek (yarim is sessizce kapanir) VE gecmesi gerekirken
+      # bloklamak (mimar oturumlari kilitlenir). Kancanin sozlesmesi (stdin alanlari
+      # + stdout {"decision":"block"} + `stop_hook_active`) BU MAKINEDE OLCULDU,
+      # ezberden yazilmadi; docs ulasilamiyordu.
+      # NEDEN SERIT B: offline, sentetik git fiksturleri; canli repoya dokunmaz.
+      - name: "Cip kapanis kancasi kabul bataryasi (7 vaka, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/cip-kapanis-kancasi-test.py
+
+      # 4 mutant: dongu emniyeti · ana-checkout muafiyeti · tavan · yesili bloklama.
+      # ILK TURDA DORDU DE "ULASMADI" verdi — sebep kancada degil BATARYADAYDI:
+      # `kos(kanca=...)` parametresi cagrilarina ILETILMIYORDU, hep canli kanca
+      # kosuyordu. Mutasyon turu olmasaydi batarya OLU nobetci olarak kalirdi.
+      - name: "Cip kapanis kancasi mutasyon turu (4 mutant + kontrol, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/cip-kapanis-kancasi-test.py --mutasyon
+
       # KUTU ESIK KAPISI (tools/kutu-esik-kapisi.py) — K188. Yukaridaki arsivleyici
       # kutuyu TAVANA INDIREBILIYOR ama esigi YALNIZ kendisi biliyor; kutuya YAZAN yol
       # onu hic olcmuyordu. Sonuc: tavan asimi ancak biri ELLE bakinca goruluyor ve
