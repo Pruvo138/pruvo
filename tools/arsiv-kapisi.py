@@ -85,6 +85,25 @@ def repo_mu(kok):
     return rc == 0 and cikti.strip() != ""
 
 
+def repo_turet(hedef):
+    """(ana_repo|None, nereden) — HEDEFIN yolundan ANA checkout'u turet.
+
+    🔴 NEDEN: cipler bes ayri evde yasiyor (pruvo · hasat · pazarlama · bot ·
+    jenerator). `--repo` elle yazdirmak, gun boyu cip arsivleyen birine her cagride
+    dogru evi HATIRLAMA odevi yukler ve yanlis ev sessiz `OLCULEMEDI` uretir.
+    `--git-common-dir` worktree'den ANA depoyu verir; yol repo degilse None doner ve
+    cagiran VARSAYILAN_REPO'ya duser (hukum degismez, yalniz kolaylik)."""
+    if not hedef or not os.path.isdir(hedef):
+        return None, "hedef dizin degil"
+    rc, cikti, _ = _git(hedef, "rev-parse", "--path-format=absolute",
+                        "--git-common-dir")
+    if rc != 0 or not cikti.strip():
+        return None, "git-common-dir cozulemedi"
+    ortak = os.path.realpath(cikti.strip())
+    ana = os.path.dirname(ortak) if os.path.basename(ortak) == ".git" else ortak
+    return (ana, "hedeften turetildi") if repo_mu(ana) else (None, "turetilen yol repo degil")
+
+
 # ------------------------------------------------------------------ kutu kaynagi
 
 def _kutu_kaynak_yolu(repo):
@@ -465,6 +484,17 @@ def _cikti_sozlesmesi(sessiz=False):
              out.index("HUKUM=") < (out.index(DURDUR_JETON) if DURDUR_JETON in out else -1)),
             ("rc korundu", s.returncode == RC_ARSIVLENEMEZ),
         )
+        # REPO TURETME: `--repo` VERILMEDEN cagrildiginda hedefin yolundan ana
+        # checkout turetilmeli. Turetme kirilirsa kapi SESSIZCE pruvo'yu olcer ve
+        # kardes evdeki cip icin YANLIS EVIN main'ine bakar — hukum sahte olur.
+        s2 = subprocess.run([sys.executable, os.path.realpath(__file__), hedef,
+                             "--kutu", kutu],
+                            capture_output=True, text=True)
+        kontroller += (
+            ("REPO satiri basildi", "REPO=" in s2.stdout),
+            ("REPO hedeften turetildi", ("REPO=%s (hedeften turetildi)" % repo) in s2.stdout),
+        )
+
         for ad, ok in kontroller:
             iddia += 1
             if ok:
@@ -602,6 +632,10 @@ MUTANTLAR = (
     ("M8 arsiv-kolunu-kaldir", KOL_KAPANIS,
      '    ars = arsiv_yolu(kutu_yolu)\n    if os.path.isfile(ars):',
      '    ars = arsiv_yolu(kutu_yolu)\n    if False:'),
+    # Repo turetmeyi oldur -> kardes evdeki cip icin SESSIZCE pruvo olculur.
+    ("M9 repo-turetmeyi-oldur", "REPO_TURETME",
+     '    if not hedef or not os.path.isdir(hedef):\n        return None, "hedef dizin degil"',
+     '    if True:\n        return None, "hedef dizin degil"'),
 )
 
 
@@ -660,7 +694,9 @@ def mutasyon():
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Cipi ARSIVLEMEDEN ONCE kosulan kapi.")
     ap.add_argument("hedef", nargs="?", help="worktree yolu ya da dal adi")
-    ap.add_argument("--repo", default=VARSAYILAN_REPO)
+    ap.add_argument("--repo", default=None,
+                    help="ana checkout; VERILMEZSE hedefin yolundan TURETILIR, "
+                         "turetilemezse %s" % VARSAYILAN_REPO)
     ap.add_argument("--kutu", default=VARSAYILAN_KUTU)
     ap.add_argument("--cip", default=None, help="kutuda aranacak cip adi (varsayilan: agac adi)")
     ap.add_argument("--ana", default="main")
@@ -676,7 +712,13 @@ def main(argv=None):
     if not a.hedef:
         ap.error("hedef gerekli (worktree yolu ya da dal adi) — ya da --kendini-test")
 
-    hukum, rc, satirlar = olc(a.repo, a.hedef, a.cip, a.kutu, a.ana)
+    repo = a.repo
+    if repo is None:
+        turetilen, nereden = repo_turet(a.hedef)
+        repo = turetilen or VARSAYILAN_REPO
+        print("REPO=%s (%s)" % (repo, nereden if turetilen else "varsayilan: " + nereden))
+
+    hukum, rc, satirlar = olc(repo, a.hedef, a.cip, a.kutu, a.ana)
     for s in satirlar:
         print(s)
     print("HUKUM=%s rc=%d" % (hukum, rc))
