@@ -2,32 +2,37 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 3 EYL 07:2xZ — MIMAR OTURUM KAPANISI (`49ebe540` = `origin/main` BIREBIR, agac temiz)
-**CANLIYA GIDEN (hepsi main'de):** K359 `9e6d32b7` (kutu arsivleyici kapanis eslesmesi + cift
-butunlugu; canli etkide kilitli blok 24→11) · V5 guven blogu `2d2510bf` (mimar teyidi: ana sayfa
-200, 5 rozet R2'den GET 200, `3d bask`=0, `fethiye`=1 yalniz JSON-LD) · `uyum[].model` yazim kurali
-`3872767e` · nobet kadans 12sa→4sa `49405800` · **SYM jetonu `f6438a94`** + defter commit'leri.
-✅ **A3 KAPANDI** — `cron-nabiz-kapisi` rc=0, "zamanlanmis isler fiilen kosuyor"; kanit
-`event=schedule` id **33692387773** (created 22:51:33Z = 20:47Z penceresi **+125 dk**).
-🔴 Ders: "atesleMEDI" hukmumu 33 dk payla verdim, ERKENDI — bu is akisinda pay **>=3 saat**.
-✅ **SYM ZINCIRI UCTAN UCA KAPANDI (mimar bagimsiz teyidi):** `UYUM_MARKA_IZINLI` **182**,
-`UYUM_MARKA_MIMAR_EKI` **43**, `k302-marka-kabul-kapisi` **rc=0** (A1-A5+KONTROL+M1/M2 GECTI),
-canli katalogda `uyum[].marka=="SYM"` **9 urun** — MaCiT'in bloke 9 urunu YAYINDA (katalog 33.113).
-**KOSUYOR — OLDURMEYIN:** cip `friendly-carson-1440e3` (KraL-Tamirci-3Eyl, dal ayni ad, motor
-Claude; spec `KraL-Tamirci-20260903.md`, isi: panel STL yukleyicide salt-ASCII `STL_DOSYA_ADI_RX`
-sinif onarimi + merge kuyrugu kapsam olcumu). Yabanci agac `amazing-ishizaka-2d4a0f` — DOKUNULMADI.
-**BEKLIYOR — neyi olcmek kapatir:** 🟠 panel-tik POZITIF kolu → *kapatan olcum:* Okan panelden
-kobayi silince kuyruk satiri (`alan='sil'`, `beklemede`) yazilir; ben olcup Iptal ile geri alirim
-(bende izin siniflandiricisi blokladi). · 🟠 39 yerel / 43 uzak dal `ileri>0` — hicbiri bu
-oturumun isi. · 🟠 STL yukleyici Turkce karakter kalemi → kosan Tamirci cipinde.
-**OKAN'DA:** panel-tik (tek tik) · 24 bitmis oturum arsivi (12x `Teftis takip` + 12x `Gunluk mimar
-ihtar`; `archive_session` mimarca CAGRILMAZ — merge-kapisi §7).
-**TEMIZLIK KANITI:** cip agaci `jovial-mirzakhani-f6336b` kaldirildi (porcelain TEMIZ + dal
-`charming-dubinsky-2769fd` is-ancestor rc=0 + ileri commit 0) → worktrees **1,2 GB → 104 MB**;
-dal silindi. Bu oturumda toplam 4 cip agaci + 4 dal temizlendi. Scratchpad kapanista 0 B.
-**MOTOR ORANI:** m3 0 · kimi 0 · Claude tam. Bu turun isi kapi/olcum kodu, merge hukmu, CI kadansi
-ve marka-jetonu yargisi — CLAUDE.md "Claude'da kalan" kumesi; deterministik olcumler ($0 betik):
-kutu/defter rotasyonu, dal envanteri, bundle jeton sayimi, kosum suresi istatistigi.
+## 🔁 3 EYL 14:2xZ — MIMAR OTURUM KAPANISI (`5ccc2b5b` = `origin/main` BIREBIR)
+**CANLIYA GIDEN (bu oturumun turlari):** K359 `9e6d32b7` · V5 guven blogu `2d2510bf` ·
+`uyum[].model` yazim kurali `3872767e` · nobet kadansi 12sa→4sa `49405800` · SYM jetonu
+`f6438a94` · defter/kapanis commit'leri. **A3 KAPANDI** (`cron-nabiz` rc=0; kanit
+`event=schedule` id **33692387773**, 20:47Z penceresi **+125 dk** — "atesleMEDI" hukmumu 33 dk
+payla vermistim, ERKENDI; bu is akisinda pay **>=3 saat**). **SYM zinciri uctan uca**: kume
+**182/43**, `k302` rc=0, canli katalogda `uyum[].marka=="SYM"` **9 urun**.
+🟡 **PANEL SILME HATTI UCTAN UCA ISLEDI (baska oturum kosturdu):** `49ebe540` "panel: 1 ustyazim
+tabana islendi (sil=1)" (urunler.json −18 / arsiv +23), ardindan 07:53:24Z geri yukleme
+(`.diriltme-izin.json` damgasi). 🔴 Benim OLCMEDIGIM: o kuyruk satiri UI butonundan mi dogdu —
+*kapatan olcum (tek sorgu):* `yazan='panel'` ∧ `onay==urun_id` ∧ gerekce dolu.
+🔧 **DEVREDILDI — cip `task_7728a9f3` (`KraL-TamirciMerge-3Eyl`):** gece kosan Tamirci cipi
+`678fdbfd`'i OKSUZ birakti; mimar dala bagladi (**`onarim/tamirci-3eyl`**, kaybolmaz). Iki onarim
+tasiyor: (1) SERIT B taban tekilligi (`shop/test/ortak/panel-yuzey-tabani.mjs` + K43 kilidi +
+deploy.yml) **MAIN'DE YOK** · (2) STL Unicode/NFC **MAIN'DE ZATEN VAR** (`d6fa57c2`+`1908cf1c`,
+paralel is). Mimar olcumu: kapsam 6 dosya +343/−10 · **cakisma TEK dosya `shop/src/yonet.js`
+(merge-tree rc=1)** · desen taramasi 343 satirda **0 vurus** · dal agacinda stl-dosya-adi **52/0**,
+uretim-kaynak **43/0** (main'de K40 42/1 KIRMIZI), panel-kaynak **41/0** · ci-kapsam DAL
+AGACINDA YESIL. Cip yalnizca (1)'i alacak, `yonet.js`de main'in hali KORUNACAK.
+**KOSAN CIP YOK** (Tamirci + StlDosyaAdi + K359 + SYM oturumlarinin hepsi dustu).
+**BEKLIYOR:** 🟠 `task_7728a9f3` merge'i · 🟠 **40 yerel / 43 uzak** dal `ileri>0` — hicbiri bu
+oturumun isi. 🟡 Yabanci `M .diriltme-izin.json` calisma agacinda — BASKA oturumun, DOKUNULMADI.
+**OKAN'DA:** panel-tik `yazan='panel'` teyidi (tek sorgu) · **24 bitmis oturum arsivi**
+(12x `Teftis takip` + 12x `Gunluk mimar ihtar`) — `archive_session` mimarca CAGRILMAZ.
+**TEMIZLIK KANITI (bu tur):** 2 cip agaci kaldirildi (ikisi de porcelain TEMIZ, capalari
+`origin/main` ve `onarim/tamirci-3eyl`de KORUNUYOR) → worktrees **103 MB → 8 KB**; merge olmus
+uzak dal `claude/friendly-wiles-cf5080` silindi. Kutu **351→191 satir** (44.363→25.227 B, 8 blok
+/160 satir arsive, `lossless=GECTI`, cevrilen kapanis jetonu **1**). Oturum genelinde **6 cip
+agaci + 5 dal**. Scratchpad kapanista 0 B.
+**MOTOR ORANI:** m3 0 · kimi 0 · Claude tam — is kapi/olcum kodu, merge hukmu, CI kadansi ve
+marka-jetonu yargisiydi (CLAUDE.md "Claude'da kalan"); mekanik dilim cikmadi.
 
 ## ✅ 3 EYL — STL DOSYA ADI (Okan kalemi 2 Eyl) — cip `KraL-StlDosyaAdi-3Eyl` (`amazing-ishizaka-2d4a0f`, Fable 5.1)
 `shop/src/yonet.js` `/stl-yukle`: `.STL` harf-duyarsiz + R2 anahtarinda kucuk uzanti; Turkce→ASCII (once NFC,
