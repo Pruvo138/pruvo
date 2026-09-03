@@ -20,6 +20,7 @@ import xml.etree.ElementTree as ET
 # Bbox saglik esikleri TEK KAYNAKTAN gelir (K287) — bu dosyada esik SAYISI YOKTUR.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import olcu_saglik
+import olcu_parca
 
 ENDPOINT = "https://api.printables.com/graphql/"
 MEDIA = "https://media.printables.com/"   # + filePath  ->  tam gorsel URL'si
@@ -344,10 +345,22 @@ def cc_turu(abbr):
     return None
 
 
+# --- PARCA (bagli bilesen) ayrimi -> TEK KAYNAK: tools/olcu_parca.py ----------
+# 🔴 OLCU EN BUYUK PARCA UZERINDEN verilir (dosya bbox'i DEGIL). Hukum, olculen
+# gerekce (canli onbellekte cok-parcali dosya %20,2; sapma ort. %21,8 / en kotu
+# %70,6) ve algoritma `tools/olcu_parca.py` bas yorumundadir. Buraya IKINCI GOVDE
+# YAZILMAZ: K287'de saglik hukmunun alti kopyasi "AYNI karar" diye iddia ederken
+# sessizce ayrismisti; nobetcisi tools/olcu-en-buyuk-parca-test.py TEK KAYNAK kolu.
+en_buyuk_parca_boyu = olcu_parca.en_buyuk_parca_boyu
+
+
 def stl_bbox(path):
     """STL dosyasinin sinir kutusu olcusu (mm, buyukten kucuge, tam sayi liste) ya da None.
     HTML/bozuk dosyalari eler. Binary STL BIRIM BEYANI TASIMAZ -> en buyuk boyut belirsiz-birim
-    bolgesindeyse (< 2 birim) olcu KAYNAK-DOGRULANAMAZ; uydurma yerine None doner (fail-closed)."""
+    bolgesindeyse (< 2 birim) olcu KAYNAK-DOGRULANAMAZ; uydurma yerine None doner (fail-closed).
+
+    OLCU EN BUYUK PARCA UZERINDEN verilir (bkz `_parca_kutulari` bas notu): bir .stl
+    icinde tabla dizilmis birden cok govde varsa dosya-bbox'i URUNUN olcusu DEGILDIR."""
     with open(path, "rb") as f:
         data = f.read()
     head = data[:512].lstrip().lower()
@@ -379,7 +392,7 @@ def stl_bbox(path):
                     pass
     if not xs:
         return None
-    d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
+    d = sorted(en_buyuk_parca_boyu(xs, ys, zs, kaynak=path), reverse=True)
     # SAGLIK HUKMU tools/olcu_saglik.py'de (kucuk uc = belirsiz birim · buyuk uc = orta
     # boyut tavani). STL birim beyani TASIMAZ -> birim_beyanli=False.
     return olcu_saglik.suz(d)
@@ -493,6 +506,15 @@ def bbox_3mf(path):
             objeler[yol] = h
 
         xs, ys, zs = [], [], []
+        # 🔴 PARCA AYRIMI (2026-09-03): 3MF'de yapisal parca birimi <build><item>'dir —
+        # tabla dizilmis her govde ayri bir item'dir. Her item'in bbox'i AYRI tutulur ve
+        # olcu EN BUYUK item'dan verilir; eskiden TUM item'larin BIRLESIK min/max'i
+        # aliniyordu, yani "tabla olcusu" urunun olcusu diye yaziliyordu.
+        # 🔴 BEYAN EDILEN SINIR: bir item'in ICINDE hala birden cok kopuk govde olabilir;
+        # item-ici bagli-bilesen ayrimi YAPILMAZ (3MF yolunda ucgen indisleri toplanmiyor,
+        # yalniz vertex'ler). STL/OBJ yolunda ayrim bilesen duzeyindedir. Bu sinir bilinerek
+        # birakildi: item duzeyi 3MF'in KENDI parca modelidir, tahmin degil.
+        item_kutulari = []
 
         def _vertices_el(obj):
             for ch in obj:
@@ -542,7 +564,12 @@ def bbox_3mf(path):
                 if _yerel(item.tag) != "item" or item.get("objectid") is None:
                     continue
                 T = _matris(item.get("transform")) or _3MF_BIRIM_MAT
+                onceki = len(xs)
                 _coz(yol, item.get("objectid"), T, 0)
+                if len(xs) > onceki:                      # bu item'in KENDI bbox'i
+                    ix, iy, iz = xs[onceki:], ys[onceki:], zs[onceki:]
+                    item_kutulari.append((max(ix) - min(ix), max(iy) - min(iy),
+                                          max(iz) - min(iz)))
 
         # geri-dusus: cozum bos donduyse tum modellerin ham vertex'leri (transform'suz)
         if not xs:
@@ -558,9 +585,13 @@ def bbox_3mf(path):
         if not xs:
             return None
 
-        d = sorted([(max(xs) - min(xs)) * carpan,
-                    (max(ys) - min(ys)) * carpan,
-                    (max(zs) - min(zs)) * carpan], reverse=True)
+        # OLCU EN BUYUK PARCA'dan: build item'i cozulduyse en buyuk HACIMLI item,
+        # cozulemediyse (ham-vertex geri-dususu) dosya birlesigi.
+        if item_kutulari:
+            ham = max(item_kutulari, key=lambda k: (k[0] * k[1] * k[2], k[0]))
+        else:
+            ham = (max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs))
+        d = sorted([ham[0] * carpan, ham[1] * carpan, ham[2] * carpan], reverse=True)
         # 3MF `unit` BEYAN EDER (carpan yukarida uygulandi) -> belirsiz-birim kolu MUAF.
         return olcu_saglik.suz(d, birim_beyanli=True)
     except Exception:
@@ -589,16 +620,50 @@ def obj_bbox(path):
     if head.startswith(b"<") or b"<html" in head or b"just a moment" in head:
         return None
     xs, ys, zs = [], [], []
+    yuzler = []                              # PARCA ayrimi icin: her yuzun vertex indisleri
     for line in data.decode("utf-8", "ignore").splitlines():
         p = line.split()
-        if len(p) < 4 or p[0] != "v":       # 'vt'/'vn' TAM esitlikle elenir
+        if not p:
             continue
-        try:
-            xs.append(float(p[1])); ys.append(float(p[2])); zs.append(float(p[3]))
-        except ValueError:
-            continue
+        if p[0] == "v" and len(p) >= 4:      # 'vt'/'vn' TAM esitlikle elenir
+            try:
+                xs.append(float(p[1])); ys.append(float(p[2])); zs.append(float(p[3]))
+            except ValueError:
+                continue
+        elif p[0] == "f" and len(p) >= 4:
+            # 'f v', 'f v/vt', 'f v//vn', 'f v/vt/vn' — ilk alan vertex indisi.
+            # OBJ indisleri 1-tabanli; NEGATIF indis dosya sonundan geriye sayar.
+            idx = []
+            for jeton in p[1:]:
+                try:
+                    i = int(jeton.split("/")[0])
+                except ValueError:
+                    idx = []
+                    break
+                idx.append(i)
+            if len(idx) >= 3:
+                yuzler.append(idx)
     if not xs:
         return None
+    # 🔴 OLCU EN BUYUK PARCA UZERINDEN (stl_bbox ile AYNI hukum, ayni yardimci).
+    # OBJ'de parca = `f` yuzleriyle birbirine bagli vertex kumesi. Yuz satiri YOKSA
+    # (salt nokta bulutu) parca ayrimi yapilamaz -> dosya-bbox'i AYNEN korunur.
+    if yuzler:
+        n = len(xs)
+        ucgen_x, ucgen_y, ucgen_z = [], [], []
+        for idx in yuzler:
+            coz = []
+            for i in idx:
+                j = (i - 1) if i > 0 else (n + i)      # negatif indis: sondan geri
+                if 0 <= j < n:
+                    coz.append(j)
+            for k in range(1, len(coz) - 1):           # yuz -> ucgen yelpazesi
+                for j in (coz[0], coz[k], coz[k + 1]):
+                    ucgen_x.append(xs[j]); ucgen_y.append(ys[j]); ucgen_z.append(zs[j])
+        if ucgen_x:
+            d = sorted(en_buyuk_parca_boyu(ucgen_x, ucgen_y, ucgen_z, kaynak=path),
+                       reverse=True)
+            return olcu_saglik.suz(d)
     d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
     return olcu_saglik.suz(d)
 

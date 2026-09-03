@@ -37,7 +37,8 @@ STLDIR = os.path.join(ROOT, "stl"); os.makedirs(STLDIR, exist_ok=True)
 IMGROOT = os.path.join(ROOT, ".thing-cache"); os.makedirs(IMGROOT, exist_ok=True)
 sys.path.insert(0, TOOLS)
 import drive_yolu
-import olcu_saglik            # bbox saglik esikleri TEK KAYNAK (K287)
+import olcu_saglik
+import olcu_parca            # bbox saglik esikleri TEK KAYNAK (K287)
 
 
 # 🔴 TOKEN ARTIK MODUL SEVIYESINDE OKUNMUYOR (tembel + onbellekli). Eskiden
@@ -92,7 +93,10 @@ def bbox(data):
             v = struct.unpack("<12f", data[off:off + 48]); off += 50
             for j in range(3, 12, 3): xs.append(v[j]); ys.append(v[j + 1]); zs.append(v[j + 2])
     if not xs: return None
-    d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
+    # OLCU EN BUYUK PARCA UZERINDEN — TEK KAYNAK tools/olcu_parca.py
+    # (dosya bbox'i tabla dizilmis coklu govdede urunun olcusu DEGILDIR;
+    #  canli onbellekte %20,2 dosya cok-parcali, sapma ort. %21,8 / en kotu %70,6).
+    d = olcu_parca.sirali_parca_boyu(xs, ys, zs, kaynak="thing-hazirla")
     # SAGLIK HUKMU tools/olcu_saglik.py'de (K287). "printables-api ile AYNI karar" artik
     # bir IDDIA degil TEK KAYNAK — kopyalar sessizce ayrisiyordu, olculdu. Binary STL
     # birim beyani TASIMAZ -> belirsiz-birim kolu uygulanir; buyuk uc = orta boyut tavani

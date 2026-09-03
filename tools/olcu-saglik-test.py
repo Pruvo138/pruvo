@@ -59,12 +59,17 @@ VAKA_YESIL = (1860.0, 145.0, 104.0)         # pid 7173324 — mesru marspiyel
 
 # URETIM CAGRI YERLERI (menzil olcumu — kapinin menzili CAGRI YERIDIR).
 CAGRI_YERLERI = {
-    "printables-api.py": 3,     # stl_bbox + bbox_3mf + obj_bbox
+    # 🔴 3 -> 4 (2026-09-03, PARCA onarimi): `obj_bbox` artik IKI cagri yeri tasiyor —
+    # (a) yuz (`f`) satirlarindan PARCA cozulen normal yol, (b) yuz satiri OLMAYAN salt
+    # nokta bulutunda dosya-bbox'ina dusen beyan edilmis geri-dusus. Ikisi de saglik
+    # hukmunden GECMEK ZORUNDA; sayi gevsetilmedi, YENIDEN OLCULUP civilendi
+    # ([[cagri-yeri-envanterden-duserse-onarildi-sanilir]]).
+    "printables-api.py": 4,     # stl_bbox + bbox_3mf + obj_bbox (parca yolu + geri-dusus)
     "thing-hazirla.py": 1,      # bbox
     "cults3d-api.py": 1,        # _stl_bbox
-    "myminifactory-api.py": 1,  # parse_dimensions
+    "myminifactory-api.py": 1,  # parse_dimensions (metin ayristirir, bbox HESAPLAMAZ)
 }
-CAGRI_TOPLAMI = 6
+CAGRI_TOPLAMI = 7
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -152,6 +157,13 @@ def _saglik():
     return _dosyadan("olcu_saglik_k287", SAGLIK_YOL)
 
 
+def _parca():
+    """PARCA tek kaynagi (tools/olcu_parca.py) — `_saglik()` ile AYNI kalip."""
+    if HERE not in sys.path:
+        sys.path.insert(0, HERE)
+    return _dosyadan("olcu_parca_k287", os.path.join(HERE, "olcu_parca.py"))
+
+
 def _thing_bbox():
     """thing-hazirla.py'nin `bbox()` govdesini KAYNAKTAN cikarip izole derler.
 
@@ -169,7 +181,13 @@ def _thing_bbox():
     govde = kaynak[bas + 1:son]
     if "olcu_saglik" not in govde:
         return None, "cikarilan govde olcu_saglik'a BAGLI DEGIL (menzil kopmus)"
-    ns = {"struct": struct, "olcu_saglik": _saglik()}
+    # 2026-09-03: govde artik PARCA tek kaynagina da baglidir (olcu, en buyuk DOSYA
+    # degil en buyuk PARCA uzerinden verilir). Bagimlilik izole ad alanina VERILIR;
+    # kopmasi da ayri gerekce ile OLCULEMEDI'ye duser — sessizce dosya-bbox'ina
+    # donmez ([[cagri-yeri-envanterden-duserse-onarildi-sanilir]]).
+    if "olcu_parca" not in govde:
+        return None, "cikarilan govde olcu_parca'ya BAGLI DEGIL (parca menzili kopmus)"
+    ns = {"struct": struct, "olcu_saglik": _saglik(), "olcu_parca": _parca()}
     try:
         exec(compile(govde, "thing-hazirla.py::bbox", "exec"), ns)
     except Exception as e:                                   # noqa: BLE001

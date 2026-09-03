@@ -11,6 +11,10 @@ Cikti (son satir, ayristirilabilir):
 """
 import sys, os, json, urllib.request, struct
 
+import os as _os_parca, sys as _sys_parca
+_sys_parca.path.insert(0, _os_parca.path.dirname(_os_parca.path.abspath(__file__)))
+import olcu_parca
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -52,7 +56,10 @@ def bbox(path):
                 v = struct.unpack("<12f", d[:48])
                 for i in range(3, 12, 3):
                     xs.append(v[i]); ys.append(v[i + 1]); zs.append(v[i + 2])
-    dims = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
+    # OLCU EN BUYUK PARCA UZERINDEN — TEK KAYNAK tools/olcu_parca.py
+    # (dosya bbox'i tabla dizilmis coklu govdede urunun olcusu DEGILDIR;
+    #  canli onbellekte %20,2 dosya cok-parcali, sapma ort. %21,8 / en kotu %70,6).
+    dims = olcu_parca.sirali_parca_boyu(xs, ys, zs, kaynak=path)
     return dims
 
 
