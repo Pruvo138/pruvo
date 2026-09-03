@@ -2,47 +2,47 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 3 EYL ~17:5xZ — MIMAR OTURUM TURU: KUTU ACILDI + K372 DALI ALINDI + FILO TEMIZLIGI (`249a0c5a`)
-**① ORTAK KUTU KILIDI ACILDI:** kutu **277 satir/51.330 B** (tavan 250) → `defter-kota-kapisi.py`
-kovasi **`KUTU_ASILDI` rc=1**, BES EVIN commit'i kilitliydi. `kutu-arsivle.py` kosuldu: 5 blok/83
-satir arsive TASINDI, `lossless_dogrulama=GECTI` (iddia=22, oksuz_govde 0/0), KAYIPSIZLIK blok
-25=20+5 ∧ bayt 51330=37652+13678 → kapi **`KUTU_YESIL` satir=199**. Cevrilen kapanis jetonu 0
-(3 jeton KAPANIS KONUMUNDA DEGIL = govde anmasi, K318 KOL-1).
-**② `claude/focused-faraday-ba999a` (K372 + K372-b) MAIN'E ALINDI — merge `249a0c5a`, push'landi.**
-Kapsam merge-base `eac21869`'den **10 dosya +643/−19** (hepsi kod/test/CI; `urunler.json` diff **0**,
-sizinti deseni 0). Cakisma YOK; FF-ONLY IMKANSIZ (yerel main tabandan 4 commit ileride) → merge commit'i.
-Olculdu DALIN agacinda: `olcu-en-buyuk-parca-test` **VAKA=7 IDDIA=37 GECTI=37** (4 mutant hedef-kol
-atifli + kontrol + TEK KAYNAK kolu + okuyucu envanteri 6/6) · `olcu-saglik-test` **8/8** ·
-`ci-kapsam-test` **YESIL**. KOMSU ONCE=SONRA (dal vs main, 7 kapi): 6/6 rc=0 IKISINDE DE AYNI;
-🔴 `denetim-kapisi-test.py` **IKISINDE DE rc=1** (taban-alti fiyat, Motosiklet 4) — ONCEDEN kirmizi,
-dalin isi DEGIL, **kalem ACIK**. Merge sonrasi `d1-sync.py --durum`: **33443** — SAYI/SAYAC/SEQ/SEMA/
-TURETILMIS-KOLON/ICERIK eksenlerinin **hepsi** ✅ (hash UYUSMAZ 0 · EKSIK 0 · FAZLA 0).
-**③ TEMIZLIK (Okan disk kurali):** 2 worktree kaldirildi (ikisi de porcelain TEMIZ, icerikleri main'de)
-→ `.claude/worktrees` **105 MB → 8 KB** · main'e tam merge olmus **8 yerel dal** silindi (her biri
-`merge-base --is-ancestor` ile ayri ayri dogrulandi), yerel dal 48→**40**.
-**④ OTURUM ARSIVI (Okan emri, bu turda):** bitmis **31 oturum** arsivlendi — 16x `Gunluk mimar ihtar`
-+ 14x `Teftis takip` + `Tamirci ŞERİT B` cipi (isi `45f0df8e` ile main'de). DEVAM'daki "24 bitmis
-oturum arsivi" kalemi KAPANDI. Acik kalan oturumlar 5 mimar evi + FaR/ZeN/OTEL + baska evlerin
-CANLI cipleri (MaCiT x2, FaR x2) — bunlar bu evin hukmu DEGIL, DOKUNULMADI.
-**⑤ TABAN-ALTI FIYAT KALEMI KAPANDI (Okan karari, bu turda soruldu-yanitlandi):** `denetim-kapisi-test.py`
-31 Tem'den beri kirmizi tutan gercek-veri nobetcisi — o gun **1.761** kayit taban altindaydi, bugun
-kalan **4**'tu (3x Yamaha MT-07 fren hazne braketi 150/175/150 TL + 1x Ducati 748 yakit sensor somunu
-150 TL). Taban `FIYAT_TABANI=200`, `kademeli_hedef` dordu icin de **300 TL**. `duzelt.py --toplu` ile
-TEK kilit + TEK yazimda uygulandi (guard manifesti, 4 urun/4 alan/0 silme) → **KAPI 7 IHLAL 4→0**,
-`denetim-kapisi-test.py` **rc=1→rc=0** (31 Tem'den beri ilk). Commit `450e5b0e`; pre-push D1'i
-senkronladi + **geri-okuma 4/4 dogrulandi**, bagimsiz `--durum` alti eksen ✅ (33443, UYUSMAZ/EKSIK/FAZLA 0).
-**⑥ CANLI DOGRULANDI (kapanistan once, kanonik URL + cache-bust'SIZ):** deploy `249a0c5a`'yi 18:01Z'de,
-`450e5b0e`'yi 18:16Z'de yayinladi; `durum.py` 9 **TIKALI→🟢 AKIYOR** (girerken canli `c2a58cdc`, 122 dk
-gecikme). `https://pruvo3d.com/urunler.json` → **33443** kayit, dort duzeltilen id de **300 TL**.
-Yabanci ` M .diriltme-izin.json` ve MaCiT dilim-41 cipinin ` M urunler.json` yazimi DOKUNULMADI.
-**⑦ ARSIV KAPISI (`40753159`, Okan karari):** `archive` worktree'yi SILER → kirli agac/main'de
-olmayan icerik SESSIZCE kayboluyordu (ayni gun 13 kapanissiz `BASLIYORUM` = ucuncu tekrar).
-`tools/arsiv-kapisi.py` 4 kolu UC HALLI olcer, fail-closed rc=0/1/2; K4 hukmu
-`kutu-arsivle.py::kapanan_cipler`den IMPORT (ikinci envanter YOK). Kabul **8/24/24 GECTI**,
-mutasyon **5+kontrol hepsi hedef kolu adiyla oldu** (M5 ilk turda GECTI — ucuncu kovayi kosan
-vaka yoktu, V7 eklendi). nobet.yml SERIT B 2 adim; `ci-kapsam` YESIL.
-**MOTOR ORANI:** Claude tam · m3 0 · kimi 0 — is merge hukmu, kapi olcumu ve arsiv yargisiydi
-(CLAUDE.md "Claude'da kalan"); m3'e inecek mekanik dilim cikmadi.
+## 🔁 4 EYL ~03:5xZ — MIMAR OTURUM KAPANISI (`9927c03f` = `origin/main` BIREBIR, agac TEMIZ)
+**CANLIYA GIDEN (bu oturum, 7 commit):** `249a0c5a` K372 dali (olcu TEK KAYNAK `olcu_parca` +
+hasat_ekle RED kapisi) · `450e5b0e` taban-alti 4 fiyat 300 TL · `40753159`+`042d7ca2`+`729ed1f8`+
+`5668a9c3` ARSIV KAPISI · `9927c03f` CIP KAPANIS KANCASI · defter/kutu commit'leri.
+**① KUTU:** girerken **277/250 `KUTU_ASILDI`** (bes evin commit'i kilitli) → gece boyunca **5 kez**
+kanonik rotasyon, her biri `lossless=GECTI`; cikista **`KUTU_YESIL` satir=242**.
+**② K372 DALI ALINDI** (`claude/focused-faraday-ba999a`): kapsam merge-base'den **10 dosya +643/−19**,
+`urunler.json` diff **0**, sizinti 0. Dalin agacinda `olcu-en-buyuk-parca-test` **7 vaka/37 iddia/37**,
+`olcu-saglik` **8/8**, `ci-kapsam` YESIL; 7 komsu kapi dal↔main **ONCE=SONRA ayni**. D1 **33443** 6/6 ✅.
+**③ TABAN-ALTI FIYAT KAPANDI (Okan karari):** 31 Tem'de 1.761 kayit taban altindaydi, kalan **4**'u
+`duzelt.py --toplu` ile 150/175→**300 TL** (kural kendi `kademeli_hedef`i, yeni sayi URETILMEDI) →
+`denetim-kapisi-test.py` **rc=1→rc=0, 31 Tem'den beri ILK**. D1 geri-okuma 4/4; canli dogrulandi
+(kanonik URL, cache-bust'siz): 33443 kayit, dort id de 300 TL. Yayin ekseni **TIKALI→🟢 AKIYOR**.
+**④ ARSIV KAPISI KURULDU** (`tools/arsiv-kapisi.py`): `archive` worktree'yi SILER, kirli agac ya da
+main'de olmayan icerik SESSIZCE kayboluyordu. 4 kol UC HALLI, fail-closed rc=0/1/2; K4 hukmu
+`kutu-arsivle.py::kapanan_cipler`den IMPORT. Kabul **11 vaka/37 iddia/37 GECTI**, mutasyon **9+kontrol
+KIRMIZI=0**. Ilk canli kosumda UC gercek korluk bulunup kapandi: kardes evlerde K4 hep OLCULEMEDI ·
+rotasyonla arsive tasinan kapanis GORUNMUYORDU · karar satiri rc=1'i COKME gibi gosteriyordu.
+**⑤ CIP KAPANIS KANCASI KURULDU (`9927c03f`) — Okan emri, ALTI EVDE CANLI** (`pruvo · hasat ·
+pazarlama · bot · jenerator · faralya`; advisor HARIC, BaBa cip acmiyor). `Stop` kancasi cip agacinda
+kapiyi kosturur, `rc≠0` ise oturum DURAMAZ. Sozlesme docs'tan degil BU MAKINEDE olculdu (gecici sonda
+kuruldu, log alindi, sonda+log+tetik SILINDI): bloklama **stdout-JSON + exit 0**. Iki emniyet kolu
+kod govdesinde belgeli; mimar oturumlari MUAF. Kabul **11/11**, mutasyon **4+kontrol KIRMIZI=0**
+(ilk turda dordu de ULASMADI — kusur kancada DEGIL bataryadaydi: `kos(kanca=…)` iletilmiyordu).
+**KOSUYOR:** MaCiT ana oturumu (hasat). Bu evde koşan cip **YOK**, worktree **YOK**.
+**BEKLIYOR:** 🟠 **39 yerel dal main'e girmemis** — hicbirinin kutuda kapanisi yok, merge prosedürü
+rapor+curutucu ister; hicbiri bu oturumun isi. · 🟠 **MaCiT'te 4 cip** (`suspicious-chatelet` 13 dosya
++1970 · `recursing-yalow` 1/+27 · `admiring-ardinghelli` 1/+37 · `eloquent-hawking` 31/+5536) —
+dordu de ITILMIS ve agaci TEMIZ, eksik olan MERGE + iki KAPANIS; **spec kutuda, icra MaCiT'te.**
+*Neyi olcmek kapatir:* dort agacta kapi `rc=0` ∧ `ACIK_BASLIYORUM` listesinde bu dort ad YOK.
+· 🟠 **FaR:** `MaiL SUREKLI cip` 24 saatte **%18,91** yakti; olcum+spec kutuda, icra FaR+BaBa'da.
+*Neyi olcmek kapatir:* sonraki 24 saatte payi **<%5** ∧ yeni transcript >400 tur / >250K zirve YOK.
+**OKAN'DA:** FaR/BaBa spec hukmu · cron kadansi (%1'lik, `Teftis takip`+`Gunluk mimar ihtar` gunde 2)
+· tek oksuz hafiza `defter-tavan-bagli-rotasyon.md` (indeksle ya da sil).
+**TEMIZLIK:** scratchpad **0/0 B** · pycache 0 · worktree 0 · sonda+log SILINDI · gun icinde 105 MB
+worktree + 8 dal + 31 oturum + 1 olu zamanli gorev.
+**HAFIZA NOBETI (yargi YOK):** memory **387** dosya · OKSUZ **1** (yalnizca RAPOR) · bu turda
+degisen: `mimar-posta-kutusu.md`, `mimar-posta-kutusu-arsiv.md`.
+**OZ-OLCUM:** **592 tur · zirve 545.827** → iki esik de ASILDI; sonrakini 400 tur / 250K'da kes.
+**MOTOR ORANI:** Claude tam · m3 0 · kimi 0 — is kapi/kanca kodu, sozlesme olcumu ve merge hukmuydu
+(CLAUDE.md "Claude'da kalan"); BaBa'nin 4 Eyl 09:00 sablon odevi ACIK, sonraki tura kaldi.
 
 ## ✅ 3 EYL — STL DOSYA ADI (Okan kalemi 2 Eyl) — cip `KraL-StlDosyaAdi-3Eyl` (`amazing-ishizaka-2d4a0f`, Fable 5.1)
 `shop/src/yonet.js` `/stl-yukle`: `.STL` harf-duyarsiz + R2 anahtarinda kucuk uzanti; Turkce→ASCII (once NFC,
