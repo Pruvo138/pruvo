@@ -2,43 +2,32 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 3 EYL 14:2xZ — MIMAR OTURUM KAPANISI (`5ccc2b5b` = `origin/main` BIREBIR)
-**CANLIYA GIDEN (bu oturumun turlari):** K359 `9e6d32b7` · V5 guven blogu `2d2510bf` ·
-`uyum[].model` yazim kurali `3872767e` · nobet kadansi 12sa→4sa `49405800` · SYM jetonu
-`f6438a94` · defter/kapanis commit'leri. **A3 KAPANDI** (`cron-nabiz` rc=0; kanit
-`event=schedule` id **33692387773**, 20:47Z penceresi **+125 dk** — "atesleMEDI" hukmumu 33 dk
-payla vermistim, ERKENDI; bu is akisinda pay **>=3 saat**). **SYM zinciri uctan uca**: kume
-**182/43**, `k302` rc=0, canli katalogda `uyum[].marka=="SYM"` **9 urun**.
-🟡 **PANEL SILME HATTI UCTAN UCA ISLEDI (baska oturum kosturdu):** `49ebe540` "panel: 1 ustyazim
-tabana islendi (sil=1)" (urunler.json −18 / arsiv +23), ardindan 07:53:24Z geri yukleme
-(`.diriltme-izin.json` damgasi). 🔴 Benim OLCMEDIGIM: o kuyruk satiri UI butonundan mi dogdu —
-*kapatan olcum (tek sorgu):* `yazan='panel'` ∧ `onay==urun_id` ∧ gerekce dolu.
-✅ **KAPANDI — `onarim/tamirci-3eyl` ALINDI, merge `45f0df8e`** (cip `task_7728a9f3`). Kapsam
-`origin/main`→HEAD **3 dosya +54/−2** (dalin 6 dosya/+343'unden). SERIT B taban tekilligi geldi
-(`shop/test/ortak/panel-yuzey-tabani.mjs` TEK KAYNAK, KOL_TABANI=22/CD_TABANI=2 + K43 kilidi).
-Olculdu: uretim-kaynak **43/0** (merge oncesi main'de K40 KIRMIZI **42/1**) · panel-kaynak
-**41/0** · urunler-panel **208/0** · K43 mutantla kanitlandi (iki kardes kol AYRI AYRI: mutantli
-42/1 rc=1, kaldirinca 43/0 rc=0; kaynak sha256 birebir geri) · ci-kapsam/is-akisi/kisisel-veri
-ONCE=SONRA rc=0 · urunler.json diff **0** · eklenen 54 satirda sizinti **0** · D1 **6/6** (33370).
-🔴 **STL/NFC ayagi ALINMADI (gerekce, gevsetme YOK):** main'in uygulamasi daha genis; dalin
-`shop/test/stl-dosya-adi.mjs` testi main'in kaynagina karsi KOSMUYOR — kaynak capasi artik
-`export function` tasiyor (SyntaxError) + bekledigi `stlAdiNormal` main'de YOK (yerine
-stlDosyaAdiNormalize/stlDosyaAdiAdaylari/uretimDosyaEtiketi). Onu kosan CI adimi da alinmadi
-(`deploy.yml` main'in hali ile BIREBIR); eksenin kapsami main'de DURUYOR (`urunler-panel.mjs`
-208/0, normalize fonksiyonlarina 27 vurus, deploy.yml'de kosuluyor). Dusen dosya `678fdbfd`de
-erisilebilir kaliyor (merge commit'in 2. atasi).
-**KOSAN CIP YOK** (Tamirci + StlDosyaAdi + K359 + SYM oturumlarinin hepsi dustu).
-**BEKLIYOR:** 🟠 **40 yerel / 43 uzak** dal `ileri>0` — hicbiri bu
-oturumun isi. 🟡 Yabanci `M .diriltme-izin.json` calisma agacinda — BASKA oturumun, DOKUNULMADI.
-**OKAN'DA:** panel-tik `yazan='panel'` teyidi (tek sorgu) · **24 bitmis oturum arsivi**
-(12x `Teftis takip` + 12x `Gunluk mimar ihtar`) — `archive_session` mimarca CAGRILMAZ.
-**TEMIZLIK KANITI (bu tur):** 2 cip agaci kaldirildi (ikisi de porcelain TEMIZ, capalari
-`origin/main` ve `onarim/tamirci-3eyl`de KORUNUYOR) → worktrees **103 MB → 8 KB**; merge olmus
-uzak dal `claude/friendly-wiles-cf5080` silindi. Kutu **351→191 satir** (44.363→25.227 B, 8 blok
-/160 satir arsive, `lossless=GECTI`, cevrilen kapanis jetonu **1**). Oturum genelinde **6 cip
-agaci + 5 dal**. Scratchpad kapanista 0 B.
-**MOTOR ORANI:** m3 0 · kimi 0 · Claude tam — is kapi/olcum kodu, merge hukmu, CI kadansi ve
-marka-jetonu yargisiydi (CLAUDE.md "Claude'da kalan"); mekanik dilim cikmadi.
+## 🔁 3 EYL ~17:5xZ — MIMAR OTURUM TURU: KUTU ACILDI + K372 DALI ALINDI + FILO TEMIZLIGI (`249a0c5a`)
+**① ORTAK KUTU KILIDI ACILDI:** kutu **277 satir/51.330 B** (tavan 250) → `defter-kota-kapisi.py`
+kovasi **`KUTU_ASILDI` rc=1**, BES EVIN commit'i kilitliydi. `kutu-arsivle.py` kosuldu: 5 blok/83
+satir arsive TASINDI, `lossless_dogrulama=GECTI` (iddia=22, oksuz_govde 0/0), KAYIPSIZLIK blok
+25=20+5 ∧ bayt 51330=37652+13678 → kapi **`KUTU_YESIL` satir=199**. Cevrilen kapanis jetonu 0
+(3 jeton KAPANIS KONUMUNDA DEGIL = govde anmasi, K318 KOL-1).
+**② `claude/focused-faraday-ba999a` (K372 + K372-b) MAIN'E ALINDI — merge `249a0c5a`, push'landi.**
+Kapsam merge-base `eac21869`'den **10 dosya +643/−19** (hepsi kod/test/CI; `urunler.json` diff **0**,
+sizinti deseni 0). Cakisma YOK; FF-ONLY IMKANSIZ (yerel main tabandan 4 commit ileride) → merge commit'i.
+Olculdu DALIN agacinda: `olcu-en-buyuk-parca-test` **VAKA=7 IDDIA=37 GECTI=37** (4 mutant hedef-kol
+atifli + kontrol + TEK KAYNAK kolu + okuyucu envanteri 6/6) · `olcu-saglik-test` **8/8** ·
+`ci-kapsam-test` **YESIL**. KOMSU ONCE=SONRA (dal vs main, 7 kapi): 6/6 rc=0 IKISINDE DE AYNI;
+🔴 `denetim-kapisi-test.py` **IKISINDE DE rc=1** (taban-alti fiyat, Motosiklet 4) — ONCEDEN kirmizi,
+dalin isi DEGIL, **kalem ACIK**. Merge sonrasi `d1-sync.py --durum`: **33443** — SAYI/SAYAC/SEQ/SEMA/
+TURETILMIS-KOLON/ICERIK eksenlerinin **hepsi** ✅ (hash UYUSMAZ 0 · EKSIK 0 · FAZLA 0).
+**③ TEMIZLIK (Okan disk kurali):** 2 worktree kaldirildi (ikisi de porcelain TEMIZ, icerikleri main'de)
+→ `.claude/worktrees` **105 MB → 8 KB** · main'e tam merge olmus **8 yerel dal** silindi (her biri
+`merge-base --is-ancestor` ile ayri ayri dogrulandi), yerel dal 48→**40**.
+**④ OTURUM ARSIVI (Okan emri, bu turda):** bitmis **31 oturum** arsivlendi — 16x `Gunluk mimar ihtar`
++ 14x `Teftis takip` + `Tamirci ŞERİT B` cipi (isi `45f0df8e` ile main'de). DEVAM'daki "24 bitmis
+oturum arsivi" kalemi KAPANDI. Acik kalan oturumlar 5 mimar evi + FaR/ZeN/OTEL + baska evlerin
+CANLI cipleri (MaCiT x2, FaR x2) — bunlar bu evin hukmu DEGIL, DOKUNULMADI.
+🟠 **BEKLIYOR:** `249a0c5a` icin `Build & deploy` ve SERIT B nobeti kosum halindeydi (yayin ekseni
+`durum.py` 9'da TIKALI: canli `c2a58cdc`, 122 dk). Yabanci ` M .diriltme-izin.json` DOKUNULMADI.
+**MOTOR ORANI:** Claude tam · m3 0 · kimi 0 — is merge hukmu, kapi olcumu ve arsiv yargisiydi
+(CLAUDE.md "Claude'da kalan"); m3'e inecek mekanik dilim cikmadi.
 
 ## ✅ 3 EYL — STL DOSYA ADI (Okan kalemi 2 Eyl) — cip `KraL-StlDosyaAdi-3Eyl` (`amazing-ishizaka-2d4a0f`, Fable 5.1)
 `shop/src/yonet.js` `/stl-yukle`: `.STL` harf-duyarsiz + R2 anahtarinda kucuk uzanti; Turkce→ASCII (once NFC,
