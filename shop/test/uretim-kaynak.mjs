@@ -25,6 +25,10 @@ import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
 import vm from "node:vm";
+// 🔴 TABAN TEK KAYNAKTAN GELIR (bkz. panel-yuzey-tabani.mjs). Bu sayiyi burada
+// YENIDEN BILDIRME: iki test ayni ekseni olcuyor, iki kopya SESSIZCE ayrisir
+// (2 Eyl `e35f092d` tam bunu yapti, SERIT B iki adimda kirmizi yandi).
+import { KOL_TABANI, CD_TABANI } from "./ortak/panel-yuzey-tabani.mjs";
 
 const BURASI = path.dirname(url.fileURLToPath(import.meta.url));
 const KAYNAK_YOL = process.env.PRUVO_YONET_KAYNAK || path.join(BURASI, "..", "src", "yonet.js");
@@ -236,13 +240,24 @@ ol("K39 stl-liste/stl indirme yollari DEGISMEDI",
 // -> taban BILEREK ve TARIHLI olarak 15. panel-kaynak.mjs V9d ayni sayiyi olcer.
 // 30 Agu 2026 (T2, Okan emri — gorsel/STL/kaynak link): 6 uc daha ayni kapinin
 // arkasinda -> taban 15'ten 21'e BILEREK artirildi (V9d ile es).
-const KOL_TABANI = 21, CD_TABANI = 2;
 const kolSayisi = (KAYNAK.match(/altYol === "/g) || []).length;
 ol("K40 YETKI YUZEYI GENISLEMEDI: yonlendirici kolu " + KOL_TABANI + " (yeni uc yok)",
   kolSayisi === KOL_TABANI, "kol=" + kolSayisi);
 const cdSayisi = (KAYNAK.match(/Content-Disposition/g) || []).length;
 ol("K41 yeni indirme/proxy/zip akisi yok (Content-Disposition " + CD_TABANI + ")",
   cdSayisi === CD_TABANI, "cd=" + cdSayisi);
+
+// 🔴 SINIF KILIDI (3 Eyl 2026): taban IKI KAYNAGA geri donerse — bir kardes test
+// kendi sayisini yeniden bildirirse — sapma yine SESSIZ olur ve kuyruk yeniden
+// dolar. Bu iddia tam onu olcer: davranisla degil, kardes test dosyalarinin
+// KAYNAGIYLA ([[ayni-alan-iki-hukum-biri-sessiz]]).
+const KARDES_TESTLER = ["uretim-kaynak.mjs", "panel-kaynak.mjs"];
+const kendiTabaniniBildiren = KARDES_TESTLER.filter((d) =>
+  /const\s+(KOL_TABANI|CD_TABANI)\s*=\s*\d/.test(
+    fs.readFileSync(path.join(BURASI, d), "utf8")));
+ol("K43 taban TEK KAYNAKTAN gelir (kardes test kendi sayisini bildirmiyor)",
+  kendiTabaniniBildiren.length === 0,
+  "kendi tabanini bildiren: " + kendiTabaniniBildiren.join(", "));
 
 console.log("");
 console.log("TOPLAM: " + (gecen + kalan) + " iddia | GECEN " + gecen + " | KALAN " + kalan);

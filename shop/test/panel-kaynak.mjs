@@ -25,6 +25,10 @@ import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
 import vm from "node:vm";
+// 🔴 TABAN TEK KAYNAKTAN GELIR (bkz. panel-yuzey-tabani.mjs). Bu sayiyi burada
+// YENIDEN BILDIRME: iki test ayni ekseni olcuyor, iki kopya SESSIZCE ayrisir
+// (2 Eyl `e35f092d` tam bunu yapti, SERIT B iki adimda kirmizi yandi).
+import { KOL_TABANI, CD_TABANI } from "./ortak/panel-yuzey-tabani.mjs";
 
 const BURASI = path.dirname(url.fileURLToPath(import.meta.url));
 const KOK = path.join(BURASI, "..", "..");
@@ -305,7 +309,6 @@ ol("V9c durum degistirme kontrolu (secici+Uygula) + 'Yerel komut kopyala' kartta
 // anahtarinin arkasinda, cift onay + zorunlu gerekce, kuyruga alan='sil' yazar) ->
 // taban 21'den 22'ye BILEREK ve TARIHLI artirildi. Ucun kendi kurallari
 // shop/test/urunler-panel.mjs M bolumunde olculur; burada YALNIZ kol sayilir.
-const KOL_TABANI = 22, CD_TABANI = 2;
 const kolSayisi = (KAYNAK.match(/altYol === "/g) || []).length;
 ol("V9d YETKI YUZEYI GENISLEMEDI: yonlendirici kolu " + KOL_TABANI + " (yeni uc yok)",
   kolSayisi === KOL_TABANI, "kol=" + kolSayisi);
