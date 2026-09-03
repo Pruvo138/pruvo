@@ -1596,6 +1596,28 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kutu-arsivle-test.py --mutasyon
 
+      # ARSIV KAPISI (tools/arsiv-kapisi.py) — 4 Eyl 2026.
+      # NEDEN VAR: `archive_session` oturumun surecini durdurur VE VARSAYILAN OLARAK
+      # WORKTREE'SINI SILER. Worktree kirliyse ya da dalin icerigi main'e girmemisse
+      # arsivleme o isi SESSIZCE yok eder. Ayni gun kutuda `BASLIYORUM` yazip kapanis
+      # yazmamis 13 blok olculdu (sabah 19/23) -> "cip kapanisini kendi yazar"
+      # varsayimi UCUNCU KEZ tutmadi; tekil uyari degil KAPI gerekti.
+      # Kapi 4 kolu UC HALLI olcer (TEMIZ/KIRMIZI/OLCULEMEDI) ve K4'un esleme hukmunu
+      # `kutu-arsivle.py::kapanan_cipler`den IMPORT eder — ikinci envanter YASAK.
+      # NEDEN SERIT B: tamamen offline, sentetik git fiksturleri kurar, canli repoya
+      # ve gercek kutuya DOKUNMAZ; yayinlanan hicbir icerigi etkilemez.
+      - name: "Arsiv kapisi kabul bataryasi (7 vaka + ucuncu kova, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/arsiv-kapisi.py --kendini-test
+
+      # ... ve bataryanin KENDI kabulu: 5 mutant, her biri HEDEF KOLU adiyla oldurur
+      # (agac · icerik · itilmemis · kapanis · UCUNCU KOVA). M5 ilk turda YESIL gecti
+      # cunku hicbir vaka `OLCULEMEDI` kolunu kosmuyordu — V7 (kutu YOK) o kor noktayi
+      # kapatti. Mutasyon KOPYAYA uygulanir, canli govdenin sha256'si degismez.
+      - name: "Arsiv kapisi mutasyon turu (5 mutant + kontrol, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/arsiv-kapisi.py --mutasyon
+
       # KUTU ESIK KAPISI (tools/kutu-esik-kapisi.py) — K188. Yukaridaki arsivleyici
       # kutuyu TAVANA INDIREBILIYOR ama esigi YALNIZ kendisi biliyor; kutuya YAZAN yol
       # onu hic olcmuyordu. Sonuc: tavan asimi ancak biri ELLE bakinca goruluyor ve
