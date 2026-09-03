@@ -214,6 +214,87 @@ function baskiOnerisi(satir, d1Baski, sema) {
 /** Drive dosya adresi — TEK KAYNAK (ikizlenirse panel ile JSON sessizce ayrisir). */
 const DRIVE_TABAN = "https://drive.google.com/file/d/";
 
+// ---- DOSYA ADI KANONIK BICIMI (Okan kalemi 2 Eyl + BaBa hukmu 3 Eyl 2026) ------------
+// Vaka: `crf-zincir-kılavuz-ara.STL` panelde "gecersiz dosya adi" ile dustu. Iki kusur:
+//   ① uzanti: kabul harf-DUYARSIZ (.stl/.STL/.3mf/.3MF), R2 anahtarinda KUCUK harfe iner
+//      (tools/stl-r2-yukle.py de uz.lower() yapar — iki yol ayni anahtari uretir);
+//   ② Turkce/ASCII-disi: ı→i ğ→g ş→s ç→c ö→o ü→u İ→I (buyukleri de), diger ASCII-disi
+//      → "-", bosluk → "-", ardisik "-" teklenir, bas/son "-" kirpilir; govde harfinin
+//      buyuk/kucugu KORUNUR (yalniz uzanti kucultulur). R2 anahtari ASCII KALIR.
+// 🔴 GUVENLIK KOLU GEVSEMEZ: ayirac (/ \), ust-dizin (..), kontrol karakteri, bos ad,
+// uzantisiz ad HAM girdide (normalize'den ONCE) kural ADIYLA reddedilir; normalize
+// SONRASI ad yine stlDosyaAdiGecersiz'den (mevcut son kapi, ASCII sinif) gecer.
+// macOS dosya adini NFD verir (ğ = g + U+0306; birlesik isaret) → ONCE NFC, yoksa
+// harita eslesmez ve ayni ad iki farkli anahtar uretirdi.
+// 🔴 TEK KANONIK FONKSIYON, UC OKUYUCU (BaBa): R1 stlYukle (anahtar + 409) · R3
+// driveKaynaklari (uretim notundaki ad — Turkce ad KIRPILMAZ, kanonik etiket) ·
+// stlIndir/stlCikar liste karsilastirmasi (stlDosyaAdiAdaylari). Birini birakmak
+// "yuklendi ama listede yok" / "panel yanlis dosya adi gosteriyor" sinifini acar.
+// Bu blok BILEREK DRIVE_TABAN'in altinda: uretim-kaynak.mjs kaynak dilimi
+// (DRIVE_TABAN .. "---- anahtar") bu fonksiyonlari da tasimali.
+// Mutant capalari (urunler-panel.mjs I-M): TR_ASCII kolu · ayirac capali 2 satir ·
+// toLowerCase · normalize("NFC") · URETIM_DOSYA_RX sinifi · uretimDosyaEtiketi donusu.
+const IZINLI_UZANTI = /\.(stl|3mf)$/i;
+const STL_DOSYA_ADI_RX = /^[A-Za-z0-9][A-Za-z0-9._ -]{0,180}$/;
+
+function stlDosyaAdiGecersiz(dosya) {
+  return dosya.includes("/") || dosya.includes("\\") || dosya.includes("..") ||
+    !IZINLI_UZANTI.test(dosya) || !STL_DOSYA_ADI_RX.test(dosya);
+}
+
+const TR_ASCII = { "ı": "i", "ğ": "g", "ş": "s", "ç": "c", "ö": "o", "ü": "u", "İ": "I",
+                   "Ğ": "G", "Ş": "S", "Ç": "C", "Ö": "O", "Ü": "U" };
+
+function kontrolKarakteriVar(s) {
+  for (let i = 0; i < s.length; i++) {
+    const k = s.charCodeAt(i);
+    if (k < 32 || k === 127) { return true; }
+  }
+  return false;
+}
+
+/** -> {ad} (kanonik: ASCII, kucuk uzanti; R2 anahtarina giren ad) ya da {hata, kural}. */
+function stlDosyaAdiNormalize(ham) {
+  const s = typeof ham === "string" ? ham.normalize("NFC") : "";
+  if (!s) { return { hata: "bos dosya adi", kural: "bos-ad" }; }
+  if (kontrolKarakteriVar(s)) { return { hata: "kontrol karakteri yasak", kural: "kontrol-karakteri" }; }
+  if (s.includes("..")) { return { hata: "ust-dizin (..) yasak", kural: "ust-dizin" }; } // CAPA:ayirac
+  if (s.includes("/") || s.includes("\\")) { return { hata: "ayirac (/ veya \\) yasak", kural: "ayirac" }; } // CAPA:ayirac
+  const uzM = IZINLI_UZANTI.exec(s);
+  if (!uzM) { return { hata: "uzanti yalniz .stl/.3mf", kural: "uzanti" }; }
+  const uzanti = uzM[0].toLowerCase();                          // ① .STL -> .stl
+  // [^ -~] = yazdirilabilir ASCII disi (kontrol karakteri yukarida elendi -> kalan ASCII-disi)
+  const kok = s.slice(0, s.length - uzanti.length)
+    .replace(/[^ -~]/g, (c) => TR_ASCII[c] || "-")               // ② Turkce -> ASCII
+    .replace(/\s+/g, "-").replace(/-{2,}/g, "-").replace(/^-+|-+$/g, "");
+  if (!kok) { return { hata: "bos ad (yalniz uzanti)", kural: "bos-ad" }; }
+  const ad = kok + uzanti;
+  if (ad.length > 181) { return { hata: "ad cok uzun (tavan 181 karakter)", kural: "uzunluk" }; }
+  if (stlDosyaAdiGecersiz(ad)) {                                 // son kapi: mevcut savunma AYNEN
+    const yasak = ad.replace(/[A-Za-z0-9._-]/g, "");
+    return { hata: yasak ? "izinsiz karakter: " + yasak.slice(0, 8)
+                         : "ad harf/rakamla baslamali", kural: "karakter" };
+  }
+  return { ad: ad };
+}
+
+/** Liste karsilastirmasinda (indirme/cikarma) denenecek adlar: [kanonik] (+ HAM ad, eski
+ *  anahtar duzenine — or. bosluklu ad — uyuyorsa). Ikisi de gecersizse [] -> cagiran 404. */
+function stlDosyaAdiAdaylari(ham) {
+  const adlar = [];
+  const n = stlDosyaAdiNormalize(ham);
+  if (!n.hata) { adlar.push(n.ad); }
+  if (ham && !stlDosyaAdiGecersiz(ham) && !adlar.includes(ham)) { adlar.push(ham); }
+  return adlar;
+}
+
+/** Uretim notundaki dosya ADI etiketi (R3): kanonik bicim; kanoniklesemeyen ad (or.
+ *  `a..b.stl`) OLDUGU GIBI doner — etiket esc() ile basilir, href'e GIRMEZ. */
+function uretimDosyaEtiketi(ham) {
+  const n = stlDosyaAdiNormalize(ham);
+  return n.hata ? ham : n.ad;
+}
+
 /**
  * fileId dilbilgisi. Google Drive id'si base64url alfabesindedir; uzunluk sinirini
  * DAR tutuyoruz (>=16) ki not icindeki siradan kelimeler yanlislikla id sayilmasin.
@@ -222,8 +303,11 @@ const DRIVE_TABAN = "https://drive.google.com/file/d/";
  */
 const DRIVE_ID_RX = /Drive\s*file[ _-]?Id\s*[:=]?\s*([A-Za-z0-9_-]{16,200})/gi;
 
-/** Uretim dosyasi adi (yalniz .stl/.3mf) — baglantinin NE oldugunu soyler. */
-const URETIM_DOSYA_RX = /([A-Za-z0-9][A-Za-z0-9._-]*\.(?:stl|3mf))/gi;
+/** Uretim dosyasi adi (yalniz .stl/.3mf) — baglantinin NE oldugunu soyler.
+ *  🔴 Sinif UNICODE (harf/rakam/birlesik isaret): insan notu Turkce yazar; salt-ASCII
+ *  sinif `crf-zincir-kılavuz-ara.stl`i `lavuz-ara.stl` diye KIRPIYORDU (yanlis dosya adi
+ *  = pahali uretim hatasi). Yakalanan ad uretimDosyaEtiketi() ile KANONIK basilir. */
+const URETIM_DOSYA_RX = /([\p{L}\p{N}][\p{L}\p{N}\p{M}._-]*\.(?:stl|3mf))/giu;
 
 /**
  * SINIF ISARETLERI — sira ONEMLI: metinde bir fileId'den ONCE gelen EN YAKIN isaret
@@ -252,7 +336,9 @@ const SINIF_BELIRSIZ = { sinif: "belirsiz", etiket: "Sınıf belirsiz — nota b
  * Saf fonksiyon: istek/ortam gormez, yan etkisi yoktur (birim testi dogrudan cagirir).
  */
 export function driveKaynaklari(metin) {
-  const t = typeof metin === "string" ? metin : "";
+  // NFC: macOS'tan yapistirilan notta `ğ` = g + U+0306 olabilir; konumlar (konum/son)
+  // hep bu NFC metin uzerinden olculur, karisik kaynak yok.
+  const t = typeof metin === "string" ? metin.normalize("NFC") : "";
   if (!t) { return []; }
 
   // 1) Once fileId'ler: konumlari ve KAPLADIKLARI ARALIK. Aralik gerekli, cunku Drive
@@ -283,7 +369,9 @@ export function driveKaynaklari(metin) {
   const dosyalar = [];
   const rxD = new RegExp(URETIM_DOSYA_RX.source, URETIM_DOSYA_RX.flags);
   let md;
-  while ((md = rxD.exec(t)) !== null) { dosyalar.push({ konum: md.index, ad: md[1] }); }
+  while ((md = rxD.exec(t)) !== null) {
+    dosyalar.push({ konum: md.index, ad: uretimDosyaEtiketi(md[1]) });
+  }
 
   /** fileId'den ONCE gelen EN YAKIN isaret (yoksa BELIRSIZ — sessiz varsayim YOK). */
   const sinifiBul = (konum) => {
@@ -1342,7 +1430,7 @@ export async function waSiparis(request, env) {
 
 function tirnaksiz(s) { return String(s || "").replace(/["\r\n]/g, ""); }
 
-const IZINLI_UZANTI = /\.(stl|3mf)$/i;
+// IZINLI_UZANTI -> "DOSYA ADI KANONIK BICIMI" blogu (DRIVE_TABAN'in altinda).
 
 /** Urunun R2'deki parca dosyalari: [{dosya, boyut}]. */
 async function parcalariListele(env, urunId) {
@@ -1379,14 +1467,13 @@ async function stlIndir(env, url) {
   if (idParam && dosyaParam) {
     if (!/^[a-z0-9-]{1,120}$/.test(idParam)) { return yjson({ hata: "gecersiz-id" }, 400); }
     if (!env.OZEL_DOSYA) { return yjson({ hata: "r2-baglanti-yok" }, 503); }
-    // Savunma 1: ayirac/ust-dizin icermesin; uzanti .stl|.3mf olsun.
-    if (dosyaParam.includes("/") || dosyaParam.includes("\\") ||
-        dosyaParam.includes("..") || !IZINLI_UZANTI.test(dosyaParam)) {
-      return yjson({ hata: "dosya-yok" }, 404);
-    }
+    // Savunma 1: ayirac/ust-dizin icermesin; uzanti .stl|.3mf olsun — yuklemeyle AYNI
+    // kanonik fonksiyon (Turkce/NFD/.STL ad ayni anahtara duser; eski bosluklu ad da denenir).
+    const adlar = stlDosyaAdiAdaylari(dosyaParam);
+    if (!adlar.length) { return yjson({ hata: "dosya-yok" }, 404); }
     // Savunma 2 (spec): LISTEDE olmayan ad 404 — anahtar dogrudan kurulup GET edilmez.
     const parcalar = await parcalariListele(env, idParam);
-    const parca = parcalar.find((p) => p.dosya === dosyaParam);
+    const parca = parcalar.find((p) => adlar.includes(p.dosya));
     if (!parca) {
       return yjson({
         hata: "dosya-yok",
@@ -2030,60 +2117,8 @@ async function gorselYukle(request, env, url) {
 // yalniz .stl/.3mf). 280 MB'lik dosyalar var (bkz. /stl yorumu) -> govde belege
 // ALINMAZ, stream PUT edilir; tavan Content-Length'ten olculur.
 const STL_BOYUT_TAVANI = 300 * 1024 * 1024;
-const STL_DOSYA_ADI_RX = /^[A-Za-z0-9][A-Za-z0-9._ -]{0,180}$/;
-
-function stlDosyaAdiGecersiz(dosya) {
-  return dosya.includes("/") || dosya.includes("\\") || dosya.includes("..") ||
-    !IZINLI_UZANTI.test(dosya) || !STL_DOSYA_ADI_RX.test(dosya);
-}
-
-// ---- Dosya adi NORMALIZASYONU (Okan kalemi, 2 Eyl 2026) --------------------------
-// Vaka: `crf-zincir-kılavuz-ara.STL` "gecersiz dosya adi" ile dustu. Iki kusur:
-//   ① uzanti: kabul harf-DUYARSIZ (.stl/.STL/.3mf/.3MF), R2 anahtarinda KUCUK harfe iner
-//      (tools/stl-r2-yukle.py de uz.lower() yapar — iki yol ayni anahtari uretir);
-//   ② Turkce/ASCII-disi: ı→i ğ→g ş→s ç→c ö→o ü→u İ→I (buyukleri de), diger ASCII-disi
-//      → "-", bosluk → "-", ardisik "-" teklenir, bas/son "-" kirpilir; govde harfinin
-//      buyuk/kucugu KORUNUR (yalniz uzanti kucultulur).
-// 🔴 GUVENLIK KOLU GEVSEMEZ: ayirac (/ \), ust-dizin (..), kontrol karakteri, bos ad,
-// uzantisiz ad HAM girdide (normalize'den ONCE) kural ADIYLA reddedilir; normalize
-// SONRASI ad yine stlDosyaAdiGecersiz'den (mevcut son kapi, stlCikar ile ORTAK) gecer.
-// macOS dosya adini NFD verir (ğ = g + U+0306; birlesik isaret) → ONCE NFC, yoksa
-// harita eslesmez ve ayni ad iki farkli anahtar uretirdi.
-// Mutant capalari (urunler-panel.mjs I-M): TR_ASCII kolu · ayirac capali 2 satir · toLowerCase.
-const TR_ASCII = { "ı": "i", "ğ": "g", "ş": "s", "ç": "c", "ö": "o", "ü": "u", "İ": "I",
-                   "Ğ": "G", "Ş": "S", "Ç": "C", "Ö": "O", "Ü": "U" };
-
-function kontrolKarakteriVar(s) {
-  for (let i = 0; i < s.length; i++) {
-    const k = s.charCodeAt(i);
-    if (k < 32 || k === 127) { return true; }
-  }
-  return false;
-}
-
-/** -> {ad} (normalize edilmis, R2 anahtarina giren ad) ya da {hata, kural}. */
-function stlDosyaAdiNormalize(ham) {
-  const s = typeof ham === "string" ? ham.normalize("NFC") : "";
-  if (!s) { return { hata: "bos dosya adi", kural: "bos-ad" }; }
-  if (kontrolKarakteriVar(s)) { return { hata: "kontrol karakteri yasak", kural: "kontrol-karakteri" }; }
-  if (s.includes("..")) { return { hata: "ust-dizin (..) yasak", kural: "ust-dizin" }; } // CAPA:ayirac
-  if (s.includes("/") || s.includes("\\")) { return { hata: "ayirac (/ veya \\) yasak", kural: "ayirac" }; } // CAPA:ayirac
-  const uzM = IZINLI_UZANTI.exec(s);
-  if (!uzM) { return { hata: "uzanti yalniz .stl/.3mf", kural: "uzanti" }; }
-  const uzanti = uzM[0].toLowerCase();                          // ① .STL -> .stl
-  // [^ -~] = yazdirilabilir ASCII disi (kontrol karakteri yukarida elendi -> kalan ASCII-disi)
-  const kok = s.slice(0, s.length - uzanti.length)
-    .replace(/[^ -~]/g, (c) => TR_ASCII[c] || "-")               // ② Turkce -> ASCII
-    .replace(/\s+/g, "-").replace(/-{2,}/g, "-").replace(/^-+|-+$/g, "");
-  if (!kok) { return { hata: "bos ad (yalniz uzanti)", kural: "bos-ad" }; }
-  const ad = kok + uzanti;
-  if (stlDosyaAdiGecersiz(ad)) {                                 // son kapi: mevcut savunma AYNEN
-    const yasak = ad.replace(/[A-Za-z0-9._-]/g, "");
-    return { hata: yasak ? "izinsiz karakter: " + yasak.slice(0, 8)
-                         : "ad harf/rakamla baslamali", kural: "karakter" };
-  }
-  return { ad: ad };
-}
+// STL_DOSYA_ADI_RX / stlDosyaAdiGecersiz / stlDosyaAdiNormalize -> "DOSYA ADI KANONIK
+// BICIMI" blogu (DRIVE_TABAN'in altinda): UC okuyucu ayni fonksiyonu cagirir.
 
 /** POST /yonet/stl-yukle?id=&dosya= (govde=ham dosya) -> {tamam, dosya, boyut}
  *  `dosya` yanitta NORMALIZE edilmis addir (R2 anahtarindaki ad); ekran onu gosterir. */
@@ -2122,16 +2157,17 @@ async function stlCikar(request, env) {
   const dosya = typeof (govde && govde.dosya) === "string" ? govde.dosya : "";
   if (!/^[a-z0-9-]{1,120}$/.test(uid)) { return yjson({ hata: "gecersiz-id" }, 400); }
   if (!env.OZEL_DOSYA) { return yjson({ hata: "r2-baglanti-yok" }, 503); }
-  if (stlDosyaAdiGecersiz(dosya)) { return yjson({ hata: "dosya-yok" }, 404); }
+  const adlar = stlDosyaAdiAdaylari(dosya);          // kanonik (+ eski duzen ham ad)
+  if (!adlar.length) { return yjson({ hata: "dosya-yok" }, 404); }
   // stlIndir savunma 2 deseni: LISTEDE olmayan ad 404.
   const parcalar = await parcalariListele(env, uid);
-  const parca = parcalar.find((p) => p.dosya === dosya);
+  const parca = parcalar.find((p) => adlar.includes(p.dosya));
   if (!parca) { return yjson({ hata: "dosya-yok" }, 404); }
-  const anahtar = "stl/" + uid + "/" + dosya;
+  const anahtar = "stl/" + uid + "/" + parca.dosya;
   const nesne = await env.OZEL_DOSYA.get(anahtar);
   if (!nesne) { return yjson({ hata: "dosya-yok" }, 404); }
   const ts = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
-  const arsiv = "arsiv/stl/" + uid + "/" + ts + "-" + dosya;
+  const arsiv = "arsiv/stl/" + uid + "/" + ts + "-" + parca.dosya;
   await env.OZEL_DOSYA.put(arsiv, nesne.body);
   const teyit = await env.OZEL_DOSYA.head(arsiv);
   if (!teyit || teyit.size !== parca.boyut) {

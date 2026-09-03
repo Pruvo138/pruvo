@@ -593,7 +593,7 @@ console.log("I-M. /stl-yukle mutantlari (normalize / ayirac / uzanti kolu — ca
     fs.writeFileSync(path.join(src, "yonet.js"), kaynak);
     try {
       const m = await import(pathToFileURL(path.join(src, "yonet.js")).href + "?m=" + etiket);
-      return { yonet: m.yonet, kok };
+      return { yonet: m.yonet, driveKaynaklari: m.driveKaynaklari, kok };
     } catch (e) { return { hata: String(e), kok }; }
   }
   const TR = encodeURIComponent("kılavuz-ı-ğ.stl");
@@ -620,6 +620,23 @@ console.log("I-M. /stl-yukle mutantlari (normalize / ayirac / uzanti kolu — ca
       uygula: (k) => capaSil(k, "uzM[0].toLowerCase()", "uzM[0]"),
       beklenen: "X.STL anahtari artik X.stl DEGIL -> I7 KIRMIZI yakalar",
       olcu: (r) => !(r[0].kod === 200 && r[0].govde.dosya === "X.stl") },
+    // BaBa ek kabulu (3 Eyl): NFC adimi + R3 (uretim notu) kanonik etiketi hedef-kol mutantlari
+    { ad: "IM4 NFC adimi KALDIRILDI (macOS NFD ekseni)",
+      vaka: [encodeURIComponent("bag" + String.fromCharCode(0x306) + "lanti.stl")],
+      uygula: (k) => capaSil(k, 'ham.normalize("NFC")', "ham"),
+      beklenen: "NFD vaka artik baglanti.stl DEGIL -> I-K D1 KIRMIZI yakalar",
+      olcu: (r) => !(r[0].kod === 200 && r[0].govde.dosya === "baglanti.stl") },
+    { ad: "IM5 R3 URETIM_DOSYA_RX salt-ASCII sinifa GERI DONDU", vaka: [],
+      not: "KANONIK crf-zincir-kılavuz-ara.stl Drive file Id: abcdefghijklmnopqrstuv",
+      uygula: (k) => capaSil(k, "/([\\p{L}\\p{N}][\\p{L}\\p{N}\\p{M}._-]*\\.(?:stl|3mf))/giu",
+                             "/([A-Za-z0-9][A-Za-z0-9._-]*\\.(?:stl|3mf))/gi"),
+      beklenen: "Turkce ad KIRPILIR (lavuz-ara.stl) -> I-K C1/C2 KIRMIZI yakalar",
+      olcu: (r, o, n) => !(n && n.length === 1 && n[0].dosya === "crf-zincir-kilavuz-ara.stl") },
+    { ad: "IM6 R3 kanonik etiket KALDIRILDI (ham ad doner)", vaka: [],
+      not: "KANONIK crf-zincir-kılavuz-ara.stl Drive file Id: abcdefghijklmnopqrstuv",
+      uygula: (k) => capaSil(k, "return n.hata ? ham : n.ad;", "return ham;"),
+      beklenen: "etiket ham Turkce kalir -> I-K C1 KIRMIZI yakalar",
+      olcu: (r, o, n) => !(n && n.length === 1 && n[0].dosya === "crf-zincir-kilavuz-ara.stl") },
   ];
   for (const m of MUTANTLAR) {
     const kaynak = m.uygula(KAYNAK);
@@ -639,10 +656,152 @@ console.log("I-M. /stl-yukle mutantlari (normalize / ayirac / uzanti kolu — ca
       sonuc.push(await cagir(env, "/stl-yukle",
         { sorgu: "?id=test-urun-a&dosya=" + v, govde: GOVDE, yonet: mut.yonet }));
     }
+    const notCikti = m.not ? mut.driveKaynaklari(m.not) : null;
     fs.rmSync(mut.kok, { recursive: true, force: true });
-    ol(m.ad + " -> " + m.beklenen, m.olcu(sonuc, ozel),
-       sonuc.map((r) => r.kod + " " + JSON.stringify(r.govde)).join(" | "));
+    ol(m.ad + " -> " + m.beklenen, m.olcu(sonuc, ozel, notCikti),
+       sonuc.map((r) => r.kod + " " + JSON.stringify(r.govde)).join(" | ") +
+       (notCikti ? " not=" + JSON.stringify(notCikti) : ""));
     ol(m.ad + " gecici ayna SILINDI", !fs.existsSync(mut.kok), mut.kok);
+  }
+}
+
+// ---------------------------------------------------------------- I-K. KANONIK AD, UC OKUYUCU
+console.log("I-K. kanonik dosya adi UC OKUYUCUDA (yukleme / uretim-notu R3 / indirme+cikarma) — " +
+  "Tamirci bataryasindan tasindi (678fdbfd), ASCII-kanonik tasarimla");
+{
+  const fsK = await import("node:fs");
+  const { driveKaynaklari } = await import("../src/yonet.js");
+  const KAYNAK_K = fsK.readFileSync(
+    path.join(path.dirname(new URL(import.meta.url).pathname), "..", "src", "yonet.js"), "utf8");
+  const GOVDE = new Uint8Array([9, 9, 9]).buffer;
+  // Turkce harfler BILEREK kod noktasiyla: NFC/NFD ayrimi gozle gorunsun, kodlama bozulsa da vaka kalsin.
+  const I_NOKTASIZ = "ı", G_NFC = "ğ", G_NFD = "g" + String.fromCharCode(0x306);
+  const S_CED = "ş", S_BUYUK = "Ş";
+  const yukle = (env, ad) => cagir(env, "/stl-yukle",
+    { sorgu: "?id=test-urun-a&dosya=" + encodeURIComponent(ad), govde: GOVDE });
+  const ID = "abcdefghijklmnopqrstuv";   // uydurma, >=16 base64url
+  // A) POZITIF — Turkce/Unicode ad GECER, anahtar kanonik ASCII
+  {
+    const ozel = r2Mock(); const env = mockEnv({ ozel });
+    const A = [
+      ["A1 Okan vakasi", "crf-zincir-k" + I_NOKTASIZ + "lavuz-ara.STL", "crf-zincir-kilavuz-ara.stl"],
+      ["A2 NFC yumusak g + noktasiz i", "ba" + G_NFC + "lant" + I_NOKTASIZ + "-braketi.stl", "baglanti-braketi.stl"],
+      ["A3 bosluk + buyuk Turkce", S_BUYUK + "aft K" + I_NOKTASIZ + "lavuzu 2.3mf", "Saft-Kilavuzu-2.3mf"],
+      ["A4 alt cizgi + cedilla", "di" + S_CED + "li_alt_cizgi.stl", "disli_alt_cizgi.stl"],
+      ["A5 REGRESYON duz ASCII", "pruvo-braket-v2.stl", "pruvo-braket-v2.stl"],
+      ["A6 REGRESYON .3mf", "kapak.3mf", "kapak.3mf"],
+      ["A7 buyuk uzanti govde korunur", "KAPAK.STL", "KAPAK.stl"],
+      ["A8 tavan sinirinda Turkce (181)", "a".repeat(173) + I_NOKTASIZ.repeat(4) + ".stl",
+       "a".repeat(173) + "iiii.stl"],
+      ["A9 bastaki tire slug'da duser", "-basta-tire.stl", "basta-tire.stl"],
+      ["A10 bastaki bosluk slug'da duser", " bosluk.stl", "bosluk.stl"],
+      ["A11 bastaki yalniz birlesik isaret duser", String.fromCharCode(0x306) + "baslangic.stl", "baslangic.stl"],
+    ];
+    for (const [ad, ham, kanonik] of A) {
+      const r = await yukle(env, ham);
+      ol("I-K " + ad + " -> 200 " + kanonik,
+         r.kod === 200 && r.govde.dosya === kanonik && ozel.depo.has("stl/test-urun-a/" + kanonik),
+         r.kod + " " + JSON.stringify(r.govde));
+    }
+    ol("I-K A12 tum anahtarlar yazdirilabilir ASCII",
+       [...ozel.depo.keys()].every((k) => /^[ -~]*$/.test(k)));
+  }
+  // B) NEGATIF — savunma DARALMADI (alfabe kanonikle genisledi, kapi genislemedi), kural adiyla
+  {
+    const ozel = r2Mock(); const env = mockEnv({ ozel });
+    const B = [
+      ["B1 ust-dizin", "../gizli.stl", "ust-dizin"],
+      ["B2 ayirac", "alt/dizin.stl", "ayirac"],
+      ["B3 ters ayirac", "alt\\dizin.stl", "ayirac"],
+      ["B4 Turkce harfli traversal", "k" + I_NOKTASIZ + "d/../../gizli.stl", "ust-dizin"],
+      ["B5 bastaki nokta", ".gizli.stl", "karakter"],
+      ["B8 uzanti disi (.txt)", "dosya.txt", "uzanti"],
+      ["B9 uzanti sonda degil (.stl.exe)", "dosya.stl.exe", "uzanti"],
+      ["B10 cift tirnak (Content-Disposition ekseni)", "dosya\"tirnak.stl", "karakter"],
+      ["B11 satir sonu", "dosya\nsatir.stl", "kontrol-karakteri"],
+      ["B12 NUL", "dosya" + String.fromCharCode(0) + "bos.stl", "kontrol-karakteri"],
+      ["B13 yuzde (kodlanmis traversal, ham %)", "dosya%2e%2e.stl", "karakter"],
+      ["B14 iki nokta", "dosya:kolon.stl", "karakter"],
+      ["B15 soru isareti", "dosya?sorgu.stl", "karakter"],
+      ["B16 bos ad", "", "bos-ad"],
+      ["B17 tavan asan ad (200+)", "a".repeat(200) + ".stl", "uzunluk"],
+      ["B19 suslu parantez", "dosya{suslu}.stl", "karakter"],
+      ["B20 kontrol karakteri (BEL)", "dosya" + String.fromCharCode(7) + "zil.stl", "kontrol-karakteri"],
+    ];
+    for (const [ad, ham, kural] of B) {
+      const r = await yukle(env, ham);
+      ol("I-K " + ad + " -> 400 kural=" + kural,
+         r.kod === 400 && !!r.govde && r.govde.kural === kural, r.kod + " " + JSON.stringify(r.govde));
+    }
+    ol("I-K B21 RED'lerde R2'ye sifir PUT", ozel.sayac.put === 0, "put=" + ozel.sayac.put);
+  }
+  // C) R3 — uretim notu ayristirici Turkce adi KIRPMAZ, etiket KANONIK (yanlis dosya = pahali hata)
+  {
+    const ad = "crf-zincir-k" + I_NOKTASIZ + "lavuz-ara.stl";
+    const c1 = driveKaynaklari("KANONIK " + ad + " Drive file Id: " + ID);
+    ol("I-K C1 Turkce ad TAM ve KANONIK cikar (crf-zincir-kilavuz-ara.stl)",
+       c1.length === 1 && c1[0].dosya === "crf-zincir-kilavuz-ara.stl", JSON.stringify(c1));
+    ol("I-K C2 kirpma izi YOK (lavuz-ara.stl degil)", !c1.some((c) => c.dosya === "lavuz-ara.stl"));
+    const c3 = driveKaynaklari("YEDEK pruvo-braket-v2.stl Drive file Id: " + ID);
+    ol("I-K C3 REGRESYON ASCII ad aynen", c3.length === 1 && c3[0].dosya === "pruvo-braket-v2.stl",
+       JSON.stringify(c3));
+    ol("I-K C4 REGRESYON eslesme yoksa bos liste",
+       driveKaynaklari("notta hic uretim dosyasi yok, yalniz metin").length === 0);
+    const c5 = driveKaynaklari("KANONIK ba" + G_NFD + "lant" + I_NOKTASIZ + ".stl Drive file Id: " + ID);
+    ol("I-K C5 NFD notta (macOS yapistirma) ad TAM + kanonik baglanti.stl",
+       c5.length === 1 && c5[0].dosya === "baglanti.stl", JSON.stringify(c5));
+    const c6 = driveKaynaklari("KANONIK KAPAK.STL Drive file Id: " + ID);
+    ol("I-K C6 buyuk uzanti etikette kucuk (KAPAK.stl) — R2 anahtariyla AYNI ad",
+       c6.length === 1 && c6[0].dosya === "KAPAK.stl", JSON.stringify(c6));
+  }
+  // D) NFC EKSENI — ayni ad TEK anahtar; indirme/cikarma da ayni kanonik fonksiyonla cozer
+  {
+    const ozel = r2Mock(); const env = mockEnv({ ozel });
+    const nfc = "ba" + G_NFC + "lant" + I_NOKTASIZ + ".stl";
+    const nfd = "ba" + G_NFD + "lant" + I_NOKTASIZ + ".stl";
+    ol("I-K D0 fikstur gercekten NFD (ham dizgeler FARKLI)", nfc !== nfd);
+    const d1 = await yukle(env, nfd);
+    ol("I-K D1 NFD ad KABUL + kanonik baglanti.stl", d1.kod === 200 && d1.govde.dosya === "baglanti.stl",
+       JSON.stringify(d1.govde));
+    const d2 = await yukle(env, nfc);
+    ol("I-K D2 NFC ayni ad -> AYNI anahtar -> 409 (tek anahtar, HEAD 1)",
+       d2.kod === 409 && ozel.depo.size === 1, d2.kod + " depo=" + ozel.depo.size);
+    const g1 = await cagir(env, "/stl", { sorgu: "?id=test-urun-a&dosya=" + encodeURIComponent(nfd) });
+    ol("I-K D3 GET /stl NFD adla kanonik anahtari BULUR (200)", g1.kod === 200, "kod=" + g1.kod);
+    const g2 = await cagir(env, "/stl", { sorgu: "?id=test-urun-a&dosya=BAGLANTI.STL" });
+    ol("I-K D4 GET /stl farkli govde harfi (BAGLANTI.stl YOK) -> 404", g2.kod === 404, "kod=" + g2.kod);
+    const g3 = await cagir(env, "/stl", { sorgu: "?id=test-urun-a&dosya=..%2Fbaglanti.stl" });
+    ol("I-K D5 GET /stl ust-dizin -> 404 (savunma 1)", g3.kod === 404, "kod=" + g3.kod);
+    ozel.depo.set("stl/test-urun-a/eski parca.stl", { boyut: 3, govde: "xxx" });
+    const g4 = await cagir(env, "/stl", { sorgu: "?id=test-urun-a&dosya=" + encodeURIComponent("eski parca.stl") });
+    ol("I-K D6 ESKI bosluklu anahtar HAM adla hala iner (geriye uyum)", g4.kod === 200, "kod=" + g4.kod);
+    const c1 = await cagir(env, "/stl-cikar", { govde: { id: "test-urun-a", dosya: nfc } });
+    ol("I-K D7 /stl-cikar NFC adla kanonik anahtari arsive tasir",
+       c1.kod === 200 && !ozel.depo.has("stl/test-urun-a/baglanti.stl") &&
+       /-baglanti\.stl$/.test(c1.govde.arsiv), c1.kod + " " + JSON.stringify(c1.govde));
+  }
+  // E) OKUYUCU ENVANTERI (kaynak duzeyi) — uc okuyucu AYNI kanonik fonksiyonu cagiriyor mu?
+  {
+    const girisler = [
+      ["stlYukle", 'const norm = stlDosyaAdiNormalize(url.searchParams.get("dosya") || "");'],
+      ["driveKaynaklari (R3)", "ad: uretimDosyaEtiketi(md[1])"],
+      ["stlIndir", "const adlar = stlDosyaAdiAdaylari(dosyaParam);"],
+      ["stlCikar", "const adlar = stlDosyaAdiAdaylari(dosya);"],
+      ["anahtar dogrulanan/kanonik addan", 'const anahtar = "stl/" + uid + "/" + dosya;'],
+    ];
+    for (const [ad, capa] of girisler) {
+      ol("I-K E:" + ad + " kanonik fonksiyonu cagiriyor", KAYNAK_K.includes(capa), "capa YOK: " + capa);
+    }
+  }
+  // F) SINIFIN KENDISI — son kapi ASCII KALDI (alfabe kanonikle genisledi, KAPI genislemedi)
+  {
+    ol("I-K F1 STL_DOSYA_ADI_RX ASCII sinif, degismedi",
+       KAYNAK_K.includes("const STL_DOSYA_ADI_RX = /^[A-Za-z0-9][A-Za-z0-9._ -]{0,180}$/;"));
+    ol("I-K F2 URETIM_DOSYA_RX Unicode (u bayragi) — not ayristirici kirpmaz",
+       /const URETIM_DOSYA_RX = \/.*\/giu;/.test(KAYNAK_K));
+    ol("I-K F3 kanonik blok DRIVE_TABAN altinda (uretim-kaynak.mjs vm dilimi tasir)",
+       KAYNAK_K.indexOf("function stlDosyaAdiNormalize") > KAYNAK_K.indexOf("const DRIVE_TABAN =") &&
+       KAYNAK_K.indexOf("function stlDosyaAdiNormalize") < KAYNAK_K.indexOf("// ---- anahtar ---"));
   }
 }
 
