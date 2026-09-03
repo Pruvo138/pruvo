@@ -29,6 +29,14 @@ dal silindi. Bu oturumda toplam 4 cip agaci + 4 dal temizlendi. Scratchpad kapan
 ve marka-jetonu yargisi — CLAUDE.md "Claude'da kalan" kumesi; deterministik olcumler ($0 betik):
 kutu/defter rotasyonu, dal envanteri, bundle jeton sayimi, kosum suresi istatistigi.
 
+## ✅ 3 EYL — STL DOSYA ADI (Okan kalemi 2 Eyl) — cip `KraL-StlDosyaAdi-3Eyl` (`amazing-ishizaka-2d4a0f`, Fable 5.1)
+`shop/src/yonet.js` `/stl-yukle`: `.STL` harf-duyarsiz + R2 anahtarinda kucuk uzanti; Turkce→ASCII (once NFC,
+macOS NFD icin); guvenlik kolu AYNEN, her RED `kural` adiyla; normalize SONRASI cakisma da 409. Kod `1908cf1c`;
+`urunler-panel.mjs` 127→**150/150** (I7-I21 + I-M: KONTROL + 3 hedef-kol mutant OLDU, gecici ayna silindi);
+komsu CI testleri (panel-kaynak 41, panel-atif 46, kabul --yonet-cerez 72, konfigur-fail-closed 5/5, kisisel-veri) yesil.
+🔧 **shop worker deploy = OKAN** (tek satir kutuda; canli deneme: ayni dosya adiyla yukleme gecer).
+⚠️ `friendly-carson-1440e3` agacinda AYNI uca COMMIT'SIZ farkli-tasarim WIP (Unicode-sinif regex + NFC) — sahibi dusursun.
+
 ## 🔴 CANLI TALIMAT (K353 blogu ARSIVE indi, tam metin `DEVAM-ARSIV.md`'de)
 K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci). 🔧 ACIK: T1a — worker deploy = OKAN kapisi.
 
