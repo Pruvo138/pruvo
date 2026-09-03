@@ -24,6 +24,13 @@ TURETILMIS-KOLON/ICERIK eksenlerinin **hepsi** ✅ (hash UYUSMAZ 0 · EKSIK 0 ·
 + 14x `Teftis takip` + `Tamirci ŞERİT B` cipi (isi `45f0df8e` ile main'de). DEVAM'daki "24 bitmis
 oturum arsivi" kalemi KAPANDI. Acik kalan oturumlar 5 mimar evi + FaR/ZeN/OTEL + baska evlerin
 CANLI cipleri (MaCiT x2, FaR x2) — bunlar bu evin hukmu DEGIL, DOKUNULMADI.
+**⑤ TABAN-ALTI FIYAT KALEMI KAPANDI (Okan karari, bu turda soruldu-yanitlandi):** `denetim-kapisi-test.py`
+31 Tem'den beri kirmizi tutan gercek-veri nobetcisi — o gun **1.761** kayit taban altindaydi, bugun
+kalan **4**'tu (3x Yamaha MT-07 fren hazne braketi 150/175/150 TL + 1x Ducati 748 yakit sensor somunu
+150 TL). Taban `FIYAT_TABANI=200`, `kademeli_hedef` dordu icin de **300 TL**. `duzelt.py --toplu` ile
+TEK kilit + TEK yazimda uygulandi (guard manifesti, 4 urun/4 alan/0 silme) → **KAPI 7 IHLAL 4→0**,
+`denetim-kapisi-test.py` **rc=1→rc=0** (31 Tem'den beri ilk). Commit `450e5b0e`; pre-push D1'i
+senkronladi + **geri-okuma 4/4 dogrulandi**, bagimsiz `--durum` alti eksen ✅ (33443, UYUSMAZ/EKSIK/FAZLA 0).
 🟠 **BEKLIYOR:** `249a0c5a` icin `Build & deploy` ve SERIT B nobeti kosum halindeydi (yayin ekseni
 `durum.py` 9'da TIKALI: canli `c2a58cdc`, 122 dk). Yabanci ` M .diriltme-izin.json` DOKUNULMADI.
 **MOTOR ORANI:** Claude tam · m3 0 · kimi 0 — is merge hukmu, kapi olcumu ve arsiv yargisiydi
