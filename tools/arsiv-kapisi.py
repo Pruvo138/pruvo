@@ -369,6 +369,47 @@ def _vaka_kos(ad, kwargs):
         shutil.rmtree(kok, ignore_errors=True)
 
 
+DURDUR_JETON = "ARSIVLEME: DURDUR"
+
+
+def _cikti_sozlesmesi(sessiz=False):
+    """(gecti, iddia) — KARAR SATIRI stdout'ta VE en sonda mi?
+
+    🔴 NEDEN AYRI VAKA: yukaridaki batarya `olc()`u DOGRUDAN cagirir, `main()`in
+    YAZDIRMA yolunu HIC kosmaz. Karar satiri stderr'e gectiginde hicbir kol kirmizi
+    yanmiyordu ama kullanici ciktinin BASINDA bir uyari gorup dogru bir `rc=1`
+    hukmunu COKME sandi (olculdu). Sozlesme test edilmeyen yuzeyde yasayamaz.
+    """
+    kok = os.path.realpath(tempfile.mkdtemp(prefix="arsiv-kapisi-cikti-"))
+    gecti = iddia = 0
+    try:
+        repo, hedef, kutu, _cip = _kur_fikstur(kok, kapanis=False)   # -> ARSIVLENEMEZ
+        s = subprocess.run([sys.executable, os.path.realpath(__file__), hedef,
+                            "--repo", repo, "--kutu", kutu],
+                           capture_output=True, text=True)
+        out = s.stdout
+        err = s.stderr
+        satirlar = [x for x in out.splitlines() if x.strip()]
+
+        kontroller = (
+            ("karar satiri STDOUT'ta", DURDUR_JETON in out),
+            ("karar satiri stderr'de DEGIL", DURDUR_JETON not in err),
+            ("karar satiri EN SON satir", bool(satirlar) and DURDUR_JETON in satirlar[-1]),
+            ("HUKUM satiri karardan ONCE", ("HUKUM=" in out) and
+             out.index("HUKUM=") < (out.index(DURDUR_JETON) if DURDUR_JETON in out else -1)),
+            ("rc korundu", s.returncode == RC_ARSIVLENEMEZ),
+        )
+        for ad, ok in kontroller:
+            iddia += 1
+            if ok:
+                gecti += 1
+            elif not sessiz:
+                print("      ! CIKTI SOZLESMESI: %s — TUTMADI" % ad)
+    finally:
+        shutil.rmtree(kok, ignore_errors=True)
+    return gecti, iddia
+
+
 def kendini_test(sessiz=False):
     gecti = kirmizi = 0
     iddia = 0
@@ -442,8 +483,17 @@ def kendini_test(sessiz=False):
     else:
         kirmizi += 1
 
+    # V8: CIKTI SOZLESMESI — `main()`in yazdirma yolu (yukaridakiler `olc()`u cagirir)
+    v8_gecti, v8_iddia = _cikti_sozlesmesi(sessiz)
+    iddia += v8_iddia
+    gecti += v8_gecti
+    kirmizi += (v8_iddia - v8_gecti)
     if not sessiz:
-        print("\nVAKA=%d IDDIA=%d GECTI=%d KIRMIZI=%d" % (len(VAKALAR) + 1, iddia, gecti, kirmizi))
+        print("  [%s] V8 CIKTI SOZLESMESI (karar satiri stdout + EN SON)  %d/%d"
+              % ("OK" if v8_gecti == v8_iddia else "KIRMIZI", v8_gecti, v8_iddia))
+
+    if not sessiz:
+        print("\nVAKA=%d IDDIA=%d GECTI=%d KIRMIZI=%d" % (len(VAKALAR) + 2, iddia, gecti, kirmizi))
         print("KABUL %s" % ("YESIL" if kirmizi == 0 else "KIRMIZI"))
     return kirmizi == 0, iddia, gecti
 
@@ -469,6 +519,12 @@ MUTANTLAR = (
     ("M5 olculemedi-kovasini-yesile-katla", "UCUNCU_KOVA",
      '    if HAL_OLCULEMEDI in haller:\n        return HUKUM_OLCULEMEDI, RC_OLCULEMEDI, satirlar',
      '    if False:\n        return HUKUM_OLCULEMEDI, RC_OLCULEMEDI, satirlar'),
+    # Okan'in bildirdigi gercek arizanin mutanti: karar satirini stderr'e geri al.
+    # V8 olmasaydi bu degisiklik bataryayi YESIL gecerdi — sozlesme test edilmeyen
+    # yuzeyde yasayamaz.
+    ("M6 karar-satirini-stderr'e-al", "CIKTI_SOZLESMESI",
+     '              "SILER ve o isi kaybeder.")\n',
+     '              "SILER ve o isi kaybeder.", file=sys.stderr)\n'),
 )
 
 
@@ -547,9 +603,18 @@ def main(argv=None):
     for s in satirlar:
         print(s)
     print("HUKUM=%s rc=%d" % (hukum, rc))
-    if hukum != HUKUM_YESIL:
-        print("ARSIVLEME: DURDUR — yukaridaki kol(lar) kapatilmadan arsivleme worktree'yi "
-              "SILER ve isi kaybeder.", file=sys.stderr)
+    # 🔴 CIKTI SOZLESMESI (Okan, 4 Eyl): karar satiri STDOUT'a ve EN SONA yazilir.
+    # Onceki hali stderr'e gidiyordu; iki akim ayri tamponlandigi icin uyari cogu
+    # zaman CIKTININ BASINDA gorunuyordu ve dogru bir `rc=1` hukmu COKME gibi
+    # okunuyordu (Okan bildirdi, terminalden dogrulandi). Kollarin uzerinde durmayan
+    # bir karar satiri, karar satiri degildir.
+    if hukum == HUKUM_KIRMIZI:
+        print("ARSIVLEME: DURDUR — yukarida KIRMIZI kol(lar) var; arsivleme worktree'yi "
+              "SILER ve o isi kaybeder.")
+    elif hukum == HUKUM_OLCULEMEDI:
+        print("ARSIVLEME: DURDUR — kol(lar) OLCULEMEDI; olculmemis eksen yesil SAYILMAZ "
+              "(fail-closed).")
+    sys.stdout.flush()
     return rc
 
 
