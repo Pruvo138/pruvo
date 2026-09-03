@@ -17,6 +17,9 @@ NE OLCER (dort kol, her biri UC HALLI — TEMIZ / KIRMIZI / OLCULEMEDI):
 IMPORT EDILIR. Bu depoda "ikinci envanter" olculmus bir bayatlama sinifidir
 ([[tuketici-yazilirken-tum-okuyucular-sayilir]]): esleme kurali iki yerde yasarsa
 biri sessizce ayrisir ve kapi yanlis alani dogrular.
+🔴 KARDES EVLER: kutu ORTAKtir ama `kutu-arsivle.py` yalniz pruvo'da yasar. Kaynak
+once `--repo`da, YOKSA kanonik pruvo'da aranir; ilk canli kosumda bu dusme YOKTU ve
+hasat'taki bes cipin hepsinde K4 `OLCULEMEDI` dondu (4 Eyl, Okan ekraninda gorulda).
 
 HUKUM (fail-closed, UC KOVA — ucuncu kova yesile KATLANMAZ):
   herhangi bir kol KIRMIZI      -> HUKUM=ARSIVLENEMEZ   rc=1
@@ -84,13 +87,31 @@ def repo_mu(kok):
 
 # ------------------------------------------------------------------ kutu kaynagi
 
+def _kutu_kaynak_yolu(repo):
+    """(yol|None, nereden) — kapanis hukmunun KANONIK kaynagi.
+
+    🔴 OLCULMUS KUSUR (4 Eyl, ilk canli kosum): kaynak YALNIZ `<repo>/tools/`de
+    arananiyordu. Kutu ORTAKtir ama `kutu-arsivle.py` yalniz pruvo'da yasar; kardes
+    evlerde (hasat/pazarlama/bot/jenerator) kosuldugunda K4 HER ZAMAN `OLCULEMEDI`
+    doner — yani kapanis kolu bu evlerde HIC olculmemis olur. Kapinin menzili cagri
+    yeridir: kaynak once cagrilan repoda, YOKSA kanonik pruvo'da aranir."""
+    yerel = os.path.join(repo, "tools", "kutu-arsivle.py")
+    if os.path.isfile(yerel):
+        return yerel, "yerel"
+    kanonik = os.path.join(VARSAYILAN_REPO, "tools", "kutu-arsivle.py")
+    if os.path.isfile(kanonik):
+        return kanonik, "kanonik"
+    return None, "yok"
+
+
 def _kutu_modulu(repo):
     """kutu-arsivle.py'yi MODUL olarak yukle (dosya adinda '-' var, import edilemez).
 
     Bulunamazsa None doner -> K4 OLCULEMEDI olur, ASLA sessiz yesil."""
-    yol = os.path.join(repo, "tools", "kutu-arsivle.py")
-    if not os.path.isfile(yol):
-        return None, "kaynak yok: %s" % yol
+    yol, nereden = _kutu_kaynak_yolu(repo)
+    if yol is None:
+        return None, ("kapanis hukmunun kaynagi HICBIR YERDE yok (ne %s/tools/ ne %s/tools/)"
+                      % (repo, VARSAYILAN_REPO))
     try:
         spec = importlib.util.spec_from_file_location("_kutu_arsivle_kaynak", yol)
         mod = importlib.util.module_from_spec(spec)
@@ -223,15 +244,37 @@ def kol_itilmemis(repo, uc):
     return HAL_KIRMIZI, "uc HICBIR `origin/*` ref'inde yok — is yalniz LOKALDE"
 
 
+def arsiv_yolu(kutu_yolu):
+    """Kutunun ARSIV esi — `kutu-arsivle.py`nin adlandirma kurali: <ad>-arsiv.md."""
+    kok, uzanti = os.path.splitext(kutu_yolu)
+    return kok + "-arsiv" + uzanti
+
+
 def kol_kapanis(repo, kutu_yolu, cip):
     if cip is None:
         return HAL_OLCULEMEDI, "cip adi cikarilamadi (--cip ver)"
     kume, hata = kapanan_kumesi(repo, kutu_yolu)
     if kume is None:
         return HAL_OLCULEMEDI, hata
+    _yol, nereden = _kutu_kaynak_yolu(repo)
     if cip in kume:
-        return HAL_TEMIZ, "kutuda eslesen sayili kapanis VAR"
-    return HAL_KIRMIZI, "kutuda `%s` icin eslesen sayili kapanis YOK" % cip
+        return HAL_TEMIZ, "kutuda eslesen sayili kapanis VAR (hukum kaynagi: %s)" % nereden
+
+    # 🔴 ARSIV DE SAYILIR (olculdu 4 Eyl): kutu tavana degdiginde rotasyon en eski
+    # bloklari `<ad>-arsiv.md`ye TASIR — kapanis SILINMEZ, YER DEGISTIRIR. Yalniz
+    # canli kutuya bakan bir kol, kapanisini duzgun yazmis bir cipi rotasyondan
+    # SONRA "kapanis YOK" diye kirmiziya yakar. Ayni gece kutu UC KEZ dondu; bu
+    # yanlis-pozitif nadir degil, KURAL olurdu.
+    ars = arsiv_yolu(kutu_yolu)
+    if os.path.isfile(ars):
+        ars_kume, ars_hata = kapanan_kumesi(repo, ars)
+        if ars_kume is None:
+            return HAL_OLCULEMEDI, "canli kutuda yok, ARSIV okunamadi: %s" % ars_hata
+        if cip in ars_kume:
+            return HAL_TEMIZ, ("kapanis ARSIVDE var (rotasyonla tasinmis; hukum kaynagi: %s)"
+                               % nereden)
+    return HAL_KIRMIZI, ("ne kutuda ne arsivde `%s` icin eslesen sayili kapanis YOK "
+                         "(hukum kaynagi: %s)" % (cip, nereden))
 
 
 # ------------------------------------------------------------------------ hukum
@@ -271,7 +314,8 @@ def olc(repo, hedef, cip_acik=None, kutu_yolu=VARSAYILAN_KUTU, ana="main"):
 # ------------------------------------------------------- kabul bataryasi (fikstur)
 
 def _kur_fikstur(kok, *, kirli=False, mainde=True, itilmis=True, kapanis=True,
-                 agac_ac=True, kutu_yok=False):
+                 agac_ac=True, kutu_yok=False, kaynak_kopyala=True,
+                 kapanis_arsivde=False):
     """Sentetik git deposu + uzak + worktree + kutu kurar; (repo, worktree, cip) doner.
 
     🔴 realpath SART: macOS'ta /tmp -> /private/tmp sembolik bagidir ve
@@ -336,11 +380,24 @@ def _kur_fikstur(kok, *, kirli=False, mainde=True, itilmis=True, kapanis=True,
     if not kutu_yok:
         with open(kutu, "w", encoding="utf-8") as f:
             f.write("".join(govde))
+    # ROTASYON taklidi: kapanis blogu canli kutudan CIKIP arsive tasinmis olsun.
+    if kapanis_arsivde:
+        kapanis_blogu = (
+            "## 2026-09-04 — ✅ Ev-Is (çip `%s`) **SAYILI KAPANIŞ: örnek iş bitti, 3 ölçüm.**\n"
+            "— Ev\n\n---\n\n" % cip)
+        with open(kutu, "w", encoding="utf-8") as f:
+            f.write("## 2026-09-04 — 🚧 Ev-Is (çip `%s`) **BAŞLIYORUM: örnek iş.**\n"
+                    "— Ev\n\n---\n\n" % cip)
+        with open(os.path.splitext(kutu)[0] + "-arsiv" + os.path.splitext(kutu)[1],
+                  "w", encoding="utf-8") as f:
+            f.write(kapanis_blogu)
 
-    # kapinin K4 kolu repo/tools/kutu-arsivle.py'yi arar -> gercek kaynagi baglа
-    os.makedirs(os.path.join(repo, "tools"), exist_ok=True)
-    shutil.copy2(os.path.join(VARSAYILAN_REPO, "tools", "kutu-arsivle.py"),
-                 os.path.join(repo, "tools", "kutu-arsivle.py"))
+    # K4'un hukum kaynagi. `kaynak_kopyala=False` KARDES EV halini taklit eder:
+    # repoda `tools/kutu-arsivle.py` YOKTUR ve kapi KANONIK pruvo kaynagina DUSMELIDIR.
+    if kaynak_kopyala:
+        os.makedirs(os.path.join(repo, "tools"), exist_ok=True)
+        shutil.copy2(os.path.join(VARSAYILAN_REPO, "tools", "kutu-arsivle.py"),
+                     os.path.join(repo, "tools", "kutu-arsivle.py"))
     return repo, (hedef_kok if hedef_kok else dal), kutu, cip
 
 
@@ -357,6 +414,15 @@ VAKALAR = (
     # `HAL_OLCULEMEDI` kolu hic kosulmuyordu ve onu yesile katlayan mutant (M5)
     # bataryayi YESIL geciyordu ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
     ("V7 UCUNCU KOVA: kutu YOK", dict(kutu_yok=True), HUKUM_OLCULEMEDI, None, KOL_KAPANIS),
+    # V9 KARDES EV: repoda `tools/kutu-arsivle.py` YOK (hasat/pazarlama/bot/jenerator
+    # boyle). K4 KANONIK pruvo kaynagina dusup OLCMELI — `OLCULEMEDI` DEGIL. Bu vaka
+    # olmadan kapi kardes evlerde kapanis kolunu HIC olcmuyordu (canlida gorulda).
+    ("V9 KARDES EV: yerel kaynak yok, kanonige dus",
+     dict(kapanis=False, kaynak_kopyala=False), HUKUM_KIRMIZI, KOL_KAPANIS, None),
+    # V10 ROTASYON: kapanis YAZILMIS ama rotasyon onu arsive tasimis. Kutu her gun
+    # birkac kez donuyor; yalniz canli kutuya bakan kol duzgun kapanmis cipi
+    # kirmiziya yakardi (d43'te canlida gorulda).
+    ("V10 ROTASYON: kapanis ARSIVDE", dict(kapanis_arsivde=True), HUKUM_YESIL, None, None),
 )
 
 
@@ -525,6 +591,17 @@ MUTANTLAR = (
     ("M6 karar-satirini-stderr'e-al", "CIKTI_SOZLESMESI",
      '              "SILER ve o isi kaybeder.")\n',
      '              "SILER ve o isi kaybeder.", file=sys.stderr)\n'),
+    # Canlida bulunan kusurun mutanti: kanonik kaynaga dusme kolunu kaldir ->
+    # kardes evlerde K4 yine HER ZAMAN OLCULEMEDI olur. V9 bunu oldurur.
+    ("M7 kanonik-kaynak-dusmesini-kaldir", KOL_KAPANIS,
+     '    kanonik = os.path.join(VARSAYILAN_REPO, "tools", "kutu-arsivle.py")\n'
+     '    if os.path.isfile(kanonik):',
+     '    kanonik = os.path.join(VARSAYILAN_REPO, "tools", "kutu-arsivle.py")\n'
+     '    if False:'),
+    # Rotasyon kolunu kaldir -> arsive tasinmis kapanis GORUNMEZ olur. V10 oldurur.
+    ("M8 arsiv-kolunu-kaldir", KOL_KAPANIS,
+     '    ars = arsiv_yolu(kutu_yolu)\n    if os.path.isfile(ars):',
+     '    ars = arsiv_yolu(kutu_yolu)\n    if False:'),
 )
 
 
