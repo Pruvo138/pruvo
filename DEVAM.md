@@ -13,16 +13,22 @@ payla vermistim, ERKENDI; bu is akisinda pay **>=3 saat**). **SYM zinciri uctan 
 tabana islendi (sil=1)" (urunler.json −18 / arsiv +23), ardindan 07:53:24Z geri yukleme
 (`.diriltme-izin.json` damgasi). 🔴 Benim OLCMEDIGIM: o kuyruk satiri UI butonundan mi dogdu —
 *kapatan olcum (tek sorgu):* `yazan='panel'` ∧ `onay==urun_id` ∧ gerekce dolu.
-🔧 **DEVREDILDI — cip `task_7728a9f3` (`KraL-TamirciMerge-3Eyl`):** gece kosan Tamirci cipi
-`678fdbfd`'i OKSUZ birakti; mimar dala bagladi (**`onarim/tamirci-3eyl`**, kaybolmaz). Iki onarim
-tasiyor: (1) SERIT B taban tekilligi (`shop/test/ortak/panel-yuzey-tabani.mjs` + K43 kilidi +
-deploy.yml) **MAIN'DE YOK** · (2) STL Unicode/NFC **MAIN'DE ZATEN VAR** (`d6fa57c2`+`1908cf1c`,
-paralel is). Mimar olcumu: kapsam 6 dosya +343/−10 · **cakisma TEK dosya `shop/src/yonet.js`
-(merge-tree rc=1)** · desen taramasi 343 satirda **0 vurus** · dal agacinda stl-dosya-adi **52/0**,
-uretim-kaynak **43/0** (main'de K40 42/1 KIRMIZI), panel-kaynak **41/0** · ci-kapsam DAL
-AGACINDA YESIL. Cip yalnizca (1)'i alacak, `yonet.js`de main'in hali KORUNACAK.
+✅ **KAPANDI — `onarim/tamirci-3eyl` ALINDI, merge `45f0df8e`** (cip `task_7728a9f3`). Kapsam
+`origin/main`→HEAD **3 dosya +54/−2** (dalin 6 dosya/+343'unden). SERIT B taban tekilligi geldi
+(`shop/test/ortak/panel-yuzey-tabani.mjs` TEK KAYNAK, KOL_TABANI=22/CD_TABANI=2 + K43 kilidi).
+Olculdu: uretim-kaynak **43/0** (merge oncesi main'de K40 KIRMIZI **42/1**) · panel-kaynak
+**41/0** · urunler-panel **208/0** · K43 mutantla kanitlandi (iki kardes kol AYRI AYRI: mutantli
+42/1 rc=1, kaldirinca 43/0 rc=0; kaynak sha256 birebir geri) · ci-kapsam/is-akisi/kisisel-veri
+ONCE=SONRA rc=0 · urunler.json diff **0** · eklenen 54 satirda sizinti **0** · D1 **6/6** (33370).
+🔴 **STL/NFC ayagi ALINMADI (gerekce, gevsetme YOK):** main'in uygulamasi daha genis; dalin
+`shop/test/stl-dosya-adi.mjs` testi main'in kaynagina karsi KOSMUYOR — kaynak capasi artik
+`export function` tasiyor (SyntaxError) + bekledigi `stlAdiNormal` main'de YOK (yerine
+stlDosyaAdiNormalize/stlDosyaAdiAdaylari/uretimDosyaEtiketi). Onu kosan CI adimi da alinmadi
+(`deploy.yml` main'in hali ile BIREBIR); eksenin kapsami main'de DURUYOR (`urunler-panel.mjs`
+208/0, normalize fonksiyonlarina 27 vurus, deploy.yml'de kosuluyor). Dusen dosya `678fdbfd`de
+erisilebilir kaliyor (merge commit'in 2. atasi).
 **KOSAN CIP YOK** (Tamirci + StlDosyaAdi + K359 + SYM oturumlarinin hepsi dustu).
-**BEKLIYOR:** 🟠 `task_7728a9f3` merge'i · 🟠 **40 yerel / 43 uzak** dal `ileri>0` — hicbiri bu
+**BEKLIYOR:** 🟠 **40 yerel / 43 uzak** dal `ileri>0` — hicbiri bu
 oturumun isi. 🟡 Yabanci `M .diriltme-izin.json` calisma agacinda — BASKA oturumun, DOKUNULMADI.
 **OKAN'DA:** panel-tik `yazan='panel'` teyidi (tek sorgu) · **24 bitmis oturum arsivi**
 (12x `Teftis takip` + 12x `Gunluk mimar ihtar`) — `archive_session` mimarca CAGRILMAZ.
