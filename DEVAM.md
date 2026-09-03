@@ -31,8 +31,10 @@ kalan **4**'tu (3x Yamaha MT-07 fren hazne braketi 150/175/150 TL + 1x Ducati 74
 TEK kilit + TEK yazimda uygulandi (guard manifesti, 4 urun/4 alan/0 silme) → **KAPI 7 IHLAL 4→0**,
 `denetim-kapisi-test.py` **rc=1→rc=0** (31 Tem'den beri ilk). Commit `450e5b0e`; pre-push D1'i
 senkronladi + **geri-okuma 4/4 dogrulandi**, bagimsiz `--durum` alti eksen ✅ (33443, UYUSMAZ/EKSIK/FAZLA 0).
-🟠 **BEKLIYOR:** `249a0c5a` icin `Build & deploy` ve SERIT B nobeti kosum halindeydi (yayin ekseni
-`durum.py` 9'da TIKALI: canli `c2a58cdc`, 122 dk). Yabanci ` M .diriltme-izin.json` DOKUNULMADI.
+**⑥ CANLI DOGRULANDI (kapanistan once, kanonik URL + cache-bust'SIZ):** deploy `249a0c5a`'yi 18:01Z'de,
+`450e5b0e`'yi 18:16Z'de yayinladi; `durum.py` 9 **TIKALI→🟢 AKIYOR** (girerken canli `c2a58cdc`, 122 dk
+gecikme). `https://pruvo3d.com/urunler.json` → **33443** kayit, dort duzeltilen id de **300 TL**.
+Yabanci ` M .diriltme-izin.json` ve MaCiT dilim-41 cipinin ` M urunler.json` yazimi DOKUNULMADI.
 **MOTOR ORANI:** Claude tam · m3 0 · kimi 0 — is merge hukmu, kapi olcumu ve arsiv yargisiydi
 (CLAUDE.md "Claude'da kalan"); m3'e inecek mekanik dilim cikmadi.
 
