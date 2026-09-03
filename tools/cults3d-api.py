@@ -74,6 +74,7 @@ import base64, io, json, os, re, struct, sys, urllib.request, urllib.error, urll
 # Bbox saglik esikleri TEK KAYNAKTAN gelir (K287) — bu dosyada esik SAYISI YOKTUR.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import olcu_saglik
+import olcu_parca
 
 ENDPOINT = "https://cults3d.com/graphql"
 
@@ -422,7 +423,10 @@ def _stl_bbox(path):
                 xs.append(v[j]); ys.append(v[j + 1]); zs.append(v[j + 2])
     if not xs:
         return None
-    d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
+    # OLCU EN BUYUK PARCA UZERINDEN — TEK KAYNAK tools/olcu_parca.py
+    # (dosya bbox'i tabla dizilmis coklu govdede urunun olcusu DEGILDIR;
+    #  canli onbellekte %20,2 dosya cok-parcali, sapma ort. %21,8 / en kotu %70,6).
+    d = olcu_parca.sirali_parca_boyu(xs, ys, zs, kaynak=path)
     # 🔴 25 Agu 2026 (K287): buradaki "d[0] < 2 ise METRE sanip x1000 carp" tahmini
     # KALDIRILDI. Kardes dosyalar (printables-api / thing-hazirla) bu tahmini FIZIK-DISI
     # bbox urettigi icin coktan atmis ve "AYNI karar" diye IDDIA ediyorlardi; kod ayrismisti.

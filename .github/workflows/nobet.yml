@@ -4156,6 +4156,18 @@ jobs:
         run: |
           python3 tools/olcu-saglik-test.py
           python3 tools/olcu-saglik-test.py --mutasyon
+      # K372-b (3 Eyl 2026, BaBa 17:1x ②) — OLCU EN BUYUK PARCA UZERINDEN, dosya bbox'i
+      # DEGIL. Olculen ariza (canli .thing-cache, 198 .stl ornegi): cok-parcali dosya
+      # %20,2; dosya-bbox'inin en buyuk boyutu gercek parcaninkinden ORTALAMA %21,8,
+      # en kotu vakada %70,6 BUYUK (th1692616: 106,4 -> 31,3 mm). Sapma urun
+      # aciklamasindaki "mm" satirina, oradan fiyat + filament tavsiyesine akiyordu.
+      # Parca ayrimi TEK KAYNAK tools/olcu_parca.py; kabul, TEK KAYNAK kolu + okuyucu
+      # envanteri (6/6 uretim dosyasi delege ediyor mu) + hedef-kol atifli 4 mutant +
+      # 1 kontrol mutantiyla olculur. Sentetik/offline; ag YOK, urunler.json'a DOKUNMAZ.
+      # Kardesleri gibi SERIT B'dedir: yayini DURDURMAZ.
+      - name: "Olcu = en buyuk PARCA kabul testi + mutasyon (K372-b)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/olcu-en-buyuk-parca-test.py
       - name: Urun-AI kapisi kabul testi (thing-codex izin kapisi varsayilan KAPALI)
         if: ${{ !cancelled() }}
         run: python3 tools/thing-codex-test.py

@@ -4,6 +4,9 @@ Kullanim: python3 stl-measure.py <dosya.stl>
 Cikti: X Y Z (mm) + hacim tahmini.
 """
 import sys
+import os as _os_parca, sys as _sys_parca
+_sys_parca.path.insert(0, _os_parca.path.dirname(_os_parca.path.abspath(__file__)))
+import olcu_parca
 import struct
 
 
@@ -63,6 +66,14 @@ def main():
     dims = sorted([dx, dy, dz], reverse=True)
     print("RAW %.2f x %.2f x %.2f mm" % (dx, dy, dz))
     print("SORTED %.0f x %.0f x %.0f mm" % (dims[0], dims[1], dims[2]))
+    # OLCU EN BUYUK PARCA UZERINDEN (TEK KAYNAK tools/olcu_parca.py):
+    # teshis ciktisi hattin verdigi olcuyle CELISMEMELI, bu yuzden PARCA
+    # satiri da basilir (DOSYA satirlari geriye donuk KORUNDU).
+    par = olcu_parca.sirali_parca_boyu(xs, ys, zs, kaynak=path)
+    kutu = olcu_parca.parca_kutulari(xs, ys, zs)
+    print("PARCA %.0f x %.0f x %.0f mm (parca sayisi: %s)"
+          % (par[0], par[1], par[2],
+             "olculemedi" if kutu is None else len(kutu)))
 
 
 if __name__ == "__main__":
