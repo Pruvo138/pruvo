@@ -35,6 +35,12 @@ senkronladi + **geri-okuma 4/4 dogrulandi**, bagimsiz `--durum` alti eksen ✅ (
 `450e5b0e`'yi 18:16Z'de yayinladi; `durum.py` 9 **TIKALI→🟢 AKIYOR** (girerken canli `c2a58cdc`, 122 dk
 gecikme). `https://pruvo3d.com/urunler.json` → **33443** kayit, dort duzeltilen id de **300 TL**.
 Yabanci ` M .diriltme-izin.json` ve MaCiT dilim-41 cipinin ` M urunler.json` yazimi DOKUNULMADI.
+**⑦ ARSIV KAPISI (`40753159`, Okan karari):** `archive` worktree'yi SILER → kirli agac/main'de
+olmayan icerik SESSIZCE kayboluyordu (ayni gun 13 kapanissiz `BASLIYORUM` = ucuncu tekrar).
+`tools/arsiv-kapisi.py` 4 kolu UC HALLI olcer, fail-closed rc=0/1/2; K4 hukmu
+`kutu-arsivle.py::kapanan_cipler`den IMPORT (ikinci envanter YOK). Kabul **8/24/24 GECTI**,
+mutasyon **5+kontrol hepsi hedef kolu adiyla oldu** (M5 ilk turda GECTI — ucuncu kovayi kosan
+vaka yoktu, V7 eklendi). nobet.yml SERIT B 2 adim; `ci-kapsam` YESIL.
 **MOTOR ORANI:** Claude tam · m3 0 · kimi 0 — is merge hukmu, kapi olcumu ve arsiv yargisiydi
 (CLAUDE.md "Claude'da kalan"); m3'e inecek mekanik dilim cikmadi.
 
