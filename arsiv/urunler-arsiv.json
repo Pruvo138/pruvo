@@ -44,5 +44,37 @@
         "tur": "CC BY 4.0"
       }
     }
+  },
+  {
+    "silinme_ts": "2026-09-03T21:22:48Z",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 11,
+    "kayit": {
+      "id": "bmw-e36-coupe-geni-amurluk-seti-motorsport",
+      "kategori": "Otomobil",
+      "marka": [
+        "BMW",
+        "E36"
+      ],
+      "baslik": "BMW E36 Coupe Geniş Çamurluk Seti (Motorsport)",
+      "aciklama": "BMW E36 Coupe model aracınız için özel tasarım olarak üretilen geniş çamurluk (overfender) seti.\nAracınıza agresif ve sportif bir motorsport görünümü kazandırır.\nYüksek kaliteli malzemeden özel sipariş üzerine üretilmektedir.\nMontaj öncesi profesyonel uyumluluk kontrolü ve astarlama önerilir.\nYaklaşık dış ölçüler: 993 × 322 × 174 mm.",
+      "fiyat": "1150 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/bmw-e36-coupe-geni-amurluk-seti-motorsport-1.jpg",
+        "https://media.pruvo3d.com/urunler/bmw-e36-coupe-geni-amurluk-seti-motorsport-2.jpg",
+        "https://media.pruvo3d.com/urunler/bmw-e36-coupe-geni-amurluk-seti-motorsport-3.jpg",
+        "https://media.pruvo3d.com/urunler/bmw-e36-coupe-geni-amurluk-seti-motorsport-4.jpg"
+      ],
+      "altkategori": "Dış Aksam",
+      "uyum": [
+        {
+          "marka": "BMW"
+        },
+        {
+          "marka": "BMW",
+          "model": "E36"
+        }
+      ]
+    }
   }
 ]
