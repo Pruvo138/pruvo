@@ -30,15 +30,15 @@ sans). 🔴 **SAATLIK YAPILAMAZ — OLCTUM:** iptal EDILMEYEN kosum suresi ort *
 99,6 / max 131,9 (n=13); `schedule` kolu TEK kuyruk + `cancel-in-progress:false` oldugundan
 saatlik aralik kuyrugu SINIRSIZ buyuturdu. `47 */4` = gunde 6 sans, 240 dk > 131,9 dk max.
 `is-akisi-kapisi` YESIL (228 kendini-test iddiasi), A1 yeni cron'u kabul etti.
-🔴 **20:47Z PENCERESI DE ATESLEMEDI (21:20Z'de olculdu) — KADANS HIPOTEZI TEK BASINA YETMEDI.**
-Yeni cron `47 */4` origin/main'e **16:48Z**'de indi, pencereden 3 sa 59 dk once; yine de
-`event=schedule` sayisi **0**. O gece GitHub zamanlayicisi bu depoda CALISIYORDU (kiyas kolu:
-`d1-uzlastirici` 20:56Z · `yayin-yasi` 21:15Z schedule kosumu aldi) → global kesinti/yuk DEGIL.
-Ek hipotez de ELENDI: GitHub `updated_at` damgasinin bayat olmasi engel degil (`d1-uzlastirici`
-damgasi 31 Tem, dosyasi 31 Agu degismis, teslim EDIYOR). Ayakta kalan tek aciklama: **tetigi YENI
-eklenen/degistirilen cron ilk penceresini atliyor** — iki kacan pencerenin ikisi de "degisiklikten
-sonraki ILK pencere". Bunu ayiran olcum: **00:47Z** (degisiklikten 8 sa sonraki IKINCI pencere).
-Nobetci yeniden kuruldu; 01:20Z'ye kadar gelmezse hipotez de duser ve kurulum eksenine inilir.
+✅ **A3 KAPANDI — SERIT B ARTIK ZAMANLANMIS HUKUM ALIYOR.** `cron-nabiz-kapisi` **rc=0**,
+`SONUC: DENETIM TAZE ✅ (zamanlanmis isler fiilen kosuyor)`; A3 dusen kol listesinden CIKTI.
+Kanit: `event=schedule` kosumu **id 33692387773**, created **22:51:33Z**, completed
+(conclusion=failure — SERIT B'nin ISI zaten kirmiziyi RAPORLAMAK; K373'un istedigi "garantili
+hukum" tam da bu).
+🔴 **BENIM 21:20Z "ATESLEMEDI" HUKMUM ERKENDI — DUZELTME:** kosum 20:47Z penceresine ait ve
+**125 dakika GECIKMEYLE** dustu; ben yalniz 33 dk pay birakmistim. Yani teslim YOK degil, GEC.
+Kadans hipotezi de bu yuzden "curudu" diye yazilmisti — dogrusu: OLCUM PENCERESI DARDI.
+`47 */4` yine de KALIYOR (12 saatlik kadans + 2 saatlik jitter kirilgandi; 4 saat = gunde 6 sans).
 🟠 parti cron 20:33 yerel. 🟠 MaCiT sahipli 1 CI kirmizisi (`cbfc3721` failure) — onun duzlemi.
 ✅ **V5 GUVEN BLOGU CANLIDA — merge `2d2510bf`** (cip `jovial-mirzakhani`; defter kalemini mimara
 birakti). MIMAR BAGIMSIZ TEYIDI (kanonik URL, cache-bust'siz): ana sayfa 200 · **5 rozet
