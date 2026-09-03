@@ -2037,15 +2037,65 @@ function stlDosyaAdiGecersiz(dosya) {
     !IZINLI_UZANTI.test(dosya) || !STL_DOSYA_ADI_RX.test(dosya);
 }
 
-/** POST /yonet/stl-yukle?id=&dosya= (govde=ham dosya) -> {tamam, dosya, boyut} */
+// ---- Dosya adi NORMALIZASYONU (Okan kalemi, 2 Eyl 2026) --------------------------
+// Vaka: `crf-zincir-kılavuz-ara.STL` "gecersiz dosya adi" ile dustu. Iki kusur:
+//   ① uzanti: kabul harf-DUYARSIZ (.stl/.STL/.3mf/.3MF), R2 anahtarinda KUCUK harfe iner
+//      (tools/stl-r2-yukle.py de uz.lower() yapar — iki yol ayni anahtari uretir);
+//   ② Turkce/ASCII-disi: ı→i ğ→g ş→s ç→c ö→o ü→u İ→I (buyukleri de), diger ASCII-disi
+//      → "-", bosluk → "-", ardisik "-" teklenir, bas/son "-" kirpilir; govde harfinin
+//      buyuk/kucugu KORUNUR (yalniz uzanti kucultulur).
+// 🔴 GUVENLIK KOLU GEVSEMEZ: ayirac (/ \), ust-dizin (..), kontrol karakteri, bos ad,
+// uzantisiz ad HAM girdide (normalize'den ONCE) kural ADIYLA reddedilir; normalize
+// SONRASI ad yine stlDosyaAdiGecersiz'den (mevcut son kapi, stlCikar ile ORTAK) gecer.
+// macOS dosya adini NFD verir (ğ = g + U+0306; birlesik isaret) → ONCE NFC, yoksa
+// harita eslesmez ve ayni ad iki farkli anahtar uretirdi.
+// Mutant capalari (urunler-panel.mjs I-M): TR_ASCII kolu · ayirac capali 2 satir · toLowerCase.
+const TR_ASCII = { "ı": "i", "ğ": "g", "ş": "s", "ç": "c", "ö": "o", "ü": "u", "İ": "I",
+                   "Ğ": "G", "Ş": "S", "Ç": "C", "Ö": "O", "Ü": "U" };
+
+function kontrolKarakteriVar(s) {
+  for (let i = 0; i < s.length; i++) {
+    const k = s.charCodeAt(i);
+    if (k < 32 || k === 127) { return true; }
+  }
+  return false;
+}
+
+/** -> {ad} (normalize edilmis, R2 anahtarina giren ad) ya da {hata, kural}. */
+function stlDosyaAdiNormalize(ham) {
+  const s = typeof ham === "string" ? ham.normalize("NFC") : "";
+  if (!s) { return { hata: "bos dosya adi", kural: "bos-ad" }; }
+  if (kontrolKarakteriVar(s)) { return { hata: "kontrol karakteri yasak", kural: "kontrol-karakteri" }; }
+  if (s.includes("..")) { return { hata: "ust-dizin (..) yasak", kural: "ust-dizin" }; } // CAPA:ayirac
+  if (s.includes("/") || s.includes("\\")) { return { hata: "ayirac (/ veya \\) yasak", kural: "ayirac" }; } // CAPA:ayirac
+  const uzM = IZINLI_UZANTI.exec(s);
+  if (!uzM) { return { hata: "uzanti yalniz .stl/.3mf", kural: "uzanti" }; }
+  const uzanti = uzM[0].toLowerCase();                          // ① .STL -> .stl
+  // [^ -~] = yazdirilabilir ASCII disi (kontrol karakteri yukarida elendi -> kalan ASCII-disi)
+  const kok = s.slice(0, s.length - uzanti.length)
+    .replace(/[^ -~]/g, (c) => TR_ASCII[c] || "-")               // ② Turkce -> ASCII
+    .replace(/\s+/g, "-").replace(/-{2,}/g, "-").replace(/^-+|-+$/g, "");
+  if (!kok) { return { hata: "bos ad (yalniz uzanti)", kural: "bos-ad" }; }
+  const ad = kok + uzanti;
+  if (stlDosyaAdiGecersiz(ad)) {                                 // son kapi: mevcut savunma AYNEN
+    const yasak = ad.replace(/[A-Za-z0-9._-]/g, "");
+    return { hata: yasak ? "izinsiz karakter: " + yasak.slice(0, 8)
+                         : "ad harf/rakamla baslamali", kural: "karakter" };
+  }
+  return { ad: ad };
+}
+
+/** POST /yonet/stl-yukle?id=&dosya= (govde=ham dosya) -> {tamam, dosya, boyut}
+ *  `dosya` yanitta NORMALIZE edilmis addir (R2 anahtarindaki ad); ekran onu gosterir. */
 async function stlYukle(request, env, url) {
   const uid = url.searchParams.get("id") || "";
-  const dosya = url.searchParams.get("dosya") || "";
   if (!/^[a-z0-9-]{1,120}$/.test(uid)) { return yjson({ hata: "gecersiz-id" }, 400); }
   if (!env.OZEL_DOSYA) { return yjson({ hata: "r2-baglanti-yok" }, 503); }
-  if (stlDosyaAdiGecersiz(dosya)) {
-    return yjson({ hata: "gecersiz dosya adi (yalniz .stl/.3mf, ayirac/ust-dizin yok)" }, 400);
+  const norm = stlDosyaAdiNormalize(url.searchParams.get("dosya") || "");
+  if (norm.hata) {
+    return yjson({ hata: "gecersiz dosya adi: " + norm.hata, kural: norm.kural }, 400);
   }
+  const dosya = norm.ad;
   const boy = parseInt(request.headers.get("Content-Length") || "0", 10);
   if (boy > STL_BOYUT_TAVANI) { return yjson({ hata: "boyut tavani 300 MB" }, 400); }
   const anahtar = "stl/" + uid + "/" + dosya;
@@ -2889,7 +2939,8 @@ async function stlYukleUI(id){
  var r=await apiHam("/stl-yukle?id="+encodeURIComponent(id)+
   "&dosya="+encodeURIComponent(f.name),f);
  if(r.kod!==200){alert("Yüklenemedi: "+(r.govde&&r.govde.hata||r.kod));return;}
- alert("Yüklendi: "+f.name);stlCek(id);
+ var ad=r.govde&&r.govde.dosya||f.name;
+ alert("Yüklendi: "+ad+(ad!==f.name?" (dosya adı normalize edildi; seçilen: "+f.name+")":""));stlCek(id);
 }
 async function stlCikarUI(id,dosya){
  if(!confirm("Baskı dosyası listeden çıkarılsın mı? (Arşive taşınır, kalıcı silme yok.)"))return;

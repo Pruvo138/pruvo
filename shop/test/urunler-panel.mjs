@@ -214,7 +214,8 @@ async function cagir(env, altYol, secenek) {
   secenek = secenek || {};
   const u = new URL("https://ornek-site.test/api/shop/yonet" + altYol + (secenek.sorgu || ""));
   const c = secenek.ctx || ctxYap();
-  const y = await yonet(istek(secenek.govde, secenek.baslik ||
+  // secenek.yonet: I-M mutant bataryasi ayni cagri yolunu MUTANT modulle kosar.
+  const y = await (secenek.yonet || yonet)(istek(secenek.govde, secenek.baslik ||
     { "X-Yonet-Anahtar": YONET_ANAHTAR }, secenek.method || (secenek.govde ? "POST" : "GET")),
     env, u, c, altYol, undefined);
   let govde = null;
@@ -519,6 +520,130 @@ console.log("I. /stl-yukle (var olan ada 409; ayirac/uzanti savunmasi)");
   const r6 = await cagir(mockEnv({ ozel: null }), "/stl-yukle",
     { sorgu: "?id=test-urun-a&dosya=y.stl", govde: GOVDE });
   ol("I6 OZEL_DOSYA binding yok -> 503", r6.kod === 503, "kod=" + r6.kod);
+
+  // --- Okan kalemi (2 Eyl): uzanti harf-duyarsiz + Turkce->ASCII normalize; GUVENLIK AYNEN
+  const r7 = await cagir(env, "/stl-yukle",
+    { sorgu: "?id=test-urun-a&dosya=X.STL", govde: GOVDE });
+  ol("I7 buyuk harf uzanti X.STL gecer; R2 anahtari kucuk uzantili (X.stl), X.STL YOK",
+     r7.kod === 200 && r7.govde.dosya === "X.stl" && ozel.depo.has("stl/test-urun-a/X.stl") &&
+     !ozel.depo.has("stl/test-urun-a/X.STL"), JSON.stringify(r7.govde));
+  const r8 = await cagir(env, "/stl-yukle",
+    { sorgu: "?id=test-urun-a&dosya=" + encodeURIComponent("kılavuz-ı-ğ.stl"), govde: GOVDE });
+  ol("I8 Turkce ad ASCII'ye normalize (kılavuz-ı-ğ.stl -> kilavuz-i-g.stl), tum anahtarlar ASCII",
+     r8.kod === 200 && r8.govde.dosya === "kilavuz-i-g.stl" &&
+     ozel.depo.has("stl/test-urun-a/kilavuz-i-g.stl") &&
+     [...ozel.depo.keys()].every((k) => /^[ -~]*$/.test(k)), JSON.stringify(r8.govde));
+  const r9 = await cagir(env, "/stl-yukle",
+    { sorgu: "?id=test-urun-a&dosya=" + encodeURIComponent("crf-zincir-kılavuz-ara.STL"), govde: GOVDE });
+  ol("I9 Okan'in vakasi crf-zincir-kılavuz-ara.STL -> crf-zincir-kilavuz-ara.stl (200)",
+     r9.kod === 200 && r9.govde.dosya === "crf-zincir-kilavuz-ara.stl" &&
+     ozel.depo.has("stl/test-urun-a/crf-zincir-kilavuz-ara.stl"), JSON.stringify(r9.govde));
+  // macOS NFD girdisi: ğ = g+U+0306, ş = s+U+0327, İ = I+U+0307 (birlesik isaret) + bosluk + buyuk Turkce
+  const NFD = "g" + String.fromCharCode(0x306) + "s" + String.fromCharCode(0x327) + " I" +
+    String.fromCharCode(0x307) + "ş  ÇÖÜ.3MF";
+  const r10 = await cagir(env, "/stl-yukle",
+    { sorgu: "?id=test-urun-a&dosya=" + encodeURIComponent(NFD), govde: GOVDE });
+  ol("I10 NFD (macOS) + bosluk + buyuk Turkce + .3MF -> gs-Is-COU.3mf",
+     r10.kod === 200 && r10.govde.dosya === "gs-Is-COU.3mf" &&
+     ozel.depo.has("stl/test-urun-a/gs-Is-COU.3mf"), JSON.stringify(r10.govde));
+  const putIki = ozel.sayac.put;
+  const r11 = await cagir(env, "/stl-yukle",
+    { sorgu: "?id=test-urun-a&dosya=" + encodeURIComponent("kılavuz-i-ğ.STL"), govde: GOVDE });
+  ol("I11 normalize SONRASI cakisma (kılavuz-i-ğ.STL -> kilavuz-i-g.stl VAR) -> 409, PUT yok",
+     r11.kod === 409 && ozel.sayac.put === putIki, "kod=" + r11.kod + " put=" + ozel.sayac.put);
+  // GUVENLIK AYNEN — her RED 400 + hangi kuralin vurdugu (kural) + tek bayt yazilmaz
+  for (const [ad, dosya, kural] of [
+      ["I12 ust-dizin ..%2Fx.stl", "..%2Fx.stl", "ust-dizin"],
+      ["I13 ayirac a%2Fb.stl", "a%2Fb.stl", "ayirac"],
+      ["I14 ters ayirac a%5Cb.stl", "a%5Cb.stl", "ayirac"],
+      ["I15 uzanti x.exe", "x.exe", "uzanti"],
+      ["I16 uzantisiz Turkce ad", encodeURIComponent("kılavuz"), "uzanti"],
+      ["I17 bos ad .stl", ".stl", "bos-ad"],
+      ["I18 bos dosya adi", "", "bos-ad"],
+      ["I19 kontrol karakteri (BEL)", encodeURIComponent("a" + String.fromCharCode(7) + "b.stl"),
+       "kontrol-karakteri"],
+      ["I20 yalniz sembol (euro).stl -> bos ad", "%E2%82%AC.stl", "bos-ad"]]) {
+    const r = await cagir(env, "/stl-yukle",
+      { sorgu: "?id=test-urun-a&dosya=" + dosya, govde: GOVDE });
+    ol(ad + " -> 400 kural=" + kural,
+       r.kod === 400 && !!r.govde && r.govde.kural === kural && /gecersiz dosya adi/.test(r.govde.hata),
+       "kod=" + r.kod + " " + JSON.stringify(r.govde));
+  }
+  ol("I21 RED vakalari R2'ye TEK anahtar yazmadi", ozel.sayac.put === putIki, "put=" + ozel.sayac.put);
+}
+
+// ---------------------------------------------------------------- I-M. MUTANT
+console.log("I-M. /stl-yukle mutantlari (normalize / ayirac / uzanti kolu — capa yoksa KIRMIZI)");
+{
+  const fs = await import("node:fs");
+  const os = await import("node:os");
+  const { pathToFileURL } = await import("node:url");
+  const GOVDE = new Uint8Array([1, 2, 3]).buffer;
+  const SRC = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "src");
+  const KAYNAK = fs.readFileSync(path.join(SRC, "yonet.js"), "utf8");
+  // Mutant, shop/src'nin gecici AYNASINDA kosar: kardes moduller symlink (gercek yola
+  // cozulur), yalniz yonet.js mutant kopyadir. Depo dosyasina YAZILMAZ; dizin sonda SILINIR.
+  async function mutantYukle(etiket, kaynak) {
+    const kok = fs.mkdtempSync(path.join(os.tmpdir(), "pruvo-stl-mutant-"));
+    const src = path.join(kok, "shop", "src");
+    fs.mkdirSync(src, { recursive: true });
+    for (const ad of fs.readdirSync(SRC)) {
+      if (ad !== "yonet.js") { fs.symlinkSync(path.join(SRC, ad), path.join(src, ad)); }
+    }
+    fs.writeFileSync(path.join(src, "yonet.js"), kaynak);
+    try {
+      const m = await import(pathToFileURL(path.join(src, "yonet.js")).href + "?m=" + etiket);
+      return { yonet: m.yonet, kok };
+    } catch (e) { return { hata: String(e), kok }; }
+  }
+  const TR = encodeURIComponent("kılavuz-ı-ğ.stl");
+  const capaSil = (kaynak, capa, yeni) =>
+    (kaynak.split(capa).length === 2) ? kaynak.replace(capa, yeni) : null;
+  const MUTANTLAR = [
+    { ad: "KONTROL (mutasyonsuz ayna)", uygula: (k) => k, vaka: [TR, "a%2Fb.stl", "X.STL"],
+      beklenen: "ayna canli: Turkce 200 kilavuz-i-g.stl · ayirac 400 · X.STL 200 X.stl",
+      olcu: (r) => r[0].kod === 200 && r[0].govde.dosya === "kilavuz-i-g.stl" &&
+        r[1].kod === 400 && r[1].govde.kural === "ayirac" &&
+        r[2].kod === 200 && r[2].govde.dosya === "X.stl" },
+    { ad: "IM1 normalize kolu (Turkce->ASCII) KALDIRILDI", vaka: [TR],
+      uygula: (k) => capaSil(k, 'TR_ASCII[c] || "-"', "c"),
+      beklenen: "Turkce vaka artik 200/kilavuz-i-g.stl DEGIL -> I8 KIRMIZI yakalar",
+      olcu: (r) => !(r[0].kod === 200 && r[0].govde.dosya === "kilavuz-i-g.stl") },
+    { ad: "IM2 ayirac/ust-dizin ON-KONTROLU KALDIRILDI (2 CAPA:ayirac satiri)",
+      vaka: ["a%2Fb.stl", "..%2Fx.stl"],
+      uygula: (k) => (k.match(/^.*CAPA:ayirac.*\n/gm) || []).length === 2
+        ? k.replace(/^.*CAPA:ayirac.*\n/gm, "") : null,
+      beklenen: "RED vakalari YESILE DONMEZ (son kapi 400 tutar) + kural atfi degisti -> I12/I13 KIRMIZI",
+      olcu: (r) => r[0].kod === 400 && r[0].govde.kural !== "ayirac" &&
+        r[1].kod === 400 && r[1].govde.kural !== "ust-dizin" },
+    { ad: "IM3 uzanti kucuk-harf kolu KALDIRILDI", vaka: ["X.STL"],
+      uygula: (k) => capaSil(k, "uzM[0].toLowerCase()", "uzM[0]"),
+      beklenen: "X.STL anahtari artik X.stl DEGIL -> I7 KIRMIZI yakalar",
+      olcu: (r) => !(r[0].kod === 200 && r[0].govde.dosya === "X.stl") },
+  ];
+  for (const m of MUTANTLAR) {
+    const kaynak = m.uygula(KAYNAK);
+    if (kaynak === null) { ol(m.ad + " — CAPA YOK/COK, mutant uygulanamadi", false); continue; }
+    if (!m.ad.startsWith("KONTROL") && kaynak === KAYNAK) {
+      ol(m.ad + " — mutant kaynagi degistirmedi", false); continue;
+    }
+    const mut = await mutantYukle(m.ad.slice(0, 3), kaynak);
+    if (mut.hata) {
+      fs.rmSync(mut.kok, { recursive: true, force: true });
+      ol(m.ad + " — mutant yuklenemedi", false, mut.hata); continue;
+    }
+    const ozel = r2Mock();
+    const env = mockEnv({ ozel });
+    const sonuc = [];
+    for (const v of m.vaka) {
+      sonuc.push(await cagir(env, "/stl-yukle",
+        { sorgu: "?id=test-urun-a&dosya=" + v, govde: GOVDE, yonet: mut.yonet }));
+    }
+    fs.rmSync(mut.kok, { recursive: true, force: true });
+    ol(m.ad + " -> " + m.beklenen, m.olcu(sonuc, ozel),
+       sonuc.map((r) => r.kod + " " + JSON.stringify(r.govde)).join(" | "));
+    ol(m.ad + " gecici ayna SILINDI", !fs.existsSync(mut.kok), mut.kok);
+  }
 }
 
 // ---------------------------------------------------------------- J. /stl-cikar
