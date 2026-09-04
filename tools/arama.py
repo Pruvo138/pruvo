@@ -787,7 +787,7 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 44 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 45 jeton) ──
     # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
     # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
     # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
@@ -797,6 +797,10 @@ UYUM_MARKA_IZINLI = frozenset({
     # 8. tur (4 Eyl 2026, KraL-ZeroMarka-4Eyl): sayi 43 -> 44 ELLE guncellendi ve YINE
     # `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (43 -> 44, esitlik TUTTU).
     # Ayni turda `len(UYUM_MARKA_IZINLI)` 182 -> 183 ve FARK (izinli − eki) 139 SABIT
+    # kaldi -> jeton IKI kumeye de girdi, yargilanmis bolumleme kirilmadi.
+    # 9. tur (4 Eyl 2026, KraL-HarleyMarka-4Eyl): sayi 44 -> 45 ELLE guncellendi ve YINE
+    # `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (44 -> 45, esitlik TUTTU).
+    # Ayni turda `len(UYUM_MARKA_IZINLI)` 183 -> 184 ve FARK (izinli − eki) 139 SABIT
     # kaldi -> jeton IKI kumeye de girdi, yargilanmis bolumleme kirilmadi.
     # 🔴 KALEM HALA ACIK: bu bir MAKINE iddiasi degil, tek seferlik bir olcumdur —
     # bir sonraki tur yine guncellemeyi UNUTABILIR. Kalici cozum bu sayiyi `len()`ten
@@ -982,6 +986,68 @@ UYUM_MARKA_IZINLI = frozenset({
     #   `uyum_ogesi_sebebi()`de RED aldi VE red metni HEDEF koldan geldi ("marka ZORUNLU ve
     #   KAPALI kumeden olmali"); geri konunca YESIL. Ilgisiz bir KONTROL mutanti da kosuldu.
     "Zero",
+    # 9. tur, C grubu (1) — mimar karari 4 Eyl 2026. `Harley-Davidson` (ABD) MOTOSIKLET
+    #   URETICISIDIR = EV SAHIBI arac markasi; uretilen parca ONA TAKILIR ("bu urun
+    #   Harley-Davidson Sportster'a takilir" anlamli). Bu ek YENI BIR SINIF ACMAZ: sinif
+    #   emsali kumede ZATEN VAR ve besi de motosiklet/skuter ureticisidir — `Zontes`,
+    #   `Mondial`, `CFMoto`, `SYM` (7. tur), `Zero` (8. tur).
+    #   Olculen katalog agirligi (33860 urun, `model_normalize` ile tarandi):
+    #     marka[] tam yazimla: 83 · uyum[].marka: 0 · uyum[].model: 0 · uyum[].motor: 0 ·
+    #     uyum[].oem: 0  — YAPISAL alanlarda ALT-DIZGE taramasi da `marka[]` 83 / `uyum.*` 0.
+    #   🔴 AGIRLIK ONCEKI IKI TURDAN FARKLI: `SYM`(0) ve `Zero`(0) SIFIR agirlikla girmisti;
+    #   burada 83 CANLI kayit jetonu `marka[]`de ZATEN tasiyor (eski koddan `uyum`
+    #   DOLDURULMADAN girmis — `Raymarine`(32) desenin ayni buyugu). Giris MaCiT'in hazir
+    #   39 Harley-Davidson urununun `hasat_ekle.py`de fail-closed durmasindan dogdu; tetik
+    #   `Raymarine`/`SYM`/`Zero` ile BIREBIR AYNI.
+    #   Kume KAPALI kalir; yargilanmis bolumleme (izinli−eki / uretici−eki / elenen)
+    #   degismez, `Harley-Davidson` ELENEN'de DEGIL ve URETICI_MARKA'da DEGIL (ikisi de
+    #   olculdu) — elenmis bir jeton geri sizmaz.
+    # 🔴 IKINCI ROL OLCULDU — ve BU TUR K220 NEGATIFI **DEGILDIR**. Onceki uc turdan
+    #   AYRILAN NOKTA BUDUR, adiyla yazilir: `Raymarine`/`SYM`/`Zero` girerken jetonun
+    #   adlandirdigi HICBIR `/marka/` sayfasi YOKTU; `Harley-Davidson` girerken **VAR —
+    #   dordu de CANLI** (canli `sitemap.xml`, 35356 URL):
+    #     /marka/harley-davidson/ · /marka/harley-davidson/sayfa/2/ ·
+    #     /marka/harley-davidson/sportster/ · /marka/harley-davidson/electra-glide/
+    #   Son ikisi MODEL sayfasidir ve K220'nin `Range Rover` emsalinde OLEN sayfa TAM bu
+    #   sinifti -> bu turda mekanizmanin HEDEFI MEVCUTTUR, risk soyut DEGILDIR.
+    #   ⚠️ Mimarin on-olcumu bu ekseni "`/marka/` yolu 0, oldurebilecegi sayfa YOK" diye
+    #   raporlamisti; SAPMA cip elinde AYNI canli sitemap uzerinde olculup DUZELTILDI —
+    #   dogru sayi 4. Hukum degismedi ama GEREKCESI degisti: risk "hedef yok" diye degil,
+    #   ONCE/SONRA KUME FARKI OLCULDUGU icin kapandi.
+    #   Mekanizma ADIYLA: `marka_model_build.py:471` kapali kumeyi (UYUM_MARKA_IZINLI ∪
+    #   URETICI_MARKA ∪ MODEL_OLMAYAN_JETON) NORMALIZE edip MODEL jetonunu REDDEDER. Yeni
+    #   jetonun normali `harleydavidson`; iki canli model jetonu `sportster` ve
+    #   `electraglide` ona ESIT DEGIL -> sayfalar dusmez. Bu VARSAYILMADI: uretilen URL
+    #   kumesi ONCE ve SONRA TAM kosuldu, dort sayfanin DORDU DE SONRA kumesinde ADIYLA
+    #   duruyor. Yapisal ikinci rol kolu ayrica bos: normalize'i TAM `harleydavidson` olan
+    #   `uyum[].model` = 0 · `uyum[].motor` = 0 kayit.
+    #   SERBEST METINDE (baslik/id/aciklama, kucuk-harf alt dizge) `harley` gecen 83 kayit
+    #   VAR; bu kume `marka[]` kumesiyle 82 uyeyi PAYLASIR ve ikisi ADIYLA ayrisir:
+    #     `honda-magna-far-ara-parcasi`  (serbest metinde gecer, `marka[]`de YOK)
+    #     `th3982597-cafe-racer-ayna`    (`marka[]`de var, serbest metinde YOK)
+    #   Serbest metin sozluk yoluna GIRMEZ — AYRI EKSEN, hukmu DEGISTIRMEZ.
+    # 🔴 ESLESME TAM/EXACT'tir — ALT DIZGE/ONEK YOK: `uyum_marka_kanonik()` HAM string
+    #   uyelik testi yapar (`deger not in UYUM_MARKA_IZINLI`, strip() YOK) ve ikinci rol
+    #   `n not in _UYUM_MARKA_ANAHTARLARI` ile calisir. Bu tur VARSAYILMADI, IDDIAYLA
+    #   DOGRULANDI: `"harley-davidson"` · `"HARLEY-DAVIDSON"` · `"Harley Davidson"` ·
+    #   `"Harley"` · `"HarleyDavidson"` · `"HD"` · `" Harley-Davidson"` ·
+    #   `"Harley-Davidson "` · `"Harley-Davidson Sportster"` dokuzu da REDDEDILDI; yalniz
+    #   `"Harley-Davidson"` kabul edildi ve AYNEN dondu.
+    # 🔴 IZOLASYON: `build.py --cikti-kok` KULLANILMADI (7. turda olculen sizinti —
+    #   marka_model/landing/kategori_hub `ctx["ROOT"]`e yazar, build.py:5059, ve gitignore
+    #   yuzunden `git status` TEMIZ kalir, sizinti GORUNMEZ). Izolasyon `git archive HEAD`
+    #   ile AYRI bir ROOT kopyasi kurularak saglandi, build.py ORADAN kosuldu — ROOT da
+    #   CIKTI_KOK da temp. Iki eksenin ESITLIGI izolasyonun KENDISININ de olcusudur.
+    #   Uretilen sayfa/URL kumesi ONCE ve SONRA TAM kosuldu: 35536 = 35536, KAYBOLAN
+    #   URL = 0, DOGAN = 0. Kume IKI BAGIMSIZ eksenden toplandi — sitemap `loc`
+    #   (jeneratorun BEYANI) ve diskteki fiziksel `index.html` yollari (beyandan bagimsiz)
+    #   — DORT kumenin (once-A / once-B / sonra-A / sonra-B) DORDU DE 35536 ve BIREBIR ayni.
+    # 🔴 KIYAS KUME FARKIYLA YAPILIR, SAYIYLA DEGIL: bir sayfa olup yerine baskasi dogsaydi
+    #   TOPLAM SABIT kalirdi (mutantla kanitli, 6. tur). Kaybolan ve dogan AYRI AYRI basilir.
+    # 🔴 MUTANT HEDEF KOLU ADIYLA OLDURULDU (K182: "kirmizi geldi" tek basina kanit DEGIL);
+    #   mutantlar CANLI govdeye DEGIL gecici KOPYAYA uygulandi ve kosum sonunda canli
+    #   dosyanin sha256'si DEGISMEDI (olculdu).
+    "Harley-Davidson",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1025,6 +1091,10 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # 8. tur (4 Eyl 2026) — gerekce + olculen katalog agirligi + K220 ikinci-rol olcumu
     # UYUM_MARKA_IZINLI'nin "C grubu" 8. tur basliginda yazili. Burada TEKRAR EDILMEZ.
     "Zero",
+    # 9. tur (4 Eyl 2026) — gerekce + olculen katalog agirligi + K220 ikinci-rol olcumu
+    # (bu turda K220 NEGATIFI DEGIL: dort CANLI `/marka/harley-davidson/` sayfasi VAR)
+    # UYUM_MARKA_IZINLI'nin "C grubu" 9. tur basliginda yazili. Burada TEKRAR EDILMEZ.
+    "Harley-Davidson",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
