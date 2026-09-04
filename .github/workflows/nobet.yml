@@ -857,9 +857,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/edge-flip-hazirlik-test.py
 
-      # D1-SYNC HATA TANISI: gecici ag ve gercek kimlik hatalarinin retry/teshis ayrimini
-      # sahte subprocess sonuclariyla kanitlar. Offline/mock; D1'e ve aga dokunmaz.
-      - name: D1-sync hata tanisi kabul testi
+      # D1-SYNC `wrangler()` BATARYASI: gecici ag / gercek kimlik hatalarinin retry-teshis
+      # ayrimi (31 Tem) + ZAMAN ASIMI ve TEK UCUS (4 Eyl, K361). Olculen ariza: cagrida
+      # `timeout` YOKTU, asilan kosum sifir ciktiyla sonsuza bekliyordu; makinede 7 asili
+      # `npm exec wrangler@4` birikti ve pre-push yolunda yayin 3 commit boyunca durdu —
+      # hicbir yerde kirmizi yanmadan. Offline/mock; D1'e ve aga DOKUNMAZ, flock sentetik
+      # bir `git init` kokunde alinir (CANLI .git/config MESGUL EDILMEZ).
+      - name: D1-sync wrangler kabul bataryasi (tani + zaman asimi + tek ucus)
         if: ${{ !cancelled() }}
         run: python3 tools/d1-sync-tani-test.py
 
@@ -1917,6 +1921,17 @@ jobs:
       - name: "duzelt.py uyum kapisi mutasyon bataryasi"
         if: ${{ !cancelled() }}
         run: python3 tools/duzelt-uyum-mutasyon.py
+
+      # D1-SYNC wrangler() ZAMAN ASIMI + TEK UCUS mutasyon bataryasi (4 Eyl, K361).
+      # 7 oldurucu + 3 kontrol mutant; her oldurucu HANGI IDDIA KOLUNU oldurdugunu
+      # ADIYLA kanitlar (K182) ve "sonuc tabanla AYNI" hali MUTANT ULASMADI diye
+      # kirmiziya yazilir. Mutant CANLI govdeye DEGIL gecici bir kopyaya uygulanir
+      # (sentetik kok + `konfigur-bundle-kapisi.py` sembolik bagi); kontrol mutantlari
+      # sabit oynamalaridir ve batarya onlarda YESIL kalmali — kalmazsa batarya
+      # davranisa degil SABITE capalanmis demektir. Offline; D1'e ve aga dokunmaz.
+      - name: "D1-sync wrangler zaman asimi + tek ucus mutasyon bataryasi"
+        if: ${{ !cancelled() }}
+        run: python3 tools/d1-sync-tani-mutasyon.py
 
       # EDGE KART KAPISININ KARDES-DEPO AYRISTIRMASI (11 Agu 2026 onarimi). Eski regex
       # `KART_ALANLARI` sabitinin YALNIZ ILK tirnak ciftini okuyordu; `+` ile eklenen
