@@ -2,41 +2,51 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 4 EYL ~20:xZ — MIMAR OTURUM KAPANISI (main `3f40e646` = origin **SHA-BIREBIR**, agac TEMIZ, worktree **0**, KraL acik cip **0**, kosan chip/isci **0**)
-**BENIM KOLUM YESIL, YAYIN BASKA EVDE KAPALI.** `Build & deploy` **`f3548db5` = SUCCESS** — sabahki
-K361 regresyonum (`serit-a2`) kapandi. Sonraki commit `77bb4855` (MaCiT d47, 52 urun) `serit-a3`'te
-**failure**: `denetim-kapisi` **12 IHLAL** (`onceden var: 0` — hepsini o itme getirdi), `deploy`+`yayin`
-yine **SKIPPED**. Kalem MaCiT'in duzleminde (`urunler.json`), kutuda ADIYLA; silme komutu tavana da
-takiliyor (**52 > 50**) — care metin duzeltmesi. *Kapatan:* 12 aciklama duzelip
-`denetim-kapisi.py --commit-farki` **rc=0** ve o SHA'da `deploy`+`yayin` SKIPPED OLMAMASI.
-**BUGUN MAIN'E GIREN (hepsi itildi):** `f2faddac` K361 D1 asilmasi (kabul **3/3→33/33**, mutasyon
-**10/10**, atif **7/7**; canli kanit `--durum` sonsuz asilma → **72,3/69,3/71,4 sn**) · `e53d56f6`
-K373 kutu kimlik ekseni (**49/454**, mutasyon **33/33**, atif **32/32**) · `5c378aa5` kilit yolu
-onarimi = YAYIN ACICI (`--kendini-test` **137/5 rc=1 → 157/0 rc=0**, `d1-kaynak-test` **16/2 → 18/0**,
-yeni `d1-kilit-yolu-mutasyon` **9/9 olduren 7/7**, K361 GERILEMEDI) · `f3548db5` sozluk 9. tur
-Harley-Davidson (IZINLI **183→184**, EKI **44→45**, FARK **139 SABIT**, imza DEGISMEDI, uyum-kapisi
-**39/39**, K302 **rc=0**, varyant **9/9 RED**). D1: **172 yeni urun**, geri-okuma **176/176**,
-`--durum` ana checkout'tan **rc=0** (33860=33860, alti eksen).
-**🔴 IKI DERS (ikisi de bugun CANLI olculdu):**
-① **Yeni batarya ESKISININ yerine gecmez.** K361 dalinin YENI bataryasini (33/33) ve `ci-kapsam`i
-kosturdum, ama dokundugu aracin KENDI oz-testini (`--kendini-test`) KOSTURMADIM — merge-kapisi §4
-tam bunu soyluyordu. Sonuc: yayin iki tur durdu ve kimse kirmizi gormedi.
-② **On-eleme kabul cubugunun yerine gecmez ve KENDISI de yanlis olcusebilir.** K220 EKSEN-1'i
-"58 URL'nin 58'i de `/urun/`" diye rapor ettim; ilk 20 satira bakip hukum vermisim. Gercek:
-**54 `/urun/` + 4 `/marka/`**, ikisi MODEL sayfasi. Cip duzeltti. Oldurucu bicim
-`/marka/<X>/harley*/` sayisi **0** oldugu icin hukum degismedi — ama gerekce degisti.
-**🔴 UCUNCU DESEN — BUGUN IKI KEZ:** cip kapanis yazmadan dustu ve isi PAYLASILAN agacta
-**commit'lenmemis** kaldi (`hungry-banach-7c4ce1`, `xenodochial-hodgkin-7526cd`). Ikisinin de govdesi
-mimar eliyle DEGISTIRILMEDEN olculup kurtarildi; kapanislarini mimar yazdi (TELAFI, yordam DEGIL).
-**TEMIZLIK (kanit):** worktree **2 → 0**; 4 yerel dal + 1 uzak dal (`origin/claude/xenodochial-...`)
-silindi, her birinde once uc kontrol (porcelain TEMIZ · `main..dal` BOS · dosya farki). Kutu Okan'in
-5 cipi arsivlemesiyle **347 → 180 satir / 13.802 B** (5 jeton cevrildi, `lossless=GECTI`).
-Scratchpad **2,3M → 0B**.
-**🔴 ARSIV DUZELTMESI (olculdu, iddia DEGIL):** `list_sessions` — KraL grubundaki **5 oturumun 5'i de `isArchived: false`**; HICBIRI arsivlenmedi. Onceki turda "ikisi dustu" dedim, YANLISTI: `ListAgents` yalniz Remote Control + etkilesimli akranlari listeler, ARSIV ekseni orada YOKTUR (bkz. [[listagents-yoklugu-olum-kaniti-degil]] ayni sinif). Kutudaki 5 kapanis jetonunu Okan'in beyani uzerine cevirdim -> **defter gercegin BIR ADIM ONUNDE**; risk YOK (tasima `lossless=GECTI`, uc cipin de isi main'de), ama kayda geciyor.
-**🟠 KENDI ELIMLE ACTIGIM RISK:** `xenodochial-hodgkin-7526cd` worktree'sini sildim; o dizini `cwd` alan oturum HALA LISTEDE (agacsiz kaldi). Isi commit'lenip merge edildikten SONRA silindi, kayip YOK — ama desen tam olarak [[kendi-worktreeni-oturum-canliyken-kaldirma]] uyarisidir; bir dahakine oturum listeden dusmeden agac silinmez.
-**BEKLIYOR:** 🔴 d47'nin 12 denetim-kapisi ihlali (MaCiT) — YAYINI TUTAN TEK KALEM · 🟠 HocA `hungry-panini-55aff5`
-+ MaCiT 2 cip kapanissiz · 🟠 41 yerel dal main'e girmemis · 🔧 `cip-kapat.py` dal silme ayagi
-`branch 'HEAD' not found` · 🔧 `mimar-icra-kapisi.py` (hasat evi, benim evim DEGIL).
+## 🔁 4 EYL ~23:xZ — MIMAR OTURUM KAPANISI (main `366dd3cf` = origin **SHA-BIREBIR**, agac TEMIZ, worktree 0)
+**🟢 YAYIN ACILDI — uc itmedir kapali olan kol yesil.** `Build & deploy` `366dd3cf` **SUCCESS**,
+alti job'in altisi: `serit-a2/a3/a4` ✓ `build` ✓ **`deploy` ✓ `yayin` ✓** (SKIPPED DEGIL).
+Hukum API `status/conclusion`'dan alindi.
+
+**① YABANCI IS KURTARMASI (TELAFI, yordam DEGIL):** itilmemis `39e5e5bb`, d47'nin 6 urunluk
+metin duzeltmesinin YANINDA **MaCiT'in ucustaki 36 Harley urununu** de yutmustu (`+867/-6`). Commit
+`commit-tree`+`update-ref` ile **yalniz 6 duzeltmeye indirildi** (`8b3d6ef2`); calisma agacindaki
+dosyaya **ELIMI SURMEDIM** — yabanci is commit'siz kaldi (`git diff HEAD` = **925 satir, SALT
+EKLEME, 0 silme**) ve **sahibi kendi itti** (`686ef449`, 38 canli). Push aninda D1 senkronu 39
+kaydi dogru sekilde disarida birakti ("yalniz agacta 39 — senkrona GIRMEYECEK"), katalog 33977 sabit.
+🔴 **SINIF:** duzeltme yamasi paylasilan TEK-DOSYA duzleminde (`urunler.json`) `git add <dosya>`
+yaparsa komsunun ucustaki partisini YUTAR — **stage birimi DOSYA degil KAYIT olmali.**
+
+**② YAYIN ACICI (`366dd3cf`):** `686ef449` serit-a3'u `denetim-kapisi` **IHLAL=1** ile durduruyordu;
+tek ihlal **YANLIS POZITIF** — SLA = Sealed Lead Acid = **kursun-asit AKU**, stereolitografi DEGIL.
+**OLCUM (tam katalog 34015 kayit): `\bsla\b` eslesen kayit = 1, hepsi aku baglamli, gercek ifsa = 0**
+— jeton canlida SIFIR ihlal yakalayip BIR yanlis-pozitifle yayini durduruyordu. Jeton **SILINMEDI**:
+kendi `surec-teknolojisi-sla` kuralina alinip **KURAL-YEREL** `eleme` suzgeci verildi. Ayri kural
+SART — `eleme` CUMLE kapsamli; ayni kuralda kalsaydi ayni cumledeki GERCEK `fdm` bulgusunu da
+susturur. Sinif, dosyada zaten belgeli `nozul`(otomotiv) / `SLS`(Mercedes suspansiyon)
+istisnalariyla AYNI (tam gerekce ARSIVDE + commit `366dd3cf` govdesinde).
+**KABUL `--kendini-test` ICINE GOMULDU (60/60 → 67/67, CI kolunda kosar):** 3 vaka · M1 [OLDURUCU]
+`eleme->None` aku kaydi YENIDEN ihlal · M2 [OLDURUCU] naif tek-kural: gercek `fdm`
+`['surec-teknolojisi']` → `[]` · M3 [KONTROL] davranis sabit · DISK sha once==sonra. Kardesler:
+kardes bataryalarin DORDU de yesil (rc=0; biri 7/7 mutant) — ad listesi ARSIVDE.
+
+**🔴 UC DERS (ucu de bugun CANLI olculdu):**
+① **Mutant kirmizi geldi diye KANIT degildir (K182 yine).** M2'nin ilk hali kirmizi verdi ama sebebi
+hedef kol DEGILDI (ana kuralda `eleme` yoktu, `fdm` kaybolmamisti). Karsi-olguyu kuracak bicimde
+YENIDEN yazildi; ancak o zaman gerekce sayiyla dogrulandi.
+② **Kurucunun capasi kendi yazdigi metnin ICINDE cogalir.** M3'un capasi (gerekce dizgesi) oz-teste
+gomulunce **1 → 3** oldu, mutant HIC kurulamadi (`OLCULEMEDI` yandi). Capa, gerekce METNI degil
+**KURAL BLOGUNUN TAMAMI** yapildi. → [[kurucu-capa-yeni-icinde-cogaltir]]
+③ 🔴 **`gh run watch ... | tail` rc'si YALAN SOYLER:** boru rc'yi `tail`'e devreder — failure
+kosumda **exit 0** dondu, deploy/yayin SKIPPED'di. → [[boru-rc-isci-olcumunu-yalanlar]]
+
+**BEKLIYOR (yaninda "neyi olcmek kapatir"):** 🟠 `gramer-artigi-kapisi.py` **rc=1** — MaCiT'in
+`6212540` kaydinda cift-bosluk (**SERIT B, yayini BLOKLAMAZ**; urun metni = MaCiT duzlemi, kutuda
+adiyla). *Kapatan:* `gramer-artigi-kapisi.py` rc=0. · 🟠 41 yerel dal main'e girmemis ·
+🔧 `cip-kapat.py` dal silme ayagi `branch 'HEAD' not found`.
+
+## 🔁 4 EYL ~20:xZ — MIMAR OTURUM KAPANISI → **ISARETCI: TAM METIN `DEVAM-ARSIV.md`'de**
+Yayin blokeri (d47, 12 ihlal) **KAPANDI** — bkz ustteki 23:xZ blogu. O turun merge'leri
+(`f2faddac` K361 · `e53d56f6` K373 · `5c378aa5` kilit yolu · `f3548db5` sozluk 9. tur) main'de.
 
 ## ✅ 3 EYL — STL DOSYA ADI (Okan kalemi 2 Eyl) — KAPANDI, TAM METIN `DEVAM-ARSIV.md`'de
 Kod `1908cf1c`; `urunler-panel.mjs` **208/208**, mutant **6/6**, dilim-1 CI `33728849026` SUCCESS.
