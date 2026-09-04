@@ -2,7 +2,27 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 5 EYL ~01:xZ — BaBa 4 KALEM (main `074d7c9f` YERELDE · origin `e021e922`)
+## 🔁 5 EYL ~01:xZ — **PUSH BLOKERI KAPANDI** (main = origin `686cf1d8` → `ea6736bb`)
+**① Yayin acildi** (`686cf1d8`): `ci-kapsam-test.py` iki dosyayi KAPSAMSIZ sayiyordu → fail-closed,
+TUM deponun push'u kapali. Iki kol: `nobet.yml` SERIT B'ye `baglam-kotasi-test.py` adimi (23 iddia ·
+2 OLDURUCU · 0,4 sn offline) + `IZIN_LISTESI`'ne `baglam-kotasi-kapisi.py` → **R_HOOK**
+(`icra-kapisi.py` ile AYNI sinif: PreToolUse kancasi, stdin JSON ister, cagrilabilir test DEGIL —
+**MUAFIYET KAPSAMI DEGIL**, davranisin TAMAMI CI'da kosar). Olcum: KIRMIZI(2)→**YESIL** ·
+`--kendini-test` YESIL (18 oz-nobetci) · `is-akisi-kapisi.py` YESIL (411 cagri, etkisizlestirilmis 0).
+**② `gramer-artigi-kapisi.py` KIRMIZI → TEMIZ** (`ea6736bb`): defterde **1** yaziyordu, gercek **4**
+(`197858`/`2521593` baslik · `693518`/`6212540` aciklama). `duzelt.py --toplu` (TEK flock/yazim); diff
+**+4/-4**, katalog **34066 SABIT**, diriltme+alan kapilari YESIL, agac oncesinde temizdi.
+**③ 🔴 ArTisT→KraL, Okan "ACIL": mobil PageSpeed 74/100, tek kirmizi LCP 6,1 sn** → icra cip
+**`KraL-LCP`**. Olculen teshis yonu: (a) LCP ogesi STATIK HTML'de (`index.html:1150`), `preload`+
+`fetchpriority=high` ZATEN var (`:23`) → "gorsel gec kesfediliyor" hipotezi **OLU**;
+(b) canli `longtask` **112+115 ms**, ikisi de DCL'de, throttle YOK → PSI 4x CPU ile ~900 ms ≈ raporun
+**1.070 ms oge olusturma gecikmesi** → darbogaz **ANA IS PARCACIGI**; (c) agirlik UCUNCU TARAFTA:
+`fbevents.js` **106 KB** + Meta pixel **66 KB** ≈ "kullanilmayan JS 144 KiB" (sitenin KENDI JS'i 8+2 KB).
+🔴 **Cipin ONCE cozecegi celiski:** dokum **1,33 sn**, manset **6,1** — SAHA (CrUX) mi LAB mi? SAHA ise
+kod DEGISMEZ. **PSI API anonim kotasi 0** (429) → YEREL Lighthouse. *Kapatan:* LH mobil 3'er kosum
+medyani ONCE/SONRA (LCP+skor) + longtask toplami + gerileme YOK. **Piksel KALDIRMA = OKAN/mimar kapisi.**
+
+## 🔁 5 EYL ~00:xZ — BaBa 4 KALEM (main `074d7c9f` YERELDE · origin `e021e922`)
 **KAPANAN:** ① D1 · ② KORUMALI blok tasinmaz · ④ filo dersi 5 evde · **Okan: ArTisT sayfa izni.**
 ③ baglam kotasi kapisi YAZILDI + 6 evde KURULU, commit YERELDE — push CI kapsam kapisinda DURDU.
 
@@ -32,25 +52,12 @@ BEKLEYEN bir commit'in push'u icin gereken kabloyu (`.github/workflows` tek sati
 koruma korudugunu durduruyor. *Kapatan:* kapanis sinifi bu hali kapsar + 1 vaka.
 🟠 **NET-0 YAPILAMADI:** bayat kapi OLCULMEDI (`icra-kapisi.py` calisiyor); kor silme YOK.
 
-**BEKLIYOR:** 🔴 `074d7c9f` PUSH EDILEMEDI — `baglam-kotasi-*.py` CI kapsam kapisinda KAPSAMSIZ.
-*Kapatan:* `nobet.yml` SERIT B'ye `python3 tools/baglam-kotasi-test.py` adimi + push rc=0.
-· 🟠 MaCiT CLAUDE.md **13.060 B** (tavan 12.288; benim filo satirimdan ONCE de 12.621'di) — net-0
-kirpma MaCiT'te, baska evin kuralini KOR KESMEDIM. · 🟠 `gramer-artigi-kapisi.py` rc=1 (`6212540`).
+**BEKLIYOR:** ✅ push blokeri + ✅ gramer kalemi ustteki 01:xZ blogunda KAPANDI. · 🟠 MaCiT CLAUDE.md
+**13.060 B** (tavan 12.288; filo satirimdan ONCE de 12.621'di) — net-0 kirpma MaCiT'te, KOR KESMEDIM.
 
 ## 🔁 4 EYL ~23:xZ — YAYIN ACILDI → **ISARETCI: tam metin `DEVAM-ARSIV.md` + commit `366dd3cf`**
-Alti job'in altisi yesil (`deploy`+`yayin` SKIPPED DEGIL). Uc kalem, tam metin commit
-govdelerinde: ① yabanci is kurtarmasi (`8b3d6ef2`) — SINIF: paylasilan tek-dosya duzleminde
-`git add <dosya>` komsunun ucustaki partisini YUTAR, **stage birimi DOSYA degil KAYIT**.
-② SLA yanlis-pozitifi = yayin acici (`366dd3cf`, `--kendini-test` 60/60 → 67/67).
-③ UC DERS: mutant kirmizisi tek basina KANIT degil (K182) · kurucunun capasi kendi metninde
-COGALIR → [[kurucu-capa-yeni-icinde-cogaltir]] · `gh run watch | tail` rc'si YALAN SOYLER →
-[[boru-rc-isci-olcumunu-yalanlar]]. Kalan: 41 yerel dal main'e girmemis · `cip-kapat.py` dal
-silme ayagi `branch 'HEAD' not found`.
 
-## 🔁 4 EYL ~20:xZ — MIMAR OTURUM KAPANISI → **ISARETCI: TAM METIN `DEVAM-ARSIV.md`'de**
-Yayin blokeri (d47, 12 ihlal) **KAPANDI** — bkz ustteki 23:xZ blogu. O turun merge'leri
-(`f2faddac` K361 · `e53d56f6` K373 · `5c378aa5` kilit yolu · `f3548db5` sozluk 9. tur) main'de.
-
+- ↩︎ **TAM METIN ARSIVDE** (2026-09-05 isaretciye indirme): bu blogun tam metni `DEVAM-ARSIV.md`'de "2026-09-05 — ISARETCIYE INDIRME: asagidaki blogun TAM METNI defterden BURAYA TASINDI (defterde baslik + tek satirlik isaretci kaldi)" basligi altinda.
 ## ✅ 3 EYL — STL DOSYA ADI (Okan kalemi 2 Eyl) — KAPANDI, TAM METIN `DEVAM-ARSIV.md`'de
 Kod `1908cf1c`; `urunler-panel.mjs` **208/208**, mutant **6/6**, dilim-1 CI `33728849026` SUCCESS.
 🔧 ACIK ISARETCI: shop worker deploy = **OKAN KAPISI** (kutuda tek satir) · `uretim-kaynak.mjs` K40 SERIT B (Tamirci dalinin isi, bende degil).
