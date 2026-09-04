@@ -2,44 +2,41 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 4 EYL ~10:xZ — MIMAR OTURUM KAPANISI (main `e0fdc485`, agac TEMIZ, **10 commit ITILMEMIS**)
-**CANLIYA GIDEN: HICBIRI.** `origin/main` degismedi; 10 commit YERELDE. Icinde **iki urun partisi**:
-`27745117` Zero x Thingiverse **26 urun** + `74c0974a` Bisiklet TV d44 **73 urun** = **99 urun yayin disi**.
-Tikayan: `d1-sync.py::wrangler()` timeout'suz (`d1-sync.py:459`) + `npx --yes wrangler@4`in PAYLASILAN
-npm cache'te SERILESMESI. Olculdu: `npx wrangler@4 --version` (yetki/D1 gerektirmez) **90-120 sn sifir
-ciktiyla ASILDI**; OZEL cache ile ayni komut **rc=0 / 173.7 sn**. Ag saglam (npm 200, CF API erisilir,
-site 200). 7 asili surec Okan onayiyla sonlandirildi -> kuyruk bosaldi, ZEMIN AYNI KALDI.
-**KAPANAN (bu oturum, 8 commit):** `f41c6ada` Zero sozlugu 8. tur (`len(IZINLI)` 182->183, `EKI` 43->44,
-capa fark **139 SABIT**, K302 rc=0, uyum-kapisi **39/39** ONCE=SONRA, yazim varyanti **8/8 RED**) ·
-`443199a5`+`4bf160f2` K360 kutu kimlik ekseni (batarya **45/377 -> 48/435**, mutant **30/30**, canli
-rotasyonda kilitli blok **15->8**, serbest kalan 7 blogun 7'si arsive akti) · `7ecd52e4` ICRA KAPISI
-(`Agent` ANA oturumda RED; batarya **43/43**, 7 mutant + kontrol; **canli kanit: kendi `Agent` cagrim
-bloklandi**) · `2739164d` cip supurgesi (**28/28**, mutant **4/4**) · `514953f3` cip kapanis kilavuzu ·
-`eb2333fd` canli-agac emniyeti (**18/18**) · `21bccca7` CI kablolamasi (uc test serit B'ye).
-**KOSUYOR:** bu evde koşan cip **YOK** (dort cip oturumu da `offline`). Worktree **2**.
-**BEKLIYOR — her birinin yaninda "neyi olcmek kapatir":**
-· 🔴 **10 commit ITILMEMIS / 99 urun yayin disi.** *Kapatan:* ② D1Asilma kapanir -> tek `git push origin main`.
-· 🔴 **`funny-jepsen-5ceeba`** (KraL-Tamirci-4Eyl) dal `claude/funny-jepsen-5ceeba` · kapsam **2 dosya
-  +235/−19** · kapi `ARSIVLENEMEZ rc=1` (**ICERIK_DISARIDA**) — SILME, icerik main'de YOK. Kimde: KraL.
-  *Kapatan:* merge-kapisi yordamiyla main'e alinmasi ya da gerekceli budama.
-· 🔴 **`hungry-banach-7c4ce1`** (KraL-D1Asilma-4Eyl) kapi `rc=1`, agac **KIRLI=4 dosya**, oturum offline.
-  SILME — commit'lenmemis is var. *Kapatan:* sahibinin isi commit'leyip kapanis yazmasi; yoksa
-  `cip-supurme.py --terk` tutanagi + agacin ELDE incelenmesi.
-· 🟠 **HocA `hungry-panini-55aff5`** 1 gundur acik (baska ev). *Kapatan:* HocA'nin sayili kapanisi.
-· 🟠 **43 yerel dal** main'e girmemis (45'ten indi). *Kapatan:* dal basina kapanis+merge ya da budama.
-· 🔧 **`cip-kapat.py` KUSUR:** `--uygula` worktree'yi siliyor ama dal silme ayagi `branch 'HEAD' not
-  found` veriyor (dal adi `HEAD`e cozuluyor) — iki dal ELLE silindi. Veri kaybi YOK, artik ref kaliyor.
+## 🔁 4 EYL ~1x:xZ — YAYIN ACILDI (main `e53d56f6`, agac TEMIZ, **itilmemis 0**, worktree **0**)
+**BaBa kuyrugunun ② ve ① kalemleri KAPANDI.** 16 commit `origin/main`'e gitti (`a3cac856..e53d56f6`);
+D1'e **172 yeni urun** yazildi, geri-okuma **176/176 DOGRULANDI**, 172 kapak uretildi.
+`--durum` ANA checkout'tan **rc=0**: 33860=33860 — SAYI · SAYAC · SEQ · SEMA · TURETILMIS KOLON ·
+ICERIK, alti eksenin altisi ✅. (Ayni komut BAYAT dal agacinda 146 "FAZLA" bastirdi — sahte sapma,
+karar DAIMA guncel main ana checkout'tan.)
+**② D1 ASILMASI — SINIF KAPANDI (K361, merge `f2faddac`).** Terk edilmis `hungry-banach-7c4ce1`
+cipinin isi COMMIT'LENMEMISTI; mimar eliyle **degistirilmeden** olculup kurtarildi (`b5f29bcc`).
+Uc kol: zaman asimi (TAVAN=900 sn / TABAN=450, olculen en yavas *basarili* kosum 364,0 sn'nin
+uzerinde; env TABANIN ALTINA INEMEZ) · TEK UCUS (ikinci kilit KURULMADI, mevcut flock ARAC koluna
+parametreyle acildi; bekleme 480 sn ZAMAN ASIMI sayacina GIRMEZ ve SESSIZ DEGIL) · `npx` yok kolu
+(cron PATH'i) · EPERM gecici npm cache artik SILINIR. Kabul **3/3 -> 33/33**, mutasyon **10/10**
+(7 oldurucu + 3 kontrol), **HEDEF_KOL_ATFI 7/7** (K182 sarti). Iki batarya serit B'ye bagli.
+🔴 **CANLI KANIT:** onarim oncesi `--durum` sifir ciktiyla sonsuz asiliyordu; sonrasinda **72,3 sn**
+ve **69,3 sn**'de rc ile dondu, sonra ana agacta **71,4 sn / rc=0**.
+**K373 kutu kimlik ekseni MERGE (`e53d56f6`, dal `funny-jepsen-5ceeba`):** kucuk harfli harness
+adlari sekil kolundan gorunur. Kabul **49 vaka / 454 iddia / KIRMIZI=0**, mutasyon **33/33**,
+YAMA_TUTMADI=0, **HEDEF_KOL_ATFI 32/32**, canli arac sha256 ESIT (mutant sizmadi).
+Iki dalin da `ci-kapsam-test.py`'si KENDI agacinda YESIL; sizinti taramasi 0; kapsam 4 ve 2 dosya.
+**TEMIZLIK:** iki worktree + iki dal, uc kontrolden (porcelain TEMIZ · `main..dal` BOS · dosya farki)
+sonra kaldirildi -> worktree **2 -> 0**. Kutu push'ta kendi kendine doner: 5 blok / 48 satir arsive.
+**BEKLIYOR — yaninda "neyi olcmek kapatir":**
+· 🟠 **CI:** `e53d56f6` uzerinde 2/4 kosum SUCCESS, `Build & deploy` + `SERIT B` KOSUYORDU.
+  *Kapatan:* SHA'yi ICEREN kosumun `conclusion` alani (bkz. `--limit 1` tuzagi). Onceki `a3cac856`'da
+  SERIT B ve Paket-tazeligi ZATEN kirmiziydi — bizim degil, DEVRALINDI.
+· 🟠 **41 yerel dal** main'e girmemis (43'ten indi). *Kapatan:* dal basina kapanis+merge ya da budama.
+· 🟠 **HocA `hungry-panini-55aff5`** acik (baska ev). *Kapatan:* HocA'nin sayili kapanisi.
+· 🔧 **`cip-kapat.py` KUSUR:** `--uygula` dal silme ayagi `branch 'HEAD' not found` veriyor.
   *Kapatan:* `worktree list --porcelain`den dal adi turetilip mutantla sinanmasi.
-· 🔧 **`mimar-icra-kapisi.py`** (hasat evi, 29 Agu, `.claude/`, matcher Bash): worktree'si UCUNCU TARAFCA
-  silinen cip ROL=ANA'ya dusuyor ve bu kapi o roldeki TUM `python3` cagrilarini kesiyor -> cip kendi
-  kapanisini bile yazamiyor (4 Eyl, MaCiT'te olculdu). BENIM EVIM DEGIL. *Kapatan:* MaCiT/BaBa hukmu.
-**OKAN'DA:** BaBa'nin 4 Eyl ~04:0x KORUMALI hukmu CEVAPLANDI (7 kalemin hepsi, kutuda) · BaBa kuyrugu:
-② kapanis -> ① push -> ⑤ ZeroMarka ⑥ (izole ROOT URL kumesi, TEK kosum) -> sablon dizini (ilk m3
-kosumum) -> K4 silme + net-0 -> 39/43 dal budamasi.
-**OZ-ELESTIRI (BaBa ⑦, kabul):** bugun ~2.400 satir denetim kodu, **urun 0**, **m3 %0**. Uc mekanizmanin
-ucu de kendi kusurunu tasiyordu ve hepsini OLCUM yakaladi, tasarim degil: kanca KENAR-tetikliydi
-(olu oturum kapanisa zorlanamaz), oz-agac emniyeti KAPI ARKASINDAYDI (yalniz rc=0 agacta kosuyordu),
-canli-agac kolu HIC YOKTU (canli bir cipi kirdi), mutant fiksturum kendi olctugunu olcmuyordu (M1 ULASMADI).
+· 🔧 **`mimar-icra-kapisi.py`** (hasat evi): ucuncu tarafca silinmis worktree'nin cipi ROL=ANA'ya
+  dusuyor ve kendi kapanisini yazamiyor. BENIM EVIM DEGIL. *Kapatan:* MaCiT/BaBa hukmu.
+**DERS (kayda):** terk edilmis cipin isi PAYLASILAN agacta commit'siz duruyordu — kapanis yazilmadan
+dusen her cip bu riski birakir. Olculdu: is saglamdi, kaybolmasi an meselesiydi. Ayrica cip kendi
+govdesine yazamadigi bir ic rapor adini yorumda ANDI ve `ic-rapor-adi-kapisi.py` commit'i DURDURDU —
+karsiliksiz atif genel ifadeye cevrildi.
 
 ## ✅ 3 EYL — STL DOSYA ADI (Okan kalemi 2 Eyl) — cip `KraL-StlDosyaAdi-3Eyl` (`amazing-ishizaka-2d4a0f`, Fable 5.1)
 `shop/src/yonet.js` `/stl-yukle`: `.STL` harf-duyarsiz + R2 anahtarinda kucuk uzanti; Turkce→ASCII (once NFC,
