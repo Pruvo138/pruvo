@@ -1638,6 +1638,30 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/cip-kapanis-kancasi-test.py --mutasyon
 
+      # ICRA KAPISI (tools/icra-kapisi.py) — 4 Eyl 2026, OKAN HUKMU.
+      # O gun KraL ANA oturumunda icra `Agent` alt-ajaniyla acildi; dogru arac
+      # `mcp__ccd_session__spawn_task`ti ve ihlali yakalayan MAKINE kolu YOKTU
+      # (29 Agu supurmesi rol/kilit kapilarini settings.json'dan cikarmisti).
+      # Ihlali INSAN yakaladi. Kapi `PreToolUse` kancasi olarak ANA OTURUMDAKI
+      # `Agent`/`Task` cagrisini reddeder; RED metni dogru araci ve gerekce
+      # hafizasini ADIYLA soyler.
+      # 🔴 IKI FELAKET KIPI DE OLCULUR: (a) bloklamasi gerekirken gecirmek,
+      # (b) GECMESI gerekirken bloklamak — ozellikle `Task*` ONEK TUZAGI:
+      # arka plan gorev araclari (TaskCreate/TaskList/TaskOutput/TaskStop/
+      # TaskUpdate — 1365 transcript'te 597 cagri) bir regex/onek eslesmesinde
+      # birlikte bloklanirdi; eslesme TAM ESITLIKTIR ve M1 mutanti bunu olcer.
+      # Kanca CANLIDA fail-open (her hata yolu gecirir), BATARYADA fail-closed
+      # (bilinmeyen hal KIRMIZI). NEDEN SERIT B: offline, sentetik git fiksturu.
+      - name: "Icra kapisi kabul bataryasi (43 iddia, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/icra-kapisi-test.py --taban
+
+      # 7 mutant + 1 kontrol; her mutant OLDURDUGU KOLU ADIYLA basar ve taban ile
+      # ayni sonuc "ULASMADI" diye KIRMIZI yanar.
+      - name: "Icra kapisi mutasyon turu (7 mutant + kontrol, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/icra-kapisi-test.py
+
       # KUTU ESIK KAPISI (tools/kutu-esik-kapisi.py) — K188. Yukaridaki arsivleyici
       # kutuyu TAVANA INDIREBILIYOR ama esigi YALNIZ kendisi biliyor; kutuya YAZAN yol
       # onu hic olcmuyordu. Sonuc: tavan asimi ancak biri ELLE bakinca goruluyor ve

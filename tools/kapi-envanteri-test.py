@@ -450,8 +450,15 @@ def main():
         k1 = tek_karar(probe, fikstur["V2"])[0] == "allow"
         kontroller_k141.append(("K1", k1, "V2 allow=%s" % k1))
         kapsam = tuple(g["ad"] for g in probe.GATES)
+        # 🔴 KAPSAM CIVISI — gevsetilmez, YENIDEN CIVILENIR. Bu demet envanterin
+        # kapsam tabanini SAYIYLA baglar; yeni bir kapi eklendiginde burasi
+        # BILEREK guncellenir, aksi halde kapsam sessizce kayar
+        # ([[batarya-kapsam-tabani-sayiyla-civilenir]]).
+        # 4 Eyl 2026: `icra-kapisi` eklendi (Okan hukmu — ANA oturumda `Agent`
+        # alt-ajani reddi). 7 -> 8. SIRA da baglayicidir.
         beklenen_kapsam = (
             "komut-stili-kapisi", "urunler-guard-hook", "mimar-icra-kapisi",
+            "icra-kapisi",
             "mimar-kod-kilidi", "urunler-guard", "mukerrer-kontrol",
             "mimar-commit-kapisi",
         )

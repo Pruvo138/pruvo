@@ -3017,6 +3017,13 @@ IZIN_LISTESI = {
     "tools/kapi-envanteri-test.py": R_YOL,
     # --- tools/ NOBETCILER (*-kapisi.py) — kesif 21 Tem genisletildi, CI'da kosmayanlar ---
     "tools/komut-stili-kapisi.py": R_HOOK,
+    # 4 Eyl 2026 (Okan hukmu): ANA oturumda `Agent` alt-ajani yasagi. Ayni sinif —
+    # PreToolUse kancasi, argumansiz kosunca girdi YOK -> exit 0, hicbir sey
+    # kanitlamaz. 🔴 MUAFIYET KAPSAMI DEGIL: davranisinin TAMAMI
+    # `tools/icra-kapisi-test.py` ile CI'da kosuyor (43 iddia + 7 mutant + 1
+    # kontrol, nobet.yml SERIT B) — yani kapi CI'da OLCULUYOR, yalnizca KENDISI
+    # dogrudan cagrilabilir bir test degil.
+    "tools/icra-kapisi.py": R_HOOK,
     # (KraL-KapiSupurmesi-29Agu: mimar-icra-kapisi ve mimar-commit-kapisi
     # muafiyetleri kaldirildi — kapilar silindi.)
     # "tools/denetim-kapisi.py" MUAFIYETI KALDIRILDI (31 Tem, madde 32) — R_GIZLI gerekcesi

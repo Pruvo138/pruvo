@@ -121,13 +121,18 @@ def _kimlik_anahtarlari(yol):
     return set()
 
 
-def _mimar_baglami(script, tool_input=None, tool_name="Bash"):
+def _mimar_baglami(script, tool_input=None, tool_name="Bash", payload_ek=None):
     """Sentetik cagriyi MIMAR kimliginde kur.
 
     Doner: (payload, ortam, kalan_eksen, iz).
       kalan_eksen None   -> baglam MIMAR; kapinin donusu GERCEK davranisidir
       kalan_eksen str    -> kimlik sokULEMEDI; hukum verilemez -> MUAF_BAGLAM
-    """
+
+    `payload_ek` (4 Eyl 2026, icra-kapisi): bazi kapilar `tool_input` DISINDA bir
+    ust-seviye alan okur — `icra-kapisi.py` OTURUM ROLUNU `transcript_path`ten
+    turetir. Eski yuk o alani hic tasimadigi icin rol ekseni olculemiyor ve kapi
+    hakkinda YANLIS hukum veriliyordu. Varsayilan `None` -> yuk BIREBIR eskisi
+    gibi kalir; oteki kapilarin olcumu DEGISMEZ (ONCE=SONRA korunur)."""
     payload = {
         "session_id": "kapi-envanteri",
         "cwd": CANON,
@@ -135,6 +140,8 @@ def _mimar_baglami(script, tool_input=None, tool_name="Bash"):
         "tool_name": tool_name,
         "tool_input": {} if tool_input is None else tool_input,
     }
+    if payload_ek:
+        payload.update(payload_ek)
     ortam = dict(os.environ)
     for ad in AMBIYANS_DEGISKENLERI:
         ortam.pop(ad, None)
@@ -162,9 +169,9 @@ def _mimar_baglami(script, tool_input=None, tool_name="Bash"):
 # ---------------------------------------------------------------------------
 # NOBET (dry-run reddet/kabul) sinayicilari — hepsi yan-etkisiz.
 # ---------------------------------------------------------------------------
-def _karar_olc(script, tool_input, tool_name):
+def _karar_olc(script, tool_input, tool_name, payload_ek=None):
     """Karar-kancasini kostur; jeton, returncode ve stderr ilk satirini dondur."""
-    payload, ortam, kalan, iz = _mimar_baglami(script, tool_input, tool_name)
+    payload, ortam, kalan, iz = _mimar_baglami(script, tool_input, tool_name, payload_ek)
     if kalan is not None:
         return MUAF_BAGLAM, 0, ("kimlik ekseni sokulemedi (%s) — %s" % (kalan, iz))
     sonuc = subprocess.run(
@@ -196,8 +203,14 @@ def _karar(script, tool_input, tool_name):
 
 def _nobet_karar(script, params):
     tn = params.get("tool_name", "Bash")
-    red, red_rc, red_stderr = _karar_olc(script, params["red"], tn)
-    kabul, kabul_rc, kabul_stderr = _karar_olc(script, params["kabul"], tn)
+    # 4 Eyl: red/kabul AYRI bir `tool_name` isteyebilir. `icra-kapisi` icin ayrim
+    # zaten ARAC ADINDADIR (Agent reddedilir, TaskStop gecer) — tek `tool_name`
+    # ile o kapinin kabul kolu hic olculemezdi. Varsayilan eski davranistir.
+    ek = params.get("payload_ek")
+    red, red_rc, red_stderr = _karar_olc(
+        script, params["red"], params.get("red_tool_name", tn), ek)
+    kabul, kabul_rc, kabul_stderr = _karar_olc(
+        script, params["kabul"], params.get("kabul_tool_name", tn), ek)
     red_ok = (red == "deny")
     kabul_ok = (kabul in ("allow", "allow-SESSIZ"))
     ayrinti = ("reddetmeli=%s(rc=%d) kabuletmeli=%s(rc=%d) "
@@ -339,6 +352,26 @@ GATES = [
             "tip": "karar", "tool_name": "Bash",
             "red": {"command": "python3 /private/tmp/x/scratchpad/analiz.py"},  # repo-disi icra
             "kabul": {"command": "git -C " + CANON + " status -sb"},            # git serbest
+        },
+    },
+    {
+        # 4 EYL 2026 — Okan hukmu: `Agent` alt-ajani ANA OTURUMDA reddedilir.
+        # Matcher "*"dir ve arac secimi kapinin GOVDESINDE yapilir: matcher regex
+        # semantigi bu makinede olculmedi, kapi ona emanet EDILMEZ.
+        # Nobet cifti ARAC ADI ekseninde: `Agent` -> deny, `TaskStop` -> allow
+        # (onek tuzagi: `Task*` arka plan araclari SERBEST kalmali).
+        "ad": "icra-kapisi",
+        "script": "tools/icra-kapisi.py",
+        "kablolar": [{"yer": "settings", "matcher": "*"}],
+        "nobet": {
+            "tip": "karar",
+            "payload_ek": {"transcript_path":
+                           "/Users/okan/.claude/projects/-Users-okan-dev-pruvo/"
+                           "kapi-envanteri-olcum.jsonl"},
+            "red_tool_name": "Agent",      # ANA oturum rolu (cwd=CANON) -> deny
+            "kabul_tool_name": "TaskStop",  # arka plan gorev araci   -> allow
+            "red": {},
+            "kabul": {},
         },
     },
     {
