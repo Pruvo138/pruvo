@@ -66,49 +66,21 @@
     if (localStorage.getItem('pruvo_onay_kapsam') === window.PRUVO_RIZA_KAPSAMI) { window.pruvoRizaUygula('granted'); }
     else { gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } } catch(e){}
 </script>
-<!-- 🔴 GEÇ YÜKLEME — LCP KÖK NEDENİ (ölçüldü 5 Eyl 2026, yerel Lighthouse mobil,
-     simüle throttling, 3'er koşum medyanı). Etiket `async` idi ama `async` YALNIZ ana iş
-     parçacığını serbest bırakır, BANT GENİŞLİĞİNİ bırakmaz: iki gtag paketi 190 KB + 161 KB
-     = 351 KB (sayfanın 1,03 MB toplamının %34'ü) ve LCP görseliyle AYNI 328 ms'te inmeye
-     başlıyordu. Simüle mobil bantta LCP görselinin 40 KB'ı 2.495 ms sürdü — bant açlığı.
-     ÖLÇÜM: gtag alanları engellenince LCP 5,86 -> 2,67 sn · skor 76 -> 96 · TBT 36 -> 0 ms ·
-     uzun görev 5 -> 0. İkinci aday (banner slayt 2-4 + yan bannerlar, 150 KB) AYNI yöntemle
-     ölçüldü, kazanç SIFIR (2,67 -> 2,81, gürültü içinde) — banner koluna DOKUNULMADI.
-     DAVRANIŞ KORUNUR, etiket KALDIRILMADI: `gtag()` zaten dataLayer'a yazar, kütüphane
-     gelince kuyruk oynatılır. Rıza varsayılanı (denied) ve config çağrıları kuyrukta
-     kütüphaneden ÖNCE durur — Consent Mode v2 sırası bozulmaz.
-     ÜÇ TETİK, hangisi önce gelirse: (1) ilk kullanıcı etkileşimi, (2) `load` + 800 ms,
-     (3) 5.000 ms mutlak tavan. (3) fail-open emniyetidir: `load` hiç gelmezse (asılı bir alt
-     kaynak) etiket YİNE de yüklenir; sessizce ölçümsüz kalmaz.
-     🔴 SÜRTÜNME: `load` olayından ÖNCE sayfadan ayrılan ziyaretçi artık sayılmaz.
-     Etiketi tümden kaldırmak ya da kapatmak bu değişikliğin KAPSAMI DIŞINDADIR. -->
+<!-- GEÇ YÜKLEME (LCP ölçümü, 5 Eyl 2026): gtag/js iki paketi 351 KB'tır ve `async`
+     ana iş parçacığını bırakır, BANDI bırakmaz — LCP görselinin önünü tıkıyordu. Etiket
+     KALDIRILMADI: `gtag()` dataLayer'a yazar, kütüphane gelince kuyruk oynar, Consent
+     Mode v2 sırası korunur. Tetik: ilk etkileşim · `load`+800 ms · 5.000 ms fail-open
+     tavanı. Ölçüm ve tam gerekçe bu bloğu getiren commit mesajındadır. -->
 <script>
-(function(){
-  var yuklendi = false;
-  function gtagYukle(){
-    if(yuklendi){ return; }
-    yuklendi = true;
-    var s = document.createElement('script');
-    s.async = true;
-    s.src = "https://www.googletagmanager.com/gtag/js?id=G-5V53CQMSCE";
-    document.head.appendChild(s);
-  }
-  /* Disaridan erken tetiklemek gerekirse (or. riza bandi "Kabul Et") tek kanonik giris. */
-  window.pruvoGtagYukle = gtagYukle;
-  var OLAYLAR = ['pointerdown','keydown','touchstart','scroll'], i;
-  function tetik(){
-    var k;
-    for(k=0;k<OLAYLAR.length;k++){ window.removeEventListener(OLAYLAR[k], tetik, true); }
-    gtagYukle();
-  }
-  for(i=0;i<OLAYLAR.length;i++){
-    window.addEventListener(OLAYLAR[i], tetik, {capture:true, passive:true});
-  }
-  function loadSonrasi(){ setTimeout(gtagYukle, 800); }
-  if(document.readyState === 'complete'){ loadSonrasi(); }
-  else { window.addEventListener('load', loadSonrasi); }
-  setTimeout(gtagYukle, 5000);
-})();
+(function(){var y=0,O=['pointerdown','keydown','touchstart','scroll'],i;
+function L(){if(y){return;}y=1;var s=document.createElement('script');s.async=true;
+s.src="https://www.googletagmanager.com/gtag/js?id=G-5V53CQMSCE";document.head.appendChild(s);}
+window.pruvoGtagYukle=L;
+function T(){for(var k=0;k<O.length;k++){window.removeEventListener(O[k],T,true);}L();}
+for(i=0;i<O.length;i++){window.addEventListener(O[i],T,{capture:true,passive:true});}
+function A(){setTimeout(L,800);}
+if(document.readyState==='complete'){A();}else{window.addEventListener('load',A);}
+setTimeout(L,5000);})();
 </script>
 <script>
   gtag('js', new Date());

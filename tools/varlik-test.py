@@ -201,6 +201,42 @@ BILEREK_DEGISEN_TAM = (
      "Consent Mode v2 tasima ayari eklendi — YENI satir (nobetci: reklam-etiket-kapisi.py)"),
     ("gtag('set', 'ads_data_redaction', true);",
      "Consent Mode v2 tasima ayari eklendi — YENI satir (nobetci: reklam-etiket-kapisi.py)"),
+    # 2026-09-05 — GA ETIKETI GEC YUKLEMEYE ALINDI (LCP kolu). ESKI hal `<script async
+    # src=gtag/js>` idi: BOS govdeli bir <script src> etiketi, yani bu eksende JS GOVDESI
+    # HIC YOKTU -> KAYIP tarafi bos, yalniz EKLENTI tarafi dogar. Dokuz satir da YENI'dir.
+    # NEDEN VARLIGA-TASIMA KAYBI DEGIL: hicbir satir harici varliktan sayfaya geri
+    # tasinmadi; olculmus bir performans kusuru (gtag/js iki paketi 351 KB, `async` bandi
+    # BIRAKMAZ ve LCP gorselinin onunu tikiyordu) icin YUKLEME ANI degistirildi.
+    # ETIKET KALDIRILMADI/KAPATILMADI: `gtag()` dataLayer'a yazar, kutuphane gelince kuyruk
+    # oynar; riza varsayilani (denied) + iki tasima ayari + iki `config` cagrisi kutuphaneden
+    # ONCE kuyrukta durur, Consent Mode v2 SIRASI korunur.
+    # 🔴 SATIRLAR AYIRT EDICI: blok bilerek tek-satirlik konusan ifadelerle yazildi; bu
+    # tabloya `}` / `try {` gibi ayirt edici OLMAYAN satir GIRMEDI (yukaridaki kural).
+    # 🔴 IDDIA TASINDI, KALDIRILMADI: etiketin HER sayfa sinifinda FIILEN durdugunu
+    # tools/reklam-etiket-kapisi.py (a) ekseni fail-closed olcer — `googletagmanager.com/
+    # gtag/js` dizgesi bu blokta AYNEN gecer, yani o kapi bu beyanla korlesmez.
+    # ⚠️ ACIK KALEM (mimara raporlandi): blok 34.066 urun sayfasina AYNEN iniyor (~1.035
+    # bayt/sayfa). Dogru yeri ORTAK HARICI VARLIK dosyasidir; ilk teslimde satir-ici
+    # birakildi cunku GA cekirdegi bes kaynak sayfa + uretecte BAYT-BIREBIR olmak zorunda
+    # (reklam-etiket-kapisi.py) ve o tasima ayri bir kalemdir.
+    ("(function(){var y=0,O=['pointerdown','keydown','touchstart','scroll'],i;",
+     "GA etiketi gec yuklemeye alindi — YENI: kapanis + tetik olay kumesi"),
+    ("function L(){if(y){return;}y=1;var s=document.createElement('script');s.async=true;",
+     "GA etiketi gec yuklemeye alindi — YENI: tek-atislik yukleyici basi"),
+    ('s.src="https://www.googletagmanager.com/gtag/js?id=G-5V53CQMSCE";document.head.appendChild(s);}',
+     "GA etiketi gec yuklemeye alindi — YENI: etiket URL'i + enjeksiyon (kapi (a) bunu gorur)"),
+    ("window.pruvoGtagYukle=L;",
+     "GA etiketi gec yuklemeye alindi — YENI: erken tetik icin tek kanonik giris"),
+    ("function T(){for(var k=0;k<O.length;k++){window.removeEventListener(O[k],T,true);}L();}",
+     "GA etiketi gec yuklemeye alindi — YENI: ilk etkilesim tetigi (kendini soker)"),
+    ("for(i=0;i<O.length;i++){window.addEventListener(O[i],T,{capture:true,passive:true});}",
+     "GA etiketi gec yuklemeye alindi — YENI: etkilesim dinleyicilerinin baglanmasi"),
+    ("function A(){setTimeout(L,800);}",
+     "GA etiketi gec yuklemeye alindi — YENI: `load` sonrasi 800 ms gecikme"),
+    ("if(document.readyState==='complete'){A();}else{window.addEventListener('load',A);}",
+     "GA etiketi gec yuklemeye alindi — YENI: `load` gecmisse de calisan kol"),
+    ("setTimeout(L,5000);})();",
+     "GA etiketi gec yuklemeye alindi — YENI: 5.000 ms FAIL-OPEN tavani (olcumsuz kalmaz)"),
     # 2026-08-08 — RIZA BANDI REKLAM IZNINI DE ISTER OLDU (Okan karari). TEK OLAY, 19 satir:
     # 6 ESKI (dar analytics-only yol) + 13 YENI (kanonik dort-alan yolu + kapsam kaydi).
     # Varliga-tasima kaybi DEGIL; bant metni ayrica BILEREK_DEGISEN_METIN'de beyan edildi.
