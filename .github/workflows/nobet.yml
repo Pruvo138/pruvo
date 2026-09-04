@@ -1666,6 +1666,24 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/icra-kapisi-test.py
 
+      # BAGLAM KOTASI KAPISI (tools/baglam-kotasi-kapisi.py) — 4 Eyl 2026, BaBa ③.
+      # Filo olcumu: 5 evin 4'u 250K baglam esiginin USTUNDE calisti; her tur tum
+      # baglami yeniden faturaliyor. Kapi `PreToolUse` kancasi olarak transkriptten
+      # tur sayisi + `usage` toplamini okur; esik ustunde YALNIZ kapanis-sinifi
+      # araclara izin verir, kod/test dosyasina >=15 `Write` sonrasi ucuz kata
+      # yollar. Kanca CANLIDA fail-open (OLCULEMEDI ADIYLA basilir, sessiz bypass
+      # DEGIL), BATARYADA fail-closed.
+      # 🔴 ILK KOSUMDA OLCULEN TASARIM KUSURU (bu blogun kendisi): kapanis sinifi
+      # BEKLEYEN bir commit'in push'u icin gereken kabloyu KAPSAMIYORDU -> koruma
+      # korudugunu DURDURUYORDU ([[koruma-kurali-korudugunu-durdurur]]).
+      # Kapi CI'da OLCULUYOR ama KENDISI cagrilabilir test degil (stdin JSON ister),
+      # o yuzden ci-kapsam-test.py::IZIN_LISTESI'nde R_HOOK ile durur — davranisinin
+      # TAMAMI asagidaki batarya ile kosar. NEDEN SERIT B: offline, sentetik
+      # transkript fiksturu, canli repoya dokunmaz, ~0,4 s.
+      - name: "Baglam kotasi kapisi kabul bataryasi (23 iddia, 2 OLDURUCU mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/baglam-kotasi-test.py
+
       # CIP KAPATMA KILAVUZU + KAPANISSIZ CIP SUPURGESI — 4 Eyl 2026 (`2739164d`,
       # `514953f3`). Uc test dosyasi IZLENEN olarak indi ama hicbir otomatik is
       # akisina baglanmamisti; `ci-kapsam-test.py` fail-closed oldugu icin bu, TUM

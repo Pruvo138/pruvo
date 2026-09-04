@@ -3024,6 +3024,13 @@ IZIN_LISTESI = {
     # kontrol, nobet.yml SERIT B) — yani kapi CI'da OLCULUYOR, yalnizca KENDISI
     # dogrudan cagrilabilir bir test degil.
     "tools/icra-kapisi.py": R_HOOK,
+    # 4 Eyl 2026 (BaBa ③): baglam kotasi kapisi. Ayni sinif — PreToolUse kancasi,
+    # stdin'den JSON alir; argumansiz kosunca girdi YOK -> exit 0, hicbir sey
+    # kanitlamaz. 🔴 MUAFIYET KAPSAMI DEGIL: davranisinin TAMAMI
+    # `tools/baglam-kotasi-test.py` ile CI'da kosuyor (23 iddia + 2 OLDURUCU
+    # mutant + 1 KONTROL + disk kolu, nobet.yml SERIT B) — kapi CI'da OLCULUYOR,
+    # yalnizca KENDISI dogrudan cagrilabilir bir test degil.
+    "tools/baglam-kotasi-kapisi.py": R_HOOK,
     # (KraL-KapiSupurmesi-29Agu: mimar-icra-kapisi ve mimar-commit-kapisi
     # muafiyetleri kaldirildi — kapilar silindi.)
     # "tools/denetim-kapisi.py" MUAFIYETI KALDIRILDI (31 Tem, madde 32) — R_GIZLI gerekcesi
