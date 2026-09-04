@@ -2,47 +2,50 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 4 EYL ~23:xZ — MIMAR OTURUM KAPANISI (main `366dd3cf` = origin **SHA-BIREBIR**, agac TEMIZ, worktree 0)
-**🟢 YAYIN ACILDI — uc itmedir kapali olan kol yesil.** `Build & deploy` `366dd3cf` **SUCCESS**,
-alti job'in altisi: `serit-a2/a3/a4` ✓ `build` ✓ **`deploy` ✓ `yayin` ✓** (SKIPPED DEGIL).
-Hukum API `status/conclusion`'dan alindi.
+## 🔁 5 EYL ~01:xZ — BaBa 4 KALEM (main `074d7c9f` YERELDE · origin `e021e922`)
+**KAPANAN:** ① D1 · ② KORUMALI blok tasinmaz · ④ filo dersi 5 evde · **Okan: ArTisT sayfa izni.**
+③ baglam kotasi kapisi YAZILDI + 6 evde KURULU, commit YERELDE — push CI kapsam kapisinda DURDU.
 
-**① YABANCI IS KURTARMASI (TELAFI, yordam DEGIL):** itilmemis `39e5e5bb`, d47'nin 6 urunluk
-metin duzeltmesinin YANINDA **MaCiT'in ucustaki 36 Harley urununu** de yutmustu (`+867/-6`). Commit
-`commit-tree`+`update-ref` ile **yalniz 6 duzeltmeye indirildi** (`8b3d6ef2`); calisma agacindaki
-dosyaya **ELIMI SURMEDIM** — yabanci is commit'siz kaldi (`git diff HEAD` = **925 satir, SALT
-EKLEME, 0 silme**) ve **sahibi kendi itti** (`686ef449`, 38 canli). Push aninda D1 senkronu 39
-kaydi dogru sekilde disarida birakti ("yalniz agacta 39 — senkrona GIRMEYECEK"), katalog 33977 sabit.
-🔴 **SINIF:** duzeltme yamasi paylasilan TEK-DOSYA duzleminde (`urunler.json`) `git add <dosya>`
-yaparsa komsunun ucustaki partisini YUTAR — **stage birimi DOSYA degil KAYIT olmali.**
+**① D1** (`e021e922`): her wrangler cagrisi KALICI OZEL cache'te (soguk 27,9 → isinmis **1,4 sn**;
+`--version` kabul GECTI). Tavan iki kollu: ISINMIS **120** sn (olculen en yavas 11,1) · SOGUK **450**
+(olculen 307,1) — tek 120 mesru doldurmayi keserdi. `10043` GECICI kovasina alindi: tam senkron
+onunla rc=1 dustu, retry YAPILMADI, 51 urunluk yazma bosa gitti; AYNI komut degisiklik olmadan rc=0
+verdi (geri-okuma **51/51 ✅**). Kabul: tani-test **39/39** · mutasyon **13/13, OLDUREN 10/10,
+HEDEF_KOL_ATFI 10/10, YAMA_TUTMADI 0** · `--kendini-test` 157/0.
+🔴 **Batarya kendi KALICI kaynagini SILMISTI** (E kolu `finally`si ayrim yapmiyordu; cache **0 B**
+olculdu) — E3/E4 ile ayrildi. 🟠 `--durum` **rc=0 ama 71,2 sn** (kabul <60): 42,25 sn'si YEREL
+turetim (`marka_kanon` 20,59 + `model_kanon` 20,41), wrangler DEGIL. Tekillestirme denendi,
+**olculdu ve CURUDU** (pencere isabet etmiyor: `evren`/`ek` her cagride yeni nesne) → GERI ALINDI;
+kanonik uretici yoluna no-op kod BIRAKILMADI. *Kapatan:* iki ureticinin kaynak nesnesi TEKILLESIP
+`--durum` 60 sn alti.
 
-**② YAYIN ACICI (`366dd3cf`):** `686ef449` serit-a3'u `denetim-kapisi` **IHLAL=1** ile durduruyordu;
-tek ihlal **YANLIS POZITIF** — SLA = Sealed Lead Acid = **kursun-asit AKU**, stereolitografi DEGIL.
-**OLCUM (tam katalog 34015 kayit): `\bsla\b` eslesen kayit = 1, hepsi aku baglamli, gercek ifsa = 0**
-— jeton canlida SIFIR ihlal yakalayip BIR yanlis-pozitifle yayini durduruyordu. Jeton **SILINMEDI**:
-kendi `surec-teknolojisi-sla` kuralina alinip **KURAL-YEREL** `eleme` suzgeci verildi. Ayri kural
-SART — `eleme` CUMLE kapsamli; ayni kuralda kalsaydi ayni cumledeki GERCEK `fdm` bulgusunu da
-susturur. Sinif, dosyada zaten belgeli `nozul`(otomotiv) / `SLS`(Mercedes suspansiyon)
-istisnalariyla AYNI (tam gerekce ARSIVDE + commit `366dd3cf` govdesinde).
-**KABUL `--kendini-test` ICINE GOMULDU (60/60 → 67/67, CI kolunda kosar):** 3 vaka · M1 [OLDURUCU]
-`eleme->None` aku kaydi YENIDEN ihlal · M2 [OLDURUCU] naif tek-kural: gercek `fdm`
-`['surec-teknolojisi']` → `[]` · M3 [KONTROL] davranis sabit · DISK sha once==sonra. Kardesler:
-kardes bataryalarin DORDU de yesil (rc=0; biri 7/7 mutant) — ad listesi ARSIVDE.
+**② KORUMALI** (`e021e922`): basliginda `KORUMALI` gecen blok rotasyona GIRMEZ (K329 ile ayni konum
+olcutu, `sabit_indeksler`e 4. kaynak). Kabul **50 vaka / 466 iddia**; mutant vetonun yuk tasidigini
+gosteriyor. CANLI: 22:2x BaBa blogu arsivden kutuya GERI TASINDI (arsivde 0 / kutuda 1, satir
+bazinda kayipsiz), gercek rotasyon `KORUMALI_ETIKETLI=1 kilitledi=1` basti, blok YERINDE ATLANDI.
 
-**🔴 UC DERS (ucu de bugun CANLI olculdu):**
-① **Mutant kirmizi geldi diye KANIT degildir (K182 yine).** M2'nin ilk hali kirmizi verdi ama sebebi
-hedef kol DEGILDI (ana kuralda `eleme` yoktu, `fdm` kaybolmamisti). Karsi-olguyu kuracak bicimde
-YENIDEN yazildi; ancak o zaman gerekce sayiyla dogrulandi.
-② **Kurucunun capasi kendi yazdigi metnin ICINDE cogalir.** M3'un capasi (gerekce dizgesi) oz-teste
-gomulunce **1 → 3** oldu, mutant HIC kurulamadi (`OLCULEMEDI` yandi). Capa, gerekce METNI degil
-**KURAL BLOGUNUN TAMAMI** yapildi. → [[kurucu-capa-yeni-icinde-cogaltir]]
-③ 🔴 **`gh run watch ... | tail` rc'si YALAN SOYLER:** boru rc'yi `tail`'e devreder — failure
-kosumda **exit 0** dondu, deploy/yayin SKIPPED'di. → [[boru-rc-isci-olcumunu-yalanlar]]
+**③ BAGLAM KOTASI — kabul 23/23** (2 OLDURUCU + KONTROL + disk). 6 evin `settings.json`'una
+KANONIK YOLLA baglandi (kopya YOK → bayatlik yapisal olarak imkansiz), geri-okuma teyitli.
+🔴 **CANLI KANIT — KAPI KENDI YAZARINI RED ETTI:** bu oturum **591 tur / 501K**; kapi once commit
+betigimi, sonra CI kablosunu kesti. 🔴 **ILK KOSUMDA BULUNAN TASARIM KUSURU:** kapanis sinifi,
+BEKLEYEN bir commit'in push'u icin gereken kabloyu (`.github/workflows` tek satir) KAPSAMIYOR →
+koruma korudugunu durduruyor. *Kapatan:* kapanis sinifi bu hali kapsar + 1 vaka.
+🟠 **NET-0 YAPILAMADI:** bayat kapi OLCULMEDI (`icra-kapisi.py` calisiyor); kor silme YOK.
 
-**BEKLIYOR (yaninda "neyi olcmek kapatir"):** 🟠 `gramer-artigi-kapisi.py` **rc=1** — MaCiT'in
-`6212540` kaydinda cift-bosluk (**SERIT B, yayini BLOKLAMAZ**; urun metni = MaCiT duzlemi, kutuda
-adiyla). *Kapatan:* `gramer-artigi-kapisi.py` rc=0. · 🟠 41 yerel dal main'e girmemis ·
-🔧 `cip-kapat.py` dal silme ayagi `branch 'HEAD' not found`.
+**BEKLIYOR:** 🔴 `074d7c9f` PUSH EDILEMEDI — `baglam-kotasi-*.py` CI kapsam kapisinda KAPSAMSIZ.
+*Kapatan:* `nobet.yml` SERIT B'ye `python3 tools/baglam-kotasi-test.py` adimi + push rc=0.
+· 🟠 MaCiT CLAUDE.md **13.060 B** (tavan 12.288; benim filo satirimdan ONCE de 12.621'di) — net-0
+kirpma MaCiT'te, baska evin kuralini KOR KESMEDIM. · 🟠 `gramer-artigi-kapisi.py` rc=1 (`6212540`).
+
+## 🔁 4 EYL ~23:xZ — YAYIN ACILDI → **ISARETCI: tam metin `DEVAM-ARSIV.md` + commit `366dd3cf`**
+Alti job'in altisi yesil (`deploy`+`yayin` SKIPPED DEGIL). Uc kalem, tam metin commit
+govdelerinde: ① yabanci is kurtarmasi (`8b3d6ef2`) — SINIF: paylasilan tek-dosya duzleminde
+`git add <dosya>` komsunun ucustaki partisini YUTAR, **stage birimi DOSYA degil KAYIT**.
+② SLA yanlis-pozitifi = yayin acici (`366dd3cf`, `--kendini-test` 60/60 → 67/67).
+③ UC DERS: mutant kirmizisi tek basina KANIT degil (K182) · kurucunun capasi kendi metninde
+COGALIR → [[kurucu-capa-yeni-icinde-cogaltir]] · `gh run watch | tail` rc'si YALAN SOYLER →
+[[boru-rc-isci-olcumunu-yalanlar]]. Kalan: 41 yerel dal main'e girmemis · `cip-kapat.py` dal
+silme ayagi `branch 'HEAD' not found`.
 
 ## 🔁 4 EYL ~20:xZ — MIMAR OTURUM KAPANISI → **ISARETCI: TAM METIN `DEVAM-ARSIV.md`'de**
 Yayin blokeri (d47, 12 ihlal) **KAPANDI** — bkz ustteki 23:xZ blogu. O turun merge'leri
