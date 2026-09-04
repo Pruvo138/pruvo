@@ -1301,19 +1301,53 @@ def acik_cip_bloklari(satirlar, baslar, kapanan=None, arsiv_kayitlari=None):
     return acik, kapanmis, govde_anmasi, kapanan
 
 
-def sabit_indeksler(blok_sayisi_, koru, korumali_indeksler, acik_indeksler=()):
+# ── KORUMALI ETIKETI = TASINMAZ (4-5 Eyl 2026 — BaBa (2), 3. TEKRAR) ──────────────
+# 🔴 OLCULEN VAKA (uc kez): BaBa emir bloklari basliklarinda ACIKCA
+#   `(KORUMALI: her ev CLAUDE.md'sine isleyip "yazildi" diyene dek tasinmaz)` yaziyordu.
+#   Arac bu etiketi HIC OLCMUYORDU -> uc blok evler OKUMADAN arsive gitti
+#   (arsiv :62262 · :62273 · :62431). BaBa'nin hukmu: "Kutuya yazdim ≠ emir ULASTI".
+#   Bu, `BASLIYORUM` (K329) ile AYNI SINIFTIR: blok bir GORUNURLUK sozu tasir; sozu
+#   tutan kosul saglanana dek blok evlerin bakacagi yuzeyde KALMALIDIR.
+# 🔴 KONUM OLCUTU K329 ILE AYNI: etiket YALNIZ BASLIK satirinda sayilir. Govdede gecen
+#   `KORUMALI` kelimesi veto URETMEZ — yoksa kelimeyi anan her blok kutuyu kilitlerdi.
+# 🔴 ELLE ARSIV DE BU KAPIDAN GECER: `dogrula()` ayni fonksiyonu cagirir; elle tasinmis
+#   bir KORUMALI blok denetimde ADIYLA kirmizi yanar (ikinci tanim YAZILMAZ).
+KORUMALI_ETIKET = "KORUMALI"
+
+
+def korumali_etiketli_bloklar(satirlar, baslar):
+    """([(blok_idx, satir_no_1indeksli, baslik_ozeti)], govde_anmasi) — TEK KAYNAK.
+
+    BASLIGINDA `KORUMALI` gecen bloklar veto uretir. Etiket blogun ICINDE gecip
+    BASLIKTA gecmiyorsa veto URETMEZ; sessizce yutulmaz, SAYILIR ve basilir.
+    """
+    bulgu = []
+    govde_anmasi = 0
+    for i, (bas, son) in enumerate(blok_araliklari(satirlar, baslar)):
+        baslik = satirlar[bas] if bas < len(satirlar) else ""
+        if KORUMALI_ETIKET in baslik:
+            bulgu.append((i, bas + 1, baslik.strip()[:90]))
+        elif KORUMALI_ETIKET in "".join(satirlar[bas:son]):
+            govde_anmasi += 1
+    return bulgu, govde_anmasi
+
+
+def sabit_indeksler(blok_sayisi_, koru, korumali_indeksler, acik_indeksler=(),
+                   etiket_indeksler=()):
     """ROTASYONA GIRMEYECEK blok indeksleri kumesi — TEK KAYNAK.
 
-    UC kaynaktan TURER, elle kopyalanmaz:
+    DORT kaynaktan TURER, elle kopyalanmaz:
       * `koru` TABANI: en ustteki `koru` blok her zaman dokunulmaz,
       * KORUMA (K313g): bekleyen kapanis jetonu tasiyan blok, NEREDE OLURSA OLSUN,
-      * ACIK CIP (K329): kapanissiz `BASLIYORUM` blogu, NEREDE OLURSA OLSUN.
+      * ACIK CIP (K329): kapanissiz `BASLIYORUM` blogu, NEREDE OLURSA OLSUN,
+      * KORUMALI ETIKETI: basliginda `KORUMALI` gecen blok, NEREDE OLURSA OLSUN.
     🔴 K318 KOL-2: hicbiri ALTINDAKI bloklari REHIN ALMAZ — kume bir ARALIK degil,
     ayrik bir KUMEDIR; rotasyon sabit blogu YERINDE ATLAR.
     """
     sabit = set(range(min(koru, blok_sayisi_)))
     sabit.update(korumali_indeksler)
     sabit.update(acik_indeksler)
+    sabit.update(etiket_indeksler)
     return sabit
 
 
@@ -1349,6 +1383,9 @@ class Plan(object):
         self.kapanmis_basliyorum = 0       # kapanisi BULUNAN `BASLIYORUM` blogu
         self.basliyorum_govde_anmasi = 0   # `BASLIYORUM` yalniz GOVDEDE geciyor
         self.acik_kilitledi = 0            # `koru` tabaninin ALTINDA kalan acik cip
+        self.korumali_etiket = []          # basliginda KORUMALI gecen bloklar
+        self.korumali_etiket_govde = 0     # etiket govdede gecti, BASLIKTA degil
+        self.etiket_kilitledi = 0
         self.kapanan_adlar = set()         # denetim kolunun (D17) okudugu TABAN
         # ARSIV DUZLEMI (K360-B) — K329'dan AYRI KOVA, AYRI SAYI
         self.arsiv_serbest = {}            # {blok_idx: (ad, kapanis_zamani)}
@@ -1405,7 +1442,12 @@ def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None):
     acik_idx = [b for b, _a, _o, _k in p.acik_cip]
     p.acik_kilitledi = len([b for b in acik_idx if b >= koru])
 
-    p.sabit = sabit_indeksler(len(baslar), koru, korumali_idx, acik_idx)
+    # 🔴 KORUMALI ETIKETI (BaBa (2)) — BASLIKTA gecen `KORUMALI` blogu TASINMAZ.
+    p.korumali_etiket, p.korumali_etiket_govde = korumali_etiketli_bloklar(satirlar, baslar)
+    etiket_idx = [b for b, _s, _o in p.korumali_etiket]
+    p.etiket_kilitledi = len([b for b in etiket_idx if b >= koru])
+
+    p.sabit = sabit_indeksler(len(baslar), koru, korumali_idx, acik_idx, etiket_idx)
 
     # 🔴 CIFT BUTUNLUGU KOLU (K359-B KUSUR B, 2 Eyl 2026) — SECIMDEN ONCE.
     # OLCULEN VAKA: `KraL-UrunSilmeButonu-2Eyl`in ACILISI (kusur A yuzunden) ACIK
@@ -1467,7 +1509,7 @@ def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None):
         # K329: ACIK CIP de bir GORUNURLUK korumasidir; kota kapisi (K318 KOL-3)
         # tam olarak "arac ISI KASITLI OLARAK yapmiyor" halini tuketir ve bu hal
         # odur. Bu yuzden AYNI hukme akar — ama SAYILARI ayri basilir.
-        p.koruma_tuttu = (p.korumali_kilitledi + p.acik_kilitledi
+        p.koruma_tuttu = (p.korumali_kilitledi + p.acik_kilitledi + p.etiket_kilitledi
                           + len([c for c, _a, _s in p.cift_korumasi
                                  if c >= koru])) > 0
         return p
@@ -2235,6 +2277,16 @@ def main(argv=None):
               "kilitledi=%d  [KAPI]"
               % (len(p.acik_cip), p.kapanmis_basliyorum, p.basliyorum_govde_anmasi,
                  p.acik_kilitledi))
+        # 🔴 KORUMALI ETIKETI KOLU — HER kosumda basilir, is olsa da olmasa da.
+        print("KORUMALI_ETIKETLI=%d etiket_govde_anmasi=%d kilitledi=%d  [KAPI]"
+              % (len(p.korumali_etiket), p.korumali_etiket_govde, p.etiket_kilitledi))
+        for blok_idx, satir_no, ozet in p.korumali_etiket:
+            print("  * KORUMALI ETIKETI blok %d/%d (satir %d) -> ROTASYONA GIRMEZ "
+                  "(YERINDE ATLANDI) | %s" % (blok_idx + 1, p.blok_toplam, satir_no, ozet))
+        if p.korumali_etiket_govde:
+            print("  · KORUMALI GOVDE ANMASI=%d blok: etiket blogun ICINDE geciyor ama "
+                  "BASLIK satirinda DEGIL -> veto URETMEZ (konum olcutu), blok rotasyona "
+                  "ACIK." % p.korumali_etiket_govde)
         print("ACIK_BASLIYORUM_ADLARI=%s"
               % (",".join((ad or "AD_YOK") for _b, ad, _o, _k in p.acik_cip) or "-"))
         for blok_idx, ad, ornek, sinif in p.acik_cip:

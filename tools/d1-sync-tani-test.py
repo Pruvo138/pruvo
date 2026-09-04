@@ -51,6 +51,15 @@ OLCULEN_MESRU_SURELER = (
 )
 OLCULEN_MESRU_EN_YAVAS = max(OLCULEN_MESRU_SURELER)  # 364.0 sn
 
+# 🔴 4 EYL 2026 (BaBa emri) — POPULASYON IKIYE AYRILDI. Her cagri artik KALICI OZEL npm
+# cache ile kosar; paylasilan cache (ve onun 364,0 sn'lik serilesme kuyrugu) TERK EDILDI.
+# Yukaridaki dizi TARIHSEL KAYIT olarak DURUR (silinmedi) ama artik canli tavani BAGLAMAZ;
+# bagladigi tek sey OKUYUCU_BEKLEME_SN'dir (C8 — o kol hala paylasilan makineyi bekler).
+OLCULEN_ISINMIS_SURELER = (11.1, 1.5, 1.5)          # ozel cache DOLU iken
+OLCULEN_SOGUK_SURELER = (307.1, 173.7, 140.0, 79.6, 27.9)   # cache DOLDURULURKEN
+OLCULEN_ISINMIS_EN_YAVAS = max(OLCULEN_ISINMIS_SURELER)     # 11.1 sn
+OLCULEN_SOGUK_EN_YAVAS = max(OLCULEN_SOGUK_SURELER)         # 307.1 sn
+
 gecen = [0]
 kalan = [0]
 dusenler = []
@@ -161,6 +170,19 @@ def kol_a_tani(D1):
         Sonuc(0, stdout='[{"results": [], "success": true}]'),
     ])
     sonuc, patladi = kosumu_calistir(D1, sahte)
+    # 🔴 A1c: 10043 — CANLI olculen vaka (4 Eyl). Kod kovada DEGILKEN tani None donuyor
+    #   ve retry HIC yapilmiyordu; ayni komut degisiklik olmadan ikinci kosumda rc=0
+    #   verdi (51 satir, geri-okuma 51/51). Vaka bu kovayi CIVILER.
+    _tani_10043 = D1.wrangler_hata_tanisi(
+        'get: Please look at https://www.cloudflarestatus.com for issues or contact '
+        'customer support. (10043)\n{"error": {"text": "... \"code\": 10043"}}')
+    dogrula("A1c 10043 (Cloudflare SERVIS hatasi) -> GECICI (retry edilir)",
+            _tani_10043 == "gecici", "tani=%r" % _tani_10043)
+    # NEGATIF: kova genislemesin — alakasiz bir kod GECICI sayilmamali, yoksa kalici
+    # ariza sonsuz retry'a girer ve teshis GECIKIR.
+    _tani_yabanci = D1.wrangler_hata_tanisi('{"error": {"code": 10099}}')
+    dogrula("A1d NEGATIF: kovada OLMAYAN kod (10099) GECICI SAYILMAZ",
+            _tani_yabanci is None, "tani=%r" % _tani_yabanci)
     dogrula("A2 gecici 10000 -> retry ile basari",
             (not patladi) and cagri[0] == 2
             and sonuc == [{"results": [], "success": True}],
@@ -257,12 +279,36 @@ def kol_b_zaman_asimi(D1, gecici_dizin):
             "mesaj=%r" % str(mesaj)[:200])
 
     # B10-B13 SABIT EKSENI — tavan/taban OLCULEN mesru maksimumun UZERINDE mi?
-    dogrula("B10 CANLI tavan olculen en yavas MESRU kosumun (364,0sn) UZERINDE",
-            D1.wrangler_tavani() > OLCULEN_MESRU_EN_YAVAS,
-            "tavan=%s olculen=%s" % (D1.wrangler_tavani(), OLCULEN_MESRU_EN_YAVAS))
-    dogrula("B11 TABAN da olculen en yavas MESRU kosumun UZERINDE",
-            D1.WRANGLER_TAVAN_TABANI > OLCULEN_MESRU_EN_YAVAS,
+    # 🔴 4 Eyl: populasyon IKIYE ayrildi (ozel cache ISINMIS / SOGUK). Her kol KENDI
+    #   olculen maksimumuyla civilenir; tek bir sayiya bakan eski eksen, soguk kolu
+    #   isinmis tavanla olcerdi (ya da tersi) ve MESRU kosumu keserdi.
+    dogrula("B10 ISINMIS tavan, isinmis populasyonun en yavasinin (%.1fsn) UZERINDE"
+            % OLCULEN_ISINMIS_EN_YAVAS,
+            D1.WRANGLER_TAVAN_SN > OLCULEN_ISINMIS_EN_YAVAS,
+            "tavan=%s" % D1.WRANGLER_TAVAN_SN)
+    dogrula("B11 ISINMIS TABAN da o maksimumun UZERINDE",
+            D1.WRANGLER_TAVAN_TABANI > OLCULEN_ISINMIS_EN_YAVAS,
             "taban=%s" % D1.WRANGLER_TAVAN_TABANI)
+    dogrula("B10b SOGUK tavan, soguk populasyonun en yavasinin (%.1fsn) UZERINDE"
+            % OLCULEN_SOGUK_EN_YAVAS,
+            D1.WRANGLER_SOGUK_TAVAN_SN > OLCULEN_SOGUK_EN_YAVAS,
+            "soguk_tavan=%s" % D1.WRANGLER_SOGUK_TAVAN_SN)
+    # 🔴 KOL SECIMI GERCEKTEN CACHE'E BAGLI MI? (mutantsiz iddia OLU olurdu: iki sabit
+    #   de dogru olabilir ama fonksiyon hep ayni kolu dondurebilirdi.)
+    _gercek_isinmis = D1.npm_cache_isinmis
+    try:
+        D1.npm_cache_isinmis = lambda: False
+        _soguk_donen = D1.wrangler_tavani()
+        D1.npm_cache_isinmis = lambda: True
+        _isinmis_donen = D1.wrangler_tavani()
+    finally:
+        D1.npm_cache_isinmis = _gercek_isinmis
+    dogrula("B10c SOGUK cache -> GENIS tavan, ISINMIS cache -> DAR tavan (kol GERCEKTEN "
+            "cache'e bagli)",
+            _soguk_donen == D1.WRANGLER_SOGUK_TAVAN_SN
+            and _isinmis_donen == D1.WRANGLER_TAVAN_SN
+            and _soguk_donen > _isinmis_donen,
+            "soguk=%s isinmis=%s" % (_soguk_donen, _isinmis_donen))
 
     eski_env = os.environ.get("PRUVO_WRANGLER_TAVAN_SN")
     try:
@@ -443,19 +489,33 @@ def kol_e_disk(D1):
 
     sonuc, patladi = kosumu_calistir(D1, sahte_run)
     try:
-        dogrula("E1 EPERM kolu gecici npm cache ACTI ve sonuc BASARILI",
-                (not patladi) and len(gorulen) == 1
+        # 🔴 4 Eyl (BaBa emri) SONRASI: her cagri KALICI ozel cache ile kosar, EPERM
+        #   kolu ise AYRICA bir GECICI cache acar. Yani `gorulen` artik IKI yol tasir ve
+        #   ikisinin OMRU TERSTIR: kalici KALIR, gecici SILINIR. Vaka bunu AYIRIR —
+        #   "len==1" beklentisi kalici cache'i gecici sanip yanlis kova uretirdi.
+        kalici = [y for y in gorulen if y == D1.NPM_CACHE_DIZINI]
+        gecici = [y for y in gorulen if y != D1.NPM_CACHE_DIZINI]
+        dogrula("E1 EPERM kolu GECICI npm cache ACTI ve sonuc BASARILI",
+                (not patladi) and len(gecici) == 1
                 and sonuc == [{"results": [], "success": True}],
-                "gorulen=%r patladi=%s" % (gorulen, patladi))
-        dogrula("E2 acilan gecici npm cache SILINDI (ureten temizler)",
-                bool(gorulen) and not os.path.exists(gorulen[0]),
-                "yol=%r var_mi=%s" % (gorulen[:1],
-                                      os.path.exists(gorulen[0]) if gorulen else "?"))
+                "gecici=%r kalici=%r patladi=%s" % (gecici, kalici, patladi))
+        dogrula("E2 acilan GECICI npm cache SILINDI (ureten temizler)",
+                bool(gecici) and not os.path.exists(gecici[0]),
+                "yol=%r var_mi=%s" % (gecici[:1],
+                                      os.path.exists(gecici[0]) if gecici else "?"))
+        dogrula("E3 KALICI ozel cache HER cagride kullanildi (paylasilan cache TERK)",
+                bool(kalici),
+                "kalici=%r (beklenen %s)" % (kalici, D1.NPM_CACHE_DIZINI))
+        dogrula("E4 KALICI ozel cache SILINMEDI (gecici ile karistirilmadi)",
+                os.path.isdir(D1.NPM_CACHE_DIZINI),
+                "var_mi=%s" % os.path.isdir(D1.NPM_CACHE_DIZINI))
     finally:
         # Mutant govde temizligi ATLIYORSA vaka KIRMIZI olur ama artigi BATARYA siler:
         # olcum makinede iz birakmaz ([[diskte-iz-birakma-yasagi]]).
+        # 🔴 KALICI cache BU DONGUYE GIRMEZ — batarya kendi disindaki kalici kaynagi silmez.
         for _y in gorulen:
-            shutil.rmtree(_y, ignore_errors=True)
+            if _y != D1.NPM_CACHE_DIZINI:
+                shutil.rmtree(_y, ignore_errors=True)
 
 
 # ── ANA ────────────────────────────────────────────────────────────────────────────

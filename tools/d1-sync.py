@@ -427,7 +427,15 @@ def dagitik_kilit_birak(token):
 _KOD_RE = re.compile(r'"?\b(?:code|status)"?\s*:\s*"?(\d{3,5})\b')
 # GECICI = yeniden denemeye deger. 7429 = "D1 DB exceeded its CPU time limit and was reset"
 # (baska bir push'un buyuk yazmasi butceyi harcar; DB reset olur, saniyeler icinde toparlar).
-GECICI_KODLAR = frozenset({429, 500, 502, 503, 504, 7429})
+# 🔴 10043 EKLENDI (4 Eyl 2026, CANLI OLCUM): tam senkron kosumu
+#   `get: Please look at https://www.cloudflarestatus.com for issues or contact customer
+#   support. (10043)` ile rc=1 dustu. Kod HICBIR kovada olmadigi icin tani None dondu ->
+#   YENIDEN DENEME YAPILMADI ve 51 urunluk yazma bosa gitti. AYNI komut, DEGISIKLIK
+#   OLMADAN hemen ardindan kosturuldu: rc=0, 51 satir yazildi, geri-okuma 51/51 ✅.
+#   Yani ariza GECICIYDI ve tek bir retry onu kendiliginden kapatirdi.
+#   SINIF: Cloudflare'in "servis tarafina bak / destege yaz" metni SERVIS hatasidir,
+#   bizim girdimizin kalici reddi DEGIL — 429/5xx ailesiyle ayni kovaya girer.
+GECICI_KODLAR = frozenset({429, 500, 502, 503, 504, 7429, 10043})
 # KALICI: kimlik dogrulama. Mevcut davranis KORUNUR (uc deneme sonrasi auth tanisi).
 AUTH_KODLAR = frozenset({10000})
 
@@ -619,8 +627,56 @@ def wrangler_cikti_coz(stdout, ham="", returncode=0):
 # ZAMAN ASIMI YENIDEN DENENMEZ: olculen ariza sinifi (paylasilan npm cache uzerinde
 # serilesme) ayni surecte tekrar denemekle gecmez; asilan bir cagriyi yeniden denemek tam
 # da birikmenin mekanizmasidir.
-WRANGLER_TAVAN_TABANI = 450
-WRANGLER_TAVAN_SN = 900
+# ── KALICI OZEL npm CACHE (BaBa emri, 4 Eyl 2026) ─────────────────────────────────
+# 🔴 OLCULEN KOK NEDEN: `npx --yes wrangler@4` her cagride paketi PAYLASILAN npm cache
+# uzerinden cozuyordu; o cache'in kendi kilidi var ve makinede ayni anda kosan 6-7 ev
+# SERILESIYORDU (4 Eyl: 7 asili `npm exec wrangler@4`, yaslari 9-26 dk; `--version` bile
+# 120 sn tavanda asildi). Ozel cache o kilitten TAMAMEN bagimsizdir.
+# OLCULDU (4 Eyl 23:5x, bu makine): paylasilan cache (cekismesiz an) 1,5 sn · OZEL cache
+# SOGUK 27,9 sn · OZEL cache ISINMIS 1,5 sn. Yani maliyet TEK SEFERLIK doldurmadir.
+# 🔴 EPERM kolu KALDI (asagida): ozel cache'in KENDISI yazilamazsa gecici cache'e duser.
+# 🟠 ONERI/DISK: bu dizin KALICIDIR ve "makinede iz birakma" kuralinin cache maddesiyle
+#   gerilimlidir; BaBa emri acikca `~/.cache/pruvo-npm` dedigi icin uygulandi. Depo
+#   DISINDA, urun/sir tasimaz, tek islevi npm paket onbellegidir.
+NPM_CACHE_DIZINI = os.path.join(os.path.expanduser("~"), ".cache", "pruvo-npm")
+
+
+def npm_cache_isinmis():
+    """Ozel cache DOLU mu? (soguk/isinmis kolu AYIRAN tek olcut — tavan buna bagli.)
+
+    'Var mi' YETMEZ: bos bir dizin de vardir ama indirme yine yapilir. Dolulugu
+    `_cacache` altinda EN AZ BIR girdi olmasi belirler.
+    """
+    ic = os.path.join(NPM_CACHE_DIZINI, "_cacache")
+    try:
+        return os.path.isdir(ic) and bool(os.listdir(ic))
+    except OSError:
+        return False
+
+
+def wrangler_ortami():
+    """Alt surece verilecek ortam — npm cache'i OZEL dizine cevirir."""
+    try:
+        os.makedirs(NPM_CACHE_DIZINI, exist_ok=True)
+    except OSError:
+        return dict(os.environ)          # yazilamiyorsa EPERM kolu devralir
+    return dict(os.environ, npm_config_cache=NPM_CACHE_DIZINI)
+
+
+# 🔴 TAVAN IKI KOLLUDUR — CUNKU OLCULEN IKI AYRI POPULASYON VAR:
+#   ISINMIS (ozel cache dolu): olculen mesru kosumlar 11,1 · 1,5 · 1,5 sn -> en yavas 11,1.
+#     TAVAN 120 sn = 11,1'in ~10,8 kati. BaBa'nin emrettigi deger budur ve ISINMIS koldur.
+#   SOGUK (cache doldurulurken, indirme yapiliyor): 307,1 · 173,7 · 140,0 · 79,6 · 27,9 sn
+#     -> en yavas 307,1. Bu kola 120 sn UYGULANAMAZ: MESRU doldurma kosumunu keser, D1
+#     bayat kalir ([[koruma-kurali-korudugunu-durdurur]] · [[d1-bayat-yazici-silme]]).
+#     TAVAN 450 sn = 307,1'in ~1,47 kati.
+# Soguk kol OMURDE EN COK BIR KEZ kosar (ilk doldurmadan sonra cache isinir).
+# 🔴 PAYLASILAN cache'in 364,0 sn'lik olcumu artik TAVANI BAGLAMAZ: o populasyon
+#   TERK EDILDI (her cagri artik ozel cache kullanir). Sayi tarihsel kayit olarak
+#   `d1-sync-tani-test.py`'de DURUR — silinmedi, yalnizca hangi kolu bagladigi degisti.
+WRANGLER_TAVAN_TABANI = 120           # ISINMIS kol tabani (env bunun ALTINA inemez)
+WRANGLER_TAVAN_SN = 120               # ISINMIS kol varsayilani (BaBa emri)
+WRANGLER_SOGUK_TAVAN_SN = 450         # SOGUK kol (cache doldurma) — olcumden
 # `npx` bulunamazsa denenecek ADAY TAM YOLLAR — cron'un PATH'i
 # `/usr/bin:/bin:/usr/sbin:/sbin`tir ve homebrew ikilisi ORADA YOKTUR
 # ([[patha-sorulan-ikili-cron-da-yok]]). Burada davranis DEGISTIRILMEZ (calistirilan
@@ -631,17 +687,26 @@ NPX_ADAY_YOLLAR = ("/opt/homebrew/bin/npx", "/usr/local/bin/npx",
 
 
 def wrangler_tavani():
-    """Alt surec zaman asimi (sn). Env ile YUKARI cekilebilir, TABANIN ALTINA INMEZ."""
+    """Alt surec zaman asimi (sn). Env ile YUKARI cekilebilir, TABANIN ALTINA INMEZ.
+
+    🔴 SOGUK KOL: ozel npm cache HENUZ DOLU DEGILSE bu cagri paketi indirecektir;
+    olculen mesru doldurma kosumu 307,1 sn'ye kadar cikti. ISINMIS kolun 120 sn'lik
+    tavani o kosumu KESERDI. Bu yuzden soguk kolda tavan SOGUK degerdir; env yine
+    YUKARI cekebilir, asagi INDIREMEZ.
+    """
+    soguk = not npm_cache_isinmis()
+    taban = WRANGLER_SOGUK_TAVAN_SN if soguk else WRANGLER_TAVAN_TABANI
+    varsayilan = WRANGLER_SOGUK_TAVAN_SN if soguk else WRANGLER_TAVAN_SN
     ham = os.environ.get("PRUVO_WRANGLER_TAVAN_SN")
     if not ham:
-        return WRANGLER_TAVAN_SN
+        return varsayilan
     try:
         istek = int(float(ham))
     except (TypeError, ValueError):
         print("!! PRUVO_WRANGLER_TAVAN_SN cozulemedi (%r) — varsayilan %d sn kullaniliyor."
-              % (ham, WRANGLER_TAVAN_SN), file=sys.stderr)
-        return WRANGLER_TAVAN_SN
-    if istek < WRANGLER_TAVAN_TABANI:
+              % (ham, varsayilan), file=sys.stderr)
+        return varsayilan
+    if istek < taban:
         print("!! PRUVO_WRANGLER_TAVAN_SN=%d TABANIN (%d sn) ALTINDA — olculen en yavas "
               "MESRU kosum (364,0 sn) kesilmesin diye TABAN uygulandi."
               % (istek, WRANGLER_TAVAN_TABANI), file=sys.stderr)
@@ -696,10 +761,14 @@ def _wrangler_alt_surec(komut, ort=None):
     TEK CAGRI NOKTASI olarak korunur (kabul bataryasi onu sahteleyerek olcer).
     """
     tavan = wrangler_tavani()
+    # 🔴 HER cagri OZEL npm cache ile kosar (BaBa emri 4 Eyl): paylasilan cache'in
+    # kilidi evleri SERILESTIRIYORDU. `ort` verilmisse (EPERM kolu) O kullanilir.
+    if ort is None:
+        ort = wrangler_ortami()
     t0 = time.monotonic()
     try:
         p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True,
-                           timeout=tavan, **({"env": ort} if ort is not None else {}))
+                           timeout=tavan, env=ort)
     except subprocess.TimeoutExpired:
         sys.exit(zaman_asimi_metni(komut, tavan, time.monotonic() - t0))
     except FileNotFoundError:

@@ -34,19 +34,35 @@ TUR_TAVANI = 180          # tek mutant kosumu icin sert tavan (sn)
 # (ad, eski, yeni, oldurmesi_beklenen_iddia_onekleri)  — bos kume = KONTROL
 MUTANTLAR = [
     ("M1 zaman asimi KALDIRILDI",
-     'timeout=tavan, **({"env": ort} if ort is not None else {}))',
-     '**({"env": ort} if ort is not None else {}))',
+     "timeout=tavan, env=ort)",
+     "env=ort)",
      ("B1", "B2", "B3", "B4", "B6", "B8")),
 
-    ("M2 tavan OLCULEN mesru maksimumun ALTINA cekildi (900 -> 60)",
-     "WRANGLER_TAVAN_SN = 900",
-     "WRANGLER_TAVAN_SN = 60",
+    ("M2 ISINMIS tavan OLCULEN isinmis maksimumun ALTINA cekildi (120 -> 6)",
+     "WRANGLER_TAVAN_SN = 120  ",
+     "WRANGLER_TAVAN_SN = 6  ",
      ("B10",)),
 
-    ("M3 TABAN olculen mesru maksimumun ALTINA cekildi (450 -> 100)",
-     "WRANGLER_TAVAN_TABANI = 450",
-     "WRANGLER_TAVAN_TABANI = 100",
+    ("M3 ISINMIS TABAN olculen isinmis maksimumun ALTINA cekildi (120 -> 6)",
+     "WRANGLER_TAVAN_TABANI = 120  ",
+     "WRANGLER_TAVAN_TABANI = 6  ",
      ("B11",)),
+
+    # 🔴 4 Eyl: SOGUK/ISINMIS kol AYRIMI — yeni kollar MUTANTSIZ birakilmaz.
+    ("M3b SOGUK tavan olculen soguk maksimumun (307,1sn) ALTINA cekildi (450 -> 100)",
+     "WRANGLER_SOGUK_TAVAN_SN = 450",
+     "WRANGLER_SOGUK_TAVAN_SN = 100",
+     ("B10b",)),
+
+    ("M3c KOL SECIMI CAKILI: cache hep ISINMIS sayilir -> soguk doldurma kosumu\n     DAR tavanla KESILIR (koruma korudugunu durdurur)",
+     "    soguk = not npm_cache_isinmis()",
+     "    soguk = False",
+     ("B10c",)),
+
+    ("M3d KALICI ozel cache DEVRE DISI (paylasilan cache'e geri donus)",
+     "    return dict(os.environ, npm_config_cache=NPM_CACHE_DIZINI)",
+     "    return dict(os.environ)",
+     ("E3",)),
 
     ("M4 TEK UCUS kilidi hic ALINMIYOR",
      "    if not _YEREL_KILIT_SAHIBI:\n"
@@ -75,8 +91,8 @@ MUTANTLAR = [
      "OKUYUCU_BEKLEME_SN = 480.0", "OKUYUCU_BEKLEME_SN = 500.0", ()),
     ("KONTROL-2 kilit yoklama araligi 0.5 -> 0.4 (davranis notr)",
      "_KILIT_YOKLAMA_SN = 0.5", "_KILIT_YOKLAMA_SN = 0.4", ()),
-    ("KONTROL-3 tavan 900 -> 1200 (hala olculen maksimumun UZERINDE)",
-     "WRANGLER_TAVAN_SN = 900", "WRANGLER_TAVAN_SN = 1200", ()),
+    ("KONTROL-3 ISINMIS tavan 120 -> 200 (hala olculen maksimumun UZERINDE)",
+     "WRANGLER_TAVAN_SN = 120  ", "WRANGLER_TAVAN_SN = 200  ", ()),
 ]
 
 

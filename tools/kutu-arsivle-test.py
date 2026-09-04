@@ -147,6 +147,7 @@ Kullanim:
 import argparse
 import fcntl
 import hashlib
+import io
 import os
 import shutil
 import subprocess
@@ -2718,6 +2719,111 @@ def v49_harness_ad_sekli(arac, kok):
           mod.gevsek_cip_adi("## x — macit-bisiklet-d22 dali") is None)
 
 
+
+# ── V50: KORUMALI ETIKETI = TASINMAZ (BaBa (2), 4-5 Eyl 2026) ─────────────────────
+K50_BASLIK_ETIKETLI = (
+    "## 2026-07-10 — BaBa -> 5 mimar (KORUMALI: her ev CLAUDE.md'sine isleyip "
+    "\"yazildi\" diyene dek tasinmaz) **SENTETIK FILO DERSI**\n")
+K50_BASLIK_GOVDE = (
+    "## 2026-07-10 — BaBa -> 5 mimar **SENTETIK FILO DERSI**\n")
+K50_GOVDE_ETIKETLI = (
+    "\n"
+    "Bu blogun GOVDESINDE `KORUMALI` kelimesi geciyor ama BASLIKTA GECMIYOR.\n"
+    "Konum olcutu geregi veto URETMEMELI.\n"
+    "\n")
+K50_GOVDE_DUZ = (
+    "\n"
+    "Sentetik govde — etiket YOK.\n"
+    "\n")
+
+
+def _k50_kutu(baslik, govde, n=30, hedef=15):
+    """n blokluk sentetik kutu; `hedef` indeksli blok verilen baslik/govdeyi tasir."""
+    parcalar = [FM]
+    i = 0
+    while i < n:
+        parcalar.append(baslik + govde if i == hedef else blok(i))
+        i += 1
+    return "".join(parcalar)
+
+
+def _k50_mutant(arac, hedef_yol):
+    """Vetoyu KALDIRAN mutant kopya uretir (diske YALNIZ gecici dizine yazilir)."""
+    with io.open(arac, encoding="utf-8") as f:
+        k = f.read()
+    capa = "    sabit.update(etiket_indeksler)\n"
+    if k.count(capa) != 1:
+        return None, "CAPA TUTMADI (%d)" % k.count(capa)
+    with io.open(hedef_yol, "w", encoding="utf-8") as f:
+        f.write(k.replace(capa, "    pass\n"))
+    return hedef_yol, None
+
+
+def v50_korumali_etiketi(arac, kok):
+    """[50] 🔴 BaBa (2) — basliginda `KORUMALI` gecen blok ROTASYONA GIRMEZ.
+
+    MINIMAL UCLU (tek degisken: etiketin KONUMU):
+      A) etiket BASLIKTA -> blok KUTUDA KALIR, KORUMALI_ETIKETLI=1, kuyruk REHIN DEGIL.
+      B) KONTROL: etiket yalnizca GOVDEDE -> blok ROTASYONA ACIK, govde anmasi SAYILIR.
+      C) MUTANT [OLDURUCU]: veto satiri kaldirilir -> A'daki blok ARSIVE GIDER
+         (yesili saglayan seyin GERCEKTEN bu veto oldugunu kanitlar).
+    """
+    print("\n[50] KORUMALI ETIKETI — basliktaki etiket TASINMAZ (minimal uclu + mutant)")
+
+    # --- A) etiket BASLIKTA -------------------------------------------------------
+    kok_a = os.path.join(kok, "a")
+    os.makedirs(kok_a, exist_ok=True)
+    a = Alan(kok_a, _k50_kutu(K50_BASLIK_ETIKETLI, K50_GOVDE_DUZ),
+             "## eski arsiv blogu\n\ngovde\n")
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=20, koru=3)
+    kutu_s, arsiv_s = oku(a.kutu), oku(a.arsiv)
+    iddia("50a rc=0", rc == 0, "rc=%d\n%s" % (rc, cikti[-1200:]))
+    iddia("50b KORUMALI_ETIKETLI=1 basildi (sessiz atlama YOK)",
+          "KORUMALI_ETIKETLI=1 " in cikti, cikti[-1500:])
+    iddia("50c 🔴 blok KUTUDA KALDI (veto TUTTU)",
+          K50_BASLIK_ETIKETLI in kutu_s, "blok arsive kacti -> veto OLU")
+    iddia("50d 🔴 blok ARSIVE GITMEDI",
+          K50_BASLIK_ETIKETLI not in arsiv_s, "blok arsivde")
+    iddia("50e blok ADIYLA basildi (atlanan blok gorunur)",
+          "KORUMALI ETIKETI blok" in cikti, cikti[-1500:])
+    iddia("50f 🔴 KUYRUK REHIN DEGIL: korumali blogun ALTINDAKI bloklar TASINDI "
+          "(K318 KOL-2)", "tasinacak_blok=0" not in cikti and len(arsiv_s) > 40, cikti[-800:])
+
+    # --- B) KONTROL: etiket yalnizca GOVDEDE --------------------------------------
+    kok_b = os.path.join(kok, "b")
+    os.makedirs(kok_b, exist_ok=True)
+    b = Alan(kok_b, _k50_kutu(K50_BASLIK_GOVDE, K50_GOVDE_ETIKETLI),
+             "## eski arsiv blogu\n\ngovde\n")
+    rc_b, cikti_b = kos(arac, b.kutu, b.arsiv, b.kilit, tavan=20, koru=3)
+    iddia("50g KONTROL rc=0", rc_b == 0, "rc=%d\n%s" % (rc_b, cikti_b[-1200:]))
+    iddia("50h 🔴 KONTROL: GOVDE anmasi veto URETMEDI -> KORUMALI_ETIKETLI=0",
+          "KORUMALI_ETIKETLI=0 " in cikti_b, cikti_b[-1500:])
+    iddia("50i 🔴 KONTROL: yanlis pozitif GIZLENMEDI, govde anmasi SAYILDI",
+          "etiket_govde_anmasi=1 " in cikti_b, cikti_b[-1500:])
+    iddia("50j 🔴 KONTROL: blok GERCEKTEN arsive gitti (kapi toptan kilitlemiyor)",
+          K50_BASLIK_GOVDE in oku(b.arsiv), "blok kutuda kilitli kaldi")
+
+    # --- C) MUTANT [OLDURUCU]: veto kaldirilir ------------------------------------
+    kok_c = os.path.join(kok, "c")
+    os.makedirs(kok_c, exist_ok=True)
+    mut_yol, hata = _k50_mutant(arac, os.path.join(kok_c, "mutant-kutu-arsivle.py"))
+    if hata:
+        iddia("50k MUTANT capasi TUTMADI (OLCULEMEDI)", False, hata)
+    else:
+        c = Alan(kok_c, _k50_kutu(K50_BASLIK_ETIKETLI, K50_GOVDE_DUZ),
+                 "## eski arsiv blogu\n\ngovde\n")
+        rc_c, cikti_c = kos(mut_yol, c.kutu, c.arsiv, c.kilit, tavan=20, koru=3)
+        iddia("50k 🔴 MUTANT [OLDURUCU]: veto satiri kaldirilinca KORUMALI blok "
+              "ARSIVE GITTI (yesili saglayan sey GERCEKTEN bu veto)",
+              K50_BASLIK_ETIKETLI in oku(c.arsiv)
+              and K50_BASLIK_ETIKETLI not in oku(c.kutu),
+              "rc=%d — mutant HEDEFE ULASMADI, 50c/50d OLU IDDIA olurdu\n%s"
+              % (rc_c, cikti_c[-900:]))
+        iddia("50l MUTANT yalnizca GECICI kopyaya yazildi (gercek arac SHA sabit)",
+              os.path.dirname(os.path.abspath(mut_yol)) == os.path.abspath(kok_c),
+              mut_yol)
+
+
 VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v04_frontmatter_ve_ust_bloklar, v05_blok_bolunmez,
            v06_arsiv_yoksa_frontmatter, v07_kilit, v08_bozuk_frontmatter,
@@ -2739,7 +2845,7 @@ VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v41_rol_olcutu_alinti, v42_ucuncu_kapanis_kolu,
            v43_kapanis_adi_imza_onayli, v44_cift_butunlugu, v45_d18_denetimi,
            v46_ad_ekseni_ayrismasi, v47_arsiv_duzlemi, v48_konum_olcutu,
-           v49_harness_ad_sekli)
+           v49_harness_ad_sekli, v50_korumali_etiketi)
 
 
 def suite(arac, sessiz=False):
