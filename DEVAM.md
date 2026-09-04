@@ -2,7 +2,7 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 4 EYL ~19:xZ — MIMAR OTURUM KAPANISI (main `77bb4855` = origin, agac TEMIZ, worktree **0**, KraL acik cip **0**)
+## 🔁 4 EYL ~20:xZ — MIMAR OTURUM KAPANISI (main `3f40e646` = origin **SHA-BIREBIR**, agac TEMIZ, worktree **0**, KraL acik cip **0**, kosan chip/isci **0**)
 **BENIM KOLUM YESIL, YAYIN BASKA EVDE KAPALI.** `Build & deploy` **`f3548db5` = SUCCESS** — sabahki
 K361 regresyonum (`serit-a2`) kapandi. Sonraki commit `77bb4855` (MaCiT d47, 52 urun) `serit-a3`'te
 **failure**: `denetim-kapisi` **12 IHLAL** (`onceden var: 0` — hepsini o itme getirdi), `deploy`+`yayin`
@@ -32,22 +32,15 @@ mimar eliyle DEGISTIRILMEDEN olculup kurtarildi; kapanislarini mimar yazdi (TELA
 silindi, her birinde once uc kontrol (porcelain TEMIZ · `main..dal` BOS · dosya farki). Kutu Okan'in
 5 cipi arsivlemesiyle **347 → 180 satir / 13.802 B** (5 jeton cevrildi, `lossless=GECTI`).
 Scratchpad **2,3M → 0B**.
+**🔴 ARSIV DUZELTMESI (olculdu, iddia DEGIL):** `list_sessions` — KraL grubundaki **5 oturumun 5'i de `isArchived: false`**; HICBIRI arsivlenmedi. Onceki turda "ikisi dustu" dedim, YANLISTI: `ListAgents` yalniz Remote Control + etkilesimli akranlari listeler, ARSIV ekseni orada YOKTUR (bkz. [[listagents-yoklugu-olum-kaniti-degil]] ayni sinif). Kutudaki 5 kapanis jetonunu Okan'in beyani uzerine cevirdim -> **defter gercegin BIR ADIM ONUNDE**; risk YOK (tasima `lossless=GECTI`, uc cipin de isi main'de), ama kayda geciyor.
+**🟠 KENDI ELIMLE ACTIGIM RISK:** `xenodochial-hodgkin-7526cd` worktree'sini sildim; o dizini `cwd` alan oturum HALA LISTEDE (agacsiz kaldi). Isi commit'lenip merge edildikten SONRA silindi, kayip YOK — ama desen tam olarak [[kendi-worktreeni-oturum-canliyken-kaldirma]] uyarisidir; bir dahakine oturum listeden dusmeden agac silinmez.
 **BEKLIYOR:** 🔴 d47'nin 12 denetim-kapisi ihlali (MaCiT) — YAYINI TUTAN TEK KALEM · 🟠 HocA `hungry-panini-55aff5`
 + MaCiT 2 cip kapanissiz · 🟠 41 yerel dal main'e girmemis · 🔧 `cip-kapat.py` dal silme ayagi
 `branch 'HEAD' not found` · 🔧 `mimar-icra-kapisi.py` (hasat evi, benim evim DEGIL).
 
-## ✅ 3 EYL — STL DOSYA ADI (Okan kalemi 2 Eyl) — cip `KraL-StlDosyaAdi-3Eyl` (`amazing-ishizaka-2d4a0f`, Fable 5.1)
-`shop/src/yonet.js` `/stl-yukle`: `.STL` harf-duyarsiz + R2 anahtarinda kucuk uzanti; Turkce→ASCII (once NFC,
-macOS NFD icin); guvenlik kolu AYNEN, her RED `kural` adiyla; normalize SONRASI cakisma da 409. Kod `1908cf1c`;
-`urunler-panel.mjs` 127→**150/150** (I7-I21 + I-M: KONTROL + 3 hedef-kol mutant OLDU, gecici ayna silindi);
-komsu CI testleri (panel-kaynak 41, panel-atif 46, kabul --yonet-cerez 72, konfigur-fail-closed 5/5, kisisel-veri) yesil.
-🔧 **shop worker deploy = OKAN** (tek satir kutuda; canli deneme: ayni dosya adiyla yukleme gecer).
-**Dilim-2 (BaBa hukmu 07:4xZ, ASCII anahtar KABUL):** kanonik fonksiyon UC okuyucuda — R3 `driveKaynaklari`
-(Unicode sinif + kanonik etiket: Turkce ad KIRPILMAZ) · `stlIndir`/`stlCikar` (kanonik + eski ham ad) · NFC;
-Tamirci `678fdbfd` bataryasi I-K olarak tasindi → `urunler-panel.mjs` **208/208**, mutant **6/6** oldu; dilim-1
-CI `33728849026` SUCCESS. Tamirci dali MERGE EDILMEDI (hukum mimarda). `uretim-kaynak.mjs` K40 (KOL_TABANI 21≠22)
-main'de ZATEN kirmizi — SERIT B, Tamirci dalinin isi, bende degil. D1 `--durum`: 1 FAZLA (33114≠33113) — 49ebe540
-silmesinin izi, uzlastirici kosumu `33729490106` FAILURE (mimar/BaBa duzlemi, dokunmadim).
+## ✅ 3 EYL — STL DOSYA ADI (Okan kalemi 2 Eyl) — KAPANDI, TAM METIN `DEVAM-ARSIV.md`'de
+Kod `1908cf1c`; `urunler-panel.mjs` **208/208**, mutant **6/6**, dilim-1 CI `33728849026` SUCCESS.
+🔧 ACIK ISARETCI: shop worker deploy = **OKAN KAPISI** (kutuda tek satir) · `uretim-kaynak.mjs` K40 SERIT B (Tamirci dalinin isi, bende degil).
 
 ## 🔴 CANLI TALIMAT (K353 blogu ARSIVE indi, tam metin `DEVAM-ARSIV.md`'de)
 K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci). 🔧 ACIK: T1a — worker deploy = OKAN kapisi.
