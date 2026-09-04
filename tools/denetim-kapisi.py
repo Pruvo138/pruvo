@@ -369,6 +369,16 @@ _IFSA_MUAF_RE = tuple((re.compile(d, re.UNICODE), g) for d, g in _IFSA_MUAF)
 _PRESS_RE = re.compile(
     r"\b(?:d[üu][ğg]me|tu[şs]|buton|korna|pedal|fitil|ayak\s*day)", re.UNICODE)
 
+# 'SLA' kisaltmasinin OLCULMUS mesru okumasi: Sealed Lead Acid = KURSUN-ASIT aku.
+# KURAL-YEREL suzgec (yalniz `surec-teknolojisi-sla` kuralinda kullanilir): ayni CUMLEDE
+# aku sozlugu geciyorsa eslesme duser. Genel `_IFSA_MUAF`'a KONMADI — orasi TUM kurallara
+# uygulanir ve "SLA akusu ... 0,4 mm nozul" gibi bir cumlede GERCEK nozul ihlalini de
+# susturdurdu (fail-open, bkz `eleme` notu).
+# 🔴 HAM DESEN (derlenmis regex DEGIL): `eleme` alani asagida
+#   `re.compile(e, re.UNICODE)` ile derlenir; derlenmis nesne verilirse
+#   "cannot process flags argument with a compiled pattern" ile MODUL ACILMAZ.
+_SLA_AKU_DESEN = r"ak[üu]|batarya|kur[şs]un[\s-]*asit|lityum|li-?ion|\d+\s*v\b|amper|voltaj"
+
 # --- SERT (KESIN-YASAK -> ihlal, BLOKLAR) ---------------------------------------------
 # Her biri TEK BASINA kesin: Turkce'de baska mesru okumasi OLCULMEDI.
 # BICIM: (kural_adi, desen, gerekce, eleme|None)
@@ -399,10 +409,26 @@ _IFSA_SERT = (
     #   Duz kelime olarak yasaklanirsa bu kayitlar SESSIZCE bloklanir. Dilimleyici anlamini
     #   yalniz OLCU ile birlikte gecen 'nozul capi' tasir -> asagida DAR desen.
     ("surec-teknolojisi",
-     r"\bfdm\b|\bsla\b|\binfill\b|3\s*[db]\s*bas[ıi]l|3\s*boyutlu\s*bas[ıi]l"
+     r"\bfdm\b|\binfill\b|3\s*[db]\s*bas[ıi]l|3\s*boyutlu\s*bas[ıi]l"
      r"|\d+[.,]?\d*\s*mm\s*noz[uüz]l|noz[uüz]l\s*[çc]ap",
-     "uretim teknolojisi adi (FDM/SLA/'3D basilabilir'/nozul CAPI)",
+     "uretim teknolojisi adi (FDM/'3D basilabilir'/nozul CAPI)",
      None),
+    # ⚠️ 'SLA' JETONU BU KURALDAN CIKARILDI -> kendi kuralina alindi (4 Eyl).
+    #   SINIF, yukaridaki 'nozul'/'SLS' notuyla AYNI: kisaltmanin canli katalogda OLCULMUS
+    #   mesru bir okumasi var. SLA = Sealed Lead Acid = KURSUN-ASIT AKU (motosiklet/klasik
+    #   arac aku kutulari, 6V/12V donusumleri).
+    #   OLCULDU (tam katalog, 34015 kayit): `\bsla\b` eslesen kayit = 1; o 1 kayit AKU
+    #   baglamli (yanlis-pozitif), gercek uretim ifsasi = 0. Yani jeton canlida SIFIR ihlal
+    #   yakalayip BIR yanlis-pozitifle YAYINI durduruyordu (CI serit-a3, 686ef449).
+    #   🔴 JETON SILINMEDI: gelecekte gercek "SLA recine baskisi" ifsasi olabilir.
+    #   🔴 AYRI KURAL OLMASI SART: `eleme` CUMLE kapsamlidir ve o kuralin O CUMLEDEKI
+    #   TUM eslesmelerini dusurur. Ayni kuralda kalsaydi "SLA akusu ... FDM ile uretilir"
+    #   cumlesinde GERCEK 'fdm' ihlali de SESSIZCE susardi (fail-open). Ayri kuralda 'fdm'
+    #   kendi kuralindan (eleme=None) yakalanmaya DEVAM eder.
+    ("surec-teknolojisi-sla",
+     r"\bsla\b",
+     "uretim teknolojisi adi (SLA = stereolitografi)",
+     _SLA_AKU_DESEN),
     # --- 31 Tem: KAPININ HIC GORMEDIGI SINIF (olculdu, canli katalog) ----------------
     # Eski kapi malzeme adini YALNIZ 'basil-' fiiliyle birlikte goruyordu; fiilsiz gecen
     # surec dili hicbir kovaya dusmuyordu. Olculen kacaklar: 'filament' (10 kayit),
@@ -1483,6 +1509,123 @@ def _kt_urun(uid, **kw):
     return u
 
 
+def _kt_sla_batarya(iddia):
+    """SLA jetonu kabul testi — `surec-teknolojisi-sla` kurali + KURAL-YEREL `eleme`.
+
+    NEDEN AYRI BATARYA (4 Eyl 2026): 'SLA' kisaltmasinin canli katalogda OLCULMUS mesru
+    okumasi var (Sealed Lead Acid = kursun-asit AKU). Tam katalogda (34015 kayit)
+    `\bsla\b` eslesen kayit 1'di ve o kayit AKU baglamliydi -> jeton SIFIR gercek ihlal
+    yakalayip BIR yanlis-pozitifle YAYINI durdurdu (CI serit-a3, 686ef449).
+    Bu batarya, yamayi UC eksende birden civiler:
+      (1) yanlis-pozitif DUSER, (2) GERCEK ifsa HALA BLOKLAR, (3) ayni cumledeki BASKA
+      kuralin gercek ihlali SUSTURULMAZ (fail-open kapali).
+    Mutantlar DISKE YAZILMAZ: kaynak BELLEKTE degistirilip ayri bir ad alaninda exec edilir.
+    """
+    import hashlib
+    import types
+
+    yol = os.path.abspath(__file__)
+    with open(yol, encoding="utf-8") as f:
+        kaynak = f.read()
+    sha_once = hashlib.sha256(kaynak.encode()).hexdigest()
+
+    def _mod(src, ad):
+        m = types.ModuleType(ad)
+        m.__file__ = yol
+        exec(compile(src, yol, "exec"), m.__dict__)
+        return m
+
+    def _urun(aciklama):
+        return _kt_urun("sla-test", kategori="Motosiklet", marka=["Harley-Davidson"],
+                        baslik="Aku Kutusu", aciklama=aciklama)
+
+    # VAKALAR — her biri AYRI bir eksen olcer
+    VAKALAR = (
+        ("AKU (mesru okuma)",
+         "Klasik modellerde orijinal H2 6V islak akunun yerine SLA/lityum aku "
+         "kullanilmasini saglayan aku kutusu."),
+        ("GERCEK IFSA (aku sozlugu YOK)",
+         "Govde SLA recine ile uretilen seffaf bir kapaktir."),
+        ("KARISIK (SLA akusu + GERCEK fdm ayni cumlede)",
+         "SLA aku tasiyan govde FDM ile uretilir ve yerine takilir."),
+    )
+    BEKLENEN = ([], ["surec-teknolojisi-sla"], ["surec-teknolojisi"])
+
+    def _kollar(m, aciklama):
+        return sorted(k["kural"] for k in m.kapi_ifsa(_urun(aciklama))["sert"])
+
+    saglam = _mod(kaynak, "_kt_sla_saglam")
+    taban = tuple(_kollar(saglam, metin) for _ad, metin in VAKALAR)
+    for (ad, _metin), gercek, bek in zip(VAKALAR, taban, BEKLENEN):
+        iddia("SLA-%s -> %s" % (ad, bek or "ihlal YOK"), gercek == bek,
+              "olculen=%s" % (gercek,))
+
+    # --- M1 [OLDURUCU]: kural-yerel `eleme` NOTRALIZE edilir ------------------------
+    #     Hedef kol kaniti: yanlis-pozitif AKU kaydi YENIDEN ihlal uretmeli. Uretmezse
+    #     yesili saglayan sey `eleme` DEGILDIR -> iddia OLU olurdu (K182).
+    CAPA1 = "     _SLA_AKU_DESEN),\n"
+    if kaynak.count(CAPA1) != 1:
+        iddia("SLA-M1 capasi TEK kez TUTMADI (OLCULEMEDI)", False,
+              "bulunan=%d" % kaynak.count(CAPA1))
+    else:
+        m1 = _mod(kaynak.replace(CAPA1, "     None),\n"), "_kt_sla_m1")
+        oldu = _kollar(m1, VAKALAR[0][1]) == ["surec-teknolojisi-sla"]
+        iddia("SLA-M1 [OLDURUCU] eleme->None: AKU kaydi YENIDEN ihlal uretti "
+              "(yesili saglayan sey ELEME)", oldu,
+              "olculen=%s" % (_kollar(m1, VAKALAR[0][1]),))
+
+    # --- M2 [OLDURUCU]: NAIF TEK-KURAL yamasinin karsi-olgusu -----------------------
+    #     'sla' ANA kurala geri + eleme ANA kurala + ayri kural SILINIR. Iddia: bu bicimde
+    #     `eleme` CUMLE kapsamli oldugu icin ayni cumledeki GERCEK 'fdm' ihlali de kaybolur.
+    #     Ayri-kural tasariminin gerekcesi budur; mutant onu SAYIYLA gosterir.
+    AYRI = ('    ("surec-teknolojisi-sla",\n'
+            '     r"\\bsla\\b",\n'
+            '     "uretim teknolojisi adi (SLA = stereolitografi)",\n'
+            '     _SLA_AKU_DESEN),\n')
+    ANA = ('     "uretim teknolojisi adi (FDM/\'3D basilabilir\'/nozul CAPI)",\n'
+           '     None),\n')
+    ANA_M = ('     "uretim teknolojisi adi (FDM/SLA/\'3D basilabilir\'/nozul CAPI)",\n'
+             '     _SLA_AKU_DESEN),\n')
+    JETON = 'r"\\bfdm\\b|\\binfill\\b'
+    if not (kaynak.count(AYRI) == 1 and kaynak.count(ANA) == 1
+            and kaynak.count(JETON) == 1):
+        iddia("SLA-M2 capasi TEK kez TUTMADI (OLCULEMEDI)", False,
+              "ayri=%d ana=%d jeton=%d" % (kaynak.count(AYRI), kaynak.count(ANA),
+                                           kaynak.count(JETON)))
+    else:
+        m2_src = (kaynak.replace(JETON, 'r"\\bfdm\\b|\\bsla\\b|\\binfill\\b')
+                  .replace(ANA, ANA_M).replace(AYRI, ""))
+        m2 = _mod(m2_src, "_kt_sla_m2")
+        m2_karisik = _kollar(m2, VAKALAR[2][1])
+        iddia("SLA-M2 [OLDURUCU] naif tek-kural: ayni cumledeki GERCEK 'fdm' ihlali "
+              "KAYBOLUYOR (ayri kural fail-open'i kapatiyor)",
+              taban[2] == ["surec-teknolojisi"] and m2_karisik == [],
+              "saglam=%s naif=%s" % (taban[2], m2_karisik))
+
+    # --- M3 [KONTROL]: yalniz TESHIS METNI degisir -> davranis AYNI kalmali ----------
+    #     \U0001f534 CAPA, KURAL BLOGUNUN TAMAMIDIR (`AYRI`), gerekce METNI DEGIL: gerekce
+    #     dizgesi bu fonksiyonun KENDI govdesinde de geciyor (M2'nin `AYRI` insasinda),
+    #     tek basina capa olarak kullanildiginda kaynakta 3 kez esleser ve mutant HIC
+    #     kurulamaz. Kurucunun capasi kendi yazdigi metnin icinde cogalir sinifi.
+    if kaynak.count(AYRI) != 1:
+        iddia("SLA-M3 capasi TEK kez TUTMADI (OLCULEMEDI)", False,
+              "bulunan=%d" % kaynak.count(AYRI))
+    else:
+        AYRI_M3 = AYRI.replace(
+            '"uretim teknolojisi adi (SLA = stereolitografi)"', '"TESHIS METNI DEGISTI"')
+        assert AYRI_M3 != AYRI
+        m3 = _mod(kaynak.replace(AYRI, AYRI_M3), "_kt_sla_m3")
+        m3_t = tuple(_kollar(m3, metin) for _ad, metin in VAKALAR)
+        iddia("SLA-M3 [KONTROL] yalniz teshis metni -> davranis DEGISMEDI "
+              "(batarya gurultulu degil)", m3_t == taban, "olculen=%s" % (m3_t,))
+
+    # --- DISK EMNIYETI: mutant gercek dosyaya YAZILMADI -----------------------------
+    with open(yol, encoding="utf-8") as f:
+        sha_sonra = hashlib.sha256(f.read().encode()).hexdigest()
+    iddia("SLA-DISK denetim-kapisi.py sha256 ONCE==SONRA (mutant DISKE yazilmadi)",
+          sha_once == sha_sonra, "sha=%s" % sha_once[:16])
+
+
 def _kt_onay_batarya(iddia):
     """ONAY KAPISI (kapsam-patlamasi korumasi) kabul testi — SENTETIK depo, AG YOK,
     canli veriye DOKUNMAZ.
@@ -2334,6 +2477,7 @@ def kendini_test():
 
     # --- ONAY KAPISI (kapsam-patlamasi korumasi) — KENDI sentetik deposu -------------
     _kt_onay_batarya(iddia)
+    _kt_sla_batarya(iddia)
 
     print("DENETIM KAPISI — KENDINI TEST (--commit-farki CI kolu)")
     kalan = 0
