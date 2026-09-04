@@ -814,6 +814,47 @@ def basliyorum_rolu(metin):
     return BASLIYORUM_JETON in sadelestir(tirnak_disi(metin))
 
 
+# --------------------------------------------- K360-C KONUM OLCUTU (4 Eyl 2026)
+# 🔴 OLCULEN VAKA (canli kutu, 4 Eyl, blok 16): MaCiT'in 13. cron DUZELTME blogu
+# TUM raporunu TEK `## ` BASLIK SATIRINA yaziyor (953 karakter). O anlatinin
+# icinde, 632. karakterde, PROZA olarak `BAŞLIYORUM` gecer:
+#   "... dilim-19 chip mailbox'a BAŞLIYORUM notu düşürmemiş (disiplin ihlali) ..."
+# Blogun basliginda ne 🚧 ne `**BASLIYORUM` vardir ve gecis TIRNAK DISINDADIR ->
+# K359'un ROL olcutu onu MARKER sandi. Ardindan `cip_adi()` ayni dev satirdaki ILK
+# backtick'li tireli jetonu ad diye topladi: `non-fast-forward` — bir git HATA
+# DIZGESI. Sonuc: cip OLMAYAN bir blok, cip OLMAYAN bir adla "acik cip" sayildi.
+# 🔴 SINIF: K359 jetonun ROLUNU sorar (alinti mi?), bu kol KONUMUNU sorar (bildirim
+# mi, anlati mi?). Ikisi AYRI eksendir; biri otekini TUKETMEZ.
+# 🔴 GENISLETME TUZAGI VE DARLIK SARTI: "marker olmak icin 🚧 ya da kalin sarmal
+# SART" demek K329'u oldururdu — v36'nin ① sarmali (arsiv :52842) ve 27 Agu'nun
+# `## 2026-08-27 — BASLIYORUM · cip `KraL-NobetTuru-27Agu`` blogu GERCEK vakalardir
+# ve duz `BASLIYORUM` yazarlar. Bu yuzden 🚧/kalin sarmal olcutu TARTISMASIZ KILAR
+# (KONUM elemesi onlari iptal EDEMEZ); YOKLUKLARINDA jeton BASLIGIN BAS KISMINDA
+# olmalidir.
+# 🔴 TAVAN NEREDEN GELDI (tahmin degil, olcum): canli kutu + arsivin TAMAMI taranarak
+# `basliyorum_rolu` TRUE donen 272 baslik cikarildi; 145'i 🚧/kalin tasiyor (bu kolun
+# MENZILI DISI), 127'si sade. Sade kumede GERCEK cip acilis bildirimlerinin EN BUYUK
+# jeton konumu **76**'dir; 200'un USTUNDEKI her gecis (238, 501, 632, 635, 705, 728,
+# 784, 1232) dev cron raporlarinin ICINDEKI ANLATIDIR. Tavan bu BOSLUGA konur:
+# gercek en-buyugun 2.6 KATI, kutudaki yanlis pozitifin (632) 3.2 KATI ALTINDA.
+# Belirsizlik yine KORUMA yonundedir — tavanin ALTI marker SAYILIR.
+KONUM_TAVANI = 200
+
+
+def basliyorum_baslikta(baslik):
+    """BASLIK SATIRI bir cip ACILIS BILDIRIMI mi? (K359 ROL + K360-C KONUM)
+
+    🔴 YALNIZ BASLIK icindir. Govde metni icin `basliyorum_rolu()` kullanilir:
+    orada "konum" diye bir sey yoktur ve o kol zaten veto URETMEZ (`govde_anmasi`).
+    """
+    if not basliyorum_rolu(baslik):
+        return False
+    sade = sadelestir(baslik)
+    if BASLIYORUM_KALIN in sade or BASLIYORUM_ISARETI in baslik:
+        return True                      # 🚧 / kalin sarmal TARTISMASIZ KILAR
+    return sade.find(BASLIYORUM_JETON) <= KONUM_TAVANI
+
+
 # --------------------------------------------- K359 UCUNCU KAPANIS KOLU (1 Eyl 2026)
 # 🔴 OLCULEN VAKA: MaCiT cron'u kapanisini `## … — ✅ MaCiT 11. cron `macit-parti-surucusu`
 # **KAPANDI (delta=0, gate-only) …**` diye yaziyor — sayili, GERCEK bir kapanis; ama ne
@@ -896,18 +937,70 @@ def kapanis_cip_adi(satirlar, bas, son):
     🔴 TEK KAYNAK: `kapanan_cipler()` (K329 eslestirmesi) ve `kapanis_bloklari()`
     (K359-B cift butunlugu) AYNI adi okur; ikinci bir "bu kapanis kimin" testi
     HICBIR YERDE yazilmaz ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    🔴 K360-A: bu fonksiyon artik `kapanis_kimlikleri()`nin BIRINCIL adini dondurur —
+    kimligin TEK KAYNAGI odur. Ikinci bir cikarim burada YAZILMAZ, yoksa iki kol
+    sessizce ayrisir ([[ikiz-tanim-sessiz-ayrisma]]).
     """
-    ad = cip_adi(satirlar[bas])
-    if ad is not None:
-        return ad
+    adlar = kapanis_kimlikleri(satirlar, bas, son)
+    return adlar[0] if adlar else None
+
+
+# ------------------------------------------- K360-A AD EKSENI AYRISMASI (4 Eyl 2026)
+# 🔴 OLCULEN VAKA (mimar ELIYLE, IKI GERCEK CIP, IKI TERS YONDE):
+#   (1) `KraL-Tamirci-3Eyl` — ACILIS  (kutu :10)  `🚧 KraL-Tamirci-3Eyl (çip: friendly-carson-1440e3)`
+#                             -> dar=None, gevsek=`KraL-Tamirci-3Eyl`
+#       KAPANIS (arsiv :60464) `✅ KraL-Tamirci-3Eyl (çip `friendly-carson-1440e3`)`
+#                             -> dar=`friendly-carson-1440e3`
+#   (2) `KraL-TamirciMerge-3Eyl` — ACILIS  (kutu :8) dar=`trusting-khorana-8c616a`
+#       KAPANIS (arsiv :61186) -> dar=None, gevsek=`KraL-TamirciMerge-3Eyl`
+# Ayni cip, ayni baslikta IKI kimlik tasir: INSAN ADI (`KraL-Tamirci-3Eyl`) ve
+# OTURUM/AGAC KIMLIGI (`friendly-carson-1440e3`). Eski kod her yanda TEK ad secip
+# durdugu icin acilis bir alfabeden, kapanis OTEKINDEN okundu ve anahtarlar AYRISTI.
+# 🔴 CARE: kimlik TEK AD DEGIL, AD KUMESIDIR. Iki yan da URETEBILDIGI TUM adlari verir;
+# eslesme KESISIM BOS DEGIL sartidir.
+# 🔴 K359-B ASIMETRISI KALDIRILMADI: kapanis tarafinda GEVSEK ad hala IMZA ONAYI ister
+# (`— <ad>` satir-basi imzasi). Boylece "adi ANAN her kapanis baska bir cipi acar"
+# sinifi KAPALI kalir; ANMAK ile IMZALAMAK ayri sinif olarak durur (negatif fiksturler
+# c ve d bunu olcer). Olculdu: bes gercek kapanisin BESI de imza sartini gecer.
+def cip_kimlikleri(baslik):
+    """ACILIS basliginin URETEBILECEGI TUM cip kimlikleri (sirali, tekil).
+
+    DAR (backtick'li) ad ONCE gelir — birincil kimlik odur; GEVSEK ad ikincidir.
+    """
+    adlar = []
+    dar = cip_adi(baslik)
+    if dar:
+        adlar.append(dar)
+    gevsek = gevsek_cip_adi(baslik)
+    if gevsek and gevsek not in adlar:
+        adlar.append(gevsek)
+    return tuple(adlar)
+
+
+def kapanis_kimlikleri(satirlar, bas, son):
+    """KAPANIS blogunun TUM kimlikleri — DAR serbest, GEVSEK yalniz IMZA ONAYIYLA.
+
+    🔴 TEK KAYNAK: `kapanan_cipler()`, `kapanis_bloklari()` ve K359-B cift butunlugu
+    AYNI kimlikleri okur; ikinci bir "bu kapanis kimin" testi HICBIR YERDE yazilmaz
+    ([[ikiz-tanim-sessiz-ayrisma]]).
+    """
+    adlar = []
+    dar = cip_adi(satirlar[bas])
+    if dar:
+        adlar.append(dar)
     gevsek = gevsek_cip_adi(satirlar[bas])
-    if gevsek is not None and _imzada_geciyor(satirlar, bas, son, gevsek):
-        return gevsek
-    return None
+    if (gevsek and gevsek not in adlar
+            and _imzada_geciyor(satirlar, bas, son, gevsek)):
+        adlar.append(gevsek)
+    return tuple(adlar)
 
 
 def kapanis_bloklari(satirlar, baslar):
-    """{blok_idx: cip_adi} — KAPANIS olan ve SAHIBI cikarilabilen bloklar (TEK KAYNAK)."""
+    """{blok_idx: (ad, ...)} — KAPANIS olan ve SAHIBI cikarilabilen bloklar (TEK KAYNAK).
+
+    Deger bir KIMLIK DEMETIDIR (K360-A); ilk eleman birincil addir ve basimda o gecer.
+    """
     esleme = {}
     araliklar = blok_araliklari(satirlar, baslar)
     i = 0
@@ -915,9 +1008,9 @@ def kapanis_bloklari(satirlar, baslar):
         bas, son = araliklar[i]
         kapanis, _hata = blok_kapanis_mi(satirlar, bas, son)
         if kapanis:
-            ad = kapanis_cip_adi(satirlar, bas, son)
-            if ad:
-                esleme[i] = ad
+            adlar = kapanis_kimlikleri(satirlar, bas, son)
+            if adlar:
+                esleme[i] = adlar
         i += 1
     return esleme
 
@@ -935,20 +1028,167 @@ def basliyorum_adlari(satirlar, baslar):
     while i < len(araliklar):
         bas, _son = araliklar[i]
         baslik = satirlar[bas]
-        if basliyorum_rolu(baslik):
-            ad = cip_adi(baslik) or gevsek_cip_adi(baslik)
-            if ad:
-                esleme[i] = ad
+        if basliyorum_baslikta(baslik):
+            adlar = cip_kimlikleri(baslik)
+            if adlar:
+                esleme[i] = adlar
         i += 1
     return esleme
 
 
 def kapanan_cipler(satirlar, baslar):
-    """Kutuda KAPANISI BULUNAN cip adlari kumesi (ad -> birebir esitlik)."""
-    return set(kapanis_bloklari(satirlar, baslar).values())
+    """Bu METINDE kapanisi bulunan TUM cip kimlikleri (kume).
+
+    🔴 IMZA SABIT: `tools/arsiv-kapisi.py::K4` bu fonksiyonu ISIMLE cagirir ve KUME
+    bekler ([[hukum-tuketen-kapi-total-hukum-ister]]). Donen kume K360-A ile GENISLEDI
+    (bir kapanis artik hem DAR hem IMZA-ONAYLI GEVSEK adini verir) — bu, kapinin
+    "bu cip kapandi mi" sorusunu AYNI kimlik ekseninden cevaplamasi demektir.
+    """
+    kume = set()
+    for adlar in kapanis_bloklari(satirlar, baslar).values():
+        kume.update(adlar)
+    return kume
 
 
-def acik_cip_bloklari(satirlar, baslar, kapanan=None):
+# --------------------------------------- K360-B DUZLEM AYRISMASI (4 Eyl 2026)
+# 🔴 OLCULEN VAKA (mimar ELIYLE, DORT gercek ad): `ArTisT-KutuEmri-31Agu`,
+# `KraL-K359-KutuEslesme`, `KraL-UrunSilmeButonu-2Eyl`, `macit-parti-surucusu` —
+# ACILIS kutuda, KAPANIS ARSIVDE. Eslestirme yalniz kutuya baktigi icin bu bloklar
+# "kapanisi YOK" sayilip kutuda SONSUZA KADAR kilitlendi. Kutu 250 satir tavaninda
+# bir PENCEREdir; kapanislar dogal olarak ondan once arsive akar.
+# 🔴 MIMAR HUKMU (KraL, 4 Eyl): care kapanislari arsivden kutuya GERI TASIMAK DEGILDIR
+# (kutuyu sisirir, kotayi geri kilitler, sirayi bozar). Kimlik CIFTTIR, duzlem degil:
+# kapi "bu cip kapandi mi" sorusunu cevaplarken ARSIVE DE BAKAR.
+# 🔴 FAIL-CLOSED: arsiv okunamiyor/bozuksa cip KAPANMAMIS sayilir (blok DURUR).
+#    Kayit uretilmez -> hicbir blok serbest kalmaz. Fail-open YASAKTIR.
+# 🔴🔴 TEKRAR EDEN AD TEHLIKESI: `macit-parti-surucusu` AYNI ADLA 18 kez acilan bir
+# CRON'dur ve arsivde 13 ESKI kapanisi vardir. Naif "arsivde adi geciyorsa kapandi"
+# kurali CANLI bir cipin acilisini rotasyona atardi — tam da kacindigimiz kayip.
+# Bu yuzden serbest birakma IKI SARTA baglidir:
+#   ① ZAMAN SIRALI — arsivdeki kapanis, kutudaki acilistan DAHA ESKI OLAMAZ.
+#   ② TUKETIMLI    — bir kapanis kaydi BIR acilisi acar; en YENI acilis en YENI
+#                    kapanisi TUKETIR, geriye kalan acilislar kendi kapanislarini
+#                    ARAMAK ZORUNDADIR. Olculen sonuc: MaCiT 17. cron (kapanisi
+#                    arsivde) SERBEST kalir, 18. cron (kapanisi YOK) KILITLI kalir.
+# 🔴 ZAMAN OLCUSU NEREDEN: baslik onekindeki `## YYYY-MM-DD` — kutu geleneginin TEK
+# katı biciminde yazdigi alan (canli olcum: kutuda 21/21, arsivde 2849/2888 baslik
+# ayristirilir). `~HH:MM` SERBEST yazilir (`~05:0x`, `~07:xZ`, `~06-08:xZ`) ve ancak
+# IKI YAN DA tam sayisal yazmissa karsilastirmaya girer; aksi halde GUN ekseninde
+# kalinir. Ayni gun + belirsiz saat = "daha eski DEGIL" sayilir (esitlik KORUMA
+# yonunde okunur), cokluk tehlikesini TUKETIM kolu kapatir.
+# 🔴 MENZIL: bu zaman kapisi YALNIZ ARSIV kaynakli kapanislara uygulanir. Kutu-ici
+# eslestirme (K329/K359-B) DEGISMEDI — orasi 250 satirlik dar bir penceredir ve
+# davranisi 377 iddiayla civilidir.
+TARIH_BASLIK_RE = re.compile(r"^##\s+(\d{4})-(\d{2})-(\d{2})")
+SAAT_BASLIK_RE = re.compile(r"^##\s+\d{4}-\d{2}-\d{2}\s*[—\-]?\s*~?\s*(\d{2}):(\d{2})")
+
+
+def blok_zamani(baslik):
+    """(gun, dakika) — gun `YYYYMMDD` tamsayisi, dakika gun-ici dakika ya da None.
+
+    Gun AYRISTIRILAMAZSA (None, None) doner ve o blok ZAMAN SIRASINA GIREMEZ:
+    arsiv kolu onu serbest BIRAKMAZ (fail-closed).
+    """
+    m = TARIH_BASLIK_RE.match(baslik)
+    if not m:
+        return None, None
+    gun = int(m.group(1)) * 10000 + int(m.group(2)) * 100 + int(m.group(3))
+    s = SAAT_BASLIK_RE.match(baslik)
+    if not s:
+        return gun, None
+    saat, dakika = int(s.group(1)), int(s.group(2))
+    if saat > 23 or dakika > 59:
+        return gun, None
+    return gun, saat * 60 + dakika
+
+
+def _kapanis_daha_eski_degil(acilis_z, kapanis_z):
+    """Kapanis, acilistan DAHA ESKI DEGIL mi? Gun ayristirilamazsa DAIMA False."""
+    a_gun, a_dk = acilis_z
+    k_gun, k_dk = kapanis_z
+    if a_gun is None or k_gun is None:
+        return False                                  # fail-closed
+    if k_gun != a_gun:
+        return k_gun > a_gun
+    if a_dk is None or k_dk is None:
+        return True            # ayni gun, saat BELIRSIZ -> esitlik KORUMA yonunde
+    return k_dk >= a_dk
+
+
+def arsiv_kapanis_kayitlari(arsiv_metin):
+    """({ad: [(gun, dakika), ...]}, hata) — ARSIVDEKI kapanislarin kimlik+zamani.
+
+    🔴 FAIL-CLOSED: metin yok/bos/bozuk frontmatter ise ({}, sebep) doner. Bos kayit
+    hicbir blogu serbest BIRAKMAZ; yani "arsiv okunamadi" hali "cip KAPANMAMIS"
+    hukmune akar ve cagiran sebebi ADIYLA basar (sessiz atlama YASAK).
+    """
+    if arsiv_metin is None or arsiv_metin == "":
+        return {}, "arsiv YOK ya da BOS -> arsiv duzlemi OLCULMEDI (fail-closed)"
+    satirlar = arsiv_metin.splitlines(keepends=True)
+    fm, hata = frontmatter_sonu(satirlar)
+    if hata or fm is None:
+        return {}, ("arsiv frontmatter'i BOZUK -> arsiv duzlemi OLCULMEDI "
+                    "(fail-closed): %s" % (hata or "?"))
+    baslar = blok_baslari(satirlar, fm)
+    kayitlar = {}
+    for idx, adlar in kapanis_bloklari(satirlar, baslar).items():
+        zaman = blok_zamani(satirlar[baslar[idx]])
+        for ad in adlar:
+            kayitlar.setdefault(ad, []).append(zaman)
+    return kayitlar, None
+
+
+def arsiv_serbest(satirlar, baslar, acik, arsiv_kayitlari):
+    """{blok_idx: (ad, kapanis_zamani)} — ARSIVDEKI kapanisla serbest kalan acilislar.
+
+    🔴 TEK KAYNAK: `acik_cip_bloklari()` bununla filtreler, `planla()` bununla RAPOR
+    eder. Ikinci bir "arsivde kapandi mi" testi HICBIR YERDE yazilmaz
+    ([[ikiz-tanim-sessiz-ayrisma]]).
+    """
+    if not arsiv_kayitlari:
+        return {}
+    # Havuz: her ad icin kapanis zamanlari, EN YENI once.
+    havuz = {}
+    for ad, zamanlar in arsiv_kayitlari.items():
+        havuz[ad] = sorted(
+            [z for z in zamanlar if z[0] is not None],
+            key=lambda z: (z[0], -1 if z[1] is None else z[1]), reverse=True)
+    # Adaylar: acilis EN YENI once (zaman), esitlikte kutu sirasi (kucuk indeks = yeni).
+    # 🔴 ADAYIN TUM KIMLIKLERI aranir, yalniz BIRINCILI degil. Olculen vaka:
+    # `KraL-TamirciMerge-3Eyl` acilisinin BIRINCIL kimligi `trusting-khorana-8c616a`
+    # (backtick'li), arsivdeki kapanisi ise GEVSEK adla imzali. Tek ada bakmak K360-A
+    # onarimini tam da bu blokta bosa dusururdu.
+    adaylar = []
+    for (idx, ad, _ozet, _sinif) in acik:
+        if not ad:
+            continue
+        adlar = cip_kimlikleri(satirlar[baslar[idx]])
+        if adlar:
+            adaylar.append((idx, adlar, blok_zamani(satirlar[baslar[idx]])))
+    adaylar.sort(key=lambda t: (t[2][0] if t[2][0] is not None else -1,
+                                -1 if t[2][1] is None else t[2][1], -t[0]),
+                 reverse=True)
+    serbest = {}
+    for (idx, adlar, acilis_z) in adaylar:
+        bulundu = False
+        for ad in adlar:
+            liste = havuz.get(ad)
+            if not liste:
+                continue
+            j = 0
+            while j < len(liste):
+                if _kapanis_daha_eski_degil(acilis_z, liste[j]):
+                    # TUKET: bir kapanis kaydi BIR acilisi acar.
+                    serbest[idx] = (ad, liste.pop(j))
+                    bulundu = True
+                    break
+                j += 1
+            if bulundu:
+                break
+    return serbest
+
+
+def acik_cip_bloklari(satirlar, baslar, kapanan=None, arsiv_kayitlari=None):
     """([(blok_idx, ad, ozet, sinif)], kapanmis, govde_anmasi, kapanan) — TEK KAYNAK.
 
     🔴 ICRA kolu (`planla`) ve DENETIM kolu (`dogrula` D17) BU fonksiyonu cagirir.
@@ -977,29 +1217,32 @@ def acik_cip_bloklari(satirlar, baslar, kapanan=None):
     while i < len(araliklar):
         bas, son = araliklar[i]
         baslik = satirlar[bas]
-        if not basliyorum_rolu(baslik):
+        if not basliyorum_baslikta(baslik):
+            # KONUM (K360-C) ya da ROL (K359) olcutunden DUSEN baslik, jetonu
+            # govdesinde tasiyor olabilir: o hal SAYILIR ama veto URETMEZ.
             if basliyorum_rolu("".join(satirlar[bas:son])):
                 govde_anmasi += 1
             i += 1
             continue
-        ad = cip_adi(baslik)
-        if ad is None:
-            # GEVSEK cikarim: backtick'siz yazilmis adi YAKALA (gercek vaka, arsiv
-            # :53553). Ad bulunursa eslestirme YINE yapilir — ama `kapanan` kumesi
-            # DAR cikarimla kuruldugu icin gevsek ad ancak DUZGUN yazilmis bir
-            # kapanisla eslesebilir; gevsetme serbest birakma yonune AKMAZ.
-            gevsek = gevsek_cip_adi(baslik)
-            if gevsek is None:
-                acik.append((i, None, baslik.strip()[:70], "ACIK_ADSIZ"))
-            elif gevsek in kapanan:
-                kapanmis += 1
-            else:
-                acik.append((i, gevsek, baslik.strip()[:70], "ACIK_GEVSEK_AD"))
-        elif ad in kapanan:
+        adlar = cip_kimlikleri(baslik)
+        if not adlar:
+            acik.append((i, None, baslik.strip()[:70], "ACIK_ADSIZ"))
+        elif [a for a in adlar if a in kapanan]:
             kapanmis += 1
         else:
-            acik.append((i, ad, baslik.strip()[:70], "ACIK_BASLIYORUM"))
+            # SINIF, adin HANGI EKSENDEN okundugunu soyler (dar mi, gevsek mi) —
+            # sayilar ayri kovalarda kalsin diye.
+            sinif = ("ACIK_BASLIYORUM" if cip_adi(baslik)
+                     else "ACIK_GEVSEK_AD")
+            acik.append((i, adlar[0], baslik.strip()[:70], sinif))
         i += 1
+
+    # 🔴 K360-B DUZLEM KOLU — ARSIVE DE BAKILIR (mimar hukmu, 4 Eyl).
+    if arsiv_kayitlari:
+        serbest = arsiv_serbest(satirlar, baslar, acik, arsiv_kayitlari)
+        if serbest:
+            acik = [t for t in acik if t[0] not in serbest]
+            kapanmis += len(serbest)
     return acik, kapanmis, govde_anmasi, kapanan
 
 
@@ -1052,11 +1295,15 @@ class Plan(object):
         self.basliyorum_govde_anmasi = 0   # `BASLIYORUM` yalniz GOVDEDE geciyor
         self.acik_kilitledi = 0            # `koru` tabaninin ALTINDA kalan acik cip
         self.kapanan_adlar = set()         # denetim kolunun (D17) okudugu TABAN
+        # ARSIV DUZLEMI (K360-B) — K329'dan AYRI KOVA, AYRI SAYI
+        self.arsiv_serbest = {}            # {blok_idx: (ad, kapanis_zamani)}
+        self.arsiv_kayitlari = {}          # denetim kolunun (D17) okudugu ARSIV TABANI
+        self.arsiv_hatasi = None           # arsiv OLCULEMEDIYSE sebebi (fail-closed)
         # CIFT BUTUNLUGU (K359-B) — K329'dan AYRI KOVA, AYRI SAYI
         self.cift_korumasi = []            # [(blok_idx, ad, sebep)] — pinlenen KAPANIS
 
 
-def planla(kutu_metin, tavan, koru):
+def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None):
     """Kutuyu tavana indirmek icin SONDAN kac blok tasinacagini hesapla.
 
     O1 (16 Agu 2026): eski davranis kutu tam tavanda (300) duruyor ve bir
@@ -1091,8 +1338,15 @@ def planla(kutu_metin, tavan, koru):
     # 🔴 ACIK CIP KOLU (K329) — AYRI EKSEN, AYRI SAYI. `koru` tabani ve K313g ile
     # ayni kumeye AKAR ama ayni SAYIYA akmaz: sinif adini kol adi olarak basmak
     # ucuncu hali yutar ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+    # 🔴 K360-B: ARSIV DUZLEMI de okunur. `arsiv_serbest` ONCE ayri cagrilir ki
+    # serbest kalan bloklar RAPOR EDILEBILSIN — filtreleme ve rapor AYNI
+    # fonksiyondan turer, ikinci bir hesap YOKTUR.
+    p.arsiv_kayitlari = arsiv_kayitlari or {}
+    acik_ham, _kh, _gh, p.kapanan_adlar = acik_cip_bloklari(satirlar, baslar)
+    p.arsiv_serbest = arsiv_serbest(satirlar, baslar, acik_ham, arsiv_kayitlari or {})
     (p.acik_cip, p.kapanmis_basliyorum, p.basliyorum_govde_anmasi,
-     p.kapanan_adlar) = acik_cip_bloklari(satirlar, baslar)
+     p.kapanan_adlar) = acik_cip_bloklari(satirlar, baslar,
+                                          arsiv_kayitlari=arsiv_kayitlari)
     acik_idx = [b for b, _a, _o, _k in p.acik_cip]
     p.acik_kilitledi = len([b for b in acik_idx if b >= koru])
 
@@ -1120,10 +1374,16 @@ def planla(kutu_metin, tavan, koru):
         for c in sorted(kapanis_sahipleri):
             if c in p.sabit:
                 continue
-            ad = kapanis_sahipleri[c]
+            adlar = kapanis_sahipleri[c]
+            ad = adlar[0]
             for o in sorted(acilis_sahipleri):
-                if acilis_sahipleri[o] != ad:
+                # 🔴 K360-A: esleme KESISIMDIR, birebir esitlik DEGIL. Cift butunlugu
+                # ile K329 eslestirmesi AYNI kimlik ekseninden okumazsa iki kol
+                # sessizce ayrisir ([[ikiz-tanim-sessiz-ayrisma]]).
+                ortak = [x for x in acilis_sahipleri[o] if x in adlar]
+                if not ortak:
                     continue
+                ad = ortak[0]
                 if o in p.sabit:
                     sebep = "ACILIS_SABIT"
                 elif o < c:
@@ -1309,7 +1569,7 @@ def ariza_uygula(yeni_kutu, ek, yeni_arsiv):
             return (yeni_kutu, ek, yeni_arsiv,
                     "ARIZA UYGULANAMADI: kutuda ADI CIKARILABILIR `%s` blogu YOK"
                     % BASLIYORUM_JETON)
-        kalan_ad = kalanlar[sorted(kalanlar)[0]]
+        kalan_ad = kalanlar[sorted(kalanlar)[0]][0]     # K360-A: kimlik DEMETI
         blok = ("## 2026-08-28 — ✅ sentetik `%s` **KAPANDI (sentetik sizinti)**\n"
                 "\n"
                 "sentetik cift-bolunmesi govdesi\n"
@@ -1502,8 +1762,13 @@ def dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv, plan, t
     #     ANINDAKI KUTUDAN gelir (plan.kapanan_adlar) — tasinan metin tek basina
     #     okunsaydi kutuda KALAN kapanislar gorunmez, denetim ICRADAN AYRISIR ve
     #     mesru bir tasimayi kalici kirmiziya cevirirdi ([[ikiz-tanim-sessiz-ayrisma]]).
+    # 🔴 K360-B: ARSIV TABANI da KARAR ANINDAN gelir (`plan.arsiv_kayitlari`).
+    # Denetim arsivi kendi basina okusaydi (ya da HIC okumasaydi) ICRADAN AYRISIR ve
+    # arsivde kapanisi bulunan mesru bir tasimayi kalici kirmiziya cevirirdi — tam
+    # olarak `kapanan` kumesinin disaridan verilme gerekcesi ([[ikiz-tanim-sessiz-ayrisma]]).
     ek_acik, _ek_kapanmis, _ek_govde, _ek_adlar = acik_cip_bloklari(
-        ek_satir_ke, blok_baslari(ek_satir_ke), kapanan=plan.kapanan_adlar)
+        ek_satir_ke, blok_baslari(ek_satir_ke), kapanan=plan.kapanan_adlar,
+        arsiv_kayitlari=plan.arsiv_kayitlari)
     for _bi, ad, ozet, sinif in ek_acik:
         h.append("D17 ACIK CIP IHLALI (%s): tasinan metinde ESLESEN KAPANISI OLMAYAN "
                  "bir `%s` blogu var (cip `%s`) -> cip HALA KOSUYOR olabilir ve "
@@ -1519,12 +1784,19 @@ def dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv, plan, t
     #     acilisi kutuda kalan bir kapanis arsive giderse o acilis ARTIK HICBIR ZAMAN
     #     eslesemez ve blok kutuda SONSUZA KADAR kilitli kalir (olculen vaka).
     yk_satir_ke = yeni_kutu.splitlines(keepends=True)
-    kalan_acilis = set(basliyorum_adlari(
-        yk_satir_ke, blok_baslari(yk_satir_ke, frontmatter_sonu(yk_satir_ke)[0] or 0)
-    ).values())
+    # 🔴 K360-A: kalan acilislarin TUM kimlikleri duz bir kumeye acilir ve kapanis
+    # kimlikleriyle KESISTIRILIR — cift butunlugu ile K329 eslestirmesi AYNI eksenden
+    # okumalidir, yoksa bir kol otekinin gormedigi cifti boler.
+    kalan_acilis = set()
+    for adlar in basliyorum_adlari(
+            yk_satir_ke,
+            blok_baslari(yk_satir_ke, frontmatter_sonu(yk_satir_ke)[0] or 0)).values():
+        kalan_acilis.update(adlar)
     ek_kapanis = kapanis_bloklari(ek_satir_ke, blok_baslari(ek_satir_ke))
-    for _bi, kap_ad in sorted(ek_kapanis.items()):
-        if kap_ad in kalan_acilis:
+    for _bi, kap_adlar in sorted(ek_kapanis.items()):
+        ortak = [x for x in kap_adlar if x in kalan_acilis]
+        kap_ad = ortak[0] if ortak else kap_adlar[0]
+        if ortak:
             h.append("D18 CIFT BOLUNMESI: tasinan metinde cip `%s` KAPANISI var ama "
                      "AYNI CIPIN `%s` blogu kutuda KALIYOR -> acilis bir daha ASLA "
                      "eslesemez ve kutuda KALICI OLU SLOT olurdu. Fail-closed: "
@@ -1863,7 +2135,12 @@ def main(argv=None):
         else:
             print("CEVRIM=0 kip=KAPALI (--kapanislari-isle verilmedi)  [KAPI]")
 
-        p = planla(kutu_metin, a.tavan, a.koru)
+        # 🔴 K360-B ARSIV DUZLEMI — kapanislar kutudan once arsive akar; "bu cip
+        # kapandi mi" sorusu IKI DUZLEMDEN de cevaplanir. FAIL-CLOSED: okunamazsa
+        # kayit URETILMEZ (hicbir blok serbest kalmaz) ve sebep ADIYLA basilir.
+        ars_kayit, ars_hata = arsiv_kapanis_kayitlari(arsiv_metin)
+        p = planla(kutu_metin, a.tavan, a.koru, arsiv_kayitlari=ars_kayit)
+        p.arsiv_hatasi = ars_hata
         p.su_seviye = int(a.tavan * a.su_seviye_orani)
         if p.su_seviye < 1:
             p.su_seviye = 1
@@ -1913,6 +2190,25 @@ def main(argv=None):
             print("  · BASLIYORUM GOVDE ANMASI=%d blok: jeton blogun ICINDE geciyor ama "
                   "BASLIK satirinda DEGIL -> veto URETMEZ (K329 konum olcutu), blok "
                   "rotasyona ACIK." % p.basliyorum_govde_anmasi)
+        # 🔴 K360-B ARSIV DUZLEMI — HER kosumda basilir, is olsa da olmasa da.
+        # K329'dan AYRI SAYI: orada "kapanisi HICBIR YERDE yok" denir, burada
+        # "kapanisi ARSIVDE bulundu" denir. Ayni satirdan okunursa ucuncu hal yutulur
+        # ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+        print("ARSIV_SERBEST=%d arsiv_kapanan_ad=%d  [KAPI]"
+              % (len(p.arsiv_serbest), len(p.arsiv_kayitlari)))
+        print("ARSIV_SERBEST_ADLARI=%s"
+              % (",".join(ad for ad, _z in
+                          [p.arsiv_serbest[k] for k in sorted(p.arsiv_serbest)])
+                 or "-"))
+        for blok_idx in sorted(p.arsiv_serbest):
+            ad, zaman = p.arsiv_serbest[blok_idx]
+            print("  * ARSIV SERBEST blok %d/%d: cip `%s` — ESLESEN KAPANIS ARSIVDE "
+                  "BULUNDU (kapanis gun=%s dk=%s, acilistan DAHA ESKI DEGIL, kayit "
+                  "TUKETILDI) -> blok rotasyona ACIK"
+                  % (blok_idx + 1, p.blok_toplam, ad, zaman[0], zaman[1]))
+        if p.arsiv_hatasi:
+            print("  · ARSIV OLCULEMEDI (FAIL-CLOSED, hicbir blok serbest BIRAKILMADI): "
+                  "%s" % p.arsiv_hatasi)
         # 🔴 K359-B CIFT BUTUNLUGU — HER kosumda basilir, is olsa da olmasa da.
         # K329'dan AYRI SAYI: orada "kapanisi YOK" denir, burada "kapanisi VAR ama
         # acilisi kutuda kaliyor" denir. Ikisi ayni satirdan okunursa ucuncu hal
