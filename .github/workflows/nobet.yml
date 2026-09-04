@@ -1662,6 +1662,26 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/icra-kapisi-test.py
 
+      # CIP KAPATMA KILAVUZU + KAPANISSIZ CIP SUPURGESI — 4 Eyl 2026 (`2739164d`,
+      # `514953f3`). Uc test dosyasi IZLENEN olarak indi ama hicbir otomatik is
+      # akisina baglanmamisti; `ci-kapsam-test.py` fail-closed oldugu icin bu, TUM
+      # deponun push'unu kapatti (yayin kapali = herkesin isi durur). Uc test de
+      # ONCE kosuldu, ucu de YESIL: kapat 14/14 · supurme 28/28 · mutasyon 4/4 OLDU
+      # ULASMADI=0 KONTROL=YESIL. Yani eksik olan DAVRANIS degil KABLOLAMAYDI
+      # ([[kapinin-menzili-cagri-yeridir]]: kablolanmamis kapi bir mesajdir).
+      # NEDEN SERIT B: offline, sentetik git fiksturleri; canli repoya dokunmaz.
+      - name: "Cip kapatma kilavuzu kabul bataryasi (14 iddia, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/cip-kapat-test.py
+
+      - name: "Kapanissiz cip supurgesi kabul bataryasi (28 iddia, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/cip-supurme-test.py
+
+      - name: "Kapanissiz cip supurgesi mutasyon turu (4 mutant + kontrol, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/cip-supurme-mutasyon.py
+
       # KUTU ESIK KAPISI (tools/kutu-esik-kapisi.py) — K188. Yukaridaki arsivleyici
       # kutuyu TAVANA INDIREBILIYOR ama esigi YALNIZ kendisi biliyor; kutuya YAZAN yol
       # onu hic olcmuyordu. Sonuc: tavan asimi ancak biri ELLE bakinca goruluyor ve
