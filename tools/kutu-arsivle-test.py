@@ -2588,6 +2588,136 @@ def v48_konum_olcutu(arac, kok):
           mod.basliyorum_rolu(K360C_UZUN) is True)
 
 
+# ---------------------------------------------------- [49] K373 HARNESS AD SEKLI
+# 🔴 OLCULEN CANLI VAKA (4 Eyl, KraL-Tamirci-4Eyl): kutu rotasyonu `tasinabilir=3`de
+# TUKENDI, 8 ACIK blogun 6'si `AD_YOK`. DORDUNDE ad BASLIKTA yaziliydi ama BACKTICK'SIZ
+# ve TUMU KUCUK HARF (`(çip: agitated-clarke-e96f4f)`). `cip_adi()` backtick ister,
+# `gevsek_cip_adi()` BUYUK HARF isterdi -> harness'in urettigi adlar (hepsi kucuk
+# harf) IKI EKSENDEN DE gorunmezdi. `agitated-clarke-e96f4f` ve
+# `serene-mcclintock-dc34aa` kapanislari ARSIVDE dururken 5 gun kilitli kaldi.
+K373_POZ_AD = "agitated-clarke-e96f4f"     # kapanisi ARSIVDE, IMZALI -> SERBEST
+K373_DUR_AD = "optimistic-fermi-e89dd3"    # arsivde YALNIZ `🛑 DURDU` -> ACIK KALIR
+K373_ANMA_AD = "serene-mcclintock-dc34aa"  # BASKA cipin kapanisinda ANILIR -> ACIK KALIR
+
+K373_POZ_ACIK = ("## 2026-08-30 ~18:xZ — 🚧 MaCiT (çip: %s) **BAŞLIYORUM: dilim-13.**"
+                 % K373_POZ_AD)
+K373_POZ_KAPANIS = ("## 2026-08-30 ~19:xZ — ✅ MaCiT (çip: %s) **KAPANDI: dilim-13 — "
+                    "40 ürün canlıya.**" % K373_POZ_AD)
+K373_DUR_ACIK = ("## 2026-08-31 ~07:xZ — 🚧 MaCiT (çip: %s) **BAŞLIYORUM: dilim-16.**"
+                 % K373_DUR_AD)
+K373_DUR_ARSIV = ("## 2026-08-31 ~09:57Z — 🛑 MaCiT (çip: %s) **DURDU — mekanizma yok.**"
+                  % K373_DUR_AD)
+K373_ANMA_ACIK = ("## 2026-08-30 ~21:xZ — 🚧 MaCiT (çip: %s) **BAŞLIYORUM: dilim-14.**"
+                  % K373_ANMA_AD)
+# 🔴 K359-B OLCU ALETI: kapanis BASKA bir cipe ait, basliginda K373_ANMA_AD'i ANIYOR
+# ama onunla IMZALAMIYOR. ANMAK ile IMZALAMAK ayri siniftir; anilan cip ACILMAMALI.
+K373_ANMA_ARSIV = ("## 2026-08-31 ~02:xZ — ✅ MaCiT 9. cron (`macit-parti-surucusu`) "
+                   "**KAPANDI: d14 worktree %s listede yok.**" % K373_ANMA_AD)
+
+
+def arsiv_uret_k373():
+    """ARSIV: POZ kapanisi (IMZALI) + DURDU blogu + ANMA kapanisi (BASKA imza)."""
+    parcalar = ["---\nname: sentetik-arsiv\n---\n\n"]
+    parcalar.append(cip_blogu(910, K373_POZ_KAPANIS)
+                    + "— MaCiT (çip: %s)\n\n" % K373_POZ_AD + "---\n\n")
+    parcalar.append(cip_blogu(911, K373_DUR_ARSIV)
+                    + "— MaCiT (çip: %s)\n\n" % K373_DUR_AD + "---\n\n")
+    parcalar.append(cip_blogu(912, K373_ANMA_ARSIV)
+                    + "— MaCiT (`macit-parti-surucusu`)\n\n" + "---\n\n")
+    return "".join(parcalar)
+
+
+def kutu_uret_k373():
+    """KUTU: uc acilis da BACKTICK'SIZ kucuk-harfli harness adiyla yazilmis."""
+    sira = [
+        ("## 2026-09-03 — MimarA → MimarB: koru dolgusu 0", "MimarA"),
+        ("## 2026-09-03 — MimarA → MimarB: koru dolgusu 1", "MimarA"),
+        ("## 2026-09-03 — MimarA → MimarB: koru dolgusu 2", "MimarA"),
+        (K373_POZ_ACIK, "MaCiT"),
+        (K373_DUR_ACIK, "MaCiT"),
+        (K373_ANMA_ACIK, "MaCiT"),
+    ]
+    parcalar = [FM]
+    i = 0
+    while i < len(sira):
+        baslik, imza = sira[i]
+        parcalar.append(cip_blogu(i, baslik) + "— %s\n\n" % imza + "---\n\n")
+        i += 1
+    j = 0
+    while j < 3:
+        parcalar.append(blok(820 + j) + "---\n\n")
+        j += 1
+    return "".join(parcalar)
+
+
+def v49_harness_ad_sekli(arac, kok):
+    """[49] 🔴 K373 — BACKTICK'SIZ KUCUK HARFLI harness adi IKI EKSENDEN DE gorunur.
+
+    POZITIF: `✅ … KAPANDI` + harness-sekilli ad + O ADLA IMZA -> acilis SERBEST.
+    NEGATIF-1 (DURUM ISARETI): arsivde `🛑 DURDU` — `✅` YOK, `KAPANDI` YOK. Ad
+      cikarilabilir olsa DA kapanis DEGILDIR; "ciplak ad kapanis acar" sinifi KAPALI.
+    NEGATIF-2 (ANMA ≠ IMZA): baska cipin kapanisi adi BASLIKTA aniyor ama onunla
+      IMZALAMIYOR -> anilan cip ACILMAZ (K359-B korumasi GEVSETILMEDI).
+    BIRIM: eski negatif fiksturler (`2026-08-28` rakamsiz-bolut, `cip-raporu` tek
+      tire) ve RAKAMSIZ salt-hex kelime (`bir-iki-facade`) HALA elenir.
+    """
+    print("\n[49] K373 HARNESS AD SEKLI — kucuk harfli backtick'siz ad")
+    metin = kutu_uret_k373()
+    a = Alan(kok, metin, arsiv_uret_k373())
+    iddia("49a fikstur tavani GERCEKTEN asiyor",
+          len(metin.splitlines()) > K360_TAVAN, "satir=%d" % len(metin.splitlines()))
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=K360_TAVAN, koru=3)
+    kutu_s, arsiv_s = oku(a.kutu), oku(a.arsiv)
+    adlar = satir_al(cikti, "ACIK_BASLIYORUM_ADLARI=")
+    serbest = satir_al(cikti, "ARSIV_SERBEST_ADLARI=")
+    iddia("49b rc=0", rc == 0, "rc=%d\n%s" % (rc, cikti[-1500:]))
+
+    iddia("49c 🔴 POZITIF: kucuk harfli `%s` ARTIK ADLANDIRILDI (AD_YOK DEGIL)"
+          % K373_POZ_AD, "AD_YOK" not in adlar or K373_POZ_AD in serbest, adlar)
+    iddia("49d 🔴 POZITIF: `%s` ARSIV_SERBEST_ADLARI'nda ADIYLA basildi"
+          % K373_POZ_AD, K373_POZ_AD in serbest, serbest)
+    iddia("49e 🔴 POZITIF: o cipin `BASLIYORUM` blogu GERCEKTEN arsive gitti",
+          K373_POZ_ACIK in arsiv_s and K373_POZ_ACIK not in kutu_s,
+          "blok kutuda kilitli kaldi -> harness ad ekseni okunmadi")
+
+    iddia("49f 🔴 NEGATIF-1 (DURUM ISARETI): `🛑 DURDU` KAPANIS SAYILMADI — `%s` "
+          "HALA ACIK listesinde" % K373_DUR_AD, K373_DUR_AD in adlar, adlar)
+    iddia("49g 🔴 NEGATIF-1: DURDU'nun acilis blogu KUTUDA kaldi",
+          K373_DUR_ACIK in kutu_s and K373_DUR_ACIK not in arsiv_s,
+          "DURDU blogu acilisi serbest birakti = CANLI CIP KAYBI")
+    iddia("49h 🔴 NEGATIF-2 (ANMA ≠ IMZA): basliginda ANILAN `%s` ACILMADI"
+          % K373_ANMA_AD, K373_ANMA_AD in adlar, adlar)
+    iddia("49i 🔴 NEGATIF-2: anilan cipin acilis blogu KUTUDA kaldi",
+          K373_ANMA_ACIK in kutu_s and K373_ANMA_ACIK not in arsiv_s,
+          "anma IMZA sayildi -> K359-B korumasi OLDU")
+    iddia("49j 🔴 TAM SAYI: ARSIV_SERBEST=1 (yalniz POZ), ikinci serbest YOK",
+          "ARSIV_SERBEST=1 " in cikti, cikti[-1800:])
+    iddia("49k 🔴 TAM SAYI: ACIK_BASLIYORUM=2 (DURDU + ANMA)",
+          "ACIK_BASLIYORUM=2 " in cikti, cikti[-1800:])
+    iddia("49l lossless GECTI", "lossless_dogrulama=GECTI" in cikti, cikti[-900:])
+
+    try:
+        mod = _arac_modulu(arac)
+    except Exception as exc:                                  # noqa: BLE001
+        iddia("49m BIRIM: arac modulu yuklendi", False, "%r" % (exc,))
+        return
+    iddia("49m 🔴 BIRIM: kucuk harfli harness adi GEVSEK eksende GORUNUR",
+          mod.gevsek_cip_adi("## x — MaCiT (çip: %s) **BASLIYORUM**" % K373_POZ_AD)
+          == K373_POZ_AD)
+    iddia("49n 🔴 BIRIM: `✅`+`KAPANDI`+harness ad -> UCBIRLIK True",
+          mod.kapanis_baslik_ucbirlik(K373_POZ_KAPANIS) is True)
+    iddia("49o 🔴 BIRIM: `🛑 DURDU` (✅ YOK) -> UCBIRLIK False",
+          mod.kapanis_baslik_ucbirlik(K373_DUR_ARSIV) is False)
+    iddia("49p 🔴 BIRIM REGRESYON: `2026-08-28` HALA ad DEGIL (ilk bolut harf degil)",
+          mod.gevsek_cip_adi("## 2026-08-28 — duz baslik") is None)
+    iddia("49q 🔴 BIRIM REGRESYON: `cip-raporu` HALA ad DEGIL (tek tire)",
+          mod.gevsek_cip_adi("## x — cip-raporu hazir") is None)
+    iddia("49r 🔴 BIRIM: RAKAMSIZ salt-hex kelime ad SAYILMAZ (`bir-iki-facade`)",
+          mod.gevsek_cip_adi("## x — bir-iki-facade notu") is None)
+    iddia("49s 🔴 BIRIM: son bolut 6 HANE DEGILSE ad SAYILMAZ (`macit-bisiklet-d22`)",
+          mod.gevsek_cip_adi("## x — macit-bisiklet-d22 dali") is None)
+
+
 VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v04_frontmatter_ve_ust_bloklar, v05_blok_bolunmez,
            v06_arsiv_yoksa_frontmatter, v07_kilit, v08_bozuk_frontmatter,
@@ -2608,7 +2738,8 @@ VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v39_cevrim_sentetik_ariza, v40_cevrim_bayraksiz_gerileme_yok,
            v41_rol_olcutu_alinti, v42_ucuncu_kapanis_kolu,
            v43_kapanis_adi_imza_onayli, v44_cift_butunlugu, v45_d18_denetimi,
-           v46_ad_ekseni_ayrismasi, v47_arsiv_duzlemi, v48_konum_olcutu)
+           v46_ad_ekseni_ayrismasi, v47_arsiv_duzlemi, v48_konum_olcutu,
+           v49_harness_ad_sekli)
 
 
 def suite(arac, sessiz=False):
@@ -2739,7 +2870,7 @@ MUTANTLAR = (
      # acilislar KILITLI acilislarin USTUNDEDIR; bitisik kuyruga donen bir
      # secim onlara ULASAMAZ ve "blok GERCEKTEN arsive gitti" bacaklari duser.
      True, {"20", "22", "28", "31", "32", "33", "37", "38", "42", "43", "44",
-            "46", "47"}),
+            "46", "47", "49"}),
     # 🔴 K318 KOL-2 (27 Agu): kayipsizligin IKI EKSENDE BASILMASI sarti. Beyan
     # susturulursa 28 OLMELI; hesap dogru kalsa bile "basilmayan sayi olculmemis
     # sayidir" ([[aracin-teshis-cumlesi-olcum-degil]]).
@@ -2769,7 +2900,7 @@ MUTANTLAR = (
      # 🔴 46/47 EKLENDI (K360, 4 Eyl): 46'nin UC negatif bacagi ve 47'nin
      # zaman/tuketim/fail-closed bacaklari "acik blok KUTUDA kaldi, arsive
      # SIZMADI" der — dogrudan ICRA bacagi.
-     True, {"31", "32", "33", "36", "41", "42", "43", "46", "47"}),
+     True, {"31", "32", "33", "36", "41", "42", "43", "46", "47", "49"}),
     ("m) D17 ACIK CIP DENETIMI OLDURULDU (sizan acik blok sessizce yazilir)",
      "    for _bi, ad, ozet, sinif in ek_acik:\n",
      "    for _bi, ad, ozet, sinif in []:  # MUTANT: D17 susturuldu\n",
@@ -2796,7 +2927,8 @@ MUTANTLAR = (
      # 🔴 46/47/48 EKLENDI (K360, 4 Eyl): "her blok KAPANIS" demek uc fiksturun
      # de negatiflerini serbest birakir (46 N5/N6/N7, 47 zaman/tuketim, 48
      # kontrol bacaklari) — gevsemeyi olcen vakalarin ta kendisi.
-     True, {"31", "32", "33", "36", "42", "43", "46", "47", "48"}),
+     True, {"31", "32", "33", "36", "42", "43", "46", "47", "48",
+            "49"}),
     # 🔴 GEVSEK AD kolu (28 Agu, ucuncu canli vaka) — backtick'siz yazilmis cip adini
     # okuyan asimetrik bacak. Olmezse vaka 36'nin ② sarmali `ACIK_ADSIZ`a duser: blok
     # HALA korunur (fail-closed dogru) ama SINIFI degisir — yani kol "kismen" olur ve
@@ -2814,7 +2946,7 @@ MUTANTLAR = (
      "    if gevsek and gevsek not in adlar:\n",
      "    gevsek = None  # MUTANT: gevsek ad kolu kaldirildi\n"
      "    if gevsek and gevsek not in adlar:\n",
-     True, {"36", "43", "46"}),
+     True, {"36", "43", "46", "49"}),
     # 🔴 K341 (28 Agu) — CEVRIM KOLU UC PARCADIR ve her biri AYRI mutantla oldurulur:
     # ICRA (cevrilecek satirlarin tespiti), DENETIM (dogrula_cevrim C1-C8) ve SINIF
     # SUZGECI (yalniz sinif=="KAPANIS" cevrilir). `q` ve `s` AYNI vaka kumesini
@@ -2850,23 +2982,31 @@ MUTANTLAR = (
     # tam da spec'in "GENISLETME TUZAGI" dedigi seyi yapar; hedefin genis olmasi
     # atif kirliligi DEGIL, tuzagin yaricapinin ta kendisidir.
     ("u) 🔴 MP2: UC SART 'HERHANGI BIRI'NE GEVSEDI (ciplak `KAPANDI` kapanis sayilir)",
+     # 🔴 CAPA TAZELENDI (K373, 4 Eyl): ③ kolu `or harness_baslik_adi(...)` ile
+     # genisleyince ESKI capa TUTMADI ve mutant sessizce URETILEMEDI'ye dustu
+     # ([[capa-cokmesi-arkasindaki-capalari-gizler]]). Mutant HALA yalniz UC-SART
+     # mantigini olcer: ③ kolu iki yanda da AYNEN durur, degisen yalnizca ①/②'nin
+     # "hepsi" yerine "herhangi biri"ne gevsemesidir.
      "    if KAPANIS_DURUM_ISARETI not in baslik:\n"
      "        return False\n"
      "    if KAPANIS_SOZU not in sadelestir(tirnak_disi(baslik)):\n"
      "        return False\n"
-     "    return cip_adi(baslik) is not None\n",
+     "    return cip_adi(baslik) is not None or harness_baslik_adi(baslik) is not None\n",
      "    if KAPANIS_DURUM_ISARETI in baslik:\n"
      "        return True\n"
      "    if KAPANIS_SOZU in sadelestir(baslik):\n"
      "        return True\n"
-     "    return cip_adi(baslik) is not None\n",
+     "    return cip_adi(baslik) is not None or harness_baslik_adi(baslik) is not None\n",
      # 🔴 43 EKLENDI (K359-B, 2 Eyl): `o` ile ayni yaricap — uc sart gevseyince 43'un
      # negatifleri de kapanis sayilir. Ortusme BEKLENENDIR; ayirt edici iz ciktida
      # durur (`o` HER blogu kapanis yapar, `u` yalniz uc sarttan BIRINI tasiyanlari).
      # 🔴 47/48 EKLENDI (K360, 4 Eyl): ciplak `KAPANDI` kapanis sayilinca 47'nin
      # arsiv kayitlari ve 48'in dolgu bloklari da "kapanis" olur; iki vakanin
      # sayili bacaklari (ARSIV_SERBEST=, ACIK_BASLIYORUM=) duser.
-     True, {"31", "32", "33", "36", "42", "43", "47", "48"}),
+     # 🔴 49 EKLENDI (K373, 4 Eyl): uc sart "herhangi biri"ne gevseyince 49'un
+     # NEGATIF-1'i (`🛑 DURDU`, `✅` YOK) KAPANIS sayilir ve DURDU blogu acilisi
+     # SERBEST birakir — 49f/49g'nin olctugu sey tam olarak budur. GERCEK bagimlilik.
+     True, {"31", "32", "33", "36", "42", "43", "47", "48", "49"}),
     ("v) 🔴 MP3: TIRNAK ELEMESI KALDIRILDI (alintidaki jeton yine sayilir)",
      "    return _TIRNAK_RE.sub(\" \", metin)\n",
      "    return metin  # MUTANT MP3: TIRNAK elemesi KALDIRILDI\n",
@@ -2881,7 +3021,7 @@ MUTANTLAR = (
      "    gevsek = None  # MUTANT: K359-B gevsek kapanis adi kaldirildi\n",
      # 🔴 46 EKLENDI (K360-A, 4 Eyl): 46'nin P2 bacagi (kapanis GEVSEK adli)
      # DOGRUDAN bu kola dayanir.
-     True, {"43", "46"}),
+     True, {"43", "46", "49"}),
     # 🔴 CAPA NOTU (K360-A, 4 Eyl): onay kosulu `kapanis_kimlikleri()`ne tasindi
     # ve IKI SATIRA yayildi; capa yeni sekle guncellendi. 46 EKLENDI — o vakanin
     # N7 negatifi ("kapanisi BASKASI imzalamis") AYNI onaya dayanir.
@@ -2889,7 +3029,7 @@ MUTANTLAR = (
      "    if (gevsek and gevsek not in adlar\n"
      "            and _imzada_geciyor(satirlar, bas, son, gevsek)):\n",
      "    if gevsek and gevsek not in adlar:  # MUTANT: IMZA onayi kaldirildi\n",
-     True, {"43", "46"}),
+     True, {"43", "46", "49"}),
     # (B) CIFT BUTUNLUGU de iki parcadir — ICRA (pinleme) ve DENETIM (D18) — ve AYRI
     # mutantlarla oldurulur; ayrica OLCUTUN KONUM BACAGI (`o < c`) tek basina olculur,
     # cunku `ACILIS_SABIT` bacagi onu GOLGELEYEBILIR ([[yeni-kol-onceki-kolun-golgesinde-olur]]).
@@ -2943,7 +3083,7 @@ MUTANTLAR = (
     ("ab) 🔴 K360-B: DUZLEM KOLU OLDURULDU (arsiv HIC okunmaz)",
      "    if not arsiv_kayitlari:\n        return {}\n",
      "    if True:\n        return {}  # MUTANT: arsiv duzlemi korlestirildi\n",
-     True, {"47"}),
+     True, {"47", "49"}),
     ("ac) 🔴 K360-B: ZAMAN SIRASI OLDURULDU (ESKI kapanis YENI acilisi acar)",
      "    a_gun, a_dk = acilis_z\n",
      "    return True  # MUTANT: zaman sirasi kaldirildi\n    a_gun, a_dk = acilis_z\n",
@@ -2964,6 +3104,27 @@ MUTANTLAR = (
     ("af) KONTROL: KONUM_TAVANI 200 -> 300 (olculen boslugun ICINDE, YESIL kalmali)",
      "KONUM_TAVANI = 200\n",
      "KONUM_TAVANI = 300\n",
+     False, None),
+    # ------------------------------------------------ K373 HARNESS AD SEKLI (4 Eyl)
+    # Kol IKI YERDE tuketilir: (1) `gevsek_cip_adi()` — acilis+kapanis kimligi,
+    # (2) `kapanis_baslik_ucbirlik()` ③ bacagi — blogun KAPANIS SAYILMASI. Ikisi
+    # AYRI mutantla oldurulur ki biri otekini GIZLEMESIN; ayrica GEVSETME yonu
+    # (rakam sarti) kendi mutantiyla olculur — daraltma ve gevsetme ayri sinifdir.
+    ("ag) 🔴 K373: HARNESS SEKIL KOLU OLDURULDU (kucuk harfli ad yine gorunmez)",
+     "    if not HARNESS_AD_RE.fullmatch(ad):\n        return False\n",
+     "    return False  # MUTANT: harness sekil kolu kaldirildi\n",
+     True, {"49"}),
+    ("ah) 🔴 K373: RAKAM SARTI KALDIRILDI (salt-hex kelime de ad sayilir)",
+     '    return any(k.isdigit() for k in ad.rsplit("-", 1)[1])\n',
+     "    return True  # MUTANT: rakam sarti kaldirildi (GEVSETME yonu)\n",
+     True, {"49"}),
+    ("ai) 🔴 K373: UCBIRLIK ③ BACAGI GERI DARALTILDI (yalniz backtick'li ad)",
+     "    return cip_adi(baslik) is not None or harness_baslik_adi(baslik) is not None\n",
+     "    return cip_adi(baslik) is not None  # MUTANT: harness bacagi kaldirildi\n",
+     True, {"49"}),
+    ("aj) MP0 ESDEGER KONTROL: sekil suzgeclerinin SIRASI degisti (anlam AYNI)",
+     "        if _insan_adi_sekli(ad) or _harness_adi_sekli(ad):\n",
+     "        if _harness_adi_sekli(ad) or _insan_adi_sekli(ad):\n",
      False, None),
 )
 
