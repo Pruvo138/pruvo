@@ -50,6 +50,7 @@ import importlib.util
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from git_ortami import git_ortami, sentetik_git
@@ -124,8 +125,18 @@ def yazici_yolu_mu(a):
     return True
 
 
+# Kilit yolu bir kosum boyunca DEGISMEZ; onbellege alinir. IKI SEBEP:
+#   (1) `wrangler()` artik HER cagrida kilit aliyor — yol her seferinde `git rev-parse`
+#       alt sureci acsaydi sicak yola gereksiz bir surec eklerdik.
+#   (2) Cozum kolu ile npx kolu AYNI `subprocess.run`u kullaniyor; yolu bir kez cozup
+#       onbellege almak, iki kolu birbirine karistirmadan olcmeyi de mumkun kilar.
+_KILIT_YOLU_ONBELLEK = [None]
+
+
 def yazici_kilit_yolu():
     """Tum worktree'lerin paylastigi, mevcut ve kalici Git config inode'unu dondur."""
+    if _KILIT_YOLU_ONBELLEK[0]:
+        return _KILIT_YOLU_ONBELLEK[0]
     try:
         p = subprocess.run(
             ["git", "-C", KOK, "rev-parse", "--git-common-dir"],
@@ -143,27 +154,108 @@ def yazici_kilit_yolu():
     if not os.path.isfile(yol):
         sys.exit("!! D1 YAZICI KILIDI OLCULEMEDI (Git config yok: %s) — "
                  "yazma fail-closed DURDU." % yol)
+    _KILIT_YOLU_ONBELLEK[0] = yol
     return yol
 
 
-def yazici_kilidi_al(yol=None):
-    """Non-blocking flock al; donen fd acik kaldigi surece yazici sahipligi surer."""
+# ── AYNI KILIT, ALT KATMANDA: TEK UCUS (4 Eyl 2026, K361) ──────────────────────────
+# IKINCI BIR KILIT KAVRAMI KURULMADI. Yukaridaki flock (ortak Git config inode'u)
+# neyi koruyorsa onu korumaya devam eder; eklenen tek sey, AYNI kilidin `npx wrangler`
+# ALT SURECI duzeyinde de tutulmasi — cunku olculen sessiz asilma tam orada dogdu:
+#   OLCULEN (4 Eyl): `npx --yes wrangler@4` paylasilan npm cache uzerinde SERI HALE
+#   GELIYOR. Bir wrangler kosarken ikinci cagiran SESSIZCE bekler; `timeout` da
+#   olmadigi icin yigilir. Makinede ayni anda 6-7 `npm exec wrangler@4` %0 CPU'da
+#   uyurken hicbiri cikti vermedi, yayin 38 dk tikali kaldi ve HICBIR YERDE KIRMIZI
+#   YANMADI. Kuyrugu bosaltmak zemini degistirmedi: yetki/D1 GEREKTIRMEYEN
+#   `npx --yes wrangler@4 --version` bile MESRU bir yazici kosarken 120 sn tavanda asildi.
+# MENZIL NEDEN CAGRI DUZEYINDE (kosum duzeyinde DEGIL): kilidi `--durum`un TUM kosumu
+# boyunca tutmak, dakikalarca suren bir OKUYUCUNUN mesru bir YAZICIYI (pre-push) ac
+# birakmasi demekti. Cagri duzeyinde tutulunca cakisma yalnizca gercek npx saniyeleri
+# kadar surer. Ayni surec kilidi zaten tutuyorsa (yazici kolu, `main()`) YENIDEN ALINMAZ
+# — ayni dosyaya ikinci bir flock ayni surecte KENDINI kilitlerdi.
+# IKI DAVRANIS, TEK MEKANIZMA (parametre — ikiz kod DEGIL):
+#   * YAZAN kol (`main()`) -> bekleme_sn=0. ESKI DAVRANIS BAYT AYNI: LOCK_NB, aninda
+#     gurultulu fail-closed. O kol BUGUN DOGRU CALISIYOR (pre-push'ta ADIYLA basti);
+#     bozulmadi.
+#   * ARAC kolu (`wrangler()`) -> once BEKLER, sonra MESGUL deyip SESLI doner.
+#     🔴 SINIF AYRIMI: "kendi isinin suresi" ZAMAN ASIMINA, "baskasini bekleme suresi"
+#     MESGUL koluna gider. Ikisi ayni sayaca yazilsaydi mesru bir onculu bekleyen kosum
+#     zaman asimina dusup KESILIRDI ([[koruma-kurali-korudugunu-durdurur]]).
+# BEKLEME TAVANI OLCUMDEN (TAHMIN DEGIL): olculen en yavas *BASARILI* wrangler kosumu
+# 364,0 sn (paylasilan npm cache; ayrintili dokum asagida, zaman asimi blogunda).
+# Bekleme, MESRU bir onculun BITMESINE yetmeli; yoksa mesru oncul MESGUL diye yanlis
+# reddedilir. 480 sn = 364,0'in ~1,32 kati. Daha kisasi (or. 360) BUGUN OLCULEN 364 sn'lik
+# mesru kosumu yanlis reddederdi — sabit, olcum GELDIKCE yukari cekildi.
+# Daha uzunu ASILI bir onculun arkasinda kuyruk kurar — tam da onlemek istedigimiz sey.
+# 🔴 BEKLEME SESSIZ DEGILDIR: beklemeye girildigi anda stderr'e ADIYLA yazilir. Bugunku
+# arizanin can alici yani "ikinci cagiran birinciyi beklerken hicbir yerde kirmizi
+# yanmamasi"ydi; bekleme gorunur olmadan bu sinif kapanmaz.
+OKUYUCU_BEKLEME_SN = 480.0
+_KILIT_YOKLAMA_SN = 0.5
+# Bu SURECIN kilidi halihazirda tutup tutmadigi. `main()` yazici kolunda True yapar;
+# `wrangler()` True gorurse kilidi YENIDEN ALMAZ (kendi kendini kilitleme onlenir).
+_YEREL_KILIT_SAHIBI = False
+
+
+def yazici_kilidi_al(yol=None, bekleme_sn=0.0, kol="YAZICI"):
+    """flock al; donen fd acik kaldigi surece sahiplik surer.
+
+    bekleme_sn=0 -> ESKI DAVRANIS: tek deneme, LOCK_NB, aninda fail-closed.
+    bekleme_sn>0 -> en cok o kadar BEKLER; sure dolarsa MESGUL deyip SESLI cikar.
+    """
     kilit_yolu = yol or yazici_kilit_yolu()
+    basla = time.monotonic()
+    duyuruldu = False
     try:
         fd = open(kilit_yolu, "r+")
-        fcntl.flock(fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError:
-        fd.close()
-        sys.exit("!! D1 YAZICI UCUSTA — ikinci tam-katalog yazicisi fail-closed DURDU "
-                 "(PID=%d, kilit=%s)." % (os.getpid(), kilit_yolu))
     except OSError as e:
+        sys.exit("!! D1 %s KILIDI OLCULEMEDI (%s: %s) — fail-closed DURDU."
+                 % (kol, type(e).__name__, e))
+    while True:
         try:
+            fcntl.flock(fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            break
+        except BlockingIOError:
+            gecen = time.monotonic() - basla
+            if gecen < bekleme_sn:
+                if not duyuruldu:
+                    # BEKLEME SESSIZ OLAMAZ (4 Eyl dersi): bugun yayin 38 dk boyunca
+                    # "biri otekini bekliyor" halinde tikali kaldi ve hicbir yerde
+                    # kirmizi yanmadi. Bekleme ANINDA ve ADIYLA duyurulur.
+                    duyuruldu = True
+                    print("D1 ARACI MESGUL — onculu `npx wrangler` kosumu UCUSTA; "
+                          "BEKLENIYOR (tavan=%.0f sn, PID=%d, kilit=%s). Yigina "
+                          "EKLENMEDI." % (bekleme_sn, os.getpid(), kilit_yolu),
+                          file=sys.stderr)
+                time.sleep(_KILIT_YOKLAMA_SN)
+                continue
             fd.close()
-        except (NameError, OSError):
-            pass
-        sys.exit("!! D1 YAZICI KILIDI OLCULEMEDI (%s: %s) — yazma fail-closed DURDU."
-                 % (type(e).__name__, e))
-    print("D1 yazici kilidi ALINDI (PID=%d, ortak-kilit=%s)" % (os.getpid(), kilit_yolu))
+            if bekleme_sn > 0:
+                sys.exit(
+                    "!! D1 ARACI MESGUL — bu makinede baska bir `npx wrangler` kosumu "
+                    "UCUSTA; ikinci cagri YIGINA EKLENMEDI (PID=%d, beklendi=%.1f sn, "
+                    "tavan=%.0f sn, kilit=%s).\n"
+                    "   NE YAPILMALI: once koseni bitir ya da asili kosumu bul:\n"
+                    "     ps -Ao pid,etime,command | grep 'npm exec wrangler'\n"
+                    "   (4 Eyl 2026: kilitsiz okuyan kollar 7 asili npx biriktirdi ve "
+                    "yayin durdu — bu kol tam onu onler.)"
+                    % (os.getpid(), gecen, bekleme_sn, kilit_yolu))
+            sys.exit("!! D1 YAZICI UCUSTA — ikinci tam-katalog yazicisi fail-closed DURDU "
+                     "(PID=%d, kilit=%s)." % (os.getpid(), kilit_yolu))
+        except OSError as e:
+            try:
+                fd.close()
+            except (NameError, OSError):
+                pass
+            sys.exit("!! D1 %s KILIDI OLCULEMEDI (%s: %s) — fail-closed DURDU."
+                     % (kol, type(e).__name__, e))
+    # YAZICI kolu eski satirini AYNEN basar (komsu batarya onu ariyor). ARAC kolu her
+    # wrangler cagrisinda kilit aldigi icin SESSIZDIR — ama BEKLEDIYSE (`duyuruldu`)
+    # kimin ne kadar bekledigi de basilir: sessiz bekleme bu turun kapattigi arizadir.
+    if kol == "YAZICI" or duyuruldu:
+        print("D1 yazici kilidi ALINDI (PID=%d, ortak-kilit=%s, kol=%s%s)"
+              % (os.getpid(), kilit_yolu, kol,
+                 (", beklendi=%.1f sn" % (time.monotonic() - basla)) if duyuruldu else ""))
     return fd
 
 
@@ -449,22 +541,159 @@ def wrangler_cikti_coz(stdout, ham="", returncode=0):
              "bekleniyordu):\n" + ham[-2000:])
 
 
+# ── WRANGLER ZAMAN ASIMI — SESSIZ ASILMAYI SESE CEVIRIR (4 Eyl 2026, K361) ─────────
+# 🔴 OLCULEN ARIZA: `subprocess.run(..., capture_output=True)` cagrisinda `timeout` YOKTU.
+# capture_output her seyi tamponladigi icin asilan bir kosum SIFIR CIKTIYLA SONSUZA KADAR
+# bekliyordu. 4 Eyl 2026'da makinede 7 asili `npm exec wrangler@4` olculdu (yaslari 9-26 dk),
+# baska oturumlarin `--durum` cagrilari 38 ve 26 dakikadir cikti vermiyordu ve `origin/main`'e
+# 3 commit itilemedi. Kanca yolunda oldugu icin sinif SESSIZ HATA'dir:
+# [[yavas-kanca-kapiyi-atlattirir-yayini-durdurur]] ailesi — yayin durur, kirmizi YANMAZ.
+#
+# 🔴 TAVAN TAHMINLE DEGIL OLCUMLE SECILDI (ham dokum asagida ve commit mesajinda):
+# 4 Eyl 2026, bu makine, GERCEK D1 ucu, 9 kosum:
+#   * OZEL npm cache (paylasilan kilitten bagimsiz): 4/4 rc=0 → 307,1 · 140,0 · 79,6 · 11,1 sn
+#   * PAYLASILAN npm cache: 5 kosum → 2/5 rc=0 (**364,0** ve 56,6 sn); 3/5 sonda tavaninda
+#     (420 sn) KESILDI ve TEK SATIR bile basmadi.
+#   * Mimar olcumu (ozel cache, 405 MB soguk indirme): 173,7 sn · rc=0
+#   OLCULEN EN YAVAS *BASARILI* KOSUM = 364,0 sn — tavan bunun UZERINDE olmak ZORUNDA.
+#   * TAVAN 900 sn = 364,0'in ~2,47 kati.
+# 🔴 NEDEN BU KADAR GENIS: 420 sn'de kesilen 3 kosumun GERCEKTEN asili mi yoksa birkac
+# saniye sonra bitecek mi oldugu OLCULEMEDI (sondanin kendi tavani kesti). Bilinmezlik,
+# tavani DAR degil GENIS tutmayi gerektirir: dar tavan MESRU kosumu keser, D1 bayat kalir
+# ve Ege urunu goremez ([[d1-bayat-yazici-silme]] · [[koruma-kurali-korudugunu-durdurur]]);
+# genis tavan yalnizca teshisi geciktirir ama SONSUZ asilmayi SONLU ve SESLI kilar — asil
+# kazanc budur. TABAN 450 sn de olcumden: 364,0'in UZERINDE. Ortam degiskeni tavani TABANIN
+# ALTINA INDIREMEZ; yanlis ayarlanmis bir env mesru kosumu kesen bir kapiya donusemesin.
+# 🔴 "BASKASINI BEKLEME" SURESI BU SAYACA GIRMEZ: onculu bekleme TEK UCUS kilidinde ve
+# MESGUL kolunda olculur (yukari bak). Zaman asimi YALNIZ kendi isini yapamayan bir alt
+# sureci keser.
+# ZAMAN ASIMI YENIDEN DENENMEZ: olculen ariza sinifi (paylasilan npm cache uzerinde
+# serilesme) ayni surecte tekrar denemekle gecmez; asilan bir cagriyi yeniden denemek tam
+# da birikmenin mekanizmasidir.
+WRANGLER_TAVAN_TABANI = 450
+WRANGLER_TAVAN_SN = 900
+# `npx` bulunamazsa denenecek ADAY TAM YOLLAR — cron'un PATH'i
+# `/usr/bin:/bin:/usr/sbin:/sbin`tir ve homebrew ikilisi ORADA YOKTUR
+# ([[patha-sorulan-ikili-cron-da-yok]]). Burada davranis DEGISTIRILMEZ (calistirilan
+# komut yine `npx`tir); adaylar YALNIZ hata metninde, "hangi tam yolu kullan" diye
+# ADIYLA gosterilir — sessiz FileNotFoundError yerine cozumu soyleyen bir red.
+NPX_ADAY_YOLLAR = ("/opt/homebrew/bin/npx", "/usr/local/bin/npx",
+                   "/opt/local/bin/npx", "/usr/bin/npx")
+
+
+def wrangler_tavani():
+    """Alt surec zaman asimi (sn). Env ile YUKARI cekilebilir, TABANIN ALTINA INMEZ."""
+    ham = os.environ.get("PRUVO_WRANGLER_TAVAN_SN")
+    if not ham:
+        return WRANGLER_TAVAN_SN
+    try:
+        istek = int(float(ham))
+    except (TypeError, ValueError):
+        print("!! PRUVO_WRANGLER_TAVAN_SN cozulemedi (%r) — varsayilan %d sn kullaniliyor."
+              % (ham, WRANGLER_TAVAN_SN), file=sys.stderr)
+        return WRANGLER_TAVAN_SN
+    if istek < WRANGLER_TAVAN_TABANI:
+        print("!! PRUVO_WRANGLER_TAVAN_SN=%d TABANIN (%d sn) ALTINDA — olculen en yavas "
+              "MESRU kosum (364,0 sn) kesilmesin diye TABAN uygulandi."
+              % (istek, WRANGLER_TAVAN_TABANI), file=sys.stderr)
+        return WRANGLER_TAVAN_TABANI
+    return istek
+
+
+def zaman_asimi_metni(komut, tavan, gecen):
+    """Zaman asimi RED metni — komut, sure ve NE YAPILMALI hepsi ADIYLA."""
+    return (
+        "!! WRANGLER ZAMAN ASIMI — alt surec %.0f sn boyunca CIKTI VERMEDI ve OLDURULDU "
+        "(tavan=%d sn, PID sahibi=%d).\n"
+        "   KOMUT: %s\n"
+        "   SINIF: SESSIZ ASILMA. Eskiden bu cagrida `timeout` YOKTU; asilan kosum sifir "
+        "ciktiyla SONSUZA kadar beklerdi ve yayin hicbir kirmizi yanmadan dururdu.\n"
+        "   NE YAPILMALI (sirayla):\n"
+        "     1) Asili npx sureclerini SAY:\n"
+        "        ps -Ao pid,etime,command | grep 'npm exec wrangler'\n"
+        "     2) Kendi oturumuna ait olanlari oldur; YABANCI surece DOKUNMA.\n"
+        "     3) Kuyruk bosaldiktan sonra TEK kosum dene:\n"
+        "        python3 tools/d1-sync.py --durum\n"
+        "     4) Yine asiliyorsa paylasilan npm cache uzerinde serilesme suphelidir; "
+        "ozel bir npm cache ile dogrula (dizin sonra SILINIR).\n"
+        "   BU KOSUMDA D1'E YAZILMADI — katalog DEGISMEDI, veri kaybi YOK."
+        % (gecen, tavan, os.getpid(), " ".join(komut)))
+
+
+def npx_yok_metni(komut):
+    """`npx` calistirilamadi — SESLI red + kullanilabilir TAM YOLLARI ADIYLA bas.
+
+    Cron duzleminde PATH `/usr/bin:/bin:/usr/sbin:/sbin`tir; etkilesimli kabukta yesil
+    goren bir arac cron'da FileNotFoundError ile SESSIZ duser
+    ([[patha-sorulan-ikili-cron-da-yok]]).
+    """
+    varolan = [y for y in NPX_ADAY_YOLLAR if os.path.exists(y)]
+    return (
+        "!! `npx` CALISTIRILAMADI (FileNotFoundError) — D1 senkronu YAPILMADI.\n"
+        "   KOMUT: %s\n"
+        "   PATH=%s\n"
+        "   BU MAKINEDE VAR OLAN ADAY TAM YOLLAR: %s\n"
+        "   NE YAPILMALI: cron/systemd gibi dar PATH'li bir duzlemde kosuyorsan cagriyi "
+        "TAM YOLLA ver ya da o duzlemin PATH'ine yukaridaki dizini ekle.\n"
+        "   BU KOSUMDA D1'E YAZILMADI — katalog DEGISMEDI."
+        % (" ".join(komut), os.environ.get("PATH", "(bos)"),
+           ", ".join(varolan) if varolan else "YOK (npx bu makinede bulunamadi)"))
+
+
+def _wrangler_alt_surec(komut, ort=None):
+    """Tek `npx wrangler` alt sureci — ZAMAN ASIMLI. Doner: (sonuc, gecen_sn).
+
+    Zaman asiminda alt surec OLDURULUR ve sys.exit ile SESLI cikilir. `subprocess.run`
+    TEK CAGRI NOKTASI olarak korunur (kabul bataryasi onu sahteleyerek olcer).
+    """
+    tavan = wrangler_tavani()
+    t0 = time.monotonic()
+    try:
+        p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True,
+                           timeout=tavan, **({"env": ort} if ort is not None else {}))
+    except subprocess.TimeoutExpired:
+        sys.exit(zaman_asimi_metni(komut, tavan, time.monotonic() - t0))
+    except FileNotFoundError:
+        sys.exit(npx_yok_metni(komut))
+    return p, time.monotonic() - t0
+
+
 def wrangler(args, girdi_dosya=None):
     """wrangler d1 execute calistir, JSON sonucu dondur."""
     komut = ["npx", "--yes", "wrangler@4", "d1", "execute", DB_AD, "--remote", "--json"] + args
+    # TEK UCUS: bu surec kilidi zaten tutmuyorsa (okuyucu kollar) AYNI flock burada
+    # alinir. Ikinci bir es zamanli cagri yigina EKLENMEZ; bekler, olmazsa MESGUL der.
+    kilit = None
+    gecici_cacheler = []
+    if not _YEREL_KILIT_SAHIBI:
+        kilit = yazici_kilidi_al(bekleme_sn=OKUYUCU_BEKLEME_SN, kol="ARAC")
+    try:
+        return _wrangler_govde(komut, gecici_cacheler)
+    finally:
+        yazici_kilidi_birak(kilit)
+        # "Ureten temizler": EPERM kolunun actigi gecici npm cache'i BU kosum siler.
+        for _gecici in gecici_cacheler:
+            shutil.rmtree(_gecici, ignore_errors=True)
+
+
+def _wrangler_govde(komut, gecici_cacheler):
     p = None
     ham = ""
     tani = None
     for deneme in range(3):
-        p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True)
+        p, _sure = _wrangler_alt_surec(komut)
         ham = (p.stdout or "") + (p.stderr or "")
 
         # Sandbox'li oturumlarda (Claude/CI) ~/.npm/_cacache yazilamayabilir (EPERM) ve
         # npx daha baslamadan duser (denetim 2026-07-15). Gecici bir npm cache ile TEK
         # SEFER yeniden dene — pre-push senkronunun sessizce kacmasini onler.
+        # 🔴 DISK: bu gecici cache SILINIR (eskiden birakiliyordu; olculen bir ornegi
+        # 405 MB idi) — [[diskte-iz-birakma-yasagi]], "ureten temizler".
         if p.returncode != 0 and "EPERM" in ham and "_cacache" in ham:
-            ort = dict(os.environ, npm_config_cache=tempfile.mkdtemp(prefix="pruvo-npm-"))
-            p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True, env=ort)
+            gecici = tempfile.mkdtemp(prefix="pruvo-npm-")
+            gecici_cacheler.append(gecici)
+            ort = dict(os.environ, npm_config_cache=gecici)
+            p, _sure = _wrangler_alt_surec(komut, ort=ort)
             ham = (p.stdout or "") + (p.stderr or "")
 
         # TANI YALNIZ SIFIR-DISI CIKISTA UYGULANIR. Kod tespiti artik tirnakli JSON'u da
@@ -4911,11 +5140,14 @@ def main():
          hook + d1-uzlastirici.yml)
       1+ gercek hata (sema / ag / yetki / SQL / IO) — fail-closed
     """
-    global _dagitik_kilit_token
+    global _dagitik_kilit_token, _YEREL_KILIT_SAHIBI
     a = argumanlari_oku()
     if a.adim:
         return _adim_kos()
     yerel = yazici_kilidi_al() if yazici_yolu_mu(a) else None
+    # YAZICI kolu kilidi TUM kosum boyunca tutar (eski davranis). `wrangler()` bunu
+    # gorup kilidi YENIDEN ALMAZ — ayni dosyaya ikinci flock ayni surecte kendini kilitler.
+    _YEREL_KILIT_SAHIBI = yerel is not None
     dagitik = None
     try:
         if yazici_yolu_mu(a):
@@ -4937,6 +5169,7 @@ def main():
         if dagitik:
             dagitik_kilit_birak(dagitik)
         _dagitik_kilit_token = None
+        _YEREL_KILIT_SAHIBI = False
         yazici_kilidi_birak(yerel)
 
 
