@@ -126,11 +126,65 @@ def yazici_yolu_mu(a):
 
 
 # Kilit yolu bir kosum boyunca DEGISMEZ; onbellege alinir. IKI SEBEP:
-#   (1) `wrangler()` artik HER cagrida kilit aliyor — yol her seferinde `git rev-parse`
-#       alt sureci acsaydi sicak yola gereksiz bir surec eklerdik.
-#   (2) Cozum kolu ile npx kolu AYNI `subprocess.run`u kullaniyor; yolu bir kez cozup
-#       onbellege almak, iki kolu birbirine karistirmadan olcmeyi de mumkun kilar.
+#   (1) `wrangler()` artik HER cagrida kilit aliyor — yol her seferinde bir alt surec
+#       acsaydi sicak yola gereksiz bir surec eklerdik.
+#   (2) Yolu bir kez cozup onbellege almak, cozum kolu ile npx kolunu birbirine
+#       karistirmadan olcmeyi de mumkun kilar.
 _KILIT_YOLU_ONBELLEK = [None]
+
+
+# 🔴 NEDEN ALT SUREC YOK — OLCULEN ARIZA (4 Eyl 2026, K361'in ARDIL KUSURU):
+# Bu fonksiyon eskiden `subprocess.run(["git", ..., "--git-common-dir"])` cagiriyordu.
+# K361 ile `wrangler()` HER cagrida kilit almaya baslayinca, kilit yolunun cozumu de
+# `wrangler()`in ICINE dustu. Kabul fiksturleri wrangler sonucunu enjekte etmek icin
+# `subprocess.run`u SAHTELIYOR; sahte, kilit yolu sorgusunu da YUTTU. Sonuc: `git`
+# yerine wrangler yuku dondu, yol sacmaladi (or. `<kok>/[{"results":...}]/config`) ve
+# vaka KENDI IDDIASINA GELMEDEN `sys.exit` ile oldu. `--kendini-test` 137/5 kirmiziya
+# dustu -> CI `serit-a2` failure -> `deploy`+`yayin` SKIP -> site iki tur yayinlanmadi.
+#   SINIF: KILIT YOLU BIR KOSUM SABITIDIR; olculen davranisin (npx) sahtesinin
+#   MENZILINDE OLMAMALIDIR. Menzil ayrimini "once cozup onbellege al" gibi bir
+#   DISIPLIN kuraliyla tutmak, her yeni fikstur yazarinin unutmaya aday oldugu ikiz
+#   bir kuraldir ([[kural-gövdede]] sinifi); bu yuzden ayrim MEKANIZMAYA tasindi:
+#   yol artik DOSYA SISTEMINDEN turer, hicbir alt surec acilmaz.
+# TURETIM GIT'IN KENDI ALGORITMASIDIR (kabul: V85 ikisini KIYASLAR, sentetik ana
+# checkout + GERCEK `git worktree add` duzleminde):
+#   `.git` DIZIN ise      -> ortak dizin odur (normal checkout);
+#   `.git` DOSYA ise      -> "gitdir: <yol>" okunur (linked worktree / submodule);
+#   gitdir/commondir VARSA-> ortak dizin oradaki (goreli ise gitdir'e gore) yoldur.
+# YAN KAZANC: eski cagri `git_ortami()` scrub'indan GECMIYORDU; bir kanca duzleminde
+# miras alinan `GIT_DIR` acik `-C` hedefini sessizce ezebilirdi ([[git_ortami]] 6 Agu
+# olcumu). Dosya sistemi turetimi ortam degiskenlerinden TAMAMEN bagimsizdir.
+# FAIL-CLOSED KORUNDU: turetilemeyen ya da var olmayan config -> yine `sys.exit`.
+def _ortak_git_dizini(kok):
+    """`git rev-parse --git-common-dir` ile AYNI degeri ALT SUREC ACMADAN turet.
+
+    Doner: mutlak ortak `.git` dizini, ya da None (git agaci degil / bozuk isaretci).
+    """
+    nokta = os.path.join(kok, ".git")
+    if os.path.isdir(nokta):
+        gitdir = nokta
+    elif os.path.isfile(nokta):
+        with open(nokta, "r", encoding="utf-8", errors="replace") as f:
+            ham = f.read().strip()
+        if not ham.startswith("gitdir:"):
+            return None
+        hedef = ham.split(":", 1)[1].strip()
+        if not hedef:
+            return None
+        gitdir = os.path.normpath(
+            hedef if os.path.isabs(hedef) else os.path.join(kok, hedef))
+        if not os.path.isdir(gitdir):
+            return None
+    else:
+        return None
+    ortak_dosya = os.path.join(gitdir, "commondir")
+    if os.path.isfile(ortak_dosya):
+        with open(ortak_dosya, "r", encoding="utf-8", errors="replace") as f:
+            ic = f.read().strip()
+        if ic:
+            gitdir = os.path.normpath(
+                ic if os.path.isabs(ic) else os.path.join(gitdir, ic))
+    return gitdir
 
 
 def yazici_kilit_yolu():
@@ -138,18 +192,13 @@ def yazici_kilit_yolu():
     if _KILIT_YOLU_ONBELLEK[0]:
         return _KILIT_YOLU_ONBELLEK[0]
     try:
-        p = subprocess.run(
-            ["git", "-C", KOK, "rev-parse", "--git-common-dir"],
-            capture_output=True, text=True, timeout=10)
-    except (OSError, subprocess.TimeoutExpired) as e:
+        ortak = _ortak_git_dizini(KOK)
+    except OSError as e:
         sys.exit("!! D1 YAZICI KILIDI OLCULEMEDI (%s) — yazma fail-closed DURDU."
                  % type(e).__name__)
-    if p.returncode != 0 or not p.stdout.strip():
+    if not ortak:
         sys.exit("!! D1 YAZICI KILIDI OLCULEMEDI (git common-dir bulunamadi) — "
-                 "yazma fail-closed DURDU.\n   %s" % (p.stderr or "").strip()[-1000:])
-    ortak = p.stdout.strip()
-    if not os.path.isabs(ortak):
-        ortak = os.path.normpath(os.path.join(KOK, ortak))
+                 "yazma fail-closed DURDU.\n   kok=%s" % KOK)
     yol = os.path.join(ortak, "config")
     if not os.path.isfile(yol):
         sys.exit("!! D1 YAZICI KILIDI OLCULEMEDI (Git config yok: %s) — "
@@ -3412,6 +3461,48 @@ def kendini_test():
 
     print("d1-sync KENDINI TEST (offline sqlite fikstur; canli D1'e DOKUNULMAZ)")
 
+    # ── 🔴 KILIT DUZLEMI IZOLASYONU (4 Eyl 2026) ──────────────────────────────────
+    # Bu batarya `wrangler()`i UCTAN UCA cagirir (govdeye kacis YOK), dolayisiyla TEK
+    # UCUS flock'u GERCEKTEN alinir. CANLI depo config'i kilitlenirse batarya makine
+    # genelindeki bir yarisa baglanir: mesru bir pre-push yazicisi ucustayken
+    # `--kendini-test` ya 480 sn bekler ya MESGUL diye duser — ustelik V73'un sahte
+    # `time.sleep`i devredeyken bekleme dongusu GERCEKTEN uyumaz (mesgul dongu).
+    # Bu yuzden kilit BU BATARYAYA AIT gecici bir inode'a CIVILENIR. Kilidin kendisi
+    # DEVRE DISI BIRAKILMAZ — V86 onun hala alindigini VE birakildigini olcer; degisen
+    # tek sey hangi dosyanin kilitlendigidir.
+    # NOT: `shutil` bu fonksiyonun ILERISINDE (bayatlik bolumu) yeniden import ediliyor
+    # ve bu, adi TUM fonksiyon govdesinde YEREL yapiyor; o satirdan ONCEKI her kullanim
+    # `UnboundLocalError` verir. Bu yuzden burada takma ad kullanilir.
+    import atexit as _atexit
+    import contextlib as _ctx
+    import io as _io
+    import shutil as _shutil
+    # 🔴 CANLI YOL TOLERANSLI COZULUR — `yazici_kilit_yolu()` ILE DEGIL. Sebep olculdu:
+    # komsu mutasyon bataryalari (`d1-sync-durum-mutasyon.py`) bu bataryayi `.git`i
+    # OLMAYAN bir AYNA kokte kosturur. Fail-closed cagri orada tum bataryayi bastan
+    # oldururdu (0 iddia) ve mutasyon surucusu "mutant ULASMADI" gorurdu — koruma,
+    # korudugu olcumu durdururdu ([[koruma-kurali-korudugunu-durdurur]]). Bu duzlemde
+    # CANLI kilit diye bir sey YOKTUR; `None` mesru bir haldir.
+    try:
+        _canli_ortak = _ortak_git_dizini(KOK)
+    except OSError:
+        _canli_ortak = None
+    _canli_kilit = os.path.join(_canli_ortak, "config") if _canli_ortak else None
+    if _canli_kilit and not os.path.isfile(_canli_kilit):
+        _canli_kilit = None
+    _kt_kilit_dizin = tempfile.mkdtemp(prefix="pruvo-d1-kt-kilit-")
+    _atexit.register(_shutil.rmtree, _kt_kilit_dizin, ignore_errors=True)
+    _kt_kilit = os.path.join(_kt_kilit_dizin, "config")
+    with open(_kt_kilit, "w", encoding="utf-8") as _kf:
+        _kf.write("# d1-sync --kendini-test kilit fiksturu\n")
+    _KILIT_YOLU_ONBELLEK[0] = _kt_kilit
+    # Kapi CIVILEMENIN TUTTUGUNU olcer (canli yolla kiyas DEGIL — canli yol bu duzlemde
+    # yok olabilir). Tutmadiysa batarya CANLI depo inode'unu kilitleyebilirdi: fail-closed.
+    if yazici_kilit_yolu() != _kt_kilit:
+        sys.exit("!! KENDINI-TEST KILIT IZOLASYONU KURULAMADI (etkin=%s, beklenen=%s) — "
+                 "batarya CANLI depo inode'unu kilitleyebilirdi, fail-closed."
+                 % (yazici_kilit_yolu(), _kt_kilit))
+
     # ── SAF BIRIM: karsilastirma cekirdegi ────────────────────────────────────────
     b = {"x": {"alanlar": {"hash": "H1", "kategori": "Tamirat"}, "sql": []}}
     dogrula("V1 SAF: alanlar birebir -> fark YOK",
@@ -4306,6 +4397,209 @@ def kendini_test():
             _mut_bag[0] == "DONDU", _mut_bag)
     dogrula("V84c MUT geri alindi: bag yine SIFIR-DISI",
             _uctan_uca_wrangler(1, _basari)[0] == "EXIT")
+
+    # ── 🔴 KILIT DUZLEMI (4 Eyl 2026 — bu turun kapattigi ariza + TEK UCUS NOBETI) ──
+    # V85-V89 birlikte su hukmu tasir: kilit yolu KOSUM SABITIDIR ve olculen davranisin
+    # (npx) sahtesinin MENZILINDE DEGILDIR; buna karsilik TEK UCUS kolu ve YAZICI kolu
+    # AYNEN yasamaktadir. Ikinci yon olmadan bu bolum "kilidi susturmanin" kaniti olurdu.
+
+    # V85: turetim GIT'IN KENDI CEVABIYLA kiyaslanir — anlati degil, GERCEK `git init` +
+    # GERCEK `git worktree add`. Iki duzlem de olculur: `.git` DIZIN (normal checkout) ve
+    # `.git` DOSYA + `commondir` (linked worktree). Kiyas olmadan turetim sessizce ayrisir.
+    _v85_kok = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-d1-kt-git-"))
+    _atexit.register(_shutil.rmtree, _v85_kok, ignore_errors=True)
+    _v85_ana = os.path.join(_v85_kok, "ana")
+    _v85_wt = os.path.join(_v85_kok, "wt")
+    os.makedirs(_v85_ana)
+
+    def _v85_git(dizin, *args):
+        return sentetik_git(dizin, *args, capture_output=True, text=True)
+
+    def _v85_git_cevabi(dizin):
+        p = _v85_git(dizin, "rev-parse", "--git-common-dir")
+        if p.returncode != 0:
+            return None
+        o = p.stdout.strip()
+        return os.path.realpath(o if os.path.isabs(o) else os.path.join(dizin, o))
+
+    _v85_kur = _v85_git(_v85_ana, "init", "-q", ".")
+    with open(os.path.join(_v85_ana, "x.txt"), "w", encoding="utf-8") as _f85:
+        _f85.write("x\n")
+    _v85_git(_v85_ana, "add", "x.txt")
+    _v85_git(_v85_ana, "commit", "-q", "-m", "ilk")
+    _v85_wt_rc = _v85_git(_v85_ana, "worktree", "add", "-q", _v85_wt).returncode
+    _v85_fs_ana = _ortak_git_dizini(_v85_ana)
+    _v85_fs_wt = _ortak_git_dizini(_v85_wt)
+    dogrula("V85a TURETIM=GIT (normal checkout, `.git` DIZIN)",
+            _v85_kur.returncode == 0 and _v85_fs_ana is not None
+            and os.path.realpath(_v85_fs_ana) == _v85_git_cevabi(_v85_ana),
+            "fs=%r git=%r" % (_v85_fs_ana, _v85_git_cevabi(_v85_ana)))
+    dogrula("V85b TURETIM=GIT (LINKED WORKTREE, `.git` DOSYA + `commondir`)",
+            _v85_wt_rc == 0 and _v85_fs_wt is not None
+            and os.path.realpath(_v85_fs_wt) == _v85_git_cevabi(_v85_wt)
+            and os.path.realpath(_v85_fs_wt) == os.path.realpath(_v85_fs_ana or ""),
+            "fs=%r git=%r" % (_v85_fs_wt, _v85_git_cevabi(_v85_wt)))
+    dogrula("V85c FAIL-CLOSED: git agaci OLMAYAN dizinde turetim None (sessiz yol UYDURMAZ)",
+            _ortak_git_dizini(_v85_kok) is None, _ortak_git_dizini(_v85_kok))
+    _v85_bozuk = os.path.join(_v85_kok, "bozuk")
+    os.makedirs(_v85_bozuk)
+    with open(os.path.join(_v85_bozuk, ".git"), "w", encoding="utf-8") as _f85b:
+        _f85b.write("gitdir: /yok/olan/dizin\n")
+    dogrula("V85d FAIL-CLOSED: `.git` isaretcisi var ama HEDEF YOK -> None",
+            _ortak_git_dizini(_v85_bozuk) is None, _ortak_git_dizini(_v85_bozuk))
+
+    # V86: TEK UCUS KOLU CANLI. `wrangler()` GOVDESI kosarken kilit FIILEN tutuluyor mu?
+    # Ayni surecte ikinci bir fd'den LOCK_NB denenir: flock acik-dosya-tanimi bazlidir,
+    # bu yuzden cakisma ayni surecte de olculebilir (olculdu). Bu iddia, kilidin sessizce
+    # atlanmasini (ya da bu turun izolasyonunun kilidi ETKISIZ birakmasini) YAKALAR.
+    def _kt_kilitli_mi():
+        _f = open(_kt_kilit, "r+")
+        try:
+            fcntl.flock(_f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fcntl.flock(_f.fileno(), fcntl.LOCK_UN)
+            return False
+        except BlockingIOError:
+            return True
+        finally:
+            _f.close()
+
+    def _kilit_gorgusu():
+        _gor = {"govdede": None}
+        _eski = subprocess.run
+
+        def _gozcu(*a, **k):
+            _gor["govdede"] = _kt_kilitli_mi()
+            return _SahteP2(0, _basari)
+
+        subprocess.run = _gozcu
+        try:
+            wrangler(["--command", "SELECT 1"])
+        finally:
+            subprocess.run = _eski
+        _gor["sonra"] = _kt_kilitli_mi()
+        return _gor
+
+    _gor86 = _kilit_gorgusu()
+    dogrula("V86 TEK UCUS CANLI: ARAC kilidi wrangler GOVDESI kosarken FIILEN TUTULUYOR",
+            _gor86["govdede"] is True, _gor86)
+    dogrula("V86b TEK UCUS: cagri bitince kilit BIRAKILDI (fd sizintisi yok)",
+            _gor86["sonra"] is False, _gor86)
+    # MUT: kilidi ZATEN tutan surec (yazici kolu) kolu ATLAR -> V86 KIRMIZI yanmali.
+    # Ayni zamanda C6 davranisinin (kendini kilitleme YOK) bu duzlemdeki kaniti.
+    _eski_sahiplik = _YEREL_KILIT_SAHIBI
+    globals()["_YEREL_KILIT_SAHIBI"] = True
+    _gor86m = _kilit_gorgusu()
+    globals()["_YEREL_KILIT_SAHIBI"] = _eski_sahiplik
+    dogrula("V86c MUT-KILIT-ATLA: kol atlanirsa govde KILITSIZ kosar (iddia CANLI, "
+            "kendini kilitleme de YOK)",
+            _gor86m["govdede"] is False, _gor86m)
+    dogrula("V86d MUT geri alindi: kilit yine TUTULUYOR",
+            _kilit_gorgusu()["govdede"] is True)
+
+    # V87: YAZICI KOLU BAYT AYNI. (a) kilit tutuluyorken BEKLEMEDEN fail-closed cikar,
+    # (b) basarili alimda komsu bataryanin aradigi satiri BASAR, (c) ARAC kolu — bekleme
+    # olmadan aldiysa — SESSIZDIR. Ucu birden olculmezse "yazici kolu degismedi" bir
+    # BEYAN olur, olcum degil.
+    _tut87 = open(_kt_kilit, "r+")
+    fcntl.flock(_tut87.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    try:
+        try:
+            yazici_kilidi_al(bekleme_sn=0.0, kol="YAZICI")
+            _y87 = ("DONDU", "")
+        except SystemExit as e:
+            _y87 = ("EXIT", str(e.code))
+    finally:
+        fcntl.flock(_tut87.fileno(), fcntl.LOCK_UN)
+        _tut87.close()
+    dogrula("V87 YAZICI KOLU: kilit TUTULUYORKEN beklemeden fail-closed EXIT",
+            _y87[0] == "EXIT" and "D1 YAZICI UCUSTA" in _y87[1], _y87)
+    _buf87 = _io.StringIO()
+    with _ctx.redirect_stdout(_buf87):
+        _fd87 = yazici_kilidi_al(kol="YAZICI")
+    yazici_kilidi_birak(_fd87)
+    dogrula("V87b YAZICI KOLU: basarili alimda `D1 yazici kilidi ALINDI` HALA basilir "
+            "(komsu bataryanin capasi)",
+            "D1 yazici kilidi ALINDI" in _buf87.getvalue(), _buf87.getvalue()[:200])
+    _buf87c = _io.StringIO()
+    with _ctx.redirect_stdout(_buf87c):
+        _fd87c = yazici_kilidi_al(bekleme_sn=OKUYUCU_BEKLEME_SN, kol="ARAC")
+    yazici_kilidi_birak(_fd87c)
+    dogrula("V87c ARAC kolu BEKLEMEDEN aldiysa SESSIZDIR (yazici satirini kirletmez)",
+            _buf87c.getvalue() == "", _buf87c.getvalue()[:200])
+
+    # V88: yol TURETILEMEZSE hala FAIL-CLOSED. Onarim bu kolu SESSIZ DUSUSE cevirmedi.
+    # 🔴 IDDIA NEDEN GEREKCEYI DE OKUR: "herhangi bir EXIT" ile yetinilseydi, turetimi
+    # sessizce KOK'e dusuren bir mutant HAYATTA KALIRDI (olculdu — bu turun M4'u), cunku
+    # o halde de ucuncu kapi ("Git config yok") ayrica cikis verir. Kol DUSEN KAPIYI
+    # adlandirmali; yoksa iki farkli ariza tek yesil/kirmiziya karisir.
+    def _v88_olc(kok88):
+        _eski_kok = KOK
+        _eski_onb = _KILIT_YOLU_ONBELLEK[0]
+        globals()["KOK"] = kok88
+        _KILIT_YOLU_ONBELLEK[0] = None
+        try:
+            try:
+                return ("DONDU", yazici_kilit_yolu())
+            except SystemExit as e:
+                return ("EXIT", str(e.code))
+        finally:
+            globals()["KOK"] = _eski_kok
+            _KILIT_YOLU_ONBELLEK[0] = _eski_onb
+
+    _bos88 = tempfile.mkdtemp(prefix="pruvo-d1-kt-gitsiz-")
+    try:
+        _z88 = _v88_olc(_bos88)
+        # IKINCI DUZLEM: git agaci DEGIL, ama tepesinde `config` ADLI bir dosya VAR.
+        # Turetim sessizce koke duserse bu duzlemde ILGISIZ bir dosya kilitlenirdi ve
+        # hicbir kapi bunu soylemezdi — TEK UCUS baska bir inode'a kayar.
+        with open(os.path.join(_bos88, "config"), "w", encoding="utf-8") as _f88:
+            _f88.write("# git ile ilgisi olmayan bir dosya\n")
+        _z88b = _v88_olc(_bos88)
+    finally:
+        _shutil.rmtree(_bos88, ignore_errors=True)
+    dogrula("V88 FAIL-CLOSED KORUNDU: git agaci OLMAYAN kokte turetim OLCULEMEDI -> EXIT "
+            "(gerekce ADIYLA: common-dir bulunamadi)",
+            _z88[0] == "EXIT" and "git common-dir bulunamadi" in _z88[1], _z88)
+    dogrula("V88b FAIL-CLOSED: kokte ILGISIZ bir `config` dosyasi VARSA bile kilit ONA "
+            "DUSMEZ (sessiz kok dususu YOK)",
+            _z88b[0] == "EXIT" and "git common-dir bulunamadi" in _z88b[1], _z88b)
+
+    # 🔴 V89 — BU TURUN NOBETCISI. Ariza tam olarak suydu: kilit yolu cozumu bir ALT SUREC
+    # aciyordu ve wrangler sahtesi onu YUTUYORDU. Nobetci `subprocess.run`u PATLAYAN bir
+    # sahteyle degistirir; cozum yine de dogru yolu vermeli. Bu kol kirmizi yanarsa
+    # menzil ayrimi geri gelmis demektir (5 vaka yeniden oler, CI yayini durur).
+    _sayac89 = [0]
+    _eski_run89 = subprocess.run
+    # 🔴 GERI KOYMA "SABIT"E DEGIL, OLCUMDEN ONCEKI DEGERE yapilir: `_kt_kilit` yazilsaydi
+    # V89b izolasyonu degil KENDI GERI KOYMASINI olcerdi ve civilemeyi kaldiran mutant
+    # HAYATTA KALIRDI (olculdu — bu turun M7'si).
+    _onb89 = _KILIT_YOLU_ONBELLEK[0]
+
+    def _yasak_run89(*a, **k):
+        _sayac89[0] += 1
+        raise AssertionError("kilit yolu cozumu ALT SUREC ACTI: %r" % (a[:1],))
+
+    _KILIT_YOLU_ONBELLEK[0] = None
+    subprocess.run = _yasak_run89
+    try:
+        _y89, _h89 = yazici_kilit_yolu(), ""
+    except BaseException as e:              # noqa: BLE001 — olculen sey ISTISNANIN KENDISI
+        _y89, _h89 = None, repr(e)
+    finally:
+        subprocess.run = _eski_run89
+        _KILIT_YOLU_ONBELLEK[0] = _onb89             # OLCUM ONCESI hal GERI KONUR
+    # Iki mesru duzlem: (1) CANLI git agaci -> yol turer ve canli config'e ESITTIR;
+    # (2) `.git`i olmayan AYNA kok (komsu mutasyon surucusu) -> turetim FAIL-CLOSED
+    # cikar. Ikisinde de ALT SUREC SAYISI SIFIR olmali — olculen sey odur.
+    _v89_yol_ok = (_y89 == _canli_kilit) if _canli_kilit else (
+        _y89 is None and "OLCULEMEDI" in _h89)
+    dogrula("V89 MENZIL: kilit yolu cozumu ALT SUREC ACMAZ — `subprocess.run` sahtesinin "
+            "MENZILINDE DEGIL (4 Eyl arizasinin nobetcisi)",
+            _sayac89[0] == 0 and _v89_yol_ok,
+            "alt_surec=%d yol=%r canli=%r %s" % (_sayac89[0], _y89, _canli_kilit, _h89))
+    dogrula("V89b IZOLASYON HALA YERINDE: sonraki vakalar CANLI depoyu kilitlemez",
+            yazici_kilit_yolu() == _kt_kilit and _kt_kilit != _canli_kilit,
+            yazici_kilit_yolu())
 
     # ── 🔴 MUTASYON IDDIALARI (parse kolu) ───────────────────────────────────────
     # PROBE SECIMI DAR: her probe YALNIZ oldurulen kuralin yakalayabilecegi vakadir.

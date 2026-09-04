@@ -1933,6 +1933,20 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/d1-sync-tani-mutasyon.py
 
+      # D1-SYNC KILIT YOLU MENZILI mutasyon bataryasi (4 Eyl, K361 ARDIL ONARIMI).
+      # Olculen ariza: K361 kilidi `wrangler()`in basina koyunca kilit yolu cozumu de
+      # cagrinin ICINE dustu; kabul fiksturleri `subprocess.run`u sahteledigi icin sahte
+      # kilit sorgusunu YUTTU, 5 vaka kendi iddiasina gelmeden oldu, `--kendini-test`
+      # 137/5 kirmizi oldu ve `serit-a2` failure -> `deploy`+`yayin` SKIP -> yayin IKI TUR
+      # durdu. Onarim yolu DOSYA SISTEMINDEN turetir; bu batarya onarimin nobetsiz
+      # kalmadigini olcer: 7 oldurucu + 2 kontrol, her oldurucu oldurdugu iddia kolunu
+      # ADIYLA bildirir (K182). Mutant CANLI govdeye DEGIL, gercek depoya SEMBOLIK BAGLA
+      # bakan sentetik bir kokun `tools/` kopyasina uygulanir; kosum sonunda canli
+      # dosyanin sha256'si KIYASLANIR. Offline; D1'e ve aga dokunmaz.
+      - name: "D1-sync kilit yolu menzili mutasyon bataryasi"
+        if: ${{ !cancelled() }}
+        run: python3 tools/d1-kilit-yolu-mutasyon.py
+
       # EDGE KART KAPISININ KARDES-DEPO AYRISTIRMASI (11 Agu 2026 onarimi). Eski regex
       # `KART_ALANLARI` sabitinin YALNIZ ILK tirnak ciftini okuyordu; `+` ile eklenen
       # parcalara dusen kolon SELECT'te VARKEN "eksik" raporlaniyordu (kotumser yalan).
