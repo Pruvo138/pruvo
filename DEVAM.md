@@ -3,24 +3,29 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔁 5 EYL ~01:xZ — **PUSH BLOKERI KAPANDI** (main = origin `686cf1d8` → `ea6736bb`)
-**① Yayin acildi** (`686cf1d8`): `ci-kapsam-test.py` iki dosyayi KAPSAMSIZ sayiyordu → fail-closed,
-TUM deponun push'u kapali. Iki kol: `nobet.yml` SERIT B'ye `baglam-kotasi-test.py` adimi (23 iddia ·
-2 OLDURUCU · 0,4 sn offline) + `IZIN_LISTESI`'ne `baglam-kotasi-kapisi.py` → **R_HOOK**
-(`icra-kapisi.py` ile AYNI sinif: PreToolUse kancasi, stdin JSON ister, cagrilabilir test DEGIL —
-**MUAFIYET KAPSAMI DEGIL**, davranisin TAMAMI CI'da kosar). Olcum: KIRMIZI(2)→**YESIL** ·
-`--kendini-test` YESIL (18 oz-nobetci) · `is-akisi-kapisi.py` YESIL (411 cagri, etkisizlestirilmis 0).
+**① Push blokeri KAPANDI** (`686cf1d8`; tam metin KUTUDA): `nobet.yml` SERIT B'ye
+`baglam-kotasi-test.py` + `IZIN_LISTESI`'ne `baglam-kotasi-kapisi.py` → **R_HOOK** (MUAFIYET KAPSAMI
+DEGIL). KIRMIZI(2)→**YESIL**; o commit'te `Build & deploy` **success** (6/6).
 **② `gramer-artigi-kapisi.py` KIRMIZI → TEMIZ** (`ea6736bb`): defterde **1** yaziyordu, gercek **4**
-(`197858`/`2521593` baslik · `693518`/`6212540` aciklama). `duzelt.py --toplu` (TEK flock/yazim); diff
-**+4/-4**, katalog **34066 SABIT**, diriltme+alan kapilari YESIL, agac oncesinde temizdi.
-**③ 🔴 ArTisT→KraL, Okan "ACIL": mobil PageSpeed 74/100, tek kirmizi LCP 6,1 sn** → icra cip
-**`KraL-LCP`**. Olculen teshis yonu: (a) LCP ogesi STATIK HTML'de (`index.html:1150`), `preload`+
-`fetchpriority=high` ZATEN var (`:23`) → "gorsel gec kesfediliyor" hipotezi **OLU**;
-(b) canli `longtask` **112+115 ms**, ikisi de DCL'de, throttle YOK → PSI 4x CPU ile ~900 ms ≈ raporun
-**1.070 ms oge olusturma gecikmesi** → darbogaz **ANA IS PARCACIGI**; (c) agirlik UCUNCU TARAFTA:
-`fbevents.js` **106 KB** + Meta pixel **66 KB** ≈ "kullanilmayan JS 144 KiB" (sitenin KENDI JS'i 8+2 KB).
-🔴 **Cipin ONCE cozecegi celiski:** dokum **1,33 sn**, manset **6,1** — SAHA (CrUX) mi LAB mi? SAHA ise
-kod DEGISMEZ. **PSI API anonim kotasi 0** (429) → YEREL Lighthouse. *Kapatan:* LH mobil 3'er kosum
-medyani ONCE/SONRA (LCP+skor) + longtask toplami + gerileme YOK. **Piksel KALDIRMA = OKAN/mimar kapisi.**
+(`197858`/`2521593` baslik · `693518`/`6212540` aciklama). `duzelt.py --toplu`; diff **+4/-4**, katalog **34066 SABIT**, diriltme+alan kapilari YESIL.
+**③ 🔴🔴 YAYIN KAPALI — DEVRALINACAK EN USTTEKI IS.** main `2f9898ba` → `Build & deploy` **33926189131
+failure**; `serit-a3` KIRMIZI, **`deploy`+`yayin` SKIPPED**. MaCiT'in ustune ittigi dilim-49
+(`48041f07`, 69 urun) AYNI kirik tabanda — kalem artik FILOYU bekletiyor. Kiran adim: **`Varlik`
+kapisi**, 12 sayfa TEK SINIF `JS EKLENTI (25 satir)`. Kok neden: LCP gec yukleyicisi
+`build.py::GA_HEAD_SNIPPET`'ten degisti → 25 satir **34066 urun sayfasinin HER BIRINE** gomuldu;
+kapi hakli (ortalama sayfa 62190→30588 B, yayin **2,119→1,042 GB**). 🔴 Kapiyi GEVSETME/muafiyet
+YOK. **Emsal depoda VAR:** atif modulu = TEK KAYNAK + IKI BASIM YOLU (`attribution_head_snippet`
+inline · `attribution_varlik_head` → `varlik_adres` ile icerik-adresli `/varlik/` referansi, URUN
+sayfalari icin). Tuzak: harici `<script>`e **`defer` EKLENMEZ** (Consent Mode v2 sirasi sessizce
+terse doner) · `reklam-etiket-kapisi.py` kapsami VARSAYILMAZ, OLCULUR. *Kapatan:* `Build & deploy`
+API `conclusion`=success VE `deploy`+`yayin` SKIPPED DEGIL. Cip `sleepy-liskov-9e44cf` CANLI, 6
+dosyada commit'siz calisiyor; **20 dk'da kapanmazsa `fc76b775`+`2f9898ba` GERI ALINIR.**
+**LCP teshisi (cip, sayiyla — ayrinti KUTUDA):** kok neden **BANT** (gtag 351 KB = sayfanin %34'u);
+🔴 benim **ANA IS PARCACIGI hipotezim CURUTULDU** (lab TBT 36 ms). gtag engelli 5,86→**2,67**
+skor 76→**96**; teslim edilen gec yukleme yerel A/B 6,07→**3,88** skor 75→**86**. 🟠 **1,21 sn artik
+fark ACIKLANMADI** (ArTisT esigi ≤2,5/≤4,0 — 3,88 hedefi TUTMUYOR); kapanis **canli URL'de** 3'er
+kosum medyani, sahiplik ArTisT'te. 🔴 **MIMAR HATASI:** ayni ise IKI cip acildi — kutunun EN USTU
+cip acilmadan ONCE okunmaliydi; `elastic-satoshi-41f415` cekiliyor.
 
 ## 🔁 5 EYL ~00:xZ — BaBa 4 KALEM (main `074d7c9f` YERELDE · origin `e021e922`)
 **KAPANAN:** ① D1 · ② KORUMALI blok tasinmaz · ④ filo dersi 5 evde · **Okan: ArTisT sayfa izni.**
@@ -32,28 +37,23 @@ medyani ONCE/SONRA (LCP+skor) + longtask toplami + gerileme YOK. **Piksel KALDIR
 onunla rc=1 dustu, retry YAPILMADI, 51 urunluk yazma bosa gitti; AYNI komut degisiklik olmadan rc=0
 verdi (geri-okuma **51/51 ✅**). Kabul: tani-test **39/39** · mutasyon **13/13, OLDUREN 10/10,
 HEDEF_KOL_ATFI 10/10, YAMA_TUTMADI 0** · `--kendini-test` 157/0.
-🔴 **Batarya kendi KALICI kaynagini SILMISTI** (E kolu `finally`si ayrim yapmiyordu; cache **0 B**
-olculdu) — E3/E4 ile ayrildi. 🟠 `--durum` **rc=0 ama 71,2 sn** (kabul <60): 42,25 sn'si YEREL
-turetim (`marka_kanon` 20,59 + `model_kanon` 20,41), wrangler DEGIL. Tekillestirme denendi,
-**olculdu ve CURUDU** (pencere isabet etmiyor: `evren`/`ek` her cagride yeni nesne) → GERI ALINDI;
-kanonik uretici yoluna no-op kod BIRAKILMADI. *Kapatan:* iki ureticinin kaynak nesnesi TEKILLESIP
-`--durum` 60 sn alti.
+🔴 **Batarya kendi KALICI kaynagini SILMISTI** (E kolu `finally`si ayrim yapmiyordu; cache **0 B**)
+— E3/E4 ile ayrildi. 🟠 `--durum` **rc=0 ama 71,2 sn** (kabul <60): 42,25 sn'si YEREL turetim
+(`marka_kanon` 20,59 + `model_kanon` 20,41), wrangler DEGIL. Tekillestirme **olculdu ve CURUDU**
+(`evren`/`ek` her cagride yeni nesne) → GERI ALINDI, no-op kod BIRAKILMADI. *Kapatan:* iki
+ureticinin kaynak nesnesi TEKILLESIP `--durum` 60 sn alti.
 
-**② KORUMALI** (`e021e922`): basliginda `KORUMALI` gecen blok rotasyona GIRMEZ (K329 ile ayni konum
-olcutu, `sabit_indeksler`e 4. kaynak). Kabul **50 vaka / 466 iddia**; mutant vetonun yuk tasidigini
-gosteriyor. CANLI: 22:2x BaBa blogu arsivden kutuya GERI TASINDI (arsivde 0 / kutuda 1, satir
-bazinda kayipsiz), gercek rotasyon `KORUMALI_ETIKETLI=1 kilitledi=1` basti, blok YERINDE ATLANDI.
+**② KORUMALI** (`e021e922`): basliginda `KORUMALI` gecen blok rotasyona GIRMEZ (K329 konum olcutu,
+`sabit_indeksler`e 4. kaynak). Kabul **50 vaka / 466 iddia**; CANLI rotasyon `KORUMALI_ETIKETLI=1
+kilitledi=1` basti, blok YERINDE ATLANDI.
 
-**③ BAGLAM KOTASI — kabul 23/23** (2 OLDURUCU + KONTROL + disk). 6 evin `settings.json`'una
-KANONIK YOLLA baglandi (kopya YOK → bayatlik yapisal olarak imkansiz), geri-okuma teyitli.
-🔴 **CANLI KANIT — KAPI KENDI YAZARINI RED ETTI:** bu oturum **591 tur / 501K**; kapi once commit
-betigimi, sonra CI kablosunu kesti. 🔴 **ILK KOSUMDA BULUNAN TASARIM KUSURU:** kapanis sinifi,
-BEKLEYEN bir commit'in push'u icin gereken kabloyu (`.github/workflows` tek satir) KAPSAMIYOR →
-koruma korudugunu durduruyor. *Kapatan:* kapanis sinifi bu hali kapsar + 1 vaka.
-🟠 **NET-0 YAPILAMADI:** bayat kapi OLCULMEDI (`icra-kapisi.py` calisiyor); kor silme YOK.
+**③ BAGLAM KOTASI — kabul 23/23**, 6 evin `settings.json`'una KANONIK YOLLA bagli. 🔴 **TASARIM
+KUSURU, 2. VAKA OLCULDU:** kapanis sinifi (a) BEKLEYEN commit'in push kablosunu, (b) **YAYIN
+KIRIKKEN koordinasyonu** (`SendMessage`/`ListAgents`) KAPSAMIYOR → koruma korudugunu durduruyor.
+Ikinci vaka bu oturumda: kapi 253K/183 turda kesti, yayin KIRIKKEN cipe mesaj atilamadi.
+*Kapatan:* kapanis sinifi iki hali de kapsar + 2 vaka. 🟠 NET-0 YAPILAMADI: kor silme YOK.
 
-**BEKLIYOR:** ✅ push blokeri + ✅ gramer kalemi ustteki 01:xZ blogunda KAPANDI. · 🟠 MaCiT CLAUDE.md
-**13.060 B** (tavan 12.288; filo satirimdan ONCE de 12.621'di) — net-0 kirpma MaCiT'te, KOR KESMEDIM.
+**BEKLIYOR:** 🟠 MaCiT CLAUDE.md **13.060 B** (tavan 12.288) — net-0 kirpma MaCiT'te, KOR KESMEDIM.
 
 ## 🔁 4 EYL ~23:xZ — YAYIN ACILDI → **ISARETCI: tam metin `DEVAM-ARSIV.md` + commit `366dd3cf`**
 
