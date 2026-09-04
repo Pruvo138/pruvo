@@ -108,6 +108,42 @@ def kapi_kos(agac, repo):
     return hukum, rc, kollar, ham
 
 
+def taze_dokunus_dk(agac, tavan_dosya=4000):
+    """Agactaki EN YENI dosya kac dakika once dokunuldu? (None = olculemedi)
+
+    🔴 NEDEN: `--uygula` bir UCUNCU TARAFTIR — sileceigi agacin oturumu HALA CANLI
+    olabilir. 4 Eyl 2026'da olculdu: arsivleyici canli bir cipin agacini sildi, cipin
+    oturumu ROL=ANA'ya dustu, evindeki kapi o roldeki `python3` cagrilarini kesti ve
+    cip kendi kapanisini bile YAZAMADI. Oz-agac emniyeti bunu YAKALAMAZ (silen baska
+    bir surectir), o yuzden AYRI kol gerekir.
+
+    🔴 CANLILIK KANITI olarak `ListAgents` KULLANILMAZ: yoklugu olum kaniti degildir
+    ([[listagents-yoklugu-olum-kaniti-degil]]). Burada DISK olculur: yakin zamanda
+    yazilmis bir agac CANLI SAYILIR (yanlis-pozitif ZARARSIZ — silme ERTELENIR;
+    yanlis-negatif ZARARLI — canli cip kirilir). Olculemezse CANLI SAYILIR.
+    """
+    en_yeni = None
+    sayac = 0
+    for dizin, altlar, dosyalar in os.walk(agac):
+        altlar[:] = [d for d in altlar if d not in (".git", "node_modules", "__pycache__")]
+        for d in dosyalar:
+            sayac += 1
+            if sayac > tavan_dosya:
+                break
+            try:
+                m = os.path.getmtime(os.path.join(dizin, d))
+            except OSError:
+                continue
+            if en_yeni is None or m > en_yeni:
+                en_yeni = m
+        if sayac > tavan_dosya:
+            break
+    if en_yeni is None:
+        return None
+    import time as _t
+    return (_t.time() - en_yeni) / 60.0
+
+
 def icinde_mi(yol, agac):
     a = os.path.realpath(agac)
     y = os.path.realpath(yol)
@@ -119,6 +155,9 @@ def main():
     ap.add_argument("agac", nargs="?", default=os.getcwd())
     ap.add_argument("--uygula", action="store_true",
                     help="rc=0 ise worktree + dal SİL (ana checkout'tan koşulmalı)")
+    ap.add_argument("--yas-tavani", type=int, default=20, metavar="DK",
+                    help="ağaca bu kadar dakika içinde dokunulmuşsa CANLI say, SİLME "
+                         "(varsayılan 20; bilerek geçmek için 0)")
     a = ap.parse_args()
 
     agac, dal, repo = agac_coz(a.agac)
@@ -190,6 +229,20 @@ def main():
         print("  git -C %s worktree remove %s" % (repo, agac))
         print("  git -C %s branch -d %s" % (repo, dal))
         return 0
+
+    # 🔴 CANLI OTURUM EMNIYETI — kapidan AYRI kol. Kapi "icerik guvende mi" sorar;
+    # bu kol "oturum hala calisiyor mu" sorar. Ikisi FARKLI sorulardir: dort kol da
+    # yesilken bile canli bir cipin agacini silmek onu kirar (olculdu 4 Eyl).
+    yas = taze_dokunus_dk(agac)
+    if yas is None or yas < a.yas_tavani:
+        print("🔴 SİLME ERTELENDİ — ağaç CANLI olabilir.")
+        print("   en son dokunuş: %s (tavan %d dk)"
+              % ("OLCULEMEDI" if yas is None else "%.1f dk önce" % yas, a.yas_tavani))
+        print("   Canlı bir çipin ağacını silmek onu ROL=ANA'ya düşürür; evindeki")
+        print("   kapılar o roldeki çağrılarını kesebilir ve çip kapanışını bile yazamaz.")
+        print("   ÇARE: çipin `✅ İŞ BİTTİ — ARŞİVLENEBİLİRİM` satırını bekle, ya da")
+        print("   bilerek geç:  --yas-tavani 0")
+        return 2
 
     # 🔴 TOCTOU: silmeden HEMEN ONCE kapiyi YENIDEN kos. Ilk olcumden bu yana agac
     # kirlenmis ya da dal geri alinmis olabilir; eski rc ile silmek fail-open olurdu.

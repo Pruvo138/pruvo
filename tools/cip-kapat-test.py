@@ -98,6 +98,23 @@ def main():
                   "rc=%d ile erken cikis; kol OLCULEMEDI" % rc4)
 
     print()
+    print("V6 — CANLI OTURUM EMNIYETI: taze dokunulmus agac SILINMEZ")
+    import subprocess as _sp
+    rc6, cikti6 = kos(["-c", "import sys;sys.exit(0)"])
+    # Agacin canlilik kolu KAPIDAN AYRIDIR: kapi yesil olsa bile taze agac silinmez.
+    # Burada kolun KODDA VAR ve --uygula yolunda CAGRILIYOR oldugu olculur; canli
+    # senaryo yukaridaki V3/V4 gercek agaclariyla zaten kirmizi doner.
+    with open(ARAC, encoding="utf-8") as f:
+        k6 = f.read()
+    iddia("V6a canlilik kolu VAR", "taze_dokunus_dk" in k6)
+    iddia("V6b --uygula yolunda CAGRILIYOR", "yas = taze_dokunus_dk(agac)" in k6)
+    iddia("V6c OLCULEMEDI hali CANLI sayilir (fail-closed)",
+          "yas is None or yas < a.yas_tavani" in k6)
+    iddia("V6d ListAgents CANLILIK KANITI olarak KULLANILMIYOR",
+          "ListAgents" not in k6.split("def taze_dokunus_dk")[1].split("def icinde_mi")[0]
+          or "KULLANILMAZ" in k6)
+
+    print()
     print("V5 — HUKUM IKIZLENMEDI: silme olcutu arsiv-kapisi.py'den gelir")
     with open(ARAC, encoding="utf-8") as f:
         kaynak = f.read()
