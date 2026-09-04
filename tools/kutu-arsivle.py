@@ -740,6 +740,53 @@ _AD_YASAK = (" ", "\t", "/", ".", ",", "*", "(", ")", ":", "`")
 # (buyuk harf yok) ve `cip-raporu` (rakam yok) bu suzgecten GECMEZ.
 GEVSEK_AD_RE = re.compile(r"(?<![`\w-])([A-Za-z][\w]*-[\w]+-[\w-]+)(?![\w-])")
 
+# ------------------------------------------ K373 HARNESS AD SEKLI (4 Eyl 2026)
+# 🔴 OLCULEN VAKA (canli kutu, 4 Eyl, KraL-Tamirci-4Eyl): rotasyon `tasinabilir=3`de
+# TUKENDI ve kutu 381 satirda tavanin (250) USTUNDE kaldi; kilitleyen 8 ACIK blogun
+# 6'si `AD_YOK` idi. DORDUNDE AD BASLIKTA YAZILIYDI — ama backtick'siz VE tumu KUCUK
+# HARF: `## … MaCiT (çip: agitated-clarke-e96f4f) **BASLIYORUM…**`.
+#   * `cip_adi()`  BACKTICK ister -> None
+#   * `gevsek_cip_adi()` en az bir BUYUK HARF ister -> None
+# Harness'in urettigi oturum/agac adlari (`funny-jepsen-5ceeba`, `hungry-banach-7c4ce1`)
+# **HEPSI kucuk harftir**; yani iki eksenin ARASINDA kalan bu sinif YAPISAL OLARAK
+# gorunmezdi. Blok kapanisi ARSIVDE DURURKEN "ESLESEN KAPANIS kutuda YOK" diye
+# SONSUZA KADAR kilitlenir; her yeni kucuk-harfli cip kutuyu kalici olarak buyutur.
+# OLCULDU: `agitated-clarke-e96f4f` (arsiv :57136) ve `serene-mcclintock-dc34aa`
+# (:57334) — ikisi de `✅ … KAPANDI` GERCEK kapanis, 5 gundur bosuna kilitli.
+# 🔴 SEKIL KENDINI ELE VERIR, o yuzden BACKTICK'E DENK sayilir: `<soz>-<soz>-<6 hex>`
+# ve son bolutte EN AZ BIR RAKAM. Rakam sarti Turkce prozayi eler ("facade"/"beaded"
+# gibi salt-hex kelimeler duser). OLCULEN YANLIS-POZITIF: arsiv+kutu 2928 baslik
+# satiri tarandi, 65 vurus, HEPSI gercek harness adi, proza vurusu **0**.
+# 🔴 K359-B KORUMASI KALDIRILMADI: bu ad da GEVSEK adtir — kapanis tarafinda hala
+# IMZA ONAYI (`— <ad>` satir-basi imzasi) ister. Iki gercek vakada `IMZADA=True`
+# olculdu. Boylece "adi ANAN her kapanis baska bir cipi acar" sinifi KAPALI kalir.
+# Eski negatif fiksturler DEGISMEDI: `2026-08-28` (ilk bolut `[a-z]+` degil) ve
+# `cip-raporu` (tek tire) bu suzgecten de GECMEZ.
+HARNESS_AD_RE = re.compile(r"[a-z]+-[a-z]+-[0-9a-f]{6}")
+
+
+def _insan_adi_sekli(ad):
+    """GEVSEK INSAN ADI sekli: >=2 tire + >=1 BUYUK harf + >=1 RAKAM (eski olcut)."""
+    if ad.count("-") < 2 or len(ad) < 8:
+        return False
+    return any(k.isupper() for k in ad) and any(k.isdigit() for k in ad)
+
+
+def _harness_adi_sekli(ad):
+    """HARNESS (oturum/agac) ad sekli: `<soz>-<soz>-<6 hex>`, son bolutte >=1 RAKAM."""
+    if not HARNESS_AD_RE.fullmatch(ad):
+        return False
+    return any(k.isdigit() for k in ad.rsplit("-", 1)[1])
+
+
+def harness_baslik_adi(baslik):
+    """Baslik satirindaki ILK HARNESS-SEKILLI (backtick'siz) cip adi, yoksa None."""
+    for aday in GEVSEK_AD_RE.findall(baslik):
+        ad = aday.strip()
+        if _harness_adi_sekli(ad):
+            return ad
+    return None
+
 
 def sadelestir(metin):
     """Turkce harfleri ASCII'ye katlar + BUYUK HARFE cevirir (jeton karsilastirmasi icin)."""
@@ -766,15 +813,17 @@ def cip_adi(baslik):
 def gevsek_cip_adi(baslik):
     """Backtick'siz yazilmis CIP ADI adayi, yoksa None. Bkz. GEVSEK_AD_RE asimetrisi.
 
-    🔴 Bu ad KAPANAN kumesine ASLA girmez; yalnizca ACIK blogu adlandirir.
+    IKI SEKIL kabul edilir (K373): INSAN adi (`KraL-Tamirci-4Eyl`) ve HARNESS adi
+    (`agitated-clarke-e96f4f`). Baslikta ONCE gecen kazanir; ikinci bir siralama
+    olcutu YAZILMAZ.
+
+    🔴 Bu ad KAPANAN kumesine DOGRUDAN girmez: kapanis tarafinda ancak IMZA ONAYIYLA
+    kabul edilir (K359-B) — bkz. `kapanis_kimlikleri()`.
     """
     for aday in GEVSEK_AD_RE.findall(baslik):
         ad = aday.strip()
-        if ad.count("-") < 2 or len(ad) < 8:
-            continue
-        if not any(k.isupper() for k in ad) or not any(k.isdigit() for k in ad):
-            continue
-        return ad
+        if _insan_adi_sekli(ad) or _harness_adi_sekli(ad):
+            return ad
     return None
 
 
@@ -869,12 +918,18 @@ KAPANIS_SOZU = "KAPANDI"
 
 
 def kapanis_baslik_ucbirlik(baslik):
-    """UC SART BIRDEN saglaniyorsa baslik bir CIP KAPANISIDIR (K359). Yoksa HAYIR."""
+    """UC SART BIRDEN saglaniyorsa baslik bir CIP KAPANISIDIR (K359). Yoksa HAYIR.
+
+    🔴 K373: ③ CIP ADI kolu artik DAR (backtick'li) **ya da** HARNESS-SEKILLI adi
+    kabul eder. Gerekce: harness adi backtick kadar kendini ele veren bir SEKILDIR
+    (2928 baslikta 0 proza vurusu olculdu). Kol GENISLEMEDI — ① `✅` ve ② `KAPANDI`
+    sartlari AYNEN durur, yani "ciplak KAPANDI kapanis sayilmaz" tuzagi KAPALI kalir.
+    """
     if KAPANIS_DURUM_ISARETI not in baslik:
         return False
     if KAPANIS_SOZU not in sadelestir(tirnak_disi(baslik)):
         return False
-    return cip_adi(baslik) is not None
+    return cip_adi(baslik) is not None or harness_baslik_adi(baslik) is not None
 
 
 def blok_kapanis_mi(satirlar, bas, son):
