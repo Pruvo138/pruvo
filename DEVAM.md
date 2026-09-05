@@ -2,13 +2,15 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔁 5 EYL ~11:2xZ — **LCP/SITE HIZI ISI TAMAMEN ArTisT'E DEVREDILDI (Okan emri: "tamamen izinleriyle artiste devret")**
+**IZIN ACILDI (kalici, `AGENTS.md` L10 — 7.592→8.068 B; `CLAUDE.md` ona sembolik bag, git DISI):** ArTisT `pruvo`da `index.html`+`build.py`'ye **YAZAR**, dalini acar+**merge eder**; degisikligi KraL'da **"yabanci" SAYILMAZ**. 🔴 SINIR KraL'da: `urunler.json`·`arama.py`·odeme-fiyat·secret·sema.
+**CIP KAPATILDI, KAYIP 0:** `KraL-LCP-05Eyl` (`task_eef23629`) devir aninda **commit 0 · agac TEMIZ · BASLIYORUM YOK**. Taban+3 tuzak (once TRACE / tek kosumdan hukum YOK / Consent v2 sirasi) **KUTUDA 11:2x blogunda**; kabul DEGISMEDI, kapanisi ArTisT yazar. **Okan'a cikan:** PSI anahtari.
+
 ## 🔁 5 EYL ~10:5xZ — **DEVIR ALINDI: temizlik cipi ACILDI · yabanci 3 dosya KORUNDU · yayin HEAD'de ACIK**
-**① TEMIZLIK CIPI KAPANDI** (`task_dba9d84b`): worktree **9→7**, 1 agac + 1 oksuz dizin kaldirildi, 1 oturum arsivlendi, disk 2,9→2,7 G. 🔴 **Cipin dersi:** spec'in ③ olcutu (`list_sessions` `isRunning:false`) TEK BASINA YANILTTI — `lsof -a -d cwd` bes agacta CANLI `claude` sureci buldu; harfine uysaydi 5 canli oturum olurdu. **Olcut uc eksenli olmali:** `list_sessions` VE `lsof` VE `ListAgents`.
-**② YABANCI 3 DOSYA — IDDIA CURUDU, KAYIP YOK:** ana checkout `git status` TEMIZ; is tamircinin kendi agacinda **`f2db0c8f`** (SERIT B kok sebebi: makineye ozel mutlak yol CI'da OKUNMUYOR → uc batarya "kirmizi" degil **HIC OLCMEMIS**, ustelik taban kirmiziyken **13 sahte kill** basiliyormus). Merge hukmu tamircinin kapanisinda.
-**④ YAYIN ACIK:** `Build & deploy` `33939187705` success; alarm seritleri 4/4 success. Duran tek kirmizi SERIT B (`33945934510`) — adi geregi yayini BLOKLAMAZ, kok sebebi ③'te canli onarimda.
-**⑤ KUTU:** rotasyon kardes oturumda kostu 799→315 satir; `HUKUM=KORUMA_TUTTU rc=0` (7 ACIK_BASLIYORUM tavani mesru tutuyor) → defter kapisi **commit BLOKLAMADI**.
-**⑥ KUTUDAKI BEKLEYEN ISLER — 3 CIP ACILDI (Okan emri; gerekce+olcum KUTUDA, 11:0x blogu):**
-`KraL-Yordam-05Eyl` **`task_0e79aba7`** (skills dizini BOS, CLAUDE.md 12.281/12.288 = **7 B** → tikanmis kapi) · `KraL-AdSupurmesi-05Eyl` **`task_676e034a`** (tools 60 · hafiza 65 · `isci-muafiyet`=0; 🔴 ad bazi yerde **YASAK KAYDI** — korlemesine silme yasagi kaldirir, negatif vaka+mutant ZORUNLU) · `KraL-LCP-05Eyl` **`task_eef23629`** (ArTisT sahipli; once TRACE, gorsel DEGIL).
+**① TEMIZLIK CIPI KAPANDI** (`task_dba9d84b`): worktree **9→7**, disk 2,9→2,7 G. 🔴 **Ders:** `isRunning:false` TEK BASINA YANILTIR — `lsof -a -d cwd` bes agacta CANLI surec buldu; olcut **uc eksenli** (`list_sessions` VE `lsof` VE `ListAgents`).
+**② YABANCI 3 DOSYA — IDDIA CURUDU:** is tamircinin agacinda **`f2db0c8f`** (SERIT B kok sebebi: makineye ozel mutlak yol CI'da OKUNMUYOR → uc batarya "kirmizi" degil **HIC OLCMEMIS** + **13 sahte kill**). Merge hukmu tamircinin kapanisinda.
+**④ YAYIN ACIK:** `Build & deploy` `33939187705` success, alarm seritleri 4/4. Duran tek kirmizi SERIT B (`33945934510`) — yayini BLOKLAMAZ, kok sebebi ②'de canli onarimda.
+**⑥ 3 CIP (gerekce+olcum KUTUDA 11:0x):** ✅ `KraL-Yordam-05Eyl` **KAPANDI** — skill kuruldu, CLAUDE.md 12.281→**7.592 B**, kabul 8/8 · 🔄 `KraL-AdSupurmesi-05Eyl` KOSUYOR (`586421f9` muafiyet anahtari arindi) · 📤 `KraL-LCP-05Eyl` **ArTisT'e DEVREDILDI** (ust blok).
 
 ## 🔁 5 EYL ~02:xZ — K366 CI'ya BAGLANDI + indeks ayraci koruma onarimi (main `299e9f9b`) — **ISARETCI**
 ↩︎ **TAM METIN `DEVAM-ARSIV.md`'de** (2026-09-05 1-gir-1-cik indirmesi, 1.720 B; arsiv 2.067.207→2.069.046 B, geri okunarak dogrulandi).
