@@ -3,15 +3,12 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔁 5 EYL ~10:5xZ — **DEVIR ALINDI: temizlik cipi ACILDI · yabanci 3 dosya KORUNDU · yayin HEAD'de ACIK**
-**① CIP ACILDI** `KraL-Temizlik-05Eyl` (`spawn_task`, `task_dba9d84b`) — onceki oturumun kapanisindaki hazir spec birebir verildi. Uc olcut zorunlu: `merge-base --is-ancestor` rc · `status --porcelain` BOS · `list_sessions` KAPALI. Dal silme YASAK; `nervous-cartwright-9e57c1` (canli tamirci) DOKUNULMAZ.
-**② TAZE OLCUM (10:48):** worktree = ana checkout + **8 agac**; altisinin oturumu CANLI → aday muhtemelen yalniz `blissful-franklin-52e014` + `upbeat-diffie-ee0a52`. Cipe **HIPOTEZ** diye verildi (`list_sessions` ile yeniden olculecek).
-**③ 🔴 YABANCI DEGISIKLIK 1 DEGIL 3, SAHIBI CANLI:** `tools/arsiv-kapisi.py` · `tools/cip-kapanis-kancasi.py` · `tools/cip-kapanis-kancasi-test.py` (mtime 10:41/10:46/10:45, olcum 10:48). DOKUNULMADI, COMMIT EDILMEDI. Icerik: SERIT B kirmizisinin kok sebebi — makineye ozel sabit yol CI'da YOK, uc batarya **fikstur kurulumunda** olmus (yani "kirmizi" degil **HIC OLCMEMIS**) + taban kirmiziyken mutasyon turu 9+4 **sahte kill** basiyormus.
-**③b DOGRULAMA TURU — IDDIA CURUDU, KAYIP YOK:** commit oncesi yeniden olculdu; ana checkout
-`git status` TEMIZ, `PRUVO_KANONIK_TOOLS` ana agacta **0**. Is tamirci cipinin kendi agacina
-tasinip commit'lenmis: `nervous-cartwright-9e57c1` dalinda **`f2db0c8f`** (o agac da TEMIZ).
-Merge hukmu tamircinin kapanisinda.
+**① TEMIZLIK CIPI KAPANDI** (`task_dba9d84b`): worktree **9→7**, 1 agac + 1 oksuz dizin kaldirildi, 1 oturum arsivlendi, disk 2,9→2,7 G. 🔴 **Cipin dersi:** spec'in ③ olcutu (`list_sessions` `isRunning:false`) TEK BASINA YANILTTI — `lsof -a -d cwd` bes agacta CANLI `claude` sureci buldu; harfine uysaydi 5 canli oturum olurdu. **Olcut uc eksenli olmali:** `list_sessions` VE `lsof` VE `ListAgents`.
+**② YABANCI 3 DOSYA — IDDIA CURUDU, KAYIP YOK:** ana checkout `git status` TEMIZ; is tamircinin kendi agacinda **`f2db0c8f`** (SERIT B kok sebebi: makineye ozel mutlak yol CI'da OKUNMUYOR → uc batarya "kirmizi" degil **HIC OLCMEMIS**, ustelik taban kirmiziyken **13 sahte kill** basiliyormus). Merge hukmu tamircinin kapanisinda.
 **④ YAYIN ACIK:** `Build & deploy` `33939187705` success; alarm seritleri 4/4 success. Duran tek kirmizi SERIT B (`33945934510`) — adi geregi yayini BLOKLAMAZ, kok sebebi ③'te canli onarimda.
 **⑤ KUTU:** rotasyon kardes oturumda kostu 799→315 satir; `HUKUM=KORUMA_TUTTU rc=0` (7 ACIK_BASLIYORUM tavani mesru tutuyor) → defter kapisi **commit BLOKLAMADI**.
+**⑥ KUTUDAKI BEKLEYEN ISLER — 3 CIP ACILDI (Okan emri; gerekce+olcum KUTUDA, 11:0x blogu):**
+`KraL-Yordam-05Eyl` **`task_0e79aba7`** (skills dizini BOS, CLAUDE.md 12.281/12.288 = **7 B** → tikanmis kapi) · `KraL-AdSupurmesi-05Eyl` **`task_676e034a`** (tools 60 · hafiza 65 · `isci-muafiyet`=0; 🔴 ad bazi yerde **YASAK KAYDI** — korlemesine silme yasagi kaldirir, negatif vaka+mutant ZORUNLU) · `KraL-LCP-05Eyl` **`task_eef23629`** (ArTisT sahipli; once TRACE, gorsel DEGIL).
 
 ## 🔁 5 EYL ~02:xZ — K366 CI'ya BAGLANDI + indeks ayraci koruma onarimi (main `299e9f9b`) — **ISARETCI**
 ↩︎ **TAM METIN `DEVAM-ARSIV.md`'de** (2026-09-05 1-gir-1-cik indirmesi, 1.720 B; arsiv 2.067.207→2.069.046 B, geri okunarak dogrulandi).
