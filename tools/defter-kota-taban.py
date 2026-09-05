@@ -71,6 +71,11 @@ SU_SEVIYESI_BAYT = su_seviyesi(TAVAN_BAYT)
 # Kutu tavaninin/yolunun MEVCUT sahibi. Ad burada yazilir, SAYI YAZILMAZ.
 KUTU_SAHIBI_ADI = "kutu-arsivle.py"
 
+# 🔴 HAFIZA INDEKSI (MEMORY.md) EKSENI — K366, 5 Eyl 2026. Kutu ekseninin (K253)
+# BIREBIR EMSALI: tavan da yol da SAHIPTEN turetilir, buraya SAYI YAZILMAZ.
+# Sahip: `tools/hafiza-indeks-arsivle.py` (VARSAYILAN_TAVAN_BAYT / _SATIR).
+HAFIZA_SAHIBI_ADI = "hafiza-indeks-arsivle.py"
+
 
 def tavan_asi_mi(satir, bayt):
     """İki ekseni de yerine getirip aşan ekseni adıyla raporlar.
@@ -138,6 +143,73 @@ def kutu_dosya_yolu(mod):
 
 def kutu_arsiv_yolu(mod):
     """Sahip modulunden arsiv dosyasinin MUTLAK yolu (care satirinda gecer)."""
+    yol = getattr(mod, "ARSIV_VARSAYILAN", None)
+    if not yol:
+        return None
+    return os.path.abspath(os.path.expanduser(yol))
+
+
+# ---------------------------------------------------------------------------
+# HAFIZA INDEKSI TAVANI — SAHIPTEN TURETME (K366)
+# ---------------------------------------------------------------------------
+def hafiza_sahip_yolu(kok):
+    """Yargilanan DEPO KOKUNE gore hafiza tavan sahibinin yolu.
+
+    🔴 EKSEN `kok`TUR, kapinin KENDI konumu DEGIL (kutu ekseniyle ayni gerekce):
+    sahip dosyasi kapinin yanindan cozulseydi, sentetik fikstur depolarini
+    yargilarken GERCEK makinenin hafiza indeksi olculur ve komsu kabul testleri
+    ambiyans yuzunden kirmiziya yanardi
+    ([[kapi-ambiyansi-olcerse-komsu-kirmiziya-yakar]]).
+    """
+    return os.path.join(kok, "tools", HAFIZA_SAHIBI_ADI)
+
+
+def hafiza_sahibi(kok):
+    """(modul, sahip_yolu, hata) — <kok>/tools/hafiza-indeks-arsivle.py'yi yukler.
+
+    modul None + hata None -> sahip BU DEPODA YOK (checkout indeksi sahiplenmiyor).
+    modul None + hata dolu  -> sahip VAR ama yuklenemedi (OLCULEMEDI sinifi).
+    """
+    yol = hafiza_sahip_yolu(kok)
+    if not os.path.isfile(yol):
+        return None, yol, None
+    import importlib.util as _ilu
+    try:
+        spec = _ilu.spec_from_file_location("pruvo_hafiza_indeks_sahip", yol)
+        mod = _ilu.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+    # 🔴 `Exception` YETMEZ — OLCULDU (5 Eyl 2026, kabul bataryasi K366/KOVA-7):
+    # ice aktarma sirasinda `SystemExit` atan bir sahip dosyasi (or. modul
+    # duzeyinde `sys.exit()`) `Exception` suzgecinden GECER, cagiran kapiyi
+    # BASEEXCEPTION olarak terk eder ve SURECI O KODLA BITIRIR. `sys.exit(0)`
+    # halinde kapi SESSIZCE YESIL doner: fail-open. Bozuk sahip OLCULEMEDI'dir.
+    except KeyboardInterrupt:
+        raise
+    except BaseException as e:                               # noqa: BLE001
+        return None, yol, "sahip modul yuklenemedi: %r" % (e,)
+    return mod, yol, None
+
+
+def hafiza_tavan_bayt(mod):
+    """Sahipten hafiza indeksi BAYT tavani. Sayi burada YAZILMAZ, OKUNUR."""
+    return getattr(mod, "VARSAYILAN_TAVAN_BAYT", None)
+
+
+def hafiza_tavan_satir(mod):
+    """Sahipten hafiza indeksi SATIR tavani. Sayi burada YAZILMAZ, OKUNUR."""
+    return getattr(mod, "VARSAYILAN_TAVAN_SATIR", None)
+
+
+def hafiza_dosya_yolu(mod):
+    """Sahipten hafiza indeksinin (MEMORY.md) MUTLAK yolu."""
+    yol = getattr(mod, "HAFIZA_VARSAYILAN", None)
+    if not yol:
+        return None
+    return os.path.abspath(os.path.expanduser(yol))
+
+
+def hafiza_arsiv_yolu(mod):
+    """Sahipten hafiza arsivinin MUTLAK yolu (care satirinda gecer)."""
     yol = getattr(mod, "ARSIV_VARSAYILAN", None)
     if not yol:
         return None
