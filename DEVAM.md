@@ -9,12 +9,12 @@
 ## 🔁 5 EYL ~20:xxZ — **OKAN ①+② BITTI** (`5b86ac20`, cip `cool-saha-010aa9`) — **ISARETCI**
 ↩︎ **TAM METIN `DEVAM-ARSIV.md`** (md5 birebir, eksik 0). **①** Bisiklet **16 alt kategori** (hepsi ≥15 urun, kapsama %100), 2.618 urune yazildi, **D1 teyitli**. **②** `KAT_PANEL_MIN_CIP=3` → panel **12→7**; Bisiklet (17 cip) esigi **DOGAL** gecti, kodda ozel-durum YOK.
 🔴 **ACIK — MARKA** → cip `task_4f4e99cb`: engel beyaz liste DEGIL **veri**; `marka` 2.618'in **27**'sinde dolu. Sayilar KUTUDA.
-🟠 **③ BANNER DALDA `507189a9`, MAIN'E ALINMADI** (gerekce o commit'te). Kapi `ana-sayfa-duzen-test.js` **8/1**; kalan `D2` TESTIN kusuru, kok giderildi ama kota kapandi → **KOSULAMADI**. SIRADAKI: testi kostur → `D0b` → `nobet.yml` → merge.
-🔴 **YAYIN ①+② ACIK:** `33969438735` **cancelled** (K144); kod main'de+D1 teyitli, `deploy`/`yayin` **OLCULEMEDI** — sonraki kosumda olc.
+✅ **YAYIN ①+② KAPANDI (mimar olctu):** cip **YANLIS KOSUMA** bakmis — `33969438735` defter push'uydu ve K144'le cancelled; KODUN kendi kosumu **`33969124781`** `deploy` **success** · `yayin` **success** · **SKIPPED 0**. CANLI teyit (curl): `KAT_PANEL_MIN_CIP` VAR · Bisiklet **16** alt kategori VAR.
+🟠 **③ BANNER DALDA `507189a9`** → cip `task_97eb1283`. Onceki cip "8/1, D2 KALDI" yazmisti (kota kapanmisti, YESIL BEYANI YOKTU); **mimar testi kosturdu: 10/10 `SONUC: YESIL`** (D2 dahil). Kalan is test DEGIL, kapiyi **CI'ya baglayip** merge. Canli taban: `katPanels` :1545 < `bannerRow` :1550 → TERS DONMELI.
 
-## 🔁 5 EYL ~18:3xZ — **KUTU KILIDI CIPI ACILDI (`task_e76cf129`, KOSUYOR) · KOK SEBEP CIVILENDI · defter 2 blok ISARETCIYE INDI (elle, md5 birebir)**
-**KOK SEBEP (tam metin cip spec'inde + kutuda):** arsiv `:64377` kapanisi jetonu TASIYOR (`:64396`) ama `blok_kapanis_mi()` **`(False,None)`** donuyor → ad `arsiv_kapanan_ad`(251)'a HIC girmiyor → `ARSIV_SERBEST=0`. Jeton YALNIZ SON ICERIK satirinda araniyor, o satir **imza**. `AD_YOK` kolu ayrica ULASILAMAZ (5 blok); MaCiT'in kapanis blogunun KENDISI `ACIK_ADSIZ` dustu = kapanis yazmak 6.'yi EKLEDI. Taban: kutu **401→477** st (tavan 250), test **50 vaka/466 iddia**.
-🔴 **AYNI SINIF, 2. YUZEY — `defter-rotasyon.py`:** 13 blogun **13'u vetolu**, `--isaretciye-indir` **`ILERLEME URETEMEDI`** basti (**7. vaka**). Elle indirildi (md5 birebir, eksik 0), **14.648 → 12.0xx B**. *Kapatan:* veto kolu "acik kalem" ile "acik kalemi ISARETCIDE tasiyan blok"u ayirsin.
+## 🔁 5 EYL ~18:3xZ — kutu kilidi KOK SEBEBI (ust blokta KAPANDI) — **ISARETCI**
+**DERS (kalici):** kapanis jetonu YALNIZ SON ICERIK satirinda araniyordu, o satir **imza**ydi → blok kapanis SAYILMIYOR, ad kumeye girmiyor, kilit ULASILAMAZ. Hafizada [[kapanis-kimligi-worktree-adi-ilk-backtickte]] 3. eksen.
+🔴 **AYNI SINIF, 2. YUZEY ACIK — `defter-rotasyon.py`:** 13 blogun **13'u vetolu**, `--isaretciye-indir` **`ILERLEME URETEMEDI`** (**7. vaka**); defter ELLE indirildi (md5 birebir, eksik 0). *Kapatan:* veto kolu "acik kalem" ile "acik kalemi ISARETCIDE tasiyan blok"u ayirsin.
 
 ## 🔁 5 EYL ~18:0xZ — KATEGORI PANELI HIZALANDI (`ebdfb059`) — **ISARETCI**
 ↩︎ **TAM METIN `DEVAM-ARSIV.md` + kutu 18:0x.** Asili bosluk **5⇒0**, aralik **{34}**, mobil tasma 0; `33965692423` deploy+yayin success **SKIPPED=0**.
