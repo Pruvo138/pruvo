@@ -65,6 +65,25 @@ function mainCocuklari(metin) {
   return out;
 }
 
+/* D0b FIKSTURU — TARAMA EKSENI: derinlik mi, girinti mi?
+   Burada olculen sey SAYFA DEGIL, `mainCocuklari`nin KENDISIDIR. Fikstur, girintinin ve
+   derinligin BILEREK CELISTIGI bir <main> kurar: `ic1` nested'dir ama ust duzeyle AYNI
+   iki bosluk girintiye sahiptir.
+     derinlik sayan tarama -> ["ust1","ust2"]      (DOGRU)
+     girintiye guvenen tarama -> ["ust1","ic1","ust2"]  (YANLIS)
+   OLDUREN DEGISIKLIK (kol bunun icin var): `mainCocuklari` girinti eksenine GERI DONERSE
+   bu kol KIRMIZI yanar.
+   🔴 NEDEN D2 YETMEZ (kol neden totoloji degil): D2 bugun ayni hatayi yakalar, ama YALNIZCA
+   `#jenBanner` BUGUN iki bosluk girintili oldugu icin — yani tesadufen. Biri jenBanner'i
+   dort bosluga cekerse girinti-tabanli bir tarama D2'yi de YESIL yakar ve eksen SESSIZCE
+   korlesir. D0b o belirsizligi tesadufe birakmaz, SENTETIK olarak kurar. */
+const D0B_FIKSTUR = '<main>\n'
+  + '  <div id="ust1">\n'
+  + '  <div id="ic1"></div>\n'
+  + '  </div>\n'
+  + '  <div id="ust2"></div>\n'
+  + '</main>';
+
 console.log('=== ANA SAYFA <main> DUZEN SIRASI (kok: ' + KOK + ')');
 
 const cocuk = mainCocuklari(html);
@@ -72,6 +91,16 @@ console.log('\n[D] SIRA');
 bildir('D0-r <main> ust duzey cocuklari', cocuk.join(' -> ') || '(BOS)');
 kontrol('D0 tarama CANLI: <main> ust duzey cocugu bulundu (bos liste = girinti ekseni '
         + 'kirilmis, D1 tautolojik yesil yanardi)', cocuk.length >= 2, cocuk);
+
+const d0b = mainCocuklari(D0B_FIKSTUR);
+const icBanner = cocuk.filter(function (k) { return k === 'jenBanner' || k === 'skanBanner'; });
+bildir('D0b-r celisen fiksturde tarama', (d0b.join(' -> ') || '(BOS)')
+       + ' | gercek listede ic banner = ' + (icBanner.join(',') || 'YOK'));
+kontrol('D0b tarama DERINLIK ekseninde: (a) fiksturde nested `ic1` ust duzeyle AYNI '
+        + 'girintide olmasina ragmen listeye GIRMEDI, (b) gercek sayfada #bannerRow icindeki '
+        + 'jenBanner/skanBanner <main>in cocugu SAYILMADI — girinti eksenine donulurse KIRMIZI',
+        d0b.length === 2 && d0b[0] === 'ust1' && d0b[1] === 'ust2' && icBanner.length === 0,
+        { fikstur: d0b, icBanner: icBanner });
 
 kontrol('D1 #bannerRow <main>in ILK cocugu (index 0)', cocuk[0] === 'bannerRow', cocuk[0]);
 kontrol('D2 #katPanels hemen ARDINDAN geliyor (index 1)', cocuk[1] === 'katPanels', cocuk[1]);
