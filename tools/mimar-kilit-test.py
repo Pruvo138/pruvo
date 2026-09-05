@@ -633,6 +633,17 @@ AGENT_VAKALARI = [
     (710, "deny", "Agent", "Okan izni var ama beyan yok.", None,
      "Okan izni eski beyan kuralini kaldirmaz",
      {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
+    # === 5 EYL 2026 (KraL-AdSupurmesi-05Eyl): ESKI ANAHTAR RED'E DUSTU ===
+    # Muafiyet anahtari emekli motorun adindan arindirildi. 712/713 ESKI anahtarin
+    # ARTIK MUAFIYET VERMEDIGINI olcer — bu iki vaka olmadan bir geri alma (ya da
+    # eski anahtari "geriye donuk uyumluluk" diye geri ekleyen bir yama) SESSIZ
+    # gecerdi. Olculdu: supurme ONCESI bu iki vaka ALLOW aliyordu (taban 6/9).
+    (720, "deny", "Agent", "codex-muafiyet: kapi kodu insasi — sessiz-hata", None,
+     "5Eyl: ESKI muafiyet anahtari + Okan izni -> RED (anahtar gecersizlesti)",
+     {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
+    (721, "deny", "Agent", "CODEX-MUAFIYET: olcum isi — ölçüm", None,
+     "5Eyl: ESKI anahtar BUYUK harfle de RED (buyuk/kucuk kacisi YOK)",
+     {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
     (711, "deny", "Agent", "isci-muafiyet: is — foobar", None,
      "Okan izninde gecersiz sinif yine RED",
      {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
