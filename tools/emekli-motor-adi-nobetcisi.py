@@ -47,7 +47,11 @@ IZINLI = {
     "tools/mimar_kimlik.py": (2, "EMEKLI_ISCI_MOTORLARI kimlik kaydi + emekli model kimligi"),
     "tools/k316/tk-yama.py": (1, "ayni kimlik kaydinin yama kopyasi"),
     # --- yasagin FIKSTUR yuzeyi: 'reddediliyor' olcmek icin adi YAZMAK gerekir ---
-    "tools/mimar-kilit-test.py": (64, "yasagin negatif/yanlis-pozitif vaka komutlari"),
+    # 64 -> 66 (5 Eyl, BILINCLI): vaka 720/721 ESKI muafiyet anahtarinin RED'e
+    # dustugunu olcer; o vakalar ESKI ADI yazmak ZORUNDA. Nobetci bu iki satiri
+    # kendisi KIRMIZI yakti ve tavan ancak GEREKCEYLE yukseltildi — mekanizma
+    # calisti. Sinif (b): fikstur, ATIF degil.
+    "tools/mimar-kilit-test.py": (66, "yasagin negatif/yanlis-pozitif vaka komutlari"),
     "tools/mimar-kapi-mutasyon-test.py": (20, "mutant yamalari CANLI GOVDEYE birebir esitlenir"),
     "tools/k260/nobet-kat-kovasi-test.py": (3, "goc kaydi fiksturu (emekli kat adi)"),
     "tools/n4b/b4-kur.py": (4, "bayat kayit fiksturu: dosyadaki GERCEK dizgeye eslesir"),
