@@ -1499,6 +1499,7 @@ setTimeout(L,5000);})();
     "Marin": ["Boya - Bakım","Bujiler","Dümen ve Kumanda","Elektrik","Filtreler","Motor Parçaları","Motor Yağları","Pervaneler","Sintine ve Ekipmanları","Soğutma","Tutyalar ve Anotlar","Yakıt Sistemi","Bağlama Ekipmanları","Güverte ve Donanım","Kano ve Kayak","Montaj Ekipmanları","Olta Ekipmanları"],
     "Otomobil": ["Aydınlatma","Ayna ve Silecek","Bagaj ve Taşıma","Bardaklık","Dış Aksam","Kapı ve Cam","Klima ve Havalandırma","Koltuk ve Kemer","Konsol ve Torpido","Montaj Parçaları ve Klipsler","Motor Bölümü","Ses ve Multimedya","Sürüş Kumandaları","Tavan ve Güneşlik","Tekerlek ve Jant","Telefon ve Şarj","Yakıt ve Egzoz","İç Aksam"],
     "Motosiklet": ["Aydınlatma","Depo ve Yakıt","Elektrik","Fren ve Süspansiyon","Gidon ve Kumandalar","Grenaj ve Kaporta","Gösterge ve Kokpit","Montaj Parçaları ve Klipsler","Motor Bölümü","Sele ve Sehpa","Ses ve Multimedya","Tekerlek ve Aktarma","Telefon ve Şarj","Çanta ve Bagaj"],
+    "Bisiklet": ["Aydınlatma","Bakım ve Alet","Elektrikli Bisiklet","Fren ve Vites","Gidon ve Kokpit","Kamera ve Aksiyon","Kilit ve Güvenlik","Matara ve Kafes","Montaj Parçaları ve Klipsler","Park ve Duvar Askısı","Sele ve Sele Borusu","Tekerlek ve Lastik","Telefon ve Navigasyon","Zincir ve Aktarma","Çamurluk ve Bagaj","Çocuk ve Römork"],
     "Dekorasyon": ["Bitki ve Saksı","Dekoratif Objeler","Duvar ve Raf","Heykel ve Figür","Mum ve Aydınlatma","Servis ve Sunum","Vazo ve Çiçeklik"],
     "Ev": ["Banyo","Duvar ve Askı","Mutfak","Saklama ve Düzen"],
     "Elektronik": ["Cihaz Parçaları","Ev ve Mutfak Cihazları","Ses ve Müzik"]
@@ -1546,6 +1547,27 @@ setTimeout(L,5000);})();
      kesişim koşulu); panelde ikinci bir evren formülü açsaydık ana sayfadaki çip ile
      kategori içindeki çip sessizce AYRIŞIRDI ([[ikiz-tanim-sessiz-ayrisma]]). */
   var KAT_PANEL_MARKA_TAVANI = 10;
+
+  /* 🔴 PANEL ASGARİ ÇİP EŞİĞİ (işletme kararı, 5 Eyl): 3'ün altında daraltma kolu olan
+     kategori ana sayfada panel AÇMAZ. Panel, RENDER EDİLEN marka + grup çipi TOPLAMI bu sayının altındaysa
+     ana sayfaya HİÇ çizilmez. Ölçü "kategoride kaç ürün var" DEĞİL, "panelde kaç daraltma
+     kolu görünüyor" — 1-2 çipli bir panel müşteriye daraltma vaat edip vermiyor, başlık +
+     tek "Tümü" çipiyle boş yer kaplıyordu.
+
+     🔴 SAYIMA "Tümü" GİRMEZ: o çip her satırda koşulsuz basılır (katPanelSatir), sayıma
+     katılsaydı iki boş satırlı bir panel bile 2 çip sayılır ve eşik hiçbir zaman ısırmazdı.
+
+     🔴 KATEGORİ SİLİNMİYOR — bu YALNIZ ana sayfa panelidir. Eşiğin altında kalan kategori
+     CATEGORIES'te, nav'da, /kategori/<ad>/ sayfasında, aramada ve sitemap'te AYNEN durur;
+     tek bir ürün bile elenmez. Panel bir vitrindir, filtrenin tamamı değil (yukarıdaki not).
+
+     Eşik 5 Eyl'de ölçülen tabloyla seçildi (marka çipi / grup / TOPLAM):
+       Marin 10/17/27 · Otomobil 10/18/28 · Motosiklet 10/14/24 · Bisiklet 1/16/17 ·
+       Dekorasyon 0/7/7 · Ev 2/4/6 · Elektronik 3/3/6  ← ÇİZİLİR (>=3)
+       Tamirat 0/0/0 · Ofis 0/0/0 · Kamera 0/0/0 · Bahçe 1/0/1 · Oyun/Hobi 1/0/1 ← ÇİZİLMEZ
+     Bisiklet eşiği ÖZEL DURUM SATIRIYLA DEĞİL, 16 alt kategorisiyle DOĞAL geçer (aynı gün
+     açılan Bisiklet kümesi); koda hiçbir kategori adı gömülmedi. Ölçer: kat-panel-test.js */
+  var KAT_PANEL_MIN_CIP = 3;
 
   function katPanelUrl(kat, anahtar, deger){
     var p = new URLSearchParams();
@@ -1601,7 +1623,6 @@ setTimeout(L,5000);})();
 
       var ix = indeksMarkalar(kat, "Tümü", "Tümü");
       var markalar = ix ? ix.slice(0, KAT_PANEL_MARKA_TAVANI).map(function(m){ return m.ad; }) : [];
-      katPanelSatir(bolum, "Marka:", katUrl, markalar, "marka", kat);
 
       /* Grup evreni kanonik SIRAYI korur (ALTKATEGORILER), indeks varsa DOLU olanlara
          indirger. Sayıya göre yeniden sıralanmaz: grup adları müşterinin gözünde sabit
@@ -1610,6 +1631,13 @@ setTimeout(L,5000);})();
       var gruplar = altListesi(kat).filter(function(g){
         return dolu ? (dolu[g] > 0) : true;
       });
+
+      /* EŞİK KARARI SATIR ÇİZİLMEDEN ÖNCE VERİLİR (KAT_PANEL_MIN_CIP notu): panel eşiği
+         geçmiyorsa `bolum` DOM'a hiç girmez — başlığı da satırları da yoktur. Sayım iki
+         satırın DEĞER çiplerinden; "Tümü" sayılmaz. */
+      if(markalar.length + gruplar.length < KAT_PANEL_MIN_CIP){ return; }
+
+      katPanelSatir(bolum, "Marka:", katUrl, markalar, "marka", kat);
       katPanelSatir(bolum, "Grup:", katUrl, gruplar, "altkategori", kat);
 
       kap.appendChild(bolum);

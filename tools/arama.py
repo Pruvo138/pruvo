@@ -510,12 +510,21 @@ def stokta_kanonik(u):
 # Reddedilen adlarin tamami gerekcesiyle tools/altkategori-sinifla.py ADAYLAR tablosunda
 # `SEKIL_RED`/`ELENEN` sinifiyla KAYITLIDIR (bir sonraki tur yeniden tartismasin).
 #
-# ESIKLER (K4): kategori >=100 urun tasimazsa alt kategori ALMAZ — bugun hak eden 6
-# kategori asagidadir; `Ofis` 71 · `Bisiklet` 31 · `Bahçe` 25 · `Tamirat` 25 ·
-# `Jeneratör` 23 · `Kamera` 21 · `Skan Art` 17 · `Oyun/Hobi` 15 alt kategori ALMAZ ve bu
-# bir EKSIKLIK DEGIL KARARDIR. Grup >=15 urun tasimazsa kumeye GIRMEZ (olculdu ve elendi:
-# Elektronik `Mutfak Cihazları` 14 -> `Ev ve Mutfak Cihazları` icinde eritildi;
-# Dekorasyon `Bardak Altlıkları` 10, `Kitap Destekleri` 5; Ev `Huniler` 11).
+# ESIKLER (K4): kategori >=100 urun tasimazsa alt kategori ALMAZ. Grup >=15 urun
+# tasimazsa kumeye GIRMEZ (olculdu ve elendi: Elektronik `Mutfak Cihazları` 14 ->
+# `Ev ve Mutfak Cihazları` icinde eritildi; Dekorasyon `Bardak Altlıkları` 10,
+# `Kitap Destekleri` 5; Ev `Huniler` 11).
+#
+# 🔴 ESIK SAYILARI KATALOGLA BIRLIKTE KAYAR — YENIDEN OLC, KOPYALAMA (5 Eyl dersi):
+# bu blok 2 Agu'da `Bisiklet` icin **31** yaziyordu ve bir sonraki tur bunu "karar boyle"
+# diye okudu. Sayi BAYATTI: Thingiverse dilimleriyle Bisiklet 2 Agu'daki 31'den **2.618**
+# kayda cikti (>=100 esigi COKTAN gecilmis). Yani K4 DELINMEDI, kendi sarti gerceklesti.
+# 5 Eyl'de yeniden olculen kategori dagilimi (kaynak: urunler.json, 34.292 kayit):
+#   ALAN: Otomobil 22.548 · Motosiklet 4.855 · Marin 2.855 · Bisiklet 2.618 ·
+#         Elektronik 487 · Dekorasyon 376 · Ev 214
+#   ALMAYAN (<100, KARARDIR): Oyun/Hobi 85 · Bahçe 72 · Ofis 71 · Jeneratör 40 ·
+#         Tamirat 31 · Kamera 24 · Skan Art 16
+# Bu satirlari guncellemeden esige dayanip hukum verme; sayi olcumden gelir, yorumdan degil.
 #
 # 🔴 MARIN'IN MEVCUT 12 DEGERI BAYT OLARAK KORUNDU (K3): 935 kayit onlari kullaniyor,
 # ad degistirmek/silmek veriyi bozar ve kapiyi kirar. Uzerine 5 yeni deger EKLENDI.
@@ -583,6 +592,33 @@ ALTKATEGORI_IZINLI = {
         "Tekerlek ve Aktarma",
         "Telefon ve Şarj",
         "Çanta ve Bagaj",
+    ),
+    # ── BISIKLET (5 Eyl eki, Okan emri: "urun gruplarina gore 10+ alt kategori") ──
+    # 2.618 urun; K4'un >=100 sarti gerceklesmis durumda (yukaridaki bayatlik notu).
+    # 16 grup, HEPSI >=15 urun tasiyor, kapsama %100 (3. gecis artik kovasiyla).
+    # Adlar K1'e uyar: YER (`Gidon ve Kokpit`, `Sele ve Sele Borusu`) / SISTEM
+    # (`Fren ve Vites`, `Zincir ve Aktarma`) / KULLANIM ALANI (`Telefon ve Navigasyon`,
+    # `Kamera ve Aksiyon`, `Bakım ve Alet`). Baslik ekseninin EN BUYUK jetonu `tutucusu`
+    # (933 urun) ve `klipsi` (94) BILEREK grup adi YAPILMADI — tam olarak K1'in
+    # reddettigi sekil ekseni odur; o icerik ARTIK kovasina (`Montaj Parçaları ve
+    # Klipsler`, Otomobil/Motosiklet ile AYNI ad) gider ve oncelikte EN SONDADIR.
+    "Bisiklet": (
+        "Aydınlatma",
+        "Bakım ve Alet",
+        "Elektrikli Bisiklet",
+        "Fren ve Vites",
+        "Gidon ve Kokpit",
+        "Kamera ve Aksiyon",
+        "Kilit ve Güvenlik",
+        "Matara ve Kafes",
+        "Montaj Parçaları ve Klipsler",
+        "Park ve Duvar Askısı",
+        "Sele ve Sele Borusu",
+        "Tekerlek ve Lastik",
+        "Telefon ve Navigasyon",
+        "Zincir ve Aktarma",
+        "Çamurluk ve Bagaj",
+        "Çocuk ve Römork",
     ),
     "Dekorasyon": (
         "Bitki ve Saksı",

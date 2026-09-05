@@ -105,9 +105,55 @@ MIRAS_12 = (
     "Motor Parçaları", "Motor Yağları", "Pervaneler", "Sintine ve Ekipmanları",
     "Soğutma", "Tutyalar ve Anotlar", "Yakıt Sistemi",
 )
-# Kategori esigini gecemeyen kategoriler (K4 karari) — kume TANIMLI OLMAMALI.
-ESIK_ALTI_KATEGORI = ("Ofis", "Bisiklet", "Bahçe", "Tamirat", "Jeneratör", "Kamera",
-                      "Skan Art", "Oyun/Hobi")
+# 🔴 KATEGORI ESIGI ELLE YAZILMAZ — KATALOGDAN OLCULUR (5 Eyl sinif duzeltmesi).
+# ESKIDEN burada sabit bir liste vardi: ("Ofis", "Bisiklet", "Bahçe", "Tamirat",
+# "Jeneratör", "Kamera", "Skan Art", "Oyun/Hobi"). Liste 2 Agu'da DOGRUYDU ve
+# BAYATLADI: Bisiklet o gun 31 kayitti, 5 Eyl'de Thingiverse dilimleriyle 2.618 oldu,
+# yani K4 esigini (>=100) COKTAN gecmisti — ama sabit liste hala "esik alti" diyordu ve
+# Bisiklet'e mesru kume tanimlanir tanimlanmaz T4a KIRMIZI yandi. Kol, olcmesi gereken
+# kurali degil, DONMUS bir anlik goruntuyu koruyordu.
+#
+# MIRAS_12'den FARKI (o ELLE yazilir, bu TURETILIR): MIRAS_12 DEGISMEMESI gereken bir
+# bayt capasidir — elle yazilmasi iddiayi tautolojiden kurtarir. Buradaki liste ise
+# baska evlerin (MaCiT/TeKiN) her gun mesru urun eklemesiyle DEGISEN bir olcumdur;
+# elle yazilirsa her urun partisinden sonra bayatlar. Iddia yine tautoloji DEGIL: iki
+# BAGIMSIZ kaynak karsilastirilir — katalog sayimi (urunler.json) ile kume tanimi
+# (arama.ALTKATEGORI_IZINLI).
+# ── K1 KOLU YARDIMCILARI (T4f/T4g) ───────────────────────────────────────────────────
+# Baglaci ("ve", "-") ADIN ICERIGI DEGILDIR: `Kapaklar ve Tapalar` iki sekil kelimesidir,
+# aradaki "ve" ucuncu bir icerik kelimesi sayilirsa ad HICBIR ZAMAN "bastan sona sekil"
+# olmaz ve kol sessizce olurdu.
+_BAGLAC = ("ve", "-")
+
+
+def _ad_kelimeleri(ad):
+    """Grup adinin ICERIK kelimeleri (kucuk harf, baglaclar ELENMIS)."""
+    ham = (ad or "").replace("-", " ").lower().split()
+    return set(k for k in ham if k and k not in _BAGLAC)
+
+
+def _sekil_mi(kelime, sozluk):
+    """Kelime sozlukteki bir sekil jetonuyla AYNI KOKTEN mi.
+
+    Tekil/cogul ekini yakalamak icin ONEK karsilastirmasi yapilir (`tutucu` <->
+    `tutucular`, `kapak` <-> `kapaklar`), ama KISA onekler yanlis-pozitif uretmesin diye
+    kisa olanin uzunlugu >=5 olmali: `Kapı ve Cam`in `kapi`si `kapaklar`a ("kap", 3
+    harf) TAKILMAZ. Iki kelime birbirinin oneki DEGILSE eslesme yok — `standart` ile
+    `standlar` ortak "stand" onekini paylassa da hicbiri digerinin oneki olmadigi icin
+    eslesmez."""
+    for s in sozluk:
+        if kelime == s:
+            return True
+        if min(len(kelime), len(s)) >= 5 and (kelime.startswith(s) or s.startswith(kelime)):
+            return True
+    return False
+
+
+def esik_alti_kategoriler(S, katalog):
+    """K4: kategori esigini GECEMEYEN kategoriler — katalogtan OLCULUR, elle yazilmaz."""
+    say = S.kategori_dagilimi(katalog)
+    return tuple(sorted(k for k, n in say.items()
+                        if k and n < S.ESIK_KATEGORI_URUN))
 
 # 🔴 T1 POZITIF KONTROL — IMZA NOBETININ FIILEN REDDETTIGININ KANITI.
 # T1'in 60 iddiasi yalniz "kume degerleri nobetten GECIYOR" der; nobetci `return None`a
@@ -265,12 +311,28 @@ def kabul(kok):
     print("\n[T4] ESIK — kategori >=%d urun · grup >=%d urun (SAYILAR RAPOR, TANIM BLOKLAR)"
           % (S.ESIK_KATEGORI_URUN, S.ESIK_GRUP_URUN))
     kat_sayi = S.kategori_dagilimi(katalog)
-    tanimsiz = [k for k in ESIK_ALTI_KATEGORI if k in arama.ALTKATEGORI_IZINLI]
+    esik_alti = esik_alti_kategoriler(S, katalog)
+    tanimsiz = [k for k in esik_alti if k in arama.ALTKATEGORI_IZINLI]
     dogrula("T4a <%d urunlu %d kategoriye kume TANIMLI DEGIL (K4 karari — TANIM ekseni, "
-            "adet degil)" % (S.ESIK_KATEGORI_URUN, len(ESIK_ALTI_KATEGORI)),
+            "adet degil; esik alti liste KATALOGTAN olculur, elle yazilmaz)"
+            % (S.ESIK_KATEGORI_URUN, len(esik_alti)),
             not tanimsiz, tanimsiz)
-    bildir("T4a-r esik alti kategorilerin urun sayisi",
-           ", ".join("%s %d" % (k, kat_sayi.get(k, 0)) for k in ESIK_ALTI_KATEGORI))
+    bildir("T4a-r esik alti kategorilerin urun sayisi (olculdu)",
+           ", ".join("%s %d" % (k, kat_sayi.get(k, 0)) for k in esik_alti))
+    # 🔴 KARSI KOL: T4a tek basina "esik alti kategoriye kume yok" der ve liste BOSALIRSA
+    # sessizce yesil yanar (kume evreni buyudugunde ya da kategori sayimi bozuldugunda).
+    # Bu kol esik USTU tarafi olcer: esigi GECEN kategorilerin kumede olup olmadigi
+    # RAPORDUR (mimar karari — hak etmek zorunlu kilmaz), ama listenin BOS OLMADIGI
+    # bloklayicidir; bos ise olcum kaynagi (kategori_dagilimi) kirilmis demektir.
+    esik_ustu = tuple(sorted(k for k, n in S.kategori_dagilimi(katalog).items()
+                             if k and n >= S.ESIK_KATEGORI_URUN))
+    dogrula("T4a-k OLCUM KAYNAGI CANLI: esigi gecen kategori listesi BOS DEGIL "
+            "(bos olsaydi T4a bos kume uzerinde tautolojik yesil yanardi)",
+            len(esik_ustu) > 0, esik_ustu)
+    bildir("T4a-u esigi GECEN kategoriler (kume TANIMLI olanlar *)",
+           ", ".join("%s %d%s" % (k, kat_sayi.get(k, 0),
+                                  "*" if k in arama.ALTKATEGORI_IZINLI else "")
+                     for k in esik_ustu))
     kucuk = [(k, kat_sayi.get(k, 0)) for k in arama.ALTKATEGORI_IZINLI
              if kat_sayi.get(k, 0) < S.ESIK_KATEGORI_URUN]
     bildir("T4b kume TANIMLI kategorilerin urun sayisi (esik %d · alti kalan %d)"
@@ -324,6 +386,68 @@ def kabul(kok):
             >= S.ESIK_GRUP_URUN]
     bildir("T4e SEKIL_RED olup esigi ASAN aday sayisi (K1: sayi degil EKSEN reddediyor)",
            "%d — %s" % (len(asan), ", ".join(asan) or "(yok)"))
+
+    # ══ T4f — K1 BLOKLAYICI KOL: KUMEDEKI ADIN KENDISI SEKIL ADI OLAMAZ ═════════════
+    # 🔴 NEDEN GEREKLI (5 Eyl): K1 bugune kadar YALNIZ tablo disiplinindeydi — T4d
+    # "SEKIL_RED sinifli aday kumede olmasin" der. Ama bir grubu SEKIL_RED yapmadan
+    # dogrudan `Tutucular` diye ADLANDIRMAK hicbir kolu kirmizi yakmiyordu: kume degeri
+    # gecerli, imza nobeti (jenerik Turkce ad) GECIYOR, ikiz tablo tutarli. Yani K1'in
+    # KENDISI olculmuyordu; yalnizca "reddedilenler reddedilmis mi" olculuyordu.
+    #
+    # SOZLUK TURETILIR, ELLE YAZILMAZ: sekil jetonu = SEKIL_RED adlarinda gecen ama
+    # KABUL EDILMIS (BELIRGIN/MIRAS) hicbir adda gecmeyen kelime. Boylece `telefon`
+    # (`Telefon Tutucuları` SEKIL_RED'de gecer ama `Telefon ve Şarj` KABUL edilmis)
+    # sozluge GIRMEZ ve mesru adi kirmizi yakmaz.
+    #
+    # 🔴 ARTIK KOVASI MUAF — ve muafiyet GENISLETILEMEZ: kova, tanimi geregi hicbir
+    # yer/sistem sinyali olmayan artigi tasir ve DURUSTCE oyle adlandirilir (K6 karari:
+    # `Montaj ve Bağlantı` -> `Montaj Parçaları ve Klipsler`). Muafiyet bir DELIK olurdu
+    # — her grubu ARTIK ilan edip K1'den kacilabilirdi — bu yuzden T4g kategori basina
+    # EN FAZLA BIR kova oldugunu ayrica bloklar.
+    # DURUSTLUK NOTU: muafiyet BUGUN ATIL — mevcut iki kova adi (`Montaj Parçaları ve
+    # Klipsler`, `Montaj Ekipmanları`) `parçaları`/`ekipmanları` kelimeleri sayesinde
+    # zaten "bastan sona sekil" DEGIL, yani muafiyet kaldirilsa da bugun kirmizi yanmaz.
+    # Muafiyet ILERISI icindir: kova durustce `Tutucular ve Klipsler` diye adlandirilmak
+    # istenirse K1 mesru adi bloklamasin. Atil oldugu icin T4g'nin yuku daha da onemli —
+    # muafiyet CANLANDIGI gun tek bekci odur.
+    kabul_kelime = set()
+    for kategori in S.ADAYLAR:
+        for ad, sinif, _t, _g in S.ADAYLAR[kategori]:
+            if sinif in (S.BELIRGIN, S.MIRAS):
+                kabul_kelime |= _ad_kelimeleri(ad)
+    sekil_sozluk = set()
+    for kategori in S.ADAYLAR:
+        for ad, sinif, _t, _g in S.ADAYLAR[kategori]:
+            if sinif == S.SEKIL_RED:
+                sekil_sozluk |= _ad_kelimeleri(ad)
+    sekil_sozluk -= kabul_kelime
+
+    dogrula("T4f-0 SEKIL SOZLUGU BOS DEGIL (bos olsaydi T4f her adi sessizce gecirirdi)",
+            len(sekil_sozluk) >= 5, sorted(sekil_sozluk))
+
+    k1_ihlal = []
+    for kategori, degerler in sorted(arama.ALTKATEGORI_IZINLI.items()):
+        kova = set(S.artik_kovalar(kategori))
+        for ad in degerler:
+            if ad in kova:
+                continue                      # ARTIK kovasi MUAF (yukaridaki gerekce)
+            kelimeler = _ad_kelimeleri(ad)
+            if kelimeler and all(_sekil_mi(k, sekil_sozluk) for k in kelimeler):
+                k1_ihlal.append((kategori, ad,
+                                 sorted(k for k in kelimeler
+                                        if _sekil_mi(k, sekil_sozluk))))
+    dogrula("T4f K1: kumedeki HICBIR grup adi (ARTIK kovasi haric) BASTAN SONA SEKIL "
+            "adi degil — sozluk %d jeton, SEKIL_RED adlarindan TURETILDI"
+            % len(sekil_sozluk), not k1_ihlal, k1_ihlal)
+    bildir("T4f-r turetilen sekil sozlugu",
+           "%d jeton (muaf ARTIK kovasi %d): %s"
+           % (len(sekil_sozluk), sum(len(S.artik_kovalar(k)) for k in S.ADAYLAR),
+              ", ".join(sorted(sekil_sozluk))))
+
+    cok_kova = [(k, S.artik_kovalar(k)) for k in S.ADAYLAR
+                if len(S.artik_kovalar(k)) > 1]
+    dogrula("T4g ARTIK kovasi kategori basina EN FAZLA 1 (T4f muafiyeti GENISLETILEMEZ: "
+            "her grubu ARTIK ilan edip K1'den kacilamaz)", not cok_kova, cok_kova)
 
     # ══ T5/T15 — DETERMINIZM (girdi sirasi + tekrar) ════════════════════════════════
     print("\n[T5] DETERMINIZM — ayni girdi ayni cikti, girdi SIRASI sonucu degistirmiyor")

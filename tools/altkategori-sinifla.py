@@ -339,6 +339,116 @@ ADAYLAR = collections.OrderedDict([
          "K1 ihlali: BICIM adi ('tutucu'); kullanim alani `Telefon ve Şarj`dir. 🔴 K7 "
          "bolmesi bu karari DEGISTIRMEZ: bare 'tutucu' terimi yeni gruba da GIRMEDI"),
     )),
+    # ══ BISIKLET — 2.618 urun (5 Eyl). Okan emri: "urun gruplarina gore 10+ alt kategori".
+    # OLCULDU (bu tabloyla, gercek 3 gecisli siniflandirici): 16 grup, hepsi >=15 urun,
+    # kapsama %100 (bos 0), en buyuk grup `Aydınlatma` 462 (%17,65), 1. gecis 2.603 urun.
+    #
+    # 🔴 K1 — SEKIL EKSENI REDDEDILDI: baslik ekseninin en sik jetonlari `tutucusu` (933),
+    # `kapagi` (150), `klipsi` (94), `braketi` (74) — yani katalogun en buyuk sinyali BICIM
+    # adi. Bunlardan grup adi URETILMEDI; hepsi ARTIK kovasina dusuyor. `Tutucular`,
+    # `Braketler`, `Kapaklar` adlari asagida SEKIL_RED ile KAYITLI ki bir sonraki tur
+    # "933 urun tasiyor, grup olsun" diye yeniden tartismasin — K1 sayiyla degil EKSENLE
+    # reddeder.
+    #
+    # 🔴 K5 (TIP YERI YENER) BURADA DA UYGULANDI: `Telefon ve Navigasyon`, `Kamera ve
+    # Aksiyon`, `Aydınlatma` — TIP/kullanim adlari — YER adi olan `Gidon ve Kokpit`ten
+    # ONCE gelir. Olculdu: "gidona monte telefon tutucusu" tipi basliklar aksi sirada
+    # `Gidon`a dusuyordu; telefon ekseni 391 -> yer eksenine sizinti kapandi.
+    #
+    # 🔴 MARKA JETONU TERIM OLARAK KULLANILAMAZ: `urun_metni` marka jetonlarini SILER
+    # (markasiz()), yani `gopro` terimi yazilsaydi HICBIR ZAMAN eslesmezdi — olculdu,
+    # ilk taslakta vardi ve OLU terimdi; cikarildi. Kamera ekseni jenerik `kamera`/
+    # `aksiyon` jetonlariyla 104 urun tasiyor.
+    ("Bisiklet", (
+        # ── TIP / KULLANIM ekseni ONCE (K5) ──
+        ("Aydınlatma", BELIRGIN,
+         ("isik", "isigi", "lamba", "lambasi", "fener", "feneri", "far", "fari",
+          "led", "reflektor", "stop lambasi", "aydinlatma"),
+         "olculdu: 462 urun (isik 111 · lamba 96 · feneri 85 · far 63) — en buyuk grup"),
+        ("Telefon ve Navigasyon", BELIRGIN,
+         ("telefon", "telefonu", "iphone", "galaxy", "akilli saat", "saat", "gps",
+          "navigasyon", "bisiklet bilgisayari", "kilifli"),
+         "olculdu: 391 urun (telefon 201 · iphone 41 · saat 35 · gps 30) — TIP ekseni, "
+         "`Gidon ve Kokpit` YER adindan ONCE (K5)"),
+        ("Kamera ve Aksiyon", BELIRGIN,
+         ("kamera", "kamerasi", "aksiyon", "action cam"),
+         "olculdu: 104 urun (kamera 78 · aksiyon 57). 🔴 `gopro` terim OLARAK YAZILAMAZ: "
+         "markasiz() marka jetonunu siler, terim olu kalirdi"),
+        ("Matara ve Kafes", BELIRGIN,
+         ("matara", "matarasi", "kafes", "kafesi", "sise", "sisesi", "bidon", "termos",
+          "suluk"),
+         "olculdu: 126 urun (matara 70 · kafesi 69 · sise 21) — kullanim alani"),
+        ("Çamurluk ve Bagaj", BELIRGIN,
+         ("camurluk", "camurlugu", "bagaj", "bagaji", "portbagaj", "sepet", "sepeti",
+          "canta", "cantasi", "tasiyici"),
+         "olculdu: 280 urun (tasiyici 80 · camurluk 73 · bagaj 72) — yuk tasima sistemi"),
+        ("Tekerlek ve Lastik", BELIRGIN,
+         ("jant", "janti", "tekerlek", "tekerlegi", "teker", "lastik", "lastigi",
+          "supap", "supabi", "pompa", "pompasi", "poyra", "nipel"),
+         "olculdu: 259 urun (supap 61 · jant 38 · lastik 38 · pompa 34) — sistem"),
+        ("Fren ve Vites", BELIRGIN,
+         ("fren", "freni", "kaliper", "disk", "diski", "balata", "vites", "vitesi",
+          "vites kolu", "kadran"),
+         "olculdu: 123 urun (fren 62 · vites 47 · disk 21) — kumanda sistemi"),
+        ("Zincir ve Aktarma", BELIRGIN,
+         ("zincir", "zinciri", "pedal", "pedali", "krank", "kranki", "disli", "dislisi",
+          "aktarma", "kaset", "aynakol", "rulman"),
+         "olculdu: 169 urun (zincir 70 · pedal 34 · krank 31 · disli 24) — aktarma sistemi"),
+        ("Elektrikli Bisiklet", BELIRGIN,
+         ("elektrikli", "batarya", "bataryasi", "aku", "akusu", "sarj", "motoru",
+          "kablo", "kablosu", "sensor", "sensoru"),
+         "olculdu: 98 urun (elektrikli 31 · kablo 36) — e-bike kullanim alani. CLAUDE.md "
+         "kategori kurali: e-bike Elektronik'te DEGIL, Bisiklet'te kalir"),
+        ("Bakım ve Alet", BELIRGIN,
+         ("alet", "aleti", "anahtar", "anahtari", "tamir", "sokme", "yama", "bakim",
+          "temizleme", "yagi", "gres"),
+         "olculdu: 68 urun (aleti 42 · sokme 40 · anahtari 32 · tamir 20) — kullanim alani"),
+        ("Çocuk ve Römork", BELIRGIN,
+         ("cocuk", "cocuklar", "romork", "bebek", "yardimci teker"),
+         "olculdu: 28 urun (cocuk 23 ham + 5 yakinlik) — kullanim alani; kumenin EN KUCUK "
+         "grubu, esigi (15) gecen en dar kol"),
+        # ── YER ekseni (TIP'ten SONRA, K5) ──
+        ("Sele ve Sele Borusu", BELIRGIN,
+         ("sele", "selesi", "oturak", "sele borusu", "sele altı"),
+         "olculdu: 38 urun (sele 97 ham jeton; TIP gruplari once aldiktan sonra 38) — YER"),
+        ("Gidon ve Kokpit", BELIRGIN,
+         ("gidon", "gidonu", "kokpit", "zil", "zili", "korna", "ayna", "aynasi",
+          "elcik", "boynuz"),
+         "olculdu: 189 urun (gidon 364 ham jeton; telefon/kamera/isik TIP gruplari once "
+         "aldiktan sonra 189) — YER adi, K5 geregi TIP gruplarindan SONRA"),
+        ("Kilit ve Güvenlik", BELIRGIN,
+         ("kilit", "kilidi", "alarm", "kask", "kaski", "koruma", "koruyucu",
+          "koruyucusu", "guvenlik"),
+         "olculdu: 74 urun (kilit 64 · koruyucusu 32 · kask 21) — kullanim alani"),
+        ("Park ve Duvar Askısı", BELIRGIN,
+         ("duvar", "duvara", "aski", "askisi", "stand", "standi", "sehpa", "park",
+          "raf", "rafi", "tavan"),
+         "olculdu: 51 urun (duvar 71 · standi 57 · askisi 52 · rafi 42 ham jeton) — "
+         "YER/kullanim; `Standlar` (Ev'de SEKIL_RED) BICIM adi oldugu icin secilMEDI"),
+        # 🔴 ARTIK KOVA — oncelikte EN SONDA (kural _sira()'da, TEK yerde).
+        # Otomobil/Motosiklet ile AYNI ad (ortak etiket ilkesi). Katalogun en buyuk baslik
+        # jetonlari (`tutucusu` 933, `kapagi` 150, `klipsi` 94, `braketi` 74) BURAYA duser:
+        # hicbiri bir yer/sistem adlandirmiyor, K1 geregi grup adi OLAMAZ.
+        ("Montaj Parçaları ve Klipsler", ARTIK,
+         ("tutucu", "tutucusu", "klips", "klipsi", "braket", "braketi", "montaj",
+          "montaji", "adaptor", "adaptoru", "kelepce", "kelepcesi", "aparat", "aparati",
+          "baglanti", "baglantisi", "tapa", "tapasi", "kapak", "kapagi", "kanca",
+          "kancasi", "civata", "somun", "vida", "pim", "burc", "cerceve", "yuva",
+          "yuvasi", "kutu", "kutusu", "govde", "govdesi", "parcasi", "ara parca"),
+         "artik kova (SON) — hicbir yer/sistem sinyali olmayan montaj/baglanti parcasi; "
+         "olculdu 158 urun (150 1.gecis + 8 3.gecis)"),
+        # ── REDDEDILEN sekil adlari (K1; kayit ki bir sonraki tur yeniden tartismasin) ──
+        ("Tutucular", SEKIL_RED, ("tutucu", "tutucusu"),
+         "K1 ihlali: BICIM adi. Baslik ekseninin EN BUYUK jetonu (933 urun) — sayisi "
+         "degil EKSENI yanlis; icerik ARTIK kovasinda"),
+        ("Braketler", SEKIL_RED, ("braket", "braketi"),
+         "K1 ihlali: BAGLANTI adi (olcumde 74 urun); artik kova ayni urunleri aliyor"),
+        ("Kapaklar", SEKIL_RED, ("kapak", "kapagi"),
+         "K1 ihlali: BICIM adi (olcumde 150 urun)"),
+        ("Telefon Tutucuları", SEKIL_RED, ("telefon tutucusu", "tutucu"),
+         "K1 ihlali: BICIM adi ('tutucu'); kullanim alani `Telefon ve Navigasyon`dir "
+         "(Motosiklet'te AYNI karar verildi)"),
+    )),
     # ══ DEKORASYON — 379 urun. Eksen = KULLANIM ALANI (obje ne ise yarar).
     ("Dekorasyon", (
         ("Bitki ve Saksı", BELIRGIN,
