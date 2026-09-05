@@ -513,8 +513,8 @@ CODEX_KURAL_SURUMU = "17agu-1"
 # MAKINE pahali yolu (Claude isci) tesvik edip ucuz yolu (Codex) cezalandiriyor. Bu kapi
 # asimetriyi kapatir: mimar ANA oturumu (agent_id BOS) bir Claude iscisi acarken verdigi
 # prompt/spec icinde su BEYAN SATIRI YOKSA cagri REDDEDILIR:
-#     codex-muafiyet: <is tanimi> — <sinif>
-# <sinif> = isin neden Codex'e VERILEMEDIGINI beyan eden yasak-sinif (codex-isci yasak
+#     isci-muafiyet: <is tanimi> — <sinif>
+# <sinif> = isin neden Codex'e VERILEMEDIGINI beyan eden yasak-sinif (isci-devri yasak
 # listesi). Boylece Claude iscisi acmaya da Codex kadar TEK SATIR surtunme konur.
 #
 # MUAFIYETLER (kapi bunlara DOKUNMAZ):
@@ -523,7 +523,7 @@ CODEX_KURAL_SURUMU = "17agu-1"
 #   2. Agent/Task DISINDAKI hicbir arac etkilenmez (tool_name kapisi; Bash/Write/... eskisi gibi).
 #   3. Mevcut '-o' codex kurali + tum kilit/icra kurallari AYNEN korunur (regresyon 0).
 AGENT_ARACLARI = {"Agent", "Task"}
-# Yasak-sinif token'lari (codex-isci yasak listesi). Bunlardan BIRI ayractan HEMEN sonra gelmeli.
+# Yasak-sinif token'lari (isci-devri yasak listesi). Bunlardan BIRI ayractan HEMEN sonra gelmeli.
 AGENT_SINIFLARI = (
     "görsel", "gorsel",
     "sessiz-hata",
@@ -533,7 +533,7 @@ AGENT_SINIFLARI = (
     "şema", "sema",
 )
 # TEK makine-aranabilir regex (parser taklidi YOK — tek kaba tarama, fail-closed):
-#   'codex-muafiyet:'  (etikette buyuk/kucuk DUYARSIZ — re.IGNORECASE)
+#   'isci-muafiyet:'  (etikette buyuk/kucuk DUYARSIZ — re.IGNORECASE)
 #   + [^\S\n]*         (bosluk/tab esnek; NEWLINE degil -> kural TEK SATIRDA)
 #   + \S               (is tanimi BOS OLAMAZ: en az bir bosluk-disi karakter)
 #   + [^\n]*?          (is metninin kalani, LAZY, tek satir — '.' DOTALL degil)
@@ -542,7 +542,7 @@ AGENT_SINIFLARI = (
 #   + (SINIF)          (yasak-sinif token'i ayractan HEMEN sonra)
 # re.IGNORECASE: hem etiket hem sinif buyuk/kucuk duyarsiz. DOTALL YOK -> beyan tek satir.
 AGENT_MUAFIYET_RE = re.compile(
-    r"codex-muafiyet:[^\S\n]*\S[^\n]*?[—–-][^\S\n]*(?:" +
+    r"isci-muafiyet:[^\S\n]*\S[^\n]*?[—–-][^\S\n]*(?:" +
     "|".join(re.escape(s) for s in AGENT_SINIFLARI) + r")(?![\w-])",
     re.IGNORECASE,
 )
@@ -556,12 +556,12 @@ AGENT_SINIF_LISTESI = " / ".join(AGENT_SINIFLARI)
 AGENT_ORNEK_SINIF = AGENT_SINIFLARI[0]
 AGENT_GEREKCE = (
     "AGENT-KAPISI (28 Tem): mimar ANA oturumu bir Claude iscisi (Agent/Task) açıyor ama "
-    "prompt/spec içinde 'codex-muafiyet:' BEYAN SATIRI YOK. Doktrin: Claude işçisi açmak da "
-    "doğrudan 'codex exec' kadar TEK SATIR sürtünme taşır (asimetri kapatıldı). İKİ ÇIKIŞ: "
-    "(a) İŞİ CODEX'E VER → codex-isci şablonu (codex exec -C <ev> -s workspace-write "
-    "-o <scratchpad>/son-mesaj.txt \"<spec>\"); VEYA (b) prompt'a şu satırı EKLE: "
-    "'codex-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
-    "codex-isci yasak listesi)."
+    "prompt/spec içinde 'isci-muafiyet:' BEYAN SATIRI YOK. Doktrin: Claude işçisi açmak da "
+    "doğrudan bir dış işçi çağrısı kadar TEK SATIR sürtünme taşır (asimetri kapatıldı). "
+    "İKİ ÇIKIŞ: (a) İŞİ UCUZ KATA VER → skill: isci-devri (~/.claude/cron/isci.sh "
+    "<motor> <EV_KOKU> <SPEC_DOSYASI> [ETIKET]); VEYA (b) prompt'a şu satırı EKLE: "
+    "'isci-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
+    "isci-devri yasak listesi)."
 ).format(ornek=AGENT_ORNEK_SINIF, liste=AGENT_SINIF_LISTESI)
 
 
@@ -569,20 +569,20 @@ def _sert_blok_gerekcesi():
     """KraL/MaCiT sert reddi; acik yollar kanonik sabitlerden turetilir."""
     return (
         "AGENT-KAPISI (13 Ağu Okan emri): bu evde mimar ANA oturumunun Claude işçisi "
-        "(Agent/Task ve isci.sh claude) açması, 'codex-muafiyet:' beyanı bulunsa bile "
+        "(Agent/Task ve isci.sh claude) açması, 'isci-muafiyet:' beyanı bulunsa bile "
         "YASAKTIR. 'claude' motoru da aynı yasağın kapsamındadır; pahalı kat pahalı kattır. "
         "PRUVO_CLAUDE_ISCI_IZNI yalnızca tam olarak OKAN ise eski beyan kuralı çalışır; "
         "bu izni yalnızca Okan verir ve ajan kendi ayarlayamaz. İKİ AÇIK YOL: (a) " +
         ISCI_SARMALAYICI_YOLU + " <motor> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
         "(ucuz motorlar: " + CANLI_MOTOR_LISTESI +
-        "; kapalı motor kümesi: " + ISCI_MOTOR_LISTESI + "); (b) codex exec -C <ev> "
-        "-s workspace-write -o <dosya> \"<spec>\"."
+        "; kapalı motor kümesi: " + ISCI_MOTOR_LISTESI + "); (b) işi KENDİN yap — bu ev "
+        "Claude işçisine KAPALIDIR ve ikinci bir dış motor yolu YOKTUR."
     )
 
 
 def _agent_gorulen_sinif(prompt):
     """Beyan satirindaki ayraç-sonrasi ilk jetonu yalniz red tanisi icin ayiklar."""
-    etiket = "codex-muafiyet:"
+    etiket = "isci-muafiyet:"
     for satir in prompt.splitlines():
         konum = satir.lower().find(etiket)
         if konum < 0:
@@ -668,9 +668,9 @@ MCP_GEREKCE = (
     "çağırıyor ve BU EV tarayıcıya açık evler arasında DEĞİL (açık evler: " +
     " / ".join(TARAYICI_ACIK_EVLER) + "). Bu evde ana döngüde tarayıcı sürmek KAPALI — her "
     "tur ekran görüntüsü taşır ve görüntü EN PAHALI token sınıfıdır (ölçülen vaka: 1 "
-    "saatte bağlamın %58'i). ÇÖZÜM: TARAYICIYI GÖRSEL-SINIF CLAUDE İŞÇİSİNE VER — Codex'e "
-    "VERİLMEZ (görsel = codex-isci yasak listesi). İŞÇİ ŞABLONU (Agent aracı: model sonnet "
-    "+ isolation worktree + background), prompt'un ilk satırı: 'codex-muafiyet: tarayıcı "
+    "saatte bağlamın %58'i). ÇÖZÜM: TARAYICIYI GÖRSEL-SINIF CLAUDE İŞÇİSİNE VER — ucuz "
+    "motora VERİLMEZ (görsel = isci-devri yasak listesi). İŞÇİ ŞABLONU (Agent aracı: model sonnet "
+    "+ isolation worktree + background), prompt'un ilk satırı: 'isci-muafiyet: tarayıcı "
     "ile <ne ölçülecek> — görsel'; spec'e ÇALIŞTIRILABİLİR kabul yaz (hangi URL'de hangi "
     "sayı ölçülecek), işçi ölçsün, sen SAYIYLA kapat. İşçi çağrılarında (agent_id dolu) bu "
     "kapı hiçbir kural uygulamaz — tarayıcı orada SERBESTTİR. " + TARAYICI_MALIYET_KURALI
@@ -853,12 +853,12 @@ ISCI_GEREKCE_SONU = (
 # motor=claude reddinde IKI CIKISI net soyleyen kuyruk (AGENT-KAPISI ile AYNI doktrin).
 ISCI_CLAUDE_GEREKCESI = (
     "ISCI-SARMALAYICI KAPISI (13 Ağu): sarmalayıcı 'claude' MOTORUYLA çağrılıyor ama SPEC "
-    "DOSYASINDA 'codex-muafiyet:' BEYAN SATIRI YOK. Bu şart olmasaydı sarmalayıcı "
+    "DOSYASINDA 'isci-muafiyet:' BEYAN SATIRI YOK. Bu şart olmasaydı sarmalayıcı "
     "AGENT-KAPISI'nı atlatan bir ANAHTAR olurdu (mimar -> isci.sh claude -> sürtünmesiz "
     "Claude işçisi). İKİ ÇIKIŞ: (a) İŞİ UCUZ MOTORA VER (" + CANLI_MOTOR_LISTESI +
     "); VEYA (b) spec dosyasına şu satırı EKLE: "
-    "'codex-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
-    "codex-isci yasak listesi)."
+    "'isci-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
+    "isci-devri yasak listesi)."
 )
 
 
@@ -1388,7 +1388,7 @@ def _codex_segment_karari(segment, tokenlar):
 
 def _agent_karari(girdi):
     """28 TEM — AGENT-KAPISI karari (mimar ANA oturumu bir Claude iscisi acarken). Doner:
-        "gecer" → prompt'ta gecerli 'codex-muafiyet: <is> — <sinif>' beyan satiri VAR
+        "gecer" → prompt'ta gecerli 'isci-muafiyet: <is> — <sinif>' beyan satiri VAR
         str     → red gerekcesi (beyan satiri yok / gecersiz sinif)
 
     ISCI muafiyeti main() basinda (kimlik==ISCI) verilir; bu fonksiyon yalniz MIMAR icin
@@ -1404,7 +1404,7 @@ def _agent_karari(girdi):
         prompt = ""
     if AGENT_MUAFIYET_RE.search(prompt):
         return "gecer"
-    if "codex-muafiyet:" not in prompt.lower():
+    if "isci-muafiyet:" not in prompt.lower():
         return AGENT_GEREKCE
     return (
         "AGENT-KAPISI (28 Tem): BEYAN VAR, SINIF JETONU ESLESMEDI: gorulen "
@@ -1498,7 +1498,7 @@ def main():
         sys.exit(0)
 
     # === 28 TEM AGENT-KAPISI: mimar ANA oturumu Claude iscisi (Agent/Task) acarken
-    # 'codex-muafiyet: <is> — <sinif>' beyan sarti. ISCI (agent_id dolu) YUKARIDA zaten
+    # 'isci-muafiyet: <is> — <sinif>' beyan sarti. ISCI (agent_id dolu) YUKARIDA zaten
     # muaf cikti; Agent/Task DISINDAKI hicbir arac bu koldan gecmez (tool_name kapisi) —
     # Bash/Write/... asagidaki mevcut mantikla eskisi gibi islenir (regresyon 0).
     tool_name = girdi.get("tool_name") or ""

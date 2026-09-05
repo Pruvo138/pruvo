@@ -981,7 +981,7 @@ def sert_mutasyonu_kostur(ad, uygulayici, ek_env):
         "permission_mode": "bypassPermissions",
         "hook_event_name": "PreToolUse",
         "tool_name": "Agent",
-        "tool_input": {"prompt": "codex-muafiyet: kapi kodu — sessiz-hata"},
+        "tool_input": {"prompt": "isci-muafiyet: kapi kodu — sessiz-hata"},
     }
     ortam = dict(os.environ)
     ortam.pop("PRUVO_ISCI_KOSUMU", None)

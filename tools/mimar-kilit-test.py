@@ -593,7 +593,7 @@ K159_CODEX_VAKALARI = [
 # 13 Agu Okan emri: KraL'da mimar ANA oturumu Agent/Task'i beyanla bile ACAMAZ. Tek
 # kacis PRUVO_CLAUDE_ISCI_IZNI=OKAN; o zaman eski beyan kurali calisir. ISCI TAM muaf.
 # MA1/MA2/MA3 mutasyonlari bu vakalari kirmizi yakar (mimar-kapi-mutasyon-test.py).
-AGENT_DECL = "codex-muafiyet: kapi kodu insasi — sessiz-hata"
+AGENT_DECL = "isci-muafiyet: kapi kodu insasi — sessiz-hata"
 AGENT_VAKALARI = [
     (400, "deny", "Agent", "Bir seyler yap, spec burada.", None,
      "MIMAR Agent + beyan YOK -> RED"),
@@ -608,11 +608,11 @@ AGENT_VAKALARI = [
      "ISCI Agent + beyan YOK -> GECER (kural yalniz ANA oturuma)"),
     (405, "allow", "Task", "Beyansiz isci prompt'u.", ISCI_ID,
      "ISCI Task + beyan YOK -> GECER (kimlik ekseni muafiyeti)"),
-    (406, "deny", "Agent", "codex-muafiyet: gorsel okuma isi - görsel", None,
+    (406, "deny", "Agent", "isci-muafiyet: gorsel okuma isi - görsel", None,
      "gecerli beyan sert blogu ACMAZ"),
-    (407, "deny", "Agent", "CODEX-MUAFIYET: olcum isi — ölçüm", None,
+    (407, "deny", "Agent", "ISCI-MUAFIYET: olcum isi — ölçüm", None,
      "buyuk/kucuk duyarsiz gecerli beyan sert blogu ACMAZ"),
-    (408, "deny", "Agent", "codex-muafiyet: is — foobar", None,
+    (408, "deny", "Agent", "isci-muafiyet: is — foobar", None,
      "GECERSIZ sinif (yasak listede degil) -> RED"),
     (409, "deny", "Agent", "Bu is bir ölçüm ve güvenlik isi.", None,
      "sinif KELIMELERI var ama ETIKET yok -> RED"),
@@ -633,7 +633,7 @@ AGENT_VAKALARI = [
     (710, "deny", "Agent", "Okan izni var ama beyan yok.", None,
      "Okan izni eski beyan kuralini kaldirmaz",
      {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
-    (711, "deny", "Agent", "codex-muafiyet: is — foobar", None,
+    (711, "deny", "Agent", "isci-muafiyet: is — foobar", None,
      "Okan izninde gecersiz sinif yine RED",
      {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
 ]
@@ -718,12 +718,12 @@ def _isci_spec_yaz(ad, icerik):
     return yol
 
 
-# BEYANSIZ spec: 'codex-muafiyet:' satiri YOK. Ucuz motorlarda bu SART DEGILDIR (kural
+# BEYANSIZ spec: 'isci-muafiyet:' satiri YOK. Ucuz motorlarda bu SART DEGILDIR (kural
 # yalniz motor=claude'da beyan arar) — ayni dosya iki ekseni birden olcer.
 ISCI_SPEC_BEYANSIZ = _isci_spec_yaz(
     "beyansiz.md", "Kosum sayilarini olc ve rapor et. Beyan satiri YOK.\n")
 ISCI_SPEC_BEYANLI = _isci_spec_yaz(
-    "beyanli.md", "Is: kapi kodu.\ncodex-muafiyet: kapi kodu insasi — sessiz-hata\nDevam.\n")
+    "beyanli.md", "Is: kapi kodu.\nisci-muafiyet: kapi kodu insasi — sessiz-hata\nDevam.\n")
 # HIC YAZILMAYAN dosya: 'okunamadi -> fail-closed' ekseni (varligi degil YOKLUGU olculur).
 ISCI_SPEC_YOK = os.path.join(_ISCI_FIKSTUR_DIZINI, "hic-yazilmadi.md")
 
