@@ -7,10 +7,9 @@
 🔴 OKAN'DA: kutu 250'ye INEMEZ — 388 satirin 244'u KORUMALI 6 blok (dokunmak yasak), 144'u koru.
 
 ## 🔁 5 EYL ~20:xxZ — **OKAN ①+② BITTI** (`5b86ac20`, cip `cool-saha-010aa9`) — **ISARETCI**
-↩︎ **TAM METIN `DEVAM-ARSIV.md`** (md5 birebir, eksik 0). **①** Bisiklet **16 alt kategori** (hepsi ≥15 urun, kapsama %100), 2.618 urune yazildi, **D1 teyitli**. **②** `KAT_PANEL_MIN_CIP=3` → panel **12→7**; Bisiklet (17 cip) esigi **DOGAL** gecti, kodda ozel-durum YOK.
-🔴 **ACIK — MARKA** → cip `task_4f4e99cb`: engel beyaz liste DEGIL **veri**; `marka` 2.618'in **27**'sinde dolu. Sayilar KUTUDA.
-✅ **YAYIN ①+② KAPANDI (mimar olctu):** cip **YANLIS KOSUMA** bakmis — `33969438735` defter push'uydu ve K144'le cancelled; KODUN kendi kosumu **`33969124781`** `deploy` **success** · `yayin` **success** · **SKIPPED 0**. CANLI teyit (curl): `KAT_PANEL_MIN_CIP` VAR · Bisiklet **16** alt kategori VAR.
-✅ **③ BANNER MAIN'DE (`b12fdac2`, cip `mystifying-jepsen-6ec744`)** — `<main>`: `bannerRow` 0, `katPanels` 1; saf SIRA (277.992=277.992, md5 sabit, `fetchpriority=high` 0→0). Kapi **`nobet.yml`e** baglandi: `ci-kapsam-test` once KAPSAMSIZ sonra **YESIL**. **10 kol** (+D0b, oldurucu rc=1); dalda **9**'du.
+↩︎ **TAM METIN `DEVAM-ARSIV.md`** (md5 birebir, eksik 0): ① Bisiklet 16 alt kategori (D1 teyitli) · ② panel 12→7 · ③ banner main'de (`b12fdac2`) · yayin `33969124781` deploy+yayin success, SKIPPED 0.
+✅ **MARKA KAPANDI (`2925b940`, cip `exciting-williams-195384`):** Bisiklet marka cipi **1→5** (Garmin 68·GoPro 67·Samsung 20·Yamaha 18·Shimano 17), 167 urune **TAM JETONLA** yazildi (`duzelt.py --toplu`); panel cipi **17→21**. `Mini` cip **DEGIL** (sifat; alt-dize kolu G3/G4). Kuratorluk Bisiklet'te KAPALI (uyum kapsami 0,0046) — engel beyaz liste DEGIL **veri**ydi. Mutant **4/4**, kapilar KUTUDA.
+🟠 **SIRADAKI (olculdu, UYGULANMADI):** MODEL adindan marka turetilseydi Bisiklet'e **Apple 56** (6. cip) + Samsung **20→31** eklenirdi (`iphone` 41/`ipad`, `galaxy` 26). AYRI cikarim ekseni: kendi tablosu + kendi yanlis-pozitif kolu ister, bu turda KAPSAM DISI.
 🔴 **TABAN KIRMIZISI (temiz main'de de AYNI):** `lcp-onculuk-kapisi` rc=2 → **ArTisT** · `kapi-envanteri` rc=1.
 
 ## 🔁 5 EYL ~18:3xZ — kutu kilidi KOK SEBEBI (ust blokta KAPANDI) — **ISARETCI**
