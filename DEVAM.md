@@ -7,10 +7,10 @@
 🔴 OKAN'DA: kutu 250'ye INEMEZ — 388 satirin 244'u KORUMALI 6 blok (dokunmak yasak), 144'u koru.
 
 ## 🔁 5 EYL ~20:xxZ — **OKAN ①+② BITTI** (`5b86ac20`, cip `cool-saha-010aa9`) — **ISARETCI**
-↩︎ **TAM METIN `DEVAM-ARSIV.md`** (5 Eyl isaretciye indirme; md5 birebir, eksik 0).
-**①** Bisiklet **16 alt kategori** (hepsi ≥15 urun, kapsama %100), 2.618 urune yazildi, **D1 teyitli**. **②** `KAT_PANEL_MIN_CIP=3` → panel **12→7**; Bisiklet (17 cip) esigi **DOGAL** gecti, kodda ozel-durum YOK.
-🔴 **ACIK — MARKA EKSENI** (Okan: "farkli markalari da ekle") → cip `task_4f4e99cb`: engel beyaz liste DEGIL **veri** — Bisiklet `marka` alani 2.618'in **27**'sinde dolu (%1,0). Baslikta esigi gecip `marka`ya YAZILMAMIS: Garmin 68 · GoPro 67 · Samsung 20 · Shimano 17 (+Yamaha 18 = bugunku TEK cip). `Mini` 17 YANLIS POZITIF.
-🔴 **ACIK — ③** "skan stil + olcuye ozel bannerlari eski yerine": bu cipin kapsaminda DEGILDI.
+↩︎ **TAM METIN `DEVAM-ARSIV.md`** (md5 birebir, eksik 0). **①** Bisiklet **16 alt kategori** (hepsi ≥15 urun, kapsama %100), 2.618 urune yazildi, **D1 teyitli**. **②** `KAT_PANEL_MIN_CIP=3` → panel **12→7**; Bisiklet (17 cip) esigi **DOGAL** gecti, kodda ozel-durum YOK.
+🔴 **ACIK — MARKA** → cip `task_4f4e99cb`: engel beyaz liste DEGIL **veri**; `marka` 2.618'in **27**'sinde dolu. Sayilar KUTUDA.
+🟠 **③ BANNER DALDA `507189a9`, MAIN'E ALINMADI** (gerekce o commit'te). Kapi `ana-sayfa-duzen-test.js` **8/1**; kalan `D2` TESTIN kusuru, kok giderildi ama kota kapandi → **KOSULAMADI**. SIRADAKI: testi kostur → `D0b` → `nobet.yml` → merge.
+🔴 **YAYIN ①+② ACIK:** `33969438735` **cancelled** (K144); kod main'de+D1 teyitli, `deploy`/`yayin` **OLCULEMEDI** — sonraki kosumda olc.
 
 ## 🔁 5 EYL ~18:3xZ — **KUTU KILIDI CIPI ACILDI (`task_e76cf129`, KOSUYOR) · KOK SEBEP CIVILENDI · defter 2 blok ISARETCIYE INDI (elle, md5 birebir)**
 **KOK SEBEP (tam metin cip spec'inde + kutuda):** arsiv `:64377` kapanisi jetonu TASIYOR (`:64396`) ama `blok_kapanis_mi()` **`(False,None)`** donuyor → ad `arsiv_kapanan_ad`(251)'a HIC girmiyor → `ARSIV_SERBEST=0`. Jeton YALNIZ SON ICERIK satirinda araniyor, o satir **imza**. `AD_YOK` kolu ayrica ULASILAMAZ (5 blok); MaCiT'in kapanis blogunun KENDISI `ACIK_ADSIZ` dustu = kapanis yazmak 6.'yi EKLEDI. Taban: kutu **401→477** st (tavan 250), test **50 vaka/466 iddia**.
