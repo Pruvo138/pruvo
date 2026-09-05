@@ -2,6 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔁 5 EYL ~13:5xZ — **LCP ÇİPİ KAPANDI** (`trusting-swartz-11e631` · KraL-LCP-05Eyl) — dal PUSH, merge YOK
+- ↩︎ **TAM METIN ARSIVDE** (2026-09-05 isaretciye indirme). Öz: ① "LCP 6,1 sn ama faz 1,33 sn" **alet artefaktı** — PSI varsayılanı BENZETİM (Lantern); `--throttling-method=devtools` ile fazlar LCP'ye birebir toplanıyor. ② Kök sebep **AĞ**, ana iş parçacığı DEĞİL (`elementRenderDelay` **10 ms**): LCP görseli inerken aynı bağlantıda **10 istek/164,2 KB**, **116.195 B'ı slayt 2-4** — `lazy`+`fetchpriority=low` onları ağdan ÇIKARMIYOR. ③ Onarım `data-srcset`/`data-src` + `load` hidratlaması; **A/B 3 koşum medyanı: çekişme 164.242→48.368 B, LCP 2.648→2.367 ms, perf 96→98, CLS SABİT**. 🔴 ④ **BENZETİMDE FARK YOK** (2.427→2.431) → PSI kımıldamayabilir; anahtar YOK (429), **skor iddiası ETMEDİM**; kabulü ArTisT kapatır (yayın sonrası PSI mobil ≥3 koşum MEDYANI). ⑤ 78 kapı: 68/9/1 → **69/8/1**, YENİ kırmızı YOK; `srcset_oge` **33=33**. 🔧 KALAN: (a) çapraz-kaynak bağlantı **~600 ms** → **OKAN/altyapı**; (b) LCP görseli **−10.227 B** → ayrı çip; (c) `secenekler.js` 314 ms REDDEDİLDİ; (d) CF `beacon.min.js` → **OKAN kapısı**.
+
 ## 🔁 5 EYL ~10:5xZ — **DEVIR ALINDI: temizlik cipi ACILDI · yabanci 3 dosya KORUNDU · yayin HEAD'de ACIK**
 **① TEMIZLIK CIPI KAPANDI** (`task_dba9d84b`): worktree **9→7**, 1 agac + 1 oksuz dizin kaldirildi, 1 oturum arsivlendi, disk 2,9→2,7 G. 🔴 **Cipin dersi:** spec'in ③ olcutu (`list_sessions` `isRunning:false`) TEK BASINA YANILTTI — `lsof -a -d cwd` bes agacta CANLI `claude` sureci buldu; harfine uysaydi 5 canli oturum olurdu. **Olcut uc eksenli olmali:** `list_sessions` VE `lsof` VE `ListAgents`.
 **② YABANCI 3 DOSYA — IDDIA CURUDU, KAYIP YOK:** ana checkout `git status` TEMIZ; is tamircinin kendi agacinda **`f2db0c8f`** (SERIT B kok sebebi: makineye ozel mutlak yol CI'da OKUNMUYOR → uc batarya "kirmizi" degil **HIC OLCMEMIS**, ustelik taban kirmiziyken **13 sahte kill** basiliyormus). Merge hukmu tamircinin kapanisinda.
@@ -19,21 +22,7 @@ Ozet: `nobet.yml` SERIT B'ye ayri adim; `ci-kapsam-test.py` KIRMIZI→YESIL; haf
 **KAPANAN:** ① D1 · ② KORUMALI blok tasinmaz · ④ filo dersi 5 evde · **Okan: ArTisT sayfa izni.**
 ③ baglam kotasi kapisi YAZILDI + 6 evde KURULU, commit YERELDE — push CI kapsam kapisinda DURDU.
 
-**① D1** (`e021e922`): her wrangler cagrisi KALICI OZEL cache'te (soguk 27,9 → isinmis **1,4 sn**;
-`--version` kabul GECTI). Tavan iki kollu: ISINMIS **120** sn (olculen en yavas 11,1) · SOGUK **450**
-(olculen 307,1) — tek 120 mesru doldurmayi keserdi. `10043` GECICI kovasina alindi: tam senkron
-onunla rc=1 dustu, retry YAPILMADI, 51 urunluk yazma bosa gitti; AYNI komut degisiklik olmadan rc=0
-verdi (geri-okuma **51/51 ✅**). Kabul: tani-test **39/39** · mutasyon **13/13, OLDUREN 10/10,
-HEDEF_KOL_ATFI 10/10, YAMA_TUTMADI 0** · `--kendini-test` 157/0.
-🔴 **Batarya kendi KALICI kaynagini SILMISTI** (E kolu `finally`si ayrim yapmiyordu; cache **0 B**)
-— E3/E4 ile ayrildi. 🟠 `--durum` **rc=0 ama 71,2 sn** (kabul <60): 42,25 sn'si YEREL turetim
-(`marka_kanon` 20,59 + `model_kanon` 20,41), wrangler DEGIL. Tekillestirme **olculdu ve CURUDU**
-(`evren`/`ek` her cagride yeni nesne) → GERI ALINDI, no-op kod BIRAKILMADI. *Kapatan:* iki
-ureticinin kaynak nesnesi TEKILLESIP `--durum` 60 sn alti.
-
-**② KORUMALI** (`e021e922`): basliginda `KORUMALI` gecen blok rotasyona GIRMEZ (K329 konum olcutu,
-`sabit_indeksler`e 4. kaynak). Kabul **50 vaka / 466 iddia**; CANLI rotasyon `KORUMALI_ETIKETLI=1
-kilitledi=1` basti, blok YERINDE ATLANDI.
+- ↩︎ **① D1 + ② KORUMALI TAM METNI ARSIVDE** (2026-09-05 isaretciye indirme; ikisi de KAPANDI, kod `e021e922`).
 
 **③ BAGLAM KOTASI — kabul 23/23**, 6 evin `settings.json`'una KANONIK YOLLA bagli. 🔴 **TASARIM
 KUSURU, 2. VAKA OLCULDU:** kapanis sinifi (a) BEKLEYEN commit'in push kablosunu, (b) **YAYIN

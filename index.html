@@ -1185,21 +1185,36 @@ setTimeout(L,5000);})();
       </div>
     </a>
     <a class="jen-banner marin-slide" href="/?kategori=Marin">
-      <!-- 2.-4. slaytlar ilk boyamada GÖRÜNMEZ (opacity:0) ama akışta oldukları için
-           tarayıcı onları LCP görseliyle AYNI anda, aynı öncelikte indiriyordu — yavaş 4G'de
-           LCP'nin önünü tıkayan asıl trafik buydu. loading=lazy + fetchpriority=low ikisi
-           birlikte gerekli: lazy tek başına "görüş alanında" sayıldıkları için indirmeyi
-           İPTAL ETMEZ, yalnız fetchpriority ağ kuyruğunda LCP'nin ARKASINA atar.
-           display:none KULLANILMAZ — slayt geçişi opacity animasyonudur, gizlemek dönüşü
-           kırardı. -->
+      <!-- 🔴 2.-4. SLAYTLARIN URL'LERİ İŞARETLEMEDE YOK (data-srcset/data-src) — bu
+           slaytlar ilk boyamada GÖRÜNMEZ (opacity:0) ama akıştadır. ÖNCEKİ çare
+           (loading="lazy" + fetchpriority="low") ÖLÇÜLDÜ ve YETMEDİ: 5 Eyl 2026,
+           Lighthouse mobil + UYGULANMIŞ kısıtlama, canlı sayfa. Üç slayt görüş
+           alanında sayıldığı için lazy indirmeyi İPTAL ETMEDİ; istekleri 1.082 ms'de,
+           LCP görseli (2.110 ms'de biten) HÂLÂ İNERKEN başladı ve 116.195 B ile aynı
+           media.pruvo3d.com bağlantısını paylaştı. fetchpriority yalnız SIRA verir,
+           H2 çoklamasında BANDI bırakmaz. LCP görselinin kendisi 40.475 B'tı ve
+           inmesi 1.142 ms sürdü (968 -> 2.110 ms) — yani 4 katı ağırlıkla yarışıyordu.
+           ONARIMIN KANITI (ayrı alet: yerel A/B, canlıyla bayt-denk üretim kopyası,
+           3 koşum medyanı): LCP görseli inerken aynı kaynaktan başlayan çekişme
+           10 istek / 164.242 B -> 7 istek / 48.368 B; LCP 2.648 -> 2.367 ms.
+           🔴 PSI/Lighthouse VARSAYILANI bu kazancı GÖSTERMEZ: varsayılan kısıtlama
+           BENZETIMDIR (Lantern) ve düşük öncelikli görselleri LCP'nin önünden
+           çekilmiş varsayar; ölçüldü, benzetimde LCP 2.427 -> 2.431 ms (fark yok).
+           Kazanç UYGULANMIŞ kısıtlamada ve gerçek tarayıcıda vardır.
+           Tek kesin çare: URL'yi işaretlemeye HİÇ koymamak. Tarayıcının ön-tarayıcısı
+           data-* özniteliğini istek olarak GÖRMEZ. Gerçek srcset/src `load` olayından
+           SONRA slaytlariIsit() ile yazılır (LCP çoktan ölçülmüştür).
+           display:none KULLANILMAZ — slayt geçişi opacity animasyonudur.
+           JS düşerse 2.-4. slayt boş kalır ama slider da dönmez: kullanıcı yalnız
+           1. slaytı görür (fail-closed, bozuk yüzey yok). -->
       <picture>
         <source type="image/avif" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-slide-2-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1376.avif 1376w">
+                data-srcset="https://media.pruvo3d.com/banner/marin-slide-2-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1376.avif 1376w">
         <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-slide-2-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1376.webp 1376w">
+                data-srcset="https://media.pruvo3d.com/banner/marin-slide-2-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1376.webp 1376w">
         <img class="jen-banner-img" alt="" width="1100" height="614"
-             decoding="async" loading="lazy" fetchpriority="low"
-             src="https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.jpg">
+             decoding="async" fetchpriority="low"
+             data-src="https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.jpg">
       </picture>
       <div class="jen-banner-text">
         <span class="skan-banner-ust">Marin</span>
@@ -1211,12 +1226,12 @@ setTimeout(L,5000);})();
     <a class="jen-banner marin-slide" href="/?kategori=Marin">
       <picture>
         <source type="image/avif" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-slide-3-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1376.avif 1376w">
+                data-srcset="https://media.pruvo3d.com/banner/marin-slide-3-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1376.avif 1376w">
         <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-slide-3-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1376.webp 1376w">
+                data-srcset="https://media.pruvo3d.com/banner/marin-slide-3-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1376.webp 1376w">
         <img class="jen-banner-img" alt="" width="1100" height="614"
-             decoding="async" loading="lazy" fetchpriority="low"
-             src="https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.jpg">
+             decoding="async" fetchpriority="low"
+             data-src="https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.jpg">
       </picture>
       <div class="jen-banner-text">
         <span class="skan-banner-ust">Marin</span>
@@ -1229,12 +1244,12 @@ setTimeout(L,5000);})();
        href="https://wa.me/905451386526?text=Merhaba%2C%20teknemde%20k%C4%B1r%C4%B1lan%20bir%20par%C3%A7a%20var.%20%C3%96l%C3%A7%C3%BCp%20taray%C4%B1p%20%C3%BCretebilir%20misiniz%3F">
       <picture>
         <source type="image/avif" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1376.avif 1376w">
+                data-srcset="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1376.avif 1376w">
         <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1376.webp 1376w">
+                data-srcset="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1376.webp 1376w">
         <img class="jen-banner-img" alt="" width="1100" height="614"
-             decoding="async" loading="lazy" fetchpriority="low"
-             src="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.jpg">
+             decoding="async" fetchpriority="low"
+             data-src="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.jpg">
       </picture>
       <div class="jen-banner-text">
         <span class="skan-banner-ust">Özel Üretim</span>
@@ -1271,15 +1286,26 @@ setTimeout(L,5000);})();
     function next(){ goTo((idx + 1) % slides.length); }
     function resetTimer(){ clearInterval(timer); timer = setInterval(next, 5000); }
     resetTimer();
-    /* TEMBEL SLAYTLARI ISIT — LCP ile "boş panel" arasındaki dengeyi kuran yer.
-       2.-4. slayt görselleri loading="lazy" ile ilk boyamada ağı LCP görselinin önünden
-       çekiliyor. Ama slider 5 sn'de bir dönüyor: yavaş bağlantıda henüz inmemiş bir slayta
-       dönülürse kullanıcı BOŞ lacivert panel görür (yerelde ölçüldü, geçici de olsa görüldü).
-       Bu yüzden `load` olayından SONRA — yani LCP çoktan ölçüldükten sonra — tembellik
-       kaldırılır ve sayaç sıfırlanır (ısınma anından itibaren tam 5 sn). loading'i
-       "eager"a çevirmek bekleyen tembel yüklemeyi HEMEN başlatır (HTML spec). */
+    /* SLAYTLARI ISIT — LCP ile "boş panel" arasındaki dengeyi kuran yer.
+       2.-4. slaytların görsel URL'leri işaretlemede data-srcset/data-src arkasındadır;
+       ön-tarayıcı onları istek olarak GÖRMEZ, dolayısıyla LCP görselinin bandını
+       paylaşmazlar (ölçüm: yukarıdaki yorum bloğu). Ama slider 5 sn'de bir dönüyor:
+       inmemiş bir slayta dönülürse kullanıcı BOŞ lacivert panel görür. Bu yüzden `load`
+       olayından SONRA — yani LCP çoktan ölçüldükten sonra — gerçek öznitelikler yazılır
+       ve sayaç sıfırlanır (ısınma anından itibaren tam 5 sn).
+       🔴 SIRA ÖNEMLİ: önce <source data-srcset>, EN SON <img data-src>. Ters sırada
+       tarayıcı <picture>'ı boş aday kümesiyle çözüp JPEG koluna düşer; AVIF/WebP
+       kazanımı sessizce kaybolur. Öznitelik yazıldıktan sonra data-* SİLİNİR ki
+       ikinci çağrı (readyState==="complete" + load ikilisi) tekrar yazmasın. */
+    function isit(kok, kaynak, hedef){
+      kok.querySelectorAll("[" + kaynak + "]").forEach(function(el){
+        el.setAttribute(hedef, el.getAttribute(kaynak));
+        el.removeAttribute(kaynak);
+      });
+    }
     function slaytlariIsit(){
-      wrap.querySelectorAll('img[loading="lazy"]').forEach(function(im){ im.loading = "eager"; });
+      isit(wrap, "data-srcset", "srcset");
+      isit(wrap, "data-src", "src");
       resetTimer();
     }
     if(document.readyState === "complete"){ slaytlariIsit(); }
