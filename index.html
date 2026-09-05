@@ -449,6 +449,12 @@ setTimeout(L,5000);})();
     text-indent:clamp(.04em,1.4vw,.12em);
   }
   .kat-panel-baslik:hover{color:var(--navy-2)}
+  /* Çip satırı OLMAYAN kategoride başlık panelin TEK ögesidir; o zaman altındaki 16px
+     boşluk hiçbir şeyi ayırmaz, yalnız o panelin altına asılı kalır ve paneller arası
+     ritmi 34px yerine 50px gösterir — panel "eksik/bozuk" izlenimi verir. Başlık son öge
+     olduğunda boşluk sıfırlanır: her panel, çipi olsun olmasın, komşusundan AYNI 34px ile
+     ayrılır. Kural veriden bağımsızdır (:last-child), kategori adı sabitlenmez. */
+  .kat-panel-baslik:last-child{margin-bottom:0}
   .kat-panel-satir{
     display:flex;
     flex-wrap:wrap;
