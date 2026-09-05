@@ -4011,6 +4011,29 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/altkategori-cip-test.py
 
+      # ANA SAYFA PANEL ESIGI (Okan emri, 5 Eyl: "3'un altinda alt kategorisi olan ana
+      # sayfada olmaz") — tools/kat-panel-test.js.
+      # NEDEN AYRI BIR ADIM (ustteki kapilar bu ekseni GORMEZ): altkategori-cip-test.py
+      # bir kategori SECILDIKTEN SONRAKI daraltma satirini olcer; bu kapi FILTRESIZ ANA
+      # SAYFADA hangi kategori panelinin CIZILDIGINI olcer. Ikisi bagimsizdir: cip satiri
+      # kusursuz calisirken ana sayfa 12 panelin 5'ini tek cipli/bos cizmeye devam
+      # edebilirdi ve hicbir kol kirmizi yanmazdi.
+      # OLCULEN SESSIZ-HATA SINIFI: esik `index.html` icinde TEK BIR `if` satiridir.
+      # O satir silinse ya da KAT_PANEL_MIN_CIP 0 yapilsa panel sessizce 12'ye doner —
+      # sayfa CALISIR, test yoktur, alarm CALMAZ. Kapi ayrica ozel-durum satirini yasaklar:
+      # render govdesinde KATEGORI ADI gomulu olmamali (Bisiklet esigi 16 alt kategorisiyle
+      # DOGAL gecer, istisnayla degil).
+      # NASIL: index.html'in GERCEK `renderKatPanelleri` govdesi node:vm'de, DOM taklidi +
+      # GERCEK cip indeksiyle (cip-indeks.py --yazdir, gercek urunler.json) kosturulur; kod
+      # KOPYALANMAZ, sabit beklenen panel listesi TASINMAZ (hangi panelin cizilecegi
+      # esikten ve indeksten TURER). Mutant kolu ayni kosumda: esik 0 -> panel sayisi
+      # ARTMALI, esik 999 -> HICBIRI cizilmemeli; taban ile ayni sonuc cikarsa KIRMIZI.
+      # OFFLINE: ag YOK, repo dosyasina YAZMAZ (mutant yalnizca bellekteki metinde).
+      # node ZORUNLU (setup-node yukarida).
+      - name: "Ana sayfa panel esigi (KAT_PANEL_MIN_CIP: cizilen panel + ozel-durum yasagi)"
+        if: ${{ !cancelled() }}
+        run: node tools/kat-panel-test.js
+
       # CIP SATIRLARI CAPRAZ DARALMA + MODEL EKSENI — tools/cip-indeks-test.py.
       # NEDEN AYRI BIR ADIM (ustteki kapi bu ekseni GORMEZ): altkategori-cip-test.py TEK
       # satirin (GRUP) kendi ekseninde davranisini olcer; bu kapi UC SATIRIN BIRBIRINE gore

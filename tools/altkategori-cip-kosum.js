@@ -40,6 +40,27 @@ const { inlineScriptBul } = require(path.join(KOK, "tools", "html-blok-ayikla.js
 const SCRIPT_EDGE = inlineScriptBul(INDEX_METIN, "renderGrid");
 if (!SCRIPT_EDGE) { throw new Error("index.html inline katalog scripti bulunamadi"); }
 
+/* 🔴 "ALT KATEGORISI OLMAYAN KATEGORI" ORNEGI TURETILIR, ELLE YAZILMAZ (5 Eyl).
+   ESKIDEN burada sabit "Bisiklet" yaziyordu. 2 Agu'da dogruydu (Bisiklet 31 urundu,
+   K4 esigini gecmiyordu); 5 Eyl'de Bisiklet 2.618 urunle esigi gecip 16 alt kategori
+   alinca iddia KIRMIZI yandi — kol, olcmesi gereken KURALI ("kumesiz kategoride cip
+   satiri cizilmez") degil, DONMUS bir ornegi koruyordu. Ayni sinif kusur bugun ucuncu
+   kez gorüldü (arama.py yorum bloğu · sinifla-test ESIK_ALTI_KATEGORI · burasi), bu
+   yuzden tekil yama yerine ORNEK SECIMI otomatiklestirildi.
+   Secim NAV'DAN yapilir: katTikla() yalnizca gorunur kategori cipini tiklayabilir,
+   yani GIZLI_KATEGORILER (Jeneratör/Skan Art) aday DEGILDIR. */
+const KUMESIZ_KATEGORI = (function () {
+  const m = /var CATEGORIES = (\[[^\]]*\]);/.exec(INDEX_METIN);
+  if (!m) { throw new Error("index.html'de CATEGORIES bulunamadi (kumesiz ornek secilemedi)"); }
+  const aday = JSON.parse(m[1]).filter((k) => !Object.prototype.hasOwnProperty.call(IZINLI, k));
+  if (!aday.length) {
+    throw new Error("TUM gorunur kategorilerin alt kategori kumesi VAR — bu iddia artik "
+                    + "olculemez. Kol sessizce gecmez: ya negatif ornek geri gelmeli ya "
+                    + "iddia gerekcesiyle KALDIRILMALI.");
+  }
+  return aday[0];
+})();
+
 // Bayrak cevirme: MUTASYON DEGIL, belgelenmis geri donus yolunun ta kendisi
 // (index.html :: EDGE_KATALOG "false = BUGUNKU davranis ... geri donus yolu budur").
 // Capa tutmazsa SESSIZ GECME YOK — hata firlatilir.
@@ -295,8 +316,8 @@ async function modKos(mod) {
   // --- 2) ALT KATEGORISI OLMAYAN KATEGORIDE SATIR YOK ----------------------
   {
     const s = await sayfaKur(mod, "");
-    await s.katTikla("Bisiklet");
-    iddia(P + " ALT KATEGORISIZ KATEGORIDE SATIR YOK (Bisiklet)",
+    await s.katTikla(KUMESIZ_KATEGORI);
+    iddia(P + " ALT KATEGORISIZ KATEGORIDE SATIR YOK (" + KUMESIZ_KATEGORI + ")",
       s.altGorunur() === false && s.cipler().length === 0,
       "gorunur=" + s.altGorunur() + " cip=" + s.cipler().length);
     // KONTROL EKSENI: ayni kosumda alt kategorisi OLAN kategoride satir VAR olmali —
