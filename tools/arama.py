@@ -787,7 +787,7 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 45 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 48 jeton) ──
     # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
     # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
     # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
@@ -802,6 +802,10 @@ UYUM_MARKA_IZINLI = frozenset({
     # `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (44 -> 45, esitlik TUTTU).
     # Ayni turda `len(UYUM_MARKA_IZINLI)` 183 -> 184 ve FARK (izinli − eki) 139 SABIT
     # kaldi -> jeton IKI kumeye de girdi, yargilanmis bolumleme kirilmadi.
+    # 10. tur (5 Eyl 2026, KraL-Whitelist3Marka-05Eyl): UC jeton birden girdi, sayi
+    # 45 -> 48 ELLE guncellendi ve YINE `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK
+    # dogrulandi (45 -> 48, esitlik TUTTU). Ayni turda `len(UYUM_MARKA_IZINLI)`
+    # 184 -> 187 ve FARK (izinli − eki) 139 SABIT kaldi -> ucu de IKI kumeye girdi.
     # 🔴 KALEM HALA ACIK: bu bir MAKINE iddiasi degil, tek seferlik bir olcumdur —
     # bir sonraki tur yine guncellemeyi UNUTABILIR. Kalici cozum bu sayiyi `len()`ten
     # TURETMEK ya da bir kapiya iddia olarak KOYMAKTIR; ikisi de mimar hukmunu bekliyor
@@ -1048,6 +1052,113 @@ UYUM_MARKA_IZINLI = frozenset({
     #   mutantlar CANLI govdeye DEGIL gecici KOPYAYA uygulandi ve kosum sonunda canli
     #   dosyanin sha256'si DEGISMEDI (olculdu).
     "Harley-Davidson",
+    # 10. tur, C grubu (3) — mimar karari 5 Eyl 2026. `Royal Enfield` (Hindistan),
+    #   `Moto Guzzi` (Italya) ve `Indian` (Indian Motorcycle, ABD) UCU DE MOTOSIKLET
+    #   URETICISIDIR = EV SAHIBI arac markasi; uretilen parca ONA TAKILIR ("bu urun Royal
+    #   Enfield Interceptor'a / Moto Guzzi V7'ye / Indian Scout'a takilir" anlamli). Bu ek
+    #   YENI BIR SINIF ACMAZ: sinif emsali kumede ZATEN VAR ve on birinin hepsi motosiklet/
+    #   skuter ureticisidir — `Aprilia`, `Ducati`, `KTM`, `Husqvarna`, `Vespa`, `Zontes`,
+    #   `Mondial`, `CFMoto`, `Kawasaki` ve 7-9. turun kendi girisleri `SYM`/`Zero`/
+    #   `Harley-Davidson`. Tetik ucunde de AYNI: MaCiT'in hazir kurtarma partileri
+    #   `hasat_ekle.py` K302 marka-ayristirma kapisinda fail-closed durdu.
+    #   Olculen katalog agirligi (34141 urun, `model_normalize` ile tarandi):
+    #     `Royal Enfield`  marka[] TAM yazimla 95 · uyum[].marka 0 · uyum[].model 0 ·
+    #        uyum[].motor 0 · uyum[].oem 0  — ALT-DIZGE marka[] 95 / uyum.* 0
+    #     `Moto Guzzi`     marka[] TAM yazimla 80 · uyum[].* 0 (bes alanin BESI) —
+    #        ALT-DIZGE marka[] 80 / uyum.* 0
+    #     `Indian`         marka[] TAM yazimla 0 · uyum[].* 0 (bes alanin BESI)
+    #   🔴 AGIRLIK KARISIK: RE(95) ve MG(80) `Raymarine`(32)/`Harley-Davidson`(83) desenidir
+    #   — kayitlar `marka[]`yi ZATEN tasiyor, eski koddan `uyum` DOLDURULMADAN girmis
+    #   (CGTrader `c3dre-*` serisi); `Indian` ise `SYM`(0)/`Zero`(0) sifir-agirlik sinifi.
+    #   Sifir olmasi olcut DEGIL (2. tur B grubu hukmu: sozluk "gecerli mi"yi belirler,
+    #   "sayfasi acilir mi"yi degil).
+    #   🔴 `Indian`in ALT-DIZGE agirligi 0 DEGIL, **12** ve ADIYLA kayda geciyor: o 12 kayit
+    #   `marka[0]="Indian Motorcycle"` tasiyor (`mw192961`, `pr668999-*`, `pr34200-*`,
+    #   `pr129716-*`, `pr1699453-*`, `pr1332733-*`, `th7317536-*`, `th7297150-*`,
+    #   `th4823719-*`, `th7361128-*`, `th6464921-*`, `th5867208-*`). Bu AYRI bir jetondur
+    #   (`indianmotorcycle` != `indian`), kumeye GIRMIYOR, bu ekleme onu ne acar ne kapatir
+    #   ve `/marka/indian-motorcycle/` sayfasi ne ONCE ne SONRA kumesinde VAR (esik alti).
+    #   ⚠️ Mimarin on-olcumu bu ekseni "0 / baslik 0" diye raporlamisti; SAPMA cip elinde
+    #   olculup DUZELTILDI — dogru sayi 12 (MaCiT'in kendi talep notundaki "baslikta 12"
+    #   sayisiyla ORTUSUYOR). Hukum degismedi.
+    #   Kume KAPALI kalir; yargilanmis bolumleme (izinli−eki / uretici−eki / elenen)
+    #   degismez, UCU DE `UYUM_MARKA_ELENEN`de DEGIL ve `URETICI_MARKA`da DEGIL (alti da
+    #   olculdu) — elenmis bir jeton geri sizmaz.
+    # 🔴 IKINCI ROL OLCULDU — ve BU TUR K220 NEGATIFI **DEGILDIR**, hem de 9. turdan DAHA
+    #   AGIR: `Harley-Davidson`da menzilde 2 MODEL sayfasi vardi, burada **8**. Canli
+    #   `sitemap.xml` (35824 loc) ve izole ONCE kosumu BIREBIR ayni 11 sayfayi veriyor:
+    #     /marka/royal-enfield/ · /marka/royal-enfield/sayfa/2/ · .../650/ ·
+    #     .../classic-500/ · .../himalayan/ · .../himalayan-450/ · .../interceptor/ ·
+    #     .../meteor-350/ · /marka/moto-guzzi/ · .../stelvio/ · .../v85tt/
+    #   K220'nin `Range Rover` emsalinde OLEN sayfa TAM bu MODEL sinifiydi -> mekanizmanin
+    #   HEDEFI MEVCUTTUR, risk soyut DEGILDIR.
+    #   ⚠️ Mimarin on-olcumu menzili "2 canli sayfa" diye raporlamisti; SAPMA cip elinde
+    #   AYNI canli sitemap uzerinde olculup DUZELTILDI — dogru sayi 11 (8'i MODEL).
+    #   Mekanizma ADIYLA: `marka_model_build.py:471` kapali kumeyi (UYUM_MARKA_IZINLI ∪
+    #   URETICI_MARKA ∪ MODEL_OLMAYAN_JETON) NORMALIZE edip MODEL jetonunu REDDEDER. Yeni
+    #   jetonlarin normalleri `royalenfield` · `motoguzzi` · `indian`; sekiz canli model
+    #   jetonunun normalleri `650` `classic500` `himalayan` `himalayan450` `interceptor`
+    #   `meteor350` `stelvio` `v85tt` — HICBIRI esit DEGIL, sayfalar dusmez. Bu
+    #   VARSAYILMADI: uretilen URL kumesi ONCE ve SONRA TAM kosuldu, 11 sayfanin ON BIRI DE
+    #   SONRA kumesinde ADIYLA duruyor. Yapisal ikinci rol kolu ayrica bos: normalize'i TAM
+    #   `royalenfield`/`motoguzzi`/`indian` olan `uyum[].model` = 0 · `uyum[].motor` = 0.
+    #   SERBEST METINDE (ad/id/aciklama, kucuk-harf alt dizge) RE 95 · MG 79 · Indian 12
+    #   kayit gecer; serbest metin sozluk yoluna GIRMEZ — AYRI EKSEN, hukmu DEGISTIRMEZ.
+    #   Iki eksenin ADIYLA ayristigi kayitlar: `th7180470-moto-guzzi-...-aku-yatagi-
+    #   adaptoru` metninde "Royal Enfield" gecer ama `marka[]`de YOK; buna karsilik RE'de 1
+    #   ve MG'de 1 kayit `marka[]`de VAR ama serbest metinde YOK.
+    # 🔴 ESLESME TAM/EXACT'tir — ALT DIZGE/ONEK YOK: `uyum_marka_kanonik()` HAM string
+    #   uyelik testi yapar (`deger not in UYUM_MARKA_IZINLI`, strip() YOK) ve ikinci rol
+    #   `n not in _UYUM_MARKA_ANAHTARLARI` ile calisir. Bu tur VARSAYILMADI, IDDIAYLA
+    #   DOGRULANDI (27 varyant ONCE ve SONRA olculdu): `"royal enfield"` · `"ROYAL ENFIELD"`
+    #   · `"Royal-Enfield"` · `"RoyalEnfield"` · `"Royal  Enfield"` · `" Royal Enfield"` ·
+    #   `"Royal Enfield "` · `"Enfield"` · `"Royal Enfield Himalayan"` · `"moto guzzi"` ·
+    #   `"MOTO GUZZI"` · `"Moto-Guzzi"` · `"MotoGuzzi"` · `" Moto Guzzi"` · `"Moto Guzzi "` ·
+    #   `"Guzzi"` · `"Moto Guzzi V7"` · `"indian"` · `"INDIAN"` · `" Indian"` · `"Indian "` ·
+    #   `"Indians"` · `"Indian Scout"` · `"Indian-Motorcycle"` — YIRMI DORDU DE REDDEDILDI;
+    #   yalniz `"Royal Enfield"` · `"Moto Guzzi"` · `"Indian"` kabul edildi ve AYNEN dondu.
+    #   🔴 `"Enfield"` TEK BASINA BILEREK EKLENMEDI: MaCiT'in ayni partide olctugu homonim
+    #   (tarihi Enfield P1853 tufegi, Royal Small Arms Factory) gevsek eslesmenin kirli
+    #   sizinti uretecegini gosteriyor — "Bicycle" oyun kagidi markasi dersiyle ayni sinif.
+    # 🔴 IZOLASYON: `build.py --cikti-kok` KULLANILMADI (7. turda olculen sizinti —
+    #   marka_model/landing/kategori_hub `ctx["ROOT"]`e yazar, build.py:5059, ve gitignore
+    #   yuzunden `git status` TEMIZ kalir, sizinti GORUNMEZ). Izolasyon `git archive HEAD`
+    #   ile AYRI IKI ROOT kopyasi kurularak saglandi, build.py ORADAN kosuldu — ROOT da
+    #   CIKTI_KOK da temp (log `CIKTI_KOK=<izole ROOT> (varsayilan)`, yonlendirme YOK).
+    #   Iki eksenin ESITLIGI izolasyonun KENDISININ de olcusudur.
+    #   Uretilen sayfa/URL kumesi ONCE ve SONRA TAM kosuldu: 35824 = 35824, KAYBOLAN
+    #   URL = 0, DOGAN = 0. DORT kumenin (once-A / once-B / sonra-A / sonra-B) DORDU DE
+    #   35824 ve BIREBIR ayni; ayrica canli `sitemap.xml`in 35824 loc'uyla da esit —
+    #   yani izole kosum canliyi YENIDEN URETIYOR, bu izolasyonun UCUNCU olcusudur.
+    #   🔴 URL KUMESI TEK BASINA YETMEZ (bu tur EKLENDI): menzildeki 11 sayfanin ICERIGI
+    #   de ONCE/SONRA olculdu — ON BIRININ DE sha256'si BIREBIR AYNI, urun sayilari
+    #   DUSMEDI: royal-enfield hub 95 = 95 (sayfa-1 80 + sayfa-2 15), moto-guzzi hub
+    #   80 = 80, model sayfalari 650=4 · classic-500=4 · himalayan=34 · himalayan-450=7 ·
+    #   interceptor=6 · meteor-350=4 · stelvio=6 · v85tt=14 (hepsi ONCE=SONRA).
+    # 🔴 KIYAS KUME FARKIYLA YAPILIR, SAYIYLA DEGIL: bir sayfa olup yerine baskasi dogsaydi
+    #   TOPLAM SABIT kalirdi (mutantla kanitli, 6. tur). Kaybolan ve dogan AYRI AYRI basilir.
+    # 🔴 MUTANT HEDEF KOLU ADIYLA OLDURULDU (K182: "kirmizi geldi" tek basina kanit DEGIL);
+    #   mutantlar CANLI govdeye DEGIL gecici KOPYAYA uygulandi ve kosum sonunda canli
+    #   dosyanin sha256'si DEGISMEDI (olculdu). Fikstur: `{"marka":"Royal Enfield",
+    #   "model":"Interceptor"}` · `{"marka":"Moto Guzzi","model":"V7"}` ·
+    #   `{"marka":"Indian","model":"Scout"}`.
+    #     A  TABAN — ucu de `uyum_ogesi_sebebi()`den GECTI ve `marka_uyumdan_turet()`
+    #        ['Royal Enfield','Interceptor'] / ['Moto Guzzi','V7'] / ['Indian','Scout']
+    #        turetti (MaCiT'in K302'de fail-closed durdugu yol ARTIK ACIK).
+    #     M1 uc jeton kumeden CIKARILINCA ucu de RED aldi VE red metni HEDEF koldan geldi
+    #        ("marka ZORUNLU ve KAPALI kumeden olmali", kume 184); geri konunca YESIL.
+    #     M2 YALNIZ `Indian` cikarilinca YALNIZ Indian fiksturu dustu, RE/MG GECTI —
+    #        capa SECICI, uc jetonu tek bir kol olarak olcmuyor.
+    #     K  KONTROL-MUTANT (ilgisiz: UYUM_YIL_EN_ERKEN 1900->1899) ucunu de YESIL birakti.
+    # 🔴 OLCULEN YAN ETKI — KALEM ACIK, kirmizi DEGIL: `uyum-kapisi.py` YESIL kaldi ve
+    #   hukmu (gecen 39 · kalan 0 · iddia 39, taban 39) DEGISMEDI, ama iki OLCUM satiri
+    #   kaydi: "bilesen tasiyan tekil jeton" 32 -> 33 ve `siniflandirilmamis` listesine
+    #   `Indian Motorcycle` GIRDI (7 -> 8). Sebep mekanik: `Indian` artik kumede oldugu
+    #   icin `Indian Motorcycle` bir "bilesik ad" adayi olarak GORUNUR HALE geldi — o 12
+    #   kaydin marka jetonu. Bugun zararsiz (tablo degismedi, 0 kaydin `marka`si degisti),
+    #   ama kalici cozum MaCiT duzlemindedir: ya 12 kayit `Indian`a normalize edilir ya da
+    #   `Indian Motorcycle` ayrica yargilanir. Bu turda BILINCLI olarak ACIK BIRAKILDI.
+    "Indian", "Moto Guzzi", "Royal Enfield",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1095,6 +1206,10 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # (bu turda K220 NEGATIFI DEGIL: dort CANLI `/marka/harley-davidson/` sayfasi VAR)
     # UYUM_MARKA_IZINLI'nin "C grubu" 9. tur basliginda yazili. Burada TEKRAR EDILMEZ.
     "Harley-Davidson",
+    # 10. tur (5 Eyl 2026) — gerekce + olculen katalog agirligi + K220 ikinci-rol olcumu
+    # (bu turda da K220 NEGATIFI DEGIL: 11 CANLI sayfa menzilde, 8'i MODEL sayfasi)
+    # UYUM_MARKA_IZINLI'nin "C grubu" 10. tur basliginda yazili. Burada TEKRAR EDILMEZ.
+    "Indian", "Moto Guzzi", "Royal Enfield",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
