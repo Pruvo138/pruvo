@@ -2,10 +2,11 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔴 5 EYL ~22:4xZ — **SIRADAKI TEK IS: `claude/affectionate-williams-d8bc67` MERGE** (`blissful-franklin`)
-Cip KAYIP DEGIL, is BITTI; dal **itilmis** `f2b8746d`, agac temiz, kapanis kutu ARSIVINDE `:65767` + `⛔ MERGE BEKLIYOR`. Hukumsuz merge yapmayi REDDETTI (dogru): kota okumayi da kesmisti.
-**OLCUM (§1-§2):** agac temiz · merge-base **`5f6a4c4b`** · **FF IMKANSIZ** (merge commit'i sart) · sizinti **0** · **12 yeni test/kapi** → CI kapsam KOSULSUZ. Kalan: ci-kapsam+parite+parite-ege+`d1-sync --durum` → merge+push → SHA'yi ICEREN kosum success/SKIPPED 0 → `arsiv-kapisi.py` rc=0. **Devir metni KUTUDA.**
-🔴 **AGACI SILME.** 🔴 **KOTA 8. VAKA:** ayni kapi hem cipi hem mimari (281 tur/363K) merge'den ONCE kesti. *Kapatan:* kapanis sinifi BEKLEYEN merge kablosunu kapsasin.
+## ✅ 5 EYL ~23:xxZ — **MERGE KAPANDI: emekli motor adi supurmesi main'de (`36bf1a0b`)**
+`claude/affectionate-williams-d8bc67` (`f2b8746d`, 5 commit) → main: 71 dosya +700/-396, merge-base `5f6a4c4b`, FF imkansiz, cakisma 0.
+**KAPI:** kendini-test **5/5** · menzil HUKUM=GECTI IHLAL=0 CAPA_DUSEN=0 · ci-kapsam **YESIL** · parite **1334**+ege **897** BIREBIR · `d1-sync --durum` **34292** ✅ · sizinti 0. `arama.py`: yalniz 3 YORUM satiri.
+**CIP:** `arsiv-kapisi.py` **rc=0 ARSIVLENEBILIR**. 🔴 AGACI SILME: `lsof -a -d cwd` → PID 3501 agaci tutuyor; arsivi Okan tiklar. 🔴 Kapiya HEDEF=TAM YOL; cip ADIYLA rc=2.
+**YAYIN:** run `33978175155` BEKLIYOR (kuyruk). Kabul: `deploy`+`yayin` success, SKIPPED 0.
 
 ## ✅ 5 EYL — KUTU KILIDI UC KUSUR KAPANDI (`3eae9047`) — **ISARETCI**
 ↩︎ TAM METIN kutuda (cip `goofy-snyder-cb4801`): 6 kilit->0, kutu 461->388, 515/515, yayin yesil.
