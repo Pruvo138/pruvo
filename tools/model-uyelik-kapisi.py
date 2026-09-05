@@ -1875,8 +1875,15 @@ MUTANTLAR = [
      "    return marka_mi(t, evren)", "KIRMIZI",
      "M9 KAPALI MARKA KÜMESİNİ OKUMAYI BIRAK -> marka jetonları (Yanmar/Scion/Mariner) "
      "MODEL sayfası olur"),
-    ("index.html", '"Teak Wonder","Twin Disc","Volvo Penta"];',
-     '"Teak Wonder","Twin Disc"];', "KIRMIZI",
+    # 🔴 ÇAPA 6 Eyl 2026'da TAZELENDİ (çip KraL-SeritB-IkiKapi, SERİT B onarımı). ESKİ ÇAPA
+    # `"Teak Wonder","Twin Disc","Volvo Penta"];` idi; index.html'de BILESIK_MARKA dizisi
+    # yeniden sarıldığı için ("Teak Wonder", satır sonuna düştü, index.html:3155-3156) o
+    # literal 0 EŞLEŞMEYE indi ve M10 ekseni ÖLÇÜLMEDİ (harness fail-closed `capa 0 eslesme`
+    # bastı). Yeni çapa TEK ÜYEYE bağlı — satır sarmasına ve dizideki komşu üyelerin
+    # değişmesine duyarsız, index.html'de count==1. İDDİA BİREBİR AYNI: aynadan bir bileşik
+    # marka düşünce ayna otoriteyle (arama.py kapalı marka kümesi) ayrışır, K7 fail-closed
+    # KIRMIZI yakar. Çapa GENİŞLETİLMEDİ ("her şeye uyan" hale getirilmedi).
+    ("index.html", ',"Volvo Penta"', "", "KIRMIZI",
      "M10 AYNADAN BİR BİLEŞİK MARKAYI DÜŞÜR -> ayna otoriteyle (arama.py) ayrışır"),
     ("index.html", "    if(bilesikMarkaMi(t)){ return t; }        // bileşik marka BÖLÜNMEZ (tek parça kalır)",
      "    if(false){ return t; }", "KIRMIZI",

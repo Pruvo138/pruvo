@@ -163,23 +163,41 @@ MUTANTLAR = [
      KAPI_ADI,
      "    veri = {m: d for m, d in veri.items() if m in tan or d[\"marka_only\"]}",
      "    pass  # post-filter kaldirildi → model jetonlari evrende", "KIRMIZI"),
-    # K2: KALICI_KIRMIZI'daki 'Rover'i dusur → Rover 82 kirmizisi kaybolur, kapi YESIL
-    #     yanar → korlesme yakalanir (susturma basarili olmamali; onarim yok).
-    ("OLDURUCU M16 KALICI_KIRMIZI'dan Rover'i dusur (korlesme — susturma gizlenmemeli)",
+    # K2 — 🔴 6 Eyl 2026'da YENIDEN YAZILDI (cip KraL-SeritB-IkiKapi). ESKI HALI:
+    #     "KALICI_KIRMIZI'dan Rover'i dusur -> KIRMIZI". O mutant 'Rover' kaydinin LISTEDE
+    #     OLMASINI varsayiyordu; kayit emekli edilince (canli /marka/rover/ 200 + 2/2 urun
+    #     sayfada, taban arama_kayip {Rover:82} -> 0) capasi 0 eslesmeye duser ve eksen
+    #     SESSIZCE OLCULMEZ olurdu.
+    #     YENI ILDIA — LISTE BOSKEN EKSEN HALA ATESLIYOR MU: gercek bir kayip enjekte edilir
+    #     (her markanin sayfasindaki DETERMINISTIK ilk urun aramadan dusurulur). Kapi
+    #     ARAMA_KAYIP taban ekseninde + "beklenmeyen kayip" K kolunda KIRMIZI yanmali.
+    #     Bu, "kayit emekli edildi diye koruma kalkti mi?" sorusunun tek kanitidir
+    #     ([[grep-sifir-nobetcisi-yasak-kaydinda-oludur]]).
+    ("OLDURUCU M16 SENTETIK GERCEK KAYIP ENJEKTE ET (KALICI_KIRMIZI BOSKEN eksen hala "
+     "atesliyor mu?)",
      KAPI_ADI,
-     "    \"ARAMA_KAYIP\": {\"Rover\"},       # gercek kayip: rover sayfasi yok, urun kayboluyor",
-     "    \"ARAMA_KAYIP\": set(),", "KIRMIZI"),
+     "        kumeler[marka] = (sayfa, filtre, srch)",
+     "        srch = srch - {sorted(sayfa)[0]} if sayfa else srch\n"
+     "        kumeler[marka] = (sayfa, filtre, srch)", "KIRMIZI"),
+    # K6 — M16'nin KONTROL KOLU: AYNI YERDE, ayni sekilde, ama KAYIP YOK. Bu kol olmadan
+    #      M16'nin kirmizisi "enjekte edilen kayip" yerine "o satiri elleme" yuzunden de
+    #      dogabilirdi; ikisi birlikte kosunca kirmizinin SEBEBI civilenir.
+    ("KONTROL K6 M16 ile AYNI SATIR, kayip YOK (bos kume cikarilir) — kapi YESIL kalmali",
+     KAPI_ADI,
+     "        kumeler[marka] = (sayfa, filtre, srch)",
+     "        srch = srch - set() if sayfa else srch\n"
+     "        kumeler[marka] = (sayfa, filtre, srch)", "YESIL"),
     # K3: 'Opel' evrenden dusurulurse (sayfasi kapali gercek marka) → model_only testi /
     #     K kontrolu yakalar. Tabana bagli degil; KALICI_KIRMIZI mekanizmasi bunu KIRMIZI
     #     vermeli — K140 evren kaynagi bunu otomatik izliyor.
+    # 🔴 CAPA 6 Eyl 2026'da TAZELENDI: Rover emekli edilince satir degisti. IDDIA AYNI —
+    # eksende KARSILIGI OLMAYAN bir kayit listeye girerse K kolu (kalici_eksiler) KIRMIZI
+    # yanmali; yani liste BOSALDI diye K kolu olmedi.
     ("OLDURUCU M17 KALICI_KIRMIZI'da OLMAYAN bir markayi icerige sok → K kontrolu yakalar",
      KAPI_ADI,
-     "KALICI_KIRMIZI = {\n"
-     "    \"ARAMA_KAYIP\": {\"Rover\"},       # gercek kayip: rover sayfasi yok, urun kayboluyor\n"
-     "}",
-     "KALICI_KIRMIZI = {\n"
-     "    \"ARAMA_KAYIP\": {\"Rover\", \"HayaliMarka\"},\n"
-     "}", "KIRMIZI"),
+     "    \"ARAMA_KAYIP\": set(),           # Rover 6 Eyl 2026'da emekli edildi "
+     "(yukaridaki blok)",
+     "    \"ARAMA_KAYIP\": {\"HayaliMarka\"},", "KIRMIZI"),
     # K4: kapida kuratorlu liste YOK — ikiz tanim nobetcisi. Eger birisi listeyi kapiya
     #     kopyalarsa KIRMIZI vermeli. NOT: kapida liste ZATEN yok; bu mutant listeyi
     #     ekleyerek "ikiz tanim" riskini canlandirir ve kapinin "evren TANINMIS'tan
