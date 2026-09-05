@@ -32,7 +32,33 @@ import sys
 
 TAVAN = 2
 SAYAC_DIZIN = os.path.expanduser("~/.claude/cron/.cip-kapanis-sayaci")
-KAPI = "/Users/okan/dev/pruvo/tools/arsiv-kapisi.py"
+KANONIK_KAPI = "/Users/okan/dev/pruvo/tools/arsiv-kapisi.py"
+KANONIK_ENV = "PRUVO_KANONIK_TOOLS"
+
+
+def _kapi_yolu():
+    """Hukum kaynagi `arsiv-kapisi.py`nin yolu — ONCE bu kancanin KENDI dizininde.
+
+    🔴 OLCULMUS KUSUR (5 Eyl): yol YALNIZ `KANONIK_KAPI` sabitiydi ve o sabit
+    OKAN'IN MAKINESINE ozeldir. CI runner'inda checkout `/home/runner/work/...`
+    altindadir, sabit yol YOKTUR -> kanca `arsiv-kapisi.py yok` deyip FAIL-OPEN
+    geciyordu. Yani kabul bataryasinin "bloklamali" vakalari CI'da yapisal olarak
+    kirmizi, kancanin kendisi ise CI evreninde OLU idi. Yerelde yol VAR oldugu
+    icin bu korluk yerelde HIC gorunmez ([[kapinin-menzili-cagri-yeridir]]).
+
+    Mutasyon turu bu kancanin KOPYASINI gecici bir dizine yazip kosar; kopyanin
+    yaninda `arsiv-kapisi.py` YOKTUR. Kopyayi kosan harness kanonik `tools/`u BILIR
+    ve `PRUVO_KANONIK_TOOLS` ile soyler (arsiv-kapisi.py ile AYNI sozlesme, ikinci
+    bir isim acilmadi)."""
+    for dizin in (os.environ.get(KANONIK_ENV) or "",
+                  os.path.dirname(os.path.realpath(__file__))):
+        aday = os.path.join(dizin, "arsiv-kapisi.py") if dizin else ""
+        if aday and os.path.isfile(aday):
+            return aday
+    return KANONIK_KAPI
+
+
+KAPI = _kapi_yolu()
 
 RC_YESIL = 0
 RC_KIRMIZI = 1
