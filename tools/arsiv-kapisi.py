@@ -45,6 +45,16 @@ import sys
 import tempfile
 
 VARSAYILAN_REPO = "/Users/okan/dev/pruvo"
+# 🔴 Bu aracin KENDI dizini. `VARSAYILAN_REPO` OKAN'IN MAKINESINE ozel bir yoldur;
+# CI runner'inda checkout `/home/runner/work/pruvo/pruvo`tur ve o yol YOKTUR.
+# `TOOLS_DIZINI` her evde VE CI'da dogrudur -> kanonik kaynagin ikinci ekseni.
+TOOLS_DIZINI = os.path.dirname(os.path.realpath(__file__))
+# 🔴 UCUNCU EKSEN DEGIL, BIRINCI: mutasyon turu bu dosyanin KOPYASINI gecici bir
+# dizine yazip kosar; kopyanin `TOOLS_DIZINI`si o gecici dizindir ve yaninda
+# `kutu-arsivle.py` YOKTUR. Kopyayi kosan harness kanonik `tools/`u BILIR ve bu
+# ortam degiskeniyle SOYLER — yoksa mutant kosumlari tabaniyla birlikte coker ve
+# hicbir sey olculmez ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]).
+KANONIK_ENV = "PRUVO_KANONIK_TOOLS"
 VARSAYILAN_KUTU = os.path.expanduser(
     "~/.claude/projects/-Users-okan-dev-pruvo/memory/mimar-posta-kutusu.md")
 
@@ -106,6 +116,28 @@ def repo_turet(hedef):
 
 # ------------------------------------------------------------------ kutu kaynagi
 
+def _kanonik_kaynak():
+    """(yol|None, nereden) — `kutu-arsivle.py`nin KANONIK kopyasi; TEK cozucu.
+
+    🔴 OLCULMUS KUSUR (5 Eyl, CANLI CI): kanonik kaynak YALNIZ `VARSAYILAN_REPO`
+    uzerinden aranıyordu. O yol OKAN'IN MAKINESINE ozeldir — yerelde VAR oldugu icin
+    korluk yerelde HIC gorunmez; CI runner'inda YOKTUR. 5 Eyl kosumunda
+    (`33945934510`) uc SERIT B adimi `FileNotFoundError` ile FIKSTUR KURULUMUNDA
+    oldu: arsiv kapisi kabul bataryasi · cip kapanis kancasi kabul bataryasi ·
+    cip kapanis kancasi mutasyon turu. Yani uc batarya "kirmizi" degil, HIC
+    OLCMEMISTI. Cozucu ONCE bu aracin KENDI dizinine bakar (`arsiv-kapisi.py` ile
+    `kutu-arsivle.py` ayni `tools/`te yasar; bu eksen her evde ve CI'da dogrudur),
+    SONRA `VARSAYILAN_REPO`ya duser, ikisi de yoksa fail-loud None."""
+    adaylar = ((os.environ.get(KANONIK_ENV) or "", "harness ortami"),
+               (TOOLS_DIZINI, "arac dizini"),
+               (os.path.join(VARSAYILAN_REPO, "tools"), "kanonik repo"))
+    for dizin, nereden in adaylar:
+        aday = os.path.join(dizin, "kutu-arsivle.py") if dizin else ""
+        if aday and os.path.isfile(aday):
+            return aday, nereden
+    return None, "yok"
+
+
 def _kutu_kaynak_yolu(repo):
     """(yol|None, nereden) — kapanis hukmunun KANONIK kaynagi.
 
@@ -113,14 +145,11 @@ def _kutu_kaynak_yolu(repo):
     arananiyordu. Kutu ORTAKtir ama `kutu-arsivle.py` yalniz pruvo'da yasar; kardes
     evlerde (hasat/pazarlama/bot/jenerator) kosuldugunda K4 HER ZAMAN `OLCULEMEDI`
     doner — yani kapanis kolu bu evlerde HIC olculmemis olur. Kapinin menzili cagri
-    yeridir: kaynak once cagrilan repoda, YOKSA kanonik pruvo'da aranir."""
+    yeridir: kaynak once cagrilan repoda, YOKSA kanonik kopyada aranir."""
     yerel = os.path.join(repo, "tools", "kutu-arsivle.py")
     if os.path.isfile(yerel):
         return yerel, "yerel"
-    kanonik = os.path.join(VARSAYILAN_REPO, "tools", "kutu-arsivle.py")
-    if os.path.isfile(kanonik):
-        return kanonik, "kanonik"
-    return None, "yok"
+    return _kanonik_kaynak()
 
 
 def _kutu_modulu(repo):
@@ -414,9 +443,17 @@ def _kur_fikstur(kok, *, kirli=False, mainde=True, itilmis=True, kapanis=True,
     # K4'un hukum kaynagi. `kaynak_kopyala=False` KARDES EV halini taklit eder:
     # repoda `tools/kutu-arsivle.py` YOKTUR ve kapi KANONIK pruvo kaynagina DUSMELIDIR.
     if kaynak_kopyala:
+        # 🔴 Kaynak DOGRUDAN `VARSAYILAN_REPO`dan alinamaz: o yol CI'da YOKTUR ve
+        # fikstur kurulumu `FileNotFoundError` ile olur -> batarya HIC olcmez.
+        # Cozucu tek yerdedir; burada ikinci bir kopyasi acilmaz.
+        kaynak, _nereden = _kanonik_kaynak()
+        if kaynak is None:
+            raise RuntimeError(
+                "FIKSTUR KURULAMAZ: `kutu-arsivle.py` kanonik kopyasi HICBIR YERDE "
+                "yok (ne %s ne %s/tools) — bu bir OLCULEMEDI halidir, sessizce "
+                "yesile katlanamaz" % (TOOLS_DIZINI, VARSAYILAN_REPO))
         os.makedirs(os.path.join(repo, "tools"), exist_ok=True)
-        shutil.copy2(os.path.join(VARSAYILAN_REPO, "tools", "kutu-arsivle.py"),
-                     os.path.join(repo, "tools", "kutu-arsivle.py"))
+        shutil.copy2(kaynak, os.path.join(repo, "tools", "kutu-arsivle.py"))
     return repo, (hedef_kok if hedef_kok else dal), kutu, cip
 
 
@@ -623,11 +660,22 @@ MUTANTLAR = (
      '              "SILER ve o isi kaybeder.", file=sys.stderr)\n'),
     # Canlida bulunan kusurun mutanti: kanonik kaynaga dusme kolunu kaldir ->
     # kardes evlerde K4 yine HER ZAMAN OLCULEMEDI olur. V9 bunu oldurur.
+    # 🔴 CAPA 5 EYL'DE TAZELENDI VE EKSEN DEGISTIRDI. Kanonik cozucu tek fonksiyona
+    # (`_kanonik_kaynak`) alinip UC eksene cikti; eski capa cozucunun TEK koluna
+    # vuruyordu ve artik OLDURMEZDI — oteki eksen kaynagi yine bulur, mutant KACARDI
+    # ([[mutant-yardimcisi-neyi-yamadigi-imzasindan-okunmaz]]). Capa artik HUKUM
+    # YOLUNU hedefliyor: kardes evde kanonige dusme kolu kor edilir. Cozucunun
+    # kendisi sagdir (fikstur onunla kurulur), yani mutant HEDEF KOLDA olur —
+    # cokme rc'siyle degil ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]).
     ("M7 kanonik-kaynak-dusmesini-kaldir", KOL_KAPANIS,
-     '    kanonik = os.path.join(VARSAYILAN_REPO, "tools", "kutu-arsivle.py")\n'
-     '    if os.path.isfile(kanonik):',
-     '    kanonik = os.path.join(VARSAYILAN_REPO, "tools", "kutu-arsivle.py")\n'
-     '    if False:'),
+     '    yerel = os.path.join(repo, "tools", "kutu-arsivle.py")\n'
+     '    if os.path.isfile(yerel):\n'
+     '        return yerel, "yerel"\n'
+     '    return _kanonik_kaynak()',
+     '    yerel = os.path.join(repo, "tools", "kutu-arsivle.py")\n'
+     '    if os.path.isfile(yerel):\n'
+     '        return yerel, "yerel"\n'
+     '    return None, "yok"'),
     # Rotasyon kolunu kaldir -> arsive tasinmis kapanis GORUNMEZ olur. V10 oldurur.
     ("M8 arsiv-kolunu-kaldir", KOL_KAPANIS,
      '    ars = arsiv_yolu(kutu_yolu)\n    if os.path.isfile(ars):',
@@ -650,6 +698,10 @@ def mutasyon():
 
     print("MUTASYON BATARYASI — kopya uzerinde, canli govdeye DOKUNULMAZ")
     kok = os.path.realpath(tempfile.mkdtemp(prefix="arsiv-kapisi-mut-"))
+    # Kopyalar GECICI dizinde kosar; kendi `TOOLS_DIZINI`leri kanonik `tools/` DEGIL.
+    # Harness kanonik dizini BILIR ve ortamla soyler — yoksa her kopya (kontrol dahil)
+    # fikstur kuramaz ve tur hicbir sey olcmeden coker.
+    ortam = dict(os.environ, **{KANONIK_ENV: TOOLS_DIZINI})
     kirmizi = 0
     try:
         # KONTROL: mutantsiz kopya taban ile AYNI hukmu vermeli
@@ -657,11 +709,20 @@ def mutasyon():
         with open(kontrol, "w", encoding="utf-8") as f:
             f.write(taban_metin)
         rc_k = subprocess.run([sys.executable, kontrol, "--kendini-test"],
-                              capture_output=True, text=True).returncode
+                              capture_output=True, text=True, env=ortam).returncode
         print("  [%s] MK kontrol (mutantsiz kopya) rc=%d — beklenen 0"
               % ("OK" if rc_k == 0 else "KIRMIZI", rc_k))
         if rc_k != 0:
-            kirmizi += 1
+            # 🔴 OLCULMUS SAHTE YESIL (5 Eyl, CI kosumu 33945934510): kontrol rc=1
+            # oldugu halde tur DEVAM ETTI ve 9 mutantin 9'u "oldu" diye BASILDI —
+            # oysa hepsinin rc'si mutantin degil, TABANIN cokmesinin rc'siydi
+            # ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]). Taban kirmiziyken
+            # mutant hukmu VERILEMEZ: tur burada DURUR, sayilar OLCULMEDI sayilir.
+            print("\n!! TABAN KIRMIZI — mutasyon turu KOSMAZ (once bataryayi yesile "
+                  "getir). Mutant hukmu VERILMEDI: bu turda OLCULEN mutant sayisi 0.")
+            print("MUTANT=0/%d KIRMIZI=1 (TABAN)" % len(MUTANTLAR))
+            print("MUTASYON OLCULEMEDI")
+            return False
 
         for ad, hedef_kol, capa, yeni in MUTANTLAR:
             if taban_metin.count(capa) != 1:
@@ -673,13 +734,41 @@ def mutasyon():
             with open(yol, "w", encoding="utf-8") as f:
                 f.write(taban_metin.replace(capa, yeni))
             s = subprocess.run([sys.executable, yol, "--kendini-test"],
-                               capture_output=True, text=True)
+                               capture_output=True, text=True, env=ortam)
             oldu = s.returncode != 0
             print("  [%s] %-34s hedef kol=%-16s rc=%d %s"
                   % ("OK" if oldu else "KIRMIZI", ad, hedef_kol, s.returncode,
                      "-> KABUL KIRMIZI (mutant oldu)" if oldu
                      else "-> KABUL YESIL KALDI (mutant ULASMADI)"))
             if not oldu:
+                kirmizi += 1
+
+        # HK — HARNESS KONTROLU: "taban kirmiziyken tur durur" kolu FIILEN kosuyor mu?
+        # 🔴 Bu kol olmadan yukaridaki emniyet KENDISI olculmez: 5 Eyl'de tam da o
+        # olculmemis emniyet yuzunden 9 sahte kill basildi. Kirik kopya = tabani
+        # kirmizi yapan mutant (kanonik cozucu None doner -> fikstur kurulamaz).
+        kirik = os.path.join(kok, "HK-harness.py")
+        kirik_metin = taban_metin.replace(
+            '    adaylar = ((os.environ.get(KANONIK_ENV) or "", "harness ortami"),\n',
+            '    return None, "yok"\n'
+            '    adaylar = ((os.environ.get(KANONIK_ENV) or "", "harness ortami"),\n', 1)
+        if kirik_metin == taban_metin:
+            print("  [KIRMIZI] HK harness kontrolu   CAPA ULASMADI -> emniyet OLCULMEDI")
+            kirmizi += 1
+        else:
+            with open(kirik, "w", encoding="utf-8") as f:
+                f.write(kirik_metin)
+            hk = subprocess.run([sys.executable, kirik, "--mutasyon"],
+                                capture_output=True, text=True, env=ortam)
+            durdu = "MUTASYON OLCULEMEDI" in hk.stdout
+            kill_yok = "mutant oldu" not in hk.stdout
+            if durdu and kill_yok and hk.returncode != 0:
+                print("  [OK] HK harness kontrolu           taban KIRMIZI -> tur DURDU, "
+                      "basilan kill sayisi 0 (rc=%d)" % hk.returncode)
+            else:
+                print("  [KIRMIZI] HK harness kontrolu      taban KIRMIZI iken tur "
+                      "DURMADI (durdu=%s kill_yok=%s rc=%d) -> SAHTE YESIL KAPISI ACIK"
+                      % (durdu, kill_yok, hk.returncode))
                 kirmizi += 1
     finally:
         shutil.rmtree(kok, ignore_errors=True)

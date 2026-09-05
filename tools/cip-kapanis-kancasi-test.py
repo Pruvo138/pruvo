@@ -34,8 +34,12 @@ def kancayi_kos(veri, kanca=KANCA, kutu=None):
     argv = [sys.executable, kanca]
     if kutu:
         argv += ["--kutu", kutu]
+    # Kanca KOPYASI gecici dizinde kosarken yaninda `arsiv-kapisi.py` YOKTUR;
+    # kanonik `tools/` ortamla soylenir, yoksa kopya fail-open gecer ve mutasyon
+    # turu tabaniyla birlikte coker (5 Eyl'de olculdu).
+    ortam = dict(os.environ, PRUVO_KANONIK_TOOLS=KOK)
     s = subprocess.run(argv, input=json.dumps(veri),
-                       capture_output=True, text=True, timeout=180)
+                       capture_output=True, text=True, timeout=180, env=ortam)
     blokladi = False
     sebep = ""
     for satir in s.stdout.splitlines():
@@ -185,7 +189,15 @@ def mutasyon():
         print("  [%s] MK kontrol (mutantsiz kopya) -> %s"
               % ("OK" if ok else "KIRMIZI", "YESIL" if ok else "KIRMIZI"))
         if not ok:
-            kirmizi += 1
+            # 🔴 OLCULMUS SAHTE YESIL (5 Eyl, CI hali): kontrol KIRMIZI oldugu halde
+            # tur devam edip 4 mutantin 4'unu "OLDU" diye BASIYORDU — oysa hepsinin
+            # kirmizisi mutantin degil, TABANIN kirmizisiydi. Taban kirmiziyken
+            # mutant hukmu VERILEMEZ ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]).
+            print("\n!! TABAN KIRMIZI — mutasyon turu KOSMAZ (once bataryayi yesile "
+                  "getir). Bu turda OLCULEN mutant sayisi 0.")
+            print("MUTANT=0/%d KIRMIZI=1 (TABAN)" % len(MUTANTLAR))
+            print("MUTASYON OLCULEMEDI")
+            return False
 
         for ad, hedef, capa, yeni in MUTANTLAR:
             if taban.count(capa) != 1:
