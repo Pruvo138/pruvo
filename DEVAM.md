@@ -10,7 +10,8 @@
 ↩︎ **TAM METIN `DEVAM-ARSIV.md`** (md5 birebir, eksik 0). **①** Bisiklet **16 alt kategori** (hepsi ≥15 urun, kapsama %100), 2.618 urune yazildi, **D1 teyitli**. **②** `KAT_PANEL_MIN_CIP=3` → panel **12→7**; Bisiklet (17 cip) esigi **DOGAL** gecti, kodda ozel-durum YOK.
 🔴 **ACIK — MARKA** → cip `task_4f4e99cb`: engel beyaz liste DEGIL **veri**; `marka` 2.618'in **27**'sinde dolu. Sayilar KUTUDA.
 ✅ **YAYIN ①+② KAPANDI (mimar olctu):** cip **YANLIS KOSUMA** bakmis — `33969438735` defter push'uydu ve K144'le cancelled; KODUN kendi kosumu **`33969124781`** `deploy` **success** · `yayin` **success** · **SKIPPED 0**. CANLI teyit (curl): `KAT_PANEL_MIN_CIP` VAR · Bisiklet **16** alt kategori VAR.
-🟠 **③ BANNER DALDA `507189a9`** → cip `task_97eb1283`. Onceki cip "8/1, D2 KALDI" yazmisti (kota kapanmisti, YESIL BEYANI YOKTU); **mimar testi kosturdu: 10/10 `SONUC: YESIL`** (D2 dahil). Kalan is test DEGIL, kapiyi **CI'ya baglayip** merge. Canli taban: `katPanels` :1545 < `bannerRow` :1550 → TERS DONMELI.
+✅ **③ BANNER MAIN'DE (`b12fdac2`, cip `mystifying-jepsen-6ec744`)** — `<main>`: `bannerRow` 0, `katPanels` 1; saf SIRA (277.992=277.992, md5 sabit, `fetchpriority=high` 0→0). Kapi **`nobet.yml`e** baglandi: `ci-kapsam-test` once KAPSAMSIZ sonra **YESIL**. **10 kol** (+D0b, oldurucu rc=1); dalda **9**'du.
+🔴 **TABAN KIRMIZISI (temiz main'de de AYNI):** `lcp-onculuk-kapisi` rc=2 → **ArTisT** · `kapi-envanteri` rc=1.
 
 ## 🔁 5 EYL ~18:3xZ — kutu kilidi KOK SEBEBI (ust blokta KAPANDI) — **ISARETCI**
 **DERS (kalici):** kapanis jetonu YALNIZ SON ICERIK satirinda araniyordu, o satir **imza**ydi → blok kapanis SAYILMIYOR, ad kumeye girmiyor, kilit ULASILAMAZ. Hafizada [[kapanis-kimligi-worktree-adi-ilk-backtickte]] 3. eksen.
