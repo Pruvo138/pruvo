@@ -2,30 +2,26 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 5 EYL ~01:xZ — **PUSH BLOKERI KAPANDI** (main = origin `686cf1d8` → `ea6736bb`)
-**① Push blokeri KAPANDI** (`686cf1d8`; tam metin KUTUDA): `nobet.yml` SERIT B'ye
-`baglam-kotasi-test.py` + `IZIN_LISTESI`'ne `baglam-kotasi-kapisi.py` → **R_HOOK** (MUAFIYET KAPSAMI
-DEGIL). KIRMIZI(2)→**YESIL**; o commit'te `Build & deploy` **success** (6/6).
-**② `gramer-artigi-kapisi.py` KIRMIZI → TEMIZ** (`ea6736bb`): defterde **1** yaziyordu, gercek **4**
-(`197858`/`2521593` baslik · `693518`/`6212540` aciklama). `duzelt.py --toplu`; diff **+4/-4**, katalog **34066 SABIT**, diriltme+alan kapilari YESIL.
-**③ 🔴🔴 YAYIN KAPALI — DEVRALINACAK EN USTTEKI IS.** main `2f9898ba` → `Build & deploy` **33926189131
-failure**; `serit-a3` KIRMIZI, **`deploy`+`yayin` SKIPPED**. MaCiT'in ustune ittigi dilim-49
-(`48041f07`, 69 urun) AYNI kirik tabanda — kalem artik FILOYU bekletiyor. Kiran adim: **`Varlik`
-kapisi**, 12 sayfa TEK SINIF `JS EKLENTI (25 satir)`. Kok neden: LCP gec yukleyicisi
-`build.py::GA_HEAD_SNIPPET`'ten degisti → 25 satir **34066 urun sayfasinin HER BIRINE** gomuldu;
-kapi hakli (ortalama sayfa 62190→30588 B, yayin **2,119→1,042 GB**). 🔴 Kapiyi GEVSETME/muafiyet
-YOK. **Emsal depoda VAR:** atif modulu = TEK KAYNAK + IKI BASIM YOLU (`attribution_head_snippet`
-inline · `attribution_varlik_head` → `varlik_adres` ile icerik-adresli `/varlik/` referansi, URUN
-sayfalari icin). Tuzak: harici `<script>`e **`defer` EKLENMEZ** (Consent Mode v2 sirasi sessizce
-terse doner) · `reklam-etiket-kapisi.py` kapsami VARSAYILMAZ, OLCULUR. *Kapatan:* `Build & deploy`
-API `conclusion`=success VE `deploy`+`yayin` SKIPPED DEGIL. Cip `sleepy-liskov-9e44cf` CANLI, 6
-dosyada commit'siz calisiyor; **20 dk'da kapanmazsa `fc76b775`+`2f9898ba` GERI ALINIR.**
-**LCP teshisi (cip, sayiyla — ayrinti KUTUDA):** kok neden **BANT** (gtag 351 KB = sayfanin %34'u);
-🔴 benim **ANA IS PARCACIGI hipotezim CURUTULDU** (lab TBT 36 ms). gtag engelli 5,86→**2,67**
-skor 76→**96**; teslim edilen gec yukleme yerel A/B 6,07→**3,88** skor 75→**86**. 🟠 **1,21 sn artik
-fark ACIKLANMADI** (ArTisT esigi ≤2,5/≤4,0 — 3,88 hedefi TUTMUYOR); kapanis **canli URL'de** 3'er
-kosum medyani, sahiplik ArTisT'te. 🔴 **MIMAR HATASI:** ayni ise IKI cip acildi — kutunun EN USTU
-cip acilmadan ONCE okunmaliydi; `elastic-satoshi-41f415` cekiliyor.
+## 🔁 5 EYL ~02:xZ — **K366 CI'ya BAGLANDI + indeks ayraci KORUMA KORLUGU onarildi** (main `299e9f9b`)
+**① Bloker KAPANDI:** `nobet.yml` SERIT B'ye `hafiza-kota-kapisi-test.py` AYRI adim
+(emsal: defter kota kapisi; ayri tally — karisik tally bir eksenin dusenini otekinin
+yesiliyle gizler). `ci-kapsam-test.py` KIRMIZI(1)→**YESIL(0)**. Dalin testleri:
+hafiza bataryasi **33/33 vaka + 5/5 mutant KONTROL=YESIL**, defter kapisi **6/6 rc=0**.
+**② 🔴 YENI ARIZA — `hafiza-indeks-arsivle.py` AYRAC korlugu:** `,(?=\[)` yalniz `,[`
+boluyordu; `A, [🔴 B]` TEK parca sayilip 🔴 B kuyruga gomulu halde A ile ARSIVE gecti
+(tasima birimi yanlis seviyede). D5 KORUMA denetimi AYNI ayraci kullandigi icin
+GOREMIYORDU. Care `,(?=[ \t]*\[)` — bosluk sonraki parcada kalir, `",".join` ozgun
+bayti AYNEN uretir. OLCULDU: KORUMALI_BEKLEYEN 143→**144**, bagimsiz ayristiriciyla
+tasinan 🔴 girdi **1→0**; Acik-kuyruk kacak **0**; oksuz **1→1** (artmadi).
+**③ Canli MEMORY.md rotasyonu:** 19.605→**13.080 B** (su seviyesi 13.107 ALTINDA,
+HUKUM=TAVAN_BASARILI); arsiv 15.107→23.037 B. **EKSEN=SILAHSIZ birakildi** —
+silahlandirma mimar hukmu (`PRUVO_HAFIZA_EKSENI=silahli`); ARMA GUVENLI (silahli rc=0
+olculdu) ama YERLESIM karari mimarda. 🔴 K366 kod yorumunun "kapinin canli zorlayici
+cagirani YOKTUR" gerekcesi **YANLIS CIKTI** (sha256 + canli commit ciktisiyla
+kanitlandi); ayrinti KUTUDA — bu defterde ayrintisi BILEREK yazilmiyor.
+**④ Merge:** `299e9f9b` → `Build & deploy` **success**, `deploy`+`yayin` dahil **6/6**.
+🔴 D1 DRIFT VAR ama BENIM DEGIL: 8 eksik satir `a4e7e3e5` (urunler.json, MaCiT duzlemi);
+benim dalim urunler.json'a **0 kez** dokundu. *Kapatan:* `d1-sync.py` (MaCiT).
 
 ## 🔁 5 EYL ~00:xZ — BaBa 4 KALEM (main `074d7c9f` YERELDE · origin `e021e922`)
 **KAPANAN:** ① D1 · ② KORUMALI blok tasinmaz · ④ filo dersi 5 evde · **Okan: ArTisT sayfa izni.**
