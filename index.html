@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- LCP HIZLANDIRMA — 5 Eyl 2026'da KÖKTEN DEĞİŞTİ (Okan onaylı ArTisT mockup'ı).
+<!-- LCP HIZLANDIRMA — 5 Eyl 2026'da KÖKTEN DEĞİŞTİ (onaylanmış vitrin tasarımı).
      ESKİ DURUM: ana sayfanın vitrini 1100x614 bir foto-slider'dı; LCP ögesi onun 1. slaytı
      (banner/marin-slide-1-v2-688.avif) idi ve buraya fetchpriority=high bir <link
      rel=preload> konarak ısıtılıyordu (PSI mobil: LCP 6,1 sn, tek kırmızı kalem).
@@ -402,11 +402,11 @@ setTimeout(L,5000);})();
   }
 
   /* ---------- ANA SAYFA KATEGORİ PANELLERİ (#katPanels) ----------
-     Foto-slider'ın (.marin-slider) YERİNE geçer — Okan 5 Eyl'de ArTisT'in mockup'ını
-     onayladı ("şimdi oldu"). Her kategori için: ortalı + harf aralıklı BÜYÜK BAŞLIK
+     Foto-slider'ın (.marin-slider) YERİNE geçer — vitrin tasarımı 5 Eyl'de onaylandı.
+     Her kategori için: ortalı + harf aralıklı BÜYÜK BAŞLIK
      (tıklanınca o kategoriye gider) + altında marka ve grup çipleri.
 
-     🔴 ARKA PLAN HER ZAMAN DÜZ BEYAZ (#ffffff) — Okan'ın sert kuralı. Panelde koyu zemin,
+     🔴 ARKA PLAN HER ZAMAN DÜZ BEYAZ (#ffffff) — tasarım kuralı. Panelde koyu zemin,
      degrade, gölge ya da kart YOK. Sayfa gövdesi --gray-bg (#eef1f5) olduğu için panel
      bandı main'in yatay dolgusunu negatif kenar boşluğuyla iptal eder ve main genişliğince
      kesintisiz beyaz bir şerit olur. viewport birimi (100vw) KULLANILMAZ: kaydırma çubuğu
@@ -1165,7 +1165,7 @@ setTimeout(L,5000);})();
 </section>
 
 <main>
-  <!-- ANA SAYFA VİTRİNİ (#katPanels) — foto-slider'ın YERİNE, Okan onaylı (5 Eyl).
+  <!-- ANA SAYFA VİTRİNİ (#katPanels) — foto-slider'ın YERİNE (onaylı tasarım, 5 Eyl).
        İçeriği renderKatPanelleri() ÜRETİR: kategori listesi CATEGORIES + GIZLI_KATEGORILER,
        markalar çip indeksinden, gruplar ALTKATEGORILER'den gelir. HTML'e hiçbir kategori/
        marka/grup adı ELLE YAZILMAZ — yeni kategori eklendiğinde panel kendiliğinden doğar.
@@ -1507,8 +1507,8 @@ setTimeout(L,5000);})();
   }
 
   /* ---------- ANA SAYFA KATEGORİ PANELLERİ (foto-slider'ın YERİNE) ----------
-     Okan 5 Eyl'de ArTisT'in mockup'ını onayladı: ana sayfanın vitrini fotoğraf değil,
-     HER KATEGORİ için ortalı büyük başlık + o kategorinin marka/grup çipleridir.
+     Onaylanan tasarım (5 Eyl): ana sayfanın vitrini fotoğraf değil, HER KATEGORİ için
+     ortalı büyük başlık + o kategorinin marka/grup çipleridir.
 
      🔴 YENİ URL / YENİ MANTIK YOK. Çipler mevcut ?kategori=&marka=&altkategori= sözleşmesini
      kullanır; hedefi applyUrlParams() zaten okuyor. Bu yüzden çipler <a href> olarak çizilir
