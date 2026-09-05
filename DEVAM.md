@@ -2,11 +2,12 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ✅ 5 EYL ~23:xxZ — **MERGE KAPANDI: emekli motor adi supurmesi main'de (`36bf1a0b`)**
-`claude/affectionate-williams-d8bc67` (`f2b8746d`, 5 commit) → main: 71 dosya +700/-396, merge-base `5f6a4c4b`, FF imkansiz, cakisma 0.
-**KAPI:** kendini-test **5/5** · menzil HUKUM=GECTI IHLAL=0 CAPA_DUSEN=0 · ci-kapsam **YESIL** · parite **1334**+ege **897** BIREBIR · `d1-sync --durum` **34292** ✅ · sizinti 0. `arama.py`: yalniz 3 YORUM satiri.
-**CIP:** 3 cip rc=0 → Okan arsivledi; `kutu-arsivle.py --kapanislari-isle` 2 jetonu cevirdi (BEKLEYEN 2→0, kutu 465→355), **worktree 4→1**. 🔴 Kapiya HEDEF=TAM YOL; ADIYLA rc=2.
-**YAYIN:** `33978350506` (merge) + `33979398512` (HEAD) — ikisi de **deploy+yayin success, SKIPPED 0**, ata kaniti rc=0. `33978175155` cancelled = K144.
+## ✅ 6 EYL ~00:xx — **MERGE KAPANDI: Tamirci dali main'de (`506a1c08`) — K374 makineye ozel mutlak yol ekseni**
+`nervous-cartwright-9e57c1` (`b9cc4978`, 3 commit) → 4 dosya +189/-45, merge-base `d5f51981`, catisma 1. **ASILMAMIS:** main `V11`=0/dal=4 → `arsiv-kapisi` **11/37 → 12/39**. ci-kapsam YESIL (326 .py) · cip-kapanis 11/11 · sizinti 0 · `d1-sync` **34366** birebir.
+**YAYIN** `33990643109` deploy+yayin success **SKIPPED 0** (headSha birebir). Dalin K374 blogu main'de/arsivde YOKTU (0/0) → arsive kurtarildi (17 st, md5 `4ff8f1f4`). worktree 2→1, dal silindi, agac 0.
+
+## ✅ 5 EYL ~23:xxZ — **MERGE KAPANDI: emekli motor adi supurmesi (`36bf1a0b`)** — **ISARETCI**
+↩︎ TAM METIN `mimar-posta-kutusu-arsiv.md:67140`: 71 dosya +700/-396, kapilar 5/5 · parite 1334+897 · `d1-sync` 34292 · yayin `33978350506`+`33979398512` SKIPPED 0, `33978175155` cancelled = K144. 🔴 `arsiv-kapisi`ya HEDEF=TAM YOL.
 
 ## ✅ 5 EYL — KUTU KILIDI UC KUSUR KAPANDI (`3eae9047`) — **ISARETCI**
 ↩︎ TAM METIN kutuda (cip `goofy-snyder-cb4801`): 6 kilit->0, kutu 461->388, 515/515, yayin yesil.
@@ -14,8 +15,6 @@
 
 ## 🔁 5 EYL ~20:xxZ — **OKAN ①+② BITTI** (`5b86ac20`, cip `cool-saha-010aa9`) — **ISARETCI**
 ↩︎ **TAM METIN `DEVAM-ARSIV.md`** (md5 birebir, eksik 0): ① Bisiklet 16 alt kategori (D1 teyitli) · ② panel 12→7 · ③ banner main'de (`b12fdac2`) · yayin `33969124781` deploy+yayin success, SKIPPED 0.
-✅ **MARKA KAPANDI (`2925b940`):** marka cipi **1→5** (Garmin 68·GoPro 67·Samsung 20·Yamaha 18·Shimano 17), panel cipi **17→21**. Engel beyaz liste DEGIL **veri**ydi.
-✅ **MIMAR TEFTISI (oz-rapora bakmadan, KUTUDA):** 9 koldan 8 rc=0 · Bisiklet 16 grup hepsi ≥15, kapsam **2618/2618** · panel esik≥3 → **7** · CANLI `bannerRow`:1543 < `katPanels`:1582 (③ INDI) · `33972472058` success/SKIPPED 0.
 🟠 **SIRADAKI (olculdu, UYGULANMADI):** MODEL adindan marka turetimi → **Apple 56** + Samsung 20→31; AYRI eksen.
 🔴 **TABAN KIRMIZISI (merge kaynakli DEGIL):** `lcp-onculuk-kapisi` rc=2 → **ArTisT** · `kapi-envanteri` rc=1 = 3 kapi YEREL kabloda eksik; kablo commit EDILMEZ → **Okan makinesi**.
 
