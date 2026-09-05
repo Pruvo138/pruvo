@@ -19,7 +19,7 @@ uyarak uygular. Sorular Okan'a DEĞİL mimara raporlanır.
 ## Keşif ölçümleri (Faz A, 16 Tem — tekrar ölçme, kullan)
 
 - 18 ailenin 15'inin .scad'ı `.uyelik-kodlar/`'da; eksik 3 (bağlantı-konektör, montaj-braketi,
-  dişli) bu pakete GİRMEZ (ayrı iş, Codex kaynak erişimini kontrol ediyor).
+  dişli) bu pakete GİRMEZ (ayrı iş, emekli motor kaynak erişimini kontrol ediyor).
 - Headless derleme (bu Mac, OpenSCAD 2026.06.12): tipik 0.2–0.9 s, tavan 1.36 s (pervane 6
   kanat Ø300). STL gzip tipik 40–260 KB; tavan 4 MB → önizleme SABİT DÜŞÜK $fn ile üretilir.
 - STL watertight doğrulandı (o-ring hacmi kapalı-form torusla birebir).
@@ -52,7 +52,7 @@ Faz D'de şema-güdümlü açılır — pilot mimarisi buna göre genel yazılı
 0. **Ön koşul keşfi (DUR-kapıları):**
    - Cloudflare hesabında Workers **Paid** planı aktif mi? (Containers şartı, $5/ay taban.)
      Değilse **DUR** → mimara rapor. Plan yükseltme = ödeme kararı = Okan; kendin yükseltme,
-     Codex'e de yükselttirme.
+     emekli motor'e de yükselttirme.
    - Bu makinede Docker (veya wrangler'ın container build yolu) var mı? Yoksa **DUR** → rapor.
 1. **POC imajı + soğuk başlatma ölçümü:** minimal imaj (debian-slim + openscad + BOSL2 +
    `.uyelik-kodlar` kopyası — imaj PRIVATE registry'de kalır). Basit HTTP servis: parametre →

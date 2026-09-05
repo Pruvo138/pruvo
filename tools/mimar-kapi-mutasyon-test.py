@@ -321,14 +321,14 @@ MUTASYONLAR = [
     # izinli model + pencere ici olan V3 de KOSULSUZ RED'a dusuyor (legitimate capa).
     ("ME6", lambda d: yama(
         d, ICRA,
-        "    if not _codex_cikti_degerli(kalan[1:]):\n",
+        "    if not _emekli_motor_cikti_degerli(kalan[1:]):\n",
         "    if True:\n"),
      "26/27Tem: cikti-bayragi muafiyeti silinir (codex yeniden KOSULSUZ RED); K159 son kol: "
      "910 yasak model cagrisinin yapisal izin yolunu da eklenen RED'a kat",
      {232, 233, 273, 274, 281, 902, 910}, True, 7),
     ("ME7", lambda d: yama(
         d, ICRA,
-        "    if all(t in CODEX_GOZLEM_BAYRAKLARI for t in kalan):\n"
+        "    if all(t in EMEKLI_MOTOR_GOZLEM_BAYRAKLARI for t in kalan):\n"
         '        return "gecer"\n',
         "    if False:\n"
         '        return "gecer"\n'),
@@ -348,7 +348,7 @@ MUTASYONLAR = [
     # vakalari kizarir). Genis token taramasi geri gelirse 4 on-var yanlis-pozitif doner.
     ("ME9", lambda d: yama(
         d, ICRA,
-        "    if not tokenlar or not _codex_programi(tokenlar[0]):\n"
+        "    if not tokenlar or not _emekli_motor_programi(tokenlar[0]):\n"
         "        return None\n",
         '    if not any(os.path.basename(t) == "codex" or "ChatGPT.app" in t\n'
         "               for t in tokenlar):\n"
@@ -359,31 +359,31 @@ MUTASYONLAR = [
      {260, 261, 262, 263, 281, 282}, True, 6),
     ("ME10", lambda d: yama(
         d, ICRA,
-        "    if kalan[0] != CODEX_IZINLI_ALTKOMUT:\n",
-        "    if False and kalan[0] != CODEX_IZINLI_ALTKOMUT:\n"),
+        "    if kalan[0] != EMEKLI_MOTOR_IZINLI_ALTKOMUT:\n",
+        "    if False and kalan[0] != EMEKLI_MOTOR_IZINLI_ALTKOMUT:\n"),
      "27Tem: ALT-KOMUT kapisi kapatilir (resume/mcp/login/apply acilir)",
      {264, 265, 266, 275}, True, 4),
     ("ME11", lambda d: yama(
         d, ICRA,
-        "        if t in CODEX_CIKTI_BAYRAKLARI:\n"
+        "        if t in EMEKLI_MOTOR_CIKTI_BAYRAKLARI:\n"
         "            if i + 1 >= len(tokenlar):\n"
         "                return False\n"
-        "            return _codex_deger_gecerli(tokenlar[i + 1])\n",
-        "        if t in CODEX_CIKTI_BAYRAKLARI:\n"
+        "            return _emekli_motor_deger_gecerli(tokenlar[i + 1])\n",
+        "        if t in EMEKLI_MOTOR_CIKTI_BAYRAKLARI:\n"
         "            return True\n"),
      "27Tem: AYRIK bayragin DEGER sarti silinir ('codex exec -o' bos bayrakla gecer)",
      {267, 268, 269, 277, 285}, True, 5),
     ("ME12", lambda d: yama(
         d, ICRA,
-        "CODEX_GOZLEM_BAYRAKLARI = SURUM_BAYRAKLARI\n",
-        'CODEX_GOZLEM_BAYRAKLARI = {"--version", "-V", "--help", "-h"}\n'),
+        "EMEKLI_MOTOR_GOZLEM_BAYRAKLARI = SURUM_BAYRAKLARI\n",
+        'EMEKLI_MOTOR_GOZLEM_BAYRAKLARI = {"--version", "-V", "--help", "-h"}\n'),
      "27Tem: gozlem SIMETRISI bozulur (eski 4'lu liste; '-v' yeniden reddedilir)",
      {271}, True, 1),
     ("ME13", lambda d: yama(
         d, ICRA,
-        "        if t.startswith(CODEX_CIKTI_ONEKI):\n"
-        "            return _codex_deger_gecerli(t[len(CODEX_CIKTI_ONEKI):])\n",
-        "        if t.startswith(CODEX_CIKTI_ONEKI):\n"
+        "        if t.startswith(EMEKLI_MOTOR_CIKTI_ONEKI):\n"
+        "            return _emekli_motor_deger_gecerli(t[len(EMEKLI_MOTOR_CIKTI_ONEKI):])\n",
+        "        if t.startswith(EMEKLI_MOTOR_CIKTI_ONEKI):\n"
         "            return True\n"),
      "27Tem: ESITLIKLI bicimde deger DENETIMI komple silinir "
      "('--output-last-message=' ve '=-o' gecer)",
@@ -391,7 +391,7 @@ MUTASYONLAR = [
     # --- 27 TEM 2. TUR NOBETCILERI (kapatilan iki kusur) ---
     # ME14: KUSUR-1'in TAM nobetcisi — DEGERIN '-' oneki denetimi silinir (bos deger
     # denetimi KALIR). Boylece "deger baska bir bayrak" sinifi acilir; iki bicim birden
-    # kizarir (tek kaynak _codex_deger_gecerli oldugunun kaniti).
+    # kizarir (tek kaynak _emekli_motor_deger_gecerli oldugunun kaniti).
     ("ME14", lambda d: yama(
         d, ICRA,
         '    if deger.startswith("-"):\n'
@@ -405,13 +405,13 @@ MUTASYONLAR = [
     # kalmali: mutasyon yalniz sizintiyi acar, mesru cagriyi kapatmaz.
     ("ME15", lambda d: yama(
         d, ICRA,
-        "    karar = _codex_karari(tokenlar)\n"
+        "    karar = _emekli_motor_karari(tokenlar)\n"
         "    if karar is None:\n"
         "        ikinci = _sarmalayici_ikinci_okuma(parcala(segment))\n"
         "        if ikinci != tokenlar:\n"
-        "            karar = _codex_karari(ikinci)\n"
+        "            karar = _emekli_motor_karari(ikinci)\n"
         "    return karar\n",
-        "    return _codex_karari(tokenlar)\n"),
+        "    return _emekli_motor_karari(tokenlar)\n"),
      "27Tem-2: SARMALAYICI ikinci okumasi silinir ('nice -n 10 codex exec' acilir)",
      {280, 283}, True, 2),
     ("ME3", lambda d: yama(d, ICRA,
@@ -683,20 +683,20 @@ MUTASYONLAR = [
         '        return "sarmalayici:" + (motor or "claude")\n'),
      "13Agu-2 J3: env yokken de sarmalayici ISCI sayilir (MIMAR koluna sizma)",
      {651, 657}, True, 2),
-    # --- 17 AGU K159 CODEX SURELI PENCERESI + MODEL KAPISI NOBETCILERI ---
+    # --- 17 AGU K159 codex SURELI PENCERESI + MODEL KAPISI NOBETCILERI ---
     # Her mutant yeni 4 kuruldan BIRINI dusurur; AYIRT EDICI bir kirmizi iz birakir.
     # M1: model bayragi zorunlulugu kaldirilir -> V1 (900) artik ALLOW olur.
     ("M_K159_1", lambda d: yama(
         d, ICRA,
-        '    if not _codex_model_bayrak_var(kalan[1:]):\n',
-        '    if False and not _codex_model_bayrak_var(kalan[1:]):\n'),
+        '    if not _emekli_motor_model_bayrak_var(kalan[1:]):\n',
+        '    if False and not _emekli_motor_model_bayrak_var(kalan[1:]):\n'),
      "17Agu K159: model bayragi zorunlulugu kaldirilir (bayraksiz codex exec acilir)",
      {900}, True, 1),
-    # M2: amiral (CODEX_YASAK_MODELLER) reddi kaldirilir -> V2 (901) artik ALLOW olur.
+    # M2: amiral (EMEKLI_MOTOR_YASAK_MODELLER) reddi kaldirilir -> V2 (901) artik ALLOW olur.
     ("M_K159_2", lambda d: yama(
         d, ICRA,
-        '    if model in CODEX_YASAK_MODELLER:\n',
-        '    if False and model in CODEX_YASAK_MODELLER:\n'),
+        '    if model in EMEKLI_MOTOR_YASAK_MODELLER:\n',
+        '    if False and model in EMEKLI_MOTOR_YASAK_MODELLER:\n'),
      "17Agu K159: amiral reddi kaldirilir (gpt-5.6-sol amiral gecer); K159 son kol: "
      "910 yasak model RED'i da amiral kapisi kapali olunca ACILIR",
      {901, 910}, True, 2),
@@ -704,17 +704,17 @@ MUTASYONLAR = [
     # Spec'te "fail-open" mutant — bilinmeyen model GECER yapilir.
     ("M_K159_3", lambda d: yama(
         d, ICRA,
-        '    if model not in CODEX_IZINLI_MODELLER and model not in CODEX_YASAK_MODELLER:\n',
-        '    if False and model not in CODEX_IZINLI_MODELLER and model not in CODEX_YASAK_MODELLER:\n'),
+        '    if model not in EMEKLI_MOTOR_IZINLI_MODELLER and model not in EMEKLI_MOTOR_YASAK_MODELLER:\n',
+        '    if False and model not in EMEKLI_MOTOR_IZINLI_MODELLER and model not in EMEKLI_MOTOR_YASAK_MODELLER:\n'),
      "17Agu K159: bilinmeyen model fail-OPEN (bilinmeyen model gecer, yarin eklenen acar)",
      {904}, True, 1),
     # M4: pencere/tarih kontrolu kaldirilir -> V6 (905) tarih 21 Agu olsa bile ALLOW.
-    # Anchor: pencere kapali kontrolu ONCESINDEKI yorum + satir. _codex_pencere_acik_mi
+    # Anchor: pencere kapali kontrolu ONCESINDEKI yorum + satir. _emekli_motor_pencere_acik_mi
     # helper taniminda da gectigi icin yorumla TEKILLESTIRILDI (capasi 2 kez gecmez).
     ("M_K159_4", lambda d: yama(
         d, ICRA,
-        '    if not _codex_pencere_acik_mi():\n',
-        '    if False and not _codex_pencere_acik_mi():\n'),
+        '    if not _emekli_motor_pencere_acik_mi():\n',
+        '    if False and not _emekli_motor_pencere_acik_mi():\n'),
      "17Agu K159: pencere/tarih kontrolu kaldirilir (21 Agu tarihli codex GECER)",
      {905}, True, 1),
     # === 27 AGU 2026 (K318) — ROL EKSENI NOBETCILERI =========================
@@ -889,8 +889,8 @@ KONTROL_MUTANTLARI = [
     # damgasina eklenen kullanilmayan bir sabit davranisi degistirmez.
     ("K4", lambda d: yama(
         d, ICRA,
-        'CODEX_KURAL_SURUMU = "17agu-1"\n',
-        'CODEX_KURAL_SURUMU = "17agu-1"\n_K159_KONTROL_MUTANTI = True\n'),
+        'EMEKLI_MOTOR_KURAL_SURUMU = "17agu-1"\n',
+        'EMEKLI_MOTOR_KURAL_SURUMU = "17agu-1"\n_K159_KONTROL_MUTANTI = True\n'),
      "17Agu K159 codex blogua OLU bir sabit eklenir (davranis degismez) -> YESIL kalmali"),
     # 🔴 K6 (20 Agu): TARAYICI eksen kumesinin AYIRT EDICILIK kontrolu. MT1/MT2'nin
     # kirmizisi ancak takim "her degisiklige" kizarmiyorsa kanittir. Kumeyi YENIDEN
@@ -1026,7 +1026,7 @@ def mutasyonu_kostur(ad, uygulayici, kendi_testi=False, yalniz_kimlik=False):
 # === 27 AGU 2026 (K318) — TABAN OLCUMU (mutant NE EKLEDI?) ====================
 # 🔴 OLCULEN KUSUR (27 Agu, bu turda): takim mutantin kirmizi kumesini HAM okuyordu.
 # Kabul testinin MUTASYONSUZ halinde de kirmizi vakalar varsa (bugun 7 tane: 232/233/
-# 273/274/281/902/910 — hepsi codex SURELI PENCERESI 'CODEX_PENCERE_BITIS' gectigi icin)
+# 273/274/281/902/910 — hepsi codex SURELI PENCERESI 'EMEKLI_MOTOR_PENCERE_BITIS' gectigi icin)
 # o sabit kirmizilar HER mutantin kumesine karisiyor ve `tam=True` olan HER mutant
 # "KALDI" okunuyordu; KONTROL mutantlari da (sifir kirmizi + exit 0 beklerler) KALDI
 # oluyordu. Yani nobetci OLU: hicbir mutant hukum uretemiyordu, ama takim bunu

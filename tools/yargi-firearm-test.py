@@ -7,7 +7,7 @@ Amaç:
   - airsoft hobi replikasi TUT
   - merch ELENIR, hatta keep-word icerse bile
 
-Test, codex modelini sahte bir subprocess ile taklit eder ve parity-backfill.py'nin
+Test, emekli motor modelini sahte bir subprocess ile taklit eder ve parity-backfill.py'nin
 post-process politikasını dogrudan dogrular.
 """
 import importlib.util
@@ -72,7 +72,7 @@ def main():
     original_run = mod.subprocess.run
     mod.subprocess.run = _fake_run_factory({pid: False for pid, _ in pairs})
     try:
-        keep, reason = mod.codex_yargi("Toyota", pairs)
+        keep, reason = mod.emekli_motor_yargi("Toyota", pairs)
     finally:
         mod.subprocess.run = original_run
 

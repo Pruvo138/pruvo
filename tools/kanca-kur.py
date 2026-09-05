@@ -14,7 +14,7 @@ koruyan FAIL-LOUD bir nobetciye cevrildi, ama `.git/hooks/pre-commit` icinde
     python3 "$guard" --tetik commit >/dev/null 2>&1 || true
 duruyordu — git-native yol FAIL-OPEN'di: cikis kodu da gerekce de yutuluyordu.
 Koruma yalniz bu makinenin oturum kablosuyla (PreToolUse) blokluyordu; DUZ
-TERMINALDE, CODEX'TE ve BASKA BIR MAKINEDE hic bloklamiyordu.
+TERMINALDE, emekli motor'TE ve BASKA BIR MAKINEDE hic bloklamiyordu.
 
 ═══════════════════════════════════════════════════════════════════════════════
 🔴 DEGER SECIMI — GORELI YOL OLCULEREK ELENDI (KUSUR 2, mimar iadesi)

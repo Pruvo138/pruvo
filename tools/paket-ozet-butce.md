@@ -1,7 +1,7 @@
 # PAKET — ozet.json bütçe payı (kayıpsız küçültme)
 
 **Kat: MÜHENDİS / Opus.** Bu ölçüm+kapı kodudur — yanlış ölçüm sessizce yanlış karar üretir.
-Codex'e VERİLMEZ (`skill: codex-isci` §4 "Ölçüm/kapı kodu").
+emekli motor'e VERİLMEZ (`skill: isci-devri` §4 "Ölçüm/kapı kodu").
 **Mimar: KraL.** Tek yazar; `urunler.json` düzlemine DOKUNULMAZ (MaCiT).
 
 ---

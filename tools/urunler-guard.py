@@ -73,7 +73,7 @@ surecinin env'inde kosar, komutun env'ini GORMEZ (olculdu: rc=2, hala bloklu).
           `python3 "$guard" --tetik commit >/dev/null 2>&1 || true` yazar — cikis
           kodunu VE stderr'i yutar. Kanca commit EDILMEDIGI icin (gitignore) bu
           dosyadan duzeltilemez; her makinede ELLE kurulur. Sonuc: harness'siz bir
-          oturumda (duz terminal, Codex, baska makine, CI) bu guard commit'i
+          oturumda (duz terminal, emekli motor, baska makine, CI) bu guard commit'i
           BLOKLAMAZ — yalnizca `.urunler-guard.log`a yazar.
   Onerilen kanca duzeltmesi: `pre-commit` cikis kodunu YUTMASIN — `|| true` ve
   `>/dev/null 2>&1` kaldirilip guard'in rc'si ve stderr'i oldugu gibi gecirilsin.

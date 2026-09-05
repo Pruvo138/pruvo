@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""⛔ EMEKLI — CAGIRMA. Yerine: tools/thing-codex.py (2026-07-15'ten beri).
+"""⛔ EMEKLI — CAGIRMA. Yerine: tools/thing-icerik.py (2026-07-15'ten beri).
 
 Bu dosya CALISMAZ: Gemini prepay bakiyesi tukendi (2 gunde 2.010 TL), 429 "prepayment credits
 are depleted" doner. Cagirani kalmadi; sadece acil geri donus ihtimali icin duruyor.
-Sebep + kalici ders: memory/gemini-kota-fiyat.md ve memory/codex-yardimcisi.md.
+Sebep + kalici ders: memory/gemini-kota-fiyat.md ve memory/isci-yardimcisi.md.
 Ozet ders: model takma adi ("-latest") KULLANMA — surumu acikca yaz; alias yeni/pahali modele
 kayinca fiyat haber vermeden katlanir (flash-latest -> 3.5 Flash = 5x).
 

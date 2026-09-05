@@ -455,7 +455,7 @@ MIMAR_22TEM_VAKALARI = [
     (232, "allow", "Bash",
      "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec dosyasindaki isi yap\"", None,
-     "26Tem POZITIF: -o ile codex-isci standardi + 17Agu model bayragi = GECER"),
+     "26Tem POZITIF: -o ile isci-devri standardi + 17Agu model bayragi = GECER"),
     (233, "allow", "Bash",
      "/Applications/ChatGPT.app/Contents/Resources/codex exec -m gpt-5.6-luna "
      "--output-last-message " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
@@ -548,13 +548,13 @@ MIMAR_22TEM_VAKALARI = [
      "sh: tiresiz repo-disi yol argumani -> dis_yol (M20 nobetcisi)"),
 ]
 
-# === 17 AGU K159: CODEX SURELI PENCERESI + MODEL KAPISI ===
+# === 17 AGU K159: codex SURELI PENCERESI + MODEL KAPISI ===
 # Okan karari (17 Agu 2026): codex 17->20 AGU arasinda kapali kumeden CIKTI (sureli
 # istisna); 20 AGU sonrasi tekrar kapali (fail-closed). Yeni eklenen dort kural:
 #   1. -m / --model YOKSA RED (bayraksiz = saglayici VARSAYILANI = amiral)
-#   2. Model CODEX_YASAK_MODELLER icindeyse RED (amiral)
-#   3. Model CODEX_IZINLI_MODELLER icinde degilse RED (fail-closed)
-#   4. Bugunun tarihi CODEX_PENCERE_BITIS'ten sonraysa RED (PRUVO_BUGUN env ile
+#   2. Model EMEKLI_MOTOR_YASAK_MODELLER icindeyse RED (amiral)
+#   3. Model EMEKLI_MOTOR_IZINLI_MODELLER icinde degilse RED (fail-closed)
+#   4. Bugunun tarihi EMEKLI_MOTOR_PENCERE_BITIS'ten sonraysa RED (PRUVO_BUGUN env ile
 #      test enjekte edebilir; V6 vakasi icin sart)
 # Tarih enjekte kanalini kullanmak icin 7. tuple alani (ek_env) kullanildi; M1-M4
 # mutasyonlari bu vakalari kirmizi yakar (mimar-kapi-mutasyon-test.py).
@@ -1399,7 +1399,7 @@ def k159_mesaj_denetim():
     Bagimsiz curutucu buldu (17 Agu K159 son kol): kapinin RET metninde model adi
     ELLE gomulu duruyordu; yeni amiral model eklendiginde mantik dogru kalir ama
     mesaj bayatlar ve kullaniciyi yanlis bilgilendirir. Duzeltme sonrasi metin
-    `mimar_kimlik.CODEX_YASAK_MODELLER` kumeden turetilmeli; bu kume degisince
+    `mimar_kimlik.EMEKLI_MOTOR_YASAK_MODELLER` kumeden turetilmeli; bu kume degisince
     mesajin DA ICERIGI degismis olmali. Test kume sabitini import edip kontrol
     EDER — elle 'substring aranir' yapmaz (bekci bayatlayan metni yakalar)."""
     import importlib.util
@@ -1414,12 +1414,12 @@ def k159_mesaj_denetim():
     spec = importlib.util.spec_from_file_location("_k159_kimlik", kimlik_yol)
     kimlik = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(kimlik)
-    yasak = kimlik.CODEX_YASAK_MODELLER
+    yasak = kimlik.EMEKLI_MOTOR_YASAK_MODELLER
 
     if not yasak:
         # Kume bossa ornek model secilemez — istisna olarak skip; "0 yasak model yok"
         # durumu kapi acisindan zaten testsiz (M2 mutasyonu yakalar). Burada raporlanir.
-        print("910  K159 son kol: CODEX_YASAK_MODELLER bos — vaka KOSULAMAZ (M2 yakalar)")
+        print("910  K159 son kol: EMEKLI_MOTOR_YASAK_MODELLER bos — vaka KOSULAMAZ (M2 yakalar)")
         return basarisiz, atlanan
 
     # Kumeden BIRINI sec (ilk sirali); davranis kumeden bagimsiz — hepsi yasak.
@@ -1460,7 +1460,7 @@ def k159_mesaj_denetim():
     if eksik_adi:
         basarisiz.append((910, "tum yasak adi sebep'te",
                           "eksik=" + ",".join(eksik_adi),
-                          "mimar_kimlik.CODEX_YASAK_MODELLER adlari RED sebebinde yok"))
+                          "mimar_kimlik.EMEKLI_MOTOR_YASAK_MODELLER adlari RED sebebinde yok"))
         print("910  K159 son kol: iz='{}' | eksik={} (KIRMIZI)".format(
             sebep.replace("\n", " ")[:80], eksik_adi))
         return basarisiz, atlanan
@@ -1802,7 +1802,7 @@ def main():
         ("MIMAR TARAFI YENI VAKALAR (onek/kayit/test-modulu/Edit)", MIMAR_YENI_VAKALARI, REPO),
         ("CWD REPO DISINDA (F adiminin kalan isi) — MIMAR kimligi", DIS_CWD_VAKALARI, DIS_CWD),
         ("22 TEM SERTLESTIRME (olcum/curl/codex/python-allowlist/sh-nobetci)", MIMAR_22TEM_VAKALARI, REPO),
-        ("17 AGU K159 CODEX SURELI PENCERESI + MODEL KAPISI (V1..V7)", K159_CODEX_VAKALARI, REPO),
+        ("17 AGU K159 codex SURELI PENCERESI + MODEL KAPISI (V1..V7)", K159_CODEX_VAKALARI, REPO),
         ("28 TEM AGENT-KAPISI (Agent/Task beyan sarti) — MIMAR + ISCI ekseni", AGENT_VAKALARI, REPO),
         ("8 AGU MCP-TARAYICI KAPISI — ANA RED / ISCI GECER + YANLIS-POZITIF nobeti", MCP_VAKALARI, REPO),
         ("13 AGU ISCI-SARMALAYICI KAPISI — yol/argüman/motor/beyan + segment ayrimi",

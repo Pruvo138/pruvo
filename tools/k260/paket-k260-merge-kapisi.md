@@ -1,4 +1,4 @@
-codex-muafiyet: K260 merge oncesi CI kapsam + defter kota + batarya tazeligi — ölçüm
+isci-muafiyet: K260 merge oncesi CI kapsam + defter kota + batarya tazeligi — ölçüm
 
 # K260 MERGE KAPISI OLCUMU — ISCI GOREVI (KraL-K260KatSec)
 

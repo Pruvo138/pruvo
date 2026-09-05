@@ -1,7 +1,7 @@
 # PAKET — Sarı seri taban fiyatların yerleştirilmesi + zemin formülü
 ## (Okan KESİN kararı, 16 Tem gece sonu — araştırma: tools/arastirma-sari-fiyat.md)
 
-**Kat:** Claude Mühendis (fiyat semantiği — Codex'e verilmez).
+**Kat:** Claude Mühendis (fiyat semantiği — emekli motor'e verilmez).
 **ÖN KOŞUL — BAŞLAMADAN DOĞRULA:** Faz D dalı (`claude/modest-tesla-895a82`) main'e
 merge edilmiş olmalı (aynı dosyalar: jenerator/urunler, hacim.js, secenekler.js —
 tek yazar). Merge edilmemişse DUR, mimara sor. Worktree'de çalış; urunler.json'a dokunma.

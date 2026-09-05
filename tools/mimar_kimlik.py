@@ -20,7 +20,7 @@ ISCI_MOTORLARI = ("minimax-m3", "kimi", "deepseek-pro", "deepseek-flash", "claud
 # sinif toplu urun ekleme dilimleridir. KAPALI KUME DEGISMEDI — degisen yalniz SIRA.
 #
 # NEDEN AYRI BIR KUME (olculdu 17 Agu 2026, KraL): CI nobetinin dagitim tablosu
-# (`~/.claude/cron/nobet-kapi.py`) uc kata is yolluyordu — `codex`, `deepseek-pro`,
+# (`~/.claude/cron/nobet-kapi.py`) uc kata is yolluyordu — `emekli motor`, `deepseek-pro`,
 # `deepseek-flash` — ve **ucu de 15 Agu'da EMEKLI edilmisti**; dahasi VARSAYILAN kat
 # `deepseek-pro` idi, yani jetonu eslesmeyen HER kalem emekli bir kuyruga dusuyordu.
 # Sonuc: nobet 76 tur boyunca is "dagitti" ama hicbiri kosmadi (`ONARIM=0` `KAPANAN=0`,
@@ -31,20 +31,20 @@ CANLI_ISCI_MOTORLARI = ("minimax-m3", "kimi")
 # Emekli: yeni is YOLLANMAZ. Kimlik tanimada gecerli kalir.
 EMEKLI_ISCI_MOTORLARI = ("codex", "deepseek-pro", "deepseek-flash")
 
-# === 17 AGU 2026 (K159): CODEX SURELI PENCERESI KIMLIK KAYNAGI ===
-# Okan karari: codex 17->20 AGU arasinda kapali kumeden CIKTI; 20->22 AGU kapali; 22 AGU
+# === 17 AGU 2026 (K159): emekli motor SURELI PENCERESI KIMLIK KAYNAGI ===
+# Okan karari: emekli motor 17->20 AGU arasinda kapali kumeden CIKTI; 20->22 AGU kapali; 22 AGU
 # kimi donunce yeni karar. Pencere bitis TARIH olarak sabit; kapilar bu degerden turetilir
 # ([[ikiz-tanim-sessiz-ayrisma]] — kapiya ELLE gomulmez).
-# Bu tarihten SONRA codex yeniden KAPALI sayilir (sessiz kalicilasma engeli:
+# Bu tarihten SONRA emekli motor yeniden KAPALI sayilir (sessiz kalicilasma engeli:
 # [[goc-yolu-eski-kapiya-takilir]]).
-CODEX_IZINLI_MODELLER = (
+EMEKLI_MOTOR_IZINLI_MODELLER = (
     "gpt-5.6-luna",        # birincil alt model
     "gpt-5.6-terra",       # ikincil
     "gpt-5.4-mini",        # ucuz alternatif
     "gpt-5.3-codex-spark", # ucuz alternatif
 )
-CODEX_YASAK_MODELLER = frozenset({"gpt-5.6-sol"})  # amiral — Okan "sol kullanmayin" emri
-CODEX_PENCERE_BITIS = "2026-08-20"  # dahil; bu tarihten SONRA codex yeniden KAPALI
+EMEKLI_MOTOR_YASAK_MODELLER = frozenset({"gpt-5.6-sol"})  # amiral — Okan "sol kullanmayin" emri
+EMEKLI_MOTOR_PENCERE_BITIS = "2026-08-20"  # dahil; bu tarihten SONRA emekli motor yeniden KAPALI
 
 
 # === 19 AGU 2026 (K214): TURETIM YUZEYI — GOMULU IKIZ TANIM YASAGI ===

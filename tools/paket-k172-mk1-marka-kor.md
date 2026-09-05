@@ -1,6 +1,6 @@
 # PAKET K172 — `mk1` MARKA-KÖR jetona taşınır (üç satır değil, TEK satır)
 
-**Mimar:** KraL · **Tarih:** 18 Ağu 2026 · **Motor:** codex `gpt-5.6-luna` (20 Ağu istisnası)
+**Mimar:** KraL · **Tarih:** 18 Ağu 2026 · **Motor:** emekli motor `gpt-5.6-luna` (20 Ağu istisnası)
 
 ## MİMAR HÜKMÜ (bağlayıcı — işçi bu hükmü TARTIŞMAZ, UYGULAR)
 

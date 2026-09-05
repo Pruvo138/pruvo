@@ -133,7 +133,7 @@ def _iz_browser_var(
     """Motor-aware tarayıcı izi.
 
     - minimax-m3 / kimi / None → mcp__playwright izi (eski davranış).
-    - codex → dökümdeki tool name (browser_*); ad tespit edilemezse None
+    - emekli-motor → dökümdeki tool name (browser_*); ad tespit edilemezse None
       (DOGRULANAMADI gerekir; "yok" ile "yalan" aynı DEĞİLDİR).
 
     Returns (var_mi, okunabilir_dosya_sayisi). var_mi None ⇒ tespit edilemedi.
@@ -142,7 +142,7 @@ def _iz_browser_var(
     okunabilir = [yol for yol in yollar if yol.is_file()]
     if not okunabilir:
         return None, 0
-    if motor == "codex":
+    if motor == "emekli-motor":
         bulunan = False
         for yol in okunabilir:
             try:
@@ -173,7 +173,7 @@ def _g1(
     if iz_var is None:
         return (
             "DOGRULANAMADI",
-            ["oturum dokumu bulunamadi veya codex browser izi tespit edilemedi"],
+            ["oturum dokumu bulunamadi veya emekli-motor browser izi tespit edilemedi"],
         )
     url = alanlar.get("URL", "")
     url_gecerli = bool(re.match(r"^https://dash\.cloudflare\.com(?:/|$)", url))

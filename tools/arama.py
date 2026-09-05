@@ -1285,10 +1285,10 @@ UYUM_MARKA_IZINLI = frozenset({
 #
 # K2 NETLESTIRILDI (mimar, 2 Agu): "belirsiz jeton VARSAYILAN olarak modeldir; mimar
 # ACIK gerekceyle ev-sahibi marka olarak kabul edebilir." Mutlak degil, VARSAYILAN.
-#   `Volvo Penta` (51 kayit, Codex `belirsiz`) — deniz motoru markasi. Okan'in talebindeki
+#   `Volvo Penta` (51 kayit, emekli motor `belirsiz`) — deniz motoru markasi. Okan'in talebindeki
 #     iki ornekten biri BIREBIR bu; paket §2 ornegi de buna dayaniyor. Kumede olmamasi
 #     amiral kullanim durumunun calismamasi demekti.
-#   `Yanmar` (7 kayit, Codex `model`) — deniz motoru markasi, paket §2'nin ikinci ornegi.
+#   `Yanmar` (7 kayit, emekli motor `model`) — deniz motoru markasi, paket §2'nin ikinci ornegi.
 # Ikisi de bu turun kendi olcutuyle TARTISMASIZ EV SAHIBI: parca onlara TAKILIR.
 #
 # ⚠️ `Volvo` ile `Volvo Penta` AYRI EV SAHIPLERIDIR (otomobil ile deniz motoru). Tek jetona
@@ -2464,7 +2464,7 @@ UYUM_MARKA_ELENEN = frozenset({
     "Ssangyong", "Toplife", "Turbo", "Victoria",
 })
 
-# Codex'in URETTIGI oneri kumesinin buyuklugu. Uc kumenin birlesimi buna ESIT olmali —
+# emekli motor'in URETTIGI oneri kumesinin buyuklugu. Uc kumenin birlesimi buna ESIT olmali —
 # esit degilse ya bir jeton sessizce dusmus ya da sozluge oneride OLMAYAN bir deger
 # elle eklenmistir. Ikisi de denetimsiz genisleme, kapi KIRMIZI yakar.
 UYUM_MARKA_ONERI_SAYISI = 169

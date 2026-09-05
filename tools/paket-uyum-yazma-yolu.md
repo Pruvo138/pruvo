@@ -2,7 +2,7 @@
 
 **Mimar:** KraL · **Kat:** Opus (sessiz-hata sınıfı: veri yazma kapısı + şema + ikiz tanım)
 **Bloke ettiği iş:** MaCiT'te 13.040 temiz `uyum` kaydı, 9 parti dosyası hazır, yazamıyor.
-**Neden Codex değil:** hatası sessiz — yanlış türetilmiş `marka` arama metnini bozar, kimse görmez.
+**Neden emekli motor değil:** hatası sessiz — yanlış türetilmiş `marka` arama metnini bozar, kimse görmez.
 
 ## 0. BAĞLAM (ölçülmüş, tekrar ölçme)
 

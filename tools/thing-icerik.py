@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""CODEX YARDIMCISI — pahali bilissel adimlari (gorsel secme + Turkce icerik) devreder.
+"""emekli motor YARDIMCISI — pahali bilissel adimlari (gorsel secme + Turkce icerik) devreder.
 
-Amac: token diyeti. Gorsel okuma + aciklama yazma Claude'un baglamina GIRMEZ; Codex yapar,
+Amac: token diyeti. Gorsel okuma + aciklama yazma Claude'un baglamina GIRMEZ; emekli motor yapar,
 temiz JSON doner, Claude sadece kucuk metni okur.
 
-Kullanim:  python3 tools/thing-codex.py <thing_id> [<thing_id> ...]
+Kullanim:  python3 tools/thing-icerik.py <thing_id> [<thing_id> ...]
 Onkosul :  once  python3 tools/thing-hazirla.py <id...>  (gorselleri + meta.json'u uretir)
 
-Her id icin `.thing-cache/<id>/meta.json` + `gN.jpg`'leri okur, Codex'e yollar, sunu doner:
+Her id icin `.thing-cache/<id>/meta.json` + `gN.jpg`'leri okur, emekli motor'e yollar, sunu doner:
   { sec_gorseller, elenen, baslik, aciklama, kategori, marka, fiyat_oneri, not }
 Ciktiyi ekrana + `.thing-cache/<id>/oneri.json`'a yazar.
 
@@ -15,12 +15,12 @@ Ciktiyi ekrana + `.thing-cache/<id>/oneri.json`'a yazar.
 Gemini token basina GERCEK PARA yakiyordu: 2 gunde 2.000 TL, bakiye eksiye dusup servis durdu.
 Sebep: `gemini-flash-latest` takma adi sabit model degil ("en yeni flash" demek) -> Google 3.5
 Flash'i cikarinca takma ad oraya kaydi ve haberimiz olmadan 5x fiyata gectik ($1.50/$9.00 vs
-$0.30/$2.50 beklenen). Codex ChatGPT abonelik limitini tuketir; 19 Tem olcumunde 230 urun +
+$0.30/$2.50 beklenen). emekli motor ChatGPT abonelik limitini tuketir; 19 Tem olcumunde 230 urun +
 1 jenerator haftalik limitin %38'ini harcadi. Bu nedenle varsayilan KAPALIDIR. Yalniz Okan'in
 o parti icin acik izniyle `PRUVO_URUN_AI_IZNI=EVET` verilirse model cagrisi yapar.
 DERS: model takma adi ("-latest") KULLANMA, surumu her zaman ACIKCA yaz. Yukseltme bilincli karar olsun.
 
-Kimlik: `~/.codex/auth.json` (ChatGPT ile giris; `codex login`). Sir icermez; harici pip paketi YOK.
+Kimlik: `~/.codex/auth.json` (ChatGPT ile giris; `emekli motor login`). Sir icermez; harici pip paketi YOK.
 """
 import importlib.util
 import json, os, re, subprocess, sys, tempfile
@@ -39,13 +39,13 @@ if _KOK_UYARI:
     sys.stderr.write(_KOK_UYARI)
 IMGROOT = os.path.join(ROOT, ".thing-cache")
 
-# Codex PATH'te DEGIL — ChatGPT.app icinde geliyor, tam yol sart.
-CODEX = "/Applications/ChatGPT.app/Contents/Resources/codex"
+# emekli motor PATH'te DEGIL — ChatGPT.app icinde geliyor, tam yol sart.
+EMEKLI_MOTOR_IKILI = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
 # Surumu ACIKCA yaz (yukaridaki "-latest" dersi). Yukseltme bilincli karar olsun.
 MODEL = "gpt-5.4-mini"      # basit is: bak + JSON don. Kalite yetmezse -> gpt-5.5
 EFFORT = "low"              # Okan'in config.toml'undaki xhigh bu is icin gereksiz (yavas + kota yer)
-# DENETIM UST SINIRI (Codex'e GONDERILEN gorsel sayisi). Eskiden 4'tu -> pratikte SADECE ilk 4
+# DENETIM UST SINIRI (emekli motor'e GONDERILEN gorsel sayisi). Eskiden 4'tu -> pratikte SADECE ilk 4
 # gorsel yargilaniyordu; g5+ hic gonderilmiyor, hic gorulmuyordu (backfill'de 36 g5+ gorsel
 # DENETIMSIZ vitrine girdi). Gorsel okuma EN PAHALI adim (kota) -> sinirsiz genisletme yerine
 # makul bir tavan: cache'te en fazla 8 gorsellik urun var, 8 gercek galerilerin tamamini kapsar.
@@ -203,7 +203,7 @@ def dogal_sirala(dosyalar):
 
 
 def denetim_bol(imgs, cap):
-    """Dogal sirali galeriyi Codex'e GONDERILEN (denetlenecek) ve GONDERILMEYEN diye ikiye boler.
+    """Dogal sirali galeriyi emekli motor'e GONDERILEN (denetlenecek) ve GONDERILMEYEN diye ikiye boler.
 
     Eski hata: `imgs[:MAX_IMG]` kirpiliyor ama kirpilan gorsel HICBIR YERDE kayda gecmiyordu ->
     g5+ sessizce denetim disi kaliyordu. cap kadari gonderilir, kalani `denetim_birlestir` ile
@@ -213,12 +213,12 @@ def denetim_bol(imgs, cap):
 
 
 def denetim_birlestir(all_imgs, cap, out):
-    """Codex ciktisina (out) 'denetlenmedi' alanini ekler ve GARANTI eder: her galeri gorseli
+    """emekli motor ciktisina (out) 'denetlenmedi' alanini ekler ve GARANTI eder: her galeri gorseli
     ya sec_gorseller/elenen ya da denetlenmedi altinda gorunur (union == tum galeri).
 
     Iki denetim-disi kaynagi kapsar:
-      1. cap ustu (Codex'e HIC gonderilmedi)  -> neden "kota ust siniri (denetlenmedi)"
-      2. gonderildi ama Codex ne secti ne eledi -> neden "codex kapsamadi (denetlenmedi)"
+      1. cap ustu (emekli motor'e HIC gonderilmedi)  -> neden "kota ust siniri (denetlenmedi)"
+      2. gonderildi ama emekli motor ne secti ne eledi -> neden "emekli motor kapsamadi (denetlenmedi)"
          (fail-loud: gorulmemis/atlanmis gorsel sessizce vitrine girmesin)."""
     all_imgs = dogal_sirala(all_imgs)
     gonderilen, gonderilmeyen = denetim_bol(all_imgs, cap)
@@ -231,17 +231,17 @@ def denetim_birlestir(all_imgs, cap, out):
         denetlenmedi.append({"dosya": f, "neden": "kota ust siniri (denetlenmedi)"})
     for f in gonderilen:
         if f not in kapsanan:
-            denetlenmedi.append({"dosya": f, "neden": "codex kapsamadi (denetlenmedi)"})
+            denetlenmedi.append({"dosya": f, "neden": "emekli motor kapsamadi (denetlenmedi)"})
     out["denetlenmedi"] = denetlenmedi
     return out
 
 
-def codex(prompt, imgler, cikti_yolu):
-    """codex exec calistir; son mesaji cikti_yolu'na SAF JSON olarak yazar."""
+def emekli_motor_cagir(prompt, imgler, cikti_yolu):
+    """emekli motor exec calistir; son mesaji cikti_yolu'na SAF JSON olarak yazar."""
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as sf:
         json.dump(SEMA, sf)
         sema_yolu = sf.name
-    cmd = [CODEX, "exec",
+    cmd = [EMEKLI_MOTOR_IKILI, "exec",
            "-m", MODEL,
            "-c", "model_reasoning_effort=" + EFFORT,
            "--ephemeral",            # 700 oturum dosyasi ~/.codex/sessions'a birikmesin
@@ -289,14 +289,14 @@ def process(tid):
     prompt += "\nGORSELLER (sirasiyla ekli): " + ", ".join(imgs) + "\n"
 
     onerip = os.path.join(d, "oneri.json")
-    ok, hata = codex(prompt, [os.path.join(d, f) for f in imgs], onerip)
+    ok, hata = emekli_motor_cagir(prompt, [os.path.join(d, f) for f in imgs], onerip)
     if not ok:
-        print("=== %s === Codex basarisiz: %s" % (tid, hata))
+        print("=== %s === emekli motor basarisiz: %s" % (tid, hata))
         return
     try:
         out = json.load(open(onerip))
     except (json.JSONDecodeError, FileNotFoundError) as e:
-        print("=== %s === Codex gecersiz JSON dondu: %s" % (tid, e))
+        print("=== %s === emekli motor gecersiz JSON dondu: %s" % (tid, e))
         if os.path.exists(onerip):
             os.unlink(onerip)   # bozuk dosya birakma — cagiran "oneri var" saniyor
         return
@@ -307,7 +307,7 @@ def process(tid):
     ham_kat = out.get("kategori")
     kanonik = kanonik_kategori(ham_kat)
     if kanonik is None:
-        print("=== %s === Codex gecersiz kategori dondu: %r (gecerli: %s)"
+        print("=== %s === emekli motor gecersiz kategori dondu: %r (gecerli: %s)"
               % (tid, ham_kat, ", ".join(KATEGORILER)))
         os.unlink(onerip)       # fail-closed: kotu kategoriyle urun STAGE ETME
         return
@@ -316,7 +316,7 @@ def process(tid):
         out["kategori"] = kanonik
 
     # DENETIM KAPSAMI (sessiz g5+ kapisi): TUM galeriye karsi kapsam hesapla; denetlenmeyen
-    # (cap ustu ya da Codex'in kapsamadigi) gorselleri "denetlenmedi" ile ISARETLE. oneri.json'u
+    # (cap ustu ya da emekli motor'in kapsamadigi) gorselleri "denetlenmedi" ile ISARETLE. oneri.json'u
     # bu alanla HER ZAMAN yeniden yaz (kategori normalize olmasa da denetlenmedi guncel olsun).
     out = denetim_birlestir(galeri, MAX_IMG, out)
     with open(onerip, "w", encoding="utf-8") as f:
@@ -331,12 +331,12 @@ def process(tid):
 
 def main():
     if len(sys.argv) < 2:
-        sys.exit("Kullanim: python3 tools/thing-codex.py <thing_id> [<thing_id> ...]")
+        sys.exit("Kullanim: python3 tools/thing-icerik.py <thing_id> [<thing_id> ...]")
     if not ai_izinli():
-        sys.exit("KREDI KAPISI: urun-basi Codex cagrisi kapali. Yalniz Okan acikca izin verirse "
+        sys.exit("KREDI KAPISI: urun-basi emekli motor cagrisi kapali. Yalniz Okan acikca izin verirse "
                  "PRUVO_URUN_AI_IZNI=EVET kullanilir.")
-    if not os.path.exists(CODEX):
-        sys.exit("Codex bulunamadi: %s (ChatGPT.app kurulu mu?)" % CODEX)
+    if not os.path.exists(EMEKLI_MOTOR_IKILI):
+        sys.exit("emekli motor bulunamadi: %s (ChatGPT.app kurulu mu?)" % EMEKLI_MOTOR_IKILI)
     for tid in sys.argv[1:]:
         process(tid)
 

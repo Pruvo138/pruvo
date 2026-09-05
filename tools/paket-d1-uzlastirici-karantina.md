@@ -1,7 +1,7 @@
 # PAKET — D1 uzlastirici SILME kolunun karantinaya alinmasi (KraL spec'i, MUHENDIS icrasi)
 
 > **KAT: MUHENDIS (Claude Opus).** Bu bir SESSIZ-HATA sinifidir (olcum + veri SILME) —
-> `skill: codex-isci` merdiveninde Codex'e VERILMEZ. Kabul kapisi calistirilabilir testtir.
+> `skill: isci-devri` merdiveninde emekli motor'e VERILMEZ. Kabul kapisi calistirilabilir testtir.
 > Spec sahibi KraL. Urun VERISI (`urunler.json`) bu iste DEGISMEZ.
 
 ## 1. OLCULEN ZARAR (iddia degil, 11 Agu 2026 kosumu)

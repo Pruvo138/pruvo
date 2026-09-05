@@ -655,7 +655,7 @@ SIR_KOKENI = {
         "ilgili platforma tarayicidan yeniden giris "
         "(gercek dosya adi bu raporun eleme satirlarinda)",
         "o platformun hasadi durur"),
-    "auth.json": ("ChatGPT/Codex girisi (codex login)", "Codex isci cagrilari durur"),
+    "auth.json": ("ChatGPT/Codex girisi (emekli motor login)", "emekli motor isci cagrilari durur"),
 }
 
 GIT_HOOK_KLASOR = "GIT-HOOKS"        # her evin .git/hooks'u (git'te ASLA yok)

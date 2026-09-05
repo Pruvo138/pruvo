@@ -1,4 +1,4 @@
-codex-muafiyet: DEVAM.md LOSSLESS rotasyonu, kanonik NO-OP gozlemi + acik hedef — ölçüm
+isci-muafiyet: DEVAM.md LOSSLESS rotasyonu, kanonik NO-OP gozlemi + acik hedef — ölçüm
 
 # DEFTER (DEVAM.md) ROTASYONU — ISCI GOREVI (KraL-K260KatSec)
 

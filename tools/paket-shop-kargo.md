@@ -6,7 +6,7 @@
 > EDİLMEDİ). Aktif mühendis kalan kapsamı (5, 6, 8, 9) O DALIN ÜZERİNE ekler — main'den
 > başlamak yasak, iş kaybolur. Devir notları mühendise mesajla iletildi.
 
-**Kat:** Claude Mühendis (ödeme sınıfı — para hesabı, Codex'e verilmez).
+**Kat:** Claude Mühendis (ödeme sınıfı — para hesabı, emekli motor'e verilmez).
 **Çalışma şekli:** worktree; `urunler.json`'a dokunma. İki-yazar uyarısı: Faz D mühendisi
 `build.py`/`secenekler.js`/ürün sayfası şablonunda çalışıyor — bu paket SADECE sepet
 (index.html sepet paneli) + `shop/` worker + D1 şeması + shop kabul testlerine dokunur;

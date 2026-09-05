@@ -1,8 +1,8 @@
 # MÜHENDİS İŞ PAKETİ — Sarı Seri Müşteri Konfigüratörü (Parametrik Ürün + Hacim-Orantılı Fiyat)
 
-**Kat:** MÜHENDİS = **CODEX güçlü model + yüksek efor (İLK CODEX-MÜHENDİS PİLOTU — Okan
-direktifi 16 Tem).** Yürütme deseni: bir oturum `codex exec`'i orkestre eder (thing-codex.py
-deseni: iş Codex'te koşar, oturum bağlamına hacim girmez), kabul testlerini koşturur.
+**Kat:** MÜHENDİS = **emekli motor güçlü model + yüksek efor (İLK CODEX-MÜHENDİS PİLOTU — Okan
+direktifi 16 Tem).** Yürütme deseni: bir oturum `emekli motor exec`'i orkestre eder (thing-icerik.py
+deseni: iş emekli motor'te koşar, oturum bağlamına hacim girmez), kabul testlerini koşturur.
 **İSTİSNA — Worker tarafı (ödeme sınıfı):** aşağıdaki "SHOP ENTEGRASYONU" bölümü bu pakette
 YAPILMAZ; Opus shop mühendisine ek iştir (tools/paket-shop-odeme.md sahibi).
 **Karar sahibi:** Okan (16 Tem): müşteri sarı üründe ölçü/parametreleri kendisi girer,

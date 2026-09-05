@@ -3,7 +3,7 @@
 
 Kullanim:  python3 tools/urun-ekle.py <thing_id> [<thing_id> ...]
 
-Her id PARALEL islenir: thing-hazirla (gorsel+STL+olcu+meta) -> lisans NC kapisi -> thing-codex
+Her id PARALEL islenir: thing-hazirla (gorsel+STL+olcu+meta) -> lisans NC kapisi -> thing-icerik
 (gorsel secimi + Turkce icerik + fiyat_oneri) -> secili gorseller R2 -> STAGE. Yazma: dosya KILIDI
 altinda urunler.json'u O AN yeniden okuyup ekler (stale snapshot degil) -> baska oturum ayni anda
 yazsa bile EZMEZ. COMMIT ETMEZ; sonda gozden gecirme tablosu basar.
@@ -94,12 +94,12 @@ def process_one(tid):
             return {"id": tid, "durum": "ATLA: NC/Non-Commercial (satilamaz)", "lisans": meta.get("lisans")}
         if not meta.get("stl_adet"):
             return {"id": tid, "durum": "ATLA: STL indirilemedi (0 dosya)"}
-        ai = subprocess.run([PY, os.path.join(TOOLS, "thing-codex.py"), tid], capture_output=True, text=True)
+        ai = subprocess.run([PY, os.path.join(TOOLS, "thing-icerik.py"), tid], capture_output=True, text=True)
         if ai.returncode != 0:
             return {"id": tid, "durum": "HATA: kredi kapisi — urun AI izni yok"}
         onerip = os.path.join(IMGROOT, tid, "oneri.json")
         if not os.path.exists(onerip):
-            return {"id": tid, "durum": "HATA: codex oneri yok"}
+            return {"id": tid, "durum": "HATA: emekli motor oneri yok"}
         o = json.load(open(onerip))
         uid = r2k.urun_slug(o.get("baslik") or tid, yedek=tid)
         # R2 gorsel anahtari KAYNAK-ID'den (th<tid>) turer, baslik-slug'indan (uid) DEGIL: iki farkli

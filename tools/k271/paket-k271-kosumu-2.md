@@ -1,4 +1,4 @@
-codex-muafiyet: K271 bataryasi fikstur onarimi sonrasi yeniden kosum — ölçüm
+isci-muafiyet: K271 bataryasi fikstur onarimi sonrasi yeniden kosum — ölçüm
 
 # K271 KOSUM TUR-2 — ISCI GOREVI (KraL-K260KatSec)
 

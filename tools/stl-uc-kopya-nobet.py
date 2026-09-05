@@ -61,7 +61,7 @@ KOSUM (~13 sn olculdu: 13 ag cagrisi; hasat partisi sonunda kosmaya uygun):
     python3 tools/stl-uc-kopya-nobet.py --durum    # yalniz rapor (kirmizi yakmaz)
     python3 tools/stl-uc-kopya-nobet.py --esik 20  # esigi ez (varsayilan 20)
 CI'ya BLOKLAYICI EKLENMEZ: ag + kimlik ister, kosucuda sahte kirmizi uretir
-([[codex-sandbox-agi-sahte-kirmizi]]). Yeri: onarim el kitabi + hasat partisi sonu.
+([[isci-sandbox-agi-sahte-kirmizi]]). Yeri: onarim el kitabi + hasat partisi sonu.
 """
 
 import argparse

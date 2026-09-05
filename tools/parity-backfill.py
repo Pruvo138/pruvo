@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""PARITY BACKFILL surucusu — Codex-YARGI kapili (Sonnet YOK, minimal Opus).
+"""PARITY BACKFILL surucusu — AI-YARGI kapili (Sonnet YOK, minimal Opus).
 
 Akis her (marka, platform) icin:
   <platform>-ara.py <marka>   -> aday (id,ad) listesi (NC/dup/marka-alakasiz ZATEN elenmis)
-  CODEX YARGI (parity-yargi)  -> ad bazli sinif: GERCEK PARCA tut / maket-merch-IP at
+  emekli motor YARGI (parity-yargi)  -> ad bazli sinif: GERCEK PARCA tut / maket-merch-IP at
                                  (ara.py'nin KACIRDIGI olcekli-maket/logo-anahtarligi eler)
-  <platform>-ekle.py <keep>   -> STAGE (lisans fail-closed + Codex icerik + R2 + urunler.json flock)
+  <platform>-ekle.py <keep>   -> STAGE (lisans fail-closed + emekli motor icerik + R2 + urunler.json flock)
   marka-kapsama.py kaydet      -> parity defteri
-Icerik/gorsel + yargi = Codex (kota-disi). Surucu dongu = 0 Claude alt-ajani.
+Icerik/gorsel + yargi = emekli motor (kota-disi). Surucu dongu = 0 Claude alt-ajani.
 COMMIT ETMEZ — mimar sonra denetim-kapisi + parti/mukerrer-kontrol + publish.
 
 Kullanim:
   python3 parity-backfill.py --yargi-test <Platform> <marka>            # YAZMA YOK: ara+yargi, karar bas
-  python3 parity-backfill.py --havuz-test <Platform> <marka> [--derin]  # YAZMA/CODEX YOK: havuz boyu olc
+  python3 parity-backfill.py --havuz-test <Platform> <marka> [--derin]  # YAZMA/AI YOK: havuz boyu olc
   python3 parity-backfill.py <Platform> <marka1,marka2|GAP> [per_max] [bekle] [--derin]
 
 --derin: adaptore --derin gecirir -> per_max keeper-cap KALKAR, ham havuz TAM taranir
-         (offset<3000 / page<=100 ikincil tavana kadar) ve tumu Codex-yargi kapisina gider.
+         (offset<3000 / page<=100 ikincil tavana kadar) ve tumu AI-yargi kapisina gider.
          --derin YOKSA eski davranis birebir (per_max=50 keeper'da durur).
 """
 import json
@@ -42,7 +42,7 @@ _KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
 if _KOK_UYARI:
     sys.stderr.write(_KOK_UYARI)
 PY = sys.executable or "python3"
-CODEX = "/Applications/ChatGPT.app/Contents/Resources/codex"
+EMEKLI_MOTOR_IKILI = "/Applications/ChatGPT.app/Contents/Resources/codex"
 DEFTER = os.path.join(ROOT, ".marka-kapsama.json")
 URUNLER = os.path.join(ROOT, "urunler.json")
 SCRATCH = os.path.dirname(os.path.abspath(__file__))
@@ -179,8 +179,8 @@ def _parse_adlar(out, ids):
     return None  # hizalama guvensiz -> ad yok
 
 
-def codex_yargi(brand, pairs):
-    """pairs=[(id,ad)]. Codex ad bazli sinif -> ({keep_id}, {id:reason}). Codex patlarsa ({},{}) (guvenli: ekleme)."""
+def emekli_motor_yargi(brand, pairs):
+    """pairs=[(id,ad)]. emekli motor ad bazli sinif -> ({keep_id}, {id:reason}). emekli motor patlarsa ({},{}) (guvenli: ekleme)."""
     if not pairs:
         return set(), {}
     liste = "\n".join("%d. %s: %s" % (i + 1, pid, ad or "(ad yok)") for i, (pid, ad) in enumerate(pairs))
@@ -214,7 +214,7 @@ def codex_yargi(brand, pairs):
         pass
     try:
         r = subprocess.run(
-            [CODEX, "exec", "-m", "gpt-5.4-mini", "-c", "model_reasoning_effort=low",
+            [EMEKLI_MOTOR_IKILI, "exec", "-m", "gpt-5.4-mini", "-c", "model_reasoning_effort=low",
              "-s", "read-only", "--skip-git-repo-check",
              "--output-schema", sema_p, "-o", out_p, prompt],
             capture_output=True, text=True, timeout=300)
@@ -267,9 +267,9 @@ def yargi_test(platform, marka):
     print("aday %d (taranan %d):" % (len(ids), taranan))
     for pid, ad in pairs:
         print("  %-42s %s" % (pid, ad or "(ad yok)"))
-    keep, reason = codex_yargi(marka, pairs)
+    keep, reason = emekli_motor_yargi(marka, pairs)
     if keep is None:
-        print("CODEX YARGI HATA: %s" % reason.get("_hata"))
+        print("emekli motor YARGI HATA: %s" % reason.get("_hata"))
         return
     print("\nKARAR:")
     for pid, ad in pairs:
@@ -279,9 +279,9 @@ def yargi_test(platform, marka):
 
 
 def havuz_test(platform, marka, derin):
-    """YAZMA/CODEX YOK: sadece _ara havuzunu olc — sig-cap mi (eski) tam-havuz mu (derin) ispat.
+    """YAZMA/AI YOK: sadece _ara havuzunu olc — sig-cap mi (eski) tam-havuz mu (derin) ispat.
     Kabul #3: derin yolun ham havuzu sig-cap'e DUSMEDIGINI kanitlar (parity-backfill entegrasyon)."""
-    print("HAVUZ-TEST (YAZMA/CODEX YOK) | %s | %s | derin=%s" % (platform, marka, derin))
+    print("HAVUZ-TEST (YAZMA/AI YOK) | %s | %s | derin=%s" % (platform, marka, derin))
     out, ids, pairs, taranan, throttled = _ara(platform, marka, 50, derin=derin)
     if throttled:
         print("!!! 429 THROTTLE — havuz olculemedi (rate-limit). Reset sonrasi tekrar.")
@@ -324,10 +324,10 @@ def kos(platform, markalar, per_max, bekle, derin=False):
                 time.sleep(max(bekle * 4, 30))
                 continue
             ardisik_throttle = 0
-            keep, reason = codex_yargi(marka, pairs)
+            keep, reason = emekli_motor_yargi(marka, pairs)
             if keep is None:
                 kayit.update({"taranan": taranan, "aday": len(ids), "staged": 0,
-                              "atlandi": "codex-yargi-hata", "hata": reason.get("_hata")})
+                              "atlandi": "ai-yargi-hata", "hata": reason.get("_hata")})
                 print("[%s %d/%d] %-22s YARGI HATA -> atlandi" % (platform, n, len(markalar), marka), flush=True)
                 rapor.append(kayit)
                 _rapor_yaz(platform, toplam_staged, rapor)

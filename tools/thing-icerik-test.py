@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
-"""KABUL/REGRESYON TESTI — thing-codex.py denetim KAPSAMI (g5+ kor noktasi).
+"""KABUL/REGRESYON TESTI — thing-icerik.py denetim KAPSAMI (g5+ kor noktasi).
 
-Kok neden (olculdu, MaCiT backfill): thing-codex `imgs = imgs[:MAX_IMG]` (MAX_IMG=4) ile galeriyi
-Codex'e GONDERMEDEN ONCE 4'e kirpiyordu. Pratikte SADECE ilk 4 gorsel yargilaniyor; g5+ hic
+Kok neden (olculdu, MaCiT backfill): thing-icerik `imgs = imgs[:MAX_IMG]` (MAX_IMG=4) ile galeriyi
+emekli motor'e GONDERMEDEN ONCE 4'e kirpiyordu. Pratikte SADECE ilk 4 gorsel yargilaniyor; g5+ hic
 gonderilmiyor, `sec_gorseller`/`elenen` daima g1..g4 icinde. 242 aday gorselin 199'unda denetim
 kaydi YOKTU, 36'si g5+ araligindaydi -> DENETIMSIZ gorsel vitrine girdi. Kirpma SESSIZDI.
 
 Duzeltme: MAX_IMG=8 (makul tavan; gorsel okuma en pahali adim) + `denetim_birlestir` her galeri
 gorselini ya sec_gorseller/elenen ya da "denetlenmedi" altinda GARANTI eder. cap ustu (nadir g9+)
-ya da Codex'in kapsamadigi gorsel SESSIZCE degil, ACIK "denetlenmedi" isaretiyle raporlanir.
+ya da emekli motor'in kapsamadigi gorsel SESSIZCE degil, ACIK "denetlenmedi" isaretiyle raporlanir.
 
-Bu test GERCEK Codex/ag cagrisi YAPMAZ — codex() stub'lanir. Olctugu sey: verilen galeriye karsi
+Bu test GERCEK emekli motor/ag cagrisi YAPMAZ — emekli motor() stub'lanir. Olctugu sey: verilen galeriye karsi
 oneri.json ciktisinin (sec_gorseller ∪ elenen ∪ denetlenmedi) TUM galeriyi kapsadigi, ve cap ustu
 gorsellerin "denetlenmedi" olarak isaretlendigi. Kok neden geri gelirse (kapsam 4'e duserse ya da
 kirpilan gorsel sessizce dusarse) test kirmizi yanar.
 
-Calistir:  python3 tools/thing-codex-test.py   (cikis 0 = gecti, 1 = kaldi)
+Calistir:  python3 tools/thing-icerik-test.py   (cikis 0 = gecti, 1 = kaldi)
 """
 import importlib.util
 import json
@@ -34,7 +34,7 @@ def _load(fname, modname):
     return mod
 
 
-tc = _load("thing-codex.py", "thing_codex")
+tc = _load("thing-icerik.py", "thing_icerik")
 
 
 def _chk(ad, kosul, detay=""):
@@ -73,11 +73,11 @@ def test_bol():
 
 # ---------------------------------------------------------------------------
 # TEST 2: denetim_birlestir — g1..g8 galeri, cap=4 -> g5..g8 "denetlenmedi", TAM kapsam
-#   (kok neden senaryosu: Codex sadece g1..g4 gormus, g5+ denetimsiz kalmamali)
+#   (kok neden senaryosu: emekli motor sadece g1..g4 gormus, g5+ denetimsiz kalmamali)
 # ---------------------------------------------------------------------------
 def test_birlestir_kirpma():
     galeri = ["g%d.jpg" % i for i in range(1, 9)]  # g1..g8
-    # Codex sadece gonderilen ilk 4'u gordu: 3'unu secti, 1'ini eledi
+    # emekli motor sadece gonderilen ilk 4'u gordu: 3'unu secti, 1'ini eledi
     out = {"sec_gorseller": ["g1.jpg", "g3.jpg", "g4.jpg"],
            "elenen": [{"dosya": "g2.jpg", "neden": "logo"}]}
     out = tc.denetim_birlestir(galeri, 4, out)
@@ -90,19 +90,19 @@ def test_birlestir_kirpma():
 
 
 # ---------------------------------------------------------------------------
-# TEST 3: denetim_birlestir — Codex GONDERILENI kapsamadi (fail-loud, sessiz gecmesin)
+# TEST 3: denetim_birlestir — emekli motor GONDERILENI kapsamadi (fail-loud, sessiz gecmesin)
 # ---------------------------------------------------------------------------
 def test_birlestir_kapsamadi():
     galeri = ["g1.jpg", "g2.jpg", "g3.jpg", "g4.jpg"]
     out = {"sec_gorseller": ["g1.jpg"], "elenen": [{"dosya": "g2.jpg", "neden": "bulanik"}]}
     out = tc.denetim_birlestir(galeri, 8, out)  # cap galeriden buyuk -> hepsi gonderildi
     dn = {e["dosya"] for e in out.get("denetlenmedi", [])}
-    _chk("kapsamadi: g3,g4 denetlenmedi (codex atladi)", dn == {"g3.jpg", "g4.jpg"}, str(dn))
+    _chk("kapsamadi: g3,g4 denetlenmedi (emekli motor atladi)", dn == {"g3.jpg", "g4.jpg"}, str(dn))
     _chk("kapsamadi: TAM kapsam", _kapsam(out, galeri) == set(galeri))
 
 
 # ---------------------------------------------------------------------------
-# TEST 4: uctan uca process() — codex() STUB (gercek cagrisi yok), oneri.json'da denetlenmedi
+# TEST 4: uctan uca process() — emekli motor() STUB (gercek cagrisi yok), oneri.json'da denetlenmedi
 # ---------------------------------------------------------------------------
 def test_process_uctan_uca():
     tmp = tempfile.mkdtemp()
@@ -116,8 +116,8 @@ def test_process_uctan_uca():
     with open(os.path.join(d, "meta.json"), "w") as f:
         json.dump({"baslik": "Test Parca", "tasarimci": "x", "lisans": "CC BY", "olcu_mm": [10, 20, 30]}, f)
 
-    # codex() stub: gercek Codex CAGIRMADAN, gonderilen ilk MAX_IMG gorselden secim yazar
-    def sahte_codex(prompt, imgler, cikti_yolu):
+    # emekli motor() stub: gercek emekli motor CAGIRMADAN, gonderilen ilk MAX_IMG gorselden secim yazar
+    def sahte_emekli_motor(prompt, imgler, cikti_yolu):
         adlar = [os.path.basename(p) for p in imgler]  # process yalniz cap kadarini yollamali
         out = {"sec_gorseller": adlar[:3],
                "elenen": [{"dosya": adlar[3], "neden": "duplike"}] if len(adlar) > 3 else [],
@@ -127,19 +127,19 @@ def test_process_uctan_uca():
             json.dump(out, fh, ensure_ascii=False)
         return True, ""
 
-    orij_root, orij_codex = tc.IMGROOT, tc.codex
+    orij_root, orij_emekli = tc.IMGROOT, tc.emekli_motor_cagir
     tc.IMGROOT = tmp
-    tc.codex = sahte_codex
+    tc.emekli_motor_cagir = sahte_emekli_motor
     try:
         tc.process(tid)
         out = json.load(open(os.path.join(d, "oneri.json")))
     finally:
-        tc.IMGROOT, tc.codex = orij_root, orij_codex
+        tc.IMGROOT, tc.emekli_motor_cagir = orij_root, orij_emekli
 
     galeri = ["g%d.jpg" % i for i in range(1, 9)]
     # stub gonderilen gorsel sayisini adlar uzunlugundan gorur -> process MAX_IMG(8) yolladiysa
-    # bu galeride kirpma OLMAZ; ama Codex secim+elenen sadece 4 gorseli kapsar (3 sec + 1 elenen),
-    # kalan gonderilenler (g5..g8) "codex kapsamadi" ile denetlenmedi'ye dusmeli. Her iki halde de
+    # bu galeride kirpma OLMAZ; ama emekli motor secim+elenen sadece 4 gorseli kapsar (3 sec + 1 elenen),
+    # kalan gonderilenler (g5..g8) "emekli motor kapsamadi" ile denetlenmedi'ye dusmeli. Her iki halde de
     # KRITIK GARANTI: hicbir galeri gorseli kapsamsiz (sessiz) kalmaz.
     _chk("process: oneri.json'da denetlenmedi alani var", "denetlenmedi" in out)
     _chk("process: TAM kapsam (hicbir gorsel sessiz degil)",
@@ -166,7 +166,7 @@ def test_mutasyon_nobetci():
 
 
 def main():
-    print("thing-codex denetim kapsami testi")
+    print("thing-icerik denetim kapsami testi")
     test_bol()
     test_birlestir_kirpma()
     test_birlestir_kapsamadi()

@@ -1124,7 +1124,7 @@ def _ue_main_kos(ue, staged):
     NEDEN BU YOL: olculecek sey main() icindeki `except AltkategoriIhlali -> sys.exit(6)`
     kolu; (h1-h5) merge_safe'i DOGRUDAN cagirdigi icin o kol HIC kosmuyordu (blok silinse
     arac ciplak traceback'le exit 1 verir, suit yine yesil kalirdi). Ag'a/alt surece
-    CIKMAMAK icin yalniz process_one enjekte edilir: thing-hazirla + thing-codex + R2
+    CIKMAMAK icin yalniz process_one enjekte edilir: thing-hazirla + thing-icerik + R2
     zinciri (ag + kredi kapisi) taklit edilir, main()'in KENDI akisi (havuz -> merge_safe
     -> istisna -> rapor -> cikis kodu) GERCEK kalir. Alt surec (`python3 urun-ekle.py`)
     secilmedi: ayni kolu olcer ama ag zincirini enjekte edecek kanca birakmaz.

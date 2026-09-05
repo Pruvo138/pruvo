@@ -71,7 +71,7 @@ MUTASYONLAR: list[tuple[str, str, str]] = [
     ),
     (
         "g1 motor ayrimini kaldir (herkese mcp__playwright)",
-        'if motor == "codex":',
+        'if motor == "emekli-motor":',
         "if False:",
     ),
     (
