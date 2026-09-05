@@ -625,8 +625,34 @@ def kendini_test(sessiz=False):
         print("  [%s] V8 CIKTI SOZLESMESI (karar satiri stdout + EN SON)  %d/%d"
               % ("OK" if v8_gecti == v8_iddia else "KIRMIZI", v8_gecti, v8_iddia))
 
+    # V11: MAKINEYE OZEL YOL EKSENI — ayirt edici olcut "arac yesil mi" DEGIL,
+    # aracin TURETTIGI koku BASTIRMAK ([[sabit-mutlak-yol-yerelde-yesil]]). Yerelde
+    # `VARSAYILAN_REPO` diskte VAR oldugu icin bu eksen ancak boyle olculur:
+    # arac kendi agacindan kosarken kaynagi KENDI `tools/`unde bulmali, sabit koke
+    # DUSMEMELI. Bu kol dusunce CI'da 3 batarya fikstur kurulumunda oluyordu (5 Eyl).
+    kaynak, nereden = _kanonik_kaynak()
+    yaninda = os.path.join(TOOLS_DIZINI, "kutu-arsivle.py")
+    v11 = [("V11a kanonik kaynak COZULDU (nereden=%s)" % nereden, kaynak is not None)]
+    if os.path.isfile(yaninda):
+        # Ayirt edici iddia: kaynak BU agactan gelmeli, sabit koke DUSMEMELI.
+        v11.append(("V11b kaynak BU aracin agacindan (sabit koke DUSMEDI)",
+                    kaynak is not None
+                    and os.path.realpath(kaynak) == os.path.realpath(yaninda)))
+    elif not sessiz:
+        # KAPSAM_DISI ≠ TEMIZ: sessizce yesile sayilmaz, gerekcesi BASILIR.
+        print("  [KAPSAM_DISI] V11b — bu agacin `tools/`unda `kutu-arsivle.py` YOK "
+              "(kardes ev hali); dusme kolu V9'da olculuyor")
+    for ad, kosul in v11:
+        iddia += 1
+        if kosul:
+            gecti += 1
+        else:
+            kirmizi += 1
+        if not sessiz:
+            print("  [%s] %s" % ("OK" if kosul else "KIRMIZI", ad))
+
     if not sessiz:
-        print("\nVAKA=%d IDDIA=%d GECTI=%d KIRMIZI=%d" % (len(VAKALAR) + 2, iddia, gecti, kirmizi))
+        print("\nVAKA=%d IDDIA=%d GECTI=%d KIRMIZI=%d" % (len(VAKALAR) + 3, iddia, gecti, kirmizi))
         print("KABUL %s" % ("YESIL" if kirmizi == 0 else "KIRMIZI"))
     return kirmizi == 0, iddia, gecti
 
