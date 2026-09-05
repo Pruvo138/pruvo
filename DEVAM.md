@@ -2,26 +2,21 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 5 EYL ~02:xZ — **K366 CI'ya BAGLANDI + indeks ayraci KORUMA KORLUGU onarildi** (main `299e9f9b`)
-**① Bloker KAPANDI:** `nobet.yml` SERIT B'ye `hafiza-kota-kapisi-test.py` AYRI adim
-(emsal: defter kota kapisi; ayri tally — karisik tally bir eksenin dusenini otekinin
-yesiliyle gizler). `ci-kapsam-test.py` KIRMIZI(1)→**YESIL(0)**. Dalin testleri:
-hafiza bataryasi **33/33 vaka + 5/5 mutant KONTROL=YESIL**, defter kapisi **6/6 rc=0**.
-**② 🔴 YENI ARIZA — `hafiza-indeks-arsivle.py` AYRAC korlugu:** `,(?=\[)` yalniz `,[`
-boluyordu; `A, [🔴 B]` TEK parca sayilip 🔴 B kuyruga gomulu halde A ile ARSIVE gecti
-(tasima birimi yanlis seviyede). D5 KORUMA denetimi AYNI ayraci kullandigi icin
-GOREMIYORDU. Care `,(?=[ \t]*\[)` — bosluk sonraki parcada kalir, `",".join` ozgun
-bayti AYNEN uretir. OLCULDU: KORUMALI_BEKLEYEN 143→**144**, bagimsiz ayristiriciyla
-tasinan 🔴 girdi **1→0**; Acik-kuyruk kacak **0**; oksuz **1→1** (artmadi).
-**③ Canli MEMORY.md rotasyonu:** 19.605→**13.080 B** (su seviyesi 13.107 ALTINDA,
-HUKUM=TAVAN_BASARILI); arsiv 15.107→23.037 B. **EKSEN=SILAHSIZ birakildi** —
-silahlandirma mimar hukmu (`PRUVO_HAFIZA_EKSENI=silahli`); ARMA GUVENLI (silahli rc=0
-olculdu) ama YERLESIM karari mimarda. 🔴 K366 kod yorumunun "kapinin canli zorlayici
-cagirani YOKTUR" gerekcesi **YANLIS CIKTI** (sha256 + canli commit ciktisiyla
-kanitlandi); ayrinti KUTUDA — bu defterde ayrintisi BILEREK yazilmiyor.
-**④ Merge:** `299e9f9b` → `Build & deploy` **success**, `deploy`+`yayin` dahil **6/6**.
-🔴 D1 DRIFT VAR ama BENIM DEGIL: 8 eksik satir `a4e7e3e5` (urunler.json, MaCiT duzlemi);
-benim dalim urunler.json'a **0 kez** dokundu. *Kapatan:* `d1-sync.py` (MaCiT).
+## 🔁 5 EYL ~10:5xZ — **DEVIR ALINDI: temizlik cipi ACILDI · yabanci 3 dosya KORUNDU · yayin HEAD'de ACIK**
+**① CIP ACILDI** `KraL-Temizlik-05Eyl` (`spawn_task`, `task_dba9d84b`) — onceki oturumun kapanisindaki hazir spec birebir verildi. Uc olcut zorunlu: `merge-base --is-ancestor` rc · `status --porcelain` BOS · `list_sessions` KAPALI. Dal silme YASAK; `nervous-cartwright-9e57c1` (canli tamirci) DOKUNULMAZ.
+**② TAZE OLCUM (10:48):** worktree = ana checkout + **8 agac**; altisinin oturumu CANLI → aday muhtemelen yalniz `blissful-franklin-52e014` + `upbeat-diffie-ee0a52`. Cipe **HIPOTEZ** diye verildi (`list_sessions` ile yeniden olculecek).
+**③ 🔴 YABANCI DEGISIKLIK 1 DEGIL 3, SAHIBI CANLI:** `tools/arsiv-kapisi.py` · `tools/cip-kapanis-kancasi.py` · `tools/cip-kapanis-kancasi-test.py` (mtime 10:41/10:46/10:45, olcum 10:48). DOKUNULMADI, COMMIT EDILMEDI. Icerik: SERIT B kirmizisinin kok sebebi — makineye ozel sabit yol CI'da YOK, uc batarya **fikstur kurulumunda** olmus (yani "kirmizi" degil **HIC OLCMEMIS**) + taban kirmiziyken mutasyon turu 9+4 **sahte kill** basiyormus.
+**③b DOGRULAMA TURU — IDDIA CURUDU, KAYIP YOK:** commit oncesi yeniden olculdu; ana checkout
+`git status` TEMIZ, `PRUVO_KANONIK_TOOLS` ana agacta **0**. Is tamirci cipinin kendi agacina
+tasinip commit'lenmis: `nervous-cartwright-9e57c1` dalinda **`f2db0c8f`** (o agac da TEMIZ).
+Merge hukmu tamircinin kapanisinda.
+**④ YAYIN ACIK:** `Build & deploy` `33939187705` success; alarm seritleri 4/4 success. Duran tek kirmizi SERIT B (`33945934510`) — adi geregi yayini BLOKLAMAZ, kok sebebi ③'te canli onarimda.
+**⑤ KUTU:** rotasyon kardes oturumda kostu 799→315 satir; `HUKUM=KORUMA_TUTTU rc=0` (7 ACIK_BASLIYORUM tavani mesru tutuyor) → defter kapisi **commit BLOKLAMADI**.
+
+## 🔁 5 EYL ~02:xZ — K366 CI'ya BAGLANDI + indeks ayraci koruma onarimi (main `299e9f9b`) — **ISARETCI**
+↩︎ **TAM METIN `DEVAM-ARSIV.md`'de** (2026-09-05 1-gir-1-cik indirmesi, 1.720 B; arsiv 2.067.207→2.069.046 B, geri okunarak dogrulandi).
+Ozet: `nobet.yml` SERIT B'ye ayri adim; `ci-kapsam-test.py` KIRMIZI→YESIL; hafiza bataryasi 33/33 + 5/5 mutant. AYRAC korlugu `,(?=[ \t]*\[)` ile onarildi (KORUMALI_BEKLEYEN 143→144, tasinan 🔴 girdi 1→0).
+🔧 **ACIK KALAN TEK IPLIK:** hafiza ekseni **SILAHSIZ** birakildi; silahlandirma (`PRUVO_HAFIZA_EKSENI=silahli`) MIMAR HUKMU — arma GUVENLI olculdu (silahli rc=0), YERLESIM karari acik.
 
 ## 🔁 5 EYL ~00:xZ — BaBa 4 KALEM (main `074d7c9f` YERELDE · origin `e021e922`)
 **KAPANAN:** ① D1 · ② KORUMALI blok tasinmaz · ④ filo dersi 5 evde · **Okan: ArTisT sayfa izni.**
