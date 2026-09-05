@@ -2,6 +2,10 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ 5 EYL — KUTU KILIDI UC KUSUR KAPANDI (`3eae9047`) — **ISARETCI**
+↩︎ TAM METIN kutuda (cip `goofy-snyder-cb4801`): 6 kilit->0, kutu 461->388, 515/515, yayin yesil.
+🔴 OKAN'DA: kutu 250'ye INEMEZ — 388 satirin 244'u KORUMALI 6 blok (dokunmak yasak), 144'u koru.
+
 ## 🔁 5 EYL ~20:xxZ — **OKAN ①+② BITTI** (`5b86ac20`, cip `cool-saha-010aa9`) — **ISARETCI**
 ↩︎ **TAM METIN `DEVAM-ARSIV.md`** (5 Eyl isaretciye indirme; md5 birebir, eksik 0).
 **①** Bisiklet **16 alt kategori** (hepsi ≥15 urun, kapsama %100), 2.618 urune yazildi, **D1 teyitli**. **②** `KAT_PANEL_MIN_CIP=3` → panel **12→7**; Bisiklet (17 cip) esigi **DOGAL** gecti, kodda ozel-durum YOK.
