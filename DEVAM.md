@@ -2,51 +2,35 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔁 5 EYL ~18:3xZ — **KUTU KILIDI CIPI ACILDI (`task_e76cf129`) · KOK SEBEP CIVILENDI · defter 2 blok ISARETCIYE INDI (elle, md5 birebir)**
+**KOK SEBEP OLCULDU:** arsiv `:64377` HocA kapanisi jetonu TASIYOR (`:64396`) ama `blok_kapanis_mi()` **`(False,None)`** donuyor → ad 251'lik `arsiv_kapanan_ad`a HIC girmiyor → `ARSIV_SERBEST=0`. Ucuncu kol jetonu YALNIZ `kapanis_satiri()`nin SON ICERIK satirinda ariyor; o satir **imza** (`— HocA (cip ...)`), jeton bir ustte. Ev gelenegi iki siralamaya izin veriyor, arac birini. `AD_YOK` kolu ayrica ULASILAMAZ (5 blok); MaCiT'in kapanis blogunun KENDISI `ACIK_ADSIZ` dustu = kapanis yazmak 6.'yi EKLEDI. Taban: kutu **401→477** st (tavan 250), `kutu-arsivle-test.py` **50 vaka / 466 iddia**. Kabul ONCEDEN civilendi.
+🔴 **AYNI SINIF, 2. YUZEY — `defter-rotasyon.py`:** 13 blogun **13'u vetolu**, `--isaretciye-indir` **`OLCULEMEDI: ILERLEME URETEMEDI`** basti (**7. vaka**). Elle indirildi (md5 birebir, eksik 0): 00:xZ + 18:0x bloklari, **14.648 → 11.4xx B**. *Kapatan:* veto kolu "acik kalem" ile "acik kalemi ISARETCIDE tasiyan blok"u ayirsin.
+
+## 🔁 5 EYL ~18:0xZ — KATEGORI PANELI HIZALANDI (`ebdfb059`) — **ISARETCI**
+↩︎ **TAM METIN `DEVAM-ARSIV.md` + kutu 18:0x.** Asili bosluk **5⇒0**, aralik **{34}**, mobil tasma 0; `33965692423` deploy+yayin success **SKIPPED=0**, canlida kural **1** (oncesi 0).
+🔴 **ACIK ②:** (a) **OKAN KAPISI** — TAMIRAT·OFIS·KAMERA **CIPLAK BASLIK** (evren `PRUVO_CIP_INDEKS`, esik>=15; civilenen tablo CURUDU), siklar kutuda · (b) **MaCiT duzlemi** — Elektronik `Kahve` 79 kayit **`marka` kirliligi** (`Mitsubishi` 19 GERCEK; kuratorluk GEVSEK, uyum %33,1).
+
 ## 🔁 5 EYL ~11:2xZ — **LCP/SITE HIZI ISI TAMAMEN ArTisT'E DEVREDILDI (Okan emri: "tamamen izinleriyle artiste devret")**
 **IZIN ACILDI (kalici, `AGENTS.md` L10; git DISI):** ArTisT `pruvo`da `index.html`+`build.py`'ye **YAZAR**, dalini acar+**merge eder**; degisikligi KraL'da "yabanci" SAYILMAZ. 🔴 SINIR KraL'da: `urunler.json`·`arama.py`·odeme-fiyat·secret·sema.
 Taban + 3 tuzak + cip devri **KUTUDA 11:2x blogunda**; kabul DEGISMEDI, kapanisi ArTisT yazar. **Okan'a cikan:** PSI anahtari.
 
 ## 🔁 5 EYL ~10:5xZ — **DEVIR ALINDI: temizlik cipi ACILDI · yabanci 3 dosya KORUNDU · yayin HEAD'de ACIK**
-**① DERS (bugun 2 kez kullanildi):** `isRunning:false` TEK BASINA YANILTIR — agac olcutu **uc eksenli** olmali (`list_sessions` VE `lsof -a -d cwd` VE `ListAgents`).
-**② SERIT B kok sebebi** (tamirci `f2db0c8f`, origin'de): makineye ozel mutlak yol CI'da OKUNMUYOR → uc batarya "kirmizi" degil **HIC OLCMEMIS** + **13 sahte kill**. Merge hukmu ACIK.
-**⑥ CIPLER:** ✅ `KraL-Yordam-05Eyl` KAPANDI (skill kuruldu) · 🔄 `KraL-AdSupurmesi-05Eyl` + `KraL-KatPanel-05Eyl` (`task_673e287d`) KOSUYOR · 📤 `KraL-LCP-05Eyl` ArTisT'e DEVREDILDI.
+↩︎ ① uc-eksen agac olcutu dersi + ② SERIT B kok sebebi (`f2db0c8f`, merge hukmu ACIK) **TAM METIN `DEVAM-ARSIV.md`'de**.
+**⑥ CIPLER:** ✅ `KraL-Yordam-05Eyl` KAPANDI (skill kuruldu) · ✅ `KraL-KatPanel-05Eyl` (`task_673e287d`) KAPANDI (`ebdfb059`, ust blok) · 🔄 `KraL-AdSupurmesi-05Eyl` KOSUYOR · 📤 `KraL-LCP-05Eyl` ArTisT'e DEVREDILDI.
 
-## 🔁 5 EYL ~17:2xZ — **HIJYEN: worktree 9→3 · defter 2 bayat isaretci dustu · 🔴 KUTU KILIDI SINIF KUSURU (SIRADAKI TEK IS)**
-**worktree 9→3** (uc eksen uyustu: `lsof`+`ListAgents`+`status`; dal SILINMEDI, kayip 0) · **defter**: BaBa'nin bayat dedigi 2 Okan-kapisi isaretcisi DUSURULDU.
-🔴 **SIRADAKI TEK IS — `/clear` sonrasi ILK is: KUTU KILIDI cipini AC** (spec KUTUDA 17:2x blogunda, birebir hazir). Kutu 3. gundur tavan ustu; sebep blok fazlaligi DEGIL **kilidin kendisi**: `ACIK_BASLIYORUM=6`, **5'i `AD_YOK`** → kilidi acan tek yol AD ESLESMESI, ad cikarilamayanda o yol ULASILAMAZ (MaCiT kapanis yazdi, kilit ACILMADI = kanit). Ek iki kusur: kapanis ARSIVDEyse arac gormuyor · ayristirici `non-fast-forward`u cip adi saniyor. `spawn_task` bu turda kotaya takildi (352K/350K) — "koruma korudugunu durdurur" **6. vakasi**.
+## 🔁 5 EYL ~17:2xZ — HIJYEN: worktree 9→3 · 2 bayat Okan-kapisi isaretcisi dustu — **KAPANDI** (kutu kilidi kalemi bir ustteki blokta devam ediyor)
+**worktree 9→3** (uc eksen uyustu: `lsof`+`ListAgents`+`status`; dal SILINMEDI, kayip 0). Kalan ucuncu kusur: ayristirici `non-fast-forward`u cip adi saniyor (cip kapsaminda).
 
 ## 🔁 5 EYL ~02:xZ — K366 CI'ya BAGLANDI + indeks ayraci koruma onarimi (main `299e9f9b`) — **ISARETCI**
 ↩︎ **TAM METIN `DEVAM-ARSIV.md`'de** (1-gir-1-cik, geri okunarak dogrulandi).
 Ozet: SERIT B'ye ayri adim; `ci-kapsam-test.py` KIRMIZI→YESIL; hafiza bataryasi 33/33 + 5/5 mutant; AYRAC korlugu onarildi.
 🔧 **ACIK KALAN TEK IPLIK:** hafiza ekseni **SILAHSIZ** birakildi; silahlandirma (`PRUVO_HAFIZA_EKSENI=silahli`) MIMAR HUKMU — arma GUVENLI olculdu (silahli rc=0), YERLESIM karari acik.
 
-## 🔁 5 EYL ~00:xZ — BaBa 4 KALEM (main `074d7c9f` YERELDE · origin `e021e922`)
-**KAPANAN:** ① D1 · ② KORUMALI blok tasinmaz · ④ filo dersi 5 evde · **Okan: ArTisT sayfa izni.**
-③ baglam kotasi kapisi YAZILDI + 6 evde KURULU, commit YERELDE — push CI kapsam kapisinda DURDU.
-
-**① D1** (`e021e922`): her wrangler cagrisi KALICI OZEL cache'te (soguk 27,9 → isinmis **1,4 sn**;
-`--version` kabul GECTI). Tavan iki kollu: ISINMIS **120** sn (olculen en yavas 11,1) · SOGUK **450**
-(olculen 307,1) — tek 120 mesru doldurmayi keserdi. `10043` GECICI kovasina alindi: tam senkron
-onunla rc=1 dustu, retry YAPILMADI, 51 urunluk yazma bosa gitti; AYNI komut degisiklik olmadan rc=0
-verdi (geri-okuma **51/51 ✅**). Kabul: tani-test **39/39** · mutasyon **13/13, OLDUREN 10/10,
-HEDEF_KOL_ATFI 10/10, YAMA_TUTMADI 0** · `--kendini-test` 157/0.
-🔴 **Batarya kendi KALICI kaynagini SILMISTI** (E kolu `finally`si ayrim yapmiyordu; cache **0 B**)
-— E3/E4 ile ayrildi. 🟠 `--durum` **rc=0 ama 71,2 sn** (kabul <60): 42,25 sn'si YEREL turetim
-(`marka_kanon` 20,59 + `model_kanon` 20,41), wrangler DEGIL. Tekillestirme **olculdu ve CURUDU**
-(`evren`/`ek` her cagride yeni nesne) → GERI ALINDI, no-op kod BIRAKILMADI. *Kapatan:* iki
-ureticinin kaynak nesnesi TEKILLESIP `--durum` 60 sn alti.
-
-**② KORUMALI** (`e021e922`): basliginda `KORUMALI` gecen blok rotasyona GIRMEZ (K329 konum olcutu,
-`sabit_indeksler`e 4. kaynak). Kabul **50 vaka / 466 iddia**; CANLI rotasyon `KORUMALI_ETIKETLI=1
-kilitledi=1` basti, blok YERINDE ATLANDI.
-
-**③ BAGLAM KOTASI — kabul 23/23**, 6 evin `settings.json`'una KANONIK YOLLA bagli. 🔴 **TASARIM
-KUSURU, 2. VAKA OLCULDU:** kapanis sinifi (a) BEKLEYEN commit'in push kablosunu, (b) **YAYIN
-KIRIKKEN koordinasyonu** (`SendMessage`/`ListAgents`) KAPSAMIYOR → koruma korudugunu durduruyor.
-Ikinci vaka bu oturumda: kapi 253K/183 turda kesti, yayin KIRIKKEN cipe mesaj atilamadi.
-*Kapatan:* kapanis sinifi iki hali de kapsar + 2 vaka. 🟠 NET-0 YAPILAMADI: kor silme YOK.
-
-**BEKLIYOR:** 🟠 MaCiT CLAUDE.md **13.060 B** (tavan 12.288) — net-0 kirpma MaCiT'te, KOR KESMEDIM.
+## 🔁 5 EYL ~00:xZ — BaBa 4 KALEM (main `074d7c9f` YERELDE · origin `e021e922`) — **ISARETCI**
+↩︎ **TAM METIN `DEVAM-ARSIV.md`'de** (2026-09-05 isaretciye indirme, md5 birebir).
+Ozet: ① D1 kalici cache (soguk 27,9 → isinmis 1,4 sn; tani 39/39, mutasyon 13/13) · ② KORUMALI blok rotasyona GIRMEZ (50 vaka/466 iddia) · ③ baglam kotasi kapisi 6 evde KURULU (kabul 23/23) · ④ filo dersi 5 evde.
+🔧 **ACIK IKI IPLIK:** (a) baglam kotasi kapanis sinifi BEKLEYEN push kablosunu ve YAYIN KIRIKKEN koordinasyonu KAPSAMIYOR (2 vaka olculdu; *Kapatan:* iki hali de kapsayan sinif + 2 vaka) · (b) `--durum` rc=0 ama 71,2 sn (kabul <60; *Kapatan:* iki ureticinin kaynak nesnesi TEKILLESIP <60 sn).
+🟠 **BEKLIYOR:** MaCiT CLAUDE.md **13.060 B** (tavan 12.288) — net-0 kirpma MaCiT'te, KOR KESMEDIM.
 
 ## 🔁 4 EYL ~23:xZ — YAYIN ACILDI → **ISARETCI: tam metin `DEVAM-ARSIV.md` + commit `366dd3cf`**
 
