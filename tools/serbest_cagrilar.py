@@ -84,6 +84,7 @@ DEFTER_ROTASYON_YOL = REPO_ONEKI + "tools/defter-rotasyon.py"
 DEFTER_ROTASYON_DEFTER = REPO_ONEKI + "DEVAM.md"
 DEFTER_ROTASYON_ARSIV = REPO_ONEKI + "DEVAM-ARSIV.md"
 KUTU_ARSIVLE_YOL = REPO_ONEKI + "tools/kutu-arsivle.py"
+HAFIZA_ARSIVLE_YOL = REPO_ONEKI + "tools/hafiza-indeks-arsivle.py"
 CIP_BEKCI_YOL = CRON_ONEKI + "cip_dogum_bekcisi.py"
 ONARIM_DURUM_YOL = REPO_ONEKI + "tools/onarim-durum.py"
 
@@ -146,6 +147,13 @@ SEKILLER = (
     # (`durum.py --ne-olculmedi`) o kol tarafindan BULUNDU.
     Sekil("kutu-arsivle", KUTU_ARSIVLE_YOL,
           serbest=("--kuru", "--kapanislari-isle")),
+
+    # 🔴 5 EYL 2026 (K366): HAFIZA INDEKSI (MEMORY.md) BAKIMI. Kota kapisinin
+    # ucuncu ekseni tavan ustunde CARE olarak TAM BU CAGRIYI basar; sekil buraya
+    # YAZILMAZSA kapi, ana oturumda KOSULAMAYAN bir care vaat ederdi (K319/K332
+    # sinifi, [[kapi-red-metni-ikinci-kopyadir]]). Konumsal arguman ALMAZ —
+    # yollarin tek kaynagi aracin kendisidir (HAFIZA_VARSAYILAN/ARSIV_VARSAYILAN).
+    Sekil("hafiza-arsivle", HAFIZA_ARSIVLE_YOL, serbest=("--kuru",)),
 
     # 🔴 28 AGU (bu is): CIP-DOGUM BEKCISININ TESLIM KOLU.
     # OLCULEN ARIZA: bekcinin teslim kolu (`tools/sabah-teslim/kos.py`) tam bu iki
@@ -243,6 +251,18 @@ DISARIDA = {
         "--koru": "korunan kalem sayisini ELLE verir",
         "--su-seviye-orani": "su seviyesi oranini ELLE verir",
         "--arsiv-kuyruk": "arsiv kuyruk boyunu ELLE verir",
+    },
+
+    HAFIZA_ARSIVLE_YOL: {
+        # Deger alan YOL bayraklari: repo-disi yol tasima anahtari olurlardi.
+        "--hafiza": "deger YOL alir — indeks dosyasini DEGISTIRIR",
+        "--arsiv": "deger YOL alir — arsiv dosyasini DEGISTIRIR",
+        "--kilit": "deger YOL alir — kilit dosyasini DEGISTIRIR",
+        # Esikleri ELLE oynatanlar: kapinin okudugu TEK KAYNAGI bypass eder.
+        "--tavan-bayt": "tavani ELLE verir — sahipten turetmeyi bypass eder",
+        "--tavan-satir": "tavani ELLE verir — sahipten turetmeyi bypass eder",
+        "--su-seviye-orani": "su seviyesi oranini ELLE verir",
+        "--tarih": "arsiv baslik tarihini ELLE verir — fikstur/test kolu",
     },
 
     CIP_BEKCI_YOL: {},

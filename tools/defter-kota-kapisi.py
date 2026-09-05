@@ -189,6 +189,46 @@ KUTU_RC = {
     KUTU_HUKUM_ALINAMADI: 1,
 }
 
+# --- HAFIZA INDEKSI EKSENI JETONLARI (K366, 5 Eyl 2026) --------------------
+# 🔴 UCUNCU EKSEN, IKINCI KAPI DEGIL. Kutu ekseninin (K253) BIREBIR emsali:
+# ayni kapi, ayni taksonomi, AYRI jetonlar. Jetonlar kutu koluyla ORTAKLASTIRILMAZ
+# — ortak jeton, kutu vakalarinin hangi eksenden geldigini belirsiz birakir ve
+# ucuncu sinifi ikinci kovaya yutururdu
+# ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]). Jetonlarda `KAPSAM_DISI` GECMEZ
+# (defter ekseninin K195b jetonlari o dizeyi tasiyor; komsu kabul testi tam olarak
+# "ciktida KAPSAM_DISI GECMEMELI" diye olcuyor).
+HAFIZA_SAHIPSIZ = "HAFIZA_SAHIPSIZ"
+HAFIZA_MAKINEDE_YOK = "HAFIZA_MAKINEDE_YOK"
+HAFIZA_OLCULEMEDI = "HAFIZA_OLCULEMEDI"
+HAFIZA_ASILDI = "HAFIZA_ASILDI"
+HAFIZA_YESIL = "HAFIZA_YESIL"
+HAFIZA_KORUMA_USTU = "HAFIZA_TAVAN_USTU_KORUMA_NEDENIYLE"
+HAFIZA_HUKUM_ALINAMADI = "HAFIZA_HUKUM_ALINAMADI"
+
+HAFIZA_RC = {
+    HAFIZA_SAHIPSIZ: 0,
+    HAFIZA_MAKINEDE_YOK: 0,
+    HAFIZA_OLCULEMEDI: 1,
+    HAFIZA_ASILDI: 1,
+    HAFIZA_YESIL: 0,
+    HAFIZA_KORUMA_USTU: 0,
+    HAFIZA_HUKUM_ALINAMADI: 1,
+}
+
+# 🔴 SILAHLANDIRMA (K366, mimar hukmu §4). Eksen KAPI GOVDESINDE yasar ve HER
+# kosumda OLCULUP BASILIR, ama rc'si ana hukme ancak SILAHLIYKEN katilir.
+# OLCULEN GEREKCE (5 Eyl 2026, cip KraL-HafizaTavani-05Eyl): bu kapinin CANLI
+# ZORLAYICI CAGIRANI YOKTUR — `.git/hooks/pre-commit` yalnizca urunler-guard +
+# mukerrer-kontrol + mimar-commit-kapisi cagiriyor, repoda `kancalar/` dizini HIC
+# YOK, CI'da yalniz `--kendini-test` kosuyor. Yani defter ve kutu eksenleri de
+# fiilen SILAHSIZDIR ([[kapinin-menzili-cagri-yeridir]]). Onarim kolu ceza
+# esiginin arkasinda kalirken ekseni kancaya baglamak evin TUM commit'ini
+# kilitlerdi ([[onarim-kolu-zarar-esiginin-arkasinda]] ·
+# [[kota-kapisi-tum-evin-commitini-kilitler]]); silahlandirma MIMAR hukmudur,
+# cip kendiliginden yapmaz. Ortam degiskeni ile acilir:
+#     PRUVO_HAFIZA_EKSENI=silahli
+HAFIZA_SILAHLI = os.environ.get("PRUVO_HAFIZA_EKSENI", "").strip().lower() == "silahli"
+
 # Kota ekseninde esik sabiti TASIMASINA IZIN VERILEN (dosya, ad) ciftleri.
 # Baska her yerde ayni SAYI'yi tasiyan modul-duzeyi tamsayi atamasi = ikinci
 # esik sahibi = TEK KAYNAK IHLALI.
@@ -198,11 +238,14 @@ KOTA_EKSENI_DOSYALARI = (
     "defter-rotasyon.py",
     "kutu-arsivle.py",
     "kutu-esik-kapisi.py",
+    "hafiza-indeks-arsivle.py",
 )
 ESIK_SAHIPLERI = frozenset({
     ("defter-kota-taban.py", "TAVAN_SATIR"),
     ("defter-kota-taban.py", "TAVAN_BAYT"),
     ("kutu-arsivle.py", "VARSAYILAN_TAVAN"),
+    ("hafiza-indeks-arsivle.py", "VARSAYILAN_TAVAN_BAYT"),
+    ("hafiza-indeks-arsivle.py", "VARSAYILAN_TAVAN_SATIR"),
 })
 
 
@@ -579,19 +622,232 @@ def kutu_kontrol(kok, kol_no_op=False):
 
 
 # ---------------------------------------------------------------------------
+# HAFIZA INDEKSI EKSENI (K366) — SAF HUKUM + IO KOLU
+# ---------------------------------------------------------------------------
+def hafiza_hali(sahip_var, dizin_var, dosya_var, satir, bayt, tavan_satir, tavan_bayt):
+    """SAF fonksiyon: BES kovadan birini dondurur. IO YOK, ortam YOK.
+
+    Ana yol ve kabul testi AYNI fonksiyonu cagirir — ikiz tanim ACILMAZ.
+    Kovalar sirayla ELENIR ve hicbiri digerini YUTMAZ:
+
+      1. sahip YOK                 -> HAFIZA_SAHIPSIZ      (checkout sahiplenmiyor)
+      2. sahip var, DIZIN yok      -> HAFIZA_MAKINEDE_YOK  (kosucu/kardes makine)
+      3. dizin var, DOSYA yok      -> HAFIZA_OLCULEMEDI    (FAIL-CLOSED, gercek kusur)
+      4. olculdu, tavan asildi     -> HAFIZA_ASILDI
+      5. olculdu, tavanin altinda  -> HAFIZA_YESIL
+
+    🔴 3. KOVA 2.'NIN ICINE DUSURULEMEZ: "indeks dosyasi yok" ile "hafiza dizini bu
+    makinede hic yok" AYNI SEY DEGILDIR. Ilki indeksin SILINMESI/YENIDEN
+    ADLANDIRILMASIDIR ve kapinin gormesi gereken tam da odur.
+    """
+    if not sahip_var:
+        return HAFIZA_SAHIPSIZ
+    if not dizin_var:
+        return HAFIZA_MAKINEDE_YOK
+    if (not dosya_var or satir is None or bayt is None
+            or tavan_satir is None or tavan_bayt is None):
+        return HAFIZA_OLCULEMEDI
+    if satir > tavan_satir or bayt > tavan_bayt:
+        return HAFIZA_ASILDI
+    return HAFIZA_YESIL
+
+
+def hafiza_hukmu_al(sahip_yolu, hafiza_yolu, calistir=None):
+    """(hukum, tasinabilir, korumali, ham, hata) — SAHIP ARACIN KURU KOSUMUNDAN.
+
+    🔴 SATIR/BAYT SAYISI TEK BASINA HUKUM DEGILDIR (K318 KOL-3'un hafiza emsali):
+    rotasyon araci "yapilacak is YOK, bu bilincli bir duraklama" diyebilir
+    (`HUKUM=KORUMA_TUTTU tasinabilir=0`); kapi o hukmu OKUMAZSA iki karar mercii
+    ayni olguya bakip celisir ([[ayni-alan-iki-hukum-biri-sessiz]]).
+
+    🔴 FAIL-CLOSED: hukum ALINAMAZSA (arac kosmadi / sifir-disi rc / jeton yok)
+    HATA doner ve cagiran BLOKLAR. "Olcemedim" YESIL DEGILDIR.
+    """
+    if calistir is None:
+        def calistir(komut):
+            return subprocess.run(komut, capture_output=True, text=True, timeout=180)
+    komut = [sys.executable, sahip_yolu, "--hafiza", hafiza_yolu, "--kuru"]
+    try:
+        r = calistir(komut)
+    except Exception as e:                                    # noqa: BLE001
+        return None, None, None, "", "sahip arac KOSTURULAMADI: %s" % e
+    ham = (r.stdout or "") + (r.stderr or "")
+    if r.returncode != 0:
+        return None, None, None, ham, ("sahip arac SIFIR-DISI rc=%d dondu — hukum "
+                                       "GUVENILIR DEGIL" % r.returncode)
+    hukum = None
+    for satir in ham.splitlines():
+        if satir.startswith("HUKUM="):
+            parcalar = satir[len("HUKUM="):].split()
+            hukum = parcalar[0] if parcalar else ""
+            break
+    if hukum is None:
+        return None, None, None, ham, "ciktida `HUKUM=` satiri YOK"
+    try:
+        tasinabilir = int(_jeton_degeri(ham, "tasinabilir="))
+    except (TypeError, ValueError):
+        return None, None, None, ham, "ciktida `tasinabilir=<sayi>` jetonu YOK/OKUNAMADI"
+    try:
+        korumali = int(_jeton_degeri(ham, "KORUMALI_BEKLEYEN="))
+    except (TypeError, ValueError):
+        korumali = None            # RAPOR ekseni; hukmu BELIRLEMEZ
+    return hukum, tasinabilir, korumali, ham, None
+
+
+def hafiza_koruma_gecirir_mi(hukum, tasinabilir):
+    """SAF HUKUM (IO YOK) — kapi tavan ustu indeksi GECIRSIN mi?
+
+    Birebir sart: `HUKUM=KORUMA_TUTTU` **ve** `tasinabilir=0`. Iki sart da gerekli:
+      * yalniz HUKUM'e bakmak, ileride acilacak KISMI bir koruma halini de gecirir;
+        orada arac HALA is yapabiliyor demektir ve gecirmek kilidi kalicilastirir.
+      * yalniz `tasinabilir=0`a bakmak `TAVAN_FAIL_LOUD` halini de gecirirdi; o hal
+        korumayla ILGISIZDIR (tasinabilir icerik TUKENMISTIR) ve orada durdurmak
+        DOGRUDUR — cozum rotasyon degil, KALEM KAPATMAKTIR.
+
+    🔴 KOTA OLDURULMEZ: bu kol YALNIZCA "arac ISI KASITLI OLARAK yapmiyor" halini
+    gecirir. Koruma YOKKEN tavan asimi BLOKLAMAYA DEVAM EDER.
+    """
+    return hukum == "KORUMA_TUTTU" and tasinabilir == 0
+
+
+def _hafiza_olc(yol):
+    """(satir, bayt) — okunamazsa (None, None). Sayim semantigi SAHIPLE AYNI."""
+    try:
+        with open(yol, "rb") as f:
+            ham = f.read()
+    except OSError:
+        return None, None
+    return len(ham.splitlines()), len(ham)
+
+
+def hafiza_kontrol(kok, kol_no_op=False):
+    """HAFIZA INDEKSI ekseni — OKUR, hukum basar, rc dondurur.
+
+    🔴 KAPI OKUR, ASLA YAZMAZ/KIRPMAZ: indeks bir HAFIZA dosyasidir. Otomatik
+    kirpma hafiza KAYBIDIR; tasimayi yalniz rotasyon araci
+    (`tools/hafiza-indeks-arsivle.py`) yapar — hicbir sey silinmez, en eski
+    girdiler arsive TASINIR.
+
+    kol_no_op=True: M-kolu mutanti (hafiza kolu KALDIRILMIS gibi davran). Hedef kol
+    olmeli, yan eksenler (defter/kutu) YASAMALI.
+    """
+    if kol_no_op:
+        return 0
+
+    sahip_coz = getattr(_mod, "hafiza_sahibi", None)
+    if sahip_coz is None:
+        print("!! %s — tavan tabani (defter-kota-taban.py) hafiza sahibini cozemiyor "
+              "(hafiza_sahibi YOK: bayat/eksik kopya). Indeks OLCULMEDI; olculemeyen "
+              "sey yesil sayilmaz." % HAFIZA_OLCULEMEDI, file=sys.stderr)
+        return HAFIZA_RC[HAFIZA_OLCULEMEDI]
+
+    mod, sahip_yolu, hata = sahip_coz(kok)
+    if mod is None and hata is None:
+        print("%s — hafiza tavan/yol sahibi bu depoda YOK (%s). Bu checkout hafiza "
+              "indeksini sahiplenmiyor; hafiza ekseni bu kok icin kapsam disidir."
+              % (HAFIZA_SAHIPSIZ, sahip_yolu))
+        return HAFIZA_RC[HAFIZA_SAHIPSIZ]
+    if mod is None:
+        print("!! %s — hafiza tavan sahibi (%s) VAR ama YUKLENEMEDI. SEBEP: %s. "
+              "Indeks OLCULMEDI; olculemeyen sey yesil sayilmaz."
+              % (HAFIZA_OLCULEMEDI, sahip_yolu, hata), file=sys.stderr)
+        return HAFIZA_RC[HAFIZA_OLCULEMEDI]
+
+    tavan_bayt = _mod.hafiza_tavan_bayt(mod)
+    tavan_satir = _mod.hafiza_tavan_satir(mod)
+    hafiza_yolu = os.environ.get("PRUVO_HAFIZA_YOLU") or _mod.hafiza_dosya_yolu(mod)
+    arsiv_yolu = _mod.hafiza_arsiv_yolu(mod)
+    if tavan_bayt is None or tavan_satir is None or not hafiza_yolu:
+        print("!! %s — sahip modulunde tavan (VARSAYILAN_TAVAN_BAYT/_SATIR) ya da "
+              "indeks yolu (HAFIZA_VARSAYILAN) cozulemedi: %s. Indeks OLCULMEDI."
+              % (HAFIZA_OLCULEMEDI, sahip_yolu), file=sys.stderr)
+        return HAFIZA_RC[HAFIZA_OLCULEMEDI]
+
+    dizin = os.path.dirname(hafiza_yolu)
+    dizin_var = os.path.isdir(dizin)
+    satir, bayt = (_hafiza_olc(hafiza_yolu) if dizin_var else (None, None))
+    dosya_var = satir is not None
+
+    hal = hafiza_hali(True, dizin_var, dosya_var, satir, bayt, tavan_satir, tavan_bayt)
+
+    if hal == HAFIZA_MAKINEDE_YOK:
+        print("%s — hafiza dizini bu makinede HIC yok (%s). Kusur DEGIL "
+              "(kosucu/kardes makine); hafiza ekseni kapsam disidir. Sahip: %s"
+              % (HAFIZA_MAKINEDE_YOK, dizin, sahip_yolu))
+        return HAFIZA_RC[HAFIZA_MAKINEDE_YOK]
+
+    if hal == HAFIZA_OLCULEMEDI:
+        print("!! %s — hafiza dizini (%s) VAR ama indeks dosyasi YOK/OKUNAMIYOR: %s. "
+              "Indeks OLCULMEDI; olculemeyen sey YESIL SAYILMAZ (fail-closed). "
+              "MEMORY.md silinmis/yeniden adlandirilmis olabilir."
+              % (HAFIZA_OLCULEMEDI, dizin, hafiza_yolu), file=sys.stderr)
+        return HAFIZA_RC[HAFIZA_OLCULEMEDI]
+
+    if hal == HAFIZA_ASILDI:
+        hukum, tasinabilir, korumali, ham, hhata = hafiza_hukmu_al(sahip_yolu,
+                                                                   hafiza_yolu)
+        if hhata is not None:
+            print("!! %s — hafiza indeksi tavanin USTUNDE (%d satir / %d bayt > "
+                  "%d / %d) ve sahip aracin (%s) HUKMU ALINAMADI: %s. Fail-closed: "
+                  "hal belirsizken commit GECIRILMEZ; 'olcemedim' YESIL DEGILDIR."
+                  % (HAFIZA_HUKUM_ALINAMADI, satir, bayt, tavan_satir, tavan_bayt,
+                     sahip_yolu, hhata), file=sys.stderr)
+            if ham.strip():
+                print("!!   arac ciktisi (son 5 satir): %s"
+                      % " | ".join(ham.strip().splitlines()[-5:]), file=sys.stderr)
+            return HAFIZA_RC[HAFIZA_HUKUM_ALINAMADI]
+        if hafiza_koruma_gecirir_mi(hukum, tasinabilir):
+            print("%s once_satir=%d once_bayt=%d tavan_satir=%d tavan_bayt=%d "
+                  "korumali_bekleyen=%s tasinabilir=%d HUKUM=%s indeks=%s"
+                  % (HAFIZA_KORUMA_USTU, satir, bayt, tavan_satir, tavan_bayt,
+                     "OLCULEMEDI" if korumali is None else korumali,
+                     tasinabilir, hukum, hafiza_yolu))
+            print("   (Indeks tavanin USTUNDE ama rotasyon araci ISI KASITLI OLARAK "
+                  "yapmiyor: 🔴 girdiler ve 'Acik kuyruk' bolumu rotasyona GIRMEZ. "
+                  "Commit BLOKLANMADI — kilidi acan sey rotasyon degil KALEM "
+                  "KAPATMAKTIR; yururlukten dusen 🔴 girdileri MIMAR HUKMUYLE "
+                  "arsive al.)")
+            return HAFIZA_RC[HAFIZA_KORUMA_USTU]
+        print("!! %s — HAFIZA INDEKSI KOTASI ASILDI: %s %d satir / %d bayt "
+              "(tavan satir=%d bayt=%d, TAVAN SAHIBI=%s::VARSAYILAN_TAVAN_*)."
+              % (HAFIZA_ASILDI, hafiza_yolu, satir, bayt, tavan_satir, tavan_bayt,
+                 sahip_yolu), file=sys.stderr)
+        print("!! CARE: " + _SC.cagri_ornegi("hafiza-arsivle"), file=sys.stderr)
+        print("!!   (LOSSLESS: hicbir sey SILINMEZ — en eski INDEKS GIRDILERI %s "
+              "dosyasina TASINIR; hafiza `.md` dosyalarina DOKUNULMAZ. Kapi indeksi "
+              "YALNIZ OKUR. Once KURU kosum: ayni komut + '--kuru'. Izinli bayrak "
+              "kumesi: %s; baska bayrak RED.)"
+              % (arsiv_yolu or "<indeks>-arsiv.md",
+                 " ".join(sorted(_SC.bayrak_kumesi("hafiza-arsivle")) or ["(yok)"])),
+              file=sys.stderr)
+        return HAFIZA_RC[HAFIZA_ASILDI]
+
+    print("%s satir=%d bayt=%d tavan_satir=%d tavan_bayt=%d indeks=%s"
+          % (HAFIZA_YESIL, satir, bayt, tavan_satir, tavan_bayt, hafiza_yolu))
+    return HAFIZA_RC[HAFIZA_YESIL]
+
+
+# ---------------------------------------------------------------------------
 # TEK KAYNAK NOBETI (K253 M2) — esik SAYISI ikinci bir sabite kopyalanamaz
 # ---------------------------------------------------------------------------
 def izlenen_esikler(kok):
     """Izlenmesi gereken esik DEGERLERI (owner'lardan TURETILIR, yazilmaz)."""
     degerler = {TAVAN_SATIR, TAVAN_BAYT}
     sahip_coz = getattr(_mod, "kutu_sahibi", None)
-    if sahip_coz is None:
-        return degerler
-    mod, _, hata = sahip_coz(kok)
-    if mod is not None and hata is None:
-        t = _mod.kutu_tavan_satir(mod)
-        if isinstance(t, int) and not isinstance(t, bool):
-            degerler.add(t)
+    if sahip_coz is not None:
+        mod, _, hata = sahip_coz(kok)
+        if mod is not None and hata is None:
+            t = _mod.kutu_tavan_satir(mod)
+            if isinstance(t, int) and not isinstance(t, bool):
+                degerler.add(t)
+    hafiza_coz = getattr(_mod, "hafiza_sahibi", None)
+    if hafiza_coz is not None:
+        mod, _, hata = hafiza_coz(kok)
+        if mod is not None and hata is None:
+            for oku in (_mod.hafiza_tavan_bayt, _mod.hafiza_tavan_satir):
+                t = oku(mod)
+                if isinstance(t, int) and not isinstance(t, bool):
+                    degerler.add(t)
     return degerler
 
 
@@ -686,15 +942,29 @@ def main(argv=None):
     if "--bypass-kontrol" in argv:
         argv = [a for a in argv if a != "--bypass-kontrol"]
         return bypass_kontrol(argv[1] if len(argv) > 1 else ROOT)
+    if "--hafiza-kontrol" in argv:
+        # YALNIZ ucuncu eksen (kabul bataryasinin cagri yeri). rc EKSENIN KENDI
+        # rc'sidir — silahlandirma anahtari BU KOLU ETKILEMEZ, cunku burada olculen
+        # sey eksenin HUKMUDUR, kapinin birlesik hukmu degil.
+        argv = [a for a in argv if a != "--hafiza-kontrol"]
+        return hafiza_kontrol(argv[1] if len(argv) > 1 else ROOT)
     kok = argv[1] if argv and len(argv) > 1 else ROOT
 
-    # 🔴 IKI EKSEN DE HER ZAMAN KOSAR, sonra rc BIRLESTIRILIR. Kisa devre YOK:
+    # 🔴 UC EKSEN DE HER ZAMAN KOSAR, sonra rc BIRLESTIRILIR. Kisa devre YOK:
     # biri kirmizi diye digeri OLCULMEDEN gecerse hangi eksenin saglam oldugunu
     # kimse bilemez, ve bir sonraki turda "zaten kirmiziydi" diye yutulur.
     kutu_rc = kutu_kontrol(kok)
+    hafiza_rc = hafiza_kontrol(kok)
     kaynak_rc = tek_kaynak_kontrol(kok)
     defter_rc = _defter_kolu(kok)
-    if kutu_rc or kaynak_rc or defter_rc:
+    if not HAFIZA_SILAHLI and hafiza_rc:
+        # 🔴 SILAHSIZ: hal OLCULDU ve BASILDI, ama birlesik hukme KATILMAZ.
+        # Sessizce yutulmaz — hangi rc'nin dusuruldugu ADIYLA soylenir.
+        print("HAFIZA_EKSENI=SILAHSIZ dusen_rc=%d (olculdu ve basildi; birlesik "
+              "hukme KATILMADI — silahlandirma MIMAR hukmudur: "
+              "PRUVO_HAFIZA_EKSENI=silahli)" % hafiza_rc)
+        hafiza_rc = 0
+    if kutu_rc or hafiza_rc or kaynak_rc or defter_rc:
         return 1
     return 0
 
