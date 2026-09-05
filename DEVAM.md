@@ -2,22 +2,25 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔴 5 EYL ~22:4xZ — **SIRADAKI TEK IS: `claude/affectionate-williams-d8bc67` MERGE** (`blissful-franklin`)
+Cip KAYIP DEGIL, is BITTI; dal **itilmis** `f2b8746d`, agac temiz, kapanis kutu ARSIVINDE `:65767` + `⛔ MERGE BEKLIYOR`. Hukumsuz merge yapmayi REDDETTI (dogru): kota okumayi da kesmisti.
+**OLCUM (§1-§2):** agac temiz · merge-base **`5f6a4c4b`** · **FF IMKANSIZ** (merge commit'i sart) · sizinti **0** · **12 yeni test/kapi** → CI kapsam KOSULSUZ. Kalan: ci-kapsam+parite+parite-ege+`d1-sync --durum` → merge+push → SHA'yi ICEREN kosum success/SKIPPED 0 → `arsiv-kapisi.py` rc=0. **Devir metni KUTUDA.**
+🔴 **AGACI SILME.** 🔴 **KOTA 8. VAKA:** ayni kapi hem cipi hem mimari (281 tur/363K) merge'den ONCE kesti. *Kapatan:* kapanis sinifi BEKLEYEN merge kablosunu kapsasin.
+
 ## ✅ 5 EYL — KUTU KILIDI UC KUSUR KAPANDI (`3eae9047`) — **ISARETCI**
 ↩︎ TAM METIN kutuda (cip `goofy-snyder-cb4801`): 6 kilit->0, kutu 461->388, 515/515, yayin yesil.
-🔴 OKAN'DA: kutu 250'ye INEMEZ — 388 satirin 244'u KORUMALI 6 blok (dokunmak yasak), 144'u koru.
+🔴 OKAN'DA: kutu 250'ye INEMEZ — 388 satirin 244'u KORUMALI 6 blok, 144'u koru.
 
 ## 🔁 5 EYL ~20:xxZ — **OKAN ①+② BITTI** (`5b86ac20`, cip `cool-saha-010aa9`) — **ISARETCI**
 ↩︎ **TAM METIN `DEVAM-ARSIV.md`** (md5 birebir, eksik 0): ① Bisiklet 16 alt kategori (D1 teyitli) · ② panel 12→7 · ③ banner main'de (`b12fdac2`) · yayin `33969124781` deploy+yayin success, SKIPPED 0.
-✅ **MARKA KAPANDI (`2925b940`, cip `exciting-williams-195384`):** Bisiklet marka cipi **1→5** (Garmin 68·GoPro 67·Samsung 20·Yamaha 18·Shimano 17), 167 urune **TAM JETONLA** yazildi (`duzelt.py --toplu`); panel cipi **17→21**. `Mini` cip **DEGIL** (sifat; alt-dize kolu G3/G4). Kuratorluk Bisiklet'te KAPALI (uyum kapsami 0,0046) — engel beyaz liste DEGIL **veri**ydi. Mutant **4/4**, kapilar KUTUDA.
-🟠 **SIRADAKI (olculdu, UYGULANMADI):** MODEL adindan marka turetilseydi Bisiklet'e **Apple 56** (6. cip) + Samsung **20→31** eklenirdi (`iphone` 41/`ipad`, `galaxy` 26). AYRI cikarim ekseni: kendi tablosu + kendi yanlis-pozitif kolu ister, bu turda KAPSAM DISI.
-🔴 **TABAN KIRMIZISI (temiz main'de de AYNI):** `lcp-onculuk-kapisi` rc=2 → **ArTisT** · `kapi-envanteri` rc=1.
+✅ **MARKA KAPANDI (`2925b940`):** marka cipi **1→5** (Garmin 68·GoPro 67·Samsung 20·Yamaha 18·Shimano 17), panel cipi **17→21**. Engel beyaz liste DEGIL **veri**ydi.
+✅ **MIMAR TEFTISI (oz-rapora bakmadan, KUTUDA):** 9 koldan 8 rc=0 · Bisiklet 16 grup hepsi ≥15, kapsam **2618/2618** · panel esik≥3 → **7** · CANLI `bannerRow`:1543 < `katPanels`:1582 (③ INDI) · `33972472058` success/SKIPPED 0.
+🟠 **SIRADAKI (olculdu, UYGULANMADI):** MODEL adindan marka turetimi → **Apple 56** + Samsung 20→31; AYRI eksen.
+🔴 **TABAN KIRMIZISI (merge kaynakli DEGIL):** `lcp-onculuk-kapisi` rc=2 → **ArTisT** · `kapi-envanteri` rc=1 = 3 kapi YEREL kabloda eksik; kablo commit EDILMEZ → **Okan makinesi**.
 
-## 🔁 5 EYL ~18:3xZ — kutu kilidi KOK SEBEBI (ust blokta KAPANDI) — **ISARETCI**
-**DERS (kalici):** kapanis jetonu YALNIZ SON ICERIK satirinda araniyordu, o satir **imza**ydi → blok kapanis SAYILMIYOR, ad kumeye girmiyor, kilit ULASILAMAZ. Hafizada [[kapanis-kimligi-worktree-adi-ilk-backtickte]] 3. eksen.
-🔴 **AYNI SINIF, 2. YUZEY ACIK — `defter-rotasyon.py`:** 13 blogun **13'u vetolu**, `--isaretciye-indir` **`ILERLEME URETEMEDI`** (**7. vaka**); defter ELLE indirildi (md5 birebir, eksik 0). *Kapatan:* veto kolu "acik kalem" ile "acik kalemi ISARETCIDE tasiyan blok"u ayirsin.
-
-## 🔁 5 EYL ~18:0xZ — KATEGORI PANELI HIZALANDI (`ebdfb059`) — **ISARETCI**
-↩︎ **TAM METIN `DEVAM-ARSIV.md` + kutu 18:0x.** Asili bosluk **5⇒0**, aralik **{34}**, mobil tasma 0; `33965692423` deploy+yayin success **SKIPPED=0**.
+## 🔁 5 EYL ~18:xxZ — kutu kilidi KOK SEBEBI + kategori paneli (`ebdfb059`) — **ISARETCI (ikisi de KAPANDI)**
+**DERS:** kapanis jetonu YALNIZ SON ICERIK satirinda araniyordu, o satir **imza**ydi → kilit ULASILAMAZ; [[kapanis-kimligi-worktree-adi-ilk-backtickte]] 3. eksen.
+🔴 **AYNI SINIF, 2. YUZEY ACIK — `defter-rotasyon.py`:** 13/13 blok vetolu, `ILERLEME URETEMEDI` (**7. vaka**); defter ELLE indirildi (md5 birebir). *Kapatan:* veto kolu "acik kalem" ile "acik kalemi ISARETCIDE tasiyan blok"u ayirsin.
 🔴 **ACIK — MaCiT duzlemi:** Elektronik `Kahve` 79 kayit **`marka` kirliligi** (`Mitsubishi` 19 GERCEK; kuratorluk GEVSEK, uyum %33,1).
 
 ## 🔁 5 EYL ~11:2xZ — **LCP/SITE HIZI ISI TAMAMEN ArTisT'E DEVREDILDI (Okan emri: "tamamen izinleriyle artiste devret")**
@@ -25,8 +28,7 @@
 Taban + 3 tuzak + cip devri **KUTUDA 11:2x blogunda**; kabul DEGISMEDI, kapanisi ArTisT yazar. **Okan'a cikan:** PSI anahtari.
 
 ## 🔁 5 EYL ~10:5xZ + ~17:2xZ — DEVIR ALINDI · HIJYEN worktree 9→3 — **ISARETCI (ikisi de KAPANDI)**
-↩︎ uc-eksen agac olcutu dersi + SERIT B kok sebebi (`f2db0c8f`, **merge hukmu ACIK**) **TAM METIN `DEVAM-ARSIV.md`'de**. worktree 9→3, dal SILINMEDI, kayip 0.
-**CIPLER:** ✅ Yordam · ✅ KatPanel (`ebdfb059`) KAPANDI · 🔄 `KraL-AdSupurmesi-05Eyl` KOSUYOR · 📤 LCP ArTisT'te.
+↩︎ uc-eksen agac olcutu dersi + SERIT B kok sebebi (`f2db0c8f`, **merge hukmu ACIK**) **TAM METIN `DEVAM-ARSIV.md`'de**. worktree 9→3, kayip 0. Cipler: Yordam · KatPanel KAPANDI; LCP ArTisT'te.
 
 ## 🔁 5 EYL ~02:xZ — K366 CI'ya BAGLANDI + indeks ayraci koruma onarimi (`299e9f9b`) — **ISARETCI**
 ↩︎ **TAM METIN `DEVAM-ARSIV.md`'de.** Ozet: SERIT B'ye ayri adim; `ci-kapsam-test.py` KIRMIZI→YESIL; hafiza bataryasi 33/33 + 5/5 mutant; AYRAC korlugu onarildi.
@@ -40,7 +42,7 @@ Ozet: ① D1 kalici cache (soguk 27,9 → isinmis 1,4 sn; tani 39/39, mutasyon 1
 
 ## 🔁 4 EYL ~23:xZ — YAYIN ACILDI → **ISARETCI: tam metin `DEVAM-ARSIV.md` + commit `366dd3cf`**
 
-- ↩︎ **TAM METIN ARSIVDE** (2026-09-05 isaretciye indirme): bu blogun tam metni `DEVAM-ARSIV.md`'de "2026-09-05 — ISARETCIYE INDIRME: asagidaki blogun TAM METNI defterden BURAYA TASINDI (defterde baslik + tek satirlik isaretci kaldi)" basligi altinda.
+- ↩︎ **TAM METIN ARSIVDE** (`DEVAM-ARSIV.md`, 2026-09-05 ISARETCIYE INDIRME basligi altinda).
 ## ✅ 3 EYL — STL DOSYA ADI (Okan kalemi 2 Eyl) — KAPANDI, TAM METIN `DEVAM-ARSIV.md`'de
 Kod `1908cf1c`; `urunler-panel.mjs` **208/208**, mutant **6/6**, dilim-1 CI `33728849026` SUCCESS.
 🔧 ACIK: `uretim-kaynak.mjs` K40 SERIT B (Tamirci dalinin isi, bende degil). *(worker deploy isaretcisi DUSURULDU: KOSMUS, BaBa olctu.)*
