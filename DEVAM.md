@@ -2,9 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔚 6 EYL ~02:xx — OTURUM KAPANISI (kota kapisi kesti: tur 294 / 358K)
-**CANLIYA:** `c01b6e49` = origin/main. **KOSUYOR:** yok (worktree 0, cip 0). **BEKLIYOR:** ① SERIT B `33990643181` 16/17 bitti **DUSEN 5 = tabanla AYNI**, ad kumesi karsilastirilamadi → *kapatan:* `gh run view --json jobs` ile ONARILAN/YENI_DUSEN · ② 20 yerel `claude/*` dal (merge edilmemis, ayri kalem) · ③ yabanci 3 dosya `tools/arsiv/*.py` (6 Eyl 02:00, benim degil, DOKUNULMADI).
-**OKAN'DA:** panelde 6 cip arsivlenebilir (agac yok, icerik main'de).
+## 🔴 6 EYL ~02:2x — SERIT B: 5 KIRMIZI, **5 AYRI KOK** OLCULDU — cip `KraL-SeritB-IkiKapi` ACIK
+**KAPANDI:** `33990643181` dusen ad kumesi tabanla BIREBIR → **ONARILAN 0 / YENI_DUSEN 0**; merge SERIT B'yi ONARMADI (`c01b6e49` ayni 5). **KOKLER:** (a) `marka-invaryant-kapisi` tek FAIL `('ARAMA_KAYIP','Rover',0)` — canli `/marka/rover/` **200, 2/2 urun** = BAYAT (b) `AGIRLIK/marka/yamaha` **218175 > 213155** → **ArTisT**/build.py, tavan SABIT; `marka-invaryant-sayac-bataryasi` tabani rc=1, mutasyon **OLCULEMEDI** (c) `M10 capa 0 eslesme` (d) a2 D1 kanon/arama kolonu (21 marka kanon!=sayfa, ters 159) (e) a3 filament 1/26 + parite 5 KALDI.
+**CIP** `KraL-SeritB-IkiKapi` (`task_e1c1ecd1`) = (a)+(c) · (b) kutuda ArTisT'e · **(d)+(e) SAHIPSIZ**. **BEKLIYOR:** 20 `claude/*` dal · yabanci `tools/arsiv/*.py` 3 dosya. **OKAN'DA:** panelde 6 cip arsivlenebilir.
 
 ## ✅ 5 EYL ~23:xxZ — **MERGE KAPANDI: emekli motor adi supurmesi (`36bf1a0b`)** — **ISARETCI**
 ↩︎ TAM METIN `mimar-posta-kutusu-arsiv.md:67140`: 71 dosya +700/-396, kapilar 5/5 · parite 1334+897 · `d1-sync` 34292 · yayin `33978350506`+`33979398512` SKIPPED 0, `33978175155` cancelled = K144. 🔴 `arsiv-kapisi`ya HEDEF=TAM YOL.
