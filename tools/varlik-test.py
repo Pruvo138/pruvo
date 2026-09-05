@@ -214,11 +214,19 @@ BILEREK_DEGISEN_TAM = (
     # tabloya `}` / `try {` gibi ayirt edici OLMAYAN satir GIRMEDI (yukaridaki kural).
     # 🔴 IDDIA TASINDI, KALDIRILMADI: etiketin HER sayfa sinifinda FIILEN durdugunu
     # tools/reklam-etiket-kapisi.py (a) ekseni fail-closed olcer — `googletagmanager.com/
-    # gtag/js` dizgesi bu blokta AYNEN gecer, yani o kapi bu beyanla korlesmez.
-    # ⚠️ ACIK KALEM (mimara raporlandi): blok 34.066 urun sayfasina AYNEN iniyor (~1.035
-    # bayt/sayfa). Dogru yeri ORTAK HARICI VARLIK dosyasidir; ilk teslimde satir-ici
-    # birakildi cunku GA cekirdegi bes kaynak sayfa + uretecte BAYT-BIREBIR olmak zorunda
-    # (reklam-etiket-kapisi.py) ve o tasima ayri bir kalemdir.
+    # gtag/js` dizgesi TEK KAYNAKTA (build.py::GA_HEAD_SNIPPET) ve bes SINIF A kaynak
+    # sayfasinda AYNEN gecer, yani o kapi bu beyanla korlesmez.
+    # ✅ ACIK KALEM KAPANDI (5 Eyl 2026, cip KraL-LCPVarlik): blok artik URUN sayfasina
+    # GOMULU DEGIL — build.py::ga_head_varlik() onu /varlik/gtag-gec-<hash>.js referansina
+    # cevirir (atif modulunun emsali; GA_HEAD_SNIPPET tek parca dize sabiti olarak AYNEN
+    # durur, satir-ici basim yolu ~1.300 sayfada degismedi). Olculen yuk 592 B/sayfa idi
+    # (on-olcumdeki ~1.035 B HAM blok+HTML yorumudur; yorum zaten yayin_html'de soyuluyordu).
+    # 🔴 BU DOKUZ GIRIS YINE DE DUSURULEMEZ — OLCULDU, VARSAYILMADI: eksen 2 kiyas govdesine
+    # /varlik/*.js dosyalarini DA EKLER (asagida, "2 (JS: kayip/eklenti yok)" kolu), yani
+    # varliga tasinan satirlar kiyasta HALA gorunur ve ESKI ureticide (bos govdeli
+    # `<script async src=gtag/js>`) yoklar. Dokuzu cikarilmis bir kopya kosuldu: 12 ornek
+    # sayfanin 12'sinde "2 <pid>: JS EKLENTI (9 satir)" KIRMIZISI dogdu. Beyan BAYAT DEGIL;
+    # dusurmek kapiyi kirmiziya yakardi ([[bayat-taban-hipotezi-kosumdan-once-curutulur]]).
     ("(function(){var y=0,O=['pointerdown','keydown','touchstart','scroll'],i;",
      "GA etiketi gec yuklemeye alindi — YENI: kapanis + tetik olay kumesi"),
     ("function L(){if(y){return;}y=1;var s=document.createElement('script');s.async=true;",
