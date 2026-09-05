@@ -433,13 +433,10 @@ def blok_araliklari(satirlar, baslar):
     return araliklar
 
 
-def kapanis_satiri(satirlar, bas, son):
-    """(kapanis_indeksi, hata) — blogun KAPANIS KONUMU = SON ICERIK satiri.
+def _icerik_indeksleri(satirlar, bas, son):
+    """([idx, ...] BASTAN SONA ICERIK satirlari, hata) — cit-farkinda TEK KAYNAK.
 
-    🔴 K318 KOL-1 TEK KAYNAGI. Okan kurali ⑤: kapanis jetonu blogun EN SONUNA konur.
-    Dolayisiyla "bekleyen mi" sorusu blogun SON ICERIK SATIRINA sorulur, govdesine degil.
-
-    Sondan geriye yururken YOK SAYILAN iki sey (ve YALNIZ bu ikisi):
+    ICERIK sayilMAYAN iki sey (ve YALNIZ bu ikisi):
       * bos satir (blok sonu bosluklari),
       * CIT DISINDA duran ayrac satiri (`---`) — blogu bir sonrakinden ayiran cizgi.
     Cit ICINDEKI `---` bir ayrac DEGIL, kod/metin ICERIGIDIR ve atlanmaz; atlansaydi
@@ -448,10 +445,13 @@ def kapanis_satiri(satirlar, bas, son):
     FAIL-CLOSED iki hal (hata dolu doner):
       * blokta hic ICERIK satiri yok (yalniz bosluk/ayrac),
       * cit ACILDI ama KAPANMADI -> hangi satirin icerik oldugu bilinemez.
-    Cagiran bu hallerde blogu KORUMALI sayar (bkz. korumali_bloklar).
+
+    🔴 `kapanis_satiri()` (SON icerik satiri) ve `kapanis_kuyrugu()` (K374 KOL-1)
+    IKISI DE BUNU cagirir; ikinci bir "hangi satir icerik" taramasi HICBIR YERDE
+    yazilmaz ([[ikiz-tanim-sessiz-ayrisma]]).
     """
     if son <= bas:
-        return None, "BOS BLOK ARALIGI (bas=%d son=%d)" % (bas, son)
+        return (), "BOS BLOK ARALIGI (bas=%d son=%d)" % (bas, son)
     cit_ici = []
     ic = False
     j = bas
@@ -464,18 +464,101 @@ def kapanis_satiri(satirlar, bas, son):
             cit_ici.append(ic)
         j += 1
     if ic:
-        return None, "CIT (```/~~~) ACILDI ama KAPANMADI -> blok yapisi AYRISTIRILAMADI"
-    j = son - 1
-    while j >= bas:
+        return (), "CIT (```/~~~) ACILDI ama KAPANMADI -> blok yapisi AYRISTIRILAMADI"
+    cikti = []
+    j = bas
+    while j < son:
         s = satirlar[j]
         if not s.strip():
-            j -= 1
+            j += 1
             continue
         if not cit_ici[j - bas] and AYRAC_RE.match(s):
-            j -= 1
+            j += 1
             continue
-        return j, None
-    return None, "blokta ICERIK satiri YOK (yalniz bosluk/ayrac)"
+        cikti.append(j)
+        j += 1
+    if not cikti:
+        return (), "blokta ICERIK satiri YOK (yalniz bosluk/ayrac)"
+    return tuple(cikti), None
+
+
+def kapanis_satiri(satirlar, bas, son):
+    """(kapanis_indeksi, hata) — blogun KAPANIS KONUMU = SON ICERIK satiri.
+
+    🔴 K318 KOL-1 TEK KAYNAGI. Okan kurali ⑤: kapanis jetonu blogun EN SONUNA konur.
+    Dolayisiyla "bekleyen mi" sorusu blogun SON ICERIK SATIRINA sorulur, govdesine degil.
+
+    🔴 K374 (5 Eyl 2026): davranisi DEGISMEDI ve bilerek degismedi — bu fonksiyon
+    KUYRUGUN SON HALKASIDIR, kuyrugun KENDISI degil. Genisleme `kapanis_kuyrugu()`
+    icindedir; iki kol AYRI KALIR ki "son icerik satiri" sorusu hala TEK ANLAMLI olsun.
+    """
+    idx, hata = _icerik_indeksleri(satirlar, bas, son)
+    if hata is not None:
+        return None, hata
+    return idx[-1], None
+
+
+# ------------------------------------ K374 KOL-1: KAPANIS KUYRUGU (5 Eyl 2026)
+# 🔴 OLCULEN VAKA (mimar ELIYLE, canli arsiv :64377 + canli kutu :335): HocA'nin
+# `hungry-panini-55aff5` kapanisi arsivde DURUYOR ve govdesinde BIREBIR
+# `✅ İŞ BİTTİ — ARŞİVLENEBİLİRİM` jetonu var (:64396) — ama `blok_kapanis_mi()`
+# `(False, None)` donuyor, ad `arsiv_kapanis_kayitlari()` kumesine HIC girmiyor ve
+# `ARSIV_SERBEST=0` kaliyor. Sebep: jeton arandigi yer TEK SATIRDIR (`kapanis_satiri`
+# = SON icerik satiri) ve o satir `— HocA (çip `hungry-panini-55aff5`, …)` **IMZA**
+# satiridir. Jeton BIR SATIR YUKARIDA durur.
+# 🔴 SINIF (tekil yama DEGIL): ev gelenegi IKI SIRALAMAYA DA izin veriyor — KraL
+# yordam sablonu imzayi jetondan ONCE, HocA SONRA yaziyor; canli kutuda IKISI DE
+# gecmektedir (kutu :359-361 jeton-sonra-imza · kutu :44 imza-sonra-jeton). Arac
+# yalniz BIRINI kabul ediyordu. Care KONUMU GENISLETMEK degil, KONUMU KUYRUK olarak
+# tanimlamaktir.
+# 🔴 SERBEST BIRAKMA YONU GEVSETILMEDI — genisleme IKI SARTLA cevrilidir:
+#   ① kuyruk yalnizca SON HALKA bir IMZA satiriyken buyur (`— <ad>` satir-basi),
+#   ② buyume adimina alinan satir `✅` ile BASLAMAK zorundadir.
+# Boylece PROZA icinde gecen jeton kapanis URETMEZ. OLCULEN YANLIS-POZITIF: arsiv
+# :41868'de `'ve son mesajın EN SON satırı birebir `✅ İŞ BİTTİ — ARŞİVLENEBİLİRİM` ('
+# diye ANLATAN bir satir vardir; `✅` ile BASLAMADIGI icin kuyruga GIRMEZ.
+# 🔴 TAVAN NEREDEN GELDI (tahmin degil, olcum): kutu+arsivin TAMAMI tarandi —
+# `✅` ile BASLAYAN 419 satirin 361'i jeton tasir, 58'i tasimaz (② sartinin menzili);
+# jetonu IMZANIN USTUNDE duran blok sayisi 50, ust uste IMZA yiginin OLCULEN EN BUYUK
+# derinligi 1'dir. KUYRUK_IMZA_TAVANI bu olcumun BIR ADIM ustune konur.
+# 🔴 KOLUN KAZANDIRDIGI: ESKI kolda kapanis SAYILMAYAN 28 blok (kutu 1 + arsiv 27)
+# artik kapanis SAYILIR — hepsi `KAPANDI`/`KAPANIŞ` yazan GERCEK kapanislardir.
+KAPANIS_SATIR_RE = re.compile(r"^\s*✅")
+KUYRUK_IMZA_TAVANI = 2
+
+
+def kapanis_kuyrugu(satirlar, bas, son):
+    """(idx demeti — SONDAN BASA sirali, hata) — blogun KAPANIS KUYRUGU. TEK KAYNAK.
+
+    🔴 `korumali_bloklar()` (K313g/K318 KOL-1 korumasi + K341 cevriminin kaynagi) ve
+    `blok_kapanis_mi()` (K329 eslestirmesi) IKISI DE BUNU cagirir. Ikinci bir "kapanis
+    jetonu nerede" taramasi HICBIR YERDE yazilmaz ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    Kuyruk her zaman EN AZ bir halkadir (SON icerik satiri) — yani hicbir hal eski
+    davranistan DAR degildir. Buyume kosullari icin bolum basligina bak.
+    """
+    icerik, hata = _icerik_indeksleri(satirlar, bas, son)
+    if hata is not None:
+        return (), hata
+    kuyruk = [icerik[-1]]
+    k = len(icerik) - 2
+    imza_atlandi = 0
+    while k >= 0:
+        if not IMZA_RE.match(satirlar[kuyruk[-1]]):
+            break                       # ① son halka IMZA DEGIL -> kuyruk BITTI
+        if imza_atlandi >= KUYRUK_IMZA_TAVANI:
+            break                       # imza yigini tavani (olculen derinlik 1)
+        imza_atlandi += 1
+        aday = icerik[k]
+        k -= 1
+        if IMZA_RE.match(satirlar[aday]):
+            kuyruk.append(aday)         # ust uste imza — atlamaya DEVAM
+            continue
+        if not KAPANIS_SATIR_RE.match(satirlar[aday]):
+            break                       # ② `✅` ile BASLAMAYAN satir kuyruga GIRMEZ
+        kuyruk.append(aday)
+        break
+    return tuple(kuyruk), None
 
 
 def korumali_bloklar(satirlar, baslar):
@@ -501,13 +584,19 @@ def korumali_bloklar(satirlar, baslar):
         if BEKLEYEN_JETON not in metin:
             i += 1
             continue
-        idx, hata = kapanis_satiri(satirlar, bas, son)
+        kuyruk, hata = kapanis_kuyrugu(satirlar, bas, son)
         if hata is not None:
             bulgu.append((i, bas + 1, "AYRISTIRILAMADI: %s" % hata, "FAIL_CLOSED"))
-        elif BEKLEYEN_JETON in satirlar[idx]:
-            bulgu.append((i, idx + 1, satirlar[idx].strip()[:70], "KAPANIS"))
         else:
-            govde_anmasi += 1
+            # 🔴 K374 KOL-1: jeton KUYRUKTA aranir (tek satirda DEGIL). Mutant bu
+            # atamayi genisletince olcut "jeton NEREDE gecerse" haline doner.
+            arananlar = kuyruk           # KAPANIS KUYRUGU (K374 KOL-1)
+            jetonlu = [x for x in arananlar if BEKLEYEN_JETON in satirlar[x]]
+            if jetonlu:
+                idx = jetonlu[0]
+                bulgu.append((i, idx + 1, satirlar[idx].strip()[:70], "KAPANIS"))
+            else:
+                govde_anmasi += 1
         i += 1
     return bulgu, govde_anmasi
 
@@ -793,18 +882,66 @@ def sadelestir(metin):
     return metin.translate(_TR_SADE).upper()
 
 
+# --------------------------- K374 KOL-3: AD MI, ARAC IFADESI MI (5 Eyl 2026)
+# 🔴 OLCULEN VAKA (arsiv :61104, BaBa'nin "sinif kalemi, bende kapanmadi" notu):
+# acik cip adlari listesinde `non-fast-forward` gorundu — bir GIT HATA DIZGESI cip
+# adi SANILDI. Sebep: backtick evde IKI ROL tasir (ad sarmali VE kod/ifade sarmali)
+# ama `cip_adi()` yalniz "backtick + tire" seklini olcuyordu.
+# 🔴 MENZIL OLCULDU (tahmin degil): kutu+arsivin TUM `## ` basliklari tarandi —
+# `cip_adi()` 344 AYRI jeton donduruyor ve bunlarin 145'i cip adi DEGIL (CLI
+# bayraklari, depo adlari, urun slug'lari, skill adlari, HTML nitelikleri, wiki
+# baglantilari, git ifadeleri).
+# 🔴 SEKIL SUZGECI YAZILMADI VE BILEREK YAZILMADI: gercek cip adlarinin bir kismi
+# TAMAMEN KUCUK HARF ve RAKAMSIZDIR (`macit-parti-surucusu`, `serit-a3`,
+# `bisiklet-tv-d3-thingiverse-ekle`); "buyuk harf/rakam sart" demek onlari da
+# elerdi. Bu yuzden kol POZITIF sekil aramaz, NEGATIF ARAC SEKLI eler.
+# 🔴 YON FAIL-CLOSED'DIR: bir jetonu REDDETMEK ad kumesini KUCULTUR. Acilis
+# tarafinda `ACIK_ADSIZ`a duser (blok KILITLI kalir), kapanis tarafinda kapanis
+# kaydi URETMEZ (acilis KILITLI kalir). Yani gevsetme yonu YAPISAL OLARAK KAPALI.
+# 🔴 GERILEME OLCULDU: reddedilen 15 jetonun HICBIRI hem bir ACILIS hem bir KAPANIS
+# basliginda gecmiyor -> tek bir GERCEK eslesme bile kirilmiyor. Ad reddi yuzunden
+# kapanis statusu kaybeden 5 arsiv blogu var, DORDUNDE ad bir CLI BAYRAGI
+# (`--geriye-doldur` x2, `--durum`, `--kendini-test`), birinde bozuk jeton (`basıl-`);
+# hicbirinin eslesen `BASLIYORUM` blogu YOK.
+ARAC_IFADESI = frozenset((
+    "non-fast-forward", "fast-forward", "skip-worktree", "ls-remote",
+    "continue-on-error", "up-to-date", "no-verify", "dry-run",
+    "force-with-lease", "set-upstream", "fail-fast", "no-ff", "no-edit",
+))
+
+
+def _arac_ifadesi_mi(ad):
+    """Jeton bir ARAC/PROTOKOL ifadesi mi (yani cip adi DEGIL mi)? — K374 KOL-3."""
+    d = ad.lower()
+    if d.startswith("-") or "--" in d:
+        return True                      # CLI bayragi: `--no-verify`, `--durum`
+    if d.startswith("[[") or d.endswith("]]"):
+        return True                      # wiki baglantisi: `[[bir-ders]]`
+    if "=" in d:
+        return True                      # nitelik/atama: `aria-pressed=true`
+    if d.endswith("-"):
+        return True                      # yarim/bozuk jeton: `basıl-`, `sk-cp-`
+    return d in ARAC_IFADESI             # olculen GIT/ARAC sozlugu (kapali kume)
+
+
 def cip_adi(baslik):
     """Baslik satirindaki ILK backtick'li CIP ADI jetonu, yoksa None (DAR cikarim).
 
     KARAR EKSENI BUDUR: hem `kapanan_cipler()` hem acik blogun eslestirmesi bu adi
     okur. Backtick sarti bilerek DARDIR — ayni baslikta gecen dosya yollari
     (`tools/kutu-arsivle.py`), commit sha'lari (`e59c0bcc`) ad SANILMAZ.
+
+    🔴 K374 KOL-3: ARAC IFADESI seklindeki jeton ad SAYILMAZ ve tarama BIR SONRAKI
+    backtick'e gecer (durmaz) — ayni baslikta once bir bayrak, sonra GERCEK ad
+    gecebilir; durmak o adi da kaybederdi.
     """
     for aday in CIP_ADI_RE.findall(baslik):
         ad = aday.strip()
         if len(ad) < 5 or "-" not in ad:
             continue
         if any(k in ad for k in _AD_YASAK):
+            continue
+        if _arac_ifadesi_mi(ad):
             continue
         return ad
     return None
@@ -939,12 +1076,16 @@ def blok_kapanis_mi(satirlar, bas, son):
       * BASLIK satirinda `SAYILI KAPANIS` geciyor,
       * BASLIK satiri UC SARTI BIRDEN tasiyor (`✅` + `KAPANDI` + CIP ADI) — K359;
         biri bile eksikse bu kol SUSAR (bkz. `kapanis_baslik_ucbirlik`),
-      * blogun KAPANIS KONUMUNDA kapanis jetonu var — BEKLEYEN **ya da** ISLENMIS.
+      * blogun KAPANIS KUYRUGUNDA kapanis jetonu var — BEKLEYEN **ya da** ISLENMIS.
         Ikisi de "is BITTI" demektir; aralarindaki fark Okan'in ARSIVLEYIP
         arsivlemedigidir ve K329 acisindan ONEMSIZDIR (K313g o ayrimi zaten kendi
         ekseninde tutuyor — burada tekrar edilirse iki kol sessizce ayrisir).
-    Kapanis konumu AYRISTIRILAMAZSA hata dondurulur ve blok kapanis SAYILMAZ; yani
+    Kapanis kuyrugu AYRISTIRILAMAZSA hata dondurulur ve blok kapanis SAYILMAZ; yani
     belirsizlik yine KORUMA yonundedir (o cipin `BASLIYORUM`u acik kalir).
+
+    🔴 K374 KOL-1: ucuncu kol artik TEK SATIR degil KUYRUK okur (`kapanis_kuyrugu()`),
+    yani jeton IMZA satirinin USTUNDE de durabilir. `korumali_bloklar()` AYNI kuyrugu
+    okur; ikinci bir tarama YOKTUR ([[ikiz-tanim-sessiz-ayrisma]]).
     """
     if son <= bas:
         return False, "BOS BLOK ARALIGI (bas=%d son=%d)" % (bas, son)
@@ -952,11 +1093,12 @@ def blok_kapanis_mi(satirlar, bas, son):
         return True, None
     if kapanis_baslik_ucbirlik(satirlar[bas]):
         return True, None
-    idx, hata = kapanis_satiri(satirlar, bas, son)
+    kuyruk, hata = kapanis_kuyrugu(satirlar, bas, son)
     if hata is not None:
         return False, hata
-    if BEKLEYEN_JETON in satirlar[idx] or ISLENMIS_JETON in satirlar[idx]:
-        return True, None
+    for idx in kuyruk:
+        if BEKLEYEN_JETON in satirlar[idx] or ISLENMIS_JETON in satirlar[idx]:
+            return True, None
     return False, None
 
 
@@ -1243,7 +1385,113 @@ def arsiv_serbest(satirlar, baslar, acik, arsiv_kayitlari):
     return serbest
 
 
-def acik_cip_bloklari(satirlar, baslar, kapanan=None, arsiv_kayitlari=None):
+# ------------------ K374 KOL-2: KILIT ACMA EKSENI KUMEDIR (5 Eyl 2026)
+# 🔴 OLCULEN VAKA (canli kutu, 3 gundur tavan ustunde): kilitleyen 6 blogun BESI
+# `AD_YOK` idi ve o bloklar icin kilidi acan TEK mekanizma AD ESLESMESIYDI
+# (`cip_kimlikleri()` bos kume donunce eslesecek ad YOKTUR) -> "kapanisi yaz" yolu
+# YAPISAL OLARAK ULASILAMAZDI. Kanit: MaCiT 5 Eyl'de kapanis blogu YAZDI, kilit
+# ACILMADI; dahasi o kapanis blogunun KENDISI `ACIK_ADSIZ` sinifina dustu ve
+# ALTINCI kilidi ekledi. Bu ihmal degil, MEKANIZMA KUSURUDUR.
+# 🔴 SINIF: kilit acma ekseni TEK DEGIL KUMEDIR. Gelenek uc bicim kullaniyor ve
+# arac yalnizca birincisini goruyordu:
+#   ① AD ESLESMESI      — baska blok ayni ADLA kapanis yazar (K329/K360-B, DURUYOR).
+#   ② OZ KAPANIS        — blogun KENDISI kapanis tasir ("BASLIYORUM+KAPANDI tek
+#                         blok"). OLCULDU: kutu+arsivde 15 gercek vaka.
+#   ③ BASLIK KIMLIGI    — ADSIZ acilisin BASLIGI, govdesi kapanis olan yeni bir
+#                         blokta YENIDEN YAZILIR. OLCULEN GERCEK VAKA: MaCiT'in
+#                         kutu :309 ve :322 bloklari, hedefleri :450 ve :453.
+# 🔴 ② HALIHAZIRDA ADLI BLOKLARI DEGISTIRMEZ: adi cikarilabilen bir oz-kapanis
+# zaten `kapanan_cipler()` uzerinden kapanmis sayiliyordu; kol yalnizca ADSIZ
+# olanlara ULASIR.
+# 🔴 ③ SERBEST BIRAKMA YONU DORT SARTLA CEVRILIDIR (hepsi olculdu):
+#   (a) kapatici blok GERCEKTEN kapanis olacak (`blok_kapanis_mi` TEK KAYNAK),
+#   (b) kapatici blogun basligi da bir `BASLIYORUM` bildirimi olacak — yani baslik
+#       YENIDEN YAZIMIDIR, rastgele bir kapanis DEGIL,
+#   (c) kimlik ONEK olacak ve EN AZ `BASLIK_KIMLIK_TABANI` hane olacak,
+#   (d) ZAMAN SIRALI + TUKETIMLI (K360-B ile AYNI iki sart, AYNI fonksiyonlardan).
+# 🔴 TABAN NEREDEN GELDI (tahmin degil, olcum): kutu+arsivdeki 125 ADSIZ `BASLIYORUM`
+# basligi ciftler halinde tarandi; ONEK iliskisi kuran cift sayisi **2**'dir ve
+# IKISI DE hedeflenen gercek vakadir (kimlik 69 hane). YANLIS POZITIF **0**.
+# Taban 40'a konur: gercek eslesmenin 69 hanesinin ALTINDA (kol calisir) ama
+# "2026-09-05 — MACIT" gibi kisa ortak oneklerin USTUNDE (carpisma uretmez).
+_VURGU_RE = re.compile(r"[`*_#\[\]]+")
+_BOSLUK_RE = re.compile(r"\s+")
+_TARIH_ONEK_RE = re.compile(r"^##\s+\d{4}-\d{2}-\d{2}[^—\-]*[—\-]?\s*")
+BASLIK_KIMLIK_TABANI = 40
+
+
+def baslik_kimligi(baslik):
+    """Blogun BASLIK KIMLIGI: TARIH ONEKI ATILMIS + sadelestirilmis + vurgusuz.
+
+    🔴 VURGU ELEMESI ZORUNLUDUR: gercek vakada acilis `**BASLIYORUM: …**` diye KALIN,
+    yeniden yazim ise DUZ yazilmisti; ham karsilastirma o cifti KACIRIRDI.
+
+    🔴 TARIH ONEKI NEDEN ATILIYOR (olcum, tercih degil): kimlik SORUNUN OZNESIDIR,
+    ZAMANI DEGIL — zaman AYRI bir kolda (`_kapanis_daha_eski_degil`) sorulur. Tarih
+    kimligin ICINDE kalirsa o kol YAPISAL OLARAK OLU olur (farkli tarihli kapatici
+    zaten ONEK sartindan duser) ve "gevsetme yonu olculdu" iddiasi TOTOLOJIYE doner.
+    Olculdu: 125 ADSIZ baslikta ONEK cifti sayisi TARIHLI ve TARIHSIZ kimlikte
+    AYNIDIR (2 cift, ikisi de hedeflenen gercek vaka, YANLIS POZITIF 0); yani tarihi
+    atmak carpisma URETMEDI, yalnizca zaman kolunu OLCULEBILIR kildi.
+    """
+    return _BOSLUK_RE.sub(
+        " ", _VURGU_RE.sub(" ", sadelestir(_TARIH_ONEK_RE.sub("", baslik)))).strip()
+
+
+def adsiz_serbest(satirlar, baslar, acik):
+    """{hedef_idx: (kapatici_idx, kimlik, zaman)} — BASLIK KIMLIGI ile serbest ADSIZLAR.
+
+    🔴 TEK KAYNAK: `acik_cip_bloklari()` bununla filtreler, `planla()` bununla RAPOR
+    eder. Ikinci bir "adsiz blok kapandi mi" testi HICBIR YERDE yazilmaz
+    ([[ikiz-tanim-sessiz-ayrisma]]).
+    """
+    hedefler = [b for b, ad, _o, _s in acik if not ad]
+    if not hedefler:
+        return {}
+    araliklar = blok_araliklari(satirlar, baslar)
+    # KAPATICI ADAYLARI: basligi `BASLIYORUM` bildirimi OLAN ve GERCEKTEN kapanis
+    # tasiyan bloklar (yani baslik YENIDEN YAZIMI). Sart (a) ve (b) burada.
+    # 🔴 YEREL AD `k_baslik` BILEREK AYRIDIR: `acik_cip_bloklari()` icindeki
+    # `if not basliyorum_baslikta(baslik):` satiri K329 KONUM mutantinin CAPASIDIR;
+    # burada AYNI dizgeyi uretmek o capayi CIFTLER ve mutant sessizce
+    # URETILEMEDI'ye duser ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
+    kapaticilar = []
+    for i, (bas, son) in enumerate(araliklar):
+        k_baslik = satirlar[bas]
+        if not basliyorum_baslikta(k_baslik):
+            continue
+        kapanis, _hata = blok_kapanis_mi(satirlar, bas, son)
+        if not kapanis:
+            continue
+        kimlik = baslik_kimligi(k_baslik)
+        if len(kimlik) < BASLIK_KIMLIK_TABANI:
+            continue
+        kapaticilar.append((i, kimlik, blok_zamani(k_baslik)))
+    if not kapaticilar:
+        return {}
+    # EN UZUN kimlik ONCE denenir: en OZGUL kapatici kazanir, kisa onek ARTIK kalir.
+    kapaticilar.sort(key=lambda t: (-len(t[1]), t[0]))
+    tuketilen = set()
+    serbest = {}
+    for hedef in sorted(hedefler):
+        bas = baslar[hedef]
+        hedef_kimlik = baslik_kimligi(satirlar[bas])
+        hedef_z = blok_zamani(satirlar[bas])
+        for (k_idx, kimlik, kapanis_z) in kapaticilar:
+            if k_idx == hedef or k_idx in tuketilen:
+                continue
+            if not hedef_kimlik.startswith(kimlik):
+                continue
+            if not _kapanis_daha_eski_degil(hedef_z, kapanis_z):
+                continue                 # (d) ZAMAN SIRASI — K360-B ile AYNI olcut
+            tuketilen.add(k_idx)         # (d) TUKETIM — bir kapatici BIR hedef acar
+            serbest[hedef] = (k_idx, kimlik, kapanis_z)
+            break
+    return serbest
+
+
+def acik_cip_bloklari(satirlar, baslar, kapanan=None, arsiv_kayitlari=None,
+                      adsiz_kolu=True):
     """([(blok_idx, ad, ozet, sinif)], kapanmis, govde_anmasi, kapanan) — TEK KAYNAK.
 
     🔴 ICRA kolu (`planla`) ve DENETIM kolu (`dogrula` D17) BU fonksiyonu cagirir.
@@ -1279,6 +1527,15 @@ def acik_cip_bloklari(satirlar, baslar, kapanan=None, arsiv_kayitlari=None):
                 govde_anmasi += 1
             i += 1
             continue
+        # 🔴 K374 KOL-2 ② OZ KAPANIS: blogun KENDISI kapanis tasiyorsa cip ACIK
+        # DEGILDIR — K329'un tanimi "KAPANISSIZ BASLIYORUM"dur, ad eslesmesi degil.
+        # ADLI bloklarda bu zaten `kapanan` uzerinden oluyordu; kol ADSIZLARA ULASIR.
+        # Jeton BEKLEYEN ise blok yine de K313g korumasiyla kutuda KALIR (ayri kol).
+        oz_kapanis, _oz_hata = blok_kapanis_mi(satirlar, bas, son)
+        if oz_kapanis:
+            kapanmis += 1
+            i += 1
+            continue
         adlar = cip_kimlikleri(baslik)
         if not adlar:
             acik.append((i, None, baslik.strip()[:70], "ACIK_ADSIZ"))
@@ -1298,6 +1555,18 @@ def acik_cip_bloklari(satirlar, baslar, kapanan=None, arsiv_kayitlari=None):
         if serbest:
             acik = [t for t in acik if t[0] not in serbest]
             kapanmis += len(serbest)
+    # 🔴 K374 KOL-2 ③ BASLIK KIMLIGI — ADSIZ acilis, BASLIGI YENIDEN YAZILMIS bir
+    # kapanis blogu ile acilir. Iki kol AYRI kumeleri tuketir (arsiv kolu ADI OLAN,
+    # bu kol ADI OLMAYAN bloklari) -> sira KARARI DEGISTIRMEZ.
+    # 🔴 `adsiz_kolu=False` YALNIZ `planla()`nin RAPOR cagrisi icindir: kol kendi
+    # girdisini TUKETIRSE rapor DAIMA 0 basar ve serbest birakilan blok GORUNMEZ
+    # olur ([[aracin-teshis-cumlesi-olcum-degil]]). Filtre ve rapor AYNI
+    # fonksiyondan turer; ikinci bir hesap YOKTUR.
+    if adsiz_kolu:
+        adsiz = adsiz_serbest(satirlar, baslar, acik)
+        if adsiz:
+            acik = [t for t in acik if t[0] not in adsiz]
+            kapanmis += len(adsiz)
     return acik, kapanmis, govde_anmasi, kapanan
 
 
@@ -1391,6 +1660,8 @@ class Plan(object):
         self.arsiv_serbest = {}            # {blok_idx: (ad, kapanis_zamani)}
         self.arsiv_kayitlari = {}          # denetim kolunun (D17) okudugu ARSIV TABANI
         self.arsiv_hatasi = None           # arsiv OLCULEMEDIYSE sebebi (fail-closed)
+        # BASLIK KIMLIGI DUZLEMI (K374 KOL-2 ③) — ARSIV kolundan AYRI KOVA, AYRI SAYI
+        self.adsiz_serbest = {}            # {hedef_idx: (kapatici_idx, kimlik, zaman)}
         # CIFT BUTUNLUGU (K359-B) — K329'dan AYRI KOVA, AYRI SAYI
         self.cift_korumasi = []            # [(blok_idx, ad, sebep)] — pinlenen KAPANIS
 
@@ -1434,8 +1705,11 @@ def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None):
     # serbest kalan bloklar RAPOR EDILEBILSIN — filtreleme ve rapor AYNI
     # fonksiyondan turer, ikinci bir hesap YOKTUR.
     p.arsiv_kayitlari = arsiv_kayitlari or {}
-    acik_ham, _kh, _gh, p.kapanan_adlar = acik_cip_bloklari(satirlar, baslar)
+    acik_ham, _kh, _gh, p.kapanan_adlar = acik_cip_bloklari(satirlar, baslar,
+                                                            adsiz_kolu=False)
     p.arsiv_serbest = arsiv_serbest(satirlar, baslar, acik_ham, arsiv_kayitlari or {})
+    # 🔴 K374 KOL-2 ③ — RAPOR ile FILTRE AYNI fonksiyondan turer (ikinci hesap YOK).
+    p.adsiz_serbest = adsiz_serbest(satirlar, baslar, acik_ham)
     (p.acik_cip, p.kapanmis_basliyorum, p.basliyorum_govde_anmasi,
      p.kapanan_adlar) = acik_cip_bloklari(satirlar, baslar,
                                           arsiv_kayitlari=arsiv_kayitlari)
@@ -2293,6 +2567,20 @@ def main(argv=None):
             print("  * ACIK CIP blok %d/%d (sinif=%s): cip `%s` — ESLESEN KAPANIS "
                   "kutuda YOK -> blok ROTASYONA GIRMEZ (YERINDE ATLANDI) | %s"
                   % (blok_idx + 1, p.blok_toplam, sinif, ad or "AD_YOK", ornek))
+            # 🔴 K374: KILIDI NE ACAR — blok bazinda, ULASILABILIR yol ADIYLA basilir.
+            # "Kilitli kaldi" demek yetmez; hangi YAZIYI yazmanin acacagi yazilmalidir
+            # ([[aracin-teshis-cumlesi-olcum-degil]]).
+            if ad:
+                print("    NEYI YAZMAK ACAR: ayni ADLA (`%s`) sayili bir KAPANIS blogu "
+                      "— kutuya ya da arsive; YA DA bu blogun SONUNA `✅ ... %s` "
+                      "satiri (oz kapanis)." % (ad, BEKLEYEN_JETON))
+            else:
+                print("    NEYI YAZMAK ACAR: cip ADI CIKARILAMIYOR, ad ekseni bu blok "
+                      "icin KAPALI. IKI ULASILABILIR yol var: ① bu blogun SONUNA "
+                      "`✅ ... %s` satiri koy (OZ KAPANIS); ② AYNI BASLIGI yeniden "
+                      "yazip govdesine kapanisi koyan yeni bir blok ekle (BASLIK "
+                      "KIMLIGI, en az %d hane onek)."
+                      % (BEKLEYEN_JETON, BASLIK_KIMLIK_TABANI))
         if p.basliyorum_govde_anmasi:
             print("  · BASLIYORUM GOVDE ANMASI=%d blok: jeton blogun ICINDE geciyor ama "
                   "BASLIK satirinda DEGIL -> veto URETMEZ (K329 konum olcutu), blok "
@@ -2316,6 +2604,20 @@ def main(argv=None):
         if p.arsiv_hatasi:
             print("  · ARSIV OLCULEMEDI (FAIL-CLOSED, hicbir blok serbest BIRAKILMADI): "
                   "%s" % p.arsiv_hatasi)
+        # 🔴 K374 KOL-2 ③ BASLIK KIMLIGI DUZLEMI — HER kosumda basilir, is olsa da
+        # olmasa da. ARSIV kolundan AYRI SAYI: orada "kapanisi ARSIVDE bulundu" denir,
+        # burada "adi YOK ama BASLIGI yeniden yazilmis kapanis blogu VAR" denir. Ayni
+        # satirdan okunursa ucuncu hal yutulur ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+        print("ADSIZ_SERBEST=%d baslik_kimlik_tabani=%d  [KAPI]"
+              % (len(p.adsiz_serbest), BASLIK_KIMLIK_TABANI))
+        for hedef_idx in sorted(p.adsiz_serbest):
+            k_idx, kimlik, zaman = p.adsiz_serbest[hedef_idx]
+            print("  * ADSIZ SERBEST blok %d/%d: cip ADI YOK ama BASLIK KIMLIGI (%d "
+                  "hane) blok %d/%d tarafindan KAPANIS olarak yeniden yazilmis "
+                  "(kapanis gun=%s dk=%s, acilistan DAHA ESKI DEGIL, kapatici "
+                  "TUKETILDI) -> blok rotasyona ACIK | %s"
+                  % (hedef_idx + 1, p.blok_toplam, len(kimlik), k_idx + 1,
+                     p.blok_toplam, zaman[0], zaman[1], kimlik[:70]))
         # 🔴 K359-B CIFT BUTUNLUGU — HER kosumda basilir, is olsa da olmasa da.
         # K329'dan AYRI SAYI: orada "kapanisi YOK" denir, burada "kapanisi VAR ama
         # acilisi kutuda kaliyor" denir. Ikisi ayni satirdan okunursa ucuncu hal
