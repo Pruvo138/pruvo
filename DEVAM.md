@@ -5,8 +5,8 @@
 ## ✅ 5 EYL ~23:xxZ — **MERGE KAPANDI: emekli motor adi supurmesi main'de (`36bf1a0b`)**
 `claude/affectionate-williams-d8bc67` (`f2b8746d`, 5 commit) → main: 71 dosya +700/-396, merge-base `5f6a4c4b`, FF imkansiz, cakisma 0.
 **KAPI:** kendini-test **5/5** · menzil HUKUM=GECTI IHLAL=0 CAPA_DUSEN=0 · ci-kapsam **YESIL** · parite **1334**+ege **897** BIREBIR · `d1-sync --durum` **34292** ✅ · sizinti 0. `arama.py`: yalniz 3 YORUM satiri.
-**CIP:** `arsiv-kapisi.py` **rc=0 ARSIVLENEBILIR**. 🔴 AGACI SILME: `lsof -a -d cwd` → PID 3501 agaci tutuyor; arsivi Okan tiklar. 🔴 Kapiya HEDEF=TAM YOL; cip ADIYLA rc=2.
-**YAYIN:** `33978175155` cancelled (K144, ariza DEGIL) → ardil `33978350506` **deploy+yayin success, SKIPPED 0**; ata kaniti rc=0.
+**CIP:** 3 cip rc=0 → Okan arsivledi; `kutu-arsivle.py --kapanislari-isle` 2 jetonu cevirdi (BEKLEYEN 2→0, kutu 465→355), **worktree 4→1**. 🔴 Kapiya HEDEF=TAM YOL; ADIYLA rc=2.
+**YAYIN:** `33978350506` (merge) + `33979398512` (HEAD) — ikisi de **deploy+yayin success, SKIPPED 0**, ata kaniti rc=0. `33978175155` cancelled = K144.
 
 ## ✅ 5 EYL — KUTU KILIDI UC KUSUR KAPANDI (`3eae9047`) — **ISARETCI**
 ↩︎ TAM METIN kutuda (cip `goofy-snyder-cb4801`): 6 kilit->0, kutu 461->388, 515/515, yayin yesil.
