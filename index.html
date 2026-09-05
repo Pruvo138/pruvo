@@ -1171,13 +1171,6 @@ setTimeout(L,5000);})();
 </section>
 
 <main>
-  <!-- ANA SAYFA VİTRİNİ (#katPanels) — foto-slider'ın YERİNE (onaylı tasarım, 5 Eyl).
-       İçeriği renderKatPanelleri() ÜRETİR: kategori listesi CATEGORIES + GIZLI_KATEGORILER,
-       markalar çip indeksinden, gruplar ALTKATEGORILER'den gelir. HTML'e hiçbir kategori/
-       marka/grup adı ELLE YAZILMAZ — yeni kategori eklendiğinde panel kendiliğinden doğar.
-       Kap BOŞ durur: indeks yoksa ya da JS düşerse boş bir beyaz şerit kalır, YANLIŞ liste
-       gösterilmez (fail-closed). -->
-  <div id="katPanels" class="kat-panels"></div>
   <!-- PRUVO gizli-seri banner'ları (Jeneratör + Skan Art) — SADECE ana sayfa görünümünde
        (renderGrid #bannerRow'u gösterir/gizler; kategori/arama/marka görünümünde YOK).
        Yarı-boy 2'li grid (yan yana; mobilde tek kolon). Metin HTML overlay'dir, görsele
@@ -1215,6 +1208,13 @@ setTimeout(L,5000);})();
     </div>
   </a>
   </div>
+  <!-- ANA SAYFA VİTRİNİ (#katPanels) — foto-slider'ın YERİNE (onaylı tasarım, 5 Eyl).
+       İçeriği renderKatPanelleri() ÜRETİR: kategori listesi CATEGORIES + GIZLI_KATEGORILER,
+       markalar çip indeksinden, gruplar ALTKATEGORILER'den gelir. HTML'e hiçbir kategori/
+       marka/grup adı ELLE YAZILMAZ — yeni kategori eklendiğinde panel kendiliğinden doğar.
+       Kap BOŞ durur: indeks yoksa ya da JS düşerse boş bir beyaz şerit kalır, YANLIŞ liste
+       gösterilmez (fail-closed). -->
+  <div id="katPanels" class="kat-panels"></div>
   <div class="brand-row" id="brandRow">
     <span class="brand-label">Marka:</span>
     <div class="brand-chips" id="brandChips"></div>
