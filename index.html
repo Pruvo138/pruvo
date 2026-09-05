@@ -3,26 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- LCP HIZLANDIRMA (PageSpeed mobil ölçümü, 8 Ağu 2026: LCP 10,7 sn / skor 74; tek kayıp
-     kalem LCP idi, LCP ögesi marin slider'ın 1. slaytı). Üç şey yapılır, HEPSİ head'de
-     olmak ZORUNDA (parser gövdeye inmeden bağlantı kurulsun + görsel keşfedilsin):
-       1) preconnect: banner görselleri AYRI alan adından (media.pruvo3d.com) gelir; DNS+TLS
-          el sıkışması gövdeye inince başlarsa LCP'ye ~300 ms ekler. crossorigin YAZILMAZ —
-          <img> istekleri CORS'suzdur, crossorigin'li preconnect AYRI bir bağlantı havuzu
-          açar ve ısıttığı bağlantı görsel tarafından KULLANILMAZ.
-       2) preload: LCP görseli gövdedeki <picture> içinde; ön-tarayıcı srcset'i görür ama
-          sıraya en sonda koyar. imagesrcset/imagesizes AŞAĞIDAKI <source> ile BİREBİR aynı
-          olmalı — ayrışırsa tarayıcı İKİ ayrı görsel indirir ([[ikiz-tanim-sessiz-ayrisma]]).
-       3) type="image/avif": AVIF desteklemeyen tarayıcı bu preload'u ATLAR ve <picture>
-          WebP/JPEG koluna düşer — çift indirme olmaz.
-       🔴 type, gövdedeki LCP <picture>'ın İLK modern <source>'uyla AYNI olmak ZORUNDA:
-          tarayıcı gövdede AVIF'i seçip head'de WebP ön-yüklenmişse görsel İKİ KEZ iner ve
-          onarımın tamamı geri sarılır. -->
+<!-- LCP HIZLANDIRMA — 5 Eyl 2026'da KÖKTEN DEĞİŞTİ (Okan onaylı ArTisT mockup'ı).
+     ESKİ DURUM: ana sayfanın vitrini 1100x614 bir foto-slider'dı; LCP ögesi onun 1. slaytı
+     (banner/marin-slide-1-v2-688.avif) idi ve buraya fetchpriority=high bir <link
+     rel=preload> konarak ısıtılıyordu (PSI mobil: LCP 6,1 sn, tek kırmızı kalem).
+     YENİ DURUM: vitrin ARTIK GÖRSEL DEĞİL — kategori başlığı + marka/grup çipleri, yani
+     saf METİN (#katPanels). Ekranın üstünde indirilecek TEK BİR GÖRSEL KALMADI, dolayısıyla
+     🔴 ÖN-YÜKLENECEK LCP GÖRSELİ DE YOK: preload satırı SİLİNDİ. Silinmeseydi tarayıcı
+     artık HİÇ KULLANILMAYAN bir görseli yüksek öncelikle indirir, gerçek LCP'yi (metin)
+     geciktirirdi — "ölü preload" LCP'yi düzeltmez, BOZAR.
+     preconnect/dns-prefetch KALIYOR: ürün kartlarının görselleri hâlâ media.pruvo3d.com'dan
+     gelir; el sıkışmasını erken açmak kart görsellerini hızlandırır (LCP'yi geciktirmez,
+     çünkü LCP artık ağ beklemez). -->
 <link rel="preconnect" href="https://media.pruvo3d.com">
 <link rel="dns-prefetch" href="https://media.pruvo3d.com">
-<link rel="preload" as="image" type="image/avif" fetchpriority="high"
-      imagesrcset="https://media.pruvo3d.com/banner/marin-slide-1-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1376.avif 1376w"
-      imagesizes="(max-width:1140px) calc(100vw - 40px), 1060px">
 <!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVKK uyumlu. Ölçüm Kimliği G-5V53CQMSCE herkese açıktır.
      TEK KAYNAK: aynı blok sayfa üretecinde (GA_HEAD_SNIPPET) + statik sayfalarda birebir tekrar eder — değiştirirsen HEPSİNİ değiştir. -->
 <script>
@@ -407,39 +401,84 @@ setTimeout(L,5000);})();
     .skan-banner-text{padding:14px 18px 14px 22px}
   }
 
-  /* ---------- MARIN SLIDER (iki küçük banner'ın altında, tam genişlik, 4 slayt) ----------
-     Aynı .jen-banner iskeleti her slaytta yeniden kullanılır (görsel+degrade+metin overlay);
-     grid-column:1/-1 ile #bannerRow'un üçüncü satırına tam genişlik yayılır. Slaytlar üst üste
-     absolute konumlanır, tek seferde biri .active (opacity:1) olur — JS ile otomatik döner. */
-  .marin-slider{
-    grid-column:1 / -1;
-    position:relative;
-    min-height:180px;
-    border-radius:14px;
-    overflow:hidden;
+  /* ---------- ANA SAYFA KATEGORİ PANELLERİ (#katPanels) ----------
+     Foto-slider'ın (.marin-slider) YERİNE geçer — Okan 5 Eyl'de ArTisT'in mockup'ını
+     onayladı ("şimdi oldu"). Her kategori için: ortalı + harf aralıklı BÜYÜK BAŞLIK
+     (tıklanınca o kategoriye gider) + altında marka ve grup çipleri.
+
+     🔴 ARKA PLAN HER ZAMAN DÜZ BEYAZ (#ffffff) — Okan'ın sert kuralı. Panelde koyu zemin,
+     degrade, gölge ya da kart YOK. Sayfa gövdesi --gray-bg (#eef1f5) olduğu için panel
+     bandı main'in yatay dolgusunu negatif kenar boşluğuyla iptal eder ve main genişliğince
+     kesintisiz beyaz bir şerit olur. viewport birimi (100vw) KULLANILMAZ: kaydırma çubuğu
+     olan masaüstünde 100vw > belge genişliğidir ve sayfayı yatay kaydırırdı (site kabul
+     testi belge üzerinde YATAY TAŞMA=0 ölçer).
+
+     🔴 ÇİPLER SARAR (flex-wrap), YATAY KAYDIRMAZ. Bu yüzden .brand-row/.brand-chips
+     sınıfları YENİDEN KULLANILMAZ, ayrı bir aile (.kat-panel-*) açılır: o sınıfların
+     @media(max-width:640px) kuralı bilerek `flex-wrap:nowrap + overflow-x:auto`tur
+     (2 Ağu ölçümü, kategori içi filtre satırı için alınmış AYRI bir karar). Panel onu
+     miras alsaydı mobilde çipler ekran kenarından sessizce kesilirdi — mockup'ın
+     çözdüğü sorun tam olarak budur. */
+  .kat-panels{
+    background:#ffffff;
+    margin:0 -20px 26px;
+    padding:26px 20px 22px;
+    display:flex;
+    flex-direction:column;
+    gap:34px;
   }
-  .marin-slider .marin-slide{
-    position:absolute; inset:0;
-    opacity:0; pointer-events:none;
-    transition:opacity .6s ease;
+  .kat-panel{background:#ffffff}
+  /* Harf aralığı SON harfin de sağına boşluk koyar → metin görsel olarak sola kayar.
+     text-indent aynı miktarı SOLA ekler, iki yan eşitlenir (ortalama gerçekten ortalı). */
+  .kat-panel-baslik{
+    display:block;
+    text-align:center;
+    text-decoration:none;
+    color:var(--navy);
+    font-weight:800;
+    line-height:1.05;
+    margin:0 0 16px;
+    font-size:clamp(26px,6vw,46px);
+    letter-spacing:clamp(.10em,2.4vw,.26em);
+    text-indent:clamp(.10em,2.4vw,.26em);
   }
-  .marin-slider .marin-slide.active{ opacity:1; pointer-events:auto; z-index:1; }
-  .marin-slider-dots{
-    position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
-    display:flex; gap:2px; z-index:2;
+  /* Uzun adlar (MOTOSİKLET, DEKORASYON) mobilde iki satıra kırılmasın diye küçülür. */
+  .kat-panel-baslik.uzun{
+    font-size:clamp(19px,4.4vw,34px);
+    letter-spacing:clamp(.04em,1.4vw,.12em);
+    text-indent:clamp(.04em,1.4vw,.12em);
   }
-  .marin-slider-dot{
-    width:24px; height:24px; padding:0; border:none; background:transparent;
-    cursor:pointer; transition:.15s; display:flex; align-items:center; justify-content:center;
+  .kat-panel-baslik:hover{color:var(--navy-2)}
+  .kat-panel-satir{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px 10px;
+    margin:0 0 10px;
   }
-  .marin-slider-dot::after{
-    content:""; width:8px; height:8px; border-radius:50%;
-    background:rgba(255,255,255,.45); transition:.15s;
+  .kat-panel-satir:last-child{margin-bottom:0}
+  .kat-panel-etiket{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+    color:var(--gray-text);
   }
-  .marin-slider-dot.active::after{ background:#fff; width:20px; height:8px; border-radius:5px; }
-  @media(max-width:640px){
-    .marin-slider{min-height:140px}
+  .kat-panel-cip{
+    background:#ffffff;
+    color:var(--navy);
+    border:1px solid var(--gray-line);
+    border-radius:20px;
+    padding:6px 13px;
+    font-size:12.5px;
+    font-weight:600;
+    line-height:1.2;
+    text-decoration:none;
+    display:inline-block;
+    transition:.15s;
   }
+  .kat-panel-cip:hover{border-color:var(--navy-2)}
+  .kat-panel-cip.aktif{background:var(--navy);color:#fff;border-color:var(--navy)}
 
   .brand-row{
     display:flex;
@@ -1126,6 +1165,13 @@ setTimeout(L,5000);})();
 </section>
 
 <main>
+  <!-- ANA SAYFA VİTRİNİ (#katPanels) — foto-slider'ın YERİNE, Okan onaylı (5 Eyl).
+       İçeriği renderKatPanelleri() ÜRETİR: kategori listesi CATEGORIES + GIZLI_KATEGORILER,
+       markalar çip indeksinden, gruplar ALTKATEGORILER'den gelir. HTML'e hiçbir kategori/
+       marka/grup adı ELLE YAZILMAZ — yeni kategori eklendiğinde panel kendiliğinden doğar.
+       Kap BOŞ durur: indeks yoksa ya da JS düşerse boş bir beyaz şerit kalır, YANLIŞ liste
+       gösterilmez (fail-closed). -->
+  <div id="katPanels" class="kat-panels"></div>
   <!-- PRUVO gizli-seri banner'ları (Jeneratör + Skan Art) — SADECE ana sayfa görünümünde
        (renderGrid #bannerRow'u gösterir/gizler; kategori/arama/marka görünümünde YOK).
        Yarı-boy 2'li grid (yan yana; mobilde tek kolon). Metin HTML overlay'dir, görsele
@@ -1140,7 +1186,7 @@ setTimeout(L,5000);})();
       <source type="image/webp" sizes="(max-width:560px) calc(100vw - 40px), (max-width:1140px) calc((100vw - 56px)/2), 522px"
               srcset="https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-560.webp 560w, https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-840.webp 840w, https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-1120.webp 1120w">
       <img class="jen-banner-img" alt="" width="840" height="420"
-           decoding="async" fetchpriority="low"
+           loading="lazy" decoding="async" fetchpriority="low"
            src="https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-840.jpg">
     </picture>
     <div class="jen-banner-text">
@@ -1153,7 +1199,7 @@ setTimeout(L,5000);})();
       <source type="image/webp" sizes="(max-width:560px) calc(100vw - 40px), (max-width:1140px) calc((100vw - 56px)/2), 522px"
               srcset="https://media.pruvo3d.com/banner/skan-baykus-b5-v2-448.webp 448w, https://media.pruvo3d.com/banner/skan-baykus-b5-v2-672.webp 672w, https://media.pruvo3d.com/banner/skan-baykus-b5-v2-896.webp 896w">
       <img class="jen-banner-img skan-banner-img" alt="" width="672" height="900"
-           decoding="async" fetchpriority="low"
+           loading="lazy" decoding="async" fetchpriority="low"
            src="https://media.pruvo3d.com/banner/skan-baykus-b5-v2-672.jpg">
     </picture>
     <div class="jen-banner-text skan-banner-text">
@@ -1162,130 +1208,6 @@ setTimeout(L,5000);})();
       <span class="jen-banner-btn">Keşfet &rarr;</span>
     </div>
   </a>
-  <div id="marinSlider" class="marin-slider">
-    <a class="jen-banner marin-slide active" href="/?kategori=Marin">
-      <!-- 🔴 LCP ÖGESİ (ölçüldü). srcset/sizes <head>'deki preload ile BİREBİR aynı olmak
-           ZORUNDA: bir karakter ayrışırsa tarayıcı preload'u eşleştiremez ve görseli İKİ
-           KEZ indirir (LCP düzelmez, bayt iki katına çıkar). fetchpriority=high bu tek
-           görseli kuyruğun başına alır. -->
-      <picture>
-        <source type="image/avif" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-slide-1-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1376.avif 1376w">
-        <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-slide-1-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1376.webp 1376w">
-        <img class="jen-banner-img" alt="" width="1100" height="614"
-             decoding="async" fetchpriority="high"
-             src="https://media.pruvo3d.com/banner/marin-slide-1-v2-1100.jpg">
-      </picture>
-      <div class="jen-banner-text">
-        <span class="skan-banner-ust">Marin</span>
-        <h2 class="jen-banner-title">Dış motor yedek parçaların burada</h2>
-        <p class="jen-banner-sub">Yamaha, Mercury, Evinrude ve daha fazlası</p>
-        <span class="jen-banner-btn">Keşfet &rarr;</span>
-      </div>
-    </a>
-    <a class="jen-banner marin-slide" href="/?kategori=Marin">
-      <!-- 2.-4. slaytlar ilk boyamada GÖRÜNMEZ (opacity:0) ama akışta oldukları için
-           tarayıcı onları LCP görseliyle AYNI anda, aynı öncelikte indiriyordu — yavaş 4G'de
-           LCP'nin önünü tıkayan asıl trafik buydu. loading=lazy + fetchpriority=low ikisi
-           birlikte gerekli: lazy tek başına "görüş alanında" sayıldıkları için indirmeyi
-           İPTAL ETMEZ, yalnız fetchpriority ağ kuyruğunda LCP'nin ARKASINA atar.
-           display:none KULLANILMAZ — slayt geçişi opacity animasyonudur, gizlemek dönüşü
-           kırardı. -->
-      <picture>
-        <source type="image/avif" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-slide-2-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1376.avif 1376w">
-        <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-slide-2-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1376.webp 1376w">
-        <img class="jen-banner-img" alt="" width="1100" height="614"
-             decoding="async" loading="lazy" fetchpriority="low"
-             src="https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.jpg">
-      </picture>
-      <div class="jen-banner-text">
-        <span class="skan-banner-ust">Marin</span>
-        <h2 class="jen-banner-title">Yelken donanımı ve tekne aksesuarları</h2>
-        <p class="jen-banner-sub">Cleat, blok, kilit ve daha fazlası</p>
-        <span class="jen-banner-btn">Keşfet &rarr;</span>
-      </div>
-    </a>
-    <a class="jen-banner marin-slide" href="/?kategori=Marin">
-      <picture>
-        <source type="image/avif" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-slide-3-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1376.avif 1376w">
-        <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-slide-3-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1376.webp 1376w">
-        <img class="jen-banner-img" alt="" width="1100" height="614"
-             decoding="async" loading="lazy" fetchpriority="low"
-             src="https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.jpg">
-      </picture>
-      <div class="jen-banner-text">
-        <span class="skan-banner-ust">Marin</span>
-        <h2 class="jen-banner-title">Elektronik montaj ve aksesuar parçaları</h2>
-        <p class="jen-banner-sub">GPS ve balık bulucu montaj aparatları</p>
-        <span class="jen-banner-btn">Keşfet &rarr;</span>
-      </div>
-    </a>
-    <a id="marinBanner" class="jen-banner marin-slide"
-       href="https://wa.me/905451386526?text=Merhaba%2C%20teknemde%20k%C4%B1r%C4%B1lan%20bir%20par%C3%A7a%20var.%20%C3%96l%C3%A7%C3%BCp%20taray%C4%B1p%20%C3%BCretebilir%20misiniz%3F">
-      <picture>
-        <source type="image/avif" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1376.avif 1376w">
-        <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
-                srcset="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1376.webp 1376w">
-        <img class="jen-banner-img" alt="" width="1100" height="614"
-             decoding="async" loading="lazy" fetchpriority="low"
-             src="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.jpg">
-      </picture>
-      <div class="jen-banner-text">
-        <span class="skan-banner-ust">Özel Üretim</span>
-        <h2 class="jen-banner-title">Kırık parçanı getir, ölçüp tarayıp üretelim</h2>
-        <p class="jen-banner-sub">Tekne ve yelken parçalarında endüstriyel tarama ile ölçüye özel üretim</p>
-        <span class="jen-banner-btn">WhatsApp'tan Yaz &rarr;</span>
-      </div>
-    </a>
-    <div class="marin-slider-dots" id="marinSliderDots"></div>
-  </div>
-  <script>
-  (function(){
-    var wrap = document.getElementById("marinSlider");
-    if(!wrap){ return; }
-    var slides = wrap.querySelectorAll(".marin-slide");
-    var dotsWrap = document.getElementById("marinSliderDots");
-    if(!slides.length || !dotsWrap){ return; }
-    var idx = 0, timer;
-    slides.forEach(function(s, i){
-      var d = document.createElement("button");
-      d.className = "marin-slider-dot" + (i === 0 ? " active" : "");
-      d.setAttribute("aria-label", "Slayt " + (i + 1));
-      d.onclick = function(){ goTo(i); resetTimer(); };
-      dotsWrap.appendChild(d);
-    });
-    var dots = dotsWrap.querySelectorAll(".marin-slider-dot");
-    function goTo(i){
-      slides[idx].classList.remove("active");
-      dots[idx].classList.remove("active");
-      idx = i;
-      slides[idx].classList.add("active");
-      dots[idx].classList.add("active");
-    }
-    function next(){ goTo((idx + 1) % slides.length); }
-    function resetTimer(){ clearInterval(timer); timer = setInterval(next, 5000); }
-    resetTimer();
-    /* TEMBEL SLAYTLARI ISIT — LCP ile "boş panel" arasındaki dengeyi kuran yer.
-       2.-4. slayt görselleri loading="lazy" ile ilk boyamada ağı LCP görselinin önünden
-       çekiliyor. Ama slider 5 sn'de bir dönüyor: yavaş bağlantıda henüz inmemiş bir slayta
-       dönülürse kullanıcı BOŞ lacivert panel görür (yerelde ölçüldü, geçici de olsa görüldü).
-       Bu yüzden `load` olayından SONRA — yani LCP çoktan ölçüldükten sonra — tembellik
-       kaldırılır ve sayaç sıfırlanır (ısınma anından itibaren tam 5 sn). loading'i
-       "eager"a çevirmek bekleyen tembel yüklemeyi HEMEN başlatır (HTML spec). */
-    function slaytlariIsit(){
-      wrap.querySelectorAll('img[loading="lazy"]').forEach(function(im){ im.loading = "eager"; });
-      resetTimer();
-    }
-    if(document.readyState === "complete"){ slaytlariIsit(); }
-    else { window.addEventListener("load", slaytlariIsit); }
-  })();
-  </script>
   </div>
   <div class="brand-row" id="brandRow">
     <span class="brand-label">Marka:</span>
@@ -1583,6 +1505,111 @@ setTimeout(L,5000);})();
     var l = ALTKATEGORILER[kat];
     return (Object.prototype.toString.call(l) === "[object Array]") ? l : [];
   }
+
+  /* ---------- ANA SAYFA KATEGORİ PANELLERİ (foto-slider'ın YERİNE) ----------
+     Okan 5 Eyl'de ArTisT'in mockup'ını onayladı: ana sayfanın vitrini fotoğraf değil,
+     HER KATEGORİ için ortalı büyük başlık + o kategorinin marka/grup çipleridir.
+
+     🔴 YENİ URL / YENİ MANTIK YOK. Çipler mevcut ?kategori=&marka=&altkategori= sözleşmesini
+     kullanır; hedefi applyUrlParams() zaten okuyor. Bu yüzden çipler <a href> olarak çizilir
+     (banner'ların emsali) — ikinci bir yönlendirme gövdesi doğmaz, bağlantılar paylaşılabilir
+     ve tarayıcı/örümcek için gerçek bağlantıdır.
+
+     🔴 HARDCODE YOK — üç kaynak da TEK KAYNAKTIR:
+       · kategori sırası : CATEGORIES + GIZLI_KATEGORILER (nav ile AYNI sıra)
+       · marka evreni    : çip indeksi (indeksMarkalar) — ürün sayısına göre azalan
+       · grup evreni     : ALTKATEGORILER, çip indeksi DOLU olanlara indirger
+     Yeni bir kategori/marka/grup eklendiğinde panel kendiliğinden değişir.
+
+     🔴 ÖLÜ UÇ YOK: marka ve grup çipleri indeksten geldiği için her çip >0 ürün getirir
+     (aynı kural filtre satırlarında da geçerli — ikinci bir sayım formülü YAZILMAZ).
+     İndeks YOKSA (yerel geliştirme / enjeksiyon kopması) fail-closed davranış: MARKA satırı
+     HİÇ çizilmez, GRUP satırı ALTKATEGORILER'in tamamını gösterir, başlık her hâlükârda
+     çizilir. Yanlış liste gösterilmez.
+
+     🔴 CLS: bu fonksiyon, sayfa yüklenirken (bu betik bloğunun ayrıştırılması sırasında)
+     BİR KEZ çağrılır; ürün verisi BEKLENMEZ. Yani paneller, altlarındaki "Tüm Ürünler"
+     başlığı ve grid daha hiç çizilmemişken DOM'a girer — panelin altında kayacak GÖRÜNÜR
+     bir öge yoktur. Yükseklik tahmini (min-height rezervasyonu) BİLEREK kullanılmadı:
+     tahmin tutmazsa kaymayı azaltmaz, yerini değiştirir. */
+  /* Panel bir VİTRİNDİR, filtrenin tamamı DEĞİL: kategori içindeki #brandRow satırı aynı
+     evreni MARKA_LIMIT (32) çipe kadar gösterir, panel ilk 10'da durur (mockup'taki sayı).
+     Kuyruk kaybolmaz — kategoriye girilince tam liste, ayrıca arama kutusu her zaman açık.
+     🔴 Evren renderBrands ile AYNI: indeksten gelir ve KÜRATÖRLÜ SÜZGEÇTEN GEÇMEZ. Arama
+     boşken renderBrands da TANINMIS_MARKALAR süzgecini uygulamaz (bkz. o fonksiyondaki
+     kesişim koşulu); panelde ikinci bir evren formülü açsaydık ana sayfadaki çip ile
+     kategori içindeki çip sessizce AYRIŞIRDI ([[ikiz-tanim-sessiz-ayrisma]]). */
+  var KAT_PANEL_MARKA_TAVANI = 10;
+
+  function katPanelUrl(kat, anahtar, deger){
+    var p = new URLSearchParams();
+    /* Adres çubuğu MÜŞTERİYE GÖRÜNÜR ad taşır (Jeneratör → "Ölçüye Özel Üretim");
+       syncUrl() ile AYNI kural, applyUrlParams() KATEGORI_ALIAS ile geri çevirir. */
+    p.set("kategori", gorunurKategori(kat));
+    if(anahtar){ p.set(anahtar, deger); }
+    return "/?" + p.toString();
+  }
+
+  function katPanelCip(url, etiket, aktif){
+    var a = document.createElement("a");
+    a.className = "kat-panel-cip" + (aktif ? " aktif" : "");
+    a.href = url;
+    a.textContent = etiket;
+    return a;
+  }
+
+  function katPanelSatir(kap, etiket, url, degerler, anahtar, kat){
+    if(!degerler.length){ return; }
+    var satir = document.createElement("div");
+    satir.className = "kat-panel-satir";
+    var lbl = document.createElement("span");
+    lbl.className = "kat-panel-etiket";
+    lbl.textContent = etiket;
+    satir.appendChild(lbl);
+    satir.appendChild(katPanelCip(url, "Tümü", true));
+    degerler.forEach(function(d){
+      satir.appendChild(katPanelCip(katPanelUrl(kat, anahtar, d), d, false));
+    });
+    kap.appendChild(satir);
+  }
+
+  function renderKatPanelleri(){
+    var kap = document.getElementById("katPanels");
+    if(!kap){ return; }
+    kap.textContent = "";
+    CATEGORIES.concat(GIZLI_KATEGORILER).forEach(function(kat){
+      var gorunen = gorunurKategori(kat);
+      var katUrl = katPanelUrl(kat, null, null);
+
+      var bolum = document.createElement("section");
+      bolum.className = "kat-panel";
+
+      var bas = document.createElement("a");
+      /* Türkçe büyütme CSS'e BIRAKILMAZ: text-transform:uppercase tarayıcı/dil ayarına
+         göre "Marin" → "MARIN" verebilir (noktalı İ kaybolur). toLocaleUpperCase("tr")
+         deterministiktir ve metin DOM'da büyük yazılıdır (kopyalanabilir/okunur). */
+      bas.className = "kat-panel-baslik" + (gorunen.length > 8 ? " uzun" : "");
+      bas.href = katUrl;
+      bas.textContent = gorunen.toLocaleUpperCase("tr");
+      bolum.appendChild(bas);
+
+      var ix = indeksMarkalar(kat, "Tümü", "Tümü");
+      var markalar = ix ? ix.slice(0, KAT_PANEL_MARKA_TAVANI).map(function(m){ return m.ad; }) : [];
+      katPanelSatir(bolum, "Marka:", katUrl, markalar, "marka", kat);
+
+      /* Grup evreni kanonik SIRAYI korur (ALTKATEGORILER), indeks varsa DOLU olanlara
+         indirger. Sayıya göre yeniden sıralanmaz: grup adları müşterinin gözünde sabit
+         bir menüdür, sıralaması ürün partisiyle oynamamalı. */
+      var dolu = indeksGruplar(kat, "Tümü", "Tümü");
+      var gruplar = altListesi(kat).filter(function(g){
+        return dolu ? (dolu[g] > 0) : true;
+      });
+      katPanelSatir(bolum, "Grup:", katUrl, gruplar, "altkategori", kat);
+
+      kap.appendChild(bolum);
+    });
+  }
+  renderKatPanelleri();
 
   // ANA SAYFA VİTRİN HİYERARŞİSİ (işletme kararı, 31 Tem): filtresiz ana vitrin
   // SLOT DÜZENİYLE çizilir → slot 0-3 Jeneratör (sarı/parametrik) · 4-83 Marin ·
@@ -4117,13 +4144,16 @@ setTimeout(L,5000);})();
       dahaVar = list.length > shown;
     }
 
-    // Gizli seri banner'ları (Jeneratör + Skan Art) SADECE ana sayfa görünümünde
+    // Kategori panelleri (#katPanels) + gizli seri banner'ları (Jeneratör + Skan Art)
+    // SADECE ana sayfa görünümünde: panel bir VİTRİNDİR, kategori/arama/marka görünümünde
+    // ekranın tepesini kaplayıp sonucu aşağı itmemeli (o görünümlerde daraltmayı zaten
+    // #brandRow/#altRow/#modelRow yapar — aynı işi iki kez gösteren yüzey açılmaz).
     // (kabul: kategori/arama/marka görünümünde YOK). Artık tek grid sarmalayıcı
     // (#bannerRow) toggle'lanır; ayrıca iki banner da güvenlik için toggle'lanır
     // (sarmalayıcı id kayarsa banner'lar yine gizlenir).
     // NULL-GUARD: id yazım hatası ya da HTML bloğunun kayması renderGrid'i TypeError ile
     // düşürmesin — o durumda TÜM grid çizilmezdi (banner kaybı grid kaybından ucuzdur).
-    ["bannerRow", "jenBanner", "skanBanner"].forEach(function(bannerId){
+    ["katPanels", "bannerRow", "jenBanner", "skanBanner"].forEach(function(bannerId){
       var bEl = document.getElementById(bannerId);
       if(bEl){ bEl.style.display = anaGorunum ? "" : "none"; }
     });
