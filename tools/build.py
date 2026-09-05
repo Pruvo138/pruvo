@@ -393,6 +393,66 @@ setTimeout(L,5000);})();
   gtag('config', 'G-5V53CQMSCE', { 'anonymize_ip': true });
 </script>"""
 
+# ------------------------------------------------ LCP gec-yukleyici: TEK KAYNAK, IKI BASIM YOLU
+# 🔴 GA_HEAD_SNIPPET YUKARIDA TEK PARCA DIZE SABITI OLARAK KALIR — bolunmez, birlestirilmez.
+# Sebep olculdu: tools/reklam-etiket-kapisi.py GA blogunu AST ile `ast.Constant` olarak okur
+# (_sabit_dize) ve dizenin KENDISINDE dort ekseni arar; ayrica SINIF A kaynak sayfalari
+# (index.html + dort yasal sayfa) cekirdekle BAYT-BIREBIR olmak zorundadir. Sabiti ifadeye
+# cevirmek o kapiyi OLCULEMEDI'ye dusururdu. Bu yuzden ikinci basim yolu sabitten TURETILIR.
+#
+# NEDEN (olculdu, 5 Eyl 2026): gec-yukleyici blogu ürün sayfasina AYNEN iniyordu — sevk edilen
+# (yorumu soyulmus) hali sayfa basina 592 bayt JS govdesi + <script> etiketleri. 34.141 urun
+# sayfasinda bu, her sayfada BIREBIR AYNI bayttir. Atif modulunun 6 Agu'daki cozumunun aynisi
+# uygulanir (attribution_kaynak / attribution_head_snippet / attribution_varlik_head):
+#   · SATIR-ICI  -> elle yazilmis 4 yasal sayfa, yayin index'i, marka/model + landing +
+#                   icerik sablonlari (~1.300 sayfa). GA_HEAD_SNIPPET aynen basilir.
+#   · /varlik/   -> URUN sayfalari (olcek kaldiraci burada). Ayni gövde, same-origin
+#                   icerik-adresli tek dosya; adi sha256'sindan turer.
+#
+# 🔴 `defer`/`async` EKLENMEZ. Blok `window.pruvoGtagYukle`u tanimlar ve SONRAKI satir-ici
+# script (`gtag('js')` + iki `config`) ile riza bandi ondan SONRA kosar. Duz harici <script>
+# tipki gomulu blok gibi SIRAYLA ve parse'i bloklayarak calisir; defer/async eklemek Consent
+# Mode v2 sirasini ve dataLayer kuyrugunu sessizce tersine cevirirdi (atif kolunda da yazili).
+# 🔴 HARICI HOST/CDN YOK — dosya kendi origin'imizde. gtag/js'in KENDISI Google'dan gelir,
+# o zaten bu blogun isidir ve degismedi.
+GA_LCP_BAS_CAPA = "<!-- GEÇ YÜKLEME (LCP ölçümü"
+GA_LCP_JS_BAS = "(function(){var y=0,O=['pointerdown','keydown','touchstart','scroll'],i;"
+GA_LCP_JS_SON = "setTimeout(L,5000);})();"
+
+
+def _ga_lcp_bolgesi():
+    """GA_HEAD_SNIPPET icinde LCP blogunun (yorum + <script>...</script>) sinirlari.
+
+    FAIL-CLOSED: capalardan biri kaybolursa build DURUR — sessizce "tasinacak sey yok"
+    deyip urun sayfasina gomulu blogu geri sizdirmez ([[capa-cokmesi-arkasindaki-capalari-gizler]])."""
+    bas = GA_HEAD_SNIPPET.find(GA_LCP_BAS_CAPA)
+    if bas == -1:
+        raise RuntimeError("GA LCP blogu: yorum capasi YOK (%r)" % GA_LCP_BAS_CAPA)
+    js_bas = GA_HEAD_SNIPPET.find("<script>", bas)
+    js_son = GA_HEAD_SNIPPET.find("</script>", js_bas)
+    if js_bas == -1 or js_son == -1:
+        raise RuntimeError("GA LCP blogu: <script> sinirlari YOK")
+    govde = GA_HEAD_SNIPPET[js_bas + len("<script>"):js_son].strip()
+    if not govde.startswith(GA_LCP_JS_BAS) or not govde.endswith(GA_LCP_JS_SON):
+        raise RuntimeError("GA LCP blogu: JS govde capalari TUTMADI — blok degismis")
+    return bas, js_son + len("</script>"), govde
+
+
+def ga_lcp_kaynak():
+    """LCP gec-yukleyici JS govdesi — GA_HEAD_SNIPPET'ten TURETILIR. Ikinci metin kopyasi
+    TUTULMAZ: kaynagi bozan bir mutant iki basim yolunu da DEGISTIRMEK ZORUNDA
+    ([[ikiz-tanim-sessiz-ayrisma]])."""
+    return _ga_lcp_bolgesi()[2]
+
+
+def ga_head_varlik():
+    """GA blogunun URUN SAYFASI basimi: LCP gec-yukleyicisi gomulu DEGIL, paylasilan
+    /varlik/gtag-gec-<hash>.js referansi. Blogun geri kalani (riza cekirdegi + iki
+    `config` cagrisi) SATIR-ICI KALIR — sirasi ve KVKK cekirdegi ayri kalemdir."""
+    bas, son, govde = _ga_lcp_bolgesi()
+    ref = '<script src="' + varlik_adres("gtag-gec", "js", govde) + '"></script>'
+    return GA_HEAD_SNIPPET[:bas] + ref + GA_HEAD_SNIPPET[son:]
+
 # ------------------------------------------------------------------ Meta Pixel (tarayıcı) — rıza kapılı
 # GA ile AYNI onay anahtarını kullanır: pruvo_onay_analitik === "kabul" olmadan piksel YÜKLENMEZ,
 # fbevents.js indirilmez, hiçbir Meta ağ çağrısı olmaz. Rıza verilince (banner "Kabul Et" ya da zaten
@@ -4225,7 +4285,10 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
         urun_js=urun_js_url,
         eylem_butonlar=eylem_butonlar_html,
         konf_scripts=konf_scripts,
-        ga_head=GA_HEAD_SNIPPET,
+        # LCP GEC YUKLEYICI: gomulu DEGIL, paylasilan /varlik/gtag-gec-<hash>.js referansi
+        # (atif modulunun emsali). Olcek kaldiraci: 34.141 sayfa x ~592 bayt. Riza cekirdegi
+        # + `config` cagrilari SATIR-ICI kalir; `defer`/`async` EKLENMEZ (sira korunur).
+        ga_head=ga_head_varlik(),
         meta_head=META_HEAD_SNIPPET,
         meta_view_content=meta_view_content,
         # ATIF MODULU: gomulu DEGIL, paylasilan /varlik/atif-<hash>.js referansi.
