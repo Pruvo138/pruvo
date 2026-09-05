@@ -108,9 +108,23 @@ IDDIA_EKSENLERI = ("D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10",
                    "D11", "D12", "D13")
 
 BOLUM_RE = re.compile(r"^(?P<ad>[^:\[]+:[ \t]*)(?P<govde>\S.*)$")
-AYRAC_RE = re.compile(r",(?=\[)")
-GIRDI_RE = re.compile(r"^\[(?P<etiket>[^\]]*)\]\((?P<hedef>[^)]+)\)(?P<kuyruk>.*)$",
-                      re.S)
+# 🔴 AYRAC: virgulden SONRA bosluk OLABILIR (`,[...` kadar `, [...` de gecerli
+# yazimdir; canli indekste ikisi de var). Onceki desen (`,(?=\[)`) yalnizca
+# bosluksuz yazimda boluyordu -> `A, [🔴 B]` TEK parca sayiliyor, etiket olarak
+# A'nin etiketi (🔴 TASIMAYAN) okunuyor ve 🔴 B kuyruga gomulup A ile BIRLIKTE
+# arsive tasiniyordu. Tasima birimi yanlis seviyedeydi
+# ([[tasima-birimi-yanlis-seviyede]]); D5 KORUMA denetimi de AYNI ayraci
+# kullandigi icin ihlali GOREMIYORDU (ayni govde, ayni korluk).
+# OLCULDU (5 Eyl 2026, KraL-HafizaCIMerge-05Eyl): canli MEMORY.md'de bu yolla
+# 1 adet 🔴 girdi (`indeks-basligi-olgu-diye-aktarilamaz`) korumayi asip arsive
+# gecti; bagimsiz ayristiriciyla yakalandi.
+# 🔴 BAYT BIREBIRLIGI: virgul AYRACTIR, bosluk SONRAKI parcanin METNINDE kalir
+# (lookahead bosluga BAKAR ama YEMEZ). Boylece `",".join(...)` geri kurulumu
+# ozgun bayti AYNEN uretir; TUR-DONUSU invaryanti korunur.
+AYRAC_RE = re.compile(r",(?=[ \t]*\[)")
+GIRDI_RE = re.compile(
+    r"^(?P<bosluk>[ \t]*)\[(?P<etiket>[^\]]*)\]\((?P<hedef>[^)]+)\)(?P<kuyruk>.*)$",
+    re.S)
 
 
 def su_seviyesi(tavan):
@@ -165,11 +179,25 @@ class Bolum(object):
         self.satir_no = satir_no
         self.parcalar = parcalar
 
+    @staticmethod
+    def _bas_kirp(parcalar):
+        """Ilk parcanin bas boslugunu kirpar (ayrac boslugu parcada yasar).
+
+        TUR-DONUSUNDE ETKISIZDIR: `BOLUM_RE.govde` `\\S` ile basladigindan ozgun
+        ilk parca zaten bosluksuzdur. Yalnizca ilk parca ATLANDIGINDA devreye
+        girer ve `Ad:  [...` (cift bosluk) olusmasini engeller.
+        """
+        if parcalar:
+            parcalar = [parcalar[0].lstrip(" \t")] + parcalar[1:]
+        return parcalar
+
     def govde(self, atlanan=()):
-        return ",".join(p.metin for p in self.parcalar if p not in atlanan)
+        return ",".join(self._bas_kirp(
+            [p.metin for p in self.parcalar if p not in atlanan]))
 
     def satir(self, atlanan=(), ek_parca=None):
-        parcalar = [p.metin for p in self.parcalar if p not in atlanan]
+        parcalar = self._bas_kirp(
+            [p.metin for p in self.parcalar if p not in atlanan])
         if ek_parca:
             parcalar.append(ek_parca)
         return self.onek + ",".join(parcalar)

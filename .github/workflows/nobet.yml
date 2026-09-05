@@ -1750,6 +1750,19 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/defter-kota-kapisi.py --kendini-test
 
+      # HAFIZA INDEKSI EKSENI (K366, KraL-HafizaTavani-05Eyl) — AYRI ADIM, AYRI TALLY.
+      # Kapsam iki yuzey: (A) `tools/hafiza-indeks-arsivle.py` (MEMORY.md tavan sahibi +
+      # LOSSLESS rotasyon) ve (B) `defter-kota-kapisi.py`nin UCUNCU ekseni (HAFIZA_* kovalari).
+      # NEDEN USTTEKI ADIMIN ICINE GOMULMEDI: defter ekseninin tally'siyle karistirilirsa
+      # bir eksenin dusen vakasi otekinin yesiliyle GIZLENIR
+      # ([[batarya-kapsam-tabani-sayiyla-civilenir]]) — bu yuzden ayri `run`, ayri sayac.
+      # NEDEN SERIT B: yayinlanan icerigi DEGIL hafiza indeksi hijyenini olcer; batarya
+      # tamamen offline (tempfile fiksturleri), mutantlar YALNIZ izole kopyada kosar ve
+      # KONTROL-0 gercek MEMORY.md'nin bayt+mtime'inin DEGISMEDIGINI olcer (BaBa filo dersi).
+      - name: "Hafiza indeksi kota kapisi kabul testi (fikstur + 5 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/hafiza-kota-kapisi-test.py
+
       # (KraL-KapiSupurmesi-29Agu: kota kapisi ve KUTU ekseni testi SILINDI —
       # K351: kapi evin TUM commit'ini kilitliyordu; kutu tasmasi kutu-esik-kapisi
       # + kutu-arsivle rotasyonuyla korunmaya devam ediyor.)
