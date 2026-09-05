@@ -2,9 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ✅ 6 EYL ~00:xx — **MERGE KAPANDI: Tamirci dali main'de (`506a1c08`) — K374 makineye ozel mutlak yol ekseni**
-`nervous-cartwright-9e57c1` (`b9cc4978`, 3 commit) → 4 dosya +189/-45, merge-base `d5f51981`, catisma 1. **ASILMAMIS:** main `V11`=0/dal=4 → `arsiv-kapisi` **11/37 → 12/39**. ci-kapsam YESIL (326 .py) · cip-kapanis 11/11 · sizinti 0 · `d1-sync` **34366** birebir.
-**YAYIN** `33990643109` deploy+yayin success **SKIPPED 0** (headSha birebir). Dalin K374 blogu main'de/arsivde YOKTU (0/0) → arsive kurtarildi (17 st, md5 `4ff8f1f4`). worktree 2→1, dal silindi, agac 0.
+## 🔚 6 EYL ~02:xx — OTURUM KAPANISI (kota kapisi kesti: tur 294 / 358K)
+**CANLIYA:** `c01b6e49` = origin/main. **KOSUYOR:** yok (worktree 0, cip 0). **BEKLIYOR:** ① SERIT B `33990643181` 16/17 bitti **DUSEN 5 = tabanla AYNI**, ad kumesi karsilastirilamadi → *kapatan:* `gh run view --json jobs` ile ONARILAN/YENI_DUSEN · ② 20 yerel `claude/*` dal (merge edilmemis, ayri kalem) · ③ yabanci 3 dosya `tools/arsiv/*.py` (6 Eyl 02:00, benim degil, DOKUNULMADI).
+**OKAN'DA:** panelde 6 cip arsivlenebilir (agac yok, icerik main'de).
 
 ## ✅ 5 EYL ~23:xxZ — **MERGE KAPANDI: emekli motor adi supurmesi (`36bf1a0b`)** — **ISARETCI**
 ↩︎ TAM METIN `mimar-posta-kutusu-arsiv.md:67140`: 71 dosya +700/-396, kapilar 5/5 · parite 1334+897 · `d1-sync` 34292 · yayin `33978350506`+`33979398512` SKIPPED 0, `33978175155` cancelled = K144. 🔴 `arsiv-kapisi`ya HEDEF=TAM YOL.
