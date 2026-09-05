@@ -4034,6 +4034,31 @@ jobs:
         if: ${{ !cancelled() }}
         run: node tools/kat-panel-test.js
 
+      # ANA SAYFA <main> DUZEN SIRASI (Okan emri, 5 Eyl: "skan stil ve olcuye ozel
+      # bannerlarini eski yerine koy") — tools/ana-sayfa-duzen-test.js.
+      # NEDEN AYRI BIR ADIM (ustteki iki kapi bu ekseni GORMEZ): kat-panel-test.js HANGI
+      # panelin cizildigini olcer, altkategori-cip-test.py cip satirini olcer; ikisi de
+      # `<main>` icindeki BLOK SIRASINA tamamen kordur. Banner satiri panellerin ALTINA
+      # kayarsa her iki kapi da YESIL kalir.
+      # OLCULEN SESSIZ-HATA SINIFI: sira SAF HTML blok yeridir — hicbir `if`e, hicbir
+      # veriye bagli degildir. Bir blok tasima (ya da bir merge cakismasinin yanlis
+      # cozulmesi) banner'i sessizce alta atar; sayfa CALISIR, konsol TEMIZ, alarm CALMAZ.
+      # Okan'in emri de tam olarak bu geri kaymayi duzeltmek icin verildi.
+      # NE OLCER: (D) `<main>` ust duzey cocuk sirasi — bannerRow index 0, katPanels index 1;
+      # (D0) tarama CANLI (bos liste = tautolojik yesil); (D0b) taramanin GIRINTI degil
+      # DERINLIK ekseninde oldugu — celisen sentetik fikstur + gercek sayfada jenBanner/
+      # skanBanner'in <main> cocugu SAYILMAMASI; (E) tasimanin ICERIK degil SIRA oldugu:
+      # iki banner da duruyor ve #bannerRow icinde `fetchpriority="high"` YOK (banner artik
+      # gorus alaninin EN USTUNDE, yuksek oncelik LCP bandini yerdi); (F) renderGrid'in
+      # goster/gizle kolu bozulmadi (banner yalniz ana sayfa gorunumunde).
+      # MUTANT AYNI KOSUMDA: banner blogu panellerin ALTINA geri alinir -> D1 KIRMIZI
+      # yanmali; yanmazsa kol sirayi FIILEN olcmuyordur (K182).
+      # OFFLINE: ag YOK, repo dosyasina YAZMAZ (mutant yalnizca bellekteki metinde),
+      # yalnizca commit'li index.html okunur, ~0,1 s. node ZORUNLU (setup-node yukarida).
+      - name: "Ana sayfa <main> duzen sirasi (banner satiri panellerin USTUNDE)"
+        if: ${{ !cancelled() }}
+        run: node tools/ana-sayfa-duzen-test.js
+
       # CIP SATIRLARI CAPRAZ DARALMA + MODEL EKSENI — tools/cip-indeks-test.py.
       # NEDEN AYRI BIR ADIM (ustteki kapi bu ekseni GORMEZ): altkategori-cip-test.py TEK
       # satirin (GRUP) kendi ekseninde davranisini olcer; bu kapi UC SATIRIN BIRBIRINE gore
