@@ -787,7 +787,7 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 48 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 49 jeton) ──
     # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
     # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
     # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
@@ -806,6 +806,10 @@ UYUM_MARKA_IZINLI = frozenset({
     # 45 -> 48 ELLE guncellendi ve YINE `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK
     # dogrulandi (45 -> 48, esitlik TUTTU). Ayni turda `len(UYUM_MARKA_IZINLI)`
     # 184 -> 187 ve FARK (izinli − eki) 139 SABIT kaldi -> ucu de IKI kumeye girdi.
+    # 11. tur (5 Eyl 2026, KraL-WhitelistTriumph-05Eyl): sayi 48 -> 49 ELLE guncellendi
+    # ve YINE `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (48 -> 49, esitlik
+    # TUTTU). Ayni turda `len(UYUM_MARKA_IZINLI)` 187 -> 188 ve FARK (izinli − eki) 139
+    # SABIT kaldi -> jeton IKI kumeye de girdi, yargilanmis bolumleme kirilmadi.
     # 🔴 KALEM HALA ACIK: bu bir MAKINE iddiasi degil, tek seferlik bir olcumdur —
     # bir sonraki tur yine guncellemeyi UNUTABILIR. Kalici cozum bu sayiyi `len()`ten
     # TURETMEK ya da bir kapiya iddia olarak KOYMAKTIR; ikisi de mimar hukmunu bekliyor
@@ -1159,6 +1163,120 @@ UYUM_MARKA_IZINLI = frozenset({
     #   ama kalici cozum MaCiT duzlemindedir: ya 12 kayit `Indian`a normalize edilir ya da
     #   `Indian Motorcycle` ayrica yargilanir. Bu turda BILINCLI olarak ACIK BIRAKILDI.
     "Indian", "Moto Guzzi", "Royal Enfield",
+    # 11. tur, C grubu (1) — mimar karari 5 Eyl 2026. `Triumph` (Triumph Motorcycles,
+    #   Ingiltere) MOTOSIKLET URETICISIDIR = EV SAHIBI arac markasi; uretilen parca ONA
+    #   TAKILIR ("bu urun Triumph Bonneville'e / Tiger 900'e takilir" anlamli). YENI BIR
+    #   SINIF ACMAZ: sinif emsali kumede ZATEN VAR ve on besinin hepsi motosiklet/skuter
+    #   ureticisidir — `Aprilia`, `Ducati`, `KTM`, `Husqvarna`, `Vespa`, `Zontes`,
+    #   `Mondial`, `CFMoto`, `Kawasaki` ve 7-10. turun kendi girisleri `SYM`/`Zero`/
+    #   `Harley-Davidson`/`Royal Enfield`/`Moto Guzzi`/`Indian`.
+    #   🔴 TALEBIN ASLI DORT MARKAYDI: 10. tur (`confident-nobel-0a470b`) ucunu acti,
+    #   `Triumph` GOZDEN KACTI. MaCiT olctu (`grep -c "Triumph" tools/arama.py` -> 0) ve
+    #   kutuya yazdi; `clever-lederberg-2c5ed2` cipinin Triumph partisi (6 urun, huni +
+    #   gorsel-gate bitmis) bu jetonu bekliyor. Tetik ucunde 10. turla AYNI: hazir parti
+    #   `hasat_ekle.py` K302 marka-ayristirma kapisinda fail-closed duruyor.
+    #   Olculen katalog agirligi (34141 urun, `model_normalize` ile tarandi):
+    #     `Triumph`  marka[] TAM yazimla 149 (149'un 148'i `marka[0]`) · uyum[].marka 0 ·
+    #        uyum[].model 0 · uyum[].motor 0 · uyum[].oem 0 (bes alanin BESI) —
+    #        ALT-DIZGE marka[] 149 / uyum.* 0
+    #   🔴 ALT-DIZGE == TAM (149 = 149) ve tek yazim var (`{"Triumph": 149}`): `Indian`in
+    #   `Indian Motorcycle` bileseni gibi bir IKINCI jeton BURADA YOK — yani 10. turda
+    #   `uyum-kapisi` OLCUM satirina dusen "siniflandirilmamis bilesik ad" yan etkisi bu
+    #   turda BEKLENMIYOR (varsayilmadi, ONCE/SONRA olculdu: tekil jeton 33 -> 33,
+    #   siniflandirilmamis 8 -> 8, liste BIREBIR ayni).
+    #   Agirlik `Harley-Davidson`(83) / RE(95) / MG(80) desenidir, hatta ONLARDAN AGIR:
+    #   kayitlar `marka[]`yi ZATEN tasiyor, eski koddan `uyum` DOLDURULMADAN girmis.
+    #   Kume KAPALI kalir; yargilanmis bolumleme (izinli−eki / uretici−eki / elenen)
+    #   degismez, `UYUM_MARKA_ELENEN`de DEGIL ve `URETICI_MARKA`da DEGIL (ikisi de
+    #   olculdu) — elenmis bir jeton geri sizmaz.
+    #   ⚠️ `Triumph` HEM motosiklet (Triumph Motorcycles) HEM klasik Ingiliz OTOMOBILI
+    #   (Triumph Motor Company: Spitfire/GT6/TR6/TR7) markasidir. Hukmu DEGISTIRMEZ —
+    #   ikisi de EV SAHIBI aractir, jeton her iki okumada da ayni kovaya duser. Katalogda
+    #   otomobil tarafi da mevcut (`triumph-2000-2500-mk2-1969-1977-model-kasa-seti`),
+    #   ayri bir jeton GEREKTIRMEZ.
+    #   🔴 HOMONIM RISKI SOZLUK YOLUNDA DEGIL, HUNI YOLUNDADIR: "triumph" = zafer kelimesi
+    #   (Arch of Triumph), Oral-B `Triumph` dis fircasi, TBS `Triumph` FPV drone anteni.
+    #   Bunlarin HICBIRI bu ekleme ile acilmaz: `uyum_marka_kanonik()` HAM string uyelik
+    #   testidir, serbest metne BAKMAZ. MaCiT'in kendi gorsel-gate'i o kolu zaten olcuyor
+    #   (arsiv: Triumph×TV partisinde 40 RED-kapsam-disi-otomobil + 4 Oral-B/Arch).
+    # 🔴 IKINCI ROL OLCULDU — BU TUR K220 NEGATIFI **DEGILDIR** ve simdiye kadarki EN AGIR
+    #   vakadir: 9. turda menzilde 2, 10. turda 8 MODEL sayfasi vardi; burada **9**.
+    #   Canli `sitemap.xml` (35824 loc) ve izole ONCE kosumu BIREBIR ayni 11 sayfayi verdi:
+    #     /marka/triumph/ (81) · /marka/triumph/sayfa/2/ (69) · .../bonneville/ (9) ·
+    #     .../daytona-675/ (5) · .../diger/ (1) · .../speed-triple/ (10) ·
+    #     .../street-triple/ (17) · .../street-triple-675/ (3) · .../tiger/ (30) ·
+    #     .../tiger-800/ (9) · .../tiger-900/ (4)
+    #   K220'nin `Range Rover` emsalinde OLEN sayfa TAM bu MODEL sinifiydi -> mekanizmanin
+    #   HEDEFI MEVCUTTUR, risk soyut DEGILDIR.
+    #   Mekanizma ADIYLA: `marka_model_build.py:471` kapali kumeyi (UYUM_MARKA_IZINLI ∪
+    #   URETICI_MARKA ∪ MODEL_OLMAYAN_JETON) NORMALIZE edip MODEL jetonunu REDDEDER. Yeni
+    #   jetonun normali `triumph`; dokuz canli model jetonunun normalleri `bonneville`
+    #   `daytona675` `diger` `speedtriple` `streettriple` `streettriple675` `tiger`
+    #   `tiger800` `tiger900` — HICBIRI esit DEGIL, sayfalar dusmez. Bu VARSAYILMADI:
+    #   uretilen URL kumesi ONCE ve SONRA TAM kosuldu, 11 sayfanin ON BIRI DE SONRA
+    #   kumesinde ADIYLA duruyor. Yapisal ikinci rol kolu ayrica bos: normalize'i TAM
+    #   `triumph` olan `uyum[].model` = 0 · `uyum[].motor` = 0.
+    #   SERBEST METINDE (ad/id/aciklama, kucuk-harf alt dizge) 150 kayit gecer — `marka[]`
+    #   TAM sayisindan 1 FAZLA; serbest metin sozluk yoluna GIRMEZ, AYRI EKSEN, hukmu
+    #   DEGISTIRMEZ.
+    # 🔴 8. OLCUT — BILESIK MARKA AYNASI (10. turun kirmizisi buradan dogdu, `serit-a3`/K8):
+    #   `Triumph` TEK KELIMEDIR -> `model-uyelik-kapisi.py:739`in `cok_kelimeli` kolunu
+    #   TETIKLEMEZ. VARSAYILMADI, OLCULDU: otorite (`UYUM_MARKA_IZINLI ∪ URETICI_MARKA`
+    #   cok-kelimelileri) ONCE 19 SONRA 19, `index.html::BILESIK_MARKA` aynasi ONCE 17
+    #   SONRA 17, iki liste de BIREBIR ayni. Aynadaki EKSIK 2 (`Moto Guzzi`,
+    #   `Royal Enfield`) 10. turun acik kalemidir, onarimi `upbeat-diffie-ee0a52` dalinda —
+    #   BU TUR ONU NE BUYUTUR NE KUCULTUR ve `index.html`e EL SURULMEDI.
+    #   ⚠️ Otoritenin tanimi `IZINLI ∪ URETICI_MARKA`dir, `IZINLI ∪ MIMAR_EKI` DEGIL:
+    #   ikincisiyle olculurse `Star Brite`/`Teak Wonder` "aynada FAZLA" gibi gorunur —
+    #   FAZLA = 0'dir (kapinin kendi tanimiyla olculdu).
+    # 🔴 ESLESME TAM/EXACT'tir — ALT DIZGE/ONEK YOK: `uyum_marka_kanonik()` HAM string
+    #   uyelik testi yapar (`deger not in UYUM_MARKA_IZINLI`, strip() YOK) ve ikinci rol
+    #   `n not in _UYUM_MARKA_ANAHTARLARI` ile calisir. Bu tur VARSAYILMADI, IDDIAYLA
+    #   DOGRULANDI (14 varyant ONCE ve SONRA olculdu): `"triumph"` · `"TRIUMPH"` ·
+    #   `"Triumph Motorcycles"` · `"Triumph-"` · `" Triumph"` · `"Triumph "` ·
+    #   `"Triumph  Bonneville"` · `"TriumphMotorcycles"` · `"Triumph-Motorcycles"` ·
+    #   `"Triumph Bonneville"` · `"Triumph Tiger"` · `"triumph motorcycles"` ·
+    #   `"Trıumph"` (noktasiz Turkce 'i' homoglifi) — ON UCU DE REDDEDILDI; yalniz TAM
+    #   form `"Triumph"` kabul edildi ve AYNEN dondu.
+    # 🔴 IZOLASYON: `build.py --cikti-kok` KULLANILMADI (7. turda olculen sizinti —
+    #   marka_model/landing/kategori_hub `ctx["ROOT"]`e yazar, build.py:5059, ve gitignore
+    #   yuzunden `git status` TEMIZ kalir, sizinti GORUNMEZ). Izolasyon `git archive <ref>`
+    #   ile AYRI IKI ROOT kopyasi kurularak saglandi, build.py ORADAN kosuldu — ROOT da
+    #   CIKTI_KOK da temp (log `CIKTI_KOK=<izole ROOT> (varsayilan)`, yonlendirme YOK).
+    #   Iki eksenin ESITLIGI izolasyonun KENDISININ de olcusudur.
+    #   Uretilen sayfa/URL kumesi ONCE ve SONRA TAM kosuldu: 35824 = 35824, KAYBOLAN
+    #   URL = 0, DOGAN = 0. DORT kumenin (once-A / once-B / sonra-A / sonra-B) DORDU DE
+    #   35824 ve BIREBIR ayni; ayrica canli `sitemap.xml`in 35824 loc'uyla da esit —
+    #   yani izole kosum canliyi YENIDEN URETIYOR, bu izolasyonun UCUNCU olcusudur.
+    #   🔴 URL KUMESI TEK BASINA YETMEZ: menzildeki 11 sayfanin ICERIGI de ONCE/SONRA
+    #   olculdu — ON BIRININ DE sha256'si BIREBIR AYNI, urun sayilari DUSMEDI (yukaridaki
+    #   parantezli sayilar ONCE=SONRA; toplam urun baglantisi 238 = 238).
+    #   ⚠️ URUN SAYACI ONCE KORDU: ilk desen goreli (`href="/urun/..."`) yazilmisti ve
+    #   ON BIR sayfanin ON BIRINE de 0 dondurdu; baglantilar MUTLAK URL cikti. Sayac
+    #   duzeltildi ve FAIL-LOUD pozitif kontrol eklendi (toplam 0 ise olcum GECERSIZ).
+    # 🔴 KIYAS KUME FARKIYLA YAPILIR, SAYIYLA DEGIL: bir sayfa olup yerine baskasi dogsaydi
+    #   TOPLAM SABIT kalirdi (mutantla kanitli, 6. tur). Kaybolan ve dogan AYRI AYRI basilir.
+    # 🔴 MUTANT HEDEF KOLU ADIYLA OLDURULDU (K182: "kirmizi geldi" tek basina kanit DEGIL);
+    #   mutantlar CANLI govdeye DEGIL gecici KOPYAYA uygulandi ve kosum sonunda canli
+    #   dosyanin sha256'si DEGISMEDI (olculdu). Fikstur: `{"marka":"Triumph",
+    #   "model":"Bonneville"}`.
+    #     A  TABAN — fikstur `uyum_ogesi_sebebi()`den GECTI (sebep None) ve
+    #        `marka_uyumdan_turet()` ['Triumph','Bonneville'] turetti; MaCiT'in K302'de
+    #        fail-closed durdugu yol ARTIK ACIK.
+    #     M1 `Triumph` kumeden CIKARILINCA fikstur RED aldi VE red metni HEDEF koldan
+    #        geldi ("marka ZORUNLU ve KAPALI kumeden olmali", kume 187); geri konunca YESIL.
+    #     M2 YALNIZ `Indian` cikarilinca Triumph fiksturu GECTI ve Indian fiksturu DUSTU —
+    #        capa SECICI, kume tek bir kol olarak olculmuyor.
+    #     K  KONTROL-MUTANT (ilgisiz: UYUM_YIL_EN_ERKEN 1900->1899) fiksturu YESIL birakti.
+    # 🔴 K220 DUYARLILIK MUTANTI — BU TURDA EKLENDI (onceki turlarda YOKTU): "KAYBOLAN=0"
+    #   bir NULL sonuctur ve TEK BASINA eksenin CALISTIGINI kanitlamaz. Ucuncu bir izole
+    #   ROOT kuruldu ve kapali kumeye `Tiger` jetonu yazildi — `Range Rover` emsalinin
+    #   BIREBIR mekanizmasi. Sonuc: mutant kosumda sitemap 35824 -> **35823**,
+    #   **KAYBOLAN = 1 ve tam olarak `https://pruvo3d.com/marka/triumph/tiger/`**
+    #   (30 urunluk CANLI MODEL sayfasi), DOGAN = 0. Yani eksen bu markada, bu mekanizmayla,
+    #   bir model sayfasinin olumunu GERCEKTEN goruyor -> asil kosumun "KAYBOLAN = 0"
+    #   hukmu ANLAMLIDIR, kor bir yesil DEGILDIR.
+    "Triumph",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1210,6 +1328,11 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # (bu turda da K220 NEGATIFI DEGIL: 11 CANLI sayfa menzilde, 8'i MODEL sayfasi)
     # UYUM_MARKA_IZINLI'nin "C grubu" 10. tur basliginda yazili. Burada TEKRAR EDILMEZ.
     "Indian", "Moto Guzzi", "Royal Enfield",
+    # 11. tur (5 Eyl 2026) — gerekce + olculen katalog agirligi + K220 ikinci-rol olcumu
+    # (simdiye kadarki EN AGIR K220 menzili: 11 CANLI sayfa, 9'u MODEL sayfasi) + 8. olcut
+    # (bilesik marka aynasi; `Triumph` TEK KELIME, aynayi tetiklemedi — OLCULDU)
+    # UYUM_MARKA_IZINLI'nin "C grubu" 11. tur basliginda yazili. Burada TEKRAR EDILMEZ.
+    "Triumph",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
