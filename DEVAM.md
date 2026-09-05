@@ -2,29 +2,31 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 5 EYL ~18:3xZ — **KUTU KILIDI CIPI ACILDI (`task_e76cf129`) · KOK SEBEP CIVILENDI · defter 2 blok ISARETCIYE INDI (elle, md5 birebir)**
-**KOK SEBEP OLCULDU:** arsiv `:64377` HocA kapanisi jetonu TASIYOR (`:64396`) ama `blok_kapanis_mi()` **`(False,None)`** donuyor → ad 251'lik `arsiv_kapanan_ad`a HIC girmiyor → `ARSIV_SERBEST=0`. Ucuncu kol jetonu YALNIZ `kapanis_satiri()`nin SON ICERIK satirinda ariyor; o satir **imza** (`— HocA (cip ...)`), jeton bir ustte. Ev gelenegi iki siralamaya izin veriyor, arac birini. `AD_YOK` kolu ayrica ULASILAMAZ (5 blok); MaCiT'in kapanis blogunun KENDISI `ACIK_ADSIZ` dustu = kapanis yazmak 6.'yi EKLEDI. Taban: kutu **401→477** st (tavan 250), `kutu-arsivle-test.py` **50 vaka / 466 iddia**. Kabul ONCEDEN civilendi.
-🔴 **AYNI SINIF, 2. YUZEY — `defter-rotasyon.py`:** 13 blogun **13'u vetolu**, `--isaretciye-indir` **`OLCULEMEDI: ILERLEME URETEMEDI`** basti (**7. vaka**). Elle indirildi (md5 birebir, eksik 0): 00:xZ + 18:0x bloklari, **14.648 → 11.4xx B**. *Kapatan:* veto kolu "acik kalem" ile "acik kalemi ISARETCIDE tasiyan blok"u ayirsin.
+## 🔁 5 EYL ~19:0xZ — **OKAN 3 EMIR → tek cip, tek dal (`task_ba16f2aa`)**
+① "**Bisiklete urun gruplarina gore 10+ alt kategori ac**" · ② "**3'un altinda alt kategorisi olan ana sayfada olmaz**" · ③ "**skan stil ve olcuye ozel bannerlarini eski yerine koy**". Ucu de `index.html`e dokunuyor → AYRI cip ACILMADI, cakisma onlendi (③ kosan cipe `send_message` ile eklendi). SIRA ①→②→③: ① once olunca Bisiklet esigi DOGAL gecer, istisna satiri KODA GIRMEZ.
+**②** (c) sikki ONCE curutuldu: Ofis'te HICBIR esikte cip dogmuyor (markalar 1'er), Kamera'da esik≥3'te 4 cip ama 2'si kirli. Okan **Bisikleti (2.618 urun) ISTISNA tuttu**; kalkan 5 panel: Tamirat 31 · Ofis 71 · Kamera 24 · Bahce 72 · Oyun/Hobi 85 (283 urun) — kategori SILINMIYOR, nav+/kategori/ DURUYOR.
+**③** git ile civilendi: `#bannerRow` ESKIDEN `<main>`in ILK cocuguydu (`63a48f7a^:1128`); slider sokulurken `#katPanels` ustune girdi (`ebdfb059:1173`). "Eski yer" = `#katPanels` USTU.
+🔴 **BAYAT KARAR:** `arama.py` K4 yorumu "**Bisiklet 31** urun → alt kategori ALMAZ, EKSIKLIK DEGIL KARARDIR" diyor; gercek **2.618**. Esik ≥100 COKTAN gecilmis — emir kurali DELMIYOR. Sayi cipte guncellenecek.
+
+## 🔁 5 EYL ~18:3xZ — **KUTU KILIDI CIPI ACILDI (`task_e76cf129`, KOSUYOR) · KOK SEBEP CIVILENDI · defter 2 blok ISARETCIYE INDI (elle, md5 birebir)**
+**KOK SEBEP (tam metin cip spec'inde + kutuda):** arsiv `:64377` kapanisi jetonu TASIYOR (`:64396`) ama `blok_kapanis_mi()` **`(False,None)`** donuyor → ad `arsiv_kapanan_ad`(251)'a HIC girmiyor → `ARSIV_SERBEST=0`. Jeton YALNIZ SON ICERIK satirinda araniyor, o satir **imza**. `AD_YOK` kolu ayrica ULASILAMAZ (5 blok); MaCiT'in kapanis blogunun KENDISI `ACIK_ADSIZ` dustu = kapanis yazmak 6.'yi EKLEDI. Taban: kutu **401→477** st (tavan 250), test **50 vaka/466 iddia**.
+🔴 **AYNI SINIF, 2. YUZEY — `defter-rotasyon.py`:** 13 blogun **13'u vetolu**, `--isaretciye-indir` **`ILERLEME URETEMEDI`** basti (**7. vaka**). Elle indirildi (md5 birebir, eksik 0), **14.648 → 12.0xx B**. *Kapatan:* veto kolu "acik kalem" ile "acik kalemi ISARETCIDE tasiyan blok"u ayirsin.
 
 ## 🔁 5 EYL ~18:0xZ — KATEGORI PANELI HIZALANDI (`ebdfb059`) — **ISARETCI**
-↩︎ **TAM METIN `DEVAM-ARSIV.md` + kutu 18:0x.** Asili bosluk **5⇒0**, aralik **{34}**, mobil tasma 0; `33965692423` deploy+yayin success **SKIPPED=0**, canlida kural **1** (oncesi 0).
-🔴 **ACIK ②:** (a) **OKAN KAPISI** — TAMIRAT·OFIS·KAMERA **CIPLAK BASLIK** (evren `PRUVO_CIP_INDEKS`, esik>=15; civilenen tablo CURUDU), siklar kutuda · (b) **MaCiT duzlemi** — Elektronik `Kahve` 79 kayit **`marka` kirliligi** (`Mitsubishi` 19 GERCEK; kuratorluk GEVSEK, uyum %33,1).
+↩︎ **TAM METIN `DEVAM-ARSIV.md` + kutu 18:0x.** Asili bosluk **5⇒0**, aralik **{34}**, mobil tasma 0; `33965692423` deploy+yayin success **SKIPPED=0**.
+🔴 **ACIK — MaCiT duzlemi:** Elektronik `Kahve` 79 kayit **`marka` kirliligi** (`Mitsubishi` 19 GERCEK; kuratorluk GEVSEK, uyum %33,1).
 
 ## 🔁 5 EYL ~11:2xZ — **LCP/SITE HIZI ISI TAMAMEN ArTisT'E DEVREDILDI (Okan emri: "tamamen izinleriyle artiste devret")**
 **IZIN ACILDI (kalici, `AGENTS.md` L10; git DISI):** ArTisT `pruvo`da `index.html`+`build.py`'ye **YAZAR**, dalini acar+**merge eder**; degisikligi KraL'da "yabanci" SAYILMAZ. 🔴 SINIR KraL'da: `urunler.json`·`arama.py`·odeme-fiyat·secret·sema.
 Taban + 3 tuzak + cip devri **KUTUDA 11:2x blogunda**; kabul DEGISMEDI, kapanisi ArTisT yazar. **Okan'a cikan:** PSI anahtari.
 
-## 🔁 5 EYL ~10:5xZ — **DEVIR ALINDI: temizlik cipi ACILDI · yabanci 3 dosya KORUNDU · yayin HEAD'de ACIK**
-↩︎ ① uc-eksen agac olcutu dersi + ② SERIT B kok sebebi (`f2db0c8f`, merge hukmu ACIK) **TAM METIN `DEVAM-ARSIV.md`'de**.
-**⑥ CIPLER:** ✅ `KraL-Yordam-05Eyl` KAPANDI (skill kuruldu) · ✅ `KraL-KatPanel-05Eyl` (`task_673e287d`) KAPANDI (`ebdfb059`, ust blok) · 🔄 `KraL-AdSupurmesi-05Eyl` KOSUYOR · 📤 `KraL-LCP-05Eyl` ArTisT'e DEVREDILDI.
+## 🔁 5 EYL ~10:5xZ + ~17:2xZ — DEVIR ALINDI · HIJYEN worktree 9→3 — **ISARETCI (ikisi de KAPANDI)**
+↩︎ uc-eksen agac olcutu dersi + SERIT B kok sebebi (`f2db0c8f`, **merge hukmu ACIK**) **TAM METIN `DEVAM-ARSIV.md`'de**. worktree 9→3, dal SILINMEDI, kayip 0.
+**CIPLER:** ✅ Yordam · ✅ KatPanel (`ebdfb059`) KAPANDI · 🔄 `KraL-AdSupurmesi-05Eyl` KOSUYOR · 📤 LCP ArTisT'te.
 
-## 🔁 5 EYL ~17:2xZ — HIJYEN: worktree 9→3 · 2 bayat Okan-kapisi isaretcisi dustu — **KAPANDI** (kutu kilidi kalemi bir ustteki blokta devam ediyor)
-**worktree 9→3** (uc eksen uyustu: `lsof`+`ListAgents`+`status`; dal SILINMEDI, kayip 0). Kalan ucuncu kusur: ayristirici `non-fast-forward`u cip adi saniyor (cip kapsaminda).
-
-## 🔁 5 EYL ~02:xZ — K366 CI'ya BAGLANDI + indeks ayraci koruma onarimi (main `299e9f9b`) — **ISARETCI**
-↩︎ **TAM METIN `DEVAM-ARSIV.md`'de** (1-gir-1-cik, geri okunarak dogrulandi).
-Ozet: SERIT B'ye ayri adim; `ci-kapsam-test.py` KIRMIZI→YESIL; hafiza bataryasi 33/33 + 5/5 mutant; AYRAC korlugu onarildi.
-🔧 **ACIK KALAN TEK IPLIK:** hafiza ekseni **SILAHSIZ** birakildi; silahlandirma (`PRUVO_HAFIZA_EKSENI=silahli`) MIMAR HUKMU — arma GUVENLI olculdu (silahli rc=0), YERLESIM karari acik.
+## 🔁 5 EYL ~02:xZ — K366 CI'ya BAGLANDI + indeks ayraci koruma onarimi (`299e9f9b`) — **ISARETCI**
+↩︎ **TAM METIN `DEVAM-ARSIV.md`'de.** Ozet: SERIT B'ye ayri adim; `ci-kapsam-test.py` KIRMIZI→YESIL; hafiza bataryasi 33/33 + 5/5 mutant; AYRAC korlugu onarildi.
+🔧 **ACIK TEK IPLIK:** hafiza ekseni **SILAHSIZ**; silahlandirma (`PRUVO_HAFIZA_EKSENI=silahli`) MIMAR HUKMU — arma GUVENLI olculdu (rc=0), YERLESIM karari acik.
 
 ## 🔁 5 EYL ~00:xZ — BaBa 4 KALEM (main `074d7c9f` YERELDE · origin `e021e922`) — **ISARETCI**
 ↩︎ **TAM METIN `DEVAM-ARSIV.md`'de** (2026-09-05 isaretciye indirme, md5 birebir).
