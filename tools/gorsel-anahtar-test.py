@@ -2,7 +2,7 @@
 """KABUL/REGRESYON TESTI — R2 gorsel anahtari ile urun basligini AYIRIR.
 
 Kok neden (2026-07-18, KraL): printables-ekle.py / urun-ekle.py / cgt-ekle.py
-process_one()'da R2 gorsel anahtarini Codex'in urettigi BASLIK-SLUG'indan (uid)
+process_one()'da R2 gorsel anahtarini emekli motor'in urettigi BASLIK-SLUG'indan (uid)
 hesaplayip merge_safe()'ten ONCE, paralel thread'de yukluyordu. Iki farkli kaynak
 urunu ayni Turkce basligi uretirse (or. yedi ayri "Peugeot 206 Vites Topuzu"),
 ikisi de AYNI R2 anahtarina (`urunler/<uid>-N.jpg`) yuklenip birbirini eziyor;
@@ -10,7 +10,7 @@ JSON id'leri farkli olsa da (X ve X-<pid>) gorseller[] AYNI URL'yi gosteriyordu.
 Canlida 126 URL, 143 urun etkilenmisti.
 
 Bu test her uc ekleyicinin process_one'ini I/O sinirlarini stub'layarak surer:
-AYNI Codex ciktisi (ayni baslik) + FARKLI kaynak id ile iki urun uretir, uretilen
+AYNI emekli motor ciktisi (ayni baslik) + FARKLI kaynak id ile iki urun uretir, uretilen
 gorseller[] URL'lerinin ORTAK ELEMANI OLMADIGINI dogrular. Kok neden geri gelirse
 (anahtar yine basliktan turerse) test kirmizi yanar.
 

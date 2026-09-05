@@ -30,7 +30,7 @@ d. Önizleme: public eşlem (`jenerator/test/esleme/`) + 4d ölçümü ≤%3 ge�
    ONIZLEME_AILELER'e (dalda; merge = yayın kapısı mimar).
 e. Sarı ürün kaydı: `urunler.json` BAŞINA 3 yeni obje (parametrik:true, kategori Tamirat,
    fiyat "", "farklı renk seçenekleri" dili, ferah açıklama formatı — CLAUDE.md sarı
-   kuralları). Kapak görseli CODEX ile (çoklu-şekil prompt kalıbı) → R2 → gorseller[0].
+   kuralları). Kapak görseli emekli motor ile (çoklu-şekil prompt kalıbı) → R2 → gorseller[0].
    NOT: urunler.json'a başka oturum yazmıyorken ekle (sıralı çalışma), guard yeni ürünü
    engellemez.
 f. Taban fiyat İÇİN mini pazar bakışı (aile başına 3-5 kaynaklı fiyat + öneri) — rapora;

@@ -359,7 +359,7 @@ def _eski_kat_sec(nk, kalem):
     kime = (kalem.get("kime") or "").lower()
     if kime.startswith("okan") or nk._jeton_var(metin, nk.OKAN_JETONLARI):
         return nk.KAT_OKAN
-    if nk._jeton_var(metin, nk.CODEX_JETONLARI):
+    if nk._jeton_var(metin, nk.EMEKLI_MOTOR_JETONLARI):
         return nk.KAT_MIMAR
     if nk._jeton_var(metin, nk.PRO_JETONLARI):
         return nk.KAT_PRO

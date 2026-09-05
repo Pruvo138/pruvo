@@ -209,7 +209,7 @@ kaydedilmeli; erken `return` eden her kol da sayaca uğramalı (ya da sayaç `fi
 
 ## B2/B3 — 🔴 BU PAKETTE DEĞİL: "HAT BOZUK" DEĞİL "KAT YOK" → OKAN KAPISI
 
-10 kalemin hepsi `kat_sec` (`nobet-kapi.py:287-299`) tarafından `CODEX_JETONLARI`
+10 kalemin hepsi `kat_sec` (`nobet-kapi.py:287-299`) tarafından `EMEKLI_MOTOR_JETONLARI`
 (`:131-135`) üzerinden MİMAR'a düşüyor. Jetonlar: `kapi/kapı · nobetci · guvenlik · secret ·
 sema · lisans · odeme · fiyat · mutasyon · fail-open · fail-closed · kilit · flock · kanca ·
 hook · kabul testi`.

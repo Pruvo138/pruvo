@@ -70,7 +70,7 @@ def _gecerli_kategoriler():
 # ASCII TOLERANSI KALDIRILDI (yasanmis sessiz hata): eskiden "Bahce"/"Jenerator" da
 # gecerli sayiliyordu; boyle bir urun katalogda DURUR ama index.html cipi
 # `p.kategori === activeCat` ile eslesmedigi icin kategoriden GORUNMEZ. Artik yalnizca
-# kanonik ad gecer; ASCII'ye dusme kaynaginda (thing-codex.py) normalize edilir.
+# kanonik ad gecer; ASCII'ye dusme kaynaginda (thing-icerik.py) normalize edilir.
 KATEGORILER = _gecerli_kategoriler()
 
 

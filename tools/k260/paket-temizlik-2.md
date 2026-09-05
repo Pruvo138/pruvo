@@ -1,4 +1,4 @@
-codex-muafiyet: K86/K260 kanit dizinleri silinir, once/sonra boyut olculur — ölçüm
+isci-muafiyet: K86/K260 kanit dizinleri silinir, once/sonra boyut olculur — ölçüm
 
 # KAPANIS TEMIZLIGI (yeni agac yolu) — ISCI GOREVI (KraL-K260KatSec)
 

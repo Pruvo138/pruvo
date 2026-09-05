@@ -16,7 +16,7 @@
 # Bu arada `tools/urunler-guard.py` FAIL-LOUD bir nobetciye cevrilmisti (sifir-disi
 # cikis + stderr'e gerekce) — ama git tarafinda o cikis kodunu KIMSE OKUMUYORDU.
 # Koruma yalniz bu makinenin oturum kablosuyla (PreToolUse) blokluyordu; duz
-# terminalde, Codex'te ve baska bir makinede BLOKLAMIYORDU.
+# terminalde, dis motorda ve baska bir makinede BLOKLAMIYORDU.
 #
 # KURAL: bu kancadaki her nobetci FAIL-CLOSED'dir — kosturulamayan nobetci
 # "sorun yok" DEMEK DEGILDIR, commit DURUR ve NEDENI BASILIR.

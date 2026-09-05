@@ -6,7 +6,7 @@ Kullanim:  python3 tools/printables-ekle.py <print_id> [<print_id> ...]
 
 Her id PARALEL islenir:
   detail -> lisans NC kapisi (satilamaz atla) -> galeri gorselleri + en buyuk STL indir + olcu ->
-  .thing-cache/pr<id>/{gN.jpg, meta.json} yaz -> thing-codex.py pr<id> (gorsel secimi + Turkce icerik
+  .thing-cache/pr<id>/{gN.jpg, meta.json} yaz -> thing-icerik.py pr<id> (gorsel secimi + Turkce icerik
   + fiyat_oneri) -> secili gorseller R2 -> STAGE. Yazma dosya KILIDI altinda urunler.json'u O AN yeniden
   okuyup ekler (EZMEZ). COMMIT ETMEZ; sonda gozden gecirme tablosu basar.
 
@@ -138,12 +138,12 @@ def process_one(pid):
             return {"id": pid, "durum": "ATLA: NC/Non-Commercial (satilamaz)", "lisans": abbr}
         if not meta.get("gorseller"):
             return {"id": pid, "durum": "ATLA: gorsel indirilemedi"}
-        ai = subprocess.run([PY, os.path.join(TOOLS, "thing-codex.py"), key], capture_output=True, text=True)
+        ai = subprocess.run([PY, os.path.join(TOOLS, "thing-icerik.py"), key], capture_output=True, text=True)
         if ai.returncode != 0:
             return {"id": pid, "durum": "HATA: kredi kapisi — urun AI izni yok"}
         onerip = os.path.join(CACHE, key, "oneri.json")
         if not os.path.exists(onerip):
-            return {"id": pid, "durum": "HATA: codex oneri yok"}
+            return {"id": pid, "durum": "HATA: emekli motor oneri yok"}
         o = json.load(open(onerip))
         uid = r2k.urun_slug(o.get("baslik") or key, yedek=key)
         # R2 gorsel anahtari KAYNAK-ID'den (pr<pid>) turer, baslik-slug'indan (uid) DEGIL.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """PRUVO toplu urun ekleme ORKESTRATORU (MakerWorld) — PARALEL + concurrency-safe.
-printables-ekle.py'nin (Printables) MakerWorld esdegeri; ayni Codex icerik adimini AYNEN kullanir.
+printables-ekle.py'nin (Printables) MakerWorld esdegeri; ayni emekli motor icerik adimini AYNEN kullanir.
 
 Kullanim:
   python3 tools/makerworld-ekle.py <design_id> [<design_id> ...]          # STAGE eder
@@ -8,7 +8,7 @@ Kullanim:
 
 Her id PARALEL islenir:
   detail -> lisans kapisi (satilamaz atla) -> galeri gorselleri indir ->
-  .thing-cache/mw<id>/{gN.jpg, meta.json} yaz -> thing-codex.py mw<id> (gorsel secimi + Turkce icerik
+  .thing-cache/mw<id>/{gN.jpg, meta.json} yaz -> thing-icerik.py mw<id> (gorsel secimi + Turkce icerik
   + fiyat_oneri) -> secili gorseller R2 -> STAGE. Yazma dosya KILIDI (.urunler.lock flock) altinda
   urunler.json'u O AN yeniden okuyup ekler (EZMEZ). COMMIT ETMEZ; sonda gozden gecirme tablosu basar.
 
@@ -135,12 +135,12 @@ def process_one(did):
             return {"id": did, "durum": "ATLA: satilamaz lisans", "lisans": lic}
         if not meta.get("gorseller"):
             return {"id": did, "durum": "ATLA: gorsel indirilemedi"}
-        ai = subprocess.run([PY, os.path.join(TOOLS, "thing-codex.py"), key], capture_output=True, text=True)
+        ai = subprocess.run([PY, os.path.join(TOOLS, "thing-icerik.py"), key], capture_output=True, text=True)
         if ai.returncode != 0:
             return {"id": did, "durum": "HATA: kredi kapisi — urun AI izni yok"}
         onerip = os.path.join(CACHE, key, "oneri.json")
         if not os.path.exists(onerip):
-            return {"id": did, "durum": "HATA: codex oneri yok"}
+            return {"id": did, "durum": "HATA: emekli motor oneri yok"}
         o = json.load(open(onerip))
         uid = r2k.urun_slug(o.get("baslik") or key, yedek=key)
         # R2 gorsel anahtari KAYNAK-ID'den (mw<id>) turer, baslik-slug'indan DEGIL (cakisma onlemi).
@@ -213,7 +213,7 @@ def merge_safe(staged):
 
 
 def kuru(ids):
-    """KURU MOD: urunler.json'a YAZMAZ, R2/Codex ÇAĞIRMAZ. Her id icin meta+lisans+gorsel
+    """KURU MOD: urunler.json'a YAZMAZ, R2/AI ÇAĞIRMAZ. Her id icin meta+lisans+gorsel
     dogru geldi mi gosterir (canli duman testi)."""
     print("KURU MOD (yazma YOK) | islenecek:", len(ids), "| kaynak: MakerWorld\n", flush=True)
     for did in ids:

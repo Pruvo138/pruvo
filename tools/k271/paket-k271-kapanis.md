@@ -1,4 +1,4 @@
-codex-muafiyet: K271 kapanis olcumu — defter satirinin kabul komutu birebir kosulur — ölçüm
+isci-muafiyet: K271 kapanis olcumu — defter satirinin kabul komutu birebir kosulur — ölçüm
 
 # K271 KAPANIS OLCUMU — ISCI GOREVI (KraL-K260KatSec)
 

@@ -167,7 +167,7 @@ class _Kosum(object):
 
 
 class _SahteSubprocess(object):
-    """Ekleme betiklerinin subprocess'ini degistirir: thing-hazirla / thing-codex / sips
+    """Ekleme betiklerinin subprocess'ini degistirir: thing-hazirla / thing-icerik / sips
     CALISTIRILMAZ (ag + AI kredisi + macOS bagimliligi yok), hepsi basarili sayilir."""
     DEVNULL = -3
     PIPE = -1

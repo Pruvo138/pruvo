@@ -1,4 +1,4 @@
-codex-muafiyet: K260 kat-kovasi kurulum + kabul/mutasyon/canli tur kosumu — ölçüm
+isci-muafiyet: K260 kat-kovasi kurulum + kabul/mutasyon/canli tur kosumu — ölçüm
 
 # K260 KOSUM PAKETI — ISCI GOREVI (KraL-K260KatSec)
 

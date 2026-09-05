@@ -1,6 +1,6 @@
-# Yetkinlik Bataryası — M3 · Kimi · Codex
+# Yetkinlik Bataryası — M3 · Kimi · emekli motor
 
-**Amaç:** "Codex emekli olabilir mi?" sorusunu iddia ile değil **ölçümle** kapatmak.
+**Amaç:** "emekli motor emekli olabilir mi?" sorusunu iddia ile değil **ölçümle** kapatmak.
 Aynı görev, aynı metin, üç motora koşulur; skor bağımsız doğrulayıcıdan çıkar.
 
 > 🔴 **Motorun kendi raporu KANIT DEĞİLDİR.** Bu depoda ölçüldü: ucuz işçi 12 komutun
@@ -15,7 +15,7 @@ Koşucu, turun oturum dökümünden (`~/.claude/cron/profil-<motor>-<ev>[-tarayi
 gerçekten çağrılan araçları sayar. "Tarayıcıyla baktım" diyip `mcp__playwright*` çağrısı
 olmayan tur, kabul satırı yeşil olsa da BAŞARISIZ'dır.
 
-## Görevler (6 sınıf — Codex'in bugün tuttuğu iş kalemleri)
+## Görevler (6 sınıf — emekli motor'in bugün tuttuğu iş kalemleri)
 
 | # | Sınıf | Görev | Bağımsız doğrulama |
 |---|---|---|---|

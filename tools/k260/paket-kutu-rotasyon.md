@@ -1,4 +1,4 @@
-codex-muafiyet: ortak posta kutusu LOSSLESS rotasyonu, blok envanteri once/sonra — ölçüm
+isci-muafiyet: ortak posta kutusu LOSSLESS rotasyonu, blok envanteri once/sonra — ölçüm
 
 # KUTU ROTASYONU — ISCI GOREVI (KraL-K260KatSec)
 

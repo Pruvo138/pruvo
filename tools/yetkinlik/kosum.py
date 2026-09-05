@@ -31,7 +31,7 @@ GOREVLER = {
 }
 GECICI_KOK = Path("/private/tmp/claude-501")
 ISCI = Path("/Users/okan/.claude/cron/isci.sh")
-CODEX = Path("/Applications/ChatGPT.app/Contents/Resources/codex")
+EMEKLI_MOTOR_IKILI = Path("/Applications/ChatGPT.app/Contents/Resources/codex")
 
 
 @contextmanager
@@ -56,14 +56,14 @@ def _iz_durumu(yollar: list[Path]) -> dict[str, int]:
 
 
 def _claude_profil_yolu(motor: str, calisma: Path, gorev: int) -> Path | None:
-    if motor == "codex":
+    if motor == "emekli-motor":
         return None
     son_ek = "-tarayici" if gorev == 1 else ""
     return Path(f"/Users/okan/.claude/cron/profil-{motor}-{calisma.name}{son_ek}")
 
 
 def _iz_adaylari(motor: str, calisma: Path) -> list[Path]:
-    if motor == "codex":
+    if motor == "emekli-motor":
         return sorted(Path.home().glob(".codex/sessions/**/*.jsonl"))
     profil_koku = _claude_profil_yolu(motor, calisma, 1)
     profil = profil_koku / "projects" if profil_koku else Path("/dev/null")
@@ -112,7 +112,7 @@ def _motor_kostur(motor: str, gorev: int, calisma: Path, spec: Path) -> tuple[in
     son_mesaj = calisma / "son-mesaj.txt"
     sandbox = "danger-full-access" if gorev == 1 else "workspace-write"
     komut = [
-        str(CODEX),
+        str(EMEKLI_MOTOR_IKILI),
         "exec",
         "-C",
         str(calisma),
@@ -180,7 +180,7 @@ def tek_kosum(motor: str, gorev: int, damga: str) -> dict[str, object]:
             spec = _spec_yaz(gorev, calisma)
             once = _iz_durumu(_iz_adaylari(motor, calisma)) if gorev == 1 else {}
             rc, cikti = _motor_kostur(motor, gorev, calisma, spec)
-            baglam = calisma if motor == "codex" else None
+            baglam = calisma if motor == "emekli-motor" else None
             izler = _degisen_izler(once, _iz_adaylari(motor, calisma), baglam) if gorev == 1 else []
             sonuc = dogrula(gorev, calisma, gercek, cikti, izler, motor=motor, motor_rc=rc, sure_sn=round(time.monotonic() - baslangic, 3))
             sonuc.update(
@@ -218,7 +218,7 @@ def tek_kosum(motor: str, gorev: int, damga: str) -> dict[str, object]:
 
 def _argumanlar() -> argparse.Namespace:
     ayrac = argparse.ArgumentParser()
-    ayrac.add_argument("--motor", required=True, choices=["minimax-m3", "kimi", "codex"])
+    ayrac.add_argument("--motor", required=True, choices=["minimax-m3", "kimi", "emekli-motor"])
     ayrac.add_argument("--gorev", required=True, choices=["1", "2", "3", "4", "5", "6", "hepsi"])
     ayrac.add_argument("--damga", required=True)
     return ayrac.parse_args()

@@ -147,10 +147,10 @@ adaptör deseniyle bir **ara** + bir **ekle** aracına sahip (Thingiverse şablo
 | MakerWorld | `tools/makerworld-ara.py "<marka>"` | `tools/makerworld-ekle.py <id...>` | gerekmez (STL indirme login ister → ölçü genelde **YOK**, kaynak notuna yazılır) |
 
 `urun-ekle.py` / `printables-ekle.py` / `makerworld-ekle.py`: id'leri **paralel** işler (hazırlık →
-lisans/NC kapısı → `thing-codex.py` ile görsel seçimi + Türkçe içerik + fiyat önerisi → seçili
+lisans/NC kapısı → `thing-icerik.py` ile görsel seçimi + Türkçe içerik + fiyat önerisi → seçili
 görseller R2'ye → `.urunler.lock` **flock** altında `urunler.json`'u o an yeniden okuyup STAGE eder).
 Yukarıdaki **b2** adımındaki `thing-gemini.py` farklı bir yardımcıdır (tek-ürün elle akışı için);
-bu toplu/çok-platform orkestratörler içerik üretimini `thing-codex.py` üzerinden yapar.
+bu toplu/çok-platform orkestratörler içerik üretimini `thing-icerik.py` üzerinden yapar.
 
 **Marka bazlı toplu ekleme artık genelde slash komutlarıyla MARABAYA (Sonnet) devrediliyor**
 (`.claude/commands/tverse.md`, `printables.md`, `makerworld.md`, `urun.md`): `/tverse <marka>`,
@@ -262,7 +262,7 @@ Emin değilsen benzer mevcut ürünlere bak, mantıklı bir değer seç; Okan'a 
 - **GERÇEKÇİ RENDER** (Okan kararı; SVG/vektör REDDEDİLDİ "gerçekçi değil"). **Sarıyı YALNIZ bu seride kullan.**
 - **NOT (2026-07-14): Gemini ile OTOMATİK resim üretimi (`tools/gemini-render.py`, `gemini-2.5-flash-image`)
   KALDIRILDI** — $300 trial kredisi Gemini API'ye uygulanamıyor (Mart 2026 kuralı). Mevcut 18 sarı seri
-  render'ı (`-ai*.jpg`) R2'de KALIR. Yeni parametrik ürün kapağı için **CODEX yalnız Okan'ın o ürün için
+  render'ı (`-ai*.jpg`) R2'de KALIR. Yeni parametrik ürün kapağı için **emekli motor yalnız Okan'ın o ürün için
   açık kredi onayıyla** (eski "ürün başına bedava" varsayımı 19 Tem ölçümüyle geçersiz).
 - **Yol:** varsayılan manuel render/fotoğraf → yedek manuel AI (Grok / Gemini web / Meshy=gerçek 3B / Canva)
   → Downloads → `sips` ile kırp → `r2-upload` **YENİ dosya adıyla** → `gorseller[0]` güncelle

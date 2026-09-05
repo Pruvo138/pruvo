@@ -1,4 +1,4 @@
-codex-muafiyet: K271 damga tasima onarimi + dusmus damganin kanittan geri yuklenmesi — ölçüm
+isci-muafiyet: K271 damga tasima onarimi + dusmus damganin kanittan geri yuklenmesi — ölçüm
 
 # K271 KOSUM PAKETI — ISCI GOREVI (KraL-K260KatSec)
 

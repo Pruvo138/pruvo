@@ -1,4 +1,4 @@
-codex-muafiyet: K271 defter satiri nobet ayristiricisinda gorunuyor mu — ölçüm
+isci-muafiyet: K271 defter satiri nobet ayristiricisinda gorunuyor mu — ölçüm
 
 # K271 DEFTER SATIRI DOGRULAMA — ISCI GOREVI (KraL-K260KatSec)
 

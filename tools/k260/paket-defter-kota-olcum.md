@@ -1,4 +1,4 @@
-codex-muafiyet: K271 satiri eklendikten sonra defter kotasi tavani asti mi — ölçüm
+isci-muafiyet: K271 satiri eklendikten sonra defter kotasi tavani asti mi — ölçüm
 
 # DEFTER KOTA OLCUMU — ISCI GOREVI (KraL-K260KatSec)
 

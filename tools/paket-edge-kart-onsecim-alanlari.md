@@ -82,7 +82,7 @@ Y2 için kabul HocA'nın düzleminde; buradan yalnız ÖLÇÜLÜR:
 
 ---
 
-# ÖLÇÜM SONUCU (11 Ağu 2026, iki turda ölçüldü — Codex işçi)
+# ÖLÇÜM SONUCU (11 Ağu 2026, iki turda ölçüldü — emekli motor işçi)
 
 Y1 **KAPANDI**: canlı oturum `3298f1be` ile commit+push etti (`kart_ozeti` + `OZET_KART_ALANLARI`).
 

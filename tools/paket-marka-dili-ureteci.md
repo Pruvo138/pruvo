@@ -13,7 +13,7 @@ aynı kalıbı basmaya devam ederse her yeni parti sınıfı geri getirir.
 🔴 **Kök neden ölçüldü ve şaşırtıcı: talimat da kapı da AYNI hatayı yapıyordu — ihlali
 SINIF olarak değil, DİZGE olarak tanımlamışlar.**
 
-`tools/thing-gemini.py:44` ve `tools/thing-codex.py:125` üreteçlere şunu söylüyor:
+`tools/thing-gemini.py:44` ve `tools/thing-icerik.py:125` üreteçlere şunu söylüyor:
 
 > MARKA DILI (ZORUNLU): Sitede **"3D baski" / "3D printed" IFADESI** YASAK.
 
@@ -39,7 +39,7 @@ partisinde tam olarak bu oldu, `pruvo` deploy'u saatlerce kırmızı kaldı).
 
 | Yüzey | Dosya | Sahip |
 |---|---|---|
-| AI üreteç prompt'ları | `tools/thing-gemini.py` · `tools/thing-codex.py` | **KraL** (bu ev) |
+| AI üreteç prompt'ları | `tools/thing-gemini.py` · `tools/thing-icerik.py` | **KraL** (bu ev) |
 | İnsan gözden geçirme talimatı | `tools/URUN-EKLEME-REHBERI.md` | **KraL** (bu ev) |
 | Parti içerik yazımı + stage öncesi kontrol | `~/dev/pruvo-hasat/kalibrasyon/SPEC-*.md`, `olcum/*_veri.py` | **MaCiT** |
 
@@ -137,7 +137,7 @@ Aynı cümlede hem marka dili ihlali hem BAŞKA bir ihlal (ör. `STL`) varsa, ya
 ---
 
 ## 4. KraL'ın İŞİ (bu evde, ayrı kalem)
-1. `tools/thing-gemini.py:44` + `tools/thing-codex.py:125` — "IFADESI YASAK" dizge kuralı
+1. `tools/thing-gemini.py:44` + `tools/thing-icerik.py:125` — "IFADESI YASAK" dizge kuralı
    §2a/§2b/§2c sınıf kuralıyla değiştirilecek.
 2. `tools/URUN-EKLEME-REHBERI.md:60` — `açıklama "3D baskı" demiyor mu` kontrolü
    §3.1'deki **çalıştırılabilir kapı çağrısıyla** değiştirilecek (göz kontrolü dizgeye

@@ -203,7 +203,7 @@ if fp.lower().endswith(ICRA_UZANTILARI):
         "MİMAR KOD-KİLİDİ — ÇALIŞTIRILABİLİR BETİK YAZARLIĞI YASAK (konumdan bağımsız, "
         "20 Tem): mimar kod yazmaz, kod YAZDIRIR. Scratchpad dahil hiçbir yere "
         ".py/.js/.mjs/.ts/.sh yazamazsın. ÇÖZÜM: (a) işi MÜHENDİS/USTA/MARABA'ya delege et "
-        "(Agent aracı: model opus/sonnet + isolation worktree + background) ya da Codex'e ver; "
+        "(Agent aracı: model opus/sonnet + isolation worktree + background) ya da emekli motor'e ver; "
         "(b) isteğini .md SPEC'ine yaz — kural + çalıştırılabilir KABUL TESTİ dahil; "
         "(c) ölçmek istiyorsan repodaki MEVCUT aracı koştur (node tools/parite-test.js, "
         "python3 tools/d1-sync.py --durum, python3 tools/durum.py). "
@@ -248,7 +248,7 @@ blocked = (
 if blocked:
     reddet(
         "MİMAR KOD-KİLİDİ (Okan 18 Tem): kaynak/veri dosyasına Edit/Write YASAK — işi "
-        "Codex'e ya da worktree worker'a DELEGE et, spec'i .md dosyasına yaz. Kilidin "
+        "emekli motor'e ya da worktree worker'a DELEGE et, spec'i .md dosyasına yaz. Kilidin "
         "kendisini de değiştiremezsin. İzinli: *.md, scratchpad'de veri/not dosyaları, "
         "worktree'ler."
     )

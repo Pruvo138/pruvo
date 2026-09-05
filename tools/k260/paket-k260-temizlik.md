@@ -1,4 +1,4 @@
-codex-muafiyet: K260 kanit dizinleri + supersede olmus tur-1 yedekleri silinir, once/sonra boyut olculur — ölçüm
+isci-muafiyet: K260 kanit dizinleri + supersede olmus tur-1 yedekleri silinir, once/sonra boyut olculur — ölçüm
 
 # K260 TEMIZLIK — ISCI GOREVI (KraL-K260KatSec)
 

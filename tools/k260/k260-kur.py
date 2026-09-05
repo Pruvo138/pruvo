@@ -5,9 +5,9 @@ CHIP: KraL-K260KatSec.  DUZLEM: ~/.claude/cron (git YOK) -> idempotent + yedekli
 
 ARIZA (23 Agu dar teshis turunda olculdu, bu tur DOGRULANDI):
   Onarim kuyrugunda 13 kalem `[DAGITILMAZ]` kaliyor. 11'i `kat_sec` tarafindan
-  MIMAR katina dusuruluyor. `KAT_CODEX = KAT_MIMAR` satiri (nobet-kapi.py:133)
-  EMEKLI bir motorun adini tasiyan bir kovayi INSAN katina cevirdi: codex canliyken
-  o sinif bir ISCIYE dagitiliyordu, codex emekli olunca ayni sinif topluca
+  MIMAR katina dusuruluyor. `KAT_EMEKLI_MOTOR = KAT_MIMAR` satiri (nobet-kapi.py:133)
+  EMEKLI bir motorun adini tasiyan bir kovayi INSAN katina cevirdi: emekli motor canliyken
+  o sinif bir ISCIYE dagitiliyordu, emekli motor emekli olunca ayni sinif topluca
   DAGITILMAZ oldu. N4B'nin B4 gocu geri-izdeki `motor` alanini tasiyor ama
   DAGITIM KARARINI ezmiyor — N4B kapanisinda "ayri kalem" diye birakilan kalinti
   budur (merge 66ff84d1: "gocen 15 kaydin 10'u kat_sec ile yine MIMAR'a dusup
@@ -101,8 +101,8 @@ P1_ESKI = '''def kat_sec(kalem):
     kime = (kalem.get("kime") or "").lower()
     if kime.startswith("okan") or _jeton_var(metin, OKAN_JETONLARI):
         return KAT_OKAN
-    if _jeton_var(metin, CODEX_JETONLARI):
-        return KAT_CODEX
+    if _jeton_var(metin, EMEKLI_MOTOR_JETONLARI):
+        return KAT_EMEKLI_MOTOR
     if _jeton_var(metin, PRO_JETONLARI):
         return KAT_PRO
     if _jeton_var(metin, FLASH_JETONLARI):
@@ -151,10 +151,10 @@ def _emekli_kattan_gocmus(kalem, geri_iz):
     kata GOCMUS mu?
 
     Olculdu (24 Agu 2026, `nobet-geri-iz.json`): bugun MIMAR'a kilitli 11
-    kalemin 10'unun kaydi `durum=BAYAT_GOC motor=kimi eski_motor=codex
+    kalemin 10'unun kaydi `durum=BAYAT_GOC motor=kimi eski_motor=emekli motor
     dagitim_sayisi=3`. Yani bu kalemler EMEKLI bir motora UC KEZ DAGITILMIS —
     hicbiri hicbir zaman insan kati olmamistir; bugunku MIMAR hukmu yalnizca
-    `KAT_CODEX = KAT_MIMAR` TAKMA ADININ artigidir. B4 gocu kaydi CANLI kata
+    `KAT_EMEKLI_MOTOR = KAT_MIMAR` TAKMA ADININ artigidir. B4 gocu kaydi CANLI kata
     tasidi ama DAGITIM KARARINI ezmedi (N4B kapanisi: "gocen 15 kaydin 10'u
     kat_sec ile yine MIMAR'a dusup DAGITILMAZ kaliyor") — K260 tam bu kalintidir.
 
@@ -205,11 +205,11 @@ def kat_sec(kalem, geri_iz=None):
     if kime.startswith("okan") or _jeton_var(ham, OKAN_JETONLARI):
         return KAT_OKAN
     metin = _serbest_metin(ham)
-    if _jeton_var(metin, CODEX_JETONLARI):
+    if _jeton_var(metin, EMEKLI_MOTOR_JETONLARI):
         # 🔴 HUKUM-1: emekli-kat artigi MIMAR hukmunu EZEMEZ.
         if _emekli_kattan_gocmus(kalem, geri_iz):
             return _gocmus_kat(kalem, geri_iz)
-        return KAT_CODEX
+        return KAT_EMEKLI_MOTOR
     if _jeton_var(metin, PRO_JETONLARI):
         return _emekli_kat_gocur(KAT_PRO)
     if _jeton_var(metin, FLASH_JETONLARI):

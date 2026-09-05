@@ -1,4 +1,4 @@
-codex-muafiyet: K86 BaBa eskalasyonunun CANLI turda kalicilasmasi — ölçüm
+isci-muafiyet: K86 BaBa eskalasyonunun CANLI turda kalicilasmasi — ölçüm
 
 # K86 BABA KALICILASTIRMA — ISCI GOREVI (KraL-K260KatSec)
 

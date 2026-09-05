@@ -3087,7 +3087,7 @@ IZIN_LISTESI = {
     # durum-edge · durum · gorsel-anahtar · kaynak-entegrasyon · lisans-havuz ·
     # makerworld-ara · makerworld-lisans · marka-filtre · meta-piksel · olculmemis-siparis ·
     # printables-lisans · siparisler · stl-bbox-binary · surum · test-baski-senkron ·
-    # test-merchant-feed · thing-codex · thingiverse-gallery · yargi-firearm · yazdir ·
+    # test-merchant-feed · thing-icerik · thingiverse-gallery · yargi-firearm · yazdir ·
     # parite-sozlesme · parite-fikstur). Yordam: (1) TEMIZ CI-benzeri checkout'ta kosum
     # (hepsi rc=0, toplam ~17 s), (2) CANLILIK mutasyonu — her testin ACTIGI kaynak
     # dosyada satir silme / hedefli bozma; hicbiri "iddiasiz" cikmadi, (3) YANLIS-POZITIF

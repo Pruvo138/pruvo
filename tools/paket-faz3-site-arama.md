@@ -1,7 +1,7 @@
 # MÜHENDİS İŞ PAKETİ — FAZ 3: Site Araması + Katalog Beslemesi Edge'e (20k Hazırlığı)
 
 **Kat:** MÜHENDİS = **Claude Opus yüksek efor** (arama semantiği "hatası sessiz" sınıfı —
-Codex'e verilmez; CLAUDE.md İş Bölümü). Kabul testlerini mimar koşturur.
+emekli motor'e verilmez; CLAUDE.md İş Bölümü). Kabul testlerini mimar koşturur.
 **Karar sahibi:** Okan (16 Tem 2026) — hedef katalog 20k ürün; bugünkü tarayıcı-içi model
 ~15k'da tıkanıyor (ölçüm: [[katalog-olcek-siniri]]).
 **Zamanlama:** Kod ŞİMDİ yazılır, **bayrak arkasında** durur; canlıya alma kararı katalog

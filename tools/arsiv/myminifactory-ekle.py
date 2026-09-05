@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # EMEKLI - Okan 19 Tem: bu platformda arama YAPILMAZ (parity-backfill'den cikarildi).
 """PRUVO toplu urun ekleme ORKESTRATORU (MyMiniFactory) — PARALEL + concurrency-safe.
-makerworld-ekle.py'nin (MakerWorld) MMF esdegeri; ayni Codex icerik adimini AYNEN kullanir.
+makerworld-ekle.py'nin (MakerWorld) MMF esdegeri; ayni emekli motor icerik adimini AYNEN kullanir.
 
 Kullanim:
   python3 tools/myminifactory-ekle.py <object_id> [<object_id> ...]          # STAGE eder
@@ -10,7 +10,7 @@ Kullanim:
 Her id PARALEL islenir:
   detail -> lisans kapisi (satilamaz atla: string FAIL-CLOSED + licenses[] flag capraz reddi) ->
   galeri gorselleri indir -> .thing-cache/mmf<id>/{gN.jpg, meta.json} yaz ->
-  thing-codex.py mmf<id> (gorsel secimi + Turkce icerik + fiyat_oneri) -> secili gorseller R2 ->
+  thing-icerik.py mmf<id> (gorsel secimi + Turkce icerik + fiyat_oneri) -> secili gorseller R2 ->
   STAGE. Yazma dosya KILIDI (.urunler.lock flock) altinda urunler.json'u O AN yeniden okuyup
   ekler (EZMEZ). COMMIT ETMEZ; sonda gozden gecirme tablosu basar.
 
@@ -118,10 +118,10 @@ def process_one(oid):
             return {"id": oid, "durum": "ATLA: satilamaz lisans", "lisans": lic}
         if not meta.get("gorseller"):
             return {"id": oid, "durum": "ATLA: gorsel indirilemedi"}
-        subprocess.run([PY, os.path.join(TOOLS, "thing-codex.py"), key], capture_output=True, text=True)
+        subprocess.run([PY, os.path.join(TOOLS, "thing-icerik.py"), key], capture_output=True, text=True)
         onerip = os.path.join(CACHE, key, "oneri.json")
         if not os.path.exists(onerip):
-            return {"id": oid, "durum": "HATA: codex oneri yok"}
+            return {"id": oid, "durum": "HATA: emekli motor oneri yok"}
         o = json.load(open(onerip))
         uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or key).lower()).strip("-")[:60] or key
         # R2 gorsel anahtari KAYNAK-ID'den (mmf<id>) turer, baslik-slug'indan DEGIL (cakisma onlemi).
@@ -188,7 +188,7 @@ def merge_safe(staged):
 
 
 def kuru(ids):
-    """KURU MOD: urunler.json'a YAZMAZ, R2/Codex CAGIRMAZ. Her id icin meta+lisans+gorsel
+    """KURU MOD: urunler.json'a YAZMAZ, R2/AI CAGIRMAZ. Her id icin meta+lisans+gorsel
     dogru geldi mi gosterir (canli duman testi). ANAHTAR GEREKIR."""
     try:
         mmf.require_key()

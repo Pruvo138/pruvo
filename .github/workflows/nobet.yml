@@ -4362,9 +4362,19 @@ jobs:
       - name: "Olcu = en buyuk PARCA kabul testi + mutasyon (K372-b)"
         if: ${{ !cancelled() }}
         run: python3 tools/olcu-en-buyuk-parca-test.py
-      - name: Urun-AI kapisi kabul testi (thing-codex izin kapisi varsayilan KAPALI)
+      - name: Urun-AI kapisi kabul testi (thing-icerik izin kapisi varsayilan KAPALI)
         if: ${{ !cancelled() }}
-        run: python3 tools/thing-codex-test.py
+        run: python3 tools/thing-icerik-test.py
+      # 5 Eyl 2026 (KraL-AdSupurmesi-05Eyl) — emekli isci motorunun ADI icin
+      # HIJYEN NOBETCISI. IKI YONLU: ad izinsiz dosyaya yayilirsa da, yasagi
+      # ISIRTAN capalar silinirse de KIRMIZI yanar. Once KENDI mutasyon
+      # bataryasi (nobetcinin KIRMIZI YANABILDIGI kanitlanir), sonra olcum.
+      - name: "Emekli motor adi nobetcisi: kendini test (5 mutant, V4 = yasak dustu)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/emekli-motor-adi-nobetcisi-test.py
+      - name: "Emekli motor adi: menzil taramasi (NON-GROWTH + capa sagligi)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/emekli-motor-adi-nobetcisi.py --ayrinti
       # ARAMA PARITE karar-cekirdegi: AGSIZ kollar (canliya 0 istek). Ag'a vuran
       # tools/parite-test.js ve 217 s'lik parite-mutasyon-test.js MUAF KALIR.
       # YAYIN PENCERESI kolu: taslak (yayinda=0) satirin "gecici yayin gecikmesi" ile

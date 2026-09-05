@@ -1,4 +1,4 @@
-codex-muafiyet: K260 tur-2 — tur-1 yamasini geri al, duzeltilmis yamayi kur, kabul/mutasyon/canli tur kosumu — ölçüm
+isci-muafiyet: K260 tur-2 — tur-1 yamasini geri al, duzeltilmis yamayi kur, kabul/mutasyon/canli tur kosumu — ölçüm
 
 # K260 KOSUM PAKETI TUR-2 — ISCI GOREVI (KraL-K260KatSec)
 
@@ -6,7 +6,7 @@ codex-muafiyet: K260 tur-2 — tur-1 yamasini geri al, duzeltilmis yamayi kur, k
 Tur-1 yamasi KURULDU (12/12) ama canli olcum `DAGITILABILIR=0` verdi: metin
 maskelemesi tek basina yetmedi. Yapisal eksen olculdu (`nobet-geri-iz.json`):
 MIMAR'a kilitli 11 kalemin **10'u** `durum=BAYAT_GOC motor=kimi
-eski_motor=codex dagitim_sayisi=3` kaydi tasiyor. Duzeltilmis yama bu YAPISAL
+eski_motor=emekli motor dagitim_sayisi=3` kaydi tasiyor. Duzeltilmis yama bu YAPISAL
 izi dagitim kararina baglar. Ankorlar ORIJINAL metne yasli oldugu icin once
 tur-1 yamasi GERI ALINIR.
 

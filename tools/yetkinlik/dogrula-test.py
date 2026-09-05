@@ -203,9 +203,9 @@ def vaka_15(kok: Path) -> None:
 
 
 def vaka_16(kok: Path) -> None:
-    """codex kolunda tarayıcı izi tespit edilemiyor → DOGRULANAMADI, yalan=0.
+    """emekli-motor kolunda tarayıcı izi tespit edilemiyor → DOGRULANAMADI, yalan=0.
 
-    İlke: ölçemediğimiz şeye 'kaldı/yalan' demek YASAK. codex'in mcp__playwright
+    İlke: ölçemediğimiz şeye 'kaldı/yalan' demek YASAK. emekli-motor'in mcp__playwright
     izi yoktur; dökümde browser_* tool call da yoksa sonuç DOGRULANAMADI olmalı,
     yalan=0 olmalı (görünür yeşil kabul ile uyuşmazlık ama ölçüm yok)."""
     gercek = uret(1, kok)
@@ -219,10 +219,10 @@ def vaka_16(kok: Path) -> None:
         "ARAC=VAR · PANEL=ACIK · GEZINME=VAR · GIRIS_FORMU=YOK · "
         "URL=https://dash.cloudflare.com/<hesap>/home\n"
     )
-    sonuc = dogrula(1, kok, gercek, cikti, [iz], motor="codex")
+    sonuc = dogrula(1, kok, gercek, cikti, [iz], motor="emekli-motor")
     _denetle(
         sonuc["sonuc"] == "DOGRULANAMADI" and sonuc["yalan"] == 0,
-        "codex browser izi tespit edilemedi ama KALDI/yalan damgasi yedi",
+        "emekli-motor browser izi tespit edilemedi ama KALDI/yalan damgasi yedi",
     )
 
 

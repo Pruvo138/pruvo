@@ -23,7 +23,7 @@ operasyonel ayrıntısı — kararlar kalıyor, trivia gidiyor):
 `ds-zam-penceresi` · `tasinma-iki-ayri-anlam`
 
 **KALACAKLAR (dokunma, gerekçeleri var):** `codex-emekli-karari` ve `deepseek-emekli-karari`
-(yürürlükteki KARAR) · `codex-tam-yol` (CLAUDE.md'de codex istisnası **20 Ağu'ya kadar AÇIK**) ·
+(yürürlükteki KARAR) · `codex-tam-yol` (CLAUDE.md'de emekli motor istisnası **20 Ağu'ya kadar AÇIK**) ·
 `kimi-kota-amiral-gemisi-yakar` · `prob-gercek-isi-taklit-etmeli` · `isci-tarayici-kimi-playwright` ·
 `isci-tur-tavani-1500sn` · `sabit-kota-vs-token-tarifesi` · `isci-raporsuz-duser-bekleyecegim-deyip` ·
 `ucuz-isci-yesil-tablo-uydurur` · `silme-sayaci-diskten-dogrulanmali` · `kota-bitince-devret` ·

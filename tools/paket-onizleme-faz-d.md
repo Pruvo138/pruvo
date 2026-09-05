@@ -121,4 +121,4 @@ sebebidir. Kanıt: bir sarı ürün sayfası ekran görüntüsü + build iki-dur
 ## Rapor formatı
 Ölçülen sayılar (sapma yüzdeleri aile aile, kapı-1 p50/p95, keşif sayıları), verilen/bekleyen
 kararlar (B kalemi durumu), DEVAM.md güncellemesi. Öz-rapora güven yok: mimar kabulü
-kendisi koşar (Codex pilotu dersi).
+kendisi koşar (emekli motor pilotu dersi).

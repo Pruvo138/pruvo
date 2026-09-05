@@ -9,11 +9,11 @@ Iki mimar birbirini kilitledi.
 
 KOK NEDEN — OLCULDU, TAHMIN DEGIL:
   * kardes evlerdeki dosya bir KOPYA degil, bir TUREV: `tools/mimar-kapi-kur.py` yalnizca
-    marker'li KURAL BLOKLARINI (CODEX / AGENT / MCP / ISCI) enjekte eder, TABANI hic
+    marker'li KURAL BLOKLARINI (emekli motor / AGENT / MCP / ISCI) enjekte eder, TABANI hic
     yenilemez. Kanonik dosyada bu marker'larin HICBIRI yoktur (KraL 'kaynak' modunda,
     kural govdede yasar) — yani kurulu kopya kaynaktan BYTE olarak asla turemez.
   * bu yuzden "bayatlik = sha esitligi" olcumu bu modelde YAPILAMAZ; bloklu enjeksiyon
-    modeli bayatligi OLCULEMEZ kilar. Blok damgalari (CODEX_KURAL_SURUMU vb.) yalnizca
+    modeli bayatligi OLCULEMEZ kilar. Blok damgalari (EMEKLI_MOTOR_KURAL_SURUMU vb.) yalnizca
     KENDI bloklarini olcer, GOVDEYI olcmez — K318 tam da govdedeydi.
   * kanonik govde ev-bagimsiz DEGIL: iki sabit (REPO_ONEKI, GIT_WORKTREE_KAYIT) eve
     gomulu, ve `mimar_kimlik` modulu yalnizca KraL'in tools/ dizininde.

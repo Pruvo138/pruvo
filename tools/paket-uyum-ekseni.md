@@ -178,7 +178,7 @@ kalır, kendi sayfası olmaz.
    "değişmemiş" sayılır ve D1 sessizce bayat uyum servis ederdi. Desen kaynağı:
    `tur`/`stokta`/`altkategori`. **Ölçüldü ve kapandı** (`aa0f839c`): tam senkron 43 parça /
    50.623 satır, `d1-sync.py --durum` üç eksen yeşil, canlı geri-okuma DEĞER 21/21.
-3. **Backfill** — token yakan amele iş → **Codex partileri**, dar spec + `-o son-mesaj.txt`.
+3. **Backfill** — token yakan amele iş → **emekli motor partileri**, dar spec + `-o son-mesaj.txt`.
    🔴 `urunler.json`'a yazan **tek yazar MaCiT**'tir; partiler onun düzleminde koşar, KraL yazmaz.
 4. **Uç + arama** — edge kart sözleşmesine alan, gerekiyorsa haystack. 🔴 Haystack'e giriyorsa
    **site ve Ege AYNI ANDA** genişler; tek taraflı değişiklik pariteyi sessizce ayırır.

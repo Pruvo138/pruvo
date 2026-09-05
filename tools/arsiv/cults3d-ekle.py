@@ -2,7 +2,7 @@
 # EMEKLI - Okan 19 Tem: bu platformda arama YAPILMAZ (parity-backfill'den cikarildi).
 # ⛔ ÇAĞIRMA — EMEKLİ (Okan 18 Tem: Cults3D rate-limit/429 yüzünden çıkarıldı)
 """PRUVO toplu urun ekleme ORKESTRATORU (Cults3D) — PARALEL + concurrency-safe.
-makerworld-ekle.py'nin Cults3D esdegeri; ayni Codex icerik adimini (thing-codex.py) AYNEN kullanir.
+makerworld-ekle.py'nin Cults3D esdegeri; ayni emekli motor icerik adimini (thing-icerik.py) AYNEN kullanir.
 
 Kullanim:
   python3 tools/cults3d-ekle.py <slug> [<slug> ...]          # STAGE eder
@@ -11,7 +11,7 @@ Kullanim:
 
 Her slug PARALEL islenir:
   detail -> lisans kapisi (satilamaz atla) + ucretsiz kapisi (ucretli atla) -> galeri gorselleri
-  indir -> .thing-cache/c3d<slug>/{gN.jpg, meta.json} yaz -> thing-codex.py c3d<slug> (gorsel secimi +
+  indir -> .thing-cache/c3d<slug>/{gN.jpg, meta.json} yaz -> thing-icerik.py c3d<slug> (gorsel secimi +
   Turkce icerik + fiyat_oneri) -> secili gorseller R2 -> STAGE. Yazma dosya KILIDI (.urunler.lock
   flock) altinda urunler.json'u O AN yeniden okuyup ekler (EZMEZ). COMMIT ETMEZ; sonda tablo basar.
 
@@ -132,10 +132,10 @@ def process_one(slug):
             return {"id": slug, "durum": "ATLA: satilamaz/ucretli lisans", "lisans": lic}
         if not meta.get("gorseller"):
             return {"id": slug, "durum": "ATLA: gorsel indirilemedi"}
-        subprocess.run([PY, os.path.join(TOOLS, "thing-codex.py"), key], capture_output=True, text=True)
+        subprocess.run([PY, os.path.join(TOOLS, "thing-icerik.py"), key], capture_output=True, text=True)
         onerip = os.path.join(CACHE, key, "oneri.json")
         if not os.path.exists(onerip):
-            return {"id": slug, "durum": "HATA: codex oneri yok"}
+            return {"id": slug, "durum": "HATA: emekli motor oneri yok"}
         o = json.load(open(onerip))
         uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or key).lower()).strip("-")[:60] or key
         # R2 gorsel anahtari KAYNAK-ID'den (c3d<slug>) turer, baslik-slug'indan DEGIL (cakisma onlemi).
@@ -201,7 +201,7 @@ def merge_safe(staged):
 
 
 def kuru(slugs):
-    """KURU MOD: urunler.json'a YAZMAZ, R2/Codex CAGIRMAZ. Her slug icin meta+lisans+gorsel
+    """KURU MOD: urunler.json'a YAZMAZ, R2/AI CAGIRMAZ. Her slug icin meta+lisans+gorsel
     dogru geldi mi gosterir (canli duman testi)."""
     print("KURU MOD (yazma YOK) | islenecek:", len(slugs), "| kaynak: Cults3D\n", flush=True)
     for slug in slugs:

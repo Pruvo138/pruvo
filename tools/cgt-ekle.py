@@ -13,7 +13,7 @@ alinip uretilir. Ucretli kaynak -> `lisans` YOK, atif YOK (ticari mahremiyet). M
 link gizli `.urun-kaynaklari.json`'a yazilir.
 
 Her urun PARALEL islenir: fetch + gorsel indir + ICERIK (gorsel secimi + Turkce baslik/aciklama/
-kategori/marka) -> thing-codex.py (Codex, ChatGPT aboneliginden; urun basina marjinal maliyet YOK
+kategori/marka) -> thing-icerik.py (emekli motor, ChatGPT aboneliginden; urun basina marjinal maliyet YOK
 + Claude kotasindan ayri) + R2 upload. Yazma: .urunler.lock dosya KILIDI altinda urunler.json'u
 O AN yeniden okuyup ekler (stale snapshot degil) -> baska oturum ayni anda yazsa bile EZMEZ.
 COMMIT ETMEZ. Sonda gozden gecirme tablosu basar.
@@ -131,7 +131,7 @@ def tl_fiyat(usd, disc=0, mode="list"):
 
 
 def process_one(url, author, mode="list"):
-    """PARALEL calisir; urunler.json'a DOKUNMAZ. Sadece fetch+codex+upload yapip sonuc doner."""
+    """PARALEL calisir; urunler.json'a DOKUNMAZ. Sadece fetch+emekli motor+upload yapip sonuc doner."""
     try:
         v = urun_verisi(url, author)
         if v and v.get("_yanlis_yazar"):
@@ -145,10 +145,10 @@ def process_one(url, author, mode="list"):
         json.dump({"id": key, "baslik": v.get("baslik") or itemid, "tasarimci": "", "lisans": "",
                    "olcu_mm": None, "stl_adet": 0, "gorseller": [os.path.basename(p) for p in imgs]},
                   open(os.path.join(d, "meta.json"), "w"), ensure_ascii=False)
-        subprocess.run([PY, os.path.join(TOOLS, "thing-codex.py"), key], capture_output=True, text=True)
+        subprocess.run([PY, os.path.join(TOOLS, "thing-icerik.py"), key], capture_output=True, text=True)
         onerip = os.path.join(d, "oneri.json")
         if not os.path.exists(onerip):
-            return {"url": url, "durum": "HATA: codex oneri yok"}
+            return {"url": url, "durum": "HATA: emekli motor oneri yok"}
         o = json.load(open(onerip))
         uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or itemid).lower()).strip("-")[:60] or itemid
         # R2 gorsel anahtari KAYNAK-ID'den (itemid) turer, baslik-slug'indan (uid) DEGIL: iki
@@ -261,7 +261,7 @@ def main_marka(urls, mode="list"):
 
 
 def kuru(urls, mode="list"):
-    """KURU MOD (MARKA): urunler.json'a YAZMAZ, R2/Codex CAGIRMAZ. Her aday icin baslik + USD +
+    """KURU MOD (MARKA): urunler.json'a YAZMAZ, R2/emekli motor CAGIRMAZ. Her aday icin baslik + USD +
     TL(×100) + galeri sayisi dogru geliyor mu gosterir (canli duman testi)."""
     print("KURU MOD (yazma YOK) | aday:", len(urls), "| FIYAT MODU:", mode, "| kaynak: CGTrader\n", flush=True)
     for u in urls:

@@ -46,7 +46,7 @@ kacan sinif HAFIF OLCUMLER). Mimar kimliginde (agent_id BOS) EK REDLER:
   1. OLCUM/dosya-tarama: du df ps top vm_stat memory_pressure sysctl find wc head tail sed
      awk sort stat file — HERHANGI bir segmentte (pipe dahil) argv0 ise RED.
   2. curl/wget — canli dogrulama iscinin isi, ISTISNA YOK.
-  3. [26 TEM'DE DEGISTI — asagidaki BaBa hukmune bak] codex artik KOSULSUZ redde DEGIL.
+  3. [26 TEM'DE DEGISTI — asagidaki BaBa hukmune bak] emekli motor artik KOSULSUZ redde DEGIL.
   4. python3/node — YALNIZ 'python3 tools/durum.py' ve 'python3 tools/d1-sync.py --durum'
      serbest (tam-yol ya da repo-goreli TAM esitlik; ekstra argüman = RED). Diger TUM
      tools/ araclari + node --check + -m + repo-ici betik = RED (test kosumu dahil).
@@ -57,56 +57,56 @@ kacan sinif HAFIF OLCUMLER). Mimar kimliginde (agent_id BOS) EK REDLER:
   bu redlerin HICBIRINE takilmaz (main() basinda muaf; kanit: ISCI ikizleri).
 
 🟢 26 TEM DOKTRIN DEGISIKLIGI (Senyor Advisor / BaBa hukmu — 22 Tem kural 3 GERI ALINDI):
-  "'codex exec' cagirmak KENDI ELIYLE IS YAPMAK DEGIL, ISCI DAGITMAKTIR — Agent araciyla
-  muhendis acmakla AYNI SINIF. Araya bir de Claude isci koymak (mimar->Claude->Codex)
+  "'emekli motor exec' cagirmak KENDI ELIYLE IS YAPMAK DEGIL, ISCI DAGITMAKTIR — Agent araciyla
+  muhendis acmakla AYNI SINIF. Araya bir de Claude isci koymak (mimar->Claude->emekli motor)
   mekanik ise pahali katman bindirir, token rejimine aykiri." KraL evi bu hukme hizalandi;
-  diger 5 evde codex zaten serbestti (tutarsizlik kapandi).
-  KALAN TEK SART = KALITE KAPISI (kural degil, standart): cagri 'codex-isci' standardiyla
+  diger 5 evde emekli motor zaten serbestti (tutarsizlik kapandi).
+  KALAN TEK SART = KALITE KAPISI (kural degil, standart): cagri 'isci-devri' standardiyla
   yapilir, yani SONUC BIR DOSYAYA yazilir → '-o' / '--output-last-message'. Bu bayragi
-  tasimayan 'codex exec' RED (raporsuz delege = kabul kapisi kurulmamis is).
-  'codex --version' gibi ZARARSIZ GOZLEM cagrilari GECER.
+  tasimayan 'emekli motor exec' RED (raporsuz delege = kabul kapisi kurulmamis is).
+  'emekli motor --version' gibi ZARARSIZ GOZLEM cagrilari GECER.
   Ayristirma taklidi YOK: bayrak TAM TOKEN esitligiyle aranir, supheli form REDDEDILIR
   (memory/mimar-kapi-parser-taklidi.md — bu eksende ucuncu kez delik cikti).
 
 🟢 27 TEM SIKILASTIRMA TURU (bagimsiz curutucunun olctugu 3 kusur + 4 on-var yanlis-pozitif):
-  1. DARALTMA (en degerli hamle): kural artik segmentteki HERHANGI bir 'codex' token'ina
+  1. DARALTMA (en degerli hamle): kural artik segmentteki HERHANGI bir 'emekli motor' token'ina
      degil, YALNIZ segmentin CALISTIRILAN PROGRAMINA (argv0 basename'i) bakar. Boylece
-     'grep -rn codex ...', 'git commit -m codex', 'git log --grep codex',
+     'grep -rn emekli motor ...', 'git commit -m emekli motor', 'git log --grep emekli motor',
      'ls .../Resources/codex' artik kurali HIC tetiklemez (4 yanlis-pozitif kapandi).
   2. ALT-KOMUT KAPISI (fail-closed): yalniz 'exec' delegasyondur. 'resume' etkilesimli
      TUI'yi surdurur = mimarin kendi eliyle isi; 'mcp'/'login'/BILINMEYEN → RED.
-  3. BAYRAK DEGER SARTI: bayragin VARLIGI yetmiyordu ('codex exec -o' geciyordu) — artik
+  3. BAYRAK DEGER SARTI: bayragin VARLIGI yetmiyordu ('emekli motor exec -o' geciyordu) — artik
      bayraktan sonra bos-olmayan, '-' ile baslamayan bir token (ya da '=<yol>') sart.
-  4. GOZLEM SIMETRISI: -v/-V/-h/--help/--version tek sinif (CODEX_GOZLEM_BAYRAKLARI =
+  4. GOZLEM SIMETRISI: -v/-V/-h/--help/--version tek sinif (EMEKLI_MOTOR_GOZLEM_BAYRAKLARI =
      SURUM_BAYRAKLARI); eskiden '-V' geciyor '-v' gecmiyordu.
   Bu tur bir DARALTMA turudur: yakalama gucu OLCULDU, 15 bypass/kalkan fikstürünün hepsi
   DENY kaldi (memory/kapi-kapsam-genisletme-tuzagi.md).
 
 🟢 27 TEM IKINCI TUR (BaBa doktrin hukmu: sart 6 EVE tasinir) — bagimsiz curutucunun
   ccb4482e sonrasi olctugu IKI kusur KAPATILDI (ikisi de "bayrak DEGERI" ekseninde):
-  1. ESITLIKLI BICIMDE '-' ONEKI DENETIMI YOKTU: 'codex exec --output-last-message=-o "x"'
+  1. ESITLIKLI BICIMDE '-' ONEKI DENETIMI YOKTU: 'emekli motor exec --output-last-message=-o "x"'
      ALLOW aliyordu — '=' sonrasi bos degil diye DEGERLI sayiliyor, oysa deger baska bir
      BAYRAK. Artik esitlikli bicimde de deger '-' ile basliyorsa DEGER SAYILMAZ (ayrik
-     bicimdeki kural neydi ise o: 'codex exec -o -v "x"' zaten DENY idi, simdi iki bicim
-     SIMETRIK — tek kaynak _codex_deger_gecerli()).
-  2. SARMALAYICI BAYRAK-DEGERI SIZINTISI: 'nice -n 10 codex exec "x"' ALLOW aliyordu.
+     bicimdeki kural neydi ise o: 'emekli motor exec -o -v "x"' zaten DENY idi, simdi iki bicim
+     SIMETRIK — tek kaynak _emekli_motor_deger_gecerli()).
+  2. SARMALAYICI BAYRAK-DEGERI SIZINTISI: 'nice -n 10 emekli motor exec "x"' ALLOW aliyordu.
      sarmalayici_soy 'nice'i ve '-n'i soyuyor, ama '10' (bayragin DEGERI) argv0 sanildigi
-     icin _codex_programi('10') False donuyor ve kural HIC calismiyordu. Ayni sizinti
-     'env -u FOO codex ...', 'stdbuf -o 0 codex ...', 'time -o /tmp/t codex ...'.
+     icin _emekli_motor_programi('10') False donuyor ve kural HIC calismiyordu. Ayni sizinti
+     'env -u FOO emekli motor ...', 'stdbuf -o 0 emekli motor ...', 'time -o /tmp/t emekli motor ...'.
      COZUM parser taklidi DEGIL, dis_yol'un zaten kullandigi IKI OKUMA idiomu
      (_sarmalayici_ikinci_okuma): ikinci okumada her atlanan bayragin ardindan bir token
-     daha atlanabilir sayilir; iki okumadan BIRINDE argv0 'codex' ise kural o okumaya
+     daha atlanabilir sayilir; iki okumadan BIRINDE argv0 'emekli motor' ise kural o okumaya
      uygulanir (fail-closed). Hangi sarmalayicinin hangi bayragi deger alir TABLOSU
      TUTULMAZ ve YENI PROGRAM ADI EKLENMEZ (launcher/whitelist listesi YASAK — mimar
      hukmu; xargs/sudo/npx sinifi BILINEN BYPASS #1'de kayitli, kapatilmaz).
   KABUL EDILEN BEDEL (olculdu, tek sinif): 'wrapper + bayrak + PROGRAM + basename'i
-  codex olan bir ARGUMAN' bicimi (or. 'time -p ls /Applications/.../codex') ikinci
+  emekli motor olan bir ARGUMAN' bicimi (or. 'time -p ls /Applications/.../codex') ikinci
   okumada yanlis-pozitif DENY alir. Sarmalayici + bayrak + tam o konum sarti gerektigi
   icin gercekte gorulmez; sarmalayicisiz hicbir cagri etkilenmez (nobetci: vaka 282).
 
 SERBEST (mimar eliyle — yanlislikla kapatma, kapatirsan is durur):
-  * codex: 'codex exec ... -o <dosya> "<spec>"' (ALT-KOMUT yalniz 'exec'; bayrak bir
-    DEGERLE gelmeli) + gozlem: 'codex --version / -V / -v / --help / -h'
+  * emekli motor: 'emekli motor exec ... -o <dosya> "<spec>"' (ALT-KOMUT yalniz 'exec'; bayrak bir
+    DEGERLE gelmeli) + gozlem: 'emekli motor --version / -V / -v / --help / -h'
   * python YALNIZ: python3 tools/durum.py + python3 tools/d1-sync.py --durum (baska YOK)
   * git'in tamami (status/diff/log/merge-base/merge/commit/push/worktree) — merge mimarin
     kapisidir; MAKINE reddine sokulmaz (kilitlenme riski), DAVRANISSAL kural isciye delege
@@ -124,9 +124,9 @@ gorunmez ve kural hic calismaz. 1-2-3 MAIN'de de vardir — bu dal onlari ACMADI
      basi bu launcher'dir (SARMALAYICI listesinde DEGIL) → denetim hic uygulanmaz, repo disinda
      GERCEK icra olur. Kapatilmadi: her launcher'i saymak sonsuz liste + yanlis-pozitif; mimar
      'xargs python3' yaziyorsa bu refleks degil BILINCLI kacistir.
-     🔸 27 TEM OLCUMU: codex bu sinifa DAHIL OLDU. Daraltmadan ONCE 'xargs codex exec',
-     'sudo codex exec', 'npx codex exec', 'watch codex exec', 'make codex',
-     'echo x | xargs codex exec' DENY aliyordu — ama bunu saglayan sey kasitli bir nobetci
+     🔸 27 TEM OLCUMU: emekli motor bu sinifa DAHIL OLDU. Daraltmadan ONCE 'xargs emekli motor exec',
+     'sudo emekli motor exec', 'npx emekli motor exec', 'watch emekli motor exec', 'make emekli motor',
+     'echo x | xargs emekli motor exec' DENY aliyordu — ama bunu saglayan sey kasitli bir nobetci
      degil, 4 yanlis-pozitifi de ureten AYNI kaba token taramasiydi. Daraltma sonrasi 6'si
      da ALLOW. Ayni kok neden, ayni gerekce: launcher listesi tutulmaz.
   2. UZANTISIZ +x dosya dogrudan cagrisi: './analiz' (uzantisiz, shebang'li) — dogrudan-cagri
@@ -151,9 +151,9 @@ import sys
 
 from mimar_kimlik import (
     CANLI_ISCI_MOTORLARI,
-    CODEX_IZINLI_MODELLER,
-    CODEX_PENCERE_BITIS,
-    CODEX_YASAK_MODELLER,
+    EMEKLI_MOTOR_IZINLI_MODELLER,
+    EMEKLI_MOTOR_PENCERE_BITIS,
+    EMEKLI_MOTOR_YASAK_MODELLER,
     EMEKLI_ISCI_MOTORLARI,
     ISCI_MOTORLARI,
     emekli_gerekcesi,
@@ -484,46 +484,46 @@ SARMALAYICI = {"env", "command", "exec", "nohup", "time", "caffeinate", "stdbuf"
 SURUM_BAYRAKLARI = {"--version", "-V", "--help", "-h", "-v"}
 SATIR_ICI = {"-c", "-e", "--eval", "--eval-file", "-p", "--print", "-"}
 
-# === 26 TEM (BaBa hukmu): codex KOSULSUZ RED -> KALITE KAPISI ===
-# Codex'e is DEVRETMEK mimarin isidir; devretmenin KABUL KAPISI sonucun bir DOSYAYA
-# yazilmasidir (skill: codex-isci). Bayrak TAM TOKEN esitligiyle aranir — bitisik kisa
+# === 26 TEM (BaBa hukmu): emekli motor KOSULSUZ RED -> KALITE KAPISI ===
+# emekli motor'e is DEVRETMEK mimarin isidir; devretmenin KABUL KAPISI sonucun bir DOSYAYA
+# yazilmasidir (skill: isci-devri). Bayrak TAM TOKEN esitligiyle aranir — bitisik kisa
 # form ('-o/tmp/x.txt') BILEREK kabul edilmez: clap/argparse ayristirmasini taklit etmek
 # bu repoda uc onarim turu boyunca delik uretti; supheli form = RED (fail-closed).
-CODEX_CIKTI_BAYRAKLARI = {"-o", "--output-last-message"}
-CODEX_CIKTI_ONEKI = "--output-last-message="
+EMEKLI_MOTOR_CIKTI_BAYRAKLARI = {"-o", "--output-last-message"}
+EMEKLI_MOTOR_CIKTI_ONEKI = "--output-last-message="
 # Zararsiz GOZLEM cagrilari (icra degil): yalnizca KALAN TUM tokenlar bunlardansa gecer.
 # 27 TEM: ayri liste tutmak asimetri uretmisti ('-V' geciyor, '-v' gecmiyordu) —
 # SURUM_BAYRAKLARI ile AYNI SINIF, tek kaynak; iki liste artik ayrisamaz.
-CODEX_GOZLEM_BAYRAKLARI = SURUM_BAYRAKLARI
-# 27 TEM ALT-KOMUT KAPISI (FAIL-CLOSED): doktrin "codex EXEC" der. 'resume' etkilesimli
+EMEKLI_MOTOR_GOZLEM_BAYRAKLARI = SURUM_BAYRAKLARI
+# 27 TEM ALT-KOMUT KAPISI (FAIL-CLOSED): doktrin "emekli motor EXEC" der. 'resume' etkilesimli
 # TUI'yi surdurur = mimarin KENDI ELIYLE is yapmasi (delegasyon DEGIL); 'mcp'/'login' de
 # delege degil. Beyaz liste TEK elemanli ve KAPALI: gelecekte cikacak her yeni alt-komut
 # VARSAYILAN RED alir (bilinmeyeni gecirmek = kapiyi zamanla bosaltmak).
-CODEX_IZINLI_ALTKOMUT = "exec"
-# 27 TEM (2. tur) SURUM DAMGASI — tools/mimar-kapi-kur.py --codex-kurali bu dizeyi
-# arayarak "bu evde SIKILASTIRILMIS codex kurali var mi" sorusunu MAKINE olarak yanitlar
+EMEKLI_MOTOR_IZINLI_ALTKOMUT = "exec"
+# 27 TEM (2. tur) SURUM DAMGASI — tools/mimar-kapi-kur.py --emekli-motor-kurali bu dizeyi
+# arayarak "bu evde SIKILASTIRILMIS emekli motor kurali var mi" sorusunu MAKINE olarak yanitlar
 # (idempotans + 6 ev dogrulamasi). Kurali degistirirsen damgayi da yukselt.
 # 17 AGU K159: 4 yeni kural eklendi (pencere bitisi + model bayragi zorunlu + amiral
 # yasak + bilinmeyen fail-closed) -> damga yukseldi.
-CODEX_KURAL_SURUMU = "17agu-1"
+EMEKLI_MOTOR_KURAL_SURUMU = "17agu-1"
 
 # ===================== 28 TEM: AGENT-KAPISI (BaBa/Senyor Advisor hukmu) =====================
 # ASIMETRI TESHISI: mimar bir Claude iscisi (Agent/Task araci) acmak SIFIR surtunmeliyken,
-# dogrudan 'codex exec' cagrisi cikti-dosyasi sarti (_codex_karari) tasimak ZORUNDA. Sonuc:
-# MAKINE pahali yolu (Claude isci) tesvik edip ucuz yolu (Codex) cezalandiriyor. Bu kapi
+# dogrudan 'emekli motor exec' cagrisi cikti-dosyasi sarti (_emekli_motor_karari) tasimak ZORUNDA. Sonuc:
+# MAKINE pahali yolu (Claude isci) tesvik edip ucuz yolu (emekli motor) cezalandiriyor. Bu kapi
 # asimetriyi kapatir: mimar ANA oturumu (agent_id BOS) bir Claude iscisi acarken verdigi
 # prompt/spec icinde su BEYAN SATIRI YOKSA cagri REDDEDILIR:
-#     codex-muafiyet: <is tanimi> — <sinif>
-# <sinif> = isin neden Codex'e VERILEMEDIGINI beyan eden yasak-sinif (codex-isci yasak
-# listesi). Boylece Claude iscisi acmaya da Codex kadar TEK SATIR surtunme konur.
+#     isci-muafiyet: <is tanimi> — <sinif>
+# <sinif> = isin neden emekli motor'e VERILEMEDIGINI beyan eden yasak-sinif (isci-devri yasak
+# listesi). Boylece Claude iscisi acmaya da emekli motor kadar TEK SATIR surtunme konur.
 #
 # MUAFIYETLER (kapi bunlara DOKUNMAZ):
 #   1. agent_id DOLU (ISCI) her cagri TAM muaf — main() basinda zaten cikilir; kural
 #      yalniz mimar ANA oturumuna (agent_id bos).
 #   2. Agent/Task DISINDAKI hicbir arac etkilenmez (tool_name kapisi; Bash/Write/... eskisi gibi).
-#   3. Mevcut '-o' codex kurali + tum kilit/icra kurallari AYNEN korunur (regresyon 0).
+#   3. Mevcut '-o' emekli motor kurali + tum kilit/icra kurallari AYNEN korunur (regresyon 0).
 AGENT_ARACLARI = {"Agent", "Task"}
-# Yasak-sinif token'lari (codex-isci yasak listesi). Bunlardan BIRI ayractan HEMEN sonra gelmeli.
+# Yasak-sinif token'lari (isci-devri yasak listesi). Bunlardan BIRI ayractan HEMEN sonra gelmeli.
 AGENT_SINIFLARI = (
     "görsel", "gorsel",
     "sessiz-hata",
@@ -533,7 +533,7 @@ AGENT_SINIFLARI = (
     "şema", "sema",
 )
 # TEK makine-aranabilir regex (parser taklidi YOK — tek kaba tarama, fail-closed):
-#   'codex-muafiyet:'  (etikette buyuk/kucuk DUYARSIZ — re.IGNORECASE)
+#   'isci-muafiyet:'  (etikette buyuk/kucuk DUYARSIZ — re.IGNORECASE)
 #   + [^\S\n]*         (bosluk/tab esnek; NEWLINE degil -> kural TEK SATIRDA)
 #   + \S               (is tanimi BOS OLAMAZ: en az bir bosluk-disi karakter)
 #   + [^\n]*?          (is metninin kalani, LAZY, tek satir — '.' DOTALL degil)
@@ -542,7 +542,7 @@ AGENT_SINIFLARI = (
 #   + (SINIF)          (yasak-sinif token'i ayractan HEMEN sonra)
 # re.IGNORECASE: hem etiket hem sinif buyuk/kucuk duyarsiz. DOTALL YOK -> beyan tek satir.
 AGENT_MUAFIYET_RE = re.compile(
-    r"codex-muafiyet:[^\S\n]*\S[^\n]*?[—–-][^\S\n]*(?:" +
+    r"isci-muafiyet:[^\S\n]*\S[^\n]*?[—–-][^\S\n]*(?:" +
     "|".join(re.escape(s) for s in AGENT_SINIFLARI) + r")(?![\w-])",
     re.IGNORECASE,
 )
@@ -550,18 +550,18 @@ AGENT_MUAFIYET_RE = re.compile(
 # AGENT-KAPISI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev). Kurali
 # degistirirsen damgayi da yukselt.
 AGENT_KURAL_SURUMU = "13agu-2"
-# Codex reddindeki gibi: AGENT reddinde GEREKCE_SONU KULLANILMAZ ("bu isi isciye delege et"
+# emekli motor reddindeki gibi: AGENT reddinde GEREKCE_SONU KULLANILMAZ ("bu isi isciye delege et"
 # der — oysa AGENT cagrisi ZATEN isci acma girisimi). Yerine IKI CIKISI net soyleyen kuyruk.
 AGENT_SINIF_LISTESI = " / ".join(AGENT_SINIFLARI)
 AGENT_ORNEK_SINIF = AGENT_SINIFLARI[0]
 AGENT_GEREKCE = (
     "AGENT-KAPISI (28 Tem): mimar ANA oturumu bir Claude iscisi (Agent/Task) açıyor ama "
-    "prompt/spec içinde 'codex-muafiyet:' BEYAN SATIRI YOK. Doktrin: Claude işçisi açmak da "
-    "doğrudan 'codex exec' kadar TEK SATIR sürtünme taşır (asimetri kapatıldı). İKİ ÇIKIŞ: "
-    "(a) İŞİ CODEX'E VER → codex-isci şablonu (codex exec -C <ev> -s workspace-write "
-    "-o <scratchpad>/son-mesaj.txt \"<spec>\"); VEYA (b) prompt'a şu satırı EKLE: "
-    "'codex-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
-    "codex-isci yasak listesi)."
+    "prompt/spec içinde 'isci-muafiyet:' BEYAN SATIRI YOK. Doktrin: Claude işçisi açmak da "
+    "doğrudan bir dış işçi çağrısı kadar TEK SATIR sürtünme taşır (asimetri kapatıldı). "
+    "İKİ ÇIKIŞ: (a) İŞİ UCUZ KATA VER → skill: isci-devri (~/.claude/cron/isci.sh "
+    "<motor> <EV_KOKU> <SPEC_DOSYASI> [ETIKET]); VEYA (b) prompt'a şu satırı EKLE: "
+    "'isci-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
+    "isci-devri yasak listesi)."
 ).format(ornek=AGENT_ORNEK_SINIF, liste=AGENT_SINIF_LISTESI)
 
 
@@ -569,20 +569,20 @@ def _sert_blok_gerekcesi():
     """KraL/MaCiT sert reddi; acik yollar kanonik sabitlerden turetilir."""
     return (
         "AGENT-KAPISI (13 Ağu Okan emri): bu evde mimar ANA oturumunun Claude işçisi "
-        "(Agent/Task ve isci.sh claude) açması, 'codex-muafiyet:' beyanı bulunsa bile "
+        "(Agent/Task ve isci.sh claude) açması, 'isci-muafiyet:' beyanı bulunsa bile "
         "YASAKTIR. 'claude' motoru da aynı yasağın kapsamındadır; pahalı kat pahalı kattır. "
         "PRUVO_CLAUDE_ISCI_IZNI yalnızca tam olarak OKAN ise eski beyan kuralı çalışır; "
         "bu izni yalnızca Okan verir ve ajan kendi ayarlayamaz. İKİ AÇIK YOL: (a) " +
         ISCI_SARMALAYICI_YOLU + " <motor> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
         "(ucuz motorlar: " + CANLI_MOTOR_LISTESI +
-        "; kapalı motor kümesi: " + ISCI_MOTOR_LISTESI + "); (b) codex exec -C <ev> "
-        "-s workspace-write -o <dosya> \"<spec>\"."
+        "; kapalı motor kümesi: " + ISCI_MOTOR_LISTESI + "); (b) işi KENDİN yap — bu ev "
+        "Claude işçisine KAPALIDIR ve ikinci bir dış motor yolu YOKTUR."
     )
 
 
 def _agent_gorulen_sinif(prompt):
     """Beyan satirindaki ayraç-sonrasi ilk jetonu yalniz red tanisi icin ayiklar."""
-    etiket = "codex-muafiyet:"
+    etiket = "isci-muafiyet:"
     for satir in prompt.splitlines():
         konum = satir.lower().find(etiket)
         if konum < 0:
@@ -668,9 +668,9 @@ MCP_GEREKCE = (
     "çağırıyor ve BU EV tarayıcıya açık evler arasında DEĞİL (açık evler: " +
     " / ".join(TARAYICI_ACIK_EVLER) + "). Bu evde ana döngüde tarayıcı sürmek KAPALI — her "
     "tur ekran görüntüsü taşır ve görüntü EN PAHALI token sınıfıdır (ölçülen vaka: 1 "
-    "saatte bağlamın %58'i). ÇÖZÜM: TARAYICIYI GÖRSEL-SINIF CLAUDE İŞÇİSİNE VER — Codex'e "
-    "VERİLMEZ (görsel = codex-isci yasak listesi). İŞÇİ ŞABLONU (Agent aracı: model sonnet "
-    "+ isolation worktree + background), prompt'un ilk satırı: 'codex-muafiyet: tarayıcı "
+    "saatte bağlamın %58'i). ÇÖZÜM: TARAYICIYI GÖRSEL-SINIF CLAUDE İŞÇİSİNE VER — ucuz "
+    "motora VERİLMEZ (görsel = isci-devri yasak listesi). İŞÇİ ŞABLONU (Agent aracı: model sonnet "
+    "+ isolation worktree + background), prompt'un ilk satırı: 'isci-muafiyet: tarayıcı "
     "ile <ne ölçülecek> — görsel'; spec'e ÇALIŞTIRILABİLİR kabul yaz (hangi URL'de hangi "
     "sayı ölçülecek), işçi ölçsün, sen SAYIYLA kapat. İşçi çağrılarında (agent_id dolu) bu "
     "kapı hiçbir kural uygulamaz — tarayıcı orada SERBESTTİR. " + TARAYICI_MALIYET_KURALI
@@ -715,7 +715,7 @@ def _tarayici_ekseni_acik_mi():
 # evinde sarmalayici BIR KEZ BILE kosmadi.
 #
 # DOKTRIN (26 Tem BaBa hukmu ile AYNI SINIF): sarmalayiciyi cagirmak KENDI ELIYLE IS
-# YAPMAK DEGIL, ISCI DAGITMAKTIR — tipki 'codex exec' gibi. Bu yuzden KOSULSUZ MUAFIYET
+# YAPMAK DEGIL, ISCI DAGITMAKTIR — tipki 'emekli motor exec' gibi. Bu yuzden KOSULSUZ MUAFIYET
 # DEGIL, ayni KALITE KAPISI kurulur.
 #
 # 🔴 YOL TAM ESITLIKLE ARANIR (basename/goreli yol KABUL EDILMEZ): aksi halde 'isci.sh'
@@ -762,7 +762,7 @@ ISCI_M3_CIVILI_MOTOR = "minimax-m3"
 #     (damga yok/kayitsiz/alt-dize) fail-closed ANA sayilir ve RED durur (vaka 816/820).
 #   * YALNIZ R2 ve F kollarini, YALNIZ o cagri icin susturur. A2 (tehlikeli env),
 #     C (satir-ici kod), AGENT-KAPISI, ISCI-SARMALAYICI kapisi (isci.sh claude sert blok)
-#     ve codex kalite kapisi AYNEN kosar (vaka 808/810/811 degismeden YESIL kalir).
+#     ve emekli motor kalite kapisi AYNEN kosar (vaka 808/810/811 degismeden YESIL kalir).
 #   * Cagrilan betik duzlemin ICINDE olacak VE disari cozulen HER token ya repo ICI ya
 #     duzlem ICI olacak — 'dis_yol'un dondurdugu ILKI degil, HEPSI (vaka 818).
 #   * COZUMLEME repo_ici ile AYNI kalibi kullanir (_coz = expanduser + normpath) ve onek
@@ -836,7 +836,7 @@ def _ortak_altyapi_muaf(argumanlar, cwd, cip):
 ISCI_ARGUMAN_SAYILARI = (3, 4)
 # SURUM DAMGASI — tools/mimar-kapi-kur.py --isci-kapisi bu dizeyi arayarak "bu evde
 # ISCI-SARMALAYICI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev
-# dogrulamasi; --codex-kurali / --agent-kapisi / --mcp-kapisi ile AYNI kalip). Kurali
+# dogrulamasi; --emekli-motor-kurali / --agent-kapisi / --mcp-kapisi ile AYNI kalip). Kurali
 # degistirirsen damgayi da yukselt.
 ISCI_KURAL_SURUMU = "e50b19892a39"
 ISCI_MOTOR_LISTESI = " / ".join(ISCI_MOTORLARI)
@@ -853,17 +853,17 @@ ISCI_GEREKCE_SONU = (
 # motor=claude reddinde IKI CIKISI net soyleyen kuyruk (AGENT-KAPISI ile AYNI doktrin).
 ISCI_CLAUDE_GEREKCESI = (
     "ISCI-SARMALAYICI KAPISI (13 Ağu): sarmalayıcı 'claude' MOTORUYLA çağrılıyor ama SPEC "
-    "DOSYASINDA 'codex-muafiyet:' BEYAN SATIRI YOK. Bu şart olmasaydı sarmalayıcı "
+    "DOSYASINDA 'isci-muafiyet:' BEYAN SATIRI YOK. Bu şart olmasaydı sarmalayıcı "
     "AGENT-KAPISI'nı atlatan bir ANAHTAR olurdu (mimar -> isci.sh claude -> sürtünmesiz "
     "Claude işçisi). İKİ ÇIKIŞ: (a) İŞİ UCUZ MOTORA VER (" + CANLI_MOTOR_LISTESI +
     "); VEYA (b) spec dosyasına şu satırı EKLE: "
-    "'codex-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
-    "codex-isci yasak listesi)."
+    "'isci-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
+    "isci-devri yasak listesi)."
 )
 
 
 def _isci_karari(tokenlar):
-    """13 AGU — isci sarmalayicisi cagrisinin KARARI. _codex_karari ile AYNI bicim:
+    """13 AGU — isci sarmalayicisi cagrisinin KARARI. _emekli_motor_karari ile AYNI bicim:
         None    → segmentin CALISTIRILAN programi sarmalayici DEGIL (kural uygulanmaz)
         "gecer" → izinli (isci dagitmak mimarliktir) — cagiran SEGMENTI KAPATIR
         str     → red gerekcesi
@@ -965,7 +965,7 @@ GEREKCE_SONU = (
     " ÇÖZÜM: (a) BU İŞİ WORKTREE'DE ÇALIŞAN BİR İŞÇİYE VER — işçi çağrılarında "
     "(agent_id dolu) bu kapı hiçbir kural uygulamaz; kabul testini ona YAZDIR "
     "(ör. tools/mimar-kilit-test.py'ye vaka ekletip 'python3 tools/mimar-kilit-test.py' "
-    "ile kapat). Uzun hali: işi MÜHENDİS/USTA/MARABA'ya ya da Codex'e DELEGE et (Agent aracı: "
+    "ile kapat). Uzun hali: işi MÜHENDİS/USTA/MARABA'ya ya da emekli motor'e DELEGE et (Agent aracı: "
     "model opus/sonnet + isolation worktree + background) ve kabul testini ona YAZDIR; "
     "(b) TEST/ÖLÇÜM/CANLI DOĞRULAMA koşumu (parite, build, filament, curl, " +
     olcum_komut_metni() + ", node --check ...) mimarın DEĞİL işçinin işidir — spec'e "
@@ -979,13 +979,13 @@ GEREKCE_SONU = (
 )
 
 
-# Codex reddinde GEREKCE_SONU KULLANILMAZ: o metin "bu isi isciye delege et" der, oysa
-# codex cagrisi ZATEN delegedir (26 Tem hukmu) — yanlis yol tarif ederdi. Yerine eksik
+# emekli motor reddinde GEREKCE_SONU KULLANILMAZ: o metin "bu isi isciye delege et" der, oysa
+# emekli motor cagrisi ZATEN delegedir (26 Tem hukmu) — yanlis yol tarif ederdi. Yerine eksik
 # olan TEK seyi soyleyen kisa kuyruk.
-CODEX_GEREKCE_SONU = (
-    " DOGRUSU: codex exec -C /Users/okan/dev/pruvo -s workspace-write "
+EMEKLI_MOTOR_GEREKCE_SONU = (
+    " DOGRUSU: emekli motor exec -C /Users/okan/dev/pruvo -s workspace-write "
     "-o /<scratchpad>/son-mesaj.txt \"<spec>\" — sonra dosyayi oku, sayiyla kapat. "
-    "(skill: codex-isci)"
+    "(skill: isci-devri)"
 )
 
 
@@ -1098,19 +1098,19 @@ def repo_ici(yol, cwd):
     return False
 
 
-def _codex_programi(argv0):
-    """27 TEM DARALTMASI — segmentin CALISTIRILAN programi codex mi?
+def _emekli_motor_programi(argv0):
+    """27 TEM DARALTMASI — segmentin CALISTIRILAN programi emekli motor mi?
 
-    ESKI HALI (_codex_var) segmentteki HERHANGI bir token'da 'codex' basename'ini ya da
+    ESKI HALI (_emekli_motor_var) segmentteki HERHANGI bir token'da 'emekli motor' basename'ini ya da
     'ChatGPT.app' alt-dizesini ariyordu. OLCULEN BEDEL — dort ON-VAR YANLIS-POZITIF:
-    'grep -rn codex tools/', 'git commit -m codex', 'git log --grep codex',
+    'grep -rn emekli motor tools/', 'git commit -m emekli motor', 'git log --grep emekli motor',
     'ls /Applications/ChatGPT.app/Contents/Resources/codex' → dordu de DENY aliyordu,
-    oysa calistirilan program grep/git/ls, codex DEGIL. Kural artik YALNIZ argv0'a bakar
+    oysa calistirilan program grep/git/ls, emekli motor DEGIL. Kural artik YALNIZ argv0'a bakar
     (tam yol ise SON BILESENI). 'ChatGPT.app' alt-dize testi de GEREKSIZ kaldi: o yolun
-    basename'i zaten 'codex'.
+    basename'i zaten 'emekli motor'.
 
-    KABUL EDILEN BEDEL (olculdu, 6 komut): launcher-arkasi codex ('xargs codex exec',
-    'sudo codex exec', 'npx codex exec' ...) eskiden — KURALIN GENISLIGI YUZUNDEN, tasarim
+    KABUL EDILEN BEDEL (olculdu, 6 komut): launcher-arkasi emekli motor ('xargs emekli motor exec',
+    'sudo emekli motor exec', 'npx emekli motor exec' ...) eskiden — KURALIN GENISLIGI YUZUNDEN, tasarim
     geregi degil — DENY aliyordu, artik ALLOW. Bu, bas yorumdaki BILINEN BYPASS #1'in
     (launcher-arkasi cagri) tam olarak ayni kokudur ve orada "kapatilmaz" diye kayitlidir:
     launcher saymak sonsuz liste + yeni yanlis-pozitif acar. Yani kaybedilen sey KASITLI
@@ -1118,7 +1118,7 @@ def _codex_programi(argv0):
     return os.path.basename(argv0) == "codex"
 
 
-def _codex_deger_gecerli(deger):
+def _emekli_motor_deger_gecerli(deger):
     """27 TEM (2. tur) — cikti bayraginin DEGERI gecerli mi? IKI BICIMIN TEK KAYNAGI.
 
     Kural (kaba, iki soru): (a) bos olmasin, (b) '-' ile BASLAMASIN — '-' ile baslayan
@@ -1127,7 +1127,7 @@ def _codex_deger_gecerli(deger):
     NEDEN TEK FONKSIYON: bu repoda ayni eksende IKI KEZ ASIMETRI olctuk — once gozlem
     bayraklari ('-V' geciyor, '-v' gecmiyordu; ccb4482e'de SURUM_BAYRAKLARI'na
     birlestirildi), sonra cikti bayragi bicimleri (ayrik bicimde '-' denetimi VAR,
-    esitlikli bicimde YOKTU → 'codex exec --output-last-message=-o "x"' ALLOW).
+    esitlikli bicimde YOKTU → 'emekli motor exec --output-last-message=-o "x"' ALLOW).
     Iki liste/iki gövde tutmak bu asimetriyi tekrar uretir; tek kaynak uretemez."""
     if not deger:
         return False
@@ -1136,10 +1136,10 @@ def _codex_deger_gecerli(deger):
     return True
 
 
-def _codex_cikti_degerli(tokenlar):
+def _emekli_motor_cikti_degerli(tokenlar):
     """27 TEM — cikti bayragi bir DOSYA DEGERIYLE mi geliyor? (eskiden VARLIGI yetiyordu)
 
-    Olculen kusur: 'codex exec -o' (degersiz, son token) ve 'codex exec -o -s
+    Olculen kusur: 'emekli motor exec -o' (degersiz, son token) ve 'emekli motor exec -o -s
     workspace-write' (degeri baska bir BAYRAK) GECIYORDU — yani kabul kapisi tek bir
     bos bayrakla bosa cikarilabiliyordu.
 
@@ -1152,33 +1152,33 @@ def _codex_cikti_degerli(tokenlar):
     varligi sorulmaz — tek soru: "bayraktan sonra bir sey var mi".
 
     ILK ESLESME KARARI VERIR (kendi curutmemde olculdu): "bozuksa ARAMAYA DEVAM ET"
-    demek 'codex exec --output-last-message -o /tmp/a.txt' gibi bir diziyi ACIYORDU —
+    demek 'emekli motor exec --output-last-message -o /tmp/a.txt' gibi bir diziyi ACIYORDU —
     ilk bayragin degeri '-o' oluyor, ikinci okuma yesil yaniyordu. Supheli form = RED
     kuralinin geregi: ilk cikti bayragi DUZGUN degilse tum cagri REDDEDILIR."""
     for i, t in enumerate(tokenlar):
-        if t in CODEX_CIKTI_BAYRAKLARI:
+        if t in EMEKLI_MOTOR_CIKTI_BAYRAKLARI:
             if i + 1 >= len(tokenlar):
                 return False
-            return _codex_deger_gecerli(tokenlar[i + 1])
-        if t.startswith(CODEX_CIKTI_ONEKI):
-            return _codex_deger_gecerli(t[len(CODEX_CIKTI_ONEKI):])
+            return _emekli_motor_deger_gecerli(tokenlar[i + 1])
+        if t.startswith(EMEKLI_MOTOR_CIKTI_ONEKI):
+            return _emekli_motor_deger_gecerli(t[len(EMEKLI_MOTOR_CIKTI_ONEKI):])
     return False
 
 
 def _sarmalayici_ikinci_okuma(tokenlar):
     """27 TEM (2. tur) — SARMALAYICI bayrak-DEGERI sizintisinin IKINCI OKUMASI.
 
-    OLCULEN KUSUR: 'nice -n 10 codex exec "x"' ALLOW aliyordu. sarmalayici_soy 'nice'i
+    OLCULEN KUSUR: 'nice -n 10 emekli motor exec "x"' ALLOW aliyordu. sarmalayici_soy 'nice'i
     soyar, ardindan bayraklari ('-n') atlar, ama '10' — yani bayragin DEGERI — komut
-    adayi sanilir; argv0 '10' oldugu icin _codex_programi False doner ve codex kurali
-    HIC calismaz. Ayni sizinti: 'env -u FOO codex ...', 'stdbuf -o 0 codex ...',
-    'time -o /tmp/t codex ...'.
+    adayi sanilir; argv0 '10' oldugu icin _emekli_motor_programi False doner ve emekli motor kurali
+    HIC calismaz. Ayni sizinti: 'env -u FOO emekli motor ...', 'stdbuf -o 0 emekli motor ...',
+    'time -o /tmp/t emekli motor ...'.
 
     IKI OKUMA IDIOMU (dis_yol'da zaten kullanilan desen; parser taklidi YASAK):
     "hangi sarmalayicinin hangi bayragi deger alir" TABLOSU tutulmaz. Bunun yerine
     belirsizlik IKI OKUMAYA bolunur — bu okumada her atlanan bayragin ARDINDAN gelen
     tiresiz token de o bayragin DEGERI olabilir sayilip atlanir. Cagiran (
-    _codex_segment_karari) iki okumadan BIRINDE argv0 'codex' gorurse kurali o okumaya
+    _emekli_motor_segment_karari) iki okumadan BIRINDE argv0 'emekli motor' gorurse kurali o okumaya
     uygular: belirsizlik ICERI degil DISARI sayilir (fail-closed).
 
     LAUNCHER/WHITELIST LISTESI DEGIL (mimar hukmu): bu fonksiyon programlar kumesine
@@ -1186,7 +1186,7 @@ def _sarmalayici_ikinci_okuma(tokenlar):
     belirsizligi cozer. xargs/sudo/npx/make/watch sinifi BILINEN BYPASS #1'de kayitlidir
     ve KAPATILMAZ.
 
-    KABUL EDILEN BEDEL: 'sarmalayici + bayrak + PROGRAM + basename'i codex olan ARGUMAN'
+    KABUL EDILEN BEDEL: 'sarmalayici + bayrak + PROGRAM + basename'i emekli motor olan ARGUMAN'
     (or. 'time -p ls /Applications/.../codex') bu okumada yanlis-pozitif DENY alir.
     Sarmalayicisiz hicbir cagri etkilenmez (nobetci: vaka 282)."""
     okuma = list(tokenlar)
@@ -1207,7 +1207,7 @@ def _sarmalayici_ikinci_okuma(tokenlar):
     return okuma
 
 
-def _codex_bugun():
+def _emekli_motor_bugun():
     """PRUVO_BUGUN (YYYY-MM-DD) env'den okunur; yoksa sistem tarihi. V6 vakasi icin
     ENJEKTE EDILEBILIR olmali (test kapali pencereyi simule edebilmeli)."""
     cevre = os.environ.get("PRUVO_BUGUN")
@@ -1219,18 +1219,18 @@ def _codex_bugun():
     return datetime.date.today()
 
 
-def _codex_pencere_acik_mi():
-    """Bugun, CODEX_PENCERE_BITIS dahil mi? Sonrasi = kapali. Tarih enjekte
-    edilebilir (PRUVO_BUGUN). False donerse codex yeniden KAPALI sayilir
+def _emekli_motor_pencere_acik_mi():
+    """Bugun, EMEKLI_MOTOR_PENCERE_BITIS dahil mi? Sonrasi = kapali. Tarih enjekte
+    edilebilir (PRUVO_BUGUN). False donerse emekli motor yeniden KAPALI sayilir
     ([[goc-yolu-eski-kapiya-takilir]] — istisnanin sessiz kalicilasmasini onler)."""
     try:
-        bitis = datetime.date.fromisoformat(CODEX_PENCERE_BITIS)
+        bitis = datetime.date.fromisoformat(EMEKLI_MOTOR_PENCERE_BITIS)
     except ValueError:
         return False  # tek kaynak bozuksa kapali say (fail-closed)
-    return _codex_bugun() <= bitis
+    return _emekli_motor_bugun() <= bitis
 
 
-def _codex_model_bayrak_var(kalan):
+def _emekli_motor_model_bayrak_var(kalan):
     """Kalan tokenlarda '-m' ya da '--model' VAR MI? Kaba tarama — parser taklidi
     YASAK (ayni sinif: c27de-1). Tek kriter: bayrak token olarak bulunuyor."""
     for t in kalan:
@@ -1239,7 +1239,7 @@ def _codex_model_bayrak_var(kalan):
     return False
 
 
-def _codex_model_adi(kalan):
+def _emekli_motor_model_adi(kalan):
     """Bayraktan HEMEN sonraki token, '-' ile baslamayan bir deger ise model adidir.
     Bitisik/esitlikli bicim (or. '-mluna', '--model=luna') YOK SAYILIR (fail-closed):
     kural yalniz acik ayrik bicimi kabul eder; bayraksiz sayfa zaten bir onceki
@@ -1255,68 +1255,68 @@ def _codex_model_adi(kalan):
     return None
 
 
-def _codex_cikti_valid_helper(kalan):
-    """Kural 1 icin OZGUN cikti-bayragi gecerliligi: mevcut _codex_cikti_degerli'nin
+def _emekli_motor_cikti_valid_helper(kalan):
+    """Kural 1 icin OZGUN cikti-bayragi gecerliligi: mevcut _emekli_motor_cikti_degerli'nin
     MUTASYONLU halinden BAGIMSIZ olmali — yoksa ME11/ME13/ME14 (cikti-bayragi
     deger/bicim kontrollerini kaldiran mutantlar) yalnizca benim kural 1'i tetikler
     ve beklenen RED -> ALLOW gecisini SAGLAYAMAZ (mutant yapsa bile kural 1 onceki
-    RED durumunu korur). Buradaki mantik _codex_cikti_degerli ile aynidir; mutasyon
+    RED durumunu korur). Buradaki mantik _emekli_motor_cikti_degerli ile aynidir; mutasyon
     olsa bile bagimsiz degerlendirir. Cift degerlendirme maliyeti kucuk (cagri basina
     birkaç token tarama)."""
     tokenlar = kalan[1:]
     for i, t in enumerate(tokenlar):
-        if t in CODEX_CIKTI_BAYRAKLARI:
+        if t in EMEKLI_MOTOR_CIKTI_BAYRAKLARI:
             if i + 1 < len(tokenlar):
                 deger = tokenlar[i + 1]
                 if deger and not deger.startswith("-"):
                     return True
             return False
-        if t.startswith(CODEX_CIKTI_ONEKI):
-            deger = t[len(CODEX_CIKTI_ONEKI):]
+        if t.startswith(EMEKLI_MOTOR_CIKTI_ONEKI):
+            deger = t[len(EMEKLI_MOTOR_CIKTI_ONEKI):]
             if deger and not deger.startswith("-"):
                 return True
             return False
     return False
 
 
-def _codex_karari(tokenlar):
-    """26 TEM (BaBa hukmu) + 27 TEM SIKILASTIRMA — codex cagrisinin KARARI. Doner:
-        None      → segmentin CALISTIRILAN programi codex degil (kural uygulanmaz)
+def _emekli_motor_karari(tokenlar):
+    """26 TEM (BaBa hukmu) + 27 TEM SIKILASTIRMA — emekli motor cagrisinin KARARI. Doner:
+        None      → segmentin CALISTIRILAN programi emekli motor degil (kural uygulanmaz)
         "gecer"   → izinli (delege = mimarlik) — cagiran YINE DE devam eder, yani
                     diger kurallar bu segmentte KAPANMAZ (bkz. main(): 'continue' YOK)
         str       → red gerekcesi
 
     KABA + FAIL-CLOSED (parser taklidi YASAK). Sira:
-      0. argv0 codex degilse KURAL HIC CALISMAZ (_codex_programi — 27 Tem daraltmasi).
-      1. Ciplak 'codex' (argumansiz, etkilesimli TUI) = RED (kabul kapisi kurulamaz).
+      0. argv0 emekli motor degilse KURAL HIC CALISMAZ (_emekli_motor_programi — 27 Tem daraltmasi).
+      1. Ciplak 'emekli motor' (argumansiz, etkilesimli TUI) = RED (kabul kapisi kurulamaz).
       2. GOZLEM: kalan TUM tokenlar gozlem bayragiysa gecer (-v/-V/-h/--help/--version).
       3. ALT-KOMUT: kalan[0] 'exec' DEGILSE RED (resume/mcp/login/bilinmeyen = varsayilan
          RED). Fail-closed: yeni alt-komut ciktiginda kapi kendiliginden ACILMAZ.
       4. CIKTI BAYRAGI + DEGER: '-o <yol>' / '--output-last-message <yol>' /
          '--output-last-message=<yol>'. Bitisik kisa form ('-o/tmp/x') KABUL EDILMEZ."""
-    if not tokenlar or not _codex_programi(tokenlar[0]):
+    if not tokenlar or not _emekli_motor_programi(tokenlar[0]):
         return None
     kalan = tokenlar[1:]
     if not kalan:
         return (
-            "çıplak 'codex' çağrısı (argümansız = etkileşimli TUI): kabul kapısı "
-            "kurulamaz. Delege 'codex exec ... -o <dosya>' iledir."
+            "çıplak 'emekli motor' çağrısı (argümansız = etkileşimli TUI): kabul kapısı "
+            "kurulamaz. Delege 'emekli motor exec ... -o <dosya>' iledir."
         )
-    if all(t in CODEX_GOZLEM_BAYRAKLARI for t in kalan):
+    if all(t in EMEKLI_MOTOR_GOZLEM_BAYRAKLARI for t in kalan):
         return "gecer"
-    if kalan[0] != CODEX_IZINLI_ALTKOMUT:
+    if kalan[0] != EMEKLI_MOTOR_IZINLI_ALTKOMUT:
         return (
-            "codex alt-komutu 'exec' DEĞİL (" + kalan[0][:24] + "). Doktrin 'codex EXEC' "
+            "emekli motor alt-komutu 'exec' DEĞİL (" + kalan[0][:24] + "). Doktrin 'emekli motor EXEC' "
             "der: 'resume' etkileşimli oturumu sürdürür — bu DELEGASYON değil, mimarın "
             "KENDİ ELİYLE iş yapmasıdır; 'mcp'/'login' vb. de delege değildir. Bilinmeyen "
             "alt-komut VARSAYILAN RED (fail-closed)."
         )
-    if not _codex_cikti_degerli(kalan[1:]):
+    if not _emekli_motor_cikti_degerli(kalan[1:]):
         return (
-            "Codex çağrısı 'codex-isci' STANDARDINA uymuyor: sonucu dosyaya yazan bayrak "
+            "emekli motor çağrısı 'isci-devri' STANDARDINA uymuyor: sonucu dosyaya yazan bayrak "
             "bir DEĞERLE gelmiyor ('-o <dosya>' ya da '--output-last-message <dosya>', "
             "boşlukla ayrılmış ve ardından bir YOL; '--output-last-message=<yol>' de "
-            "geçerli). Codex'e iş DEVRETMEK serbest (26 Tem: işçi dağıtmak mimarlıktır), "
+            "geçerli). emekli motor'e iş DEVRETMEK serbest (26 Tem: işçi dağıtmak mimarlıktır), "
             "raporsuz delege değil — kabul kapısı kurulmadan çağırma."
         )
     # === 17 AGU K159: SURELI PENCERE + MODEL KAPISI (cikti-bayragi KURALINDAN SONRA) ===
@@ -1324,30 +1324,30 @@ def _codex_karari(tokenlar):
     # bayragi yok/eksik) zaten oncesinde elendigi icin bu kurallarin kirmizi kumesini
     # SUNI olarak genisletmesi engellenir. Sira fail-fast: pencere -> model bayrak ->
     # amiral -> bilinmeyen. Tarih PRUVO_BUGUN env ile testten enjekte edilebilir (V6).
-    # ALT-KOMUT KORUMASI (27 Tem ME10 uyumu): codex'in `exec` DISINDAKI alt-komutlari
+    # ALT-KOMUT KORUMASI (27 Tem ME10 uyumu): emekli motor'in `exec` DISINDAKI alt-komutlari
     # (resume/mcp/login/apply) icin bu kurallar UYGULANMAZ. Alt-komut kapisi yukarida
     # zaten RED (kalan[0] != 'exec'); eger ME10 gibi bir mutasyon o kapisi kapatirsa,
     # alt-komut yine de 'exec' degilse burada `gecer` ile cikip model kurallarimizi
     # UYGULAMIYORUZ — yoksa ME10'un bekledigi {264..275} kirmizi kumesi TAM-ESITLIK
     # testini bozar.
-    if kalan[0] != CODEX_IZINLI_ALTKOMUT:
+    if kalan[0] != EMEKLI_MOTOR_IZINLI_ALTKOMUT:
         return "gecer"
-    if not _codex_pencere_acik_mi():
+    if not _emekli_motor_pencere_acik_mi():
         return (
-            "codex SURELI PENCERESI KAPANDI (" + CODEX_PENCERE_BITIS + " dahil, "
+            "emekli motor SURELI PENCERESI KAPANDI (" + EMEKLI_MOTOR_PENCERE_BITIS + " dahil, "
             "bugun sonrasi). Sureli istisna 17->20 Agu ile sinirliydi; 20 Agu itibariyle "
-            "codex yeniden KAPALI (emeklilik yururlukte). Yeni karar Okan'da — codex "
+            "emekli motor yeniden KAPALI (emeklilik yururlukte). Yeni karar Okan'da — emekli motor "
             "yerine kimi/minimax-m3'e delege et."
         )
-    if not _codex_model_bayrak_var(kalan[1:]):
-        if _codex_cikti_valid_helper(kalan):
+    if not _emekli_motor_model_bayrak_var(kalan[1:]):
+        if _emekli_motor_cikti_valid_helper(kalan):
             return (
-                "codex cagrisinda MODEL BAYRAGI (-m ya da --model) YOK. Bayraksiz cagri "
+                "emekli motor cagrisinda MODEL BAYRAGI (-m ya da --model) YOK. Bayraksiz cagri "
                 "saglayicinin VARSAYILAN amiral modeline duser; Okan emri: amiral yasak. "
-                "DOGRUSU: codex exec -m <model> ... (izinli: " +
-                ", ".join(CODEX_IZINLI_MODELLER) + ")."
+                "DOGRUSU: emekli motor exec -m <model> ... (izinli: " +
+                ", ".join(EMEKLI_MOTOR_IZINLI_MODELLER) + ")."
             )
-    model = _codex_model_adi(kalan[1:])
+    model = _emekli_motor_model_adi(kalan[1:])
     # Kurallar 2 ve 3 SADECE model gercekten BELIRTILDIYSE tetiklenir (kural 1'in
     # erken donusu zaten no-flag durumunu elemis olsa da, mutasyon testinin mutlak
     # tek-iz ayirt ediciligi icin burada da `if model` ile bekci konuldu; boylece
@@ -1356,39 +1356,39 @@ def _codex_karari(tokenlar):
     # (ozellikle `not in IZINLI`) gecmesini engeller). Model yasak ise zaten kural 2
     # doner; kural 3 yasak'i tekrar kontrol etmez (`not in YASAK AND not in IZINLI`).
     if model:
-        if model in CODEX_YASAK_MODELLER:
+        if model in EMEKLI_MOTOR_YASAK_MODELLER:
             return (
-                "codex modeli AMIRAL SINIFINDA (" + model + "). Okan karari: amiral "
-                "(" + ", ".join(sorted(CODEX_YASAK_MODELLER)) + " dahil) yasak. IZINLI: " +
-                ", ".join(CODEX_IZINLI_MODELLER) + "."
+                "emekli motor modeli AMIRAL SINIFINDA (" + model + "). Okan karari: amiral "
+                "(" + ", ".join(sorted(EMEKLI_MOTOR_YASAK_MODELLER)) + " dahil) yasak. IZINLI: " +
+                ", ".join(EMEKLI_MOTOR_IZINLI_MODELLER) + "."
             )
-        if model not in CODEX_IZINLI_MODELLER and model not in CODEX_YASAK_MODELLER:
+        if model not in EMEKLI_MOTOR_IZINLI_MODELLER and model not in EMEKLI_MOTOR_YASAK_MODELLER:
             return (
-                "codex modeli IZINLI KUMEDE DEGIL (" + model + "). Fail-closed: yarin "
+                "emekli motor modeli IZINLI KUMEDE DEGIL (" + model + "). Fail-closed: yarin "
                 "eklenecek bir model kapiyi kendiliginden ACMAMALI. IZINLI: " +
-                ", ".join(CODEX_IZINLI_MODELLER) + "."
+                ", ".join(EMEKLI_MOTOR_IZINLI_MODELLER) + "."
             )
     return "gecer"
 
 
-def _codex_segment_karari(segment, tokenlar):
-    """27 TEM (2. tur) — segmentin codex KARARI, IKI OKUMA ile (bkz.
-    _sarmalayici_ikinci_okuma). Doner: _codex_karari ile ayni uc deger.
+def _emekli_motor_segment_karari(segment, tokenlar):
+    """27 TEM (2. tur) — segmentin emekli motor KARARI, IKI OKUMA ile (bkz.
+    _sarmalayici_ikinci_okuma). Doner: _emekli_motor_karari ile ayni uc deger.
 
     Sira: (1) normal okuma (sarmalayici_soy sonucu) — daraltilmis argv0 kurali;
     (2) yalnizca (1) 'kural uygulanmaz' derse IKINCI OKUMA denenir. Boylece POZITIF
     kararlar (ozellikle 'gecer') degismez, yalnizca sizinti kapanir."""
-    karar = _codex_karari(tokenlar)
+    karar = _emekli_motor_karari(tokenlar)
     if karar is None:
         ikinci = _sarmalayici_ikinci_okuma(parcala(segment))
         if ikinci != tokenlar:
-            karar = _codex_karari(ikinci)
+            karar = _emekli_motor_karari(ikinci)
     return karar
 
 
 def _agent_karari(girdi):
     """28 TEM — AGENT-KAPISI karari (mimar ANA oturumu bir Claude iscisi acarken). Doner:
-        "gecer" → prompt'ta gecerli 'codex-muafiyet: <is> — <sinif>' beyan satiri VAR
+        "gecer" → prompt'ta gecerli 'isci-muafiyet: <is> — <sinif>' beyan satiri VAR
         str     → red gerekcesi (beyan satiri yok / gecersiz sinif)
 
     ISCI muafiyeti main() basinda (kimlik==ISCI) verilir; bu fonksiyon yalniz MIMAR icin
@@ -1404,7 +1404,7 @@ def _agent_karari(girdi):
         prompt = ""
     if AGENT_MUAFIYET_RE.search(prompt):
         return "gecer"
-    if "codex-muafiyet:" not in prompt.lower():
+    if "isci-muafiyet:" not in prompt.lower():
         return AGENT_GEREKCE
     return (
         "AGENT-KAPISI (28 Tem): BEYAN VAR, SINIF JETONU ESLESMEDI: gorulen "
@@ -1498,7 +1498,7 @@ def main():
         sys.exit(0)
 
     # === 28 TEM AGENT-KAPISI: mimar ANA oturumu Claude iscisi (Agent/Task) acarken
-    # 'codex-muafiyet: <is> — <sinif>' beyan sarti. ISCI (agent_id dolu) YUKARIDA zaten
+    # 'isci-muafiyet: <is> — <sinif>' beyan sarti. ISCI (agent_id dolu) YUKARIDA zaten
     # muaf cikti; Agent/Task DISINDAKI hicbir arac bu koldan gecmez (tool_name kapisi) —
     # Bash/Write/... asagidaki mevcut mantikla eskisi gibi islenir (regresyon 0).
     tool_name = girdi.get("tool_name") or ""
@@ -1558,7 +1558,7 @@ def main():
     #       kolundan ONCE, main() basinda kosar ve bu satira HIC ugramaz.
     #     * ISCI-SARMALAYICI kapisi (isci.sh claude + sert blok evler) — dongude, rol
     #       bayragina BAKMAZ.
-    #     * codex KALITE kapisi (-o <dosya> sarti) — delegasyon standardi herkese esittir.
+    #     * emekli motor KALITE kapisi (-o <dosya> sarti) — delegasyon standardi herkese esittir.
     #     * A) repo DISINDAKI betigi dogrudan cagirma, A2) yorumlayiciya env ile kod
     #       enjeksiyonu, C) satir-ici kod (-c/-e/stdin), R2) argumanlarda repo DISI yol,
     #       F) betigin repo ICINDE olmasi — hepsi cipte de AYNEN kosar. Yani cip
@@ -1603,21 +1603,21 @@ def main():
                 "ağ / canlı doğrulama komutu (" + ad + "). Canonical URL, feed, deploy "
                 "çıktısı doğrulamasını İŞÇİYE yaptır (git ve gh serbest kalır)."
             )
-        # 26 TEM: kosulsuz codex reddi KALKTI; yerine kalite kapisi (cikti dosyasi sarti).
+        # 26 TEM: kosulsuz emekli motor reddi KALKTI; yerine kalite kapisi (cikti dosyasi sarti).
         # DIKKAT — 'gecer' halinde CONTINUE YOK: segmentin kalan denetimleri (repo-disi
         # betik, satir-ici kod, yol taramasi) calismaya devam eder. Aksi halde token
-        # dizisine 'codex' + '-o' serpistirmek TUM kapiyi atlatan bir anahtar olurdu.
-        # 27 TEM (2. tur): karar IKI OKUMA ile alinir — 'nice -n 10 codex exec' gibi
-        # sarmalayici bayrak-degeri sizintisi kapanir (_codex_segment_karari).
-        codex_karari = _codex_segment_karari(segment, tokenlar)
-        if codex_karari is not None and codex_karari != "gecer":
-            reddet(codex_karari, sonu=CODEX_GEREKCE_SONU)
+        # dizisine 'emekli motor' + '-o' serpistirmek TUM kapiyi atlatan bir anahtar olurdu.
+        # 27 TEM (2. tur): karar IKI OKUMA ile alinir — 'nice -n 10 emekli motor exec' gibi
+        # sarmalayici bayrak-degeri sizintisi kapanir (_emekli_motor_segment_karari).
+        emekli_motor_karari = _emekli_motor_segment_karari(segment, tokenlar)
+        if emekli_motor_karari is not None and emekli_motor_karari != "gecer":
+            reddet(emekli_motor_karari, sonu=EMEKLI_MOTOR_GEREKCE_SONU)
 
         # === 13 AGU ISCI-SARMALAYICI KAPISI ===
         # A ADIMINDAN ONCE degerlendirilir: sarmalayicinin argumanlari BILEREK repo
         # DISIDIR (baska ev koku + scratchpad spec'i bu isin TANIMIDIR), yani A adimi ve
         # yol taramasi (dis_yol) bu cagriyi yapisal olarak reddederdi. 'gecer' halinde
-        # segment KAPATILIR (continue) — codex kolundan FARKI budur ve bilerekdir.
+        # segment KAPATILIR (continue) — emekli motor kolundan FARKI budur ve bilerekdir.
         isci_karari = _isci_karari(tokenlar)
         if isci_karari is not None:
             if isci_karari != "gecer":
