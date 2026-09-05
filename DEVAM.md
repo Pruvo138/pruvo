@@ -2,11 +2,11 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 5 EYL ~19:0xZ — **OKAN 3 EMIR → tek cip, tek dal (`task_ba16f2aa`)**
-① "**Bisiklete urun gruplarina gore 10+ alt kategori ac**" · ② "**3'un altinda alt kategorisi olan ana sayfada olmaz**" · ③ "**skan stil ve olcuye ozel bannerlarini eski yerine koy**". Ucu de `index.html`e dokunuyor → AYRI cip ACILMADI, cakisma onlendi (③ kosan cipe `send_message` ile eklendi). SIRA ①→②→③: ① once olunca Bisiklet esigi DOGAL gecer, istisna satiri KODA GIRMEZ.
-**②** (c) sikki ONCE curutuldu: Ofis'te HICBIR esikte cip dogmuyor (markalar 1'er), Kamera'da esik≥3'te 4 cip ama 2'si kirli. Okan **Bisikleti (2.618 urun) ISTISNA tuttu**; kalkan 5 panel: Tamirat 31 · Ofis 71 · Kamera 24 · Bahce 72 · Oyun/Hobi 85 (283 urun) — kategori SILINMIYOR, nav+/kategori/ DURUYOR.
-**③** git ile civilendi: `#bannerRow` ESKIDEN `<main>`in ILK cocuguydu (`63a48f7a^:1128`); slider sokulurken `#katPanels` ustune girdi (`ebdfb059:1173`). "Eski yer" = `#katPanels` USTU.
-🔴 **BAYAT KARAR:** `arama.py` K4 yorumu "**Bisiklet 31** urun → alt kategori ALMAZ, EKSIKLIK DEGIL KARARDIR" diyor; gercek **2.618**. Esik ≥100 COKTAN gecilmis — emir kurali DELMIYOR. Sayi cipte guncellenecek.
+## 🔁 5 EYL ~20:xxZ — **OKAN ①+② BITTI** (`5b86ac20`, cip `cool-saha-010aa9`) — **ISARETCI**
+↩︎ **TAM METIN `DEVAM-ARSIV.md`** (5 Eyl isaretciye indirme; md5 birebir, eksik 0).
+**①** Bisiklet **16 alt kategori** (hepsi ≥15 urun, kapsama %100), 2.618 urune yazildi, **D1 teyitli**. **②** `KAT_PANEL_MIN_CIP=3` → panel **12→7**; Bisiklet (17 cip) esigi **DOGAL** gecti, kodda ozel-durum YOK.
+🔴 **ACIK — MARKA EKSENI** (Okan: "farkli markalari da ekle") → cip `task_4f4e99cb`: engel beyaz liste DEGIL **veri** — Bisiklet `marka` alani 2.618'in **27**'sinde dolu (%1,0). Baslikta esigi gecip `marka`ya YAZILMAMIS: Garmin 68 · GoPro 67 · Samsung 20 · Shimano 17 (+Yamaha 18 = bugunku TEK cip). `Mini` 17 YANLIS POZITIF.
+🔴 **ACIK — ③** "skan stil + olcuye ozel bannerlari eski yerine": bu cipin kapsaminda DEGILDI.
 
 ## 🔁 5 EYL ~18:3xZ — **KUTU KILIDI CIPI ACILDI (`task_e76cf129`, KOSUYOR) · KOK SEBEP CIVILENDI · defter 2 blok ISARETCIYE INDI (elle, md5 birebir)**
 **KOK SEBEP (tam metin cip spec'inde + kutuda):** arsiv `:64377` kapanisi jetonu TASIYOR (`:64396`) ama `blok_kapanis_mi()` **`(False,None)`** donuyor → ad `arsiv_kapanan_ad`(251)'a HIC girmiyor → `ARSIV_SERBEST=0`. Jeton YALNIZ SON ICERIK satirinda araniyor, o satir **imza**. `AD_YOK` kolu ayrica ULASILAMAZ (5 blok); MaCiT'in kapanis blogunun KENDISI `ACIK_ADSIZ` dustu = kapanis yazmak 6.'yi EKLEDI. Taban: kutu **401→477** st (tavan 250), test **50 vaka/466 iddia**.
