@@ -249,6 +249,44 @@ def kabul(kok):
             toplam_marka > 0 and toplam_model > 0 and len(ix["alt"]) > 0,
             "marka=%d model=%d alt=%d" % (toplam_marka, toplam_model, len(ix["alt"])))
 
+    # --- G) BISIKLET MARKA EKSENI (Okan emri 5 Eyl: "farkli markalari da ekle") ----
+    # OLCULEN ENGEL BEYAZ LISTE DEGIL, VERIYDI: Bisiklet'te `uyum` kapsami 0,0046 —
+    # ESIK_UYUM_KAPSAM'in (0,50) COK altinda, yani TANINMIS_MARKALAR kuratorlugu bu
+    # kategoride ZATEN uygulanmiyor; listeye marka eklemek Bisiklet'te HICBIR SEY
+    # degistirmezdi. Gercek eksik `marka` alaniydi: 2.618 urunun yalniz 27'sinde (%1,0)
+    # doluydu ve esigi gecen TEK deger `Yamaha` 18 idi -> kategoride 1 marka cipi.
+    # BASLIK ekseninde esigi gecen ama `marka`ya YAZILMAMIS gercek markalar olculdu
+    # (Garmin 68 · GoPro 67 · Samsung 20 · Shimano 17) ve TAM JETON eslesmesiyle
+    # (arama.nrm -> bosluga bol -> kume uyeligi) 167 urune backfill edildi.
+    #
+    # 🔴 G3/G4 ALT-DIZE KOLUDUR, SUS PAYI DEGIL: ayni backfill ALT DIZE ile yapilsaydi
+    # `Mini` 17 urunle esigi gecer ve Bisiklet'te bir marka cipi DOGARDI — oysa oradaki
+    # "mini" bir SIFATTIR ("mini pompa", "iPad Mini", "Supernova M99 Mini Pro",
+    # "Xiaomi Mini Hoparlor"), araba markasi DEGIL. G3 cip duzeyinde, G4 URUN duzeyinde
+    # (NON-GROWTH) olcer: G4 esigin ALTINDA kalan sizintiyi da yakar.
+    BISIKLET_MARKA_TABANI = ["Garmin", "GoPro", "Samsung", "Shimano", "Yamaha"]
+    bis_cip = ix["kat"].get("Bisiklet", {})
+    eksik_bis = [m for m in BISIKLET_MARKA_TABANI if m not in bis_cip]
+    dogrula("G1 BISIKLET MARKA CIPI >= %d (taban kume EKSIKSIZ)" % len(BISIKLET_MARKA_TABANI),
+            not eksik_bis and len(bis_cip) >= len(BISIKLET_MARKA_TABANI),
+            "cip=%d eksik=%s -> %s"
+            % (len(bis_cip), eksik_bis or "YOK",
+               sorted(((k, v["n"]) for k, v in bis_cip.items()), key=lambda t: -t[1])))
+    bis_esik_alti = ["%s=%d" % (m, bis_cip[m]["n"]) for m in BISIKLET_MARKA_TABANI
+                     if m in bis_cip and bis_cip[m]["n"] < ci.ESIK_MARKA]
+    dogrula("G2 TABAN KUMESININ HER CIPI >= %d URUN TASIYOR" % ci.ESIK_MARKA,
+            not bis_esik_alti, "esik alti=%s" % (bis_esik_alti or "YOK"))
+    dogrula("G3 `Mini` BISIKLET MARKA CIPI DEGIL (alt-dize eslesmesi kolu)",
+            "Mini" not in bis_cip,
+            "Bisiklet cipleri=%s" % sorted(bis_cip.keys()))
+    bis_mini_urun = [u.get("id") for u in gercek
+                     if (u.get("kategori") or "").strip() == "Bisiklet"
+                     and any((x or "").strip().lower() == "mini"
+                             for x in (u.get("marka") or []))]
+    dogrula("G4 NON-GROWTH: BISIKLET'TE HICBIR URUN `marka`da `Mini` TASIMAZ",
+            not bis_mini_urun,
+            "tasiyan=%d %s" % (len(bis_mini_urun), bis_mini_urun[:3]))
+
     # --- A6/A7) UC MARKA ETIKETI: gorunen cip UCTA da >0 olmali -------------
     # 🔴 UC YUKLEMI ELLE YAZILMAZ. Worker artik D1 `marka_kanon` uyeligini okur;
     # ayna da AYNI hedefi ureten d1-sync.marka_kanon_haritasi()ndan turer. Ham `marka[]`
