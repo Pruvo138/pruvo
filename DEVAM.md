@@ -2,6 +2,23 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔧 5 EYL ~11:xZ — **K374 SINIF: MAKINEYE OZEL MUTLAK YOL CI'DA OKUNUYOR** (dal `f2db0c8f`, MERGE MIMARDA)
+Tamirci turu. Spec'in "3 Build & deploy kirmizisi" ESKI SHA'lara aitti; **HEAD `d5f51981`de
+yayin ACIK** (`33939187705` success + 4/4 alarm yesil). Duran tek kirmizi SERIT B
+(`33945934510`): **5 is / 22 adim**. Bunlarin **3'u TEK SATIRDAN** oluyordu —
+`arsiv-kapisi.py:418` fikstur kaynagini `/Users/okan/dev/pruvo`dan aliyordu; CI checkout'u
+baska yerde. Yani uc batarya "kirmizi" degil **HIC OLCMEMIS**. Ikinci vaka
+`cip-kapanis-kancasi.py::KAPI`: kanca CI evreninde **OLU** idi (ayrinti KUTUDA).
+🔴 **UCUNCU BULGU (asil sinif):** iki mutasyon harness'i de kontrol KIRMIZI iken turu
+surdurup **9/9 + 4/4 sahte kill** basiyordu. **ONARIM:** kanonik kaynak TEK cozucude,
+3 eksen (ortam → aracin kendi `tools/` → sabit), yoksa fail-loud; harness'ler taban
+kirmiziyken `MUTASYON OLCULEMEDI` deyip DURUR ve emniyetin KENDISI yeni **HK kolu** ile
+olculur. M7 capasi hukum yoluna tasindi (cozucu degisince oldurmez olmustu).
+**OLCUM (ortam taklidi): TABAN(HEAD) DUSEN=4/4 → ONARIM DUSEN=0/4.** Yerel: 37/37+10/10 ·
+11/11+5/5 · `ci-kapsam-test` YESIL. Ayrinti kaynak-dogrusunda **K374**.
+🟠 Bende OLMAYAN: `fikstur-git-sizinti-kapisi` hala KIRMIZI (3 dosya) — AYRI kalem,
+tabanla AYNI, dokunulmadi. Kutu 799→**315** satir (tavan 250; kalan 7 ACIK CIP blogu).
+
 ## 🔁 5 EYL ~02:xZ — **K366 CI'ya BAGLANDI + indeks ayraci KORUMA KORLUGU onarildi** (main `299e9f9b`)
 **① Bloker KAPANDI:** `nobet.yml` SERIT B'ye `hafiza-kota-kapisi-test.py` AYRI adim
 (emsal: defter kota kapisi; ayri tally — karisik tally bir eksenin dusenini otekinin
@@ -23,33 +40,7 @@ kanitlandi); ayrinti KUTUDA — bu defterde ayrintisi BILEREK yazilmiyor.
 🔴 D1 DRIFT VAR ama BENIM DEGIL: 8 eksik satir `a4e7e3e5` (urunler.json, MaCiT duzlemi);
 benim dalim urunler.json'a **0 kez** dokundu. *Kapatan:* `d1-sync.py` (MaCiT).
 
-## 🔁 5 EYL ~00:xZ — BaBa 4 KALEM (main `074d7c9f` YERELDE · origin `e021e922`)
-**KAPANAN:** ① D1 · ② KORUMALI blok tasinmaz · ④ filo dersi 5 evde · **Okan: ArTisT sayfa izni.**
-③ baglam kotasi kapisi YAZILDI + 6 evde KURULU, commit YERELDE — push CI kapsam kapisinda DURDU.
-
-**① D1** (`e021e922`): her wrangler cagrisi KALICI OZEL cache'te (soguk 27,9 → isinmis **1,4 sn**;
-`--version` kabul GECTI). Tavan iki kollu: ISINMIS **120** sn (olculen en yavas 11,1) · SOGUK **450**
-(olculen 307,1) — tek 120 mesru doldurmayi keserdi. `10043` GECICI kovasina alindi: tam senkron
-onunla rc=1 dustu, retry YAPILMADI, 51 urunluk yazma bosa gitti; AYNI komut degisiklik olmadan rc=0
-verdi (geri-okuma **51/51 ✅**). Kabul: tani-test **39/39** · mutasyon **13/13, OLDUREN 10/10,
-HEDEF_KOL_ATFI 10/10, YAMA_TUTMADI 0** · `--kendini-test` 157/0.
-🔴 **Batarya kendi KALICI kaynagini SILMISTI** (E kolu `finally`si ayrim yapmiyordu; cache **0 B**)
-— E3/E4 ile ayrildi. 🟠 `--durum` **rc=0 ama 71,2 sn** (kabul <60): 42,25 sn'si YEREL turetim
-(`marka_kanon` 20,59 + `model_kanon` 20,41), wrangler DEGIL. Tekillestirme **olculdu ve CURUDU**
-(`evren`/`ek` her cagride yeni nesne) → GERI ALINDI, no-op kod BIRAKILMADI. *Kapatan:* iki
-ureticinin kaynak nesnesi TEKILLESIP `--durum` 60 sn alti.
-
-**② KORUMALI** (`e021e922`): basliginda `KORUMALI` gecen blok rotasyona GIRMEZ (K329 konum olcutu,
-`sabit_indeksler`e 4. kaynak). Kabul **50 vaka / 466 iddia**; CANLI rotasyon `KORUMALI_ETIKETLI=1
-kilitledi=1` basti, blok YERINDE ATLANDI.
-
-**③ BAGLAM KOTASI — kabul 23/23**, 6 evin `settings.json`'una KANONIK YOLLA bagli. 🔴 **TASARIM
-KUSURU, 2. VAKA OLCULDU:** kapanis sinifi (a) BEKLEYEN commit'in push kablosunu, (b) **YAYIN
-KIRIKKEN koordinasyonu** (`SendMessage`/`ListAgents`) KAPSAMIYOR → koruma korudugunu durduruyor.
-Ikinci vaka bu oturumda: kapi 253K/183 turda kesti, yayin KIRIKKEN cipe mesaj atilamadi.
-*Kapatan:* kapanis sinifi iki hali de kapsar + 2 vaka. 🟠 NET-0 YAPILAMADI: kor silme YOK.
-
-**BEKLIYOR:** 🟠 MaCiT CLAUDE.md **13.060 B** (tavan 12.288) — net-0 kirpma MaCiT'te, KOR KESMEDIM.
+## 🔁 5 EYL ~00:xZ — BaBa 4 KALEM → **ISARETCI: tam metin `DEVAM-ARSIV.md`de** (kalemleri main'e girdi: `e021e922` D1 · `a15ce3c3` baglam kotasi)
 
 ## 🔁 4 EYL ~23:xZ — YAYIN ACILDI → **ISARETCI: tam metin `DEVAM-ARSIV.md` + commit `366dd3cf`**
 
