@@ -10,7 +10,7 @@ NEDEN VAR — OLCULDU, TAHMIN DEGIL (BaBa filo olcumu, her evin son transkripti)
 
 NE YAPAR (iki esik, iki ayri kol):
   UYARI  (>=350 tur VEYA >=200K): araci GECIRIR, uyari satiri basar.
-  RED    (>=400 tur VEYA >=250K): YALNIZ KAPANIS-SINIFI arac gecer; gerisi RED
+  RED    (>=400 tur VEYA >=350K): YALNIZ KAPANIS-SINIFI arac gecer; gerisi RED
          "ONCE kapanis + /clear". Kapanis sinifi = defteri/kutuyu yazmak, commit/push
          etmek ve okuma/olcme (grep/ls/git status) — yani oturumu KAPATMAYA yarayan
          her sey. Boylece kapi, kapanmasini istedigi seyi ENGELLEMEZ
@@ -35,7 +35,7 @@ import sys
 UYARI_TUR = 350
 UYARI_JETON = 200_000
 RED_TUR = 400
-RED_JETON = 250_000
+RED_JETON = 350_000
 MEKANIK_WRITE = 15          # kod/test dosyasina Write sayisi
 
 # Kod/test sayilan uzantilar (mekanik kol). Defter/kutu/markdown BURADA DEGIL:

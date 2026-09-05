@@ -84,15 +84,15 @@ def vaka1(kok):
 
 def vaka2(kok):
     print("\n[2] RED ESIGI — YALNIZ kapanis sinifi gecer")
-    t_jeton = transkript_yaz(kok, tur=120, baglam=260_000)      # jeton ekseni tetikler
+    t_jeton = transkript_yaz(kok, tur=120, baglam=380_000)      # jeton ekseni tetikler
     t_tur = transkript_yaz(os.path.join(kok, "b"), tur=420, baglam=90_000)  # tur ekseni
 
     karar, sebep = kos("Write", KOD_WRITE, t_jeton)
-    iddia("2a >=250K baglam + kod Write -> RED", karar == "deny", "karar=%s" % karar)
+    iddia("2a >=350K baglam + kod Write -> RED", karar == "deny", "karar=%s" % karar)
     iddia("2b red gerekcesi SAYIYI ve careyi soyluyor",
-          "260K" in sebep and "/clear" in sebep and "KAPANIS" in sebep, sebep)
+          "380K" in sebep and "/clear" in sebep and "KAPANIS" in sebep, sebep)
     karar, _s = kos("Bash", AGIR, t_jeton)
-    iddia("2c >=250K + agir Bash -> RED", karar == "deny", "karar=%s" % karar)
+    iddia("2c >=350K + agir Bash -> RED", karar == "deny", "karar=%s" % karar)
 
     # 🔴 KAPI KORUDUGUNU DURDURMAMALI: kapanis araclari GECMELI
     for ad, arac, girdi in (("DEVAM.md Write", "Write", DEFTER_WRITE),
@@ -140,7 +140,7 @@ def mutant(kok):
     with io.open(KAPI, encoding="utf-8") as f:
         kaynak = f.read()
     sha_once = hashlib.sha256(kaynak.encode()).hexdigest()
-    t = transkript_yaz(os.path.join(kok, "m"), tur=120, baglam=260_000)
+    t = transkript_yaz(os.path.join(kok, "m"), tur=120, baglam=380_000)
     tmp = tempfile.mkdtemp(prefix="baglam-mutant-")
     try:
         # M1 [OLDURUCU]: RED esigi devre disi -> 2a GECMELI (esik yuku tasiyor mu?)
