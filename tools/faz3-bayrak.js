@@ -678,6 +678,26 @@ function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
           gizliUye.length > 0 && kacan.length === 0,
           "kacan=" + kacan.length + " " + JSON.stringify(kacan.slice(0, 5)) +
           " -> uyelik kolu dusmus, marka sorgusu yalniz BASLIGA bakiyor");
+
+        // ── DARALTMA EKSENI ANKRAJI (6 Eyl 2026) — KACAN IKINCI MUTANT BURAYI BEKLIYORDU.
+        // OLCULEN KOK: `aramaPlaniEsler`i marka kolunda HEP TRUE yapan mutant
+        // (`return markaSorgusuEsler(p, plan.kanon);` -> `return true;`) hicbir kolu
+        // kirmizi yakmiyordu. Iki sebep birlikte calisiyordu:
+        //   (a) `yedekEslesmeKontrolu`daki "GERCEKTEN daraltiyor" iddiasi MARKA sorgusuyla
+        //       yalniz L642 kolunda kosuyor, o kol ise edge havuzunda ayirt edici uye
+        //       bulunmayinca ATLANIYOR (yukaridaki ayni sebep);
+        //   (b) SERBEST METIN kolunda kosan surumu mutant HIC ETKILEMIYOR (mutasyon
+        //       yalniz `plan.kanon` dalinda).
+        // ⚠️ TOTOLOJI DEGIL: kiyas olcusu `aramaPlaniEsler`in KENDI ciktisindan degil,
+        // KATALOG BUYUKLUGUNDEN gelir. Yuklem HEP TRUE olursa eslesen == PRODUCTS olur
+        // ve iddia duser; HIC eslesmezse 0 olur ve yine duser (iki yonlu).
+        // FAIL-CLOSED: ankraj TAM KATALOG'da kosar, atlanabilir bir DOM koluna baglanmaz.
+        const eslesen = PRODUCTS.filter((p) => api.aramaPlaniEsler(p, plan, baslikHs));
+        kontrol("marka sorgusu TAM KATALOG'da GERCEKTEN daraltiyor (" + tamMarka + ": " +
+          eslesen.length + "/" + PRODUCTS.length + " urun)",
+          eslesen.length > 0 && eslesen.length < PRODUCTS.length,
+          "eslesen=" + eslesen.length + " katalog=" + PRODUCTS.length +
+          " -> 0 ise yuklem HIC eslesmiyor, katalogun TAMAMI ise yuklem HEP TRUE (korelmis)");
       }
     }
 

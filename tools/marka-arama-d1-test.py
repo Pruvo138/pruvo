@@ -349,13 +349,38 @@ for alias, kanonik in alias_ciftleri:
 #                                    K4  (kapali kumedeki ad -> YESIL)
 alias_adlari = {a for a, _k in alias_ciftleri}
 kapali_kume = set(arama.UYUM_MARKA_IZINLI)
+# ── 4. KAYNAK (6 Eyl 2026): KANONIK MARKA-ADI YARGICI ────────────────────────────────
+# 🔴 OLCULEN KOK: `kumeler` K140'tan beri model jetonlarini (EXC, Duke, 690, 1290,
+# V-Strom, Ténéré 700 …) EVREN DISI birakiyor, ama urunlerin KENDI `marka[]` dizisi
+# onlari YAZIYOR ve `mmb.marka_uyelikleri` onlari mesru olarak donduruyor -> kolona
+# GIRIYORLAR. Ayrica baslik kolunun tanidigi bir ad (`DeWalt`) `marka[]` hic tasinmadan
+# kolona girebiliyor. Ikisi de VERI KUSURU DEGIL; AL3 bunlari "stray" sayarak
+# uc kaynagin GORMEDIGI mesru bir sinifi kirmizi yakiyordu (olculdu: 23 ad).
+# ⚠️ GEVSETME DEGIL — YINE TEK KAYNAKTAN: yargic `mmb.marka_adi_kanonu` (index.html
+# markaKatla portu + cip evreni), yani KOLONUN BASLIK KOLUNUN KULLANDIGI YARGICIN TA
+# KENDISI. Elle liste YAZILMAZ. Uydurma ad yargicta `None` doner (olculdu: 'Zzqx Fake',
+# 'Blorptron', 'UYDURMA-MARKA-XQ' -> None) -> M14 (uydurma ad -> KIRMIZI) OLUMCUL KALIR.
+_evren_al3 = mmb.MarkaEvreni(INDEX)
+_ek_al3 = mmb.ek_marka_normlu(mmb.cip_evreni_markalari(URUNLER, INDEX))
+_yargic_taniyor = {m for m in kolon_kume
+                   if mmb.marka_adi_kanonu(m, _evren_al3, _ek_al3) == m}
 if kumeler:
-    kabul_evreni = set(kumeler) | alias_adlari | kapali_kume
+    kabul_evreni = set(kumeler) | alias_adlari | kapali_kume | _yargic_taniyor
     stray = sorted(m for m in kolon_kume if m not in kabul_evreni)
+    _yargictan = sorted(_yargic_taniyor - (set(kumeler) | alias_adlari | kapali_kume))
     dogrula("AL3 kolondaki HER deger KABUL EVRENINDE — kanonik %d ∪ alias %d ∪ kapali kume "
-            "%d = %d ad (evren disi deger: %d %s)"
-            % (len(kumeler), len(alias_adlari), len(kapali_kume), len(kabul_evreni),
-               len(stray), stray[:5]), not stray)
+            "%d ∪ yargic %d = %d ad (evren disi deger: %d %s)"
+            % (len(kumeler), len(alias_adlari), len(kapali_kume), len(_yargictan),
+               len(kabul_evreni), len(stray), stray[:5]), not stray)
+    # 🔴 4. KAYNAK DIRI MI: yargic kolu HICBIR ad eklemiyorsa ya evren degismistir ya da
+    # yargic kirilmistir; ikisi de AL3'u sessizce totolojiye cevirir. Ayrica uydurma adin
+    # HALA reddedildigi AYNI kosumda kanitlanir (tek yonlu genisletme olmasin).
+    dogrula("AL3a 4. KAYNAK DIRI: yargic %d adi tek basina tasiyor (%s)"
+            % (len(_yargictan), _yargictan[:5]), bool(_yargictan))
+    dogrula("AL3b TERS YON: uydurma ad yargicta YOK (kabul evrenine giremez) — "
+            "'Zzqx Fake'/'Blorptron' -> None",
+            mmb.marka_adi_kanonu("Zzqx Fake", _evren_al3, _ek_al3) is None
+            and mmb.marka_adi_kanonu("Blorptron", _evren_al3, _ek_al3) is None)
 
 # 4) 🔴 ADAY AD COZUMU: uc `SELECT DISTINCT value` + norm ile kac adi cozebiliyor?
 distinct_normlu = {arama.norm(m): m for m in degerler}

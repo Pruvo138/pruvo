@@ -607,7 +607,17 @@ async function main() {
   senaryolar.push({
     ad: "S7 (K2) KIRMIZI + kosum ortasinda 429 (deneme tukendi) -> cikis 1",
     dosya: PARITE_SITE, yerel: TABAN, canli: TABAN.slice(), gizliAra: GIZLI,
-    r429SonraAra: 25, ekEnv: HIZLI_429,
+    // 🔴 ESIK 25 -> 120 (6 Eyl 2026, OLCULDU). Senaryonun ONCULU "once KIRMIZI BULUNUR,
+    // SONRA ariza gelir"dir; hukum de bunun uzerine kuruludur (1 > 3). Esik 25'te ariza
+    // supurme HICBIR SEYI SINIFLANDIRAMADAN vuruyordu -> `ACIKLANAMAYAN: 0`, `kosum ERKEN
+    // DURDU: 0/220 sorgu olculdu` -> "1 > 3" kuralinin degerlendirecegi kirmizi HIC
+    // DOGMUYORDU ve senaryo cikis 3 verip kirmizi yaniyordu. Yani olculen sey uretici
+    // arizasi DEGIL, fikstur oncululunun kurulamamasiydi.
+    // OLCUM: esik 250 (ariza hic vurmaz) -> cikis 1 + kirmizilar SAYILDI ✅ ama "429
+    // GORUNUR" duser; esik 120 -> UCU DE gecer (cikis 1 · kirmizilar SAYILDI · 429
+    // GORUNUR). 120 supurmenin (220 sorgu) ORTASINDADIR: ariza hala KOSUM ORTASINDA vurur,
+    // yani senaryonun adi ve iddiasi AYNEN korunur — beklenti GEVSETILMEDI, oncul KURULDU.
+    r429SonraAra: 120, ekEnv: HIZLI_429,
     dogrula: (r) => {
       ONA(r.kod === 1, "cikis 1 KIRMIZI", r.cikti.slice(-900));
       ONA(sayiOku(r.cikti, "ACIKLANAMAYAN") > 0, "bulunan kirmizilar SAYILDI");

@@ -146,6 +146,11 @@ def parite_sebep_ayikla(cikti):
     yazilmaz (ayni imza D1'deki yetim satirdan da cikar — parite-ortak.js "TESHIS
     DURUSTLUGU"). Sirasi ONEMLI: fikstur modu ve sert arizalar once."""
     c = cikti or ""
+    # 🔴 EN BASTA: kardes depo (pruvo-bot) bu ortamda YOKSA olcum hic KURULAMAMISTIR;
+    # asagidaki ag/katalog imzalarindan HICBIRI uretilmez, o yuzden sirasi once.
+    if "BOT KAYNAGI YOK" in c:
+        return ("olculemedi: BOT KAYNAGI YOK — pruvo-bot AYRI depo (HocA), bu ortamda "
+                "(GitHub kosucusu) mevcut degil; ege paritesi BELGELENMEDI")
     if "FIKSTUR MODU" in c:
         return ("olculemedi: FIKSTUR MODU (test-only env) — kanonik katalog/uc OLCULMEDI, "
                 "parite BELGELENMEDI")
@@ -176,7 +181,9 @@ def parite_exit_yorumla(exit_kodu, cikti=""):
     if exit_kodu == 1:
         return (False, PARITE_KIRMIZI, "aciklanamayan ayrisim (yerelde var/D1'de yok ya da SIRA)")
     if exit_kodu == 2:
-        return (False, PARITE_KIRMIZI, "test KOSULAMADI (exit 2) — bot kaynagi/fonksiyonu yok")
+        return (False, PARITE_KIRMIZI,
+                "test KOSULAMADI (exit 2) — bot kaynagi VAR ama sozlesmesi KIRIK "
+                "(beklenen fonksiyon disa aktarilmiyor)")
     return (False, PARITE_KIRMIZI, "beklenmeyen cikis kodu: %s" % exit_kodu)
 
 
@@ -229,6 +236,19 @@ def parite_eslem_testi():
 
     ok, et, sb = parite_exit_yorumla(2, "index.js'te urunAra() bulunamadi")
     ona((not ok) and et == PARITE_KIRMIZI, "exit 2 -> KIRMIZI (fail-closed, kosulamadi)")
+
+    # 🔴 6 Eyl 2026 — UCUNCU SINIF (kaynak YOK) artik 2'ye DEGIL 3'e duser. Iki kollu
+    # nobet: (a) ortam olgusu ATLANDI olmali, (b) sozlesme kirigi KIRMIZI KALMALI.
+    # (b) olmadan bu degisiklik bir BYPASS'a donusurdu.
+    ok, et, sb = parite_exit_yorumla(
+        3, "⚪ ÖLÇÜLEMEDİ: BOT KAYNAGI YOK — /Users/okan/dev/pruvo-bot/worker/src/index.js")
+    ona(ok and et == PARITE_ATLANDI and "BOT KAYNAGI YOK" in sb,
+        "exit 3 (BOT KAYNAGI YOK) -> ATLANDI + sebep ADIYLA (CI'da kardes depo yok)")
+    ona("AYRI depo" in sb and "BELGELENMEDI" in sb,
+        "exit 3 (BOT KAYNAGI YOK) sebebi 'yesil' DEMIYOR (parite belgelenmedi diyor)")
+    ok2, et2, sb2 = parite_exit_yorumla(2, "index.js'te markaSorguKanonu() bulunamadi")
+    ona((not ok2) and et2 == PARITE_KIRMIZI and "sozlesmesi KIRIK" in sb2,
+        "TERS YON: kaynak VAR + sozlesme KIRIK -> hala KIRMIZI (bypass DEGIL)")
 
     ok, et, sb = parite_exit_yorumla(None, "zaman asimi")
     ona((not ok) and et == PARITE_KIRMIZI, "exit None -> KIRMIZI")

@@ -3617,6 +3617,20 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/filament-test.py
 
+      # PARITE CIKIS-KODU SINIFLANDIRMASI (6 Eyl 2026) — yukaridaki adimin TEST 5 kolunu
+      # koruyan batarya. OLCULEN KOK: `parite-ege.js` "bot kaynagi YOK" (ORTAM olgusu; bot
+      # AYRI depodur, kosucunun checkout'unda ASLA bulunmaz) ile "kaynak VAR ama disa-aktarim
+      # fonksiyon DEGIL" (GERCEK GERILEME) hallerini TEK exit 2 kovasina dusuruyordu ->
+      # filament adimi CI'da SUREKLI kirmizi, Okan'in makinesinde SUREKLI yesildi; kirmizi
+      # kosuldugu yerde HIC uretilemiyordu. Onarim ucuncu sinifi ayirir (3 = OLCULEMEDI,
+      # ADIYLA gorunur sebep) ve gerileme kolunu 2 = KIRMIZI birakir.
+      # 🔴 BATARYA IKI YONLU: M2/M6 tam olarak "bu onarim bir BYPASS'a donusurse" mutantlaridir.
+      # AGSIZ + KATALOGSUZ (~1 dk): problar egeKodu() kapisinda doner, urunler.json okunmaz.
+      # Mutantlar IZOLE tmp kopyada kosar; canli agaca YAZMAZ (FILO DERSI, 4 Eyl).
+      - name: Parite cikis-kodu sinifi mutasyon bataryasi (7 oldurucu + 2 kontrol)
+        if: ${{ !cancelled() }}
+        run: python3 tools/parite-cikis-sinifi-mutasyon.py
+
       # EGE-BILGI TAVAN: ege-bilgi.md uzunlugu bot slice(0,6000) esigini asmasin.
       # Olcu UTF-16 kod birimi (JS String.slice birimi) — bayt sayan olcum sahte-kirmizi,
       # Python len(str) astral karakterde sahte-yesil yakar.
@@ -3743,6 +3757,18 @@ jobs:
       - name: Marka sayac kapisi (sayac birimi + mukerrer kart)
         if: ${{ !cancelled() }}
         run: python3 tools/marka-sayac-kapisi.py
+
+      # MARKA DUZ-BAG KOK-GORELI KESINTISI (6 Eyl 2026) — yukaridaki adimin AGIRLIK eksenini
+      # koruyan NON-GROWTH bataryasi. OLCULEN KOK: kart kolu `MARKA_KART_N=80` ile TAVANLI ama
+      # duz bag listesi (`.mm-kalan-oge`) TAVANSIZ; yamaha'da 583 oge / 175.718 bayt = sayfanin
+      # %80'i -> 218.175 > tavan 213.155. Kesinti: bu listede href KOK-GORELI (oge basina 19
+      # bayt duser; 11.077 bayt, yamaha 207.098 = tavanin 6.057 bayt ALTI). Kart href'leri ve
+      # kanonik adresler MUTLAK KALDI — batarya bunu AYRI eksende (KANONIK) olcer.
+      # 🔴 SENTETIK fikstur (140 kalem), AGSIZ, `urunler.json` OKUNMAZ (~1 sn). Mutantlar
+      # IZOLE tmp kopyada kosar; canli agaca YAZMAZ (FILO DERSI, 4 Eyl).
+      - name: Marka duz-bag kok-goreli mutasyon bataryasi (5 oldurucu + 2 kontrol)
+        if: ${{ !cancelled() }}
+        run: python3 tools/marka-bag-goreli-mutasyon.py
 
       # MARKA SAYFASI MODEL CIPI (12 Agu, Okan canlidan): "modeller eksik, cipler dagimik,
       # cipteki sayi urunle tutmuyor, cipe tiklaninca hedef acilmiyor". Dordu de SESSIZ.

@@ -63,9 +63,17 @@ const ESZAMAN = 6;
 
 // Bot'un gercek arama kodunu ice aktar (kaynak dosyaya DOKUNMADAN).
 async function egeKodu() {
+  // 🔴 KAYNAK YOK = ORTAM OLGUSU, GERILEME DEGIL -> CIKIS_OLCULEMEDI (3), ADIYLA gorunur
+  // sebeple. Bot AYRI depodur (pruvo-bot, HocA); GitHub kosucusunun checkout'unda ASLA
+  // bulunmaz, Okan'in makinesinde ise DAIMA bulunur. Eskiden bu kol da exit 2 (KIRMIZI)
+  // idi: CI surekli kirmizi, yerel surekli yesil — kirmizi kosuldugu yerde HIC uretilemez
+  // hale gelmisti. Sozlesme tablosu tools/parite-ortak.js basindadir (TEK KAYNAK).
+  // ⚠️ Bu bir BYPASS DEGIL, MENZIL DARALTMASIDIR: kaynak MEVCUTKEN asagidaki sozlesme
+  // kontrolu eskisi gibi exit 2 (KIRMIZI) yakar.
   if (!fs.existsSync(BOT)) {
-    console.error("Bot kaynagi yok: " + BOT + "\n(pruvo-bot deposu ~/dev/pruvo-bot'ta olmali.)");
-    process.exit(2);
+    console.error("⚪ ÖLÇÜLEMEDİ: BOT KAYNAGI YOK — " + BOT +
+      "\n(pruvo-bot AYRI depodur; bu ortamda mevcut degil, ege paritesi BELGELENMEDI.)");
+    process.exit(ortak.CIKIS_OLCULEMEDI);
   }
   const kaynak = fs.readFileSync(BOT, "utf8");
   const gecici = path.join(os.tmpdir(), "pruvo-ege-ref-" + process.pid + ".mjs");
@@ -79,8 +87,9 @@ async function egeKodu() {
     for (const ad of ["katalogIndeksle", "urunAra", "sorguKavramlari", "nrm",
       "markaSorguKanonu"]) {
       if (typeof M[ad] !== "function") {
+        // 🔴 KAYNAK VAR ama SOZLESME KIRIK -> GERCEK GERILEME, her ortamda KIRMIZI (2).
         console.error("index.js'te " + ad + "() bulunamadi — yeniden adlandirildi mi? Test durdu.");
-        process.exit(2);
+        process.exit(ortak.CIKIS_KOSULAMADI);
       }
     }
     return M;

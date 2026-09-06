@@ -12,12 +12,26 @@
  * ║                          - SIRA farki (siralama iddiasi kirik)                       ║
  * ║                          - D1 EKSIK eslesme (yerel ⊆ D1 kanitina aykiri)            ║
  * ║                          - D1 fazlaligi sayi acigini ASIYOR (yetim satir imzasi)    ║
- * ║   2  CIKIS_KOSULAMADI  Test KOSULAMADI (parite-ege.js: bot kaynagi/fonksiyonu yok). ║
+ * ║   2  CIKIS_KOSULAMADI  Bot kaynagi VAR ama SOZLESMESI KIRIK: index.js okundu, ama   ║
+ * ║                        beklenen disa-aktarim (urunAra/katalogIndeksle/...) FONKSIYON ║
+ * ║                        DEGIL — yeniden adlandirilmis/kaldirilmis. GERCEK GERILEME.  ║
  * ║   3  CIKIS_OLCULEMEDI  Olcum TAM DEGIL / hukum verilemedi. Sebepleri:               ║
  * ║                          WAF-UA duvari (403) · hiz siniri (429, deneme tukendi)     ║
  * ║                          zaman asimi · supurme TAVANI asildi · katalog sayilari     ║
  * ║                          ayri (senkron gecikmesi / D1'de yetim satir — AYIRT        ║
  * ║                          EDILEMEZ) · FIKSTUR MODU (test-only env verilmis)          ║
+ * ║                          · BOT KAYNAGI YOK (kardes depo bu ortamda MEVCUT DEGIL)    ║
+ * ║                                                                                     ║
+ * ║ 🔴 2 ile 3'un AYRIMI — 6 Eyl 2026'da OLCULEN kok (iki kovali siniflama UCUNCU       ║
+ * ║    sinifi yutuyordu). Eskiden "bot kaynagi YOK" da "fonksiyonu YOK" da tek exit 2   ║
+ * ║    idi. Bot AYRI bir depodur (pruvo-bot, HocA) ve GitHub kosucusunun checkout'unda  ║
+ * ║    HICBIR ZAMAN bulunmaz -> CI'da bu kol DAIMA kirmizi yandi, Okan'in makinesinde   ║
+ * ║    ise kardes klasor VAR oldugu icin DAIMA yesildi: kirmizi, gelistiricinin         ║
+ * ║    kostugu yerde HIC uretilemiyordu ([[prob-kendi-baglamini-olcer]]).               ║
+ * ║    AYRIM SU: kaynak YOKSA bu bir ORTAM olgusudur (node yok / uc susuyor ile AYNI    ║
+ * ║    sinif) -> 3, ADIYLA gorunur sebeple. Kaynak VARSA ve sozlesme kirilmissa bu bir  ║
+ * ║    GERILEMEDIR -> 2, her ortamda KIRMIZI. Kapsam DARALMADI: kardes depo mevcutken   ║
+ * ║    (Okan'in makinesi, HocA'nin evi) her iki kol da eskisi gibi olculur.             ║
  * ║                                                                                     ║
  * ║ 🔴 YONETICI ILKE (her seyin ustunde):  1 (KIRMIZI)  >  3 (OLCULEMEDI)  >  0 (YESIL) ║
  * ║    Bulunmus TEK bir aciklanamayan ayrisim varsa, sonradan ne olursa olsun (WAF,     ║

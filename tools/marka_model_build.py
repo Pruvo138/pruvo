@@ -102,6 +102,23 @@ def _canon(s):
     return model_kanon.kanon(s)
 
 
+def _kok_goreli(url, site):
+    """Mutlak `<site>/yol/` adresini KÖK-GÖRELİ `/yol/` hâline indirger.
+
+    NEREDE KULLANILIR: YALNIZ marka kök sayfasındaki düz bağ listesi (`.mm-kalan-oge`) —
+    sayfanın tek SINIRSIZ büyüyen bileşeni. Kanonik adresler (canonical, sitemap, JSON-LD,
+    kart href'leri) MUTLAK kalır: onları tüketen taraf sayfayı başka bir kökten okuyabilir.
+
+    🔴 FAIL-CLOSED: `url` beklenen `site` önekiyle BAŞLAMIYORSA girdi AYNEN döner. Böylece
+    ileride ctx["SITE"] değişir ya da product_url başka bir kök üretirse bu yardımcı sessizce
+    bozuk (`//host/...` gibi) bir adres ÜRETMEZ — en kötü hâlde kesinti yapılmaz.
+    Kesintinin fiilen gerçekleştiği `marka-sayac-kapisi.py::AGIRLIK` ekseniyle ölçülür ve
+    `tools/marka-bag-goreli-mutasyon.py` bataryasıyla korunur."""
+    if site and url.startswith(site + "/"):
+        return url[len(site):]
+    return url
+
+
 def _slug(s):
     """URL slug'ı: küçük harf, alfanümerik dışı -> tek '-'. 'F-150'->'f-150',
     'Focus ST'->'focus-st', 'i3'->'i3', '1 Serisi'->'1-serisi'.
@@ -3072,10 +3089,24 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler,
         # data-kat: bu kalemler de KAPSAM ekseninde (?kategori=) süzülür — kart olmasalar da
         # sayfada GÖRÜNÜR öğedirler; süzülmezlerse Marin kapsamında motosiklet parçasının adı
         # ekranda kalırdı (kartlarda kapatılan sessiz kusurun aynısı).
+        # 🔴 KOK-GORELI href (6 Eyl 2026) — AGIRLIK tavani icin OLCULEN kesinti.
+        # Bu liste sayfanin en buyuk ve TEK SINIRSIZ buyuyen bileseni: yamaha'da 583 oge /
+        # 175.718 bayt = sayfanin %80'i; kart sayisi `MARKA_KART_N`le TAVANLI, bu liste
+        # DEGIL -> her katalog partisi sayfayi tavana dogru itiyor ve 6 Eyl'de tavani ASTI
+        # (218.175 > 213.155). Mutlak on-ek (`https://pruvo3d.com`) her ogede 19 BAYT
+        # tekrar ediyordu ve HICBIR ISE YARAMIYOR: ayni kokten sunulan bir sayfada
+        # kok-goreli `/urun/<id>/` AYNI hedefi verir (tarayici da, tarayan bot da).
+        # ⚠️ ANLAM KORUNDU: DOM yapisi, `data-kat`, oge sayisi, sira ve HEDEF birebir ayni;
+        # yalnizca on-ek dustu. Kanonik adres (`<link rel=canonical>`, sitemap, JSON-LD,
+        # kart href'leri) MUTLAK KALIR — onlar tuketiciyi baska bir kokten bulabilir.
+        # 🔴 TUM OKUYUCULAR SAYILDI ([[tuketici-yazilirken-tum-okuyucular-sayilir]]):
+        # marka-sayac-kapisi/marka-cip-kapisi BAG_RE'leri href'i `[^"]+` diye alir (on-ek
+        # varsayimi YOK); tek varsayim marka-model-test.py'deydi, o da bu turda iki yonlu
+        # (mutlak VEYA kok-goreli) desene cevrildi.
         baglar = "".join(
             '<li class="mm-kalan-oge" data-kat="%s"><a href="%s">%s</a></li>'
             % (esc((p.get("kategori") or "").strip()),
-               esc(ctx["product_url"](p.get("id"))),
+               esc(_kok_goreli(ctx["product_url"](p.get("id")), ctx["SITE"])),
                esc(_kart_temizle((p.get("baslik") or "").strip()) or p.get("id")))
             for p in yerel_kalan)
         # Başlık sayısı KENDİ kümesinin kırılımını taşır: kapsam gelince düz bağ listesi

@@ -404,7 +404,13 @@ def main():
                     if fn == "index.html":
                         with open(os.path.join(dp, fn), encoding="utf-8") as f:
                             pg = f.read()
-                        for pid in re.findall(r'href="https://pruvo3d\.com/urun/([^/"]+)/"', pg):
+                        # 🔴 IKI YONLU (6 Eyl 2026): marka KOK sayfasindaki duz bag listesi
+                        # (`.mm-kalan-oge`) artik KOK-GORELI href tasir — AGIRLIK tavani icin
+                        # olculen kesinti (yamaha 218.175 -> tavan alti). Kart href'leri ve
+                        # kanonik adresler MUTLAK kaldi. Desen ikisini de sayar; on-ek
+                        # OPSIYONEL yapilmasaydi 583 kalem bir anda "oksuz" gorunurdu.
+                        for pid in re.findall(
+                                r'href="(?:https://pruvo3d\.com)?/urun/([^/"]+)/"', pg):
                             linkli.add(html.unescape(pid))
             eksik = beklenen - linkli
             bekle(not eksik, "%s: %d ürün öksüz (linkli değil)" % (marka, len(eksik)))

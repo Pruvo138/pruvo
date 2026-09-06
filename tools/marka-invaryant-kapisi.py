@@ -317,17 +317,33 @@ def olc(mmb, arama, urunler, index_html):
         if not pid:
             continue
         uyeler = mmb.marka_uyelikleri(p.get("marka") or [], evren, ek)
-        if not uyeler:
-            continue
+        # 🔴 6 Eyl 2026 — KOR NOKTA KAPANDI: burada `if not uyeler: continue` vardi ve
+        # `marka[]` BOS olan urun UC KAYNAGIN DA disinda kaliyordu. Ama gecis kuralinin
+        # IKI kolu var (uyelik VE baslikta TAM KELIME); `marka[]` bos olsa bile baslikta
+        # marka TAM JETON olarak gecebilir ("Garmin Striker 4 …", "Raymarine EV100 …",
+        # "Bisiklet Bosch Intuvia …"). O urunler `baslik_uyum`a HIC girmedigi icin ARAMA
+        # referansi (`srch`) onlari GOREMIYORDU; kolon (d1-sync.marka_arama_haritasi) ise
+        # ayni yuklemi TUM urunlerde kosturdugu icin DOGRU sonucu veriyordu -> kapi kolonu
+        # "fazla tasiyor" diye KIRMIZI yakiyordu. OLCULDU: Garmin +7 · Raymarine +11 ·
+        # Bosch +8 · Yamaha +2 · Volvo +1 · Jeanneau +1 (hepsi `marka=[]`, baslikta TAM
+        # JETON). Yani KIRMIZI kolonda degil, REFERANSTAYDI.
+        # 🔴 IKINCI KAZANC: bu kor nokta yuzunden `marka_sorgusu_esler`in BASLIK kolunu
+        # bozan mutantlar bu kapida OLMUYORDU (predicate'e hic ulasilmiyordu) — kacan iki
+        # parite mutantinin (`markaSorgusuEsler`, `aramaPlaniEsler`) besledigi kor nokta budur.
+        # ⚠️ FILTRE KOLU DEGISMEDI: `uyelik_filtre` uyelik SART'ina bagli kalir, cunku
+        # uretici (`d1-sync.marka_kanon_haritasi`) da uyesiz urunu haritaya ALMAZ
+        # ("hedef '[]' = D1 varsayilani"). Iki kol AYRI hukumdedir; birini otekine
+        # benzetmek yeni bir ikiz tanim acardi.
         uyelik_sorgu[pid] = list(uyeler)
         # FAZ 1B: baslik_uyelikleri (KANONIK - sayfa kovasinin yaptigi ayni islem). Ikinci
         # bir govde YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]); 23 model jetonu (marka_only==0)
         # HARIC tutulur → kendi marka sayfasi ayri yapisal soru olarak kalir.
-        filtre_uyeler = list(uyeler)
-        for kan in mmb.baslik_uyelikleri(p, evren, _ad_kanonu, _azami_ad, ek):
-            if kan not in filtre_uyeler:
-                filtre_uyeler.append(kan)
-        uyelik_filtre[pid] = filtre_uyeler
+        if uyeler:
+            filtre_uyeler = list(uyeler)
+            for kan in mmb.baslik_uyelikleri(p, evren, _ad_kanonu, _azami_ad, ek):
+                if kan not in filtre_uyeler:
+                    filtre_uyeler.append(kan)
+            uyelik_filtre[pid] = filtre_uyeler
         baslik_uyum[pid] = arama.baslik_marka_uyumlari(p.get("baslik"), kanon)
 
     kumeler, serbeste_dusen = {}, []
@@ -532,15 +548,43 @@ def main():
 
     # ── U) UYUM CAPASI — DINAMIK SECIM (havuz: baslikta TAM KELIME, uyelik YOK) ──────
     # Havuz VERI ILISKISINDEN kurulur (ARAMA kumesinden DEGIL — bkz. blok basi).
-    kova = {}
+    # 🔴 HAVUZ FAZ 1B SOZLESMESIYLE SINIRLI (6 Eyl 2026). Asagidaki 3. iddia bir FAZ 1B
+    # iddiasidir ("uyelik ∪ baslik_uyum -> sayfada OLMALI"), FAZ 1B ise `baslik_uyelikleri`yi
+    # YALNIZ UYELIGI OLAN urunde kosturur (hem `d1-sync.marka_kanon_haritasi` hem bu
+    # dosyanin FILTRE kolu `if not uyeler` ile kesiyor). `marka[]` TAMAMEN bos bir urun
+    # FAZ 1B'den sayfa uyeligi ASLA ALMAZ -> havuza alinirsa 3. iddia YAPISAL OLARAK
+    # dusürur; olculen sey capanin degil, HUKMUN acik biraktigi bir sorudur.
+    # ⚠️ Bu bir daraltma DEGIL, iddianin KENDI menziline oturtulmasidir: dislanan sinif
+    # asagida SAYIYLA + ADIYLA OLCULEMEDI olarak basilir, sessizce dusmez.
+    kova, _sozlesme_disi = {}, {}
     for pid in sorted(baslik_uyum):
         uy = uyelik.get(pid) or ()
         for marka in baslik_uyum[pid]:
             if marka not in uy and marka in kumeler:
-                kova.setdefault(marka, []).append(pid)
+                if uy:
+                    kova.setdefault(marka, []).append(pid)
+                else:
+                    _sozlesme_disi.setdefault(marka, []).append(pid)
     for marka in kova:
         kova[marka].sort()
     havuz_kalem = sum(len(v) for v in kova.values())
+    if _sozlesme_disi:
+        _dis_kalem = sum(len(v) for v in _sozlesme_disi.values())
+        _dis_ornek = sorted((m, len(v), sorted(v)[0]) for m, v in _sozlesme_disi.items())[:6]
+        # 🔴 BLOKLAMAZ, BASILIR — `ne_olculmedi()` madde 2'nin hukmu budur ("ARAMA_FAZLA
+        # ... BLOKLAMAZ, yalnizca BASILIR ... katalog buyudukce artar, o yuzden civilenmez").
+        # `olculemedi()` cagrilsaydi kapi HER kosumda ÖLÇÜLEMEDİ'ye duser ve tum ekibin
+        # yesil ekseni kaybolurdu; bu sinif DURAN ve BILINEN bir haldir, ariza degil.
+        print(
+            "\n  ⚪ FAZ 1B SOZLESMESI DISI (baslikta TAM KELIME marka VAR ama `marka[]` BOS): "
+            "%d kalem / %d marka. Bu urunler ARAMADA bulunur (gecis kuralinin BASLIK kolu "
+            "onlari eslestirir — 6 Eyl'de olculdu) ama /marka/<X>/ SAYFASINDA YOKTUR, cunku "
+            "FAZ 1B `baslik_uyelikleri`yi yalnizca uyeligi OLAN urunde kosturur. Bu K133 "
+            "model-jetonu sorusuyla AYNI AILEDE bir YAPISAL SORUDUR, bir kapi arizasi DEGIL. "
+            "Kapatan olcum: `marka[]` bos + baslikta tam jeton olan urune marka sayfasi "
+            "uyeligi VERILECEK MI karari (verilirse uretici `marka_kanon_haritasi`nin "
+            "`if not uyeler: continue` kolu da acilmali). Ornek (marka, kalem, ilk id): %s"
+            % (_dis_kalem, len(_sozlesme_disi), _dis_ornek))
 
     # FAIL-CLOSED: havuz tukendiyse hukum "OLCULEMEDI"dir, sessiz YESIL DEGIL.
     # Bu, kapinin MESRU son durumu da olabilir (veri tarafi tamamen kapaninca havuz 0'a

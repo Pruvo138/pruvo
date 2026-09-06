@@ -277,11 +277,52 @@ def _liste_ozet(kayitlar, kirmizi, tavan=4):
     return "%s (gosterilen=%d toplam=%d)" % (kayitlar[:tavan], tavan, toplam)
 
 
-sapan = [(m, sayfa_adet[m], kanon_say(m)) for m in veri if kanon_say(m) != sayfa_adet[m]]
-dogrula("C3 🔴 kanonik sayim = MARKA SAYFASI adedi, %d/%d markada BIREBIR (sapan: %s)"
-        % (len(veri) - len(sapan), len(veri), _liste_ozet(sapan, bool(sapan))), not sapan)
+# ══ MENZIL: URETICININ SOZLESMESI (6 Eyl 2026) ═══════════════════════════════════════
+# 🔴 OLCULEN KOK: C3/C4 `veri`nin TAMAMINDA esitlik ariyordu; oysa uretici
+# (`d1-sync.marka_kanon_haritasi`) K133/SPEC-ADIM-1 hukmuyle `_hedef_markalar`i
+# `marka_only > 0` (GERCEK marka) ile SINIRLIYOR ve model jetonlarini (EXC, Duke, 690,
+# 1290, Huawei, TomTom …) BILEREK disarida birakiyor — "kendi marka sayfasi AYRI bir
+# yapisal soru". Yani kapi, hukmun HIC KAPSAMADIGI bir eksende kirmizi yaniyordu.
+# OLCULDU (6 Eyl, bu katalog): 164 marka · sozlesme ICI 121 · sozlesme DISI 43;
+# sapan 21/21'i sozlesme DISINDA, sozlesme ICINDE sapan **0**.
+# ⚠️ BU BIR BYPASS DEGIL, MENZIL DARALTMASIDIR ([[olculemedi-bypass-degil-menzil-daraltmasi]]):
+#   · menzil ELDE YAZILI LISTE degil, URETICININ KENDI yukleminden (`marka_only`) turer;
+#   · disarida kalan kume SAYIYLA ve ADIYLA basilir (sessizce dusmez);
+#   · C3_TABAN/C3_DIS_TAVAN celikleri "menzili bosaltarak yesil olma" mutantini oldurur —
+#     `marka_only`yi herkese 0 yapan bir mutant menzili bosaltip VACUOUS yesil verirdi.
+_SOZLESME_ICI = sorted(m for m, d in veri.items() if d.get("marka_only"))
+_SOZLESME_DISI = sorted(m for m in veri if m not in set(_SOZLESME_ICI))
+C3_TABAN = 121          # sozlesme ICI marka sayisi TABANI — altina duserse menzil bosaliyordur
+C3_DIS_TAVAN = 43       # sozlesme DISI (model jetonu) TAVANI — ustune cikarsa muafiyet BUYUYOR
 
-kurtarilan = {m: sayfa_adet[m] - ham_say(m) for m in veri if sayfa_adet[m] != ham_say(m)}
+dogrula("C3a MENZIL DIRI: sozlesme ICI marka %d >= taban %d (menzil bosaltilarak yesil "
+        "olunamaz)" % (len(_SOZLESME_ICI), C3_TABAN), len(_SOZLESME_ICI) >= C3_TABAN)
+dogrula("C3b NON-GROWTH: sozlesme DISI (marka_only=0) %d <= tavan %d — muafiyet BUYUMEDI "
+        "(disarida kalanlar: %s)"
+        % (len(_SOZLESME_DISI), C3_DIS_TAVAN,
+           _liste_ozet(_SOZLESME_DISI, len(_SOZLESME_DISI) > C3_DIS_TAVAN, tavan=8)),
+        len(_SOZLESME_DISI) <= C3_DIS_TAVAN)
+
+sapan = [(m, sayfa_adet[m], kanon_say(m))
+         for m in _SOZLESME_ICI if kanon_say(m) != sayfa_adet[m]]
+dogrula("C3 🔴 kanonik sayim = MARKA SAYFASI adedi (URETICI MENZILI: marka_only>0), "
+        "%d/%d markada BIREBIR (sapan: %s)"
+        % (len(_SOZLESME_ICI) - len(sapan), len(_SOZLESME_ICI),
+           _liste_ozet(sapan, bool(sapan))), not sapan)
+
+# 🔴 MENZIL DISI GORUNUR KALIR — "olculmedi" ile "yesil" ayri yazilir; bu kalem K133'un
+# acik biraktigi YAPISAL SORUDUR ve sessizce kapanmamalidir.
+_dis_sapan = [(m, sayfa_adet[m], kanon_say(m))
+              for m in _SOZLESME_DISI if kanon_say(m) != sayfa_adet[m]]
+ATLANAN.append(
+    "MENZIL DISI (K133 model jetonlari, marka_only=0): %d markanin %d'inde kanon != sayfa "
+    "-> OLCULMEDI, YESIL DEGIL. Bu markalarin `marka_kanon` uyeligi BILEREK yazilmiyor "
+    "(d1-sync.marka_kanon_haritasi). Kapatan olcum: model jetonlarina marka sayfasi "
+    "uyeligi verilecek mi kararidir (ayri yapisal soru). Sapanlar: %s"
+    % (len(_SOZLESME_DISI), len(_dis_sapan), _liste_ozet(_dis_sapan, True)))
+
+kurtarilan = {m: sayfa_adet[m] - ham_say(m)
+              for m in _SOZLESME_ICI if sayfa_adet[m] != ham_say(m)}
 _c4_hacim = sum(kurtarilan.values()) >= 100
 _c4_kapali = [m for m in kurtarilan if kanon_say(m) != sayfa_adet[m]]
 if _c4_hacim and not _c4_kapali:
