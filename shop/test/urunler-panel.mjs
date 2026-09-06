@@ -271,26 +271,11 @@ console.log("B. KUYRUK YAZIMI (beyaz liste + bicim + parametrik + cogaltmama)");
      r2.kod === 200 && env.kuyruk.length === 1 && env.kuyruk[0].deger === "550 TL",
      JSON.stringify(env.kuyruk));
 }
-// KURUS YUKARI YUVARLAMA (6 Eyl 2026, Okan emri): "noktalamaya izin verme, kurus
-// miktari YUKARI yuvarlansin (200.1 -> 201 TL)". Ondalik girdi artik 400 DEGIL —
-// normalize edilip TAM TL kaydedilir; kuyruga giren deger noktalama TASIMAZ.
-// (Bu vaka once B4d idi ve 400 bekliyordu; emirle birlikte hal DEGISTI.)
-// Menzil: yalniz kurus sinifi cozulur — B4a/B4b/B4c redleri AYNEN durur.
-{
-  const env = mockEnv();
-  const r = await cagir(env, "/urunler-ustyazim",
-    { govde: { urun_id: "test-urun-a", alan: "fiyat", deger: "500.00 TL" } });
-  ol("B4d ondalik fiyat -> 200 + kuyruga TAM TL yazilir (noktalama YOK)",
-     r.kod === 200 && env.kuyruk.length === 1 && env.kuyruk[0].deger === "500 TL",
-     JSON.stringify({ kod: r.kod, kuyruk: env.kuyruk }));
-  const env2 = mockEnv();
-  const r2 = await cagir(env2, "/urunler-ustyazim",
-    { govde: { urun_id: "test-urun-a", alan: "fiyat", deger: "200,1 TL" } });
-  ol("B4e kurus YUKARI yuvarlanir (200,1 TL -> 201 TL) + cevap kaydedilen degeri doner",
-     r2.kod === 200 && env2.kuyruk.length === 1 && env2.kuyruk[0].deger === "201 TL"
-     && r2.govde.deger === "201 TL",
-     JSON.stringify({ kod: r2.kod, govde: r2.govde, kuyruk: env2.kuyruk }));
-}
+// KURUS YUKARI YUVARLAMA (6 Eyl 2026, Okan emri) — POZITIF vakalar asagida **B11**
+// blogundadir. Burada bir IKINCI KOPYA TUTULMAZ: `d3dd8f6d` bu blogu, `7f9c8d90` da
+// B11'i ayni turde ekledi ve merge ikisini yan yana getirdi. Ayni iddianin iki yerde
+// durmasi bu depoda olculmus bir ayrisma sinifidir (ikiz tanim), o yuzden pozitif
+// vakalar TEK yerde — B11c/B11d — birakildi. Menzil hukmu de orada civilenmistir.
 {
   const RED = [
     ["B3 beyaz liste disi alan (kategori)", { urun_id: "test-urun-a", alan: "kategori", deger: "Ev" }, 400],
