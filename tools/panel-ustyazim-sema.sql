@@ -7,13 +7,23 @@
 -- d1-sync.py bu tabloya ne okur ne yazar (yalniz `urunler` + `senkron_kilit`) —
 -- bayat-yazici ezmesi SEMAYLA imkansiz, yeni kapi/denetim katmani YOK.
 --
--- hal UC DEGERLIDIR (iki kovali siniflama ucuncu sinifi yutar — olculmus sinif):
+-- hal DORT DEGERLIDIR (iki kovali siniflama ucuncu sinifi yutar — olculmus sinif):
 --   'beklemede' : panel yazdi, uygulayici henuz islemedi.
 --   'islendi'   : tabana islendi (islendi_commit = urunler.json commit'i) ya da
 --                 taban zaten esitti (sebep='TABAN_ZATEN_ESIT').
 --   'hata'      : islenemedi; sebep kolonu NEDENI adiyla tasir (or.
 --                 ALAN_BEYAZ_LISTE_DISI, FIYAT_BICIMI, PARAMETRIK_FIYAT, URUN_YOK,
 --                 YERINE_YENISI:<id>, DUZELT_RED:<rc>, URUN_SILINECEK). Sessiz dusme YOK.
+--   'kapandi'   : 'hata' satiri PANELDEN KAPATILDI (Okan emri, 6 Eyl 2026;
+--                 yonet.js /urunler-kuyruk-kapat). SILME DEGIL DAMGA: deger/sebep/ts
+--                 kolonlari AYNEN durur, satir kuyrukta yasar, panelde yalniz katlanan
+--                 "Gecmis" kutusuna iner. Yalniz 'hata' -> 'kapandi' gecisi vardir
+--                 (UPDATE ... WHERE hal='hata'); 'beklemede' iptalle SILINIR,
+--                 'islendi' tabana cokmus gecmistir, ikisi de kapatilamaz.
+--                 🔴 MIGRATION GEREKMEZ (hal TEXT) ama TUKETICI SAYILIR: uygulayici
+--                 yalniz hal='beklemede' okur (menzili DEGISMEDI), durum raporu bu hali
+--                 ADIYLA sayar, panel dordunu de ADIYLA siniflar ve tanimsiz bir hal
+--                 cikarsa onu KATLAMAZ — "Bilinmeyen hal" kutusunda disarida gosterir.
 --
 -- TEKIL SILME (2 Eyl 2026): alan='sil' satiri (deger=GEREKCE) ayni kuyruktan akar;
 -- worker onu YALNIZ /urun-sil cift-onay ucundan yazar, uygulayici duzelt --toplu

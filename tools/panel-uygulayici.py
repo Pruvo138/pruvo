@@ -550,7 +550,11 @@ def durum():
         print("PANEL_UYGULAYICI: TABLO_YOK — sema kosulmamis")
         return 2
     print("PANEL_UYGULAYICI durum: " + (" ".join(
-        "%s=%d" % (h, sayilar.get(h, 0)) for h in ("beklemede", "islendi", "hata"))
+        "%s=%d" % (h, sayilar.get(h, 0))
+        # 'kapandi' = panelden KAPATILMIS hata satiri (yonet.js /urunler-kuyruk-kapat,
+        # 6 Eyl 2026). Uygulayicinin MENZILINDE degil (o yalniz 'beklemede' okur) ama
+        # raporda ADIYLA sayilir: yeni hal sessiz kovaya dusmez, toplam tutar.
+        for h in ("beklemede", "islendi", "hata", "kapandi"))
         or "bos"))
     return 0
 
