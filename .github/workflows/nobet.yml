@@ -1888,6 +1888,18 @@ jobs:
         if: ${{ !cancelled() }}
         run: node tools/reklam-url-test.js
 
+      # 🔴 CAPA COKMESI EKSENI (6 Eyl 2026, cip KraL-Tamirci-6Eyl). Ustteki testin GA
+      # head dilimi KOMSU etikete bagli bir capa kullaniyordu; `fc76b775` (5 Eyl, LCP
+      # gec-yukleme) o komsuyu kaldirinca capa COKTU ve `dilim()` MODUL DUZEYINDE
+      # firladi: adim kirmizi yandi ama 6 RIZA (KVKK Consent Mode v2) senaryosu
+      # 5->6 Eyl arasi HIC KOSMADI — kirmizinin ARKASI olculmuyordu. Onarim: tam blok
+      # ayiklamasi kanonik `tools/html-blok-ayikla.js`e devredildi (komsuya degil
+      # ICERIK IMZASINA bakar) + capalar TEMBEL + kosan senaryo sayisi CIVILENDI.
+      # Bu batarya o korumanin ISIRDIGINI olcer; kosmazsa onarim beyandan ibaret kalir.
+      - name: Reklam URL capa ekseni mutasyon bataryasi (5 mutant + kontrol)
+        if: ${{ !cancelled() }}
+        run: node tools/reklam-url-capa-mutasyon.js
+
       # ═══════════════════════════════════════════════════════════════════════
       # MUTASYON SURUCULERI (8 Agu 2026) — KESIF GENISLEMESIYLE KABLOLANANLAR
       # ═══════════════════════════════════════════════════════════════════════

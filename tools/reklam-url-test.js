@@ -32,6 +32,7 @@ const fs = require("fs");
 const vm = require("vm");
 const path = require("path");
 const { gorunurKategoriOneki } = require("./ortak-index-esleme.js");
+const { inlineScriptBul } = require("./html-blok-ayikla.js");
 
 const KOK = path.dirname(__dirname);
 const INDEX = fs.readFileSync(path.join(KOK, "index.html"), "utf8");
@@ -63,15 +64,59 @@ function dilim(metin, bas, bit, ad) {
   return metin.slice(i, j);
 }
 
-const ATIF_SRC = dilim(INDEX, "var PRUVO_ATIF = (function(){",
-                       "\n  /* Banner ayrı bir <script>", "PRUVO_ATIF");
-assert(ATIF_SRC.indexOf("urlKorunan") !== -1,
-       "PRUVO_ATIF dilimi urlKorunan() kancasini icermiyor -> tek kanonik kaynak YOK");
+/* 🔴 CAPA COKMESI SINIFI (olculdu 6 Eyl 2026, KraL-Tamirci-6Eyl):
+   GA head dilimi bitis capasi olarak KOMSU etiketi ("</script>\n<script async")
+   kullaniyordu. `fc76b775` (5 Eyl, LCP gec-yukleme) o komsuyu kaldirinca capa
+   COKTU ve `dilim()` MODUL DUZEYINDE firladi: 7 senaryo kostuktan sonra surec
+   oldu, ALTTAKI 6 RIZA (KVKK consent) senaryosu 5 Eyl'den beri HIC OLCULMEDI.
+   Kirmizi gorunuyordu ama kirmizinin ARKASINDAKI olcum yoktu.
+   IKI YAPISAL ONARIM:
+   ① TAM BLOK ayiklamasi artik KANONIK yardimciya (tools/html-blok-ayikla.js)
+      devredildi: blok KOMSUSUNA gore degil KENDI ICERIK IMZASINA gore bulunur;
+      yorum icinde gecen "<script>" metni ya da komsu etiketin degismesi kaydirmaz.
+   ② Capalar TEMBEL cozulur: cokme artik ADIYLA bir KIRMIZI SENARYO olur, geri
+      kalan senaryolar KOSMAYA DEVAM eder. Ustune kosan senaryo sayisi asagida
+      CIVILENIR (BEKLENEN_SENARYO) — bir senaryo sessizce kosmadan atlanirsa
+      kapi KIRMIZI yanar. */
+function capa(ad, coz) {
+  let deger = null;
+  let cozuldu = false;
+  let hata = null;
+  return function () {
+    if (!cozuldu) {
+      cozuldu = true;
+      try { deger = coz(); } catch (e) { hata = e; }
+    }
+    if (hata) { throw new Error("CAPA COKTU [" + ad + "]: " + hata.message); }
+    return deger;
+  };
+}
 
-const SYNC_SRC = dilim(INDEX, "  function syncUrl(){",
-                       "\n  // seçili kategori + aramaya uyan", "syncUrl");
-assert(SYNC_SRC.indexOf("history.replaceState") !== -1,
-       "syncUrl dilimi yanlis blogu aldi (replaceState yok)");
+/** TAM inline <script> blogu -> KANONIK ayiklayici, ICERIK IMZASI ile. */
+function blokCapa(ad, imza) {
+  return capa(ad, () => {
+    const govde = inlineScriptBul(INDEX, imza);
+    assert(govde !== null,
+           "index.html'de `" + imza + "` imzasini tasiyan inline <script> blogu YOK");
+    return govde;
+  });
+}
+
+const ATIF_SRC = capa("PRUVO_ATIF", () => {
+  const src = dilim(INDEX, "var PRUVO_ATIF = (function(){",
+                    "\n  /* Banner ayrı bir <script>", "PRUVO_ATIF");
+  assert(src.indexOf("urlKorunan") !== -1,
+         "PRUVO_ATIF dilimi urlKorunan() kancasini icermiyor -> tek kanonik kaynak YOK");
+  return src;
+});
+
+const SYNC_SRC = capa("syncUrl", () => {
+  const src = dilim(INDEX, "  function syncUrl(){",
+                    "\n  // seçili kategori + aramaya uyan", "syncUrl");
+  assert(src.indexOf("history.replaceState") !== -1,
+         "syncUrl dilimi yanlis blogu aldi (replaceState yok)");
+  return src;
+});
 
 /* 🔴 syncUrl 11 Agu'da GORUNEN kategori etiketine uzandi (ic seri adi adres cubuginda
    gorunmesin diye): `?kategori=` artik gorunurKategori(activeCat) yaziyor. Bagimlilik
@@ -126,7 +171,7 @@ function kosum(baslangicUrl, durum) {
     "var activeBrand = " + JSON.stringify(durum.marka || "Tümü") + ";" +
     "var activeModel = " + JSON.stringify(durum.model || "Tümü") + ";" +
     "var query = " + JSON.stringify(durum.ara || "") + ";\n" +
-    GOR_ONEK + ATIF_SRC + "\n" + SYNC_SRC + "\nsyncUrl();", kutu);
+    GOR_ONEK + ATIF_SRC() + "\n" + SYNC_SRC() + "\nsyncUrl();", kutu);
   assert(basilan !== null, "syncUrl replaceState CAGIRMADI");
   return basilan;
 }
@@ -203,10 +248,10 @@ senaryo("5 reklamla ILGISIZ parametre KORUNMAZ (kapsam genislemedi)", () => {
 
 // ─── 6) TEK KANONIK KAYNAK ───────────────────────────────────────────────────
 senaryo("6 korunan liste TEK kanonik kaynaktan turer (ikinci elle liste YOK)", () => {
-  assert(SYNC_SRC.indexOf("PRUVO_ATIF.urlKorunan()") !== -1,
+  assert(SYNC_SRC().indexOf("PRUVO_ATIF.urlKorunan()") !== -1,
          "syncUrl kanonik kaynagi cagirmiyor");
   // syncUrl govdesinde "gclid"/"utm_" gecen bir DIZI LITERALI olmamali (ikinci liste).
-  const govde = SYNC_SRC.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+  const govde = SYNC_SRC().replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
   assert(!/\[[^\]]*["']gclid["'][^\]]*\]/.test(govde),
          "syncUrl govdesinde IKINCI bir elle yazilmis parametre dizisi var");
   // ...ve kanonik kaynak sekizini de KAPSAMALI (kume iddiasi, davranistan bagimsiz).
@@ -214,7 +259,7 @@ senaryo("6 korunan liste TEK kanonik kaynaktan turer (ikinci elle liste YOK)", (
                  window: { addEventListener() {} }, location: { search: "" },
                  URLSearchParams, console: { warn() {} }, Date, cikti: null };
   vm.createContext(kutu);
-  vm.runInContext(ATIF_SRC + "\ncikti = PRUVO_ATIF.urlKorunan();", kutu);
+  vm.runInContext(ATIF_SRC() + "\ncikti = PRUVO_ATIF.urlKorunan();", kutu);
   const kume = kutu.cikti;
   assert(Array.isArray(kume) && kume.length > 0, "urlKorunan() dizi dondurmedi");
   const eksik = SEKIZ.filter((k) => kume.indexOf(k) === -1);
@@ -231,18 +276,11 @@ senaryo("6 korunan liste TEK kanonik kaynaktan turer (ikinci elle liste YOK)", (
 // riza kaydinin sessizce genisletilmedigi de olculur — bu bir RIZA kaydidir,
 // sessiz genisletme acik riza sayilmaz.
 
-const GA_JS = dilim(INDEX, "  window.dataLayer = window.dataLayer || [];",
-                    "</script>\n<script async", "GA head");
-const BANNER_JS = (function () {
-  const d = INDEX.indexOf('id="pruvo-cerez-onay"');
-  assert(d !== -1, "index.html: riza bandi bulunamadi");
-  const s = INDEX.indexOf("<script>", d);
-  const e = INDEX.indexOf("</script>", s);
-  assert(s !== -1 && e !== -1, "riza bandi script blogu bulunamadi");
-  const src = INDEX.slice(s + "<script>".length, e);
-  assert(src.indexOf("pco-kabul") !== -1, "yanlis script blogu kesildi");
-  return src;
-})();
+/* Iki blok da KANONIK ayiklayiciyla, KOMSUYA DEGIL kendi icerik imzasina gore
+   bulunur (yukaridaki CAPA COKMESI notu). GA head imzasi Consent Mode v2
+   cekirdegini, banner imzasi "Kabul Et" dugmesinin kimligini tasir. */
+const GA_JS = blokCapa("GA head", "window.dataLayer = window.dataLayer");
+const BANNER_JS = blokCapa("riza bandi", "pco-kabul");
 
 const RIZA_ALANLARI = ["analytics_storage", "ad_storage", "ad_user_data",
                        "ad_personalization"];
@@ -281,7 +319,7 @@ function rizaKosum(baslangicDepo, tiklama) {
   kutu.window = kutu;
   kutu.window.addEventListener = function () {};
   vm.createContext(kutu);
-  vm.runInContext(GA_JS, kutu);
+  vm.runInContext(GA_JS(), kutu);
   // gtag() dataLayer'a itiyor; consent komutlarini ETKIN duruma indir.
   (kutu.dataLayer || []).forEach(function (arg) {
     if (arg[0] !== "consent") { return; }
@@ -290,7 +328,7 @@ function rizaKosum(baslangicDepo, tiklama) {
     });
   });
   kutu.dataLayer.length = 0;
-  vm.runInContext(BANNER_JS, kutu);
+  vm.runInContext(BANNER_JS(), kutu);
   const bant = ogeYap("pruvo-cerez-onay");
   const bantGorunur = bant.hidden === false;
   if (tiklama) {
@@ -365,7 +403,34 @@ senaryo("12 RET diyene tekrar SORULMAZ (yanlis-pozitif ekseni)", () => {
   assert(sayimi(r.durum, "denied") === 4, "ret kaydinda sizinti");
 });
 
+// ─── CAPA EKSENI — cokme ADIYLA olculur, arkasindakileri GIZLEMEZ ────────────
+// Bu dort senaryo olmasaydi bir capa cokmesi ya sessiz kalir ya da (eski halde)
+// modul duzeyinde firlayip ALTINDAKI her senaryoyu olcum disi birakirdi.
+senaryo("C1 CAPA: PRUVO_ATIF blogu index.html'den cozuluyor", () => { ATIF_SRC(); });
+senaryo("C2 CAPA: syncUrl blogu index.html'den cozuluyor", () => { SYNC_SRC(); });
+senaryo("C3 CAPA: GA head blogu KANONIK ayiklayiciyla cozuluyor", () => {
+  const src = GA_JS();
+  assert(src.indexOf("gtag('consent', 'default'") !== -1,
+         "GA head dilimi Consent Mode v2 varsayilanini icermiyor");
+  // Komsu blok (gec-yukleyici) SIZMAMALI: sizerse vm sandbox'ta setTimeout patlar.
+  assert(src.indexOf("googletagmanager.com/gtag/js") === -1,
+         "GA head dilimine KOMSU gec-yukleyici blogu sizmis (capa fazla genis)");
+});
+senaryo("C4 CAPA: riza bandi blogu KANONIK ayiklayiciyla cozuluyor", () => {
+  assert(BANNER_JS().indexOf("pco-kabul") !== -1, "yanlis script blogu kesildi");
+});
+
 // ─── ozet ────────────────────────────────────────────────────────────────────
+// 🔴 KOSAN SENARYO SAYISI CIVILENIR: bir senaryo sessizce kosmadan atlanirsa
+// (capa cokmesi, erken cikis, silinen blok) kapi KIRMIZI yanar. Yeni senaryo
+// eklerken bu sayi BILEREK guncellenir — "yesil ama olcmuyor" hali kapanir.
+const BEKLENEN_SENARYO = 17;
+const kosan = passed + hatalar.length;
+if (kosan !== BEKLENEN_SENARYO) {
+  hatalar.push("SENARYO SAYACI: " + kosan + " kostu, " + BEKLENEN_SENARYO +
+               " bekleniyordu -> senaryolar SESSIZCE atlandi ya da sayi guncellenmedi");
+}
+
 console.log("\n" + "-".repeat(70));
 if (hatalar.length) {
   console.error("SONUC: KIRMIZI ❌  — " + hatalar.length + " senaryo dustu, " +
