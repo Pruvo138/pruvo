@@ -35,6 +35,9 @@ import subprocess
 import sys
 import tempfile
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import git_ortami                                             # noqa: E402
+
 BU = os.path.dirname(os.path.abspath(__file__))
 KOK = os.path.dirname(BU)              # bu worktree'nin koku
 ENVANTER = os.path.join(BU, "kapi-envanteri.py")
@@ -72,15 +75,17 @@ def _kur(gecici):
     with open(os.path.join(kopya, ".claude", "settings.json"), "w",
               encoding="utf-8") as f:
         json.dump(SENTETIK_SETTINGS, f, indent=2)
-    # Sentetik git + kanca dizini: core.hooksPath ile isaretlenir.
-    subprocess.run(["git", "init", "-q", kopya], check=True,
-                   capture_output=True, text=True)
+    # Sentetik git: KANONIK yardimci zorunlu (`tools/fikstur-git-sizinti-kapisi.py`
+    # dogrudan `git init` cagrisini KIRMIZI yakar) — miras GIT_* adlari temizlenir,
+    # kimlik hicbir config dosyasina yazilmaz.
+    git_ortami.sentetik_git(kopya, "init", "-q", check=True,
+                            capture_output=True, text=True)
     kdiz = os.path.join(kopya, ".git", "pruvo-kancalar")
     os.makedirs(kdiz, exist_ok=True)
     shutil.copy2(os.path.join(KOK, "tools", "kancalar", "pre-commit"),
                  os.path.join(kdiz, "pre-commit"))
-    subprocess.run(["git", "-C", kopya, "config", "core.hooksPath",
-                    ".git/pruvo-kancalar"], check=True, capture_output=True, text=True)
+    git_ortami.sentetik_git(kopya, "config", "core.hooksPath", ".git/pruvo-kancalar",
+                            check=True, capture_output=True, text=True)
     return kopya
 
 
