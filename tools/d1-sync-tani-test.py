@@ -34,6 +34,13 @@ import time
 sys.dont_write_bytecode = True
 BURASI = os.path.dirname(os.path.abspath(__file__))
 KOK = os.path.dirname(BURASI)
+# 🔴 SENTETIK GIT TEK KAPIDAN (`tools/git_ortami.py`): miras alinan GIT_* baglami
+# cagri yerinde DEGIL kanonik yardimcinin icinde temizlenir; `git init` ilk dal adi
+# da orada civilenir (CI git 2.55 `master`, Okan'in makinesi `main` uretir).
+# `try/except ImportError -> yerel kopya` YAZILMAZ: o dusus yolu ikizin ta kendisidir.
+sys.path.insert(0, BURASI)
+from git_ortami import sentetik_git  # noqa: E402
+
 sys.path.insert(0, BURASI)
 
 # 🔴 OLCULEN MESRU (rc=0) WRANGLER KOSUM SURELERI — 4 Eyl 2026, bu makine, GERCEK D1 ucu.
@@ -78,7 +85,8 @@ def dogrula(ad, kosul, detay=""):
 # ── SENTETIK KOK (flock CANLI .git/config'e DOKUNMASIN) ─────────────────────────────
 def sentetik_kok_kur():
     kok = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-d1-tani-"))
-    p = subprocess.run(["git", "init", "-q", kok], capture_output=True, text=True)
+    p = sentetik_git(os.path.dirname(kok), "init", "-q", kok,
+                     capture_output=True, text=True)
     if p.returncode != 0 or not os.path.isfile(os.path.join(kok, ".git", "config")):
         shutil.rmtree(kok, ignore_errors=True)
         raise SystemExit("!! SENTETIK KOK KURULAMADI (git init rc=%s) — batarya "

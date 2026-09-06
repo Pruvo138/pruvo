@@ -661,8 +661,29 @@ E_G_CAPA = ("    iddia += 1\n"
 E_G_SAYAC_SIL = ('    if yayin is None:\n'
                  '        hatalar.append("G8 OLCULEMEDI')
 E_G_SAYAC_EKLE = "    iddia += 1\n" + E_G_CAPA
-E_G_TABAN_CAPA = "G_IDDIA_TABANI = 11"
-E_G_TABAN_ESKI = "G_IDDIA_TABANI = 10"
+# 🔴 CAPA SABIT YAZILMAZ, KAYNAKTAN TURETILIR (6 Eyl 2026 — 3. bayatlama):
+# "= 8" (8 Agu) -> "= 11" (19 Agu) -> canli deger bugun 13. Her tabana dokunusta capa
+# elle tazelenmedigi icin bolum E "HARNESS BAYAT" basip HICBIR SEY OLCMEDEN geciyordu
+# ve bu, harness'in en son 2 turunun ikisinde de tekrarlandi. Sabit sayi capasi
+# tanim geregi bayatlar; ISARET (`G_IDDIA_TABANI = <n>`) aranir, sayi OKUNUR ve
+# "eski gevsek hal" ondan TURETILIR ([[capa-turetme-altyapisi-kullanilmadan-kaldi]]).
+def _capa_turet(dosya_yolu, desen, gevset):
+    """(capa, gevsek_hal) — sayiyi KAYNAKTAN okur; bulunamazsa GURULTULU coker."""
+    with open(dosya_yolu, encoding="utf-8") as f:
+        kaynak = f.read()
+    m = re.findall(desen, kaynak, re.M)
+    if len(m) != 1:
+        raise SystemExit(
+            "HARNESS BAYAT (capa turetme): %r deseni %s icinde TAM BIR KEZ eslesmedi "
+            "(bulunan=%d) — sabit tasindi ya da ikizlendi." % (desen, dosya_yolu, len(m)))
+    sayi = int(m[0])
+    govde = desen.replace(r"(\d+)", "%d").replace("^", "").replace("$", "")
+    return govde % sayi, govde % gevset(sayi)
+
+
+E_G_TABAN_CAPA, E_G_TABAN_ESKI = _capa_turet(
+    os.path.join(ROOT, "tools", "is-akisi-kapisi.py"),
+    r"^G_IDDIA_TABANI = (\d+)$", lambda n: n - 1)
 E_G_OP_CAPA = "        if temiz_iddia != G_IDDIA_TABANI:"
 E_G_OP_ESKI = "        if temiz_iddia < G_IDDIA_TABANI:"
 E_G_JETON = "G-IDDIA SAYACI BOZUK"
@@ -889,6 +910,31 @@ def bolum_e(tmp):
         return
     check("E-TABAN: CANLI depoda kapi YESIL (iddia=%d)" % canli_iddia, True,
           "ayna hukumleri bu tabana GORE kurulur (sabit yazilmaz)")
+
+    # ---- E-PAY: `KENDINI_TEST_TABAN` OLU KORUMA PAYI TASIYOR MU (6 Eyl, 3. tekrar) --
+    # 🔴 OLCULEN DESEN: taban gercek sayinin ALTINDA kaldigi surece, PAY KADAR iddia tek
+    # commit'te SESSIZCE silinebilir ve kapi YESIL kalir. Tarihce: pay 13 (8 Agu) ->
+    # pay 4 (19 Agu, bugun bulundu) — ve tam bu 4'un icinde E6 mutanti UC TURDUR
+    # kaciyordu. Tekil yama (sayiyi tazelemek) UC KEZ denendi, UC KEZ bayatladi.
+    # NEDEN ANA KAPIDA DEGIL BURADA: `c_iddia > TABAN` kolu kapinin kendisine konunca
+    # E2/E2b'yi golgeledi ve E8 kanaryasini ("mesru buyume YESIL kalmali") cignedi —
+    # olculdu, geri alindi. Bu batarya SERIT B'dedir: yayini BLOKLAMAZ ama sapmayi
+    # ayni gun kirmizi yakar ([[ucuncu-tekrar-sinif-kapisi]]).
+    _pay_capa, _ = _capa_turet(os.path.join(ROOT, "tools", "is-akisi-kapisi.py"),
+                               r"^KENDINI_TEST_TABAN = (\d+)$", lambda n: n)
+    ilan_taban = int(_pay_capa.rsplit(" ", 1)[1])
+    pay = canli_iddia - ilan_taban
+    check("E-PAY: KENDINI_TEST_TABAN CANLI sayiya TAM ESIT (olu koruma payi 0)",
+          pay == 0,
+          "ilan=%d canli=%d pay=%d · %s" % (
+              ilan_taban, canli_iddia, pay,
+              "PAY YOK: bir iddia silinirse kapi ayni gun kirmizi yanar"
+              if pay == 0 else
+              ("PAY %d: bu kadar iddia SESSIZCE silinebilir, kapi YESIL kalir. "
+               "YAPILACAK: iddia bilerek eklendiyse KENDINI_TEST_TABAN'i AYNI "
+               "commit'te %d yap ve nedenini yaz." % (pay, canli_iddia))
+              if pay > 0 else
+              "TABAN CANLIDAN BUYUK: kapi zaten kirmizi olmali; sayim yolu bozuk."))
 
     kok0 = akis_ayna_kur(os.path.join(tmp, "e0"))
     rc, cikti, coldu, iddia0 = _e_kos(kok0)

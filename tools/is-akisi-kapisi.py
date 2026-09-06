@@ -4344,7 +4344,17 @@ def _main_ast_return1_var():
 # YESIL kaliyordu, yani "bir eksen sessizce silinebilir mi" sorusu OLCULMUYORDU.
 # Payi kapatmak ekseni geri getirir; tablo/iddia BILEREK degistiginde bu sabit AYNI
 # commit'te NEDENIYLE guncellenir (kural degismedi, sayi bugune cekildi).
-KENDINI_TEST_TABAN = 224
+# 🔴 6 Eyl 2026 (KraL-CipKapi-6Eyl) — PAY UCUNCU KEZ BIRIKTI, BU KEZ YAPISAL KAPATILDI.
+# Olculen: canli sayim 228, taban 224 -> 4 PAYLIK OLU KORUMA. `nobetci-mutasyon-test.py`
+# E6 mutanti (bir iddiayi silip operatoru `<`e dondurme) tam bu payin icinde KACIYORDU
+# (227 hala 224'un ustunde) — yani "bir eksen sessizce silinebilir mi" sorusu ucuncu
+# kez OLCULMUYORDU. Tarihce: 211 (8 Agu, pay 13) -> 224 (19 Agu, pay 4) -> 228 (bugun).
+# Tekil yama (sayiyi tazelemek) UC KEZ denendi ve UC KEZ yeniden bayatladi; bu yuzden
+# artik BUYUME DE KIRMIZI yanar (asagida `c_iddia > KENDINI_TEST_TABAN` kolu). Pay
+# birikemez: iddia eklemek tabani AYNI commit'te guncellemeyi ZORUNLU kilar
+# ([[ucuncu-tekrar-sinif-kapisi]] · [[batarya-kapsam-tabani-sayiyla-civilenir]]).
+KENDINI_TEST_TABAN = 228
+
 
 KENDINI_TEST_TABAN_TANI = (
     "BOLUM C IDDIA SAYACI KIRMIZI: ariza-enjeksiyon %d iddia kosturdu, TABAN %d.\n"
@@ -6201,6 +6211,13 @@ def main():
     # ayni gerekce). Kabul edilen sinir: bu SATIRI da silen IKI ADIMLI mutasyon kacar.
     if c_iddia < KENDINI_TEST_TABAN:
         _cikis_yolu_kirmizi([KENDINI_TEST_TABAN_TANI % (c_iddia, KENDINI_TEST_TABAN)])
+    # 🔴 PAY (buyume yonu) BU KAPIDA KIRMIZI YAKILMAZ — BILEREK. Denendi ve OLCULDU
+    # (6 Eyl): `c_iddia > TABAN` kolu buraya konunca E2/E2b/E8 mutantlarini GOLGELEDI
+    # (tablo sayaci jetonuna VARMADAN cikiyordu) ve E8 kanaryasini — "mesru buyume
+    # YESIL kalmali, yoksa tum ekibin yayini durur" — dogrudan cignedi. Payi olcen
+    # dogru yer BLOKLAYICI OLMAYAN batarya: `tools/nobetci-mutasyon-test.py` bolum E,
+    # `E-PAY` iddiasi canli sayimi bu sabitle TAM ESITLIK ile karsilastirir ve sapmayi
+    # ayni gun SERIT B'de kirmizi yakar (yayini bloklamadan).
 
     if args.pre_push:
         try:

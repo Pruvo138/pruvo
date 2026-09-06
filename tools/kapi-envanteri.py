@@ -473,6 +473,24 @@ def _hooks_dizini(root):
     return deger if os.path.isabs(deger) else os.path.normpath(os.path.join(root, deger))
 
 
+def kanca_etiketi(root, dosya):
+    """Kancanin FIILEN okundugu yolun kisa etiketi — `.git/hooks` SABIT YAZILMAZ.
+
+    🔴 OLCULEN KUSUR (6 Eyl 2026): cozucu (`_hooks_dizini`) 4 Agu'dan beri DOGRUYDU —
+    `core.hooksPath` okunuyordu — ama ekrana basilan etiket her hâlde sabit
+    `.git/hooks/<dosya>` idi. Teshis eden kisi "envanter kancayi `.git/hooks`'ta
+    ariyor, oysa canli kanca `core.hooksPath`'te" diye YANLIS KOK bildirdi ve
+    onarim yanlis yere nisanlandi. Tani metni, aracin OKUDUGU yeri soylemek
+    zorundadir; okumadigi bir yolu adiyla anan tani, kendisi bir kusurdur
+    ([[teshis-metni-okunmayan-yolu-anmaz]] · [[sinif-adi-kol-adi-olarak-basilirsa-yanlis-alan-dogrulanir]]).
+    """
+    dizin = _hooks_dizini(root)
+    varsayilan = os.path.join(root, ".git", "hooks")
+    kisa = ".git/hooks" if os.path.realpath(dizin) == os.path.realpath(varsayilan) \
+        else "core.hooksPath=" + dizin
+    return "%s/%s" % (kisa, dosya)
+
+
 def _hook_bagli(root, basename, dosya):
     yol = os.path.join(_hooks_dizini(root), dosya)
     try:
@@ -492,7 +510,7 @@ def bagli_mi(root, gate):
             etiket = "settings.json PreToolUse/%s" % k["matcher"]
         else:
             ok = _hook_bagli(root, basename, k["dosya"])
-            etiket = ".git/hooks/%s" % k["dosya"]
+            etiket = kanca_etiketi(root, k["dosya"])
         if not ok:
             eksikler.append(etiket)
     return (not eksikler), (", ".join(eksikler))
@@ -536,12 +554,14 @@ def main():
 
     print("PRUVO KAPI ENVANTERI (salt-okunur teshis)")
     print("Repo: " + root)
-    print("Beklenen kablolama (koda gomulu; ana repodaki settings.json + .git/hooks'tan turetildi):")
+    print("Etkin kanca dizini: %s  (core.hooksPath varsa O, yoksa .git/hooks)"
+          % _hooks_dizini(root))
+    print("Beklenen kablolama (koda gomulu; ana repodaki settings.json + kanca dizininden turetildi):")
     for g in GATES:
         yerler = []
         for k in g["kablolar"]:
             yerler.append("settings/%s" % k["matcher"] if k["yer"] == "settings"
-                          else ".git/hooks/%s" % k["dosya"])
+                          else kanca_etiketi(root, k["dosya"]))
         print("  %-22s -> %s" % (g["ad"], ", ".join(yerler)))
     print("")
     print("%-22s %-6s %-7s %-9s %s" % ("KAPI", "VAR", "BAGLI", "NOBETTE", "SONUC"))
