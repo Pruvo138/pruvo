@@ -7,7 +7,7 @@
 
 ## ✅ 6 EYL — ana oturum: **TEMIZLIK + ACIK IS SAYIMI** (2 kirmizi sinifi cipe verildi)
 **TEMIZLIK:** worktree **5 → 1** (dordu de `arsiv-kapisi` **ARSIVLENEBILIR rc=0**; canlilik `lsof -a -d cwd` ile olculdu) · merge'lu 4 cip dali `-d` ile silindi · biten 2 oturum arsivlendi · `cip-supurme` **ACIK CIP YOK**.
-**SAYIM:** `parti-borc-kapisi` → `ACIK_KALEM=43 OKAN_KAPISI=0 GECERSIZ_DURUM=7 RED`. 7'nin **5'i `\|` KACIS KORLUGU** (K371·K308·K313·K339·K339-EK — defter DOGRU, okuyucu ham `|` ile boluyor; satirlar aylardir OKUNMUYOR), 2'si etiket (K44·K55) → cip `KraL-BorcParser-6Eyl`.
+**SAYIM → cip `KraL-BorcParser-6Eyl` ✅ `672f4b41`:** ONCUL DUZELTILDI — kacis korlugu **3** satir (K371·K313·K339); K308·K339-EK kacisSIZ gomulu `|` (defter YANLIS), K329 etiket; **K89·K91 satir sonu `|` yok → parser'in ILK satirinda SESSIZ dusuyordu, ikisi de OKAN-KAPISI**. `43/0/7 RED` → **`48/2/0`**, mutant **8/8→10/10**.
 **SERIT B** (`34043459306` @ `f22dfa96`): 4 kirmizi — `Recete` **AYIKLANAMADI=1** (dun dogdu) + `Cip kapatma` **V3d** (yerel 20/20, CI 19/20 = ORTAM EKSENI) → cip `KraL-SeritB2-6Eyl` · `LCP onculuk` **ArTisT'te** · `hijyen-a3` parite yerelde **248/0**, `f7639a86` turu OLCULUYOR.
 **YAYIN ✅:** `34047935969` @ `7ca9d5bc` — 6/6 is yesil, deploy+yayin **success**, SKIPPED **0**. SERIT B kolu (`34047936116`) `cancelled` (ArTisT `8b6ab3ae` ustune indi, push grubu TEK) → o eksen **OLCULEMEDI**, hukum `34048480047`'den.
 ## ✅ 6 EYL — `KraL-BorcKapisi-6Eyl` [Opus 5]: **T4: OKAN-KAPISI kilidi KALKTI + sessiz atlama KOL OLDU** (BaBa)
