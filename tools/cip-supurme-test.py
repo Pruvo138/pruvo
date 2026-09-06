@@ -6,6 +6,7 @@
 🔴 NEGATIF KOLLAR SART: "listeye girdi" kadar "GIRMEDI" de olculur — yalnizca pozitif
    olcen batarya, herkesi terk adayi ilan eden bir supurgeyi YESIL gosterirdi.
 """
+import datetime as _dt
 import importlib.util
 import os
 import shutil
@@ -39,7 +40,25 @@ def yukle():
     return mod
 
 
-ACIK = """## 2026-08-30 — 🚧 MaCiT (çip: `olu-cip-aaa111`) **BAŞLIYORUM: eski is.**
+# 🔴 FIKSTUR TARIHLERI BUGUNE GORELIDIR, MUTLAK YAZILMAZ.
+# OLCULEN KUSUR (6 Eyl 2026): `taze-cip-bbb222` blogu `2026-09-04` diye CIVILIYDI ve
+# V3b "esik 2 gun: bugunku cip ELENIR" iddiasi yasin 2 gunu gectigi ilk gun KIRMIZI
+# yandi — kodda hicbir sey bozulmadan, YALNIZ TAKVIM ILERLEDIGI ICIN. Olculen sey
+# kolun kendisi degil, bataryanin kosuldugu GUNDU. Yas ekseni olcen her fikstur
+# tarihini `bugun - N` ile turetir; boylece kol her gun AYNI seyi olcer.
+_BUGUN = _dt.date.today()
+
+
+def _gun_once(n):
+    return (_BUGUN - _dt.timedelta(days=n)).isoformat()
+
+
+# Esikler: batarya `tara(2)` cagirir -> 2 gunden ESKI kalir, daha taze ELENIR.
+T_ESKI = _gun_once(7)      # esigin acikca USTUNDE
+T_TAZE = _gun_once(0)      # BUGUN acilmis -> esik 2'de ELENMELI
+T_ORTA = _gun_once(5)      # kapanisli/arsivli bloklar (yas ekseni disinda)
+
+ACIK = """## %(t_eski)s — 🚧 MaCiT (çip: `olu-cip-aaa111`) **BAŞLIYORUM: eski is.**
 govde
 — MaCiT (çip)
 
@@ -47,7 +66,7 @@ govde
 
 """
 
-ACIK_YENI = """## 2026-09-04 — 🚧 KraL (çip: `taze-cip-bbb222`) **BAŞLIYORUM: bugunku is.**
+ACIK_YENI = """## %(t_taze)s — 🚧 KraL (çip: `taze-cip-bbb222`) **BAŞLIYORUM: bugunku is.**
 govde
 — KraL (çip)
 
@@ -55,12 +74,12 @@ govde
 
 """
 
-KAPALI_KUTUDA = """## 2026-09-01 — 🚧 ArTisT (çip: `kutuda-kapali-ccc333`) **BAŞLIYORUM: is.**
+KAPALI_KUTUDA = """## %(t_orta)s — 🚧 ArTisT (çip: `kutuda-kapali-ccc333`) **BAŞLIYORUM: is.**
 — ArTisT (çip)
 
 ---
 
-## 2026-09-01 — ✅ ArTisT (çip: `kutuda-kapali-ccc333`) **SAYILI KAPANIŞ — bitti.**
+## %(t_orta)s — ✅ ArTisT (çip: `kutuda-kapali-ccc333`) **SAYILI KAPANIŞ — bitti.**
 sayilar
 — ArTisT (çip)
 
@@ -74,20 +93,20 @@ sayilar
 # (buyuk 'K' < kucuk 'a'), yani kapanista GECMEYEN ad basta. Boylece tek-ad kiyasi
 # yapan bir mutant bu blogu ACIK sanir ve V1f DUSER. Ilk fikstur bunu saglamiyordu:
 # acilis tek ada cozuluyordu, mutant hedefe ULASAMIYORDU (mutasyon turu yakaladi).
-AD_EKSENI_ACIK = """## 2026-09-02 — 🚧 KraL-AdEkseni-2Eyl (çip `ad-ekseni-ddd444`) **BAŞLIYORUM: is.**
+AD_EKSENI_ACIK = """## %(t_orta)s — 🚧 KraL-AdEkseni-2Eyl (çip `ad-ekseni-ddd444`) **BAŞLIYORUM: is.**
 — KraL-AdEkseni-2Eyl
 
 ---
 
 """
 
-ARSIVDE_KAPALI = """## 2026-09-01 — ✅ HocA (çip: `arsivde-kapali-eee555`) **SAYILI KAPANIŞ — bitti.**
+ARSIVDE_KAPALI = """## %(t_orta)s — ✅ HocA (çip: `arsivde-kapali-eee555`) **SAYILI KAPANIŞ — bitti.**
 sayilar
 — HocA (çip)
 
 ---
 
-## 2026-09-02 — ✅ (çip `ad-ekseni-ddd444`) **SAYILI KAPANIŞ — bitti.**
+## %(t_orta)s — ✅ (çip `ad-ekseni-ddd444`) **SAYILI KAPANIŞ — bitti.**
 sayilar
 — ad-ekseni-ddd444
 
@@ -95,7 +114,7 @@ sayilar
 
 """
 
-ARSIVDE_ACIK = """## 2026-09-01 — 🚧 HocA (çip: `arsivde-kapali-eee555`) **BAŞLIYORUM: is.**
+ARSIVDE_ACIK = """## %(t_orta)s — 🚧 HocA (çip: `arsivde-kapali-eee555`) **BAŞLIYORUM: is.**
 — HocA (çip)
 
 ---
@@ -111,6 +130,17 @@ def kur(gecici, kutu_metin, arsiv_metin):
     with open(a, "w", encoding="utf-8") as f:
         f.write(arsiv_metin)
     return k, a
+
+
+# Sablonlardaki `%(t_*)s` jetonlari BURADA — sabitler tanimlandiktan SONRA —
+# gercek tarihlere cevrilir. Tek yer: yeni bir fikstur eklenirse o da buradan gecer.
+_TARIHLER = {"t_eski": T_ESKI, "t_taze": T_TAZE, "t_orta": T_ORTA}
+ACIK = ACIK % _TARIHLER
+ACIK_YENI = ACIK_YENI % _TARIHLER
+KAPALI_KUTUDA = KAPALI_KUTUDA % _TARIHLER
+AD_EKSENI_ACIK = AD_EKSENI_ACIK % _TARIHLER
+ARSIVDE_KAPALI = ARSIVDE_KAPALI % _TARIHLER
+ARSIVDE_ACIK = ARSIVDE_ACIK % _TARIHLER
 
 
 def adlari(veri):
@@ -146,7 +176,7 @@ def main():
         iddia("V2a MaCiT atfi", evler.get("olu-cip-aaa111") == "MaCiT", str(evler))
         iddia("V2b KraL atfi", evler.get("taze-cip-bbb222") == "KraL", str(evler))
         M.KUTU, M.ARSIV = kur(gecici,
-                              "## 2026-09-01 — 🚧 (çip: `sahipsiz-fff666`) **BAŞLIYORUM: is.**\nx\n\n---\n\n",
+                              "## " + T_ORTA + " — 🚧 (çip: `sahipsiz-fff666`) **BAŞLIYORUM: is.**\nx\n\n---\n\n",
                               "")
         v2, _h = M.tara(0)
         iddia("V2c sahipsiz blok BILINMIYOR (sessizce bir eve YAZILMAZ)",

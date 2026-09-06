@@ -42,6 +42,13 @@ import tempfile
 sys.dont_write_bytecode = True
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 KOK = os.path.dirname(TOOLS)
+# 🔴 SENTETIK GIT TEK KAPIDAN (`tools/git_ortami.py`): miras alinan GIT_* baglami
+# cagri yerinde DEGIL kanonik yardimcinin icinde temizlenir; `git init` ilk dal adi
+# da orada civilenir (CI git 2.55 `master`, Okan'in makinesi `main` uretir).
+# `try/except ImportError -> yerel kopya` YAZILMAZ: o dusus yolu ikizin ta kendisidir.
+sys.path.insert(0, TOOLS)
+from git_ortami import sentetik_git  # noqa: E402
+
 CANLI = os.path.join(TOOLS, "d1-sync.py")
 
 # Yalniz bu turun ekledigi/onardigi kollar hukum tasir. Baska bir kolun kirmiziya
@@ -134,7 +141,7 @@ def sentetik_kok_kur(gecici):
     """Gercek depoya SEMBOLIK BAG'la bakan, kendi `.git`i olan sentetik kok."""
     kok = os.path.join(gecici, "kok")
     os.makedirs(os.path.join(kok, "tools"))
-    p = subprocess.run(["git", "init", "-q", kok], capture_output=True, text=True)
+    p = sentetik_git(gecici, "init", "-q", kok, capture_output=True, text=True)
     if p.returncode != 0 or not os.path.isfile(os.path.join(kok, ".git", "config")):
         raise SystemExit("!! SENTETIK KOK KURULAMADI (rc=%s) — fail-closed." % p.returncode)
     for ad in os.listdir(KOK):

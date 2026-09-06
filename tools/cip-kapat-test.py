@@ -8,11 +8,18 @@ siler) burada KOSULMAZ — gercek bir agaci yok etmek kabul testinin isi degildi
 o kol canli arsivleme aninda olculur ve kapanisa SAYIYLA yazilir.
 """
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARAC = os.path.join(KOK, "tools", "cip-kapat.py")
+# 🔴 SENTETIK GIT TEK KAPIDAN (`tools/git_ortami.py`): fikstur depolari kanonik
+# yardimciyla kurulur — miras alinan GIT_* baglami ve `git init`in ortama bagli ilk
+# dal adi ORADA cozulur. `try/except ImportError -> yerel kopya` YAZILMAZ.
+sys.path.insert(0, os.path.join(KOK, "tools"))
+from git_ortami import sentetik_git  # noqa: E402
 
 IDDIA = 0
 GECTI = 0
@@ -36,27 +43,62 @@ def kos(argv, cwd=None):
     return p.returncode, (p.stdout or "") + (p.stderr or "")
 
 
-def kirmizi_agac():
-    """Kapisi rc!=0 olan CANLI bir cip agaci bul (yoksa vaka ATLANIR, YESIL SAYILMAZ)."""
-    rc, cikti = kos(["-c",
-                     "import subprocess,sys;"
-                     "print(subprocess.run(['git','-C','%s','worktree','list'],"
-                     "capture_output=True,text=True).stdout)" % KOK])
-    for satir in cikti.splitlines():
-        yol = satir.split()[0] if satir.strip() else ""
-        if yol and os.path.realpath(yol) != os.path.realpath(KOK) and os.path.isdir(yol):
-            r, _c = kos([ARAC, yol])
-            if r != 0:
-                return yol
-    return None
+def sentetik_agaclar(gecici):
+    """(ana_checkout, kirmizi_worktree) — IZOLE sentetik depo; canliya DOKUNMAZ.
+
+    🔴 OLCULEN KUSUR (6 Eyl 2026 — bu bataryanin IKI kolu birden ORTAMIN SEKLINI
+    olcuyordu, kolun kendisini DEGIL):
+      * V1 `KOK`u (bu dosyanin deposunun koku) ANA CHECKOUT SANIYORDU. Batarya bir
+        worktree'den kosuldugunda `KOK` bir worktree'dir -> V1a/V1b/V1c UCU BIRDEN
+        kirmizi yanardi; kodda hicbir sey bozuk degildir.
+      * V3 CANLI worktree listesinde 'kapisi kirmizi bir agac' ARIYORDU. CI
+        runner'inda worktree HIC YOKTUR -> `V3 OLCULEMEDI` iddiasi 10 gundur
+        SERIT B'yi kirmizi tutuyordu; V3/V4 kollari ise HIC olculmuyordu.
+    Cozum sinif duzeyinde: iki sekil de SENTETIK olarak KURULUR (ana checkout +
+    kapisi kirmizi worktree), kol her ortamda AYNI seyi olcer; canli ortamin sekli
+    ayri bir eksende (V8) yalnizca RAPOR edilir, hukum vermez.
+    """
+    kok = os.path.realpath(gecici)
+    repo = os.path.join(kok, "repo")
+    os.makedirs(repo)
+    sentetik_git(kok, "init", "-q", "-b", "main", repo, check=True)
+    with open(os.path.join(repo, "a.txt"), "w", encoding="utf-8") as f:
+        f.write("taban\n")
+    sentetik_git(repo, "add", "a.txt", check=True)
+    sentetik_git(repo, "commit", "-qm", "taban", check=True)
+
+    cip = "sentetik-cip-a1b2c3"
+    dal = "claude/" + cip
+    worktree = os.path.join(kok, "wt", cip)
+    sentetik_git(repo, "worktree", "add", "-q", "-b", dal, worktree, check=True)
+    # Dala main'de OLMAYAN + hicbir uzaga ITILMEMIS bir commit koy -> kapi KIRMIZI.
+    with open(os.path.join(worktree, "b.txt"), "w", encoding="utf-8") as f:
+        f.write("dal isi\n")
+    sentetik_git(worktree, "add", "b.txt", check=True)
+    sentetik_git(worktree, "commit", "-qm", "dal isi", check=True)
+    return repo, worktree
 
 
 def main():
-    print("V1 — ANA CHECKOUT silinecek agac DEGIL")
-    rc, cikti = kos([ARAC, KOK])
+    gecici = tempfile.mkdtemp(prefix="cip-kapat-test-")
+    try:
+        return _kollar(gecici)
+    finally:
+        # 🔴 SILME MENZILI: yalnizca BU turun kendi actigi gecici dizin. Gercek ev
+        # yoluna `rmtree` bu depoda KIRMIZI siniftir (FILO DERSI, 4 Eyl).
+        shutil.rmtree(gecici, ignore_errors=True)
+
+
+def _kollar(gecici):
+    ana, kirmizi_wt = sentetik_agaclar(gecici)
+
+    print("V1 — ANA CHECKOUT silinecek agac DEGIL (SENTETIK ana checkout)")
+    rc, cikti = kos([ARAC, ana])
     iddia("V1a rc=0", rc == 0, "rc=%d" % rc)
     iddia("V1b 'ANA CHECKOUT' der", "ANA CHECKOUT" in cikti)
     iddia("V1c silme komutu ONERMEZ", "--uygula" not in cikti.split("ANA CHECKOUT")[-1])
+    iddia("V1d SENTETIK ana checkout gercekten ana (worktree DEGIL)",
+          os.path.isdir(os.path.join(ana, ".git")))
 
     print()
     print("V2 — GIT AGACI OLMAYAN yol -> rc=2, hicbir sey yapmaz")
@@ -64,38 +106,39 @@ def main():
     iddia("V2a rc=2", rc == 2, "rc=%d" % rc)
 
     print()
-    print("V3 — KAPI KIRMIZI iken --uygula HICBIR SEY SILMEZ (canli agac)")
-    agac = kirmizi_agac()
-    if not agac:
-        print("  [ATLANDI] kapisi kirmizi canli cip agaci YOK — vaka OLCULEMEDI")
-        print("            (YESILE SAYILMADI; kirmizi bir agac varken tekrar kos)")
-        iddia("V3 OLCULEMEDI (yesile sayilmaz)", False, "canli kirmizi agac yok")
-    else:
-        var_once = os.path.isdir(agac)
-        rc, cikti = kos([ARAC, agac, "--uygula"])
-        var_sonra = os.path.isdir(agac)
-        iddia("V3a agac ONCE vardi", var_once, agac)
-        iddia("V3b --uygula rc!=0", rc != 0, "rc=%d" % rc)
-        iddia("V3c agac SONRA DA DURUYOR (SILINMEDI)", var_sonra)
-        iddia("V3d cikti YAPILACAK ISI ADIYLA sayar", "KOL=" in cikti)
+    print("V3 — KAPI KIRMIZI iken --uygula HICBIR SEY SILMEZ (SENTETIK kirmizi agac)")
+    agac = kirmizi_wt
+    # 🔴 ON KOSUL OLCULUR, VARSAYILMAZ: fikstur gercekten KIRMIZI mi? Yesil bir
+    # fiksturde "silmedi" iddiasi hicbir sey kanitlamaz (kapi zaten silmeye
+    # gelmezdi) — [[kabul-fiksturu-yasagi-kutsar]].
+    on_rc, on_cikti = kos([ARAC, agac])
+    iddia("V3-oncul FIKSTURUN KAPISI GERCEKTEN KIRMIZI", on_rc != 0,
+          "rc=%d" % on_rc)
+    var_once = os.path.isdir(agac)
+    rc, cikti = kos([ARAC, agac, "--uygula"])
+    var_sonra = os.path.isdir(agac)
+    iddia("V3a agac ONCE vardi", var_once, agac)
+    iddia("V3b --uygula rc!=0", rc != 0, "rc=%d" % rc)
+    iddia("V3c agac SONRA DA DURUYOR (SILINMEDI)", var_sonra)
+    iddia("V3d cikti YAPILACAK ISI ADIYLA sayar", "KOL=" in cikti)
 
-        print()
-        print("V4 — AGACIN ICINDEN --uygula REDDEDILIR (kendi zeminini cekemez)")
-        rc4, cikti4 = kos([ARAC, agac, "--uygula"], cwd=agac)
-        iddia("V4a rc!=0", rc4 != 0, "rc=%d" % rc4)
-        iddia("V4b agac hala DURUYOR", os.path.isdir(agac))
-        # 🔴 KOLUN GERCEKTEN CALISTIGI AYRICA OLCULUR: kapi KIRMIZI ise akis daha
-        # ONCE cikar ve oz-agac emniyeti HIC KOSMAZ. "rc!=0 geldi" o kolun
-        # kanitı DEGILDIR ([[emniyet-kontrolu-yorumdan-once-korlestirir]] emsali).
-        ulasti = "UYGULAMA REDDEDİLDİ" in cikti4
-        if ulasti:
-            iddia("V4c OZ-AGAC EMNIYETI fiilen kostu (red metni basildi)", True)
-        else:
-            print("  [ULASMADI] V4c oz-agac emniyeti KOSMADI — kapi rc=%d ile ONCE cikti."
-                  % rc4)
-            print("             Bu kol YALNIZ rc=0 agacta olculebilir; su an KANITSIZ.")
-            iddia("V4c oz-agac emniyeti KANITLANDI", False,
-                  "rc=%d ile erken cikis; kol OLCULEMEDI" % rc4)
+    print()
+    print("V4 — AGACIN ICINDEN --uygula REDDEDILIR (kendi zeminini cekemez)")
+    rc4, cikti4 = kos([ARAC, agac, "--uygula"], cwd=agac)
+    iddia("V4a rc!=0", rc4 != 0, "rc=%d" % rc4)
+    iddia("V4b agac hala DURUYOR", os.path.isdir(agac))
+    # 🔴 KOLUN GERCEKTEN CALISTIGI AYRICA OLCULUR: kapi KIRMIZI ise akis daha
+    # ONCE cikar ve oz-agac emniyeti HIC KOSMAZ. "rc!=0 geldi" o kolun
+    # kanitı DEGILDIR ([[emniyet-kontrolu-yorumdan-once-korlestirir]] emsali).
+    ulasti = "UYGULAMA REDDEDİLDİ" in cikti4
+    if ulasti:
+        iddia("V4c OZ-AGAC EMNIYETI fiilen kostu (red metni basildi)", True)
+    else:
+        print("  [ULASMADI] V4c oz-agac emniyeti KOSMADI — kapi rc=%d ile ONCE cikti."
+              % rc4)
+        print("             Bu kol YALNIZ rc=0 agacta olculebilir; su an KANITSIZ.")
+        iddia("V4c oz-agac emniyeti KANITLANDI", False,
+              "rc=%d ile erken cikis; kol OLCULEMEDI" % rc4)
 
     print()
     print("V6 — CANLI OTURUM EMNIYETI: taze dokunulmus agac SILINMEZ")
@@ -123,6 +166,18 @@ def main():
           kaynak.count("worktree\", \"remove\"") == 1)
     iddia("V5c silmeden ONCE kapi YENIDEN kosuluyor (TOCTOU)",
           kaynak.count("kapi_kos(agac, repo)") >= 2)
+
+    print()
+    print("V8 — CANLI ORTAM EKSENI (RAPOR; hukum VERMEZ)")
+    # 🔴 NEDEN HUKUM VERMEZ: canli ortamda kac worktree oldugu, bataryanin kosuldugu
+    # agacin ana checkout olup olmadigi ARACIN dogrulugu hakkinda HICBIR SEY SOYLEMEZ.
+    # Bu eksen kirmiziya baglanirsa batarya araci degil ORTAMI olcer ve her CI
+    # kosumunda takvimle/makineyle birlikte renk degistirir (6 Eyl'e kadar oyleydi).
+    ana_mi = os.path.isdir(os.path.join(KOK, ".git"))
+    print("  ORTAM: batarya koku=%s ana_checkout=%s" % (KOK, "EVET" if ana_mi else "HAYIR"))
+    rc8, cikti8 = kos([ARAC, KOK])
+    print("  CANLI KOK uzerinde arac rc=%d hukum=%s"
+          % (rc8, "ANA CHECKOUT" if "ANA CHECKOUT" in cikti8 else "CIP AGACI"))
 
     print()
     print("=" * 70)

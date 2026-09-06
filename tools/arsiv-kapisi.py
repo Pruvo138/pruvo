@@ -49,6 +49,20 @@ VARSAYILAN_REPO = "/Users/okan/dev/pruvo"
 # CI runner'inda checkout `/home/runner/work/pruvo/pruvo`tur ve o yol YOKTUR.
 # `TOOLS_DIZINI` her evde VE CI'da dogrudur -> kanonik kaynagin ikinci ekseni.
 TOOLS_DIZINI = os.path.dirname(os.path.realpath(__file__))
+# 🔴 SENTETIK GIT TEK KAPIDAN: fikstur depolari kanonik yardimciyla kurulur; miras
+# alinan GIT_* baglami cagri yerinde DEGIL, `git_ortami.sentetik_git` icinde
+# temizlenir. `try/except ImportError -> yerel kopya` YAZILMAZ: o dusus yolu ikizin
+# ta kendisidir ve gevsek yonde ayrisir (modul yoksa cagri GURULTULU coksun).
+# 🔴 ARAMA EKSENI `_kanonik_kaynak()` ILE AYNI OLMALI: mutasyon turu bu dosyanin
+# KOPYASINI gecici bir dizine yazar ve o dizinde `git_ortami.py` YOKTUR. Yalniz
+# `TOOLS_DIZINI`ne bakan bir import mutant kopyayi TABANIYLA BIRLIKTE coktururdu ve
+# hicbir mutant olculmezdi ([[mutant-kopyasi-cokerse-izin-okunur]]).
+for _aday in (os.environ.get("PRUVO_KANONIK_TOOLS") or "", TOOLS_DIZINI,
+              os.path.join(VARSAYILAN_REPO, "tools")):
+    if _aday and os.path.isfile(os.path.join(_aday, "git_ortami.py")):
+        sys.path.insert(0, _aday)
+        break
+from git_ortami import sentetik_git  # noqa: E402
 # 🔴 UCUNCU EKSEN DEGIL, BIRINCI: mutasyon turu bu dosyanin KOPYASINI gecici bir
 # dizine yazip kosar; kopyanin `TOOLS_DIZINI`si o gecici dizindir ve yaninda
 # `kutu-arsivle.py` YOKTUR. Kopyayi kosan harness kanonik `tools/`u BILIR ve bu
@@ -372,25 +386,24 @@ def _kur_fikstur(kok, *, kirli=False, mainde=True, itilmis=True, kapanis=True,
     kok = os.path.realpath(kok)
     uzak = os.path.join(kok, "uzak.git")
     repo = os.path.join(kok, "repo")
-    subprocess.run(["git", "init", "--bare", "-q", uzak], check=True)
-    subprocess.run(["git", "init", "-q", "-b", "main", repo], check=True)
+    sentetik_git(kok, "init", "--bare", "-q", uzak, check=True)
+    sentetik_git(kok, "init", "-q", "-b", "main", repo, check=True)
     for anahtar, deger in (("user.email", "k@p"), ("user.name", "kapi"),
                            ("commit.gpgsign", "false")):
-        subprocess.run(["git", "-C", repo, "config", anahtar, deger], check=True)
+        sentetik_git(repo, "config", anahtar, deger, check=True)
     with open(os.path.join(repo, "a.txt"), "w", encoding="utf-8") as f:
         f.write("taban\n")
-    subprocess.run(["git", "-C", repo, "add", "a.txt"], check=True)
-    subprocess.run(["git", "-C", repo, "commit", "-qm", "taban"], check=True)
-    subprocess.run(["git", "-C", repo, "remote", "add", "origin", uzak], check=True)
-    subprocess.run(["git", "-C", repo, "push", "-q", "origin", "main"], check=True)
+    sentetik_git(repo, "add", "a.txt", check=True)
+    sentetik_git(repo, "commit", "-qm", "taban", check=True)
+    sentetik_git(repo, "remote", "add", "origin", uzak, check=True)
+    sentetik_git(repo, "push", "-q", "origin", "main", check=True)
 
     cip = "cip-ornek-a1b2c3"
     dal = "claude/" + cip
-    subprocess.run(["git", "-C", repo, "branch", dal], check=True)
+    sentetik_git(repo, "branch", dal, check=True)
     worktree = os.path.join(kok, "wt", cip)
     if agac_ac:
-        subprocess.run(["git", "-C", repo, "worktree", "add", "-q", worktree, dal],
-                       check=True)
+        sentetik_git(repo, "worktree", "add", "-q", worktree, dal, check=True)
         hedef_kok = worktree
     else:
         hedef_kok = None
@@ -399,18 +412,16 @@ def _kur_fikstur(kok, *, kirli=False, mainde=True, itilmis=True, kapanis=True,
         # dala main'de OLMAYAN bir commit koy
         calisma = worktree or os.path.join(kok, "gecici")
         if worktree is None:
-            subprocess.run(["git", "-C", repo, "worktree", "add", "-q", calisma, dal],
-                           check=True)
+            sentetik_git(repo, "worktree", "add", "-q", calisma, dal, check=True)
         with open(os.path.join(calisma, "b.txt"), "w", encoding="utf-8") as f:
             f.write("dal isi\n")
-        subprocess.run(["git", "-C", calisma, "add", "b.txt"], check=True)
-        subprocess.run(["git", "-C", calisma, "commit", "-qm", "dal isi"], check=True)
+        sentetik_git(calisma, "add", "b.txt", check=True)
+        sentetik_git(calisma, "commit", "-qm", "dal isi", check=True)
         if worktree is None:
-            subprocess.run(["git", "-C", repo, "worktree", "remove", "--force", calisma],
-                           check=True)
+            sentetik_git(repo, "worktree", "remove", "--force", calisma, check=True)
     if itilmis:
-        subprocess.run(["git", "-C", repo, "push", "-q", "origin", dal], check=True)
-    subprocess.run(["git", "-C", repo, "fetch", "-q", "origin"], check=True)
+        sentetik_git(repo, "push", "-q", "origin", dal, check=True)
+    sentetik_git(repo, "fetch", "-q", "origin", check=True)
 
     if kirli and worktree:
         with open(os.path.join(worktree, "a.txt"), "a", encoding="utf-8") as f:

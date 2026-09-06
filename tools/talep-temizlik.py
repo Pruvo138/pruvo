@@ -403,16 +403,124 @@ def kaynakta_tek_saklama():
     return len(__import__("re").findall(r"^SAKLAMA_GUN = 90$", kaynak, __import__("re").M)) == 1 and "timedelta(days=90)" not in govde
 
 
-def _kanonik_talep_ayarlari():
-    kanonik_yol = Path.cwd() / "shop" / "src" / "talep.js"
-    if not kanonik_yol.exists():
-        kanonik_yol = Path(__file__).resolve().parent.parent / "shop" / "src" / "talep.js"
-    kaynak = kanonik_yol.read_text(encoding="utf-8")
-    alfabe = re.search(r'export const TALEP_ALFABE = "([^"]+)";', kaynak)
-    uzunluk = re.search(r"const KOD_UZUNLUGU = (\d+);", kaynak)
+HAL_BULUNDU = "BULUNDU"
+HAL_KAYNAK_YOK = "KAYNAK_YOK"
+HAL_DESEN_YOK = "DESEN_YOK"
+
+# Kanonik uretici ARANIR, sabit bir yola CIVILENMEZ. Tarama koku `shop/`tur (talep
+# kodu uretimi worker kaynagindadir); .js/.mjs disi dosya kapsam disidir.
+_ALFABE_DESENI = re.compile(r'export const TALEP_ALFABE = "([^"]+)";')
+_UZUNLUK_DESENI = re.compile(r"const KOD_UZUNLUGU = (\d+);")
+
+
+def _talep_kaynak_adaylari(kok=None):
+    """`TALEP_ALFABE` ilan eden dosyalari ARAR — yol civilenmez, ISARET aranir.
+
+    🔴 OLCULEN KUSUR (6 Eyl 2026): cozucu `shop/src/talep.js`e CIVILIYDI. O dosya
+    27 Agu'da Okan karariyla KOKUNDEN kaldirildi (`cc8f99a4`, K184 — Eksik Parca
+    Talebi sihirbazi). O gunden beri bu kol kirmizi DEGIL, `FileNotFoundError` ile
+    COKUYORDU: batarya HIC kosmuyordu ve CI adimi 10 gun boyunca 'kirmizi' sanildi.
+    Arama isarete baglaninca uretici NEREYE tasinirsa tasinsin kol canli kalir.
+    """
+    kok = Path(kok) if kok else Path(__file__).resolve().parent.parent
+    taban = kok / "shop"
+    if not taban.is_dir():
+        return []
+    adaylar = []
+    for yol in sorted(taban.rglob("*")):
+        if yol.suffix not in (".js", ".mjs") or not yol.is_file():
+            continue
+        try:
+            kaynak = yol.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            continue
+        if "TALEP_ALFABE" in kaynak:
+            adaylar.append((yol, kaynak))
+    return adaylar
+
+
+def _kanonik_talep_ayarlari(kok=None):
+    """(alfabe, uzunluk, hal, nereden) — UC KOVA, hicbirinde COKMEZ.
+
+    UCUNCU KOVA SESSIZCE YESILE KATLANMAZ: `DESEN_YOK` (uretici DURUYOR ama ilani
+    bozulmus) KIRMIZI'dir; `KAYNAK_YOK` (uretici depoda HIC YOK) drift'i IMKANSIZ
+    kilar — ayrisacak ikinci tanim kalmamistir ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+    """
+    adaylar = _talep_kaynak_adaylari(kok)
+    if not adaylar:
+        return "", 0, HAL_KAYNAK_YOK, "depoda TALEP_ALFABE ilani yok"
+    yol, kaynak = adaylar[0]
+    alfabe = _ALFABE_DESENI.search(kaynak)
+    uzunluk = _UZUNLUK_DESENI.search(kaynak)
     if alfabe is None or uzunluk is None:
-        raise RuntimeError("OLCULEMEDI: kanonik talep kodu ayarlari bulunamadi")
-    return alfabe.group(1), int(uzunluk.group(1))
+        return "", 0, HAL_DESEN_YOK, str(yol)
+    return alfabe.group(1), int(uzunluk.group(1)), HAL_BULUNDU, str(yol)
+
+
+def talep_drift_karari(alfabe, uzunluk, hal):
+    """Drift HUKMU — TEK YER; sentetik fiksturle olculebilsin diye ayri fonksiyon."""
+    if hal == HAL_BULUNDU:
+        return alfabe == KOD_ALFABE and uzunluk == KOD_UZUNLUGU
+    if hal == HAL_KAYNAK_YOK:
+        return True
+    return False
+
+
+def _drift_fiksturu(kok, govde):
+    """Sentetik `shop/` agacina tek bir uretici dosyasi yazar (canliya DOKUNMAZ)."""
+    hedef = Path(kok) / "shop" / "src"
+    hedef.mkdir(parents=True, exist_ok=True)
+    (hedef / "talep.js").write_text(govde, encoding="utf-8")
+    return kok
+
+
+def _drift_kolu_olc():
+    """Drift COZUCUSUNU sentetik fiksturlerle olcer + CANLI hali AYRI raporlar.
+
+    🔴 NEDEN SENTETIK: kol canli dosyaya baglanirsa olcumu ORTAMIN SEKLI belirler —
+    dosya silinince kol kirmizi olmaz, COKER; dosya varken de yalniz tek bir kova
+    denenir. Fikstur baglanirsa kolun KENDISI (uc kovanin uc'u de) olculur ve canli
+    hal ayri bir eksende basilir. Ayni sinif: [[prob-kendi-baglamini-olcer]].
+    """
+    uyumlu_govde = ('export const TALEP_ALFABE = "%s";\nconst KOD_UZUNLUGU = %d;\n'
+                    % (KOD_ALFABE, KOD_UZUNLUGU))
+    kaymis_govde = ('export const TALEP_ALFABE = "%s";\nconst KOD_UZUNLUGU = %d;\n'
+                    % (KOD_ALFABE, KOD_UZUNLUGU + 1))
+    alfabe_kaymis = ('export const TALEP_ALFABE = "ABC";\nconst KOD_UZUNLUGU = %d;\n'
+                     % KOD_UZUNLUGU)
+    desensiz_govde = 'export const TALEP_ALFABE = "%s";\n// KOD_UZUNLUGU ilani YOK\n' % KOD_ALFABE
+
+    eksenler = []
+    gecici = tempfile.mkdtemp(prefix="k190-drift-")
+    try:
+        for etiket, govde, beklenen_hal, beklenen_karar in (
+                ("uyumlu", uyumlu_govde, HAL_BULUNDU, True),
+                ("uzunluk-kaymis", kaymis_govde, HAL_BULUNDU, False),
+                ("alfabe-kaymis", alfabe_kaymis, HAL_BULUNDU, False),
+                ("desen-yok", desensiz_govde, HAL_DESEN_YOK, False)):
+            kok = Path(gecici) / etiket
+            _drift_fiksturu(kok, govde)
+            a, u, hal, _nereden = _kanonik_talep_ayarlari(kok)
+            eksenler.append(hal == beklenen_hal
+                            and talep_drift_karari(a, u, hal) is beklenen_karar)
+        bos = Path(gecici) / "kaynak-yok"
+        (bos / "shop" / "src").mkdir(parents=True, exist_ok=True)
+        a, u, hal, _n = _kanonik_talep_ayarlari(bos)
+        eksenler.append(hal == HAL_KAYNAK_YOK and talep_drift_karari(a, u, hal) is True)
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
+
+    # CANLI EKSEN — cokmeden olculur, hali ADIYLA basilir (ucuncu kova gorunur kalir).
+    c_alfabe, c_uzunluk, c_hal, c_nereden = _kanonik_talep_ayarlari()
+    canli = talep_drift_karari(c_alfabe, c_uzunluk, c_hal)
+    print("DRIFT_KANONIK_HAL=%s NEREDEN=%s KARAR=%s"
+          % (c_hal, c_nereden, "UYUMLU" if canli else "KIRMIZI"))
+    if c_hal == HAL_KAYNAK_YOK:
+        print("DRIFT OLCULEMEDI-DEGIL/KAPSAM_DISI: talep kodu uretici kaynagi depoda YOK "
+              "(K184, cc8f99a4 — Okan karari 27 Agu); ayrisacak IKINCI tanim kalmadi. "
+              "Neyi olcmek kapatir: uretici geri gelirse bu kol KENDILIGINDEN canlanir "
+              "(arama isarete bagli, yola degil).")
+    return all(eksenler) and canli
 
 
 def l11_olc():
@@ -435,9 +543,7 @@ def l11_olc():
                    all(kod not in sahte.silinen for kod in gecersiz) and
                    karantina is not None and int(karantina.group(1)) > 0)
     mesru_silindi = all(kod in sahte.silinen for kod in gecerli)
-    kanonik_alfabe, kanonik_uzunluk = _kanonik_talep_ayarlari()
-    drift_uyumlu = (kanonik_alfabe == KOD_ALFABE and
-                    kanonik_uzunluk == KOD_UZUNLUGU)
+    drift_uyumlu = _drift_kolu_olc()
 
     temiz_sahte = SahteD1([(kod, eski) for kod in gecerli])
     temiz_cikti = io.StringIO()
@@ -531,7 +637,14 @@ def mutant_bataryasi(temel):
         "L11a-sizinti": (
             "        if kod_" + "gecerli(kod):",
             "        if True:"),
-        "L11c": ("kanonik_uzunluk == " + "KOD_UZUNLUGU", "kanonik_uzunluk == " + "KOD_UZUNLUGU - 1"),
+        # 🔴 CAPA `talep_drift_karari` GOVDESINDE: kol artik CANLI dosyaya degil sentetik
+        # fiksture bagli, bu yuzden uretici silinmis olsa da mutant HEDEFE ULASIR.
+        "L11c": ("        return alfabe == KOD_ALFABE and uzunluk == " + "KOD_UZUNLUGU",
+                 "        return alfabe == KOD_ALFABE and uzunluk == " + "KOD_UZUNLUGU - 1"),
+        # UCUNCU KOVA NON-GROWTH NOBETI: `DESEN_YOK` (uretici duruyor ama ilani bozuk)
+        # sessizce yesile katlanirsa kanonik tanimin bozulmasi CI'dan GECER.
+        "L11c-ucuncu-kova": ("    if hal == HAL_KAYNAK_YOK:\n        return True\n    return False",
+                             "    return True"),
         "L11d": (
             "          \" TEMIZ=\" + (\"HAYIR\" if karantina else \"EVET\"))",
             "          \" TEMIZ=EVET\")"),
@@ -583,6 +696,7 @@ def mutant_bataryasi(temel):
                                 "L11a-sizinti": ["L11a", "L11e"],
                                 "L11d": ["L11d", "L11e"],
                                 "L9-artik": ["L9"],
+                                "L11c-ucuncu-kova": ["L11c"],
                                 "L11e-kuru-karantina": ["L11e"],
                                 "L11e-kuru-delete": ["L11e"]}.get(ad, [ad])
                 iki_yonlu = (ad not in {"L11e-kuru-karantina", "L11e-kuru-delete"} or
