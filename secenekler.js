@@ -240,11 +240,9 @@
      yaşar; kuruş GİRİŞTE yukarı yuvarlanır (panel /urunler-ustyazim).
 
      DİKKAT — iki kez ölçülmüş hata sınıfı, ikisi de "nokta/rakam yut" kuralından doğdu:
-       12 Ağu: eski kural tüm rakamları birleştiriyordu (replace(/[^0-9]/g,"")) ->
-               "300 TL (30 cm)" 30.030 TL görünüp 300 TL tahsil ediliyordu.
-        6 Eyl: nokta binlik ayracı sanılıyordu -> katalogdaki 616 kayıtta "250.0 TL"
-               sepette 2.500 TL oldu (ON KAT). Okan canlıda 200 TL'lik ürünü
-               "2.000,00 TL" gördü. */
+       (a) eski kural tüm rakamları birleştiriyordu (replace(/[^0-9]/g,"")) ->
+           "300 TL (30 cm)" 30.030 TL görünüp 300 TL tahsil ediliyordu.
+       (b) nokta binlik ayracı sanılıyordu -> "250.0 TL" sepette 2.500 TL oldu (ON KAT). */
   var FIYAT_SAYI_RX = /^\s*((?:[0-9]{1,3}(?:\.[0-9]{3})+|[0-9]+))\s*(?:TL|TRY|₺)(?:\s*\([^()]{1,40}\)|\/[^\s\/]{1,20})?\s*$/i;
   function fiyatSayisi(fiyat) {
     if (!fiyat) { return null; }
