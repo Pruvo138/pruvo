@@ -321,7 +321,9 @@ def _satiri_kapat(defter_metni, kimlik, *, mutant=None):
     for i, satir in enumerate(satirlar):
         if not T4.TabloSatir.match(satir):
             continue
-        kolonlar = satir.split("|")
+        # 🔴 K382: KANONIK bolucu (`\|` hucre icerigidir). Ham split kolonlari
+        # kaydirdigi icin bu kol kacisli satirlari HIC devretmiyordu.
+        kolonlar = T4.hucrelere_bol(satir)
         if len(kolonlar) < 7:
             continue
         if kolonlar[1].strip() != kimlik:
@@ -329,7 +331,9 @@ def _satiri_kapat(defter_metni, kimlik, *, mutant=None):
         if kolonlar[5].strip() not in T4.ACIK_DURUMLAR:
             continue
         kolonlar[5] = " %s " % DEVREDILDI_DURUMU
-        satirlar[i] = "|".join(kolonlar)
+        # 🔴 YAZMA YOLU: `"|".join` DEGIL — kacis GERI konmazsa hucre icindeki
+        # `|` ayiriciya doner ve satiri kalici olarak parcalar.
+        satirlar[i] = T4.hucreleri_birlestir(kolonlar)
         degisti = True
     return "\n".join(satirlar) + ("\n" if defter_metni.endswith("\n") else ""), degisti
 
@@ -340,7 +344,7 @@ def _satir_ac(defter_metni, kalem, kaynak_ev):
     for satir in defter_metni.splitlines():
         if not T4.TabloSatir.match(satir):
             continue
-        kolonlar = satir.split("|")
+        kolonlar = T4.hucrelere_bol(satir)   # 🔴 K382 kanonik bolucu
         if len(kolonlar) >= 7 and kolonlar[1].strip() == kimlik:
             return defter_metni, False
     yeni = ("| %s | %s | %s→%s | %s | %s | devir: 4 saat hareketsiz (N2C) |"

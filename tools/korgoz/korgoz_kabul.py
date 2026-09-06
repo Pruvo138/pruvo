@@ -264,15 +264,25 @@ def k3_dondurma(NT, t):
 
 
 def _ciplak_defter_sayimi():
-    """Hicbir parser kullanmayan kolon-5 sayimi (K4'un bagimsiz dogrulamasi)."""
+    """Hicbir PARSER kullanmayan kolon-5 sayimi (K4'un bagimsiz dogrulamasi).
+
+    🔴 K382: bagimsizlik HUKUM duzlemindedir, AYIRICI duzleminde degil. Ham
+    `split("|")` markdown'in `\\|` kacisini tanimaz ve kolonlari kaydirir; o
+    hal capraz kontrolu, kontrol ettigi parserlarla AYNI korluge sokar
+    ([[oz-denetim-ayni-ayraci-kullanirsa-korlesir]]). Kanonik BOLUCU kullanilir,
+    kanonik PARSER kullanilmaz.
+    """
+    T4B = modul_yukle("parti_borc_bolucu", T4_YOLU)
     sayac = {}
     satir = 0
     with open(DEFTER, encoding="utf-8") as f:
         for s in f:
             if not s.startswith("| K"):
                 continue
-            kolon = s.split("|")
-            if len(kolon) < 7 or not re.match(r"^K\d+$", kolon[1].strip()):
+            kolon = T4B.hucrelere_bol(s)
+            # 🔴 K382 (d): kanonik kimlik kalibi TEK KAYNAKTAN (dar `^K\d+$`
+            # kalibi `K339-EK` gibi ek-tasiyan kimlikleri gormuyordu).
+            if len(kolon) < 7 or not T4B.KalemKimligi.match(kolon[1].strip()):
                 continue
             satir += 1
             sayac[kolon[5].strip()] = sayac.get(kolon[5].strip(), 0) + 1
@@ -352,15 +362,16 @@ def k5_ikinci_okuyucu():
     dusen_ids = [i for i in taban_ids if i not in canli_ids]
     ham = {}
     try:
+        T4B = modul_yukle("parti_borc_bolucu_k5", T4_YOLU)   # 🔴 K382 kanonik bolucu
         with open(DEFTER, encoding="utf-8") as f:
             for s in f:
                 if not s.startswith("| K"):
                     continue
-                kolon = s.split("|")
+                kolon = T4B.hucrelere_bol(s)
                 if len(kolon) < 7:
                     continue
                 ham[kolon[1].strip()] = kolon[5].strip()[:40]
-    except OSError:
+    except Exception:   # noqa: BLE001 — atif kaybolur, kol susmaz
         pass
     not_("K5_FARK taban=%d canli=%d fark=%+d YENI=%s DUSEN=%s"
          % (TABAN["N2B_ACIK"], n, n - TABAN["N2B_ACIK"],

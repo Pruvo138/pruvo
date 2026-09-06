@@ -355,6 +355,28 @@ def oku_yol(p: Path) -> str | None:
         return None
 
 
+_BOLUCU_ONBELLEK: list = []
+
+
+def _kanonik_bolucu():
+    """K382 kanonik bolucu + kimlik kalibi (`tools/parti-borc-kapisi.py`).
+
+    Doner: (hucrelere_bol, KalemKimligi) — cozulemezse (None, None).
+    IKINCI bir bolucu/kalip burada TANIMLANMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
+    """
+    if _BOLUCU_ONBELLEK:
+        return _BOLUCU_ONBELLEK[0]
+    try:
+        yol = REPO / "tools" / "parti-borc-kapisi.py"
+        spec = importlib.util.spec_from_file_location("pruvo_t4_bolucu_sabah", yol)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _BOLUCU_ONBELLEK.append((mod.hucrelere_bol, mod.KalemKimligi))
+    except Exception:                                              # noqa: BLE001
+        _BOLUCU_ONBELLEK.append((None, None))
+    return _BOLUCU_ONBELLEK[0]
+
+
 def acik_kalemleri_topla(kalemler_txt: str) -> tuple[list[dict], int]:
     """Markdown tablo satırlarını parse eder; durum ACIK veya 🔧 olanları döner.
     Tablo formatı: '| id | tarih | kimden→kime | iş | durum | kapanış kanıtı |'.
@@ -367,18 +389,33 @@ def acik_kalemleri_topla(kalemler_txt: str) -> tuple[list[dict], int]:
     out: list[dict] = []
     if kalemler_txt is None:
         return out, 0
-    id_re = re.compile(r"^\|\s*(K\d+)\s*\|")
+    # 🔴 K382 — KANONIK BOLUCU. Eski hal `" | "` (bosluk-pipe-bosluk) ile
+    # boluyordu; bu, `\|` kacisini KAZARA tolere ediyordu ama iki ayri kor
+    # noktasi vardi: (a) hucre icinde bosluklu ` | ` gecen her satiri kaydirir,
+    # (b) `K\d+` kimlik kalibi `K339-EK` gibi ek-tasiyan kimligi HIC gormezdi
+    # (canli defterde 1 satir OLCULDU: K339-EK aylardir sabah teslimine
+    # girmiyordu). Bolucu tek kaynaktan alinir; ikinci yuklem KURULMAZ.
+    bol, id_re = _kanonik_bolucu()
     for line in kalemler_txt.splitlines():
-        m_id = id_re.match(line)
-        if not m_id:
+        if not line.lstrip().startswith("|"):
             continue
-        # "| Kxx | a | b | c | d | e |" → split " | " → ["| Kxx", "a", "b", "c", "d", "e", ""]
-        # sondaki "" kalan "|"; başta "| Kxx" id'yi taşır
-        parts = line.rstrip().rstrip("|").split(" | ")
+        if bol is not None:
+            jetonlar = bol(line.rstrip())
+            parts = [p for p in jetonlar[1:-1]] if len(jetonlar) >= 2 else []
+        else:
+            # 🔴 FAIL-LOUD: bolucu cozulemezse ham split'e DUSULMEZ **ve** bos
+            # liste DONULMEZ. Bos liste donmek olumcul olurdu: cagiran taraf
+            # "dosya okunabildi ama kalem yok" halini `ACIK KALEM=YOK (defter
+            # bos, hepsi KAPANDI)` diye basar — yani OLCULEMEDI bir hal
+            # YANLIS-YESIL olarak raporlanirdi.
+            raise RuntimeError(
+                "K382 BOLUCU OLCULEMEDI — acik-kalemler.md ayristirilamaz "
+                "(tools/parti-borc-kapisi.py yuklenemedi)")
         if len(parts) < 4:
             continue
-        # id F0 başından "| " sıyır
-        kid = parts[0].lstrip("| ").strip()
+        kid = parts[0].strip()
+        if not id_re.match(kid):
+            continue
         tarih = parts[1].strip() if len(parts) > 1 else ""
         kimden = parts[2].strip() if len(parts) > 2 else ""
         durum = parts[-2].strip() if len(parts) >= 2 else ""
@@ -905,7 +942,13 @@ def main() -> int:
                   "devam": devam_txt is not None}
 
     # --- toplama ---
-    kalemler, kalem_n = acik_kalemleri_topla(kalem_txt)
+    try:
+        kalemler, kalem_n = acik_kalemleri_topla(kalem_txt)
+    except RuntimeError:
+        # 🔴 K382: bolucu yoksa hal OLCULEMEDI'dir, "kalem yok" DEGIL.
+        # `okunabilir["kalemler"]=False` mevcut OLCULEMEDI kolunu atesler.
+        kalemler, kalem_n = [], 0
+        okunabilir["kalemler"] = False
     ci_hukum, kirmizi_blok, kirmizi_n, gh_kaynak = bugunun_kirmizilari()
     dal_blok, dal_n = merge_kuyrugu()
     kutu_blok, kutu_n = kutuda_yeni(kutu_txt)
