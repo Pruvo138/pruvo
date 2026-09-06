@@ -678,26 +678,24 @@ function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
           gizliUye.length > 0 && kacan.length === 0,
           "kacan=" + kacan.length + " " + JSON.stringify(kacan.slice(0, 5)) +
           " -> uyelik kolu dusmus, marka sorgusu yalniz BASLIGA bakiyor");
-
-        // ── DARALTMA EKSENI ANKRAJI (6 Eyl 2026) — KACAN IKINCI MUTANT BURAYI BEKLIYORDU.
-        // OLCULEN KOK: `aramaPlaniEsler`i marka kolunda HEP TRUE yapan mutant
-        // (`return markaSorgusuEsler(p, plan.kanon);` -> `return true;`) hicbir kolu
-        // kirmizi yakmiyordu. Iki sebep birlikte calisiyordu:
-        //   (a) `yedekEslesmeKontrolu`daki "GERCEKTEN daraltiyor" iddiasi MARKA sorgusuyla
-        //       yalniz L642 kolunda kosuyor, o kol ise edge havuzunda ayirt edici uye
-        //       bulunmayinca ATLANIYOR (yukaridaki ayni sebep);
-        //   (b) SERBEST METIN kolunda kosan surumu mutant HIC ETKILEMIYOR (mutasyon
-        //       yalniz `plan.kanon` dalinda).
-        // ⚠️ TOTOLOJI DEGIL: kiyas olcusu `aramaPlaniEsler`in KENDI ciktisindan degil,
-        // KATALOG BUYUKLUGUNDEN gelir. Yuklem HEP TRUE olursa eslesen == PRODUCTS olur
-        // ve iddia duser; HIC eslesmezse 0 olur ve yine duser (iki yonlu).
-        // FAIL-CLOSED: ankraj TAM KATALOG'da kosar, atlanabilir bir DOM koluna baglanmaz.
-        const eslesen = PRODUCTS.filter((p) => api.aramaPlaniEsler(p, plan, baslikHs));
-        kontrol("marka sorgusu TAM KATALOG'da GERCEKTEN daraltiyor (" + tamMarka + ": " +
-          eslesen.length + "/" + PRODUCTS.length + " urun)",
-          eslesen.length > 0 && eslesen.length < PRODUCTS.length,
-          "eslesen=" + eslesen.length + " katalog=" + PRODUCTS.length +
-          " -> 0 ise yuklem HIC eslesmiyor, katalogun TAMAMI ise yuklem HEP TRUE (korelmis)");
+        // 🔴 TOTOLOJI KIRICI — UST SINIR (6 Eyl, OLCULDU). Yukaridaki iddia yalniz
+        // ALT SINIRI olcer: "uye kaybolmasin". Yuklem "hep true"ya bozulursa HICBIR
+        // uye kaybolmaz, `kacan` bos kalir ve o iddia YESIL yanar. Olculen korluk:
+        // `aramaPlaniEsler`in marka kolu `return true` yapildiginda 3 mutantin biri
+        // KACTI (rc=0) — kapi kor kaldi. Ayirt edicilik ekseni ZATEN vardi ama
+        // `yedekEslesmeKontrolu` icindeydi ve o kol EDGE HAVUZU verisine bagli
+        // (`markaSorgusu === null` ise HIC kosmuyor) — yani koruma, kosmasi
+        // GARANTI OLMAYAN bir yerde duruyordu. Ust sinir bu yuzden ankrajin
+        // icinde, TAM KATALOG'da olculur: burasi her kosumda calisir.
+        const eslesenTam = PRODUCTS.filter(
+          (p) => api.aramaPlaniEsler(p, plan, baslikHs));
+        kontrol("marka sorgusu TAM KATALOG'da GERCEKTEN daraltiyor (yuklem ayirt " +
+          "edici, " + tamMarka + ": 0 < " + eslesenTam.length + " < " +
+          PRODUCTS.length + ")",
+          eslesenTam.length > 0 && eslesenTam.length < PRODUCTS.length,
+          "eslesen=" + eslesenTam.length + " katalog=" + PRODUCTS.length +
+          " (0 ya da katalogun TAMAMI -> yuklem korelmis; 'hep true' bozulmasi " +
+          "tam olarak boyle gorunur)");
       }
     }
 

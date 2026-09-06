@@ -34,6 +34,13 @@ import time
 sys.dont_write_bytecode = True
 BURASI = os.path.dirname(os.path.abspath(__file__))
 KOK = os.path.dirname(BURASI)
+# 🔴 SENTETIK GIT TEK KAPIDAN (`tools/git_ortami.py`): miras alinan GIT_* baglami
+# cagri yerinde DEGIL kanonik yardimcinin icinde temizlenir; `git init` ilk dal adi
+# da orada civilenir (CI git 2.55 `master`, Okan'in makinesi `main` uretir).
+# `try/except ImportError -> yerel kopya` YAZILMAZ: o dusus yolu ikizin ta kendisidir.
+sys.path.insert(0, BURASI)
+from git_ortami import sentetik_git  # noqa: E402
+
 sys.path.insert(0, BURASI)
 
 # 🔴 OLCULEN MESRU (rc=0) WRANGLER KOSUM SURELERI — 4 Eyl 2026, bu makine, GERCEK D1 ucu.
@@ -78,7 +85,8 @@ def dogrula(ad, kosul, detay=""):
 # ── SENTETIK KOK (flock CANLI .git/config'e DOKUNMASIN) ─────────────────────────────
 def sentetik_kok_kur():
     kok = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-d1-tani-"))
-    p = subprocess.run(["git", "init", "-q", kok], capture_output=True, text=True)
+    p = sentetik_git(os.path.dirname(kok), "init", "-q", kok,
+                     capture_output=True, text=True)
     if p.returncode != 0 or not os.path.isfile(os.path.join(kok, ".git", "config")):
         shutil.rmtree(kok, ignore_errors=True)
         raise SystemExit("!! SENTETIK KOK KURULAMADI (git init rc=%s) — batarya "
@@ -310,19 +318,58 @@ def kol_b_zaman_asimi(D1, gecici_dizin):
             and _soguk_donen > _isinmis_donen,
             "soguk=%s isinmis=%s" % (_soguk_donen, _isinmis_donen))
 
+    # 🔴 SINIF KAPISI (6 Eyl) — ENV EKSENLERI HER IKI KOLDA, KOL CIVILENEREK OLCULUR.
+    #   Olculen ariza: B12/B13/B14 `wrangler_tavani()`yi KOL SECMEDEN cagirip sonucu
+    #   TEK bir sabite (ISINMIS 120) capaliyordu. Fonksiyon ise IKI KOLLU: donen deger
+    #   kosucunun `~/.cache/pruvo-npm` dizininin DOLU olup olmamasina bagli. Sonuc:
+    #   ayni bayt yerelde (isinmis cache) YESIL, CI'da (soguk cache) KIRMIZI yandi —
+    #   iddia DAVRANISI degil KOSUCUNUN DISKINI olcuyordu. Dahasi B12 SOGUK kolda
+    #   YANLIS YESIL veriyordu: uretim kodu tabanin altina inince 450 yerine 120
+    #   donduruyordu ve test tam o hatayi "dogru" sayiyordu.
+    #   Kapinin sinif hali: `wrangler_tavani()` hakkindaki HER iddia, kol B10c'nin
+    #   mekanizmasiyla CIVILENEREK ve HER IKI KOL icin ayri ayri kurulur. Yeni bir kol
+    #   eklenirse bu tablonun buyumesi gerekir; tablo buyumezse yeni kol MUTANTSIZ kalir.
+    def _kolda(isinmis, cagri):
+        """Cache kolunu CIVILEYEREK cagir (makinenin gercek cache hali ONEMSIZ)."""
+        _gercek = D1.npm_cache_isinmis
+        try:
+            D1.npm_cache_isinmis = lambda: isinmis
+            return cagri()
+        finally:
+            D1.npm_cache_isinmis = _gercek
+
+    KOLLAR = (
+        # (ad, cache_isinmis_mi, o kolun TABANI, o kolun VARSAYILANI)
+        ("ISINMIS", True, D1.WRANGLER_TAVAN_TABANI, D1.WRANGLER_TAVAN_SN),
+        ("SOGUK", False, D1.WRANGLER_SOGUK_TAVAN_SN, D1.WRANGLER_SOGUK_TAVAN_SN),
+    )
     eski_env = os.environ.get("PRUVO_WRANGLER_TAVAN_SN")
     try:
+        for kol_ad, kol_isinmis, kol_taban, kol_varsayilan in KOLLAR:
+            os.environ["PRUVO_WRANGLER_TAVAN_SN"] = "5"
+            _donen = _kolda(kol_isinmis, D1.wrangler_tavani)
+            dogrula("B12-%s env tavani O KOLUN TABANININ (%s sn) ALTINA INDIREMEZ"
+                    % (kol_ad, kol_taban),
+                    _donen == kol_taban, "tavan=%s" % _donen)
+            os.environ["PRUVO_WRANGLER_TAVAN_SN"] = "1200"
+            _donen = _kolda(kol_isinmis, D1.wrangler_tavani)
+            dogrula("B13-%s env tavani YUKARI cekebilir" % kol_ad,
+                    _donen == 1200, "tavan=%s" % _donen)
+            os.environ["PRUVO_WRANGLER_TAVAN_SN"] = "abc"
+            _donen = _kolda(kol_isinmis, D1.wrangler_tavani)
+            dogrula("B14-%s cop env -> O KOLUN varsayilanina (%s sn) duser "
+                    "(sessiz sifira DEGIL)" % (kol_ad, kol_varsayilan),
+                    _donen == kol_varsayilan, "tavan=%s" % _donen)
+        # 🔴 DAVRANIS EKSENI (sabit kiyasi DEGIL): env EN DUSUK degeri isterken bile
+        #   SOGUK kolda donen tavan, OLCULEN en yavas mesru soguk kosumun UZERINDE
+        #   kalmali. Yukaridaki B12-SOGUK sabitle kiyaslar (taban ne dendiyse o mu);
+        #   bu iddia o tabanin KORUDUGU SEYI olcer — koruma korudugunu KESMEMELI.
         os.environ["PRUVO_WRANGLER_TAVAN_SN"] = "5"
-        dogrula("B12 env tavani TABANIN ALTINA INDIREMEZ",
-                D1.wrangler_tavani() == D1.WRANGLER_TAVAN_TABANI,
-                "tavan=%s" % D1.wrangler_tavani())
-        os.environ["PRUVO_WRANGLER_TAVAN_SN"] = "1200"
-        dogrula("B13 env tavani YUKARI cekebilir",
-                D1.wrangler_tavani() == 1200, "tavan=%s" % D1.wrangler_tavani())
-        os.environ["PRUVO_WRANGLER_TAVAN_SN"] = "abc"
-        dogrula("B14 cop env -> varsayilana duser (sessiz sifira DEGIL)",
-                D1.wrangler_tavani() == D1.WRANGLER_TAVAN_SN,
-                "tavan=%s" % D1.wrangler_tavani())
+        _dip = _kolda(False, D1.wrangler_tavani)
+        dogrula("B14b env EN DUSUK isteği bile SOGUK kolda olculen soguk maksimumun "
+                "(%.1fsn) UZERINDE kalir — koruma korudugunu KESMEZ"
+                % OLCULEN_SOGUK_EN_YAVAS,
+                _dip > OLCULEN_SOGUK_EN_YAVAS, "tavan=%s" % _dip)
     finally:
         if eski_env is None:
             os.environ.pop("PRUVO_WRANGLER_TAVAN_SN", None)
@@ -378,6 +425,25 @@ def kol_c_tek_ucus(D1):
                 cagri[0] == 0, "cagri=%d" % cagri[0])
         dogrula("C4 BEKLEME SESSIZ DEGIL — stderr'e adiyla duyuruldu",
                 "BEKLENIYOR" in stderr_metni, repr(stderr_metni[:200]))
+        # 🔴 C10 (6 Eyl) — TUTANAK YANLIS PID'i SAHIBIN PID'i DIYE SUNMAZ.
+        #   Olculen ariza: bekleme metni "onculu kosum UCUSTA ... PID=<n>" diyordu;
+        #   <n> kilidi TUTANIN degil BEKLEYENIN (yani bu surecin) PID'iydi. Metni
+        #   okuyan `ps <n>` yapip OLMUS bir surece bakiyordu — teshis dogru gorunen
+        #   YANLIS bir sayiya goturuyordu. flock sahibini aciga vurmaz, sahibin PID'i
+        #   TURETILEMEZ; dogru tutanak bunu SOYLER ve bulmanin yolunu gosterir.
+        _kendi = str(os.getpid())
+        _mesgul_satir = "".join(
+            s for s in stderr_metni.splitlines(True) if "D1 ARACI MESGUL" in s)
+        dogrula("C10 MESGUL tutanagi kendi PID'ini SAHIBIN PID'i diye sunmaz "
+                "(`bekleyen PID` diye etiketlenir)",
+                ("bekleyen PID=" + _kendi) in _mesgul_satir
+                and ("; PID=" + _kendi) not in _mesgul_satir
+                and (", PID=" + _kendi) not in _mesgul_satir,
+                repr(_mesgul_satir[:240]))
+        dogrula("C11 MESGUL tutanagi SAHIBI BULMANIN yolunu gosterir "
+                "(turetilemeyeni uydurmaz)",
+                "olculemez" in stderr_metni and "npm exec wrangler" in stderr_metni,
+                repr(stderr_metni[:240]))
     finally:
         tutucu.kill()
         tutucu.wait(timeout=10)

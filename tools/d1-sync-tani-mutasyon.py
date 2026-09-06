@@ -86,6 +86,38 @@ MUTANTLAR = [
      "            pass",
      ("E2",)),
 
+    # 🔴 6 Eyl: ENV KOLLARI ARTIK IKI KOLDA olculuyor (B12-*/B13-*/B14-*). O kollari
+    #   MUTANTSIZ birakmak, tam da kapatilan arizayi geri davet ederdi: iddia TEK
+    #   sabite capalanir, sonuc kosucunun cache haline baglanir, yerelde yesil / CI'da
+    #   kirmizi yanar. Asagidaki iki oldurucu SOGUK kolu ADIYLA hedefler ve ISINMIS
+    #   kolda YESIL kalir — yani "kol ayrimini" gercekten olcerler.
+    ("M8 TABAN DONUSU ISINMIS SABITINE CAKILI (soguk kolda 450 yerine 120 doner —\n"
+     "     koruma korudugu SOGUK doldurma kosumunu KESER)",
+     "        return taban\n    return istek",
+     "        return WRANGLER_TAVAN_TABANI\n    return istek",
+     ("B12-SOGUK", "B14b")),
+
+    ("M9 COP ENV ISINMIS VARSAYILANINA CAKILI (soguk kolda 450 yerine 120 doner)",
+     "              % (ham, varsayilan), file=sys.stderr)\n        return varsayilan",
+     "              % (ham, varsayilan), file=sys.stderr)\n        return WRANGLER_TAVAN_SN",
+     ("B14-SOGUK",)),
+
+    # 🔴 6 Eyl — TUTANAK ETIKETI de bir DAVRANISTIR: yanlis etiketlenmis PID,
+    #   teshisi olmus bir surece goturur. Bu oldurucu eski (yaniltici) etikete geri
+    #   doner; C10 ADIYLA kirmizi yanmali.
+    ("M10 MESGUL tutanagi kendi PID'ini SAHIBIN PID'i gibi sunar (`bekleyen PID` "
+     "etiketi kaldirildi)",
+     '"BEKLENIYOR (tavan=%.0f sn, bekleyen PID=%d, kilit=%s). "',
+     '"BEKLENIYOR (tavan=%.0f sn, PID=%d, kilit=%s). "',
+     ("C10",)),
+
+    ("M11 MESGUL tutanagi SAHIBIN PID'inin OLCULEMEDIGINI SOYLEMEZ "
+     "(turetilemeyeni sessizce gecer)",
+     '"Yigina EKLENMEDI. Kilidi TUTANIN PID\'i buradan "\n'
+     '                          "olculemez; su komut gosterir:\\n"',
+     '"Yigina EKLENMEDI.\\n"',
+     ("C11",)),
+
     # ── KONTROL: davranis DEGISMEZ, batarya YESIL KALMALI ──
     ("KONTROL-1 bekleme 480 -> 500 (davranis notr)",
      "OKUYUCU_BEKLEME_SN = 480.0", "OKUYUCU_BEKLEME_SN = 500.0", ()),
@@ -93,6 +125,11 @@ MUTANTLAR = [
      "_KILIT_YOKLAMA_SN = 0.5", "_KILIT_YOKLAMA_SN = 0.4", ()),
     ("KONTROL-3 ISINMIS tavan 120 -> 200 (hala olculen maksimumun UZERINDE)",
      "WRANGLER_TAVAN_SN = 120  ", "WRANGLER_TAVAN_SN = 200  ", ()),
+    # KONTROL-4: SOGUK kol sabiti oynatildi ama HALA olculen soguk maksimumun (307,1)
+    # UZERINDE ve ISINMIS kolundan FARKLI -> davranis notr, batarya YESIL kalmali.
+    # Kalmazsa yeni B12-/B13-/B14- kollari davranisa degil SABITE capalanmis demektir.
+    ("KONTROL-4 SOGUK tavan 450 -> 500 (hala soguk maksimumun UZERINDE)",
+     "WRANGLER_SOGUK_TAVAN_SN = 450", "WRANGLER_SOGUK_TAVAN_SN = 500", ()),
 ]
 
 

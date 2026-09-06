@@ -17,6 +17,7 @@ Butun mutasyon scratchpad'deki izole kopyada yapilir.
 
 Cikis kodu 0 = hepsi gecti, 1 = en az bir kabul basarisiz.
 """
+import io
 import json
 import importlib.util
 import os
@@ -28,6 +29,10 @@ import tempfile
 
 MAIN = "/Users/okan/dev/pruvo"
 ENV_KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # bu worktree'nin koku
+# 🔴 SENTETIK GIT TEK KAPIDAN (`tools/git_ortami.py`): fikstur depolari kanonik
+# yardimciyla kurulur; `try/except ImportError -> yerel kopya` YAZILMAZ.
+sys.path.insert(0, os.path.join(ENV_KOK, "tools"))
+from git_ortami import sentetik_git  # noqa: E402
 ENVANTER = os.path.join(ENV_KOK, "tools", "kapi-envanteri.py")
 
 
@@ -108,6 +113,21 @@ def _kapi_rapor_satirlari(cikti, kapi_adi):
     return [s for s in cikti.splitlines() if s.strip().startswith("- " + kapi_adi + ":")]
 
 
+def _envanter_modulu():
+    """Olculen aracin KENDISINI modul olarak yukle — ikinci cozucu YAZILMAZ."""
+    import importlib.util
+    yol = os.path.join(ENV_KOK, "tools", "kapi-envanteri.py")
+    spec = importlib.util.spec_from_file_location("kapi_envanteri", yol)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _etkin_kanca_dizini(root):
+    """ETKIN kanca dizini — hukum ARACIN KENDI cozucusunden gelir (ikiz tanim YOK)."""
+    return _envanter_modulu()._hooks_dizini(root)
+
+
 def izole_kopya_kur(dst):
     """MAIN'in HEAD'indeki tools/ agacini git archive ile ac; canli (gitignore'lu)
     kablolama dosyalarini (settings.json + .git/hooks) uzerine kopyala. MAIN salt-okunur."""
@@ -125,9 +145,19 @@ def izole_kopya_kur(dst):
     shutil.copy(os.path.join(MAIN, ".claude", "settings.json"),
                 os.path.join(dst, ".claude", "settings.json"))
 
+    # 🔴 OLCULEN KUSUR (6 Eyl 2026): fikstur `MAIN/.git/hooks/`ten kopyalaniyordu.
+    # O dizin `core.hooksPath` kurulmus bir makinede OLU ARTIKTIR — olculdu:
+    # `.git/hooks/pre-commit` 18 Tem tarihli 1.690 B bir kalinti, FIILEN KOSAN
+    # `.git/pruvo-kancalar/pre-commit` ise 16.542 B. Yani bu bataryanin kanca
+    # mutantlari AYLARDIR OLU BIR DOSYAYI mutasyona ugratiyordu; "kablo soktum,
+    # kirmizi yandi" hukmu FIILEN KOSAN kablolama hakkinda hicbir sey soylemiyordu.
+    # Kaynak artik ETKIN dizindir (`kapi-envanteri.kanca_dizini_coz`); kopyanin
+    # kendi `core.hooksPath`i YOKTUR, dolayisiyla kopyada varsayilan `.git/hooks`
+    # hem yazilan hem OKUNAN yerdir (kopya kendi icinde tutarli).
     os.makedirs(os.path.join(dst, ".git", "hooks"), exist_ok=True)
+    etkin = _etkin_kanca_dizini(MAIN)
     for h in ("pre-commit", "pre-push"):
-        kaynak = os.path.join(MAIN, ".git", "hooks", h)
+        kaynak = os.path.join(etkin, h)
         if os.path.isfile(kaynak):
             shutil.copy(kaynak, os.path.join(dst, ".git", "hooks", h))
 
@@ -159,6 +189,108 @@ def mutasyon_hook_kablo_sok(copy, dosya, gate_basename):
 # agacinda olculmeli — yoksa dalda eklenen konvansiyon disi bir nobetci ancak
 # MERGE'ten sonra gorunur ve sabit mutlak yol CI'da hic cozulmez
 # ([[sabit-mutlak-yol-yerelde-yesil]]).
+def vaka_hookspath(kontrol):
+    """K375-B — `core.hooksPath` COZUCUSU: kurulu / kurulusuz / kanca YOK.
+
+    🔴 NEDEN VAR: cozucu 4 Agu'da dogru yazildi ama HICBIR IDDIA onu olcmuyordu.
+    Olculemeyen dogru kod, yanlis tanilanabilen koddur: 6 Eyl'de bir teshis
+    "envanter kancayi `.git/hooks`'ta ariyor" diye YANLIS KOK bildirdi (cozucu
+    dogruydu, YALAN OLAN ETIKETTI). Uc hal de SENTETIK depoda olculur — canli
+    makinenin kanca kurulumuna BAGIMLI DEGIL ([[prob-kendi-baglamini-olcer]]).
+    """
+    mod = _envanter_modulu()
+    gecici = tempfile.mkdtemp(prefix="kapi-env-hookspath-")
+    try:
+        # (a) KURULUSUZ HAL: core.hooksPath YOK -> git varsayilani `.git/hooks`
+        a = os.path.join(gecici, "a")
+        os.makedirs(os.path.join(a, ".git", "hooks"))
+        sentetik_git(a, "init", "-q", a, check=True)
+        kontrol("K375-B/a KURULUSUZ: cozucu `.git/hooks` verir",
+                os.path.realpath(mod._hooks_dizini(a))
+                == os.path.realpath(os.path.join(a, ".git", "hooks")),
+                mod._hooks_dizini(a))
+        kontrol("K375-B/a2 ETIKET de `.git/hooks` der (yalan etiket YOK)",
+                mod.kanca_etiketi(a, "pre-commit") == ".git/hooks/pre-commit",
+                mod.kanca_etiketi(a, "pre-commit"))
+
+        # (b) KURULU HAL: core.hooksPath baska bir dizini gosterir
+        b = os.path.join(gecici, "b")
+        ozel = os.path.join(b, ".git", "ozel-kancalar")
+        os.makedirs(os.path.join(b, ".git", "hooks"))
+        sentetik_git(b, "init", "-q", b, check=True)
+        os.makedirs(ozel)
+        sentetik_git(b, "config", "core.hooksPath", ozel, check=True)
+        kontrol("K375-B/b KURULU: cozucu core.hooksPath dizinini verir",
+                os.path.realpath(mod._hooks_dizini(b)) == os.path.realpath(ozel),
+                mod._hooks_dizini(b))
+        kontrol("K375-B/b2 🔴 ETIKET ETKIN yolu ANAR (`.git/hooks` DEMEZ)",
+                "core.hooksPath=" in mod.kanca_etiketi(b, "pre-commit")
+                and ".git/hooks/pre-commit" != mod.kanca_etiketi(b, "pre-commit"),
+                mod.kanca_etiketi(b, "pre-commit"))
+
+        # (c) BAGLILIK UC HALDE: kanca ETKIN dizinde -> BAGLI; OLU dizinde -> DEGIL
+        with io.open(os.path.join(ozel, "pre-commit"), "w", encoding="utf-8") as f:
+            f.write("#!/bin/sh\npython3 tools/ornek-kapi.py\n")
+        kontrol("K375-B/c ETKIN dizindeki kanca BAGLI sayilir",
+                mod._hook_bagli(b, "ornek-kapi.py", "pre-commit") is True)
+        with io.open(os.path.join(b, ".git", "hooks", "pre-commit"), "w",
+                     encoding="utf-8") as f:
+            f.write("#!/bin/sh\npython3 tools/olu-kapi.py\n")
+        kontrol("K375-B/c2 🔴 OLU `.git/hooks` kancasi BAGLI SAYILMAZ "
+                "(hooksPath kuruluyken orasi KOSMAZ)",
+                mod._hook_bagli(b, "olu-kapi.py", "pre-commit") is False)
+
+        # (d) 🔴 KANCA YOK -> HALA KIRMIZI (fail-closed; sessiz yesile DUSMEZ)
+        c = os.path.join(gecici, "c")
+        bos = os.path.join(c, ".git", "bos-kancalar")
+        os.makedirs(os.path.join(c, ".git", "hooks"))
+        sentetik_git(c, "init", "-q", c, check=True)
+        os.makedirs(bos)
+        sentetik_git(c, "config", "core.hooksPath", bos, check=True)
+        kontrol("K375-B/d 🔴 KANCA YOK -> BAGLI DEGIL (fail-closed)",
+                mod._hook_bagli(c, "ornek-kapi.py", "pre-commit") is False)
+
+        # (e) MUTANT [OLDURUCU]: cozucu `.git/hooks`e SABITLENIR (K375-B ONCESI hal)
+        #     -> (b) ve (c2) kollari DUSER, (c) kolu YANLIS yone doner.
+        kaynak_yol = os.path.join(ENV_KOK, "tools", "kapi-envanteri.py")
+        with io.open(kaynak_yol, encoding="utf-8") as f:
+            kaynak = f.read()
+        capa = ("    deger = p.stdout.strip() if p.returncode == 0 else \"\"\n"
+                "    if not deger:\n"
+                "        return os.path.join(root, \".git\", \"hooks\")")
+        if kaynak.count(capa) != 1:
+            kontrol("K375-B/e MUTANT capasi TUTMADI (OLCULEMEDI)", False,
+                    "eslesme=%d" % kaynak.count(capa))
+        else:
+            mut_yol = os.path.join(gecici, "mutant-kapi-envanteri.py")
+            with io.open(mut_yol, "w", encoding="utf-8") as f:
+                f.write(kaynak.replace(
+                    capa,
+                    "    deger = \"\"  # MUTANT: cozucu `.git/hooks`e SABITLENDI\n"
+                    "    if not deger:\n"
+                    "        return os.path.join(root, \".git\", \"hooks\")", 1))
+            import importlib.util as _il
+            _s = _il.spec_from_file_location("kapi_envanteri_mutant", mut_yol)
+            _mut = _il.module_from_spec(_s)
+            _s.loader.exec_module(_mut)
+            kontrol("K375-B/e 🔴 MUTANT [OLDURUCU]: cozucu sabitlenince ETKIN dizin "
+                    "YERINE `.git/hooks` dondu (b kolunu saglayan sey GERCEKTEN "
+                    "core.hooksPath cozumudur)",
+                    os.path.realpath(_mut._hooks_dizini(b))
+                    == os.path.realpath(os.path.join(b, ".git", "hooks")),
+                    _mut._hooks_dizini(b))
+            kontrol("K375-B/e2 🔴 MUTANT [OLDURUCU]: sabitlenmis cozucu OLU kancayi "
+                    "BAGLI sanar (c2 kolunun oldurucusu)",
+                    _mut._hook_bagli(b, "olu-kapi.py", "pre-commit") is True)
+            kontrol("K375-B/e3 ✅ KONTROL: mutant YALNIZ gecici kopyada "
+                    "(canli arac dokunulmadi)",
+                    os.path.dirname(os.path.abspath(mut_yol))
+                    == os.path.abspath(gecici))
+    finally:
+        # 🔴 SILME MENZILI: yalnizca bu turun kendi actigi gecici dizin.
+        shutil.rmtree(gecici, ignore_errors=True)
+
+
 def main():
     kontroller = []  # (ad, gecti_bool, ayrinti)
     vakalar = []
@@ -173,6 +305,11 @@ def main():
     # MUAF_BAGLAM) tablodan TURETILSIN, teste elle kopyalanmasin.
     probe = probe_yukle(ENVANTER)
     KAPI_ADLARI = tuple(g["ad"] for g in probe.GATES)
+
+    # --- 0) K375-B: core.hooksPath cozucusu (sentetik, canli kuruluma BAGIMSIZ) ---
+    def _k375b(ad, kosul, ayrinti=""):
+        kontroller.append((ad, bool(kosul), str(ayrinti)))
+    vaka_hookspath(_k375b)
 
     # --- 1) Ana repo: kosar + en az 5 kapi listeler ---
     ana_rc, ana_out = envanter_kostur(MAIN)

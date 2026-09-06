@@ -75,20 +75,20 @@ def js_fonksiyon(src, ad):
 MUTANTLAR = [
     ("markaSorgusuEsler", r"return markaUyeMi",
      lambda s: s.replace("markaUyeMi(p, hedefMarka) || ", ""),
-     # 🔴 CAPA TAZELENDI (6 Eyl 2026): beklenen eksen dizgesi `"uyeligi olan HER urun
-     # sonucta"` idi ve iddia metni UYELIK EKSENI ANKRAJI eklenirken degismisti -> mutant
-     # FIILEN OLUYORDU (rc=1, dogru iddia kirmizi) ama batarya onu "KACTI" sayiyordu.
-     # Bayat capa, olduruleni kacan gosterir ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
+     # 🔴 6 Eyl — EKSEN ATFI KOSMASI GARANTI OLAN IDDIAYA BAGLANDI.
+     #   Eski atif `uyeligi olan HER urun sonucta` idi; o iddia
+     #   `yedekEslesmeKontrolu` icinde, EDGE HAVUZU verisine bagli kosar
+     #   (`markaSorgusu === null` -> hic kosmaz). 6 Eyl'de havuzda ayirt edici uye
+     #   0'a dustu, iddia kosmadi ve mutant "KACTI" yazildi — OYSA kapi KIRMIZI
+     #   yaniyordu, yalnizca BASKA (ve garantili) eksende: UYELIK EKSENI ANKRAJI.
+     #   Yani kacan sey koruma degil ATIFTI. Atif artik TAM KATALOG ankrajina
+     #   baglidir; o kol veri tesadufune bagli DEGILDIR, kurulamazsa KIRMIZI yanar.
      "BASLIGINDA GECMEYEN her urun marka",
      "5 Agu ONCESI davranis: marka sorgusu YALNIZ baslikta tam kelime arar "
      "(uyelik kolu dusuruldu) — kapinin BAYAT halinin ta kendisi"),
     ("aramaPlaniEsler", r"return markaSorgusuEsler",
      lambda s: s.replace("return markaSorgusuEsler(p, plan.kanon);", "return true;"),
-     # 🔴 6 Eyl 2026: bu mutant GERCEKTEN kaciyordu — "GERCEKTEN daraltiyor" iddiasinin
-     # MARKA kolu, edge havuzunda ayirt edici uye bulunmayinca ATLANAN bir DOM koluna
-     # bagliydi; serbest metin kolu ise mutantin menzilinde DEGIL. faz3-bayrak.js'e TAM
-     # KATALOG uzerinde kosan, atlanamayan bir daraltma ankraji eklendi.
-     "TAM KATALOG'da GERCEKTEN daraltiyor",
+     "GERCEKTEN daraltiyor",
      "kanonik eslestirici marka sorgusunda HEP TRUE: iddia ile kiyas birlikte "
      "kaysaydi kapi kor kalirdi"),
     ("edgeYedek", r"if\(plan\.kanon \|\| plan\.tokens\.length\)",

@@ -3275,6 +3275,183 @@ def v53_arac_ifadesi_ad_degil(arac, kok):
           os.path.dirname(os.path.abspath(mut_yol)) == os.path.abspath(kok_m), mut_yol)
 
 
+# ── V54 FIKSTURU: K375 — CANLI VAKA (6 Eyl 2026), kimlik EKSENI ayrismasi ────────
+# Kutuda GERCEKTEN olusan bicim: acilis CIP adiyla, kapanis AGAC adiyla kimliklenmis;
+# cip adi kapanis basliginda IKINCI backtick'te, kanonik `(çip `<ad>`)` parantezinde.
+K375_ACILIS = ("## 2026-09-06 ~09:xx — 🔧 `KraL-Tamirci-6Eyl` **BASLIYORUM**\n")
+K375_KAPANIS = ("## 2026-09-06 ~10:xx — ✅ `gifted-curran-39fdbb` "
+                "(çip `KraL-Tamirci-6Eyl`) **SAYILI KAPANIS — capa komsuya nisanliydi**\n")
+K375_GOVDE = ("\ngovde satiri\n\n— KraL (çip `KraL-Tamirci-6Eyl`)\n\n---\n\n")
+# NEGATIF: baska bir cipin adini yalnizca ANAN kapanis — parantez bicimi YOK.
+K375_ANMA_ACILIS = ("## 2026-09-06 ~08:xx — 🔧 `KraL-Anilan-6Eyl` **BASLIYORUM**\n")
+K375_ANMA_KAPANIS = ("## 2026-09-06 ~08:5x — ✅ `baska-agac-11bb22` **SAYILI KAPANIS** — "
+                     "`KraL-Anilan-6Eyl` isini devraldim\n")
+# TERS SEKIL (canli kutuda BIREBIR var): ACILIS agac adiyla + cip parantezde,
+# KAPANIS yalniz cip adiyla. Kesisim BU KEZ ACILIS tarafinin kumesinden gelir —
+# yani kol IKI TARAFTA DA yasamali (tek tarafli onarim bu sekli KACIRIR).
+K375_TERS_ACILIS = ("## 2026-09-06 ~07:xx — 🔧 `ters-agac-33dd44` (çip `KraL-Ters-6Eyl`) **BASLIYORUM**\n")
+K375_TERS_KAPANIS = ("## 2026-09-06 ~07:5x — ✅ `KraL-Ters-6Eyl` **SAYILI KAPANIS — ters sekil**\n")
+
+
+def _k375_kutu():
+    return _k374_kutu({4: K375_ACILIS + K375_GOVDE,
+                       3: K375_KAPANIS + K375_GOVDE,
+                       7: K375_ANMA_ACILIS + K375_GOVDE,
+                       6: K375_ANMA_KAPANIS + K375_GOVDE,
+                       9: K375_TERS_ACILIS + K375_GOVDE,
+                       8: K375_TERS_KAPANIS + K375_GOVDE})
+
+
+def v54_kimlik_kumesi(arac, kok):
+    """[54] 🔴 K375 — KIMLIK TEK JETON DEGIL KUMEDIR (canli vaka, 6 Eyl 2026).
+
+    OLCULEN GERCEK VAKA: `KraL-Tamirci-6Eyl` cipinin acilisi CIP adiyla, kapanisi
+    AGAC adiyla (`gifted-curran-39fdbb`) kimliklenmisti. `cip_adi()` YALNIZ ILK
+    backtick'i okudugu icin iki blogun kimlik kumeleri kesismiyor, blok rotasyona
+    HIC girmiyor ve kutu tavanin (250) ustunde kaliyordu (olculdu 330/250) — evin
+    commit'ini kilitleme esigi. Ayni cipi `arsiv-kapisi.py` DOGRU okuyordu.
+
+    POZITIF: ikincil kimlik kanonik `(çip `<ad>`)` parantezinden okunur -> eslesir.
+    NEGATIF (ANMAK ≠ IMZALAMAK): adi yalnizca ANAN kapanis baska cipi ACMAZ.
+    MUTANT [OLDURUCU] x4 + KONTROL x1 — her biri hedef kolu ADIYLA oldurur.
+    """
+    print("\n[54] K375 KIMLIK KUMESI — acilis CIP adiyla, kapanis AGAC adiyla")
+    try:
+        mod = _arac_modulu(arac)
+    except Exception as exc:                                  # noqa: BLE001
+        iddia("54a BIRIM: arac modulu yuklendi", False, "%r" % (exc,))
+        return
+
+    # --- BIRIM EKSENI ------------------------------------------------------------
+    iddia("54a BIRINCIL ad DEGISMEDI (ilk backtick, basimda gecen ad)",
+          mod.cip_adi(K375_KAPANIS) == "gifted-curran-39fdbb",
+          repr(mod.cip_adi(K375_KAPANIS)))
+    iddia("54b 🔴 KIMLIK KUMESI: kapanis HER IKI adi da uretir",
+          mod.cip_adlari(K375_KAPANIS)
+          == ("gifted-curran-39fdbb", "KraL-Tamirci-6Eyl"),
+          repr(mod.cip_adlari(K375_KAPANIS)))
+    iddia("54c acilis kumesi cip adini iceriyor",
+          "KraL-Tamirci-6Eyl" in mod.cip_adlari(K375_ACILIS),
+          repr(mod.cip_adlari(K375_ACILIS)))
+    iddia("54d 🔴 KESISIM BOS DEGIL (onarimin tam olcusu)",
+          set(mod.cip_adlari(K375_ACILIS)) & set(mod.cip_adlari(K375_KAPANIS))
+          == {"KraL-Tamirci-6Eyl"})
+    iddia("54e 🔴 NEGATIF: parantezsiz ANMA ikincil kimlik URETMEZ",
+          mod.cip_adlari(K375_ANMA_KAPANIS) == ("baska-agac-11bb22",),
+          repr(mod.cip_adlari(K375_ANMA_KAPANIS)))
+    iddia("54f 🔴 NEGATIF: parantez icindeki ARAC IFADESI ad SAYILMAZ",
+          mod.cip_adlari("## x — `a-agac-11bb22` (çip `--geriye-doldur`)")
+          == ("a-agac-11bb22",),
+          repr(mod.cip_adlari("## x — `a-agac-11bb22` (çip `--geriye-doldur`)")))
+    iddia("54g-ters 🔴 TERS SEKIL: ACILIS kumesi (agac adi + parantezdeki cip adi) "
+          "KAPANISIN tek adiyla KESISIYOR",
+          set(mod.cip_adlari(K375_TERS_ACILIS))
+          & set(mod.cip_adlari(K375_TERS_KAPANIS)) == {"KraL-Ters-6Eyl"},
+          "%r vs %r" % (mod.cip_adlari(K375_TERS_ACILIS),
+                        mod.cip_adlari(K375_TERS_KAPANIS)))
+    iddia("54g `(cip: `<ad>`)` iki noktali bicim de okunur",
+          "KraL-Iki-6Eyl" in mod.cip_adlari("## x — `b-agac-22cc33` (cip: `KraL-Iki-6Eyl`)"))
+
+    # --- DAVRANIS EKSENI: uctan uca ----------------------------------------------
+    a = Alan(kok, _k375_kutu(), "## eski arsiv blogu\n\ngovde\n")
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=K374_TAVAN, koru=3)
+    adlar = satir_al(cikti, "ACIK_BASLIYORUM_ADLARI=")
+    iddia("54h rc=0", rc == 0, "rc=%d\n%s" % (rc, cikti[-1200:]))
+    iddia("54i 🔴 DAVRANIS: `KraL-Tamirci-6Eyl` ARTIK ACIK sayilmiyor "
+          "(blok ROTASYONA ACIK)", "KraL-Tamirci-6Eyl" not in adlar, adlar)
+    iddia("54j 🔴 DAVRANIS NEGATIF: yalnizca ANILAN cip HALA ACIK (anmak kapatmaz)",
+          "KraL-Anilan-6Eyl" in adlar, adlar)
+    iddia("54k 🔴 DAVRANIS (TERS SEKIL): `KraL-Ters-6Eyl` de ACIK sayilmiyor",
+          "KraL-Ters-6Eyl" not in adlar, adlar)
+
+    kok_m = os.path.join(kok, "mut54")
+    os.makedirs(kok_m, exist_ok=True)
+
+    def _mutant_kos(etiket, capa, yeni, bekle_acik, aciklama,
+                    izlenen="KraL-Tamirci-6Eyl"):
+        yol, hata = _k374_mutant(arac, os.path.join(kok_m, "m-%s.py" % etiket),
+                                 capa, yeni)
+        if hata:
+            iddia("54-%s MUTANT capasi TUTMADI (OLCULEMEDI)" % etiket, False, hata)
+            return
+        alt = os.path.join(kok_m, etiket)
+        os.makedirs(alt, exist_ok=True)
+        m = Alan(alt, _k375_kutu(), "## eski arsiv blogu\n\ngovde\n")
+        rc_m, cikti_m = kos(yol, m.kutu, m.arsiv, m.kilit, tavan=K374_TAVAN, koru=3)
+        ad_m = satir_al(cikti_m, "ACIK_BASLIYORUM_ADLARI=")
+        gozlenen = izlenen in ad_m
+        iddia("54-%s %s" % (etiket, aciklama), gozlenen is bekle_acik,
+              "izlenen=%s beklenen ACIK=%s gozlenen=%s rc=%d · adlar=%s"
+              % (izlenen, bekle_acik, gozlenen, rc_m, ad_m))
+
+    # MUTANT 1 [OLDURUCU]: ikincil kimlik kolu tamamen kaldirilir (K375 ONCESI hal).
+    _mutant_kos(
+        "m1",
+        "    adlar = list(cip_adlari(satirlar[bas]))\n",
+        "    adlar = [cip_adi(satirlar[bas])] if cip_adi(satirlar[bas]) else []"
+        "  # MUTANT: kapanis tek ada dondu\n",
+        True,
+        "🔴 MUTANT [OLDURUCU]: kapanis kimligi TEK ada dondurulunce blok YINE "
+        "ACIK kaldi (54i'yi saglayan sey GERCEKTEN kimlik kumesidir)")
+
+    # MUTANT 2 [OLDURUCU]: acilis tarafi tek ada dondurulur (simetrik kor nokta).
+    _mutant_kos(
+        "m2",
+        "    adlar = list(cip_adlari(baslik))\n",
+        "    adlar = [cip_adi(baslik)] if cip_adi(baslik) else []"
+        "  # MUTANT: acilis tek ada dondu\n",
+        True,
+        "🔴 MUTANT [OLDURUCU]: ACILIS kimligi tek ada dondurulunce TERS SEKILLI "
+        "blok YINE ACIK kaldi (54k'yi saglayan sey acilis tarafinin kumesidir)",
+        # 🔴 IZLENEN AD MUTANTIN URETTIGI KIMLIKTIR: acilis tek ada dondurulunce
+        # blogun kimligi AGAC adina (`ters-agac-33dd44`) duser ve blok O ADLA yeniden
+        # ACIK listesine girer. "Cip adiyla acik mi" diye sormak mutanti KACIRIRDI.
+        izlenen="ters-agac-33dd44")
+
+    # MUTANT 3 [OLDURUCU]: parantez deseni bozulur -> ikincil kimlik hic cikmaz.
+    _mutant_kos(
+        "m3",
+        'CIP_PARANTEZ_RE = re.compile(r"\\(\\s*(?:ç|c)ip\\s*:?\\s*`([^`\\n]+)`\\s*\\)", re.IGNORECASE)',
+        'CIP_PARANTEZ_RE = re.compile(r"(?!x)x")  # MUTANT: parantez deseni OLU',
+        True,
+        "🔴 MUTANT [OLDURUCU]: kanonik parantez deseni oldurulunce blok YINE ACIK "
+        "kaldi (ikincil kimligi getiren sey GERCEKTEN bu desendir)")
+
+    # MUTANT 4 [OLDURUCU, TERS YON]: sekil suzgeci kaldirilinca ANMA da kimlik olur
+    #   -> negatif kol (54j) duser: yalnizca ANILAN cip SESSIZCE kapanmis sayilir.
+    yol4, hata4 = _k374_mutant(
+        arac, os.path.join(kok_m, "m-m4.py"),
+        'CIP_PARANTEZ_RE = re.compile(r"\\(\\s*(?:ç|c)ip\\s*:?\\s*`([^`\\n]+)`\\s*\\)", re.IGNORECASE)',
+        'CIP_PARANTEZ_RE = re.compile(r"`([^`\\n]+)`")  # MUTANT: HER backtick kimlik')
+    if hata4:
+        iddia("54-m4 MUTANT capasi TUTMADI (OLCULEMEDI)", False, hata4)
+    else:
+        alt4 = os.path.join(kok_m, "m4")
+        os.makedirs(alt4, exist_ok=True)
+        m4 = Alan(alt4, _k375_kutu(), "## eski arsiv blogu\n\ngovde\n")
+        rc4, cikti4 = kos(yol4, m4.kutu, m4.arsiv, m4.kilit, tavan=K374_TAVAN, koru=3)
+        ad4 = satir_al(cikti4, "ACIK_BASLIYORUM_ADLARI=")
+        iddia("54-m4 🔴 MUTANT [OLDURUCU, TERS YON]: her backtick kimlik sayilinca "
+              "YALNIZCA ANILAN cip de SESSIZCE kapandi (54j'yi saglayan sey "
+              "kanonik-bicim sartidir)",
+              "KraL-Anilan-6Eyl" not in ad4,
+              "rc=%d adlar=%s — mutant HEDEFE ULASMADI ise 54j OLU IDDIA olurdu"
+              % (rc4, ad4))
+
+    # KONTROL MUTANTI [DAVRANIS DISI]: yalnizca yorum satiri degisir -> YESIL kalmali.
+    _mutant_kos(
+        "k1",
+        "def cip_adlari(baslik):\n",
+        "def cip_adlari(baslik):  # KONTROL MUTANTI: davranis disi yorum\n",
+        False,
+        "✅ KONTROL MUTANTI [DAVRANIS DISI]: yorum degisimi hukmu DEGISTIRMEDI "
+        "(harness 'hep kirmizi' degil)")
+
+    iddia("54-izole MUTANTLAR yalnizca GECICI kopyaya yazildi (canli arac SHA sabit)",
+          os.path.isdir(kok_m) and os.path.abspath(kok_m).startswith(os.path.abspath(kok)),
+          kok_m)
+
+
 VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v04_frontmatter_ve_ust_bloklar, v05_blok_bolunmez,
            v06_arsiv_yoksa_frontmatter, v07_kilit, v08_bozuk_frontmatter,
@@ -3297,7 +3474,8 @@ VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v43_kapanis_adi_imza_onayli, v44_cift_butunlugu, v45_d18_denetimi,
            v46_ad_ekseni_ayrismasi, v47_arsiv_duzlemi, v48_konum_olcutu,
            v49_harness_ad_sekli, v50_korumali_etiketi,
-           v51_kapanis_kuyrugu, v52_adsiz_kilit_acma, v53_arac_ifadesi_ad_degil)
+           v51_kapanis_kuyrugu, v52_adsiz_kilit_acma, v53_arac_ifadesi_ad_degil,
+           v54_kimlik_kumesi)
 
 
 def suite(arac, sessiz=False):
@@ -3448,7 +3626,7 @@ MUTANTLAR = (
      # bloklar SERBEST birakilanlarin ALTINDA ve USTUNDE karisik durur; bitisik
      # kuyruga donen bir secim "GERCEKTEN arsive gitti" bacaklarina ULASAMAZ.
      True, {"20", "22", "28", "31", "32", "33", "37", "38", "42", "43", "44",
-            "46", "47", "49", "50", "51", "52", "53"}),
+            "46", "47", "49", "50", "51", "52", "53", "54"}),
     # 🔴 K318 KOL-2 (27 Agu): kayipsizligin IKI EKSENDE BASILMASI sarti. Beyan
     # susturulursa 28 OLMELI; hesap dogru kalsa bile "basilmayan sayi olculmemis
     # sayidir" ([[aracin-teshis-cumlesi-olcum-degil]]).
@@ -3481,7 +3659,7 @@ MUTANTLAR = (
      # 🔴 51/52/53 EKLENDI (K374, 5 Eyl): uc vakanin da NEGATIF bacaklari "acik blok
      # KUTUDA kaldi, arsive SIZMADI" der — dogrudan ICRA bacagi.
      True, {"31", "32", "33", "36", "41", "42", "43", "46", "47", "49",
-            "51", "52", "53"}),
+            "51", "52", "53", "54"}),
     ("m) D17 ACIK CIP DENETIMI OLDURULDU (sizan acik blok sessizce yazilir)",
      "    for _bi, ad, ozet, sinif in ek_acik:\n",
      "    for _bi, ad, ozet, sinif in []:  # MUTANT: D17 susturuldu\n",
@@ -3511,7 +3689,7 @@ MUTANTLAR = (
      # 🔴 51/53 EKLENDI (K374, 5 Eyl): "her blok KAPANIS" demek 51'in IKI negatifini
      # (proza + aralikli) ve 53'un `AD_YOK` bacagini da serbest birakir.
      True, {"31", "32", "33", "36", "42", "43", "46", "47", "48",
-            "49", "51", "53"}),
+            "49", "51", "53", "54"}),
     # 🔴 GEVSEK AD kolu (28 Agu, ucuncu canli vaka) — backtick'siz yazilmis cip adini
     # okuyan asimetrik bacak. Olmezse vaka 36'nin ② sarmali `ACIK_ADSIZ`a duser: blok
     # HALA korunur (fail-closed dogru) ama SINIFI degisir — yani kol "kismen" olur ve
@@ -3597,7 +3775,7 @@ MUTANTLAR = (
      # 🔴 51/53 EKLENDI: ayni gevseme 51'in negatiflerini ve 53'un `AD_YOK` bacagini
      # da serbest birakir.
      True, {"31", "32", "33", "34", "36", "42", "43", "47", "48", "49",
-            "51", "53"}),
+            "51", "53", "54"}),
     ("v) 🔴 MP3: TIRNAK ELEMESI KALDIRILDI (alintidaki jeton yine sayilir)",
      "    return _TIRNAK_RE.sub(\" \", metin)\n",
      "    return metin  # MUTANT MP3: TIRNAK elemesi KALDIRILDI\n",

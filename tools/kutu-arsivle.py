@@ -947,6 +947,52 @@ def cip_adi(baslik):
     return None
 
 
+# 🔴 K375 — KIMLIK TEK JETON DEGIL KUMEDIR (6 Eyl 2026, CANLI VAKA).
+# OLCULEN KUSUR: ayni cipin iki blogu IKI FARKLI EKSENDE kimliklenmisti —
+#   ACILIS  : `## ... — 🔧 `KraL-Tamirci-6Eyl` **BASLIYORUM**`          (CIP adi)
+#   KAPANIS : `## ... — ✅ `gifted-curran-39fdbb` (çip `KraL-Tamirci-6Eyl`) ...` (AGAC adi)
+# `cip_adi()` YALNIZ ILK backtick'i okudugu icin kapanisin kimligi
+# `gifted-curran-39fdbb`de kaliyor, acilisinki `KraL-Tamirci-6Eyl` oluyor ve kesisim
+# BOS cikiyordu -> blok rotasyona HIC girmiyor, kutu tavanin (250) ustunde kaliyor ve
+# evin commit'ini kilitleme esigine yuruyordu (olculdu: 330/250). Ayni cipi
+# `arsiv-kapisi.py` DOGRU okuyordu: iki kapi ayni olguyu ZIT okuyor
+# ([[tuketici-yazilirken-tum-okuyucular-sayilir]] · [[ikiz-tanim-sessiz-ayrisma]]).
+#
+# 🔴 GENISLETME SINIRLI — "ANMAK ≠ IMZALAMAK" sinifi ACILMAZ: basliktaki HER
+# backtick'li jeton kimlik SAYILMAZ (o hal, adi ANAN bir kapanisin BASKA bir cipi
+# kapatmasina yol acardi). Ikincil kimlik YALNIZ yordamin CIVILEDIGI kanonik bicimde
+# kabul edilir: `(çip `<ad>`)` / `(cip: `<ad>`)` parantezi. Bu bicim bir ANMA degil,
+# blogun kime ait oldugunun BEYANIDIR.
+CIP_PARANTEZ_RE = re.compile(r"\(\s*(?:ç|c)ip\s*:?\s*`([^`\n]+)`\s*\)", re.IGNORECASE)
+
+
+def _ad_gecerli(ad):
+    """`cip_adi()` ile AYNI sekil suzgeci — ikinci bir olcut YAZILMAZ."""
+    ad = ad.strip()
+    if len(ad) < 5 or "-" not in ad:
+        return False
+    if any(k in ad for k in _AD_YASAK):
+        return False
+    return not _arac_ifadesi_mi(ad)
+
+
+def cip_adlari(baslik):
+    """Basliktan cozulen TUM DAR kimlikler — SIRALI, TEKIL; birincisi BIRINCIL ad.
+
+    Birincil ad `cip_adi()`dir (basimda gecen, ILK backtick). Ardindan kanonik
+    `(çip `<ad>`)` parantezindeki adlar gelir. Eslesme bu KUMELERIN KESISIMIDIR.
+    """
+    adlar = []
+    ilk = cip_adi(baslik)
+    if ilk:
+        adlar.append(ilk)
+    for aday in CIP_PARANTEZ_RE.findall(baslik):
+        ad = aday.strip()
+        if _ad_gecerli(ad) and ad not in adlar:
+            adlar.append(ad)
+    return tuple(adlar)
+
+
 def gevsek_cip_adi(baslik):
     """Backtick'siz yazilmis CIP ADI adayi, yoksa None. Bkz. GEVSEK_AD_RE asimetrisi.
 
@@ -1165,10 +1211,7 @@ def cip_kimlikleri(baslik):
 
     DAR (backtick'li) ad ONCE gelir — birincil kimlik odur; GEVSEK ad ikincidir.
     """
-    adlar = []
-    dar = cip_adi(baslik)
-    if dar:
-        adlar.append(dar)
+    adlar = list(cip_adlari(baslik))
     gevsek = gevsek_cip_adi(baslik)
     if gevsek and gevsek not in adlar:
         adlar.append(gevsek)
@@ -1182,10 +1225,7 @@ def kapanis_kimlikleri(satirlar, bas, son):
     AYNI kimlikleri okur; ikinci bir "bu kapanis kimin" testi HICBIR YERDE yazilmaz
     ([[ikiz-tanim-sessiz-ayrisma]]).
     """
-    adlar = []
-    dar = cip_adi(satirlar[bas])
-    if dar:
-        adlar.append(dar)
+    adlar = list(cip_adlari(satirlar[bas]))
     gevsek = gevsek_cip_adi(satirlar[bas])
     if (gevsek and gevsek not in adlar
             and _imzada_geciyor(satirlar, bas, son, gevsek)):
