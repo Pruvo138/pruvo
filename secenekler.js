@@ -230,15 +230,23 @@
   // ayrıldığı an bu listede olmazsa ürün sessizce eski geniş-buton düzenine düşer.
   var FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera", "Dekorasyon", "Oyun/Hobi", "Skan Art"];
 
-  /* Liste fiyatı metninden TL sayısı. Sayfa üreteci feed_price ve Worker ile AYNI kural:
-     İLK sayı grubunu alır ("1.250 TL" -> 1250, "300 TL (30 cm)" -> 300).
-     DİKKAT: eski kural tüm rakamları birleştiriyordu (replace(/[^0-9]/g,"")), o yüzden
-     "300 TL (30 cm)" 30030 TL görünüyordu — istemci 30.030 TL gösterip Worker 300 TL tahsil
-     ederdi. Kural üç yerde (burada, feed_price, Worker) birebir aynı olmalı. */
+  /* Liste fiyatı metninden TL sayısı. Sayfa üreteci (arama.fiyat_tam_tl -> feed_price /
+     price_number) ve Worker ile AYNI kural; üç yerde birebir aynı olmak ZORUNDA.
+
+     🔴 KANONİK BİÇİM — nokta YALNIZ tam binlik grubu ayırır ("1.250 TL" -> 1250).
+     Ondalık hane para alanında KABUL EDİLMEZ ve burada FAIL-CLOSED null döner: fiyatsız
+     ürün sepete girmez (satirOzeti/eklenebilirMi null'da eler), yanlış tutar TAHSİL
+     EDİLMEZ. Yuvarlama BURADA YAPILMAZ — okuma tarafı yuvarlarsa bozuk kayıt sessizce
+     yaşar; kuruş GİRİŞTE yukarı yuvarlanır (panel /urunler-ustyazim).
+
+     DİKKAT — iki kez ölçülmüş hata sınıfı, ikisi de "nokta/rakam yut" kuralından doğdu:
+       (a) eski kural tüm rakamları birleştiriyordu (replace(/[^0-9]/g,"")) ->
+           "300 TL (30 cm)" 30.030 TL görünüp 300 TL tahsil ediliyordu.
+       (b) nokta binlik ayracı sanılıyordu -> "250.0 TL" sepette 2.500 TL oldu (ON KAT). */
+  var FIYAT_SAYI_RX = /^\s*((?:[0-9]{1,3}(?:\.[0-9]{3})+|[0-9]+))\s*(?:TL|TRY|₺)(?:\s*\([^()]{1,40}\)|\/[^\s\/]{1,20})?\s*$/i;
   function fiyatSayisi(fiyat) {
     if (!fiyat) { return null; }
-    var s = String(fiyat);
-    var m = /([0-9][0-9.]*)\s*(?:TL|TRY|₺)/i.exec(s) || /([0-9][0-9.]*)/.exec(s);
+    var m = FIYAT_SAYI_RX.exec(String(fiyat));
     if (!m) { return null; }
     var n = parseInt(m[1].replace(/\./g, ""), 10);
     return (n > 0) ? n : null;

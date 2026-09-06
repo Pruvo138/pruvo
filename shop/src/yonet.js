@@ -1758,6 +1758,24 @@ const USTYAZIM_ALANLAR = new Set(["fiyat", "baslik", "aciklama", "gorseller"]);
 const USTYAZIM_DEGER_TAVAN = { fiyat: 20, baslik: 200, aciklama: 4000, gorseller: 4000 };
 // Katalog fiyat sozlesmesi "N TL" (uygulayicidaki FIYAT_BICIMI ile es).
 const FIYAT_BICIM_RX = /^[1-9][0-9]{0,5} TL$/;
+// FIYAT GIRDI NORMALIZASYONU (Okan emri, 6 Eyl 2026): "sayfada/panelde noktalamaya izin
+// verme, kurus miktari YUKARI yuvarlansin (200.1 -> 201 TL), TUM urunler icin".
+// Neden giriste: katalogdaki 616 kayit "250.0 TL" bicimindeydi ve noktayi binlik ayraci
+// sanan okuyucular (feed_price / price_number / secenekler.js fiyatSayisi) tutari ON KAT
+// buyutuyordu — sepet/odeme dahil. Kural OKUMA tarafinda yuvarlamakla kapatilamaz: o
+// zaman bozuk deger kayitta yasar ve hangi tutarin ilan edildigi kayittan okunamaz.
+// Python ikizi: tools/arama.py fiyat_yukari_yuvarla (kabul testi ayni vaka tablosu).
+const FIYAT_GIRDI_RX = /^\s*((?:[0-9]{1,3}(?:\.[0-9]{3})+|[0-9]+))(?:[.,]([0-9]{1,2}))?\s*(?:TL|TRY|₺)?(?:\s*\([^()]{1,40}\)|\/[^\s\/]{1,20})?\s*$/i;
+function fiyatYukariYuvarla(ham) {
+  if (typeof ham !== "string") { return null; }
+  const m = FIYAT_GIRDI_RX.exec(ham.trim());
+  if (!m) { return null; }
+  let tam = parseInt(m[1].replace(/\./g, ""), 10);
+  if (!(tam >= 0)) { return null; }
+  // Kurus VARSA yukari yuvarla: "200.1" = 200 TL 10 kurus -> 201 TL.
+  if (m[2] && parseInt(m[2].padEnd(2, "0"), 10) > 0) { tam += 1; }
+  return tam > 0 ? tam + " TL" : null;
+}
 const URUN_ID_RX = /^[a-z0-9-]{1,200}$/;
 // T2 — gorsel listesi ustyazimi. Deger JSON DIZI metnidir (tam liste; cikarma =
 // listeden dusurulmus TAM listenin ustyazimi, R2 nesnesi SILINMEZ). Otorite yine
@@ -1859,8 +1877,16 @@ async function panelUstyazimYaz(request, env, ctx) {
       (alan !== "aciklama" && deger.indexOf("\n") >= 0)) {
     return yjson({ hata: "deger kontrol karakteri tasiyor" }, 400);
   }
-  if (alan === "fiyat" && !FIYAT_BICIM_RX.test(deger)) {
-    return yjson({ hata: "fiyat bicimi \"500 TL\" olmali (yalniz tam sayi + TL)" }, 400);
+  // FIYAT GIRIS KAPISI (Okan, 6 Eyl): noktalamaya IZIN YOK, kurus YUKARI yuvarlanir.
+  // Normalize ONCE kosar -> "200.1 TL" 400 ile geri donmez, "201 TL" olarak kaydedilir;
+  // ardindan kanonik bicim yine de ZORLANIR (normalize cozemediyse deger degismeden
+  // gelir ve asagidaki test onu reddeder -> fail-closed, sessiz kabul YOK).
+  if (alan === "fiyat") {
+    const yuvarlanmis = fiyatYukariYuvarla(deger);
+    if (yuvarlanmis !== null) { deger = yuvarlanmis; }
+    if (!FIYAT_BICIM_RX.test(deger)) {
+      return yjson({ hata: "fiyat bicimi \"500 TL\" olmali (yalniz tam sayi + TL)" }, 400);
+    }
   }
   if (alan === "gorseller") {
     const sebep = gorselListesiSebebi(deger);
@@ -1876,7 +1902,10 @@ async function panelUstyazimYaz(request, env, ctx) {
   const kuyrukHata = await kuyrugaYaz(env, uid, alan, deger);
   if (kuyrukHata) { return kuyrukHata; }
   uygulayiciTetikle(env, ctx);
-  return yjson({ tamam: true, urun_id: uid, alan: alan, hal: "beklemede" }, 200);
+  // `deger` normalize EDILMIS olabilir (fiyat yuvarlama) — cagirana KAYDEDILEN degeri
+  // don, girdigini degil: panel "201 TL" yazdigimizi gostersin, sessizce sapmasin.
+  return yjson({ tamam: true, urun_id: uid, alan: alan, deger: deger,
+                 hal: "beklemede" }, 200);
 }
 
 /** Kuyruga hal='beklemede' satir yaz — panelUstyazimYaz ve panelUrunSil'in ORTAK tek

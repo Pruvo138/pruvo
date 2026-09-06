@@ -3141,6 +3141,101 @@ KATALOG_ALAN_TIPLERI = {
 }
 
 
+# ------------------------------------------------------- FIYAT BICIM SOZLESMESI
+# `fiyat` alaninin KANONIK BICIMI ve TEK ayristirma noktasi.
+#
+# NEDEN VAR (6 Eyl 2026, Okan emri) — HATA SINIFI SESSIZ VE PARALI:
+#   Katalogda 616 kayit "250.0 TL" bicimindeydi. Noktayi TURKCE BINLIK AYRACI sanan
+#   UC AYRI okuyucu ("250.0" -> "2500") tutari ON KAT buyuttu:
+#       build.price_number  -> JSON-LD/markup      250 TL yerine 2500 TL
+#       build.feed_price    -> feed/urun sayfasi/D1 250 TL yerine 2500 TL
+#       secenekler.js       -> SEPET/ODEME          250 TL yerine 2500 TL
+#   Tip sozlesmesi o gun yalnizca JSON tipini (str) olctugu icin bozuk deger HIC
+#   yakalanmadi: "250.0 TL" bir str oldugu icin gecerli sayildi. Bu yuzden bicim
+#   kurali TIP sozlesmesinin ICINE alindi — tek kapi, tum okuyucular.
+#
+# KURAL: nokta YALNIZ tam binlik grubu ayirir ("1.250"). Kesirli hane (ondalik) para
+#   alaninda KABUL EDILMEZ; kurus tasiyan deger GIRISTE yukari yuvarlanip tam TL olur
+#   (fiyat_yukari_yuvarla). Bos dize parametrik (sari) seri sozlesmesidir, gecerlidir.
+FIYAT_SAYI_RE = r"(?:\d{1,3}(?:\.\d{3})+|\d+)"
+FIYAT_BIRIMI_RE = r"(?:TL|TRY|₺)"
+# Para biriminden SONRA gelebilen betimleyici kuyruk ("350 TL (12 cm)", "300 TL/adet").
+# Tutari DEGISTIRMEZ; ayristirma kuyrugu okumaz. Kapsam bilerek dar: parantezli tek
+# oberk ya da tek bosluksuz sozcuk — serbest metin degil.
+FIYAT_EK_RE = r"(?:\s*\([^()]{1,40}\)|/[^\s/]{1,20})?"
+_FIYAT_BICIM_RE = re.compile(
+    r"^\s*(" + FIYAT_SAYI_RE + r")\s*" + FIYAT_BIRIMI_RE + FIYAT_EK_RE + r"\s*$", re.I)
+# Ondalik hane TASIYAN degeri ADIYLA taniyan kalip — red sebebini "bicim bozuk" diye
+# genellemek yerine musteriye para maliyeti olan sinifi ISIMLENDIRIR.
+_FIYAT_ONDALIK_RE = re.compile(
+    r"^\s*\d+[.,]\d{1,2}\s*" + FIYAT_BIRIMI_RE, re.I)
+
+
+def fiyat_bicim_sebebi(deger):
+    """`fiyat` alaninin KANONIK BICIME uymama sebebi ya da None.
+
+    Bos dize GECERLIDIR (parametrik/sari seri: taban fiyat semadan basilir).
+    Sifir/negatif tutar REDDEDILIR — para alaninda "0 TL" sessiz varsayilandir.
+    """
+    if type(deger) is not str:
+        return "fiyat metin olmali, %s degil" % type(deger).__name__
+    if deger.strip() == "":
+        return None
+    if _FIYAT_ONDALIK_RE.match(deger):
+        return ("fiyat ONDALIK hane tasiyor (%r) — nokta/virgul kurus demektir ve "
+                "okuyucular onu BINLIK AYRACI sanip tutari on kat buyutur; tam TL yaz "
+                "(kurus YUKARI yuvarlanir)" % deger)
+    m = _FIYAT_BICIM_RE.match(deger)
+    if not m:
+        return ("fiyat kanonik bicimde degil (%r); beklenen \"<tamsayi> TL\" "
+                "(binlik ayraci yalniz tam gruplu: \"1.250 TL\")" % deger)
+    if int(m.group(1).replace(".", "")) <= 0:
+        return "fiyat sifir ya da negatif olamaz (%r)" % deger
+    return None
+
+
+def fiyat_tam_tl(deger):
+    """Kanonik TL TAMSAYISI ya da None — katalog fiyatinin TEK ayristirma noktasi.
+
+    Bicim sozlesmesini gecmeyen her deger None doner (FAIL-CLOSED): sessiz bir
+    varsayilana dusmez, ikinci ve daha genis bir kabul sinifi ACMAZ. Cagiran taraf
+    (feed/JSON-LD/sepet) fiyatsiz urun kolunu zaten tasiyor; yanlis tutar basmaktansa
+    tutar HIC basilmaz.
+    """
+    if fiyat_bicim_sebebi(deger) is not None:
+        return None
+    if deger.strip() == "":
+        return None
+    return int(_FIYAT_BICIM_RE.match(deger).group(1).replace(".", ""))
+
+
+def fiyat_yukari_yuvarla(deger):
+    """Serbest fiyat GIRDISINI kanonik "<tamsayi> TL"ye normalize et; kurus YUKARI.
+
+    Okan emri (6 Eyl): "noktalamaya izin verme, kurus miktari yukari yuvarlansin
+    (200.1 -> 201 TL)". GIRIS kapisi icindir (panel/uygulayici) — katalog OKUMA yolu
+    bunu CAGIRMAZ: okuma tarafi yuvarlarsa bozuk deger sessizce yasar ve hangi tutarin
+    ilan edildigi kaydin kendisinden okunamaz olur. Cozulemeyen girdide None.
+    """
+    if type(deger) is not str:
+        return None
+    ham = deger.strip()
+    if ham == "":
+        return None
+    # Para birimi GIRDIDE opsiyoneldir ("500" -> "500 TL"): burasi bir GIRIS kapisidir,
+    # katalog sozlesmesi degil. Kanonik bicim (fiyat_bicim_sebebi) TL'yi ZORUNLU tutar ve
+    # normalize edilmis cikti daima onu tasir — gevseklik kayda SIZMAZ. JS ikizi
+    # (shop/src/yonet.js FIYAT_GIRDI_RX) ayni kabulu yapar; fiyat-bicim-test.py kilitler.
+    m = re.match(r"^(" + FIYAT_SAYI_RE + r")(?:[.,](\d{1,2}))?\s*(?:" + FIYAT_BIRIMI_RE
+                 + r")?" + FIYAT_EK_RE + r"\s*$", ham, re.I)
+    if not m:
+        return None
+    tam = int(m.group(1).replace(".", ""))
+    if m.group(2) and int(m.group(2).ljust(2, "0")) > 0:
+        tam += 1                                    # kurus varsa YUKARI yuvarla
+    return "%d TL" % tam if tam > 0 else None
+
+
 def boy_secenekleri_sebebi(deger):
     """Boy varyantlarini fiyat yoluna girebilecek tek kanonik bicimde dogrula."""
     if type(deger) is not list:
@@ -3188,6 +3283,10 @@ def katalog_alan_tip_sebebi(alan, deger):
     if type(deger) is beklenen:
         if alan == "boy_secenekleri":
             return boy_secenekleri_sebebi(deger)
+        if alan == "fiyat":
+            # PARA ALANI: dogru JSON tipi (str) tek basina YETMEZ — "250.0 TL" de bir
+            # str'dir ve okuyucularda 2500 TL olur. Bicim kurali bu yuzden tipin ICINDE.
+            return fiyat_bicim_sebebi(deger)
         return None
     return ("%s alani %s olmali; gorulen tip=%s, gorulen deger=%r"
             % (alan, beklenen.__name__, type(deger).__name__, deger))

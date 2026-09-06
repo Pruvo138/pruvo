@@ -3203,6 +3203,21 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/katalog-tip-sinifi-test.py
 
+      # FIYAT BICIM SOZLESMESI (6 Eyl 2026, Okan emri) — PARA YOLU, SESSIZ HATA SINIFI.
+      # Katalogda 616 kayit "250.0 TL" bicimindeydi; noktayi TURKCE BINLIK AYRACI sanan
+      # uc okuyucu (build.price_number / build.feed_price / secenekler.js fiyatSayisi)
+      # tutari ON KAT buyutuyordu — SEPET/ODEME dahil (Okan canlida 200 TL'lik urunu
+      # "2.000,00 TL" gordu). Tip sozlesmesi yalnizca JSON tipini olctugu icin bozuk
+      # deger yakalanmiyordu: "250.0 TL" bir str'dir.
+      # 12 iddia + 4 OLDURUCU mutant (M1: nokta yine binlik sanilir · M2: sozlesme her
+      # seyi kabul eder · M3: price_number ikinci ayristirma kuralina doner · M4: kurus
+      # ASAGI yuvarlanir) + 2 KONTROL mutant (K1/K2 YESIL kalmali).
+      # Bloklayici: ayristirma kurali ikinci kez kopyalanirsa markup <-> kart <-> sepet
+      # sessizce ayrisir ve musteriye YANLIS TUTAR ilan edilir.
+      - name: Fiyat bicim sozlesmesi kabul + mutant testi (para yolu)
+        if: ${{ !cancelled() }}
+        run: python3 tools/fiyat-bicim-test.py
+
       # ALT KATEGORI MUSTERI YUZEYI. Yukaridaki kapi alanin VERI/D1 yolunu korur; bu adim
       # o verinin MUSTERIYE GORUNEN yuzunu korur — ikisi AYRI eksendir, veri yolu yesilken
       # yuzey sessizce yok olabilir (1 Agu'a kadar OYLEYDI: 935 dolu kayit, gorunur yuzey 0).
