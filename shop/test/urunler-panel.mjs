@@ -271,6 +271,26 @@ console.log("B. KUYRUK YAZIMI (beyaz liste + bicim + parametrik + cogaltmama)");
      r2.kod === 200 && env.kuyruk.length === 1 && env.kuyruk[0].deger === "550 TL",
      JSON.stringify(env.kuyruk));
 }
+// KURUS YUKARI YUVARLAMA (6 Eyl 2026, Okan emri): "noktalamaya izin verme, kurus
+// miktari YUKARI yuvarlansin (200.1 -> 201 TL)". Ondalik girdi artik 400 DEGIL —
+// normalize edilip TAM TL kaydedilir; kuyruga giren deger noktalama TASIMAZ.
+// (Bu vaka once B4d idi ve 400 bekliyordu; emirle birlikte hal DEGISTI.)
+// Menzil: yalniz kurus sinifi cozulur — B4a/B4b/B4c redleri AYNEN durur.
+{
+  const env = mockEnv();
+  const r = await cagir(env, "/urunler-ustyazim",
+    { govde: { urun_id: "test-urun-a", alan: "fiyat", deger: "500.00 TL" } });
+  ol("B4d ondalik fiyat -> 200 + kuyruga TAM TL yazilir (noktalama YOK)",
+     r.kod === 200 && env.kuyruk.length === 1 && env.kuyruk[0].deger === "500 TL",
+     JSON.stringify({ kod: r.kod, kuyruk: env.kuyruk }));
+  const env2 = mockEnv();
+  const r2 = await cagir(env2, "/urunler-ustyazim",
+    { govde: { urun_id: "test-urun-a", alan: "fiyat", deger: "200,1 TL" } });
+  ol("B4e kurus YUKARI yuvarlanir (200,1 TL -> 201 TL) + cevap kaydedilen degeri doner",
+     r2.kod === 200 && env2.kuyruk.length === 1 && env2.kuyruk[0].deger === "201 TL"
+     && r2.govde.deger === "201 TL",
+     JSON.stringify({ kod: r2.kod, govde: r2.govde, kuyruk: env2.kuyruk }));
+}
 {
   const RED = [
     ["B3 beyaz liste disi alan (kategori)", { urun_id: "test-urun-a", alan: "kategori", deger: "Ev" }, 400],
@@ -279,7 +299,11 @@ console.log("B. KUYRUK YAZIMI (beyaz liste + bicim + parametrik + cogaltmama)");
     ["B4a fiyat bicimi: TL'siz", { urun_id: "test-urun-a", alan: "fiyat", deger: "500" }, 400],
     ["B4b fiyat bicimi: kucuk tl", { urun_id: "test-urun-a", alan: "fiyat", deger: "500 tl" }, 400],
     ["B4c fiyat bicimi: 0 ile baslar", { urun_id: "test-urun-a", alan: "fiyat", deger: "0 TL" }, 400],
-    ["B4d fiyat bicimi: ondalik", { urun_id: "test-urun-a", alan: "fiyat", deger: "500.00 TL" }, 400],
+    // NOT: eski "B4d ondalik -> 400" vakasi 6 Eyl 2026 Okan emriyle POZITIF hale gecti
+    // (yukarida B4d/B4e: normalize + YUKARI yuvarlama). Ondalik artik REDDEDILMEZ,
+    // TAM TL'ye cevrilir; noktalama yine katologa GIRMEZ.
+    ["B4d2 fiyat bicimi: cozulemeyen ondalik (uc hane)",
+     { urun_id: "test-urun-a", alan: "fiyat", deger: "500.123 TL" }, 400],
     ["B5 parametrik urunde fiyat", { urun_id: "test-parametrik", alan: "fiyat", deger: "500 TL" }, 400],
     ["B6 olmayan urun", { urun_id: "boyle-urun-yok", alan: "fiyat", deger: "500 TL" }, 404],
     ["B7a bicimsiz id (buyuk harf)", { urun_id: "Test-Urun", alan: "fiyat", deger: "500 TL" }, 400],

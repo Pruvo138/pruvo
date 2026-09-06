@@ -79,11 +79,14 @@ YUVARLAMA = [
     ("200,01 TL", "201 TL"),     # 1 kurus bile YUKARI
     ("200,00 TL", "200 TL"),
     ("430 TL", "430 TL"),
-    ("1.250 TL", "1250 TL"),
-    ("500", "500 TL"),           # birimsiz girdi de normalize olur
+    # 🔴 MENZIL: yuvarlayici YALNIZ kurus sinifini cozer, baska RED'i GEVSETMEZ.
+    # Asagidakiler panelde 400 donmeye DEVAM etmeli (urunler-panel.mjs B4a/B4b/B4c).
+    ("1.250 TL", None),          # binlik ayraci panel kalibinda ZATEN yok
+    ("500", None),               # TL'siz  -> B4a
+    ("500 tl", None),            # kucuk harf -> B4b
     ("abc", None),
     ("", None),
-    ("0 TL", None),
+    ("0 TL", None),              # -> B4c
 ]
 
 
@@ -149,7 +152,7 @@ const S = globalThis.PRUVO_SECENEK;
 const src = fs.readFileSync(process.argv[2] + "/shop/src/yonet.js", "utf8");
 // yonet.js bir Worker modulu (env bagimli import'lar) — yalniz normalize edici
 // fonksiyonu ve kalibini KAYNAKTAN ayikla; modulun tamamini yuklemeye calisma.
-const rx = src.match(/const FIYAT_GIRDI_RX = (\/.*\/i);/);
+const rx = src.match(/const FIYAT_GIRDI_RX = (\/.*\/[a-z]*);/);
 const fn = src.match(/function fiyatYukariYuvarla\(ham\) \{[\s\S]*?\n\}/);
 if (!rx || !fn) { console.log(JSON.stringify({hata: "yonet.js normalize edici bulunamadi"})); process.exit(0); }
 // ESM'de eval yeni bagi modul kapsamina SIZDIRMAZ; fonksiyonu DEGER olarak al.
