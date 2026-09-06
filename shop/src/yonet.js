@@ -2885,13 +2885,17 @@ async function urunSil(id){
   ". Uygulayıcı işleyince taban kaydı arşive taşınır; site yayınlanınca canlıdan düşer.");
  urunYukle();
 }
-// KUYRUK IKI YUZEY (Okan, 6 Eyl): BEKLEYEN her zaman DISARIDA durur — is orada,
-// "Iptal" dugmesi orada. BITEN satirlar katlanir <details>'e (VARSAYILAN KAPALI) ve
-// yalniz son KUYRUK_BITEN_GOSTER tanesi cizilir.
-// 🔴 hal UC DEGERLIDIR (panel-ustyazim-sema.sql): beklemede | islendi | hata.
-// 'hata' de "biten" kovasina duser; SESSIZ dusmesin diye KAPALI baslikta SAYIYLA
-// yanar — iki kovali siniflama ucuncu sinifi yutmasin.
-var KUYRUK_BITEN_GOSTER=12;
+// KUYRUK UC YUZEY (Okan, 6 Eyl — "hatalari da disari al"): hal UC DEGERLIDIR
+// (panel-ustyazim-sema.sql: beklemede | islendi | hata) ve EKRAN DA UC KOVALIDIR —
+// iki kovali siniflama ucuncu sinifi yutmasin.
+//   BEKLEYEN -> DISARIDA (is orada; "Iptal" dugmesi orada).
+//   HATA     -> DISARIDA (islenmedi, sessizce katlanamaz; sebep kolonu yaninda).
+//   ISLENDI  -> katlanir <details>'e, VARSAYILAN KAPALI, yalniz son
+//               KUYRUK_ISLENDI_GOSTER tanesi.
+// 🔴 HATA KUTUSU YOKLUGU = "hata YOK" demektir, "olculemedi" degil: bekleyen
+// kutusu bos halinde bile HER ZAMAN cizilir, yani kuyruk okunduguna ekranda kanit
+// kalir; hata kutusu ise yalniz sayi > 0 iken cizilir.
+var KUYRUK_ISLENDI_GOSTER=12;
 function kuyrukSatirHtml(x){
  var iptal=x.hal==="beklemede"?
   ' <button class="sil" onclick="kuyrukIptal('+(+x.id)+')">İptal</button>':"";
@@ -2908,20 +2912,23 @@ async function kuyrukYukle(){
   kutu.innerHTML='<div class="kart"><p class="yok">Kuyruk tablosu yok — şema koşulmamış.</p></div>';return;}
  var s=(r.govde&&r.govde.satirlar)||[];
  if(!s.length){kutu.innerHTML='<div class="kart"><p class="kucuk">Kuyruk boş.</p></div>';return;}
- var bekleyen=[],biten=[],hatali=0;
+ var bekleyen=[],hatali=[],islendi=[];
  for(var i=0;i<s.length;i++){
   if(s[i].hal==="beklemede"){bekleyen.push(s[i]);continue;}
-  if(s[i].hal==="hata"){hatali++;}
-  biten.push(s[i]);
+  if(s[i].hal==="hata"){hatali.push(s[i]);continue;}
+  islendi.push(s[i]);
  }
  var html='<div class="kart"><b>Bekleyen ('+bekleyen.length+')</b>'+
   (bekleyen.length?bekleyen.map(kuyrukSatirHtml).join(""):
    '<p class="kucuk">Bekleyen üst yazım yok — kuyruk temiz.</p>')+'</div>';
- if(biten.length){
-  var gorunen=biten.slice(0,KUYRUK_BITEN_GOSTER);
+ if(hatali.length){
+  html+='<div class="kart"><b>Hata ('+hatali.length+') — işlenmedi</b>'+
+   hatali.map(kuyrukSatirHtml).join("")+'</div>';
+ }
+ if(islendi.length){
+  var gorunen=islendi.slice(0,KUYRUK_ISLENDI_GOSTER);
   html+='<details class="kart"><summary class="ust">'+
-   '<span class="no">Biten (son '+gorunen.length+' / '+biten.length+')</span>'+
-   (hatali?'<span class="rozet hata">'+hatali+' hata</span>':"")+
+   '<span class="no">İşlendi (son '+gorunen.length+' / '+islendi.length+')</span>'+
    '</summary>'+gorunen.map(kuyrukSatirHtml).join("")+'</details>';
  }
  kutu.innerHTML=html;

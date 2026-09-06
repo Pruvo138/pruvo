@@ -1025,11 +1025,12 @@ console.log("L. panel sayfa script'i DERLENIR (sablon kacis hatasi tum paneli ki
      m ? KABLOLAR.filter((f) => m[1].indexOf("function " + f) < 0).join(",") : "script yok");
 }
 
-// ------------------------------------------------- N. KUYRUK IKI YUZEY (katlama)
-// Okan emri 6 Eyl: BEKLEYEN disarida (is orada), BITEN katlanir <details>'e,
-// VARSAYILAN KAPALI, yalniz son 12. Bu blok sayfa script'ini SAHTE DOM + SAHTE
-// fetch ile GERCEKTEN kosturur — "script derleniyor" (L2) bunu OLCMEZ.
-console.log("N. kuyruk iki yuzey: bekleyen DISARIDA, biten KAPALI <details> (son 12)");
+// ---------------------------------------------- N. KUYRUK UC YUZEY (katlama)
+// Okan emri 6 Eyl: BEKLEYEN disarida, HATA da disarida ("hatalari da disari al"),
+// yalniz ISLENDI katlanir <details>'e — VARSAYILAN KAPALI, son 12. Bu blok sayfa
+// script'ini SAHTE DOM + SAHTE fetch ile GERCEKTEN kosturur; "script derleniyor"
+// (L2) bu davranisi OLCMEZ.
+console.log("N. kuyruk uc yuzey: bekleyen+hata DISARIDA, islendi KAPALI <details> (son 12)");
 {
   const y = await yonet(istek(undefined, { "X-Yonet-Anahtar": YONET_ANAHTAR }, "GET"),
     mockEnv(), new URL("https://ornek-site.test/api/shop/yonet/"), ctxYap(), "/", undefined);
@@ -1069,7 +1070,7 @@ console.log("N. kuyruk iki yuzey: bekleyen DISARIDA, biten KAPALI <details> (son
     return dom.getElementById("kuyrukKutu").innerHTML;
   };
 
-  // 2 bekleyen + 30 islendi + 3 hata (biten = 33, gosterilecek = 12)
+  // 2 bekleyen + 3 hata + 30 islendi = 35 satir; disarida 5, icerde 12 cizilmeli.
   const karisik = [];
   karisik.push(satirYap(1, "beklemede"), satirYap(2, "beklemede"));
   for (let i = 1; i <= 3; i++) { karisik.push(satirYap(i, "hata")); }
@@ -1077,34 +1078,47 @@ console.log("N. kuyruk iki yuzey: bekleyen DISARIDA, biten KAPALI <details> (son
 
   const h = await kosVe(karisik);
   const detayYeri = h.indexOf("<details");
-  const ilkSatir = h.indexOf('class="satir"');
+  const disarisi = h.slice(0, detayYeri);
+  const icerisi = h.slice(detayYeri);
 
   ol("N1 bekleyen satirlar <details> DISINDA cizilir",
-     ilkSatir >= 0 && detayYeri > ilkSatir &&
-     h.slice(0, detayYeri).indexOf("beklemede-01") >= 0 &&
-     h.slice(0, detayYeri).indexOf("beklemede-02") >= 0,
-     "detay=" + detayYeri + " ilkSatir=" + ilkSatir);
-  ol("N2 <details> VARSAYILAN KAPALI (open niteligi YOK)",
+     detayYeri > 0 && disarisi.indexOf("beklemede-01") >= 0 &&
+     disarisi.indexOf("beklemede-02") >= 0, "detay=" + detayYeri);
+  ol("N2 HATA satirlari da <details> DISINDA (3'u de), icerde HIC yok",
+     disarisi.indexOf("hata-01") >= 0 && disarisi.indexOf("hata-02") >= 0 &&
+     disarisi.indexOf("hata-03") >= 0 && icerisi.indexOf("hata-") < 0 &&
+     disarisi.indexOf("Hata (3)") >= 0);
+  ol("N3 hata satirinin SEBEBI de disarida gorunur (kor kalmasin)",
+     disarisi.indexOf("FIYAT_BICIMI") >= 0);
+  ol("N4 <details> VARSAYILAN KAPALI (open niteligi YOK)",
      detayYeri >= 0 && !/<details[^>]*\sopen/.test(h), h.slice(detayYeri, detayYeri + 60));
-  ol("N3 biten kovasindan YALNIZ 12 satir cizilir (2 bekleyen + 12 = 14)",
-     (h.match(/class="satir"/g) || []).length === 14,
-     "satir=" + (h.match(/class="satir"/g) || []).length);
-  ol("N4 gosterilen 12 EN YENI biten (hata-01..islendi-12 var, 13 YOK)",
-     h.indexOf("hata-01") >= 0 && h.indexOf("islendi-12") >= 0 && h.indexOf("islendi-13") < 0);
-  ol("N5 'hata' hali kapali baslikta SAYIYLA yanar (ucuncu sinif yutulmaz)",
-     h.indexOf(">3 hata<") >= 0 && h.indexOf("Biten (son 12 / 33)") >= 0);
-  ol("N6 Iptal dugmesi YALNIZ bekleyen satirlarda (2 tane)",
+  ol("N5 disarida 5 (2 bekleyen + 3 hata), icerde 12 satir = 17",
+     (h.match(/class="satir"/g) || []).length === 17 &&
+     (disarisi.match(/class="satir"/g) || []).length === 5,
+     "toplam=" + (h.match(/class="satir"/g) || []).length +
+     " disari=" + (disarisi.match(/class="satir"/g) || []).length);
+  ol("N6 icerde YALNIZ islendi ve EN YENI 12 (04..15 var, 16 YOK)",
+     icerisi.indexOf("islendi-04") >= 0 && icerisi.indexOf("islendi-15") >= 0 &&
+     h.indexOf("islendi-16") < 0 && h.indexOf("İşlendi (son 12 / 30)") >= 0);
+  ol("N7 Iptal dugmesi YALNIZ bekleyen satirlarda (2 tane; hata satirinda YOK)",
      (h.match(/kuyrukIptal\(/g) || []).length === 2,
      "iptal=" + (h.match(/kuyrukIptal\(/g) || []).length);
 
-  // Bekleyen YOKKEN: sessiz bosluk YASAK — kutu ACIKCA "yok" der.
+  // HATA YOKKEN: hata kutusu HIC cizilmez; bekleyen kutusu yine de cizilir —
+  // "hata yok" ile "kuyruk okunamadi" ekranda AYRISIR.
   const h2 = await kosVe([satirYap(4, "islendi"), satirYap(5, "islendi")]);
-  ol("N7 bekleyen yoksa ACIKCA yazilir + Iptal dugmesi hic yok",
-     h2.indexOf("Bekleyen üst yazım yok") >= 0 && h2.indexOf("kuyrukIptal(") < 0);
-  ol("N8 biten 12'den azken baslik gercek sayiyi tasir (son 2 / 2)",
-     h2.indexOf("Biten (son 2 / 2)") >= 0 && !/<details[^>]*\sopen/.test(h2));
-}
+  ol("N8 hata yokken hata kutusu cizilmez, bekleyen kutusu ACIKCA 'yok' der",
+     h2.indexOf("Hata (") < 0 && h2.indexOf("Bekleyen üst yazım yok") >= 0 &&
+     h2.indexOf("kuyrukIptal(") < 0);
+  ol("N9 islendi 12'den azken baslik gercek sayiyi tasir (son 2 / 2), yine KAPALI",
+     h2.indexOf("İşlendi (son 2 / 2)") >= 0 && !/<details[^>]*\sopen/.test(h2));
 
+  // YALNIZ HATA: <details> HIC dogmaz (bos katlanir kutu cizilmez).
+  const h3 = await kosVe([satirYap(1, "hata"), satirYap(2, "hata")]);
+  ol("N10 islendi yokken <details> HIC dogmaz; 2 hata disarida durur",
+     h3.indexOf("<details") < 0 && h3.indexOf("Hata (2)") >= 0 &&
+     (h3.match(/class="satir"/g) || []).length === 2);
+}
 console.log("");
 console.log("TOPLAM: " + (gecen + kalan) + " iddia | GECEN " + gecen + " | KALAN " + kalan);
 process.exit(kalan === 0 ? 0 : 1);
