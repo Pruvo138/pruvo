@@ -3219,11 +3219,13 @@ IZIN_LISTESI = {
         "calisma agacini KIRLETMEZ (mutasyon KOPYAYA uygulanir, sha256 bas=son + artik "
         "yedek=0 KOSARAK dogrulanir). Olctugu kapinin CI kolu ZATEN BLOKLAYICI kosuyor: "
         "deploy.yml `Ilan edilen tutar kapisi`."),
-    "tools/marka-arama-mutasyon.py": (
-        "SURE — OLCULEMEYECEK KADAR UZUN. OLCULDU (8 Agu 2026, temiz klon): 300 s "
-        "duvar saatinde KESILDI (TIMEOUT), o ana kadar rapor satiri URETMEDI. Ust "
-        "sinir bilinmiyor; 40 s esiginin en az 7,5 kati. Kablolanirsa `serit-b`nin "
-        "suresini TEK BASINA en az %40 uzatir ve tavani belirsizlestirir."),
+    # 🔴 tools/marka-arama-mutasyon.py IZINDEN CIKARILDI (6 Eyl 2026): dosya ARTIK CI'da
+    # kosuyor — `nobet.yml::serit-b` icinde `--kendini-test` + `--mutasyon`. BayrakSIZ tam
+    # batarya (18 mutant, her biri kapinin TAM kosumu) hala BILEREK kosmuyor: olculdu bu
+    # turda ~20 dk. Onun yerine bayatlama SINIFINI ucuz nobetciler olcuyor — capa artik
+    # `d1-sync.py::ZORUNLU_KOLONLAR`dan TURETILIYOR ve turetici kendi bataryasina sahip.
+    # Kapiyi bu satir degil, o iki bayrak korur; kapsam kapisi bu izni "BAYAT" diye DOGRU
+    # yakti ve kayit boylece dustu.
     "tools/marka-invaryant-mutasyon.py": (
         "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 283,8 s, `19 mutant: her "
         "OLDURUCU kirmizi, her KONTROL yesil`. 40 s esiginin ~7 kati; mutant basina "

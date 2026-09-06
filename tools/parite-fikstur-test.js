@@ -201,15 +201,60 @@ function markaGercegiKur(EGE, urunler) {
  *                 Boylece pencere, ucun ilan ettigi toplami KAPSAMAZ: pencere disi
  *                 OLCULMEMISTIR -> cikti kesin hukum BASMAMALIDIR (durustluk kapisi).
  */
+/*
+ * 🔴 SAHTE UC KENDI KATALOGUNU OLCER (6 Eyl 2026 — OLCULDU; S8 ve SM1'in ORTAK koku).
+ * `parite-marka-sinifi.js` katalog yolunu MODUL YUKLENIRKEN cozuyordu; harness surecinde
+ * `PARITE_URUNLER` olmadigi icin sentetik katalogun `marka_kanon` haritasi 20 bin urunluk
+ * URETIM katalogundan turuyordu. Tek kok, iki ariza dogurdu:
+ *   · SM1: sentetik katalogtan `capa-3-3 -> ["Volvo","Opel"]`, uretimden `capa-3-3 -> null`
+ *     (29.298 kayit, sentetik id'lerin HICBIRI yok) -> `uyeMi` sahte ucta FALSE, cocukta
+ *     TRUE -> `?q=Opel&marka=Opel` ucta 3 / yerelde 4 -> "gerileme" RAPOR EDILDI.
+ *   · S8: `marka-kanon-uret.py` SENKRON kosar; uretim katalogunda ~22 sn. Bedel ILK
+ *     ISTEGIN ISLEYICISINDE odeniyordu ve sunucu TEK IS PARCACIKLI oldugu icin ilk
+ *     partideki 8 eszamanli istek onun arkasinda kuyruga giriyordu:
+ *         288ms ISTEK /ara?q=&marka=Bmw  ->  21860ms YANIT   (sonrakiler ~1 ms)
+ *     Zaman asimi esigi 22 sn'nin ALTINDA olan her senaryo (S8: 400 ms) TEK SORGU
+ *     siniflandirilmadan olurdu: `ACIKLANAMAYAN: 0` + `0/220 sorgu` -> cikis 3. Bu yuzden
+ *     `susSonraAra` esigini 25->120 yapmak da, zaman asimini 400->15.000 ms buyutmek de
+ *     ISE YARAMADI: olculen sey ucun ENJEKTE EDILEN sessizligi degil, fiksturun KENDI
+ *     soguk baslangicidir. Nobetci: tools/parite-fikstur-olcum-ortami-mutasyon.py
+ */
 function sunucuKur(secenek) {
   const { canli, EGE, mod403, wafSonraAra, r429SonraAra, r429IlkKere, susSonraAra,
     idsHata, sayimHata, gizliAra, sayiSapma, araToplamSapma, markaGercek } = secenek;
+  // 🔴 SAHTE UC KENDI D1'INI MODELLER: `marka_kanon` haritasi SENARYONUN `canli`
+  // katalogundan turemeli. Harness surecinde `PARITE_URUNLER` yoktu -> harita URETIM
+  // katalogundan cozuluyor, sentetik id'lerin hicbiri orada olmadigi icin `uyeMi`nin
+  // `marka_kanon` kolu SESSIZCE hep FALSE donuyordu (SM1: uc 3 / yerel 4). Cocuga
+  // gecen `PARITE_URUNLER` AYRICA ve ACIKCA veriliyor (kostur), bu satir onu ETKILEMEZ.
+  const kanonGecici = fs.mkdtempSync(path.join(os.tmpdir(), "parite-fikstur-kanon-"));
+  const kanonKatalog = path.join(kanonGecici, "urunler.json");
+  fs.writeFileSync(kanonKatalog, JSON.stringify(canli));
+  const oncekiUrunlerEnv = process.env.PARITE_URUNLER;
+  process.env.PARITE_URUNLER = kanonKatalog;
+  const envGeriAl = () => {
+    if (oncekiUrunlerEnv === undefined) { delete process.env.PARITE_URUNLER; }
+    else { process.env.PARITE_URUNLER = oncekiUrunlerEnv; }
+    fs.rmSync(kanonGecici, { recursive: true, force: true });
+  };
+  // 🔴 AYRICA BIR "ISITMA" CAGRISI YOK — OLCULDU, TASIMIYOR. Once eklenmisti (soguk
+  // baslangici istek yolunun disina almak icin); yukaridaki yol duzeltmesinden SONRA
+  // geri alinip olculdu: isitmasiz S8 **7 iddia / 0 KALDI, 1,1 sn**. Sebep: bedel
+  // katalogun BUYUKLUGUNDEN geliyordu (uretim katalogu ~22 sn), sentetik senaryo
+  // katalogunda ~0. Tasimayan kod kapsam yanilsamasidir; bu yuzden BIRAKILMADI.
   const idx = EGE ? EGE.katalogIndeksle(canli) : null;
   const canliIdHarita = new Map(canli.map((p) => [p.id, p]));
   const gizli = gizliAra || new Set();
   let araSayaci = 0;
   let toplamSayac = 0;
   const asiliYanitlar = [];
+  // 🔴 UC DAGILIMI (6 Eyl 2026): "kosum ERKEN DURDU: 0/220 sorgu" + "canli istek: 9" ikilisi
+  // TEK BASINA teshis etmez — 9 istegin HANGI UCA gittigi bilinmeden esik/zaman asimi
+  // ayarlamak korlemesine atistir (S8'de tam bu yasandi: esik 25->120 ve zaman asimi
+  // 400->15.000 ms denendi, sayi DEGISMEDI cunku istekler /ara'ya HIC gelmiyordu).
+  // Sayac ucu ADIYLA ayirir ve senaryo basliginda SAYIYLA basilir.
+  const ucSayaci = new Map();
+  const ucSay = (ad) => ucSayaci.set(ad, (ucSayaci.get(ad) || 0) + 1);
 
   const sunucu = http.createServer((req, res) => {
     const u = new URL(req.url, "http://127.0.0.1");
@@ -224,6 +269,10 @@ function sunucuKur(secenek) {
       res.end("<html>error code: " + (kod === 429 ? "1015" : "1010") + "</html>");
     };
     toplamSayac++;
+    // Uc adi: yolun KENDISI + ayirt edici parametre (ids/sayfa/mod) — sorgu metni DEGIL.
+    if (u.pathname === "/katalog") ucSay((u.searchParams.get("ids") || "") ? "/katalog?ids=" : "/katalog?sayfa=");
+    else if (u.pathname === "/ara") ucSay("/ara" + ((u.searchParams.get("mod") || "") ? "?mod=" + u.searchParams.get("mod") : ""));
+    else ucSay(u.pathname + " (BILINMEYEN)");
     if (mod403) return duvar(403);
     if (r429IlkKere && toplamSayac <= r429IlkKere) return duvar(429);
 
@@ -292,10 +341,17 @@ function sunucuKur(secenek) {
     sunucu.listen(0, "127.0.0.1", () => cozul({
       sunucu,
       port: sunucu.address().port,
+      /** Fiksturun GORDUGU istek dagilimi: "uc=sayi" ciftleri, cok isteklisi ONDE. */
+      ucDagilimi() {
+        return Array.from(ucSayaci.entries())
+          .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+          .map(([ad, n]) => ad + "=" + n).join(" ") || "(istek YOK)";
+      },
       kapat() {
         for (const r of asiliYanitlar) { try { r.destroy(); } catch (e) { /* yok */ } }
         if (typeof sunucu.closeAllConnections === "function") sunucu.closeAllConnections();
         sunucu.close();
+        envGeriAl();
       },
     }));
   });
@@ -475,6 +531,7 @@ async function senaryoKos(s) {
     });
     console.log("\n▶ " + s.ad + "  (yerel=" + s.yerel.length + " canli=" + s.canli.length +
       " -> cikis " + r.kod + ")");
+    console.log("   UC DAGILIMI: " + sunucu.ucDagilimi());
     ONA(!cokmusMu(r.cikti), "surec COKMEDI (cikis kodu gercek hukum)",
       cokmusMu(r.cikti) ? r.cikti.slice(-700) : "");
     ONA(r.kod !== 124, "surec SURE SINIRINA TAKILMADI (asilan kapi olu kapidir)",
