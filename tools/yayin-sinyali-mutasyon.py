@@ -44,6 +44,7 @@ KULLANIM
 import hashlib
 import importlib.util
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -94,7 +95,21 @@ def _govde(metin, etiket):
 NEEDS_SATIRI = "    needs: [build, serit-a2, serit-a3, serit-a4]\n"
 # K373 CAPALARI — CANLI nobet.yml metnindeki parcalar. Capa bayatlarsa mutant
 # "URETILEMEDI" der (sessiz yesil DEGIL); tek yerde durmasi bunu garanti eder.
-SCHEDULE_TETIGI = '  schedule:\n    - cron: "47 3,15 * * *"\n'
+# 🔴 6 Eyl — CAPA KOMSU DEGERE DEGIL KENDI ICERIK IMZASINA BAGLANIR.
+#   Olculen ariza: bu capa duz dizgeydi ve icinde `- cron: "47 3,15 * * *"` DEGERINI
+#   tasiyordu. Cron ifadesi `47 */4 * * *` olarak degisince capa COKTU; M11
+#   "MUTANT URETILEMEDI (capa bayat)" dedi ve `on.schedule` ekseni — K373'un TEK
+#   garantili hukum yolu — OLCULMEDEN kaldi (adim kirmizi yandi ama kirmizinin
+#   ARKASINDA olcum yoktu). Oysa bu eksenin sorusu "cron NE ZAMAN kosuyor" DEGIL,
+#   "`schedule:` tetigi VAR MI" sorusudur: cron degeri bu iddianin girdisi DEGILDIR
+#   ([[mutant-capasi-giris-noktasinin-okumadigi-degerde-olmez]] ·
+#    [[capa-komsuya-nisanlanirsa-yabanci-degisiklik-kopartir]]).
+#   Cozum tekil yama (yeni cron degerini yapistirmak) DEGIL — o, bir sonraki cron
+#   degisiminde AYNEN cokerdi. Capa artik `on:` altindaki `schedule:` blogunu KENDI
+#   YAPISINDAN turetir: kac cron satiri oldugu ve ne yazdigi ONEMSIZDIR.
+#   `re:` onekli capa `_mutant_metni` icinde regex olarak cozulur; eslesmezse yine
+#   fail-closed "capa bayat" der (sessiz yesil DEGIL).
+SCHEDULE_TETIGI = r"re:(?m)^  schedule:\n(?:    - cron: .*\n)+"
 SCHEDULE_KOLU = "github.event_name == 'schedule' && 'schedule'"
 PUSH_KOLU_SONU = " || 'push' }}"
 
@@ -206,6 +221,15 @@ def _mutant_metni(kod, temel, degisimler):
     yeni = temel
     uygulanan = 0
     for bul, koy in degisimler:
+        # `re:` onekli capa YAPISAL capadir: komsu bir DEGERE degil, blogun kendi
+        # bicimine baglanir (bkz. SCHEDULE_TETIGI yorumu). Eslesmezse duz capayla
+        # AYNI sekilde fail-closed davranir: (None, 0) -> "capa bayat".
+        if bul.startswith("re:"):
+            yeni, n = re.subn(bul[3:], koy.replace("\\", "\\\\"), yeni, count=1)
+            if not n:
+                return None, 0
+            uygulanan += 1
+            continue
         if bul not in yeni:
             return None, 0
         yeni = yeni.replace(bul, koy, 1)
@@ -318,6 +342,37 @@ def main():
                          % (taban_iddia, IAK.G_IDDIA_TABANI,
                             taban_iddia - IAK.G_IDDIA_TABANI))
         print("   TABAN: %d hata · %d iddia" % (taban_hata, taban_iddia))
+
+        # ── CAPA SAGLIGI: capa KOMSU DEGERE mi bagli? (6 Eyl sinif kolu) ──────────
+        # "Bugun eslesiyor" bir capanin SAGLAM oldugunu GOSTERMEZ — M11 aylarca
+        # eslesti, sonra komsusundaki cron DEGERI degisince coktu ve eksen sessizce
+        # olculmeden kaldi. Bu kol o sinifi CALISTIRARAK olcer: canli metne SENTETIK
+        # bir cron kaymasi uygulanir (davranis notr; `schedule:` tetigi YERINDE kalir)
+        # ve capalarin HALA cozuldugu dogrulanir. Sentetik metin yalniz bellekte
+        # yasar; canli dosyaya YAZILMAZ (asagidaki sha256 kolu bunu ayrica olcer).
+        _kaymis = re.sub(r"(?m)^(    - cron: ).*$",
+                         r"\g<1>\"13 */7 * * *\"", nob_metin, count=1)
+        if _kaymis == nob_metin:
+            kusur.append("CAPA SAGLIGI: sentetik cron kaymasi UYGULANAMADI -> bu kol "
+                         "OLCULEMEDI (nobet.yml'de `- cron:` satiri bulunamadi)")
+            print("   ⚠ capa sagligi OLCULEMEDI (cron satiri yok)")
+        else:
+            _kirilan = []
+            for _satir in MUTANTLAR:
+                _kod, _hedef, _degisimler = _satir[0], _satir[2], _satir[3]
+                if _hedef != NOBET or _degisimler == "JOB_SIRASI":
+                    continue
+                if _mutant_metni(_kod, _kaymis, _degisimler)[0] is None:
+                    _kirilan.append(_kod)
+            if _kirilan:
+                kusur.append("CAPA SAGLIGI: komsu cron DEGERI degisince su capalar "
+                             "COKTU: %s -> capa kendi icerik imzasina degil KOMSU "
+                             "DEGERE bagli" % ",".join(_kirilan))
+                print("   🔴 capa sagligi: %s cron kaymasinda COKTU"
+                      % ",".join(_kirilan))
+            else:
+                print("   ✔ capa sagligi: sentetik cron kaymasinda nobet.yml "
+                      "capalarinin HEPSI cozuldu (komsu degere bagli capa YOK)")
 
         for satir in MUTANTLAR:
             kod, aciklama, hedef, degisimler, kirmizi_olmali = satir[:5]

@@ -75,7 +75,15 @@ def js_fonksiyon(src, ad):
 MUTANTLAR = [
     ("markaSorgusuEsler", r"return markaUyeMi",
      lambda s: s.replace("markaUyeMi(p, hedefMarka) || ", ""),
-     "uyeligi olan HER urun sonucta",
+     # 🔴 6 Eyl — EKSEN ATFI KOSMASI GARANTI OLAN IDDIAYA BAGLANDI.
+     #   Eski atif `uyeligi olan HER urun sonucta` idi; o iddia
+     #   `yedekEslesmeKontrolu` icinde, EDGE HAVUZU verisine bagli kosar
+     #   (`markaSorgusu === null` -> hic kosmaz). 6 Eyl'de havuzda ayirt edici uye
+     #   0'a dustu, iddia kosmadi ve mutant "KACTI" yazildi — OYSA kapi KIRMIZI
+     #   yaniyordu, yalnizca BASKA (ve garantili) eksende: UYELIK EKSENI ANKRAJI.
+     #   Yani kacan sey koruma degil ATIFTI. Atif artik TAM KATALOG ankrajina
+     #   baglidir; o kol veri tesadufune bagli DEGILDIR, kurulamazsa KIRMIZI yanar.
+     "BASLIGINDA GECMEYEN her urun marka",
      "5 Agu ONCESI davranis: marka sorgusu YALNIZ baslikta tam kelime arar "
      "(uyelik kolu dusuruldu) — kapinin BAYAT halinin ta kendisi"),
     ("aramaPlaniEsler", r"return markaSorgusuEsler",

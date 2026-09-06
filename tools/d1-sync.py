@@ -272,9 +272,22 @@ def yazici_kilidi_al(yol=None, bekleme_sn=0.0, kol="YAZICI"):
                     # "biri otekini bekliyor" halinde tikali kaldi ve hicbir yerde
                     # kirmizi yanmadi. Bekleme ANINDA ve ADIYLA duyurulur.
                     duyuruldu = True
+                    # 🔴 PID ETIKETI (6 Eyl onarimi): burada basilan PID BEKLEYEN
+                    #   surecin (yani BIZIM) PID'imizdir, kilidi TUTANIN degil.
+                    #   Eski metin `PID=` deyip "onculu kosum UCUSTA" cumlesinin
+                    #   yanina koyuyordu; okuyan bunu ASILI kosumun PID'i sanip
+                    #   olmus bir surece bakiyordu. Kilit `.git/config` inode'u
+                    #   uzerinde flock'tur ve flock SAHIBINI ACIGA VURMAZ; sahibin
+                    #   PID'i buradan TURETILEMEZ (turetmek icin kilit yolunda alt
+                    #   surec acmak gerekirdi — K361'in tam olarak yasakladigi sey).
+                    #   Bu yuzden tutanak DOGRU etiketlenir ve sahibi bulmanin YOLU
+                    #   ("NE YAPILMALI" satirindaki `ps`) gosterilir; uydurulmaz.
                     print("D1 ARACI MESGUL — onculu `npx wrangler` kosumu UCUSTA; "
-                          "BEKLENIYOR (tavan=%.0f sn, PID=%d, kilit=%s). Yigina "
-                          "EKLENMEDI." % (bekleme_sn, os.getpid(), kilit_yolu),
+                          "BEKLENIYOR (tavan=%.0f sn, bekleyen PID=%d, kilit=%s). "
+                          "Yigina EKLENMEDI. Kilidi TUTANIN PID'i buradan "
+                          "olculemez; su komut gosterir:\n"
+                          "     ps -Ao pid,etime,command | grep 'npm exec wrangler'"
+                          % (bekleme_sn, os.getpid(), kilit_yolu),
                           file=sys.stderr)
                 time.sleep(_KILIT_YOKLAMA_SN)
                 continue
@@ -282,15 +295,17 @@ def yazici_kilidi_al(yol=None, bekleme_sn=0.0, kol="YAZICI"):
             if bekleme_sn > 0:
                 sys.exit(
                     "!! D1 ARACI MESGUL — bu makinede baska bir `npx wrangler` kosumu "
-                    "UCUSTA; ikinci cagri YIGINA EKLENMEDI (PID=%d, beklendi=%.1f sn, "
-                    "tavan=%.0f sn, kilit=%s).\n"
-                    "   NE YAPILMALI: once koseni bitir ya da asili kosumu bul:\n"
+                    "UCUSTA; ikinci cagri YIGINA EKLENMEDI (bekleyen PID=%d, "
+                    "beklendi=%.1f sn, tavan=%.0f sn, kilit=%s).\n"
+                    "   NE YAPILMALI: once koseni bitir ya da asili kosumu bul "
+                    "(kilidi TUTANIN PID'i yukarida DEGIL — flock sahibini aciga "
+                    "vurmaz; su komut gosterir):\n"
                     "     ps -Ao pid,etime,command | grep 'npm exec wrangler'\n"
                     "   (4 Eyl 2026: kilitsiz okuyan kollar 7 asili npx biriktirdi ve "
                     "yayin durdu — bu kol tam onu onler.)"
                     % (os.getpid(), gecen, bekleme_sn, kilit_yolu))
             sys.exit("!! D1 YAZICI UCUSTA — ikinci tam-katalog yazicisi fail-closed DURDU "
-                     "(PID=%d, kilit=%s)." % (os.getpid(), kilit_yolu))
+                     "(bekleyen PID=%d, kilit=%s)." % (os.getpid(), kilit_yolu))
         except OSError as e:
             try:
                 fd.close()
@@ -706,11 +721,16 @@ def wrangler_tavani():
         print("!! PRUVO_WRANGLER_TAVAN_SN cozulemedi (%r) — varsayilan %d sn kullaniliyor."
               % (ham, varsayilan), file=sys.stderr)
         return varsayilan
+    # 🔴 TABAN O KOLUN KENDI TABANIDIR (6 Eyl onarimi). Eskiden bu kol `taban` ile
+    #   KIYASLIYOR ama HER ZAMAN ISINMIS sabitini (120) DONDURUYORDU: SOGUK kolda
+    #   `PRUVO_WRANGLER_TAVAN_SN=5` -> 120 sn, yani olculen mesru soguk doldurma
+    #   kosumunun (307,1 sn) ALTI. Korumanin kendisi korudugu kosumu KESIYORDU
+    #   ([[koruma-kurali-korudugunu-durdurur]]) ve red metni de yanlis sayiyi basiyordu.
     if istek < taban:
         print("!! PRUVO_WRANGLER_TAVAN_SN=%d TABANIN (%d sn) ALTINDA — olculen en yavas "
-              "MESRU kosum (364,0 sn) kesilmesin diye TABAN uygulandi."
-              % (istek, WRANGLER_TAVAN_TABANI), file=sys.stderr)
-        return WRANGLER_TAVAN_TABANI
+              "MESRU kosum (%s kol) kesilmesin diye TABAN uygulandi."
+              % (istek, taban, "SOGUK" if soguk else "ISINMIS"), file=sys.stderr)
+        return taban
     return istek
 
 
