@@ -1,11 +1,9 @@
 {
   "_not": "MARKA INVARYANT TABANI — bugunku BORC buraya civilendi; kapi yalnizca sayi ARTARSA kirmizi yanar. Dusus de kirmizidir (circir): borc kapandiktan sonra sessizce geri gelmesin. Guncelleme: python3 tools/marka-invaryant-kapisi.py --taban-yaz",
-  "_olcum": "12 Agu 2026 · katalog 29035 urun · `?marka=` hedefi D1 `marka_kanon` uyeligidir; canli kolon tazeligi bu kapinin disinda d1-sync --durum ile olculur. `?q=` kolu ARTIK CANLIYI MODELLEMEZ — marka sorgusu bu depoda uyelik yuklemine baglandi (uc henuz benimsemedi).",
+  "_olcum": "TAZELEME ANINDA olculdu (ilk civileme: 12 Agu 2026) · katalog 34366 urun · `?marka=` hedefi D1 `marka_kanon` uyeligidir; canli kolon tazeligi bu kapinin disinda d1-sync --durum ile olculur. `?q=` kolu ARTIK CANLIYI MODELLEMEZ — marka sorgusu bu depoda uyelik yuklemine baglandi (uc henuz benimsemedi).",
   "arama_fazla_toplam_BLOKLAMAZ": 0,
-  "arama_kayip": {
-    "Rover": 82
-  },
+  "arama_kayip": {},
   "filtre_fazla": {},
   "filtre_kayip": {},
-  "marka_sayisi": 136
+  "marka_sayisi": 142
 }

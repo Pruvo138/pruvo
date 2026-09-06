@@ -161,8 +161,25 @@ BASLIK_FIKSTURLERI = [
 # "GERCEK BIR AÇIK" — yani /marka/<X>/ sayfasinin olmasi/yayinda olmasi gerekip de
 # olmayan urun. Rover: sayfa uretiminin tekil "Rover" icin acilmamis olmasi + cip
 # evreniyle eszamanli sayfa uretiminin kapatilmis olmasi; onarim ayri kalem ([[k140-spec]]).
+# 🔴 EMEKLILIK (6 Eyl 2026, cip KraL-SeritB-IkiKapi) — 'Rover' KAYDI DUSURULDU.
+# GEREKCE OLCULDU, "iyi gorunuyor" DEGIL:
+#   · canli https://pruvo3d.com/marka/rover/ -> HTTP 200 (kayit gerekcesi "rover sayfasi
+#     YOK" idi; sayfa VAR),
+#   · `marka` alaninda "Rover" tasiyan 2 urunun 2'si de o sayfada:
+#     `rover-650-sis-fari-cercevesi` + `opel-c20ne-rover-mg-gaz-kelebe-i-adapt-r-55mm`
+#     (grep 1/1, 6 Eyl 2026 olcumu),
+#   · yerel eksen: taban `arama_kayip` {"Rover": 82} -> olculen {} (0).
+# Yani kaydin dayandigi OLGU bugun YOK; kayit tutulursa kapi sonsuza dek KIRMIZI kalir
+# ve SERIT B'yi bloklar.
+#
+# 🔴 EMEKLILIK TEK BASINA YAPILMADI ([[grep-sifir-nobetcisi-yasak-kaydinda-oludur]] sinifi):
+# liste BOSALDIGINDA ARAMA_KAYIP ekseninin HALA ATESLEDIGI ayri bir mutantla kanitlandi —
+# `tools/marka-invaryant-mutasyon.py` M16 (sentetik gercek kayip enjekte edilir -> KIRMIZI)
+# + K6 (ayni yerde davranissiz duzenleme, kayip YOK -> YESIL). M17 de bos listeye hayali
+# marka sokarak K kolunun canliligini olcmeye DEVAM eder. Liste bosken YESIL gecmenin tek
+# yolu eksenin gercekten temiz olmasidir.
 KALICI_KIRMIZI = {
-    "ARAMA_KAYIP": {"Rover"},       # gercek kayip: rover sayfasi yok, urun kayboluyor
+    "ARAMA_KAYIP": set(),           # Rover 6 Eyl 2026'da emekli edildi (yukaridaki blok)
 }
 
 # ── GURULTU CAPASI (serbest metne geri donusu yakar) ────────────────────────────
@@ -359,7 +376,12 @@ def taban_kur(veri, kumeler, katalog):
                  "sayi ARTARSA kirmizi yanar. Dusus de kirmizidir (circir): borc "
                  "kapandiktan sonra sessizce geri gelmesin. Guncelleme: "
                  "python3 tools/marka-invaryant-kapisi.py --taban-yaz"),
-        "_olcum": ("12 Agu 2026 · katalog %d urun · `?marka=` hedefi D1 `marka_kanon` "
+        # 🔴 6 Eyl 2026: sabit "12 Agu 2026" tarih literali KALDIRILDI. `katalog` sayisi her
+        # `--taban-yaz`ta tazeleniyordu ama tarih yerinde kaliyordu; dosya "12 Agu 2026ustu"
+        # deyip 34.366 urunluk (6 Eyl) bir olcumu tasidi — BAYAT BEYAN. Kapi bu alani
+        # OKUMAZ (yalnizca insan icin), yerine tarihsiz + ilk civileme referansli metin.
+        "_olcum": ("TAZELEME ANINDA olculdu (ilk civileme: 12 Agu 2026) · katalog %d urun "
+                   "· `?marka=` hedefi D1 `marka_kanon` "
                    "uyeligidir; canli kolon tazeligi bu kapinin disinda d1-sync --durum ile "
                    "olculur. `?q=` kolu ARTIK CANLIYI MODELLEMEZ — marka sorgusu bu depoda "
                    "uyelik yuklemine baglandi (uc henuz benimsemedi)."
