@@ -2,6 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔴 6 EYL — `KraL-KapiEnvanteri-6Eyl` [Opus 5]: **hukmun ONCULU CURUDU — uc kapi KURULU DEGIL; `5/8` DOGRU** (tam hesap KUTUDA)
+**ONCUL+AKIM:** 3 atfin ucu de **PROZA** (biri `SILINDI` kaydi); 29 Agu supurmesi kabloyu sokmus. Canli: 3 kapi da **deny URETMEDI** (`git commit` **rc=0**, ICRA izi **0**); POZITIF KONTROL **deny** verdi. (c) menzili `ast` kod-duzlemiyle kuruldu · M4 **dogrudan kolda** korluk buldu → onarildi · mutant **4/4** · batarya SERIT B'de. **Kapilar KURULMADI → BaBa karari.**
+
 ## ✅ 6 EYL — ana oturum: **TEMIZLIK + ACIK IS SAYIMI** (2 kirmizi sinifi cipe verildi)
 **TEMIZLIK:** worktree **5 → 1** (dordu de `arsiv-kapisi` **ARSIVLENEBILIR rc=0**; canlilik `lsof -a -d cwd` ile olculdu) · merge'lu 4 cip dali `-d` ile silindi · biten 2 oturum arsivlendi · `cip-supurme` **ACIK CIP YOK**.
 **SAYIM:** `parti-borc-kapisi` → `ACIK_KALEM=43 OKAN_KAPISI=0 GECERSIZ_DURUM=7 RED`. 7'nin **5'i `\|` KACIS KORLUGU** (K371·K308·K313·K339·K339-EK — defter DOGRU, okuyucu ham `|` ile boluyor; satirlar aylardir OKUNMUYOR), 2'si etiket (K44·K55) → cip `KraL-BorcParser-6Eyl`.
@@ -14,7 +17,6 @@
 **KABUL:** `--kendini-test` **8/8 + KONTROL 1/1** (M-a/M-b IZOLE KOPYADA: benzersiz ad + `dont_write_bytecode`, canli govdeye yama YOK) · `--curutme` **4/4** · **OLDURUCU 3/3** · 23:00 ozet kolu **3/3** (T4 yok/cokuyor → `ÖLÇÜLEMEDİ`).
 **YAYIN ✅:** `34041734321` @ `f22dfa96` **success**, 6/6 is yesil, **deploy+yayin zincirinde SKIPPED=0** (zincir-disi 3 = "yalniz KIRMIZI kosumda" adimi; onceki 2 success'te de AYNI → gerileme degil; ders KUTUDA).
 **TABAN URETILDI:** `parti-kapisi` **12/13** + `korgoz` **KX=4/7** HEAD'de de AYNI → regresyon **0**. Yesil: `ev-haritasi` 9/9+4/4 · `chip-duzeni` 14/14+9/9 · `devir` 5/5+4/4 · `nobet-kabul` 51/0 · `is-akisi` · `ci-kapsam` · D1 34602 birebir. `nobet.yml` adim adi bayatti ("4 mutant"→8+1+4); kablo KORUNDU.
-## ✅ 6 EYL — `KraL-CapaFikstur-6Eyl`: **M7 capasi DIRILDI + parite fiksturu 245/3 → 248/0** — TAM METIN `DEVAM-ARSIV.md` (2026-09-06 rotasyonu, 4 satir, eksik 0)
 ## ✅ 6 EYL — SERIT B **17 → 6 OLCULDU**; 8 CIP ACILDI, **8'i de KAPANDI**; ACIK KraL CIPI YOK
 **SAYI IDDIA DEGIL:** tamamlanmis kosum `34033444368` @ `c2938495`, is-adi/adim-adi. Kalan 6: `serit-b` 5 (nobetci harness · **LCP onculuk = ArTisT** · cip kapanis kancasi 2 adim · cip kapatma kilavuzu) + `hijyen-a3` 1 (`CapaFikstur` SONRADAN 248/0 yapti). `hijyen-a2` + `marka-invaryant-sayac` **YESIL**. Taban 17 idi (`34024037240` @ `b8816685`).
 ✅ **PARA SINIFI KAPANDI — `KraL-Fiyat10x-6Eyl`** (uzunu ARSIVDE): `fiyat` tip sozlesmesi yalniz JSON tipini olcuyordu → **616 kayit**, noktayi binlik ayraci sanan **3 okuyucuda ON KAT** (SEPET/ODEME dahil). 🔴 **Yanlis tutar FIILEN TAHSIL EDILMEDI: 0 siparis** (34 siparis / 36 kalem tarandi). `###.# TL` **616→0**, DEGER degisen **0**, toplam **34523** sabit; tek ayristirma noktasi `arama.py`de, tum okuyucular fail-closed. → [[tip-sozlesmesi-para-alaninin-bicimini-olcmez]]
