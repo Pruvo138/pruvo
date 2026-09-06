@@ -429,12 +429,6 @@ setTimeout(L,5000);})();
     /* 🔴 CLS REZERVASYONU (6 Eyl) — kap HTML'de BOŞ gelir, içeriğini renderKatPanelleri()
        üretir. Harici JS dosyaları gövde içeriğinden SONRA çağrıldığı için tarayıcı onlar
        inerken sayfayı BİR KEZ boş #katPanels ile boyar; kod koşunca kap 0 -> ~1360px'e
-
-       🔴 BU YORUMDA BETİK AÇILIŞ ETİKETİ HARFİ HARFİNE YAZILMAZ (6 Eyl, ölçüldü): kabul
-       testleri sayfanın gömülü kodunu açılış/kapanış etiketi desenine bakarak ayıklar; desen
-       stil bloğundaki bir YORUM içinde de eşleşir ve ayıklanan gövde yorumun ortasından
-       başlar. Sonuç: gömülü kod sözdizimi hatasıyla düşer, kabul kolu kırmızı yanar ve
-       yayın adımları atlanır. Etiketi anlatman gerekiyorsa BÖLEREK ya da adıyla yaz.
        büyür ve ALTINDAKİ her şeyi (#brandRow, #sectionTitle, ürün ızgarası, footer) aşağı
        iter. ÖLÇÜLDÜ (soğuk yükleme, önbellek KAPALI, CDP layout-shift gözlemcisi):
          1350x940 masaüstü CLS 0,2542 · 1366x768 CLS 0,1601 · 412x823 mobil CLS 0
@@ -455,7 +449,14 @@ setTimeout(L,5000);})();
          inmedikçe boş beyaz bant OLUŞMAZ.
        ÖLÇÜLDÜ (aynı koşum, rezerv uygulanmış): 1350x940 → 0,0007 · 1512x1200 → 0,0004 ·
        412x823 → 0. Kalan 0,0007 #katPanels DEĞİL, üstteki .hg5-kargo şeridinin 16→18px
-       metin büyümesidir (ayrı, ihmal edilebilir kalem). */
+       metin büyümesidir (ayrı, ihmal edilebilir kalem).
+
+       🔴 BU YORUMDA BETİK AÇILIŞ ETİKETİ HARFİ HARFİNE YAZILMAZ (6 Eyl, ÖLÇÜLDÜ — bir tur
+       yayını durdurdu): kabul testleri sayfanın gömülü kodunu açılış/kapanış etiketi
+       desenine bakarak ayıklar; desen stil bloğundaki bir YORUM içinde de eşleşir ve
+       ayıklanan gövde yorumun ortasından başlar. Sonuç: gömülü kod sözdizimi hatasıyla
+       düşer, kabul kolu kırmızı yanar, yayın adımları atlanır. Etiketten söz etmen
+       gerekiyorsa BÖLEREK ya da adıyla yaz. */
     min-height:min(760px, calc(100vh - 410px));
   }
   .kat-panel{background:#ffffff}
