@@ -296,12 +296,11 @@ console.log("B. KUYRUK YAZIMI (beyaz liste + bicim + parametrik + cogaltmama)");
     ["B3 beyaz liste disi alan (kategori)", { urun_id: "test-urun-a", alan: "kategori", deger: "Ev" }, 400],
     ["B3b beyaz liste disi alan (uyelik — gizli duzlem kuyruga giremez)",
      { urun_id: "test-urun-a", alan: "uyelik", deger: "x" }, 400],
-    ["B4a fiyat bicimi: TL'siz", { urun_id: "test-urun-a", alan: "fiyat", deger: "500" }, 400],
-    ["B4b fiyat bicimi: kucuk tl", { urun_id: "test-urun-a", alan: "fiyat", deger: "500 tl" }, 400],
     ["B4c fiyat bicimi: 0 ile baslar", { urun_id: "test-urun-a", alan: "fiyat", deger: "0 TL" }, 400],
-    // NOT: eski "B4d ondalik -> 400" vakasi 6 Eyl 2026 Okan emriyle POZITIF hale gecti
-    // (yukarida B4d/B4e: normalize + YUKARI yuvarlama). Ondalik artik REDDEDILMEZ,
-    // TAM TL'ye cevrilir; noktalama yine katologa GIRMEZ.
+    // NOT: eski "B4d ondalik -> 400" vakasi 6 Eyl 2026 Okan emriyle POZITIF hale gecti;
+    // normalize + YUKARI yuvarlama artik asagidaki B11 bolumunde olculur (B11c/B11d/B11e).
+    // Ondalik REDDEDILMEZ, TAM TL'ye cevrilir; noktalama yine katologa GIRMEZ.
+    // Bu vaka onun TERSI ekseni: COZULEMEYEN ondalik (uc hane) fail-closed REDDEDILIR.
     ["B4d2 fiyat bicimi: cozulemeyen ondalik (uc hane)",
      { urun_id: "test-urun-a", alan: "fiyat", deger: "500.123 TL" }, 400],
     ["B5 parametrik urunde fiyat", { urun_id: "test-parametrik", alan: "fiyat", deger: "500 TL" }, 400],
@@ -326,6 +325,54 @@ console.log("B. KUYRUK YAZIMI (beyaz liste + bicim + parametrik + cogaltmama)");
   const r = await cagir(env2, "/urunler-ustyazim",
     { govde: { urun_id: "test-urun-a", alan: "aciklama", deger: "satir 1\nsatir 2" } });
   ol("B10 aciklamada coklu satir MESRU", r.kod === 200 && env2.kuyruk.length === 1);
+}
+
+// ------------------------------------------------ B11. FIYAT GIRDI NORMALIZASYONU
+// b0ab7e77 (Okan emri 6 Eyl): "panelde noktalamaya izin verme, kurus YUKARI yuvarlansin".
+// O merge yonet.js'e fiyatYukariYuvarla'yi koydu ama BU dosyadaki B4a/B4b/B4d hala
+// 400 bekliyordu -> main KIRMIZI kaldi (216 iddia / 213 gecen). Vakalar silinmedi,
+// dogru eksene tasindi: artik 200 + KAYDEDILEN kanonik deger olculur.
+// Python ikizi ayri olculur: tools/fiyat-bicim-test.py (arama.py fiyat_yukari_yuvarla).
+console.log("B11. fiyat girdi normalizasyonu (noktalama YOK, kurus YUKARI)");
+{
+  const NORM = [
+    ["B11c ondalik .00 (kurus YOK)", "500.00 TL", "500 TL"],
+    ["B11d kurus YUKARI yuvarlanir", "200.1 TL", "201 TL"],
+  ];
+  for (const [ad, girdi, beklenen] of NORM) {
+    const env = mockEnv();
+    const r = await cagir(env, "/urunler-ustyazim",
+      { govde: { urun_id: "test-urun-a", alan: "fiyat", deger: girdi } });
+    ol(ad + ' "' + girdi + '" -> 200 + kuyrukta "' + beklenen + '"',
+       r.kod === 200 && env.kuyruk.length === 1 && env.kuyruk[0].deger === beklenen &&
+       !!r.govde && r.govde.deger === beklenen,
+       "kod=" + r.kod + " kuyruk=" + JSON.stringify(env.kuyruk.map((x) => x.deger)) +
+       " donen=" + (r.govde && r.govde.deger));
+  }
+  // FAIL-CLOSED: normalize COZEMEZSE deger degismeden gelir ve kanonik bicim testi
+  // onu REDDEDER — sessiz kabul YOK.
+  // 🔴 MENZIL, 6 Eyl merge'unde IKI TARAF ZIT YAZDIGI ICIN BURADA CIVILENDI (KraL hukmu):
+  // `7f9c8d90` bu dortlunun KABUL edilip normalize edilmesini bekliyordu; `d3dd8f6d` ise
+  // normalize edicinin menzilini OLCEREK daraltmisti (genis hal, panelin B4a/B4b redlerini
+  // sessizce KABULE ceviriyordu). Okan'in emri "noktalamaya IZIN VERME" oldugu icin DAR hal
+  // gecerli: normalize YALNIZ `<sayi> TL` kalibindaki KURUS sinifini cozer (B11c/B11d).
+  // Kalip disi girdi ve BELIRSIZ noktalama fail-closed REDDEDILIR — `1.250 TL`i "1250"e
+  // cevirmek, bugun 616 kayitta kapattigimiz "nokta binlik ayracidir" sinifini geri acardi.
+  const REDDE = [["B11g cozulemeyen girdi", "bes yuz lira"],
+                 ["B11h sifir tutar", "0 TL"],
+                 ["B11i negatif", "-5 TL"],
+                 ["B11a TL'siz girdi (kalip disi)", "500"],
+                 ["B11b kucuk 'tl' (kalip disi)", "500 tl"],
+                 ["B11e TL'siz virgullu (kalip disi)", "249,01"],
+                 ["B11f BELIRSIZ noktalama: binlik mi kurus mu", "1.250 TL"]];
+  for (const [ad, girdi] of REDDE) {
+    const env = mockEnv();
+    const r = await cagir(env, "/urunler-ustyazim",
+      { govde: { urun_id: "test-urun-a", alan: "fiyat", deger: girdi } });
+    ol(ad + ' "' + girdi + '" -> 400 + kuyruga sifir yazim',
+       r.kod === 400 && env.kuyruk.length === 0,
+       "kod=" + r.kod + " kuyruk=" + env.kuyruk.length);
+  }
 }
 
 // ---------------------------------------------------------------- C. IPTAL
