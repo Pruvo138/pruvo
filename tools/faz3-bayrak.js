@@ -678,6 +678,24 @@ function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
           gizliUye.length > 0 && kacan.length === 0,
           "kacan=" + kacan.length + " " + JSON.stringify(kacan.slice(0, 5)) +
           " -> uyelik kolu dusmus, marka sorgusu yalniz BASLIGA bakiyor");
+        // 🔴 TOTOLOJI KIRICI — UST SINIR (6 Eyl, OLCULDU). Yukaridaki iddia yalniz
+        // ALT SINIRI olcer: "uye kaybolmasin". Yuklem "hep true"ya bozulursa HICBIR
+        // uye kaybolmaz, `kacan` bos kalir ve o iddia YESIL yanar. Olculen korluk:
+        // `aramaPlaniEsler`in marka kolu `return true` yapildiginda 3 mutantin biri
+        // KACTI (rc=0) — kapi kor kaldi. Ayirt edicilik ekseni ZATEN vardi ama
+        // `yedekEslesmeKontrolu` icindeydi ve o kol EDGE HAVUZU verisine bagli
+        // (`markaSorgusu === null` ise HIC kosmuyor) — yani koruma, kosmasi
+        // GARANTI OLMAYAN bir yerde duruyordu. Ust sinir bu yuzden ankrajin
+        // icinde, TAM KATALOG'da olculur: burasi her kosumda calisir.
+        const eslesenTam = PRODUCTS.filter(
+          (p) => api.aramaPlaniEsler(p, plan, baslikHs));
+        kontrol("marka sorgusu TAM KATALOG'da GERCEKTEN daraltiyor (yuklem ayirt " +
+          "edici, " + tamMarka + ": 0 < " + eslesenTam.length + " < " +
+          PRODUCTS.length + ")",
+          eslesenTam.length > 0 && eslesenTam.length < PRODUCTS.length,
+          "eslesen=" + eslesenTam.length + " katalog=" + PRODUCTS.length +
+          " (0 ya da katalogun TAMAMI -> yuklem korelmis; 'hep true' bozulmasi " +
+          "tam olarak boyle gorunur)");
       }
     }
 
