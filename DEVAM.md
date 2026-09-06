@@ -2,16 +2,12 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔴 6 EYL ~02:2x — SERIT B: 5 KIRMIZI, **5 AYRI KOK** OLCULDU — cip `KraL-SeritB-IkiKapi` ACIK
-**KOKLER:** (a) Rover BAYAT + (c) `M10 capa 0` → cip 1 KAPATTI (b) `AGIRLIK/marka/yamaha` 218175>213155 → **ArTisT** (d) a2 D1 kolonu (e) a3 filament 1/26 + parite. **YAYIN blokaji BITTI** (`f44e1ef3`→`28775c98`).
-**UC CIP `[Opus 5]` MAIN'DE:** faz3 `08aab623` (56/0/1) · Rover/M10 `a55ab433` (29/29, mutasyon 6→3) · **CAPA KOMSUYA NISANLIYDI `b8816685`**: GA head dilimi `<script async`e bagliydi, `fc76b775` komsuyu kaldirinca **6 KVKK riza senaryosu 5 Eyl'den beri OLCULMUYORDU**; onarim = kanonik ayiklayici + TEMBEL capa + civilenen senaryo sayaci (17), kabul 5 mutant+kontrol. Taban: HEAD rc=1 → onarim rc=0; tek kok IKI CI adimi.
-**CI (`34024037240`):** 3 adim success · `serit-b` 13→11 · SERIT B toplam **19→17**. **YAYIN** `34024037115` deploy+yayin **SKIPPED 0**. D1 **34479** birebir. (b) ArTisT'te · (d)+(e) SIRADA. **OKAN'DA:** 6 cip arsivlenir.
-
-## ✅ 5 EYL — MERGE KAPANDI: emekli motor adi supurmesi (`36bf1a0b`) — **ISARETCI:** TAM METIN kutu arsivinde (`36bf1a0b` blogu; satir no VERME, arsiv basa buyur): 71 dosya, kapilar 5/5, yayin SKIPPED 0. 🔴 `arsiv-kapisi`ya HEDEF=TAM YOL.
-
-## ✅ 5 EYL — KUTU KILIDI UC KUSUR KAPANDI (`3eae9047`) — **ISARETCI**
-↩︎ TAM METIN kutuda (cip `goofy-snyder-cb4801`): 6 kilit->0, kutu 461->388, 515/515, yayin yesil.
-🔴 OKAN'DA: kutu 250'ye INEMEZ — 388 satirin 244'u KORUMALI 6 blok, 144'u koru.
+## 🔴 6 EYL ~10:5x — SERIT B **17 KIRMIZI ADIM**: 3 CIP `[Opus 5]` ACILDI + EV TEMIZLENDI
+**TABAN (olculdu, `34024037240` @ `b8816685`):** toplam **17** — `serit-b` 11 · `hijyen-a2` 2 · `hijyen-a3` 3 · `marka-invaryant-sayac` 1. Onceki tur: 19→17, kok "capa komsuya nisanliydi" (`b8816685`). YAYIN ACIK: `34024037115` deploy+yayin **success, SKIPPED 0**; D1 **34479** birebir.
+**CIPLER (hepsi kabul+mutant+merge-kapisi sartli):** `KraL-Hijyen-6Eyl` (a2 D1 kolonu + a3 filament 1/26 + parite karar-cekirdegi 2 kacan mutant + sayac invaryanti = 6 adim) · `KraL-CipKapi-6Eyl` (talep-temizlik K366 · sentetik git fiksturu 3 dosya · nobetci harness E6 · cip supurgesi 3 adim = 6 adim + asagidaki 2 kok) · `KraL-D1Yayin-6Eyl` (d1-wrangler 38/39 B14 + zaman asimi mutasyonu + yayin sinyali ayrimi + FAZ3 = 4 adim + capa bayatligi 3 batarya).
+**ArTisT'TE (bende DEGIL):** `lcp-onculuk-kapisi` 1 adim + (b) `AGIRLIK/marka/yamaha` 218175/213155.
+🔴 **BUGUN OLCULEN KOK — IKI KAPI AYNI OLGUYU ZIT OKUYOR:** `kutu-arsivle.py` BASLIYORUM'u **cip adiyla** (`KraL-Tamirci-6Eyl`), kapanisi **agac adiyla** (`gifted-curran-39fdbb`) kimlikliyor → esleme YOK → blok rotasyona HIC girmiyor, kutu **323/250** (`HUKUM=KORUMA_TUTTU`, commit bloklanmadi — olculdu). Ayni cipi `arsiv-kapisi.py` `ARSIVLENEBILIR rc=0` diye DOGRU okuyor. Ikinci kok: `kapi-envanteri.py` **5/8** diyor, kanca yolunu YANLIS eksenden cozuyor (ayrinti ARSIVDE + cip spec'inde). Ikisi de `KraL-CipKapi-6Eyl` kapsaminda.
+**TEMIZLIK:** worktree **2→1** (`gifted-curran-39fdbb` kapi hukmuyle kaldirildi + dal silindi) · defter rotasyonu 5 blok/10 dolu satir arsive, **eksik 0** (12.225→10.932 B).
 
 ## 🔁 5 EYL ~20:xxZ — **OKAN ①+② BITTI** (`5b86ac20`, cip `cool-saha-010aa9`) — **ISARETCI**
 ↩︎ **TAM METIN `DEVAM-ARSIV.md`** (md5 birebir, eksik 0): ① Bisiklet 16 alt kategori (D1 teyitli) · ② panel 12→7 · ③ banner main'de (`b12fdac2`) · yayin `33969124781` deploy+yayin success, SKIPPED 0.
@@ -27,9 +23,6 @@
 **IZIN ACILDI (kalici, `AGENTS.md` L10; git DISI):** ArTisT `pruvo`da `index.html`+`build.py`'ye **YAZAR**, dalini acar+**merge eder**; degisikligi KraL'da "yabanci" SAYILMAZ. 🔴 SINIR KraL'da: `urunler.json`·`arama.py`·odeme-fiyat·secret·sema.
 Taban + 3 tuzak + cip devri **KUTUDA 11:2x blogunda**; kabul DEGISMEDI, kapanisi ArTisT yazar. **Okan'a cikan:** PSI anahtari.
 
-## 🔁 5 EYL ~10:5xZ + ~17:2xZ — DEVIR ALINDI · HIJYEN worktree 9→3 — **ISARETCI (ikisi de KAPANDI)**
-↩︎ uc-eksen agac olcutu dersi + SERIT B kok sebebi (`f2db0c8f`, **merge hukmu ACIK**) **TAM METIN `DEVAM-ARSIV.md`'de**. worktree 9→3, kayip 0. Cipler: Yordam · KatPanel KAPANDI; LCP ArTisT'te.
-
 ## 🔁 5 EYL ~02:xZ — K366 CI'ya BAGLANDI + indeks ayraci koruma onarimi (`299e9f9b`) — **ISARETCI**
 ↩︎ **TAM METIN `DEVAM-ARSIV.md`'de.** Ozet: SERIT B'ye ayri adim; `ci-kapsam-test.py` KIRMIZI→YESIL; hafiza bataryasi 33/33 + 5/5 mutant; AYRAC korlugu onarildi.
 🔧 **ACIK TEK IPLIK:** hafiza ekseni **SILAHSIZ**; silahlandirma (`PRUVO_HAFIZA_EKSENI=silahli`) MIMAR HUKMU — arma GUVENLI olculdu (rc=0), YERLESIM karari acik.
@@ -39,11 +32,6 @@ Taban + 3 tuzak + cip devri **KUTUDA 11:2x blogunda**; kabul DEGISMEDI, kapanisi
 Ozet: ① D1 kalici cache (soguk 27,9 → isinmis 1,4 sn; tani 39/39, mutasyon 13/13) · ② KORUMALI blok rotasyona GIRMEZ (50 vaka/466 iddia) · ③ baglam kotasi kapisi 6 evde KURULU (kabul 23/23) · ④ filo dersi 5 evde.
 🔧 **ACIK IKI IPLIK:** (a) baglam kotasi kapanis sinifi BEKLEYEN push kablosunu ve YAYIN KIRIKKEN koordinasyonu KAPSAMIYOR (2 vaka olculdu; *Kapatan:* iki hali de kapsayan sinif + 2 vaka) · (b) `--durum` rc=0 ama 71,2 sn (kabul <60; *Kapatan:* iki ureticinin kaynak nesnesi TEKILLESIP <60 sn).
 🟠 **BEKLIYOR:** MaCiT CLAUDE.md **13.060 B** (tavan 12.288) — net-0 kirpma MaCiT'te, KOR KESMEDIM.
-
-## 🔁 4 EYL — YAYIN ACILDI (`366dd3cf`) — **ISARETCI:** TAM METIN `DEVAM-ARSIV.md` (2026-09-05 ISARETCIYE INDIRME basligi altinda).
-## ✅ 3 EYL — STL DOSYA ADI (Okan kalemi 2 Eyl) — KAPANDI, TAM METIN `DEVAM-ARSIV.md`'de
-Kod `1908cf1c`; `urunler-panel.mjs` **208/208**, mutant **6/6**, dilim-1 CI `33728849026` SUCCESS.
-🔧 ACIK: `uretim-kaynak.mjs` K40 SERIT B (Tamirci dalinin isi, bende degil). *(worker deploy isaretcisi DUSURULDU: KOSMUS, BaBa olctu.)*
 
 ## 🔴 CANLI TALIMAT (K353 blogu ARSIVE indi, tam metin `DEVAM-ARSIV.md`'de)
 K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
