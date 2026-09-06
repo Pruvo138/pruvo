@@ -987,6 +987,86 @@ console.log("L. panel sayfa script'i DERLENIR (sablon kacis hatasi tum paneli ki
      m ? KABLOLAR.filter((f) => m[1].indexOf("function " + f) < 0).join(",") : "script yok");
 }
 
+// ------------------------------------------------- N. KUYRUK IKI YUZEY (katlama)
+// Okan emri 6 Eyl: BEKLEYEN disarida (is orada), BITEN katlanir <details>'e,
+// VARSAYILAN KAPALI, yalniz son 12. Bu blok sayfa script'ini SAHTE DOM + SAHTE
+// fetch ile GERCEKTEN kosturur — "script derleniyor" (L2) bunu OLCMEZ.
+console.log("N. kuyruk iki yuzey: bekleyen DISARIDA, biten KAPALI <details> (son 12)");
+{
+  const y = await yonet(istek(undefined, { "X-Yonet-Anahtar": YONET_ANAHTAR }, "GET"),
+    mockEnv(), new URL("https://ornek-site.test/api/shop/yonet/"), ctxYap(), "/", undefined);
+  const kod = (await y.text()).match(/<script>([\s\S]*)<\/script>/)[1];
+
+  const domYap = () => {
+    const kutular = new Map();
+    return {
+      kutular,
+      getElementById(id) {
+        if (!kutular.has(id)) {
+          kutular.set(id, { innerHTML: "", value: "", hidden: false, className: "",
+                            style: {}, files: [], querySelectorAll: () => [],
+                            setAttribute() {}, getAttribute() { return null; } });
+        }
+        return kutular.get(id);
+      },
+    };
+  };
+  const fetchYap = (satirlar) => async (adres) => ({
+    status: 200,
+    json: async () => (String(adres).indexOf("/urunler-kuyruk") >= 0
+      ? { satirlar, tablo_yok: false }
+      : { siparisler: [], urunler: [], bekleyen: {}, kuyruk_tablosu: true }),
+  });
+  // id DESC gelir (sunucu ORDER BY id DESC): en yeni BASTA.
+  const satirYap = (no, hal) => ({ id: 1000 - no, urun_id: hal + "-" + String(no).padStart(2, "0"),
+    alan: "fiyat", deger: "500 TL", yazan: "panel", ts: "2026-09-06T12:00:00Z",
+    hal, islendi_ts: null, islendi_commit: null, sebep: hal === "hata" ? "FIYAT_BICIMI" : null });
+
+  const kosVe = async (satirlar) => {
+    const dom = domYap();
+    const disari = new Function("document", "fetch", "alert", "confirm",
+      kod + "\nreturn {kuyrukYukle:kuyrukYukle};")(
+      dom, fetchYap(satirlar), () => {}, () => true);
+    await disari.kuyrukYukle();
+    return dom.getElementById("kuyrukKutu").innerHTML;
+  };
+
+  // 2 bekleyen + 30 islendi + 3 hata (biten = 33, gosterilecek = 12)
+  const karisik = [];
+  karisik.push(satirYap(1, "beklemede"), satirYap(2, "beklemede"));
+  for (let i = 1; i <= 3; i++) { karisik.push(satirYap(i, "hata")); }
+  for (let i = 4; i <= 33; i++) { karisik.push(satirYap(i, "islendi")); }
+
+  const h = await kosVe(karisik);
+  const detayYeri = h.indexOf("<details");
+  const ilkSatir = h.indexOf('class="satir"');
+
+  ol("N1 bekleyen satirlar <details> DISINDA cizilir",
+     ilkSatir >= 0 && detayYeri > ilkSatir &&
+     h.slice(0, detayYeri).indexOf("beklemede-01") >= 0 &&
+     h.slice(0, detayYeri).indexOf("beklemede-02") >= 0,
+     "detay=" + detayYeri + " ilkSatir=" + ilkSatir);
+  ol("N2 <details> VARSAYILAN KAPALI (open niteligi YOK)",
+     detayYeri >= 0 && !/<details[^>]*\sopen/.test(h), h.slice(detayYeri, detayYeri + 60));
+  ol("N3 biten kovasindan YALNIZ 12 satir cizilir (2 bekleyen + 12 = 14)",
+     (h.match(/class="satir"/g) || []).length === 14,
+     "satir=" + (h.match(/class="satir"/g) || []).length);
+  ol("N4 gosterilen 12 EN YENI biten (hata-01..islendi-12 var, 13 YOK)",
+     h.indexOf("hata-01") >= 0 && h.indexOf("islendi-12") >= 0 && h.indexOf("islendi-13") < 0);
+  ol("N5 'hata' hali kapali baslikta SAYIYLA yanar (ucuncu sinif yutulmaz)",
+     h.indexOf(">3 hata<") >= 0 && h.indexOf("Biten (son 12 / 33)") >= 0);
+  ol("N6 Iptal dugmesi YALNIZ bekleyen satirlarda (2 tane)",
+     (h.match(/kuyrukIptal\(/g) || []).length === 2,
+     "iptal=" + (h.match(/kuyrukIptal\(/g) || []).length);
+
+  // Bekleyen YOKKEN: sessiz bosluk YASAK — kutu ACIKCA "yok" der.
+  const h2 = await kosVe([satirYap(4, "islendi"), satirYap(5, "islendi")]);
+  ol("N7 bekleyen yoksa ACIKCA yazilir + Iptal dugmesi hic yok",
+     h2.indexOf("Bekleyen üst yazım yok") >= 0 && h2.indexOf("kuyrukIptal(") < 0);
+  ol("N8 biten 12'den azken baslik gercek sayiyi tasir (son 2 / 2)",
+     h2.indexOf("Biten (son 2 / 2)") >= 0 && !/<details[^>]*\sopen/.test(h2));
+}
+
 console.log("");
 console.log("TOPLAM: " + (gecen + kalan) + " iddia | GECEN " + gecen + " | KALAN " + kalan);
 process.exit(kalan === 0 ? 0 : 1);

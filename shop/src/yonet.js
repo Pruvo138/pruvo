@@ -2856,6 +2856,21 @@ async function urunSil(id){
   ". Uygulayıcı işleyince taban kaydı arşive taşınır; site yayınlanınca canlıdan düşer.");
  urunYukle();
 }
+// KUYRUK IKI YUZEY (Okan, 6 Eyl): BEKLEYEN her zaman DISARIDA durur — is orada,
+// "Iptal" dugmesi orada. BITEN satirlar katlanir <details>'e (VARSAYILAN KAPALI) ve
+// yalniz son KUYRUK_BITEN_GOSTER tanesi cizilir.
+// 🔴 hal UC DEGERLIDIR (panel-ustyazim-sema.sql): beklemede | islendi | hata.
+// 'hata' de "biten" kovasina duser; SESSIZ dusmesin diye KAPALI baslikta SAYIYLA
+// yanar — iki kovali siniflama ucuncu sinifi yutmasin.
+var KUYRUK_BITEN_GOSTER=12;
+function kuyrukSatirHtml(x){
+ var iptal=x.hal==="beklemede"?
+  ' <button class="sil" onclick="kuyrukIptal('+(+x.id)+')">İptal</button>':"";
+ var sebep=x.sebep?' <span class="kucuk">'+esc(x.sebep)+'</span>':"";
+ return '<div class="satir"><span class="rozet '+esc(x.hal)+'">'+esc(x.hal)+'</span> '+
+  '<b>'+esc(x.urun_id)+'</b> · '+esc(x.alan)+' → '+esc((x.deger||"").slice(0,80))+sebep+
+  ' <span class="kucuk">'+esc((x.ts||"").slice(0,16).replace("T"," "))+'</span>'+iptal+'</div>';
+}
 async function kuyrukYukle(){
  var kutu=document.getElementById("kuyrukKutu");
  var r=await api("/urunler-kuyruk");
@@ -2864,14 +2879,23 @@ async function kuyrukYukle(){
   kutu.innerHTML='<div class="kart"><p class="yok">Kuyruk tablosu yok — şema koşulmamış.</p></div>';return;}
  var s=(r.govde&&r.govde.satirlar)||[];
  if(!s.length){kutu.innerHTML='<div class="kart"><p class="kucuk">Kuyruk boş.</p></div>';return;}
- kutu.innerHTML='<div class="kart"><b>Kuyruk (son '+s.length+')</b>'+s.map(function(x){
-  var iptal=x.hal==="beklemede"?
-   ' <button class="sil" onclick="kuyrukIptal('+(+x.id)+')">İptal</button>':"";
-  var sebep=x.sebep?' <span class="kucuk">'+esc(x.sebep)+'</span>':"";
-  return '<div class="satir"><span class="rozet '+esc(x.hal)+'">'+esc(x.hal)+'</span> '+
-   '<b>'+esc(x.urun_id)+'</b> · '+esc(x.alan)+' → '+esc((x.deger||"").slice(0,80))+sebep+
-   ' <span class="kucuk">'+esc((x.ts||"").slice(0,16).replace("T"," "))+'</span>'+iptal+'</div>';
- }).join("")+'</div>';
+ var bekleyen=[],biten=[],hatali=0;
+ for(var i=0;i<s.length;i++){
+  if(s[i].hal==="beklemede"){bekleyen.push(s[i]);continue;}
+  if(s[i].hal==="hata"){hatali++;}
+  biten.push(s[i]);
+ }
+ var html='<div class="kart"><b>Bekleyen ('+bekleyen.length+')</b>'+
+  (bekleyen.length?bekleyen.map(kuyrukSatirHtml).join(""):
+   '<p class="kucuk">Bekleyen üst yazım yok — kuyruk temiz.</p>')+'</div>';
+ if(biten.length){
+  var gorunen=biten.slice(0,KUYRUK_BITEN_GOSTER);
+  html+='<details class="kart"><summary class="ust">'+
+   '<span class="no">Biten (son '+gorunen.length+' / '+biten.length+')</span>'+
+   (hatali?'<span class="rozet hata">'+hatali+' hata</span>':"")+
+   '</summary>'+gorunen.map(kuyrukSatirHtml).join("")+'</details>';
+ }
+ kutu.innerHTML=html;
 }
 async function kuyrukIptal(id){
  if(!confirm("Bekleyen üst yazım iptal edilsin mi?"))return;
