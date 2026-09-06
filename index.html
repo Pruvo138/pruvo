@@ -427,8 +427,14 @@ setTimeout(L,5000);})();
     flex-direction:column;
     gap:34px;
     /* 🔴 CLS REZERVASYONU (6 Eyl) — kap HTML'de BOŞ gelir, içeriğini renderKatPanelleri()
-       üretir. Harici <script src>'ler gövde içeriğinden SONRA durduğu için tarayıcı onlar
-       inerken sayfayı BİR KEZ boş #katPanels ile boyar; script koşunca kap 0 -> ~1360px'e
+       üretir. Harici JS dosyaları gövde içeriğinden SONRA çağrıldığı için tarayıcı onlar
+       inerken sayfayı BİR KEZ boş #katPanels ile boyar; kod koşunca kap 0 -> ~1360px'e
+
+       🔴 BU YORUMDA BETİK AÇILIŞ ETİKETİ HARFİ HARFİNE YAZILMAZ (6 Eyl, ölçüldü): kabul
+       testleri sayfanın gömülü kodunu açılış/kapanış etiketi desenine bakarak ayıklar; desen
+       stil bloğundaki bir YORUM içinde de eşleşir ve ayıklanan gövde yorumun ortasından
+       başlar. Sonuç: gömülü kod sözdizimi hatasıyla düşer, kabul kolu kırmızı yanar ve
+       yayın adımları atlanır. Etiketi anlatman gerekiyorsa BÖLEREK ya da adıyla yaz.
        büyür ve ALTINDAKİ her şeyi (#brandRow, #sectionTitle, ürün ızgarası, footer) aşağı
        iter. ÖLÇÜLDÜ (soğuk yükleme, önbellek KAPALI, CDP layout-shift gözlemcisi):
          1350x940 masaüstü CLS 0,2542 · 1366x768 CLS 0,1601 · 412x823 mobil CLS 0
