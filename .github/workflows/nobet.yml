@@ -185,7 +185,7 @@ jobs:
       # MUTASYON BATARYASI (K150): kabul testinin OLU olmadigini olcer. 5 mutant + KONTROL;
       # capa uygulanamazsa `UYGULANAMADI` sayaci ile rc=1 (sessiz survivor YOK). Bu adim
       # olmadan `--kendini-test` yesili "test gercekten olcuyor" demek DEGILDI.
-      - name: "Uzlastirici onarim surucusu: mutasyon bataryasi (5 mutant + KONTROL)"
+      - name: "Uzlastirici onarim surucusu: mutasyon bataryasi (10 mutant + KONTROL)"
         run: python3 tools/uzlastirici-onarim.py --mutasyon
       # SILME KARANTINASI (11 Agu 2026, kosum 31532464176: 37 MESRU katalog satiri
       # silindi). K1..K7 vakalari + is akisi kablo capalari; K7 o kosumun BIREBIR
@@ -435,7 +435,7 @@ jobs:
       # kablolama BU PAKETTE YOK (nobet-kapi.py'ye takilmasi ayri karar);
       # burada yalniz olcumun YESIL oldugu teyit edilir. SERIT B: kirmizisi
       # yayini DURDURMAZ.
-      - name: "Durgun kalem kapisi — kendini test (4 kol + 4 mutant)"
+      - name: "Durgun kalem kapisi — kendini test (4 kol + 7 mutant)"
         if: ${{ !cancelled() }}
         run: python3 tools/durgun-kalem-kapisi.py --kendini-test
 
@@ -1377,7 +1377,7 @@ jobs:
       # Her vaka GECICI dizinde SENTETIK bir depo (bare uzak + yerel klon) kurup araci
       # GERCEKTEN kosar; metin eslemesi YOK, ag YOK, canli agaca YAZMAZ, gecici depolar
       # kosum sonunda SILINIR. 12 vaka, ~5 s (olculdu, macOS).
-      - name: "Onarim-commit araci kabul testi (12 vaka: F1-F8 + --kuru, sentetik depo)"
+      - name: "Onarim-commit araci kabul testi (23 vaka: F1-F8 + VA-VF + --kuru, sentetik depo)"
         if: ${{ !cancelled() }}
         run: python3 tools/onarim-commit-test.py
 
@@ -1610,7 +1610,7 @@ jobs:
       # `kutu-arsivle.py::kapanan_cipler`den IMPORT eder — ikinci envanter YASAK.
       # NEDEN SERIT B: tamamen offline, sentetik git fiksturleri kurar, canli repoya
       # ve gercek kutuya DOKUNMAZ; yayinlanan hicbir icerigi etkilemez.
-      - name: "Arsiv kapisi kabul bataryasi (7 vaka + ucuncu kova, SERIT B)"
+      - name: "Arsiv kapisi kabul bataryasi (12 vaka / 39 iddia, ucuncu kova dahil, SERIT B)"
         if: ${{ !cancelled() }}
         run: python3 tools/arsiv-kapisi.py --kendini-test
 
@@ -1618,7 +1618,7 @@ jobs:
       # (agac · icerik · itilmemis · kapanis · UCUNCU KOVA). M5 ilk turda YESIL gecti
       # cunku hicbir vaka `OLCULEMEDI` kolunu kosmuyordu — V7 (kutu YOK) o kor noktayi
       # kapatti. Mutasyon KOPYAYA uygulanir, canli govdenin sha256'si degismez.
-      - name: "Arsiv kapisi mutasyon turu (5 mutant + kontrol, SERIT B)"
+      - name: "Arsiv kapisi mutasyon turu (9 mutant + harness kontrolu, SERIT B)"
         if: ${{ !cancelled() }}
         run: python3 tools/arsiv-kapisi.py --mutasyon
 
@@ -1692,7 +1692,7 @@ jobs:
       # ULASMADI=0 KONTROL=YESIL. Yani eksik olan DAVRANIS degil KABLOLAMAYDI
       # ([[kapinin-menzili-cagri-yeridir]]: kablolanmamis kapi bir mesajdir).
       # NEDEN SERIT B: offline, sentetik git fiksturleri; canli repoya dokunmaz.
-      - name: "Cip kapatma kilavuzu kabul bataryasi (14 iddia, SERIT B)"
+      - name: "Cip kapatma kilavuzu kabul bataryasi (20 iddia, SERIT B)"
         if: ${{ !cancelled() }}
         run: python3 tools/cip-kapat-test.py
 
@@ -1703,6 +1703,35 @@ jobs:
       - name: "Kapanissiz cip supurgesi mutasyon turu (4 mutant + kontrol, SERIT B)"
         if: ${{ !cancelled() }}
         run: python3 tools/cip-supurme-mutasyon.py
+
+      # FIKSTUR BAYAT CAPA KAPISI (tools/fikstur-bayat-capa-kapisi.py) — 6 Eyl 2026,
+      # SINIF kapisi ([[ucuncu-tekrar-sinif-kapisi]]: ayni gerekce 3. kez blokladi).
+      # Kok: bir batarya "kod bozulmadan, YALNIZ ZAMAN GECTIGI ICIN" kirmizi yanar.
+      # Iki kol olculur: (A) yas/esik ekseni olcen fikstur govdesinde MUTLAK `YYYY-MM-DD`
+      # tarih tasiyamaz (kabul edilen bicim `bugun - N` turetimidir) — `cip-supurme-test`
+      # V3b 6 Eyl'de tam bunun icin kirmizi yandi · (B) mutasyon capasi `<AD> = <sayi>`
+      # SABIT dizgesi olamaz, kaynaktan TURETILMELIDIR — `nobetci-mutasyon-test` bolum E
+      # capasi `= 8` ve `= 11` diye IKI KEZ bayatladi ve bolum HICBIR SEY OLCMEDEN gecti.
+      # Haller: TEMIZ · KIRMIZI · KAPSAM_DISI · MUAF; ayrisamayan dosya OLCULEMEDI ve
+      # KIRMIZI sayilir (fail-closed, sessiz atlama YOK).
+      # 🔴 HARNESS TUZAGI (olculdu, tekrar edilmez): mutantlar AYNI ADA yazilirsa CPython
+      # bytecode onbellegi ikinci mutanta BIRINCININ kodunu kosturur ve mutant sahte
+      # "KACTI" basar -> her mutant BENZERSIZ ada yazilir + `dont_write_bytecode`.
+      # 🔴 CANLI TARAMA (bayraksiz kol) HENUZ KABLOLANMADI: `tools/` uzerinde bugun
+      # 29 bayat capa olcuyor (KOL_A 8 · KOL_B 21); backlog kapanmadan adim eklenirse
+      # SERIT B'ye duran kirmizi eklenir. Burada kapinin DAVRANISI olculur.
+      # NEDEN SERIT B: offline, sentetik tempfile fiksturleri, canli repoya DOKUNMAZ.
+      - name: "Fikstur bayat capa kapisi — kaynak varligi (SERIT B)"
+        if: ${{ !cancelled() }}
+        run: test -f tools/fikstur-bayat-capa-kapisi.py
+
+      - name: "Fikstur bayat capa kapisi kabul bataryasi (7 iddia, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/fikstur-bayat-capa-kapisi.py --kendini-test
+
+      - name: "Fikstur bayat capa kapisi mutasyon turu (4 mutant + kontrol, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/fikstur-bayat-capa-kapisi.py --mutasyon
 
       # KUTU ESIK KAPISI (tools/kutu-esik-kapisi.py) — K188. Yukaridaki arsivleyici
       # kutuyu TAVANA INDIREBILIYOR ama esigi YALNIZ kendisi biliyor; kutuya YAZAN yol
@@ -2203,7 +2232,7 @@ jobs:
       # yorumlarinin kayipsizligi) yerel-duzlemdir ve orada KAPSAM_DISI sayilir
       # (kusur DEGIL, ayri kovada raporlanir); kapsam tabani (6) SAYIYLA
       # civilidir, altina duserse batarya rc=2 OLCULEMEDI verir. Offline, ag YOK.
-      - name: "K361 ev haritasi bataryasi (fail-closed fiksturleri + 3 mutant + esdeger kontrol)"
+      - name: "K361 ev haritasi bataryasi (9 vaka + 4 mutant + esdeger kontrol)"
         if: ${{ !cancelled() }}
         run: |
           python3 tools/ev-haritasi-kapisi-test.py
@@ -3421,7 +3450,7 @@ jobs:
       # cagri noktasinin hukmunu GERCEK gecici depolarda + GERCEK `git commit`
       # ile yeniden uretir (kanca blogu VERBATIM cikarilir, yeniden yazilmaz).
       # BLOKLAYICI, agsiz, deterministik ([[mutasyon-kaniti-yeniden-uretilebilir]]).
-      - name: "Ic rapor adi kapisi pre-commit kolu (19 vaka: arac + gercek kanca)"
+      - name: "Ic rapor adi kapisi pre-commit kolu (21 vaka: arac + gercek kanca)"
         if: ${{ !cancelled() }}
         run: python3 tools/ic-rapor-kanca-test.py
 
