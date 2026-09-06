@@ -3,9 +3,9 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔴 6 EYL ~02:2x — SERIT B: 5 KIRMIZI, **5 AYRI KOK** OLCULDU — cip `KraL-SeritB-IkiKapi` ACIK
-**KAPANDI:** `33990643181` dusen ad kumesi tabanla BIREBIR → **ONARILAN 0 / YENI_DUSEN 0**. **KOKLER:** (a) Rover kaydi BAYAT + (c) `M10 capa 0` → **cip 1 KAPATTI** (b) `AGIRLIK/marka/yamaha` 218175>213155 → **ArTisT**, tavan SABIT; sayac bataryasi rc=1 → **OLCULEMEDI** (d) a2 D1 kolonu (21 kanon!=sayfa, ters 159) (e) a3 filament 1/26 + parite 5 KALDI.
-🔴 **YAYIN 4 kosum KAPALI:** cip 2 faz3'u KAPATTI, ama `serit-a3` kuyrugunda gizlenen **2. kirmizi** cikti (`34002459361`): *Vitrin kabul* `index-inline.js:1 SyntaxError` (harness inline JS'i YORUM ortasindan cikarir). Kok **`f44e1ef3`** → `28775c98` onardi; canli `d9f45842`.
-**IKI CIP `[Opus 5]` MAIN'DE (`a55ab433`):** faz3 kolu (`08aab623`; kabul TAZE havuzla **56/0/1 rc=0**) + Rover/M10 (kapi **rc=0**, `model-uyelik-kapisi` **29/29**, mutasyon **6→3**). D1 **34479** birebir. (b) ArTisT'te · (d)+(e) SIRADA. **BEKLIYOR:** 19 dal. **OKAN'DA:** 6 cip arsivlenir.
+**KOKLER:** (a) Rover BAYAT + (c) `M10 capa 0` → cip 1 KAPATTI (b) `AGIRLIK/marka/yamaha` 218175>213155 → **ArTisT** (d) a2 D1 kolonu (e) a3 filament 1/26 + parite. **YAYIN blokaji BITTI** (`f44e1ef3`→`28775c98`).
+**UC CIP `[Opus 5]` MAIN'DE:** faz3 `08aab623` (56/0/1) · Rover/M10 `a55ab433` (29/29, mutasyon 6→3) · **CAPA KOMSUYA NISANLIYDI `b8816685`**: GA head dilimi `<script async`e bagliydi, `fc76b775` komsuyu kaldirinca **6 KVKK riza senaryosu 5 Eyl'den beri OLCULMUYORDU**; onarim = kanonik ayiklayici + TEMBEL capa + civilenen senaryo sayaci (17), kabul 5 mutant+kontrol. Taban: HEAD rc=1 → onarim rc=0; tek kok IKI CI adimi.
+**CI (`34024037240`):** 3 adim success · `serit-b` 13→11 · SERIT B toplam **19→17**. **YAYIN** `34024037115` deploy+yayin **SKIPPED 0**. D1 **34479** birebir. (b) ArTisT'te · (d)+(e) SIRADA. **OKAN'DA:** 6 cip arsivlenir.
 
 ## ✅ 5 EYL — MERGE KAPANDI: emekli motor adi supurmesi (`36bf1a0b`) — **ISARETCI:** TAM METIN kutu arsivinde (`36bf1a0b` blogu; satir no VERME, arsiv basa buyur): 71 dosya, kapilar 5/5, yayin SKIPPED 0. 🔴 `arsiv-kapisi`ya HEDEF=TAM YOL.
 
