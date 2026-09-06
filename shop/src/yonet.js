@@ -2027,6 +2027,38 @@ async function panelUstyazimSil(request, env) {
   return yjson({ tamam: true, silinen: 1 }, 200);
 }
 
+// HATA SATIRINI KAPAT (Okan emri, 6 Eyl 2026). 'hata' satiri SILINMEZ — teshis izidir
+// ve /urunler-ustyazim-sil bilerek yalniz 'beklemede' siler — ama GORULDUKTEN sonra panelin
+// hata kutusunda sonsuza kadar durmasi gerekmiyor. Bu bacak satiri hal='kapandi' yapar:
+// sebep/deger/ts kolonlari AYNEN kalir, satir kuyrukta yasar, yalniz ekranda katlanan
+// "Gecmis" kutusuna iner.
+// 🔴 hal artik DORT DEGERLIDIR (beklemede | islendi | hata | kapandi). Sema TEXT oldugu
+// icin migration GEREKMEZ, ama YENI HAL SESSIZ KOVAYA DUSMEZ: panel tarafi dordunu de
+// ADIYLA sinifler, tanimsiz bir hal cikarsa "Bilinmeyen hal" kutusuna DISARIDA basar.
+// Uygulayici (tools/panel-uygulayici.py) yalniz hal='beklemede' okur — 'kapandi' onun
+// menzilinde DEGIL, davranisi degismez.
+// Yalniz 'hata' kapanir: 'beklemede' iptalle duser, 'islendi' tabana cokmus gecmistir,
+// 'kapandi' zaten kapali (tekrar kapatma 409).
+async function panelKuyrukKapat(request, env) {
+  let govde;
+  try { govde = await request.json(); } catch (e) {
+    return yjson({ hata: "gecersiz istek govdesi" }, 400);
+  }
+  const id = parseInt(govde && govde.id, 10);
+  if (!Number.isInteger(id) || id <= 0) { return yjson({ hata: "id gecersiz" }, 400); }
+  try {
+    const g = await env.KATALOG.prepare(
+      "UPDATE panel_ustyazim SET hal = 'kapandi' WHERE id = ? AND hal = 'hata'")
+      .bind(id).run();
+    const kapanan = (g && g.meta && g.meta.changes) || 0;
+    if (!kapanan) { return yjson({ hata: "satir 'hata' halinde degil ya da yok" }, 409); }
+  } catch (e) {
+    if (tabloYokMu(e)) { return yjson({ hata: "kuyruk tablosu yok — sema kosulmamis" }, 503); }
+    throw e;
+  }
+  return yjson({ tamam: true, kapanan: 1 }, 200);
+}
+
 /** Kuyruga satir dusunce CI uygulayicisini repository_dispatch ile durt. OPSIYONEL:
  *  GH_DISPATCH_TOKEN secret'i tanimli degilse SESSIZCE atlanir (cron/elle kol kapsar)
  *  — META_CAPI_TOKEN deseni: kod merge olur, canliyi bozmaz, Okan secret basinca
@@ -2327,6 +2359,7 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/urunler-kuyruk" && m === "GET") { return panelKuyruk(env); }
   if (altYol === "/urunler-ustyazim" && m === "POST") { return panelUstyazimYaz(request, env, ctx); }
   if (altYol === "/urunler-ustyazim-sil" && m === "POST") { return panelUstyazimSil(request, env); }
+  if (altYol === "/urunler-kuyruk-kapat" && m === "POST") { return panelKuyrukKapat(request, env); }
   // TEKIL urun silme (Okan emri 2 Eyl) — ayni kapinin ARKASINDA, cift onayli.
   if (altYol === "/urun-sil" && m === "POST") { return panelUrunSil(request, env, ctx); }
   // URUNLER SEKMESI (T2) — gorsel + STL + kaynak link; ayni kapinin ARKASINDA.
@@ -2406,6 +2439,8 @@ details[open]>summary.ust::after{content:"▾"}
 /* URUNLER SEKMESI (T1) — kuyruk halleri + sekme cubugu + duzenleme formu */
 .rozet.beklemede{background:#fef9c3;color:#854d0e}
 .rozet.islendi{background:#dcfce7;color:#166534}
+.rozet.kapandi{background:#e5e7eb;color:#374151}
+.rozet.bilinmeyen{background:#fae8ff;color:#701a75}
 .rozet.hata{background:#fee2e2;color:#991b1b}
 .sekmeler{display:flex;gap:6px}
 .sekme{background:transparent;color:#fff;border:1px solid #ffffff55;border-radius:6px;cursor:pointer}
@@ -2903,12 +2938,14 @@ async function urunSil(id){
 // kalir; hata kutusu ise yalniz sayi > 0 iken cizilir.
 var KUYRUK_ISLENDI_GOSTER=12;
 function kuyrukSatirHtml(x){
- var iptal=x.hal==="beklemede"?
-  ' <button class="sil" onclick="kuyrukIptal('+(+x.id)+')">İptal</button>':"";
+ var dugme=x.hal==="beklemede"?
+  ' <button class="sil" onclick="kuyrukIptal('+(+x.id)+')">İptal</button>':
+  (x.hal==="hata"?
+   ' <button class="sil" onclick="kuyrukKapat('+(+x.id)+')">Kapat</button>':"");
  var sebep=x.sebep?' <span class="kucuk">'+esc(x.sebep)+'</span>':"";
  return '<div class="satir"><span class="rozet '+esc(x.hal)+'">'+esc(x.hal)+'</span> '+
   '<b>'+esc(x.urun_id)+'</b> · '+esc(x.alan)+' → '+esc((x.deger||"").slice(0,80))+sebep+
-  ' <span class="kucuk">'+esc((x.ts||"").slice(0,16).replace("T"," "))+'</span>'+iptal+'</div>';
+  ' <span class="kucuk">'+esc((x.ts||"").slice(0,16).replace("T"," "))+'</span>'+dugme+'</div>';
 }
 async function kuyrukYukle(){
  var kutu=document.getElementById("kuyrukKutu");
@@ -2918,11 +2955,13 @@ async function kuyrukYukle(){
   kutu.innerHTML='<div class="kart"><p class="yok">Kuyruk tablosu yok — şema koşulmamış.</p></div>';return;}
  var s=(r.govde&&r.govde.satirlar)||[];
  if(!s.length){kutu.innerHTML='<div class="kart"><p class="kucuk">Kuyruk boş.</p></div>';return;}
- var bekleyen=[],hatali=[],islendi=[];
+ var bekleyen=[],hatali=[],gecmis=[],bilinmeyen=[];
  for(var i=0;i<s.length;i++){
-  if(s[i].hal==="beklemede"){bekleyen.push(s[i]);continue;}
-  if(s[i].hal==="hata"){hatali.push(s[i]);continue;}
-  islendi.push(s[i]);
+  var h=s[i].hal;
+  if(h==="beklemede"){bekleyen.push(s[i]);continue;}
+  if(h==="hata"){hatali.push(s[i]);continue;}
+  if(h==="islendi"||h==="kapandi"){gecmis.push(s[i]);continue;}
+  bilinmeyen.push(s[i]);
  }
  var html='<div class="kart"><b>Bekleyen ('+bekleyen.length+')</b>'+
   (bekleyen.length?bekleyen.map(kuyrukSatirHtml).join(""):
@@ -2931,13 +2970,27 @@ async function kuyrukYukle(){
   html+='<div class="kart"><b>Hata ('+hatali.length+') — işlenmedi</b>'+
    hatali.map(kuyrukSatirHtml).join("")+'</div>';
  }
- if(islendi.length){
-  var gorunen=islendi.slice(0,KUYRUK_ISLENDI_GOSTER);
+ if(bilinmeyen.length){
+  // Semada tanimsiz bir hal: KATLANMAZ, disarida ve ADIYLA yanar. Katlamak "olculemedi"yi
+  // "islendi" gibi gosterirdi — yeni hal cozucunun varsayilan kovasina DUSMEZ.
+  html+='<div class="kart"><b>Bilinmeyen hâl ('+bilinmeyen.length+') — sınıflanamadı</b>'+
+   '<p class="kucuk">Şemada tanımlı dört hâlin (beklemede · islendi · hata · kapandi) '+
+   'dışında; katlanmadı.</p>'+bilinmeyen.map(kuyrukSatirHtml).join("")+'</div>';
+ }
+ if(gecmis.length){
+  var gorunen=gecmis.slice(0,KUYRUK_ISLENDI_GOSTER);
   html+='<details class="kart"><summary class="ust">'+
-   '<span class="no">İşlendi (son '+gorunen.length+' / '+islendi.length+')</span>'+
+   '<span class="no">Geçmiş (son '+gorunen.length+' / '+gecmis.length+')</span>'+
    '</summary>'+gorunen.map(kuyrukSatirHtml).join("")+'</details>';
  }
  kutu.innerHTML=html;
+}
+async function kuyrukKapat(id){
+ if(!confirm("Hata satırı kapatılsın mı? Satır SİLİNMEZ; sebebiyle birlikte 'Geçmiş' kutusuna iner."))return;
+ var r=await api("/urunler-kuyruk-kapat",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({id:id})});
+ if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));}
+ kuyrukYukle();
 }
 async function kuyrukIptal(id){
  if(!confirm("Bekleyen üst yazım iptal edilsin mi?"))return;

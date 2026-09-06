@@ -173,6 +173,11 @@ function mockEnv(secenek) {
                           yazan: "panel", ts: a[3], hal: "beklemede" });
             return { meta: { changes: 1 } };
           }
+          if (/^UPDATE panel_ustyazim SET hal = 'kapandi' WHERE id = \? AND hal = 'hata'/.test(sql)) {
+            const t = kuyruk.find((x) => x.id === a[0] && x.hal === "hata");
+            if (t) { t.hal = "kapandi"; return { meta: { changes: 1 } }; }
+            return { meta: { changes: 0 } };
+          }
           if (/^DELETE FROM panel_ustyazim WHERE id = \? AND hal = 'beklemede'/.test(sql)) {
             const i = kuyruk.findIndex((s) => s.id === a[0] && s.hal === "beklemede");
             if (i >= 0) { kuyruk.splice(i, 1); return { meta: { changes: 1 } }; }
@@ -224,12 +229,13 @@ async function cagir(env, altYol, secenek) {
 }
 
 // ---------------------------------------------------------------- A. YETKI
-console.log("A. YETKI (T1+T2+sil 11 uc yonetim anahtari arkasinda; EGE acamaz)");
+console.log("A. YETKI (T1+T2+sil+kapat 12 uc yonetim anahtari arkasinda; EGE acamaz)");
 {
   const UCLAR = [["/urunler", "GET", undefined],
                  ["/urunler-kuyruk", "GET", undefined],
                  ["/urunler-ustyazim", "POST", { urun_id: "test-urun-a", alan: "fiyat", deger: "500 TL" }],
                  ["/urunler-ustyazim-sil", "POST", { id: 1 }],
+                 ["/urunler-kuyruk-kapat", "POST", { id: 1 }],
                  ["/urun-sil", "POST", { urun_id: "test-urun-a", onay: "test-urun-a", gerekce: "x" }],
                  ["/urun-gorseller", "GET", undefined],
                  ["/gorsel-yukle", "POST", new Uint8Array([0xff, 0xd8, 0xff, 1]).buffer],
@@ -1101,9 +1107,17 @@ console.log("N. kuyruk uc yuzey: bekleyen+hata DISARIDA, islendi KAPALI <details
   const disarisi = h.slice(0, detayYeri);
   const icerisi = h.slice(detayYeri);
 
-  ol("N1 bekleyen satirlar <details> DISINDA cizilir",
-     detayYeri > 0 && disarisi.indexOf("beklemede-01") >= 0 &&
-     disarisi.indexOf("beklemede-02") >= 0, "detay=" + detayYeri);
+  // 🔴 OLCUT KUTU, salt "disarida" DEGIL: bekleyen kolu olurse satirlar "bilinmeyen hal"
+  // kutusuna duser ve o da DISARIDA cizilir — yer olcutu mutanti YASATIYORDU (M-C).
+  const bekBas = h.indexOf("<b>Bekleyen (2)</b>");
+  const bekSonr = h.indexOf('<div class="kart">', bekBas + 1);
+  const bekKutu = bekBas < 0 ? "" : h.slice(bekBas, bekSonr > 0 ? bekSonr : detayYeri);
+  ol("N1 bekleyen satirlar BEKLEYEN kutusunda ve <details> DISINDA",
+     detayYeri > 0 && bekBas >= 0 && detayYeri > bekBas &&
+     bekKutu.indexOf("beklemede-01") >= 0 && bekKutu.indexOf("beklemede-02") >= 0,
+     "detay=" + detayYeri + " bekBas=" + bekBas);
+  ol("N1b tum haller TANIMLIYKEN 'Bilinmeyen hal' kutusu HIC dogmaz",
+     h.indexOf("Bilinmeyen hâl") < 0);
   ol("N2 HATA satirlari da <details> DISINDA (3'u de), icerde HIC yok",
      disarisi.indexOf("hata-01") >= 0 && disarisi.indexOf("hata-02") >= 0 &&
      disarisi.indexOf("hata-03") >= 0 && icerisi.indexOf("hata-") < 0 &&
@@ -1119,7 +1133,7 @@ console.log("N. kuyruk uc yuzey: bekleyen+hata DISARIDA, islendi KAPALI <details
      " disari=" + (disarisi.match(/class="satir"/g) || []).length);
   ol("N6 icerde YALNIZ islendi ve EN YENI 12 (04..15 var, 16 YOK)",
      icerisi.indexOf("islendi-04") >= 0 && icerisi.indexOf("islendi-15") >= 0 &&
-     h.indexOf("islendi-16") < 0 && h.indexOf("İşlendi (son 12 / 30)") >= 0);
+     h.indexOf("islendi-16") < 0 && h.indexOf("Geçmiş (son 12 / 30)") >= 0);
   ol("N7 Iptal dugmesi YALNIZ bekleyen satirlarda (2 tane; hata satirinda YOK)",
      (h.match(/kuyrukIptal\(/g) || []).length === 2,
      "iptal=" + (h.match(/kuyrukIptal\(/g) || []).length);
@@ -1130,14 +1144,125 @@ console.log("N. kuyruk uc yuzey: bekleyen+hata DISARIDA, islendi KAPALI <details
   ol("N8 hata yokken hata kutusu cizilmez, bekleyen kutusu ACIKCA 'yok' der",
      h2.indexOf("Hata (") < 0 && h2.indexOf("Bekleyen üst yazım yok") >= 0 &&
      h2.indexOf("kuyrukIptal(") < 0);
-  ol("N9 islendi 12'den azken baslik gercek sayiyi tasir (son 2 / 2), yine KAPALI",
-     h2.indexOf("İşlendi (son 2 / 2)") >= 0 && !/<details[^>]*\sopen/.test(h2));
+  ol("N9 gecmis 12'den azken baslik gercek sayiyi tasir (son 2 / 2), yine KAPALI",
+     h2.indexOf("Geçmiş (son 2 / 2)") >= 0 && !/<details[^>]*\sopen/.test(h2));
 
   // YALNIZ HATA: <details> HIC dogmaz (bos katlanir kutu cizilmez).
   const h3 = await kosVe([satirYap(1, "hata"), satirYap(2, "hata")]);
   ol("N10 islendi yokken <details> HIC dogmaz; 2 hata disarida durur",
      h3.indexOf("<details") < 0 && h3.indexOf("Hata (2)") >= 0 &&
      (h3.match(/class="satir"/g) || []).length === 2);
+}
+
+// ------------------------------------------ O. HATA SATIRINI KAPAT (/urunler-kuyruk-kapat)
+// Okan emri 6 Eyl: hata satirlari artik kalici gorunur oldugu icin (N blogu) kapatilabilmeli.
+// SILME DEGIL DAMGA: satir kuyrukta KALIR, hal='kapandi' olur, sebep/deger/ts DOKUNULMAZ.
+// hal boylece DORT DEGERLI olur; dorduncu degerin sessiz kovaya dusmedigi de burada olculur.
+console.log("O. hata satirini KAPAT: damga (silme YOK), yalniz 'hata', dorduncu hal");
+{
+  const kuyrukYap = () => [
+    { id: 1, urun_id: "test-urun-a", alan: "fiyat", deger: "500 TL", yazan: "panel",
+      ts: "2026-09-06T10:00:00Z", hal: "beklemede" },
+    { id: 2, urun_id: "test-urun-a", alan: "baslik", deger: "B", yazan: "panel",
+      ts: "2026-09-06T10:01:00Z", hal: "islendi", islendi_commit: "abc1234" },
+    { id: 3, urun_id: "test-urun-b", alan: "fiyat", deger: "0 TL", yazan: "panel",
+      ts: "2026-09-06T10:02:00Z", hal: "hata", sebep: "FIYAT_BICIMI" },
+  ];
+
+  const env = mockEnv({ kuyruk: kuyrukYap() });
+  const r = await cagir(env, "/urunler-kuyruk-kapat", { govde: { id: 3 } });
+  const satir = env.kuyruk.find((x) => x.id === 3);
+  ol("O1 'hata' satiri kapanir -> 200 + hal='kapandi'",
+     r.kod === 200 && !!r.govde && r.govde.kapanan === 1 && satir && satir.hal === "kapandi",
+     "kod=" + r.kod + " hal=" + (satir && satir.hal));
+  ol("O2 SILME YOK: satir kuyrukta KALIR, sebep/deger/ts DOKUNULMAZ",
+     env.kuyruk.length === 3 && satir.sebep === "FIYAT_BICIMI" &&
+     satir.deger === "0 TL" && satir.ts === "2026-09-06T10:02:00Z",
+     JSON.stringify(satir));
+  const r2 = await cagir(env, "/urunler-kuyruk-kapat", { govde: { id: 3 } });
+  ol("O3 ayni satir IKINCI kez -> 409 (kapandi tekrar kapanmaz)", r2.kod === 409, "kod=" + r2.kod);
+
+  const RED = [["O4 'beklemede' kapanmaz (iptal bacagi ayri)", 1],
+               ["O5 'islendi' kapanmaz (tabana cokmus gecmis)", 2],
+               ["O6 olmayan id", 99]];
+  for (const [ad, id] of RED) {
+    const e = mockEnv({ kuyruk: kuyrukYap() });
+    const y = await cagir(e, "/urunler-kuyruk-kapat", { govde: { id } });
+    const hepsi = e.kuyruk.map((x) => x.hal).join(",");
+    ol(ad + " -> 409 + HICBIR satirin hali degismez",
+       y.kod === 409 && hepsi === "beklemede,islendi,hata", "kod=" + y.kod + " haller=" + hepsi);
+  }
+
+  for (const [ad, govde, kod] of [["O7 bozuk govde", "BOZUK", 400],
+                                  ["O8 id metin", { id: "abc" }, 400],
+                                  ["O9 id sifir", { id: 0 }, 400],
+                                  ["O10 id negatif", { id: -3 }, 400]]) {
+    const e = mockEnv({ kuyruk: kuyrukYap() });
+    const y = await cagir(e, "/urunler-kuyruk-kapat", { govde });
+    ol(ad + " -> " + kod + " + kuyruk DOKUNULMAZ",
+       y.kod === kod && e.kuyruk.map((x) => x.hal).join(",") === "beklemede,islendi,hata",
+       "kod=" + y.kod);
+  }
+
+  const e3 = mockEnv({ kuyruk: kuyrukYap(), tabloYok: true });
+  const y3 = await cagir(e3, "/urunler-kuyruk-kapat", { govde: { id: 3 } });
+  ol("O11 kuyruk tablosu yok -> 503 (fail-closed; 'kapandi' yalani imkansiz)",
+     y3.kod === 503, "kod=" + y3.kod);
+}
+
+// ------------------------------- P. DORDUNCU HAL EKRANDA (kapandi) + BILINMEYEN HAL
+// 🔴 Yeni hal cozucunun VARSAYILAN kovasina dusmemeli. 'kapandi' katlanan "Gecmis"
+// kutusuna iner ama KENDI rozetiyle; semada olmayan bir hal ise KATLANMAZ, disarida
+// "Bilinmeyen hal" kutusunda ADIYLA yanar (INERT ya da sahte yesil YOK).
+console.log("P. dorduncu hal ekranda: 'kapandi' gecmiste, tanimsiz hal DISARIDA");
+{
+  const y = await yonet(istek(undefined, { "X-Yonet-Anahtar": YONET_ANAHTAR }, "GET"),
+    mockEnv(), new URL("https://ornek-site.test/api/shop/yonet/"), ctxYap(), "/", undefined);
+  const kod = (await y.text()).match(/<script>([\s\S]*)<\/script>/)[1];
+  const domYap = () => {
+    const kutular = new Map();
+    return { kutular, getElementById(id) {
+      if (!kutular.has(id)) {
+        kutular.set(id, { innerHTML: "", value: "", hidden: false, className: "",
+                          style: {}, files: [], querySelectorAll: () => [],
+                          setAttribute() {}, getAttribute() { return null; } });
+      }
+      return kutular.get(id);
+    } };
+  };
+  const kos = async (satirlar) => {
+    const dom = domYap();
+    const d = new Function("document", "fetch", "alert", "confirm",
+      kod + "\nreturn {kuyrukYukle:kuyrukYukle};")(
+      dom,
+      async (adres) => ({ status: 200, json: async () => (String(adres).indexOf("/urunler-kuyruk") >= 0
+        ? { satirlar, tablo_yok: false }
+        : { siparisler: [], urunler: [], bekleyen: {}, kuyruk_tablosu: true }) }),
+      () => {}, () => true);
+    await d.kuyrukYukle();
+    return dom.getElementById("kuyrukKutu").innerHTML;
+  };
+  const sat = (id, hal) => ({ id, urun_id: hal + "-" + id, alan: "fiyat", deger: "500 TL",
+    yazan: "panel", ts: "2026-09-06T12:00:00Z", hal, sebep: hal === "hata" ? "FIYAT_BICIMI" : null });
+
+  const h = await kos([sat(9, "hata"), sat(8, "kapandi"), sat(7, "islendi")]);
+  const detay = h.indexOf("<details");
+  ol("P1 'kapandi' KATLANAN kutuda (Gecmis), disarida DEGIL",
+     detay > 0 && h.slice(detay).indexOf("kapandi-8") >= 0 &&
+     h.slice(0, detay).indexOf("kapandi-8") < 0 && h.indexOf("Geçmiş (son 2 / 2)") >= 0);
+  ol("P2 'kapandi' KENDI rozetiyle cizilir (islendi ile karismaz)",
+     h.indexOf('<span class="rozet kapandi">kapandi</span>') >= 0);
+  ol("P3 'hata' satirinda KAPAT dugmesi var, digerlerinde YOK",
+     (h.match(/kuyrukKapat\(/g) || []).length === 1 && h.indexOf("kuyrukKapat(9)") >= 0);
+
+  const h2 = await kos([sat(5, "yepyeni-hal"), sat(4, "islendi")]);
+  const detay2 = h2.indexOf("<details");
+  ol("P4 SEMADA OLMAYAN hal KATLANMAZ: disarida, ADIYLA, kendi kutusunda",
+     h2.indexOf("Bilinmeyen hâl (1)") >= 0 &&
+     detay2 > 0 && h2.slice(0, detay2).indexOf("yepyeni-hal-5") >= 0 &&
+     h2.slice(detay2).indexOf("yepyeni-hal-5") < 0);
+  ol("P5 tanimsiz hal 'Gecmis' sayimina KARISMAZ (son 1 / 1)",
+     h2.indexOf("Geçmiş (son 1 / 1)") >= 0);
 }
 console.log("");
 console.log("TOPLAM: " + (gecen + kalan) + " iddia | GECEN " + gecen + " | KALAN " + kalan);

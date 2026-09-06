@@ -25,10 +25,14 @@
  *         POST /urunler-ustyazim, POST /urunler-ustyazim-sil)
  *   21  — 30 Agu 2026 (T2, Okan emri): gorsel/STL/kaynak link, 6 uc
  *   22  — 2 Eyl 2026 (`e35f092d`, Okan emri): tekil urun silme `/urun-sil`
+ *   23  — 6 Eyl 2026 (Okan emri): hata satirini KAPAT `POST /urunler-kuyruk-kapat`
+ *         — ayni yonetim anahtarinin arkasinda, SILMEZ: yalniz hal='hata' -> 'kapandi'
+ *         damgasi (deger/sebep/ts dokunulmaz). Kurallari shop/test/urunler-panel.mjs
+ *         O bolumunde olculur; burada YALNIZ kol sayilir.
  */
 
 /** `altYol === "` yonlendirici kolu sayisi — yetki yuzeyi genisledi mi? */
-export const KOL_TABANI = 22;
+export const KOL_TABANI = 23;
 
 /** `Content-Disposition` gecisi — yeni indirme/proxy/zip akisi acildi mi? */
 export const CD_TABANI = 2;
