@@ -1733,6 +1733,28 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/fikstur-bayat-capa-kapisi.py --mutasyon
 
+      # KAPI ENVANTERI — ZINCIR KOLU (6 Eyl 2026, BaBa 15:1xZ hukmunun (c) maddesi).
+      #
+      # 🔴 BURAYA `kapi-envanteri.py`nin KENDISI BAGLANMAZ, gerekce OLCULDU: o arac
+      # BU MAKINENIN kanca kablolamasini okur (`.claude/settings.json` +
+      # `core.hooksPath`). Kablolama git'te IZLENMEZ (CLAUDE.md: "kanca kablolamasi
+      # commit EDILMEZ"), yani kosucuda HIC YOKTUR — adim eklenseydi CI Okan'in
+      # diskini degil KOSUCUNUN diskini olcer, kalici bir KIRMIZI uretirdi
+      # ([[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]]).
+      # `kapi-envanteri-test.py` de baglanmaz: 6 Eyl olcumuyle 4 DURAN KIRMIZI
+      # tasiyor (ana repo envanterinden `rc=0` bekliyor; uc kapi 29 Agu'dan beri
+      # kablosuz oldugu icin rc=1). Duran kirmizi eklemek SERIT B'yi korlestirir.
+      #
+      # BAGLANAN sey KOLUN KENDISI: asagidaki batarya kablolamayi SENTETIK uretir,
+      # izole kopyada kosar ve her makinede AYNI tabani olcer — CI'da anlamlidir.
+      - name: "Kapi envanteri zincir kolu — kaynak varligi (SERIT B)"
+        if: ${{ !cancelled() }}
+        run: test -f tools/kapi-envanteri-zincir-mutasyon.py
+
+      - name: "Kapi envanteri zincir kolu mutasyon turu (4 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kapi-envanteri-zincir-mutasyon.py
+
       # KUTU ESIK KAPISI (tools/kutu-esik-kapisi.py) — K188. Yukaridaki arsivleyici
       # kutuyu TAVANA INDIREBILIYOR ama esigi YALNIZ kendisi biliyor; kutuya YAZAN yol
       # onu hic olcmuyordu. Sonuc: tavan asimi ancak biri ELLE bakinca goruluyor ve

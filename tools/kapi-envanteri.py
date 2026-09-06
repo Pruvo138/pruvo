@@ -492,16 +492,141 @@ def kanca_etiketi(root, dosya):
 
 
 def _hook_bagli(root, basename, dosya):
+    """DOGRUDAN kablo: kanca dosyasinin ICRA duzleminde ad geciyor mu?
+
+    🔴 6 EYL 2026 — `kapi-envanteri-zincir-mutasyon.py::M4` ile OLCULEN KORLUK:
+    burada bir ara ham metin okunuyordu (`basename in f.read()`), yani bir YORUM
+    satiri "kablo" sayiliyordu. Canli `pre-commit`in 101. satiri tam da
+    `# ... mimar-commit-kapisi SILINDI ...` diyor — yani bir SILINME KAYDI. Bugun
+    yanlis-yesil vermemesinin TEK sebebi o yorumun `.py` uzantisi tasimamasiydi;
+    biri yorumu `mimar-commit-kapisi.py` diye yazsa envanter kapiyi BAGLI sayardi.
+    M4 mutanti bunu birebir uretti ve kol YASADI. Cozum: kanca dosyasi da KOD
+    DUZLEMINDEN okunur — [[kapinin-menzili-cagri-yeridir]]."""
     yol = os.path.join(_hooks_dizini(root), dosya)
-    try:
-        with open(yol, encoding="utf-8") as f:
-            return basename in f.read()
-    except OSError:
+    if not os.path.isfile(yol):
         return False
+    return basename in kod_duzlemi_kabuk(yol)
+
+
+# ---------------------------------------------------------------------------
+# ZINCIR — DOLAYLI KABLOLAMA, BIR KAT (6 Eyl 2026, BaBa 15:1xZ hukmunun (c) maddesi)
+#
+# 🔴 NEDEN AST/TOKENIZE, NEDEN `grep` DEGIL (olculdu, BaBa'nin kendi turunda):
+# BaBa uc kapiyi "KURULU, dolayli" ilan ederken atif sayimini `grep -c` ile yapti ve
+# saydigi UC ATFIN UCU DE PROZA cikti:
+#     .git/pruvo-kancalar/pre-commit:101  `# ... mimar-commit-kapisi SILINDI ---`  (YORUM)
+#     tools/icra-kapisi.py:331            `mimar-icra-kapisi.py::iz_bas`ta da var` (DOCSTRING)
+#     tools/mimar-icra-kapisi.py:211      `... mimar-kod-kilidi.py ile BIREBIR AYNI
+#                                          — bilerek KOPYALANDI`                   (YORUM)
+# Sonuncusu tam TERSINI soyluyor: govde CAGRILMIYOR, KOPYALANDI. `grep -c` duzlem
+# ayirmadigi icin bir SILINME KAYDINI "kurulu" diye okudu — BaBa ayni turda
+# `settings.local.json`/`permissions.allow` icin bu hatayi kendisi tespit edip
+# duzeltmisti; hata bir duzlem oteye tasindi ([[izin-tablosu-duymadigini-kirmizi-yakmali]]).
+#
+# Bu yuzden zincir kolu KOD DUZLEMINDE olcer: yorumlar ve DOCSTRING/ciplak-dizge
+# deyimleri (yani hicbir zaman icra edilmeyen metin) SOKULUR, geri kalan dizge
+# sabitleri KALIR — cunku gercek bir cagri adi zaten bir dizge sabitinde tasinir
+# (`subprocess.run(["python3", os.path.join(TOOLS, "x.py")])`). Ayrim tam olarak
+# "proza mi, icra mi" ekseninde yapilir ([[kapinin-menzili-cagri-yeridir]]).
+# ---------------------------------------------------------------------------
+def kod_duzlemi_py(yol):
+    """`.py` dosyasinin ICRA EDILEN duzlemi: yorumlar + docstring/ciplak-dizge
+    deyimleri CIKARILMIS metin. Ayristirilamazsa ham metne duser (dar davranis:
+    zincir kolu yanlis-NEGATIF vermesin diye)."""
+    try:
+        with open(yol, encoding="utf-8", errors="replace") as f:
+            ham = f.read()
+    except OSError:
+        return ""
+    try:
+        agac = ast.parse(ham)
+    except SyntaxError:
+        return ham
+    proza = set()
+    for dugum in ast.walk(agac):
+        # Docstring + modul/sinif/fonksiyon icindeki ciplak dizge deyimleri:
+        # bunlar ifade DEYIMIDIR, hicbir cagriya girmez.
+        govde = getattr(dugum, "body", None)
+        if not isinstance(govde, list):       # IfExp.body bir IFADEdir, liste degil
+            continue
+        for alt in govde:
+            if (isinstance(alt, ast.Expr) and isinstance(alt.value, ast.Constant)
+                    and isinstance(alt.value.value, str)):
+                proza.add(id(alt.value))
+    parcalar = []
+    for dugum in ast.walk(agac):
+        if isinstance(dugum, ast.Constant) and isinstance(dugum.value, str):
+            if id(dugum) in proza:
+                continue                       # PROZA — icra duzleminde degil
+            parcalar.append(dugum.value)
+        elif isinstance(dugum, ast.Name):
+            parcalar.append(dugum.id)
+        elif isinstance(dugum, ast.Attribute):
+            parcalar.append(dugum.attr)
+    return "\n".join(parcalar)
+
+
+def kod_duzlemi_kabuk(yol):
+    """Kabuk betiginin icra duzlemi: `#` ile baslayan satirlar SOKULUR.
+    Satir ici `#` KORUNUR (kabukta dizge icinde mesru olabilir) — dar davranis."""
+    try:
+        with open(yol, encoding="utf-8", errors="replace") as f:
+            satirlar = f.readlines()
+    except OSError:
+        return ""
+    return "".join(s for s in satirlar if not s.lstrip().startswith("#"))
+
+
+def kod_duzlemi(yol):
+    return kod_duzlemi_py(yol) if yol.endswith(".py") else kod_duzlemi_kabuk(yol)
+
+
+def bagli_giris_noktalari(root):
+    """FIILEN kayitli giris noktalari: settings.json PreToolUse kanca komutlarindan
+    cozulen betik yollari + etkin kanca dizinindeki pre-commit/pre-push.
+
+    Doner: [(etiket, mutlak_yol)]. Zincirin BIRINCI kati budur; ikinci kat bu
+    dosyalarin KOD DUZLEMIDIR."""
+    noktalar = []
+    ayar = os.path.join(root, ".claude", "settings.json")
+    try:
+        with open(ayar, encoding="utf-8") as f:
+            veri = json.load(f)
+    except (OSError, ValueError):
+        veri = {}
+    for blok in (veri.get("hooks") or {}).get("PreToolUse") or []:
+        for k in blok.get("hooks") or []:
+            komut = k.get("command") or ""
+            for jeton in komut.replace('"', " ").replace("'", " ").split():
+                if not jeton.endswith(".py"):
+                    continue
+                # `${CLAUDE_PROJECT_DIR:-.}/tools/x.py` -> olculen repoya cozulur
+                dilim = jeton[jeton.index("tools/"):] if "tools/" in jeton else jeton
+                aday = dilim if os.path.isabs(dilim) else os.path.join(root, dilim)
+                if os.path.isfile(aday):
+                    noktalar.append(("settings/%s" % blok.get("matcher"), aday))
+    for dosya in ("pre-commit", "pre-push"):
+        yol = os.path.join(_hooks_dizini(root), dosya)
+        if os.path.isfile(yol):
+            noktalar.append((kanca_etiketi(root, dosya), yol))
+    return noktalar
+
+
+def zincir_bagli_mi(root, basename):
+    """(c) ZINCIR: kapi, BAGLI bir giris noktasinin KOD DUZLEMINDEN cagriliyor mu?
+
+    Bir kat izlenir (hukumde yazildigi gibi). Doner: (bool, aciklama)."""
+    for etiket, yol in bagli_giris_noktalari(root):
+        if basename in kod_duzlemi(yol):
+            return True, "%s -> %s" % (etiket, os.path.basename(yol))
+    return False, ""
 
 
 def bagli_mi(root, gate):
-    """(b) BAGLI: bildirilen TUM kablolar gercekten kayitli mi?"""
+    """(b) BAGLI: bildirilen TUM kablolar gercekten kayitli mi?
+
+    Dogrudan kablo yoksa ZINCIR (bir kat, kod duzlemi) denenir — bagli bir giris
+    noktasinin govdesinden cagriliyorsa kapi KURULU sayilir."""
     basename = os.path.basename(gate["script"])
     eksikler = []
     for k in gate["kablolar"]:
@@ -513,7 +638,14 @@ def bagli_mi(root, gate):
             etiket = kanca_etiketi(root, k["dosya"])
         if not ok:
             eksikler.append(etiket)
-    return (not eksikler), (", ".join(eksikler))
+    if not eksikler:
+        return True, ""
+    z_ok, z_not = zincir_bagli_mi(root, basename)
+    if z_ok:
+        return True, "zincir: " + z_not
+    return False, (", ".join(eksikler) + " kayitli DEGIL; zincir de (bir kat, "
+                   "kod duzlemi — %d bagli giris noktasi tarandi) CAGRI YERI BULMADI"
+                   % len(bagli_giris_noktalari(root)))
 
 
 def nobette_mi(root, gate):
@@ -590,7 +722,7 @@ def main():
         if not v_ok:
             eksik_rapor.append("%s: VAR degil — %s" % (g["ad"], v_not))
         if not b_ok:
-            eksik_rapor.append("%s: BAGLI degil — %s kayitli degil" % (g["ad"], b_not))
+            eksik_rapor.append("%s: BAGLI degil — %s" % (g["ad"], b_not))
         if n_muaf:
             # 🔴 Bu satir BILEREK "NOBETTE degil" DEMEZ: kapinin olu oldugu iddia
             # EDILMIYOR, olcumun yapilamadigi soyleniyor. Yesil de degildir.
