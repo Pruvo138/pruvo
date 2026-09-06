@@ -349,7 +349,10 @@ C2_YENI = '''def bolum_g(nk, ek=""):
             for _s in _d:
                 if not _s.startswith("| K"):
                     continue
-                _kol = _s.split("|")
+                # 🔴 K382 kanonik BOLUCU (nk uzerinden tek kaynaktan gelir).
+                # Bagimsizlik iddiasi DURUM SOZLUGU duzlemindedir (asagidaki
+                # literal), AYIRICI duzleminde DEGIL.
+                _kol = nk.hucrelere_bol(_s)
                 if len(_kol) < 7:
                     continue
                 if _kol[5].strip() in nk.ONARILACAK_DURUMLAR:

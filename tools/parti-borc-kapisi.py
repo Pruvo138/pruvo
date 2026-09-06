@@ -446,6 +446,22 @@ def acik_kalem_yolu(ev, koku_root=None):
 # kolon sayisi tutmazsa ya da durum sutunu bos ise okunamadi sayilir (fail-closed).
 TabloSatir = re.compile(r"^\s*\|.*\|\s*$")
 
+# 🔴 K382 (c) — KALEM SATIRI SEKLI (TEK KAYNAK).
+# `TabloSatir` satirin `|` ile BITMESINI de sart kosar. Bir kalem satirinin
+# sonundaki `|` unutulursa satir `TabloSatir`a UYMAZ ve dongunun ILK satirinda
+# `continue` ile SESSIZCE duser: ne sayilir, ne gecersiz kovasina girer, ne de
+# RED metninde adi gecer. OLCULDU (6 Eyl, 8 ev): KraL/ORTAK defterinde 2 satir
+# (K89 L107, K91 L109) tam olarak boyle kayboluyordu — ikisi de ACIK/🔧.
+# Bu kalip "kalem satiri OLMAYA CALISIYOR" seklini yakalar; boyle bir satir
+# `TabloSatir`a uymuyorsa ARTIK SESSIZ DUSMEZ, fail-closed RED'e gider.
+KalemSatiriSekli = re.compile(r"^\s*\|\s*(?P<kimlik>[A-Za-z][A-Za-z0-9_.\-]*)\s*\|")
+
+# Kalem KIMLIGI kanonik kalibi (TEK KAYNAK). Ciplak okuyucular kendi
+# `^K\d+$` kaliplarini TUTMAZ: o dar kalip `K339-EK` · `K329-EK` ·
+# `K351-31AGU` · `K320b` gibi kimlikleri GORMEZ ve capraz kontrolu sessizce
+# ayristirir ([[ikiz-tanim-sessiz-ayrisma]]).
+KalemKimligi = re.compile(r"^K\d+[A-Za-z]*(?:-[A-Za-z0-9]+)*$")
+
 # 🔴 K380 (b) TUZAGI — AYRAC SATIRI. Markdown tablo ayraci `|---|---|...|---|`
 # split sonrasi 8 parca verir (>=7), yani `len(kolonlar) < 7` elemesinden
 # GECER ve `kolonlar[5]` = `"---"` olur. Kanonik-disi durum kolu bu satiri
@@ -454,11 +470,69 @@ TabloSatir = re.compile(r"^\s*\|.*\|\s*$")
 # `:--`, `--:`, `:-:` ve bosluk varyantlari ayni kova.
 AyracHucre = re.compile(r"^[\s:\-]+$")
 
+# ==============================================================================
+# 🔴 K382 (6 Eyl 2026) — KACIS KORLUGU. KANONIK HUCRE BOLUCU (TEK KAYNAK).
+# ==============================================================================
+# OLCULEN ARIZA (canli KraL defteri, iddia degil — `--kendini-test` disi olcum):
+# markdown'in KANONIK pipe kacisi `\|` bir hucrenin ICINDE gecerli icerittir ve
+# tarayicida DOGRU render olur. Ham `satir.split("|")` bu kacisi TANIMAZ:
+#
+#   L41  K371   ham 9 kolon  -> ham[5]='ege: test KOSULAMADI…'   (gercek: 🔧)
+#   L126 K313   ham 15 kolon -> ham[5]='select((.gorseller//[])\\' (gercek: ACIK)
+#   L144 K339   ham 10 kolon -> ham[5]='\\'                       (gercek: ACIK)
+#
+# Yani DEFTER DOGRU, OKUYUCU YANLIS. Bu uc satir aylardir HIC okunmadi: durum
+# hucresi kanonik olmadigi icin ya `GECERSIZ_DURUM` kovasina dusuyor (fail-closed
+# RED, hukum uretilemiyor) ya da kaymadan dogan BOS hucre `if not durum: continue`
+# ile SESSIZCE atlaniyordu.
+#
+# 🔴 NEDEN TEK YARDIMCI, NEDEN HER CAGRI YERINDE ELLE DEGIL: bu tabloyu okuyan
+# ON BIR cagri yeri var (kapinin kendisi + devir + korgoz uc kol + kral-sabah +
+# CANLI `nobet-kapi.py`'nin parser'i VE IKI YAZMA yolu). Kacis cozumunu her
+# yerde tekrar yazmak IKIZ TANIM uretir ve ikizler DAIMA gevsek yone ayrisir
+# ([[ikiz-tanim-sessiz-ayrisma]]). Cozum TEK yardimcidir; okuyucular buraya
+# sorar, ikinci bir yuklem KURMAZ.
+#
+# 🔴 GERI UYUMLULUK (regresyon 0): kacissiz bir satirda `hucrelere_bol` ciktisi
+# `satir.split("|")` ile BIREBIR AYNIDIR (ayni uzunluk, ayni indeksler, bas/son
+# bos eleman korunur). Bu yuzden mevcut `kolonlar[1]/[4]/[5]/[6]` indeksleri ve
+# `len(kolonlar) < 7` elemesi DEGISMEDEN calisir.
+#
+# 🔴 KURAL DAR TUTULDU: yalnizca `|` ONUNDEKI ters bolu kacistir. Genel ters-bolu
+# kacisi (`\\`) UYGULANMAZ — canli defterde `\\|` gecisi OLCULDU: 0. Genel kacis
+# eklemek mevcut hucre metinlerini sessizce degistirirdi.
+KacissizAyirici = re.compile(r"(?<!\\)\|")
+
+
+def hucrelere_bol(satir):
+    """Markdown tablo satirini hucrelere bolar; `\\|` hucre ICERIGIDIR.
+
+    `satir.split("|")` yerine BUNU cagir. Doner: hucre listesi — bas ve son
+    eleman bostur (ham split ile ayni sozlesme). Kacis COZULUR: hucre metnindeki
+    `\\|` gercek `|` karakterine doner, boylece hucre icerigi tarayicida
+    gorunen metinle AYNI olur.
+
+    Ters islem: `hucreleri_birlestir` (YAZMA yolu icin — kacis GERI konur).
+    """
+    return [h.replace("\\|", "|") for h in KacissizAyirici.split(satir)]
+
+
+def hucreleri_birlestir(kolonlar):
+    """`hucrelere_bol`un TERSI: hucreleri `|`-ayrilmis satira geri cevirir.
+
+    🔴 YAZMA YOLLARI BUNU KULLANMAK ZORUNDA: `"|".join(...)` ile birlestirmek,
+    kacisi COZULMUS bir hucredeki `|` karakterini AYIRICI'ya cevirir ve satiri
+    bir sonraki okumada KALICI olarak parcalar (sessiz defter bozulmasi).
+    Hucre icindeki her `|` yeniden `\\|` olarak kacirilir; kacissiz bir satir
+    bol->birlestir turunda BAYT BAYT AYNI kalir.
+    """
+    return "|".join(h.replace("|", "\\|") for h in kolonlar)
+
 
 def _ayrac_satiri_mi(kolonlar):
     """Markdown tablo AYRAC satiri mi? (tum govde hucreleri yalniz -,:,bosluk)
 
-    kolonlar: `satir.split("|")` ciktisi — bas ve son eleman bostur.
+    kolonlar: `hucrelere_bol(satir)` ciktisi — bas ve son eleman bostur.
     Govde BOSSA False doner (bos satir ayrac degildir).
     """
     govde = kolonlar[1:-1] if len(kolonlar) >= 2 else []
@@ -517,8 +591,19 @@ def acik_kalem_listesi(defter_yolu, *, gecersiz_sink=None):
     tablo_basladi = False
     for satir_no, satir in enumerate(icerik.splitlines(), start=1):
         if not TabloSatir.match(satir):
+            # 🔴 K382 (c): kalem satiri SEKLINDE olup tabloya UYMAYAN satir
+            # SESSIZCE DUSMEZ. (Sondaki `|` unutulmus satir bu koldan gecer.)
+            m_sekil = KalemSatiriSekli.match(satir)
+            if m_sekil and gecersiz_sink is not None:
+                gecersiz_sink.append({
+                    "kimlik": m_sekil.group("kimlik"),
+                    "durum": "<SATIR BICIMI BOZUK — satir `|` ile BITMIYOR>",
+                    "satir_no": satir_no,
+                })
             continue
-        kolonlar = [k.strip() for k in satir.split("|")]
+        # 🔴 K382: KANONIK bolucu. Ham `satir.split("|")` markdown'in `\|`
+        # kacisini tanimaz ve kolonlari KAYDIRIR (canli defterde 3 satir).
+        kolonlar = [k.strip() for k in hucrelere_bol(satir)]
         # Markdown tablosunda: "" | col1 | col2 | ... | colN | ""
         # Yani split sonrasi: ['', col1, col2, ..., colN, '']
         if len(kolonlar) < 7:
@@ -530,8 +615,17 @@ def acik_kalem_listesi(defter_yolu, *, gecersiz_sink=None):
             continue
         # 5. sutun (1-indeksli) = kolonlar[5]; 0-indeksli = 5
         durum = kolonlar[5].strip()
-        if not durum:
-            continue
+        # 🔴 K382 (b) — BOS DURUM HUCRESI ARTIK SESSIZCE ATLANMAZ.
+        # OLCULEN ARIZA: kolon kaymasi durum hucresini BOS birakabilir; eski
+        # `if not durum: continue` boyle bir satiri GECERSIZ kovasina bile
+        # sokmadan dusuruyordu. Canli KraL/ORTAK defterinde K339-EK (L147) tam
+        # olarak bunun yuzunden GECERSIZ_DURUM sayisinda GORUNMUYORDU —
+        # kapinin kendi RED metni onu HIC saymadi. Bos hucre kanonik bes
+        # degerden biri DEGILDIR: asagidaki `durum not in KANONIK_DURUMLAR`
+        # kolu onu fail-closed RED'e goturur.
+        # MENZIL OLCULDU (yama oncesi, 8 ev): bos durumlu satir = 1 fiziksel
+        # satir (KraL ve ORTAK ayni dosyayi gosteriyor) — bu kol baska hicbir
+        # evi kirmiziya yakmaz.
         # Ilk gecerli tablo satiri baslik DEGILSE — saymaya basla.
         # (Baslikta "durum" sozcugu durum degil; "Durum"/"durum" stringi
         #  eslestirilmez.)
@@ -908,9 +1002,42 @@ def _k380_m_b_yama(kaynak):
     return capa.sub(_degistir, kaynak, count=1), None
 
 
+def _k382_m_c_yama(kaynak):
+    """M-c: KACIS KOLUNU SOKER (`\\|` yine ayirici sayilir = yama oncesi hal)."""
+    # 🔴 CAPA `re.escape` ile kurulur: govde satiri ters-bolu ve tirnak
+    # tasiyor; elle kacirmak capayi sessizce COZULMEZ yapardi
+    # ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
+    govde = ('    return [h.replace("\\\\|", "|") '
+             'for h in KacissizAyirici.split(satir)]')
+    capa = re.compile("^%s$" % re.escape(govde), re.M)
+    n = len(capa.findall(kaynak))
+    if n != 1:
+        return None, ("CAPA-COZULMEDI M-c: `hucrelere_bol` govde satiri "
+                      "kaynakta %d kez eslesti (1 bekleniyordu)" % n)
+    yeni = '    return satir.split("|")  # K382 M-c MUTANT — kacis kolu SOKULDU'
+    return capa.sub(lambda _m: yeni, kaynak, count=1), None
+
+
+def _k382_m_d_yama(kaynak):
+    """M-d: AYRAC SATIRI elemesini OLDURUR (`|---|---|` durum sayilir)."""
+    capa = re.compile(r"^(?P<girinti>[ ]+)if _ayrac_satiri_mi\(kolonlar\):$", re.M)
+    n = len(capa.findall(kaynak))
+    if n != 1:
+        return None, ("CAPA-COZULMEDI M-d: `if _ayrac_satiri_mi(kolonlar):` "
+                      "kaynakta %d kez eslesti (1 bekleniyordu)" % n)
+
+    def _degistir(m):
+        return "%sif False:  # K382 M-d MUTANT — ayrac elemesi OLDURULDU" % m.group("girinti")
+    return capa.sub(_degistir, kaynak, count=1), None
+
+
 K380_MUTANTLARI = {
     "M-a": ("(a) OKAN-KAPISI borctan CIKAR", _k380_m_a_yama),
     "M-b": ("(b) gecersiz durum hucresi -> fail-closed RED", _k380_m_b_yama),
+    # 🔴 K382 — iki YENI kol, ikisi de AYRI mutantla kanitlanir.
+    "M-c": ("(c) `\\|` kacisi hucre icerigidir (kolon kaymasi YOK)", _k382_m_c_yama),
+    "M-d": ("(d) markdown AYRAC satiri elenir (kapi kendi ayracina takilmaz)",
+            _k382_m_d_yama),
 }
 
 
@@ -1084,6 +1211,123 @@ def k380_bataryasi(esik, koku_root):
     return adimlar, gecici
 
 
+def _k382_kacisli_defter_yaz(defter_yol, kacisli=True):
+    """K382 fiksturu: `is` hucresinde markdown KACISLI `\\|` tasiyan 1 ACIK satir.
+
+    kacisli=False ise AYNI satir kacissiz yazilir (KONTROL kolu): o hal
+    gercekten bozuk bir defterdir ve HER IKI govdede de ayni davranmalidir —
+    mutantin farki yalnizca KACISLI satirda gorunmelidir.
+    """
+    ayirici = "\\|" if kacisli else "|"
+    satirlar = [
+        "# AÇIK KALEM DEFTERİ (sentetik — K382)",
+        "",
+        "| id | tarih | kimden→kime | iş | durum | kapanış kanıtı |",
+        "|---|---|---|---|---|---|",
+        "| K901 | 2026-09-06 | sentetik→sentetik | grep -E '^(YAZILDI%sUYARI)' testi "
+        "| ACIK | kabul: python3 tools/sentetik-kabul.py |" % ayirici,
+    ]
+    dizin = os.path.dirname(defter_yol)
+    if dizin and not os.path.isdir(dizin):
+        os.makedirs(dizin, exist_ok=True)
+    with open(defter_yol, "w", encoding="utf-8") as f:
+        f.write("\n".join(satirlar) + "\n")
+
+
+def k382_bataryasi(esik, koku_root):
+    """M-c (kacis kolu) + M-d (ayrac elemesi), IZOLE kopya mutantlariyla.
+
+    Her adim hedef kolunu AYRICA kanitlar (K182): mutantin urettigi kirmizinin
+    SEBEBI o kol mu? Bunun icin her mutantin YANINDA bir KONTROL olculur —
+    kolun DOKUNMADIGI bir fiksturde mutant ile gercek govde AYNI davranmali.
+    """
+    adimlar = []
+    gecici = tempfile.mkdtemp(prefix=K380_MUTANT_ONEK)
+
+    # ---------------- M-c: KACIS KOLU -------------------------------------
+    defter_kacisli = os.path.join(koku_root, "KraL", ACIK_KALEM_DOSYA)
+    _k382_kacisli_defter_yaz(defter_kacisli, kacisli=True)
+    gercek_kacisli = parti_engeli_var_mi("KraL", esik=esik, koku_root=koku_root)
+
+    # KONTROL fiksturu: kacisSIZ ayni satir. Kacis kolu bu satira DOKUNMAZ,
+    # yani gercek govde ile mutant AYNI sonucu vermeli.
+    defter_duz = os.path.join(koku_root, "ArTisT", ACIK_KALEM_DOSYA)
+    _k382_kacisli_defter_yaz(defter_duz, kacisli=False)
+    gercek_duz = parti_engeli_var_mi("ArTisT", esik=esik, koku_root=koku_root)
+
+    mut_c, hata_c = _k380_mutant_yukle("M-c", gecici)
+    if mut_c is None:
+        adimlar.append(("M-c", T4_OLCULEMEDI_JETON, False,
+                        "IZOLE KOPYA KURULAMADI: %s" % hata_c, gercek_kacisli))
+    else:
+        mutant_kacisli = mut_c.parti_engeli_var_mi("KraL", esik=esik,
+                                                   koku_root=koku_root)
+        mutant_duz = mut_c.parti_engeli_var_mi("ArTisT", esik=esik,
+                                               koku_root=koku_root)
+        gecti = (
+            # (1) GERCEK govde: kacisli satir DOGRU okunur -> 1 ACIK kalem,
+            #     gecersiz YOK, hukum T4-BORC (esik 0 asildi).
+            gercek_kacisli["GECERSIZ_DURUM_SAYISI"] == 0
+            and gercek_kacisli["OLCULEMEDI"] is False
+            and gercek_kacisli["ACIK_SAYISI"] == 1
+            and (gercek_kacisli["RED_SEBEBI"] or "").startswith(T4_BORC_JETON + " ")
+            # (2) MUTANT: kacis kolu sokulunce AYNI satir kayar; durum hucresi
+            #     kanonik olmaktan cikar -> fail-closed T4-OLCULEMEDI.
+            and mutant_kacisli["OLCULEMEDI"] is True
+            and mutant_kacisli["GECERSIZ_DURUM_SAYISI"] == 1
+            and mutant_kacisli["ACIK_SAYISI"] == 0
+            # (3) HEDEF-KOL ATFI (K182): kacisSIZ fiksturde mutant ile gercek
+            #     govde AYNI davranir -> kirmizinin sebebi KACIS KOLUDUR,
+            #     genel bir bozulma DEGIL.
+            and gercek_duz["GECERSIZ_DURUM_SAYISI"] == mutant_duz["GECERSIZ_DURUM_SAYISI"]
+            and gercek_duz["OLCULEMEDI"] == mutant_duz["OLCULEMEDI"]
+            and gercek_duz["ACIK_SAYISI"] == mutant_duz["ACIK_SAYISI"]
+        )
+        adimlar.append(("M-c", T4_OLCULEMEDI_JETON, gecti,
+                        "`\\|` kacisli satir GERCEK govdede ACIK=1 (gecersiz 0); "
+                        "izole kopyada kacis kolu SOKULUNCE ayni satir kayar ve "
+                        "T4-OLCULEMEDI RED olur; kacisSIZ KONTROL fiksturunde "
+                        "mutant ile gercek govde AYNI -> kirmizinin sebebi BU kol",
+                        gercek_kacisli))
+
+    # ---------------- M-d: AYRAC SATIRI ELEMESI ---------------------------
+    # Fikstur: kanonik durumlu, AYRAC satiri TASIYAN normal defter.
+    defter_ayrac = os.path.join(koku_root, "HocA", ACIK_KALEM_DOSYA)
+    _sentetik_defter_yaz(defter_ayrac, acik_sayisi=0,
+                         durum_dagilimi={KAPALI_DURUM: 2})
+    gercek_ayrac = parti_engeli_var_mi("HocA", esik=esik, koku_root=koku_root)
+
+    mut_d, hata_d = _k380_mutant_yukle("M-d", gecici)
+    if mut_d is None:
+        adimlar.append(("M-d", T4_OLCULEMEDI_JETON, False,
+                        "IZOLE KOPYA KURULAMADI: %s" % hata_d, gercek_ayrac))
+    else:
+        mutant_ayrac = mut_d.parti_engeli_var_mi("HocA", esik=esik,
+                                                 koku_root=koku_root)
+        gecti = (
+            # (1) GERCEK govde: ayrac elenir -> gecersiz YOK, defter TEMIZ GECER
+            gercek_ayrac["GECERSIZ_DURUM_SAYISI"] == 0
+            and gercek_ayrac["RED"] is False
+            and (gercek_ayrac["GECER_MESAJI"] or "").startswith(T4_TEMIZ_JETON + " ")
+            # (2) MUTANT: eleme oldurulunce `|---|---|` satirinin `---` hucresi
+            #     durum sayilir -> HER defter kirmizi yanar (kapinin kendi
+            #     ayracina takilmasi, [[kurucu-kendi-kapisina-takilir]]).
+            and mutant_ayrac["OLCULEMEDI"] is True
+            and mutant_ayrac["GECERSIZ_DURUM_SAYISI"] >= 1
+            # 🔴 HEDEF-KOL ATFI (K182): kirmizinin sebebi AYRAC hucresi olmali.
+            # Yalnizca "kirmizi geldi" demek yetmez — RED metninde gecersiz
+            # durum olarak BIREBIR `'---'` gorunmeli.
+            and "'---'" in (mutant_ayrac["HATA"] or "")
+        )
+        adimlar.append(("M-d", T4_OLCULEMEDI_JETON, gecti,
+                        "ayracli defter GERCEK govdede T4-TEMIZ GECER; izole "
+                        "kopyada ayrac elemesi OLDURULUNCE `---` hucresi durum "
+                        "sayilir ve T4-OLCULEMEDI RED olur",
+                        gercek_ayrac))
+
+    return adimlar, gecici
+
+
 def kendini_test(repo_kok, esik, koku_root):
     """6 mutant + 1 kontrol + izolasyon. Her biri hedef kolunu AYRICA kanitlar.
 
@@ -1247,6 +1491,12 @@ def kendini_test(repo_kok, esik, koku_root):
     k380_adimlari, k380_gecici = k380_bataryasi(esik, koku_root)
     adimlar.extend(k380_adimlari)
 
+    # === K382 — M-c + M-d (IZOLE KOPYA MUTANTLARI) =========================
+    # 🔴 KraL/ArTisT/HocA fiksturlerini YENIDEN yazar; bu yuzden K380'den SONRA
+    # ve ozet basimindan ONCE kosar (onceki adimlarin sonuclari zaten alindi).
+    k382_adimlari, k382_gecici = k382_bataryasi(esik, koku_root)
+    adimlar.extend(k382_adimlari)
+
     # ---- ozet bas -------------------------------------------------------
     print("T4 PARTI BORC KAPISI — KENDINI-TEST")
     print("izolasyon koku (defterler): %s" % koku_root)
@@ -1290,6 +1540,9 @@ def kendini_test(repo_kok, esik, koku_root):
     silindi = _k380_gecici_temizle(k380_gecici)
     print("K380 IZOLE MUTANT DIZINI: %s -> silindi=%s"
           % (k380_gecici, "EVET" if silindi else "HAYIR"))
+    silindi382 = _k380_gecici_temizle(k382_gecici)
+    print("K382 IZOLE MUTANT DIZINI: %s -> silindi=%s"
+          % (k382_gecici, "EVET" if silindi382 else "HAYIR"))
     print("")
 
     print("MUTANT=%d/%d" % (mutant_sayaci, len(adimlar)))

@@ -255,14 +255,27 @@ def t4_defter(NK, cikti):
     sayac = {}
     satir_sayisi = 0
     try:
+        # Kanonik BOLUCU (b) blogundaki yuklemeden BAGIMSIZ olarak alinir:
+        # (b) coktuyse (c) yine olcebilmelidir.
+        _T4B = modul_yukle("parti_borc_kapisi_bolucu", T4_YOLU)
         with open(DEFTER, encoding="utf-8") as f:
             for satir in f:
                 if not satir.startswith("| K"):
                     continue
-                kolon = satir.split("|")
+                # 🔴 K382: "hicbir parser kullanmaz" sozlesmesi HUKUM
+                # duzleminde gecerlidir — AYIRICI duzleminde degil. Ham
+                # `split("|")` markdown'in `\|` kacisini tanimadigi icin bu
+                # BAGIMSIZ okuyucu, A ve B okuyucularla AYNI korlugu paylasiyor
+                # ve capraz kontrolu bosa dusuruyordu
+                # ([[oz-denetim-ayni-ayraci-kullanirsa-korlesir]]). Kanonik
+                # BOLUCU'ye baglandi; kanonik PARSER'a DEGIL — bagimsizlik durur.
+                kolon = _T4B.hucrelere_bol(satir)
                 if len(kolon) < 7:
                     continue
-                if not re.match(r"^K\d+$", kolon[1].strip()):
+                # 🔴 K382 (d): dar `^K\d+$` kalibi `K339-EK`/`K329-EK`/
+                # `K351-31AGU`/`K320b` kimliklerini GORMEZ (canli defterde 4).
+                # Kanonik kalip TEK KAYNAKTAN alinir.
+                if not _T4B.KalemKimligi.match(kolon[1].strip()):
                     continue
                 satir_sayisi += 1
                 durum = kolon[5].strip()
@@ -270,7 +283,7 @@ def t4_defter(NK, cikti):
         cikti.append("OKUYUCU_C ciplak_kolon5 K_SATIR=%d DAGILIM=%s"
                      % (satir_sayisi, json.dumps(sayac, ensure_ascii=False,
                                                  sort_keys=True)))
-    except OSError as hata:
+    except Exception as hata:   # noqa: BLE001 — bolucu yuklenemezse ADIYLA
         cikti.append("OKUYUCU_C_OLCULEMEDI sebep=%r" % (hata,))
 
 
