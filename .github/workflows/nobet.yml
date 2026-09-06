@@ -3209,14 +3209,23 @@ jobs:
       # tutari ON KAT buyutuyordu — SEPET/ODEME dahil (Okan canlida 200 TL'lik urunu
       # "2.000,00 TL" gordu). Tip sozlesmesi yalnizca JSON tipini olctugu icin bozuk
       # deger yakalanmiyordu: "250.0 TL" bir str'dir.
-      # 12 iddia + 4 OLDURUCU mutant (M1: nokta yine binlik sanilir · M2: sozlesme her
-      # seyi kabul eder · M3: price_number ikinci ayristirma kuralina doner · M4: kurus
-      # ASAGI yuvarlanir) + 2 KONTROL mutant (K1/K2 YESIL kalmali).
-      # Bloklayici: ayristirma kurali ikinci kez kopyalanirsa markup <-> kart <-> sepet
-      # sessizce ayrisir ve musteriye YANLIS TUTAR ilan edilir.
+      # 12 iddia + 4 OLDURUCU kural mutanti (M1: nokta yine binlik sanilir · M2: sozlesme
+      # her seyi kabul eder · M3: price_number ikinci ayristirma kuralina doner · M4:
+      # kurus ASAGI yuvarlanir) + 2 KONTROL mutant (K1/K2 YESIL kalmali).
+      # 🔴 6 Eyl 2026 — ADIM ADI "mutant testi" DIYORDU AMA MUTANT KOSMUYORDU: komut duz
+      # `fiyat-bicim-test.py` idi, yani M1..M4 yalniz ELLE cagrilabilen kollardi. Ayni
+      # gun bu kor nokta canlida is yaradi: `ecc71b61` FIYAT_GIRDI_RX'i genis hale
+      # getirdi ("500.123 TL" kabule dondu) ve batarya 12/12 YESIL yandi. Menzil artik
+      # AYRI bir eksen: M5 (genis halin birebir kendisi) · M6 (kurus hanesi 3) · M7
+      # (bas hane [1-9] -> [0-9], sifir capasi duser) OLDURUCU, K3 esdeger yazim KONTROL.
+      # `--kendini-test` once bataryayi, sonra 10 mutanti kosar (menzil mutantlari IZOLE
+      # mkdtemp kokunde, iki ikize birden uygulanir; ev agacina YAZILMAZ).
+      # Bloklayici: ayristirma kurali ikinci kez kopyalanirsa ya da girdi kalibinin
+      # MENZILI gevserse markup <-> kart <-> sepet sessizce ayrisir ve musteriye YANLIS
+      # TUTAR ilan edilir.
       - name: Fiyat bicim sozlesmesi kabul + mutant testi (para yolu)
         if: ${{ !cancelled() }}
-        run: python3 tools/fiyat-bicim-test.py
+        run: python3 tools/fiyat-bicim-test.py --kendini-test
 
       # ALT KATEGORI MUSTERI YUZEYI. Yukaridaki kapi alanin VERI/D1 yolunu korur; bu adim
       # o verinin MUSTERIYE GORUNEN yuzunu korur — ikisi AYRI eksendir, veri yolu yesilken

@@ -281,15 +281,24 @@ console.log("B. KUYRUK YAZIMI (beyaz liste + bicim + parametrik + cogaltmama)");
     ["B3 beyaz liste disi alan (kategori)", { urun_id: "test-urun-a", alan: "kategori", deger: "Ev" }, 400],
     ["B3b beyaz liste disi alan (uyelik — gizli duzlem kuyruga giremez)",
      { urun_id: "test-urun-a", alan: "uyelik", deger: "x" }, 400],
+    // EMIR KAYNAGI (bu dosya 6 Eyl'de UC KEZ gidip geldi — 7f9c8d90 kaldirdi, bf80afe5
+    // geri getirdi, ec4b33c0 hizaladi; DORDUNCU turu onlemek icin her vakanin yaninda
+    // hangi emirden geldigi YAZILI. Vakayi degistirmeden once bu satiri oku.)
     ["B4a fiyat bicimi: TL'siz", { urun_id: "test-urun-a", alan: "fiyat", deger: "500" }, 400],
+    //   ^ ozgun panel sozlesmesi; Okan 6 Eyl "dar hale geri cek" ile TEYIT (d3dd8f6d)
     ["B4b fiyat bicimi: kucuk tl", { urun_id: "test-urun-a", alan: "fiyat", deger: "500 tl" }, 400],
+    //   ^ ozgun panel sozlesmesi; ayni emirle TEYIT — genis kalip bunu kabule ceviriyordu
     ["B4c fiyat bicimi: 0 ile baslar", { urun_id: "test-urun-a", alan: "fiyat", deger: "0 TL" }, 400],
+    //   ^ sifir tutar YASAK (kalibin `[1-9]` capasi); fiyat-bicim-test M7 bunu korur
     // NOT: eski "B4d ondalik -> 400" vakasi 6 Eyl 2026 Okan emriyle POZITIF hale gecti;
     // normalize + YUKARI yuvarlama artik asagidaki B11 bolumunde olculur (B11c/B11d/B11e).
     // Ondalik REDDEDILMEZ, TAM TL'ye cevrilir; noktalama yine katologa GIRMEZ.
     // Bu vaka onun TERSI ekseni: COZULEMEYEN ondalik (uc hane) fail-closed REDDEDILIR.
     ["B4d2 fiyat bicimi: cozulemeyen ondalik (uc hane)",
      { urun_id: "test-urun-a", alan: "fiyat", deger: "500.123 TL" }, 400],
+    //   ^ Okan 6 Eyl "noktalamaya izin verme": kurus hanesi 2'den fazlaysa COZULEMEZ.
+    //     `ecc71b61`in genis kalibinda bu deger 500123 TL olarak KABUL ediliyordu —
+    //     ayni gun 616 kayitta kapatilan "nokta binlik ayracidir" sinifi. M5/M6 korur.
     ["B5 parametrik urunde fiyat", { urun_id: "test-parametrik", alan: "fiyat", deger: "500 TL" }, 400],
     ["B6 olmayan urun", { urun_id: "boyle-urun-yok", alan: "fiyat", deger: "500 TL" }, 404],
     ["B7a bicimsiz id (buyuk harf)", { urun_id: "Test-Urun", alan: "fiyat", deger: "500 TL" }, 400],
@@ -323,6 +332,8 @@ console.log("B. KUYRUK YAZIMI (beyaz liste + bicim + parametrik + cogaltmama)");
 console.log("B11. fiyat girdi normalizasyonu (noktalama YOK, kurus YUKARI)");
 {
   const NORM = [
+    // EMIR KAYNAGI: Okan 6 Eyl, birebir "kurus miktari yukari yuvarlansin (200.1 -> 201)".
+    // Bu IKI vaka emrin BIREBIR kendisidir; POZITIF vakalar YALNIZ burada tutulur.
     ["B11c ondalik .00 (kurus YOK)", "500.00 TL", "500 TL"],
     ["B11d kurus YUKARI yuvarlanir", "200.1 TL", "201 TL"],
   ];
@@ -351,6 +362,9 @@ console.log("B11. fiyat girdi normalizasyonu (noktalama YOK, kurus YUKARI)");
                  ["B11a TL'siz girdi (kalip disi)", "500"],
                  ["B11b kucuk 'tl' (kalip disi)", "500 tl"],
                  ["B11e TL'siz virgullu (kalip disi)", "249,01"],
+                 // ^ EMIR KAYNAGI: Okan 6 Eyl "noktalamaya izin verme". `1.250 TL`i
+                 //   1250'ye cevirmek, ayni gun 616 kayitta kapatilan sinifi GERI ACAR;
+                 //   girdi kapisi bu belirsizligi COZMEZ, fail-closed REDDEDER.
                  ["B11f BELIRSIZ noktalama: binlik mi kurus mu", "1.250 TL"]];
   for (const [ad, girdi] of REDDE) {
     const env = mockEnv();
