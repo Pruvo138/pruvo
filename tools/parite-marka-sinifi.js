@@ -34,8 +34,22 @@ const REFERANS = require("./index-arama-referansi.js");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 
-/** Katalog yolu: PARITE_URUNLER verilirse o, yoksa bu agacin urunler.json'u. */
-const URUNLER_YOLU = process.env.PARITE_URUNLER || path.join(__dirname, "..", "urunler.json");
+/**
+ * Katalog yolu: PARITE_URUNLER verilirse o, yoksa bu agacin urunler.json'u.
+ *
+ * 🔴 CAGRI ANINDA COZULUR, MODUL YUKLENIRKEN DEGIL (6 Eyl 2026 — OLCULDU, SM1 koku).
+ * Fikstur harness'i TEK surecte SENTETIK kataloglar kurar ve sahte ucu bu govdeyle
+ * besler; ama harness'in KENDI surecinde `PARITE_URUNLER` yoktu, yani sentetik katalogun
+ * `marka_kanon` haritasi URETIM katalogundan cozuluyordu. Olculdu: sentetik katalogtan
+ * `capa-3-3 -> ["Volvo","Opel"]` (baslıktaki tam jetondan turer), GERCEK katalogtan
+ * `capa-3-3 -> null` (29.298 kayit, sentetik id'lerin HICBIRI yok). Sonuc: `uyeMi` sahte
+ * ucta FALSE, cocukta TRUE -> `?q=Opel&marka=Opel` icin uc 3, yerel 4 dondu ve SM1
+ * "gerileme" diye rapor etti. Kusur uretimde DEGIL, OLCUM ORTAMININ SEKLINDEYDI.
+ * Yol cagri aninda cozulunce harness senaryo basina dogru katalogu isaret edebilir.
+ */
+function urunlerYoluCoz() {
+  return process.env.PARITE_URUNLER || path.join(__dirname, "..", "urunler.json");
+}
 
 /**
  * D1 uretim govdesinin urettigi marka_kanon haritasini al.
@@ -43,6 +57,15 @@ const URUNLER_YOLU = process.env.PARITE_URUNLER || path.join(__dirname, "..", "u
  * @param {string} urunlerYolu
  * @returns {Object}  {id: JSON metin}
  */
+// ⏱️ MALIYET NOTU (6 Eyl 2026, OLCULDU): bu cagri `marka-kanon-uret.py`yi `execFileSync`
+// ile kosar — SENKRONDUR, yani node olay dongusu boyunca BLOKE eder. URETIM katalogunda
+// olculdu **~22 sn** (`ps` cagiran node'u %0 CPU gosterir; CPU'yu python cocugu yakar —
+// olcum ARACI bu yuzden "bloke degil" diye yaniltir). Sentetik/kucuk katalogta ~0.
+// 🔴 BURAYA SUREC ICI ONBELLEK EKLENDI ve GERI ALINDI: onarimdan sonra tek tek olculdu,
+// HICBIR iddiayi tasimiyordu (onbellek kapaliyken S8 **7/0, 0,9 sn**; tum suit 15,6 sn).
+// Tasimayan kod kapsam yanilsamasidir. Yol duzeltmesi (asagidaki `urunlerYoluCoz`)
+// maliyeti zaten kokunden dusuruyor: fikstur artik 20 bin urunluk uretim katalogunu
+// DEGIL, kendi sentetik katalogunu cozuyor.
 function markaKanonHaritasiAl(urunlerYolu) {
   const betik = path.join(__dirname, "marka-kanon-uret.py");
   const cikti = execFileSync("python3", [betik, "--urunler", urunlerYolu], {
@@ -83,7 +106,13 @@ function markaSinifi(urunler) {
   if (!Array.isArray(urunler)) {
     throw new SinifHatasi("marka sinifi: katalog dizi DEGIL -> sinif turetilemez");
   }
-  if (_bellek.has(urunler)) { return _bellek.get(urunler); }
+  // 🔴 ONBELLEK ANAHTARI = DIZI KIMLIGI **+ KATALOG YOLU**. Yol cagri aninda cozuldugu
+  // icin AYNI dizi iki farkli katalog yoluyla sorulabilir; yol anahtara girmezse ilk
+  // cagrinin sinifi ikincisine SESSIZCE servis edilir (tam da SM1'i doguran korluk).
+  const yol = urunlerYoluCoz();
+  if (!_bellek.has(urunler)) { _bellek.set(urunler, new Map()); }
+  const yolBellegi = _bellek.get(urunler);
+  if (yolBellegi.has(yol)) { return yolBellegi.get(yol); }
 
   let R;
   try { R = REFERANS.referans(); } catch (e) {
@@ -94,7 +123,7 @@ function markaSinifi(urunler) {
     throw new SinifHatasi("referansta markaKatla YOK -> sinif turetilemez");
   }
 
-  const markaKanon = markaKanonHaritasiAl(URUNLER_YOLU);
+  const markaKanon = markaKanonHaritasiAl(yol);
 
   const evren = [];
   const gorulen = new Set();
@@ -143,7 +172,7 @@ function markaSinifi(urunler) {
       try { return JSON.parse(mk).indexOf(kanon) !== -1; } catch (_) { return false; }
     },
   };
-  _bellek.set(urunler, sonuc);
+  yolBellegi.set(yol, sonuc);
   return sonuc;
 }
 

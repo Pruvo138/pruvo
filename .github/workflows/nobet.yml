@@ -3055,6 +3055,23 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/marka-arama-d1-test.py
 
+      # 🔴 BAYAT CAPA NOBETI (6 Eyl 2026, KraL-CapaFikstur-6Eyl — OLCULDU). Yukaridaki
+      # adimi koruyan mutasyon bataryasinin M7 mutanti `d1-sync.py::ZORUNLU_KOLONLAR`in
+      # O GUNKU UCLU yazimina SABIT DIZGE olarak civiliydi. Liste iki kolon buyuyunce
+      # (`tavsiye_filament`, `boy_secenekleri`) capa `CAPA-YOK(0)` verdi: mutant HIC
+      # UYGULANMADI, yani "kolon zorunlu yapilirsa senkron duser" ekseni SESSIZCE
+      # KORUMASIZ kaldi. Capa artik kaynaktan TURETILIR; bu adim TURETICININ KENDISINI
+      # olcer (sentetik olarak BUYUTULMUS kolon listesinde capa hala cozuluyor mu +
+      # cozulemeyen her hal None mi doner). ~0,1 sn, ag/veritabani YOK.
+      # Bataryanin TAMAMI (18 mutant) BILEREK burada kosmuyor: her mutant kapinin tam
+      # kosumudur, olculen sure ~20 dk -> SERIT B'yi kilitler. Bayatlama SINIFINI bu ucuz
+      # nobetci yakalar; batarya elle kosulur (python3 tools/marka-arama-mutasyon.py).
+      - name: Marka arama mutasyon bataryasi — M7 TURETICI CAPA (kendini test + mutasyon)
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/marka-arama-mutasyon.py --kendini-test
+          python3 tools/marka-arama-mutasyon.py --mutasyon
+
       # K302 KAPI: urunler.json'da uyum tasir ama top-level marka bos olan kayitlari
       # KIRLI sayar. TABAN_BOS_UYUMLU=0 olculdu — geriye donuk borc yok; kapinin isi
       # yazim ONCESI koruma. CRITIC: girisim sirasinda mevcut 0 kalmazsa bile yeni
@@ -4426,6 +4443,15 @@ jobs:
       # batarya CI disinda kalirsa mutasyon kaniti SESSIZCE bayatlar (olculdu 10 Agu 2026:
       # mutlak sinir degisince M4 capasi koreldi, kabul kolu YESIL kalirken kanit dusmustu).
       # Batarya da tamamen AGSIZDIR ve ~2 sn surer, bu kolun sozlesmesini bozmaz.
+      # 🔴 OLCUM ORTAMI KOLU (6 Eyl 2026): `parite-fikstur-olcum-ortami-mutasyon.py`
+      # fiksturun KENDI olcum ortamini olcer. S8 ve SM1 3 turdur kirmiziydi ve koku ORTAK:
+      # `parite-marka-sinifi.js` katalog yolunu MODUL YUKLENIRKEN cozdugu icin harness
+      # sentetik katalogun `marka_kanon` haritasini 20 bin urunluk URETIM katalogundan
+      # aliyordu -> (a) SM1'de `uyeMi` sessizce FALSE (uc 3 / yerel 4), (b) S8'de
+      # `marka-kanon-uret.py`nin ~22 sn'lik SENKRON kosumu ISTEK ISLEYICISINDE odeniyor,
+      # ilk parti eszamanli istek onun arkasinda kuyruga giriyordu. 4 OLDURUCU (3'u SM1
+      # kolu, 1'i S8 zamanlama kolu) + 4 KONTROL (biri BEYAN EDILMIS kor nokta: iki tarafi
+      # AYNI sekilde korlestiren degisiklik ayrisma URETMEZ). Agsiz, ~1 dk.
       - name: Arama parite karar-cekirdegi (sozlesme + fikstur + yayin penceresi + tavan, AGSIZ)
         if: ${{ !cancelled() }}
         run: |
@@ -4434,6 +4460,7 @@ jobs:
           node tools/parite-yayin-fikstur-test.js
           node tools/parite-tavan-test.js --kendini-test
           node tools/parite-etiket-test.js
+          python3 tools/parite-fikstur-olcum-ortami-mutasyon.py
 
       # MODEL UYELIGI — /marka/<marka>/<model>/ SAYFASI ile ANA SAYFA FILTRESI AYNI URUNLERI
       # GOSTERIYOR MU (2026-08-04). OLCULEN SESSIZ HATA: model kirilimi YALNIZ `marka[1]`den
