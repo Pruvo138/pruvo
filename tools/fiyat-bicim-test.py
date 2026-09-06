@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """FIYAT BICIM SOZLESMESI kabul testi (6 Eyl 2026, Okan emri) — offline, tek basina.
 
-    python3 tools/fiyat-bicim-test.py            # kabul kosumu
-    python3 tools/fiyat-bicim-test.py M1         # mutant kanitı (M1..M4 OLDURUCU)
-    python3 tools/fiyat-bicim-test.py K1         # KONTROL mutanti (YESIL kalmali)
+    python3 tools/fiyat-bicim-test.py                # kabul kosumu
+    python3 tools/fiyat-bicim-test.py M1             # mutant kanitı (M1..M4 OLDURUCU)
+    python3 tools/fiyat-bicim-test.py K1             # KONTROL mutanti (YESIL kalmali)
+    python3 tools/fiyat-bicim-test.py --kendini-test # CI kolu: batarya + 10 mutant
 
 NEDEN VAR — HATA SINIFI SESSIZ VE PARALI (canlida olculdu):
   Katalogda 616 kayit "250.0 TL" bicimindeydi. Noktayi TURKCE BINLIK AYRACI sanan UC
@@ -39,6 +40,7 @@ CIKIS: 0 yesil · 1 kirmizi · 2 OLCULEMEDI (node yok -> IKIZ KURAL kolu kosamaz
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -87,6 +89,14 @@ YUVARLAMA = [
     ("abc", None),
     ("", None),
     ("0 TL", None),              # -> B4c
+    # 🔴 SINIF KAPISI (Okan 6 Eyl: "dar hale geri cek, sonra it"). Asagidaki UC satir
+    # girdi kalibinin KENDI sinir vakalaridir — tekil bir hata degil, MENZIL olculur.
+    # Neden gerekli, OLCULEREK: bu satirlar eklenmeden once `[1-9]` -> `[0-9]` mutanti
+    # (M7) bataryayi 12/12 YESIL birakip kaciyordu; sifir capasi sessizce dusuyordu.
+    # Menzili koruyan kol: --kendini-test (M5/M6/M7 OLDURUCU, K3 KONTROL).
+    ("500.123 TL", None),        # kurus hanesi 2'den FAZLA -> cozulemez (panel B4d2)
+    ("0.5 TL", None),            # bas hane 0 YASAK; "0.5 TL" 1 TL'ye yuvarlanamaz
+    ("0,5 TL", None),            # ayni sinir, virgullu ikizi
 ]
 
 
@@ -194,11 +204,141 @@ def js_ikizi():
 
 
 # --------------------------------------------------------------------- kabul
+# ------------------------------------------------------- MENZIL MUTANTLARI (sinif)
+# M1..M4 ayristirma KURALINI mutasyona ugratir ama girdi kalibinin MENZILINI olcmez.
+# 6 Eyl 2026'da bu kor nokta canlida ise yaradi: `ecc71b61` FIYAT_GIRDI_RX'i genis hale
+# getirdi ("500.123 TL" kabule dondu) ve bu batarya 12/12 YESIL yandi. Menzil, kaynak
+# dosyadaki KALIP DIZGESIDIR; onu olcmek icin mutant IKI IKIZE de (arama.py + yonet.js)
+# ayni anda uygulanmali ve batarya BASTAN kosulmalidir.
+#
+# 🔴 Mutant DAIMA IZOLE bir kopyada kosar: gecici kok tempfile.mkdtemp ile acilir, ev
+# agacindaki dosyalar SYMLINK'lenir, yalniz iki ikiz GERCEK dosya olarak yazilir.
+# Ev yoluna hicbir sey yazilmaz ve hicbir sey silinmez (silinen daima mkdtemp koku).
+DAR_JS = "const FIYAT_GIRDI_RX = /^([1-9][0-9]{0,5})(?:[.,]([0-9]{1,2}))? TL$/;"
+DAR_PY = '    m = re.match(r"^([1-9]\\d{0,5})(?:[.,](\\d{1,2}))? TL$", ham)'
+
+# (ad, js kalibi, py satiri, OLDURUCU mu, tek cumle gerekce)
+MENZIL_MUTANTLARI = [
+    ("M5 GENIS (ecc71b61'in birebir hali)",
+     "const FIYAT_GIRDI_RX = /^\\s*((?:[0-9]{1,3}(?:\\.[0-9]{3})+|[0-9]+))"
+     "(?:[.,]([0-9]{1,2}))?\\s*(?:TL|TRY|\u20ba)?(?:\\s*\\([^()]{1,40}\\)"
+     "|\\/[^\\s\\/]{1,20})?\\s*$/i;",
+     '    m = re.match(r"^(" + FIYAT_SAYI_RE + r")(?:[.,](\\d{1,2}))?\\s*(?:"'
+     " + FIYAT_BIRIMI_RE\n                 + r\")?\" + FIYAT_EK_RE + r\"\\s*$\","
+     " ham, re.I)",
+     True, "binlik-nokta dali geri gelir: '500.123 TL' 500123 olarak KABUL edilir"),
+    ("M6 KURUS3 (kurus hanesi 2 -> 3)",
+     DAR_JS.replace("[0-9]{1,2}", "[0-9]{1,3}"),
+     DAR_PY.replace("\\d{1,2}", "\\d{1,3}"),
+     True, "'500.123 TL' cozulebilir sayilir; belirsiz noktalama kabule doner"),
+    ("M7 SIFIR (bas hane [1-9] -> [0-9])",
+     DAR_JS.replace("[1-9][0-9]{0,5}", "[0-9][0-9]{0,5}"),
+     DAR_PY.replace("[1-9]\\d{0,5}", "[0-9]\\d{0,5}"),
+     True, "sifir capasi duser: '0.5 TL' 1 TL'ye yuvarlanir"),
+    ("K3 ESDEGER (dar halin ayni anlamli yeniden yazimi)",
+     "const FIYAT_GIRDI_RX = /^([1-9][0-9]{0,5})(?:[.,]([0-9]{1,2}))?[ ]TL$/;",
+     '    m = re.match(r"^([1-9][0-9]{0,5})(?:[.,]([0-9]{1,2}))? TL$", ham)',
+     False, "KONTROL: menzil AYNI, yalniz yazim degisti -> YESIL kalmali"),
+]
+
+
+def _izole_kok(js_yeni, py_yeni):
+    """Ev agacini symlink'leyen, iki ikizi MUTASYONLU yazan gecici kok dondurur."""
+    kok = tempfile.mkdtemp(prefix="fiyat-bicim-menzil-mut-")
+    for ad in os.listdir(KOK):
+        if os.path.isfile(os.path.join(KOK, ad)):
+            os.symlink(os.path.join(KOK, ad), os.path.join(kok, ad))
+    os.makedirs(os.path.join(kok, "tools"))
+    for ad in os.listdir(TOOLS):
+        if ad != "arama.py":
+            os.symlink(os.path.join(TOOLS, ad), os.path.join(kok, "tools", ad))
+    os.makedirs(os.path.join(kok, "shop", "src"))
+    kaynak_shop = os.path.join(KOK, "shop", "src")
+    for ad in os.listdir(kaynak_shop):
+        if ad != "yonet.js":
+            os.symlink(os.path.join(kaynak_shop, ad),
+                       os.path.join(kok, "shop", "src", ad))
+
+    def yaz(hedef, kaynak, eski, yeni):
+        with open(kaynak, encoding="utf-8") as f:
+            s = f.read()
+        # 🔴 CAPA COKMESI SESSIZ GECMEZ: kalip bulunamazsa ya da mutant capayi hic
+        # degistirmiyorsa mutant ULASMAMISTIR — bu bir OLCUM ARIZASIDIR, yesil degil.
+        if eski not in s or eski == yeni:
+            shutil.rmtree(kok)
+            return None
+        with open(hedef, "w", encoding="utf-8") as f:
+            f.write(s.replace(eski, yeni, 1))
+        return hedef
+
+    if yaz(os.path.join(kok, "tools", "arama.py"),
+           os.path.join(TOOLS, "arama.py"), DAR_PY, py_yeni) is None:
+        return None
+    if yaz(os.path.join(kok, "shop", "src", "yonet.js"),
+           os.path.join(KOK, "shop", "src", "yonet.js"), DAR_JS, js_yeni) is None:
+        return None
+    return kok
+
+
+def _kosum(kok):
+    """Bataryayi verilen kokte BASTAN kosar; (rc, kirmizi iddia adlari) dondurur."""
+    p = subprocess.run([sys.executable, os.path.join(kok, "tools", "fiyat-bicim-test.py")],
+                       capture_output=True, text=True, timeout=600)
+    kirmizi = [s.split("  ", 1)[-1].strip()
+               for s in p.stdout.splitlines() if s.startswith("KIRMIZI")]
+    return p.returncode, kirmizi
+
+
+def kendini_test():
+    """Bataryanin KENDI kapsamini olcer: mutantlar gercekten oluyor mu?"""
+    print("KENDINI-TEST — menzil + kural mutantlari (izole kopyada)")
+    kayit = []
+
+    rc, _ = _kosum(KOK)
+    kayit.append(("TABAN (mutantsiz kosum)", rc == 0, "rc=%d" % rc, True))
+
+    for ad in ["M1", "M2", "M3", "M4"]:
+        p = subprocess.run([sys.executable, os.path.abspath(__file__), ad],
+                           capture_output=True, text=True, timeout=600)
+        kayit.append((ad + " kural mutanti OLDURUCU", p.returncode != 0,
+                      "rc=%d" % p.returncode, True))
+    for ad in ["K1", "K2"]:
+        p = subprocess.run([sys.executable, os.path.abspath(__file__), ad],
+                           capture_output=True, text=True, timeout=600)
+        kayit.append((ad + " KONTROL yesil kalmali", p.returncode == 0,
+                      "rc=%d" % p.returncode, True))
+
+    for ad, js_yeni, py_yeni, oldurucu, gerekce in MENZIL_MUTANTLARI:
+        kok = _izole_kok(js_yeni, py_yeni)
+        if kok is None:
+            kayit.append((ad, False, "CAPA TUTMADI — mutant ULASMADI (olcum arizasi)",
+                          True))
+            continue
+        try:
+            rc, kirmizi = _kosum(kok)
+        finally:
+            # Silinen DAIMA mkdtemp koku; ev agacindaki dosyalar SYMLINK oldugu icin
+            # yalniz baglar dusler, hedefler durur.
+            assert kok.startswith(tempfile.gettempdir()), "izole olmayan kok: %s" % kok
+            shutil.rmtree(kok)
+        ok = (rc != 0) if oldurucu else (rc == 0)
+        kayit.append((ad + (" OLDURUCU" if oldurucu else " KONTROL"), ok,
+                      "rc=%d kirmizi=%s | %s" % (rc, kirmizi or "yok", gerekce), True))
+
+    for ad, ok, ek, _ in kayit:
+        print("%s %s  [%s]" % ("GECTI " if ok else "KIRMIZI", ad, ek))
+    kalan = sum(1 for _, ok, _, _ in kayit if not ok)
+    print("KENDINI-TEST SONUC: %d/%d iddia GECTI" % (len(kayit) - kalan, len(kayit)))
+    return 1 if kalan else 0
+
+
 def main():
     arg = sys.argv[1] if len(sys.argv) == 2 else ""
     if len(sys.argv) > 2:
-        print("KULLANIM: fiyat-bicim-test.py [M1|M2|M3|M4|K1|K2]")
+        print("KULLANIM: fiyat-bicim-test.py [M1|M2|M3|M4|K1|K2|--kendini-test]")
         return 1
+    if arg == "--kendini-test":
+        return kendini_test()
     mutant_uygula(arg)
     sonuc = []
 
