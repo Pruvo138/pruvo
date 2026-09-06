@@ -33,7 +33,7 @@ Yeni sabit dizge cakmak ayni sinifi bir sonraki buyumede geri getirirdi
 ([[capa-turetme-altyapisi-kullanilmadan-kaldi]] · [[kopya-turetilemiyorsa-bayatlik-olculemez]]).
 COZUM: capa bir FONKSIYONDUR — kaynagin KENDISINDEN `(eski, yeni)` cifti turetir. Turetemezse
 donus None'dir ve batarya o mutanti ADIYLA `CAPA-COZULMEDI` diye KIRMIZI yakar; sessiz 0 YOK.
-Turetici capasinin kendi bataryasi: `python3 tools/marka-arama-mutasyon.py --kendini-test`
+Turetici capasinin kendi bataryasi ISCIYE: `python3 tools/marka-arama-mutasyon.py --kendini-test`
 (sentetik olarak BUYUTULMUS kolon listesinde capanin hala cozuldugunu IZOLE kopyada olcer).
 
 NASIL: mutant DAIMA KOPYAYA uygulanir (gercek agac degismez). ROOT'un tamami gecici bir

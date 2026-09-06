@@ -464,11 +464,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/recete-kapisi.py
 
-      # RECETE KAPISI OZ-NOBETCI — 3 mutant + 2 kontrol kendi kendini testi.
+      # RECETE KAPISI OZ-NOBETCI — 5 mutant + 2 kontrol kendi kendini testi.
+      # M5 (6 Eyl 2026): komut GOVDESI yakinlik penceresinden okunursa gec baslayan
+      # python3 komutu ORTASINDAN kesilir; mutant fix'i soker ve V8 fiksturunun
+      # kirpildigini ADIYLA gosterir.
       # Kol kendi mutant fiksturu uzerinden KENDI kirmizisini gercekten yakar; bayraksiz
       # kosumda sadece production kodu calisir ve mutantlarin bir kismi kapinin KENDI
       # oz-testi olmadan SESSIZ kalabilirdi. ~<1 s.
-      - name: Recete kapisi oz-nobetcisi (4 mutant + 2 kontrol, dogrudan)
+      - name: Recete kapisi oz-nobetcisi (5 mutant + 2 kontrol, dogrudan)
         if: ${{ !cancelled() }}
         run: python3 tools/recete-kapisi.py --kendini-test
 
@@ -1692,7 +1695,7 @@ jobs:
       # ULASMADI=0 KONTROL=YESIL. Yani eksik olan DAVRANIS degil KABLOLAMAYDI
       # ([[kapinin-menzili-cagri-yeridir]]: kablolanmamis kapi bir mesajdir).
       # NEDEN SERIT B: offline, sentetik git fiksturleri; canli repoya dokunmaz.
-      - name: "Cip kapatma kilavuzu kabul bataryasi (20 iddia, SERIT B)"
+      - name: "Cip kapatma kilavuzu kabul bataryasi (24 iddia, SERIT B)"
         if: ${{ !cancelled() }}
         run: python3 tools/cip-kapat-test.py
 
