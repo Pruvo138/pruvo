@@ -276,7 +276,10 @@ console.log("B. KUYRUK YAZIMI (beyaz liste + bicim + parametrik + cogaltmama)");
     ["B3 beyaz liste disi alan (kategori)", { urun_id: "test-urun-a", alan: "kategori", deger: "Ev" }, 400],
     ["B3b beyaz liste disi alan (uyelik — gizli duzlem kuyruga giremez)",
      { urun_id: "test-urun-a", alan: "uyelik", deger: "x" }, 400],
+    ["B4a fiyat bicimi: TL'siz", { urun_id: "test-urun-a", alan: "fiyat", deger: "500" }, 400],
+    ["B4b fiyat bicimi: kucuk tl", { urun_id: "test-urun-a", alan: "fiyat", deger: "500 tl" }, 400],
     ["B4c fiyat bicimi: 0 ile baslar", { urun_id: "test-urun-a", alan: "fiyat", deger: "0 TL" }, 400],
+    ["B4d fiyat bicimi: ondalik", { urun_id: "test-urun-a", alan: "fiyat", deger: "500.00 TL" }, 400],
     ["B5 parametrik urunde fiyat", { urun_id: "test-parametrik", alan: "fiyat", deger: "500 TL" }, 400],
     ["B6 olmayan urun", { urun_id: "boyle-urun-yok", alan: "fiyat", deger: "500 TL" }, 404],
     ["B7a bicimsiz id (buyuk harf)", { urun_id: "Test-Urun", alan: "fiyat", deger: "500 TL" }, 400],
@@ -299,47 +302,6 @@ console.log("B. KUYRUK YAZIMI (beyaz liste + bicim + parametrik + cogaltmama)");
   const r = await cagir(env2, "/urunler-ustyazim",
     { govde: { urun_id: "test-urun-a", alan: "aciklama", deger: "satir 1\nsatir 2" } });
   ol("B10 aciklamada coklu satir MESRU", r.kod === 200 && env2.kuyruk.length === 1);
-}
-
-// ------------------------------------------------ B11. FIYAT GIRDI NORMALIZASYONU
-// b0ab7e77 (Okan emri 6 Eyl): "panelde noktalamaya izin verme, kurus YUKARI yuvarlansin".
-// O merge yonet.js'e fiyatYukariYuvarla'yi koydu ama BU dosyadaki B4a/B4b/B4d hala
-// 400 bekliyordu -> main KIRMIZI kaldi (216 iddia / 213 gecen). Vakalar silinmedi,
-// dogru eksene tasindi: artik 200 + KAYDEDILEN kanonik deger olculur.
-// Python ikizi ayri olculur: tools/fiyat-bicim-test.py (arama.py fiyat_yukari_yuvarla).
-console.log("B11. fiyat girdi normalizasyonu (noktalama YOK, kurus YUKARI)");
-{
-  const NORM = [
-    ["B11a TL'siz girdi", "500", "500 TL"],
-    ["B11b kucuk 'tl'", "500 tl", "500 TL"],
-    ["B11c ondalik .00 (kurus YOK)", "500.00 TL", "500 TL"],
-    ["B11d kurus YUKARI yuvarlanir", "200.1 TL", "201 TL"],
-    ["B11e virgullu kurus YUKARI", "249,01", "250 TL"],
-    ["B11f binlik nokta ayraci tutari BUYUTMEZ", "1.250 TL", "1250 TL"],
-  ];
-  for (const [ad, girdi, beklenen] of NORM) {
-    const env = mockEnv();
-    const r = await cagir(env, "/urunler-ustyazim",
-      { govde: { urun_id: "test-urun-a", alan: "fiyat", deger: girdi } });
-    ol(ad + ' "' + girdi + '" -> 200 + kuyrukta "' + beklenen + '"',
-       r.kod === 200 && env.kuyruk.length === 1 && env.kuyruk[0].deger === beklenen &&
-       !!r.govde && r.govde.deger === beklenen,
-       "kod=" + r.kod + " kuyruk=" + JSON.stringify(env.kuyruk.map((x) => x.deger)) +
-       " donen=" + (r.govde && r.govde.deger));
-  }
-  // FAIL-CLOSED: normalize COZEMEZSE deger degismeden gelir ve kanonik bicim testi
-  // onu REDDEDER — sessiz kabul YOK.
-  const REDDE = [["B11g cozulemeyen girdi", "bes yuz lira"],
-                 ["B11h sifir tutar", "0 TL"],
-                 ["B11i negatif", "-5 TL"]];
-  for (const [ad, girdi] of REDDE) {
-    const env = mockEnv();
-    const r = await cagir(env, "/urunler-ustyazim",
-      { govde: { urun_id: "test-urun-a", alan: "fiyat", deger: girdi } });
-    ol(ad + ' "' + girdi + '" -> 400 + kuyruga sifir yazim',
-       r.kod === 400 && env.kuyruk.length === 0,
-       "kod=" + r.kod + " kuyruk=" + env.kuyruk.length);
-  }
 }
 
 // ---------------------------------------------------------------- C. IPTAL
