@@ -1680,7 +1680,7 @@ jobs:
       # o yuzden ci-kapsam-test.py::IZIN_LISTESI'nde R_HOOK ile durur — davranisinin
       # TAMAMI asagidaki batarya ile kosar. NEDEN SERIT B: offline, sentetik
       # transkript fiksturu, canli repoya dokunmaz, ~0,4 s.
-      - name: "Baglam kotasi kapisi kabul bataryasi (44 iddia, 7 OLDURUCU mutant + kontrol, SERIT B)"
+      - name: "Baglam kotasi kapisi kabul bataryasi (48 iddia, 7 OLDURUCU mutant + kontrol, SERIT B)"
         if: ${{ !cancelled() }}
         run: python3 tools/baglam-kotasi-test.py
 

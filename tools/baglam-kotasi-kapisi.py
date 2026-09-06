@@ -9,7 +9,8 @@ NEDEN VAR — OLCULDU, TAHMIN DEGIL (BaBa filo olcumu, her evin son transkripti)
   mimar "bir sey daha bakayim" diyerek kapanisi ERTELER.
 
 NE YAPAR (iki esik, iki ayri kol):
-  UYARI  (>=450 tur VEYA >=300K): araci GECIRIR, uyari satiri basar.
+  UYARI  (>=500 tur VEYA >=450K): kol DURUYOR ama ERISILMEZ — Okan 6 Eyl "ayri esik
+         istemiyorum" dedi, esik RED ile AYNI noktaya cekildi; ayrintisi ESIKLER blogunda.
   RED    (>=500 tur VEYA >=450K): YALNIZ KAPANIS-SINIFI arac gecer; gerisi RED
          "ONCE kapanis + /clear". Kapanis sinifi = defteri/kutuyu yazmak, commit/push
          etmek ve okuma/olcme (grep/ls/git status) — yani oturumu KAPATMAYA yarayan
@@ -31,14 +32,23 @@ import os
 import re
 import sys
 
-# ── ESIKLER ───────────────────────────────────────────────────────────────────────
-# 🔴 RED tavani = OKAN EMRI (6 Eyl 2026, birebir): "baglam kapisi tur 500, 450K olarak
-#    yeniden duzenle". 5 Eyl'deki 400 tur / 350K tavaninin ardilidir.
-# 🟡 UYARI esigi Okan'in emrinde ACIKCA YOK — kapinin MEVCUT tasarim mesafesinden
-#    TURETILDI: uyari, red'den 50 tur ve 150K once yanar (5 Eyl: 400-350=50 tur,
-#    350K-200K=150K). Ayni mesafe korundu -> 500-50=450 tur, 450K-150K=300K.
-UYARI_TUR = 450
-UYARI_JETON = 300_000
+# ── ESIKLER — TEK ESIK (OKAN EMRI, 6 Eyl 2026) ────────────────────────────────────
+# 🔴 Emir 1 (birebir): "baglam kapisi tur 500, 450K olarak yeniden duzenle".
+# 🔴 Emir 2 (ayni gun, DUZELTME — birebir): "uyariyi da 500'e cek, ayri esik
+#    istemiyorum". Bu emir, ilk turda kapinin tasarim mesafesinden TURETILEN
+#    UYARI=450/300K sayilarini IPTAL eder. Dort sabit artik AYNI noktadadir.
+#
+# 🔴 SONUC — UYARI KOLU ERISILMEZ, VE BU BILEREK BOYLE (olculdu, sessiz degil):
+#    asagidaki main() akisinda RED dali (L~171) ONCE yakalar ve HER iki yolda da
+#    `sys.exit(0)` eder. Uyari daline ancak `tur < RED_TUR AND baglam < RED_JETON`
+#    ile gelinir; UYARI == RED oldugu icin `tur >= UYARI_TUR or baglam >= UYARI_JETON`
+#    o kumede TANIMI GEREGI False'tur -> uyari satiri HICBIR girdide basilmaz.
+#    Kol SILINMEDI cunku emir "uyariyi 500'e cek" dedi, "uyariyi kaldir" DEMEDI:
+#    sabitler ayrilir ayrilmaz kol yeniden CALISIR. Bu, `baglam-kotasi-test.py`
+#    [4] vakasinda OLCULUR (hicbir fikstur uyari basmaz) ve M6/M7 mutantlari
+#    sabitleri ayirinca uyari GERI GELIR — yani kol olu degil, ERISILMEZ.
+UYARI_TUR = 500
+UYARI_JETON = 450_000
 RED_TUR = 500
 RED_JETON = 450_000
 MEKANIK_WRITE = 15          # kod/test dosyasina Write sayisi
@@ -173,7 +183,10 @@ def main():
                  % (tur, RED_TUR, baglam // 1000, RED_JETON // 1000))
         sys.exit(0)
 
-    # ── UYARI KOLU: gecirir ama SESSIZ DEGIL ─────────────────────────────────────
+    # ── UYARI KOLU: ERISILMEZ (UYARI == RED, Okan 6 Eyl "ayri esik istemiyorum").
+    # Buraya ancak `tur < RED_TUR AND baglam < RED_JETON` ile gelinir; esikler esit
+    # oldugu icin asagidaki kosul o kumede TANIMI GEREGI False. Kol SILINMEDI:
+    # sabitler ayrilir ayrilmaz calisir (M6/M7 mutantlari bunu OLCER).
     if tur >= UYARI_TUR or baglam >= UYARI_JETON:
         print("BAGLAM KOTASI — UYARI: tur=%d (uyari %d, red %d) · baglam=%dK "
               "(uyari %dK, red %dK). Kapanisi PLANLA: kalan isi bitir, deftere+kutuya "

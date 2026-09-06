@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """`baglam-kotasi-kapisi.py` kabul testi.
 
-ESIKLER — OKAN EMRI (6 Eyl 2026): RED = 500 tur / 450K. UYARI esigi emirde ACIKCA
-YOK, kapinin mevcut tasarim mesafesinden TURETILDI (red'den 50 tur ve 150K once):
-450 tur / 300K. Bu dosya sayilari KAPIDAN IMPORT ETMEZ, ELDE CIVILER — import etseydi
-sabitin degismesi testi de birlikte kaydirir ve mutant olmezdi.
+ESIKLER — OKAN EMRI (6 Eyl 2026, iki emir): ① "baglam kapisi tur 500, 450K olarak
+yeniden duzenle" ② DUZELTME: "uyariyi da 500'e cek, ayri esik istemiyorum".
+Yani TEK ESIK: UYARI == RED == 500 tur / 450K; AYRI BIR UYARI BANDI YOKTUR.
+Sonucu [4] vakasi olcer: hicbir girdide uyari satiri basilmaz (uyari kolu ERISILMEZ,
+olu DEGIL — M6/M7 sabitleri ayirinca uyari GERI GELIYOR, kol calisiyor demektir).
+Bu dosya sayilari KAPIDAN IMPORT ETMEZ, ELDE CIVILER — import etseydi sabitin
+degismesi testi de birlikte kaydirir ve mutant olmezdi.
 
 ISKELE YOK: kapi GERCEK alt surec olarak kosturulur, stdin'e gercek PreToolUse yuku
 verilir, cikti gercek hook protokoluyle okunur. Transkript SENTETIKTIR (gecici dizinde)
@@ -27,9 +30,9 @@ import uuid
 BURASI = os.path.dirname(os.path.abspath(__file__))
 KAPI = os.path.join(BURASI, "baglam-kotasi-kapisi.py")
 
-# ── CIVILENEN ESIKLER (kapidan TURETILMEZ) ────────────────────────────────────────
+# ── CIVILENEN ESIKLER (kapidan TURETILMEZ) — TEK ESIK ─────────────────────────────
 RED_TUR, RED_JETON = 500, 450_000
-UYARI_TUR, UYARI_JETON = 450, 300_000
+UYARI_TUR, UYARI_JETON = 500, 450_000      # Okan: "ayri esik istemiyorum"
 
 gecti, kaldi = [], []
 
@@ -102,11 +105,13 @@ def fikstur_kur(kok):
     # RED sinirinin TAM USTU — iki eksen AYRI (VEYA kolu)
     F["red_jeton"] = transkript_yaz(kok, tur=120, baglam=450_000, ad="red-jeton.jsonl")
     F["red_tur"] = transkript_yaz(kok, tur=500, baglam=90_000, ad="red-tur.jsonl")
-    # UYARI esigi — tam ustu (iki eksen) ve BIR ALTI (ikisi birden)
-    F["uyari_tur"] = transkript_yaz(kok, tur=450, baglam=100_000, ad="uyari-tur.jsonl")
-    F["uyari_jeton"] = transkript_yaz(kok, tur=100, baglam=300_000,
-                                      ad="uyari-jeton.jsonl")
-    F["uyari_yok"] = transkript_yaz(kok, tur=449, baglam=299_000, ad="uyari-yok.jsonl")
+    # AYRI UYARI BANDI YOK — eski bandin tam ortasindaki noktalar da SESSIZ olmali
+    F["eski_bant_tur"] = transkript_yaz(kok, tur=450, baglam=100_000,
+                                        ad="eski-bant-tur.jsonl")
+    F["eski_bant_jeton"] = transkript_yaz(kok, tur=100, baglam=300_000,
+                                          ad="eski-bant-jeton.jsonl")
+    F["bant_ust_sinir"] = transkript_yaz(kok, tur=499, baglam=449_000,
+                                         ad="bant-ust-sinir.jsonl")
     # Mekanik kol
     F["mekanik"] = transkript_yaz(kok, tur=60, baglam=100_000, kod_write=16,
                                   ad="mekanik.jsonl")
@@ -163,22 +168,22 @@ def vaka3():
 
 
 def vaka4():
-    print("\n[4] UYARI ESIGI — 450 tur / 300K yanar, 449 tur / 299K yanmaz")
-    karar, err = kos("Write", KOD_WRITE, F["uyari_tur"])
-    iddia("4a 450 TUR -> IZIN + UYARI satiri", karar == "allow" and "UYARI" in err,
-          "karar=%s err=%s" % (karar, err))
-    karar, err = kos("Write", KOD_WRITE, F["uyari_jeton"])
-    iddia("4b 300K JETON -> IZIN + UYARI satiri", karar == "allow" and "UYARI" in err,
-          "karar=%s err=%s" % (karar, err))
-    iddia("4c uyari satiri YENI tavanlari basiyor (uyari %d/%dK, red %d/%dK)"
-          % (UYARI_TUR, UYARI_JETON // 1000, RED_TUR, RED_JETON // 1000),
-          ("uyari %d" % UYARI_TUR) in err and ("red %d" % RED_TUR) in err
-          and ("uyari %dK" % (UYARI_JETON // 1000)) in err
-          and ("red %dK" % (RED_JETON // 1000)) in err, err)
-    karar, err = kos("Write", KOD_WRITE, F["uyari_yok"])
-    iddia("4d 449 tur / 299K -> IZIN ve UYARI YOK (esik gercekten %d/%dK)"
-          % (UYARI_TUR, UYARI_JETON // 1000),
-          karar == "allow" and "UYARI" not in err, "karar=%s err=%s" % (karar, err))
+    print("\n[4] AYRI UYARI BANDI YOK — Okan 6 Eyl: UYARI == RED == %d tur / %dK"
+          % (UYARI_TUR, UYARI_JETON // 1000))
+    # Uyari kolu ERISILMEZ: RED dali once yakalar ve iki yolda da exit eder; uyari
+    # daline ancak tur<RED ve baglam<RED ile gelinir, esikler ESIT oldugu icin o
+    # kumede kosul TANIMI GEREGI False. Asagisi bunu OLCER, varsaymaz.
+    for ad in ("alt", "eski_bant_tur", "eski_bant_jeton", "bant_ust_sinir",
+               "red_jeton_alti", "red_tur_alti"):
+        karar, err = kos("Write", KOD_WRITE, F[ad])
+        iddia("4-%s -> IZIN ve UYARI satiri YOK (ayri bant kaldirildi)" % ad,
+              karar == "allow" and "UYARI" not in err,
+              "karar=%s err=%s" % (karar, err[:120]))
+    # RED esiginin USTUNDE de uyari basilmaz (RED dali `sys.exit(0)` ile cikar).
+    for ad in ("red_jeton", "red_tur"):
+        _k, metin = kos("Write", DEFTER_WRITE, F[ad])
+        iddia("4-%s kapanis araci -> UYARI satiri YOK (RED dali exit eder)" % ad,
+              "BAGLAM KOTASI — UYARI" not in metin, metin[:120])
 
 
 def vaka5():
@@ -209,10 +214,10 @@ def vaka6(kok):
 # Her ÖLDÜRÜCÜ mutant, YUKARIDAKI iddialardan BIRINI adiyla hedefler; taban ile ayni
 # sonucu veren mutant "HEDEFE ULASMADI" diye KIRMIZI yanar.
 MUTANTLAR = [
-    ("M1", "OLDURUCU", "RED_JETON = 450_000\n", "RED_JETON = 350_000\n",
+    ("M1", "OLDURUCU", "\nRED_JETON = 450_000\n", "\nRED_JETON = 350_000\n",
      "2a — 449K RED DEGIL iddiasi GERCEKTEN 450K sabitine baglimi",
      [("Write", KOD_WRITE, "red_jeton_alti", "deny")]),
-    ("M2", "OLDURUCU", "RED_TUR = 500\n", "RED_TUR = 400\n",
+    ("M2", "OLDURUCU", "\nRED_TUR = 500\n", "\nRED_TUR = 400\n",
      "2b — 499 tur RED DEGIL iddiasi GERCEKTEN 500 sabitine baglimi",
      [("Write", KOD_WRITE, "red_tur_alti", "deny")]),
     ("M3", "OLDURUCU", "    if tur >= RED_TUR or baglam >= RED_JETON:\n",
@@ -230,15 +235,18 @@ MUTANTLAR = [
      "3 — kapanis muafiyeti kaldirilinca DEFTER Write REDDEDILMELI",
      [("Write", DEFTER_WRITE, "red_jeton", "deny"),
       ("Bash", COMMIT, "red_tur", "deny")]),
-    ("M6", "OLDURUCU", "UYARI_JETON = 300_000\n", "UYARI_JETON = 200_000\n",
-     "4d — 299K'da UYARI YOK iddiasi GERCEKTEN 300K sabitine baglimi",
-     [("Write", KOD_WRITE, "uyari_yok", "allow+UYARI")]),
-    ("M7", "OLDURUCU", "UYARI_TUR = 450\n", "UYARI_TUR = 350\n",
-     "4d — 449 turda UYARI YOK iddiasi GERCEKTEN 450 sabitine baglimi",
-     [("Write", KOD_WRITE, "uyari_yok", "allow+UYARI")]),
-    ("M8", "KONTROL", '"sayiyla yaz, /clear."',
-     '"sayiyla yaz, /clear. (kontrol metni)"',
-     "yalniz teshis METNI degisir -> HICBIR iddia degismemeli", None),
+    # M6/M7 iki isi BIRDEN olcer: (a) "ayri bant YOK" iddiasi gercekten UYARI
+    # sabitlerine bagli mi, (b) uyari kolu OLU MU — sabit ayrilinca uyari GERI
+    # GELIYORSA kol calisiyor, yalnizca ERISILMEZ demektir.
+    ("M6", "OLDURUCU", "\nUYARI_JETON = 450_000\n", "\nUYARI_JETON = 300_000\n",
+     "4 — UYARI_JETON ayrilinca 449K'da uyari GERI GELIR (kol olu DEGIL, erisilmez)",
+     [("Write", KOD_WRITE, "red_jeton_alti", "allow+UYARI")]),
+    ("M7", "OLDURUCU", "\nUYARI_TUR = 500\n", "\nUYARI_TUR = 450\n",
+     "4 — UYARI_TUR ayrilinca 499 turda uyari GERI GELIR (kol olu DEGIL, erisilmez)",
+     [("Write", KOD_WRITE, "red_tur_alti", "allow+UYARI")]),
+    ("M8", "KONTROL", '"(defter/kutu Write · git commit/push · okuma-olcme)."',
+     '"(defter/kutu Write · git commit/push · okuma-olcme). [kontrol metni]"',
+     "yalniz RED teshis metninin kuyrugu degisir -> HICBIR iddia degismemeli", None),
 ]
 
 # Kontrol mutantinin AYNI kalmasi gereken davranis izi.
@@ -246,12 +254,12 @@ MUTANTLAR = [
 # "allow*" = yalniz karar olculur (uyari kolu bu iddianin konusu degil)
 KONTROL_IZI = [("Write", KOD_WRITE, "red_jeton", "deny"),
                ("Write", KOD_WRITE, "red_tur", "deny"),
-               ("Write", KOD_WRITE, "red_jeton_alti", "allow+UYARI"),
-               ("Write", KOD_WRITE, "red_tur_alti", "allow+UYARI"),
+               ("Write", KOD_WRITE, "red_jeton_alti", "allow"),
+               ("Write", KOD_WRITE, "red_tur_alti", "allow"),
                ("Write", DEFTER_WRITE, "red_jeton", "allow*"),
-               ("Write", KOD_WRITE, "uyari_tur", "allow+UYARI"),
-               ("Write", KOD_WRITE, "uyari_jeton", "allow+UYARI"),
-               ("Write", KOD_WRITE, "uyari_yok", "allow"),
+               ("Write", KOD_WRITE, "eski_bant_tur", "allow"),
+               ("Write", KOD_WRITE, "eski_bant_jeton", "allow"),
+               ("Write", KOD_WRITE, "bant_ust_sinir", "allow"),
                ("Write", KOD_WRITE, "alt", "allow"),
                ("Write", KOD_WRITE, "mekanik", "deny")]
 
