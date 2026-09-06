@@ -57,7 +57,7 @@ import sys
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TOOLS = os.path.join(REPO, "tools")
 ICRA = os.path.join(TOOLS, "mimar-icra-kapisi.py")
-# KENDINI TEST: --kendini-test bayragiyla kapi kendi hukmunu 4 mutant + 2 kontrol
+# KENDINI TEST: --kendini-test bayragiyla kapi kendi hukmunu 5 mutant + 2 kontrol
 # uzerinden olcer. CI'da SERIT B'ye kablolu (nobet.yml).
 KENDINI_TEST = "--kendini-test" in sys.argv[1:]
 # ICRA alternatifi (mutant test icin): --icra <yol> ile gercek mimar-icra-kapisi yerine
@@ -320,10 +320,21 @@ def dosyada_receteler(yol, kok=REPO):
         # Python3 icin \" temizleme (print(\"CARE: python3 ...\") gibi)
         sonrasi = sonrasi.replace("\\\"", "\"")
         sonrasi = sonrasi.replace("\\'", "'")
-        # YAKINLIK PEN: python3, on-ekten SONRA EN FAZLA 250 char. Pencere disiysa atla.
-        pencere = sonrasi[:ONEK_PYTHON3_FAS]
-        m = PYTHON3_BASLANGIC_RE.search(pencere)
-        if not m:
+        # YAKINLIK PEN: python3, on-ekten SONRA EN FAZLA 250 char icinde BASLAMALI.
+        # 🔴 6 EYL 2026 — OLCULMUS ARIZA: PENCERE HEM YAKINLIK HEM GOVDE OLARAK
+        # KULLANILIYORDU. Eski kod `pencere = sonrasi[:250]` yazip komut govdesini
+        # de `_komut_sonu(pencere, ...)` ile AYNI kirpilmis dizgeden okuyordu.
+        # python3 gec baslayinca komuta pencere tavanina kadar olan bayt kalir ve
+        # komut ORTASINDAN KESILIR. Olculmus vaka: tools/marka-arama-mutasyon.py:34,
+        # python3 on-ekten 227 bayt sonra basliyor -> govdeye 23 bayt kaliyor ->
+        # `python3 tools/marka-arama-mutas` (boyle dosya yok) -> AYIKLANAMADI.
+        # KORLUK IKI YONLUYDU: (a) kirpik yol YOKSA fail-closed AYIKLANAMADI (gorunur
+        # kirmizi); (b) kirpilan kuyruk yalnizca BAYRAK/ALT-YOL ise ilk yol HALA var
+        # olur, kapi YESIL yanar ama mimar-icra-kapisi'na EKSIK komutu sorar —
+        # SAHTE YESIL, gorunmez. Yakinlik ile govde AYRI eksendir: pencere yalnizca
+        # python3'un NEREDE BASLADIGINI olcer, govde TAM metinden okunur.
+        m = PYTHON3_BASLANGIC_RE.search(sonrasi)
+        if not m or m.start() >= ONEK_PYTHON3_FAS:
             continue
         # Yakalanan tokenlari birlestir; bos olmayanlari AL. TIRNAK/KAPAMA TEMIZLEME:
         # print("CARE: python3 ...", file=sys.stderr) icinde "...", file=sys.stderr"
@@ -356,7 +367,7 @@ def dosyada_receteler(yol, kok=REPO):
                     t = t[:-1]
                 t = t.strip()
             return t
-        komut = _komut_temizle(_komut_sonu(pencere, m.end()))
+        komut = _komut_temizle(_komut_sonu(sonrasi, m.end()))
         if not komut:
             continue
         satir_no = _gruba_karsilik_satir(yol, satirlar, grup_no)
@@ -364,7 +375,7 @@ def dosyada_receteler(yol, kok=REPO):
         durum = None if var_mi else "AYIKLANAMADI"
         # ISCI kolu: isaret on-ek ile python3 ARASINDA aranir (komutun kendi
         # metnine "ISCIYE:" yazmak isareti tasimaz — pencere siniri bilincli).
-        isci = bool(ISCI_ISARETI_RE.search(pencere[:m.start()]))
+        isci = bool(ISCI_ISARETI_RE.search(sonrasi[:m.start()]))
         bulgular.append((komut, satir_no, bulunan_onek, durum, ilk_yol, isci))
     return bulgular
 
@@ -659,8 +670,80 @@ def _kendini_test_eski():
     return 0 if (mutant_gecen == 3 and kontrol_gecen == 2) else 1
 
 
+# === M5 CAPASI — GOVDE KIRPMASI EKSENI (6 Eyl 2026, olculmus ariza) ==========
+# Komut GOVDESINI TAM metinden okuyan satir. Mutant bunu eski KIRPILMIS pencereye
+# geri cevirir. Capa SABIT DIZGE degil, kaynagin KENDISINDEN sayilir: kaynakta
+# TEKIL degilse mutant ULASMAMIS sayilir ve M5 `CAPA-COZULMEDI` diye KIRMIZI
+# yanar — sessiz 0 YOK ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]).
+_M5_CAPA = "_komut_temizle(_komut_sonu(sonrasi, m.end()))"
+_M5_MUTANT = "_komut_temizle(_komut_sonu(sonrasi[:ONEK_PYTHON3_FAS], m.end()))"
+# Mutantli kopya kendi icinde M5'i TEKRAR kosarsa sonsuz ozyineleme olur.
+M5_ICINDE = os.environ.get("PRUVO_RECETE_M5_ICI") == "1"
+
+
+def _m5_govde_kirpmasi():
+    """M5 — govde TAM metinden mi okunuyor? Fix'i sokup KIRMIZI'yi + SEBEBINI olcer.
+
+    Mutant CANLI govdede YASAMAZ: tools/ gecici bir dizine SYMLINK'lenir, yalniz
+    recete-kapisi.py mutantli GERCEK KOPYA olarak yazilir ve kapi O AYNADAN kosulur.
+    Donus: (gecti_mi, not_metni).
+    """
+    import tempfile
+    if M5_ICINDE:
+        return None, "ic kosum — ozyineleme korumasi"
+    kaynak_yol = os.path.abspath(__file__)
+    with open(kaynak_yol, encoding="utf-8") as f:
+        kaynak = f.read()
+    # Capanin KENDI TANIM satiri sayima girmemeli: `_M5_CAPA = "..."` satiri
+    # kaynakta capa dizgesini birebir tasir ve isabeti 2 gosterirdi (olculdu).
+    # Cagri YERI sayilir: 0 ise kol kaldirilmis, 2+ ise mutant hangi cagriyi
+    # yamaladigi imzasindan okunamaz — ikisi de CAPA-COZULMEDI.
+    olcum_govdesi = "\n".join(
+        s for s in kaynak.split("\n")
+        if not s.lstrip().startswith(("_M5_CAPA", "_M5_MUTANT")))
+    isabet = olcum_govdesi.count(_M5_CAPA)
+    if isabet != 1:
+        return False, ("CAPA-COZULMEDI: cagri yeri %d kez bulundu (1 bekleniyordu)"
+                       % isabet)
+    with tempfile.TemporaryDirectory(prefix="recete-m5-") as kok:
+        os.makedirs(os.path.join(kok, "tools"))
+        temel = os.path.basename(kaynak_yol)
+        for ad in os.listdir(TOOLS):
+            k = os.path.join(TOOLS, ad)
+            if ad != temel and os.path.isfile(k):
+                os.symlink(k, os.path.join(kok, "tools", ad))
+        hedef = os.path.join(kok, "tools", temel)
+        with open(hedef, "w", encoding="utf-8") as f:
+            f.write(kaynak.replace(_M5_CAPA, _M5_MUTANT, 1))
+        ortam = dict(os.environ)
+        ortam["PRUVO_RECETE_M5_ICI"] = "1"
+        ortam["PYTHONDONTWRITEBYTECODE"] = "1"
+        sonuc = subprocess.run([sys.executable, hedef, "--kendini-test"],
+                               capture_output=True, text=True, timeout=180,
+                               env=ortam)
+    cikti = sonuc.stdout
+    kirmizi = sonuc.returncode != 0
+    # SEBEP OLCUMU — kirmizi HEDEF KOLDAN mi geliyor? Uc sart birden:
+    #  (a) DOGRUDAN IZ: V8 satiri KIRPILMIS komutu basmali (`python3 tools/x.`,
+    #      boyle dosya yok). Kirmizinin adi budur.
+    #  (b) TUREV: ayiklanamayan kova 3 -> 4 buyumeli. M2'nin mutantli kosumda
+    #      KIRMIZI yanmasi BAGIMSIZ bir ariza DEGIL, ayni kolun turevidir
+    #      (M2 tam da "ayik == 3" iddiasini tasir) — bu yuzden M2 komsu
+    #      kumesine ALINMAZ, aksi halde sebep zinciri kendini yalanlardi.
+    #  (c) KOMSU: govde okumasindan BAGIMSIZ kollar (M1, M3, M4, K1, K2)
+    #      mutantli kosumda da OK kalmali. Biri dusuyorsa kirmizi baska
+    #      sebepten gelmistir ve M5 hedef kol hakkinda hicbir sey kanitlamaz.
+    sebep = "V8 python3 tools/x. AYIKLANAMADI" in cikti
+    turev = "AYIKLANAMADI=4" in cikti
+    komsu = all(iz in cikti for iz in ("M1 OK", "M3 OK", "M4 OK", "K1 OK K2 OK"))
+    gecti = kirmizi and sebep and turev and komsu
+    return gecti, ("rc=%d kirmizi=%s sebep-V8-kirpik=%s turev-ayik-4=%s "
+                   "bagimsiz-komsu-OK=%s"
+                   % (sonuc.returncode, kirmizi, sebep, turev, komsu))
+
+
 def _fixture_receteleri():
-    """K179 V1–V5 fikstürlerini geçici diskte üretip ölçülecek kalemleri döndür."""
+    """K179 V1–V8 fikstürlerini geçici diskte üretip ölçülecek kalemleri döndür."""
     import tempfile
     with tempfile.TemporaryDirectory(prefix="recete-k179-") as kok:
         tools = os.path.join(kok, "tools")
@@ -675,6 +758,15 @@ def _fixture_receteleri():
             "# COZUM: python3 tools/yok-boyle-dosya",
             "# COZUM: ISCIYE: python3 tools/x.py --yaz",
             "# COZUM: ISCIYE: python3 tools/yok-boyle-dosya",
+            # V8 — GOVDE KIRPMASI EKSENI (6 Eyl 2026; olculmus canli vaka:
+            # tools/marka-arama-mutasyon.py:34). python3 on-ekten SONRA GEC
+            # baslar: yakinlik penceresine (250) HALA girer ama pencere tavanina
+            # yalnizca 8 bayt kalir. Govde TAM metinden okunuyorsa komut BUTUN
+            # cikar; kirpilmis pencereden okunuyorsa `python3 tools/x.` cikar
+            # (boyle dosya yok) -> AYIKLANAMADI. Dolgu SABIT SAYI degil,
+            # ONEK_PYTHON3_FAS'tan TURETILIR: pencere buyurse fikstur de buyur.
+            "# COZUM: " + "d" * (ONEK_PYTHON3_FAS - 18) +
+            " python3 tools/x.py --kendini-test",
         )
         bulgular = []
         for i, satir in enumerate(satirlar, 1):
@@ -697,14 +789,15 @@ def kendini_test():
         "python3 tools/yok-boyle-dosya",
         "python3 tools/x.py --yaz",
         "python3 tools/yok-boyle-dosya",
+        "python3 tools/x.py --kendini-test",
     ]
     durumlar = [bulgu[3] for bulgu in bulgular]
     isciler = [bulgu[5] for bulgu in bulgular]
     v_gecti = (komutlar == beklenen and
                durumlar == [None, None, None, "AYIKLANAMADI", "AYIKLANAMADI",
-                            None, "AYIKLANAMADI"] and
-               isciler == [False, False, False, False, False, True, True])
-    print("V1-V7 %s" % ("OK" if v_gecti else "KIRMIZI"))
+                            None, "AYIKLANAMADI", None] and
+               isciler == [False, False, False, False, False, True, True, False])
+    print("V1-V8 %s" % ("OK" if v_gecti else "KIRMIZI"))
     for i, bulgu in enumerate(bulgular, 1):
         print("V%d %s %s%s" % (i, bulgu[0], bulgu[3] or "OLCULDU",
                                " [ISCIYE]" if bulgu[5] else ""))
@@ -731,9 +824,17 @@ def kendini_test():
         koru_bulgular = _fixture_receteleri()
     finally:
         ISCI_ISARETI_RE = _asil_isaret
-    m4 = (isciler[5:] == [True, True] and
-          [b[5] for b in koru_bulgular] == [False] * 7)
+    m4 = (isciler[5:7] == [True, True] and
+          [b[5] for b in koru_bulgular] == [False] * 8)
+    # M5: govde kirpmasi — fix sokulunce V8 kirpilir, kapi KIRMIZI yanar ve
+    # kirmizinin SEBEBI hedef koldur (komsu kollar OK kalir). Mutantli kopyanin
+    # kendi icinde M5 KOSMAZ (ozyineleme korumasi) — orada beklenen 4 mutanttir.
+    m5, m5_not = _m5_govde_kirpmasi()
     mutant_gecen = sum((m1, m2, m3, m4))
+    beklenen_mutant = 4
+    if not M5_ICINDE:
+        beklenen_mutant = 5
+        mutant_gecen += int(bool(m5))
 
     # K1: eski defter reçetesi komut olarak bozulmadan ölçülür.
     k1 = False
@@ -758,10 +859,13 @@ def kendini_test():
                                         "OK" if m3 else "KIRMIZI",
                                         "OK" if m4 else "KIRMIZI"))
     print("K1 %s K2 %s" % ("OK" if k1 else "KIRMIZI", "OK" if k2 else "KIRMIZI"))
+    if not M5_ICINDE:
+        print("M5 %s — %s" % ("OK" if m5 else "KIRMIZI", m5_not))
     # Self-test özeti de ana kapı özetiyle aynı dört ölçüyü taşır.
-    print("RECETE=%d REDDEDILEN=%d AYIKLANAMADI=%d EVREN=%d MUTANT=%d/4 KONTROL=%d/2" % (
-        len(bulgular), red, ayik, len(bulgular), mutant_gecen, kontrol_gecen))
-    return 0 if v_gecti and mutant_gecen == 4 and kontrol_gecen == 2 else 1
+    print("RECETE=%d REDDEDILEN=%d AYIKLANAMADI=%d EVREN=%d MUTANT=%d/%d KONTROL=%d/2" % (
+        len(bulgular), red, ayik, len(bulgular), mutant_gecen, beklenen_mutant,
+        kontrol_gecen))
+    return 0 if v_gecti and mutant_gecen == beklenen_mutant and kontrol_gecen == 2 else 1
 
 
 def _dogrudan_kapi_test(komut):

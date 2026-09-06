@@ -31,8 +31,23 @@ import re
 import subprocess
 import sys
 
-VARSAYILAN_REPO = "/Users/okan/dev/pruvo"
-KAPI = os.path.join(VARSAYILAN_REPO, "tools", "arsiv-kapisi.py")
+# 🔴 6 EYL 2026 — OLCULMUS ARIZA: KAPI YOLU TEK SABITE CAPALIYDI.
+# Eskiden `VARSAYILAN_REPO = "/Users/okan/dev/pruvo"` ve `KAPI` o sabitten
+# turuyordu. Bu, aracin HUKUM kaynagini KOSUCUNUN DISKINE bagliyor:
+#   * Okan'in makinesinde o yol VAR   -> kapi kosar, KOL= satirlari basilir;
+#   * CI runner'inda o yol YOK        -> `python3 <olmayan dosya>` rc=2, cikti
+#     bos, `HUKUM=` regex'i eslesmez  -> kollar={} ve HICBIR `KOL=` basilmaz.
+# Olculen sonuc (kosum 34043459306, adim `Cip kapatma kilavuzu`): V3d CI'da
+# 10+ gundur KIRMIZI, yerelde YESIL. DAHA KOTUSU TERS KOLDA: V3-oncul ve V3b
+# yalnizca `rc != 0` iddia ettigi icin, kapinin HIC KOSAMAMASINDAN dogan rc=2
+# onlari YANLIS YESIL yakiyordu — "kapi kirmizi iken silmedi" diye okunan sey
+# aslinda "kapiyi bulamadi" idi ([[iki-kollu-govde-tek-sabite-capalanirsa-
+# kosucunun-diskini-olcer]]).
+# CARE: kapi, ARACIN KENDI YERINDEN turetilir — hangi checkout/worktree/runner
+# olursa olsun arac ile kapi AYNI tools/ dizinindedir.
+ARAC_KOKU = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+VARSAYILAN_REPO = ARAC_KOKU
+KAPI = os.path.join(ARAC_KOKU, "tools", "arsiv-kapisi.py")
 KUTU = os.path.expanduser(
     "~/.claude/projects/-Users-okan-dev-pruvo/memory/mimar-posta-kutusu.md")
 

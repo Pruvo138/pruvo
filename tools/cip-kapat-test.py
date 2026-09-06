@@ -114,6 +114,18 @@ def _kollar(gecici):
     on_rc, on_cikti = kos([ARAC, agac])
     iddia("V3-oncul FIKSTURUN KAPISI GERCEKTEN KIRMIZI", on_rc != 0,
           "rc=%d" % on_rc)
+    # 🔴 YANLIS-YESIL OLDURUCU (6 Eyl 2026, olculdu): `rc != 0` tek basina
+    # "kapi kirmizi dedi" ANLAMINA GELMEZ — arac kapiyi HIC KOSAMADIGINDA da
+    # rc=2 doner. CI'da tam bu oluyordu (`cip-kapat.py` kapi yolunu
+    # `/Users/okan/dev/pruvo` sabitinden turetiyordu; runner'da o yol YOK).
+    # O hâlde V3-oncul/V3b/V3c "gecti" diye okunurken hicbir emniyet kolu
+    # olculmemis oluyordu. Bu iddia rc'nin KAPI HUKMUNDEN geldigini olcer.
+    # NOT: `HUKUM=` satirini ARAC HER ZAMAN basar (kapi cokse bile varsayilan
+    # OLCULEMEDI yazilir) — o yuzden varligi kanit DEGILDIR. Kanit ikilidir:
+    # kol satirlari (`KOL=`) uretilmis VE hukum OLCULEMEDI'ye dusmemis olmali.
+    iddia("V3-oncul-b KAPI FIILEN KOSTU (rc kapi hukmunden geliyor)",
+          "KOL=" in on_cikti and "HUKUM=OLCULEMEDI" not in on_cikti,
+          "kol=%s" % ("VAR" if "KOL=" in on_cikti else "YOK"))
     var_once = os.path.isdir(agac)
     rc, cikti = kos([ARAC, agac, "--uygula"])
     var_sonra = os.path.isdir(agac)
@@ -166,6 +178,47 @@ def _kollar(gecici):
           kaynak.count("worktree\", \"remove\"") == 1)
     iddia("V5c silmeden ONCE kapi YENIDEN kosuluyor (TOCTOU)",
           kaynak.count("kapi_kos(agac, repo)") >= 2)
+
+    print()
+    print("V9 — ORTAM CAPASI MUTANTI: kapi yolu SABIT EV YOLUNA capalanirsa kol OLUR")
+    # 🔴 6 EYL 2026, OLCULMUS: `cip-kapat.py` HUKUM kaynagini
+    # `/Users/okan/dev/pruvo` sabitinden turetiyordu. Okan'in diskinde o yol VAR
+    # (kapi kosar, KOL= basilir); CI runner'inda YOK (`python3 <olmayan dosya>`
+    # rc=2, cikti bos) -> V3d 10+ gun KIRMIZI, V3-oncul/V3b ise AYNI arizadan
+    # YANLIS YESIL. Bu mutant capayi geri sokar ve kolun fiilen OLDUGUNU olcer.
+    # Mutant CANLI govdede YASAMAZ: tools/ gecici dizine SYMLINK'lenir, yalniz
+    # cip-kapat.py mutantli GERCEK KOPYA olur ve arac O AYNADAN kosulur.
+    V9_CAPA = "ARAC_KOKU = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))"
+    V9_MUTANT = 'ARAC_KOKU = "/olmayan/ev/pruvo"'
+    with open(ARAC, encoding="utf-8") as f:
+        k9 = f.read()
+    # 🔴 CAPA ULASIMI: capa kaynakta TEKIL degilse mutant hicbir seyi degistirmez
+    # ve "gecti" bulgusu tabanin bulgusu olur
+    # ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]).
+    iddia("V9a CAPA TEKIL (mutant ULASIR)", k9.count(V9_CAPA) == 1,
+          "isabet=%d" % k9.count(V9_CAPA))
+    ayna = os.path.join(gecici, "ayna")
+    os.makedirs(os.path.join(ayna, "tools"))
+    _tools = os.path.join(KOK, "tools")
+    for _ad in os.listdir(_tools):
+        _k = os.path.join(_tools, _ad)
+        if _ad != "cip-kapat.py" and os.path.isfile(_k):
+            os.symlink(_k, os.path.join(ayna, "tools", _ad))
+    _mut = os.path.join(ayna, "tools", "cip-kapat.py")
+    with open(_mut, "w", encoding="utf-8") as f:
+        f.write(k9.replace(V9_CAPA, V9_MUTANT, 1))
+    rc9, cikti9 = kos([_mut, agac])
+    iddia("V9b MUTANT kapiyi KOSAMAZ -> KOL= YOK, HUKUM OLCULEMEDI (hedef kol OLDU)",
+          "KOL=" not in cikti9 and "HUKUM=OLCULEMEDI" in cikti9, "rc=%d" % rc9)
+    # 🔴 KONTROL: kirmizinin sebebi MUTASYON mu, AYNANIN KENDISI mi? Ayni aynada
+    # MUTASYONSUZ kopya ayni fiksturde KOL= BASMALI. Basmiyorsa V9b hicbir sey
+    # kanitlamaz (ayna bozuktur, kol degil).
+    _kontrol = os.path.join(ayna, "tools", "cip-kapat-kontrol.py")
+    with open(_kontrol, "w", encoding="utf-8") as f:
+        f.write(k9)
+    rc9k, cikti9k = kos([_kontrol, agac])
+    iddia("V9c KONTROL: mutasyonsuz AYNA kopya ayni fiksturde KOL= BASAR",
+          "KOL=" in cikti9k and "HUKUM=OLCULEMEDI" not in cikti9k, "rc=%d" % rc9k)
 
     print()
     print("V8 — CANLI ORTAM EKSENI (RAPOR; hukum VERMEZ)")
