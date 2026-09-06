@@ -285,10 +285,23 @@ if (ozetVeri.yeniCozulemeyen !== 0) {
 }
 const ozetYaniti = () => yanit(JSON.parse(JSON.stringify(ozetHam)));
 
-let gecti = 0, kaldi = 0;
+let gecti = 0, kaldi = 0, atlandi = 0;
 function kontrol(ad, sart, detay) {
   if (sart) { gecti++; console.log("  ✅ " + ad); }
   else { kaldi++; console.log("  ❌ " + ad + (detay ? "\n       " + detay : "")); }
+}
+/**
+ * OLCULEMEDI kolu (mimar hukmu, 6 Eyl): olculecek VERI yoksa eksen KIRMIZI degil
+ * ATLANMIS'tir. Sessiz fail-open DEGILDIR, cunku:
+ *   (a) AYRI jetonla (`⚪ ATLANDI`) basilir — yesil sayilmaz,
+ *   (b) `atlandi` sayaci ozet satirinda gorunur,
+ *   (c) atlanan eksenin korumasi BASKA bir iddiayla ayakta tutulur; o iddia da
+ *       kosamiyorsa hal KIRMIZI kalir (bkz. "UYELIK EKSENI ANKRAJI").
+ * Iddia SILINMEZ: atlamak ≠ silmek.
+ */
+function atla(ad, sebep) {
+  atlandi++;
+  console.log("  ⚪ ATLANDI (OLCULEMEDI) — " + ad + (sebep ? "\n       " + sebep : ""));
 }
 const kartlar = (kayit) => kayit.grid.children;
 /** Kartin urun id'si — kartCiz main.href = productUrl(p) = "/urun/<id>/". TEK GOVDE. */
@@ -386,8 +399,9 @@ function yedekEslesmeKontrolu(etiket, kayit, api, sorgu, uyelikZorunlu) {
     if (uye.length === 0 && !uyelikZorunlu) {
       // Baslik-kelimesi senaryosu: marka sorgusuna denk gelmesi tesaduf, havuzda
       // uye yoksa eksen OLCULEMEZ — kirmizi yakmak yerine raporla (bos eksen).
-      console.log("  ⚪ " + etiket + " — uyelik ekseni BOS (havuzda `marka[]`de " +
-        plan.kanon + " tasiyan urun yok; baslik-kelimesi senaryosu, zorunlu degil)");
+      // 6 Eyl: artik SAYILIYOR da (`atla`), boylece ozet satirinda gorunur.
+      atla(etiket + " — uyelik ekseni BOS", "havuzda `marka[]`de " + plan.kanon +
+        " tasiyan urun yok; baslik-kelimesi senaryosu, zorunlu degil");
     } else {
       kontrol(etiket + " — uyelik kolu KOSUYOR (`marka[]`de " + plan.kanon +
         " tasiyan " + uye.length + " havuz urunu var)", uye.length > 0,
@@ -601,11 +615,25 @@ function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
     // marka sorgusu olup olmadigi katalogun o gunku ilk kartina baglidir — uyelik ekseni
     // orada BOS kosabilir. Bu senaryo marka sorgusunu VERIDEN turetip o ekseni HER
     // kosumda calistirir (sabit marka adi YAZILMAZ; katalog degisince kendiliginde kayar).
-    const markaSorgusu = havuzunUyelikKolunuEnCokGerektirenMarkasi(
-      api, api.edgeTekille(api.edgeHavuz()));
-    kontrol("marka sorgusu senaryosu VERIDEN kurulabildi", markaSorgusu !== null,
-      "havuzda kanonik marka bulunamadi -> uyelik ekseni olculemez");
+    const edgeHavuzu = api.edgeTekille(api.edgeHavuz());
+    const markaSorgusu = havuzunUyelikKolunuEnCokGerektirenMarkasi(api, edgeHavuzu);
+    if (markaSorgusu === null) {
+      // 🔴 MIMAR HUKMU (6 Eyl): edge havuzu `ozet.json`in ILK N urunudur; yeni bir parti
+      // havuzun basini "markasi BASLIGINDA da gecen" urunlerle doldurdugunda AYIRT EDICI
+      // uye kalmaz ve bu senaryo VERIDEN kurulamaz. Olculecek veri yoksa eksen
+      // OLCULEMEDI'dir, KIRMIZI degil. OLCULDU (6 Eyl, havuz 231): uye=154,
+      // kanon-esit=113, AYIRT-EDICI=0 (Yamaha 13 / Audi 40 / Mercedes 5 / Toyota 45 /
+      // Mazda 10 — hepsinin markasi kendi basliginda geciyor).
+      // Atlama korumayi DELMEZ: asagidaki "UYELIK EKSENI ANKRAJI" ayni TEK GOVDEyi
+      // (`markaSorgusuEsler`) ayirt edici verinin GERCEKTEN bulundugu TAM KATALOG'da
+      // olcer ve kosamazsa KIRMIZI yanar.
+      atla("marka sorgusu senaryosu VERIDEN kurulabildi (edge havuzu)",
+        "havuzda `marka[]` uyesi olup markasi BASLIGINDA gecmeyen urun yok (havuz " +
+        edgeHavuzu.length + ") -> edge kolunda uyelik ekseni ayirt edilemiyor");
+    }
     if (markaSorgusu) {
+      kontrol("marka sorgusu senaryosu VERIDEN kurulabildi (edge havuzu, \"" +
+        markaSorgusu + "\")", true);
       kayit.search.value = markaSorgusu;
       kayit.search.tetikle("input");
       await bekle(450);
@@ -613,6 +641,44 @@ function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
         kartlar(kayit).length > 0, "kart: " + kartlar(kayit).length);
       yedekEslesmeKontrolu('yedek marka sorgusu ("' + markaSorgusu + '")',
         kayit, api, markaSorgusu, true);
+    }
+
+    // ── UYELIK EKSENI ANKRAJI — atlamanin korumayi DELMEDIGINI olcer ─────────
+    // NEDEN VAR (olculdu 6 Eyl, izole kopyada): edge havuzunda AYIRT EDICI uye 0 iken
+    // gercek uyelik regresyonu (`markaSorgusuEsler`ten `markaUyeMi` dusurulur) yukaridaki
+    // DOM kollarindan HICBIRINI kirmizi yakmiyordu (mutantli 53/1 = mutantsiz 53/1) —
+    // yani "uye.length > 0" YESILI kapsam DEGIL, tesadüftu. Ankraj ayni TEK GOVDEyi
+    // (`aramaPlaniEsler` -> `markaSorgusuEsler`) UYELIK GERCEGINE (`markaUyeMi`) karsi,
+    // ayirt edici verinin bulundugu TAM KATALOG'da sinar. Iki AYRI fonksiyon karsilastirilir:
+    // uyelik kolu dusurulurse baglanti kopar ve bu iddia KIRMIZI yanar.
+    // FAIL-CLOSED: ankraj kurulamazsa (tam katalogda da ayirt edici uye yoksa, ya da
+    // yardimci BOZULDUYSA) bu KIRMIZIDIR — atlama degil; cunku o zaman uyelik ekseni
+    // TUM kosumda olculmemis olur ve "hic kontrol kosmadi" halidir.
+    console.log("\nUYELIK EKSENI ANKRAJI — atlanan edge kolunun korumasi ayakta mi?");
+    {
+      const tamMarka = havuzunUyelikKolunuEnCokGerektirenMarkasi(api, PRODUCTS);
+      kontrol("uyelik ekseni TAM KATALOG'da AYIRT EDICI (senaryo veriden kuruldu)",
+        tamMarka !== null,
+        "tam katalogda (" + PRODUCTS.length + " urun) `marka[]` uyesi olup markasi " +
+        "BASLIGINDA gecmeyen urun YOK -> uyelik ekseni HIC olculemiyor, koruma dustu");
+      if (tamMarka) {
+        const plan = api.aramaPlani(tamMarka);
+        const baslikHs = (u) => api.norm(u.baslik || "");
+        // Yalniz BASLIKTAN bulunamayan uyeler: uyelik kolu dusunce kaybolmasi
+        // GEREKEN kume tam olarak budur.
+        const gizliUye = PRODUCTS.filter((p) => api.markaUyeMi(p, tamMarka) &&
+          api.baslikMarkalari(p).indexOf(tamMarka) === -1);
+        kontrol("ayirt edici uye kumesi BOS DEGIL (" + tamMarka + ": " +
+          gizliUye.length + " urun)", gizliUye.length > 0,
+          "kume bosalirsa asagidaki iddia bos kosar = kapsam yanilsamasi");
+        const kacan = gizliUye.filter((p) => !api.aramaPlaniEsler(p, plan, baslikHs))
+          .map((p) => p.id);
+        kontrol("`marka[]` uyesi olup markasi BASLIGINDA GECMEYEN her urun marka " +
+          "sorgusunda (" + tamMarka + ", " + gizliUye.length + " urun)",
+          gizliUye.length > 0 && kacan.length === 0,
+          "kacan=" + kacan.length + " " + JSON.stringify(kacan.slice(0, 5)) +
+          " -> uyelik kolu dusmus, marka sorgusu yalniz BASLIGA bakiyor");
+      }
     }
 
     // Sonuc vermeyecek sorgu -> "bulunamadi" (bos ekran degil)
@@ -636,7 +702,13 @@ function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
   }
 
   console.log("\n" + "─".repeat(60));
-  console.log("gecti: %d | KALDI: %d", gecti, kaldi);
+  console.log("gecti: %d | KALDI: %d | ATLANDI(OLCULEMEDI): %d", gecti, kaldi, atlandi);
   if (kaldi) { console.log("\nSONUC: BAYRAK/VITRIN/BOZULMA TESTI ❌"); process.exit(1); }
-  console.log("\nSONUC: BAYRAK + VITRIN + ZARIF BOZULMA ✅ (%d kontrol)", gecti);
+  // "HIC kontrol kosmadi" hali KIRMIZI kalir — atlamalar tum kosumu bosaltamaz.
+  if (!gecti) {
+    console.log("\nSONUC: HIC KONTROL KOSMADI (yalniz %d atlama) ❌", atlandi);
+    process.exit(1);
+  }
+  console.log("\nSONUC: BAYRAK + VITRIN + ZARIF BOZULMA ✅ (%d kontrol, %d atlanan eksen)",
+    gecti, atlandi);
 })();
