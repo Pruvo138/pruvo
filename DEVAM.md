@@ -10,10 +10,8 @@
 🔴 **BUGUN OLCULEN KOK — IKI KAPI AYNI OLGUYU ZIT OKUYOR:** `kutu-arsivle.py` BASLIYORUM'u **cip adiyla** (`KraL-Tamirci-6Eyl`), kapanisi **agac adiyla** (`gifted-curran-39fdbb`) kimlikliyor → esleme YOK → blok rotasyona HIC girmiyor, kutu **323/250** (`HUKUM=KORUMA_TUTTU`, commit bloklanmadi — olculdu). Ayni cipi `arsiv-kapisi.py` `ARSIVLENEBILIR rc=0` diye DOGRU okuyor. Ikinci kok: `kapi-envanteri.py` **5/8** diyor, kanca yolunu YANLIS eksenden cozuyor (ayrinti ARSIVDE + cip spec'inde). Ikisi de `KraL-CipKapi-6Eyl` kapsaminda.
 **TEMIZLIK:** worktree **2→1** (`gifted-curran-39fdbb` kapi hukmuyle kaldirildi + dal silindi) · defter rotasyonu 5 blok/10 dolu satir arsive, **eksik 0** (12.225→10.932 B).
 
-## 🔁 5 EYL ~20:xxZ — **OKAN ①+② BITTI** (`5b86ac20`, cip `cool-saha-010aa9`) — **ISARETCI**
-↩︎ **TAM METIN `DEVAM-ARSIV.md`** (md5 birebir, eksik 0): ① Bisiklet 16 alt kategori (D1 teyitli) · ② panel 12→7 · ③ banner main'de (`b12fdac2`) · yayin `33969124781` deploy+yayin success, SKIPPED 0.
-🟠 **SIRADAKI (olculdu, UYGULANMADI):** MODEL adindan marka turetimi → **Apple 56** + Samsung 20→31; AYRI eksen.
-🔴 **TABAN KIRMIZISI (merge kaynakli DEGIL):** `lcp-onculuk-kapisi` rc=2 → **ArTisT** · `kapi-envanteri` rc=1 = 3 kapi YEREL kabloda eksik; kablo commit EDILMEZ → **Okan makinesi**.
+## 🔁 5 EYL — OKAN ①+② (`5b86ac20`) · K366+ayrac koruma (`299e9f9b`) · BaBa 4 kalem (`074d7c9f`) — **ISARETCI: UCUNUN DE TAM METNI `DEVAM-ARSIV.md`'de** (md5 birebir, eksik 0)
+🟠 **BU UC BLOKTAN ACIK KALAN IPLIKLER:** MODEL adindan marka turetimi olculdu UYGULANMADI (Apple 56 · Samsung 20→31, AYRI eksen) · hafiza ekseni **SILAHSIZ** (`PRUVO_HAFIZA_EKSENI=silahli` arma GUVENLI rc=0, YERLESIM karari MIMARDA) · baglam kotasi kapanis sinifi bekleyen-push + yayin-kirikken hallerini KAPSAMIYOR (2 vaka) · `d1-sync --durum` rc=0 ama **71,2 sn** (kabul <60; iki ureticinin kaynak nesnesi TEKILLESMELI) · MaCiT CLAUDE.md **13.060 B** (tavan 12.288, kirpma MaCiT'te) · `lcp-onculuk-kapisi` rc=2 → **ArTisT**.
 
 ## 🔁 5 EYL ~18:xxZ — kutu kilidi KOK SEBEBI + kategori paneli (`ebdfb059`) — **ISARETCI (ikisi de KAPANDI)**
 **DERS:** kapanis jetonu YALNIZ SON ICERIK satirinda araniyordu, o satir **imza**ydi → kilit ULASILAMAZ; [[kapanis-kimligi-worktree-adi-ilk-backtickte]] 3. eksen.
@@ -23,16 +21,6 @@
 ## 🔁 5 EYL ~11:2xZ — **LCP/SITE HIZI ISI TAMAMEN ArTisT'E DEVREDILDI (Okan emri: "tamamen izinleriyle artiste devret")**
 **IZIN ACILDI (kalici, `AGENTS.md` L10; git DISI):** ArTisT `pruvo`da `index.html`+`build.py`'ye **YAZAR**, dalini acar+**merge eder**; degisikligi KraL'da "yabanci" SAYILMAZ. 🔴 SINIR KraL'da: `urunler.json`·`arama.py`·odeme-fiyat·secret·sema.
 Taban + 3 tuzak + cip devri **KUTUDA 11:2x blogunda**; kabul DEGISMEDI, kapanisi ArTisT yazar. **Okan'a cikan:** PSI anahtari.
-
-## 🔁 5 EYL ~02:xZ — K366 CI'ya BAGLANDI + indeks ayraci koruma onarimi (`299e9f9b`) — **ISARETCI**
-↩︎ **TAM METIN `DEVAM-ARSIV.md`'de.** Ozet: SERIT B'ye ayri adim; `ci-kapsam-test.py` KIRMIZI→YESIL; hafiza bataryasi 33/33 + 5/5 mutant; AYRAC korlugu onarildi.
-🔧 **ACIK TEK IPLIK:** hafiza ekseni **SILAHSIZ**; silahlandirma (`PRUVO_HAFIZA_EKSENI=silahli`) MIMAR HUKMU — arma GUVENLI olculdu (rc=0), YERLESIM karari acik.
-
-## 🔁 5 EYL ~00:xZ — BaBa 4 KALEM (main `074d7c9f` YERELDE · origin `e021e922`) — **ISARETCI**
-↩︎ **TAM METIN `DEVAM-ARSIV.md`'de** (2026-09-05 isaretciye indirme, md5 birebir).
-Ozet: ① D1 kalici cache (soguk 27,9 → isinmis 1,4 sn; tani 39/39, mutasyon 13/13) · ② KORUMALI blok rotasyona GIRMEZ (50 vaka/466 iddia) · ③ baglam kotasi kapisi 6 evde KURULU (kabul 23/23) · ④ filo dersi 5 evde.
-🔧 **ACIK IKI IPLIK:** (a) baglam kotasi kapanis sinifi BEKLEYEN push kablosunu ve YAYIN KIRIKKEN koordinasyonu KAPSAMIYOR (2 vaka olculdu; *Kapatan:* iki hali de kapsayan sinif + 2 vaka) · (b) `--durum` rc=0 ama 71,2 sn (kabul <60; *Kapatan:* iki ureticinin kaynak nesnesi TEKILLESIP <60 sn).
-🟠 **BEKLIYOR:** MaCiT CLAUDE.md **13.060 B** (tavan 12.288) — net-0 kirpma MaCiT'te, KOR KESMEDIM.
 
 ## 🔴 CANLI TALIMAT (K353 blogu ARSIVE indi, tam metin `DEVAM-ARSIV.md`'de)
 K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
