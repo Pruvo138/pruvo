@@ -426,6 +426,31 @@ setTimeout(L,5000);})();
     display:flex;
     flex-direction:column;
     gap:34px;
+    /* 🔴 CLS REZERVASYONU (6 Eyl) — kap HTML'de BOŞ gelir, içeriğini renderKatPanelleri()
+       üretir. Harici <script src>'ler gövde içeriğinden SONRA durduğu için tarayıcı onlar
+       inerken sayfayı BİR KEZ boş #katPanels ile boyar; script koşunca kap 0 -> ~1360px'e
+       büyür ve ALTINDAKİ her şeyi (#brandRow, #sectionTitle, ürün ızgarası, footer) aşağı
+       iter. ÖLÇÜLDÜ (soğuk yükleme, önbellek KAPALI, CDP layout-shift gözlemcisi):
+         1350x940 masaüstü CLS 0,2542 · 1366x768 CLS 0,1601 · 412x823 mobil CLS 0
+       Kayan düğümler tek kök: FOOTER + #brandRow + #sectionTitle'ın aşağı itilmesi.
+
+       SABİT px yükseklik YAZILAMAZ: panel sayısı VERİYE bağlıdır — renderKatPanelleri()
+       14 kategoriden yalnız KAT_PANEL_MIN_CIP eşiğini geçeni çizer (bugün 7) ve çip satırı
+       marka indeksiyle her yayında oynar. Onun yerine rezervin tek işi kapın ilk boyamada
+       KATLAMA ÇİZGİSİNİ geçmesidir: altındaki ögeler o an zaten ekran dışındaysa, kap
+       gerçek boyuna büyüdüğünde ekran dışından ekran dışına giderler → CLS etkisi 0.
+       Bu yüzden formül veriye değil EKRANA bağlanır:
+       · calc(100vh - 410px) → kabın belge üstünden uzaklığı ölçüldü ~419px (masaüstü) /
+         ~528px (mobil); 410px pay foldu TAM kapatacak kadar rezerv verir, fazlası değil.
+         FAZLA rezerv de zararlıdır: içerik yerleşince altındakiler YUKARI kayar = yeni CLS.
+       · min(760px, ...) tavanı → rezervin GERÇEK içeriğin altında kalmasını garanti eder.
+         Ölçülen içerik 1360px (masaüstü) / 2413px (412 mobil) / 2635px (375 mobil) = 7 panel;
+         panel başına ~158px, yani 760px ≈ 5 panel. Katalog küçülüp panel sayısı 5'in altına
+         inmedikçe boş beyaz bant OLUŞMAZ.
+       ÖLÇÜLDÜ (aynı koşum, rezerv uygulanmış): 1350x940 → 0,0007 · 1512x1200 → 0,0004 ·
+       412x823 → 0. Kalan 0,0007 #katPanels DEĞİL, üstteki .hg5-kargo şeridinin 16→18px
+       metin büyümesidir (ayrı, ihmal edilebilir kalem). */
+    min-height:min(760px, calc(100vh - 410px));
   }
   .kat-panel{background:#ffffff}
   /* Harf aralığı SON harfin de sağına boşluk koyar → metin görsel olarak sola kayar.
