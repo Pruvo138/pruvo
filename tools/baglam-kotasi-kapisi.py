@@ -9,8 +9,8 @@ NEDEN VAR — OLCULDU, TAHMIN DEGIL (BaBa filo olcumu, her evin son transkripti)
   mimar "bir sey daha bakayim" diyerek kapanisi ERTELER.
 
 NE YAPAR (iki esik, iki ayri kol):
-  UYARI  (>=350 tur VEYA >=200K): araci GECIRIR, uyari satiri basar.
-  RED    (>=400 tur VEYA >=350K): YALNIZ KAPANIS-SINIFI arac gecer; gerisi RED
+  UYARI  (>=450 tur VEYA >=300K): araci GECIRIR, uyari satiri basar.
+  RED    (>=500 tur VEYA >=450K): YALNIZ KAPANIS-SINIFI arac gecer; gerisi RED
          "ONCE kapanis + /clear". Kapanis sinifi = defteri/kutuyu yazmak, commit/push
          etmek ve okuma/olcme (grep/ls/git status) — yani oturumu KAPATMAYA yarayan
          her sey. Boylece kapi, kapanmasini istedigi seyi ENGELLEMEZ
@@ -31,11 +31,16 @@ import os
 import re
 import sys
 
-# ── ESIKLER (BaBa emri; sayilar filo olcumunden) ──────────────────────────────────
-UYARI_TUR = 350
-UYARI_JETON = 200_000
-RED_TUR = 400
-RED_JETON = 350_000
+# ── ESIKLER ───────────────────────────────────────────────────────────────────────
+# 🔴 RED tavani = OKAN EMRI (6 Eyl 2026, birebir): "baglam kapisi tur 500, 450K olarak
+#    yeniden duzenle". 5 Eyl'deki 400 tur / 350K tavaninin ardilidir.
+# 🟡 UYARI esigi Okan'in emrinde ACIKCA YOK — kapinin MEVCUT tasarim mesafesinden
+#    TURETILDI: uyari, red'den 50 tur ve 150K once yanar (5 Eyl: 400-350=50 tur,
+#    350K-200K=150K). Ayni mesafe korundu -> 500-50=450 tur, 450K-150K=300K.
+UYARI_TUR = 450
+UYARI_JETON = 300_000
+RED_TUR = 500
+RED_JETON = 450_000
 MEKANIK_WRITE = 15          # kod/test dosyasina Write sayisi
 
 # Kod/test sayilan uzantilar (mekanik kol). Defter/kutu/markdown BURADA DEGIL:
