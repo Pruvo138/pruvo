@@ -77,6 +77,11 @@ SEMA_DOSYASI = os.path.join(os.path.dirname(ARAC_YOLU), "panel-ustyazim-sema.sql
 ALAN_BEYAZ_LISTESI = ("fiyat", "baslik", "aciklama", "gorseller", "sil")
 # Katalog fiyat sozlesmesi "N TL" (olculdu 30 Agu: 30626/31264 kayit bu bicimde;
 # legacy "N.N TL" YENI yazima acilmaz — kanonik bicime yakinsansin).
+# 🔴 ALT KUME SOZLESMESI (6 Eyl 2026): bu kalip, katalogun kanonik bicim sozlesmesinden
+# (arama.fiyat_bicim_sebebi) DAHA DARDIR ve oyle KALMALIDIR — uygulayici, katalog
+# kapisinin reddedecegi bir degeri tabana YAZAMAZ. Iliski varsayim degil, KOSULARAK
+# olculur: tools/fiyat-bicim-test.py::test_uygulayici_alt_kume (kanonik kaynagin
+# reddettigi her vaka burada da reddedilmeli).
 FIYAT_BICIMI = re.compile(r"^[1-9][0-9]{0,5} TL$")
 DEGER_TAVANI = {"fiyat": 20, "baslik": 200, "aciklama": 4000, "gorseller": 4000,
                 "sil": 200}

@@ -2664,11 +2664,18 @@ def meta_desc(p):
 
 
 def price_number(fiyat):
-    """'1250 TL' -> '1250' (rakam yoksa None)."""
-    if not fiyat:
-        return None
-    digits = re.sub(r"[^0-9]", "", fiyat)
-    return digits or None
+    """'1250 TL' -> '1250' (kanonik bicime uymayan degerde None).
+
+    TEK KAYNAK arama.fiyat_tam_tl'dir — feed_price ile AYNI ayristirma noktasi.
+    Eskiden burada ayri bir kural vardi (`re.sub(r"[^0-9]", "", fiyat)`: TUM rakamlari
+    birlestirir) ve iki kural sessizce ayrisiyordu:
+        "350 TL (12 cm)" -> price_number 35012  /  feed_price 350   (markup <-> kart)
+        "250.0 TL"       -> price_number 2500   /  gercek tutar 250 (ON KAT)
+    Markup lowPrice ile kart tabani ayni sayidan dogmak zorunda (ilan-tutari-kapisi.py);
+    ikinci ayristirma kurali tam olarak o kapinin yakaladigi hata sinifini uretir.
+    """
+    tl = arama.fiyat_tam_tl(fiyat)
+    return None if tl is None else str(tl)
 
 
 def marka_temiz(txt):
@@ -2687,15 +2694,8 @@ def feed_price(fiyat):
     burada ikinci, daha genis bir kabul sinifi acmaz; sayfa uretimini cokertmeden None
     doner. Katalog kapisi ayni kanonik sebeple yayini zaten fail-closed durdurur.
     """
-    if arama.katalog_alan_tip_sebebi("fiyat", fiyat) is not None:
-        return None
-    if not fiyat:
-        return None
-    m = re.search(r"(\d[\d.]*)\s*(?:tl|try|₺)", fiyat, re.I) or re.search(r"(\d[\d.]*)", fiyat)
-    if not m:
-        return None
-    raw = m.group(1).replace(".", "")          # Turkce binlik ayraci ('1.250' -> '1250')
-    return raw if raw.isdigit() and int(raw) > 0 else None
+    tl = arama.fiyat_tam_tl(fiyat)
+    return None if tl is None else str(tl)
 
 
 # ----------------------------------------------------- ESKI FIYAT (ustu cizili gosterim)
