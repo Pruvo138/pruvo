@@ -2453,8 +2453,8 @@ a.indir{display:inline-block;padding:6px 10px;background:#374151;color:#fff;bord
   Ürün silme TEKİLDİR: karttaki "Sil (arşive)" kuyruğa yazar; taban kaydı arşive taşınır
   (geri getirilebilir), R2 görselleri silinmez. Gizle ile karışmaz: gizli ürün tabanda kalır.</p>
  </div>
- <section id="kuyrukKutu"></section>
  <section id="urunListe"></section>
+ <section id="kuyrukKutu"></section>
 </main>
 <script>
 var PANEL_TUM_DURUMLAR=${JSON.stringify([...TUM_DURUMLAR])};
