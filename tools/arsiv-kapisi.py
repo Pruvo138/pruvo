@@ -383,6 +383,12 @@ def _kur_fikstur(kok, *, kirli=False, mainde=True, itilmis=True, kapanis=True,
     🔴 realpath SART: macOS'ta /tmp -> /private/tmp sembolik bagidir ve
     `git worktree list` GERCEK yolu basar; realpath'siz esleme sessizce kacar
     ([[sentetik-git-fiksturinde-realpath-sart]])."""
+    # 🔴 KOK DIZINI ONCE KURULUR: asagidaki her `sentetik_git` cagrisi `cwd=kok`
+    # ile kosar; kok yoksa `subprocess` FileNotFoundError atar ve batarya HIC
+    # olcmeden coker. Cagiran taraf var olmayan bir ALT yol verebiliyor
+    # (or. cip-kapanis-kancasi-test.py `<mkdtemp>/kirmizi`) — SERIT B'de 2 adim
+    # bu yuzden kirmizi yaniyordu.
+    os.makedirs(kok, exist_ok=True)
     kok = os.path.realpath(kok)
     uzak = os.path.join(kok, "uzak.git")
     repo = os.path.join(kok, "repo")
