@@ -3222,12 +3222,14 @@ def fiyat_yukari_yuvarla(deger):
     ham = deger.strip()
     if ham == "":
         return None
-    # Para birimi GIRDIDE opsiyoneldir ("500" -> "500 TL"): burasi bir GIRIS kapisidir,
-    # katalog sozlesmesi degil. Kanonik bicim (fiyat_bicim_sebebi) TL'yi ZORUNLU tutar ve
-    # normalize edilmis cikti daima onu tasir — gevseklik kayda SIZMAZ. JS ikizi
-    # (shop/src/yonet.js FIYAT_GIRDI_RX) ayni kabulu yapar; fiyat-bicim-test.py kilitler.
-    m = re.match(r"^(" + FIYAT_SAYI_RE + r")(?:[.,](\d{1,2}))?\s*(?:" + FIYAT_BIRIMI_RE
-                 + r")?" + FIYAT_EK_RE + r"\s*$", ham, re.I)
+    # 🔴 MENZIL BILEREK DAR: panel kalibinin (panel-uygulayici.FIYAT_BICIMI /
+    # yonet.js FIYAT_BICIM_RX) AYNISI + YALNIZCA opsiyonel kesirli hane. Yuvarlayici
+    # SADECE Okan'in emrettigi sinifi (kurus) cozer; baska hicbir reddi GEVSETMEZ —
+    # "500" (TL'siz), "500 tl" (kucuk harf), "1.250 TL" (binlik ayracli) panelde
+    # REDDEDILMEYE DEVAM EDER (shop/test/urunler-panel.mjs B4a/B4b bunu olcer).
+    # Genis bir normalize edici burada mevcut RED'leri sessizce kabule cevirirdi.
+    # JS ikizi: shop/src/yonet.js FIYAT_GIRDI_RX (fiyat-bicim-test.py A12 kilitler).
+    m = re.match(r"^([1-9]\d{0,5})(?:[.,](\d{1,2}))? TL$", ham)
     if not m:
         return None
     tam = int(m.group(1).replace(".", ""))
