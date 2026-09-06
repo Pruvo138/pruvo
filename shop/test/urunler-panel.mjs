@@ -271,12 +271,38 @@ console.log("B. KUYRUK YAZIMI (beyaz liste + bicim + parametrik + cogaltmama)");
      r2.kod === 200 && env.kuyruk.length === 1 && env.kuyruk[0].deger === "550 TL",
      JSON.stringify(env.kuyruk));
 }
+// KURUS YUKARI YUVARLAMA (6 Eyl 2026, Okan emri): "noktalamaya izin verme, kurus
+// miktari YUKARI yuvarlansin (200.1 -> 201 TL)". Ondalik girdi artik 400 DEGIL —
+// normalize edilip TAM TL kaydedilir; kuyruga giren deger noktalama TASIMAZ.
+// (Bu vaka once B4d idi ve 400 bekliyordu; emirle birlikte hal DEGISTI.)
+// Menzil: yalniz kurus sinifi cozulur — B4a/B4b/B4c redleri AYNEN durur.
+{
+  const env = mockEnv();
+  const r = await cagir(env, "/urunler-ustyazim",
+    { govde: { urun_id: "test-urun-a", alan: "fiyat", deger: "500.00 TL" } });
+  ol("B4d ondalik fiyat -> 200 + kuyruga TAM TL yazilir (noktalama YOK)",
+     r.kod === 200 && env.kuyruk.length === 1 && env.kuyruk[0].deger === "500 TL",
+     JSON.stringify({ kod: r.kod, kuyruk: env.kuyruk }));
+  const env2 = mockEnv();
+  const r2 = await cagir(env2, "/urunler-ustyazim",
+    { govde: { urun_id: "test-urun-a", alan: "fiyat", deger: "200,1 TL" } });
+  ol("B4e kurus YUKARI yuvarlanir (200,1 TL -> 201 TL) + cevap kaydedilen degeri doner",
+     r2.kod === 200 && env2.kuyruk.length === 1 && env2.kuyruk[0].deger === "201 TL"
+     && r2.govde.deger === "201 TL",
+     JSON.stringify({ kod: r2.kod, govde: r2.govde, kuyruk: env2.kuyruk }));
+}
 {
   const RED = [
     ["B3 beyaz liste disi alan (kategori)", { urun_id: "test-urun-a", alan: "kategori", deger: "Ev" }, 400],
     ["B3b beyaz liste disi alan (uyelik — gizli duzlem kuyruga giremez)",
      { urun_id: "test-urun-a", alan: "uyelik", deger: "x" }, 400],
     ["B4c fiyat bicimi: 0 ile baslar", { urun_id: "test-urun-a", alan: "fiyat", deger: "0 TL" }, 400],
+    // NOT: eski "B4d ondalik -> 400" vakasi 6 Eyl 2026 Okan emriyle POZITIF hale gecti;
+    // normalize + YUKARI yuvarlama artik asagidaki B11 bolumunde olculur (B11c/B11d/B11e).
+    // Ondalik REDDEDILMEZ, TAM TL'ye cevrilir; noktalama yine katologa GIRMEZ.
+    // Bu vaka onun TERSI ekseni: COZULEMEYEN ondalik (uc hane) fail-closed REDDEDILIR.
+    ["B4d2 fiyat bicimi: cozulemeyen ondalik (uc hane)",
+     { urun_id: "test-urun-a", alan: "fiyat", deger: "500.123 TL" }, 400],
     ["B5 parametrik urunde fiyat", { urun_id: "test-parametrik", alan: "fiyat", deger: "500 TL" }, 400],
     ["B6 olmayan urun", { urun_id: "boyle-urun-yok", alan: "fiyat", deger: "500 TL" }, 404],
     ["B7a bicimsiz id (buyuk harf)", { urun_id: "Test-Urun", alan: "fiyat", deger: "500 TL" }, 400],
@@ -310,12 +336,8 @@ console.log("B. KUYRUK YAZIMI (beyaz liste + bicim + parametrik + cogaltmama)");
 console.log("B11. fiyat girdi normalizasyonu (noktalama YOK, kurus YUKARI)");
 {
   const NORM = [
-    ["B11a TL'siz girdi", "500", "500 TL"],
-    ["B11b kucuk 'tl'", "500 tl", "500 TL"],
     ["B11c ondalik .00 (kurus YOK)", "500.00 TL", "500 TL"],
     ["B11d kurus YUKARI yuvarlanir", "200.1 TL", "201 TL"],
-    ["B11e virgullu kurus YUKARI", "249,01", "250 TL"],
-    ["B11f binlik nokta ayraci tutari BUYUTMEZ", "1.250 TL", "1250 TL"],
   ];
   for (const [ad, girdi, beklenen] of NORM) {
     const env = mockEnv();
@@ -329,9 +351,20 @@ console.log("B11. fiyat girdi normalizasyonu (noktalama YOK, kurus YUKARI)");
   }
   // FAIL-CLOSED: normalize COZEMEZSE deger degismeden gelir ve kanonik bicim testi
   // onu REDDEDER — sessiz kabul YOK.
+  // 🔴 MENZIL, 6 Eyl merge'unde IKI TARAF ZIT YAZDIGI ICIN BURADA CIVILENDI (KraL hukmu):
+  // `7f9c8d90` bu dortlunun KABUL edilip normalize edilmesini bekliyordu; `d3dd8f6d` ise
+  // normalize edicinin menzilini OLCEREK daraltmisti (genis hal, panelin B4a/B4b redlerini
+  // sessizce KABULE ceviriyordu). Okan'in emri "noktalamaya IZIN VERME" oldugu icin DAR hal
+  // gecerli: normalize YALNIZ `<sayi> TL` kalibindaki KURUS sinifini cozer (B11c/B11d).
+  // Kalip disi girdi ve BELIRSIZ noktalama fail-closed REDDEDILIR — `1.250 TL`i "1250"e
+  // cevirmek, bugun 616 kayitta kapattigimiz "nokta binlik ayracidir" sinifini geri acardi.
   const REDDE = [["B11g cozulemeyen girdi", "bes yuz lira"],
                  ["B11h sifir tutar", "0 TL"],
-                 ["B11i negatif", "-5 TL"]];
+                 ["B11i negatif", "-5 TL"],
+                 ["B11a TL'siz girdi (kalip disi)", "500"],
+                 ["B11b kucuk 'tl' (kalip disi)", "500 tl"],
+                 ["B11e TL'siz virgullu (kalip disi)", "249,01"],
+                 ["B11f BELIRSIZ noktalama: binlik mi kurus mu", "1.250 TL"]];
   for (const [ad, girdi] of REDDE) {
     const env = mockEnv();
     const r = await cagir(env, "/urunler-ustyazim",

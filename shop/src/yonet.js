@@ -1765,7 +1765,11 @@ const FIYAT_BICIM_RX = /^[1-9][0-9]{0,5} TL$/;
 // buyutuyordu — sepet/odeme dahil. Kural OKUMA tarafinda yuvarlamakla kapatilamaz: o
 // zaman bozuk deger kayitta yasar ve hangi tutarin ilan edildigi kayittan okunamaz.
 // Python ikizi: tools/arama.py fiyat_yukari_yuvarla (kabul testi ayni vaka tablosu).
-const FIYAT_GIRDI_RX = /^\s*((?:[0-9]{1,3}(?:\.[0-9]{3})+|[0-9]+))(?:[.,]([0-9]{1,2}))?\s*(?:TL|TRY|₺)?(?:\s*\([^()]{1,40}\)|\/[^\s\/]{1,20})?\s*$/i;
+// 🔴 MENZIL BILEREK DAR: FIYAT_BICIM_RX'in AYNISI + yalnizca opsiyonel kesirli hane.
+// Yuvarlayici SADECE kurus sinifini cozer; mevcut hicbir RED'i gevsetmez ("500" TL'siz,
+// "500 tl" kucuk harf, "1.250 TL" binlik ayracli hala 400 doner — urunler-panel.mjs
+// B4a/B4b/B4c bunu olcer). Genis bir normalize edici RED'leri sessizce kabule cevirirdi.
+const FIYAT_GIRDI_RX = /^([1-9][0-9]{0,5})(?:[.,]([0-9]{1,2}))? TL$/;
 function fiyatYukariYuvarla(ham) {
   if (typeof ham !== "string") { return null; }
   const m = FIYAT_GIRDI_RX.exec(ham.trim());
@@ -2479,6 +2483,8 @@ a.indir{display:inline-block;padding:6px 10px;background:#374151;color:#fff;bord
   </div>
   <p class="kucuk">Kaydet <b>kuyruğa</b> yazar; değişiklik uygulayıcı işleyip site yeniden
   yayınlanınca canlıya çıkar (dakikalar). Parametrik (sarı) üründe fiyat değiştirilemez.
+  <b>Fiyat tam TL yazılır</b> — kuruş girilirse YUKARI yuvarlanır (200,1 TL → 201 TL) ve
+  kaydedilen değer kartta öyle görünür; noktalı fiyat kataloğa girmez.
   Ürün silme TEKİLDİR: karttaki "Sil (arşive)" kuyruğa yazar; taban kaydı arşive taşınır
   (geri getirilebilir), R2 görselleri silinmez. Gizle ile karışmaz: gizli ürün tabanda kalır.</p>
  </div>
