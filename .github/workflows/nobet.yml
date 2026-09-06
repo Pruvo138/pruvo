@@ -2200,17 +2200,33 @@ jobs:
       # haritasiyla birlikte; kirmizi-sahipligi cozen meta kat.)
 
       # T4 PARTI BORC KAPISI — SERIT B (19 Agu 2026, Paket T4).
-      # Acik kalemli evde YENI PARTI baslatma makinece REDDEDILIR kapisi. Dort kol:
+      # Acik kalemli evde YENI PARTI baslatma makinece REDDEDILIR kapisi. Bes kol:
       # T4-BORC (esik asildi -> RED) · T4-TEMIZ (esik altinda -> GECER) · T4-EV
       # (partiyi baslatan EV'in defteri okunur, baskasi karar vermez) ·
+      # T4-OLCUTSUZ (K289: `kabul:` alani olmayan ACIK kalem -> RED) ·
       # T4-OLCULEMEDI (defter okunamazsa fail-closed; "borc yok" SAYILMAZ). Kol
-      # ayrimi mesaj onekiyle (T4-BORC / T4-TEMIZ / T4-EV / T4-OLCULEMEDI) saglanir;
-      # `acik_kalem_sayisi()` ACIK/UCUSTA/OKAN-KAPISI/🔧 sayar, KAPANDI HARIC.
+      # ayrimi mesaj onekiyle saglanir.
+      #
+      # 🔴 K380 (6 Eyl 2026, BaBa hukmu — ortak kutu 16:5x) — IKI DEGISIKLIK:
+      #   (a) T4-BORC sayimi ARTIK OKAN-KAPISI'NI SAYMAZ (yalniz ACIK/UCUSTA/🔧).
+      #       Kapatani Okan'in eli olan kalem evin isci hattini KILITLEYEMEZ;
+      #       baski `OKAN_KAPISI=N` satirinda ve 23:00 Okan ozetinde DURUR.
+      #       PARSER sozlesmesi (`ACIK_DURUMLAR`) DEGISMEDI — onu dort okuyucu
+      #       daha okuyor (devir-kapisi · korgoz x2 · parti-kapisi).
+      #   (b) Durum hucresi kanonik BES degerin (ACIK/UCUSTA/OKAN-KAPISI/
+      #       KAPANDI/🔧) disindaysa satir ARTIK SESSIZCE ATLANMAZ:
+      #       `T4-OLCULEMEDI durum gecersiz <kimlik>=<metin>` ile fail-closed RED.
+      #       Olculen ariza: FaR F08 hucresi `ACIK (Okan kapisi KALKTI)` yaziyordu
+      #       ve parser satiri atliyordu = yanlis-yesil.
+      #   M-a/M-b mutantlari kaynagin IZOLE bir KOPYASINA uygulanir (benzersiz ad
+      #   + `dont_write_bytecode`); canli govdeye yama YOK, gercek ev yoluna
+      #   silme YOK. Capa cozulemezse `CAPA-COZULMEDI` ile ADIYLA kirmizi.
+      #
       # `--kendini-test` GERCEK deftere DOKUNMAZ: tempfile.mkdtemp izolasyonu; her
       # mutant hedef kolunu AYRICA kanitlar. CANLI kablolama (urun-ekle.py on-kosul)
       # BU PAKETTE YOK — yalniz RED kaniti uretilir. Offline, ag YOK. Beyan:
       # tools/is-akisi-kapisi.py :: SERIT_B.
-      - name: "T4 parti borc kapisi oz-nobetcisi (4 mutant + curutme, hedef kol kanitli)"
+      - name: "T4 parti borc kapisi oz-nobetcisi (8 mutant + 1 kontrol + 4 curutme; K380 M-a/M-b izole kopyada)"
         if: ${{ !cancelled() }}
         run: |
           python3 tools/parti-borc-kapisi.py --kendini-test
