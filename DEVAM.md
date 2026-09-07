@@ -2,33 +2,22 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 DEVIR — 7 Eyl 2026, KraL (ana oturum) → yeni hesap
-**SIRADAKI TEK IS:** BaBa 18:5x **B maddesi** — durust-sinir sinifindaki **22 gorunur kaydin 13'unu `gizli:true`, 9'unu MUAF** isaretle (olcut `sayfalar.py:4562`: hava tasiyan fan/cark URETIRIZ, sivi tasiyan pompa carki + tekneyi iten pervane URETMEYIZ; alet/tahrik dislisi muaf).
-**Nerede kaldim:** 6 cip kapandi, **hepsi bagimsiz komutla dogrulandi**: sitemap oncul CURUK (45 benzersiz lastmod) · llms.txt canli **200** · JSON-LD **476/476** · impeller celisen **5→0** + kapi 26/26 · K377 kardes-depo checkout **success** (token ILK KEZ olculdu) · K378 butunluk **1→26/26**, `OLCULEMEDI` aile **9→0**. Kapi taban kuyrugu **22** bekliyor = B maddesi. CF ①-④ KAPANDI (ayrinti KUTUDA).
-**Acik worktree/dal:** worktree **0** (ana checkout tek). Itilmemis dal **0** — uc dal uzaga alindi, MERGE KARARI YENI OTURUMDA: `claude/marka-uyelik-tazeleme` (a9c7a22d, mesajinda "MERGE EDILMEYECEK mukerrer") · `kral/k35-k36-site-kusurlari` (f343b398) · `onarim/kanca-fikstur-kanonik` (61f940b7).
-**Baskasinin calisma kopyasinda duran:** YOK (`git status --short` = 0; MaCiT'in partisi commit'lendi).
-**Zamanlanmis nobetler (YENIDEN KURULACAK — once `list_scheduled_tasks`, AYNIYSA DOKUNMA):** `gunluk-mimar-ihtar` `0 9,15` 🔴 09 kaldirilamaz (`cip_dogum_bekcisi.ESIK_SAAT`=9) · `teftis-takip` `0 17,23`. Crontab `37 * * * *` CI nobeti **`.ci-token`'a BAGLI → ILK IS tazeleme** (kabul: `~/.claude/cron/ci-nobeti.log` `rc=0`).
-**Okan'da bekleyen karar:** ① CF **usage alert $20** (harcama tavani YOK, tek emniyet) ② duzeltilmis billing ticket (asagida) ③ `pruvo-ozel` icin AYRI S3 kimlik dosyasi YOK (tam ad KUTUDA) → `pruvo-ozel`de 1.618 nesne / 6,22 GB **OLCULEMEDI** ④ token Read kapsamlari (Zone Settings + API Tokens) (Tiered Cache ekseni BaBa hukmuyle DUSTU).
-🔴 **TICKET METNI DUZELTILDI — eskisi YANLISTI:** `qty` toplam DEGIL **ucretli asim** (13.174.870 − 10M ≈ faturadaki 3.206.886) → "10M dahil celiskisi" YOK; tek gercek anomali **$0,29**. Duzeltilmis metin KUTUDA.
+## ✅ 7-8 EYL — ana oturum (yeni hesap, devir DEVRALINDI): **4 is kapandi, 1 yayin arizasi ACILDI ve KAPANDI, 1 hukmum CURUDU**
+**EV:** `2f0680d4` → **`6409d107`** (10 commit, main = origin/main EVET). **YAYIN:** run `34162711295` — `deploy` success · `yayin` success · SKIPPED **0**.
+**DEVIR:** `.ci-token` OLCULDU, tazeleme GEREKMEDI — `ci-nobeti.log` **17:07:00Z rc=0**, devir sonrasi kosum. Zamanlanmis gorev: `once=5 sonra=5 kurulan=0 zaten=2 catisan=0` (cron AYNI, dokunulmadi).
+**KAPANANLAR:** ① impeller B maddesi — taban kuyrugu **22→0**, sicil 4→13, gorunur 34720→34707, `"gizli"` dizesi **0**, merge `7f3b9a3b` ② K89 GA4 `generate_lead` — merge `6a851bb3`, kabul **3/3 canlida**, olay `/g/collect`'te GA4 `G-5V53CQMSCE` + Ads `AW-18330673570` ③ 3 devir dali — 2'si ICERIK olcumuyle OLU cikti (silindi), 1'i tasinip merge `ea3d8d2e` ④ kutu **398→316 st** (5 blok, sarti OLCULEREK doldu; bayt korunumu 7.067.032 = 7.067.032).
+🔴 **KENDI ACTIGIM ARIZA (ders kayitli):** `ea3d8d2e` yayini **14 dk durdurdu** — `ic-seri-izi-kapisi.py`'nin dalla gelen (h) bolumu `urun/` sayfasi ister, ama kapinin TEK cagri yeri `serit-a3` ve o serit `build.py`'den ONCE kosar → `exit 2` → `deploy`+`yayin` **skipped**. Cipin `rc=2 = OLCULEMEDI` uyarisini "bloklamaz" sandim; kapi ZATEN bloklayici bagliydi. Cerrahi onarim `6409d107` (yalniz o dosya geri alindi, K36 main'de KALDI). → [[olculemedi-zaten-bagli-kapida-yayin-durdurur]]
+🔴 **CURUYEN HUKMUM:** "74 bisiklet = KRONIK secim kolu arizasi" YANLIS — D1 su an **35781 = 35781**, hash uyusmaz/eksik/fazla/seq sapan **0**. Kolum ③ zaten yanlisti (`50883a1c` tam o 74'u eklemis, kacirdim). MaCiT'e suclama kutuda GERI ALINDI.
+**MOTOR ORANI:** Claude 3 cip / m3 **0** — ucu de sessiz-hata sinifi (kapi kodu · katalog yazimi · gizlilik/olcum), isciye VERILMEZ. **OZ-OLCUM:** tur **369**/500 · zirve **405.155**/450.000 (kapinin kendi sayma yontemiyle: yalniz `assistant` kayitlari; ilk sayimim TUM jsonl satirlarini sayip 1014 demisti, YANLISTI).
 
-## ✅ 7 EYL — `KraL-ImpellerSinif-7Eyl` [Opus 5]: **durust-sinir SINIF KAPISI; celisen 5→0**
-🔴 ONCUL: metin birebir **1** yerde (`sayfalar.py:4562`), "5 yuzey" DEGIL. 🔴 `duzelt.py` CLI `gizli` TIPSIZ (`--deger true`=DIZE) → `--toplu` boolean. TAM METIN KUTUDA+ARSIVDE.
-## ✅ 7 EYL — `KraL-JsonLdEskiWave-7Eyl` [Opus 5]: **eski dalga landing'lerinde JSON-LD eksigi KAPANDI (432 sayfa)**
-**TABAN→SONUC:** 476 landing, JSON-LD **44 → 476/476** (uretilen 432), sema ihlali 0, ikiz 0. ONCUL YANLIS: sinir 41 degil **44** (`wave-43` de 0/11). IKINCI KUSUR: 8 sayfa ayni URL icin cift Article tasiyordu, kaldirildi. CI kablosu KOSUMLA kanitli: run `34114292147` adim `Landing JSON-LD kapisi` success. TAM METIN KUTUDA+ARSIVDE.
-🔴 **MERGE YARISI (olculdu, kayip 0):** merge commit'im `8eb5d047` es zamanli oturumun `amend`'iyle DUSTU; 5 dosyanin blob'lari dal commit'iyle BIREBIR dogrulandi, merge TEKRAR kosuldu → `1e1c38ac`. KUTUDA.
-**EV:** `ee6406e3` → `1e1c38ac` (dal `883a338f`, 5 dosya, +432/-9). **YAYIN:** run `34114292147` @ `1e1c38ac` — 6/6 is yesil, `deploy` **success** · `yayin` **success**, SKIPPED **0**
-**Okan'a cikan:** YOK. 🔴 **BASKASININ DUZLEMI (dokunulmadi):** `d1-sync --durum` D1=35451 vs `urunler.json`=35526 — **75 eksik**, kaynak komsu cipin `82547f0a` (dilim-60, 75 EKLE) commit'i; ayni kosumun `build` isindeki D1 senkron adimi bunu kapatir, elle `d1-sync` KOSULMADI. `kapi-envanteri` 5/8 (3 kanca KURULU DEGIL) — BaBa'nin 6 Eyl kalemi, benim menzilim disi, CI'da kosmaz.
-## ✅ 7 EYL — ana oturum: **3 CIP KAPANDI, EV TEMIZ; KraL'in `serit-b` kirmizisi 0**
-**TEMIZLIK:** worktree 4→1 (`arsiv-kapisi` rc=0 + `lsof`) · 3 dal · 2 oturum · kutu 455→399 st (lossless, 18 KORUMALI) · `SERIT B 17→6` arsive (7 st, eksik 0).
-**CIP KABULLERI:** `BorcParser` → `GECERSIZ_DURUM 7→0` + `ACIK_KALEM 43→48` · `SeritB2` → `recete AYIKLANAMADI 1→0` + `cip-kapat 24/24` · `KapiEnvanteri` → **BaBa ONCULUNU CURUTTU** (`5/8` DOGRU) — karar BaBa'da. ARSIVDE.
-**T4:** `GECERSIZ_DURUM=0 OLCUTSUZ_KALEM=0` (K339-EK+K329-EK'e `kabul:` yazildi); RED sebebi artik yalniz **borc = 48 acik kalem** (esik 0, tasarim).
-🔴 **KENDI OLCUMUM CURUTULDU** (cip `bold-poitras`): "push kolundan 0 hukum" YANLIS — **152/373 = %41**, `failure` de HUKUMDUR. MIMAR KARARI: olcut HEAD garantili hukum; `concurrency`yi SHA'li yapmak G9 ile YASAK. ARSIVDE.
-**SERIT B** (`34063854360` @ `66a461ad`): `serit-b` 1 = `LCP` **ArTisT** · `hijyen-a3` 1 = `Arama parite` (cip `NodeEkseni`; 4 komut da YERELDE YESIL) · `hijyen-a2` 1 = `Feed politika` **MaCiT**.
-**YAYIN ✅:** `34060159828` @ `66a461ad` — 6/6 yesil, deploy+yayin success, SKIPPED **0** (BaBa'nin 2 ardisik SKIPPED kirmizisi KAPANDI).
-**K377+K378 ✅ (`c34f9712`):** `hacim-tam-takim` on-kosul R2'ye; butunluk **1 dosya → 26/26 sha256** (ORTAK arac). `PRUVO_PAKET_DIR` → **OLCULEMEDI 9→0** (run `34125512781`). Kabul 10 kol+3 mutant. 🔴 ARIZA YER DEGISTIRDI: 9 aile CI openscad `derleme hatasi`. KUTUDA.
-**KimiIptal-7Eyl:** isci.sh/uc/crontab 0, MOTOR-YOK 3/3, vaka 619. KUTUDA.
-**KAPANIS 08:2xZ:** 4 cip kabul · tamirci dali MERGE `019e8efe`→`535005fd` · `hijyen-a3`=`PVC` landing · YAYIN `34098909326` SKIPPED **0**. KUTUDA.
-**10:3xZ:** 3 CIP EMRI ICRA · `(Impeller)` ikizi `ee6406e3` · K376 · kutu 461→191 (lossless). **✅ `LlmsTxt`:** `llms.txt` **404→200** (`771c001c`, run `34113014132` SKIPPED 0) — MANIFESTO+nobetci 1→2, mutant 7/7. KUTUDA.
+## 🔧 BU TURDAN ACILAN KALEMLER (hepsi olculdu, hicbiri baslanmadi)
+- **K380 (h) BOLUMU MAIN'DE YOK:** geri inecekse build **SONRASI** cagri yeriyle ya da `urun/` yokken `KAPSAM DISI` (OLCULEMEDI DEGIL) inmeli; yoksa iddia olculmemis kalir. Kabul: `deploy.yml`'de build-sonrasi atif ≥1 ∧ kapi rc=0.
+- **K381 `d1-sync.py` GERI-OKUMA SOZLESMESI:** arac "yeni: 74 … dogrulandi ✅" bastiktan HEMEN sonra kendi `--durum`'u ayni satirlari EKSIK gosterdi (MaCiT olctu). Replika gecikmesi mi teyit hatasi mi **AYRISTIRILMADI** → `OLCULEMEDI`. Kabul: tek yazimdan hemen sonra + N dk sonra iki `--durum` (arada baska senkron YOK).
+- **K382 YEDEK KARANTINASI CIKISSIZ:** `yedek-dusus.log` 6-7 Eyl kesintisiz `rc=1`, her turda 1-2 dosya `bayt-dususu` diye Drive'a YAZILMIYOR. Koruma dogru ama karantina hic kalkmiyor → o dosyalarin Drive kopyasi SURESIZ bayat, nobetci kalici kirmiziya yerlesir. Kabul: mesru kuculmeyi onaylayan kol + `ARDISIK` sifirlanir.
+- **K383 `satir_soru` YUZEYI ERISILEMEZ:** link `prova=="kapali"` ister, katalogdaki 16/16 konfigur urun canlida `acik`. K89 "3 yuzey" sayimi SISIK, dogrusu **2 olculdu + 1 erisilemez**. Kabul: canli Worker'in non-200 dondugu konfigur satir (OKAN KAPISI).
+- **K384 `kisisel-veri-test.py` bir beyani yanlis basiyor** — TAM METIN + kabul olcutu: `DEVAM-ARSIV.md`, baslik `K384 — 8 Eyl 2026` (govde izlenen belgeye YAZILMAZ, E5).
+- **K385 KUTU TAVANI ARTIK BENIM MENZILIM DISI:** 316 st / 250; kalan 15 korumali blogun **13'u BaBa'nin**, 1'i ArTisT'in yorum kalemi, 5'i Okan'in arsivlemesini bekleyen cip kapanisi. BaBa ve Okan kapisi.
+
 ## 🔴 6 EYL — `KraL-KapiEnvanteri-6Eyl` [Opus 5]: **hukmun ONCULU CURUDU — uc kapi KURULU DEGIL; `5/8` DOGRU** (tam hesap KUTUDA)
 **ONCUL+AKIM:** 3 atfin ucu de PROZA (biri `SILINDI`); 29 Agu supurmesi kabloyu sokmus. Canli: 3 kapi da deny URETMEDI (`git commit` rc=0), POZITIF KONTROL deny verdi; mutant 4/4. **Kapilar KURULMADI → BaBa karari.** TAM METIN KUTUDA.
 
