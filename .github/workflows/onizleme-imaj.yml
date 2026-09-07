@@ -59,55 +59,23 @@ jobs:
       - name: Duman+drift kapisi kabul testi (offline)
         run: python3 onizleme/test/duman_kabul.py
 
-      - name: Gizli paketi cek (R2, olmazsa secret)
-        env:
-          R2_ERISIM_ID: ${{ secrets.R2_ERISIM_ID }}
-          R2_GIZLI_ANAHTAR: ${{ secrets.R2_GIZLI_ANAHTAR }}
-          # Birincil yol R2: R2_ERISIM_ID/R2_GIZLI_ANAHTAR = pruvo-ozel'e SALT-OKUMA
-          # yetkili 'pruvo-ozel-okuma-ci' token'i (16 Tem 2026'da uretildi, dogrulandi).
-          # ONIZLEME_PAKET_B64 yedegi ayni gun KALDIRILDI (Okan karari) — asagidaki
-          # fallback kodu zararsiz oldugu icin duruyor; secret bos gelir, R2 duserse
-          # is aciklamali hata verir (cozum: tools/onizleme-paket-yukle.py + token kontrol).
-          ONIZLEME_PAKET_B64: ${{ secrets.ONIZLEME_PAKET_B64 }}
-          PAKET_ANAHTAR: ${{ inputs.paket_anahtar }}
-          # Hesap kimligi kaynakta DUZ METIN durmaz (bkz. tools/spec-ifsa-kapisi.py EKSEN-D):
-          # tek kaynak repo secret'idir. Bos gelirse R2 yolu DENENMEZ (asagidaki kosul) ve
-          # is secret yoluna duser; o da yoksa aciklamali hata verir — sessiz hata YOK.
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          # FAIL-CLOSED: anahtar girilmemisse DUR. Bos girdiyle devam etmek "s3://pruvo-ozel/"
-          # dizinini cekmeye calisir, bos/yanlis paketle imaj derlenir (sessiz hata).
-          if [ -z "$PAKET_ANAHTAR" ]; then
-            echo "::error::paket_anahtar girdisi BOS. Paketi tazeleyip (python3 tools/onizleme-paket-yukle.py) ciktidaki 'R2 ANAHTARI' degerini girin."
-            exit 1
-          fi
-          echo "istenen paket anahtari: $PAKET_ANAHTAR"
-          mkdir -p onizleme/derleyici/paket-ozel
-          CEKILDI=""
-          if [ -n "$R2_ERISIM_ID" ] && [ -n "$R2_GIZLI_ANAHTAR" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            export AWS_ACCESS_KEY_ID="$R2_ERISIM_ID"
-            export AWS_SECRET_ACCESS_KEY="$R2_GIZLI_ANAHTAR"
-            export AWS_DEFAULT_REGION=auto
-            if aws s3 cp "s3://pruvo-ozel/$PAKET_ANAHTAR" paket.tar.gz \
-              --endpoint-url "https://$CLOUDFLARE_ACCOUNT_ID.r2.cloudflarestorage.com"; then
-              CEKILDI="r2"
-            else
-              echo "::warning::R2'den cekilemedi (kimlik bucket kapsami?) — secret yoluna dusuluyor."
-            fi
-          fi
-          if [ -z "$CEKILDI" ]; then
-            if [ -z "$ONIZLEME_PAKET_B64" ]; then
-              echo "::error::Paket cekilemedi: ne R2 erisimi ne ONIZLEME_PAKET_B64 secret'i var."
-              echo "Cozum: python3 tools/onizleme-paket-yukle.py (R2 + secret'i birlikte tazeler)."
-              exit 1
-            fi
-            printf '%s' "$ONIZLEME_PAKET_B64" | base64 -d > paket.tar.gz
-            CEKILDI="secret"
-          fi
-          tar -xzf paket.tar.gz -C onizleme/derleyici/paket-ozel
-          rm paket.tar.gz
-          echo "paket kaynagi: $CEKILDI — dosyalar (adlar sir degil, icerik loglanmaz):"
-          ls onizleme/derleyici/paket-ozel
+      # ORTAK CEKME TANIMI (K377, 7 Eyl 2026): bu blogun govdesi
+      # .github/actions/gizli-paket-cek'e TASINDI ve artik nobet.yml::hacim-tam-takim
+      # ile PAYLASILIYOR. Gerekce OLCULDU: iki kopya ayri ayri bayatladi — nobet.yml
+      # 2026-07-16 R2 gecisini HIC ALMAMISTI ve o is aylardir on-kosulda oluydu.
+      #
+      # AYNI TURDA DUSURULEN OLU KOL: ONIZLEME_PAKET_B64 fallback'i. 16 Tem'de Okan
+      # karariyla emekli edildi, secret repoda YOK — yani secret hep bos geliyor ve
+      # eski kodda R2 duserse zaten `exit 1` yaniyordu. Davranis PARITE: anahtar bossa
+      # exit 1 · R2 duserse aciklamali exit 1 · basarida ayni dizine ayni sekilde acilir.
+      - name: Gizli paketi cek (R2 — tek kaynak, ortak action)
+        uses: ./.github/actions/gizli-paket-cek
+        with:
+          paket-anahtar: ${{ inputs.paket_anahtar }}
+          hedef-dizin: onizleme/derleyici/paket-ozel
+          r2-erisim-id: ${{ secrets.R2_ERISIM_ID }}
+          r2-gizli-anahtar: ${{ secrets.R2_GIZLI_ANAHTAR }}
+          cloudflare-hesap-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       # METIN ESLEM KAPISI — TAM KAPSAM (gizli eslem burada CEKILMIS durumda).
       # Pages CI'da (deploy.yml) ayni kapi sirsiz kosar ve gizli-eslem ailelerini
