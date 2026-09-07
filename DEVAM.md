@@ -40,7 +40,8 @@ K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
 - 🔧 **K199 (19 Agu):** `is-akisi-kapisi.py` "etkili tasiyici" LITERALE capali; varlik turetilmis
   mekanizmaya gecince korlesir (K193). Care: sonucu olc ya da makine-okunur beyani tasiyici say;
   mutant+negatif sart. · 🔧 **K201 SINIF: KAYIT KENDINI OLCMEZ** — 5 vaka; ya TURETILIR ya SAYIYLA.
-- 🔧 **K196 (DEPO GENELI):** CI node 20 / yerel 25.8.1 → yerel JS yesilleri CI surumunde OLCULMEMIS. ARSIVDE.
+- ✅ **K196 KAPANDI (7 Eyl):** node hipotezi CURUDU (5 komut node 20.20.2/25.8.1'de birebir: 248/140/40).
+  Kok ORTAM: bot yoksa SM1 kaydolmaz, pozisyonel capa 29 menzil disi -> sessiz yesil. Kol `parite-senaryo-capasi-test.py` 16/0.
 - 🔴 **K197: 19 Ağu mimara giden rapor içeriği (239 satır / 11.617 B) KAYBEDİLDİ — gitignore deseni + ağaç silme sırası.** Birebir cümle + öz KUTUDA.
 - 🔧 **K217** tavan fiksturu. (K311 tam metni kaynak-dogrusunda; defterdeki ikinci kopya ARSIVE indi 2/5.)
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
