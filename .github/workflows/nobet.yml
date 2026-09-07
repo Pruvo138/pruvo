@@ -1431,6 +1431,22 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/lcp-onculuk-kapisi.py
 
+      # 7 Eyl 2026 (cip KraL-Tamirci-7Eyl) — YUKARIDAKI KAPININ TESHIS EKSENI.
+      # NE OLCER: kapinin B kolu, mutant sayisi esigin altina dustugunde eskiden SABIT
+      # "capalar bayatlamis" teshisi basiyordu; o cumle HIC OLCULMUYORDU. 7 Eyl canli
+      # vakasi: `63a48f7a` foto-slider'i sokerken index.html'den preload+fetchpriority
+      # gitti, 7 mutant o iki eksene capali oldugu icin uretilemedi ve kapi okuyucuyu
+      # KAPI duzlemine (KraL) yonlendirdi — oysa ariza ICERIK duzlemindeydi (ArTisT).
+      # Bu adim sebebin TABLODAN + OLCULEN on-kosuldan TURETILDIGINI ve capa-tutmayan
+      # taramasinin erken return'un ARKASINA DUSMEDIGINI civiler
+      # ([[aracin-teshis-cumlesi-olcum-degil]] · [[fail-closed-kol-arkasindaki-kolu-maskeler]]).
+      # 6 vaka + 4 oldurucu mutant + 1 KONTROL. Mutantlar IZOLE KOPYAYA uygulanir,
+      # canli govdeye yama YOK. Offline, ag YOK, dosya YAZMAZ (yalniz tempdir), ~2 s.
+      # Beyan: tools/is-akisi-kapisi.py :: SERIT_B (kapinin kendisiyle AYNI serit).
+      - name: "LCP B-kolu sebep turetimi (teshis olculuyor mu; 4 mutant + 1 kontrol)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/lcp-sebep-turetimi-test.py
+
       # KAPININ KENDI NOBETCISI — ayri adim olmak ZORUNDA: yukaridaki kosum kapinin
       # KIRMIZI yolunu hic denemez (agac temizse daima yesil). Bu adim hermetik bir depo
       # kopyasinda 4 sayfayi tek tek bayatlatir (4/4 KIRMIZI bekler), kapsam daraltmayi

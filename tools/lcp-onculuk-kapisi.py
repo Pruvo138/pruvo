@@ -375,6 +375,59 @@ def mutantlar(ham):
     return liste
 
 
+# --- 7 Eyl 2026: B KOLUNUN SEBEP TURETIMI -----------------------------------------
+# NEDEN: `len(mut) < 12` kolu "capalar bayatlamis" diye SABIT bir teshis basiyordu.
+# Bu teshis HIC OLCULMUYORDU. 7 Eyl'de canli vaka: `63a48f7a` (foto-slider SOKULDU)
+# index.html'den preload+fetchpriority'yi goturdu; 7 mutant o iki eksene capali oldugu
+# icin uretilemedi ve kapi "capalar bayatlamis" dedi -> okuyucu KAPI duzlemine (KraL)
+# yonlendirildi, oysa arıza ICERIK duzlemindeydi (index.html / ArTisT).
+# KURAL: sebep TABLODAN TURETILIR, iddia EDILMEZ ([[aracin-teshis-cumlesi-olcum-degil]]).
+#
+# Her mutantin bagli oldugu ICERIK ekseni. Eksik mutant, ekseni ham metinde YOK ise
+# ICERIK-TUREVI; ekseni VAR oldugu halde uretilememisse CAPA-BAYAT'tir.
+MUTANT_ON_KOSUL = {
+    "M1": "preload", "M2": "preload", "M3": "preload", "M10": "preload",
+    "M4": "fetchpriority", "M5": "fetchpriority", "M8": "fetchpriority",
+    "M6": "preconnect",
+    "M7": "srcset",
+    "M9": "picture-avif", "M11": "picture-avif",
+    "K1": "-",
+}
+# Esik TABLODAN turer; ikinci bir sabit (magic 12) TUTULMAZ — tablo buyuyunce
+# esik kendiliginden buyur, iki kaynak birbirinden SAPAMAZ.
+BEKLENEN_MUTANT = len(MUTANT_ON_KOSUL)
+
+
+def on_kosul_hali(ham):
+    """B kolunun icerik on-kosullarini ham metinden OLCER (iddia etmez)."""
+    g = yorumsuz(ham)
+    pre = any(oznitelik(t, "as") == "image" and oznitelik(t, "imagesrcset")
+              for t in _PRELOAD_RE.findall(g))
+    yuksek = any(oznitelik(t, "fetchpriority") == "high" for t in _IMG_RE.findall(g))
+    prec = bool(re.search(r'<link\b[^>]*\brel="preconnect"[^>]*>', g))
+    srcset = any(_SRCSET_OGE.findall(ss) for _t, _s, ss, _tt in _tum_kaynaklar(g))
+    avif = False
+    for blok in _PICTURE_BLOK.findall(g):
+        etiketler = _SOURCE_TAG.findall(blok)
+        if any(oznitelik(t, "type") == "image/avif" for t in etiketler):
+            avif = True
+            break
+    return {"preload": pre, "fetchpriority": yuksek, "preconnect": prec,
+            "srcset": srcset, "picture-avif": avif, "-": True}
+
+
+def eksik_mutant_sebebi(ham, mut):
+    """(icerik_turevi, capa_bayat) — eksik mutantlari OLCULEN on-kosula gore ayirir."""
+    uretilen = set(ad.split(" ", 1)[0] for ad, _b, _k in mut)
+    hal = on_kosul_hali(ham)
+    icerik, bayat = [], []
+    for kimlik, eksen in sorted(MUTANT_ON_KOSUL.items()):
+        if kimlik in uretilen:
+            continue
+        (icerik if not hal.get(eksen, True) else bayat).append((kimlik, eksen))
+    return icerik, bayat
+
+
 def main():
     if not os.path.isfile(INDEX):
         print("OLCULEMEDI: %s yok" % INDEX)
@@ -402,9 +455,33 @@ def main():
 
     print("B) MUTASYON BATARYASI")
     mut = mutantlar(ham)
-    if len(mut) < 12:
-        print("   OLCULEMEDI: yalniz %d mutant uretilebildi (>=12 beklenir) — capalar "
-              "bayatlamis" % len(mut))
+    # Capa TUTMAYAN mutantlar HER YOLDA olculur. Onceki hal bunu erken return'un
+    # ARKASINA birakiyordu: mutant sayisi esigin altina dustugu an, URETILEN
+    # mutantlar arasindaki olu capalar da gorunmez oluyordu
+    # ([[fail-closed-kol-arkasindaki-kolu-maskeler]]).
+    tutmayan = [ad for ad, bozuk, _k in mut if bozuk == ham]
+    if len(mut) < BEKLENEN_MUTANT:
+        icerik, bayat = eksik_mutant_sebebi(ham, mut)
+        print("   OLCULEMEDI: %d/%d mutant uretilebildi." % (len(mut), BEKLENEN_MUTANT))
+        if icerik:
+            print("   SEBEP=ICERIK-TUREVI (%d) — on-kosul ekseni ham metinde YOK; "
+                  "A kolundaki eksik icerik duzelince bu mutantlar KENDILIGINDEN doner:"
+                  % len(icerik))
+            for kimlik, eksen in icerik:
+                print("        %-4s eksen=%s" % (kimlik, eksen))
+        if bayat:
+            print("   SEBEP=CAPA-BAYAT (%d) — on-kosul ekseni ham metinde VAR ama mutant "
+                  "yine de uretilemedi; KAPI govdesi onarilmali:" % len(bayat))
+            for kimlik, eksen in bayat:
+                print("        %-4s eksen=%s" % (kimlik, eksen))
+        if tutmayan:
+            print("   AYRICA capa TUTMAYAN (uretildi ama metni DEGISTIRMEDI) %d mutant:"
+                  % len(tutmayan))
+            for ad in tutmayan:
+                print("        %s" % ad)
+        print("   YONLENDIRME: %s" % ("ICERIK duzlemi (index.html) — kapi govdesi SAGLAM"
+                                      if icerik and not bayat and not tutmayan
+                                      else "KAPI govdesi (tools/lcp-onculuk-kapisi.py)"))
         return KOD_OLCULEMEDI
     kacan = []
     for ad, bozuk, kirmizi_bekleniyor in mut:
