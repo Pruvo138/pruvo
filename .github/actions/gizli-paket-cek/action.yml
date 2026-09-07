@@ -93,3 +93,31 @@ runs:
         rm paket.tar.gz
         echo "paket acildi -> $HEDEF_DIZIN (adlar sir degil, icerik loglanmaz):"
         ls "$HEDEF_DIZIN"
+
+    # BUTUNLUK — CEKME SOZLESMESININ PARCASI (K378, 7 Eyl 2026). "Arsiv acildi" ile
+    # "paket TAM geldi" AYNI SEY DEGILDIR: yanlis anahtar, kismi arsiv, duz olmayan
+    # dizin ya da elle degistirilmis tek bir uretec, acilmis bir pakette de olur.
+    # Repo HEAD kaydi (onizleme/derleyici/paket-parmakizi.json) paketin TUM dosyalarinin
+    # sha256'sini tasir (bugun 26: 25 *.scad + eslem-ozel.json); dogrulayici EKSIK,
+    # FAZLA ve ICERIK sapmasini ADIYLA basar, sayilari yazar ve fail-closed `exit 1`
+    # verir. Bos kayit/bos paket kombinasyonu da KIRMIZIDIR (alt_sinir_kusurlari).
+    #
+    # 🔴 NEDEN BURADA, CAGIRAN IS AKISINDA DEGIL — OLCULDU (7 Eyl 2026): cagri
+    # nobet.yml::hacim-tam-takim adiminin `run:` govdesine konuldugunda
+    # tools/ci-kapsam-test.py KIRMIZI yandi ("BAYAT izin: tools/onizleme-kapisi.py
+    # ARTIK KOSULUYOR"). Sebep: o kapi tetigi IS AKISI duzeyinde siniflar; nobet.yml
+    # OTOMATIK (schedule/push) sayilir, oysa `hacim-tam-takim` isi
+    # `if: github.event_name == 'workflow_dispatch'` ile YALNIZ elle kosar. Kirmiziyi
+    # muafiyeti kaldirarak kapatmak, aracin bloklayici CI'da kostugunu YANLIS beyan
+    # ederdi ve is-akisi-kapisi.py B-CAPRAZ kilidini (B5a) de dusururdu.
+    # Ortak action `.github/workflows/*` desenine girmez -> cekme ve butunluk TEK
+    # sozlesmede kalir, iki kapinin ikisi de dogru seyi olcmeye devam eder.
+    # NOBETCI: tools/hacim-onkosul-test.py (K3-K7 + m2/m3 mutant ayaklari) bu adimin
+    # govdesini KAYNAKTAN cikarip izole fiksturde kosturur; adim silinirse/adi
+    # degisirse OLCULEMEDI (rc=2) verir, sessizce yesile DUSMEZ.
+    - name: "Paket butunlugu: kayittaki TUM dosya adlari + sha256 (fail-closed)"
+      shell: bash
+      env:
+        HEDEF_DIZIN: ${{ inputs.hedef-dizin }}
+        PAKET_ANAHTAR: ${{ inputs.paket-anahtar }}
+      run: python3 tools/onizleme-kapisi.py parmakizi-dogrula --dizin "$HEDEF_DIZIN" --paket-anahtar "$PAKET_ANAHTAR"

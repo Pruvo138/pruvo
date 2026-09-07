@@ -48,6 +48,38 @@ def openscad_yolu():
 
 
 def paket_topla():
+    """Olcumun okuyacagi paket dizinini dondurur (duz dizin: eslem-ozel.json + .scad).
+
+    IKI KAYNAK, TEK SOZLESME:
+      1) PRUVO_PAKET_DIR verilmisse -> ZATEN TOPLANMIS paket OLDUGU GIBI kullanilir.
+         CI yolu budur: is akisi paketi R2'den ceker (.github/actions/gizli-paket-cek)
+         ve ONCESINDE butunlugunu 26/26 dosya adi + sha256 olarak dogrular
+         (tools/onizleme-kapisi.py parmakizi-dogrula).
+      2) Degilse paket KAYNAKTAN toplanir (gelistirici makinesi; sir dizinleri yerelde).
+
+    🔴 NEDEN CI'DA (2) KULLANILAMAZ — OLCULDU (K378, 7 Eyl 2026; kosum 34116902005):
+      * tools/onizleme-paket-yukle.py::topla() `.scad`leri PRUVO_UYELIK_DIR'den kopyalar
+        ve o degiskenin VARSAYILANI YEREL MUTLAK bir yoldur (/Users/okan/...). CI'da
+        yoktur -> "eksik .scad kaynagi: oringgenerator.scad, …" ile durur ve
+        `motor: uretim` beyanli 9 aile OLCULEMEDI'ye duser.
+      * O asilsa bile ikinci bir yapisal engel var: topla() eslemi
+        <repo>/onizleme/derleyici/eslem-ozel.json'dan okur; CI'da o yol PAKETTEN gelen
+        BIRLESTIRILMIS eslemdir (ACIK_AILELER zaten icinde), ikinci birlestirme
+        "<aile> hem eslem-ozel.json'da hem ACIK_AILELER'de" ile durur.
+      Yani CI'da paketi yeniden toplamak imkansizdir; cekilen paket OLDUGU GIBI okunur.
+
+    FAIL-CLOSED: verilen dizin yoksa/eslem-ozel.json tasimiyorsa `paket toplanamadi:`
+    ile durulur — jenerator/test/dogrula.py::uretim_motoru_olc bu ifadeyi OLCULEMEDI
+    diye siniflar, YESIL SAYMAZ."""
+    hazir = os.environ.get("PRUVO_PAKET_DIR")
+    if hazir:
+        eslem_yol = os.path.join(hazir, "eslem-ozel.json")
+        if not os.path.isdir(hazir):
+            sys.exit("paket toplanamadi:\nPRUVO_PAKET_DIR dizini YOK: %s" % hazir)
+        if not os.path.isfile(eslem_yol):
+            sys.exit("paket toplanamadi:\nPRUVO_PAKET_DIR eslem-ozel.json tasimiyor: %s"
+                     % hazir)
+        return hazir
     hedef = tempfile.mkdtemp(prefix="eslem-olcum-paket-")
     proc = subprocess.run(
         [sys.executable, os.path.join(REPO, "tools", "onizleme-paket-yukle.py"),

@@ -107,6 +107,12 @@ jobs:
       # girilerek is tetiklenebiliyor, kayit taze gorunurken imaj baska bir paketten
       # derleniyordu. Ayrica bu adim paketin DUZ dizin oldugunu da dogrular (alt dizin
       # dosyalari ne kayda ne /parmakizi beyanina girer -> simetrik kor nokta).
+      # 🔴 K378 (7 Eyl 2026) — BU ADIM BILEREK DURUYOR, ORTAK ACTION'DAKIYLE IKI KEZ
+      # KOSAR. Sebep OLCULU: tools/is-akisi-kapisi.py B_IDDIALAR['parmakizi-dizin']
+      # capasi YALNIZ BU DOSYAYA bakar (B_IS_AKISI = "onizleme-imaj.yml") ve cagriyi
+      # is akisinin KENDI `run:` satirinda arar. Adim ortak action'a devredilip buradan
+      # silinseydi o nobetci "cagri YOK" der ve KIRMIZI yanardi. Ikinci kosum bedelsiz
+      # (salt okuma, sanadan hizli) ve ayni ARACI cagirir — ikinci bir TANIM degildir.
       - name: Paket parmakizi (repo HEAD kaydi vs cekilen paket)
         env:
           PAKET_ANAHTAR: ${{ inputs.paket_anahtar }}

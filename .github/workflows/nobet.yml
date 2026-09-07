@@ -2822,18 +2822,22 @@ jobs:
         uses: ./.github/actions/gizli-paket-cek
         with:
           paket-anahtar: ${{ steps.paket-anahtar.outputs.anahtar }}
-          hedef-dizin: onizleme/derleyici
+          hedef-dizin: onizleme/derleyici/paket-ozel
           r2-erisim-id: ${{ secrets.R2_ERISIM_ID }}
           r2-gizli-anahtar: ${{ secrets.R2_GIZLI_ANAHTAR }}
           cloudflare-hesap-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      # BUTUNLUK — paket acildi diye ICINDEKI eslem geldigi anlamina GELMEZ (yanlis
-      # anahtar / duz-dizin olmayan arsiv / kismi paket). Bu satir silinirse asagidaki
-      # TEST 1 eslemsiz kosar ve "aile bulunamadi"yi YESIL sanabilirdi.
-      - name: "Paket butunlugu: eslem-ozel.json geldi mi"
-        run: |
-          test -f onizleme/derleyici/eslem-ozel.json || {
-            echo "OLCULEMEDI: paket acildi ama eslem-ozel.json yok"; exit 1; }
+      # BUTUNLUK ADIMI BURADAN KALKTI VE ORTAK ACTION'A TASINDI (K378, 7 Eyl 2026) —
+      # KOPYALANMADI, TASINDI. Eski hali (`test -f onizleme/derleyici/eslem-ozel.json`)
+      # paketin 26 dosyasindan YALNIZ 1'ine bakiyordu: arsivin ACILDIGINI kanitlar, TAM
+      # oldugunu DEGIL. Yerine .github/actions/gizli-paket-cek icindeki
+      # `Paket butunlugu: kayittaki TUM dosya adlari + sha256` adimi kosar — kayittaki
+      # HER dosya adi + sha256 dogrulanir, eksik/fazla/bozuk olan ADIYLA basilir,
+      # sayilar yazilir ve fail-closed `exit 1` verilir. Cekme ile butunluk artik TEK
+      # sozlesmede; nedeni (iki kapinin celismesi) o dosyanin adim yorumunda OLCULU
+      # yazilidir. Buraya ikinci bir butunluk govdesi YAZILMAZ.
+      # NOBETCI: tools/hacim-onkosul-test.py K10 — bu isin ortak action'i `uses:` ile
+      # cagirdigini AYRICA olcer; cagri dusurulurse KIRMIZI yanar.
 
       - name: "OpenSCAD (nightly AppImage + xvfb)"
         run: |
@@ -2853,14 +2857,31 @@ jobs:
       # GERCEK TEST 1: her aile kendi BEYAN ETTIGI motora karsi olculur
       # (esleme/<aile>.json "motor" alani). Beyan yoksa ya da beyan edilen motor
       # bulunamazsa dogrula.py OLCULEMEDI der ve sifir-disi doner (fail-closed).
+      #
+      # 🔴 PRUVO_PAKET_DIR (K378, 7 Eyl 2026) — `motor: uretim` beyanli 9 ailenin
+      # OLCULEMEDI halini kapatan satir. OLCULDU (kosum 34116902005): paket R2'den TAM
+      # indi (25 .scad + eslem-ozel.json listelendi) ama olcumu yapan
+      # onizleme/test/eslem-olcum.py paketi KULLANMIYOR, KAYNAKTAN YENIDEN TOPLUYORDU
+      # (tools/onizleme-paket-yukle.py --yerel). O yol CI'da CALISAMAZ:
+      #   * .scad kaynagi PRUVO_UYELIK_DIR'den gelir, varsayilani YEREL MUTLAK bir yol
+      #     (/Users/okan/...) -> CI'da yok, "eksik .scad kaynagi: oringgenerator.scad, …",
+      #   * ve o asilsa bile paketin eslem-ozel.json'u ZATEN BIRLESTIRILMIS surumdur
+      #     (ACIK_AILELER icinde), ikinci birlestirme "hem eslem-ozel.json'da hem
+      #     ACIK_AILELER'de" ile durur.
+      # Yani CI'da paketi yeniden toplamak YAPISAL OLARAK imkansiz; cekilen ve
+      # bir ustteki adimda 26/26 dogrulanan paket OLDUGU GIBI verilir.
+      # 🔴 YEREL MUTLAK YOL VARSAYILANI CI'YA TASINMAZ: PRUVO_UYELIK_DIR burada
+      # AYARLANMAZ — CI yolu hazir paketi okur, kaynak agacini hic aramaz.
       - name: "TEST 1 TAM KOSUM — hacim.js vs render (22 aile, motor beyanli)"
         env:
           PRUVO_SCAD_DIR: ${{ github.workspace }}/.pruvo-jenerator/jeneratorler
+          PRUVO_PAKET_DIR: ${{ github.workspace }}/onizleme/derleyici/paket-ozel
         run: python3 jenerator/test/dogrula.py --hepsi --set 3
 
       - name: "Jeneratör kabul takimi TAM KOSUM (8 test; TEST 1 + build.py dahil)"
         env:
           PRUVO_SCAD_DIR: ${{ github.workspace }}/.pruvo-jenerator/jeneratorler
+          PRUVO_PAKET_DIR: ${{ github.workspace }}/onizleme/derleyici/paket-ozel
         run: python3 jenerator/test/kabul.py
 
   hijyen-build:
@@ -2902,14 +2923,24 @@ jobs:
       # `exit 1` verip HIC kosmadi. Bu test onarilan kollari KAYNAKTAN cikarip IZOLE
       # gecici dizinde kosturur. UC AYAK: taban + 2 mutant; mutantlarin ikisi de HEDEF
       # kolu OLDURMEDEN test YESIL sayilmaz (mutant ulasmazsa rc=2 = OLCULEMEDI).
-      # NON-GROWTH bacagi (K5) emekli secret'in geri eklenmesini KIRMIZI yakar;
-      # K6 ise cekme mantiginin ikinci bir kopyasinin acilmasini yakalar.
-      - name: "Hacim on-kosul + paket butunluk kabulu (K377; 2 mutant ayagi dahil)"
+      # NON-GROWTH bacagi (K8) emekli secret'in geri eklenmesini KIRMIZI yakar;
+      # K9 cekme mantiginin, K10 ise BUTUNLUK dogrulayicisinin ikinci bir kopyasinin
+      # acilmasini yakalar (ikisi de CIFT YONLU: kol CANLI mi ayrica olculur).
+      #
+      # K378 (7 Eyl 2026) — BUTUNLUK ekseni TAM KAPSAMA cikti. Eski adim yalniz
+      # `eslem-ozel.json` VARLIGINA bakiyordu: arsiv ACILDI mi der, TAM mi diye BAKMAZ.
+      # Yeni kollar K3 (26/26 + SAYI basilir) · K4 (1 .scad eksik -> ADIYLA kirmizi) ·
+      # K5 (1 dosya icerigi bozuk -> ADIYLA kirmizi) · K7 (kayit/R2 anahtar caprazi).
+      # UC MUTANT AYAGI: m1 on-kosulun fail-closed kolunu, m2 butunlugu ESKI tek-dosya
+      # haline dondurur (K4+K5 BIRLIKTE olmeli), m3 anahtar caprazini dusurur.
+      # Ucu de HEDEF kolu oldurdugunu AYRICA kanitlar; ulasamayan mutant rc=2 (OLCULEMEDI).
+      - name: "Hacim on-kosul + paket butunluk kabulu (K377/K378; 3 mutant ayagi dahil)"
         if: ${{ !cancelled() }}
         run: |
           python3 tools/hacim-onkosul-test.py
           python3 tools/hacim-onkosul-test.py --mutant m1
           python3 tools/hacim-onkosul-test.py --mutant m2
+          python3 tools/hacim-onkosul-test.py --mutant m3
 
       # SITEMAP DAMGA ONBELLEGI — <lastmod> tarihlerinin HIZLANDIRICISI, KAYNAGI DEGIL.
       # Tarihler git gecmisinden turer (tools/sitemap_damga.py); bu dosya yalnizca ayni
