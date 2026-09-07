@@ -2685,6 +2685,28 @@ R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VI
 # ---- IZIN LISTESI (muaf test -> GEREKCE). Bos gerekce = exit 1. ----------
 IZIN_LISTESI = {
     # ═══════════════════════════════════════════════════════════════════════
+    # 7 EYL 2026 — MOTOR-YOK KAPISI (cip KraL-KimiIptal-7Eyl; Okan karari 6 Eyl)
+    # ═══════════════════════════════════════════════════════════════════════
+    "tools/motor-yok-kapisi-test.py": (
+        "OLCTUGU GOVDE CI KOSUCUSUNDA YOK: bu kapi `~/.claude/cron/isci.sh`'in "
+        "MOTOR-YOK kolunu olcer (m3 ucu duserse kosum rc=1 ile DURUR, Claude'a "
+        "DUSMEZ — Okan karari 6 Eyl 2026). O hat Okan'in MAKINESINDEDIR ve "
+        "depoya girmez (yaninda secret durur: `.minimax-anahtar`); CI klonunda "
+        "dizin dahi yoktur. CI'ya baglansaydi iki yanlistan biri olurdu: erken "
+        "`return` ile SAHTE YESIL ([[fail-closed-kol-arkasindaki-kolu-maskeler]]) "
+        "ya da her kosumda YANLIS-POZITIF kirmizi — ki `ci-kapsam-test.py` "
+        "deploy.yml'de `continue-on-error`siz kostugu icin TUM EKIBIN yayinini "
+        "durdururdu. Betik bu hali KENDISI olcer: canli hat yoksa `ONKOSUL_YOK` "
+        "+ `KABUL=OLCULEMEDI` basip rc=3 doner (ucuncu hal; 'yesil' DEMEZ). "
+        "HUKMU ELLE OKUNUR: yerelde `python3 tools/motor-yok-kapisi-test.py` -> "
+        "`KABUL=GECTI (3 vaka)`. Uc kol: mutant (uc bozuk -> rc=1 + "
+        "HAL=MOTOR-YOK + claude CAGRILMADI), kontrol (uc saglam -> MOTOR-YOK "
+        "basilmaz) ve kapi-kaldirildi (kapi izole kopyadan sokulunce olcut "
+        "DUSER — 7 Eyl olcumu: claude_cagrildi=True, yani eski sessiz dusus "
+        "BIREBIR gorulur). MUAFIYETIN OLUM SARTI: `~/.claude/cron` bir gun "
+        "depoya/CI'ya tasinirsa bu satir SILINIR ve kapi serit-b'ye baglanir."
+    ),
+    # ═══════════════════════════════════════════════════════════════════════
     # CLAUDE.md ZORUNLU KAPI KURTARMASI — CI'DA KOSTURULAMAYAN 2 KALEM
     # (cip KraL-SupurmeKurtarma-30Agu; Okan 30 Agu hukmu)
     # ═══════════════════════════════════════════════════════════════════════
