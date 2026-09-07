@@ -2685,6 +2685,44 @@ R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VI
 # ---- IZIN LISTESI (muaf test -> GEREKCE). Bos gerekce = exit 1. ----------
 IZIN_LISTESI = {
     # ═══════════════════════════════════════════════════════════════════════
+    # 7 EYL 2026 — MALZEME YUZEYI KAPISI (cip KraL-K35K36-Tasima-7Eyl)
+    # ═══════════════════════════════════════════════════════════════════════
+    "tools/malzeme-yuzey-kapisi.py": (
+        "YAPISAL CI-KIRMIZI — KAPSAM SOZLESMESI ZEMIN KAYMASIYLA BOZULDU. Kapi "
+        "12 Agu 2026'da yazildi; `68e3775d` (gizleme: fiziksel sinif 940 urun tek "
+        "`gizli` alanindan TUM yuzeylerden dusuruldu) ONDAN SONRA geldi ve kapinin "
+        "zeminini kaydirdi. `build.py` gizli kayda SAYFA URETMEZ "
+        "(`products = [p for p in products if not p.get('gizli')]`), kapi ise "
+        "katalogun TAMAMINI gezip her kayit icin `urun/<id>/index.html` bekler; "
+        "bulamayinca fail-closed rc=3 doner. Kapi `gizli` alanini HIC TANIMIYOR "
+        "(kaynakta 0 atif). OLCULDU (7 Eyl, GERCEK kapi + SAGLIKLI build fiksturu — "
+        "sayfalar TAM OLARAK gizli-olmayan kume icin uretildi, A ve B eksenleri "
+        "kusursuz kuruldu, yani donen kod SADECE gizli sinifindan dogdu): "
+        "rc=3, `958 urunun sayfasi yok`, KAPSAM 34707/35665. Yani bugunku katalogda "
+        "kapi YESIL DONEMEZ. deploy.yml'e BLOKLAYICI baglansaydi 5 mimarin tamaminin "
+        "yayini KALICI dururdu; `continue-on-error` ile baglansaydi bu kez "
+        "`is-akisi-kapisi.py` BEYANSIZ FAIL-OPEN diye KIRMIZI yanardi (olculdu: "
+        "main YESIL, continue-on-error'lu agac rc=1) — ve `D_IZIN` beyani YALAN "
+        "olurdu, cunku malzeme yuzeyini olcen BASKA bir nobetci YOK (D_IZIN "
+        "dairesel-dayanak kolu bunu zaten reddeder). Ucuncu hal olarak baglanmadan "
+        "birakmak `KAPSAMSIZ` kirmizisi verirdi; bu satir o ucuncu hali GEREKCEYE "
+        "baglar. KAPININ ASIL IDDIASI BUGUN SAGLIKLI: (C) celiskili kayit n=0 "
+        "(35.665 kaydin TAMAMI, kapinin KENDI `build.fiziksel_mi` + "
+        "`OZEL_URETIM_SINYALLERI` tanimlariyla olculdu; 12 Agu'daki 3 kayit veri "
+        "tarafinda kapanmis) — bu yuzden kapi SILINMEDI. HUKMU ELLE OKUNUR: "
+        "build.py ciktisi olan bir agacta `python3 tools/malzeme-yuzey-kapisi.py`. "
+        "🔴 IKINCI OLCUM — (B) POZITIF NOBETCISI SU AN OLU: fikstur kosumu "
+        "`hazir/stok 0` basti; `gizli ∩ fiziksel = 940` = fiziksel kumesinin TAMAMI, "
+        "yani 'her sayfaya cip bas' mutantini tutacak kol BOS KUMEDE kosuyor. "
+        "MUAFIYETIN OLUM SARTI (ikisi BIRDEN saglaninca bu satir SILINIR ve kapi "
+        "deploy.yml'e continue-on-error'SUZ baglanir): (1) kapinin kapsami build.py "
+        "ile AYNI kumeye daraltilir (gizli kayitlar kapsam DISI) ve gercek build "
+        "ciktisinda rc=0 OLCULUR — sentetik fikstur YETMEZ, (A) ekseni ancak gercek "
+        "uretilmis sayfayla dogrulanir; (2) (B) icin olculebilir bir hazir/stok "
+        "kumesi bulunur (gizli olmayan `tur:fiziksel` kayit), yoksa pozitif nobetci "
+        "olu kalir. Veri MaCiT'in tek-yazarli duzlemi; bu turda veriye DOKUNULMADI."
+    ),
+    # ═══════════════════════════════════════════════════════════════════════
     # 7 EYL 2026 — MOTOR-YOK KAPISI (cip KraL-KimiIptal-7Eyl; Okan karari 6 Eyl)
     # ═══════════════════════════════════════════════════════════════════════
     "tools/motor-yok-kapisi-test.py": (
