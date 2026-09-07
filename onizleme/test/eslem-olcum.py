@@ -197,9 +197,21 @@ def aile_olc(aile, eslem, paket, openscad, set_sayisi, tohumlar, kisit):
                           (aile, i, json.dumps(sset, ensure_ascii=False)[:90]))
                     continue
                 sonuc["hata"] += 1
-                print("  [HATA] %-10s set%-2d derleme: %s (%s)" %
-                      (aile, i, hata_metni.strip().splitlines()[-1][:120]
-                       if hata_metni.strip() else "?",
+                # 🔴 TANI, "?" DEGIL (K378, 7 Eyl 2026 — OLCULDU, kosum 34125512781):
+                # `uretim` aileleri PAKETE ULASTIKTAN SONRA CI'da 4/4 `derleme: ?` verdi.
+                # `?` yalniz "stderr BOS" demektir; RC ve stdout basilmadigi icin arizanin
+                # sinifi (renderer cikisi / bayrak reddi / STL yazilmadi) OKUNAMIYORDU.
+                # Siniflandirma DEGISMEDI (bu hala `hata`, yani KIRMIZI — sessiz bir
+                # "yerel dogrulanamadi"ya cevrilmedi); yalnizca tani GORUNUR oldu.
+                cikti_metni = proc.stdout.decode("utf-8", "replace")
+                tani = (hata_metni.strip().splitlines()[-1][:120] if hata_metni.strip()
+                        else (cikti_metni.strip().splitlines()[-1][:120]
+                              if cikti_metni.strip() else "cikti YOK"))
+                print("  [HATA] %-10s set%-2d derleme: %s [rc=%s stl=%s stderr=%dB "
+                      "stdout=%dB] (%s)" %
+                      (aile, i, tani, proc.returncode,
+                       "var" if os.path.exists(stl) else "YOK",
+                       len(proc.stderr), len(proc.stdout),
                        json.dumps(sset, ensure_ascii=False)[:90]))
                 continue
             ref = stl_hacim.hacim(stl)
