@@ -3,15 +3,15 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## ✅ 7 EYL — ana oturum: **3 CIP KAPANDI, EV TEMIZ; KraL'in `serit-b` kirmizisi 0**
-**TEMIZLIK:** worktree **4 → 1** (ucu de `arsiv-kapisi` rc=0 + `lsof`) · 3 dal · 2 oturum · kutu **455 → 399 st** (`lossless=GECTI`, kalan 18 blok KORUMALI) · defterden `SERIT B 17→6` arsive (**7 satir, eksik 0**).
+**TEMIZLIK:** worktree 4→1 (`arsiv-kapisi` rc=0 + `lsof`) · 3 dal · 2 oturum · kutu 455→399 st (lossless, 18 KORUMALI) · `SERIT B 17→6` arsive (7 st, eksik 0).
 **CIP KABULLERI (calistirilabilir, mimar kostu):** `BorcParser` → `GECERSIZ_DURUM 7→0` + `ACIK_KALEM 43→48` (5 satir ILK KEZ okundu) · `SeritB2` → `recete AYIKLANAMADI 1→0` + `cip-kapat 20/20→24/24` · `KapiEnvanteri` → **BaBa'nin ONCULUNU CURUTTU** (uc kapi KURULU DEGIL, `5/8` DOGRU; 3 canli RED vakasi URETILEMEDI cunku AKIM YOK) — karar BaBa'da.
 **T4:** `GECERSIZ_DURUM=0 OLCUTSUZ_KALEM=0` (K339-EK+K329-EK'e `kabul:` yazildi); RED sebebi artik yalniz **borc = 48 acik kalem** (esik 0, tasarim).
 🔴 **KENDI OLCUMUM CURUTULDU** (cip `bold-poitras`, 400 kosum): "push kolundan 0 hukum" YANLIS — **152/373 = %41**, `failure` de HUKUMDUR. **MIMAR KARARI:** olcut **HEAD garantili hukum**, SHA kapsamasi DEGIL; `concurrency`yi SHA'li yapmak **G9 ile YASAK**.
 **SERIT B** (`34063854360` @ `66a461ad`): `serit-b` 1 = `LCP` **ArTisT** · `hijyen-a3` 1 = `Arama parite` (cip `NodeEkseni`; 4 komut da YERELDE YESIL) · `hijyen-a2` 1 = `Feed politika` **MaCiT**.
 **YAYIN ✅:** `34060159828` @ `66a461ad` — 6/6 yesil, deploy+yayin success, SKIPPED **0** (BaBa'nin 2 ardisik SKIPPED kirmizisi KAPANDI).
-**KimiIptal-7Eyl:** isci.sh/uc/crontab **0**, MOTOR-YOK 3/3, vaka 619. TAM METIN KUTUDA.
+**KimiIptal-7Eyl:** isci.sh/uc/crontab 0, MOTOR-YOK 3/3, vaka 619. KUTUDA.
 **KAPANIS 08:2xZ:** 4 cip kabul · tamirci dali MERGE `019e8efe`→`535005fd` · `hijyen-a3`=`PVC` landing · YAYIN `34098909326` SKIPPED **0**. KUTUDA.
-**10:3xZ:** Okan'in **3 CIP EMRI ICRA** (Sitemap/JsonLd/LlmsTxt) · `(Impeller)` ikizi `ee6406e3` · **K376 ACILDI** · kutu **461→191** (13 koruma DUSTU, lossless). KUTUDA.
+**10:3xZ:** 3 CIP EMRI ICRA · `(Impeller)` ikizi `ee6406e3` · K376 · kutu 461→191 (lossless). **✅ `LlmsTxt`:** `llms.txt` **404→200** (`771c001c`, run `34113014132` SKIPPED 0) — MANIFESTO+nobetci 1→2, mutant 7/7. KUTUDA.
 ## 🔴 6 EYL — `KraL-KapiEnvanteri-6Eyl` [Opus 5]: **hukmun ONCULU CURUDU — uc kapi KURULU DEGIL; `5/8` DOGRU** (tam hesap KUTUDA)
 **ONCUL+AKIM:** 3 atfin ucu de **PROZA** (biri `SILINDI` kaydi); 29 Agu supurmesi kabloyu sokmus. Canli: 3 kapi da **deny URETMEDI** (`git commit` **rc=0**, ICRA izi **0**); POZITIF KONTROL **deny** verdi. (c) menzili `ast` kod-duzlemiyle kuruldu · M4 **dogrudan kolda** korluk buldu → onarildi · mutant **4/4** · batarya SERIT B'de. **Kapilar KURULMADI → BaBa karari.**
 
