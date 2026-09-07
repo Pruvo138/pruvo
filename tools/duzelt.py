@@ -208,6 +208,18 @@ GORSELSIZ_BAYRAK = "gorselsiz"
 TUR_ALANI = "tur"
 TICARI_HAL_ALANLARI = {TUR_ALANI, GORSELSIZ_BAYRAK}
 
+GIZLI_ALANI = "gizli"
+# 🔴 OLCULEN TIP DELIGI (7 Eyl 2026, KraL): `gizli` de bir BEYAN alanidir (sema tipi
+# bool) ama JSON cozulen kumede DEGILDI. Sonuc: `--alan gizli --deger true` katalogda
+# `"true"` DIZESI birakiyordu; her okuyucu (`kapsam-disi-sinif-kapisi.gorunur_kayitlar`,
+# `arama.gizli_sebebi`, `build.py`) `is True` / truthiness ile baktigi icin urun
+# GIZLENDI SANILIP GORUNUR kaliyordu ve hicbir kapi yanmiyordu — [[tip-sozlesmesi-para-
+# alaninin-bicimini-olcmez]] sinifinin ikinci yuzeyi.
+# 🔴 `gizli` TICARI_HAL_ALANLARI'na EKLENMEZ: o kume `_ticari_hal_ihlalleri`nin
+# (tur/gorselsiz) IS KURALINI tasir ve `gizli` o duzlemde degildir. Ikiz tanim
+# acmamak icin JSON cozulen kume o kumeden TURETILIR, yanina yazilmaz.
+JSON_COZULEN_ALANLAR = TICARI_HAL_ALANLARI | {GIZLI_ALANI}
+
 
 def _tur_gecerli_acik_deger(v):
     """`tur` icin ACIK (hazir ticari mal) degeri mi?
@@ -593,15 +605,15 @@ def _parse_deger(raw, alan=None):
     s = raw.strip()
     if s[:1] in ("[", "{"):
         return json.loads(s)  # liste/sozluk
-    # TICARI HAL alanlari BEYAN alanlaridir: `gorselsiz` GERCEK boolean true olmak
-    # ZORUNDA (parti-kontrol `is True` arar). CLI'da her deger duz metne dusseydi
-    # `--alan gorselsiz --deger true` "true" DIZESI yazar ve kapi onu hakli olarak
-    # reddederdi -> alan CLI'dan hic konulamazdi (yeni bir tek-yonlu kapi). Bu yuzden
-    # SADECE bu alanlarda deger once JSON olarak cozulmeye calisilir:
+    # BEYAN alanlari (ticari hal + `gizli`) GERCEK boolean olmak ZORUNDA: okuyucular
+    # `is True` arar. CLI'da her deger duz metne dusseydi `--alan gorselsiz --deger true`
+    # (ve ayni sekilde `--alan gizli --deger true`) "true" DIZESI yazar; kapi onu hakli
+    # olarak reddederdi -> alan CLI'dan hic konulamazdi (yeni bir tek-yonlu kapi). Bu
+    # yuzden SADECE bu alanlarda deger once JSON olarak cozulmeye calisilir:
     #   true -> True (gecerli) · false/1/[] -> gecerli JSON ama kapi REDDEDER (T2)
     #   fiziksel/evet -> JSON degil, duz metin kalir (tur icin dogru, gorselsiz icin T2)
     # Baska hicbir alanin cozumlemesi degismez ("500 TL", basliklar, ... aynen metin).
-    if alan in TICARI_HAL_ALANLARI:
+    if alan in JSON_COZULEN_ALANLAR:
         try:
             return json.loads(s)
         except ValueError:
@@ -633,6 +645,16 @@ def _alan_tip_hatasi(alan, deger):
         # `--toplu`), dolayisiyla TEK kablo iki yuzeyi birden kapatir — kabul testi
         # ikisini AYRI AYRI olcer, "kapattigini varsaymaz".
         return arama.boy_secenekleri_sebebi(deger)
+    if alan == GIZLI_ALANI:
+        # 🔴 YAYIN YUZEYI — TEK KAYNAK. `gizli` alaninin tipi BURADA YAZILMAZ:
+        # kanonik tanim `arama.KATALOG_ALAN_TIPLERI["gizli"] = bool` ve okuma yolu
+        # (`katalog-alan-kapisi.py` -> `arama.katalog_alan_tip_sebebi`) tam da o
+        # govdeden geciyor. Buraya ikinci bir "bool olmali" kontrolu yazmak
+        # [[ikiz-tanim-sessiz-ayrisma]] sinifidir: yazma yolu okuma yolundan
+        # sessizce gevser. Bu satir iki cagri yuzeyini birden kapatir
+        # (`--alan/--deger` ve `--toplu`) ama kabul testi ikisini AYRI AYRI olcer,
+        # "kapattigini varsaymaz".
+        return arama.katalog_alan_tip_sebebi(GIZLI_ALANI, deger)
     return None
 
 

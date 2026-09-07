@@ -234,12 +234,17 @@ def t_m4_sicil_dolgusu():
     d = _gecici_ev()
     try:
         src = _kapi_kaynagi()
-        capa = 'SICIL_TAVANI = 4'
-        assert capa in src, "mutasyon capasi bulunamadi"
+        # 🔴 CAPA CANLI DEGERDEN TURETILIR, ELLE YAZILMAZ: sabit 'SICIL_TAVANI = 4'
+        # yazildiginda tavan her degistiginde capa sessizce cokuyor ve mutant hic
+        # UYGULANMIYOR ([[mutant-capasi-giris-noktasinin-okumadigi-degerde-olmez]]).
+        # assert'ler capanin GERCEKTEN tuttugunu kolun kendisinde olcer.
+        tavan = _kapi_yukle().SICIL_TAVANI
+        capa = 'SICIL_TAVANI = %d' % tavan
+        assert capa in src, "mutasyon capasi bulunamadi (%r)" % capa
         bozuk = src.replace(
             'MUAFIYET_SICILI = {',
             'MUAFIYET_SICILI = {\n    "mutant-dolgu-hicbir-yerde-yok": "dolgu",',
-            1).replace(capa, 'SICIL_TAVANI = 5', 1)
+            1).replace(capa, 'SICIL_TAVANI = %d' % (tavan + 1), 1)
         assert bozuk != src, "mutasyon uygulanamadi"
         _sentetik_ev(d, kapi_src=bozuk)
         rc, cikti = _kosu(d)

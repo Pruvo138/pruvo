@@ -522,6 +522,125 @@ def test_boy_secenekleri_mutasyon():
     shutil.rmtree(repo2, ignore_errors=True)
 
 
+# ------------------------------------------------------------------ (e4) gizli
+# OLCULEN OLAY (7 Eyl 2026, KraL): `gizli` DEGISTIRILEBILIR kumesindeydi ama JSON
+# COZULEN kumede DEGILDI -> `--alan gizli --deger true` katalogda `"true"` DIZESI
+# birakiyordu. Her okuyucu (`kapsam-disi-sinif-kapisi.gorunur_kayitlar`, `build.py`,
+# `arama.gizli_sebebi`) `is True` / truthiness ile baktigi icin urun GIZLENDI SANILIP
+# yayin yuzeylerinde GORUNUR kaliyor, hicbir kapi yanmiyordu.
+# 🔴 BU BOLUMUN ASIL IDDIASI ADIN KUMEDE OLMASI DEGIL, TIP KABLOSUNUN CANLI OLMASIDIR:
+# mutant `arama.katalog_alan_tip_sebebi`yi -- duzelt.py'nin BAGLANDIGI TEK KAYNAGI --
+# susturur ve dizenin katalogda FIILEN kaldigini gosterir.
+GIZLI_NEGATIF = [
+    ("true", "bool olmali", "DIZE 'true'"),
+    ("false", "bool olmali", "DIZE 'false'"),
+    (1, "bool olmali", "SAYI 1"),
+    ("evet", "bool olmali", "DUZ METIN 'evet'"),
+]
+
+
+def test_gizli_tip_sozlesmesi():
+    print("\n(e4) gizli: GERCEK boolean KABUL + dize/sayi RED (iki cagri yuzeyi AYRI)")
+    repo = sahte_repo()
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_gizli")
+    urunler_yol = os.path.join(repo, "urunler.json")
+
+    kontrol("gizli" in mod.DEGISTIRILEBILIR, "POZITIF: gizli izinli alan kumesinde")
+    kontrol("gizli" in mod.JSON_COZULEN_ALANLAR,
+            "POZITIF: gizli JSON COZULEN kumede (CLI'da 'true' -> True)")
+    kontrol("gizli" not in mod.TICARI_HAL_ALANLARI,
+            "SINIR: gizli TICARI_HAL_ALANLARI'na SIZMADI (tur/gorselsiz is kurali ayri duzlem)")
+
+    # --- (1) POZITIF, TEK-URUN YUZEYI: `--deger true` GERCEK True yazmali ---------
+    rc, out, err = cagir(mod, ["test-urun-1", "--alan", "gizli", "--deger", "true"])
+    with open(urunler_yol, encoding="utf-8") as f:
+        yazilan = {p["id"]: p for p in json.load(f)}["test-urun-1"].get("gizli")
+    kontrol(rc == 0, "POZITIF: --alan gizli --deger true KABUL (rc=%s; %s)"
+            % (rc, err.strip() or out.strip().splitlines()[-1:]))
+    kontrol(yazilan is True,
+            "POZITIF/TIP: katalogda GERCEK boolean True (dize DEGIL) — okunan %r" % (yazilan,))
+
+    # --- (2) NEGATIF, TEK-URUN YUZEYI: dize/sayi RED, dosya BYTE-ESIT -------------
+    for deger, parca, ad in GIZLI_NEGATIF:
+        once = sha(urunler_yol)
+        # CLI'da dizeyi ancak JSON tirnagiyla verebilirsin; sayiyi duz veririz.
+        ham = json.dumps(deger) if isinstance(deger, str) and deger in ("true", "false") \
+            else (str(deger) if not isinstance(deger, str) else deger)
+        rc_n, out_n, err_n = cagir(mod, ["test-urun-2", "--alan", "gizli", "--deger", ham])
+        cikti = out_n + err_n
+        kontrol(rc_n == 2, "NEGATIF (%s): rc=2 (gorulen %s)" % (ad, rc_n))
+        kontrol("gizli" in cikti, "NEGATIF (%s): mesaj alan adini soyluyor" % ad)
+        kontrol(parca in cikti, "NEGATIF (%s): mesaj sebebi soyluyor (%r)" % (ad, parca))
+        kontrol(sha(urunler_yol) == once,
+                "NEGATIF (%s): red sonrasi urunler.json BYTE-ESIT" % ad)
+
+    # --- (3) NEGATIF, --toplu YUZEYI: IKINCI cagri yeri AYRICA olculur ------------
+    # Tek kablo iki yuzeyi kapatiyor OLMALI, ama bu VARSAYILMAZ.
+    for deger, parca, ad in GIZLI_NEGATIF:
+        yol = islem_yaz(repo, [{"id": "test-urun-3", "alan": "gizli", "deger": deger}])
+        once_t = sha(urunler_yol)
+        rc_t, out_t, err_t = cagir(mod, ["--toplu", yol])
+        cikti_t = out_t + err_t
+        kontrol(rc_t == 2 and "gizli" in cikti_t and parca in cikti_t,
+                "NEGATIF TOPLU (%s): rc=2 + alan + sebep mesajda (rc=%s)" % (ad, rc_t))
+        kontrol(sha(urunler_yol) == once_t,
+                "NEGATIF TOPLU (%s): urunler.json BYTE-ESIT" % ad)
+
+    # --- (4) POZITIF --toplu: yol gercekten ACIK (yalniz reddetmiyor) -------------
+    yol = islem_yaz(repo, [{"id": "test-urun-3", "alan": "gizli", "deger": True}])
+    rc_tp, out_tp, err_tp = cagir(mod, ["--toplu", yol])
+    with open(urunler_yol, encoding="utf-8") as f:
+        yazilan3 = {p["id"]: p for p in json.load(f)}["test-urun-3"].get("gizli")
+    kontrol(rc_tp == 0 and yazilan3 is True,
+            "POZITIF TOPLU: gercek boolean true --toplu ile YAZILDI (rc=%s, %r)"
+            % (rc_tp, yazilan3))
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_gizli_tip_mutasyon():
+    print("\n(e4m) KIRMIZI-MUTASYON: tip kablosu kesilince `\"true\"` DIZESI katalogda kaliyor")
+    repo = sahte_repo()
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_gizli_mutant")
+    urunler_yol = os.path.join(repo, "urunler.json")
+
+    kontrol(hasattr(mod.arama, "katalog_alan_tip_sebebi"),
+            "MUTASYON ON-SARTI: duzelt.py arama.katalog_alan_tip_sebebi'ye baglaniyor")
+    _gercek = mod.arama.katalog_alan_tip_sebebi
+    # MUTANT: yalniz `gizli` kolunu susturur (diger alanlarin kablosu CANLI kalir ki
+    # "rc degisti" atfi bu kola ait olsun).
+    mod.arama.katalog_alan_tip_sebebi = (
+        lambda alan, deger: None if alan == "gizli" else _gercek(alan, deger))
+    yol = islem_yaz(repo, [{"id": "test-urun-2", "alan": "gizli", "deger": "true"}])
+    rc_m, out_m, err_m = cagir(mod, ["--toplu", yol])
+    with open(urunler_yol, encoding="utf-8") as f:
+        yazilan_m = {p["id"]: p for p in json.load(f)}["test-urun-2"].get("gizli")
+    kontrol(rc_m == 0,
+            "MUTASYON: tip sozlesmesi susturulunca NEGATIF vaka yesile dondu (rc=%s)" % rc_m)
+    kontrol(yazilan_m == "true" and yazilan_m is not True,
+            "MUTASYON/HEDEF KOL: `gizli` DIZE olarak urunler.json'a FIILEN yazildi (%r) — "
+            "kirmiziyi TAM da bu kablo uretiyordu" % (yazilan_m,))
+    # OLU-GIZLI KANITI: okuyucunun `is True` kolu bu kaydi GORUNUR sayar.
+    kontrol(yazilan_m is not True,
+            "MUTASYON/ETKI: `is True` bakan okuyucu icin urun HALA GORUNUR "
+            "(gizleme SESSIZCE bos gecerdi)")
+    shutil.rmtree(repo, ignore_errors=True)
+
+    # KONTROL MUTANTI: iddia edilmeyen bir kolu bozmak negatif vakayi ETKILEMEMELI.
+    repo2 = sahte_repo()
+    mod2 = modul_yukle(repo2, "duzelt.py", "duzelt_gizli_kontrol")
+    urunler_yol2 = os.path.join(repo2, "urunler.json")
+    mod2.aciklama_koru = lambda eski, yeni: (yeni, [])          # ILGISIZ kol
+    once2 = sha(urunler_yol2)
+    yol2 = islem_yaz(repo2, [{"id": "test-urun-2", "alan": "gizli", "deger": "true"}])
+    rc_k, out_k, err_k = cagir(mod2, ["--toplu", yol2])
+    kontrol(rc_k == 2 and "bool olmali" in (out_k + err_k),
+            "KONTROL MUTANTI: ilgisiz kol bozulunca dize vakasi HALA rc=2 (gorulen %s)"
+            % rc_k)
+    kontrol(sha(urunler_yol2) == once2,
+            "KONTROL MUTANTI: urunler.json BYTE-ESIT (yanlis-pozitif yok)")
+    shutil.rmtree(repo2, ignore_errors=True)
+
+
 # ------------------------------------------------- (f) aciklama olcu satiri korumasi
 # MaCiT dilim-30 (olculmus kayip): denetim kapisi yanlis-pozitifi yuzunden bir sekstant
 # urununun aciklamasi `--alan aciklama` ile yeniden yazildi; STL'den turetilmis
@@ -1205,6 +1324,8 @@ def main():
     test_tavsiye_filament()
     test_boy_secenekleri()
     test_boy_secenekleri_mutasyon()
+    test_gizli_tip_sozlesmesi()
+    test_gizli_tip_mutasyon()
     test_f_koruma()
     test_f_ciftleme()
     test_f_gomulu()
