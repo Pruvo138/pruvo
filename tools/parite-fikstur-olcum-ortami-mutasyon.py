@@ -50,8 +50,25 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 FIKSTUR = "parite-fikstur-test.js"
 
-SM1 = "29"   # SM1 MARKA EKSENI
-S8 = "8"     # S8 (K2) KIRMIZI + uc SUSUYOR
+# 🔴 CAPA ADLA, POZISYONLA DEGIL (7 Eyl 2026 — K196 ekseni, OLCULDU).
+# ESKIDEN buradaki sabitler SENARYO INDEKSIYDI (SM1="29", S8="8"). Fikstur senaryo
+# kumesini ORTAMA gore kurar: kardes bot deposu (`/Users/okan/dev/pruvo-bot/...`) YOKSA
+# S17-S21 + S26-S28 + SM1-SM3 HIC KAYDOLMAZ -> yerelde 32 senaryo, CI'da 21. Indeks 29
+# CI'da MENZIL DISI kaliyor, fikstur hicbir senaryo kosmadan "IDDIA: 0 gecti | 0 KALDI"
+# basip CIKIS 0 veriyordu; batarya bunu COKME sayip 6 mutanti "KALDI" ilan ediyordu.
+# Sonuc: hijyen-a3 CI'da KIRMIZI, ayni agac yerelde YESIL — teshis edilemeyen bir sinif.
+# ONARIM iki bacakli: (1) fikstur menzil disi indekse cikis 3 (OLCULEMEDI) verir,
+# (2) batarya senaryoyu ADIN ILK JETONUYLA (TAM ESITLIK, onek DEGIL) cozer ve senaryo
+# kayitli degilse UC KOVAYA ayirir — asagidaki `capa_coz`.
+SM1 = "SM1"  # SM1 MARKA EKSENI
+S8 = "S8"    # S8 (K2) KIRMIZI + uc SUSUYOR
+
+# 🔴 CAPA BASINA ON-KOSUL — TEK KAYNAK. "senaryo kayitli degil"i TOPTAN mazur gormek
+# ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]) S8 gibi HER ORTAMDA kaydolan bir capa
+# silindiginde de bataryayi susturur. Bu yuzden mazeret CAPA BASINA beyan edilir:
+#   "EGE" -> senaryo YALNIZCA kardes bot deposu varken kaydolur; deposu yoksa ATLANDI.
+#   None  -> senaryo her ortamda kaydolur; yoksa CAPA DUSMUSTUR -> KIRMIZI.
+CAPA_ONKOSULU = {SM1: "EGE", S8: None}
 
 # Bunun altina dusen kosum "yesil/kirmizi" degil COKME'dir: tek senaryo 7-9 iddia olcer.
 TABAN_IDDIA = 5
@@ -148,11 +165,67 @@ def ayna_kur(tmp):
     return kok
 
 
+def kayit_defteri(kok=None):
+    """Fiksturun O ORTAMDAKI senaryo kayit defteri: {ilk_jeton: indeks} + ortam satiri.
+
+    TEK KAYNAK fiksturun kendisidir (`--senaryolar`); batarya kendi kopyasini TUTMAZ,
+    yoksa iki taraf bayatlar. Jeton = senaryo adinin ILK bosluga kadarki parcasi ve
+    esleme TAM ESITLIKTIR — onek eslemesi olsaydi "S1" capasi "S10"/"S11"i de yakalardi
+    ([[arac-adi-onek-eslesmesi-komsu-araci-keser]]).
+    """
+    r = subprocess.run(
+        ["node", os.path.join(kok or TOOLS, FIKSTUR), "--senaryolar"],
+        capture_output=True, text=True, cwd=kok or ROOT, timeout=600)
+    cikti = r.stdout + r.stderr
+    defter = {}
+    for m in re.finditer(r"^SENARYO: (\d+)\t(\S+)", cikti, re.M):
+        defter[m.group(2)] = m.group(1)
+    ortam = re.search(r"^OLCUM-ORTAMI: .*$", cikti, re.M)
+    bot = re.search(r"\bbot=(\S+)", ortam.group(0)) if ortam else None
+    return defter, (ortam.group(0) if ortam else "(OLCUM-ORTAMI satiri YOK)"), \
+        (bot.group(1) if bot else None)
+
+
+def capa_coz(jeton, defter, bot_yolu):
+    """UC KOVA — capa cozulur / ORTAM yuzunden olculemez / KAYIP (kirmizi).
+
+    🔴 IKI KOVA YETMEZ ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]): "senaryo kayitli
+    degil" halini kosulsuz ATLA'ya yazmak, birisi SM1'i SILDIGINDE ya da YENIDEN
+    ADLANDIRDIGINDA bataryanin sessizce yesil yanmasi demektir — capa yok olur, kapi
+    "hersey yolunda" der. Bu yuzden ucuncu hal KIRMIZI'dir:
+      (a) jeton defterde  -> ("VAR", indeks)
+      (b) jeton YOK + bot kaynagi da YOK -> ("ATLANDI", sebep)  [menzil daraltmasi]
+      (c) jeton YOK ama bot kaynagi VAR -> ("KAYIP", sebep)     [capa dustu -> KIRMIZI]
+    """
+    if jeton in defter:
+        return "VAR", defter[jeton]
+    if (CAPA_ONKOSULU.get(jeton) == "EGE" and bot_yolu
+            and not os.path.exists(bot_yolu)):
+        return "ATLANDI", ("ORTAM: '%s' bu ortamda KAYITLI DEGIL — kardes bot deposu yok "
+                           "(%s)" % (jeton, bot_yolu))
+    return "KAYIP", ("CAPA DUSTU: '%s' senaryosu kayit defterinde YOK ve ORTAM bunu mazur "
+                     "GOSTERMIYOR (on-kosul=%s bot=%s kayit=%d)"
+                     % (jeton, CAPA_ONKOSULU.get(jeton), bot_yolu, len(defter)))
+
+
 def main():
+    defter, ortam_satiri, bot_yolu = kayit_defteri()
+    print("\n" + ortam_satiri)
     tmp = tempfile.mkdtemp(prefix="parite-fikstur-olcum-ortami-")
     sonuc = []
+    atlanan = 0
     try:
-        for ad, dosya, eski, yeni, senaryo, beklenen, eksen in MUTANTLAR:
+        for ad, dosya, eski, yeni, jeton, beklenen, eksen in MUTANTLAR:
+            hal, senaryo = capa_coz(jeton, defter, bot_yolu)
+            if hal == "ATLANDI":
+                # OLCULEMEDI: bu mutant BU ORTAMDA olculemez. YESIL SAYILMAZ — ayri
+                # kovada, ADIYLA ve SAYIYLA raporlanir; exit kodunu tek basina 0 yapmaz.
+                sonuc.append((ad, beklenen, "ATLANDI — " + senaryo))
+                atlanan += 1
+                continue
+            if hal == "KAYIP":
+                sonuc.append((ad, beklenen, "CAPA-DUSTU — " + senaryo))
+                continue
             kaynak_yolu = os.path.join(TOOLS, dosya)
             taban = open(kaynak_yolu, encoding="utf-8").read()
             if taban.count(eski) != 1:
@@ -182,8 +255,9 @@ def main():
                     gozlem = "YESIL"
                 if eksen and gozlem == "KIRMIZI":
                     # TEKIL EKSEN SARTI: kirmizi yeterli DEGIL, O SENARYO dusmus olmali.
+                    # Esleme ILK JETONDA TAM ESITLIK (onek olsaydi "S1" -> "S10"u yakalardi).
                     dusen = re.findall(r"^KALAN-SENARYO: (.*)$", cikti, re.M)
-                    if not any(s.startswith(eksen) for s in dusen):
+                    if not any(s.split(" ")[0] == eksen for s in dusen):
                         gozlem = "EKSEN-YOK(%s dusmedi)" % eksen
                 gozlem += " (senaryo=%s gecti=%d KALDI=%d%s)" % (
                     senaryo, gecti, kaldi, " eksen=" + eksen if eksen else "")
@@ -194,15 +268,29 @@ def main():
     print("\nMUTASYON SONUCU (kapi: tools/%s — senaryolar S8 + SM1)" % FIKSTUR)
     kalan = 0
     for ad, beklenen, gozlem in sonuc:
+        if gozlem.startswith("ATLANDI"):
+            # OLCULEMEDI kovasi: ne OK ne KALDI. Kendi damgasiyla, ADIYLA gorunur.
+            print("  ATLA   %-84s beklenen=%s  gozlenen=%s" % (ad, beklenen, gozlem))
+            continue
         tamam = gozlem.startswith(beklenen)
         kalan += 0 if tamam else 1
         print("  %s  %-84s beklenen=%s  gozlenen=%s"
               % ("OK  " if tamam else "KALDI", ad, beklenen, gozlem))
+    olculen = len(sonuc) - atlanan
+    if atlanan:
+        print("\n⚪ %d/%d mutant BU ORTAMDA OLCULEMEDI (kardes bot deposu yok) — "
+              "olculen: %d" % (atlanan, len(sonuc), olculen))
     if kalan:
         print("\nSONUC: KIRMIZI ❌  (%d mutant beklenen sonucu vermedi)" % kalan)
         return 1
-    print("\nSONUC: YESIL ✅  (%d mutant: her OLDURUCU kirmizi, her KONTROL yesil)"
-          % len(sonuc))
+    if olculen == 0:
+        # 🔴 HICBIR SEY OLCULMEDIYSE YESIL YAZILAMAZ. Cikis kodu sozlesmesi TEK KAYNAK:
+        # tools/parite-ortak.js (CIKIS_OLCULEMEDI). "0 mutant kosuldu" ile "8 mutant
+        # gecti" ayni cikis kodunu ASLA veremez.
+        print("\nSONUC: OLCULEMEDI ⚪  (0 mutant kosuldu — batarya bu ortamda KOR)")
+        return 3
+    print("\nSONUC: YESIL ✅  (%d mutant olculdu: her OLDURUCU kirmizi, her KONTROL yesil"
+          "%s)" % (olculen, "; %d ATLANDI" % atlanan if atlanan else ""))
     return 0
 
 

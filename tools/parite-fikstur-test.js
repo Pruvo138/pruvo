@@ -979,7 +979,42 @@ async function main() {
   console.log("═".repeat(78));
   console.log("PARITE KARAR-CEKIRDEGI FIKSTURU — %d senaryo (ag YOK, canliya 0 istek)",
     senaryolar.length);
+  // 🔴 OLCUM ORTAMI TEK KAYNAKTAN (7 Eyl 2026, K196 ekseni — OLCULDU): senaryo KUMESI
+  // ortama gore DEGISIR (bot deposu yoksa S17-S21 + S26-S28 + SM1-SM3 HIC KAYDOLMAZ:
+  // yerelde 32 senaryo / CI'da 21). Kume degisince POZISYONEL capalar kayar ya da
+  // MENZIL DISI kalir. Bu satir her kosumda basilir ki cagiran "hangi ortamda ne
+  // olculdu"yu LOGDAN okuyabilsin ([[iki-kollu-govde-tek-sabite-capalanirsa...]]).
+  console.log("OLCUM-ORTAMI: node=%s senaryo=%d ege=%s marka=%s bot=%s",
+    process.version, senaryolar.length, EGE ? "VAR" : "YOK",
+    senaryolar.some((s) => s.ad.startsWith("SM1")) ? "VAR" : "YOK", EGE_MOD.BOT);
   console.log("═".repeat(78));
+
+  // ADLA COZUM ICIN TEK KAYNAK: cagiranlar (mutasyon harness'i) senaryoyu SAYIYLA degil
+  // ADIYLA capalasin diye kayit defterini makine-okunur basar. Cikis 0 (olcum degil).
+  if (process.argv[2] === "--senaryolar") {
+    for (let i = 0; i < senaryolar.length; i++) {
+      console.log("SENARYO: %d\t%s", i, senaryolar[i].ad);
+    }
+    process.exit(0);
+  }
+
+  // 🔴 FAIL-CLOSED MENZIL KAPISI: menzil disi bir indeks istenirse ESKIDEN hicbir senaryo
+  // kosmuyor, "IDDIA: 0 gecti | 0 KALDI" basilip CIKIS 0 (YESIL) veriliyordu — yani
+  // "senaryo YOK" ile "senaryo GECTI" ayni cikis kodunu uretiyordu. OLCULDU (7 Eyl 2026):
+  // CI'da bot deposu olmadigi icin SM1 indeksi (29) menzil DISI kaldi; mutasyon bataryasi
+  // 6 mutanti COKME sayip hijyen-a3'u kirmiziya cevirdi, DUZ kosum ise ayni ortamda
+  // YESIL yandi. Olculemeyen YESILE donmez: sozlesme geregi cikis 3 (OLCULEMEDI).
+  if (Number.isFinite(yalniz) && (yalniz < 0 || yalniz >= senaryolar.length)) {
+    console.error("\n⛔ OLCULEMEDI: senaryo indeksi MENZIL DISI (istenen=" + yalniz +
+      " kayitli=0.." + (senaryolar.length - 1) + ")");
+    console.error("   SEBEP: senaryo kumesi ORTAMA baglidir (ege=" + (EGE ? "VAR" : "YOK") +
+      ", bot=" + EGE_MOD.BOT + ").");
+    console.error("   COZUM: cagiran POZISYON yerine AD ile capalasin — kayit defteri:" +
+      " node tools/parite-fikstur-test.js --senaryolar");
+    console.log("\nOLCULEMEDI: SENARYO MENZIL DISI (istenen=" + yalniz +
+      " kayitli=" + senaryolar.length + ")");
+    process.exit(ORTAK.CIKIS_OLCULEMEDI);
+  }
 
   if (!Number.isFinite(yalniz)) birimOlc();
 
