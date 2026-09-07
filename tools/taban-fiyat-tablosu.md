@@ -28,7 +28,7 @@ fiyat" görünür (sipariş WhatsApp'la sürer). Doldurulan fiyat
 | Ölçüye Özel Kutu / Organizer (Kapaklı · Bölmeli) | İç en=60 mm, İç boy=100 mm, İç yükseklik=40 mm, Duvar kalınlığı=2 mm, Kapak=gecme, Bölme duvarı sayısı=1 adet | 58.3 cm³ | 150 TL |
 | Ölçüye Özel Montaj Braketi / Köşe Bağlantısı (Açılı · L · T · Y · Köşe · Düz) | Braket tipi=acili, İç açı=90 derece, Kalınlık=4 mm, Kol genişliği=20 mm, Kol uzunluğu=40 mm, Kol başına delik sayısı=2 adet | 5.8 cm³ | 150 TL |
 | Ölçüye Özel O-Ring / Conta (Sızdırmazlık Halkası) | İç çap=30 mm, Kesit çapı / kalınlığı=3.6 mm, Kesit profili=yuvarlak | 1.1 cm³ | 100 TL |
-| Ölçüye Özel Pervane / Fan / Çark (İmpeller) | Pervane çapı=150 mm, Kanat sayısı=3 adet, Mil çapı=5 mm, Mil bağlantısı=duz, Burun konisi=yok, Dış ring=yok | 8.0 cm³ | 300 TL |
+| Ölçüye Özel Pervane / Fan / Çark | Pervane çapı=150 mm, Kanat sayısı=3 adet, Mil çapı=5 mm, Mil bağlantısı=duz, Burun konisi=yok, Dış ring=yok | 8.0 cm³ | 300 TL |
 | Ölçüye Özel Petek / Delikli Panel & Grid (Altlık · Filtre · Menfez) | Uygulama modu=delikli, Desen=petek, Panel eni=80 mm, Panel boyu=60 mm, Panel kalınlığı=3 mm, Göz / delik boyutu=6 mm | 11.0 cm³ | 200 TL |
 | Ölçüye Özel Profil / Kiriş / Ekstrüzyon (I-Beam, T-Slot, Boru) | Kesit tipi=i, Kesit yüksekliği=40 mm, Kesit genişliği=30 mm, Et kalınlığı=3 mm, Profil uzunluğu=100 mm, İç yapı=bos | 28.2 cm³ | 150 TL |
 | Ölçüye Özel Rampa / Şim / Takoz (Seviye & Denge) | Genişlik / en=40 mm, Uzunluk / boy=80 mm, Yükseklik=20 mm, Eğim belirleme yöntemi=yukseklik, Eğim açısı=15 °, Üst yüzey=duz | 32.0 cm³ | 160 TL |
