@@ -4556,6 +4556,23 @@ jobs:
           node tools/parite-etiket-test.js
           python3 tools/parite-fikstur-olcum-ortami-mutasyon.py
 
+      # 🔴 SENARYO CAPASI KOLU (7 Eyl 2026, defter K196'nin icrasi — OLCULDU):
+      # "yerelde YESIL / CI'da KIRMIZI" sinifinin nobetcisi. Fikstur senaryo kumesini
+      # ORTAMA gore kurar: kardes bot deposu YOKSA 8 Ege + 3 MARKA senaryosu HIC
+      # KAYDOLMAZ (yerelde 32, CI'da 21 — CI logundan okundu, `PARITE_BOT` ile yerelde
+      # birebir yeniden uretildi). Iki kusur ayni koktendi: (a) fikstur MENZIL DISI
+      # indekse "IDDIA: 0 gecti | 0 KALDI" + CIKIS 0 veriyordu, yani "senaryo YOK" ile
+      # "senaryo GECTI" ayni kodu uretiyordu; (b) mutasyon bataryasi senaryoyu POZISYONLA
+      # (SM1="29") capaliyordu -> CI'da 6 mutant "COKME" sayildi ve hijyen-a3 KIRMIZI
+      # yandi. K196'nin node hipotezi CURUDU: bes komut node 20.20.2'de de node
+      # 25.8.1'de de birebir ayni (248/140/40, rc=0) — fark NODE degil ORTAMDI.
+      # Bu kol onarimin FIILEN korudugunu 5 mutantla olcer: menzil kapisi sokulunce
+      # sessiz yesil GERI DOGAR, pozisyonel capa geri alininca CI kirmizisi GERI DOGAR,
+      # uc kova ikiye indirilince KIRMIZI KAYBOLUR. Agsiz, mutant DAIMA kopyaya, ~2 dk.
+      - name: "Senaryo capasi: ortam kumeyi degistirince kapi sessiz kalmiyor mu (5 mutant, AGSIZ)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/parite-senaryo-capasi-test.py
+
       # MODEL UYELIGI — /marka/<marka>/<model>/ SAYFASI ile ANA SAYFA FILTRESI AYNI URUNLERI
       # GOSTERIYOR MU (2026-08-04). OLCULEN SESSIZ HATA: model kirilimi YALNIZ `marka[1]`den
       # aciliyordu, ana sayfa filtresi ise dizinin HER elemanina HAM esitlikle bakiyordu ->
