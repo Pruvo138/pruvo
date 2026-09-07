@@ -1772,7 +1772,12 @@ TABLO_TABANLARI = (
     # tasindi; ADIMIN CAGRILDIGI iddiasi artik AYRI bir giristir. Onceden o iddia
     # E_ZORUNLU_VARLIKLAR'daki metin aramasinin YAN ETKISIYDI: `cp ... hacim.js` satiri
     # dosyada durdugu surece adim "var" sayiliyordu. Iki eksen artik AYRI olculur.)
-    ("E_ZORUNLU_CAGRILAR", 9), ("E_ZORUNLU_VARLIKLAR", 1),
+    # 7 Eyl 2026: E_ZORUNLU_VARLIKLAR 1 -> 2 (BILINCLI, K-LlmsTxt). `llms.txt` kok
+    # manifesti yayina alindi; tabanda CANLIDA 404'tu. Yayin beyaz liste ile calistigi
+    # icin (`path: _site`) dosyayi koke koymak YETMEZ — manifestoya girmeyen kok dosyasi
+    # `_site`'a kopyalanmaz ve canlida 404 KALIR, ama kaynak agacinda DURDUGU icin
+    # `git status`/`ls`/goz denetimi "var" der. O sessiz fail-open'i olcen giris budur.
+    ("E_ZORUNLU_CAGRILAR", 9), ("E_ZORUNLU_VARLIKLAR", 2),
     # 8 Agu: 5 -> 7 (taban tam-esitlige cevrildi; olculen pay 2 idi, olu koruma).
     # 8 Agu (3. tur): 7 -> 8 (kendini_test -> _tablo_mekanizma_kontrol kablosu eklendi;
     # M6 sinifi: inline blok + elle yazili `iddia += 6` ikizi eksenin SESSIZCE
@@ -3352,10 +3357,23 @@ E_ZORUNLU_CAGRILAR = (
 # yakiyordu; simdi manifestodan satiri dusurmek ayni kapiyi kirmizi yakar. Kaynak
 # dosyada METIN aramak BILEREK YAPILMADI — o, oldurulen delik sinifinin ta kendisidir
 # (yoruma alinmis/olu bir Python satiri metinde HALA gecer).
+# 🔴 7 EYL 2026 — IKINCI GIRIS (K-LlmsTxt). `llms.txt` kok manifestidir ve tabanda
+# CANLIDA 404'TU: dosya depoda YOKTU. Onu koke koymak TEK BASINA YETMEZ — yayin beyaz
+# liste ile calisir (`path: _site`), manifestoya girmeyen kok dosyasi `_site`'a HIC
+# kopyalanmaz ve canlida 404 KALIR; kaynak agacinda dosya DURDUGU icin `git status`,
+# `ls` ve goz denetimi "var" der. SESSIZ FAIL-OPEN SINIFI BUDUR ve bu satir onu
+# olcer: manifesto satiri dusurulurse burasi KIRMIZI yanar.
+# Kapsam yine DAR: "her kok dosyasi korunsun" DEMEZ — Okan'in cividigi kabul olcutu
+# (`curl -sI https://pruvo3d.com/llms.txt` -> 200) dogrudan bu varliga bagli oldugu
+# icin girer.
 E_ZORUNLU_VARLIKLAR = (
     ("jenerator/hacim.js",
      "parametrik (sari seri) konfiguratorun hacim/fiyat cekirdegi. Yayin klasorune "
      "kopyalanmazsa urun sayfasi onu 404 alir ve fiyat hesaplanmaz."),
+    ("llms.txt",
+     "LLM/ajan okuyucularin okudugu kok manifesti (llmstxt.org deseni). Yayin "
+     "klasorune kopyalanmazsa depoda DURSA BILE canlida 404 doner — kabul olcutu "
+     "`curl -sI https://pruvo3d.com/llms.txt` -> 200 dogrudan duser."),
 )
 
 E_VARLIK_TANI = (

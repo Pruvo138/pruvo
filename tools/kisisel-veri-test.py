@@ -664,6 +664,12 @@ KOK_BELGE_IZIN = {
     ".gitignore": "git yoksayma kurallari — uzantisiz (nokta-dosyasi), depo isleyisi icin sart",
     ".driveignore": "Drive yedekleme yoksayma kurallari — uzantisiz (nokta-dosyasi)",
     "DEVAM.md": "devir defteri — Okan karari 31 Tem 2026 IZLENIR; hassas blok DEVAM-ARSIV.md'de",
+    # 7 Eyl 2026: llms.txt YAYINLANAN kok manifestidir (llmstxt.org deseni) —
+    # `_site/llms.txt` olarak canliya cikar ve LLM/ajan okuyuculara donen icerigin
+    # TA KENDISIDIR, ic belge DEGIL. Tasidigi tek iletisim kalemi sitenin HER
+    # yuzeyindeki TEK telefon hattidir (Ege'nin WhatsApp'i); Okan'in kisisel hatti
+    # GECMEZ ve o desen bu dosyanin KALIPLAR nobetiyle ayrica olculur.
+    "llms.txt": "LLM/ajan okuyucular icin YAYINLANAN kok manifesti (musteriye donen icerik)",
 }
 
 

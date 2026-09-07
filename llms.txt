@@ -1,0 +1,69 @@
+# PRUVO
+
+> PRUVO, ölçüye özel endüstriyel parça üreten bir özel tasarım üretim atölyesidir. Kırılan, aşınan ya da artık üretilmediği için piyasada bulunamayan plastik parçanın yenisini, elinizdeki numuneden milimetrik ölçü alarak tek adet bile olsa üretir. Akış üç adımdır: getir, ölç, üret. Türkiye geneline üretim yapar. Sloganı: "Ölçü sizden, üretim bizden."
+
+PRUVO'nun iki ayırt edici tarafı vardır. **Tam ölçü:** parça hazır bir katalog kaleminden seçilmez, numunenin kendisinden ölçülür; kırık, eksik ya da deforme numunede özgün geometri bütünlenir, numune hiç yoksa parçanın oturduğu yuvadan ters ölçü alınır. **Doğru malzeme:** parça çalışacağı koşula göre bir malzeme sınıfına yerleştirilir — sıradan iç mekân sınıfından (PLA) ısı, UV ve deniz koşuluna dayanıklı sınıflara (PETG, ASA, ABS, PC) ve yüksek mukavemet gereken kritik işlerde karbon/cam fiber takviyeli naylona (PA-CF / PA-GF) kadar. Görünür parçalarda farklı renk seçenekleri sunulur.
+
+**Sipariş ve ödeme:** ürün sayfasından malzeme, renk ve (ölçüye özel/parametrik kalemlerde) ölçü seçilir, sepete eklenir; site üzerinden kartla güvenli online ödeme yapılabilir — ölçüye özel kalemler de bu akışa dahildir. Ölçü danışmanlığı, özel iş ve malzeme sınıfının site seçeneklerini aştığı durumlar için WhatsApp hattı: **+90 545 138 6526**.
+
+**Dürüst sınır (PRUVO'nun kendi beyanı):** plastiğin pratik sürekli servis tavanı çoğu iş için 90-100 °C aralığındadır. Üretilen pervane ve çark parçaları yalnızca hava taşıyan fan ve havalandırma çarkıdır; sıvı taşıyan pompa, sintine ve sirkülasyon çarkı (impeller) ile tekne itişi sağlayan pervane — basınç seviyesi ne olursa olsun — kapsam dışıdır. Contalarda sınır düşük–orta basınçtır; profil ve kiriş türü parçalarda hafif, yük dışı kullanım esastır. Belgeli gıda teması, yangın/can emniyeti ve yapısal taşıyıcı bağlantı sertifikasyonu verilmez.
+
+## Başlangıç
+
+- [Ana sayfa](https://pruvo3d.com/): katalog, kategoriler ve ölçüye özel üretim girişi.
+- [Hakkımızda](https://pruvo3d.com/hakkimizda/): PRUVO ne yapar, akış ve çalışma biçimi.
+- [Sıkça Sorulan Sorular](https://pruvo3d.com/sss/): sipariş, ödeme, malzeme, süre ve uyumluluk.
+- [Özel üretim rehberi](https://pruvo3d.com/ozel-uretim-rehberi/): ölçüye özel üretim sürecinin toplu anlatımı.
+- [İletişim](https://pruvo3d.com/iletisim/): WhatsApp ve iletişim kanalları.
+
+## Malzeme ve teknik sınırlar
+
+- [Malzeme rehberi](https://pruvo3d.com/malzeme-rehberi/): PLA, PETG, ASA, ABS ve TPU'nun ısı (HDT @ 0.45 MPa), UV, nem ve darbe karşılaştırması; hangi parçada hangisi önerilir.
+- [Plastik parça kaç dereceye dayanır](https://pruvo3d.com/plastik-parca-kac-dereceye-dayanir/): sınıf bazında sıcaklık tavanı ve 90-100 °C pratik sınırın gerekçesi.
+- [Karbon fiber takviyeli naylon ne zaman gerekir](https://pruvo3d.com/karbon-fiber-takviyeli-naylon-parca-ne-zaman-gerekir/): PA-CF ve PA-GF sınıfına gerçekten ihtiyaç olup olmadığını ayıran beş soru; karbon ile cam takviye farkı.
+- [Hangi parçalar özel üretimle yapılamaz](https://pruvo3d.com/hangi-parcalar-ozel-uretimle-yapilamaz/): kapsam dışı iş tiplerinin listesi.
+- [Isıya dayanıklı parça üretimi](https://pruvo3d.com/isiya-dayanikli-plastik-parca-uretimi/) · [UV ve güneşe dayanıklı dış mekân parçası](https://pruvo3d.com/uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi/) · [Deniz suyuna ve tuza dayanıklı parça](https://pruvo3d.com/deniz-suyuna-ve-tuza-dayanikli-plastik-parca-uretimi/): koşula göre malzeme seçimi.
+- [Aşınmaya dayanıklı sürtünme parçası](https://pruvo3d.com/asinmaya-dayanikli-surtunme-parcasi-uretimi/) · [Yüksek tork ve burulma taşıyan parça](https://pruvo3d.com/yuksek-tork-ve-burulma-tasiyan-plastik-parca-uretimi/): yük ve sürtünme sınırları.
+
+## Ölçü, fiyat ve süreç
+
+- [Parça ölçüsü nasıl alınır ve gönderilir](https://pruvo3d.com/parca-olcusu-nasil-alinir-ve-gonderilir/): kumpas olmadan ölçme, delik merkez mesafesi hesabı, her parçada gereken ölçü listesi.
+- [Özel parça üretimi fiyatı nasıl belirlenir](https://pruvo3d.com/ozel-parca-uretimi-fiyati-nasil-belirlenir/): fiyatı oluşturan değişkenler (hacim, malzeme sınıfı, dayanım, adet, ölçü girdisi).
+- [Özel parça kaç günde hazır olur](https://pruvo3d.com/ozel-parca-kac-gunde-hazir-olur/): süre sayacı ölçü onayıyla başlar; tipik üretim 3-5 iş günü.
+- [Üretim öncesi ölçü teyidi ve onay görseli](https://pruvo3d.com/uretim-oncesi-olcu-teyidi-ve-onay-gorseli-verilir-mi/): onaysız üretime geçilmez.
+- [Ölçü tutmazsa ne olur, uyum garantisi](https://pruvo3d.com/olcu-tutmazsa-ne-olur-uyum-garantisi/): sapmanın kaynağına göre revizyon koşulu.
+- [Teknik çizim veya STL ile üretim](https://pruvo3d.com/teknik-cizim-veya-stl-ile-parca-urettirme/) · [Numune olmadan üretim](https://pruvo3d.com/numune-olmadan-plastik-parca-yaptirilir-mi/) · [Kalıp yaptırmadan üretim](https://pruvo3d.com/kalip-yaptirmadan-parca-urettirme/).
+- [Tek adet özel parça üretimi](https://pruvo3d.com/tek-adet-ozel-parca-uretimi/) · [Toplu sipariş](https://pruvo3d.com/birden-fazla-adet-ozel-parca-siparisi-toplu/) · [Tekrar sipariş ve ölçü kaydı](https://pruvo3d.com/ayni-parcadan-tekrar-siparis-ve-olcu-kaydi/).
+
+## Bulunamayan ve kırık parça
+
+- [Kırık plastik parça yaptırma](https://pruvo3d.com/kirik-plastik-parca-yaptirma/): kırık numuneden yenisini üretme akışı.
+- [Piyasada bulunmayan yedek parça üretimi](https://pruvo3d.com/piyasada-bulunmayan-yedek-parca-uretimi/): muadili hiç çıkmamış ya da modeli kalkmış parçalar.
+- [Bulunamayan yedek parça özel üretim](https://pruvo3d.com/bulunamayan-yedek-parca-ozel-uretim/) · [Numuneye göre plastik parça üretimi](https://pruvo3d.com/numuneye-gore-plastik-parca-uretimi/).
+- [Yedek parça kodu bilinmiyorsa ne yapılır](https://pruvo3d.com/yedek-parca-kodu-bilinmiyorsa-ne-yapilir/) · [Servis parça bulamıyor ne yapılır](https://pruvo3d.com/servis-parca-bulamiyor-ne-yapilir/).
+- [Metal parça yerine plastik muadil üretimi](https://pruvo3d.com/metal-parca-yerine-plastik-muadil-uretimi/) · [Muadil parça nedir, orijinaliyle farkı](https://pruvo3d.com/muadil-parca-nedir-orijinaliyle-farki/).
+
+## Ölçüye özel parça aileleri
+
+- [Ölçüye özel plastik dişli ve kramayer](https://pruvo3d.com/olcuye-ozel-plastik-disli-uretimi/): düz, helis, konik, sonsuz dişli ve kramayer; modül numuneden çıkarılır.
+- [Ölçüye özel fan çarkı ve kanat](https://pruvo3d.com/olcuye-ozel-fan-carki-uretimi/): hava taşıyan fan ve havalandırma çarkı; sıvı taşıyan pompa çarkı kapsam dışı.
+- [Ölçüye özel conta ve O-ring](https://pruvo3d.com/olcuye-ozel-conta-uretimi/): iç çap + kesit ya da AS568 koduna göre; düşük–orta basınç.
+- [Ölçüye özel montaj braketi](https://pruvo3d.com/olcuye-ozel-montaj-braketi/) · [Bağlantı konektör](https://pruvo3d.com/olcuye-ozel-baglanti-konektor/) · [Klips ve kelepçe](https://pruvo3d.com/olcuye-ozel-klips-kelepce-uretimi/) · [Menteşe](https://pruvo3d.com/olcuye-ozel-mentese-uretimi/).
+- [Kasnak](https://pruvo3d.com/kasnak-olcuye-ozel-uretim/) · [Triger kayışı](https://pruvo3d.com/olcuye-ozel-triger-kayisi-yaptirma/) · [Mil ve rulman için plastik yuva](https://pruvo3d.com/mil-rulman-icin-olcuye-ozel-plastik-yuva/) · [Zincir dişlisi](https://pruvo3d.com/olcuye-ozel-zincir-dislisi-uretimi/).
+- [Tapa ve kapak](https://pruvo3d.com/olcuye-ozel-tapa-kapak-uretimi/) · [Kulp ve tutamak](https://pruvo3d.com/olcuye-ozel-kulp-tutamak-uretimi/) · [Koruma kapağı ve muhafaza](https://pruvo3d.com/olcuye-ozel-koruma-kapagi-muhafaza-uretimi/) · [Makine parçası ölçüye özel üretim](https://pruvo3d.com/makine-parcasi-olcuye-ozel-uretim/).
+- [Ölçüye özel üretim kategorisi](https://pruvo3d.com/kategori/olcuye-ozel-uretim/): sitede doğrudan konfigüre edilip sipariş edilebilen ölçüye özel kalemler.
+
+## Kullanım alanları
+
+- [Tekne yedek parçası bulunamıyorsa özel üretim](https://pruvo3d.com/tekne-yedek-parcasi-bulunamiyorsa-ozel-uretim/) · [Yelkenli tekne donanım parçası](https://pruvo3d.com/yelkenli-tekne-donanim-parcasi-ozel-uretim/) · [Marina iskele bağlama ekipmanı](https://pruvo3d.com/marina-iskele-baglama-ekipmani-ozel-uretim/).
+- [Oto iç trim klips parça üretimi](https://pruvo3d.com/oto-ic-trim-klips-parca-uretimi/) · [Klasik araç ve eski model oto parçası](https://pruvo3d.com/klasik-arac-eski-model-oto-plastik-parca-uretimi/) · [Ticari araç ve kamyon parçası](https://pruvo3d.com/ticari-arac-kamyon-plastik-parca-ozel-uretim/).
+- [Motosiklet plastik parça özel üretim](https://pruvo3d.com/motosiklet-plastik-parca-ozel-uretim/) · [Bisiklet plastik parça özel üretim](https://pruvo3d.com/bisiklet-plastik-parca-ozel-uretim/) · [Karavan plastik parça özel üretim](https://pruvo3d.com/karavan-plastik-parca-ozel-uretim/).
+- [Tarım makinesi parçası](https://pruvo3d.com/tarim-makinesi-plastik-parca-uretimi/) · [İş makinesi ve forklift parçası](https://pruvo3d.com/is-makinesi-forklift-plastik-parca-ozel-uretim/) · [Endüstriyel robot ve otomasyon parçası](https://pruvo3d.com/endustriyel-robot-ve-otomasyon-ekipmani-plastik-parca-uretimi/).
+- [Kurumsal ve işletme müşterileri için özel parça üretimi](https://pruvo3d.com/kurumsal-ve-isletme-musterileri-icin-ozel-parca-uretimi/): tesis ve filo tarafında çoklu adet ve ölçü kaydı akışı.
+
+## Optional
+
+- [Sitemap](https://pruvo3d.com/sitemap.xml): tüm ürün ve sayfa listesi.
+- [Mesafeli satış sözleşmesi](https://pruvo3d.com/mesafeli-satis/) · [Teslimat ve iade](https://pruvo3d.com/teslimat-iade/): ölçüye özel hazırlanan üründe cayma hakkı bulunmaz; ayıplı üründe 6502 sayılı Kanun'dan doğan haklar saklıdır.
+- [Gizlilik](https://pruvo3d.com/gizlilik/) · [Ölçü ve tasarım gizliliği](https://pruvo3d.com/ozel-uretim-parca-olcu-ve-tasarim-gizliligi/).
+- [Kişiye özel logolu kaşe](https://pruvo3d.com/kisiye-ozel-logolu-kase-yaptirma/) · [Özel parçaya logo ve yazı işleme](https://pruvo3d.com/ozel-parcaya-logo-ve-yazi-isleme/).

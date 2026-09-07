@@ -122,8 +122,14 @@ MANIFESTO = (
     # acildigi an dosya CDN'de hazir olsun (eklenmeseydi bayrak acilinca ana sayfa 404
     # alip bos kalirdi). konfigur.js = dekor konfiguratoru modulu (varlik manifestinde;
     # bugun konfigurlu urun yok, dosya yayinda hazir bekler — taban-fiyatlar deseni).
+    # llms.txt = LLM/ajan okuyuculara yonelik kok manifesti (llmstxt.org deseni).
+    # robots.txt/sitemap.xml'in AKSINE build.py URETMEZ, depoda IZLENIR (elle yazilir,
+    # kaynagi ArTisT'in icerik duzlemidir) -> IZLENEN_GIRDILER'de de beyan edilir.
+    # Manifestodan dusurulurse dosya kokte DURSA BILE `_site`'a kopyalanmaz ve canlida
+    # 404 kalir; sessiz fail-open sinifi budur (7 Eyl 2026'da taban bu haldeydi).
     Adim("DOSYALAR", ("urunler.json", "ozet.json", "CNAME", "ege-bilgi.md",
-                      "robots.txt", "sitemap.xml", "merchant-feed.xml", ".nojekyll"),
+                      "robots.txt", "sitemap.xml", "merchant-feed.xml", "llms.txt",
+                      ".nojekyll"),
          SITE, "katalog + kok meta dosyalari"),
     Adim("AGAC", ("urun",), SITE + "/urun",
          "urun sayfalari"),
@@ -170,6 +176,10 @@ MANIFESTO = (
 # izlenen dosya "uretilen" sayilir ve kol yalnizca daha erken KIRMIZI verir.
 IZLENEN_GIRDILER = (
     "urunler.json", "CNAME", "ege-bilgi.md", "jenerator/urunler",
+    # llms.txt ELLE yazilir ve commit'lidir (build.py URETMEZ). Burada beyan
+    # edilmezse `_hazirlik()` onu "uretilen" sanar ve temiz bir checkout'ta
+    # "build.py kosmus" yonunde YANLIS sinyal verirdi.
+    "llms.txt",
 )
 
 
@@ -479,6 +489,7 @@ FIKSTUR_DOSYALAR = {
     "robots.txt": "User-agent: *\n",
     "sitemap.xml": "<urlset/>",
     "merchant-feed.xml": "<rss/>",
+    "llms.txt": "# PRUVO\n",
     ".nojekyll": "",
     "urun/aaa/index.html": "urun aaa",
     "urun/bbb/index.html": "urun bbb",
@@ -523,7 +534,7 @@ BEKLENEN_SITE_YOLLARI = (
     "secenekler.js", "konfigur.js", "talep-alanlari.js",
     "filament-veri.js", "taban-fiyatlar.js",
     "urunler.json", "ozet.json", "CNAME", "ege-bilgi.md", "robots.txt",
-    "sitemap.xml", "merchant-feed.xml", ".nojekyll",
+    "sitemap.xml", "merchant-feed.xml", "llms.txt", ".nojekyll",
     "urun/aaa/index.html", "urun/bbb/index.html",
     "varlik/sayfa-1.css", "varlik/urun-2.js",
     "sss/index.html", "marka/renault/index.html", "kategori/marin/index.html",
@@ -534,6 +545,7 @@ BEKLENEN_SITE_YOLLARI = (
 # Kaynak -> `_site` altinda hangi yola dusmeli (icerik ESITLIGI bu eslemeden olculur).
 BEKLENEN_ESLEM = {
     "index.html": "index.built.html",
+    "llms.txt": "llms.txt",
     "secenekler.js": "_yayin/secenekler.js",
     "konfigur.js": "_yayin/konfigur.js",
     "talep-alanlari.js": "_yayin/talep-alanlari.js",
