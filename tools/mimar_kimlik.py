@@ -6,18 +6,37 @@ import os
 # Kapali kume: bos ya da gelecekte eklenecek bilinmeyen bir motor kapiyi acmaz.
 # 🔴 BU KUME "KIMLIK TANIMA" ICINDIR, "IS DAGITIMI" ICIN DEGIL: emekli motorlarin
 # ESKI turlari da isci sayilmali (kimligi geriye donuk tanimak zorundayiz).
+#
+# 🔴 7 EYL 2026 — "kimi" BU SATIRDA BILEREK DURUYOR (KraL; emirden SAPMA, adiyla
+# yaziliyor). Okan/BaBa emri "ISCI_MOTORLARI ve CANLI_ISCI_MOTORLARI'ndan kimi
+# cikar" diyordu; AYNI cumle "kimlik tanimada gecerli kalir" da diyordu. Bu
+# depoda kimlik tanimasini VEREN kume TAM OLARAK BURASIDIR; ikisi ayni anda
+# saglanamaz. Emrin ISLEVSEL amaci -- "yeni is YOLLANMAZ" -- kumeden cikarmakla
+# DEGIL, EMEKLI_ISCI_MOTORLARI'na almakla saglanir. Emsal AYNI dosyadadir:
+# `deepseek-*` 15 Agu'da emekli oldu ve bu satirda DURUYOR.
+# Cikarsaydik iki OLCULU zarar olurdu:
+#   (1) `mimar-icra-kapisi.py` once "bilinmeyen motor" koluna duserdi; EMEKLI
+#       kolunun ACIK GEREKCELI reddi kimi icin OLU kalirdi
+#       ([[yeni-kol-onceki-kolun-golgesinde-olur]]).
+#   (2) 4 Eyl'deki gercek kimi kosumunun kimligi geriye donuk KAYBOLURDU.
+# Yeni is akisi zaten `isci.sh` GECERLI_MOTORLAR'dan cikarilarak KAPATILDI.
 ISCI_MOTORLARI = ("minimax-m3", "kimi", "deepseek-pro", "deepseek-flash", "claude")
 
-# 🔴 YENI IS BU KUMEYE GONDERILIR (CLAUDE.md kanonu: minimax-m3 BIRINCIL · kimi YEDEK).
-# Sira ANLAMLIDIR: [0] birincil, [1] yedek.
+# 🔴 YENI IS BU KUMEYE GONDERILIR. Sira ANLAMLIDIR: [0] birincil.
 #
-# 🔴 20 AGU 2026 — OKAN KARARI: SIRA TERS CEVRILDI (abonelikler AYNI kaldi).
-# Dayanak (`tools/yetkinlik/sonuclar/kral-yetkinlik-20agu.md`): YETENEK ucurumu YOK
-# (m3 16/18 · kimi 18/18); ayrisma SUREKLILIKTE. Kimi 20 Agu'da 11 karantina + 21 kez
-# 403 "usage limit for this billing cycle" yedi ve gun sonunda HALA kapaliydi; m3 0/0.
-# Ayni 7 gunde m3 kimi'nin ~8 kati ham baglam isledi (m3 1188 tur / 4,19B · kimi 1025
-# tur / 523M, kimi medyani 500 = turlarin cogu kapida oldu). Kimi'nin kotasini yiyen
-# sinif toplu urun ekleme dilimleridir. KAPALI KUME DEGISMEDI — degisen yalniz SIRA.
+# 🔴 7 EYL 2026 — OKAN KARARI (6 Eyl 17:4x, BaBa kutuya yazdi): YEDEK MOTOR
+# IPTAL EDILDI, `minimax-m3` TEK MOTOR. Bu kume artik TEK ELEMANLIDIR.
+# Dayanak (olculmus): iptal edilen yedek omrunde 1 kosum (4 Eyl) yaparken m3
+# 92 kosum + 3 gunluk cron + kabul kosumlari tasidi; 20 Agu'da ayni yedek 11
+# karantina + 21 kez 403 "usage limit" yemis ve gun sonunda hala kapaliydi.
+# Abonelik iptali OKAN KAPISI'dir (panel, Okan'in eli) — kod tarafi burasidir.
+#
+# 🔴 YEDEK YOKTUR: m3 duserse kosum DURUR, Claude'a DUSMEZ. Bu hukmun MAKINEDEKI
+# karsiligi `~/.claude/cron/isci.sh` MOTOR-YOK KAPISI'dir (uc anahtari yoksa
+# rc=1 + `HAL=MOTOR-YOK`); olcen kol `tools/motor-yok-kapisi-test.py` (3 kol:
+# mutant + kontrol + kapi-kaldirildi). `PRUVO_CLAUDE_ISCI_IZNI` o kolu ACMAZ.
+#
+# 🔴 m3 DE 9 EYL RAPORUNDA ORAN >=1,5 TUTMAZSA IPTAL (Okan, ayni karar).
 #
 # NEDEN AYRI BIR KUME (olculdu 17 Agu 2026, KraL): CI nobetinin dagitim tablosu
 # (`~/.claude/cron/nobet-kapi.py`) uc kata is yolluyordu — `emekli motor`, `deepseek-pro`,
@@ -26,10 +45,20 @@ ISCI_MOTORLARI = ("minimax-m3", "kimi", "deepseek-pro", "deepseek-flash", "claud
 # Sonuc: nobet 76 tur boyunca is "dagitti" ama hicbiri kosmadi (`ONARIM=0` `KAPANAN=0`,
 # `USTUSTE_ONARIMSIZ=63`). Bir kati emekli etmek o kata ATANMIS isleri tasimiyor
 # ([[goc-yolu-eski-kapiya-takilir]]); goc icin dagitimin CANLI kumeden turemesi sart.
-CANLI_ISCI_MOTORLARI = ("minimax-m3", "kimi")
+CANLI_ISCI_MOTORLARI = ("minimax-m3",)
 
 # Emekli: yeni is YOLLANMAZ. Kimlik tanimada gecerli kalir.
-EMEKLI_ISCI_MOTORLARI = ("codex", "deepseek-pro", "deepseek-flash")
+# 🔴 7 Eyl 2026: "kimi" BU KUMEYE ALINDI (Okan karari 6 Eyl). Yani ona artik
+# YENI IS YOLLANMAZ -- `mimar-icra-kapisi.py` emekli kolu ACIK GEREKCEYLE
+# reddeder -- ama ESKI turleri hala ISCI sayilir. Ayni gun uc ve nabiz
+# yuzeyleri de kaldirildi: `isci.sh` GECERLI_MOTORLAR'dan CIKTI,
+# `isci-motor-uc.zsh` uc ayarlari SILINDI, crontab nabiz satirlari SILINDI.
+# 🔴 ILK ELEMAN DEGISMEZ, YENI AD SONA EKLENIR:
+# `tools/emekli-motor-adi-nobetcisi.py` bu satirin BASINA (tanim + ilk ad)
+# dizge capasi atmistir; sirayi bozmak o nobetciyi "YASAK KAYDI DUSTU" diye
+# kirmizi yakar. Ayni nobetci bu dosyadaki emekli ad gecisine NON-GROWTH
+# tavan da uygular — buraya aciklama yazarken adi TEKRARLAMA.
+EMEKLI_ISCI_MOTORLARI = ("codex", "deepseek-pro", "deepseek-flash", "kimi")
 
 # === 17 AGU 2026 (K159): emekli motor SURELI PENCERESI KIMLIK KAYNAGI ===
 # Okan karari: emekli motor 17->20 AGU arasinda kapali kumeden CIKTI; 20->22 AGU kapali; 22 AGU

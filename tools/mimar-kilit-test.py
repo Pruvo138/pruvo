@@ -763,11 +763,16 @@ K332_ARAC = CRON_KOK + "/gozcu.py"
 # "emekli katta baslamis bir tur hala isci sayiliyor mu" — geriye donuk tanima.
 ISCI_SARMALAYICI_VAKALARI = [
     # --- ALLOW: delegasyon yolu ACIK (olculen delik: bunlarin HEPSI 13 Agu oncesi DENY idi) ---
+    # 🔴 7 EYL 2026 (KraL-KimiIptal-7Eyl): bu iki vaka 6 Eyl'e kadar `kimi`
+    # motoruyla yaziliydi ve olctugu sey "CANLI ucuz kata delegasyon ACIK MI"
+    # idi. Okan karari (6 Eyl 17:4x) kimi'yi EMEKLI etti; vakalar ADI degil
+    # EKSENI korumak icin CANLI motora (minimax-m3) cevrildi. Emekli motorun
+    # REDDI ayri ve ACIK bir vakadir (619) — eksen bolunmus, kaybolmamistir.
     (600, "allow", "Bash",
-     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket", None,
-     "CANLI BIRINCIL kat (kimi) + 4 argüman (etiketli) -> GECER [K214 sentinel]"),
+     ISCI_W + " minimax-m3 /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket", None,
+     "CANLI BIRINCIL kat + 4 argüman (etiketli) -> GECER [K214 sentinel]"),
     (601, "allow", "Bash",
-     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     ISCI_W + " minimax-m3 /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "ayni cagri ETIKETSIZ (3 argüman) -> GECER"),
     (602, "allow", "Bash",
      ISCI_M3 + " /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
@@ -800,6 +805,15 @@ ISCI_SARMALAYICI_VAKALARI = [
     (618, "deny", "Bash",
      ISCI_W + " deepseek-flash /Users/okan/dev/pruvo-hasat " + ISCI_SPEC_BEYANSIZ, None,
      "EMEKLI kat CAPRAZ EV delegasyonunda da RED (ev degistirmek kolu acmaz)"),
+    # === 7 EYL 2026 (KraL-KimiIptal-7Eyl) — OKAN KARARI 6 Eyl 17:4x ===
+    # 🔴 BU VAKA YENI KURALI CIVILER. Kimi 6 Eyl'e kadar CANLI YEDEKTI; Okan
+    # iptal etti. Vaka silinirse ya da kimi CANLI_ISCI_MOTORLARI'na geri
+    # eklenirse burasi KIRMIZI yanar — "iptal ettim" beyani makinede olculur.
+    # Kimi `ISCI_MOTORLARI`nda (KIMLIK) BILEREK durur; reddi veren kol EMEKLI
+    # koludur, "bilinmeyen motor" kolu DEGIL (bkz. mimar_kimlik.py aciklamasi).
+    (619, "deny", "Bash",
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "EMEKLI motor (kimi — 6 Eyl 2026 Okan karari) -> ACIK GEREKCEYLE RED"),
     (613, "deny", "Bash",
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "motor=claude + spec'te BEYAN YOK -> RED (AGENT-KAPISI atlatilamaz) [I3 sentinel]"),
@@ -832,7 +846,7 @@ ISCI_SARMALAYICI_VAKALARI = [
      " | python3 tools/build.py", None,
      "sarmalayicinin YANINA baska ICRA eklenmis -> ikinci segment RED (yanlis-NEGATIF nobeti)"),
     (631, "allow", "Bash",
-     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ +
+     ISCI_W + " minimax-m3 /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ +
      " && git -C /Users/okan/dev/pruvo status", None,
      "MESRU zincir (sarmalayici && git status) -> GECER (yanlis-POZITIF nobeti)"),
     # --- REGRESYON: ISCI kimligi (agent_id DOLU) kuraldan TAM muaf (main() basi) ---
@@ -846,8 +860,8 @@ ISCI_SARMALAYICI_VAKALARI = [
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANLI, None,
      "KraL isci.sh claude + beyan -> RED"),
     (708, "allow", "Bash",
-     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
-     "KraL sert blogu CANLI ucuz kati (kimi) ETKILEMEZ -> ALLOW"),
+     ISCI_W + " minimax-m3 /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "KraL sert blogu CANLI ucuz kati (minimax-m3) ETKILEMEZ -> ALLOW"),
     (709, "allow", "Bash",
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANLI, None,
      "Okan izni + beyan: eski claude kurali ALLOW",
