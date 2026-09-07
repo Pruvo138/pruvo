@@ -2,6 +2,8 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ 7 EYL — `KraL-ImpellerSinif-7Eyl` [Opus 5]: **durust-sinir SINIF KAPISI; celisen 5→0**
+🔴 ONCUL: metin birebir **1** yerde (`sayfalar.py:4562`), "5 yuzey" DEGIL (35 varyant). 🔴 `duzelt.py` CLI `gizli` TIPSIZ (`--deger true`=DIZE) → `--toplu` boolean (940→945); metin bayt-ayni. Jetonlar metinden TURETILIR; cozulemezse `OLCULEMEDI` rc=3. Sinif ici **26 = muaf 4 + TABAN 22** (mandal; 22 BaBa'da). Kabul **26/26**, 8 mutant+K0, M5 replay **5/5**. `1e1c38ac`→`10c222b3`.
 ## ✅ 7 EYL — `KraL-JsonLdEskiWave-7Eyl` [Opus 5]: **eski dalga landing'lerinde JSON-LD eksigi KAPANDI (432 sayfa)**
 🔴 **ONCUL KISMEN YANLIS — sinir 41 DEGIL 44:** `wave-43` de **0/11** olculdu; "41+ var" hukmu wave-43'u yanlis yesil sayardi. Uretim yuzeyi `tools/build.py::render_content_page` (4304); wave-44+ icin JSON-LD ureten **KOD YOKTU** (44 blok `sayfalar.py` govdesine ELLE gomulu literal) — genellestirilecek uretici bulunmadigi icin uretici TEK yere yazildi.
 **TABAN→SONUC:** 476 landing'in **44**'unde JSON-LD vardi, **432**'sinde YOKTU → **476/476** (uretilen 432 + elle 44), sema ihlali **0**, ikiz **0**. Okan olcutu (10'luk eski-dalga orneklemi, her dalganin ILK landing'i): taban **0/10** → **10/10** gecerli (taban `git show HEAD:` golge agacindan olculdu, tahmin YOK).
