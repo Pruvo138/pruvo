@@ -65,8 +65,37 @@ MUAFIYET_SICILI = {
         "empeller YUVASININ tirnak/kilit parcasi = aksesuar, carkin kendisi degil",
     "bosch-arm-cim-bicme-fan-makara":
         "motor sogutma FANI = hava tasiyan fan pervanesi (durust-sinir URETIRIZ kolu)",
+    # --- BaBa 7 Eyl 18:5x, B MADDESI: taban kuyrugunun 22 kaydi adjudike edildi.
+    # Olcut `sayfalar.py`nin durust-sinir maddesi: HAVA tasiyan fan/cark URETIRIZ;
+    # SIVI tasiyan pompa carki (basinc ne olursa olsun) + tekneyi iten pervane
+    # URETMEYIZ. Alet ve tahrik dislisi sivi TASIMAZ -> muaf. 13'u gizlendi, bu 9'u
+    # sinif icinde GORUNUR kalir ve gerekcesiyle burada tasinir.
+    # (a) HAVA duzlemi — durust-sinir URETIRIZ kolu
+    "avuc-taslama-motor-fani-pervane-d17":
+        "avuc taslama motor FANI = hava tasiyan fan pervanesi, sivi tasimaz",
+    "sac-kurutma-makinesi-fan-pervanesi-60mm-7-kanat":
+        "sac kurutma makinesi FANI = hava tasiyan fan pervanesi, sivi tasimaz",
+    "sac-kurutma-makinesi-fan-pervanesi-63mm":
+        "sac kurutma makinesi FANI = hava tasiyan fan pervanesi, sivi tasimaz",
+    "suzuki-lt80-sogutma-pervanesi":
+        "hava sogutmali ATV fani (150 mm) = hava duzlemi, sivi sogutma degil",
+    "bisiklet-sabun-kopugu-makinesi":
+        "KOPUK carki = kopuk cirpar, pompa carki DEGIL; sivi basma islevi yok",
+    # (b) ALET — parcanin kendisi cark/pervane degil, ona hizmet eden el aleti
+    "evinrude-johnson-pervane-mili-anahtari":
+        "pervane MILI ANAHTARI = el aleti; carkin/pervanenin kendisi degil",
+    "yamaha-pervane-mili-anahtari":
+        "pervane MILI ANAHTARI = el aleti; carkin/pervanenin kendisi degil",
+    # (c) TAHRIK DISLISI — pompayi doner, sivi tasiyan cark degil
+    "honda-crm250-mk2-su-pompasi-disli":
+        "su pompasi TAHRIK DISLISI = pompayi doner, sivi tasiyan cark degil",
+    "yamaha-aerox-devirdaim-tahrik-carki":
+        "devirdaim TAHRIK carki = tahrik dislisi duzlemi, sivi tasiyan cark degil",
 }
-SICIL_TAVANI = 4  # NON-GROWTH capasi: sicil buyuyemez, buyurse YON 2 kirmizi yanar.
+# NON-GROWTH capasi: sicil buyuyemez, buyurse YON 2 kirmizi yanar.
+# 4 -> 13 (BaBa 7 Eyl 18:5x B maddesi: taban kuyrugundan 9 kayit adjudike edilip
+# gerekcesiyle sicile alindi; kalan 13 kayit `gizli:true` yapildi).
+SICIL_TAVANI = 13
 
 # --- TABAN KUYRUGU (ONCEDEN VAR OLAN, HENUZ ADJUDIKE EDILMEMIS) -------------
 # 🔴 BU KAPI KURULURKEN OLCULEN GERCEK (7 Eyl 2026): K376 sinifi BASLIK uzerinden
@@ -84,7 +113,11 @@ SICIL_TAVANI = 4  # NON-GROWTH capasi: sicil buyuyemez, buyurse YON 2 kirmizi ya
 TABAN_DOSYASI = "kapsam-disi-taban.json"
 # Kuyrugun civili boyu. Taban dosyasini duzenleyerek kapiyi susturmak isteyen biri
 # bu sayiya carpar: dosya buyurse YON 2 kirmizi yanar. Kuyruk KUCULEBILIR (serbest).
-TABAN_TAVANI = 22
+# 🔴 MANDAL KUYRUKLA BIRLIKTE INER (22 -> 0, BaBa 7 Eyl 18:5x B): kuyruk bosaldigi
+# halde tavan 22'de biraksaydik, 22 yeni celiski kuyruga yazilarak SESSIZCE
+# susturulabilirdi — mandal yalniz asagi doner, tavan da onunla iner. Kabul kolu
+# `kapsam-disi-sinif-test.py::M3` bunu olcer (kuyruga 1 id eklemek rc=2 vermeli).
+TABAN_TAVANI = 0
 
 # --- TURKCE ISLEV SOZCUKLERI ------------------------------------------------
 # Dilbilimsel iskele, SINIF LISTESI DEGIL: iki kolun kesisiminden anlamsiz ortak
