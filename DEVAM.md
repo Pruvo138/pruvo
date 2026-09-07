@@ -20,7 +20,7 @@
 🔴 **KENDI OLCUMUM CURUTULDU** (cip `bold-poitras`, 400 kosum): "push kolundan 0 hukum" YANLIS — **152/373 = %41**, `failure` de HUKUMDUR. **MIMAR KARARI:** olcut **HEAD garantili hukum**, SHA kapsamasi DEGIL; `concurrency`yi SHA'li yapmak **G9 ile YASAK**.
 **SERIT B** (`34063854360` @ `66a461ad`): `serit-b` 1 = `LCP` **ArTisT** · `hijyen-a3` 1 = `Arama parite` (cip `NodeEkseni`; 4 komut da YERELDE YESIL) · `hijyen-a2` 1 = `Feed politika` **MaCiT**.
 **YAYIN ✅:** `34060159828` @ `66a461ad` — 6/6 yesil, deploy+yayin success, SKIPPED **0** (BaBa'nin 2 ardisik SKIPPED kirmizisi KAPANDI).
-**K377 ✅:** `hacim-tam-takim` on-kosulu 16 Tem'de emekli edilen paket yedegine capaliydi (is aylardir oluydu) → R2 yoluna gecti. Kabul: run `34116902005` on-kosul+kardes-checkout+paket+butunluk **4/4 success** — kardes depo jetonunun ILK fiili olcumu. Cekme ORTAK action'da (ikiz 0). Kalan kirmizi rampa DEGIL: 9 aile `paket toplanamadi`. KUTUDA.
+**K377+K378 ✅ (`c34f9712`):** `hacim-tam-takim` on-kosul R2'ye; butunluk **1 dosya → 26/26 sha256** (ORTAK arac, cekme action'inda — nobet.yml'de `ci-kapsam` BAYAT-IZIN yakar). `PRUVO_PAKET_DIR` → **OLCULEMEDI 9→0** (run `34125512781`). Kabul 10 kol+3 mutant. 🔴 ARIZA YER DEGISTIRDI: 9 aile CI openscad `derleme hatasi` — imza cerceve/disli/yay ile AYNI.
 **KimiIptal-7Eyl:** isci.sh/uc/crontab 0, MOTOR-YOK 3/3, vaka 619. KUTUDA.
 **KAPANIS 08:2xZ:** 4 cip kabul · tamirci dali MERGE `019e8efe`→`535005fd` · `hijyen-a3`=`PVC` landing · YAYIN `34098909326` SKIPPED **0**. KUTUDA.
 **10:3xZ:** 3 CIP EMRI ICRA · `(Impeller)` ikizi `ee6406e3` · K376 · kutu 461→191 (lossless). **✅ `LlmsTxt`:** `llms.txt` **404→200** (`771c001c`, run `34113014132` SKIPPED 0) — MANIFESTO+nobetci 1→2, mutant 7/7. KUTUDA.
