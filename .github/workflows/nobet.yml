@@ -2767,14 +2767,27 @@ jobs:
           node-version: "20"
 
       # On-kosul BEYANI — eksikse ERKEN ve GURULTULU dur (sessiz atlama YOK).
-      - name: "On-kosul: kardes depo jetonu + uretim paketi secret'i beyan edilmis mi"
+      #
+      # 🔴 2026-09-07 (K377) — ONIZLEME_PAKET_B64 SARTI KALDIRILDI. Gerekce OLCULDU:
+      # o secret 2026-07-16'da OKAN KARARIYLA EMEKLI EDILDI (tek kaynak:
+      # tools/onizleme-paket-yukle.py modul sonu notu — "CI artik paketi dogrudan
+      # R2'den ceker") ve repoda YOK / OLMAYACAK. Bu is o gecisi HIC ALMAMISTI, bu
+      # yuzden on-kosulda `exit 1` verip checkout'a bile GELMIYORDU: fail-closed kol
+      # dogru calisiyordu ama EMEKLI bir sarta capalanmisti, yani isin tamami
+      # aylardir OLCULMEMISTI. Yerine R2 uclusunun beyani konuldu — sart AYNI
+      # sertlikte fail-closed kalir, yalnizca DOGRU secret'lari ister.
+      - name: "On-kosul: kardes depo jetonu + R2 paket kimligi beyan edilmis mi"
         env:
           JEN_TOKEN: ${{ secrets.PRUVO_JENERATOR_TOKEN }}
-          PAKET_B64: ${{ secrets.ONIZLEME_PAKET_B64 }}
+          R2_ERISIM_ID: ${{ secrets.R2_ERISIM_ID }}
+          R2_GIZLI_ANAHTAR: ${{ secrets.R2_GIZLI_ANAHTAR }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           eksik=""
           if [ -z "$JEN_TOKEN" ]; then eksik="$eksik PRUVO_JENERATOR_TOKEN"; fi
-          if [ -z "$PAKET_B64" ]; then eksik="$eksik ONIZLEME_PAKET_B64"; fi
+          if [ -z "$R2_ERISIM_ID" ]; then eksik="$eksik R2_ERISIM_ID"; fi
+          if [ -z "$R2_GIZLI_ANAHTAR" ]; then eksik="$eksik R2_GIZLI_ANAHTAR"; fi
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then eksik="$eksik CLOUDFLARE_ACCOUNT_ID"; fi
           if [ -n "$eksik" ]; then
             echo "OLCULEMEDI (fail-closed KIRMIZI): eksik secret ->$eksik"
             echo "Bu bir YESIL DEGILDIR: gercek TEST 1 hic kosmadi."
@@ -2789,12 +2802,36 @@ jobs:
           token: ${{ secrets.PRUVO_JENERATOR_TOKEN }}
           path: .pruvo-jenerator
 
-      - name: "Gizli uretim paketini geri ac (motor=uretim aileleri icin)"
-        env:
-          PAKET_B64: ${{ secrets.ONIZLEME_PAKET_B64 }}
+      # PAKET ANAHTARI ILE SABIT TANIMI: surum sabiti BURAYA YAZILMAZ. Repo HEAD'deki
+      # onizleme/derleyici/paket-parmakizi.json'in `paket_anahtar` alani tek kaynaktir
+      # (TEK YAZAR: tools/onizleme-paket-yukle.py). Ikinci bir sabit = ikinci bayatlama
+      # yuzeyi; bu isin bugunku arizasi tam olarak o siniftandir.
+      - name: "Paket anahtarini repo HEAD kaydindan oku (ikinci sabit tanimi YOK)"
+        id: paket-anahtar
         run: |
-          printf '%s' "$PAKET_B64" | base64 -d > /tmp/paket.tar.gz
-          tar -xzf /tmp/paket.tar.gz -C onizleme/derleyici
+          ANAHTAR=$(python3 -c 'import json; print(json.load(open("onizleme/derleyici/paket-parmakizi.json"))["paket_anahtar"])')
+          if [ -z "$ANAHTAR" ]; then
+            echo "::error::paket-parmakizi.json icinde paket_anahtar BOS/YOK — fail-closed."
+            exit 1
+          fi
+          echo "anahtar=$ANAHTAR" >> "$GITHUB_OUTPUT"
+
+      # ORTAK CEKME TANIMI — onizleme-imaj.yml ile AYNI action. Buraya ikinci bir
+      # cekme mantigi YAZILMAZ (iki kopya ayri ayri bayatlar; olculdu).
+      - name: "Gizli uretim paketini R2'den cek (motor=uretim aileleri icin)"
+        uses: ./.github/actions/gizli-paket-cek
+        with:
+          paket-anahtar: ${{ steps.paket-anahtar.outputs.anahtar }}
+          hedef-dizin: onizleme/derleyici
+          r2-erisim-id: ${{ secrets.R2_ERISIM_ID }}
+          r2-gizli-anahtar: ${{ secrets.R2_GIZLI_ANAHTAR }}
+          cloudflare-hesap-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # BUTUNLUK — paket acildi diye ICINDEKI eslem geldigi anlamina GELMEZ (yanlis
+      # anahtar / duz-dizin olmayan arsiv / kismi paket). Bu satir silinirse asagidaki
+      # TEST 1 eslemsiz kosar ve "aile bulunamadi"yi YESIL sanabilirdi.
+      - name: "Paket butunlugu: eslem-ozel.json geldi mi"
+        run: |
           test -f onizleme/derleyici/eslem-ozel.json || {
             echo "OLCULEMEDI: paket acildi ama eslem-ozel.json yok"; exit 1; }
 
@@ -2859,6 +2896,20 @@ jobs:
       - name: "Yedek koruma davranisi ve mutasyon kabulu"
         if: ${{ !cancelled() }}
         run: python3 tools/yedek-koruma-test.py
+
+      # K377 (7 Eyl 2026) — hacim-tam-takim'in on-kosulu EMEKLI bir secret'a
+      # (ONIZLEME_PAKET_B64, 16 Tem Okan karari) capalanmisti; is aylarca on-kosulda
+      # `exit 1` verip HIC kosmadi. Bu test onarilan kollari KAYNAKTAN cikarip IZOLE
+      # gecici dizinde kosturur. UC AYAK: taban + 2 mutant; mutantlarin ikisi de HEDEF
+      # kolu OLDURMEDEN test YESIL sayilmaz (mutant ulasmazsa rc=2 = OLCULEMEDI).
+      # NON-GROWTH bacagi (K5) emekli secret'in geri eklenmesini KIRMIZI yakar;
+      # K6 ise cekme mantiginin ikinci bir kopyasinin acilmasini yakalar.
+      - name: "Hacim on-kosul + paket butunluk kabulu (K377; 2 mutant ayagi dahil)"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/hacim-onkosul-test.py
+          python3 tools/hacim-onkosul-test.py --mutant m1
+          python3 tools/hacim-onkosul-test.py --mutant m2
 
       # SITEMAP DAMGA ONBELLEGI — <lastmod> tarihlerinin HIZLANDIRICISI, KAYNAGI DEGIL.
       # Tarihler git gecmisinden turer (tools/sitemap_damga.py); bu dosya yalnizca ayni

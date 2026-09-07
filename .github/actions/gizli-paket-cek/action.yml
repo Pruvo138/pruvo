@@ -1,0 +1,95 @@
+name: "Gizli uretim paketini R2'den cek"
+description: >
+  pruvo-ozel R2 bucket'indan SURUMLU onizleme paketini ceker ve verilen dizine acar.
+  TEK CEKME TANIMI: hem .github/workflows/onizleme-imaj.yml hem
+  .github/workflows/nobet.yml::hacim-tam-takim BU action'i cagirir. Ikinci bir cekme
+  mantigi YAZILMAZ — iki kopya ayri ayri bayatladigi icin (nobet.yml 2026-07-16
+  gecisini hic almamisti, is aylarca on-kosulda oluydu) bu dosya ortak yere alindi.
+
+  🔴 ONIZLEME_PAKET_B64 YEDEGI BURADA YOKTUR VE GERI EKLENMEZ. 2026-07-16'da Okan
+  karariyla KALDIRILDI (tek kaynak: tools/onizleme-paket-yukle.py modul sonu notu,
+  "CI artik paketi dogrudan R2'den ceker"). O secret repoda YOK ve OLMAYACAK; onu
+  on-kosul saymak isi cekim adimina hic getirmeden `exit 1` ettirir.
+
+  FAIL-CLOSED: kimlik ya da anahtar eksikse GURULTULU dur (exit 1). "Yoksa atla"
+  SESSIZ YESIL uretirdi — bu deponun tekrar tekrar isirildigi desen tam olarak budur.
+
+  SIR: kimlik degerleri YALNIZ env araciligiyla gecer, hicbir adimda echo/print
+  EDILMEZ; loga yalniz "var/yok" hali ve dosya ADLARI duser.
+
+inputs:
+  paket-anahtar:
+    description: >
+      R2 nesne anahtari, or. "onizleme/paket-v7.tar.gz". Cagiran ya
+      workflow_dispatch girdisini ya da onizleme/derleyici/paket-parmakizi.json
+      icindeki `paket_anahtar` alanini verir — SURUM SABITI BURAYA YAZILMAZ
+      (ikinci sabit tanimi = ikinci bayatlama yuzeyi).
+    required: true
+  hedef-dizin:
+    description: "Arsivin acilacagi dizin (yoksa olusturulur)."
+    required: true
+  r2-erisim-id:
+    description: "secrets.R2_ERISIM_ID — pruvo-ozel'e SALT-OKUMA yetkili token."
+    required: true
+  r2-gizli-anahtar:
+    description: "secrets.R2_GIZLI_ANAHTAR."
+    required: true
+  cloudflare-hesap-id:
+    description: >
+      secrets.CLOUDFLARE_ACCOUNT_ID. Hesap kimligi kaynakta DUZ METIN durmaz
+      (tools/spec-ifsa-kapisi.py EKSEN-D): tek kaynak repo secret'idir.
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    # ON-KOSUL BEYANI — eksikse ERKEN ve GURULTULU dur (sessiz atlama YOK).
+    # Bu adim CEKIM'den ONCE kosar: bos kimlikle `aws s3 cp` denemek
+    # "s3://pruvo-ozel/" dizinini cekmeye calisir ve bos/yanlis paketle devam eder.
+    - name: "On-kosul: R2 kimligi + paket anahtari beyan edilmis mi (fail-closed)"
+      shell: bash
+      env:
+        R2_ERISIM_ID: ${{ inputs.r2-erisim-id }}
+        R2_GIZLI_ANAHTAR: ${{ inputs.r2-gizli-anahtar }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-hesap-id }}
+        PAKET_ANAHTAR: ${{ inputs.paket-anahtar }}
+      run: |
+        eksik=""
+        if [ -z "$R2_ERISIM_ID" ]; then eksik="$eksik R2_ERISIM_ID"; fi
+        if [ -z "$R2_GIZLI_ANAHTAR" ]; then eksik="$eksik R2_GIZLI_ANAHTAR"; fi
+        if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then eksik="$eksik CLOUDFLARE_ACCOUNT_ID"; fi
+        if [ -z "$PAKET_ANAHTAR" ]; then eksik="$eksik paket-anahtar"; fi
+        if [ -n "$eksik" ]; then
+          echo "::error::OLCULEMEDI (fail-closed KIRMIZI): eksik R2 on-kosulu ->$eksik"
+          echo "Bu bir YESIL DEGILDIR: paket hic cekilmedi, arkasindaki testler HIC KOSMADI."
+          echo "Cozum: repo secret'lari (R2_ERISIM_ID / R2_GIZLI_ANAHTAR / CLOUDFLARE_ACCOUNT_ID)"
+          echo "ve paket anahtari icin: python3 tools/onizleme-paket-yukle.py"
+          exit 1
+        fi
+        echo "on-kosullar tamam — istenen paket anahtari: $PAKET_ANAHTAR"
+
+    - name: "Paketi R2'den cek ve ac"
+      shell: bash
+      env:
+        R2_ERISIM_ID: ${{ inputs.r2-erisim-id }}
+        R2_GIZLI_ANAHTAR: ${{ inputs.r2-gizli-anahtar }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-hesap-id }}
+        PAKET_ANAHTAR: ${{ inputs.paket-anahtar }}
+        HEDEF_DIZIN: ${{ inputs.hedef-dizin }}
+      run: |
+        set -e
+        mkdir -p "$HEDEF_DIZIN"
+        export AWS_ACCESS_KEY_ID="$R2_ERISIM_ID"
+        export AWS_SECRET_ACCESS_KEY="$R2_GIZLI_ANAHTAR"
+        export AWS_DEFAULT_REGION=auto
+        if ! aws s3 cp "s3://pruvo-ozel/$PAKET_ANAHTAR" paket.tar.gz \
+          --endpoint-url "https://$CLOUDFLARE_ACCOUNT_ID.r2.cloudflarestorage.com"; then
+          echo "::error::Paket R2'den CEKILEMEDI: s3://pruvo-ozel/$PAKET_ANAHTAR"
+          echo "Olasi sebep: anahtar yok (surum artti mi?) ya da token'in bucket kapsami."
+          echo "Cozum: python3 tools/onizleme-paket-yukle.py (surumlu anahtari basar)."
+          exit 1
+        fi
+        tar -xzf paket.tar.gz -C "$HEDEF_DIZIN"
+        rm paket.tar.gz
+        echo "paket acildi -> $HEDEF_DIZIN (adlar sir degil, icerik loglanmaz):"
+        ls "$HEDEF_DIZIN"
