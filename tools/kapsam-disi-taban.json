@@ -1,0 +1,28 @@
+{
+  "_not": "KAPSAM-DISI SINIF KAPISI — TABAN KUYRUGU (7 Eyl 2026). Bu dosya, kapi kurulurken katalogta ONCEDEN VAR OLAN ve durust-sinir sinifina giren GORUNUR kayitlarin envanteridir. Sinifi (gercek celiski mi, aksesuar/hava muafiyeti mi) BaBa adjudike eder. Kuyruk MANDALDIR: BUYUYEMEZ (tools/kapsam-disi-sinif-kapisi.py::TABAN_TAVANI), yalniz kuculur. Buraya yeni id eklemek kapiyi susturmaz, YON 2 kirmizi yakar.",
+  "olcum_tarihi": "2026-09-07",
+  "kuyruk": [
+    "2mm-mil-motor-santrifuj-su-pompasi-537649",
+    "aprilia-aprilia-rs125-su-pompas-fan-6617828",
+    "avuc-taslama-motor-fani-pervane-d17",
+    "bisiklet-sabun-kopugu-makinesi",
+    "buyutulmus-santrifuj-su-pompasi-883212",
+    "evinrude-johnson-pervane-mili-anahtari",
+    "firdondu-motor-santrifuj-su-pompasi-378160",
+    "honda-crm250-mk2-su-pompasi-disli",
+    "motor-carki-mercury-uyumlu-4189791",
+    "pr1078222-rs125-su-pompasi-carki",
+    "rov-sintine-pompasi-itici-pervanesi",
+    "rov-sintine-pompasi-itici-pervanesi-2",
+    "sac-kurutma-makinesi-fan-pervanesi-60mm-7-kanat",
+    "sac-kurutma-makinesi-fan-pervanesi-63mm",
+    "suzuki-lt80-sogutma-pervanesi",
+    "takma-deniz-motoru-su-pompasi-pervanesi-tpu-4679649",
+    "tekne-genel-amacli-pervane",
+    "toyota-yaris-cam-suyu-pompasi-carki",
+    "volvo-penta-pompa-carki-yastigi-2001308",
+    "yamaha-aerox-devirdaim-tahrik-carki",
+    "yamaha-pervane-mili-anahtari",
+    "yamaha-yz80-1984-1987-su-pompasi-carki"
+  ]
+}

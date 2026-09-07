@@ -1416,6 +1416,26 @@ jobs:
       # Saf Python, agsiz, urunler.json'a DOKUNMAZ, diske YAZMAZ (mutasyon yalniz bellekte).
       - name: "Uretim-sureci ifsasi — KIP ekseni kabul + mutasyon (kapi <-> onarim tablosu ikiz-tanim kapisi)"
         run: python3 tools/ifsa-kip-test.py
+      # DURUST-SINIR EKSENI (BaBa 7 Eyl 2026, KARAR 1 — 3. tekrar, tekil yama YASAK).
+      # Landing metinlerinde musteriye "sivi tasiyan pompa carkini (impeller) da tekneyi
+      # iten ana pervaneyi de uretmeyiz" diyoruz; katalogta GORUNUR kayitlar bunun tersini
+      # vaat ediyordu. Ayni celiski UC KEZ tekil olarak duzeltildi (ArTisT bildirimi ·
+      # d23ce4c0 · ee6406e3) ve her seferinde geri geldi: `denetim-kapisi.py` alan/sema
+      # olcer, durust-sinir METNI ile katalog BASLIK/ACIKLAMASI arasinda kol YOKTU.
+      # 🔴 IKIZ TANIM YOK: yasak sinifin jetonlari ELLE yazilmaz, `tools/sayfalar.py`nin
+      # durust-sinir madde isaretinden CALISMA ANINDA turetilir (URETIRIZ kolu = hava/fan,
+      # KAPSAM-DISI kolu = sivi/impeller). Metin degisirse kapi onu izler.
+      # 🔴 FAIL-CLOSED: metin cozulemez ya da taban dosyasi bozuksa kapi YESILE DUSMEZ,
+      # birebir OLCULEMEDI basip rc=3 ile bu adimi kirmizi yakar (M2/M8 mutantlari olcer).
+      # 🔴 BLOKLAYAN SEY: yalniz YENI celiski. Kapi kurulurken katalogta 22 onceden var
+      # olan gorunur kayit sinif icinde olculdu; onlar `tools/kapsam-disi-taban.json`da
+      # MANDAL olarak civili (BUYUYEMEZ, yalniz kuculur) ve sinif adjudikasyonu BaBa'da.
+      # Ayrimi yerlesik: yukaridaki `denetim-kapisi --commit-farki` de ayni ayrimi yapiyor.
+      # Saf Python, agsiz, urunler.json'a DOKUNMAZ, diske YAZMAZ.
+      - name: "Durust-sinir <-> gorunur katalog sinif kapisi + mutant bataryasi (8 mutant + K0 kanaryasi)"
+        run: |
+          python3 tools/kapsam-disi-sinif-kapisi.py
+          python3 tools/kapsam-disi-sinif-test.py
       - name: Marka filtre + yargi (silah) kabul testi
         run: |
           python3 tools/marka-filtre-test.py
