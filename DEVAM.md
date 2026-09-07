@@ -2,6 +2,13 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ 7 EYL — ana oturum: **3 CIP KAPANDI, EV TEMIZ; KraL'in `serit-b` kirmizisi 0**
+**TEMIZLIK:** worktree **4 → 1** (ucu de `arsiv-kapisi` rc=0 + `lsof`) · 3 dal · 2 oturum · kutu **455 → 399 st** (`lossless=GECTI`, kalan 18 blok KORUMALI) · defterden `SERIT B 17→6` arsive (**7 satir, eksik 0**).
+**CIP KABULLERI (calistirilabilir, mimar kostu):** `BorcParser` → `GECERSIZ_DURUM 7→0` + `ACIK_KALEM 43→48` (5 satir ILK KEZ okundu) · `SeritB2` → `recete AYIKLANAMADI 1→0` + `cip-kapat 20/20→24/24` · `KapiEnvanteri` → **BaBa'nin ONCULUNU CURUTTU** (uc kapi KURULU DEGIL, `5/8` DOGRU; 3 canli RED vakasi URETILEMEDI cunku AKIM YOK) — karar BaBa'da.
+**T4:** `GECERSIZ_DURUM=0 OLCUTSUZ_KALEM=0` (K339-EK+K329-EK'e `kabul:` yazildi); RED sebebi artik yalniz **borc = 48 acik kalem** (esik 0, tasarim).
+🔴 **KENDI OLCUMUM CURUTULDU** (cip `bold-poitras`, 400 kosum): "push kolundan 0 hukum" YANLIS — **152/373 = %41**, `failure` de HUKUMDUR. **MIMAR KARARI:** olcut **HEAD garantili hukum**, SHA kapsamasi DEGIL; `concurrency`yi SHA'li yapmak **G9 ile YASAK**.
+**SERIT B** (`34063854360` @ `66a461ad`): `serit-b` 1 = `LCP` **ArTisT** · `hijyen-a3` 1 = `Arama parite` (cip `NodeEkseni`; 4 komut da YERELDE YESIL) · `hijyen-a2` 1 = `Feed politika` **MaCiT**.
+**YAYIN ✅:** `34060159828` @ `66a461ad` — 6/6 yesil, deploy+yayin success, SKIPPED **0** (BaBa'nin 2 ardisik SKIPPED kirmizisi KAPANDI).
 ## 🔴 6 EYL — `KraL-KapiEnvanteri-6Eyl` [Opus 5]: **hukmun ONCULU CURUDU — uc kapi KURULU DEGIL; `5/8` DOGRU** (tam hesap KUTUDA)
 **ONCUL+AKIM:** 3 atfin ucu de **PROZA** (biri `SILINDI` kaydi); 29 Agu supurmesi kabloyu sokmus. Canli: 3 kapi da **deny URETMEDI** (`git commit` **rc=0**, ICRA izi **0**); POZITIF KONTROL **deny** verdi. (c) menzili `ast` kod-duzlemiyle kuruldu · M4 **dogrudan kolda** korluk buldu → onarildi · mutant **4/4** · batarya SERIT B'de. **Kapilar KURULMADI → BaBa karari.**
 
@@ -17,14 +24,7 @@
 **KABUL:** `--kendini-test` **8/8 + KONTROL 1/1** (M-a/M-b IZOLE KOPYADA: benzersiz ad + `dont_write_bytecode`, canli govdeye yama YOK) · `--curutme` **4/4** · **OLDURUCU 3/3** · 23:00 ozet kolu **3/3** (T4 yok/cokuyor → `ÖLÇÜLEMEDİ`).
 **YAYIN ✅:** `34041734321` @ `f22dfa96` **success**, 6/6 is yesil, **deploy+yayin zincirinde SKIPPED=0** (zincir-disi 3 = "yalniz KIRMIZI kosumda" adimi; onceki 2 success'te de AYNI → gerileme degil; ders KUTUDA).
 **TABAN URETILDI:** `parti-kapisi` **12/13** + `korgoz` **KX=4/7** HEAD'de de AYNI → regresyon **0**. Yesil: `ev-haritasi` 9/9+4/4 · `chip-duzeni` 14/14+9/9 · `devir` 5/5+4/4 · `nobet-kabul` 51/0 · `is-akisi` · `ci-kapsam` · D1 34602 birebir. `nobet.yml` adim adi bayatti ("4 mutant"→8+1+4); kablo KORUNDU.
-## ✅ 6 EYL — SERIT B **17 → 6 OLCULDU**; 8 CIP ACILDI, **8'i de KAPANDI**; ACIK KraL CIPI YOK
-**SAYI IDDIA DEGIL:** tamamlanmis kosum `34033444368` @ `c2938495`, is-adi/adim-adi. Kalan 6: `serit-b` 5 (nobetci harness · **LCP onculuk = ArTisT** · cip kapanis kancasi 2 adim · cip kapatma kilavuzu) + `hijyen-a3` 1 (`CapaFikstur` SONRADAN 248/0 yapti). `hijyen-a2` + `marka-invaryant-sayac` **YESIL**. Taban 17 idi (`34024037240` @ `b8816685`).
-✅ **PARA SINIFI KAPANDI — `KraL-Fiyat10x-6Eyl`** (uzunu ARSIVDE): `fiyat` tip sozlesmesi yalniz JSON tipini olcuyordu → **616 kayit**, noktayi binlik ayraci sanan **3 okuyucuda ON KAT** (SEPET/ODEME dahil). 🔴 **Yanlis tutar FIILEN TAHSIL EDILMEDI: 0 siparis** (34 siparis / 36 kalem tarandi). `###.# TL` **616→0**, DEGER degisen **0**, toplam **34523** sabit; tek ayristirma noktasi `arama.py`de, tum okuyucular fail-closed. → [[tip-sozlesmesi-para-alaninin-bicimini-olcmez]]
-**YAYIN:** 5 kosum, **5'i de** `deploy`+`yayin` success / **SKIPPED 0** (`fff026a1` `7783fe6f` `18bd3951` `128b9e16` `f22dfa96`) — ciplerin biraktigi **5 `OLCULEMEDI` bacaginin 5'i** ham kosumla kapandi.
-🔴 **Push kosumunun `cancelled` olmasi ARIZA DEGIL, TASARIM** (`nobet.yml` L38-41): push grubu TEK, olcum `schedule` kolundan gelir.
-🟠 **MIMARDA — K133, 2 yapisal soru:** (a) model jetonuna marka sayfasi uyeligi (**21 markada kanon≠sayfa**) · (b) `marka[]` BOS + baslikta tam jeton (**159 kalem / 25 marka**). 🔴 Ikisi de [[k220-menzil-on-olcumu-uc-turdur-eksik]] menzilinde — on-olcum yapilmadan HUKUM VERILMEZ.
-**TEMIZLIK:** worktree **2→1** (`gifted-curran-39fdbb` kapi hukmuyle kaldirildi + dal silindi) · defter rotasyonu 5 blok/10 dolu satir arsive, **eksik 0** (12.225→10.932 B).
-
+## ✅ 6 EYL — SERIT B **17 → 6 OLCULDU** · 8 cip acildi, 8'i de KAPANDI · PARA SINIFI (`KraL-Fiyat10x`) KAPANDI · 5 kosumda SKIPPED 0 — TAM METIN `DEVAM-ARSIV.md` (2026-09-07 rotasyonu, 7 satir, eksik 0)
 ## 🔁 5-6 EYL ISARETCILERI — **TAM METIN ARSIVDE** (md5 birebir, eksik 0). ACIK iplikler: MODEL adindan marka turetimi · hafiza ekseni SILAHSIZ · baglam kotasi 2 vaka · `d1-sync --durum` 71,2 sn · MaCiT CLAUDE.md 13.060 B · `defter-rotasyon.py` 13/13 vetolu · MaCiT `Kahve` 79 kayit · LCP ArTisT'te (Okan'a: PSI anahtari).
 ## 🔴 CANLI TALIMAT (K353 blogu ARSIVE indi, tam metin `DEVAM-ARSIV.md`'de)
 K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
