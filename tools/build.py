@@ -53,6 +53,7 @@ def _cip_indeks_yukle():
     return _mod
 cip_indeks = _cip_indeks_yukle()
 import landing_hub_build
+import landing_jsonld
 import kategori_hub_build
 import yorum_soy
 # `altkategori` (kategori ICINDEKI daraltma etiketi) TEK KAYNAKTAN okunur: arama.py
@@ -4313,6 +4314,11 @@ def render_content_page(slug, title, meta, body_html):
         '<a class="landing-wa-link" href="%s" target="_blank" rel="noopener">'
         'WhatsApp üzerinden bilgi alın</a></aside>' % esc(wa_href)
     )
+    # JSON-LD (schema.org Article) — TEK ÜRETİCİ `tools/landing_jsonld.py`. Gövdede
+    # zaten elle yazılmış JSON-LD varsa BOŞ döner (ikiz tanım yasağı), o sayfaların
+    # çıktısı bayt-aynı kalır. Bloğu <head> yerine GÖVDEYE ekliyoruz: elle yazılmış
+    # 44 blok da gövdededir ve buranın <head>'i ArTisT'in LCP/hız düzlemidir.
+    ld_blok = landing_jsonld.blok(slug, title, meta, body_html, SITE)
     # surumle_scriptler: bugun icerik sayfalarinda site-ici <script src="/*.js"> YOK
     # (no-op), ama ileride eklenirse otomatik surumlensin diye tek yerden gecirilir.
     return surumle_scriptler(u"""<!DOCTYPE html>
@@ -4367,7 +4373,7 @@ def render_content_page(slug, title, meta, body_html):
         url=esc(url),
         favicon=FAVICON,
         stil=stil_bloklari(),
-        body=body_html + wa_cta,
+        body=body_html + wa_cta + ld_blok,
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,
         pv_js=PV_SCRIPT_HTML,

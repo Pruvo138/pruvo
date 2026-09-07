@@ -221,6 +221,19 @@ jobs:
       - name: JSON-LD offers kabul testi (uretilen sayfalar)
         run: python3 tools/test-jsonld-offers.py
 
+      # LANDING JSON-LD KAPISI (GEO/SEO, 7 Eyl): 6 Eyl GEO denetimi orneklediği 5
+      # landing'in 5'inde de JSON-LD bulamadi. Olculdu: render_content_page ile basilan
+      # 476 icerik/landing sayfasinin 432'sinde JSON-LD YOKTU (44'unde elle yazilmis
+      # blok vardi; 8'i AYNI sayfada iki Article tasiyordu = ikiz tanim). Uretici
+      # `tools/landing_jsonld.py`ye yazildi; kapi UC kolu ayri ayri olcer —
+      # K1 kapsam (476/476) · K2 sema gecerliligi · K3 ikiz tanim. Kapi ciktiya DEGIL
+      # dogrudan `build.render_content_page` cagrisina baglidir, bu yuzden build.py'den
+      # once de sonra da kosabilir. Offline, stdlib, ~3 sn.
+      # Mutasyon bataryasi (elle, symlink golge agac — canli kaynak degismez):
+      #   python3 tools/landing-jsonld-kapisi.py --mutasyon   (4 mutant OLDU, 1 kontrol YESIL)
+      - name: Landing JSON-LD kapisi (kapsam + sema + ikiz)
+        run: python3 tools/landing-jsonld-kapisi.py
+
       # KAPALI AILE FIYAT BEYANI KAPISI (para/sessiz hata, 4 Agu): hacmi DOGRULANMAMIS
       # ailede secenekler.js parametrikFiyatKurus null dondurur ve Worker sepeti 400
       # `hacim-dogrulanmamis` ile reddeder — urun SATILAMAZ. Buna ragmen sayfa JS
