@@ -25,7 +25,6 @@
 **KABUL:** `--kendini-test` **8/8 + KONTROL 1/1** (M-a/M-b IZOLE KOPYADA: benzersiz ad + `dont_write_bytecode`, canli govdeye yama YOK) · `--curutme` **4/4** · **OLDURUCU 3/3** · 23:00 ozet kolu **3/3** (T4 yok/cokuyor → `ÖLÇÜLEMEDİ`).
 **YAYIN ✅:** `34041734321` @ `f22dfa96` **success**, 6/6 is yesil, **deploy+yayin zincirinde SKIPPED=0** (zincir-disi 3 = "yalniz KIRMIZI kosumda" adimi; onceki 2 success'te de AYNI → gerileme degil; ders KUTUDA).
 **TABAN URETILDI:** `parti-kapisi` **12/13** + `korgoz` **KX=4/7** HEAD'de de AYNI → regresyon **0**. Yesil: `ev-haritasi` 9/9+4/4 · `chip-duzeni` 14/14+9/9 · `devir` 5/5+4/4 · `nobet-kabul` 51/0 · `is-akisi` · `ci-kapsam` · D1 34602 birebir. `nobet.yml` adim adi bayatti ("4 mutant"→8+1+4); kablo KORUNDU.
-## ✅ 6 EYL — SERIT B **17 → 6 OLCULDU** · 8 cip acildi, 8'i de KAPANDI · PARA SINIFI (`KraL-Fiyat10x`) KAPANDI · 5 kosumda SKIPPED 0 — TAM METIN `DEVAM-ARSIV.md` (2026-09-07 rotasyonu, 7 satir, eksik 0)
 ## 🔁 5-6 EYL ISARETCILERI — **TAM METIN ARSIVDE** (md5 birebir, eksik 0). ACIK iplikler: MODEL adindan marka turetimi · hafiza ekseni SILAHSIZ · baglam kotasi 2 vaka · `d1-sync --durum` 71,2 sn · MaCiT CLAUDE.md 13.060 B · `defter-rotasyon.py` 13/13 vetolu · MaCiT `Kahve` 79 kayit · LCP ArTisT'te (Okan'a: PSI anahtari).
 ## 🔴 CANLI TALIMAT (K353 blogu ARSIVE indi, tam metin `DEVAM-ARSIV.md`'de)
 K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
@@ -35,14 +34,12 @@ K353 merge'unden SONRA `kanca-kur.py` kosulur (once kosulursa filo felci).
   ISARETCI** (uzun hali `DEVAM-ARSIV.md` 26 Agu ROTASYON blogu 1/5): K306 MERGE `df3b0d48` · K308 ACIK ·
   K309 DILIM-1 MERGE `25b38a82` (DILIM-2 MIMARDA) · K310 ACIK · K212 MERGE `97370cc2` KAPANDI · K222
   KAPANDI · K311 MERGE `bcbdb1dd` ACIK (①-④ GECMEDI; ④ GERI ALINDI) · **K312 ACILDI**.
-- 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
+- 🔴 **MOTOR (6 Eyl; 20 Agu GECERSIZ):** `minimax-m3` TEK + `claude`; `kimi` EMEKLI. Yedek YOK — m3 duserse `HAL=MOTOR-YOK rc=1`. Kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (TAM METIN ARSIVDE):** (i) kuru kosum OLCULDU 25 Agu (1512/234, sir elemesi 5/5; BULGU:
   gurultu budamasi memory agacinda KOSMUYOR → 13 gecici dosya Drive'a) · (ii) kablolama MIMARDA · (iii) kostugu kanit.
 - 🔧 **K199 (19 Agu):** `is-akisi-kapisi.py` "etkili tasiyici" LITERALE capali; varlik turetilmis
   mekanizmaya gecince korlesir (K193). Care: sonucu olc ya da makine-okunur beyani tasiyici say;
   mutant+negatif sart. · 🔧 **K201 SINIF: KAYIT KENDINI OLCMEZ** — 5 vaka; ya TURETILIR ya SAYIYLA.
-- ✅ **K196 KAPANDI (7 Eyl):** node hipotezi CURUDU (5 komut node 20.20.2/25.8.1'de birebir: 248/140/40).
-  Kok ORTAM: bot yoksa SM1 kaydolmaz, pozisyonel capa 29 menzil disi -> sessiz yesil. Kol `parite-senaryo-capasi-test.py` 16/0.
 - 🔴 **K197: 19 Ağu mimara giden rapor içeriği (239 satır / 11.617 B) KAYBEDİLDİ — gitignore deseni + ağaç silme sırası.** Birebir cümle + öz KUTUDA.
 - 🔧 **K217** tavan fiksturu. (K311 tam metni kaynak-dogrusunda; defterdeki ikinci kopya ARSIVE indi 2/5.)
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
