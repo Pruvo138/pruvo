@@ -3388,12 +3388,10 @@ setTimeout(L,5000);})();
   // (2 Ağu'da bir kez bıraktı: marka+model → marka toplamı) nöbetçi bunu HÂLÂ yakalar,
   // çünkü başlık kolu da jetonu ARAR — taşımayan kart "model" sapması verir.
   //
-  // 🔴 KURAL ÜÇÜNCÜ KEZ YAZILMIYOR, JETONLA BAĞLANIYOR: aynı yüklem
-  // `tools/marka_model_build.py::baslikta_tam_kelime` (üretim) ve
-  // `tools/model-uyelik-kapisi.py::_bagimsiz_baslik_tasiyor` (kapının BAĞIMSIZ ölçütü)
-  // gövdelerinde yaşıyor. Sessiz ayrışmayı aşağıdaki MODEL_BASLIK_YUKLEM jetonu (emsal:
-  // `OZET_REF_YUKLEM` ↔ build.py) + iki tarafta AYRI koşan BASLIK_KOLU_FIKSTURU ölçer
-  // ([[ikiz-tanim-sessiz-ayrisma]]).
+  // 🔴 KURAL ÜÇÜNCÜ KEZ YAZILMIYOR, JETONLA BAĞLANIYOR: aynı yüklem model sayfalarını
+  // üreten hatta ve üyelik kapısının BAĞIMSIZ ölçütünde de yaşıyor. Sessiz ayrışmayı
+  // aşağıdaki MODEL_BASLIK_YUKLEM jetonu (emsal: `OZET_REF_YUKLEM`) + iki tarafta AYRI
+  // koşan BASLIK_KOLU_FIKSTURU ölçer ([[ikiz-tanim-sessiz-ayrisma]]).
   //
   // 🔴 KATLAMA KORUNUR: `modelAnahtar`/`kusakTabanlari` katlaması bugünkü davranışını
   // AYNEN sürdürür; başlık kolu onlara EK bir koldur, yerine GEÇMEZ — bu yüzden yukarıdaki
