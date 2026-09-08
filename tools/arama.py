@@ -1607,10 +1607,20 @@ ROZET_DISI_CIFT = {
                                 "Piaggio Smallframe diye arac satilmadi — gercek sayfa "
                                 "/marka/vespa/smallframe/. Urunler Piaggio agacinda durur; "
                                 "urun KAYBOLMAZ",
+    # 8 Eyl, KraL hukmu (K19 sizintisi: capraz cift `Saab|900` / `Yamaha|900`
+    # YARGISIZ dogmustu, serit-a3 fail-closed). "900" Yamaha'da bir ARAC ADI DEGIL,
+    # motor hacmidir: katalogdaki 25 urunun tamami XJ900 / XSR900 / Tracer 900 /
+    # XJS Diversion 900 adini tasir ve ayni jetonu ARAC DISI urunler de tasir
+    # (DTX900 davul modulu, PSR-SX900 klavye). Emsal birebir ("Yamaha", "660").
+    ("Yamaha", "900"): "ciplak hacim sayisi — hangi araci adlandirdigi belirsiz "
+                       "(XJ900/XSR900/Tracer 900/XJS Diversion 900; ayni jetonu ARAC "
+                       "DISI DTX900 davul modulu ve PSR-SX900 klavye de tasiyor); "
+                       "emsal (Yamaha, 660). Urunler Yamaha agacinda ve kendi gercek "
+                       "kovalarinda durur; urun KAYBOLMAZ",
 }
 
-ROZET_DISI_SAYISI = 49
-ROZET_DISI_IMZA = "eb34092b731d4b9f"  # K188 sonrasi: kapinin hesabiyla
+ROZET_DISI_SAYISI = 50
+ROZET_DISI_IMZA = "08c0e124aa53c64d"  # K188 sonrasi: kapinin hesabiyla
 
 
 def rozet_disi_imzasi():
@@ -1844,10 +1854,15 @@ ROZET_CAPRAZ_IZINLI = {
     "Vespa|smallframe": ("ROZET", "Vespa Smallframe Vespa'nin govde aile adi (Smallframe "
                                   "motor ailesi, 50-125 cc araligi); Piaggio Smallframe ile "
                                   "yalniz AD cakismasi var — emsal birebir Vespa|largeframe"),
+    # 8 Eyl, KraL hukmu — `900` capraz ciftinin ALLOW tarafi (deny tarafi
+    # ("Yamaha", "900") ROZET_DISI_CIFT'te). Saab 900 marque'in kendi rozetidir.
+    "Saab|900": ("ROZET", "Saab 900 Saab'in kendi rozeti (1978-1998 klasik 900 / C900, "
+                          "ardilinda NG900); Yamaha'daki 900 bir ARAC ADI degil motor "
+                          "hacmidir (deny) — yalniz AD cakismasi"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 66
-ROZET_CAPRAZ_IZINLI_IMZA = "0fc3227eac1c6abb"  # K188 sonrasi: kapinin hesabiyla
+ROZET_CAPRAZ_IZINLI_SAYISI = 67
+ROZET_CAPRAZ_IZINLI_IMZA = "f904b051cc86f06c"  # K188 sonrasi: kapinin hesabiyla
 
 
 def rozet_capraz_imzasi():
@@ -1867,7 +1882,7 @@ def rozet_capraz_imzasi():
 # (yargisiz cift) olcer, bu eksen HUKMUN KENDISINI olcer; ikisi AYRI kalir cunku tek
 # imzaya baglansaydi sinif mutanti anahtar imzasina sirtini dayardi (yukaridaki not).
 # GEREKCE METNI IMZAYA GIRMEZ: yazim duzeltmesi kapiyi yakmasin, HUKUM degisimi yaksin.
-ROZET_CAPRAZ_SINIF_IMZA = "b28c90e6e08f3909"  # K205: kapinin hesabiyla (main govdesinde kosuldu)
+ROZET_CAPRAZ_SINIF_IMZA = "acbcce6ae35653f6"  # K205: kapinin hesabiyla (main govdesinde kosuldu)
 
 
 def rozet_capraz_sinif_imzasi():
