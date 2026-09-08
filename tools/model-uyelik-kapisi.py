@@ -290,6 +290,63 @@ def _bagimsiz_baslik_tasiyor(baslik, marka_adlari, jeton):
     return False
 
 
+# ---------------------------------------------------------------- ADIM 2 (8 Eyl) JETON BAĞI
+# 🔴 ÜÇÜNCÜ YÜZEY YÜKLEMİ ALDI: index.html'in `?marka=&model=` filtresi + uç sapma nöbetçisi
+# artık üyeliği `marka[]` ∪ KUŞAK ∪ BAŞLIKTA TAM KELİME'den okuyor (ADIM 2 borcu kapandı).
+# Jeton index.html'de `var MODEL_BASLIK_YUKLEM = "...";` satırında YAŞAR ve burada AYNEN
+# durur — emsal `OZET_REF_YUKLEM` ↔ tools/build.py. Jeton yalnız ADI bağlar; DAVRANIŞI
+# aşağıdaki fikstür bağlar: her satır İKİ tarafta AYRI koşar (JS `basliktaTamKelime`
+# + kapının BAĞIMSIZ `_bagimsiz_baslik_tasiyor` gövdesi) ve AYNI hükmü vermek zorundadır.
+# Bir tarafta tehlike koruması düşer ya da bitişiklik `markaKatla` ile yazılırsa fikstür
+# KIRMIZI yakar ([[ikiz-tanim-sessiz-ayrisma]]).
+MODEL_BASLIK_YUKLEM = "guvenli-altdizi|tehlikeli-marka-bitisik|alias-kaynagi-kanon-penceresi"
+# (marka, BAŞLIK, jeton, beklenen JS, beklenen KAPI[bağımsız gövde])
+# 🔴 İKİ SÜTUN BİLEREK: istemcinin yüklemi üretimin yükleminin ÜSTÜNE bir kol ekler
+# (AYIRAÇ KÖRLÜĞÜ / kanon penceresi). Sayfa üreteci kovanın KATALOGDA GÖRÜLEN yazımlarını
+# ("A-Klasse") arayabiliyor; istemciye yalnız kanonik gösterim + MODEL_ALIAS kaynak
+# ANAHTARLARI ("aklasse") ulaşıyor, o yüzden istemci ayıraç-KÖR eşleşir. Fark GİZLENMEZ,
+# burada satır satır ÇİVİLENİR: iki sütun eşit olsaydı ya kapı gevşemiş ya istemci
+# daralmış olurdu, ikisi de sessiz kalırdı ([[ikiz-tanim-sessiz-ayrisma]]).
+BASLIK_KOLU_FIKSTURU = [
+    # GÜVENLİ jeton (uzunluk >= 4, sayısal değil) → çıplak ALT-DİZİ yeter (İKİ TARAF AYNI)
+    ("Toyota", "Toyota Corolla E120 kapı kolu", "Corolla", True, True),
+    ("Renault", "Renault Clio 4 far braketi", "Clio", True, True),
+    ("Toyota", "Toyota Yaris torpido klipsi", "Corolla", False, False),
+    # ÇOK KELİMELİ güvenli jeton — kelime dizisi BİTİŞİK geçmeli
+    ("Honda", "Honda Africa Twin CRF1100 gaga uzatma", "Africa Twin", True, True),
+    ("Honda", "Honda Africa CRF1100 Twin gaga uzatma", "Africa Twin", False, False),
+    # TEHLİKELİ jeton (uzunluk <= 3 YA DA tamamen sayısal) → `<marka> <jeton>` BİTİŞİK şart
+    ("Peugeot", "Peugeot 206 kapı kolu", "206", True, True),
+    ("Renault", "Renault Clio 5 kapı kolu", "5", False, False),
+    ("Renault", "Renault 5 E-Tech ayna kapağı", "5", True, True),
+    ("Renault", "Renault Espace 5 bardaklık", "5", False, False),
+    ("BMW", "BMW E46 M3 rozet", "E46", True, True),
+    # MARKA YAZIMI ALIAS'I — bitişiklik ifadesi markanın GÖRÜNEN adlarıyla da kurulur
+    ("Opel", "Vauxhall C3 sensör tutucu", "C3", True, True),
+    ("Opel", "Ford C3 sensör tutucu", "C3", False, False),
+    # AKSAN/TR — kanon ile AYNI sadeleştirme (ayrı bir tablo doğarsa burası KIRMIZI)
+    ("Yamaha", "Yamaha Ténéré 700 gaga", "Tenere", True, True),
+    ("Citroen", "Citroën Zoé benzeri kapak", "Zoe", True, True),
+    # 🔴 AYRIŞMA SATIRLARI (JS=True, KAPI=False): istemcinin ALIAS KAYNAĞI kolu. Kapının
+    # bağımsız gövdesi üretimi aynalar ve YALNIZ istenen gösterime bakar; üretim o üyeliği
+    # kovanın KATALOG YAZIMINDAN ("A-Klasse", "Traffic") alır, istemcinin elinde o envanter
+    # YOKTUR ve yerine MODEL_ALIAS kaynak anahtarlarını kullanır.
+    #   · kanon penceresi kolu: "a"+"klasse" === "aklasse"
+    ("Mercedes", "A-Klasse Ses Konferans Halkası (Mercedes W176)", "A-Class", True, False),
+    ("Mercedes", "Mercedes V-Klasse bagaj tutucu", "V-Class", True, False),
+    #   · alias kaynağının DÜZ yazımı: "Traffic" (yazım ikizi) -> `Trafic` kovası
+    ("Renault", "Renault Traffic yan panel klipsi", "Trafic", True, False),
+    # 🔴 KANON PENCERESİ İSTENEN GÖSTERİME UYGULANMAZ — uygulansaydı istemci SAYFADAN
+    # GENİŞ olurdu (ölçüldü 8 Eyl: 30 çift SAYFA_DAR, 205 ürün). Bu satır o menzili çiviler.
+    ("BMW", "BMW R 1250 GS sele kapağı", "R1250GS", False, False),
+    # 🔴 KANON PENCERESİ TEHLİKELİ ANAHTARA SIZMAZ (kol yalnız GÜVENLİ anahtarda açık)
+    ("Renault", "Renault Espace 5 bardaklık", "E5", False, False),
+    # BOŞ/ANLAMSIZ — kol fail-closed
+    ("Toyota", "", "Corolla", False, False),
+    ("Toyota", "Toyota Corolla kapı kolu", "", False, False),
+]
+
+
 KATLAMA_FIKSTURU = [
     ("Volkswagen", "Golf 4", "golf"),
     ("Volkswagen", "Golf Mk4", "golf"),
@@ -363,8 +420,9 @@ __KURATORLUK__
 __MODEL_KANON__
 
 const girdi = JSON.parse(require("fs").readFileSync(process.argv[2], "utf8"));
-const urunler = girdi.urunler;          // [{i, m:[ham marka...]}]
+const urunler = girdi.urunler;          // [{i, m:[ham marka...], b:baslik}]
 const ciftler = girdi.ciftler;          // [[marka, display], ...]
+const baslikFikstur = girdi.baslikFikstur || []; // [[marka, baslik, jeton], ...]
 const sondalar = girdi.sondalar || [];  // [[marka, deger], ...] — anahtar SONDASI
 const kusaklar = girdi.kusaklar || [];  // [[marka, deger], ...] — KUSAK KATLAMA SONDASI
 const birlesmeler = girdi.birlesmeler || []; // [[marka, ciplak jeton], ...] — ALIAS BIRLESMESI
@@ -387,8 +445,10 @@ for (const [marka, display] of ciftler) {
   const liste = markaIx.get(marka) || [];
   const ids = [];
   for (const u of liste) {
-    /* filtered() model yuklemi — GERCEK modelEsler cagrilir */
-    if (modelEsler(u.m, display, marka)) { ids.push(u.i); }
+    /* filtered() model yuklemi — GERCEK modelEsler cagrilir.
+       ADIM 2'den beri girdi URUNUN KENDISIDIR (marka[] ∪ BASLIK); `u.m` gecirmek
+       baslik kolunu SESSIZCE kapatir ve kapi bu farki olcemez hale gelirdi. */
+    if (modelEsler({marka: u.m, baslik: u.b}, display, marka)) { ids.push(u.i); }
   }
   cikti[marka + "\t" + display] = ids;
 }
@@ -407,8 +467,19 @@ for (const [marka, deger] of kusaklar) { kusak[marka + "\t" + deger] = kusakTaba
    birakirsa kova sessizce IKIYE bolunur ve TEK HARFLI bir sayfa dogar. */
 const birlesme = {};
 for (const [marka, deger] of birlesmeler) { birlesme[marka + "\t" + deger] = modelAnahtar(marka, deger); }
+/* BASLIK KOLU SONDASI (ADIM 2): JS govdesi `basliktaTamKelime` ile kapinin BAGIMSIZ
+   `_bagimsiz_baslik_tasiyor` govdesi AYNI fikstur satirlarinda AYNI hukmu mu veriyor?
+   Jeton esitligi (MODEL_BASLIK_YUKLEM) yalniz ADI baglar; DAVRANISI bu sonda baglar. */
+const baslik = {};
+for (const [marka, bas, jeton] of baslikFikstur) {
+  /* GIRIS NOKTASI cagrilir (basliktaTamKelime'nin KENDISI degil): alias kaynagi
+     genislemesi ve kanon penceresi kolu da olcum icinde kalsin — yalniz ayna yarisini
+     olcseydik istemciye OZEL kol capasiz kalirdi. */
+  baslik[marka + "\t" + bas + "\t" + jeton] =
+    modelBasliktaEsler({marka: [marka], baslik: bas}, jeton, marka);
+}
 process.stdout.write(JSON.stringify({ok: true, sonuc: cikti, sonda: sonda, kusak: kusak,
-  birlesme: birlesme,
+  birlesme: birlesme, baslik: baslik, yuklem: MODEL_BASLIK_YUKLEM,
   anahtarOrnek: {f150: modelAnahtar("Ford", "F150"), fSerisi: modelAnahtar("Ford", "F-Series")}}));
 """
 
@@ -437,7 +508,13 @@ def _blok_ayikla(index_html):
     for imza in ("function modelKanon", "function modelOnekSiyir", "function modelAnahtar",
                  "function modelEsler", "MODEL_ALIAS",
                  "function kusakTabanlari", "function kusakSonekMi",
-                 "KUSAK_DONANIM", "KUSAK_DISI"):
+                 "KUSAK_DONANIM", "KUSAK_DISI",
+                 # ADIM 2 — BASLIK KOLU govdesi bu blokta YASAR; disari tasinirsa harness
+                 # onu ayiklayamaz ve kol SESSIZCE olcum disi kalirdi.
+                 "MODEL_BASLIK_YUKLEM", "function modelKelimeleri",
+                 "function modelTehlikeliMi", "function basliktaTamKelime",
+                 "function modelBasliktaEsler", "function modelAliasKaynaklari",
+                 "function baslikKanonPenceresi"):
         if imza not in kanon:
             raise Olculemedi("KANONİK MODEL EŞLEMESİ bloğunda %s YOK" % imza)
     if "MARKA_ALIAS" not in kurator:
@@ -445,7 +522,8 @@ def _blok_ayikla(index_html):
     return norm_src, kurator, kanon
 
 
-def filtre_kumeleri(index_html, urunler, ciftler, sondalar=(), kusaklar=(), birlesmeler=()):
+def filtre_kumeleri(index_html, urunler, ciftler, sondalar=(), kusaklar=(), birlesmeler=(),
+                    baslik_fikstur=()):
     """{(marka, display): set(urun_id)} — index.html'in GERÇEK yüklemiyle (node)."""
     try:
         subprocess.run(["node", "--version"], capture_output=True, check=True)
@@ -465,12 +543,15 @@ def filtre_kumeleri(index_html, urunler, ciftler, sondalar=(), kusaklar=(), birl
         with open(veriyol, "w", encoding="utf-8") as f:
             json.dump({"urunler": [{"i": p.get("id"),
                                     "m": [(x or "").strip()
-                                          for x in (p.get("marka") or []) if (x or "").strip()]}
+                                          for x in (p.get("marka") or []) if (x or "").strip()],
+                                    "b": p.get("baslik") or ""}
                                    for p in urunler if p.get("id")],
                        "ciftler": [[a, b] for a, b in ciftler],
                        "sondalar": [[a, b] for a, b in sondalar],
                        "kusaklar": [[a, b] for a, b in kusaklar],
-                       "birlesmeler": [[a, b] for a, b in birlesmeler]}, f, ensure_ascii=False)
+                       "birlesmeler": [[a, b] for a, b in birlesmeler],
+                       "baslikFikstur": [[a, b, c] for a, b, c in baslik_fikstur]},
+                      f, ensure_ascii=False)
         p = subprocess.run(["node", jsyol, veriyol], capture_output=True, text=True, timeout=900)
         if p.returncode != 0 or not (p.stdout or "").strip():
             raise Olculemedi("node koşumu çöktü (rc=%d): %s"
@@ -486,7 +567,9 @@ def filtre_kumeleri(index_html, urunler, ciftler, sondalar=(), kusaklar=(), birl
             dict((tuple(k.split("\t")), v) for k, v in (veri.get("sonda") or {}).items()),
             dict((tuple(k.split("\t")), [tuple(x) for x in (v or [])])
                  for k, v in (veri.get("kusak") or {}).items()),
-            dict((tuple(k.split("\t")), v) for k, v in (veri.get("birlesme") or {}).items()))
+            dict((tuple(k.split("\t")), v) for k, v in (veri.get("birlesme") or {}).items()),
+            dict((tuple(k.split("\t")), bool(v)) for k, v in (veri.get("baslik") or {}).items()),
+            veri.get("yuklem"))
 
 
 # ---------------------------------------------------------------- ölçüm
@@ -562,8 +645,11 @@ def olc(kok, modul_yolu=None):
                     kusak_sondalar.append((_kan, _t))
 
     birlesme_sondalar = [(mk, jt) for mk, jt, _a, _d, _b in TEK_HARF_FIKSTURU]
-    filtre, ornek, sonda, kusak_js, birlesme_js = filtre_kumeleri(
-        index_html, urunler, ciftler, sondalar, kusak_sondalar, birlesme_sondalar)
+    baslik_sondalar = [(mk, bs, jt) for mk, bs, jt, _bj, _bp in BASLIK_KOLU_FIKSTURU]
+    (filtre, ornek, sonda, kusak_js, birlesme_js,
+     baslik_js, yuklem_js) = filtre_kumeleri(
+        index_html, urunler, ciftler, sondalar, kusak_sondalar, birlesme_sondalar,
+        baslik_sondalar)
 
     # JS ↔ Python kuşak okuması BİREBİR mi (gramer + istisna + kelime sınırı)?
     kusak_sapan = []
@@ -597,8 +683,11 @@ def olc(kok, modul_yolu=None):
     # ölçülür. Sayı-tabanı yazsaydık (FILTRE_DAR<=N) katalog büyüdükçe taban bayatlar,
     # yeni bir GERÇEK ayrışma da tabanın altında saklanırdı ([[hukum-yanlis-birimde]]).
     # Ölçüt bağımsızdır: üretimin başlık gövdesi çağrılmaz, kapı kendi dilbilgisini koşar.
-    # 🟡 AÇIK BORÇ (ADIM 2): üçüncü yüzey (index.html filtresi + uç `?model=`) bu yüklemi
-    # HENÜZ almadı; kapı farkı SAYIYLA raporlar, sıfır saymaz.
+    # 🟢 ADIM 2 KAPANDI (8 Eyl): üçüncü yüzey (index.html `filtered()` + uç sapma nöbetçisi
+    # `edgeSuzgecSapmasi`) bu yüklemi ALDI — `modelEsler` artık ürünün BAŞLIĞINI da okuyor
+    # ve JS gövdesi buradaki bağımsız gövdeye MODEL_BASLIK_YUKLEM jetonu +
+    # BASLIK_KOLU_FIKSTURU ile bağlıdır (K2b). AŞAĞIDAKİ DÜŞÜM SİLİNMEZ: kol istemciden
+    # geri çekilirse sayı yeniden yükselir ve K2 bunu SAYIYLA gösterir; sıfır saymaz.
     def _marka_adlari(mk):
         adlar = {mk}
         for x in getattr(evren, "taninmis", ()):
@@ -626,10 +715,27 @@ def olc(kok, modul_yolu=None):
         return any(_bagimsiz_baslik_tasiyor(baslik, adlar, y)
                    for y in _yazim_bellek.get((mk, canon), ()))
 
+    # --- ADIM 2 JETON BAĞI + FİKSTÜR (8 Eyl): JS gövdesi ile kapının BAĞIMSIZ gövdesi
+    # AYNI kuralı mı uyguluyor? Jeton ADI, fikstür DAVRANIŞI bağlar; ikisi de KIRMIZI yakar.
+    yuklem_sapan = ([] if yuklem_js == MODEL_BASLIK_YUKLEM
+                    else [("index.html=%s" % (yuklem_js,), "kapi=%s" % MODEL_BASLIK_YUKLEM)])
+    baslik_fikstur_sapan = []
+    baslik_ayrisan = 0                 # JS'in gördüğü, kapının bağımsız gövdesinin görmediği
+    for _mk, _bs, _jt, _bek_js, _bek_py in BASLIK_KOLU_FIKSTURU:
+        _js = bool(baslik_js.get((_mk, _bs, _jt)))
+        _py = _bagimsiz_baslik_tasiyor(_bs, _marka_adlari(_mk), _jt)
+        if _bek_js != _bek_py:
+            baslik_ayrisan += 1
+        for _taraf, _deger, _bek in (("js", _js, _bek_js), ("py", _py, _bek_py)):
+            if _deger != _bek:
+                baslik_fikstur_sapan.append((_taraf, _mk, _bs[:40], _jt,
+                                             "beklenen=%s" % _bek, "gercek=%s" % _deger))
+
     temiz = sayfa_dar = filtre_dar = capraz = 0
     etkilenen = set()
     dokum = []
     baslik_aciklanan = 0
+    baslik_aciklanan_dokum = []
     baslik_aciklanamayan = []
     for cift in ciftler:
         s, canon = sayfa[cift]
@@ -640,6 +746,10 @@ def olc(kok, modul_yolu=None):
             _aciklanan = set(pid for pid in eksik_filtrede
                              if _baslik_aciklar(pid, cift[0], canon))
             baslik_aciklanan += len(_aciklanan)
+            if _aciklanan:
+                # HANGI kovada kaldigini da say: cikplak sayi "54" nobetcinin hangi
+                # (marka, model) sayfasinda kart reddedebilecegini SOYLEMEZ.
+                baslik_aciklanan_dokum.append((cift[0], cift[1], len(_aciklanan)))
             for pid in sorted(eksik_filtrede - _aciklanan):
                 baslik_aciklanamayan.append((cift[0], cift[1], pid))
             eksik_filtrede = eksik_filtrede - _aciklanan
@@ -1418,6 +1528,12 @@ def olc(kok, modul_yolu=None):
                    "capraz_ozet": capraz_ozet,
                    "kusak_sapan": kusak_sapan, "kusak_sonda_sayisi": len(kusak_sondalar),
                    "fikstur_sapan": fikstur_sapan, "fikstur_sayisi": len(KATLAMA_FIKSTURU),
+                   "yuklem_sapan": yuklem_sapan, "yuklem_js": yuklem_js,
+                   "baslik_aciklanan_dokum": sorted(baslik_aciklanan_dokum,
+                                                    key=lambda r: -r[2])[:8],
+                   "baslik_fikstur_sapan": baslik_fikstur_sapan,
+                   "baslik_fikstur_sayisi": len(BASLIK_KOLU_FIKSTURU),
+                   "baslik_ayrisan": baslik_ayrisan,
                    "kusak_aciklamali": len(kusak_aciklamali),
                    "esleme_aciklamali": len(esleme_aciklamali),
                    "kusak_ayna_fark": kusak_ayna_fark, "kusak_ayna": kusak_ayna,
@@ -1540,12 +1656,28 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
             "cift=%d (0 çift 'sapma yok' diye YEŞİL geçemez)" % a["cift"])
     dogrula("K1 SAYFA_DAR=0 (filtrenin gösterdiği her ürün sayfada VAR)", a["sayfa_dar"] == 0,
             "sayfa_dar=%d" % a["sayfa_dar"])
+    # 🟢 ADIM 2 KAPANDI (8 Eyl): üçüncü yüzey (index.html filtresi + uç sapma nöbetçisi)
+    # başlık yüklemini ALDI. Eksen GEVŞEMEDİ — "açıklanan" düşümü hâlâ hesaplanıyor ve
+    # SAYIYLA basılıyor: kol istemciden geri çekilirse sayı yeniden yükselir ve bu satır
+    # borcun bayat metnini değil GÜNCEL ölçümü gösterir.
     dogrula("K2 FILTRE_DAR: sayfanın gösterdiği her ürünü filtre BULUR ya da fark BAŞLIK "
             "KOLUYLA açıklanır", a["filtre_dar"] == 0 and not a["baslik_aciklanamayan"],
-            "açıklanamayan filtre_dar=%d %s · başlık koluyla açıklanan üyelik=%d "
-            "(🟡 ADIM 2 borcu: index.html filtresi bu yüklemi HENÜZ almadı)"
+            "açıklanamayan filtre_dar=%d %s · filtrenin GÖREMEDİĞİ, yalnız başlık koluyla "
+            "açıklanan üyelik=%d (🟢 ADIM 2 kapandı: 8 Eyl öncesi 10944; kol istemciden "
+            "çekilirse bu sayı geri yükselir) · en yoğun kovalar: %s"
             % (a["filtre_dar"], [x[:2] for x in a["baslik_aciklanamayan"][:3]] or "-",
-               a["baslik_aciklanan"]))
+               a["baslik_aciklanan"], a["baslik_aciklanan_dokum"][:5] or "-"))
+    # K2b — JETON BAĞI + İKİ SÜTUNLU FİKSTÜR. Ayrışma satırları (istemcinin AYIRAÇ KÖRÜ
+    # kolu) SIFIR OLAMAZ: sıfır olsaydı ya kol ölmüş ya kapı gevşemiş olurdu ve iki hâl de
+    # bugün SESSİZ geçerdi — bu yüzden ayrışma sayısı da iddianın PARÇASIDIR.
+    dogrula("K2b BAŞLIK KOLU JETON BAĞI + İKİ SÜTUNLU FİKSTÜR (index.html ↔ kapının "
+            "BAĞIMSIZ gövdesi; %d satır × 2 taraf)" % a["baslik_fikstur_sayisi"],
+            not a["yuklem_sapan"] and not a["baslik_fikstur_sapan"]
+            and a["baslik_fikstur_sayisi"] >= 12 and a["baslik_ayrisan"] >= 2,
+            "jeton sapan=%s · fikstür sapan=%d %s · BEYAN EDİLMİŞ ayrışma satırı=%d "
+            "(istemci ayıraç-KÖR, kapı üretimi aynalar) · yüklem=%s"
+            % (a["yuklem_sapan"] or "-", len(a["baslik_fikstur_sapan"]),
+               a["baslik_fikstur_sapan"][:3] or "-", a["baslik_ayrisan"], a["yuklem_js"]))
     dogrula("K3 CAPRAZ=0 (iki yönde birden sapan çift YOK)", a["capraz"] == 0,
             "capraz=%d" % a["capraz"])
     dogrula("K4 YANLIŞ-POZİTİF YOK: sayfaya giren her ürün o model jetonunu GERÇEKTEN taşıyor",

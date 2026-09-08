@@ -1574,6 +1574,19 @@ jobs:
       - name: "Model uyeligi kapisi (marka/model sayfasi <-> ana sayfa filtresi paritesi)"
         run: python3 tools/model-uyelik-kapisi.py
 
+      # ISTEMCI BASLIK KOLU (ADIM 2, 8 Eyl) — OLCULEN ARIZA: uc uyeligi
+      #   `marka[] ∪ uyum[].model ∪ BASLIKTA TAM KELIME`den suzerken istemci YALNIZ
+      # ilkine bakiyordu; fail-closed nobetci farki gorunur arizaya cevirdi
+      # (`?marka=Toyota&model=Corolla` -> uc 203, ekranda "0 urun").
+      # Bu kol iki seyi BIRDEN olcer: (a) baslik kolu CANLI, (b) kolun eklenmesiyle
+      # nobetcinin FAIL-CLOSED yonu KAYBOLMADI (uc suzmeyi birakirsa sayfa yine reddedilir).
+      # Mutasyon bataryasi (11 oldurucu; gevsetme + uretim tuzagi + MENZIL mutanti dahil):
+      #   python3 tools/model-baslik-istemci-test.py --kendini-test
+      # Offline (yalniz index.html okunur; sentetik fikstur), diske YAZMAZ — mutant
+      # bellekteki dizgede yasar, JS node'a STDIN ile verilir.
+      - name: "Istemci baslik kolu kabul (filtre + uc sapma nobetcisi ayni yuklemi kosar)"
+        run: python3 tools/model-baslik-istemci-test.py
+
       # MODEL UYELIK YUKLEMI — UC KOL (5 Agu 2026, mimar hukmu):
       #   ham `uyum[].model` ∪ `model_kanon` (kusak/kanon) ∪ BASLIKTA TAM KELIME
       # Kabul CAKILI CAPALARA karsi olcer (Vitara 27->66 · Transporter 145 · Golf 300 …),

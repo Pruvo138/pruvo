@@ -3371,10 +3371,197 @@ setTimeout(L,5000);})();
     }
     return out;
   }
-  // Model yüklemi — filtered(), yedek liste ve uç sapma nöbeti AYNI bu fonksiyonu çağırır
-  // (üç kopya ayrışırsa müşteri üç farklı sonuç görür).
-  function modelEsler(markalar, model, hedefMarka){
-    var mk = markalar || [];
+  // ═══ BAŞLIK KOLU (ADIM 2, 8 Eyl — mimar hükmü) ═════════════════════════════════════
+  // ÖLÇÜLEN ARIZA: uç (D1 model üyeliği) üyeliği `marka[]` ∪ `uyum[].model` ∪ BAŞLIKTA
+  // TAM KELİME'den alıyor, istemci YALNIZ ilkine bakıyordu. Fail-closed nöbetçi bu farkı
+  // GÖRÜNÜR arızaya çevirdi: `?kategori=Otomobil&marka=Toyota&model=Corolla` isteğinde uç
+  // 203 ürün döndürürken dönen 24 kartın 0'ı istemci yükleminden geçiyor ve sayfa TOPTAN
+  // reddediliyordu ("0 ürün" + "daraltma uygulanamadı").
+  // ÖLÇÜLDÜ (8 Eyl, canlı uçtan ilk sayfa; nöbetçiyi geçen/kart):
+  //   Corolla 0/24 · Clio 0/24 · Octavia 0/24 · Hilux 5/24 · Africa Twin 7/24 ·
+  //   WaveRunner 7/19 · E46 17/24 · Duster 19/24 · Golf 20/24 · 206 22/24 · Focus 23/24.
+  //   XSR900 7/7 ve R1200GS 24/24 ÇALIŞIYORDU — o kovalarda başlık kolundan gelen üye
+  //   YOKTU; "bazen çalışıyor bazen 40'ta kesiliyor"un sebebi tam olarak budur.
+  //
+  // 🔴 NÖBETÇİ GEVŞEMEZ, DOĞRULAMA TABANI EŞİTLENİR: amaç kontrolü kaldırmak değil,
+  // istemci yüklemini UCUN kullandığı yükleme eşitlemektir. Uç model süzgecini bırakırsa
+  // (2 Ağu'da bir kez bıraktı: marka+model → marka toplamı) nöbetçi bunu HÂLÂ yakalar,
+  // çünkü başlık kolu da jetonu ARAR — taşımayan kart "model" sapması verir.
+  //
+  // 🔴 KURAL ÜÇÜNCÜ KEZ YAZILMIYOR, JETONLA BAĞLANIYOR: aynı yüklem
+  // `tools/marka_model_build.py::baslikta_tam_kelime` (üretim) ve
+  // `tools/model-uyelik-kapisi.py::_bagimsiz_baslik_tasiyor` (kapının BAĞIMSIZ ölçütü)
+  // gövdelerinde yaşıyor. Sessiz ayrışmayı aşağıdaki MODEL_BASLIK_YUKLEM jetonu (emsal:
+  // `OZET_REF_YUKLEM` ↔ build.py) + iki tarafta AYRI koşan BASLIK_KOLU_FIKSTURU ölçer
+  // ([[ikiz-tanim-sessiz-ayrisma]]).
+  //
+  // 🔴 KATLAMA KORUNUR: `modelAnahtar`/`kusakTabanlari` katlaması bugünkü davranışını
+  // AYNEN sürdürür; başlık kolu onlara EK bir koldur, yerine GEÇMEZ — bu yüzden yukarıdaki
+  // döngü değişmeden durur ve kol ancak o döngü boş döndüğünde sorulur.
+  var MODEL_BASLIK_YUKLEM = "guvenli-altdizi|tehlikeli-marka-bitisik|alias-kaynagi-kanon-penceresi";
+  // Kelime dizisi: `modelKanon` ile AYNI sadeleştirme (TR tablosu ÖNCE — `ı` ayrıştırılamaz —
+  // sonra NFD + birleşen işaret atma). Tek fark ayıraçların ATILMASI değil, kelime SINIRI
+  // olarak kullanılmasıdır; ikinci bir aksan/TR tablosu YAZILMAZ.
+  function modelKelimeleri(s){
+    var t = (s === null || s === undefined ? "" : String(s)).trim().toLowerCase();
+    t = t.replace(/[ışğüöçâîû]/g, function(c){ return MODEL_TR[c]; });
+    t = t.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return t.split(/[^a-z0-9]+/).filter(Boolean);
+  }
+  // TEHLİKE SINIFI — SABİT LİSTE YOK, jetonun ŞEKLİNDEN türer (üretimdeki
+  // `tehlike_jetonu_mu` ile AYNI ölçüt): uzunluk <= 3 YA DA tamamen sayısal.
+  // Gerekçe ölçüldü: `Clio 5`/`Espace 5` kuşak sayısıdır, `Renault 5` gerçek modeldir —
+  // çıplak tam-kelime ikisini ayıramaz, bitişiklik ayırır.
+  function modelTehlikeliMi(jeton){
+    var j = modelKelimeleri(jeton).join("");
+    return !j || j.length <= 3 || /^[0-9]+$/.test(j);
+  }
+  function modelAltDizi(hepsi, parca){
+    if(!parca.length || parca.length > hepsi.length){ return false; }
+    for(var i = 0; i + parca.length <= hepsi.length; i++){
+      var ok = true;
+      for(var j = 0; j < parca.length; j++){
+        if(hepsi[i + j] !== parca[j]){ ok = false; break; }
+      }
+      if(ok){ return true; }
+    }
+    return false;
+  }
+  // Kanonik markanın BİTİŞİKLİK ifadesinde kullanılabilecek GÖRÜNEN adları
+  // ({"Opel","Vauxhall"}). 🔴 markaKatla UYGULANMAZ: bu bir AD LİSTESİdir, katlama değil.
+  var _markaYazimBellek = {};
+  function markaYazimlari(marka){
+    if(!marka){ return []; }
+    if(_markaYazimBellek[marka] !== undefined){ return _markaYazimBellek[marka]; }
+    var out = [marka];
+    for(var i = 0; i < TANINMIS_MARKALAR.length; i++){
+      var x = TANINMIS_MARKALAR[i];
+      if((MARKA_ALIAS[x] || x) === marka && out.indexOf(x) === -1){ out.push(x); }
+    }
+    _markaYazimBellek[marka] = out;
+    return out;
+  }
+  // Başlık jetonu KABUL EDİLEBİLİR biçimde taşıyor mu (MODEL_BASLIK_YUKLEM)?
+  // 🔴 BİTİŞİKLİK DÜZ İFADEDİR, `markaKatla` İLE YAZILMAZ: katlama ÖNEK kuralı işletir
+  // (`markaKatla("renault espace") -> "Renault"`), yani "jetondan önceki kelimeleri katla,
+  // markaya eşit mi" diye yazsaydık "Renault Espace 5" başlığı `5` jetonunu SESSİZCE
+  // doğrular ve tehlike koruması ölürdü. Aranan şey `<marka adı> <jeton>` kelime dizisinin
+  // başlıkta BİTİŞİK geçmesidir.
+  function basliktaTamKelime(baslikKelimeleri, marka, jeton){
+    var jw = modelKelimeleri(jeton);
+    if(!jw.length || !baslikKelimeleri.length){ return false; }
+    if(!modelTehlikeliMi(jeton)){ return modelAltDizi(baslikKelimeleri, jw); }
+    var adlar = markaYazimlari(marka);
+    for(var i = 0; i < adlar.length; i++){
+      var aw = modelKelimeleri(adlar[i]);
+      if(aw.length && modelAltDizi(baslikKelimeleri, aw.concat(jw))){ return true; }
+    }
+    return false;
+  }
+  // KUŞAK-DIŞI İSTİSNASI BAŞLIK KOLUNDA DA GEÇERLİ (üretimle AYNI kural, ölçülmüş sızıntı):
+  // `Citroen|Ami 6` kuşak-dışı ilan edilmiştir (1961 Ami 6 ≠ 2020 Ami), ama ürünün BAŞLIĞI
+  // "Citroen Ami 6 …" olduğu için çıplak tam-kelime `Ami` eşleşir ve istisna SESSİZCE ölür.
+  // Kural: ürün kuşak-dışı bir jeton taşıyorsa, o jetonun ÖNEKİ olan kovaya BAŞLIKTAN girmez.
+  function baslikKoluKapaliMi(urun, model, hedefMarka){
+    var mk = (urun && urun.marka) || [];
+    if(!mk.length){ return false; }
+    var mw = modelKelimeleri(model);
+    if(!mw.length){ return false; }
+    var hedef = modelAnahtar(hedefMarka, model);
+    for(var i = 0; i < KUSAK_DISI.length; i++){
+      var p = KUSAK_DISI[i].split("|");
+      if(p.length !== 2 || p[0] !== hedefMarka){ continue; }
+      var dk = modelAnahtar(hedefMarka, p[1]);
+      if(!dk || dk === hedef){ continue; }
+      var dw = modelKelimeleri(p[1]);
+      // "Ami 6" jetonunun BAŞ kelimeleri istenen yazımla birebir mi ("Ami")?
+      if(dw.length <= mw.length || dw.slice(0, mw.length).join(" ") !== mw.join(" ")){ continue; }
+      for(var j = 0; j < mk.length; j++){
+        if(modelAnahtar(hedefMarka, mk[j]) === dk){ return true; }
+      }
+    }
+    return false;
+  }
+  // Marka bağlamı: seçili marka varsa O; yoksa (markasız `?model=` deep-link'i) ürünün
+  // KENDİ üye olduğu kanonik markalar. Aday YOKSA kol KAPALIDIR (fail-closed): bitişiklik
+  // ifadesi kurulamaz ve güvenli jeton tek başına marka-KÖR eşleşirdi.
+  function baslikMarkaAdaylari(urun, hedefMarka){
+    if(hedefMarka){ return [hedefMarka]; }
+    var out = [], mk = (urun && urun.marka) || [];
+    for(var i = 0; i < mk.length; i++){
+      var k = markaKatla(mk[i]);
+      if(k && out.indexOf(k) === -1){ out.push(k); }
+    }
+    return out;
+  }
+  // MODEL_ALIAS'ın AYNI kovaya birleştirdiği KAYNAK anahtarlar ("Mercedes|a" ve
+  // "Mercedes|aklasse" → "aclass"). 🔴 ÖLÇÜLMÜŞ GEREK (8 Eyl): SAYFA tarafı kovanın TÜM
+  // katalog yazımlarını başlıkta arar, istemciye ise yalnız kanonik gösterim gelir
+  // (`?model=A-Class`). Kaynaklar aranmazsa "Mercedes A Sınıfı W169 …" başlıklı kart
+  // doğrulanamaz: uç 22 ürün döndürürken nöbetçi 22 kartın 12'sini reddedip sayfayı TOPTAN
+  // düşürüyordu — düzeltilen arızanın ta kendisi, yalnız daha dar bir kovada. Tablo İKİNCİ
+  // KEZ YAZILMAZ, MODEL_ALIAS'ın KAYNAĞINDAN türer ([[ikiz-tanim-sessiz-ayrisma]]).
+  function modelAliasKaynaklari(marka, model){
+    var out = [], hedef = marka ? modelAnahtar(marka, model) : "";
+    if(!hedef){ return out; }
+    var onek = marka + "|";
+    for(var k in MODEL_ALIAS){
+      if(!Object.prototype.hasOwnProperty.call(MODEL_ALIAS, k)){ continue; }
+      if(k.indexOf(onek) !== 0 || MODEL_ALIAS[k] !== hedef){ continue; }
+      var kaynak = k.slice(onek.length);
+      if(kaynak && out.indexOf(kaynak) === -1){ out.push(kaynak); }
+    }
+    return out;
+  }
+  // ALIAS KAYNAK ANAHTARI kanon biçimindedir — ayıraçları ZATEN atılmıştır ("A-Klasse" →
+  // "aklasse") — bu yüzden başlıkta KELİME DİZİSİ olarak ASLA geçmez. Onu yalnız KANON
+  // PENCERESİYLE ararız: bitişik bir kelime penceresinin birleşimi anahtara BİREBİR eşit
+  // olmalı ("a"+"klasse" === "aklasse").
+  // 🔴 MENZİL BİLEREK DAR: kural istenen GÖSTERİME de uygulansaydı "BMW R 1250 GS" başlığı
+  // `R1250GS` kovasına girer ve istemci SAYFADAN GENİŞ olurdu — ölçüldü (8 Eyl): 30 çiftte
+  // SAYFA_DAR, 205 ürün, kapı K1 KIRMIZI. Alias kaynaklarında bu taşma YOKTUR: o
+  // anahtarların katalog yazımı ("A-Klasse") sayfanın yazım kümesinde ZATEN vardır.
+  // 🔴 TEHLİKELİ JETONA SIZMAZ: kısa/sayısal anahtarda marka bitişikliği şartı korunur.
+  function baslikKanonPenceresi(baslikKelimeleri, anahtar){
+    if(!anahtar || modelTehlikeliMi(anahtar)){ return false; }
+    for(var b = 0; b < baslikKelimeleri.length; b++){
+      var yig = "";
+      for(var e = b; e < baslikKelimeleri.length; e++){
+        yig += baslikKelimeleri[e];
+        if(yig.length > anahtar.length){ break; }
+        if(yig === anahtar){ return true; }
+      }
+    }
+    return false;
+  }
+  // Ürünün BAŞLIĞI modeli, ucun/üretimin kabul ettiği biçimde taşıyor mu?
+  function modelBasliktaEsler(urun, model, hedefMarka){
+    if(!urun){ return false; }
+    // Başlık kelimeleri ürün başına BİR KEZ hesaplanır (`p._bm` ile AYNI desen): filtered()
+    // her tuş vuruşunda tüm katalog için çağrılır, başlığı her seferinde bölmek arama
+    // gecikmesine yazılırdı.
+    var bw = urun._mw;
+    if(bw === undefined){ bw = urun._mw = modelKelimeleri(urun.baslik || ""); }
+    if(!bw.length){ return false; }
+    var adaylar = baslikMarkaAdaylari(urun, hedefMarka);
+    for(var i = 0; i < adaylar.length; i++){
+      var mrk = adaylar[i];
+      if(baslikKoluKapaliMi(urun, model, mrk)){ continue; }
+      if(basliktaTamKelime(bw, mrk, model)){ return true; }
+      var kaynaklar = modelAliasKaynaklari(mrk, model);
+      for(var j = 0; j < kaynaklar.length; j++){
+        if(basliktaTamKelime(bw, mrk, kaynaklar[j])){ return true; }
+        if(baslikKanonPenceresi(bw, kaynaklar[j])){ return true; }
+      }
+    }
+    return false;
+  }
+  // Model yüklemi — filtered(), yedek liste, seri özeti ve uç sapma nöbeti AYNI bu
+  // fonksiyonu çağırır (dört kopya ayrışırsa müşteri dört farklı sonuç görür).
+  // 🔴 GİRDİ ÜRÜNÜN KENDİSİDİR (dizi DEĞİL): yüklem artık `marka[]` ∪ BAŞLIK okur, tek
+  // alan geçirmek çağrı yerlerinden birini sessizce eski kolda bırakırdı.
+  function modelEsler(urun, model, hedefMarka){
+    var mk = (urun && urun.marka) || [];
     if(mk.indexOf(model) !== -1){ return true; }       // BUGÜNKÜ ham eşitlik — asla daralma
     var hedef = modelAnahtar(hedefMarka, model);
     if(!hedef){ return false; }
@@ -3385,7 +3572,7 @@ setTimeout(L,5000);})();
         if(tb[j][0] === hedef){ return true; }
       }
     }
-    return false;
+    return modelBasliktaEsler(urun, model, hedefMarka);   // BAŞLIK KOLU (ADIM 2)
   }
   // --- KANONİK MODEL EŞLEMESİ SON ---
 
@@ -3896,8 +4083,9 @@ setTimeout(L,5000);})();
       // beslenir (üyelik ∪ başlıkta tam kelime); ayrı yazılsalardı çipin gösterdiği ürün ile
       // aramanın bulduğu ürün sessizce ayrışırdı ([[ikiz-tanim-sessiz-ayrisma]]).
       var brandOk = !hedefMarka || markaSorgusuEsler(p, hedefMarka);
-      // MODEL: etiket `marka` dizisinde mi. `marka` alanı `uyum`dan türetilir ve model
-      // jetonunu da taşır (ör. ["BMW","E46"]) — bu yüzden model ekseni AYNI dizide yaşar.
+      // MODEL: etiket `marka` dizisinde ya da BAŞLIKTA (ADIM 2 başlık kolu) mi. `marka`
+      // alanı `uyum`dan türetilir ve model jetonunu da taşır (ör. ["BMW","E46"]); ucun
+      // kullandığı üçüncü kol olan BAŞLIK aynı gövdeden (modelEsler) sorulur.
       // MARKA katlaması BURAYA uygulanmaz (uygulasaydık "E46" → "BMW"ye düşer, model
       // daraltması KAYBOLURDU); uygulanan şey MODEL kanonudur (modelEsler → modelAnahtar):
       // "F150" ile "F-150", "Peugeot 206" ile "206" AYNI modeldir ve /marka/ sayfasıyla
@@ -3905,7 +4093,7 @@ setTimeout(L,5000);})();
       // Küme dışı bir değer (deep-link ?model=xyzyok) hiçbir kayda eşleşmez → 0 sonuç
       // (FAIL-CLOSED; değeri düşürseydik sessizce marka geneli dönerdi).
       var modelOk = activeModel === "Tümü" ||
-        modelEsler(p.marka, activeModel, hedefMarka);
+        modelEsler(p, activeModel, hedefMarka);
       if(!catOk || !altOk || !brandOk || !modelOk){ return false; }
       return aramaPlaniEsler(p, plan);
     });
@@ -4377,8 +4565,20 @@ setTimeout(L,5000);})();
           return "marka";
         }
         // filtered() ile AYNI yüklem (modelEsler): iki uçta iki kural olsaydı uç doğru
-        // süzse bile nöbetçi "model" sapması diye REDDEDERDİ.
-        if(activeModel !== "Tümü" && !modelEsler(mk, activeModel, hedefMarka)){ return "model"; }
+        // süzse bile nöbetçi "model" sapması diye REDDEDERDİ — 8 Eyl'e kadar TAM BU
+        // oluyordu: uç `marka[] ∪ uyum[].model ∪ BAŞLIKTA TAM KELİME`den süzerken nöbetçi
+        // yalnız `marka[]`ye bakıyor, `?marka=Toyota&model=Corolla` cevabındaki 24 kartın
+        // 24'ü de reddedilip müşteriye "0 ürün" gösteriliyordu (uçta 203).
+        // 🔴 GEVŞETME DEĞİL, TABAN EŞİTLEME: kart BAŞLIK taşımıyorsa model ekseni
+        // doğrulanamaz → O KART ATLANIR (kategori kolundaki `k.kategori !== undefined`
+        // muafiyetinin aynısı); sayfa TOPTAN kabul EDİLMEZ, kalan kartlar ölçülmeye devam
+        // eder. Uç süzmeyi bırakırsa jetonu HİÇBİR kolda taşımayan kart yine "model" verir.
+        if(activeModel !== "Tümü" && !modelEsler(k, activeModel, hedefMarka)){
+          if(!String(k.baslik === null || k.baslik === undefined ? "" : k.baslik).trim()){
+            continue;                      // ölçemedim → ATLA (yeşil demek DEĞİL)
+          }
+          return "model";
+        }
       }
     }
     return null;
@@ -4577,7 +4777,7 @@ setTimeout(L,5000);})();
     }
     if(activeModel !== "Tümü"){
       var modelMarka = activeBrand === "Tümü" ? null : markaKatla(activeBrand);
-      liste = liste.filter(function(p){ return modelEsler(p.marka, activeModel, modelMarka); });
+      liste = liste.filter(function(p){ return modelEsler(p, activeModel, modelMarka); });
     }
     var plan = aramaPlani(query);
     if(plan.kanon || plan.tokens.length){
@@ -4732,7 +4932,7 @@ setTimeout(L,5000);})();
     if(activeModel !== "Tümü"){
       var hedefMarkaY = (activeBrand === "Tümü") ? null : markaKatla(activeBrand);
       liste = liste.filter(function(p){
-        return modelEsler(p.marka, activeModel, hedefMarkaY);
+        return modelEsler(p, activeModel, hedefMarkaY);
       });
     }
     // YEDEK modda serbest metin YALNIZ BAŞLIĞA bakar (özet kartında açıklama yok) —

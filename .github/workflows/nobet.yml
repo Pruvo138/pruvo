@@ -2545,6 +2545,13 @@ jobs:
           node-version: "20"
       - name: "Model uyeligi mutasyon bataryasi (35 oldurucu + 7 kontrol)"
         run: python3 tools/model-uyelik-kapisi.py --kendini-test
+      # ISTEMCI BASLIK KOLU (ADIM 2) mutant bataryasi: 11 oldurucu — kolu kaldiran,
+      # tehlike sinifini dusuren, bitisikligi markaKatla ile yazan (URETIM TUZAGI),
+      # nobetciyi gevseten, alias kaynak yazimlarini/kanon penceresini kesen, kanon
+      # penceresini MENZIL DISINA tasiyan ve katlama/ham esitlik kollarini kesen
+      # mutantlarin HEPSI beklenen iddiayi OLDURMELI ("beklentiyi tutmayan: 0").
+      - name: "Istemci baslik kolu mutasyon bataryasi (11 oldurucu)"
+        run: python3 tools/model-baslik-istemci-test.py --kendini-test
 
   model-baslik-bataryasi:
     runs-on: ubuntu-latest

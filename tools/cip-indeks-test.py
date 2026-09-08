@@ -700,7 +700,7 @@ MUTANTLAR = [
     # (bkz. tools/model-uyelik-kapisi.py). Mutantin ANLATTIGI ihlal AYNI; "capa bayat"
     # gozlemi kanit degildir, o yuzden capalar guncellendi.
     ("index.html",
-     'var modelOk = activeModel === "Tümü" ||\n        modelEsler(p.marka, activeModel, hedefMarka);',
+     'var modelOk = activeModel === "Tümü" ||\n        modelEsler(p, activeModel, hedefMarka);',
      'var modelOk = true;', "KIRMIZI",
      "MODEL FILTRESINI KALDIR (yerel): cip tiklanir, liste DEGISMEZ"),
     ("index.html",
@@ -738,8 +738,8 @@ MUTANTLAR = [
      '        var sapan = null;', "KIRMIZI",
      "FAIL-OPEN: uc suzmediyse liste SESSIZCE kabul edilir (musteri yanlis liste gorur)"),
     ("index.html",
-     '        if(activeModel !== "Tümü" && !modelEsler(mk, activeModel, hedefMarka)){ return "model"; }',
-     '        if(false){ return "model"; }', "KIRMIZI",
+     '        if(activeModel !== "Tümü" && !modelEsler(k, activeModel, hedefMarka)){',
+     '        if(false){', "KIRMIZI",
      "GUARD'IN MODEL EKSENINI KALDIR: yalniz marka dogrulanir, model fail-open kalir"),
     ("index.html",
      '      modelRowEl.style.display =\n        (activeCat !== "Tümü" && activeBrand !== "Tümü" && modelSatiriVar()) ? "" : "none";',
