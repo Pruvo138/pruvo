@@ -178,6 +178,12 @@ setTimeout(L,5000);})();
     color:#b9c6dc;
     margin-top:6px;
   }
+  /* K390: marka alt satiri artik sayfanin TEK H1'i (SEO/GEO konu sinyali). Tarayici h1
+     varsayilani yalniz IKI eksende gorunumu kaydirirdi: alt bosluk (margin-block-end
+     .67em) ve kalinlik (bold). SADECE o ikisi geri alinir — font-size/margin-top
+     .brand-sub'tan gelmeye DEVAM eder (mobil override margin-top:3px de canli kalir).
+     .brand-sub secicisine DOKUNULMADI. */
+  h1.brand-sub{margin-bottom:0;font-weight:400}
 
   /* ---------- ARAMA ---------- */
   .search-wrap{
@@ -1158,7 +1164,7 @@ setTimeout(L,5000);})();
     <div class="header-top">
       <div>
         <div class="brand">PRUVO</div>
-        <div class="brand-sub">Endüstriyel Parça Üretimi</div>
+        <h1 class="brand-sub">Endüstriyel Parça Üretimi</h1>
       </div>
       <!-- çekmece düğmesi marka satırında (mobilde ~46px dikey kazanç); masaüstünde CSS gizler -->
       <div class="mobile-nav-toggles" id="mobileNavToggles">
