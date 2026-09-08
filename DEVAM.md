@@ -2,6 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔧 8 EYL 09:xx — cip `KraL-Tamirci-8Eyl`: SERIT B'nin 9 kirmizi adimi 5 KOKE indi (tam metin `acik-kalemler.md` K388-K392)
+Kosum `34190135981` (main `3fa218ae`); SERIT B **30 kosumdur 0 success** (K339 dogrulandi). **K388** GA cekirdegi ikiz kaynaktan ayristi (build.py 3874 vs index.html 4020 bayt) → `generate_lead` ana sayfa DISINDA hic olculmuyor; 4 adim + 2 KOR mutasyon bataryasi · **K389** wave-47'nin yeni landing'i sinirsiz GIDA vaadi tasiyor, CANLI · **K390** 2 vape urunu canli Merchant feed'inde (K29'un sinifi geri dondu) · **K391** landing "PVC" jetonu; baglam eleyicisi F4 ile YASAK · **K392 ✅** recete kapisi rc=1→0, dal `claude/peaceful-margulis-057d93` @ `1308e4cd`, **MERGE MIMARDA**.
+
 ## ✅ 8 EYL 02:xx — ana oturum: **4 is kapandi (243 lisans · K19 yayin arizasi · K382 · ArTisT kalemi)**
 **LISANS (MaCiT'in 03:1x kutu ihbari):** havuz OTORITER lisansi ile katalog capraz dogrulandi — 20.161 esli kayit, UYUSAN 19.344; **C-SA-KACIRMA 237 + A2-ND-BEYAN-YANLIS 6 = 243 DUZELTILDI** (`duzelt.py --toplu`, TEK kilit; `lisans.tasarimci`=ATIF degisen **0**, lisans disi alan degisimi **0**, silinen **0**). **NC (satilamaz) sinifa dusen canli kayit: 0.** Merge `fdccc54d`. Commit IZOLE index'ten atildi: MaCiT'in ucustaki 72 kaydi calisma agacinda BIRAKILDI, o kendi `874c8025`'iyle indirdi.
 **K19 YAYIN ARIZASI (MaCiT ihbar etti, hukum KraL'da):** `Saab|900` × `Yamaha|900` capraz cifti YARGISIZ -> `serit-a3` fail-closed -> `deploy`+`yayin` SKIPPED, **3 kosum ust uste**. Hukum: **Saab|900 ALLOW** (gercek rozet, 4 urun basligi birebir "Saab 900"), **Yamaha|900 DENY** (motor hacmi; 25 urunun tamami XJ900/XSR900/Tracer 900/Diversion, ayni jetonu ARAC DISI DTX900+PSR-SX900 tasiyor; emsal `Yamaha|660`). Uc imza civilendi, kapi **1/29 KALDI -> 29/29 GECTI**. Merge `d0d6b8f9`.
