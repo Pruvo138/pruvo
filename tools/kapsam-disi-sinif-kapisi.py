@@ -404,8 +404,16 @@ def calistir(ev, sessiz=False):
         for uid, baslik, gerekce in yeni:
             print("  * %s | %s | %s" % (uid, baslik[:64], gerekce))
         print("")
+        # RECETE SINIFI = ISCI (8 Eyl 2026, cip KraL-Tamirci-8Eyl). `duzelt.py --toplu`
+        # VERI duzlemi komutudur: CLAUDE.md'ye gore mevcut urunu degistirmenin tek mesru
+        # yolu odur ve "KraL urunu YAZMAZ" (yazan MaCiT/TeKiN). Mimar-icra kapisinin
+        # allowlist'i BILEREK uc komuttur, bu yuzden recete mimar perspektifiyle
+        # sorgulandiginda REDDEDILIR ve `recete-kapisi.py` KIRMIZI yanar — kapi, kendi
+        # kosamayacagi bir care yaziyordu. Isaret komutu SERBEST BIRAKMAZ; yalniz
+        # receteyi dogru KATA (isci) atar. Isaretin kotuye kullanimini `recete-kapisi.py
+        # --kendini-test` M4 kolu olcer (mimar-serbest recete ISCIYE isareti TASIMAMALI).
         print("Durust-sinir beyani bu sinifi kapsam DISI ilan ediyor "
-              "(kaynak: tools/sayfalar.py, ~satir %d). COZUM: kaydi "
+              "(kaynak: tools/sayfalar.py, ~satir %d). COZUM: ISCIYE: kaydi "
               "`python3 tools/duzelt.py --toplu <islem.json>` ile `gizli:true` yap "
               "(URUN SILINMEZ) ya da gercekten hava/aksesuar duzlemindeyse "
               "MUAFIYET_SICILI'ne gerekcesiyle ekle ve SICIL_TAVANI'ni birlikte yukselt."
