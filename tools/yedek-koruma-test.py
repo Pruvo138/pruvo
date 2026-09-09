@@ -202,6 +202,129 @@ def vaka_beyan(mod, kok):
         mod.DUSUS_BEYAN_YOLU = onceki_yol
 
 
+def _yaz_bayt(yol, bayt):
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write("x" * bayt)
+
+
+def vaka_beyan_tasima(mod, kok):
+    """`tasima` turu KORUNUM olcer: silinen icerik GECEMEZ, tasinan icerik GECER.
+
+    Bu turun varlik sebebi, digerlerinin kacirdigi invaryanttir: ortak kutunun
+    dogru olcusu bir BOYUT degil, "kutudan cikan bayt arsive girdi mi"dir. Dort
+    eksen ayri ayri olculur — biri kayarsa tur ya blanket muafiyete ya olu harfe doner:
+      1. hedef, kaynagin kaybi KADAR (ya da fazlasi) buyumus  -> GECER
+      2. hedef HIC buyumemis (icerik SILINMIS)                -> REDDEDILIR
+      3. `hedef` alani beyanda YOK                            -> REDDEDILIR (fail-closed)
+      4. hedef iki duzlemin BIRINDE yok -> OLCULEMEZ          -> REDDEDILIR
+
+    🔴 FIKSTUR IKI DIZINLIDIR ve bu ZORUNLUDUR: uretimde kaynak `memory/`, kanonik
+    yedek `<backup>/memory/` altindadir ve `tasima` hedefi HER IKI duzlemde arar.
+    Tek dizinli bir fikstur `hedef_canli` ile `hedef_yedek`i AYNI dosyaya cozer,
+    fark daima 0 cikar ve 1. eksen HIC gecmezdi (yani vaka sessizce ters olcerdi).
+    """
+    onceki_yol = mod.DUSUS_BEYAN_YOLU
+    canli = os.path.join(kok, "tasima-canli")
+    yedek_d = os.path.join(kok, "tasima-yedek")
+    os.makedirs(canli, exist_ok=True)
+    os.makedirs(yedek_d, exist_ok=True)
+    kaynak = os.path.join(canli, "kutu.md")
+    varis = os.path.join(yedek_d, "kutu.md")
+    hedef_canli = os.path.join(canli, "arsiv.md")
+    hedef_yedek = os.path.join(yedek_d, "arsiv.md")
+    try:
+        # --- 1: KORUNUM TUTAR (kutudan cikan 900 bayt arsive girdi) -> GECER
+        _yaz_bayt(varis, 1000)
+        _yaz_bayt(kaynak, 100)                 # kaynak_dusus = 900
+        _yaz_bayt(hedef_yedek, 5000)
+        _yaz_bayt(hedef_canli, 5900)           # hedef_artis  = 900
+        _beyan_kur(mod, kok, {"kutu.md": {
+            "tur": "tasima", "hedef": "arsiv.md",
+            "gerekce": "ortak kutu -> arsiv (test)"}})
+        beklenen = sha(kaynak)
+        if reddedildi_mi(mod, kaynak, varis):
+            return False
+        if sha(varis) != beklenen:             # yedek GERCEKTEN guncellendi mi
+            return False
+        if len(mod._BEYAN_KULLANILDI) != 1:    # kullanim SESSIZ olamaz
+            return False
+        ad, tur, gerekce = mod._BEYAN_KULLANILDI[0]
+        if ad != "kutu.md" or tur != "tasima":
+            return False
+        # Gerekce SAYI tasimali: "gecti" demek yetmez, NEYIN gecirdigi gorunmeli.
+        if "900" not in gerekce or "KORUNUM TUTTU" not in gerekce:
+            return False
+
+        # --- 2: KORUNUM TUTMAZ (arsiv HIC buyumemis = icerik SILINMIS) -> RED
+        _yaz_bayt(varis, 1000)
+        _yaz_bayt(kaynak, 100)
+        _yaz_bayt(hedef_yedek, 5000)
+        _yaz_bayt(hedef_canli, 5000)           # hedef_artis = 0 < 900
+        _beyan_kur(mod, kok, {"kutu.md": {
+            "tur": "tasima", "hedef": "arsiv.md",
+            "gerekce": "ortak kutu -> arsiv (test)"}})
+        korunan = sha(varis)
+        if not reddedildi_mi(mod, kaynak, varis):
+            return False
+        if sha(varis) != korunan:              # kanonik yedek KORUNDU mu
+            return False
+        if len(mod._BEYAN_KULLANILDI) != 0:    # gecmeyen beyan KULLANILDI sayilamaz
+            return False
+        # Red SESSIZ olamaz: sebep sayiyla uyari defterine dusmeli.
+        if not any("KORUNUM TUTMADI" in u for u in mod._BEYAN_UYARISI):
+            return False
+
+        # --- 1b: AYRAC GURULTUSU YAKIN-KACISI (oran GERCEK olcumden)
+        # 🔴 BU VAKA BIR REGRESYONU CIVILER: ilk yazimda karsilastirma tam `>=` idi ve
+        # KAYIPSIZ bir rotasyonu REDDEDIYORDU. Olculen gercek sapmalar (10 Eyl):
+        # TUR-2 kutu -18.785 B / arsiv +18.737 B = oran 0,9974 (48 B EKSIK) · 9 Eyl
+        # kutu -55.680 B / arsiv +55.761 B = oran 1,0015 (81 B FAZLA). Blok ayraclari
+        # iki tarafta ayni sayilmaz ve fark ISARET DEGISTIRIR. Tolerans 1,0'a cekilirse
+        # bu vaka KIRMIZI yanar (M11 o yonu olcer).
+        # ⚠️ BUYUKLUK OLCEKLENDI, ORAN DEGIL: gercek TUR-2 tek basina %40'lik bir dusus
+        # ve `_ciddi_dusus_var` esigini (%50) HIC gecmiyor — yani o tur beyana zaten
+        # UGRAMIYOR. Beyan kolunu olcebilmek icin dusus ciddi esigin USTUNE tasindi
+        # (60.000 -> 25.000 = %58), sapma orani OLCULEN degerde (0,9974) TUTULDU.
+        _yaz_bayt(varis, 60000)
+        _yaz_bayt(kaynak, 25000)               # kaynak_dusus = 35000 (ciddi: %58)
+        _yaz_bayt(hedef_yedek, 700000)
+        _yaz_bayt(hedef_canli, 700000 + 34909)  # hedef_artis = 34909 (oran 0,9974)
+        _beyan_kur(mod, kok, {"kutu.md": {
+            "tur": "tasima", "hedef": "arsiv.md",
+            "gerekce": "gercek TUR-2 (test)"}})
+        beklenen = sha(kaynak)
+        if reddedildi_mi(mod, kaynak, varis):
+            return False
+        if sha(varis) != beklenen or len(mod._BEYAN_KULLANILDI) != 1:
+            return False
+
+        # --- 3: `hedef` alani YOK -> fail-closed RED
+        _yaz_bayt(varis, 1000)
+        _yaz_bayt(kaynak, 100)
+        _yaz_bayt(hedef_canli, 5900)
+        _beyan_kur(mod, kok, {"kutu.md": {
+            "tur": "tasima", "gerekce": "hedefsiz (test)"}})
+        korunan = sha(varis)
+        if not reddedildi_mi(mod, kaynak, varis):
+            return False
+        if sha(varis) != korunan:
+            return False
+
+        # --- 4: hedef iki duzlemin BIRINDE yok -> OLCULEMEZ, RED
+        _yaz_bayt(varis, 1000)
+        _yaz_bayt(kaynak, 100)
+        os.unlink(hedef_yedek)
+        _beyan_kur(mod, kok, {"kutu.md": {
+            "tur": "tasima", "hedef": "arsiv.md",
+            "gerekce": "olculemez (test)"}})
+        korunan = sha(varis)
+        if not reddedildi_mi(mod, kaynak, varis):
+            return False
+        return sha(varis) == korunan
+    finally:
+        mod.DUSUS_BEYAN_YOLU = onceki_yol
+
+
 def vaka_beyan_bozuk(mod, kok):
     """Beyan dosyasi BOZUKSA koruma TAM GUCTE kalir (bozuk beyan kapi ACMAZ)."""
     onceki_yol = mod.DUSUS_BEYAN_YOLU
@@ -247,7 +370,8 @@ def tek_vaka(modul_yolu, vaka):
     with tempfile.TemporaryDirectory(prefix="pruvo-yedek-koruma-") as kok:
         sonuc = {"sifir": vaka_sifir, "sifir-yeni": vaka_sifir_yeni,
                  "ani": vaka_ani, "karantina": vaka_karantina,
-                 "beyan": vaka_beyan, "beyan-bozuk": vaka_beyan_bozuk,
+                 "beyan": vaka_beyan, "beyan-tasima": vaka_beyan_tasima,
+                 "beyan-bozuk": vaka_beyan_bozuk,
                  "normal": vaka_normal}[vaka](mod, kok)
     print("VAKA=%s RC=%d" % (vaka, 0 if sonuc else 1))
     return 0 if sonuc else 1
@@ -269,8 +393,8 @@ def tam_batarya():
     with tempfile.TemporaryDirectory(prefix="pruvo-yedek-koruma-") as kok:
         davranislar = [vaka_sifir(mod, kok), vaka_sifir_yeni(mod, kok),
                        vaka_ani(mod, kok), vaka_karantina(mod, kok),
-                       vaka_beyan(mod, kok), vaka_beyan_bozuk(mod, kok),
-                       vaka_normal(mod, kok)]
+                       vaka_beyan(mod, kok), vaka_beyan_tasima(mod, kok),
+                       vaka_beyan_bozuk(mod, kok), vaka_normal(mod, kok)]
         mutant_sifir = mutant_yaz(
             kok, "mutant-sifir",
             "    _yedek_korumasi(kaynak, varis)\n    if os.path.isfile",
@@ -326,6 +450,27 @@ def tam_batarya():
             kok, "mutant-beyan-sessiz",
             "        _BEYAN_KULLANILDI.append((os.path.basename(kaynak), tur, gerekce))",
             "        pass  # MUTANT: beyan kullanimi kaydedilmedi")
+        # `tasima` turunun IKI oldurucu yonu (10 Eyl):
+        #  M9  — KORUNUM karsilastirmasi kalkarsa tur BLANKET muafiyete doner: silinen
+        #        icerik de "tasindi" sayilir, yani turun VARLIK SEBEBI olur. KIRMIZI.
+        #  M10 — fail-closed yon: hedef OLCULEMEDIGINDE (iki duzlemden biri yok / `hedef`
+        #        alani yok) True donerse, olcum yoklugu MUAFIYETE cevrilir. KIRMIZI.
+        # 🔴 Capalar `_tasima_korunumu`nun KENDI govdesindedir, komsusunda degil.
+        mutant_tasima_blanket = mutant_yaz(
+            kok, "mutant-tasima-blanket",
+            "    if hedef_artis < esik:",
+            "    if False:  # MUTANT: korunum karsilastirmasi kalkti")
+        mutant_tasima_olcumsuz = mutant_yaz(
+            kok, "mutant-tasima-olcumsuz",
+            '        return (False, "hedef adi YOK/gecersiz -> olculemez")',
+            '        return (True, "MUTANT: olcum yoklugu muafiyete cevrildi")')
+        #  M11 — TOLERANSIN TERS YONU: oran 1.0'a cekilirse ayrac gurultusu yuzunden
+        #        KAYIPSIZ rotasyonlar reddedilir (10 Eyl TUR-2 olculdu: 48 B eksik).
+        #        Bu yon olculmezse tolerans sessizce daralir ve yedek bayatlar.
+        mutant_tasima_tolerans = mutant_yaz(
+            kok, "mutant-tasima-tolerans",
+            "TASIMA_KORUNUM_ORANI = 0.98",
+            "TASIMA_KORUNUM_ORANI = 1.0  # MUTANT: ayrac toleransi kalkti")
         komut = [sys.executable, os.path.abspath(__file__), "--modul"]
         sifir = subprocess.run(komut + [mutant_sifir, "--vaka", "sifir"],
                                capture_output=True, text=True)
@@ -343,16 +488,28 @@ def tam_batarya():
                                   capture_output=True, text=True)
         beyan_sessiz = subprocess.run(komut + [mutant_beyan_sessiz, "--vaka", "beyan"],
                                       capture_output=True, text=True)
+        tasima_blanket = subprocess.run(
+            komut + [mutant_tasima_blanket, "--vaka", "beyan-tasima"],
+            capture_output=True, text=True)
+        tasima_olcumsuz = subprocess.run(
+            komut + [mutant_tasima_olcumsuz, "--vaka", "beyan-tasima"],
+            capture_output=True, text=True)
+        tasima_tolerans = subprocess.run(
+            komut + [mutant_tasima_tolerans, "--vaka", "beyan-tasima"],
+            capture_output=True, text=True)
     mutantlar = [sifir.returncode != 0, ani.returncode != 0, kosulsuz.returncode != 0,
                  sessiz.returncode != 0, yeniden.returncode != 0,
                  blanket.returncode != 0, tavansiz.returncode != 0,
-                 beyan_sessiz.returncode != 0]
+                 beyan_sessiz.returncode != 0,
+                 tasima_blanket.returncode != 0, tasima_olcumsuz.returncode != 0,
+                 tasima_tolerans.returncode != 0]
     print("KORUMA_TEST=%d" % sum(1 for sonuc in davranislar if sonuc))
     print("MUTASYON_KIRMIZI=%d" % sum(1 for sonuc in mutantlar if sonuc))
-    print("MUTASYON_RC=%d,%d,%d,%d,%d,%d,%d,%d" % (
+    print("MUTASYON_RC=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d" % (
         sifir.returncode, ani.returncode, kosulsuz.returncode, sessiz.returncode,
         yeniden.returncode, blanket.returncode, tavansiz.returncode,
-        beyan_sessiz.returncode))
+        beyan_sessiz.returncode, tasima_blanket.returncode,
+        tasima_olcumsuz.returncode, tasima_tolerans.returncode))
     print("SURUM_TAVANI=%d" % mod.SURUM_SAKLA)
     return 0 if all(davranislar) and all(mutantlar) else 1
 
@@ -361,7 +518,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--modul")
     ap.add_argument("--vaka", choices=("sifir", "sifir-yeni", "ani", "karantina",
-                                       "beyan", "beyan-bozuk", "normal"))
+                                       "beyan", "beyan-tasima", "beyan-bozuk",
+                                       "normal"))
     a = ap.parse_args()
     if a.modul or a.vaka:
         if not a.modul or not a.vaka:

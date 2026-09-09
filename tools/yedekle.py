@@ -171,12 +171,41 @@ SURUM_SAKLA = 20
 # `.diriltme-izin.json` ile AYNI desende bir BEYAN: dusus BIR KEZ ve GEREKCESIYLE
 # ilan edilir, kapi beyani gorunce gecirir. [[koruma-kurali-korudugunu-durdurur]]
 #
-# BEYAN BLANKET DEGILDIR — iki tur, ikisi de SAYIYA BAGLI:
+# BEYAN BLANKET DEGILDIR — UC tur, ucu de SAYIYA BAGLI:
 #   "tek-seferlik": yalniz ILAN EDILEN kaynak boyutu icin gecerli. Dosya sonra baska
 #                   bir boyuta duserse beyan ESLESMEZ -> yeni dusus YENI bir yargidir.
 #   "surekli"     : rolling artefakt (kilit/ankor/sayac). `azami_bayt` TAVANI zorunlu:
 #                   beyan ancak kaynak bu tavanin ALTINDAysa gecer. Boylece 10 MB'lik
 #                   bir veri dosyasi "rolling" ilan edilerek sessizce kaybedilemez.
+#   "tasima"      : icerigi SILINMEYEN, yalniz BASKA BIR DOSYAYA TASINAN rolling
+#                   artefakt (ortak kutu -> kutu arsivi). `hedef` ZORUNLU. Beyan
+#                   KORUNUM ile gecer: kaynagin kanonik yedege gore KAYBI, hedefin
+#                   AYNI IKI DUZLEM arasindaki KAZANCI tarafindan karsilanmalidir
+#                   (`hedef_artis >= kaynak_dusus`). Karsilanmiyorsa icerik TASINMAMIS,
+#                   SILINMISTIR -> beyan GECMEZ.
+#
+# 🔴 "tasima" NEDEN VAR (olculdu 10 Eyl 2026 — UCUNCU TEKRAR degil, ALTINCI):
+#   `mimar-posta-kutusu.md` icin dogru tur YOKTU ve bedeli su sekilde olculdu:
+#     * "tek-seferlik" TAM ESITLIK arar -> kutuya bir blok eklenince beyan ESLESMEZ.
+#       Bu alan 17 Agu - 9 Eyl arasi BES KEZ ELLE yazildi; arac kendi dususunu
+#       yazmaya baslayinca (9 Eyl) elle yazim bitti ama YAZIMIN KENDISI kalmadi:
+#       beyan dosyasi IZLENEN bir repo dosyasi oldugu icin her rotasyon calisma
+#       agacini KIRLETIYOR ve ayri bir commit istiyordu (10 Eyl'de TEK GUNDE 4 commit).
+#     * "surekli" 28 Agu'da REDDEDILDI ve RED HALA DOGRU: kutunun mesru bayt araligi
+#       27-131 KB salinir; `azami_bayt` ancak ~140 KB olabilirdi ve o tavan UST siniri
+#       korur, DUSUSE tamamen KORDUR -> blanket muafiyet olurdu.
+#   Ikisinin de kacirdigi sey ayni: kutunun invaryanti BIR BOYUT DEGIL, BIR KORUNUM.
+#   Icerik silinmez, arsive TASINIR — `kutu-arsivle.py` bunu zaten her kosumda
+#   `KAYIPSIZLIK bayt` kapisiyla kanitliyor. "tasima" ayni invaryanti YEDEK duzleminde
+#   BAGIMSIZ olarak yeniden olcer; beyan artik hicbir sayi TASIMADIGI icin BAYATLAMAZ
+#   ve bir daha elle ya da araca yazdirilmasi GEREKMEZ.
+#
+# ⚠️ ARTIK RISK, SESSIZ GECMESIN: hedef (arsiv) BASKA sebeplerle de buyur — baska bir
+#   ev ayni arsive blok eklerse o buyume, kutudan yapilan GERCEK bir silmeyi
+#   maskeleyebilir. Bu, "surekli"nin blanket muafiyetinden KAT KAT dar bir penceredir
+#   (silme ancak ayni yedek araliginda ve en az kendi boyu kadar bir arsiv buyumesiyle
+#   ayni ana denk gelirse gizlenir) ama SIFIR DEGILDIR. Kapatan sey bu kol degil,
+#   `kutu-arsivle.py`nin blok-sha kapisidir; ikisi AYRI duzlemde olcer.
 # Beyan dosyasi YOKSA koruma TAM GUCTEDIR (fail-closed varsayilan). Dosya BOZUKSA da
 # tam guctedir + UYARI basilir; "bozuk beyan" korumayi ACAMAZ ama yedegi de DUSURMEZ
 # (kosumu dusurmek, az once kapatilan sinifin ta kendisiydi).
@@ -215,6 +244,23 @@ DUSUS_GECMIS_TAVANI = 20
 DUSUS_ESKALASYON_TAVANI = 3
 _BEYAN_UYARISI = []
 
+# "tasima" korunum orani — hedefin, kaynagin kaybinin EN AZ bu kadarini karsilamasi
+# gerekir. 🔴 NEDEN 1.0 DEGIL (olculdu 10 Eyl 2026, GERCEK rotasyon sayilariyla; ilk
+# yazimda 1.0 idi ve o hali GERCEK bir kayipsiz rotasyonu REDDEDIYORDU):
+#   * TUR-1: kutu -12.903 B / arsiv +12.903 B  -> oran 1,0000
+#   * TUR-2: kutu -18.785 B / arsiv +18.737 B  -> oran 0,9974  (48 B EKSIK)
+#   * 9 Eyl: kutu -55.680 B / arsiv +55.761 B  -> oran 1,0015  (81 B FAZLA)
+# Blok ayraclari iki tarafta AYNI sayilmaz (kutudan cikan blogun ayraci duser, arsiv
+# kendi ayracini ekler) ve fark TASINAN BLOK SAYISIYLA olcekli, isareti DEGISKENdir.
+# Yani korunum "birebir bayt" degil "ayrac gurultusu kadar toleransli"dir. 1,0 tutmak
+# mesru rotasyonlari kirmiziya yakardi -> surekli kirmizi kirmiziyi DEGERSIZLESTIRIR ve
+# yedek BAYAT kalirdi; tam da bu mekanizmanin kapatmak icin kuruldugu hastalik.
+# 0,98 secildi: olculen en kotu sapma %0,26, yani ~8 KAT PAYLI. Ust sinir da bilincli —
+# tolerans, gizlenebilecek kaybin TAVANIDIR: tasinan miktarin en fazla %2'si sessizce
+# kaybolabilir (18.785 B'lik bir turda ~376 B). Daha genis bir oran bu pencereyi
+# buyutur, daha dar olani mesru turleri keser.
+TASIMA_KORUNUM_ORANI = 0.98
+
 
 def _dusus_beyani_oku(yol=None):
     """Beyan haritasi. Dosya yok/bozuksa BOS doner (koruma tam gucte kalir)."""
@@ -233,12 +279,47 @@ def _dusus_beyani_oku(yol=None):
     return veri
 
 
-def _dusus_beyanli_mi(kaynak, beyanlar=None):
+def _tasima_korunumu(kaynak, varis, hedef_ad):
+    """"tasima" turunun OLCUMU: kaynagin KAYBI hedefin KAZANCIYLA karsilaniyor mu?
+
+    Doner: (karsilandi_mi, aciklama). Aciklama DAIMA sayilidir — beyanla gecen bir
+    dusus de SESSIZ olamaz (kosum sonunda `_BEYAN_KULLANILDI` ile basilir).
+
+    🔴 IKI DUZLEM, AYNI ARALIK: kaynak ve hedef ayni `memory/` agacindan gelir ve
+    yedek plani onlari yan yana ayni dizine kopyalar (bkz. ANA YEDEK plani). Bu yuzden
+    "canli" ve "kanonik yedek" duzlemleri HER IKI dosya icin de AYNI ana aittir ve
+    fark alinabilir. Hedef iki duzlemin BIRINDE yoksa olcum YAPILAMAZ -> fail-closed.
+    """
+    if not hedef_ad or not isinstance(hedef_ad, str) or os.sep in hedef_ad:
+        return (False, "hedef adi YOK/gecersiz -> olculemez")
+    hedef_canli = os.path.join(os.path.dirname(kaynak), hedef_ad)
+    hedef_yedek = os.path.join(os.path.dirname(varis), hedef_ad)
+    try:
+        kaynak_dusus = os.path.getsize(varis) - os.path.getsize(kaynak)
+        hedef_artis = os.path.getsize(hedef_canli) - os.path.getsize(hedef_yedek)
+    except OSError as hata:
+        return (False, "hedef iki duzlemde OLCULEMEDI (%s)" % hata)
+    if kaynak_dusus <= 0:
+        return (False, "kaynakta dusus YOK (%d) -> beyana gerek yok" % kaynak_dusus)
+    esik = kaynak_dusus * TASIMA_KORUNUM_ORANI
+    if hedef_artis < esik:
+        return (False, "KORUNUM TUTMADI: kaynak -%d bayt, hedef +%d bayt (esik %.0f, "
+                       "oran %.4f) (%s) -> icerik TASINMAMIS, SILINMIS"
+                       % (kaynak_dusus, hedef_artis, esik,
+                          hedef_artis / float(kaynak_dusus), hedef_ad))
+    return (True, "KORUNUM TUTTU: kaynak -%d bayt, hedef +%d bayt (oran %.4f, esik %.2f) "
+                  "(%s)" % (kaynak_dusus, hedef_artis,
+                            hedef_artis / float(kaynak_dusus), TASIMA_KORUNUM_ORANI,
+                            hedef_ad))
+
+
+def _dusus_beyanli_mi(kaynak, beyanlar=None, varis=None):
     """Bu kaynagin dususu ILAN EDILMIS mi? Doner: (evet_mi, tur, gerekce).
 
     ⚠️ Eslesme DOSYA ADI uzerindendir (kapinin hata metinleri de ad basar). Ayni ada
     sahip iki dosya varsa beyan ikisini de kapsar — bu yuzden beyan TEK BASINA yetmez,
-    daima bir SAYI sartiyla birlikte olcuLur (tek-seferlik: tam boyut · surekli: tavan).
+    daima bir SAYI sartiyla birlikte olcuLur (tek-seferlik: tam boyut · surekli: tavan ·
+    tasima: korunum).
     """
     beyanlar = _dusus_beyani_oku() if beyanlar is None else beyanlar
     kayit = beyanlar.get(os.path.basename(kaynak))
@@ -259,12 +340,24 @@ def _dusus_beyanli_mi(kaynak, beyanlar=None):
         if isinstance(tavan, int) and kaynak_boyut <= tavan:
             return (True, tur, gerekce)
         return (False, None, None)
+    if tur == "tasima":
+        # Kanonik yedek YOKSA karsilastirilacak taban da yoktur -> olculemez, GECMEZ.
+        if not varis or not os.path.isfile(varis):
+            return (False, None, None)
+        tuttu, aciklama = _tasima_korunumu(kaynak, varis, kayit.get("hedef"))
+        if tuttu:
+            # Gerekce SAYIYLA zenginlestirilir: hangi korunumun gecirdigi kosum
+            # ciktisinda GORUNUR olsun (beyanla gecen dusus de sessiz olamaz).
+            return (True, tur, (gerekce + " | " + aciklama).strip(" |"))
+        _BEYAN_UYARISI.append("`%s` tasima beyani GECMEDI: %s"
+                              % (os.path.basename(kaynak), aciklama))
+        return (False, None, None)
     return (False, None, None)
 
 
-def _beyan_gecerse(kaynak, beyanlar=None):
+def _beyan_gecerse(kaynak, beyanlar=None, varis=None):
     """Beyan varsa kullanildi defterine yazar ve True doner."""
-    evet, tur, gerekce = _dusus_beyanli_mi(kaynak, beyanlar)
+    evet, tur, gerekce = _dusus_beyanli_mi(kaynak, beyanlar, varis=varis)
     if evet:
         _BEYAN_KULLANILDI.append((os.path.basename(kaynak), tur, gerekce))
     return evet
@@ -298,7 +391,7 @@ def _yedek_korumasi(kaynak, varis):
     # Korunan hal AYNEN durur: dolu bir kanonik yedegin uzerine 0 bayt YAZILAMAZ.
     if kaynak_boyut == 0:
         if os.path.isfile(varis) and os.path.getsize(varis) > 0:
-            if _beyan_gecerse(kaynak):
+            if _beyan_gecerse(kaynak, varis=varis):
                 return
             raise YedekKorumaHatasi(
                 "YEDEK REDDEDILDI: kaynak 0 bayt; kanonik yedek DEGISMEDI (%s)" %
@@ -310,7 +403,7 @@ def _yedek_korumasi(kaynak, varis):
         return
     yedek_boyut = os.path.getsize(varis)
     if _ciddi_dusus_var(kaynak_boyut, yedek_boyut):
-        if not _beyan_gecerse(kaynak):
+        if not _beyan_gecerse(kaynak, varis=varis):
             raise YedekKorumaHatasi(
                 "YEDEK REDDEDILDI: bayt olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI"
                 " (%s) — kasitliysa %s icine BEYAN yaz"
@@ -323,7 +416,7 @@ def _yedek_korumasi(kaynak, varis):
     yedek_kayit = _json_kayit_sayisi(varis)
     if (kaynak_kayit is not None and yedek_kayit is not None and
             _ciddi_dusus_var(kaynak_kayit, yedek_kayit)):
-        if _beyan_gecerse(kaynak):
+        if _beyan_gecerse(kaynak, varis=varis):
             return
         raise YedekKorumaHatasi(
             "YEDEK REDDEDILDI: kayit olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI"

@@ -1351,6 +1351,51 @@ def basliyorum_adlari(satirlar, baslar):
     return esleme
 
 
+# ------------------------------- K396: MERGE-BEKLIYOR MUAFIYET BEYANI (10 Eyl 2026)
+# 🔴 OLCULEN KUSUR: `tools/cip-kapanis-kancasi.py:187` cipe "ICERIK_DISARIDA ise dali
+# main'e al YA DA 'BEKLIYOR' olarak kutuya yaz" diyordu; ama `BEKLIYOR` jetonu
+# `arsiv-kapisi.py` GOVDESINDE HIC GECMIYORDU (`grep`=0). Yani onerilen ikinci yol
+# OLUYDU: yazan kisi kapiyi yesile cevirdigini sanir, kapi rc=1 vermeye devam ederdi
+# ([[kapi-red-metni-ikinci-kopyadir]]). Iki tur ust uste iki AYRI cip bu bosluga
+# takildi (`gifted-lichterman-704c47`, `bold-heyrovsky-0fd60a`).
+#
+# 🔴 JETON NEDEN PROZA DEGIL: kutu+arsivde "MERGE BEKLİYOR" ifadesi SERBEST METIN
+# olarak ONLARCA blokta geciyor (olculdu). Proza eslesmesi o bloklarin hepsini
+# muaf yapardi — yani kapiyi susturan bir BATTANIYE MUAFIYET olurdu; merge-kapisi
+# doktrininin fault injection ile CURUTTUGU tam da bu sinifti. Bu yuzden beyan
+# ACIKCA YAZILAN, TEK BICIMLI ve CIP ADINI ICINDE TASIYAN bir satirdir.
+#
+# 🔴 BEYAN TEK BASINA YETMEZ (kapiyi acan sey beyan DEGIL, OLCUMdur): muafiyet
+# `arsiv-kapisi.py`de YALNIZ `ITILMEMIS` kolu TEMIZ iken uygulanir. Sebep kapinin
+# kendi varlik sebebidir: arsivleme worktree'yi SILER; icerik main'de olmasa bile
+# dalin ucu bir `origin/*` ref'indeyse is KAYBOLMAZ. Itilmemis bir dalda beyan
+# hicbir sey degistirmez — kirmizi KALIR. Yani beyan NIYETI, push GUVENLIGI saglar.
+MERGE_BEKLIYOR_JETON = "MERGE-BEKLIYOR-MUAFIYETI"
+
+
+def merge_bekleyen_cipler(satirlar, baslar):
+    """Bu METINDE merge-bekliyor muafiyeti BEYAN EDILMIS cip kimlikleri (kume).
+
+    Beyanin KANONIK sekli (satirin kendisi cip adini TASIR):
+        🔶 MERGE-BEKLIYOR-MUAFIYETI: `<cip-adi>`
+    Adlar `cip_adlari()` ile cozulur — "bu ad gecerli bir cip adi mi" olcutu
+    HICBIR YERDE ikinci kez yazilmaz ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    🔴 IMZA SABIT: `tools/arsiv-kapisi.py` bu fonksiyonu ISIMLE cagirir ve KUME
+    bekler — `kapanan_cipler()` ile AYNI sozlesme.
+    """
+    kume = set()
+    for bas, son in blok_araliklari(satirlar, baslar):
+        for idx in range(bas, son):
+            if MERGE_BEKLIYOR_JETON not in sadelestir(satirlar[idx]):
+                continue
+            # Adlar BEYAN SATIRININ KENDISINDEN cozulur, blok basligindan DEGIL:
+            # boylece bir blogun icinde BASKA bir cip icin beyan yazilamaz ve
+            # beyan, sahibini ACIKCA adlandirmak zorunda kalir.
+            kume.update(cip_adlari(satirlar[idx]))
+    return kume
+
+
 def kapanan_cipler(satirlar, baslar):
     """Bu METINDE kapanisi bulunan TUM cip kimlikleri (kume).
 
@@ -2486,9 +2531,21 @@ def atomik_yaz(yol, metin):
 #   HUKMUDUR (bu kol ONLARI KAPSAMAZ, kendine ACMAZ):
 #     (a) SIRA: pre-push'ta `kutu-arsivle.py` `yedekle.py`den ONCE kosar (kanca
 #         kablolamasi — commit edilmez, `kanca-kur.py` ile yayilir), ya da
-#     (b) TUR: beyan mekanizmasi "rolling artefakt" sinifini ogrenir (28 Agu'da
-#         `surekli` REDDEDILDI: 27-131 KB araligi tavani anlamsiz kilar; dolayisiyla
-#         UCUNCU bir tur gerekir — YAZILMADI, KALEM ACIK).
+#     (b) TUR: beyan mekanizmasi "rolling artefakt" sinifini ogrenir.
+#
+# ✅ KAPANDI 10 EYL 2026 (Okan hukmu: "kalici cozumu uygula") — SECENEK (b) YAZILDI.
+#   `yedekle.py` artik UCUNCU turu taniyor: `tasima`. Kutunun invaryanti bir BOYUT
+#   degil bir KORUNUMdur (icerik silinmez, arsive tasinir); `tasima` bunu yedek
+#   duzleminde BAGIMSIZ olcer (`hedef_artis >= kaynak_dusus`) ve HICBIR SAYI TASIMAZ.
+#   `.yedek-dusus-izin.json`daki `mimar-posta-kutusu.md` kaydi `tasima`ya cevrildi.
+#   🔴 BU FONKSIYON ARTIK O KAYDA DOKUNMAZ ve bu KASITLIDIR: asagidaki tur kapisi
+#   (`kayit.get("tur") != BEYAN_TURU -> DOKUNULMADI`) tam da bu yuzden vardi. Yani
+#   beyan yazimi ORTADAN KALKTI, "araca yazdirildi" degil — `kaynak_bayt` alani
+#   kayittan da DUSTU. Kol olu DEGIL: baska bir kayit `tek-seferlik` kalirsa yine
+#   calisir (kabul testi bu iki yonu de olcer).
+#   ⚠️ (a) SIRASI HALA UYGULANMADI ve ARTIK GEREKMIYOR: `tasima` iki push arasinda
+#   kutuya blok eklenmesinden ETKILENMEZ (tam esitlik aramaz), dolayisiyla (1) SIRA
+#   ve (2) TAM ESITLIK artik risklerinin IKISI DE bu kayit icin KAPANDI.
 BEYAN_ADI = ".yedek-dusus-izin.json"
 BEYAN_TURU = "tek-seferlik"
 BEYAN_ARAC_ALANI = "gerekce_arac"
