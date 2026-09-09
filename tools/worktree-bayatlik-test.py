@@ -66,9 +66,13 @@ def _yaz(yol, metin):
         f.write(metin)
 
 
-def ev_kur(taban):
+def ev_kur(taban, canli=True):
     """Gercek git deposu + gercek worktree. realpath SART: macOS'ta /tmp bir
-    symlink'tir ve git yollari cozerek dondurur [[sentetik-git-fiksturunde-realpath-sart]]."""
+    symlink'tir ve git yollari cozerek dondurur [[sentetik-git-fiksturunde-realpath-sart]].
+
+    canli=True  -> agacta main'de OLMAYAN commit var  => CANLI siniflanir
+    canli=False -> agacin ucu main'e esit             => ARTIK siniflanir
+    """
     ev = os.path.realpath(os.path.join(taban, "ev"))
     os.makedirs(ev)
     _git(ev, "init", "-q", "-b", "main")
@@ -85,6 +89,14 @@ def ev_kur(taban):
     _git(ev, "worktree", "add", "-q", "-b", "cip", wt)
     # Harness .claude/'i worktree'ye KOPYALAR (ignore edildigi icin git getirmez).
     shutil.copytree(os.path.join(ev, ".claude"), os.path.join(wt, ".claude"))
+    if canli:
+        # CANLI sinifina sokmak icin agaca main'de OLMAYAN bir commit koy.
+        # Fikstur dizininde koklenmis surec YOKTUR, dolayisiyla canlilik
+        # hukmu IKINCI kanita (ata olmayan uc) dayanir. Bu yapilmazsa uc
+        # main'e esit olur, agac ARTIK siniflanir ve V2/V3 SAHTE-YESIL olurdu.
+        _yaz(os.path.join(wt, "cip-isi.txt"), "bekleyen is\n")
+        _git(wt, "add", "-A")
+        _git(wt, "commit", "-q", "-m", "cip commiti (main'de YOK)")
     return ev, wt
 
 
@@ -92,7 +104,8 @@ def kapiyi_kos(kapi_yolu, ev):
     r = subprocess.run([sys.executable, kapi_yolu, "--ev", ev, "--sessiz"],
                        capture_output=True, text=True)
     sayilar = {}
-    for anahtar in ("EKSEN-A_SAPAN", "EKSEN-B_FARK", "OLCULEMEDI"):
+    for anahtar in ("EKSEN-A_SAPAN", "EKSEN-B_FARK", "OLCULEMEDI",
+                    "ARTIK_AGAC", "ARTIK_BULGU"):
         m = re.search(r"^%s=(\d+)$" % re.escape(anahtar), r.stdout, re.M)
         sayilar[anahtar] = int(m.group(1)) if m else None
     m = re.search(r"^HAL=(\w+)$", r.stdout, re.M)
@@ -147,6 +160,24 @@ def vaka_ana_settings_bozuk(taban):
     return ev
 
 
+def vaka_artik_agac(taban):
+    """ARTIK agac: koklenmis surec YOK + ucu main'in ATASI (icerik main'de).
+
+    Ayni BAYATLIK V2'de KIRMIZI yakiyor; burada yalnizca ARTIK_BULGU'ya
+    yazilmali ve rc=0 KALMALI. Aksi halde bitmis cip agaclari canli
+    kirmizilari bogar ([[sizinti-nobetcisi-canli-olu-ayrimi]])."""
+    ev, wt = ev_kur(taban, canli=False)
+    _yaz(os.path.join(ev, "tools", "ornek-kapisi.py"), KAPI_V2)
+    return ev
+
+
+def vaka_artik_kablolama_dustu(taban):
+    """ARTIK agacin kablolamasi HIC yok: yine rc=0, yalniz ARTIK_BULGU."""
+    ev, wt = ev_kur(taban, canli=False)
+    os.remove(os.path.join(wt, ".claude", "settings.json"))
+    return ev
+
+
 # vaka adi -> (kurucu, beklenen_kirmizi_mi, hangi_eksen)
 VAKALAR = [
     ("V1-TEMIZ",           vaka_temiz,            False, None),
@@ -155,6 +186,9 @@ VAKALAR = [
     ("V4-SETTINGS-YOK",    vaka_settings_yok,     True,  "OLCULEMEDI"),
     ("V5-SETTINGS-BOZUK",  vaka_settings_bozuk,   True,  "OLCULEMEDI"),
     ("V6-ANA-AYAR-BOZUK",  vaka_ana_settings_bozuk, True, "OLCULEMEDI"),
+    # ARTIK kovasi: BULGU var ama rc=0 — kirmizi beklenmez, sayac beklenir.
+    ("V7-ARTIK-BAYAT",     vaka_artik_agac,        False, "ARTIK_BULGU"),
+    ("V8-ARTIK-KABLO-YOK", vaka_artik_kablolama_dustu, False, "ARTIK_BULGU"),
 ]
 
 
@@ -187,10 +221,23 @@ MUTANTLAR = [
     # gecisi yamalar ve YANLIS kolu olcerdi [[ad-iki-rolde-mutanti-golgeler]].
     ("M3-FAIL-OPEN",
      '        satirlar.append("%-18s ANA-SETTINGS HAL=%s  (OLCULEMEDI)" % (ev_adi, ana_hal))\n'
-     "        return 0, 0, 1, satirlar",
+     "        return 0, 0, 1, 0, 0, satirlar",
      '        satirlar.append("%-18s ANA-SETTINGS HAL=%s  (OLCULEMEDI)" % (ev_adi, ana_hal))\n'
-     "        return 0, 0, 0, satirlar",
+     "        return 0, 0, 0, 0, 0, satirlar",
      "V6-ANA-AYAR-BOZUK"),
+    # M4: canlilik kolu HER agaci ARTIK sayarsa, CANLI bir agactaki gercek
+    # bayatlik rc'den duser = SAHTE YESIL. Bu, CANLI/OLU ayrimini eklerken
+    # acilan en tehlikeli delik; kol civilenmeden eksen olculmus sayilmaz.
+    ("M4-HEPSI-ARTIK",
+     '        olu = (hayat == "ARTIK")',
+     "        olu = True",
+     "V2-GOVDE-BAYAT"),
+    # M5: ters yon — hicbir agac ARTIK sayilmazsa ARTIK kovasi BOS kalir ve
+    # bitmis agaclar canli kirmiziya karisir (V7 KIRMIZI'ya doner).
+    ("M5-HIC-ARTIK-YOK",
+     '        olu = (hayat == "ARTIK")',
+     "        olu = False",
+     "V7-ARTIK-BAYAT"),
 ]
 
 KONTROL = ("K1-KOZMETIK",
@@ -229,13 +276,17 @@ def main():
         bekle = "KIRMIZI" if kirmizi_mi else "TEMIZ"
         gercek = "KIRMIZI" if s["rc"] != 0 else "TEMIZ"
         ok = (gercek == bekle)
-        if kirmizi_mi and ok and eksen:
-            ok = (s.get(eksen) or 0) >= 1      # DOGRU eksen yanmali
+        # DOGRU kova yanmali — hem KIRMIZI vakalarda hem ARTIK vakalarinda.
+        # ARTIK vakalari rc=0 ama ARTIK_BULGU>=1 olmali: yalniz rc'ye bakan
+        # kol, kapinin bulguyu HIC gormemesiyle ARTIK'a yazmasini ayirt etmez.
+        if ok and eksen:
+            ok = (s.get(eksen) or 0) >= 1
         if not ok:
             basarisiz += 1
-        print("    %-20s rc=%-2s A=%-2s B=%-2s OLC=%-2s HAL=%-8s bekle=%-8s %s"
+        print("    %-20s rc=%-2s A=%-2s B=%-2s OLC=%-2s ART=%-2s/%-2s HAL=%-8s bekle=%-8s %s"
               % (ad, s["rc"], s["EKSEN-A_SAPAN"], s["EKSEN-B_FARK"],
-                 s["OLCULEMEDI"], s["HAL"], bekle, "OK" if ok else "### KIRIK"))
+                 s["OLCULEMEDI"], s["ARTIK_AGAC"], s["ARTIK_BULGU"],
+                 s["HAL"], bekle, "OK" if ok else "### KIRIK"))
 
     # --- 2) MUTANTLAR ------------------------------------------------------
     print("\n[2] MUTANTLAR (izole kopyada; canli govdeye DOKUNULMAZ)")
@@ -251,8 +302,12 @@ def main():
             mut = bataryayi_kos(kopya)
             t_rc = taban[hedef_vaka]["rc"]
             m_rc = mut[hedef_vaka]["rc"]
-            # Hedef kol OLDU MU: taban KIRMIZI iken mutant YESIL vermeli
-            oldurdu = (t_rc != 0 and m_rc == 0)
+            # Hedef kol OLDU MU: mutant o vakanin HUKMUNU DEGISTIRMELI.
+            # Yon-bagimsiz olmali: fail-open mutantlari KIRMIZI->YESIL,
+            # fail-closed (ARTIK kovasini bosaltan) mutantlari YESIL->KIRMIZI
+            # cevirir. Yalniz ilk yonu arayan olcut, ARTIK kolunu HIC olcmez
+            # ve M5 sessizce "oldurmedi" gorunurdu.
+            oldurdu = (t_rc != m_rc)
             # Mutant hicbir seyi degistirmediyse ULASMAMIS demektir
             ayni = all(mut[v]["rc"] == taban[v]["rc"] for v, _a, _b, _c in VAKALAR)
             if ayni:

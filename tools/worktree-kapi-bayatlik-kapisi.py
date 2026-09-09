@@ -149,6 +149,78 @@ def kanca_kapilari(settings_yolu):
     return bulunan, None
 
 
+_CWD_ONBELLEK = []          # [yol, ...] ya da [None] = olculemedi
+
+
+def _cwd_yollari():
+    """Makinedeki TUM sureclerin cwd yollari (tek `lsof` cagrisi, onbellekli).
+
+    `-Fn` makine-okunur biciminde yalnizca ADI doner. Cagri BASINA worktree
+    yerine BIR KEZ kosar; 12 agacta 12 `lsof` cagrisi yavas ve gurultuluydu.
+
+    🔴 ONEK ESLESMESI KULLANILIR, TAM ESITLIK DEGIL: bir oturumun cwd'si
+    worktree'nin ALT DIZINI olabilir (`<agac>/tools`). Tam esitlik arayan kol
+    o oturumu GORMEZ ve agaci ARTIK sanardi — fail-OPEN yon.
+    ikili PATH'te yoksa None doner: cron'da `lsof` YOKTUR
+    ([[patha-sorulan-ikili-cron-da-yok]]) ve o hal ARTIK degil BELIRSIZ'dir.
+    """
+    if _CWD_ONBELLEK:
+        return _CWD_ONBELLEK[0]
+    try:
+        r = subprocess.run(["lsof", "-d", "cwd", "-Fn"],
+                           capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        _CWD_ONBELLEK.append(None)
+        return None
+    # lsof kismi izin hatalarinda rc=1 dondurur ama GECERLI satir basar;
+    # bu yuzden rc DEGIL cikti bosluguna bakilir.
+    yollar = [s[1:] for s in r.stdout.splitlines() if s.startswith("n/")]
+    if not yollar:
+        _CWD_ONBELLEK.append(None)
+        return None
+    _CWD_ONBELLEK.append(yollar)
+    return yollar
+
+
+def canlilik(wt_yol, ev_kok, ana_dal="main"):
+    """('CANLI'|'ARTIK'|'BELIRSIZ', gerekce)
+
+    ARTIK (artik agac) hukmu IKI pozitif kanit ISTER:
+      (a) o agaca KOKLENMIS canli surec YOK  (`lsof -d cwd`)
+      (b) agacin ucu `ana_dal`in ATASI       (icerik main'e girmis, bekleyen is yok)
+    Ikisi birden saglanmazsa hukum CANLI'dir.
+
+    🔴 FAIL-CLOSED YON = CANLI. Bir agaci yanlisca ARTIK saymak, BAGLI OLMAYAN
+    kapiyla kosan GERCEK bir oturumu rc'den dusurur (sahte yesil). Tersi yalnizca
+    gurultu uretir. Sinyal YOKLUGU olum KANITI degildir
+    ([[isrunning-false-oturum-kapali-degildir]] · [[listagents-yoklugu-olum-kaniti-degil]]).
+    """
+    cwdler = _cwd_yollari()
+    if cwdler is None:
+        return "BELIRSIZ", "lsof okunamadi"
+    kok = os.path.realpath(wt_yol)
+    for c in cwdler:
+        if c == kok or c.startswith(kok + os.sep):
+            return "CANLI", "koklenmis surec var"
+
+    r = subprocess.run(["git", "-C", wt_yol, "rev-parse", "HEAD"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return "BELIRSIZ", "uc okunamadi"
+    uc = r.stdout.strip()
+    r = subprocess.run(["git", "-C", ev_kok, "rev-parse", "--verify", ana_dal],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return "BELIRSIZ", "%s cozulemedi" % ana_dal
+    r = subprocess.run(["git", "-C", ev_kok, "merge-base",
+                        "--is-ancestor", uc, ana_dal], capture_output=True, text=True)
+    if r.returncode == 0:
+        return "ARTIK", "surec YOK + uc %s'in atasi" % ana_dal
+    if r.returncode == 1:
+        return "CANLI", "%s'e girmemis commit var" % ana_dal
+    return "BELIRSIZ", "ata sorgusu rc=%d" % r.returncode
+
+
 def coz(ham_yol, kok):
     """Ham kanca yolunu, kok'te calisirken isaret edecegi dosyaya cevir."""
     y = ham_yol
@@ -178,14 +250,14 @@ def evi_olc(ev_adi, kok, ayrinti=True):
     wtler, hal = worktreeler(kok)
     if wtler is None:
         satirlar.append("%-18s HAL=%s  (OLCULEMEDI)" % (ev_adi, hal))
-        return 0, 0, 1, satirlar
+        return 0, 0, 1, 0, 0, satirlar
 
     ana_yol = wtler[0][0]
     ana_kapilar, ana_hal = kanca_kapilari(
         os.path.join(ana_yol, ".claude", "settings.json"))
     if ana_kapilar is None:
         satirlar.append("%-18s ANA-SETTINGS HAL=%s  (OLCULEMEDI)" % (ev_adi, ana_hal))
-        return 0, 0, 1, satirlar
+        return 0, 0, 1, 0, 0, satirlar
 
     ana_kume = set(ana_kapilar)
     cocuklar = [w for w, ana_mi in wtler if not ana_mi]
@@ -197,18 +269,31 @@ def evi_olc(ev_adi, kok, ayrinti=True):
             satirlar.append("    skip-worktree (ariza ETKENI): %s" % ", ".join(skipli))
 
     a_top = b_top = olculemedi = 0
+    artik_agac = artik_bulgu = 0
     for wt in cocuklar:
         kisa = os.path.basename(wt)
+        hayat, neden = canlilik(wt, kok)
+        # BELIRSIZ, CANLI gibi ele alinir (fail-closed); etiketi AYRI basilir.
+        olu = (hayat == "ARTIK")
+        if olu:
+            artik_agac += 1
+        etiket = "[%s]" % hayat
+
         wt_kapilar, wt_hal = kanca_kapilari(
             os.path.join(wt, ".claude", "settings.json"))
         if wt_kapilar is None:
             # Kablolama HIC okunamiyor: TUM ana kapilar dusmus sayilir. Bu bir
             # OLCULEMEDI degil, olculmus bir KAYIPTIR -- ama ayrica isaretlenir.
-            b_top += len(ana_kume)
-            olculemedi += 1
-            satirlar.append("    %-30s EKSEN-B=%-2d HAL=%s  DUSEN=%s"
-                            % (kisa[:29], len(ana_kume), wt_hal,
+            if olu:
+                artik_bulgu += len(ana_kume)
+            else:
+                b_top += len(ana_kume)
+                olculemedi += 1
+            satirlar.append("    %-30s %-10s EKSEN-B=%-2d HAL=%s  DUSEN=%s"
+                            % (kisa[:29], etiket, len(ana_kume), wt_hal,
                                ",".join(sorted(ana_kume)) or "-"))
+            if olu and ayrinti:
+                satirlar.append("        ARTIK (%s) — rc'yi ETKILEMEZ" % neden)
             continue
 
         wt_kume = set(wt_kapilar)
@@ -227,19 +312,25 @@ def evi_olc(ev_adi, kok, ayrinti=True):
                                     % (ad, capa,
                                        "YOK" if s_wt is None else s_wt[:8],
                                        "YOK" if s_ana is None else s_ana[:8]))
-        a_top += len(sapmalar)
-        b_top += b
+        if olu:
+            artik_bulgu += len(sapmalar) + b
+        else:
+            a_top += len(sapmalar)
+            b_top += b
         if b or sapmalar:
-            satirlar.append("    %-30s EKSEN-A=%-2d EKSEN-B=%-2d %s%s"
-                            % (kisa[:29], len(sapmalar), b,
+            satirlar.append("    %-30s %-10s EKSEN-A=%-2d EKSEN-B=%-2d %s%s"
+                            % (kisa[:29], etiket, len(sapmalar), b,
                                ("DUSEN=" + ",".join(sorted(dusen)) + " ") if dusen else "",
                                ("FAZLA=" + ",".join(sorted(fazla)) + " ") if fazla else ""))
+            if olu:
+                satirlar.append("        ARTIK (%s) — rc'yi ETKILEMEZ" % neden)
             for s in sapmalar:
                 satirlar.append("        BAYAT %s" % s)
         elif ayrinti:
-            satirlar.append("    %-30s EKSEN-A=0  EKSEN-B=0  TEMIZ" % kisa[:29])
+            satirlar.append("    %-30s %-10s EKSEN-A=0  EKSEN-B=0  TEMIZ"
+                            % (kisa[:29], etiket))
 
-    return a_top, b_top, olculemedi, satirlar
+    return a_top, b_top, olculemedi, artik_agac, artik_bulgu, satirlar
 
 
 def main(argv=None):
@@ -264,11 +355,14 @@ def main(argv=None):
         eksik = []
 
     a_top = b_top = olculemedi = 0
+    artik_agac = artik_bulgu = 0
     for ad, kok in hedefler:
-        ea, eb, om, satirlar = evi_olc(ad, kok, ayrinti=not a.sessiz)
+        ea, eb, om, aa, ab, satirlar = evi_olc(ad, kok, ayrinti=not a.sessiz)
         a_top += ea
         b_top += eb
         olculemedi += om
+        artik_agac += aa
+        artik_bulgu += ab
         if not a.sessiz:
             print("\n".join(satirlar))
             print()
@@ -280,6 +374,11 @@ def main(argv=None):
     print("EKSEN-A_SAPAN=%d" % a_top)
     print("EKSEN-B_FARK=%d" % b_top)
     print("OLCULEMEDI=%d" % olculemedi)
+    # ARTIK kovasi GORUNUR ama rc'yi BELIRLEMEZ. Gizlenmez: gizlenen kova
+    # ucuncu sinifi yutar ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]) ve
+    # "kapi bunu hic olcmedi" ile "olctu, artik agacta" ayirt edilemez olurdu.
+    print("ARTIK_AGAC=%d" % artik_agac)
+    print("ARTIK_BULGU=%d" % artik_bulgu)
     kirmizi = (a_top > 0) or (b_top > 0) or (olculemedi > 0)
     print("HAL=%s" % ("BAYAT" if kirmizi else "TEMIZ"))
     print("=" * 62)
