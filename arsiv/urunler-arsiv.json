@@ -76,5 +76,29 @@
         }
       ]
     }
+  },
+  {
+    "silinme_ts": "2026-09-09T12:13:20Z",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 18,
+    "kayit": {
+      "id": "sisme-bot-tasima-tekerlegi",
+      "kategori": "Marin",
+      "marka": [],
+      "baslik": "Şişme Bot (Dinghy) Taşıma Tekerleği",
+      "aciklama": "Küçük şişme botları (dinghy) kolayca hareket ettirmek için tekerlek seti.\n- Ölçüye özel olarak özelleştirilebilir.\n- Şişme bot transomuna monte edilir.\n- Sağlam ve geniş taban plakası içerir.\nYaklaşık dış ölçüler: 160 × 155 × 50 mm.",
+      "fiyat": "350 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/th4884657-1.jpg",
+        "https://media.pruvo3d.com/urunler/th4884657-2.jpg",
+        "https://media.pruvo3d.com/urunler/th4884657-3.jpg",
+        "https://media.pruvo3d.com/urunler/th4884657-4.jpg"
+      ],
+      "lisans": {
+        "tasarimci": "derrix",
+        "tur": "CC BY 4.0"
+      },
+      "altkategori": "Kano ve Kayak"
+    }
   }
 ]
