@@ -294,7 +294,12 @@ if [ "$pruvo_defter_kota_rc" -ne 0 ]; then
   # CARE: kanca ARTIK ARAC ADI TASIMAZ. Son sozu kapi soyler ve EKSENDEN turetir
   # (defter-kota-kapisi.py :: care_son_bas -> `CARE_SON: [EKSEN=...]`).
   echo "!! COMMIT DURDURULDU — defter kota kapisi rc=$pruvo_defter_kota_rc." >&2
-  echo "!!   COZUM: yukaridaki 'CARE_SON: [EKSEN=...]' satir(lar)i — komut EKSENDEN turer." >&2
+  # 🔴 ISARETCI IKI SURUME DE UYAR (olculdu): kanca kaynagi commit aninda
+  # `kanca-kur.py` ile OTOMATIK serilir ([[kanca-commit-eden-agactan-kendini-kurar]]),
+  # yani bu satir MERGE'DEN ONCE de canli olabilir ve o an ANA checkout'ta HENUZ
+  # `CARE_SON` basmayan bir kapi surumu duruyor olabilir. Bu yuzden isaretci HER IKI
+  # bicimi de anar: `CARE:` her iki surumde de basilir, `CARE_SON:` yenisinde.
+  echo "!!   COZUM: yukaridaki 'CARE:' / 'CARE_SON: [EKSEN=...]' satir(lar)i — komut EKSENDEN turer." >&2
   echo "!!   LOSSLESS: hicbir sey SILINMEZ, kapali maddeler/bloklar arsive TASINIR." >&2
   exit 1
 fi
