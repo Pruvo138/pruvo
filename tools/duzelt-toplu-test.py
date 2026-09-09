@@ -641,6 +641,163 @@ def test_gizli_tip_mutasyon():
     shutil.rmtree(repo2, ignore_errors=True)
 
 
+# ----------------------------------------------------------------------------- (e4k)
+# KAYNAK-METIN MUTANT BATARYASI — `gizli` boolean sozlesmesinin IKI KABLOSU.
+#
+# NEDEN (e4m YETMIYOR): e4m mutanti `mod.arama.katalog_alan_tip_sebebi`'yi MAYMUN
+# YAMASIYLA susturur. Bu, DELEGENIN canli oldugunu kanitlar ama `duzelt.py`'deki
+# CAGRI YERININ canli oldugunu kanitlamaz ([[kapinin-menzili-cagri-yeridir]]): birisi
+# `_alan_tip_hatasi` icindeki `if alan == GIZLI_ALANI:` dalini silse, delegeyi yamalayan
+# mutant yine "kirmizi" derdi cunku o dal zaten cagrilmiyor olurdu. Ayrica e4'un
+# POZITIF kolunu (`JSON_COZULEN_ALANLAR`) HICBIR mutant hedeflemiyordu — o satirlari
+# silsem hangi iddianin kirmizi yanacagi OLCULMEMISTI (kapsam yanilsamasi).
+#
+# BATARYA (hepsi IZOLE kopyanin kaynak METNINDE; canli tools/duzelt.py'ye ASLA):
+#   M-A  `JSON_COZULEN_ALANLAR`'dan `gizli` dusurulur  -> YALNIZ POZITIF kol kirmizi
+#   M-B  `_alan_tip_hatasi`'nin gizli dali gevsetilir  -> YALNIZ NEGATIF kol kirmizi
+#   M-K  AYNI fonksiyondaki ILGISIZ metin degistirilir -> IKI kol da YESIL (kontrol)
+# Dikmelik (M-A negatifi, M-B pozitifi BOZMAZ) atfin kendisidir: "kirmizi geldi" tek
+# basina kanit degil; kirmiziyi HANGI kablonun urettigi iddia ADIYLA basilir (K182).
+
+_MA_ESKI = "JSON_COZULEN_ALANLAR = TICARI_HAL_ALANLARI | {GIZLI_ALANI}"
+_MA_YENI = "JSON_COZULEN_ALANLAR = TICARI_HAL_ALANLARI  # M-A MUTANT"
+_MB_ESKI = "        return arama.katalog_alan_tip_sebebi(GIZLI_ALANI, deger)"
+_MB_YENI = "        return None  # M-B MUTANT"
+_MK_ESKI = "bos olmayan string ogelerden olusan bir dizi olmali"
+_MK_YENI = "M-K MUTANT ILGISIZ METIN"
+
+
+def _gecici_sil(yol):
+    """Gecici sahte repoyu sil — SADECE tempfile kokunun ALTINDAysa.
+
+    Nobetci yuku YIKICI OLAMAZ: bu kapi olmadan bir yol hatasi testi gercek eve
+    dogrultabilirdi. Kok disi her yol SESSIZCE degil, KIRMIZI ile durur.
+    """
+    kok = os.path.realpath(tempfile.gettempdir())
+    tam = os.path.realpath(yol)
+    kontrol(tam.startswith(kok + os.sep) and tam != kok,
+            "TEMIZLIK EMNIYETI: silinecek yol tempfile kokunun ALTINDA (%s)" % tam)
+    if tam.startswith(kok + os.sep) and tam != kok:
+        shutil.rmtree(tam, ignore_errors=True)
+
+
+def _duzelt_mutant_yukle(ad, eski, yeni):
+    """duzelt.py'yi KAYNAK METNI mutasyonlu SAHTE repo kopyasindan yukler.
+
+    Mutasyon kopyada yapilir; gercek tools/duzelt.py'ye ASLA dokunulmaz (cagiran
+    ayrica sha256'yi once/sonra olcer). Degistirme SAYISI 1 olarak dogrulanir:
+    0 ise mutant kaynaga ULASMAMISTIR ve batarya kor kosardi
+    ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]); 1'den fazlaysa capa
+    benzersiz degildir ve mutant hedefinden baska yeri de vurmus olur.
+    """
+    repo = sahte_repo()
+    yol = os.path.join(repo, "tools", "duzelt.py")
+    with open(yol, encoding="utf-8") as f:
+        kaynak = f.read()
+    sayi = kaynak.count(eski)
+    kontrol(sayi == 1,
+            "%s ON-SART: capa kaynakta TAM 1 kez geciyor (sayilan %d) — capa benzersiz"
+            % (ad, sayi))
+    mutant = kaynak.replace(eski, yeni, 1)
+    kontrol(mutant != kaynak, "%s: MUTASYON kaynak metne UYGULANDI (aksi halde bos kosardi)" % ad)
+    kontrol(yeni in mutant, "%s: mutant govde YUKLENEN dosyada (izole kopyada)" % ad)
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(mutant)
+    return repo, modul_yukle(repo, "duzelt.py", "duzelt_" + ad.replace("-", "_").lower())
+
+
+def _gizli_pozitif_kol(mod, repo):
+    """e4'un POZITIF kolunu birebir tekrarlar -> (rc, katalogda okunan deger)."""
+    rc, out, err = cagir(mod, ["test-urun-1", "--alan", "gizli", "--deger", "true"])
+    with open(os.path.join(repo, "urunler.json"), encoding="utf-8") as f:
+        deger = {p["id"]: p for p in json.load(f)}["test-urun-1"].get("gizli")
+    return rc, deger
+
+
+def _gizli_negatif_kol(mod, repo, yuzey):
+    """e4'un NEGATIF kolunu birebir tekrarlar (iki cagri yuzeyi) -> (rc, deger).
+
+    🔴 CLI'da deger `json.dumps("true")` ile TIRNAKLI verilir — e4'un kendi
+    kodlamasinin AYNISI. Duz `true` yazmak DIZE vakasi DEGILDIR: JSON cozulme onu
+    bool True'ya cevirir ve prob sessizce POZITIF kolu olcmeye baslar (bu tuzak bu
+    bataryanin ilk kosumunda FIILEN yakalandi).
+    Iki yuzey AYRI urun kullanir: ortak urun kullanilsaydi birinci yuzeyin yazimi
+    ikinci yuzeyin okumasini kirletirdi (durum sizmasi).
+    """
+    urun = "test-urun-2" if yuzey == "cli" else "test-urun-3"
+    if yuzey == "cli":
+        rc, out, err = cagir(mod, [urun, "--alan", "gizli", "--deger", json.dumps("true")])
+    else:
+        yol = islem_yaz(repo, [{"id": urun, "alan": "gizli", "deger": "true"}])
+        rc, out, err = cagir(mod, ["--toplu", yol])
+    with open(os.path.join(repo, "urunler.json"), encoding="utf-8") as f:
+        deger = {p["id"]: p for p in json.load(f)}[urun].get("gizli")
+    return rc, deger
+
+
+def test_gizli_tip_kaynak_mutasyonu():
+    print("\n(e4k) KAYNAK-MUTANT BATARYASI: `gizli` sozlesmesinin iki kablosu AYRI AYRI oldurulur")
+
+    # --- M-A: POZITIF kolu olduren mutant -----------------------------------------
+    # `gizli` JSON cozulen kumeden dusunce CLI'dan gelen "true" DIZE kalir; tip kapisi
+    # onu (hakli olarak) reddeder -> alan CLI'dan HIC konulamaz (tek-yonlu kapi).
+    repo_a, mod_a = _duzelt_mutant_yukle("M-A", _MA_ESKI, _MA_YENI)
+    kontrol("gizli" not in mod_a.JSON_COZULEN_ALANLAR,
+            "M-A/ETKI: yuklenen mutant govdede `gizli` JSON COZULEN kumede DEGIL")
+    rc_a, deger_a = _gizli_pozitif_kol(mod_a, repo_a)
+    kontrol(not (rc_a == 0 and deger_a is True),
+            "M-A OLDURDU -> e4 iddiasi «POZITIF/TIP: katalogda GERCEK boolean True» "
+            "KIRMIZI (mutantta rc=%s, okunan %r)" % (rc_a, deger_a))
+    kontrol(deger_a is not True,
+            "M-A/HEDEF KOL: kirmizinin SEBEBI `JSON_COZULEN_ALANLAR` capasi — "
+            "cozulme dusunce `--deger true` bool True YAZAMIYOR (okunan %r)" % (deger_a,))
+    # DIKMELIK: M-A negatif kolu BOZMAMALI (bozsaydi atif "genel cokme" olurdu).
+    rc_an, deger_an = _gizli_negatif_kol(mod_a, repo_a, "cli")
+    kontrol(rc_an == 2 and deger_an is not True,
+            "M-A/DIKMELIK: NEGATIF kol M-A altinda HALA YESIL (rc=%s) — kirmizi "
+            "yalnizca pozitif kola ait, batarya toptan cokmuyor" % rc_an)
+    _gecici_sil(repo_a)
+
+    # --- M-B: NEGATIF kolu olduren mutant (CAGRI YERI, delege DEGIL) ---------------
+    repo_b, mod_b = _duzelt_mutant_yukle("M-B", _MB_ESKI, _MB_YENI)
+    kontrol(mod_b._alan_tip_hatasi(mod_b.GIZLI_ALANI, "true") is None,
+            "M-B/ETKI: `_alan_tip_hatasi` gizli icin artik SEBEP URETMIYOR (dal gevsedi)")
+    kontrol(mod_b.arama.katalog_alan_tip_sebebi(mod_b.GIZLI_ALANI, "true") is not None,
+            "M-B/MENZIL: delege (arama.katalog_alan_tip_sebebi) DOKUNULMADAN CANLI — "
+            "olduren sey duzelt.py'deki CAGRI YERI, arama.py degil")
+    for yuzey in ("cli", "toplu"):
+        rc_b, deger_b = _gizli_negatif_kol(mod_b, repo_b, yuzey)
+        kontrol(not (rc_b == 2),
+                "M-B OLDURDU (%s yuzeyi) -> e4 iddiasi «NEGATIF (DIZE 'true'): rc=2» "
+                "KIRMIZI (mutantta rc=%s)" % (yuzey, rc_b))
+        kontrol(deger_b == "true" and deger_b is not True,
+                "M-B/HEDEF KOL (%s yuzeyi): kirmizinin SEBEBI `_alan_tip_hatasi` gizli "
+                "dali — dal gevseyince DIZE katalogda kaldi (%r)" % (yuzey, deger_b))
+    # DIKMELIK: M-B pozitif kolu BOZMAMALI.
+    rc_bp, deger_bp = _gizli_pozitif_kol(mod_b, repo_b)
+    kontrol(rc_bp == 0 and deger_bp is True,
+            "M-B/DIKMELIK: POZITIF kol M-B altinda HALA YESIL (rc=%s, %r) — kirmizi "
+            "yalnizca negatif kola ait" % (rc_bp, deger_bp))
+    _gecici_sil(repo_b)
+
+    # --- M-K: KONTROL mutanti — AYNI fonksiyonda, ILGISIZ metin -------------------
+    # Capa bilerek `_alan_tip_hatasi`'nin ICINDE: boylece "mutant bu fonksiyona
+    # ULASMADI" mazereti dusuyor ([[artik-yuzey-mutant-dedektorunu-korlestirir]]).
+    repo_k, mod_k = _duzelt_mutant_yukle("M-K", _MK_ESKI, _MK_YENI)
+    kontrol("M-K MUTANT ILGISIZ METIN" in (mod_k._alan_tip_hatasi("tavsiyeFilament", []) or ""),
+            "M-K/ULASTI: mutant metin AYNI fonksiyonun (`_alan_tip_hatasi`) CANLI "
+            "govdesinden okunuyor — 'mutant ulasmadi' mazereti DUSTU")
+    rc_kp, deger_kp = _gizli_pozitif_kol(mod_k, repo_k)
+    kontrol(rc_kp == 0 and deger_kp is True,
+            "M-K KONTROL: POZITIF kol YESIL kaldi (rc=%s, %r)" % (rc_kp, deger_kp))
+    for yuzey in ("cli", "toplu"):
+        rc_kn, deger_kn = _gizli_negatif_kol(mod_k, repo_k, yuzey)
+        kontrol(rc_kn == 2 and deger_kn is not True,
+                "M-K KONTROL (%s yuzeyi): NEGATIF kol YESIL kaldi (rc=%s) — ilgisiz "
+                "degisiklik gizli sozlesmesini OYNATMIYOR" % (yuzey, rc_kn))
+    _gecici_sil(repo_k)
+
+
 # ------------------------------------------------- (f) aciklama olcu satiri korumasi
 # MaCiT dilim-30 (olculmus kayip): denetim kapisi yanlis-pozitifi yuzunden bir sekstant
 # urununun aciklamasi `--alan aciklama` ile yeniden yazildi; STL'den turetilmis
@@ -1326,6 +1483,7 @@ def main():
     test_boy_secenekleri_mutasyon()
     test_gizli_tip_sozlesmesi()
     test_gizli_tip_mutasyon()
+    test_gizli_tip_kaynak_mutasyonu()
     test_f_koruma()
     test_f_ciftleme()
     test_f_gomulu()
