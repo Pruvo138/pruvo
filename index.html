@@ -488,7 +488,7 @@ setTimeout(L,5000);})();
     letter-spacing:clamp(.04em,1.4vw,.12em);
     text-indent:clamp(.04em,1.4vw,.12em);
   }
-  /* Başlıktaki ürün sayısı (Okan, 9 Eyl). Başlığın DEV puntosunu ve geniş harf aralığını
+  /* Başlıktaki ürün sayısı. Başlığın DEV puntosunu ve geniş harf aralığını
      DEVRALMAZ — kendi ölçüsünü alır, yoksa mobilde başlığı ikinci satıra kırardı; nowrap
      ile "1901 ürün" sayı ile birimi arasından bölünmez. Bu kural başlığın kendi
      kurallarına (.uzun dahil) DOKUNMAZ; indeks yoksa öge hiç doğmaz, kural ölü kalır. */
@@ -1691,7 +1691,7 @@ setTimeout(L,5000);})();
       bas.className = "kat-panel-baslik" + (gorunen.length > 8 ? " uzun" : "");
       bas.href = katUrl;
       bas.textContent = gorunen.toLocaleUpperCase("tr");
-      /* ÜRÜN SAYISI (Okan, 9 Eyl) — "MARİN 1901 ürün". Sayı AYRI bir ögeye yazılır:
+      /* ÜRÜN SAYISI — "MARİN 1901 ürün". Sayı AYRI bir ögeye yazılır:
          (a) yukarıdaki büyütme satırı ve `uzun` eşiği KATEGORİ ADINA bakar, sayı oraya
          karışsaydı ürün partisi başlığın puntosunu oynatırdı; (b) başlık puntosu
          clamp(26px,6vw,46px) + geniş harf aralığı — sayı aynı ölçüde basılsaydı mobilde
@@ -3737,9 +3737,9 @@ setTimeout(L,5000);})();
     var ix = cipIndeks();
     return (ix && ix.kat[kat]) ? ix.kat[kat] : null;
   }
-  // KATEGORİ ÜRÜN SAYISI (Okan, 9 Eyl): panel başlığındaki "<AD> <N> ürün".
-  // Kaynak indeksin `katSayisi` alanıdır (tools/cip-indeks.py) — sayı KATALOGDAN türer,
-  // buraya HİÇBİR sayı yazılmaz; katalog büyüyünce sayı kendiliğinden yükselir.
+  // KATEGORİ ÜRÜN SAYISI: panel başlığındaki "<AD> <N> ürün".
+  // Kaynak, gömülü indeksin `katSayisi` alanıdır — sayı KATALOGDAN türer, buraya HİÇBİR
+  // sayı yazılmaz; katalog büyüyünce sayı kendiliğinden yükselir.
   // FAIL-CLOSED DÖRT KOL — hepsi null döner ve çağıran başlığı BUGÜNKÜ gibi (sayısız)
   // basar, panel çalışmaya devam eder: (1) indeks hiç yok/bozuk, (2) `katSayisi` alanı
   // yok (eski gömülü indeksle yeni istemci), (3) bu kategori tabloda yok, (4) değer
