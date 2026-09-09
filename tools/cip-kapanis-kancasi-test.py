@@ -143,6 +143,50 @@ def kos(kanca=KANCA, sessiz=False):
             {"session_id": "test-v7", "cwd": "/var/empty/yok", "stop_hook_active": False},
             kanca=kanca)
         check("V7 cwd yok -> GECIRDI", not blok)
+
+        # --- V8 K396: KANCANIN ONERDIGI CARE, KAPININ FIILEN OKUDUGU CARE MI? ---
+        # 🔴 BU NOBETCININ SEBEBI OLCULMUS BIR VAKADIR (10 Eyl 2026): kanca cipe
+        # "'BEKLIYOR' olarak kutuya yaz" diyordu, `arsiv-kapisi.py` govdesinde o
+        # jeton HIC YOKTU (`grep`=0) ve iki cip ust uste bu olu tavsiyeye takildi.
+        # Kanca metni kapinin IKINCI KOPYASI gibi davranip sessizce ayrismisti
+        # ([[kapi-red-metni-ikinci-kopyadir]]). Bu kol o ayrismayi OLCER: kancanin
+        # BASTIGI jeton, kutu-arsivle'nin KANONIK jetonuyla BIREBIR ayni olmali VE
+        # kapi govdesi o jetonu FIILEN okuyor olmali. Tek yon yetmez — jetonun
+        # varligini olcmek, KULLANILDIGINI olcmez ([[capa-turetme-altyapisi-kullanilmadan-kaldi]]).
+        import importlib.util as _ilu
+
+        def _modul(ad, yol):
+            _sp = _ilu.spec_from_file_location(ad, yol)
+            _m = _ilu.module_from_spec(_sp)
+            _sp.loader.exec_module(_m)
+            return _m
+
+        _tools = os.path.dirname(os.path.realpath(KANCA))
+        _ka = _modul("kutu_arsivle_v8", os.path.join(_tools, "kutu-arsivle.py"))
+        _kanca_mod = _modul("kanca_v8", kanca)
+        _kanonik = getattr(_ka, "MERGE_BEKLIYOR_JETON", None)
+        check("V8a kanonik jeton kutu-arsivle'de TANIMLI", bool(_kanonik))
+        check("V8b kancanin bastigi jeton == kanonik jeton",
+              getattr(_kanca_mod, "MUAFIYET_JETONU", None) == _kanonik)
+        # Kapi govdesi jetonu FIILEN tuketiyor mu: beyani olan + itilmis bir
+        # fikstur, `MERGE_BEKLIYOR` haliyle GECMELI. Bu, "jeton var" degil
+        # "jeton ISE YARIYOR" iddiasidir.
+        _repo_m, _hedef_m, _kutu_m, _cm = ak._kur_fikstur(
+            kok + "/muaf", mainde=False, itilmis=True, merge_beyani=True)
+        _h, _rc_m, _sat_m = ak.olc(_repo_m, _hedef_m, kutu_yolu=_kutu_m)
+        check("V8c kapi jetonu FIILEN okuyor (beyan+push -> MERGE_BEKLIYOR, rc=0)",
+              _rc_m == ak.RC_ARSIVLENEBILIR
+              and ("HAL=%s" % ak.HAL_MERGE_BEKLIYOR) in "\n".join(_sat_m))
+        # Kanca KIRMIZI bir cipe bloklarken jetonu METINDE de basmali — cip onu
+        # okuyup uygulayacak. Basilmazsa tavsiye yine ULASMAZ.
+        sid = "test-v8"
+        _sayaci_temizle(sid)
+        _rc8, blok8, sebep8, _o8, _e8 = kancayi_kos(
+            {"session_id": sid, "cwd": hedef_k, "stop_hook_active": False},
+            kanca=kanca, kutu=kutu_k)
+        check("V8d blok metni kanonik jetonu ADIYLA basiyor",
+              blok8 and bool(_kanonik) and _kanonik in sebep8)
+        _sayaci_temizle(sid)
     finally:
         shutil.rmtree(kok, ignore_errors=True)
 
@@ -172,6 +216,13 @@ MUTANTLAR = (
     ("M4 yesili-de-blokla", "V2",
      '    if s.returncode == RC_YESIL:\n        return _gecti("kapi YESIL")',
      '    if False:\n        return _gecti("kapi YESIL")'),
+    # 🔴 K396 NOBETCISI: jetonu TURETMEK yerine GOMMEK — tam da kapatilan kusurun
+    # kendisi. Mutant kancaya kendi sabitini yazdirir; V8b (kanonikle esitlik)
+    # KIRMIZI yanmali. Bu mutant olmezse "kanca ile kapi ayrisamaz" iddiasi
+    # OLCULMEMIS demektir ve ayrisma bir tur sonra sessizce geri gelir.
+    ("M5 jetonu-turetme-gom", "V8",
+     'MUAFIYET_JETONU = _muafiyet_jetonu()',
+     'MUAFIYET_JETONU = "BEKLIYOR"'),
 )
 
 

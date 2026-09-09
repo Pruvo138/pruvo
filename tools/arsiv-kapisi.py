@@ -81,6 +81,12 @@ HAL_TEMIZ = "TEMIZ"
 HAL_KIRMIZI = "KIRMIZI"
 HAL_OLCULEMEDI = "OLCULEMEDI"
 HAL_KAPSAM_DISI = "KAPSAM_DISI"
+# 🔴 BESINCI HAL, TEMIZ'in TAKMA ADI DEGIL (K396): icerik main'e girmemis AMA is
+# kaybolamaz (dal itilmis) ve cip bunu ACIKCA beyan etmis. Arsivleme guvenlidir,
+# merge ise HALA BORCTUR. Ayri basilir ki "merge edildi" ile karistirilmasin
+# ([[yeni-hal-cozucunun-varsayilan-kovasina-duser]]: yeni hal varsayilan kovaya
+# dusurulurse ya INERT ya SAHTE YESIL olur).
+HAL_MERGE_BEKLIYOR = "MERGE_BEKLIYOR"
 
 KOL_AGAC = "AGAC_KIRLI"
 KOL_ICERIK = "ICERIK_DISARIDA"
@@ -186,8 +192,13 @@ def _kutu_modulu(repo):
     return mod, None
 
 
-def kapanan_kumesi(repo, kutu_yolu):
-    """(kume, hata) — kapanisi kutuda OLAN cip adlari. Hukum kutu-arsivle.py'nindir."""
+def _kutu_kumesi(repo, kutu_yolu, cikaran):
+    """(kume, hata) — kutuyu AYRISTIR, `cikaran(satirlar, baslar)` ile kume uret.
+
+    Ayristirma ADIMLARI TEK YERDE: `kapanan_kumesi` ve `merge_bekleyen_kumesi`
+    ayni govdeyi paylasir; ikinci bir ayristirici acilsaydi biri sessizce
+    ayrisirdi ([[ikiz-tanim-sessiz-ayrisma]]).
+    """
     mod, hata = _kutu_modulu(repo)
     if mod is None:
         return None, hata
@@ -205,9 +216,31 @@ def kapanan_kumesi(repo, kutu_yolu):
         if fm_hata or fm is None:
             return None, "kutu frontmatter'i bozuk: %s" % (fm_hata or "?")
         baslar = mod.blok_baslari(satirlar, fm)
-        return mod.kapanan_cipler(satirlar, baslar), None
+        return cikaran(mod, satirlar, baslar), None
     except Exception as e:                                   # noqa: BLE001
         return None, "kutu okunamadi: %s: %s" % (type(e).__name__, e)
+
+
+def kapanan_kumesi(repo, kutu_yolu):
+    """(kume, hata) — kapanisi kutuda OLAN cip adlari. Hukum kutu-arsivle.py'nindir."""
+    return _kutu_kumesi(repo, kutu_yolu,
+                        lambda mod, s, b: mod.kapanan_cipler(s, b))
+
+
+def merge_bekleyen_kumesi(repo, kutu_yolu):
+    """(kume, hata) — merge-bekliyor muafiyeti BEYAN EDILMIS cip adlari (K396).
+
+    🔴 FAIL-CLOSED: kaynak eski (fonksiyon YOK) ya da kutu bozuksa BOS KUME degil
+    HATA doner; cagiran muafiyeti UYGULAMAZ ve kol KIRMIZI kalir. Ters yon
+    (hata -> muafiyet var say) kapinin tamamini susturabilirdi."""
+    def _cikar(mod, s, b):
+        fn = getattr(mod, "merge_bekleyen_cipler", None)
+        if fn is None:
+            raise AttributeError(
+                "kutu-arsivle.py'de `merge_bekleyen_cipler` YOK (kaynak bayat) — "
+                "muafiyet UYGULANMAZ")
+        return fn(s, b)
+    return _kutu_kumesi(repo, kutu_yolu, _cikar)
 
 
 # ------------------------------------------------------------------- cozumleme
@@ -339,6 +372,63 @@ def kol_kapanis(repo, kutu_yolu, cip):
                          "(hukum kaynagi: %s)" % (cip, nereden))
 
 
+MERGE_BEKLIYOR_NOT = "MERGE BORCU DURUYOR"
+
+
+def _merge_bekleyen_mi(repo, kutu_yolu, cip):
+    """(beyan_var_mi|None, gerekce) — None = OLCULEMEDI (fail-closed: muafiyet YOK).
+
+    Kapanis kolu gibi ARSIVE DE BAKAR: kutu tavana degdiginde rotasyon bloklari
+    `<ad>-arsiv.md`ye TASIR; yalniz canli kutuya bakan bir kol, beyanini duzgun
+    yazmis bir cipi rotasyondan SONRA muafiyetsiz birakirdi (K4'te olculmus vaka).
+    """
+    if cip is None:
+        return None, "cip adi cikarilamadi"
+    kume, hata = merge_bekleyen_kumesi(repo, kutu_yolu)
+    if kume is None:
+        return None, hata
+    if cip in kume:
+        return True, "canli kutu"
+    # 🔴 DEGISKEN ADI BILEREK `ars` DEGIL: `kol_kapanis` icindeki arsiv kolu ayni iki
+    # satiri tasiyor ve M8 mutanti oraya capalanmis. Ayni dizgeyi burada tekrar
+    # etmek M8'i `CAPA ULASMADI (count=2)` ile SAYILMAZ yapardi — yani YENI kod
+    # ESKI bir nobetciyi korlestirirdi ([[artik-yuzey-mutant-dedektorunu-korlestirir]]).
+    beyan_arsivi = arsiv_yolu(kutu_yolu)
+    if os.path.isfile(beyan_arsivi):
+        ars_kume, ars_hata = merge_bekleyen_kumesi(repo, beyan_arsivi)
+        if ars_kume is None:
+            return None, "canli kutuda yok, ARSIV okunamadi: %s" % ars_hata
+        if cip in ars_kume:
+            return True, "arsiv (rotasyonla tasinmis)"
+    return False, "beyan YOK"
+
+
+def _merge_bekliyor_muafiyeti(repo, kutu_yolu, cip, kirmizi_gerekce, itilmis_hal):
+    """(hal, gerekce, not|None) — KIRMIZI `ICERIK_DISARIDA` kolunu yargilar."""
+    beyan, sebep = _merge_bekleyen_mi(repo, kutu_yolu, cip)
+    if beyan is None:
+        return (HAL_KIRMIZI,
+                kirmizi_gerekce + "  [muafiyet OLCULEMEDI: %s -> UYGULANMADI]" % sebep,
+                None)
+    if not beyan:
+        return (HAL_KIRMIZI,
+                kirmizi_gerekce + "  [muafiyet YOK: `%s: `<cip>`` beyani kutuda yok]"
+                % "MERGE-BEKLIYOR-MUAFIYETI",
+                None)
+    if itilmis_hal != HAL_TEMIZ:
+        # BEYAN VAR AMA GUVENLIK YOK — muafiyetin TEK gerekcesi "is kaybolamaz"di.
+        return (HAL_KIRMIZI,
+                kirmizi_gerekce + "  [beyan VAR (%s) ama ITILMEMIS kolu %s — dal uzakta "
+                                  "DEGILSE arsivleme isi KAYBEDER, muafiyet UYGULANMAZ]"
+                % (sebep, itilmis_hal),
+                None)
+    return (HAL_MERGE_BEKLIYOR,
+            "icerik main'e girmemis AMA beyan VAR (%s) + dal UZAKTA -> arsivleme "
+            "GUVENLI (is kaybolamaz)" % sebep,
+            "%s: `%s` main'e ALINMADI — worktree silinebilir, MERGE hala BORCTUR."
+            % (MERGE_BEKLIYOR_NOT, cip))
+
+
 # ------------------------------------------------------------------------ hukum
 
 def olc(repo, hedef, cip_acik=None, kutu_yolu=VARSAYILAN_KUTU, ana="main"):
@@ -356,20 +446,42 @@ def olc(repo, hedef, cip_acik=None, kutu_yolu=VARSAYILAN_KUTU, ana="main"):
     satirlar.append("HEDEF worktree=%s dal=%s uc=%s cip=%s"
                     % (worktree or "-", dal or "-", (uc or "-")[:12], cip or "-"))
 
+    icerik_hal, icerik_gerekce = kol_icerik(repo, uc, ana)
+    itilmis_hal, itilmis_gerekce = kol_itilmemis(repo, uc)
+
+    # ---------------------------------------- K396 MERGE-BEKLIYOR MUAFIYETI
+    # IKI SART BIRDEN (biri bile eksikse KIRMIZI KALIR):
+    #   ① cip kutuda/arsivde `MERGE-BEKLIYOR-MUAFIYETI: <ad>` beyani YAZMIS  (NIYET)
+    #   ② `ITILMEMIS` kolu TEMIZ — dalin ucu bir uzak ref'te                 (GUVENLIK)
+    # Kapiyi acan sey beyan DEGIL ②'dir: arsivleme worktree'yi siler, itilmis
+    # dalda icerik yine durur. Itilmemis dalda beyan HICBIR SEY degistirmez.
+    muafiyet_notu = None
+    if icerik_hal == HAL_KIRMIZI:
+        icerik_hal, icerik_gerekce, muafiyet_notu = _merge_bekliyor_muafiyeti(
+            repo, kutu_yolu, cip, icerik_gerekce, itilmis_hal)
+
     kollar = [
         (KOL_AGAC, kol_agac(worktree)),
-        (KOL_ICERIK, kol_icerik(repo, uc, ana)),
-        (KOL_ITILMEMIS, kol_itilmemis(repo, uc)),
+        (KOL_ICERIK, (icerik_hal, icerik_gerekce)),
+        (KOL_ITILMEMIS, (itilmis_hal, itilmis_gerekce)),
         (KOL_KAPANIS, kol_kapanis(repo, kutu_yolu, cip)),
     ]
     for ad, (hal, gerekce) in kollar:
         satirlar.append("KOL=%s HAL=%s  %s" % (ad, hal, gerekce))
+    if muafiyet_notu:
+        satirlar.append(muafiyet_notu)
 
     haller = [h for _, (h, _) in kollar]
     if HAL_KIRMIZI in haller:
         return HUKUM_KIRMIZI, RC_ARSIVLENEMEZ, satirlar
     if HAL_OLCULEMEDI in haller:
         return HUKUM_OLCULEMEDI, RC_OLCULEMEDI, satirlar
+    # 🔴 BESINCI HAL BURADA ACIKCA SAYILIR — sessizce varsayilan kovaya DUSMEZ.
+    # Bloklamaz (arsivleme guvenli: dal uzakta), ama HUKUM satirinin yaninda
+    # merge borcunu tasiyan NOT zaten `satirlar`a eklendi. Bu iki satiri ayri
+    # tutmak sart: "ARSIVLENEBILIR" ile "MERGE EDILDI" ayni sey DEGIL.
+    if HAL_MERGE_BEKLIYOR in haller:
+        return HUKUM_YESIL, RC_ARSIVLENEBILIR, satirlar
     return HUKUM_YESIL, RC_ARSIVLENEBILIR, satirlar
 
 
@@ -377,7 +489,8 @@ def olc(repo, hedef, cip_acik=None, kutu_yolu=VARSAYILAN_KUTU, ana="main"):
 
 def _kur_fikstur(kok, *, kirli=False, mainde=True, itilmis=True, kapanis=True,
                  agac_ac=True, kutu_yok=False, kaynak_kopyala=True,
-                 kapanis_arsivde=False):
+                 kapanis_arsivde=False, merge_beyani=False,
+                 merge_beyani_proza=False, merge_beyani_baska_cip=False):
     """Sentetik git deposu + uzak + worktree + kutu kurar; (repo, worktree, cip) doner.
 
     🔴 realpath SART: macOS'ta /tmp -> /private/tmp sembolik bagidir ve
@@ -441,6 +554,16 @@ def _kur_fikstur(kok, *, kirli=False, mainde=True, itilmis=True, kapanis=True,
     if kapanis:
         govde.append("## 2026-09-04 — ✅ Ev-Is (çip `%s`) **SAYILI KAPANIŞ: örnek iş bitti, 3 ölçüm.**\n"
                      % cip)
+        # K396 muafiyet beyani — UC AYRI SEKIL, ucu de AYRI VAKA:
+        #   merge_beyani            KANONIK beyan (jeton + kendi cip adi)
+        #   merge_beyani_proza      SERBEST METIN ("MERGE BEKLİYOR") — SAYILMAMALI
+        #   merge_beyani_baska_cip  jeton VAR ama BASKA cipin adi — SAYILMAMALI
+        if merge_beyani:
+            govde.append("🔶 MERGE-BEKLIYOR-MUAFIYETI: `%s` — merge hükmü mimarın.\n" % cip)
+        if merge_beyani_proza:
+            govde.append("🔶 MERGE BEKLİYOR — merge hükmü mimarın, dal itildi.\n")
+        if merge_beyani_baska_cip:
+            govde.append("🔶 MERGE-BEKLIYOR-MUAFIYETI: `cip-baskasi-z9y8x7` — komşunun beyanı.\n")
         govde.append("— Ev\n\n---\n\n")
     if not kutu_yok:
         with open(kutu, "w", encoding="utf-8") as f:
@@ -496,6 +619,30 @@ VAKALAR = (
     # birkac kez donuyor; yalniz canli kutuya bakan kol duzgun kapanmis cipi
     # kirmiziya yakardi (d43'te canlida gorulda).
     ("V10 ROTASYON: kapanis ARSIVDE", dict(kapanis_arsivde=True), HUKUM_YESIL, None, None),
+    # ---------------------------------------------- K396 MERGE-BEKLIYOR MUAFIYETI
+    # 🔴 POZITIF ve NEGATIF yonler AYRI vakalardir. Tek yon = olu nobetci: yalniz
+    # pozitifi olcen bir batarya, muafiyeti HER SEYE uygulayan bir mutanti yesil
+    # gecirirdi (bu tam da kapatilan "battaniye muafiyet" sinifi).
+    # 🔴 NUMARA V17'DEN BASLAR: `V11a`/`V11b` ADLARI ZATEN ALINMIS (kanonik kaynak
+    # kontrolleri). Ayni numarayi iki rolde kullanmak, bir mutant raporunda hangi
+    # kolun konustugunu belirsizlestirir ([[ad-iki-rolde-mutanti-golgeler]]).
+    ("V17 POZITIF: beyan VAR + dal ITILMIS -> muafiyet UYGULANIR",
+     dict(mainde=False, itilmis=True, merge_beyani=True), HUKUM_YESIL, None, None),
+    ("V18 NEGATIF: beyan VAR ama dal ITILMEMIS -> KIRMIZI KALIR",
+     dict(mainde=False, itilmis=False, merge_beyani=True), HUKUM_KIRMIZI,
+     KOL_ITILMEMIS, None),
+    ("V19 NEGATIF: beyan YOK -> KIRMIZI (V3'un ikizi, muafiyet sizmasin)",
+     dict(mainde=False, itilmis=True), HUKUM_KIRMIZI, KOL_ICERIK, None),
+    ("V20 NEGATIF: SERBEST METIN 'MERGE BEKLİYOR' beyan SAYILMAZ",
+     dict(mainde=False, itilmis=True, merge_beyani_proza=True), HUKUM_KIRMIZI,
+     KOL_ICERIK, None),
+    ("V21 NEGATIF: BASKA cipin beyani BENI muaf yapmaz",
+     dict(mainde=False, itilmis=True, merge_beyani_baska_cip=True), HUKUM_KIRMIZI,
+     KOL_ICERIK, None),
+    # V22: icerik main'de ISE beyan hicbir sey degistirmez (muafiyet yolu HIC
+    # calismamali; calisirsa `ICERIK` kolu TEMIZ yerine MERGE_BEKLIYOR basardi).
+    ("V22 NEGATIF: icerik main'de + beyan var -> yine de TEMIZ",
+     dict(mainde=True, merge_beyani=True), HUKUM_YESIL, None, None),
 )
 
 
@@ -647,6 +794,32 @@ def kendini_test(sessiz=False):
     # `VARSAYILAN_REPO` diskte VAR oldugu icin bu eksen ancak boyle olculur:
     # arac kendi agacindan kosarken kaynagi KENDI `tools/`unde bulmali, sabit koke
     # DUSMEMELI. Bu kol dusunce CI'da 3 batarya fikstur kurulumunda oluyordu (5 Eyl).
+    # V23: PUSH SARTI IZOLE OLCULUR — HUKUM ekseni bu kolu GOREMEZ.
+    # 🔴 OLCULDU (M11 ilk turda HAYATTA KALDI): V18'de dal itilmemis oldugu icin
+    # `ITILMEMIS` kolu ZATEN kirmizi; push sartini kaldiran mutant `ICERIK` kolunu
+    # MERGE_BEKLIYOR'a cevirse bile HUKUM yine ARSIVLENEMEZ kalir ve vaka gecer.
+    # Komsu fail-closed kol, arkasindaki kolu MASKELIYOR
+    # ([[fail-closed-kol-arkasindaki-kolu-maskeler]]). Bu yuzden iddia HUKUM'e degil
+    # KOLUN KENDI HALINE capalanir.
+    _v23_kok = os.path.realpath(tempfile.mkdtemp(prefix="arsiv-kapisi-v23-"))
+    try:
+        _repo, _hedef, _kutu, _c = _kur_fikstur(
+            _v23_kok, mainde=False, itilmis=False, merge_beyani=True)
+        _h, _rc, _sat = olc(_repo, _hedef, kutu_yolu=_kutu)
+        _metin = "\n".join(_sat)
+        v23_kosul = ("KOL=%s HAL=%s" % (KOL_ICERIK, HAL_KIRMIZI)) in _metin
+        v23_ad = ("V23 IZOLE: beyan VAR ama dal ITILMEMIS -> ICERIK kolu KIRMIZI "
+                  "KALIR (MERGE_BEKLIYOR DEGIL)")
+    finally:
+        shutil.rmtree(_v23_kok, ignore_errors=True)
+    iddia += 1
+    if v23_kosul:
+        gecti += 1
+    else:
+        kirmizi += 1
+    if not sessiz:
+        print("  [%s] %s" % ("OK" if v23_kosul else "KIRMIZI", v23_ad))
+
     kaynak, nereden = _kanonik_kaynak()
     yaninda = os.path.join(TOOLS_DIZINI, "kutu-arsivle.py")
     v11 = [("V11a kanonik kaynak COZULDU (nereden=%s)" % nereden, kaynak is not None)]
@@ -727,6 +900,33 @@ MUTANTLAR = (
     ("M9 repo-turetmeyi-oldur", "REPO_TURETME",
      '    if not hedef or not os.path.isdir(hedef):\n        return None, "hedef dizin degil"',
      '    if True:\n        return None, "hedef dizin degil"'),
+    # ------------------------------------------ K396 MERGE-BEKLIYOR MUAFIYETI
+    # 🔴 UC AYRI MUTANT, UC AYRI IDDIA. Muafiyet bir KAPI GEVSETMESIDIR; tek
+    # mutantla "calisiyor" demek, gevsetmenin SINIRLARINI hic olcmemek olur.
+    # M10 muafiyetin CALISTIGINI, M11 ve M12 SINIRLARININ TUTTUGUNU oldurur.
+    #
+    # M10: muafiyet yolunu tamamen sok -> V17 (pozitif) KIRMIZI yanar.
+    #      Bu mutant olmezse muafiyet HIC olculmemis demektir.
+    ("M10 muafiyet-yolunu-sok", KOL_ICERIK,
+     '    if icerik_hal == HAL_KIRMIZI:\n'
+     '        icerik_hal, icerik_gerekce, muafiyet_notu = _merge_bekliyor_muafiyeti(',
+     '    if False:\n'
+     '        icerik_hal, icerik_gerekce, muafiyet_notu = _merge_bekliyor_muafiyeti('),
+    # M11: PUSH SARTINI kaldir -> muafiyet itilmemis dalda da uygulanir.
+    #      V18 oldurur. Bu, kapinin varlik sebebini (is kaybi) geri acan mutanttir:
+    #      beyan yazan ama dalini itmemis bir cip arsivlenir ve IS KAYBOLUR.
+    # 🔴 CAPA COK SATIRLI (dosyanin kendi dersi): tek satirlik `if itilmis_hal != ...`
+    # BU TABLODA da birebir gecerdi -> count=2 -> "CAPA ULASMADI". Olculdu.
+    ("M11 push-sartini-kaldir", KOL_ICERIK,
+     '    if itilmis_hal != HAL_TEMIZ:\n'
+     '        # BEYAN VAR AMA GUVENLIK YOK',
+     '    if False:\n'
+     '        # BEYAN VAR AMA GUVENLIK YOK'),
+    # M12: BEYAN sartini kaldir (her kirmizi icerigi muaf yap) -> BATTANIYE
+    #      MUAFIYET. V13/V19 oldurur. Beyansiz muafiyet, kapiyi tamamen susturur.
+    ("M12 beyan-sartini-kaldir", KOL_ICERIK,
+     '    if not beyan:\n        return (HAL_KIRMIZI,',
+     '    if False:\n        return (HAL_KIRMIZI,'),
 )
 
 

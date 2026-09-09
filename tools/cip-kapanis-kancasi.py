@@ -60,6 +60,38 @@ def _kapi_yolu():
 
 KAPI = _kapi_yolu()
 
+# ------------------- K396: KANCANIN ONERDIGI JETON, KAPININ OKUDUGU JETON OLMALI
+# 🔴 OLCULEN KUSUR (10 Eyl 2026, iki ayri cip ust uste takildi): bu kanca cipe
+# "'BEKLIYOR' olarak kutuya yaz" diyordu ama `BEKLIYOR` jetonu `arsiv-kapisi.py`
+# GOVDESINDE HIC GECMIYORDU (`grep`=0). Kanca metni, kapinin IKINCI BIR KOPYASI
+# gibi davraniyordu ve sessizce ondan AYRISMISTI ([[kapi-red-metni-ikinci-kopyadir]]).
+# Yazan kisi kapiyi yesile cevirdigini SANIR, kapi rc=1 vermeye devam ederdi.
+#
+# 🔴 CARE GOMMEK DEGIL TURETMEK: jeton `kutu-arsivle.py`den (hukum kaynagi) OKUNUR.
+# Sabit yazsaydik ayni ayrisma bir tur sonra geri gelirdi — ikiz tanim, tam olarak
+# kapatilan kusurun kendisi ([[ikiz-tanim-sessiz-ayrisma]]).
+# FAIL-OPEN sozlesmesi KORUNUR: kaynak okunamazsa kanca CATLAMAZ, jetonun yerine
+# "olcemedim" diyen bir metin basar ve karar VERMEZ.
+_JETON_YEDEK = "(jeton OKUNAMADI — `kutu-arsivle.py::MERGE_BEKLIYOR_JETON`e bak)"
+
+
+def _muafiyet_jetonu():
+    """`kutu-arsivle.py::MERGE_BEKLIYOR_JETON` — TEK KAYNAK, gomulu kopya YOK."""
+    try:
+        import importlib.util
+        yol = os.path.join(os.path.dirname(os.path.realpath(KAPI)), "kutu-arsivle.py")
+        if not os.path.isfile(yol):
+            return _JETON_YEDEK
+        spec = importlib.util.spec_from_file_location("kutu_arsivle_jeton", yol)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return getattr(mod, "MERGE_BEKLIYOR_JETON", None) or _JETON_YEDEK
+    except Exception:                                        # noqa: BLE001
+        return _JETON_YEDEK
+
+
+MUAFIYET_JETONU = _muafiyet_jetonu()
+
 RC_YESIL = 0
 RC_KIRMIZI = 1
 RC_OLCULEMEDI = 2
@@ -183,12 +215,17 @@ def main():
         "DURMA — bu cip HENUZ KAPANMADI. `arsiv-kapisi.py` rc=%d, KIRMIZI kol: %s.\n"
         "Bu kollar kapanmadan oturum kapatilirsa arsivleme worktree'yi SILER ve is "
         "KAYBOLUR (olculmus vaka).\n"
-        "Yap: (1) AGAC_KIRLI ise commit'le · (2) ICERIK_DISARIDA ise dali main'e al "
-        "ya da 'BEKLIYOR' olarak kutuya yaz · (3) ITILMEMIS ise push'la · "
-        "(4) KAPANIS_YOK ise ortak kutuya SAYILI KAPANIS blogunu yaz.\n"
+        "Yap: (1) AGAC_KIRLI ise commit'le · (2) ITILMEMIS ise push'la · "
+        "(3) KAPANIS_YOK ise ortak kutuya SAYILI KAPANIS blogunu yaz · "
+        "(4) ICERIK_DISARIDA ise dali main'e al; merge hukmu SENDE DEGILSE once "
+        "PUSH'la, sonra kapanis bloguna SU SATIRI birebir yaz:\n"
+        "      %s: `<cip-adi>`\n"
+        "    (muafiyet IKI SARTLIDIR: bu beyan + dalin uzak bir ref'te olmasi. "
+        "Itilmemis dalda beyan HICBIR SEY degistirmez — kirmizi KALIR.)\n"
         "Sonra tekrar dur — bu kanca ayni oturumu en fazla %d kez uyarir.\n"
         "Kapinin tam ciktisi:\n%s"
-        % (s.returncode, ", ".join(kirmizi) or "?", TAVAN, s.stdout.strip()[:1500]))
+        % (s.returncode, ", ".join(kirmizi) or "?", MUAFIYET_JETONU, TAVAN,
+           s.stdout.strip()[:1500]))
 
 
 if __name__ == "__main__":
