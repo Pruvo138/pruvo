@@ -383,8 +383,11 @@ BILEREK_DEGISEN_TAM = (
     # olculur — uretilen sayfanin KENDI JS'i node:vm'de kosturulup olay kuyruguna DUSEN
     # cagri okunur; riza YOKKEN sifir olay beklenir. 10 mutant + 1 KONTROL nobetler
     # (tools/ga4-olay-mutasyon.py).
-    ("window.PRUVO_GA4_OLAYLARI = ['view_item','add_to_cart','begin_checkout'];",
-     "YENI: GA4 olay beyaz listesi — tek kanonik kaynak (satin alma BILEREK yok)"),
+    ("window.PRUVO_GA4_OLAYLARI = ['view_item','add_to_cart','begin_checkout','generate_lead'];",
+     "YENI: GA4 olay beyaz listesi — tek kanonik kaynak (satin alma BILEREK yok). "
+     "9 Eyl 2026: `generate_lead` EKLENDI — WhatsApp CTA tiklamasi tek kaynaktan "
+     "(build.py::GA_HEAD_SNIPPET) uretilen 36k sayfada da olculsun diye; DAVRANIS "
+     "nobetcisi tools/ga4-olay-kapisi.py + ga4-olay-mutasyon.py (beyan korlestirmez)"),
     ("window.pruvoGA4Track = function(olay, veri){",
      "YENI: riza-kapili GA4 olay gondericisi"),
     ("try { if(localStorage.getItem('pruvo_onay_analitik') !== 'kabul'){ return; } } catch(e){ return; }",
