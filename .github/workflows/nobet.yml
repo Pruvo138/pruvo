@@ -475,6 +475,28 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/recete-kapisi.py --kendini-test
 
+      # WORKTREE KAPI BAYATLIK KAPISI — KABUL BATARYASI (10 Eyl 2026, cip
+      # KraL-WorktreeKancaBayatligi). Bir cip agacinda kosan makine kapilari
+      # evin ANA checkout'undaki CANLI kapilarla ayrisabiliyor; olculdu (5 ev,
+      # 12 agac): EKSEN-A_SAPAN=21 · EKSEN-B_FARK=9 (MaCiT'in 3 agacinda
+      # baglam-kotasi + parti + cip-kapanis kapilari HIC BAGLI DEGIL).
+      # Bu ariza sinifi K250'de (20 Agu, d76ca45c) bir kez kapatilmisti; icra
+      # araclari 29 Agu supurmesinde silindi (ca8c3815) ve ariza GERI GELDI —
+      # [[hukum-yazmak-icra-degildir]]. Bu adim o icrayi geri getirir.
+      #
+      # 🔴 NEDEN BURADA, KAPININ KENDISI DEGIL: kapinin PRODUCTION kolu CI'da
+      # KOSULAMAZ. Olculdu (taze --depth 1 klon, gercek kosum): `.claude/`
+      # gitignore'lu oldugu icin CI checkout'unda settings.json YOKTUR ve kapi
+      # fail-closed OLCULEMEDI=1 / rc=1 doner. deploy.yml'e baglanirsa BES EVIN
+      # YAYINI BIRDEN DURUR [[olculemedi-zaten-bagli-kapida-yayin-durdurur]].
+      # Bu yuzden production kolu ci-kapsam IZIN_LISTESI'nde OLCULMUS gerekceyle
+      # muaftir; CI'da kosan sey aracin HERMETIK bataryasidir (kendi git deposunu
+      # + gercek worktree'sini kurar, makinenin .claude/'ini HIC okumaz —
+      # dogrulandi: `env -i` ile temiz ortamda YESIL). ~2 s.
+      - name: "Worktree kapi bayatligi — kabul bataryasi (6 vaka + 3 mutant + 1 kontrol)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/worktree-bayatlik-test.py
+
       # (KraL-KapiSupurmesi-29Agu: serbest-kume-tekkaynak nobetcisi mimar-icra-kapisi
       # ile birlikte SILINDI — olctugu kapi artik yok.)
 

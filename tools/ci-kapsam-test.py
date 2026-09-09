@@ -2685,6 +2685,30 @@ R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VI
 # ---- IZIN LISTESI (muaf test -> GEREKCE). Bos gerekce = exit 1. ----------
 IZIN_LISTESI = {
     # ═══════════════════════════════════════════════════════════════════════
+    # 10 EYL 2026 — WORKTREE KAPI BAYATLIK KAPISI (cip KraL-WorktreeKancaBayatligi)
+    # ═══════════════════════════════════════════════════════════════════════
+    "tools/worktree-kapi-bayatlik-kapisi.py": (
+        "YAPISAL CI-KIRMIZI — KAPI YEREL MAKINE DURUMUNU OLCER, CI CHECKOUT'U O "
+        "DURUMU TASIMAZ. Kapi, bir cip worktree'sinde kosan makine kapilarinin evin "
+        "ANA checkout'undaki CANLI kapilarla ayrisip ayrismadigini olcer; girdisi "
+        "`.claude/settings.json` (kanca kablolamasi) ve `git worktree list`. "
+        "`.claude/` bu depoda GITIGNORE'LUDUR (.gitignore:5), dolayisiyla CI "
+        "checkout'unda o dosya HIC YOKTUR ve cocuk worktree de bulunmaz. "
+        "OLCULDU (10 Eyl, GERCEK kosum — `git clone --no-local --depth 1` ile taze "
+        "klon kurulup kapi o klonun kokunden kosuldu): cocuk worktree sayisi=0, "
+        "`.claude/settings.json` var mi=False, kapi ANA-SETTINGS HAL=SETTINGS-YOK "
+        "verip fail-closed `OLCULEMEDI=1` / `HAL=BAYAT` / rc=1 dondu. Yani CI'da "
+        "SESSIZ-YESIL DEGIL, YAPISAL-KIRMIZIDIR: bloklayan bir is akisina baglanirsa "
+        "BES EVIN YAYINI BIRDEN DURUR [[olculemedi-zaten-bagli-kapida-yayin-durdurur]]. "
+        "Fail-closed kol GEVSETILMEDI (CI'yi memnun etmek icin `OLCULEMEDI`yi yesile "
+        "cevirmek, kapinin OLCTUGU seyi -- olculemeyen agaci -- kor ederdi). "
+        "KAPI KOR DEGILDIR, KANALI BASKADIR: (a) hermetik kabul bataryasi "
+        "`tools/worktree-bayatlik-test.py` nobet.yml'de OTOMATIK kosar ve kapinin "
+        "uc kolunu 3 mutantla FIILEN oldurur; (b) production kolu mimar oturumunda "
+        "`--tum-evler` ile kosulur (10 Eyl tabani: EKSEN-A_SAPAN=21 · "
+        "EKSEN-B_FARK=9 · KraL evi 0/0 TEMIZ)."
+    ),
+    # ═══════════════════════════════════════════════════════════════════════
     # 7 EYL 2026 — MALZEME YUZEYI KAPISI (cip KraL-K35K36-Tasima-7Eyl)
     # ═══════════════════════════════════════════════════════════════════════
     "tools/malzeme-yuzey-kapisi.py": (
