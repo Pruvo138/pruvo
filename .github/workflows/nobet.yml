@@ -4649,6 +4649,18 @@ jobs:
       - name: Urun-AI kapisi kabul testi (thing-icerik izin kapisi varsayilan KAPALI)
         if: ${{ !cancelled() }}
         run: python3 tools/thing-icerik-test.py
+      # 9 Eyl 2026 (KraL-IcerikDeterministik) — urun ekleme ICERIK ADIMI tek bacakli
+      # olmasin. Olculen kusur: emekli motor 400 dondugu gun uc platformun (Thingiverse
+      # /Printables/MakerWorld) hatti da 0/N STAGE verdi cunku deterministik yedek YOKTU.
+      # Test AG'a CIKMAZ, model CAGIRMAZ, urunler.json'a YAZMAZ; tum AI bacaklari sahtelenir.
+      - name: "Icerik adimi IKI BACAKLI mi (AI izni kapali/AI dustu -> urun DUSMEZ)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/urun-icerik-det-test.py
+      # Mutasyon bataryasi ONCE TABAN kolunu kosar (mutasyonsuz golge agac YESIL mi):
+      # taban kirmizi olsaydi her mutant "oldu" gorunur ve batarya hicbir sey olcmezdi.
+      - name: "Icerik adimi mutasyon bataryasi (4 oldurucu + 1 kontrol + taban kolu)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/urun-icerik-det-test.py --mutasyon
       # 5 Eyl 2026 (KraL-AdSupurmesi-05Eyl) — emekli isci motorunun ADI icin
       # HIJYEN NOBETCISI. IKI YONLU: ad izinsiz dosyaya yayilirsa da, yasagi
       # ISIRTAN capalar silinirse de KIRMIZI yanar. Once KENDI mutasyon

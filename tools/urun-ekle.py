@@ -44,12 +44,27 @@ arama = importlib.util.module_from_spec(_arspec); _arspec.loader.exec_module(ara
 _r2spec = importlib.util.spec_from_file_location(
     "r2_anahtar", os.path.join(os.path.dirname(os.path.abspath(__file__)), "r2_anahtar.py"))
 r2k = importlib.util.module_from_spec(_r2spec); _r2spec.loader.exec_module(r2k)
+# DETERMINISTIK ICERIK YEDEGI (bkz tools/urun_icerik_det.py). Import KOSULSUZ: modul
+# kaybolursa betik ACILISTA coker. "Dosyasi yoksa AI'ya duser" bir fail-open olurdu ve
+# tam olarak kapatmaya calistigimiz tek-bacakliligi geri getirirdi.
+_uicdspec = importlib.util.spec_from_file_location("urun_icerik_det",
+                                                   os.path.join(TOOLS, "urun_icerik_det.py"))
+uicd = importlib.util.module_from_spec(_uicdspec); _uicdspec.loader.exec_module(uicd)
 IMGROOT = os.path.join(ROOT, ".thing-cache")
 URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
 LOCK = os.path.join(ROOT, ".urunler.lock")
 PY = sys.executable or "python3"
 WORKERS = int(os.environ.get("PRUVO_WORKERS", "6"))
+
+
+def _ai_bacagi(anahtar):
+    """AI bacagi: `thing-icerik.py` alt sureci. rc==0 -> True. YALNIZ izin acikken
+    cagirilir (kapiyi `urun_icerik_det.icerik_sagla` tutar). Basarisizligi HATA DEGIL
+    bir BACAK SONUCUDUR — cagiran deterministik yola duser."""
+    ai = subprocess.run([PY, os.path.join(TOOLS, "thing-icerik.py"), anahtar],
+                        capture_output=True, text=True)
+    return ai.returncode == 0
 
 
 def lisans_map(lic):
@@ -94,19 +109,23 @@ def process_one(tid):
             return {"id": tid, "durum": "ATLA: NC/Non-Commercial (satilamaz)", "lisans": meta.get("lisans")}
         if not meta.get("stl_adet"):
             return {"id": tid, "durum": "ATLA: STL indirilemedi (0 dosya)"}
-        ai = subprocess.run([PY, os.path.join(TOOLS, "thing-icerik.py"), tid], capture_output=True, text=True)
-        if ai.returncode != 0:
-            return {"id": tid, "durum": "HATA: kredi kapisi — urun AI izni yok"}
-        onerip = os.path.join(IMGROOT, tid, "oneri.json")
-        if not os.path.exists(onerip):
-            return {"id": tid, "durum": "HATA: emekli motor oneri yok"}
-        o = json.load(open(onerip))
+        # ICERIK ADIMI — IKI BACAKLI (bkz tools/urun_icerik_det.py).
+        # ESKI HAL (9 Eyl 2026'ya kadar): tek bacak. `thing-icerik.py` rc!=0 ya da
+        # oneri.json yok -> URUN DUSER. Emekli motor 400 dondugu gun uc platformun
+        # hatti da 0/N STAGE verdi. Deterministik yedek YOKTU.
+        # YENI HAL: AI bacagi YALNIZCA PRUVO_URUN_AI_IZNI=EVET iken denenir; izin
+        # yoksa VEYA AI basarisizsa urun DUSMEZ, deterministik ureteç calisir.
+        d = os.path.join(IMGROOT, tid)
+        galeri = [f for f in os.listdir(d) if f.startswith("g") and f.endswith(".jpg")]
+        o, icerik_kaynak, icerik_not = uicd.icerik_sagla(
+            tid, d, meta, galeri, ai_cagir=_ai_bacagi)
+        if o is None:
+            return {"id": tid, "durum": "HATA: icerik uretilemedi — " + icerik_not}
         uid = r2k.urun_slug(o.get("baslik") or tid, yedek=tid)
         # R2 gorsel anahtari KAYNAK-ID'den (th<tid>) turer, baslik-slug'indan (uid) DEGIL: iki farkli
         # urun ayni basligi uretse bile anahtarlari cakismaz (bkz tools/r2_anahtar.py +
         # tools/r2-anahtar-test.py). uid, JSON id'si + SEO URL'si icin kalir.
         gkey = r2k.gkey("Thingiverse", tid)
-        d = os.path.join(IMGROOT, tid)
         secili = o.get("sec_gorseller") or sorted(f for f in os.listdir(d) if f.startswith("g") and f.endswith(".jpg"))
         # ALGISAL MUKERRER KAPISI (bkz gorsel_mukerrer_kapisi.py): ayni fotografin ikizini R2'ye
         # yuklemeden ELE. Yeni urunde yayin gorseli yok -> aday-ici dedup (birebir/yakin ikiz
@@ -141,7 +160,11 @@ def process_one(tid):
                "not": "en buyuk parca %s mm; %d STL" % (meta.get("olcu_mm"), meta.get("stl_adet", 0))}
         return {"id": tid, "durum": "STAGED", "urun": urun, "src": src,
                 "kategori": urun["kategori"], "marka": urun["marka"], "gorsel": len(urls),
-                "fiyat": urun["fiyat"], "baslik": urun["baslik"]}
+                "fiyat": urun["fiyat"], "baslik": urun["baslik"],
+                # HANGI BACAK URETTI: gozden gecirme tablosunda GORUNUR olsun; deterministik
+                # kayitlar insan suzgecinde once bakilacak olanlardir.
+                "icerik_kaynak": icerik_kaynak,
+                "elle_gozden_gecir": bool(o.get("elle_gozden_gecir"))}
     except Exception as e:
         return {"id": tid, "durum": "HATA: %s" % str(e)[:120]}
 
