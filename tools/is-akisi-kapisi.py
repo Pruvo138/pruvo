@@ -4371,7 +4371,12 @@ def _main_ast_return1_var():
 # artik BUYUME DE KIRMIZI yanar (asagida `c_iddia > KENDINI_TEST_TABAN` kolu). Pay
 # birikemez: iddia eklemek tabani AYNI commit'te guncellemeyi ZORUNLU kilar
 # ([[ucuncu-tekrar-sinif-kapisi]] · [[batarya-kapsam-tabani-sayiyla-civilenir]]).
-KENDINI_TEST_TABAN = 228
+# 🔴 10 Eyl 2026 (KraL-K80-KokCommit): 228 -> 233. Eklenen 5 iddia S4a-S4e — kok
+# (ebeveynsiz) commit tabani · `bos_serbest` varsayilaninin KAPALI kalmasi · UCTAN UCA
+# bos-taban kolu. Sayi ayni commit'te guncellendi (yukaridaki NON-GROWTH kolu bunu
+# ZORUNLU kilar): ilk yazimda taban tazelenmemisti ve iddialar KOSUYOR ama SAYILMIYORDU
+# — tam da bu sabitin kapattigi olu-kapsam pay sinifi.
+KENDINI_TEST_TABAN = 233
 
 
 KENDINI_TEST_TABAN_TANI = (
@@ -5663,6 +5668,8 @@ K80_META = re.compile(r"[;&|`$<>\n\r]")
 K80_BETIK_KOKLERI = ("tools" + os.sep, "shop" + os.sep, "jenerator" + os.sep)
 K80_MATRIX = re.compile(r"\$\{\{\s*matrix\.([A-Za-z_][A-Za-z0-9_-]*)\s*\}\}")
 K80_SIFIR_SHA = "0" * 40
+# git'in EVRENSEL bos agac nesnesi; her depoda cozulur (`ls-tree` rc=0, cikti bos).
+K80_BOS_AGAC = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
 
 class Olculemedi(RuntimeError):
@@ -5798,15 +5805,42 @@ def _k80_git(args, kok=ROOT, metin=True):
     return r.stdout
 
 
-def _k80_workflow_metinleri(sha):
-    """Committeki workflow bloblarini oku; calisma agacina dusme YOK."""
+def _k80_ebeveyn(commit):
+    """Commitin "onceki hali". KOK COMMIT (ebeveyni YOK) icin dogru taban BOS AGACtir.
+
+    🔴 NEDEN (10 Eyl 2026, OLCULDU — bu sinifin IKINCI cikisi):
+    `git stash` untracked dosyalari EBEVEYNSIZ bir kok commit olarak saklar; o
+    stash'ten dogan kurtarma dallari (`kurtarma/k122-yabanci-is`,
+    `kurtarma/stash-8agu-baska-oturum`) push edilirken `rev-parse <sha>^1`
+    "unknown revision" veriyor, kapi `Olculemedi`ye dusuyor ve pre-push
+    "YENI CI ADIMI HUKMU KIRMIZI/OLCULEMEDI (rc=2)" ile itmeyi DURDURUYORDU.
+    Sonuc: uzak kopyasi olmayan iki arsivlik dal (tek kopya = KAYIP ADAYI, depo
+    PUBLIC) itilemiyordu. Ayni kok neden 19 Agu'da `nobetci-mutasyon-test.py`
+    bolum E'de de cikmisti; orada AYNAYA bos taban commit'i eklenerek ETRAFINDAN
+    dolasilmis, kapinin kendisi onarilmamisti.
+
+    Bos agac tabani kapiyi ZAYIFLATMAZ: kok commit CI adimi EKLIYORSA "once" hali
+    bos oldugu icin adimlarin HEPSI yeni sayilir (daha SIKI, daha gevsek degil).
+    """
+    satir = _k80_git(["rev-list", "--parents", "-n", "1", commit]).split()
+    return satir[1] if len(satir) > 1 else K80_BOS_AGAC
+
+
+def _k80_workflow_metinleri(sha, bos_serbest=False):
+    """Committeki workflow bloblarini oku; calisma agacina dusme YOK.
+
+    `bos_serbest=True` YALNIZ "bos kume GERCEK bir olcumdur" diyen cagri yerinde
+    kullanilir: `ls-tree` rc=0 + cikti bos = o agacta workflow dosyasi YOK. Bozuk
+    sha zaten `_k80_git` icinde rc!=0 ile `Olculemedi`ye duser; yani bu bayrak
+    "olcemedim"i degil, YALNIZCA "olctum, sifir" halini serbest birakir.
+    """
     adlar = _k80_git(["ls-tree", "-r", "--name-only", sha, ".github/workflows"])
     sonuc = {}
     for yol in adlar.splitlines():
         if not re.search(r"\.ya?ml$", yol):
             continue
         sonuc[os.path.basename(yol)] = _k80_git(["show", "%s:%s" % (sha, yol)])
-    if not sonuc:
+    if not sonuc and not bos_serbest:
         raise Olculemedi("%s commitinde workflow YOK" % sha)
     return sonuc
 
@@ -5839,7 +5873,10 @@ def _k80_yeni_komutlar(base, hedef, tespit_acik=True, tasinan_defteri=None):
     kirilirsa kapi bunu YAKALAMAZ; gercek kosumda kirmizi yanar, mail uretir ve nobet
     onarir — ve tasima yalnizca HIJYEN isine yapildigi icin yayini durdurmaz.
     """
-    once = _k80_komut_envreni(_k80_workflow_metinleri(base), tespit_acik=tespit_acik)
+    # TABAN tarafinda bos kume MESRUDUR: kok commit (bos agac tabani) ya da workflow
+    # dosyasinin hic bulunmadigi erken gecmis. HEDEF tarafi fail-closed KALIR.
+    once = _k80_komut_envreni(_k80_workflow_metinleri(base, bos_serbest=True),
+                              tespit_acik=tespit_acik)
     sonra = _k80_komut_envreni(_k80_workflow_metinleri(hedef), tespit_acik=tespit_acik)
     gercek = []
     for anahtar in (sonra - once).elements():
@@ -6032,11 +6069,18 @@ def yeni_ci_adimi_kontrol(args, tespit_acik=True):
         commitler = _k80_git(["rev-list", "--reverse", "--topo-order", "%s..%s"
                               % (base, hedef)]).splitlines()
         for commit in commitler:
-            ebeveyn = _k80_git(["rev-parse", commit + "^1"]).strip()
+            # Committe .github/workflows YOK ise eklenmis CI adimi OLAMAZ. Bu bir
+            # VARSAYIM degil olcumdur (`ls-tree` rc=0 + cikti bos); bozuk sha ayri
+            # kolda `Olculemedi`ye duser. `git stash`in "untracked files" kok commiti
+            # tam olarak bu sinifa duser ve eskiden kapiyi OLCULEMEDI'ye devirirdi.
+            hedef_wf = _k80_workflow_metinleri(commit, bos_serbest=True)
+            if not hedef_wf:
+                continue
+            ebeveyn = _k80_ebeveyn(commit)
             yeni = _k80_yeni_komutlar(ebeveyn, commit, tespit_acik=tespit_acik,
                                       tasinan_defteri=tasinan)
             # ZINCIR DISI (hijyen) ise eklenen yeni adim: RAPORLANIR, BLOKLAMAZ.
-            bloklayici_harita = _k80_bloklayici_isler(_k80_workflow_metinleri(commit))
+            bloklayici_harita = _k80_bloklayici_isler(hedef_wf)
             zincir_disi = [a for a in yeni
                            if str(a[1]) not in bloklayici_harita.get(a[0], set())]
             yeni = [a for a in yeni if a not in zincir_disi]
@@ -6115,6 +6159,49 @@ def _k80_kendini_test(tespit_acik=True):
     finally:
         sys.stdin = _eski_stdin
 
+    # ── S4 EBEVEYNSIZ (KOK) COMMIT — GERCEK depoda, sentetik fikstur YOK ──────────
+    # Bu kol `_k80_ebeveyn`i civiler: kok commit OLCULEMEDI degil, BOS AGAC tabanidir.
+    # MUTANT SORUSU: `_k80_ebeveyn` govdesi `rev-parse <sha>^1`e geri cevrilirse S4-a
+    # `Olculemedi` firlatir -> KIRMIZI. Satir silinirse S4-c bos taban okunamaz -> KIRMIZI.
+    try:
+        _kok = _k80_git(["rev-list", "--max-parents=0", "HEAD"]).split()
+        if not _kok:
+            hatalar.append("K80-S4: depoda ebeveynsiz commit BULUNAMADI — kol OLCULEMEDI")
+        elif _k80_ebeveyn(_kok[-1]) != K80_BOS_AGAC:
+            hatalar.append("K80-S4a: kok commit tabani BOS AGAC degil (%s)"
+                           % _k80_ebeveyn(_kok[-1])[:12])
+    except Olculemedi as e:
+        hatalar.append("K80-S4a: kok commit OLCULEMEDI'ye dustu — onarim geri alinmis (%s)" % e)
+    try:
+        _bas = _k80_git(["rev-list", "--parents", "-n", "1", "HEAD"]).split()
+        if len(_bas) > 1 and _k80_ebeveyn(_bas[0]) != _bas[1]:
+            hatalar.append("K80-S4b: ebeveynli committe GERCEK ebeveyn donmedi")
+    except Olculemedi as e:
+        hatalar.append("K80-S4b: HEAD ebeveyni OLCULEMEDI (%s)" % e)
+    try:
+        if _k80_workflow_metinleri(K80_BOS_AGAC, bos_serbest=True) != {}:
+            hatalar.append("K80-S4c: BOS AGAC tabani bos workflow kumesi vermedi")
+    except Olculemedi as e:
+        hatalar.append("K80-S4c: BOS AGAC sha'si git'te cozulmedi (%s)" % e)
+    # S4d: `bos_serbest` VARSAYILAN OLARAK KAPALI kalmali — hedef tarafi fail-closed.
+    try:
+        _k80_workflow_metinleri(K80_BOS_AGAC)
+        hatalar.append("K80-S4d: bos_serbest varsayilani ACILMIS (hedef fail-closed devrildi)")
+    except Olculemedi:
+        pass
+    # S4e: UCTAN UCA — BOS TABAN + gercek hedef. S4a-S4d yardimcilari TEK TEK olcer;
+    # kapiyi fiilen acan sey `_k80_yeni_komutlar`in bos tabani KABUL ETMESIDIR ve o
+    # OLCULMEDEN kaliyordu (mutant M2 bu kol eklenmeden HAYATTA kalmisti — imzasi
+    # yamayla ayni olan bir yardimci, yamanin ISLEVINI kanitlamaz).
+    try:
+        _uctan = _k80_yeni_komutlar(K80_BOS_AGAC, "HEAD", tespit_acik=tespit_acik)
+        if not _uctan:
+            hatalar.append("K80-S4e: bos tabana gore HIC yeni komut cikmadi "
+                           "(taban bos iken hepsi YENI sayilmali)")
+    except Olculemedi as e:
+        hatalar.append("K80-S4e: bos TABAN + gercek hedef OLCULEMEDI'ye dustu — "
+                       "kok commitli itme yine bloklanir (%s)" % e)
+
     # ── T1-T3 TASIMA MUAFIYETI (15 Agu 2026) ──────────────────────────────────────
     # Sentetik: `a` isindeki komut `b` isine TASINIR; ayrica GERCEKTEN yeni bir komut eklenir.
     _t_once = {"y.yml": "name: y\non: [push]\njobs:\n  a:\n    runs-on: ubuntu-latest\n"
@@ -6173,7 +6260,7 @@ def _k80_kendini_test(tespit_acik=True):
                 hatalar.append("K80-T7: kosturucu betik yolunu ayristiriciyla AYNI cozmedi")
         except Olculemedi as _e:
             hatalar.append("K80-T7: kosturucu `.mjs` yolunu cozemedi (ikiz tanim) (%s)" % _e)
-    return hatalar, 12
+    return hatalar, 17   # +5: S4a-S4e (KOK COMMIT tabani, 10 Eyl 2026)
 
 
 def _k80_mutasyon_kontrol():
