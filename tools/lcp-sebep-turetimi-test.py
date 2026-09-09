@@ -76,13 +76,28 @@ def vakalar(mod):
     sonuc = []
     ham = taban_metin()
 
-    # V1 — canli taban: preload+fetchpriority YOK -> hepsi ICERIK-TUREVI olmali
+    # V1 — canli taban (9 Eyl 2026 GUNCELLENDI, K392): vitrin 5 Eyl'de METNE cevrildi
+    # (`63a48f7a`), yani sayfada eager gorsel LCP adayi YOK. Preload/fetchpriority
+    # eksenleri artik "ICERIK EKSIK" degil, KAPSAM DISI — ucuncu kova. Eski vaka
+    # ikisini ayni sayardi ve kapiyi DOGRU davranista kirmiziya yakiyordu.
     mut = mod.mutantlar(ham)
-    icerik, bayat = mod.eksik_mutant_sebebi(ham, mut)
+    icerik, bayat, kapsam = mod.eksik_mutant_sebebi(ham, mut)
     sonuc.append((
-        "V1 canli taban: eksik mutantlarin HEPSI ICERIK-TUREVI (capa-bayat=0)",
-        len(icerik) > 0 and len(bayat) == 0,
-        "icerik=%d bayat=%d uretilen=%d" % (len(icerik), len(bayat), len(mut))))
+        "V1 canli taban: eksik mutantlarin HEPSI KAPSAM DISI (icerik=0, bayat=0)",
+        len(kapsam) > 0 and len(icerik) == 0 and len(bayat) == 0,
+        "kapsam=%d icerik=%d bayat=%d uretilen=%d"
+        % (len(kapsam), len(icerik), len(bayat), len(mut))))
+
+    # V1b — MENZIL DARALTMASI BIR BYPASS DEGIL: aday YOKKEN de batarya BOS kalmaz
+    # ve daraltilmis esik TAM esikten kucuktur ama SIFIR degildir.
+    hal0 = mod.on_kosul_hali(ham)
+    dar = mod.beklenen_mutant_sayisi(hal0)
+    sonuc.append((
+        "V1b menzil daralinca esik KUCULUR ama batarya BOSALMAZ (0 < dar < tam)",
+        (not hal0["gorsel-lcp-adayi"]) and 0 < dar < mod.BEKLENEN_MUTANT
+        and len(mut) >= dar,
+        "aday=%s dar=%d tam=%d uretilen=%d"
+        % (hal0["gorsel-lcp-adayi"], dar, mod.BEKLENEN_MUTANT, len(mut))))
 
     # V2 — esik tabloya BAGLI mi? DAVRANISLA olculur: tablosu 1 satir BUYUTULMUS
     #      bir kopya import edilir; esik de 1 artmali. Sabit sayi ("magic 12")
@@ -107,11 +122,13 @@ def vakalar(mod):
         sonuc.append(("V4 icerik tam: 12/12 mutant", None, "OLCULEMEDI: <picture>/AVIF capasi bulunamadi"))
     else:
         mut2 = mod.mutantlar(tam)
-        ic2, ba2 = mod.eksik_mutant_sebebi(tam, mut2)
+        ic2, ba2, kd2 = mod.eksik_mutant_sebebi(tam, mut2)
         sonuc.append((
-            "V4 icerik TAMAMLANINCA 12/12 uretilir, eksik sebebi KALMAZ",
-            len(mut2) == mod.BEKLENEN_MUTANT and not ic2 and not ba2,
-            "uretilen=%d icerik=%d bayat=%d" % (len(mut2), len(ic2), len(ba2))))
+            "V4 icerik TAMAMLANINCA TAM esik uretilir, eksik sebebi KALMAZ "
+            "(kapsam-disi de 0'a duser — menzil ACILIR)",
+            len(mut2) == mod.BEKLENEN_MUTANT and not ic2 and not ba2 and not kd2,
+            "uretilen=%d/%d icerik=%d bayat=%d kapsam-disi=%d"
+            % (len(mut2), mod.BEKLENEN_MUTANT, len(ic2), len(ba2), len(kd2))))
 
     # V5 — CAPA-BAYAT kolu GERCEKTEN ayirt eder: icerik TAM ama tablo bilinmeyen
     #      bir mutant ilan ederse (kapi govdesi onu uretemiyor) -> CAPA-BAYAT
@@ -119,7 +136,7 @@ def vakalar(mod):
         eski = dict(mod.MUTANT_ON_KOSUL)
         try:
             mod.MUTANT_ON_KOSUL["M99"] = "preload"   # eksen VAR, mutant YOK
-            ic3, ba3 = mod.eksik_mutant_sebebi(tam, mod.mutantlar(tam))
+            ic3, ba3, _kd3 = mod.eksik_mutant_sebebi(tam, mod.mutantlar(tam))
             gecti = (("M99", "preload") in ba3) and not ic3
         finally:
             mod.MUTANT_ON_KOSUL.clear()
@@ -127,6 +144,31 @@ def vakalar(mod):
         sonuc.append((
             "V5 eksen VAR + mutant YOK -> CAPA-BAYAT (ICERIK'e YAZILMAZ)",
             gecti, "bayat=%s icerik=%s" % (ba3, ic3)))
+
+    # V5b — ICERIK-TUREVI kolunun KENDI vakasi (9 Eyl 2026, K392). V1 artik ucuncu
+    #       kovaya dustugu icin "ICERIK-TUREVI gercekten uretiliyor mu" sorusunun
+    #       ayri bir vakasi olmali; yoksa siniflamayi ters ceviren mutant (MA)
+    #       hicbir vakayi dusuremez ve KACAR ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
+    #       Kurgu: menzil ACIK (icerik tam) ama MENZILE BAGLI OLMAYAN bir eksen
+    #       (preconnect) metinden SILINMIS -> o eksenin mutantlari ICERIK-TUREVI.
+    if tam is not None:
+        tam_precsiz = re.sub(r'<link\b[^>]*\brel="preconnect"[^>]*>\s*', "", tam)
+        eski = dict(mod.MUTANT_ON_KOSUL)
+        try:
+            mod.MUTANT_ON_KOSUL["M97"] = "preconnect"
+            ic4, ba4, kd4 = mod.eksik_mutant_sebebi(tam_precsiz,
+                                                    mod.mutantlar(tam_precsiz))
+        finally:
+            mod.MUTANT_ON_KOSUL.clear()
+            mod.MUTANT_ON_KOSUL.update(eski)
+        hal4 = mod.on_kosul_hali(tam_precsiz)
+        sonuc.append((
+            "V5b eksen METINDE YOK + menzil ACIK -> ICERIK-TUREVI (BAYAT'a yazilmaz)",
+            (not hal4["preconnect"]) and ("M97", "preconnect") in ic4
+            and ("M97", "preconnect") not in ba4
+            and ("M97", "preconnect") not in kd4,
+            "preconnect_hal=%s icerik=%s bayat=%s kapsam=%s"
+            % (hal4["preconnect"], ic4, ba4, kd4)))
 
     # V6 — S2 DAVRANIS testi: mutant sayisi esigin ALTINDA iken bile capa TUTMAYAN
     #      mutant RAPORLANIR mi? Eski hal erken return ile bunu maskeliyordu.
@@ -192,9 +234,19 @@ def maskeleme_kalkti_mi(mod):
 
 # ---------------------------------------------------------------- mutantlar
 MUTANTLAR = [
+    # 9 Eyl 2026 (K392): siniflama IKI kovadan UCE cikti; MA'nin capasi yeni govdeye
+    # nisanlandi. MA hala AYNI iddiayi olcer: "ICERIK-TUREVI ile CAPA-BAYAT ayrimi
+    # GERCEKTEN yapiliyor mu" — ters cevrilince V1/V5 tabandan SAPMALI.
     ("MA sinif ters cevrildi: her eksik CAPA-BAYAT sayilir",
-     "(icerik if not hal.get(eksen, True) else bayat).append",
-     "(bayat if not hal.get(eksen, True) else bayat).append"),
+     "        elif not hal.get(eksen, True):\n            icerik.append((kimlik, eksen))",
+     "        elif not hal.get(eksen, True):\n            bayat.append((kimlik, eksen))"),
+    # MA2 UCUNCU KOVA KAPATILIR: kapsam-disi kolu sokulunce menzil daraltmasi
+    # yok olur ve canli taban yeniden "ICERIK EKSIK" sanilir (5-9 Eyl arizasi).
+    ("MA2 ucuncu kova SOKULUR (kapsam-disi -> icerik-turevi)",
+     "        if eksen in MENZILE_BAGLI_EKSEN and not hal.get(\"gorsel-lcp-adayi\", True):\n"
+     "            kapsam_disi.append((kimlik, eksen))",
+     "        if False:\n"
+     "            kapsam_disi.append((kimlik, eksen))"),
     ("MB on_kosul_hali korlesti: her eksen VAR der",
      "return {\"preload\": pre, \"fetchpriority\": yuksek, \"preconnect\": prec,",
      "return {\"preload\": True, \"fetchpriority\": True, \"preconnect\": True,"),

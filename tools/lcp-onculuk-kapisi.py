@@ -111,6 +111,32 @@ def _tum_kaynaklar(g):
     return [k for liste in _blok_kaynaklari(g) for k in liste]
 
 
+def eager_gorsel_adaylari(imgler, bloklar):
+    """Sayfanin GORSEL LCP adaylari — TEK TANIM (A kolu da B kolu da bunu cagirir;
+    ikinci bir tanim yazmak bu depoda sessizce ayrisan ikiz uretir).
+
+    Aday sayilmanin IKI yolu var:
+      (1) <img fetchpriority="high"> — YAZAR "LCP'm budur" diye BEYAN etmistir;
+          `loading="lazy"` ile birlikte yazilmis olsa bile aday sayilir. Lazy,
+          gorus alanindaki bir gorseli agdan CIKARMAZ ve celiskili isaretlemede
+          fail-closed davranmak dogrudur
+          ([[lazy-fetchpriority-gorus-alanindaki-gizli-gorseli-agdan-cikarmaz]]).
+      (2) bir <picture> blogunun ICINDEKI, `loading="lazy"` OLMAYAN <img> — duyarli
+          banner yaminin eager kolu.
+    Bunlarin disi (rozet/ikon gibi picture'siz kucuk <img>'ler ve lazy banner'lar)
+    on-yukleme eksenlerinin menzilinde DEGILDIR.
+    """
+    picture_govdesi = "".join(bloklar)
+    adaylar = []
+    for t in imgler:
+        lazy = (oznitelik(t, "loading") or "").lower() == "lazy"
+        if oznitelik(t, "fetchpriority") == "high":
+            adaylar.append(t)
+        elif t in picture_govdesi and not lazy:
+            adaylar.append(t)
+    return adaylar
+
+
 def tara(ham):
     """index.html metnini olcer; (hatalar, sayimlar) dondurur. Bos/ayristirilamaz
     girdide 'sapma yok' DEMEZ — OLCULEMEDI hatasi uretir."""
@@ -167,10 +193,29 @@ def tara(ham):
                     "ILK destekledigi kolu secer, yani AVIF ASLA servis edilmez "
                     "(dosyalar bosuna yuklenmis olur, hata sessizdir)" % ters)
 
+    # --- MENZIL TURETIMI (9 Eyl 2026, K392): SAYFANIN GORSEL LCP ADAYI VAR MI? -------
+    # 🔴 SINIF: A2/A3/A4/A9 "ekranin ustunde on-yuklenecek BIR GORSEL VAR" oncululune
+    # dayanir. 5 Eyl'de o oncul KOKTEN cürüdü: `63a48f7a` foto-slider'i SOKTU ve vitrini
+    # metne cevirdi (Okan onayli tasarim). Commit govdesi ve index.html <head> yorumu
+    # ayni seyi yaziyor: "on-yuklenecek LCP gorseli YOK; olu preload LCP'yi duzeltmez,
+    # BOZAR". Kapi bunu goremedigi icin 4 gun boyunca DOGRU davranisi kirmiziya yakti
+    # ([[kaldirilan-ozelligi-olcen-kapi]] sinifi — K366'nin kardesi).
+    #
+    # Menzil BEYANDAN DEGIL, METINDEN turer: "eager gorsel adayi" =
+    #   (a) bir <picture> blogunun ICINDEKI <img>, ya da (b) fetchpriority="high" tasiyan
+    #   HERHANGI bir <img> — ve `loading="lazy"` OLMAYAN.
+    # Aday 0 ise on-yukleme eksenleri KAPSAM DISI'dir (YESIL degil, YOK). Aday >=1 olur
+    # olmaz eski iddia AYNEN geri gelir: tam 1 fetchpriority=high + tam 1 preload.
+    # Yani banner geri gelirse kapi yeniden kirmizi yanar; gevseme YOK, menzil DARALDI
+    # ([[olculemedi-bypass-degil-menzil-daraltmasi]]).
+    adaylar = eager_gorsel_adaylari(imgler, bloklar)
+    sayim["eager_gorsel_adayi"] = len(adaylar)
+    gorsel_lcp_menzilde = len(adaylar) > 0
+
     # --- A2 LCP isareti: fetchpriority=high TEK bir <img>'de ------------------------
     yuksek = [t for t in imgler if oznitelik(t, "fetchpriority") == "high"]
     sayim["fetchpriority_high"] = len(yuksek)
-    if len(yuksek) != 1:
+    if gorsel_lcp_menzilde and len(yuksek) != 1:
         hata.append("A2: fetchpriority=\"high\" tasiyan <img> sayisi %d (tam 1 olmali — "
                     "sifir ise LCP oncelenmiyor, birden fazlaysa oncelik anlamsizlasiyor)"
                     % len(yuksek))
@@ -179,12 +224,20 @@ def tara(ham):
     on_yuklemeler = [t for t in _PRELOAD_RE.findall(g)
                      if oznitelik(t, "as") == "image" and oznitelik(t, "imagesrcset")]
     sayim["preload_image"] = len(on_yuklemeler)
-    if len(on_yuklemeler) != 1:
+    if gorsel_lcp_menzilde and len(on_yuklemeler) != 1:
         hata.append("A3: as=\"image\" + imagesrcset tasiyan <link rel=preload> sayisi %d "
                     "(tam 1 olmali)" % len(on_yuklemeler))
+    # A3b — TERS YON (menzil daraltmasinin bedeli): gorsel adayi YOKKEN duran bir
+    # preload "olu preload"dur; gercek (metin) LCP'nin onune gecer. Daraltma bu yuzden
+    # iki yonludur: aday yoksa preload da OLMAMALI.
+    if not gorsel_lcp_menzilde and len(on_yuklemeler) != 0:
+        hata.append("A3b: eager gorsel adayi 0 ama %d adet as=\"image\" preload duruyor "
+                    "— OLU PRELOAD: hicbir zaman kullanilmayacak bir gorseli yuksek "
+                    "oncelikle indirir ve gercek (metin) LCP'yi GECIKTIRIR"
+                    % len(on_yuklemeler))
 
     # --- A4 + A9 IKIZ TANIM: preload <-> LCP <source> BIREBIR mi ----------------------
-    if len(on_yuklemeler) == 1 and len(yuksek) == 1:
+    if gorsel_lcp_menzilde and len(on_yuklemeler) == 1 and len(yuksek) == 1:
         p_srcset = on_yuklemeler[0]
         pre_set = oznitelik(p_srcset, "imagesrcset") or ""
         pre_siz = oznitelik(p_srcset, "imagesizes") or ""
@@ -369,6 +422,36 @@ def mutantlar(ham):
                                                    'type="image/webp"', 1), 1),
                       True))
 
+    # --- N1/N2 (9 Eyl 2026, K392): MENZIL DARALTMASININ DISLERI --------------------
+    # Bu iki mutant, gorsel LCP adayi YOKKEN de URETILEBILIR — yani daraltmanin
+    # gecerli oldugu halde batarya bos kalmaz. Daraltma bir bypass DEGILSE, bu ikisi
+    # OLMEK ZORUNDA ([[mutantli-kosumla-tabanla-ayniysa-mutant-ulasmadi]]).
+    #
+    # N1: aday yokken preload enjekte edilir -> A3b "olu preload" KIRMIZI yakmali.
+    if "</head>" in ham:
+        liste.append(("N1 OLU PRELOAD enjekte edilir (gorsel adayi YOKKEN)",
+                      ham.replace("</head>",
+                                  '<link rel="preload" as="image" '
+                                  'imagesrcset="https://media.pruvo3d.com/banner/x-v2-688.webp 688w" '
+                                  'imagesizes="100vw" type="image/webp">\n</head>', 1),
+                      True))
+    # N2: lazy bir <picture> gorseli EAGER yapilir (banner geri gelmis gibi) ->
+    # menzil ACILIR ve A2/A3 iddiasi AYNEN geri gelir, preload olmadigi icin KIRMIZI.
+    if 'loading="lazy"' in g:
+        _hedef = None
+        for blok in _PICTURE_BLOK.findall(g):
+            for t in _IMG_RE.findall(blok):
+                if (oznitelik(t, "loading") or "").lower() == "lazy":
+                    _hedef = t
+                    break
+            if _hedef:
+                break
+        if _hedef and _hedef in ham:
+            liste.append(("N2 lazy <picture> gorseli EAGER yapilir (banner geri gelir)",
+                          ham.replace(_hedef,
+                                      _hedef.replace(' loading="lazy"', "", 1), 1),
+                          True))
+
     # KONTROL: olcum yuzeyine DOKUNMAYAN degisiklik YESIL kalmali.
     liste.append(("K1 KONTROL — alakasiz metin degisti (YESIL kalmali)",
                   ham.replace("Keşfet", "Kesfet"), False))
@@ -391,11 +474,27 @@ MUTANT_ON_KOSUL = {
     "M6": "preconnect",
     "M7": "srcset",
     "M9": "picture-avif", "M11": "picture-avif",
+    "N1": "-", "N2": "picture-lazy",
     "K1": "-",
 }
+# 🔴 UCUNCU KOVA (9 Eyl 2026, K392): "eksen ham metinde YOK" ile "eksen KAPSAM DISI"
+# ayni sey DEGIL. Iki kovali siniflama ucuncu sinifi yutuyordu: gorsel LCP adayi
+# olmayan bir sayfada preload/fetchpriority eksenleri EKSIK degil, YERINDE YOK —
+# A kolu onlari zaten olcmuyor. Bu mutantlari "uretilemedi" sayip OLCULEMEDI basmak
+# kapiyi DOGRU davranista kirmiziya yakar ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+# Kapsam disi eksenler esikten DUSER; menzil acilir acilmaz esige geri GIRERLER.
+MENZILE_BAGLI_EKSEN = ("preload", "fetchpriority")
 # Esik TABLODAN turer; ikinci bir sabit (magic 12) TUTULMAZ — tablo buyuyunce
-# esik kendiliginden buyur, iki kaynak birbirinden SAPAMAZ.
+# esik kendiliginden buyur, iki kaynak birbirinden SAPAMAZ. Bu, MENZIL ACIKKEN
+# gecerli TAM esiktir; daraltilmis hali beklenen_mutant_sayisi() dondurur.
 BEKLENEN_MUTANT = len(MUTANT_ON_KOSUL)
+
+
+def beklenen_mutant_sayisi(hal):
+    """Esik TABLODAN turer (magic sabit YOK) ve MENZILE gore daralir."""
+    if hal.get("gorsel-lcp-adayi", True):
+        return BEKLENEN_MUTANT
+    return sum(1 for e in MUTANT_ON_KOSUL.values() if e not in MENZILE_BAGLI_EKSEN)
 
 
 def on_kosul_hali(ham):
@@ -412,20 +511,36 @@ def on_kosul_hali(ham):
         if any(oznitelik(t, "type") == "image/avif" for t in etiketler):
             avif = True
             break
+    # Menzil ekseni A kolundaki turetimin AYNISIDIR (ikinci bir tanim yazilmaz):
+    # eager gorsel adayi = <picture> icindeki ya da fetchpriority=high olan,
+    # loading="lazy" OLMAYAN <img>.
+    bloklar = _PICTURE_BLOK.findall(g)
+    picture_govdesi = "".join(bloklar)
+    imgler = _IMG_RE.findall(g)
+    lazy_picture = any(t in picture_govdesi
+                       and (oznitelik(t, "loading") or "").lower() == "lazy"
+                       for t in imgler)
+    aday = bool(eager_gorsel_adaylari(imgler, bloklar))
     return {"preload": pre, "fetchpriority": yuksek, "preconnect": prec,
-            "srcset": srcset, "picture-avif": avif, "-": True}
+            "srcset": srcset, "picture-avif": avif,
+            "picture-lazy": lazy_picture, "gorsel-lcp-adayi": aday, "-": True}
 
 
 def eksik_mutant_sebebi(ham, mut):
     """(icerik_turevi, capa_bayat) — eksik mutantlari OLCULEN on-kosula gore ayirir."""
     uretilen = set(ad.split(" ", 1)[0] for ad, _b, _k in mut)
     hal = on_kosul_hali(ham)
-    icerik, bayat = [], []
+    icerik, bayat, kapsam_disi = [], [], []
     for kimlik, eksen in sorted(MUTANT_ON_KOSUL.items()):
         if kimlik in uretilen:
             continue
-        (icerik if not hal.get(eksen, True) else bayat).append((kimlik, eksen))
-    return icerik, bayat
+        if eksen in MENZILE_BAGLI_EKSEN and not hal.get("gorsel-lcp-adayi", True):
+            kapsam_disi.append((kimlik, eksen))
+        elif not hal.get(eksen, True):
+            icerik.append((kimlik, eksen))
+        else:
+            bayat.append((kimlik, eksen))
+    return icerik, bayat, kapsam_disi
 
 
 def main():
@@ -460,9 +575,18 @@ def main():
     # mutantlar arasindaki olu capalar da gorunmez oluyordu
     # ([[fail-closed-kol-arkasindaki-kolu-maskeler]]).
     tutmayan = [ad for ad, bozuk, _k in mut if bozuk == ham]
-    if len(mut) < BEKLENEN_MUTANT:
-        icerik, bayat = eksik_mutant_sebebi(ham, mut)
-        print("   OLCULEMEDI: %d/%d mutant uretilebildi." % (len(mut), BEKLENEN_MUTANT))
+    hal = on_kosul_hali(ham)
+    beklenen_mutant = beklenen_mutant_sayisi(hal)
+    icerik, bayat, kapsam_disi = eksik_mutant_sebebi(ham, mut)
+    if kapsam_disi:
+        print("   KAPSAM DISI (%d) — sayfada eager gorsel LCP adayi YOK, on-yukleme "
+              "eksenleri A kolunda da olculmuyor; bu mutantlar EKSIK degil, YERINDE "
+              "YOK. Aday geri gelir gelmez esige de iddiaya da geri girerler:"
+              % len(kapsam_disi))
+        for kimlik, eksen in kapsam_disi:
+            print("        %-4s eksen=%s" % (kimlik, eksen))
+    if len(mut) < beklenen_mutant:
+        print("   OLCULEMEDI: %d/%d mutant uretilebildi." % (len(mut), beklenen_mutant))
         if icerik:
             print("   SEBEP=ICERIK-TUREVI (%d) — on-kosul ekseni ham metinde YOK; "
                   "A kolundaki eksik icerik duzelince bu mutantlar KENDILIGINDEN doner:"

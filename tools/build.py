@@ -360,9 +360,11 @@ GA_HEAD_SNIPPET = """<!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVK
      (pruvo_onay_analitik === "kabul"): riza yoksa olay GONDERILMEZ.
      Yalniz beyaz listedeki olay adlari gecer; bilinmeyen ad sessizce DUSER. Satin alma
      olayi SUNUCUDAN gider — buradan da gonderilse ayni islem IKI KEZ sayilirdi.
-     Olay parametresine YALNIZ katalog alanlari girer (item_id/item_name/item_category/
-     price/quantity/currency/value); kisisel veri (ad/telefon/e-posta/adres) GIRMEZ. */
-  window.PRUVO_GA4_OLAYLARI = ['view_item','add_to_cart','begin_checkout'];
+     Olay parametresine YALNIZ katalog alanlari (item_id/item_name/item_category/
+     price/quantity/currency/value) ile KATEGORIK temas noktasi etiketi `method`
+     (help_cta | cart_order | satir_soru — sabit kume, kullanicidan TURETILMEZ) girer;
+     kisisel veri (ad/telefon/e-posta/adres) GIRMEZ. */
+  window.PRUVO_GA4_OLAYLARI = ['view_item','add_to_cart','begin_checkout','generate_lead'];
   window.pruvoGA4Track = function(olay, veri){
     try { if(localStorage.getItem('pruvo_onay_analitik') !== 'kabul'){ return; } } catch(e){ return; }
     var a = window.PRUVO_GA4_OLAYLARI, i;
@@ -4139,7 +4141,8 @@ def render_product(p, all_products, chip_map=None):
 <section class="help-cta">
   <div class="help-cta-inner">
     <span class="help-cta-text">Aradığınız parçayı bulamadınız mı? <strong>Bizimle iletişime geçin, üretelim!</strong></span>
-    <a class="help-cta-btn" href="{help_wa}" target="_blank" rel="noopener">{icon} <span class="wa-uzun">Bizimle </span>İletişime Geçin</a>
+    <a class="help-cta-btn" href="{help_wa}" target="_blank" rel="noopener"
+       onclick="window.pruvoGA4Track('generate_lead',{{method:'help_cta'}});">{icon} <span class="wa-uzun">Bizimle </span>İletişime Geçin</a>
   </div>
 </section>
 

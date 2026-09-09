@@ -62,6 +62,24 @@ HUNI = {
     "InitiateCheckout": "begin_checkout",
     "Purchase": "purchase",
 }
+# GA4-ONLY OLAYLAR — Meta ikizi YOK ve bu BILEREK boyle (K388, 9 Eyl 2026).
+# Eski model beyaz listenin HUNI'nin istemci ayagina BIREBIR esit olmasini isterdi;
+# o esitlik iki ayri iddiayi tek satirda tasiyordu: (1) her huni noktasi beyaz
+# listede VAR, (2) beyaz listede BASKA HICBIR SEY yok. (2) dogru bir guard ama
+# e-ticaret disi hicbir olayin olculmesine izin vermiyordu — `generate_lead`
+# (WhatsApp temasi) 7 Eyl'de index.html'e girince kapi yapisal olarak kirmiziya
+# dustu ve iki gun oyle kaldi.
+# Yeni model: beyaz liste == huni istemci ayagi ∪ ASAGIDA BEYAN EDILEN kume.
+# Guard KORUNUR — beyan EDILMEMIS bir ad beyaz listeye girerse kapi KIRMIZI yanar.
+# Beyan bedava DEGIL: her kalemin izlenen agacta EN AZ BIR cagri yeri olmali,
+# yoksa "olu beyan" olarak KIRMIZI yanar.
+# 🔴 Meta ikizi (Lead) BUGUN ATESLENMIYOR. Esleme UYDURULMAZ: Meta ayagi acilinca
+# kalem buradan HUNI'ye "Lead": "generate_lead" olarak TASINIR.
+HUNI_DISI = {
+    "generate_lead": "WhatsApp temas noktasi (help_cta | cart_order | satir_soru) — "
+                     "Meta ikizi (Lead) atesenmiyor, esleme uydurulmadi (K388)",
+}
+
 # Istemciden GONDERILMEYECEK olay: sunucu ayni islemi transaction_id ile zaten atiyor;
 # istemci de atarsa ciro IKI KEZ sayilir ve kampanya karari yanlis veriye dayanir.
 SUNUCU_TARAFI = "purchase"
@@ -154,9 +172,18 @@ def bolum_a(kok):
     kontrol(len(beyaz) >= 3, "beyaz liste dolu: %s" % ", ".join(beyaz))
     kontrol(SUNUCU_TARAFI not in beyaz,
             "cift sayim kapisi: '%s' beyaz listede DEGIL (sunucudan gidiyor)" % SUNUCU_TARAFI)
-    bekleyen = sorted(v for k, v in HUNI.items() if v != SUNUCU_TARAFI)
+    huni_ayagi = set(v for k, v in HUNI.items() if v != SUNUCU_TARAFI)
+    bekleyen = sorted(huni_ayagi | set(HUNI_DISI))
     kontrol(sorted(beyaz) == bekleyen,
-            "beyaz liste == huni eslemesinin istemci ayagi (%s)" % ", ".join(bekleyen))
+            "beyaz liste == huni istemci ayagi + BEYAN EDILEN GA4-only olaylar (%s)"
+            % ", ".join(bekleyen))
+    # Guardin ikinci yarisi: beyan bedava olmasin. Iki yonlu — beyan edilmemis ad
+    # beyaz listeye giremez (ustteki esitlik), beyan edilen ad da beyaz listede
+    # OLMAK zorunda (asagidaki fark). Boylece HUNI_DISI bir bypass listesi degil,
+    # ayni sertlikte ikinci bir kanonik kume olur.
+    kontrol(not (set(HUNI_DISI) - set(beyaz)),
+            "beyan edilen GA4-only olaylarin hepsi beyaz listede (%s)"
+            % ", ".join(sorted(HUNI_DISI)))
     kontrol("localStorage.getItem('pruvo_onay_analitik') !== 'kabul'" in gonderici,
             "gonderici Meta ile AYNI riza anahtarina bagli (riza yoksa erken doner)")
 
@@ -177,8 +204,14 @@ def bolum_b(kok):
     if izlenen is None:
         olculemedi("git ls-files basarisiz — evren turetilemedi")
         return
-    meta_kalip = re.compile(r'pruvoMetaTrack\(\s*"([A-Za-z]+)"')
-    ga4_kalip = re.compile(r'pruvoGA4Track\(\s*"([a-z_]+)"')
+    # 🔴 TIRNAK EKSENI (K388, 9 Eyl 2026): eski kalip YALNIZ cift tirnak ariyordu.
+    # index.html'in uc `pruvoGA4Track('generate_lead',...)` cagri yeri TEK tirnakli
+    # yazilmisti ve kapinin evreninde HIC GORUNMEDI ("GA4 cagri noktalari" satiri
+    # onlari basmadi). Evren daraldigi icin "olu beyan" gibi bir kol da yazilamazdi.
+    # Kalip artik iki tirnagi da alir; genisleme yalniz EKLER, hicbir iddiayi
+    # gevsetmez (kesisim kollari buyur, 'purchase' yasagi ise SERTLESIR).
+    meta_kalip = re.compile(r'pruvoMetaTrack\(\s*["\']([A-Za-z]+)["\']')
+    ga4_kalip = re.compile(r'pruvoGA4Track\(\s*["\']([a-z_]+)["\']')
     meta_yerler, ga4_yerler = {}, {}
     for rel in izlenen:
         if not rel.endswith((".html", ".js", ".py")):
@@ -217,6 +250,15 @@ def bolum_b(kok):
         kontrol(bool(ortak),
                 "%s -> %s ikizi AYNI dosyada (%s)"
                 % (meta_ad, ga4_ad, ", ".join(sorted(ortak)) or "YOK"))
+
+    # OLU BEYAN KOLU — HUNI_DISI bir muafiyet listesi degil, kanitlanan bir kume:
+    # beyan edilen her olayin izlenen agacta EN AZ BIR gercek cagri yeri olmali.
+    # Boylece "beyaz listeye ekle, kapiyi sustur" yolu KAPALI kalir.
+    for ad in sorted(HUNI_DISI):
+        yerler = sorted(ga4_yerler.get(ad, set()))
+        kontrol(bool(yerler),
+                "GA4-only '%s' fiilen cagriliyor (%s)"
+                % (ad, ", ".join(yerler) or "CAGRI YERI YOK — OLU BEYAN"))
 
     # Purchase: istisna ELLE BEYAN DEGIL, uc ayri kanitla olculur.
     sunucu = _oku(kok, SUNUCU_KAYNAK)

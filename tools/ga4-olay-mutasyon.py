@@ -24,7 +24,13 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 KAPI = os.path.join(TOOLS, "ga4-olay-kapisi.py")
 
-# (ad, dosya, eski, yeni, beklenen_kirmizi)
+# IKI BICIM (9 Eyl 2026, K388):
+#   klasik  : (ad, dosya, eski, yeni, beklenen_kirmizi)
+#   cok-yerli: (ad, [(dosya, eski, yeni), ...], beklenen_kirmizi)
+# Cok-yerli bicim, ayni iddianin BIRDEN COK uretecte tasindigi hallerde gerekir:
+# tek uretecte sokulen bir cagri yeri, oteki uretecler onu hala tasidigi icin
+# kapiyi kirmiziya YAKMAZ — o mutant "sag kaldi" diye degil, EKSIK KURULDUGU icin
+# kacar ([[mutant-capasi-giris-noktasinin-okumadigi-degerde-olmez]]).
 MUTANTLAR = [
     ("M1 urun goruntuleme olayi sokulur",
      "tools/build.py",
@@ -46,10 +52,47 @@ MUTANTLAR = [
      "  window.pruvoGA4Track = function(olay, veri){",
      "  window.pruvoGA4TrackBaskaAd = function(olay, veri){", True),
 
+    # 🔴 CAPA (9 Eyl 2026): beyaz liste satiri `generate_lead` ile BUYUDU (K388).
+    # Eski capa satirin ESKI halini tasidigi icin M5 "CAPA YOK" verip SESSIZCE
+    # dusmustu — mutant olmedi, KACTI. Capa artik satirin KAPANISINA nisanli:
+    # yeni bir olay eklendiginde de yerinde kalir.
     ("M5 satin alma beyaz listeye eklenir (cift sayim yolu acilir)",
      "tools/build.py",
-     "window.PRUVO_GA4_OLAYLARI = ['view_item','add_to_cart','begin_checkout'];",
-     "window.PRUVO_GA4_OLAYLARI = ['view_item','add_to_cart','begin_checkout','purchase'];",
+     "'generate_lead'];",
+     "'generate_lead','purchase'];",
+     True),
+
+    # --- K388 yeni guard: beyaz liste == huni ayagi ∪ BEYAN EDILEN GA4-only kume ---
+    ("M11 BEYAN EDILMEMIS bir olay beyaz listeye eklenir (kapsam genislemesi)",
+     "tools/build.py",
+     "'generate_lead'];",
+     "'generate_lead','beyan_edilmemis_olay'];",
+     True),
+
+    ("M12 beyan edilen GA4-only olay beyaz listeden DUSER (beyan <-> liste ayrisir)",
+     "tools/build.py",
+     "'begin_checkout','generate_lead'];",
+     "'begin_checkout'];",
+     True),
+
+    ("M13 beyan VAR ama cagri yeri YOK (olu beyan) — UC uretecin UCUNDE de sokulur",
+     [("tools/build.py",
+       "window.pruvoGA4Track('generate_lead',{{method:'help_cta'}});",
+       "/* sokuldu */"),
+      ("tools/marka_model_build.py",
+       "window.pruvoGA4Track('generate_lead',{method:'help_cta'});",
+       "/* sokuldu */"),
+      # index.html'de UC ayri temas noktasi var (help_cta | cart_order | satir_soru);
+      # BIRI kalirsa "olu beyan" kolu hakli olarak YESIL kalir ve mutant EKSIK kurulur.
+      ("index.html",
+       "window.pruvoGA4Track('generate_lead',{method:'help_cta'});",
+       "/* sokuldu */"),
+      ("index.html",
+       "window.pruvoGA4Track('generate_lead',{method:'cart_order'});",
+       "/* sokuldu */"),
+      ("index.html",
+       "window.pruvoGA4Track('generate_lead',{method:'satir_soru'});",
+       "/* sokuldu */")],
      True),
 
     ("M6 riza kapisi gondericiden kaldirilir",
@@ -88,6 +131,17 @@ MUTANTLAR = [
 ]
 
 
+def duzenlemeler(m):
+    """Mutant kaydini (klasik ya da cok-yerli) [(dosya, eski, yeni), ...] yapar."""
+    if len(m) == 5:
+        return [(m[1], m[2], m[3])]
+    return list(m[1])
+
+
+def kirmizi_bekleniyor(m):
+    return m[-1]
+
+
 def kapi_kos():
     kok_cache = os.path.join(TOOLS, "__pycache__")
     shutil.rmtree(kok_cache, ignore_errors=True)
@@ -107,10 +161,11 @@ def main():
     # AYRICA olculur. "finally ile geri aliyorum" bir BEYANDIR; kanit ozet esitligidir
     # ([["olculdu" diyen hukum kaniti]]). Geri gelmediyse batarya KIRMIZI biter.
     ozetler = {}
-    for _, rel, _, _, _ in MUTANTLAR:
-        yol = os.path.join(ROOT, rel)
-        with open(yol, "rb") as f:
-            ozetler[rel] = hashlib.sha256(f.read()).hexdigest()
+    for m in MUTANTLAR:
+        for rel, _, _ in duzenlemeler(m):
+            yol = os.path.join(ROOT, rel)
+            with open(yol, "rb") as f:
+                ozetler[rel] = hashlib.sha256(f.read()).hexdigest()
 
     rc, cikti = kapi_kos()
     if rc != 0:
@@ -119,23 +174,39 @@ def main():
         return 3
     print("  taban: kapi YESIL (rc=0) — mutasyon baslayabilir\n")
 
-    oldurucu = [m for m in MUTANTLAR if m[4]]
+    oldurucu = [m for m in MUTANTLAR if kirmizi_bekleniyor(m)]
     dusen, hatali = 0, []
-    for ad, rel, eski, yeni, kirmizi_bekle in MUTANTLAR:
-        yol = os.path.join(ROOT, rel)
-        with open(yol, encoding="utf-8") as f:
-            asil = f.read()
-        if asil.count(eski) < 1:
-            hatali.append("%s — capa bulunamadi (%s)" % (ad, rel))
-            print("  ⚠️  %s -> CAPA YOK (%s)" % (ad, rel))
+    for m in MUTANTLAR:
+        ad, kirmizi_bekle = m[0], kirmizi_bekleniyor(m)
+        duzen = duzenlemeler(m)
+        asillar, eksik = {}, []
+        for rel, eski, _ in duzen:
+            yol = os.path.join(ROOT, rel)
+            with open(yol, encoding="utf-8") as f:
+                asillar[rel] = f.read()
+            if asillar[rel].count(eski) < 1:
+                eksik.append(rel)
+        # 🔴 Cok-yerli mutantta TEK bir capa bile dusmusse mutant EKSIK kurulur ve
+        # "sag kaldi" gibi degil, CAPA YOK olarak raporlanir — sessiz kacis YOK.
+        if eksik:
+            hatali.append("%s — capa bulunamadi (%s)" % (ad, ", ".join(eksik)))
+            print("  ⚠️  %s -> CAPA YOK (%s)" % (ad, ", ".join(eksik)))
             continue
         try:
-            with open(yol, "w", encoding="utf-8") as f:
-                f.write(asil.replace(eski, yeni, 1))
+            # 🔴 AYNI DOSYAYA BIRDEN COK duzenleme birikerek uygulanir. Her duzenlemeyi
+            # asil govde uzerinden yazmak, ayni dosyanin ikinci duzenlemesi birinciyi
+            # GERI ALDIGI icin mutanti EKSIK kurar ve "sag kaldi" gibi gorunur.
+            yeni_govde = dict(asillar)
+            for rel, eski, yeni in duzen:
+                yeni_govde[rel] = yeni_govde[rel].replace(eski, yeni, 1)
+            for rel, govde in yeni_govde.items():
+                with open(os.path.join(ROOT, rel), "w", encoding="utf-8") as f:
+                    f.write(govde)
             rc, _ = kapi_kos()
         finally:
-            with open(yol, "w", encoding="utf-8") as f:
-                f.write(asil)
+            for rel in asillar:
+                with open(os.path.join(ROOT, rel), "w", encoding="utf-8") as f:
+                    f.write(asillar[rel])
         if kirmizi_bekle:
             if rc != 0:
                 dusen += 1

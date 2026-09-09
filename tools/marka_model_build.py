@@ -2333,8 +2333,19 @@ def _huni_blok(esc, baslik, govde, prefill, cta):
         '<div class="mm-huni">'
         '<h2>' + esc(baslik) + '</h2>'
         '<p>' + esc(govde) + '</p>'
+        # K388: WhatsApp tiklamasi = lead. `method` SABIT KUME'den secilir
+        # (help_cta | cart_order | satir_soru); bu buton "bizimle iletisime gec"
+        # sinifidir -> help_cta. Yeni deger UYDURULMAZ: kume GA cekirdeginin
+        # yorumunda beyan edilidir ve genisletmek ArTisT/Okan kapisidir.
         '<a class="mm-wa" href="' + _wa_href(esc, prefill) + '" target="_blank" '
-        'rel="noopener">' + esc(cta) + '</a>'
+        'rel="noopener" '
+        # Python dizesi CIFT tirnakli yazilir ki gonderici cagrisi govdede KACISSIZ
+        # dursun; `\'` kacisli yazilirsa ga4-olay-kapisi'nin cagri-yeri kalibi bu
+        # dosyayi GORMEZ (evren daralir).
+        # 🔴 Bu yorumda cagri dizesinin KENDISI TEKRARLANMAZ: artik yuzey, cagri
+        # yerini sokuen mutanti korlestirir ([[artik-yuzey-mutant-dedektorunu-korlestirir]]).
+        "onclick=\"window.pruvoGA4Track('generate_lead',{method:'help_cta'});\">"
+        + esc(cta) + '</a>'
         '</div>'
     )
 

@@ -404,8 +404,15 @@ def calistir(ev, sessiz=False):
         for uid, baslik, gerekce in yeni:
             print("  * %s | %s | %s" % (uid, baslik[:64], gerekce))
         print("")
+        # 🔴 `ISCIYE:` isareti ZORUNLU (K179/recete-kapisi, 9 Eyl 2026): bu recete
+        # URUN duzlemine (MaCiT) yazilir — `duzelt.py` mevcut kaydi DEGISTIREN tek
+        # mesru aractir ve MIMAR onu kosmaz (CLAUDE.md: "KraL urunu YAZMAZ").
+        # Isaretsiz birakilirsa recete mimar-icra-kapisi'na sorulur, REDDEDILIR ve
+        # `recete-kapisi.py` SERIT B'yi kirmiziya yakar (7 Eyl'den beri oyleydi).
+        # Isaret kapiyi GEVSETMEZ: yol nobeti aynen surer, yalniz recetenin HANGI
+        # KATA yazildigini beyan eder.
         print("Durust-sinir beyani bu sinifi kapsam DISI ilan ediyor "
-              "(kaynak: tools/sayfalar.py, ~satir %d). COZUM: kaydi "
+              "(kaynak: tools/sayfalar.py, ~satir %d). COZUM: ISCIYE: (urun duzlemi) kaydi "
               "`python3 tools/duzelt.py --toplu <islem.json>` ile `gizli:true` yap "
               "(URUN SILINMEZ) ya da gercekten hava/aksesuar duzlemindeyse "
               "MUAFIYET_SICILI'ne gerekcesiyle ekle ve SICIL_TAVANI'ni birlikte yukselt."
