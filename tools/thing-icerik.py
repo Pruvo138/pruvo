@@ -236,8 +236,38 @@ def denetim_birlestir(all_imgs, cap, out):
     return out
 
 
+# =============================================================================
+# K398 — CIKISI RC'DEN DEGIL ICERIKTEN YARGILA (fail-open kapatmasi)
+# =============================================================================
+# OLCULEN SINIR (9 Eyl 2026, tek tani cagrisi): `codex exec -m gpt-5.4-mini` 400
+# donerken bu makinede rc=**1** verdi ve cikti dosyasini HIC yazmadi — yani
+# "CLI hata basarken rc=0 doner" onculu BU KOSUMDA TEKRARLANMADI (durustce not:
+# hukum tek turdan verilmez, [[tek-turdan-hukum-verme-anomali-kolu]]).
+# AMA rc kolu TEK BASINA yargic olamaz ve bu OLCULEBILIR:
+#   (a) rc bir gun 0 donerse (surum/pipe/sarmalayici farki) hata govdesi SESSIZCE
+#       "basarili" sayilir ([[boru-rc-isci-olcumunu-yalanlar]] sinifi);
+#   (b) cikti yolu `.thing-cache/<id>/oneri.json`'dur ve ONCEKI kosumdan KALICI
+#       olabilir -> `os.path.exists` kolu bayat dosyayi bu kosumun kaniti sanar.
+# Bu yuzden: cagridan ONCE bayat cikti SILINIR, cagridan SONRA stdout+stderr hata
+# govdesine karsi taranir. Ikisi de bagimsiz kollardir.
+_HATA_DESEN = re.compile(r'"type"\s*:\s*"error"|invalid_request_error|'
+                         r'"status"\s*:\s*[45]\d\d', re.I)
+
+
+def hata_govdesi(stdout, stderr):
+    """CLI ciktisinda API HATA govdesi var mi? -> eslesen parca | None.
+
+    rc'ye BAKMAZ: bu kol rc kolundan BAGIMSIZ olmali, yoksa ikisi ayni korlugu
+    paylasir ([[oz-denetim-ayni-ayraci-kullanirsa-korlesir]])."""
+    m = _HATA_DESEN.search((stdout or "") + "\n" + (stderr or ""))
+    return m.group(0) if m else None
+
+
 def emekli_motor_cagir(prompt, imgler, cikti_yolu):
     """emekli motor exec calistir; son mesaji cikti_yolu'na SAF JSON olarak yazar."""
+    # BAYAT CIKTI KAPISI (K398-b): dosyanin VARLIGI bu kosumun kaniti OLSUN.
+    if os.path.exists(cikti_yolu):
+        os.unlink(cikti_yolu)
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as sf:
         json.dump(SEMA, sf)
         sema_yolu = sf.name
@@ -255,9 +285,16 @@ def emekli_motor_cagir(prompt, imgler, cikti_yolu):
     try:
         for deneme in range(TRIES):
             r = subprocess.run(cmd, input=prompt, capture_output=True, text=True)
-            if r.returncode == 0 and os.path.exists(cikti_yolu):
+            govde = hata_govdesi(r.stdout, r.stderr)
+            # UC KOL, HEPSI ZORUNLU: rc temiz + cikti YAZILDI + ciktida hata govdesi YOK.
+            # `govde is None` kolu K398'in kapatmasidir: rc yalan soylerse burasi tutar.
+            if r.returncode == 0 and os.path.exists(cikti_yolu) and govde is None:
                 return True, ""
-            hata = (r.stderr or r.stdout or "")[-300:]
+            if govde is not None and os.path.exists(cikti_yolu):
+                # Hata govdesi VARKEN yazilmis dosya birakma — cagiran "oneri var" sanar.
+                os.unlink(cikti_yolu)
+            hata = (("API HATA GOVDESI: " + govde + " | ") if govde else "") + \
+                   (r.stderr or r.stdout or "")[-300:]
             if deneme == TRIES - 1:
                 return False, hata
         return False, "bilinmeyen"

@@ -55,6 +55,18 @@ gmk = _load("gorsel_mukerrer_kapisi", "gorsel_mukerrer_kapisi.py")
 gbk = _load("gorsel_boyut_kapisi", "gorsel_boyut_kapisi.py")
 # R2 anahtar turetme TEK KAYNAK (satir-ici kopya YASAK, bkz tools/r2_anahtar.py)
 r2k = _load("r2_anahtar", "r2_anahtar.py")
+# DETERMINISTIK ICERIK YEDEGI (bkz tools/urun_icerik_det.py). Import KOSULSUZ: modul
+# kaybolursa betik ACILISTA coker; "dosyasi yoksa AI'ya duser" fail-open'i tam olarak
+# kapatilan tek-bacakliligi geri getirirdi.
+uicd = _load("urun_icerik_det", "urun_icerik_det.py")
+
+
+def _ai_bacagi(anahtar):
+    """AI bacagi: `thing-icerik.py` alt sureci. rc==0 -> True. YALNIZ izin acikken
+    cagirilir; basarisizligi HATA DEGIL bir BACAK SONUCUDUR (cagiran deterministige duser)."""
+    ai = subprocess.run([PY, os.path.join(TOOLS, "thing-icerik.py"), anahtar],
+                        capture_output=True, text=True)
+    return ai.returncode == 0
 
 sys.path.insert(0, _HERE)
 import drive_yolu
@@ -135,17 +147,18 @@ def process_one(did):
             return {"id": did, "durum": "ATLA: satilamaz lisans", "lisans": lic}
         if not meta.get("gorseller"):
             return {"id": did, "durum": "ATLA: gorsel indirilemedi"}
-        ai = subprocess.run([PY, os.path.join(TOOLS, "thing-icerik.py"), key], capture_output=True, text=True)
-        if ai.returncode != 0:
-            return {"id": did, "durum": "HATA: kredi kapisi — urun AI izni yok"}
-        onerip = os.path.join(CACHE, key, "oneri.json")
-        if not os.path.exists(onerip):
-            return {"id": did, "durum": "HATA: emekli motor oneri yok"}
-        o = json.load(open(onerip))
+        # ICERIK ADIMI — IKI BACAKLI (bkz tools/urun_icerik_det.py). ESKI HAL tek bacakti:
+        # rc!=0 ya da oneri.json yok -> URUN DUSER (emekli motor 400 dondugu gun 0/N STAGE).
+        # YENI HAL: AI YALNIZ PRUVO_URUN_AI_IZNI=EVET iken denenir; izin yoksa/AI dusrse
+        # urun DUSMEZ, deterministik ureteç calisir.
+        d = os.path.join(CACHE, key)
+        o, icerik_kaynak, icerik_not = uicd.icerik_sagla(
+            key, d, meta, meta.get("gorseller") or [], ai_cagir=_ai_bacagi)
+        if o is None:
+            return {"id": did, "durum": "HATA: icerik uretilemedi — " + icerik_not}
         uid = r2k.urun_slug(o.get("baslik") or key, yedek=key)
         # R2 gorsel anahtari KAYNAK-ID'den (mw<id>) turer, baslik-slug'indan DEGIL (cakisma onlemi).
         gkey = r2k.gkey("MakerWorld", did)
-        d = os.path.join(CACHE, key)
         secili = o.get("sec_gorseller") or meta["gorseller"]
         # ALGISAL MUKERRER KAPISI: ayni fotografin ikizini R2'ye yuklemeden ELE (aday-ici dedup).
         # PIL yoksa FAIL-OPEN (hicbir seyi elemez, akis bozulmaz). bkz gorsel_mukerrer_kapisi.py
@@ -179,7 +192,10 @@ def process_one(did):
                       else "olcu yok (MakerWorld indirme login-gated)"}
         return {"id": did, "durum": "STAGED", "urun": urun, "src": src,
                 "kategori": urun["kategori"], "marka": urun["marka"], "gorsel": len(urls),
-                "fiyat": urun["fiyat"], "baslik": urun["baslik"]}
+                "fiyat": urun["fiyat"], "baslik": urun["baslik"],
+                # HANGI BACAK URETTI — gozden gecirme tablosunda GORUNUR olsun.
+                "icerik_kaynak": icerik_kaynak,
+                "elle_gozden_gecir": bool(o.get("elle_gozden_gecir"))}
     except Exception as e:
         return {"id": did, "durum": "HATA: %s" % str(e)[:120]}
 
