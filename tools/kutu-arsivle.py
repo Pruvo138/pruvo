@@ -169,10 +169,13 @@ Kullanim:
 """
 import argparse
 import fcntl
+import hashlib
+import json
 import os
 import re
 import sys
 import tempfile
+import time
 
 # 🔴 TAVAN OKAN'IN HEDEFININ ALTINDA KALIR (K353, 29 Agu 2026 — olculdu).
 # ESKI DEGER 300'DU ve Okan'in emrettigi hedef 250'ydi. Ikisi arasindaki BANT
@@ -209,7 +212,7 @@ RC_KILIT = 3        # kilit baskasinda -> HICBIR SEY yazilmadi (fail-closed)
 # N BURADAN turer; elle yazilan sayi kaynagindan ayrisir ve beyan sessizce yalanlanir.
 IDDIA_EKSENLERI = ("D1", "D1b", "D1c", "D2", "D3", "D4", "D5", "D5b", "D6", "D6b",
                    "D6c", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14",
-                   "D15", "D16", "D17")
+                   "D15", "D16", "D17", "D18", "D19")
 
 # 🔴 KAPANIS JETONU — TEK KAYNAK (K313g). Kural ⑤ (Okan, baglayici) isi biten cipin
 # kapanisinin SONUNA birebir `✅ İŞ BİTTİ — ARŞİVLENEBİLİRİM` koymasini ister; satir
@@ -414,6 +417,81 @@ def blok_baslari(satirlar, bas=0):
 def blok_sayisi(metin):
     """Bir metindeki ust duzey blok sayisi (frontmatter ELENMEDEN — sayim ekseni)."""
     return len(blok_baslari(metin.splitlines(keepends=True)))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# KALEM ① — BLOK SHA256 KOLU, IKI TARAF AYNI KANONIKLESTIRMEDEN GECER (9 Eyl 2026)
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 OLCULEN VAKA (9 Eyl, K391 elle tasimasi): 15 KORUMALI blok elle arsive
+#   tasindi ve kayipsizligi olcmek icin kosulan blok-sha256 kolu **15/15 "arsivde
+#   yok"** bastı. Bu SAHTE KIRMIZIYDI: kutuda blok metni KENDI ayracini
+#   (`\n\n---\n\n`) ve kuyruk bosluklarini tasir; arsive yazilirken metin
+#   `rstrip`lenip KANONIK ayracla eklenir. Yani sha girdisi iki tarafta AYNI BAYT
+#   DIZISI DEGILDI ve kol ICERIK yerine AYRACI olcuyordu
+#   ([[kayipli-damga-korunani-korunmayana-benzetir]] ailesi).
+# 🔴 CARE: hash'ten ONCE IKI TARAF DA AYNI kanonikten gecer — sondaki bos satirlar
+#   ve blogu ayiran yatay cizgi (`---`) DUSER, icerik satirlari DOKUNULMAZ KALIR.
+#   Kanonik TEK YERDE tanimlidir; hem `dogrula()` D19 hem `--sha-dogrula` kolu
+#   AYNI fonksiyonu cagirir, ikinci bir kanonik YAZILMAZ
+#   ([[ikiz-tanim-sessiz-ayrisma]]).
+# 🔴 DARALTMA ICERIGI SERBEST BIRAKMAZ: yalniz SONDAKI bosluk/ayrac atilir. Blogun
+#   ORTASINDAN bir satir dusurulunse kanonik DEGISIR ve sha AYRISIR — kolun icerik
+#   olctugunu kanitlayan mutant tam budur (BaBa'nin kabul satiri).
+def blok_kanonik(metin):
+    """Blok metnini AYRACTAN BAGIMSIZ kanonik forma indirger (TEK KAYNAK).
+
+    Atilan: satir sonu `\\r`, SONDAKI bos satirlar, SONDAKI ayrac satirlari (`---`).
+    Atilmayan: BASKA HICBIR SEY — ic satirlar, bosluklar, ic `---` cizgileri.
+    """
+    satirlar = metin.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    while satirlar and (not satirlar[-1].strip() or AYRAC_RE.match(satirlar[-1])):
+        satirlar.pop()
+    return "\n".join(satirlar)
+
+
+def blok_sha(metin):
+    """Kanoniklestirilmis blok metninin sha256'si (hex)."""
+    return hashlib.sha256(blok_kanonik(metin).encode("utf-8")).hexdigest()
+
+
+def bloklara_ayir(metin):
+    """[(baslik_satiri, blok_metni)] — `## ` basliklarina gore ust duzey bloklar."""
+    satirlar = (metin or "").splitlines(keepends=True)
+    baslar = blok_baslari(satirlar)
+    cikti = []
+    for bas, son in blok_araliklari(satirlar, baslar):
+        cikti.append((satirlar[bas].rstrip("\n"), "".join(satirlar[bas:son])))
+    return cikti
+
+
+def blok_sha_haritasi(metin):
+    """{kanonik_sha: adet} — bir metindeki TUM bloklarin sha coklu kumesi."""
+    harita = {}
+    for _baslik, govde in bloklara_ayir(metin):
+        anahtar = blok_sha(govde)
+        harita[anahtar] = harita.get(anahtar, 0) + 1
+    return harita
+
+
+def blok_sha_karsilastir(kaynak_metin, hedef_metin):
+    """KAYNAKTAKI her blogun kanonik sha'si HEDEFTE var mi (coklu kume, TUKETIMLI).
+
+    Doner: (esit_sayisi, toplam, eksikler) — `eksikler` = [(baslik, sha)] hedefte
+    KARSILIGI BULUNMAYAN bloklar. Tuketimli: hedefte bir blok iki kez geciyorsa iki
+    kaynak blogunu karsilar, uc kaynak blogunu KARSILAMAZ (ikizleme gizlenmez).
+    """
+    kalan = dict(blok_sha_haritasi(hedef_metin))
+    esit = 0
+    eksikler = []
+    bloklar = bloklara_ayir(kaynak_metin)
+    for baslik, govde in bloklar:
+        anahtar = blok_sha(govde)
+        if kalan.get(anahtar, 0) > 0:
+            kalan[anahtar] -= 1
+            esit += 1
+        else:
+            eksikler.append((baslik, anahtar))
+    return esit, len(bloklar), eksikler
 
 
 # ------------------------------------------------------------------- KORUMA KOLU
@@ -1623,22 +1701,55 @@ def acik_cip_bloklari(satirlar, baslar, kapanan=None, arsiv_kayitlari=None,
 #   bir KORUMALI blok denetimde ADIYLA kirmizi yanar (ikinci tanim YAZILMAZ).
 KORUMALI_ETIKET = "KORUMALI"
 
+# ── ETIKET DUSTU = KORUMA ILAN EDILEREK KALDIRILDI (9 Eyl 2026, madde 3a) ────────
+# 🔴 OLCULEN VAKA (BaBa'nin K391 kucuk kalemi, 5 TUR TASINAMADI): 4 Eyl blogunun
+#   basligi SU:
+#     `## 2026-09-04 ~22:2x — ⚖️🔴 BaBa → KraL + 5 mimar (KORUMA-DUSTU)
+#      **③ KORUMALI BLOK 3. KEZ TASINDI → sinif kapisi ZORUNLU ...**`
+#   Yani baslik ETIKET KONUMUNDA `(KORUMA-DUSTU)` — "korumayi kaldirdim" ilani —
+#   tasirken, KONUSU geregi PROZA icinde bir kez daha `KORUMALI` kelimesini aniyor.
+#   Kol `KORUMALI in baslik` diye CIPLAK ALT-DIZGE sordugu icin ikinci gecis vetoyu
+#   uretiyordu: blok 7/7 her turda `YERINDE ATLANDI` yazip kutuda kaliyor, koruma
+#   ILAN EDILEREK KALDIRILDIGI HALDE arac onu bir daha ASLA birakmiyordu.
+#   Kok neden OLCULDU (tahmin DEGIL): `korumali_etiketli_bloklar()` bu baslikta
+#   veto=1 dondurur, `KORUMA-DUSTU`nun kendisi ise alt-dizge olarak `KORUMALI`ya
+#   HIC denk gelmez — yani vetoyu ureten sey etiket degil, KONU cumlesiydi.
+# 🔴 CARE (DAR ve TEK YONLU): baslikta ACIKCA `KORUMA-DUSTU` yaziyorsa koruma
+#   ILAN EDILEREK DUSMUSTUR ve blok rotasyona ACILIR. Daraltma bundan IBARETTIR:
+#   `KORUMALI` alt-dizgesi ILAN YOKKEN AYNEN veto uretmeye devam eder (yani
+#   basliginda yalniz proza olarak `KORUMALI` gecen bloklar — or. 11:5x isaretci
+#   blogu — HALA korunur; bu kol GENISLETILMEDI, gerileme URETMEZ).
+# 🔴 SESSIZ DEGIL: dusen etiket SAYILIR ve `ETIKET_DUSTU=` diye ADIYLA basilir.
+#   Bir blogun korumasini "dustu" sayip serbest birakmak, kaybin en pahali
+#   yonudur; sayi basilmadan hukum verilmez ([[aracin-teshis-cumlesi-olcum-degil]]).
+ETIKET_DUSTU_ISARETI = "KORUMA-DUSTU"
+
 
 def korumali_etiketli_bloklar(satirlar, baslar):
-    """([(blok_idx, satir_no_1indeksli, baslik_ozeti)], govde_anmasi) — TEK KAYNAK.
+    """([(blok_idx, satir_no, baslik_ozeti)], govde_anmasi, dustu) — TEK KAYNAK.
 
     BASLIGINDA `KORUMALI` gecen bloklar veto uretir. Etiket blogun ICINDE gecip
     BASLIKTA gecmiyorsa veto URETMEZ; sessizce yutulmaz, SAYILIR ve basilir.
+    BASLIKTA `KORUMA-DUSTU` ILANI varsa koruma KALDIRILMIS sayilir: blok rotasyona
+    ACILIR ve `dustu` sayacina yazilir (bkz. ETIKET_DUSTU_ISARETI).
     """
     bulgu = []
     govde_anmasi = 0
+    dustu = []
     for i, (bas, son) in enumerate(blok_araliklari(satirlar, baslar)):
         baslik = satirlar[bas] if bas < len(satirlar) else ""
+        if ETIKET_DUSTU_ISARETI in baslik:
+            # ILAN VETOYU YENER — ama yalniz `KORUMALI` de gecerken RAPORLANIR;
+            # yoksa etiketi hic olmayan bloklar da bu sayaca dolar ve sayi anlamini
+            # yitirirdi (olculen sey "ilan KAC vetoyu kaldirdi" olmalidir).
+            if KORUMALI_ETIKET in baslik:
+                dustu.append((i, bas + 1, baslik.strip()[:90]))
+            continue
         if KORUMALI_ETIKET in baslik:
             bulgu.append((i, bas + 1, baslik.strip()[:90]))
         elif KORUMALI_ETIKET in "".join(satirlar[bas:son]):
             govde_anmasi += 1
-    return bulgu, govde_anmasi
+    return bulgu, govde_anmasi, dustu
 
 
 def sabit_indeksler(blok_sayisi_, koru, korumali_indeksler, acik_indeksler=(),
@@ -1694,6 +1805,7 @@ class Plan(object):
         self.acik_kilitledi = 0            # `koru` tabaninin ALTINDA kalan acik cip
         self.korumali_etiket = []          # basliginda KORUMALI gecen bloklar
         self.korumali_etiket_govde = 0     # etiket govdede gecti, BASLIKTA degil
+        self.korumali_etiket_dustu = []    # baslikta `KORUMA-DUSTU` ILANI var (madde 3a)
         self.etiket_kilitledi = 0
         self.kapanan_adlar = set()         # denetim kolunun (D17) okudugu TABAN
         # ARSIV DUZLEMI (K360-B) — K329'dan AYRI KOVA, AYRI SAYI
@@ -1757,7 +1869,8 @@ def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None):
     p.acik_kilitledi = len([b for b in acik_idx if b >= koru])
 
     # 🔴 KORUMALI ETIKETI (BaBa (2)) — BASLIKTA gecen `KORUMALI` blogu TASINMAZ.
-    p.korumali_etiket, p.korumali_etiket_govde = korumali_etiketli_bloklar(satirlar, baslar)
+    (p.korumali_etiket, p.korumali_etiket_govde,
+     p.korumali_etiket_dustu) = korumali_etiketli_bloklar(satirlar, baslar)
     etiket_idx = [b for b, _s, _o in p.korumali_etiket]
     p.etiket_kilitledi = len([b for b in etiket_idx if b >= koru])
 
@@ -2213,6 +2326,28 @@ def dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv, plan, t
                      "eslesemez ve kutuda KALICI OLU SLOT olurdu. Fail-closed: "
                      "hicbir sey yazilmadi." % (kap_ad, BASLIYORUM_JETON))
 
+    # ------------------------------------------------------- KALEM ① SHA EKSENI
+    # 19. 🔴 BLOK SHA — TASINAN HER BLOGUN ICERIGI ARSIVDE BIREBIR DURUYOR MU?
+    #     D4/D5 metnin arsivin SONUNDA oldugunu, D13 BASLIK SAYISINI olcer; hicbiri
+    #     "blok govdesi ICERIK olarak aynen mi geldi" diye SORMAZ. Bu iddia iki tarafi
+    #     AYNI kanonikten (`blok_kanonik`) gecirip hash'ler — yani AYRAC farki kolu
+    #     KORLESTIRMEZ (9 Eyl'in 15/15 sahte kirmizisi), ORTADAN DUSEN BIR SATIR ise
+    #     KIRMIZI YAKAR. Kanonik TEK KAYNAKTIR; `--sha-dogrula` kolu AYNI fonksiyonu
+    #     cagirir ([[ikiz-tanim-sessiz-ayrisma]]).
+    # 🔴 KAPSAM DURUSTLUGU — BU IDDIA ARACIN KENDI YOLUNDA TEK BASINA KIRMIZI
+    #     YAKAMAZ ve bu SESSIZ GECMEMELIDIR: D4/D5/D5b zaten `tasinan` ile `ek`i
+    #     BAYT BAYT karsilastirir, yani icerigi bozan her ariza ONCE onlarda yanar.
+    #     D19'un AYRI degeri IKI TANEDIR: (a) kanonik fonksiyonu `--sha-dogrula`
+    #     ile PAYLASIR, yani ELLE tasimayi olcen kol ile aracin kendi yolu AYNI
+    #     tanimdan okur; (b) her kosumda ICERIK KIMLIGINI SAYIYLA basar. Bir
+    #     "D19-only" oldurucu mutant IDDIA EDILMEZ — edilseydi olculmeyen bir sey
+    #     olculmus sayilirdi ([[fail-closed-kol-arkasindaki-kolu-maskeler]]).
+    sha_esit, sha_toplam, sha_eksik = blok_sha_karsilastir(tasinan, ek)
+    for baslik, ozet in sha_eksik[:5]:
+        h.append("D19 BLOK SHA: tasinan blogun ICERIGI arsive eklenen metinde "
+                 "BIREBIR yok (kanonik sha=%s) -> govde yolda DEGISMIS olabilir | %s"
+                 % (ozet[:16], baslik[:80]))
+
     # ---------------------------------------------------------------- K318 KOL-2 ekseni
     # 15/16. SIRA — ozgun sira KORUNDU mu? D1 partisyonu metnin AYNI oldugunu olcer;
     #     bu iki iddia BAGIMSIZ bir eksenden sorar: tasinan basliklar ve kalan basliklar,
@@ -2310,6 +2445,124 @@ def atomik_yaz(yol, metin):
     finally:
         if gecici and os.path.exists(gecici):
             os.unlink(gecici)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# KALEM ② — YEDEK DUSUS BEYANINI ARAC KENDI YAZAR (9 Eyl 2026, BaBa hukmu)
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 SINIF (BESINCI ELLE YAZIM): `yedekle.py` kanonik yedekten KUCUK bir kaynak
+#   gorunce dosyayi KARANTINAYA alir (`YEDEK=YARIM OLCULEMEDI=YEDEK_KARANTINA`).
+#   Kutu git'te IZLENMEZ ve tek kopyasi disktedir — karantina surerken kanonik
+#   yedek BAYAT kalir. Karantinayi acan tek sey `.yedek-dusus-izin.json`daki
+#   `mimar-posta-kutusu.md` beyaninin `kaynak_bayt` alanidir ve o alan bugune dek
+#   BES KEZ ELLE yazildi (17 Agu 26902 → 21579 → 37404 → 31792 → 39445). Beyanin
+#   KENDI gerekcesi 28 Agu'dan beri "ucuncu tekrar kurali uyarinca kalici care
+#   TEKIL YAMA DEGILDIR" diyor; BaBa'nin 9 Eyl HAFTALIK korumali-blok supurmesiyle
+#   dusus artik her hafta uretilecek ([[ucuncu-tekrar-sinif-kapisi]]).
+# 🔴 CARE: dususu URETEN arac, dususu BEYAN EDEN arac olur. Beyan artik OLCUMDEN
+#   turer, elden DEGIL. Yazim SART BAGLIDIR ve sartlar DAR:
+#     * kayipsizlik kapilari (D1-D19) GECMIS olacak — `dogrula()` kirmizi verdiginde
+#       govde zaten `return RC_KIRMIZI` ile CIKAR, beyan cagrilmaz (mutant kolu),
+#     * `--kuru` kipinde HICBIR SEY yazilmaz (beyan DAHIL),
+#     * arac GERCEKTEN yazmis olacak (tasima yoksa beyan da yok),
+#     * beyanda O AD icin ZATEN BIR KAYIT olacak — arac KENDINE YENI MUAFIYET ACMAZ,
+#     * kaydin turu `tek-seferlik` olacak — `surekli`ye CEVIRMEZ (28 Agu'da
+#       yargilandi: kutunun bayt araligi 27-131 KB, o genislikte tavan korumayi
+#       fiilen kapatir).
+# 🔴 SUPURME BaBa'DA KALIR: arac KORUMALI blok supurmez, yalniz KENDI dususunu
+#   beyan eder.
+# 🔴 ARTIK RISK — SESSIZ GECMESIN (olculdu 9 Eyl, MIMAR KAPISI): bu kol elle yazimi
+#   KALDIRIR ama SIFIRA INDIRMEYI GARANTI ETMEZ, cunku iki yapisal olgu var:
+#     (1) SIRA — pre-push once `yedekle.py`yi (satir 212), SONRA bu araci (satir 240)
+#         kosar. Yani N. push'ta yazilan beyan ancak N+1. push'ta TUKETILIR.
+#     (2) TAM ESITLIK — `tur: tek-seferlik` kolu `kaynak_bayt == os.path.getsize()`
+#         arar (yedekle.py:254). Iki push ARASINDA kutuya bir blok eklenirse beyan
+#         ESLESMEZ ve karantina yeniden acilir.
+#   9 EYL'IN KENDI SAYISI BUNU GOSTERIR: rotasyondan hemen sonra kutu 37.656 B'ydi,
+#   BIR SONRAKI commit'te 39.445 B oldu — mimarin elle yazdigi deger 39.445'tir,
+#   yani araç 37.656 yazsaydi o pushta ESLESMEZDI. Kol yine de DOGRU YONDE: pencere
+#   "yargi gunu → sonraki push"tan "bu kosum → sonraki push"a DARALIR ve beyanin
+#   ICERIGI artik olcumden turer. TAM CARE IKI SECENEKTEN BIRIDIR ve ikisi de MIMAR
+#   HUKMUDUR (bu kol ONLARI KAPSAMAZ, kendine ACMAZ):
+#     (a) SIRA: pre-push'ta `kutu-arsivle.py` `yedekle.py`den ONCE kosar (kanca
+#         kablolamasi — commit edilmez, `kanca-kur.py` ile yayilir), ya da
+#     (b) TUR: beyan mekanizmasi "rolling artefakt" sinifini ogrenir (28 Agu'da
+#         `surekli` REDDEDILDI: 27-131 KB araligi tavani anlamsiz kilar; dolayisiyla
+#         UCUNCU bir tur gerekir — YAZILMADI, KALEM ACIK).
+BEYAN_ADI = ".yedek-dusus-izin.json"
+BEYAN_TURU = "tek-seferlik"
+BEYAN_ARAC_ALANI = "gerekce_arac"
+
+
+def beyan_yolu_coz():
+    """Beyan dosyasinin KANONIK yolu — `yedekle.py`nin okudugu AYNI kok.
+
+    🔴 IKINCI KOK HESABI YAZILMAZ: kok `yedekle.py::ana_calisma_agaci()`ten gelir
+    (worktree'den kosulsa bile ANA calisma agacini dondurur; yedekle.py ROOT'u da
+    ODUR). Ayri bir `dirname(__file__)/..` hesabi worktree'den kosuldugunda BASKA
+    bir dosyayi tazeler ve beyan hic gecmezdi ([[ikiz-tanim-sessiz-ayrisma]]).
+    Modul yuklenemezse (None, sebep) doner — SESSIZ VARSAYIM YOK.
+    """
+    yol = os.path.join(os.path.dirname(os.path.abspath(__file__)), "yedekle.py")
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("_yedekle_kok", yol)
+        if spec is None or spec.loader is None:
+            return None, "yedekle.py yuklenemedi (spec yok): %s" % yol
+        modul = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(modul)
+        kok = modul.ana_calisma_agaci()
+        ad = getattr(modul, "DUSUS_BEYAN_ADI", BEYAN_ADI)
+    except Exception as hata:                     # noqa: BLE001 — sebep BASILIR
+        return None, "yedekle.py kok cozumu basarisiz: %s" % hata
+    return os.path.join(kok, ad), None
+
+
+def beyan_tazele(kutu_yolu, yeni_kutu, once_bayt, tasinan_blok, beyan_yolu=None):
+    """Beyandaki `kaynak_bayt` alanini OLCUMDEN tazele. Doner: (yazildi_mi, not).
+
+    Yalniz `os.path.basename(kutu_yolu)` anahtari ZATEN VARSA ve turu
+    `tek-seferlik` ise yazar. Baska hicbir anahtar, hicbir alan DEGISMEZ.
+    """
+    if beyan_yolu is None:
+        beyan_yolu, hata = beyan_yolu_coz()
+        if hata:
+            return False, "OLCULEMEDI (%s)" % hata
+    anahtar = os.path.basename(kutu_yolu)
+    try:
+        with open(beyan_yolu, "r", encoding="utf-8") as f:
+            veri = json.load(f)
+    except FileNotFoundError:
+        return False, "beyan dosyasi YOK (%s)" % beyan_yolu
+    except (OSError, UnicodeError, ValueError) as hata:
+        return False, "beyan OKUNAMADI (%s): %s" % (beyan_yolu, hata)
+    if not isinstance(veri, dict) or not isinstance(veri.get(anahtar), dict):
+        return False, "beyanda `%s` KAYDI YOK -> arac KENDINE MUAFIYET ACMAZ" % anahtar
+    kayit = veri[anahtar]
+    if kayit.get("tur") != BEYAN_TURU:
+        return False, ("kayit turu `%s` (beklenen `%s`) -> DOKUNULMADI"
+                       % (kayit.get("tur"), BEYAN_TURU))
+    yeni_bayt = len(yeni_kutu.encode("utf-8"))
+    eski_bayt = kayit.get("kaynak_bayt")
+    damga = time.strftime("%Y-%m-%dT%H:%M:%S%z")
+    kayit["kaynak_bayt"] = yeni_bayt
+    kayit[BEYAN_ARAC_ALANI] = (
+        "ARACIN ELIYLE YAZILDI (kutu-arsivle.py, kosum %s). OLCUM: kayipsizlik "
+        "kapilari (KAYIPSIZLIK blok + KAYIPSIZLIK bayt + SHA blok + "
+        "oksuz_govde_kutu=0) GECTI ve arac GERCEKTEN yazdi; %d blok arsive tasindi, "
+        "kutu %d -> %d bayt. Beyan alani `kaynak_bayt` %s -> %d olarak TAZELENDI. "
+        "TUR DEGISMEDI (`%s`). Bu satir ELLE YAZILMAZ: 17 Agu'dan 9 Eyl'e kadar BES "
+        "kez elle yazildi, altincisi bu kolla kalkti."
+        % (damga, tasinan_blok, once_bayt, yeni_bayt,
+           "yok" if eski_bayt is None else str(eski_bayt), yeni_bayt, BEYAN_TURU))
+    try:
+        atomik_yaz(beyan_yolu,
+                   json.dumps(veri, ensure_ascii=False, indent=2) + "\n")
+    except OSError as hata:
+        return False, "beyan YAZILAMADI (%s): %s" % (beyan_yolu, hata)
+    return True, ("`%s`.kaynak_bayt %s -> %d (%s)"
+                  % (anahtar, "yok" if eski_bayt is None else str(eski_bayt),
+                     yeni_bayt, beyan_yolu))
 
 
 # --------------------------------------------------------------------------- main
@@ -2437,6 +2690,18 @@ def main(argv=None):
                          "her hâlde rc=0 doner, yazim islemini ASLA bloklamaz. "
                          "DEGER `-` ise yol PostToolUse kancasinin stdin JSON'undan "
                          "okunur (ayri sarmalayici betik GEREKMEZ).")
+    ap.add_argument("--sha-dogrula", action="store_true",
+                    help="KALEM ①: SALT-OKUR kol. Kutudaki HER blogun kanonik "
+                         "sha256'sini arsivde ARAR ve `SHA_DOGRULAMA esit=N/M` "
+                         "basar. Iki taraf AYNI kanonikten (rstrip + ayrac) gecer, "
+                         "yani AYRAC farki kolu KORLESTIRMEZ; blogun ORTASINDAN "
+                         "dusen bir satir KIRMIZI yakar. ELLE tasimayi (BaBa'nin "
+                         "haftalik KORUMALI supurmesi) dogrulamak icindir: eksik "
+                         "varsa rc=1, HICBIR SEY yazilmaz.")
+    ap.add_argument("--beyan-dosya", default=None, metavar="BEYAN_JSON",
+                    help="KALEM ②: yedek dusus beyaninin yolu. Varsayilan "
+                         "`yedekle.py`nin okudugu kanonik yol (ANA calisma agaci). "
+                         "FIKSTUR icindir; canli beyan yerine kopyayi tazeler.")
     ap.add_argument("--arsiv-kuyruk", type=int, default=VARSAYILAN_ARSIV_KUYRUK,
                     help="arsivin son kac satirinda oksuz govde RAPORLANSIN (blok hizali; "
                          "0 = kapali). RAPOR eksenidir, cikis kodunu BELIRLEMEZ — bkz. "
@@ -2498,6 +2763,25 @@ def main(argv=None):
             arsiv_var = True
         else:
             arsiv_metin, arsiv_var = None, False
+
+        # 🔴 KALEM ① — SALT-OKUR SHA KOLU. Rotasyondan ONCE ve ONUN YERINE calisir:
+        # sorusu "bu turda ne tasiyacagim" degil, "kutudaki bloklar arsivde BIREBIR
+        # duruyor mu"dur. ELLE tasimanin (BaBa'nin haftalik KORUMALI supurmesi)
+        # kayipsizligini olcen kol budur; `dogrula()` D19 ile AYNI fonksiyonlari
+        # cagirir, ikinci bir kanonik YAZILMAZ.
+        if a.sha_dogrula:
+            esit, toplam, eksik = blok_sha_karsilastir(kutu_metin, arsiv_metin or "")
+            print("SHA_DOGRULAMA esit=%d/%d eksik=%d kanonik=rstrip+ayrac  [KAPI]"
+                  % (esit, toplam, len(eksik)))
+            for baslik, ozet in eksik:
+                print("  ! ARSIVDE YOK (kanonik sha=%s) | %s" % (ozet[:16], baslik[:110]))
+            if eksik:
+                print("HUKUM=SHA_EKSIK rc=1 sebep=%d blok arsivde BIREBIR bulunamadi "
+                      "(hicbir sey yazilmadi; kol SALT-OKUR)" % len(eksik))
+                return RC_KIRMIZI
+            print("HUKUM=SHA_TAM rc=0 sebep=kutudaki %d blogun %d'i arsivde kanonik "
+                  "olarak BIREBIR mevcut" % (toplam, esit))
+            return RC_OK
 
         # 🔴 K341 CEVRIM KOLU — ROTASYONDAN ONCE, AYNI KILIT ALTINDA. Sira zorunlu:
         # cevrim korumayi KALDIRIR, rotasyon o kalkmis korumayla planlar. Ters sirada
@@ -2597,6 +2881,15 @@ def main(argv=None):
         for blok_idx, satir_no, ozet in p.korumali_etiket:
             print("  * KORUMALI ETIKETI blok %d/%d (satir %d) -> ROTASYONA GIRMEZ "
                   "(YERINDE ATLANDI) | %s" % (blok_idx + 1, p.blok_toplam, satir_no, ozet))
+        # 🔴 MADDE 3a — ILAN EDILEREK DUSEN KORUMA SESSIZ OLAMAZ: bir blogun
+        # vetosunu KALDIRMAK kaybin en pahali yonudur, sayi HER kosumda basilir.
+        print("ETIKET_DUSTU=%d isaret=%s  [KAPI]"
+              % (len(p.korumali_etiket_dustu), ETIKET_DUSTU_ISARETI))
+        for blok_idx, satir_no, ozet in p.korumali_etiket_dustu:
+            print("  * ETIKET DUSTU blok %d/%d (satir %d) -> baslikta `%s` ILANI var, "
+                  "`%s` alt-dizgesi VETO URETMEZ, blok ROTASYONA ACIK | %s"
+                  % (blok_idx + 1, p.blok_toplam, satir_no, ETIKET_DUSTU_ISARETI,
+                     KORUMALI_ETIKET, ozet))
         if p.korumali_etiket_govde:
             print("  · KORUMALI GOVDE ANMASI=%d blok: etiket blogun ICINDE geciyor ama "
                   "BASLIK satirinda DEGIL -> veto URETMEZ (konum olcutu), blok rotasyona "
@@ -2775,6 +3068,12 @@ def main(argv=None):
               % (len(kutu_metin.encode("utf-8")), len(yeni_kutu.encode("utf-8")),
                  len(tasinan.encode("utf-8")),
                  len(yeni_kutu.encode("utf-8")) + len(tasinan.encode("utf-8"))))
+        # 🔴 KALEM ① — UCUNCU KAYIPSIZLIK EKSENI: ICERIK. Blok ve bayt sayilari
+        # tutarken govdesi degismis bir blok her ikisinden de GECEBILIR; sha kolu
+        # tam o bosluğu kapatir. Iki taraf AYNI kanonikten gecer (ayrac KOR ETMEZ).
+        _sha_esit, _sha_toplam, _sha_eksik = blok_sha_karsilastir(tasinan, ek)
+        print("SHA blok: esit=%d/%d eksik=%d kanonik=rstrip+ayrac  [KAPI]"
+              % (_sha_esit, _sha_toplam, len(_sha_eksik)))
         # 🔴 TEK `HUKUM=` SATIRI — hukum TEK KAYNAKTAN, TEK KEZ basilir. Kapi ilk
         # `HUKUM=` satirini okur; iki satir basmak hangi hukmun tuketildigini
         # BELIRSIZ birakirdi ([[ayni-alan-iki-hukum-biri-sessiz]]).
@@ -2815,6 +3114,11 @@ def main(argv=None):
 
         if a.kuru:
             print("KURU KIP — hicbir sey yazilmadi")
+            # 🔴 KALEM ② SINIRI: `--kuru` BEYANI DA YAZMAZ. Hal GIZLENMEZ, ADIYLA
+            # basilir — "kuru kosumda ne olurdu" sorusunun cevabi gorunur kalir.
+            print("BEYAN=YAZILMADI kuru kip (yazan kosumda `%s` icin kaynak_bayt "
+                  "%d olurdu)"
+                  % (os.path.basename(kutu_yolu), len(yeni_kutu.encode("utf-8"))))
             return RC_OK
 
         # ONCE ARSIV, SONRA KUTU (bkz. modul basligi: fail-toward-duplication).
@@ -2824,6 +3128,13 @@ def main(argv=None):
               "kutu diskte %d -> %d bayt)"
               % (p.tasinacak_blok, p.tasinan_satir, len(cevrilen), disk_once_bayt,
                  len(yeni_kutu.encode("utf-8"))))
+        # 🔴 KALEM ② — DUSUSU URETEN EL, DUSUSU BEYAN EDEN EL. Buraya YALNIZ
+        # kayipsizlik kapilari GECTIKTEN ve arac GERCEKTEN YAZDIKTAN sonra gelinir
+        # (`--kuru` ve `hatalar` kollari yukarida CIKAR). Sonuc HER HALDE basilir:
+        # yazilmadiysa SEBEBI ADIYLA yazilir, sessiz gecmez.
+        yazildi, beyan_not = beyan_tazele(kutu_yolu, yeni_kutu, disk_once_bayt,
+                                          p.tasinacak_blok, a.beyan_dosya)
+        print("BEYAN=%s %s" % ("YAZILDI" if yazildi else "YAZILMADI", beyan_not))
         return RC_OK
     finally:
         kilit_birak(kilit)
