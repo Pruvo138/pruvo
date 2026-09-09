@@ -145,8 +145,14 @@ SEKILLER = (
     # (arac -> kaynak). 🔴 K344-B (28 Agu) o ekseni OLCUME BAGLADI: asagidaki
     # DISARIDA tablosu + nobetcinin C5/C6 kollari. Ayni sinifin ikinci vakasi
     # (`durum.py --ne-olculmedi`) o kol tarafindan BULUNDU.
+    # 🔴 9 EYL 2026 (kalem ①): `--sha-dogrula` SALT-OKUR bir DOGRULAMA kolu ve
+    # MIMARIN ELINDE SERBEST olmasi gerekir — BaBa'nin HAFTALIK korumali-blok
+    # supurmesi bloklari ELLE tasitir, o tasimanin kayipsizligini olcen tek kol
+    # budur. Tabloya yazilmazsa kapinin "once olc" dedigi komut ana oturumda
+    # REDDEDILIRDI ([[kapi-red-metni-ikinci-kopyadir]] — `--kapanislari-isle`
+    # 28 Agu'da tam bu sebeple eklenmisti).
     Sekil("kutu-arsivle", KUTU_ARSIVLE_YOL,
-          serbest=("--kuru", "--kapanislari-isle")),
+          serbest=("--kuru", "--kapanislari-isle", "--sha-dogrula")),
 
     # 🔴 5 EYL 2026 (K366): HAFIZA INDEKSI (MEMORY.md) BAKIMI. Kota kapisinin
     # ucuncu ekseni tavan ustunde CARE olarak TAM BU CAGRIYI basar; sekil buraya
@@ -246,6 +252,8 @@ DISARIDA = {
         "--arsiv": "deger YOL alir — arsiv dosyasini DEGISTIRIR",
         "--kilit": "deger YOL alir — kilit dosyasini DEGISTIRIR",
         "--yaz-sonrasi": "deger YOL alir — duzenlenen dosyayi DEGISTIRIR",
+        "--beyan-dosya": "deger YOL alir — yedek dusus beyanini DEGISTIRIR (fikstur "
+                         "kolu; canli beyan yolu `yedekle.py`den TURETILIR)",
         # Sayisal ayar bayraklari: esikleri ELLE oynatir.
         "--tavan": "tavani ELLE verir — esigi oynatir",
         "--koru": "korunan kalem sayisini ELLE verir",

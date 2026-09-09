@@ -103,6 +103,21 @@ VAKALAR (hepsi bloklayici):
   48. 🔴 K360-C KONUM OLCUTU — dev baslikta PROZA gecen `BASLIYORUM` marker DEGIL
   45. 🔴 K359-B DENETIM — `cift-bolunmesi-sizdir` arizasi D18'de yakalanmali: tasinan
       metne acilisi kutuda kalan bir KAPANIS sizarsa rc!=0 + HICBIR SEY yazilmaz
+  55. 🔴 KALEM ① (9 Eyl) — BLOK SHA KOLU ICERIK OLCER, AYRAC DEGIL. Kutu tarafi kendi
+      ayracini tasir, arsiv tarafi rstrip+kanonik ayracla yazilmistir (9 Eyl'in ELLE
+      tasimasinin GERCEK sekli): kanonikten sonra N/N ESIT, ama BAGIMSIZ ORACLE ayni
+      fiksturde HAM sha'nin 0/N verdigini gosterir. Bir blogun ORTASINDAN 1 ICERIK
+      satiri dusunce rc=1 + eksik blok ADIYLA basilir; mutant kanonigi yalniz BASLIGA
+      daraltinca o kirmizi KAYBOLUR
+  56. 🔴 KALEM ② (9 Eyl) — `.yedek-dusus-izin.json` beyanini ARAC KENDI YAZAR: yazan
+      kosumda `kaynak_bayt` DISKTEKI kutuya esitlenir ve dosyanin mtime'i KOSUM
+      BASLANGICINDAN buyuktur (yani el degil ARAC yazdi), `tur` DEGISMEZ, KOMSU kayit
+      DOKUNULMAZ. `--kuru` uc dosyanin da mtime+boyutunu BIREBIR birakir; sentetik
+      ariza kapiyi kirmizi yakinca beyan da YAZILMAZ
+  57. 🔴 MADDE 3(a) (9 Eyl) — baslikta `KORUMA-DUSTU` ILANI varken PROZA icinde gecen
+      `KORUMALI` kelimesi ARTIK veto URETMEZ (5 tur tasinamayan 4 Eyl blogunun kok
+      nedeni). ILAN `KORUMALI`ya cevrilince blok YINE korunur; ILAN YOKKEN proza
+      gecisi HALA veto uretir (daraltma GENISLEMEDI)
 
 🔴 17-19'UN FIKSTURU AYRI (`kutu_uret_ayracli`): 1-16 arasi fiksturler bloklari AYRAC
 (`---`) ile ayirmaz, CANLI kutu ayirir. Oksuz govde ekseni ayraca dayandigi icin bu uc
@@ -133,6 +148,11 @@ MUTASYON (cift yonlu, KOPYA uzerinde — canli dosyaya DOKUNMAZ):
   (z) K359-B cift butunlugu ICRA olur-> suite KIRMIZI olmali (vaka 44)
   (aa) K359-B konum bacagi (`o<c`)   -> suite KIRMIZI olmali (vaka 44)
   (bb) K359-B D18 denetimi olur      -> suite KIRMIZI olmali (vaka 45)
+  (al) KALEM ① `SHA blok:` susturulur -> suite KIRMIZI olmali (vaka 55)
+  (am) KALEM ② beyan yazimi oldurulur -> suite KIRMIZI olmali (vaka 56)
+  (an) KALEM ② `tur` sarti kalkar     -> suite KIRMIZI olmali (vaka 56, GEVSETME)
+  (ao) MADDE 3a `ETIKET_DUSTU` susar  -> suite KIRMIZI olmali (vaka 57)
+  (ap) MP0 ESDEGER yeniden yazim     -> suite YESIL kalmali (kanonik kosul sirasi)
   (cc) MP0 ESDEGER yeniden yazim     -> suite YESIL kalmali (imza taramasi ters yonde)
   (w) MP0 ESDEGER yeniden yazim      -> suite YESIL kalmali (hicbir sey oldurmemeli)
   (c) ilgisiz metin degisikligi      -> suite YESIL kalmali
@@ -148,11 +168,13 @@ import argparse
 import fcntl
 import hashlib
 import io
+import json
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ARAC = os.path.join(TOOLS, "kutu-arsivle.py")
@@ -3452,6 +3474,453 @@ def v54_kimlik_kumesi(arac, kok):
           kok_m)
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# V55-V57: 9 EYL 2026 — BaBa 12:0x KUTU BLOGU (kalem ① · kalem ② · madde 3a)
+# 🔴 UC AYRI EKSEN, UC AYRI VAKA. Birbirinin yerine GECMEZLER: V55 ICERIK
+# KAYIPSIZLIGINI (sha), V56 BEYANIN KIM TARAFINDAN YAZILDIGINI, V57 KORUMANIN
+# ILAN EDILEREK DUSMESINI olcer. Her birinde POZITIF + NEGATIF/KONTROL + HEDEF-KOL
+# ATIFLI OLDURUCU MUTANT vardir (K182: "kirmizi geldi" tek basina kanit degildir).
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── V55 FIKSTURU: kutu tarafi KENDI ayracini tasir, arsiv tarafi rstrip+kanonik ──
+# 🔴 SEKIL 9 EYL'IN GERCEK VAKASINDAN ALINDI: 15 KORUMALI blok ELLE tasindi;
+# kutuda blok metni `\n\n---\n\n` ayracini tasiyordu, arsive `rstrip` + kanonik
+# ayracla yazildi. HAM sha bu yuzden 15/15 "arsivde yok" bastı (SAHTE KIRMIZI).
+K55_BLOKLAR = (
+    ("## 2026-08-01 — MimarA → MimarB (KORUMALI: MimarB kapatir) **sentetik hukum 1**\n",
+     "\n"
+     "**Olcum:** sentetik blok — kabul testi fiksturu.\n"
+     "\n"
+     "1. Ilk madde, uzunca bir cumle ile gercek bloklarin satir uzunlugunu taklit eder.\n"
+     "2. Ikinci madde: sayi 42, sapma 0.\n"
+     "\n"
+     "**Kapatan:** MimarB tek satir. — MimarA (08:0x)\n"),
+    ("## 2026-08-02 — MimarC → MimarA (KORUMALI: MimarA kapatir) **sentetik hukum 2**\n",
+     "\n"
+     "**Olcum:** ikinci sentetik blok.\n"
+     "\n"
+     "- Kol A: 7 kayit\n"
+     "- Kol B: 3 kayit\n"
+     "\n"
+     "— MimarC (09:1x)\n"),
+    ("## 2026-08-03 — MimarD → MimarC (KORUMALI: MimarC kapatir) **sentetik hukum 3**\n",
+     "\n"
+     "Ucuncu sentetik blok; govdesi UC icerik satiri tasir.\n"
+     "\n"
+     "Sonuc: kapali.\n"
+     "\n"
+     "— MimarD (10:2x)\n"),
+)
+
+
+def _k55_kutu_tarafi():
+    """Kutu SEKLI: her blok KENDI ayracini ve kuyruk bosluklarini tasir."""
+    return ("\n\n---\n\n".join(b + g for b, g in K55_BLOKLAR)) + "\n\n---\n\n"
+
+
+def _k55_arsiv_tarafi(orta_satir_sil=None):
+    """Arsiv SEKLI: rstrip + KANONIK ayrac (elle tasimanin urettigi bicim).
+
+    `orta_satir_sil` verilirse o blogun ORTASINDAN bir ICERIK satiri DUSER —
+    BaBa'nin kabul satirindaki mutant budur.
+    """
+    parcalar = []
+    for i, (b, g) in enumerate(K55_BLOKLAR):
+        metin = (b + g).rstrip("\n")
+        if orta_satir_sil == i:
+            satirlar = metin.split("\n")
+            # 🔴 ORTA = ICERIK satirlarinin ortasi. Ham metnin ortasi kuyruk
+            # boslugu/ayraci olabilir; oradan silmek kanonigi DEGISTIRMEZ ve mutant
+            # HEDEFE ULASMAZ ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]] —
+            # bu tuzak bu vakayi yazarken BIR KEZ olculdu ve mutant HAYATTA kaldi).
+            dolu = [j for j, s in enumerate(satirlar) if s.strip()]
+            hedef = dolu[len(dolu) // 2]
+            satirlar.pop(hedef)
+            metin = "\n".join(satirlar)
+        parcalar.append(metin)
+    return "\n\n---\n\n".join(parcalar) + "\n"
+
+
+def _k55_ham_esitlik(kutu_metin, arsiv_metin):
+    """BAGIMSIZ ORACLE — KANONIKLESTIRMESIZ (ham) blok sha karsilastirmasi.
+
+    Aracin kolunu TAKLIT ETMEZ; 9 Eyl'de kosulan KOLUN ta kendisini yeniden kurar,
+    boylece "kanoniklestirme GERCEKTEN fark yaratti mi" sorusu OLCUMLE cevaplanir.
+    """
+    def bloklar(metin):
+        satirlar = metin.splitlines(keepends=True)
+        baslar = [i for i, s in enumerate(satirlar) if s.startswith("## ")]
+        cikti = []
+        for j, b in enumerate(baslar):
+            son = baslar[j + 1] if j + 1 < len(baslar) else len(satirlar)
+            cikti.append("".join(satirlar[b:son]))
+        return cikti
+    hedef = set(hashlib.sha256(g.encode("utf-8")).hexdigest()
+                for g in bloklar(arsiv_metin))
+    kaynak = bloklar(kutu_metin)
+    esit = sum(1 for g in kaynak
+               if hashlib.sha256(g.encode("utf-8")).hexdigest() in hedef)
+    return esit, len(kaynak)
+
+
+def _k55_kos(arac, kutu, arsiv, kilit, ek):
+    komut = [sys.executable, arac, "--kutu", kutu, "--arsiv", arsiv, "--kilit", kilit]
+    r = subprocess.run(komut + list(ek), capture_output=True, text=True)
+    return r.returncode, (r.stdout or "") + (r.stderr or "")
+
+
+def v55_blok_sha_kolu(arac, kok):
+    """[55] 🔴 KALEM ① — BLOK SHA KOLU ICERIK OLCER, AYRAC DEGIL.
+
+    A) POZITIF — ayrac farki olan iki taraf KANONIKTEN sonra ESIT (N/N, rc=0);
+       BAGIMSIZ ORACLE ayni fiksturde HAM sha'nin ESIT OLMADIGINI gosterir
+       (yani yesili saglayan sey GERCEKTEN kanoniklestirme).
+    B) NEGATIF — bir blogun ORTASINDAN 1 ICERIK satiri dusunce KIRMIZI (rc=1),
+       eksik blok ADIYLA basilir.
+    C) ARACIN KENDI YOLU — normal rotasyonda `SHA blok: esit=k/k eksik=0` basilir.
+    D) MUTANT [OLDURUCU] — kanonik yalniz BASLIGI hash'lerse B YESILE doner.
+    """
+    print("\n[55] KALEM ① BLOK SHA — kanonik ICERIK olcer, ayrac KORLESTIRMEZ")
+    kutu_metin = "---\nname: sentetik\n---\n\n" + _k55_kutu_tarafi()
+    arsiv_metin = "---\nname: sentetik-arsiv\n---\n\n" + _k55_arsiv_tarafi()
+
+    # --- A) POZITIF ---------------------------------------------------------
+    kok_a = os.path.join(kok, "a")
+    os.makedirs(kok_a, exist_ok=True)
+    a = Alan(kok_a, kutu_metin, arsiv_metin)
+    rc, cikti = _k55_kos(arac, a.kutu, a.arsiv, a.kilit, ["--sha-dogrula"])
+    ham_esit, ham_toplam = _k55_ham_esitlik(kutu_metin, arsiv_metin)
+    n = len(K55_BLOKLAR)
+    iddia("55a rc=0 (kanonikten sonra TAM)", rc == 0, "rc=%d\n%s" % (rc, cikti[-900:]))
+    iddia("55b 🔴 SHA_DOGRULAMA esit=%d/%d ADIYLA basildi" % (n, n),
+          ("SHA_DOGRULAMA esit=%d/%d eksik=0" % (n, n)) in cikti, cikti[-900:])
+    iddia("55c HUKUM=SHA_TAM basildi", "HUKUM=SHA_TAM" in cikti, cikti[-600:])
+    iddia("55d 🔴 BAGIMSIZ ORACLE: AYNI fiksturde HAM sha ESIT DEGIL (%d/%d) -> "
+          "yesili saglayan sey GERCEKTEN kanoniklestirme"
+          % (ham_esit, ham_toplam), ham_esit < ham_toplam,
+          "ham sha zaten esit cikti (%d/%d) -> fikstur ayrac farkini TASIMIYOR, "
+          "55b OLU IDDIA olurdu" % (ham_esit, ham_toplam))
+
+    # --- B) NEGATIF: ORTADAN 1 ICERIK SATIRI DUSER --------------------------
+    kok_b = os.path.join(kok, "b")
+    os.makedirs(kok_b, exist_ok=True)
+    bozuk = "---\nname: sentetik-arsiv\n---\n\n" + _k55_arsiv_tarafi(orta_satir_sil=1)
+    b = Alan(kok_b, kutu_metin, bozuk)
+    rc_b, cikti_b = _k55_kos(arac, b.kutu, b.arsiv, b.kilit, ["--sha-dogrula"])
+    iddia("55e 🔴 NEGATIF rc=1 (ortadan dusen satir KIRMIZI yakar)", rc_b == 1,
+          "rc=%d\n%s" % (rc_b, cikti_b[-900:]))
+    iddia("55f 🔴 esit=%d/%d eksik=1 (kol ICERIK olcuyor, ayrac degil)" % (n - 1, n),
+          ("SHA_DOGRULAMA esit=%d/%d eksik=1" % (n - 1, n)) in cikti_b, cikti_b[-900:])
+    iddia("55g eksik blok ADIYLA basildi (sessiz sayilmadi)",
+          "ARSIVDE YOK" in cikti_b and K55_BLOKLAR[1][0].strip()[:40] in cikti_b,
+          cikti_b[-900:])
+    iddia("55h SALT-OKUR: kirmizida da HICBIR SEY yazilmadi",
+          oku(b.arsiv) == bozuk and oku(b.kutu) == kutu_metin, "dosya DEGISTI")
+
+    # --- C) ARACIN KENDI TASIMA YOLU: `SHA blok:` KAPI satiri ---------------
+    kok_c = os.path.join(kok, "c")
+    os.makedirs(kok_c, exist_ok=True)
+    c_metin = kutu_uret(30)
+    c = Alan(kok_c, c_metin, "## eski arsiv blogu\n\ngovde\n")
+    rc_c, cikti_c = kos(arac, c.kutu, c.arsiv, c.kilit, tavan=25, koru=3)
+    # 🔴 BEKLENEN SAYI BAGIMSIZ ORACLE'DAN gelir, ARACIN BASKA BIR SATIRINDAN DEGIL.
+    # Ilk yazimda `KAYIPSIZLIK blok:` satirindan okunuyordu ve o satiri susturan
+    # mutant (`k`) bu vakayi da olduruyordu — yani iddia KOMSU BIR KOLA capalanmisti
+    # ([[capa-komsuya-nisanlanirsa-yabanci-degisiklik-kopartir]] sinifi, olculdu).
+    tasinan, _kesim = oracle_kesim(c_metin, 25, 3)
+    iddia("55i rc=0 (normal rotasyon)", rc_c == 0, cikti_c[-700:])
+    iddia("55j 🔴 `SHA blok: esit=%d/%d eksik=0` KAPI satiri basildi" % (tasinan, tasinan),
+          ("SHA blok: esit=%d/%d eksik=0" % (tasinan, tasinan)) in cikti_c
+          and tasinan > 0, cikti_c[-900:])
+    # 🔴 BEKLENEN SAYI ELLE YAZILMAZ: aracin KENDI `IDDIA_EKSENLERI`nden turer
+    # ([[ikiz-tanim-sessiz-ayrisma]]); D19 listeye girmezse bu iddia KIRMIZI yanar.
+    eksenler = _arac_modulu(arac).IDDIA_EKSENLERI
+    iddia("55k 🔴 D19 iddia ekseni SAYIYA GIRDI (lossless iddia=%d) ve listede var"
+          % len(eksenler),
+          ("lossless_dogrulama=GECTI (iddia=%d," % len(eksenler)) in cikti_c
+          and "D19" in eksenler, cikti_c[-600:])
+
+    # --- D) MUTANT [OLDURUCU]: kanonik yalniz BASLIGI hash'ler --------------
+    kok_d = os.path.join(kok, "d")
+    os.makedirs(kok_d, exist_ok=True)
+    mut, hata = _k374_mutant(
+        arac, os.path.join(kok_d, "mutant-kutu-arsivle.py"),
+        '    satirlar = metin.replace("\\r\\n", "\\n").replace("\\r", "\\n").split("\\n")\n',
+        '    satirlar = metin.replace("\\r\\n", "\\n").replace("\\r", "\\n").split("\\n")[:1]'
+        '  # MUTANT: yalniz BASLIK hash\'lenir\n')
+    if hata:
+        iddia("55l MUTANT capasi TUTMADI (OLCULEMEDI)", False, hata)
+    else:
+        d = Alan(kok_d, kutu_metin, bozuk)
+        rc_d, cikti_d = _k55_kos(mut, d.kutu, d.arsiv, d.kilit, ["--sha-dogrula"])
+        iddia("55l 🔴 MUTANT [OLDURUCU]: kanonik GOVDEYI okumayinca ORTADAN DUSEN "
+              "SATIR gorunmez oldu (rc 1 -> 0) — 55e/55f'yi saglayan sey GERCEKTEN "
+              "icerik hash'i", rc_d == 0 and "eksik=0" in cikti_d,
+              "rc=%d — mutant HEDEFE ULASMADI, 55e/55f OLU IDDIA olurdu\n%s"
+              % (rc_d, cikti_d[-700:]))
+        iddia("55m MUTANT yalnizca GECICI kopyaya yazildi (gercek arac SHA sabit)",
+              os.path.dirname(os.path.abspath(mut)) == os.path.abspath(kok_d), mut)
+
+
+# ── V56: KALEM ② — YEDEK DUSUS BEYANINI ARAC KENDI YAZAR ────────────────────────
+K56_ANAHTAR = "mimar-posta-kutusu.md"
+
+
+def _k56_alan(kok):
+    """Kutu ADI GERCEK ANAHTARLA ESLESIR (beyan eslesmesi DOSYA ADI ekseninde).
+
+    🔴 CANLI BEYAN/KUTU/ARSIV KULLANILMAZ: uc dosya da bu gecici dizinde uretilir,
+    arac `--beyan-dosya` ile fikstur kopyasina yonlendirilir.
+    """
+    kutu = os.path.join(kok, K56_ANAHTAR)
+    arsiv = os.path.join(kok, "mimar-posta-kutusu-arsiv.md")
+    kilit = os.path.join(kok, ".fikstur.lock")
+    beyan = os.path.join(kok, ".yedek-dusus-izin.json")
+    yaz(kutu, kutu_uret(30))
+    yaz(arsiv, "## eski arsiv blogu\n\ngovde\n")
+    yaz(beyan, json.dumps({
+        K56_ANAHTAR: {"tur": "tek-seferlik", "kaynak_bayt": 111,
+                      "gerekce": "FIKSTUR — kabul testi"},
+        "KOMSU-KAYIT.md": {"tur": "surekli", "azami_bayt": 4096,
+                           "gerekce": "FIKSTUR KOMSU — DOKUNULMAMALI"},
+    }, ensure_ascii=False, indent=2))
+    return kutu, arsiv, kilit, beyan
+
+
+def _k56_kos(arac, kutu, arsiv, kilit, beyan, ek=()):
+    komut = [sys.executable, arac, "--kutu", kutu, "--arsiv", arsiv, "--kilit", kilit,
+             "--beyan-dosya", beyan, "--tavan", "25", "--koru", "3"]
+    r = subprocess.run(komut + list(ek), capture_output=True, text=True)
+    return r.returncode, (r.stdout or "") + (r.stderr or "")
+
+
+def _k56_damga(*yollar):
+    return [(os.path.getmtime(y), os.path.getsize(y)) for y in yollar]
+
+
+def v56_beyan_araci_yazar(arac, kok):
+    """[56] 🔴 KALEM ② — BEYANI ARAC YAZAR; --kuru YAZMAZ; KAPI KIRMIZI -> YAZMAZ.
+
+    A) YAZAN KOSUM: beyanin `kaynak_bayt` alani DISKTEKI kutuya ESIT olur, dosyanin
+       mtime'i KOSUM BASLANGICINDAN BUYUKTUR (yani ARACIN ELIYLE yazildi), `tur`
+       DEGISMEZ ve KOMSU kayit DOKUNULMAZ.
+    B) `--kuru`: uc dosyanin (kutu/arsiv/beyan) mtime + boyutu BIREBIR AYNI kalir.
+    C) MUTANT [OLDURUCU]: sentetik ariza kapiyi KIRMIZI yakinca beyan da YAZILMAZ.
+    """
+    print("\n[56] KALEM ② BEYAN — arac kendi dususunu beyan eder (mtime + mutant)")
+
+    # --- A) YAZAN KOSUM -----------------------------------------------------
+    kok_a = os.path.join(kok, "a")
+    os.makedirs(kok_a, exist_ok=True)
+    kutu, arsiv, kilit, beyan = _k56_alan(kok_a)
+    once = json.loads(oku(beyan))
+    kosum_basi = time.time()
+    time.sleep(0.02)
+    rc, cikti = _k56_kos(arac, kutu, arsiv, kilit, beyan)
+    sonra = json.loads(oku(beyan))
+    kutu_bayt = os.path.getsize(kutu)
+    iddia("56a rc=0", rc == 0, "rc=%d\n%s" % (rc, cikti[-900:]))
+    iddia("56b `BEYAN=YAZILDI` ADIYLA basildi (sessiz yazim YOK)",
+          "BEYAN=YAZILDI" in cikti, cikti[-900:])
+    iddia("56c 🔴 beyan ARACIN ELIYLE yazildi (mtime > kosum basi)",
+          os.path.getmtime(beyan) > kosum_basi,
+          "mtime=%.3f kosum_basi=%.3f" % (os.path.getmtime(beyan), kosum_basi))
+    iddia("56d 🔴 kaynak_bayt OLCUMDEN turedi (%d -> %d = diskteki kutu)"
+          % (once[K56_ANAHTAR]["kaynak_bayt"], kutu_bayt),
+          sonra[K56_ANAHTAR]["kaynak_bayt"] == kutu_bayt,
+          "beyan=%r disk=%d" % (sonra[K56_ANAHTAR].get("kaynak_bayt"), kutu_bayt))
+    iddia("56e 🔴 `tur` DEGISMEDI (tek-seferlik KALIR, surekli'ye CEVRILMEZ)",
+          sonra[K56_ANAHTAR]["tur"] == "tek-seferlik", str(sonra[K56_ANAHTAR].get("tur")))
+    iddia("56f 🔴 KOMSU kayit BIREBIR DOKUNULMADI",
+          once["KOMSU-KAYIT.md"] == sonra["KOMSU-KAYIT.md"], "komsu kayit DEGISTI")
+    iddia("56g gerekce ARACIN kosum damgasini tasiyor (elle yazim ayirt edilir)",
+          "gerekce_arac" in sonra[K56_ANAHTAR]
+          and "ARACIN ELIYLE" in sonra[K56_ANAHTAR]["gerekce_arac"],
+          str(sonra[K56_ANAHTAR].keys()))
+    iddia("56h ESKI `gerekce` alani SILINMEDI (tarih yutulmadi)",
+          sonra[K56_ANAHTAR].get("gerekce") == once[K56_ANAHTAR].get("gerekce"),
+          "gerekce degisti")
+
+    # --- B) --kuru: HICBIR SEY YAZILMAZ (beyan DAHIL) -----------------------
+    kok_b = os.path.join(kok, "b")
+    os.makedirs(kok_b, exist_ok=True)
+    kutu_b, arsiv_b, kilit_b, beyan_b = _k56_alan(kok_b)
+    d_once = _k56_damga(kutu_b, arsiv_b, beyan_b)
+    time.sleep(0.02)
+    rc_b, cikti_b = _k56_kos(arac, kutu_b, arsiv_b, kilit_b, beyan_b, ["--kuru"])
+    d_sonra = _k56_damga(kutu_b, arsiv_b, beyan_b)
+    iddia("56i --kuru rc=0", rc_b == 0, "rc=%d\n%s" % (rc_b, cikti_b[-900:]))
+    iddia("56j 🔴 --kuru: KUTU + ARSIV + BEYAN mtime ve boyutu BIREBIR AYNI",
+          d_once == d_sonra, "once=%r sonra=%r" % (d_once, d_sonra))
+    iddia("56k --kuru hali ADIYLA basildi (`BEYAN=YAZILMADI kuru kip`)",
+          "BEYAN=YAZILMADI kuru kip" in cikti_b, cikti_b[-900:])
+
+    # --- C2) TUR SARTI: `surekli` kayit TAZELENMEZ --------------------------
+    # 🔴 BaBa'nin SINIRI: `tur` alani `tek-seferlik` KALIR, arac onu `surekli`ye
+    # CEVIRMEZ ve `surekli` bir kaydi TAZELEMEZ (28 Agu'da yargilandi: kutunun bayt
+    # araligi 27-131 KB, o genislikte bir tavan korumayi FIILEN KAPATIR). Bu bacak
+    # olmadan `tur` sartini kaldiran mutant (`an`) HAYATTA kalirdi — yani sartin
+    # okunup okunmadigi HIC olculmemis olurdu ([[kabul-fiksturu-yasagi-kutsar]]).
+    kok_c2 = os.path.join(kok, "c2")
+    os.makedirs(kok_c2, exist_ok=True)
+    kutu_c2, arsiv_c2, kilit_c2, beyan_c2 = _k56_alan(kok_c2)
+    yaz(beyan_c2, json.dumps({
+        K56_ANAHTAR: {"tur": "surekli", "azami_bayt": 131072,
+                      "gerekce": "FIKSTUR — TUR SARTI BACAGI"},
+    }, ensure_ascii=False, indent=2))
+    d_once = _k56_damga(beyan_c2)
+    time.sleep(0.02)
+    rc_c2, cikti_c2 = _k56_kos(arac, kutu_c2, arsiv_c2, kilit_c2, beyan_c2)
+    d_sonra = _k56_damga(beyan_c2)
+    sonra_c2 = json.loads(oku(beyan_c2))
+    iddia("56o TUR SARTI: kosum rc=0 (tasima YAPILDI)", rc_c2 == 0,
+          "rc=%d\n%s" % (rc_c2, cikti_c2[-900:]))
+    iddia("56p 🔴 `surekli` kayit TAZELENMEDI (dosya mtime + boyut BIREBIR AYNI)",
+          d_once == d_sonra, "once=%r sonra=%r" % (d_once, d_sonra))
+    iddia("56q 🔴 `surekli` kayda `kaynak_bayt` EKLENMEDI (tur DONUSTURULMEDI)",
+          "kaynak_bayt" not in sonra_c2[K56_ANAHTAR]
+          and sonra_c2[K56_ANAHTAR]["tur"] == "surekli", str(sonra_c2[K56_ANAHTAR]))
+    iddia("56r sebep ADIYLA basildi (`kayit turu` — sessiz atlama YOK)",
+          "BEYAN=YAZILMADI" in cikti_c2 and "kayit turu" in cikti_c2, cikti_c2[-900:])
+
+    # --- C) MUTANT [OLDURUCU]: kapi KIRMIZI -> beyan YAZILMAZ ---------------
+    kok_c = os.path.join(kok, "c")
+    os.makedirs(kok_c, exist_ok=True)
+    kutu_c, arsiv_c, kilit_c, beyan_c = _k56_alan(kok_c)
+    mut, hata = _k374_mutant(
+        arac, os.path.join(kok_c, "mutant-kutu-arsivle.py"),
+        "        yeni_kutu, ek, yeni_arsiv, ahata = ariza_uygula("
+        "yeni_kutu, ek, yeni_arsiv)\n",
+        "        yeni_kutu, ek, yeni_arsiv, ahata = ariza_uygula("
+        "yeni_kutu, ek, yeni_arsiv)\n"
+        "        ek = ek + \"\\nMUTANT: SENTETIK ARIZA satiri\\n\"  # kapi KIRMIZI yanmali\n")
+    if hata:
+        iddia("56l MUTANT capasi TUTMADI (OLCULEMEDI)", False, hata)
+    else:
+        d_once = _k56_damga(kutu_c, arsiv_c, beyan_c)
+        time.sleep(0.02)
+        rc_c, cikti_c = _k56_kos(mut, kutu_c, arsiv_c, kilit_c, beyan_c)
+        d_sonra = _k56_damga(kutu_c, arsiv_c, beyan_c)
+        iddia("56l 🔴 MUTANT: sentetik ariza kapiyi KIRMIZI yakti (rc!=0)",
+              rc_c != 0 and "LOSSLESS DOGRULAMASI KIRMIZI" in cikti_c,
+              "rc=%d\n%s" % (rc_c, cikti_c[-900:]))
+        iddia("56m 🔴 MUTANT [OLDURUCU]: KAPI KIRMIZI iken BEYAN YAZILMADI "
+              "(56c/56d'yi saglayan sey kapinin GECMESIDIR)",
+              d_once == d_sonra, "once=%r sonra=%r — beyan kirmizida da yazildi"
+              % (d_once, d_sonra))
+        iddia("56n MUTANT yalnizca GECICI kopyaya yazildi (gercek arac SHA sabit)",
+              os.path.dirname(os.path.abspath(mut)) == os.path.abspath(kok_c), mut)
+
+
+# ── V57: MADDE 3(a) — `KORUMA-DUSTU` ILANI VETOYU KALDIRIR ──────────────────────
+# 🔴 FIKSTUR SEKLI GERCEK VAKADAN (arsiv satir 71100, 4 Eyl blogu): baslik ETIKET
+# KONUMUNDA `(KORUMA-DUSTU)` tasir AMA KONUSU geregi PROZA icinde bir kez daha
+# `KORUMALI` kelimesini aniyor. Ciplak alt-dizge eslesmesi bu ikinci gecisten veto
+# uretiyordu ve blok 5 TUR tasinamadi.
+K57_DUSTU = ("## 2026-07-04 ~22:2x — MimarB → MimarA + 5 mimar (KORUMA-DUSTU) "
+             "**③ KORUMALI BLOK 3. KEZ TASINDI → sinif kapisi ZORUNLU**\n")
+K57_ETIKETLI = ("## 2026-07-04 ~22:2x — MimarB → MimarA + 5 mimar (KORUMALI) "
+                "**③ KORUMALI BLOK 3. KEZ TASINDI → sinif kapisi ZORUNLU**\n")
+K57_PROZA = ("## 2026-07-04 ~22:2x — MimarB → MimarA + 5 mimar **③ KORUMALI BLOK "
+             "3. KEZ TASINDI → sinif kapisi ZORUNLU**\n")
+K57_GOVDE = ("\n"
+             "Sentetik govde — kabul testi fiksturu.\n"
+             "\n"
+             "- Olculen: 3 tekrar.\n"
+             "\n"
+             "— MimarB\n"
+             "\n")
+
+
+def _k57_kutu(baslik, n=12):
+    """Hedef blok EN ALTTA (en ESKI) — rotasyonun ILK ulasacagi yerde."""
+    parcalar = [FM]
+    i = 0
+    while i < n - 1:
+        parcalar.append(blok(i))
+        i += 1
+    parcalar.append(baslik + K57_GOVDE)
+    return "".join(parcalar)
+
+
+def v57_etiket_dustu(arac, kok):
+    """[57] 🔴 MADDE 3(a) — ILAN EDILEREK DUSEN KORUMA ROTASYONA ACILIR.
+
+    A) POZITIF — baslikta `(KORUMA-DUSTU)` + PROZA `KORUMALI`: blok TASINIR,
+       `ETIKET_DUSTU=1` ADIYLA basilir, `KORUMALI_ETIKETLI=0`.
+    B) MUTANT (FIKSTUR, BaBa'nin kabul satiri) — etiket `KORUMALI`ya cevrilince
+       blok YINE TASINMAZ (daraltma korumayi KALDIRMADI).
+    C) KONTROL (GERILEME) — baslikta YALNIZ PROZA `KORUMALI` (ilan YOK): blok
+       HALA korunur. Canli kutudaki isaretci bloklarinin sinifi budur; bu bacak
+       olmasa daraltma sessizce GENISLEYEBILIRDI.
+    D) MUTANT [OLDURUCU] — ilan kolu kaldirilinca A'daki blok KUTUDA KALIR.
+    """
+    print("\n[57] MADDE 3(a) ETIKET DUSTU — ilan vetoyu kaldirir, PROZA kaldirmaz")
+
+    # --- A) POZITIF ---------------------------------------------------------
+    kok_a = os.path.join(kok, "a")
+    os.makedirs(kok_a, exist_ok=True)
+    a = Alan(kok_a, _k57_kutu(K57_DUSTU), "## eski arsiv blogu\n\ngovde\n")
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=25, koru=3)
+    iddia("57a rc=0", rc == 0, "rc=%d\n%s" % (rc, cikti[-900:]))
+    iddia("57b 🔴 ETIKET_DUSTU=1 ADIYLA basildi (serbest birakma SESSIZ DEGIL)",
+          "ETIKET_DUSTU=1 " in cikti, cikti[-1500:])
+    iddia("57c 🔴 KORUMALI_ETIKETLI=0 (proza gecisi ARTIK veto URETMIYOR)",
+          "KORUMALI_ETIKETLI=0 " in cikti, cikti[-1500:])
+    iddia("57d 🔴 blok GERCEKTEN arsive gitti (5 tur suren kilit ACILDI)",
+          K57_DUSTU in oku(a.arsiv) and K57_DUSTU not in oku(a.kutu),
+          "blok kutuda kilitli kaldi")
+    iddia("57e dusen etiket blok ADIYLA basildi",
+          "ETIKET DUSTU blok" in cikti, cikti[-1500:])
+
+    # --- B) MUTANT (FIKSTUR): etiket `KORUMALI`ya cevrilir ------------------
+    kok_b = os.path.join(kok, "b")
+    os.makedirs(kok_b, exist_ok=True)
+    b = Alan(kok_b, _k57_kutu(K57_ETIKETLI), "## eski arsiv blogu\n\ngovde\n")
+    rc_b, cikti_b = kos(arac, b.kutu, b.arsiv, b.kilit, tavan=25, koru=3)
+    iddia("57f MUTANT(fikstur) rc=0", rc_b == 0, "rc=%d\n%s" % (rc_b, cikti_b[-900:]))
+    iddia("57g 🔴 etiket `KORUMALI`ya cevrilince blok YINE TASINMADI "
+          "(daraltma korumayi KALDIRMADI)",
+          K57_ETIKETLI in oku(b.kutu) and K57_ETIKETLI not in oku(b.arsiv),
+          "blok arsive kacti -> veto OLU\n%s" % cikti_b[-900:])
+    iddia("57h MUTANT(fikstur): KORUMALI_ETIKETLI=1 + ETIKET_DUSTU=0",
+          "KORUMALI_ETIKETLI=1 " in cikti_b and "ETIKET_DUSTU=0 " in cikti_b,
+          cikti_b[-1500:])
+
+    # --- C) KONTROL (GERILEME): ilan YOK, yalniz PROZA ----------------------
+    kok_c = os.path.join(kok, "c")
+    os.makedirs(kok_c, exist_ok=True)
+    c = Alan(kok_c, _k57_kutu(K57_PROZA), "## eski arsiv blogu\n\ngovde\n")
+    rc_c, cikti_c = kos(arac, c.kutu, c.arsiv, c.kilit, tavan=25, koru=3)
+    iddia("57i KONTROL rc=0", rc_c == 0, "rc=%d\n%s" % (rc_c, cikti_c[-900:]))
+    iddia("57j 🔴 KONTROL: ILAN YOKKEN proza `KORUMALI` HALA veto uretiyor "
+          "(daraltma GENISLEMEDI, gerileme YOK)",
+          K57_PROZA in oku(c.kutu) and K57_PROZA not in oku(c.arsiv),
+          "proza gecisi vetoyu KAYBETTI -> daraltma fazla genis\n%s" % cikti_c[-900:])
+    iddia("57k KONTROL: ETIKET_DUSTU=0 (ilan olmadan sayac artmaz)",
+          "ETIKET_DUSTU=0 " in cikti_c, cikti_c[-1500:])
+
+    # --- D) MUTANT [OLDURUCU]: ilan kolu kaldirilir -------------------------
+    kok_d = os.path.join(kok, "d")
+    os.makedirs(kok_d, exist_ok=True)
+    mut, hata = _k374_mutant(
+        arac, os.path.join(kok_d, "mutant-kutu-arsivle.py"),
+        "        if ETIKET_DUSTU_ISARETI in baslik:\n",
+        "        if False:  # MUTANT: ilan kolu kaldirildi\n")
+    if hata:
+        iddia("57l MUTANT capasi TUTMADI (OLCULEMEDI)", False, hata)
+    else:
+        d = Alan(kok_d, _k57_kutu(K57_DUSTU), "## eski arsiv blogu\n\ngovde\n")
+        rc_d, cikti_d = kos(mut, d.kutu, d.arsiv, d.kilit, tavan=25, koru=3)
+        iddia("57l 🔴 MUTANT [OLDURUCU]: ilan kolu kalkinca blok KUTUDA KALDI "
+              "(57d'yi saglayan sey GERCEKTEN bu kol)",
+              K57_DUSTU in oku(d.kutu) and K57_DUSTU not in oku(d.arsiv),
+              "rc=%d — mutant HEDEFE ULASMADI, 57b/57d OLU IDDIA olurdu\n%s"
+              % (rc_d, cikti_d[-900:]))
+        iddia("57m MUTANT yalnizca GECICI kopyaya yazildi (gercek arac SHA sabit)",
+              os.path.dirname(os.path.abspath(mut)) == os.path.abspath(kok_d), mut)
+
+
 VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v04_frontmatter_ve_ust_bloklar, v05_blok_bolunmez,
            v06_arsiv_yoksa_frontmatter, v07_kilit, v08_bozuk_frontmatter,
@@ -3475,7 +3944,8 @@ VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v46_ad_ekseni_ayrismasi, v47_arsiv_duzlemi, v48_konum_olcutu,
            v49_harness_ad_sekli, v50_korumali_etiketi,
            v51_kapanis_kuyrugu, v52_adsiz_kilit_acma, v53_arac_ifadesi_ad_degil,
-           v54_kimlik_kumesi)
+           v54_kimlik_kumesi,
+           v55_blok_sha_kolu, v56_beyan_araci_yazar, v57_etiket_dustu)
 
 
 def suite(arac, sessiz=False):
@@ -3915,6 +4385,46 @@ MUTANTLAR = (
     ("ak) KONTROL: BASLIK_KIMLIK_TABANI 40 -> 45 (olculen boslugun ICINDE, YESIL kalmali)",
      "BASLIK_KIMLIK_TABANI = 40\n",
      "BASLIK_KIMLIK_TABANI = 45\n",
+     False, None),
+    # ------------------------------------------- 9 EYL 2026 (kalem ① · ② · madde 3a)
+    # 🔴 KOLLARIN OLDURUCU MUTANTLARI VAKALARIN ICINDEDIR (55l · 56m · 57l) ve orada
+    # yalnizca "kirmizi geldi" DEMEZ, HANGI SAYININ/HANGI BLOGUN degistigini ADIYLA
+    # olcer. Bataryaya giren mutantlar bunlarin KOPYASI DEGIL: burada olculen sey
+    # BEYAN SATIRIDIR — "basilmayan sayi olculmemis sayidir"
+    # ([[aracin-teshis-cumlesi-olcum-degil]], mutant `k` ile AYNI SINIF).
+    # 🔴 D19 ICIN AYRI MUTANT YAZILMADI ve bu GEREKCELIDIR: aracin KENDI yolunda
+    # D4/D5/D5b `tasinan` ile `ek`i zaten BAYT BAYT karsilastirir, yani D19'u tek
+    # basina olduren bir fikstur YOKTUR. Yazilsaydi, olculmeyen bir kol olculmus
+    # sayilirdi ([[fail-closed-kol-arkasindaki-kolu-maskeler]]). D19'un kendi
+    # kanonigi 55l ile, `--sha-dogrula` yolu 55e/55f ile olculur.
+    ("al) 🔴 KALEM ①: `SHA blok:` KAPI SATIRI SUSTURULDU (icerik kimligi basilmaz)",
+     '        print("SHA blok: esit=%d/%d eksik=%d kanonik=rstrip+ayrac  [KAPI]"\n',
+     '        print("sha gizlendi %d %d %d"\n',
+     True, {"55"}),
+    ("am) 🔴 KALEM ②: BEYAN YAZIM KOLU OLDURULDU (arac kendi dususunu beyan etmez)",
+     "        yazildi, beyan_not = beyan_tazele(kutu_yolu, yeni_kutu, disk_once_bayt,\n"
+     "                                          p.tasinacak_blok, a.beyan_dosya)\n",
+     "        yazildi, beyan_not = (False, \"MUTANT: beyan kolu kaldirildi\")\n",
+     True, {"56"}),
+    ("an) 🔴 KALEM ②: BEYAN TUR SARTI KALDIRILDI (`surekli` kayit da tazelenir)",
+     '    if kayit.get("tur") != BEYAN_TURU:\n',
+     "    if False:  # MUTANT: tur sarti kaldirildi\n",
+     # 🔴 GEVSETME YONU — daraltmanin degil, GENISLEMENIN mutanti. V56'nin
+     # KOMSU-KAYIT bacagi (56f) `surekli` turlu bir kaydin DOKUNULMADIGINI olcer;
+     # sart kalkinca arac o kaydi da tazelemeye ACIK hale gelir. Anahtar eslesmesi
+     # hala dar oldugu icin komsu kayit BU fiksturde yazilmaz — mutantin OLDURDUGU
+     # sey, `tur` alaninin GERCEKTEN okundugudur (56e).
+     True, {"56"}),
+    ("ao) 🔴 MADDE 3(a): `ETIKET_DUSTU` SAYACI SUSTURULDU (serbest birakma SESSIZ)",
+     '        print("ETIKET_DUSTU=%d isaret=%s  [KAPI]"\n',
+     '        print("etiket dustu gizlendi %d %s"\n',
+     True, {"57"}),
+    # 🔴 KONTROL MUTANTI — YESIL KALMALI. `blok_kanonik` SONDAKI ayraclari atar;
+    # mutant ayni isi TERS SIRALI iki kosulla yapar (anlam BIREBIR AYNI). Kirmizi
+    # yanarsa batarya DAVRANISA degil METNE oturmustur.
+    ("ap) MP0 ESDEGER KONTROL: kanonik kuyruk kosullarinin SIRASI degisti (anlam AYNI)",
+     "    while satirlar and (not satirlar[-1].strip() or AYRAC_RE.match(satirlar[-1])):\n",
+     "    while satirlar and (AYRAC_RE.match(satirlar[-1]) or not satirlar[-1].strip()):\n",
      False, None),
 )
 

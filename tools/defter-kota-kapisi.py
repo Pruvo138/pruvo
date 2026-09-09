@@ -965,8 +965,63 @@ def main(argv=None):
               "PRUVO_HAFIZA_EKSENI=silahli)" % hafiza_rc)
         hafiza_rc = 0
     if kutu_rc or hafiza_rc or kaynak_rc or defter_rc:
+        care_son_bas(kutu_rc, hafiza_rc, kaynak_rc, defter_rc)
         return 1
     return 0
+
+
+# ---------------------------------------------------------------------------
+# MADDE 3(b) — SON SATIR EKSENI IZLER (9 Eyl 2026, K389'un KARDESI)
+# ---------------------------------------------------------------------------
+# 🔴 OLCULEN VAKA: kapi DORT ekseni birden olcer ve her eksen KENDI `CARE:` satirini
+#   DOGRU basar (kutu ekseni `kutu-arsivle.py`, defter ekseni `defter-rotasyon.py`).
+#   Ama okuyanin GORDUGU SON SATIR bunlarin hicbiri degildi: pre-commit kancasi,
+#   HANGI eksenin kirmizi yandigina BAKMADAN, SABIT METINLE
+#   `COZUM: python3 tools/defter-rotasyon.py --tavan-kaynaktan --isaretciye-indir`
+#   basiyordu. Kutu ekseni kirmizi yandiginda (9 Eyl, `KUTU_ASILDI ... 347 satir`)
+#   okuyana onerilen komut DEFTERI rotasyona sokan komuttu — kutuya HIC DOKUNMAZ,
+#   yani kapinin son sozu YANLIS ARACI gosteriyordu. Sinif K389 ile ayni:
+#   [[kapi-red-metni-ikinci-kopyadir]] — care metni ikinci bir kopyada yasiyordu ve
+#   kaynaktan (hangi eksen kirmizi) AYRISMISTI.
+# 🔴 CARE: son sozu KAPI SOYLER ve EKSENDEN TURETIR. Kanca artik arac ADI TASIMAZ,
+#   yalnizca bu satiri gosterir — ikinci kopya SILINDI, ikizlenme kaynaginda kapandi.
+# 🔴 IKINCI KOPYA YOK (2): komut metinleri `serbest_cagrilar` tablosundan gelir —
+#   kapinin her eksende zaten bastigi `CARE:` satirlariyla AYNI kaynak.
+CARE_SON_EKSENLERI = (
+    # (eksen adi, serbest_cagrilar etiketi ya da None, etiket yoksa duz metin)
+    ("KUTU", "kutu-arsivle", None),
+    ("HAFIZA", "hafiza-arsivle", None),
+    ("KAYNAK", None, "ikinci sabiti SIL, degeri sahibinden oku "
+                     "(tools/defter-kota-taban.py :: tools/kutu-arsivle.py)"),
+    ("DEVAM", "rotasyon-bakim", None),
+)
+
+
+def care_son_satirlari(kutu_rc, hafiza_rc, kaynak_rc, defter_rc):
+    """[(eksen, care_metni)] — YALNIZ kirmizi yanan eksenler, SABIT sirada.
+
+    Tek eksen kirmiziysa liste TEK ogelidir ve o oge kapinin SON SATIRI olur.
+    Birden fazla eksen kirmiziysa HEPSI basilir (hicbiri gizlenmez); son satir
+    listenin son ogesidir ve KENDI eksen adini TASIR, yani hangi eksene ait
+    oldugu okunmadan kalmaz.
+    """
+    rc_haritasi = {"KUTU": kutu_rc, "HAFIZA": hafiza_rc,
+                   "KAYNAK": kaynak_rc, "DEVAM": defter_rc}
+    cikti = []
+    for eksen, etiket, duz in CARE_SON_EKSENLERI:
+        if not rc_haritasi.get(eksen):
+            continue
+        cikti.append((eksen, _SC.cagri_ornegi(etiket) if etiket else duz))
+    return cikti
+
+
+def care_son_bas(kutu_rc, hafiza_rc, kaynak_rc, defter_rc):
+    """Kirmizi eksenlerin caresini SON SOZ olarak basar (stderr)."""
+    satirlar = care_son_satirlari(kutu_rc, hafiza_rc, kaynak_rc, defter_rc)
+    print("!! KIRMIZI_EKSENLER=%s" % (",".join(e for e, _c in satirlar) or "-"),
+          file=sys.stderr)
+    for eksen, care in satirlar:
+        print("!! CARE_SON: [EKSEN=%s] %s" % (eksen, care), file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------
@@ -1032,6 +1087,13 @@ def _kendini_test():
                       "satir=%d bayt=%d rc=%d (mutant yesil; 0 beklenir)" % (satir, bayt, rc)))
     _fikstur_sil(fikstur)
 
+    # ═══ MADDE 3(b) — SON SATIR EKSENI IZLER (9 Eyl 2026) ═══════════════════
+    # 🔴 UC BACAK: iki POZITIF (her eksen KENDI aracini gosterir) + BIR MUTANT
+    # (eksen -> care esleme tablosu KARISTIRILINCA iddia KIRMIZI yanmali). Mutant
+    # olmadan iki pozitif, "her ne basilirsa basilsin" diyen bir kolla da yesil
+    # yanardi ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]).
+    sonuclar.extend(_care_son_bacaklari())
+
     dusen = 0
     for ad, gecti, detay in sonuclar:
         if gecti:
@@ -1044,6 +1106,71 @@ def _kendini_test():
     print("FIKSTUR=%d/%d MUTANT=%d/%d" % (gecen, toplam, dusen, toplam))
     print("DUSEN=%d" % dusen)
     return 0 if dusen == 0 else 1
+
+
+def _care_son_yakala(kutu_rc, hafiza_rc, kaynak_rc, defter_rc):
+    """`care_son_bas`in stderr ciktisini YAKALAR — SON SATIR gercekten olculur.
+
+    Saf fonksiyonu (`care_son_satirlari`) cagirmak yeterli DEGILDIR: olculen sey
+    "okuyanin gordugu SON SATIR" oldugu icin basim kolunun kendisi kosulmalidir.
+    """
+    import io as _io
+    tampon = _io.StringIO()
+    eski = sys.stderr
+    sys.stderr = tampon
+    try:
+        care_son_bas(kutu_rc, hafiza_rc, kaynak_rc, defter_rc)
+    finally:
+        sys.stderr = eski
+    satirlar = [s for s in tampon.getvalue().splitlines() if s.strip()]
+    return satirlar[-1] if satirlar else ""
+
+
+def _care_son_bacaklari():
+    """[(ad, gecti_mi, detay)] — madde 3(b)'nin iki pozitifi + bir mutanti."""
+    import os.path as _op
+
+    kutu_arac = _op.basename(_SC.KUTU_ARSIVLE_YOL)
+    defter_arac = _op.basename(_SC.DEFTER_ROTASYON_YOL)
+    cikti = []
+
+    # B1 POZITIF — YALNIZ kutu ekseni kirmizi: son satir KUTU + kutu-arsivle.py
+    son = _care_son_yakala(1, 0, 0, 0)
+    cikti.append((
+        "B1 KUTU EKSENI", ("[EKSEN=KUTU]" in son and kutu_arac in son
+                           and defter_arac not in son),
+        "son satir=%r (KUTU + %s beklenir, %s GECMEMELI)"
+        % (son[:160], kutu_arac, defter_arac)))
+
+    # B2 POZITIF — YALNIZ DEVAM ekseni kirmizi: son satir DEVAM + defter-rotasyon.py
+    son = _care_son_yakala(0, 0, 0, 1)
+    cikti.append((
+        "B2 DEVAM EKSENI", ("[EKSEN=DEVAM]" in son and defter_arac in son
+                            and kutu_arac not in son),
+        "son satir=%r (DEVAM + %s beklenir, %s GECMEMELI)"
+        % (son[:160], defter_arac, kutu_arac)))
+
+    # B3 MUTANT [OLDURUCU] — eksen -> care esleme tablosu KARISTIRILIR. B1'in
+    # iddiasi bu tabloya BAGLIYSA mutant altinda TUTMAMALIDIR.
+    global CARE_SON_EKSENLERI
+    orijinal = CARE_SON_EKSENLERI
+    try:
+        CARE_SON_EKSENLERI = (
+            ("KUTU", "rotasyon-bakim", None),      # MUTANT: kutu -> DEFTER aracini gosterir
+            ("HAFIZA", "hafiza-arsivle", None),
+            ("KAYNAK", None, "mutant"),
+            ("DEVAM", "kutu-arsivle", None),       # MUTANT: defter -> KUTU aracini gosterir
+        )
+        mut_son = _care_son_yakala(1, 0, 0, 0)
+        mutant_hayatta = ("[EKSEN=KUTU]" in mut_son and kutu_arac in mut_son
+                          and defter_arac not in mut_son)
+    finally:
+        CARE_SON_EKSENLERI = orijinal
+    cikti.append((
+        "B3 MUTANT (eksen->care esleme karistirildi)", not mutant_hayatta,
+        "mutant son satir=%r — B1 iddiasi bu tabloya BAGLI DEGIL, OLU IDDIA olurdu"
+        % mut_son[:160]))
+    return cikti
 
 
 def _fikstur_satir_bayt(satir_hedef, bayt_hedef):
