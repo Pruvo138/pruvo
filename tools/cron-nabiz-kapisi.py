@@ -2082,13 +2082,33 @@ def _uzl_adimlari():
     return adimlar
 
 
+# ── SINIFLANDIRMA CAPALARI — HUKMUN VAROLUS SEBEBI, METIN VARYANTI DEGIL ─────────
+# `exit 1` tasiyan IKI sapma adimi vardir ve ayrimlari KALICIDIR:
+#   (1) KOL adimi        -> KOLA OZELDIR: kosulu kol bayragini (`inputs.kadans_kolu`)
+#                           okur; kadans kolunda SUSAR (o kolda kanal damgadir).
+#   (3) ONARILAMADI adimi-> KOLDAN BAGIMSIZDIR ama emniyet aginin KENDI sonucunu
+#                           (`steps.teyit.outcome`) okur; hukmu "sapma kapanmadi"dir.
+# 🔴 NEDEN METIN CAPASI DEGIL (7 Agu 2026 olcumu): onceki surum `failure()` DIZESINI
+# ariyordu. ONARILAMADI kosulu `failure()` -> `always() && ... && steps.teyit.outcome
+# != 'success'` olarak DUZELTILINCE capa sessizce kaybetti: adim (1) sanildi, (1)'in
+# uzerine YAZILDI ve kapi kendi olctugu sozlesmeyi kaybetti (`--kendini-test` 2 KIRMIZI).
+# Ders [[ikiz-tanim-sessiz-ayrisma]]: capa, olculen sozlesmenin DEGISEBILIR yazimina
+# degil DEGISMEYEN ayrimina baglanir. Siniflandirma ayrica FAIL-CLOSED: bir aday iki
+# capaya birden uyarsa, hicbirine uymazsa ya da ayni sinifa IKI aday duserse SORUN
+# yazilir — sessiz uzerine yazma bir daha OLAMAZ.
+_KOL_CAPA = "inputs.%s" % KADANS_BAYRAGI
+_ONARILAMADI_CAPA = "steps.teyit.outcome"
+
+
 def _sinyal_adimlari(adimlar):
-    """(cron_adimlari, kadans_yazma, kadans_yukleme, onarilamadi) — SINIFLANDIRMA.
+    """(cron_adimlari, kadans_yazma, kadans_yukleme, onarilamadi, sinif_sorunlari).
 
     Siniflandirma ADIM ADINA DEGIL ICRA ETTIGI SEYE bakar (ad bir mensiyondur, olcum
     degil): `exit 1` tasiyan sapma adimlari, `--damga-adi <SAPMA_DAMGA_ADI>` yazan adim
-    ve o adi `upload-artifact` ile yukleyen adim."""
+    ve o adi `upload-artifact` ile yukleyen adim. `exit 1` adaylari _KOL_CAPA /
+    _ONARILAMADI_CAPA ile AYRILIR; belirsizlik SORUN olarak DONER (fail-closed)."""
     cron_adim = kadans_yaz = kadans_yuk = onarilamadi = None
+    sinif_sorun = []
     for a in adimlar:
         komut = str(a.get("run") or "")
         kosul = str(a.get("if") or "")
@@ -2101,11 +2121,37 @@ def _sinyal_adimlari(adimlar):
             kadans_yaz = a
             continue
         if re.search(r"(?m)^\s*exit 1\s*$", komut) and "sapma" in kosul:
-            if "failure()" in kosul:
+            ad = (str(a.get("name") or "") or "(adsiz)")[:70]
+            kol_capa = _KOL_CAPA in kosul
+            onar_capa = _ONARILAMADI_CAPA in kosul
+            if kol_capa and onar_capa:
+                sinif_sorun.append(
+                    "SINIFLANDIRMA BELIRSIZ [%s]: kosul HEM kol capasini (`%s`) HEM "
+                    "onarilamadi capasini (`%s`) tasiyor -> iki AYRI hukum tek adimda "
+                    "yigilmis olabilir; kapi hangi sozlesmeyi olctugunu BILEMEZ."
+                    % (ad, _KOL_CAPA, _ONARILAMADI_CAPA))
+            elif onar_capa:
+                if onarilamadi is not None:
+                    sinif_sorun.append(
+                        "ONARILAMADI sinifina IKI aday dustu (%r ve %r) -> biri otekinin "
+                        "uzerine yazilirdi (sessiz kayip)."
+                        % (str(onarilamadi.get("name") or "")[:70], ad))
                 onarilamadi = a
-            else:
+            elif kol_capa:
+                if cron_adim is not None:
+                    sinif_sorun.append(
+                        "KOL (cron/elle) sinifina IKI aday dustu (%r ve %r) -> biri "
+                        "otekinin uzerine yazilirdi (sessiz kayip)."
+                        % (str(cron_adim.get("name") or "")[:70], ad))
                 cron_adim = a
-    return cron_adim, kadans_yaz, kadans_yuk, onarilamadi
+            else:
+                sinif_sorun.append(
+                    "SINIFLANDIRILAMAYAN sapma adimi [%s]: `exit 1` veriyor ve kosulu "
+                    "`sapma` okuyor ama NE kol capasi (`%s`) NE onarilamadi capasi (`%s`) "
+                    "var -> hangi hukmu tasidigi OLCULEMEZ (kosul: %r). Fail-closed: "
+                    "sinif atanmaz, ilgili hukum iddiasi KIRMIZI yanar."
+                    % (ad, _KOL_CAPA, _ONARILAMADI_CAPA, kosul[:110]))
+    return cron_adim, kadans_yaz, kadans_yuk, onarilamadi, sinif_sorun
 
 
 # HUKUM TABLOSU — (kol, sapma, onarim_durumu) -> HANGI adimlar kosmali.
@@ -2133,15 +2179,15 @@ def sinyal_ayrimi():
       (2) KADANS kolunun damga adimi VAR, `%s` adiyla yazar, AYNI adla YUKLER, yukleme
           fail-open DEGIL (`if-no-files-found: error`, `continue-on-error` yok) ve
           `exit 1` TASIMAZ (cagiran YAYIN kosumunun conclusion'i kirlenmesin),
-      (3) ONARILAMADI adimi VAR, `failure()` kosullu ve `exit 1` tasir (bu hal
-          "onarildi" ile AYNI KUTUYA konamaz),
+      (3) ONARILAMADI adimi VAR, emniyet aginin GERCEK sonucunu (`steps.teyit.outcome`)
+          okur ve `exit 1` tasir (bu hal "onarildi" ile AYNI KUTUYA konamaz),
       (4) DOGRULUK TABLOSU: SINYAL_TABLOSU'ndaki her senaryoda GitHub kosul semantigi
           FIILEN calistirilir ve tam olarak beklenen adimlar kosar.
     """ % SAPMA_DAMGA_ADI
     adimlar = _uzl_adimlari()
-    cron_adim, kadans_yaz, kadans_yuk, onarilamadi = _sinyal_adimlari(adimlar)
+    cron_adim, kadans_yaz, kadans_yuk, onarilamadi, sinif_sorun = _sinyal_adimlari(adimlar)
 
-    sorunlar = []
+    sorunlar = list(sinif_sorun)
     if cron_adim is None:
         sorunlar.append(
             "SAPMA SINYALI YOK (cron/elle kolu): %s icinde sapmada `exit 1` veren adim "
@@ -2183,8 +2229,9 @@ def sinyal_ayrimi():
                                 % (yazilan, ile.get("path")))
     if onarilamadi is None:
         sorunlar.append(
-            "ONARILAMADI HUKMU YOK: `failure()` kosullu, sapmada `exit 1` veren AYRI adim "
-            "bulunamadi -> 'sapma onarildi' ile 'sapma KAPANMADI' TEK HALE YIGILMIS olur. "
+            "ONARILAMADI HUKMU YOK: emniyet aginin sonucunu (`%s`) okuyan, sapmada "
+            "`exit 1` veren AYRI adim bulunamadi -> 'sapma onarildi' ile 'sapma "
+            "KAPANMADI' TEK HALE YIGILMIS olur. " % _ONARILAMADI_CAPA +
             "Ikincisinde katalog SU AN sapmali olabilir (Ege katalogun bir kismini "
             "goremez); bu bir gorunurluk notu degil ARIZADIR.")
 
@@ -2238,8 +2285,8 @@ def ayrim_kaniti():
                kirmizisi ile sapma kirmizisi yine tek birimde toplanirdi).
     """
     adimlar = _uzl_adimlari()
-    cron_adim, kadans_yaz, kadans_yuk, onarilamadi = _sinyal_adimlari(adimlar)
-    sorunlar = []
+    cron_adim, kadans_yaz, kadans_yuk, onarilamadi, sinif_sorun = _sinyal_adimlari(adimlar)
+    sorunlar = list(sinif_sorun)
 
     # ── YON (i-a): kadans kolunda ONARILAN sapma cikis kodu 1 URETMEZ ──────────
     ortam = {"durum": "success", "girdiler": {KADANS_BAYRAGI: True},
@@ -3423,12 +3470,75 @@ def kendini_test():
           "(sapma susturulmaz, KANALI degisir)" % SAPMA_DAMGA_ADI,
           bool(s_bulgu.get("yaz")) and bool(s_bulgu.get("yuk")),
           s_ariza or "; ".join(s_sorun))
-    iddia("SINYAL: 'ONARILAMADI' AYRI bir hukumdur (`failure()` kosullu, `exit 1`) — "
-          "onarilan sapma ile kapanmayan sapma TEK KUTUYA konamaz",
+    iddia("SINYAL: 'ONARILAMADI' AYRI bir hukumdur (emniyet aginin GERCEK sonucunu "
+          "`%s` ile okur, `exit 1`) — onarilan sapma ile kapanmayan sapma TEK KUTUYA "
+          "konamaz" % _ONARILAMADI_CAPA,
           bool(s_bulgu.get("onarilamadi")), s_ariza or "; ".join(s_sorun))
     iddia("SINYAL: DOGRULUK TABLOSU — %d senaryonun hepsinde GitHub kosul semantigi "
           "FIILEN calistirildi ve tam olarak beklenen adimlar kostu (carpisma YOK)"
           % len(SINYAL_TABLOSU), not s_sorun, s_ariza or "; ".join(s_sorun))
+
+    # ── CAPA KORELMESI FIKSTURU — 7 Agu 2026 sinifinin KALICI nobetcisi ─────────
+    # 🔴 NEDEN: siniflandirma capasi bir kez METIN varyantina baglanmisti (`failure()`
+    # dizesi). Olculen sozlesme DUZELTILINCE (kosum 31214568441) capa sessizce kaybetti;
+    # ONARILAMADI adimi KOL adimi sanildi, onun uzerine yazildi ve kapi kendi olctugu
+    # sozlesmeyi KAYBETTI. Bu batarya GERCEK dosyadan BAGIMSIZDIR (sentetik iskelet):
+    # kontrol vakasi siniflandirmanin TEMIZ oldugunu, mutantlar ise fail-loud
+    # sozlesmesini bozan her varyantin TEK BASINA sorun urettigini olcer
+    # ([[beyan-edilmis-survivor]]: her eksen ayri ayri kirmizi yakabilmeli).
+    _FX_KOL = "steps.olcum.outputs.sapma == 'var' && inputs.%s != true" % KADANS_BAYRAGI
+    _FX_ONAR = ("always() && steps.olcum.outputs.sapma == 'var' && "
+                "steps.teyit.outcome != 'success'")
+
+    def _fx(onar_kosul=_FX_ONAR, onar_run="echo o\nexit 1\n", kol_kosul=_FX_KOL):
+        kadans = "steps.olcum.outputs.sapma == 'var' && inputs.%s == true" % KADANS_BAYRAGI
+        return [
+            {"name": "(1) kol", "if": kol_kosul, "run": "echo k\nexit 1\n"},
+            {"name": "(2) damga yaz", "if": kadans,
+             "run": "python3 tools/cron-nabiz-kapisi.py --damga-yaz d1-sapma-damgasi.json "
+                    "--damga-adi %s\n" % SAPMA_DAMGA_ADI},
+            {"name": "(2) damga yukle", "if": kadans, "uses": "actions/upload-artifact@v4",
+             "with": {"name": SAPMA_DAMGA_ADI, "path": "d1-sapma-damgasi.json",
+                      "if-no-files-found": "error"}},
+            {"name": "(3) ONARILAMADI", "if": onar_kosul, "run": onar_run},
+        ]
+
+    _k_cron, _k_yaz, _k_yuk, _k_onar, _k_sorun = _sinyal_adimlari(_fx())
+    iddia("CAPA KONTROL FIKSTURU: bozulmamis iskelette siniflandirma TEMIZ — kol ve "
+          "ONARILAMADI AYRI adimlara dusuyor, sorun YOK (mutantlarin TEK DEGISKENLI "
+          "olmasinin sarti; bu satir yanlis-pozitif nobetcisidir)",
+          not _k_sorun and _k_cron is not None and _k_onar is not None
+          and _k_cron is not _k_onar and _k_yaz is not None and _k_yuk is not None,
+          "sorun=%r cron=%r onar=%r" % (_k_sorun, _k_cron and _k_cron.get("name"),
+                                        _k_onar and _k_onar.get("name")))
+
+    _m1 = _sinyal_adimlari(_fx(onar_kosul="failure() && steps.olcum.outputs.sapma == 'var'"))
+    iddia("CAPA MUTANTI 1 (ESKI kosula geri donus: `failure() && sapma=='var'`) -> "
+          "ONARILAMADI sinifi BOS + siniflandirma SORUNU. Kritik: KOL adimi ayakta "
+          "kaliyor (eski capa bu vakada sessizce KOL'un uzerine yaziyordu)",
+          _m1[3] is None and bool(_m1[4]) and _m1[0] is not None
+          and _m1[0].get("name") == "(1) kol", repr(_m1[4]))
+
+    _m2 = _sinyal_adimlari(_fx(onar_kosul="always() && steps.olcum.outputs.sapma == 'var'"))
+    iddia("CAPA MUTANTI 2 (emniyet aginin sonucu OKUNMUYOR: `%s` dusuruldu -> adim "
+          "onarim BASARILI iken de kirmizi yakardi) -> ONARILAMADI sinifi BOS + SORUN"
+          % _ONARILAMADI_CAPA,
+          _m2[3] is None and bool(_m2[4]), repr(_m2[4]))
+
+    _m3 = _sinyal_adimlari(_fx(onar_run="echo o\n"))
+    iddia("CAPA MUTANTI 3 (`exit 1` dusuruldu: hukum VAR ama SESSIZ) -> ONARILAMADI "
+          "sinifi BOS (kapi 'ONARILAMADI HUKMU YOK' ile KIRMIZI yakar)", _m3[3] is None,
+          repr(_m3[3] and _m3[3].get("name")))
+
+    _m4 = _sinyal_adimlari(_fx(onar_kosul=_FX_KOL))
+    iddia("CAPA MUTANTI 4 (ONARILAMADI adimi KOL kosuluna cevrildi: iki hukum tek "
+          "kutuya yigildi) -> AYNI SINIFA IKI ADAY: sessiz uzerine yazma yerine SORUN",
+          bool(_m4[4]) and any("IKI aday" in s for s in _m4[4]), repr(_m4[4]))
+
+    _m5 = _sinyal_adimlari(_fx(onar_kosul=_FX_ONAR + " && inputs.%s != true" % KADANS_BAYRAGI))
+    iddia("CAPA MUTANTI 5 (ONARILAMADI KOLA BAGLANDI: kadans kolunda sapma kapanmasa "
+          "da SUSARDI) -> siniflandirma BELIRSIZ, fail-closed SORUN",
+          bool(_m5[4]) and any("BELIRSIZ" in s for s in _m5[4]), repr(_m5[4]))
 
     # Kosul degerlendiricinin KENDI iki yonlu fiksturu (gercek dosyaya bagimli kalmasin).
     _o = lambda kol, sapma, durum: {  # noqa: E731

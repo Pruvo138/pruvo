@@ -1317,23 +1317,28 @@ BASLIK_DOGAN_ALLOW = {
     ("Suzuki", "Wagon R"): "arac/motosiklet model adi",
     ("Suzuki", "X90"): "arac/motosiklet model adi",
     ("Suzuki", "XF650"): "arac/motosiklet model adi",
-    # 🔴 6 Agu, mimar hukmu (ADIM 3 / hukum A — TEKIL GIRIS, KURAL DEGISMEDI):
-    # `86` Toyota'nin GERCEK rozetidir (GT86/GR86 kardesleri zaten yayinda) AMA CIPLAK
-    # SAYIDIR: H1 sekil kurali ciplak sayiyi DISARIDA tutar ve TUTMAYA DEVAM EDER.
-    # Bu satir yalnizca BU cifti acar; `Yamaha|660` gibi diger ciplak sayilar kapali kalir
-    # (emsal: `Ford|raptor`/`Yamaha|raptor` ad-cakismasi satirlari — tekil vaka yargisi).
-    # Jeton TEHLIKE sinifinda kalir: yalniz marka+model BITISIK ifadeyle eslesir.
-    ("Toyota", "86"): "Toyota 86 GERCEK rozet (ciplak sayi — TEKIL giris, H1 kurali disi)",
+    # ("Toyota", "86") — 8 Agu KALDIRILDI: kova artik BASLIK KOLUYLA DOGMUYOR (jeton
+    # yolundan gelen urun sayisi ESIK'i tek basina geciyor); tetikleyen commit 17ab2a8f
+    # "urun partisi" (Toyota/Lexus partisi, +624 satir), kosum 31230245301, K21 BAYAT
+    # eksenini kirmizi yakiyordu. Sayfa DUSMEZ (H1 ciplak sayi kurali `86`'yi KAPSAMAZ);
+    # kova yeniden yalniz-baslik haline gelirse K21 SIZINTI ekseni yeniden TEKIL yargi ister.
     ("Toyota", "Corolla Cross"): "arac/motosiklet model adi",
     ("Toyota", "Corolla Verso"): "arac/motosiklet model adi",
-    ("Toyota", "FJ Cruiser"): "arac/motosiklet model adi",
+    # ("Toyota", "FJ Cruiser") — 8 Agu KALDIRILDI: ayni gerekce (kova baslik kolundan
+    # DOGMUYOR; jeton yolu tek basina ESIK ustunde); tetikleyen commit 17ab2a8f
+    # "urun partisi", kosum 31230245301. Sayfa yayinda kalir.
     ("Toyota", "Land Cruiser Prado"): "arac/motosiklet model adi",
     ("Toyota", "Matrix"): "arac/motosiklet model adi",
     ("Toyota", "Raize"): "arac/motosiklet model adi",
     ("Toyota", "Starlet"): "arac/motosiklet model adi",
-    ("Toyota", "T100"): "arac/motosiklet model adi",
+    # ("Toyota", "T100") — 8 Agu KALDIRILDI: ayni gerekce (kova baslik kolundan
+    # DOGMUYOR; jeton yolu tek basina ESIK ustunde); tetikleyen commit 17ab2a8f
+    # "urun partisi", kosum 31230245301. Sayfa yayinda kalir.
     ("Toyota", "Tercel"): "arac/motosiklet model adi",
-    ("Toyota", "Vitz"): "arac/motosiklet model adi",
+    # ("Toyota", "Vitz") — 8 Agu KALDIRILDI: ayni gerekce (kova baslik kolundan
+    # DOGMUYOR; jeton yolu tek basina ESIK ustunde); tetikleyen commit 17ab2a8f
+    # "urun partisi", kosum 31230245301 (K21 mesaji [:3] kesiyordu, gercek liste 4
+    # kovaydi: 86/fjcruiser/t100/vitz). Sayfa yayinda kalir.
     ("Volkswagen", "Bora"): "arac/motosiklet model adi",
     ("Volkswagen", "CC"): "arac/motosiklet model adi",
     ("Volkswagen", "Caravelle"): "arac/motosiklet model adi",
@@ -1379,8 +1384,8 @@ BASLIK_DOGAN_ALLOW = {
     ("Yamaha", "YBR"): "arac/motosiklet model adi",
 }
 
-BASLIK_DOGAN_ALLOW_SAYISI = 185
-BASLIK_DOGAN_ALLOW_IMZA = "e30f93432d886dda"
+BASLIK_DOGAN_ALLOW_SAYISI = 181
+BASLIK_DOGAN_ALLOW_IMZA = "2db8ad26ee7318d5"
 
 
 def baslik_dogan_allow_imzasi():

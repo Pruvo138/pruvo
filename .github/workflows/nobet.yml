@@ -911,6 +911,20 @@ jobs:
       - name: CI kapsam kapisi oz-nobetcileri (bulgu1 + muaf sayaci, dogrudan)
         run: python3 tools/ci-kapsam-test.py --kendini-test
 
+      # MUTLAK YOL KAPISI — RAPOR KOLU (rc DAIMA 0, yayini DURDURMAZ). Kapinin kendi
+      # sozlesmesi bu: bayraksiz kol maruziyeti SAYIYLA basar, bloklayiciya cevirme
+      # (`--sifir-tolerans`) ve esik karari MIMARDADIR. Neden CI'da KOSMASI GEREKIR:
+      # olctugu sinif (CI'da kosan betikte makineye ozgu mutlak kok sabiti) YERELDE
+      # DAIMA YESIL yanar — yol gelistirici makinesinde cozulur, yalniz kosucuda
+      # patlar ([[sabit-mutlak-yol-yerelde-yesil]]). CI'da hic kosmayan bir kapi ise
+      # OLU NOBETCIDIR: tools/ci-kapsam-test.py bu dosyayi 7 Agu'dan beri KAPSAMSIZ
+      # sayip KIRMIZI yakiyordu ve o kirmizi, shop/test/fiyat-prova.mjs :: M3a
+      # mutantinin KONTROL ON KOSULUNU ("ci-kapsam gercek rc=0") dusurup SERIT A3'u
+      # bloklamisti -> deploy+yayin skipped. SERIT B: kapinin kendi kirmizisi yayin
+      # kosumunun rengini boyamaz. Offline, ag YOK, dosya YAZMAZ, ~2 s.
+      - name: "Mutlak yol kapisi — rapor kolu (makineye ozgu kok sabiti maruziyeti)"
+        run: python3 tools/mutlak-yol-kapisi.py
+
       # KAPININ KENDI NOBETCISI — ayri adim olmak ZORUNDA: yukaridaki kosum kapinin
       # KIRMIZI yolunu hic denemez (agac temizse daima yesil). Bu adim hermetik bir depo
       # kopyasinda 4 sayfayi tek tek bayatlatir (4/4 KIRMIZI bekler), kapsam daraltmayi

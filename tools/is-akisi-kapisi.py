@@ -2256,6 +2256,28 @@ SERIT_B = {
     ("nobet.yml", "serit-b", "tools/fiziksel-canli-kapisi.py"):
         "YALNIZ `--kendini-test` (offline karar mantigi + yerel kahin) kolu; canli fiziksel "
         "olcum bu is akisinda kosmuyor.",
+    # --- MUTLAK YOL KAPISI (8 Agu 2026) — GERCEK olcum kolu (bayraksiz) da burada ----
+    # 🔴 ISTISNAI GIRIS: tabloya kural olarak yalniz "aracin KENDINI sinamasi" girer;
+    # burada GERCEK rapor kolu (bayraksiz) B'dedir. GEREKCE (kapinin KENDI sozlesmesi,
+    # tools/mutlak-yol-kapisi.py docstring "NEDEN RAPOR-ONLY"):
+    #   (a) Bayraksiz kol rc'yi DAIMA 0 dondurur — bloklayici bir adim olarak baglansa
+    #       bile hicbir seyi durduramaz; bloklayici kol AYRI bayraktir
+    #       (`--sifir-tolerans`) ve onu acma karari + esigi MIMARDADIR.
+    #   (b) Kapsam KESFEDILIR (elle liste degil). Kesif genisleyince ihlal sayisi bir
+    #       partide ziplayabilir; bloklayici seritte bu, teshis edilen arizanin AYNISINI
+    #       (yayin kapali) tekrar uretirdi ([[envanter-drift-parti-basina]]).
+    #   (c) Buraya KONMASININ sebebi kapsamdir, renk degil: CI'da HIC kosmayan kapi OLU
+    #       NOBETCIDIR ve tools/ci-kapsam-test.py onu KAPSAMSIZ sayip KIRMIZI yakiyordu;
+    #       o kirmizi shop/test/fiyat-prova.mjs :: M3a'nin kontrol on kosulunu dusurup
+    #       serit-a3'u bloklamisti (deploy+yayin skipped, 7-8 Agu).
+    ("nobet.yml", "serit-b", "tools/mutlak-yol-kapisi.py"):
+        "Kapinin KENDI sozlesmesi bayraksiz kolda rc=0'dir (RAPOR-ONLY): serit A'ya "
+        "konsa bile yayini durduramaz, yani 'bloklayici' olmasi ANLAMSIZDIR. "
+        "Bloklayici kol AYRI bayraktir (`--sifir-tolerans`) ve acma karari/esigi "
+        "MIMARDADIR — kapsam KESFEDILDIGI icin ihlal sayisi parti basina ziplayabilir "
+        "ve bloklayici seritte tam da teshis edilen arizayi (yayin kapali) tekrar "
+        "uretirdi. Olctugu sinifin ONLEME degeri GORUNURLUKTUR: sinif yerelde DAIMA "
+        "yesil yanar (yol gelistirici makinesinde cozulur), yalniz kosucuda patlar.",
     ("nobet.yml", "serit-b", "tools/yasal-sayfa-drift-kapisi.py"):
         "YALNIZ `--kendini-test` (bayatlatma + kirmizi-mutasyon) kolu; GERCEK yasal sayfa "
         "drift olcumu serit A'da bloklayici kosuyor.",

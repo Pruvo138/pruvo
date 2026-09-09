@@ -3444,7 +3444,15 @@ def _index_vitrin_kurali():
     return bloklar
 
 
-def render_ozet(products):
+def ozet_verisi(products):
+    """(ozet_sozlugu, vitrin_bloklar) — ozet.json'un HAM (kirpilmamis) icerigi.
+
+    render_ozet() bunun JSON metnini dondurur; butceye sigdirma AYRI adimdir
+    (ozet_butceye_sigdir) ve YALNIZ tam build'de kosar. NEDEN AYRI: `--sadece-ozet`
+    ve alan-yayilimi A/B testleri ozet'i SENTETIK/enjekte edilmis katalogla uretip
+    BIREBIR karsilastirir; kirpma o yolda da kosaydi 200 baytlik bir enjeksiyon
+    kirpma esigini gecirip A ile B'yi yapisal olarak ayirir, test kirmizi yanardi
+    ([[kabul-araligi-karsilastirma-araligi]])."""
     kategoriler = {}
     markalar = {}          # {kategori: {marka: adet}} — global sayım = kategorilerin toplamı
     for p in products:
@@ -3502,7 +3510,168 @@ def render_ozet(products):
         # Sapma ÖLÇÜLEBİLİR kalır (canlı doğrulama + kabul testi bunu okur).
         "vitrin": {"yetersiz": yetersiz, "bloklar": blok_sapma, "liste": len(products)},
     }
+    return ozet, vitrin_bloklar
+
+
+def render_ozet(products):
+    """ozet.json metni — KIRPILMAMIS. (Butce icin bkz. ozet_butceye_sigdir.)"""
+    ozet, _ = ozet_verisi(products)
+    return _ozet_metni(ozet)
+
+
+# ------------------------------------------------------- ozet.json BUTCEYE SIGDIRMA
+# 🔴 NEDEN VAR (7 Agu 2026, olculdu): butce (150 KB) ELLE ayarlanan bir tavandi ve
+# katalog her urun partisinde buyudugu icin tavan duzenli olarak yeniden asiliyordu.
+# Kosum 31223138943: 154.388 > 153.600 bayt (%0,5 asim) -> `build` KIRMIZI -> `deploy`
+# ve `yayin` SKIPPED -> SITE YAYINI KAPALI. Sabiti bir tik yukseltmek ayni arizayi bir
+# sonraki partiye erteler ([[envanter-drift-parti-basina]]). Cozum: butce SABIT KALIR,
+# ozet TANIMLI BIR ONCELIK SIRASIYLA, DETERMINISTIK olarak butceye SIGDIRILIR.
+#
+# KIRPMA ONCELIGI (en cok bayt + en az deger  ->  en az bayt + en cok deger):
+#   1) BLOK HAVUZU FAZLASI — 90.769 bayt (olculdu 7 Agu: Marin 100 kart 42.956 B +
+#      Otomobil 100 kart 47.781 B). Havuzun `adet`i asan kismi YALNIZCA "her sayfa
+#      yenilemesinde farkli urun one gelsin" VARYANSI icindir; havuz `adet`e inince
+#      vitrinin HICBIR SLOTU bosalmaz -> gorunur icerik kaybi SIFIR. Once buradan.
+#   2) MARKA HARITASI TEKIL KAYITLARI — 29.183 bayt / 2.578 (kategori,marka) kaydi,
+#      1.088'i adet==1. Cip evreni index.html MARKA_LIMIT (32) ile sinirlidir: bir
+#      kategoride adet>=2 olan >=MARKA_LIMIT marka varken adet==1 bir marka cip
+#      siralamasina ASLA giremez. Bu yuzden yalniz O KOSULU SAGLAYAN kategorilerden
+#      ve BUYUK kategoriden baslayarak dusulur -> cip satirinda gorunur kayip yok.
+#   3) `yeni` blogu — 22.314 bayt / 48 kart. VITRININ KALBI (ilk boyama + Worker
+#      duserse yedek arama havuzu): EN SON kirpilir, tabani PAGE_SIZE (ilk ekran).
+#   4) `parametrik` (sari seri) HIC KIRPILMAZ: index.html'de Jenerator kategorisinin
+#      TAM listesi bu alandir (edge modda baska kaynagi YOK) -> kirpmak URUN GIZLERDI.
+#      Ayni sebeple `kategoriler` (menu sayilari) ve `vitrin` (olcum) da kirpilmaz.
+#
+# FAIL-CLOSED KORUNUR: en agresif kirpmadan sonra bile butceye sigilmiyorsa bu
+# fonksiyon SIGDI=False doner ve main() bugunku gibi HATA verip cikar (EDGE_KATALOG
+# acikken). Kapi kaybolmuyor; yalnizca NORMAL buyumede kendi kendine siginiyor.
+OZET_KIRPMA_ADIMLARI = ("bloklar", "markalar", "yeni")
+
+
+def _ozet_metni(ozet):
     return json.dumps(ozet, ensure_ascii=False, separators=(",", ":"))
+
+
+def _ozet_bayt(ozet):
+    return len(_ozet_metni(ozet).encode("utf-8"))
+
+
+def ozet_butceye_sigdir(ozet, vitrin_bloklar, butce=OZET_BUTCE,
+                        marka_limit=None, yeni_taban=None,
+                        adimlar_acik=OZET_KIRPMA_ADIMLARI, gunluk=True):
+    """(metin, rapor) — ozet'i <butce> baytin altina indir; SESSIZ KIRPMA YOK.
+
+    <adimlar_acik>: hangi kirpma basamaklarinin kosacagi. () verilirse HICBIRI kosmaz
+    — bu KONTROL MUTANTI kolu'dur (kabul testi kirpmayi kapatinca butcenin asilmasi
+    GEREKIR; yoksa yesil tautoloji olurdu).
+
+    rapor: {kirpildi, sigdi, bayt_once, bayt_sonra, pay, adimlar:[metin...]}"""
+    if marka_limit is None:
+        marka_limit = _index_sayisi("MARKA_LIMIT")
+    if yeni_taban is None:
+        yeni_taban = _index_sayisi("PAGE_SIZE")
+    bayt_once = _ozet_bayt(ozet)
+    bayt = bayt_once
+    adim_metni = []
+
+    # --- 1) BLOK HAVUZU FAZLASI (taban = index.html VITRIN_BLOKLAR `adet`) ---------
+    if "bloklar" in adimlar_acik and bayt > butce:
+        taban = {b["kategori"]: int(b["adet"]) for b in vitrin_bloklar
+                 if b.get("kaynak") == "bloklar"}
+        once = {k: len(v) for k, v in ozet.get("bloklar", {}).items()}
+        while bayt > butce:
+            # Her turda EN UZUN (tabaninin ustunde kalan) havuzdan bir kart dusulur;
+            # boylece havuzlar dengeli kisalir ve sonuc katalogtan bagimsiz olarak
+            # DETERMINISTIKTIR (esitlikte kategori adi alfabetik ayirir).
+            aday = None
+            for kat in sorted(ozet.get("bloklar", {}),
+                              key=lambda k: (-len(ozet["bloklar"][k]), k)):
+                if len(ozet["bloklar"][kat]) > taban.get(kat, 0):
+                    aday = kat
+                    break
+            if aday is None:
+                break
+            ozet["bloklar"][aday].pop()
+            bayt = _ozet_bayt(ozet)
+        sonra = {k: len(v) for k, v in ozet.get("bloklar", {}).items()}
+        if sonra != once:
+            # Sapma raporu (canli dogrulama + kabul testi bunu okur) GERCEGI gostersin.
+            for kayit in ozet.get("vitrin", {}).get("bloklar", []):
+                if kayit.get("kategori") in sonra:
+                    kayit["havuz"] = sonra[kayit["kategori"]]
+            adim_metni.append("blok havuzu " + ", ".join(
+                "%s %d->%d" % (k, once[k], sonra[k])
+                for k in sorted(once) if once[k] != sonra[k]))
+
+    # --- 2) MARKA HARITASI TEKIL KAYITLARI ----------------------------------------
+    if "markalar" in adimlar_acik and bayt > butce:
+        marka_once = sum(len(h) for h in ozet.get("markalar", {}).values())
+        adaylar = []
+        for kat in sorted(ozet.get("markalar", {}),
+                          key=lambda k: (-len(ozet["markalar"][k]), k)):
+            harita = ozet["markalar"][kat]
+            if sum(1 for a in harita.values() if a > 1) < marka_limit:
+                continue   # tekil marka bu kategoride cip evrenine GIREBILIR -> dokunma
+            adaylar.extend((kat, m) for m in sorted(m for m, a in harita.items() if a == 1))
+        i = 0
+        dusen = 0
+        while bayt > butce and i < len(adaylar):
+            # Tek tek olcmek 1.000+ tam serilestirme demekti; kayit maliyeti EXACT
+            # hesaplanip (anahtar JSON'u + ':' + deger + ',') partiler halinde dusuluyor,
+            # sonra GERCEK bayt yeniden olculuyor (tahmin yalniz parti BOYUNU secer).
+            gerek = bayt - butce
+            tahmin = 0
+            while i < len(adaylar) and tahmin < gerek:
+                kat, m = adaylar[i]
+                i += 1
+                tahmin += len(json.dumps(m, ensure_ascii=False).encode("utf-8")) + 3
+                del ozet["markalar"][kat][m]
+                dusen += 1
+            bayt = _ozet_bayt(ozet)
+        if dusen:
+            adim_metni.append("marka haritasi %d->%d kayit (%d tekil dusuruldu)"
+                              % (marka_once,
+                                 sum(len(h) for h in ozet["markalar"].values()), dusen))
+
+    # --- 3) `yeni` BLOGU (EN SON — vitrinin kalbi; taban PAGE_SIZE) ---------------
+    if "yeni" in adimlar_acik and bayt > butce:
+        once_n = len(ozet.get("yeni", []))
+        while bayt > butce and len(ozet.get("yeni", [])) > yeni_taban:
+            ozet["yeni"].pop()
+            bayt = _ozet_bayt(ozet)
+        if len(ozet.get("yeni", [])) != once_n:
+            adim_metni.append("yeni %d->%d kart" % (once_n, len(ozet["yeni"])))
+
+    metin = _ozet_metni(ozet)
+    bayt = len(metin.encode("utf-8"))
+    rapor = {"kirpildi": bool(adim_metni), "sigdi": bayt <= butce,
+             "bayt_once": bayt_once, "bayt_sonra": bayt, "pay": butce - bayt,
+             "adimlar": adim_metni}
+    if gunluk:
+        if adim_metni:
+            print("KIRPILDI: %s | %d->%d bayt, son boyut %d/%d bayt, pay %d bayt"
+                  % (" · ".join(adim_metni), bayt_once, bayt, bayt, butce, butce - bayt))
+        else:
+            print("OZET BUTCE: kirpma YOK, son boyut %d/%d bayt, pay %d bayt"
+                  % (bayt, butce, butce - bayt))
+    return metin, rapor
+
+
+def _index_sayisi(ad):
+    """index.html'deki TEK KAYNAK sayisal sabitini oku (PAGE_SIZE / MARKA_LIMIT).
+
+    IKINCI KOPYA ACILMAZ: kirpma tabanlari ("ilk ekran kac kart", "cip evreni kac
+    marka") istemcinin kurallaridir; burada elle kopyalansaydi biri degistiginde
+    kirpma sessizce GORUNUR icerik yer -> [[ikiz-tanim-sessiz-ayrisma]]. Capa
+    bulunamazsa FAIL-CLOSED (build kirmizi)."""
+    with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
+        kaynak = f.read()
+    m = re.search(r"var\s+" + re.escape(ad) + r"\s*=\s*(\d+)\s*;", kaynak)
+    if not m:
+        raise SystemExit("index.html'de %s sabiti bulunamadi (ozet kirpma tabani "
+                         "tek kaynagi bozulmus)." % ad)
+    return int(m.group(1))
 
 
 def _index_bayragi(ad):
@@ -3592,8 +3761,127 @@ def marka_model_ctx():
     }
 
 
+# ---------------------------------------------- ozet.json BUTCE KABUL TESTI (--kendini-test)
+# 🔴 NEDEN AYRI DOSYA DEGIL: tools/ci-kapsam-test.py `tools/<ad>-test.py` adli her IZLENEN
+# dosyayi kesfeder ve o dosya bir IS AKISINDA fiilen kosmuyorsa CI'yi KIRMIZI yakar
+# (ucuncu hal: gerekceli muafiyet). Bu turda .github/workflows/deploy.yml ve nobet.yml
+# BASKA bir oturumun commit'siz calisma kopyasinda (tek kritik dosyada tek yazar) —
+# yeni bir adim BAGLANAMIYOR; muafiyet listesine yazmak ise gercekte kosmayan bir
+# nobetciyi "muaf" ilan etmek olurdu ([[kapi-kapsam-genisletme-tuzagi]]). Bu yuzden
+# iddialar YENI BIR KESIF YUZEYI ACMADAN build.py'nin kendi koluna kondu:
+#     python3 tools/build.py --kendini-test
+# Uretimdeki KAPI zaten bu dosyanin icinde ve her deploy'da kosuyor (butce kontrolu +
+# kirpma); bu kol kirpmanin AYIRT EDICI oldugunu (kontrol mutanti) kanitlar.
+def _kendini_test():
+    iddia = [0]
+    hata = []
+
+    def kontrol(kosul, ad):
+        iddia[0] += 1
+        if not kosul:
+            hata.append(ad)
+        print("  %s %s" % ("✅" if kosul else "❌", ad))
+
+    def sentetik(n, baslik_uzunluk=40, tekil_orani=0.0, grup_boyu=8):
+        """Sisirilmis katalog. `aciklama` KIRPILI (OZET_ACIKLAMA_KES) oldugu icin kart
+        agirligi BASLIK uzerinden buyutulur. <tekil_orani> kadar urun TEKIL markaya
+        (adet==1) konur; gerisi <grup_boyu>'luk gruplara -> kategoride adet>=2 olan
+        marka sayisi MARKA_LIMIT'i asar ve 2. basamak (tekil marka dusurme) kosabilir."""
+        urunler = []
+        grupsuz_esik = int(n * (1.0 - tekil_orani))
+        for i in range(n):
+            kat = ("Marin", "Otomobil", "Ev")[i % 3]
+            marka = ("Grup%04d" % (i // max(1, grup_boyu))) if i < grupsuz_esik \
+                else ("Tekil%06d" % i)
+            urunler.append({
+                "id": "sentetik-urun-%05d" % i,
+                "kategori": kat,
+                "marka": [marka],
+                "baslik": ("Sentetik urun %05d " % i) + ("b" * baslik_uzunluk),
+                "aciklama": "x" * 400,
+                "fiyat": "850 TL",
+                "gorseller": ["https://media.pruvo3d.com/urunler/sentetik-%05d-1.jpg" % i],
+            })
+        return urunler
+
+    butce = OZET_BUTCE
+    print("=== OZET BUTCE KABUL TESTI (butce %d bayt) ===" % butce)
+
+    # (a) BUGUNKU GERCEK KATALOG — uretilen ozet.json butcenin ALTINDA.
+    with open(JSON_PATH, encoding="utf-8") as f:
+        gercek = json.load(f)
+    o, kural = ozet_verisi(gercek)
+    ham_bayt = _ozet_bayt(o)
+    metin, rapor = ozet_butceye_sigdir(o, kural, gunluk=False)
+    kontrol(rapor["sigdi"] and rapor["bayt_sonra"] <= butce,
+            "(a) gercek katalog (%d urun): ozet %d -> %d bayt, butce %d, pay %d"
+            % (len(gercek), ham_bayt, rapor["bayt_sonra"], butce, rapor["pay"]))
+    kontrol(json.loads(metin)["parametrik"] == json.loads(_ozet_metni(
+        ozet_verisi(gercek)[0]))["parametrik"],
+            "(a2) `parametrik` (sari seri) HIC kirpilmadi — urun gizlenmedi")
+
+    # (b) SISIRILMIS SENTETIK GIRDI — kirpma butcenin altina INIYOR.
+    sis = sentetik(1200, baslik_uzunluk=430, tekil_orani=0.5, grup_boyu=8)
+    o2, kural2 = ozet_verisi(sis)
+    sis_ham = _ozet_bayt(o2)
+    kontrol(sis_ham > butce,
+            "(b0) sentetik girdi GERCEKTEN butceyi asiyor (%d > %d) — vakum nobeti"
+            % (sis_ham, butce))
+    metin2, rapor2 = ozet_butceye_sigdir(o2, kural2, gunluk=False)
+    kontrol(rapor2["sigdi"] and rapor2["bayt_sonra"] <= butce,
+            "(b) sisirilmis girdi kirpilarak butceye sigdi (%d -> %d bayt)"
+            % (sis_ham, rapor2["bayt_sonra"]))
+    kontrol(rapor2["kirpildi"] and rapor2["adimlar"],
+            "(b2) kirpma SESSIZ degil — rapor adimlari: %s" % (" · ".join(rapor2["adimlar"])))
+    _sira = [a.split()[0] for a in rapor2["adimlar"]]
+    kontrol(_sira == ["blok", "marka", "yeni"],
+            "(b3) UC BASAMAK DA kosti ve SIRASI dogru (blok havuzu -> marka tekilleri -> "
+            "yeni): %r" % (_sira,))
+
+    # (c) KONTROL MUTANTI — kirpma KAPATILINCA ayni girdi butceyi ASMALI.
+    #     Bu iddia yesil oldugu icin (b)'nin yesili "girdi zaten kucuktu"nun degil,
+    #     KIRPMANIN sonucudur (tautoloji nobeti).
+    o3, kural3 = ozet_verisi(sis)
+    _, rapor3 = ozet_butceye_sigdir(o3, kural3, adimlar_acik=(), gunluk=False)
+    kontrol((not rapor3["sigdi"]) and rapor3["bayt_sonra"] > butce
+            and not rapor3["kirpildi"],
+            "(c) KONTROL MUTANTI: kirpma devre disi -> %d > %d bayt, sigdi=False (test "
+            "AYIRT EDICI)" % (rapor3["bayt_sonra"], butce))
+
+    # (c2) ONCELIK SIRASI — az asan girdide once BLOK HAVUZU dusurulur, `yeni` (vitrinin
+    #      kalbi) ve marka haritasi ELLENMEZ.
+    o4, kural4 = ozet_verisi(gercek)
+    _, rapor4 = ozet_butceye_sigdir(o4, kural4, butce=_ozet_bayt(o4) - 400, gunluk=False)
+    kontrol(any(a.startswith("blok havuzu") for a in rapor4["adimlar"])
+            and not any(a.startswith("yeni") or a.startswith("marka")
+                        for a in rapor4["adimlar"]),
+            "(c3) oncelik: kucuk asimda YALNIZ blok havuzu kirpildi (%s)"
+            % (" · ".join(rapor4["adimlar"]) or "-"))
+    kontrol(len(json.loads(_ozet_metni(o4))["yeni"]) == OZET_YENI,
+            "(c4) `yeni` blogu (%d kart) kucuk asimda DOKUNULMADAN kaldi" % OZET_YENI)
+
+    # (d) PATOLOJIK GIRDI — tabanlara inildikten sonra bile sigmiyorsa FAIL-CLOSED.
+    pat = sentetik(600, baslik_uzunluk=3000)
+    o5, kural5 = ozet_verisi(pat)
+    _, rapor5 = ozet_butceye_sigdir(o5, kural5, gunluk=False)
+    kontrol((not rapor5["sigdi"]) and rapor5["bayt_sonra"] > butce,
+            "(d) patolojik girdi: en agresif kirpmadan sonra da %d > %d -> sigdi=False "
+            "(main() bu halde HATA verip cikar)" % (rapor5["bayt_sonra"], butce))
+    kontrol(len(json.loads(_ozet_metni(o5))["yeni"]) >= _index_sayisi("PAGE_SIZE")
+            and all(len(v) >= 0 for v in json.loads(_ozet_metni(o5))["bloklar"].values()),
+            "(d2) fail-closed halde bile `yeni` tabani (PAGE_SIZE=%d) korundu"
+            % _index_sayisi("PAGE_SIZE"))
+
+    print("IDDIA=%d" % iddia[0])
+    print("SONUC: %s" % ("YESIL" if not hata else "KIRMIZI"))
+    return 0 if not hata else 1
+
+
 # ------------------------------------------------------------------ ana akış
 def main():
+    if "--kendini-test" in sys.argv[1:]:
+        sys.exit(_kendini_test())
+
     # --sadece-taban: yalnız taban-fiyatlar.js'i üret (kabul testi hızlı koşsun;
     # tam build 6900+ sayfa yazar). Deploy yine main()'in tamamını koşar.
     if "--sadece-taban" in sys.argv[1:]:
@@ -3757,10 +4045,14 @@ def main():
     # ozet.json  (FAZ 3 — ana sayfanin ilk boyamasi; bayrak kapaliyken URETILIR ama
     # site onu CEKMEZ. Uretmeye devam etmemizin sebebi: bayrak acildigi an dosya
     # yayindaymis gibi hazir olsun + faz3-yuk/faz3-bayrak testleri her zaman kosabilsin.)
-    ozet_json = render_ozet(products)
+    # BUTCEYE SIGDIRMA burada kosar (yalniz TAM build'de): ozet once HAM uretilir,
+    # sonra tanimli oncelik sirasiyla (bkz. ozet_butceye_sigdir) butcenin altina
+    # cekilir. Kirpma olduysa NE kirpildigi + kac bayt dustugu STDOUT'a BASILIR.
+    _ozet_sozluk, _ozet_vitrin_kural = ozet_verisi(products)
+    ozet_json, _ozet_rapor = ozet_butceye_sigdir(_ozet_sozluk, _ozet_vitrin_kural)
     with open(os.path.join(ROOT, OZET_JSON), "w", encoding="utf-8") as f:
         f.write(ozet_json)
-    ozet_bayt = len(ozet_json.encode("utf-8"))
+    ozet_bayt = _ozet_rapor["bayt_sonra"]
 
     # .nojekyll  (GitHub Pages tüm dosyaları olduğu gibi sunsun)
     open(os.path.join(ROOT, ".nojekyll"), "w").close()
@@ -3791,9 +4083,12 @@ def main():
     #     mobil ilk acilisi bozar => build KIRMIZI.
     if ozet_bayt > OZET_BUTCE:
         if _index_bayragi("EDGE_KATALOG"):
-            print("HATA: ozet.json butceyi asti (%d > %d bayt) ve EDGE_KATALOG ACIK. "
-                  "index.html VITRIN_BLOKLAR havuzlarini kucult, OZET_YENI'yi dusur ya da "
-                  "marka haritasini esikle kirp." % (ozet_bayt, OZET_BUTCE))
+            print("HATA: ozet.json EN AGRESIF KIRPMADAN SONRA da butceyi asti "
+                  "(%d > %d bayt) ve EDGE_KATALOG ACIK. Kirpma tabanlarina inildi "
+                  "(blok havuzu = VITRIN_BLOKLAR adet, `yeni` = PAGE_SIZE, marka "
+                  "haritasi tekilleri) ve YETMEDI -> yapisal karar gerekiyor: "
+                  "kart alanlarini kucult ya da butceyi OLCEREK yeniden belirle."
+                  % (ozet_bayt, OZET_BUTCE))
             sys.exit(1)
         print("UYARI: ozet.json butceyi asti (%d > %d bayt). EDGE_KATALOG kapali oldugu "
               "icin yayin KIRILMADI; bayragi acmadan once VITRIN_BLOKLAR havuzlarini "

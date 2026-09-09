@@ -26,8 +26,10 @@ OLCULEN DORT SESSIZ-HATA SINIFI:
 CANLI D1'e / wrangler'a / AGA DOKUNMAZ. urunler.json yalnizca OKUNUR.
 """
 import argparse
+import contextlib
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import re
@@ -41,19 +43,60 @@ GERCEK_KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 🔴 IDDIA TABANI = bu kapinin KOSMASI GEREKEN en az iddia sayisi (kosum ici sayi sarti
 # commit'ler arasi kapsam kaybini GORMEZ; bkz. kabul() sonundaki capa). DUSURMEK ancak
 # iddianin neden kaldirildigini yazan AYNI commit'te mesrudur; ARTIS serbesttir.
-IDDIA_TABANI = 39
+IDDIA_TABANI = 42
 
 gecen = [0]
 kalan = [0]
 
+# 🔴 DOKUM KESMESI BEYAN EDILIR (olculen kusur, 7 Agu 2026 — iki tur bosa gitti):
+# ihlal dokumleri listeyi `[:5]` ile kesiyordu ama NE kestigini NE toplami yaziyordu.
+# Kapi "sema ihlali 6" basarken A1 dokumu 5 kayit gosterdi; bir mimar 5'i duzeltip
+# 6.'yi ATLADI. Kesmeyi KALDIRMAK cozum degil (21 bin kayitli katalogda dokum ekrani
+# doldurur, CI kutugu okunmaz olur) — kesme MAKINE-OKUNUR beyan edilir.
+DETAY_SINIRI = 400          # KALDI satirindaki detay metninin karakter siniri
+_KESME_KAYDI = []           # dokum() yazar, dogrula() basar+bosaltir
+
+
+def dokum(dizi, gosterilen=5, ad="ihlal"):
+    """Kesilmis ihlal dokumu dondur ve KESMEYI dogrula()'ya beyan ettir.
+
+    🔴 TEK KAYNAK: gosterilen parca da toplam da AYNI `dizi`den turer. Iki ayri sayac
+    tutulsaydi biri bayatlar ve kapi yine "6 sayarken 5 basardi"
+    ([[ikiz-tanim-sessiz-ayrisma]]).
+    🔴 Kesme YOKKEN kayit TUTULMAZ -> beyan satiri BASILMAZ: her satirda "toplam"
+    basan bir kapi gorulmez olur (gurultu = korlugun oteki yuzu).
+    """
+    ogeler = list(dizi)
+    parca = ogeler[:gosterilen]
+    if len(ogeler) > len(parca):
+        _KESME_KAYDI.append((ad, len(ogeler), len(parca)))
+    return parca
+
+
+def _kesme_satiri(ad, toplam, gosterilen):
+    return ("    KESME: ... ve %d %s daha (toplam %d, gosterilen %d)"
+            % (toplam - gosterilen, ad, toplam, gosterilen))
+
 
 def dogrula(ad, kosul, detay=""):
+    # Kayit her cagrida BOSALTILIR: gecen bir iddianin dokumu BASILMAZ, kaydi da bir
+    # sonraki KALDI satirina TASINMAZ.
+    kesmeler = list(_KESME_KAYDI)
+    del _KESME_KAYDI[:]
     if kosul:
         gecen[0] += 1
         print("  GECTI " + ad)
     else:
         kalan[0] += 1
-        print("  KALDI " + ad + (" — " + str(detay)[:400] if detay else ""))
+        ham = str(detay) if detay else ""
+        kesik = ham[:DETAY_SINIRI]
+        print("  KALDI " + ad + (" — " + kesik if ham else ""))
+        # 🔴 BEYAN AYRI SATIRDA: detay metninin ICINDE olsaydi ayni DETAY_SINIRI kesmesi
+        # onu YERDI (A1'de olculen hal: 5 ogenin 3'uncusu bile yarim basiliyordu).
+        if len(ham) > len(kesik):
+            kesmeler.append(("detay karakteri", len(ham), len(kesik)))
+        for _ad, _toplam, _gos in kesmeler:
+            print(_kesme_satiri(_ad, _toplam, _gos))
 
 
 def yukle(kok, ad, dosya):
@@ -87,6 +130,78 @@ def _guvenli(fn, *a):
 # ══════════════════════════════════════════════════════════════════════════════════
 def kabul(kok, katalog_yolu=None):
     A = yukle(kok, "arama", "arama.py")
+
+    # ══ KB EKSENI — KAPININ KENDI DOKUMU (kesme BEYAN EDILIYOR mu) ════════════════
+    # 🔴 Bu eksen kapinin OLCUM DEGERINI degil RAPORLAMASINI olcer ve ILK sirada durur:
+    # yanlissa OTEKI butun eksenlerin dokumu sessizce eksik okunur (olculdu 7 Agu 2026:
+    # A1 6 ihlalin 5'ini bastı, mimar 5'i duzeltip 6.'yi atladi, tur bosa gitti).
+    # Mutasyon kaniti AYRI surucude ve YENIDEN URETILEBILIR: tools/uyum-kesme-mutasyon.py
+    # ([[mutasyon-kaniti-yeniden-uretilebilir]]) — bu dosyanin --mutasyon kolu yalnizca
+    # arama.py'yi mutasyona ugratir, kapinin KENDI kodunu degil.
+    print("\n[KB] DOKUM KESMESI — kesilen ihlal listesi BEYAN EDILIYOR")
+    del _KESME_KAYDI[:]
+    _kb_ust = ["ihlal-%02d" % i for i in range(6)]
+    _kb_parca = dokum(_kb_ust, 5, "ihlal")
+    _kb_kayit = list(_KESME_KAYDI)
+    del _KESME_KAYDI[:]
+    dogrula("KB1 SINIR USTU BEYAN: 6 ogeli dokum 5 oge gosterir ve kesmeyi TEK kayitta "
+            "beyan eder; TOPLAM sayi dokumun turedigi AYNI listeden gelir (ikinci sayac "
+            "YOK) — kapi 6 sayarken ekrana 5 basip susamaz",
+            len(_kb_ust) == 6 and _kb_parca == _kb_ust[:5]
+            and _kb_kayit == [("ihlal", len(_kb_ust), len(_kb_parca))],
+            "parca=%s kayit=%s" % (_kb_parca, _kb_kayit))
+
+    _kb_altlar = ([], ["a"], ["a", "b", "c", "d", "e"])
+    _kb_alt = [dokum(v, 5, "ihlal") for v in _kb_altlar]
+    _kb_alt_kayit = list(_KESME_KAYDI)
+    del _KESME_KAYDI[:]
+    dogrula("KB2 SINIR ALTI SESSIZ: 0/1/5 ogeli dokum TAM listeyi verir ve kesme beyani "
+            "URETMEZ — her satirda 'toplam' basan bir kapi okunmaz olur (gurultu, "
+            "korlugun oteki yuzudur)",
+            _kb_alt == [list(v) for v in _kb_altlar] and _kb_alt_kayit == [],
+            "parcalar=%s kayit=%s" % (_kb_alt, _kb_alt_kayit))
+
+    # KB3 — FIILEN BASILAN CIKTI. Iddia metinden degil, dogrula()'nin GERCEK ciktisindan
+    # okunur ([[nobetci-fikstur-sekli]]): fikstur ogeleri BILEREK uzun, cunku detay metni
+    # DETAY_SINIRI'ni asiyor ve beyan KALDI satirinin ICINDE olsaydi ayni kesme onu YERDI
+    # (A1'de olculen hal tam buydu: 5 ogenin 3'uncusu bile yarim basiliyordu).
+    _kb_uzun = ["ihlal-%02d-%s" % (i, "x" * 120) for i in range(6)]
+    _kb_g, _kb_k = gecen[0], kalan[0]
+    _kb_tampon = io.StringIO()
+    with contextlib.redirect_stdout(_kb_tampon):
+        dogrula("KB-FIKSTUR-USTU sentetik", False, "%s" % (dokum(_kb_uzun, 5, "ihlal"),))
+        dogrula("KB-FIKSTUR-ALTI sentetik", False,
+                "%s" % (dokum(_kb_uzun[:2], 5, "ihlal"),))
+    # 🔴 FIKSTUR CAGRILARI IDDIA SAYISINI SISIRMEZ: dogrula() sayaci artirir, geri alinir.
+    # Alinmasaydi IDDIA_TABANI capasi iki hayali iddia ile sismis olurdu.
+    gecen[0], kalan[0] = _kb_g, _kb_k
+    _kb_blok = {"ust": [], "alt": []}
+    _kb_hedef = None
+    for _s in _kb_tampon.getvalue().splitlines():
+        if _s.startswith("  KALDI KB-FIKSTUR-USTU"):
+            _kb_hedef = _kb_blok["ust"]
+        elif _s.startswith("  KALDI KB-FIKSTUR-ALTI"):
+            _kb_hedef = _kb_blok["alt"]
+        elif _kb_hedef is not None:
+            _kb_hedef.append(_s.strip())
+    _kb_ham = "%s" % (_kb_uzun[:5],)
+    _kb_ihlal_satiri = [s for s in _kb_blok["ust"] if s.startswith("KESME:")
+                        and " ihlal daha " in s]
+    _kb_karakter = [s for s in _kb_blok["ust"] if s.startswith("KESME:")
+                    and "detay karakteri" in s]
+    dogrula("KB3 BASILAN CIKTI SEKLI: kesilen dokumun ARDINDAN, KALDI satirindan AYRI bir "
+            "satirda 'KESME: ... ve 1 ihlal daha (toplam 6, gosterilen 5)' basiliyor; %d "
+            "karakterlik DETAY kesmesi de AYRICA beyan ediliyor (beyan detay metninin "
+            "ICINDE olsaydi ayni kesme onu YERDI) ve sinir ALTINDAKI fikstur HICBIR KESME "
+            "satiri basmiyor" % DETAY_SINIRI,
+            len(_kb_ham) > DETAY_SINIRI
+            and _kb_ihlal_satiri == ["KESME: ... ve 1 ihlal daha (toplam %d, gosterilen 5)"
+                                     % len(_kb_uzun)]
+            and len(_kb_karakter) == 1
+            and ("(toplam %d, gosterilen %d)" % (len(_kb_ham), DETAY_SINIRI))
+            in _kb_karakter[0]
+            and not [s for s in _kb_blok["alt"] if s.startswith("KESME:")],
+            "ham=%d ust=%s alt=%s" % (len(_kb_ham), _kb_blok["ust"], _kb_blok["alt"]))
 
     # ══ S EKSENI — SOZLUGUN KENDI SAGLIGI ═════════════════════════════════════════
     print("\n[S] SOZLUK — kapali kume tutarli, ikizsiz, denetlenebilir")
@@ -129,7 +244,7 @@ def kabul(kok, katalog_yolu=None):
     bicimsiz = [d for d in birlesim
                 if not isinstance(d, str) or not d or d.strip() != d]
     dogrula("S3 kumelerin HER degeri KANONIK (metin, bos degil, bas/son bosluksuz)",
-            not bicimsiz, bicimsiz[:5])
+            not bicimsiz, dokum(bicimsiz, 5, "bicimsiz deger"))
     katlanan = {}
     for d in sorted(izinli | uretici):
         katlanan.setdefault(A.model_normalize(d), []).append(d)
@@ -197,7 +312,9 @@ def kabul(kok, katalog_yolu=None):
     dogrula("V4 BOZUK tip RED ve COKME YOK (%d fikstur: metin/sayi/bool/sozluk/"
             "ic-ice dizi/karisik dizi/liste-marka/taninmayan anahtar)" % len(_bozuk),
             not _v4_red and not _v4_cokme,
-            "reddedilmeyen=%s cokme=%s" % (_v4_red[:3], _v4_cokme[:3]))
+            "reddedilmeyen=%s cokme=%s"
+            % (dokum(_v4_red, 3, "reddedilmeyen fikstur"),
+               dokum(_v4_cokme, 3, "cokme")))
 
     # V5 yil
     _yil_ok = ([2003, 2015], [2015, 0], [], [1900, 1900], [2015, 2015])
@@ -337,7 +454,8 @@ def kabul(kok, katalog_yolu=None):
             "RED) ama ayni markanin FARKLI modelleri KABUL — kartezyen sisme ve yanlis "
             "'kac araca uyuyor' sayisi uretilemez" % len(_mukerrer_uyum),
             not _mukerrer_sizan and not _farkli_red,
-            "sizan=%s farkli_model_reddedildi=%s" % (_mukerrer_sizan[:2], _farkli_red))
+            "sizan=%s farkli_model_reddedildi=%s"
+            % (dokum(_mukerrer_sizan, 2, "sizan mukerrer fikstur"), _farkli_red))
 
     # V7 model normalizasyonu
     _ayni = (("F-150", "F150"), ("XSR 700", "XSR700"), ("ID.Buzz", "ID Buzz"),
@@ -386,7 +504,8 @@ def kabul(kok, katalog_yolu=None):
             % len(_ozdes_fikstur),
             not _ayrisan and not _paylasan and _derin_kopya,
             "ayrisan=%s paylasilan-referans=%s derin_kopya=%s%s"
-            % (_ayrisan[:2], _paylasan[:2], _derin_kopya,
+            % (dokum(_ayrisan, 2, "ayrisan kayit"),
+               dokum(_paylasan, 2, "paylasilan referans"), _derin_kopya,
                " (kanonik cikti BOS — kayit REDDEDILDI, derin kopya OLCULEMEDI)"
                if not _mut else ""))
 
@@ -427,7 +546,9 @@ def kabul(kok, katalog_yolu=None):
             "sizinti 0" % len(_enjeksiyon),
             not _marka_sizan and not _model_sizan and not _cikti_sizan,
             "marka=%s model=%s cikti=%s"
-            % (_marka_sizan[:3], _model_sizan[:3], _cikti_sizan[:3]))
+            % (dokum(_marka_sizan, 3, "marka sizintisi"),
+               dokum(_model_sizan, 3, "model sizintisi"),
+               dokum(_cikti_sizan, 3, "cikti sizintisi")))
 
     # V11 kapi gereginden DAR degil (yanlis-pozitif nobeti)
     _mesru = [
@@ -450,7 +571,8 @@ def kabul(kok, katalog_yolu=None):
                   if A.uyum_sebebi(u) is not None]
     dogrula("V11 YANLIS-POZITIF YOK: %d mesru kayit (tire/nokta/bogumlu OEM, coklu uyum, "
             "acik uc yil, Turkce harf, bosluklu model, '+' sonekli model) KABUL"
-            % len(_mesru), not _mesru_red, _mesru_red[:3])
+            % len(_mesru), not _mesru_red,
+            dokum(_mesru_red, 3, "reddedilen mesru kayit"))
 
     # ══ A EKSENI — GERCEK KATALOG ══════════════════════════════════════════════════
     print("\n[A] KATALOG — urunler.json (yalniz OKUNUR)")
@@ -476,7 +598,7 @@ def kabul(kok, katalog_yolu=None):
                     if isinstance(ham, str) and ham.strip():
                         model_ham.setdefault(A.model_normalize(ham), set()).add(ham)
     dogrula("A1 katalogtaki HICBIR kayit `uyum` semasini ihlal etmiyor", not ihlal,
-            ihlal[:5])
+            dokum(ihlal, 5, "ihlal"))
     # 🔴 A2 ARTIK BAGIMSIZ. Onceki hali A1'in `ihlal` bayragini TEKRAR okuyordu — ayni
     # kosulu iki kez sayan bir TOTOLOJI, iddia sayisini sisirir ve hicbir sey olcmez.
     # Simdi K5 ekseni AYRI bir kod yolundan (`marka_uyumdan_turet` DOGRUDAN, `uyum_sebebi`
@@ -491,9 +613,10 @@ def kabul(kok, katalog_yolu=None):
     dogrula("A2 K5 TARAMASI (A1'den BAGIMSIZ kod yolu): `uyum` dolu %d gercek kayitta "
             "`marka` == turetilen VE tarayici fiilen calisiyor — sentetik bozuk kayit "
             "TAM OLARAK yakalaniyor (pozitif kontrol)" % uyumlu,
-            _k5_ihlal == ["K5-POZITIF-KONTROL"], _k5_ihlal[:5])
+            _k5_ihlal == ["K5-POZITIF-KONTROL"], dokum(_k5_ihlal, 5, "K5 ihlali"))
     dogrula("A3 KABUL EDILEN her kayitta katalog metni == D1 metni (urunler.json ile D1 "
-            "SESSIZCE ayrisamaz)", not kanonik_ayrisan, kanonik_ayrisan[:5])
+            "SESSIZCE ayrisamaz)", not kanonik_ayrisan,
+            dokum(kanonik_ayrisan, 5, "ayrisan kayit"))
     model_ikiz = {k: sorted(v) for k, v in model_ham.items() if len(v) > 1}
     dogrula("A4 MODEL IKIZI YOK: ayni normalize degere DUSEN 2+ ham model yazimi yok "
             "(`F-150`/`F150` ayni araci IKI sayfaya bolemez)", not model_ikiz, model_ikiz)
@@ -568,7 +691,8 @@ def kabul(kok, katalog_yolu=None):
             % (ornek, ele, ele_mukerrer),
             ornek > 0 and not ayrisan_gercek and not red_gercek,
             "ornek=%d ele=%d ele_mukerrer=%d ayrisan=%s red=%s"
-            % (ornek, ele, ele_mukerrer, ayrisan_gercek[:3], red_gercek[:3]))
+            % (ornek, ele, ele_mukerrer, dokum(ayrisan_gercek, 3, "ayrisan gercek kayit"),
+               dokum(red_gercek, 3, "reddedilen gercek kayit")))
 
     # BACKFILL HAZIRLIGI — sayi, iddia degil. Mevcut `marka` jetonlarinin ne kadari
     # bugunku sozlukten/serbest metin kuralindan gecerdi?
@@ -756,7 +880,8 @@ def kabul(kok, katalog_yolu=None):
             "B7-POZITIF-KONTROL" in _b7_duz_kayip and not _b7_kalan_kayip
             and len(_b7_tasiyan) > 1,
             "tasiyan=%d duz_kayip=%s kalan_kayip=%s"
-            % (len(_b7_tasiyan), _b7_duz_kayip[:6], _b7_kalan_kayip[:6]))
+            % (len(_b7_tasiyan), dokum(_b7_duz_kayip, 6, "duz esleme kaybi"),
+               dokum(_b7_kalan_kayip, 6, "kalan kayip")))
     print("  OLCUM (bilesik ad): `marka` ICINDE tasiyan %d kayit · `marka[0]` olan %d "
           "(MaCiT 'marka-basi' kovasi) · duz eslemenin arama jetonunu DUSURDUGU %d · "
           "mekanizmadan sonra kalan kayip %d"
@@ -924,8 +1049,8 @@ def kabul(kok, katalog_yolu=None):
             not _b10_yapisal_bozan and not _b10_sap and len(_b10_faydasiz) > 0
             and _b10_pdeg == 1 and _b10_psap.get("mercedes", 0) > 0,
             "yapisal_bozan=%s sapma=%s pozitif_kontrol=%s"
-            % (_b10_yapisal_bozan, sorted(_b10_sap.items())[:8],
-               sorted(_b10_psap.items())[:4]))
+            % (_b10_yapisal_bozan, dokum(sorted(_b10_sap.items()), 8, "sapan sorgu"),
+               dokum(sorted(_b10_psap.items()), 4, "pozitif kontrol sorgusu")))
     # OLCUM (BLOKLAMAZ): katalog buyudukce yeni bir bilesik aday dogabilir. Sayi kapiya
     # baglanmaz — baglansaydi kardes mimarin her yeni partisi yayini durdurabilirdi; ama
     # GORUNUR kalir ki bir sonraki tur onu yargilasin.
@@ -1413,8 +1538,14 @@ def mutasyon():
                  taban_iddia, ",".join(sorted(kirmizi)) or "-",
                  ("  ⚠️ " + " ⚠️ ".join(notlar)) if notlar else "", aciklama))
         if not gecti:
-            for s in cikti.splitlines()[-6:]:
+            # Kuyruk kesmesi de BEYAN EDILIR: "son 6 satir" sessizce gosterilirse
+            # ustteki gercek hata satiri kaybolur (A1 dokumunde olculen ayni korluk).
+            _kuyruk = cikti.splitlines()
+            for s in _kuyruk[-6:]:
                 print("        " + s.strip()[:150])
+            if len(_kuyruk) > 6:
+                print("    " + _kesme_satiri("cikti satiri (BASTAN kesildi)",
+                                              len(_kuyruk), 6))
         matris.append((kod, etiket, str(p.returncode), "%s/%d" % (iddia, taban_iddia),
                        ",".join(sorted(kirmizi)) or "-", ",".join(beyan) or "-"))
         shutil.rmtree(tmp, ignore_errors=True)
