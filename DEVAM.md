@@ -2,16 +2,17 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ✅ 8 EYL 02:xx — ana oturum: **4 is kapandi (243 lisans · K19 yayin arizasi · K382 · ArTisT kalemi)**
-**KAPANANLAR:** 243 lisans (237 SA + 6 ND; ATIF degisen 0, NC riski 0) `fdccc54d` · K19 `Saab|900` ALLOW / `Yamaha|900` DENY, kapi 1/29 → 29/29 `d0d6b8f9` · K382 ARDISIK 4 → 0 `ede460cc` · ArTisT KVKK `method` beyani koda hizalandi. TAM METIN KUTUDA.
-**YAYIN:** run `34178534551` — deploy **success** · yayin **success** · SKIPPED **0** (onceki 4 kosum ayni K19 yuzunden SKIPPED'ti). Kapi mutant bataryasi 38 oldurucu + 8 kontrol, tutmayan 0.
-**PARITE=OLCULEMEDI:** kanonik kosum MaCiT'in o an commit'siz 71 kaydini "D1'de yok" diye kirmizi yakti. Neyi olcmek kapatir: d64 CI'si bittikten SONRA tek kanonik kosum.
+## 🔁 8 EYL 02:xx ISARETCI — **TAM METIN `DEVAM-ARSIV.md`'de** (md5 birebir): 4 is kapandi (243 lisans `fdccc54d` · K19 `d0d6b8f9` · K382 `ede460cc` · ArTisT KVKK `method`); yayin run `34178534551` SKIPPED 0; PARITE=OLCULEMEDI (kanonik kosum MaCiT'in commit'siz 71 kaydini kirmizi yakti).
 
-**K393 ✅ ADIM 2 KAPANDI (cip `peaceful-margulis-057d93`) — Okan ihbari "alt model 40 urunde kesiyor ya da hic gostermiyor":** istemci model yuklemi UCUNKINE esitlendi (`marka[]` ∪ kusak ∪ BASLIK; `modelEsler` girdisi URUN, 4 cagri yeri + nobetci tek govde). Canli TAM GECEN cift **3/14 → 14/14** (Corolla 0/24→24/24; 10 kovada tum sayfalar RED=0, uc 203 = istemci 203). Kapi: filtrenin goremedigi uyelik **10944 → 35**, SAYFA_DAR=0, **30/30**. Kabul `model-baslik-istemci-test.py` 12 iddia/11 mutant → deploy+nobet.
+## ✅ 9 EYL 09:xx — ana oturum-3: **temizlik turu + K391 KILIDI ACILDI (filo commit kilidi kalkti)**
+- **K391-KUTU ✅ KAPANDI** (BaBa 11:5x hukmu, KraL icra): 15 KORUMALI blok arsive; kutu **331→149 st** (tavan 250). Kayipsizlik UC bagimsiz kol: bayt korunumu (−55.680/+55.761, fark +81 B = ayrac) · kutuda kalan INER basligi 0 · 15/15 blok imza satiriyla bitiyor. Kanit: ONCE `KUTU_ASILDI rc=1`, SONRA `KUTU_YESIL 149/250` (`acfa5f66`). KALIR nobetcisi 3/3.
+- **K391-CFInis ✅ KAPANDI** (cip `dreamy-merkle-c637e9`, commit YOK): CF RUM 28/28 gun — site **41.180 yukleme**, Meta referer **9.610** (Meta LC 9.871 ile %97,4 ortusme) → **tiklama INIYOR, butce yanmiyor; kayip PIKSEL−CF farki**, LPV 1.822 = %19. In-app WebView referer GONDERMIYOR → 9.610 TAVAN degil TABAN. 4 iddia bagimsiz dogrulandi. TAM METIN KUTUDA.
+- **TEMIZLIK:** oturum 7 arsivlendi · worktree **4→2** · zombi dal yerel 5 + uzak 8 silindi (merge kaniti) · zamanlanmis gorev 2 · `.urun-kaynaklari.lock` gitignore'a (`acfa5f66`), yabanci status 1→0.
+- 🔧 **ACIK (bende):** ① `kutu-arsivle.py` KORUMA-DUSTU blogunu almiyor · ② `defter-kota-kapisi.py` son satiri KUTU kirmizisinda `defter-rotasyon.py` oneriyor (K389 kardesi) · ③ **17 merge EDILMEMIS `claude/*` dali** (6 Agu–8 Eyl) — hukum gerekiyor · ④ SERIT B 7 adim kirmizi (yayini BLOKLAMAZ) → cip `determined-cray-0c858d`'de.
 
 ## 🔴 9 EYL KALEMLERI (TAM METIN KUTUDA — 9 Eyl KraL bloklari)
 - **K388 META ATIF — KOD TARAFINDA KALEM YOK** (3 tur, 3 bagimsiz olcum; TAM METIN KUTUDA): D1 `siparisler` 30 gun: toplam **33** · `fbp` 19 · **`fbc` 0** · `utm` 0; ArTisT'in Meta paneli AYNI sifiri verdi (`fbc` %0) → dusecek `fbc` YOK. 🔴 **KENDI SAYIMI DUZELTTIM:** "162 reklam inisi" YANLISTI — `src` kirilimi **GS 57** paid (57/57 click-id) + **OG 105 ORGANIK**; tabloda `fbclid` kolonu YOK, sunucu sayaci yapisi geregi Google-only. 🔴 **LPV RIZA KAPISININ ARKASINDA** (`index.html:95` — piksel yalniz `kabul`de yuklenir, yoksa `fbevents.js` inmez): ArTisT'in LC **9.871** → LPV **1.822** ucurumu ariza DEGIL, **%18,5 riza orani**; o 1.822 rizali Meta inisi **0 satin alma** uretti. **Okan/BaBa kapisi ACILMADI** (gizlilik karari yeniden acilmiyor). ANOMALI ArTisT'te: riza orani kampanyalar arasi **%1,1-%89** saciliyor → sirada rizadan BAGIMSIZ CF istek sayaci (`Katalog-Site` hedef URL, 28 gun).
-- **K389 ✅ KAPANDI 9 Eyl — ONCUL CURUDU:** iki kol AYRI dosya olcuyor; `defter-kota-kapisi.py` rc'si **KUTU** ekseninden (`KUTU_ASILDI` rc=1), `DEVAM.md` ekseni "Push DURDURULMADI" basar. Kutu 316→240 → commit GECTI (`71f86f14`). Ders: rc'nin ekseni okunmadan sinif kapisi yazilmaz.
+- **K389 ✅ KAPANDI 9 Eyl — ONCUL CURUDU:** `defter-kota-kapisi.py` rc'si **KUTU** ekseninden gelir (`KUTU_ASILDI`), DEVAM ekseni degil (`71f86f14`). Ders: rc'nin ekseni okunmadan sinif kapisi yazilmaz.
 - **K390 ✅ ICRA EDILDI** (cip `stoic-montalcini-aff2a2`, merge `fb7714d8`): ana sayfa H1 **0 → 1** (`index.html:1167` `h1.brand-sub`, metin+sinif korundu; KraL bagimsiz olctu). Taban canli 0 + kaynak 0. Alt sayfa regresyon kolu + canli dogrulama CIPTE.
 
 ## 🔧 8 EYL 02:xx TURUNDAN ACILAN KALEMLER
@@ -24,7 +25,7 @@
 - **K381 `d1-sync.py` GERI-OKUMA SOZLESMESI:** arac "yeni: 74 … dogrulandi ✅" bastiktan HEMEN sonra kendi `--durum`'u ayni satirlari EKSIK gosterdi (MaCiT olctu). Replika gecikmesi mi teyit hatasi mi **AYRISTIRILMADI** → `OLCULEMEDI`. Kabul: tek yazimdan hemen sonra + N dk sonra iki `--durum` (arada baska senkron YOK).
 - **K383 `satir_soru` YUZEYI ERISILEMEZ:** link `prova=="kapali"` ister, katalogdaki 16/16 konfigur urun canlida `acik`. K89 "3 yuzey" sayimi SISIK, dogrusu **2 olculdu + 1 erisilemez**. Kabul: canli Worker'in non-200 dondugu konfigur satir (OKAN KAPISI).
 - **K384 `kisisel-veri-test.py` bir beyani yanlis basiyor** — TAM METIN + kabul olcutu: `DEVAM-ARSIV.md`, baslik `K384 — 8 Eyl 2026` (govde izlenen belgeye YAZILMAZ, E5).
-- **K385 KUTU TAVANI ARTIK BENIM MENZILIM DISI:** 316 st / 250; kalan 15 korumali blogun **13'u BaBa'nin**, 1'i ArTisT'in yorum kalemi, 5'i Okan'in arsivlemesini bekleyen cip kapanisi. BaBa ve Okan kapisi.
+- **K385 ✅ KAPANDI 9 Eyl** — K391 ile (BaBa 15 blogu serbest birakti, KraL tasidi).
 
 ## 🔴 6 EYL — `KraL-KapiEnvanteri-6Eyl` [Opus 5]: **hukmun ONCULU CURUDU — uc kapi KURULU DEGIL; `5/8` DOGRU** (tam hesap KUTUDA)
 **ONCUL+AKIM:** 3 atfin ucu de PROZA (biri `SILINDI`); 29 Agu supurmesi kabloyu sokmus. Canli: 3 kapi da deny URETMEDI (`git commit` rc=0), POZITIF KONTROL deny verdi; mutant 4/4. **Kapilar KURULMADI → BaBa karari.** TAM METIN KUTUDA.
