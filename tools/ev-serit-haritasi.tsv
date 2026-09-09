@@ -67,7 +67,7 @@ ONCELIK	DESEN	SERIT	EV	NOT
 700	jenerator/*	jenerator	TeKiN	parametrik uretim govdesi
 700	kalibrasyon/*	jenerator	TeKiN	jenerator kalibrasyonu
 690	taban-fiyatlar.js	jenerator	TeKiN	sari seri taban fiyat tablosu
-690	tools/koolm-*	jenerator	TeKiN	Koolm parametre semasi
+690	tools/parametrik-*	jenerator	TeKiN	sari seri parametre semasi araclari
 # --- ArTisT: pazarlama / SEO / reklam / analitik ----------------------------
 600	pazarlama/*	pazarlama	ArTisT	pazarlama duzlemi
 600	sitemap.xml	pazarlama	ArTisT	SEO yuzeyi
