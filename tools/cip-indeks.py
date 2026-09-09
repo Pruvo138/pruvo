@@ -616,7 +616,28 @@ def indeks_uret(urunler, index_metni, uyelik=None):
         if (kat, mk, canon) in ad_of:
             agac[kat][mk]["m"][ad_of[(kat, mk, canon)]]["a"][str(alt_ix[altk])] = n
 
-    return {"surum": SURUM, "alt": alt_tablo, "kat": agac, "katalt": katalt}
+    # === KATEGORI URUN SAYISI (Okan, 9 Eyl) — panel basligindaki "<AD> <N> urun" ===
+    # 🔴 IKINCI SAYIM YOLU YAZILMAZ. `kat_alt` zaten URUN bazlidir (1. gecis: her urun
+    # kategorisinde TAM BIR KEZ sayilir, marka/uyum eksenlerinden BAGIMSIZ) — kategori
+    # toplami onun alt-kirilimlarinin toplamidir. Ayri bir `Counter(u["kategori"] ...)`
+    # yazilsaydi ELEME/normalizasyon kolu (strip) ikiye ayrilir ve ilerideki bir degisiklik
+    # birini gunceller otekini birakirdi ([[ikiz-tanim-sessiz-ayrisma]]).
+    # 🔴 KUME = CAGIRANIN VERDIGI KUME: build.py bu fonksiyona `gizli` kayitlari ZATEN
+    # dusurulmus `products`i verir (build.py:143), yani basilan sayi MUSTERININ GORDUGU
+    # sayidir. Burada ikinci bir `gizli` suzgeci KURULMAZ — kurulsaydi cagiran kumeyi
+    # degistirdiginde iki suzgec sessizce ayrisirdi.
+    # BOS kategori (olamaz; olcum 9 Eyl: 36153/36153 dolu) tabloya GIRMEZ: basligi olmayan
+    # bir kategori icin sayi UYDURULMAZ.
+    kat_sayisi = {}
+    for (kat, _altk), n in kat_alt.items():
+        if kat:
+            kat_sayisi[kat] = kat_sayisi.get(kat, 0) + n
+
+    # `surum` BUMP EDILMEZ: alan EKLENIYOR, mevcut alanlarin (alt/kat/katalt) anlami ve
+    # bayti DEGISMIYOR; hicbir tuketici `surum`u okumadigi icin bump geriye uyumlulugu
+    # ARTIRMAZ, yalnizca gomulu metni bayatlatirdi.
+    return {"surum": SURUM, "alt": alt_tablo, "kat": agac, "katalt": katalt,
+            "katSayisi": kat_sayisi}
 
 
 def indeks_metni(indeks):

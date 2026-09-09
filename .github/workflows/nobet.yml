@@ -4354,6 +4354,36 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/cip-indeks-test.py
 
+      # KATEGORI PANEL BASLIGINDAKI URUN SAYISI — tools/kat-sayisi-test.py.
+      # NEDEN AYRI BIR ADIM (ustteki kapi bu ekseni GORMEZ): cip-indeks-test.py CIP
+      # SATIRLARININ birbirine gore daralmasini olcer; bu kapi PANEL BASLIGINI ve indeksin
+      # `katSayisi` alanini olcer — o alan cip satirlarina hic dokunmaz, ustteki kapinin
+      # 91 iddiasinin HICBIRI silinmesini fark etmez (olculdu: alan adini kaydiran mutant
+      # M06 ustteki bataryada YESIL kalir).
+      # ISTEK (Okan, 9 Eyl): panel basliklarinda kategorinin urun sayisi gorunsun. ISTEGIN
+      # ASIL SARTI sayinin gorunmesi DEGIL, HARDCODE OLMAMASIDIR — bir sabit yazilsaydi
+      # bugun DOGRU gorunur, ilk urun partisinden sonra SESSIZCE yalan soylerdi ve hicbir
+      # gorsel kontrol bunu yakalamazdi. Iki ayri katmanda oldurucu kolu var: D5 (uretici —
+      # urun eklenince sayi TAM o kadar artar) ve D16 (istemci — indeksteki sayi kayinca
+      # BASILAN sayi da kayar).
+      # DIGER OLCULEN SINIFLAR: mukerrer sayim (sayim marka bazli tabloya kayarsa cok
+      # markali urun iki kez / markasiz urun HIC sayilir — D2/D3/D7/D9); fail-open (indeks
+      # yok · alan SILINMIS eski indeks + yeni istemci · bozuk deger -> sayi basilmaz,
+      # panel AYNEN calisir, JS hatasi YOK — D13/D14/D15); geriye uyumluluk (`surum`
+      # DEGISMEDI, tuketici alanlari saglam — D6/D7/D8); CSS kancasinin kopmasi (sayi
+      # basilir ama kendi sinifini almaz -> 46px baslik puntosuyla cizilip mobilde basligi
+      # kirar — D11).
+      # NASIL: index.html'in GERCEK inline scripti node:vm'de kosar (kod KOPYALANMAZ,
+      # icra kolu tools/kat-sayisi-kosum.js); indeks UYDURULMAZ, gercek uretec
+      # (tools/cip-indeks.py) hem sentetik fikstur hem GERCEK katalog uzerinde calistirilir.
+      # OFFLINE: ag YOK (kosumun fetch'i asla cevap vermez), DISKE YAZMAZ, ~10 s.
+      # node ZORUNLU (setup-node yukarida).
+      # Cift yonlu mutasyon (7 oldurucu KIRMIZI + 3 kontrol YESIL + M00) elle:
+      #   python3 tools/kat-sayisi-test.py --mutasyon
+      - name: "Kategori panel basligi urun sayisi (hardcode + fail-open nobeti)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kat-sayisi-test.py
+
       # KONFIGUR GOLGE MODU (FAZ 3). Worker D1'den `konfigur`u OKUR ama fiyati HALA bundle'dan
       # hesaplar; bu adim iki seyi birden kilitler:
       # (1) MUSTERI DAVRANISI DEGISMEDI — capa 150/PLA=73600, 300/ASA=150000, anka-kusu

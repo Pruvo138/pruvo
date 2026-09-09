@@ -488,7 +488,19 @@ setTimeout(L,5000);})();
     letter-spacing:clamp(.04em,1.4vw,.12em);
     text-indent:clamp(.04em,1.4vw,.12em);
   }
+  /* Başlıktaki ürün sayısı (Okan, 9 Eyl). Başlığın DEV puntosunu ve geniş harf aralığını
+     DEVRALMAZ — kendi ölçüsünü alır, yoksa mobilde başlığı ikinci satıra kırardı; nowrap
+     ile "1901 ürün" sayı ile birimi arasından bölünmez. Bu kural başlığın kendi
+     kurallarına (.uzun dahil) DOKUNMAZ; indeks yoksa öge hiç doğmaz, kural ölü kalır. */
+  .kat-panel-sayi{
+    font-size:clamp(12px,2.6vw,18px);
+    font-weight:600;
+    letter-spacing:.02em;
+    color:var(--gray-text);
+    white-space:nowrap;
+  }
   .kat-panel-baslik:hover{color:var(--navy-2)}
+  .kat-panel-baslik:hover .kat-panel-sayi{color:var(--gray-text)}
   /* Çip satırı OLMAYAN kategoride başlık panelin TEK ögesidir; o zaman altındaki 16px
      boşluk hiçbir şeyi ayırmaz, yalnız o panelin altına asılı kalır ve paneller arası
      ritmi 34px yerine 50px gösterir — panel "eksik/bozuk" izlenimi verir. Başlık son öge
@@ -1679,6 +1691,19 @@ setTimeout(L,5000);})();
       bas.className = "kat-panel-baslik" + (gorunen.length > 8 ? " uzun" : "");
       bas.href = katUrl;
       bas.textContent = gorunen.toLocaleUpperCase("tr");
+      /* ÜRÜN SAYISI (Okan, 9 Eyl) — "MARİN 1901 ürün". Sayı AYRI bir ögeye yazılır:
+         (a) yukarıdaki büyütme satırı ve `uzun` eşiği KATEGORİ ADINA bakar, sayı oraya
+         karışsaydı ürün partisi başlığın puntosunu oynatırdı; (b) başlık puntosu
+         clamp(26px,6vw,46px) + geniş harf aralığı — sayı aynı ölçüde basılsaydı mobilde
+         başlığı ikinci satıra kırardı. İndeks/alan/sayı yoksa `_ixKatSayisi` null döner,
+         öge HİÇ doğmaz ve başlık bugünküyle BİREBİR aynı kalır (fail-closed). */
+      var katN = _ixKatSayisi(kat);
+      if(katN !== null){
+        var sayiEl = document.createElement("span");
+        sayiEl.className = "kat-panel-sayi";
+        sayiEl.textContent = " " + katN + " ürün";
+        bas.appendChild(sayiEl);
+      }
       bolum.appendChild(bas);
 
       var ix = indeksMarkalar(kat, "Tümü", "Tümü");
@@ -3711,6 +3736,23 @@ setTimeout(L,5000);})();
   function _ixKat(kat){
     var ix = cipIndeks();
     return (ix && ix.kat[kat]) ? ix.kat[kat] : null;
+  }
+  // KATEGORİ ÜRÜN SAYISI (Okan, 9 Eyl): panel başlığındaki "<AD> <N> ürün".
+  // Kaynak indeksin `katSayisi` alanıdır (tools/cip-indeks.py) — sayı KATALOGDAN türer,
+  // buraya HİÇBİR sayı yazılmaz; katalog büyüyünce sayı kendiliğinden yükselir.
+  // FAIL-CLOSED DÖRT KOL — hepsi null döner ve çağıran başlığı BUGÜNKÜ gibi (sayısız)
+  // basar, panel çalışmaya devam eder: (1) indeks hiç yok/bozuk, (2) `katSayisi` alanı
+  // yok (eski gömülü indeksle yeni istemci), (3) bu kategori tabloda yok, (4) değer
+  // POZİTİF TAM SAYI değil (dizge "1901" · 0 · negatif · NaN/Infinity · 1.5). "0 ürün" de
+  // BASILMAZ: sayı gerçekten sıfırsa panel eşiği zaten çizmez, basılsaydı bilgi değil
+  // kusur izlenimi verirdi. Ondalık da basılmaz: üretici tam sayı sayar, "3,5 ürün"
+  // görünüyorsa kaynak bozulmuştur ve müşteriye bozuk sayı göstermek sessiz kalmaktan
+  // KÖTÜDÜR (fail-closed).
+  function _ixKatSayisi(kat){
+    var ix = cipIndeks();
+    if(!ix || !ix.katSayisi){ return null; }
+    var n = ix.katSayisi[kat];
+    return (typeof n === "number" && isFinite(n) && n > 0 && n === Math.floor(n)) ? n : null;
   }
   // Seçili grubun indeks anahtarı. "Tümü" → null (grup ekseni yok sayılır).
   // Küme DIŞI bir değer → -1: hiçbir kombinasyon dolu değildir (fail-closed).

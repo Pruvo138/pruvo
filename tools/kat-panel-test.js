@@ -83,6 +83,11 @@ const PARCALAR = {
   altListesi: fnAl('altListesi'),
   cipIndeks: fnAl('cipIndeks'),
   _ixKat: fnAl('_ixKat'),
+  // 🔴 ENVANTER, RENDER GOVDESININ OKUDUGU HER ADI TASIMALI: `renderKatPanelleri`
+  // 9 Eyl'de baslik sayisi icin `_ixKatSayisi`i cagirmaya basladi; ad burada YOKKEN
+  // govde ReferenceError ile DUSTU (fail-loud calisti, sessiz gecmedi)
+  // ([[cagri-yeri-envanterden-duserse-onarildi-sanilir]]).
+  _ixKatSayisi: fnAl('_ixKatSayisi'),
   _altAnahtar: fnAl('_altAnahtar'),
   indeksMarkalar: fnAl('indeksMarkalar'),
   indeksGruplar: fnAl('indeksGruplar'),
