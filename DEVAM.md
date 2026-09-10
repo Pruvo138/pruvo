@@ -9,7 +9,7 @@
 A `serene-ellis-8690c8` `98d25962` kapi/olcum 5 dosya +650/-25 base `85f7a568` ·
 B `wizardly-heisenberg-a25468` `6410ce86` GA4 `session_id` 9 dosya +352/-15, base=main ucu **FF UYGUN** ·
 C `kind-wilbur-927c58` `28a6311c` `sss/index.html` FAQPage +93 base `55200abe`. 🔴 **RISK:** o sayfayi `build.py` YERINDE yeniden yaziyor; `yasal-sayfa-drift-kapisi.py` olculmeden C MERGE EDILMEZ.
-**YENI KALEM (OKAN 23:4x):** `tools/nobet-olcum.py` (6 ev tek kosum, HUKUM YAZMAZ) → cip `task_822f1b14`; kabul 12 Eyl 09:08 **≤15 tur / ≤2M** (taban 66/10,2M).
+**KALEM (OKAN 23:4x) KOD BITTI** — `tools/nobet-olcum.py` dal `claude/busy-hermann-057e7e` (10 ev / 1 kosum / 0,9 sn / 58 komut · test 26 vaka + 3 mutant, `nobet.yml serit-b` kablosu 2 yonlu olculdu · cron etiketi 3/3). ACIK: merge + 12 Eyl 09:08 **≤15 tur / ≤2M** (taban 66/10,2M).
 **HESAP (1b) KAPANDI** — oturum yeni kimlikte dogdu (BaBa 23:5x), artifact `mine`. Deploy = Okan kapisi.
 🔴 **KISIT:** kapi KABLOLU, merge dogrulamasi cipe gider · `2>&1` eki de RED (serbest komut CIPLAK kosulur) · defter rotasyonu yer ACAMAZ (`KAPALI=0`, 35 madde ACIK = arac DOGRU no-op) · `kutu-arsivle --sha-dogrula` TASIMA ONCESI kosulursa fail-closed her blogu eksik sayar, yazmaz.
 
