@@ -569,9 +569,11 @@ def acik_kalem_listesi(defter_yolu, *, gecersiz_sink=None):
     gecersiz_sink: (K380 b) VERILIRSE, durum hucresi KANONIK_DURUMLAR disinda
       kalan her satir buraya `{"kimlik","durum","satir_no"}` olarak EKLENIR.
       🔴 NEDEN LISTE PARAMETRESI, NEDEN 4. DONUS DEGERI DEGIL: bu fonksiyon
-      TEK PARSER'dir ve uc-demet sozlesmesi 6 cagri yerinde acilir
-      (`parti-kapisi.py:813`, `devir-kapisi.py:254/508/517/622`,
-      `korgoz_olcum.py:243`, `korgoz_kabul.py:309/338`). Demeti buyutmek o
+      TEK PARSER'dir ve uc-demet sozlesmesi 4 dosyada 9 cagri yerinde acilir
+      (`parti-kapisi.py:974/987`, `devir-kapisi.py:254/512/521/626`,
+      `korgoz_olcum.py:243`, `korgoz_kabul.py:319/348`; sayilar 10 Eyl'de
+      YENIDEN OLCULDU — onceki liste hem sayiyi hem uc satir numarasini
+      bayat tasiyordu). Demeti buyutmek o
       okuyuculari kirardi; ikinci bir tablo okuyucu yazmak ise doktrin geregi
       YASAK ([[ikiz-tanim-sessiz-ayrisma]]). Sink VERILMEZSE davranis BIREBIR
       eskisi gibidir (regresyon 0).
@@ -834,6 +836,9 @@ def parti_engeli_var_mi(ev, esik=DEFAULT_ESIK, *, koku_root=None, muafiyet_yok=N
         # `OLCULEMEDI=True` = defter VAR ama okunamadi (bos/bozuk/IO). Ikisini
         # ayirmak POLITIKA katmanının (N2B parti kapisi) isidir; T4 yalnizca
         # OLCUYU verir, kapiyi acmaz [[iki-kovali-siniflama-ucuncu-sinifi-yutar]].
+        # 🔴 10 Eyl 2026 — BU HUKUM ICRA EDILDI: K397 spec SINIFI ekseni
+        # `parti-kapisi.py`nin RED koluna yazildi, BURAYA DEGIL. T4'e politika
+        # eklemek isteyen once bu satiri okusun.
         sonuc["DEFTER_YOK"] = not defter_dosyasi_var_mi(defter_yol)
         sonuc["HATA"] = "T4-OLCULEMEDI %s" % (hata or "defter okunamadi")
         sonuc["OLCULEMEDI"] = True

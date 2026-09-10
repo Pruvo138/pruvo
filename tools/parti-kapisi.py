@@ -203,6 +203,19 @@ N2B_ETIKET_CIKARIM_JETON = "N2B-ETIKET-CIKARIM"
 # sarmalayici adi gectigi icin "yeni parti" saydi ([[n2b-kapisi-dizge-olcer]]).
 # Bedel tersine tesviktir: git-DISI kanit OKUMAK pahali, OLCMEMEK ucuz.
 N2B_OKUMA_JETON = "N2B-OKUMA"
+# 🔴 K397 (10 Eyl 2026) — SPEC SINIFI EKSENI (FaR'in olctugu DAIRESEL KILIT).
+# OLCULEN ARIZA: `isci.sh minimax-m3 <ev> <spec> site-metin-testi` -> rc=3,
+# `KALEM=F15,F21,F46,F62`. Kalemlerin HICBIRI cagrinin kapsaminda degildi.
+# ASIL ZARAR DAIRESELDIR: F21'i KAPATACAK kosum da parti sinifidir; kapi onu
+# "F21 acik" diye reddeder -> kalem KENDI kilidini besler.
+# OteL hukmu: `ACIK_KALEM` reddi YALNIZ parti sinifi spec'lere uygulanir.
+# Bu iki jeton `N2B-RED` ve `N2B-OLCULEMEDI`den AYRIDIR: ayni metne
+# indirgenirse yeni HAL varsayilan kovaya duser ve ya INERT ya SAHTE YESIL
+# olur ([[yeni-hal-cozucunun-varsayilan-kovasina-duser]]).
+N2B_SINIF_OLCUM_JETON      = "N2B-SINIF-OLCUM"        # GECER, ama SESSIZ DEGIL
+N2B_SINIF_OLCULEMEDI_JETON = "N2B-SINIF-OLCULEMEDI"   # RED (fail-closed)
+# Attribution-only: hukum satirinda GORUNMEZ, mutant HEDEF KOLUNUN adidir.
+N2B_SPEC_SINIFI_JETON      = "N2B-SPEC-SINIFI"
 
 # Sebep KODLARI — hukum satirinin `SEBEP=` alaninda tasinir. Kod, KOL'dan
 # AYRIDIR: KOL "hangi kol karar verdi", SEBEP "neden" der. Uc kovanin uc AYRI
@@ -213,6 +226,9 @@ SEBEP_ETIKET_OKUNAMADI = "ETIKET_OKUNAMADI"
 SEBEP_OLCULEMEDI       = "OLCULEMEDI"
 SEBEP_DEFTER_YOK       = "DEFTER_YOK"
 SEBEP_TEMIZ            = "TEMIZ"
+# K397 — sinif ekseninin IKI AYRI kodu (ucuncu kova ikinciye indirgenmez).
+SEBEP_SINIF_OLCUM      = "SINIF_OLCUM"
+SEBEP_SINIF_OLCULEMEDI = "SINIF_OLCULEMEDI"
 
 MUTANT_HEDEF = {
     "M1": N2B_YENI_JETON,
@@ -247,6 +263,15 @@ MUTANT_HEDEF = {
     #   M15 baslatma "okuma" sayilir -> GERCEK baslatma SIZAR (kabul edilemez)
     "M14": N2B_OKUMA_JETON,
     "M15": N2B_OKUMA_JETON,
+    # 🔴 K397 — UC AYRI kol, UC AYRI oldurme yolu. Her biri KENDI kolunu
+    # oldurur; yan eksen YESIL kalmali, yoksa atif komsuyu dogrular
+    # ([[ad-iki-rolde-mutanti-golgeler]]).
+    #   M16 eksen FAIL-OPEN  -> parti sinifi spec'i GECER (kapi DELINIR)
+    #   M17 GECER kolu YOK   -> olcum spec'i yine RED (FaR'in vakasi geri)
+    #   M18 ucuncu kova yutulur -> sinifi OLCULEMEYEN cagri GECER
+    "M16": N2B_SPEC_SINIFI_JETON,
+    "M17": N2B_SINIF_OLCUM_JETON,
+    "M18": N2B_SINIF_OLCULEMEDI_JETON,
 }
 
 # 🔴 MUAF ETIKETLER — onarim hattinin KENDINI bloklamasini engeller.
@@ -269,13 +294,110 @@ MUAF_ETIKET_ONEKLERI = ("tamir", "onarim", "kabul", "nobet", "posta", "devir")
 # degisir; degismezse K11 kontrolu KIRMIZI yanar.
 SARMALAYICI_DIZINI = "/Users/okan/.claude/cron"
 ETIKET_YERI = "<ETIKET>"
+# 🔴 K397: SPEC de artik ADLI bir yerdir (once yalniz bir dizge literaliydi).
+# Sinif ekseninin girdisi bu konumdan cikarilir — `_SPEC_INDEKS` BURADAN turer.
+SPEC_YERI = "<SPEC.md>"
 SARMALAYICI_ARGUMANLARI = {
-    "isci.sh":    ("<MOTOR>", "<EV_KOKU>", "<SPEC.md>", ETIKET_YERI),
-    "m3-isci.sh": ("<EV_KOKU>", "<SPEC.md>", ETIKET_YERI),
+    "isci.sh":    ("<MOTOR>", "<EV_KOKU>", SPEC_YERI, ETIKET_YERI),
+    "m3-isci.sh": ("<EV_KOKU>", SPEC_YERI, ETIKET_YERI),
     # `parti-surucusu.sh` BILEREK YOK: argumansizdir, etiket govdesinde
     # GOMULUDUR ve cikarilamaz -> tablodan cozulemeyen sarmalayici
     # `ETIKET_OKUNAMADI` kovasina duser (fail-closed).
 }
+
+
+# ==============================================================================
+# 🔴 K397 — SPEC SINIFI: TEK KAYNAK TABLO
+# ==============================================================================
+# Sinif spec'in KENDISINDEN turetilir (ad/etiket/cagri yerinden DEGIL): spec
+# GOVDESI okunur ve asagidaki isaretlere bakilir. Bu tablo TEK KAYNAKTIR —
+# liste ikinci bir yere (red metnine, baska bir kapiya, bir yorum satirina)
+# KOPYALANMAZ; K14 kontrolu blok DISINDA ikinci bir kopya ariyor ve bulursa
+# KIRMIZI yakar ([[ikiz-tanim-sessiz-ayrisma]], [[kapi-red-metni-ikinci-kopyadir]]).
+#
+# 🔴 SIRA KASITLIDIR VE FAIL-CLOSED YONU BELIRLER: PARTI once denenir ve
+# KAZANIR. Yanlis siniflama iki yone de olabilir, ama bedelleri esit DEGIL:
+#   * olcum spec'i PARTI sanilirsa -> RED = bugunku davranis (zarar: gecikme)
+#   * parti spec'i OLCUM sanilirsa -> GECER = kapi DELINIR (zarar: geri alinamaz)
+# Bu yuzden PARTI isaretleri GENIS, OLCUM sinifi ise POZITIF KANIT ister.
+# Ikisi de yoksa sinif OLCULEMEDI'dir ve hukum fail-closed RED kalir.
+SINIF_PARTI      = "PARTI"
+SINIF_OLCUM      = "OLCUM"
+SINIF_OLCULEMEDI = "SINIF_OLCULEMEDI"
+# 🔴 DORDUNCU HAL, UCUNCUYE INDIRGENMEZ: `SPEC_YOK` = spec ARGUMANI hic
+# verilmedi (or. kanca yuzeyinde sarmalayici tablodan cozulemedi). Eksen o
+# cagriya UYGULANAMAZ; hukum K397 ONCESI ne ise ODUR (regresyon 0).
+SINIF_YOK        = "SPEC_YOK"
+
+# SINIF-TABLOSU-BASI (K14 sinir dizgesi — ELLE DEGISTIRME)
+SPEC_SINIF_ISARETLERI = (
+    (SINIF_PARTI, (
+        r"urunler\.json",
+        r"\bhavuz\w*",
+        r"\bhasat\w*",
+        r"(?<![\w./-])veri/",
+        r"duzelt\.py",
+        r"urun[-\s]?ekleme",
+    )),
+    (SINIF_OLCUM, (
+        r"\b[oö]l[cç]\w*",
+        r"\bderle\w*",
+        r"\bmetin\w*",
+        r"\bte[sş]his\w*",
+        r"\brapor\w*",
+        r"\btest\w*",
+    )),
+)
+# SINIF-TABLOSU-SONU (K14 sinir dizgesi — ELLE DEGISTIRME)
+
+
+def sinif_isaretleri(sinif):
+    """Bir sinifin isaret desenleri — `SPEC_SINIF_ISARETLERI`den TURER.
+
+    Tabloyu okuyan TEK erisimci budur; cagri yerleri literal liste TUTMAZ.
+    """
+    for ad, desenler in SPEC_SINIF_ISARETLERI:
+        if ad == sinif:
+            return desenler
+    return ()
+
+
+def spec_sinifi(spec):
+    """Spec dosyasinin SINIFINI govdesinden turetir. SAF fonksiyon (mutantsiz).
+
+    🔴 MUTANT BURADA YOK — BILEREK. Mutantlar KARAR yerine (`parti_karari`)
+    baglidir; siniflandirici saf kalinca `--spec-sinifi` teshis kolu mutant
+    yukunden bagimsiz olcer ([[mutant-canli-govdede-yasamaz]]).
+
+    Return: (SINIF, KANIT). KANIT ya eslesen isaretleri ya OLCEMEME SEBEBINI
+    tasir; bos string ASLA donmez (sessiz sinif yok).
+    """
+    if spec is None or not str(spec).strip():
+        return SINIF_YOK, "spec argumani VERILMEDI — sinif ekseni kapsam disi"
+    yol = str(spec).strip()
+    try:
+        with open(yol, encoding="utf-8", errors="replace") as f:
+            govde = f.read()
+    except OSError as e:
+        return SINIF_OLCULEMEDI, "spec OKUNAMADI (%s): %r" % (yol, e)
+    if not govde.strip():
+        return SINIF_OLCULEMEDI, "spec BOS (%s)" % yol
+    for ad, desenler in SPEC_SINIF_ISARETLERI:
+        eslesen = [d for d in desenler if re.search(d, govde, re.IGNORECASE)]
+        if eslesen:
+            return ad, "isaret(%d): %s" % (len(eslesen), " · ".join(eslesen))
+    return (SINIF_OLCULEMEDI,
+            "taninan hicbir sinif isareti YOK (%s, %d B)" % (yol, len(govde)))
+
+
+def spec_sinifi_komutu(spec):
+    """Reddi okuyanin sinifi KENDI olcebilecegi calistirilabilir komut.
+
+    Red metni isaret LISTESINI basmaz (ikinci kopya olurdu); bunun yerine
+    listeyi TEK KAYNAKTAN okuyan bu komutu basar.
+    """
+    return "python3 %s --spec-sinifi %s" % (os.path.abspath(__file__),
+                                            spec or "<SPEC.md>")
 
 
 def muaf_onek_dizgesi():
@@ -684,11 +806,15 @@ def yeni_is_mi(komut, *, mutant=None):
 # KARAR FONKSIYONU — iki yuzey de BURADAN gecer
 # ------------------------------------------------------------------------------
 def parti_karari(ev_koku, etiket, *, esik=None, koku_root=None, mutant=None,
-                 t4=_MIRAS, t4_hata=None, ev=None):
+                 t4=_MIRAS, t4_hata=None, ev=None, spec=None):
     """Bir YENI is basvurusunu hukme baglar.
 
     `ev` dogrudan verilirse yol cozumu ATLANIR (`--kontrol` kolu); aksi halde
     `ev_koku`ndan T4'un EV_DIZIN'i uzerinden TURETILIR.
+
+    🔴 K397 `spec`: SINIF ekseninin girdisi. VERILMEZSE (None) eksen kapsam
+    DISIDIR ve hukum K397 oncesiyle BIREBIR aynidir — yani bu parametre bir
+    GEVSETME degil, DAR bir muafiyet kolu acar.
 
     Return: {"HUKUM": "GECER"|"RED", "KOL", "EV", "ACIK", "KALEMLER",
              "KABUL_KOMUTU", "SEBEP", "HATA"}
@@ -697,7 +823,8 @@ def parti_karari(ev_koku, etiket, *, esik=None, koku_root=None, mutant=None,
     sonuc = {"HUKUM": "RED", "KOL": N2B_OLCULEMEDI_JETON, "EV": None,
              "ACIK": 0, "KALEMLER": [], "KABUL_KOMUTU": None,
              "SEBEP": None, "SEBEP_KODU": SEBEP_OLCULEMEDI, "HATA": None,
-             "ETIKET": etiket}
+             "ETIKET": etiket, "SPEC": spec, "SINIF": None,
+             "SINIF_KANIT": None}
 
     if muaf_etiket_mi(etiket, mutant=mutant):
         sonuc["HUKUM"] = "GECER"
@@ -810,6 +937,53 @@ def parti_karari(ev_koku, etiket, *, esik=None, koku_root=None, mutant=None,
             sonuc["KOL"] = N2B_SUREN_JETON
             sonuc["SEBEP"] = "M3: RED yutuldu"
             return sonuc
+        # --- 🔴 K397 SINIF EKSENI -----------------------------------------
+        # Buraya kadar olcum AYNI (borc T4'ten geldi). Degisen tek sey: red
+        # KIMIN uzerine uygulanir. T4 kendi govdesinde bu ayrimin POLITIKA
+        # katmaninin isi oldugunu yaziyor ("T4 yalnizca OLCUYU verir, kapiyi
+        # acmaz") — bu yuzden eksen ORADA degil, BURADA.
+        sinif, sinif_kanit = spec_sinifi(spec)
+        sonuc["SINIF"] = sinif
+        sonuc["SINIF_KANIT"] = sinif_kanit
+        # Mutantlar SINIFLANDIRICIYA degil KARARA baglidir; her biri YALNIZ
+        # kendi kolunu oldurur (yan eksen YESIL kalmali — K182).
+        gecen_siniflar = {SINIF_OLCUM}
+        if mutant == "M16":
+            # EKSEN FAIL-OPEN: parti sinifi da gecer -> kapi DELINIR.
+            gecen_siniflar = {SINIF_OLCUM, SINIF_PARTI}
+        if mutant == "M17":
+            # GECER KOLU KALDIRILIR: eksen oncesi davranis (her sinif RED)
+            # -> FaR'in canli vakasi geri gelir.
+            gecen_siniflar = set()
+        if mutant == "M18":
+            # UCUNCU KOVA YUTULUR: sinifi OLCULEMEYEN cagri da gecer.
+            gecen_siniflar = {SINIF_OLCUM, SINIF_OLCULEMEDI}
+        if sinif in gecen_siniflar:
+            # GECER ama SESSIZ DEGIL: kendi jetonu hukum satirinda GORUNUR.
+            sonuc["HUKUM"] = "GECER"
+            sonuc["KOL"] = N2B_SINIF_OLCUM_JETON
+            sonuc["SEBEP_KODU"] = SEBEP_SINIF_OLCUM
+            sonuc["SEBEP"] = (
+                "%s ev=%s acik=%d — ama spec SINIFI parti DEGIL (%s / %s). "
+                "Acik kalem yalniz PARTI sinifi isi bloklar; olcum/derleme/"
+                "metin cikarimi kalemden BAGIMSIZ gecer."
+                % (N2B_SINIF_OLCUM_JETON, ev, borc["ACIK_SAYISI"], sinif,
+                   sinif_kanit))
+            return sonuc
+        if sinif == SINIF_OLCULEMEDI:
+            sonuc["KALEMLER"] = t4.acik_kalem_listesi(
+                borc["DEFTER_YOLU"] or "")[0]
+            sonuc["HUKUM"] = "RED"
+            sonuc["KOL"] = N2B_SINIF_OLCULEMEDI_JETON
+            sonuc["SEBEP_KODU"] = SEBEP_SINIF_OLCULEMEDI
+            sonuc["KABUL_KOMUTU"] = kabul_komutu(ev)
+            sonuc["SEBEP"] = (
+                "%s spec SINIFI belirlenemedi (%s) — sinifi bilinmeyen cagri "
+                "fail-closed REDDEDILIR. Sinifi kendin olc: %s"
+                % (N2B_SINIF_OLCULEMEDI_JETON, sinif_kanit,
+                   spec_sinifi_komutu(spec)))
+            return sonuc
+        # SINIF_PARTI ya da SINIF_YOK -> HUKUM DEGISMEDI (K397 oncesi RED).
         kalemler, _okundu, _h = t4.acik_kalem_listesi(borc["DEFTER_YOLU"] or "")
         sonuc["KALEMLER"] = kalemler
         sonuc["KOL"] = N2B_RED_JETON
@@ -876,6 +1050,14 @@ def red_metni(sonuc, *, mutant=None):
         "okunan etiket=%r. Acik kalem sayimi bu kovada YAPILMAZ."
         % (_im(SEBEP_ETIKET_OKUNAMADI), SEBEP_ETIKET_OKUNAMADI,
            sonuc.get("ETIKET") or ""))
+    # 🔴 K397 UCUNCU SEBEP KOVASI — kendi satiri. Isaret LISTESI BURAYA
+    # YAZILMAZ (ikinci kopya olurdu); listeyi tek kaynaktan okuyan KOMUT
+    # basilir ([[kapi-red-metni-ikinci-kopyadir]]).
+    satirlar.append(
+        "%sSEBEP[%s]: spec'in SINIFI belirlenemedi — okunan spec=%r. Sinifi "
+        "bilinmeyen cagri fail-closed reddedilir; olcmek icin: %s"
+        % (_im(SEBEP_SINIF_OLCULEMEDI), SEBEP_SINIF_OLCULEMEDI,
+           sonuc.get("SPEC") or "", spec_sinifi_komutu(sonuc.get("SPEC"))))
 
     if kod == SEBEP_ACIK_KALEM:
         if sonuc["KALEMLER"]:
@@ -1112,9 +1294,14 @@ def elle_kopya_kaynak_sayimi(yol=None, *, kaynak=None):
 # ------------------------------------------------------------------------------
 def isci_kapi(motor, ev_koku, spec, etiket, *, esik=None, koku_root=None,
               mutant=None, t4=_MIRAS, t4_hata=None):
-    """isci.sh'in cagirdigi kol. rc: 0 GECER · 1 RED · 2 OLCULEMEDI."""
+    """isci.sh'in cagirdigi kol. rc: 0 GECER · 1 RED · 2 OLCULEMEDI.
+
+    🔴 K397: `spec` ARTIK HUKME GIRER (once alinip ATILIYORDU). FaR'in canli
+    vakasi tam bu yuzden RED yiyordu: kapi spec'i eline aliyor ama sinifina
+    HIC bakmiyordu.
+    """
     sonuc = parti_karari(ev_koku, etiket, esik=esik, koku_root=koku_root,
-                         mutant=mutant, t4=t4, t4_hata=t4_hata)
+                         mutant=mutant, t4=t4, t4_hata=t4_hata, spec=spec)
     if sonuc["HUKUM"] == "RED":
         if sonuc["KOL"] == N2B_OLCULEMEDI_JETON:
             sys.stderr.write((sonuc["HATA"] or N2B_OLCULEMEDI_JETON) + "\n")
@@ -1123,9 +1310,11 @@ def isci_kapi(motor, ev_koku, spec, etiket, *, esik=None, koku_root=None,
         sys.stderr.write(red_metni(sonuc) + "\n")
         sys.stderr.write(hukum_satiri(sonuc) + "\n")
         return RC_RED
-    # 🔴 K229: GECER ama SESSIZ DEGIL — ucuncu kova gerekcesini isci.sh
-    # gunlugune de yazar (jeton zaten hukum satirinda).
-    if sonuc["KOL"] == N2B_DEFTER_YOK_JETON and sonuc["SEBEP"]:
+    # 🔴 K229/K397: GECER ama SESSIZ DEGIL — gerekce isci.sh gunlugune de
+    # yazilir (jeton zaten hukum satirinda). Kablolanmamis/gorunmez bir kol
+    # bir MESAJDIR, olcum degil ([[kapinin-menzili-cagri-yeridir]]).
+    if (sonuc["KOL"] in (N2B_DEFTER_YOK_JETON, N2B_SINIF_OLCUM_JETON)
+            and sonuc["SEBEP"]):
         sys.stderr.write(sonuc["SEBEP"] + "\n")
     sys.stdout.write(hukum_satiri(sonuc) + "\n")
     return RC_GECER
@@ -1172,8 +1361,13 @@ def kanca(girdi, *, esik=None, koku_root=None, mutant=None, t4=_MIRAS,
 
     ev_koku = girdi.get("cwd") or ""
     etiket = _etiket_cikar(komut, mutant=mutant)
+    # 🔴 K397 — IKINCI YUZEY DE EKSENI GORMELI. Yalniz `isci_kapi`ya eksen
+    # eklenseydi ariza YER DEGISTIRIRDI: ayni cagri Bash uzerinden gectiginde
+    # kanca onu hala "acik kalem" diye reddederdi ve olcum spec'i kapiyi
+    # yuzeye gore FARKLI gecerdi ([[tuketici-yazilirken-tum-okuyucular-sayilir]]).
+    spec = _spec_cikar(komut, mutant=mutant)
     sonuc = parti_karari(ev_koku, etiket, esik=esik, koku_root=koku_root,
-                         mutant=mutant, t4=t4, t4_hata=t4_hata)
+                         mutant=mutant, t4=t4, t4_hata=t4_hata, spec=spec)
     if sonuc["HUKUM"] == "RED":
         if sonuc["KOL"] == N2B_OLCULEMEDI_JETON:
             return _reddet("%s\n%s" % (sonuc["HATA"] or N2B_OLCULEMEDI_JETON,
@@ -1200,6 +1394,12 @@ _ETIKET_RE = re.compile(
 _ETIKET_INDEKS = {ad: args.index(ETIKET_YERI)
                   for ad, args in SARMALAYICI_ARGUMANLARI.items()
                   if ETIKET_YERI in args}
+# 🔴 K397 — SPEC indeksi de AYNI TABLODAN turer. Ikinci bir gramer tablosu
+# yazsaydik iki tanim sessizce ayrisirdi; tabloya bir arguman eklenince HER
+# IKI indeks birden kayar.
+_SPEC_INDEKS = {ad: args.index(SPEC_YERI)
+                for ad, args in SARMALAYICI_ARGUMANLARI.items()
+                if SPEC_YERI in args}
 
 # Komut zinciri ayraclari. `||` `&&`den once denenir ki tek `|`ye dusmesin.
 _AYRAC_RE = re.compile(r"\|\||&&|\||;|\n")
@@ -1268,6 +1468,30 @@ def _etiket_cikar(komut, *, mutant=None):
     return argumanlar[indeks].strip().strip("\"'")
 
 
+def _spec_cikar(komut, *, mutant=None):
+    """K397: komut METNINDEN `<SPEC.md>` argumanini cikarir (kanca yuzeyi).
+
+    🔴 `_etiket_cikar` ile AYNI ayristirmayi kullanir; ayri bir ayristirici
+    yazsaydik iki yuzey ayni komuttan FARKLI seyler okurdu. Bulamazsa `None`
+    doner -> sinif ekseni KAPSAM DISI -> hukum K397 oncesiyle AYNI (RED).
+    Yani belirsizlik HICBIR ZAMAN muafiyet uretmez.
+    """
+    adaylar = [m for m in
+               (_ETIKET_RE.search(seg)
+                for seg in _komut_segmentleri(komut, mutant=mutant))
+               if m]
+    if len(adaylar) != 1:
+        return None                  # 0 = sarmalayici yok · >1 = BELIRSIZ
+    m = adaylar[0]
+    indeks = _SPEC_INDEKS.get(os.path.basename(m.group(1)))
+    if indeks is None:
+        return None                  # tabloda yok (or. argumansiz surucu)
+    argumanlar = (m.group(2) or "").split()
+    if len(argumanlar) <= indeks:
+        return None                  # spec HIC verilmemis
+    return argumanlar[indeks].strip().strip("\"'") or None
+
+
 # ------------------------------------------------------------------------------
 # KENDINI-TEST — 5 mutant + hedef kol atfi + 4 kontrol
 # ------------------------------------------------------------------------------
@@ -1327,6 +1551,26 @@ def _vakalar(kok_hasat, kok_kral, kok_bot, kok_jen, kok_advisor):
          "%s minimax-m3 %s /tmp/s.md parti-surucusu" % (isci, kok_advisor),
          "GECER", N2B_SUREN_JETON),
     )
+
+
+# ------------------------------------------------------------------------------
+# K397 — SPEC SINIFI FIKSTURLERI (hermetik; icerik izolasyon kokune YAZILIR)
+# ------------------------------------------------------------------------------
+# 🔴 FIKSTUR GOVDELERI TABLODAN TURETILMEZ ve TURETILMEMELIDIR: tabloyu
+# besleyen bir fikstur, tablo yanlis olsa bile YESIL yanardi (kabul fiksturu
+# yasagi kutsar — [[kabul-fiksturu-yasagi-kutsar]]). Bu iki govde GERCEK
+# spec'lerden alinmis dilden yazildi ve tabloya BAGIMSIZ durur.
+_FIKSTUR_PARTI_SPEC = (
+    "# SPEC — Renault partisi: 40 urun havuzdan katalog\n\n"
+    "Kaynak hasat cikti dosyasi `veri/hasat-renault.jsonl`.\n"
+    "Kayitlar `urunler.json`'a `tools/duzelt.py` ile yazilacak.\n")
+_FIKSTUR_OLCUM_SPEC = (
+    "# SPEC — site metin testi (FaR'in canli vakasi)\n\n"
+    "Sayfa govdesinden metin cikar, vaatleri kontrol et ve rapor yaz.\n"
+    "Hicbir kalici dosya yazilmaz; cikti yalniz teshis raporudur.\n")
+# 🔴 UCUNCU FIKSTUR: taninan HICBIR isaret tasimayan spec -> SINIF_OLCULEMEDI.
+# Govdesi bilerek ANLAMSIZ: iki sinifin de diline degmemeli.
+_FIKSTUR_BILINMEYEN_SPEC = "# baslik\n\nlorem ipsum dolor sit amet\n"
 
 
 # Yeni-is OLMAYAN komutlar: acik kalemli evde bile KESILMEMELIDIR.
@@ -1404,6 +1648,51 @@ K345_BASLATMA_KOMUTLARI = (
 # Mutant kolu (`mutant="K7-KOVA-YUTMA"`) ucuncu kovanin ikinciyi yutmasini
 # taklit eder ve KIRMIZI yanar ([[batarya-kapsam-tabani-sayiyla-civilenir]]).
 K7_HALLERI = ("GECTI", "KAPSAM_DISI", "KUSUR")
+
+# Bataryanin KONTROL sayisi — TEK yerde. K397 ile K14 eklendi (13 -> 14).
+KONTROL_SAYISI = 14
+
+# K14 sinir dizgeleri: sinif tablosunun kaynak GOVDESINI cerceveler.
+SINIF_TABLOSU_BASI  = "# SINIF-TABLOSU-BASI"
+SINIF_TABLOSU_SONU  = "# SINIF-TABLOSU-SONU"
+
+
+def sinif_ikinci_kopya_sayimi(yol=None, *, kaynak=None):
+    """K14: sinif isaret listesinin TABLO DISINDA ikinci bir kopyasi var mi?
+
+    🔴 NEDEN VAR: "eksen listesini ikinci bir yere KOPYALAMA" bir NIYET
+    beyanidir; olculmezse bir sonraki dokunusta sessizce delinir. Bu prob
+    tabloyu sinir dizgeleriyle KESER ve GERI KALAN kaynakta ayni desenlerden
+    >=2 tanesini TEK satirda tasiyan yerleri sayar (`elle_kopya_kaynak_sayimi`
+    ile ayni teknik). Beklenen 0; her artis KIRMIZI.
+
+    🔴 KORLUK AYRIMI: sinir dizgeleri bulunamazsa sonuc -1 doner (= prob KOR),
+    0 DEGIL. "Temiz" ile "olcemedim" ayni sayiya indirgenirse koruma
+    kalkarken kapi yesil yanar ([[fail-closed-kol-arkasindaki-kolu-maskeler]]).
+
+    Return: (SAYI, IHLAL_SATIRLARI). SAYI -1 ise prob kor.
+    """
+    if kaynak is None:
+        with open(yol or os.path.abspath(__file__), encoding="utf-8") as f:
+            kaynak = f.read()
+    satirlar = kaynak.splitlines()
+    bas = [i for i, s in enumerate(satirlar)
+           if s.startswith(SINIF_TABLOSU_BASI)]
+    son = [i for i, s in enumerate(satirlar)
+           if s.startswith(SINIF_TABLOSU_SONU)]
+    if len(bas) != 1 or len(son) != 1 or son[0] <= bas[0]:
+        return -1, ["sinif tablosu siniri TEKIL DEGIL (bas=%d son=%d)"
+                    % (len(bas), len(son))]
+    desenler = [d for _ad, ds in SPEC_SINIF_ISARETLERI for d in ds]
+    ihlal = []
+    for i, s in enumerate(satirlar):
+        if bas[0] <= i <= son[0]:
+            continue                 # TABLONUN KENDISI — kopya degil, KAYNAK
+        kac = sum(1 for d in desenler if d in s)
+        if kac >= 2:
+            ihlal.append("satir %d: %d isaret literali TEK satirda: %r"
+                         % (i + 1, kac, s.strip()[:80]))
+    return len(ihlal), ihlal
 
 
 def k7_negatif_hali(kanonik_var, rc, cikti, kanonik_yol=None, *, mutant=None):
@@ -1489,6 +1778,21 @@ def kendini_test(gecici_kok):
     os.makedirs(fikstur_dizini, exist_ok=True)
     fikstur_kaynaklari = _fikstur_kaynaklari(fikstur_dizini)
 
+    # 🔴 K397 spec fiksturleri — IZOLASYON KOKUNE yazilir. Canli hicbir spec
+    # okunmaz; batarya kosucunun diskine BAGLI DEGILDIR
+    # ([[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]]).
+    spec_dizini = os.path.join(gecici_kok, "spec-fikstur")
+    os.makedirs(spec_dizini, exist_ok=True)
+    spec_parti = os.path.join(spec_dizini, "parti.md")
+    spec_olcum = os.path.join(spec_dizini, "olcum.md")
+    spec_bilinmeyen = os.path.join(spec_dizini, "bilinmeyen.md")
+    spec_yok_yol = os.path.join(spec_dizini, "HIC-YAZILMADI.md")
+    for _y, _g in ((spec_parti, _FIKSTUR_PARTI_SPEC),
+                   (spec_olcum, _FIKSTUR_OLCUM_SPEC),
+                   (spec_bilinmeyen, _FIKSTUR_BILINMEYEN_SPEC)):
+        with open(_y, "w", encoding="utf-8") as f:
+            f.write(_g)
+
     print("N2B PARTI KAPISI — KENDINI-TEST")
     print("izolasyon koku (defterler): %s" % gecici_kok)
     print("T4 yuklendi: %s" % ("EVET yol=%s" % T4_YOLU if T4 is not None
@@ -1526,6 +1830,29 @@ def kendini_test(gecici_kok):
         out["_etiketsiz_temiz_ev"] = parti_karari(
             kok_kral, "", koku_root=gecici_kok, mutant=mutant)
         out["_red_metni"] = red_metni_turetim_hukmu(mutant=mutant)
+        # 🔴 K397 — SINIF EKSENI: HEPSI ayni evde (MaCiT, 2 acik kalem) ve
+        # ayni etiketle (`parti-surucusu`, MUAF DEGIL) kosar. Tek DEGISEN
+        # degisken SPEC'tir — yoksa olculen sey sinif ekseni degil, etiket
+        # kolunun golgesi olurdu.
+        out["_sinif_parti"] = parti_karari(
+            kok_hasat, "parti-surucusu", koku_root=gecici_kok, mutant=mutant,
+            spec=spec_parti)
+        out["_sinif_olcum"] = parti_karari(
+            kok_hasat, "parti-surucusu", koku_root=gecici_kok, mutant=mutant,
+            spec=spec_olcum)
+        out["_sinif_bilinmeyen"] = parti_karari(
+            kok_hasat, "parti-surucusu", koku_root=gecici_kok, mutant=mutant,
+            spec=spec_bilinmeyen)
+        # 🔴 NEGATIF: spec dosyasi YOK -> okunamaz -> UCUNCU kova (RED).
+        # "Dosya yok" bir MUAFIYET YOLUNA donmemeli.
+        out["_sinif_spec_yok"] = parti_karari(
+            kok_hasat, "parti-surucusu", koku_root=gecici_kok, mutant=mutant,
+            spec=spec_yok_yol)
+        # 🔴 NEGATIF: spec ARGUMANI HIC verilmedi -> eksen kapsam DISI ->
+        # K397 ONCESI hukum (RED / N2B-RED / ACIK_KALEM). Bu vaka
+        # REGRESYON CAPASIDIR: eksen eski yolu degistirmemeli.
+        out["_sinif_argumansiz"] = parti_karari(
+            kok_hasat, "parti-surucusu", koku_root=gecici_kok, mutant=mutant)
         # 🔴 K345-C — OKUMA / BASLATMA kollari (kume HUKUMLERI, tek tek degil:
         # bir vakanin sizmasi kumeyi bozmali)
         out["_okuma"] = [yeni_is_hukmu(k, mutant=mutant)[0]
@@ -1572,6 +1899,26 @@ def kendini_test(gecici_kok):
         k345_ok = k345_ok and ok
         print("  %-20s %s  (beklenen %s/%s/%s) %s"
               % (ad, hukum_satiri(s), b_h, b_k, b_s, "✓" if ok else "✗"))
+    # 🔴 K397 tabani — SINIF EKSENI (5 vaka, ayni ev + ayni etiket)
+    k397_beklenen = (
+        ("_sinif_parti", "RED", N2B_RED_JETON, SEBEP_ACIK_KALEM),
+        ("_sinif_olcum", "GECER", N2B_SINIF_OLCUM_JETON, SEBEP_SINIF_OLCUM),
+        ("_sinif_bilinmeyen", "RED", N2B_SINIF_OLCULEMEDI_JETON,
+         SEBEP_SINIF_OLCULEMEDI),
+        ("_sinif_spec_yok", "RED", N2B_SINIF_OLCULEMEDI_JETON,
+         SEBEP_SINIF_OLCULEMEDI),
+        ("_sinif_argumansiz", "RED", N2B_RED_JETON, SEBEP_ACIK_KALEM),
+    )
+    k397_ok = True
+    for ad, b_h, b_k, b_s in k397_beklenen:
+        s = normal[ad]
+        ok = (s["HUKUM"] == b_h and s["KOL"] == b_k
+              and s["SEBEP_KODU"] == b_s)
+        k397_ok = k397_ok and ok
+        print("  %-20s %s SINIF=%s (beklenen %s/%s/%s) %s"
+              % (ad, hukum_satiri(s), s.get("SINIF"), b_h, b_k, b_s,
+                 "✓" if ok else "✗"))
+        print("      | kanit: %s" % (s.get("SINIF_KANIT") or "-"))
     rm = normal["_red_metni"]
     rm_ok = (rm["HUKUM"] == "GECER" and rm["ELLE_KOPYA"] == 0)
     print("  %-20s HUKUM=%s ELLE_KOPYA=%d ihlal=%d (beklenen GECER/0) %s"
@@ -1592,7 +1939,7 @@ def kendini_test(gecici_kok):
     for k, h in zip(K345_BASLATMA_KOMUTLARI, normal["_baslatma"]):
         print("      | %-6s %s" % (h, k[:88]))
     taban_ok = (taban_ok and yeni_ok and suren_ok and cy_ok and k345_ok
-                and rm_ok and okuma_ok and baslatma_ok)
+                and rm_ok and okuma_ok and baslatma_ok and k397_ok)
     print("")
     if not taban_ok:
         print("TABAN KIRMIZI — mutant olcumu ANLAMSIZ.")
@@ -1600,7 +1947,11 @@ def kendini_test(gecici_kok):
             print("    | cagri-yeri %s etiket=%r beklenen=%s gercek=%s %s"
                   % (b["ROL"], b["ETIKET"], b["BEKLENEN"], b["GERCEK"],
                      b["HATA"] or ""))
-        print("MUTANT=0/13 HEDEF_KOL_ATFI=0/13 KONTROL=0/12")
+        # 🔴 Toplamlar TURETILIR (elle sayi yazilmaz): mutant eklenince bu
+        # satir kendiliginden buyur. Elle tutulan bir liste sessizce bayatlar
+        # ([[elle-tutulan-bagimlilik-listesi-sessizce-bayatlar]]).
+        print("MUTANT=0/%d HEDEF_KOL_ATFI=0/%d KONTROL=0/%d"
+              % (len(MUTANT_HEDEF), len(MUTANT_HEDEF), KONTROL_SAYISI))
         return 1
 
     # --- MUTANTLAR ---------------------------------------------------------
@@ -1608,7 +1959,12 @@ def kendini_test(gecici_kok):
     HEDEF_VAKA = {
         "M1": ("_yeni",),                       # yeni-is tanima
         "M2": ("_suren",),                      # suren-is korumasi
-        "M3": ("macit-yeni-parti",),            # RED kolu
+        # M3 RED kolunun TAMAMINI yutar. K397 sinif ekseni o kolun ICINDE
+        # yasar, yani BES sinif vakasi da M3'un DOWNSTREAM'idir (M5/_cagri_yeri
+        # ile ayni doktrin). Yan eksene yazilirlarsa M3'un ATFI sahte KUSUR
+        # okunur ve hangi kolun oldugu ayirt edilemez.
+        "M3": ("macit-yeni-parti", "_sinif_parti", "_sinif_olcum",
+               "_sinif_bilinmeyen", "_sinif_spec_yok", "_sinif_argumansiz"),
         # M4 fail-closed kolu: bilinmeyen ev koku (sentetik) VE defteri BOS ev
         # — ikincisi K229'dan sonra AYNI kolun ikinci yuzeyidir; yan eksene
         # yazilirsa M4'un ATFI hatali biçimde KUSUR okunur.
@@ -1637,6 +1993,14 @@ def kendini_test(gecici_kok):
         # ATFI sahte KUSUR okunur).
         "M14": ("_okuma",),
         "M15": ("_baslatma", "_yeni"),
+        # 🔴 K397 — UC mutant, UC TEKIL hedef. Her biri digerlerinin
+        # vakalarini DEGISTIRMEMELIDIR; ortusen bir hedef kumesi olsaydi
+        # hangi kolun oldugu ayirt EDILEMEZDI.
+        "M16": ("_sinif_parti",),
+        "M17": ("_sinif_olcum",),
+        # M18 ucuncu kovayi yutar; o kovanin IKI yuzeyi var (isaretsiz spec ve
+        # OKUNAMAYAN spec). Yan eksene yazilirsa M18'in ATFI sahte KUSUR okunur.
+        "M18": ("_sinif_bilinmeyen", "_sinif_spec_yok"),
     }
     mutant_sayaci = 0
     atif_sayaci = 0
@@ -1727,6 +2091,21 @@ def kendini_test(gecici_kok):
                 print("  -> M8 altinda defteri OLMAYAN ev yine %s/%s yerdi: "
                       "ev duzeyinde KILITLENME geri gelirdi"
                       % (mm["HUKUM"], mm["KOL"]))
+            if ad == "M16":
+                mm = m["_sinif_parti"]
+                print("  -> M16 altinda PARTI sinifi spec acik kalemle %s "
+                      "gecerdi: kapinin ASIL isi (yarim partiyi bitirtmek) "
+                      "delinirdi" % mm["HUKUM"])
+            if ad == "M17":
+                mm = m["_sinif_olcum"]
+                print("  -> M17 altinda OLCUM sinifi spec yine %s/%s yerdi: "
+                      "FaR'in canli vakasi (site-metin-testi rc=3) ve DAIRESEL "
+                      "KILIT geri gelirdi" % (mm["HUKUM"], mm["KOL"]))
+            if ad == "M18":
+                mm = m["_sinif_bilinmeyen"]
+                print("  -> M18 altinda HUKUM %s'e dondu: sinifi OLCULEMEYEN "
+                      "cagri sessizce gecerdi — ucuncu kova ikinciye yutulur "
+                      "ve fail-closed yon KAYBOLURDU" % mm["HUKUM"])
             if ad == "M9":
                 mm = m["hoca-defter-yok"]
                 print("  -> M9 altinda HUKUM DEGISMEDI (%s) ama JETON %s'e "
@@ -1748,6 +2127,16 @@ def kendini_test(gecici_kok):
         if ("_cagri_yeri" not in HEDEF_VAKA[ad]
                 and normal["_cagri_yeri"]["HUKUM"] != m["_cagri_yeri"]["HUKUM"]):
             yan_bozulan.append("_cagri_yeri")
+        # 🔴 K397 yan eksenleri — sinif ekseninin BES vakasi da hedef
+        # disindaysa BIREBIR ayni kalmali (jeton + sebep kodu DAHIL).
+        for k397_ad in ("_sinif_parti", "_sinif_olcum", "_sinif_bilinmeyen",
+                        "_sinif_spec_yok", "_sinif_argumansiz"):
+            if k397_ad in HEDEF_VAKA[ad]:
+                continue
+            n, mm = normal[k397_ad], m[k397_ad]
+            if ((n["HUKUM"], n["KOL"], n.get("SEBEP_KODU"))
+                    != (mm["HUKUM"], mm["KOL"], mm.get("SEBEP_KODU"))):
+                yan_bozulan.append(k397_ad)
         # 🔴 K345 yan eksenleri — hedef DISINDAKI dort kol da bozulmamali
         for k345_ad in ("_boru", "_boru_etiketsiz", "_etiketsiz_temiz_ev"):
             if k345_ad in HEDEF_VAKA[ad]:
@@ -2222,11 +2611,46 @@ def kendini_test(gecici_kok):
         print("    |   🔴 SIZDI (kapiya tabi olmaliydi): %s" % k[:88])
     kontrol += 1 if k13 else 0
 
+    # K14 (K397): sinif ekseni UCTAN UCA + isaret listesi TEK KAYNAK.
+    # 🔴 Uc ayagi birden olcer, cunku uc AYRI yerden delinebilir:
+    #   (a) `isci_kapi` rc'si — FaR'in GERCEK vakasi (rc=3 -> 0)
+    #   (b) `kanca` yuzeyi    — ayni cagri Bash'ten gecerse de ayni hukum
+    #   (c) kaynakta ikinci kopya YOK
+    k14_isci_olcum = isci_kapi("minimax-m3", kok_hasat, spec_olcum,
+                               "site-metin-testi", koku_root=gecici_kok)
+    k14_isci_parti = isci_kapi("minimax-m3", kok_hasat, spec_parti,
+                               "parti-surucusu", koku_root=gecici_kok)
+    _k14_komut_olcum = ("%s minimax-m3 %s %s site-metin-testi"
+                        % (_ISCI_SARMALAYICI, kok_hasat, spec_olcum))
+    _k14_komut_parti = ("%s minimax-m3 %s %s parti-surucusu"
+                        % (_ISCI_SARMALAYICI, kok_hasat, spec_parti))
+    k14_kanca_olcum, _e1 = _kanca_deny(_k14_komut_olcum)
+    k14_kanca_parti, _e2 = _kanca_deny(_k14_komut_parti)
+    k14_kopya, k14_ihlal = sinif_ikinci_kopya_sayimi()
+    k14 = (k14_isci_olcum == RC_GECER and k14_isci_parti == RC_RED
+           and not k14_kanca_olcum and k14_kanca_parti and k14_kopya == 0)
+    print("KONTROL K14 sinif ekseni uctan uca (isci.sh + kanca) + isaret "
+          "listesi TEK KAYNAK: %s" % ("GECTI" if k14 else "KUSUR"))
+    print("    | isci.sh  olcum spec  -> rc=%d (beklenen %d) · parti spec -> "
+          "rc=%d (beklenen %d)"
+          % (k14_isci_olcum, RC_GECER, k14_isci_parti, RC_RED))
+    print("    | kanca    olcum spec  -> deny=%s (beklenen False) · parti "
+          "spec -> deny=%s (beklenen True)"
+          % (k14_kanca_olcum, k14_kanca_parti))
+    print("    | ikinci kopya=%d (beklenen 0; -1 = PROB KOR)" % k14_kopya)
+    for i in k14_ihlal:
+        print("    |   🔴 %s" % i)
+    print("    | 🔴 FaR'in CANLI VAKASI: ayni ev, ayni acik kalemler, tek "
+          "fark SPEC -> olcum GECER / parti RED")
+    kontrol += 1 if k14 else 0
+
     print("")
-    print("MUTANT=%d/15 HEDEF_KOL_ATFI=%d/15 KONTROL=%d/13"
-          % (mutant_sayaci, atif_sayaci, kontrol))
-    return 0 if (mutant_sayaci == 15 and atif_sayaci == 15
-                 and kontrol == 13) else 1
+    print("MUTANT=%d/%d HEDEF_KOL_ATFI=%d/%d KONTROL=%d/%d"
+          % (mutant_sayaci, len(MUTANT_HEDEF), atif_sayaci, len(MUTANT_HEDEF),
+             kontrol, KONTROL_SAYISI))
+    return 0 if (mutant_sayaci == len(MUTANT_HEDEF)
+                 and atif_sayaci == len(MUTANT_HEDEF)
+                 and kontrol == KONTROL_SAYISI) else 1
 
 
 # ------------------------------------------------------------------------------
@@ -2250,12 +2674,30 @@ def main(argv=None):
     ap.add_argument("--cagri-yeri", action="store_true",
                     help="N4A: muafiyet sozlesmesini GERCEK cagri yerlerine "
                          "karsi olcer (0 GECER · 1 RED · 2 OLCULEMEDI)")
+    ap.add_argument("--spec-sinifi", metavar="SPEC",
+                    help="K397: bir spec dosyasinin SINIFINI olcer ve KANITI "
+                         "basar (0 OLCULDU · 2 SINIF OLCULEMEDI). Reddi "
+                         "okuyanin sinifi kendi dogrulayabilecegi kol.")
     ap.add_argument("--t4-durum", action="store_true",
                     help="T4 (bagimlilik) yuklendi mi? — DAGITIM teshisi")
     ap.add_argument("--t4-yolu", nargs="+", default=None, metavar="YOL",
                     help="--t4-durum icin aday yol kumesini DEGISTIRIR "
                          "(hermetik mutant; uretimde verilmez)")
     args = ap.parse_args(argv)
+
+    if args.spec_sinifi:
+        sinif, kanit = spec_sinifi(args.spec_sinifi)
+        print("N2B-SPEC-SINIFI SPEC=%s SINIF=%s" % (args.spec_sinifi, sinif))
+        print("KANIT: %s" % kanit)
+        print("ANLAMI: %s"
+              % ("acik kalem bu cagriyi BLOKLAR (parti sinifi)"
+                 if sinif == SINIF_PARTI else
+                 "acik kalem bu cagriyi BLOKLAMAZ (parti sinifi DEGIL)"
+                 if sinif == SINIF_OLCUM else
+                 "sinif ekseni bu cagriya UYGULANMAZ; hukum eksen ONCESI "
+                 "kuralla verilir" if sinif == SINIF_YOK else
+                 "sinif OLCULEMEDI -> fail-closed RED"))
+        return RC_GECER if sinif != SINIF_OLCULEMEDI else RC_OLCULEMEDI
 
     if args.t4_durum:
         # 🔴 Bu yuzeyin TEK isi SEBEBI GORUNUR kilmaktir: kapinin fiziksel
