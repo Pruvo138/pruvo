@@ -2165,6 +2165,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/konfigur-nobet-mutasyon.py
 
+      # 11 EYL 2026 — teslim suresi LITERAL ALTERNATION'dan SINIF desenine cevrildi
+      # (3. tekrar; `b72c4f5b` 28 Agu). Sinif kapisinin kendisi nobetcisiz kalmasin diye
+      # batarya SERIT B'ye (alarm seridi) baglandi: 4 oldurucu + 1 kontrol mutanti.
+      # Ozellikle S2 (kanonik muafiyet silinir) kritik — muafiyetsiz sinif 491 govdede
+      # 11 YANLIS isabet uretir ve odeme-beyani-kapisi deploy.yml'de continue-on-error
+      # OLMADAN kostugu icin tum ekibin yayinini durdururdu.
+      - name: "Odeme teslim suresi SINIF kapisi mutasyon bataryasi (pozitif + negatif kol)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/odeme-sinif-mutasyon.py
+
       - name: "Parite marka ekseni mutasyon bataryasi (ag/wrangler YOK)"
         if: ${{ !cancelled() }}
         run: node tools/parite-marka-mutasyon.js
