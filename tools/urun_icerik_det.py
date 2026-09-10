@@ -14,7 +14,7 @@ NEDEN VAR (olculdu 9 Eyl 2026, K398 turu):
 
 EMSAL (KraL evinde DEGIL, adiyla yaziliyor — kopyalanmadi, DESENI alindi):
   /Users/okan/dev/pruvo-hasat/olcum/_mkdcgt_icerik_uret6.py :: main()   (MaCiT evi)
-  mak-design x CGTrader dilim-6 ureteci. Codex/AI cagrisi YOK. Icerik alanlarini
+  mak-design x CGTrader dilim-6 ureteci. Emekli is motoru/AI cagrisi YOK. Icerik alanlarini
   `*-icerik-elle.json`'dan (insan kuratorlugu) alir, fiyati `_mkdcgt_fiyat.tl_formul()`
   formulunden, id'yi `r2_anahtar.urun_slug()`'tan turetir. Son bir ayda ~10k urun bu
   SINIF yolla eklendi.
