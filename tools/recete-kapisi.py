@@ -526,8 +526,13 @@ def _mutant_yaz(dosya_yol, icerik):
 # ISABET ETMEZ; birakilsaydi `re.sub` sessizce 0 degisiklik yapar, mutant TABANLA
 # AYNI kalir ve M1/M3 "gecti" diye okunurdu — mutant ULASMAMIS olurdu
 # ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]). O yuzden ULASIM da olculur.
+# 🔴 10 EYL 2026 — CAPA IKINCI KEZ YER DEGISTIRDI, HEDEF YINE AYNI. `_py_izinli`
+# artik karari CAGIRAN EVIN kokune gore veriyor (`kok=`). Capa eski (koksuz) metinde
+# birakilsaydi `_capa_isabet` 0 doner, M1/M3 mutantlari SESSIZCE INERT kalir ve
+# "gecti" diye okunurdu. OLCULDU: degisiklikten hemen sonra isabet 1 -> 0 dustu;
+# capa guncellendi ve isabet 1'e dondu ([[cagri-yeri-envanterden-duserse-onarildi-sanilir]]).
 _H1_CAPA = (
-    "    sekil = SC.eslesen_sekil(argumanlar, _coz, cwd)\n"
+    "    sekil = SC.eslesen_sekil(argumanlar, _coz, cwd, kok=kok or EV_KOKU_CAPASI)\n"
     "    if sekil is None:\n"
     "        return False\n"
     "    return True\n"

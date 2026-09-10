@@ -1004,6 +1004,16 @@ jobs:
       # (KraL-KapiSupurmesi-29Agu: K304 kapi-dagitim zinciri SILINDI — mimar rol
       # kapilari kaldirildi, dagitilacak kapi kalmadi; BaBa 28 Agu filo karari.)
 
+      # 🔴 10 EYL 2026 (BaBa hukmu 23:2x, KraL kalem ③) — SERBEST CAGRI TABLOSUNUN
+      # EV EKSENI. Supurmede K304 zinciri kalksa da `tools/kapi_dagitim.py` SHIM'i
+      # bes kardes evde CANLI kaldi; `tools/serbest_cagrilar.py` ise repo kokunu
+      # MUTLAK SABIT tasidigi icin shim'in dogru cevirdigini geri aliyordu. Olculen
+      # bedel: ArTisT + TeKiN evlerinde defter rotasyonu kapida RED aldi ve UC TUR
+      # boyunca defterler ELLE kisaltildi. Bu adim iki ekseni birden olcer (ev koku +
+      # kabuk yonlendirme eki) ve UC mutant tasir; hicbiri canli govdede kosmaz.
+      - name: "Serbest cagri tablosu — EV EKSENI + yonlendirme eki (3 mutant)"
+        run: python3 tools/serbest-kume-ev-ekseni-test.py
+
       # SERIT DERINLIK OLCUMU (K314①) — gerekce `build` isindeki uzun blokta.
       # Olculen kanit tam da BU SERITTE: kosum 32995765098'de adim 19 `failure`,
       # adim 20-28 `skipped` — dokuz kapinin hukmu o kosumdan HIC okunamadi.

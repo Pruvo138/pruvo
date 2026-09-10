@@ -152,6 +152,9 @@ function atifTemizle(govde) {
   const al = (v, n) => (typeof v === "string" ? v.trim().slice(0, n) : "");
   const alanlar = {
     ga_client_id: al(a.ga_client_id, 64),
+    // GA4 oturum kimligi (MP olayini VAR OLAN oturuma baglar; yoksa kanal "Unassigned").
+    // Beyaz liste POZITIF ve fail-closed: buraya yazilmazsa alan sunucuda SESSIZCE duser.
+    ga_session_id: al(a.ga_session_id, 32),
     fbp: al(a.fbp, 128),
     fbc: al(a.fbc, 256),
     utm_source: al(a.utm_source, 120),

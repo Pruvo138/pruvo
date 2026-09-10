@@ -634,7 +634,8 @@ async function liste(env, url) {
     // KOLONU DEGIL — d1-sync GOC_KOLON_SIPARIS'te DEFAULT '' ile tanimli, yani
     // siparisler tablosu varsa bu kolon da vardir (merdiven gerekmez).
     // 🔒 HAM DEGER PANELE GITMEZ: asagida kaynakOzeti() beyaz-listeden gecirir —
-    // ga_client_id/fbp/fbc /liste JSON'una HIC girmez (bkz. kanal-sinif.mjs gizlilik).
+    // ga_client_id/ga_session_id/fbp/fbc /liste JSON'una HIC girmez (bkz. kanal-sinif.mjs
+    // gizlilik). ga_session_id 10 Eyl 2026'da eklendi — ayni sinif, ayni kapi.
     " atif," +
     " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, musteri_notu";
   // kanal/dis_no OPSIYONEL (goc kosmadiysa yok) -> merdiven; yoksa alanlar undefined kalir
@@ -2637,7 +2638,7 @@ async function parcalar(no,id,kutuId){
  * 🔴 BURADA SINIFLAMA YOK: s.kaynak alani sunucuda shop/src/kanal-sinif.mjs
  * kaynakOzeti() ile uretilir; bu fonksiyon YALNIZCA BASAR. Tarayiciya ikinci bir
  * kural yazilsaydi, rapor ile ekran ayni siparis icin farkli sey soylerdi.
- * 🔒 ga_client_id / fbp / fbc BURAYA GELMEZ — /liste JSON'unda zaten YOKLAR
+ * 🔒 ga_client_id / ga_session_id / fbp / fbc BURAYA GELMEZ — /liste JSON'unda zaten YOKLAR
  * (kaynakOzeti beyaz-listesi). Gerekce: kanal-sinif.mjs gizlilik blogu.
  * SESSIZ BOSLUK YASAK: atif yoksa "kaynak kaydı yok" ACIKCA yazilir (kaynakLinkHtml
  * ile AYNI dil; ikinci sozluk acilmaz) — bos hucre "kaynak YOK"u "OLCULEMEDI"den

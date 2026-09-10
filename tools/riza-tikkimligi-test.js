@@ -522,6 +522,43 @@ senaryo("A2 riza VAR + ?fbclid=ABC -> saklanir, akis bozulmaz", () => {
   assert(c.ga_client_id === "111.222", "topla() ga_client_id dondurmedi: " + c.ga_client_id);
 });
 
+/* 🔴 K389 (10 Eyl 2026) — GA4 OTURUM KIMLIGI, zincirin BIRINCI halkasi.
+   GA4 Measurement Protocol bir sunucu olayini VAR OLAN oturuma YALNIZ `session_id` ile
+   bagliyor; gelmezse olay kaynaksiz YENI oturum sayiliyor ve Islem "Unassigned" kanalina
+   dusuyor (olculdu: 25/25). Kaynak `_ga_<CONTAINER>` cerezi — container kimligi cerez
+   ADINDA gomulu ve SABIT DEGIL, bu yuzden `_ga_` ONEKINE gore aranir. */
+senaryo("A2b riza VAR: _ga_<CONTAINER> cerezinden ga_session_id okunur (GS1 bicimi)", () => {
+  const s = sayfa({ onay: "kabul",
+    cookie: "_ga=GA1.1.111.222; _ga_5V53CQMSCE=GS1.1.1690909091.3.1.1690909191.60.0.0" });
+  const c = s.atif.topla();
+  assert(c.ga_session_id === "1690909091",
+         "GS1 oturum kimligi okunmadi: " + c.ga_session_id);
+});
+
+senaryo("A2c riza VAR: YENI GS2 bicimi de okunur (s onekli + $ ayracli)", () => {
+  const s = sayfa({ onay: "kabul",
+    cookie: "_ga=GA1.1.111.222; _ga_5V53CQMSCE=GS2.1.s1690909091$o3$g1$t1690909191$j60$l0$h0" });
+  const c = s.atif.topla();
+  assert(c.ga_session_id === "1690909091",
+         "GS2 oturum kimligi okunmadi: " + c.ga_session_id);
+});
+
+senaryo("A2d FAIL-CLOSED: bicimi taninmayan _ga_ cerezi ALAN URETMEZ (yanlis oturum yok)", () => {
+  // Kirpik/cop deger GA4'te BASKA bir oturuma baglanmaktansa hic gitmesin; sunucu tarafi
+  // bu dususu `oturum_atfi=yok` diye ADIYLA sayar (shop/test/olcum.mjs 29f).
+  const kotuler = ["GS1.1", "GS1.1.abc.3.1", "GS1.1..3.1", "GS1.1.123.3.1"];
+  for (const v of kotuler) {
+    const s = sayfa({ onay: "kabul", cookie: "_ga=GA1.1.111.222; _ga_5V53CQMSCE=" + v });
+    const c = s.atif.topla();
+    assert(c.ga_session_id === undefined,
+           "cop deger alan uretti (" + v + "): " + c.ga_session_id);
+  }
+  // Olumlu kontrol: ayni yol GECERLI degeri HALA okuyor (A2d tautoloji degil).
+  const iyi = sayfa({ onay: "kabul",
+    cookie: "_ga=GA1.1.111.222; _ga_5V53CQMSCE=GS1.1.1690909091.3" }).atif.topla();
+  assert(iyi.ga_session_id === "1690909091", "olumlu kontrol dustu: " + iyi.ga_session_id);
+});
+
 senaryo("A3 banner: Reddet -> saklanmaz; sonra Kabul -> o andan itibaren saklanir", () => {
   // 1. yukleme: secim yok, banner cikar, ziyaretci Reddet'e basar.
   const depo = new Depo();
@@ -568,11 +605,14 @@ senaryo("A5b geriye donuk: yalniz tiklama kimligi varsa anahtar tamamen kalkar",
   assert(s.depo.getItem("pruvo_atif") === null, "bos kayit birakildi");
 });
 
-senaryo("A6 topla(): riza yokken _fbc/_fbp/_ga cerezleri sunucuya GITMEZ", () => {
+senaryo("A6 topla(): riza yokken _fbc/_fbp/_ga/_ga_<C> cerezleri sunucuya GITMEZ", () => {
   const s = sayfa({ search: "", onay: "ret",
-                    cookie: "_fbc=fb.1.7.CEREZID; _fbp=fb.1.9.9; _ga=GA1.1.111.222" });
+                    cookie: "_fbc=fb.1.7.CEREZID; _fbp=fb.1.9.9; _ga=GA1.1.111.222; " +
+                            "_ga_5V53CQMSCE=GS1.1.1690909091.3.1.1690909191.60.0.0" });
   const c = s.atif.topla();
-  assert(c.fbc === undefined && c.fbp === undefined && c.ga_client_id === undefined,
+  // ga_session_id ga_client_id ile AYNI GIZLILIK SINIFI: riza kapisinin ARKASINDA.
+  assert(c.fbc === undefined && c.fbp === undefined && c.ga_client_id === undefined &&
+         c.ga_session_id === undefined,
          "rizasiz kimlik alanlari sunucuya gidiyor: " + JSON.stringify(c));
 });
 

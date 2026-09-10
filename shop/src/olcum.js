@@ -84,6 +84,13 @@ const LOG_ALANLARI = [
   // iyzico.js hataKodu()/hataMetni() — metin token maskesinden ve kirpmadan gecer).
   "errorCode",       // iyzico hata kodu (or. "1001") — yoksa "YOK"
   "errorMessage",    // iyzico hata metni, token maskeli + kirpik — yoksa "YOK"
+  // 🔴 K389 (10 Eyl 2026) — GA4 ATIF DUSUSU SESSIZ OLMASIN. Purchase olayi eksik atifla da
+  // GIDER (ciro kaybolmaz), ama neyin eksik gittigi ADIYLA sayilir; onceden bu dusus
+  // hicbir yuzeye yazilmiyordu ve "Unassigned" 25 Isleme cikana kadar gorunmedi.
+  // ⚠️ GIZLILIK: burada KIMLIGIN KENDISI degil VARLIGI loglanir — degerler ("1234.5678")
+  // asla log alanina konmaz, yalnizca "var"/"yok" ve "cerez"/"uydurma" sabitleri.
+  "oturum_atfi",     // "var" | "yok"     — atif.ga_session_id gonderildi mi (GA4 oturum birlesmesi)
+  "client_id_kaynak",// "cerez" | "uydurma" — gercek _ga client_id mi, siparis_no tabanli sentetik mi
 ];
 
 /** Sir kalintisi maskele (savunma katmani — normalde govdede token OLMAZ, yine de). */
@@ -382,6 +389,13 @@ export function ga4Govdesi(env, olay, atif) {
       item_category: i.item_category,
     })),
   };
+  // 🔴 OTURUM ATFI (10 Eyl 2026) — GA4 bir MP olayini var olan oturuma YALNIZ `session_id`
+  // ile bagliyor. Gonderilmezse olay kaynaksiz YENI oturum sayilir ve Islem "Unassigned"
+  // kanalina duser (olculdu: 25/25). `engagement_time_msec` ile BIRLIKTE istenir — biri
+  // eksikse GA4 oturum birlesmesini yapmaz. UTM'yi de gonderiyoruz ama UTM TEK BASINA
+  // kanali KURTARMAZ; birlesmeyi saglayan alan budur.
+  if (atif.ga_session_id) { params.session_id = atif.ga_session_id; }
+  params.engagement_time_msec = 1;
   if (atif.utm_source) { params.source = atif.utm_source; }
   if (atif.utm_medium) { params.medium = atif.utm_medium; }
   if (atif.utm_campaign) { params.campaign = atif.utm_campaign; }
@@ -404,8 +418,14 @@ export function ga4Govdesi(env, olay, atif) {
 export async function ga4Gonder(env, olay, atif, fetchFn, kaynak) {
   const mid = env && (env.GA4_MEASUREMENT_ID || "");
   const gizli = env && (env.GA4_API_SECRET || "");
+  // 🔴 SESSIZ DUSME YASAGI: iki atif ekseni de HER GA4 log satirinda ADIYLA sayilir —
+  // olay eksik atifla da gonderilir (ciro), ama "neden Unassigned" artik loglardan okunur.
+  // (`atif` bozuk/eksik gelse bile patlamaz: ?? ile korunur.)
+  const a_ = atif || {};
   const taban_log = { olay: "Purchase", hedef: "ga4", siparis_no: olay.transaction_id,
-                      kaynak: kaynak };
+                      kaynak: kaynak,
+                      oturum_atfi: a_.ga_session_id ? "var" : "yok",
+                      client_id_kaynak: a_.ga_client_id ? "cerez" : "uydurma" };
   if (!mid || !gizli) {
     olcumLog({ ...taban_log, atlandi: "secret-yok" });
     return { hedef: "ga4", atlandi: "secret-yok" };

@@ -691,6 +691,9 @@ shop/.wrangler/
 shop/node_modules/
 # fiyat mutasyon kosumlarinin gecici src kopyalari (kosum sonunda atilir, uretilebilir)
 shop/src-fiyat-tmp-*/
+# shop/test/olcum.mjs refMutantYukle() gecici src kopyalari (process.on('exit') ile silinir;
+# cokmede artik kalabilir — izlenen birakilirsa yayini durdurur, bu yuzden yok sayilir)
+shop/src-ref-mut-*/
 
 # onizleme/ (pruvo-onizleme worker) — GIZLI eslem (uyelik ureteci degisken adlari) ve
 # derleme paketi ASLA repoya girmez; kanonik kopya R2 pruvo-ozel bucket'inda
