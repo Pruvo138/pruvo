@@ -4,10 +4,11 @@
 
 
 ## ✅ 10 EYL — ana oturum-7: **3 dal MAIN'DE (K399·K400·K401), yayin INDI** — TAM METIN `DEVAM-ARSIV.md` (baslik "10 EYL ana oturum-7")
-- **EV** `7d252327`→`784b9118` (4 merge + defter) · **YAYIN** run `34459542017` (`2f1f9ed7`) `deploy`+`yayin` success **SKIPPED=0** · **D1** 6 eksen yesil (36568) · kapilar MERGE'LENMIS agacta kosuldu (K399+K400 ayni urun-ekleme hattinda, birlikte hic olculmemisti): `duzelt-toplu-test` 299/299 · `--mutasyon` MUTANT=8 KIRMIZI=0 · `ci-kapsam-test` YESIL.
-- 🔴 **kapi-envanteri 5/8 hukmu IKIYE AYRISTI** — BaBa'nin 6 Eyl "ucu de KURULU, kirmizi SAHTE" hukmu YARIM: bir kapida kirmizi SAHTE, iki kapida **GERCEK**; yapilandirma okumasi + davranissal prob AYNI sonucu verdi. Olcum, mekanizma ve sonuc TAM METIN `DEVAM-ARSIV.md`'de (E5: govde izlenen belgeye YAZILMAZ). **Hukum BaBa'da.**
+- **EV** `7d252327`→`784b9118` (4 merge + defter) · **YAYIN** run `34459542017` (`2f1f9ed7`) `deploy`+`yayin` success **SKIPPED=0** · **D1** 6 eksen yesil (36568) · kapilar MERGE'LENMIS agacta kosuldu (gerekce arsivde): `duzelt-toplu-test` 299/299 · `--mutasyon` MUTANT=8 KIRMIZI=0 · `ci-kapsam-test` YESIL.
+- 🔴 **kapi-envanteri hukmu IKIYE AYRISTI** (bir kapi SAHTE, iki kapi GERCEK kirmizi; iki eksen ayni sonucu verdi). Kablo ayni gun cipte ONARILDI, canli prob RED. TAM METIN `DEVAM-ARSIV.md` + kutu (E5).
 - 🔧 **ACIK:** ① ArTisT'in GEO Dalga 1 / FAQPage kalemi BENDE (cipte) · ③ YEDEK `ardisik=0` ama kronik MASKELENDI (ozne MaCiT; K338: beyan anahtari dosya ADI ekseninde) · ④ `gecmis-nobeti` kancasi KURULU DEGIL · ⑤ worktree 3/2 INDIRILEMEDI: iki agacta da CANLI (`lsof` PID) ya da locked oturum var, silmek canli isi keserdi.
-- 🔧 **CIPTE (3):** `KraL-KabloOnarim-10Eyl` (BaBa 15:0x kablo hukmu, bu ev) · `KraL-SSSSchema-10Eyl` (ArTisT GEO Dalga 1 → FAQPage) · BaBa'nin `BaBa-TamirciPrompt-10Eyl` icra cipi (`task_cc6690d8`) PANELDE — mukerrer ACMADIM.
+- 🔴 **GA4 ATIF ARIZASI (SIRADAKI TURUN ILK ISI):** 25/25 satin alma `Unassigned`; kok neden `shop/src/olcum.js::ga4Govdesi()` gövdesinde **`session_id` YOK**. TAM METIN + hazir spec KUTUDA; cip kota RED'iyle ACILAMADI.
+- 🔧 **CIPTE:** `KraL-SSSSchema-10Eyl` (GEO Dalga 1 → FAQPage) · `BaBa-TamirciPrompt-10Eyl` (`task_cc6690d8`) PANELDE. Kablo cipi BITTI; dali itilince merge bende (dogrulama iscide, kapi ana oturumda olcum reddediyor).
 
 ## ✅ 9 EYL — ana oturum-3: **temizlik + K391 KILIDI ACILDI (filo commit kilidi kalkti)**
 - 🔧 **TOHUM KAPSAM (10 Eyl):** canli 11 ev, tohum 8 → eksik 3 (`OteL`·`EyLüL`·`eLiF`; eLiF'in `OteLLa`si YANLIS ad). F8 `OLCULEMEDI` (kota RED). Spec+kabul KUTUDA.
