@@ -1814,6 +1814,31 @@ setTimeout(L,5000);})();
       var p = v.split(".");
       return p.length >= 4 ? p.slice(2).join(".") : "";
     }
+    /* OTURUM KIMLIGI (GA4 atif zincirinin EKSIK halkasi, 10 Eyl 2026).
+       GA4 Measurement Protocol bir olayi VAR OLAN oturuma YALNIZ `session_id` ile bagliyor.
+       Gonderilmezse GA4 sunucu olayini kaynaksiz YENI bir oturum sayar ve kanal "Unassigned"
+       olur — UTM gondermek bunu KURTARMAZ (olculdu: 25/25 Islem Unassigned; Organic 0/Paid 0).
+       Kaynak: `_ga_<CONTAINER>` cerezi. Container kimligi cerez adinda gomulu ve SABIT DEGIL,
+       bu yuzden ada gore degil ONEK'e gore (`_ga_`) aranir.
+         GS1 bicimi: "GS1.1.<session_id>.<oturum_sayisi>.…"
+         GS2 bicimi: "GS2.1.s<session_id>$o3$g1$t…"  (3. alan `s` onekli, `$` ile bolunur)
+       Ikisi de 3. nokta-alanindan okunur; rakam disi/kisa deger REDDEDILIR (fail-closed —
+       kirpik ya da bicimi tanimadigimiz bir deger GA4'te YANLIS oturuma baglanmaktansa
+       hic gitmesin, sunucu tarafi dususu ADIYLA sayar). */
+    function gaSessionId(){
+      var c = String(document.cookie || "").split(";");
+      for(var i=0;i<c.length;i++){
+        var ham = c[i].replace(/^\s+/, "");
+        if(ham.indexOf("_ga_") !== 0){ continue; }
+        var e = ham.indexOf("=");
+        if(e < 0){ continue; }
+        var p = decodeURIComponent(ham.slice(e+1)).split(".");
+        if(p.length < 3){ continue; }
+        var s = p[2].split("$")[0].replace(/^s/, "");
+        if(/^[0-9]{6,}$/.test(s)){ return s; }
+      }
+      return "";
+    }
     function oku(){
       try { return JSON.parse(localStorage.getItem(ANAHTAR)) || {}; } catch(e){ return {}; }
     }
@@ -1939,6 +1964,9 @@ setTimeout(L,5000);})();
         if(ref){ cikti.ref = ref; }
         if(rizaVar()){
           var gid = gaClientId(); if(gid){ cikti.ga_client_id = gid; }
+          /* ga_session_id ga_client_id ile AYNI GIZLILIK SINIFI: kisiye baglanabilen olcum
+             kimligi -> rıza kapisinin ARKASINDA, ayni blokta, ayni kosulla. */
+          var sid = gaSessionId(); if(sid){ cikti.ga_session_id = sid; }
           var fbp = cerez("_fbp"); if(fbp){ cikti.fbp = fbp; }
           var fbc = cerez("_fbc") || kayit.fbc; if(fbc){ cikti.fbc = fbc; }
         }

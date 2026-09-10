@@ -79,7 +79,7 @@ export const GORUNUR_ATIF_ALANLARI = [
 ];
 /** 🔒 ACIKCA BASILMAYANLAR — belge + nobetci capasi. shop/test/panel-atif.mjs bu
  *  adlarin cikti HTML'inde ve rapor ciktisinda GECMEDIGINI ayri ayri olcer. */
-export const BASILMAYAN_ATIF_ALANLARI = ["ga_client_id", "fbp", "fbc"];
+export const BASILMAYAN_ATIF_ALANLARI = ["ga_client_id", "ga_session_id", "fbp", "fbc"];
 
 /** `siparisler.atif` (kompakt JSON metni ya da nesne) -> beyaz-listeli DUZ nesne.
  *  Bozuk/bos JSON -> {} (fail-closed; ham metin HICBIR yuzeye tasinmaz). */
