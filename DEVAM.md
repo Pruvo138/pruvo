@@ -3,14 +3,13 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 
-## 🔁 DEVIR — 10 Eyl 2026, ana oturum-7 → yeni oturum
-**SIRADAKI TEK IS:** GA4 atif cipini AC — `shop/src/olcum.js::ga4Govdesi()` govdesine `session_id` ekle (hazir spec KUTUDA, en ustteki KraL blogu).
-**Nerede kaldim:** ev `c7916312` = origin/main, calisma agaci **0**, itilmemis dal **0**, yayin `34484927420` `deploy`+`yayin` success SKIPPED=0, D1 6 eksen yesil. Tavanlar: DEVAM 12.264/12.288 · kutu 197/250 · MEMORY 16.348/16.384 (hepsi YESIL ama UCU DE DAR — ilk blokta tasar).
-**Acik worktree (4):** `bold-heyrovsky` locked · `elastic-chatterjee` **CANLI oturum** (lsof PID 39096/39097/56100 — arac "olu cip" diyor, LSOF CANLI diyor, SILME) · `kind-wilbur` SSS/FAQPage isi `28a6311c` origin'de, MERGE BEKLIYOR · `sleepy-newton` kablo onarimi, dal itilecek + merge BEKLIYOR.
-**Baskasinin calisma kopyasinda duran:** yok (agac temiz).
-**Zamanlanmis nobetler:** hesap degistiyse `.ci-token` tazele (OKAN KAPISI) + ONCE OLC sonra kur (skill 5.0).
-**Okan'da bekleyen karar:** yok. Deploy/wrangler = Okan kapisi (GA4 duzeltmesi indiginde gerekecek).
-🔴 **YENI KISIT — BU OTURUMDAN ITIBAREN GECERLI:** `mimar-icra-kapisi` + `mimar-kod-kilidi` bu evde ARTIK KABLOLU (bugun cip bagladi, canli prob RED). Ana oturumda `python3` ARAC kosumu ve `.py` yazarligi REDDEDILIR; izinli liste RED metninde. Sonuc: **merge dogrulamasi (dal-olc.py, kapi bataryasi) artik ana oturumda YAPILAMAZ — isciye/cipe gider.** Kapiyi delme.
+## 🔁 DEVIR DEVRALINDI — 10 Eyl gece, ana oturum-8 (acilis 5/5 kosuldu)
+**SIRADAKI TEK IS:** GA4 atif cipi ACIK (`task_c32f2a1e`) — `session_id` 5 madde + sessiz-dusme sayaci + gizlilik kolu; merge+deploy hukmu BENDE.
+**Acilis:** `.ci-token` CANLI (BaBa tazeledi, rc=0) · `RUTIN once=2 sonra=2 kurulan=0 zaten=2` · ev `762018ff`=origin/main · agac 0 · worktree 4→2 (`elastic-chatterjee` lsof BOS = CANLI DEGIL, pozitif kontrol ana agacta 13 PID; `sleepy-newton` HEAD main'de = ARTIK).
+**MERGE BEKLEYEN:** `claude/kind-wilbur-927c58` `28a6311c` (SSS/FAQPage) — agaci YOK, main'de DEGIL (olculdu).
+**BaBa 23:2x → KraL 4 kalem:** ① `kurtarma/stash-8agu` dali SILINDI (tek fark yasakli numara, uzak kopya 0) ✅ · ② GA4 spec kutuda DEGIL ARSIVDE (`72392-72400`), cip o metinle zenginlestirildi ✅ · ③ `serbest_cagrilar.py:38 REPO_ONEKI` SINIF kapisi → cip `task_f9945d05` · ④ K399 kabul: urun **3/3** · mutant **4/4 oldu** · merge `2f1f9ed7` ✅
+**Okan'da bekleyen:** yok. Deploy = Okan kapisi.
+🔴 **KISIT:** kapi KABLOLU, merge dogrulamasi cipe gider · `2>&1` eki de RED (serbest komut CIPLAK kosulur) · defter rotasyonu yer ACAMAZ (`KAPALI=0`, 35 madde ACIK = arac DOGRU no-op) · `kutu-arsivle --sha-dogrula` TASIMA ONCESI kosulursa fail-closed her blogu eksik sayar, yazmaz.
 
 ## ✅ 10 EYL ana oturum-7 — 5 dal main'de, yayin indi, kapi kablosu ONARILDI. TAM METIN `DEVAM-ARSIV.md` + kutu (E5)
 - 🔧 **ACIK:** ① YEDEK `ardisik=0` ama kronik MASKELENDI (ozne MaCiT; K338: beyan anahtari dosya ADI ekseninde) · ② `gecmis-nobeti` pre-push kancasi bu makinede KURULU DEGIL.
