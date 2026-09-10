@@ -3,12 +3,14 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 
-## 🔁 DEVIR DEVRALINDI — 10 Eyl gece, ana oturum-8 (acilis 5/5 kosuldu)
-**SIRADAKI TEK IS:** GA4 atif cipi ACIK (`task_c32f2a1e`) — `session_id` 5 madde + sessiz-dusme sayaci + gizlilik kolu; merge+deploy hukmu BENDE.
-**Acilis:** `.ci-token` CANLI (BaBa tazeledi, rc=0) · `RUTIN once=2 sonra=2 kurulan=0 zaten=2` · ev `762018ff`=origin/main · agac 0 · worktree 4→2 (`elastic-chatterjee` lsof BOS = CANLI DEGIL, pozitif kontrol ana agacta 13 PID; `sleepy-newton` HEAD main'de = ARTIK).
-**MERGE BEKLEYEN:** `claude/kind-wilbur-927c58` `28a6311c` (SSS/FAQPage) — agaci YOK, main'de DEGIL (olculdu).
-**BaBa 23:2x → KraL 4 kalem:** ① `kurtarma/stash-8agu` dali SILINDI (tek fark yasakli numara, uzak kopya 0) ✅ · ② GA4 spec kutuda DEGIL ARSIVDE (`72392-72400`), cip o metinle zenginlestirildi ✅ · ③ `serbest_cagrilar.py:38 REPO_ONEKI` SINIF kapisi → cip `task_f9945d05` · ④ K399 kabul: urun **3/3** · mutant **4/4 oldu** · merge `2f1f9ed7` ✅
-**Okan'da bekleyen:** 🔴 HESAP (1b) **DOGRULANDI** (Okan: app gmlmz, oturum info@pruvo3d.com; browsers=[]) → OTURUM KAPAT-YENIDEN AC. Artifact yayini YOK. Deploy = Okan kapisi.
+## 🔁 11 EYL ana oturum-9 (acilis: ev `ae89efc3`=origin/main · kutu KraL 51 · agac 0 · worktree 3)
+**SIRADAKI TEK IS:** 3 dalin merge'u — dogrulama cipi `task_017f303a` sayilari getiriyor, merge+push hukmu BENDE.
+**MERGE KUYRUGU** (uc de main'de DEGIL · `merge-tree` CAKISMA YOK · agac temiz; hepsi `claude/` onekli):
+A `serene-ellis-8690c8` `98d25962` kapi/olcum 5 dosya +650/-25 base `85f7a568` ·
+B `wizardly-heisenberg-a25468` `6410ce86` GA4 `session_id` 9 dosya +352/-15, base=main ucu **FF UYGUN** ·
+C `kind-wilbur-927c58` `28a6311c` `sss/index.html` FAQPage +93 base `55200abe`. 🔴 **RISK:** o sayfayi `build.py` YERINDE yeniden yaziyor; `yasal-sayfa-drift-kapisi.py` olculmeden C MERGE EDILMEZ.
+**YENI KALEM (OKAN 23:4x):** `tools/nobet-olcum.py` (6 ev tek kosum, HUKUM YAZMAZ) → cip `task_822f1b14`; kabul 12 Eyl 09:08 **≤15 tur / ≤2M** (taban 66/10,2M).
+**HESAP (1b) KAPANDI** — oturum yeni kimlikte dogdu (BaBa 23:5x), artifact `mine`. Deploy = Okan kapisi.
 🔴 **KISIT:** kapi KABLOLU, merge dogrulamasi cipe gider · `2>&1` eki de RED (serbest komut CIPLAK kosulur) · defter rotasyonu yer ACAMAZ (`KAPALI=0`, 35 madde ACIK = arac DOGRU no-op) · `kutu-arsivle --sha-dogrula` TASIMA ONCESI kosulursa fail-closed her blogu eksik sayar, yazmaz.
 
 ## ✅ 10 EYL ana oturum-7 — 5 dal main'de, yayin indi, kapi kablosu ONARILDI. TAM METIN `DEVAM-ARSIV.md` + kutu (E5)
