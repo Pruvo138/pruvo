@@ -56,7 +56,11 @@ IZINLI = {
     "tools/k260/nobet-kat-kovasi-test.py": (3, "goc kaydi fiksturu (emekli kat adi)"),
     "tools/n4b/b4-kur.py": (4, "bayat kayit fiksturu: dosyadaki GERCEK dizgeye eslesir"),
     # --- ucuncu taraf MAKINE ADRESI: bizim adlandirmamiz degil, degistirilemez ---
-    "tools/thing-icerik.py": (3, "ikili yolu + oturum/kimlik dizini"),
+    # 10 Eyl 2026 (K399): BAGIMLILIK KAPANDI — bu arac artik CANLI uca dogrudan
+    # HTTP ile konusur; ikili yolu / oturum dizini / model sabiti KALMADI. Tavan
+    # 3 -> 1: geriye yalnizca portun NEDENINI anlatan TEK tarihsel satir kaldi.
+    # Tekrar yukselmesi = bagimliligin geri sizmasi demektir, kirmizi YANSIN.
+    "tools/thing-icerik.py": (1, "yalnizca TARIHSEL port notu (bagimlilik 10 Eyl KAPANDI)"),
     "tools/parity-backfill.py": (1, "ikili yolu"),
     "tools/yetkinlik/kosum.py": (2, "ikili yolu + oturum dokumu glob'u"),
     "tools/yedekle.py": (4, "yedek disi birakilan ucuncu taraf dizin adlari"),

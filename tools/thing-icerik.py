@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""emekli motor YARDIMCISI — pahali bilissel adimlari (gorsel secme + Turkce icerik) devreder.
+"""motor YARDIMCISI — pahali bilissel adimlari (gorsel secme + Turkce icerik) devreder.
 
-Amac: token diyeti. Gorsel okuma + aciklama yazma Claude'un baglamina GIRMEZ; emekli motor yapar,
+Amac: token diyeti. Gorsel okuma + aciklama yazma Claude'un baglamina GIRMEZ; motor yapar,
 temiz JSON doner, Claude sadece kucuk metni okur.
 
 Kullanim:  python3 tools/thing-icerik.py <thing_id> [<thing_id> ...]
 Onkosul :  once  python3 tools/thing-hazirla.py <id...>  (gorselleri + meta.json'u uretir)
 
-Her id icin `.thing-cache/<id>/meta.json` + `gN.jpg`'leri okur, emekli motor'e yollar, sunu doner:
+Her id icin `.thing-cache/<id>/meta.json` + `gN.jpg`'leri okur, motora yollar, sunu doner:
   { sec_gorseller, elenen, baslik, aciklama, kategori, marka, fiyat_oneri, not }
 Ciktiyi ekrana + `.thing-cache/<id>/oneri.json`'a yazar.
 
@@ -20,10 +20,40 @@ $0.30/$2.50 beklenen). emekli motor ChatGPT abonelik limitini tuketir; 19 Tem ol
 o parti icin acik izniyle `PRUVO_URUN_AI_IZNI=EVET` verilirse model cagrisi yapar.
 DERS: model takma adi ("-latest") KULLANMA, surumu her zaman ACIKCA yaz. Yukseltme bilincli karar olsun.
 
-Kimlik: `~/.codex/auth.json` (ChatGPT ile giris; `emekli motor login`). Sir icermez; harici pip paketi YOK.
+=== PORT: EMEKLI CLI -> CANLI MOTOR (2026-09-10, K399) ===
+Bu arac 9 Eyl'e kadar emekli bir CLI alt sureci (`codex exec`) calistiriyordu; o ad
+KANONIK KAYITTA EMEKLIDIR (`tools/mimar_kimlik.py` EMEKLI_ISCI_MOTORLARI) ve makinenin
+yerel ayari adiyla REDDEDILMIS bir alt modele bakiyordu -> model sabitini "duzeltmek" ariza
+mesajini susturur ama EMEKLI MOTORU DIRILTIRDI ([[tek-satir-duzelt-hukmu-emekli-
+bagimliliga-dayaniyorsa-porttur]]). Bu yuzden sabit degil TASIYICI degisti: artik
+CANLI kumenin ucuna (Anthropic uyumlu /v1/messages) DOGRUDAN HTTP cagrisi yapilir.
+Motor ADI `mimar_kimlik.CANLI_ISCI_MOTORLARI`den, UC AYARI isci hattinin uc
+tablosundan TURETILIR; bu dosyada ikinci bir motor listesi YOKTUR.
+
+TASINAN KABILIYETLER (olculdu 10 Eyl, gercek uca karsi):
+  * semali JSON  : `--output-schema` -> arac (tool) semasi + zorunlu arac secimi.
+                   KISMEN: sema araca baglaniyor ama ZORLAMA KARARSIZ — 7 gercek
+                   cagrinin 5'i arac blogu yerine ayni JSON'u METIN dondurdu. Bu
+                   yuzden sozlesme UZAK UCA BIRAKILMADI: `sema_ihlali()` yerel ve
+                   deterministik dogrulama yapar, iki tasiyici da ayni kapidan gecer.
+  * gorsel girdi : `-i <dosya>` (coklu) -> base64 image blogu. CALISIYOR — kor-model
+                   testinde gorsele basilan 5 haneli rastgele sayi 5/5 dogru okundu
+                   (200 + akici cevap TEK BASINA gorme kaniti DEGILDIR: gorselsiz
+                   taban probu da akici bir "gorsel aciklamasi" UYDURDU).
+  * cikti yolu   : `-o <yol>` -> yaniti dosyaya bu arac yazar.
+  * yeniden deneme: TRIES aynen korundu.
+DUSEN KABILIYET (sessizce atlanmadi, ADIYLA yaziliyor):
+  * `model_reasoning_effort=low` (eski EFFORT sabiti) — yeni ucun Anthropic uyumlu
+    yuzeyinde karsiligi OLCULEMEDI. Islevsel etkisi yok (o bayrak kota/hiz ayariydi,
+    cikti sozlesmesini belirlemiyordu); yine de DUSMUS kabiliyet olarak kayda gecer.
+O CLI'ya ozgu `--ephemeral` / `-s read-only` / `--skip-git-repo-check` bayraklari
+KONUSUZ kaldi: dogrudan HTTP cagrisinda oturum dosyasi birikmez ve kabuk acilmaz.
+
+Kimlik: uc anahtari isci hattinin anahtar dosyasindan OKUNUR (bu dosyada sir YOKTUR;
+yol da elle yazilmaz, uc tablosundan turetilir). Harici pip paketi YOK.
 """
 import importlib.util
-import json, os, re, subprocess, sys, tempfile
+import base64, json, os, re, sys, urllib.error, urllib.request
 import unicodedata
 
 TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -39,13 +69,31 @@ if _KOK_UYARI:
     sys.stderr.write(_KOK_UYARI)
 IMGROOT = os.path.join(ROOT, ".thing-cache")
 
-# emekli motor PATH'te DEGIL — ChatGPT.app icinde geliyor, tam yol sart.
-EMEKLI_MOTOR_IKILI = "/Applications/ChatGPT.app/Contents/Resources/codex"
+# === MOTOR KIMLIGI: TURETILIR, ELLE YAZILMAZ ===============================
+# Motor ADI kanonik kayittan gelir. Buraya literal bir motor adi YAZILMAZ: ikiz
+# tanim sessizce ayrisir ve bu arac bir gun EMEKLI bir uca konusur — zaten bu
+# dosyanin 9 Eyl arizasi tam olarak buydu.
+def _canli_motor_adi():
+    yol = os.path.join(TOOLS_DIR, "mimar_kimlik.py")
+    spec = importlib.util.spec_from_file_location("mimar_kimlik_ti", yol)
+    if spec is None or spec.loader is None:
+        sys.exit("HATA: tools/mimar_kimlik.py yuklenemedi: " + yol)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    canli = tuple(mod.CANLI_ISCI_MOTORLARI)
+    if not canli:
+        sys.exit("HATA: CANLI_ISCI_MOTORLARI BOS — canli motor yok, cagri YAPILMAZ.")
+    return canli[0]
 
-# Surumu ACIKCA yaz (yukaridaki "-latest" dersi). Yukseltme bilincli karar olsun.
-MODEL = "gpt-5.4-mini"      # basit is: bak + JSON don. Kalite yetmezse -> gpt-5.5
-EFFORT = "low"              # Okan'in config.toml'undaki xhigh bu is icin gereksiz (yavas + kota yer)
-# DENETIM UST SINIRI (emekli motor'e GONDERILEN gorsel sayisi). Eskiden 4'tu -> pratikte SADECE ilk 4
+
+CANLI_MOTOR = _canli_motor_adi()
+
+# Uc tablosu: isci hattinin TEK kaynagi. Kopyasi BURAYA cikarilmaz.
+UC_TABLOSU = os.path.expanduser("~/.claude/cron/isci-motor-uc.zsh")
+UC_ANAHTAR_ALANLARI = ("MOTOR_BASE_URL", "MOTOR_ANAHTAR_DOSYASI", "MOTOR_MODEL")
+ZAMAN_ASIMI = 300
+MAX_TOKEN = 4000
+# DENETIM UST SINIRI (motora GONDERILEN gorsel sayisi). Eskiden 4'tu -> pratikte SADECE ilk 4
 # gorsel yargilaniyordu; g5+ hic gonderilmiyor, hic gorulmuyordu (backfill'de 36 g5+ gorsel
 # DENETIMSIZ vitrine girdi). Gorsel okuma EN PAHALI adim (kota) -> sinirsiz genisletme yerine
 # makul bir tavan: cache'te en fazla 8 gorsellik urun var, 8 gercek galerilerin tamamini kapsar.
@@ -203,7 +251,7 @@ def dogal_sirala(dosyalar):
 
 
 def denetim_bol(imgs, cap):
-    """Dogal sirali galeriyi emekli motor'e GONDERILEN (denetlenecek) ve GONDERILMEYEN diye ikiye boler.
+    """Dogal sirali galeriyi motora GONDERILEN (denetlenecek) ve GONDERILMEYEN diye ikiye boler.
 
     Eski hata: `imgs[:MAX_IMG]` kirpiliyor ama kirpilan gorsel HICBIR YERDE kayda gecmiyordu ->
     g5+ sessizce denetim disi kaliyordu. cap kadari gonderilir, kalani `denetim_birlestir` ile
@@ -213,12 +261,12 @@ def denetim_bol(imgs, cap):
 
 
 def denetim_birlestir(all_imgs, cap, out):
-    """emekli motor ciktisina (out) 'denetlenmedi' alanini ekler ve GARANTI eder: her galeri gorseli
+    """motor ciktisina (out) 'denetlenmedi' alanini ekler ve GARANTI eder: her galeri gorseli
     ya sec_gorseller/elenen ya da denetlenmedi altinda gorunur (union == tum galeri).
 
     Iki denetim-disi kaynagi kapsar:
-      1. cap ustu (emekli motor'e HIC gonderilmedi)  -> neden "kota ust siniri (denetlenmedi)"
-      2. gonderildi ama emekli motor ne secti ne eledi -> neden "emekli motor kapsamadi (denetlenmedi)"
+      1. cap ustu (motora HIC gonderilmedi)  -> neden "kota ust siniri (denetlenmedi)"
+      2. gonderildi ama motor ne secti ne eledi -> neden "motor kapsamadi (denetlenmedi)"
          (fail-loud: gorulmemis/atlanmis gorsel sessizce vitrine girmesin)."""
     all_imgs = dogal_sirala(all_imgs)
     gonderilen, gonderilmeyen = denetim_bol(all_imgs, cap)
@@ -231,7 +279,7 @@ def denetim_birlestir(all_imgs, cap, out):
         denetlenmedi.append({"dosya": f, "neden": "kota ust siniri (denetlenmedi)"})
     for f in gonderilen:
         if f not in kapsanan:
-            denetlenmedi.append({"dosya": f, "neden": "emekli motor kapsamadi (denetlenmedi)"})
+            denetlenmedi.append({"dosya": f, "neden": "motor kapsamadi (denetlenmedi)"})
     out["denetlenmedi"] = denetlenmedi
     return out
 
@@ -239,67 +287,211 @@ def denetim_birlestir(all_imgs, cap, out):
 # =============================================================================
 # K398 — CIKISI RC'DEN DEGIL ICERIKTEN YARGILA (fail-open kapatmasi)
 # =============================================================================
-# OLCULEN SINIR (9 Eyl 2026, tek tani cagrisi): `codex exec -m gpt-5.4-mini` 400
-# donerken bu makinede rc=**1** verdi ve cikti dosyasini HIC yazmadi — yani
-# "CLI hata basarken rc=0 doner" onculu BU KOSUMDA TEKRARLANMADI (durustce not:
-# hukum tek turdan verilmez, [[tek-turdan-hukum-verme-anomali-kolu]]).
-# AMA rc kolu TEK BASINA yargic olamaz ve bu OLCULEBILIR:
-#   (a) rc bir gun 0 donerse (surum/pipe/sarmalayici farki) hata govdesi SESSIZCE
-#       "basarili" sayilir ([[boru-rc-isci-olcumunu-yalanlar]] sinifi);
-#   (b) cikti yolu `.thing-cache/<id>/oneri.json`'dur ve ONCEKI kosumdan KALICI
-#       olabilir -> `os.path.exists` kolu bayat dosyayi bu kosumun kaniti sanar.
-# Bu yuzden: cagridan ONCE bayat cikti SILINIR, cagridan SONRA stdout+stderr hata
-# govdesine karsi taranir. Ikisi de bagimsiz kollardir.
+# UC KOL AYNEN KORUNDU, TASIYICI DEGISTI (10 Eyl 2026 portu):
+#   kol-1 "rc"      : alt surec rc'si  ->  HTTP DURUM KODU (durum == 200)
+#   kol-2 "yazildi" : cikti dosyasi VAR mi (bayat kapisi her denemeden ONCE siler)
+#   kol-3 "govde"   : HAM yanit govdesinde API hata izi VAR mi (durum'a BAKMAZ)
+# Kollarin BAGIMSIZ kalmasi sarttir; birbirinden turetilirse ayni korlugu
+# paylasirlar ([[oz-denetim-ayni-ayraci-kullanirsa-korlesir]]) ve K398 fail-open
+# kapatmasi kagit uzerinde kalir.
+#
+# PORT OLCUMU (10 Eyl, gercek uca karsi 4 hata probu): asagidaki desen yeni motorun
+# HTTP-duzeyi hata govdelerine UYUYOR — 400 (bos messages) ve 401 (gecersiz anahtar)
+# yanitlarinin ikisi de `"type":"error"` tasidi, desen ikisini de yakaladi.
+# EKLENEN KOL (`status_code`): bu ucun yanit zarfinda `base_resp.status_code` diye
+# IC-BANT bir hata kanali var. Basarili yanitta 0 gelir; SIFIR OLMAYAN bir deger
+# HTTP 200 ile birlikte gelebilir — yani tam olarak K398'in kapattigi fail-open
+# sinifi. 4 probda tetiklenmedi (OLCULEMEDI), o yuzden kol ONCEDEN kuruldu:
+# olculmemis bir kanali acik birakmak, olculmus bir kolu sokmekle ayni sonuca varir.
+# `(?!0[\s,}])` sarti basarili yanitin `"status_code":0`'ini YANLIS-POZITIF yapmaz.
 _HATA_DESEN = re.compile(r'"type"\s*:\s*"error"|invalid_request_error|'
-                         r'"status"\s*:\s*[45]\d\d', re.I)
+                         r'"status"\s*:\s*[45]\d\d|'
+                         r'"status_code"\s*:\s*(?!0[\s,}])\d+', re.I)
 
 
 def hata_govdesi(stdout, stderr):
     """CLI ciktisinda API HATA govdesi var mi? -> eslesen parca | None.
 
-    rc'ye BAKMAZ: bu kol rc kolundan BAGIMSIZ olmali, yoksa ikisi ayni korlugu
-    paylasir ([[oz-denetim-ayni-ayraci-kullanirsa-korlesir]])."""
+    DURUM KODUNA BAKMAZ: bu kol kol-1'den BAGIMSIZ olmali, yoksa ikisi ayni korlugu
+    paylasir ([[oz-denetim-ayni-ayraci-kullanirsa-korlesir]]). Imza (a, b) ciftidir:
+    eski hatta (stdout, stderr), yeni hatta (ham_govde, "") gecilir — komsu testler
+    bu imzaya capalidir, DEGISTIRME."""
     m = _HATA_DESEN.search((stdout or "") + "\n" + (stderr or ""))
     return m.group(0) if m else None
 
 
-def emekli_motor_cagir(prompt, imgler, cikti_yolu):
-    """emekli motor exec calistir; son mesaji cikti_yolu'na SAF JSON olarak yazar."""
-    # BAYAT CIKTI KAPISI (K398-b): dosyanin VARLIGI bu kosumun kaniti OLSUN.
-    if os.path.exists(cikti_yolu):
-        os.unlink(cikti_yolu)
-    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as sf:
-        json.dump(SEMA, sf)
-        sema_yolu = sf.name
-    cmd = [EMEKLI_MOTOR_IKILI, "exec",
-           "-m", MODEL,
-           "-c", "model_reasoning_effort=" + EFFORT,
-           "--ephemeral",            # 700 oturum dosyasi ~/.codex/sessions'a birikmesin
-           "-s", "read-only",        # is sadece "bak + JSON don"; shell/yazma gerekmiyor
-           "--skip-git-repo-check",
-           "--output-schema", sema_yolu,
-           "-o", cikti_yolu]
-    for f in imgler:
-        cmd += ["-i", f]
-    cmd.append("-")                  # prompt stdin'den
+ARAC_ADI = "urun_icerigi"
+_MEDYA = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
+          ".webp": "image/webp", ".gif": "image/gif"}
+
+
+def _uc_ayari():
+    """CANLI motorun uc ayarini TEK KAYNAKTAN (isci hattinin uc tablosu) okur.
+
+    (base_url, anahtar_dosyasi, model) doner. Buraya ikinci bir motor tablosu
+    KOPYALANMAZ: ikiz tanim sessizce ayrisir ve bir gun bu arac yanlis/emekli bir
+    uca konusur. Fail-closed: tablo ya da alan yoksa cagri HIC yapilmaz."""
+    if not os.path.exists(UC_TABLOSU):
+        sys.exit("HATA: uc tablosu yok: %s — '%s' ucu OLCULEMEDI, cagri YAPILMADI."
+                 % (UC_TABLOSU, CANLI_MOTOR))
+    metin = open(UC_TABLOSU, encoding="utf-8").read()
+    kok = os.path.dirname(UC_TABLOSU)
+    deger = {}
+    for alan in UC_ANAHTAR_ALANLARI:
+        m = re.search(re.escape(alan) + r"\[" + re.escape(CANLI_MOTOR) + r"\]=(.+)", metin)
+        if not m:
+            sys.exit("HATA: uc tablosunda %s[%s] YOK (%s) — cagri YAPILMADI."
+                     % (alan, CANLI_MOTOR, UC_TABLOSU))
+        v = m.group(1).strip().strip("'\"")
+        deger[alan] = v.replace("$CRON_KOKU", kok).replace("${CRON_KOKU}", kok)
+    return (deger["MOTOR_BASE_URL"], deger["MOTOR_ANAHTAR_DOSYASI"], deger["MOTOR_MODEL"])
+
+
+def _uc_istek(govde):
+    """Uca TEK POST atar; (http_durum, HAM govde metni) doner. AG DIKISI.
+
+    AYRI fonksiyon olmasinin sebebi olcumdur: kabul/mutasyon testleri bu dikisi
+    sahteleyip K398'in uc kolunu AG OLMADAN yargilayabilsin (eski hatta bu dikis
+    `subprocess.run` idi). Buradan YUKARI hicbir karar verilmez — sadece tasima."""
+    base, anahtar_yolu, _model = _uc_ayari()
+    if not os.path.exists(anahtar_yolu):
+        return -1, '{"type":"error","error":{"type":"authentication_error",' \
+                   '"message":"uc anahtar dosyasi yok"}}'
+    anahtar = open(anahtar_yolu, encoding="utf-8").read().strip()
+    istek = urllib.request.Request(
+        base.rstrip("/") + "/v1/messages",
+        data=json.dumps(govde).encode("utf-8"),
+        headers={"content-type": "application/json", "x-api-key": anahtar,
+                 "anthropic-version": "2023-06-01"})
     try:
-        for deneme in range(TRIES):
-            r = subprocess.run(cmd, input=prompt, capture_output=True, text=True)
-            govde = hata_govdesi(r.stdout, r.stderr)
-            # UC KOL, HEPSI ZORUNLU: rc temiz + cikti YAZILDI + ciktida hata govdesi YOK.
-            # `govde is None` kolu K398'in kapatmasidir: rc yalan soylerse burasi tutar.
-            if r.returncode == 0 and os.path.exists(cikti_yolu) and govde is None:
-                return True, ""
-            if govde is not None and os.path.exists(cikti_yolu):
-                # Hata govdesi VARKEN yazilmis dosya birakma — cagiran "oneri var" sanar.
-                os.unlink(cikti_yolu)
-            hata = (("API HATA GOVDESI: " + govde + " | ") if govde else "") + \
-                   (r.stderr or r.stdout or "")[-300:]
-            if deneme == TRIES - 1:
-                return False, hata
-        return False, "bilinmeyen"
-    finally:
-        os.unlink(sema_yolu)
+        with urllib.request.urlopen(istek, timeout=ZAMAN_ASIMI) as y:
+            return y.status, y.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return e.code, e.read().decode("utf-8", "replace")
+    except Exception as e:                                  # ag/DNS/zaman asimi
+        return -1, '{"type":"error","error":{"type":"transport_error",' \
+                   '"message":%s}}' % json.dumps(repr(e))
+
+
+_TIPLER = {"string": str, "array": list, "object": dict}
+
+
+def sema_ihlali(deger):
+    """SEMA sozlesmesini DETERMINISTIK dogrular; ihlal metni | None doner.
+
+    NEDEN YEREL: bu ucun `tool_choice` zorlamasi KARARSIZ olctu (7 cagrinin 5'i
+    semali arac blogu yerine METIN dondu). Sozlesmeyi uzak ucun iyi niyetine
+    birakirsak bir gun eksik alanli/serbest metinli bir cikti sessizce gecer ve
+    urunler.json'a kadar iner. Kapi burada, BIZDE."""
+    if not isinstance(deger, dict):
+        return "kok nesne degil: %s" % type(deger).__name__
+    for alan in SEMA["required"]:
+        if alan not in deger:
+            return "zorunlu alan YOK: %s" % alan
+    for alan, kural in SEMA["properties"].items():
+        if alan not in deger:
+            continue
+        beklenen = _TIPLER.get(kural.get("type"))
+        if beklenen is not None and not isinstance(deger[alan], beklenen):
+            return "alan tipi yanlis: %s (%s bekleniyordu)" % (alan, kural.get("type"))
+        if kural.get("enum") is not None and deger[alan] not in kural["enum"]:
+            # Kategori ASCII'ye dusmus olabilir -> kanonik esleme SONRA kosar; burada
+            # yalnizca "hic taninmiyor" halini reddet.
+            if kanonik_kategori(deger[alan]) is None:
+                return "alan liste disi: %s=%r" % (alan, deger[alan])
+    return None
+
+
+def _metin_json(d):
+    """Arac blogu gelmediginde METIN bloklarindan JSON cikarir (markdown citi dahil)."""
+    metin = "".join(p.get("text", "") for p in (d.get("content") or [])
+                    if isinstance(p, dict) and p.get("type") == "text").strip()
+    if metin.startswith("```"):
+        metin = re.sub(r"^```[a-zA-Z]*\s*", "", metin)
+        metin = re.sub(r"```\s*$", "", metin).strip()
+    bas, son = metin.find("{"), metin.rfind("}")
+    if bas < 0 or son <= bas:
+        return None
+    try:
+        return json.loads(metin[bas:son + 1])
+    except ValueError:
+        return None
+
+
+def _sema_blogunu_yaz(ham, cikti_yolu):
+    """Yanittaki SEMALI icerigi cikti_yolu'na SAF JSON yazar. Yazdiysa True.
+
+    IKI YOL, TEK KAPI: once arac (tool_use) blogu aranir; yoksa metin blogu JSON
+    olarak ayristirilir. AMA her iki yol da AYNI `sema_ihlali()` dogrulamasindan
+    gecer — metin yolu bir GEVSEKLIK DEGIL, ayni sozlesmenin ikinci tasiyicisidir.
+
+    🔴 Bu adim diger iki koldan BAGIMSIZ kosar: durum koduna da hata govdesine de
+    BAKMAZ. Yazimi 'zaten basarili' oldugumuz duruma baglarsak kol-2 kol-1/kol-3'un
+    tekrari olur ve uc kol tek kola coker."""
+    try:
+        d = json.loads(ham)
+    except (ValueError, TypeError):
+        return False
+    if not isinstance(d, dict):
+        return False
+    icerik = None
+    for p in (d.get("content") or []):
+        if isinstance(p, dict) and p.get("type") == "tool_use" and p.get("name") == ARAC_ADI:
+            icerik = p.get("input")
+            break
+    if icerik is None:
+        icerik = _metin_json(d)
+    if icerik is None or sema_ihlali(icerik) is not None:
+        return False
+    with open(cikti_yolu, "w", encoding="utf-8") as f:
+        json.dump(icerik, f, ensure_ascii=False)
+    return True
+
+
+def motor_cagir(prompt, imgler, cikti_yolu):
+    """CANLI motoru cagirir; semali yaniti cikti_yolu'na SAF JSON olarak yazar.
+
+    Eski ad `emekli_motor_cagir` idi; tasiyici emekli CLI'dan canli uca gecince ad da
+    tasindi ve KOMSU testlerin capalari AYNI turda guncellendi (bayat capa mutasyon
+    bataryasini sessizce ETKISIZ birakir, [[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]])."""
+    _base, _anahtar, model = _uc_ayari()
+    icerik = []
+    for f in imgler:
+        tur = _MEDYA.get(os.path.splitext(f)[1].lower(), "image/jpeg")
+        with open(f, "rb") as fh:
+            icerik.append({"type": "image", "source": {
+                "type": "base64", "media_type": tur,
+                "data": base64.b64encode(fh.read()).decode("ascii")}})
+    icerik.append({"type": "text", "text": prompt})
+    istek = {"model": model, "max_tokens": MAX_TOKEN,
+             # `--output-schema` KARSILIGI: sema araca baglanir ve arac secimi ZORUNLU
+             # kilinir -> model serbest metin/markdown DONEMEZ.
+             "tools": [{"name": ARAC_ADI,
+                        "description": "Secilen gorseller + Turkce urun icerigi.",
+                        "input_schema": SEMA}],
+             "tool_choice": {"type": "tool", "name": ARAC_ADI},
+             "messages": [{"role": "user", "content": icerik}]}
+    for deneme in range(TRIES):
+        # BAYAT CIKTI KAPISI (K398-b): dosyanin VARLIGI bu DENEMENIN kaniti OLSUN.
+        # Dongunun ICINDE: yoksa 1. denemenin yazdigi dosya 2. denemenin kol-2'sini
+        # sahte yesile boyar (eski hatta dongu disindaydi; port bunu daraltmadi).
+        if os.path.exists(cikti_yolu):
+            os.unlink(cikti_yolu)
+        durum, ham = _uc_istek(istek)
+        govde = hata_govdesi(ham, "")
+        _sema_blogunu_yaz(ham, cikti_yolu)
+        # UC KOL, HEPSI ZORUNLU: durum temiz + cikti YAZILDI + yanitta hata govdesi YOK.
+        # `govde is None` kolu K398'in kapatmasidir: durum yalan soylerse burasi tutar.
+        if durum == 200 and os.path.exists(cikti_yolu) and govde is None:
+            return True, ""
+        if govde is not None and os.path.exists(cikti_yolu):
+            # Hata govdesi VARKEN yazilmis dosya birakma — cagiran "oneri var" sanar.
+            os.unlink(cikti_yolu)
+        hata = (("API HATA GOVDESI: " + govde + " | ") if govde else "") + \
+               ("durum=%s " % durum) + (ham or "")[-300:]
+        if deneme == TRIES - 1:
+            return False, hata
+    return False, "bilinmeyen"
 
 
 def process(tid):
@@ -326,14 +518,14 @@ def process(tid):
     prompt += "\nGORSELLER (sirasiyla ekli): " + ", ".join(imgs) + "\n"
 
     onerip = os.path.join(d, "oneri.json")
-    ok, hata = emekli_motor_cagir(prompt, [os.path.join(d, f) for f in imgs], onerip)
+    ok, hata = motor_cagir(prompt, [os.path.join(d, f) for f in imgs], onerip)
     if not ok:
-        print("=== %s === emekli motor basarisiz: %s" % (tid, hata))
+        print("=== %s === motor basarisiz: %s" % (tid, hata))
         return
     try:
         out = json.load(open(onerip))
     except (json.JSONDecodeError, FileNotFoundError) as e:
-        print("=== %s === emekli motor gecersiz JSON dondu: %s" % (tid, e))
+        print("=== %s === motor gecersiz JSON dondu: %s" % (tid, e))
         if os.path.exists(onerip):
             os.unlink(onerip)   # bozuk dosya birakma — cagiran "oneri var" saniyor
         return
@@ -344,7 +536,7 @@ def process(tid):
     ham_kat = out.get("kategori")
     kanonik = kanonik_kategori(ham_kat)
     if kanonik is None:
-        print("=== %s === emekli motor gecersiz kategori dondu: %r (gecerli: %s)"
+        print("=== %s === motor gecersiz kategori dondu: %r (gecerli: %s)"
               % (tid, ham_kat, ", ".join(KATEGORILER)))
         os.unlink(onerip)       # fail-closed: kotu kategoriyle urun STAGE ETME
         return
@@ -353,7 +545,7 @@ def process(tid):
         out["kategori"] = kanonik
 
     # DENETIM KAPSAMI (sessiz g5+ kapisi): TUM galeriye karsi kapsam hesapla; denetlenmeyen
-    # (cap ustu ya da emekli motor'in kapsamadigi) gorselleri "denetlenmedi" ile ISARETLE. oneri.json'u
+    # (cap ustu ya da motorun kapsamadigi) gorselleri "denetlenmedi" ile ISARETLE. oneri.json'u
     # bu alanla HER ZAMAN yeniden yaz (kategori normalize olmasa da denetlenmedi guncel olsun).
     out = denetim_birlestir(galeri, MAX_IMG, out)
     with open(onerip, "w", encoding="utf-8") as f:
@@ -370,10 +562,9 @@ def main():
     if len(sys.argv) < 2:
         sys.exit("Kullanim: python3 tools/thing-icerik.py <thing_id> [<thing_id> ...]")
     if not ai_izinli():
-        sys.exit("KREDI KAPISI: urun-basi emekli motor cagrisi kapali. Yalniz Okan acikca izin verirse "
+        sys.exit("KREDI KAPISI: urun-basi motor cagrisi kapali. Yalniz Okan acikca izin verirse "
                  "PRUVO_URUN_AI_IZNI=EVET kullanilir.")
-    if not os.path.exists(EMEKLI_MOTOR_IKILI):
-        sys.exit("emekli motor bulunamadi: %s (ChatGPT.app kurulu mu?)" % EMEKLI_MOTOR_IKILI)
+    _uc_ayari()   # FAIL-CLOSED: uc/anahtar okunamiyorsa TEK urun bile islenmez
     for tid in sys.argv[1:]:
         process(tid)
 
