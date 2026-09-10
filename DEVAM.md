@@ -2,22 +2,23 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 8 EYL 02:xx ISARETCI — **TAM METIN ARSIVDE** (md5 birebir): 4 is kapandi (243 lisans `fdccc54d` · K19 `d0d6b8f9` · K382 `ede460cc` · ArTisT KVKK); PARITE=OLCULEMEDI.
 
 ## ✅ 9 EYL — ana oturum-3: **temizlik + K391 KILIDI ACILDI (filo commit kilidi kalkti)**
-- **6 KAPANIS SATIRI ARSIVE INDI** (md5 birebir, eksik 0): K391-KUTU · K391-CFInis · TEMIZLIK · TEK-KOPYA 2 DAL · IMPELLER B `25ffdd89` · DISK 291,9 MB. TAM METIN `DEVAM-ARSIV.md`, baslik "9 EYL ana oturum-3 ROTASYON (ana oturum-4 tasidi)".
-- ✅ **9 Eyl ana oturum-4'un IKI KAPANIS teslimi ARSIVE INDI** (md5 birebir, eksik 0): `DEVREDEN TEK IS` merge `f6326de2` · `URUN EKSENI` merge `69400ad9` + yayin `34363440627`. TAM METIN `DEVAM-ARSIV.md`, baslik "10 EYL ROTASYON".
 - 🔧 **ACIK:** ① 17 dal envanteri arsivde, **SILINMEZ**, 30 gun atif testi basladi · ② cip `KraL-KutuRotasyon-Sinif` merge `ee819a84` ile KAPANDI (agacinda CANLI oturum var, silinmedi) · ③ kota RED metni "okuma gecer" diyor ama `python3` kesiliyor (ikinci kopya) · ④ K396 `arsiv-kapisi` `BEKLIYOR` jetonu govdede YOK (`grep -c`=0, bagimsiz dogrulandi) · ⑤ `ESKALASYON=YEDEK_ZINCIRI_KIRIK ARDISIK=3` (MaCiT duzlemi) · ⑥ **K397 ACILDI** — nobetci yesil basarken onerdigi kurulum yeri CANLI duzlem DEGIL, atif 0; TAM METIN + kabul olcutu `DEVAM-ARSIV.md`, baslik "K397 — 9 Eyl 2026" (govde izlenen belgeye YAZILMAZ, E5) · ⑦ `peaceful-margulis-057d93` artik ARTIK dal (kod blob'u main'de, yalniz defter satiri kaldi) · ⑧ ArTisT/Okan isi: kategori panel basliklarina urun sayisi — cip ACILDI.
 
+## 🔁 10 EYL ana oturum-6 — **TAM METIN `DEVAM-ARSIV.md`** (baslik "10 EYL ana oturum-6"); 3 kapanmis isaretci de indi (md5 birebir, eksik 0)
+- ✅ **IKI DAL MAIN'DE:** `115f9dcc` (ff — dalin `OLCULEMEDI 1`'i kosuldu: `KORUMA_TEST=8` · `MUTASYON_KIRMIZI=11` rc=0, tahmin BIREBIR) · `4fa8f9a9` (worktree kapi bayatlik kapisi, 798 satir; dalin AGACINDA 8 vaka / 5 mutant / kapi `HAL=TEMIZ`). Cip "yalniz merge ile yesile doner" demisti: `arsiv-kapisi` o agacta **rc=1 → rc=0**. TeKiN'in `--ev` araci artik main'de.
+- **YAYIN:** run `34417809688` — `deploy` success · `yayin` success · **SKIPPED=0**. D1 alti eksen yesil (36426).
+- 🔴 **BaBa 15:0xZ ONCULU CURUDU:** `thing-icerik.py` **codex** cagiriyor, `mimar_kimlik.py:61` codex'i EMEKLI sayiyor, makine modeli `gpt-5.6-sol` = adiyla RED. Tek satir DEGIL, PORT. Cip acildi; **299 aday BLOKE**, etiket DUSMEZ, kalem BaBa'da.
+- **HocA'nin 3 KraL blogu:** ① `thing-icerik` SART DOLMADI · ② kayip adayi **2 → 1** (kalan bilincli) · ③ impeller B SART DOLDU (`25ffdd89`+`ee819a84` main'in atasi). Satir no'lari BAYATTI, icerikten capalandi.
+- 🔧 **ACIK:** ① ana checkout CANLI cipin 3 dosyasini AYNILIYORDU (02:32'de HEAD'e dondu, kayip YOK) — kok neden OLCULMEDI · ② `kapi-envanteri` 6/8 → **5/8**, ucuncu dusen `mimar-commit-kapisi` fiilen BAGLI (`pre-commit` atif=1) = ayni OKUMA DUZLEMI sahtesi · ③ Drive `backup-v2` yok.
 ## ✅ 10 EYL — ana oturum-5 ISARETCI (**TAM METIN `DEVAM-ARSIV.md`**, baslik "10 EYL ana oturum-5"; md5 birebir)
-- **K80 KOK COMMIT KAPISI ✅ MERGE `ba67de7d`:** ebeveynsiz (stash) commit kapiyi OLCULEMEDI'ye dusurup pre-push'u durduruyordu; taban BOS AGAC oldu. `--kendini-test` **228 → 233**, mutant **3/3**, uctan uca rc=2 → rc=0. 🔑 M2 ilk turda HAYATTA kaldi (yardimci imzasi yamanin ISLEVINI kanitlamaz) → S4e eklendi.
+- ✅ **K80 `ba67de7d` · K388 (kod tarafinda kalem YOK) · K390 `fb7714d8` — UCU DE KAPANDI, TAM METIN `DEVAM-ARSIV.md` (md5 birebir, eksik 0); basliklar "10 EYL ana oturum-5" + "10 EYL ana oturum-6 ROTASYON (2)".**
 - **KAYIP ADAYI 6 → 1.** Menzil daraltma (1.657.912 → 26.760 aday); kapi atlama bayragi KULLANILMADI.
 - 🔴 **KENDI HATAM (duzeltildi):** gizlilik hukmunu yalniz DEGISEN dosyalarda verdim; tam agacta 4 dal tepesi 28 Agu oncesi numarayi tasiyordu. **Yeni icerik yayinlanmadi** (6/6 blob zaten `origin/main` gecmisinde); eklenen sey CANLI TEPE yuzeyiydi, tarih korunarak temizlendi. Son olcum 6/6 dalda telefon **0**, tedarikci **0**.
 - 🔧 **ACIK:** ① `kurtarma/stash-8agu-baska-oturum` tek kopya KALDI (bilincli; 128 scratch dosyasi saklanmayacaksa dal SILINEBILIR — hukum BaBa'da) · ② **kanca kopyasi her push'ta BAYATLIYOR** (bugun 6 kez); her itme iki turda bitiyor, bloklamiyor ama maliyet cift · ③ `kapi-envanteri` 6/8 (`mimar-icra-kapisi`+`mimar-kod-kilidi` BAGLI degil — TeKiN'in 9 Eyl olcumuyle AYNI kok: harness `agent_id` vermiyor).
 ## 🔴 9 EYL KALEMLERI (TAM METIN KUTUDA — 9 Eyl KraL bloklari)
-- **K388 META ATIF ✅ KOD TARAFINDA KALEM YOK — TAM METIN KUTUDA** (3 tur, 3 bagimsiz olcum): D1 30 gun toplam **33** · `fbp` 19 · **`fbc` 0** · `utm` 0; Meta paneli AYNI sifiri verdi → dusecek `fbc` YOK. Kendi "162 reklam inisi" sayimimi duzelttim (GS 57 paid + OG 105 organik, Google-only). LPV riza kapisinin ARKASINDA → LC 9.871 → LPV 1.822 ariza DEGIL. **K391-CFInis anomaliyi cozdu; ArTisT WebView hipotezini olctu, CURUDU** (ayni WebView payinda LPV/LC 4-27 kat farkli). Kanonik referer sayisi **9.610** (Threads dahil, ArTisT kabul etti).
 - **K389 ✅ KAPANDI 9 Eyl — ONCUL CURUDU:** `defter-kota-kapisi.py` rc'si **KUTU** ekseninden gelir (`KUTU_ASILDI`), DEVAM ekseni degil (`71f86f14`). Ders: rc'nin ekseni okunmadan sinif kapisi yazilmaz.
-- **K390 ✅ ICRA EDILDI** (cip `stoic-montalcini-aff2a2`, merge `fb7714d8`): ana sayfa H1 **0 → 1** (`index.html:1167` `h1.brand-sub`, metin+sinif korundu; KraL bagimsiz olctu). Taban canli 0 + kaynak 0. Alt sayfa regresyon kolu + canli dogrulama CIPTE.
 
 ## 🔧 8 EYL 02:xx TURUNDAN ACILAN KALEMLER
 - 🔧 **K386 → ISARETCI, TAM METIN ARSIVDE** (md5 birebir): kalan uc kova `G-BIZIM-BILINMEYEN` 117 · `E-DIGER` 21 · `F-OTORITER-CELISKILI` 8 (`D-CC0` 428 risk YOK). Olcum araci commit'li: `python3 tools/lisans-capraz-olcum.py --detay`. KALEM ACIK.
