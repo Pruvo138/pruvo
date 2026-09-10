@@ -1267,7 +1267,7 @@ def test_g_mutasyon():
 # Bu bolum o yolu kirmizi yakar.
 URUN_EKLE_MODULLERI = ("veri_kok.py", "filament_ortak.py", "gorsel_mukerrer_kapisi.py",
                        "gorsel_boyut_kapisi.py", "gorsel_koken.py", "r2_anahtar.py",
-                       "arama.py")
+                       "arama.py", "urun_icerik_det.py")
 
 
 def _urun_ekle_yukle(repo, ad, mutasyon=None):

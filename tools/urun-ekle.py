@@ -99,10 +99,18 @@ def sips_upload(local_jpg, key):
 def process_one(tid):
     """PARALEL calisir; urunler.json'a DOKUNMAZ."""
     try:
-        subprocess.run([PY, os.path.join(TOOLS, "thing-hazirla.py"), tid], capture_output=True, text=True)
+        # 🔴 IKINCI FAIL-OPEN KAPATILDI (K400). Eskiden donen `CompletedProcess` bir
+        # degiskene BILE baglanmiyordu: rc de stderr de COPE gidiyordu. thing-hazirla
+        # tarafindaki yutmayi kapatmak TEK BASINA yetmez -> ariza adi burada ikinci kez
+        # yutulurdu ("TUM okuyucular sayilir": ureticiyi degistirirken tuketici de sayilir).
+        _hz = subprocess.run([PY, os.path.join(TOOLS, "thing-hazirla.py"), tid],
+                             capture_output=True, text=True)
         metap = os.path.join(IMGROOT, tid, "meta.json")
         if not os.path.exists(metap):
-            return {"id": tid, "durum": "HATA: hazirla meta.json uretmedi"}
+            _ayrinti = (_hz.stderr or _hz.stdout or "").strip().splitlines()
+            _son = " | ".join(_ayrinti[-3:]) if _ayrinti else "cikti yok"
+            return {"id": tid,
+                    "durum": "HATA: hazirla meta.json uretmedi (rc=%s) %s" % (_hz.returncode, _son)}
         meta = json.load(open(metap))
         satilir, cc_tur = lisans_map(meta.get("lisans"))
         if not satilir:

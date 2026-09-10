@@ -4671,6 +4671,14 @@ jobs:
       - name: Urun-AI kapisi kabul testi (thing-icerik izin kapisi varsayilan KAPALI)
         if: ${{ !cancelled() }}
         run: python3 tools/thing-icerik-test.py
+      # 10 Eyl 2026 (K400) — meta.json yazimi FAIL-OPEN idi (`except Exception: pass`).
+      # Yazim dususu sessizce yutuluyor, tuketici urun-ekle.py ise `CompletedProcess`i
+      # BIR DEGISKENE BILE baglamayip rc+stderr'i copE atiyordu: ariza adi HICBIR yere
+      # yazilmiyordu. Test AG'a CIKMAZ, token OKUMAZ, urunler.json'a YAZMAZ; mutantlar
+      # yalniz tempfile altindaki IZOLE kopyaya uygulanir (canli govde mutasyona ugramaz).
+      - name: "meta.json yazimi FAIL-LOUD mu + geri doldurma var olani EZMEZ mi (K400)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/thing-meta-fail-loud-test.py
       # 9 Eyl 2026 (KraL-IcerikDeterministik) — urun ekleme ICERIK ADIMI tek bacakli
       # olmasin. Olculen kusur: emekli motor 400 dondugu gun uc platformun (Thingiverse
       # /Printables/MakerWorld) hatti da 0/N STAGE verdi cunku deterministik yedek YOKTU.
