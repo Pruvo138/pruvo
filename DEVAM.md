@@ -4,9 +4,9 @@
 
 
 ## ✅ 10 EYL — ana oturum-7: **3 dal MAIN'DE (K399·K400·K401), yayin INDI** — TAM METIN `DEVAM-ARSIV.md` (baslik "10 EYL ana oturum-7")
-- **EV** `7d252327`→`2f1f9ed7` · **YAYIN** run `34459542017` `deploy`+`yayin` success **SKIPPED=0** · **D1** 6 eksen yesil (36568) · kapilar MERGE'LENMIS agacta kosuldu (K399+K400 ayni urun-ekleme hattinda, birlikte hic olculmemisti): `duzelt-toplu-test` 299/299 · `--mutasyon` MUTANT=8 KIRMIZI=0 · `ci-kapsam-test` YESIL.
+- **EV** `7d252327`→`784b9118` (4 merge + defter) · **YAYIN** run `34459542017` (`2f1f9ed7`) `deploy`+`yayin` success **SKIPPED=0** · **D1** 6 eksen yesil (36568) · kapilar MERGE'LENMIS agacta kosuldu (K399+K400 ayni urun-ekleme hattinda, birlikte hic olculmemisti): `duzelt-toplu-test` 299/299 · `--mutasyon` MUTANT=8 KIRMIZI=0 · `ci-kapsam-test` YESIL.
 - 🔴 **kapi-envanteri 5/8 hukmu IKIYE AYRISTI** — BaBa'nin 6 Eyl "ucu de KURULU, kirmizi SAHTE" hukmu YARIM: bir kapida kirmizi SAHTE, iki kapida **GERCEK**; yapilandirma okumasi + davranissal prob AYNI sonucu verdi. Olcum, mekanizma ve sonuc TAM METIN `DEVAM-ARSIV.md`'de (E5: govde izlenen belgeye YAZILMAZ). **Hukum BaBa'da.**
-- 🔧 **ACIK:** ① **K402** `defter-rotasyon.py` UCUNCU turdur `TASINAN=0` (14/14 veto) → cip · ② `emekli-motor-adi-nobetcisi` IHLAL 2→1, kalan `tools/urun_icerik_det.py` → cip; K401'in "merge kapatir" oncusu CURUDU (iki ihlal de main'de ZATEN vardi) · ③ YEDEK `ardisik=0` ama kronik MASKELENDI (ozne MaCiT; K338: beyan anahtari dosya ADI ekseninde) · ④+⑤ `gecmis-nobeti` kancasi KURULU DEGIL · `MEMORY.md` 19.691 B > 16.384 (ikisi de arsiv blogunda).
+- 🔧 **ACIK:** ① **ArTisT → KraL (YENI):** GEO Dalga 1 icerigi hazir, FAQPage schema/SSS karari+icrasi BENDE · ② ✅ ad nobetcisi KAPANDI (cip dali merge; `IHLAL=0 CAPA_DUSEN=0`, test 5/5); K401'in "merge kapatir" oncusu yine de CURUDU — iki ihlal de main'de ZATEN vardi · ③ YEDEK `ardisik=0` ama kronik MASKELENDI (ozne MaCiT; K338: beyan anahtari dosya ADI ekseninde) · ④+⑤ `gecmis-nobeti` kancasi KURULU DEGIL · `MEMORY.md` 19.691 B > 16.384 (ikisi de arsiv blogunda).
 
 ## ✅ 9 EYL — ana oturum-3: **temizlik + K391 KILIDI ACILDI (filo commit kilidi kalkti)**
 - 🔧 **TOHUM KAPSAM (10 Eyl):** canli 11 ev, tohum 8 → eksik 3 (`OteL`·`EyLüL`·`eLiF`; eLiF'in `OteLLa`si YANLIS ad). F8 `OLCULEMEDI` (kota RED). Spec+kabul KUTUDA.
