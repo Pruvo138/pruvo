@@ -26,6 +26,14 @@ import tempfile
 ROOT = os.path.dirname(os.path.abspath(__file__))
 KAPI = os.path.join(ROOT, "worktree-kapi-bayatlik-kapisi.py")
 
+# Kanonik sentetik-git yardimcisi. Arama ekseni `arsiv-kapisi.py` ile AYNIDIR
+# (harness ortami -> arac dizini); ikinci bir cozucu desen acilmadi.
+for _aday in (os.environ.get("PRUVO_KANONIK_TOOLS") or "", ROOT):
+    if _aday and os.path.isfile(os.path.join(_aday, "git_ortami.py")):
+        sys.path.insert(0, _aday)
+        break
+from git_ortami import sentetik_git  # noqa: E402
+
 KAPI_V1 = "#!/usr/bin/env python3\n# ornek kapi GOVDE-V1\nraise SystemExit(0)\n"
 KAPI_V2 = "#!/usr/bin/env python3\n# ornek kapi GOVDE-V2 (ANA checkout'ta CANLI)\nraise SystemExit(0)\n"
 
@@ -54,7 +62,18 @@ AYAR_EKSIK = """{
 
 
 def _git(kok, *a):
-    r = subprocess.run(("git", "-C", kok) + a, capture_output=True, text=True)
+    """Sentetik depoda git — KANONIK yardimciyla (`git_ortami.sentetik_git`).
+
+    🔴 OLCULEN KUSUR (10 Eyl 2026, cip `KraL-Tamirci-10Eyl`): burasi git'i DOGRUDAN
+    `subprocess.run(("git", "-C", kok) + a)` ile cagiriyordu — yani ortam KOPYA
+    DEGILDI ve mirasla gelen `GIT_DIR`/`GIT_WORK_TREE`/`GIT_INDEX_FILE` gibi baglam
+    degiskenleri sentetik depoya SIZABILIYORDU. `fikstur-git-sizinti-kapisi.py` bunu
+    dogru okudu ve `OLCULEMEDI: dolayli git kurucusunun ortami kanitlanamadi` ile
+    SERIT B'yi kirmiziya yakti (dun merge edilen `4fa8f9a9` ile geldi).
+    Ayrica `init`in urettigi ILK DAL ADI git surumune baglidir (Okan: `main`,
+    runner: `master`) — kanonik yardimci `-b main`i civiler; dogrudan cagri civilemez.
+    Ikinci bir sarmalayici ACILMADI, cagri kanonik olana DEVREDILDI."""
+    r = sentetik_git(kok, *a, capture_output=True, text=True)
     if r.returncode != 0:
         raise RuntimeError("git %s -> rc=%d\n%s" % (" ".join(a), r.returncode, r.stderr))
     return r.stdout

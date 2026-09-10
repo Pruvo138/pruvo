@@ -37,7 +37,7 @@ KANONIK_ENV = "PRUVO_KANONIK_TOOLS"
 
 
 def _kapi_yolu():
-    """Hukum kaynagi `arsiv-kapisi.py`nin yolu — ONCE bu kancanin KENDI dizininde.
+    """(yol, nereden) — hukum kaynagi `arsiv-kapisi.py`nin yolu ve HANGI EKSENDEN.
 
     🔴 OLCULMUS KUSUR (5 Eyl): yol YALNIZ `KANONIK_KAPI` sabitiydi ve o sabit
     OKAN'IN MAKINESINE ozeldir. CI runner'inda checkout `/home/runner/work/...`
@@ -49,16 +49,33 @@ def _kapi_yolu():
     Mutasyon turu bu kancanin KOPYASINI gecici bir dizine yazip kosar; kopyanin
     yaninda `arsiv-kapisi.py` YOKTUR. Kopyayi kosan harness kanonik `tools/`u BILIR
     ve `PRUVO_KANONIK_TOOLS` ile soyler (arsiv-kapisi.py ile AYNI sozlesme, ikinci
-    bir isim acilmadi)."""
-    for dizin in (os.environ.get(KANONIK_ENV) or "",
-                  os.path.dirname(os.path.realpath(__file__))):
+    bir isim acilmadi).
+
+    🔴 IKINCI OLCUM (10 Eyl, cip `KraL-Tamirci-10Eyl`) — 5 Eyl'in ONARIMI YARIM
+    KALMISTI: `KANONIK_KAPI` son satirda DENETIMSIZ donuyordu. Yani cozucu, iki
+    ekseni de tutmayan bir kopyaya OKAN'IN DISKINDEKI yolu SESSIZCE veriyordu.
+    Okan'in makinesinde o dosya VAR -> jeton dogru okunur -> batarya YESIL yanar;
+    CI'da yok -> `_JETON_YEDEK` -> V8b KIRMIZI -> mutasyon turunun TABANI kirmizi
+    -> 5 mutantin BESI de HIC OLCULMEZ. Yesili ureten sey sozlesme degil KOSUCUNUN
+    DISKIYDI ([[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]]).
+    CARE, `arsiv-kapisi.py::_kanonik_kaynak()` ile AYNI desendir (ikinci desen
+    acilmadi): her aday `isfile` ile DENETLENIR, hicbiri tutmazsa donen sey
+    `nereden="yok"`tur — sessiz ikame YOK. `nereden` ALANI OLCULEBILIR olsun diye
+    disari verilir: kopyanin harness sozlesmesinden mi yoksa makineye ozel yoldan
+    mi cozuldugu ARTIK bir iddiadir (V8e), maskelenemez."""
+    adaylar = ((os.environ.get(KANONIK_ENV) or "", "harness ortami"),
+               (os.path.dirname(os.path.realpath(__file__)), "arac dizini"),
+               (os.path.dirname(KANONIK_KAPI), "makineye ozel kanonik repo"))
+    for dizin, nereden in adaylar:
         aday = os.path.join(dizin, "arsiv-kapisi.py") if dizin else ""
         if aday and os.path.isfile(aday):
-            return aday
-    return KANONIK_KAPI
+            return aday, nereden
+    # Hicbir eksen tutmadi. FAIL-OPEN sozlesmesi korunur (main() `isfile` ile
+    # bakar ve GECIRIR); ama hal ADIYLA tasinir, sessizce "cozuldu" sayilmaz.
+    return KANONIK_KAPI, "yok"
 
 
-KAPI = _kapi_yolu()
+KAPI, KAPI_NEREDEN = _kapi_yolu()
 
 # ------------------- K396: KANCANIN ONERDIGI JETON, KAPININ OKUDUGU JETON OLMALI
 # 🔴 OLCULEN KUSUR (10 Eyl 2026, iki ayri cip ust uste takildi): bu kanca cipe

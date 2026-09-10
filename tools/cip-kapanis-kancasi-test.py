@@ -163,11 +163,38 @@ def kos(kanca=KANCA, sessiz=False):
 
         _tools = os.path.dirname(os.path.realpath(KANCA))
         _ka = _modul("kutu_arsivle_v8", os.path.join(_tools, "kutu-arsivle.py"))
-        _kanca_mod = _modul("kanca_v8", kanca)
+        # 🔴 OLCULMUS KUSUR (10 Eyl, cip `KraL-Tamirci-10Eyl`): kancanin KOPYASINI
+        # okuyan IKI tuketici var ve yalniz BIRI sozlesmeye baglanmisti.
+        # `kancayi_kos()` kopyaya kanonik `tools/`u `PRUVO_KANONIK_TOOLS` ile SOYLER
+        # (alt-surec env'i); burasi ise ayni kopyayi IC-SURECTE import ediyordu ve
+        # o yolda degisken YOKTU. Kopya iki ekseni de tutturamayip makineye ozel
+        # sabite dusuyor, Okan'in diskinde o dosya VAR oldugu icin V8b YESIL yaniyor,
+        # CI'da YOK oldugu icin KIRMIZI -> mutasyon turunun TABANI kirmizi -> 5
+        # mutant HIC olculmuyordu ([[tuketici-yazilirken-tum-okuyucular-sayilir]]).
+        # Sozlesme TEK KAYNAKTAN (`KOK`) kurulur; ikinci bir literal yol acilmadi.
+        _onceki_env = os.environ.get("PRUVO_KANONIK_TOOLS")
+        os.environ["PRUVO_KANONIK_TOOLS"] = KOK
+        try:
+            _kanca_mod = _modul("kanca_v8", kanca)
+        finally:
+            if _onceki_env is None:
+                os.environ.pop("PRUVO_KANONIK_TOOLS", None)
+            else:
+                os.environ["PRUVO_KANONIK_TOOLS"] = _onceki_env
         _kanonik = getattr(_ka, "MERGE_BEKLIYOR_JETON", None)
         check("V8a kanonik jeton kutu-arsivle'de TANIMLI", bool(_kanonik))
         check("V8b kancanin bastigi jeton == kanonik jeton",
               getattr(_kanca_mod, "MUAFIYET_JETONU", None) == _kanonik)
+        # V8e ANTI-MASKE: V8b tek basina YETMEZ — cunku Okan'in makinesinde
+        # makineye ozel sabit de dogru jetonu okutur ve V8b sozlesme KOPUKKEN de
+        # yesil yanar. Olculecek sey jetonun degeri DEGIL, jetonun HANGI EKSENDEN
+        # geldigidir. Kopya, harness'in soyledigi kanonik `tools/`den cozulmelidir;
+        # `makineye ozel kanonik repo` ekseninden cozulmesi CI'da yapisal KIRMIZI
+        # demektir ve burada da KIRMIZI sayilir — yoksa arizayi kosucunun diski
+        # gizler ([[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]]).
+        _nereden = getattr(_kanca_mod, "KAPI_NEREDEN", None)
+        check("V8e kopya HARNESS sozlesmesinden cozuldu (makine yolu DEGIL; "
+              "gorulen=%s)" % _nereden, _nereden == "harness ortami")
         # Kapi govdesi jetonu FIILEN tuketiyor mu: beyani olan + itilmis bir
         # fikstur, `MERGE_BEKLIYOR` haliyle GECMELI. Bu, "jeton var" degil
         # "jeton ISE YARIYOR" iddiasidir.
@@ -223,7 +250,27 @@ MUTANTLAR = (
     ("M5 jetonu-turetme-gom", "V8",
      'MUAFIYET_JETONU = _muafiyet_jetonu()',
      'MUAFIYET_JETONU = "BEKLIYOR"'),
+    # 🔴 K401 NOBETCISI: harness sozlesmesi (`PRUVO_KANONIK_TOOLS`) cozucuden
+    # dusurulur. Bu, 10 Eyl'e kadar CANLI olan halin ta kendisidir: kopya iki
+    # ekseni de tutturamaz, makineye ozel yola duser ve OKAN'IN DISKINDE dogru
+    # jetonu okur. `V8b` bu mutanti GOREMEZ (jeton dogru cikar) — goren tek kol
+    # `V8e`dir, cunku o jetonun DEGERINI degil HANGI EKSENDEN geldigini olcer.
+    # Mutant olmezse "yesili uretense sozlesme, kosucunun diski degil" iddiasi
+    # OLCULMEMIS demektir ve ariza bir tur sonra sessizce geri gelir
+    # ([[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]]).
+    ("M6 harness-eksenini-kaldir", "V8e",
+     '    adaylar = ((os.environ.get(KANONIK_ENV) or "", "harness ortami"),\n',
+     '    adaylar = ((\"\", \"harness ortami\"),\n'),
+    # KONTROL: hedefsiz, davranis DEGISTIRMEYEN degisiklik. Bu "mutant" OLMEMELI.
+    # Olurse batarya battaniye-kirmizidir (her degisiklige kirmizi yanar) ve
+    # yukaridaki alti kill'in HICBIRI hedefine atfedilemez.
+    ("MK2 kontrol-yorum-degisikligi", "(hedefsiz)",
+     '\nRC_YESIL = 0',
+     '\n# KONTROL MUTANTI: yalniz yorum, davranis ayni.\nRC_YESIL = 0'),
 )
+
+# Hedefsiz KONTROL mutantlari: OLMEMELERI beklenir (battaniye-kirmizi nobetcisi).
+KONTROL_MUTANTLARI = ("MK2",)
 
 
 def mutasyon():
@@ -244,8 +291,19 @@ def mutasyon():
             # tur devam edip 4 mutantin 4'unu "OLDU" diye BASIYORDU — oysa hepsinin
             # kirmizisi mutantin degil, TABANIN kirmizisiydi. Taban kirmiziyken
             # mutant hukmu VERILEMEZ ([[mutantli-kosum-tabanla-ayniysa-mutant-ulasmadi]]).
+            #
+            # 🔴 IKINCI KUSUR, AYNI KOLDA (10 Eyl, cip `KraL-Tamirci-10Eyl`): taban
+            # `sessiz=True` kosuldugu icin KIRMIZI'nin SEBEBI hicbir yere yazilmiyordu.
+            # CI logunda yalniz "TABAN KIRMIZI" duruyor, HANGI iddianin dustugu YOK;
+            # yerelde de yeniden uretilemiyor (yesil yaniyor). Ariza bu yuzden gunlerce
+            # yasadi: susma, "hic kosmadi"dan AYIRT EDILEMIYORDU
+            # ([[taban-kirmizisi-nobetciyi-susturur]]). Taban kirmiziysa AYNI kopya
+            # bir kez daha, bu sefer SESLI kosulur ve dusen iddia ADIYLA basilir.
             print("\n!! TABAN KIRMIZI — mutasyon turu KOSMAZ (once bataryayi yesile "
                   "getir). Bu turda OLCULEN mutant sayisi 0.")
+            print("-- TABANIN SEBEBI (ayni kopya, sesli tekrar) " + "-" * 26)
+            kos(kontrol, sessiz=False)
+            print("-" * 70)
             print("MUTANT=0/%d KIRMIZI=1 (TABAN)" % len(MUTANTLAR))
             print("MUTASYON OLCULEMEDI")
             return False
@@ -260,10 +318,16 @@ def mutasyon():
             with open(yol, "w", encoding="utf-8") as f:
                 f.write(taban.replace(capa, yeni))
             oldu = not kos(yol, sessiz=True)
+            kontrol_mu = ad.split()[0] in KONTROL_MUTANTLARI
+            # KONTROL mutantinda BEKLENTI TERSTIR: yasamasi gerekir.
+            beklenti_tuttu = (not oldu) if kontrol_mu else oldu
             print("  [%s] %-34s hedef vaka=%-4s %s"
-                  % ("OK" if oldu else "KIRMIZI", ad, hedef,
-                     "-> mutant OLDU" if oldu else "-> mutant ULASMADI"))
-            if not oldu:
+                  % ("OK" if beklenti_tuttu else "KIRMIZI", ad, hedef,
+                     ("-> KONTROL yasadi (battaniye-kirmizi YOK)" if kontrol_mu
+                      else "-> mutant OLDU") if beklenti_tuttu
+                     else ("-> KONTROL OLDU = BATTANIYE KIRMIZI" if kontrol_mu
+                           else "-> mutant ULASMADI")))
+            if not beklenti_tuttu:
                 kirmizi += 1
     finally:
         shutil.rmtree(kok, ignore_errors=True)
