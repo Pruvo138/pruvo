@@ -35,8 +35,108 @@ Ilgili dersler: [[kapi-red-metni-ikinci-kopyadir]] · [[ikiz-tanim-sessiz-ayrism
 [[kapinin-menzili-cagri-yeridir]] · [[ucuncu-tekrar-sinif-kapisi]]
 """
 
-REPO_ONEKI = "/Users/okan/dev/pruvo/"
+# === 🔴 10 EYL 2026 — EV EKSENI: KOK ARTIK SABIT DEGIL, PARAMETRE ==============
+# OLCULEN ARIZA (BaBa hukmu 10 Eyl 23:2x, KraL kalem ③; taban bu turda KOSULARAK
+# dogrulandi — GERCEK kurulu shim'ler uzerinden, kanonik govde uzerinden DEGIL):
+#
+#   ev        arac       'defter-rotasyon.py --tavan-kaynaktan'   'tools/... DEVAM.md ...'
+#   KraL      VAR        ALLOW                                     ALLOW
+#   ArTisT    VAR        DENY   <-- ARIZA                          DENY   <-- ARIZA
+#   TeKiN     VAR        DENY   <-- ARIZA                          DENY   <-- ARIZA
+#   MaCiT     YOK        (KAPSAM DISI — arac yoklugu)
+#   HocA      YOK        (KAPSAM DISI — arac yoklugu)
+#
+# KOK NEDEN — mekanizma ucundan uca olculdu:
+#   `tools/kapi_dagitim.py` kardes evlere bir SHIM kurar; shim yalnizca
+#   `mimar-icra-kapisi.py`nin KENDI `REPO_ONEKI` capasini o evin kokune cevirir
+#   (`kapi_dagitim.py:CAPA_REPO`). Ama kapi hemen ardindan
+#   `DURUM_YOL = SC.DURUM_YOL ...` (mimar-icra-kapisi.py:248-254) diyerek o dogru
+#   degerleri BU MODULDEN gelen KraL'a civili yollarla EZIYORDU. Yani shim dogru
+#   cevirdigi seyi bu dosya geri aliyordu: ArTisT'in evinde kapi ArTisT'in
+#   DEVAM.md'sini degil KraL'inkini bekliyor, cagri TAM ESITLIKTE dusuyor, RED.
+#   OLCULEN BEDEL: ArTisT/MaCiT/TeKiN defterlerini UC TURDUR ELLE kisaltti; ArTisT
+#   bunu kendi devir blogunda ENGEL olarak yazdi.
+#
+# SINIF: turetilebilir/canli bir deger ELLE KOPYALANMIS ve kaynagindan AYRISMIS.
+# Care TEKIL YAMA DEGIL: kok artik bu tabloda SABIT olarak YASAMAZ — cagri aninda
+# PARAMETRE olarak verilir (`eslesen_sekil(..., kok=...)`). Tablonun kendisi TEK
+# yerde durur; `eve_gore()` onu saf bir DONUSUMLE yeniden koklendirir, yani ikinci
+# bir tablo kopyasi olusmaz ([[ikiz-tanim-sessiz-ayrisma]]).
+#
+# Ilgili dersler: [[tuketici-yazilirken-tum-okuyucular-sayilir]] ·
+# [[kopya-turetilemiyorsa-bayatlik-olculemez]] · [[arac-adi-onek-eslesmesi-komsu-araci-keser]]
+import os
+import re
+
+# Govdenin KENDI evi. Bu bir "her evin koku" DEGIL, yalnizca (a) tablonun kurulu
+# oldugu taban ve (b) ev OLCULEMEDIGINDE dusulecek FAIL-CLOSED degerdir. Olculemeyen
+# ev "izinli" sayilmaz: taban kok, cagiran evin agacini ACMAZ, bugunku DAR davranis
+# aynen surer ([[olculemedi-bypass-degil-menzil-daraltmasi]]).
+KANONIK_KOK = "/Users/okan/dev/pruvo"
+REPO_ONEKI = KANONIK_KOK + "/"
 CRON_ONEKI = "/Users/okan/.claude/cron/"
+
+
+def ev_kokleri():
+    """Kapali EV KUMESI — TEK KAYNAK `tools/kapi_dagitim.py:EVLER`.
+
+    Burada ELLE bir ev listesi TUTULMAZ; ikinci bir kume sessizce ayrisirdi.
+    FAIL-CLOSED: modul yoksa/okunamazsa yalnizca kanonik kok doner (mutant
+    dizinlerinde `kapi_dagitim.py` KOPYALANMAZ — orada kume daralir, GENISLEMEZ)."""
+    try:
+        import kapi_dagitim as _KD
+        kokler = {os.path.normpath(k[1]) for k in _KD.EVLER if k and k[1]}
+        if kokler:
+            return kokler
+    except Exception:
+        pass
+    return {KANONIK_KOK}
+
+
+def _proje_damgasi(yol):
+    """Claude Code proje-dizini damgasi — `mimar_kimlik._proje_damgasi` ile AYNI kural.
+
+    Ayni tek satirlik kural iki yerde yasiyor; ikisi de ayni CI kosumunda olculur
+    (`serbest-kume-ev-ekseni-test.py` :: E0) — ayrisirlarsa KIRMIZI yanar."""
+    return "".join(k if k.isalnum() else "-" for k in yol)
+
+
+def ev_koku_turet(damga, kokler=None):
+    """🔴 OTURUM DAMGASINDAN (transcript_path) EV KOKU. Eslesme yoksa ``None``.
+
+    NEDEN `transcript_path`, NEDEN `cwd` DEGIL: cwd KAYDIRILABILIR bir sinyaldir
+    (`cd <ev>` tek komutluk bir anahtar olurdu); damga oturum ACILIRKEN yazilir ve
+    oturumun kostugu hicbir komut onu oynatamaz. Ayni gerekce
+    `mimar_kimlik.rol_ekseni`nin bas yorumunda OLCULMUS olarak duruyor.
+
+    🔴 EN UZUN EslESME KAZANIR — ONEK TUZAGI: `-Users-okan-dev-pruvo` damgasi
+    `-Users-okan-dev-pruvo-pazarlama`nin ONEKIDIR. Kisa eslesme once alinirsa
+    ArTisT'in oturumu KraL'a cozulur ve ariza YER DEGISTIRIR (ayni sinif:
+    [[arac-adi-onek-eslesmesi-komsu-araci-keser]]). Bu yuzden TUM adaylar taranir
+    ve EN UZUN damga secilir; sinir da denetlenir (tam esitlik ya da damga + '-')."""
+    if not isinstance(damga, str) or not damga.strip():
+        return None
+    if kokler is None:
+        kokler = ev_kokleri()
+    bilesenler = [b for b in damga.split("/") if b]
+    if not bilesenler:
+        return None
+    en_iyi = None
+    for kok in sorted(kokler):
+        kok = os.path.normpath(kok)
+        adaylar = {_proje_damgasi(kok)}
+        try:
+            adaylar.add(_proje_damgasi(os.path.realpath(kok)))
+        except OSError:
+            pass
+        for aday in adaylar:
+            if not aday:
+                continue
+            for b in bilesenler:
+                if b == aday or b.startswith(aday + "-"):
+                    if en_iyi is None or len(aday) > en_iyi[0]:
+                        en_iyi = (len(aday), kok)
+    return None if en_iyi is None else en_iyi[1]
 
 # Deger alan bayragin DEGERI icin kural (R2'yi delmemek icin ZORUNLU):
 # deger YOL OLAMAZ ('/' iceremez, '.' ile baslayamaz) ve bayrak gibi gorunemez.
@@ -189,6 +289,34 @@ SEKILLER = (
 SEKIL_ETIKETLERI = {s.etiket: s for s in SEKILLER}
 
 
+# === 🔴 10 EYL 2026 — TABLOYU BASKA BIR EVE KOKLENDIR (SAF DONUSUM) ===========
+def _yeniden_kokle(yol, kok):
+    """Kanonik koke bagli bir yolu BASKA bir eve tasir; disaridakine DOKUNMAZ."""
+    if not yol.startswith(REPO_ONEKI):
+        return yol                       # repo DISI (cron) — ev degistirmez
+    return kok.rstrip("/") + "/" + yol[len(REPO_ONEKI):]
+
+
+def eve_gore(kok=None):
+    """SEKILLER tablosunun `kok` evine koklendirilmis hali (tuple).
+
+    🔴 IKINCI TABLO DEGIL: tek tablonun SAF DONUSUMUDUR. Bir sekil kaynaktan
+    duserse burada da duser — ayrisma YAPISAL OLARAK imkansiz
+    ([[ikiz-tanim-sessiz-ayrisma]]). `kok` yoksa/kanonikse tablo AYNEN doner."""
+    if not kok:
+        return SEKILLER
+    kok = os.path.normpath(kok)
+    if kok == KANONIK_KOK:
+        return SEKILLER
+    return tuple(
+        Sekil(s.etiket, _yeniden_kokle(s.arac, kok),
+              konumlar=tuple(_yeniden_kokle(k, kok) for k in s.konumlar),
+              zorunlu=s.zorunlu, serbest=s.serbest, degerli=s.degerli,
+              ornek=s.ornek, repo_disi=s.repo_disi)
+        for s in SEKILLER
+    )
+
+
 # === 🔴 K344-B (28 AGU 2026) — TERS YON: ARAC -> KAYNAK =======================
 # OLCULEN ARIZA. K320 (ad ekseni) ve K258/K168 (cagri sekli ekseni) kapandiktan
 # SONRA da bir bosluk DURUYORDU ve nobetci onu GORMUYORDU:
@@ -320,12 +448,52 @@ def _deger_guvenli(deger):
     return True
 
 
-def eslesen_sekil(argumanlar, coz, cwd):
+# === 🔴 10 EYL 2026 — IKINCI EKSEN: KABUK YONLENDIRME EKI ====================
+# OLCULEN ARIZA (ANA oturumda, EV EKSENINDEN AYRI — ayni dosyada yasayan IKINCI
+# kor nokta; tek yama ikisini birden kapatmaz):
+#   `python3 tools/defter-rotasyon.py --tavan-kaynaktan`        -> GECTI
+#   `python3 tools/defter-rotasyon.py --tavan-kaynaktan 2>&1`   -> RED
+# Yani serbest listede BIREBIR yazili olan komut, kabuk yonlendirme eki yuzunden
+# reddediliyordu.
+#
+# MEKANIZMA (tahmin degil — `segmentlere_ayir` + `parcala` ile OLCULDU):
+# kapinin segmentleyicisi '&' uzerinden boler, bu yuzden `... --tavan-kaynaktan 2>&1`
+# IKI parcaya duser:  ['python3','tools/defter-rotasyon.py','--tavan-kaynaktan','2>']
+# ve yetim bir ['1'] segmenti. Yetim segment ZARARSIZ (olculdu: 'git status 2>&1',
+# '1' -> ALLOW). Suclu TEK sey, '-' ile baslamadigi icin KONUMSAL ARGUMAN sayilan
+# '2>' ARTIGIDIR: konum sayisi sismis olur ve sekil TAM ESITLIKTE duser.
+#
+# 🔴 KAPI DELINMEDI — NORMALIZE EDILEN KUME OLCUMLE SECILDI, TAHMINLE DEGIL:
+# yalnizca DOSYA ADI TASIMAYAN, SEGMENTIN SONUNDAKI fd-cogaltma artigi soyulur
+# ('2>&1' -> '2>' · '1>&2' -> '1>' · '>&2' -> '>'). Bunlar hicbir yere YAZMAZ.
+# Olculen ve BILEREK RED BIRAKILAN formlar:
+#   '2>/dev/null' -> tek token '2>/dev/null' (YOL tasir)      -> RED KALIR
+#   '> /tmp/x'    -> ['>', '/tmp/x'] ('>' SON token DEGIL)    -> RED KALIR
+#   '>/tmp/x'     -> tek token '>/tmp/x' (YOL tasir)          -> RED KALIR
+# '>' yonlendirme ve '$(...)' / '$VAR' yasaklari `tools/komut-stili-kapisi.py`nin
+# AYRI hukmudur ve DELINMEDI (o kapi '2>&1'i zaten muaf tutar: `(?<![0-9<>])>(?!&)\s`).
+_YONLENDIRME_ARTIGI = re.compile(r"^\d*>$")
+
+
+def yonlendirme_ekini_soy(argumanlar):
+    """SEGMENT SONUNDAKI fd-cogaltma artigini soyar. Baska HICBIR seyi soymaz.
+
+    Yalnizca SON token ve yalnizca `^\\d*>$` kalibi: dosya adi tasiyan hicbir
+    yonlendirme bu kalibi tutturamaz."""
+    if len(argumanlar) >= 2 and _YONLENDIRME_ARTIGI.match(argumanlar[-1]):
+        return argumanlar[:-1]
+    return argumanlar
+
+
+def eslesen_sekil(argumanlar, coz, cwd, kok=None):
     """python3 SONRASINDAKI tokenlari SEKILLERE karsi cozer.
 
     Doner: eslesen Sekil, yoksa None (fail-closed).
     `coz(yol, cwd)` cagirana aittir — yol cozumu IKINCI KEZ yazilmaz
     ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    `kok`: cagiran EVIN koku. Verilmezse tablo KANONIK evde kalir — yani
+    olculemeyen ev bugunku DAR davranisi alir, GENIS degil.
 
     Dizge eslemesi YAPILMAZ: arac ve konumlar COZULMUS MUTLAK yolla TAM ESITLIK
     ile karsilastirilir ([[n2b-kapisi-dizge-olcer]]). '=' li yazim (--tavan-sayi=130)
@@ -333,8 +501,11 @@ def eslesen_sekil(argumanlar, coz, cwd):
     """
     if not argumanlar:
         return None
+    argumanlar = yonlendirme_ekini_soy(list(argumanlar))
+    if not argumanlar:
+        return None
     arac_cozulmus = coz(argumanlar[0], cwd)
-    adaylar = [s for s in SEKILLER if s.arac == arac_cozulmus]
+    adaylar = [s for s in eve_gore(kok) if s.arac == arac_cozulmus]
     if not adaylar:
         return None
     for sekil in adaylar:
@@ -377,8 +548,15 @@ def _sekil_uyuyor(sekil, kalan, coz, cwd):
 
 
 # === TURETILMIS METINLER — HICBIR TUKETICI BUNLARI ELLE YAZMAZ ================
-def _kisa(yol):
-    """Mutlak yolu okunur kisa ada indirger (repo -> 'tools/x.py', cron -> '~/...')."""
+def _kisa(yol, kok=None):
+    """Mutlak yolu okunur kisa ada indirger (repo -> 'tools/x.py', cron -> '~/...').
+
+    `kok` verilirse O EVIN oneki de soyulur: ArTisT'in evinde metin
+    '/Users/okan/dev/pruvo-pazarlama/tools/...' degil 'tools/...' basar."""
+    if kok:
+        ev_oneki = os.path.normpath(kok).rstrip("/") + "/"
+        if yol.startswith(ev_oneki):
+            return yol[len(ev_oneki):]
     if yol.startswith(REPO_ONEKI):
         return yol[len(REPO_ONEKI):]
     if yol.startswith(CRON_ONEKI):
@@ -386,30 +564,37 @@ def _kisa(yol):
     return yol
 
 
-def sekil_metni(sekil):
+def sekil_metni(sekil, kok=None):
     """TEK bir seklin insan-okur cagri metni ('python3 tools/x.py A B [--f]')."""
-    parcalar = ["python3 " + _kisa(sekil.arac)]
-    parcalar.extend(_kisa(k) for k in sekil.konumlar)
+    parcalar = ["python3 " + _kisa(sekil.arac, kok)]
+    parcalar.extend(_kisa(k, kok) for k in sekil.konumlar)
     parcalar.extend(sorted(sekil.zorunlu))
     parcalar.extend("[" + b + "]" for b in sorted(sekil.serbest))
     parcalar.extend("[" + b + " <deger>]" for b in sorted(sekil.degerli))
     return " ".join(parcalar)
 
 
-def serbest_python_metni():
+def serbest_python_metni(kok=None):
     """RED metninde gecen SERBEST cagri listesi — SEKILLER'den TURETILIR.
 
     Bir sekil kumeden DUSERSE hem cagri REDDEDILIR hem de bu metinden DUSER; ikisi
-    ayni yapidan beslendigi icin AYRISAMAZLAR ([[kapi-red-metni-ikinci-kopyadir]])."""
-    return " · ".join("'" + sekil_metni(s) + "'" for s in SEKILLER)
+    ayni yapidan beslendigi icin AYRISAMAZLAR ([[kapi-red-metni-ikinci-kopyadir]]).
+
+    `kok`: KARAR hangi eve gore veriliyorsa METIN de o eve gore uretilir — ikisi
+    AYRI koke baglanirsa metin yine ikinci kopya olurdu."""
+    return " · ".join("'" + sekil_metni(s, kok) + "'" for s in eve_gore(kok))
 
 
-def cagri_ornegi(etiket):
+def cagri_ornegi(etiket, kok=None):
     """CARE satirlari icin CALISTIRILABILIR ornek komut (MUTLAK yollarla).
 
     `defter-kota-kapisi.py` bu fonksiyonu cagirir; CARE metnini ELLE YAZMAZ. Deger
-    alan bayraklar ornege GIRMEZ (degerleri cagri anina aittir)."""
-    sekil = SEKIL_ETIKETLERI[etiket]
+    alan bayraklar ornege GIRMEZ (degerleri cagri anina aittir).
+
+    `kok`: CARE, okuyanin KENDI evinde kosabilecegi bir komut basmali — kapinin
+    onerdigi carenin o evde REDDEDILMESI K319/K332 sinifidir
+    ([[kapi-red-metni-ikinci-kopyadir]])."""
+    sekil = {s.etiket: s for s in eve_gore(kok)}[etiket]
     parcalar = ["python3", sekil.arac]
     parcalar.extend(sekil.konumlar)
     parcalar.extend(b for b in sekil.ornek if b not in sekil.degerli)

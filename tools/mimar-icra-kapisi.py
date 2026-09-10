@@ -156,6 +156,10 @@ from mimar_kimlik import (
     EMEKLI_MOTOR_YASAK_MODELLER,
     EMEKLI_ISCI_MOTORLARI,
     ISCI_MOTORLARI,
+    # 🔴 Oturum damgasinin KANAL ADI ikinci kez YAZILMAZ: "transcript_path"
+    # dizgesini burada tekrar etmek, kanal degisince sessizce ayrisan bir ikiz
+    # olurdu ([[ikiz-tanim-sessiz-ayrisma]]).
+    ROL_KANALI,
     emekli_gerekcesi,
     emekli_motor_mu,
     kimlik_ekseni,
@@ -170,6 +174,39 @@ import serbest_cagrilar as SC
 
 REPO_ONEKI = "/Users/okan/dev/pruvo/"
 GIT_WORKTREE_KAYIT = "/Users/okan/dev/pruvo/.git/worktrees"
+
+# 🔴 YUKARIDAKI IKI SATIR `kapi_dagitim.py`nin CAPALARIDIR (CAPA_REPO / CAPA_WT) ve
+# BES EVIN shim'i onlari TAM BIR KEZ bulmak zorundadir; metinleri DEGISTIRILEMEZ
+# (degisirse bes ev birden fail-closed DENY'a duser — `kapi_dagitim.py:CAPA_KIRIK`).
+#
+# === 🔴 10 EYL 2026 — EV KOKU: SERBEST CAGRI TABLOSUNA HANGI EV VERILECEK =====
+# OLCULEN ARIZA: shim yukaridaki capayi eve ceviriyordu, ama `serbest_cagrilar`
+# KENDI icinde KraL'a civili ikinci bir kok tasiyordu ve 248-254 satirlari o
+# civili degerlerle shim'in dogru cevirdigini GERI ALIYORDU. Sonuc: ArTisT ve
+# TeKiN evlerinde defter rotasyonu UC TURDUR kapida REDDEDILDI (taban bu turda
+# kurulu shim'ler uzerinden kosuldu). Tam ders:
+# `tools/serbest_cagrilar.py` bas yorumu + [[tuketici-yazilirken-tum-okuyucular-sayilir]].
+EV_KOKU_CAPASI = os.path.normpath(REPO_ONEKI)
+
+
+def ev_koku(girdi=None):
+    """Bu cagrinin ait oldugu EV KOKU — SABIT DEGIL, TURETILIR.
+
+    1) OTURUM DAMGASI (`transcript_path`) — BaBa'nin civiledigi kanal. Oturum
+       ACILIRKEN yazilir; `cd <ev>` onu oynatamaz (ayni gerekce
+       `mimar_kimlik.rol_ekseni` bas yorumunda OLCULMUS halde durur).
+    2) Damga cozulemezse SHIM CAPASI (yukaridaki REPO_ONEKI) — her evin kendi
+       shim'i bunu kendi kokune cevirir.
+    Ikisi de olculemezse capa kalir: FAIL-CLOSED yon KANONIK ev, yani bugunku DAR
+    davranis ([[olculemedi-bypass-degil-menzil-daraltmasi]])."""
+    if girdi:
+        try:
+            damga = SC.ev_koku_turet(girdi.get(ROL_KANALI))
+            if damga:
+                return damga
+        except Exception:
+            pass
+    return EV_KOKU_CAPASI
 
 # 13 AGU Okan emri: KraL + MaCiT evlerinde Claude iscisi bir secenek degil, makine
 # kuralidir. Ev karari bu TEK kapali kumeden ve evin kendi REPO_ONEKI sabitinden cikar;
@@ -370,10 +407,15 @@ def _kapi_dagitim_muaf(ad, argumanlar, cwd):
 # `serbest_cagrilar.SEKILLER`de CAGRI SEKLI olarak yasar ve kararla RED METNI ayni
 # yapidan turer. Geriye uyum icin ayni bicimde bir GORUNUM turetilir — bu bir ikinci
 # tanim DEGIL, tek kaynagin okunmasidir (kaynaktan bir sekil duserse gorunum de duser).
-def _bakim_gorunumu():
-    """{arac_yolu: frozenset(bayraklar)} ve {arac_yolu: konumlar} — TUReTILMIS."""
+def _bakim_gorunumu(kok=None):
+    """{arac_yolu: frozenset(bayraklar)} ve {arac_yolu: konumlar} — TUReTILMIS.
+
+    🔴 10 EYL — `kok`: gorunum de EVE gore koklendirilir. Kanonik tabloyu HAM
+    okumak, bu dosyada ev ekseninin son KOR noktasi olurdu: kardes evde gorunum
+    KraL'in yollarini tasirdi ([[tuketici-yazilirken-tum-okuyucular-sayilir]]).
+    Kabul testi (`serbest-kume-ev-ekseni-test.py` :: E7) tam bunu olcer."""
     bayraklar, konumlar = {}, {}
-    for s in SC.SEKILLER:
+    for s in SC.eve_gore(kok):
         bayraklar[s.arac] = frozenset(bayraklar.get(s.arac, frozenset())) | s.tum_bayraklar
         # En COK konumsal argüman isteyen sekil kanonik gorunumdur.
         if s.arac not in konumlar or len(s.konumlar) > len(konumlar[s.arac]):
@@ -399,7 +441,7 @@ BEKCI_YOL = SC.CIP_BEKCI_YOL
 # yaziyordu; o kume `serbest_cagrilar.SEKILLER`de ZATEN duruyor (bekci-teslim-karari
 # + bekci-teslim-kaydet). Elle kopyayi birakmak, K343'un kendi gerekcesindeki
 # "ikinci elle kopya" tabanini geri acardi — bu yuzden kume artik TURETILIR.
-DEFTER_BAKIMI_BAYRAKLARI, DEFTER_BAKIMI_KONUMLARI = _bakim_gorunumu()
+DEFTER_BAKIMI_BAYRAKLARI, DEFTER_BAKIMI_KONUMLARI = _bakim_gorunumu(EV_KOKU_CAPASI)
 # FAIL-CLOSED: bekci sekli KAYNAKTAN DUSERSE kova BOS kalir (KeyError ile
 # COKMEZ) — cagri RED'e doner ve adi turetilmis metinden de duser. Mutant
 # bataryasi tam bu yolu olcer; cokme, "mutant ulasmadi"yi maskelerdi.
@@ -458,14 +500,14 @@ def _kisa(yol):
     return SC._kisa(yol)
 
 
-def serbest_python_metni():
+def serbest_python_metni(kok=None):
     """Mimar tarafinda SERBEST python cagrilarinin insan-okur listesi — TURETILMIS.
 
     Kaynak, `_py_izinli`nin okudugu yapinin TA KENDISIDIR: `serbest_cagrilar.SEKILLER`.
     Kaynaktan bir SEKIL DUSERSE hem cagri REDDEDILIR hem de bu metinden DUSER — ikisi
     ayni yapidan besleniyor, ayrisamazlar. 28 AGU: turetim artik ARAC ADIYLA degil
     CAGRI SEKLIYLE (bayraklar + konumsal argumanlar dahil) yapilir."""
-    return SC.serbest_python_metni()
+    return SC.serbest_python_metni(kok)
 
 
 def olcum_komut_metni():
@@ -1412,7 +1454,7 @@ def _agent_karari(girdi):
     ).format(gorulen=_agent_gorulen_sinif(prompt), liste=AGENT_SINIF_LISTESI)
 
 
-def _py_izinli(ad, argumanlar, cwd):
+def _py_izinli(ad, argumanlar, cwd, kok=None):
     """22 Tem — mimar tarafinda python/node ALLOWLIST'i. YALNIZ uc tam komut serbest:
         python3 tools/durum.py                          (baska argüman YOK)
         python3 tools/d1-sync.py --durum                (yalniz --durum)
@@ -1449,7 +1491,12 @@ def _py_izinli(ad, argumanlar, cwd):
     # SEKILLER tablosunda duruyor — bekci kolunun "flag degeri yol OLAMAZ"
     # korumasi dahil (`_deger_guvenli`). Zinciri YANINDA birakmak ikinci karar
     # kopyasi olurdu; kaldirildi, kural KAYBOLMADI.
-    sekil = SC.eslesen_sekil(argumanlar, _coz, cwd)
+    # 🔴 10 EYL — `kok`: karar CAGIRAN EVIN agacina gore verilir. Verilmezse tablo
+    # kanonik evde kalir (DAR taraf). Ayrica ayni cagri `2>&1` gibi bir kabuk
+    # yonlendirme EKI tasidiginda da eslesir; normalize edilen kume
+    # `serbest_cagrilar.yonlendirme_ekini_soy`da OLCUMLE daraltilmistir — dosya
+    # adi tasiyan hicbir yonlendirme oraya giremez.
+    sekil = SC.eslesen_sekil(argumanlar, _coz, cwd, kok=kok or EV_KOKU_CAPASI)
     if sekil is None:
         return False
     return True
@@ -1542,6 +1589,11 @@ def main():
     # Muhendis betigini kendi worktree'sine yazar — zaten kalici, gorunur ve denetlenebilir.
     # cwd yalnizca GORELI yolu cozmek icin kullanilir; muafiyet vermez.
     cwd = girdi.get("cwd") or REPO_ONEKI.rstrip("/")
+
+    # 🔴 10 EYL — EV KOKU oturum damgasindan TURETILIR (bkz. `ev_koku`). `cwd`
+    # BURADA DA muafiyet vermez: yalnizca goreli yolu cozmeye yarar, ev karari
+    # damgadan/capadan gelir — `cd <ev>` evi DEGISTIRMEZ.
+    ev_kok = ev_koku(girdi)
 
     # === 27 AGU 2026 (K318) — ROL EKSENI: ANA OTURUM mu, CIP/WORKTREE OTURUMU mu? ===
     # Gerekce ve olcum ekseninin TAMAMI mimar_kimlik.rol_ekseni'nin bas yorumundadir.
@@ -1654,7 +1706,7 @@ def main():
         # d1-sync.py --durum' allowlist'e ULASMADAN env yuzunden reddedilir.
         # sh/bash/ruby/perl/php/osascript BU kisitin DISINDA (asagida C/E2/F ile denetlenir).
         if PY_NODE.match(ad):
-            if _py_izinli(ad, argumanlar, cwd):
+            if _py_izinli(ad, argumanlar, cwd, kok=ev_kok):
                 continue
             # 27 AGU (K318): CIP'te ALLOWLIST atlanir — AMA SEGMENT KAPATILMAZ. Akis
             # bilerek asagi duser: C (satir-ici kod), R2 (argumanlarda repo DISI yol) ve
@@ -1665,7 +1717,10 @@ def main():
                 reddet(
                     "python3/node ile bir araç/test koşturuyorsun (" + ad + " " +
                     (" ".join(argumanlar[:3]))[:70] + "). Mimar tarafında SERBEST python "
-                    "çağrıları YALNIZ şunlar: " + serbest_python_metni() +
+                    # 🔴 METIN, KARARLA AYNI EVE baglanir: karar ArTisT'in agacina
+                    # gore verilip metin KraL'in yollarini basarsa metin yine ikinci
+                    # kopyadir ([[kapi-red-metni-ikinci-kopyadir]]).
+                    "çağrıları YALNIZ şunlar: " + serbest_python_metni(ev_kok) +
                     ". Parite/build/filament/node --check ... = İŞÇİNİN işi."
                 )
 
