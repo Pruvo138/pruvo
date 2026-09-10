@@ -112,43 +112,64 @@ def iddia_a(uicd):
 # =============================================================================
 # IDDIA (b) — AI IZNI ACIK ama motor HATA: adim basarisiz sayilir, urun DUSMEZ
 # =============================================================================
-# rc=0 + hata govdesi FIKSTURU: gercek CLI bu makinede rc=1 donuyor (9 Eyl olcumu),
-# ama rc TEK BASINA yargic olamaz. Bu fikstur tam olarak "rc yalan soyluyor" halini
-# kurar ve icerik kolunun tuttugunu olcer.
-class _SahteKosum(object):
-    def __init__(self, rc, stdout, stderr):
-        self.returncode, self.stdout, self.stderr = rc, stdout, stderr
-
-
+# "DURUM YALAN SOYLUYOR" FIKSTURU (10 Eyl 2026 portu ile TASINDI).
+# Hat emekli CLI alt surecinden CANLI ucun HTTP cagrisina gecti; dolayisiyla kol-1
+# artik `rc` degil HTTP DURUM KODU. Fikstur de o dikise tasindi — ESKI dikiste
+# (`subprocess.run`) birakilsaydi sahte HIC CAGRILMAZ, test YESIL yanar ve K398
+# hicbir sey olcmezdi ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
+# Kurulan hal: uc 200 doner + semali arac blogu doner (yani cikti YAZILIR) AMA
+# govdede API hatasi vardir -> kol-1 ve kol-2 IKISI DE yaniltilir, yalniz kol-3 tutar.
 HATA_GOVDESI = ('ERROR: {"type":"error","status":400,"error":{"type":'
                 '"invalid_request_error","message":"model not supported"}}')
 
+# Uc ayari SAHTELENIR: gercek uc tablosu KOSUCUNUN DISKINDE olabilir de olmayabilir
+# de; testin hukmu makineye baglanmamali
+# ([[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]]).
+SAHTE_UC = ("https://ornek.gecersiz/anthropic", "/yok/boyle/bir/anahtar", "SAHTE-MODEL")
+
+# 🔴 YUK SEMA-GECERLI OLMALI. Eksik alanli bir yuk yerel sema dogrulayicida takilir,
+# cikti HIC yazilmaz ve vakayi kol-2 kapatir -> kol-3 sokuldugunde (M2) vaka yine
+# yesil kalir, yani mutant HEDEFINE ULASSA BILE baska bir kol onu ORTER
+# ([[fail-closed-kol-arkasindaki-kolu-maskeler]]). Gecerli yuk kol-2'yi KOR birakir.
+SEMA_GECERLI_YUK = {"sec_gorseller": ["g1.jpg"], "elenen": [], "baslik": "sahte",
+                    "aciklama": "sahte aciklama", "kategori": "Otomobil", "marka": [],
+                    "fiyat_oneri": "300 TL", "not": "sahte"}
+
 
 def iddia_b(uicd, tc):
-    # b1: thing-icerik.py'nin ICERIK KOLU — rc=0 + hata govdesi -> BASARISIZ
-    _chk("(b1) hata_govdesi() rc'ye BAKMADAN hata govdesini gorur",
+    # b1: thing-icerik.py'nin ICERIK KOLU — durum=200 + hata govdesi -> BASARISIZ
+    _chk("(b1) hata_govdesi() durum koduna BAKMADAN hata govdesini gorur",
          tc.hata_govdesi("", HATA_GOVDESI) is not None)
     _chk("(b1) temiz ciktida hata govdesi GORMEZ (yanlis-pozitif yok)",
          tc.hata_govdesi("hepsi yolunda", "") is None)
+    # PORT KOLU: ucun BASARILI yaniti `"status_code":0` tasir — genisletilmis desen
+    # bunu hata sanmamali; SIFIR OLMAYAN ic-bant kodu ise YAKALAMALI.
+    _chk("(b1) basarili yanittaki status_code=0 hata SAYILMAZ",
+         tc.hata_govdesi('{"content":[],"base_resp":{"status_code":0}}', "") is None)
+    _chk("(b1) IC-BANT sifir-olmayan status_code hata SAYILIR (200 ile gelse bile)",
+         tc.hata_govdesi('{"content":[],"base_resp":{"status_code":1004}}', "") is not None)
 
     tmp = tempfile.mkdtemp(prefix="uicd-k398-")
     try:
         cikti = os.path.join(tmp, "oneri.json")
-        gercek_run = tc.subprocess.run
+        gercek_istek, gercek_ayar = tc._uc_istek, tc._uc_ayari
 
-        def sahte_run(cmd, **kw):
-            # Motor "basarili" bir rc doner AMA hata govdesi basar ve (senaryo geregi)
-            # cikti dosyasi da yazilmis olur -> eski iki kol (rc + varlik) YANILIR.
-            with open(cikti, "w", encoding="utf-8") as f:
-                json.dump({"baslik": "sahte"}, f)
-            return _SahteKosum(0, "", HATA_GOVDESI)
+        def sahte_istek(govde):
+            # Uc "200 OK" doner, ustelik SEMALI arac blogu da doner (-> cikti YAZILIR),
+            # AMA govdede API hatasi vardir. Boylece kol-1 (durum) ve kol-2 (varlik)
+            # IKISI DE yanilir; yalniz kol-3 (hata govdesi) tutabilir.
+            return 200, json.dumps({
+                "content": [{"type": "tool_use", "name": tc.ARAC_ADI,
+                             "input": SEMA_GECERLI_YUK}],
+                "error": {"type": "invalid_request_error",
+                          "message": "model not supported"}})
 
-        tc.subprocess.run = sahte_run
+        tc._uc_istek, tc._uc_ayari = sahte_istek, (lambda: SAHTE_UC)
         try:
-            ok, hata = tc.emekli_motor_cagir("p", [], cikti)
+            ok, hata = tc.motor_cagir("p", [], cikti)
         finally:
-            tc.subprocess.run = gercek_run
-        _chk("(b1) rc=0 + hata govdesi -> emekli_motor_cagir BASARISIZ", ok is False,
+            tc._uc_istek, tc._uc_ayari = gercek_istek, gercek_ayar
+        _chk("(b1) durum=200 + hata govdesi -> motor_cagir BASARISIZ", ok is False,
              "ok=%r" % ok)
         _chk("(b1) hata metni API govdesini ADIYLA tasir",
              "invalid_request_error" in (hata or ""), repr(hata)[:120])
@@ -283,10 +304,10 @@ MUTANTLAR = [
      True,
      "iddia (a)+(b2): yedek yolu kesilirse urun YINE DUSER — hattin tek-bacakliligi geri gelir"),
     ("M2 K398 icerik kolu SOKULDU", "thing-icerik.py",
-     "if r.returncode == 0 and os.path.exists(cikti_yolu) and govde is None:",
-     "if r.returncode == 0 and os.path.exists(cikti_yolu):",
+     "if durum == 200 and os.path.exists(cikti_yolu) and govde is None:",
+     "if durum == 200 and os.path.exists(cikti_yolu):",
      True,
-     "iddia (b1): rc yalan soylerken hata govdesi SESSIZCE basarili sayilir (fail-open)"),
+     "iddia (b1): durum yalan soylerken hata govdesi SESSIZCE basarili sayilir (fail-open)"),
     ("M3 OLCU CAPASI SOKULDU", "urun_icerik_det.py",
      "        satirlar.append(OLCU_CAPA %",
      "        [].append(OLCU_CAPA %",

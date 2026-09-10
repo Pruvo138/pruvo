@@ -117,7 +117,7 @@ def test_process_uctan_uca():
         json.dump({"baslik": "Test Parca", "tasarimci": "x", "lisans": "CC BY", "olcu_mm": [10, 20, 30]}, f)
 
     # emekli motor() stub: gercek emekli motor CAGIRMADAN, gonderilen ilk MAX_IMG gorselden secim yazar
-    def sahte_emekli_motor(prompt, imgler, cikti_yolu):
+    def sahte_motor(prompt, imgler, cikti_yolu):
         adlar = [os.path.basename(p) for p in imgler]  # process yalniz cap kadarini yollamali
         out = {"sec_gorseller": adlar[:3],
                "elenen": [{"dosya": adlar[3], "neden": "duplike"}] if len(adlar) > 3 else [],
@@ -127,14 +127,14 @@ def test_process_uctan_uca():
             json.dump(out, fh, ensure_ascii=False)
         return True, ""
 
-    orij_root, orij_emekli = tc.IMGROOT, tc.emekli_motor_cagir
+    orij_root, orij_emekli = tc.IMGROOT, tc.motor_cagir
     tc.IMGROOT = tmp
-    tc.emekli_motor_cagir = sahte_emekli_motor
+    tc.motor_cagir = sahte_motor
     try:
         tc.process(tid)
         out = json.load(open(os.path.join(d, "oneri.json")))
     finally:
-        tc.IMGROOT, tc.emekli_motor_cagir = orij_root, orij_emekli
+        tc.IMGROOT, tc.motor_cagir = orij_root, orij_emekli
 
     galeri = ["g%d.jpg" % i for i in range(1, 9)]
     # stub gonderilen gorsel sayisini adlar uzunlugundan gorur -> process MAX_IMG(8) yolladiysa
