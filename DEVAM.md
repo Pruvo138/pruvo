@@ -6,7 +6,8 @@
 ## ✅ 10 EYL — ana oturum-7: **3 dal MAIN'DE (K399·K400·K401), yayin INDI** — TAM METIN `DEVAM-ARSIV.md` (baslik "10 EYL ana oturum-7")
 - **EV** `7d252327`→`784b9118` (4 merge + defter) · **YAYIN** run `34459542017` (`2f1f9ed7`) `deploy`+`yayin` success **SKIPPED=0** · **D1** 6 eksen yesil (36568) · kapilar MERGE'LENMIS agacta kosuldu (K399+K400 ayni urun-ekleme hattinda, birlikte hic olculmemisti): `duzelt-toplu-test` 299/299 · `--mutasyon` MUTANT=8 KIRMIZI=0 · `ci-kapsam-test` YESIL.
 - 🔴 **kapi-envanteri 5/8 hukmu IKIYE AYRISTI** — BaBa'nin 6 Eyl "ucu de KURULU, kirmizi SAHTE" hukmu YARIM: bir kapida kirmizi SAHTE, iki kapida **GERCEK**; yapilandirma okumasi + davranissal prob AYNI sonucu verdi. Olcum, mekanizma ve sonuc TAM METIN `DEVAM-ARSIV.md`'de (E5: govde izlenen belgeye YAZILMAZ). **Hukum BaBa'da.**
-- 🔧 **ACIK:** ① **ArTisT → KraL (YENI):** GEO Dalga 1 icerigi hazir, FAQPage schema/SSS karari+icrasi BENDE · ② ✅ ad nobetcisi KAPANDI (cip dali merge; `IHLAL=0 CAPA_DUSEN=0`, test 5/5); K401'in "merge kapatir" oncusu yine de CURUDU — iki ihlal de main'de ZATEN vardi · ③ YEDEK `ardisik=0` ama kronik MASKELENDI (ozne MaCiT; K338: beyan anahtari dosya ADI ekseninde) · ④+⑤ `gecmis-nobeti` kancasi KURULU DEGIL · `MEMORY.md` 19.691 B > 16.384 (ikisi de arsiv blogunda).
+- 🔧 **ACIK:** ① ArTisT'in GEO Dalga 1 / FAQPage kalemi BENDE (cipte) · ③ YEDEK `ardisik=0` ama kronik MASKELENDI (ozne MaCiT; K338: beyan anahtari dosya ADI ekseninde) · ④ `gecmis-nobeti` kancasi KURULU DEGIL · ⑤ worktree 3/2 INDIRILEMEDI: iki agacta da CANLI (`lsof` PID) ya da locked oturum var, silmek canli isi keserdi.
+- 🔧 **CIPTE (3):** `KraL-KabloOnarim-10Eyl` (BaBa 15:0x kablo hukmu, bu ev) · `KraL-SSSSchema-10Eyl` (ArTisT GEO Dalga 1 → FAQPage) · BaBa'nin `BaBa-TamirciPrompt-10Eyl` icra cipi (`task_cc6690d8`) PANELDE — mukerrer ACMADIM.
 
 ## ✅ 9 EYL — ana oturum-3: **temizlik + K391 KILIDI ACILDI (filo commit kilidi kalkti)**
 - 🔧 **TOHUM KAPSAM (10 Eyl):** canli 11 ev, tohum 8 → eksik 3 (`OteL`·`EyLüL`·`eLiF`; eLiF'in `OteLLa`si YANLIS ad). F8 `OLCULEMEDI` (kota RED). Spec+kabul KUTUDA.
@@ -31,7 +32,7 @@
 - **K383 `satir_soru` YUZEYI ERISILEMEZ:** link `prova=="kapali"` ister, katalogdaki 16/16 konfigur urun canlida `acik`. K89 "3 yuzey" sayimi SISIK, dogrusu **2 olculdu + 1 erisilemez**. Kabul: canli Worker'in non-200 dondugu konfigur satir (OKAN KAPISI).
 - **K384 `kisisel-veri-test.py` bir beyani yanlis basiyor** — TAM METIN + kabul olcutu: `DEVAM-ARSIV.md`, baslik `K384 — 8 Eyl 2026` (govde izlenen belgeye YAZILMAZ, E5).
 
-## 🔁 6 EYL KAPI-ENVANTERI ISARETCI — **TAM METIN `DEVAM-ARSIV.md`'de** (md5 birebir). 🔴 BENIM `5/8` HUKMUM BaBa'NIN 6 Eyl 15:1xZ HUKMUYLE CURUDU: uc kapi da KURULU, kirmizi SAHTE — kusur `kapi-envanteri.py`'nin OKUMA DUZLEMINDE; `R_YOL` bagi koparilip batarya SERIT B'ye baglanacak (BaBa 6 Eyl ~17:0x ONAYI, KraL kalemi).
+## 🔁 6 EYL KAPI-ENVANTERI ISARETCI — TAM METIN `DEVAM-ARSIV.md`'de. 🔴 **10 EYL DUZELTMESI: "ucu de KURULU, kirmizi SAHTE" hukmu YARIM cikti** (ust blok) — biri sahte, ikisi GERCEK. `R_YOL` bagi + SERIT B kalemi ACIK.
 
 ## 🔁 5-6 EYL ISARETCILERI — **TAM METIN ARSIVDE** (md5 birebir, eksik 0). ACIK iplikler: MODEL adindan marka turetimi · hafiza ekseni SILAHSIZ · baglam kotasi 2 vaka · `d1-sync --durum` 71,2 sn · MaCiT CLAUDE.md 13.060 B · `defter-rotasyon.py` 13/13 vetolu · MaCiT `Kahve` 79 kayit · LCP ArTisT'te (Okan'a: PSI anahtari).
 ## 🔴 CANLI TALIMAT (K353 blogu ARSIVE indi, tam metin `DEVAM-ARSIV.md`'de)
