@@ -182,10 +182,17 @@ def stls(tid, uidhint):
 
 
 def main(ids):
+    # rc SOZLESMESI (K400): rc=0 <=> istenen HER id icin meta.json diskte.
+    # Bu listeye giren id, cagirana (urun-ekle.py) rc!=0 olarak bildirilir.
+    basarisiz = []
     for tid in ids:
         try: t = json.loads(api("https://api.thingiverse.com/things/%s" % tid))
         except Exception as e:
-            print("=== %s === HATA: %s" % (tid, e)); continue
+            # stderr'e DE bas: cagiran capture_output ile stdout'u ayirir; ariza adi
+            # stderr bacaginda kalmali (yoksa "meta uretmedi" der, NEDENI kaybolur).
+            sys.stderr.write("=== %s === HATA: API: %s: %s\n" % (tid, type(e).__name__, e))
+            print("=== %s === HATA: %s" % (tid, e))
+            basarisiz.append(tid); continue
         name = t.get("name", "").replace("\n", " ")
         des = (t.get("creator") or {}).get("name", "?")
         lic = t.get("license", "?")
@@ -207,13 +214,33 @@ def main(ids):
                 "olcu_mm": [round(x) for x in dim] if dim else None, "stl_adet": cnt,
                 "gorseller": [os.path.basename(p) for p in imgs],
                 "baski": bi.baski_ipucu(t.get("description"))}
+        # 🔴 FAIL-OPEN KAPATILDI (10 Eyl 2026, K400). Eski hal:
+        #     try: json.dump(...)
+        #     except Exception: pass
+        # Yazim DUSERSE sessizce yutuluyordu. TEK tuketici `urun-ekle.py:process_one`
+        # dosyanin VARLIGINA bakip "HATA: hazirla meta.json uretmedi" diyordu -> arizanin
+        # ADI (izin mi, disk mi, kodlama mi) HICBIR YERE yazilmiyordu. Artik istisna
+        # SINIFI + mesaj + YOL stderr'e basilir ve id BASARISIZ sayilir (rc!=0).
+        # Yazim ATOMIK: once .tmp, sonra os.replace -> yarim/bozuk meta.json kalmaz
+        # (tuketici json.load ile patlardi).
+        mp = os.path.join(IMGROOT, tid, "meta.json")
         try:
-            json.dump(meta, open(os.path.join(IMGROOT, tid, "meta.json"), "w"), ensure_ascii=False)
-        except Exception: pass
+            tmp = mp + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(meta, f, ensure_ascii=False)
+            os.replace(tmp, mp)
+        except Exception as e:
+            sys.stderr.write("=== %s === HATA: meta.json YAZILAMADI (%s: %s) -> %s\n"
+                             % (tid, type(e).__name__, e, mp))
+            basarisiz.append(tid)
         print()
+    return basarisiz
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Kullanim: python3 tools/thing-hazirla.py <thing_id> [<thing_id> ...]"); sys.exit(1)
-    main(sys.argv[1:])
+    _basarisiz = main(sys.argv[1:])
+    if _basarisiz:
+        sys.stderr.write("HAL=META-YAZILAMADI id=%s\n" % ",".join(_basarisiz))
+        sys.exit(1)
