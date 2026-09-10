@@ -8,7 +8,7 @@
 **Acilis:** `.ci-token` CANLI (BaBa tazeledi, rc=0) · `RUTIN once=2 sonra=2 kurulan=0 zaten=2` · ev `762018ff`=origin/main · agac 0 · worktree 4→2 (`elastic-chatterjee` lsof BOS = CANLI DEGIL, pozitif kontrol ana agacta 13 PID; `sleepy-newton` HEAD main'de = ARTIK).
 **MERGE BEKLEYEN:** `claude/kind-wilbur-927c58` `28a6311c` (SSS/FAQPage) — agaci YOK, main'de DEGIL (olculdu).
 **BaBa 23:2x → KraL 4 kalem:** ① `kurtarma/stash-8agu` dali SILINDI (tek fark yasakli numara, uzak kopya 0) ✅ · ② GA4 spec kutuda DEGIL ARSIVDE (`72392-72400`), cip o metinle zenginlestirildi ✅ · ③ `serbest_cagrilar.py:38 REPO_ONEKI` SINIF kapisi → cip `task_f9945d05` · ④ K399 kabul: urun **3/3** · mutant **4/4 oldu** · merge `2f1f9ed7` ✅
-**Okan'da bekleyen:** yok. Deploy = Okan kapisi.
+**Okan'da bekleyen:** 🔴 HESAP (1b): browsers=[] · artifact `5fd3d64c` burada "mine" → ESKI KIMLIK SUPHESI; artifact yayini YOK. Deploy = Okan kapisi.
 🔴 **KISIT:** kapi KABLOLU, merge dogrulamasi cipe gider · `2>&1` eki de RED (serbest komut CIPLAK kosulur) · defter rotasyonu yer ACAMAZ (`KAPALI=0`, 35 madde ACIK = arac DOGRU no-op) · `kutu-arsivle --sha-dogrula` TASIMA ONCESI kosulursa fail-closed her blogu eksik sayar, yazmaz.
 
 ## ✅ 10 EYL ana oturum-7 — 5 dal main'de, yayin indi, kapi kablosu ONARILDI. TAM METIN `DEVAM-ARSIV.md` + kutu (E5)
