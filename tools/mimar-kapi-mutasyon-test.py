@@ -46,9 +46,13 @@ KAPI_DOSYALARI = (
     # `taban_kirmizisi()` icinde COKTU. Sonuc: 29 Agu'dan 11 Eyl'e kadar batarya
     # **0 MUTANT** kosturdu ama "var" gorundu — yesil yanan olu test = yalan (BaBa).
     # OLCUM: capasi silinen dosyada olan mutant SADECE 2'ydi (M14, N1 — ikisi de
-    # kaldirildi); geri kalan **63 mutant** bu iki bayat satir yuzunden HIC kosmadi.
+    # kaldirildi; MUTASYONLAR 63 -> 61). Geri kalan **61 normal + 3 sert = 64 kalem**
+    # bu iki bayat satir yuzunden HIC kosmadi.
     # Bu yuzden karar SIL degil ONAR oldu: batarya `mimar-icra-kapisi.py` +
     # `mimar-kilit-test.py` gibi CANLI ve HALEN ZORLAYAN kapilari olcuyor.
+    # DIRILTME SONRASI ILK KOSUM (11 Eyl): kalem 64 · saglam ankraj 63 · BAYAT ankraj 1
+    # (ME2) · TABAN kirmizi 10 · esigi tutturamayan 15 · rc=1. Bu 15 kalem BUGUN
+    # olusmadi — 29 Agu'dan beri OLCULMUYORDU; batarya artik onlari ADIYLA basiyor.
     "mimar-kilit-test.py",
     # `mimar-kilit-test.py` bu modulu YANINDAN yukler (sys.path[0] = mutant dizini).
     # Kopyalanmazsa her mutant kosumu ImportError ile coker ve batarya hukumsuz kalir.
