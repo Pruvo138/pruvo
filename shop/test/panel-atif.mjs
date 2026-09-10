@@ -57,12 +57,17 @@ function dilimAl(metin, baslangic, bitis) {
 /** SAYFA_HTML bir sablon dizesidir: `\\'` tarayiciya `\'` gider — vm icin cozulur. */
 function sablonCoz(s) { return s.replace(/\\\\/g, "\\"); }
 
-// 🔴 NEGATIF CAPALAR — UYDURMA degerler. Bu uc alan panele/JSON'a HIC girmemeli.
+// 🔴 NEGATIF CAPALAR — UYDURMA degerler. Bu DORT alan panele/JSON'a HIC girmemeli.
 const FBP = "fb.1.9999999999999.1234567890";
 const FBC = "fb.1.9999999999999.SAHTE-CLICK-ID";
 const GA_CID = "GA1.1.9999999999.8888888888";
+// 10 Eyl 2026 (K389): GA4 oturum kimligi. siparisler.atif'e YAZILIR (MP atfi icin) ama
+// panelde operasyonel degeri YOKTUR ve kisiye baglanir -> ga_client_id ile AYNI SINIF.
+// ⚠️ Deger BU DOSYADAKI diger fiksturlerin ALT DIZESI OLAMAZ: ilk denemede "7777777777"
+// secilmisti ve utm_id "17777777777" icinde gectigi icin negatif capa SAHTE KIRMIZI verdi.
+const GA_SID = "1690909091";
 const ATIF_TAM = JSON.stringify({
-  ga_client_id: GA_CID, fbp: FBP, fbc: FBC,
+  ga_client_id: GA_CID, ga_session_id: GA_SID, fbp: FBP, fbc: FBC,
   utm_source: "google", utm_medium: "cpc", utm_campaign: "yaz-kampanyasi",
   utm_id: "17777777777", ref: "REF:GS-BK-9Z3Q",
 });
@@ -150,13 +155,19 @@ ol("A10 atifAlanlari() POZITIF beyaz-liste: yalniz utm_*/ref gecer",
 ol("A10a beyaz-liste FAIL-CLOSED: atfa yeni bir alan girerse OTOMATIK BASILMAZ",
   Object.keys(atifAlanlari('{"yeni_reklam_kimligi":"XYZ","utm_source":"g"}')).join(",")
     === "utm_source");
-ol("A10b BASILMAYAN_ATIF_ALANLARI uc adi da beyan ediyor (belge capasi)",
-  BASILMAYAN_ATIF_ALANLARI.join(",") === "ga_client_id,fbp,fbc");
+// 🔴 10 Eyl 2026 (K389): liste UCTEN DORDE cikti — `ga_session_id` GA4 oturum atfi icin
+// siparisler.atif'e yaziliyor ve ga_client_id ile AYNI GIZLILIK SINIFI. Capa listeyi
+// BIREBIR sabitler: yeni bir kimlik alani eklenip gizlilik karari VERILMEDEN gecemez.
+ol("A10b BASILMAYAN_ATIF_ALANLARI dort adi da beyan ediyor (belge capasi)",
+  BASILMAYAN_ATIF_ALANLARI.join(",") === "ga_client_id,ga_session_id,fbp,fbc",
+  BASILMAYAN_ATIF_ALANLARI.join(","));
 
-// 🔴 NEGATIF — kaynakOzeti() ciktisinda uc yasak ad AYRI AYRI aranir.
+// 🔴 NEGATIF — kaynakOzeti() ciktisinda dort yasak ad AYRI AYRI aranir.
 const OZET_TAM = JSON.stringify(kaynakOzeti("site", ATIF_TAM));
 ol("A11 kaynakOzeti ciktisinda 'ga_client_id' ADI da DEGERI de YOK",
   OZET_TAM.indexOf("ga_client_id") < 0 && OZET_TAM.indexOf(GA_CID) < 0, OZET_TAM);
+ol("A11c kaynakOzeti ciktisinda 'ga_session_id' ADI da DEGERI de YOK",
+  OZET_TAM.indexOf("ga_session_id") < 0 && OZET_TAM.indexOf(GA_SID) < 0, OZET_TAM);
 ol("A11a kaynakOzeti ciktisinda 'fbp' ADI da DEGERI de YOK",
   OZET_TAM.indexOf("fbp") < 0 && OZET_TAM.indexOf(FBP) < 0, OZET_TAM);
 ol("A11b kaynakOzeti ciktisinda 'fbc' ADI da DEGERI de YOK",
@@ -258,10 +269,12 @@ ol("Bd  kanal kolonu YOKKEN kart 'kanal ölçülemedi' der (site DEMEZ)",
   kKanalsiz.indexOf(KOVA_ETIKET[KOVA_KANAL_OLCULEMEDI]) > 0 &&
   kKanalsiz.indexOf(KOVA_ETIKET[KOVA_SITE_UCRETLI]) < 0, kKanalsiz.slice(0, 400));
 
-// VAKA d — 🔴 NEGATIF: uc yasak ad panelde HIC GECMEZ (ayri ayri, her kartta)
+// VAKA d — 🔴 NEGATIF: dort yasak ad panelde HIC GECMEZ (ayri ayri, her kartta)
 const TUM_KARTLAR = [kAtifli, kAtifsiz, kWa, kKanalsiz].join("\n");
 ol("Bd1 NEGATIF: 'ga_client_id' panel ciktisinda HIC gecmiyor (ad ve deger)",
   TUM_KARTLAR.indexOf("ga_client_id") < 0 && TUM_KARTLAR.indexOf(GA_CID) < 0);
+ol("Bd1b NEGATIF: 'ga_session_id' panel ciktisinda HIC gecmiyor (ad ve deger)",
+  TUM_KARTLAR.indexOf("ga_session_id") < 0 && TUM_KARTLAR.indexOf(GA_SID) < 0);
 ol("Bd2 NEGATIF: 'fbp' panel ciktisinda HIC gecmiyor (ad ve deger)",
   TUM_KARTLAR.indexOf("fbp") < 0 && TUM_KARTLAR.indexOf(FBP) < 0);
 ol("Bd3 NEGATIF: 'fbc' panel ciktisinda HIC gecmiyor (ad ve deger)",

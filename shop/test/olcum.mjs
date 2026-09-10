@@ -94,6 +94,11 @@ import {
   satinAlmaOlayi, metaGovdesi, ga4Govdesi, metaGonder, ga4Gonder, olcumGonder, kurusTRY,
   feedId,
 } from "../src/olcum.js";
+// T29 gizlilik kolu: ga_session_id'nin panel/rapor yuzeyine CIKMADIGI ayni TEK KAYNAKTAN
+// (kanal-sinif.mjs beyaz-listeleri) olculur — ikinci bir sozluk yazilmaz.
+import {
+  BASILMAYAN_ATIF_ALANLARI, GORUNUR_ATIF_ALANLARI, kaynakOzeti,
+} from "../src/kanal-sinif.mjs";
 // kabul.js'in kullandigi FAIL-CLOSED olcum kapisi (CJS) — burada birim testi yapilir (T21).
 import kapiModulu from "./olcum-kapisi.cjs";
 const { olcumKapisi } = kapiModulu;
@@ -1372,6 +1377,10 @@ async function refBaslat(mod, atif) {
 /** index.js'in KAYNAK METNI mutasyonlanip AYRI modul ornegi olarak yuklenir (M-mutasyonu).
  *  Gecici dizin shop/ ALTINDA ayni derinlikte durur; ../config.json + ../../secenekler.js
  *  gercek dosyalara cozulur. Depo dosyasi DEGISMEZ. */
+/* 🔴 SAYAC (10 Eyl 2026, K389): dizin adi ONCE yalniz `process.pid` tasiyordu — IKINCI bir
+   mutant AYNI yola yazilinca ESM modul onbellegi ilk mutanti geri veriyordu ve ikinci
+   mutant HIC KOSMUYORDU (capa degisse bile). Her cagri artik KENDI dizinini alir. */
+let refMutantSayac = 0;
 async function refMutantYukle(capa, yerine) {
   const fs = await import("node:fs");
   const path = await import("node:path");
@@ -1380,7 +1389,8 @@ async function refMutantYukle(capa, yerine) {
   const SRC_D = path.join(SHOP_D, "src");
   const kaynak = fs.readFileSync(path.join(SRC_D, "index.js"), "utf8");
   if (kaynak.split(capa).length !== 2) { return { capaYok: true }; }
-  const temp = path.join(SHOP_D, "src-ref-mut-" + process.pid);
+  refMutantSayac += 1;
+  const temp = path.join(SHOP_D, "src-ref-mut-" + process.pid + "-" + refMutantSayac);
   fs.rmSync(temp, { recursive: true, force: true });
   fs.mkdirSync(temp, { recursive: true });
   for (const ad of fs.readdirSync(SRC_D)) {
@@ -1455,9 +1465,228 @@ async function test28() {
   }
 }
 
+// ---- 29) 🔴 GA4 OTURUM ATFI (session_id) — "Unassigned" KANALININ KOK NEDENI ----
+/* OLCULEN ARIZA (GA4 Kesfet, iki bagimsiz pencere): son 14 gunun 19 Isleminin 19'u + onceki
+ * 14 gunun 6'sinin 6'si "Unassigned"; Organic 0 · Paid 0 · Direct 0.
+ * 🔴 KOK NEDEN UTM EKSIKLIGI DEGIL — source/medium/campaign params'a ZATEN yaziliyordu.
+ * GA4 bir Measurement Protocol olayini VAR OLAN oturuma YALNIZ `session_id` ile bagliyor;
+ * alan gelmeyince olayi kaynaksiz YENI bir oturum sayiyor ve kanal Unassigned oluyor.
+ * UTM gondermek TEK BASINA kurtarmaz; birlestiren alan budur.
+ *
+ * ZINCIR UC HALKALI, HER HALKA AYRI OLCULUR:
+ *   (1) index.html `_ga_<CONTAINER>` cerezinden okur, RIZA KAPISININ ARKASINDA
+ *       -> tools/riza-tikkimligi-test.js (A2b riza VAR / A6 riza YOK)
+ *   (2) shop/src/index.js POZITIF beyaz listeden gecirir — yoksa sunucuda SESSIZCE duser
+ *       -> 29e (+ mutant M5)
+ *   (3) shop/src/olcum.js MP govdesine session_id + engagement_time_msec basar
+ *       -> 29a/29b/29c (+ mutant M1/M2/M3)
+ * VE dusus SESSIZ OLAMAZ: eksik atif olayi DURDURMAZ (ciro kaybolmasin) ama ADIYLA
+ * sayilir -> 29f/29g/29h (+ mutant M4). */
+const OTURUM_ID = "1757500000";
+
+/** Mutant bataryasinin olctugu DORT iddia — canonik govdeyle de mutantla da AYNI kolla
+ *  kosar. Doner: [[ad, gecti_mi], ...] */
+async function ga4OturumIddialari(mod) {
+  const olay = satinAlmaOlayi(SIPARIS);
+  const atifTam = { ...JSON.parse(SIPARIS.atif), ga_session_id: OTURUM_ID };
+  const gVar = mod.ga4Govdesi({}, olay, atifTam);
+  const gYok = mod.ga4Govdesi({}, olay, { utm_source: "google" });
+  const env = { GA4_MEASUREMENT_ID: "G-TEST", GA4_API_SECRET: "SEC" };
+  const f = sahteFetch();
+  const log = logMetni(await logYakala(
+    () => mod.ga4Gonder(env, olay, { utm_source: "google" }, f, "kart")));
+  return [
+    ["29a session_id basiliyor", gVar.events[0].params.session_id === OTURUM_ID],
+    ["29b negatif kol: alan YOKKEN basilmiyor",
+      !Object.prototype.hasOwnProperty.call(gYok.events[0].params, "session_id")],
+    ["29c engagement_time_msec basiliyor", gVar.events[0].params.engagement_time_msec === 1],
+    ["29f sessiz-dusme sayaci 'yok' diyor", log.indexOf('"oturum_atfi":"yok"') >= 0],
+  ];
+}
+
+async function test29() {
+  const olay = satinAlmaOlayi(SIPARIS);
+  const atifTam = { ...JSON.parse(SIPARIS.atif), ga_session_id: OTURUM_ID };
+  const gVar = ga4Govdesi({}, olay, atifTam);
+  const gYok = ga4Govdesi({}, olay, { utm_source: "google" });
+
+  ol("29a atif.ga_session_id VARKEN params.session_id BASILIYOR",
+    gVar.events[0].params.session_id === OTURUM_ID, JSON.stringify(gVar.events[0].params));
+
+  // 🔴 NEGATIF KOL: alan yoksa bos string/undefined ile GONDERILMEZ. GA4 gecersiz bir
+  // session_id'yi yine YENI oturum sayar; "gonderdim" yanilsamasi uretmesin.
+  ol("29b atif.ga_session_id YOKKEN params'ta 'session_id' alani BULUNMUYOR",
+    !Object.prototype.hasOwnProperty.call(gYok.events[0].params, "session_id"),
+    JSON.stringify(gYok.events[0].params));
+
+  ol("29c params.engagement_time_msec BASILIYOR (GA4 ikisini BIRLIKTE ister)",
+    gVar.events[0].params.engagement_time_msec === 1);
+  ol("29c2 engagement_time_msec session_id YOKKEN de basiliyor (tek sarta bagli degil)",
+    gYok.events[0].params.engagement_time_msec === 1);
+
+  // Regresyon: UTM kolu AYNEN duruyor (29a-29c tek basina yeterli sanilmasin).
+  ol("29d UTM kolu bozulmadi (source/medium/campaign hala basiliyor)",
+    gVar.events[0].params.source === "google" && gVar.events[0].params.medium === "cpc" &&
+    gVar.events[0].params.campaign === "kirik-parca");
+
+  // ---- GIZLILIK (repo PUBLIC; ga_session_id ga_client_id/fbp/fbc ile AYNI SINIF) ----
+  ol("29g1 ga_session_id BASILMAYAN_ATIF_ALANLARI icinde (panele/rapora/JSON'a GIRMEZ)",
+    BASILMAYAN_ATIF_ALANLARI.indexOf("ga_session_id") >= 0,
+    BASILMAYAN_ATIF_ALANLARI.join(","));
+  ol("29g2 ga_session_id panel beyaz-listesinde (GORUNUR_ATIF_ALANLARI) DEGIL",
+    GORUNUR_ATIF_ALANLARI.indexOf("ga_session_id") < 0, GORUNUR_ATIF_ALANLARI.join(","));
+  ol("29g3 kaynakOzeti ciktisinda ga_session_id ADI da DEGERI de YOK",
+    (() => { const o = JSON.stringify(kaynakOzeti("site", { ...atifTam }));
+             return o.indexOf("ga_session_id") < 0 && o.indexOf(OTURUM_ID) < 0; })(),
+    JSON.stringify(kaynakOzeti("site", { ...atifTam })));
+  const metaMetin = JSON.stringify(metaGovdesi({ META_PIXEL_ID: "1" }, olay, atifTam, {}));
+  ol("29g4 ga_session_id META CAPI govdesine SIZMIYOR (GA4'e ozel alan)",
+    metaMetin.indexOf(OTURUM_ID) < 0 && metaMetin.indexOf("session_id") < 0, metaMetin);
+
+  // ---- SESSIZ DUSME YASAGI: eksik atif olayi DURDURMAZ ama ADIYLA sayilir ----
+  const env = { GA4_MEASUREMENT_ID: "G-TEST", GA4_API_SECRET: "SEC" };
+  const fYok = sahteFetch();
+  const logYok = logMetni(await logYakala(
+    () => ga4Gonder(env, olay, { utm_source: "google" }, fYok, "kart")));
+  ol("29f session_id YOKKEN dusus ADIYLA loglaniyor (oturum_atfi=yok)",
+    logYok.indexOf('"oturum_atfi":"yok"') >= 0, logYok);
+  ol("29f2 ...ve olay YINE GONDERILDI (ciro kaybolmuyor — dusus sessiz DEGIL, ENGEL de degil)",
+    fYok.cagrilar.length === 1, "cagri=" + fYok.cagrilar.length);
+
+  const fVar = sahteFetch();
+  const logVar = logMetni(await logYakala(() => ga4Gonder(env, olay, atifTam, fVar, "kart")));
+  ol("29f3 oturum_atfi=var basiliyor (29f tautoloji DEGIL — sayac iki yone de donuyor)",
+    logVar.indexOf('"oturum_atfi":"var"') >= 0, logVar);
+  ol("29f4 GIZLILIK: session_id DEGERI log satirina GIRMIYOR (yalniz 'var'/'yok')",
+    logVar.indexOf(OTURUM_ID) < 0, logVar);
+
+  // ---- IKINCI KOL: SENTETIK client_id fallback'i ADIYLA sayiliyor mu ----
+  // `atif.ga_client_id || (order_id + ".0")` — _ga cerezi yoksa GA4 icin GECMISSIZ, hic
+  // gorulmemis bir kullanici uretiliyor. Oran BUGUNE KADAR HIC OLCULMUYORDU; artik her
+  // GA4 log satiri kaynagini beyan eder (ileriye donuk olculebilir).
+  ol("29h client_id_kaynak=cerez (gercek _ga varken)",
+    logVar.indexOf('"client_id_kaynak":"cerez"') >= 0, logVar);
+  const fUyd = sahteFetch();
+  const logUyd = logMetni(await logYakala(() => ga4Gonder(env, olay, {}, fUyd, "kart")));
+  ol("29h2 client_id_kaynak=uydurma (sentetik fallback ADIYLA sayiliyor)",
+    logUyd.indexOf('"client_id_kaynak":"uydurma"') >= 0, logUyd);
+  ol("29h3 sentetik fallback GERCEKTEN uretildi (29h2 tautoloji degil)",
+    ga4Govdesi({}, olay, {}).client_id === SIPARIS.siparis_no + ".0");
+
+  // ---- HALKA (2): sunucu beyaz-listesi — yoksa alan D1'e HIC ULASMAZ ----
+  if (!indexModulu) { modulYok("29e SUNUCU BEYAZ-LISTESI (index.js)"); return; }
+  const r = await refBaslat(indexModulu, { ga_session_id: OTURUM_ID, utm_source: "google" });
+  ol("29e ga_session_id sunucu beyaz-listesinden GECIP siparisler.atif'e yaziliyor",
+    r.kod === 200 && r.atif && r.atif.ga_session_id === OTURUM_ID, r.ham);
+  ol("29e2 diger atif alanlari AYNEN korundu (regresyon yok)",
+    r.atif && r.atif.utm_source === "google", r.ham);
+  const uzun = await refBaslat(indexModulu, { ga_session_id: "9".repeat(120) });
+  ol("29e3 asiri uzun deger 32 karakterde KIRPILIYOR (sisirilmis alan D1'e ham girmiyor)",
+    uzun.atif && uzun.atif.ga_session_id && uzun.atif.ga_session_id.length === 32, uzun.ham);
+}
+
+// ---- 30) 🔴 MUTASYON BATARYASI — 29'un YUK TASIYIP TASIMADIGI (izole kopyada) ----
+/* Kabul sorusu: "bu satiri silsem hangi iddia kirmizi yanar?" Her oldurucu mutant TEK
+ * eksende bozar ve EN AZ BIR iddiayi kirmizi yakmali; KONTROL mutanti (yalniz yorum metni)
+ * hicbirini yakmamali — batarya "her seye kirmizi yanan" bir alarm degil.
+ * 🔴 Mutant CANLI govdede yasamaz: olcum.js kopyasi isletim sisteminin gecici dizinine
+ * (mkdtemp) yazilir, index.js kopyasi shop/src'in yanina UNIK adla acilir (goreli
+ * `../config.json` / `../../secenekler.js` import'lari cozulsun diye). Gercek ev agacindaki
+ * HICBIR dosya silinmez/degistirilmez. */
+let olcumMutantSayac = 0;
+async function olcumMutantYukle(capa, yerine) {
+  const fs = await import("node:fs");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  const { pathToFileURL, fileURLToPath } = await import("node:url");
+  const SRC = path.join(path.dirname(path.dirname(fileURLToPath(import.meta.url))),
+                        "src", "olcum.js");
+  const kaynak = fs.readFileSync(SRC, "utf8");
+  // FAIL-LOUD: capa yoksa ya da COKLU ise mutant kurulmamistir -> "sag kaldi" SAYILMAZ.
+  if (kaynak.split(capa).length !== 2) { return { capaYok: true }; }
+  olcumMutantSayac += 1;
+  const dizin = fs.mkdtempSync(path.join(os.tmpdir(), "pruvo-ga4-mut-"));
+  const hedef = path.join(dizin, "olcum-" + olcumMutantSayac + ".js");
+  fs.writeFileSync(hedef, kaynak.replace(capa, yerine));
+  // olcum.js'in HIC import'u yok -> tek dosya kendi basina kosar (kardes kopya gerekmez).
+  process.on("exit", () => { fs.rmSync(dizin, { recursive: true, force: true }); });
+  return { mod: await import(pathToFileURL(hedef).href) };
+}
+
+const OLCUM_MUTANTLARI = [
+  ["M1 session_id atamasi SOKULUR (arizanin kendisi geri gelir)",
+   "  if (atif.ga_session_id) { params.session_id = atif.ga_session_id; }",
+   "  /* sokuldu */", true],
+  ["M2 engagement_time_msec SOKULUR (GA4 oturum birlesmesini yapmaz)",
+   "  params.engagement_time_msec = 1;", "  /* sokuldu */", true],
+  ["M3 negatif kol KIRILIR (alan KOSULSUZ basilir; bos deger de gider)",
+   "  if (atif.ga_session_id) { params.session_id = atif.ga_session_id; }",
+   '  params.session_id = atif.ga_session_id || "";', true],
+  ["M4 sessiz-dusme sayaci SABITLENIR (her zaman 'var' der = sayac yalan soyler)",
+   'oturum_atfi: a_.ga_session_id ? "var" : "yok",', 'oturum_atfi: "var",', true],
+  ["M5 KONTROL — yalniz yorum metni degisir (davranis AYNI)",
+   "🔴 OTURUM ATFI (10 Eyl 2026)", "OTURUM ATFI (kontrol mutanti)", false],
+];
+
+async function test30() {
+  let oldurucuYandi = 0, oldurucuToplam = 0, kontrolYandi = 0;
+  for (const [ad, capa, yerine, oldurucuMu] of OLCUM_MUTANTLARI) {
+    const mut = await olcumMutantYukle(capa, yerine);
+    if (mut.capaYok) {
+      ol("30 MUTASYON OLCULEMEDI — capa kaynakta yok/coklu: " + ad, false, capa);
+      continue;
+    }
+    let kirmizi = [];
+    try {
+      for (const [iddia, gecti] of await ga4OturumIddialari(mut.mod)) {
+        if (!gecti) { kirmizi.push(iddia); }
+      }
+    } catch (e) {
+      // Mutant kopya COKERSE bu "oldurucu" degildir: olcum yapilamamistir.
+      ol("30 MUTANT COKTU (olculemedi, oldurucu SAYILMAZ): " + ad, false, String(e));
+      continue;
+    }
+    if (oldurucuMu) {
+      oldurucuToplam += 1;
+      if (kirmizi.length) { oldurucuYandi += 1; }
+      ol("30 " + ad + " -> KIRMIZI (" + (kirmizi.join(" · ") || "HICBIRI") + ")",
+        kirmizi.length > 0, "SAG KALDI — 29 bu ekseni OLCMUYOR");
+    } else {
+      if (kirmizi.length) { kontrolYandi += 1; }
+      ol("30 " + ad + " -> YESIL kalmali (batarya asiri hassas degil)",
+        kirmizi.length === 0, "kontrol mutanti yakti: " + kirmizi.join(" · "));
+    }
+  }
+
+  // HALKA (2) mutanti: sunucu beyaz-listesi sokulunce alan D1'e ULASMAMALI.
+  if (!indexModulu) { modulYok("30 M6 SUNUCU BEYAZ-LISTESI mutanti"); }
+  else {
+    const CAPA_BL = "    ga_session_id: al(a.ga_session_id, 32),";
+    const mut = await refMutantYukle(CAPA_BL, "    /* sokuldu */");
+    if (mut.capaYok) {
+      ol("30 M6 MUTASYON OLCULEMEDI — beyaz-liste capasi kaynakta yok/coklu", false, CAPA_BL);
+    } else {
+      oldurucuToplam += 1;
+      const rm = await refBaslat(mut.mod, { ga_session_id: OTURUM_ID, utm_source: "google" });
+      const oldu = rm.kod === 200 && rm.atif &&
+        !Object.prototype.hasOwnProperty.call(rm.atif, "ga_session_id");
+      if (oldu) { oldurucuYandi += 1; }
+      ol("30 M6 beyaz-listeden cikarilinca ga_session_id D1'e YAZILMIYOR (29e yuk tasiyor)",
+        oldu, rm.ham);
+      ol("30 M6b mutantta diger alanlar HALA yaziliyor (mutant butunuyle bozuk degil)",
+        rm.atif && rm.atif.utm_source === "google", rm.ham);
+    }
+  }
+
+  ol("30 SONUC: oldurucu mutantlarin HEPSI yandi (" + oldurucuYandi + "/" + oldurucuToplam +
+     ") ve kontrol mutanti yanmadi (" + kontrolYandi + " yanma)",
+    oldurucuYandi === oldurucuToplam && oldurucuToplam >= 3 && kontrolYandi === 0);
+}
+
 const testler = [test9, test10, test11, test12, test13,
                  test14, test15, test16, test17, test18, test19, test20,
-                 test21, test22, test23, test24, test25, test26, test27, test28];
+                 test21, test22, test23, test24, test25, test26, test27, test28,
+                 test29, test30];
 for (const t of testler) { await t(); }
 
 console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" + (kalan ? "" : " — HEPSI YESIL ✅"));
