@@ -3,14 +3,11 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 
-## 🔁 11 EYL ana oturum-9 (acilis: ev `ae89efc3`=origin/main · kutu KraL 51 · agac 0 · worktree 3)
-**SIRADAKI TEK IS:** 3 dalin merge'u — dogrulama cipi `task_017f303a` sayilari getiriyor, merge+push hukmu BENDE.
-**MERGE KUYRUGU** (uc de main'de DEGIL · `merge-tree` CAKISMA YOK · agac temiz; hepsi `claude/` onekli):
-A `serene-ellis-8690c8` `98d25962` kapi/olcum 5 dosya +650/-25 base `85f7a568` ·
-B `wizardly-heisenberg-a25468` `6410ce86` GA4 `session_id` 9 dosya +352/-15, base=main ucu **FF UYGUN** ·
-C `kind-wilbur-927c58` `28a6311c` `sss/index.html` FAQPage +93 base `55200abe`. 🔴 **RISK:** o sayfayi `build.py` YERINDE yeniden yaziyor; `yasal-sayfa-drift-kapisi.py` olculmeden C MERGE EDILMEZ.
-**YENI KALEM (OKAN 23:4x):** `tools/nobet-olcum.py` (6 ev tek kosum, HUKUM YAZMAZ) → cip `task_822f1b14`; kabul 12 Eyl 09:08 **≤15 tur / ≤2M** (taban 66/10,2M).
-**HESAP (1b) KAPANDI** — oturum yeni kimlikte dogdu (BaBa 23:5x), artifact `mine`. Deploy = Okan kapisi.
+## 🔁 11 EYL ana oturum-9 — ev `f641d116` = origin/main
+**✅ A→B→C MAIN'DE** (8 commit, ucu de merge commit'i): bagimsiz dogrulama cipi ucune de MERGE EDILEBILIR dedi; C'nin tek gercek riski OLCULDU — **build.py FAQPage'i EZMIYOR** (uretilen `sss` commit'liyle bayt-birebir). D1 alti eksen ✅ **36771=36771**; run `34535784062` `serit-a2` **success**.
+**SIRADAKI TEK IS:** D `busy-hermann-057e7e` (`nobet-olcum.py`) · E `zen-payne-e718e2` (odeme SINIF kapisi + olu batarya dirildi). 🔴 **BLOKE EDICI SORU** cip `task_50214d67`: E'nin bataryasi artik **rc=1**; `deploy.yml`'e `continue-on-error`'suz bagliysa **MERGE EDILEMEZ** (filo yayini durur).
+**🔴 KUTU (BaBa'da):** `TASIMA_YETMEDI` 339>250 = evin HER commit'i kilitliydi; sebep 17 KORUMALI blok + `koru=3`. Iki blok yazip **361→225** actim (kayipsiz, SHA 2/2). Arac kusuru: baslikta **"KORUMALI değil"** de KORUMALI sayiliyor.
+**HESAP (1b) KAPANDI** — oturum yeni kimlikte dogdu, artifact `mine`. Deploy = Okan kapisi.
 🔴 **KISIT:** kapi KABLOLU, merge dogrulamasi cipe gider · `2>&1` eki de RED (serbest komut CIPLAK kosulur) · defter rotasyonu yer ACAMAZ (`KAPALI=0`, 35 madde ACIK = arac DOGRU no-op) · `kutu-arsivle --sha-dogrula` TASIMA ONCESI kosulursa fail-closed her blogu eksik sayar, yazmaz.
 
 ## ✅ 10 EYL ana oturum-7 — 5 dal main'de, yayin indi, kapi kablosu ONARILDI. TAM METIN `DEVAM-ARSIV.md` + kutu (E5)
