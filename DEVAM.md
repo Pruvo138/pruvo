@@ -6,19 +6,20 @@
 ## ✅ 9 EYL — ana oturum-3: **temizlik + K391 KILIDI ACILDI (filo commit kilidi kalkti)**
 - 🔧 **ACIK:** ① 17 dal envanteri arsivde, **SILINMEZ**, 30 gun atif testi basladi · ② cip `KraL-KutuRotasyon-Sinif` merge `ee819a84` ile KAPANDI (agacinda CANLI oturum var, silinmedi) · ③ kota RED metni "okuma gecer" diyor ama `python3` kesiliyor (ikinci kopya) · ④ K396 `arsiv-kapisi` `BEKLIYOR` jetonu govdede YOK (`grep -c`=0, bagimsiz dogrulandi) · ⑤ `ESKALASYON=YEDEK_ZINCIRI_KIRIK ARDISIK=3` (MaCiT duzlemi) · ⑥ **K397 ACILDI** — nobetci yesil basarken onerdigi kurulum yeri CANLI duzlem DEGIL, atif 0; TAM METIN + kabul olcutu `DEVAM-ARSIV.md`, baslik "K397 — 9 Eyl 2026" (govde izlenen belgeye YAZILMAZ, E5) · ⑦ `peaceful-margulis-057d93` artik ARTIK dal (kod blob'u main'de, yalniz defter satiri kaldi) · ⑧ ArTisT/Okan isi: kategori panel basliklarina urun sayisi — cip ACILDI.
 
+## ✅ 10 EYL — cip `KraL-Tamirci-10Eyl` / **K401 KAPANDI** — TAM METIN `DEVAM-ARSIV.md`, baslik "K401 — 10 Eyl 2026" (govde izlenen belgeye YAZILMAZ, E5)
+- **SINIF:** `cip-kapanis-kancasi-test --mutasyon` TABANI kosucunun DISKINDEN yesil yaniyordu; CI'da 5 mutant **0/5**. Kok neden OLCULDU + taban BIREBIR yeniden uretildi; 3 eksen onarildi + `V8e` + `M6` -> **MUTANT=8 KIRMIZI=0 · IDDIA=16/16**, CI benzetiminde de rc=0. 2. kirmizi (sentetik-git fikstur kapisi, dunku `4fa8f9a9`'in izi) KIRMIZI -> YESIL, komsu batarya hukmu DEGISMEDI. Dal `claude/interesting-stonebraker-1e35cf` @ `1fc3c2bd` ITILDI, **MERGE hukmu MIMARDA**.
+- 🔧 **ACIK:** ① `YEDEK_ZINCIRI_KIRIK ARDISIK=4 > TAVAN=3` — sayac 3->4, hal KRONIK; ozne MaCiT duzlemi, K338 ile ayni yerde · ② SERIT B'nin kalan 4 kirmizisinin **3'u MERGE ile kapanir** (`sharp-boyd-536a5a` + K399 dali, iki tarafta dogrulandi) · ③ `recete-kapisi REDDEDILEN=1` (K392 ailesi) DOKUNULMADI. **MOTOR ORANI:** m3 **0** — is `kapi/olcum kodu` sinifi, Claude'da KALIR.
+
 ## 🔁 10 EYL ana oturum-6 — **TAM METIN `DEVAM-ARSIV.md`** (baslik "10 EYL ana oturum-6"); 3 kapanmis isaretci de indi (md5 birebir, eksik 0)
-- ✅ **IKI DAL MAIN'DE:** `115f9dcc` (ff — dalin `OLCULEMEDI 1`'i kosuldu: `KORUMA_TEST=8` · `MUTASYON_KIRMIZI=11` rc=0, tahmin BIREBIR) · `4fa8f9a9` (worktree kapi bayatlik kapisi, 798 satir; dalin AGACINDA 8 vaka / 5 mutant / kapi `HAL=TEMIZ`). Cip "yalniz merge ile yesile doner" demisti: `arsiv-kapisi` o agacta **rc=1 → rc=0**. TeKiN'in `--ev` araci artik main'de.
 - **YAYIN:** run `34417809688` — `deploy` success · `yayin` success · **SKIPPED=0**. D1 alti eksen yesil (36426).
 - 🔴 **BaBa 15:0xZ ONCULU CURUDU:** `thing-icerik.py` **codex** cagiriyor, `mimar_kimlik.py:61` codex'i EMEKLI sayiyor, makine modeli `gpt-5.6-sol` = adiyla RED. Tek satir DEGIL, PORT. Cip acildi; **299 aday BLOKE**, etiket DUSMEZ, kalem BaBa'da.
 - **HocA'nin 3 KraL blogu:** ① `thing-icerik` SART DOLMADI · ② kayip adayi **2 → 1** (kalan bilincli) · ③ impeller B SART DOLDU (`25ffdd89`+`ee819a84` main'in atasi). Satir no'lari BAYATTI, icerikten capalandi.
 - 🔧 **ACIK:** ① ana checkout CANLI cipin 3 dosyasini AYNILIYORDU (02:32'de HEAD'e dondu, kayip YOK) — kok neden OLCULMEDI · ② `kapi-envanteri` 6/8 → **5/8**, ucuncu dusen `mimar-commit-kapisi` fiilen BAGLI (`pre-commit` atif=1) = ayni OKUMA DUZLEMI sahtesi · ③ Drive `backup-v2` yok.
 ## ✅ 10 EYL — ana oturum-5 ISARETCI (**TAM METIN `DEVAM-ARSIV.md`**, baslik "10 EYL ana oturum-5"; md5 birebir)
-- ✅ **K80 `ba67de7d` · K388 (kod tarafinda kalem YOK) · K390 `fb7714d8` — UCU DE KAPANDI, TAM METIN `DEVAM-ARSIV.md` (md5 birebir, eksik 0); basliklar "10 EYL ana oturum-5" + "10 EYL ana oturum-6 ROTASYON (2)".**
 - **KAYIP ADAYI 6 → 1.** Menzil daraltma (1.657.912 → 26.760 aday); kapi atlama bayragi KULLANILMADI.
 - 🔴 **KENDI HATAM (duzeltildi):** gizlilik hukmunu yalniz DEGISEN dosyalarda verdim; tam agacta 4 dal tepesi 28 Agu oncesi numarayi tasiyordu. **Yeni icerik yayinlanmadi** (6/6 blob zaten `origin/main` gecmisinde); eklenen sey CANLI TEPE yuzeyiydi, tarih korunarak temizlendi. Son olcum 6/6 dalda telefon **0**, tedarikci **0**.
 - 🔧 **ACIK:** ① `kurtarma/stash-8agu-baska-oturum` tek kopya KALDI (bilincli; 128 scratch dosyasi saklanmayacaksa dal SILINEBILIR — hukum BaBa'da) · ② **kanca kopyasi her push'ta BAYATLIYOR** (bugun 6 kez); her itme iki turda bitiyor, bloklamiyor ama maliyet cift · ③ `kapi-envanteri` 6/8 (`mimar-icra-kapisi`+`mimar-kod-kilidi` BAGLI degil — TeKiN'in 9 Eyl olcumuyle AYNI kok: harness `agent_id` vermiyor).
 ## 🔴 9 EYL KALEMLERI (TAM METIN KUTUDA — 9 Eyl KraL bloklari)
-- **K389 ✅ KAPANDI 9 Eyl — ONCUL CURUDU:** `defter-kota-kapisi.py` rc'si **KUTU** ekseninden gelir (`KUTU_ASILDI`), DEVAM ekseni degil (`71f86f14`). Ders: rc'nin ekseni okunmadan sinif kapisi yazilmaz.
 
 ## 🔧 8 EYL 02:xx TURUNDAN ACILAN KALEMLER
 - 🔧 **K386 → ISARETCI, TAM METIN ARSIVDE** (md5 birebir): kalan uc kova `G-BIZIM-BILINMEYEN` 117 · `E-DIGER` 21 · `F-OTORITER-CELISKILI` 8 (`D-CC0` 428 risk YOK). Olcum araci commit'li: `python3 tools/lisans-capraz-olcum.py --detay`. KALEM ACIK.
@@ -29,7 +30,6 @@
 - **K381 `d1-sync.py` GERI-OKUMA SOZLESMESI:** arac "yeni: 74 … dogrulandi ✅" bastiktan HEMEN sonra kendi `--durum`'u ayni satirlari EKSIK gosterdi (MaCiT olctu). Replika gecikmesi mi teyit hatasi mi **AYRISTIRILMADI** → `OLCULEMEDI`. Kabul: tek yazimdan hemen sonra + N dk sonra iki `--durum` (arada baska senkron YOK).
 - **K383 `satir_soru` YUZEYI ERISILEMEZ:** link `prova=="kapali"` ister, katalogdaki 16/16 konfigur urun canlida `acik`. K89 "3 yuzey" sayimi SISIK, dogrusu **2 olculdu + 1 erisilemez**. Kabul: canli Worker'in non-200 dondugu konfigur satir (OKAN KAPISI).
 - **K384 `kisisel-veri-test.py` bir beyani yanlis basiyor** — TAM METIN + kabul olcutu: `DEVAM-ARSIV.md`, baslik `K384 — 8 Eyl 2026` (govde izlenen belgeye YAZILMAZ, E5).
-- **K385 ✅ KAPANDI 9 Eyl** — K391 ile (BaBa 15 blogu serbest birakti, KraL tasidi).
 
 ## 🔁 6 EYL KAPI-ENVANTERI ISARETCI — **TAM METIN `DEVAM-ARSIV.md`'de** (md5 birebir). 🔴 BENIM `5/8` HUKMUM BaBa'NIN 6 Eyl 15:1xZ HUKMUYLE CURUDU: uc kapi da KURULU, kirmizi SAHTE — kusur `kapi-envanteri.py`'nin OKUMA DUZLEMINDE; `R_YOL` bagi koparilip batarya SERIT B'ye baglanacak (BaBa 6 Eyl ~17:0x ONAYI, KraL kalemi).
 
