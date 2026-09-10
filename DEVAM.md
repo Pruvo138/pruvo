@@ -3,22 +3,21 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 
+## ✅ 10 EYL — ana oturum-7: **3 dal MAIN'DE (K399·K400·K401), yayin INDI** — TAM METIN `DEVAM-ARSIV.md` (baslik "10 EYL ana oturum-7")
+- **EV** `7d252327`→`2f1f9ed7` · **YAYIN** run `34459542017` `deploy`+`yayin` success **SKIPPED=0** · **D1** 6 eksen yesil (36568) · kapilar MERGE'LENMIS agacta kosuldu (K399+K400 ayni urun-ekleme hattinda, birlikte hic olculmemisti): `duzelt-toplu-test` 299/299 · `--mutasyon` MUTANT=8 KIRMIZI=0 · `ci-kapsam-test` YESIL.
+- 🔴 **kapi-envanteri 5/8 hukmu IKIYE AYRISTI** — BaBa'nin 6 Eyl "ucu de KURULU, kirmizi SAHTE" hukmu YARIM: bir kapida kirmizi SAHTE, iki kapida **GERCEK**; yapilandirma okumasi + davranissal prob AYNI sonucu verdi. Olcum, mekanizma ve sonuc TAM METIN `DEVAM-ARSIV.md`'de (E5: govde izlenen belgeye YAZILMAZ). **Hukum BaBa'da.**
+- 🔧 **ACIK:** ① **K402** `defter-rotasyon.py` UCUNCU turdur `TASINAN=0` (14/14 veto) → cip · ② `emekli-motor-adi-nobetcisi` IHLAL 2→1, kalan `tools/urun_icerik_det.py` → cip; K401'in "merge kapatir" oncusu CURUDU (iki ihlal de main'de ZATEN vardi) · ③ YEDEK `ardisik=0` ama kronik MASKELENDI (ozne MaCiT; K338: beyan anahtari dosya ADI ekseninde) · ④+⑤ `gecmis-nobeti` kancasi KURULU DEGIL · `MEMORY.md` 19.691 B > 16.384 (ikisi de arsiv blogunda).
+
 ## ✅ 9 EYL — ana oturum-3: **temizlik + K391 KILIDI ACILDI (filo commit kilidi kalkti)**
 - 🔧 **TOHUM KAPSAM (10 Eyl):** canli 11 ev, tohum 8 → eksik 3 (`OteL`·`EyLüL`·`eLiF`; eLiF'in `OteLLa`si YANLIS ad). F8 `OLCULEMEDI` (kota RED). Spec+kabul KUTUDA.
 - 🔧 **ACIK:** ① 17 dal envanteri arsivde, **SILINMEZ**, 30 gun atif testi basladi · ② cip `KraL-KutuRotasyon-Sinif` merge `ee819a84` ile KAPANDI (agacinda CANLI oturum var, silinmedi) · ③ kota RED metni "okuma gecer" diyor ama `python3` kesiliyor (ikinci kopya) · ④ K396 `arsiv-kapisi` `BEKLIYOR` jetonu govdede YOK (`grep -c`=0, bagimsiz dogrulandi) · ⑤ `ESKALASYON=YEDEK_ZINCIRI_KIRIK ARDISIK=3` (MaCiT duzlemi) · ⑥ **K397 ACILDI** — nobetci yesil basarken onerdigi kurulum yeri CANLI duzlem DEGIL, atif 0; TAM METIN + kabul olcutu `DEVAM-ARSIV.md`, baslik "K397 — 9 Eyl 2026" (govde izlenen belgeye YAZILMAZ, E5) · ⑦ `peaceful-margulis-057d93` artik ARTIK dal (kod blob'u main'de, yalniz defter satiri kaldi) · ⑧ ArTisT/Okan isi: kategori panel basliklarina urun sayisi — cip ACILDI.
 
 ## ✅ 10 EYL — cip `KraL-Tamirci-10Eyl` / **K401 KAPANDI** — TAM METIN `DEVAM-ARSIV.md`, baslik "K401 — 10 Eyl 2026" (govde izlenen belgeye YAZILMAZ, E5)
-- **SINIF:** `cip-kapanis-kancasi-test --mutasyon` TABANI kosucunun DISKINDEN yesil yaniyordu; CI'da 5 mutant **0/5**. Kok neden OLCULDU + taban BIREBIR yeniden uretildi; 3 eksen onarildi + `V8e` + `M6` -> **MUTANT=8 KIRMIZI=0 · IDDIA=16/16**, CI benzetiminde de rc=0. 2. kirmizi (sentetik-git fikstur kapisi, dunku `4fa8f9a9`'in izi) KIRMIZI -> YESIL, komsu batarya hukmu DEGISMEDI. Dal `claude/interesting-stonebraker-1e35cf` @ `1fc3c2bd` ITILDI, **MERGE hukmu MIMARDA**.
 - 🔧 **ACIK:** ① `YEDEK_ZINCIRI_KIRIK ARDISIK=4 > TAVAN=3` — sayac 3->4, hal KRONIK; ozne MaCiT duzlemi, K338 ile ayni yerde · ② SERIT B'nin kalan 4 kirmizisinin **3'u MERGE ile kapanir** (`sharp-boyd-536a5a` + K399 dali, iki tarafta dogrulandi) · ③ `recete-kapisi REDDEDILEN=1` (K392 ailesi) DOKUNULMADI. **MOTOR ORANI:** m3 **0** — is `kapi/olcum kodu` sinifi, Claude'da KALIR.
 
 ## 🔁 10 EYL ana oturum-6 — **TAM METIN `DEVAM-ARSIV.md`** (baslik "10 EYL ana oturum-6"); 3 kapanmis isaretci de indi (md5 birebir, eksik 0)
-- **YAYIN:** run `34417809688` — `deploy` success · `yayin` success · **SKIPPED=0**. D1 alti eksen yesil (36426).
-- 🔴 **BaBa 15:0xZ ONCULU CURUDU:** `thing-icerik.py` **codex** cagiriyor, `mimar_kimlik.py:61` codex'i EMEKLI sayiyor, makine modeli `gpt-5.6-sol` = adiyla RED. Tek satir DEGIL, PORT. Cip acildi; **299 aday BLOKE**, etiket DUSMEZ, kalem BaBa'da.
-- **HocA'nin 3 KraL blogu:** ① `thing-icerik` SART DOLMADI · ② kayip adayi **2 → 1** (kalan bilincli) · ③ impeller B SART DOLDU (`25ffdd89`+`ee819a84` main'in atasi). Satir no'lari BAYATTI, icerikten capalandi.
 - 🔧 **ACIK:** ① ana checkout CANLI cipin 3 dosyasini AYNILIYORDU (02:32'de HEAD'e dondu, kayip YOK) — kok neden OLCULMEDI · ② `kapi-envanteri` 6/8 → **5/8**, ucuncu dusen `mimar-commit-kapisi` fiilen BAGLI (`pre-commit` atif=1) = ayni OKUMA DUZLEMI sahtesi · ③ Drive `backup-v2` yok.
 ## ✅ 10 EYL — ana oturum-5 ISARETCI (**TAM METIN `DEVAM-ARSIV.md`**, baslik "10 EYL ana oturum-5"; md5 birebir)
-- **KAYIP ADAYI 6 → 1.** Menzil daraltma (1.657.912 → 26.760 aday); kapi atlama bayragi KULLANILMADI.
-- 🔴 **KENDI HATAM (duzeltildi):** gizlilik hukmunu yalniz DEGISEN dosyalarda verdim; tam agacta 4 dal tepesi 28 Agu oncesi numarayi tasiyordu. **Yeni icerik yayinlanmadi** (6/6 blob zaten `origin/main` gecmisinde); eklenen sey CANLI TEPE yuzeyiydi, tarih korunarak temizlendi. Son olcum 6/6 dalda telefon **0**, tedarikci **0**.
 - 🔧 **ACIK:** ① `kurtarma/stash-8agu-baska-oturum` tek kopya KALDI (bilincli; 128 scratch dosyasi saklanmayacaksa dal SILINEBILIR — hukum BaBa'da) · ② **kanca kopyasi her push'ta BAYATLIYOR** (bugun 6 kez); her itme iki turda bitiyor, bloklamiyor ama maliyet cift · ③ `kapi-envanteri` 6/8 (`mimar-icra-kapisi`+`mimar-kod-kilidi` BAGLI degil — TeKiN'in 9 Eyl olcumuyle AYNI kok: harness `agent_id` vermiyor).
 ## 🔴 9 EYL KALEMLERI (TAM METIN KUTUDA — 9 Eyl KraL bloklari)
 
