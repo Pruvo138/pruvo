@@ -40,7 +40,15 @@ KAPI_DOSYALARI = (
     "mimar-kod-kilidi.py",
     "mimar-icra-kapisi.py",
     "mimar-commit-kapisi.py",
-    "mimar-kapi-kur.py",
+    # 🔴 11 EYL 2026 — "mimar-kapi-kur.py" BURADAN CIKARILDI (batarya DIRILTILDI).
+    # Dosya `ca8c3815` ile (28 Agu denetim-kucultme supurmesi, 48 kapi/nobetci/batarya)
+    # silindi; liste bayat kaldi ve `shutil.copyfile` her kosumda FileNotFoundError ile
+    # `taban_kirmizisi()` icinde COKTU. Sonuc: 29 Agu'dan 11 Eyl'e kadar batarya
+    # **0 MUTANT** kosturdu ama "var" gorundu — yesil yanan olu test = yalan (BaBa).
+    # OLCUM: capasi silinen dosyada olan mutant SADECE 2'ydi (M14, N1 — ikisi de
+    # kaldirildi); geri kalan **63 mutant** bu iki bayat satir yuzunden HIC kosmadi.
+    # Bu yuzden karar SIL degil ONAR oldu: batarya `mimar-icra-kapisi.py` +
+    # `mimar-kilit-test.py` gibi CANLI ve HALEN ZORLAYAN kapilari olcuyor.
     "mimar-kilit-test.py",
     # `mimar-kilit-test.py` bu modulu YANINDAN yukler (sys.path[0] = mutant dizini).
     # Kopyalanmazsa her mutant kosumu ImportError ile coker ve batarya hukumsuz kalir.
@@ -52,7 +60,11 @@ KILIT = "mimar-kod-kilidi.py"
 KIMLIKORTAK = "mimar_kimlik.py"
 ICRA = "mimar-icra-kapisi.py"
 CMT = "mimar-commit-kapisi.py"
-KUR = "mimar-kapi-kur.py"
+# KUR = "mimar-kapi-kur.py"  ← 11 EYL 2026: hedef dosya `ca8c3815`'te SILINDI.
+# Sabit BILEREK burada birakildi (ad + gerekce): capasi bu dosyada olan M14 ve N1
+# mutantlari asagida kaldirildi; ileride kurucu geri gelirse hangi iki nobetcinin
+# yeniden yazilmasi gerektigi ADIYLA okunur. Sabit hicbir yerden OKUNMUYOR.
+KUR_SILINDI = "mimar-kapi-kur.py"  # ca8c3815 (28 Agu supurmesi)
 TESTDOSYA = "mimar-kilit-test.py"
 
 # B8 (20 Tem): CEKIRDEK'e eklenen CANLI PreToolUse/Bash zinciri nobetcileri.
@@ -258,13 +270,13 @@ MUTASYONLAR = [
      "R2: bayrak oneki soyulmaz (yalniz ham okuma) — bitisik/=li dis yol acilir "
      "(22Tem: dis_yol artik YALNIZ sh/bash icin canli, sentinel sh vakasi 251)",
      {251}, True, 1),
-    ("M14", lambda d: yama(
-        d, KUR,
-        '    print("BASH_ZINCIRI_ICRA=" + ("var" if bash_var else "yok"))',
-        '    bash_var = yazma_var = precommit_var = True\n'
-        '    print("BASH_ZINCIRI_ICRA=" + ("var" if bash_var else "yok"))'),
-     "kablo raporcusu (kur.py durum()) daima 'var' der — YALANCI RAPORCU",
-     {111, 114}, True, 2),
+    # M14 KALDIRILDI (11 Eyl 2026): capasi `mimar-kapi-kur.py`daydi, dosya `ca8c3815`
+    # ile silindi -> yama capasi YOK, mutant uygulanamiyordu. SAHIPSIZ KALAN IDDIA YOK:
+    # nobetledigi 111/114 vakalari `mimar-kilit-test.py::kablo_kume_kostur` icinde
+    # ZATEN `if not os.path.exists(KUR)` kolundan "EKSIK-KURUCU" diye GORUNUR bicimde
+    # dusuyor (110/111/114 hem basarisiz hem atlanan listesine giriyor) — yani kablo
+    # raporcusunun yoklugu bugun de rapor ediliyor, sessiz degil. Kurucu geri gelirse
+    # bu mutant yeniden yazilir (bkz. KUR_SILINDI).
     ("M15", lambda d: yama(d, KILIT, CEKIRDEK_NOBETCILERI, ""),
      "CEKIRDEK genisletmesi geri alinir (nobetciler korumasiz kalir)",
      {76, 77, 78, 79, 96}, True, 5),
@@ -290,13 +302,9 @@ MUTASYONLAR = [
      "R2: tiresiz ARGUMAN yol kontrolu silinir (duz repo-disi yol argumani acilir) "
      "(22Tem: sentinel sh vakasi 253)",
      {253}, True, 1),
-    ("N1", lambda d: yama(d, KUR,
-                          '        matcher = blok.get("matcher") or ""\n'
-                          "        if matcher_parcasi not in matcher:\n"
-                          "            continue\n",
-                          '        matcher = blok.get("matcher") or ""\n'),
-     "B5: _zincirde_var() MATCHER kontrolu silinir (dogru kanca, YANLIS matcher)",
-     {114}, True, 1),
+    # N1 KALDIRILDI (11 Eyl 2026): M14 ile ayni gerekce — capasi silinmis
+    # `mimar-kapi-kur.py`daydi. Nobetledigi 114 vakasi da `kablo_kume_kostur`un
+    # "EKSIK-KURUCU" kolundan GORUNUR dusuyor.
     ("M19", lambda d: yama(d, KILIT, CEKIRDEK_CANLI_ZINCIR, ""),
      "B8: canli Bash zinciri nobetcileri CEKIRDEK'ten cikarilir",
      {140, 141}, True, 2),
@@ -1039,6 +1047,46 @@ def taban_kirmizisi():
     return mutasyonu_kostur("TABAN", lambda d: None)
 
 
+# === 11 EYL 2026 — ANKRAJ ON DENETIMI (SINIF ONARIMI, tekil yama DEGIL) ==============
+# 🔴 OLCULEN ARIZA (bugun, iki katman ust uste):
+#   (1) KAPI_DOSYALARI'nda silinmis bir dosya vardi -> `shutil.copyfile` TABAN kosumunda
+#       FileNotFoundError ile coktu; batarya 29 Agu'dan beri **0 mutant** kosturdu.
+#   (2) O onarilinca batarya 16. mutantta `yama()`nin `raise SystemExit` koluna carpip
+#       DURDU: TEK bayat ankraj, ARKASINDAKI butun mutantlari OLCUM DISI birakiyordu
+#       ([[fail-closed-kol-arkasindaki-kolu-maskeler]]).
+# Ikisi de ayni SINIF: "capasi curumus tek kalem butun bataryayi susturur".
+# SINIF CARESI: kosumdan ONCE TUM ankrajlar tek gecisde denetlenir; bayat olan(lar) ADIYLA
+# listelenir ve ATLANIR, geri kalan mutantlar KOSAR, takim yine de KIRMIZI kapanir.
+# Boylece ne sessiz 0-mutant yesili olur, ne de bir curuk kalem 46 nobetciyi karartir.
+def ankraj_on_denetimi():
+    """Her mutantin (NORMAL + SERT) ankrajini TEMIZ kopyada dener.
+
+    Doner: (saglam_adlar, bayat[(ad, sebep)]). SERT liste de denetlenir; onun
+    `yama()` cagrilari da ayni `raise SystemExit` koluna carpar ve DIZILIM GEREGI
+    normal mutantlarin HEPSI kostuktan SONRA patlar — yani en pahali maskeleme orasi.
+    """
+    saglam, bayat = [], []
+    kalemler = ([(ad, uyg) for ad, uyg, _a, _b, _t, _s in MUTASYONLAR]
+                + [(ad, uyg) for ad, uyg, _a, _e, _d in SERT_MUTASYONLAR])
+    for ad, uygulayici in kalemler:
+        dizin = os.path.join(MUTASYON_KOK, "ANKRAJ-" + ad)
+        if os.path.exists(dizin):
+            shutil.rmtree(dizin)
+        os.makedirs(dizin)
+        try:
+            for dosya in KAPI_DOSYALARI:
+                shutil.copyfile(os.path.join(TOOLS, dosya), os.path.join(dizin, dosya))
+            uygulayici(dizin)
+            saglam.append(ad)
+        except SystemExit as e:
+            bayat.append((ad, str(e)))
+        except Exception as e:
+            bayat.append((ad, "%s: %s" % (type(e).__name__, e)))
+        finally:
+            shutil.rmtree(dizin, ignore_errors=True)
+    return saglam, bayat
+
+
 def main():
     global MUTASYON_KOK
     MUTASYON_KOK = gecici_worktree.damgali_mkdtemp("pruvo-kapi-mutasyon-")
@@ -1046,12 +1094,26 @@ def main():
 
     basarisiz = []
     try:
+        SAGLAM, BAYAT = ankraj_on_denetimi()
+        print("ANKRAJ ON DENETIMI | kalem={} (normal {} + sert {}) | saglam={} | BAYAT={}".format(
+            len(MUTASYONLAR) + len(SERT_MUTASYONLAR), len(MUTASYONLAR),
+            len(SERT_MUTASYONLAR), len(SAGLAM), len(BAYAT)))
+        for ad, sebep in BAYAT:
+            print("          🔴 BAYAT ANKRAJ {:<4} | {}".format(ad, sebep[:150]))
+            basarisiz.append(ad + "(BAYAT-ANKRAJ)")
+        if not SAGLAM:
+            print("HICBIR ANKRAJ SAGLAM DEGIL — batarya 0 mutant kosturur, DURDU.")
+            return 2
+        ATLA = {ad for ad, _ in BAYAT}
+
         TABAN, TABAN_CIKIS = taban_kirmizisi()
         print("TABAN (mutasyonsuz kopya) | kirmizi={:<3} | vakalar={} | exit={}".format(
             len(TABAN), sorted(TABAN), TABAN_CIKIS))
         print("          Asagidaki her mutantin ISARETI = kirmizi - TABAN (net). "
               "TABAN bos degilse takim yine KIRMIZI kapanir.")
         for ad, uygulayici, aciklama, beklenen, tam, asgari in MUTASYONLAR:
+            if ad in ATLA:
+                continue  # ankraj bayat — yukarida ADIYLA raporlandi ve KIRMIZI sayildi
             ham, _ = mutasyonu_kostur(ad, uygulayici, yalniz_kimlik=ad.startswith("J"))
             kirmizi = ham - TABAN
             eksik = beklenen - kirmizi
@@ -1090,6 +1152,8 @@ def main():
                 basarisiz.append(ad)
 
         for ad, uygulayici, aciklama, ek_env, dogru_beklenen in SERT_MUTASYONLAR:
+            if ad in ATLA:
+                continue  # ankraj bayat — yukarida ADIYLA raporlandi ve KIRMIZI sayildi
             olculen = sert_mutasyonu_kostur(ad, uygulayici, ek_env)
             olduruldu = olculen != dogru_beklenen
             print("SERT MUTASYON {} | dogru={} mutant={} | {} | {}".format(

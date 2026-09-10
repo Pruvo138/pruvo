@@ -44,6 +44,83 @@ def kontrol(no, ad, kosul, detay="", kapsam=""):
     sonuclar.append((no, ad, bool(kosul), detay, kapsam))
 
 
+# ─── TESLİM SÜRESİ: SINIF KAPISI (11 Eyl 2026 — 3. tekrar, tekil yama YASAK) ──────────
+# ESKİSİ (vaka 6'nın içinde gömülüydü):
+#     rakip_desen = re.compile(r"\b(5-7|3-6|2-4)\s+iş\s+günü\b", re.I)
+# LİTERAL ALTERNATION. Aynı kapı aynı gerekçeyle 3. kez elden geçti (`b72c4f5b`, 28 Ağu):
+# listede olmayan HER yeni aralık (4-8, 10-14, 7-10 …) nöbetçinin altından SESSİZCE geçti.
+# CLAUDE.md / kral-yordam ⑥: üçüncü tekrarda tekil yama yasak, SINIF kapısı yazılır.
+#
+# SINIF KURALI: "N-M iş günü" biçimindeki HER aralık rakip beyandır; MUAF olan tek şey
+# kanonik teslim aralığıdır. Böylece kapı bir sonraki bayat aralığı ADI listeye eklenmeden
+# yakalar (menzil literal listenin bittiği yerde bitmez).
+#
+# 🔴 MUAFİYET ZORUNLU — ÖLÇÜLDÜ (11 Eyl, izole kopyada): sınıf deseni muafiyetsiz
+# koşturulduğunda 491 gövdede **11 isabet** üretir ve 11'inin TAMAMI kanonik
+# "3-5 iş günü"dür (sss=2 · hakkimizda=1 · teslimat-iade=3 · mesafeli-satis=3 ·
+# ozel-parca-kac-gunde-hazir-olur=2). Yani muafiyetsiz sınıf, DOĞRU beyanı ihlal sayıp
+# vaka 6'yı rc=1 yakardı; bu kapı `deploy.yml`'de `continue-on-error` OLMADAN koşuyor →
+# tüm ekibin yayınını durdururdu ([[olculemedi-zaten-bagli-kapida-yayin-durdurur]]).
+# Yanlış-pozitif bu kapının sınıfını değiştirir; muafiyet süs değil, taşıyıcı kolondur.
+#
+# TEK KAYNAK: hem pozitif kanıt (DOGRU_DESEN) hem rakip muafiyeti aynı sabitten türer —
+# aralık değişirse tek yerde değişir, iki kol birbirinden sapamaz.
+DOGRU_ARALIK = "3-5"
+ARALIK_DESEN = re.compile(r"\b(\d{1,2}-\d{1,2})\s+iş\s+günü\b", re.I)
+DOGRU_DESEN = re.compile(r"\b" + re.escape(DOGRU_ARALIK) + r"\s+iş\s+günü\b", re.I)
+
+
+def rakip_bul(etiket, ham):
+    """Gövdedeki kanonik-OLMAYAN teslim aralıklarını 'etiket:N-M iş günü' olarak döndürür.
+
+    'iş günü' bağlamı ŞARTTIR: '4-8 adet' / '10-14 mm' gibi çıplak sayı aralıkları
+    teslim beyanı DEĞİLDİR ve yakalanmaz (negatif kol — bkz. --kendini-test N1/N3).
+    """
+    return ["%s:%s iş günü" % (etiket, aralik)
+            for aralik in ARALIK_DESEN.findall(temiz_metin(ham))
+            if aralik != DOGRU_ARALIK]
+
+
+# --- KENDİNİ TEST (sınıf kapısının çalıştırılabilir kabulü) --------------------------
+# Sayfa taramasından ÖNCE çıkar: fikstürler gerçek gövdelerden bağımsızdır, kapı
+# ağır tarama yapmadan yargısını verir. Nöbetçi bataryası: tools/odeme-sinif-mutasyon.py
+if "--kendini-test" in sys.argv:
+    # (ad, gövde, beklenen ihlal sayısı)
+    _VAKALAR = [
+        ("P1 literal listede OLMAYAN aralık (4-8 iş günü) YAKALANIR",
+         "<p>Kargo <b>4-8 iş günü</b> içinde çıkar</p>", 1),
+        ("P2 iki haneli aralık (10-14 iş günü) YAKALANIR",
+         "<p>Teslimat 10-14 iş günü sürer</p>", 1),
+        ("P3 eski literal listedeki aralık (5-7 iş günü) HÂLÂ yakalanır",
+         "<p>5-7 iş günü içinde</p>", 1),
+        ("P4 tek gövdede iki farklı rakip aralık AYRI AYRI sayılır",
+         "<p>4-8 iş günü ya da 10-14 iş günü</p>", 2),
+        ("N1 'iş günü'süz çıplak sayı (4-8 adet) YANMAZ",
+         "<p>Sipariş 4-8 adet arası</p>", 0),
+        ("N2 KANONİK aralık (3-5 iş günü) YANMAZ",
+         "<p>3-5 iş günü içinde kargoya verilir</p>", 0),
+        ("N3 'iş günü'süz ölçü aralığı (10-14 mm) YANMAZ",
+         "<p>Çap 10-14 mm arası</p>", 0),
+    ]
+    _hata = []
+    for _ad, _govde, _beklenen in _VAKALAR:
+        _bulunan = len(rakip_bul("fikstur", _govde))
+        print("  %-58s beklenen=%d bulunan=%d %s" % (
+            _ad, _beklenen, _bulunan, "OK" if _bulunan == _beklenen else "HATA"))
+        if _bulunan != _beklenen:
+            _hata.append(_ad)
+    # Pozitif kol da ölçülür: kanonik desen kanonik metni GÖRMELİ (yoksa vaka 6'nın
+    # pozitif şartı sessizce boşalır ve her bağlayıcı sayfa 'YOK' sayılırdı).
+    _poz = len(DOGRU_DESEN.findall(temiz_metin("<p>3-5 iş günü içinde</p>")))
+    print("  %-58s beklenen=1 bulunan=%d %s" % (
+        "D1 kanonik desen kanonik metni GÖRÜR", _poz, "OK" if _poz == 1 else "HATA"))
+    if _poz != 1:
+        _hata.append("D1")
+    print("SONUC: %s (%d/%d vaka)" % (
+        "KIRMIZI" if _hata else "YESIL", len(_VAKALAR) + 1 - len(_hata), len(_VAKALAR) + 1))
+    sys.exit(1 if _hata else 0)
+
+
 class JsonLdParser(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -299,8 +376,8 @@ BAGLAYICI_POZITIF = [
     "landing:mesafeli-satis",    # mesafeli satış sözleşmesi m.4 Teslimat
 ]
 
-rakip_desen = re.compile(r"\b(5-7|3-6|2-4)\s+iş\s+günü\b", re.I)
-dogru_desen = re.compile(r"3-5\s+iş\s+günü", re.I)
+# Desenler ve rakip_bul() dosyanın BAŞINDA (temiz_metin'in hemen altında) tanımlıdır —
+# sınıf kapısı + kanonik muafiyet + --kendini-test fikstürleri orada.
 if GOVDE_HATASI is not None:
     kontrol(6, "Teslim süresi 3-5 iş günü ve rakip süre yok (bağlayıcı pozitif + 84 negatif)",
             False, GOVDE_HATASI, "kapsam BELİRSİZ (fail-closed)")
@@ -311,8 +388,7 @@ else:
     # NEGATİF: rakip aralık taraması TÜM gövdelerde (genişlik korunur).
     rakip_ihlaller = []
     for etiket, ham in TUM_GOVDELER.items():
-        for eslesme in rakip_desen.findall(temiz_metin(ham)):
-            rakip_ihlaller.append("%s:%s iş günü" % (etiket, eslesme))
+        rakip_ihlaller.extend(rakip_bul(etiket, ham))
     # POZİTİF: her bağlayıcı gövde AYRI AYRI "3-5 iş günü" taşımalı.
     # Fail-closed: beklenen bağlayıcı gövde kümede yoksa (ad değişmiş/üretilmemiş) KIRMIZI.
     pozitif_durum = []
@@ -322,7 +398,7 @@ else:
             eksik_pozitif.append("%s (gövde bulunamadı)" % etiket)
             pozitif_durum.append("%s=YOK" % etiket)
             continue
-        adet = len(dogru_desen.findall(temiz_metin(TUM_GOVDELER[etiket])))
+        adet = len(DOGRU_DESEN.findall(temiz_metin(TUM_GOVDELER[etiket])))
         pozitif_durum.append("%s=%d" % (etiket, adet))
         if adet < 1:
             eksik_pozitif.append("%s: '3-5 iş günü' YOK" % etiket)
