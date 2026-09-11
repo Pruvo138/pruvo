@@ -47,6 +47,49 @@ ISCI_SH = os.path.expanduser("~/.claude/cron/isci.sh")
 RAPOR_JETON = "RAPOR"
 ANA_DAMGA = "/Users/okan/.claude/projects/-Users-okan-dev-pruvo/kabul.jsonl"
 
+# === 🔴 11 EYL 2026 — KIMLIK EKSENI CIVISI (bu batarya KENDI kusurunu tasiyordu) ====
+# OLCULEN ARIZA (birebir uretildi, iki kosum):
+#   `python3 tools/tikayici-kaldirma-test.py`                       -> D2 52/52, ❌ 0
+#   `PRUVO_ISCI_KOSUMU=minimax-m3 python3 ... (ayni komut)`         -> D2 39/52, ❌ 13
+# Yani bataryanin 13 vakasi KOSUCUNUN KIMLIGINI olcuyordu. Sebep: batarya ROL eksenini
+# `transcript_path=ANA_DAMGA` ile CIVILEMISTI ama KIMLIK ekseni AYRI bir kanaldan gelir —
+# `mimar_kimlik.kimlik_ekseni` girdideki `agent_id`'ye EK OLARAK `PRUVO_ISCI_KOSUMU`
+# CEVRE DEGISKENINI okur. Kapilar `main()` basinda ISCI ise MUAF cikar; batarya alt
+# surecleri cevreyi MIRAS ALDIGI icin, bir m3 iscisinden kosuldugunda "RED KALIR"
+# vakalarinin 13'u DOGAL olarak GECER donuyordu.
+#   [[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]]
+#   [[fail-closed-kol-arkasindaki-kolu-maskeler]] — muafiyet kolu OLCULEN kolu maskeler
+# CARE: vakayi susturmak DEGIL, EKSENI CIVILEMEK. `kapiya_ver` artik cocuk surecin
+# cevresini ACIKCA kurar; 52 vakanin hepsi kimlik=MIMAR ile kosar ve hangi ortamdan
+# cagrilirsa cagrilsin AYNI sayiyi verir. Muafiyetin KENDISI de kaza olmasin diye
+# kimlik=ISCI ekseninde AYRI beklentiyle olculur (bkz. kalem5_kos).
+#
+# 🔴 MOTOR ADI ELLE YAZILMAZ — kapali kume `mimar_kimlik` modulundedir; ikinci kopya
+# tutmak kume degisince sessizce ayrisan bir ikiz uretir ([[ikiz-tanim-sessiz-ayrisma]]).
+try:
+    from mimar_kimlik import ISCI_MOTORLARI as _ISCI_MOTORLARI
+except Exception:                                            # pragma: no cover
+    _ISCI_MOTORLARI = ()
+ISCI_KOSUM_KANALI = "PRUVO_ISCI_KOSUMU"
+ISCI_MOTOR_ORNEGI = _ISCI_MOTORLARI[0] if _ISCI_MOTORLARI else None
+
+
+def kapi_cevresi(kimlik):
+    """Kapi alt surecinin cevresi — KIMLIK EKSENI BURADA CIVILENIR.
+
+    kimlik="MIMAR": `PRUVO_ISCI_KOSUMU` cevreden SILINIR. Bu, "temiz ortam" varsaymak
+        DEGIL, ortami KURMAKTIR — batarya bir isciden kosulsa bile mimar kolunu olcer.
+    kimlik="ISCI" : ayni degisken kapali kumeden TURETILMIS bir motora set edilir.
+    """
+    e = dict(os.environ)
+    e.pop(ISCI_KOSUM_KANALI, None)
+    if kimlik == "ISCI":
+        if not ISCI_MOTOR_ORNEGI:
+            return None          # kume okunamadi -> OLCULEMEDI (sessiz yesil DEGIL)
+        e[ISCI_KOSUM_KANALI] = ISCI_MOTOR_ORNEGI
+    return e
+
+
 # Iki dilimin sayaclari:
 #   kol_sonuclar = [(ad, ok, satirlar)]   — main K1..K7 icin
 #   sonuclar     = [(ad, gecti, olc, bek, not)] — dal M1..M4 (52 kayit)
@@ -688,9 +731,16 @@ def yama(tools_yolu, dosya, capa, yerine, etiket):
 # ---------------------------------------------------------------------------
 # KAPI CAGRISI (PreToolUse)
 # ---------------------------------------------------------------------------
-def kapiya_ver(kapi_yolu, girdi):
+def kapiya_ver(kapi_yolu, girdi, kimlik="MIMAR"):
+    """Kapiyi PreToolUse girdisiyle kos. `kimlik` KIMLIK EKSENINI CIVILER — bkz.
+    dosya basindaki KIMLIK EKSENI CIVISI blogu. Varsayilan MIMAR'dir: mevcut 52
+    vakanin hicbiri cagri sekliyle degismez, ama artik KOSUCUNUN kimligine KOR
+    degiller."""
+    cevre = kapi_cevresi(kimlik)
+    if cevre is None:
+        return "OLCULEMEDI", "", None
     p = subprocess.run([sys.executable, kapi_yolu], input=json.dumps(girdi),
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, env=cevre)
     s = (p.stdout or "").strip()
     karar = None
     if s:
@@ -814,8 +864,12 @@ def kalem2_yaz(tools_yolu, oturum):
 
 def kalem2_rapor(tools_yolu, oturum):
     kapi = os.path.join(tools_yolu, "mimar-kod-kilidi.py")
+    # Cevre burada da CIVILI (bkz. KIMLIK EKSENI CIVISI): sayac okuyucusu bugun
+    # kimlige bakmiyor, ama bakmaya baslarsa vaka SESSIZCE kosucunun kimligini
+    # olcmeye doner. Eksen tek yerde degil, HER cagri yerinde civilenir.
     p = subprocess.run([sys.executable, kapi, "--rapor", "--oturum", oturum,
-                        "--temizle"], capture_output=True, text=True)
+                        "--temizle"], capture_output=True, text=True,
+                       env=kapi_cevresi("MIMAR"))
     for satir in (p.stdout or "").splitlines():
         if satir.startswith("MIMAR_KOD_YAZDI="):
             try:
@@ -1141,6 +1195,128 @@ def kalem4_kos():
 
 
 # ===========================================================================
+# KALEM 5 — KIMLIK EKSENI + REPO KOKU  (11 EYL 2026, iki ayri kusurdan dogdu)
+# ===========================================================================
+# BU KALEM IKI SEYI OLCER, IKISI DE ADIYLA:
+#
+# (A) KIMLIK EKSENI — ISCI muafiyeti CANLI mi, ve batarya ona KOR mu?
+#     Yukaridaki 52 vaka artik kimlik=MIMAR ile CIVILI. Bu iyi, ama tek basina
+#     yeni bir korluk uretir: muafiyet bir gun sessizce KAPANIRSA (ya da ANA
+#     oturuma sizarsa) 52 vakanin HICBIRI yanmaz. O yuzden muafiyet BURADA,
+#     kimlik=ISCI ekseninde, AYRI BEKLENTIYLE olculur:
+#         ayni komut · kimlik=MIMAR -> RED   ·  kimlik=ISCI -> GECER
+#     Iki satir birlikte "kural MIMAR'a uygulaniyor, ISCI muaf" iddiasini kurar;
+#     biri tek basina kurmaz ([[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]]).
+#
+# (B) ORTAM CIVISININ KENDISI — `kapi_cevresi` gercekten temizliyor mu?
+#     Vaka, SUREC CEVRESINE bilerek bir isci motoru koyar ve kimlik=MIMAR bekler.
+#     `e.pop(ISCI_KOSUM_KANALI)` silinirse bu vaka GECER doner ve KIRMIZI yanar —
+#     yani civi kendi nobetcisini tasir.
+#
+# (C) REPO KOKU — `mimar-icra-kapisi.py::repo_ici` kokun KENDISINI disari saymasin.
+#     OLCULEN ARIZA (11 Eyl, ANA oturum): `python3 tools/defter-kota-kapisi.py .`
+#     ve `... /Users/okan/dev/pruvo` RED aliyordu; cunku `REPO_ONEKI` egikle biter,
+#     `_coz` normpath ile egigi atar, `startswith` esitligi yakalamaz. Vakalar IKI
+#     YONLUDUR: ici GECER kadar DISI RED de olculur, yoksa "onarim" fail-closed
+#     yonu sessizce acabilir ([[grep-sifir-nobetcisi-yasak-kaydinda-oludur]] sinifi).
+
+# Kimlik ekseninde olculen komut: mimar icin KAPALI kalan kapsam (satir-ici kod).
+K5_MIMARA_KAPALI = "python3 -c 'import os'"
+# repo_ici esitlik kolunun CAPASI (mutant bunu ESKI haline cevirir).
+K5_ESITLIK_CAPA = 'if yol == REPO_ONEKI.rstrip("/") or yol.startswith(REPO_ONEKI):'
+K5_ESITLIK_GERI = "if yol.startswith(REPO_ONEKI):"
+ANA_CHECKOUT = "/Users/okan/dev/pruvo"
+
+
+def k5_icra(tools_yolu, komut, kimlik="MIMAR", cwd=ANA_CHECKOUT):
+    kapi = os.path.join(tools_yolu, "mimar-icra-kapisi.py")
+    girdi = bash_girdi(komut)
+    girdi["cwd"] = cwd
+    karar, _e, _rc = kapiya_ver(kapi, girdi, kimlik=kimlik)
+    return karar
+
+
+def kalem5_kos():
+    # --- (A) KIMLIK EKSENI: AYNI komut, IKI kimlik, IKI beklenti ---
+    kaydet("K5 KIMLIK  mimara kapali kapsam · kimlik=MIMAR -> RED",
+           k5_icra(TOOLS, K5_MIMARA_KAPALI, "MIMAR") == "RED",
+           k5_icra(TOOLS, K5_MIMARA_KAPALI, "MIMAR"), "RED")
+    kaydet("K5 KIMLIK  ayni komut · kimlik=ISCI -> GECER (muafiyet CANLI)",
+           k5_icra(TOOLS, K5_MIMARA_KAPALI, "ISCI") == "GECER",
+           k5_icra(TOOLS, K5_MIMARA_KAPALI, "ISCI"), "GECER")
+
+    # --- (B) ORTAM CIVISI: kirli cevrede bile kimlik=MIMAR olculmeli ---
+    # Surec cevresine BILEREK isci motoru konur; `kapi_cevresi` onu silmezse
+    # asagidaki vaka GECER doner ve KIRMIZI yanar.
+    onceki = os.environ.get(ISCI_KOSUM_KANALI)
+    try:
+        if ISCI_MOTOR_ORNEGI:
+            os.environ[ISCI_KOSUM_KANALI] = ISCI_MOTOR_ORNEGI
+            karar = k5_icra(TOOLS, K5_MIMARA_KAPALI, "MIMAR")
+            kaydet("K5 CIVI    kirli cevrede kimlik=MIMAR -> HALA RED",
+                   karar == "RED", karar, "RED")
+        else:
+            kaydet("K5 CIVI    kirli cevrede kimlik=MIMAR -> HALA RED",
+                   False, "OLCULEMEDI (ISCI_MOTORLARI okunamadi)", "RED")
+    finally:
+        if onceki is None:
+            os.environ.pop(ISCI_KOSUM_KANALI, None)
+        else:
+            os.environ[ISCI_KOSUM_KANALI] = onceki
+
+    # --- (C) REPO KOKU: ICI GECER ---
+    for ad, komut in (
+            ("mutlak kok",   "python3 tools/defter-kota-kapisi.py " + ANA_CHECKOUT),
+            ("nokta",        "python3 tools/defter-kota-kapisi.py ."),
+            ("kok + egik",   "python3 tools/defter-kota-kapisi.py " + ANA_CHECKOUT + "/"),
+            ("./DEVAM.md",   "python3 tools/defter-kota-kapisi.py ./DEVAM.md"),
+            ("kok altinda",  "python3 tools/defter-kota-kapisi.py " + ANA_CHECKOUT + "/DEVAM.md")):
+        karar = k5_icra(TOOLS, komut)
+        kaydet("K5 KOK ICI  %s -> GECER" % ad, karar == "GECER", karar, "GECER")
+
+    # --- (C) REPO KOKU: DISI AYNEN RED (fail-closed yon acilmadi mi?) ---
+    for ad, komut in (
+            ("/private/tmp",  "python3 /private/tmp/bir-sey.py"),
+            ("~/.claude",     "python3 /Users/okan/.claude/cron/bir-sey.py"),
+            ("ust dizin",     "python3 ../pruvo-bot/bir-sey.py"),
+            ("komsu ev",      "python3 /Users/okan/dev/pruvo-hasat/tools/x.py"),
+            # ONEK TUZAGI: 'pruvoXXX' ne koke ESITTIR ne de 'pruvo/' onekiyle baslar.
+            # Esitlik kolu genis yazilirsa (or. `startswith(kok)`) BU vaka yanar.
+            ("onek tuzagi",   "python3 /Users/okan/dev/pruvoXXX/x.py")):
+        karar = k5_icra(TOOLS, komut)
+        kaydet("K5 KOK DISI %s -> RED KALIR" % ad, karar == "RED", karar, "RED")
+
+    # --- KONTROL: yamasiz izole kopya da YESIL olmali ---
+    # [[mutant-kopyasi-cokerse-izin-okunur]] — kopya yesil degilse olculen sey
+    # mutant degil KOPYANIN KENDISIDIR.
+    d, ht = izole_kopya()
+    try:
+        karar = k5_icra(ht, "python3 tools/defter-kota-kapisi.py .")
+        kaydet("K5 KONTROL izole kopya yamasiz · nokta -> GECER",
+               karar == "GECER", karar, "GECER")
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+    # --- MUTANT M5a: ESITLIK KOLU GERI ALINIR -> kok vakalari KIRMIZI ---
+    d, ht = izole_kopya()
+    try:
+        ok, notu = yama(ht, "mimar-icra-kapisi.py", K5_ESITLIK_CAPA,
+                        K5_ESITLIK_GERI, "K5_ESITLIK_GERI")
+        if not ok:
+            kaydet("K5 MUTANT M5a ESITLIK-GERI", False, notu, "capa uygulanmali")
+        else:
+            karar = k5_icra(ht, "python3 tools/defter-kota-kapisi.py .")
+            kaydet("K5 MUTANT M5a ESITLIK-GERI -> nokta vakasi KIRMIZI (RED)",
+                   karar == "RED", karar, "RED", notu)
+            # Ayni mutantta DISARISI degismemeli: mutant yalnizca ESITLIGI oldurur.
+            karar2 = k5_icra(ht, "python3 /private/tmp/bir-sey.py")
+            kaydet("K5 MUTANT M5a · repo DISI vakasi DEGISMEZ (RED)",
+                   karar2 == "RED", karar2, "RED", notu)
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+# ===========================================================================
 
 
 
@@ -1192,6 +1368,7 @@ def main(argv=None):
         kalem2_kos()
         kalem3_kos()
         kalem4_kos()
+        kalem5_kos()
         gecen = sum(1 for s in sonuclar if s[1])
         for ad, gecti, olculen, beklenen, notu in sonuclar:
             print("%s  %-62s olculen=%-28s beklenen=%s%s"
@@ -1201,10 +1378,19 @@ def main(argv=None):
         print("D2 VAKA %d/%d GECTI" % (gecen, len(sonuclar)))
 
     # --- OZET ---
+    d2_kirmizi = [s[0] for s in sonuclar if not s[1]]
     print("")
     print("=" * 100)
     print("BIRLESTIRME OZETI: A=%d KOL + B=%d VAKA = A+B=%d"
           % (kol_sayisi, len(sonuclar), kol_sayisi + len(sonuclar)))
+    # 🔴 RC <-> ❌ TUTARLILIK SATIRI (11 Eyl 2026). VAKA SAYISI ekseni CIKIS KODU
+    # eksenini OLCMEZ: 11 Eyl'de bu batarya "A=7 KOL + B=52 VAKA = 59" basip
+    # kabulden GECTI, ayni kosumda 13 ❌ vardi ve rc=0'di. Iki eksen AYRI satirda
+    # basilir ki biri digerini bir daha ortemesin
+    # ([[vaka-sayisi-ekseni-cikis-kodu-eksenini-olcmez]]).
+    print("KIRMIZI: D1=%d KOL · D2=%d VAKA · OLCULEMEDI=%d KOL · TOPLAM=%d"
+          % (len(kirmizi), len(d2_kirmizi), len(olculemedi),
+             len(kirmizi) + len(d2_kirmizi) + len(olculemedi)))
     print("=" * 100)
 
     # Mutant kosumunda BEKLENEN hal KIRMIZI'dir.
@@ -1214,7 +1400,18 @@ def main(argv=None):
     if a.mutant_bataryasi:
         kor = mutant_bataryasi()
         return 1 if kor else 0
-    return 1 if (kirmizi or olculemedi) else 0
+    # 🔴 11 EYL 2026 — FAIL-OPEN KAPATILDI. Eski satir soyleydi:
+    #     return 1 if (kirmizi or olculemedi) else 0
+    # Bu hucre YALNIZ DILIM 1'in (KOL) listelerine bakiyordu; DILIM 2'nin `sonuclar`
+    # globali buraya HIC ugramiyordu. Olculen bedel: 13 ❌ basan bir kosum rc=0
+    # donuyordu ve bu batarya `.github/workflows/nobet.yml::serit-b`'ye BAGLI —
+    # yani serit YESIL yanarken 13 iddia dusuyordu. Dalin "44 vaka / 7 mutant YESIL"
+    # kabulu bu yuzden SAHTE YESILDI.
+    #   [[fail-closed-kol-arkasindaki-kolu-maskeler]] — erken donusun bastigi 0
+    #   OLCUM DEGIL KISA DEVREDIR.
+    # NOT: `--kol` / `--mutant*` kosumlarinda DILIM 2 HIC KOSMAZ, dolayisiyla
+    # `d2_kirmizi` bos kalir ve o kollarin hukmu DEGISMEZ (regresyon 0).
+    return 1 if (kirmizi or olculemedi or d2_kirmizi) else 0
 
 
 if __name__ == "__main__":
