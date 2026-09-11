@@ -269,13 +269,51 @@ def rol_ekseni(girdi, worktree_kokleri):
     return None
 
 
+ISCI_KOSUM_KANALI = "PRUVO_ISCI_KOSUMU"
+
+
 def kimlik_ekseni(girdi, ortam=None):
     """Kimlik kaynagini dondur; ``None`` her zaman MIMAR demektir."""
     aid = girdi.get("agent_id")
     if isinstance(aid, str) and aid.strip():
         return "agent_id"
     cevre = os.environ if ortam is None else ortam
-    motor = cevre.get("PRUVO_ISCI_KOSUMU")
+    motor = cevre.get(ISCI_KOSUM_KANALI)
     if motor in ISCI_MOTORLARI:
         return "sarmalayici:" + motor
     return None
+
+
+# === 🔴 11 EYL 2026 — KAPI BATARYALARI ICIN KIMLIK EKSENI CIVISI ==============
+# OLCULEN ARIZA (iki AYRI bataryada, birebir uretildi):
+#   tools/tikayici-kaldirma-test.py  temiz ortam -> ❌ 0  · isci ortami -> ❌ 13
+#   tools/icra-kapisi-test.py        temiz ortam -> 43/43 · isci ortami -> 40/43
+# Sebep TEK: `kimlik_ekseni` yukarida `agent_id`'ye EK OLARAK CEVRE DEGISKENINI
+# okur. Bir batarya kapiyi alt surec olarak cagirdiginda cevre MIRAS ALINIR; bir
+# m3 iscisinden kosuldugunda kapi `main()` basinda ISCI muaf cikar ve "RED KALIR"
+# vakalari DOGAL olarak GECER. Yani batarya, olcmeyi iddia ettigi kurali degil
+# KOSUCUSUNUN KIMLIGINI olcer ([[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]]).
+#
+# 🔴 NEDEN BURADA, HER BATARYADA DEGIL: ayni yardimciyi iki test dosyasina
+# KOPYALAMAK, kimlik kanali degistiginde sessizce ayrisan bir IKIZ uretirdi
+# ([[ikiz-tanim-sessiz-ayrisma]]) — ustelik kanal adi (`PRUVO_ISCI_KOSUMU`) ZATEN
+# bu modulun sirridir. Civi, kimligi TANIMLAYAN modulde durur; bataryalar onu
+# IMPORT eder, yeniden YAZMAZ. Olculmus emsal: `icra-kapisi-test.py:271` bu
+# temizligi TEK bir vaka icin elle yapmisti, kalan uc vaka capali kalmisti —
+# kismi civi, civisizlik kadar sessizdir.
+def kapi_cevresi(kimlik="MIMAR", ortam=None):
+    """Kapi alt surecine verilecek CEVRE — kimlik ekseni BURADA civilenir.
+
+    kimlik="MIMAR": `PRUVO_ISCI_KOSUMU` SILINIR. "Temiz ortam varsaymak" DEGIL,
+        ortami KURMAKTIR: batarya bir isciden kosulsa bile mimar kolunu olcer.
+    kimlik="ISCI" : ayni degisken KAPALI KUMEDEN turetilmis bir motora set edilir
+        (ad elle yazilmaz). Kume bos ise ``None`` doner — cagiran bunu
+        OLCULEMEDI olarak islemelidir, sessiz yesil DEGIL.
+    """
+    e = dict(os.environ if ortam is None else ortam)
+    e.pop(ISCI_KOSUM_KANALI, None)
+    if kimlik == "ISCI":
+        if not ISCI_MOTORLARI:
+            return None
+        e[ISCI_KOSUM_KANALI] = ISCI_MOTORLARI[0]
+    return e

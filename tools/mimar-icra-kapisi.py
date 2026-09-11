@@ -1159,9 +1159,18 @@ def _coz(yol, cwd):
 def repo_ici(yol, cwd):
     """Repo agacinin ICINDE mi? Ana checkout ONEKI ya da git'e KAYITLI bir worktree koku.
     Kayit ekseni P2'nin (repo DISINDAKI mesru worktree, or. /private/tmp/pruvo-toka-jenerator)
-    kimlikten BAGIMSIZ yedegidir: agent_id gelmese bile o betik kosar."""
+    kimlikten BAGIMSIZ yedegidir: agent_id gelmese bile o betik kosar.
+
+    🔴 11 EYL 2026 — KOKUN KENDISI: `REPO_ONEKI` EGIK CIZGIYLE biter, `_coz` ise
+    normpath uygular ve egigi ATAR. Yani deponun KENDI KOKU ('/Users/okan/dev/pruvo',
+    ve ayni yere cozulen '.' / '/Users/okan/dev/pruvo/') `startswith(REPO_ONEKI)`
+    testinden GECMIYOR ve repo DISI sayiliyordu: `python3 tools/defter-kota-kapisi.py .`
+    RED aliyordu. ALTTAKI worktree kolu bu esitligi ZATEN tasiyordu (`yol == kok`) —
+    kusur iki kolun ASIMETRISIYDI, kuralin kendisi degil. Esitlik kolu eklendi;
+    fail-closed YON DEGISMEDI: '/Users/okan/dev/pruvoXXX' ne koke esittir ne de
+    'pruvo/' onekiyle baslar, AYNEN RED kalir."""
     yol = _coz(yol, cwd)
-    if yol.startswith(REPO_ONEKI):
+    if yol == REPO_ONEKI.rstrip("/") or yol.startswith(REPO_ONEKI):
         return True
     for kok in kayitli_worktree_kokleri():
         if yol == kok or yol.startswith(kok + "/"):
