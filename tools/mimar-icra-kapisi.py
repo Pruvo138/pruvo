@@ -607,19 +607,36 @@ AGENT_GEREKCE = (
 ).format(ornek=AGENT_ORNEK_SINIF, liste=AGENT_SINIF_LISTESI)
 
 
-def _sert_blok_gerekcesi():
-    """KraL/MaCiT sert reddi; acik yollar kanonik sabitlerden turetilir."""
-    return (
-        "AGENT-KAPISI (13 Ağu Okan emri): bu evde mimar ANA oturumunun Claude işçisi "
-        "(Agent/Task ve isci.sh claude) açması, 'isci-muafiyet:' beyanı bulunsa bile "
-        "YASAKTIR. 'claude' motoru da aynı yasağın kapsamındadır; pahalı kat pahalı kattır. "
-        "PRUVO_CLAUDE_ISCI_IZNI yalnızca tam olarak OKAN ise eski beyan kuralı çalışır; "
-        "bu izni yalnızca Okan verir ve ajan kendi ayarlayamaz. İKİ AÇIK YOL: (a) " +
-        ISCI_SARMALAYICI_YOLU + " <motor> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
-        "(ucuz motorlar: " + CANLI_MOTOR_LISTESI +
-        "; kapalı motor kümesi: " + ISCI_MOTOR_LISTESI + "); (b) işi KENDİN yap — bu ev "
-        "Claude işçisine KAPALIDIR ve ikinci bir dış motor yolu YOKTUR."
-    )
+# 🔴🔴 11 EYL 2026 — OKAN EMRI: "tum tikayicilari kaldir".
+# `_sert_blok_gerekcesi()` bir RED GEREKCESIYDI: KraL (`pruvo`) ve MaCiT
+# (`pruvo-hasat`) evlerinde Claude iscisi `PRUVO_CLAUDE_ISCI_IZNI=OKAN`
+# olmadan KOSULSUZ reddediliyordu.
+# OLCULEN TERS TESVIK: N2B parti kapisi ucuz kata (m3) inen yolu da
+# kesiyordu; iki kol birlesince **ucuz kat da pahali kat da KAPALI** kaldi ve
+# haftalarca kimse hicbir kata is veremedi (Okan: "haftalardir sen dahil hic
+# kimse dogru duzgun m3 kullanmiyor").
+# YENI HUKUM: motor secimi **RAPOR EDILIR, ENGELLENMEZ**. Maliyet ekseni
+# zaten MOTOR ORANI ile olculuyor; olcum icin reddetmeye gerek yok.
+# 🔴 KALDIRILAN SEY YALNIZ KOSULSUZ RED'DIR. `isci-muafiyet:` BEYAN sarti
+# YERINDE DURUYOR (asagida): o bir kilit degil, tek satirla kendi kendine
+# karsilanan bir ISARETLEMEDIR ve "hangi is pahali kata gitti" sorusunu
+# olculebilir tutar.
+def _sert_blok_tanisi(ne):
+    """Eski SERT BLOK'un yerine gecen TESHIS. Karar TASIMAZ, yalniz SAYAR.
+
+    🔴 stderr'e yazilir ve `MOTOR-SECIMI` jetonu tasir: jeton, "pahali kat
+    kullanildi mi" sorusunu `grep`le cevaplanabilir kilar. Reddin yerine
+    SESSIZLIK konsaydi, kaldirmanin bedeli bir daha olculemezdi — bugunku
+    arizanin ta kendisi (`grep -c N2B isci.log` = 0)."""
+    try:
+        sys.stderr.write(
+            "MIMAR-KAPISI MOTOR-SECIMI=claude ev=%s izin=%s arac=%s "
+            "(13 Agu sert blok 11 Eyl'de KALDIRILDI — RED degil RAPOR)\n"
+            % (EV_ADI,
+               os.environ.get("PRUVO_CLAUDE_ISCI_IZNI") or "-",
+               ne))
+    except Exception:
+        pass
 
 
 def _agent_gorulen_sinif(prompt):
@@ -964,9 +981,11 @@ def _isci_karari(tokenlar):
     if motor != "claude" and emekli_motor_mu(motor):
         return emekli_gerekcesi(motor)
 
+    # 🔴 11 Eyl 2026: burada `return _sert_blok_gerekcesi()` vardi (KOSULSUZ
+    # RED). Artik yalnizca SAYILIR; cagri asagidaki BEYAN koluna devam eder.
     if (motor == "claude" and EV_ADI in SERT_BLOK_EVLER and
             os.environ.get("PRUVO_CLAUDE_ISCI_IZNI") != "OKAN"):
-        return _sert_blok_gerekcesi()
+        _sert_blok_tanisi("isci.sh-claude")
 
     if motor == "claude":
         spec_yolu = argumanlar[2]
@@ -1437,9 +1456,11 @@ def _agent_karari(girdi):
     cagrilir. tool_input.prompt taranir (Agent/Task araclarinin spec alani). Prompt yoksa
     ya da str degilse BOS sayilir → beyan yok → RED (fail-closed: eksik/bozuk girdi acmaz).
     KABA + TEK REGEX (parser taklidi yok): AGENT_MUAFIYET_RE tek makine-aranabilir desendir."""
+    # 🔴 11 Eyl 2026: burada `return _sert_blok_gerekcesi()` vardi (KOSULSUZ
+    # RED). Artik yalnizca SAYILIR; beyan kolu asagida AYNEN calisir.
     if (EV_ADI in SERT_BLOK_EVLER and
             os.environ.get("PRUVO_CLAUDE_ISCI_IZNI") != "OKAN"):
-        return _sert_blok_gerekcesi()
+        _sert_blok_tanisi("Agent/Task")
     ti = girdi.get("tool_input") or {}
     prompt = ti.get("prompt")
     if not isinstance(prompt, str):
