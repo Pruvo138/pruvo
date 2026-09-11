@@ -37,6 +37,7 @@ from sayfalar import (SELLER, PAY_BAND_HTML, FOOT_NAV_HTML,
 import filament_ortak
 import marka_model_build
 import sitemap_damga
+import yonlendirmeler
 # CIP INDEKSI — ana sayfa MARKA/GRUP/MODEL cip satirlarinin CAPRAZ DARALMA tablosu.
 # YALNIZ yayin kopyasina gomulur (bkz. yayin_index): indeks urunler.json'dan turer, kaynak
 # index.html'e yazilsaydi her urun partisi blogu bayatlatir ve baska bir mimarin akisini
@@ -5291,6 +5292,20 @@ def main():
         with open(os.path.join(cdir, "index.html"), "w", encoding="utf-8") as f:
             f.write(render_content_page(slug, title, meta, fn()))
 
+    # YONLENDIRME SAYFALARI (/<eski-slug>/index.html) — uretimden cikarilan icerik
+    # slug'lari 404 OLMAZ, en yakin kapsam ICI sayfaya tasinir. Tablo: tools/yonlendirmeler.py.
+    # sitemap'e GIRMEZ (indekslenecek icerik degil), yayin manifestine GIRER (yoksa
+    # dizin _site'a kopyalanmaz ve sessizce 404 olur).
+    yon_hatalar, yon_sayi = yonlendirmeler.dogrula(CONTENT_PAGES)
+    if yon_hatalar:
+        raise SystemExit("YONLENDIRME TABLOSU BOZUK (fail-closed):\n  " + "\n  ".join(yon_hatalar))
+    for eski_slug in yonlendirmeler.dizinler():
+        ydir = os.path.join(CIKTI_KOK, eski_slug)
+        os.makedirs(ydir, exist_ok=True)
+        with open(os.path.join(ydir, "index.html"), "w", encoding="utf-8") as f:
+            f.write(yonlendirmeler.stub_html(eski_slug, CONTENT_PAGES, SITE))
+    print("YONLENDIRME: %d stub sayfa uretildi (sitemap DISI, yayin manifesti ICI)." % yon_sayi)
+
     # LANDING HUB — additive ek modül (tools/landing_hub_build.py). 166+ uzun-kuyruk landing'i
     # (CONTENT_PAGES) TEK crawlable dizin sayfasında listeler; landing'ler bugüne dek yalnız
     # birbirlerinden inbound alıyordu (güçlü-sayfa geri-linki yok). Hub sitemap kaydı + kopyalanacak
@@ -5310,7 +5325,7 @@ def main():
     # eklenince deploy.yml elle güncellenmese de SESSİZCE 404 olmaz.
     with open(os.path.join(CIKTI_KOK, "_yayin-icerik-dizinleri.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(SITEMAP_SLUGS + marka_sonuc["dizinler"] + hub_sonuc["dizinler"]
-                         + kategori_sonuc["dizinler"]) + "\n")
+                         + kategori_sonuc["dizinler"] + yonlendirmeler.dizinler()) + "\n")
 
     # sitemap.xml (marka->model + landing hub + kategori hub URL'leri lastmod'lu eklenir)
     with open(os.path.join(CIKTI_KOK, "sitemap.xml"), "w", encoding="utf-8") as f:
