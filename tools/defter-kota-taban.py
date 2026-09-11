@@ -27,8 +27,28 @@ SAHIPTEN TURETILIR (`kutu_sahibi()`), koda gomulu IKINCI bir sabit ACILMAZ.
 """
 import os
 
-TAVAN_SATIR = 130
+TAVAN_SATIR = 500
 TAVAN_BAYT = 12288
+
+# 🔴 BAYT EKSENI ARTIK HUKUM VERMEZ — OKAN KARARI (11 Eyl 2026, birebir "6'yi 500 yap")
+# OLCULEN ARIZA (11 Eyl, bu kararin dogrudan sebebi): o gun commit'i IKI KEZ durduran
+# eksen SATIR degil BAYT'ti (`ASAN_EKSEN=BAYT`, 12.598 ve 12.314 bayt). Satir tavani
+# 500'e cikarilirken bayt tavani HUKUM vermeye devam etseydi kilit AYNEN geri gelirdi:
+# ayni gun olculdu ki `MEMORY.md` bayt tavanina **36 BAYT** (16.348/16.384) ve `DEVAM.md`
+# **166 BAYT** (12.122/12.288) kalmisti — yani tek bir satir yazmak kotayi yeniden asardi
+# ve 500 satirlik tavan hicbir sey degistirmezdi. Tavan TEK EKSENDE (SATIR) olculur.
+#
+# 🔴 KALDIRILAN SEY REDDETME YETKISIDIR, OLCUM DEGIL: bayt sayisi HER KOSUMDA olculur ve
+# RAPOR olarak basilir (`bayt=` jetonu ve `BAYT_RAPOR` eki tuketicilerde DURUR). Sadece
+# `asi_mi` kararina KATILMAZ. Bu bir TEK KAYNAK anahtaridir: hem DEVAM.md ekseni
+# (`tavan_asi_mi`) hem HAFIZA ekseni (`defter-kota-kapisi.py::hafiza_hali`) BU degeri
+# okur — ikinci bir "bayti yoksay" karari baska bir dosyaya YAZILMAZ
+# ([[ikiz-tanim-sessiz-ayrisma]]).
+#
+# ⚠️ GERI ACMA: bu bayragi True yapmak bayt hukmunu AYNEN geri getirir (mutant vakasi
+# `M_BAYT_HUKUM_GERI` bunu olcer). Geri acan kisi yukaridaki 36-BAYT olcumunu
+# YENIDEN yapmak zorundadir.
+BAYT_HUKUM_VERIR = False
 
 # 🔴 SU SEVIYESI — ONARIM HEDEFI, CEZA ESIGINDEN AYRIDIR (K353, 29 Agu 2026).
 # OLCULEN ARIZA: `defter-rotasyon.py --tavan-kaynaktan`in dongu cikis kosulu
@@ -82,9 +102,26 @@ def tavan_asi_mi(satir, bayt):
 
     Donus: (asi_mi, asan_eksen, satir, bayt).
     asan_eksen: 'SATIR' | 'BAYT' | 'IKISI' | '' (yesılken).
+
+    🔴 11 EYL 2026 — BAYT EKSENI HUKUM VERMEZ (`BAYT_HUKUM_VERIR = False`, gerekce
+    o sabitin basindaki yorumda). Bayt asimi OLCULUR ve `asan_eksen` icinde
+    `BAYT_RAPOR` olarak ADIYLA GORUNUR, ama `asi_mi` DEGERINI DEGISTIRMEZ.
+    Bu ayrimin adi: "teshis KALIR, reddetme yetkisi KALKAR".
     """
     satir_as = satir > TAVAN_SATIR
     bayt_as = bayt > TAVAN_BAYT
+
+    if not BAYT_HUKUM_VERIR:
+        # Bayt yalnizca RAPOR: hukum SATIR ekseninden gelir, bayt asimi ekseni
+        # adiyla gorunur kalir (sessizce yutulmaz — yutmak olcumu oldururdu).
+        if satir_as and bayt_as:
+            return True, "SATIR+BAYT_RAPOR", satir, bayt
+        if satir_as:
+            return True, "SATIR", satir, bayt
+        if bayt_as:
+            return False, "BAYT_RAPOR", satir, bayt
+        return False, "", satir, bayt
+
     if satir_as and bayt_as:
         return True, "IKISI", satir, bayt
     if satir_as:

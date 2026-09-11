@@ -161,6 +161,70 @@ def reddet(gerekce):
     sys.exit(0)
 
 
+# === 11 EYL 2026 — MIMAR KOD YAZIMI SAYACI (kilit yerine GORUNURLUK) ==============
+# 🔴 Kilit kalktiginda gorunurluk de kalkarsa "mimar eli surmez" ilkesi OLCULEMEZ hale
+# gelir ve ilke sessizce OLUR. O yuzden her yazim SAYILIR; kapanista tek satir basilir.
+# Sayac oturum-bazlidir (kardes kapi `cip-kapanis-kancasi.py::_sayac` ile AYNI desen ve
+# AYNI dizin). DISK KURALI (Okan 13 Agu, "makinede iz birakma"): `--rapor --temizle`
+# raporu bastiktan SONRA oturum dosyasini SILER; kapanis yordami o bicimi cagirir.
+SAYAC_DIZIN = os.path.expanduser("~/.claude/cron/mimar-kod-yazdi")
+
+
+def _sayac_yolu(session_id):
+    ad = "".join(k for k in str(session_id or "bilinmeyen")
+                 if k.isalnum() or k in "-_")[:80] or "bilinmeyen"
+    return os.path.join(SAYAC_DIZIN, ad + ".tsv")
+
+
+def _kod_yazimi_kaydet(girdi, fp):
+    """Bir mimar kod yazimini sayaca EKLE. Diske yazilamazsa SESSIZ gecer —
+    sayac bir RAPOR ekseni, KARAR ekseni degil; yazamamak yazmayi engellemez."""
+    try:
+        os.makedirs(SAYAC_DIZIN, exist_ok=True)
+        with open(_sayac_yolu(girdi.get("session_id")), "a", encoding="utf-8") as f:
+            f.write("%s\t%s\n" % (girdi.get("tool_name") or "?", fp))
+    except OSError:
+        pass
+
+
+def _rapor_bas(session_id, temizle=False):
+    """`MIMAR_KOD_YAZDI=<n dosya>` — TEKIL dosya sayisi (ayni dosyaya 5 Edit = 1 dosya).
+    Dosya yoksa 0 basar: "olculmedi" ile "yazmadi" ayrimini SESSIZ BIRAKMAMAK icin
+    kaynak yolu da basilir."""
+    yol = _sayac_yolu(session_id)
+    dosyalar = []
+    try:
+        with open(yol, encoding="utf-8") as f:
+            for satir in f:
+                parca = satir.rstrip("\n").split("\t")
+                if len(parca) >= 2 and parca[1] not in dosyalar:
+                    dosyalar.append(parca[1])
+    except OSError:
+        pass
+    print("MIMAR_KOD_YAZDI=%d dosya  kaynak=%s" % (len(dosyalar), yol))
+    for d in dosyalar:
+        print("  * " + d)
+    if temizle:
+        try:
+            os.remove(yol)
+            print("SAYAC_TEMIZLENDI=1 (disk kurali: makinede iz birakma)")
+        except OSError:
+            print("SAYAC_TEMIZLENDI=0 (dosya yok ya da silinemedi)")
+    return 0
+
+
+# `--rapor` KIPI: stdin OKUNMADAN once ele alinir (kanca kipi stdin bekler, rapor kipi
+# BEKLEMEZ — karistirilirsa kapanis yordami bir boru olur ve asilir).
+if "--rapor" in sys.argv[1:]:
+    _oturum = None
+    _argv = sys.argv[1:]
+    if "--oturum" in _argv:
+        _i = _argv.index("--oturum")
+        if _i + 1 < len(_argv):
+            _oturum = _argv[_i + 1]
+    sys.exit(_rapor_bas(_oturum, temizle=("--temizle" in _argv)))
+
+
 try:
     girdi = json.load(sys.stdin)
 except Exception:
@@ -197,20 +261,48 @@ if worktree_ici(fp):
     iz_bas("MIMAR-worktree")
     sys.exit(0)
 
-# 3) Calistirilabilir betik yazarligi: KONUMDAN BAGIMSIZ yasak (bugunku asil acik).
-if fp.lower().endswith(ICRA_UZANTILARI):
+# 3) Calistirilabilir betik yazarligi: KILIT KALKTI -> RAPOR (11 Eyl 2026, OKAN EMRI).
+#
+# 🔴 OKAN (11 Eyl, birebir): "tum tikayicilari kaldir".
+# OLCULEN ARIZA (11 Eyl, bu kapinin KENDI canli kopyasi tarafindan uretildi): hazir
+# bir 4 satirlik yamayi uygulayamadim ve bir CIPE devretmek zorunda kaldim = TUR KAYBI.
+# Ayni tur icinde bu kilit bir OLCUM betigini scratchpad'e yazmayi da reddetti; betik
+# worktree'ye yazilinca gecti — yani kilit isi ENGELLEMIYOR, sadece PAHALILASTIRIYORDU.
+#
+# 🔴 "MIMAR ELI SURMEZ" YORDAM ILKESI OLARAK KALIR (kral-yordam ④'te yazili), MAKINE
+# KILIDI OLARAK DEGIL. Kilit yerine GORUNURLUK: her mimar kod yazimi SAYILIR ve
+# kapanista `MIMAR_KOD_YAZDI=<n dosya>` diye basilir (`--rapor`). Gorunur kalsin,
+# engellenmesin.
+#
+# ⚠️ KAPSAM — BU KOLDA DEGISEN TEK SEY ICRA UZANTISI YASAGIDIR. AYNEN KALAN kollar
+# (bilerek, hepsi "yanlis isi yakalayan" siniftan):
+#   * 0) CEKIRDEK: ana repodaki kapi/kablo/nobetci dosyalari KIMLIKTEN BAGIMSIZ kilitli.
+#        Sebep: bir nobetciyi sessizce degistirmek kapiyi ellemeden YESIL yakar; mesru
+#        yol (worktree kopyasi) ZATEN ACIK, yani bu kol tikayici DEGIL.
+#   * 6) `urunler.json` / `.urun-kaynaklari.json`: veri butunlugu, MaCiT duzlemi
+#        (`urunler-guard.py` + `duzelt.py` tek mesru yol) — AYRI kalem, KALIR.
+#   * 6) `.html` / `.css` / `.sql` ve `.claude/settings*.json`: Okan emri kapsaminda
+#        ADIYLA ANILMADI; hatasi sessizce CANLI SITEYE gider. Kapsam disi, KALIR.
+#
+# 🔴 SIRA TUZAGI (olculdu, bu turda yakalandi): asagidaki `sys.exit(0)` kolu
+# adim 6'daki KAPI-ADI KALKANINI (`basename == "mimar-kod-kilidi.py"` /
+# `"mimar-icra-kapisi.py"`) ERISILMEZ kilardi — o kalkan tam da "uzanti kurali bir
+# gun daralirsa kapilar yine korunur" diye konmus bir REGRESYON KALKANIDIR ve bugun
+# uzanti kurali TAM OLARAK daraldi. Kalkan bu yuzden adim 3'UN ONUNE alindi; CEKIRDEK
+# (adim 0) kanonik ana-checkout yollarini, bu kol ise ADIN KENDISINI korur
+# ([[cagri-yeri-envanterden-duserse-onarildi-sanilir]] sinifi).
+if os.path.basename(fp) in ("mimar-kod-kilidi.py", "mimar-icra-kapisi.py"):
     reddet(
-        "MİMAR KOD-KİLİDİ — ÇALIŞTIRILABİLİR BETİK YAZARLIĞI YASAK (konumdan bağımsız, "
-        "20 Tem): mimar kod yazmaz, kod YAZDIRIR. Scratchpad dahil hiçbir yere "
-        ".py/.js/.mjs/.ts/.sh yazamazsın. ÇÖZÜM: (a) işi MÜHENDİS/USTA/MARABA'ya delege et "
-        "(Agent aracı: model opus/sonnet + isolation worktree + background) ya da emekli motor'e ver; "
-        "(b) isteğini .md SPEC'ine yaz — kural + çalıştırılabilir KABUL TESTİ dahil; "
-        "(c) ölçmek istiyorsan repodaki MEVCUT aracı koştur (node tools/parite-test.js, "
-        "python3 tools/d1-sync.py --durum, python3 tools/durum.py). "
-        "İZİNLİ: *.md her yerde, scratchpad'de .txt/.json not/veri, worktree'ler. "
-        "MÜHENDİSSEN: betiğini scratchpad'e değil KENDİ WORKTREE'NE yaz "
-        "(/Users/okan/dev/pruvo/.claude/worktrees/<dal>/...) — orası muaf, kalıcı ve denetlenebilir."
+        "MİMAR KAPISI — kapı dosyasının KENDİSİ (" + os.path.basename(fp) + "). "
+        "11 Eyl 2026'da çalıştırılabilir betik yazma yasağı KALKTI, ama kapıların "
+        "kendini koruması KALDI: kapı işini KENDİ WORKTREE'NDE yap, oradaki kopya "
+        "serbesttir."
     )
+
+if fp.lower().endswith(ICRA_UZANTILARI):
+    _kod_yazimi_kaydet(girdi, fp)
+    iz_bas("MIMAR-KOD-YAZDI " + fp)
+    sys.exit(0)
 
 # 4) Not/spec/veri dosyalari: serbest (mimarin asil isi).
 if fp.endswith(".md"):

@@ -190,7 +190,17 @@ import time
 # (kapi burada kirmizi yakar), su seviyesi ONARIM hedefi (rotasyon buraya iner).
 # Ikisi esitlenirse rotasyon tavanda durur, bir sonraki blok yeniden asar ve
 # kilit geri gelir — bedeli 29 Agu'da olculdu.
-VARSAYILAN_TAVAN = 250
+# 🔴 250 -> 500 · OKAN KARARI (11 Eyl 2026, birebir: "6'yi 500 yap").
+# OLCULEN ARIZA (kararin sebebi): kutu 274 satir / tavan 250 iken kapi
+# `!! KUTU_ASILDI` + rc=NONZERO basiyordu ve evin HER commit'i — uc dalin merge'i
+# dahil — KILITLIYDI. Kilidi acmak mimarin ELINDE DEGILDI: 17 blogun 17'si
+# `KORUMALI` (baskasinin kapatmasi gerekir) + `koru=3` en yeni 3'u yerinde tutuyor
+# => `TASIMA_YETMEDI` ([[kota-kapisi-tum-evin-commitini-kilitler]]).
+# 🔴 KAPI KALDIRILMADI, YALNIZ SAYI DEGISTI: tavan asimi HALA commit'i durdurur;
+# LOSSLESS rotasyon ve kayipsizlik olcumu (blok/bayt/SHA esitligi) AYNEN KALIR.
+# Bu sayi TEK KAYNAKTIR: `defter-kota-taban.py::kutu_tavan_satir()` onu BURADAN
+# okur, ikinci bir yere 500 YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
+VARSAYILAN_TAVAN = 500
 VARSAYILAN_KORU = 3
 # K310: arsiv KUYRUGU (rapor ekseni) varsayilan penceresi. Bugunun tasimalari bu
 # pencerenin icindedir; tarihsel arsivin tamami BILEREK kapsam disidir (bkz. AYRAC_RE notu).
@@ -1769,18 +1779,61 @@ KORUMALI_ETIKET = "KORUMALI"
 #   yonudur; sayi basilmadan hukum verilmez ([[aracin-teshis-cumlesi-olcum-degil]]).
 ETIKET_DUSTU_ISARETI = "KORUMA-DUSTU"
 
+# ── ETIKET OLUMSUZLANDI = "KORUMALI DEGIL" (11 Eyl 2026, OLCULDU: 1 blok) ─────────
+# 🔴 OLCULEN ARIZA (taban, bu turda kutuda ADIYLA bulundu): kol `KORUMALI in baslik`
+#   diye CIPLAK, TEK YONLU alt-dizge soruyordu. Kutunun 149. satirindaki blok basligi
+#     `## 2026-09-10 23:5x — 🔑 BaBa → **5 mimar** (bilgi, KORUMALI değil) ...`
+#   yani etiket konumunda ACIKCA "KORUMALI DEGIL" ilan ediyor — ve arac onu KORUMALI
+#   sayip rotasyondan ALIKOYUYORDU. Taban olcumu: veto=17, bunlarin 1'i SAHTE.
+#   Sinif: [[grep-sifir-nobetcisi-yasak-kaydinda-oludur]] — bir ad hem ATIF hem YASAK
+#   konumunda gecebiliyorsa TEK YONLU nobetci korumayi yanlis yerde uygular.
+# 🔴 CARE IKI YONLUDUR: (+) `KORUMALI` gecmesi veto URETIR · (−) etiketin hemen
+#   ardindan gelen OLUMSUZLAMA ("degil") vetoyu KALDIRIR. Eslesme TURKCE-GUVENLIDIR:
+#   baslik once `_tr_normalize` ile katlanir (İ/ı/i→I, Ğ/ğ→G, Ş/ş→S ...), yoksa
+#   `değil` ile `DEĞİL` ayni desene denk gelmez ve kol yalnizca bir yazimda calisirdi.
+# 🔴 NON-GROWTH: daraltma YALNIZ olumsuzlama ILAN EDEN basliga uygulanir. Bir blogun
+#   korumasini yanlislikla dusurmek kaybin en pahali yonudur, o yuzden dusen her
+#   etiket SAYILIR ve `ETIKET_OLUMSUZ=` diye ADIYLA basilir; govdede gecen
+#   olumsuzlama veto KALDIRMAZ (konum olcutu K329 ile AYNI: yalniz BASLIK).
+ETIKET_OLUMSUZ_DESENI = re.compile(
+    r"KORUMALI\s*(?:\)|,|;|:|-|—|/)?\s*(?:\w+\s+){0,2}?DEGIL", re.UNICODE)
+
+_TR_KATLAMA = {
+    "İ": "I", "ı": "I", "i": "I", "I": "I",
+    "Ğ": "G", "ğ": "G", "Ş": "S", "ş": "S",
+    "Ö": "O", "ö": "O", "Ü": "U", "ü": "U", "Ç": "C", "ç": "C",
+}
+
+
+def _tr_normalize(metin):
+    """Turkce-guvenli buyuk harf katlamasi — TEK KAYNAK.
+
+    `str.upper()` YETMEZ: Python'da 'i'.upper() == 'I' ama 'değil'.upper() == 'DEĞIL'
+    (noktali İ degil), ve 'İ'.lower() iki kod noktasina acilir. Desenler tek yazimda
+    yazilip girdi BURADAN gecirilir; ikinci bir yazim varyanti listesi ACILMAZ.
+    """
+    return "".join(_TR_KATLAMA.get(k, k) for k in metin).upper()
+
+
+def etiket_olumsuzlandi_mi(baslik):
+    """BASLIKTA `KORUMALI ... DEGIL` ilani var mi? (saf, IO yok — kabul testi cagirir)"""
+    return bool(ETIKET_OLUMSUZ_DESENI.search(_tr_normalize(baslik)))
+
 
 def korumali_etiketli_bloklar(satirlar, baslar):
-    """([(blok_idx, satir_no, baslik_ozeti)], govde_anmasi, dustu) — TEK KAYNAK.
+    """([(blok_idx, satir_no, baslik_ozeti)], govde_anmasi, dustu, olumsuz) — TEK KAYNAK.
 
     BASLIGINDA `KORUMALI` gecen bloklar veto uretir. Etiket blogun ICINDE gecip
     BASLIKTA gecmiyorsa veto URETMEZ; sessizce yutulmaz, SAYILIR ve basilir.
     BASLIKTA `KORUMA-DUSTU` ILANI varsa koruma KALDIRILMIS sayilir: blok rotasyona
     ACILIR ve `dustu` sayacina yazilir (bkz. ETIKET_DUSTU_ISARETI).
+    BASLIKTA `KORUMALI ... DEGIL` OLUMSUZLAMASI varsa etiket HIC KONMAMIS sayilir:
+    blok rotasyona ACILIR ve `olumsuz` sayacina yazilir (bkz. ETIKET_OLUMSUZ_DESENI).
     """
     bulgu = []
     govde_anmasi = 0
     dustu = []
+    olumsuz = []
     for i, (bas, son) in enumerate(blok_araliklari(satirlar, baslar)):
         baslik = satirlar[bas] if bas < len(satirlar) else ""
         if ETIKET_DUSTU_ISARETI in baslik:
@@ -1791,10 +1844,14 @@ def korumali_etiketli_bloklar(satirlar, baslar):
                 dustu.append((i, bas + 1, baslik.strip()[:90]))
             continue
         if KORUMALI_ETIKET in baslik:
+            # 🔴 IKI YONLU: etiket VAR ama basligin kendisi onu OLUMSUZLUYOR mu?
+            if etiket_olumsuzlandi_mi(baslik):
+                olumsuz.append((i, bas + 1, baslik.strip()[:90]))
+                continue
             bulgu.append((i, bas + 1, baslik.strip()[:90]))
         elif KORUMALI_ETIKET in "".join(satirlar[bas:son]):
             govde_anmasi += 1
-    return bulgu, govde_anmasi, dustu
+    return bulgu, govde_anmasi, dustu, olumsuz
 
 
 def sabit_indeksler(blok_sayisi_, koru, korumali_indeksler, acik_indeksler=(),
@@ -1851,6 +1908,7 @@ class Plan(object):
         self.korumali_etiket = []          # basliginda KORUMALI gecen bloklar
         self.korumali_etiket_govde = 0     # etiket govdede gecti, BASLIKTA degil
         self.korumali_etiket_dustu = []    # baslikta `KORUMA-DUSTU` ILANI var (madde 3a)
+        self.korumali_etiket_olumsuz = []  # baslikta `KORUMALI ... DEGIL` olumsuzlamasi
         self.etiket_kilitledi = 0
         self.kapanan_adlar = set()         # denetim kolunun (D17) okudugu TABAN
         # ARSIV DUZLEMI (K360-B) — K329'dan AYRI KOVA, AYRI SAYI
@@ -1915,7 +1973,8 @@ def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None):
 
     # 🔴 KORUMALI ETIKETI (BaBa (2)) — BASLIKTA gecen `KORUMALI` blogu TASINMAZ.
     (p.korumali_etiket, p.korumali_etiket_govde,
-     p.korumali_etiket_dustu) = korumali_etiketli_bloklar(satirlar, baslar)
+     p.korumali_etiket_dustu,
+     p.korumali_etiket_olumsuz) = korumali_etiketli_bloklar(satirlar, baslar)
     etiket_idx = [b for b, _s, _o in p.korumali_etiket]
     p.etiket_kilitledi = len([b for b in etiket_idx if b >= koru])
 
@@ -2947,6 +3006,16 @@ def main(argv=None):
                   "`%s` alt-dizgesi VETO URETMEZ, blok ROTASYONA ACIK | %s"
                   % (blok_idx + 1, p.blok_toplam, satir_no, ETIKET_DUSTU_ISARETI,
                      KORUMALI_ETIKET, ozet))
+        # 🔴 11 EYL — IKI YONLU ESLEME: etiket VAR ama baslik onu OLUMSUZLUYOR.
+        # Vetoyu kaldiran her kol gibi bu da HER kosumda ADIYLA basilir (sessiz
+        # daraltma, kapiyi yalanci yapmanin en kisa yoludur).
+        print("ETIKET_OLUMSUZ=%d desen=`KORUMALI ... DEGIL`  [KAPI]"
+              % len(p.korumali_etiket_olumsuz))
+        for blok_idx, satir_no, ozet in p.korumali_etiket_olumsuz:
+            print("  * ETIKET OLUMSUZ blok %d/%d (satir %d) -> baslik `%s` etiketini "
+                  "ACIKCA OLUMSUZLUYOR (\"... DEGIL\"), veto URETMEZ, blok ROTASYONA "
+                  "ACIK | %s" % (blok_idx + 1, p.blok_toplam, satir_no,
+                                 KORUMALI_ETIKET, ozet))
         if p.korumali_etiket_govde:
             print("  · KORUMALI GOVDE ANMASI=%d blok: etiket blogun ICINDE geciyor ama "
                   "BASLIK satirinda DEGIL -> veto URETMEZ (konum olcutu), blok rotasyona "

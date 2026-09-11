@@ -84,8 +84,14 @@ import tempfile
 # --- TAVAN + SU SEVIYESI: TEK KAYNAK (bu dosya SAHIPTIR) ---------------------
 # 🔴 Bu iki sayi baska hicbir yere KOPYALANMAZ. Kota kapisi bunlari sahipten okur;
 # `defter-kota-kapisi.py::tek_kaynak_kontrol` ikinci bir sabit sahibini KIRMIZI yakar.
+# 🔴 45 -> 500 · OKAN KARARI (11 Eyl 2026, birebir: "6'yi 500 yap").
+# 🔴 BAYT TAVANI DURUYOR AMA HUKUM VERMEZ: anahtar `defter-kota-taban.py::
+#    BAYT_HUKUM_VERIR` (False). Sayi RAPOR icin burada KALIR — silinirse kota kapisi
+#    onu `HAFIZA_OLCULEMEDI` (fail-closed) sayar ve kilit BASKA kapidan geri gelir.
+#    OLCULEN GEREKCE (11 Eyl): indeks 16.348/16.384 bayttaydi — tavana **36 BAYT**.
+#    Satir tavanini 500'e cikarip bayt hukmunu birakmak hicbir sey cozmezdi.
 VARSAYILAN_TAVAN_BAYT = 16384
-VARSAYILAN_TAVAN_SATIR = 45
+VARSAYILAN_TAVAN_SATIR = 500
 SU_SEVIYESI_ORANI = 0.8
 
 HAFIZA_VARSAYILAN = os.path.expanduser(
