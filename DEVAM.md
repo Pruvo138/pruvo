@@ -3,11 +3,13 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 
-## 🔁 11 EYL ana oturum-9 — ev `f641d116` = origin/main
-**✅ A→B→C MAIN'DE** (8 commit, ucu de merge commit'i): bagimsiz dogrulama cipi ucune de MERGE EDILEBILIR dedi; C'nin tek gercek riski OLCULDU — **build.py FAQPage'i EZMIYOR** (uretilen `sss` commit'liyle bayt-birebir). D1 alti eksen ✅ **36771=36771**; run `34535784062` `serit-a2` **success**.
-**SIRADAKI TEK IS:** D `busy-hermann-057e7e` (`nobet-olcum.py`) · E `zen-payne-e718e2` (odeme SINIF kapisi + olu batarya dirildi). 🔴 **BLOKE EDICI SORU** cip `task_50214d67`: E'nin bataryasi artik **rc=1**; `deploy.yml`'e `continue-on-error`'suz bagliysa **MERGE EDILEMEZ** (filo yayini durur).
-**🔴 KUTU (BaBa'da):** `TASIMA_YETMEDI` 339>250 = evin HER commit'i kilitliydi; sebep 17 KORUMALI blok + `koru=3`. Iki blok yazip **361→225** actim (kayipsiz, SHA 2/2). Arac kusuru: baslikta **"KORUMALI değil"** de KORUMALI sayiliyor.
-**HESAP (1b) KAPANDI** — oturum yeni kimlikte dogdu, artifact `mine`. Deploy = Okan kapisi.
+## 🔁 11 EYL ana oturum-9 KAPANIS — OKAN EMRI: TIKAYICILAR KALKTI + m3 FAN-OUT
+**TAM METIN KUTUDA** — 11 Eyl 10:4x `KraL (ana-oturum-9) KAPANIS`. Deftere yalniz yurumesi gerekenler:
+**🔴 OKAN KAPISI — 3 URUNDE SATIS RISKI (K386):** otoriter `satin-alma` ↔ dosyada `CC BY 4.0`: `mercedes-o309-el-freni-kolu` · `volvo-240-izgara-kilitleme-pimi` · `renault-megane-1-kap-kolu-mekanizma-klipsi`. Onerim gizli (kalici taslak), urun SILINMEZ. ⚠️ Raporun sinif aritmetigi CELISIK — 3 id somut, sayilara yaslanma. Ayrica **117 urunde** public `lisans.tur='kisisel'`, gizli kayit `ucretsiz-cc`.
+🔧 **SIRADAKI TEK IS — MERGE:** `claude/elegant-wright-dc11d6` `6ed952f8`. Cakisma m3 isci-6'da birlestirildi — **kabul: vaka sayisi A+B mi, ONCE onu olc.**
+**KOSULMADI (kota RED):** 16 artik `claude/*` silme (liste isci-2 ciktisinda); 🔴 `curut/ozet-v3` + `claude/fervent-heisenberg-2d069c` BIRAKILDI (eksen celiskisi + 30 gun atif testi).
+
+## ✅ 11 EYL oturum-9 ILK YARI — ISARETCI (tam metin kutuda): A→B→C merge `f641d116`, yayin `34535784062` SKIPPED=0, D1 ✅ 36771, `build.py` FAQPage'i EZMIYOR, kutu kilidi acildi, hesap (1b) KAPANDI.
 🔴 **KISIT:** kapi KABLOLU, merge dogrulamasi cipe gider · `2>&1` eki de RED (serbest komut CIPLAK kosulur) · defter rotasyonu yer ACAMAZ (`KAPALI=0`, 35 madde ACIK = arac DOGRU no-op) · `kutu-arsivle --sha-dogrula` TASIMA ONCESI kosulursa fail-closed her blogu eksik sayar, yazmaz.
 
 ## ✅ 10 EYL ana oturum-7 — 5 dal main'de, yayin indi, kapi kablosu ONARILDI. TAM METIN `DEVAM-ARSIV.md` + kutu (E5)
