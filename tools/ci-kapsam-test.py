@@ -2645,10 +2645,18 @@ R_GIZLI = ("Gizli/izlenmeyen girdiye bagli: .urun-kaynaklari.json (gitignore) + 
            "stage'lenmis PARTI farki. CI fresh checkout'unda ikisi de YOK -> kapi bos parti "
            "gorup anlamsiz YESIL yakar (sahte nobetci). Urun-ekleme hattinda (MaCiT) yerel "
            "kosulur; deploy hattinin girdisi degil.")
-R_TASARIM = ("TASARIM GEREGI yayin-disi (kendi dosyasindaki not): 'bu kapi build.py'ye BAGLANMAZ "
-             "— tek kotu kategori TUM yayini kirmasin'. Kategori drifti urunu katalogda birakir, "
-             "yalniz filtreden dusurur; yayini bloklamak orantisiz. Bagimsiz calistirilabilir "
-             "kabul testi olarak yerelde/duzeltme akisinda kosulur.")
+# R_TASARIM = ("TASARIM GEREGI yayin-disi (kendi dosyasindaki not): 'bu kapi build.py'ye BAGLANMAZ "
+#              "— tek kotu kategori TUM yayini kirmasin'. Kategori drifti urunu katalogda birakir, "
+#              "yalniz filtreden dusurur; yayini bloklamak orantisiz. Bagimsiz calistirilabilir "
+#              "kabul testi olarak yerelde/duzeltme akisinda kosulur.")
+# K405 (11 Eyl 2026, KraL cipi): R_TASARIM muafiyeti ve IZIN_LISTESI girisi KALDIRILDI —
+# kapi artik nobet.yml SERIT B adimi olarak OTOMATIK kosar (`--kendini-test` + canli tarama).
+# 🔴 GEREKCE NEDEN CURUDU: metin DOGRUYDU ama YANLIS SONUCA baglanmisti. "build.py'ye
+# BAGLANMAZ / yayini bloklamak orantisiz" ifadesi `deploy.yml`'e KARSI bir gerekcedir;
+# "hic kosmasin" demek DEGIL. Muafiyet bu ikisini ozdes sayarak kapiyi HER is akisindan
+# dusurmustu -> katalog gecersiz kategori tasirken 0 nobetci otuyordu (TAM AD grep:
+# nobet.yml 0 · deploy.yml 0). serit-b `deploy.needs`te olmadigi icin otomatik kosum
+# yayini DURDURMAZ; gerekcenin korumak istedigi sey (orantisiz yayin blokaji) KORUNDU.
 R_YEREL_HIJYEN = ("Yerel calisma-agaci hijyeni: .gitignore blogunun CONTENT_PAGES ile ortusmesini "
                   "denetler. Drift CI'da GORUNMEZ (uretilen dizinler fresh checkout'ta yok) ve "
                   "canli siteyi bozmaz — yalniz gelistiricinin `git status`ini kirletir/kazara "
@@ -3132,7 +3140,8 @@ IZIN_LISTESI = {
     # okunamazsa OLCULEMEDI rc 3. deploy.yml'de continue-on-error'SUZ kosuyor + kendi
     # `--kendini-test`i (15 iddia, 2 mutasyon) de bloklayici.
 
-    "tools/kategori-kapisi.py": R_TASARIM,
+    # "tools/kategori-kapisi.py": R_TASARIM,  <- K405 (11 Eyl 2026) KALDIRILDI; yukaridaki
+    # R_TASARIM blogunda gerekce. Kapi nobet.yml::serit-b'de iki BAGIMSIZ adim olarak kosar.
     "tools/gitignore-kapisi.py": R_YEREL_HIJYEN,
     "tools/regresyon-kapisi.py": (
         R_YOL + " Ek olarak varsayilan suite'i node tools/parite-test.js + parite-ege.js icerir; "
