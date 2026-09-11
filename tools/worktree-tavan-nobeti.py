@@ -154,23 +154,26 @@ def rapor(depo, simdi=None):
         chip_sayisi = sum(rol == "CHIP" for _entry, rol in roller)
         # FIKSTUR hicbir tavana sayilmaz — ama SESSIZCE de yutulmaz (asagida GORUNUR).
         fikstur_sayisi = sum(rol == "FIKSTUR" for _entry, rol in roller)
-        mimar_uyari = mimar_sayisi > TAVAN_MIMAR
-        chip_uyari = chip_sayisi > TAVAN_CHIP
-        if mimar_uyari:
-            satirlar.append(
-                "!! UYARI: WORKTREE TAVANI ASILDI — ROL=MIMAR SAYI=%d TAVAN=%d" %
-                (mimar_sayisi, TAVAN_MIMAR))
-        if chip_uyari:
-            satirlar.append(
-                "!! UYARI: WORKTREE TAVANI ASILDI — ROL=CHIP SAYI=%d TAVAN=%d" %
-                (chip_sayisi, TAVAN_CHIP))
-        if mimar_uyari or chip_uyari:
-            satirlar.append(
-                "!! YORDAM: once yama + izlenmeyen dosya kopyasi arsivle; yama icin "
-                "git apply --check dogrula; main disi commit varsa bundle al; SONRA kaldir.")
+        # 🔴🔴 11 EYL 2026 — OKAN EMRI "tum tikayicilari kaldir" · KALEM 4.
+        # BURADA `!! UYARI: WORKTREE TAVANI ASILDI` SATIRLARI VARDI (SAYI
+        # ekseni: MIMAR>2, CHIP>12). SILINDI.
+        # SEBEP (BaBa 10 Eyl hukmu): **tavan bir SAYI olcusu degil, bir ARTIK
+        # olcusudur.** Ayni anda 5 agac acik olmasi kendi basina bir kusur
+        # DEGILDIR — 5'i de canli calisiyorsa dogru sayi 5'tir. Kusur, isi
+        # bitmis ama KALDIRILMAMIS agactir. Sayi eksenli uyari, calisan
+        # cipleri "ihlal" gibi gosterip kapatmaya zorluyordu: bu bir
+        # TIKAYICIDIR (`WORKTREE SAYI=5 TAVAN=2` bugun bastı ve hicbir seyi
+        # durdurmadi — yalnizca yanlis telas uretti).
+        # 🔴 OLCUM SUSTURULMADI: ozet satiri (`WORKTREE SAYI=...`) AYNEN
+        # duruyor — alan adlari ve sirasi DEGISMEDI, okuyanlar kirilmaz
+        # ([[tuketici-yazilirken-tum-okuyucular-sayilir]]). ARTIK olcusu
+        # asagida `ARTIK_AGAC` olarak AYRI ve ACIK basilir.
         satirlar.append("WORKTREE SAYI=%d TAVAN=%d MIMAR=%d/%d CHIP=%d/%d FIKSTUR=%d" %
                         (len(liste), TAVAN, mimar_sayisi, TAVAN_MIMAR,
                          chip_sayisi, TAVAN_CHIP, fikstur_sayisi))
+        satirlar.append(
+            "NOT: TAVAN/MIMAR/CHIP alanlari RAPOR icindir; asilmalari ARTIK "
+            "UYARISI URETMEZ (11 Eyl 2026). Bakilacak sayi ARTIK_AGAC'tir.")
         if fikstur_sayisi:
             satirlar.append(
                 "NOT: FIKSTUR=%d agac baska bir kapinin SANIYELIK self-test worktree'si "
@@ -179,6 +182,14 @@ def rapor(depo, simdi=None):
         kirilim = {"agent-*": 0, "muh/": 0, "onarim/": 0, "claude/": 0,
                     "detached": 0, "BILINMEYEN": 0}
         olu_adaylari = []
+        # 🔴 ARTIK OLCUSU (11 Eyl 2026) — tavanin YERINI ALAN sayi.
+        # ARTIK = (a) main DISI commit YOK  [kaybolacak is yok]
+        #       + (b) KIRLI DEGIL           [ucusta calisma yok]
+        #       + (c) SAHIPSIZ              [yas > OLU_CHIP_DAKIKA]
+        # Uc sart da tutuyorsa agacin kaldirilmasi HICBIR SEY kaybettirmez.
+        # Uclu AND bilerek DAR: biri bile tutmuyorsa agac ARTIK SAYILMAZ
+        # (yanlis pozitif burada CALISAN IS SILER — kabul edilemez zarar).
+        artik_agaclar = []
         for sira, (entry, rol) in enumerate(roller):
             dirty = kirli_mi(entry["yol"])
             mtime = en_yeni_mtime(entry["yol"])
@@ -203,6 +214,11 @@ def rapor(depo, simdi=None):
             if (rol == "CHIP" and commit == 0 and yas != float("inf") and
                     yas > OLU_CHIP_DAKIKA):
                 olu_adaylari.append((entry["yol"], yas_yazi))
+            # ARTIK: ROLDEN BAGIMSIZ (mimar agaci da artik olabilir), ama ANA
+            # AGAC asla. Uc sart da AYNI kosumda olculur.
+            if (sira > 0 and commit == 0 and not dirty
+                    and yas != float("inf") and yas > OLU_CHIP_DAKIKA):
+                artik_agaclar.append((entry["yol"], rol, yas_yazi))
             if commit == 0:
                 satirlar.append(
                     "  NOT: main'de olmayan commit 0; kaybolacak tek sey commit'lenmemis calismadir.")
@@ -214,6 +230,17 @@ def rapor(depo, simdi=None):
             satirlar.append(
                 "OLU_CHIP_ADAYI AGAC=%s YAS=%s — is bittiyse kaldir "
                 "(kaybolacak sey YOK: main disi commit 0)" % (yol, yas_yazi))
+        # 🔴 TAVANIN YERINI ALAN SATIR. BLOKLAYICI DEGIL — rc'ye dokunmaz,
+        # push'u durdurmaz, hicbir kolu kesmez. Yalnizca "kaldirilabilir kac
+        # agac var" sorusunu SAYIYLA cevaplar.
+        satirlar.append(
+            "ARTIK_AGAC=%d (main disi commit=0 + KIRLI degil + YAS>%d dk) "
+            "— TAVAN DEGIL, RAPOR" % (len(artik_agaclar), OLU_CHIP_DAKIKA))
+        for yol, rol, yas_yazi in artik_agaclar:
+            satirlar.append(
+                "ARTIK_AGAC AGAC=%s ROL=%s YAS=%s — kaldirmak HICBIR SEY "
+                "kaybettirmez (main disi commit 0, kirli degil)"
+                % (yol, rol, yas_yazi))
         satirlar.append("ACILIS_KIRILIMI " + " ".join(
             "%s=%d" % (ad, kirilim[ad]) for ad in
             ("agent-*", "muh/", "onarim/", "claude/", "detached", "BILINMEYEN")))
@@ -347,10 +374,18 @@ def kendini_test():
                     os.utime(tam, (eski, eski))
         p = betik_kos(betik, kok)
         rc_listesi.append(p.returncode)
-        if not p.stdout.startswith("!! UYARI: WORKTREE TAVANI ASILDI"):
-            hatalar.append("b:tavan ustunde uyari basta degil")
+        # 🔴 11 Eyl 2026: ESKIDEN "rapor UYARI ile BASLAMALI" araniyordu.
+        # Sayi ekseni uyarisi KALDIRILDI; artik TERS yuklem olculur — uyari
+        # HICBIR YERDE olmamali ve rapor OZET satiriyla baslamali.
+        if "UYARI: WORKTREE TAVANI ASILDI" in p.stdout:
+            hatalar.append("b:tavan ustunde SAYI uyarisi GERI GELDI")
+        if not p.stdout.startswith("WORKTREE SAYI="):
+            hatalar.append("b2:rapor ozet satiriyla baslamiyor")
         if "SINIF=OKSUZ KIRLI=EVET TAZELIK=BAYAT" not in p.stdout:
             hatalar.append("c:kirli+bayat OKSUZ olmadi")
+        # ARTIK olcusu HER raporda basilmali (tavanin yerini alan sayi).
+        if "ARTIK_AGAC=" not in p.stdout:
+            hatalar.append("b3:ARTIK_AGAC olcusu raporda YOK")
 
         commit_kok = os.path.join(gecici, "commit-depo")
         depo_kur(commit_kok)
@@ -413,15 +448,31 @@ def kendini_test():
         #    (fikstur muafiyeti gercek asimi MASKELEMEZ).
         w6 = _senaryo(betik, gecici, "w6", 0, 1, 1)
         w7 = _senaryo(betik, gecici, "w7", 0, 3, 1)
+        # 🔴🔴 11 EYL 2026 — VAKA SOZLESMESI TERSINE DONDU (Okan emri, KALEM 4).
+        # ESKIDEN: W2/W3/W4/W7 "tavan asildi UYARISI BASILMALI" diye olcuyordu.
+        # ARTIK : ayni vakalarda **UYARI BASILMAMALIDIR** — sayi ekseni bir
+        # tikayiciydi ve kaldirildi. Vaka SAYISI DUSMEDI (7 -> 7): vakalar
+        # silinmedi, YUKLEMLERI tersine cevrildi. Boylece uyarinin geri
+        # gelmesi (regresyon) HALA yakalanir — yalnizca isaret degisti
+        # ([[grep-sifir-nobetcisi-yasak-kaydinda-oludur]]: tek yonlu "yok"
+        # nobetcisi olu olurdu; burada ozet alani AYNI kosumda pozitif
+        # olarak da dogrulaniyor).
         w_kontrolleri = (
             ("W1", w1, not _uyari_var(w1.stdout, "CHIP") and
              not _uyari_var(w1.stdout, "MIMAR") and
              "MIMAR=1/2" in w1.stdout and "CHIP=6/12" in w1.stdout),
-            ("W2", w2, _uyari_var(w2.stdout, "MIMAR") and
-             not _uyari_var(w2.stdout, "CHIP") and w2.returncode == 0),
-            ("W3", w3, _uyari_var(w3.stdout, "CHIP") and w3.returncode == 0),
-            ("W4", w4, _uyari_var(w4.stdout, "MIMAR") and
-             not _uyari_var(w4.stdout, "CHIP") and w4.returncode == 0),
+            # W2: MIMAR=3 > TAVAN 2 — UYARI YOK, ama ozet alani GERCEGI basar.
+            ("W2", w2, not _uyari_var(w2.stdout, "MIMAR") and
+             not _uyari_var(w2.stdout, "CHIP") and
+             _ozet_alani(w2.stdout, "MIMAR") == "3/2" and
+             "ARTIK_AGAC=" in w2.stdout and w2.returncode == 0),
+            # W3: CHIP tavani asildi — UYARI YOK.
+            ("W3", w3, not _uyari_var(w3.stdout, "CHIP") and
+             "ARTIK_AGAC=" in w3.stdout and w3.returncode == 0),
+            ("W4", w4, not _uyari_var(w4.stdout, "MIMAR") and
+             not _uyari_var(w4.stdout, "CHIP") and
+             _ozet_alani(w4.stdout, "MIMAR") == "3/2" and
+             "ARTIK_AGAC=" in w4.stdout and w4.returncode == 0),
             ("W5", w5, "OLU_CHIP_ADAYI=1" in w5.stdout and w5.returncode == 0),
             # 🔴 FIKSTUR sayisi OZET SATIRINDAN okunur, alt-dize aramasiyla DEGIL:
             # aciklama ("NOT: FIKSTUR=1 agac ...") de ayni metni tasiyor, dolayisiyla
@@ -431,8 +482,9 @@ def kendini_test():
              not _uyari_var(w6.stdout, "CHIP") and
              "MIMAR=1/2" in w6.stdout and _ozet_alani(w6.stdout, "FIKSTUR") == "1" and
              "ROL=FIKSTUR" in w6.stdout and w6.returncode == 0),
-            ("W7", w7, _uyari_var(w7.stdout, "MIMAR") and
-             "MIMAR=3/2" in w7.stdout and _ozet_alani(w7.stdout, "FIKSTUR") == "1" and
+            ("W7", w7, not _uyari_var(w7.stdout, "MIMAR") and
+             _ozet_alani(w7.stdout, "MIMAR") == "3/2" and
+             _ozet_alani(w7.stdout, "FIKSTUR") == "1" and
              w7.returncode == 0),
         )
         for ad, p_vaka, tamam in w_kontrolleri:
@@ -523,11 +575,16 @@ def _mutant_hukumlari(betik, gecici, mutant_adi):
 
 def mutasyon():
     kaynak_metin = open(os.path.abspath(__file__), encoding="utf-8").read()
+    # 🔴🔴 11 EYL 2026 (Okan emri, KALEM 4) — IKI MUTANT SILINDI: `tavan-mimar`
+    # ve `tavan-chip`. Ikisi de SAYI EKSENI UYARISINI olduruyordu; o uyari
+    # kaldirildi, dolayisiyla oldurecek kol kalmadi ve capalari kaynakta
+    # BULUNAMIYOR (`:capa` ile HAYATTA KALAN goruluyorlardi — yani batarya
+    # kendi kapsamini kaybetmis gosteriyordu).
+    # ENVANTER: 10 -> 8 oldurucu. Sayi SESSIZCE dusmesin diye burada YAZILI
+    # ([[batarya-kapsam-tabani-sayiyla-civilenir]]).
+    # 🔴 Kaldirilan uyarinin GERI GELMEDIGINI olcen kol MUTANT DEGIL, dogrudan
+    # vaka yuklemidir: W2/W3/W4/W7 artik "uyari YOK" diye olcuyor (yukarida).
     oldurucular = [
-        ("tavan-mimar", "mimar_uyari = mimar_sayisi " + "> TAVAN_MIMAR",
-         "mimar_uyari = mimar_sayisi > 99"),
-        ("tavan-chip", "chip_uyari = chip_sayisi " + "> TAVAN_CHIP",
-         "chip_uyari = chip_sayisi > 999"),
         ("rol-siniflama", "return os.path.realpath(yol).startswith(chip_koku + os." +
          "sep)  # WORKTREE_MUTANT_ROLE",
          "return False  # WORKTREE_MUTANT_ROLE"),
@@ -574,8 +631,8 @@ def mutasyon():
             shutil.copyfile(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                          _yardimci),
                             os.path.join(gecici, _yardimci))
-        yeni_adlar = {"tavan-mimar", "tavan-chip", "rol-siniflama",
-                      "rol-tersine", "olu-chip",
+        # 11 Eyl 2026: `tavan-mimar` / `tavan-chip` SILINDI (bkz. `oldurucular`).
+        yeni_adlar = {"rol-siniflama", "rol-tersine", "olu-chip",
                       "fikstur-tanima", "fikstur-detached", "fikstur-gorunur"}
         for ad, eski, yeni in oldurucular:
             if kaynak_metin.count(eski) != 1:
