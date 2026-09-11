@@ -2341,6 +2341,16 @@ jobs:
         run: |
           python3 tools/ev-sahip-kapisi.py --kendini-test
           python3 tools/parti-kapisi.py --kendini-test
+          # 🔴 TERS EKSEN (11 Eyl 2026, Okan emri "tum tikayicilari kaldir"):
+          # yukaridaki batarya kapinin DOGRU OLCTUGUNU kanitlar. Asagidaki ise
+          # kapinin artik hicbir cagriyi REDDETMEDIGINI **ve** teshisin
+          # KORUNDUGUNU kanitlar. AYRI DOSYA bilerek: ayni dosyaya konsaydi
+          # kaldirma isi kendi bekcisini de susturabilirdi
+          # ([[fail-closed-kol-arkasindaki-kolu-maskeler]]).
+          # Mutant bataryasi da burada kosar: reddetme yolunu GERI KOYAN ya da
+          # teshisi SUSTURAN her mutant hedef kolunu KIRMIZI yakmalidir.
+          python3 tools/tikayici-kaldirma-test.py
+          python3 tools/tikayici-kaldirma-test.py --mutant-bataryasi
           python3 tools/devir-kapisi.py --kendini-test
           # N4A (20 Agu 2026): sayac DURUSTLUGU — "USTUSTE_ONARIMSIZ dustu,
           # demek ki bir sey onarildi" iddiasini makinece imkansiz kilar.
