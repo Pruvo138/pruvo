@@ -14430,7 +14430,495 @@ def _olcuye_ozel_vida_basi_gizleme_kapagi_uretimi():
 
 
 
+def _uretimden_kalkmis_spor_fitness_ekipmani_kirik_parca_yeniden_uretim():
+    return _seo_md_to_html(u"""# Üretimden kalkmış spor ve fitness ekipmanı kırık parça yeniden üretimi
+
+Evdeki koşu bandı, kürek çekme aleti, kondisyon bisikleti veya salondaki ağırlık istasyonu yıllardır sorunsuz çalışıyor olabilir; ama kırılan tek bir plastik eleman — konsol kapağı, pedal kayış tokası, ağırlık seçme pimi tutamağı, kızak takozu ya da ayar topuzu — yüzünden alet kullanılamaz hale gelir. Marka o modeli yıllar önce üretimden kaldırmışsa yedek parça ne bayide ne de ikinci el piyasasında bulunur. Üretimden kalkmış spor ve fitness ekipmanı kırık parça yeniden üretimi; elinizdeki kırık veya eskimiş parçayı temel alıp, onun ölçüsünü, bağlantı geometrisini ve işlevini koruyarak yeniden üretmek demektir. Ekipmanın gövdesi ve mekaniği sağlamsa tek bir plastik eleman yüzünden aletin elden çıkarılması gerekmez.
+
+## Nasıl çalışırız?
+
+Spor ve fitness ekipmanı parça siparişinde izlediğimiz yol bellidir: önce kırık veya eskimiş parçayı bize getirirsiniz ya da kargoyla gönderirsiniz, sonra biz fiziksel parçayı inceler, dijital model çıkarır, malzeme önerimizi yazılı paylaşırız. Fotoğraf yalnız ön-teyit içindir; parçanın hangi model alete ait olduğu belli değilse bile fiziksel parça yeterlidir. Markanın üretimden kalkmış olması siparişi engellemez.
+
+Spor ekipmanı plastik parçaları genelde konsol ve gösterge kapağı, ayar topuzu, kızak takozu, kayış tokası, tutamak kabuğu, makara yatağı, pedal bağlantısı veya koruma paneli gibi elemanlardan oluşur. Çoğu kez tekrarlı yükleme, terle gelen tuz ve nem ya da uzun süreli sıkma kuvveti nedeniyle kırılır. Parçayı incelerken kırık yüzeyin geometrisini, vida kulaklarının toleransını ve karşı parçayla olan oturma yüzeyini değerlendiriyoruz. Mevcut ekipman parça üretimi için <a href="/spor-salonu-fitness-ekipmani-plastik-parca-uretimi/">spor salonu fitness ekipmanı plastik parça</a> sayfasındaki ölçü listesini referans alırız.
+
+Sipariş akışımız kırık parçanın bize ulaşmasıyla başlar; ardından dijital model hazırlanır. Model hazırlanırken orijinal parçanın dış formu korunur; gerekirse vida kulakları ve kesit geçişleri gibi kritik bölgeler hafif kalınlaştırılır. Numune bazlı üretim süreci için <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye göre plastik parça üretimi</a> sayfasındaki adımlar takip edilir. Ölçü alma ve model çıkarma işini biz yapıyoruz; sizden beklediğimiz tek şey fiziksel parçanın bize ulaşmasıdır.
+
+Elde tutulan yüzeylerde kavrama rahatlığı ve ter teması önemlidir; tutamak kabuğu, kol kılıfı veya ayar topuzu için <a href="/olcuye-ozel-kulp-tutamak-uretimi/">ölçüye özel kulp ve tutamak</a> sayfasındaki ergonomi ölçülerini kullanırız. Günde birçok kez sökülüp takılan ağırlık pimi, kayış tokası ve hızlı kilit gibi parçalarda <a href="/sikca-sokulup-takilan-plastik-parca-uretimi/">sıkça sökülüp takılan parça</a> sayfasındaki bağlantı önerileri temel alınır.
+
+## Doğru malzeme
+
+Spor ve fitness ekipmanı parçaları için malzeme seçimi parçanın taşıdığı yüke ve temas koşuluna göre yapılır. Darbe alan kapak ve kabuk parçalarında PETG yaygın tercihimizdir; çatlamak yerine esneyerek enerji yutar. Sürekli yük taşıyan, makara veya ağırlık hattına komşu parçalarda PA cam fiber takviyeli (PA-GF) sınıf öneriyoruz. Açık havada ya da nemli soyunma alanı yakınında duran ekipmanların dış kapaklarında ASA tercih ediyoruz. Malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki genel bilgiyi kullanırız.
+
+Ağırlık düşmesi veya çarpma riski olan bölgelerde darbe dayanımı belirleyicidir; <a href="/darbeye-dayanikli-plastik-parca-yaptirma/">darbeye dayanıklı plastik parça</a> sayfasındaki sınıf önerileri temel alınır. Kızak, makara yatağı ve kayış teması gibi sürtünme altında çalışan parçalarda <a href="/asinmaya-dayanikli-surtunme-parcasi-uretimi/">aşınmaya dayanıklı parça</a> sayfasındaki malzeme önerileri kullanılır. Gün boyu yük altında kalan parçalarda kalıcı deformasyon sınırı önemlidir; <a href="/surekli-yuk-altinda-plastik-parca-deforme-olur-mu/">sürekli yük altında plastik parça</a> sayfasındaki sınır değerleri sipariş öncesi değerlendirilir.
+
+Mevcut parçanın malzemesini tespit edebiliriz; eski parça elimize geçtiğinde yoğunluk karşılaştırması ve yüzey muayenesi ile kabaca sınıflandırıyoruz. Ter ve temizlik kimyasalıyla sürekli temas eden parçalarda kimyasal dayanım sipariş öncesi konuşulur. Akım taşıyan parça üretmiyoruz; konsol ve gösterge kapakları yalıtkan muhafaza elemanı olarak kalır. Renk seçimi tarafında standart siyah, gri ve beyaz renkler stokta mevcuttur; eski ekipmanın özgün rengini tam tutturmak her zaman mümkün olmayabilir, çünkü yıllar içinde yüzeyde renk solması oluşmuştur. Çalışma sıcaklığı açısından salon içi ekipman parçaları genelde sıfır ile altmış santigrat derece arasında çalışır; açık alanda duran ekipmanlarda bu aralık genişler ve ultraviyole dayanımı da devreye girer.
+
+## Dürüst sınır
+
+Spor ve fitness ekipmanında dürüst sınırı açıkça konuşmamız gerekir. Kullanıcının vücut ağırlığını ya da düşen bir ağırlığı tutan emniyet elemanları — emniyet mandalı, ağırlık kilidi, halat ucu bağlantısı, taşıyıcı braket — güvenlik parçasıdır; bunları plastikten yeniden üretmeyiz, sertifikalı orijinali kullanılmalıdır. Bu sınır parçanın küçük ya da basit görünmesine göre değişmez.
+
+Bir diğer dürüst sınır: yüksek gerilmeli yay, halat makarası ve ağırlık hattındaki taşıyıcı elemanlar sürekli dinamik yük altında çalışır; plastik muadil bu hatta önerilmez. Uzun süre ağır yük altında kalan bölgelerde metal veya metal-polimer hibrit çözüm gerekir.
+
+Ekipmanın genel durumu da değerlendirilir. Çok eski bir alette yalnız kırılan parça değil, komşu parçalar da yorulmuş olabilir; yeni ürettiğimiz parça yıpranmış komşu parçalarla uyumsuzluk gösterebilir. Bu durumda sipariş öncesi aletin genel durumu birlikte gözden geçirilir.
+
+## Sipariş
+
+Spor ve fitness ekipmanı parçalarında sıkça karşılaşılan bağlantı ölçüleri: gövde ve kapak vidalarında M4, M5 ve M6; ayar topuzu ile ağırlık pimi çaplarında 10-16 mm; kızak ve takoz oturmalarında 0,1-0,3 mm geçme toleransı. Bu ölçüler fiziksel parça elimize geçtiğinde doğrulanır; kritik toleranslar sipariş sırasında yazılı olarak paylaşılır.
+
+Sıkça gelen bir soru: Aletin konsol kapağı kırıldı, ama elektronik göstergesi çalışıyor. Yalnız kapağı üretebilir misiniz? Evet; gösterge ve kablolama sağlam olduğu sürece yalnız plastik kapak, çerçeve veya düğme yeniden üretilebilir. Sipariş akışı aynıdır: kırık ya da sağlam referans parçayı bize getirmeniz, bizim incelememiz, malzeme önerimizi yazılı paylaşmamız ve onay sonrası üretim. Gösterge penceresi şeffaf bir eleman ise bu kısım ayrı değerlendirilir; şeffaflık beklentisi sipariş öncesi netleştirilir.
+
+İkinci sık soru: Parçanın hem kırık hem de eksik bir bölümü var, tamamlanabilir mi? Kırık parçanın ana gövdesi duruyorsa eksik bölüm komşu parçaların oturma yüzeylerinden yola çıkarak tamamlanır; hiçbir parçası kalmamış bir elemanda ise yeniden üretim sözü veremeyiz, çünkü referans alacağımız fiziksel geometri yoktur.
+
+Üretimden kalkmış spor ve fitness ekipmanı kırık parça siparişinde kırık veya eskimiş parçayı bize getirmeniz ya da kargoyla göndermeniz gerekir; fotoğraf veya kısa açıklama ile gelen talepleri de aynı kapıdan alıyoruz, ama fotoğraf yalnız ön-teyit için kullanılır. Sipariş sonrası parçayı inceleyip yazılı öneri paylaşıyoruz; onayınızı aldıktan sonra üretime geçiyoruz. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz.""")
+
+
+
+def _antika_el_yapimi_mobilya_kirik_parca_yeniden_uretim():
+    return _seo_md_to_html(u"""# Antika veya el yapımı mobilya kırık parça yeniden üretimi
+
+Eski bir sandık, sehpa, sandalye ya da vitrinde kırılan kulp, ayak, bağlantı elemanı veya çekmece mekanizması parçanın tüm işlevini bozabilir; ama mobilyanın kendisi hâlâ sağlam ve karakterli olabilir. Antika veya el yapımı mobilya kırık parça yeniden üretimi; mobilyanın özgün formunu, dokusunu ve karakterini bozmadan, kırılan elemanı ölçüsüne ve biçimine uygun şekilde yeniden üretmek demektir. Yeniden üretilen parça mobilyanın bütünüyle uyumlu çalışır; ama parçanın kendisi orijinalinden ayırt edilebilir, bu da restorasyon etiğine uygundur.
+
+## Nasıl çalışırız?
+
+Antika veya el yapımı mobilya siparişinde izlediğimiz yol bellidir: önce kırılan parçayı bize getirirsiniz ya da kargoyla gönderirsiniz, sonra biz fiziksel parçayı inceler, dijital model çıkarır, malzeme ve geometri önerimizi yazılı paylaşırız. Fotoğraf yalnız ön-teyit için kullanılır; fotoğraftan ölçü çıkarımı yaparız ama kesin ölçü için fiziksel parça beklenir. Bu tutum özellikle antika mobilyalarda önemlidir; çünkü antika parçaların geometrisi fotoğraftan tam anlaşılamayabilir.
+
+Eski mobilyalarda kırılma genelde bağlantı noktalarında, vida diplerinde veya yorulma görmüş ince kesitlerde oluşur. Kulp, ayak, bağlantı elemanı, çekmece kızağı veya mandal gibi işlevsel plastikler çoğu kez yıllar içinde esnekliğini yitirmiş veya çatlamıştır. Parçayı incelerken kırılma yönünü, malzeme sınıfını ve mobilyanın genel karakterini değerlendiriyoruz. Mevcut bağlantı noktalarıyla uyumlu yeniden üretim için <a href="/mobilya-plastik-baglanti-ayak-parca-uretimi/">mobilya plastik bağlantı parça</a> sayfasındaki standart ölçü tablolarını referans alırız.
+
+Sipariş akışımız kırık parçanın bize ulaşmasıyla başlar; ardından dijital modeli hazırlarız. Model hazırlanırken mevcut parçanın geometrisini birebir korur, gerekirse dayanımı artırmak için ince kesit kalınlıklarını biraz yükseltiriz. Yüzey dokusu, köşe yumuşatma ve renk seçimi sipariş öncesi konuşulur. Sipariş adedi tek parça olabildiği gibi bakım partisi halinde de olabilir. Kulp veya tutamak gibi elemanlar için <a href="/olcuye-ozel-kulp-tutamak-uretimi/">kulp tutamak üretimi</a> sayfasındaki bağlantı çaplarını kullanırız. Tapa veya kapak gibi bitişik elemanlar için <a href="/olcuye-ozel-tapa-kapak-uretimi/">tapa kapak üretimi</a> sayfasına da bakabilirsiniz.
+
+Mobilyanın genel karakteri özellikle önemlidir. El yapımı bir mobilyanın karakteri, parçanın küçük asimetri ve doku farklarından oluşur. Yeniden üretilen parça bu karakteri koruyacak şekilde modellenir; ama milimetrik birebir eşleşme antika etiği açısından beklenmez. Çekmece rayı veya kapak menteşesi gibi hareketli elemanlar için <a href="/olcuye-ozel-mentese-uretimi/">menteşe üretimi</a> sayfasındaki geometri önerilerini temel alırız.
+
+## Doğru malzeme
+
+Antika ve el yapımı mobilya parçaları için malzeme seçimi çalışma şekline göre değişir. Yük taşımayan, dekoratif amaçlı parçalarda PETG yaygın tercihimizdir; doku kalitesi iyi, renk seçenekleri geniş, mat veya saten yüzey elde edilebilir. Yük taşıyan ayak veya bağlantı elemanlarında PA cam-fiber takviyeli (PA-GF) sınıf öneriyoruz; bu sınıf yorulma altında boyutunu korur ve esnek mobilya hareketlerine dayanır. Mevcut parçanın malzemesini tespit edemiyorsak bizim önerimiz PETG ile başlamak ve gerekirse dayanım sınıfına geçmektir. Malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki genel bilgiyi kullanırız.
+
+Renk seçimi tarafında antika mobilyalar için koyu ahşap tonlarına yakın plastik renkleri tercih edilir; siyah, koyu kahve, koyu gri tonları stokta vardır. Ahşap dokusu istendiğinde yüzey dokusu uygulaması eklenir; bu uygulama mat veya saten yüzeyde belirgin olur. Mobilya numunelerinden yola çıkarak yeniden üretim için <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye göre plastik parça üretimi</a> sayfasındaki süreç takip edilir. Akım taşıyan parça üretmiyoruz; mobilya parçaları tamamen mekanik destek veya dekoratif eleman olarak kalır.
+
+Çalışma sıcaklığı açısından mobilya parçaları kapalı iç mekanda çalışır; sıfır ile kırk santigrat derece aralığında standart polimerler yeterlidir. Yüksek nem veya sıcaklık değişimi olan ortamlarda boyut kararlılığı için PA-GF sınıfı öneriyoruz. Ultraviyole ışık alan pencere kenarı mobilyalarında ultraviyole stabilize çeşitler seçiyoruz.
+
+## Dürüst sınır
+
+Antika mobilyanın değeri, parçanın orijinalliğiyle doğrudan ilişkilidir. Yeniden üretilen parça orijinal parçanın yerini alır ama onunla aynı değildedir; bu nedenle restorasyon etiği açısından yeniden üretilen parçanın ayırt edilebilir olması beklenir. Sipariş öncesi bu beklentiyi netleştirmek için parçanın görünür mü yoksa gizli mi olacağı konuşulur.
+
+Bir diğer dürüst sınır: el yapımı mobilyaların geometrisi milimetrik toleransla tanımlanmaz; küçük sapmalar doğal karşılanır. Yeniden üretilen parça bu küçük sapmaları koruyacak şekilde modellenir, ama milimetrik simetri her zaman sağlanmaz. Bu durum el yapımı mobilyanın ruhunu korur, ancak seri üretim standardı bekleyen müşteriler için sürpriz olabilir. Çok ince kesitli veya karmaşık kıvrımlı parçalarda üretim zorlaşır; bu durumda geometriyi sadeleştirme öneriyoruz.
+
+Ahşap parçanın tamamen plastik muadilini istediğinizde dayanım ve esneklik farkı beklentinin önünde konuşulmalıdır. Plastik parça ahşap kadar esnek değildir; yük altında farklı davranır. Yüksek darbe beklenen uygulamalarda plastik parça çatlayabilir; bu konuda <a href="/darbeye-dayanikli-plastik-parca-yaptirma/">darbeye dayanıklı parça</a> sayfasındaki sınır değerleri temel alınır.
+
+## Sipariş
+
+Sık sorulan bir soru: Antika parça siparişi vermeden önce ne tür bilgi paylaşılmalı? Parçanın hangi mobilyaya ait olduğu, tahmini yaşı, parçanın üzerindeki yazı veya işaret, mobilyanın kullanım yeri bilgileri yeterlidir. Bu bilgiler malzeme seçimini ve modelleme stratejisini yönlendirir; netleşmemiş detaylar sipariş öncesi yazılı olarak konuşulur.
+
+Antika mobilya parçalarında sıkça karşılaşılan bağlantı geometrileri: M4, M5, M6 vidalar, 6 mm ve 8 mm geçme pim bağlantıları, kanca ve mandal çiftleri. Bu ölçüler eski el yapımı mobilyalarda yaygındır; yeniden üretilen parça bu ölçülere uygun tasarlanır. Çok eski dönem mobilyalarında vida dişi yerine çivi veya yapıştırıcı bağlantısı görülebilir; bu tür bağlantılar plastik muadilde vida deliği olarak revize edilir.
+
+Antika veya el yapımı mobilya kırık parça siparişinde kırılan elemanı bize getirmeniz ya da kargoyla göndermeniz gerekir; fotoğraf veya kısa açıklama ile gelen talepleri de aynı kapıdan alıyoruz, ama fotoğraf yalnız ön-teyit için kullanılır. Sipariş sonrası parçayı inceleyip yazılı öneri paylaşıyoruz; onayınızı aldıktan sonra üretime geçiyoruz. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz.""")
+
+
+
+def _markasi_ve_modeli_bilinmeyen_kirik_plastik_parca_yeniden_uretim():
+    return _seo_md_to_html(u"""# Markası ve modeli bilinmeyen kırık plastik parça yeniden üretimi
+
+Evinizde, atölyenizde veya iş yerinizde kırık bir plastik parça olabilir; ama ne marka ne de model bilgisi mevcut olmayabilir. Orijinal cihaz çoktan elden çıkmış, katalog kodu okunmuyor, fatura kayıp olmuş olabilir. Bu durumda yedek parça aramak neredeyse imkânsız hale gelir. Markası ve modeli bilinmeyen kırık plastik parça yeniden üretimi; elinizdeki kırık veya sağlam referans parçayı temel alarak, onun formunu, ölçüsünü ve bağlantı geometrisini çıkarıp yeniden üretmek demektir. Marka veya model bilgisi gerekmez; fiziksel parça tek referanstır.
+
+## Nasıl çalışırız?
+
+Markası ve modeli bilinmeyen parça siparişinde izlediğimiz yol bellidir: önce kırık veya sağlam referans parçayı bize getirirsiniz ya da kargoyla gönderirsiniz, sonra biz fiziksel parçayı inceler, dijital model çıkarır, malzeme önerimizi yazılı paylaşırız. Fotoğraf yalnız ön-teyit içindir; hangi cihazdan geldiği belli değilse bile fiziksel parçayı bize ulaştırmanız yeterlidir. Bu tutum bilinmeyen parça senaryosunda belirleyicidir; çünkü fotoğraftan ölçü çıkarımı yapılsa bile geometri tam anlaşılamayabilir.
+
+Bilinmeyen parçalarda en kritik adım parçanın hangi cihaz veya makine ile uyumlu olduğunun anlaşılmasıdır. Kulp, kapak, menteşe, dişli veya bağlantı elemanı olabilir; her biri farklı geometri ve dayanım beklentisi gerektirir. Parçayı incelerken kırık yüzeyi, bağlantı noktalarını ve çevresindeki kullanım izlerini değerlendiriyoruz. Yedek parça arama sürecinin genel çerçevesi için <a href="/bulunamayan-yedek-parca-ozel-uretim/">bulunamayan yedek parça</a> sayfasındaki yönlendirmeyi kullanırız. Piyasada bulunmayan parça senaryoları için <a href="/piyasada-bulunmayan-yedek-parca-uretimi/">piyasada bulunmayan yedek parça üretimi</a> sayfası da referans olur.
+
+Sipariş akışımız referans parçanın bize ulaşmasıyla başlar; ardından dijital model hazırlanır. Model hazırlanırken mevcut parçanın geometrisi korunur, gerekirse dayanım için ince kesitler kalınlaştırılır. Bağlantı noktalarındaki aşınma varsa yeniden modellenir, çünkü eskimiş bağlantı yeni parçayla uyumsuz olur. Numune bazlı üretim süreci için <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye göre plastik parça üretimi</a> sayfasındaki adımlar temel alınır. Mevcut muadil parça farkları konusunda <a href="/muadil-parca-nedir-orijinaliyle-farki/">muadil parça nedir</a> sayfası bilgi verir.
+
+Markası bilinmeyen bir parçanın işlevini tespit etmek için parçanın nasıl monte edildiği, ne ile çalıştığı, hangi hareketi yaptığı bilgisi önemlidir. Sipariş öncesi kısa bir açıklama bizim için yeterlidir; örneğin "vitrin kapağının iç raf bağlantısı" veya "eski matkabın tetik mandalı" gibi. Mevcut kırık parça için tamir mi yoksa yeniden üretim mi tercih edileceği <a href="/kirik-plastik-parca-tamir-mi-yeniden-uretim-mi/">tamir mi yeniden üretim mi</a> sayfasında tartışılır; bilinmeyen parça senaryosunda genelde yeniden üretim daha sağlıklı sonuç verir.
+
+## Doğru malzeme
+
+Bilinmeyen parçalar için malzeme seçimi kullanım yerine ve mekanik beklentiye göre yapılır. Standart iç mekan parçalarında PETG yaygın tercihimizdir; darbe direnci yüksek, renk seçenekleri geniş, işlenmesi kolay bir polimerdir. Yük taşıyan veya hareketli parçalarda PA cam-fiber takviyeli (PA-GF) öneriyoruz; bu sınıf yorulma altında boyutunu korur. Detaylı malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki genel bilgiyi kullanırız.
+
+Mevcut parçanın malzemesini tespit edemiyorsak bizim önerimiz önce PETG ile başlamak, dayanım veya sıcaklık sınıfı gerekiyorsa PA-GF'ye geçmektir. Akım taşıyan parça üretmiyoruz; bilinmeyen parça siparişlerinde de parça yalıtkan gövde veya mekanik destek elemanı olarak kalır. Renk seçimi tarafında standart siyah, gri ve beyaz renkler stokta mevcuttur; özel renk tonu sipariş öncesi konuşulur.
+
+Çalışma sıcaklığı açısından bilinmeyen parçanın hangi ortamda çalıştığını bilmek önemlidir. İç mekanda çalışan parçalar için standart polimer yeterlidir; dış mekanda veya sıcaklık değişimi yüksek ortamlarda malzeme seçimi sıkılaşır. Kimyasal teması olan uygulamalar için <a href="/yaga-ve-kimyasala-dayanikli-plastik-parca-uretimi/">kimyasal dayanımlı parça</a> sayfasındaki malzeme sınıfları temel alınır.
+
+## Dürüst sınır
+
+Markası ve modeli bilinmeyen parçalarda dürüst sınırı açıkça konuşmamız gerekir. Yüksek basınç altında çalışan parçalar, elektriksel bağlantı yapan modüller veya patlayıcı ortam parçaları için plastik gövde tek başına yetmez; metal veya metal-polimer hibrit çözüm gerekir. Bu konularda konusunda uzman tedarikçiye yönlendirme yaparız.
+
+Bir diğer dürüst sınır: bilinmeyen parçanın hangi cihaza veya makineye ait olduğunu anlamak bazen mümkün olmayabilir. Bu durumda parçanın işlevini, çalışma koşullarını ve mekanik beklentilerini sizin sözlü veya yazılı açıklamanızdan çıkarıyoruz. Açıklama ne kadar net olursa üretim önerisi o kadar isabetli olur. Fotoğraftan veya eksik bilgiyle sipariş verilirse yeniden üretim başarısız olabilir; bu yüzden ön-teyit aşamasında sizinle yazılı iletişim kuruyoruz.
+
+Kritik güvenlik parçalarında bilinmeyen parça sipariş etmiyoruz; fren, emniyet kemeri, basınçlı kapak veya yangın söndürücü gibi parçalar için mutlaka sertifikalı orijinal veya muadil parça kullanılmalıdır. Plastik parça üretimi bu tür kritik parçalar için uygun değildir.
+
+## Sipariş
+
+Sıkça gelen bir soru: Referans parçam çok küçük veya karmaşık, üretilebilir mi? Genelde evet; ölçü çıkarımı fiziksel parçadan yapılır, milimetrik altı detaylar gerektiğinde tolerans genişletiyoruz. Aşırı ince kesitli veya karmaşık kıvrımlı parçalarda geometriyi sadeleştirme öneriyoruz; bu durum sipariş öncesi sizinle paylaşılır.
+
+Bilinmeyen parçalar için tipik ölçü çıkarımı adımları: parçanın bağlantı noktaları milimetrik kumpas ile ölçülür, çevresindeki komşu parçalarla olan ilişki not edilir, kırılmış yüzeyler birleştirilerek bütün geometri çıkarılır. Bu süreçte parçanın işlevini bilmek (örneğin bu bir mandal veya bu bir dişli aksı) modelleme hızını artırır.
+
+Markası ve modeli bilinmeyen kırık parça siparişinde referans parçayı bize getirmeniz ya da kargoyla göndermeniz gerekir; fotoğraf veya kısa açıklama ile gelen talepleri de aynı kapıdan alıyoruz, ama fotoğraf yalnız ön-teyit için kullanılır. Sipariş sonrası parçayı inceleyip yazılı öneri paylaşıyoruz; onayınızı aldıktan sonra üretime geçiyoruz. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz.""")
+
+
+
+def _uretimden_kalkmis_klasik_otomobil_plastik_aksam_parcasi_yeniden_uretim():
+    return _seo_md_to_html(u"""# Üretimi durmuş klasik otomobil plastik aksam parça yeniden üretimi
+
+Aracınız yirmi-otuz yaşında veya daha eski olabilir; parçanız kırıldı, ama orijinal marka parçayı yıllar önce üretimden kaldırdı, hurda ve ikinci el piyasasında da bulmak neredeyse imkânsız. Üretimi durmuş klasik otomobil plastik aksam parça yeniden üretimi; elinizdeki kırık veya eskimiş parçayı temel alıp, onun ölçüsünü, bağlantı geometrisini ve görünümünü koruyarak yeniden üretmek demektir. Klasik otomobil estetiğini bozmadan, fonksiyonel bir parça elde ederiz.
+
+## Nasıl çalışırız?
+
+Klasik otomobil parça siparişinde izlediğimiz yol bellidir: önce kırık veya eskimiş parçayı bize getirirsiniz ya da kargoyla gönderirsiniz, sonra biz fiziksel parçayı inceler, dijital model çıkarır, malzeme ve üretim önerimizi yazılı paylaşırız. Fotoğraf yalnız ön-teyit içindir; fotoğraftan kabaca ölçü çıkarımı yaparız ama kesin geometri için fiziksel parça beklenir. Bu tutum özellikle klasik otomobillerde önemlidir; çünkü yarım asırlık bir parçanın tüm detayı fotoğraftan anlaşılamayabilir.
+
+Klasik otomobil plastik aksam parçaları genelde iç trim klipsleri, kapı tutamakları, ayna kapakları, tampon bağlantı elemanları, gösterge çerçeveleri ve havalandırma ızgaralarıdır. Ultraviyole ışığı, sıcaklık değişimi ve yılların yorulması bu parçaların kırılganlaşmasına neden olur. Parçayı incelerken kırık yüzeyin geometrisini, bağlantı noktalarının toleransını ve çevresindeki komşu parçalarla olan ilişkisini değerlendiriyoruz. Mevcut klasik araç parça üretimi için <a href="/klasik-arac-eski-model-oto-plastik-parca-uretimi/">klasik araç eski model parça</a> sayfasındaki ölçü listesini referans alırız.
+
+Sipariş akışımız kırık parçanın bize ulaşmasıyla başlar; ardından dijital model hazırlanır. Model hazırlanırken orijinal parçanın geometrisi birebir korunur; gerekirse dayanım için kritik kesitler hafif kalınlaştırılır. Yüzey dokusu, parlaklık ve renk seçimi sipariş öncesi konuşulur. İç trim klipsi veya benzeri küçük parçalar için <a href="/oto-ic-trim-klips-parca-uretimi/">oto iç trim klips</a> sayfasındaki standart bağlantı çeşitlerini kullanırız.
+
+Klasik otomobillerde tampon bağlantı klipsleri ve yan ayna kapakları gibi parçalar sıkça kırılır. Bu parçalar için <a href="/oto-tampon-baglanti-klipsi-yaptirma/">tampon bağlantı klipsi</a> sayfasındaki geometri önerilerini kullanıyoruz. Yan ayna kapağı gibi daha büyük gövde parçaları için <a href="/oto-yan-ayna-kapagi-govdesi-yaptirma/">yan ayna kapağı</a> sayfasındaki bağlantı çaplarını temel alıyoruz. Klasik otomobil estetiği korunarak yeniden üretilen parça, aracın genel karakterini bozmaz.
+
+Motosiklet gibi benzer yaşlı araçlar için süreç benzerdir; <a href="/motosiklet-plastik-parca-ozel-uretim/">motosiklet plastik parça</a> sayfasındaki vibrasyon dayanımı önerileri klasik otomobil için de geçerlidir. Mevcut parça metal iç takım içeriyorsa bizim önerimiz plastik gövde artı metal insert hibrit yapıdır; ama bu karmaşık üretim adımları gerektirir.
+
+## Doğru malzeme
+
+Klasik otomobil parçaları genelde açık havada veya sıcak iç mekanda çalışır; ultraviyole dayanımı yüksek malzeme öneriyoruz. Polipropilen (PP) ve ASA sınıfları yaygın tercihlerimizdir; ultraviyole stabilize çeşitleri yıllık renk solmasını ve yüzey çatlamasını yavaşlatır. İç trim ve kapalı mekan parçalarında PETG da kullanılabilir. Ultraviyole ışık alan dış mekan parçaları için <a href="/uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi/">ultraviyole dayanımlı dış mekan parça</a> sayfasındaki malzeme sınıfları temel alınır.
+
+Mevcut parçanın malzemesini tespit edebiliriz; eski parça elimize geçtiğinde yoğunluk karşılaştırması ve yüzey muayenesi ile kabaca sınıflandırıyoruz. Çatlak yüzeylerin morfolojisi de malzeme hakkında fikir verir. Akım taşıyan parça üretmiyoruz; klasik otomobil plastik aksam parçaları yalıtkan gövde veya mekanik destek elemanı olarak kalır.
+
+Renk seçimi tarafında klasik otomobillerde siyah, gri ve koyu tonlar yaygındır; ama beyaz, krem veya açık mavi gibi dönemsel renkler de sipariş öncesi konuşulur. Eski parçanın rengini tam tutturmak her zaman mümkün olmayabilir, çünkü yıllar içinde ultraviyole solması oluşmuştur. Yüzey dokusu için mat veya saten tercih edilebilir; parlak yüzey eski parçalarda daha az yaygındır.
+
+## Dürüst sınır
+
+Klasik otomobillerde dürüst sınırı açıkça konuşmamız gerekir. Fren, emniyet kemeri, direksiyon simidi hava yastığı modülü veya yakıt sistemi parçaları gibi kritik güvenlik elemanları için plastik yeniden üretim uygun değildir; bu parçalar mutlaka orijinal veya sertifikalı muadil kullanılmalıdır. Sipariş öncesi parçanın güvenlik kritik olup olmadığını konuşuyoruz.
+
+Bir diğer dürüst sınır: çok eski parçalarda yorulma ve ultraviyole hasarı sadece kırılan parçada değil, çevresindeki parçalarda da olabilir. Yeni ürettiğimiz parça eski komşu parçalarla uyumsuzluk gösterebilir; bu durumda çevre parçaların da kontrol edilmesini öneriyoruz. Uzun yıllar araçta kalan bir parçada bağlantı noktaları esnemiş olabilir; yeni parça bu esnekliğe uyum sağlayamaz.
+
+Egzoz manifoldu yakını veya motor bölmesi gibi yüksek sıcaklık ortamlarında plastik parça ömrü kısalır; bu koşullarda metal veya metal-polimer hibrit çözüm gerekir. Yüksek vibrasyon veya darbe riski olan uygulamalarda plastik parça çatlayabilir; bu konuda <a href="/darbeye-dayanikli-plastik-parca-yaptirma/">darbeye dayanıklı parça</a> sayfasındaki sınır değerleri temel alınır.
+
+## Sipariş
+
+Klasik otomobil parçalarında sıkça karşılaşılan bağlantı çapları: M5, M6 vida bağlantıları, 8 mm ve 10 mm klips çapları, geçme pim bağlantıları. Bu ölçüler 1970-1990 arası Avrupa otomobillerinde yaygındır; yeni parça mevcut komşu parçalarla uyumlu olacak şekilde modellenir.
+
+Ultraviyole stabilize sınıfların seçimi özellikle dış mekan parçalarında önemlidir. UV stabilize ASA, ultraviyole ışık altında standart PP'ye göre yıllık renk solmasını belirgin ölçüde yavaşlatır; ancak zamanla tüm plastiklerde olduğu gibi yüzey tozlanması ve mikro çatlak oluşabilir. Bu süre genelde beş ila on yıl arasında parçanın kullanım yoğunluğuna göre değişir; bizim önerimiz açık hava parçalarında UV stabilize sınıfın yanı sıra mat yüzey tercih edilmesidir.
+
+Klasik otomobil plastik aksam parça siparişinde kırık veya eskimiş parçayı bize getirmeniz ya da kargoyla göndermeniz gerekir; fotoğraf veya teknik çizim ile gelen talepleri de aynı kapıdan alıyoruz, ama fotoğraf yalnız ön-teyit için kullanılır. Sipariş sonrası parçayı inceleyip yazılı öneri paylaşıyoruz; onayınızı aldıktan sonra üretime geçiyoruz. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz.""")
+
+
+
+def _katalog_kodu_silinmis_endustriyel_makine_parcasi_yeniden_uretim():
+    return _seo_md_to_html(u"""# Katalog kodu silinmiş endüstriyel makine parça yeniden üretimi
+
+Endüstriyel makineler on-yirmi yıl veya daha uzun süre çalışabilir; ama bu süre zarfında üretici firma kapanmış, katalog kodu veya plaka seri numarası okunmaz hale gelmiş olabilir. Orijinal parça temin edilemiyor, ikinci el piyasasında da yok. Katalog kodu silinmiş endüstriyel makine parça yeniden üretimi; elinizdeki kırık veya eskimiş parçayı temel alıp, onun formunu, ölçüsünü ve bağlantı geometrisini çıkararak yeniden üretmek demektir. Katalog kodu veya üretici bilgisi gerekmez; fiziksel parça tek referanstır.
+
+## Nasıl çalışırız?
+
+Katalog kodu silinmiş parça siparişinde izlediğimiz yol bellidir: önce kırık veya sağlam referans parçayı bize getirirsiniz ya da kargoyla gönderirsiniz, sonra biz fiziksel parçayı inceler, dijital model çıkarır, malzeme önerimizi yazılı paylaşırız. Fotoğraf yalnız ön-teyit içindir; hangi makineden geldiği belli değilse bile fiziksel parça yeterlidir. Katalog kodu olmaması siparişi engellemez; fiziksel parça üzerinden yola çıkıyoruz.
+
+Endüstriyel makine parçaları genelde muhafaza kapağı, koruma elemanı, bağlantı parçası, dişli, burç veya conta yuvası gibi işlevsel plastik elemanlardan oluşur. Çoğu kez vibrasyon, kimyasal temas veya mekanik yorulma nedeniyle kırılır. Parçayı incelerken kırık yüzeyi, bağlantı noktalarını ve çevresindeki kullanım izlerini değerlendiriyoruz. Genel makine parçası üretimi için <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parçası ölçüye özel</a> sayfasındaki geometri önerlerini kullanırız.
+
+Sipariş akışımız referans parçanın bize ulaşmasıyla başlar; ardından dijital model hazırlanır. Model hazırlanırken mevcut parçanın geometrisi korunur, gerekirse dayanım sınıfına uygun malzeme seçilir. Numune bazlı üretim için <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye göre plastik parça üretimi</a> sayfasındaki süreç takip edilir. Koruma kapağı veya muhafaza gibi parçalar için <a href="/olcuye-ozel-koruma-kapagi-muhafaza-uretimi/">koruma kapağı muhafaza</a> sayfasındaki standartları temel alırız.
+
+Endüstriyel makine parçalarında sıkça karşılaşılan parça tipleri: dişli, burç, keçe yuvası ve bağlantı elemanı. Dişli için <a href="/olcuye-ozel-plastik-disli-uretimi/">plastik dişli üretimi</a> sayfasındaki modül hesaplaması kullanılır; burç için <a href="/numuneden-plastik-burc-rulman-uretimi/">numuneden burç rulman</a> sayfasındaki mil çapı eşleşmesi temel alınır. Aşınmaya maruz kalan parçalar için <a href="/asinmaya-dayanikli-surtunme-parcasi-uretimi/">aşınmaya dayanıklı parça</a> sayfasındaki malzeme önerileri uygulanır.
+
+## Doğru malzeme
+
+Endüstriyel makine parçaları için malzeme seçimi çalışma koşuluna göre yapılır. Standart iç mekan parçalarında PETG veya PA yaygın tercihlerimizdir. Yüksek yük taşıyan veya hareketli parçalarda PA cam-fiber takviyeli (PA-GF) sınıf öneriyoruz; bu sınıf yorulma altında boyutunu korur. Kimyasal temas olan uygulamalarda PP veya özel kimyasal dayanımlı sınıf seçiyoruz. Malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki genel bilgiyi kullanırız.
+
+Mevcut parçanın malzemesini tespit edemiyorsak önce PETG ile başlamak, dayanım veya sıcaklık sınıfı gerekiyorsa PA-GF'ye geçmek bizim önerimizdir. Akım taşıyan parça üretmiyoruz; makine parçaları yalıtkan gövde, muhafaza veya mekanik destek elemanı olarak kalır. Yüksek vibrasyon olan makine parçalarında <a href="/titresim-sonumleyici-esnek-plastik-parca-yaptirma/">titreşim sönümleyici parça</a> sayfasındaki öneriler temel alınır.
+
+Renk seçimi tarafında standart siyah, gri ve beyaz renkler stokta mevcuttur. Endüstriyel uygulamalarda güvenlik renkleri (sarı, turuncu, kırmızı) için özel sipariş gerekebilir. Çalışma sıcaklığı açısından endüstriyel makine parçaları sıfır ile seksen santigrat derece aralığında çalışır; yüksek sıcaklık için özel polimer gerekir.
+
+## Dürüst sınır
+
+Endüstriyel makine parçalarında dürüst sınırı açıkça konuşmamız gerekir. Yüksek basınç altında çalışan hidrolik veya pnömatik parçalarda plastik gövde tek başına yetmez; metal veya metal-polimer hibrit çözüm gerekir. Patlayıcı ortam veya kritik güvenlik parçalarında plastik yeniden üretim uygun değildir; sertifikalı orijinal parça kullanılmalıdır.
+
+Bir diğer dürüst sınır: çok eski bir makinede yalnızca kırılan parça değil, çevresindeki parçalar da yıpranmış olabilir. Yeni ürettiğimiz parça eski komşu parçalarla uyumsuzluk gösterebilir; sipariş öncesi makinenin genel durumu değerlendirilmelidir. Vibrasyon yoğun olan makine parçalarında uzun ömür için metal iç takım öneriyoruz.
+
+Yüksek devirde dönen parçaların plastikten yeniden üretimi sınırlıdır; hız sınırı sipariş öncesi konuşulur. Sürekli yük altında deforme olan parçalar için malzeme seçimi sıkılaşır; <a href="/surekli-yuk-altinda-plastik-parca-deforme-olur-mu/">sürekli yük altında plastik parça</a> sayfasındaki sınır değerleri temel alınır.
+
+## Sipariş
+
+Endüstriyel makine parçaları için tipik ölçü ve tolerans aralıkları: vida bağlantıları için M4, M5, M6, M8; mil yatağı çapları 8-25 mm arası yaygın; düz bağlantı toleransları 0.1-0.3 mm, hareketli bağlantılar için 0.2-0.5 mm. Bu aralıklar sipariş öncesi mevcut parçadan ölçülerek doğrulanır; kritik toleranslar sipariş sırasında yazılı olarak paylaşılır.
+
+Sık sorulan bir soru: Makinem çok eski, parça yeniden üretilirken modern iyileştirme yapılabilir mi? Evet; dayanım veya ömür beklentiniz yüksekse ince kesit kalınlıklarını hafif artırmayı, bağlantı noktalarını takviye etmeyi veya malzeme sınıfını yükseltmeyi öneriyoruz. Bu tür iyileştirmeler orijinal parçanın işlevini değiştirmez; ama daha uzun ömür sağlar. Herhangi bir değişiklik sipariş öncesi yazılı onayınızla yapılır.
+
+Yaygın karşılaşılan endüstriyel makine parça tipleri: dişli, burç, keçe yuvası, kaplin, kasnak, bağlantı braketi, muhafaza kapağı, koruma plakası, ayar pulu, mesafe pulu. Bu listede olmayan özel bir parça varsa fotoğraf veya kısa açıklama ile ön-teyit yapılır; fiziksel parça bize ulaştığında detaylı inceleme yapılır.
+
+Dişli çarklar için modül hesaplaması sipariş öncesi yapılır; modül bilinmiyorsa mevcut dişli çapı ve diş sayısı üzerinden geri hesap yapılır. Burç ve keçe yuvalarında mil çapı kritiktir; mil çapındaki bir milimetrelik sapma bile uyumsuzluğa yol açar.
+
+Katalog kodu silinmiş makine parça siparişinde referans parçayı bize getirmeniz ya da kargoyla göndermeniz gerekir; fotoğraf veya kısa açıklama ile gelen talepleri de aynı kapıdan alıyoruz, ama fotoğraf yalnız ön-teyit için kullanılır. Sipariş sonrası parçayı inceleyip yazılı öneri paylaşıyoruz; onayınızı aldıktan sonra üretime geçiyoruz. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz.""")
+
+
+
+def _antika_el_yapimi_ev_aleti_kirik_parca_yeniden_uretim():
+    return _seo_md_to_html(u"""# Antika el yapımı ev aleti kırık parça yeniden üretimi
+
+Evinizde yıllardır kullandığınız eski bir dikiş makinesi, el blender'ı, kahve değirmeni veya ütü olabilir; ama marka parçayı yıllar önce üretimden kaldırmış, yedek parça bulunamıyor olabilir. Antika el yapımı ev aleti kırık parça yeniden üretimi; elinizdeki kırık veya eskimiş parçayı temel alıp, onun ölçüsünü ve biçimini koruyarak yeniden üretmek demektir. Ev aletinin genel karakteri bozulmadan, fonksiyonel bir parça elde ederiz.
+
+## Nasıl çalışırız?
+
+Antika ev aleti parça siparişinde izlediğimiz yol bellidir: önce kırık veya eskimiş parçayı bize getirirsiniz ya da kargoyla gönderirsiniz, sonra biz fiziksel parçayı inceler, dijital model çıkarır, malzeme önerimizi yazılı paylaşırız. Fotoğraf yalnız ön-teyit içindir; hangi cihazdan geldiği belli değilse bile fiziksel parça yeterlidir. Bu tutum antika cihazlarda özellikle önemlidir; çünkü eski parçaların geometrisi fotoğraftan tam anlaşılamayabilir.
+
+Eski ev aletleri genelde gövde, düğme, mandal, kulp, kapak veya dişli gibi plastik elemanlardan oluşur. Çoğu kez yorulma, ultraviyole veya kimyasal temas nedeniyle kırılır. Parçayı incelerken kırık yüzeyin geometrisini, bağlantı noktalarının toleransını ve çevresindeki komşu parçalarla olan ilişkisini değerlendiriyoruz. Mevcut ev aleti parça üretimi için <a href="/ev-aleti-plastik-disli-parca-uretimi/">ev aleti plastik dişli parça</a> sayfasındaki standartları kullanırız.
+
+Sipariş akışımız kırık parçanın bize ulaşmasıyla başlar; ardından dijital model hazırlanır. Model hazırlanırken orijinal parçanın geometrisi birebir korunur; gerekirse dayanım için kritik kesitler hafif kalınlaştırılır. Yüzey dokusu, parlaklık ve renk seçimi sipariş öncesi konuşulur. Düğme veya ayar topuzu için <a href="/olcuye-ozel-dugme-ayar-topuzu-uretimi/">düğme ayar topuzu üretimi</a> sayfasındaki mil çaplarını referans alırız.
+
+Antika ev aletlerinde sıkça kırılan parçalar: gövde parçaları, düğmeler, mandallar ve kapaklar. Kapak veya tapa için <a href="/olcuye-ozel-tapa-kapak-uretimi/">tapa kapak üretimi</a> sayfasındaki standart çaplar kullanılır. Kulp veya tutamak için <a href="/olcuye-ozel-kulp-tutamak-uretimi/">kulp tutamak üretimi</a> sayfasındaki bağlantı geometrisi temel alınır. Numune bazlı üretim süreci için <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye göre plastik parça üretimi</a> sayfasındaki adımlar takip edilir.
+
+Eski ev aletlerinin motor veya mekanik aksamıyla plastik gövde arasındaki ilişki önemlidir; yeni parça mevcut mekanik aksama uyumlu olmalıdır. Aşırı sıcak temas olan bölgelerde (örneğin ütü tabanı çevresi) plastik parça ömrü kısalır; bu koşullarda metal veya metal-polimer hibrit çözüm gerekir.
+
+## Doğru malzeme
+
+Antika ev aleti parçaları için malzeme seçimi çalışma koşuluna göre yapılır. Standart iç mekan parçalarında PETG yaygın tercihimizdir; darbe direnci yüksek, renk seçenekleri geniş. Yük taşıyan veya hareketli parçalarda PA cam-fiber takviyeli (PA-GF) sınıf öneriyoruz. Sıcak temas olan bölgelerde yüksek sıcaklık dayanımlı sınıf seçiyoruz. Malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki genel bilgiyi kullanırız.
+
+Mevcut parçanın malzemesini tespit edebiliriz; eski parça elimize geçtiğinde yoğunluk karşılaştırması ve yüzey muayenesi ile kabaca sınıflandırıyoruz. Akım taşıyan parça üretmiyoruz; ev aleti parçaları yalıtkan gövde, düğme veya mekanik destek elemanı olarak kalır. Renk seçimi tarafında standart siyah, gri, beyaz renkler stokta mevcuttur; eski cihazın rengini tam tutturmak her zaman mümkün olmayabilir, çünkü yıllar içinde renk solması oluşmuştur.
+
+Çalışma sıcaklığı açısından ev aleti parçaları genelde sıfır ile altmış santigrat derece arasında çalışır; ütü gibi yüksek sıcaklık cihazlarında parça çevresinde ısı birikimi olabilir, bu durumda malzeme seçimi sıkılaşır. Nemli ortamda çalışan parçalarda nem almayan sınıf öneriyoruz.
+
+## Dürüst sınır
+
+Antika ev aleti parçalarında dürüst sınırı açıkça konuşmamız gerekir. Yüksek sıcaklık teması olan bölgelerde plastik parça ömrü kısalır; metal veya metal-polimer hibrit çözüm gerekir. Elektriksel bağlantı yapan modüllerde yalıtım mesafesi hesabı önemlidir; bu hesap bizim kapsamımızın dışındadır, sertifikalı tedarikçiye yönlendiriyoruz.
+
+Bir diğer dürüst sınır: çok eski ev aletlerinde güvenlik standartları yıllar içinde değişmiştir. Yeniden üretilen parça mevcut cihazın güvenlik seviyesini yükseltmez; orijinal cihazın standartlarına uygun kalır. Bu durum özellikle eski elektrikli cihazlarda önemlidir; topraklama, yalıtım ve koruma sınıfı modern standartlardan farklı olabilir.
+
+Gıda teması olan ev aleti parçalarında (örneğin blender haznesi) gıda uygunluk sertifikasına sahip polimer gerekir; <a href="/gida-temasina-uygun-plastik-parca-uretimi/">gıda temasına uygun parça</a> sayfasındaki bilgi temel alınır. Yüksek nem ve buhar olan ortamlarda parça seçimi sıkılaşır; <a href="/nemli-ortamda-boyut-kararli-plastik-parca-uretimi/">nemli ortamda boyut kararlı parça</a> sayfasındaki öneriler uygulanır.
+
+## Sipariş
+
+Eski ev aleti parçalarında sıkça karşılaşılan bağlantı çapları: M3, M4 küçük vidalar (düğme ve mandal için); 6 mm ve 8 mm mil çapları (dişli ve mil bağlantıları); geçme pim bağlantıları. Bu ölçüler yaygın ev aletlerinin çoğunda standarttır; yeni parça bu ölçülere uygun tasarlanır.
+
+Antika ev aletlerinin motor veya mekanik aksamıyla plastik gövde arasındaki ilişki önemlidir; yeni parça mevcut mekanik aksama uyumlu olmalıdır. Motor mil çapı, dişli modülü veya mekanik bağlantı toleransı sipariş öncesi fiziksel parçadan ölçülür. Motor mili üzerindeki aşınma veya deformasyon varsa yeni plastik parça bu eski mile tam uyum sağlamayabilir; bu durum sipariş öncesi konuşulur.
+
+Sıkça gelen bir soru: Eski blender veya mikserimin plastik haznesi kırıldı, ama metal bıçak aksamı sağlam. Yalnız hazneyi üretebilir misiniz? Evet; metal bıçak aksamı sağlam olduğu sürece yalnız plastik hazne veya kapak yeniden üretilebilir. Sipariş akışı aynıdır: sağlam veya kırık plastik parçayı bize getirmeniz, bizim incelememiz, malzeme önerimizi yazılı paylaşmamız ve onay sonrası üretim.
+
+Antika el yapımı ev aleti kırık parça siparişinde kırık veya eskimiş parçayı bize getirmeniz ya da kargoyla göndermeniz gerekir; fotoğraf veya kısa açıklama ile gelen talepleri de aynı kapıdan alıyoruz, ama fotoğraf yalnız ön-teyit için kullanılır. Sipariş sonrası parçayı inceleyip yazılı öneri paylaşıyoruz; onayınızı aldıktan sonra üretime geçiyoruz. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz.""")
+
+
+
+def _ureticisi_iflas_etmis_cihaz_icin_yedek_parca_yeniden_uretim():
+    return _seo_md_to_html(u"""# Üreticisi iflas etmiş cihaz için yedek parça yeniden üretimi
+
+Cihazınız çalışıyor olabilir; ama markası yıllar önce iflas etmiş, tasfiye olmuş veya faaliyetini durdurmuş olabilir. Yedek parça stoğu tamamen tükenmiş, yetkili servis artık hizmet vermiyor. Üreticisi iflas etmiş cihaz için yedek parça yeniden üretimi; elinizdeki kırık veya eskimiş parçayı temel alıp, onun ölçüsünü, bağlantı geometrisini ve işlevini koruyarak yeniden üretmek demektir. Markanın artık üretim yapmaması siparişi engellemez; fiziksel parça tek referanstır.
+
+## Nasıl çalışırız?
+
+İflas etmiş marka parça siparişinde izlediğimiz yol bellidir: önce kırık veya eskimiş parçayı bize getirirsiniz ya da kargoyla gönderirsiniz, sonra biz fiziksel parçayı inceler, dijital model çıkarır, malzeme önerimizi yazılı paylaşırız. Fotoğraf yalnız ön-teyit içindir; marka bilgisi olmasa bile fiziksel parça yeterlidir. Markanın iflas etmiş olması siparişi engellemez; üretim kendi atölyemizde yapılır.
+
+İflas etmiş cihazların yedek parçaları genelde gövde, kapak, mandal, bağlantı elemanı, dişli veya muhafaza kapağı gibi işlevsel plastiklerden oluşur. Çoğu kez yorulma veya kimyasal temas nedeniyle kırılır. Parçayı incelerken kırık yüzeyi, bağlantı noktalarını ve çevresindeki kullanım izlerini değerlendiriyoruz. Genel yedek parça arama süreci için <a href="/bulunamayan-yedek-parca-ozel-uretim/">bulunamayan yedek parça</a> sayfasındaki yönlendirmeyi kullanırız. Piyasada bulunmayan parça senaryoları için <a href="/piyasada-bulunmayan-yedek-parca-uretimi/">piyasada bulunmayan yedek parça üretimi</a> sayfası referans olur.
+
+Sipariş akışımız referans parçanın bize ulaşmasıyla başlar; ardından dijital model hazırlanır. Model hazırlanırken mevcut parçanın geometrisi birebir korunur, gerekirse dayanım sınıfına uygun malzeme seçilir. Servis parça bulamama senaryosu için <a href="/servis-parca-bulamiyor-ne-yapilir/">servis parça bulamıyorsa ne yapılır</a> sayfasındaki adımlar temel alınır. Mevcut muadil parça farkları konusunda <a href="/muadil-parca-nedir-orijinaliyle-farki/">muadil parça nedir</a> sayfası bilgi verir.
+
+Numune bazlı üretim için <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye göre plastik parça üretimi</a> sayfasındaki süreç takip edilir. Kırık parça için tamir mi yoksa yeniden üretim mi tercih edileceği <a href="/kirik-plastik-parca-tamir-mi-yeniden-uretim-mi/">tamir mi yeniden üretim mi</a> sayfasında tartışılır. İflas etmiş cihaz senaryosunda genelde yeniden üretim daha sağlıklı sonuç verir, çünkü orijinal yedek parça artık temin edilemez.
+
+## Doğru malzeme
+
+İflas etmiş cihaz parçaları için malzeme seçimi çalışma koşuluna göre yapılır. Standart iç mekan parçalarında PETG veya PA yaygın tercihlerimizdir. Yük taşıyan veya hareketli parçalarda PA cam-fiber takviyeli (PA-GF) sınıf öneriyoruz; bu sınıf yorulma altında boyutunu korur. Kimyasal temas olan uygulamalarda PP veya özel kimyasal dayanımlı sınıf seçiyoruz. Akım taşıyan parça üretmiyoruz; iflas etmiş cihaz parçaları yalıtkan gövde veya mekanik destek elemanı olarak kalır.
+
+Mevcut parçanın malzemesini tespit edemiyorsak önce PETG ile başlamak, dayanım veya sıcaklık sınıfı gerekiyorsa PA-GF'ye geçmek bizim önerimizdir. Renk seçimi tarafında standart siyah, gri ve beyaz renkler stokta mevcuttur. Çalışma sıcaklığı açısından iflas etmiş cihaz parçaları genelde sıfır ile altmış santigrat derece arasında çalışır; sıcak temas olan bölgelerde yüksek sıcaklık dayanımlı sınıf gerekir.
+
+## Dürüst sınır
+
+İflas etmiş cihaz parçalarında dürüst sınırı açıkça konuşmamız gerekir. Yüksek basınç altında çalışan parçalar, elektriksel bağlantı yapan modüller veya patlayıcı ortam parçaları için plastik gövde tek başına yetmez; metal veya metal-polimer hibrit çözüm gerekir. Bu konularda konusunda uzman tedarikçiye yönlendirme yaparız.
+
+Bir diğer dürüst sınır: çok eski bir cihazda yalnızca kırılan parça değil, çevresindeki parçalar da yıpranmış olabilir. Yeni ürettiğimiz parça eski komşu parçalarla uyumsuzluk gösterebilir; sipariş öncesi cihazın genel durumunu gözden geçirmenizi öneriyoruz. Güvenlik kritik parçalarda plastik yeniden üretim uygun değildir; fren, emniyet kemeri veya basınçlı kapak gibi parçalar için mutlaka sertifikalı orijinal parça kullanılmalıdır.
+
+Marka veya model bilgisi olmadan sipariş verilebilir, ancak parçanın hangi cihaza veya makineye ait olduğunu anlamak bazen mümkün olmayabilir. Bu durumda parçanın işlevini, çalışma koşullarını ve mekanik beklentilerini sizin sözlü veya yazılı açıklamanızdan çıkarıyoruz. Açıklama ne kadar net olursa üretim önerisi o kadar isabetli olur.
+
+## Sipariş
+
+İflas etmiş cihazlarda parça değişimi sırasında dikkat edilmesi gereken noktalar: cihazın yaşı, kullanım yoğunluğu, çevresindeki parçaların yıpranma durumu. Yeni ürettiğimiz parça eski komşu parçalarla uyumsuzluk gösterebilir; bu yüzden sipariş öncesi cihazın genel durumunu gözden geçirmenizi öneriyoruz. Tek bir parçayı değiştirmek yerine, birbirine bağlı iki-üç parçayı birlikte yenilemek uzun vadede daha ekonomik olabilir.
+
+İflas etmiş cihazların yedek parçaları için tipik ölçü çıkarımı: vida bağlantıları (M3, M4, M5), mil çapları (4-12 mm), geçme bağlantı toleransları (0.1-0.3 mm). Bu ölçüler parça elimize geçtiğinde kumpas ile doğrulanır; kritik toleranslar sipariş öncesi yazılı paylaşılır.
+
+Sık sorulan bir soru: Cihazım çok eski, başka hiçbir yerden parça bulamıyorum. Plastik yeniden üretim gerçekten mümkün mü? Evet; fiziksel parçayı temel alarak yeniden üretim yapabiliyoruz. Marka veya model bilgisi gerekmez; parçanın kendisi tek referanstır. Parçanın hangi cihaza ait olduğunu bilmek modelleme sürecini hızlandırır, ancak zorunlu değildir.
+
+Aynı cihazdan birden fazla parça kırıldıysa hepsini birlikte getirmeniz süreci hızlandırır; modelleme aşamasında her parça için ayrı ayrı tarama yerine toplu inceleme yapılabilir. Sipariş adedi tek parça olabildiği gibi bakım partisi halinde de olabilir.
+
+Üreticisi iflas etmiş cihaz yedek parça siparişinde referans parçayı bize getirmeniz ya da kargoyla göndermeniz gerekir; fotoğraf veya kısa açıklama ile gelen talepleri de aynı kapıdan alıyoruz, ama fotoğraf yalnız ön-teyit için kullanılır. Sipariş sonrası parçayı inceleyip yazılı öneri paylaşıyoruz; onayınızı aldıktan sonra üretime geçiyoruz. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz.""")
+
+
+
+def _eski_radyo_televizyon_muzik_seti_kirik_parca_yeniden_uretim():
+    return _seo_md_to_html(u"""# Eski radyo televizyon müzik seti kırık parça yeniden üretimi
+
+Nostaljik bir hoparlör, kasetçalardan bozma ses sistemi veya eski model televizyon gibi cihazlarda düğme, mandal, gösterge çerçevesi veya kadran gibi plastik elemanlar yıllar içinde kırılganlaşır. Yedek parça artık temin edilemez, hatta marka çoktan piyasadan çekilmiş olabilir. Eski radyo televizyon müzik seti kırık parça yeniden üretimi; elinizdeki kırık veya eskimiş parçayı temel alıp, onun ölçüsünü ve biçimini koruyarak yeniden üretmek demektir. Cihazın nostaljik karakteri bozulmadan, fonksiyonel bir parça elde ederiz.
+
+## Nasıl çalışırız?
+
+Eski radyo televizyon müzik seti parça siparişinde izlediğimiz yol bellidir: önce kırık veya eskimiş parçayı bize getirirsiniz ya da kargoyla gönderirsiniz, sonra biz fiziksel parçayı inceler, dijital model çıkarır, malzeme önerimizi yazılı paylaşırız. Fotoğraf yalnız ön-teyit içindir; hangi cihazdan geldiği belli değilse bile fiziksel parça yeterlidir. Nostaljik cihazlarda parçanın özgün görünümü önemlidir; bu nedenle detay muhafazası için fiziksel parça beklenir.
+
+Eski ses ve görüntü cihazlarının plastik parçaları genelde düğme, ayar topuzu, mandal, kapak, kadran çerçevesi veya gösterge elemanıdır. Çoğu kez ultraviyole ışığı, sıcaklık değişimi veya yorulma nedeniyle kırılır. Parçayı incelerken kırık yüzeyin geometrisini, bağlantı noktalarının toleransını ve çevresindeki komşu parçalarla olan ilişkisini değerlendiriyoruz. Mevcut elektronik cihaz parça üretimi için <a href="/elektronik-cihaz-plastik-parca-uretimi/">elektronik cihaz plastik parça</a> sayfasındaki ölçü listesini referans alırız.
+
+Sipariş akışımız kırık parçanın bize ulaşmasıyla başlar; ardından dijital model hazırlanır. Model hazırlanırken orijinal parçanın geometrisi birebir korunur; gerekirse dayanım için kritik kesitler hafif kalınlaştırılır. Yüzey dokusu, parlaklık ve renk seçimi sipariş öncesi konuşulur. Düğme veya ayar topuzu için <a href="/olcuye-ozel-dugme-ayar-topuzu-uretimi/">düğme ayar topuzu üretimi</a> sayfasındaki mil çaplarını referans alırız.
+
+Eski cihazlarda sıkça kırılan parçalar: düğmeler, mandallar, gösterge çerçeveleri ve kapaklar. Kulp veya tutamak için <a href="/olcuye-ozel-kulp-tutamak-uretimi/">kulp tutamak üretimi</a> sayfasındaki bağlantı geometrisi temel alınır. Menteşe veya kapak mekanizması için <a href="/olcuye-ozel-mentese-uretimi/">menteşe üretimi</a> sayfasındaki standartlar kullanılır. Numune bazlı üretim süreci için <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye göre plastik parça üretimi</a> sayfasındaki adımlar takip edilir.
+
+## Doğru malzeme
+
+Eski radyo televizyon müzik seti parçaları için malzeme seçimi çalışma koşuluna göre yapılır. Standart iç mekan parçalarında PETG yaygın tercihimizdir; darbe direnci yüksek, renk seçenekleri geniş. Yük taşıyan veya hareketli parçalarda PA cam-fiber takviyeli (PA-GF) sınıf öneriyoruz. Ultraviyole ışık alan dış mekan parçalarında ultraviyole stabilize çeşitler öneriyoruz. Malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki genel bilgiyi kullanırız.
+
+Mevcut parçanın malzemesini tespit edebiliriz; eski parça elimize geçtiğinde yoğunluk karşılaştırması ve yüzey muayenesi ile kabaca sınıflandırıyoruz. Akım taşıyan parça üretmiyoruz; eski cihaz parçaları yalıtkan gövde, düğme veya mekanik destek elemanı olarak kalır. Renk seçimi tarafında standart siyah, gri, beyaz renkler stokta mevcuttur; eski cihazın rengini tam tutturmak her zaman mümkün olmayabilir, çünkü yıllar içinde renk solması oluşmuştur.
+
+Çalışma sıcaklığı açısından eski cihaz parçaları genelde sıfır ile elli santigrat derece arasında çalışır; tüplü televizyon gibi eski cihazlarda iç ısı birikimi olabilir, bu durumda malzeme seçimi sıkılaşır. Nemli ortamda çalışan parçalarda nem almayan sınıf öneriyoruz.
+
+## Dürüst sınır
+
+Eski radyo televizyon müzik seti parçalarında dürüst sınırı açıkça konuşmamız gerekir. Yüksek sıcaklık olan bölgelerde (örneğin tüplü televizyon arka paneli) plastik parça ömrü kısalır; metal veya metal-polimer hibrit çözüm gerekir. Elektriksel bağlantı yapan modüllerde yalıtım mesafesi hesabı önemlidir; bu hesap bizim kapsamımızın dışındadır, sertifikalı tedarikçiye yönlendiriyoruz.
+
+Bir diğer dürüst sınır: çok eski cihazlarda güvenlik standartları yıllar içinde değişmiştir. Yeniden üretilen parça mevcut cihazın güvenlik seviyesini yükseltmez; orijinal cihazın standartlarına uygun kalır. Bu durum özellikle eski elektrikli cihazlarda önemlidir; topraklama, yalıtım ve koruma sınıfı modern standartlardan farklı olabilir.
+
+Mevcut mekanik aksama uyumlu yeniden üretim için parçanın bağlantı noktaları milimetrik ölçülür; ama eski cihazlarda bağlantı toleransları yıllar içinde esnemiş olabilir. Bu durumda yeni parça eski mekanik aksama tam uyum sağlamayabilir; sipariş öncesi bu beklenti konuşulur.
+
+## Sipariş
+
+Eski radyo ve televizyon parçalarında sıkça karşılaşılan bağlantı çapları: M3 küçük vidalar (düğme ve mandal için), 4 mm ve 6 mm mil çapları (ayar topuzu aksları için), geçme klips bağlantıları. Bu ölçüler 1960-1990 arası ses ve görüntü cihazlarında yaygındır.
+
+Sıkça gelen bir soru: Eski tüplü televizyonumun arka paneli veya yan kapağı kırıldı. Bu parçalar büyük ve kırılgan; üretilebilir mi? Evet; büyük gövde parçalarını yeniden üretebiliyoruz. Ancak geniş yüzeyli parçalarda üretim sonrası hafif çekme (plastik soğuma sırasında oluşan boyut değişimi) riski vardır; bu durumu önlemek için modelleme sırasında takviye çubuğu veya kalınlaştırma uyguluyoruz.
+
+Eski müzik seti ve ses cihazlarında mandal, kadran çerçevesi ve düğme gibi küçük parçalar sıklıkla kırılır. Bu parçalar için fotoğraf yeterli ön-teyit olabilir; ama kesin geometry için fiziksel parça beklenir. Yedek parça arama sürecinin genel çerçevesi için <a href="/elektronik-cihaz-plastik-parca-uretimi/">elektronik cihaz plastik parça</a> sayfası referans olur.
+
+Eski radyo televizyon müzik seti kırık parça siparişinde kırık veya eskimiş parçayı bize getirmeniz ya da kargoyla göndermeniz gerekir; fotoğraf veya kısa açıklama ile gelen talepleri de aynı kapıdan alıyoruz, ama fotoğraf yalnız ön-teyit için kullanılır. Sipariş sonrası parçayı inceleyip yazılı öneri paylaşıyoruz; onayınızı aldıktan sonra üretime geçiyoruz. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz.""")
+
+
+
+def _internet_pazarinda_bulunamayan_plastik_parca_yeniden_uretim():
+    return _seo_md_to_html(u"""# İnternet pazarında bulunamayan plastik parça yeniden üretimi
+
+Aylarca internet pazar yerlerinde, tedarikçi sitelerinde ve parça kataloglarında aradınız; parça kodu veya parti koduyla eşleşen bir sonuç çıkmadı. Eğer elinizde sağlam veya kırık referans parça varsa, internet pazarında bulunamayan plastik parça yeniden üretimi; elinizdeki parçayı temel alıp, onun formunu, ölçüsünü ve bağlantı geometrisini çıkararak yeniden üretmek demektir. İnternette bulunamayan parça için fiziksel referans yeterlidir.
+
+## Nasıl çalışırız?
+
+İnternet pazarında bulunamayan parça siparişinde izlediğimiz yol bellidir: önce sağlam veya kırık referans parçayı bize getirirsiniz ya da kargoyla gönderirsiniz, sonra biz fiziksel parçayı inceler, dijital model çıkarır, malzeme önerimizi yazılı paylaşırız. Fotoğraf yalnız ön-teyit içindir; hangi cihazdan geldiği belli değilse bile fiziksel parça yeterlidir. İnternette arama sonucu vermeyen bir parça için fiziksel parça siparişi başlatır.
+
+İnternette bulunamayan parçalar genelde eski veya niş cihazlara ait olduğu için arama sonuçlarında görünmez. Bunlar marka bilgisi olmayan, katalog kodu silinmiş veya küçük partiler halinde üretilmiş elemanlar olabilir. Parçayı incelerken kırık yüzeyi, bağlantı noktalarını ve çevresindeki kullanım izlerini değerlendiriyoruz. Genel yedek parça arama süreci için <a href="/bulunamayan-yedek-parca-ozel-uretim/">bulunamayan yedek parça</a> sayfasındaki yönlendirmeyi kullanırız. Piyasada bulunmayan parça senaryoları için <a href="/piyasada-bulunmayan-yedek-parca-uretimi/">piyasada bulunmayan yedek parça üretimi</a> sayfası referans olur.
+
+Sipariş akışımız referans parçanın bize ulaşmasıyla başlar; ardından dijital model hazırlanır. Model hazırlanırken mevcut parçanın geometrisi birebir korunur, gerekirse dayanım sınıfına uygun malzeme seçilir. Servis parça bulamama senaryosu için <a href="/servis-parca-bulamiyor-ne-yapilir/">servis parça bulamıyorsa ne yapılır</a> sayfasındaki adımlar temel alınır. Numune bazlı üretim süreci için <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye göre plastik parça üretimi</a> sayfasındaki süreç takip edilir.
+
+Mevcut muadil parça farkları konusunda <a href="/muadil-parca-nedir-orijinaliyle-farki/">muadil parça nedir</a> sayfası bilgi verir. Kırık parça için tamir mi yoksa yeniden üretim mi tercih edileceği <a href="/kirik-plastik-parca-tamir-mi-yeniden-uretim-mi/">tamir mi yeniden üretim mi</a> sayfasında tartışılır. İnternette aramada çıkmayan parça senaryosunda yeniden üretim en sağlıklı yoldur, çünkü parça zaten piyasada yok.
+
+## Doğru malzeme
+
+İnternette bulunamayan parçalar için malzeme seçimi çalışma koşuluna göre yapılır. Standart iç mekan parçalarında PETG veya PA yaygın tercihlerimizdir. Yük taşıyan veya hareketli parçalarda PA cam-fiber takviyeli (PA-GF) sınıf öneriyoruz; bu sınıf yorulma altında boyutunu korur. Kimyasal temas olan uygulamalarda PP veya özel kimyasal dayanımlı sınıf seçiyoruz. Akım taşıyan parça üretmiyoruz; bu parçalar yalıtkan gövde veya mekanik destek elemanı olarak kalır.
+
+Mevcut parçanın malzemesini tespit edemiyorsak önce PETG ile başlamak, dayanım veya sıcaklık sınıfı gerekiyorsa PA-GF'ye geçmek bizim önerimizdir. Renk seçimi tarafında standart siyah, gri ve beyaz renkler stokta mevcuttur. Çalışma sıcaklığı açısından bu parçalar genelde sıfır ile altmış santigrat derece arasında çalışır; sıcak temas olan bölgelerde yüksek sıcaklık dayanımlı sınıf gerekir.
+
+Sıkça sorulan bir konu: referans parça kırıksa ölçü çıkarımı nasıl yapılır? Kırık parçayı birleştirerek bütünün geometrisini çıkarıyoruz; küçük eksik parçalar için komşu parçalardan ve çevre detaylarından çıkarım yapılır. Bu durumda sipariş öncesi sizinle yazılı iletişim kuruyoruz; netleşmeyen geometri varsa fotoğraf veya ek ölçü isteyebiliriz.
+
+## Dürüst sınır
+
+İnternette bulunamayan parçalarda dürüst sınırı açıkça konuşmamız gerekir. Yüksek basınç altında çalışan parçalar, elektriksel bağlantı yapan modüller veya patlayıcı ortam parçaları için plastik gövde tek başına yetmez; metal veya metal-polimer hibrit çözüm gerekir. Bu konularda konusunda uzman tedarikçiye yönlendirme yaparız.
+
+Bir diğer dürüst sınır: referans parçanın çok küçük veya karmaşık geometrili olması durumunda ölçü çıkarımı zorlaşır. Bu durumda üretim toleransı genişler; sipariş öncesi bu beklenti konuşulur. Yüksek hassasiyet gerektiren parçalarda milimetrik altı toleranslar bizim kapsamımızın dışındadır; konusunda uzman tedarikçiye yönlendiriyoruz.
+
+Güvenlik kritik parçalarda plastik yeniden üretim uygun değildir; fren, emniyet kemeri veya basınçlı kapak gibi parçalar için mutlaka sertifikalı orijinal parça kullanılmalıdır. Sipariş öncesi parçanın güvenlik kritik olup olmadığını konuşuyoruz.
+
+## Sipariş
+
+İnternette bulunamayan parçalar için tipik ölçü çıkarımı: vida bağlantıları (M3, M4, M5, M6), mil çapları (4-15 mm), geçme bağlantı toleransları (0.1-0.3 mm), vida delikleri arası mesafe. Bu ölçüler parça elimize geçtiğinde milimetrik kumpas ile doğrulanır; kritik toleranslar sipariş öncesi yazılı paylaşılır.
+
+Sıkça gelen bir soru: Referans parçam tamamen kırıldı, iki veya üç parça halinde. Yeniden üretim yine de mümkün mü? Evet; kırık parçaları birleştirerek bütünün geometrisini çıkarıyoruz. Küçük eksik parçalar (örneğin kopan bir kulak veya bağlantı çıkıntısı) için komşu parçalardan ve çevre detaylarından çıkarım yapılır. Eksik parça büyükse veya kritik geometri taşıyorsa sipariş öncesi sizinle yazılı iletişim kuruyoruz.
+
+Bir başka sık sorulan konu: Parçanın fotoğrafını çekip ölçü notlarıyla birlikte göndersem, fiziksel parçayı getirmem gerekir mi? Ön-teyit için fotoğraf ve kısa açıklama alıyoruz, ancak üretim için fiziksel parçayı bize getirmeniz veya kargoyla göndermeniz gerekir. Bu tutum parçanın geometrisinin doğru çıkarılması için önemlidir; fotoğraftan milimetrik ölçü çıkarımı yapılsa bile küçük sapmalar parçanın uyumunu bozabilir.
+
+Bu tutum özellikle hassas geometrili parçalarda kritiktir; küçük açı farkları veya eksik detaylar uyumsuzluğa yol açar.
+
+İnternet pazarında bulunamayan plastik parça siparişinde referans parçayı bize getirmeniz ya da kargoyla göndermeniz gerekir; fotoğraf veya kısa açıklama ile gelen talepleri de aynı kapıdan alıyoruz, ama fotoğraf yalnız ön-teyit için kullanılır. Sipariş sonrası parçayı inceleyip yazılı öneri paylaşıyoruz; onayınızı aldıktan sonra üretime geçiyoruz. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz.""")
+
+
+
+def _oyuncak_koleksiyon_model_uretimden_kalkmis_parca_yeniden_uretim():
+    return _seo_md_to_html(u"""# Üretimi durmuş oyuncak koleksiyon model parça yeniden üretimi
+
+Çocukluğunuzdan kalma nostaljik bir oyuncak araba, figür, model set veya benzeri bir ürünün kırılan parçası için yedek parça temin edemiyor olabilirsiniz; çünkü ürün yıllar önce üretimden kalkmış. Üretimi durmuş oyuncak koleksiyon model parça yeniden üretimi; elinizdeki kırık veya eskimiş parçayı temel alıp, onun ölçüsünü ve biçimini koruyarak yeniden üretmek demektir. Oyuncağın veya koleksiyonun karakteri bozulmadan, fonksiyonel bir parça elde ederiz.
+
+## Nasıl çalışırız?
+
+Oyuncak koleksiyon parça siparişinde izlediğimiz yol bellidir: önce kırık veya eskimiş parçayı bize getirirsiniz ya da kargoyla gönderirsiniz, sonra biz fiziksel parçayı inceler, dijital model çıkarır, malzeme önerimizi yazılı paylaşırız. Fotoğraf yalnız ön-teyit içindir; hangi oyuncaktan geldiği belli değilse bile fiziksel parça yeterlidir. Koleksiyon değeri taşıyan özgün parçaların geometrisi fotoğraftan tam anlaşılamayabilir, bu nedenle fiziksel parça beklenir.
+
+Oyuncak ve koleksiyon parçaları genelde gövde parçaları, figür elemanları, tekerlek, aks, bağlantı klipsi veya dekoratif eklentilerdir. Çoğu kez yorulma, darbe veya zamanla oluşan kırılganlaşma nedeniyle kırılır. Parçayı incelerken kırık yüzeyin geometrisini, bağlantı noktalarının toleransını ve çevresindeki komşu parçalarla olan ilişkisini değerlendiriyoruz. Mevcut oyuncak ve hobi parça üretimi için <a href="/oyuncak-hobi-model-plastik-parca-uretimi/">oyuncak hobi model plastik parça</a> sayfasındaki ölçü listesini referans alırız.
+
+Sipariş akışımız kırık parçanın bize ulaşmasıyla başlar; ardından dijital model hazırlanır. Model hazırlanırken orijinal parçanın geometrisi birebir korunur; gerekirse dayanım için kritik kesitler hafif kalınlaştırılır. Renk, parlaklık ve yüzey dokusu sipariş öncesi konuşulur. Numune bazlı üretim için <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye göre plastik parça üretimi</a> sayfasındaki süreç takip edilir.
+
+Oyuncak ve koleksiyon parçalarında sıkça karşılaşılan bağlantı elemanları: klipsler, geçme bağlantıları, vida dipleri ve pimler. Vida başı gizleme kapakları gibi küçük elemanlar için <a href="/olcuye-ozel-vida-basi-gizleme-kapagi-uretimi/">vida başı gizleme kapağı</a> sayfasındaki standart çaplar kullanılır. Menteşe gibi hareketli parçalar için <a href="/olcuye-ozel-mentese-uretimi/">menteşe üretimi</a> sayfasındaki geometri önerileri temel alınır.
+
+## Doğru malzeme
+
+Oyuncak ve koleksiyon parçaları için malzeme seçimi çalışma koşuluna göre yapılır. Standart iç mekan parçalarında PETG yaygın tercihimizdir; darbe direnci yüksek, renk seçenekleri geniş. Yük taşıyan veya hareketli parçalarda PA cam-fiber takviyeli (PA-GF) sınıf öneriyoruz. Ultraviyole ışık alan vitrin parçalarında ultraviyole stabilize çeşitler öneriyoruz. Malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki genel bilgiyi kullanırız.
+
+Mevcut parçanın malzemesini tespit edebiliriz; eski parça elimize geçtiğinde yoğunluk karşılaştırması ve yüzey muayenesi ile kabaca sınıflandırıyoruz. Çocuk temas yoğunluğu düşünüldüğünde kenar yumuşatma ve köşe yarıçapı önemlidir; sipariş öncesi bu beklenti konuşulur. Akım taşıyan parça üretmiyoruz; oyuncak parçaları yalıtkan gövde veya mekanik destek elemanı olarak kalır.
+
+Renk seçimi tarafında nostaljik oyuncak ve koleksiyon için sıkça tercih edilen renkler: siyah, gri, beyaz, kırmızı, mavi, sarı. Eski parçanın rengini tam tutturmak her zaman mümkün olmayabilir, çünkü yıllar içinde renk solması oluşmuştur. Yüzey dokusu için mat veya saten tercih edilebilir; parlak yüzey eski oyuncaklarda daha az yaygındır.
+
+## Dürüst sınır
+
+Oyuncak ve koleksiyon parçalarında dürüst sınırı açıkça konuşmamız gerekir. Yüksek darbe beklenen uygulamalarda plastik parça çatlayabilir; bu konuda <a href="/darbeye-dayanikli-plastik-parca-yaptirma/">darbeye dayanıklı parça</a> sayfasındaki sınır değerleri temel alınır. Çocuk teması yüksek uygulamalarda küçük parça boyutu ve yutma riski açısından sipariş öncesi konuşulur; biz altı yaş üzeri için öneri yapıyoruz.
+
+Bir diğer dürüst sınır: koleksiyon değeri taşıyan özgün parçaların birebir yeniden üretimi restorasyon etiği açısından tartışmalı olabilir. Yeniden üretilen parça orijinal parçanın yerini alır ama onunla aynı değildedir; bu nedenle yeniden üretilen parçanın ayırt edilebilir olması beklenir. Sipariş öncesi bu beklenti netleştirilir.
+
+Hareketli mekanizması olan oyuncak parçalarında (örneğin tekerlek aksı) dayanım sınıfı önemlidir; çocuk kullanımında yoğun darbe ve çevrim beklentisi vardır. Bu durumda metal iç takım veya hibrit yapı öneriyoruz.
+
+## Sipariş
+
+Oyuncak ve koleksiyon parçalarında sıkça karşılaşılan bağlantı çapları: M2, M3 küçük vidalar (figür ve aksesuar bağlantıları için); 3-6 mm aks çapları (tekerlek ve figür hareketli eklemleri için); geçme klips bağlantıları (gövde parçalarını birleştirmek için). Bu ölçüler yaygın oyuncak ve model setlerinde standarttır.
+
+Sık sorulan bir soru: Oyuncak parçası çocuğum için üretilecek. Güvenli mi? Sipariş öncesi parçanın yaş grubu, kullanım şekli, parçanın boyutu konuşulur. Köşeler yumuşatılır, keskin çıkıntılar kaldırılır, küçük parça riski olan boyutlar yeniden değerlendirilir. Biz altı yaş üzeri için öneri yapıyoruz; daha küçük çocuklar için parça boyutu ve yutma riski sipariş öncesi konuşulmalıdır.
+
+Nostaljik oyuncak ve koleksiyon parçalarında renk eşleştirme özellikle önemlidir. Eski parçanın rengi yıllar içinde solmuş olabilir; tam eşleşme mümkün olmayabilir. Bu durumda ya mevcut parçanın solmuş rengine yakın bir ton seçilir ya da orijinal üretim rengine yakın bir ton tercih edilir. Her iki seçenek de sipariş öncesi sizinle yazılı olarak netleştirilir.
+
+Koleksiyonluk modellerde parçanın orijinalliğinin korunması özellikle önemlidir; bu yüzden sipariş öncesi parçanın orijinali ile birlikte mi yoksa orijinali sizde kalıp yalnız yeniden üretilen parçayı mı istediğinizi konuşuyoruz.
+
+Üretimi durmuş oyuncak koleksiyon parça siparişinde kırık veya eskimiş parçayı bize getirmeniz ya da kargoyla göndermeniz gerekir; fotoğraf veya kısa açıklama ile gelen talepleri de aynı kapıdan alıyoruz, ama fotoğraf yalnız ön-teyit için kullanılır. Sipariş sonrası parçayı inceleyip yazılı öneri paylaşıyoruz; onayınızı aldıktan sonra üretime geçiyoruz. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz.""")
+
+
+
+def _eski_model_tarim_ekipmani_kirik_parca_yeniden_uretim():
+    return _seo_md_to_html(u"""# Eski model tarım ekipmanı kırık parça yeniden üretimi
+
+Traktör arkası ekipman, küçük çiftlik makinesi veya sulama pompası gibi eski tarım ekipmanınızın muhafaza, kapak veya gösterge elemanı kırılmış olabilir; ama orijinal parça yıllar önce üretimden kalkmış, yedek parça piyasasında bulunamıyor olabilir. Eski model tarım ekipmanı kırık parça yeniden üretimi; elinizdeki kırık veya eskimiş parçayı temel alıp, onun ölçüsünü, bağlantı geometrisini ve işlevini koruyarak yeniden üretmek demektir. Mevcut ekipmanınızın çalışma süreci yeniden üretilen parçayla devam eder.
+
+## Nasıl çalışırız?
+
+Eski tarım ekipmanı parça siparişinde izlediğimiz yol bellidir: önce kırık veya eskimiş parçayı bize getirirsiniz ya da kargoyla gönderirsiniz, sonra biz fiziksel parçayı inceler, dijital model çıkarır, malzeme önerimizi yazılı paylaşırız. Fotoğraf yalnız ön-teyit içindir; hangi ekipmandan geldiği belli değilse bile fiziksel parça yeterlidir. Markanın üretimden kalkmış olması siparişi engellemez.
+
+Eski tarım ekipmanı parçaları genelde muhafaza kapağı, gösterge elemanı, sulama parçası, bağlantı elemanı veya koruma plakası gibi plastik elemanlardan oluşur. Çoğu kez ultraviyole ışığı, sıcaklık değişimi veya kimyasal temas nedeniyle kırılır. Parçayı incelerken kırık yüzeyin geometrisini, bağlantı noktalarının toleransını ve çevresindeki komşu parçalarla olan ilişkisini değerlendiriyoruz. Mevcut tarım makinesi parça üretimi için <a href="/tarim-makinesi-plastik-parca-uretimi/">tarım makinesi plastik parça</a> sayfasındaki ölçü listesini referans alırız.
+
+Sipariş akışımız kırık parçanın bize ulaşmasıyla başlar; ardından dijital model hazırlanır. Model hazırlanırken orijinal parçanın geometrisi birebir korunur; gerekirse dayanım için kritik kesitler hafif kalınlaştırılır. Yüzey dokusu ve renk seçimi sipariş öncesi konuşulur. Sulama ekipmanı parçaları için <a href="/tarimsal-sulama-ekipmani-plastik-parca-yaptirma/">tarımsal sulama ekipmanı</a> sayfasındaki bağlantı çaplarını kullanırız.
+
+Ekipmanın açık alanda çalışması ultraviyole dayanımı gerektirir; ultraviyole stabilize sınıflar öneriyoruz. Muhafaza veya koruma elemanları için <a href="/olcuye-ozel-koruma-kapagi-muhafaza-uretimi/">koruma kapağı muhafaza</a> sayfasındaki standartları referans alırız. Numune bazlı üretim süreci için <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye göre plastik parça üretimi</a> sayfasındaki adımlar takip edilir.
+
+## Doğru malzeme
+
+Eski tarım ekipmanı parçaları için malzeme seçimi çalışma koşuluna göre yapılır. Açık alanda çalışan parçalarda ultraviyole stabilize PP veya ASA sınıfları yaygın tercihimizdir. Standart iç mekan parçalarında PETG de kullanılır. Yük taşıyan veya hareketli parçalarda PA cam-fiber takviyeli (PA-GF) sınıf öneriyoruz. Kimyasal temas olan uygulamalarda özel kimyasal dayanımlı sınıf seçiyoruz. Ultraviyole dayanımlı malzeme önerisi için <a href="/uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi/">ultraviyole dayanımlı dış mekan parça</a> sayfasındaki bilgi temel alınır. Malzeme karşılaştırması için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasındaki genel bilgiyi kullanırız.
+
+Mevcut parçanın malzemesini tespit edebiliriz; eski parça elimize geçtiğinde yoğunluk karşılaştırması ve yüzey muayenesi ile kabaca sınıflandırıyoruz. Akım taşıyan parça üretmiyoruz; tarım ekipmanı parçaları yalıtkan gövde, muhafaza veya mekanik destek elemanı olarak kalır. Renk seçimi tarafında standart siyah, gri ve beyaz renkler stokta mevcuttur; eski parçanın rengini tam tutturmak her zaman mümkün olmayabilir.
+
+Çalışma sıcaklığı açısından tarım ekipmanı parçaları açık alanda çalıştığı için eksi on ile altmış santigrat derece arasında değişen koşullara maruz kalır. Ultraviyole stabilize sınıflar bu aralıkta boyut kararlılığı gösterir. Yoğun nem ve yağmur olan ortamlarda yüksek koruma sınıfına sahip muhafaza öneriyoruz; bu konuda <a href="/olcuye-ozel-plastik-koruk-ve-toz-mansonu-uretimi/">plastik körük ve toz manşonu</a> sayfasındaki sızdırmazlık önerileri temel alınır.
+
+## Dürüst sınır
+
+Eski tarım ekipmanı parçalarında dürüst sınırı açıkça konuşmamız gerekir. Yüksek basınç altında çalışan hidrolik parçalarda plastik gövde tek başına yetmez; metal veya metal-polimer hibrit çözüm gerekir. Patlayıcı veya yanıcı atmosfer olan ortamlarda (örneğin tahıl silosu) plastik parça uygun değildir; konusunda uzman tedarikçiye yönlendirme yaparız.
+
+Bir diğer dürüst sınır: tarım ekipmanı yoğun güneş altında çalışır, ultraviyole dayanımı olmayan plastik parça birkaç yılda solar ve çatlar. Ultraviyole stabilize sınıflar bu süreyi uzatır, ama sonsuz değildir. Uzun süre açık alanda kalacak parçalar için metal muhafaza daha ekonomik olabilir.
+
+Gübre, pestisit veya kimyasal temas yoğun olan parçalarda malzeme seçimi sıkılaşır; kimyasal listesi sipariş öncesi paylaşılmalıdır. <a href="/yaga-ve-kimyasala-dayanikli-plastik-parca-uretimi/">kimyasal dayanımlı parça</a> sayfasındaki bilgi temel alınır.
+
+## Sipariş
+
+Eski tarım ekipmanı parçalarında sıkça karşılaşılan bağlantı çapları: M6, M8, M10 orta boy vidalar; 10-20 mm mil çapları; geçme pim bağlantıları. Bu ölçüler tarım makinelerinde standarttır.
+
+Ultraviyole stabilize sınıflar için tipik ömür beklentisi: açık hava koşullarında yoğun güneş altında yıllık renk solması yavaşlar ve yüzey çatlaması gecikir. Yoğun nem ve yağmur olan ortamlarda yüksek koruma sınıfına sahip muhafaza öneriyoruz; bu konuda <a href="/olcuye-ozel-plastik-koruk-ve-toz-mansonu-uretimi/">plastik körük ve toz manşonu</a> sayfasındaki sızdırmazlık önerileri temel alınır. Kapak ve bağlantı noktalarındaki conta elemanları sipariş öncesi tartışılır.
+
+Sıkça gelen bir soru: Traktör arkası ekipmanın kapağı kırıldı, ama metal aksamı sağlam. Yalnız plastik kapağı üretebilir misiniz? Evet; metal aksam sağlam olduğu sürece yalnız plastik kapak, muhafaza veya gösterge elemanı yeniden üretilebilir. Sipariş akışı aynıdır: sağlam veya kırık plastik parçayı bize getirmeniz, bizim incelememiz, malzeme önerimizi yazılı paylaşmamız ve onay sonrası üretim. Metal aksamın durumu da gözden geçirilir; aşırı paslanmış veya deforme alt omuş metal aksamla uyumsuz plastik üretimi önerilmez.
+
+Eski model tarım ekipmanı kırık parça siparişinde kırık veya eskimiş parçayı bize getirmeniz ya da kargoyla göndermeniz gerekir; fotoğraf veya kısa açıklama ile gelen talepleri de aynı kapıdan alıyoruz, ama fotoğraf yalnız ön-teyit için kullanılır. Sipariş sonrası parçayı inceleyip yazılı öneri paylaşıyoruz; onayınızı aldıktan sonra üretime geçiyoruz. Detay ve ödeme için **+90 545 138 6526** numaramızdan bize ulaşabilir, sitede kartla online ödeme ile de siparişinizi tamamlayabilirsiniz.""")
+
+
+
 CONTENT_PAGES = [
+    ("uretimden-kalkmis-spor-fitness-ekipmani-kirik-parca-yeniden-uretim", "Üretimden kalkmış spor ekipmanı parçası", "Üretimden kalkmış koşu bandı, kondisyon aleti ve fitness ekipmanının kırık plastik parçalarını yeniden üretiyoruz; parçayı bize getirin, ölçüsünü biz çıkaralım.", _uretimden_kalkmis_spor_fitness_ekipmani_kirik_parca_yeniden_uretim),
+    ("antika-el-yapimi-mobilya-kirik-parca-yeniden-uretim", "Antika veya el yapımı mobilya kırık parça", "Antika veya el yapımı mobilya kırık kulp, ayak veya bağlantı elemanını yeniden üretiyoruz; eski parçayı inceleyip ölçüsünü çıkarıyor, özgün biçimde tasarlıyoruz.", _antika_el_yapimi_mobilya_kirik_parca_yeniden_uretim),
+    ("markasi-ve-modeli-bilinmeyen-kirik-plastik-parca-yeniden-uretim", "Markası modeli bilinmeyen kırık parça", "Markası ve modeli bilinmeyen kırık plastik parçayı yeniden üretiyoruz; elinizdeki referans parçayı inceleyip formunu ve ölçüsünü çıkarıyor, aynı biçimde üretiyoruz.", _markasi_ve_modeli_bilinmeyen_kirik_plastik_parca_yeniden_uretim),
+    ("uretimden-kalkmis-klasik-otomobil-plastik-aksam-parcasi-yeniden-uretim", "Üretimi durmuş klasik otomobil parça", "Üretimi yıllar önce bitmiş klasik otomobil plastik aksam parçalarını yeniden üretiyoruz; kırık parçayı bize getirip inceliyor, özgün formda yeniden üretiyoruz.", _uretimden_kalkmis_klasik_otomobil_plastik_aksam_parcasi_yeniden_uretim),
+    ("katalog-kodu-silinmis-endustriyel-makine-parcasi-yeniden-uretim", "Katalog kodu silinmiş makine parça", "Katalog kodu veya seri numarası okunmayan eski endüstriyel makine plastik parçalarını yeniden üretiyoruz; referans parçayı inceleyip modeli ve ölçüsünü çıkarıyoruz.", _katalog_kodu_silinmis_endustriyel_makine_parcasi_yeniden_uretim),
+    ("antika-el-yapimi-ev-aleti-kirik-parca-yeniden-uretim", "Antika el yapımı ev aleti kırık parça", "Dikiş makinesi, blender veya ütü gibi eski ev aleti kırık plastik gövde ve düğmelerini yeniden üretiyoruz; referans parçayı inceleyip ölçüsünü çıkarıyor, üretiyoruz.", _antika_el_yapimi_ev_aleti_kirik_parca_yeniden_uretim),
+    ("ureticisi-iflas-etmis-cihaz-icin-yedek-parca-yeniden-uretim", "Üreticisi iflas etmiş cihaz yedek parça", "Üreticisi iflas etmiş veya tasfiye olmuş cihazlar için yedek parça yeniden üretiyoruz; kırık parçayı bize getirip inceliyor, özgün biçimde yeniden üretiyoruz.", _ureticisi_iflas_etmis_cihaz_icin_yedek_parca_yeniden_uretim),
+    ("eski-radyo-televizyon-muzik-seti-kirik-parca-yeniden-uretim", "Eski radyo televizyon müzik seti parça", "Eski radyo, televizyon veya müzik seti kırık düğme, mandal ve gösterge parçalarını yeniden üretiyoruz; referans parçayı bize getirip inceliyor, modelini çıkarıyoruz.", _eski_radyo_televizyon_muzik_seti_kirik_parca_yeniden_uretim),
+    ("internet-pazarinda-bulunamayan-plastik-parca-yeniden-uretim", "İnternet pazarında bulunamayan parça", "İnternet pazar yerlerinde ve tedarikçi sitelerinde aylarca aradığınız plastik parçayı yeniden üretiyoruz; referans parçayı bize getirip inceliyor, model çıkarıyoruz.", _internet_pazarinda_bulunamayan_plastik_parca_yeniden_uretim),
+    ("oyuncak-koleksiyon-model-uretimden-kalkmis-parca-yeniden-uretim", "Üretimi durmuş oyuncak koleksiyon parça", "Üretimi durmuş nostaljik oyuncak, figür veya koleksiyonluk modelin kırık plastik parçalarını yeniden üretiyoruz; referans parçayı inceleyip ölçüsünü çıkarıyoruz.", _oyuncak_koleksiyon_model_uretimden_kalkmis_parca_yeniden_uretim),
+    ("eski-model-tarim-ekipmani-kirik-parca-yeniden-uretim", "Eski model tarım ekipmanı kırık parça", "Eski model traktör arkası ekipman ve çiftlik makinesi kırık plastik parçalarını yeniden üretiyoruz; referans parçayı bize getirip inceliyor, ölçüsünü çıkarıyoruz.", _eski_model_tarim_ekipmani_kirik_parca_yeniden_uretim),
     # --- wave-47 (11 landing) ---
     ("tost-makinesi-parcasi-nereden-bulunur", "Tost Makinesi Parçası Nereden Bulunur?", "Tost makinesi kapak mandalı, kulpu ya da taban ayağı mı kırıldı? Üretimi durmuş modeller için ölçüye özel plastik parça üretiyoruz, tek fotoğraf yeterli oluyor.", _tost_makinesi_parcasi_nereden_bulunur),
     ("sac-kurutma-makinesi-parcasi-kirilinca-ne-yapilir", "Saç Kurutma Makinesi Parçası Kırılınca", "Saç kurutma makinesinin kırılan ızgarasını, kapağını, tutamağını ölçünüze özel üretiyoruz. Fotoğrafını ve ölçüyü gönderin, doğru malzemeyi seçip üretelim.", _sac_kurutma_makinesi_parcasi_kirilinca_ne_yapilir),
@@ -14961,8 +15449,7 @@ CONTENT_PAGES = [
     ("olcuye-ozel-plastik-merdane-gobegi-ve-rulo-ucu-uretimi", "Ölçüye Özel Merdane Göbeği ve Rulo Ucu", "Rulo ve merdanenin kırılan uç tapası, göbek burcu, mil adaptörü ve sarım göbeğini numunesinden ölçüp ölçüye özel üretiyoruz. Tek adet de olağan iştir.", _olcuye_ozel_plastik_merdane_gobegi_ve_rulo_ucu_uretimi),
     ("cilde-temas-eden-plastik-parca-uretimi", "Cilde Temas Eden Plastik Parça Üretimi", "Elde tutulan, cilde değen tutamak, kayış tokası ve aparat gövdelerini ölçüye özel üretiyoruz. Tıbbi kullanım ve biyouyumluluk beyanı ise kapsam dışıdır.", _cilde_temas_eden_plastik_parca_uretimi),
     ("ozel-uretim-parca-sonradan-delinir-kesilir-mi", "Özel Üretim Parça Sonradan Delinir, Kesilir mi?", "Özel üretilen plastik parça sonradan delinebilir, kesilebilir ve zımparalanabilir. Ancak deliği üretim aşamasında koymak her zaman daha sağlam sonuç verir.", _ozel_uretim_parca_sonradan_delinir_kesilir_mi),
-    ("plastik-parcada-vida-ne-kadar-sikilmali", "Plastik Parçada Vida Ne Kadar Sıkılmalı?", "Plastik parçada vida metaldeki gibi sıkılmaz. Temas noktasından sonra çeyrek tur kuralı, diş sıyırma nedenleri ve gömme somun çözümü bu sayfada yazılı.", _plastik_parcada_vida_ne_kadar_sikilmali),
-]
+    ("plastik-parcada-vida-ne-kadar-sikilmali", "Plastik Parçada Vida Ne Kadar Sıkılmalı?", "Plastik parçada vida metaldeki gibi sıkılmaz. Temas noktasından sonra çeyrek tur kuralı, diş sıyırma nedenleri ve gömme somun çözümü bu sayfada yazılı.", _plastik_parcada_vida_ne_kadar_sikilmali),]
 
 # Pazarlama-beyani kapilarinin muaf tuttugu baglayici yasal yuzeylerin TEK KAYNAGI.
 # Bir yasal sayfa eklenir/yeniden adlandirilirsa muafiyet burada guncellenir; tarayicilar
