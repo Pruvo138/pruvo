@@ -492,7 +492,12 @@ OLCUM_KOMUTLARI = {
 #
 # 🔴 SINIF KURALI (tekil yama DEGIL): kapinin red metninde adi gecen her SERBEST ya
 # da YASAK kume, karari VEREN yapidan TURETILIR — ikinci kez ELLE YAZILMAZ.
-# Nobetci: tools/serbest-kume-tekkaynak-test.py (mutasyonlu; CI'da kosar).
+# 🔴 NOBETCI YOK (ACIK KALEM, 11 Eyl 2026). Eski satir "Nobetci: serbest-kume-tekkaynak-
+# test.py (mutasyonlu; CI'da kosar)" diyordu; o dosya ca8c3815 ile SILINDI (28 Agu
+# supurmesi) ve yerine hicbir sey konmadi — yani bu SINIF KURALI 11 Eyl itibariyla
+# OLCULMUYOR. Bugun canli olan tek komsu kol `tools/serbest-kume-ev-ekseni-test.py`dir
+# ve BASKA bir ekseni olcer (EV koku + kabuk yonlendirme eki), red metninin TURETILMIS
+# olup olmadigini DEGIL. Varlik ekseni: `tools/hayali-nobetci-kapisi.py`.
 # Ilgili ders: [[ayni-alan-iki-hukum-biri-sessiz]] · [[ikiz-tanim-sessiz-ayrisma]]
 
 def _kisa(yol):
@@ -1006,12 +1011,42 @@ def _isci_karari(tokenlar):
     return "gecer"
 
 
-# '-m X' (python modul) DENETIMI KALDIRILDI (22 Tem). Neden: PY_NODE ALLOWLIST'i python'i
-# yalnizca iki tam komuta indirdi — '-m pip'/'-m timeit'/'-m http.server' vs. artik
-# allowlist tarafindan reddedilir (durum.py/d1-sync.py degil). Ayri bir -m ayristirmasi
-# (modul_suphesi/betik_siniri) ARTIK GEREKSIZ ve NOBETSIZ olurdu: mimar tarafinda python
-# GATE'i tek noktadadir (_py_izinli). O yuzden o iki fonksiyon + IZINLI_MODULLER kaldirildi.
+# '-m X' (python modul) DENETIMI KALDIRILDI (22 Tem). O gunun gerekcesi: PY_NODE
+# ALLOWLIST'i python'i yalnizca iki tam komuta indirmisti, yani '-m pip'/'-m timeit'/
+# '-m http.server' ZATEN allowlist tarafindan reddediliyordu; ayri bir -m ayristirmasi
+# GEREKSIZ ve NOBETSIZ olurdu.
+#
+# 🔴 11 EYL 2026 — O GEREKCE COKTU, KOL BIRLIKTE DUSTU (olculdu, 19 vaka).
+# Okan'in "tum tikayicilari kaldir" emriyle allowlist REDDETMEYI birakti ve RAPOR'a
+# dondu. Allowlist'e YASLANAN -m korumasi da boylece sessizce kalkti: bugun
+# `python3 -m pip install ...`, `-m http.server`, `-m pdb`, `-m pytest` HEPSI ALLOW
+# (dogrudan olculdu). Oysa ayni emir `python3 -c` ve `curl/wget` kollarini ACIKCA
+# KAPALI BIRAKTI — yani "disari acan / keyfi kod kosturan" sinif KAPANMAYA DEVAM
+# EDECEKTI; -m ailesi o sinifin icindedir ve emir onu ADIYLA serbest BIRAKMADI.
+#
+# 🔴 KOL GERI GETIRILMEDI (RED DEGIL RAPOR): emir geri alinmaz. Bunun yerine -m
+# cagrisi AYRI BIR SINIF ADIYLA ('PY-MODUL-ACIK') stderr'e basilir; boylece delik
+# OLCULEBILIR kalir ve genel 'PY-ARAC-SERBEST' izinin icinde KAYBOLMAZ. Kapatma
+# karari (kola geri donmek) OKAN/BaBa kalemidir, bu kapinin degil.
+# Ders: [[fail-closed-kol-arkasindaki-kolu-maskeler]] · [[tuketici-yazilirken-tum-
+# okuyucular-sayilir]] (bir kol baska bir kolun yan etkisine yaslanirsa, o kol
+# degisince sessizce olur).
 # (sh/bash icin -m yok; onlar satir-ici + repo-disi betik + dis_yol ile denetlenir.)
+
+
+def modul_cagrisi(argumanlar):
+    """python '-m X' cagrisinda MODUL ADINI dondurur, degilse None.
+
+    TEK KAYNAK: hem ayrik ('-m', 'pip') hem BITISIK ('-mpip') bicim okunur — bitisik
+    bicim 28 Agu'da olculmus bir kacis yoluydu (vaka 126/127). Karar VERMEZ, yalniz
+    RAPOR kolu bunu cagirir.
+    """
+    for i, t in enumerate(argumanlar):
+        if t == "-m":
+            return argumanlar[i + 1] if i + 1 < len(argumanlar) else "(bos)"
+        if t.startswith("-m") and len(t) > 2 and not t.startswith("--"):
+            return t[2:]
+    return None
 
 # Yorumlayiciya disaridan kod enjekte eden ortam degiskenleri (VAR=deger python3 ...).
 TEHLIKELI_ENV = {
@@ -1414,10 +1449,20 @@ def _emekli_motor_karari(tokenlar):
         return "gecer"
     if not _emekli_motor_pencere_acik_mi():
         return (
+            # 🔴 11 EYL 2026 — BU KOL ARKASINDAKI KOLU MASKELIYORDU (vaka 910).
+            # Pencere kapali oldugu icin akis buraya duser ve ASLA model kuralina
+            # ULASMAZ; dolayisiyla YASAK MODEL ADLARI red metninde HIC gecmiyordu ve
+            # okuyan "hangi model yasakti" sorusunun cevabini goremiyordu
+            # ([[fail-closed-kol-arkasindaki-kolu-maskeler]]). Adlar ELLE YAZILMAZ,
+            # karar veren kumeden TURETILIR ([[kapi-red-metni-ikinci-kopyadir]]).
             "emekli motor SURELI PENCERESI KAPANDI (" + EMEKLI_MOTOR_PENCERE_BITIS + " dahil, "
             "bugun sonrasi). Sureli istisna 17->20 Agu ile sinirliydi; 20 Agu itibariyle "
-            "emekli motor yeniden KAPALI (emeklilik yururlukte). Yeni karar Okan'da — emekli motor "
-            "yerine kimi/minimax-m3'e delege et."
+            "emekli motor yeniden KAPALI (emeklilik yururlukte). Amiral sinifi ayrica "
+            "KOSULSUZ yasaktir (" + ", ".join(sorted(EMEKLI_MOTOR_YASAK_MODELLER)) + "). "
+            # 🔴 6 EYL MOTOR HUKMU: 'kimi' EMEKLI, YEDEK YOKTUR. Eski metin onu care
+            # diye basiyordu — red metni ikinci kopya olarak BAYATLAMISTI.
+            "Yeni karar Okan'da — emekli motor yerine " +
+            "/".join(sorted(ISCI_MOTORLARI)) + " hattina delege et."
         )
     if not _emekli_motor_model_bayrak_var(kalan[1:]):
         if _emekli_motor_cikti_valid_helper(kalan):
@@ -1792,6 +1837,17 @@ def main():
             # dusurmek metni ikinci bir kopyaya cevirirdi — karar ArTisT'in agacina
             # gore verilip metin KraL'in yollarini basardi. Nobetci: E7
             # (`tools/serbest-kume-ev-ekseni-test.py`).
+            # 🔴 -m AILESI AYRI SINIF ADIYLA BASILIR (11 Eyl, yukaridaki blok):
+            # allowlist reddetmeyi birakinca '-m pip/-m http.server/-m pdb' de sessizce
+            # acildi. Kol geri getirilmedi (emir), ama delik GENEL izin icinde
+            # KAYBOLMAZ: ayri ad, ayri sayim.
+            _modul = modul_cagrisi(argumanlar)
+            if _modul is not None:
+                iz_bas("PY-MODUL-ACIK rol=" + ("CIP" if cip else "ANA") +
+                       " sinif=PYTHON-MODUL komut=" + ad + " modul=" + _modul +
+                       " | 11 Eyl'den beri REDDEDILMIYOR (allowlist RAPOR'a dondu); "
+                       "'python3 -c' ve 'curl/wget' KAPALI kalirken bu sinif ACIK — "
+                       "kapatma karari OKAN/BaBa kalemidir.")
             iz_bas("PY-ARAC-SERBEST rol=" + ("CIP" if cip else "ANA") +
                    " sinif=PYTHON/NODE-ARAC komut=" + ad + " arg=" +
                    (" ".join(argumanlar[:3]))[:70] +
