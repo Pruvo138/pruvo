@@ -2537,6 +2537,44 @@ jobs:
           python3 tools/mimar-commit-kapisi-test.py
           python3 tools/mimar-commit-kapisi-mutasyon.py
 
+      # ═══ KATEGORI KAPISI — K405 KABLOLAMASI (11 Eyl 2026) ═══════════════════════
+      # OLCULEN KUSUR: `tools/kategori-kapisi.py` HICBIR is akisinda kosmuyordu
+      # (TAM AD grep: nobet.yml 0 · deploy.yml 0 — deploy.yml'deki 2 eslesme
+      # `altkategori-kapisi.py` ONEK tuzagiydi). Katalog gecersiz kategori degeri
+      # tasirken hicbir nobetci otmedi; urun katalogda KALIR ama kategori filtresinden
+      # DUSER ve build.py tarafinda malzeme/renk secicisi + Google taksonomisi olur.
+      #
+      # 🔴 NEDEN `deploy.yml` DEGIL, `nobet.yml::serit-b`: kapinin kendi dosyasindaki
+      # tasarim notu "build.py'ye BAGLANMAZ — tek kotu kategori TUM yayini kirmasin"
+      # der. Bu not `deploy.yml`'e KARSI bir gerekcedir, "hic kosmasin" demek DEGIL.
+      # serit-b `deploy.needs`te DEGIL -> kirmizisi yayini DURDURMAZ, yalniz geri
+      # bildirim uretir. deploy.yml'e EKLENMEDI (yanlis-pozitifi tum ekibin yayinini
+      # durdururdu). `continue-on-error` KULLANILMADI (fail-open yazimi ihlaldir).
+      #
+      # 🔴 IKI AYRI ADIM, TEK `run:` BLOGU DEGIL: `bash -e` ilk kirmizida durur;
+      # tek blokta canli tarama batarya kirmizisinin ARKASINA gizlenirdi
+      # (serit-b maskeleme kapisinin olctugu sinif). `if: !cancelled()` ikisinin de
+      # BAGIMSIZ olcum uretmesini garanti eder.
+      - name: "Kategori kapisi — kendini test (4 kontrol + 11 vaka; iki yonlu rc civisi + TABAN_IDDIA)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kategori-kapisi.py --kendini-test
+
+      # Bataryanin YESIL yanmasi olctugunu KANITLAMAZ: bu adim kapiyi IZOLE kopyada
+      # bozar (4 oldurucu + 2 kontrol) ve her mutantin OLDURDUGU VAKA KUMESINI adiyla
+      # karsilastirir. Gercek agaca yazmaz (tempfile sahte kok).
+      - name: "Kategori kapisi mutasyon bataryasi (4 oldurucu + 2 kontrol; oldurulen vaka kumesi adiyla)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kategori-kapisi-mutasyon.py
+
+      # ⚠️ BU ADIM SU AN KIRMIZI YANAR ve bu DOGRU davranistir: canli katalogda
+      # `einhell-cim-bicme-makinesi-dislisi-d40-t18 -> kategori='Ev & Yaşam'` duruyor
+      # ('Ev' gecerli, 'Ev & Yaşam' DEGIL). Kayit MaCiT'in duzlemidir, bu kablolama
+      # turunda DUZELTILMEDI — nobetcinin gercek bir kusuru yakaladigi boylece
+      # olculebilir kaliyor. Duzeltme YOLU kapinin kendi ciktisinda basiliyor.
+      - name: "Kategori kapisi — canli katalog taramasi (urunler.json gecersiz kategori degeri)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kategori-kapisi.py
+
       # ⚠️ DORT AGIR MUTASYON BATARYASI BU JOB'DAN CIKARILDI (10 Agu 2026) — bkz.
       # asagidaki `marka-bolum-bataryasi` · `marka-sayfa-bataryasi` ·
       # `model-uyelik-bataryasi` · `model-baslik-bataryasi` joblari. SILINMEDILER,
