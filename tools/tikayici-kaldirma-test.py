@@ -66,28 +66,23 @@ ANA_DAMGA = "/Users/okan/.claude/projects/-Users-okan-dev-pruvo/kabul.jsonl"
 #
 # 🔴 MOTOR ADI ELLE YAZILMAZ — kapali kume `mimar_kimlik` modulundedir; ikinci kopya
 # tutmak kume degisince sessizce ayrisan bir ikiz uretir ([[ikiz-tanim-sessiz-ayrisma]]).
+# 🔴 GOVDE BURADA DEGIL: civi kimligi TANIMLAYAN modulde durur
+# (`mimar_kimlik.kapi_cevresi`), cunku kanal adi da orada tanimlidir. Ikinci bir
+# kopya, kanal degisince sessizce ayrisirdi ([[ikiz-tanim-sessiz-ayrisma]]).
 try:
-    from mimar_kimlik import ISCI_MOTORLARI as _ISCI_MOTORLARI
+    from mimar_kimlik import (ISCI_KOSUM_KANALI, ISCI_MOTORLARI as _ISCI_MOTORLARI,
+                              kapi_cevresi)
 except Exception:                                            # pragma: no cover
     _ISCI_MOTORLARI = ()
-ISCI_KOSUM_KANALI = "PRUVO_ISCI_KOSUMU"
+    ISCI_KOSUM_KANALI = "PRUVO_ISCI_KOSUMU"
+
+    def kapi_cevresi(kimlik="MIMAR", ortam=None):
+        """Modul okunamadi -> ISCI kolu OLCULEMEDI (sessiz yesil DEGIL)."""
+        e = dict(os.environ if ortam is None else ortam)
+        e.pop(ISCI_KOSUM_KANALI, None)
+        return None if kimlik == "ISCI" else e
+
 ISCI_MOTOR_ORNEGI = _ISCI_MOTORLARI[0] if _ISCI_MOTORLARI else None
-
-
-def kapi_cevresi(kimlik):
-    """Kapi alt surecinin cevresi — KIMLIK EKSENI BURADA CIVILENIR.
-
-    kimlik="MIMAR": `PRUVO_ISCI_KOSUMU` cevreden SILINIR. Bu, "temiz ortam" varsaymak
-        DEGIL, ortami KURMAKTIR — batarya bir isciden kosulsa bile mimar kolunu olcer.
-    kimlik="ISCI" : ayni degisken kapali kumeden TURETILMIS bir motora set edilir.
-    """
-    e = dict(os.environ)
-    e.pop(ISCI_KOSUM_KANALI, None)
-    if kimlik == "ISCI":
-        if not ISCI_MOTOR_ORNEGI:
-            return None          # kume okunamadi -> OLCULEMEDI (sessiz yesil DEGIL)
-        e[ISCI_KOSUM_KANALI] = ISCI_MOTOR_ORNEGI
-    return e
 
 
 # Iki dilimin sayaclari:
@@ -95,6 +90,9 @@ def kapi_cevresi(kimlik):
 #   sonuclar     = [(ad, gecti, olc, bek, not)] — dal M1..M4 (52 kayit)
 kol_sonuclar = []
 sonuclar = []
+# UCUNCU KOVA — vakanin ONCULU bu ortamda yok: ne YESIL ne KIRMIZI (bkz.
+# kaydet_olculemedi). Ayri basilir, cikis koduna KATILMAZ.
+olculemedi_vaka = []
 
 
 # ==============================================================================
@@ -690,6 +688,41 @@ def kaydet(ad, gecti, olculen, beklenen, not_=""):
     sonuclar.append((ad, gecti, str(olculen), str(beklenen), not_))
 
 
+def kaydet_olculemedi(ad, sebep):
+    """UCUNCU KOVA: ne YESIL ne KIRMIZI — OLCULEMEDI.
+
+    [[iki-kovali-siniflama-ucuncu-sinifi-yutar]]. Bir vakanin ONCULU o ortamda
+    YOKSA (or. CI temiz klonunda kayitli worktree yoktur) iki secenek de yanlistir:
+    YESIL saymak sahte yesildir, KIRMIZI saymak ise bataryayi ORTAMA capalar —
+    yani tam da bu turda kapatilan kusuru geri getirir. Vaka ADIYLA basilir,
+    ayri sayilir, cikis koduna KATILMAZ; "neyi olcmek kapatir" satiri yanindadir.
+    """
+    olculemedi_vaka.append((ad, sebep))
+
+
+def kayitli_worktree_koku():
+    """git'e KAYITLI, ANA checkout OLMAYAN bir worktree koku dondur (yoksa None).
+
+    Vakanin ONCULU budur; `KOK` (aracin durdugu yer) DEGILDIR."""
+    try:
+        p = subprocess.run(["git", "-C", KOK, "worktree", "list", "--porcelain"],
+                           capture_output=True, text=True, timeout=30)
+    except Exception:
+        return None
+    if p.returncode != 0:
+        return None
+    kokler = [s.split(" ", 1)[1].strip()
+              for s in (p.stdout or "").splitlines() if s.startswith("worktree ")]
+    if not kokler:
+        return None
+    ana = os.path.normpath(kokler[0])          # porcelain: ILK kayit ANA checkout
+    for k in kokler[1:]:
+        k = os.path.normpath(k)
+        if k != ana and os.path.isdir(k):
+            return k
+    return None
+
+
 # ---------------------------------------------------------------------------
 # IZOLE KOPYA + CAPA DOGRULAMALI MUTASYON
 # ---------------------------------------------------------------------------
@@ -951,9 +984,32 @@ def kalem2_kos():
     # Bu muafiyet ONCEDEN VARDI ve bu is onu DEGISTIRMEDI. Vaka olarak yazilir ki
     # bir gun sessizce kapanirsa (ya da yanlislikla ANA checkout'a genislerse)
     # batarya ADIYLA yansin.
-    karar, _e, _rc = kapiya_ver(kapi, yaz_girdi(os.path.join(KOK, "urunler.json")))
-    kaydet("K2 MUAFIYET worktree urunler.json -> GECER (onceden de boyleydi)",
-           karar == "GECER", karar, "GECER")
+    #
+    # 🔴 11 EYL 2026 — IKINCI ORTAM CAPASI (KIMLIK ekseninden AYRI, KONUM ekseni).
+    # Vaka eskiden `os.path.join(KOK, "urunler.json")` yaziyordu. `KOK` = aracin
+    # KENDI bulundugu depo koku, yani vakanin ne olctugu ARACIN NEREDE DURDUGUNA
+    # bagliydi:
+    #   arac bir worktree'de  -> yol worktree'dedir -> muafiyet isler -> GECER ✅
+    #   arac ANA checkout'ta  -> yol ana checkout'tadir -> nobetci RED ✅ ama
+    #                            vaka GECER bekledigi icin KIRMIZI yanar ❌
+    #   arac CI'da (temiz klon, worktree YOK) -> ayni sekilde KIRMIZI
+    # Yani vaka "muafiyet yasiyor mu"yu degil "beni kim kosturdu"yu olcuyordu —
+    # KIMLIK capasiyla AYNI SINIF, farkli eksen
+    # ([[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]]).
+    # Bu, cikis kodu onarildiktan SONRA onemlidir: eskiden 13 ❌ rc'yi etkilemiyordu,
+    # artik ediyor — capa birakilsaydi ANA checkout ve CI kosumu KIRMIZI yanardi.
+    # CARE: yol KOK'ten degil, git'e KAYITLI bir worktree kokunden TURETILIR; kayitli
+    # worktree YOKSA (CI klonu) vaka UYDURULMAZ, `OLCULEMEDI` olarak AYRI sayilir.
+    wt_kok = kayitli_worktree_koku()
+    if wt_kok is None:
+        kaydet_olculemedi("K2 MUAFIYET worktree urunler.json -> GECER",
+                          "git'e KAYITLI worktree YOK (or. CI temiz klonu) — "
+                          "muafiyetin konusu olan yol URETILEMEZ")
+    else:
+        karar, _e, _rc = kapiya_ver(kapi,
+                                    yaz_girdi(os.path.join(wt_kok, "urunler.json")))
+        kaydet("K2 MUAFIYET worktree urunler.json -> GECER (onceden de boyleydi)",
+               karar == "GECER", karar, "GECER")
 
 
 # ===========================================================================
@@ -1375,7 +1431,12 @@ def main(argv=None):
                   % ("\u2705" if gecti else "\u274c", ad, olculen, beklenen,
                      ("  [" + notu + "]") if notu else ""))
         print("=" * 100)
-        print("D2 VAKA %d/%d GECTI" % (gecen, len(sonuclar)))
+        for ad, sebep in olculemedi_vaka:
+            print("⚠️  OLCULEMEDI  %-58s %s" % (ad, sebep))
+        print("D2 VAKA %d/%d GECTI%s"
+              % (gecen, len(sonuclar),
+                 (" · OLCULEMEDI=%d" % len(olculemedi_vaka))
+                 if olculemedi_vaka else ""))
 
     # --- OZET ---
     d2_kirmizi = [s[0] for s in sonuclar if not s[1]]
@@ -1391,6 +1452,8 @@ def main(argv=None):
     print("KIRMIZI: D1=%d KOL · D2=%d VAKA · OLCULEMEDI=%d KOL · TOPLAM=%d"
           % (len(kirmizi), len(d2_kirmizi), len(olculemedi),
              len(kirmizi) + len(d2_kirmizi) + len(olculemedi)))
+    print("OLCULEMEDI VAKA: %d (hukum YOK — oncul bu ortamda mevcut degil)"
+          % len(olculemedi_vaka))
     print("=" * 100)
 
     # Mutant kosumunda BEKLENEN hal KIRMIZI'dir.

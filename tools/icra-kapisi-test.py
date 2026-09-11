@@ -30,6 +30,24 @@ BU = os.path.dirname(os.path.abspath(__file__))
 KAPI = os.path.join(BU, "icra-kapisi.py")
 KIMLIK = os.path.join(BU, "mimar_kimlik.py")
 
+# === 🔴 11 EYL 2026 — KIMLIK EKSENI CIVISI (bu batarya da CAPALIYDI) =========
+# OLCULDU (birebir uretildi): temiz ortamda `IDDIA=43 GECTI=43 KIRMIZI=0`,
+# `PRUVO_ISCI_KOSUMU=minimax-m3` ile `IDDIA=43 GECTI=40 KIRMIZI=3` — dusen UCU de
+# V8b/V8c/V8d "UCTAN UCA RED" vakasi ve UCU de `None` donuyordu: kapi `main()`
+# basinda ISCI muaf cikip deny JSON'unu HIC basmiyordu. Yani vakalar sozlesmeyi
+# degil KOSUCUNUN KIMLIGINI olcuyordu; bir m3 iscisi bu bataryayi kostugunda
+# uydurma bir KIRMIZI dogar ([[isci-kirmizi-iddiasi-kendi-baglamindan-dogar]]'in
+# TERS yonu — bu kez kirmizi GERCEKTI ama SEBEBI ortamdi).
+# 🔴 Asagidaki `:271` vakasi bu temizligi ZATEN elle yapiyordu (tek vaka icin);
+# kismi civi, civisizlik kadar sessizdir — civi artik TEK KAYNAKTAN gelir.
+try:
+    from mimar_kimlik import kapi_cevresi
+except Exception:                                            # pragma: no cover
+    def kapi_cevresi(kimlik="MIMAR", ortam=None):
+        e = dict(os.environ if ortam is None else ortam)
+        e.pop("PRUVO_ISCI_KOSUMU", None)
+        return None if kimlik == "ISCI" else e
+
 
 # ---------------------------------------------------------------------------
 def _yukle(yol, ad="icra_kapisi_olcum"):
@@ -229,7 +247,8 @@ def vakalar(kapi_kaynagi):
         # === UCTAN UCA SOZLESME (alt surec — gercek stdout/rc) ===============
         ana_kapi = os.path.join(ana, "tools", "icra-kapisi.py")
         p = subprocess.run([sys.executable, ana_kapi], input=json.dumps(
-            _yuk("Agent", ana_tp, ana)), capture_output=True, text=True, timeout=60)
+            _yuk("Agent", ana_tp, ana)), capture_output=True, text=True, timeout=60,
+            env=kapi_cevresi("MIMAR"))
         ekle("V8a UCTAN UCA RED: rc=0 (sozlesme)", p.returncode == 0, "rc=%d" % p.returncode)
         try:
             cikti = json.loads(p.stdout)
@@ -244,7 +263,8 @@ def vakalar(kapi_kaynagi):
              "mcp__ccd_session__spawn_task" in str(h.get("permissionDecisionReason")))
 
         p = subprocess.run([sys.executable, ana_kapi], input=json.dumps(
-            _yuk("Bash", ana_tp, ana)), capture_output=True, text=True, timeout=60)
+            _yuk("Bash", ana_tp, ana)), capture_output=True, text=True, timeout=60,
+            env=kapi_cevresi("MIMAR"))
         ekle("V9a UCTAN UCA GECIS: rc=0 + stdout BOS",
              p.returncode == 0 and p.stdout.strip() == "",
              "rc=%d stdout=%r" % (p.returncode, p.stdout[:40]))
@@ -253,7 +273,8 @@ def vakalar(kapi_kaynagi):
         for etiket, girdi in (("bozuk JSON", "{bu json degil"), ("bos", ""),
                               ("dizi", "[1,2,3]"), ("null", "null")):
             p = subprocess.run([sys.executable, ana_kapi], input=girdi,
-                               capture_output=True, text=True, timeout=60)
+                               capture_output=True, text=True, timeout=60,
+                               env=kapi_cevresi("MIMAR"))
             ekle("V10 BOZUK STDIN (%s) GECER: rc=0 + stdout BOS" % etiket,
                  p.returncode == 0 and p.stdout.strip() == "",
                  "rc=%d stdout=%r" % (p.returncode, p.stdout[:40]))
@@ -268,7 +289,9 @@ def vakalar(kapi_kaynagi):
             [sys.executable, os.path.join(kirik, "tools", "icra-kapisi.py")],
             input=json.dumps(_yuk("Agent", "/x/projects/y/o.jsonl", kirik)),
             capture_output=True, text=True, timeout=60,
-            env=dict(os.environ, PYTHONPATH="", PRUVO_ISCI_KOSUMU=""))
+            # Civi TEK KAYNAKTAN; buradaki ek PYTHONPATH="" bu vakanin KENDI
+            # onculudur (mimar_kimlik BILEREK bulunamamali).
+            env=dict(kapi_cevresi("MIMAR"), PYTHONPATH=""))
         ekle("V11a mimar_kimlik YOK -> rc=0 + BLOKLAMAZ",
              p.returncode == 0 and p.stdout.strip() == "",
              "rc=%d stdout=%r" % (p.returncode, p.stdout[:60]))
