@@ -108,7 +108,7 @@ if "--kendini-test" in sys.argv:
         print("  %-58s beklenen=%d bulunan=%d %s" % (
             _ad, _beklenen, _bulunan, "OK" if _bulunan == _beklenen else "HATA"))
         if _bulunan != _beklenen:
-            _hata.append(_ad)
+            _hata.append(_ad.split()[0])
     # Pozitif kol da ölçülür: kanonik desen kanonik metni GÖRMELİ (yoksa vaka 6'nın
     # pozitif şartı sessizce boşalır ve her bağlayıcı sayfa 'YOK' sayılırdı).
     _poz = len(DOGRU_DESEN.findall(temiz_metin("<p>3-5 iş günü içinde</p>")))
@@ -116,8 +116,19 @@ if "--kendini-test" in sys.argv:
         "D1 kanonik desen kanonik metni GÖRÜR", _poz, "OK" if _poz == 1 else "HATA"))
     if _poz != 1:
         _hata.append("D1")
+    _toplam = len(_VAKALAR) + 1
+    # 🔴 MAKİNE OKUNUR ATIF SATIRI (11 Eyl 2026 — mutasyon bataryasının ölçtüğü jeton).
+    # Batarya "kırmızı yandı mı" ile yetinemez: HANGİ iddianın öldüğünü ADIYLA
+    # doğrulamak zorundadır ([[mutant-yardimcisi-neyi-yamadigi-imzasindan-okunmaz]]).
+    # Düşen vaka YOKSA birebir "-" basılır — boş alan bırakmak, satırı hiç basmamakla
+    # aynı şeye düşer ve bataryanın fail-closed kolunu körleştirirdi.
+    print("DUSEN: %s" % (",".join(_hata) if _hata else "-"))
+    # 🔴 ÇIKIŞ KODU EKSENİ AYRI BASILIR: vaka sayısı ekseni çıkış kodu eksenini ÖLÇMEZ
+    # ([[vaka-sayisi-ekseni-cikis-kodu-eksenini-olcmez]]). Batarya bu iki sayıyı
+    # rc ile çapraz okur: ❌>0 ⇒ rc≠0 **ve** ❌=0 ⇒ rc=0 (iki yön de ayrı vaka).
+    print("HATA_SAYISI: %d  VAKA_SAYISI: %d" % (len(_hata), _toplam))
     print("SONUC: %s (%d/%d vaka)" % (
-        "KIRMIZI" if _hata else "YESIL", len(_VAKALAR) + 1 - len(_hata), len(_VAKALAR) + 1))
+        "KIRMIZI" if _hata else "YESIL", _toplam - len(_hata), _toplam))
     sys.exit(1 if _hata else 0)
 
 

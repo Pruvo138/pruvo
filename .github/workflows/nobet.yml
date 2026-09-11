@@ -2167,7 +2167,11 @@ jobs:
 
       # 11 EYL 2026 — teslim suresi LITERAL ALTERNATION'dan SINIF desenine cevrildi
       # (3. tekrar; `b72c4f5b` 28 Agu). Sinif kapisinin kendisi nobetcisiz kalmasin diye
-      # batarya SERIT B'ye (alarm seridi) baglandi: 4 oldurucu + 1 kontrol mutanti.
+      # batarya SERIT B'ye (alarm seridi) baglandi: 5 oldurucu + 1 kontrol mutanti + 2
+      # META kolu. Sayiyi buradan OKUMA, araci kostur — bu satir ikinci kopyadir.
+      # 11 Eyl 2. dilim: mutantin "hangi iddiayi oldurdugu" artik SABIT METIN degil,
+      # `DUSEN:` kumesiyle OLCULUYOR ([[mutant-yardimcisi-neyi-yamadigi-imzasindan-okunmaz]]);
+      # S5 ayrica cikis kodu eksenini civiliyor (❌>0⇒rc≠0 ve ❌=0⇒rc=0).
       # Ozellikle S2 (kanonik muafiyet silinir) kritik — muafiyetsiz sinif 491 govdede
       # 11 YANLIS isabet uretir ve odeme-beyani-kapisi deploy.yml'de continue-on-error
       # OLMADAN kostugu icin tum ekibin yayinini durdururdu.
