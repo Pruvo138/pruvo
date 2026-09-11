@@ -2,6 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔴 11 EYL — SIRADAKİ TEK İŞ: **KALICI 301 panel turu (Okan istedi, TIK-HAZIR paket KUTUDA 23:2x)**
+Okan: *"sen sayfayı hazırla ben son tıklamayı yaparım."* Panel adımı **YAPILAMADI** — bağlam kotası RED bastı (tur 425 / **454K**, tavan 450K), o eşikte tarayıcı açılmıyor. Veri + adım listesi kutuda: CF **Bulk Redirects** listesi `pruvo-beyaz-esya-301` (5 satır, `tools/yonlendirmeler.py::YONLENDIRMELER`'den türetildi), kural `beyaz-esya-kapsam-301`, **Deploy = Okan'ın tıkı**. KABUL: 5 URL gerçek **301** (bugün `GERCEK_3XX=0`) ∧ `Location` tabloyla birebir ∧ 5 hedef **200**. ⚠️ Sayfalar bu iş olmadan da **404 DEĞİL** (canonical + 0 sn meta-refresh), 301 sıralama devrini hızlandırır.
+
 ## ✅ 11 EYL ana oturum-11 KAPANIŞ — **3 SINIF KAPISI CANLI · 2 dal main'de · artık temizliği tamam**
 ✅ **K407 DALI MERGE EDİLDİ** (`claude/musing-chatelet-646fbb` → `827fa3b3`): çakışma YOK, sızıntı 0, kapsam 11 dosya (hepsi kapı/ölçüm düzlemi, `urunler.json` YOK). Dalın iddiaları **dalın ağacında** doğrulandı: `mimar-kilit-test.py` **318/323** (çipin beyanıyla birebir) · `cikis-kodu-sinif-kapisi --kendini-test` **19 iddia YEŞİL** · `hayali-nobetci-kapisi --kendini-test` **17 iddia YEŞİL** · `ci-kapsam-test.py` rc=0 · `tikayici-kaldirma-test.py` **0 kırmızı**.
 🔴 **KENDİ K407 ÖNCÜLÜM ÇÜRÜDÜ (düzeltme kayda geçti):** "`mimar-kapi-mutasyon-test.py` `SONUC: KIRMIZI` derken rc=0" demiştim; borusuz ölçümde **rc=1**. Sayıyı `| tail -25` borusunun ardından okumuştum — boru rc'yi yutar → [[boru-rc-isci-olcumunu-yalanlar]]. Hafıza dosyası ve `MEMORY.md` satırı **düzeltildi**. Ayakta kalan gerçek bulgu: taban kırmızı 92 + 39 mutasyonun eşiği tutturamaması.
