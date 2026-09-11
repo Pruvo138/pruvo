@@ -6,8 +6,16 @@
 ## 🔁 11 EYL ana oturum-9 KAPANIS — OKAN EMRI: TIKAYICILAR KALKTI + m3 FAN-OUT
 **TAM METIN KUTUDA** — 11 Eyl 10:4x `KraL (ana-oturum-9) KAPANIS`. Deftere yalniz yurumesi gerekenler:
 **🔴 OKAN KAPISI — 3 URUNDE SATIS RISKI (K386):** otoriter `satin-alma` ↔ dosyada `CC BY 4.0`: `mercedes-o309-el-freni-kolu` · `volvo-240-izgara-kilitleme-pimi` · `renault-megane-1-kap-kolu-mekanizma-klipsi`. Onerim gizli (kalici taslak), urun SILINMEZ. ⚠️ Raporun sinif aritmetigi CELISIK — 3 id somut, sayilara yaslanma. Ayrica **117 urunde** public `lisans.tur='kisisel'`, gizli kayit `ucretsiz-cc`.
-🔧 **SIRADAKI TEK IS — MERGE:** `claude/elegant-wright-dc11d6` `6ed952f8`. Cakisma m3 isci-6'da birlestirildi — **kabul: vaka sayisi A+B mi, ONCE onu olc.**
-**KOSULMADI (kota RED):** 16 artik `claude/*` silme (liste isci-2 ciktisinda); 🔴 `curut/ozet-v3` + `claude/fervent-heisenberg-2d069c` BIRAKILDI (eksen celiskisi + 30 gun atif testi).
+✅ **MERGE KAPANDI** (ana oturum-10, 11 Eyl 18:1x) → `81190ffa` push'landi. Kabul GECTI: A=7 KOL + B=52 VAKA = **59, DUSEN=YOK**.
+✅ **16 artik `claude/*` SILINDI** (hepsi main'in atasi, origin'de yedekli; `determined-cray`+`gifted-lichterman` `-D` ile — yerel uc ust-akimdan farkliydi ama IKISI DE main'de). `curut/ozet-v3` + `claude/fervent-heisenberg-2d069c` BIRAKILDI.
+
+## 🔁 11 EYL ana oturum-10 — MERGE + TEMIZLIK; **iki YENI kalem OLCULDU**
+🔴 **K402 ACILDI — `tools/tikayici-kaldirma-test.py` cikis kodu ekseni; `serit-b` yesili KANIT SAYILMAZ.** TAM METIN + kabul olcutu `DEVAM-ARSIV.md`, baslik "K402 — 11 Eyl 2026" (govde izlenen belgeye YAZILMAZ, E5). Olcum artefakti: `~/.claude/cron/isci-tur-cikti/kirmizi-13/`. Cip `task_7aa8c628`.
+🔴 **K403 — icra kapisi deponun KENDI KOKUNU "repo DISI" sayiyor:** `python3 tools/defter-kota-kapisi.py .` → RED (`dis_yol`), ayni turda `wc`/`date` GECIYOR ⇒ fail-closed kol arkasindaki serbest `python3` kolunu MASKELIYOR. Okan'in kaldirilmasini istedigi tikayici burada AYAKTA. `mimar-icra-kapisi.py` CEKIRDEK ⇒ mimar yazamaz, ayni cipte.
+🔧 **K404 (ArTisT 3. kez bildirdi, Okan 29 Tem emri 43 gundur isle**n**memis):** canlida **45 sayfa** beyaz esya tasiyor. Olcut ArTisT'in guard'i `pruvo-pazarlama/seo/dalga-guard.py:557-567` (TEK KAYNAK). Taban: `tools/sayfalar.py` **28** isabet · `index.html` 1 (kod yorumu) · `urunler.json` 1 (MaCiT'e). Cip `task_8aff727e` — 301 ZORUNLU, duz 404 YASAK.
+✅ **K220 MENZIL ON-OLCUMU 3 TURDUR EKSIKTI, ARTIK OLCULDU** (`~/.claude/cron/isci-tur-cikti/k220-menzil/`): oncul GECERLI (tek liste `index.html:3031-3056`, 133 uye) · ayna N=0 temiz, M=14 KASITLI · **76 sayfali + 41 sayfasiz + 16 OLU jeton** · en agir aday `Land Cruiser` 63 urun. 🔴 `build.py` kosmadan gercek `/marka/` sayisi **OLCULEMEDI**.
+🔧 **MUTANT BATARYASI AYIRT EDICI DEGIL** (`isci-tur-cikti/mutant-15/`): 15 kalemin 9'u GERCEK-BOSLUK, 1 BAYAT-CAPA, 3 OLCULEMEDI; **KONTROL mutantlari da kirmizi yaniyor** (12 vaka her degisiklige kirmizi) ⇒ once ayirt edicilik, sonra 15 kalem.
+🔧 **KORUMALI BLOK** (`isci-tur-cikti/korumali-blok/`): spec 17 diyordu, gercek **3**; bugun arsive inebilecek **YOK**. KraL'in acik bacagi: `tools/odeme-beyani-kapisi.py:302` `rakip_desen` `4-8`/`10-14` gecirilmis — **3. tur, tekil yama YASAK, sinif kapisi**.
 
 ## ✅ 11 EYL oturum-9 ILK YARI — ISARETCI (tam metin kutuda): A→B→C merge `f641d116`, yayin `34535784062` SKIPPED=0, D1 ✅ 36771, `build.py` FAQPage'i EZMIYOR, kutu kilidi acildi, hesap (1b) KAPANDI.
 🔴 **KISIT:** kapi KABLOLU, merge dogrulamasi cipe gider · `2>&1` eki de RED (serbest komut CIPLAK kosulur) · defter rotasyonu yer ACAMAZ (`KAPALI=0`, 35 madde ACIK = arac DOGRU no-op) · `kutu-arsivle --sha-dogrula` TASIMA ONCESI kosulursa fail-closed her blogu eksik sayar, yazmaz.
