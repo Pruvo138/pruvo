@@ -2421,6 +2421,40 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/serit-b-maskeleme-test.py --kendini-test
 
+      # BEYAZ ESYA KAPSAM KAPISI — Okan emri 29 Tem 2026 ("beyaz esya ile hicbir
+      # iliskimiz yok"), 11 Eyl 2026'da icra edildi: 5 sayfa uretimden cikti (301
+      # esdegeri yonlendirmeyle, 404 DEGIL), 40 sayfanin govdesindeki kanca/ic-link
+      # temizlendi. Kapi SINIF kapisidir: tekil temizlik yerine sinifi geri gelmekten
+      # korur ([[ucuncu-tekrar-sinif-kapisi]] deseni).
+      # Uc BAGIMSIZ eksen olcer: (1) CONTENT_PAGES yuzeyi — MUAFIYETSIZ, (2) ham dosya
+      # metni — tek kacis `KAPSAM-DISI-NOT` isareti ve o kacis NON-GROWTH tavanli,
+      # (3) yonlendirme — silinen slug'in hedefi CONTENT_PAGES'te MEVCUT olmali; yoksa
+      # "sayfayi sil" hilesi kapiyi yesile cevirirken URL'yi 404 yapardi.
+      # Desen ikinci kopya DEGIL: kardes ev (~/dev/pruvo-pazarlama/seo/dalga-guard.py
+      # :: YASAKLI) erisilebildiginde yerel ayna ONA KARSI dogrulanir; CI'da o ev
+      # checkout EDILMEDIGI icin `SAPMA=OLCULEMEDI` BASILIR — sessiz yesil YOK
+      # ([[kopya-turetilemiyorsa-bayatlik-olculemez]]).
+      # 🔴 NEDEN SERIT B (BLOKLAMAZ): yeni kapidir, iki tur temiz gorulmeden serit A'ya
+      # alinmaz; yanlis-pozitifi tum ekibin yayinini durdururdu. `deploy` bu job'a
+      # `needs:` ile BAGLI DEGIL. `continue-on-error` KULLANILMADI.
+      - name: "Beyaz esya kapsam kapisi (canli tarama + izole mutasyon)"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/beyaz-esya-kapsam-test.py --mutasyon
+          python3 tools/sayfa-sayisi-probu.py
+          python3 tools/beyaz-esya-kapsam-test.py
+
+      # OZ-LINK PROBU — ayni temizligin OLCULEN yan etkisi. Kapsam disi bir ic-link
+      # kaldirilip yerine kapsam ICI hedef konurken hedef yanlislikla SAYFANIN KENDISI
+      # secilebiliyor: 11 Eyl'de isci turunda 4 sayfada oldu (main tabani 0'di), okur
+      # icin olu dongu, arama motoru icin degersiz sinyal. Kapi o sinifi kapatir.
+      # Beyan: yayini BLOKLAMAYAN job (`serit-b`). `continue-on-error` KULLANILMADI.
+      - name: "Oz-link probu (sayfa kendi URL'ine link veriyor mu)"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/oz-link-probu.py --kendini-test
+          python3 tools/oz-link-probu.py
+
       # KALEM SENKRON KAPISI — K309 (26 Agu 2026, OLCULEN AYRISMA).
       # Kaynak-dogrusu defteri (`memory/acik-kalemler.md`) ile calisma defteri
       # (`DEVAM.md`) AYRISMIS: DEVAM.md'de id'si gecen 101 kalemin 92'sinin

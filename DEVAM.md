@@ -2,6 +2,14 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ 11 EYL — BEYAZ ESYA KAPSAMI KAPANDI (Okan 29 Tem emri, 43 gun sonra icra)
+Dal `claude/peaceful-galileo-aa3fdb` uc `71f99576` (2 commit) — **merge MIMARDA, henuz main'de DEGIL.**
+**OLCUM:** guard deseni isabeti (kaynak: `pruvo-pazarlama/seo/dalga-guard.py::YASAKLI`, TURETILDI) yuzey **174 -> 0** · ham **175 -> 0** · `CONTENT_PAGES` **509 -> 504** · oz-link **4 -> 0** (main tabani 0, isci turunda dogdu) · ic-link 6549 -> 6512 (fark 37 = silinen 5 govdenin 36 linki + 1 birlestirilen). A kovasi 5 sayfa **301 ESDEGERIYLE TASINDI, 404 YOK** (`tools/yonlendirmeler.py`).
+🔴 **ACIK — OKAN KAPISI (bilgilendirme, karar degil):** gercek sunucu-tarafi 301 **GitHub Pages origin'inde MUMKUN DEGIL**; bugunku mekanizma canonical + 0sn meta-refresh. Kalici 301 icin CF Redirect Rules (zone `d3a78b8c…`) panel/token yetkisi ister. Tablo o kuralin girdisi olarak hazir.
+🔴 **K405 ACILDI — `.gitignore` uretilmis-dizin listesi BAYAT:** 10 yeni landing slug'i listede YOK; build kosunca kaynak agaca dusuyor ve `git status` bunlari IZLENMEYEN gosteriyor (bir sonraki `git add -A` uretilmis HTML'i commit'ler). Bu turda elle temizlendi. Sahibi: build/SEO duzlemi.
+🔵 **MaCiT'e devredildi (kutuda 18:4x blogu):** `urunler.json`'da guard deseninin 5 kolu **22 kayit** buluyor (gorev metnindeki "1" dar grep'ten geliyordu); 10'u gercek sinif, ~12'si arac/tekne buzdolabi = kapsam ICI onerisi. KraL urune YAZMAZ.
+ℹ️ **Bu isin ACMADIGI iki onceden-kirmizi:** `landing-hukuk-kapisi.py` rc=1 (ayni 3 'gida' ihlali main'de de var, `hijyen-a3`, yayin blokeri DEGIL) · `kapi-envanteri.py` rc=1 (main'de de, CI'da kosmuyor).
+
 
 ## 🔁 11 EYL ana oturum-9 KAPANIS — OKAN EMRI: TIKAYICILAR KALKTI + m3 FAN-OUT
 **TAM METIN KUTUDA** — 11 Eyl 10:4x `KraL (ana-oturum-9) KAPANIS`. Deftere yalniz yurumesi gerekenler:

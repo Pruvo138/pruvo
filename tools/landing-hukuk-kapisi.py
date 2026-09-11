@@ -39,7 +39,11 @@ BURASI = os.path.dirname(os.path.abspath(__file__))
 REVIZYON_ZORUNLU = (
     "parca-olcusu-nasil-alinir-ve-gonderilir",
     "elektrikli-scooter-plastik-parca-uretimi",
-    "elektrikli-supurge-aparati-plastik-parca-uretimi",
+    # KAPSAM-DISI-NOT: "elektrikli-supurge-aparati-plastik-parca-uretimi" 11 Eyl 2026'da
+    # uretimden cikti (Okan 29 Tem emri, kapsam disi dikey; tools/yonlendirmeler.py ile
+    # kapsam ICI sayfaya tasindi). Listenin 224. satirdaki bakim kolu FAIL-CLOSED'dur:
+    # slug CONTENT_PAGES'te olmayinca kapi KIRMIZI yanardi, o yuzden kayit BURADAN da
+    # dusuruldu ([[tuketici-yazilirken-tum-okuyucular-sayilir]]).
     "plastik-pim-yaptirma",
     "kirik-plastik-tirnak-yaptirma",
     "plastik-stoper-durdurucu-yaptirma",
