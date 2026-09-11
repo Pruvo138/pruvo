@@ -115,6 +115,19 @@ def _serbest_modul():
     return _SERBEST_MODUL
 
 
+def mimar_evi():
+    """MIMARIN KANONIK EV KOKU — receteyi kuru kosumda BU cerceveden sorariz.
+
+    Tek kaynak `serbest_cagrilar.REPO_ONEKI`; `mimar-icra-kapisi` de bakim
+    gorunumunu ayni sabitten (`EV_KOKU_CAPASI`) tureten taraftir, yani soru ile
+    hukum AYNI cerceveden okunur. FAIL-CLOSED: kaynak okunamazsa bu checkout'un
+    koku (REPO) kalir — bugunku DAR davranis, sessiz genisleme YOK."""
+    try:
+        return os.path.normpath(_serbest_modul().REPO_ONEKI)
+    except Exception:                                        # noqa: BLE001
+        return REPO
+
+
 def turetilmis_receteyi_coz(metin):
     """`cagri_ornegi("<etiket>")` cagrilarini GERCEK komut metniyle degistirir."""
     if "cagri_ornegi(" not in metin:
@@ -183,12 +196,25 @@ def satirlari_birlestir(satirlar):
         print("CARE: python3 /Users/okan/dev/pruvo/tools/defter-rotasyon.py
               /Users/okan/dev/pruvo/DEVAM.md /Users/okan/dev/pruvo/DEVAM-ARSIV.md")
     Bu iki satirin TAM METNI tek string olarak uretilir.
+
+    🔴 11 EYL 2026 — DONUS SEKLI DEGISTI: `[(metin, satir_haritasi)]`.
+    `satir_haritasi` = ((grup_ici_offset, orijinal_satir_no), ...) — grubun HANGI
+    baytindan itibaren HANGI kaynak satirin basladigini tasir. Eski surum yalnizca
+    metni donduruyordu ve cagiran taraf gercek satiri TURETEMIYORDU; bunun bedeli
+    `_gruba_karsilik_satir` adinda "kaba" bir tahmin koluydu (kendi docstring'i
+    "kaba ama yeterli" diyordu): dosyadaki ILK "CARE:/COZUM:" satirini bulup
+    O DOSYADAKI HER RECETEYE ayni numarayi yaziyordu.
+    OLCULEN BEDEL (11 Eyl, canli agac): `tools/defter-kota-kapisi.py` 4 recete
+    tasiyor, DORDU de `:385` diye raporlaniyordu; CI'yi KIRMIZI yakan kalem ise
+    `:980`'deki yorum satiriydi. Yani kapinin gosterdigi satirda arizanin KENDISI
+    YOKTU — okuyan yanlis yere bakiyordu ([[capa-komsuya-nisanlanirsa-yabanci-degisiklik-kopartir]]).
     """
     out = []
     tampon = ""
+    harita = []
     parantez_acik = 0
     tirnak = None
-    for satir in satirlar:
+    for satir_no, satir in enumerate(satirlar, 1):
         # tirnak icindeyken acaba tirnak kapandi mi? Kaba tarama: tirnak baslangici
         # ya da bitisi gorursen durumu guncelle. DOSYA OKUMA BAGLAMINDA BIR SORUN
         # OLMAZ: print("...") cumlesinin icindeki tirnak genellikle KAPALI kalmaz,
@@ -201,8 +227,12 @@ def satirlari_birlestir(satirlar):
                 if c == tirnak:
                     tirnak = None
         if tampon:
+            # Birlestirme " " + satir.strip() ile yapiliyor; yeni satirin govdesi
+            # tam olarak len(tampon)+1 offsetinde basliyor.
+            harita.append((len(tampon) + 1, satir_no))
             tampon += " " + satir.strip()
         else:
+            harita = [(0, satir_no)]
             tampon = satir
         # Parantez sayaci (yalniz print(...) veya coklu-arg icin kritik)
         for c in satir:
@@ -213,11 +243,27 @@ def satirlari_birlestir(satirlar):
         # Satir sonu \\ ile bitiyor ya da parantez hala aciksa tampona devam
         if tampon.rstrip().endswith("\\") or parantez_acik > 0 or tirnak is not None:
             continue
-        out.append(tampon)
+        out.append((tampon, tuple(harita)))
         tampon = ""
+        harita = []
     if tampon:
-        out.append(tampon)
+        out.append((tampon, tuple(harita)))
     return out
+
+
+def offset_satiri(harita, offset):
+    """Grup ici `offset` hangi ORIJINAL satirdan geliyor?
+
+    FAIL-CLOSED yon: harita bos ise 1 doner (eski davranisin en kotu hali) —
+    ama harita bos kalmasi `satirlari_birlestir`in KIRILDIGI anlamina gelir ve
+    M6 mutanti tam bunu olcer."""
+    satir = 1
+    for bas, no in harita:
+        if bas <= offset:
+            satir = no
+        else:
+            break
+    return satir
 
 
 # --------------------------------------------------------------------------
@@ -297,7 +343,7 @@ def dosyada_receteler(yol, kok=REPO):
     bulgular = []
     # ON-EK + PYTHON3 ayni ORF (open reading frame) icinde olmali: python3, on-ekten
     # sonra EN FAZLA 250 karakter icinde olmali. Bu, yorum + docstring FPsini eler.
-    for grup_no, grup in enumerate(birlestirilmis):
+    for grup, satir_haritasi in birlestirilmis:
         metin_lower = grup.lower()
         bulunan_onek = None
         onek_index = -1
@@ -370,7 +416,9 @@ def dosyada_receteler(yol, kok=REPO):
         komut = _komut_temizle(_komut_sonu(sonrasi, m.end()))
         if not komut:
             continue
-        satir_no = _gruba_karsilik_satir(yol, satirlar, grup_no)
+        # 🔴 11 EYL: satir artik TURETILIR — receteyi tetikleyen ON-EKIN grup ici
+        # offseti, `satirlari_birlestir`in tuttugu haritadan orijinal satira cevrilir.
+        satir_no = offset_satiri(satir_haritasi, onek_index)
         var_mi, ilk_yol = _ilk_yol_var_mi(komut, kok)
         durum = None if var_mi else "AYIKLANAMADI"
         # ISCI kolu: isaret on-ek ile python3 ARASINDA aranir (komutun kendi
@@ -380,32 +428,19 @@ def dosyada_receteler(yol, kok=REPO):
     return bulgular
 
 
-def _gruba_karsilik_satir(yol, satirlar, grup_no):
-    """Birlestirilmis gruplarin TEK satira inmemesini onler; orijinal
-    satir sayisini hesaplar. Bu yaklasim: birlestirilmis grup KAC orijinal
-    satir ICERIYOR ise, son satir olarak goster.
-    """
-    # Kaba: tum oncesi metni sayar (yaklasik da olsa yeter).
-    # Birlestirilmis gruplarin OLUSTURMA mantigi: ayni sayida girdi olsaydi
-    # ayni sayida cikti olurdu. Bu nedenle indeks bazli bir esleme kullaniyoruz.
-    # Uygulamada: birlestirilmis grup No N, orijinal satir sayisini ci N.verir
-    # (1-birlestirilmis = 1 satir; cok satir birlestirilmis = son satir).
-    # Bizim birlestirilmiste: her cikti = girdi (yani 1:1) YOK; parantez acik
-    # oldugu surece tampona eklenir. Gruplar = SUZME YOK; 1:n. Bu nedenle
-    # yaklasim: dosyada "CARE:" / "COZUM:" / "Duzeltip tekrar" gecen ILK
-    # satirli esleme yapalim — kaba ama yeterli.
-    aranan = ("CARE:", "COZUM:", "Duzeltip tekrar")
-    for i, s in enumerate(satirlar, 1):
-        for onek in aranan:
-            if onek in s:
-                return i
-    return 1
+# 🔴 11 EYL 2026 — `_gruba_karsilik_satir` KALDIRILDI (ikinci kopya DEGIL, YANLIS
+# KOPYA idi). Yerini `offset_satiri` + `satirlari_birlestir`in satir haritasi aldi.
+# Kaldirilan kol, dosyadaki ILK "CARE:/COZUM:" satirini bulup o dosyadaki HER
+# receteye ayni numarayi yaziyordu; yani cok receteli her dosyada rapor satiri
+# UYDURMA idi. Cagri yeri envanterden DUSMESIN diye kol silinmedi, DEGISTIRILDI —
+# ve yeni kol K179-V9/V10 fiksturleriyle + M6 mutantiyla olculuyor
+# ([[cagri-yeri-envanterden-duserse-onarildi-sanilir]]).
 
 
 # --------------------------------------------------------------------------
 # KURU KOSUM — mimar-icra-kapisi'na receteyi PreToolUse JSON olarak yolla.
 # --------------------------------------------------------------------------
-def kuru_karar(komut):
+def kuru_karar(komut, cerceve=None):
     """mimar-icra-kapisi'na komutu 'mimar' PreToolUse olarak yolla; karari don.
 
     Cagri:  python3 tools/mimar-icra-kapisi.py
@@ -415,7 +450,25 @@ def kuru_karar(komut):
     """
     payload = {
         "session_id": "recete-kapisi-kuru",
-        "cwd": REPO,
+        # 🔴 11 EYL 2026 — CWD CERCEVESI: KOSUCUNUN DISKI DEGIL, MIMARIN EVI.
+        # OLCULEN ARIZA (canli, bu turda, 3 cwd ile ayri ayri): ayni recete
+        #   `python3 tools/defter-rotasyon.py --tavan-kaynaktan --isaretciye-indir`
+        #   cwd=/Users/okan/dev/pruvo                     -> allow
+        #   cwd=<worktree>                                -> deny
+        #   cwd=/home/runner/work/pruvo/pruvo (CI)        -> deny
+        # Sebep: `mimar-icra-kapisi` bakim gorunumunu KANONIK eve capalar
+        # (`_bakim_gorunumu(EV_KOKU_CAPASI)`) ve goreli yolu CAGRININ cwd'sine gore
+        # cozer. `REPO` (= bu checkout'un koku) gonderilince kapiya SORULAN SORU
+        # "bu komut CI RUNNER'ININ diskinde serbest mi" oluyordu — oysa recetenin
+        # muhatabi MIMAR ve mimar her zaman kanonik evde kosar. Sonuc: goreli yol
+        # tasiyan HER mimar recetesi yerelde YESIL, CI'da KIRMIZI — korluk yerelde
+        # HIC gorunmuyordu ([[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]],
+        # [[makineye-ozel-mutlak-yol-ci-da-okunur]] sinifi).
+        # 🔴 IKINCI KOPYA YOK: kok, kapinin okudugu AYNI tek kaynaktan gelir
+        # (`serbest_cagrilar.REPO_ONEKI`); burada ELLE yol YAZILMAZ.
+        # 🔴 EKSEN AYRI: "dosya bu agacta VAR MI" sorusu (`_ilk_yol_var_mi`) BU
+        # checkout'a (REPO) bakmaya DEVAM eder — iki kol tek sabite capalanmaz.
+        "cwd": cerceve or mimar_evi(),
         "permission_mode": "default",
         "hook_event_name": "PreToolUse",
         "tool_name": "Bash",
@@ -782,6 +835,66 @@ def _fixture_receteleri():
         return bulgular
 
 
+# --- V9/V10 — SATIR ATFI EKSENI (11 Eyl 2026) -------------------------------
+# OLCULEN CANLI ARIZA: `tools/defter-kota-kapisi.py` 4 recete tasiyor; kaldirilan
+# `_gruba_karsilik_satir` kolu DORDUNE de dosyadaki ILK isaretci satirini (:385)
+# yaziyordu. CI'yi kirmizi yakan kalem :980'deydi — okuyan YANLIS SATIRA bakiyordu.
+# Canli agacta 13 recetenin 6'sinin satiri YANLISTI (olculdu: 385x3 · 13 · 1 · 123 · 211).
+# Fikstur TEK dosyaya UC recete koyar; ikisi ayni satirda OLAMAZ.
+V9_KAYNAK = (
+    '"""Fikstur govdesi — bu satirlar recete DEGIL."""\n'      # 1
+    "import os\n"                                              # 2
+    "\n"                                                       # 3
+    '# COZUM: python3 tools/x.py --birinci\n'                  # 4
+    "\n"                                                       # 5
+    "\n"                                                       # 6
+    'print("CARE: python3 tools/x.py --ikinci")\n'             # 7
+    "\n"                                                       # 8
+    '# COZUM: python3 tools/x.py --ucuncu\n'                   # 9
+)
+V9_BEKLENEN_SATIRLAR = (4, 7, 9)
+# V10 — COK SATIRA YAYILAN print(): on-ek ILK satirda, komut IKINCI satirda.
+# Atif ON-EKIN satirini vermeli (okuyanin aradigi yer orasi), son satiri DEGIL.
+V10_KAYNAK = (
+    "import sys\n"                                             # 1
+    '\n'                                                       # 2
+    'print("CARE: "\n'                                         # 3
+    '      "python3 tools/x.py --yayilmis",\n'                 # 4
+    '      file=sys.stderr)\n'                                 # 5
+)
+V10_BEKLENEN_SATIR = 3
+
+
+def _satir_atfi_fiksturu():
+    """(V9 satirlari, V10 satiri) — gecici diskte olculur."""
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="recete-satir-") as kok:
+        tools = os.path.join(kok, "tools")
+        os.makedirs(tools)
+        with open(os.path.join(tools, "x.py"), "w", encoding="utf-8") as f:
+            f.write("# fikstur yolu\n")
+        v9 = os.path.join(tools, "v9.py")
+        with open(v9, "w", encoding="utf-8") as f:
+            f.write(V9_KAYNAK)
+        v10 = os.path.join(tools, "v10.py")
+        with open(v10, "w", encoding="utf-8") as f:
+            f.write(V10_KAYNAK)
+        v9_satirlar = tuple(b[1] for b in dosyada_receteler(v9, kok))
+        v10_bulgular = dosyada_receteler(v10, kok)
+        v10_satir = v10_bulgular[0][1] if v10_bulgular else None
+        return v9_satirlar, v10_satir
+
+
+# --- CERCEVE EKSENI (11 Eyl 2026) -------------------------------------------
+# Receteyi kapiya SORARKEN kullanilan cwd, kosucunun diski DEGIL mimarin evidir.
+# Bu kol, arizanin KENDISINI yeniden uretir: ayni goreli recete iki cerceveden
+# sorulur; kanonik evde allow, YABANCI kokte deny cikmali. Ikisi de ayni cikarsa
+# ya kapi cerceveye duyarsiz hale gelmistir (o zaman bu nobetci anlamsizdir ve
+# ADIYLA dusmelidir) ya da `mimar_evi()` capasi kirilmistir.
+CERCEVE_KOMUTU = "python3 tools/defter-rotasyon.py --tavan-kaynaktan --isaretciye-indir"
+CERCEVE_YABANCI_KOK = "/home/runner/work/pruvo/pruvo"
+
+
 def kendini_test():
     """V1–V7 ayıklama fikstürleri ile M1–M4 ve K1–K2'yi çalıştır."""
     bulgular = _fixture_receteleri()
@@ -858,7 +971,45 @@ def kendini_test():
         for bulgu in dosyada_receteler(os.path.join(TOOLS, ad)):
             if "--yaz" in bulgu[0] and bulgu[3] is not None:
                 k2 = False
-    kontrol_gecen = int(k1) + int(k2)
+    # --- K3: SATIR ATFI (11 Eyl 2026) — her recete KENDI satirini tasir -------
+    v9_satirlar, v10_satir = _satir_atfi_fiksturu()
+    k3 = (v9_satirlar == V9_BEKLENEN_SATIRLAR and v10_satir == V10_BEKLENEN_SATIR)
+    print("K3 %s — V9 satirlar=%s (beklenen %s) · V10 satir=%s (beklenen %d)" % (
+        "OK" if k3 else "KIRMIZI", v9_satirlar, V9_BEKLENEN_SATIRLAR,
+        v10_satir, V10_BEKLENEN_SATIR))
+
+    # --- M6: SATIR ATFI MUTANTI — "dosyanin ILK isaretci satiri" davranisi ----
+    # Kaldirilan `_gruba_karsilik_satir`in davranisini GERI KOYAR: harita
+    # yok sayilir, her recete 1. satira duser. V9 UC ayri satir bekliyor; mutant
+    # ucunu de ayni satira indirir -> K3 olmeli.
+    global offset_satiri
+    _asil_offset = offset_satiri
+    offset_satiri = lambda harita, offset: 1                 # noqa: E731
+    try:
+        m6_v9, m6_v10 = _satir_atfi_fiksturu()
+    finally:
+        offset_satiri = _asil_offset
+    m6 = (m6_v9 != V9_BEKLENEN_SATIRLAR and m6_v10 != V10_BEKLENEN_SATIR)
+    print("M6 %s — atif kolu oldurulunce V9=%s V10=%s (fikstur AYIRT EDIYOR)" % (
+        "OK" if m6 else "KIRMIZI", m6_v9, m6_v10))
+
+    # --- K4 + M7: CERCEVE EKSENI (11 Eyl 2026) --------------------------------
+    # K4: recete MIMARIN EVI cercevesinden sorulunca allow olmali.
+    # M7: AYNI recete YABANCI koktan (CI runner'i) sorulunca deny olmali —
+    #     yani ariza GERCEK, nobetci bos yere durmuyor. Ikisi ayni cikarsa
+    #     ya capa kirilmistir ya kapi cerceveye duyarsizlasmistir.
+    k4_karar, _ = kuru_karar(CERCEVE_KOMUTU)
+    m7_karar, _ = kuru_karar(CERCEVE_KOMUTU, cerceve=CERCEVE_YABANCI_KOK)
+    k4 = k4_karar == "allow"
+    m7 = m7_karar == "deny"
+    print("K4 %s — mimar evi cercevesi: %s (beklenen allow)" % (
+        "OK" if k4 else "KIRMIZI", k4_karar))
+    print("M7 %s — YABANCI kok (%s): %s (beklenen deny; ariza gercek)" % (
+        "OK" if m7 else "KIRMIZI", CERCEVE_YABANCI_KOK, m7_karar))
+
+    kontrol_gecen = int(k1) + int(k2) + int(k3) + int(k4)
+    mutant_gecen += int(bool(m6)) + int(bool(m7))
+    beklenen_mutant += 2
     print("M1 %s M2 %s M3 %s M4 %s" % ("OK" if m1 else "KIRMIZI",
                                         "OK" if m2 else "KIRMIZI",
                                         "OK" if m3 else "KIRMIZI",
@@ -867,10 +1018,10 @@ def kendini_test():
     if not M5_ICINDE:
         print("M5 %s — %s" % ("OK" if m5 else "KIRMIZI", m5_not))
     # Self-test özeti de ana kapı özetiyle aynı dört ölçüyü taşır.
-    print("RECETE=%d REDDEDILEN=%d AYIKLANAMADI=%d EVREN=%d MUTANT=%d/%d KONTROL=%d/2" % (
+    print("RECETE=%d REDDEDILEN=%d AYIKLANAMADI=%d EVREN=%d MUTANT=%d/%d KONTROL=%d/4" % (
         len(bulgular), red, ayik, len(bulgular), mutant_gecen, beklenen_mutant,
         kontrol_gecen))
-    return 0 if v_gecti and mutant_gecen == beklenen_mutant and kontrol_gecen == 2 else 1
+    return 0 if v_gecti and mutant_gecen == beklenen_mutant and kontrol_gecen == 4 else 1
 
 
 def _dogrudan_kapi_test(komut):

@@ -429,14 +429,52 @@ def _aday_deseni():
 ADAY_DESENI = _aday_deseni()
 
 
-def _urun_sistemi_mi(metin, bitis):
-    """Adayin hemen ardindaki kelime musterinin mevcut sistemini mi anlatiyor?
+def _sistem_kelimesi_mi(kelime):
+    return bool(kelime) and any(kelime.startswith(k) for k in URUN_SISTEM_KELIMELERI)
+
+
+def _urun_sistemi_mi(metin, bitis, baslangic=None, kisa=None):
+    """Adayin KOMSU kelimesi musterinin mevcut sistemini mi anlatiyor?
     ("PVC dograma / PVC pencere" = musterinin sistemi, bizim malzeme vaadimiz degil.)
-    Olculen ayrisma (main'den devralindi): PVC 3/3 sayfa elendi, PC 75/75 yakalandi."""
+    Olculen ayrisma (main'den devralindi): PVC 3/3 sayfa elendi, PC 75/75 yakalandi.
+
+    🔴 11 EYL 2026 — SOL KOMSU EKSENI (CI kirmizisinin koku, OLCULDU).
+    Eleyici SADECE SAGA bakiyordu. Turkce sistem adini iki yana da koyar; canli
+    vaka `landing/pvc-dograma-kapi-pencere-plastik-parca-uretimi`:
+        "Dograma PVC degil de aluminyumsa ispanyolet dislisi ..."
+    Burada sistem kelimesi ("Dograma") SOLDA, sagdaki kelime "degil". Sonuc:
+    musterinin PENCERE SISTEMINI anlatan bir cumle, BIZIM malzeme vaadimiz
+    sayildi ve `SONUC: KIRMIZI (dayanaksiz=1)` ile hijyen-a3 adimi dustu.
+
+    🔴 BU BIR OLUMSUZLAMA ELEYICISI DEGILDIR — F4 KARARI AYNEN DURUYOR.
+    Kol "degil/yok/hayir" gibi HICBIR olumsuzlama jetonuna BAKMAZ; yalnizca
+    komsu kelimenin URUN_SISTEM_KELIMELERI'nde olup olmadigini sorar. Curutucunun
+    F4'te kilitledigi vaka ("PC ile uretim yok; ... PEEK ile uretip gonderiyoruz")
+    bu koldan GECMEZ: orada ne solda ne sagda sistem kelimesi vardir.
+
+    🔴 KARA LISTE SOL KOLDAN MUAF (en yuksek bahisli kural genisletilmez):
+    "kapi PC ile uretiyoruz" duz bir vaattir; sol komsu oradan susturma deligi
+    ACMAMALIDIR. Sag kol, KARA_LISTE dahil, DEGISMEDEN kaldi (davranis tabani
+    korunur, [[sizinti-nobetcisi-canli-olu-ayrimi]]).
+
+    🔴 SOL KOL `startswith` DEGIL **TAM ESITLIK** — OLCULEREK DARALTILDI.
+    Ilk surum sagdaki gibi `startswith` kullaniyordu; canli 494 govde uzerinde
+    olculen bedel 1 DEGIL **3** eslesmeydi ve 2'si MESRU VAADI susturuyordu:
+        landing/perde-kornisi... : "balkon kapilarinda ASA one cikar"  ("kapi"+eki)
+        landing/olcuye-ozel-profil-beam : "profillerde PETG veya ASA"  ("profil"+eki)
+    Turkce hal eki ("kapilarinda", "profillerde") soldaki kelimeyi sisiriyor.
+    Elemek istedigimiz kurulus ise sistem adini CIPLAK birakir ("Dograma PVC
+    degil"). Bu yuzden sol kol TAM ESITLIK arar; sag kol eskisi gibi kalir
+    ([[eslesme-anahtari-yanlissa-sifir-bulgu-yesil-sanilir]])."""
     kalan = metin[bitis:bitis + 40].strip().lower()
-    ilk = re.split(r"[^%s]+" % TR_HARF, kalan)
-    ilk = ilk[0] if ilk else ""
-    return bool(ilk) and any(ilk.startswith(k) for k in URUN_SISTEM_KELIMELERI)
+    sag = re.split(r"[^%s]+" % TR_HARF, kalan)
+    if _sistem_kelimesi_mi(sag[0] if sag else ""):
+        return True
+    if baslangic is None or kisa in KARA_LISTE:
+        return False
+    onceki = metin[max(0, baslangic - 40):baslangic].strip().lower()
+    sol = re.split(r"[^%s]+" % TR_HARF, onceki)
+    return bool(sol) and sol[-1] in URUN_SISTEM_KELIMELERI
 
 
 def adaylari_bul(metin):
@@ -461,7 +499,7 @@ def adaylari_bul(metin):
             if ham != ham.upper() and kisa not in KARA_LISTE:
                 continue
             ek = (eslesme.group("ek") or "").upper() or None
-        if _urun_sistemi_mi(metin, eslesme.end()):
+        if _urun_sistemi_mi(metin, eslesme.end(), eslesme.start(), kisa):
             continue
         yield kisa, ek, ham
 
@@ -715,8 +753,10 @@ BEKLENEN_FIKSTUR_ADLARI = frozenset({
     "F16a", "F16b", "F16c", "F16d", "F16e", "F17",
     "F18a", "F18b", "F18c",
     "F19a", "F19b", "F20a", "F20b", "F20c", "F20d", "F21a", "F21b",
+    # 11 Eyl 2026 — urun sistemi eleyicisinin SOL komsu ekseni (CI kirmizisi).
+    "F22a", "F22b", "F22c", "F22d",
 })
-BEKLENEN_KONTROL_SAYISI = 49  # F8 7 kez, F9 2 kez kosar -> ad sayisindan buyuk
+BEKLENEN_KONTROL_SAYISI = 53  # F8 7 kez, F9 2 kez kosar -> ad sayisindan buyuk
 
 
 # 🔴 FIKSTUR SIMETRISI — SINIF olarak kapali (KraL tur-6). Onceki turda yalniz "uzunAd"
@@ -805,6 +845,41 @@ def ic_nobetci():
     kontrol("F4", "PC" in kara and "PEEK" in dayanaksiz,
             "olumsuzlama iceren satirdaki vaat KACTI (negatif eleyici geri gelmis olabilir) "
             "kara=%s dayanaksiz=%s" % (sorted(kara), sorted(dayanaksiz)))
+
+    # === F22 — URUN SISTEMI ELEYICISI: SOL KOMSU EKSENI (11 Eyl 2026) =========
+    # Canli CI kirmizisinin koku. Dort kol da AYRI bir mutanti oldurur; hicbiri
+    # digerinin yerine gecmez.
+    #
+    # F22a — SOL komsu CIPLAK sistem adi ise eslesme ELENIR (canli vakanin ta
+    # kendisi). Kol oldurulunce (sol bacak silinir) PVC dayanaksiz kalir.
+    _o, d22a, _k, _e = degerlendir(
+        [("fikstur", "F22a", "Doğrama PVC değil de alüminyumsa ispanyolet "
+                             "dişlisi ayrı yazıldı.")], env)
+    kontrol("F22a", not d22a,
+            "SOL komsu ciplak sistem adi ('Dograma PVC') elenmedi -> dayanaksiz=%s"
+            % sorted(d22a))
+
+    # F22b — SOL komsu HAL EKI tasiyorsa ELENMEZ. `startswith` kullanan mutant
+    # burada olur: "kapilarinda" -> "kapi" ile baslar ve MESRU vaadi susturur.
+    # (Canli olcum: startswith 3 eslesme eliyordu, 2'si mesru vaat.)
+    _o, d22b, _k, _e = degerlendir(
+        [("fikstur", "F22b", "Balkon kapılarında PEEK öne çıkar.")], env)
+    kontrol("F22b", "PEEK" in d22b,
+            "SOL kol hal ekli kelimeyi sistem adi saydi (startswith mutanti?) -> "
+            "dayanaksiz=%s" % sorted(d22b))
+
+    # F22c — KARA LISTE sol koldan MUAF: "Kapı PC ile üretiyoruz" duz bir vaattir.
+    # Muafiyeti kaldiran mutant burada olur (susturma deligi acilirdi).
+    _o, _d, k22c, _e = degerlendir(
+        [("fikstur", "F22c", "Kapı PC ile üretiyoruz.")], env)
+    kontrol("F22c", "PC" in k22c,
+            "KARA LISTE sol komsu ile SUSTURULDU -> kara=%s" % sorted(k22c))
+
+    # F22d — SAG kol DEGISMEDI: "PVC dograma" eskisi gibi elenir (davranis tabani).
+    _o, d22d, _k, _e = degerlendir(
+        [("fikstur", "F22d", "PVC doğrama kapı ve pencere parçası üretiyoruz.")], env)
+    kontrol("F22d", not d22d,
+            "SAG kol (eski davranis) bozuldu -> dayanaksiz=%s" % sorted(d22d))
 
     # F14 — TAM AD haritasi: Turkce tam ad da malzeme beyanidir ("polikarbonat" -> PC)
     _o, d14, k14, _e = degerlendir(

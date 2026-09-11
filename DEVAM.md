@@ -3,6 +3,8 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 
+🔧 11 Eyl `KraL-Tamirci-11Eyl`: 2 CI kirmizisi kapandi, `claude/keen-lewin-a2a3fb` MERGE BEKLER. 3. OKAN KAPISI: shop bayat, `wrangler deploy`. Detay kutu 10:3x
+
 ## 🔁 11 EYL ana oturum-9 — ev `f641d116` = origin/main
 **✅ A→B→C MAIN'DE** (8 commit, ucu de merge commit'i): bagimsiz dogrulama cipi ucune de MERGE EDILEBILIR dedi; C'nin tek gercek riski OLCULDU — **build.py FAQPage'i EZMIYOR** (uretilen `sss` commit'liyle bayt-birebir). D1 alti eksen ✅ **36771=36771**; run `34535784062` `serit-a2` **success**.
 **SIRADAKI TEK IS:** D `busy-hermann-057e7e` (`nobet-olcum.py`) · E `zen-payne-e718e2` (odeme SINIF kapisi + olu batarya dirildi). 🔴 **BLOKE EDICI SORU** cip `task_50214d67`: E'nin bataryasi artik **rc=1**; `deploy.yml`'e `continue-on-error`'suz bagliysa **MERGE EDILEMEZ** (filo yayini durur).
