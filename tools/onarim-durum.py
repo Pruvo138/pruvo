@@ -530,11 +530,14 @@ def _kendini_test():
 
 def main():
     argv = sys.argv[1:]
-    # 🔴 BICIM KASITLIDIR, "sadelestirme" YAPMA: `serbest-kume-tekkaynak-test.py`
-    # C5/C6 kollari aracin CLI'sini AST'ten cikarir ve YALNIZ iki bicimi okur —
-    # `add_argument("--x", ...)` ve `"--x" ... sys.argv` KARSILASTIRMASI
-    # (`durum.py` boyle yazar). `argv == ["--kendini-test"]` biciminde bayrak
-    # nobetciye GORUNMEZ ve tabloya yazili gerekce "BAYAT" diye KIRMIZI yanar.
+    # 🔴 BICIM KASITLIDIR, "sadelestirme" YAPMA. Gerekce TARIHSEL: silinen
+    # serbest-kume-tekkaynak-test.py'nin C5/C6 kollari aracin CLI'sini AST'ten cikarir
+    # ve YALNIZ iki bicimi okurdu — `add_argument("--x", ...)` ve `"--x" ... sys.argv`
+    # KARSILASTIRMASI (`durum.py` boyle yazar). `argv == ["--kendini-test"]` biciminde
+    # bayrak o nobetciye GORUNMEZDI.
+    # 🔴 NOBETCI YOK (ACIK KALEM, 11 Eyl 2026): o dosya ca8c3815 ile SILINDI; bicim
+    # bugun HICBIR kol tarafindan OLCULMUYOR. Bicimi degistirirsen hicbir sey kirmizi
+    # yanmaz — ama gerekce de kanitsiz kalir.
     # argparse KULLANILMAZ: argparse hatada rc=2 ile cikar, o kod burada
     # RC_KOL_KAPALI'dir — iki anlam CAKISIRDI.
     if "--kendini-test" in sys.argv[1:]:

@@ -30,9 +30,15 @@ FAIL-CLOSED: kanonik okunamazsa ya da iki capa TAM BIR KEZ bulunmazsa shim exec 
 DENY basar. Yanlis eve homelenmis bir kapi sessizce calismaktansa gurultuyle durur.
 
 Bu modul TEK KAYNAKTIR: shim metnini uretir, evleri siniflar. Kapi
-(`tools/kapi-dagitim-kapisi.py`), kurucu (`tools/kapi-dagitim-kur.py`) ve kabul testi
-(`tools/kapi-dagitim-test.py`) UCU DE bu modulu cagirir — ikinci bir renderer YAZILMAZ
+(`tools/kapi-dagitim-kapisi.py`) bu modulu cagirir — ikinci bir renderer YAZILMAZ
 ([[ikiz-tanim-sessiz-ayrisma]]).
+
+🔴 KURUCU VE KABUL TESTI YOK (ACIK KALEM, 11 Eyl 2026). Bu cumle eskiden "kurucu
+(kapi-dagitim-kur.py) ve kabul testi (kapi-dagitim-test.py) UCU DE bu modulu cagirir"
+diyordu; IKISI DE ca8c3815 ile SILINDI (28 Agu supurmesi). Yani shim'i EVLERE KURAN kol
+da, kurulan shim'in bu modulden TUREDIGINI olcen kol da bugun YOK: kurulu shim'ler
+kaynaktan sapsa hicbir sey kirmizi yanmaz. Tek canli komsu `tools/kapi-dagitim-kapisi.py`
+ve o BASKA sey olcer.
 """
 import hashlib
 import os

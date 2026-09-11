@@ -25,11 +25,16 @@ bayraklari ve deger alan bayraklariyla — YALNIZ BURADA tanimlanir. Tuketiciler
 
   1. `tools/mimar-icra-kapisi.py`      — KARAR (`_py_izinli`) + RED METNI
   2. `tools/defter-kota-kapisi.py`     — CARE satirlari
-  3. `tools/serbest-kume-tekkaynak-test.py` — NOBETCI fikstuleri
 
 Hicbir tuketici ikinci bir kopya TUTMAZ. Bir sekil buradan DUSERSE hepsinde birden
-duser: cagri REDDEDILIR, adi RED METNINDEN silinir, CARE satiri degisir, nobetci
-kirmizi yanar. Nobetci: `tools/serbest-kume-tekkaynak-test.py` (mutasyonlu, CI'da kosar).
+duser: cagri REDDEDILIR, adi RED METNINDEN silinir, CARE satiri degisir.
+
+🔴 NOBETCI YOK (ACIK KALEM, 11 Eyl 2026) — burada eskiden ucuncu bir tuketici olarak
+serbest-kume-tekkaynak-test.py sayiliyor ve "mutasyonlu, CI'da kosar" deniyordu. O dosya
+ca8c3815 ile SILINDI (28 Agu supurmesi); yerine hicbir sey konmadi. Yani "bir sekil
+duserse nobetci kirmizi yanar" cumlesi 28 Agu'dan beri YALANDI. Bugun canli olan tek
+komsu kol `tools/serbest-kume-ev-ekseni-test.py`dir ve BASKA bir ekseni olcer (EV koku +
+kabuk yonlendirme eki); RED METNI / CARE SATIRI turetilmis mi eksenini OLCEN KOD YOK.
 
 Ilgili dersler: [[kapi-red-metni-ikinci-kopyadir]] · [[ikiz-tanim-sessiz-ayrisma]] ·
 [[kapinin-menzili-cagri-yeridir]] · [[ucuncu-tekrar-sinif-kapisi]]

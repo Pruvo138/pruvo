@@ -2208,6 +2208,48 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/tikayici-kaldirma-test.py
 
+      # HAYALI NOBETCI KAPISI (11 Eyl 2026, BaBa ⑤) — "tools/ icindeki bir YORUM bir .py
+      # dosyasini NOBETCI diye aniyorsa o dosya VAR OLMALI". Olculen ariza: ca8c3815
+      # supurmesiyle silinen serbest-kume-tekkaynak-test.py'yi DORT yer hala nobetci diye
+      # aniyordu, ucu "CI'da kosar" diyordu; ayni turda ayni sinifin 2 vakasi daha cikti
+      # (motor-tek-kaynak-kapisi.py · kapi-dagitim-kur/test.py). Yorumda yasayan koruma
+      # iddiasi, yesil yanan olu testle AYNI SINIFTIR ([[ci-disi-kabul-sarti-yorumda-
+      # yasarsa-koruma-degildir]]).
+      # 🔴 NON-GROWTH: hukum SAYI degil ARTIS uzerinedir (TAVAN kaynakta, 11 Eyl'de
+      # olculerek kondu); tabanda kalan 2 kalem TARIHSEL ANLATI + FIKSTUR ORNEGIDIR ve
+      # kaynakta ADIYLA gerekcelendirilmistir.
+      # 🔴 BILEREK `serit-b`DE: ustteki batarya ile AYNI sinif — bir politika/hijyen
+      # kapisidir, yanlis-pozitifi BES EVIN yayinini durdurmamali.
+      # Offline, ag ISTEMEZ, dosya YAZMAZ, ~0,4 s.
+      - name: "Hayali nobetci kapisi (yorumda anilan nobetci GERCEKTEN var mi)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/hayali-nobetci-kapisi.py
+      # Kapinin KENDI hukmu: 8 fikstur + 2 CIKIS KODU kolu (govde KIRMIZI ise rc!=0 VE
+      # govde YESIL ise rc=0) + 6 mutant (1'i KONTROL) + 1 META mutant (rc kolunu
+      # duzlestiren mutant YAKALANMALI). Ustteki adim yesilken bu adim kirmizi ise
+      # nobetci OLMUS demektir ([[mutasyon-kaniti-yeniden-uretilebilir]]).
+      - name: "Hayali nobetci kapisi ic nobetci (fikstur + mutasyon + cikis kodu kolu)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/hayali-nobetci-kapisi.py --kendini-test
+
+      # CIKIS KODU SINIF KAPISI (11 Eyl 2026) — "govde KIRMIZI diyorsa rc SIFIR OLAMAZ"
+      # (ve tersi: YESIL diyorsa rc=0). UCUNCU TEKRAR oldugu icin tekil yama DEGIL SINIF
+      # kapisi yazildi ([[ucuncu-tekrar-sinif-kapisi]]): ① mutasyon bataryasinin rc'si
+      # yanlis okunmustu (boru ardindan okunan rc — [[boru-rc-isci-olcumunu-yalanlar]]),
+      # ② `ci-kapsam-test.py` 13 ❌ basarken rc=0 donuyordu ([[vaka-sayisi-ekseni-cikis-
+      # kodu-eksenini-olcmez]]), ③ ayni tur kabul bataryalari CI'dan `success` gecebiliyordu.
+      # STATIK olcer (AST): kayitli bataryalari KOSTURMAZ — biri ~8 dk surer ve pahali bir
+      # kapi kapatilir. Kayit kaynakta (`KAYIT`); dosya eksikse OLCULEMEDI (rc=2) basar,
+      # yesil SAYMAZ. Offline, dosya YAZMAZ, ~0,2 s.
+      - name: "Cikis kodu sinif kapisi (govde KIRMIZI ise rc!=0 — kayitli bataryalar)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/cikis-kodu-sinif-kapisi.py
+      # Kapinin KENDI hukmu: 10 fikstur + 2 cikis kodu kolu + 6 mutant (1'i KONTROL) +
+      # 1 META mutant (kapinin KENDI rc kolunu duzlestiren mutant YAKALANMALI).
+      - name: "Cikis kodu sinif kapisi ic nobetci (fikstur + mutasyon + meta mutant)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/cikis-kodu-sinif-kapisi.py --kendini-test
+
       - name: "Shop bayatlik kapisi mutasyon bataryasi (wrangler.toml OKUR, CLI degil)"
         if: ${{ !cancelled() }}
         run: python3 tools/shop-bayatlik-mutasyon.py

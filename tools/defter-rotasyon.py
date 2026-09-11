@@ -902,8 +902,12 @@ _tavan_asi_mi = _tab_mod.tavan_asi_mi
 # Ders: bir ARACIN kendi CLI sozlesmesi (bayrak adlari + varsayilanlari) ARACIN
 # malidir; kapinin IZIN kumesi kapinin. Ikisini calisma aninda birbirine baglamak
 # araci tasinamaz kilar. Ayrisma RUNTIME'da degil, NOBETCIDE olculur:
-# `tools/serbest-kume-tekkaynak-test.py` :: C3 (bayrak adlari) ve C4 (bu iki yol)
-# kaynak ile araci BIREBIR esitler; drift CI'da KIRMIZI yanar.
+# 🔴 NOBETCI YOK (ACIK KALEM, 11 Eyl 2026). Eski satir "serbest-kume-tekkaynak-test.py
+# :: C3 (bayrak adlari) ve C4 (bu iki yol) kaynak ile araci BIREBIR esitler; drift CI'da
+# KIRMIZI yanar" diyordu. O dosya ca8c3815 ile SILINDI ve C3/C4 eksenini (kaynaktaki her
+# bayrak aracin CLI'sinda VAR mi + kanonik yollar esit mi) olcen BASKA bir kol YOK —
+# olculdu: `add_argument` envanteri cikaran hicbir canli test serbest_cagrilar'i
+# okumuyor. Drift bugun SESSIZCE gecer.
 _KANONIK_DEFTER = "/Users/okan/dev/pruvo/DEVAM.md"
 _KANONIK_ARSIV = "/Users/okan/dev/pruvo/DEVAM-ARSIV.md"
 

@@ -80,9 +80,12 @@ EMEKLI_MOTOR_PENCERE_BITIS = "2026-08-20"  # dahil; bu tarihten SONRA emekli mot
 # OLCULEN KUSUR: tools/mimar-kapi-kur.py listeyi kendi govdesine GOMUYOR ve 13 Agu'da
 # BES karde eve o DONMUS kopyayi kurmustu (kimi YOK, emekli deepseek VAR). Yani tek
 # kaynak burasiydi ama KURULAN kopya buradan TUREMIYORDU ([[ikiz-tanim-sessiz-ayrisma]]).
-# COZUM: kurulan blogun METNI de, imzasi da BURADA uretilir; kurucu yalnizca yapistirir,
-# nobetci (tools/motor-tek-kaynak-kapisi.py) ayni fonksiyonlarla yeniden uretip karsilastirir.
+# COZUM: kurulan blogun METNI de, imzasi da BURADA uretilir; kurucu yalnizca yapistirir.
 # Ucuncu bir renderer YAZILMAZ — yoksa ikiz tanim bir kat yukari tasinmis olurdu.
+# 🔴 NOBETCI YOK (ACIK KALEM, 11 Eyl 2026): eski satir motor-tek-kaynak-kapisi.py'yi
+# nobetci diye anip "ayni fonksiyonlarla yeniden uretip karsilastirir" diyordu;
+# O DOSYA YOK (ca8c3815 supurmesi). Kurulu kopyanin buradan TUREYIP turemedigi
+# bugun OLCULMUYOR — yani K214'un kapattigi ariza yeniden acilabilir ve kimse gormez.
 MOTOR_BLOK_BAS = "# === PRUVO MOTOR KUMESI (TURETILDI — mimar_kimlik.py) BASLANGIC ==="
 MOTOR_BLOK_SON = "# === PRUVO MOTOR KUMESI (TURETILDI) BITIS ==="
 
@@ -139,8 +142,14 @@ def motor_blogu_kaynagi():
         # yani makineye cakili "/Users/<ad>/..." yolu oralarda hem YANLIS olurdu hem de
         # kullanici adi tasirdi. Satirlar SALT YORUM (davranis yok); imza da yalnizca
         # motor kumelerinden turer, dolayisiyla bu degisiklik sapma URETMEZ.
-        "#   python3 ~/dev/pruvo/tools/mimar-kapi-kur.py --isci-kapisi --uygula",
-        "# Sapma nobetcisi: python3 ~/dev/pruvo/tools/motor-tek-kaynak-kapisi.py",
+        # 🔴 11 EYL 2026: bu iki satir ADI GECEN IKI DOSYAYI da gosteriyordu ve IKISI DE
+        # ca8c3815 ile SILINDI (mimar-kapi-kur.py = kurucu, motor-tek-kaynak-kapisi.py =
+        # sapma nobetcisi). Yani KURULU her kapinin basinda, okuyana var olmayan bir
+        # kurucu ve var olmayan bir nobetci gosteren iki satir duruyordu. Satirlar
+        # DURUST hale getirildi; imza yalnizca motor kumelerinden turedigi icin bu
+        # degisiklik SAPMA URETMEZ (ustteki K250 notu).
+        "#   KURUCU YOK (acik kalem): blogu elle guncelle, kaynak tools/mimar_kimlik.py.",
+        "# SAPMA NOBETCISI YOK (acik kalem): kurulu kopya kaynaktan TUREDI mi OLCULMUYOR.",
     ]
     kumeler = motor_kumeleri()
     for ad in MOTOR_TURETILEN_ADLAR:

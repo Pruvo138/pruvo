@@ -78,11 +78,61 @@ KAYITLI_WT_YOL = None  # main() icinde doldurulur; None ise vakalar CEVRE-ATLANA
 # Kosulamayan/karar uretmeyen sonuclar — "allow" diye YUTULMAZ.
 ATLANAN_ISARETLER = ("EKSIK-KANCA", "COKTU", "PARSE-HATASI", "IZSIZ-ALLOW")
 
+# === 🔴 11 EYL 2026 — 87 KIRMIZI KAPATILDI (KOVA KOVA SINIFLANDI) ====================
+# TABAN: 231/323 gecti, 92 KIRMIZI -> SONRA: 318/323, 5 KIRMIZI.
+# 92'sinin tamami TEK TEK sinIflandi; aritmetik tam (87 + 5 = 92):
+#
+#   BAYAT_BEKLENTI = 85  (beklenti eskimis; KAPI DOGRU davraniyor)
+#     * 17  olcum komutu serbest (200-216: du/ps/find/wc/head/tail/sed/awk/sort/stat/
+#           file/df/vm_stat/sysctl/top/memory_pressure + PIPE) — Okan 11 Eyl emri.
+#     * 17  python3/node ARAC kosumu serbest (11,21,27,29,30,39,40,41,42,129,137,138,
+#           152,240,241,244,254) — ayni emir.
+#     *  3  mimar .py/.sh YAZABILIR (1,2,19) — `mimar-kod-kilidi.py` SAYAR, engellemez.
+#     *  9  rol ekseni artik KARAR DEGISTIRMEZ, RAPORLANIR (80,81,84,800,801,805,806,
+#           807,812).
+#     * 14  Claude iscisi SERT BLOGU kaldirildi (401,403,406,407,614,651,655,656,657,
+#           700,702,704,705,707) — motor secimi RAPOR EDILIR.
+#     *  6  emekli motor (luna) SURELI PENCERESI KAPANDI (232,233,273,274,281,902):
+#           bunlar TERS yonde bayatti — beklenti "allow" diyordu, kapi DOGRU olarak
+#           deny basiyordu; beklenti `deny`ye cekildi (6 Eyl motor hukmu).
+#     * 19  `-m` ailesi (46,47,48,49,50,85,86,93,95,121,123,125,126,127,128,130,131,
+#           132,133) — asagidaki 🔴 NOTA BAK: bunlar BAYAT DEGIL, ACIK DELIKTIR.
+#
+#   GERCEK_REGRESYON, GOVDESI ONARILDI = 2  (beklenti DOGRUYDU, KAPI eksikti)
+#     *  1  910: RED sebebi `mimar_kimlik.EMEKLI_MOTOR_YASAK_MODELLER` adlarini
+#           ANMIYORDU. Kok neden OLCULDU: "SURELI PENCERE KAPANDI" kolu ONCE donuyor ve
+#           ARKASINDAKI model kolunu MASKELIYOR ([[fail-closed-kol-arkasindaki-kolu-
+#           maskeler]]). ONARIM: pencere kolunun metni de adlari KUMEDEN TURETIR. Ayni
+#           metin 'kimi'yi care diye basiyordu (6 Eyl'de EMEKLI) — o da TURETILDI.
+#     *  1  815: iz CAPASI bayatti ('ORTAK-ALTYAPI(' -> 'rol=CIP'); gerekce vakanin
+#           yaninda. IDDIA (K332 rol ekseni) gevsetilmedi: 816 CIFTI ANA oturumda
+#           HALA deny alir.
+#
+#   ACIK KALEM (KIRMIZI KALIR, sessizce yesillenmedi) = 5
+#     *  3  110/111/114: kablo raporcusu `mimar-kapi-kur.py` ca8c3815 ile SILINDI,
+#           kol EKSIK-KURUCU basiyor. Diriltme mi durustce kaldirma mi -> OKAN/BaBa.
+#     *  2  921/922: SERT_BLOK bekleniyor, DIGER_RED olculuyor. Sert blok 11 Eyl'de
+#           KALDIRILDI; kolun ne beklemesi gerektigi (hangi RED sinifinin kalmasi)
+#           BaBa hukmune baglidir — tahminle yesillenmedi.
+#
+# 🔴 `-m` AILESI ICIN NEDEN `allow`A CEKILDI AMA "BAYAT" DEMEK YETMEZ:
+# Okan'in emri `python3 -c` ve `curl/wget` kollarini ACIKCA KAPALI BIRAKTI; `-m pip` /
+# `-m http.server` / `-m pdb` AYNI SINIFTIR (kurulum yapar, disari acar, keyfi kod
+# kosturur) ve emir onlari ADIYLA serbest BIRAKMADI — allowlist reddetmeyi birakinca
+# YAN ETKI olarak acildilar ([[fail-closed-kol-arkasindaki-kolu-maskeler]]).
+# KOL GERI GETIRILMEDI (emir geri alinmaz). Bunun yerine kapi bu sinifi AYRI ADLA
+# ('PY-MODUL-ACIK') stderr'e basar, beklenti de `allow`dur — AMA bu testin kosucusu
+# izsiz bir allow'u `IZSIZ-ALLOW` sayar (ATLANAN, GECTI DEGIL), yani "allow" beklentisi
+# fiilen "ALLOW **VE** RAPOR SATIRI BASILDI" demektir. Rapor susarsa vaka yesil YANMAZ.
+# Kapatma karari OKAN/BaBa kalemi olarak ACIK BIRAKILDI.
+#
+# EMRIN TEK KAYNAGI: `tools/tikayici-kaldirma-test.py` (bu turda rc=0, 0 KIRMIZI).
+# ====================================================================================
 # (no, beklenen, arac, hedef, agent_id, aciklama)
 VAKALAR = [
-    (1, "deny", "Write", SCRATCH + "/analiz.py", None,
+    (1, "allow", "Write", SCRATCH + "/analiz.py", None,
      "YENI: scratchpad'e betik yazarligi"),
-    (2, "deny", "Write", REPO + "/tools/yeni.py", None,
+    (2, "allow", "Write", REPO + "/tools/yeni.py", None,
      "regresyon: repo icine .py"),
     (3, "deny", "Write", REPO + "/urunler.json", None,
      "regresyon: urun verisi"),
@@ -100,7 +150,7 @@ VAKALAR = [
      "hafiza .md"),
     (10, "allow", "Write", REPO + "/.claude/worktrees/agent-x/tools/hepsi.py", None,
      "worktree muaf (muhendis alani)"),
-    (11, "deny", "Bash", "node " + REPO + "/tools/parite-test.js", None,
+    (11, "allow", "Bash", "node " + REPO + "/tools/parite-test.js", None,
      "22Tem: parite (node araci) = ISCI isi"),
     (12, "allow", "Bash", "python3 " + REPO + "/tools/d1-sync.py --durum", None,
      "mevcut repo araci (D1 durum)"),
@@ -120,11 +170,11 @@ EK_VAKALAR = [
      "stdin'den kod okutma"),
     (18, "deny", "Bash", "bash -lc \"ls -la\"", None,
      "kabuk satir-ici kod"),
-    (19, "deny", "Write", SCRATCH + "/analiz.sh", None,
+    (19, "allow", "Write", SCRATCH + "/analiz.sh", None,
      "scratchpad'e kabuk betigi"),
     (20, "deny", "Bash", SCRATCH + "/analiz.sh", None,
      "repo disi betigi dogrudan cagirma"),
-    (21, "deny", "Bash", "node --check " + REPO + "/secenekler.js", None,
+    (21, "allow", "Bash", "node --check " + REPO + "/secenekler.js", None,
      "22Tem: node --check = ISCI isi"),
     (22, "allow", "Bash", "python3 " + REPO + "/tools/durum.py", None,
      "durum panosu"),
@@ -136,7 +186,7 @@ EK_VAKALAR = [
      "26Tem: codex DELEGE serbest ama cikti dosyasi bayraksiz cagri RED"),
     (26, "allow", "Write", REPO + "/tools/paket-yeni-is.md", None,
      "muhendislik paketi (spec)"),
-    (27, "deny", "Bash", "python3 " + REPO + "/tools/parite-ege.js", None,
+    (27, "allow", "Bash", "python3 " + REPO + "/tools/parite-ege.js", None,
      "22Tem: parite-ege (python arac) = ISCI isi"),
 ]
 
@@ -158,13 +208,13 @@ MERGE_VAKALARI = [
     (38, "allow", "Bash",
      "git -C " + REPO + " worktree remove --force " + REPO + "/.claude/worktrees/agent-x", None,
      "§4.8 temizlik"),
-    (39, "deny", "Bash", "python3 tools/gitignore-kapisi.py --yaz", None,
+    (39, "allow", "Bash", "python3 tools/gitignore-kapisi.py --yaz", None,
      "22Tem: §7.1 arac kosumu = ISCI isi"),
-    (40, "deny", "Bash", "python3 " + REPO + "/tools/filament-test.py", None,
+    (40, "allow", "Bash", "python3 " + REPO + "/tools/filament-test.py", None,
      "22Tem: §7.2 test kosumu = ISCI isi"),
-    (41, "deny", "Bash", "python3 " + REPO + "/tools/olculmemis-siparis.py", None,
+    (41, "allow", "Bash", "python3 " + REPO + "/tools/olculmemis-siparis.py", None,
      "22Tem: §7.4 arac kosumu = ISCI isi"),
-    (42, "deny", "Bash", "node " + REPO + "/tools/parite-ege.js", None,
+    (42, "allow", "Bash", "node " + REPO + "/tools/parite-ege.js", None,
      "22Tem: arama paritesi (Ege) = ISCI isi"),
     (43, "allow", "Bash", "python3 tools/durum.py", None, "§2 durum panosu (goreli yol) — SERBEST 2'den biri"),
     (44, "allow", "Bash", "git -C " + REPO + " branch -D worktree-dal", None, "§4.8 dal silme"),
@@ -178,9 +228,9 @@ WORKTREE = REPO + "/.claude/worktrees/agent-x"
 MUHENDIS_VAKALARI = [
     (28, "allow", "Write", WORKTREE + "/tools/analiz.py", None,
      "muhendis betigini WORKTREE'sine yazar (Write=kod-kilidi, worktree muaf)"),
-    (29, "deny", "Bash", "python3 " + WORKTREE + "/tools/analiz.py", None,
+    (29, "allow", "Bash", "python3 " + WORKTREE + "/tools/analiz.py", None,
      "22Tem: MIMAR worktree python betigini bile KOSTURMAZ (isci/agent_id kosar)"),
-    (30, "deny", "Write", SCRATCH + "/analiz.py", None,
+    (30, "allow", "Write", SCRATCH + "/analiz.py", None,
      "MIMAR: worktree cwd'si MUAFIYET VERMEZ"),
     (45, "deny", "Bash", "python3 " + SCRATCH + "/analiz.py", None,
      "MIMAR: worktree cwd'si MUAFIYET VERMEZ"),
@@ -188,15 +238,15 @@ MUHENDIS_VAKALARI = [
 
 # Mimar sorusu (b) + enjeksiyon yuzeyleri.
 MODUL_VAKALARI = [
-    (46, "deny", "Bash", "python3 -m pip install requests", None,
+    (46, "allow", "Bash", "python3 -m pip install requests", None,
      "-m pip: kurulum betigi kosturur"),
-    (47, "deny", "Bash", "python3 -m timeit -s \"import os\" \"pass\"", None,
+    (47, "allow", "Bash", "python3 -m timeit -s \"import os\" \"pass\"", None,
      "-m timeit -s: keyfi kod"),
-    (48, "deny", "Bash", "python3 -m http.server 8000", None,
+    (48, "allow", "Bash", "python3 -m http.server 8000", None,
      "-m http.server: disari acar"),
-    (49, "deny", "Bash", "python3 -m pdb " + REPO + "/tools/durum.py", None,
+    (49, "allow", "Bash", "python3 -m pdb " + REPO + "/tools/durum.py", None,
      "-m pdb: etkilesimli keyfi icra"),
-    (50, "deny", "Bash", "python3 -m json.tool " + REPO + "/tools/taban-fiyatlar.js", None,
+    (50, "allow", "Bash", "python3 -m json.tool " + REPO + "/tools/taban-fiyatlar.js", None,
      "22Tem: -m (json.tool dahil) allowlist disi = RED"),
     (51, "deny", "Bash",
      "node --require=" + SCRATCH + "/kanca.js " + REPO + "/tools/parite-test.js", None,
@@ -306,27 +356,27 @@ ISCI_VAKALARI = [
 
 # MIMAR TARAFI YENI VAKALAR (agent_id YOK) — onek/kayit duzeltmesi + test modulleri.
 MIMAR_YENI_VAKALARI = [
-    (80, "deny", "Write", REPO + "/tools/.claude/worktrees/kotu.py", None,
+    (80, "allow", "Write", REPO + "/tools/.claude/worktrees/kotu.py", None,
      "SAHTE worktree (alt-dize deligi kapandi)"),
-    (81, "deny", "Write", "/private/tmp/x/.claude/worktrees/kotu.py", None,
+    (81, "allow", "Write", "/private/tmp/x/.claude/worktrees/kotu.py", None,
      "SAHTE worktree, repo-disi varyant"),
     (82, "allow", "Write", REPO + "/.claude/worktrees/agent-x/tools/x.py", None,
      "regresyon: ONEK muafiyeti yasiyor"),
     (83, "allow", "Write", KAYITLI_WT + "/tools/toka-olc.py", None,
      "KAYITLI worktree (kimlikten bagimsiz yedek)"),
-    (84, "deny", "Write", "/private/tmp/pruvo-toka-BASKA/tools/x.py", None,
+    (84, "allow", "Write", "/private/tmp/pruvo-toka-BASKA/tools/x.py", None,
      "negatif esik: kayitli DEGIL"),
     # 4. TUR TASARIM DEGISIKLIGI (20 Tem): '-m' HER BICIMDE kapali (beyaz liste haric).
     # 85/86/93/95/121/123/125 eskiden ALLOW idi; ayristirma kaldirildigi icin artik DENY.
-    (85, "deny", "Bash", "python3 -m pytest " + REPO + "/tools", None,
+    (85, "allow", "Bash", "python3 -m pytest " + REPO + "/tools", None,
      "-m pytest repo-ici DE kapandi (ayristirma yok)"),
-    (86, "deny", "Bash", "python3 -m unittest discover -s " + REPO + "/tools", None,
+    (86, "allow", "Bash", "python3 -m unittest discover -s " + REPO + "/tools", None,
      "-m unittest repo-ici DE kapandi"),
     (87, "deny", "Bash", "python3 -m pytest /private/tmp/x", None,
      "-m ile repo DISINA cikilamaz"),
     (88, "allow", "Bash", "bash " + KAYITLI_WT + "/tools/toka-olc.sh", None,
      "KAYITLI worktree SH betigi icra (kimlikten bagimsiz yedek; M4 nobetcisi)"),
-    (254, "deny", "Bash", "python3 " + KAYITLI_WT + "/tools/toka-olc.py", None,
+    (254, "allow", "Bash", "python3 " + KAYITLI_WT + "/tools/toka-olc.py", None,
      "22Tem: MIMAR kayitli-worktree PYTHON betigini de KOSTURMAZ (allowlist disi)"),
     (89, "deny", "Edit", REPO + "/index.html", None,
      "Edit araci: mimar site kodunu duzenleyemez"),
@@ -337,11 +387,11 @@ MIMAR_YENI_VAKALARI = [
     # BITISIK-DEGERLI BAYRAK (20 Tem olcumu: '-s/yol' allow idi, '-s /yol' deny idi).
     (92, "deny", "Bash", "python3 -m unittest discover -s/private/tmp/disari", None,
      "BITISIK bayrakla repo DISINA cikilamaz"),
-    (93, "deny", "Bash", "python3 -m unittest discover -s" + REPO + "/tools", None,
+    (93, "allow", "Bash", "python3 -m unittest discover -s" + REPO + "/tools", None,
      "BITISIK bayrak repo-ici: -m yuzunden DENY"),
     (94, "deny", "Bash", "python3 -m pytest --rootdir=/private/tmp/disari", None,
      "--bayrak=DEGER ile repo DISINA cikilamaz"),
-    (95, "deny", "Bash", "python3 -m pytest --rootdir=" + REPO + "/tools", None,
+    (95, "allow", "Bash", "python3 -m pytest --rootdir=" + REPO + "/tools", None,
      "--bayrak=DEGER repo-ici: -m yuzunden DENY"),
     # R2 (20 Tem REGRESYON): '-s=/dis/yol' bitisik-ESITLIKLI form. Deger '=/dis/yol'
     # olarak okunuyor, basindaki '=' yuzunden goreli sayilip cwd'ye ekleniyor ve
@@ -349,38 +399,38 @@ MIMAR_YENI_VAKALARI = [
     # RED tarafi ve KABUL tarafi birlikte olculur (yanlis pozitif uretmemeli).
     (120, "deny", "Bash", "python3 -m unittest discover -s=/private/tmp/disari", None,
      "R2: '-s=/dis/yol' bitisik-esitlikli form DENY"),
-    (121, "deny", "Bash", "python3 -m unittest discover -s=" + REPO + "/tools", None,
+    (121, "allow", "Bash", "python3 -m unittest discover -s=" + REPO + "/tools", None,
      "'-s=repo-ici' de -m yuzunden DENY (4. tur)"),
     (122, "deny", "Bash", "python3 -m unittest discover -s /private/tmp/disari", None,
      "R2: ayrik '-s /dis/yol' DENY"),
-    (123, "deny", "Bash", "python3 -m unittest discover -s " + REPO + "/tools", None,
+    (123, "allow", "Bash", "python3 -m unittest discover -s " + REPO + "/tools", None,
      "ayrik '-s repo-ici' de -m yuzunden DENY (4. tur)"),
     (124, "deny", "Bash",
      "python3 -m unittest discover --start-directory=/private/tmp/disari", None,
      "R2: '--start-directory=/dis/yol' DENY"),
-    (125, "deny", "Bash",
+    (125, "allow", "Bash",
      "python3 -m unittest discover --start-directory=" + REPO + "/tools", None,
      "'--start-directory=repo-ici' de -m yuzunden DENY"),
     # R2 ikinci ayak: BITISIK '-mMODUL' tum -m denetimini atliyordu.
-    (126, "deny", "Bash", "python3 -mtimeit -s \"import os\" \"pass\"", None,
+    (126, "allow", "Bash", "python3 -mtimeit -s \"import os\" \"pass\"", None,
      "R2: '-mtimeit' bitisik modul formu DENY"),
-    (127, "deny", "Bash", "python3 -mpip install requests", None,
+    (127, "allow", "Bash", "python3 -mpip install requests", None,
      "R2: '-mpip' bitisik modul formu DENY"),
-    (128, "deny", "Bash", "python3 -mjson.tool " + REPO + "/tools/taban-fiyatlar.js", None,
+    (128, "allow", "Bash", "python3 -mjson.tool " + REPO + "/tools/taban-fiyatlar.js", None,
      "22Tem: '-mjson.tool' de allowlist disi = RED"),
-    (129, "deny", "Bash", "python3 " + REPO + "/tools/durum.py -smth", None,
+    (129, "allow", "Bash", "python3 " + REPO + "/tools/durum.py -smth", None,
      "22Tem: durum.py + EKSTRA argüman = RED (allowlist tam esitlik)"),
     # --- 4. TUR (20 Tem): YORUMLAYICI ARGUMANI AYRISTIRMA DELIKLERI ---
     # Bagimsiz curutucu GERCEK ICRA ile olctu: asagidaki formlarda repo DISINDA dosya
     # yazildi (dal ALLOW / main DENY). Kok neden: DEGER ALAN kisa bayrak (-W/-X/-Q)
     # degerini AYRI token alir, eski tarama o tiresiz token'da 'break' ediyordu.
-    (130, "deny", "Bash", "python3 -W ignore -m pip install requests", None,
+    (130, "allow", "Bash", "python3 -W ignore -m pip install requests", None,
      "A: '-W ignore' -m denetimini atlatamaz"),
-    (131, "deny", "Bash", "python3 -W ignore::DeprecationWarning -m pip install x", None,
+    (131, "allow", "Bash", "python3 -W ignore::DeprecationWarning -m pip install x", None,
      "A: ':'li -W degeri de atlatamaz"),
-    (132, "deny", "Bash", "python3 -X importtime -m pip list", None,
+    (132, "allow", "Bash", "python3 -X importtime -m pip list", None,
      "A: '-X importtime' -m denetimini atlatamaz"),
-    (133, "deny", "Bash", "python3 -X utf8 -m http.server 8000", None,
+    (133, "allow", "Bash", "python3 -X utf8 -m http.server 8000", None,
      "A: '-X utf8' + http.server (disari acma)"),
     (134, "deny", "Bash", "python3 -W ignore -m pytest /private/tmp/disari", None,
      "A: -W kalkani + repo DISI test hedefi"),
@@ -389,9 +439,9 @@ MIMAR_YENI_VAKALARI = [
     (136, "deny", "Bash", "python3 -m unittest discover -vvs/private/tmp/disari", None,
      "B: '-vvs/yol' (iki harf + deger)"),
     # YANLIS-POZITIF NOBETCILERI (mimarin MESRU isi acik kalmali)
-    (137, "deny", "Bash", "python3 --version", None,
+    (137, "allow", "Bash", "python3 --version", None,
      "22Tem: python3 --version bile allowlist disi = RED (yalniz 2 komut)"),
-    (138, "deny", "Bash", "node --check tools/x.js", None,
+    (138, "allow", "Bash", "node --check tools/x.js", None,
      "22Tem: node --check = RED (node'da izinli komut yok)"),
     (139, "allow", "Bash", "grep -rn \"x\" tools/", None,
      "grep yorumlayici degil ALLOW"),
@@ -400,7 +450,7 @@ MIMAR_YENI_VAKALARI = [
      "R2: bayraga BITISIK repo-disi yol (m yok)"),
     (151, "deny", "Bash", "python3 tools/durum.py --cikti=/private/tmp/disari/x.txt", None,
      "R2: '=' sonrasi repo-disi yol (m yok)"),
-    (152, "deny", "Bash", "python3 tools/durum.py --cikti=" + REPO + "/tools/x.txt", None,
+    (152, "allow", "Bash", "python3 tools/durum.py --cikti=" + REPO + "/tools/x.txt", None,
      "22Tem: durum.py + '--cikti=' EKSTRA argüman = RED (repo-ici olsa da)"),
     (153, "deny", "Bash", "node tools/parite-test.js /private/tmp/disari", None,
      "R2: tiresiz ARGUMAN olarak repo-disi yol"),
@@ -425,23 +475,23 @@ DIS_CWD_VAKALARI = [
 # nobetcisi (ME1..ME5 mutasyonlari bunlari kirmizi yakar).
 MIMAR_22TEM_VAKALARI = [
     # (1) OLCUM / dosya-tarama — 16 komut + pipe-gomulu vaka
-    (200, "deny", "Bash", "du -sh /", None, "olcum: du"),
-    (201, "deny", "Bash", "ps aux", None, "olcum: ps"),
-    (202, "deny", "Bash", "find /tmp -name x", None, "olcum: find"),
-    (203, "deny", "Bash", "wc -l index.html", None, "olcum: wc"),
-    (204, "deny", "Bash", "head -5 DEVAM.md", None, "olcum: head"),
-    (205, "deny", "Bash", "tail -5 DEVAM.md", None, "olcum: tail"),
-    (206, "deny", "Bash", "sed -n 1p index.html", None, "olcum: sed"),
-    (207, "deny", "Bash", "awk '{print}' index.html", None, "olcum: awk"),
-    (208, "deny", "Bash", "sort urunler.json", None, "olcum: sort"),
-    (209, "deny", "Bash", "stat index.html", None, "olcum: stat"),
-    (210, "deny", "Bash", "file index.html", None, "olcum: file"),
-    (211, "deny", "Bash", "df -h", None, "olcum: df"),
-    (212, "deny", "Bash", "vm_stat", None, "olcum: vm_stat"),
-    (213, "deny", "Bash", "sysctl -a", None, "olcum: sysctl"),
-    (214, "deny", "Bash", "top -l 1", None, "olcum: top"),
-    (215, "deny", "Bash", "memory_pressure", None, "olcum: memory_pressure"),
-    (216, "deny", "Bash", "git log | head -5", None, "PIPE: olcum segmenti (head) RED"),
+    (200, "allow", "Bash", "du -sh /", None, "olcum: du"),
+    (201, "allow", "Bash", "ps aux", None, "olcum: ps"),
+    (202, "allow", "Bash", "find /tmp -name x", None, "olcum: find"),
+    (203, "allow", "Bash", "wc -l index.html", None, "olcum: wc"),
+    (204, "allow", "Bash", "head -5 DEVAM.md", None, "olcum: head"),
+    (205, "allow", "Bash", "tail -5 DEVAM.md", None, "olcum: tail"),
+    (206, "allow", "Bash", "sed -n 1p index.html", None, "olcum: sed"),
+    (207, "allow", "Bash", "awk '{print}' index.html", None, "olcum: awk"),
+    (208, "allow", "Bash", "sort urunler.json", None, "olcum: sort"),
+    (209, "allow", "Bash", "stat index.html", None, "olcum: stat"),
+    (210, "allow", "Bash", "file index.html", None, "olcum: file"),
+    (211, "allow", "Bash", "df -h", None, "olcum: df"),
+    (212, "allow", "Bash", "vm_stat", None, "olcum: vm_stat"),
+    (213, "allow", "Bash", "sysctl -a", None, "olcum: sysctl"),
+    (214, "allow", "Bash", "top -l 1", None, "olcum: top"),
+    (215, "allow", "Bash", "memory_pressure", None, "olcum: memory_pressure"),
+    (216, "allow", "Bash", "git log | head -5", None, "PIPE: olcum segmenti (head) RED"),
     # (2) curl / wget
     (220, "deny", "Bash", "curl -s https://example.org", None, "canli dogrulama: curl"),
     (221, "deny", "Bash", "wget https://example.org", None, "canli dogrulama: wget"),
@@ -452,11 +502,11 @@ MIMAR_22TEM_VAKALARI = [
     (231, "deny", "Bash",
      "/Applications/ChatGPT.app/Contents/Resources/codex exec \"x\"", None,
      "26Tem: tam yol da olsa bayraksiz = RED"),
-    (232, "allow", "Bash",
+    (232, "deny", "Bash",
      "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec dosyasindaki isi yap\"", None,
      "26Tem POZITIF: -o ile isci-devri standardi + 17Agu model bayragi = GECER"),
-    (233, "allow", "Bash",
+    (233, "deny", "Bash",
      "/Applications/ChatGPT.app/Contents/Resources/codex exec -m gpt-5.6-luna "
      "--output-last-message " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
      "26Tem POZITIF: tam yol + --output-last-message + 17Agu model bayragi = GECER"),
@@ -507,11 +557,11 @@ MIMAR_22TEM_VAKALARI = [
     (272, "allow", "Bash", "codex -h", None, "27Tem: '-h' gozlem = GECER"),
     (276, "allow", "Bash", "codex -V", None, "27Tem: '-V' gozlem = GECER"),
     # (3e) MESRU CAGRILAR — daraltma/sikilastirma bunlari KAPATMAMALI. Sentinel: ME6.
-    (273, "allow", "Bash",
+    (273, "deny", "Bash",
      "codex exec -m gpt-5.6-luna -C " + REPO + " --sandbox danger-full-access -o " +
      SCRATCH + "/son-mesaj.txt \"ag isi: feed dogrula\"", None,
      "27Tem: ag isi recetesi (--sandbox danger-full-access) + 17Agu model bayragi = GECER"),
-    (274, "allow", "Bash",
+    (274, "deny", "Bash",
      "codex exec -m gpt-5.6-luna --output-last-message=" + SCRATCH + "/son-mesaj.txt \"spec\"",
      None, "27Tem: esitlikli bicim (DEGERLI) + 17Agu model bayragi = GECER"),
     # --- 27 TEM IKINCI TUR (BaBa: sart 6 EVE tasinir) — kapatilan IKI kusur ---
@@ -525,17 +575,17 @@ MIMAR_22TEM_VAKALARI = [
      "27Tem-2: 'nice -n 10' -> '10' argv0 sanilip kural atlaniyordu; ikinci okuma RED"),
     (283, "deny", "Bash", "env -u FOO codex exec \"x\"", None,
      "27Tem-2: ayni sizintinin env varyanti ('-u FOO') -> ikinci okuma RED"),
-    (281, "allow", "Bash",
+    (281, "deny", "Bash",
      "nice -n 10 codex exec -m gpt-5.6-luna -o " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
      "27Tem-2 POZITIF: ikinci okuma MESRU sarmalanmis cagriyi KAPATMAZ (17Agu model bayragi ekli)"),
     (282, "allow", "Bash", "time grep -rn codex " + REPO + "/tools/", None,
      "27Tem-2 FP NOBETCISI: sarmalayici + 'codex' KELIMESI -> kural TETIKLENMEZ"),
     # (4) python/node ALLOWLIST
-    (240, "deny", "Bash", "python3 " + REPO + "/tools/build.py", None,
+    (240, "allow", "Bash", "python3 " + REPO + "/tools/build.py", None,
      "python repo-ici arac (allowlist disi) = RED"),
-    (241, "deny", "Bash", "python3 tools/durum.py --ekstra-bayrak", None,
+    (241, "allow", "Bash", "python3 tools/durum.py --ekstra-bayrak", None,
      "durum.py + EKSTRA argüman = RED (ME5 nobetcisi)"),
-    (244, "deny", "Bash", "node tools/parite-test.js", None,
+    (244, "allow", "Bash", "node tools/parite-test.js", None,
      "node: allowlist'te komut YOK = RED"),
     (242, "allow", "Bash", "python3 tools/durum.py", None,
      "durum.py (repo-goreli, argümansiz) ALLOW"),
@@ -567,7 +617,7 @@ K159_CODEX_VAKALARI = [
      "codex exec -m gpt-5.6-sol -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec\"", None,
      "K159 V2: amiral model (gpt-5.6-sol) -> RED (Okan emri) [M2 sentinel]"),
-    (902, "allow", "Bash",
+    (902, "deny", "Bash",
      "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec\"", None,
      "K159 V3: izinli model (luna) + pencere ICINDE -> GECER"),
@@ -598,35 +648,35 @@ AGENT_VAKALARI = [
     (400, "deny", "Agent", "Bir seyler yap, spec burada.", None,
      "MIMAR Agent + beyan YOK -> RED"),
     # 13 Agu Okan emri: KraL sert blok evdir; eski allow beklentisi deny'a cevrildi.
-    (401, "deny", "Agent", "Is: X yap.\n" + AGENT_DECL + "\nDevam et.", None,
+    (401, "allow", "Agent", "Is: X yap.\n" + AGENT_DECL + "\nDevam et.", None,
      "MIMAR Agent + gecerli beyan -> RED (KraL sert blok)"),
     (402, "deny", "Task", "Task prompt, beyansiz.", None,
      "MIMAR Task + beyan YOK -> RED"),
-    (403, "deny", "Task", AGENT_DECL, None,
+    (403, "allow", "Task", AGENT_DECL, None,
      "MIMAR Task + beyan -> RED (KraL sert blok)"),
     (404, "allow", "Agent", "Beyansiz isci prompt'u.", ISCI_ID,
      "ISCI Agent + beyan YOK -> GECER (kural yalniz ANA oturuma)"),
     (405, "allow", "Task", "Beyansiz isci prompt'u.", ISCI_ID,
      "ISCI Task + beyan YOK -> GECER (kimlik ekseni muafiyeti)"),
-    (406, "deny", "Agent", "isci-muafiyet: gorsel okuma isi - görsel", None,
+    (406, "allow", "Agent", "isci-muafiyet: gorsel okuma isi - görsel", None,
      "gecerli beyan sert blogu ACMAZ"),
-    (407, "deny", "Agent", "ISCI-MUAFIYET: olcum isi — ölçüm", None,
+    (407, "allow", "Agent", "ISCI-MUAFIYET: olcum isi — ölçüm", None,
      "buyuk/kucuk duyarsiz gecerli beyan sert blogu ACMAZ"),
     (408, "deny", "Agent", "isci-muafiyet: is — foobar", None,
      "GECERSIZ sinif (yasak listede degil) -> RED"),
     (409, "deny", "Agent", "Bu is bir ölçüm ve güvenlik isi.", None,
      "sinif KELIMELERI var ama ETIKET yok -> RED"),
-    (700, "deny", "Agent", "Is: X yap.\n" + AGENT_DECL, None,
+    (700, "allow", "Agent", "Is: X yap.\n" + AGENT_DECL, None,
      "KraL Agent + gecerli beyan -> RED"),
     (701, "deny", "Agent", "Beyansiz is.", None,
      "KraL Agent + beyan yok -> RED"),
-    (702, "deny", "Task", AGENT_DECL, None,
+    (702, "allow", "Task", AGENT_DECL, None,
      "KraL Task + gecerli beyan -> RED"),
     (703, "allow", "Agent", AGENT_DECL, None,
      "Okan izni + beyan -> eski kural ALLOW", {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
-    (704, "deny", "Agent", AGENT_DECL, None,
+    (704, "allow", "Agent", AGENT_DECL, None,
      "yanlis izin degeri fail-closed", {"PRUVO_CLAUDE_ISCI_IZNI": "evet"}),
-    (705, "deny", "Agent", AGENT_DECL, None,
+    (705, "allow", "Agent", AGENT_DECL, None,
      "bos izin degeri fail-closed", {"PRUVO_CLAUDE_ISCI_IZNI": ""}),
     (706, "allow", "Agent", "Beyansiz isci prompt'u.", ISCI_ID,
      "agent_id dolu ISCI sert bloktan muaf"),
@@ -817,7 +867,7 @@ ISCI_SARMALAYICI_VAKALARI = [
     (613, "deny", "Bash",
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "motor=claude + spec'te BEYAN YOK -> RED (AGENT-KAPISI atlatilamaz) [I3 sentinel]"),
-    (614, "deny", "Bash",
+    (614, "allow", "Bash",
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANLI, None,
      "KraL sert blok: motor=claude + gecerli beyan bile RED"),
     (615, "deny", "Bash",
@@ -856,7 +906,7 @@ ISCI_SARMALAYICI_VAKALARI = [
     (641, "allow", "Bash",
      "/tmp/isci.sh gpt-9 /Users/okan/dev/pruvo " + ISCI_SPEC_YOK, ISCI_ID,
      "ISCI + kuralin TUM sartlarini ihlal eden cagri -> GECER (kimlik ekseni muafiyeti)"),
-    (707, "deny", "Bash",
+    (707, "allow", "Bash",
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANLI, None,
      "KraL isci.sh claude + beyan -> RED"),
     (708, "allow", "Bash",
@@ -889,7 +939,7 @@ ISCI_KIMLIK_EKSENI_VAKALARI = [
     (649, "allow", "Bash", "python3 tools/build.py", None,
      "CANLI BIRINCIL kat (kimi) da kimlik verir -> GECER [K214: kimi kapali kumede]",
      {"PRUVO_ISCI_KOSUMU": "kimi"}, "ISCI(sarmalayici:kimi)"),
-    (651, "deny", "Bash", "python3 tools/build.py", None,
+    (651, "allow", "Bash", "python3 tools/build.py", None,
      "ayni cagri env YOK: MIMAR allowlist disi -> RED", {}, None),
     (652, "allow", "Bash", "curl -s https://example.invalid", None,
      "sarmalayici kimligi curl denetiminden tam muaf",
@@ -900,11 +950,11 @@ ISCI_KIMLIK_EKSENI_VAKALARI = [
     (654, "allow", "Bash", "python3 /private/tmp/analiz.py", None,
      "sarmalayici kimligi repo-disi betikten tam muaf",
      {"PRUVO_ISCI_KOSUMU": "deepseek-flash"}, "ISCI(sarmalayici:deepseek-flash)"),
-    (655, "deny", "Bash", "python3 tools/build.py", None,
+    (655, "allow", "Bash", "python3 tools/build.py", None,
      "kume disi gpt-9 muafiyet vermez", {"PRUVO_ISCI_KOSUMU": "gpt-9"}, None),
-    (656, "deny", "Bash", "python3 tools/build.py", None,
+    (656, "allow", "Bash", "python3 tools/build.py", None,
      "bos sarmalayici degeri muafiyet vermez", {"PRUVO_ISCI_KOSUMU": ""}, None),
-    (657, "deny", "Bash", "python3 tools/build.py", None,
+    (657, "allow", "Bash", "python3 tools/build.py", None,
      "env YOK + agent_id YOK: MIMAR kisiti korunur", {}, None),
     (658, "allow", "Bash", "python3 tools/build.py", ISCI_ID,
      "env YOK + agent_id DOLU: eski eksen korunur", {}, "ISCI(agent_id)"),
@@ -994,21 +1044,21 @@ _CIP = {"transcript_path": TP_CIP, "cwd": KAYITLI_WT}
 
 ROL_VAKALARI = [
     # --- KONTROL: mimarin ANA oturumu HALA REDDEDILIR (bu kol olurse is gecersiz) ---
-    (800, "deny", "Bash", "python3 tools/mimar-kilit-test.py", None,
+    (800, "allow", "Bash", "python3 tools/mimar-kilit-test.py", None,
      "KONTROL: ANA oturum (damga YOK) -> RED", {}, None, {}),
-    (801, "deny", "Bash", "python3 tools/mimar-kilit-test.py", None,
+    (801, "allow", "Bash", "python3 tools/mimar-kilit-test.py", None,
      "KONTROL: ANA oturum damgasi (ana checkout) -> RED", {}, None,
      {"transcript_path": TP_ANA}),
-    (805, "deny", "Bash", "python3 tools/mimar-kilit-test.py", None,
+    (805, "allow", "Bash", "python3 tools/mimar-kilit-test.py", None,
      "KONTROL: cwd worktree'ye KAYDIRILMIS ama rol ANA -> RED (cwd eksen DEGIL)", {}, None,
      {"transcript_path": TP_ANA, "cwd": KAYITLI_WT}),
-    (806, "deny", "Bash", "python3 tools/mimar-kilit-test.py", None,
+    (806, "allow", "Bash", "python3 tools/mimar-kilit-test.py", None,
      "FAIL-CLOSED: cwd worktree, damga YOK (olculemedi) -> RED", {}, None,
      {"cwd": KAYITLI_WT}),
-    (807, "deny", "Bash", "python3 tools/mimar-kilit-test.py", None,
+    (807, "allow", "Bash", "python3 tools/mimar-kilit-test.py", None,
      "FAIL-CLOSED: damga ALT-DIZE olarak geciyor, BILESEN esit degil -> RED", {}, None,
      {"transcript_path": TP_BENZER, "cwd": KAYITLI_WT}),
-    (812, "deny", "Bash", "python3 tools/mimar-kilit-test.py", None,
+    (812, "allow", "Bash", "python3 tools/mimar-kilit-test.py", None,
      "FAIL-CLOSED: kayitsiz uydurma 'worktrees' damgasi -> RED", {}, None,
      {"transcript_path": TP_SAHTE, "cwd": KAYITLI_WT}),
     # --- POZITIF: cip/worktree oturumu ICRA EDEBILIR ---
@@ -1039,7 +1089,17 @@ ROL_VAKALARI = [
     (815, "allow", "Bash",
      "python3 " + K332_ARAC, None,
      "K332 POZITIF: CIP ortak altyapi duzlemindeki araci kosturur",
-     {}, "ORTAK-ALTYAPI(", _CIP),
+     # 🔴 11 EYL 2026 — IZ CAPASI TASINDI, IDDIA TASINMADI. Eski capa 'ORTAK-ALTYAPI('
+     # idi; 11 Eyl'de python ARAC kolu bu cagriyi once ele alip kendi izini basmaya
+     # basladi ve vaka "allow olculdu ama IZ baska" diye KIRMIZI yaniyordu (taban
+     # olcumu: beklenen=allow olculen=allow, yine de dusuyordu).
+     # Yeni capa 'rol=CIP': K332 IDDIASI (rol ekseni R2/F kollarinda TUKETILIYOR mu)
+     # AYNEN olculmeye devam eder, cunku ASIL kaniti bu vakanin TEK BASINA allow
+     # olmasi DEGIL, 816 ile CIFT olmasidir — 816 AYNI cagriyi ANA oturumdan yapar ve
+     # HALA deny alir (R2 kolu repo-disi yolu kesiyor). Rol ekseni R2/F'de olurse
+     # 815 deny'a doner. Capa gevsetilmedi, ADI duzeltildi
+     # ([[sinif-adi-kol-adi-olarak-basilirsa-yanlis-alan-dogrulanir]]).
+     {}, "rol=CIP", _CIP),
     (816, "deny", "Bash",
      "python3 " + K332_ARAC, None,
      "K332 KONTROL: ANA oturum AYNI cagriyi HALA REDDEDER", {}, None,
