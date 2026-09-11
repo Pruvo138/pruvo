@@ -2575,6 +2575,28 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kategori-kapisi.py
 
+      # ── K408 SINIF KAPISI (11 Eyl 2026) — UCUNCU TEKRAR, tekil yama YASAK ──
+      # OLCULEN KUSUR: bu repoda bir kapi yazilip hicbir is akisina baglanmadan
+      # kalabiliyor; kosunca gercek bulgu basar ama kimse kosturmadigi icin kimse
+      # duymaz. Ayni gun UC ornek: kategori-kapisi (yukaridaki adim) · gitignore-kapisi
+      # (11 eksik + 5 fazla drift tasiyordu) · mimar-kilit-test + mimar-kapi-mutasyon-test
+      # (92+92 kirmizi biriktirmisti). Sozlesme: bir kapi/nobetci/test govdesi ya
+      # (1) bir workflow `run:` satirinda KOSAR, ya (2) ci-kapsam-test.py::IZIN_LISTESI'nde
+      # GEREKCELIDIR, ya (3) CLI'siz YARDIMCI moduldur. Dorduncu hal SESSIZ SAHIPSIZLIKTIR.
+      #
+      # 🔴 EVREN GLOB'DAN TURER, elle liste TUTULMAZ: ilk olcum yalnizca deploy.yml +
+      # nobet.yml'e bakip 34 govdeyi "sahipsiz" ilan etmisti; repoda 11 workflow dosyasi
+      # var (yayin-yasi-alarmi.yml, spec-ifsa-alarmi.yml, d1-sapma-alarmi.yml, ...) ve
+      # o govdelerin cogu ORADA kosuyordu. Dogru evrenle gercek sayi 34 degil 11.
+      # NON-GROWTH: mevcut borc kirmizi yanmaz, TABANI ASAN her YENI sahipsizlik yanar.
+      - name: "Sahipsiz kapi nobetcisi — kendini test (8 iddia + 3 kontrol + 2 mutant + META)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/sahipsiz-kapi-nobetcisi-test.py
+
+      - name: "Sahipsiz kapi nobetcisi — canli tarama (NON-GROWTH: taban asilirsa kirmizi)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/sahipsiz-kapi-nobetcisi.py
+
       # ⚠️ DORT AGIR MUTASYON BATARYASI BU JOB'DAN CIKARILDI (10 Agu 2026) — bkz.
       # asagidaki `marka-bolum-bataryasi` · `marka-sayfa-bataryasi` ·
       # `model-uyelik-bataryasi` · `model-baslik-bataryasi` joblari. SILINMEDILER,
