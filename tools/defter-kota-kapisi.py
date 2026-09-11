@@ -647,7 +647,14 @@ def hafiza_hali(sahip_var, dizin_var, dosya_var, satir, bayt, tavan_satir, tavan
     if (not dosya_var or satir is None or bayt is None
             or tavan_satir is None or tavan_bayt is None):
         return HAFIZA_OLCULEMEDI
-    if satir > tavan_satir or bayt > tavan_bayt:
+    # 🔴 11 EYL 2026 — BAYT EKSENI HUKUM VERMEZ. Anahtar TEK KAYNAKTAN okunur
+    # (`defter-kota-taban.py::BAYT_HUKUM_VERIR`); buraya ikinci bir "bayti yoksay"
+    # karari YAZILMAZ, yoksa iki eksen sessizce ayrisirdi
+    # ([[ikiz-tanim-sessiz-ayrisma]]). Gerekce ve 36-BAYT olcumu o sabitin yaninda.
+    # Bayt sayisi OLCULMEYE ve basilmaya DEVAM EDER (cagiran `bayt=` jetonunu basar).
+    if satir > tavan_satir:
+        return HAFIZA_ASILDI
+    if bayt > tavan_bayt and getattr(_mod, "BAYT_HUKUM_VERIR", True):
         return HAFIZA_ASILDI
     return HAFIZA_YESIL
 

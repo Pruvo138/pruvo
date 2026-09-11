@@ -42,6 +42,7 @@ CI-ALT-KUME: kendini-test
 """
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -140,6 +141,44 @@ def _klasik(kok):
             + os.path.join(kok, "DEVAM-ARSIV.md"))
 
 
+# === 11 EYL 2026 — GOZLENEN SEY "DENY" DEGIL, PREDIKAT ========================
+# 🔴 OKAN EMRI (11 Eyl, "tum tikayicilari kaldir"): `mimar-icra-kapisi.py`in
+# python/node ALLOWLIST kolu ARTIK REDDETMIYOR, RAPOR EDIYOR. Bu testin E2/E4/E6
+# kollari gozlenebilir olarak gate'in DENY'ini kullaniyordu; o DENY kaldirildigi an
+# dort vaka birden kirmizi yandi — ama OLCULMEK ISTENEN MEKANIZMA (ev-koklu sekil
+# tablosu + yonlendirme eki soyma) AYNEN YASIYOR.
+# CARE: gozlem noktasi bir KATMAN ASAGIYA, PREDIKATIN KENDISINE indirildi
+# (`serbest_cagrilar.eslesen_sekil`). Boylece:
+#   * ev ekseni (kok -> tablo koklendirme) OLCULMEYE DEVAM EDER,
+#   * yonlendirme soyma kolu ve onun IKI mutanti OLCULMEYE DEVAM EDER,
+#   * ve bunlarin hicbiri bir REDDETME YETKISI varsaymaz.
+# [[sinif-adi-kol-adi-olarak-basilirsa-yanlis-alan-dogrulanir]]: olculen kolun ADI
+# "predikat", "kapi karari" DEGIL — vaka basliklari da oyle yazilir.
+def _predikat(dizin, kok, komut):
+    """Izole kopyadaki `serbest_cagrilar` ile sekil eslesmesi: ALLOW | DENY.
+
+    `dizin` = _izole_kopya cikisi (capasi `kok`a cevrilmis kopya). Kapi surecini
+    baslatmaz; sekil tablosunu O KOPYADAN yukler, yani mutasyonlar AYNEN etkilidir.
+    """
+    import importlib.util as _ilu
+    _s = _ilu.spec_from_file_location(
+        "sc_izole_%d" % abs(hash(dizin)), os.path.join(dizin, "serbest_cagrilar.py"))
+    _sc = _ilu.module_from_spec(_s)
+    _s.loader.exec_module(_sc)
+
+    tokenlar = shlex.split(komut)
+    # yorumlayici adini dus (python3/node ...), kalan argumanlar sekle verilir
+    argumanlar = tokenlar[1:]
+
+    def _coz(yol, cwd):
+        if os.path.isabs(yol):
+            return os.path.normpath(yol)
+        return os.path.normpath(os.path.join(cwd, yol))
+
+    sekil = _sc.eslesen_sekil(argumanlar, _coz, kok, kok=kok)
+    return "ALLOW" if sekil is not None else "DENY"
+
+
 def _evler():
     """Kapali EV KUMESI — TEK KAYNAK kapi_dagitim.EVLER (elle liste TUTULMAZ)."""
     return [(ad, os.path.normpath(kok)) for ad, kok, _g, _m in KD.EVLER]
@@ -180,12 +219,13 @@ def e2_mutant_ev_ekseni():
          "    if True:\n        return SEKILLER\n"),
     ))
     try:
-        k = _karar(dizin, kok, _klasik(kok), _ana_damgasi(kok))
+        # PREDIKAT ekseni (gate DENY'i 11 Eyl'de kaldirildi — bkz. `_predikat` notu)
+        k = _predikat(dizin, kok, _klasik(kok))
     finally:
         shutil.rmtree(dizin, ignore_errors=True)
     if k == "ALLOW":
-        return ["E2 MUTANT OLMEDI: kok sabite dondugu halde pazarlama cagrisi "
-                "hala ALLOW — bu test EV EKSENINI OLCMUYOR."]
+        return ["E2 MUTANT OLMEDI: kok sabite dondugu halde pazarlama sekli "
+                "hala ESLESIYOR — bu test EV EKSENINI OLCMUYOR."]
     return []
 
 
@@ -210,17 +250,20 @@ def e4_yonlendirme_ters():
     damga = _ana_damgasi(kok)
     hatalar = []
     try:
-        # (a) GERCEKTEN YASAK bir arac + 2>&1 -> hala RED
+        # (a) ALLOWLIST DISI bir arac + 2>&1 -> PREDIKAT ESLESMEMELI.
+        # 🔴 NOT: kapi bunlari ARTIK REDDETMEZ (Okan 11 Eyl); olculen sey kapinin
+        # karari degil, sekil tablosunun bunlari TANIMAMASI — yani raporun "allowlist
+        # disindan kostu" diyebilmesi. Tablo bunlari tanirsa rapor da yalan olur.
         for komut in ("python3 tools/build.py 2>&1",
                       "python3 tools/build.py",
-                      # DISARIDA birakilmis bayrak + 2>&1 -> hala RED
+                      # DISARIDA birakilmis bayrak + 2>&1 -> hala ESLESMEZ
                       "python3 tools/defter-rotasyon.py --tavan-sayi 130 2>&1"):
-            k = _karar(dizin, kok, komut, damga)
+            k = _predikat(dizin, kok, komut)
             if k != "DENY":
                 hatalar.append("E4a DELINDI: %r -> %s" % (komut, k))
         # (b) DOSYA ADI TASIYAN yonlendirme normalize EDILMEMELI
         for ek in (" 2>/dev/null", " >/tmp/x.txt", " > /tmp/x.txt"):
-            k = _karar(dizin, kok, _klasik(kok) + ek, damga)
+            k = _predikat(dizin, kok, _klasik(kok) + ek)
             if k != "DENY":
                 hatalar.append("E4b DELINDI (yol tasiyan yonlendirme): %r -> %s"
                                % (ek, k))
@@ -265,9 +308,9 @@ def e6_mutant_yonlendirme():
          "    if False:\n        return argumanlar[:-1]\n"),
     ))
     try:
-        if _karar(dizin, kok, _klasik(kok) + " 2>&1", damga) == "ALLOW":
+        if _predikat(dizin, kok, _klasik(kok) + " 2>&1") == "ALLOW":
             hatalar.append("E6a MUTANT OLMEDI: soyma kolu olduruldugu halde "
-                           "2>&1 hala GECIYOR — E3 bu kolu OLCMUYOR.")
+                           "2>&1 hala ESLESIYOR — E3 bu kolu OLCMUYOR.")
     finally:
         shutil.rmtree(dizin, ignore_errors=True)
 
@@ -278,9 +321,9 @@ def e6_mutant_yonlendirme():
          '_YONLENDIRME_ARTIGI = re.compile(r"^\\d*>.*$")'),
     ))
     try:
-        if _karar(dizin, kok, _klasik(kok) + " 2>/dev/null", damga) != "ALLOW":
+        if _predikat(dizin, kok, _klasik(kok) + " 2>/dev/null") != "ALLOW":
             hatalar.append("E6b MUTANT OLMEDI: kalip genisletildigi halde "
-                           "'2>/dev/null' hala RED — E4b bu kolu OLCMUYOR.")
+                           "'2>/dev/null' hala ESLESMIYOR — E4b bu kolu OLCMUYOR.")
     finally:
         shutil.rmtree(dizin, ignore_errors=True)
     return hatalar
@@ -341,7 +384,7 @@ VAKALAR = (
     ("E1 EV EKSENI — her ev kendi defterini rotasyona sokabiliyor", e1_ev_ekseni),
     ("E2 MUTANT (pazarlama) — kok sabite donerse KIRMIZI", e2_mutant_ev_ekseni),
     ("E3 YONLENDIRME + — serbest cagri + 2>&1 geciyor", e3_yonlendirme_pozitif),
-    ("E4 YONLENDIRME - — yasak/yol tasiyan formlar hala RED", e4_yonlendirme_ters),
+    ("E4 YONLENDIRME - — yasak/yol tasiyan formlar PREDIKATTA ESLESMEZ", e4_yonlendirme_ters),
     ("E5 ONEK TUZAGI — damga en UZUN eve cozuluyor", e5_onek_tuzagi),
     ("E6 MUTANT (yonlendirme) — iki kol da olduruluyor", e6_mutant_yonlendirme),
     ("E7 TUKETICI ENVANTERI — tum okuyucular sayildi", e7_tuketici_envanteri),

@@ -2191,6 +2191,19 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/serit-beyani-mutasyon.py
 
+      # TIKAYICI KALDIRMA KABUL BATARYASI (11 Eyl 2026, Okan emri dilim 2) — mimar
+      # kapilarindan REDDETME YETKISI kalkti mi, TESHIS kaldi mi, komsu nobetciler
+      # AYNEN RED mi? 7 mutant (RED-GERI x3 · TESHIS/SAYAC-SUSTU x2 · TIRNAK-KOR ·
+      # BAYT-HUKUM-GERI · TAVAN-GERI · OLUMSUZ-KOR).
+      # 🔴 BILEREK `serit-b`DE, `deploy.yml`DE DEGIL: bu batarya bir POLITIKA kapisidir,
+      # yayin dogrulugu kapisi DEGIL. `deploy.yml`e baglamak, kirmizi yandigi gun BES
+      # EVIN YAYINI BIRDEN durdururdu ([[olculemedi-zaten-bagli-kapida-yayin-durdurur]] —
+      # 7 Eyl'de olculmus desen). `serit-b` `deploy.needs` listesinde DEGILDIR
+      # (bu dosyanin 2371/2469 satirlarindaki beyan), yani rc=1 yayini BLOKLAMAZ.
+      - name: "Tikayici kaldirma kabul bataryasi (mimar kapilari + defter kotalari)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/tikayici-kaldirma-test.py
+
       - name: "Shop bayatlik kapisi mutasyon bataryasi (wrangler.toml OKUR, CLI degil)"
         if: ${{ !cancelled() }}
         run: python3 tools/shop-bayatlik-mutasyon.py

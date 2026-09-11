@@ -1009,14 +1009,24 @@ GEREKCE_SONU = (
     "(ör. tools/mimar-kilit-test.py'ye vaka ekletip 'python3 tools/mimar-kilit-test.py' "
     "ile kapat). Uzun hali: işi MÜHENDİS/USTA/MARABA'ya ya da emekli motor'e DELEGE et (Agent aracı: "
     "model opus/sonnet + isolation worktree + background) ve kabul testini ona YAZDIR; "
-    "(b) TEST/ÖLÇÜM/CANLI DOĞRULAMA koşumu (parite, build, filament, curl, " +
-    olcum_komut_metni() + ", node --check ...) mimarın DEĞİL işçinin işidir — spec'e "
+    "(b) CANLI DOĞRULAMA koşumu (curl/wget) mimarın DEĞİL işçinin işidir — spec'e "
     "çalıştırılabilir KABUL TESTİ yaz, mühendis repoya koysun, işçi koştursun. "
     "SERBEST (mimar eliyle): git (status/diff/log/merge-base/merge/commit/push/worktree), "
-    "gh, ls, grep, jq, echo, cat; python YALNIZ şunlar: " + serbest_python_metni() +
+    "gh, ls, grep, jq, echo, cat; "
+    # 🔴 11 EYL 2026 — METIN KARARLA BIRLIKTE DEGISTI (K320 SINIF KURALI):
+    # olcum komutlari (" + olcum_komut_metni() + ") ve python3/node ARAC kosumu
+    # ARTIK REDDEDILMIYOR, o yuzden bu metinden de DUSTU. Metni guncellemeden
+    # kararı gevsetmek tam olarak K320'nin olctugu arizaydi: makine izin verirken
+    # metin "yasak" der, mimar METNE inanip yolu kullanmaz
+    # ([[kapi-red-metni-ikinci-kopyadir]]).
+    "ÖLÇÜM/TARAMA komutları (" + olcum_komut_metni() + ") ve python3/node ARAÇ "
+    "koşumu 11 Eyl 2026'dan beri ANA oturumda da SERBESTTİR (Okan emri: "
+    "\"tüm tıkayıcıları kaldır\") — kapı onları yalnızca stderr'e RAPOR eder. "
+    "Referans olarak allowlist'teki kanonik çağrı şekilleri: " +
+    serbest_python_metni() +
     "; /.claude/worktrees/ içinden çalışan işçi oturumları. "
-    "(27 Ağu K318 — ROL EKSENİ: bu son madde artık ÖLÇÜLÜYOR. Çip/worktree oturumunda "
-    "ölçüm komutları, curl ve python3/node ARAÇ koşumu SERBESTTİR; ana oturumda kapalıdır. "
+    "(27 Ağu K318 — ROL EKSENİ ÖLÇÜLMEYE DEVAM EDER ve stderr'e yazılır; 11 Eyl'den "
+    "sonra ölçüm/python kollarında rol KARAR DEĞİŞTİRMEZ, yalnızca RAPORLANIR. "
     "Rol, oturum damgasından okunur — `cd <worktree>` rolü DEĞİŞTİRMEZ.)"
 )
 
@@ -1645,11 +1655,28 @@ def main():
         # Bu uc kural her SEGMENT icin kosar; 'git log | head -5' -> ikinci segment 'head'
         # (segmentlere_ayir '|'den boler) -> RED. Kimlik ekseni degismedi: ISCI cagrilari
         # main() basinda zaten muaf, bu blok yalniz MIMAR'da kosar.
-        if ad in OLCUM_KOMUTLARI and not cip:
-            reddet(
-                "ölçüm / dosya-tarama komutu (" + ad + "). Boyut, sayım, arama, içerik "
-                "dökme, sıralama — bunlar İŞÇİNİN işidir; mimar okur, karar verir, ÖLÇTÜRÜR."
-            )
+        # === 11 EYL 2026 — OLCUM/TARAMA YASAGI KALDIRILDI (OKAN EMRI) ============
+        # 🔴 OKAN (11 Eyl, birebir): "tum tikayicilari kaldir". KALDIRILAN SEY
+        # REDDETME YETKISIDIR, OLCUM DEGIL: kol ARTIK RAPOR EDER, REDDETMEZ.
+        #
+        # OLCULEN ARIZA (bu kapinin kendi kopyasina dogrudan cagriyla, 11 Eyl):
+        #   `sed -n '1,5p' DEVAM.md`  -> deny (olcum/dosya-tarama komutu (sed))
+        #   `wc -lc DEVAM.md`         -> deny (wc)
+        #   `grep -n x DEVAM.md | head -25` -> deny (head; grep serbest, boruyu
+        #                                       ikinci segment yakiyordu)
+        # HICBIRI IS BASLATMIYORDU — hepsi OLCUMDU. Sonuc: bu oturumda her olcum
+        # bir CIPE donustu (pahali kat + yavas tur) ve Okan'in sikayetinin dogrudan
+        # sebebi oldu. Ustune olculmus TERS TESVIK (K87): ayni kapi ucuz kata is
+        # verme yolunu da repo-disi diye reddediyordu -> acik kalan tek yol PAHALI
+        # Claude iscisiydi. "Kimse m3 kullanmiyor"un mekanizmasi budur.
+        #
+        # 🔴 ROL EKSENI VE RAPOR SATIRI KALIR — SILINMEZ: rol ekseni silinirse
+        # gelecekte hicbir sey olculemez ([[kenar-tetikli-kol-seviye-sorusunu-
+        # cevaplayamaz]] sinifi). Kim / hangi rol / hangi komut sinifi HER cagrida
+        # stderr'e yazilir, cikis 0.
+        if ad in OLCUM_KOMUTLARI:
+            iz_bas("OLCUM-SERBEST rol=" + ("CIP" if cip else "ANA") +
+                   " sinif=OLCUM/TARAMA komut=" + ad)
         if ad in ("curl", "wget") and not cip:
             reddet(
                 "ağ / canlı doğrulama komutu (" + ad + "). Canonical URL, feed, deploy "
@@ -1713,16 +1740,33 @@ def main():
             # F (betik repo ICINDE mi) cipte de kosar. 'continue' yazmak, cipe
             # 'python3 -c ...' ve 'python3 /private/tmp/x.py' yollarini acardi —
             # o bir GEVSETME olurdu, kapsam duzeltmesi degil (vaka 808/809).
-            if not cip:
-                reddet(
-                    "python3/node ile bir araç/test koşturuyorsun (" + ad + " " +
-                    (" ".join(argumanlar[:3]))[:70] + "). Mimar tarafında SERBEST python "
-                    # 🔴 METIN, KARARLA AYNI EVE baglanir: karar ArTisT'in agacina
-                    # gore verilip metin KraL'in yollarini basarsa metin yine ikinci
-                    # kopyadir ([[kapi-red-metni-ikinci-kopyadir]]).
-                    "çağrıları YALNIZ şunlar: " + serbest_python_metni(ev_kok) +
-                    ". Parite/build/filament/node --check ... = İŞÇİNİN işi."
-                )
+            # === 11 EYL 2026 — PYTHON/NODE ARAC KOSUMU ANA OTURUMDA DA SERBEST ===
+            # 🔴 OKAN EMRI (11 Eyl): "tum tikayicilari kaldir". ALLOWLIST ARTIK
+            # REDDETMEZ, RAPOR EDER. Olculen ariza (11 Eyl, dogrudan cagri):
+            #   `python3 tools/kutu-arsivle.py --durum` -> deny (allowlist disi)
+            # Yani kapi, MIMARIN KENDI DEFTER ARACINI kosturmasini engelliyordu;
+            # engellenen sey bir ICRA degil bir OLCUMDU.
+            # 🔴 ALLOWLIST YAPISI SILINMEDI (`serbest_cagrilar.SEKILLER` + K320 tek
+            # kaynak turetimi AYNEN DURUYOR): allowlist DISI cagri artik RED degil
+            # RAPOR uretir, boylece "hangi arac allowlist disindan kostu" olculebilir
+            # kalir. Yapiyi silmek red metnini turetim kaynagindan koparirdi.
+            #
+            # ⚠️ ASAGI DUSEN KOLLAR AYNEN KOSAR (bu bir GEVSETME DEGIL, kapsam
+            # duzeltmesidir — `continue` BILEREK YAZILMADI): C (satir-ici kod
+            # -c/-e/stdin), R2 (argumanlarda repo DISI yol), F (betik repo ICINDE mi),
+            # A2 (yorumlayiciya env ile kod enjeksiyonu). Yani `python3 -c ...` ve
+            # repo disi betik cagrisi ANA oturumda da KAPALI KALIR.
+            # 🔴 RAPOR, KARARLA AYNI EVE BAGLANIR ([[kapi-red-metni-ikinci-kopyadir]]):
+            # allowlist DISINDAN kosan cagrida, O EVIN kanonik serbest cagri sekilleri
+            # `serbest_python_metni(ev_kok)` ile TURETILIP basilir. Ev argumanini
+            # dusurmek metni ikinci bir kopyaya cevirirdi — karar ArTisT'in agacina
+            # gore verilip metin KraL'in yollarini basardi. Nobetci: E7
+            # (`tools/serbest-kume-ev-ekseni-test.py`).
+            iz_bas("PY-ARAC-SERBEST rol=" + ("CIP" if cip else "ANA") +
+                   " sinif=PYTHON/NODE-ARAC komut=" + ad + " arg=" +
+                   (" ".join(argumanlar[:3]))[:70] +
+                   " | bu evin kanonik serbest sekilleri: " +
+                   serbest_python_metni(ev_kok)[:300])
 
         # B) Surum/yardim: zararsiz (python/node yukarida ele alindi; bu satir sh vb. icin)
         if argumanlar and argumanlar[0] in SURUM_BAYRAKLARI:

@@ -96,6 +96,44 @@ def indeks_yaz(dizin, bolumler, hedefleri_yarat=True):
     return yol
 
 
+# === 11 EYL 2026 — FIKSTURLER TAVANI SAHIPTEN TURETIR (SAYI YAZILMAZ) ==========
+# 🔴 OLCULEN ARIZA (bu batarya bugun ANA=0 / DAL=1 ile kirmizi yandi): ASILDI kovasinin
+# fiksturleri (`duz_bolumler(8, 50)`) tavani BAYT ekseninden asiyordu. Okan'in 11 Eyl
+# karariyla BAYT ekseni HUKUM VERMEZ oldu (`defter-kota-taban.py::BAYT_HUKUM_VERIR`)
+# ve satir tavani 45 -> 500'e cikti; fikstur bir anda TAVAN ALTINDA kaldi, uc kova ve
+# iki mutant SESSIZCE olcumsuzlasti. Sinif: [[batarya-cevresi-degisince-sessizce-olur]].
+# CARE: fikstur tavani SAHIPTEN OKUR ve ondan TURETIR — bir daha sayi degisince
+# kendiliginden uyar. `indeks_yaz` bolumleri "\n\n" ile birlestirir, yani
+# N bolum ~= 2N-1 satir; asmak icin tavanin biraz USTUNE cikilir.
+def _sahip_tavanlari():
+    """(tavan_satir, tavan_bayt) — hafiza-indeks-arsivle.py'den OKUNUR, YAZILMAZ."""
+    import importlib.util as _ilu
+    _s = _ilu.spec_from_file_location(
+        "_hafiza_sahip_fikstur", os.path.join(TOOLS, "hafiza-indeks-arsivle.py"))
+    _m = _ilu.module_from_spec(_s)
+    _s.loader.exec_module(_m)
+    return _m.VARSAYILAN_TAVAN_SATIR, _m.VARSAYILAN_TAVAN_BAYT
+
+
+def satir_asan_bolumler(pay=60, girdi_sayisi=1, onek=""):
+    """SATIR eksenini (canli HUKUM ekseni) KESIN asan bolum listesi."""
+    tavan_satir, _tb = _sahip_tavanlari()
+    bolum = (tavan_satir + pay) // 2 + 1
+    return duz_bolumler(bolum, girdi_sayisi, onek=onek)
+
+
+def bayt_asan_satir_altinda_bolumler():
+    """BAYT ekseninden asan ama SATIR ekseninin ALTINDA kalan liste.
+
+    Yeni sozlesmenin vakasi: bu girdi YESIL olmalidir (bayt HUKUM VERMEZ).
+    """
+    tavan_satir, tavan_bayt = _sahip_tavanlari()
+    # az bolum (satir az) + bol girdi (bayt cok)
+    bolum = max(2, min(8, tavan_satir // 8))
+    girdi = (tavan_bayt // max(1, bolum)) // 30 + 40
+    return duz_bolumler(bolum, girdi)
+
+
 def duz_bolumler(bolum_sayisi, girdi_sayisi, onek="", kuyruk_uzunlugu=28):
     """Sade, TASINABILIR girdilerden olusan bolum listesi."""
     out = []
@@ -402,19 +440,43 @@ def kapi_kovalari():
     rc, ham = kapi_kos(kok, ix4)
     olc("KOVA HAFIZA_YESIL rc=0", rc == 0 and "HAFIZA_YESIL" in ham, "rc=%d" % rc)
 
-    # 5) HAFIZA_ASILDI rc1 — tavan ustu, tasinabilir is VAR
+    # 5) SATIR tavani ustu -> BLOKLAR (rc=1) + CARE satiri.
+    # 🔴 OLCULEN YAPISAL OLGU (11 Eyl, tahmin DEGIL): bu indeks bicimimde her satir bir
+    # BOLUM BASLIGIDIR ve basliklar KORUMALIDIR, yani rotasyon SATIR sayisini
+    # DUSUREMEZ (`yapisal_taban_satir` = mevcut satir sayisi). Bu yuzden SATIR ekseninde
+    # tavan asimi `HAFIZA_ASILDI` (= "onarilabilir asim") kovasina DUSMEZ; aracin hukmu
+    # `TAVAN_FAIL_LOUD` olur ve kapi onu `HAFIZA_HUKUM_ALINAMADI` ile BLOKLAR.
+    # Bu, bayt ekseninin hukumden cikarilmasinin DOGRUDAN SONUCUDUR ve ADIYLA yazilir:
+    # eski `HAFIZA_ASILDI` kovasi yapisi geregi BIR BAYT EKSENI kovasiydi (bayt, satir
+    # silmeden kuculebilir; satir kucultulemez).
+    # 🔴 BLOKAJ OLCULMEYE DEVAM EDIYOR: rc=1 ve "olcemedim YESIL DEGILDIR" kolu AYNEN.
+    # `HAFIZA_ASILDI` kovasinin KENDISI saf fonksiyon duzeyinde olculur
+    # (`tools/tikayici-kaldirma-test.py` :: "hafiza: satir USTUNDE -> HAFIZA_ASILDI").
     d5 = gecici_dizin("kova-asildi")
-    ix5 = indeks_yaz(d5, duz_bolumler(8, 50))
+    ix5 = indeks_yaz(d5, satir_asan_bolumler())
     rc, ham = kapi_kos(kok, ix5)
-    olc("KOVA HAFIZA_ASILDI rc=1 + CARE satiri",
-        rc == 1 and "HAFIZA_ASILDI" in ham and "CARE:" in ham
-        and "hafiza-indeks-arsivle.py" in ham, "rc=%d" % rc)
+    olc("KOVA SATIR tavani ustu -> rc=1 + CARE (yapisal taban: satir DUSURULEMEZ)",
+        rc == 1 and "HAFIZA_YESIL" not in ham and "CARE:" in ham
+        and "hafiza-indeks-arsivle.py" in ham
+        and "HAFIZA_HUKUM_ALINAMADI" in ham, "rc=%d" % rc)
 
-    # 6) HAFIZA_TAVAN_USTU_KORUMA_NEDENIYLE rc0
+    # 5b) 🔴 YENI SOZLESME (11 Eyl): BAYT ustu + SATIR altinda -> YESIL.
+    # Bu vaka tam olarak Okan'in kaldirdigi tikayiciyi olcer: eskiden burada
+    # HAFIZA_ASILDI yanar ve evin TUM commit'i kilitlenirdi.
+    d5b = gecici_dizin("kova-bayt-ustu-yesil")
+    ix5b = indeks_yaz(d5b, bayt_asan_satir_altinda_bolumler())
+    rc, ham = kapi_kos(kok, ix5b)
+    _ts, _tb = _sahip_tavanlari()
+    _bayt = int(jeton(ham, "bayt=") or -1)
+    _satir = int(jeton(ham, "satir=") or -1)
+    olc("KOVA BAYT ustu + SATIR altinda -> HAFIZA_YESIL rc=0 (bayt HUKUM VERMEZ)",
+        rc == 0 and "HAFIZA_YESIL" in ham and _bayt > _tb and _satir <= _ts,
+        "rc=%d satir=%d/%d bayt=%d/%d" % (rc, _satir, _ts, _bayt, _tb))
+
+    # 6) HAFIZA_TAVAN_USTU_KORUMA_NEDENIYLE rc0 — SATIR tavanini asan, TAMAMI
+    # korumali (🔴) girdiler: arac isi KASITLI olarak yapmaz, kapi bloklamaz.
     d6 = gecici_dizin("kova-koruma")
-    kirmizi = [("🔴 Etiket %03d" % n, "hedef-%03d.md" % n, " — " + "dolgu " * 6)
-               for n in range(1, 260)]
-    ix6 = indeks_yaz(d6, [("Kapilar", kirmizi)])
+    ix6 = indeks_yaz(d6, satir_asan_bolumler(onek="🔴 "))
     rc, ham = kapi_kos(kok, ix6)
     olc("KOVA HAFIZA_TAVAN_USTU_KORUMA_NEDENIYLE rc=0",
         rc == 0 and "HAFIZA_TAVAN_USTU_KORUMA_NEDENIYLE" in ham, "rc=%d" % rc)
@@ -423,14 +485,17 @@ def kapi_kovalari():
     sessiz = izole_kopya("sessiz")
     with open(os.path.join(sessiz, "tools", "hafiza-indeks-arsivle.py"),
               "w", encoding="utf-8") as f:
-        f.write("VARSAYILAN_TAVAN_BAYT = 16384\n"
-                "VARSAYILAN_TAVAN_SATIR = 45\n"
-                "HAFIZA_VARSAYILAN = '/olmayan/MEMORY.md'\n"
+        # 🔴 Tavanlar SAHIPTEN turetilir, elle YAZILMAZ: bu stub'a 45 yazmak
+        # bataryaya ikinci bir tavan kopyasi sokar ve sayi degisince yine bayatlar.
+        _st, _sb = _sahip_tavanlari()
+        f.write("VARSAYILAN_TAVAN_BAYT = %d\n" % _sb
+                + "VARSAYILAN_TAVAN_SATIR = %d\n" % _st
+                + "HAFIZA_VARSAYILAN = '/olmayan/MEMORY.md'\n"
                 "ARSIV_VARSAYILAN = '/olmayan/MEMORY-ARSIV.md'\n"
                 "import sys\n"
                 "if __name__ == '__main__':\n    sys.exit(0)\n")
     d7 = gecici_dizin("kova-hukumsuz")
-    ix7 = indeks_yaz(d7, duz_bolumler(8, 50))
+    ix7 = indeks_yaz(d7, satir_asan_bolumler())
     rc, ham = kapi_kos(sessiz, ix7)
     olc("KOVA HAFIZA_HUKUM_ALINAMADI rc=1 (olcemedim YESIL DEGILDIR)",
         rc == 1 and "HAFIZA_HUKUM_ALINAMADI" in ham, "rc=%d" % rc)
@@ -460,23 +525,32 @@ def mutantlar():
     toplam = 0
 
     # --- M1: tavani SAHIPTEN degil KODA GOMULU kopyadan oku ----------------
+    # 🔴 11 EYL: mutant BAYT turetmesine nisanliydi; bayt artik HUKUM VERMEDIGI icin
+    # o capa OLU bir kola bakiyordu (yamasi uygulaniyor ama vaka renk DEGISTIRMIYOR
+    # -> mutant "olmedi" gorunuyordu). Nisan CANLI HUKUM eksenine, yani SATIR
+    # turetmesine alindi ([[mutant-capasi-giris-noktasinin-okumadigi-degerde-olmez]]).
     toplam += 1
     kok = izole_kopya("m1")
     yamala(kok, "defter-kota-kapisi.py",
-           "    tavan_bayt = _mod.hafiza_tavan_bayt(mod)",
-           "    tavan_bayt = 999999  # M1: koda gomulu IKINCI kopya")
+           "    tavan_satir = _mod.hafiza_tavan_satir(mod)",
+           "    tavan_satir = 999999  # M1: koda gomulu IKINCI kopya")
     d = gecici_dizin("m1")
-    ix = indeks_yaz(d, duz_bolumler(8, 50))
+    ix = indeks_yaz(d, satir_asan_bolumler())
     rc_m, ham_m = kapi_kos(kok, ix)
     kok_t = izole_kopya("m1-taban")
     rc_t, ham_t = kapi_kos(kok_t, ix)
-    oldu = (rc_t == 1 and "HAFIZA_ASILDI" in ham_t
+    # Olcut: TABAN asimi GORUR ve BLOKLAR (rc=1, yesil DEGIL); mutant asimi
+    # GORMEZ ve GECIRIR (rc=0 + HAFIZA_YESIL). Kova ADI olcute girmez — asim
+    # SATIR ekseninde yapisal olarak HUKUM_ALINAMADI'ya duser (bkz. kova 5 notu);
+    # olculen sey "tavan sahipten mi okunuyor", kovanin adi DEGIL
+    # ([[sinif-adi-kol-adi-olarak-basilirsa-yanlis-alan-dogrulanir]]).
+    oldu = (rc_t == 1 and "HAFIZA_YESIL" not in ham_t
             and rc_m == 0 and "HAFIZA_YESIL" in ham_m)
     olen += 1 if oldu else 0
     olc("M1 tavan koda gomulu kopyadan okununca ASIM GORUNMEZ olur "
-        "(hedef kol: defter-kota-taban.hafiza_tavan_bayt turetmesi)",
+        "(hedef kol: defter-kota-taban.hafiza_tavan_satir turetmesi)",
         oldu, "taban rc=%d/%s  mutant rc=%d/%s"
-        % (rc_t, "ASILDI" if "HAFIZA_ASILDI" in ham_t else "?",
+        % (rc_t, "BLOKLADI" if "HAFIZA_YESIL" not in ham_t else "YESIL",
            rc_m, "YESIL" if "HAFIZA_YESIL" in ham_m else "?"))
 
     # --- M2: koruma kontrolunu KALDIR --------------------------------------
@@ -548,16 +622,25 @@ def mutantlar():
     yamala(kok4, "defter-kota-kapisi.py",
            "    HAFIZA_ASILDI: 1,\n    HAFIZA_YESIL: 0,",
            "    HAFIZA_ASILDI: 0,\n    HAFIZA_YESIL: 1,")
-    d4 = gecici_dizin("m4")
-    ix4 = indeks_yaz(d4, duz_bolumler(8, 50))
+    # 🔴 11 EYL — OLCUT REACHABLE KOLA TASINDI: eski olcut "ASILDI gecer" kolunu da
+    # istiyordu, ama `HAFIZA_ASILDI` SATIR ekseninde entegrasyon yoluyla ARTIK
+    # URETILEMIYOR (kova 5 notu: satir yapisal olarak dusurulemez). Olcut o yuzden
+    # YESIL koluna nisanlandi — CANLI ve REACHABLE: yesil bir indeks, rc tablosu
+    # ters cevrilince BLOKLAMALIDIR. ASILDI satirinin rc'si ise TABLODAN DOGRUDAN
+    # okunarak korunur (ucuz yapisal nobet; ters cevirmeyi yine yakalar).
     ix4y = indeks_yaz(gecici_dizin("m4-yesil"), duz_bolumler(3, 5))
-    rc_a, _ = kapi_kos(kok4, ix4)
-    rc_y, _ = kapi_kos(kok4, ix4y)
-    oldu = (rc_a == 0 and rc_y == 1)
+    rc_y, ham_y = kapi_kos(kok4, ix4y)
+    import importlib.util as _ilu4
+    _s4 = _ilu4.spec_from_file_location("kapi_rc_tablosu", KAPI)
+    _k4 = _ilu4.module_from_spec(_s4)
+    _s4.loader.exec_module(_k4)
+    asildi_rc_dogru = _k4.HAFIZA_RC[_k4.HAFIZA_ASILDI] == 1
+    oldu = (rc_y == 1 and asildi_rc_dogru)
     olen += 1 if oldu else 0
-    olc("M4 rc tablosu tersine cevrilince ASILDI gecer / YESIL bloklar "
-        "(hedef kol: HAFIZA_RC -> cikis kodu)",
-        oldu, "asildi_rc=%d (0 mutant) yesil_rc=%d (1 mutant)" % (rc_a, rc_y))
+    olc("M4 rc tablosu tersine cevrilince YESIL indeks BLOKLAR "
+        "(+ ASILDI rc=1 tablodan dogrulandi) (hedef kol: HAFIZA_RC -> cikis kodu)",
+        oldu, "yesil_rc=%d (1 mutant bekleniyor) asildi_rc_tablo=%s"
+        % (rc_y, _k4.HAFIZA_RC[_k4.HAFIZA_ASILDI]))
 
     # --- M5: su seviyesi yerine TAVANA kadar in (K353 arizasi) -------------
     toplam += 1
@@ -615,8 +698,14 @@ def main():
         not ihlaller, "ihlal=%s" % (ihlaller or "yok"))
     # KONTROL-2 — hafiza tavanlari nobetin IZLEDIGI kumede (turetildi, yazilmadi)
     esikler = kapi.izlenen_esikler(KOK)
+    # 🔴 BEKLENEN DEGERLER SAHIPTEN TURETILIR (11 Eyl): burada `45` yazili duruyordu
+    # ve tavan 500'e cikinca vaka kirmizi yandi — bu satirin kendisi ikinci bir tavan
+    # kopyasiydi ([[ikiz-tanim-sessiz-ayrisma]]). Olculen sey "sahibin sayisi izlenen
+    # kumede mi", sayinin KAC oldugu DEGIL.
+    _st, _sb = _sahip_tavanlari()
     olc("KONTROL-2 hafiza tavanlari SAHIPTEN turetilip izlenen kumeye girdi",
-        16384 in esikler and 45 in esikler, "izlenen=%s" % sorted(esikler))
+        _sb in esikler and _st in esikler,
+        "izlenen=%s bekleniyor satir=%d bayt=%d" % (sorted(esikler), _st, _sb))
 
     dusen = 0
     gecen = 0
