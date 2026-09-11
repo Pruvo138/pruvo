@@ -2,6 +2,12 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔴🔴 11 EYL — **OKAN HÜKMÜ: OKAN KAPISI = YALNIZ PARA ve ŞİFRE** (önceki "deploy/yetki/panel" tanımı GEÇERSİZ)
+Okan birebir: *"ödeme veya şifre ile ilgili ise; böyle saçma işler için değil — sadece para ve şifre bana ait, bunu her yere kaydet."* ⇒ **panel tıkı · deploy/enable anahtarı · yetki-dışı ayar ekranı MİMARINDIR, sorulmaz YAPILIR**; karşılığında kabul testini de mimar koşar. Doğuran vaka: 301'de Enable tıkını Okan'a bıraktım, teknik engel YOKTU — durduran kendi geniş tanımımdı. Yazıldığı yerler: `memory/okan-kapisi-sadece-para-ve-sifre.md` + `MEMORY.md` + `AGENTS.md`(=CLAUDE.md) + skill `kral-yordam` ⑥ (iki yer) + ortak kutu (filo duyurusu). Kardeş evler kendi CLAUDE.md'lerini daraltacak. ⚠️ Ayrı katman olarak DURAN tek şey: üçüncü tarafa DIŞA mesaj öncesi onay (Okan kapısı etiketi DEĞİL).
+
+## ✅ 11 EYL — **KALICI 301 CANLIDA: `GERCEK_3XX=5/5`** (29 Tem'den beri açık kalem KAPANDI)
+Kural `beyaz-esya-kapsam-301` **Enabled** (tıkı Okan attı), liste `pruvo_beyaz_esya_301` Active/5 redirect. `python3 tools/cf-bulk-yonlendirme.py --dogrula` → **5/5, rc=0**; taban **0/5**. 5 `Location` tabloyla birebir, 5 hedef **200**. Artık canonical+meta-refresh yerine gerçek 301 var.
+
 ## 🟢 11 EYL — SIRADAKİ TEK İŞ **YAPILDI: KALICI 301 panelde KURULU, TEK TIK Okan'da**
 Okan: *"sen sayfayı hazırla ben son tıklamayı yaparım."* Panel turu koşuldu (ana oturum-12). **CF hesabı `dbbe…` → Delivery & performance → Bulk redirects:** liste **`pruvo_beyaz_esya_301`** (5 redirect, Status **Active**) + kural **`beyaz-esya-kapsam-301`** (Associated List bağlı, Enabled **Disabled** — "Save as Draft" ile). **OKAN'IN TEK TIKI:** kural satırındaki `…` menüsünden **Enable**. Sonrası otomatik.
 🔴 **API YOLU KAPALI, ÖLÇÜLDÜ (öncül çürüdü — "token yetkisi ister" varsayımı doğrulandı ve ADIYLA sayıldı):** hem `.cf-token` hem wrangler OAuth `/accounts/{id}/rules/lists` ve `.../rulesets/phases/http_request_redirect/entrypoint` uçlarında **HTTP 403**. Bu yüzden panel elle sürüldü. `--kur` kolunun çalışması için token'a `Account Filter Lists: Edit` + `Account Rulesets: Edit` eklenmeli (token kapsamı = OKAN KAPISI, acil DEĞİL — panel yolu işe yaradı).
