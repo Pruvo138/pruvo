@@ -81,16 +81,32 @@ req(path.join(KOK, "secenekler.js"));
 // Mutasyon harness'i gecici AYNAYA yazar ve bu degiskenle hedef gosterir.
 const KAYNAK_YOL = process.env.PRUVO_INDEX_KAYNAK || path.join(BURASI, "..", "src", "index.js");
 const TOML_YOL = process.env.PRUVO_SHOP_TOML || path.join(BURASI, "..", "wrangler.toml");
+// 🟢 12 Eyl 2026 — TERK_ESIK_SAAT/TERK_KAYNAK_DURUM/TERK_SEBEP `shop/src/terk-sabit.js`'e
+// tasindi (workerd giris modulundeki adli exportlari reddediyor, olculdu). Bu yuzden sabit
+// degerlerini ve TANIM kaynagini ayrik modulden okuruz; index.js govdesinin TERK_ESIK_SAAT
+// adini import ile kullanmaya devam ettigini ve sayiyi gommedigini ayri bir iddia olcer.
+const SABIT_KAYNAK_YOL = process.env.PRUVO_TERK_SABIT_KAYNAK || path.join(BURASI, "..", "src", "terk-sabit.js");
 
 let MODUL = null;
 let MODUL_HATA = "";
+let SABIT = null;
+let SABIT_HATA = "";
 try {
   MODUL = await import(url.pathToFileURL(KAYNAK_YOL).href);
 } catch (e) {
   MODUL_HATA = "index.js import: " + ((e && e.message) || e);
 }
+try {
+  SABIT = await import(url.pathToFileURL(SABIT_KAYNAK_YOL).href);
+} catch (e) {
+  SABIT_HATA = "terk-sabit.js import: " + ((e && e.message) || e);
+}
 if (!MODUL) {
   console.error("❌ OLCULEMEDI — " + MODUL_HATA);
+  process.exit(3);
+}
+if (!SABIT) {
+  console.error("❌ OLCULEMEDI — " + SABIT_HATA);
   process.exit(3);
 }
 
@@ -497,7 +513,7 @@ console.log("\n--- 2) SAYAC: terkSupur() donusu ---");
   ol("s", "iptal = 1", r.iptal === 1, JSON.stringify(r));
   ol("s", "ulasilamadi = 1", r.ulasilamadi === 1, JSON.stringify(r));
   ol("s", "degisen = 2 (odendi + iptal)", r.degisen === 2, JSON.stringify(r));
-  ol("s", "esik_saat sayaca RAPORLANIR", r.esik_saat === MODUL.TERK_ESIK_SAAT, JSON.stringify(r));
+  ol("s", "esik_saat sayaca RAPORLANIR", r.esik_saat === SABIT.TERK_ESIK_SAAT, JSON.stringify(r));
   // 🔒 GIZLILIK: sayac Cloudflare Logs'a basilir. Metin tasiyan TEK alan `esik` (ISO damgasi);
   // geri kalan HER alan SAYIDIR. Boylece ad/tel/eposta/adres/token/siparis_no yapisal olarak
   // giremez — "PII kelimesi arama" degil, ALAN TIPI kapisi.
@@ -602,18 +618,22 @@ console.log("\n--- 5) TOKENSIZ eski 'bekliyor' -> fail-closed ---");
 console.log("\n--- 6) TEK SABIT + cron kablolamasi ---");
 {
   const kaynak = fs.readFileSync(KAYNAK_YOL, "utf8");
+  const sabitKaynak = fs.readFileSync(SABIT_KAYNAK_YOL, "utf8");
+  // 🟢 12 Eyl 2026 — sabit `terk-sabit.js`'ten import edilir; burada AD degeri (number) hala
+  // TEK KAYNAK'tan (sabit modulunden) okunur, "TANIMLI" iddiasi yeni dosyaya nisanlanir.
+  // "ADIYLA okur / sayi GOMULU DEGIL" iddiasi index.js govdesinde AYNEN korunur.
   ol("j", "esik DISA ACIK TEK SABIT (TERK_ESIK_SAAT)",
-    typeof MODUL.TERK_ESIK_SAAT === "number" && MODUL.TERK_ESIK_SAAT > 0,
-    String(MODUL.TERK_ESIK_SAAT));
+    typeof SABIT.TERK_ESIK_SAAT === "number" && SABIT.TERK_ESIK_SAAT > 0,
+    String(SABIT.TERK_ESIK_SAAT));
   // "koda serpme" yasagi: esik SAYISI yalniz sabitin TANIMINDA gecmeli; supurme govdesi
   // sabiti ADIYLA okumali. `24` sayisinin `* 3600 * 1000` gibi bir hesapta ikinci kez
   // gorunmesi tam da yasaklanan sey olurdu.
-  const esikTanimi = new RegExp("TERK_ESIK_SAAT\\s*=\\s*" + MODUL.TERK_ESIK_SAAT + "\\s*;");
-  ol("j", "esik sabiti kaynakta TANIMLI", esikTanimi.test(kaynak));
+  const esikTanimi = new RegExp("TERK_ESIK_SAAT\\s*=\\s*" + SABIT.TERK_ESIK_SAAT + "\\s*;");
+  ol("j", "esik sabiti terk-sabit.js kaynaginda TANIMLI", esikTanimi.test(sabitKaynak));
   const govde = kaynak.slice(kaynak.indexOf("export async function terkSupur"));
   ol("j", "supurme govdesi esigi ADIYLA okur (sayi GOMULU DEGIL)",
     govde.indexOf("TERK_ESIK_SAAT") >= 0 &&
-    !new RegExp("[^_a-zA-Z0-9]" + MODUL.TERK_ESIK_SAAT + "\\s*\\*").test(govde));
+    !new RegExp("[^_a-zA-Z0-9]" + SABIT.TERK_ESIK_SAAT + "\\s*\\*").test(govde));
   ol("j", "'havale-bekliyor' supurme govdesinde HEDEF olarak GECMEZ",
     !/durum\s*=\s*'havale-bekliyor'/.test(govde) &&
     govde.indexOf("\"havale-bekliyor\"") < 0);

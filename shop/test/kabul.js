@@ -1884,16 +1884,39 @@ async function test19DurumMakinesi() {
   }
   const g6 = await yonetIstek("POST", "/durum", { siparis_no: "PR-000000-000000-YOK", durum: "iptal" });
   if (g6.kod !== 404) { hatalar.push("bilinmeyen siparis: " + g6.kod + " (404 olmali)"); }
-  // geriye gecis izinsiz: uretimde -> odendi
+  // 🔴 12 EYL 2026 — BU BLOK BAYATTI ve 23 gun GORUNMEDI (harness BOOT edemiyordu).
+  // Eski hali "uretimde -> odendi = 400" bekliyordu; o kural K284 (f0b48630, 24 Agu 2026)
+  // ile DEGISTI: `yonet.js::ODENDI_GERI_ALMA = ["uretimde","kargolandi","tamamlandi"]`.
+  // Gerekce kaynakta yazili: bu durumlardaki siparis ZATEN odenmisti, 'odendi'ye donmek
+  // yalan URETMEZ, yanlis ilerletmeyi geri alir. Test artik SOZLESMEYI olcer.
+  // (a) GERI ALMA IZINLI: uretimde -> odendi = 200
   const g7 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "odendi" });
-  if (g7.kod !== 400) { hatalar.push("uretimde->odendi: " + g7.kod + " (400 olmali)"); }
-  // D1 dogrulama + durum_gecmisi izi
+  if (g7.kod !== 200) {
+    hatalar.push("geri alma (uretimde->odendi): " + g7.kod + "/" + g7.govde.hata + " (200 olmali)");
+  }
+  // (b) 🔴 TAHSILAT YALANI CAPASI — geri alma kapisi GENISLEMESIN: 'odendi' YALNIZ
+  // ODENDI_GERI_ALMA kumesindeki bir durumdan secilebilir. Taze 'bekliyor' siparis
+  // (hic odenmemis) o kumede DEGIL -> elle 'odendi' REDDEDILMELI. Bu satir silinirse
+  // ODENDI_GERI_ALMA'ya "bekliyor" eklenmesi hicbir kirmizi yakmaz.
+  const cOde = await baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
+  const noOde = (cOde.govde || {}).no;
+  const g7b = await yonetIstek("POST", "/durum", { siparis_no: noOde, durum: "odendi" });
+  if (g7b.kod !== 400 || g7b.govde.hata !== "odeme-durumu-elle-setlenemez") {
+    hatalar.push("odenmemis bekliyor->odendi: " + g7b.kod + "/" + g7b.govde.hata +
+                 " (400/odeme-durumu-elle-setlenemez olmali)");
+  }
+  // (c) test 20 'uretimde' bir siparis kargolar (kargoGecisiGecerli TEK kaynak) -> geri sar.
+  const g7c = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "uretimde" });
+  if (g7c.kod !== 200) { hatalar.push("odendi->uretimde geri sarma: " + g7c.kod); }
+  // D1 dogrulama + durum_gecmisi izi (5 gecis: uretimde, tamamlandi, uretimde, odendi, uretimde;
+  // reddedilen hedefler gecmise YAZILMAZ — bu da ayri bir iddiadir)
   const s = d1Sorgu("SELECT durum, durum_gecmisi FROM siparisler WHERE siparis_no = '" + no + "'")[0] || {};
   let gecmis = [];
   try { gecmis = JSON.parse(s.durum_gecmisi || "[]"); } catch (e) { gecmis = []; }
-  if (s.durum !== "uretimde" || gecmis.length !== 2 ||
-      gecmis[0].d !== "odendi" || gecmis[1].d !== "uretimde" || !gecmis[1].z) {
-    hatalar.push("D1/gecmis: " + JSON.stringify(s).slice(0, 160));
+  const bekGecmis = ["uretimde", "tamamlandi", "uretimde", "odendi", "uretimde"];
+  if (s.durum !== "uretimde" || gecmis.length !== bekGecmis.length ||
+      gecmis.some((k, i) => k.d !== bekGecmis[i] || !k.z)) {
+    hatalar.push("D1/gecmis: " + JSON.stringify(s).slice(0, 200));
   }
   // her durum -> iptal (ikinci taze siparis uzerinde: bekliyor -> iptal)
   const c2 = await baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
@@ -1946,12 +1969,19 @@ async function test20Kargo(no) {
   // kargolandi -> tamamlandi (zincirin sonu)
   const g = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "tamamlandi" });
   if (g.kod !== 200) { hatalar.push("kargolandi->tamamlandi: " + g.kod); }
-  // tamamlandi -> odendi izinsiz (spec ornegi)
+  // 🔴 12 EYL 2026 — eski satir "tamamlandi -> odendi = 400" bekliyordu; K284'ten
+  // (f0b48630, 24 Agu) beri 'tamamlandi' de ODENDI_GERI_ALMA kumesinde, yani 200.
+  // Kumeyi DARALTAN bir degisiklik bu satiri kirmizi yakar (capa budur); GENISLETEN
+  // degisiklik test 19 (b) satirinda yanar.
   const g2 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "odendi" });
-  if (g2.kod !== 400) { hatalar.push("tamamlandi->odendi: " + g2.kod + " (400 olmali)"); }
+  if (g2.kod !== 200) {
+    hatalar.push("geri alma (tamamlandi->odendi): " + g2.kod + "/" + g2.govde.hata + " (200 olmali)");
+  }
+  const s2 = d1Sorgu("SELECT durum FROM siparisler WHERE siparis_no = '" + no + "'")[0] || {};
+  if (s2.durum !== "odendi") { hatalar.push("geri alma D1'e yazilmadi: " + JSON.stringify(s2)); }
   rapor("20 kargo ucu", hatalar.length === 0,
     "D1 " + JSON.stringify(s) + "; musteri e-postasi takip koduyla gitti; " +
-    "tamamlandi zinciri OK; tamamlandi->odendi RED" +
+    "tamamlandi zinciri OK; tamamlandi->odendi GERI ALMA izinli (K284)" +
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 

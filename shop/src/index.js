@@ -43,6 +43,10 @@ import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
 import { biletUret, biletDogrula } from "./olcum-bilet.js";
 import { refKaydet, REF_KALIBI } from "./ref.js";
+// 🟢 ADLI EXPORT YASAGI: workerd giris modulundeki adli exportlari `function or
+// ExportedHandler` sanip reddediyor (olculdu 12 Eyl 2026, wrangler 4.131.1). Bu sabitler
+// ayrik modulde durur; burada SADECE local binding olarak okunur, RE-EXPORT EDILMEZ.
+import { TERK_ESIK_SAAT, TERK_KAYNAK_DURUM, TERK_SEBEP } from "./terk-sabit.js";
 
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi — fiyat kurali tek kaynagi yok"); }
@@ -1081,7 +1085,8 @@ export async function odemeHukmu(env, ctx, token, siparis, secenek) {
  * riskini buyutur — ve o satir zaten `retrieve` ile DOGRULANDIGI icin iptal degil 'odendi'
  * olur; yine de sabiti buyuk tutmak hatanin maliyetini dusurur.
  */
-export const TERK_ESIK_SAAT = 24;
+// TERK_ESIK_SAAT — `shop/src/terk-sabit.js`'ten import edilir (adli export yasagi, workerd
+// her adli export'i potential entrypoint sanip reddediyor; olculdu 12 Eyl 2026).
 
 /**
  * 🔴 SUPURMENIN DOKUNABILECEGI TEK DURUM. Beyaz liste tektir ve TEK YERDE yazilidir:
@@ -1092,10 +1097,10 @@ export const TERK_ESIK_SAAT = 24;
  *   - 'odendi' ve sonrasi (uretimde/kargolandi/tamamlandi), 'iptal', 'incele', 'basarisiz'
  *     de kapsam DISIDIR.
  */
-export const TERK_KAYNAK_DURUM = "bekliyor";
+// TERK_KAYNAK_DURUM — `shop/src/terk-sabit.js`'ten import edilir (adli export yasagi).
 
 /** `durum_gecmisi` kaydina dusen MAKINE-OKUNUR sebep (yonet.js gecmiseEkle -> {"s":"terk"}). */
-export const TERK_SEBEP = "terk";
+// TERK_SEBEP — `shop/src/terk-sabit.js`'ten import edilir (adli export yasagi).
 
 /** Bir cron turunda islenecek satir sayisi; artani sonraki tur alir. Amac tur suresini ve
  *  D1 yazma yukunu olculu tutmak. */
