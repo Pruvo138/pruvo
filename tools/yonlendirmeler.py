@@ -63,6 +63,7 @@ STUB_SABLON = u"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+{ga_head}
 <title>%(hedef_baslik)s — PRUVO</title>
 <link rel="canonical" href="%(hedef_url)s">
 <meta http-equiv="refresh" content="0; url=%(hedef_url)s">
@@ -105,14 +106,21 @@ def dogrula(content_pages):
     return hatalar, len(YONLENDIRMELER)
 
 
-def stub_html(eski_slug, content_pages, site):
-    """Eski slug icin yonlendirme sayfasinin HTML'i."""
+def stub_html(eski_slug, content_pages, site, ga_head):
+    """Eski slug icin yonlendirme sayfasinin HTML'i.
+
+    `ga_head` = build.py::GA_HEAD_SNIPPET (ZORUNLU arguman, varsayilani YOK: unutulursa
+    build fail-closed coker). 🔴 13 Eyl 2026: sablon `{ga_head}` capasi TASIMIYORDU ve
+    tools/reklam-etiket-kapisi.py (serit-b) 71f99576'dan beri KIRMIZI yakiyordu — stub
+    ziyaretleri etiketsiz, yani olcum disi cikiyordu. Capa %-bicimlemesinden SONRA
+    yerlestirilir: snippet icindeki `%` karakterleri bicimlemeyi kirmasin.
+    """
     basliklar = {slug: baslik for slug, baslik, _m, _f in content_pages}
     hedef = hedef_haritasi()[eski_slug]
-    return STUB_SABLON % {
+    return (STUB_SABLON % {
         "hedef_url": site + "/" + hedef + "/",
         "hedef_baslik": basliklar[hedef],
-    }
+    }).replace("{ga_head}", ga_head, 1)
 
 
 def dizinler():

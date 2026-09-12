@@ -405,17 +405,44 @@ def _gruba_karsilik_satir(yol, satirlar, grup_no):
 # --------------------------------------------------------------------------
 # KURU KOSUM — mimar-icra-kapisi'na receteyi PreToolUse JSON olarak yolla.
 # --------------------------------------------------------------------------
-def kuru_karar(komut):
+def _icra_ev_koku(icra_yol=None):
+    """mimar-icra-kapisi'nin KENDI ev koku sabiti (`REPO_ONEKI`) — TEK KAYNAK.
+
+    🔴 13 EYL 2026 — KURU SORGU KOSUCUNUN DISKINE CAPALIYDI. Payload `cwd: REPO` idi ve
+    REPO bu dosyanin bulundugu klondur. Mac'te klon ev onekinin ICINDE oldugu icin goreli
+    recete (defter-kota-kapisi'nin KISA FORM'u, `tools/defter-rotasyon.py ...`) ALLOW;
+    CI kosucusunda (/home/runner/work/pruvo/pruvo) AYNI recete "repo DISINA cozulen yol"
+    diye DENY aldi: serit-b run 34716723870 REDDEDILEN=1, ayni SHA'da Mac REDDEDILEN=0
+    ([[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]]). Kapinin sordugu
+    soru "bu receteyi MIMAR kendi evinde kosarsa icra kapisi gecirir mi?"dir; o sorunun
+    cwd'si icra kapisinin KENDI ev onekidir. Sabit buraya KOPYALANMAZ, kapi dosyasindan
+    okunur; okunamazsa None doner ve cagiran fail-closed RED sayar.
+    """
+    try:
+        with open(icra_yol or ICRA, encoding="utf-8") as f:
+            m = re.search(r'^REPO_ONEKI\s*=\s*"([^"]+)"', f.read(), re.M)
+    except OSError:
+        return None
+    return m.group(1).rstrip("/") if m else None
+
+
+def kuru_karar(komut, cwd=None):
     """mimar-icra-kapisi'na komutu 'mimar' PreToolUse olarak yolla; karari don.
 
     Cagri:  python3 tools/mimar-icra-kapisi.py
     stdin: HerBir recete komutu bir PreToolUse JSON'u olarak. Komut 'python3 ...'
            ise arac 'Bash' + command=komut.
+    cwd:   None -> icra kapisinin ev koku (`_icra_ev_koku`). Baska kok YALNIZ kendini-test
+           K3'un "kosucu klonu" bacagi icindir.
     Donus: ('allow'|'deny', gerekce_ilk200).
     """
+    kok = cwd or _icra_ev_koku()
+    if not kok:
+        return ("CALISTIRILAMADI",
+                "icra kapisinin REPO_ONEKI sabiti okunamadi (fail-closed)")
     payload = {
         "session_id": "recete-kapisi-kuru",
-        "cwd": REPO,
+        "cwd": kok,
         "permission_mode": "default",
         "hook_event_name": "PreToolUse",
         "tool_name": "Bash",
@@ -858,19 +885,35 @@ def kendini_test():
         for bulgu in dosyada_receteler(os.path.join(TOOLS, ad)):
             if "--yaz" in bulgu[0] and bulgu[3] is not None:
                 k2 = False
-    kontrol_gecen = int(k1) + int(k2)
+    # K3: EV KOKU CAPASI (13 Eyl 2026) — ayni GORELI recete icra kapisinin ev kokunde
+    # ALLOW, bir kosucu klonunda (CI yolu) DENY almali. IKI BACAK BIRLIKTE: yalniz ALLOW
+    # bacagi, cwd'yi hic okumayan bir kapiyla da yesil yanardi; yalniz DENY bacagi da
+    # "kuru_karar varsayilani yine REPO'ya dondu" mutantini Mac'te gormezdi. Olculmus
+    # ariza: serit-b run 34716723870 REDDEDILEN=1 (CI), ayni SHA Mac REDDEDILEN=0.
+    k3 = False
+    kisa = next((b[0] for b in dosyada_receteler(defter)
+                 if b[0].startswith("python3 tools/defter-rotasyon.py") and b[3] is None),
+                None)
+    if kisa:
+        k3_ev = kuru_karar(kisa)[0]
+        k3_klon = kuru_karar(kisa, cwd="/home/runner/work/pruvo/pruvo")[0]
+        k3 = k3_ev == "allow" and k3_klon == "deny"
+    kontrol_gecen = int(k1) + int(k2) + int(k3)
     print("M1 %s M2 %s M3 %s M4 %s" % ("OK" if m1 else "KIRMIZI",
                                         "OK" if m2 else "KIRMIZI",
                                         "OK" if m3 else "KIRMIZI",
                                         "OK" if m4 else "KIRMIZI"))
     print("K1 %s K2 %s" % ("OK" if k1 else "KIRMIZI", "OK" if k2 else "KIRMIZI"))
+    print("K3 %s — goreli kisa recete=%s ev=%s klon=%s" % (
+        "OK" if k3 else "KIRMIZI", "VAR" if kisa else "YOK",
+        k3_ev if kisa else "-", k3_klon if kisa else "-"))
     if not M5_ICINDE:
         print("M5 %s — %s" % ("OK" if m5 else "KIRMIZI", m5_not))
     # Self-test özeti de ana kapı özetiyle aynı dört ölçüyü taşır.
-    print("RECETE=%d REDDEDILEN=%d AYIKLANAMADI=%d EVREN=%d MUTANT=%d/%d KONTROL=%d/2" % (
+    print("RECETE=%d REDDEDILEN=%d AYIKLANAMADI=%d EVREN=%d MUTANT=%d/%d KONTROL=%d/3" % (
         len(bulgular), red, ayik, len(bulgular), mutant_gecen, beklenen_mutant,
         kontrol_gecen))
-    return 0 if v_gecti and mutant_gecen == beklenen_mutant and kontrol_gecen == 2 else 1
+    return 0 if v_gecti and mutant_gecen == beklenen_mutant and kontrol_gecen == 3 else 1
 
 
 def _dogrudan_kapi_test(komut):

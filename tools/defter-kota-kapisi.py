@@ -1089,8 +1089,24 @@ def _kendini_test():
     # Turkce 'ş' UTF-8'de 2 bayt, 1 karakter. Byte > tavan, karak < tavan.
     # Karak kolu ile sayinca YESIL; byte kolu ile sayinca KIRMIZI.
     fikstur = _fikstur_turkce(TAVAN_BAYT + 200)
+    # ONCUL (13 Eyl 2026): fikstur M4'u ancak (satir <= tavan) ∧ (bayt > tavan) ∧
+    # (karakter <= tavan) ∧ (mutantsiz yardimci KIRMIZI) iken olcer. Biri kayarsa M4
+    # "mutant yesil kaldi mi" sorusunu DEGIL fiksturun boyunu olcer — tavan 500'e cikinca
+    # tam olarak bu oldu ve kimse gormedi. Oncul bozuksa M4 ADIYLA duser.
+    with open(fikstur["yol"], "rb") as _f:
+        _ham = _f.read()
+    _oncul_hata = []
+    if len(_ham.splitlines()) > TAVAN_SATIR:
+        _oncul_hata.append("satir>tavan")
+    if len(_ham) <= TAVAN_BAYT:
+        _oncul_hata.append("bayt<=tavan")
+    if len(_ham.decode("utf-8")) > TAVAN_BAYT:
+        _oncul_hata.append("karakter>tavan")
+    if _olcule_yardimci(fikstur["yol"])[2] != 1:
+        _oncul_hata.append("mutantsiz-yesil")
     satir, bayt, rc = _olcule_yardimci(fikstur["yol"], byte_yerine_karakter=True)
-    sonuclar.append(("M4 KARAK", rc == 0,
+    sonuclar.append(("M4 KARAK", rc == 0 and not _oncul_hata,
+                      "oncul=%s " % (",".join(_oncul_hata) or "TAMAM") +
                       "satir=%d bayt=%d rc=%d (mutant yesil; 0 beklenir)" % (satir, bayt, rc)))
     _fikstur_sil(fikstur)
 
@@ -1204,10 +1220,18 @@ def _fikstur_turkce(bayt_hedef):
 
     Satir sayisi TAVAN_SATIR'in ALTINDA tutulur ki satir ekseni M4 icin
     yalniz bayt eksenindeki fark gorulsun; byte > tavan, char < tavan.
+
+    🔴 BOYUT `bayt_hedef`TEN TURER, TAVAN_SATIR'DAN DEGIL (13 Eyl 2026). Eski govde
+    `satir = TAVAN_SATIR - 30` idi ve `bayt_hedef` argumanini HIC OKUMUYORDU. Tavan 130
+    iken 100 satir = 16.100 bayt / 8.100 karakter (karakter tavan 12.288'in ALTINDA);
+    tavan 500'e cikinca (6ed952f8) 470 satir = 75.670 bayt / 38.070 karakter oldu,
+    karakter sayisi da tavani asti ve M4 fiksturun ONCULU yuzunden olculemez hale geldi
+    (serit-b run 34716723870: "M4 KARAK satir=470 bayt=75670 rc=1"). Oncul artik M4'te
+    AYRICA olculur (`_turkce_oncul`) — bir sonraki tavan degisikligi sessiz gecmez.
     """
     import tempfile
-    satir = max(1, TAVAN_SATIR - 30)  # TAVAN_SATIR-30 = 100
-    # 80 'ş' + newline = 160 + 1 = 161 bayt/satir
+    # 80 'ş' + newline = 160 + 1 = 161 bayt/satir, 81 karakter/satir
+    satir = max(1, -(-bayt_hedef // 161))
     icerik = ("ş" * 80 + "\n") * satir
     fd, yol = tempfile.mkstemp(suffix=".md", prefix="k178-fikstur-tr-")
     with os.fdopen(fd, "wb") as f:

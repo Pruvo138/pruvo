@@ -328,6 +328,26 @@ WORKTREE_NOBETI = os.path.join(KOK, "tools", "worktree-tavan-nobeti.py")
 
 NOBET_KAPISI = os.path.expanduser("~/.claude/cron/nobet-kapi.py")
 
+# 🔴 KAPSAM_DISI — UCUNCU HAL, KOSUCUYA OZEL (13 Eyl 2026). K5 iki EV-DISI dosya okur
+# (~/.claude/cron). CI kosucusunda o dizin HIC YOKTUR; kol OLCULEMEDI donuyordu ve main
+# `olculemedi`yi cikis koduna kattigi icin batarya CI'da DOGDUGU GUNDEN kirmiziydi
+# (serit-b run 34716723870: D2 67/67, D1 6/7 GECTI, TOPLAM=1 = yalniz K5). Kirmizisi hic
+# okunmayan kol kapi degildir. Ayrim UC SARTA civili; biri eksikse OLCULEMEDI kalir:
+# (1) GITHUB_ACTIONS=true  (2) dosya YOK  (3) UST DIZIN de YOK. Mac'te dosya silinirse
+# (1) tutmaz -> OLCULEMEDI -> rc=1; kosucuda dizin var ama dosya yoksa (3) tutmaz -> rc=1.
+# Emsal: nobet-sayac-durustluk-test (ayni dizin, ayni ayrim) · kutu-esik-kapisi M8.
+# Ucu de kalem_ci_kapsam_kos() vakalariyla ADIYLA olculur.
+KAPSAM_DISI = "KAPSAM_DISI"
+_ORTAM_YAMA = None  # yalniz kalem_ci_kapsam_kos() doldurur, finally'de geri alir
+
+
+def ci_kapsam_disi(yol, ortam=None):
+    if ortam is None:
+        ortam = os.environ if _ORTAM_YAMA is None else _ORTAM_YAMA
+    return (ortam.get("GITHUB_ACTIONS") == "true"
+            and not os.path.exists(yol)
+            and not os.path.isdir(os.path.dirname(yol)))
+
 
 def _metin(yol):
     try:
@@ -426,8 +446,14 @@ def k5_tur_tavani(mutant=None):
     nobet = _metin(NOBET_KAPISI)
     satirlar = []
     if bekci is None:
+        if ci_kapsam_disi(BEKCI):
+            return KAPSAM_DISI, ["    | KAPSAM_DISI: CI kosucusu, ev-disi dizin YOK (%s)"
+                                 % os.path.dirname(BEKCI)]
         return None, ["    | OLCULEMEDI: %s okunamadi" % BEKCI]
     if nobet is None:
+        if ci_kapsam_disi(NOBET_KAPISI):
+            return KAPSAM_DISI, ["    | KAPSAM_DISI: CI kosucusu, ev-disi dizin YOK (%s)"
+                                 % os.path.dirname(NOBET_KAPISI)]
         return None, ["    | OLCULEMEDI: %s okunamadi" % NOBET_KAPISI]
     if mutant == "MUT-ASILMA-KESICI-SILINDI":
         # ① ZAMAN eksenli asilma kesicisi SUSTURULUR (baska dosyada).
@@ -662,9 +688,17 @@ def mutant_bataryasi():
     print("=" * 78)
     gecen = 0
     kor = []
+    kapsam_disi = []
     for mut, hedef in sorted(MUTANT_HEDEFI.items()):
         fn = dict((a, f) for a, _b, f in KOLLAR)[hedef]
         ok, _s = fn(mutant=mut)
+        if ok == KAPSAM_DISI:
+            # Hedef kolun okudugu ev-disi dosya bu kosucuda YOK: mutant uygulanacak metin
+            # YOKTUR. "Kor kol" DEGIL, "olculecek govde yok"tur — ayri sayilir, ADIYLA basilir.
+            kapsam_disi.append(mut)
+            print("  MUTANT %-28s hedef=%s  ->  KAPSAM_DISI (ev-disi dosya yok)"
+                  % (mut, hedef))
+            continue
         yandi = (ok is False)
         print("  MUTANT %-28s hedef=%s  ->  %s"
               % (mut, hedef, "KIRMIZI (dogru)" if yandi
@@ -674,8 +708,9 @@ def mutant_bataryasi():
         else:
             kor.append(mut)
     print("")
-    print("MUTANT=%d/%d  KOR=%s" % (gecen, len(MUTANT_HEDEFI),
-                                    ",".join(kor) or "-"))
+    print("MUTANT=%d/%d  KOR=%s  KAPSAM_DISI=%s"
+          % (gecen, len(MUTANT_HEDEFI) - len(kapsam_disi), ",".join(kor) or "-",
+             ",".join(kapsam_disi) or "-"))
     return kor
 
 
@@ -1376,6 +1411,44 @@ def kalem5_kos():
 
 
 
+def kalem_ci_kapsam_kos():
+    """KC — K5'in KAPSAM_DISI ayrimi UC SARTA civili mi (13 Eyl 2026).
+
+    Soru "bu satiri silsem hangi iddia kirmizi yanar?": GITHUB_ACTIONS sarti silinirse
+    KC-2 (Mac'te dosya silindi -> yine OLCULEMEDI olmali), ust-dizin sarti silinirse KC-3,
+    k5 icindeki KAPSAM_DISI dali silinirse KC-4 ADIYLA duser. Yama globallere uygulanir
+    ve finally'de GERI alinir; hicbir gercek dosya olusturulmaz/silinmez (yalniz mkdtemp).
+    """
+    global BEKCI, NOBET_KAPISI, _ORTAM_YAMA
+    yok_dizin = os.path.join(tempfile.gettempdir(), "pruvo-kc-yok-%d" % os.getpid(), "cron")
+    yok_bekci = os.path.join(yok_dizin, "isci-tur-bekcisi.py")
+    ci = {"GITHUB_ACTIONS": "true"}
+    s1 = ci_kapsam_disi(yok_bekci, ci)
+    kaydet("KC-1 CI + ev-disi dizin YOK -> KAPSAM_DISI", s1 is True, s1, True)
+    s2 = ci_kapsam_disi(yok_bekci, {})
+    kaydet("KC-2 yerel + dizin YOK -> KAPSAM_DISI DEGIL (OLCULEMEDI)", s2 is False, s2, False)
+    d = tempfile.mkdtemp(prefix="pruvo-kc-")
+    try:
+        s3 = ci_kapsam_disi(os.path.join(d, "isci-tur-bekcisi.py"), ci)
+        kaydet("KC-3 CI + dizin VAR, dosya YOK -> KAPSAM_DISI DEGIL", s3 is False, s3, False)
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+    eski = (BEKCI, NOBET_KAPISI, _ORTAM_YAMA)
+    try:
+        BEKCI = yok_bekci
+        NOBET_KAPISI = os.path.join(yok_dizin, "nobet-kapi.py")
+        _ORTAM_YAMA = ci
+        ok_ci, _s = k5_tur_tavani()
+        _ORTAM_YAMA = {}
+        ok_yerel, _s2 = k5_tur_tavani()
+    finally:
+        BEKCI, NOBET_KAPISI, _ORTAM_YAMA = eski
+    kaydet("KC-4 K5 kolu · CI + ev-disi YOK -> KAPSAM_DISI", ok_ci == KAPSAM_DISI,
+           ok_ci, KAPSAM_DISI)
+    kaydet("KC-5 K5 kolu · yerel + ev-disi YOK -> OLCULEMEDI (None)", ok_yerel is None,
+           ok_yerel, None)
+
+
 # ==============================================================================
 # BIRLESTIRILMIS MAIN — DILIM 1 KOL + DILIM 2 KALEM, AYRI AYRI BAS, OZET TOPLA
 # ==============================================================================
@@ -1395,15 +1468,24 @@ def main(argv=None):
     print("=" * 100)
     kirmizi = []
     olculemedi = []
+    kapsam_disi_kol = []
     for ad, baslik, fn in KOLLAR:
         if a.kol and ad != a.kol:
             continue
         ok, satirlar = fn(mutant=a.mutant)
-        hal = "GECTI" if ok else ("OLCULEMEDI" if ok is None else "KUSUR")
+        # KAPSAM_DISI bir DIZGEDIR (truthy): dogruluk testinden ONCE yakalanmazsa GECTI
+        # diye basilirdi — ucuncu hal ikinci hale sessizce yutulurdu.
+        if ok == KAPSAM_DISI:
+            hal = KAPSAM_DISI
+            kapsam_disi_kol.append(ad)
+        else:
+            hal = "GECTI" if ok else ("OLCULEMEDI" if ok is None else "KUSUR")
         print("KOL %s %s: %s" % (ad, baslik, hal))
         for s in satirlar:
             print(s)
-        if ok is None:
+        if ok == KAPSAM_DISI:
+            pass
+        elif ok is None:
             olculemedi.append(ad)
         elif not ok:
             kirmizi.append(ad)
@@ -1411,6 +1493,9 @@ def main(argv=None):
     print("")
     print("D1 KIRMIZI=%s · OLCULEMEDI=%s · KOL SAYISI=%d"
           % (",".join(kirmizi) or "-", ",".join(olculemedi) or "-", kol_sayisi))
+    if kapsam_disi_kol:
+        print("D1 KAPSAM_DISI=%s (CI kosucusu; ev-disi dosya dizini YOK — cikis koduna KATILMAZ)"
+              % ",".join(kapsam_disi_kol))
 
     # --- DILIM 2: MIMAR KAPILARI KALEMLERI (M1..M4) ---
     if a.mutant is None and not a.mutant_bataryasi and not a.kol:
@@ -1425,6 +1510,7 @@ def main(argv=None):
         kalem3_kos()
         kalem4_kos()
         kalem5_kos()
+        kalem_ci_kapsam_kos()
         gecen = sum(1 for s in sonuclar if s[1])
         for ad, gecti, olculen, beklenen, notu in sonuclar:
             print("%s  %-62s olculen=%-28s beklenen=%s%s"

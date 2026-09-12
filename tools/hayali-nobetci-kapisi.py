@@ -80,7 +80,15 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #       yalanci koruma cumlesi ("nobetci foo.py'dir") bu kapinin MENZILINDE DEGILDIR.
 #       Genisletilmedi cunku ciplak ad ekseni SAHTE KIRMIZI uretiyordu (olculdu: normal
 #       Turkce cumlelerdeki "test.py"/"kapisi.py" parcalari 18 hedefe sisiyordu).
-TAVAN = 2
+#   gunluk-motor-raporu (gunluk-motor-raporu-kabul.py:30)  — EV-DISI HEDEF: dosya
+#       ~/.claude/cron'da VAR ve bataryanin oznesidir. 13 Eyl 2026'da hukum ekseni depo
+#       icine civilenince (bkz. arama_kokleri) AYRI kalem olarak SAYILDI.
+# 🔴 2 -> 3 BIR YUKSELTME DEGIL, EKSEN DUZELTMESIDIR: kume YENI ad kazanmadi. Ayni SHA
+#    (26104ea9) CI kosucusunda bu uc ad ZATEN HAYALI sayiliyordu (HAYALI_HEDEF=3, serit-b
+#    run 34716723870); 2, Mac'in cron dizinini goren TEK ortamda olculmustu. Yeni eksende
+#    iki ortam AYNI sayiyi (3) verir; herhangi bir yeni hayali atif iki ortamda da 4>3 ile
+#    ayni gun KIRMIZI yanar. Ev-disi etiketi her HAYALI satirinda basilir.
+TAVAN = 3
 
 ROL_SOZCUKLERI = ("nobetci", "nöbetçi", "nobetcide", "nobetciye", "nobetcisi", "nobetcidir",
                   "nobetcinin", "kabul testi", "batarya", "mutasyonlu")
@@ -91,10 +99,38 @@ JETON = re.compile(r"(?:`(?:tools/)?([A-Za-z0-9_][A-Za-z0-9_.-]*\.py)`"
 
 
 def arama_kokleri(kok):
-    """Bir nobetci tools/ DISINDA da yasayabilir — cozucu dar olursa SAHTE KIRMIZI basar."""
+    """HUKUM kokleri — YALNIZ depo ici. Bir nobetci tools/ DISINDA da yasayabilir (repo
+    koku, shop/, onizleme/) — cozucu bundan dar olursa SAHTE KIRMIZI basar.
+
+    🔴 13 EYL 2026 — EV-DISI KOKLER HUKUMDEN CIKTI, RAPORA INDI (`ev_disi_kokleri`).
+    Eski kume ~/.claude/cron + sabah-teslim'i de iceriyordu: hukum KOSUCUNUN DISKINE
+    capaliydi. Olculdu, ayni SHA: Mac HAYALI_HEDEF=2 (YESIL), CI kosucusu HAYALI_HEDEF=3
+    (KIRMIZI, serit-b run 34716723870); fark tek ad, cron'da yasayan gunluk-motor-raporu.
+    TAVAN Mac'te olculup konmustu -> kapi DOGDUGU GUNDEN beri CI'da kirmiziydi ve kirmizisi
+    okunmuyordu ([[iki-kollu-govde-tek-sabite-capalanirsa-kosucunun-diskini-olcer]]).
+    Ev-disi bir dosyanin varligini CI kosucusu AYIRT EDEMEZ; iki ortamda AYNI sayiyi veren
+    tek eksen depo eksenidir. Ev-disi durum her HAYALI satirina ETIKET olarak basilir.
+    """
     return (os.path.join(kok, "tools"), kok, os.path.join(kok, "shop"),
-            os.path.join(kok, "onizleme"), os.path.expanduser("~/.claude/cron"),
+            os.path.join(kok, "onizleme"))
+
+
+def ev_disi_kokleri():
+    """RAPOR kokleri (hukum VERMEZ): depo DISINDA yasayan nobetci adresleri.
+    HAYALI_EV_DISI_KOKLER (os.pathsep ayrik) yalniz kendini-test fiksturu icindir."""
+    ortam = os.environ.get("HAYALI_EV_DISI_KOKLER")
+    if ortam is not None:
+        return tuple(k for k in ortam.split(os.pathsep) if k)
+    return (os.path.expanduser("~/.claude/cron"),
             os.path.expanduser("~/.claude/cron/sabah-teslim"))
+
+
+def ev_disi_etiketi(ad):
+    """VAR (ev-disi kokte bulundu) · YOK (kok var, dosya yok) · KOK_YOK (kosucu: kok hic yok)."""
+    kokler = [k for k in ev_disi_kokleri() if os.path.isdir(k)]
+    if not kokler:
+        return "KOK_YOK"
+    return "VAR" if any(os.path.exists(os.path.join(k, ad)) for k in kokler) else "YOK"
 
 
 def metin_satirlari(yol):
@@ -172,7 +208,8 @@ def main(argv):
     hedefler = sorted({h for h, _ in ihlaller})
     for h in hedefler:
         yerler = [y for hh, y in ihlaller if hh == h]
-        print("HAYALI %-42s %d atif  %s" % (h, len(yerler), " ".join(yerler)))
+        print("HAYALI %-42s %d atif  %s" % (h, len(yerler), " ".join(yerler))
+              + "  EV_DISI=" + ev_disi_etiketi(h))
     for ad in ayristirilamayan:
         print("AYRISTIRILAMADI %s (OLCULEMEDI — tokenize coktu)" % ad)
     print("")
@@ -307,9 +344,13 @@ def _kopya_kur(dizin, eski=None, yeni=None):
     return yol
 
 
-def _kos(kapi_yolu, fikstur_kok):
+def _kos(kapi_yolu, fikstur_kok, ev_disi=None):
+    ortam = dict(os.environ)
+    # Fikstur kosumu ev-disi kokleri DAIMA acikca alir: Mac'in ~/.claude/cron'u fikstur
+    # hukmune sizmasin (bos dize = ev-disi kok YOK).
+    ortam["HAYALI_EV_DISI_KOKLER"] = ev_disi if ev_disi is not None else ""
     proc = subprocess.run([sys.executable, kapi_yolu, "--kok", fikstur_kok],
-                          capture_output=True, text=True)
+                          capture_output=True, text=True, env=ortam)
     hedef = 0
     for s in proc.stdout.splitlines():
         if s.startswith("HAYALI_HEDEF="):
@@ -409,6 +450,39 @@ def kendini_test():
                      aciklama))
             if not yakalandi:
                 basarisiz.append("D/" + ad)
+
+        # --- E: EV-DISI KOK HUKUM DISI (13 Eyl 2026) ---
+        # Hedef YALNIZ ev-disi kokte VAR. Hukum iki ortamda AYNI olmali (1 ihlal); fark
+        # yalniz ETIKETTE gorunur. Mutant ev-disi kokleri cozucuye GERI ekler: o zaman
+        # Mac'te 0, kosucuda 1 olur (duzeltilen ariza) -> E1 onu YAKALAMALI.
+        ev_kok = os.path.join(gecici, "ev-disi")
+        os.makedirs(ev_kok)
+        with open(os.path.join(ev_kok, "cron-hedefi.py"), "w", encoding="utf-8") as f:
+            f.write("# ev-disi\n")
+        ev_fx = os.path.join(gecici, "fx-ev-disi")
+        _fikstur_kur(ev_fx, {"a.py": "# Nobetci: tools/cron-hedefi.py (cron'da kosar).\n"})
+        for e_ad, e_kok, e_etiket in (("E1-ev-disi-var", ev_kok, "EV_DISI=VAR"),
+                                      ("E2-kosucu-kok-yok", "", "EV_DISI=KOK_YOK")):
+            h, _rc, cikti = _kos(taban_kapi, ev_fx, ev_disi=e_kok)
+            iddia += 1
+            tamam = h == 1 and e_etiket in cikti
+            print("E %-26s hedef=%d %s %s  %s  (hukum ortamdan BAGIMSIZ: 1)"
+                  % (e_ad, h, e_etiket, "BASILDI" if e_etiket in cikti else "BASILMADI",
+                     "GECTI" if tamam else "❌"))
+            if not tamam:
+                basarisiz.append("E/" + e_ad)
+        mut_dizin = os.path.join(gecici, "mut", "ME2-ev-disi-cozucuye-doner")
+        os.makedirs(mut_dizin, exist_ok=True)
+        mut_kapi = _kopya_kur(mut_dizin, "kokler = arama_kokleri(kok)",
+                              "kokler = arama_kokleri(kok) + ev_disi_kokleri()")
+        h_m, _rc, _c = _kos(mut_kapi, ev_fx, ev_disi=ev_kok)
+        iddia += 1
+        yakalandi = h_m != 1
+        print("E %-26s hedef=%d  %s  ev-disi kok cozucuye geri donerse hukum ortama capalanir"
+              % ("ME2-ev-disi-cozucuye-doner", h_m,
+                 "GECTI (E1 bu mutanti yakalar)" if yakalandi else "❌"))
+        if not yakalandi:
+            basarisiz.append("E/ME2-ev-disi-cozucuye-doner")
     finally:
         # Gecici dizin tempfile.mkdtemp() ile DOGDU; gercek ev yolu MENZILDE DEGIL.
         shutil.rmtree(gecici, ignore_errors=True)
@@ -419,7 +493,7 @@ def kendini_test():
               % (len(basarisiz), iddia, ", ".join(basarisiz)))
         return 1
     print("SONUC: YESIL — %d iddia kosuldu (%d fikstur + 2 cikis-kodu kolu + %d mutant "
-          "(1'i KONTROL) + %d meta mutant)."
+          "(1'i KONTROL) + %d meta mutant + 3 ev-disi eksen [2 vaka + 1 mutant])."
           % (iddia, len(FIKSTURLER), len(MUTANTLAR), len(META_MUTANTLARI)))
     return 0
 

@@ -5335,7 +5335,7 @@ def main():
         ydir = os.path.join(CIKTI_KOK, eski_slug)
         os.makedirs(ydir, exist_ok=True)
         with open(os.path.join(ydir, "index.html"), "w", encoding="utf-8") as f:
-            f.write(yonlendirmeler.stub_html(eski_slug, CONTENT_PAGES, SITE))
+            f.write(yonlendirmeler.stub_html(eski_slug, CONTENT_PAGES, SITE, GA_HEAD_SNIPPET))
     print("YONLENDIRME: %d stub sayfa uretildi (sitemap DISI, yayin manifesti ICI)." % yon_sayi)
 
     # LANDING HUB — additive ek modül (tools/landing_hub_build.py). 166+ uzun-kuyruk landing'i

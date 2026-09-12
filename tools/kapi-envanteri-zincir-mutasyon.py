@@ -13,8 +13,10 @@ YANILMADIGINI olcer. Hepsi IZOLE KOPYADA kosar:
   M2  KORLUK KONTROLU (asil mutant) — ayni ad yalnizca YORUM ve DOCSTRING olarak
       eklenir. Kol bunu GORMEMELI. Gorurse kol tam da BaBa'nin `grep -c` hatasini
       tekrar eder: bir SILINME KAYDINI "kurulu" diye okur → SAHTE YESIL.
-  M3  KOPARMA — CALISAN bir kablo (komut-stili-kapisi/settings) sokulur. Envanter
-      KIRMIZI yanmali (o kapi DUSUK, toplam duser). Yesil kalirsa yeni menzil kordur.
+  M3  KOPARMA — CALISAN bir kablo (tabanda GECER veren, sentetik settings'te kablolu
+      kapi; hedef TURETILIR) sokulur. Envanter KIRMIZI yanmali (o kapi DUSUK, toplam
+      duser). Yesil kalirsa yeni menzil kordur. (13 Eyl: sabit hedef komut-stili-kapisi
+      11 Eyl'den beri GECER vermiyordu -> TAM'a katilmayan kablo koparilamazdi.)
   M4  KABUK DUZLEMI — kanca dosyasinda ad yalniz `#` yorumunda ise GORULMEMELI
       (canli `pre-commit`teki `... SILINDI` satirinin ta kendisi).
 
@@ -97,12 +99,15 @@ def _olc(kopya):
     m = re.search(r"SONUC: (\d+)/(\d+) kapi", cikti)
     tam = int(m.group(1)) if m else -1
     bagli = set()
+    gecer = set()   # satir SONUC sutunu GECER olan kapilar (TAM sayisinin ADLARI)
     for satir in cikti.splitlines():
         alanlar = satir.split()
         if len(alanlar) >= 5 and alanlar[1] in ("OK", "EKSIK") and alanlar[2] in ("OK", "EKSIK"):
             if alanlar[2] == "OK":
                 bagli.add(alanlar[0])
-    return tam, p.returncode, bagli, cikti
+            if alanlar[4] == "GECER":
+                gecer.add(alanlar[0])
+    return tam, p.returncode, bagli, cikti, gecer
 
 
 def _yaz(yol, metin):
@@ -145,19 +150,43 @@ vaka("M2 KORLUK KONTROLU", "yalniz YORUM+DOCSTRING -> GORULMEMELI (sahte yesil k
 
 
 # --- M3: KOPARMA — calisan kablo sokulur ----------------------------------
+# 🔴 HEDEF TURETILIR, SABIT YAZILMAZ (13 Eyl 2026). Eski hedef `komut-stili-kapisi` idi.
+# 11 Eyl "tum tikayicilari kaldir" emrinden sonra o kapi REDDETMIYOR -> envanterde NOBETTE
+# EKSIK / SONUC DUSUK; yani TAM sayisina zaten KATILMIYORDU. Kablosunu sokmak TAM'i
+# dusuremez ("taban 3/8 -> mutantli 3/8") ve M3 "KOL KOR" diye kirmizi yandi — oysa kor
+# olan kol degil, mutantin HEDEFIYDI (serit-b run 34716723870). Kural: koparilacak kablo,
+# sentetik settings'te kablolu OLAN ve tabanda SONUC=GECER veren kapidan secilir. Aday
+# yoksa M3 hukum VERMEZ, ADIYLA duser (sessiz yesil yok).
+M3_HEDEF = [None]
+
+
+def _settings_kapilari():
+    adlar = set()
+    for blok in SENTETIK_SETTINGS["hooks"]["PreToolUse"]:
+        for k in blok["hooks"]:
+            m = re.search(r"tools/([A-Za-z0-9_-]+)\.py", k.get("command") or "")
+            if m:
+                adlar.add(m.group(1))
+    return adlar
+
+
 def _m3(kopya):
+    hedef = M3_HEDEF[0]
     yol = os.path.join(kopya, ".claude", "settings.json")
     with open(yol, encoding="utf-8") as f:
         veri = json.load(f)
     for blok in (veri.get("hooks") or {}).get("PreToolUse") or []:
         blok["hooks"] = [k for k in (blok.get("hooks") or [])
-                         if "komut-stili-kapisi.py" not in (k.get("command") or "")]
+                         if (hedef + ".py") not in (k.get("command") or "")]
     with open(yol, "w", encoding="utf-8") as f:
         json.dump(veri, f, indent=2)
 
 
-vaka("M3 KOPARMA", "calisan kablo sokulur -> envanter KIRMIZI yanmali",
-     _m3, lambda taban, sonuc: ("komut-stili-kapisi" not in sonuc[2]
+vaka("M3 KOPARMA", "GECER bir kapinin calisan kablosu sokulur -> TAM duser, kapi BAGLI cikmaz",
+     _m3, lambda taban, sonuc: (M3_HEDEF[0] is not None
+                                and M3_HEDEF[0] in taban[4]
+                                and M3_HEDEF[0] not in sonuc[2]
+                                and M3_HEDEF[0] not in sonuc[4]
                                 and sonuc[0] < taban[0] and sonuc[1] != 0))
 
 
@@ -179,6 +208,10 @@ def main():
         taban = _olc(kopya)
         print("\nTABAN (mutantsiz izole kopya): %d/8 kapi TAM · rc=%d" % (taban[0], taban[1]))
         print("  BAGLI cikan kapilar: %s" % ", ".join(sorted(taban[2])))
+        adaylar = sorted(_settings_kapilari() & taban[2] & taban[4])
+        M3_HEDEF[0] = adaylar[0] if adaylar else None
+        print("  M3 hedefi (sentetik settings'te kablolu ∩ BAGLI ∩ GECER): %s"
+              % (M3_HEDEF[0] or "YOK — M3 hukum VEREMEZ"))
         if taban[0] < 0:
             print("🔴 TABAN OKUNAMADI — batarya hukum veremez")
             print(taban[3][-1500:])

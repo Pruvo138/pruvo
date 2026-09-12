@@ -183,7 +183,8 @@ def yonlendirme_tara(desenler):
             hatalar.append("hedef KAPSAM DISI: %s -> %s" % (eski, hedef))
         # stub sayfanin GORUNUR metninde kapsam disi ibare gecemez
         if hedef in basliklar:
-            stub = yonlendirmeler.stub_html(eski, sayfalar.CONTENT_PAGES, "https://pruvo3d.com")
+            stub = yonlendirmeler.stub_html(eski, sayfalar.CONTENT_PAGES, "https://pruvo3d.com",
+                                            ga_head="")
             govde = stub.split("<body>", 1)[-1]
             if isabetler(govde, desenler):
                 hatalar.append("stub GORUNUR metninde kapsam disi ibare: %s" % eski)
@@ -296,7 +297,7 @@ def main():
         sys.path.insert(0, os.path.join(KOK, "tools"))
         import yonlendirmeler
         print(yonlendirmeler.stub_html(a.stub, _sayfalar_modulu().CONTENT_PAGES,
-                                       "https://pruvo3d.com"))
+                                       "https://pruvo3d.com", ga_head=""))
         return 0
 
     A, B = yuzey_tara(desenler)
