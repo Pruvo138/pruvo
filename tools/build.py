@@ -4884,6 +4884,32 @@ def _ozet_surum_dogrula(ozet):
 # ESKİ KURAL (Ev/Dekorasyon/Ofis ilk 20 slotta görünmez) KALDIRILDI: yeni düzende ilk 164
 # slot zaten Jeneratör/Marin/Otomobil olduğu için o üç kategori oraya giremez — kural
 # YUTULDU. (vitrin-siralama-test.js bunu ayrı iddiayla ölçer, sessizce kaybolmasın.)
+# 🔴 SERİ BLOĞU ÜYELİK YÜKLEMİ — index.html ile ORTAK JETON (12 Eyl 2026, ölçülen canlı
+# kusur). Vitrinin ilk bloğu ("Jeneratör", kaynak "parametrik") bir KATEGORİ değil SARI
+# SERİDİR: bu artefaktın havuzu da aşağıda `p.get("parametrik")` ile kuruluyor. İstemci
+# aynı bloğa KATEGORİ ADIYLA üye seçtiği sürece iki taraf ayrışıyordu ve ayrışma SESSİZDİ:
+# `Jeneratör` KATEGORİSİNDEKİ parametrik OLMAYAN 18 gerçek jeneratör parçasından biri
+# `yeni` (en yeni OZET_YENI) kesitine düştüğü an sarı vitrinin 4 slotundan birine rastgele
+# giriyor ve "Ölçüye Özel" ROZETSİZ çiziliyordu (ölçüldü, `dc698aef` katalog hâli:
+# 24 adayda 4 slot -> 12 koşumun 2'si kırmızı; `serit-a3` ~8 push'ta bir `deploy`+`yayin`
+# job'larını SKIPPED bırakıyordu). Jeton, istemcinin o yüklemi BEYAN ettiğini fail-closed
+# ölçer: yüklem kategoriye geri döndürülürse build KIRMIZI yanar ([[ikiz-tanim-sessiz-ayrisma]]).
+VITRIN_SERI_UYELIK = "parametrik-bayragi"
+
+
+def _index_vitrin_seri_yuklemi_dogrula(kaynak):
+    """İstemcinin BEYAN ettiği seri-blok üyelik jetonu ile buradaki eşleşmeli."""
+    m = re.search(r"var\s+VITRIN_SERI_UYELIK\s*=\s*\"([^\"]*)\"\s*;", kaynak)
+    if not m:
+        raise SystemExit("index.html'de VITRIN_SERI_UYELIK jetonu YOK — sari seri blok "
+                         "uyeliginin tek kaynagi bozulmus (istemci blogu kategori adiyla "
+                         "doldurursa rozetsiz kart vitrine girer).")
+    if m.group(1) != VITRIN_SERI_UYELIK:
+        raise SystemExit("SERI BLOK UYELIK YUKLEMI AYRISTI: index.html %r diyor, build.py "
+                         "%r uyguluyor. Sari vitrin havuzu ile blok uyeligi AYNI soruya "
+                         "AYNI cevabi VERMEK ZORUNDA." % (m.group(1), VITRIN_SERI_UYELIK))
+
+
 def _index_vitrin_kurali():
     """Blok kuralını index.html'deki TEK KAYNAKTAN oku (VITRIN_BLOKLAR).
     İkinci bir kopya, kuralın iki tarafta SESSİZCE ayrışması demekti: derleme bir havuz
@@ -4902,6 +4928,9 @@ def _index_vitrin_kurali():
         raise SystemExit("index.html VITRIN_BLOKLAR JSON olarak okunamadi: %s" % e)
     if not isinstance(bloklar, list) or not bloklar:
         raise SystemExit("index.html VITRIN_BLOKLAR bos/gecersiz.")
+    # Kural okundu; ÜYELİK yüklemi de aynı kaynaktan fail-closed doğrulanır (yukarıdaki
+    # gerekçe: havuzu bayrakla kurup bloğu kategoriyle doldurmak rozetsiz kart yayınlar).
+    _index_vitrin_seri_yuklemi_dogrula(kaynak)
     for b in bloklar:
         for alan in ("kategori", "adet", "havuz", "kaynak"):
             if alan not in b:
@@ -4939,6 +4968,9 @@ def render_ozet(products, temsil_surum=None):
     #
     # Kartlar (kart_ozeti) burada TEK SEFER hesaplanır; içerik ve sıra korunur.
     vitrin_bloklar = _index_vitrin_kurali()
+    # SARI SERİ HAVUZU = `parametrik` BAYRAĞI (kategori adı DEĞİL). İstemci de aynı bloğa
+    # aynı yüklemle üye seçer (index.html `vitrinBlokUyesi`); jeton eşleşmesi yukarıda
+    # fail-closed ölçüldü (VITRIN_SERI_UYELIK).
     parametrik_kartlar = [kart_ozeti(p) for p in products if p.get("parametrik")]
     tam_havuzlar = {}    # kategori -> tam kart listesi (havuz_n0 kadar, ya da stok kadar)
     stoklar = {}

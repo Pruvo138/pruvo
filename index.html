@@ -1772,6 +1772,33 @@ setTimeout(L,5000);})();
     {"kategori":"Marin","adet":80,"havuz":100,"kaynak":"bloklar"},
     {"kategori":"Otomobil","adet":80,"havuz":100,"kaynak":"bloklar"}
   ];
+  // 🔴 SERİ BLOĞU ÜYELİĞİ = PARAMETRİK BAYRAĞI, KATEGORİ ADI DEĞİL (12 Eyl 2026, ölçülen
+  // canlı kusur). "Jeneratör" bir KATEGORİ adı OLARAK da katalogda yaşıyor: bugün 41
+  // Jeneratör kaydının 18'i GERÇEK jeneratör parçası (`parametrik` YOK, sabit fiyatlı) ve
+  // yalnız 23'ü sarı seri. Blok üyeliği kategoriye bakarken o 18'den biri ozet.json'un
+  // "yeni" (en yeni 48) kesitine düştüğü ANDA sarı vitrinin ilk 4 slotuna RASTGELE
+  // girebiliyordu ve kartı "Ölçüye Özel" ROZETSİZ çiziliyordu (rozet `p.parametrik`e bakar).
+  // ÖLÇÜLDÜ (`dc698aef` katalog hâli, `zh1105n-dizel-motor-devir-sinirlayici-plaka` en yeni
+  // 48'in içindeyken): havuz 23+1 = 24 aday, 4 slot -> 4/24 ≈ %17; 12 yerel koşumun 2'si
+  // KIRMIZI ("ilk 4 rozet durumu: true,true,true,false"), imza her koşumda BAŞKA kartta.
+  // Aynı kusur `serit-a3` kapısını ~8 push'ta bir kırmızıya düşürüp `deploy`+`yayin`
+  // job'larını SKIPPED bırakıyordu. Bugün katalogda o pencere BOŞ olduğu için kusur
+  // LATENT — yani "şu an yeşil" onarımın gereksiz olduğunu GÖSTERMEZ, MaCiT bir Jeneratör
+  // parçası eklediği gün geri gelir.
+  // YÜKLEM: `kaynak === "parametrik"` olan blok SERİ bloğudur, üyeliği ürünün
+  // `parametrik` bayrağıdır (ozet.json'un o havuzu da AYNI bayrakla kuruluyor —
+  // build.py render_ozet). Kategori bloklarında üyelik bugünkü gibi KATEGORİ adıdır.
+  // Rastgeleliğe DOKUNULMADI: hangi kayıt seçilirse seçilsin artık rozetli olur; blok
+  // dışı kalan Jeneratör parçaları ELENMEZ, KARIŞIK kuyruğa düşer.
+  // TEK KAYNAK JETONU: sayfa üreteci bu satırı REGEX ile okur (`_index_vitrin_seri_
+  // yuklemi_dogrula`); yüklem burada değişip Python tarafı güncellenmezse build
+  // FAIL-CLOSED kırmızı yanar ([[ikiz-tanim-sessiz-ayrisma]]).
+  var VITRIN_SERI_UYELIK = "parametrik-bayragi";
+  function vitrinBlokUyesi(p, kural){
+    if(!p || !kural){ return false; }
+    if(kural.kaynak === "parametrik"){ return !!p.parametrik; }
+    return (p.kategori || "") === kural.kategori;
+  }
 
   /* REKLAM ATIF YAKALAMA (reklam-roi-sistemi.md Faz 0): reklamdan gelen ziyaretin siparişe
      bağlanması için atıf kimlikleri toplanır. UTM landing URL'sinde gelir ama iyzico redirect'i
@@ -4396,13 +4423,14 @@ setTimeout(L,5000);})();
     if(seed === undefined || seed === null){ seed = VITRIN_SEED; }
     seed = seed >>> 0;
 
-    // 1) blok üyeliği (kategoriye göre); hiçbir bloğa girmeyen her şey KARIŞIK kuyruğa.
+    // 1) blok üyeliği (vitrinBlokUyesi: SERİ bloğunda parametrik bayrağı, kategori
+    //    bloğunda kategori adı); hiçbir bloğa girmeyen her şey KARIŞIK kuyruğa.
     var kovalar = [], kalan = [], i, b;
     for(b = 0; b < VITRIN_BLOKLAR.length; b++){ kovalar.push([]); }
     for(i = 0; i < liste.length; i++){
       var p = liste[i], yer = -1;
       for(b = 0; b < VITRIN_BLOKLAR.length; b++){
-        if(p && (p.kategori || "") === VITRIN_BLOKLAR[b].kategori){ yer = b; break; }
+        if(vitrinBlokUyesi(p, VITRIN_BLOKLAR[b])){ yer = b; break; }
       }
       if(yer === -1){ kalan.push(p); } else { kovalar[yer].push(p); }
     }
