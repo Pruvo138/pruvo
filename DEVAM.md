@@ -2,6 +2,10 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔴 13 EYL oturum-16 — SIRADAKİ TEK İŞ: **ŞERİT B 12 KIRMIZI ADIM — çip `KraL-SeritB-13Eyl` (task_bce021c6)**
+Run `34716723870` (`26104ea9`): serit-b 9 (recete kapısı · nöbetçi mutasyon harness'i · kapı envanteri zincir kolu · defter kota kabul · reklam/ölçüm etiket kapsam · reklam etiket mutasyon · tıkayıcı kaldırma kabul · hayali nöbetçi · N2 kirleten onarır) + hijyen-a3 3 (**kargo pazarlama beyanı kapısı + mutant testi YENİ** · malzeme dayanak = ArTisT+Okan). Yayını BLOKLAMAZ; `6a5fccdc` yayını 6/6 SKIPPED=0. **KABUL:** şerit B yeni koşumunda failure adım sayısı düşer, kalan her adım adıyla sahibi + "neyi ölçmek kapatır".
+✅ **M12 CI'da da KAPANDI:** aynı koşumda `Urun sayfasi / kart kapsam ayrimi mutasyon bataryasi` **success**. 🔧 **TEMİZLİK (oturum-16):** 11 biten oturum arşivlendi (3 eski KraL çipi + 8 eski cron koşumu, her türün en yenisi kaldı) · main'e alınmış `claude/funny-yalow-fe5c88` dalı silindi · kutudaki 2 sahipsiz KraL BAŞLIYORUM (`Tamirci-12Eyl` · `Tamirci-11Eyl`) ölçülü öz kapanışla kapandı. Kalan 19 `claude/*` dal main'e alınmamış ⇒ K410 hükmü gereği SİLİNMEDİ.
+
 ## ✅ 12 EYL — KAPANDI (çip `KraL-E10bDenek-12Eyl`): **M12 mutantı yaşıyordu — E10b deneği ABS↔ASA eşit fiyat totolojisi**
 ✅ **YAYIN `dadb7d79` İNDİ:** run `34714389692` 6/6 success · SKIPPED=0.
 **KÖK NEDEN (doğrulandı):** E10b deneği "alanı silince BAŞKA MALZEME seçen ilk kayıt" = `porsche-944-panel` (ABS↔ASA; `FILAMENT_FARK` ABS=ASA=60 ⇒ 80000=80000 mutant altında da doğru). Kayma VERİDEN. **ÖNCÜL (onarımdan önce):** aday 3235 · malzeme farklı 2870 · tutar farklı **282** (≥1, onarıldı) · fiziksel malzeme-farklı 0. **ONARIM:** denek ölçütü malzeme farkı ∧ `_birim_kurus` farkı; yeni denek `cayenne-montaj-aparat` (PLA 75000 ↔ ASA 120000). **KABUL:** batarya rc=0 (M12 KIRMIZI/OK, iz doğrulandı, diğer 14 satır aynı) · kapı rc=0 · `ci-kapsam-test` rc=0 · TERS: onarımsız kod izole ağaçta M12 SAPTI rc=1. Yayın nöbeti sonucu kutuda.
