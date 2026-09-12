@@ -633,16 +633,21 @@ def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
                 "CI=OLCULEMEDI ({}: {} · yol={})".format(type(e).__name__, str(e)[:120], yol), None, kaynak)
 
 
-def merge_kuyrugu() -> tuple[str, int]:
+def merge_kuyrugu() -> tuple[str, int, list[str]]:
     """main dışı dalları listeler; merge bekleyenleri ölçer.
-    Dönüş: (metin_blok, adet)."""
+    Dönüş: (metin_blok, adet, dal_listesi).
+
+    🔴 KRA-L-TamirciTavan-10Eyl: üçüncü değer eklendi (dal_listesi). Metin ve
+    adet davranışı AYNEN korunur — eski çağrı `(metin, adet)` yerine artık
+    `(metin, adet, dallar)` bekler. Boş/ölçülemedi kollarında liste `[]` döner.
+    """
     try:
         r = subprocess.run(
             ["git", "-C", str(REPO), "branch", "-a"],
             capture_output=True, text=True, timeout=10,
         )
         if r.returncode != 0:
-            return "DAL=OLCULEMEDI (git branch rc={})".format(r.returncode), 0
+            return "DAL=OLCULEMEDI (git branch rc={})".format(r.returncode), 0, []
         dallar = []
         for line in (r.stdout or "").splitlines():
             s = line.strip().lstrip("*").strip()
@@ -657,16 +662,16 @@ def merge_kuyrugu() -> tuple[str, int]:
         # benzersiz + sıralı
         dallar = sorted(set(dallar))
         if not dallar:
-            return "Main dışı dal YOK (yalnız main var).", 0
+            return "Main dışı dal YOK (yalnız main var).", 0, []
         satirlar = ["- " + d for d in dallar]
         # kapsam ölçmek pahalı (her dal için merge-base + diff); burada YALNIZCA dal adedi raporlanır
         satirlar.append("")
         satirlar.append("> Kapsam ölçümü (merge-base + diff --stat) HER DAL İÇİN ayrı koşulur; bu özet yalnız adı verir, boyut chip düşünce hesaplanır.")
-        return "\n".join(satirlar), len(dallar)
+        return "\n".join(satirlar), len(dallar), dallar
     except subprocess.TimeoutExpired:
-        return "DAL=OLCULEMEDI (git branch timeout)", 0
+        return "DAL=OLCULEMEDI (git branch timeout)", 0, []
     except Exception as e:
-        return "DAL=OLCULEMEDI ({}: {})".format(type(e).__name__, str(e)[:120]), 0
+        return "DAL=OLCULEMEDI ({}: {})".format(type(e).__name__, str(e)[:120]), 0, []
 
 
 def kutuda_yeni(kutu_txt: str | None) -> tuple[str, int]:
@@ -699,6 +704,146 @@ def devam_ozet(devam_txt: str | None) -> str:
         return "DEVAM=OLCULEMEDI"
     satirlar = devam_txt.splitlines()[:40]
     return "\n".join(satirlar)
+
+
+# ============================================================================
+# 🔴 KRA-L-TamirciTavan-10Eyl — TAVAN FRENİ (kayıpsız kırpma)
+# ----------------------------------------------------------------------------
+# SABİT: panel tavanı 32.000 karakter; teslim kolu spec'i ~1.500 karakterlik
+# başlık/altlıkla sarıyor → 28.000 + 1.500 = 29.500, tavana **2.500 karakter
+# emniyet payı** kalır. Kabul ① (`≤ 30.000`) fazlasıyla karşılanır.
+# BAYT DEĞİL, KARAKTER (len(str)) — UTF-8'de çok karakterli glyph'lerde
+# bayt > karakter olur; panel `len()` kullanıyor.
+SPEC_TAVANI = 28000
+
+# Merdiven — `(sinir_kalem, sinir_dal, sinir_devam_kar)`. Üstten alta sırayla
+# denenir; ilk tavan-altı sonuçta durulur. Hâlâ aşılırsa SON EMNİYET kolu
+# metni ÖLÇÜLMÜŞ payla (işaretçi + kuyruk notu uzunluğu çıkarılarak) keser.
+MERDIVEN = ((40, 64, 4000), (30, 48, 3000), (20, 32, 2000),
+            (12, 24, 1500), (8, 16, 1000), (5, 10, 700),
+            (3, 6, 500), (2, 4, 400), (1, 2, 300), (0, 0, 200))
+
+
+def tavana_indir(uret, tam_metin, ek_yolu, tavan=SPEC_TAVANI):
+    """Saf fonksiyon (yan etkisiz).
+
+    `uret(sinir_kalem, sinir_dal, sinir_devam_kar) -> spec metni` çağrılabilir
+    bir callable; dış dünya (dosya/IO) burada YOK.
+
+    Döner: (metin, ek_metin_or_None, olcum_dict).
+      * `metin`        → çağırana verilecek nihai spec (tavan ≤ tavan); kırpma
+                          yapıldıysa metne İŞARETÇİ BLOĞU burada yerleştirilir.
+      * `ek_metin`     → kırpma OLDU ise kırpma öncesi TAM metin; yoksa `None`.
+      * `olcum_dict`   → `kirpildi`, `tam_kar`, `son_kar`, `tavan`, `sinir_kalem`,
+        `sinir_dal`, `sinir_devam_kar`, `kirpilan_kalem`, `kirpilan_dal`,
+        `son_emniyet` alanları.
+
+    🔴 Bu kol `len(sonuc) <= tavan`'ı KOŞULSUZ garanti eder (son emniyet).
+    🔴 Kırpma yapıldığında işaretçi bloğu döndürülen metnin İÇİNE burada
+       yerleştirilir — çağıran yere değil (sınıf: kapının menzili mekanizmanın
+       İÇİ olmalı). `tavana_indir`'i doğrudan çağıran her yer de işaretçili
+       metni alır; sessiz veri kaybı olmaz.
+
+    🔴 10 Eyl — TAVAN İŞARETÇİ EKLENDİKTEN SONRA ÖLÇÜLÜR. Eski kod işaretçiyi
+       `len(aday) <= tavan` denetiminin GEÇMESİNDEN SONRA yerleştiriyordu;
+       işaretçi bloğu ~470 karakter eklediğinden ölçüm yapılan metin ile
+       teslim edilen metin AYNI DEĞİLDİ. Son emniyet kolunda ise sabit 240
+       karakter payı kullanılıyordu; `ek_yolu` uzadıkça blok büyüyor, pay
+       yetmiyordu. Artık işaretçi ÖNCE kurulup uzunluğu ÖLÇÜLÜYOR, hedef
+       bu ölçümden türetiliyor ve son kelepçe ile tavan KOŞULSUZ korunuyor.
+    """
+
+    def _isaretci_metni(olcum):
+        """İşaretçi bloğunun ham metnini kurar (YERLEŞTİRMEZ)."""
+        return (
+            "\n> 🔴 TAVAN FRENİ ETKİN — bu spec KAYIPSIZ KIRPILDI.\n"
+            "> TAM METİN (birebir, kırpma öncesi): `{ek}`\n"
+            "> Ölçüm: tam={tam} kar. → teslim={son} kar. · tavan={tavan} · "
+            "kırpılan: KALEM {kl} madde · DAL {dl} dal · DEVAM {dkr} kar.\n"
+            "> Kırpılan hiçbir madde SİLİNMEDİ; hepsi yukarıdaki dosyada tam metniyle duruyor.\n\n"
+        ).format(ek=ek_yolu, tam=olcum["tam_kar"],
+                 son=olcum["son_kar"], tavan=olcum["tavan"],
+                 kl=olcum["kirpilan_kalem"],
+                 dl=olcum["kirpilan_dal"],
+                 dkr=olcum["sinir_devam_kar"] or 0)
+
+    def _yerlestir_isaretci(metin, olcum):
+        """İşaretçi bloğunu metne kurar ve döndürür.
+
+        Biçim + alanlar + yerleşim kuralı TAVAN FRENİ hükmüne birebir uyar.
+        ÇAĞIRANIN işi DEĞİL — kolun menzilinin parçası.
+        """
+        isaretci = _isaretci_metni(olcum)
+        # İşaretçiyi CI bölüm başlığından HEMEN ÖNCE yerleştir.
+        ci_marker = "## BUGÜNÜN KIRMIZILARI (CI — bugün UTC)"
+        ind = metin.find(ci_marker)
+        if ind >= 0:
+            return metin[:ind] + isaretci + metin[ind:]
+        # CI bölümü yoksa (savunmacı) meta'dan sonra ekle
+        ilk_bosluk = metin.find("\n\n")
+        if ilk_bosluk >= 0:
+            return metin[:ilk_bosluk + 2] + isaretci + metin[ilk_bosluk + 2:]
+        return isaretci + metin
+
+    tam_kar = len(tam_metin)
+    bos = {"kirpildi": False, "tam_kar": tam_kar, "son_kar": tam_kar,
+           "tavan": tavan, "sinir_kalem": None, "sinir_dal": None,
+           "sinir_devam_kar": None, "kirpilan_kalem": 0, "kirpilan_dal": 0,
+           "son_emniyet": False}
+    if tam_kar <= tavan:
+        return tam_metin, None, bos
+
+    # Ek metni = kırpma öncesi TAM metin (KAYIPSIZ, birebir).
+    ek_metin = tam_metin
+
+    for sk, sd, skr in MERDIVEN:
+        aday = uret(sk, sd, skr)
+        # İŞARETÇİYİ ÖNCE YERLEŞTİR, SONRA ÖLÇ. İşaretçi ~470 karakter ekliyor;
+        # ölçümü işaretçisiz metin üzerinde yapmak tavanı aşan teslimatlar
+        # üretiyordu (bugünkü A9-7 arızası = 28289 > 28000).
+        olcum = {"kirpildi": True, "tam_kar": tam_kar,
+                 "tavan": tavan, "sinir_kalem": sk, "sinir_dal": sd,
+                 "sinir_devam_kar": skr, "kirpilan_kalem": sk,
+                 "kirpilan_dal": sd, "son_emniyet": False,
+                 "son_kar": len(aday)}  # ilk tahmin
+        aday_tam = _yerlestir_isaretci(aday, olcum)
+        olcum["son_kar"] = len(aday_tam)
+        # Digit width değiştiyse (örn. 9999 → 10000) işaretçiyi yeniden kur.
+        if len(str(len(aday))) != len(str(len(aday_tam))):
+            aday_tam = _yerlestir_isaretci(aday, olcum)
+            olcum["son_kar"] = len(aday_tam)
+        if len(aday_tam) <= tavan:
+            return aday_tam, ek_metin, olcum
+
+    # Merdiven bitip hâlâ aşıyorsa — SON EMNİYET.
+    # Sabit 240 karakter payı YETERSİZ; işaretçi bloğunun uzunluğu `ek_yolu`
+    # boyutuna bağlı (yol uzadıkça blok uzar). Pay ölçümlü olmalı.
+    kuyruk_notu = "\n\n> 🔴 KUYRUK KESİLDİ (son emniyet) — TAM METİN: %s\n" % ek_yolu
+    olcum = {"kirpildi": True, "tam_kar": tam_kar,
+             "tavan": tavan, "sinir_kalem": MERDIVEN[-1][0],
+             "sinir_dal": MERDIVEN[-1][1], "sinir_devam_kar": MERDIVEN[-1][2],
+             "kirpilan_kalem": MERDIVEN[-1][0], "kirpilan_dal": MERDIVEN[-1][1],
+             "son_emniyet": True,
+             "son_kar": 0}  # yakınsama başlangıcı
+    # İteratif: hedef = tavan - len(isaretci) - len(kuyruk_notu). İşaretçi
+    # metninin içindeki `{son}` sayısal genişliği `son_kar`'a bağlı, o da
+    # `hedef`'e bağlı — sabit noktaya 2-3 adımda yakınsar.
+    for _ in range(10):
+        isaretci_len = len(_isaretci_metni(olcum))
+        hedef = tavan - isaretci_len - len(kuyruk_notu)
+        if hedef < 0:
+            hedef = 0
+        kesik = tam_metin[:hedef]
+        olcum["son_kar"] = len(kesik) + len(kuyruk_notu)
+    son = kesik + kuyruk_notu
+    son_final = _yerlestir_isaretci(son, olcum)
+    olcum["son_kar"] = len(son_final)
+    # 🔴 SON KELEPÇE: tavan, İŞARETÇİ eklendikten sonra ölçülür. Buna rağmen
+    # aşılırsa metni KOŞULSUZ kırp. Normal yolda ateşlenmez ama KALDIRILMAZ.
+    if len(son_final) > tavan:
+        son_final = son_final[:tavan]
+        olcum["son_kar"] = tavan
+    return son_final, ek_metin, olcum
 
 
 def spec_yaz(icerik: str, tarih: dt.date, kuru: bool, spec_dizin=None):
@@ -775,34 +920,61 @@ def ci_olculemedi_kalemi(kirmizi_blok: str) -> dict:
 # 🔴 K375 (2 Eyl 2026) — `gunluk-motor-raporu.py` K375 ile zenginleşti;
 # sabah raporu bu modülü import edip `tablo_metni(...)` çıktısını SONA ekler.
 # Fail-soft: hata olursa OLCULEMEDI yazıp devam eder, sabah raporunu ÇÖKERTMEZ.
+#
+# 🔴 KRA-L-TamirciTavan-10Eyl tur 2 — ÖNBELLEK (tarih anahtarlı).
+# Tavan freni `_uret`'i 1 (tam) + en çok 10 (merdiven) = 11 kez çağırır; eski
+# hâlde her çağrı `gunluk-motor-raporu.py`'yi YENİDEN import + exec ediyordu
+# (jsonl/isci.log TARAMA), ~32 sn × 11 ≈ 353 sn gerileme. Aynı tarih için
+# ikinci kez import/exec YAPILMAZ; başarılı VE başarısız sonuç birlikte
+# saklanır — `OLCULEMEDI` dönen bir çağrı 11 kez tekrar denenmez (fail-soft
+# davranış AYNEN korunur). Fonksiyonun dönüş değeri hiçbir girdide değişmez.
+_MOTOR_RAPORU_ONBELLEK: dict = {}
+
+
 def _motor_raporu_bolumu(tarih: dt.date) -> str:
     """`gunluk-motor-raporu.py`'dan `tablo_metni(...)` çağırır; hata olursa OLCULEMEDI.
 
     Fail-soft: sabah raporunun geri kalanını ÇÖKERTMEZ (bilgi bölümü), ama
-    sessiz boş da bırakmaz.
+    sessiz boş da bırakmaz. Aynı `tarih` için modül düzeyinde önbelleğe alınır.
     """
+    anahtar = tarih.isoformat()
+    if anahtar in _MOTOR_RAPORU_ONBELLEK:
+        return _MOTOR_RAPORU_ONBELLEK[anahtar]
     try:
         if not MOTOR_RAPORU_DOSYA.is_file():
-            return ("## GÜNLÜK MOTOR RAPORU\n\n"
+            sonuc = ("## GÜNLÜK MOTOR RAPORU\n\n"
                     "GÜNLÜK MOTOR RAPORU: OLCULEMEDI (dosya yok: %s)" % MOTOR_RAPORU_DOSYA)
-        spec = importlib.util.spec_from_file_location(
-            "gunluk_motor_raporu", str(MOTOR_RAPORU_DOSYA))
-        if spec is None or spec.loader is None:
-            return ("## GÜNLÜK MOTOR RAPORU\n\n"
-                    "GÜNLÜK MOTOR RAPORU: OLCULEMEDI (spec_from_file_location=None)")
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        tablo = mod.tablo_metni(tarih.isoformat())
-        return "## GÜNLÜK MOTOR RAPORU\n\n" + tablo
+        else:
+            spec = importlib.util.spec_from_file_location(
+                "gunluk_motor_raporu", str(MOTOR_RAPORU_DOSYA))
+            if spec is None or spec.loader is None:
+                sonuc = ("## GÜNLÜK MOTOR RAPORU\n\n"
+                        "GÜNLÜK MOTOR RAPORU: OLCULEMEDI (spec_from_file_location=None)")
+            else:
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                tablo = mod.tablo_metni(tarih.isoformat())
+                sonuc = "## GÜNLÜK MOTOR RAPORU\n\n" + tablo
     except Exception as e:
-        return ("## GÜNLÜK MOTOR RAPORU\n\n"
+        sonuc = ("## GÜNLÜK MOTOR RAPORU\n\n"
                 "GÜNLÜK MOTOR RAPORU: OLCULEMEDI (%s: %s)" % (type(e).__name__, e))
+    _MOTOR_RAPORU_ONBELLEK[anahtar] = sonuc
+    return sonuc
 
 
 def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok: str,
                kutu_blok: str, devam_blok: str, kirmizi_n, dal_n: int, kutu_n: int,
-               okunabilir: dict, ci_hukum: str = "OK", gh_kaynak: str = "-") -> str:
-    """Spec gövdesini kurar. ZORUNLU bölümler: KIRMIZI · MERGE · KALEMLER · KUTUDA YENİ · DİSİPLİN."""
+               okunabilir: dict, ci_hukum: str = "OK", gh_kaynak: str = "-",
+               dallar: list = None, sinir_kalem: int = None, sinir_dal: int = None,
+               sinir_devam_kar: int = None, ek_yolu: str = None) -> str:
+    """Spec gövdesini kurar. ZORUNLU bölümler: KIRMIZI · MERGE · KALEMLER · KUTUDA YENİ · DİSİPLİN.
+
+    🔴 KRA-L-TamirciTavan-10Eyl: yeni parametreler (`dallar`, `sinir_kalem`,
+    `sinir_dal`, `sinir_devam_kar`, `ek_yolu`) **hepsi varsayılanlı**. Hiçbiri
+    verilmediğinde çıktı bugünküyle BİREBİR AYNI olmalı (A9-0 kabulü).
+    Sınır parametreleri verildiğinde render **sınırlı** yapılır; kırpılan bölümün
+    sonuna `+K madde/dal/karakter KIRPILDI — TAM LİSTE: <ek_yolu>` notu girer.
+    """
     # 🔴 K333: hüküm biti ölçülür, dizge aranmaz. `ci_hukum` OLCULEMEDI ise
     # ölçülemeyen alan kalem listesine BAŞA eklenir (sıra: en pahalı bilinmezlik önce).
     if ci_hukum != "OK":
@@ -815,20 +987,57 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
         )
     )
 
+    # --- KALEM BLOĞU (sınırlı render destekli) ---
     kalem_blok = ""
     if not kalemler and not okunabilir["kalemler"]:
         kalem_blok = "ACIK KALEMLER=OLCULEMEDI (acik-kalemler.md okunamadı)"
     elif not kalemler:
         kalem_blok = "ACIK KALEM=YOK (defter boş, hepsi KAPANDI)."
     else:
+        # Sınır verilmişse ilk N'i render et + kuyruk notu
+        kirpilacak_kalem = 0
+        if sinir_kalem is not None and len(kalemler) > sinir_kalem:
+            kirpilacak_kalem = len(kalemler) - sinir_kalem
+            gosterilecek = kalemler[:sinir_kalem]
+        else:
+            gosterilecek = kalemler
         satirlar = []
-        for k in kalemler:
+        for k in gosterilecek:
             satirlar.append(
                 "- **{id}** [{durum}] {is_}  \n  _kimden:_ {kimden} · _kanıt sütunu:_ {kanit}".format(
                     id=k["id"], durum=k["durum"], is_=k["is"], kimden=k["kimden"], kanit=k["kanit"]
                 )
             )
+        if kirpilacak_kalem > 0 and ek_yolu:
+            satirlar.append("")
+            satirlar.append(
+                "- … +%d madde daha KIRPILDI — TAM LİSTE: %s"
+                % (kirpilacak_kalem, ek_yolu)
+            )
         kalem_blok = "\n".join(satirlar)
+
+    # --- MERGE BLOĞU (sınırlı render destekli) ---
+    dal_blok_render = dal_blok
+    kirpilacak_dal = 0
+    if sinir_dal is not None and dallar is not None and len(dallar) > sinir_dal:
+        # Yeniden render et (dallar listesi merge_kuyrugu'ndan gelir)
+        kirpilacak_dal = len(dallar) - sinir_dal
+        satirlar2 = ["- " + d for d in dallar[:sinir_dal]]
+        satirlar2.append("")
+        satirlar2.append("> Kapsam ölçümü (merge-base + diff --stat) HER DAL İÇİN ayrı koşulur; bu özet yalnız adı verir, boyut chip düşünce hesaplanır.")
+        dal_blok_render = "\n".join(satirlar2)
+        if kirpilacak_dal > 0 and ek_yolu:
+            dal_blok_render += "\n\n- … +%d dal daha KIRPILDI — TAM LİSTE: %s" % (
+                kirpilacak_dal, ek_yolu)
+
+    # --- DEVAM BLOĞU (karakter sınırı destekli) ---
+    devam_blok_render = devam_blok
+    if sinir_devam_kar is not None and len(devam_blok) > sinir_devam_kar:
+        kirpilacak_kar = len(devam_blok) - sinir_devam_kar
+        devam_blok_render = devam_blok[:sinir_devam_kar]
+        if ek_yolu:
+            devam_blok_render += "\n… (+%d karakter KIRPILDI — TAM METİN: %s)" % (
+                kirpilacak_kar, ek_yolu)
 
     disiplin = (
         "## DİSİPLİN\n"
@@ -875,10 +1084,10 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
     return "\n".join([
         baslik, meta,
         ci_basligi + kirmizi_blok + "\n",
-        "## MERGE KUYRUĞU (main dışı dallar)\n" + dal_blok + "\n",
+        "## MERGE KUYRUĞU (main dışı dallar)\n" + dal_blok_render + "\n",
         "## AÇIK KALEMLER (defter — `acik-kalemler.md`, durum ∈ {ACIK, 🔧})\n" + kalem_blok + "\n",
         "## KUTUDA YENİ (son 24 saat — bugün+dün)\n" + kutu_blok + "\n",
-        "## DEVAM (canlı — ilk 40 satır özeti)\n```\n" + devam_blok + "\n```\n",
+        "## DEVAM (canlı — ilk 40 satır özeti)\n```\n" + devam_blok_render + "\n```\n",
         _motor_raporu_bolumu(tarih) + "\n",
         disiplin,
         giris_durumu,
@@ -950,7 +1159,7 @@ def main() -> int:
         kalemler, kalem_n = [], 0
         okunabilir["kalemler"] = False
     ci_hukum, kirmizi_blok, kirmizi_n, gh_kaynak = bugunun_kirmizilari()
-    dal_blok, dal_n = merge_kuyrugu()
+    dal_blok, dal_n, dallar = merge_kuyrugu()
     kutu_blok, kutu_n = kutuda_yeni(kutu_txt)
     devam_blok = devam_ozet(devam_txt)
 
@@ -961,11 +1170,57 @@ def main() -> int:
     okunabilir["gh"] = (ci_hukum == "OK")
     okunabilir["git"] = not dal_blok.startswith("DAL=OLCULEMEDI")
 
-    # --- spec inşası ---
+    # --- spec inşası (FRENSİZ — sınır verilmedi, A9-0 davranış korunur) ---
     bugun = dt.date.today()
     spec = build_spec(bugun, kalemler, kirmizi_blok, dal_blok, kutu_blok, devam_blok,
                       kirmizi_n, dal_n, kutu_n, okunabilir,
-                      ci_hukum=ci_hukum, gh_kaynak=gh_kaynak)
+                      ci_hukum=ci_hukum, gh_kaynak=gh_kaynak,
+                      dallar=dallar)
+
+    # ============================================================================
+    # 🔴 TAVAN FRENİ (KRA-L-TamirciTavan-10Eyl): tavanı aşan spec KAYIPSIZ kırpılır.
+    # Koşul: `--kuru` ve `--kendini-test` koşumlarında fren UYGULANMAZ (bunlar
+    # sağlık/fikstür koşumları; kanıt üretmez — A2 uyumu). Yalnız GERÇEK üretim
+    # koşumunda (`kuru=False`) tavan kontrol edilir.
+    # ============================================================================
+    kuru = bool(args.kuru or args.kendini_test)
+    ek_yolu = None
+    tavan_olcum = {"kirpildi": False, "tam_kar": len(spec), "son_kar": len(spec),
+                   "tavan": SPEC_TAVANI, "sinir_kalem": None, "sinir_dal": None,
+                   "sinir_devam_kar": None, "kirpilan_kalem": 0, "kirpilan_dal": 0,
+                   "son_emniyet": False}
+    if not kuru:
+        # Ek dosya yolu = spec'in yanına (--spec-dizin'e saygılı)
+        spec_dizin_eff = Path(args.spec_dizin) if args.spec_dizin else SPEC_DIR
+        ek_yolu = str(spec_dizin_eff / "KraL-Tamirci-{}-TAM.md".format(
+            bugun.strftime("%Y%m%d")))
+
+        def _uret(sk, sd, skr):
+            return build_spec(bugun, kalemler, kirmizi_blok, dal_blok, kutu_blok,
+                              devam_blok, kirmizi_n, dal_n, kutu_n, okunabilir,
+                              ci_hukum=ci_hukum, gh_kaynak=gh_kaynak,
+                              dallar=dallar, sinir_kalem=sk, sinir_dal=sd,
+                              sinir_devam_kar=skr, ek_yolu=ek_yolu)
+
+        yeni_spec, ek_metin, tavan_olcum = tavana_indir(_uret, spec, ek_yolu)
+        # İşaretçi bloğu `tavana_indir` İÇİNDE yerleştirildi (kapının menzili);
+        # burada yalnız döndürülen metni devralıyoruz + ek dosya yazımını
+        # yönetiyoruz. İKİNCİ KOPYA YOK — metinde işaretçi 1 kez görünür.
+        spec = yeni_spec
+        if tavan_olcum["kirpildi"]:
+            # EK DOSYA yaz (kırpma öncesi TAM metin). Hata spec üretimini ÇÖKERTMEZ;
+            # işaretçiye `(EK YAZILAMADI: <ad>)` eklenir ve `rc = max(rc, 1)`.
+            try:
+                Path(ek_yolu).parent.mkdir(parents=True, exist_ok=True)
+                Path(ek_yolu).write_text(ek_metin, encoding="utf-8")
+            except Exception as e:
+                ek_hatasi = "%s: %s" % (type(e).__name__, str(e)[:80])
+                # İşaretçide yolu güncelle: yazılamadı notu
+                spec = spec.replace(
+                    ek_yolu, "%s (EK YAZILAMADI: %s)" % (ek_yolu, ek_hatasi))
+                rc = max(rc, 1)
+        else:
+            ek_yolu = None  # kırpma yoksa alan YOK
 
     # --- fail-loud: KALEMLER okunamadıysa ---
     rc = 0
@@ -982,7 +1237,6 @@ def main() -> int:
     # `--kendini-test` YAZMAZ (27 Ağu): sağlık kontrolünün yan etkisi günün
     # kanıtını üretmek olmamalı — aksi halde A2 ("gerçek koşum spec üretiyor")
     # kabulü kendi test koşumuyla YEŞİLE boyanırdı.
-    kuru = bool(args.kuru or args.kendini_test)
     hedef, yazim_hatasi = spec_yaz(spec, bugun, kuru=kuru, spec_dizin=args.spec_dizin)
     sabah_spec_alan = "KURU" if kuru else str(hedef)
 
@@ -991,10 +1245,15 @@ def main() -> int:
     # "ölçemedim" ile "bugün kırmızı yok"u aynı sayıya çöktürüyordu; log'a bakan
     # (insan ya da kol) ikisini ayırt edemiyordu. `CI_HUKUM` ve `GH_YOL` alanları
     # ölçümün KENDİSİNİ görünür kılar — yönlendirilmiş koşum gerçek sanılmasın.
-    print("SABAH_SPEC={} KALEM={} KIRMIZI={} CI_HUKUM={} GH_YOL={} DAL={} KUTU_YENI={} rc={}".format(
+    # 🔴 KRA-L-TamirciTavan-10Eyl: `KARAKTER=` ve `TAVAN=` alanları SONA eklenir;
+    # mevcut alan sırası DEĞİŞMEZ.
+    tavan_alan = "KIRPILMADI" if not tavan_olcum["kirpildi"] else (
+        "KIRPILDI:tam=%d,ek=%s" % (tavan_olcum["tam_kar"], ek_yolu or "-"))
+    print("SABAH_SPEC={} KALEM={} KIRMIZI={} CI_HUKUM={} GH_YOL={} DAL={} KUTU_YENI={} rc={} KARAKTER={} TAVAN={}".format(
         sabah_spec_alan, kalem_n,
         ("OLCULEMEDI" if kirmizi_n is None else kirmizi_n),
-        ci_hukum, gh_kaynak, dal_n, kutu_n, rc
+        ci_hukum, gh_kaynak, dal_n, kutu_n, rc,
+        len(spec), tavan_alan
     ))
 
     # --- ③ SONUÇ KOLU: rc'den BAĞIMSIZ, diskten ölçer ---

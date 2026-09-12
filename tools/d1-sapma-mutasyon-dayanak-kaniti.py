@@ -25,6 +25,7 @@ Kullanim: python3 tools/d1-sapma-mutasyon-dayanak-kaniti.py
 Cikis 0 = uc iddia da dogrulandi.
 """
 import hashlib
+import importlib.util
 import os
 import re
 import shutil
@@ -37,15 +38,56 @@ ROOT = os.path.dirname(TOOLS)
 BATARYA = "tools/d1-sapma-mutasyon.py"
 UZLASTIRICI = os.path.join(".github", "workflows", "d1-uzlastirici.yml")
 
-# (A) SEMANTIK AYNI, METIN FARKLI: `&&` atomlari yeniden siralandi.
-SIRA_ONCE = ("        if: always() && steps.olcum.outputs.sapma == 'var' "
-             "&& steps.teyit.outcome != 'success'\n")
-SIRA_SONRA = ("        if: always() && steps.teyit.outcome != 'success' "
-              "&& steps.olcum.outputs.sapma == 'var'\n")
-
-# (B/C) ELLE YAZILI dayanaklardan biri (K1'in yorum capasi) kaynaktan KAYBOLUR.
-CAPA_ONCE = "      # (1) CRON / ELLE KOLU — DAVRANIS 4 AGU ONCESIYLE BIREBIR AYNI.\n"
+# 🔴 CAPALAR ELLE YAZILMAZ — BATARYANIN KENDISINDEN TURETILIR (13 Eyl 2026).
+# OLCULDU: burada `SIRA_ONCE` elle yazilmisti (`always() && sapma=='var' && teyit!='success'`);
+# `61c5a27b` (K150 dilim-2) kosula `&& steps.onarim.outputs.ertelendi != 'evet'` ekledi
+# ve surucu "KANIT SURUCUSU BAYAT: ayna capasi 0 kez bulundu" diye DURDU — batarya
+# (`d1-sapma-mutasyon.py`) kosulu zaten canli is akisindan turettigi icin YESILDI; bayatlayan
+# yalniz bu surucunun IKINCI KOPYASIYDI ([[ikiz-tanim-sessiz-ayrisma]]).
+# COZUM: (A) capasi bataryanin `dayanak_kosul_satiri("onarilamadi")` cevabidir, (B/C)
+# capasi bataryanin K1 kontrol mutantinin `bul` metnidir. Batarya ile surucu ARTIK AYNI
+# KAYNAKTAN okur; turetme tutmazsa surucu KIRMIZI (rc=1) doner, yesile DONMEZ.
 CAPA_SONRA = "      # (1) CRON / ELLE KOLU — davranis degismedi (capa kaydirildi).\n"
+
+
+def _batarya_modulu():
+    spec = importlib.util.spec_from_file_location(
+        "d1_sapma_mutasyon_dayanak", os.path.join(ROOT, BATARYA))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def turetilen_capalar():
+    """((sira_once, sira_sonra), (capa_once, capa_sonra), hata) — hata doluysa capalar None.
+
+    (A) sira_sonra: `always()` sonrasi `&&` atomlari TERS siralanir (semantik AYNI; GitHub
+    ifadelerinde `&&` yan etkisizdir). `||` ya da parantez varsa yeniden siralama semantigi
+    degistirebilir -> turetme REDDEDILIR (fail-closed).
+    """
+    try:
+        bat = _batarya_modulu()
+    except Exception as e:  # noqa: BLE001 — her yukleme arizasi KIRMIZI'dir
+        return None, None, "batarya yuklenemedi (%s: %s)" % (type(e).__name__, e)
+    satir, hata = bat.dayanak_kosul_satiri("onarilamadi")
+    if satir is None:
+        return None, None, "ONARILAMADI kosulu bataryadan turetilemedi: %s" % hata
+    girinti = satir[:len(satir) - len(satir.lstrip())]
+    govde = satir.strip()[3:].strip()
+    if "||" in govde or "(" in govde.replace("always()", ""):
+        return None, None, "kosul yalniz `&&` atomlarindan olusmuyor: %r" % govde
+    atomlar = [a.strip() for a in govde.split("&&")]
+    if len(atomlar) < 3 or atomlar[0] != "always()":
+        return None, None, ("yeniden siralanacak `always() && a && b...` bicimi yok: %r"
+                            % govde)
+    sonra = "%sif: %s\n" % (girinti, " && ".join([atomlar[0]] + atomlar[:0:-1]))
+    if sonra == satir:
+        return None, None, "ters siralama metni DEGISTIRMEDI (A iddiasi olculemez)"
+    k1 = [m for m in bat.MUTANTLAR if m[0] == "K1"]
+    if len(k1) != 1 or not k1[0][3]:
+        return None, None, "bataryada K1 kontrol mutanti TEK degil"
+    capa_once = k1[0][3][0][0]
+    return (satir, sonra), (capa_once, CAPA_SONRA), None
 
 KOSAN_RE = re.compile(r"(\d+)/(\d+) FIILEN KOSTU")
 FAILS = []
@@ -101,12 +143,17 @@ def mutant_hukmu(cikti, kod):
 def main():
     print("DAYANAK SOZLESMESI KANITI — tools/d1-sapma-mutasyon.py (K62)\n")
     once = {y: sha(os.path.join(ROOT, y)) for y in (BATARYA, UZLASTIRICI)}
+    sira, capa, hata = turetilen_capalar()
+    if hata:
+        print("🔴 KANIT SURUCUSU CAPASI TURETILEMEDI: %s" % hata)
+        print("Neyi olcmek kapatir: `python3 tools/d1-sapma-mutasyon.py` YESIL mi — "
+              "batarya kosulu turetemiyorsa surucu da turetemez (ayni kaynak).")
+        return 1
     tmp = tempfile.mkdtemp(prefix="d1-sapma-dayanak-kaniti-")
     try:
         # ── (A) TURETME CANLI MI ───────────────────────────────────────────────
         print("A) TURETME CANLI: ONARILAMADI kosulunun METNI degisti (semantik AYNI)")
-        rc_a, cikti_a = bataryayi_kos(ayna_kur(os.path.join(tmp, "a"),
-                                               (SIRA_ONCE, SIRA_SONRA)))
+        rc_a, cikti_a = bataryayi_kos(ayna_kur(os.path.join(tmp, "a"), sira))
         m = KOSAN_RE.search(cikti_a)
         kosan_a = int(m.group(1)) if m else -1
         toplam_a = int(m.group(2)) if m else -1
@@ -124,7 +171,7 @@ def main():
         # ── (B/C) AYRISMA KIRMIZI + DUVAR YOK ─────────────────────────────────
         print("\nB/C) AYRISMA: elle yazili bir dayanak (K1 yorum capasi) kaynaktan silindi")
         rc_b, cikti_b = bataryayi_kos(ayna_kur(os.path.join(tmp, "b"),
-                                               (CAPA_ONCE, CAPA_SONRA)))
+                                               capa))
         m = KOSAN_RE.search(cikti_b)
         kosan_b = int(m.group(1)) if m else -1
         toplam_b = int(m.group(2)) if m else -1

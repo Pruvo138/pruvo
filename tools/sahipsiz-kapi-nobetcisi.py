@@ -124,12 +124,77 @@ def muaf_adlari(ci_kapsam_yolu=None):
     return None
 
 
+YUKLEYICI_CAGRILAR = ("spec_from_file_location", "SourceFileLoader", "import_module",
+                      "run_path")
+
+
+def _cagri_adi(dugum):
+    f = dugum.func
+    if isinstance(f, ast.Attribute):
+        return f.attr
+    if isinstance(f, ast.Name):
+        return f.id
+    return None
+
+
+def _sabitler(dugum):
+    return {n.value for n in ast.walk(dugum)
+            if isinstance(n, ast.Constant) and isinstance(n.value, str)}
+
+
+def yukluyor_mu(govde, ad):
+    """`govde` (bir .py metni) `ad` modulunu GERCEKTEN yukluyor mu — ADINI ANMAK YETMEZ.
+
+    🔴 K411 (13 Eyl 2026): eski olcut `modul in g or ad in g` idi -> YORUM satirindaki
+    "bkz gorsel_mukerrer_kapisi.py" mensiyonu da "import" sayiliyordu; yukleyici satiri
+    silinse bile govde YARDIMCI kalirdi (mutant YASARDI). Artik AST ile olculur:
+      (i)   `import X` / `from X import ...`
+      (ii)  YUKLEYICI_CAGRILAR'dan birinin (spec_from_file_location ...) ARGUMANINDA ad
+      (iii) ayni dosyada govdesinde yukleyici cagrisi olan bir SARMALAYICININ
+            (ör. `_load("x", "x.py")`) argumaninda ad.
+    Ayristirilamayan dosya icin yalniz (i)'nin metin bicimi kullanilir (fail-closed yon:
+    daha AZ yardimci -> daha COK sahipsiz).
+    """
+    modul = ad[:-3]
+    nokta = modul.replace("-", "_")
+    adaylar = {ad, modul, nokta}
+    try:
+        agac = ast.parse(govde)
+    except (SyntaxError, ValueError):
+        return bool(re.search(r"^\s*(import|from)\s+%s\b" % re.escape(nokta), govde, re.M))
+    sarmalayicilar = set()
+    for d in ast.walk(agac):
+        if isinstance(d, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if any(isinstance(c, ast.Call) and _cagri_adi(c) in YUKLEYICI_CAGRILAR
+                   for c in ast.walk(d)):
+                sarmalayicilar.add(d.name)
+    for d in ast.walk(agac):
+        if isinstance(d, ast.Import):
+            if any(a.name.split(".")[0] == nokta for a in d.names):
+                return True
+        elif isinstance(d, ast.ImportFrom):
+            if d.module and d.module.split(".")[0] == nokta:
+                return True
+        elif isinstance(d, ast.Call):
+            adi = _cagri_adi(d)
+            if adi in YUKLEYICI_CAGRILAR or adi in sarmalayicilar:
+                argumanlar = list(d.args) + [k.value for k in d.keywords]
+                if any(adaylar & _sabitler(a) for a in argumanlar):
+                    return True
+                if any(isinstance(s, str) and s.endswith("/" + ad)
+                       for a in argumanlar for s in _sabitler(a)):
+                    return True
+    return False
+
+
 def yardimci_modul_mu(ad, tools_dizini=None):
-    """CLI'si YOK + en az bir baska tools/*.py import ediyor -> kutuphane.
+    """CLI'si YOK + en az bir baska tools/*.py onu YUKLUYOR -> kutuphane.
 
     "CI atfi 0" bir modul icin sahipsizlik kaniti DEGILDIR: cagrilan sey modulun
-    KENDISI degil, onu import eden aractir (olculdu: gorsel_boyut_kapisi CAGIRAN=5,
-    gorsel_mukerrer_kapisi 6, kapi_dagitim 4).
+    KENDISI degil, onu yukleyen aractir. Yukleme bicimi `yukluyor_mu` ile AST'ten olculur.
+    🔴 CLI'si OLAN govde yuklense de YARDIMCI DEGILDIR (KONTROL-A): 13 Eyl olcumu —
+    `gorsel_boyut_kapisi.py` ve `gorsel_mukerrer_kapisi.py` bu yuzden SAHIPSIZ'dedir
+    (ikisinde de `if __name__ == "__main__"` var), yukleme bicimi yuzunden DEGIL.
     """
     d = tools_dizini or TOOLS
     yol = os.path.join(d, ad)
@@ -139,8 +204,6 @@ def yardimci_modul_mu(ad, tools_dizini=None):
         return False
     if re.search(r'^if\s+__name__\s*==\s*["\']__main__["\']', metin, re.M):
         return False                          # CLI var -> kutuphane degil
-    modul = ad[:-3]
-    nokta = modul.replace("-", "_")
     for baska in sorted(os.listdir(d)):
         if not baska.endswith(".py") or baska == ad:
             continue
@@ -148,8 +211,7 @@ def yardimci_modul_mu(ad, tools_dizini=None):
             g = _oku(os.path.join(d, baska))
         except OSError:
             continue
-        if (re.search(r"\b(import|from)\s+%s\b" % re.escape(nokta), g)
-                or modul in g or ad in g):
+        if yukluyor_mu(g, ad):
             return True
     return False
 

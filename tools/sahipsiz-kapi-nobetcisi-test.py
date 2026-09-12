@@ -160,6 +160,55 @@ def kos():
               toplam == 4 and len(set(adlar)) == 4,
               "olculen=%d benzersiz=%d (beklenen 4/4)" % (toplam, len(set(adlar))))
 
+        # ---- IDDIA-9 (K411): `spec_from_file_location` ile YUKLENEN CLI'siz govde YARDIMCI
+        YUKLEYICI = ('import importlib.util, os\n'
+                     '_s = importlib.util.spec_from_file_location("k_kapisi", '
+                     'os.path.join(os.path.dirname(__file__), "k_kapisi.py"))\n')
+        YORUM_MENSIYON = "# bkz k_kapisi.py (yalniz mensiyon, yukleme DEGIL)\n"
+        k, _ = kur({"k_kapisi.py": MODUL_GOVDE,
+                    "urun-ekle.py": YUKLEYICI + YORUM_MENSIYON + CLI_GOVDE},
+                   {"x.yml": "jobs: {}\n"})
+        iddia("IDDIA-9 spec-from-file-location-yardimci", kovada(k, "yardimci", "k_kapisi.py"))
+
+        # ---- IDDIA-10 (K411): sarmalayici `_load("x", "x.py")` bicimi de YUKLEMEDIR
+        SARMALAYICI = ('import importlib.util, os\n'
+                       'def _load(ad, dosya):\n'
+                       '    s = importlib.util.spec_from_file_location(ad, dosya)\n'
+                       '    return s\n'
+                       'gbk = _load("l_kapisi", "l_kapisi.py")\n')
+        k, _ = kur({"l_kapisi.py": MODUL_GOVDE,
+                    "makerworld-ekle.py": SARMALAYICI + CLI_GOVDE},
+                   {"x.yml": "jobs: {}\n"})
+        iddia("IDDIA-10 sarmalayici-yukleyici-yardimci", kovada(k, "yardimci", "l_kapisi.py"))
+
+        # ---- MUTANT-M3 (K411 kabulu): YUKLEYICI SATIRI SILINDI, yorum mensiyonu KALDI
+        #      -> govde SAHIPSIZ'e DUSMELI. Eski `modul in g` olcutu burada YARDIMCI derdi.
+        k, _ = kur({"k_kapisi.py": MODUL_GOVDE,
+                    "urun-ekle.py": YORUM_MENSIYON + CLI_GOVDE},
+                   {"x.yml": "jobs: {}\n"})
+        iddia("MUTANT-M3 yukleyici-silinince-sahipsiz", kovada(k, "sahipsiz", "k_kapisi.py"),
+              "adini ANMAK yukleme degildir — mensiyon govdeyi YARDIMCI yapmamali")
+
+        # ---- MUTANT-M4: eski GEVSEK olcutu (`ad in g`) geri koy -> M3 vakasi YARDIMCI'ya
+        #      kaymali; kaymadiysa M3 iddiasi OLU.
+        asil_yukluyor = m.yukluyor_mu
+        m.yukluyor_mu = lambda govde, ad: ad in govde or ad[:-3] in govde
+        k, _ = kur({"k_kapisi.py": MODUL_GOVDE,
+                    "urun-ekle.py": YORUM_MENSIYON + CLI_GOVDE},
+                   {"x.yml": "jobs: {}\n"})
+        m4_oldurdu = kovada(k, "yardimci", "k_kapisi.py")
+        m.yukluyor_mu = asil_yukluyor
+        iddia("MUTANT-M4 gevsek-mensiyon-olcutu-oldurulur", m4_oldurdu,
+              "gevsek olcut M3 vakasini YARDIMCI yapmali — yapmadiysa M3 OLU")
+
+        # ---- KONTROL-D: CLI'si OLAN govde spec_from_file_location ile yuklense de SAHIPSIZ
+        #      (gorsel_boyut_kapisi / gorsel_mukerrer_kapisi'nin GERCEK hali, 13 Eyl olcumu)
+        k, _ = kur({"k_kapisi.py": CLI_GOVDE,
+                    "urun-ekle.py": YUKLEYICI + CLI_GOVDE},
+                   {"x.yml": "jobs: {}\n"})
+        iddia("KONTROL-D cli-li-yuklenen-govde-sahipsiz", kovada(k, "sahipsiz", "k_kapisi.py"),
+              "yukleme bicimi CLI'li kapiyi kutuphane yapmaz (KONTROL-A ile ayni sozlesme)")
+
         # ---- MUTANT M1: YORUM elemesini oldur -> IDDIA-2 DUSMELI
         asil = m.kosan_atiflar
 
