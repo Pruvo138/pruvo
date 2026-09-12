@@ -164,6 +164,38 @@ function secenekYukle(localStorage) {
 const bekle = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
+ * 🔴 12 EYL 2026 — SABIT UYKU YARIS URETIYORDU ve o yaris YAYINI DURDURUYORDU.
+ * Olculdu (temiz A/B, AYNI SHA `dc698aef`): 1. kosumda bu dosya `gecti 60 / KALDI 3`
+ * verdi — dusen ucu de RENDER iddiasiydi ("ana sayfada 4 parametrik kart EN USTTE",
+ * 'rozet metni "Ölçüye Özel"', "vitrin ozet.json parametrik havuzundan") -> `serit-a3`
+ * kirmizi -> **`deploy`+`yayin` SKIPPED**, yani katalog canliya INMEDI. `gh run rerun
+ * --failed` ile AYNI is, AYNI girdiyle `success` dondu. Girdi degismedi: o commit
+ * urunler.json'a 2 satir ekliyordu (`"gizli": true`), parametrik havuz 23 -> 23.
+ *
+ * KOK: `await bekle(80)` sabit bir uykudur; CI kosucusu yuklu oldugunda 80 ms boyama
+ * icin YETMIYOR ve iddia BOS DOM'a bakiyor.
+ *
+ * NEDEN SABIT UYKU SILINMEDI, USTUNE KOSUL EKLENDI: ayni bloklarda NEGATIF iddialar
+ * var (`ag.length === 1`, "/katalog HIC cagrilmadi") ve bir seyin OLMADIGINI kanitlamak
+ * icin SABIT bir pencere beklemek GEREKIR — kosul saglanir saglanmaz donmek o eksenin
+ * penceresini kisaltir ve korlestirirdi. Bu yuzden sira: once SABIT taban (negatif
+ * eksen korunur), sonra KOSUL (pozitif render yarisi kalkar).
+ *
+ * FAIL-OPEN DEGIL: tavan dolarsa fonksiyon `false` doner ama iddia YINE olculur —
+ * yanlis YESIL uretmez, yalnizca bekleyisi bitirir. Kosul erken saglanirsa hizli doner.
+ */
+const bekleKosul = async (kosul, tavanMs = 3000, adimMs = 25) => {
+  const bitis = Date.now() + tavanMs;
+  for (;;) {
+    let saglandi = false;
+    try { saglandi = !!kosul(); } catch (e) { saglandi = false; }
+    if (saglandi) { return true; }
+    if (Date.now() >= bitis) { return false; }
+    await bekle(adimMs);
+  }
+};
+
+/**
  * Sayfayi kosar. bayrak=true ise index.html'deki EDGE_KATALOG satiri true'ya cevrilir
  * (kaynaktaki GERCEK bayrak; ayri bir kopya degil).
  */
@@ -441,7 +473,8 @@ function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
       bayrak: false,
       fetchStub: (url) => (url.indexOf("urunler.json") !== -1 ? yanit(PRODUCTS) : yanit({ hata: "beklenmedik: " + url }, false)),
     });
-    await bekle(80);
+    await bekle(80);                                        // SABIT taban: negatif eksen (ag.length===1)
+    await bekleKosul(() => kartlar(kayit).length > 0);       // KOSUL: render yarisi kalkar
     kontrol("urunler.json cekildi (bugunku yol)", ag.some((u) => u.indexOf("urunler.json") !== -1), "cagrilanlar: " + JSON.stringify(ag));
     kontrol("/katalog HIC cagrilmadi", !ag.some((u) => u.indexOf("/katalog") !== -1), "cagrilanlar: " + JSON.stringify(ag));
     kontrol("/ara HIC cagrilmadi", !ag.some((u) => u.indexOf("/ara") !== -1), "cagrilanlar: " + JSON.stringify(ag));
@@ -482,7 +515,8 @@ function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
       arama: "?kategori=Jeneratör",
       fetchStub: (url) => (url.indexOf("urunler.json") !== -1 ? yanit(PRODUCTS) : yanit({ hata: "beklenmedik: " + url }, false)),
     });
-    await bekle(80);
+    await bekle(80);                                        // SABIT taban: negatif eksen (tek ag istegi)
+    await bekleKosul(() => kartlar(kayit).length > 0);       // KOSUL: render yarisi kalkar
     kontrol("Jeneratör kategorisi cizildi", kartlar(kayit).length > 0, "kart: " + kartlar(kayit).length);
     kontrol("konsol hatasi yok", hatalar.length === 0, hatalar.join(" | "));
     kontrol("hala tek ag istegi (urunler.json)", ag.length === 1, JSON.stringify(ag));
@@ -506,7 +540,8 @@ function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
         return yanit({ hata: "beklenmedik: " + url }, false);
       },
     });
-    await bekle(80);
+    await bekle(80);                                        // SABIT taban: negatif eksen
+    await bekleKosul(() => kartlar(kayit).length > 0);       // KOSUL: render yarisi kalkar
     kontrol("edge /katalog?kategori=Jeneratör cizildi", kartlar(kayit).length > 0, "kart: " + kartlar(kayit).length);
     kontrol("konsol hatasi yok", hatalar.length === 0, hatalar.join(" | "));
     kontrol("edge kartinda fiyat alani BOS geliyor (kolun sartini kanitlar)",
@@ -526,7 +561,19 @@ function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
         return yanit({ hata: "beklenmedik: " + url }, false);
       },
     });
+    // 🔴 DUSEN UC IDDIA TAM BURADAYDI (12 Eyl, run 34703418703 oncesi): sabit 80 ms
+    // parametrik vitrinin 4 kartini boyamaya yetmiyordu. SABIT taban negatif eksen
+    // ("ilk yukte tek istek", "urunler.json INMEDI") icin DURUYOR; kosul 4 kartI bekler.
     await bekle(80);
+    // 🔴 "kart sayisi >= 4" YETMEDI (olculdu: 8 yerel kosumun 1'i yine KIRMIZI, ayni uc
+    // iddia). Sebep: sayfa ONCE normal kartlari boyuyor, parametrik vitrini SONRA one
+    // aliyor — yani 4 kart VARDI ama ilk 4'u henuz ROZETSIZDI. Kosul, iddianin KENDI
+    // son-hal sartidir: ilk 4 kart rozetli olana dek bekle. Tavan dolarsa iddia YINE
+    // olculur ve kirmizi yanar (fail-open DEGIL) — o zaman gercek bir gerileme olur.
+    await bekleKosul(() => {
+      const k = kartlar(kayit);
+      return k.length >= 4 && k.slice(0, 4).every(rozetliMi);
+    });
     kontrol("ozet.json cekildi", ag.some((u) => u.indexOf("ozet.json") !== -1), JSON.stringify(ag));
     kontrol("urunler.json INMEDI (paketin asil amaci)", !ag.some((u) => u.indexOf("urunler.json") !== -1), JSON.stringify(ag));
     kontrol("ilk boyamada /katalog cagrilmadi (ozet.json yetti)", !ag.some((u) => u.indexOf("/katalog") !== -1), JSON.stringify(ag));
