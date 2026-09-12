@@ -2631,13 +2631,55 @@ jobs:
       # var (yayin-yasi-alarmi.yml, spec-ifsa-alarmi.yml, d1-sapma-alarmi.yml, ...) ve
       # o govdelerin cogu ORADA kosuyordu. Dogru evrenle gercek sayi 34 degil 11.
       # NON-GROWTH: mevcut borc kirmizi yanmaz, TABANI ASAN her YENI sahipsizlik yanar.
-      - name: "Sahipsiz kapi nobetcisi — kendini test (8 iddia + 3 kontrol + 2 mutant + META)"
+      - name: "Sahipsiz kapi nobetcisi — kendini test (10 iddia + 4 kontrol + 4 mutant + META)"
         if: ${{ !cancelled() }}
         run: python3 tools/sahipsiz-kapi-nobetcisi-test.py
 
       - name: "Sahipsiz kapi nobetcisi — canli tarama (NON-GROWTH: taban asilirsa kirmizi)"
         if: ${{ !cancelled() }}
         run: python3 tools/sahipsiz-kapi-nobetcisi.py
+
+      # ═══ SAHIPSIZ 10 -> 5 KABLOLAMASI (13 Eyl 2026, cip KraL-SahipsizBagla-13Eyl) ═══
+      # OLCULDU (temiz `git clone --no-local` + BOS HOME + CI=true, commit 9861d8cc):
+      #   gh-civi-nobetcisi --kendini-test rc=0 (MUTANT 6/6) · okan-kapisi-penceresi
+      #   --kendini-test rc=0 (MUTANT 6/6 KONTROL 4/4) · worktree-tavan-nobeti
+      #   --kendini-test rc=0 (W1-W7) · d1-sapma-mutasyon-dayanak-kaniti rc=0 (123,8 s) ·
+      #   kanca-nobeti ARGSIZ rc=1 (klonda kanca YOK) -> kanca-kur SONRASI rc=0 (17/17 eksen).
+      # 🔴 KANCA IKILISI SIRALIDIR ve JOB'UN SONUNDADIR: kanca-kur checkout'un kendi
+      #   `.git/config`'ine `core.hooksPath` yazar; bundan SONRA kosan bir adim checkout'ta
+      #   commit atsaydi kancalari tetiklerdi -> ikili bilerek EN SONA kondu. Olctugu sey
+      #   "izlenen tools/kancalar kaynagi kurulunca kanca nobetinin 17 ekseni (c: cagri
+      #   yerleri dahil) YESIL mi" — kanca-kablolama-nobeti --ci (deploy.yml) (c) eksenini
+      #   OLCMEZ. Yerel K80 kosumunda kanca-kur IDEMPOTENTTIR (kurulu+bayt-esitse YAZMAZ).
+      # 🔴 gh-civi-nobetcisi ARGSIZ BAGLANMADI: `/Users/okan/.claude/cron` + REPO_KOK
+      #   sabitini olcer, runner'da o yol yok. Kendini-test kolu fikstur tabanlidir.
+      # MUAF KALAN 3 govde (gecmis-nobeti-hook-kur · yedek-gorev-canli-kapi-olcum ·
+      # kapi-envanteri) ve CLI'li 2 modul (gorsel_boyut_kapisi · gorsel_mukerrer_kapisi)
+      # BILEREK baglanmadi — gerekce DEVAM.md K411 kapanisinda.
+      # `continue-on-error` KULLANILMADI; her adim AYRI (bash -e maskelemesi yok).
+      - name: "gh cagri civi nobetcisi — kendini test (MUTANT 6/6 + ucuncu kova)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/gh-civi-nobetcisi.py --kendini-test
+
+      - name: "Okan kapisi penceresi — kendini test (MUTANT 6/6 + KONTROL 4/4)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/okan-kapisi-penceresi.py --kendini-test
+
+      - name: "Worktree tavan nobeti — kendini test (W1-W7, rapor-only 6/6)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/worktree-tavan-nobeti.py --kendini-test
+
+      - name: "D1 sapma mutasyon bataryasi — dayanak sozlesmesi kaniti (A turetme · B ayrisma · C duvar yok)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/d1-sapma-mutasyon-dayanak-kaniti.py
+
+      - name: "Kanca kablolamasi — izlenen kaynaktan kur (kanca nobeti icin onkosul)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kanca-kur.py
+
+      - name: "Kanca nobeti — kurulu kablolamanin 17 ekseni (hooksPath · varlik · cagri yerleri)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kanca-nobeti.py
 
       # ⚠️ DORT AGIR MUTASYON BATARYASI BU JOB'DAN CIKARILDI (10 Agu 2026) — bkz.
       # asagidaki `marka-bolum-bataryasi` · `marka-sayfa-bataryasi` ·
