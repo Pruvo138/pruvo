@@ -84,6 +84,31 @@ def mainde_yok(kok, dosyalar):
     return eksik
 
 
+def mainde_atif(kok, yol):
+    """main'de bu dosyaya yapilan atif sayisi — **TAM YOL** ile, onek DEGIL.
+
+    🔴 12 Eyl 2026'da olculdu: "dosya adini uzantisiz ara" olcutu ONEK TUZAGINA
+    acik. `shop/test/kanal-gorunurluk.mjs` icin yapilan arama
+    `nobet.yml:3521 run: python3 tools/kanal-gorunurluk-mutasyon.py` satirini
+    yakaladi ve dosya "CI'da KOSUYOR" sanildi; oysa o satir main'de VAR OLAN
+    BASKA bir dosyayi cagiriyor, aranan dosyaya atif SIFIR
+    -> [[arac-adi-onek-eslesmesi-komsu-araci-keser]].
+
+    (atif_sayisi, "RUN"|"YORUM"|"YOK") dondurur. `run:` satirinda gecen bir atif
+    CI'da GERCEKTEN kosuyor demektir; gövde main'de yoksa o bir HAYALI NOBETCIDIR.
+    """
+    rc, cikti, _ = _git(kok, "grep", "-n", "-F", yol, ANA, "--",
+                        ".github/", "tools/", "shop/")
+    if rc != 0 or not cikti:
+        return 0, "YOK"
+    satirlar = cikti.split("\n")
+    for s in satirlar:
+        govde = s.split(":", 3)[-1].strip()
+        if govde.startswith("run:") or govde.startswith("- run:"):
+            return len(satirlar), "RUN"
+    return len(satirlar), "YORUM"
+
+
 def siniflandir(arti_sayisi, dosyalar, eksikler):
     if arti_sayisi == 0:
         return "ESDEGER_MAINDE"
@@ -129,7 +154,11 @@ def envanter(kok, ayrinti=False):
                   % (dal, n_arti, n_dosya, n_eksik, etiket))
             if ayrinti and eksikler:
                 for yol in eksikler[:12]:
-                    print("       - %s" % yol)
+                    n_atif, tur = mainde_atif(kok, yol)
+                    isaret = " 🔴 HAYALI NOBETCI (CI cagiriyor, govde main'de YOK)" \
+                        if tur == "RUN" else ""
+                    print("       - %s | main'de atif: %d %s%s"
+                          % (yol, n_atif, tur, isaret))
                 if len(eksikler) > 12:
                     print("       … +%d dosya daha" % (len(eksikler) - 12))
 
@@ -192,7 +221,7 @@ def kendini_test():
     # yazimda oyle oldu); olcut **fiilen cagrilan git alt komutu**dur: kaynaktaki her
     # `_git(kok, "<altkomut>"` isabeti bir ALLOWLIST'te olmak ZORUNDA.
     import ast as _ast
-    izinli = {"for-each-ref", "cherry", "show", "ls-tree"}
+    izinli = {"for-each-ref", "cherry", "show", "ls-tree", "grep"}
     agac = _ast.parse(open(os.path.abspath(__file__)).read())
     cagrilan = set()
     for dugum in _ast.walk(agac):
