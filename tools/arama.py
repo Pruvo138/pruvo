@@ -1859,10 +1859,26 @@ ROZET_CAPRAZ_IZINLI = {
     "Saab|900": ("ROZET", "Saab 900 Saab'in kendi rozeti (1978-1998 klasik 900 / C900, "
                           "ardilinda NG900); Yamaha'daki 900 bir ARAC ADI degil motor "
                           "hacmidir (deny) — yalniz AD cakismasi"),
+    # 12 Eyl, KraL hukmu — `996` capraz cifti. MaCiT'in dilim-2 push'unda K19 KIRMIZI
+    # yandi (`YARGISIZ (sizinti)=['Ducati|996', 'Porsche|996']`) ve `deploy`+`yayin`
+    # SKIPPED oldu; kapi DOGRU davrandi (yargisiz cift = yargisiz sayfa). Karar KATALOG
+    # OLCULEREK verildi, tahminle DEGIL — iki tarafin da GORUNUR urunu var ve ikisi de
+    # markanin KENDI rozeti, yani bu bir ikiz/rozet-muhendisligi vakasi DEGIL, saf AD
+    # cakismasidir: her iki sayfa da MESRU. Emsal birebir `Ducati|916` (ayni superbike
+    # ailesi, ayni tabloda ROZET) ve `Mazda|5` / `Renault|5` cifti (iki tarafi da allow).
+    "Ducati|996": ("ROZET", "Ducati 996 gercek superbike rozeti (1999-2002, 916/748/998 "
+                            "ailesi); olculdu: 5 gorunur kayit (yakit seviye sensor somunu, "
+                            "role tutucusu, depo destek lastigi vb.). Porsche'deki 996 ile "
+                            "IKIZ DEGIL — yalniz AD cakismasi"),
+    "Porsche|996": ("ROZET", "Porsche 996 Porsche'nin kendi 911 kusak kodudur (1998-2005) ve "
+                             "pazarda model adi gibi kullanilir; olculdu: 6 gorunur kayit "
+                             "(bardak tutucu, on panel trim klipsi, hoparlor adaptoru vb., "
+                             "cogu Boxster 986 ile ortak). Ducati'deki 996 ile IKIZ DEGIL "
+                             "— yalniz AD cakismasi"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 67
-ROZET_CAPRAZ_IZINLI_IMZA = "f904b051cc86f06c"  # K188 sonrasi: kapinin hesabiyla
+ROZET_CAPRAZ_IZINLI_SAYISI = 69
+ROZET_CAPRAZ_IZINLI_IMZA = "e1848cb5634dc504"  # 12 Eyl: 996 cifti eklendi (67->69), kapinin hesabiyla
 
 
 def rozet_capraz_imzasi():
@@ -1882,7 +1898,7 @@ def rozet_capraz_imzasi():
 # (yargisiz cift) olcer, bu eksen HUKMUN KENDISINI olcer; ikisi AYRI kalir cunku tek
 # imzaya baglansaydi sinif mutanti anahtar imzasina sirtini dayardi (yukaridaki not).
 # GEREKCE METNI IMZAYA GIRMEZ: yazim duzeltmesi kapiyi yakmasin, HUKUM degisimi yaksin.
-ROZET_CAPRAZ_SINIF_IMZA = "acbcce6ae35653f6"  # K205: kapinin hesabiyla (main govdesinde kosuldu)
+ROZET_CAPRAZ_SINIF_IMZA = "dce117c7326c5af9"  # 12 Eyl: 996 cifti eklendi, kapinin hesabiyla
 
 
 def rozet_capraz_sinif_imzasi():
