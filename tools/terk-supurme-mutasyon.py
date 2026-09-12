@@ -43,12 +43,22 @@ import tempfile
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HEDEF_BAGIL = os.path.join("shop", "src", "index.js")
 IYZICO_BAGIL = os.path.join("shop", "src", "iyzico.js")
+# 11 Eyl 2026: workerd 4.131.1 giris modulunde ADLI export kabul etmedigi icin uc terk
+# sabiti (TERK_ESIK_SAAT/TERK_KAYNAK_DURUM/TERK_SEBEP) index.js'ten BURAYA tasindi;
+# index.js onlari `import` eder, RE-EXPORT ETMEZ. M3_ESIK'in capasi da bu dosyadadir.
+TERK_SABIT_BAGIL = os.path.join("shop", "src", "terk-sabit.js")
 TEST_BAGIL = os.path.join("shop", "test", "terk-supurme.mjs")
 
 # 🔴 MUTASYONA ACIK TUM DOSYALAR. Capa tazeligi ve "calisma agaci degismedi" kontrolu
 # BUNUN uzerinden doner; tek dosyaya bakan bir kontrol, ikinci dosyaya sizan mutanti
 # GORMEZDI ([[tuketici-yazilirken-tum-okuyucular-sayilir]]).
-MUTASYON_DOSYALARI = (HEDEF_BAGIL, IYZICO_BAGIL)
+MUTASYON_DOSYALARI = (HEDEF_BAGIL, IYZICO_BAGIL, TERK_SABIT_BAGIL)
+
+# Capa 0 kez bulundugunda "nereye gitti" sorusunu cevaplamak icin taranan agac. 12 Eyl
+# 2026'da olculdu: sabit dosya degistirince batarya yalnizca "0 kez geciyor" diyebildi,
+# capanin YENI EVI'ni soyleyemedi -> yayin 7 saat kapali kaldi (serit-a2 kirmizi ->
+# deploy+yayin skipped). Tesihisi yapan cumleyi kapinin KENDISI basar.
+CAPA_ARAMA_AGACI = os.path.join("shop", "src")
 
 # k/q/r: K358 (31 Agu 2026) — kesin-basarisiz UCUNCU SINIF (pozitif), kume DISINDA kalan
 # her seyin FAIL-CLOSED kalmasi (emniyet cekirdegi), ve IKINCI TUKETICI `/donus`.
@@ -87,9 +97,14 @@ MUTANTLAR = [
     (
         "M3_ESIK",
         "TERK ESIGI 0'a duser (24 saatten YENI satirlar da supurmeye girer)",
-        "export const TERK_ESIK_SAAT = 24;",
-        "export const TERK_ESIK_SAAT = 0;",
+        # Capa SATIR BASINA civilenir: ayni metin dosyanin bas yorumunda da ORNEK olarak
+        # geciyor (` * (ornegin `export const TERK_ESIK_SAAT = 24;`) ...`). Basindaki
+        # yenisatir, capayi GERCEK bildirime tekillestirir — yorumu mutasyona ugratmak
+        # mutanti OLU dogururdu ([[mutant-canli-govdede-yasamaz]]).
+        "\nexport const TERK_ESIK_SAAT = 24;",
+        "\nexport const TERK_ESIK_SAAT = 0;",
         ["a", "j", "s"],
+        TERK_SABIT_BAGIL,
     ),
     (
         "M4_IDEM",
@@ -280,13 +295,51 @@ def main():
             return 1
         ham[bagil] = open(tam, encoding="utf-8").read()
 
+    # --- KAPSAM KAPISI: her mutant hedefi MUTASYON_DOSYALARI'nda MI? ------------
+    # 🔴 Hedef listede degilse "calisma agaci dokunulmadi" ekseni O DOSYAYA KORDUR:
+    # mutant diskte kalsa kapi gormez. Bu, capa tazeliginden AYRI bir sessiz-hata
+    # sinifidir ve envanter elle tutuldugu icin sessizce dogar.
+    kapsam_disi = sorted(set(m[5] for m in MUTANTLAR if m[5] not in MUTASYON_DOSYALARI))
+    if kapsam_disi:
+        print("HARNESS KAPSAM HATASI — mutant hedefi MUTASYON_DOSYALARI'nda yok:")
+        for h in kapsam_disi:
+            print("  ✗ %s (calisma agaci dokunulmadi ekseni bu dosyaya KOR)" % h)
+        print("SONUC: KIRMIZI (mutantlar KOSMADI — sessiz atlama YOK)")
+        return 1
+
     # --- HARNESS TAZELIK KONTROLU (capalar TEKIL mi?) --------------------------
+    # Capa bulunamadiginda YALNIZCA "0 kez geciyor" demek yetmez: sabit BASKA BIR
+    # DOSYAYA TASINMIS olabilir (12 Eyl 2026'da tam olarak bu oldu). Kapi, capanin
+    # YENI EVINI de arar ve onarimi ADIYLA basar — teshis eden cumle kapinin kendisinde.
     bayat = []
     for kimlik, _aciklama, eski, _yeni, _oldur, hedef in MUTANTLAR:
         n = ham[hedef].count(eski)
-        if n != 1:
-            bayat.append("%s: dayanak metni %s icinde %d kez geciyor (TEKIL olmali)"
-                         % (kimlik, hedef, n))
+        if n == 1:
+            continue
+        satir = ("%s: dayanak metni %s icinde %d kez geciyor (TEKIL olmali)"
+                 % (kimlik, hedef, n))
+        if n == 0:
+            bulundu = []
+            for kok, _dizinler, dosyalar in os.walk(os.path.join(KOK, CAPA_ARAMA_AGACI)):
+                for ad in sorted(dosyalar):
+                    tam = os.path.join(kok, ad)
+                    bagil = os.path.relpath(tam, KOK)
+                    if bagil == hedef:
+                        continue
+                    try:
+                        k = open(tam, encoding="utf-8").read().count(eski)
+                    except (UnicodeDecodeError, OSError):
+                        continue
+                    if k:
+                        bulundu.append("%s (%d kez)" % (bagil, k))
+            if bulundu:
+                satir += ("\n      -> CAPA TASINMIS: %s. ONARIM: bu mutantin hedef "
+                          "dosyasini guncelle ve dosyayi MUTASYON_DOSYALARI'na EKLE."
+                          % ", ".join(bulundu))
+            else:
+                satir += ("\n      -> capa %s agacinin HICBIR yerinde yok: dayanak metni "
+                          "GERCEKTEN degismis, mutant yeniden yazilmali." % CAPA_ARAMA_AGACI)
+        bayat.append(satir)
     if bayat:
         print("HARNESS BAYAT — mutasyon dayanaklari kaynakla ortusmuyor:")
         for s in bayat:
