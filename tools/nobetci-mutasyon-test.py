@@ -883,6 +883,18 @@ def _e_kos(kok, bayrak=None):
     # 🔴 Bytecode onbellegi devre disi: ayni uzunlukta/ayni saniyede yazilan mutant
     # eskisiyle karisabilir ([[mutasyon-bytecode-onbellegi]]).
     ortam = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
+    # 🔴 AYNA KENDI GIT GECMISINI TASIR — GERCEK DEPONUN CI SHA'LARI AYNAYA SIZMAZ
+    # (13 Eyl 2026, olculdu). Kapinin K80 ekseni `PRUVO_CI_ONCEKI_SHA` /
+    # `GITHUB_EVENT_PATH`(before) + `GITHUB_SHA` doluysa HEAD/HEAD^ yerine O araligi
+    # okur. CI kosucusunda ayna kosumu bu adlari miras aliyordu; aynanin iki commit'lik
+    # deposunda o SHA'lar YOK -> K80 fail-closed KIRMIZI -> E0 kontrol + E8 mesru buyume
+    # mutasyondan BAGIMSIZ dustu (serit-b run 34716723870). Mac'te adlar bos oldugu icin
+    # hic gorulmedi. Kanit: ayni agacta iki adi elle verince yerelde de E0 FAIL + E8 FAIL
+    # rc=1, adlar temizlenince YESIL. CANLI taban kosumu (kok == ROOT) adlari KORUR:
+    # orada gecmis gercektir ve CI'nin olctugu aralik odur.
+    if os.path.realpath(kok) != os.path.realpath(ROOT):
+        for ad in ("PRUVO_CI_ONCEKI_SHA", "GITHUB_SHA", "GITHUB_EVENT_PATH"):
+            ortam.pop(ad, None)
     r = subprocess.run(cmd, capture_output=True, text=True, env=ortam)
     cikti = (r.stdout or "") + (r.stderr or "")
     m = E_IDDIA_RE.search(cikti)
