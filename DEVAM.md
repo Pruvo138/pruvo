@@ -2,6 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔴 12 EYL — SIRADAKİ TEK İŞ: **YAYIN NÖBETİ ÖLÇÜLMEDİ — run `34662597674` (İÇERİK taşıyor)**
+Bağlam kotası RED bastı (tur 441 / 450K) ve o eşikte `gh run watch`/`run view` geçmiyor; koşum kapanış anında `in_progress` idi. **İLK İŞ:** `gh run view 34662597674 --repo Pruvo138/pruvo --json status,conclusion,jobs` → `status=completed` ∧ `deploy`+`yayin` ikisi de `success` ∧ SKIPPED=0. `--limit 1` ile BAKMA, id sabit. ⚠️ Bu koşum 4 landing metni + 1 kategori düzeltmesi taşıyor — yeşil değilse düzeltmeler canlıya İNMEMİŞTİR. (Defter koşumu `34663035691` ayrı, içerik taşımaz.)
+
 ## ✅ 12 EYL — **ÜÇ CI KIRMIZISI KAPANDI · 4.'sü GEÇİCİ ÇIKTI · 5.'si ArTisT'te**
 ① **`landing-hukuk-kapisi` rc=1 → 0, ihlal 4 → 0:** dört landing "gıda"yı hizmet koşulu olarak anlatıp sınırı söylemiyordu (kapı `sertifika`/`kapsam dış`/`kapsamımız dış` jetonlarını substring arar, üçü de yoktu). Sitenin BAŞKA sayfalarda kullandığı kanonik cümle eklendi, ikinci dil üretilmedi. İhlal dün 3, bugün 4 — borç büyüyordu.
 ② **TEK kayıt İKİ kapıyı kapattı:** `einhell-cim-bicme-makinesi-dislisi-d40-t18` kategorisi `Ev & Yaşam` (geçersiz) → `Bahçe` (kardeş kayıt zaten Bahçe). `marka-sayac-kapisi` **DUSEN 5 → 0** · `kategori-kapisi` rc=1 → 0 · `filament-test` TEST 25 de yeşillendi. Yol `duzelt.py --gerekce`.
