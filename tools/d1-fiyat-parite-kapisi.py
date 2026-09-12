@@ -626,6 +626,10 @@ def olc(secenekler_src, index_src, d1sync_src, build_src, urunler, ref_yolu, uru
     # 🔴 DENEK AYIRT EDICI SECILIR: alani KALDIRINCA kural BASKA bir malzeme secen bir
     #   kayit gerekir. Aksi halde iddia TAUTOLOJI olurdu (alan zaten kategori haritasiyla
     #   ayni sonucu veriyorsa, silmek hicbir sey degistirmez ve kanit hicbir sey kanitlamaz).
+    # 🔴 12 EYL 2026: "baska MALZEME" YETMEZ, "baska TUTAR" gerekir. Iki malzemenin farki
+    #   esitse (ABS = ASA) denek iki halde de ayni kurusu verir -> `a_var == a_yok` M12
+    #   mutanti altinda da dogru kalir, mutant YASAR. Olculdu: ilk eslesen kayit ABS<->ASA
+    #   secince batarya M12 SAPTI. Tutar ayni tek turetme noktasindan (_birim_kurus) okunur.
     ayirt = None
     for q_ in urunler:
         if not q_.get("tavsiyeFilament") or q_.get("parametrik") or q_.get("konfigur"):
@@ -634,12 +638,14 @@ def olc(secenekler_src, index_src, d1sync_src, build_src, urunler, ref_yolu, uru
             continue
         q_yok = dict(q_)
         q_yok.pop("tavsiyeFilament", None)
-        if (build_mod.on_secim_tani(q_, acik=True)[1]
-                != build_mod.on_secim_tani(q_yok, acik=True)[1]):
+        m_var = build_mod.on_secim_tani(q_, acik=True)[1]
+        m_yok = build_mod.on_secim_tani(q_yok, acik=True)[1]
+        if (m_var != m_yok
+                and build_mod._birim_kurus(q_, m_var) != build_mod._birim_kurus(q_yok, m_yok)):
             ayirt = (q_, q_yok)
             break
     if ayirt is None:
-        olculemedi("alani silince BASKA malzeme secen kayit bulunamadi — E10b kaniti "
+        olculemedi("alani silince BASKA TUTAR veren kayit bulunamadi — E10b kaniti "
                    "AYIRT EDICI kurulamadi")
     else:
         q_, q_yok = ayirt
