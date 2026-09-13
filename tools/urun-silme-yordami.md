@@ -24,6 +24,21 @@
    tabandan yeniden üretir (silinen düşer); `d1-sync` silinen satırı D1'den DELETE
    eder (6 eksen tutarlı); uygulayıcı deploy'u `workflow_dispatch` ile tetikler.
 
+## Silme kapısı (13 Eyl 2026) — panel dışı yol ve dürüst sınır
+
+- **Varsayılan çare silme DEĞİL, gizlemedir:** `python3 tools/duzelt.py <id> --alan gizli --deger true`.
+- `duzelt.py --sil` ve `--toplu` içindeki `"sil"` işlemi `PRUVO_URUN_SIL_IZNI=OKAN` olmadan
+  **rc 8** ile reddedilir, hiçbir şey yazılmaz. Panel yolu bu izni `panel-uygulayici.py`'de
+  verir (Okan'ın çift-onaylı yönetim ucu). Panel dışı izinli tekil silme (yalnız Okan kararı):
+  `PRUVO_URUN_SIL_IZNI=OKAN python3 tools/duzelt.py <id> --sil "gerekçe"` → kayıt
+  `arsiv/urunler-arsiv.json`'a **taşınır** (`yazan: duzelt.py`); commit'e iki dosya birlikte girer.
+- `tools/urun-silme-kapisi.py` (pre-commit adım 9 + CI `serit-a3`, son 20 first-parent commit
+  penceresi): düşen her id ya ID-RENAME ya da **tam içeriği birebir aynı** YENİ arşiv girişi
+  taşımalı; aksi KIRMIZI. Kırmızı çıktı izin reçetesini basmaz.
+- **SINIR (gizlenmez):** izin yerel ortam değişkenidir, bir ajan kendine verebilir. Kapı kazayı
+  ve "kapıyı yeşile çevirmek için katalog budama" refleksini durdurur, kötü niyeti değil. İzinli
+  silme görünür iz bırakır: arşiv girişi + CI `ARSIVLI_SILME <id> (yazan=...)` satırı + guard logu.
+
 ## Gizlilik kuralları
 
 - **GEREKÇE public repoya YAZILMAZ** (repo PUBLIC): yalnız D1 kuyruk satırında

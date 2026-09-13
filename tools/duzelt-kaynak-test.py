@@ -44,6 +44,10 @@ def cagir(repo, *argv):
     """Gerçek duzelt.py'yi sahte repoda çalıştır; (rc, stdout, stderr) döndür."""
     yeni = {
         "PYTHONPATH": os.path.join(repo, "tools"),
+        # 13 Eyl 2026: duzelt silmesi ACIK izin ister (duzelt.py::SIL_IZIN_ENV). Bu batarya
+        # KAYNAK TEMIZLEME mekanigini olcer -> izinle kosar; izinsiz RED'i
+        # tools/urun-silme-kapisi-test.py (V13/V14 + M1/M2) olcer.
+        "PRUVO_URUN_SIL_IZNI": "OKAN",
     }
     env = os.environ.copy()
     env.update(yeni)
