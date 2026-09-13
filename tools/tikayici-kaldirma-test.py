@@ -32,6 +32,7 @@ burada ACIKCA yazilir; capa kaynakta BULUNAMAZSA mutant `CAPA_YOK` ile COKER
 olculen sey mutant degil KOPYANIN KENDISIDIR.
 """
 import argparse
+import atexit
 import json
 import os
 import re
@@ -799,7 +800,7 @@ def yama(tools_yolu, dosya, capa, yerine, etiket):
 # ---------------------------------------------------------------------------
 # KAPI CAGRISI (PreToolUse)
 # ---------------------------------------------------------------------------
-def kapiya_ver(kapi_yolu, girdi, kimlik="MIMAR"):
+def kapiya_ver(kapi_yolu, girdi, kimlik="MIMAR", ev=None):
     """Kapiyi PreToolUse girdisiyle kos. `kimlik` KIMLIK EKSENINI CIVILER — bkz.
     dosya basindaki KIMLIK EKSENI CIVISI blogu. Varsayilan MIMAR'dir: mevcut 52
     vakanin hicbiri cagri sekliyle degismez, ama artik KOSUCUNUN kimligine KOR
@@ -807,6 +808,8 @@ def kapiya_ver(kapi_yolu, girdi, kimlik="MIMAR"):
     cevre = kapi_cevresi(kimlik)
     if cevre is None:
         return "OLCULEMEDI", "", None
+    if ev:
+        cevre = dict(cevre, HOME=ev)
     p = subprocess.run([sys.executable, kapi_yolu], input=json.dumps(girdi),
                        capture_output=True, text=True, env=cevre)
     s = (p.stdout or "").strip()
@@ -923,11 +926,26 @@ K2_SAYAC_SUSTU = """if fp.lower().endswith(ICRA_UZANTILARI):
 K2_PY = "/private/tmp/claude-501/x/scratchpad/kabul-olcum.py"
 
 
+# 🔴 13 EYL 2026 — KALEM 2 GERCEK HOME'A YAZIYORDU, KENDI SONRAKI KOSUMUNU KIRIYORDU.
+# Kilit sayaci `~/.claude/cron/mimar-kod-yazdi`'ya yazar (`os.makedirs`). CI kosucusunda
+# bu dizin DOGUNCA ayni job'da sonra kosan her `tikayici-kaldirma-test.py` cagrisinda
+# K5'in "ev-disi dizin YOK" sarti tutmadi: nobet.yml `N2 kirleten onarir` adiminda
+# duz kosum -> dizin dogar -> `--mutant-bataryasi` MUTANT=7/9 (K5 mutantlari KOR).
+# Sahte HOME + GITHUB_ACTIONS=true ile birebir uretildi. Mac'te de test CANLI sayac
+# dizinine dosya birakiyordu. Care: kalem 2'nin yazan VE okuyan cagrisi AYNI sahte
+# HOME'u kullanir; `TOOLS`'tan turetilmez (TABAN gercek tools/ ile kosar, HOME repo
+# kokune dusup agaci kirletirdi). Olcen: "K2 TABAN sayac SAHTE HOME'a dustu".
+K2_SAHTE_HOME = os.path.realpath(tempfile.mkdtemp(prefix="tikayici-k2-home-"))
+atexit.register(shutil.rmtree, K2_SAHTE_HOME, True)
+K2_GERCEK_SAYAC = os.path.expanduser("~/.claude/cron/mimar-kod-yazdi")
+K2_SAHTE_SAYAC = os.path.join(K2_SAHTE_HOME, ".claude", "cron", "mimar-kod-yazdi")
+
+
 def kalem2_yaz(tools_yolu, oturum):
     kapi = os.path.join(tools_yolu, "mimar-kod-kilidi.py")
     g = yaz_girdi(K2_PY)
     g["session_id"] = oturum
-    return kapiya_ver(kapi, g)
+    return kapiya_ver(kapi, g, ev=K2_SAHTE_HOME)
 
 
 def kalem2_rapor(tools_yolu, oturum):
@@ -937,7 +955,7 @@ def kalem2_rapor(tools_yolu, oturum):
     # olcmeye doner. Eksen tek yerde degil, HER cagri yerinde civilenir.
     p = subprocess.run([sys.executable, kapi, "--rapor", "--oturum", oturum,
                         "--temizle"], capture_output=True, text=True,
-                       env=kapi_cevresi("MIMAR"))
+                       env=dict(kapi_cevresi("MIMAR"), HOME=K2_SAHTE_HOME))
     for satir in (p.stdout or "").splitlines():
         if satir.startswith("MIMAR_KOD_YAZDI="):
             try:
@@ -952,6 +970,13 @@ def kalem2_kos():
     karar, err, rc = kalem2_yaz(TOOLS, "kabul-taban")
     kaydet("K2 TABAN  scratchpad .py -> GECER", karar == "GECER" and rc == 0,
            karar, "GECER")
+    # Iki yon birden: Mac'te gercek dizin ZATEN var, "degismedi" tek basina sizintiyi
+    # goremez — oturum dosyasinin sahte yolda DOGMUS olmasi HOME'un ulastigini kanitlar.
+    sahte_var = os.path.isfile(os.path.join(K2_SAHTE_SAYAC, "kabul-taban.tsv"))
+    gercek_var = os.path.exists(os.path.join(K2_GERCEK_SAYAC, "kabul-taban.tsv"))
+    kaydet("K2 TABAN  sayac SAHTE HOME'a dustu, gercek HOME'a DEGIL",
+           sahte_var and not gercek_var,
+           "sahte=%s gercek=%s" % (sahte_var, gercek_var), "sahte=True gercek=False")
     kaydet("K2 TABAN  teshis MIMAR-KOD-YAZDI stderr'de", "MIMAR-KOD-YAZDI" in err,
            "MIMAR-KOD-YAZDI" in err, True)
     n = kalem2_rapor(TOOLS, "kabul-taban")

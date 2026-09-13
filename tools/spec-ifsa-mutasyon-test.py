@@ -34,7 +34,7 @@ KAPI = "tools/spec-ifsa-kapisi.py"
 MODUL = "tools/git_ortami.py"   # kapinin import ettigi TEK KAYNAK (kopyayla tasinir)
 # 22 taban + KOK ekseni 3 ("yanlis agacta yesil" 2 + kanca/worktree 1) + EKO 2
 # + F ek tuzagi 1 (11 Agu 2026: Turkce "-sizdir" sol kelime siniri)
-BEKLENEN_IDDIA_SAYISI = 28
+BEKLENEN_IDDIA_SAYISI = 29
 
 
 # (mutant_adi, eski_metin, yeni_metin, dusmesi_beklenen_TEK_iddia)
@@ -47,6 +47,10 @@ MUTANTLAR = (
     ("MUT-A-GENIS", '_A_JETON = re.compile(r"`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)`")',
      '_A_JETON = re.compile(r"`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)[^`]*`")',
      "IDDIA-A2"),
+    ("MUT-A-SINIR-KOR",
+     r'_A_KOVA_SOZU = re.compile(r"(?<![^\W_])(?:kova\w*|bucket\w*)", re.I)',
+     r'_A_KOVA_SOZU = re.compile(r"kova\w*|bucket\w*", re.I)',
+     "IDDIA-A3"),
     # --- EKSEN B ---
     ("MUT-B-KOR", '_B_ONEK = ("ic-",)', '_B_ONEK = ()\n_B_ISARET = frozenset()',
      "IDDIA-B1"),

@@ -251,7 +251,45 @@ def e4_yonlendirme(ye, sunucu):
 
 
 # ------------------------------------------------------------- E5) FAIL-CLOSED
+def e5_fikstur_kapanis(ye):
+    """E5 — fikstur sunucusu kapanista kendi thread'lerini BEKLER (13 Eyl 2026).
+
+    Kopan istemcinin DAEMON handler'i yorumlayici kapanisinda stderr'e yazip
+    kosumu -6 ile cokertiyordu (serit-b run 34726537973, K3). Handler DOGMADAN
+    cikilirsa iddia bir sey olcmez — o yuzden dogum beklenir, dogmazsa KIRMIZI."""
+    import threading
+    import urllib.request
+    try:
+        once = set(threading.enumerate())
+        dogdu = False
+        with ye.FiksturSunucu() as s:
+            # 1.5 sn, 0.5 DEGIL (olculdu): `shutdown()` serve dongusunun 0.5 sn'lik
+            # poll araligini bekler; 0.5 sn'lik uyku o arada biter ve daemon handler
+            # mutanti (M23) YESIL kalir. Uyku poll'dan uzun olmali ki kapanis aninda
+            # handler hala canli olsun.
+            s.httpd.RequestHandlerClass.gecikme_sn = 1.5
+            try:
+                urllib.request.urlopen(s.taban + "/yavas/", timeout=0.05).read()
+            except Exception:                              # noqa: BLE001
+                pass
+            son = time.time() + 3
+            while time.time() < son:
+                if len([t for t in threading.enumerate() if t not in once]) >= 2:
+                    dogdu = True
+                    break
+                time.sleep(0.01)
+        canli = [t.name for t in threading.enumerate()
+                 if t not in once and t.is_alive()]
+        kayit("E5", "fikstur kapanisi kopan istemcinin handler'ini BEKLER (canli 0)",
+              dogdu and not canli,
+              "handler_dogdu=%s canli=%s" % (dogdu, ",".join(canli) or "-"))
+    except Exception as e:                                 # noqa: BLE001
+        kayit("E5", "fikstur kapanisi kopan istemcinin handler'ini BEKLER (canli 0)",
+              False, "COKTU %s: %s" % (type(e).__name__, e))
+
+
 def e5_fail_closed(ye, sunucu):
+    e5_fikstur_kapanis(ye)
     # 🔴 `uyu` SAHTE: ARIZA sinifi bir kez YENIDEN yoklanir (E8) ve gercek bekleme
     # testi yavaslatirdi. IDDIA DEGISMEDI: iki yoklama da basarisiz -> rc 2 DURUYOR.
     sahte_uyku = lambda _s: None                             # noqa: E731

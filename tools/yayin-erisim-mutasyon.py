@@ -238,8 +238,13 @@ K5 = ("K5", "ilgisiz: GECICI bekleme sabitine aciklama yorumu eklendi",
                  "\nYENIDEN_YOKLAMA_BEKLEME = 5.0   # sn (uc blip'i sonmesi icin)\n")],
       [], "ESIT")
 
+M23 = ("M23", "🔴 FIKSTUR HANDLER'I YINE DAEMON (kopan istemci kapanista stderr'e "
+       "yazar, kosum -6 ile coker — run 34726537973)",
+       NOBETCI, [("            daemon_threads = False", "            daemon_threads = True")],
+       ["E5"], "ESIT")
+
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, M13, M14, M15, M16,
-             M17, M18, M19, M20, M21, M22, K1, K2, K3, K4, K5)
+             M17, M18, M19, M20, M21, M22, M23, K1, K2, K3, K4, K5)
 OLCUTLER = ("ESIT",)
 
 IDDIA_RE = re.compile(r"^IDDIA SAYISI:\s*(\d+)\s*$", re.M)

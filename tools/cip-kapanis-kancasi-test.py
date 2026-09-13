@@ -11,6 +11,7 @@ Her vaka POZITIF ve NEGATIF yonuyle yazilir; tek yon = olu nobetci.
 
 import importlib.util
 import json
+import atexit
 import os
 import shutil
 import subprocess
@@ -19,7 +20,19 @@ import tempfile
 
 KOK = os.path.dirname(os.path.realpath(__file__))
 KANCA = os.path.join(KOK, "cip-kapanis-kancasi.py")
-SAYAC_DIZIN = os.path.expanduser("~/.claude/cron/.cip-kapanis-sayaci")
+# 🔴 13 EYL 2026 — BU BATARYA GERCEK HOME'A YAZIYORDU, KOMSU BATARYAYI KIRIYORDU.
+# Kanca sayacini `~/.claude/cron/.cip-kapanis-sayaci`'ya yazar (`os.makedirs`). Test
+# kancayi gercek HOME ile kosturunca CI kosucusunda `~/.claude/cron` DOGUYORDU; ayni
+# job'da sonra kosan `tikayici-kaldirma-test.py` K5 kolu "ev-disi dizin YOK" sartiyla
+# KAPSAM_DISI olmasi gerekirken dizini VAR gordu, OLCULEMEDI dondu ve serit-b her
+# kosumda kirmizi yandi (run 34723170361 · 34726537973 · 34740207447). Sahte HOME +
+# GITHUB_ACTIONS=true ile birebir uretildi: once KAPSAM_DISI, bu test kosunca OLCULEMEDI.
+# Okan'in Mac'inde de test CANLI sayac dizinine yaziyordu. Care: kanca alt-surecleri
+# SAHTE HOME ile kosar; V9 bunu olcer.
+GERCEK_SAYAC_DIZIN = os.path.expanduser("~/.claude/cron/.cip-kapanis-sayaci")
+SAHTE_HOME = os.path.realpath(tempfile.mkdtemp(prefix="kanca-home-"))
+atexit.register(shutil.rmtree, SAHTE_HOME, True)
+SAYAC_DIZIN = os.path.join(SAHTE_HOME, ".claude", "cron", ".cip-kapanis-sayaci")
 
 
 def _ak():
@@ -37,7 +50,7 @@ def kancayi_kos(veri, kanca=KANCA, kutu=None):
     # Kanca KOPYASI gecici dizinde kosarken yaninda `arsiv-kapisi.py` YOKTUR;
     # kanonik `tools/` ortamla soylenir, yoksa kopya fail-open gecer ve mutasyon
     # turu tabaniyla birlikte coker (5 Eyl'de olculdu).
-    ortam = dict(os.environ, PRUVO_KANONIK_TOOLS=KOK)
+    ortam = dict(os.environ, PRUVO_KANONIK_TOOLS=KOK, HOME=SAHTE_HOME)
     s = subprocess.run(argv, input=json.dumps(veri),
                        capture_output=True, text=True, timeout=180, env=ortam)
     blokladi = False
@@ -66,6 +79,7 @@ def _sayaci_temizle(sid):
 def kos(kanca=KANCA, sessiz=False):
     ak = _ak()
     gecti = kirmizi = iddia = 0
+    gercek_sayac_once = os.path.isdir(GERCEK_SAYAC_DIZIN)
 
     def check(ad, kosul):
         nonlocal gecti, kirmizi, iddia
@@ -214,6 +228,14 @@ def kos(kanca=KANCA, sessiz=False):
         check("V8d blok metni kanonik jetonu ADIYLA basiyor",
               blok8 and bool(_kanonik) and _kanonik in sebep8)
         _sayaci_temizle(sid)
+
+        # V9 HIJYEN (13 Eyl 2026): kanca sayaci SAHTE HOME'a dustu mu, gercek HOME'un
+        # sayac dizini DEGISMEDI mi? Iki yon birden: Mac'te gercek dizin zaten VAR
+        # oldugu icin yalniz "degismedi" demek sizintiyi goremez — sahte dizinin
+        # DOGMUS olmasi, alt-surecin HOME'u fiilen aldigini kanitlar.
+        check("V9 kanca sayaci SAHTE HOME'a yazdi, gercek HOME sayac dizini DEGISMEDI",
+              os.path.isdir(SAYAC_DIZIN)
+              and os.path.isdir(GERCEK_SAYAC_DIZIN) == gercek_sayac_once)
     finally:
         shutil.rmtree(kok, ignore_errors=True)
 
@@ -225,7 +247,8 @@ def kos(kanca=KANCA, sessiz=False):
 
 def kancayi_kos_ham(ham, kanca=KANCA):
     s = subprocess.run([sys.executable, kanca], input=ham,
-                       capture_output=True, text=True, timeout=120)
+                       capture_output=True, text=True, timeout=120,
+                       env=dict(os.environ, HOME=SAHTE_HOME))
     blokladi = '"block"' in s.stdout
     return s.returncode, blokladi, "", s.stdout, s.stderr
 

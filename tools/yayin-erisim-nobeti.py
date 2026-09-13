@@ -679,7 +679,22 @@ class FiksturSunucu:
 
     def __enter__(self):
         from http.server import ThreadingHTTPServer
-        self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), _fikstur_handler())
+
+        # 🔴 13 EYL 2026 — serit-b run 34726537973: mutasyon bataryasinin K3 KONTROL
+        # kosumu `cikis=-6` ile coktu (iddia 67/67 GECMISTI), kuyrukta "Fatal Python
+        # error: _enter_buffered_busy ... possibly due to daemon threads". Mekanizma:
+        # `/yavas/` ucunda istemci zaman asimiyla koptu, DAEMON handler thread uyumaya
+        # devam etti ve yorumlayici kapanirken BrokenPipe izini stderr'e yazdi.
+        # Ayni SHA'nin sonraki kosumu yesildi — yaris. Care iki katli: handler'lar
+        # daemon DEGIL (server_close onlari BEKLER) ve kasitli kopan istemcinin hatasi
+        # stderr'e yazilmaz. Olcen: yayin-erisim-test.py E5 "fikstur kapanisi" + M23.
+        class _Sunucu(ThreadingHTTPServer):
+            daemon_threads = False
+
+            def handle_error(self, request, client_address):
+                return
+
+        self.httpd = _Sunucu(("127.0.0.1", 0), _fikstur_handler())
         self.taban = "http://127.0.0.1:%d" % self.httpd.server_address[1]
         self._is = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self._is.start()
@@ -689,6 +704,7 @@ class FiksturSunucu:
         try:
             self.httpd.shutdown()
             self.httpd.server_close()
+            self._is.join(timeout=10)
         except Exception:                                   # noqa: BLE001
             pass
         return False

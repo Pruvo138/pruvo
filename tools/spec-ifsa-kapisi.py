@@ -392,8 +392,13 @@ def _iddia(vurdu):
 #    (isaretsiz jetonu kabul etmek) 14 yanlis pozitif getiriyordu — kapiyi cope atan
 #    oran ([[kapi-disiplin-ilkesi]]).
 # ===========================================================================
+#  (5) KOVA SOZU KELIME BASINDA olmali (13 Eyl 2026, olculdu): sinirsiz `kova\w*`
+#      bir SOYADIN icinde de eslesiyordu — worktree adi `lucid-tereshkova-ea13cc`
+#      DEVAM.md basliginda "kova ADI" sayildi ve PUBLIC alarm kirmizi yandi (run
+#      34726537896). Sol sinir yalniz HARF/RAKAM'i eler: "veri-kovasi" (tire) ve
+#      "R2_BUCKET" (alt cizgi) YAKALANMAYA devam eder. Olcen: IDDIA-A3 + MUT-A-SINIR-KOR.
 _A_PENCERE = 40
-_A_KOVA_SOZU = re.compile(r"kova\w*|bucket\w*", re.I)
+_A_KOVA_SOZU = re.compile(r"(?<![^\W_])(?:kova\w*|bucket\w*)", re.I)
 _A_JETON = re.compile(r"`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)`")
 _A_BEYAN = re.compile(r"bucket[_\-]?name\s*=\s*[\"']([a-z][a-z0-9]*(?:-[a-z0-9]+)+)[\"']", re.I)
 
@@ -782,7 +787,7 @@ def ana_tarama(kok):
 
 
 # ===========================================================================
-# KENDINI-TEST — 28 BEYAN EDILMIS IDDIA (SABIT SAYI). Her eksen icin OLDURUCU
+# KENDINI-TEST — 29 BEYAN EDILMIS IDDIA (SABIT SAYI). Her eksen icin OLDURUCU
 # (desen VAR -> KIRMIZI) + TEK DEGISKENLI KONTROL (benzer ama kapsam disi -> YESIL);
 # ustune YUZEY ayrimi (4), BEYAN yuzeyi (2), KAPSAM (1), EKO ELEMESI (2), MUAFIYET (2),
 # MASKE (1), KOK ekseni (3: acik kok · belirsizlik · worktree+kanca baglami),
@@ -798,6 +803,8 @@ _FIKSTURLER = (
     ("IDDIA-A1", "Uretim dosyalari ozel R2 kovasina konur: `deneme-ornek-kova`.",
      ANLATIM, "A", True),
     ("IDDIA-A2", "Marka kovasi ayrimi `deneme-yukleyici.py` ile yeniden olculecek.",
+     ANLATIM, "A", False),
+    ("IDDIA-A3", "Cip `deneme-tereshkova-ab12cd` agacinda kapandi, kalem acik.",
      ANLATIM, "A", False),
     ("IDDIA-B1", "Ornek uc: `GET /deneme/ornek/yonet/liste` sayfa dondurur.",
      ANLATIM, "B", True),
