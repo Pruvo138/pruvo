@@ -2041,7 +2041,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/d1-seq-mutasyon.py
 
-      - name: "FAZ3 bayrak mutasyon bataryasi (3 mutant)"
+      - name: "FAZ3 bayrak mutasyon bataryasi (index.html yuklemleri + bekleKosul bekleme ekseni)"
         if: ${{ !cancelled() }}
         run: python3 tools/faz3-bayrak-mutasyon.py
 
