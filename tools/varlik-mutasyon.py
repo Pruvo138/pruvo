@@ -102,7 +102,7 @@ CSS_BEYAN_MUTANTLARI = [
 MANDAL_MUTANTLARI = [
     ("G1", "87. gelenek disi adres katalogda (mandal disi)",
      "katalog_kok_adres", [], 1, "GELENEK DISI ADRES MANDAL DISINDA"),
-    ("G2", "mandaldan bir satir silindi, adres katalogda duruyor",
+    ("G2", "tohum adresi katalogda, mandalda YOK (satir silindi)",
      "mandal_satir_sil", [], 1, "GELENEK DISI ADRES MANDAL DISINDA"),
     ("G3", "mandal dosyasi okunamaz (bozuk JSON) -> fail-closed",
      "mandal_boz", [], 1, "GORSEL KOK MANDALI OKUNAMADI"),
@@ -114,6 +114,12 @@ MANDAL_MUTANTLARI = [
      "katalog_duzelt", ["--mandal-nobet"], 1, "GORSEL KOK MANDALI BAYAT GIRIS"),
 ]
 MANDAL_DOSYA = "varlik-gorsel-kok-mandali.json"
+# TOHUM girisi (13 Eyl 2026 tohumunda; ozeti varlik-test._MANDAL_TOHUM_OZETLERI icinde).
+# Tohumda olmasaydi G5 BUYUDU'dan rc=1 alirdi ve beklenen rc=0 SAPARDI — tohum uyeligi
+# bu yuzden bataryanin kendisince olculur. Katalogda id yoksa capa YOK -> SAPMA.
+MANDAL_ORNEK = {"id": "c3dbmw-f650gs-g650gs-ek-far-montaj-braketi",
+                "url": "https://media.pruvo3d.com/c3daux-lights-bracket-for-bmw-vehicles-1.jpg"}
+MANDAL_ORNEK_YENI = "https://media.pruvo3d.com/urunler/c3daux-lights-bracket-for-bmw-vehicles-1.jpg"
 
 
 def _katalog_yaz(tmp, degistir):
@@ -154,26 +160,43 @@ def mandal_mutasyonu(tmp, islem):
                     return True
             return False
         return _katalog_yaz(tmp, kok_yap)
+    # 🔴 G2/G5/G6 MANDALIN DOLULUGUNDAN BAGIMSIZ (13 Eyl 2026): ilk surum "mandalin ilk
+    # satiri"na yaslaniyordu; veri duzelip mandal 86 -> 0 inince capa kayboldu ve batarya
+    # serit-a3'u KIRMIZI yakacakti. Artik tek bir TOHUM girisi (MANDAL_ORNEK) mutant
+    # kopyada mandala/kataloga GERI konur — hedef MANDAL=0 halinde de olculur.
     if islem == "katalog_duzelt":
-        ilk = (_mandal_oku(tmp).get("adresler") or [None])[0]
-        if not ilk:
-            return False
+        # BAYAT: tohum girisi mandalda, katalogda adres DUZELTILMIS (/urunler/).
+        veri = _mandal_oku(tmp)
+        adresler = veri.setdefault("adresler", [])
+        if not any(g.get("id") == MANDAL_ORNEK["id"] and g.get("url") == MANDAL_ORNEK["url"]
+                   for g in adresler):
+            adresler.append(dict(MANDAL_ORNEK))
+        _mandal_yaz(tmp, veri)
 
         def duzelt(urunler):
             for u in urunler:
-                if u.get("id") == ilk["id"] and ilk["url"] in (u.get("gorseller") or []):
-                    u["gorseller"] = [("https://media.pruvo3d.com/urunler/" + x.rsplit("/", 1)[1])
-                                      if x == ilk["url"] else x for x in u["gorseller"]]
-                    return True
+                if u.get("id") == MANDAL_ORNEK["id"]:
+                    u["gorseller"] = [MANDAL_ORNEK_YENI if x == MANDAL_ORNEK["url"] else x
+                                      for x in (u.get("gorseller") or [])]
+                    return MANDAL_ORNEK_YENI in u["gorseller"]
             return False
         return _katalog_yaz(tmp, duzelt)
     if islem == "mandal_satir_sil":
+        # MANDAL DISI: tohum adresi katalogda KOK halinde, mandalda o satir YOK.
         veri = _mandal_oku(tmp)
-        if not veri.get("adresler"):
-            return False
-        veri["adresler"] = veri["adresler"][1:]
+        veri["adresler"] = [g for g in (veri.get("adresler") or [])
+                            if not (g.get("id") == MANDAL_ORNEK["id"]
+                                    and g.get("url") == MANDAL_ORNEK["url"])]
         _mandal_yaz(tmp, veri)
-        return True
+
+        def kok_geri(urunler):
+            for u in urunler:
+                if u.get("id") == MANDAL_ORNEK["id"]:
+                    u["gorseller"] = [MANDAL_ORNEK["url"] if x == MANDAL_ORNEK_YENI else x
+                                      for x in (u.get("gorseller") or [])]
+                    return MANDAL_ORNEK["url"] in u["gorseller"]
+            return False
+        return _katalog_yaz(tmp, kok_geri)
     if islem == "mandal_boz":
         with io.open(_mandal_yol(tmp), "w", encoding="utf-8") as f:
             f.write("{bozuk")
