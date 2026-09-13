@@ -1205,6 +1205,21 @@ jobs:
       - name: Odeme beyani kapisi
         run: python3 tools/odeme-beyani-kapisi.py
 
+      # LANDING/HUKUK KAPISI (K389 ④, 13 Eyl 2026) — BLOKLAYICI, continue-on-error YOK.
+      # KURAL A: govdesinde "gida" gecen landing ayni sayfada sinir cumlesini (sertifika /
+      # kapsam disi) tasir · KURAL B: olcu/revizyon sayfalarinda ucret kosulu yazilidir.
+      # Kapi uzun sure YALNIZ nobet.yml SERIT B'deydi (yayini bloklamaz): 8 Eyl'de 1, 12 Eyl'de
+      # 4 landing sinirsiz gida temasiyla YAYINA CIKTI. Kaynagi okur (tools/sayfalar.py
+      # CONTENT_PAGES), build ciktisina muhtac degil; offline, stdlib, ~0,1 s.
+      # SERIT B kopyasi BILEREK DURUR (maliyet ~0,1 s): orada `!cancelled()` ile ilk
+      # kirmizinin ARKASINDA da olculur, burada sirali serit ilk kirmizida durur.
+      # Mutant testi: gercek katalogun bir KURAL A govdesinden sinir cumlesi silinmis gecici
+      # fikstur -> rc!=0 + slug ADIYLA; kontrol (degistirilmemis) -> rc=0; bos/patlayan -> rc!=0.
+      - name: Landing/hukuk beyan kapisi
+        run: python3 tools/landing-hukuk-kapisi.py
+      - name: Landing/hukuk beyan kapisi mutant kabul testi
+        run: python3 tools/landing-hukuk-kapisi-test.py
+
       # LANDING WHATSAPP KAPISI: CONTENT_PAGES'ten uretilen tum uzun-kuyruk sayfalarda
       # tiklanabilir, dogru numarali ve on-dolu WhatsApp CTA'si bulunur. Orneklem yapmaz;
       # ortak render sablonunun gercek HTML ciktisini ayristirir. Offline ve fail-closed.
