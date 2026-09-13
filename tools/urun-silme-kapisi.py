@@ -70,10 +70,11 @@ import sys
 # TEK KAYNAK: git ortami SCRUB politikasi `tools/git_ortami.py::GIT_BAGLAM_DEGISKENLERI`.
 # Burada elle bir kume YAZILMAZ (ikiz-tanim ayrismasin diye); sadece hangi adlarin
 # KORUNACAGI cagri yerinde ilan edilir. Mutasyon turu bu dosyanin KOPYASINI gecici
-# bir dizine yazar; kopya kanonik `tools/`e bakan `TOOLS_DIZINI`ni tasir.
+# bir dizine yazar; kopya kanonik `tools/`u YALNIZ `PRUVO_KANONIK_TOOLS` ile ogrenir
+# (cip-kapanis-kancasi / arsiv-kapisi ile ayni sozlesme). Makineye ozel mutlak yol
+# aday YAZILMAZ: Mac'te var olur, CI'da yoktur -> yerel yesil / CI kirmizi (K374 sinifi).
 TOOLS_DIZINI = os.path.dirname(os.path.realpath(__file__))
-for _aday in (os.environ.get("PRUVO_KANONIK_TOOLS") or "", TOOLS_DIZINI,
-              os.path.join("/Users/okan/dev/pruvo", "tools")):
+for _aday in (os.environ.get("PRUVO_KANONIK_TOOLS") or "", TOOLS_DIZINI):
     if _aday and os.path.isfile(os.path.join(_aday, "git_ortami.py")):
         sys.path.insert(0, _aday)
         break
