@@ -2,7 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 13 EYL 10:0x ana-oturum-16 — OKAN EMRİ (12 Eyl 09:1x) ÖLÇÜLDÜ + full m3 turu 2
+## 🔴 13 EYL 10:0x ana-oturum-16 KAPANIŞ (bağlam kotası RED, tur 417 / 451K) — SIRADAKİ: ① m3 W2 `kabul-yok-13eyl` raporunu DOĞRULA + dizini sil ② K376 satırına makine-okunur `kabul:` (`tools/kapsam-disi-sinif-kapisi.py`, deploy.yml:1446) — tek ölçütsüz kalem, KraL'da yeni partiyi `T4-OLCUTSUZ` ile kilitliyor ③ `06357c45` yayın nöbeti (gh kotada geçmedi)
+✅ **K368 KAPANDI** (`ic-rapor-adi-kapisi --uzak` rc=0, 77 dal/0 iç rapor) ⇒ `parti-borc-kapisi --ev KraL` ACIK **45**. m3 W1: K152 EKSIK 259→204 (açık) · K161 vuruş 292→**326**, eşik 21 (açık, kötüleşiyor) · K309 kabul aracı main'de YOK · K311/K316 çok bacaklı ölçütün yalnız 1 bacağı yeşil (açık).
+**(ölçüm bloğu)** OKAN EMRİ (12 Eyl 09:1x) ÖLÇÜLDÜ + full m3 turu 2
 **① YAYIN:** son 8 `Build & deploy` (`26104ea9`→`b135cede`) **8/8 success**, `serit-a3`/`deploy`/`yayin` hepsi success, SKIPPED=0. `faz3-bayrak.js` `serit-a3`'te koşuyor (`deploy.yml:1281`, job `:1025`) ⇒ "üst üste 5 koşum rc=0" CI'da 8/8 TUTTU. **EKSİK BACAK:** `bekleKosul` tavan=0 mutantı `faz3-bayrak-mutasyon.py`'de YOK → çip `KraL-BekleKosulMutant-13Eyl` (task_58a39afc). **② KUTU:** `kutu-arsivle.py --kapanislari-isle --tavan 300` → **398 → 227 st** (6 blok/171 st), arşiv **74634 → 74805** BÜYÜDÜ, `lossless_dogrulama=GECTI`. 🔴 Emirdeki `--sha-dogrula` taşıma SONRASI kalan 19 bloğu arşivde arar → rc=1 BEKLENEN, kayıpsızlık kanıtı değil. **③ `--commit b135cede`:** failure = `Nöbet şeridi SERIT B` ×2 + `Spec/tasarim` alarmı → ikisi `KraL-Tamirci-13Eyl` çipinde.
 🔧 **K411 durum hücresi kanonik DEĞİLDİ** (çip `KAPANDI 13 Eyl (...)` yazmıştı) ⇒ N2B tüm evlerde `N2B-OLCULEMEDI ACIK=46 KALEM=-`. Hücre `KAPANDI`'ya çekildi, not kanıt hücresine taşındı, satır 8 sütun. **TEMİZLİK:** `silly-chandrasekhar-0637fb` ağacı kaldırıldı (lsof 0 · kirli 0 · main'in atası) · 12 Eyl `Gunluk mimar ihtar` oturumu arşivlendi. **m3 (arka planda):** W1 `kosulmadi-6` (K368/K152/K161/K309/K311/K316 güvenli kabul) · W2 `kabul-yok` (kabulsüz açık kalemler grep/git yoklaması).
 
