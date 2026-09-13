@@ -331,8 +331,14 @@ def duzelt_kos(kok, islemler):
         json.dump(islemler, f, ensure_ascii=False)
         yol = f.name
     try:
+        # URUN SILME IZNI (13 Eyl 2026): duzelt `"sil"` islemini ancak PRUVO_URUN_SIL_IZNI=OKAN
+        # ile kosar. Panel "Sil (arsive)" satiri Okan'in cift-onayli yonetim ucundan gelir
+        # (Okan emri 2 Eyl) -> izin BURADA verilir; arsiv kaydini arsiv_ekle yazar ve commit
+        # kapisi (tools/urun-silme-kapisi.py) onu olcer. Izin dusurulurse panel silmeleri
+        # DUZELT_RED ile hata kovasina duser (urun-silme-kapisi-test V17 olcer).
+        env = dict(os.environ, PRUVO_URUN_SIL_IZNI="OKAN")
         p = subprocess.run([sys.executable, os.path.join(kok, "tools", "duzelt.py"),
-                            "--toplu", yol], cwd=kok, capture_output=True, text=True)
+                            "--toplu", yol], cwd=kok, capture_output=True, text=True, env=env)
         return p.returncode, (p.stdout + p.stderr)
     finally:
         os.unlink(yol)

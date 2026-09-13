@@ -235,7 +235,13 @@ def test_c():
         d = {p["id"]: p for p in json.load(f)}
     kontrol("uyelik" not in d["test-urun-1"], "tek-urun alan kaldirildi")
 
-    rc, out, err = cagir(mod, ["test-urun-2", "--sil", "test gerekcesi"])
+    # 13 Eyl 2026: silme ACIK izin ister; mekanik test izinle kosar, izinsiz RED'i
+    # tools/urun-silme-kapisi-test.py (V13/V14 + M1/M2) olcer.
+    os.environ[mod.SIL_IZIN_ENV] = mod.SIL_IZIN_DEGERI
+    try:
+        rc, out, err = cagir(mod, ["test-urun-2", "--sil", "test gerekcesi"])
+    finally:
+        os.environ.pop(mod.SIL_IZIN_ENV, None)
     kontrol(rc == 0, "tek-urun --sil exit 0")
     with open(urunler_yol, encoding="utf-8") as f:
         kalan = [p["id"] for p in json.load(f)]
@@ -1117,8 +1123,17 @@ def _g_senaryo(ad, kur, beklenen_blok, arg=None):
         if kur:
             kur(repo, dizin)
         mod = modul_yukle(repo, "duzelt.py", "duzelt_g_" + ad.replace(" ", "_")[:20])
-        rc, out, err = cagir(mod, arg or ["sahte-figur", "--alan", "gorseller",
-                                          "--deger", json.dumps(YENI_GORSELLER)])
+        # --sil senaryosu koken kapisinin yanlis-pozitifini olcer, izin kolunu DEGIL ->
+        # izinle kosar (izinsiz RED: tools/urun-silme-kapisi-test.py).
+        sil_senaryosu = "--sil" in (arg or [])
+        if sil_senaryosu:
+            os.environ[mod.SIL_IZIN_ENV] = mod.SIL_IZIN_DEGERI
+        try:
+            rc, out, err = cagir(mod, arg or ["sahte-figur", "--alan", "gorseller",
+                                              "--deger", json.dumps(YENI_GORSELLER)])
+        finally:
+            if sil_senaryosu:
+                os.environ.pop(mod.SIL_IZIN_ENV, None)
     sonra = sha(urunler_yol)
     if beklenen_blok:
         kontrol(rc != 0, "%s: exit != 0 (olculen %s)" % (ad, rc))
