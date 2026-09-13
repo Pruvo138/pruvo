@@ -893,7 +893,15 @@ def kendini_test(gecici_kok):
         "- K193 CHIP `KraL-test dort`\n"
         "## SONRA\n"
     )
-    _git_repo_kur(m5_kok, m5_defter_kismi)
+    # Acik tarih: damga uretimi `_damga_coz` ile simdi_dt'ye karsilastirir;
+    # gercek commit tarihi saniye cozunurluklu VE simdi_dt'den SONRA olursa
+    # tum damgalar gelecek sayilir (fail-closed) → M5 yan eksen (K191/K193
+    # uretilebilmeli) YASARDI. simdi_dt - 1 dakika ile ayni saniyede bile
+    # kalir.
+    tarih_m5 = (simdi_dt - datetime.timedelta(minutes=1)
+                ).strftime("%Y-%m-%dT%H:%M:%SZ")
+    _git_repo_kur(m5_kok, m5_defter_kismi,
+                  commit_tarihleri=[(tarih_m5, m5_defter_kismi)])
     # Gercek defteri (K190..K193) KOK'e yaz ama COMMIT'LEME — boylece git
     # tarihcisinde K190/K192 yok (URETILEMEYECEK), K191/K193 var.
     with open(defter_yol, "w", encoding="utf-8") as f:
@@ -953,7 +961,15 @@ def kendini_test(gecici_kok):
     # hukum uretilir (uretim cikti + siniflandirma). Dogru davranis: uretim
     # yalniz haritayi yazar; T5-TAZE hukmunu YALNIZ kalem_damgasi() uretir.
     m6_kok = os.path.join(t5b_root, "m6")
-    _git_repo_kur(m6_kok, SENTETIK_DEfter)
+    # Acik tarih: damga uretimi `_damga_coz` ile simdi_dt'ye karsilastirir;
+    # gercek commit tarihi saniye cozunurluklu VE simdi_dt'den SONRA olursa
+    # tum 4 damga gelecek sayilir (fail-closed) → uretilen=0 → M6 yan eksen
+    # (4 kalem uretilmeli) YASARDI. simdi_dt - 1 dakika ile ayni saniyede bile
+    # kalir.
+    tarih_m6 = (simdi_dt - datetime.timedelta(minutes=1)
+                ).strftime("%Y-%m-%dT%H:%M:%SZ")
+    _git_repo_kur(m6_kok, SENTETIK_DEfter,
+                  commit_tarihleri=[(tarih_m6, SENTETIK_DEfter)])
     m6_defter_yol = os.path.join(m6_kok, "DEVAM.md")
     m6_durum = os.path.join(m6_kok, DURUM_DOSYA_ADI)
     # ONCE normal: ekrana bos, "T5-TAZE" cikti satir YOK
