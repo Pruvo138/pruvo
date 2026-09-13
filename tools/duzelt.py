@@ -45,9 +45,8 @@ Platform kategorileri (Otomobil/Marin/...) HIC degerlendirilmez.
 
 URUN SILINMEZ (Okan hukmu 17 Agu 2026) — yayindan dusurmek icin GIZLE:
   python3 tools/duzelt.py <id> --alan gizli --deger true
-URUNU TAMAMEN SILMEK yalniz Okan'in ACIK karariyla (13 Eyl 2026'dan beri izinsiz RED, rc 8):
-  PRUVO_URUN_SIL_IZNI=OKAN python3 tools/duzelt.py <id> --sil "kisa gerekce"
-Bu, urunu urunler.json'dan kaldirir, TAM kaydi arsiv/urunler-arsiv.json'a TASIR (gerekce
+URUNU TAMAMEN SILMEK yalniz Okan'in ACIK karariyla (13 Eyl 2026'dan beri izinsiz RED, rc 8;
+izin ve yordam: tools/urun-silme-yordami.md). Izinli `--sil`, urunu urunler.json'dan kaldirir, TAM kaydi arsiv/urunler-arsiv.json'a TASIR (gerekce
 public arsive YAZILMAZ) VE id'yi .urunler-sil-izin.json'a yazar ki guard onu HEAD'den geri
 eklemesin. Commit'e urunler.json + arsiv/urunler-arsiv.json BIRLIKTE girer; arsiv kaydi
 olmayan silme tools/urun-silme-kapisi.py (pre-commit adim 9 + CI serit-a3) ile KIRMIZI.
@@ -883,8 +882,10 @@ def _sil_izin_red(idler, kip):
     print("  CARE — yayindan dusur, kayit tabanda KALSIN (gizli:true):", file=sys.stderr)
     for uid in idler[:5]:
         print("    python3 tools/duzelt.py %s --alan gizli --deger true" % uid, file=sys.stderr)
-    print("  Silme YALNIZ Okan'in acik karariyla: %s=%s (kayit arsiv/urunler-arsiv.json'a "
-          "TASINIR, commit kapisi arsiv kaydini olcer)." % (SIL_IZIN_ENV, SIL_IZIN_DEGERI),
+    # Izin RECETESI kirmizi ciktida BASILMAZ (curutucu B1, 13 Eyl): reddedilen cagriya
+    # nasil gececegini soylemek, "kapiyi yesile cevirmek icin katalog budama" refleksini
+    # tek adim uzaga koyar. Yordam Okan'in belgesindedir.
+    print("  Silme yalniz Okan'in acik karariyla yapilir (yordam: tools/urun-silme-yordami.md).",
           file=sys.stderr)
     return RC_SIL_IZIN
 

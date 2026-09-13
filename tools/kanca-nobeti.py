@@ -130,7 +130,7 @@ BEKLENEN = (
         # 13 Eyl 2026 eklendi. GEREKCE: Okan hukmu 17 Agu "urun SILINMEZ" iken
         # 14 Agu -> 13 Eyl arasinda urunler.json id kumesini kucülten 31 commit'in
         # 22'si (54 kayit) izinsizdi ve HICBIR kapi yanmadi (8759f3e2, db33e358,
-        # aea5ccac). CI kolu (serit-a3) tek atimliktir; cagri satiri BURAYA KAYITLI
+        # aea5ccac). CI kolu (serit-a3) yayini DURDURARAK konusur; cagri satiri BURAYA KAYITLI
         # OLMAZSA silinmesi hicbir yerde kirmizi yakmaz ([[nobetci-cagri-satiri-nobetsiz]]).
         ("tools/urun-silme-kapisi.py",
          "yazim oncesi urun silme kolu: INDEX'te HEAD'e gore dusen her id ya "

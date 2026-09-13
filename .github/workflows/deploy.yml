@@ -1087,7 +1087,8 @@ jobs:
 
       # URUN SILME KAPISI — diriltmenin TERS yonu: "urun izinsiz SILINDI mi". BLOKLAYICI
       # (continue-on-error YOK): yerel + deterministik, ag ISTEMEZ, fetch-depth: 0 ister
-      # (taban = push olayinin before SHA'si; yerelde yoksa OLCULEMEDI -> yayin durur).
+      # (taban = son 20 first-parent commit penceresi ya da daha eskiyse push `before`i;
+      # iptal edilen kuyruk koşumunun atladigi silmeyi de gorur, kayit geri konunca soner).
       # OLCULEN SINIF (13 Eyl 2026): Okan hukmu 17 Agu "urun SILINMEZ" iken 14 Agu -> 13 Eyl
       # arasinda id kumesini kucülten 31 commit'in 22'si (54 kayit) izinsizdi; hicbir kapi
       # yanmadi (8759f3e2 · db33e358 · aea5ccac). Dusen id ya ID-RENAME ya YENI arsiv girisi

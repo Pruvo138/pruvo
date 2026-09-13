@@ -232,10 +232,74 @@ def v11(kapi, duzelt, tmp):
         json.dump({"before": a}, f)
     rc2, out2 = kapi_kos(kapi, d, [], env=temiz_env(GITHUB_EVENT_PATH=olay, GITHUB_SHA=c))
     rc3, out3 = kapi_kos(kapi, d, [], env=temiz_env(PRUVO_CI_ONCEKI_SHA="1" * 40, GITHUB_SHA=c))
-    ok = (rc1 == 1 and "eksen=CI(before)" in out1 and "IZINSIZ_SILME urun-b" in out1
+    ok = (rc1 == 1 and "eksen=CI(acik)" in out1 and "IZINSIZ_SILME urun-b" in out1
           and rc2 == 1 and "IZINSIZ_SILME urun-b" in out2
           and rc3 == 2 and "OLCULEMEDI" in out3)
     return ok, "before=%d olay=%d taban-yok=%d" % (rc1, rc2, rc3)
+
+
+def v18(kapi, duzelt, tmp):
+    # Curutucu B2: yalniz id tasiyan ya da icerigi farkli arsiv girisi izin SAYILMAZ.
+    d, a = yeni_depo(tmp, [K1, K2, K3])
+    yaz(d, [K1, K3], arsiv=[{"kayit": {"id": "urun-b"}},
+                            arsiv_girisi(dict(K2, fiyat="1 TL"))])
+    b = commit(d)
+    rc, out = kapi_kos(kapi, d, ["--taban", a, "--yeni", b])
+    return rc == 1 and "IZINSIZ_SILME urun-b" in out, "rc=%d" % rc
+
+
+def v19(kapi, duzelt, tmp):
+    # Curutucu B3: main'in YENI ekledigi kayit, catisma `--theirs` ile cozulunce yutulur.
+    d, _ = yeni_depo(tmp, [K1, K2, K3])
+    git(d, "checkout", "-q", "-b", "dal")
+    yaz(d, [K1, dict(K2, fiyat="250 TL"), K3])
+    commit(d, "dalda degisim")
+    git(d, "checkout", "-q", "main")
+    yaz(d, [K4, K1, dict(K2, fiyat="275 TL"), K3])
+    commit(d, "main yeni urun + degisim")
+    p = subprocess.run(["git", "-c", "core.hooksPath=" + YOK_KANCA, "-C", d, "merge", "dal"],
+                       capture_output=True, text=True, env=temiz_env())
+    if p.returncode == 0:
+        return False, "fikstur: catisma BEKLENIYORDU"
+    git(d, "checkout", "--theirs", "urunler.json")
+    git(d, "add", "urunler.json")
+    rc, out = kapi_kos(kapi, d, ["--index"])
+    return (rc == 1 and "eksen=INDEX+MERGE_HEAD" in out
+            and "IZINSIZ_SILME urun-d-yeni" in out), "rc=%d" % rc
+
+
+def _pencere_deposu(tmp):
+    d, a = yeni_depo(tmp, [K1, K2, K3])
+    yaz(d, [K1, K3])
+    b = commit(d, "izinsiz silme")
+    yaz(d, [K4, K1, K3])
+    c = commit(d, "ekleme")
+    return d, a, b, c
+
+
+def v20(kapi, duzelt, tmp):
+    # Curutucu SUPHE: silme commit'inin koşumu kuyrukta iptal edildi; sonraki koşumun
+    # `before`i silmeden SONRAKI commit. Pencere yine yakalamali.
+    d, a, b, c = _pencere_deposu(tmp)
+    yaz(d, [K4, dict(K1, fiyat="111 TL"), K3])
+    e = commit(d, "alan degisimi")
+    olay = os.path.join(tmp, "olay-v20-%s.json" % e[:8])
+    with open(olay, "w") as f:
+        json.dump({"before": c}, f)
+    rc, out = kapi_kos(kapi, d, [], env=temiz_env(GITHUB_EVENT_PATH=olay, GITHUB_SHA=e))
+    return (rc == 1 and "eksen=CI(pencere-" in out and "IZINSIZ_SILME urun-b" in out), "rc=%d" % rc
+
+
+def v21(kapi, duzelt, tmp):
+    # KONTROL: pencere yapiskan ama ONARILABILIR — kayit geri konunca YESIL.
+    d, a, b, c = _pencere_deposu(tmp)
+    yaz(d, [K2, K4, K1, K3])
+    e = commit(d, "geri konuldu")
+    olay = os.path.join(tmp, "olay-v21-%s.json" % e[:8])
+    with open(olay, "w") as f:
+        json.dump({"before": c}, f)
+    rc, out = kapi_kos(kapi, d, [], env=temiz_env(GITHUB_EVENT_PATH=olay, GITHUB_SHA=e))
+    return rc == 0 and "DUSEN=0" in out, "rc=%d" % rc
 
 
 def v12(kapi, duzelt, tmp):
@@ -332,6 +396,8 @@ VAKALAR = [
     ("V11_CI_ARALIGI", v11), ("V12_AEA5CCAC_FIKSTURU", v12), ("V13_DUZELT_SIL_IZINSIZ", v13),
     ("V14_DUZELT_TOPLU_SIL_IZINSIZ", v14), ("V15_DUZELT_SIL_IZINLI_UCTAN_UCA", v15),
     ("V16_KANCA_VE_CI_KABLOSU", v16), ("V17_IKIZ_TANIM", v17),
+    ("V18_SAHTE_ARSIV_GIRISI", v18), ("V19_MERGE_THEIRS_YENI_KAYIT_KAYBI", v19),
+    ("V20_CI_PENCERE_IPTAL_BOSLUGU", v20), ("V21_PENCERE_ONARIM_KONTROL", v21),
 ]
 VAKA = dict(VAKALAR)
 
@@ -344,18 +410,25 @@ MUTANTLAR = [
      "    if urun_silmeler and not _sil_izni_var():\n", "    if False:\n",
      "V14_DUZELT_TOPLU_SIL_IZINSIZ"),
     ("M3_ID_KUCULME_OLCUSU_SOKULDU", "kapi",
-     "    dusen = taban_idleri - set(yeni_h)\n", "    dusen = set()\n",
+     "        dusen.append(uid)\n", "        pass\n",
      "V12_AEA5CCAC_FIKSTURU"),
     ("M4_ARSIV_SAYACI_VARLIGA_GEVSEDI", "kapi",
-     "        if yeni_arsiv.get(uid, 0) > taban_arsiv.get(uid, 0):\n",
-     "        if yeni_arsiv.get(uid, 0) > 0:\n", "V5_ESKI_ARSIV_YETMEZ"),
+     "        if len(yeni_g) > len(taban_arsiv.get(uid, {}).get(anahtar, [])):\n",
+     "        if len(yeni_arsiv.get(uid, {})) > 0:\n", "V5_ESKI_ARSIV_YETMEZ"),
     ("M5_RENAME_ICERIGE_BAKMIYOR", "kapi",
      "    return json.dumps(k, sort_keys=True, ensure_ascii=False)\n", '    return ""\n',
      "V7_RENAME_ICERIK_DEGISTI"),
-    ("M6_MERGE_EBEVEYN_KESISIMI_SOKULDU", "kapi",
-     "        taban_idleri &= eb_idleri\n", "        pass\n", "V9_MERGE_GETIRISI"),
+    ("M6_MERGE_ORTAK_ATA_SARTI_SOKULDU", "kapi",
+     "        if (len(ebeveynler) > 1 and uid in ata_idleri\n",
+     "        if (len(ebeveynler) > 1\n", "V19_MERGE_THEIRS_YENI_KAYIT_KAYBI"),
     ("M7_DUZELT_ARSIV_YAZIMI_SOKULDU", "duzelt",
      "        _atomic_write(ARSIV, arsiv)\n", "        pass\n", "V15_DUZELT_SIL_IZINLI_UCTAN_UCA"),
+    ("M8_ARSIV_ICERIK_ESLESMESI_SOKULDU", "kapi",
+     "    return json.dumps(kayit, sort_keys=True, ensure_ascii=False)\n", '    return ""\n',
+     "V18_SAHTE_ARSIV_GIRISI"),
+    ("M9_CI_PENCERESI_SOKULDU", "kapi",
+     "            and _ata_mi(depo, before, hedef) and _ata_mi(depo, before, pencere)):\n",
+     "            and _ata_mi(depo, before, hedef)):\n", "V20_CI_PENCERE_IPTAL_BOSLUGU"),
 ]
 KONTROL_MUTANT = ("K0_ZARARSIZ_YORUM", "kapi", "import argparse\n",
                   "import argparse  # kontrol mutanti: davranis DEGISMEZ\n")
