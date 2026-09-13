@@ -1859,23 +1859,62 @@ _URUN_YOLU_RE = re.compile(r"^(?:https?://[^/]+)?/urun/([^/?#]+)/?$")
 # Gorsel anahtari gelenegi: media.pruvo3d.com/urunler/<anahtar>.<uzanti>
 _GORSEL_ANAHTAR_RE = re.compile(
     r"^https://media\.pruvo3d\.com/urunler/[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|webp|avif)$")
+# Turetilmis hedef SAYIMININ ekseni = medya HOST'u (gelenegin ONEKI degil). Gelenek disi
+# anahtar sayimdan dusmez, gelenek kolunda ADIYLA yakalanir (bkz. _turetilmis_hedefler).
+_MEDYA_HOST_RE = re.compile(r"^https?://media\.pruvo3d\.com/")
 
 
 def _turetilmis_hedefler(html, urun):
     """(gorsel_urlleri, urun_idleri) — sayfadaki TURETILMIS hedefler.
 
     Urunun KENDI gorselleri ve KENDI `/urun/<id>/` adresi DISARIDA birakilir: onlar
-    turetilmis degil, sayfanin kendi varligidir (beyan EDILEMEZ eksen)."""
+    turetilmis degil, sayfanin kendi varligidir (beyan EDILEMEZ eksen).
+
+    🔴 13 Eyl 2026 (K-VarlikOrneklem): suzgec eskiden `media.pruvo3d.com/urunler/`
+    ALT-DIZESIYDI. Medya HOST'unda ama `/urunler/` DISINDA duran bir hedef gorseli
+    (katalogda 32 urun / 86 adres: `https://media.pruvo3d.com/th5935668-g1.jpg`) sayimdan
+    SESSIZCE dusuyor, gelenek kolu onu HIC gormuyor ve teshis "GORSEL hedefi AZALDI"
+    diye YANLIS yere bakiyordu — 26 Agu'da bu yanlis teshis tekil beyanla kapatildi ve
+    ayni veri kusuru 18 gun ortuldu. Suzgec artik HOST ekseninde: kusurlu anahtar
+    sayimda KALIR ve gelenek kolu onu ADIYLA basar."""
     kendi_id = (urun or {}).get("id", "")
     kendi_gorseller = set((urun or {}).get("gorseller") or [])
     gorseller = [u for u in _IMGSRC_RE.findall(html)
-                 if u not in kendi_gorseller and "media.pruvo3d.com/urunler/" in u]
+                 if u not in kendi_gorseller and _MEDYA_HOST_RE.match(u)]
     idler = []
     for yol, _par in _baglantilar(html):
         m = _URUN_YOLU_RE.match((yol or "").strip())
         if m and m.group(1) != kendi_id:
             idler.append(m.group(1))
     return gorseller, idler
+
+
+KIRIK_HEDEF_JETONU = "TURETILMIS HEDEF KIRIK"
+
+
+def turetilmis_hedef_kirik_mi(yeni_html, urun, katalog_idler):
+    """(kirik, tani) — YENI sayfanin turetilmis hedeflerinden biri KIRIK mi?
+
+    KIRIK = (a) hedef urun KATALOGDA YOK (yetim) ya da (b) hedefin gorsel anahtari
+    GELENEK DISI (musteri kirik/yanlis gorsel gorur). Bu iki eksen HEDEFIN KENDI
+    halidir; halka kaymasinin (beyanla aciklanabilir) sonucu DEGILDIR.
+
+    🔴 TEK KAYNAK: `turetilmis_hal_saglikli_mi` bu yuklemi CAGIRIR (ikinci kopya yok);
+    `olc` ise ayni yuklemi BEYANLA GECEN turetilmis bulgulara da uygular — bir beyan
+    halka kaymasini aciklayabilir, KIRIK hedefi mesrulastiramaz (26 Agu vakasi).
+    Katalog kumesi BOS ise yetim ekseni OLCULEMEZ -> kirik=None (cagiran fail-closed)."""
+    if not katalog_idler:
+        return None, ("katalog id kumesi BOS -> hedeflerin varligi OLCULEMEDI "
+                      "(fail-closed: saglik kolu devreye girmez)")
+    y_gorsel, y_id = _turetilmis_hedefler(yeni_html, urun)
+    yetim = [i for i in y_id if i not in katalog_idler]
+    if yetim:
+        return True, ("yeni hedef KATALOGDA YOK (%d): %s" % (len(yetim), yetim[:3]))
+    bozuk = [u for u in y_gorsel if not _GORSEL_ANAHTAR_RE.match(u)]
+    if bozuk:
+        return True, ("yeni hedefin gorsel anahtari GELENEK DISI (%d): %s"
+                      % (len(bozuk), [u[:70] for u in bozuk[:3]]))
+    return False, "kirik hedef 0 (yetim 0 · gelenek disi anahtar 0)"
 
 
 def turetilmis_hal_saglikli_mi(eski_html, yeni_html, urun, katalog_idler):
@@ -1885,11 +1924,10 @@ def turetilmis_hal_saglikli_mi(eski_html, yeni_html, urun, katalog_idler):
       (1) sayfa turetilmis hedeflerini KAYBETMEMIS (gorsel ve baglanti sayisi AZALMAMIS),
       (2) yeni hedeflerin HEPSI katalogda VAR (yetim hedef yok),
       (3) yeni hedeflerin gorsel anahtarlari GELENEGE uygun (host + uzanti).
+    (2)+(3) ve BOS katalog fail-closed kolu `turetilmis_hedef_kirik_mi`dedir (tek kaynak:
+    burada ikinci bir `if not katalog_idler` kolu mutasyonda SURVIVOR olurdu).
     Herhangi biri saglanmazsa (saglikli=False, tani) doner ve cagiran BUGUNKU KATI
     davranisa geri duser — sessiz yesil YOKTUR."""
-    if not katalog_idler:
-        return False, ("katalog id kumesi BOS -> hedeflerin varligi OLCULEMEDI "
-                       "(fail-closed: saglik kolu devreye girmez)")
     e_gorsel, e_id = _turetilmis_hedefler(eski_html, urun)
     y_gorsel, y_id = _turetilmis_hedefler(yeni_html, urun)
     if len(y_gorsel) < len(e_gorsel):
@@ -1898,16 +1936,53 @@ def turetilmis_hal_saglikli_mi(eski_html, yeni_html, urun, katalog_idler):
     if len(y_id) < len(e_id):
         return False, ("turetilmis URUN BAGLANTISI AZALDI (%d -> %d)"
                        % (len(e_id), len(y_id)))
-    yetim = [i for i in y_id if i not in katalog_idler]
-    if yetim:
-        return False, ("yeni hedef KATALOGDA YOK (%d): %s" % (len(yetim), yetim[:3]))
-    bozuk = [u for u in y_gorsel if not _GORSEL_ANAHTAR_RE.match(u)]
-    if bozuk:
-        return False, ("yeni hedefin gorsel anahtari GELENEK DISI (%d): %s"
-                       % (len(bozuk), [u[:60] for u in bozuk[:3]]))
+    kirik, kirik_tani = turetilmis_hedef_kirik_mi(yeni_html, urun, katalog_idler)
+    if kirik is not False:
+        return False, kirik_tani
     return True, ("turetilmis hedefler SAGLIKLI: gorsel %d->%d · baglanti %d->%d · "
                   "yetim 0 · gelenek disi anahtar 0"
                   % (len(e_gorsel), len(y_gorsel), len(e_id), len(y_id)))
+
+
+def turetilmis_hukum(kd, gecen, eski_html, yeni_html, urun, katalog_idler):
+    """TURETILMIS sinif hukmu — `olc`dan AYRILDI ki sentetik fiksturle OLCULEBILSIN.
+
+    Girdi: `cikarim_beyan_degerlendir`in kapsam_disi (kd) + beyanla gecen (gecen) listeleri.
+    Doner: (kd, gecen, bilgi_satirlari, hata_satirlari).
+
+    Sira (kol yalniz EKLER, hicbir yolu acmaz):
+      1. Turetilmis bulgu (kd'de YA DA beyanla gecmis) varsa YENI sayfanin hedefleri
+         KIRIK mi olculur. KIRIK ise: beyanla gecis IPTAL, hata basilir (beyan edilemez).
+      2. KIRIK degilse kd'deki turetilmis bulgular icin bugunku saglik kolu (K124).
+    🔴 NEDEN 1. ADIM (13 Eyl 2026): beyan once degerlendiriliyor ve beyanli urun saglik
+    koluna HIC girmiyordu. 26 Agu'da `...-6523494` sayfasi 8 hedefinden 3'u gelenek disi
+    (`media.pruvo3d.com/th...` — `/urunler/` YOK) iken TEKIL beyanla gecirildi; ayni
+    veri kusuru 13 Eyl'de komsu urunde yayini durdurana dek gorunmedi."""
+    bilgi, hata = [], []
+    pid = (urun or {}).get("id", "")
+    turetilmis_kd = [b for b in kd if _bulgu_kapsam_adayi(b) in TURETILMIS_SINIFLAR]
+    turetilmis_gecen = [g for g in gecen if g[1] in TURETILMIS_SINIFLAR]
+    if not (turetilmis_kd or turetilmis_gecen):
+        return kd, gecen, bilgi, hata
+    kirik, kirik_tani = turetilmis_hedef_kirik_mi(yeni_html, urun, katalog_idler)
+    if kirik:
+        hata.append("1 %s: %s — beyan da saglik kolu da GECIREMEZ (%d turetilmis bulgu, "
+                    "%d'i beyanliydi): %s" % (pid, KIRIK_HEDEF_JETONU,
+                                              len(turetilmis_kd) + len(turetilmis_gecen),
+                                              len(turetilmis_gecen), kirik_tani))
+        kd = [b for b in kd if _bulgu_kapsam_adayi(b) not in TURETILMIS_SINIFLAR]
+        gecen = [g for g in gecen if g[1] not in TURETILMIS_SINIFLAR]
+        return kd, gecen, bilgi, hata
+    if turetilmis_kd:
+        saglikli, tani = turetilmis_hal_saglikli_mi(eski_html, yeni_html, urun, katalog_idler)
+        if saglikli:
+            kd = [b for b in kd if _bulgu_kapsam_adayi(b) not in TURETILMIS_SINIFLAR]
+            bilgi.append("TURETILMIS HAL SAGLIKLI: %s | %d bulgu BEYANSIZ gecti | %s"
+                         % (pid, len(turetilmis_kd), tani))
+        else:
+            bilgi.append("TURETILMIS SAGLIK KOLU GECMEDI: %s | %s | beyan yolu "
+                         "araniyor" % (pid, tani))
+    return kd, gecen, bilgi, hata
 
 
 def turetilmis_saglik_dogrula():
@@ -1996,65 +2071,228 @@ def turetilmis_saglik_dogrula():
         dusen.append("S8 urunun KENDI gorseli beyan edilebilir sayildi (bloklayici "
                      "eksen saglik koluna sizabilir)")
 
+    # S9 HOST EKSENI — medya host'unda `/urunler/` DISI hedef gorseli sayimdan DUSMEZ ve
+    # teshis GELENEK DISI olur (AZALDI DEGIL). 13 Eyl 2026: eski alt-dize suzgeci bunu
+    # "AZALDI" diye yanlis teshis etti; yanlis teshis 26 Agu'da tekil beyanla kapatilmisti.
+    host_disi = sayfa([("u3", G % "u3"), ("u4", "https://media.pruvo3d.com/u4-1.jpg")])
+    ok, tani = turetilmis_hal_saglikli_mi(eski, host_disi, urun, katalog)
+    if ok or "GELENEK DISI" not in tani:
+        dusen.append("S9 /urunler/ disi hedef gorseli GELENEK DISI diye teshis edilmeli "
+                     "(%s)" % tani)
+
+    # S10 OLDURUCU — BEYAN KIRIK HEDEFI MESRULASTIRAMAZ: beyanla gecmis turetilmis bulgu +
+    # yeni sayfada gelenek disi hedef -> KIRMIZI, beyan gecisi IPTAL.
+    beyanli = [("<img src> KAYIP: " + (G % "u2"), "rel-card-hedefleri", "fikstur beyani")]
+    _kd, _gecen, _bi, _h = turetilmis_hukum([], beyanli, eski, host_disi, urun, katalog)
+    if not any(KIRIK_HEDEF_JETONU in h for h in _h) or _gecen:
+        dusen.append("S10 beyanla gecen turetilmis bulgu KIRIK hedefte KIRMIZI yanmali "
+                     "(hata=%r gecen=%d)" % (_h[:1], len(_gecen)))
+
+    # S11 KONTROL — beyanli + saglam hedef -> hata YOK, beyan gecisi KORUNUR
+    saglam_sayfa = sayfa([("u3", G % "u3"), ("u4", G % "u4")])
+    _kd, _gecen, _bi, _h = turetilmis_hukum([], beyanli, eski, saglam_sayfa, urun, katalog)
+    if _h or len(_gecen) != 1:
+        dusen.append("S11 beyanli + saglam hedefte KIRMIZI yandi ya da beyan gecisi dustu "
+                     "(hata=%r gecen=%d)" % (_h[:1], len(_gecen)))
+
     # ── MUTASYON BATARYASI ────────────────────────────────────────────────────
     # 🔴 Bu kol beyanin YERINE geciyor; "vakalar var" demek yetmez, vakalarin TASIYICI
     # oldugu KANITLANMALI ([[mutasyon-kaniti-yeniden-uretilebilir]]). Yuklemin her AYRI
     # kolu bellekte tek tek etkisizlestirilir ve davranisin DEGISMESI beklenir; degismezse
     # o kol olu demektir (SURVIVOR) ve bu nobet KIRMIZI yanar. Mutasyon DISKE YAZILMAZ
     # ([[mutasyon-diske-yazma-tuzagi]]): kaynak metni `inspect` ile alinip exec edilir.
-    def _kollar(fn):
-        """BES NEGATIF vakanin (hukum, tani ilk 40 harf) imzasi.
+    # 13 Eyl 2026: kollar dort fonksiyona dagildi (hedef suzgeci · kirik hedef · saglik ·
+    # hukum); mutant ORTAMI dordunu birlikte yeniden kurar (`_turetilmis_mutant_ortami`).
+    def _kollar(ns):
+        """NEGATIF vakalarin (hukum, tani ilk 40 harf) imzasi + hukum ciktisinin boyu.
 
         🔴 Her yuklem kolu icin AYIRT EDICI en az bir vaka olmali: aksi halde bir kol
         digerinin golgesinde kalir ve etkisizlestirilse bile imza degismez (SURVIVOR)."""
+        fn = ns["turetilmis_hal_saglikli_mi"]
+
+        def k(r):
+            return (r[0], r[1][:40])
         return [
-            (lambda r: (r[0], r[1][:40]))(fn(eski, sayfa([("u2", G % "u2")]),
-                                             urun, katalog)),
-            (lambda r: (r[0], r[1][:40]))(fn(eski, yalniz_baglanti_dusuk,
-                                             urun, katalog)),
-            (lambda r: (r[0], r[1][:40]))(fn(eski, sayfa([("u3", G % "u3"),
-                                                          ("YOK-URUN", G % "YOK")]),
-                                             urun, katalog)),
-            (lambda r: (r[0], r[1][:40]))(fn(eski, sayfa(
-                [("u3", G % "u3"),
-                 ("u4", "https://media.pruvo3d.com/urunler/u4-kaynak-slug")]),
-                urun, katalog)),
-            (lambda r: (r[0], r[1][:40]))(fn(eski, sayfa([("u3", G % "u3"),
-                                                          ("u4", G % "u4")]),
-                                             urun, set())),
+            k(fn(eski, sayfa([("u2", G % "u2")]), urun, katalog)),
+            k(fn(eski, yalniz_baglanti_dusuk, urun, katalog)),
+            k(fn(eski, sayfa([("u3", G % "u3"), ("YOK-URUN", G % "YOK")]), urun, katalog)),
+            k(fn(eski, sayfa([("u3", G % "u3"),
+                              ("u4", "https://media.pruvo3d.com/urunler/u4-kaynak-slug")]),
+                 urun, katalog)),
+            k(fn(eski, sayfa([("u3", G % "u3"), ("u4", G % "u4")]), urun, set())),
+            k(fn(eski, host_disi, urun, katalog)),
+            tuple(len(x) for x in ns["turetilmis_hukum"]([], beyanli, eski, host_disi,
+                                                         urun, katalog)),
         ]
 
-    try:
-        _kaynak = inspect.getsource(turetilmis_hal_saglikli_mi)
-    except (OSError, TypeError) as _e:                          # noqa: BLE001
-        dusen.append("MUTASYON OLCULEMEDI: yuklemin kaynagi okunamadi (%s)"
-                     % type(_e).__name__)
-        return dusen
-    _taban = _kollar(turetilmis_hal_saglikli_mi)
+    _taban = _kollar(globals())
     _mutantlar = (
-        ("hedef-gorsel AZALMASI kolu", "    if len(y_gorsel) < len(e_gorsel):"),
-        ("hedef-baglanti AZALMASI kolu", "    if len(y_id) < len(e_id):"),
-        ("yetim hedef kolu", "    if yetim:"),
-        ("gelenek disi anahtar kolu", "    if bozuk:"),
-        ("bos katalog fail-closed kolu", "    if not katalog_idler:"),
+        ("hedef-gorsel AZALMASI kolu", "turetilmis_hal_saglikli_mi",
+         "    if len(y_gorsel) < len(e_gorsel):", "    if False:"),
+        ("hedef-baglanti AZALMASI kolu", "turetilmis_hal_saglikli_mi",
+         "    if len(y_id) < len(e_id):", "    if False:"),
+        ("yetim hedef kolu", "turetilmis_hedef_kirik_mi", "    if yetim:", "    if False:"),
+        ("gelenek disi anahtar kolu", "turetilmis_hedef_kirik_mi",
+         "    if bozuk:", "    if False:"),
+        ("bos katalog fail-closed kolu", "turetilmis_hedef_kirik_mi",
+         "    if not katalog_idler:", "    if False:"),
+        ("KIRIK hedef beyan-edilemez kolu", "turetilmis_hukum", "    if kirik:", "    if False:"),
+        ("HOST suzgeci eski /urunler/ alt-dizesine geri alindi", "_turetilmis_hedefler",
+         "_MEDYA_HOST_RE.match(u)", '"media.pruvo3d.com/urunler/" in u'),
     )
-    for _ad, _capa in _mutantlar:
-        if _kaynak.count(_capa) != 1:
-            dusen.append("MUTASYON CAPASI KAYIP (%s): %r kaynakta %d kez"
-                         % (_ad, _capa.strip(), _kaynak.count(_capa)))
+    for _ad, _fn, _capa, _yeni in _mutantlar:
+        _ns, _hata = _turetilmis_mutant_ortami(_fn, _capa, _yeni)
+        if _ns is None:
+            dusen.append("MUTASYON CAPASI KAYIP (%s): %s" % (_ad, _hata))
             continue
-        _ortam = {"_turetilmis_hedefler": _turetilmis_hedefler,
-                  "_GORSEL_ANAHTAR_RE": _GORSEL_ANAHTAR_RE}
         try:
-            exec(compile(_kaynak.replace(_capa, "    if False:"),  # noqa: S102
-                         "<turetilmis-mutant>", "exec"), _ortam)
-            _mut = _ortam["turetilmis_hal_saglikli_mi"]
-            _sonuc = _kollar(_mut)
+            _sonuc = _kollar(_ns)
         except Exception:                                       # noqa: BLE001
             continue                                            # mutant patladi = OLDU
         if _sonuc == _taban:
             dusen.append("SURVIVOR: %s etkisizlestirildi ama HICBIR vaka degismedi "
                          "(kol olu — yuklem o ekseni gercekten olcmuyor)" % _ad)
+    return dusen
+
+
+_TURETILMIS_FONKSIYONLAR = ("_turetilmis_hedefler", "turetilmis_hedef_kirik_mi",
+                            "turetilmis_hal_saglikli_mi", "turetilmis_hukum")
+
+
+def _turetilmis_mutant_ortami(hedef_fn, capa, yeni):
+    """(ortam, hata) — dort turetilmis fonksiyonu BELLEKTE yeniden kurar; `hedef_fn`in
+    kaynaginda `capa` TAM BIR KEZ `yeni` ile degistirilir. Disk'e YAZILMAZ; modul
+    globalleri KOPYALANIR (canli fonksiyonlar ezilmez). Capa 1 kez gecmiyorsa (None, hata)."""
+    ns = dict(globals())
+    for ad in _TURETILMIS_FONKSIYONLAR:
+        try:
+            kaynak = inspect.getsource(globals()[ad])
+        except (OSError, TypeError, KeyError) as e:             # noqa: BLE001
+            return None, "%s kaynagi okunamadi (%s)" % (ad, type(e).__name__)
+        if ad == hedef_fn:
+            if kaynak.count(capa) != 1:
+                return None, "%r %s kaynaginda %d kez" % (capa.strip(), ad, kaynak.count(capa))
+            kaynak = kaynak.replace(capa, yeni)
+        exec(compile(kaynak, "<turetilmis-mutant>", "exec"), ns)  # noqa: S102
+    return ns, ""
+
+
+EKLEME_FIKSTUR_ONEK = "k-ekleme-fikstur-"
+
+
+def katalog_basi_ekleme_dogrula(urunler, n_ek=5):
+    """(K) + (M) — KATALOG BASINA KAYIT EKLEME senaryosu, GERCEK uretici ile. Doner: dusen.
+
+    NEDEN (13 Eyl 2026): `urunler.json` yeni kaydi BASA ekler; her parti rel-card halkasini
+    ve orneklemi kaydirir. Kapinin bu kaymaya karsi iki yukumlulugu var ve ikisi de
+    GERCEK KATALOGDAN BAGIMSIZ olculmeli (gercek katalog o gun kusurlu olabilir):
+      (K) basa N SAGLAM kayit eklenince turetilmis hukum SAHTE KIRMIZI uretmez;
+      (M1) eklenen kayitlardan birinin gorsel anahtari gelenek disiysa KIRIK hedef KIRMIZI;
+      (M2) halka DEGISMEDEN bir hedefin `<img src>`i kaybolursa KIRMIZI.
+    Sablon: gercek katalogdaki saglam urunlerden (bellekte KOPYA, marka bosaltilir ki
+    halka yalniz kategori halkasi olsun) 30'luk mini katalog. Hedef urun halkanin SONUNA
+    yakin secilir: halka basa sarar, basa eklenen kayit hedefin rel-card'ina GIRER —
+    girmezse senaryo KOR'dur ve bu ADIYLA basilir (sessiz yesil yok).
+    Her iddianin TASIYICI oldugu bellek mutantiyla ayrica olculur."""
+    dusen = []
+    saglam = [u for u in (urunler or [])
+              if isinstance(u, dict) and u.get("id") and u.get("kategori")
+              and not u.get("parametrik")
+              and (u.get("gorseller") or [])
+              and all(_GORSEL_ANAHTAR_RE.match(g or "") for g in u["gorseller"])]
+    sayac = {}
+    for u in saglam:
+        sayac[u["kategori"]] = sayac.get(u["kategori"], 0) + 1
+    if not sayac or max(sayac.values()) < 30:
+        return ["K/M OLCULEMEDI: sablon icin tek kategoride >=30 saglam urun yok"]
+    kat = sorted(sayac.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
+    havuz = []
+    for u in saglam:
+        if u["kategori"] != kat:
+            continue
+        kopya = dict(u)
+        kopya["marka"] = []
+        kopya.pop("uyum", None)
+        havuz.append(kopya)
+        if len(havuz) == 30:
+            break
+    hedef = havuz[-2]
+
+    def klonlar(kotu_ilk):
+        cikti = []
+        for i in range(n_ek):
+            k = dict(havuz[0])
+            k["id"] = "%s%d" % (EKLEME_FIKSTUR_ONEK, i)
+            onek = ("https://media.pruvo3d.com/" if (kotu_ilk and i == 0)
+                    else "https://media.pruvo3d.com/urunler/")
+            k["gorseller"] = ["%s%s-1.jpg" % (onek, k["id"])]
+            cikti.append(k)
+        return cikti
+
+    ekli_k = klonlar(False) + havuz
+    ekli_m = klonlar(True) + havuz
+    taban = build.render_product(hedef, havuz, None)
+    sayfa_k = build.render_product(hedef, ekli_k, None)
+    sayfa_m = build.render_product(hedef, ekli_m, None)
+    if ("/urun/%s0/" % EKLEME_FIKSTUR_ONEK) not in sayfa_k:
+        return ["K KOR: basa eklenen kayit hedefin rel-card halkasina GIRMEDI "
+                "(senaryo kayma uretmiyor, iddialar OLCULEMEDI)"]
+    hedef_gorsel = [u for u in _IMGSRC_RE.findall(taban)
+                    if u not in set(hedef["gorseller"]) and _MEDYA_HOST_RE.match(u)]
+    if not hedef_gorsel:
+        return ["M2 KOR: taban sayfada turetilmis hedef gorseli yok"]
+    kayipli = taban.replace('src="%s"' % hedef_gorsel[0], 'src=""')
+
+    def kimlik(liste):
+        return {u["id"] for u in liste}
+
+    def senaryo(ns):
+        """(K_tamam, M1_tamam, M2_tamam, K_teshis)"""
+        hukum = ns["turetilmis_hukum"]
+
+        def uygula(eski_h, yeni_h, katalog):
+            bulgu = cikarim_kaybi(iskelet(eski_h), iskelet(yeni_h), ())
+            gecen, kd, _be, _yb = cikarim_beyan_degerlendir(bulgu, hedef, [])
+            kd2, _g, _bi, hata = hukum(kd, gecen, eski_h, yeni_h, hedef, katalog)
+            return bulgu, kd2, hata
+        b_k, kd_k, h_k = uygula(taban, sayfa_k, kimlik(ekli_k))
+        k_tamam = bool(b_k) and not kd_k and not h_k
+        _b, _kd, h_m = uygula(taban, sayfa_m, kimlik(ekli_m))
+        m1_tamam = any(KIRIK_HEDEF_JETONU in h and "GELENEK DISI" in h for h in h_m)
+        _b, kd_m2, h_m2 = uygula(taban, kayipli, kimlik(havuz))
+        m2_tamam = any(b.startswith("<img src> KAYIP") for b in kd_m2) or bool(h_m2)
+        return k_tamam, m1_tamam, m2_tamam, (len(b_k), kd_k[:2], h_k[:1])
+
+    k_ok, m1_ok, m2_ok, k_teshis = senaryo(globals())
+    if not k_ok:
+        dusen.append("K SAHTE KIRMIZI: basa %d saglam kayit eklenince turetilmis hukum "
+                     "gecmedi (bulgu=%d kalan=%r hata=%r)" % ((n_ek,) + k_teshis))
+    if not m1_ok:
+        dusen.append("M1 basa eklenen GELENEK DISI gorselli hedef %s + GELENEK DISI "
+                     "basmadi" % KIRIK_HEDEF_JETONU)
+    if not m2_ok:
+        dusen.append("M2 halka degismeden hedef `<img src>` kaybi KIRMIZI yanmadi")
+    if dusen:
+        return dusen
+    # TASIYICILIK: her iddia, onu bozan bellek mutantinda DUSMELI.
+    for ad, fn, capa, yeni, indeks in (
+            ("K <- saglik kolu hic gecirmez", "turetilmis_hukum",
+             "        if saglikli:", "        if False:", 0),
+            ("M1 <- HOST suzgeci /urunler/ alt-dizesine geri alindi", "_turetilmis_hedefler",
+             "_MEDYA_HOST_RE.match(u)", '"media.pruvo3d.com/urunler/" in u', 1),
+            ("M2 <- gorsel AZALMASI kolu", "turetilmis_hal_saglikli_mi",
+             "    if len(y_gorsel) < len(e_gorsel):", "    if False:", 2)):
+        ns, hata = _turetilmis_mutant_ortami(fn, capa, yeni)
+        if ns is None:
+            dusen.append("K/M MUTASYON CAPASI KAYIP (%s): %s" % (ad, hata))
+            continue
+        try:
+            sonuc = senaryo(ns)
+        except Exception:                                       # noqa: BLE001
+            continue
+        if sonuc[indeks]:
+            dusen.append("K/M SURVIVOR: %s — iddia mutantta da GECTI (iddia tasiyici degil)"
+                         % ad)
     return dusen
 
 
@@ -2311,6 +2549,14 @@ def main():
 
     with io.open(os.path.join(ROOT, "urunler.json"), encoding="utf-8") as f:
         urunler = json.load(f)
+    # K/M: katalog basina ekleme senaryosu (gercek uretici, bellekte mini katalog). Varlik
+    # dizini asagida zaten SIFIRLANIR — bu cagrinin urettigi dosyalar olcume karismaz.
+    _km = katalog_basi_ekleme_dogrula(urunler)
+    for _d in _km:
+        HATALAR.append("0 KATALOG BASI EKLEME (K/M) BOZUK: %s" % _d)
+    if not _km:
+        BILGI.append("K/M katalog basi ekleme: K sahte kirmizi 0 · M1 KIRIK hedef KIRMIZI · "
+                     "M2 <img src> kaybi KIRMIZI · 3/3 iddia mutantta DUSTU")
     secim = ornek_sec(urunler, hedef)
     idler = [p["id"] for _, p in secim]
     BILGI.append("ornek: %d urun (%s)" % (len(secim), ", ".join(a for a, _ in secim)))
@@ -2509,20 +2755,12 @@ def olc(eski, yeni, secim, urunler, ref):
         # K124 — TURETILMIS SINIF: beyan aranmaz, YENI HALIN SAGLIGI olculur. Saglik
         # gecmezse asagidaki kollar DEGISMEZ (bulgu `kd`de kalir, beyan aranir, yoksa
         # KIRMIZI): bu kol yalnizca EKLER, hicbir yolu acmaz.
-        if kd:
-            turetilmis = [b for b in kd
-                          if _bulgu_kapsam_adayi(b) in TURETILMIS_SINIFLAR]
-            if turetilmis:
-                _saglikli, _tani = turetilmis_hal_saglikli_mi(
-                    eski[pid], yeni[pid], p_urun, katalog_idler)
-                if _saglikli:
-                    kd = [b for b in kd
-                          if _bulgu_kapsam_adayi(b) not in TURETILMIS_SINIFLAR]
-                    BILGI.append("TURETILMIS HAL SAGLIKLI: %s | %d bulgu BEYANSIZ gecti "
-                                 "| %s" % (pid, len(turetilmis), _tani))
-                else:
-                    BILGI.append("TURETILMIS SAGLIK KOLU GECMEDI: %s | %s | beyan yolu "
-                                 "araniyor" % (pid, _tani))
+        # 13 Eyl 2026: hukum `turetilmis_hukum`da (sentetik fiksturle olculur); KIRIK
+        # hedef (yetim / gelenek disi anahtar) BEYANLA GECMIS bulguda da KIRMIZI yanar.
+        kd, gecen, _t_bilgi, _t_hata = turetilmis_hukum(
+            kd, gecen, eski[pid], yeni[pid], p_urun, katalog_idler)
+        BILGI.extend(_t_bilgi)
+        HATALAR.extend(_t_hata)
         for _b, _k, _g in gecen:
             BILGI.append("BEYAN KAPSAMINDA: %s | %s | %s -> %s"
                          % (pid, _k, _b[:60], _g[:50]))
