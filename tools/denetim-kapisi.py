@@ -1723,6 +1723,15 @@ def _kt_onay_batarya(iddia):
           "(b)" in out and str(SILME_ONAY_TAVANI) in out,
           "(b)=%s tavan=%s" % ("(b)" in out, str(SILME_ONAY_TAVANI) in out))
 
+    # --- IZINSIZ [KIRMIZI]: N1'in AYNI komutu IZIN ENV YOKKEN -> reddedilmeli ---------
+    #     Izin env (PRUVO_URUN_SIL_IZNI) YOKSA onay kapisi DOGRU N ile bile reddetmeli;
+    #     uretim (_uygula) izni kendi ENJEKTE ediyorsa mutant YESIL gecmesin diye NOBET.
+    rc, out, ayni, d = kos(["--tum-katalog", "--uygula", "--evet-sil", str(TAM)],
+                           izinli=False)
+    iddia("ONAY-IZINSIZ dogru N ama izin env YOK -> rc!=0, sha256 DEGISMEDI, silinen 0",
+          rc != 0 and ayni and d == 0,
+          "rc=%d sha_ayni=%s silinen=%d" % (rc, ayni, d))
+
     # --- N1 [YESIL]: DOGRU N -> uygular, kayit sayisi N kadar DUSER -------------------
     rc, out, ayni, d = kos(["--tum-katalog", "--uygula", "--evet-sil", str(TAM)])
     iddia("ONAY-N1 --tum-katalog --uygula --evet-sil %d -> uygular, kayit %d DUSTU"
