@@ -18,6 +18,7 @@ Cikis: 0 = alti mutantin altisi da beklenen rengi verdi · 1 = en az biri sapti.
 """
 import hashlib
 import io
+import json
 import os
 import shutil
 import subprocess
@@ -89,6 +90,103 @@ CSS_BEYAN_MUTANTLARI = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# GORSEL KOK MANDALI MUTANTLARI (13 Eyl 2026, KraL ana-oturum-17 hukmu)
+# ---------------------------------------------------------------------------
+# Mandal BUYUYEMEZ taban: 86 gelenek disi adres gecer, 87.si / listeden dusen / okunamayan
+# dosya / tohum disi giris KIRMIZI; veri DUZELTILINCE bayat giris serit-a3'u BLOKLAMAZ ama
+# `--mandal-nobet` (SERIT B) KIRMIZI yakar. Hukum rc + BASILAN JETON; katalog ve mandal
+# mutasyonlari GECICI kokte (urunler.json symlink'i kopru edilir, canli dosya ELLENMEZ).
+# Mandal kollari katalog GENELINDE olctugu icin orneklem 1 yeter (sure ~6x kisalir).
+# (kod, aciklama, islem, ek_argumanlar, beklenen_rc, beklenen_jeton)
+MANDAL_MUTANTLARI = [
+    ("G1", "87. gelenek disi adres katalogda (mandal disi)",
+     "katalog_kok_adres", [], 1, "GELENEK DISI ADRES MANDAL DISINDA"),
+    ("G2", "mandaldan bir satir silindi, adres katalogda duruyor",
+     "mandal_satir_sil", [], 1, "GELENEK DISI ADRES MANDAL DISINDA"),
+    ("G3", "mandal dosyasi okunamaz (bozuk JSON) -> fail-closed",
+     "mandal_boz", [], 1, "GORSEL KOK MANDALI OKUNAMADI"),
+    ("G4", "KONTROL-BUYUME: mandala tohum disi giris eklendi",
+     "mandal_buyut", [], 1, "GORSEL KOK MANDALI BUYUDU"),
+    ("G5", "veri duzeltildi, giris BAYAT: serit-a3 BLOKLAMAZ",
+     "katalog_duzelt", [], 0, "GORSEL KOK MANDALI BAYAT GIRIS"),
+    ("G6", "ayni bayat giris --mandal-nobet (SERIT B) KIRMIZI",
+     "katalog_duzelt", ["--mandal-nobet"], 1, "GORSEL KOK MANDALI BAYAT GIRIS"),
+]
+MANDAL_DOSYA = "varlik-gorsel-kok-mandali.json"
+
+
+def _katalog_yaz(tmp, degistir):
+    """Gecici kokteki urunler.json SYMLINK'ini kopru eder, degistirilmis KOPYA yazar."""
+    with io.open(os.path.join(ROOT, "urunler.json"), encoding="utf-8") as f:
+        urunler = json.load(f)
+    if not degistir(urunler):
+        return False
+    yol = os.path.join(tmp, "urunler.json")
+    os.unlink(yol)
+    with io.open(yol, "w", encoding="utf-8") as f:
+        json.dump(urunler, f, ensure_ascii=False)
+    return True
+
+
+def _mandal_yol(tmp):
+    return os.path.join(tmp, "tools", MANDAL_DOSYA)
+
+
+def _mandal_oku(tmp):
+    with io.open(_mandal_yol(tmp), encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _mandal_yaz(tmp, veri):
+    with io.open(_mandal_yol(tmp), "w", encoding="utf-8") as f:
+        json.dump(veri, f, ensure_ascii=False, indent=2)
+
+
+def mandal_mutasyonu(tmp, islem):
+    """True = mutasyon uygulandi. False = capa bulunamadi (mutant OLCULEMEDI)."""
+    if islem == "katalog_kok_adres":
+        def kok_yap(urunler):
+            for u in urunler:
+                g = u.get("gorseller") or []
+                if g and g[0].startswith("https://media.pruvo3d.com/urunler/"):
+                    g[0] = g[0].replace("/urunler/", "/", 1)
+                    return True
+            return False
+        return _katalog_yaz(tmp, kok_yap)
+    if islem == "katalog_duzelt":
+        ilk = (_mandal_oku(tmp).get("adresler") or [None])[0]
+        if not ilk:
+            return False
+
+        def duzelt(urunler):
+            for u in urunler:
+                if u.get("id") == ilk["id"] and ilk["url"] in (u.get("gorseller") or []):
+                    u["gorseller"] = [("https://media.pruvo3d.com/urunler/" + x.rsplit("/", 1)[1])
+                                      if x == ilk["url"] else x for x in u["gorseller"]]
+                    return True
+            return False
+        return _katalog_yaz(tmp, duzelt)
+    if islem == "mandal_satir_sil":
+        veri = _mandal_oku(tmp)
+        if not veri.get("adresler"):
+            return False
+        veri["adresler"] = veri["adresler"][1:]
+        _mandal_yaz(tmp, veri)
+        return True
+    if islem == "mandal_boz":
+        with io.open(_mandal_yol(tmp), "w", encoding="utf-8") as f:
+            f.write("{bozuk")
+        return True
+    if islem == "mandal_buyut":
+        veri = _mandal_oku(tmp)
+        veri.setdefault("adresler", []).append(
+            {"id": "sahte-mandal-girisi", "url": "https://media.pruvo3d.com/sahte-mandal-1.jpg"})
+        _mandal_yaz(tmp, veri)
+        return True
+    return False
+
+
 def gecici_kok():
     tmp = tempfile.mkdtemp(prefix="varlik-mutasyon-")
     shutil.copytree(TOOLS, os.path.join(tmp, "tools"), symlinks=True)
@@ -113,9 +211,10 @@ def uygula(yol, ciftler):
     return True, ""
 
 
-def kos(tmp):
+def kos(tmp, ek=None, ornek="6"):
     p = subprocess.run([sys.executable, os.path.join(tmp, "tools", "varlik-test.py"),
-                        "--ornek", "6"], capture_output=True, text=True, timeout=3600)
+                        "--ornek", ornek] + list(ek or []),
+                       capture_output=True, text=True, timeout=3600)
     return p.returncode, (p.stdout or "") + (p.stderr or "")
 
 
@@ -126,7 +225,7 @@ def _ozet(rel):
 
 # Mutasyona acilan CANLI dosyalar — batarya bunlara ASLA yazmaz (mutasyon gecici
 # kopyada olur). "yazmiyorum" bir BEYANDIR; kanit bas=son ozet esitligidir.
-IZLENEN_CANLI = ("build.py", "varlik-test.py")
+IZLENEN_CANLI = ("build.py", "varlik-test.py", MANDAL_DOSYA, os.path.join("..", "urunler.json"))
 
 
 def main():
@@ -191,6 +290,29 @@ def main():
               % (kod, aciklama[:58], "KIRMIZI" if beklenen else "YESIL", renk,
                  ("%s ok" % jeton) if jeton_var else ("%s YOK" % jeton)))
 
+    # --- GORSEL KOK MANDALI (13 Eyl): hukum rc + BASILAN JETON; orneklem 1.
+    print("\n%-4s %-58s %-8s %-8s %s" % ("KOD", "GORSEL KOK MANDALI MUTANTI",
+                                         "BEKLENEN", "OLCULEN", "JETON"))
+    for kod, aciklama, islem, ek, beklenen, jeton in MANDAL_MUTANTLARI:
+        tmp = gecici_kok()
+        try:
+            if not mandal_mutasyonu(tmp, islem):
+                sapan.append("%s: capa uygulanamadi (%s)" % (kod, islem))
+                print("%-4s %-58s %-8s %-8s CAPA YOK" % (kod, aciklama[:58], beklenen, "-"))
+                continue
+            rc, cikti = kos(tmp, ek=ek, ornek="1")
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+        renk = "KIRMIZI" if rc == 1 else ("YESIL" if rc == 0 else "rc=%d" % rc)
+        jeton_var = jeton in cikti
+        if rc != beklenen:
+            sapan.append("%s: beklenen rc=%d, olculen rc=%d\n%s" % (kod, beklenen, rc, cikti[-800:]))
+        if not jeton_var:
+            sapan.append("%s: beklenen jeton BASILMADI: %r" % (kod, jeton))
+        print("%-4s %-58s %-8s %-8s %s"
+              % (kod, aciklama[:58], "KIRMIZI" if beklenen else "YESIL", renk,
+                 ("%s ok" % jeton[:24]) if jeton_var else ("%s YOK" % jeton[:24])))
+
     for rel, beklenen_ozet in sorted(ozetler.items()):
         if _ozet(rel) != beklenen_ozet:
             sapan.append("tools/%s CANLI AGACTA degisti (mutasyon kopyada kalmadi)" % rel)
@@ -202,10 +324,11 @@ def main():
         for s in sapan:
             print("  - " + s)
         return 1
-    print("\nMUTANT=%d/%d (tasima %d + CSS beyan yuzeyi %d) · KONTROL=YESIL (M6)"
-          % (len(MUTANTLAR) - 1 + len(CSS_BEYAN_MUTANTLARI),
-             len(MUTANTLAR) - 1 + len(CSS_BEYAN_MUTANTLARI),
-             len(MUTANTLAR) - 1, len(CSS_BEYAN_MUTANTLARI)))
+    _toplam = len(MUTANTLAR) - 1 + len(CSS_BEYAN_MUTANTLARI) + len(MANDAL_MUTANTLARI)
+    print("\nMUTANT=%d/%d (tasima %d + CSS beyan yuzeyi %d + gorsel kok mandali %d) · "
+          "KONTROL=YESIL (M6)"
+          % (_toplam, _toplam, len(MUTANTLAR) - 1, len(CSS_BEYAN_MUTANTLARI),
+             len(MANDAL_MUTANTLARI)))
     print("OK: her mutant beklenen rengi VE beklenen jetonu verdi; kontrol mutanti YESIL.")
     return 0
 

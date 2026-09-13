@@ -1362,6 +1362,17 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/varlik-beyan-test.py
 
+      # GORSEL KOK MANDALI NON-GROWTH NOBETI (13 Eyl 2026, KraL ana-oturum-17 hukmu) —
+      # varlik-test.py'nin serit-a3 kolu mandal listesindeki 86 gelenek disi (medya kokunde,
+      # `/urunler/` disi) adresi GECIRIR ve BAYAT girisi (veri duzeltilmis, liste duruyor)
+      # BLOKLAMAZ — yoksa veri duzeltme push'u kendi kirmizisina takilirdi. Listenin FIILEN
+      # KUCULMESINI bu adim zorlar: bayat giris · tohum disi giris (buyume) · mandal disi
+      # adres -> rc=1. Hedef `MANDAL=0/86`. Offline, ag YOK, canli agaca YAZMAZ, ~2 s.
+      # Mutasyon kaniti: tools/varlik-mutasyon.py G1-G6 (serit-a3).
+      - name: "Varlik gorsel kok mandali NON-GROWTH nobeti (bayat giris + buyume + mandal disi adres)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/varlik-test.py --mandal-nobet
+
       # IKIZ TANIM KAPISI — kart sekli iki uretici (build.py kart_ozeti + JS edgeKart)
       # ayni sentetik urun kumesinden BIREBIR ayni cikti uretiyor mu (15 Agu 2026).
       # Olculen hata: `gorseller:[]` icin Python `null` uretir, JS `undefined` uretir ve

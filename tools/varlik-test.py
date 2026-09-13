@@ -42,6 +42,7 @@ Kullanim:
     python3 tools/varlik-test.py
     python3 tools/varlik-test.py --ornek 12
 """
+import hashlib
 import inspect
 import io
 import json
@@ -1863,6 +1864,110 @@ _GORSEL_ANAHTAR_RE = re.compile(
 # anahtar sayimdan dusmez, gelenek kolunda ADIYLA yakalanir (bkz. _turetilmis_hedefler).
 _MEDYA_HOST_RE = re.compile(r"^https?://media\.pruvo3d\.com/")
 
+# ══════════════════════════════════════════════════════════════════════════════
+# GORSEL KOK MANDALI — BUYUYEMEZ taban (KraL ana-oturum-17 hukmu, 13 Eyl 2026)
+# ══════════════════════════════════════════════════════════════════════════════
+# OLCULDU: katalogda 32 urun / 86 gorsel adresi medya host'unun KOKUNDE (`/urunler/` YOK;
+# kaynak iki hasat partisi). m3 HEAD probu: kok adres 86/86 200, `/urunler/` karsiligi
+# 86/86 404 -> musteri kirik gorsel GORMUYOR, R2 anahtar gelenegi ihlal. Gelenek kolunu
+# "host+uzanti"ya indirmek sinifi YENI kayitlara acardi (YASAK); veri duzeltmesini
+# beklemek gorunur zarari olmayan ihlal icin yayini belirsiz sure kapatirdi. Ucuncu yol:
+#   * Liste (id+url) BUGUNKU katalogdan TURETILIP dosyaya donduruldu; ELLE yazilmaz.
+#   * Tohumun ozet kumesi ASAGIDA KODDA donduruldu: dosyaya tohumda OLMAYAN giris
+#     eklenirse KIRMIZI (`MANDAL BUYUDU`) — liste yalniz KUCULUR.
+#   * Katalog GENELINDE (orneklem DEGIL, 37k kaydin hepsi) mandal disi gelenek disi
+#     adres -> KIRMIZI. Orneklem piyangosu bu sinifi 18 gunde yalniz iki kez gordu.
+#   * BAYAT giris (adres duzeltilmis, listede duruyor) serit-a3'te BLOKLAMAZ (MaCiT'in
+#     duzeltme push'u kendi kirmizisina takilmasin); `--mandal-nobet` (SERIT B) bayati
+#     KIRMIZI yakar ki liste fiilen kuculsun. Hedef MANDAL=0.
+#   * Dosya okunamazsa FAIL-CLOSED: muafiyet YOK + KIRMIZI.
+GORSEL_KOK_MANDALI = os.path.join(TOOLS, "varlik-gorsel-kok-mandali.json")
+MANDAL_JETONU_OKUNAMADI = "GORSEL KOK MANDALI OKUNAMADI"
+MANDAL_JETONU_BUYUDU = "GORSEL KOK MANDALI BUYUDU"
+MANDAL_JETONU_DISI = "GELENEK DISI ADRES MANDAL DISINDA"
+MANDAL_JETONU_BAYAT = "GORSEL KOK MANDALI BAYAT GIRIS"
+# sha256("<id>\n<url>")[:16] — 13 Eyl 2026 tohumu (86 giris). BU KUME BUYUTULMEZ.
+_MANDAL_TOHUM_OZETLERI = frozenset((
+    "00a9db303338d4cf", "00f96fdfd0ed5d99", "01ac9c415eb99686", "07ae4aa2c2fc867f",
+    "0cd4f94518653521", "0d6d192553b9a067", "0db4f10ceecf5a7f", "0ec0e58ee6a35684",
+    "133fb60830b38f3a", "1448c8817b4df133", "1656adda856b2142", "1be7fcb5b5e67bb2",
+    "2072adb74d428c8f", "24b37696fb45b28b", "28adcde7b21aee41", "2ecb067156588116",
+    "31e1cae4acfce436", "3777e64f58e423c4", "39dfe638686bd906", "40535c5167e199f2",
+    "4611d0f53966bc06", "4d11025389bca3e7", "4e6f78b7803874af", "52f846dd0526fdf1",
+    "58b091601043d6f8", "5b39d8267abd30c8", "5c9c098cfcf6301e", "5dfdf54af74621a6",
+    "5f843b70eb8baab7", "605c50a405a80ae7", "6554ed735da5ccf7", "69978719aa309597",
+    "70883ea93363c30a", "783809e87527a058", "789c26442d224229", "7ba1db36f2af6e96",
+    "7c7fe0a048213b7f", "837cc5970313164b", "8831d9100e53a305", "8cd8a9d54735b19a",
+    "8eeeb873dfa55844", "92dbcf2bebcf0805", "94f92ad5affaa6d5", "951f143ef280431a",
+    "99b2783506d67008", "9d08f3ec702a700d", "a3952f91beb6607f", "a3e09a39053e28d8",
+    "a5e820a5b27f9a93", "abb708ef76d5f117", "b0504e7951dd9a64", "b139698a282564aa",
+    "b223a5df5978b579", "b23c637a0001a305", "b5e21d7fa8bef760", "b8bc48f5df2ab309",
+    "b8bdaab398cec1db", "ba8d82d988974c90", "bc40a7b606efaf7b", "c26c806db0d5d870",
+    "c275596f94a26a04", "c58bcbe6fdd21c70", "c58e5ec54e9d6f5c", "c9786bb72f4e8ab1",
+    "cb927689a21e01dc", "cb970a8f420674a0", "ce2a1b095c56120e", "cf8d8cedab398889",
+    "d0c8d4303cf19dc7", "d2d67a6a41f8f931", "df9bdd91c77392e6", "e04957a8eeb78f5d",
+    "e17e2308ad4f82f9", "e1c309a9b56a4ad2", "e284ec44510ffdeb", "e2a07950ab4d174c",
+    "e3dabfbce8efa75a", "e5094d898d2c6d47", "e7e209249ac0dfcc", "e8024e17b80e94e3",
+    "ef65e80806aa363e", "f1f2a02a1708bab5", "f6376e0a74ec3983", "f9024c4a762651a5",
+    "fb083de4250e20f1", "fd48a1f02744569a",
+))
+# Sayfa duzeyi muafiyetin okudugu kume — `main` mandal hukmunden sonra DOLDURUR. Bos
+# kalirsa (kendini-test, okunamayan dosya) muafiyet YOKTUR: katı taraf.
+_MANDAL_ADRESLER = frozenset()
+
+
+def _mandal_ozeti(pid, url):
+    return hashlib.sha256((pid + "\n" + url).encode("utf-8")).hexdigest()[:16]
+
+
+def mandal_oku(yol=None):
+    """(girisler, hata) — FAIL-CLOSED: dosya yok / JSON bozuk / yapi yanlis -> (None, sebep)."""
+    yol = yol or GORSEL_KOK_MANDALI
+    try:
+        with io.open(yol, encoding="utf-8") as f:
+            veri = json.load(f)
+    except (OSError, ValueError) as e:                          # noqa: BLE001
+        return None, "%s okunamadi (%s)" % (yol, type(e).__name__)
+    girisler = veri.get("adresler") if isinstance(veri, dict) else None
+    if not isinstance(girisler, list) or not all(
+            isinstance(g, dict) and isinstance(g.get("id"), str) and isinstance(g.get("url"), str)
+            for g in girisler):
+        return None, "%s yapisi gecersiz (beklenen: {adresler:[{id,url}]})" % yol
+    return girisler, ""
+
+
+def mandal_hukmu(girisler, urunler, tohum=None):
+    """(hatalar, bilgi, muaf_adresler, bayat_sayisi) — katalog GENELINDE mandal hukmu."""
+    tohum = _MANDAL_TOHUM_OZETLERI if tohum is None else tohum
+    hatalar, bilgi = [], []
+    buyuyen = [g for g in girisler if _mandal_ozeti(g["id"], g["url"]) not in tohum]
+    if buyuyen:
+        hatalar.append("0 %s: tohumda OLMAYAN %d giris (liste yalniz KUCULUR): %s"
+                       % (MANDAL_JETONU_BUYUDU, len(buyuyen),
+                          [(g["id"][:40], g["url"][-40:]) for g in buyuyen[:3]]))
+    gecerli = {(g["id"], g["url"]) for g in girisler if g not in buyuyen}
+    katalogda = set()
+    for u in (urunler or []):
+        if not isinstance(u, dict):
+            continue
+        for url in (u.get("gorseller") or []):
+            if isinstance(url, str) and _MEDYA_HOST_RE.match(url) \
+                    and not _GORSEL_ANAHTAR_RE.match(url):
+                katalogda.add((u.get("id", ""), url))
+    disi = sorted(katalogda - gecerli)
+    if disi:
+        hatalar.append("1 KATALOG: %s — %s (%d, beyan edilemez): %s"
+                       % (KIRIK_HEDEF_JETONU, MANDAL_JETONU_DISI + " / GELENEK DISI", len(disi),
+                          [(i[:40], url) for i, url in disi[:3]]))
+    canli = gecerli & katalogda
+    bayat = sorted(gecerli - katalogda)
+    bilgi.append("MANDAL=%d/%d (gorsel kok mandali: canli giris / tohum; hedef 0)"
+                 % (len(canli), len(tohum)))
+    if bayat:
+        bilgi.append("%s (%d, serit-a3'te BLOKLAMAZ, listeden SIL): %s"
+                     % (MANDAL_JETONU_BAYAT, len(bayat), [(i[:40], url[-40:]) for i, url in bayat[:3]]))
+    return hatalar, bilgi, frozenset(url for _i, url in canli), len(bayat)
+
 
 def _turetilmis_hedefler(html, urun):
     """(gorsel_urlleri, urun_idleri) — sayfadaki TURETILMIS hedefler.
@@ -1892,7 +1997,7 @@ def _turetilmis_hedefler(html, urun):
 KIRIK_HEDEF_JETONU = "TURETILMIS HEDEF KIRIK"
 
 
-def turetilmis_hedef_kirik_mi(yeni_html, urun, katalog_idler):
+def turetilmis_hedef_kirik_mi(yeni_html, urun, katalog_idler, mandal=None):
     """(kirik, tani) — YENI sayfanin turetilmis hedeflerinden biri KIRIK mi?
 
     KIRIK = (a) hedef urun KATALOGDA YOK (yetim) ya da (b) hedefin gorsel anahtari
@@ -1910,7 +2015,10 @@ def turetilmis_hedef_kirik_mi(yeni_html, urun, katalog_idler):
     yetim = [i for i in y_id if i not in katalog_idler]
     if yetim:
         return True, ("yeni hedef KATALOGDA YOK (%d): %s" % (len(yetim), yetim[:3]))
-    bozuk = [u for u in y_gorsel if not _GORSEL_ANAHTAR_RE.match(u)]
+    # GORSEL KOK MANDALI: yalniz mandal hukmunun CANLI saydigi adresler muaftir (bos kume =
+    # muafiyet YOK). Mandal disi gelenek disi adres katalog kolunda da ayrica KIRMIZI yanar.
+    _mandal = _MANDAL_ADRESLER if mandal is None else mandal
+    bozuk = [u for u in y_gorsel if not _GORSEL_ANAHTAR_RE.match(u) and u not in _mandal]
     if bozuk:
         return True, ("yeni hedefin gorsel anahtari GELENEK DISI (%d): %s"
                       % (len(bozuk), [u[:70] for u in bozuk[:3]]))
@@ -2123,10 +2231,20 @@ def turetilmis_saglik_dogrula():
             k(fn(eski, host_disi, urun, katalog)),
             tuple(len(x) for x in ns["turetilmis_hukum"]([], beyanli, eski, host_disi,
                                                          urun, katalog)),
+            ns["turetilmis_hedef_kirik_mi"](host_disi, urun, katalog, mandal=mandal_s12)[0],
         ]
+
+    # S12 GORSEL KOK MANDALI — mandal kumesindeki gelenek disi adres KIRIK SAYILMAZ; ayni
+    # adres mandal DISINDA iken S9/S10 KIRMIZI kalir (muafiyet yalniz verilen kumeye).
+    mandal_s12 = frozenset(("https://media.pruvo3d.com/u4-1.jpg",))
+    _kirik12, _tani12 = turetilmis_hedef_kirik_mi(host_disi, urun, katalog, mandal=mandal_s12)
+    if _kirik12 is not False:
+        dusen.append("S12 MANDAL icindeki adres KIRIK sayildi (%s)" % _tani12)
 
     _taban = _kollar(globals())
     _mutantlar = (
+        ("GORSEL KOK MANDALI muafiyeti kaldirildi", "turetilmis_hedef_kirik_mi",
+         " and u not in _mandal]", "]"),
         ("hedef-gorsel AZALMASI kolu", "turetilmis_hal_saglikli_mi",
          "    if len(y_gorsel) < len(e_gorsel):", "    if False:"),
         ("hedef-baglanti AZALMASI kolu", "turetilmis_hal_saglikli_mi",
@@ -2526,7 +2644,37 @@ def referans_tazele():
     return 0
 
 
+def mandal_nobet():
+    """SERIT B — gorsel kok mandalinin FIILEN KUCULMESINI zorlar (NON-GROWTH).
+
+    rc=1: mandal okunamaz · tohum disi giris (buyume) · mandal disi gelenek disi adres ·
+    BAYAT giris (adres katalogda duzeltilmis, liste hala tasiyor). serit-a3 kolu bayati
+    BLOKLAMAZ; kuculmeyi bu nobet ister. Ag YOK, diske YAZMAZ."""
+    girisler, hata = mandal_oku()
+    if girisler is None:
+        print("KIRMIZI (1):\n  - 0 %s: %s — fail-closed" % (MANDAL_JETONU_OKUNAMADI, hata))
+        return 1
+    with io.open(os.path.join(ROOT, "urunler.json"), encoding="utf-8") as f:
+        urunler = json.load(f)
+    hatalar, bilgi, _adresler, bayat = mandal_hukmu(girisler, urunler)
+    for b in bilgi:
+        print("  · " + b)
+    if bayat:
+        hatalar.append("0 %s: %d giris artik katalogda YOK -> listeden SIL (liste yalniz KUCULUR)"
+                       % (MANDAL_JETONU_BAYAT, bayat))
+    if hatalar:
+        print("\nKIRMIZI (%d):" % len(hatalar))
+        for h in hatalar:
+            print("  - " + h)
+        return 1
+    print("\nOK: gorsel kok mandali — buyume 0 · mandal disi 0 · bayat 0.")
+    return 0
+
+
 def main():
+    global _MANDAL_ADRESLER
+    if "--mandal-nobet" in sys.argv:
+        sys.exit(mandal_nobet())
     if "--kendini-test" in sys.argv:
         sys.exit(kendini_test())
     if "--referans-tazele" in sys.argv:
@@ -2549,6 +2697,16 @@ def main():
 
     with io.open(os.path.join(ROOT, "urunler.json"), encoding="utf-8") as f:
         urunler = json.load(f)
+    # GORSEL KOK MANDALI — katalog GENELINDE hukum, sayfa olcumunden ONCE (muaf kume
+    # sayfa duzeyi kirik-hedef yuklemine buradan gecer). Okunamazsa muafiyet YOK + KIRMIZI.
+    _girisler, _mandal_hata = mandal_oku()
+    if _girisler is None:
+        HATALAR.append("0 %s: %s — fail-closed (muafiyet YOK)"
+                       % (MANDAL_JETONU_OKUNAMADI, _mandal_hata))
+    else:
+        _m_hata, _m_bilgi, _MANDAL_ADRESLER, _m_bayat = mandal_hukmu(_girisler, urunler)
+        HATALAR.extend(_m_hata)
+        BILGI.extend(_m_bilgi)
     # K/M: katalog basina ekleme senaryosu (gercek uretici, bellekte mini katalog). Varlik
     # dizini asagida zaten SIFIRLANIR — bu cagrinin urettigi dosyalar olcume karismaz.
     _km = katalog_basi_ekleme_dogrula(urunler)
