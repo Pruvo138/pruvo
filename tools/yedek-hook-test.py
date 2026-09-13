@@ -123,8 +123,8 @@ def sahte_repo(td, drive_erisilebilir):
     return kok
 
 
-def hook_kos(kok, hook_metni):
-    """Hook'u sahte repo icinde, pre-push stdin bicimiyle kosar."""
+def hook_kos(kok, hook_metni, env=None):
+    """Hook'u sahte repo icinde, pre-push stdin bicimiyle kosar. env=YOKSA os.environ."""
     yol = os.path.join(kok, "pre-push")
     with open(yol, "w") as f:
         f.write(hook_metni)
@@ -132,7 +132,7 @@ def hook_kos(kok, hook_metni):
     return subprocess.run(
         ["sh", yol, "origin", "git@example.invalid:yok/yok.git"],
         input="refs/heads/dal aaa refs/heads/dal bbb\n",
-        capture_output=True, text=True, cwd=kok)
+        capture_output=True, text=True, cwd=kok, env=env)
 
 
 def kanca_kum_havuzu(td, kur_yolu):
@@ -169,15 +169,15 @@ def kum_kur(kok, *bayraklar):
         capture_output=True, text=True, cwd=kok)
 
 
-def kum_commit_push(kok, ad):
-    """GERCEK commit + GERCEK push (kancayi taklit etmeden ATESLER)."""
+def kum_commit_push(kok, ad, env=None):
+    """GERCEK commit + GERCEK push (kancayi taklit etmeden ATESLER). env=YOKSA os.environ."""
     with open(os.path.join(kok, ad), "w") as f:
         f.write(ad + "\n")
-    subprocess.run(["git", "-C", kok, "add", "-A"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", kok, "add", "-A"], check=True, capture_output=True, env=env)
     subprocess.run(["git", "-C", kok, "commit", "-q", "-m", ad], check=True,
-                   capture_output=True)
+                   capture_output=True, env=env)
     return subprocess.run(["git", "-C", kok, "push", "origin", "main"],
-                          capture_output=True, text=True)
+                          capture_output=True, text=True, env=env)
 
 
 def bolum_tetik(kur_yolu):
@@ -185,6 +185,7 @@ def bolum_tetik(kur_yolu):
     print("\n6) TETIK — bos depoda kanca kurulur, GERCEK push araci ATESLER")
     with tempfile.TemporaryDirectory() as td:
         kok, _uzak = kanca_kum_havuzu(td, kur_yolu)
+        env = _fake_home_env(kok)
         iz = os.path.join(kok, "IZ-KUTU-ARSIVLE")
         kontrol("6a taze depoda kanca YOK (testin ONCULU)",
                 not os.path.isfile(os.path.join(kok, ".git", "hooks", "pre-push")))
@@ -194,7 +195,7 @@ def bolum_tetik(kur_yolu):
         kanca = os.path.join(kok, ".git", "hooks", "pre-push")
         kontrol("6c pre-push kuruldu + CALISTIRILABILIR",
                 os.path.isfile(kanca) and os.access(kanca, os.X_OK))
-        r = kum_commit_push(kok, "a.txt")
+        r = kum_commit_push(kok, "a.txt", env=env)
         kontrol("6d push GECTI (fail-open: kanca push'u DURDURMAZ)", r.returncode == 0,
                 "rc=%d %s" % (r.returncode, (r.stderr or "").strip()[-90:]))
         kontrol("6e 🔴 ARAC GERCEKTEN ATESLEDI (nobetci iz birakti)", os.path.isfile(iz))
@@ -206,8 +207,9 @@ def bolum_tetik(kur_yolu):
     print("\n7) NEGATIF KONTROL — kanca KALDIRILINCA arac ATESLEMEZ")
     with tempfile.TemporaryDirectory() as td:
         kok, _uzak = kanca_kum_havuzu(td, kur_yolu)
+        env = _fake_home_env(kok)
         kum_kur(kok)
-        r1 = kum_commit_push(kok, "a.txt")
+        r1 = kum_commit_push(kok, "a.txt", env=env)
         iz = os.path.join(kok, "IZ-KUTU-ARSIVLE")
         kontrol("7a on kosul: kanca KURULUYKEN iz VAR", os.path.isfile(iz),
                 "rc=%d" % r1.returncode)
@@ -215,7 +217,7 @@ def bolum_tetik(kur_yolu):
             os.unlink(iz)
         s = kum_kur(kok, "--kaldir")
         kontrol("7b --kaldir rc=0", s.returncode == 0, (s.stdout + s.stderr).strip()[-60:])
-        r2 = kum_commit_push(kok, "b.txt")
+        r2 = kum_commit_push(kok, "b.txt", env=env)
         kontrol("7c push YINE GECTI", r2.returncode == 0, "rc=%d" % r2.returncode)
         kontrol("7d 🔴 kanca YOKKEN iz URETILMEDI (nobetci tek yonlu/olu degil)",
                 not os.path.isfile(iz))
@@ -241,7 +243,8 @@ def bolum_yedek_tani(kur_yolu):
     print("\n3) K308 — Drive erisilemez: SEBEP gorunur mu, push yine gecer mi?")
     with tempfile.TemporaryDirectory() as td:
         kok = sahte_repo(td, drive_erisilebilir=False)
-        r = hook_kos(kok, blok_hook)
+        env = _fake_home_env(kok)
+        r = hook_kos(kok, blok_hook, env=env)
         cikti = (r.stdout or "") + (r.stderr or "")
         kontrol("3a Drive yokken hook exit 0 (PUSH DURMAZ — fail-open DEGISMEDI)",
                 r.returncode == 0, "rc=%d %s" % (r.returncode, r.stderr.strip()[:100]))
@@ -255,7 +258,9 @@ def bolum_yedek_tani(kur_yolu):
         # Mutasyonun ISIRDIGINI ve SEBEP METNINI ayni anda olc: ayni yedekle.py
         # dogrudan cagrilinca hem patlar hem kendi tanisini basar.
         d = subprocess.run([sys.executable, os.path.join(kok, "tools", "yedekle.py"),
-                            "--gerekliyse"], capture_output=True, text=True, cwd=kok)
+                            "--gerekliyse"], capture_output=True, text=True, cwd=kok,
+                           env=env)
+        SAHTE_KALP_DOGDU.append(_sahte_kalp_var_mi(kok))
         kontrol("3d MUTASYON ISIRIYOR: yedekle.py tek basina exit!=0 veriyor",
                 d.returncode != 0, "rc=%d" % d.returncode)
         tani_satirlari = [s.strip() for s in ((d.stdout or "") + (d.stderr or "")
@@ -280,7 +285,8 @@ def bolum_yedek_tani(kur_yolu):
     print("\n4) KONTROL — Drive erisilebilirken cikti SESSIZ olmali")
     with tempfile.TemporaryDirectory() as td:
         kok = sahte_repo(td, drive_erisilebilir=True)
-        r = hook_kos(kok, blok_hook)
+        env = _fake_home_env(kok)
+        r = hook_kos(kok, blok_hook, env=env)
         cikti = (r.stdout or "") + (r.stderr or "")
         kontrol("4a hook exit 0", r.returncode == 0, "rc=%d" % r.returncode)
         kontrol("4b uyari YOK (yedek basarili)", "YEDEK alinamadi" not in cikti,
@@ -295,6 +301,57 @@ def bolum_yedek_tani(kur_yolu):
 def sha(yol):
     with open(yol, "rb") as f:
         return hashlib.sha256(f.read()).hexdigest()
+
+
+# 🔴 K308-C — YALITIM (13 Eyl 2026): yedekle.py DUSUS_KAYIT_LOG + KALP yolu
+# `os.path.expanduser("~/.claude/cron/...")` ile cozuluyor; test onceki surumde
+# ortami Yonlendirmiyordu -> her bolum GERCEK ~/.claude/cron/yedek-dusus-kalp.json
+# + yedek-dusus.log'a sahte 'Drive yolu cozulemedi' yazdi (log'da 16:58:16Z,
+# 17:02:16Z, 17:02:37Z kayitlarinin KAYNAGI test kosumlariydi). Olculdu, olay
+# gercek. Bu yardimci, cagri yerinin <kok> altinda yarattigi SAHTE HOME'a
+# os.environ kopyasi + HOME=<yol> ekleyerek yedekle.py'nin GERCEK ev yerine
+# oraya yazmasini saglar. Her vaka icin AYNI kok kullanilirsa yalitim tutar;
+# birden fazla TemporaryDirectory ayni os.environ'i paylasmaz, her birinin
+# KENDI fake HOME'u olur.
+GERCEK_KALP_YOLU = os.path.expanduser("~/.claude/cron/yedek-dusus-kalp.json")
+GERCEK_LOG_YOLU = os.path.expanduser("~/.claude/cron/yedek-dusus.log")
+
+# 🔴 Case 8 icin kontrol: en az bir vakanin sahte HOME'unda kalp dogmali.
+# Bu olcum yalitimin GERCEKTEN isledigini gosterir — sadece gercek HOME'un
+# dokunulmadigini olcmek yetmezdi (olcumu kandirirdi: "ev'e dokunmuyor" iddiasi
+# yedekle.py'nin hic kosmamasiyla da gerceklesirdi). Kalp dogmadiysa YALITIM
+# OLcusu KORDUR — o zaman case 8 KIRMIZI.
+SAHTE_KALP_DOGDU = []  # her vakada True/False eklenir
+
+
+def _fake_home_env(kok):
+    """Kok altinda `<kok>/home/.claude/cron` olusturur; HOME=<kok>/home iceren
+    os.environ kopyasi doner. yedekle.py bu sayede ~/.claude/cron/yedek-dusus.log'a
+    DEGIL, <kok>/home/.claude/cron/yedek-dusus.log'a yazar."""
+    fake = os.path.join(kok, "home")
+    os.makedirs(os.path.join(fake, ".claude", "cron"), exist_ok=True)
+    env = os.environ.copy()
+    env["HOME"] = fake
+    return env
+
+
+def _sahte_kalp_var_mi(kok):
+    """Kok'un fake HOME'unda yedek-dusus-kalp.json dogdu mu? (case 8c kanit araci)."""
+    return os.path.isfile(os.path.join(kok, "home", ".claude", "cron",
+                                       "yedek-dusus-kalp.json"))
+
+
+def _gercek_kalp_sha():
+    if not os.path.isfile(GERCEK_KALP_YOLU):
+        return "YOK"
+    return sha(GERCEK_KALP_YOLU)
+
+
+def _gercek_log_wc():
+    if not os.path.isfile(GERCEK_LOG_YOLU):
+        return 0
+    with open(GERCEK_LOG_YOLU, "rb") as f:
+        return sum(1 for _ in f)
 
 
 # K308 mutasyon capasi: SEBEBI gorunur kilan kol. Yutma desenine geri donulunce
@@ -403,6 +460,16 @@ def main():
     kur = modul_yukle(a.kur, "yedek_hook_kur")
     blok_hook = "#!/bin/sh\n" + kur.BLOK + "\n"
 
+    # ---------------- 8 ONCUL: GERCEK HOME DOKUNULMADI (BAS) ----------------
+    # K308-C: yedekle.py DUSUS_KAYIT_LOG/KALP yolu `expanduser("~/.claude/cron/...")`
+    # ile cozuluyor; test onceki surumde HOME'u Yonlendirmiyordu ve gercek kron'a
+    # yaziyordu. Bu olcum, tum bolumler bittikten SONRA AYNI kalmali.
+    kalp_bas = _gercek_kalp_sha()
+    log_bas = _gercek_log_wc()
+    print("\n8 ONCUL — gercek HOME olcumleri (test basinda)")
+    print("  kalp sha256: %s" % kalp_bas)
+    print("  log satir  : %d" % log_bas)
+
     # ---------------- 1) URETILEN BLOK: idempotens ----------------
     print("\n1) IDEMPOTENS — iki kez kurmak ikinci kopya YIGMAMALI")
     bir, _ = kur.yeni_icerik(None)
@@ -447,11 +514,12 @@ def main():
     print("\n5b) KILIT DOLU — push yolu YINE exit 0, hata gurultusu YOK")
     with tempfile.TemporaryDirectory() as td:
         kok = sahte_repo(td, drive_erisilebilir=True)
+        env = _fake_home_env(kok)
         kilit = open(os.path.join(kok, ".yedek.lock"), "a+")
         fcntl.flock(kilit, fcntl.LOCK_EX)
         kilit.write("pid=999999 baslangic=%.3f iso=TEST\n" % time.time())
         kilit.flush()
-        r = hook_kos(kok, blok_hook)
+        r = hook_kos(kok, blok_hook, env=env)
         kontrol("kilit doluyken hook exit 0 (PUSH DURMAZ)", r.returncode == 0,
                 "rc=%d %s" % (r.returncode, r.stderr.strip()[:100]))
         kontrol("hata uyarisi BASILMADI (atlama hata degil)",
@@ -460,7 +528,8 @@ def main():
         # gerceklestigini bu yuzden dogrudan betikten dogruluyoruz (K308 sonrasi da
         # boyle: tani kuyrugu YALNIZ rc!=0'da basilir).
         d = subprocess.run([sys.executable, os.path.join(kok, "tools", "yedekle.py"),
-                            "--gerekliyse"], capture_output=True, text=True, cwd=kok)
+                            "--gerekliyse"], capture_output=True, text=True, cwd=kok,
+                           env=env)
         kontrol("ayni kosum tek basina da ATLIYOR + exit 0",
                 d.returncode == 0 and "yedek ATLANDI" in d.stdout,
                 "rc=%d %s" % (d.returncode, d.stdout.strip().splitlines()[0][:70]
@@ -469,7 +538,7 @@ def main():
         fcntl.flock(kilit, fcntl.LOCK_UN)
         kilit.close()
         # kilit birakilinca ayni hook normal calisir (regresyon)
-        r2 = hook_kos(kok, blok_hook)
+        r2 = hook_kos(kok, blok_hook, env=env)
         kontrol("kilit birakilinca hook yine exit 0 + yedek alindi",
                 r2.returncode == 0 and os.path.isfile(
                     os.path.join(td, "drive", "Pruvo", _yedek_kok_adi(),
@@ -540,6 +609,25 @@ def main():
 
     # ---------------- 6-7) TETIK NOBETI (bkz. modul basligi) ----------------
     bolum_tetik(a.kur)
+
+    # ---------------- 8) GERCEK HOME DOKUNULMADI (SON) ----------------
+    # IKI YONLU kontrol: (a) gercek kron'a YAZILMAMALI — sha256 + wc ayni;
+    # (b) en az bir vakanin SAHTE HOME'unda kalp DOGMALI — yoksa yalitim olcumu
+    # KORDUR ("ev'e dokunmuyorum" iddiasi yedekle.py'nin hic kosmamasiyla da
+    # gerceklesirdi). SAHTE_KALP_DOGDU, 3d vakasinda yedekle.py dogrudan
+    # cagrildiktan HEMEN SONRA guncellenir.
+    print("\n8) GERCEK HOME DOKUNULMADI — test sonunda olculdu")
+    kalp_son = _gercek_kalp_sha()
+    log_son = _gercek_log_wc()
+    print("  kalp sha256: %s" % kalp_son)
+    print("  log satir  : %d" % log_son)
+    kontrol("8a 🔴 gercek kalp sha256 ONCE == SONRA", kalp_bas == kalp_son,
+            "bas=%s son=%s" % (kalp_bas[:12], kalp_son[:12]))
+    kontrol("8b gercek log satir sayisi ONCE == SONRA", log_bas == log_son,
+            "bas=%d son=%d" % (log_bas, log_son))
+    kontrol("8c en az bir vakanin sahte HOME'unda kalp DOGDU (yalitim calisti)",
+            bool(SAHTE_KALP_DOGDU) and any(SAHTE_KALP_DOGDU),
+            "vaka_bildirileri=%s" % SAHTE_KALP_DOGDU)
 
     kirmizi = [a for a, ok in SONUC if not ok]
     print("\n" + "=" * 70)
