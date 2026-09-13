@@ -37,6 +37,12 @@ KANCA = os.path.join(TOOLS, "kancalar", "pre-commit")
 DEPLOY = os.path.join(KOK, ".github", "workflows", "deploy.yml")
 YOK_KANCA = "/var/empty/urun-silme-kapisi-test-kanca-yok"   # VAR OLMAYAN yol
 
+# TEK KAYNAK: sentetik fiksturlerdeki tum git cagrilari `git_ortami.sentetik_git`
+# uzerinden gider (mutasyon turu bu dosyanin KOPYASINI gecici bir dizine yazar;
+# kopya kanonik `tools/`e bakan `TOOLS`'u zaten tasir). Elle `subprocess.run(["git",...])`
+# YASAKTIR — `fikstur-git-sizinti-kapisi.py` onu SIZDIRIYOR olarak isaretler.
+from git_ortami import sentetik_git  # noqa: E402
+
 FIKSTUR_SHA = "aea5ccac"
 FIKSTUR_IDLER = ("nissan-ara-i-i-vape-tutucu-adapt-r",
                  "nissan-vape-tutucu-ayarlanabilir-montaj-par-as")
@@ -63,8 +69,10 @@ def temiz_env(**ek):
 
 
 def git(depo, *a):
-    p = subprocess.run(["git", "-c", "core.hooksPath=" + YOK_KANCA, "-c", "commit.gpgsign=false",
-                        "-C", depo] + list(a), capture_output=True, text=True, env=temiz_env())
+    p = sentetik_git(depo, *a,
+                     ayarlar=("-c", "core.hooksPath=" + YOK_KANCA,
+                              "-c", "commit.gpgsign=false"),
+                     ek_ortam=temiz_env(), capture_output=True, text=True)
     if p.returncode != 0:
         raise RuntimeError("git %s rc=%d: %s" % (" ".join(a), p.returncode, p.stderr.strip()))
     return p.stdout.strip()
@@ -258,8 +266,9 @@ def v19(kapi, duzelt, tmp):
     git(d, "checkout", "-q", "main")
     yaz(d, [K4, K1, dict(K2, fiyat="275 TL"), K3])
     commit(d, "main yeni urun + degisim")
-    p = subprocess.run(["git", "-c", "core.hooksPath=" + YOK_KANCA, "-C", d, "merge", "dal"],
-                       capture_output=True, text=True, env=temiz_env())
+    p = sentetik_git(d, "merge", "dal",
+                     ayarlar=("-c", "core.hooksPath=" + YOK_KANCA),
+                     ek_ortam=temiz_env(), capture_output=True, text=True)
     if p.returncode == 0:
         return False, "fikstur: catisma BEKLENIYORDU"
     git(d, "checkout", "--theirs", "urunler.json")
@@ -314,8 +323,9 @@ def v22(kapi, duzelt, tmp):
     git(d, "checkout", "-q", "main")
     yaz(d, [K4, K1, K2, K3])
     commit(d, "main yeni urun")
-    p = subprocess.run(["git", "-c", "core.hooksPath=" + YOK_KANCA, "-C", d, "merge", "dal"],
-                       capture_output=True, text=True, env=temiz_env())
+    p = sentetik_git(d, "merge", "dal",
+                     ayarlar=("-c", "core.hooksPath=" + YOK_KANCA),
+                     ek_ortam=temiz_env(), capture_output=True, text=True)
     if p.returncode == 0:
         return False, "fikstur: catisma BEKLENIYORDU"
     git(d, "checkout", "--ours", "urunler.json")
