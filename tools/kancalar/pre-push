@@ -221,7 +221,7 @@ if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/yedekle.py" ]; then
     # basilir — bilgi hicbir kolda DARALTILMAZ.
     printf '%s
 ' "$pruvo_yedek_cikti" \
-      | grep -E '^(KORUMA KARANTINASI|  ATLANDI:|BEYAN UYARISI:|ESKALASYON=|YEDEK=)' \
+      | grep -E '^(Yedek ALINMADI|KORUMA KARANTINASI|  ATLANDI:|BEYAN UYARISI:|ESKALASYON=|YEDEK=)' \
       || printf '%s
 ' "$pruvo_yedek_cikti" | tail -5
   fi
