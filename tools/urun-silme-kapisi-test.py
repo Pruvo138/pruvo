@@ -64,6 +64,9 @@ def temiz_env(**ek):
                    or k in ("PRUVO_CI_ONCEKI_SHA", "PRUVO_URUN_SIL_IZNI"))}
     env.update(GIT_CONFIG_NOSYSTEM="1", GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t",
                GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+    # Mutant/kopya kapi gecici dizinden kosar; `git_ortami` tek kaynagini burada SOYLENEN
+    # kanonik tools/'tan bulur. Yoksa kopya import'ta coker (CI'da makineye ozel yol yok).
+    env["PRUVO_KANONIK_TOOLS"] = TOOLS
     env.update(ek)
     return env
 
