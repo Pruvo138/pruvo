@@ -4225,8 +4225,10 @@ MUTANTLAR = (
      # 🔴 51/52/53 EKLENDI (K374, 5 Eyl): uc yeni fiksturde de KILITLI/KORUMALI
      # bloklar SERBEST birakilanlarin ALTINDA ve USTUNDE karisik durur; bitisik
      # kuyruga donen bir secim "GERCEKTEN arsive gitti" bacaklarina ULASAMAZ.
+     # 🔴 58 EKLENDI (K375, 13 Eyl): v58'de SERBEST birakilan C/F, KORUNAN A/B/D/E
+     # ile ayni sirada durur (47 ile ayni sekil); 58r/58u bitisik kuyrukta ULASILMAZ.
      True, {"20", "22", "28", "31", "32", "33", "37", "38", "42", "43", "44",
-            "46", "47", "49", "50", "51", "52", "53", "54"}),
+            "46", "47", "49", "50", "51", "52", "53", "54", "58"}),
     # 🔴 K318 KOL-2 (27 Agu): kayipsizligin IKI EKSENDE BASILMASI sarti. Beyan
     # susturulursa 28 OLMELI; hesap dogru kalsa bile "basilmayan sayi olculmemis
     # sayidir" ([[aracin-teshis-cumlesi-olcum-degil]]).
@@ -4258,8 +4260,10 @@ MUTANTLAR = (
      # SIZMADI" der — dogrudan ICRA bacagi.
      # 🔴 51/52/53 EKLENDI (K374, 5 Eyl): uc vakanin da NEGATIF bacaklari "acik blok
      # KUTUDA kaldi, arsive SIZMADI" der — dogrudan ICRA bacagi.
+     # 🔴 58 EKLENDI (K375, 13 Eyl): v58'in KORUNAN dort acilisi (A/B/D/E) veto
+     # bacagiyla sabit kumede durur; bacak olunce arsive kacar ve D17 rc=1 yakar.
      True, {"31", "32", "33", "36", "41", "42", "43", "46", "47", "49",
-            "51", "52", "53", "54"}),
+            "51", "52", "53", "54", "58"}),
     ("m) D17 ACIK CIP DENETIMI OLDURULDU (sizan acik blok sessizce yazilir)",
      "    for _bi, ad, ozet, sinif in ek_acik:\n",
      "    for _bi, ad, ozet, sinif in []:  # MUTANT: D17 susturuldu\n",
@@ -4288,8 +4292,10 @@ MUTANTLAR = (
      # kontrol bacaklari) — gevsemeyi olcen vakalarin ta kendisi.
      # 🔴 51/53 EKLENDI (K374, 5 Eyl): "her blok KAPANIS" demek 51'in IKI negatifini
      # (proza + aralikli) ve 53'un `AD_YOK` bacagini da serbest birakir.
+     # 🔴 58 EKLENDI (K375, 13 Eyl): her blok KAPANIS sayilinca v58'in acilislari
+     # KUTU ICINDE kendilerini kapatir; arsiv zaman kolu hic sorulmadan dort KORU duser.
      True, {"31", "32", "33", "36", "42", "43", "46", "47", "48",
-            "49", "51", "53", "54"}),
+            "49", "51", "53", "54", "58"}),
     # 🔴 GEVSEK AD kolu (28 Agu, ucuncu canli vaka) — backtick'siz yazilmis cip adini
     # okuyan asimetrik bacak. Olmezse vaka 36'nin ② sarmali `ACIK_ADSIZ`a duser: blok
     # HALA korunur (fail-closed dogru) ama SINIFI degisir — yani kol "kismen" olur ve
@@ -4374,8 +4380,10 @@ MUTANTLAR = (
      # blogu "kendi kapanisini tasiyor" sayilir ve D17 ateslenmez. GERCEK bagimlilik.
      # 🔴 51/53 EKLENDI: ayni gevseme 51'in negatiflerini ve 53'un `AD_YOK` bacagini
      # da serbest birakir.
+     # 🔴 58 EKLENDI (K375, 13 Eyl): uc sart gevseyince v58'in `BASLIYORUM`
+     # basliklari da KAPANIS sayilir (o) ile ayni yol); KORU bacaklari duser.
      True, {"31", "32", "33", "34", "36", "42", "43", "47", "48", "49",
-            "51", "53", "54"}),
+            "51", "53", "54", "58"}),
     ("v) 🔴 MP3: TIRNAK ELEMESI KALDIRILDI (alintidaki jeton yine sayilir)",
      "    return _TIRNAK_RE.sub(\" \", metin)\n",
      "    return metin  # MUTANT MP3: TIRNAK elemesi KALDIRILDI\n",
@@ -4503,7 +4511,9 @@ MUTANTLAR = (
     ("ag) 🔴 K373: HARNESS SEKIL KOLU OLDURULDU (kucuk harfli ad yine gorunmez)",
      "    if not HARNESS_AD_RE.fullmatch(ad):\n        return False\n",
      "    return False  # MUTANT: harness sekil kolu kaldirildi\n",
-     True, {"49"}),
+     # 🔴 58 EKLENDI (K375, 13 Eyl): iki yan saatsiz ciftte KORU karari harness
+     # sekline dayanir; sekil taninmayinca `saatsiz-agac-3c5e7a` SERBEST kalir (58t).
+     True, {"49", "58"}),
     ("ah) 🔴 K373: RAKAM SARTI KALDIRILDI (salt-hex kelime de ad sayilir)",
      '    return any(k.isdigit() for k in ad.rsplit("-", 1)[1])\n',
      "    return True  # MUTANT: rakam sarti kaldirildi (GEVSETME yonu)\n",
