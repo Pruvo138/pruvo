@@ -1106,6 +1106,13 @@ jobs:
       - name: Mukerrer kapisi pre-commit kapsam testi
         run: python3 tools/mukerrer-kapsam-test.py
 
+      # K357 SABAH KURUCUSU TAM-KOPYA FAIL-CLOSED: tools/sabah-teslim/kur.py hedef
+      # (~/.claude/cron) kaynaktan FARKLIYSA yazmaz, rc=4 (31 Agu: kaynak canlidan iki kusak
+      # gerideydi, eski kol onarimlari geri sarardi). Bloklayici: yerel + deterministik, ag
+      # ISTEMEZ, yalniz tempfile fiksturu. Mutant (kol sokulur) ayni kosumda KIRMIZI olmali.
+      - name: Sabah kurucusu tam-kopya fail-closed bataryasi (K357)
+        run: python3 tools/sabah-kur-tam-kopya-test.py
+
       # RIZA TIK-KIMLIGI (GIZLILIK) — 30 Tem'e kadar CI'da HIC kosmuyordu. Muafiyet gerekcesi
       # "CI build job'u Python-only (setup-node yok)" DIYORDU; olculdu ki YANLIS: yukaridaki
       # actions/setup-node@v4 (node 20) BLOKLAYICI on-kosuldur ve bu is akisinda zaten
