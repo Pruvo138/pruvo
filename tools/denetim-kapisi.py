@@ -1674,22 +1674,34 @@ def _kt_onay_batarya(iddia):
     g("add", "-A")
     g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "taban")
 
-    def kos(ek, ek_urun=None, betik=None):
-        """Tabani GERI YUKLE -> kos -> (rc, cikti, sha_DEGISMEDI, silinen_kayit_sayisi)."""
+    def kos(ek, ek_urun=None, betik=None, izinli=True):
+        """Tabani GERI YUKLE -> kos -> (rc, cikti, sha_DEGISMEDI, silinen_kayit_sayisi).
+
+        ONAY mekanigi SENARYO BAĞIMSIZ olculur: varsayilan ``izinli=True`` -> alt surece
+        ``PRUVO_URUN_SIL_IZNI=OKAN`` ENJEKTE edilir (onay kapisi ONCEKI izne saygi gosterir,
+        sonra onayi denetler). ``izinli=False`` izni SILINMIS senaryolar icindir (P1/P2/P3
+        + yeni ONAY-IZINSIZ vakasi); uretim koduna (_uygula) DOKUNULMAZ — kapinin test
+        fiksturunu izinsiz ortamda kosmak yeterlidir.
+        """
         yaz(taban)
         g("add", "-A")
         g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "vaka tabani")
         if ek_urun:
             yaz(taban + ek_urun)              # COMMIT EDILMEZ -> parti = ek_urun
         s0, n0 = sha_sayi()
+        surec_env = dict(os.environ)
+        if not izinli:
+            surec_env.pop("PRUVO_URUN_SIL_IZNI", None)
+        else:
+            surec_env["PRUVO_URUN_SIL_IZNI"] = "OKAN"
         p = subprocess.run([sys.executable, betik or kapi, *ek,
                             "--rapor", os.path.join(tmp, "rapor.json")],
-                           cwd=depo, capture_output=True, text=True)
+                           cwd=depo, capture_output=True, text=True, env=surec_env)
         s1, n1 = sha_sayi()
         return p.returncode, (p.stdout or "") + (p.stderr or ""), s0 == s1, n0 - n1
 
     # --- P1 [KIRMIZI]: --tum-katalog --uygula, ONAYSIZ -> silme YOK -------------------
-    rc, out, ayni, d = kos(["--tum-katalog", "--uygula"])
+    rc, out, ayni, d = kos(["--tum-katalog", "--uygula"], izinli=False)
     iddia("ONAY-P1 --tum-katalog --uygula ONAYSIZ -> rc!=0, sha256 DEGISMEDI",
           rc != 0 and ayni and d == 0, "rc=%d sha_ayni=%s silinen=%d" % (rc, ayni, d))
     iddia("ONAY-P1b teshis TETIKLEYEN kosulu (a) SOYLUYOR",
@@ -1697,7 +1709,8 @@ def _kt_onay_batarya(iddia):
           "TETIKLEYEN=%s (a)=%s" % ("TETIKLEYEN" in out, "(a)" in out))
 
     # --- P2 [KIRMIZI]: YANLIS N -> silme YOK -----------------------------------------
-    rc, out, ayni, d = kos(["--tum-katalog", "--uygula", "--evet-sil", str(TAM - 1)])
+    rc, out, ayni, d = kos(["--tum-katalog", "--uygula", "--evet-sil", str(TAM - 1)],
+                           izinli=False)
     iddia("ONAY-P2 --evet-sil YANLIS N -> rc!=0, sha256 DEGISMEDI",
           rc != 0 and ayni and d == 0, "rc=%d sha_ayni=%s silinen=%d" % (rc, ayni, d))
 

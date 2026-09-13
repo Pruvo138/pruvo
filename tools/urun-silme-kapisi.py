@@ -67,6 +67,18 @@ import os
 import subprocess
 import sys
 
+# TEK KAYNAK: git ortami SCRUB politikasi `tools/git_ortami.py::GIT_BAGLAM_DEGISKENLERI`.
+# Burada elle bir kume YAZILMAZ (ikiz-tanim ayrismasin diye); sadece hangi adlarin
+# KORUNACAGI cagri yerinde ilan edilir. Mutasyon turu bu dosyanin KOPYASINI gecici
+# bir dizine yazar; kopya kanonik `tools/`e bakan `TOOLS_DIZINI`ni tasir.
+TOOLS_DIZINI = os.path.dirname(os.path.realpath(__file__))
+for _aday in (os.environ.get("PRUVO_KANONIK_TOOLS") or "", TOOLS_DIZINI,
+              os.path.join("/Users/okan/dev/pruvo", "tools")):
+    if _aday and os.path.isfile(os.path.join(_aday, "git_ortami.py")):
+        sys.path.insert(0, _aday)
+        break
+from git_ortami import git_ortami  # noqa: E402
+
 KATALOG_YOLU = "urunler.json"
 # TEK KAYNAK ile ayni yol: tools/panel-uygulayici.py::ARSIV_DOSYASI (test IKIZ-TANIM vakasi olcer)
 ARSIV_YOLU = "arsiv/urunler-arsiv.json"
@@ -86,13 +98,13 @@ class Olculemedi(Exception):
 
 def _temiz_env(index_kipi):
     """Hook icinde git GIT_DIR/GIT_INDEX_FILE koyar. INDEX kipi commit edilen index'i
-    OKUMAK ZORUNDA (GIT_INDEX_FILE miras kalir, `-C` kullanilmaz); diger kipler acik
-    `-C <depo>` ile kosar ve bu degiskenler ayrismaya yol acmasin diye DUSURULUR."""
-    env = os.environ.copy()
-    if not index_kipi:
-        for ad in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
-            env.pop(ad, None)
-    return env
+    OKUMAK ZORUNDA (GIT_DIR + GIT_INDEX_FILE miras kalir, `-C` kullanilmaz); diger
+    kipler acik `-C <depo>` ile kosar ve bu degiskenler ayrismaya yol acmasin diye
+    DUSURULUR. Tum kararlar `tools/git_ortami.GIT_BAGLAM_DEGISKENLERI` TEK KAYNAK'tan
+    turer — burada elle bir alt kume YAZILMAZ (ikiz-tanim ayrisirdi)."""
+    if index_kipi:
+        return git_ortami(korunan_baglam=("GIT_DIR", "GIT_INDEX_FILE"))
+    return git_ortami()
 
 
 def _git(depo, args, index_kipi=False):
