@@ -46,6 +46,7 @@ K1 = {"id": "urun-a", "kategori": "Ev", "baslik": "A", "fiyat": "100 TL"}
 K2 = {"id": "urun-b", "kategori": "Ev", "baslik": "B", "fiyat": "200 TL"}
 K3 = {"id": "urun-c", "kategori": "Ev", "baslik": "C", "fiyat": "300 TL"}
 K4 = {"id": "urun-d-yeni", "kategori": "Ev", "baslik": "D", "fiyat": "400 TL"}
+K5 = {"id": "urun-q", "kategori": "Ev", "baslik": "Q", "fiyat": "500 TL"}
 
 
 # ── yardimcilar ──────────────────────────────────────────────────────────────────
@@ -299,7 +300,57 @@ def v21(kapi, duzelt, tmp):
     with open(olay, "w") as f:
         json.dump({"before": c}, f)
     rc, out = kapi_kos(kapi, d, [], env=temiz_env(GITHUB_EVENT_PATH=olay, GITHUB_SHA=e))
-    return rc == 0 and "DUSEN=0" in out, "rc=%d" % rc
+    return (rc == 0 and "IZINSIZ=0" in out
+            and "AFFEDILEN(geri konulan)=1" in out), "rc=%d" % rc
+
+
+def v22(kapi, duzelt, tmp):
+    # Curutucu N2: dal YENI kayit ekler, catisma `--ours` ile cozulur -> index HEAD'e esit
+    # ama dalin eklemesi yutuldu. Merge'de on-eleme OLMAMALI.
+    d, _ = yeni_depo(tmp, [K1, K2, K3])
+    git(d, "checkout", "-q", "-b", "dal")
+    yaz(d, [K5, K1, K2, K3])
+    commit(d, "dalda yeni urun")
+    git(d, "checkout", "-q", "main")
+    yaz(d, [K4, K1, K2, K3])
+    commit(d, "main yeni urun")
+    p = subprocess.run(["git", "-c", "core.hooksPath=" + YOK_KANCA, "-C", d, "merge", "dal"],
+                       capture_output=True, text=True, env=temiz_env())
+    if p.returncode == 0:
+        return False, "fikstur: catisma BEKLENIYORDU"
+    git(d, "checkout", "--ours", "urunler.json")
+    git(d, "add", "urunler.json")
+    rc, out = kapi_kos(kapi, d, ["--index"])
+    return rc == 1 and "IZINSIZ_SILME urun-q" in out, "rc=%d" % rc
+
+
+def v23(kapi, duzelt, tmp):
+    # Curutucu N1: rename commit'i + sonraki commit'te yeni id'li kaydin duzenlenmesi ->
+    # CI penceresi YESIL kalmali (uc nokta karsilastirmasi sahte KIRMIZI yakiyordu).
+    d, _ = yeni_depo(tmp, [K1, K2, K3])
+    yaz(d, [K1, dict(K2, id="urun-b-yeni"), K3])
+    commit(d, "rename")
+    yaz(d, [K1, dict(K2, id="urun-b-yeni", fiyat="222 TL"), K3])
+    c = commit(d, "yeni id'li kayitta duzenleme")
+    rc, out = kapi_kos(kapi, d, [], env=temiz_env(GITHUB_SHA=c))
+    return (rc == 0 and "IZINSIZ=0" in out and "eksen=CI(pencere-" in out), "rc=%d" % rc
+
+
+def v24(kapi, duzelt, tmp):
+    # Dalda kancasiz (`--no-verify` esdegeri) izinsiz silme, catismasiz merge ile main'e
+    # girer: merge commit'i MERGE_GETIRISI der; dal commit'i KENDI hukmunu almali.
+    d, _ = yeni_depo(tmp, [K1, K2, K3])
+    git(d, "checkout", "-q", "-b", "dal")
+    yaz(d, [K1, K3])
+    commit(d, "dalda izinsiz silme")
+    git(d, "checkout", "-q", "main")
+    with open(os.path.join(d, "ilgisiz.txt"), "w") as f:
+        f.write("x\n")
+    commit(d, "ilgisiz")
+    git(d, "merge", "-q", "--no-ff", "-m", "merge dal", "dal")
+    h = git(d, "rev-parse", "HEAD")
+    rc, out = kapi_kos(kapi, d, [], env=temiz_env(GITHUB_SHA=h))
+    return rc == 1 and "IZINSIZ_SILME urun-b" in out, "rc=%d" % rc
 
 
 def v12(kapi, duzelt, tmp):
@@ -398,6 +449,8 @@ VAKALAR = [
     ("V16_KANCA_VE_CI_KABLOSU", v16), ("V17_IKIZ_TANIM", v17),
     ("V18_SAHTE_ARSIV_GIRISI", v18), ("V19_MERGE_THEIRS_YENI_KAYIT_KAYBI", v19),
     ("V20_CI_PENCERE_IPTAL_BOSLUGU", v20), ("V21_PENCERE_ONARIM_KONTROL", v21),
+    ("V22_MERGE_OURS_DAL_EKLEMESI_KAYBI", v22), ("V23_CI_RENAME_SONRASI_DUZENLEME", v23),
+    ("V24_CI_DAL_COMMITI_KENDI_HUKMU", v24),
 ]
 VAKA = dict(VAKALAR)
 
@@ -429,6 +482,19 @@ MUTANTLAR = [
     ("M9_CI_PENCERESI_SOKULDU", "kapi",
      "            and _ata_mi(depo, before, hedef) and _ata_mi(depo, before, pencere)):\n",
      "            and _ata_mi(depo, before, hedef)):\n", "V20_CI_PENCERE_IPTAL_BOSLUGU"),
+    ("M10_MERGE_ON_ELEMESI_GERI_GELDI", "kapi",
+     "            if rc == 0 and not merge_var:\n", "            if rc == 0:\n",
+     "V22_MERGE_OURS_DAL_EKLEMESI_KAYBI"),
+    ("M11_CI_UC_NOKTA_KARSILASTIRMASI", "kapi",
+     "        sonuc = pencere_hukmu(depo, taban, yeni)\n",
+     "        sonuc = uc_nokta_hukmu(depo, taban, yeni)\n", "V23_CI_RENAME_SONRASI_DUZENLEME"),
+    ("M12_GERI_KONULAN_AFFI_SOKULDU", "kapi",
+     '    toplam["izinsiz"] = [u for u in toplam["izinsiz"] if u not in son_idleri]\n',
+     '    toplam["izinsiz"] = list(toplam["izinsiz"])\n', "V21_PENCERE_ONARIM_KONTROL"),
+    ("M13_CI_YALNIZ_FIRST_PARENT", "kapi",
+     '    rc, out, err = _git(depo, ["rev-list", "--reverse", "--parents", "%s..%s" % (taban, yeni)])\n',
+     '    rc, out, err = _git(depo, ["rev-list", "--first-parent", "--reverse", "--parents", "%s..%s" % (taban, yeni)])\n',
+     "V24_CI_DAL_COMMITI_KENDI_HUKMU"),
 ]
 KONTROL_MUTANT = ("K0_ZARARSIZ_YORUM", "kapi", "import argparse\n",
                   "import argparse  # kontrol mutanti: davranis DEGISMEZ\n")

@@ -31,6 +31,10 @@ KIPLER (hepsi SALT OKUR):
   (varsayilan) CI KOLU  — yeni = `GITHUB_SHA` (yoksa HEAD). Taban = son PENCERE (20)
                           first-parent commit'in tabani; GitHub olayinin `before`i daha
                           ESKIYSE o. `PRUVO_CI_ONCEKI_SHA` verilirse AYNEN kullanilir.
+                          Araliktaki (dal commit'leri dahil) katalog degistiren HER commit
+                          KENDI ebeveynine gore hukum alir (merge: ortak ataya gore); uc
+                          nokta karsilastirmasi rename/arsiv sonrasi duzenlemeyi sahte
+                          KIRMIZI yakiyordu (curutucu N1, gercekte 3 olay / 9 konum).
                           NEDEN PENCERE (curutucu SUPHE, 13 Eyl): deploy.yml kuyrugunda
                           bekleyen koşum iptal edilince bir sonraki koşumun `before`i
                           silmeyi ATLAR; `before..after` kolu SIFIR atima inerdi. Pencere
@@ -51,6 +55,8 @@ KIPLER (hepsi SALT OKUR):
   * `git commit --amend` ile ayni commit'te eklenip cikarilan kayit SAHTE KIRMIZI olabilir
     (B5; taban amend edilen commit). Care: `git reset --soft HEAD^` + yeniden commit.
   * Ayni id'li mukerrer kayit / id'siz kayit silmesi olculmez (B6; HEAD'de 0 vaka).
+  * AYNI commit'te duzenlenip arsivle silinen kayit SAHTE KIRMIZI olur (N3; arsiv icerigi
+    HEAD'deki eski halle eslesmez). Care: duzenlemeyi once ayri commit'le.
 
 Cikis: 0 YESIL · 1 KIRMIZI (izinsiz silme) · 2 OLCULEMEDI (bozuk JSON, cozulemeyen ref).
 Kabul + mutantlar: tools/urun-silme-kapisi-test.py
@@ -199,6 +205,71 @@ def degerlendir(taban, yeni, taban_arsiv, yeni_arsiv, ek_ebeveynler=(), ortak_at
             "merge": merge_getirisi, "izinsiz": izinsiz}
 
 
+def uc_nokta_hukmu(depo, taban, yeni):
+    """Iki uc noktayi karsilastir (acik --taban/--yeni kipi)."""
+    return degerlendir(katalog_oku(depo, taban), katalog_oku(depo, yeni),
+                       arsiv_sayaci(depo, taban), arsiv_sayaci(depo, yeni))
+
+
+def pencere_hukmu(depo, taban, yeni):
+    """CI kolu: taban..yeni icindeki (dal commit'leri DAHIL) urunler.json'a dokunan HER
+    commit KENDI ebeveynine gore hukum alir; merge commit'i ortak ataya gore.
+    NEDEN (curutucu N1, 13 Eyl): uc nokta karsilastirmasi rename/arsiv kanitini ara
+    commit'te birakip sonradan duzenlenen kaydi IZINSIZ sayiyordu (gercek gecmiste 3 olay /
+    9 pencere konumu SAHTE KIRMIZI). Izinsiz silinen id pencere sonunda katalogda VARSA
+    (geri konulmus) AFFEDILIR -> kirmizi ONARILABILIR kalir."""
+    rc, out, err = _git(depo, ["rev-list", "--reverse", "--parents", "%s..%s" % (taban, yeni)])
+    if rc != 0:
+        raise Olculemedi("rev-list %s..%s: %s" % (taban, yeni, err.decode("utf-8", "replace").strip()))
+    onbellek = {}
+
+    def oku(sha):
+        if sha not in onbellek:
+            if len(onbellek) >= 4:
+                onbellek.pop(next(iter(onbellek)))
+            onbellek[sha] = (katalog_oku(depo, sha), arsiv_sayaci(depo, sha))
+        return onbellek[sha]
+
+    toplam = {"dusen": [], "rename": [], "arsivli": [], "merge": [], "izinsiz": [], "kaynak": {}}
+    incelenen = 0
+    for satir in out.decode("utf-8", "replace").splitlines():
+        parcalar = satir.split()
+        if len(parcalar) < 2:
+            continue
+        c, ebeveynler = parcalar[0], parcalar[1:]
+        dokundu = False
+        for p in ebeveynler:
+            rcd, _, _ = _git(depo, ["diff", "--quiet", p, c, "--", KATALOG_YOLU])
+            if rcd not in (0, 1):
+                raise Olculemedi("git diff %s %s rc=%d" % (p, c, rcd))
+            dokundu = dokundu or rcd == 1
+        if not dokundu:
+            continue
+        incelenen += 1
+        p_kat, p_ars = oku(ebeveynler[0])
+        c_kat, c_ars = oku(c)
+        if len(ebeveynler) == 1:
+            s = degerlendir(p_kat, c_kat, p_ars, c_ars)
+        else:
+            rcm, ata, errm = _git(depo, ["merge-base", ebeveynler[0], ebeveynler[1]])
+            if rcm != 0 or not ata.strip():
+                raise Olculemedi("merge-base %s: %s" % (c, errm.decode("utf-8", "replace").strip()))
+            s = degerlendir(p_kat, c_kat, p_ars, c_ars,
+                            [katalog_oku(depo, p) for p in ebeveynler[1:]],
+                            katalog_oku(depo, ata.decode().strip()))
+        for anahtar in ("dusen", "rename", "arsivli", "merge"):
+            toplam[anahtar].extend(s[anahtar])
+        for uid in s["izinsiz"]:
+            if uid not in toplam["kaynak"]:
+                toplam["izinsiz"].append(uid)
+            toplam["kaynak"][uid] = c[:8]
+    son_idleri = set(_id_haritasi(katalog_oku(depo, yeni)))
+    toplam["affedilen"] = [u for u in toplam["izinsiz"] if u in son_idleri]
+    toplam["izinsiz"] = [u for u in toplam["izinsiz"] if u not in son_idleri]
+    toplam["incelenen"] = incelenen
+    return toplam
+
+
 def _commit_var(depo, sha):
     rc, _, _ = _git(depo, ["cat-file", "-e", sha + "^{commit}"])
     return rc == 0
@@ -263,8 +334,12 @@ def _rapor(eksen, taban_ad, yeni_ad, sonuc):
         print("  ARSIVLI_SILME %s (yazan=%s)" % (uid, yazan))
     for uid in sonuc["merge"][:ORNEK_TAVAN]:
         print("  MERGE_GETIRISI %s" % uid)
+    if "incelenen" in sonuc:
+        print("  PENCERE: incelenen commit=%d AFFEDILEN(geri konulan)=%d"
+              % (sonuc["incelenen"], len(sonuc["affedilen"])))
     for uid in sonuc["izinsiz"][:ORNEK_TAVAN]:
-        print("  IZINSIZ_SILME %s" % uid)
+        kaynak = sonuc.get("kaynak", {}).get(uid)
+        print("  IZINSIZ_SILME %s%s" % (uid, (" (commit %s)" % kaynak) if kaynak else ""))
     if len(sonuc["izinsiz"]) > ORNEK_TAVAN:
         print("  ... +%d izinsiz silme daha" % (len(sonuc["izinsiz"]) - ORNEK_TAVAN))
     if sonuc["izinsiz"]:
@@ -295,16 +370,19 @@ def main(argv=None):
             if rc != 0:
                 print("URUN_SILME_KAPISI: ATLANDI — HEAD YOK (ilk commit), karsilastirilacak taban yok.")
                 return YESIL
+            rc, out, _ = _git(depo, ["rev-parse", "--verify", "--quiet", "MERGE_HEAD"], True)
+            merge_var = bool(rc == 0 and out.strip())
+            # MERGE'DE ON-ELEME YOK (curutucu N2): `checkout --ours` cozumu index'i HEAD'e
+            # esitler ama dalin YENI ekledigi kaydi yutar; HEAD'e gore on-eleme onu gormezdi.
             rc, _, _ = _git(depo, ["diff", "--cached", "--quiet", "HEAD", "--", KATALOG_YOLU], True)
-            if rc == 0:
+            if rc == 0 and not merge_var:
                 print("URUN_SILME_KAPISI: ATLANDI — %s index'te HEAD'e gore DEGISMEDI (on-eleme)."
                       % KATALOG_YOLU)
                 return YESIL
-            if rc != 1:
+            if rc not in (0, 1):
                 raise Olculemedi("git diff --cached HEAD rc=%d — on-eleme olculemedi" % rc)
             ek, ata = [], None
-            rc, out, _ = _git(depo, ["rev-parse", "--verify", "--quiet", "MERGE_HEAD"], True)
-            if rc == 0 and out.strip():
+            if merge_var:
                 ek.append(katalog_oku(depo, "MERGE_HEAD", True))
                 rc, taban_sha, err = _git(depo, ["merge-base", "HEAD", "MERGE_HEAD"], True)
                 if rc != 0 or not taban_sha.strip():
@@ -315,18 +393,20 @@ def main(argv=None):
                                 arsiv_sayaci(depo, "HEAD", True), arsiv_sayaci(depo, "", True),
                                 ek, ata)
             return _rapor("INDEX" + ("+MERGE_HEAD" if ek else ""), "HEAD", "INDEX", sonuc)
-        if args.taban:
-            taban, yeni, eksen = args.taban, args.yeni or "HEAD", "ARALIK"
-        elif args.yeni:
+        if args.yeni and not args.taban:
             print("URUN_SILME_KAPISI: HATA --yeni tek basina verilmez (--taban gerekli)")
             return OLCULEMEDI
-        else:
-            taban, yeni, eksen = ci_araligi(depo)
+        if args.taban:
+            taban, yeni = args.taban, args.yeni or "HEAD"
+            for ref in (taban, yeni):
+                if not _commit_var(depo, ref):
+                    raise Olculemedi("revizyon cozulemedi: %s" % ref)
+            return _rapor("ARALIK", taban, yeni, uc_nokta_hukmu(depo, taban, yeni))
+        taban, yeni, eksen = ci_araligi(depo)
         for ref in (taban, yeni):
             if not _commit_var(depo, ref):
                 raise Olculemedi("revizyon cozulemedi: %s" % ref)
-        sonuc = degerlendir(katalog_oku(depo, taban), katalog_oku(depo, yeni),
-                            arsiv_sayaci(depo, taban), arsiv_sayaci(depo, yeni))
+        sonuc = pencere_hukmu(depo, taban, yeni)
         return _rapor(eksen, taban, yeni, sonuc)
     except Olculemedi as e:
         print("URUN_SILME_KAPISI: OLCULEMEDI — %s" % e)
