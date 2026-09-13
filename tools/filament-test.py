@@ -108,8 +108,13 @@ class FiksturKaymasi(Exception):
 def baski_urunu_mu(u):
     """Fikstur EHLIYETI. FAIL-CLOSED: `tur` alani YOK/BOS olan kayit ozel uretim (baski)
     urunudur; tanidigimiz ("fiziksel") ya da TANIMADIGIMIZ her deger fikstur DISIDIR.
-    Yarin yeni bir `tur` degeri eklenirse bu paket sessizce kaymak yerine DARALIR."""
+    Yarin yeni bir `tur` degeri eklenirse bu paket sessizce kaymak yerine DARALIR.
+    `gizli` kayitlar kalici taslaktir; build.py onlarin sayfasini URETMEZ, fikstur/orneklem
+    DISI tutulur (aksi halde dosya bulunamadi diye anlamsiz kirmizi yanar)."""
     if not isinstance(u, dict):
+        return False
+    # gizli kayit = kalici taslak; build.py (products filtresi, gizli) sayfasini URETMEZ -> fikstur/orneklem disi
+    if u.get("gizli"):
         return False
     return not (u.get("tur") or "").strip()
 
@@ -261,6 +266,41 @@ def parite_eslem_testi():
     return 0
 
 
+def ehil_testi(urunler):
+    """`python3 tools/filament-test.py --ehil-testi` — agsiz, build'siz fikstur.
+    baski_urunu_mu'nun EHLIYETI: duz kayit EHIL, gizli/tur=fiziksel EHIL DEGIL; GERCEK
+    katalogda EHIL seciminden gizli SIFIR kacar VE katalogda gizli > 0 (E6=E5'in ayirt
+    edici oldugunu ispatlar; aksi halde test kendi kendini kandirir)."""
+    gecen = 0
+    toplam = 0
+
+    def ona(kosul, ad):
+        nonlocal gecen, toplam
+        toplam += 1
+        if kosul:
+            gecen += 1
+            print("  ✅ EHIL-%s" % ad, flush=True)
+        else:
+            print("  ❌ EHIL-%s" % ad, flush=True)
+
+    ona(baski_urunu_mu({"id": "x"}) is True, "E1: duz kayit EHIL (id='x')")
+    ona(baski_urunu_mu({"id": "x", "gizli": True}) is False,
+        "E2: gizli=True kayit EHIL DEGIL")
+    ona(baski_urunu_mu({"id": "x", "tur": "fiziksel"}) is False,
+        "E3: tur='fiziksel' kayit EHIL DEGIL")
+    ona(baski_urunu_mu({"id": "x", "gizli": False}) is True,
+        "E4: gizli=False olan duz kayit EHIL")
+    gizli_ehilde = [u for u in urunler if baski_urunu_mu(u) and u.get("gizli")]
+    ona(len(gizli_ehilde) == 0,
+        "E5: GERCEK katalogda EHIL seciminden gizli SIFIR kacar (len=%d)"
+        % len(gizli_ehilde))
+    toplam_gizli = sum(1 for u in urunler if u.get("gizli"))
+    ona(toplam_gizli > 0,
+        "E6: GERCEK katalogda gizli kayit sayisi > 0 (count=%d) — E5 ayirt edici"
+        % toplam_gizli)
+    return (gecen, toplam)
+
+
 def kayit(no, ad, gecti, detay=""):
     SONUC.append((no, ad, gecti, detay))
     print("  %s TEST %d — %s%s" % ("✅" if gecti else "❌", no, ad,
@@ -291,6 +331,20 @@ def main():
 
 
     try:
+
+        with open(os.path.join(ROOT, "urunler.json"), encoding="utf-8") as f:
+            urunler = json.load(f)
+        # ---- 27 EHIL NOBETI: fikstur secimi EHIL OLMAYAN bir kaydi orneklediginde sayfa
+        # uretilmez (build.py gizli'yi filtreler) ve "dosya bulunamadi" diye ANLAMSIZ kirmizi
+        # yanar — TEST 26 kayma nobetinin ayni sebeple burada da gerekli. Build ONCESI kos:
+        # katalog zaten build girdisi, build'in EK bir sey degistirmesi (gizli ekleme vb.)
+        # bu nobeti yaniltmamali.
+        _gecen, _toplam = ehil_testi(urunler)
+        if _gecen != _toplam:
+            print("  ❌ TEST 27 — EHIL NOBETI | baski_urunu_mu EHIL DEGIL "
+                  "(%d/%d gecti) — orneklem kirmizi yanar, build durur" %
+                  (_gecen, _toplam), flush=True)
+            sys.exit(1)
 
         print("0) tools/build.py calisiyor (uretim taze olsun)...", flush=True)
         r = subprocess.run([sys.executable, os.path.join(TOOLS, "build.py")],
@@ -948,6 +1002,17 @@ if __name__ == "__main__":
     # checkout kirlenmez -> yasal sayfa geri yukleme de gerekmez.
     if "--parite-eslem-testi" in sys.argv[1:]:
         sys.exit(parite_eslem_testi())
+    # Agsiz + build'siz alt-kapi: baski_urunu_mu EHLILIK fiksturu (6 iddia, gizli+tur=fiziksel).
+    if "--ehil-testi" in sys.argv[1:]:
+        with open(os.path.join(ROOT, "urunler.json"), encoding="utf-8") as _f:
+            _urunler = json.load(_f)
+        _gecen, _toplam = ehil_testi(_urunler)
+        print("-" * 70)
+        if _gecen == _toplam:
+            print("SONUC: EHIL %d/%d YESIL" % (_gecen, _toplam))
+            sys.exit(0)
+        print("SONUC: EHIL KIRMIZI")
+        sys.exit(1)
     try:
         main()
     finally:
