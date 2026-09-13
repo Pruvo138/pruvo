@@ -6,6 +6,12 @@ repo kokunde /<slug>/index.html uretir. .gitignore'da karsiligi yoksa dizin `git
 `??` olarak birikir ve kazayla commit edilirse PUBLIC repoya build ciktisi girer. Liste elle
 tutuldugu surece drift kacinilmazdi -> bu kapi blogu CONTENT_PAGES'ten TURETIR ve karsilastirir.
 
+YONLENDIRME STUB'LARI (13 Eyl 2026): 1e4f7b3d 5 slug'i CONTENT_PAGES'ten cikarip
+tools/yonlendirmeler.py'ye tasidi; build.py o slug'lar icin /<eski-slug>/index.html stub'i
+basmaya DEVAM ediyor. Kume yalniz CONTENT_PAGES'ten turedigi icin kapi TEMIZ derken build
+sonrasi repo kokunde 5 `??` dizin doguyordu. Turetilen kume artik
+CONTENT_PAGES ∪ yonlendirmeler.dizinler() — ikinci elle liste YOK, iki tablo da import edilir.
+
 NOT: STATIK_SAYFALAR (hakkimizda/iletisim/sss/gizlilik) elle yazilmis ve repoda IZLENEN
 dosyalardir; bloga ASLA girmez (girerse guncellemeleri sessizce kaybolur) — kapi bunu da denetler.
 
@@ -21,6 +27,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GITIGNORE = os.path.join(ROOT, ".gitignore")
 SAYFALAR = os.path.join(ROOT, "tools", "sayfalar.py")
+YONLENDIRMELER = os.path.join(ROOT, "tools", "yonlendirmeler.py")
 
 BAS = "# >>> uretilen-icerik-dizinleri (otomatik — elle duzenleme; tools/gitignore-kapisi.py dogrular)"
 SON = "# <<< uretilen-icerik-dizinleri"
@@ -37,14 +44,35 @@ def _sayfalar_modulu():
     return mod
 
 
-def beklenen_satirlar():
-    """CONTENT_PAGES'ten turetilmis blok govdesi: her uretilen sayfa icin '/slug/'.
+def _yonlendirmeler_modulu():
+    """tools/yonlendirmeler.py — sayfalar.py onu zaten import ettiyse AYNI modul nesnesi."""
+    if "yonlendirmeler" in sys.modules:
+        return sys.modules["yonlendirmeler"]
+    spec = importlib.util.spec_from_file_location("yonlendirmeler", YONLENDIRMELER)
+    if spec is None or spec.loader is None:
+        sys.exit("HATA: tools/yonlendirmeler.py yuklenemedi: " + YONLENDIRMELER)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["yonlendirmeler"] = mod
+    spec.loader.exec_module(mod)
+    return mod
 
-    STATIK_SAYFALAR haric tutulur (repoda izlenen elle yazilmis sayfalar).
+
+def beklenen_satirlar():
+    """Blok govdesi: build.py'nin repo kokunde urettigi her izlenmeyen sayfa dizini icin '/slug/'.
+
+    Kume = CONTENT_PAGES (icerik sayfalari) + yonlendirmeler.dizinler() (uretimden cikan
+    slug'larin stub'lari). STATIK_SAYFALAR haric tutulur (repoda izlenen elle yazilmis sayfalar).
     """
     m = _sayfalar_modulu()
+    y = _yonlendirmeler_modulu()
     statik = set(m.STATIK_SAYFALAR)
-    return ["/%s/" % slug for slug, _b, _meta, _fn in m.CONTENT_PAGES if slug not in statik], statik
+    sluglar = [slug for slug, _b, _meta, _fn in m.CONTENT_PAGES] + list(y.dizinler())
+    satirlar = []
+    for slug in sluglar:
+        s = "/%s/" % slug
+        if slug not in statik and s not in satirlar:
+            satirlar.append(s)
+    return satirlar, statik
 
 
 def _oku():
@@ -81,9 +109,9 @@ def dogrula():
         if eksik:
             sorunlar.append("blokta EKSIK (uretilir ama ignore edilmiyor): " + ", ".join(eksik))
         if fazla:
-            sorunlar.append("blokta FAZLA (CONTENT_PAGES'te yok): " + ", ".join(fazla))
+            sorunlar.append("blokta FAZLA (CONTENT_PAGES/yonlendirmeler'de yok): " + ", ".join(fazla))
         if not eksik and not fazla and mevcut != beklenen:
-            sorunlar.append("blok sirasi CONTENT_PAGES sirasindan farkli (--yaz ile duzelt)")
+            sorunlar.append("blok sirasi CONTENT_PAGES+yonlendirmeler sirasindan farkli (--yaz ile duzelt)")
 
     # Statik (izlenen) sayfalar .gitignore'un HICBIR yerinde olmamali.
     for slug in sorted(statik):
@@ -106,8 +134,9 @@ def dogrula():
         print("Duzeltme: python3 tools/gitignore-kapisi.py --yaz")
         return 1
 
-    print("GITIGNORE KAPISI: TEMIZ — blok CONTENT_PAGES ile bire bir (%d uretilen dizin), "
-          "statik sayfalar (%s) ignore edilmiyor." % (len(beklenen), ", ".join(sorted(statik))))
+    print("GITIGNORE KAPISI: TEMIZ — blok CONTENT_PAGES+yonlendirmeler ile bire bir (%d uretilen dizin, "
+          "%d yonlendirme stub'i dahil), statik sayfalar (%s) ignore edilmiyor."
+          % (len(beklenen), len(_yonlendirmeler_modulu().dizinler()), ", ".join(sorted(statik))))
     return 0
 
 
