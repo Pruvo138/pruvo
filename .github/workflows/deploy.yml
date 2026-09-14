@@ -1085,12 +1085,33 @@ jobs:
       - name: Diriltme kapisi (silinmis urun geri gelmis mi)
         run: python3 tools/diriltme-kapisi.py
 
+      # URUN SILME KAPISI — diriltmenin TERS yonu: "urun izinsiz SILINDI mi". BLOKLAYICI
+      # (continue-on-error YOK): yerel + deterministik, ag ISTEMEZ, fetch-depth: 0 ister
+      # (taban = son 20 first-parent commit penceresi ya da daha eskiyse push `before`i;
+      # iptal edilen kuyruk koşumunun atladigi silmeyi de gorur, kayit geri konunca soner).
+      # OLCULEN SINIF (13 Eyl 2026): Okan hukmu 17 Agu "urun SILINMEZ" iken 14 Agu -> 13 Eyl
+      # arasinda id kumesini kucülten 31 commit'in 22'si (54 kayit) izinsizdi; hicbir kapi
+      # yanmadi (8759f3e2 · db33e358 · aea5ccac). Dusen id ya ID-RENAME ya YENI arsiv girisi
+      # (arsiv/urunler-arsiv.json) tasimali. Care: gizli:true. Yazim oncesi kol: pre-commit
+      # adim 9. Ikinci adim kapinin KENDI kabul + mutant bataryasi (aea5ccac fiksturu dahil).
+      - name: Urun silme kapisi (izinsiz id kumesi kuculmesi)
+        run: python3 tools/urun-silme-kapisi.py
+      - name: Urun silme kapisi kabul + mutant bataryasi
+        run: python3 tools/urun-silme-kapisi-test.py
+
       # MUKERRER PRECOMMIT KAPSAMI: mukerrer-kontrol.py --pre-commit'in calisma agacini
       # DEGIL commit icerigini (index/HEAD) yargiladigini ve okunamazsa fail-closed eski
       # davranisa dustugunu kanitlar (5 iddia). Bloklayici: kapsam calisma agacina kayarsa
       # baska oturumun yarim urunler.json'i HERKESIN commit'ini kilitler.
       - name: Mukerrer kapisi pre-commit kapsam testi
         run: python3 tools/mukerrer-kapsam-test.py
+
+      # K357 SABAH KURUCUSU TAM-KOPYA FAIL-CLOSED: tools/sabah-teslim/kur.py hedef
+      # (~/.claude/cron) kaynaktan FARKLIYSA yazmaz, rc=4 (31 Agu: kaynak canlidan iki kusak
+      # gerideydi, eski kol onarimlari geri sarardi). Bloklayici: yerel + deterministik, ag
+      # ISTEMEZ, yalniz tempfile fiksturu. Mutant (kol sokulur) ayni kosumda KIRMIZI olmali.
+      - name: Sabah kurucusu tam-kopya fail-closed bataryasi (K357)
+        run: python3 tools/sabah-kur-tam-kopya-test.py
 
       # RIZA TIK-KIMLIGI (GIZLILIK) — 30 Tem'e kadar CI'da HIC kosmuyordu. Muafiyet gerekcesi
       # "CI build job'u Python-only (setup-node yok)" DIYORDU; olculdu ki YANLIS: yukaridaki
@@ -1183,6 +1204,21 @@ jobs:
       # = musteriye yanlis odeme/teslim beyani. Offline, commit'li sayfalari okur (build.py'den ONCE).
       - name: Odeme beyani kapisi
         run: python3 tools/odeme-beyani-kapisi.py
+
+      # LANDING/HUKUK KAPISI (K389 ④, 13 Eyl 2026) — BLOKLAYICI, continue-on-error YOK.
+      # KURAL A: govdesinde "gida" gecen landing ayni sayfada sinir cumlesini (sertifika /
+      # kapsam disi) tasir · KURAL B: olcu/revizyon sayfalarinda ucret kosulu yazilidir.
+      # Kapi uzun sure YALNIZ nobet.yml SERIT B'deydi (yayini bloklamaz): 8 Eyl'de 1, 12 Eyl'de
+      # 4 landing sinirsiz gida temasiyla YAYINA CIKTI. Kaynagi okur (tools/sayfalar.py
+      # CONTENT_PAGES), build ciktisina muhtac degil; offline, stdlib, ~0,1 s.
+      # SERIT B kopyasi BILEREK DURUR (maliyet ~0,1 s): orada `!cancelled()` ile ilk
+      # kirmizinin ARKASINDA da olculur, burada sirali serit ilk kirmizida durur.
+      # Mutant testi: gercek katalogun bir KURAL A govdesinden sinir cumlesi silinmis gecici
+      # fikstur -> rc!=0 + slug ADIYLA; kontrol (degistirilmemis) -> rc=0; bos/patlayan -> rc!=0.
+      - name: Landing/hukuk beyan kapisi
+        run: python3 tools/landing-hukuk-kapisi.py
+      - name: Landing/hukuk beyan kapisi mutant kabul testi
+        run: python3 tools/landing-hukuk-kapisi-test.py
 
       # LANDING WHATSAPP KAPISI: CONTENT_PAGES'ten uretilen tum uzun-kuyruk sayfalarda
       # tiklanabilir, dogru numarali ve on-dolu WhatsApp CTA'si bulunur. Orneklem yapmaz;

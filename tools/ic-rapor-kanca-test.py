@@ -100,8 +100,12 @@ def depo_kur(d, kol_var=True, kapi_var=True, kapi_eki=None):
     # kosumda KIRMIZI — ve gerekce ic rapor ekseni DEGIL, EKSIK FIKSTUR dosyasiydi.
     # SINIF: kanca govdesi TEK KAYNAKTAN aliniyor ama govdenin BAGIMLILIKLARI elle
     # tutuluyor; ikisi ayrisinca batarya kendi ekseni disinda kirmizi yanar.
+    # 13 Eyl 2026 — AYNI SINIF IKINCI KEZ: kancaya adim 9 (urun silme kapisi) eklendi ve
+    # fikstur geride kaldiginda B4-B7 "tools/urun-silme-kapisi.py YOK" ile KIRMIZI yandi
+    # (olculdu, KraL-UrunSilmeKapisi-13Eyl). Adim 9 on-elemesi urunler.json'u olmayan
+    # sentetik depoda ATLANDI basar; dosya yalniz VAR olmali.
     for _bagimlilik in ("defter-kota-kapisi.py", "defter-kota-taban.py",
-                        "serbest_cagrilar.py"):
+                        "serbest_cagrilar.py", "urun-silme-kapisi.py"):
         _kaynak = os.path.join(TOOLS, _bagimlilik)
         if os.path.exists(_kaynak):
             shutil.copyfile(_kaynak, os.path.join(d, "tools", _bagimlilik))

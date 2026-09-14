@@ -303,4 +303,30 @@ if [ "$pruvo_defter_kota_rc" -ne 0 ]; then
   echo "!!   LOSSLESS: hicbir sey SILINMEZ, kapali maddeler/bloklar arsive TASINIR." >&2
   exit 1
 fi
+
+# --- 9) URUN SILME KAPISI — INDEX (COMMIT ANI) kolu (FAIL-CLOSED) -------------
+# 🔴 13 EYL 2026 — "SILME YOLU KAPISIZ" SINIFI (olculdu; 3. tekrarin OTESI, tekil yama YASAK):
+#   Okan hukmu (17 Agu): siteden urun SILINMEZ. 14 Agu -> 13 Eyl arasinda urunler.json id
+#   kumesini kucülten 31 commit'in 22'si (54 kayit) izinsizdi ve HICBIR kapi yanmadi
+#   (8759f3e2 · db33e358 · aea5ccac ...). Adim 1 guard'i izinsiz silmeyi geri ekler AMA
+#   izin manifesti `duzelt.py --sil` ile SARTSIZ yaziliyordu -> tutan el yoktu.
+#   Bu adim INDEX'teki katalogu HEAD'e gore olcer: dusen her id ya ID-RENAME (kayit id
+#   disinda birebir ayni) ya da ayni commit'te arsiv/urunler-arsiv.json'a eklenen YENI
+#   arsiv girisi tasir; aksi -> COMMIT DURUR. Care `gizli:true`.
+# EKSEN INDEX'TIR (adim 5-8 ile ayni gerekce); on-eleme kapinin ICINDE, atlama BASILIR.
+# CI KOLU YERINDE KALIR: deploy.yml serit-a3 (bloklayici). rc=2 (OLCULEMEDI) YESIL SAYILMAZ.
+pruvo_silme="$pruvo_kok/tools/urun-silme-kapisi.py"
+if [ ! -f "$pruvo_silme" ]; then
+  echo "!! COMMIT DURDURULDU — tools/urun-silme-kapisi.py YOK." >&2
+  echo "!! Urun silme korumasi OLCULEMEDI; olculemeyen sey yesil sayilmaz." >&2
+  exit 1
+fi
+python3 "$pruvo_silme" --index
+pruvo_silme_rc=$?
+if [ "$pruvo_silme_rc" -ne 0 ]; then
+  echo "!! COMMIT DURDURULDU — urun silme kapisi rc=$pruvo_silme_rc (0=YESIL 1=KIRMIZI 2=OLCULEMEDI)." >&2
+  echo "!! Okan hukmu: urun SILINMEZ. COZUM: kaydi geri koy + gizle ->" >&2
+  echo "!!   python3 tools/duzelt.py <id> --alan gizli --deger true" >&2
+  exit 1
+fi
 exit 0

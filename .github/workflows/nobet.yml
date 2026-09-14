@@ -454,6 +454,20 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/merge-kanit.py --kendini-test
 
+      # NOBET OLCUM BETIGI (11 Eyl 2026, Okan karari 23:3x madde 1) — BaBa'nin iki
+      # cron rutininin ev ev attigi grep/ls/git turlarini TEK deterministik betige
+      # indiren `tools/nobet-olcum.py`nin kabul bataryasi: 26 vaka + 3 mutant
+      # (evler.json fail-closed kolu · git kirlilik kolu · MOTOR ORANI cok-parcali
+      # ev eslemesi). HERMETIK: gercek ev yolu / evler.json / isci.log / kutu
+      # OKUNMAZ, butun dunya gecici dizinde kurulur — komsu evlerin durumu bu
+      # adimin rengini DEGISTIRMEZ ([[kapi-ambiyansi-olcerse-komsu-kirmiziya-yakar]]).
+      # SERIT B: kirmizisi yayini DURDURMAZ (betik olcum uretir, musteri yuzeyine
+      # degmez); ama kapsam kapisi icin bu satir RATCHET'tir — silinirse
+      # `ci-kapsam-test.py` KAPSAMSIZ der.
+      - name: "Nobet olcum betigi — kabul testi (26 vaka + 3 mutant, hermetik)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/nobet-olcum-test.py
+
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
       # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
       # uzerinden kuru kosuma yollar; REDDEDILEN sayisi > 0 ise rc=1. SERIT B kapsaminda — kirmizisi
@@ -2731,6 +2745,10 @@ jobs:
   # deploy.yml'deki `deploy: needs` listesi DEGISMEDI (deploy.yml'e DOKUNULMADI).
   # ⚠️ `continue-on-error` KULLANILMADI (fail-open yazimi bu depoda nobetci ihlalidir).
   # ⚠️ `timeout-minutes: 90` — olculen en uzun bataryanin (2788 s = 46,5 dk) ~2 kati.
+  # 🔴 14 Eyl 2026 OLCUM (KraL-Tamirci-14Eyl): 46,5 dk BAYATLADI — `model-uyelik-bataryasi`
+  # 54 mutanti SIRALI kosarken 13-14 Eyl son 3 kosumun 2'sinde 90:1x'te `cancelled`
+  # (34776269391 · 34787402985 · 34809782912), basarili olan 70:26. Tavan YUKSELTILMEDI;
+  # `model-uyelik-kapisi.py --kendini-test` mutantlari paralel kosar (sure orada olculur).
   # Bu evde olculdu: FAIL-SLOW = FAIL-OPEN — asilan bir kol kapiyi 46+ dk sahte-yesil
   # tutar ve kosum sonunda iptal edilir ([[fail-slow-fail-opendir]]).
   # Kurulum adimlari `serit-b` ile BIREBIR AYNIDIR (checkout fetch-depth: 0 · python
@@ -2751,6 +2769,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      # Batarya mutantlari `mutasyon_kopya.paralel_sirali` ile paralel kosar (14 Eyl 2026:
+      # sirali kosum 4084 sn = 90 dk tavaninin %76'si, kardes model-uyelik tavana carpti).
+      # Yardimcinin sira/istisna sozlesmesi bataryadan ONCE olculur.
+      - name: "Paralel mutant yardimcisi kabul testi (sira + istisna + fail-closed env)"
+        run: python3 tools/mutasyon-paralel-test.py
+      - name: "Paralel mutant yardimcisi mutasyon turu (bitis sirasi / yutulan istisna kirmizi)"
+        run: python3 tools/mutasyon-paralel-test.py --mutasyon
       - name: "Marka bolum kimligi mutasyon bataryasi (iki katman, 5 mutant + kontrol)"
         run: python3 tools/marka-bolum-mutasyon.py
 

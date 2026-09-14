@@ -43,10 +43,15 @@ dair koken manifesti ARANIR; yoksa/supheliyse HICBIR SEY yazilmaz (exit 4).
 Kural + manifest semasi + beyan edilen sinirlar: tools/gorsel_koken.py.
 Platform kategorileri (Otomobil/Marin/...) HIC degerlendirilmez.
 
-URUNU TAMAMEN SILMEK icin (or. yanlislikla eklenmis logo/telif riskli urun):
-  python3 tools/duzelt.py <id> --sil "kisa gerekce"
-Bu, urunu urunler.json'dan kaldirir VE id'yi .urunler-sil-izin.json'a yazar ki
-guard onu HEAD'den geri eklemesin. --sil, --alan/--deger ile BIRLIKTE kullanilmaz.
+URUN SILINMEZ (Okan hukmu 17 Agu 2026) — yayindan dusurmek icin GIZLE:
+  python3 tools/duzelt.py <id> --alan gizli --deger true
+URUNU TAMAMEN SILMEK yalniz Okan'in ACIK karariyla (13 Eyl 2026'dan beri izinsiz RED, rc 8;
+izin ve yordam: tools/urun-silme-yordami.md). Izinli `--sil`, urunu urunler.json'dan kaldirir, TAM kaydi arsiv/urunler-arsiv.json'a TASIR (gerekce
+public arsive YAZILMAZ) VE id'yi .urunler-sil-izin.json'a yazar ki guard onu HEAD'den geri
+eklemesin. Commit'e urunler.json + arsiv/urunler-arsiv.json BIRLIKTE girer; arsiv kaydi
+olmayan silme tools/urun-silme-kapisi.py (pre-commit adim 9 + CI serit-a3) ile KIRMIZI.
+`--toplu` "sil" islemi de ayni izni ister; arsivi CAGIRAN yazar (panel-uygulayici emsali).
+--sil, --alan/--deger ile BIRLIKTE kullanilmaz.
 
 TICARI HAL ALANLARI (`tur` + `gorselsiz`) — GERI ALINABILIR AMA SAVRULAMAZ:
 Gorsel muafiyeti beyani (`"gorselsiz": true`, yalniz `tur == "fiziksel"` kaydinda gecerli)
@@ -203,6 +208,19 @@ RC_TICARI_HAL = 6
 # cikis kodundan ayirt edebilir — "rc != 0" hepsini tek kovaya yigardi ve parti
 # betikleri yanlis kapiyi onarmaya calisirdi.
 RC_UYUM = 7
+
+# 🔴 URUN SILME IZNI (13 Eyl 2026) — Okan hukmu 17 Agu: "SAKIN siteden bir urun SILME."
+# `--sil GEREKCE` eskiden yalniz bir LOG METNI istiyordu; 14 Agu -> 13 Eyl arasinda
+# urunler.json id kumesini kucülten 31 commit / 128 kayit HICBIR kapi yakmadan main'e girdi.
+# Artik silme (tek-urun `--sil` ve `--toplu` `"sil"`) ancak ACIK izinle kosar; izinsiz cagri
+# HICBIR SEY yazmaz, RC_SIL_IZIN doner ve `gizli:true` yolunu ADIYLA basar. Izin kalibi
+# emsali: PRUVO_CLAUDE_ISCI_IZNI=OKAN. Panel "Sil (arsive)" yolu (Okan emri 2 Eyl) izni
+# tools/panel-uygulayici.py::duzelt_kos'ta verir. Commit + CI tarafi:
+# tools/urun-silme-kapisi.py (dusen id ya ID-RENAME ya YENI arsiv kaydi tasimali).
+SIL_IZIN_ENV = "PRUVO_URUN_SIL_IZNI"
+SIL_IZIN_DEGERI = "OKAN"
+RC_SIL_IZIN = 8
+ARSIV = os.path.join(ROOT, "arsiv", "urunler-arsiv.json")
 
 GORSELSIZ_BAYRAK = "gorselsiz"
 TUR_ALANI = "tur"
@@ -846,6 +864,32 @@ def _id_yeniden_adlandir(eski, yeni):
     return 0
 
 
+def _sil_izni_var():
+    """Silme izni YALNIZ ortamdaki acik beyandan okunur (mutant M1 bu satiri soker)."""
+    return os.environ.get(SIL_IZIN_ENV) == SIL_IZIN_DEGERI
+
+
+def _sil_izin_red(idler, kip):
+    """Izinsiz silme -> hicbir sey YAZILMADAN reddet; care `gizli:true` ADIYLA basilir."""
+    idler = sorted(idler)
+    _log("sil-RED (%s): izin yok -> %s" % (kip, ", ".join(idler)))
+    print("HATA: URUN SILME REDDEDILDI (%s) — izin YOK, hicbir sey yazilmadi." % kip,
+          file=sys.stderr)
+    print("  Okan hukmu (17 Agu 2026): siteden urun SILINMEZ. Silinmek istenen %d kayit:"
+          % len(idler), file=sys.stderr)
+    for uid in idler[:40]:
+        print("    - %s" % uid, file=sys.stderr)
+    print("  CARE — yayindan dusur, kayit tabanda KALSIN (gizli:true):", file=sys.stderr)
+    for uid in idler[:5]:
+        print("    python3 tools/duzelt.py %s --alan gizli --deger true" % uid, file=sys.stderr)
+    # Izin RECETESI kirmizi ciktida BASILMAZ (curutucu B1, 13 Eyl): reddedilen cagriya
+    # nasil gececegini soylemek, "kapiyi yesile cevirmek icin katalog budama" refleksini
+    # tek adim uzaga koyar. Yordam Okan'in belgesindedir.
+    print("  Silme yalniz Okan'in acik karariyla yapilir (yordam: tools/urun-silme-yordami.md).",
+          file=sys.stderr)
+    return RC_SIL_IZIN
+
+
 def _sil(args):
     lockf = open(LOCK, "w")
     fcntl.flock(lockf, fcntl.LOCK_EX)
@@ -857,7 +901,22 @@ def _sil(args):
         if idx is None:
             print("HATA: '%s' id'li urun urunler.json'da yok." % args.id, file=sys.stderr)
             return 1
-        urunler.pop(idx)
+        # ARSIV DUZLEMI (13 Eyl 2026): kayit YOK EDILMEZ, TASINIR. Arsiv yazimdan ONCE
+        # okunur; bozuksa HICBIR SEY yazilmaz (sessiz sifirlama yok, veri ezilmez).
+        arsiv = []
+        if os.path.exists(ARSIV):
+            try:
+                with open(ARSIV, encoding="utf-8") as f:
+                    arsiv = json.load(f)
+            except ValueError as e:
+                print("HATA: %s BOZUK JSON (%s) — silme geri cekildi, hicbir sey yazilmadi."
+                      % (ARSIV, e), file=sys.stderr)
+                return 1
+            if not isinstance(arsiv, list):
+                print("HATA: %s kok DIZI DEGIL — silme geri cekildi, hicbir sey yazilmadi."
+                      % ARSIV, file=sys.stderr)
+                return 1
+        kayit = urunler.pop(idx)
 
         # KAYNAK TEMIZLEME (--kaynak-temizle): urunler.json'a yazmadan ONCE ayni
         # flock icinde kaynak duzlemini de hazirla. _kaynak_temizle_uygula
@@ -874,6 +933,13 @@ def _sil(args):
                 return 1
 
         _atomic_write(URUNLER, urunler)
+        # Arsiv girisi panel-uygulayici::arsiv_ekle ile AYNI sekil; GEREKCE public repoya
+        # YAZILMAZ (yalniz yerel guard logunda yasar). kuyruk_id yok: panel disi yol.
+        arsiv.append({"silinme_ts": datetime.datetime.now(datetime.timezone.utc)
+                      .strftime("%Y-%m-%dT%H:%M:%SZ"),
+                      "yazan": "duzelt.py", "kuyruk_id": None, "kayit": kayit})
+        os.makedirs(os.path.dirname(ARSIV), exist_ok=True)
+        _atomic_write(ARSIV, arsiv)
 
         sil_izin = []
         if os.path.exists(MANIFEST_SIL):
@@ -898,8 +964,11 @@ def _sil(args):
         fcntl.flock(lockf, fcntl.LOCK_UN)
         lockf.close()
 
-    _log("sil: %s -> kaldirildi (%s) (silme manifestine yazildi)" % (args.id, args.sil))
+    _log("sil: %s -> kaldirildi (%s) (izin=%s; arsive tasindi; silme manifestine yazildi)"
+         % (args.id, args.sil, SIL_IZIN_DEGERI))
     print("Silindi: %s  (gerekce: %s)" % (args.id, args.sil))
+    print("ARSIV: TAM kayit arsiv/urunler-arsiv.json'a TASINDI — commit'e BIRLIKTE ekle: "
+          "git add urunler.json arsiv/urunler-arsiv.json")
     if kaynak_sonuc is not None:
         print("KAYNAK_SILINEN=%d ZATEN_YOK=%d KAYNAK_KALAN=%d"
               % (kaynak_sonuc[0], kaynak_sonuc[1], kaynak_sonuc[2]))
@@ -1040,6 +1109,11 @@ def _toplu(yol, kaynak_temizle=False):
         for h in hatalar:
             print("  - %s" % h, file=sys.stderr)
         return 2
+
+    # URUN SILME IZNI — kilitten ONCE, ya hep ya hic: izinsiz tek "sil" TUM partiyi reddeder
+    # (alan islemleri de yazilmaz; sessiz kismi uygulama yok). Arsivi CAGIRAN yazar.
+    if urun_silmeler and not _sil_izni_var():
+        return _sil_izin_red(urun_silmeler, "--toplu")
 
     # UYUM/MARKA CATISMASI — kilitten ONCE: hicbir dosya acilmadan reddedilir, cikis kodu
     # RC_UYUM (2 DEGIL) ki cagiran "sema hatasi" ile "iki kaynak yarisi"ni ayirt edebilsin.
@@ -1284,6 +1358,8 @@ def main():
             print("HATA: --sil, --alan/--deger/--alan-sil ile birlikte kullanilamaz.",
                   file=sys.stderr)
             return 2
+        if not _sil_izni_var():
+            return _sil_izin_red([args.id], "--sil")
         return _sil(args)
 
     if not (args.alan or args.alan_sil):

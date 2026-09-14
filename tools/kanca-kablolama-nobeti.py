@@ -158,6 +158,13 @@ FAIL_CLOSED = {
         "yutulursa ihlal repoya girer ve yayin yine SAATLER sonra, ihlali yazan "
         "kisiden UZAKTA durur (ayni sinifin BIRINCI vakasi devam-sinif-kapisi.py "
         "ekseninde olculdu).",
+    ("pre-commit", "tools/urun-silme-kapisi.py"):
+        "yazim oncesi URUN SILME kolu (INDEX ekseni, adim 9). Okan hukmu 17 Agu "
+        "'urun SILINMEZ' iken 14 Agu -> 13 Eyl arasinda id kumesini kucülten 31 "
+        "commit'in 22'si (54 kayit) izinsizdi ve hicbir kapi yanmadi. CI kolu "
+        "(serit-a3) yalniz 20 commit'lik penceredir ve YAYIN DURDURARAK konusur; "
+        "cikis kodu yutulursa izinsiz silme repoya girer "
+        "ve ancak yayini durdurduktan sonra, silen kisiden UZAKTA gorunur.",
     ("commit-msg", "tools/commit-mesaji-kapisi.py"):
         "commit MESAJI yazildiktan sonra degistirilemez (depo PUBLIC) -> tek "
         "onleyici yuzey budur; yutulursa tedarikci kimligi kalici olarak sizar.",

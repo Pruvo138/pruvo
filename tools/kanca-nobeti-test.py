@@ -116,6 +116,20 @@ if [ "$icrapor_rc" -ne 0 ]; then
   echo "!! COMMIT DURDURULDU — ic rapor adi kapisi INDEX kolu rc=$icrapor_rc." >&2
   exit 1
 fi
+
+# URUN SILME KAPISININ INDEX KOLU (13 Eyl 2026) — GERCEK kancadaki SEKLIN taklidi:
+# NEGATIF varlik kapisi + rc'yi `$?` ile yakalayip girintili kosullu `exit 1`.
+silme="$root/tools/urun-silme-kapisi.py"
+if [ ! -f "$silme" ]; then
+  echo "!! COMMIT DURDURULDU — urun silme kapisi YOK." >&2
+  exit 1
+fi
+python3 "$silme" --index
+silme_rc=$?
+if [ "$silme_rc" -ne 0 ]; then
+  echo "!! COMMIT DURDURULDU — urun silme kapisi rc=$silme_rc." >&2
+  exit 1
+fi
 exit 0
 """
 

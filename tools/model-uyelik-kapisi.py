@@ -39,6 +39,9 @@ import unicodedata
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 GERCEK_KOK = os.path.dirname(DIR)
+sys.path.insert(0, DIR)
+
+import mutasyon_kopya as mk                                        # noqa: E402
 
 
 # ---------------------------------------------------------------- yardımcı
@@ -2379,7 +2382,12 @@ def _turetme_mutasyonu():
         once = hashlib.sha256(f.read()).hexdigest()
     print("      CANLI DOSYA sha256 ONCE : %s" % once)
     hatalar, kumeler = [], {}
-    for kod, eski, yeni, beklenen, aciklama in _TURETME_MUTANTLARI:
+
+    # 🔴 PARALEL (14 Eyl 2026, KraL-Tamirci-14Eyl): ana bataryayla AYNI gerekçe (bkz.
+    # `kendini_test`). Her mutant kendi tempdir kopyasında; satırlar TAMPONLANIR ve tablo
+    # sırasıyla basılır. Döner: (kod, satırlar, hatalar, kırmızı küme | None).
+    def _kos(kod, eski, yeni, beklenen, aciklama):
+        _yaz, _hat = [], []
         tmp = tempfile.mkdtemp(prefix="model-turetme-mut-")
         try:
             _kok_kur(tmp)
@@ -2391,16 +2399,16 @@ def _turetme_mutasyonu():
             _kes = govde.index("\n_TURETME_MUTANTLARI = [")
             bas, kuyruk = govde[:_kes], govde[_kes:]
             if bas.count(eski) != 1:
-                hatalar.append("%s CAPA BAYAT (%d eşleşme, 1 olmalı)" % (kod, bas.count(eski)))
-                print("      HATA %s -> CAPA BAYAT (%d) | EKSEN ÖLÇÜLMEDİ"
-                      % (kod, bas.count(eski)))
-                continue
+                _hat.append("%s CAPA BAYAT (%d eşleşme, 1 olmalı)" % (kod, bas.count(eski)))
+                _yaz.append("      HATA %s -> CAPA BAYAT (%d) | EKSEN ÖLÇÜLMEDİ"
+                            % (kod, bas.count(eski)))
+                return kod, _yaz, _hat, None
             _beklenen = bas.replace(eski, yeni, 1) + kuyruk
             # 🔴 EŞDEĞER MUTANT ÖLÇÜM DEĞİLDİR: metin hiç değişmediyse eksen ölçülmemiştir.
             if _beklenen == govde:
-                hatalar.append("%s MUTANT EŞDEĞER (metin DEĞİŞMEDİ)" % kod)
-                print("      HATA %s -> MUTANT EŞDEĞER | EKSEN ÖLÇÜLMEDİ" % kod)
-                continue
+                _hat.append("%s MUTANT EŞDEĞER (metin DEĞİŞMEDİ)" % kod)
+                _yaz.append("      HATA %s -> MUTANT EŞDEĞER | EKSEN ÖLÇÜLMEDİ" % kod)
+                return kod, _yaz, _hat, None
             with open(yol, "w", encoding="utf-8") as f:
                 f.write(_beklenen)
             # MUTASYON DİSKTE Mİ: dosyayı BAYT BAYT GERİ OKU. Ölçüt "beklenen gövdeye eşit"
@@ -2409,9 +2417,9 @@ def _turetme_mutasyonu():
             with open(yol, encoding="utf-8") as f:
                 _geri = f.read()
             if _geri != _beklenen:
-                hatalar.append("%s MUTASYON DİSKE UYGULANMADI" % kod)
-                print("      HATA %s -> MUTASYON DİSKE UYGULANMADI | EKSEN ÖLÇÜLMEDİ" % kod)
-                continue
+                _hat.append("%s MUTASYON DİSKE UYGULANMADI" % kod)
+                _yaz.append("      HATA %s -> MUTASYON DİSKE UYGULANMADI | EKSEN ÖLÇÜLMEDİ" % kod)
+                return kod, _yaz, _hat, None
             p = subprocess.run([sys.executable, yol, "--kok", tmp],
                                capture_output=True, text=True, timeout=1800)
             cikti = (p.stdout or "") + (p.stderr or "")
@@ -2419,19 +2427,26 @@ def _turetme_mutasyonu():
             kirmizi = sorted(set((s.split() + ["?"])[1] for s in satirlar
                                  if s.startswith("KALDI ")))
             if not any(s.startswith("GECTI ") or s.startswith("KALDI ") for s in satirlar):
-                hatalar.append("%s ÇÖKME (hiç iddia basmadı) rc=%d" % (kod, p.returncode))
-                print("      HATA %s -> ÇÖKME/ÖLÇÜLEMEDİ (rc=%d) | %s"
-                      % (kod, p.returncode, (cikti.strip().splitlines() or [""])[-1][:150]))
-                continue
+                _hat.append("%s ÇÖKME (hiç iddia basmadı) rc=%d" % (kod, p.returncode))
+                _yaz.append("      HATA %s -> ÇÖKME/ÖLÇÜLEMEDİ (rc=%d) | %s"
+                            % (kod, p.returncode, (cikti.strip().splitlines() or [""])[-1][:150]))
+                return kod, _yaz, _hat, None
             gecti = (kirmizi == sorted(beklenen))
             if not gecti:
-                hatalar.append("%s beklenen %s, ölçülen %s" % (kod, sorted(beklenen), kirmizi))
-            kumeler[kod] = tuple(kirmizi)
-            print("      %s %s -> KIRMIZI=%s (beklenen %s) | %s"
-                  % ("OK  " if gecti else "HATA", kod, ",".join(kirmizi) or "-",
-                     ",".join(sorted(beklenen)) or "-", aciklama))
+                _hat.append("%s beklenen %s, ölçülen %s" % (kod, sorted(beklenen), kirmizi))
+            _yaz.append("      %s %s -> KIRMIZI=%s (beklenen %s) | %s"
+                        % ("OK  " if gecti else "HATA", kod, ",".join(kirmizi) or "-",
+                           ",".join(sorted(beklenen)) or "-", aciklama))
+            return kod, _yaz, _hat, tuple(kirmizi)
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
+
+    for kod, _yaz, _hat, _kume in mk.paralel_sirali(_TURETME_MUTANTLARI, _kos, "MODEL_UYELIK_PARALEL"):
+        for _s in _yaz:
+            print(_s)
+        hatalar.extend(_hat)
+        if _kume is not None:
+            kumeler[kod] = _kume
     # AYIRT EDİCİLİK: iki ÖLDÜRÜCÜ mutant AYNI iddia kümesine düşemez.
     _old = dict((k, v) for k, v in kumeler.items() if v)
     _cakisan = []
@@ -2457,7 +2472,32 @@ def kendini_test():
     # 🔴 ÖNCE TÜRETME EKSENİ: bu gövde K21'in bayatlık hükmünü veriyor ve ana bataryanın
     # renk ölçütü onun kollarını AYIRT EDEMİYOR.
     basarisiz.extend(_turetme_mutasyonu())
-    for i, _m in enumerate(MUTANTLAR, 1):
+    # 🔴 PARALEL (14 Eyl 2026, KraL-Tamirci-14Eyl): mutantlar birbirinden BAĞIMSIZ —
+    # her biri kendi tempdir kopyasında, ayrı süreçte koşar. Sıralı koşumda SERIT B
+    # `model-uyelik-bataryasi` 54 mutant × ~1,5 dk ile 90 dk tavanına çarpıyordu
+    # (ÖLÇÜLDÜ: 13-14 Eyl son 3 koşumun 2'si 90:1x'te `cancelled`, başarılı olan
+    # 70:26; yorumdaki "en uzun 46,5 dk" BAYATTI) → fail-slow = fail-open, SERIT B
+    # hükmü hiç alınamıyordu. Çıktı SIRASI ve kabul ölçütü DEĞİŞMEZ: her mutantın
+    # satırları TAMPONLANIR ve tablo sırasıyla basılır.
+    for _satirlar, _bas, _olc in mk.paralel_sirali(list(enumerate(MUTANTLAR, 1)), _mutant_kos, "MODEL_UYELIK_PARALEL"):
+        for _s in _satirlar:
+            print(_s)
+        basarisiz.extend(_bas)
+        if _olc is not None:
+            olcum.append(_olc)
+    oldurucu = sum(1 for _i, b, _g, _n in olcum if b == "KIRMIZI")
+    kontrol = sum(1 for _i, b, _g, _n in olcum if b == "YESIL")
+    print("\nMUTASYON: %d öldürücü + %d kontrol koştu · beklentiyi tutmayan: %d %s"
+          % (oldurucu, kontrol, len(basarisiz), basarisiz or ""))
+    return 1 if basarisiz else 0
+
+
+def _mutant_kos(i, _m):
+    """Tek ana-batarya mutantı. Döner: (basılacak satırlar, başarısız etiketleri, ölçüm|None)."""
+    satirlar, basarisiz = [], []
+    # `if True:` bilerek: gövde eski sıralı döngüden girintisi KORUNARAK taşındı, diff
+    # yalnız print→tampon ve continue→return satırlarını gösterir (gözden geçirilebilir).
+    if True:
         dosya, eski, yeni, beklenen, aciklama = _m[:5]
         # 6. eleman (opsiyonel): EK DÜZENLEME listesi — bir eksen ancak İKİ yerde birden
         # oynanınca ölçülebiliyorsa tek mutantta yapılır (yarısını yapmak mutantı EŞDEĞER
@@ -2478,10 +2518,10 @@ def kendini_test():
             # belirsizdi. Çapa kayması "geçti" DEĞİL, o eksen ÖLÇÜLMEMİŞ demektir.
             sayi = metin.count(eski)
             if sayi != 1:
-                print("  HATA M%02d: mutant ÇAPASI %s (%d eşleşme, %s) | EKSEN ÖLÇÜLMEDİ -> %s"
+                satirlar.append("  HATA M%02d: mutant ÇAPASI %s (%d eşleşme, %s) | EKSEN ÖLÇÜLMEDİ -> %s"
                       % (i, "BULUNAMADI" if sayi == 0 else "ÇOK EŞLEŞTİ", sayi, dosya, aciklama))
                 basarisiz.append("M%02d capa %d eslesme" % (i, sayi))
-                continue
+                return satirlar, basarisiz, None
             metin = metin.replace(eski, yeni, 1)
             # EK DÜZENLEMELER — her biri de TAM BİR KEZ eşleşmeli (aynı fail-closed disiplin).
             _ek_hata = None
@@ -2502,9 +2542,9 @@ def kendini_test():
                     with open(_yol2, "w", encoding="utf-8") as f:
                         f.write(_m2)
             if _ek_hata:
-                print("  HATA M%02d: %s | EKSEN ÖLÇÜLMEDİ -> %s" % (i, _ek_hata, aciklama))
+                satirlar.append("  HATA M%02d: %s | EKSEN ÖLÇÜLMEDİ -> %s" % (i, _ek_hata, aciklama))
                 basarisiz.append("M%02d %s" % (i, _ek_hata))
-                continue
+                return satirlar, basarisiz, None
             with open(yol, "w", encoding="utf-8") as f:
                 f.write(metin)
             p = subprocess.run([sys.executable, os.path.join(tmp, "tools", "model-uyelik-kapisi.py"),
@@ -2512,30 +2552,25 @@ def kendini_test():
             kirmizi = [s for s in (p.stdout or "").splitlines() if s.strip().startswith("KALDI")]
             # 🔴 ÇÖKME KIRMIZIYLA KARIŞMAZ: kabul ölçütü çıkış kodu DEĞİL, ölçülen iddia + işaret.
             if p.returncode not in (0, 1) or (p.returncode == 1 and not kirmizi):
-                print("  HATA M%02d [%s] %s -> COKME/OLCULEMEDI (rc=%d) | %s"
+                satirlar.append("  HATA M%02d [%s] %s -> COKME/OLCULEMEDI (rc=%d) | %s"
                       % (i, beklenen, dosya, p.returncode, aciklama))
-                print("        " + ((p.stderr or p.stdout or "").strip().splitlines() or [""])[-1][:180])
+                satirlar.append("        " + ((p.stderr or p.stdout or "").strip().splitlines() or [""])[-1][:180])
                 basarisiz.append("M%02d [cokme]" % i)
-                continue
+                return satirlar, basarisiz, None
             gercek = "YESIL" if p.returncode == 0 else "KIRMIZI"
             ok = gercek == beklenen
             sayi = [s for s in (p.stdout or "").splitlines() if "CIFT=" in s]
-            print("  %-4s M%02d [%s] -> %s (%d iddia kırmızı) | %s"
+            satirlar.append("  %-4s M%02d [%s] -> %s (%d iddia kırmızı) | %s"
                   % ("OK" if ok else "HATA", i, beklenen, gercek, len(kirmizi), aciklama))
             if sayi:
-                print("        " + sayi[0].strip()[:140])
+                satirlar.append("        " + sayi[0].strip()[:140])
             for s in kirmizi[:2]:
-                print("        " + s.strip()[:150])
-            olcum.append((i, beklenen, gercek, len(kirmizi)))
+                satirlar.append("        " + s.strip()[:150])
             if not ok:
                 basarisiz.append("M%02d" % i)
+            return satirlar, basarisiz, (i, beklenen, gercek, len(kirmizi))
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
-    oldurucu = sum(1 for _i, b, _g, _n in olcum if b == "KIRMIZI")
-    kontrol = sum(1 for _i, b, _g, _n in olcum if b == "YESIL")
-    print("\nMUTASYON: %d öldürücü + %d kontrol koştu · beklentiyi tutmayan: %d %s"
-          % (oldurucu, kontrol, len(basarisiz), basarisiz or ""))
-    return 1 if basarisiz else 0
 
 
 def main():

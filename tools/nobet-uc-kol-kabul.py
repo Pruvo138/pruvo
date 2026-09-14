@@ -525,15 +525,18 @@ ERISIM_METNI = ("Your organization has disabled Claude subscription access "
 FATAL_METNI = "API Error: 429 rate limit exceeded\n"
 
 
-def _c_kos(modul, gecici, rc, metin, motor="claude"):
+def _c_kos(modul, gecici, rc, metin, motor="claude", ev=None):
     cikti = os.path.join(gecici, "cikti.log")
     with open(cikti, "w", encoding="utf-8") as f:
         f.write(metin)
     kar = os.path.join(gecici, "motor-karantina")
     eski = sys.stdout
     sys.stdout = yakala = _Yakala()
+    # K414: `ev` verilirse `--ev` bayragi eklenir (Kol D filo hukmu ev
+    # ekseni tasir). Verilmezse ev "?" sayilir -- eski cagri bicimi aynen.
     try:
-        kod = modul.main(["x", str(rc), cikti, motor, kar,
+        kod = modul.main(["x"] + (["--ev", ev] if ev else []) +
+                         [str(rc), cikti, motor, kar,
                           r"(claude|kimi|minimax-m3)"])
     finally:
         sys.stdout = eski
@@ -547,7 +550,7 @@ def kol_c(karantina_yolu=None, yalniz=None, etiket=""):
     try:
         kz = _modul(karantina_yolu or KARANTINA, "kz_k320" + etiket)
     except Exception as hata:
-        for ad in ("C1", "C2", "C3", "C4", "C5a", "C5b", "C6"):
+        for ad in ("C1", "C2", "C3", "C4", "C5a", "C5b", "C5c", "C6"):
             if istenir(ad):
                 olc("%s (karantina YUKLENEMEDI)" % ad, "YUKLENDI",
                     "HATA:%s" % type(hata).__name__)
@@ -663,17 +666,39 @@ def kol_c(karantina_yolu=None, yalniz=None, etiket=""):
             shutil.rmtree(gecici, ignore_errors=True)
 
     # C5b: ESIK kez ARDISIK taninmayan dusus YAZAR ve sebep ADIYLA gecer.
+    # 🔴 K414 (14 Eyl 2026): Kol D artik FILO hukmudur -- dizi en az iki
+    # FARKLI evden gelmeli. Dusus iki eve dagitilir; tek evin ayni dizisi
+    # C5c'de AYRI vakadir (13 Eyl: tek evin paralel 3 turu filoyu kilitledi).
     if istenir("C5b"):
         gecici = tempfile.mkdtemp(prefix="k320-c5b-")
         try:
             son = ("", 10)
-            for _ in range(kz.GENEL_ARDISIK_ESIGI):
-                kod, cikti, kar = _c_kos(kz, gecici, 1, TANINMAYAN)
+            for n in range(kz.GENEL_ARDISIK_ESIGI):
+                kod, cikti, kar = _c_kos(kz, gecici, 1, TANINMAYAN,
+                                         ev=("ev-a", "ev-b")[n % 2])
                 son = (cikti, kod)
             yazildi = os.path.exists(kar) and "claude" in open(kar).read()
-            olc("C5b esik kez ardisik taninmayan -> YAZAR",
+            olc("C5b esik kez ardisik taninmayan (iki ev) -> YAZAR",
                 (True, 0, True),
                 (yazildi, son[1], "ardisik-basarisiz-imzasiz" in son[0]))
+        finally:
+            shutil.rmtree(gecici, ignore_errors=True)
+
+    # C5c: AYNI dizi TEK evden gelirse YAZMAZ (K414 ev ekseni). 🔴 Sayi
+    # kopyalanmaz: esik modulden okunur, tek-ev uzun dizi kolunun ALTINDA
+    # kaldigi da modulden olculur -- esikler kayarsa vaka OLCULEMEDI degil
+    # KIRMIZI olur.
+    if istenir("C5c"):
+        gecici = tempfile.mkdtemp(prefix="k320-c5c-")
+        try:
+            son = ("", 10)
+            for _ in range(kz.GENEL_ARDISIK_ESIGI):
+                kod, cikti, kar = _c_kos(kz, gecici, 1, TANINMAYAN, ev="ev-a")
+                son = (cikti, kod)
+            olc("C5c esik kez ardisik taninmayan (TEK ev) -> YAZMAZ",
+                (False, 10, True),
+                (os.path.exists(kar), son[1],
+                 kz.GENEL_ARDISIK_ESIGI < kz.TEK_EV_UZUN_DIZI_ESIGI))
         finally:
             shutil.rmtree(gecici, ignore_errors=True)
 
@@ -755,16 +780,27 @@ MUTANTLAR = [
     # (i) ARDISIK ESIK KOLUNU oldurur -> "esikte yazar" yonu KIRMIZI olmali,
     #     "tek dususte yazmaz" yonu (C5a) ve bilinen imza kollari YESIL kalmali.
     ("M-D1-ardisik-esik-kolu-olur", "KARANTINA",
-     "        elif rc != 0 and _ardisik >= GENEL_ARDISIK_ESIGI:",
-     "        elif False:",
-     ["C5b"], ["C5a", "C1", "C4"], "C"),
-    # (ii) TEK-SEFERLIK KORUMASINI oldurur (esik 1'e iner) -> "tek dususte
-    #     yazmaz" yonu (C5a) KIRMIZI olmali, "esikte yazar" yonu (C5b) YESIL
-    #     kalmali. C2 de yesil kalir: erisim kolu KENDI esigini okur.
+     "            elif rc != 0 and filo_hukmu(_ardisik, _evler, GENEL_ARDISIK_ESIGI, TEK_EV_UZUN_DIZI_ESIGI):",
+     "            elif False:",
+     ["C5b"], ["C5a", "C5c", "C1", "C4"], "C"),
+    # (ii) TEK-SEFERLIK KORUMASINI oldurur -> "tek dususte yazmaz" yonu (C5a)
+    #     KIRMIZI olmali, "esikte yazar" yonu (C5b) YESIL kalmali. C2 de yesil
+    #     kalir: erisim kolu KENDI esigini okur.
+    # 🔴 K414 (14 Eyl 2026) HEDEF TASINDI: ev ekseninden sonra `GENEL = 1`
+    #     mutanti tek dususu artik YAZDIRAMAZ (tek ev filo hukmu vermez) --
+    #     mutant ESDEGER kalir ve eksen sessizce olculmemis olurdu. Tek
+    #     dususun ONUNDEKI son muhafaza tek-ev uzun dizi esigidir; mutant onu
+    #     1'e indirir.
     ("M-D2-tek-seferlik-korumasi-olur", "KARANTINA",
-     "GENEL_ARDISIK_ESIGI = ERISIM_ARDISIK_ESIGI",
-     "GENEL_ARDISIK_ESIGI = 1",
+     "TEK_EV_UZUN_DIZI_ESIGI = 2 * GENEL_ARDISIK_ESIGI",
+     "TEK_EV_UZUN_DIZI_ESIGI = 1",
      ["C5a"], ["C5b", "C2", "C4"], "C"),
+    # (iii) K414 EV EKSENINI oldurur (filo icin tek ev yeter) -> tek evin
+    #     ardisik dizisi (C5c) KIRMIZI olmali; tek dusus (C5a) ve iki evli
+    #     dizi (C5b) YESIL kalmali.
+    ("M-D3-ev-ekseni-olur", "KARANTINA",
+     "FILO_EV_ESIGI = 2", "FILO_EV_ESIGI = 1",
+     ["C5c"], ["C5a", "C5b", "C2", "C4"], "C"),
     # Zincirin son halkasi oldurulur: jeton kovalara duser. B20 KIRMIZI olmali,
     # B21 (ureten tur) ve B1/B2 YESIL kalmali.
     ("M-X1-jeton-kovalara-duser", "KAPI",

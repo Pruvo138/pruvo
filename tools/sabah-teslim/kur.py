@@ -11,11 +11,20 @@ uygulanmissa TEKRAR uygulamaz ve bunu ADIYLA basar (C3 dersi).
 Kosum:  python3 <bu dosya>            -> kur
         python3 <bu dosya> --kuru     -> ne yapacagini bas, YAZMA
         python3 <bu dosya> --geri-al  -> yedeklerden geri sar
+        python3 <bu dosya> --tam-kopya-ez -> AYRISIK tam-kopya hedefini BILEREK ez
+
+🔴 K357 (13 Eyl 2026): TAM KOPYA KOLU FAIL-CLOSED. Hedef VAR ve kaynaktan
+FARKLI ise hicbir dosya yazilmaz, fark ADIYLA basilir, rc=4. 31 Agu'da kaynak
+canlidan iki kusak gerideydi; eski kol yedekleyip USTUNE yazardi (onarimlari
+geri sarardi). Bilincli geri sarma yalniz `--tam-kopya-ez` ile.
+Olcen batarya: `tools/sabah-kur-tam-kopya-test.py`.
 """
 
 import argparse
+import hashlib
 import os
 import py_compile
+import re
 import shutil
 import subprocess
 import sys
@@ -314,7 +323,79 @@ def dosya_oku(yol):
         return f.read()
 
 
-def kur(kuru=False):
+TAM_KOPYA = (("kral-sabah.py", 0o700), ("sabah-kabul.py", 0o700))
+KOPYA_AYRISIK_RC = 4
+
+
+def _sha(yol):
+    with open(yol, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+
+def _def_adlari(metin):
+    return set(re.findall(r"^\s*def\s+(\w+)", metin, re.M))
+
+
+def tam_kopya_kolu(kaynak_dizin, hedef_dizin, kuru=False, ez=False, yaz=print,
+                   yedek_soneki=None):
+    """TAM KOPYA (kaynak -> hedef). HEPSI-YA-HIC: once plan, sonra yazim.
+
+    Hedef YOK      -> yazilir (ilk kurulum).
+    Hedef AYNI     -> ZATEN, dokunulmaz.
+    Hedef FARKLI   -> `ez` yoksa KOPYA_AYRISIK: HICBIR tam-kopya dosyasi yazilmaz,
+                      sha + tek tarafta duran `def` adlari basilir, rc=4.
+    `kuru`         -> plan basilir, yazim YOK (rc ayni hukmu tasir).
+    """
+    yedek_soneki = yedek_soneki or YEDEK_SONEKI
+    plan, ayrisik, zaten = [], [], []
+    for ad, mod in TAM_KOPYA:
+        kaynak = os.path.join(kaynak_dizin, ad)
+        hedef = os.path.join(hedef_dizin, ad)
+        var = os.path.isfile(hedef)
+        ayni = var and dosya_oku(kaynak) == dosya_oku(hedef)
+        yaz("KOPYA %-18s var=%d ayni=%d kaynak_bayt=%d" % (
+            ad, int(var), int(ayni), os.path.getsize(kaynak)))
+        if ayni:
+            zaten.append(ad)
+            yaz("  ZATEN %s (kaynak == hedef)" % ad)
+            continue
+        # 🔴 K357 FAIL-CLOSED KOLU — mutant capasi `tools/sabah-kur-tam-kopya-test.py`.
+        engel = var and not ez
+        if engel:
+            k_def = _def_adlari(dosya_oku(kaynak))
+            h_def = _def_adlari(dosya_oku(hedef))
+            yalniz_hedef = sorted(h_def - k_def)
+            yalniz_kaynak = sorted(k_def - h_def)
+            yaz("KOPYA_AYRISIK %s kaynak_sha=%s hedef_sha=%s" % (
+                ad, _sha(kaynak), _sha(hedef)))
+            yaz("  hedefte_olup_kaynakta_olmayan_def=%d %s" % (
+                len(yalniz_hedef), ",".join(yalniz_hedef) or "-"))
+            yaz("  kaynakta_olup_hedefte_olmayan_def=%d %s" % (
+                len(yalniz_kaynak), ",".join(yalniz_kaynak) or "-"))
+            ayrisik.append(ad)
+            continue
+        plan.append((ad, mod, kaynak, hedef, var))
+
+    sonuc = {"rc": KOPYA_AYRISIK_RC if ayrisik else 0, "ayrisik": ayrisik,
+             "zaten": zaten, "yazilan": []}
+    if ayrisik:
+        yaz("🔴 KOPYA_AYRISIK=%d (%s) — HICBIR tam-kopya dosyasi YAZILMADI; "
+            "bilincli geri sarma: --tam-kopya-ez" % (len(ayrisik), ",".join(ayrisik)))
+        return sonuc
+    if kuru:
+        return sonuc
+    for ad, mod, kaynak, hedef, var in plan:
+        if var:
+            shutil.copy2(hedef, hedef + yedek_soneki)
+            yaz("  YEDEK=%s" % (hedef + yedek_soneki))
+        shutil.copy2(kaynak, hedef)
+        os.chmod(hedef, mod)
+        sonuc["yazilan"].append(ad)
+        yaz("  YAZILDI=%s bayt=%d" % (hedef, os.path.getsize(hedef)))
+    return sonuc
+
+
+def kur(kuru=False, tam_kopya_ez=False):
     os.makedirs(CIKTI_DIZINI, exist_ok=True)
     satirlar = []
 
@@ -322,25 +403,14 @@ def kur(kuru=False):
         satirlar.append(s)
         print(s)
 
-    yaz("SABAH+TESLIM KURULUMU — %s  kuru=%d" % (DAMGA, int(kuru)))
+    yaz("SABAH+TESLIM KURULUMU — %s  kuru=%d tam_kopya_ez=%d" % (
+        DAMGA, int(kuru), int(tam_kopya_ez)))
 
-    # --- 1) TAM KOPYA dosyalar (worktree -> cron)
-    tam_kopya = [("kral-sabah.py", 0o700), ("sabah-kabul.py", 0o700)]
-    for ad, mod in tam_kopya:
-        kaynak = os.path.join(WT, ad)
-        hedef = os.path.join(CRON, ad)
-        var = os.path.isfile(hedef)
-        ayni = var and dosya_oku(kaynak) == dosya_oku(hedef)
-        yaz("KOPYA %-18s var=%d ayni=%d kaynak_bayt=%d" % (
-            ad, int(var), int(ayni), os.path.getsize(kaynak)))
-        if kuru or ayni:
-            continue
-        if var:
-            shutil.copy2(hedef, hedef + YEDEK_SONEKI)
-            yaz("  YEDEK=%s" % (hedef + YEDEK_SONEKI))
-        shutil.copy2(kaynak, hedef)
-        os.chmod(hedef, mod)
-        yaz("  YAZILDI=%s bayt=%d" % (hedef, os.path.getsize(hedef)))
+    # --- 1) TAM KOPYA dosyalar (worktree -> cron) — K357 fail-closed
+    kopya = tam_kopya_kolu(WT, CRON, kuru=kuru, ez=tam_kopya_ez, yaz=yaz)
+    if kopya["ayrisik"] and not kuru:
+        _dosyaya_yaz(satirlar)
+        return kopya["rc"]
 
     # --- 2) CAPALI YAMALAR
     Y = yamalar()
@@ -401,7 +471,7 @@ def kur(kuru=False):
     if kuru:
         yaz("KURU: yazim YAPILMADI.")
         _dosyaya_yaz(satirlar)
-        return 0
+        return kopya["rc"]
 
     for hedef in hedefler:
         yol = os.path.join(CRON, hedef)
@@ -461,6 +531,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--kuru", action="store_true")
     ap.add_argument("--geri-al", action="store_true")
+    ap.add_argument("--tam-kopya-ez", action="store_true",
+                    help="K357: hedef kaynaktan FARKLIYSA da yedekleyip ez "
+                         "(BILINCLI geri sarma; varsayilan fail-closed)")
     # 🔴 Idempotens FIKSTURU icin: kurucuyu CANLI duzleme (`~/.claude/cron/`)
     # dokunmadan, tek kullanimlik bir kopya uzerinde kosturabilmek sart —
     # yoksa "ikinci kosum icerigi cogaltiyor mu" sorusu ancak canli dosyalari
@@ -475,4 +548,4 @@ if __name__ == "__main__":
     if a.cikti_dizin:
         CIKTI_DIZINI = os.path.abspath(a.cikti_dizin)
         HAM = os.path.join(CIKTI_DIZINI, "kurulum.log")
-    sys.exit(geri_al() if a.geri_al else kur(a.kuru))
+    sys.exit(geri_al() if a.geri_al else kur(a.kuru, a.tam_kopya_ez))

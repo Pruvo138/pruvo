@@ -1442,22 +1442,38 @@ def kapanan_cipler(satirlar, baslar):
 #                    arsivde) SERBEST kalir, 18. cron (kapanisi YOK) KILITLI kalir.
 # 🔴 ZAMAN OLCUSU NEREDEN: baslik onekindeki `## YYYY-MM-DD` — kutu geleneginin TEK
 # katı biciminde yazdigi alan (canli olcum: kutuda 21/21, arsivde 2849/2888 baslik
-# ayristirilir). `~HH:MM` SERBEST yazilir (`~05:0x`, `~07:xZ`, `~06-08:xZ`) ve ancak
-# IKI YAN DA tam sayisal yazmissa karsilastirmaya girer; aksi halde GUN ekseninde
-# kalinir. Ayni gun + belirsiz saat = "daha eski DEGIL" sayilir (esitlik KORUMA
-# yonunde okunur), cokluk tehlikesini TUKETIM kolu kapatir.
+# ayristirilir). `~HH:MM` SERBEST yazilir (`~05:0x`, `~07:xZ`, `~06-08:xZ`).
+# 🔴 K375 (13 Eyl 2026) — SAAT ARALIKTIR, NOKTA DEGIL. Eski kol yalniz tam `HH:MM`
+# okuyordu ve ayni gun + dakika belirsizse `return True` veriyordu: yorum "esitlik
+# KORUMA yonunde" derken davranis blogu SERBEST birakiyordu. Olculen canli zincir
+# (7 Eyl): arsivde `03:5x` KAPANIS + kutuda saatsiz CANLI `BASLIYORUM`, ayni geri
+# donusturulmus agac adi -> canli cipin blogu `ARSIV_SERBEST_ADLARI`'na dustu.
+# Arsiv baslik olcumu: 3447 basligin 136'si tam `HH:MM`, 653'u `HH:Nx`, 88'i `HH:xx`,
+# kalani saatsiz — nokta okuma verinin cogunu KOR birakiyordu.
+#   `HH:MM` -> [MM,MM] · `HH:Nx` -> [N0,N9] · `HH:x`/`HH:xx` -> [00,59] ·
+#   saatsiz ya da taninmayan bicim -> TUM GUN.
+# KARAR: kapanis araliginin BASI acilis araliginin SONUNDAN BUYUKSE kapanis kesin
+# sonradir -> SERBEST. Ortusme (tek dakikalik esitlik DAHIL) ya da kapanis once ->
+# KORUNUR (fail-closed). Yorum ile davranis artik AYNI yone bakar.
+# 🔴 IKI YAN DA SAATSIZ (ayni gun): zaman kaniti YOKTUR, karar KIMLIKTEN verilir —
+# harness agac adi (`<soz>-<soz>-<6 hex>`) GERI DONUSTURULUR, yani ayni gun iki
+# FARKLI cip ayni adi tasiyabilir -> KORU; insan cip adi gun+is damgalidir ve tekrari
+# yalniz cron'da olur, o coklugu TUKETIM kolu kapatir -> gun ekseninde SERBEST.
 # 🔴 MENZIL: bu zaman kapisi YALNIZ ARSIV kaynakli kapanislara uygulanir. Kutu-ici
 # eslestirme (K329/K359-B) DEGISMEDI — orasi 250 satirlik dar bir penceredir ve
 # davranisi 377 iddiayla civilidir.
 TARIH_BASLIK_RE = re.compile(r"^##\s+(\d{4})-(\d{2})-(\d{2})")
-SAAT_BASLIK_RE = re.compile(r"^##\s+\d{4}-\d{2}-\d{2}\s*[—\-]?\s*~?\s*(\d{2}):(\d{2})")
+SAAT_BASLIK_RE = re.compile(
+    r"^##\s+\d{4}-\d{2}-\d{2}\s*[—\-]?\s*~?\s*(\d{2}):(\d{2}|\d[xX]|[xX]{1,2})(?![\dxX])")
+TUM_GUN = (0, 23 * 60 + 59)
 
 
-def blok_zamani(baslik):
-    """(gun, dakika) — gun `YYYYMMDD` tamsayisi, dakika gun-ici dakika ya da None.
+def blok_araligi(baslik):
+    """(gun, (bas, son)) — gun `YYYYMMDD`, (bas, son) gun-ici dakika ARALIGI ya da None.
 
-    Gun AYRISTIRILAMAZSA (None, None) doner ve o blok ZAMAN SIRASINA GIREMEZ:
-    arsiv kolu onu serbest BIRAKMAZ (fail-closed).
+    None = saatsiz ya da taninmayan bicim = TUM GUN. Gun AYRISTIRILAMAZSA
+    (None, None) doner ve o blok ZAMAN SIRASINA GIREMEZ: arsiv kolu onu serbest
+    BIRAKMAZ (fail-closed).
     """
     m = TARIH_BASLIK_RE.match(baslik)
     if not m:
@@ -1466,23 +1482,54 @@ def blok_zamani(baslik):
     s = SAAT_BASLIK_RE.match(baslik)
     if not s:
         return gun, None
-    saat, dakika = int(s.group(1)), int(s.group(2))
-    if saat > 23 or dakika > 59:
+    saat, dk = int(s.group(1)), s.group(2).lower()
+    if dk.isdigit():
+        alt = ust = int(dk)
+    elif dk[0].isdigit():
+        alt, ust = int(dk[0]) * 10, int(dk[0]) * 10 + 9
+    else:
+        alt, ust = 0, 59
+    if saat > 23 or ust > 59:
         return gun, None
-    return gun, saat * 60 + dakika
+    return gun, (saat * 60 + alt, saat * 60 + ust)
 
 
-def _kapanis_daha_eski_degil(acilis_z, kapanis_z):
-    """Kapanis, acilistan DAHA ESKI DEGIL mi? Gun ayristirilamazsa DAIMA False."""
+def blok_zamani(baslik):
+    """(gun, dakika) — `blok_araligi()`nin DAR gorunumu: dakika yalniz tam `HH:MM`.
+
+    Zaman KARARI bundan verilmez (aralik kullanilir); birim sozlesmesi 47q/47r icin durur.
+    """
+    gun, aralik = blok_araligi(baslik)
+    if aralik is None or aralik[0] != aralik[1]:
+        return gun, None
+    return gun, aralik[0]
+
+
+def _saat_araligi(deger):
+    """None -> None (saatsiz) · tam dakika -> (dk, dk) · (bas, son) -> aynen."""
+    if deger is None or isinstance(deger, tuple):
+        return deger
+    return (deger, deger)
+
+
+def _kapanis_daha_eski_degil(acilis_z, kapanis_z, geri_donusur=False):
+    """Kapanis acilisi SERBEST birakabilir mi? True = kapanis acilistan KESIN sonra.
+
+    Gun ayristirilamazsa DAIMA False. Ayni gunde saatler ARALIK olarak karsilastirilir;
+    ortusme ya da kapanisin once olmasi False (blok KORUNUR). Iki yan da saatsizse
+    karar kimliktendir: `geri_donusur` (harness agac adi) False, kalici ad True.
+    """
     a_gun, a_dk = acilis_z
     k_gun, k_dk = kapanis_z
     if a_gun is None or k_gun is None:
         return False                                  # fail-closed
     if k_gun != a_gun:
         return k_gun > a_gun
-    if a_dk is None or k_dk is None:
-        return True            # ayni gun, saat BELIRSIZ -> esitlik KORUMA yonunde
-    return k_dk >= a_dk
+    a_ar, k_ar = _saat_araligi(a_dk), _saat_araligi(k_dk)
+    if a_ar is None and k_ar is None:
+        return not geri_donusur
+    a_ar, k_ar = a_ar or TUM_GUN, k_ar or TUM_GUN
+    return k_ar[0] > a_ar[1]
 
 
 def arsiv_kapanis_kayitlari(arsiv_metin):
@@ -1502,7 +1549,7 @@ def arsiv_kapanis_kayitlari(arsiv_metin):
     baslar = blok_baslari(satirlar, fm)
     kayitlar = {}
     for idx, adlar in kapanis_bloklari(satirlar, baslar).items():
-        zaman = blok_zamani(satirlar[baslar[idx]])
+        zaman = blok_araligi(satirlar[baslar[idx]])
         for ad in adlar:
             kayitlar.setdefault(ad, []).append(zaman)
     return kayitlar, None
@@ -1522,7 +1569,7 @@ def arsiv_serbest(satirlar, baslar, acik, arsiv_kayitlari):
     for ad, zamanlar in arsiv_kayitlari.items():
         havuz[ad] = sorted(
             [z for z in zamanlar if z[0] is not None],
-            key=lambda z: (z[0], -1 if z[1] is None else z[1]), reverse=True)
+            key=lambda z: (z[0], -1 if z[1] is None else z[1][1]), reverse=True)
     # Adaylar: acilis EN YENI once (zaman), esitlikte kutu sirasi (kucuk indeks = yeni).
     # 🔴 ADAYIN TUM KIMLIKLERI aranir, yalniz BIRINCILI degil. Olculen vaka:
     # `KraL-TamirciMerge-3Eyl` acilisinin BIRINCIL kimligi `trusting-khorana-8c616a`
@@ -1534,9 +1581,9 @@ def arsiv_serbest(satirlar, baslar, acik, arsiv_kayitlari):
             continue
         adlar = cip_kimlikleri(satirlar[baslar[idx]])
         if adlar:
-            adaylar.append((idx, adlar, blok_zamani(satirlar[baslar[idx]])))
+            adaylar.append((idx, adlar, blok_araligi(satirlar[baslar[idx]])))
     adaylar.sort(key=lambda t: (t[2][0] if t[2][0] is not None else -1,
-                                -1 if t[2][1] is None else t[2][1], -t[0]),
+                                -1 if t[2][1] is None else t[2][1][1], -t[0]),
                  reverse=True)
     serbest = {}
     for (idx, adlar, acilis_z) in adaylar:
@@ -1547,7 +1594,8 @@ def arsiv_serbest(satirlar, baslar, acik, arsiv_kayitlari):
                 continue
             j = 0
             while j < len(liste):
-                if _kapanis_daha_eski_degil(acilis_z, liste[j]):
+                # K375: iki yan saatsizse karar KIMLIKTEN — harness agac adi geri donusur.
+                if _kapanis_daha_eski_degil(acilis_z, liste[j], _harness_adi_sekli(ad)):
                     # TUKET: bir kapanis kaydi BIR acilisi acar.
                     serbest[idx] = (ad, liste.pop(j))
                     bulundu = True
@@ -1639,7 +1687,7 @@ def adsiz_serbest(satirlar, baslar, acik):
         kimlik = baslik_kimligi(k_baslik)
         if len(kimlik) < BASLIK_KIMLIK_TABANI:
             continue
-        kapaticilar.append((i, kimlik, blok_zamani(k_baslik)))
+        kapaticilar.append((i, kimlik, blok_araligi(k_baslik)))
     if not kapaticilar:
         return {}
     # EN UZUN kimlik ONCE denenir: en OZGUL kapatici kazanir, kisa onek ARTIK kalir.
@@ -1649,7 +1697,7 @@ def adsiz_serbest(satirlar, baslar, acik):
     for hedef in sorted(hedefler):
         bas = baslar[hedef]
         hedef_kimlik = baslik_kimligi(satirlar[bas])
-        hedef_z = blok_zamani(satirlar[bas])
+        hedef_z = blok_araligi(satirlar[bas])
         for (k_idx, kimlik, kapanis_z) in kapaticilar:
             if k_idx == hedef or k_idx in tuketilen:
                 continue
