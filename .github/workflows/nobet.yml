@@ -2745,6 +2745,10 @@ jobs:
   # deploy.yml'deki `deploy: needs` listesi DEGISMEDI (deploy.yml'e DOKUNULMADI).
   # ⚠️ `continue-on-error` KULLANILMADI (fail-open yazimi bu depoda nobetci ihlalidir).
   # ⚠️ `timeout-minutes: 90` — olculen en uzun bataryanin (2788 s = 46,5 dk) ~2 kati.
+  # 🔴 14 Eyl 2026 OLCUM (KraL-Tamirci-14Eyl): 46,5 dk BAYATLADI — `model-uyelik-bataryasi`
+  # 54 mutanti SIRALI kosarken 13-14 Eyl son 3 kosumun 2'sinde 90:1x'te `cancelled`
+  # (34776269391 · 34787402985 · 34809782912), basarili olan 70:26. Tavan YUKSELTILMEDI;
+  # `model-uyelik-kapisi.py --kendini-test` mutantlari paralel kosar (sure orada olculur).
   # Bu evde olculdu: FAIL-SLOW = FAIL-OPEN — asilan bir kol kapiyi 46+ dk sahte-yesil
   # tutar ve kosum sonunda iptal edilir ([[fail-slow-fail-opendir]]).
   # Kurulum adimlari `serit-b` ile BIREBIR AYNIDIR (checkout fetch-depth: 0 · python
