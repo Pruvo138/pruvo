@@ -47,8 +47,13 @@ import mutasyon_kopya as mk                                        # noqa: E402
 # ([[kapi-yan-etkisi-gizli-onkosul]]). Artik `tools/` gecici bir koke KOPYALANIR, kokun
 # geri kalani sembolik baglanir; canli agac bas/son damgayla KANITLI olarak dokunulmaz.
 CANLI_HEDEF = os.path.join(TOOLS, "marka_model_build.py")
-# Kopya kok kurulunca doldurulur (mutasyonun ve kapi kosumunun TEK yeri).
-KOPYA = {"kok": None, "hedef": None, "kapi": None, "artim": None}
+# 🔴 PARALEL (14 Eyl 2026, SERIT B fail-slow): sirali kosum `marka-bolum-bataryasi`nda 4084 sn
+# = 90 dk tavaninin %76'si (olculdu, run 34779957640); kardes `model-uyelik-bataryasi` ayni
+# sinifta tavana carpip `cancelled` oldu. Artik HER is (TABAN + her mutant) KENDI kopya
+# kokunde koşar; kopyalar TEK bir ana anlik goruntuden turer (canli agac kosum ortasinda
+# degisse bile tum isler AYNI tools/'u olcer). Satirlar sonuc listesinden TABLO SIRASIYLA
+# basilir (`mk.paralel_sirali`, sozlesme olcer: tools/mutasyon-paralel-test.py).
+PARALEL_ENV = "MARKA_BOLUM_PARALEL"
 
 # Jeneratörün İÇ fail-closed'u (katman A). Katman B'de bu SUSTURULUR ki kapı tek başına
 # ölçülebilsin.
@@ -113,33 +118,42 @@ KONTROL = ("KONTROL_YORUM",
            "yalnız yorum satırı — kapı YEŞİL kalmalı")
 
 
-def oku():
-    with io.open(KOPYA["hedef"], encoding="utf-8") as f:
+def kopya_kur(tmp, kaynak_kok=None):
+    """`tmp` altında kopya kök kur; mutasyonun ve kapı koşumunun TEK yerini döndür."""
+    kok = mk.kopya_kok(tmp, kaynak_kok)
+    return {"kok": kok,
+            "hedef": os.path.join(kok, "tools", "marka_model_build.py"),
+            "kapi": os.path.join(kok, "tools", "marka-sayac-kapisi.py"),
+            "artim": os.path.join(kok, "tools", "marka-artim-test.py")}
+
+
+def oku(k):
+    with io.open(k["hedef"], encoding="utf-8") as f:
         return f.read()
 
 
-def yaz(metin):
+def yaz(k, metin):
     """Mutanti KOPYAYA yaz (canli agac ASLA yazilmaz — bkz. dosya basi)."""
-    with io.open(KOPYA["hedef"], "w", encoding="utf-8") as f:
+    with io.open(k["hedef"], "w", encoding="utf-8") as f:
         f.write(metin)
     # Aynı uzunlukta + aynı saniyede yazılan mutasyon UYGULANMAYABİLİR (mtime çözünürlüğü /
     # bytecode önbelleği). mtime'ı ileri it ve pycache'i sil.
     now = time.time() + 2
-    os.utime(KOPYA["hedef"], (now, now))
-    shutil.rmtree(os.path.join(KOPYA["kok"], "tools", "__pycache__"), ignore_errors=True)
+    os.utime(k["hedef"], (now, now))
+    shutil.rmtree(os.path.join(k["kok"], "tools", "__pycache__"), ignore_errors=True)
 
 
-def iz():
-    cp = subprocess.run([sys.executable, KOPYA["kapi"], "--iz"], capture_output=True,
-                        text=True, cwd=KOPYA["kok"])
+def iz(k):
+    cp = subprocess.run([sys.executable, k["kapi"], "--iz"], capture_output=True,
+                        text=True, cwd=k["kok"])
     m = re.search(r"IZ=([0-9a-f]+)", cp.stdout or "")
     return m.group(1) if m else None
 
 
-def _tek_kostur(cmd, onek):
+def _tek_kostur(k, cmd, onek):
     """Bir nöbetçiyi koştur; düşen iddia KİMLİKLERİNİ topla (önekli, iki araç karışmasın)."""
     cp = subprocess.run(cmd, capture_output=True, text=True,
-                        cwd=KOPYA["kok"], timeout=3600)
+                        cwd=k["kok"], timeout=3600)
     cikti = (cp.stdout or "") + (cp.stderr or "")
     dusen = set()
     for satir in cikti.splitlines():
@@ -152,15 +166,15 @@ def _tek_kostur(cmd, onek):
             "iddia": (int(m.group(1)), int(m.group(2))) if m else None}
 
 
-def kapiyi_kostur():
+def kapiyi_kostur(k):
     """İKİ nöbetçi birlikte: SSR kapısı + istemci davranış testi.
 
     🔴 NEDEN İKİSİ: bazı kusurlar YALNIZ davranışta görünür ("tümünü göster" ölü) ve
     yalnız kapıyı koşturan bir batarya onları HAYATTA bırakır — bağımsız çürütme X4'ü
     tam böyle buldu. İkisinin düşen kümesi BİRLEŞTİRİLİR; kimlikler araç önekiyle
     ayrılır ki hangi katmanın konuştuğu görünsün."""
-    a = _tek_kostur([sys.executable, KOPYA["kapi"]], "KAPI")
-    b = _tek_kostur([sys.executable, KOPYA["artim"]], "ARTIM")
+    a = _tek_kostur(k, [sys.executable, k["kapi"]], "KAPI")
+    b = _tek_kostur(k, [sys.executable, k["artim"]], "ARTIM")
     dusen = a["dusen"] | b["dusen"]
     aileler = {}
     for d in dusen:
@@ -204,12 +218,34 @@ def main():
     tmp = tempfile.mkdtemp(prefix="mm-bolum-mutasyon-")
     sonuc = {}
     try:
-        KOPYA["kok"] = mk.kopya_kok(tmp)
-        KOPYA["hedef"] = os.path.join(KOPYA["kok"], "tools", "marka_model_build.py")
-        KOPYA["kapi"] = os.path.join(KOPYA["kok"], "tools", "marka-sayac-kapisi.py")
-        KOPYA["artim"] = os.path.join(KOPYA["kok"], "tools", "marka-artim-test.py")
-        taban = oku()
-        taban_iz = iz()
+        # Ana anlık görüntü: tüm işlerin kopyası BUNDAN türer (tek tools/ sürümü).
+        ana = kopya_kur(os.path.join(tmp, "ana"))
+        taban = oku(ana)
+        # İŞ PLANI tablo sırasıyla: TABAN, KATMAN A, KATMAN B(+KONTROL). Çapası tutmayan
+        # mutant iş DEĞİLDİR (metin None) — satırı yine kendi sırasında basılır.
+        plan = [("T", "TABAN", taban, None, None, False)]
+        for ad, ciftler, acik in mutantlar:
+            metin, hata = uygula(taban, ciftler, False)
+            plan.append(("A", ad, metin, hata, acik, False))
+        for ad, ciftler, acik in mutantlar + [KONTROL]:
+            kontrol = ad == KONTROL[0]
+            metin, hata = uygula(taban, ciftler, not kontrol)
+            plan.append(("B", ad, metin, hata, acik, kontrol))
+
+        def _is(sira, metin):
+            """Tek iş KENDİ kopya kökünde: mutantı yaz, izi al, iki nöbetçiyi koştur."""
+            if metin is None:
+                return None
+            is_tmp = os.path.join(tmp, "is-%02d" % sira)
+            try:
+                k = kopya_kur(is_tmp, ana["kok"])
+                yaz(k, metin)
+                return iz(k), kapiyi_kostur(k)
+            finally:
+                shutil.rmtree(is_tmp, ignore_errors=True)
+
+        sonuclar = mk.paralel_sirali([(i, p[2]) for i, p in enumerate(plan)], _is, PARALEL_ENV)
+        taban_iz, taban_r = sonuclar[0]
         print("TABAN IZ =", taban_iz)
         # ---------------------------------------------------------- TABAN B
         # 🔴 KAPI'nin TABAN kırmızısı (örn. 62 KAPI:KAYIP "fazla > 0" düşüşü) MUTANT'tan
@@ -218,8 +254,6 @@ def main():
         # "mutant öldü mü" ayrımı ölçülemez ([[ad-iki-rolde-mutanti-golgeler]]).
         print()
         print("== TABAN: KAPI/ARTIM'in mutasyonsuz düşen kümeleri ==")
-        yaz(taban)                        # mutasyon yok, kaynak taban
-        taban_r = kapiyi_kostur()
         taban_dusen = taban_r["dusen"]
         print("  TABAN dusen=%d aileler=%s"
               % (len(taban_dusen), sorted(set(d.split(":")[0] for d in taban_dusen))))
@@ -227,15 +261,14 @@ def main():
         # ---------------------------------------------------------- KATMAN A
         print()
         print("== KATMAN A: JENERATÖRÜN İÇ FAIL-CLOSED'U (mutant TEK BAŞINA) ==")
-        for ad, ciftler, _acik in mutantlar:
-            metin, hata = uygula(taban, ciftler, False)
+        for (kat, ad, metin, hata, acik, kontrol), sonuc_is in zip(plan, sonuclar):
+            if kat != "A":
+                continue
             if metin is None:
                 print("  %-26s OLCULEMEDI: %s" % (ad, hata))
                 sonuc[("A", ad)] = {"durum": "OLCULEMEDI"}
                 continue
-            yaz(metin)
-            m_iz = iz()
-            r = kapiyi_kostur()
+            m_iz, r = sonuc_is
             fc = any(d.startswith("FAIL_CLOSED/") for d in r["dusen"])
             sonuc[("A", ad)] = {"rc": r["rc"], "fail_closed": fc, "iz": m_iz,
                                 "uygulandi": m_iz != taban_iz, "cokme": r["cokme"],
@@ -246,16 +279,14 @@ def main():
         # ---------------------------------------------------------- KATMAN B
         print()
         print("== KATMAN B: KAPI TEK BAŞINA (jeneratörün iç kontrolü DEVRE DIŞI) ==")
-        for ad, ciftler, acik in mutantlar + [KONTROL]:
-            kontrol = ad == KONTROL[0]
-            metin, hata = uygula(taban, ciftler, not kontrol)
+        for (kat, ad, metin, hata, acik, kontrol), sonuc_is in zip(plan, sonuclar):
+            if kat != "B":
+                continue
             if metin is None:
                 print("  %-26s OLCULEMEDI: %s" % (ad, hata))
                 sonuc[("B", ad)] = {"durum": "OLCULEMEDI"}
                 continue
-            yaz(metin)
-            m_iz = iz()
-            r = kapiyi_kostur()
+            m_iz, r = sonuc_is
             sonuc[("B", ad)] = {"rc": r["rc"], "dusen": r["dusen"], "iz": m_iz,
                                 "uygulandi": m_iz != taban_iz, "cokme": r["cokme"],
                                 "aileler": r["aileler"], "kontrol": kontrol}
