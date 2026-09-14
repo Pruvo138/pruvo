@@ -87,6 +87,34 @@ def agac_damgasi(yollar):
     return h.hexdigest()[:16], artik_yedekler()
 
 
+# --------------------------------------------------------------------- paralel koşum
+def paralel_isci_sayisi(env_adi, tavan=4):
+    """Eşzamanlı mutant süreci. `env_adi` verilirse O (geçersizse fail-closed DURUR — yazım
+    hatası "sınırsız" ya da "sıralı" demek değildir); verilmezse min(tavan, çekirdek):
+    GitHub `ubuntu-latest` koşucusu 4 vCPU / 16 GB, her mutant süreci kataloğu ayrı yükler."""
+    deger = os.environ.get(env_adi, "").strip()
+    if deger:
+        if not deger.isdigit() or int(deger) < 1:
+            raise SystemExit("HATA: %s pozitif tamsayı değil: %r" % (env_adi, deger))
+        return int(deger)
+    return max(1, min(tavan, os.cpu_count() or 1))
+
+
+def paralel_sirali(isler, fn, env_adi, tavan=4):
+    """`fn(*is)` çağrılarını iş parçacıklarında koşar, sonuçları GİRDİ SIRASIYLA döner.
+
+    🔴 NEDEN (14 Eyl 2026): SERIT B mutasyon bataryaları sıralı koşumda 90 dk job tavanına
+    dayandı (`model-uyelik-bataryasi` 3 koşumun 2'sinde `cancelled`, `marka-bolum-bataryasi`
+    68 dk = %76) → fail-slow = fail-open. Kullanım şartı: her iş KENDİ kopya kökünde
+    (`kopya_kok`) koşar, ortak durum YAZMAZ.
+    İKİ SÖZLEŞME (`tools/mutasyon-paralel-test.py` mutantla ölçer):
+      · sıra = girdi sırası (bitiş sırası DEĞİL) — tablo/hüküm çıktısı sıralı koşumla aynı;
+      · istisna YUTULMAZ: sonuç okunurken yeniden fırlar (çökme kırmızıyla karışmaz)."""
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=paralel_isci_sayisi(env_adi, tavan)) as ex:
+        return list(ex.map(lambda a: fn(*a), isler))
+
+
 # --------------------------------------------------------------------- çapa türetme
 def modul_yukle(yol, ad="mutasyon_hedefi"):
     spec = importlib.util.spec_from_file_location(ad, yol)

@@ -2751,6 +2751,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      # Batarya mutantlari `mutasyon_kopya.paralel_sirali` ile paralel kosar (14 Eyl 2026:
+      # sirali kosum 4084 sn = 90 dk tavaninin %76'si, kardes model-uyelik tavana carpti).
+      # Yardimcinin sira/istisna sozlesmesi bataryadan ONCE olculur.
+      - name: "Paralel mutant yardimcisi kabul testi (sira + istisna + fail-closed env)"
+        run: python3 tools/mutasyon-paralel-test.py
+      - name: "Paralel mutant yardimcisi mutasyon turu (bitis sirasi / yutulan istisna kirmizi)"
+        run: python3 tools/mutasyon-paralel-test.py --mutasyon
       - name: "Marka bolum kimligi mutasyon bataryasi (iki katman, 5 mutant + kontrol)"
         run: python3 tools/marka-bolum-mutasyon.py
 
