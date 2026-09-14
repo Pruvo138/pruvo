@@ -39,6 +39,9 @@ import unicodedata
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 GERCEK_KOK = os.path.dirname(DIR)
+sys.path.insert(0, DIR)
+
+import mutasyon_kopya as mk                                        # noqa: E402
 
 
 # ---------------------------------------------------------------- yardımcı
@@ -2438,7 +2441,7 @@ def _turetme_mutasyonu():
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
 
-    for kod, _yaz, _hat, _kume in _paralel(_TURETME_MUTANTLARI, _kos):
+    for kod, _yaz, _hat, _kume in mk.paralel_sirali(_TURETME_MUTANTLARI, _kos, "MODEL_UYELIK_PARALEL"):
         for _s in _yaz:
             print(_s)
         hatalar.extend(_hat)
@@ -2476,7 +2479,7 @@ def kendini_test():
     # 70:26; yorumdaki "en uzun 46,5 dk" BAYATTI) → fail-slow = fail-open, SERIT B
     # hükmü hiç alınamıyordu. Çıktı SIRASI ve kabul ölçütü DEĞİŞMEZ: her mutantın
     # satırları TAMPONLANIR ve tablo sırasıyla basılır.
-    for _satirlar, _bas, _olc in _paralel(list(enumerate(MUTANTLAR, 1)), _mutant_kos):
+    for _satirlar, _bas, _olc in mk.paralel_sirali(list(enumerate(MUTANTLAR, 1)), _mutant_kos, "MODEL_UYELIK_PARALEL"):
         for _s in _satirlar:
             print(_s)
         basarisiz.extend(_bas)
@@ -2487,27 +2490,6 @@ def kendini_test():
     print("\nMUTASYON: %d öldürücü + %d kontrol koştu · beklentiyi tutmayan: %d %s"
           % (oldurucu, kontrol, len(basarisiz), basarisiz or ""))
     return 1 if basarisiz else 0
-
-
-def _paralel_isci_sayisi():
-    """Eşzamanlı mutant süreci. `MODEL_UYELIK_PARALEL` verilirse O (geçersizse fail-closed
-    DURUR — yazım hatası "sınırsız" ya da "sıralı" demek değildir); verilmezse
-    min(4, çekirdek): GitHub `ubuntu-latest` koşucusu 4 vCPU / 16 GB, her mutant süreci
-    32 MB kataloğu ayrı yükler."""
-    deger = os.environ.get("MODEL_UYELIK_PARALEL", "").strip()
-    if deger:
-        if not deger.isdigit() or int(deger) < 1:
-            raise SystemExit("HATA: MODEL_UYELIK_PARALEL pozitif tamsayı değil: %r" % deger)
-        return int(deger)
-    return max(1, min(4, os.cpu_count() or 1))
-
-
-def _paralel(isler, fn):
-    """`fn(*is)` çağrılarını iş parçacıklarında koşar, sonuçları GİRDİ SIRASIYLA döner.
-    İstisna yutulmaz: sonuç okunurken yeniden fırlar (çökme kırmızıyla karışmaz)."""
-    from concurrent.futures import ThreadPoolExecutor
-    with ThreadPoolExecutor(max_workers=_paralel_isci_sayisi()) as ex:
-        return list(ex.map(lambda a: fn(*a), isler))
 
 
 def _mutant_kos(i, _m):
