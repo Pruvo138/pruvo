@@ -36,9 +36,12 @@ import tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KAYNAK = os.path.join(ROOT, "tools", "nobet-olcum.py")
 
-GIT_KIMLIK = ("-c", "user.name=nobet-olcum-test",
-              "-c", "user.email=nobet-olcum-test@example.invalid",
-              "-c", "commit.gpgsign=false")
+# TEK KAYNAK: sentetik fiksturlerdeki tum git cagrilari `git_ortami.sentetik_git`
+# uzerinden gider. Elle git subprocess cagrisi YASAKTIR — `subprocess.run` /
+# `subprocess.call` ile dogrudan "git" argumani vermek SIZDIRIYOR/OLCULEMEDI
+# sayilir (`fikstur-git-sizinti-kapisi.py`). Mutant izole kopyada bu yasagi
+# kacirsa test kapsam yanilsamasina doner.
+from git_ortami import sentetik_git  # noqa: E402
 
 SIMDI = dt.datetime(2026, 9, 10, 21, 0, 0, tzinfo=dt.timezone.utc)
 
@@ -59,11 +62,12 @@ def modul_yukle(yol, ad="pruvo_nobet_olcum"):
 # FIKSTUR DUNYASI
 # ---------------------------------------------------------------------------
 def _git(kok, *argv, kimlikli=False):
-    argliste = ["git", "-C", kok]
     if kimlikli:
-        argliste += list(GIT_KIMLIK)
-    argliste += list(argv)
-    return subprocess.run(argliste, capture_output=True, text=True)
+        return sentetik_git(kok, *argv,
+                            kimlik_ad="nobet-olcum-test",
+                            kimlik_eposta="nobet-olcum-test@example.invalid",
+                            capture_output=True, text=True)
+    return sentetik_git(kok, *argv, capture_output=True, text=True)
 
 
 def _yaz(yol, icerik):
@@ -98,7 +102,7 @@ def fikstur_kur(tmp):
     _islemle(kral, "ilk")
     bare = os.path.join(tmp, "uzak", "pruvo.git")
     os.makedirs(os.path.dirname(bare), exist_ok=True)
-    subprocess.run(["git", "init", "-q", "--bare", bare], capture_output=True)
+    sentetik_git(tmp, "init", "-q", "--bare", bare, capture_output=True, text=True)
     _git(kral, "remote", "add", "origin", bare)
     _git(kral, "push", "-q", "origin", "main")
     _git(kral, "fetch", "-q", "origin")
