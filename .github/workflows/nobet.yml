@@ -454,6 +454,20 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/merge-kanit.py --kendini-test
 
+      # NOBET OLCUM BETIGI (11 Eyl 2026, Okan karari 23:3x madde 1) — BaBa'nin iki
+      # cron rutininin ev ev attigi grep/ls/git turlarini TEK deterministik betige
+      # indiren `tools/nobet-olcum.py`nin kabul bataryasi: 26 vaka + 3 mutant
+      # (evler.json fail-closed kolu · git kirlilik kolu · MOTOR ORANI cok-parcali
+      # ev eslemesi). HERMETIK: gercek ev yolu / evler.json / isci.log / kutu
+      # OKUNMAZ, butun dunya gecici dizinde kurulur — komsu evlerin durumu bu
+      # adimin rengini DEGISTIRMEZ ([[kapi-ambiyansi-olcerse-komsu-kirmiziya-yakar]]).
+      # SERIT B: kirmizisi yayini DURDURMAZ (betik olcum uretir, musteri yuzeyine
+      # degmez); ama kapsam kapisi icin bu satir RATCHET'tir — silinirse
+      # `ci-kapsam-test.py` KAPSAMSIZ der.
+      - name: "Nobet olcum betigi — kabul testi (26 vaka + 3 mutant, hermetik)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/nobet-olcum-test.py
+
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
       # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
       # uzerinden kuru kosuma yollar; REDDEDILEN sayisi > 0 ise rc=1. SERIT B kapsaminda — kirmizisi
