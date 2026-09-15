@@ -95,25 +95,49 @@ KARANTINA = "isci-karantina-karar.py"
 YAMALAR = []
 
 
-def _y(dosya, capa, yeni, isaret, kol, aciklama):
+def _y(dosya, capa, yeni, isaret, kol, aciklama, gevsek_isaret=None):
+    """Yama tanimlama.
+
+    `gevsek_isaret` (15 Eyl 2026, K337-CAPRA-KAYMASI): canli dosya capa
+    formunu KULLANMIYORSA (post-patch formun syntax'i farkliysa) yine
+    "zaten uygulanmis" sayilir. str ise substring (>=1 gecmeli);
+    list ise HER BIR elemani ayri ayri gecmeli. YOKSA: capa != 1 ise
+    dusen kol (K320 OLCULEMEDI, sessiz yeşil YOK)."""
     YAMALAR.append({
         "dosya": dosya, "capa": capa, "yeni": yeni, "isaret": isaret,
         "kol": kol, "aciklama": aciklama,
+        "gevsek_isaret": gevsek_isaret,
     })
 
 
+def _gevsek_var(metin, gev):
+    """`gevsek_isaret` canli dosyada VARMI? (>=1 substring/listesi)."""
+    if not gev:
+        return False
+    if isinstance(gev, str):
+        return metin.count(gev) >= 1
+    return all(metin.count(g) >= 1 for g in gev)
+
+
 # --- A1: ana cagri json zarfindan ve cozucuden gecer ----------------------
+# Canli: `CLAUDE_BAYRAKLAR=(--permission-mode bypassPermissions
+#   ${BUTCE_BAYRAK[@]+"${BUTCE_BAYRAK[@]}"} --output-format json)`
+# capa formu (`--max-budget-usd "$BUTCE_USD"`) kullanilmasa da
+# yamanin NIYETI (json zarf) tasinir — gevsek_isaret ile "zaten
+# uygulanmis" sayilir (15 Eyl 2026, K337-CAPRA-KAYMASI).
 _y(ISCI,
    'CLAUDE_BAYRAKLAR=(--permission-mode bypassPermissions --max-budget-usd "$BUTCE_USD")',
    'CLAUDE_BAYRAKLAR=(--permission-mode bypassPermissions --max-budget-usd "$BUTCE_USD" --output-format json)',
    'CLAUDE_BAYRAKLAR=(--permission-mode bypassPermissions --max-budget-usd "$BUTCE_USD" --output-format json)',
-   "A", "ana cagri makine-okunur zarf ister (subtype = HAL)")
+   "A", "ana cagri makine-okunur zarf ister (subtype = HAL)",
+   ["CLAUDE_BAYRAKLAR=(--permission-mode bypassPermissions", "--output-format json)"])
 
 _y(ISCI,
    'CLAUDE_BAYRAKLAR_2=(--permission-mode bypassPermissions --max-budget-usd "$BUTCE_USD")',
    'CLAUDE_BAYRAKLAR_2=(--permission-mode bypassPermissions --max-budget-usd "$BUTCE_USD" --output-format json)',
    'CLAUDE_BAYRAKLAR_2=(--permission-mode bypassPermissions --max-budget-usd "$BUTCE_USD" --output-format json)',
-   "A", "tekrar cagrisi da ayni zarftan gecer")
+   "A", "tekrar cagrisi da ayni zarftan gecer",
+   ["CLAUDE_BAYRAKLAR_2=(--permission-mode bypassPermissions", "--output-format json)"])
 
 _y(ISCI,
    'env "${CLAUDE_ENV[@]}" "$CLAUDE_BIN" -p "$ISCI_TALIMAT_PROMPTU" "${CLAUDE_BAYRAKLAR[@]}" 2>&1 | tee -a "$LOG" "$CIKTI_DOSYASI" "$TUR_CIKTI"',
@@ -558,6 +582,12 @@ def yama_durumu(kok):
             eksik += 1
             satirlar.append("YAMA kol=%s %s EKSIK (capa yerinde, yama YOK)"
                             % (y["kol"], y["dosya"]))
+        elif _gevsek_var(metin, y.get("gevsek_isaret")):
+            # 15 Eyl 2026, K337-CAPRA-KAYMASI: capa formu yok AMA yamanin
+            # NIYETI tasinmis -- gevsek_isaret ile "zaten uygulanmis".
+            kurulu += 1
+            satirlar.append("YAMA kol=%s %s GEVSEK-KURULU (%s)"
+                            % (y["kol"], y["dosya"], y["aciklama"]))
         else:
             eksik += 1
             satirlar.append("YAMA kol=%s %s CAPA_YOK capa_sayisi=%d 🔴"
@@ -604,6 +634,12 @@ def uygula(kok, kuru):
                 continue                       # zaten kurulu (idempotens)
             n = metin.count(y["capa"])
             if n != 1:
+                # capa formu canlida yoksa AMA yamanin NIYETI tasinmissa
+                # gevsek_isaret ile "zaten uygulanmis" say (K337-CAPRA-KAYMASI).
+                if _gevsek_var(metin, y.get("gevsek_isaret")):
+                    degisen.append("ATLANDI-GEVSEK kol=%s %s (%s)"
+                                   % (y["kol"], dosya, y["aciklama"]))
+                    continue
                 hata.append("CAPA_SAYISI kol=%s %s capa=%d (1 bekleniyordu)"
                             % (y["kol"], dosya, n))
                 continue

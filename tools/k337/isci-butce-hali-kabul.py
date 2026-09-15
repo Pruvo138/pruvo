@@ -268,7 +268,10 @@ def vakalari_kos(kok, stub, spec, gurultu=True):
     v(9, "3 ardisik GERCEK motor hatasi KARANTINAYA SOKAR", "C",
       yazildi2, son2.strip())
 
-    # sayac SIFIRLANMAZ: 2 gercek + 1 butce + 1 gercek => ardisik 3 => karantina
+    # sayac SIFIRLANMAZ: 2 gercek + 1 butce + 1 gercek => ardisik 3
+    # (K337 korunur). K414 ile karar artik TEK_EV_UZUN_DIZI_ESIGI=6
+    # ya da FILO_EV_ESIGI=2 ile carprazlama ister; biz burada K337
+    # NIYETINI (butce motor sayacini sifirlamaz) olcuyoruz.
     kar3 = os.path.join(kok, ".kar-karisik")
     for _ in range(2):
         karantina_kos(kok, 1, "duz metin hata\n", "kimi",
@@ -277,17 +280,18 @@ def vakalari_kos(kok, stub, spec, gurultu=True):
                   hal="BUTCE_TAVANI", dosya=kar3)
     rc3, son3, _y = karantina_kos(kok, 1, "duz metin hata\n", "kimi",
                                   hal="ICRA_HATASI", dosya=kar3)
-    yazildi3 = os.path.isfile(kar3) and "kimi" in open(kar3).read()
-    v(10, "butce kesintisi motor sayacini SIFIRLAMAZ (2+butce+1 => karantina)",
-      "C", yazildi3 and "ardisik-basarisiz-imzasiz3" in son3, son3.strip())
+    v(10, "butce kesintisi motor sayacini SIFIRLAMAZ (2+butce+1 => ardisik=3, K414 esigi tek_ev=6)",
+      "C", "ardisik=3" in son3 and "evler=1" in son3, son3.strip())
 
     kar4 = os.path.join(kok, ".kar-eski")
     son4 = ""
     for _ in range(3):
         rc4, son4, _y = karantina_kos(kok, 1, "duz metin hata\n", "claude",
                                       hal=None, dosya=kar4)
-    v(11, "GERIYE UYUM: --hal'siz eski cagri bicimi eski davranisi verir", "C",
-      os.path.isfile(kar4) and "claude" in open(kar4).read(), son4.strip())
+    # K337 korunur: --hal'siz cagri sayaci ARTIRIR (ardisik=3).
+    # K414 ile ayni tek-ev kuralindan dolayi karar YAZILMAZ (evler=1<2).
+    v(11, "GERIYE UYUM: --hal'siz eski cagri bicimi sayaci ARTIRIR (ardisik=3)",
+      "C", "ardisik=3" in son4 and "evler=1" in son4, son4.strip())
 
     kar5 = os.path.join(kok, ".kar-maske")
     son5 = ""
@@ -375,6 +379,19 @@ MUTANTLAR = [
      "yeni": "    HAL_OLCULEMEDI = ",
      "hedef": [], "kontrol": True,
      "aciklama": "KONTROL: yorum degisikligi — hicbir vaka DUSMEMELI"},
+    # M7 (15 Eyl 2026, K337-CAPRA-KAYMASI): "zaten uygulandi" tespitini
+    # True'ya sabitle. Izole kopyada CLAUDE_BAYRAKLAR'in json zarf formunu
+    # KALDIRIR (mutant_uygula ile) -- yama uygulanmadan olculurse vaka 1
+    # duser (HAL=BUTCE_TAVANI gelmez). `kod_mutant` ile yama module'u
+    # icindeki `_gevsek_var` True'ya sabitlenir, sandbox_kur yama.uygula
+    # cagrisinda capa_yok+isaret_yok olan 2 yama KOL ATLANIR (hata yerine)
+    # ve hedef dosyaya yazilmaz.
+    {"ad": "M7", "kol": "A", "dosya": "isci.sh",
+     "eski": 'CLAUDE_BAYRAKLAR=(--permission-mode bypassPermissions ${BUTCE_BAYRAK[@]+"${BUTCE_BAYRAK[@]}"} --output-format json)',
+     "yeni": 'CLAUDE_BAYRAKLAR=(--permission-mode bypassPermissions ${BUTCE_BAYRAK[@]+"${BUTCE_BAYRAK[@]}"} --max-budget-usd "$BUTCE_USD")',
+     "hedef": [1],
+     "kod_mutant": "_gevsek_var",
+     "aciklama": "gevsek_isaret=True + hedef yok: yama atlanir, vaka 1 (HAL=BUTCE_TAVANI) duser"},
 ]
 
 
@@ -429,18 +446,32 @@ def main():
     yama_tutmadi = 0
     kontrol_yesil = 0
     for m in MUTANTLAR:
+        orig_attr = None
+        if m.get("kod_mutant"):
+            # 15 Eyl 2026, K337-CAPRA-KAYMASI: yama module icindeki
+            # belirtilen ozellik True'ya sabitlenir (lambda ile) -- gercek
+            # yama uygulanmadan izole kopya olculur.
+            orig_attr = getattr(vakalari_kos.yama, m["kod_mutant"])
+            setattr(vakalari_kos.yama, m["kod_mutant"],
+                    lambda *a, **kw: True)
         try:
             m_kok, m_stub, m_spec = sandbox_kur(yama)
         except Exception as e:  # noqa: BLE001
             print("MUTANT %s SANDBOX_DUSTU %s" % (m["ad"], e))
             yama_tutmadi += 1
+            if orig_attr is not None:
+                setattr(vakalari_kos.yama, m["kod_mutant"], orig_attr)
             continue
         if not mutant_uygula(m_kok, m):
             print("MUTANT %s YAMA_TUTMADI (capa bulunamadi) 🔴" % m["ad"])
             yama_tutmadi += 1
+            if orig_attr is not None:
+                setattr(vakalari_kos.yama, m["kod_mutant"], orig_attr)
             continue
         sonuc = vakalari_kos(m_kok, m_stub, m_spec)
         m_dusen = sorted(s["no"] for s in sonuc if not s["gecti"])
+        if orig_attr is not None:
+            setattr(vakalari_kos.yama, m["kod_mutant"], orig_attr)
         if m.get("kontrol"):
             if not m_dusen:
                 kontrol_yesil += 1
