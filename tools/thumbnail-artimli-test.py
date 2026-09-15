@@ -36,6 +36,7 @@ import types
 BASE = os.path.dirname(os.path.abspath(__file__))
 KAYNAK = os.path.join(BASE, "thumbnail-uret.py")
 R2_KAYNAK = os.path.join(BASE, "r2-upload.py")
+R2_ANAHTAR = os.path.join(BASE, "r2_anahtar.py")
 
 PUBLIC_BASE = "https://media.pruvo3d.com"
 BUCKET = "pruvo-test"
@@ -166,14 +167,16 @@ class SahteS3:
 # Modül yükleme (mutasyonlu kaynak dahil)
 # ---------------------------------------------------------------------------
 def modul_yukle(kaynak_metin, gecici_kokler):
-    """Kaynağı GEÇİCİ bir dizine yazıp yükler; r2-upload.py sembolik bağla verilir
-    (modülün BASE'i kendi dosya yolundan türediği için aynı dizinde olmalı)."""
+    """Kaynağı GEÇİCİ bir dizine yazıp yükler; r2-upload.py ve r2_anahtar.py
+    sembolik bağlanır (modülün BASE'i kendi dosya yolundan türediği için aynı
+    dizinde olmalı — `r2-upload` içe aktarımı `r2_anahtar`'a bağlı)."""
     kok = tempfile.mkdtemp(prefix="k306-")
     gecici_kokler.append(kok)
     hedef = os.path.join(kok, "thumbnail-uret.py")
     with open(hedef, "w", encoding="utf-8") as f:
         f.write(kaynak_metin)
     os.symlink(R2_KAYNAK, os.path.join(kok, "r2-upload.py"))
+    os.symlink(R2_ANAHTAR, os.path.join(kok, "r2_anahtar.py"))
     spec = importlib.util.spec_from_file_location("k306_thumb_%d" % len(gecici_kokler),
                                                   hedef)
     mod = importlib.util.module_from_spec(spec)
