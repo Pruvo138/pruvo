@@ -16557,7 +16557,7 @@ Renk seçimi konusunda standart siyah, gri ve beyaz stoklarımızda vardır; man
 
 ## Dürüst sınır
 
-Mantar tesisi parça üretiminde dürüst sınır açıkça konuşmamız gerekir. Gıda teması olmayan yüzeylerde çalışıyoruz; mantar hasadıyla doğrudan temas eden hasat kabı veya kesme yüzeyi kapsamımızda değildir. Mantarın kendisine temas eden parçalar için gıda ile doğrudan temas eden yüzeyler için uygun malzeme seçimini WhatsApp hattımızdan (+90 545 138 6526) birlikte değerlendiririz. Yardımcı tesis elemanları tarafında çalışıyoruz.
+Mantar tesisi parça üretiminde dürüst sınır açıkça konuşmamız gerekir. Gıda teması olmayan yüzeylerde çalışıyoruz; mantar hasadıyla doğrudan temas eden hasat kabı veya kesme yüzeyi kapsamımızda değildir. Gıda güvenliği sertifikası gerektiren doğrudan temas yüzeyleri (resmi gıda-derecesi sertifikasyon talep eden uygulamalar) kapsamımız dışındadır; sertifika gerektirmeyen, mantarın kendisine doğrudan temas eden yardımcı yüzeyler için uygun malzeme seçimini WhatsApp hattımızdan (+90 545 138 6526) birlikte değerlendiririz. Yardımcı tesis elemanları tarafında çalışıyoruz.
 
 Bir diğer dürüst sınır: inkübasyon odası iklimlendirme sistemi. Bu sayfada anlatılan iş, inkübasyon odasındaki yardımcı plastik parçalardır; nem, sıcaklık ve havalandırma kontrol sistemi kapsamımızda değildir. Bu tür iklimlendirme sistemi için tesis mühendisi veya metal işleyen tedarikçiye yönelmeniz beklenir.
 
