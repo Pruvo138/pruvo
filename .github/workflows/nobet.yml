@@ -3034,10 +3034,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      # fetch-depth: 2 — `HEAD~1` (push oncesi HEAD) ve HEAD (push sonrasi HEAD)
-      # icin `git show <sha>:urunler.json` calisacak; 0 = SIG/shallow gecmis YOK
-      # ile KIRMIZI yanar (`diriltme-kapisi.py` OLCULDU). 1 = HEAD~1 karsilik gelmez,
-      # VARS: 'Unknown revision' ile fail-closed.
+      # fetch-depth: 2 — HEAD ve HEAD~1 temel kapsam. B1 (K415-2) ek adimi
+      # `github.event.before` sığ geçmişte yoksa onu acıkca fetch eder
+      # (cok-commit'li merge push'lari). Sifir/boş sha ise HEAD~1'e dusulur.
+      # Eski "0 = SIG/shallow gecmis YOK ... OLCULDU" yorumu YANLISTI:
+      # bu is fetch-depth=2 ile geliyor, o yuzden o yanlis gerekce iptal.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
@@ -3047,10 +3048,24 @@ jobs:
       - name: Python bagimliliklari (boto3 - R2 head_object icin)
         run: pip install boto3
 
+      # 🔴 B1 (K415-2): cok-commit'li merge push'larinda `github.event.before`
+      # sığ geçmişte olmayabilir => nobet_calistir TABAN_YOK ile sahte kırmızı
+      # yanar. Acıkca fetch et ki sha depoda hazir olsun. Sifir/boş sha ise
+      # HEAD~1 kolu aynen kalsın (nober_calistir kendi içinde HEAD~1'i kabul
+      # eder; burada fetch denense de calismaz, sorun degil). Fetch başarısızsa
+      # nobet_calistir yine TABAN_YOK ile rc=3 basar (fail-closed).
+      - name: "Taban sha'yi fetch et (K415 B1 — sig gecmis onleyici)"
+        run: |
+          TABAN="${{ github.event.before }}"
+          if [ -z "$TABAN" ] || [ "$TABAN" = "0000000000000000000000000000000000000000" ]; then
+            TABAN="HEAD~1"
+          fi
+          git fetch --no-tags --depth=1 origin "$TABAN" || true
+
       # AGSIZ kabul testi — gercek push olcumunden ONCE. KIRMIZI ise push kolunun
       # ciktisi da anlamsiz sayilir (`conclusion` en kotu job'a bakar; bu job'un
-      # kendi kirmiziligi yeter). Kapi KENDI mutantlari (M1/M2) dahil 7/7.
-      - name: "Kapak varlik nobeti kabul testi (5 vaka + 2 mutant, agsiz)"
+      # kendi kirmiziligi yeter). Kapi KENDI mutantlari (M1/M2) dahil 8/8.
+      - name: "Kapak varlik nobeti kabul testi (6 vaka + 2 mutant, agsiz)"
         run: python3 tools/kapak-varlik-nobeti.py --kendini-test
 
       # GERCEK OLcum — push oncesi HEAD ile HEAD arasindaki yeni kayitlarin

@@ -109,8 +109,9 @@ def _kanonik_yorunge(url):
 # ---------------------------------------------------------------------------
 # Kimlik & S3 istemcisi
 # ---------------------------------------------------------------------------
-def kimlik_coz(env=None):
-    """(id, secret, account_id) ya da üçü de None — ONCE env, SONRA .r2-credentials.json.
+def kimlik_coz(env=None, kimlik_dosyasi=None):
+    """(id, secret, account_id) ya da üçü de None — ONCE env, SONRA kimlik_dosyasi
+    (--kimlik-dosyasi bayragi ile verilen yol, verilmisse), SONRA <kok>/.r2-credentials.json.
 
     Kural: kimlik HICBIRI yoksa KIMLIK_YOK -> OLCULEMEDI (rc=3). SESSIZ YESIL YOKTUR.
     Kimlik okunamazsa (json bozuk / alan yok) da ayni yon — fail-closed.
@@ -121,9 +122,15 @@ def kimlik_coz(env=None):
     acc = env.get("CLOUDFLARE_ACCOUNT_ID") or ""
     if rid and rsec and acc:
         return rid, rsec, acc
-    if os.path.exists(R2_KIMLIK):
+    aday = []
+    if kimlik_dosyasi:
+        aday.append(kimlik_dosyasi)
+    aday.append(R2_KIMLIK)
+    for yol in aday:
+        if not yol or not os.path.exists(yol):
+            continue
         try:
-            cfg = json.load(open(R2_KIMLIK))
+            cfg = json.load(open(yol))
         except Exception:
             return None, None, None
         try:
@@ -204,7 +211,7 @@ def kataloglari_oku(taban_sha):
 # Asil nobet kosumu
 # ---------------------------------------------------------------------------
 def nobet_calistir(taban_sha, s3=None, bucket=None, head_kayitlari=None,
-                   taban_id=None, env=None):
+                   taban_id=None, env=None, kimlik_dosyasi=None):
     """Taban/HEAD farki -> URL -> head_object -> sayac. s3 ENJEKTE edilebilir (kendini-test).
 
     Donus: (sayac, hata_soz). hata_soz None ise sayac gecerli; degilse nobet calismadi.
@@ -212,7 +219,7 @@ def nobet_calistir(taban_sha, s3=None, bucket=None, head_kayitlari=None,
     """
     env = env or os.environ
     if s3 is None:
-        id_, secret, acc = kimlik_coz(env=env)
+        id_, secret, acc = kimlik_coz(env=env, kimlik_dosyasi=kimlik_dosyasi)
         if not (id_ and secret and acc):
             return None, "KIMLIK_YOK: env (R2_ERISIM_ID/R2_GIZLI_ANAHTAR/CLOUDFLARE_ACCOUNT_ID) ve "
             ".r2-credentials.json uclusunden hicbirinden tam kimlik gelmedi — sessiz YESIL yok"
@@ -273,48 +280,6 @@ def _r2k_bucket_adini_bul(env):
         except Exception:
             pass
     return env.get("R2_BUCKET") or "pruvo3d"
-
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
-def main():
-    ap = argparse.ArgumentParser(prog="kapak-varlik-nobeti.py",
-                                 description="Yeni eklenen urunlerin gorsel "
-                                             "nesnelerinin R2'de VARLIGINI "
-                                             "head_object ile olcer "
-                                             "(fail-closed).")
-    ap.add_argument("--taban", dest="taban",
-                    help="Taban commit sha (^ veya onceki de kabul). ZORUNLU.")
-    ap.add_argument("--kendini-test", dest="kendini_test",
-                    action="store_true",
-                    help="AGSIZ kabul testi: SAHTE S3 + 5 vaka + 2 mutant. CI'da kosar.")
-    a = ap.parse_args()
-    if a.kendini_test:
-        rc = kendini_test()
-        sys.exit(rc)
-    if not a.taban:
-        print("Kullanim: kapak-varlik-nobeti.py --taban <sha>   (sha = commit ya da ^)")
-        sys.exit(2)
-    sayac, hata = nobet_calistir(a.taban)
-    if hata is not None:
-        if hata.startswith("KIMLIK_YOK") or hata.startswith("BOTO3_YOK"):
-            print("HAL=OLCULEMEDI SEBEP=%s" % hata.split(":", 1)[0])
-        elif hata.startswith("TABAN_YOK"):
-            print("HAL=OLCULEMEDI SEBEP=TABAN_YOK")
-        elif hata.startswith("HEAD_OKUNAMADI"):
-            print("HAL=OLCULEMEDI SEBEP=HEAD_OKUNAMADI")
-        elif hata.startswith("KATALOG_JSON_BOZUK"):
-            print("HAL=OLCULEMEDI SEBEP=KATALOG_JSON_BOZUK")
-        else:
-            print("HAL=OLCULEMEDI SEBEP=%s" % hata.split(":", 1)[0])
-        sys.exit(RC_OLCULEMEDI)
-    print("KAPAK_VARLIK YENI_URUN=%d URL=%d VAR=%d YOK=%d HATA=%d GELENEK_DISI=%d" % (
-        sayac["yeni_urun"], sayac["url"], sayac["var"],
-        sayac["yok"], sayac["hata"], sayac["gelenek_disi"]))
-    if sayac["yok"] > 0 or sayac["gelenek_disi"] > 0:
-        sys.exit(RC_YOK_VAR)
-    sys.exit(RC_HEPSI_VAR)
 
 
 # ---------------------------------------------------------------------------
@@ -459,6 +424,56 @@ def vaka_5_bos_yeni():
         sayac["yeni_urun"], sayac["url"], s3.sayac["head"])
 
 
+def vaka_6_kimlik_dosyasi_bayrak():
+    """V6: env bos + --kimlik-dosyasi gecici sahte kimlik dosyasi.
+    nobet_calistir'in kimlik_coz yolu bu dosyadan basariyla okumali
+    (ağ yok: s3_istemcisi_yap monkeypatch ile SahteS3). R2_KIMLIK
+    fallback'i yanlis yone baglanir ki kimlik_coz yalniz bizim
+    --kimlik-dosyasi yolumuzu gordugunu kanitlayalim. Yeni urun 0 ile
+    nobet sessiz kalmali (rc=0); KIMLIK_YOK hatasi OLMAMALI."""
+    gecici_kok = tempfile.mkdtemp(prefix="k415-v6-")
+    try:
+        sahte_kimlik = os.path.join(gecici_kok, ".r2-credentials.json")
+        with open(sahte_kimlik, "w") as f:
+            json.dump({"access_key": "test_id", "secret": "test_sec",
+                       "account_id": "test_acc"}, f)
+        modul = sys.modules[__name__]
+        eski_root = modul.ROOT
+        eski_kimlik = modul.R2_KIMLIK
+        eski_s3 = modul.s3_istemcisi_yap
+        modul.ROOT = gecici_kok
+        # R2_KIMLIK'i var olmayan bir yola bagla: kimlik_coz fallback'i
+        # calissaydi bile dosya bulunmamali — bu sayede kimlik_coz'un
+        # yalniz --kimlik-dosyasi yolundan okudugu kesinlesir.
+        modul.R2_KIMLIK = os.path.join(gecici_kok, "yok.json")
+        sahte_s3 = SahteS3(set())
+        # s3_istemcisi_yap'i SahteS3'e bagla: kimlik_coz basarili olduktan
+        # sonra gercek boto3/bucket'e gidilmesin, ağa cikmasin.
+        modul.s3_istemcisi_yap = lambda *a, **k: sahte_s3
+        try:
+            sayac, hata = nobet_calistir(
+                "x", env={}, kimlik_dosyasi=sahte_kimlik,
+                taban_id={"eski1"},
+                head_kayitlari=[{"id": "eski1", "gorseller": []}])
+        finally:
+            modul.ROOT = eski_root
+            modul.R2_KIMLIK = eski_kimlik
+            modul.s3_istemcisi_yap = eski_s3
+    finally:
+        try:
+            import shutil
+            shutil.rmtree(gecici_kok)
+        except OSError:
+            pass
+    # Beklenti: hata None, yeni_urun=0, KIMLIK_YOK OLMAMALI.
+    gecti = (hata is None and sayac
+             and sayac["yeni_urun"] == 0 and sayac["url"] == 0
+             and sayac["var"] == 0 and sayac["yok"] == 0)
+    return gecti, "HATA=%s YENI=%d URL=%d" % (
+        hata or "", sayac["yeni_urun"] if sayac else -1,
+        sayac["url"] if sayac else -1)
+
+
 def mutant_calistir(capa):
     """Mutantli nobet_calistir: kaynagi gecici dizine kopyala, capa ile yama,
     gercek kopyayi IMPORT ET, nobet_calistir'i cagir. M1/M2 icin.
@@ -520,6 +535,7 @@ def kendini_test():
         ("V3 GELENEK_DISI (rc=1)", vaka_3_gelenek_disi),
         ("V4 KIMLIK_YOK OLCULEMEDI (rc=3)", vaka_4_kimlik_yok),
         ("V5 KONTROL yeni urun 0 (rc=0)", vaka_5_bos_yeni),
+        ("V6 --kimlik-dosyasi bayrak (rc=0)", vaka_6_kimlik_dosyasi_bayrak),
     ]
     gecmedi = []
     print("=== VAKALAR ===")
@@ -620,11 +636,6 @@ def _cikis_kodu(sayac):
     return RC_HEPSI_VAR
 
 
-# main() cikis kodu hesaplamasini ortak fonksiyona bagla — M1 mutantinin
-# _cikis_kodu'nu oldurmesi main()'i de etkilesin.
-_eski_main = main
-
-
 def main():  # noqa: F811 — main'i yeniden tanimla
     ap = argparse.ArgumentParser(prog="kapak-varlik-nobeti.py",
                                  description="Yeni eklenen urunlerin gorsel "
@@ -633,6 +644,9 @@ def main():  # noqa: F811 — main'i yeniden tanimla
                                              "(fail-closed).")
     ap.add_argument("--taban", dest="taban",
                     help="Taban commit sha (^ veya onceki de kabul). ZORUNLU.")
+    ap.add_argument("--kimlik-dosyasi", dest="kimlik_dosyasi", default=None,
+                    help="R2 kimlik JSON'unun yolu (env bos ise bu dosyadan "
+                         "okunur; verilmezse <kok>/.r2-credentials.json'a dusulur).")
     ap.add_argument("--kendini-test", dest="kendini_test",
                     action="store_true",
                     help="AGSIZ kabul testi: SAHTE S3 + 5 vaka + 2 mutant. CI'da kosar.")
@@ -643,7 +657,7 @@ def main():  # noqa: F811 — main'i yeniden tanimla
     if not a.taban:
         print("Kullanim: kapak-varlik-nobeti.py --taban <sha>   (sha = commit ya da ^)")
         sys.exit(2)
-    sayac, hata = nobet_calistir(a.taban)
+    sayac, hata = nobet_calistir(a.taban, kimlik_dosyasi=a.kimlik_dosyasi)
     if hata is not None:
         if hata.startswith("KIMLIK_YOK") or hata.startswith("BOTO3_YOK"):
             print("HAL=OLCULEMEDI SEBEP=%s" % hata.split(":", 1)[0])
