@@ -2978,7 +2978,6 @@ jobs:
   # (KraL-KapiSupurmesi-29Agu: DEFTER KOTASI job'i SILINDI — kota kapisi K351 ile
   # kaldirildi, bakim harness bataryalari meta katti. defter-rotasyon.py ARAC
   # olarak duruyor; BaBa 28 Agu filo karari.)
-
   r2-onek-nobeti:
     runs-on: ubuntu-latest
     steps:
