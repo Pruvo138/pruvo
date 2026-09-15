@@ -5040,6 +5040,12 @@ def _olcuye_ozel_toz_koruma_tozluk_kapagi_uretimi():
 
 def _seo_md_to_html(md: str) -> str:
     """Yeni SEO sayfaları için minimal markdown -> html dönüştürücü."""
+    import re  # _satir_ici + liste ayracı re.split; dalga bazlı import yoktu (latent)
+
+    def _satir_ici(t):
+        """Satır içi **x** -> <strong>x</strong>; eşleşmeyen tek `**` olduğu gibi kalır."""
+        return re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
+
     lines = md.splitlines()
     out = []
     in_ul = False
@@ -5047,7 +5053,7 @@ def _seo_md_to_html(md: str) -> str:
 
     def _flush_para():
         if para:
-            text = " ".join(para).strip()
+            text = _satir_ici(" ".join(para).strip())
             if text:
                 out.append(f"<p>{text}</p>")
             para.clear()
@@ -5064,7 +5070,7 @@ def _seo_md_to_html(md: str) -> str:
             if in_ul:
                 out.append("</ul>")
                 in_ul = False
-            out.append(f"<h1>{line[2:].strip()}</h1>")
+            out.append(f"<h1>{_satir_ici(line[2:].strip())}</h1>")
             continue
 
         if line.startswith("## "):
@@ -5072,7 +5078,7 @@ def _seo_md_to_html(md: str) -> str:
             if in_ul:
                 out.append("</ul>")
                 in_ul = False
-            out.append(f"<h2>{line[3:].strip()}</h2>")
+            out.append(f"<h2>{_satir_ici(line[3:].strip())}</h2>")
             continue
 
         if line.startswith("- "):
@@ -5086,7 +5092,7 @@ def _seo_md_to_html(md: str) -> str:
             if not items:
                 items = [rest]
             for item in items:
-                out.append(f"<li>{item}</li>")
+                out.append(f"<li>{_satir_ici(item)}</li>")
             continue
 
         if in_ul:
