@@ -2979,25 +2979,15 @@ jobs:
   # kaldirildi, bakim harness bataryalari meta katti. defter-rotasyon.py ARAC
   # olarak duruyor; BaBa 28 Agu filo karari.)
 
-  # K417 — ISCI TUR / GOREV AYIRMA BATARYASI (15 Eyl 2026)
-  # MaCiT d27-hazirla olayinda isci `sleep 60 &` birakarak cikti ve zarf
-  # SAGLIKLI kapandi; 31/46 id eksik kaldi. Bu batarya 4 vaka + 1 mutant
-  # ile "arka plan sureci birakinca HAL=EKSIK" davranisini olcer.
-  # SERIT B (yayini BLOKLAMAZ). Sure ~<1 dk. ~<10 satirlik cikti uretir.
-  k417-tur-gorev-bataryasi:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      # 🔴 K417: 5 vaka + 1 mutant (surec kolu sökümü). Tek kaynak:
-      # tools/k417/isci-tur-gorev-kabul.py.
-      - name: "K417 isci tur-gorev ayirma kabul bataryasi (5 vaka + 1 mutant)"
-        run: python3 tools/k417/isci-tur-gorev-kabul.py
+  # K417 — ISCI TUR / GOREV AYIRMA BATARYASI (15 Eyl 2026) ARTIK KAPALI.
+  # K417-2 yeniden: pgid ekseni CLAUDE grubuna tasindi; isci.sh bir zsh
+  # sarmalayicinin COCUGU olarak baslatiliyor. CI koşucusunda ~/.claude/cron
+  # dizini OLMADIGI icin `sandbox_kub()` bos taburla calisir, yama
+  # `KAYNAK_YOK` ile basarisiz olur ve `isci-karantina-karar.py --hal=EKSIK`
+  # dahil 4 vaka HICBIR ZAMAN gecemezdi (surekli kirmizi job). K337 emsali:
+  # `isci-butce-hali-kabul.py` da CI'da kosmuyor, nobet listesinde YOK.
+  # Yerel `python3 tools/k417/isci-tur-gorev-kabul.py` ile olculur; canli
+  # dizin yoksa OLCULEMEDI + rc=3 (sessiz yeşil yok). Job KALDIRILDI.
   r2-onek-nobeti:
     runs-on: ubuntu-latest
     steps:

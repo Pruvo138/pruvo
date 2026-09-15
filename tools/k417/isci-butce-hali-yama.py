@@ -17,18 +17,39 @@ asistan metninde "sonra raporlayacagim" yazip cikti; zarf
 46 id'nin 31'i eksik kaldi (5 dk sonra MaCiT baktiginda hicbiri yapilmamisti).
 
 --------------------------------------------------------------------------
+K417-2 YENIDEN: SUREC EKSENI "KENDI GRUBU" OKUR (15 Eyl 2026, mimar)
+--------------------------------------------------------------------------
+Birinci turda K417 yamasinin pgid taramasi `$$`'in (isci.sh'in kendi)
+grubunu ariyordu; ebeveyn `zsh -c` sarmalayicisi AYNI pgid'de oldugu
+icin HER koşumda `HAL=EKSIK rc=1` uretiyordu ([OLCULDU]: MaCiT d27
+olayindaki `sleep 60 &` de AYNI grupta, ama ayni sorun sistem surecleri
+/ pipeline / tee / bekci alt surecleri icin de VAR; kapi kendi
+KENDI'sini yakti).
+
+Yeniden: taranan grup `isci.sh`'nin degil CLAUDE'un kendi grubudur.
+claude, isci.sh tarafindan `tools/k417/cron/isci-yeni-grup.py` sarmalayici
+uzerinden baslatilir; sarmalayici fork+setsid yapar, yeni pgid'yi
+`CLAUDE_GRUP_DOSYASI`'na yazar, sonra `os.execvp` ile claude'u calistirir.
+isci.sh bu dosyayi bekci_durdur sonrasinda okur; `pgid == claude_grubu`
+olan yasayan alt surec varsa `HAL=EKSIK`. `$$`'in grubu (ebeveyn kabuk,
+tee, bekci) TARANMAZ.
+
+Kendi `setsid`'ini yapan daemon (isci-tur-bekcisi.py) bu eksenden
+KACAR — pgid kendi KENDI'si oldugu icin taramada gorunmez. Bu bir
+SINIF/SINIRDIR, hata degildir (raporda yaz).
+
+--------------------------------------------------------------------------
 UC KOL
 --------------------------------------------------------------------------
 A) SUREC EKSENI — BIRINCIL  (isci.sh)
-   Tur bittikten sonra (bekci_durdur'un hemen ARDINDAN) iscinin kendi
-   pgid'sinde $$'dan farkli yasayan alt surec varsa is YARIM sayilir:
+   Tur bittikten sonra (bekci_durdur'un hemen ARDINDAN) claude'un kendi
+   pgid'sinde (CLAUDE_GRUP_DOSYASI) yasayan alt surec varsa is YARIM
+   sayilir:
      - HAL_DOSYASI ustune yazilir: HAL=EKSIK SEBEP=arka-plan-sureci-bulundu
      - CLAUDE_RC=1 yapilir (eger 0 ise) -- is 0 (saglikli) ile BITMESIN
-   pgid/ppid taramasi yalniz iscinin KENDI pgid'sinde; sistem/baska isler
-   KONTROLE GIRMEZ (MaCiT vakasinda `sleep 60 &` tam olarak bu yuzden
-   yakalanmali: kendi alt surecimiz).
-   Bekci kendi KENDISI'ni durdurduktan sonra, yalnizca yasayan yabanci
-   alt surecler (claude'un torunlari, sleep, vs.) HAL=EKSIK'i tetikler.
+   claude'un pgid'si kendi pid'i (sarmalayici setsid yapar); scan yalniz
+   bu pgid'de, isci.sh'in grubu / ebeveyn kabuk TARANMAZ (MaCiT vakasinda
+   `sleep 60 &` tam olarak bu yuzden yakalanmali: claude'un torunlari).
 
 B) DIZGE KOLU — YARDIMCI  (isci-hal-cozucu.py)
    Son asistan metninde "arka planda" veya "sonra raporlayacagim" gecerse
@@ -64,7 +85,8 @@ REPO_CRON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cron")
 # ayni olmalidir. (isci.sh + isci-karantina-karar.py + isci-sabitler.zsh +
 # isci-motor-uc.zsh CANLI ~/.claude/cron/ altindadir ve repo disidir;
 # YAMALAR onlara uygulanir ama kopyalari repo'da TUTULMAZ — k337 deseni.)
-KOPYALANAN = ("isci-hal-cozucu.py", "isci-durma-notu.py")
+KOPYALANAN = ("isci-hal-cozucu.py", "isci-durma-notu.py",
+              "isci-yeni-grup.py")
 
 
 # --------------------------------------------------------------------------
@@ -100,6 +122,15 @@ def _gevsek_var(metin, gev):
 # isci.sh'de ana cagri bekci_durdur'un hemen ARDINDAN alt surec taramasi.
 # capa: bekci_durdur satirinin tekrar edildigi yer (ilk tekrar blogu).
 # Patch, pgid taramasini ekler ve HAL_DOSYASI ustune yazar.
+#
+# K417-2 (15 Eyl 2026, mimar): tarama `$$`'in DEGIL, CLAUDE'un kendi
+# pgid'sinin. Claude `tools/k417/cron/isci-yeni-grup.py` sarmalayici
+# uzerinden baslatilir; sarmalayici setsid ile yeni pgid uretir ve
+# pid'i $CLAUDE_GRUP_DOSYASI'na yazar. isci.sh o dosyayi bekci_durdur
+# sonrasinda okur; pgid == claude_grubu olan yasayan alt surec varsa
+# HAL=EKSIK. `$$`'in grubu (ebeveyn kabuk + pipeline + tee + bekci)
+# TARANMAZ — kendi kendini izole eden daemon (isci-tur-bekcisi.py)
+# sinif olarak bu eksenden kacar ([[kendi-setsid-yapan-eksen-kacisi]]).
 _y(ISCI,
    """bekci_durdur
 
@@ -110,21 +141,24 @@ BITIS_SANIYE=$(date +%s)""",
 # (15 Eyl 2026, KraL K417): MaCiT d27-hazirla olayinda isci
 # "tamamlaninca raporlayacagim" yazip `sleep 60 &` birakti; zarf
 # SAGLIKLI kapandi ve 31/46 id eksik kaldi. Surec kontrolu: claude
-# bittikten sonra iscinin KENDI pgid'sinde $$'dan farkli yasayan
-# alt surec varsa is YARIM sayilir; HAL_DOSYASI ustune
-# `HAL=EKSIK SEBEP=arka-plan-sureci-bulundu` yazilir ve CLAUDE_RC
-# 0 ise 1 yapilir (is 0 ile BITMESIN). pgid/ppid taramasi YALNIZ
-# iscinin kendi pgid'sinde; sistem/baska isler KONTROLE GIRMEZ.
-ISCI_PGID_K417=$(ps -o pgid= -p "$$" 2>/dev/null | tr -d ' ')
-if [[ -n "$ISCI_PGID_K417" ]]; then
+# bittikten sonra CLAUDE'un kendi pgid'sinde (sarmalayici setsid ile
+# uretti, dosyaya yazildi) yasayan alt surec varsa is YARIM sayilir;
+# HAL_DOSYASI ustune `HAL=EKSIK SEBEP=arka-plan-sureci-bulundu`
+# yazilir ve CLAUDE_RC 0 ise 1 yapilir (is 0 ile BITMESIN).
+# pgid/ppid taramasi YALNIZ claude'un grubunda; isci.sh'in kendi pgid'si
+# (ebeveyn kabuk, pipeline, tee, bekci) KONTROLE GIRMEZ. Kendi
+# setpgid'ini yapan daemon (isci-tur-bekcisi.py) bu eksenden KACAR —
+# pgid kendi kendisi oldugu icin taramada gorunmez.
+CLAUDE_PGID_K417=$(cat "${CLAUDE_PGID_DOSYASI_K417:-/dev/null}" 2>/dev/null | tr -d '[:space:]')
+if [[ -n "$CLAUDE_PGID_K417" ]]; then
   ARKA_BULUNDU=0
   while IFS= read -r pid_k417; do
     [[ -z "$pid_k417" ]] && continue
     [[ "$pid_k417" == "$$" ]] && continue
     pid_pgid=$(ps -o pgid= -p "$pid_k417" 2>/dev/null | tr -d ' ')
-    if [[ "$pid_pgid" == "$ISCI_PGID_K417" ]]; then
+    if [[ "$pid_pgid" == "$CLAUDE_PGID_K417" ]]; then
       pid_cmd=$(ps -o args= -p "$pid_k417" 2>/dev/null | head -c 200)
-      echo "K417-ARKA_PLAN_SURECI_VAR pid=$pid_k417 pgid=$ISCI_PGID_K417 komut=$pid_cmd" >> "$LOG"
+      echo "K417-ARKA_PLAN_SURECI_VAR pid=$pid_k417 claude_pgid=$CLAUDE_PGID_K417 komut=$pid_cmd" >> "$LOG"
       ARKA_BULUNDU=1
       break
     fi
@@ -144,7 +178,7 @@ fi
 
 BITIS_SANIYE=$(date +%s)""",
    "=== K417-ARKA-PLAN-SURECI-KONTROLU BAS ===",
-   "A", "ana cagrinin sonunda alt surec taramasi: yasayan varsa HAL=EKSIK")
+   "A", "ana cagrinin sonunda claude'un pgid'sinde alt surec taramasi: yasayan varsa HAL=EKSIK")
 
 
 # Tekrar blogunun da ayni kontrolu yapmasi gerekir. Tekrar blokundaki
@@ -156,18 +190,20 @@ _y(ISCI,
 fi""",
    """  bekci_durdur
   # === K417-ARKA-PLAN-SURECI-KONTROLU (TEKRAR) BAS ===
-  # Tekrar blogu da ayni kontrolu yapar; pgid zaten ISCI_PGID_K417
-  # olarak yukari tanimlandi. Tekrar blogundaki bekci_durdur'dan
-  # sonra yasayan alt surec varsa HAL=EKSIK yine yazilir.
-  if [[ -n "${ISCI_PGID_K417:-}" ]]; then
+  # Tekrar blogu da ayni kontrolu yapar; CLAUDE_PGID_K417 zaten
+  # ana cagrida tanimlandi (yukaridaki blok), tekrar blogunda ayni
+  # pgid dosyasi okunur. Bekci_durdur'dan sonra yasayan alt surec
+  # varsa HAL=EKSIK yine yazilir.
+  CLAUDE_PGID_K417=$(cat "${CLAUDE_PGID_DOSYASI_K417:-/dev/null}" 2>/dev/null | tr -d '[:space:]')
+  if [[ -n "$CLAUDE_PGID_K417" ]]; then
     ARKA_BULUNDU=0
     while IFS= read -r pid_k417; do
       [[ -z "$pid_k417" ]] && continue
       [[ "$pid_k417" == "$$" ]] && continue
       pid_pgid=$(ps -o pgid= -p "$pid_k417" 2>/dev/null | tr -d ' ')
-      if [[ "$pid_pgid" == "$ISCI_PGID_K417" ]]; then
+      if [[ "$pid_pgid" == "$CLAUDE_PGID_K417" ]]; then
         pid_cmd=$(ps -o args= -p "$pid_k417" 2>/dev/null | head -c 200)
-        echo "K417-ARKA_PLAN_SURECI_VAR pid=$pid_k417 pgid=$ISCI_PGID_K417 komut=$pid_cmd" >> "$LOG"
+        echo "K417-ARKA_PLAN_SURECI_VAR pid=$pid_k417 claude_pgid=$CLAUDE_PGID_K417 komut=$pid_cmd" >> "$LOG"
         ARKA_BULUNDU=1
         break
       fi
@@ -188,7 +224,62 @@ fi""",
   SURE=$(( BITIS_SANIYE - BASLANGIC_SANIYE ))
 fi""",
    "=== K417-ARKA-PLAN-SURECI-KONTROLU (TEKRAR) BAS ===",
-   "A", "tekrar blogunda da ayni pgid taramasi")
+   "A", "tekrar blogunda da ayni claude_pgid taramasi")
+
+
+# --- A.2: SARMAYICI ILE CLAUDE'U YENI PG'DE BASLAT -----------------------
+# isci.sh icindeki pipeline'in ilk komutunu sarmalayici ile degistir.
+# Capa: env ... "CLAUDE_BIN" -p ... (ana cagri).
+# Yeni: env ... python3 .../isci-yeni-grup.py "CLAUDE_BIN" -p ...
+# Ayni sekilde tekrar blogu (CLAUDE_BIN_2).
+_y(ISCI,
+   """env "${CLAUDE_ENV[@]}" "$CLAUDE_BIN" -p "$ISCI_TALIMAT_PROMPTU" "${CLAUDE_BAYRAKLAR[@]}" 2>&1 | python3 "$CRON_KOKU/isci-hal-cozucu.py" --hal-dosyasi "$HAL_DOSYASI" | tee -a "$LOG" "$CIKTI_DOSYASI" "$TUR_CIKTI\"""",
+   """env "${CLAUDE_ENV[@]}" python3 "$CRON_KOKU/isci-yeni-grup.py" "$CLAUDE_BIN" -p "$ISCI_TALIMAT_PROMPTU" "${CLAUDE_BAYRAKLAR[@]}" 2>&1 | python3 "$CRON_KOKU/isci-hal-cozucu.py" --hal-dosyasi "$HAL_DOSYASI" | tee -a "$LOG" "$CIKTI_DOSYASI" "$TUR_CIKTI\"""",
+   "isci-yeni-grup.py\" \"$CLAUDE_BIN\" -p \"$ISCI_TALIMAT_PROMPTU\" \"${CLAUDE_BAYRAKLAR[@]}\"",
+   "A2", "ana cagri: claude sarmalayici uzerinden yeni pg'de baslatilir")
+
+
+_y(ISCI,
+   """  env "${CLAUDE_ENV[@]}" "$CLAUDE_BIN" -p "$ISCI_TALIMAT_PROMPTU" "${CLAUDE_BAYRAKLAR_2[@]}" 2>&1 | python3 "$CRON_KOKU/isci-hal-cozucu.py" --hal-dosyasi "$HAL_DOSYASI" | tee -a "$LOG" "$CIKTI_DOSYASI" "$TUR_CIKTI\"""",
+   """  env "${CLAUDE_ENV[@]}" python3 "$CRON_KOKU/isci-yeni-grup.py" "$CLAUDE_BIN" -p "$ISCI_TALIMAT_PROMPTU" "${CLAUDE_BAYRAKLAR_2[@]}" 2>&1 | python3 "$CRON_KOKU/isci-hal-cozucu.py" --hal-dosyasi "$HAL_DOSYASI" | tee -a "$LOG" "$CIKTI_DOSYASI" "$TUR_CIKTI\"""",
+   "isci-yeni-grup.py\" \"$CLAUDE_BIN\" -p \"$ISCI_TALIMAT_PROMPTU\" \"${CLAUDE_BAYRAKLAR_2[@]}\"",
+   "A2-tekrar", "tekrar blogu: ayni sarmalayici")
+
+
+# --- A.3: PGID DOSYASININ HAZIRLANMASI ------------------------------------
+# Pipeline'dan ONCE CLAUDE_PGID_DOSYASI_K417 uretilir ve export edilir.
+# Capa: bekci_baslat'dan HEMEN ONCE (CLAUDE_ENV tanimli, hazir).
+# Bu yamanin EKSIK olmasi: pipeline sarmalayicisiz calisir (eski
+# davranis) ve pgid dosyasi YOK; tarama `cat bos` ile sessizce gecilir.
+# Sentinel: dosyanin gercekten kullanildigini garanti etmek icin bekci_baslat
+# sonrasina da bir teyit yazilabilir, ancak minimum etki: CLAUDE_PGID_DOSYASI_K417
+# export edilmesi + sarmalayicinin okumasi yeterli.
+_y(ISCI,
+   """bekci_baslat "$OTURUM_ID"
+env "${CLAUDE_ENV[@]}" """,
+   """# === K417-CLAUDE-PGID-DOSYASI BAS ===
+# Pipeline oncesinde pgid dosyasi uretilir ve sarmalayiciya gecirilir.
+# Yeni pgid burada henuz bilinmez; sarmalayici fork+setsid ile yazacak.
+CLAUDE_PGID_DOSYASI_K417="$CRON_KOKU/.isci-claude-pgid.$$.$(date +%s%N)"
+export CLAUDE_PGID_DOSYASI_K417
+# Sarmalayici (isci-yeni-grup.py) CLAUDE_GRUP_DOSYASI env'inden okur
+export CLAUDE_GRUP_DOSYASI="$CLAUDE_PGID_DOSYASI_K417"
+# Eski pgid dosyalarini temizle (60 dk'dan eski; ayni $$ icin tek dosya)
+find "$CRON_KOKU" -maxdepth 1 -name ".isci-claude-pgid.*" -mmin +60 -delete 2>/dev/null
+# === K417-CLAUDE-PGID-DOSYASI SON ===
+bekci_baslat "$OTURUM_ID"
+env "${CLAUDE_ENV[@]}" """,
+   "=== K417-CLAUDE-PGID-DOSYASI BAS ===",
+   "A3", "pipeline oncesinde CLAUDE_PGID_DOSYASI_K417 export")
+
+
+# --- A.4: PGID DOSYASININ TEMIZLENMESI (CIKIS) ---------------------------
+# EXIT trap'inde pgid dosyasi silinir (kanca sonrasi kalmasin).
+_y(ISCI,
+   """trap 'rm -f "$CIKTI_DOSYASI" "$BEKCI_CIKTI" "${HAL_DOSYASI:-/dev/null}"; [[ -n "${BEKCI_PID:-}" ]] && kill -TERM "$BEKCI_PID" 2>/dev/null' EXIT HUP INT TERM""",
+   """trap 'rm -f "$CIKTI_DOSYASI" "$BEKCI_CIKTI" "${HAL_DOSYASI:-/dev/null}" "${CLAUDE_PGID_DOSYASI_K417:-/dev/null}"; [[ -n "${BEKCI_PID:-}" ]] && kill -TERM "$BEKCI_PID" 2>/dev/null' EXIT HUP INT TERM""",
+   "\"${CLAUDE_PGID_DOSYASI_K417:-/dev/null}\"; [[ -n \"${BEKCI_PID:-}\"",
+   "A4", "EXIT trap'inde pgid dosyasi da silinir")
 
 
 # --- B: DIZGE KOLU — yardimci ----------------------------------------------
@@ -416,7 +507,7 @@ def yama_durumu(kok):
         elif n_capa == 1:
             eksik += 1
             satirlar.append("YAMA kol=%s %s EKSIK (capa yerinde, yama YOK)"
-                            % (y["kol"], y["dosya"]))
+                            % (y["kol"], y["dosya"], y["aciklama"]))
         elif _gevsek_var(metin, y.get("gevsek_isaret")):
             kurulu += 1
             satirlar.append("YAMA kol=%s %s GEVSEK-KURULU (%s)"

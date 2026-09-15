@@ -15,12 +15,35 @@ bit) deterministik uretilir.
 
 OLCULEN IDDIA: 15 Eyl 2026, MaCiT d27-hazirla olayinda isci
 `sleep 60 &` birakarak cikti, zarf SAGLIKLI kapandi, 31/46 id eksik
-kaldi. Bu batarya 4 vaka + 1 mutant ile o davranisin KAPANDIGINI olcer.
+kaldi. Bu batarya 6 vaka + 2 mutant ile o davranisin KAPANDIGINI olcer.
+
+K417-2 GERCEK CAGRISI (15 Eyl 2026, mimar)
+-------------------------------------------
+Mimar OLCULDU: isci.sh tek basina kosuldugunda `start_new_session=True`
+ile kendi pg leader OLUR ve kendi pgid'si pid'iyle ayni olur. Boylece
+ebeveyn `zsh -c` sarmalayicisi AYNI pgid'de kalir; Yama A kendi pgid'sini
+tarayinca ebeveyn + pipeline + tee'yi bulup HER koşumu EKSIK diye
+isaretliyordu. Cozum: isci.sh bir zsh sarmalayicinin COCUGU olarak
+baslar (sarmalayici start_new_session=True ile kendi pg leader olur);
+isci.sh pg leader DEGILDIR. claude isci-yeni-grup.py ile AYRICA kendi
+pg'sinde baslar; tarama yalniz bu pg'de yapilir. V6 ayni sarmalayicidan
+iki paralel isci.sh kosar — iki ayri claude pg'si, ikisi de SAGLIKLI.
+
+YASAK: `isci.sh`'yi dogrudan `start_new_session=True` ile cagirmak.
+Boyle baslatilan isci.sh kendi pg leader OLUR ve eski hatali tarama
+davranisi geri gelir. Bu bataryanin TAMAMINI gecersiz kilar.
+
+MUTANTLAR
+---------
+M1: surec ekseni sokulur (eski capa). V1 → SAGLIKLI (YANLIS; gercek
+    davranis EKSIK olmaliydi).
+M2: tarama `$$` pgid'sine geri doner. V2/V6 → EKSIK (YANLIS; gercek
+    davranis SAGLIKLI olmaliydi). K417-1'in OLCULEN hatasi.
 
 Kullanim:
     python3 tools/k417/isci-tur-gorev-kabul.py            # tum batarya
     python3 tools/k417/isci-tur-gorev-kabul.py --vakalar  # mutantsiz
-Cikis: 0 = hepsi yesil · 1 = dusen var · 2 = arac hatasi.
+Cikis: 0 = hepsi yesil · 1 = dusen var · 2 = arac hatasi · 3 = OLCULEMEDI.
 """
 
 import atexit
@@ -49,8 +72,9 @@ def _temizle(*_a):
         shutil.rmtree(d, ignore_errors=True)
         if d in _SANDBOXLAR:
             _SANDBOXLAR.remove(d)
-    # Arka plan kalintisi sleep'leri oldur
+    # Arka plan kalintisini oldur
     subprocess.run(["pkill", "-f", "sleep 30"], capture_output=True)
+    subprocess.run(["pkill", "-f", "sleep 60"], capture_output=True)
     subprocess.run(["pkill", "-f", "sahte-claude"], capture_output=True)
 
 
@@ -104,14 +128,24 @@ sys.exit(0)
 '''
 
 
+def _canli_kontrol():
+    """Canli cron dizini yoksa OLCULEMEDI + rc=3 (sessiz yeşil yok)."""
+    canli = os.path.expanduser("~/.claude/cron")
+    if not os.path.isdir(canli):
+        print("OLCULEMEDI sebep=canli-cron-dizin-yok hedef=%s" % canli,
+              file=sys.stderr)
+        return False
+    return True
+
+
 def sandbox_kur():
     """YAMALI K417 kopyalarini sandbox'a tasi + sahte claude/spec hazirla.
 
     K417/cron/ yalniz KUCUK dosyalari (isci-hal-cozucu.py +
-    isci-durma-notu.py) icerir; bunlar yeni davranis tasir. Buyuk
-    dosyalar (isci.sh, isci-karantina-karar.py, isci-sabitler.zsh,
-    isci-motor-uc.zsh) CANLI ~/.claude/cron/ altindan kopyalanir ve
-    yama.py tarafindan IN-PLACE yamanir (k337 deseni).
+    isci-durma-notu.py + isci-yeni-grup.py) icerir; bunlar yeni
+    davranis tasir. Buyuk dosyalar (isci.sh, isci-karantina-karar.py,
+    isci-sabitler.zsh, isci-motor-uc.zsh) CANLI ~/.claude/cron/ altindan
+    kopyalanir ve yama.py tarafindan IN-PLACE yamanir (k337 deseni).
     """
     kok = tempfile.mkdtemp(prefix="k417-kabul-%d-" % os.getpid())
     _SANDBOXLAR.append(kok)
@@ -168,21 +202,62 @@ def hal_dosyasi_oku(kok):
         return f.read().strip()
 
 
-def isci_kos(kok, stub, spec, mod, etiket="kabul-k417"):
+def _ortam_hazirla(stub):
+    """Ortam degiskenlerini vakalarin ortak kullanimina hazirla."""
     ort = dict(os.environ)
     ort["PRUVO_ISCI_CLAUDE_BIN"] = stub
-    ort["K417_STUB_MOD"] = mod
     ort["PRUVO_ISCI_BAGLAM"] = "kapali"
     # PROFIL bos: bekci calismaz (pgid'de sadece kendimiz kaliriz)
     ort.pop("PROFIL", None)
+    return ort
+
+
+def isci_kos(kok, stub, spec, mod, etiket="kabul-k417"):
+    """isci.sh bir zsh sarmalayicinin COCUGU olarak baslasin (start_new_session=True
+    sarmalayicinin kendisine verilir). isci.sh kendi pg leader OLMAZ; claude
+    isci-yeni-grup.py ile kendi pg'sinde baslar (A2/A3 yamalari).
+
+    Spec madde 2 (15 Eyl 2026, mimar OLCUMU): dogrudan isci.sh'yi
+    start_new_session=True ile cagirmak eski buggy davranisi geri getirir.
+    """
+    ort = _ortam_hazirla(stub)
+    ort["K417_STUB_MOD"] = mod
+    isci_yol = os.path.join(kok, "isci.sh")
+    # zsh -c "exec zsh isci.sh ..." YAPMA — exec isci.sh'yi pg leader yapar.
+    # Bunun yerine zsh -c "zsh isci.sh ..." — wrapper forklar, isci.sh
+    # cocuk olarak baslar, AYNI pgid (wrapper'in), pg leader DEGIL.
+    # start_new_session=True ile wrapper kendi pg leader olur.
+    sar_komut = ["zsh", "-c",
+                 'zsh "$0" "$1" "$2" "$3" "$4" "$5"',
+                 isci_yol, "claude", EV_KOKU, spec, etiket, stub]
     try:
-        # start_new_session=True: HER VAKA kendi pgid'sinde kosar; onceki
-        # VAKAnin arka plan kalintisi (sleep 30) yeni pgid'yi KIRLEMEZ.
-        p = subprocess.run(
-            ["zsh", os.path.join(kok, "isci.sh"), "claude", EV_KOKU, spec, etiket],
-            capture_output=True, text=True, env=ort, timeout=120,
-            start_new_session=True,
-        )
+        p = subprocess.run(sar_komut,
+                           capture_output=True, text=True, env=ort,
+                           timeout=120, start_new_session=True)
+    except subprocess.TimeoutExpired:
+        return None, "", "TIMEOUT"
+    log = os.path.join(kok, "isci.log")
+    metin = ""
+    if os.path.isfile(log):
+        with open(log, encoding="utf-8", errors="replace") as f:
+            metin = f.read()
+    return p, metin, ""
+
+
+def isci_kos_parallel(kok, stub, spec, mod, etiket="kabul-k417"):
+    """Ayni sarmalayicidan iki paralel isci.sh (V6)."""
+    ort = _ortam_hazirla(stub)
+    ort["K417_STUB_MOD"] = mod
+    isci_yol = os.path.join(kok, "isci.sh")
+    sar_komut = ["zsh", "-c",
+                 ('zsh "$0" "$1" "$2" "$3" "$4" "$5" & '
+                  'zsh "$0" "$1" "$2" "$3" "$4" "$5" & '
+                  'wait'),
+                 isci_yol, "claude", EV_KOKU, spec, etiket, stub]
+    try:
+        p = subprocess.run(sar_komut,
+                           capture_output=True, text=True, env=ort,
+                           timeout=180, start_new_session=True)
     except subprocess.TimeoutExpired:
         return None, "", "TIMEOUT"
     log = os.path.join(kok, "isci.log")
@@ -290,6 +365,31 @@ def vakalari_kos():
       "HAL=SAGLIKLI" in hal5 and "EKSIK" not in hal5,
       hal5.strip()[:200])
 
+    # --- V6: KONTROL paralel - ayni sarmalayicidan iki isci.sh ----------
+    # 15 Eyl 2026 (mimar, OLCULEN): eski yamada $$ pgid taramasi iki
+    # paralel isci.sh'den birinin DIGERINI kendi pgid'sinde bulmasi
+    # yuzunden KIRMIZI oluyordu. Yeni yama claude pgid'sini tarar; iki
+    # isci.sh AYNI sarmalayicidan farkli claude pgid'si uretiyor (her
+    # sarmalayici call'inda setsid yeni pgid verir), dolayisiyla her
+    # ikisi de SAGLIKLI. (Birinin DIGER isci.sh kendi pgid'sinde
+    # gorunmesi ARTIK yok — sarmalayici grubu isci.sh ile AYNI olsa
+    # bile tarama yapilmaz; sadece claude pgid'si taranir.)
+    kok6, stub6, spec6 = sandbox_kur()
+    p6, log6, _h6 = isci_kos_parallel(kok6, stub6, spec6, "saglikli")
+    bitis6 = [s for s in log6.splitlines() if " BITIS rc=" in s]
+    hal6 = hal_dosyasi_oku(kok6)
+    # Her iki isci.sh kendi BITIS satirinda hal=SAGLIKLI olmali.
+    saglikli_sayisi = sum(
+        1 for s in bitis6 if "hal=SAGLIKLI" in s and "EKSIK" not in s)
+    hepsi_saglikli = (saglikli_sayisi == 2
+                      and p6.returncode == 0
+                      and "EKSIK" not in hal6)
+    v(6, "KONTROL paralel: ayni sarmalayicidan iki isci.sh, ikisi de SAGLIKLI",
+      "A",
+      hepsi_saglikli,
+      "rc=%d bitis_sayisi=%d saglikli=%d hal=%s"
+      % (p6.returncode, len(bitis6), saglikli_sayisi, hal6))
+
     return sorted(sonuc, key=lambda s: s["no"])
 
 
@@ -302,37 +402,52 @@ MUTANTLAR = [
      "yeni": "=== K417-ARKA-PLAN-SURECI-KONTROLU MUTANT ===",
      "hedef": [1],
      "aciklama": "surec kolu sokulur (V1 SAGLIKLI basar)"},
+    {"ad": "M2", "kol": "A", "dosya": "isci.sh",
+     "eski": "CLAUDE_PGID_K417=$(cat \"${CLAUDE_PGID_DOSYASI_K417:-/dev/null}\" 2>/dev/null | tr -d '[:space:]')",
+     "yeni": "CLAUDE_PGID_K417=$(ps -o pgid= -p \"$$\" 2>/dev/null | tr -d ' ')",
+     "hedef": [2, 6],
+     "aciklama": "tarama $$ pgid'sine geri doner (V2/V6 EKSIK basar)"},
 ]
 
 
 def mutant_uygula(kok, m):
     """M1: K417-ARKA-PLAN-SURECI-KONTROLU blogunun TAMAMINI yorum satirina cevir.
-
-    Strateji: BAS..SON isaretleri arasini `:# ...` ile yorum yapariz ki
-    zsh icindeki `if/while/printf/while read` bloklari TAMAMEN etkisiz
-    olsun. Boylece ana V1 senaryosu `sleep 60 &` biraktiginda kol
-    yakalamaz ve HAL=SAGLIKLI kalir.
+    M2: CLAUDE_PGID_K417 atamasini $$ pgid'sine cevir (eski buggy davranis).
     """
     yol = os.path.join(kok, m["dosya"])
     with open(yol, encoding="utf-8") as f:
         metin = f.read()
-    # Iki ayri kontrol blogu var: ana cagri ve tekrar blogu. Ikisini de
-    # bul ve TAMAMEN devre disi birak.
-    yeni = re_mod.sub(
-        r"# === K417-ARKA-PLAN-SURECI-KONTROLU BAS ===.*?"
-        r"# === K417-ARKA-PLAN-SURECI-KONTROLU SON ===",
-        "# === K417-MUTANT-M1: SUREC KOLU SOKULDU ===",
-        metin, flags=re_mod.DOTALL,
-    )
-    if yeni == metin:
-        return False
+
+    if m["ad"] == "M1":
+        # Iki ayri kontrol blogu var: ana cagri ve tekrar blogu. Ikisini de
+        # bul ve TAMAMEN devre disi birak.
+        yeni = re_mod.sub(
+            r"# === K417-ARKA-PLAN-SURECI-KONTROLU BAS ===.*?"
+            r"# === K417-ARKA-PLAN-SURECI-KONTROLU SON ===",
+            "# === K417-MUTANT-M1: SUREC KOLU SOKULDU ===",
+            metin, flags=re_mod.DOTALL,
+        )
+        if yeni == metin:
+            return False
+        metin = yeni
+
+    if m["ad"] == "M2":
+        # M2 iki yerde de olabilir (ana + tekrar). replace_all=True ile degistir.
+        if m["eski"] not in metin:
+            return False
+        metin = metin.replace(m["eski"], m["yeni"])
+
     with open(yol, "w", encoding="utf-8") as f:
-        f.write(yeni)
+        f.write(metin)
     return True
 
 
 def main():
     mutantsiz = "--vakalar" in sys.argv
+
+    if not _canli_kontrol():
+        print("OLCULEMEDI: canli ~/.claude/cron dizini yok — sessiz yeşil YOK")
+        return 3
 
     try:
         taban = vakalari_kos()
@@ -372,25 +487,50 @@ def main():
             print("MUTANT %s YAMA_TUTMADI (capa bulunamadi) 🔴" % m["ad"])
             yama_tutmadi += 1
             continue
-        # V1 senaryosunu mutantli halde kos
-        p_m, log_m, _h = isci_kos(kok, stub, spec, "arka_plan")
-        subprocess.run(["pkill", "-f", "sleep 30"], capture_output=True)
-        time.sleep(1)
-        bitis_m = [s for s in log_m.splitlines() if " BITIS rc=" in s]
-        mutant_saglikli = (bool(bitis_m)
-                           and "hal=SAGLIKLI" in bitis_m[-1]
-                           and (p_m is None or p_m.returncode == 0))
-        if mutant_saglikli:
+        # M1: V1 senaryosu mutantli halde. M2: V2 senaryosu.
+        if m["ad"] == "M1":
+            hedef_senaryolar = [("arka_plan", 1)]
+        elif m["ad"] == "M2":
+            hedef_senaryolar = [("saglikli", 2), ("saglikli", 6)]
+        else:
+            hedef_senaryolar = []
+        mutant_saglikli_uyumsuz = 0
+        mutant_kapandi = 0
+        for mod, vid in hedef_senaryolar:
+            # M2 v6 paralel icin paralel komsu
+            if m["ad"] == "M2" and vid == 6:
+                p_m, log_m, _h = isci_kos_parallel(kok, stub, spec, mod)
+            else:
+                p_m, log_m, _h = isci_kos(kok, stub, spec, mod)
+            subprocess.run(["pkill", "-f", "sleep 30"], capture_output=True)
+            time.sleep(0.5)
+            bitis_m = [s for s in log_m.splitlines() if " BITIS rc=" in s]
+            # M1 icin mutant basarili = V1 EKSIK OLMAMALI (mutant bunu
+            # engelledi). M2 icin mutant basarili = vaka EKSIK OLMALI
+            # (eski buggy davranis geri geldi).
+            ek_dustu = any("hal=EKSIK" in b for b in bitis_m)
+            if m["ad"] == "M1":
+                if not ek_dustu:
+                    mutant_kapandi += 1
+                else:
+                    mutant_saglikli_uyumsuz += 1
+            else:  # M2
+                if ek_dustu:
+                    mutant_kapandi += 1
+                else:
+                    mutant_saglikli_uyumsuz += 1
+        if mutant_kapandi >= 1:
             olen += 1
-            hedefte = set(m["hedef"]).issubset(set([1]))
+            hedefte = set(m["hedef"]).issubset(
+                set([2, 6]) if m["ad"] == "M2" else set([1]))
             if hedefte:
                 atif += 1
             print("MUTANT %s OLDU hedef=%s atif=%s — %s"
                   % (m["ad"], m["hedef"], "EVET" if hedefte else "🔴 HAYIR",
                      m["aciklama"]))
         else:
-            print("MUTANT %s 🔴 YASADI (kol olculmuyor) — bitis=%s"
-                  % (m["ad"], bitis_m[-1:] if bitis_m else "YOK"))
+            print("MUTANT %s 🔴 YASADI (kol olculmuyor) — hedef vakalarda EKSIK yok"
+                  % m["ad"])
 
     print("MUTANT=%d/%d HEDEF_KOL_ATFI=%d/%d YAMA_TUTMADI=%d"
           % (olen, len(MUTANTLAR), atif, len(MUTANTLAR), yama_tutmadi))
