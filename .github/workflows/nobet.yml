@@ -3003,6 +3003,95 @@ jobs:
         run: python3 tools/r2-purge-test.py
 
   # ===========================================================================
+  # KAPAK VARLIK NOBETI — K415 ⑤ (15 Eyl 2026)
+  #
+  # Yeni eklenen urunlerin gorsel nesnelerinin R2'de VARLIGINI head_object ile
+  # olcer (fail-closed). Baglam: 528 urun / 1.762 URL, R2'ye ciplak anahtarla
+  # yuklendigi icin 7 dilim boyunca canli 404 kaldi; varlik kapisi adres DUZENINI
+  # olcuyordu, nesnenin gercekten R2'de olup olmadigini OLCMUYORDU. Bu is onu
+  # kapatir.
+  #
+  # NEDEN SERIT B (yayini BLOKLAMAZ — K412 ile AYNI GEREKCE): kirmizisi musteriye
+  # yanlis para odetmez/veri sizdirmaz/siteyi durdurmaz; yalnizca yeni eklenen
+  # urunlerin gorsellerinin R2'ye GERCEKTEN dusup dusmedigini soyler. Onceki
+  # nöbetci (varlik kapisi) 15 Eyl 2026'da 528 urunun hep 404 kaldigini
+  # goremedi — kapi adres DUZENINI olctu, nesnenin VARLIGINI DEGIL. Bu is o
+  # boslugu kapar.
+  #
+  # --kendini-test AGSIZ (SAHTE S3 + 5 vaka + 2 mutant): V1..V5 + M1/M2
+  # kapinin HER KENDI KOLUNU mutant altinda olcer. Yalnizca bu kol basarili ise
+  # gercek push kolunun ciktisi KABUL EDILIR.
+  #
+  # Push tetigi: `--taban ${{ github.event.before }}` (sifir sha / bos ise HEAD~1).
+  # secret uclusu (R2_ERISIM_ID / R2_GIZLI_ANAHTAR / CLOUDFLARE_ACCOUNT_ID) CI'da
+  # HAZIR (`secrets.R2_*`). Eksikse OLCULEMEDI ile kirmizi yanar; sessiz YESIL yok.
+  #
+  # --kendini-test kosumu push'tan once kosar — kapi KENDI mutantlarinda bile
+  # ayakta durmuyorsa gercek olcum anlamsizdir.
+  # ===========================================================================
+  kapak-varlik-nobeti:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # fetch-depth: 2 — HEAD ve HEAD~1 temel kapsam. B1 (K415-2) ek adimi
+      # `github.event.before` sığ geçmişte yoksa onu acıkca fetch eder
+      # (cok-commit'li merge push'lari). Sifir/boş sha ise HEAD~1'e dusulur.
+      # Eski "0 = SIG/shallow gecmis YOK ... OLCULDU" yorumu YANLISTI:
+      # bu is fetch-depth=2 ile geliyor, o yuzden o yanlis gerekce iptal.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python bagimliliklari (boto3 - R2 head_object icin)
+        run: pip install boto3
+
+      # 🔴 B1 (K415-2): cok-commit'li merge push'larinda `github.event.before`
+      # sığ geçmişte olmayabilir => nobet_calistir TABAN_YOK ile sahte kırmızı
+      # yanar. Acıkca fetch et ki sha depoda hazir olsun. Sifir/boş sha ise
+      # HEAD~1 kolu aynen kalsın (nober_calistir kendi içinde HEAD~1'i kabul
+      # eder; burada fetch denense de calismaz, sorun degil). Fetch başarısızsa
+      # nobet_calistir yine TABAN_YOK ile rc=3 basar (fail-closed).
+      - name: "Taban sha'yi fetch et (K415 B1 — sig gecmis onleyici)"
+        run: |
+          TABAN="${{ github.event.before }}"
+          if [ -z "$TABAN" ] || [ "$TABAN" = "0000000000000000000000000000000000000000" ]; then
+            TABAN="HEAD~1"
+          fi
+          git fetch --no-tags --depth=1 origin "$TABAN" || true
+
+      # AGSIZ kabul testi — gercek push olcumunden ONCE. KIRMIZI ise push kolunun
+      # ciktisi da anlamsiz sayilir (`conclusion` en kotu job'a bakar; bu job'un
+      # kendi kirmiziligi yeter). Kapi KENDI mutantlari (M1/M2) dahil 8/8.
+      - name: "Kapak varlik nobeti kabul testi (6 vaka + 2 mutant, agsiz)"
+        run: python3 tools/kapak-varlik-nobeti.py --kendini-test
+
+      # GERCEK OLcum — push oncesi HEAD ile HEAD arasindaki yeni kayitlarin
+      # `gorseller` URL'leri R2'de head_object ile Varlik testine. eksik
+      # secret/taban sha/katalog JSON bozuk = rc=3 OLCULEMEDI (sessiz YESIL yok).
+      # `--taban` degeri: push olayinda onceki HEAD; sifir sha (yeni dal ilk push)
+      # veya bos ise HEAD~1'e dus. push disinda tetiklenmeyecek zaten (`if:`).
+      - name: "Kapak varlik nobeti: push oncesi/sonrasi katalog farki (ALARM — yayini DURDURMAZ)"
+        env:
+          R2_ERISIM_ID: ${{ secrets.R2_ERISIM_ID }}
+          R2_GIZLI_ANAHTAR: ${{ secrets.R2_GIZLI_ANAHTAR }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # R2_BUCKET kimlik cozumunun dortlu sartinin son parcasi: secret degil,
+          # duz deger — kimlik_coz ONCE env kolunu deniyor; burayi gosermezsek
+          # CI'da varsayilana ("pruvo3d") dusmez (pruvo3d fallback'i silindi),
+          # KIMLIK_YOK ile fail-closed KIRMIZI yanar. Gercek bucket
+          # `.r2-credentials.json` ile ayni kaynaktan gelir.
+          R2_BUCKET: pruvo-media
+        run: |
+          TABAN="${{ github.event.before }}"
+          if [ -z "$TABAN" ] || [ "$TABAN" = "0000000000000000000000000000000000000000" ]; then
+            TABAN="HEAD~1"
+          fi
+          python3 tools/kapak-varlik-nobeti.py --taban "$TABAN"
+
+  # ===========================================================================
   # HACIM TAM TAKIM (2026-08-02) — GERCEK TEST 1 (kapali-form vs RENDER)
   #
   # NEDEN AYRI IS: serit-b'deki iki jeneratör adimi BILEREK `--kendini-test`
