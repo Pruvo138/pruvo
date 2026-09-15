@@ -3078,6 +3078,12 @@ jobs:
           R2_ERISIM_ID: ${{ secrets.R2_ERISIM_ID }}
           R2_GIZLI_ANAHTAR: ${{ secrets.R2_GIZLI_ANAHTAR }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # R2_BUCKET kimlik cozumunun dortlu sartinin son parcasi: secret degil,
+          # duz deger — kimlik_coz ONCE env kolunu deniyor; burayi gosermezsek
+          # CI'da varsayilana ("pruvo3d") dusmez (pruvo3d fallback'i silindi),
+          # KIMLIK_YOK ile fail-closed KIRMIZI yanar. Gercek bucket
+          # `.r2-credentials.json` ile ayni kaynaktan gelir.
+          R2_BUCKET: pruvo-media
         run: |
           TABAN="${{ github.event.before }}"
           if [ -z "$TABAN" ] || [ "$TABAN" = "0000000000000000000000000000000000000000" ]; then

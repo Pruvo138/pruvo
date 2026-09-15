@@ -33,14 +33,21 @@ MIMAR TASARIMI (kopyalanmaz, buraya civilenir):
      diyor, R2'de baska anahtar duruyor, varlik testi YANLIS pozitif verebilir).
 
   e. `--kendini-test`: SAHTE S3 istemcisi (AG YOK) + gecici iki katalog fiksturu:
-     V1 hepsi VAR              => rc=0
-     V2 bir anahtar NoSuchKey  => rc=1 + `YOK <id> <anahtar>`
-     V3 ciplak anahtar URL     => GELENEK_DISI rc=1
-     V4 kimlik yok             => rc=3 OLCULEMEDI
-     V5 KONTROL yeni urun 0    => rc=0
+     V1 hepsi VAR                          => rc=0
+     V2 bir anahtar NoSuchKey              => rc=1 + `YOK <id> <anahtar>`
+     V3 ciplak anahtar URL                 => GELENEK_DISI rc=1
+     V4 kimlik yok                         => rc=3 OLCULEMEDI
+     V5 KONTROL yeni urun 0                => rc=0
+     V6 --kimlik-dosyasi bayrak (gercek sema: access_key/secret/endpoint/bucket)
+                                          => rc=0
+     V7 dosyada `bucket` alani yok         => rc=3 KIMLIK_YOK
+     V8 env R2_BUCKET yok + dosya yok      => rc=3 KIMLIK_YOK (capraz-kol kapsama
+                                                       olcusu — nobet.yml bu
+                                                       satiri unutursa FAIL-CLOSED)
      MUTANTLAR (FAIL-CLOSED):
      M1 YOK sayaci karara baglanmaz (YOK>=1 dahi `rc=0` yazilir) => V2 KIRMIZI
      M2 kimlik yok iken `rc=0` yazilir                              => V4 KIRMIZI
+     M3 env dortlu AND -> OR (bir alan dolu ise dict doner)         => V8 KIRMIZI
 """
 import argparse
 import importlib.util
@@ -110,18 +117,34 @@ def _kanonik_yorunge(url):
 # Kimlik & S3 istemcisi
 # ---------------------------------------------------------------------------
 def kimlik_coz(env=None, kimlik_dosyasi=None):
-    """(id, secret, account_id) ya da üçü de None — ONCE env, SONRA kimlik_dosyasi
+    """{access_key, secret, endpoint, bucket} ya da None — ONCE env, SONRA dosya
     (--kimlik-dosyasi bayragi ile verilen yol, verilmisse), SONRA <kok>/.r2-credentials.json.
 
-    Kural: kimlik HICBIRI yoksa KIMLIK_YOK -> OLCULEMEDI (rc=3). SESSIZ YESIL YOKTUR.
-    Kimlik okunamazsa (json bozuk / alan yok) da ayni yon — fail-closed.
+    Kural: kimlik HICBIRI yoksa ya da zorunlu alanlardan biri bos/yoksa None doner
+    -> nobet_calistir KIMLIK_YOK / BUCKET_YOK / ENDPOINT_YOK ile OLCULEMEDI (rc=3)
+    uretir. SESSIZ YESIL YOKTUR. Kimlik okunamazsa (json bozuk) da ayni yon —
+    fail-closed.
+
+    env kolu: R2_ERISIM_ID + R2_GIZLI_ANAHTAR + CLOUDFLARE_ACCOUNT_ID + R2_BUCKET
+    -> endpoint oturetilir `https://<acc>.r2.cloudflarestorage.com`. DORTU DE
+    dolu olmali; biri bile bos ise dosya koluna dusulur.
+
+    dosya kolu: --kimlik-dosyasi sonra ROOT. r2-upload.py ile ayni anahtarlar:
+    access_key, secret, endpoint, bucket. `account_id` YOK — yanlis anahtar
+    kullanmak (M3) bu satirda KeyError ile patlar.
     """
     env = env or os.environ
     rid = env.get("R2_ERISIM_ID") or ""
     rsec = env.get("R2_GIZLI_ANAHTAR") or ""
     acc = env.get("CLOUDFLARE_ACCOUNT_ID") or ""
-    if rid and rsec and acc:
-        return rid, rsec, acc
+    rbucket = env.get("R2_BUCKET") or ""
+    if rid and rsec and acc and rbucket:
+        return {
+            "access_key": rid,
+            "secret": rsec,
+            "endpoint": "https://%s.r2.cloudflarestorage.com" % acc,
+            "bucket": rbucket,
+        }
     aday = []
     if kimlik_dosyasi:
         aday.append(kimlik_dosyasi)
@@ -132,23 +155,37 @@ def kimlik_coz(env=None, kimlik_dosyasi=None):
         try:
             cfg = json.load(open(yol))
         except Exception:
-            return None, None, None
+            return None
+        if not isinstance(cfg, dict):
+            return None
         try:
-            return cfg["access_key"], cfg["secret"], cfg["account_id"]
+            ak = cfg["access_key"]
+            sk = cfg["secret"]
+            ep = cfg["endpoint"]
+            bk = cfg["bucket"]
         except KeyError:
-            return None, None, None
-    return None, None, None
+            return None
+        if not (ak and sk and ep and bk):
+            return None
+        return {"access_key": ak, "secret": sk, "endpoint": ep, "bucket": bk}
+    return None
 
 
-def s3_istemcisi_yap(id_, secret, account_id):
+def s3_istemcisi_yap(kimlik):
     """boto3 R2 istemcisi. Ithalat test sirasinda istenmezse (CI'da boto3 yoksa)
-    ImportError'i yukari firlatir; CLI test kabulunden ONCE kontrol edilir."""
+    ImportError'i yukari firlatir; CLI test kabulunden ONCE kontrol edilir.
+
+    `kimlik` sozlugunu TEK parametre alir: endpoint kimlikten gelir (env hesap
+    kolunda uretilir, dosya kolunda dosyadan okunur). Bucket ve endpoint kesinlikle
+    kimlikten gelir; kodici tarafindan uretilecek sabit bir varsayilan YOKTUR
+    (CI'da R2_BUCKET env ile nobet.yml'den gelir; bu satir unutulursa V8
+    fail-closed KIRMIZI yanar)."""
     import boto3  # noqa: WPS433 — yukari tasinirsa --kendini-test agsiz kosamaz
     return boto3.client(
         "s3",
-        endpoint_url="https://%s.r2.cloudflarestorage.com" % account_id,
-        aws_access_key_id=id_,
-        aws_secret_access_key=secret,
+        endpoint_url=kimlik["endpoint"],
+        aws_access_key_id=kimlik["access_key"],
+        aws_secret_access_key=kimlik["secret"],
         region_name="auto",
     )
 
@@ -218,17 +255,25 @@ def nobet_calistir(taban_sha, s3=None, bucket=None, head_kayitlari=None,
     sayac alanlari: yeni_urun, url, var, yok, hata, gelenek_disi.
     """
     env = env or os.environ
-    if s3 is None:
-        id_, secret, acc = kimlik_coz(env=env, kimlik_dosyasi=kimlik_dosyasi)
-        if not (id_ and secret and acc):
-            return None, "KIMLIK_YOK: env (R2_ERISIM_ID/R2_GIZLI_ANAHTAR/CLOUDFLARE_ACCOUNT_ID) ve "
-            ".r2-credentials.json uclusunden hicbirinden tam kimlik gelmedi — sessiz YESIL yok"
-        try:
-            s3 = s3_istemcisi_yap(id_, secret, acc)
-        except ImportError:
-            return None, "BOTO3_YOK: R2 istemcisi icin boto3 gerekli (pip install boto3)"
-    if bucket is None:
-        bucket = _r2k_bucket_adini_bul(env)
+    if s3 is None or bucket is None:
+        kimlik = kimlik_coz(env=env, kimlik_dosyasi=kimlik_dosyasi)
+        if not kimlik:
+            return None, ("KIMLIK_YOK: env (R2_ERISIM_ID/R2_GIZLI_ANAHTAR/"
+                          "CLOUDFLARE_ACCOUNT_ID/R2_BUCKET dortlusu) ve "
+                          "--kimlik-dosyasi / .r2-credentials.json hicbirinden "
+                          "tam kimlik gelmedi (access_key/secret/endpoint/bucket "
+                          "alanlarinin HEPSI dolu olmali) — sessiz YESIL yok")
+        if not kimlik.get("bucket"):
+            return None, "BUCKET_YOK: kimlik cozuldu ama bucket alani bos/yok — fail-closed"
+        if not kimlik.get("endpoint"):
+            return None, "ENDPOINT_YOK: kimlik cozuldu ama endpoint alani bos/yok — fail-closed"
+        if s3 is None:
+            try:
+                s3 = s3_istemcisi_yap(kimlik)
+            except ImportError:
+                return None, "BOTO3_YOK: R2 istemcisi icin boto3 gerekli (pip install boto3)"
+        if bucket is None:
+            bucket = kimlik["bucket"]
 
     if taban_id is None or head_kayitlari is None:
         taban_id2, head2, hata = kataloglari_oku(taban_sha)
@@ -268,18 +313,6 @@ def nobet_calistir(taban_sha, s3=None, bucket=None, head_kayitlari=None,
                 sayac["yok"] += 1
                 print("YOK %s %s" % (rid, anahtar))
     return sayac, None
-
-
-def _r2k_bucket_adini_bul(env):
-    # bucket adinin tek kaynagi kimlik dosyasi; yoksa env
-    if os.path.exists(R2_KIMLIK):
-        try:
-            cfg = json.load(open(R2_KIMLIK))
-            if cfg.get("bucket"):
-                return cfg["bucket"]
-        except Exception:
-            pass
-    return env.get("R2_BUCKET") or "pruvo3d"
 
 
 # ---------------------------------------------------------------------------
@@ -426,30 +459,33 @@ def vaka_5_bos_yeni():
 
 def vaka_6_kimlik_dosyasi_bayrak():
     """V6: env bos + --kimlik-dosyasi gecici sahte kimlik dosyasi.
-    nobet_calistir'in kimlik_coz yolu bu dosyadan basariyla okumali
-    (ağ yok: s3_istemcisi_yap monkeypatch ile SahteS3). R2_KIMLIK
-    fallback'i yanlis yone baglanir ki kimlik_coz yalniz bizim
-    --kimlik-dosyasi yolumuzu gordugunu kanitlayalim. Yeni urun 0 ile
-    nobet sessiz kalmali (rc=0); KIMLIK_YOK hatasi OLMAMALI."""
+
+    Sahte dosyada GERCEK sema: access_key, secret, endpoint, bucket, public_base.
+    account_id YOK (r2-upload.py ile ayni; M3 mutantinin onu geri getirmesi V8'i
+    kirar). kimlik_coz bu dosyadan OKUR; s3 monkeypatch SahteS3; yeni urun 0
+    sayesinde head_var_mi cagisina gidilmez; hata None, sayac bos."""
     gecici_kok = tempfile.mkdtemp(prefix="k415-v6-")
     try:
         sahte_kimlik = os.path.join(gecici_kok, ".r2-credentials.json")
         with open(sahte_kimlik, "w") as f:
-            json.dump({"access_key": "test_id", "secret": "test_sec",
-                       "account_id": "test_acc"}, f)
+            json.dump({"access_key": "test_id",
+                       "secret": "test_sec",
+                       "endpoint": "https://test.r2.cloudflarestorage.com",
+                       "bucket": "test_bucket",
+                       "public_base": "https://media.example.com"}, f)
         modul = sys.modules[__name__]
         eski_root = modul.ROOT
         eski_kimlik = modul.R2_KIMLIK
         eski_s3 = modul.s3_istemcisi_yap
         modul.ROOT = gecici_kok
         # R2_KIMLIK'i var olmayan bir yola bagla: kimlik_coz fallback'i
-        # calissaydi bile dosya bulunmamali — bu sayede kimlik_coz'un
-        # yalniz --kimlik-dosyasi yolundan okudugu kesinlesir.
+        # calissaydi bile dosya bulunmamali — kimlik_coz'un yalniz
+        # --kimlik-dosyasi yolundan okudugu kesinlesir.
         modul.R2_KIMLIK = os.path.join(gecici_kok, "yok.json")
         sahte_s3 = SahteS3(set())
         # s3_istemcisi_yap'i SahteS3'e bagla: kimlik_coz basarili olduktan
         # sonra gercek boto3/bucket'e gidilmesin, ağa cikmasin.
-        modul.s3_istemcisi_yap = lambda *a, **k: sahte_s3
+        modul.s3_istemcisi_yap = lambda kimlik: sahte_s3
         try:
             sayac, hata = nobet_calistir(
                 "x", env={}, kimlik_dosyasi=sahte_kimlik,
@@ -472,6 +508,81 @@ def vaka_6_kimlik_dosyasi_bayrak():
     return gecti, "HATA=%s YENI=%d URL=%d" % (
         hata or "", sayac["yeni_urun"] if sayac else -1,
         sayac["url"] if sayac else -1)
+
+
+def vaka_7_bucket_alanlari_eksik():
+    """V7: env bos + --kimlik-dosyasi ile gelen dosyada `bucket` alani YOK.
+
+    r2-upload.py ile ayni sema: access_key, secret, endpoint — bucket yok.
+    kimlik_coz dosyayi okur ama bucket bos/yok oldugu icin None doner.
+    nobet_calistir KIMLIK_YOK ile OLCULEMEDI -> rc=3. Bu beklenti, "bucket
+    kaynagi olmadan nobet yesil yanmaz" kuralinin sahidi."""
+    gecici_kok = tempfile.mkdtemp(prefix="k415-v7-")
+    try:
+        sahte_kimlik = os.path.join(gecici_kok, ".r2-credentials.json")
+        with open(sahte_kimlik, "w") as f:
+            json.dump({"access_key": "test_id",
+                       "secret": "test_sec",
+                       "endpoint": "https://test.r2.cloudflarestorage.com",
+                       "public_base": "https://media.example.com"}, f)
+        modul = sys.modules[__name__]
+        eski_root = modul.ROOT
+        eski_kimlik = modul.R2_KIMLIK
+        eski_s3 = modul.s3_istemcisi_yap
+        modul.ROOT = gecici_kok
+        modul.R2_KIMLIK = os.path.join(gecici_kok, "yok.json")
+        sahte_s3 = SahteS3(set())
+        modul.s3_istemcisi_yap = lambda kimlik: sahte_s3
+        try:
+            sayac, hata = nobet_calistir(
+                "x", env={}, kimlik_dosyasi=sahte_kimlik,
+                taban_id={"eski1"},
+                head_kayitlari=[{"id": "eski1", "gorseller": []}])
+        finally:
+            modul.ROOT = eski_root
+            modul.R2_KIMLIK = eski_kimlik
+            modul.s3_istemcisi_yap = eski_s3
+    finally:
+        try:
+            import shutil
+            shutil.rmtree(gecici_kok)
+        except OSError:
+            pass
+    gecti = (sayac is None and hata is not None
+             and hata.startswith("KIMLIK_YOK"))
+    return gecti, "HATA=%s" % (hata or "")
+
+
+def vaka_8_env_r2_bucket_yok():
+    """V8: env'de 3 alan var (R2_ERISIM_ID/R2_GIZLI_ANAHTAR/CLOUDFLARE_ACCOUNT_ID)
+    ama R2_BUCKET YOK; dosya YOK. Onceki davranis: dosya kolunda root'a bakar,
+    dosya yoksa None -> KIMLIK_YOK. CI'da nobet.yml `R2_BUCKET: pruvo-media`
+    satiri eklenmedigi surece bu senaryo FAIL-CLOSED KIRMIZI olur (capraz-kol
+    kapsama olcusu)."""
+    gecici_kok = tempfile.mkdtemp(prefix="k415-v8-")
+    try:
+        modul = sys.modules[__name__]
+        eski_root = modul.ROOT
+        eski_kimlik = modul.R2_KIMLIK
+        modul.ROOT = gecici_kok
+        modul.R2_KIMLIK = os.path.join(gecici_kok, "yok.json")
+        env8 = {"R2_ERISIM_ID": "eid", "R2_GIZLI_ANAHTAR": "es",
+                "CLOUDFLARE_ACCOUNT_ID": "acc"}
+        # R2_BUCKET env'de YOK — kasten.
+        try:
+            sayac, hata = nobet_calistir("x", env=env8)
+        finally:
+            modul.ROOT = eski_root
+            modul.R2_KIMLIK = eski_kimlik
+    finally:
+        try:
+            import shutil
+            shutil.rmtree(gecici_kok)
+        except OSError:
+            pass
+    gecti = (sayac is None and hata is not None
+             and hata.startswith("KIMLIK_YOK"))
+    return gecti, "HATA=%s" % (hata or "")
 
 
 def mutant_calistir(capa):
@@ -520,14 +631,28 @@ M1_CAPA = (
     'if sayac["yok"] > 0 or sayac["gelenek_disi"] > 0:\n        return RC_YOK_VAR',
     'if False:\n        return RC_YOK_VAR',
 )
+# M2: kimlik_coz None donduren en son kapuyu ac — kimlik hicbir yerde yoksa
+# bile sahte bir dict uret. nobet_calistir "KIMLIK_YOK" yerine yola devam eder
+# ve boto3/bucket'a gider; V4 mutant altinda KIMLIK_YOK bekleyip BOTO3_YOK
+# (veya daha kotu: sessiz yesil) ile karsilasir.
 M2_CAPA = (
-    'if not (id_ and secret and acc):\n            return None, "KIMLIK_YOK: env (R2_ERISIM_ID/R2_GIZLI_ANAHTAR/CLOUDFLARE_ACCOUNT_ID) ve "',
-    'if not (id_ and secret and acc):\n            return {"yeni_urun":0,"url":0,"var":0,"yok":0,"hata":0,"gelenek_disi":0}, None',
+    '    return None\n\n\ndef s3_istemcisi_yap(kimlik):',
+    '    return {"access_key": "M2_mutant", "secret": "M2_mutant",\n             "endpoint": "https://M2.r2.cloudflarestorage.com",\n             "bucket": "M2_mutant"}\n\n\ndef s3_istemcisi_yap(kimlik):',
+)
+# M3: env dortlu AND'i OR'a cevir. onceki davranis dort alan da dolu olmalikken
+# birlikte AND ile kontrol ediyordu; bu kapinin amaci eksik alani fail-closed
+# KIMLIK_YOK'a cekmekti. Mutantta OR'a gevsedigi icin env'de R2_BUCKET yoksa
+# bile (diger ucunden biri dolu oldugu muddetce) kimlik_coz dict doner ve
+# nobet_calistir yola devam eder; V8 mutant altinda KIMLIK_YOK yerine TABAN_YOK
+# / BOTO3_YOK'a kayar -> V8 KIRMIZI olur.
+M3_CAPA = (
+    'if rid and rsec and acc and rbucket:',
+    'if rid or rsec or acc or rbucket:',
 )
 
 
 def kendini_test():
-    """5 vaka + 2 mutant. rc=0 = HEPSI gecti. Hata: hangi vakanin neyinden dolayi
+    """8 vaka + 3 mutant. rc=0 = HEPSI gecti. Hata: hangi vakanin neyinden dolayi
     kactigi AYKRI AYRI basilir; tek sayi OZETI vakalardan once gelmez."""
     vakalar = [
         ("V1 hepsi VAR (rc=0)", vaka_1_hepsi_var),
@@ -536,6 +661,8 @@ def kendini_test():
         ("V4 KIMLIK_YOK OLCULEMEDI (rc=3)", vaka_4_kimlik_yok),
         ("V5 KONTROL yeni urun 0 (rc=0)", vaka_5_bos_yeni),
         ("V6 --kimlik-dosyasi bayrak (rc=0)", vaka_6_kimlik_dosyasi_bayrak),
+        ("V7 dosyada bucket alani yok (rc=3)", vaka_7_bucket_alanlari_eksik),
+        ("V8 env R2_BUCKET yok + dosya yok (rc=3)", vaka_8_env_r2_bucket_yok),
     ]
     gecmedi = []
     print("=== VAKALAR ===")
@@ -617,6 +744,39 @@ def kendini_test():
     except Exception as exc:
         print("FAIL M2 | EXC: %r" % exc)
         gecmedi.append("M2")
+
+    # M3: env dortlu AND -> OR. Mutant capasini izole kopyaya uygula, V8'i
+    # mutant altinda kos; beklenti mutantta hata.startswith("KIMLIK_YOK")
+    # olmamali — yani V8 mutant altinda kirmizi yanar. Bu durum M3'un
+    # YAKALANDIGINI gosterir.
+    print("=== MUTANT M3 ===")
+    try:
+        mod = mutant_calistir(M3_CAPA)
+        gecici_kok = tempfile.mkdtemp(prefix="k415-m3-")
+        try:
+            mod.ROOT = gecici_kok
+            mod.R2_KIMLIK = os.path.join(gecici_kok, "yok.json")
+            env8 = {"R2_ERISIM_ID": "eid", "R2_GIZLI_ANAHTAR": "es",
+                    "CLOUDFLARE_ACCOUNT_ID": "acc"}
+            # R2_BUCKET env'de YOK — kasten.
+            sayac, hata = mod.nobet_calistir("x", env=env8)
+        finally:
+            try:
+                import shutil
+                shutil.rmtree(gecici_kok)
+            except OSError:
+                pass
+        m3_gecti = not (hata and hata.startswith("KIMLIK_YOK"))
+        # M3 mutantinda V8 artik KIMLIK_YOK vermez (env dortlu OR'a gevsedigi
+        # icin eksik alanla bile kimlik_coz dict doner). Mutant altinda
+        # KIMLIK_YOK BASLANGICI yoksa V8 KIRMIZI olmus demek -> M3 yakalandi.
+        print("%s M3 env-dortlu-AND-OR-olur | hata=%r" % (
+            "OK" if m3_gecti else "FAIL", hata))
+        if not m3_gecti:
+            gecmedi.append("M3")
+    except Exception as exc:
+        print("FAIL M3 | EXC: %r" % exc)
+        gecmedi.append("M3")
 
     if gecmedi:
         print("\n=== SONUÇ ===")
