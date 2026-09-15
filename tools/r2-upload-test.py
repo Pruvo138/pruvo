@@ -65,6 +65,19 @@ R6 EZME KAPISI (8 Ağu 2026) — "veri yazan araç mevcut değeri SESSİZCE ezem
   Z4 bayrak VARSAYILANI `argparse`    → parser_kur().parse_args([]) ile ÖLÇÜLÜR: ikisi de
                                        False (düzyazı/doküman iddiası DEĞİL)
   Z5 CLI çıkış kodu                   → ezme reddinde sıfır-dışı (KOD_EZME) sabiti
+
+R7 ÇIPLAK ANAHTAR KAPISI (15 Eyl 2026, K415 ④) — katalog 'urunler/<key>-<n>.jpg'
+derken R2'ye 'th<id>-N' yazılması 528 canlı kaydı 404'e düşürdü. Ön-kontrol YAZMADAN
+ÖNCE anahtarın "soyuş" desenine girip girmediğini ölçer (`r2_anahtar.anahtar_coz`
+delege; ikinci "urunler" sabiti YAZMAZ); bilinçli geçiş `--ham-anahtar` (varsayılan
+KAPALI). Meşru yollar ("urunler/...jpg", "banner/...jpg") DEĞİŞMEDEN geçer:
+  V1 çıplak 'th6761486-1'              → RAISE (GelenegeAykiri) + HİÇBİR S3 çağrısı
+                                         (var_mi bile çağrılmadı) + stderr ANAHTAR_GELENEK_DISI
+                                         + çıkış kodu sıfır-dışı
+  V2 meşru 'urunler/th6761486-1.jpg'   → GEÇER (desen dışı: '/' + '.jpg' var)
+  V3 'th6761486-1' + --ham-anahtar    → GEÇER (R7 bilerek atlandı; put IfNoneMatch ile)
+  V4 'banner/skan-baykus-b5.jpg'       → GEÇER (meşru yol; '/' var, desen dışı)
+  V5 KOD_GELENEK_DISI sıfır-dışı sabit → CLI çıkış kodu (sessiz başarı yok)
 """
 import sys, os, io, json, tempfile, importlib.util
 
@@ -460,6 +473,71 @@ def vaka_Z5_cikis_kodu():
            "Z5: ezme reddinin CLI çıkış kodu SIFIR-DIŞI (sessiz başarı yok)")
 
 
+# --- R7 ÇIPLAK ANAHTAR KAPISI: V1-V5 -------------------------------------------
+def vaka_V1_ciplak_anahtar_red():
+    """ASIL KALEM: 'th6761486-1' (klasörsüz + uzantısız) R7 ile REDDEDİLİR + HİÇBİR S3
+    çağrısı YOK (var_mi bile çağrılmadı → pre-check on_dogrula'dan ÖNCE koştu).
+    stderr ANAHTAR_GELENEK_DISI'yi ve beklenen yol önerisini taşımalı."""
+    s3 = FakeS3()
+    hata = None
+    try:
+        mod.dogrula_ve_yukle(s3, BUCKET, "th6761486-1", JPEG_OK)
+    except Exception as exc:
+        hata = exc
+    onayla(isinstance(hata, mod.GelenegeAykiri),
+           "V1: 'th6761486-1' GelenegeAykiri ile REDDEDİLDİ")
+    metin = str(hata) if hata else ""
+    onayla("ANAHTAR_GELENEK_DISI" in metin, "V1: stderr ANAHTAR_GELENEK_DISI etiketi")
+    onayla("th6761486-1" in metin, "V1: hangi anahtarın reddedildiği basıldı")
+    onayla("urunler/" in metin, "V1: beklenen yol 'urunler/...' önerisi var")
+    onayla(s3.puts == [], "V1: put ÇAĞRILMADI (fail-closed önce)")
+    onayla(s3.izler == [], "V1: HİÇBİR S3 çağrısı YOK (var_mi bile koşmadı)")
+
+
+def vaka_V2_mesru_yol_gecer():
+    """Meşru yol 'urunler/th6761486-1.jpg' R7 dışı kalır (has '/' + '.jpg' → desen tutmaz)
+    → normal akış: var_mi False → koşullu PUT."""
+    s3 = FakeS3()
+    ct = mod.dogrula_ve_yukle(s3, BUCKET, "urunler/th6761486-1.jpg", JPEG_OK)
+    onayla(ct == "image/jpeg" and len(s3.puts) == 1,
+           "V2: 'urunler/th6761486-1.jpg' meşru yol → yüklendi")
+    onayla(s3.puts[0]["Key"] == "urunler/th6761486-1.jpg",
+           "V2: put anahtarı 'urunler/th6761486-1.jpg' (ham anahtar DEĞİL)")
+    onayla(s3.puts[0]["IfNoneMatch"] == "*",
+           "V2: yeni anahtar IfNoneMatch='*' ile yazıldı (yarış penceresi kapalı)")
+
+
+def vaka_V3_ham_anahtar_bayrak():
+    """Bilinçli istisna: 'th6761486-1' + ham_anahtar=True → R7 ATLANIR, normal akış koşar."""
+    s3 = FakeS3()
+    ct = mod.dogrula_ve_yukle(s3, BUCKET, "th6761486-1", JPEG_OK, ham_anahtar=True)
+    onayla(ct == "image/jpeg" and len(s3.puts) == 1,
+           "V3: --ham-anahtar ile 'th6761486-1' yüklendi (R7 bilerek atlandı)")
+    onayla(s3.puts[0]["Key"] == "th6761486-1",
+           "V3: put anahtarı 'th6761486-1' (bilinçli geçiş; meşru yol DEĞİL)")
+
+
+def vaka_V4_mesru_banner_gecer():
+    """Meşru yol 'banner/skan-baykus-b5.jpg' R7 dışı kalır ('/' var → desen tutmaz)."""
+    s3 = FakeS3()
+    ct = mod.dogrula_ve_yukle(s3, BUCKET, "banner/skan-baykus-b5.jpg", JPEG_OK)
+    onayla(ct == "image/jpeg" and len(s3.puts) == 1,
+           "V4: 'banner/skan-baykus-b5.jpg' meşru yol → yüklendi (değişmedi)")
+
+
+def vaka_V5_kod_cikis():
+    """CLI çıkış kodu sıfır-dışı: çıplak anahtar reddi sessiz başarı OLMAMALI."""
+    onayla(isinstance(mod.KOD_GELENEK_DISI, int) and mod.KOD_GELENEK_DISI != 0,
+           "V5: R7 reddinin CLI çıkış kodu SIFIR-DIŞI (sessiz başarı yok)")
+    # parser'da --ham-anahtar VARSAYILANI False
+    a = mod.parser_kur().parse_args([])
+    onayla(a.ham_anahtar is False,
+           "V5: --ham-anahtar argparse'ta False (düzyazıdan değil DEFAULT'tan ölçüldü)")
+    b = mod.parser_kur().parse_args(["--ham-anahtar"])
+    onayla(b.ham_anahtar is True,
+           "V5: bayrak verilince True (kol ölü değil)")
+
+
 # --- R5 SİLME KAPISI: J-O ------------------------------------------------------
 class SahteKova:
     """Ağsız R2 taklidi. `sessiz` = silme çağrısı BAŞARILI görünür ama nesneyi
@@ -788,6 +866,9 @@ def main():
                vaka_V_mevcut_anahtar, vaka_W_acik_izin, vaka_X_kuru_prova,
                vaka_Y_kosullu_yazma, vaka_Z1_kosullu_desteksiz, vaka_Z2_onkosul_ihlali,
                vaka_Z3_sonda_sirasi, vaka_Z4_argparse_varsayilani, vaka_Z5_cikis_kodu,
+               vaka_V1_ciplak_anahtar_red, vaka_V2_mesru_yol_gecer,
+               vaka_V3_ham_anahtar_bayrak, vaka_V4_mesru_banner_gecer,
+               vaka_V5_kod_cikis,
                vaka_J, vaka_K, vaka_L, vaka_M, vaka_N_curutme, vaka_O_yetki,
                vaka_CDN_A_yok, vaka_CDN_B_var, vaka_CDN_C_yetki,
                vaka_P_409_urun_yine_kalkar, vaka_Q_hepsi_409, vaka_R_kuyruk_kalici,
