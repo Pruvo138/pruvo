@@ -78,7 +78,11 @@ import shutil
 import sys
 import time
 
-VARSAYILAN_KOK = os.path.expanduser("~/.claude/cron")
+# 🔴 K417-TUR-GOREV-3 (15 Eyl 2026): `--kok` ZORUNLU yapildi; canli
+# `~/.claude/cron` artik yanlislikla hedef OLAMAZ. Onceki
+# (varsayilan-kok) huyda aracin `--kok`'suz kosumda canli dizine
+# yazma/silme riski vardi; kaldirildi (kabul V8).
+
 REPO_CRON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cron")
 
 # Kurulacak YENI dosyalar: repo KANONIK kaynaktir, kurulu kopya birebir
@@ -522,14 +526,14 @@ def yama_durumu(kok):
 def uygula(kok, kuru):
     degisen = []
     hata = []
-    # 0) Hedef kok zaten varsa icindeki dosyalari TEMIZLE — onceki
-    #    kosumdan kalan K417-yama uygulanmis kopyalar yeni capalari
-    #    BULAMAZ, sessiz "EKSIK" rapor edilirdi (YAMA_DURUMU'nun
-    #    capa_sayisi=0 kosulu). Idempotens icin temizden basla.
-    for ad in KOPYALANAN:
-        hedef = os.path.join(kok, ad)
-        if os.path.isfile(hedef):
-            os.unlink(hedef)
+    # 🔴 K417-TUR-GOREV-3 (15 Eyl 2026): 0. adim (hedef kokteki KOPYALANAN
+    # dosyalarini silme) TAMAMEN kaldirildi. Idempotens 1. adimdaki sha
+    # karsilastirmasiyla saglaniyor (`varsa_esit` kontrolu). Bu 0. adim
+    # canli `~/.claude/cron`'a `--kok`'suz kosumda yanlislikla UYGULANMIS
+    # ve iki kritik dosyayi (`isci-hal-cozucu.py`, `isci-durma-notu.py`)
+    # SILMISTI; ana checkout'ta anaarin izi bulunamadi (15 Eyl 2026,
+    # mimar olcumu). Yeniden: idempotens sha ile; KOPYALANAN dosyalari
+    # sadece sha farkliysa degistirilir.
     # 1) YENI dosyalar: repo -> kurulu (birebir kopya)
     for ad in KOPYALANAN:
         kaynak = os.path.join(REPO_CRON, ad)
@@ -607,7 +611,11 @@ def geri_al(kok):
 
 def main():
     ap = argparse.ArgumentParser(add_help=True)
-    ap.add_argument("--kok", default=VARSAYILAN_KOK)
+    # 🔴 K417-TUR-GOREV-3 (15 Eyl 2026): `--kok` ZORUNLU; varsayilan yok.
+    # Canli `~/.claude/cron` bu aracin HEDEFI degil; yalniz gecici fikstür
+    # ya da `--canli-kur` bayrakli acil kosum hedefi olabilir. `--kok`
+    # verilmeden CLI rc≠0 ile cikar ve hicbir yere dokunmaz (V8).
+    ap.add_argument("--kok", required=True)
     ap.add_argument("--kuru", action="store_true")
     ap.add_argument("--durum", action="store_true")
     ap.add_argument("--geri-al", dest="geri_al", action="store_true")

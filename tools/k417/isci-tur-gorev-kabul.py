@@ -47,6 +47,7 @@ Cikis: 0 = hepsi yesil · 1 = dusen var · 2 = arac hatasi · 3 = OLCULEMEDI.
 """
 
 import atexit
+import hashlib
 import importlib.util
 import json
 import os
@@ -200,6 +201,60 @@ def hal_dosyasi_oku(kok):
     en_yeni = os.path.join(dizin, adaylar[-1])
     with open(en_yeni, encoding="utf-8", errors="replace") as f:
         return f.read().strip()
+
+
+def _kok_sha_listesi(kok):
+    """Sandbox kokundeki HER dosyanin (ad, sha, bayt) tuple listesi.
+
+    V7/V8 kabul vakalari icin: uygulama oncesi/sonrasi dosya listesinin
+    birebir ayni oldugunu kanitlar. `.isci-*` gibi gecici dosyalar
+    HARIC tutulur (isci.sh kendi HAL/cikti dosyalarini uretebilir; biz
+    yalniz YAMANIN hedeflerini olcuyoruz).
+    """
+    satirlar = []
+    for ad in sorted(os.listdir(kok)):
+        # Gecici isci.sh dosyalarini HARIC tut
+        if ad.startswith(".isci-") or ad.startswith(".bekci-") or ad.startswith(".motor-"):
+            continue
+        yol = os.path.join(kok, ad)
+        if not os.path.isfile(yol):
+            continue
+        try:
+            h = hashlib.sha256()
+            with open(yol, "rb") as f:
+                for parca in iter(lambda: f.read(65536), b""):
+                    h.update(parca)
+            satirlar.append((ad, h.hexdigest(), os.path.getsize(yol)))
+        except OSError:
+            pass
+    return sorted(satirlar)
+
+
+def _yama_yukle(kok=None):
+    """`isci-butce-hali-yama.py`'yi import et. `kok` verilmisse o kokten,
+    aksi halde EV'den (sarmalayici tarafindan kullanilan kanonik)."""
+    if kok is None:
+        yol = os.path.join(BURASI, "isci-butce-hali-yama.py")
+    else:
+        yol = os.path.join(kok, "isci-butce-hali-yama.py")
+        if not os.path.isfile(yol):
+            yol = os.path.join(BURASI, "isci-butce-hali-yama.py")
+    spec_yama = importlib.util.spec_from_file_location("_k417_yama_v7", yol)
+    mod = importlib.util.module_from_spec(spec_yama)
+    spec_yama.loader.exec_module(mod)
+    return mod
+
+
+# K417-TUR-GOREV-3 0. adim blogu (silinecek) — M3 mutant testi icin
+# kullanilan katalog. Mevcut koddaki 0. adim kaldirildi; burasi yalniz
+# M3'te geri EKLENECEK mutant blogudur.
+M3_UNLINK_BLOK = (
+    "    # === K417-MUTANT-M3: 0. ADIM UNLINK GERI ===\n"
+    "    for ad in KOPYALANAN:\n"
+    "        hedef = os.path.join(kok, ad)\n"
+    "        if os.path.isfile(hedef):\n"
+    "            os.unlink(hedef)\n"
+)
 
 
 def _ortam_hazirla(stub):
@@ -390,6 +445,47 @@ def vakalari_kos():
       "rc=%d bitis_sayisi=%d saglikli=%d hal=%s"
       % (p6.returncode, len(bitis6), saglikli_sayisi, hal6))
 
+    # --- V7: kuru kosum KOK DOKUNULMAZ (15 Eyl 2026, mimar olcumu) -------
+    # K417-TUR-GOREV-3: 0. adim (unlink) kaldirildi; idempotens sha ile.
+    # Geçici fikstür kökünde (KOPYALANAN + yamalı dosyaların sahte
+    # kopyaları) `uygula(kok, kuru=True)` ⇒ köktaki HER dosyanın sha'sı
+    # ve dosya listesi önce=sonra. Bu, `--kuru` bayraginin TUM yan
+    # etkilerden arindigini kanitlar (yedek olusturma, dosya yazma,
+    # mod degisikligi dahil).
+    kok7, stub7, spec7 = sandbox_kur()
+    once7 = _kok_sha_listesi(kok7)
+    yama7 = _yama_yukle()
+    degisen7, hata7 = yama7.uygula(kok7, kuru=True)
+    sonra7 = _kok_sha_listesi(kok7)
+    v(7, "kuru kosum kok dokunmaz: uygula(kok, kuru=True) sonrasi sha ve "
+         "dosya listesi birebir",
+      "D",
+      once7 == sonra7 and not hata7,
+      "degisecek=%d hata=%d once=%d sonra=%d esit=%s"
+      % (len(degisen7), len(hata7), len(once7), len(sonra7),
+         "EVET" if once7 == sonra7 else "🔴 HAYIR"))
+
+    # --- V8: --kok verilmeden CLI ⇒ rc≠0 ve KOK DOKUNULMAZ --------------
+    # K417-TUR-GOREV-3: VARSAYILAN_KOK kaldirildi; `--kok` ZORUNLU.
+    # Canli `~/.claude/cron` yanlislikla hedef OLAMAZ (15 Eyl 2026,
+    # mimar olcumu: canli iki kritik dosya SILINDI). argparse
+    # `required=True` ile rc=2 (ya da 3) cikar; dosyaya dokunmadan.
+    kok8, stub8, spec8 = sandbox_kur()
+    once8 = _kok_sha_listesi(kok8)
+    p8 = subprocess.run(
+        [sys.executable, os.path.join(BURASI, "isci-butce-hali-yama.py"),
+         "--kuru"],
+        capture_output=True, text=True, timeout=30,
+    )
+    sonra8 = _kok_sha_listesi(kok8)
+    v(8, "--kok verilmeden CLI reddedilir ve kok dokunulmaz",
+      "D",
+      p8.returncode != 0 and once8 == sonra8,
+      "rc=%d once=%d sonra=%d esit=%s stderr=%s"
+      % (p8.returncode, len(once8), len(sonra8),
+         "EVET" if once8 == sonra8 else "🔴 HAYIR",
+         (p8.stderr or "").strip()[:150]))
+
     return sorted(sonuc, key=lambda s: s["no"])
 
 
@@ -407,13 +503,39 @@ MUTANTLAR = [
      "yeni": "CLAUDE_PGID_K417=$(ps -o pgid= -p \"$$\" 2>/dev/null | tr -d ' ')",
      "hedef": [2, 6],
      "aciklama": "tarama $$ pgid'sine geri doner (V2/V6 EKSIK basar)"},
+    {"ad": "M3", "kol": "D", "dosya": "isci-butce-hali-yama.py",
+     "eski": None,
+     "yeni": None,
+     "hedef": [7],
+     "aciklama": "0. adim unlink geri eklenir (V7 KIRMIZI olur; kuru kosumda "
+                 "bile KOPYALANAN dosyalari silinir)"},
 ]
 
 
 def mutant_uygula(kok, m):
     """M1: K417-ARKA-PLAN-SURECI-KONTROLU blogunun TAMAMINI yorum satirina cevir.
     M2: CLAUDE_PGID_K417 atamasini $$ pgid'sine cevir (eski buggy davranis).
+    M3: `isci-butce-hali-yama.py`'nin sandbox kopyasina 0. adim (unlink)
+        geri eklenir; V7 senaryosunda kuru kosumda bile KOPYALANAN
+        dosyalari silinir.
     """
+    if m["ad"] == "M3":
+        # EV'deki isci-butce-hali-yama.py'yi sandbox'a kopyala, sonra
+        # uygula() fonksiyonuna 0. adim unlink blogunu enjekte et.
+        ev_yama = os.path.join(BURASI, "isci-butce-hali-yama.py")
+        hedef = os.path.join(kok, "isci-butce-hali-yama.py")
+        shutil.copy2(ev_yama, hedef)
+        with open(hedef, encoding="utf-8") as f:
+            metin = f.read()
+        # Mevcut uygula() baslangic marker'i:
+        marker = "def uygula(kok, kuru):\n    degisen = []\n    hata = []\n"
+        if marker not in metin:
+            return False
+        metin = metin.replace(marker, marker + M3_UNLINK_BLOK, 1)
+        with open(hedef, "w", encoding="utf-8") as f:
+            f.write(metin)
+        return True
+
     yol = os.path.join(kok, m["dosya"])
     with open(yol, encoding="utf-8") as f:
         metin = f.read()
@@ -487,16 +609,41 @@ def main():
             print("MUTANT %s YAMA_TUTMADI (capa bulunamadi) 🔴" % m["ad"])
             yama_tutmadi += 1
             continue
-        # M1: V1 senaryosu mutantli halde. M2: V2 senaryosu.
+        # M1: V1 senaryosu mutantli halde. M2: V2 senaryosu. M3: V7 senaryosu
+        # (uygula(kok, kuru=True) ile kok sha ve dosya listesi kontrolu).
         if m["ad"] == "M1":
             hedef_senaryolar = [("arka_plan", 1)]
+            senaryo_tipi = "isci"
         elif m["ad"] == "M2":
             hedef_senaryolar = [("saglikli", 2), ("saglikli", 6)]
+            senaryo_tipi = "isci"
+        elif m["ad"] == "M3":
+            hedef_senaryolar = [(None, 7)]
+            senaryo_tipi = "uygula_kuru"
         else:
             hedef_senaryolar = []
+            senaryo_tipi = "isci"
         mutant_saglikli_uyumsuz = 0
         mutant_kapandi = 0
         for mod, vid in hedef_senaryolar:
+            if senaryo_tipi == "uygula_kuru":
+                # M3: mutantli isci-butce-hali-yama.py'yi import et,
+                # uygula(kok, kuru=True) ile V7 senaryosunu kos. Beklenti:
+                # 0. adim unlink'i geri geldigi icin KOPYALANAN dosyalari
+                # (isci-hal-cozucu.py, isci-durma-notu.py, isci-yeni-grup.py)
+                # SILINMELI; V7 KIRMIZI olur (once != sonra).
+                once_m = _kok_sha_listesi(kok)
+                yama_m = _yama_yukle(kok)
+                yama_m.uygula(kok, kuru=True)
+                sonra_m = _kok_sha_listesi(kok)
+                # M3 basarili = V7 KIRMIZI (eski buggy davranis geri geldi,
+                # kuru kosumda bile dosyalar siliniyor)
+                if once_m != sonra_m:
+                    mutant_kapandi += 1
+                else:
+                    mutant_saglikli_uyumsuz += 1
+                continue
+            # isci.sh senaryolari (M1, M2)
             # M2 v6 paralel icin paralel komsu
             if m["ad"] == "M2" and vid == 6:
                 p_m, log_m, _h = isci_kos_parallel(kok, stub, spec, mod)
@@ -521,8 +668,13 @@ def main():
                     mutant_saglikli_uyumsuz += 1
         if mutant_kapandi >= 1:
             olen += 1
-            hedefte = set(m["hedef"]).issubset(
-                set([2, 6]) if m["ad"] == "M2" else set([1]))
+            if m["ad"] == "M1":
+                hedef_set = set([1])
+            elif m["ad"] == "M2":
+                hedef_set = set([2, 6])
+            else:  # M3
+                hedef_set = set([7])
+            hedefte = set(m["hedef"]).issubset(hedef_set)
             if hedefte:
                 atif += 1
             print("MUTANT %s OLDU hedef=%s atif=%s — %s"
