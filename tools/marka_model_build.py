@@ -1543,6 +1543,20 @@ _MM_CSS = """
 KATLA_MODEL_N = 12     # mobil ilk ekranda açık kalan model çipi (ArTisT ölçütü: EN ÇOK 12)
 KATLA_KALAN_N = 24     # düz bağ listesinde açık kalan girdi
 KATLA_GIRIS_SATIR = 3  # giriş metninin mobilde açık kalan satırı (ölçümle 4'ten indirildi)
+# 🔴 KOK BAG TAVANI (15 Eyl 2026) — kök marka sayfasının düz bağ listesini SINIRLAMAK için.
+# AGIRLIK ekseninin TEK SINIRSIZ buyuyen bileseni bu listedir (marka-sayac-kapisi.py
+# `AGIRLIK/<yol>`, KATLA_KALAN_N'den sonra TEK kalan buyuyen parca; kartlar MARKA_KART_N
+# ile tavanli). Okan hükmü: HTML_TAVAN tavan kalsin ama liste buyumesin — katalog
+# her partide buyuyor, sabit tavana goreli oldugu icin pencere-goreli alarm tuzagina
+# donusmesin (HTML_TAVAN ile ayni dusunce). ÖKSÜZ DOGMAZ: devam sayfalari
+# (`/marka/<slug>/sayfa/<N>/`, `marka_model_build.py:_marka_sayfa_dilimi`) yerel
+# kalemlerin TAMAMINI kart basar; marka-sayac-kapisi.py:601-605 erisim turetmesi bu
+# dilimleri katip `BAG_YEREL` eksenini korur, marka-model-test.py:402 öksüz testi
+# devam sayfalarini SAYAR. DEGER = 400: 213155 tavan altinda 33.592 B pay birakti
+# (en buyuk = yamaha 179.563 B); 200/300 sinirinda daha az liste elemani basilir
+# (200 -> 149.783 B / 63.372 B pay; 300 -> 164.747 B / 48.408 B pay), 400 en buyuk
+# kapsam + 25.000 B minimum pay'i gecirir.
+KOK_BAG_TAVAN = 400     # kök sayfanın düz bağ listesinde BASıLAN maksimum kalem
 
 # nth-child eşikleri Python sabitlerinden TÜRETİLİR — CSS'e elle sayı yazılsaydı sabit
 # değişince ikiz tanım sessizce ayrışırdı ([[ikiz-tanim-sessiz-ayrisma]]).
@@ -3095,6 +3109,10 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler,
     yerel_kalan = []
     if sayfa == 1:
         yerel_kalan = [p for p in yerel if p.get("id") not in basili_ids]
+        # 🔴 KOK BAG TAVANI (15 Eyl 2026) — kök marka sayfasının düz bağ listesini SINIRLAMAK.
+        # Sıra KORUNUR (yerel zaten kanonik sırada); kırpma öksüz DOĞURMAZ çünkü devam
+        # sayfaları yerel kalemleri kart basıyor (yukarıdaki açıklama + `KOK_BAG_TAVAN`).
+        yerel_kalan = yerel_kalan[:KOK_BAG_TAVAN]
     kalan_html = ""
     if yerel_kalan:
         # data-kat: bu kalemler de KAPSAM ekseninde (?kategori=) süzülür — kart olmasalar da
