@@ -23,6 +23,7 @@ Kosum:  python3 tools/yedekle-test.py
 import fcntl
 import fnmatch
 import glob
+import hashlib
 import importlib.util
 import json
 import os
@@ -652,6 +653,33 @@ def _gercek_pruvo_dizini_saltokunur():
         except OSError:
             continue
     return None
+
+
+def gercek_cron_izleri():
+    """Izole kosum gercek eve yazmamali: yedek-dusus-kalp.json SHA + log wc oncesi/sonra.
+
+    K188 kosumunda izole_ortam sahte HOME kullanir — bu dosyalar ANCAK sahte ev
+    altinda olusur. Gercek `~/.claude/cron` ayni kalir; bu fonksiyon o DEGISMEZ
+    kosulunu OLCER (sha+wc oncesi == sha+wc sonra).
+
+    Doner: {etiket: (yol, sha, wc)}  — dosya yoksa degerler (yol, None, None)."""
+    izler = {}
+    kalp = os.path.expanduser("~/.claude/cron/yedek-dusus-kalp.json")
+    log = os.path.expanduser("~/.claude/cron/yedek-dusus.log")
+    for etiket, yol in (("kalp", kalp), ("log", log)):
+        if not os.path.isfile(yol):
+            izler[etiket] = (yol, None, None)
+            continue
+        try:
+            with open(yol, "rb") as fh:
+                icerik = fh.read()
+            sha = hashlib.sha256(icerik).hexdigest()
+            with open(yol, "rb") as fh:
+                wc = sum(1 for _ in fh)
+            izler[etiket] = (yol, sha, wc)
+        except OSError:
+            izler[etiket] = (yol, None, None)
+    return izler
 
 
 def gercek_kritik_parmakizi(yedekle):
@@ -2608,6 +2636,131 @@ def main():
                 and hal_mk == "OLCULDU",
                 "kapsanan=%d disi=%d yok=%d hal=%s"
                 % (len(k_mk), len(disi_mk), len(yok_mk), hal_mk))
+
+    # ======== 23) K188 — YEDEK HÂL JETONU (TAM / YARIM) UC HÂLDE DE BASILIYOR MU?
+    # 27 Agu 2026, K308: makine-okunur `YEDEK=TAM` ve `YEDEK=YARIM` jetonlari
+    # kanca ciktisini kirparken (eskiden `tail -3` yapardi) ONCE BASLIK satiri
+    # dusuyordu ve "kac dosya atlandi" kayboluyordu. Bataryada OLCCULMEDIGI icin
+    # yeni bir mutant sessizce geri donup YESIL kalabilirdi. Burada uc kosumun
+    # HEPSI kendi YEDEK= jetonunu GERCEK izole ortamda basmasini olcer:
+    #   V1 temiz kosum   -> YEDEK=TAM   (YEDEK=YARIM YOK)
+    #   V2 bayt dususu   -> YEDEK=YARIM + ATLANAN>=1 + SINIF icinde 'bayt-dususu'
+    #   V3 kontrol       -> V1 ile birebir ayni jeton (dosya geri kondu)
+    # Tum kosumlar sahte HOME + sahte Drive altindadir (izole_ortam); gercek
+    # `~/.claude/cron/yedek-dusus-kalp.json` ve `yedek-dusus.log` SHA+wc oncesi=
+    # sonra olcumunden GECMELI — izole kosum gercek eve YAZMAMALI.
+    print("\n23) K188 — YEDEK hâl jetonu (TAM / YARIM) uc hâlde de BASILIYOR mu?")
+    with tempfile.TemporaryDirectory() as td:
+        # Gercek eve yazma yok — kosum oncesi parmak izi
+        izler_once = gercek_cron_izleri()
+
+        o = izole_ortam(td, yedekle)
+        # ---- V1: temiz izole kosum ----
+        r1 = izole_kos(o)
+        out1 = r1.stdout + r1.stderr
+        kontrol("23-V1) temiz izole kosum TAMAMLANDI (rc=0)",
+                r1.returncode == 0, "rc=%d" % r1.returncode)
+        kontrol("23-V1) ciktida `YEDEK=TAM` jetonu BASILDI (TAM hâl)",
+                "YEDEK=TAM" in out1, "ciktida yok")
+        kontrol("23-V1) ciktida `YEDEK=YARIM` jetonu YOK (TAM hâl)",
+                "YEDEK=YARIM" not in out1, "ciktida var")
+        kontrol("23-V1) `YEDEK=TAM` en az bir vaka SATIRINDA (tek satir kosulu)",
+                any(s.strip().startswith("YEDEK=TAM") for s in out1.splitlines()),
+                [s for s in out1.splitlines() if "YEDEK" in s])
+
+        # ---- V2 hazirlik: REPO_BEKLENEN dosyasinin boyutunu ciddi kucult ----
+        # `_yedek_korumasi` ANI_DUSUS_ESIGI=0.50 uzerinden 'bayt-dususu' karantinasini
+        # tetikler (kaynak yeni boyut < eski boyut * 0.50). DEVAM.md fiksturde
+        # tek satir icerik tasir; orijinal boyutu kaydedip sonra daha kucuk yazariz.
+        DEVAM_RELATIF = "DEVAM.md"   # REPO_BEKLENEN icinde (tur tek kaynak)
+        devam_kaynak = os.path.join(o["kok"], DEVAM_RELATIF)
+        with open(devam_kaynak, "r", encoding="utf-8") as fh:
+            orijinal_icerik = fh.read()
+        orijinal_boyut = os.path.getsize(devam_kaynak)
+        kontrol("23-V2-HAZIRLIK) DEVAM.md orijinal boyut > 0 (fikstur canli)",
+                orijinal_boyut > 0, "boyut=%d" % orijinal_boyut)
+        # Yeni boyut orijinalin YARISINDAN kucuk olsun — ciddi dusus esikle
+        yeni_boyut = max(orijinal_boyut // 4, 1)
+        with open(devam_kaynak, "w", encoding="utf-8") as fh:
+            fh.write("k" * yeni_boyut)
+        kontrol("23-V2-HAZIRLIK) DEVAM.md kucultme ANI_DUSUS_ESIGI=0.50 altinda "
+                "(yeni < eski * 0.50)",
+                os.path.getsize(devam_kaynak) < orijinal_boyut * 0.5,
+                "eski=%d yeni=%d esik=%d"
+                % (orijinal_boyut, os.path.getsize(devam_kaynak),
+                   int(orijinal_boyut * 0.5)))
+
+        # ---- V2: karantinali izole kosum ----
+        r2 = izole_kos(o)
+        out2 = r2.stdout + r2.stderr
+        kontrol("23-V2) karantinali izole kosum TAMAMLANDI (rc!=0 ya da hâl=YARIM)",
+                "YEDEK=YARIM" in out2 or r2.returncode != 0,
+                "rc=%d" % r2.returncode)
+        kontrol("23-V2) ciktida `YEDEK=YARIM` jetonu BASILDI (YARIM hâl)",
+                "YEDEK=YARIM" in out2, "ciktida yok")
+        kontrol("23-V2) ciktida `YEDEK=TAM` jetonu YOK (YARIM hâl)",
+                "YEDEK=TAM" not in out2, "ciktida TAM'da var")
+        kontrol("23-V2) ciktida `ATLANAN=1` (tek dosya karantinaya dustu)",
+                "ATLANAN=1" in out2,
+                [s for s in out2.splitlines() if "ATLANAN" in s])
+        kontrol("23-V2) ciktida `SINIF=` bayt-dususu tasir (gercek esik adi)",
+                "bayt-dususu" in out2,
+                [s for s in out2.splitlines() if "SINIF" in s])
+        kontrol("23-V2) `YEDEK=YARIM` en az bir vaka SATIRINDA (jeton dizgesi)",
+                any(s.strip().startswith("YEDEK=YARIM") for s in out2.splitlines()),
+                [s for s in out2.splitlines() if "YEDEK" in s])
+
+        # ---- V3: dosya geri kondu -> jeton ayni (V1 ile birebir) ----
+        with open(devam_kaynak, "w", encoding="utf-8") as fh:
+            fh.write(orijinal_icerik)
+        kontrol("23-V3-HAZIRLIK) DEVAM.md orijinal boyuta GERI DONDU",
+                os.path.getsize(devam_kaynak) == orijinal_boyut,
+                "boyut=%d beklenen=%d" % (os.path.getsize(devam_kaynak), orijinal_boyut))
+        r3 = izole_kos(o)
+        out3 = r3.stdout + r3.stderr
+        kontrol("23-V3) kontrol kosumunda `YEDEK=TAM` jetonu (V1 ile ayni)",
+                "YEDEK=TAM" in out3, "ciktida yok")
+        kontrol("23-V3) kontrol kosumunda `YEDEK=YARIM` jetonu YOK (V1 ile ayni)",
+                "YEDEK=YARIM" not in out3, "ciktida var")
+        kontrol("23-V3) `YEDEK=TAM` en az bir vaka SATIRINDA (jeton dizgesi)",
+                any(s.strip().startswith("YEDEK=TAM") for s in out3.splitlines()),
+                [s for s in out3.splitlines() if "YEDEK" in s])
+
+        # ---- Izole kosum gercek eve YAZMAMALI: SHA + wc oncesi == sonra ----
+        izler_sonra = gercek_cron_izleri()
+        kontrol("23) gercek ~/.claude/cron/yedek-dusus-kalp.json SHA oncesi=sonra "
+                "(izole kosum gercek eve YAZMADI)",
+                izler_once["kalp"][1] == izler_sonra["kalp"][1],
+                "kalp_once=%s kalp_sonra=%s"
+                % (izler_once["kalp"][1], izler_sonra["kalp"][1]))
+        kontrol("23) gercek ~/.claude/cron/yedek-dusus-kalp.json wc oncesi=sonra",
+                izler_once["kalp"][2] == izler_sonra["kalp"][2],
+                "wc_once=%s wc_sonra=%s"
+                % (izler_once["kalp"][2], izler_sonra["kalp"][2]))
+        kontrol("23) gercek ~/.claude/cron/yedek-dusus.log SHA oncesi=sonra",
+                izler_once["log"][1] == izler_sonra["log"][1],
+                "log_once=%s log_sonra=%s"
+                % (izler_once["log"][1], izler_sonra["log"][1]))
+        kontrol("23) gercek ~/.claude/cron/yedek-dusus.log wc oncesi=sonra",
+                izler_once["log"][2] == izler_sonra["log"][2],
+                "wc_once=%s wc_sonra=%s"
+                % (izler_once["log"][2], izler_sonra["log"][2]))
+        # Pozitif kontrol: izole kosum GERÇEKTEN SAHTE ev altinda yazdi (kalp/log
+        # dosyalari sahte ev icinde olusmus olmali). Bu kontrol olmeden "gercek
+        # eve yazma yok" iddiasi tautolojiye doner.
+        sahte_kalp = os.path.join(o["ev"], ".claude", "cron",
+                                  "yedek-dusus-kalp.json")
+        sahte_log = os.path.join(o["ev"], ".claude", "cron",
+                                 "yedek-dusus.log")
+        kontrol("23) izole kosum SAHTE HOME altinda kalp yazdi (yukaridaki "
+                "tautolojiyi onler)",
+                os.path.isfile(sahte_kalp), sahte_kalp)
+        kontrol("23) izole kosum SAHTE HOME altinda log yazdi",
+                os.path.isfile(sahte_log), sahte_log)
+        kontrol("23) sahte kalp icinde ARDISIK=1 yazili (V2 karantinali kosum izi)",
+                "ardisik" in (open(sahte_kalp, encoding="utf-8").read() if
+                              os.path.isfile(sahte_kalp) else ""),
+                "dosya yok")
 
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok, _ in SONUC if not ok]
