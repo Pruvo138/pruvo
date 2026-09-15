@@ -31,6 +31,10 @@ KAPI NEYİ ÖLÇER (üretilen HTML üzerinden, ÖRNEKLEME YOK — 1043 marka adr
                   gereksiz bayt, yereli koymamak ÖKSÜZ ürün demek).
   KART_N        : SSR'de basılan kart sayısı == min(MARKA_KART_N, toplam). N aşılırsa sayfa
                   yeniden şişer, N'den az basılırsa ilk boya sessizce zayıflar.
+  KOK_BAG_N     : kök marka sayfasının düz bağ sayısı == min(BEKLENEN_KOK_BAG_TAVAN,
+                  yerel-kalan). Tavan aşılırsa kökün altındaki yerel kalemler devam
+                  sayfalarına kart olarak taşar; tavan altındaysa eksik basılır ve öksüz
+                  kalem doğar (BAG_YEREL+SIRA'dan ayrı duran davranışsal çapa).
   AGIRLIK       : üretilen HTML baytı <= HTML_TAVAN (katalog her partide büyüyor; tavan
                   kapıda değilse bir sonraki parti sayfayı sessizce yeniden şişirir).
   ARTIM         : istemcinin çizeceği kart gövdesi (PRUVO_ARTIM.kartHtml, node'da GERÇEKTEN
@@ -90,6 +94,12 @@ HTML_TAVAN = 213155
 # mutantı yeşil geçirir — çapa ÜRETİLEN HTML'e bağlanır, jeneratörün sabitine değil.
 # Değer değişecekse burada da BİLEREK değişmeli (iki taraflı, görünür karar).
 BEKLENEN_KART_N = 80
+
+# Kök marka sayfasında düz bağ listesinin BEKLENEN azami kalem sayısı. 🔴 BİLEREK
+# KAPININ KENDİ BEYANI (`mm.KOK_BAG_TAVAN` import EDİLMEZ): sabiti ithal eden iddia,
+# sabiti değiştiren mutantı yeşil geçirir — çapa ÜRETİLEN HTML'e bağlanır, jeneratörün
+# sabitine değil. Değer değişecekse burada da BİLEREK değişmeli (iki taraflı, görünür karar).
+BEKLENEN_KOK_BAG_TAVAN = 400
 
 # 🔴 SCRIPT GÖVDESİ SAYFA İÇERİĞİ DEĞİLDİR. Artım modülü (PRUVO_ARTIM.kartHtml) kart
 # şablonunu JS içinde taşır; script'i soymadan tarayan bir ölçüm o ŞABLONU kart SAYAR
@@ -891,18 +901,32 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
              [p.get("id") for p in d["marka_only"]],
              [p.get("id") for p in d.get("ikincil", [])]]) if pid not in yayimda]
         # Yerel bölüm sayfada İKİ yerde durur: ilk N kalem KART, kalanı DÜZ BAĞ. İkisinin
-        # SIRALI birleşimi (kart yüzeyinin yerel kısmı + bağ listesi) kanonik yerel dizilime
-        # eşit olmalı — tekilleştirme/eleme sırayı YENİDEN DİZMEZ.
+        # SIRALI birleşimi (kart yüzeyinin yerel kısmı + bağ listesi) kanonik yerel
+        # dizilimin İLK (yerel kart + kök bağ tavanı) kalemine eşit olmalı — tekilleştirme/
+        # eleme sırayı YENİDEN DİZMEZ. Kök, kalanı devam sayfalarına kart olarak taşırır;
+        # beklenti bu yüzden TAM `beklenen_yerel` değil, bir ÖN EK.
         yerel_kume = set(beklenen_yerel)
         gercek = ([i for _k, i in s["kartlar"] if i in yerel_kume]
                   + [i for _k, i in s["baglar"]])
-        kapi.iddia("SIRA/" + yol, gercek == beklenen_yerel,
+        k = len([i for _k, i in s["kartlar"] if i in yerel_kume])
+        beklenen_on_ek = beklenen_yerel[:k + BEKLENEN_KOK_BAG_TAVAN]
+        kapi.iddia("SIRA/" + yol, gercek == beklenen_on_ek,
                    "yerel bölüm dizilimi ayrıştı (sayfa %d = yerel kart %d + bağ %d, "
-                   "beklenen %d, ilk fark %s)"
-                   % (len(gercek), len([1 for _k, i in s["kartlar"] if i in yerel_kume]),
-                      len(s["baglar"]), len(beklenen_yerel),
-                      next((n for n, (a, b) in enumerate(zip(gercek, beklenen_yerel))
+                   "beklenen_on_ek %d, beklenen_yerel %d, ilk fark %s)"
+                   % (len(gercek), k,
+                      len(s["baglar"]), len(beklenen_on_ek), len(beklenen_yerel),
+                      next((n for n, (a, b) in enumerate(zip(gercek, beklenen_on_ek))
                             if a != b), "uzunluk")))
+        # Kök sayfa düz bağ listesinin uzunluğu: tavan (BEKLENEN_KOK_BAG_TAVAN) ile kalan
+        # yerel (`beklenen_yerel - k`) uzunluğunun min'i olmalı. Kırpma devre dışı kalırsa
+        # bağ listesi şişer (AGIRLIK ihlali) ve tavan altında kalırsa öksüz kalem doğar
+        # (BAG_YEREL ihlali). Bağımsız eksen — SIRA dizilimle, AGIRLIK baytla, BAG_YEREL
+        # üyelikle ölçüyor; bu iddia DOĞRUDAN sayıyı denetler.
+        beklenen_bag = max(0, min(BEKLENEN_KOK_BAG_TAVAN, len(beklenen_yerel) - k))
+        kapi.iddia("KOK_BAG_N/" + yol, len(s["baglar"]) == beklenen_bag,
+                   "kök bağ tavan uymuyor (bağ %d, beklenen %d, yerel %d, k %d, tavan %d)"
+                   % (len(s["baglar"]), beklenen_bag,
+                      len(beklenen_yerel), k, BEKLENEN_KOK_BAG_TAVAN))
         # SSR'de basılan kart sayısı N tavanına UYMALI (ağırlık onarımının davranışsal ucu):
         # N aşılırsa sayfa yeniden şişer, N'den az basılırsa ilk boya sessizce zayıflar.
         # 🔴 DAVRANIŞSAL ÇAPA, SABİT İTHALİ DEĞİL (bağımsız çürütme, mutant X1): iddia
