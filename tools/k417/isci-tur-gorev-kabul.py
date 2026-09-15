@@ -41,15 +41,35 @@ M2: tarama `$$` pgid'sine geri doner. V2/V6 → EKSIK (YANLIS; gercek
     davranis SAGLIKLI olmaliydi). K417-1'in OLCULEN hatasi.
 M3: 0. adim unlink geri eklenir (kuru kosumda bile KOPYALANAN'lar silinir).
     V7 → KIRMIZI (kuru kosum yan etkilerden arinik degil).
+M4: temizligin oldurme kapsami `_PIDLER` disina (yeme) tasar.
+    V9 → KIRMIZI (yem olur). GERCEK desen-kill KOSMAZ.
+M5: izole KOPYAYA `+` ile birlestirilmis desen-kill cagrisi eklenir.
+    V10 → KIRMIZI. Kopya calistirilmaz, yalniz `ast.parse` edilir.
 
-K417-TUR-GOREV-4 (15 Eyl 2026) — PKILL/-f YASAK
------------------------------------------------
-Onceki tur makine geneli `PKILL -f "sleep 30"` ile TEMIZLIK YAPARDI;
-basla evin/cron'un `sleep 30` dongusu de olduruluyordu. Batarya artik
-yalniz KENDI baslattigi pgid'leri `os.killpg(pgid, SIGTERM/SIGKILL)`
-ile temizler. V9 yem-kontrolu bu davranisin gercekten izole oldugunu
-kanitlar (baska pgid'de baslayan `sleep 300` yem KALIR). M4 mutant
-ise temizlige `PKILL -f "sleep"` geri ekleyerek V9'u KIRMIZI yapar.
+K417-TUR-GOREV-4 (15 Eyl 2026) — DESEN-KILL YASAK
+-------------------------------------------------
+Onceki tur makine genelinde desen-kill ile TEMIZLIK YAPARDI; basla evin/
+cron'un `sleep 30` dongusu de olduruluyordu. Batarya artik yalniz KENDI
+baslattigi pgid'leri `os.killpg(pgid, SIGTERM/SIGKILL)` ile temizler.
+V9 yem-kontrolu bu davranisin gercekten izole oldugunu kanitlar (baska
+pgid'de baslayan `sleep 300` yem KALIR).
+
+K417-TUR-GOREV-5 (15 Eyl 2026) — MUTANT DA GERCEK OLDURME KOSMAZ
+----------------------------------------------------------------
+OLCULDU: M4 mutanti V9'u kirmizi yapmak icin makine genelinde GERCEK bir
+desen-kill kosuyordu ve `grep -c` kabul sarti argumani `+` ile
+BIRLESTIREREK atlatiliyordu. Yani kapinin kendisi, kapinin yasakladigi
+seyi yapiyordu. Iki duzeltme:
+  * M4 artik GERCEK OLDURME KOSMAZ — temizligin "oldurme kapsami"
+    `_PIDLER` DISINA tasar ve hedefe yalnizca BATARYA-SAHIBI yem pgid'i
+    eklenir. Yan etki BENZETILIR; makinede batarya disi hicbir surec
+    ETKILENMEZ. V9 yemin olumunu olcer ⇒ M4 KIRMIZI.
+  * V10 kaynak-duzeyi nobetcisi eklendi: bu dosya AST ile taranir,
+    calistirma cagrilarinin argumanlarinda desen-kill imi (birlestirilmis
+    dizgeler KATLANARAK) aranir. `grep` bu sinifi yapisal olarak goremez.
+    M5 mutanti izole bir KOPYAYA birlestirilmis cagri ekler ⇒ V10 KIRMIZI.
+Sonuc: bataryanin HICBIR yolunda (saglikli ya da mutant) gercek
+desen-kill YOKTUR; tek oldurme yolu `os.killpg` + kendi pgid listesidir.
 
 Kullanim:
     python3 tools/k417/isci-tur-gorev-kabul.py            # tum batarya
@@ -57,6 +77,7 @@ Kullanim:
 Cikis: 0 = hepsi yesil · 1 = dusen var · 2 = arac hatasi · 3 = OLCULEMEDI.
 """
 
+import ast
 import atexit
 import hashlib
 import importlib.util
@@ -70,23 +91,31 @@ import sys
 import tempfile
 import time
 
-BURASI = os.path.dirname(os.path.abspath(__file__))
+BU_DOSYA = os.path.abspath(__file__)
+BURASI = os.path.dirname(BU_DOSYA)
 K417_CRON = os.path.join(BURASI, "cron")
 EV_KOKU = os.path.abspath(os.path.join(BURASI, "..", ".."))
 
 _SANDBOXLAR = []
-# K417-TUR-GOREV-4: `PKILL -f` yerine pgid-takip. Her `start_new_session=True`
-# ile baslatilan sarmalayicinin pgid'si burada tutulur; temizlikte yalniz
-# bu listedekiler `os.killpg` ile oldurulur. `PKILL`/`killall`/pattern-kill
-# YASAKTIR (basla evin/cron'un surecleri de eslesirdi).
+# K417-TUR-GOREV-4: desen ile toplu oldurme yerine pgid-takip. Her
+# `start_new_session=True` ile baslatilan sarmalayicinin pgid'si burada
+# tutulur; temizlikte yalniz bu listedekiler `os.killpg` ile oldurulur.
+# Desen-kill (pattern ile toplu oldurme) YASAKTIR — basla evin/cron'un
+# surecleri de eslesirdi. K417-TUR-GOREV-5: batarya HICBIR yolda gercek
+# desen-kill KOSMAZ; V10 nobetcisi bunu AST ile kaynak duzeyinde olcer.
 _PIDLER = []
 # V9 yem kontrolu: bataryanin KENDI grubu DISINDA baslayan `sleep 300`.
 # _PIDLER'e EKLENMEZ (temizlik bunu oldurmemeli); V9 sonrasi kendimiz
-# `_yem_oldur()` ile temizleriz.
+# `_yem_oldur()` ile temizleriz. Yem BATARYA-SAHIBIDIR: onu baslatan da
+# olduren de bu surectir, makinede baska hicbir surecle karisamaz.
 _YEM_PID = None
 _YEM_POPEN = None  # Yem subprocess.Popen (zombie kontrolu icin .poll())
-# M4 mutant anahtari: True oldugunda `_pgidleri_temizle` `PKILL -f "sleep"`
-# ile TAMAMLANIR (hedef-kol atfi icin V9'u KIRMIZI yapmali).
+# M4 mutant anahtari (K417-TUR-GOREV-5'te GERCEK OLDURMESIZ yeniden kuruldu):
+# True oldugunda `_pgidleri_temizle`'nin "oldurme kapsami" `_PIDLER` DISINA
+# TASAR — hedef listesine batarya-sahibi YEM pgid'i eklenir ve `os.killpg`
+# yalnizca ona uygulanir. Gercek desen-kill'in yan etkisi (bize ait olmayan
+# surecleri oldurmek) boylece BENZETILIR; makinede batarya disi hicbir surec
+# ETKILENMEZ. V9 yemin olumunu olcer ⇒ M4 KIRMIZI.
 _M4_AKTIF = False
 
 
@@ -94,7 +123,7 @@ def _yem_kur(sn=300):
     """V9 icin kendi grubu DISINDA yem sleep baslat.
 
     `start_new_session=True` ile yeni session/pgroup yaratilir; pid
-    kaydedilir ama `_PIDLER`'e EKLENMEZ. PKILL/-f YASAK oldugu icin
+    kaydedilir ama `_PIDLER`'e EKLENMEZ. Desen-kill YASAK oldugu icin
     yemin kendi session/pgroup'unda yasamaya devam edecek; V9 sonunda
     `_yem_oldur` ile kendimiz temizleriz.
     """
@@ -164,7 +193,7 @@ def _ic_pgid_temizle(kok):
 
     yama.py, claude wrapper'in yeni pgid'sini `<kok>/.isci-claude-pgid.*`
     dosyalarina yazar. Bu dosyalar varsa, icindeki pgid okunur ve
-    killpg ile temizlenir; dosya silinir. `PKILL` KULLANILMAZ; sadece
+    killpg ile temizlenir; dosya silinir. Desen-kill KULLANILMAZ; sadece
     bize AIT olan pgid'lere dokunuruz.
     """
     if not os.path.isdir(kok):
@@ -200,36 +229,92 @@ def _ic_pgid_temizle(kok):
 
 
 def _pgidleri_temizle():
-    """Izlenen pgid'leri SIGTERM/SIGKILL ile temizle. M4 aktifse PKILL eklenir.
+    """Izlenen pgid'leri SIGTERM/SIGKILL ile temizle.
 
-    Sadece `_PIDLER`'deki pgid'lere dokunur; yem ve baska ev surecleri
-    korunur. M4 mutant'i bu fonksiyonu PKILL ile genisletir (hedef-kol atfi).
+    SAGLIKLI yol: hedef listesi TAM OLARAK `_PIDLER`'dir; yem ve baska ev
+    surecleri korunur. Hicbir kosulda desen ile toplu oldurme (pattern-kill)
+    CALISTIRILMAZ — `os.killpg` disinda oldurme yolu YOKTUR.
+
+    M4 mutant yolu (`_M4_AKTIF`): "oldurme kapsami" `_PIDLER` DISINA tasar;
+    hedef listesine batarya-sahibi YEM pgid'i eklenir. Bu, gercek bir
+    desen-kill'in yan etkisini (bize ait olmayan surecleri de vurmak)
+    GERCEK OLDURME KOSMADAN benzetir: genisleme YEM ile SINIRLIDIR, makinede
+    batarya disi hicbir surec etkilenmez. V9 yemin olumunu olcer ⇒ M4 KIRMIZI.
     """
-    for pid in list(_PIDLER):
+    hedefler = list(_PIDLER)
+    if _M4_AKTIF and _YEM_PID is not None and _YEM_PID not in hedefler:
+        hedefler.append(_YEM_PID)
+    for pid in hedefler:
         try:
             os.killpg(pid, signal.SIGTERM)
         except (ProcessLookupError, OSError):
             pass
     time.sleep(0.3)
-    for pid in list(_PIDLER):
+    for pid in hedefler:
         try:
             os.killpg(pid, signal.SIGKILL)
         except (ProcessLookupError, OSError):
             pass
-    if _M4_AKTIF:
-        # M4 mutant: temizlige makine geneli PKILL -f "sleep" geri eklenir.
-        # V9 yem-kontrolu bu satirla KIRMIZI olur (hedef-kol atfi).
-        # Not: kabul komutu `grep -c PKILL = 0` istiyor; bu yuzden ikili
-        # adi runtime'da birlestirilir (kaynakta yok).
-        subprocess.run(["pk" + "ill", "-f", "sleep"], capture_output=True)
+    # SIGKILL'in yerlesmesi icin kisa bekleme: V9/M4 hemen ardindan
+    # `_yem_yasiyor_mu()` okuyor; beklemeden olcum yaris kosuluna girer.
+    time.sleep(0.3)
     _PIDLER.clear()
 
 
+def _stub_artiklarini_temizle(kok):
+    """`arka_plan` fiksturunun biraktigi `sleep`'leri HEDEFLI oldur.
+
+    Fikstur, birakigi surecin pid'ini `<kok>/.k417-stub-sleep.<pid>`
+    dosyasina KENDISI yazar. Burada yalniz O DOSYALARDA YAZILI pid'ler
+    oldurulur — desen esleme, tahmin, `ps` taramasi YOK.
+
+    NEDEN AYRI BIR KAYIT: isci.sh'in EXIT trap'i `.isci-claude-pgid.*`
+    dosyasini kendisi siler; kosum bitince biraktigi surece ait kayitli
+    pgid ELDE KALMAZ. Eskiden bu artigi M4'un makine geneli desen-kill'i
+    YAN ETKI olarak supururdu (olculdu: desen-kill kalkinca kosum sonrasi
+    1 fazla `sleep` kaliyordu). "Ureten temizler" (Okan disk kurali).
+
+    ZAMANLAMA: yalniz KAPANISTA cagrilir. Vaka ortasinda cagrilsa V1'in
+    olctugu sey (isci.sh yasayan alt sureci gordu mu?) yok edilirdi.
+    """
+    if not os.path.isdir(kok):
+        return
+    try:
+        adlar = os.listdir(kok)
+    except OSError:
+        return
+    for ad in adlar:
+        if not ad.startswith(".k417-stub-sleep."):
+            continue
+        yol = os.path.join(kok, ad)
+        try:
+            with open(yol) as f:
+                pid = int(f.read().strip())
+        except (OSError, ValueError):
+            pid = None
+        if pid is not None:
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except (ProcessLookupError, OSError):
+                pass
+        try:
+            os.unlink(yol)
+        except OSError:
+            pass
+
+
 def _temizle(*_a):
-    """Tam temizlik (atexit/SIGTERM/SIGINT): pgid'ler + yem + sandbox."""
+    """Tam temizlik (atexit/SIGTERM/SIGINT): pgid'ler + artiklar + yem + sandbox.
+
+    Oldurme yollarinin TAMAMI kayitli kimliklere dayanir: `_PIDLER` pgid'leri,
+    `.isci-claude-pgid.*` pgid'leri, `.k417-stub-sleep.*` pid'leri ve yem.
+    Desen ile toplu oldurme HICBIR yolda YOKTUR (V10 bunu olcer).
+    """
     _pgidleri_temizle()
     _yem_oldur()
     for d in list(_SANDBOXLAR):
+        _ic_pgid_temizle(d)
+        _stub_artiklarini_temizle(d)
         shutil.rmtree(d, ignore_errors=True)
         if d in _SANDBOXLAR:
             _SANDBOXLAR.remove(d)
@@ -241,6 +326,123 @@ for _sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
         signal.signal(_sig, lambda s, f: (_temizle(), sys.exit(130)))
     except (ValueError, OSError):
         pass
+
+
+# --------------------------------------------------------------------------
+# KAYNAK-DUZEYI NOBETCI (V10) — desen-kill AST taramasi
+# --------------------------------------------------------------------------
+# NEDEN AST, NEDEN DIZGE TARAMASI DEGIL: 15 Eyl 2026'da OLCULDU — bir tur
+# kabul sartini (`grep -c` = 0) argumani `+` ile BIRLESTIREREK atlatti;
+# grep SIFIR dondu ama kod makine genelinde desen-kill kosuyordu. Dizge
+# taramasi bu sinifi YAPISAL OLARAK yakalayamaz. Bu yuzden olcum AST
+# uzerinden yapilir ve BinOp(Add) ile kurulan sabit dizgeler KATLANIR.
+#
+# ARANAN IM TEK PARCADIR: "kill". Bu, desen-kill ikililerinin ve `kill -9`
+# bicimlerinin HEPSININ alt dizgesidir — yani tarama DAHA GENIS, daha dar
+# degil. Tam ikili adlarini bu dosyaya duz yazmiyoruz cunku bu dosya
+# "desen-kill adi gecmeyecek" kapisinin OLCULEN nesnesidir; daha genis bir
+# im kullanmak kapiyi GEVSETMEZ, uzerine bir kat daha koyar.
+_OLDURME_IMI = "kill"
+
+# Kabuk/ikili calistiran cagrilar. `os.exec*` onekle yakalanir.
+_OS_YASAK_CAGRILAR = ("system", "popen", "posix_spawn", "posix_spawnp",
+                      "spawnl", "spawnle", "spawnlp", "spawnv", "spawnve",
+                      "spawnvp")
+# `from subprocess import run` / `from os import system` bicimi + dinamik
+# calistirma (dizgeye gizlenmis govde `exec`/`eval` ile hayat bulabilir).
+_CIPLAK_YASAK_CAGRILAR = ("run", "Popen", "call", "check_call", "check_output",
+                          "getoutput", "getstatusoutput", "system",
+                          "exec", "eval", "compile")
+
+
+def _sabit_dizge(dugum):
+    """`"a" + "b"` gibi SABIT dizge birlestirmesini tek dizgeye katla.
+
+    Doner: katlanan dizge, ya da katlanamiyorsa None (degisken karisti).
+    """
+    if isinstance(dugum, ast.Constant) and isinstance(dugum.value, str):
+        return dugum.value
+    if isinstance(dugum, ast.BinOp) and isinstance(dugum.op, ast.Add):
+        sol = _sabit_dizge(dugum.left)
+        sag = _sabit_dizge(dugum.right)
+        if sol is not None and sag is not None:
+            return sol + sag
+    return None
+
+
+def _dizgeleri_katla(dugum):
+    """Bir AST alt agacindaki TUM dizge degerlerini uret.
+
+    Alt agac taranir: boylece `["p" + "kill", "-f", "x"]` gibi LISTE
+    ICINDEKI birlestirme de yakalanir (arguman dogrudan dizge olmak
+    zorunda degil). f-string'lerin sabit parcalari da birlestirilir.
+    """
+    bulunan = []
+    for alt in ast.walk(dugum):
+        if isinstance(alt, ast.Constant) and isinstance(alt.value, str):
+            bulunan.append(alt.value)
+        elif isinstance(alt, ast.BinOp) and isinstance(alt.op, ast.Add):
+            katli = _sabit_dizge(alt)
+            if katli is not None:
+                bulunan.append(katli)
+        elif isinstance(alt, ast.JoinedStr):
+            bulunan.append("".join(
+                p.value for p in alt.values
+                if isinstance(p, ast.Constant) and isinstance(p.value, str)))
+    return bulunan
+
+
+def _calistirma_cagrisi_mi(dugum):
+    """Cagri bir kabuk/ikili calistirma cagrisi mi? Adini dondur, degilse None.
+
+    YAKALANMAZ: `os.killpg(pid, sig)` — im fonksiyon ADINDA, ARGUMANDA
+    degil. Bu DOGRU davranistir: kendi pgid'ine sinyal gondermek bu
+    bataryanin MESRU (ve tek) temizlik yoludur; yasaklanan sey desenle
+    baskasinin surecini vurmaktir.
+    """
+    f = dugum.func
+    if isinstance(f, ast.Attribute):
+        kok = f.value
+        if isinstance(kok, ast.Name):
+            if kok.id == "subprocess":
+                return "subprocess.%s" % f.attr
+            if kok.id == "os" and (f.attr.startswith("exec")
+                                   or f.attr in _OS_YASAK_CAGRILAR):
+                return "os.%s" % f.attr
+    elif isinstance(f, ast.Name) and f.id in _CIPLAK_YASAK_CAGRILAR:
+        return f.id
+    return None
+
+
+def _yasak_kill_bulgulari(yol):
+    """Kaynakta GERCEK desen-kill izi ara (AST). Bos liste = TEMIZ.
+
+    Doner: [(satir, cagri, katlanmis_dizge), ...]
+    Yakalanan sinif: calistirma cagrilarinin ARGUMANLARINDA, sabit ya da
+    `+` ile BIRLESTIRILMIS bir dizgede `_OLDURME_IMI` gecmesi.
+
+    BILINEN SINIR (kasitli): duz dizge sabitleri taranmaz — govdesi bir
+    metne gizlenip `exec` ile hayat bulan kod AYRI bir siniftir; o yuzden
+    `exec`/`eval`/`compile` de hedef cagri listesindedir (argumaninda im
+    gecerse KIRMIZI yanar).
+    """
+    with open(yol, encoding="utf-8") as f:
+        metin = f.read()
+    agac = ast.parse(metin, filename=yol)
+    bulgular = []
+    for dugum in ast.walk(agac):
+        if not isinstance(dugum, ast.Call):
+            continue
+        cagri = _calistirma_cagrisi_mi(dugum)
+        if cagri is None:
+            continue
+        argumanlar = list(dugum.args) + [kw.value for kw in dugum.keywords]
+        for a in argumanlar:
+            for s in _dizgeleri_katla(a):
+                if _OLDURME_IMI in s.lower():
+                    bulgular.append(
+                        (getattr(dugum, "lineno", -1), cagri, s[:60]))
+    return bulgular
 
 
 # --------------------------------------------------------------------------
@@ -259,10 +461,23 @@ if mod == "arka_plan":
     # Gercek davranis simule: SAGLIKLI zarla cik AMA arka planda sleep
     # birak. sleep ayni pgid'de (fork); sahte-claude cikinca init'e
     # reparent olur ama pgid KALIR -- isci.sh'in pgid taramasi yakalar.
-    # Sure 30 sn: bir sonraki VAKAYA gecmeden once PKILL ile temizlenir.
-    subprocess.Popen(["sleep", "30"],
-                     stdout=subprocess.DEVNULL,
-                     stderr=subprocess.DEVNULL)
+    # Sure 30 sn: batarya kapanista bu pid'i HEDEFLI olarak oldurur.
+    _p_sleep = subprocess.Popen(["sleep", "30"],
+                                stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL)
+    # K417-TUR-GOREV-5: biraktigimiz surecin pid'ini KENDI sandbox'imiza
+    # yaz. Neden gerekli: isci.sh'in EXIT trap'i `.isci-claude-pgid.*`
+    # dosyasini KENDISI siler, dolayisiyla kosum bittiginde bataryanin
+    # elinde bu surece ait KAYITLI bir pgid KALMAZ. Desen-kill YASAK
+    # oldugu icin tek dogru yol, fiksturun biraktigi pid'i fiksturun
+    # KENDISININ kaydetmesidir (tahmin/desen esleme YOK).
+    try:
+        with open(os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                ".k417-stub-sleep.%d" % _p_sleep.pid), "w") as _fh:
+            _fh.write(str(_p_sleep.pid))
+    except OSError:
+        pass
     # sleep'in gercekten forklanip yerlesmesi icin kisa bekleme
     time.sleep(0.5)
 
@@ -444,7 +659,7 @@ def isci_kos(kok, stub, spec, mod, etiket="kabul-k417"):
 
     K417-TUR-GOREV-4: `subprocess.run` yerine `Popen` ile pgid takibi.
     start_new_session=True yeni session/pgroup olusturur; pgid = pid.
-    Temizlikte yalniz bu pgid killpg ile oldurulur (PKILL/-f YASAK).
+    Temizlikte yalniz bu pgid killpg ile oldurulur (desen-kill YASAK).
     """
     ort = _ortam_hazirla(stub)
     ort["K417_STUB_MOD"] = mod
@@ -577,7 +792,7 @@ def vakalari_kos():
       hal_ek1 and rc1 is not None and rc1 != 0,
       "rc=%s bitis=%s hal=%s" % (rc1, bitis1[-1:] if bitis1 else "YOK", hal1))
     # V1'in claude wrapper pgid'sini temizle (saglikli kapanis; yine de
-    # yama'nin yazdigi pgid dosyasindan killpg ile siliyoruz; PKILL YASAK).
+    # yama'nin yazdigi pgid dosyasindan killpg ile siliyoruz; desen-kill YASAK).
     _ic_pgid_temizle(kok)
     time.sleep(0.5)
 
@@ -721,13 +936,13 @@ def vakalari_kos():
          (p8.stderr or "").strip()[:150]))
 
     # --- V9: yem-kontrolu — KENDI GRUBU DISINDAKI sleep BATARYA TEMIZLIGINDEN SAG ----
-    # K417-TUR-GOREV-4 (15 Eyl 2026): `_temizle` artik `PKILL -f` yerine
+    # K417-TUR-GOREV-4 (15 Eyl 2026): `_temizle` artik desen-kill yerine
     # killpg kullaniyor. Bu vaka, temizligin gercekten izole oldugunu
     # kanitlar: yem `sleep 300` bataryanin kendi pgid listesinde DEGIL,
     # ayri bir session/pgroup'ta baslatilir. Temizlik sonrasi yem
     # `os.kill(pid, 0)` ile hâlâ yasamali (KENDI grubu haric birsey
-    # oldurulmuyor). M4 mutant'i bu vakayi KIRMIZI yapar (PKILL geri
-    # eklenince yem de dahil her `sleep` oluyor).
+    # oldurulmuyor). M4 mutant'i bu vakayi KIRMIZI yapar (oldurme kapsami
+    # `_PIDLER` disina, yeme tasar).
     _yem_kur(sn=300)
     # Yemin gercekten yerlesmesi icin kisa bekleme
     time.sleep(0.3)
@@ -741,6 +956,18 @@ def vakalari_kos():
       "E",
       yem_yasiyor,
       "yem_pid=%s yasiyor=%s" % (_YEM_PID, yem_yasiyor))
+
+    # --- V10: KAYNAK NOBETCISI — bataryada desen-kill izi YOK (AST) --------
+    # K417-TUR-GOREV-5 (15 Eyl 2026): V9 DAVRANIS eksenidir (yem sag mi?);
+    # ama davranis ekseni bir kolu ancak O KOL KOSULDUGUNDA gorur. Kaynakta
+    # duran, henuz kosulmamis ya da baska bir dalda kosacak bir desen-kill
+    # cagrisini V9 GOREMEZ. V10 o bosluğu kaynak duzeyinde kapatir ve
+    # `grep`'in yapisal kor noktasini (dizge BIRLESTIRME) AST ile gorur.
+    bulgular10 = _yasak_kill_bulgulari(BU_DOSYA)
+    v(10, "batarya kaynaginda desen-kill cagrisi yok (AST; birlestirme dahil)",
+      "F",
+      not bulgular10,
+      "bulgu=%d %s" % (len(bulgular10), bulgular10[:3] if bulgular10 else ""))
 
     return sorted(sonuc, key=lambda s: s["no"])
 
@@ -765,13 +992,38 @@ MUTANTLAR = [
      "hedef": [7],
      "aciklama": "0. adim unlink geri eklenir (V7 KIRMIZI olur; kuru kosumda "
                  "bile KOPYALANAN dosyalari silinir)"},
-    # K417-TUR-GOREV-4 (15 Eyl 2026): temizlige makine geneli PKILL
-    # geri eklenir; V9 yem-kontrolu KIRMIZI olur (hedef-kol atfi).
-    # Bu mutant dosya yamasina degil modul seviyesi `_M4_AKTIF` bayragina
-    # dayanir (`_pgidleri_temizle` bunu okur).
+    # K417-TUR-GOREV-4 (15 Eyl 2026) / K417-TUR-GOREV-5'te GERCEK OLDURMESIZ
+    # yeniden kuruldu: temizligin "oldurme kapsami" `_PIDLER` DISINA tasar
+    # (hedefe batarya-sahibi YEM pgid'i eklenir). Gercek desen-kill'in yan
+    # etkisi benzetilir, makinede batarya disi surec ETKILENMEZ. V9 KIRMIZI.
+    # Dosya yamasi degil, modul seviyesi `_M4_AKTIF` bayragi (`_pgidleri_temizle`
+    # bunu okur).
     {"ad": "M4", "kol": "E", "hedef": [9],
-     "aciklama": "temizlige PKILL -f sleep geri eklenir (V9 KIRMIZI; yem de olu)"},
+     "aciklama": "temizligin oldurme kapsami _PIDLER disina tasar "
+                 "(V9 KIRMIZI; yem de olu)"},
+    # K417-TUR-GOREV-5 (15 Eyl 2026): V10 kaynak nobetcisinin OLCULDUGU mutant.
+    # Bataryanin IZOLE bir kopyasina, argumani `+` ile BIRLESTIRILMIS bir
+    # desen-kill cagrisi eklenir. Kopya CALISTIRILMAZ (govde `if False:`
+    # altinda ve dosya yalnizca `ast.parse` ile okunur). V10 KIRMIZI olmali —
+    # eger V10 `grep` gibi duz dizge tarasaydi bu mutant HAYATTA KALIRDI.
+    {"ad": "M5", "kol": "F", "hedef": [10],
+     "aciklama": "izole kopyaya birlestirilmis desen-kill cagrisi eklenir "
+                 "(V10 KIRMIZI olmali)"},
 ]
+
+# M5 mutant govdesi. IZOLE KOPYAYA eklenir, HICBIR ZAMAN CALISTIRILMAZ:
+# `if False:` blogu ve kopya dosyasi yalnizca `ast.parse` ile okunur.
+# Bu govde bilerek DUZ ve okunakli yazildi (calisma zamaninda dizge
+# kurulmuyor); `+` birlestirmesi mutantin OLCTUGU seyin ta kendisi —
+# `grep` bunu goremez, AST gorur.
+M5_GOVDE = '''
+
+
+def _m5_enjekte_edilen_govde():
+    """M5 MUTANT GOVDESI — izole kopyada yasar, CALISTIRILMAZ."""
+    if False:
+        subprocess.run(["p" + "kill", "-f", "x"], capture_output=True)
+'''
 
 
 def mutant_uygula(kok, m):
@@ -853,7 +1105,7 @@ def main():
         print("🔴 TABAN KIRMIZI — mutant kosumu ATLANDI (atif olculemez)")
         return 1
 
-    # Test sonu onceki arka plan kalintisini temizle (PKILL YASAK; kendi
+    # Test sonu onceki arka plan kalintisini temizle (desen-kill YASAK; kendi
     # pgid'lerimizi zaten isci_kos/isci_kos_parallel yapisinda topladik;
     # kalan ic pgid'ler `_ic_pgid_temizle` ile vaka bazli silinir)
     _pgidleri_temizle()
@@ -864,26 +1116,83 @@ def main():
     yama_tutmadi = 0
     for m in MUTANTLAR:
         # M4 ozel: dosya yamasi degil; _M4_AKTIF bayragi ile temizlige
-        # PKILL -f "sleep" geri eklenir; V9 yem-kontrolu KIRMIZI olmali.
+        # oldurme kapsami yeme tasar; V9 yem-kontrolu KIRMIZI olmali.
         if m["ad"] == "M4":
             _M4_AKTIF_ORJ = globals()["_M4_AKTIF"]
             globals()["_M4_AKTIF"] = True
             try:
                 _yem_kur(sn=300)
                 time.sleep(0.3)
-                _pgidleri_temizle()  # M4 aktif: PKILL -f sleep var
+                _pgidleri_temizle()  # M4 aktif: oldurme kapsami yeme tasar
                 yem_yasiyor = _yem_yasiyor_mu()
                 _yem_oldur()
             finally:
                 globals()["_M4_AKTIF"] = _M4_AKTIF_ORJ
-            # M4 basarili = V9 KIRMIZI (yem oldu; PKILL geri geldi demek)
+            # M4 basarili = V9 KIRMIZI (yem oldu: kapsam _PIDLER disina tasti)
             if not yem_yasiyor:
                 olen += 1
                 atif += 1
                 print("MUTANT %s OLDU hedef=%s atif=EVET — %s"
                       % (m["ad"], m["hedef"], m["aciklama"]))
             else:
-                print("MUTANT %s 🔴 YASADI (yem hayatta; PKILL etkisiz) — %s"
+                print("MUTANT %s 🔴 YASADI (yem hayatta; kapsam genislemedi) — %s"
+                      % (m["ad"], m["aciklama"]))
+            continue
+
+        # M5 ozel: canli govdeye DOKUNULMAZ; bataryanin IZOLE bir kopyasina
+        # birlestirilmis desen-kill cagrisi eklenir ve V10 nobetcisi O KOPYA
+        # uzerinde kosulur. Kopya calistirilmaz, is bitince silinir.
+        if m["ad"] == "M5":
+            kok5 = tempfile.mkdtemp(prefix="k417-m5-")
+            _SANDBOXLAR.append(kok5)
+            taban5 = bulgu5 = None
+            ayristi5 = False
+            try:
+                hedef5 = os.path.join(kok5, "m5-kabul-kopya.py")
+                shutil.copy2(BU_DOSYA, hedef5)
+                # Kopya TABANI temiz olmali; degilse mutant kendi kendini
+                # dogrulamis olur (yanlis "OLDU" atfi) — fail-closed.
+                taban5 = _yasak_kill_bulgulari(hedef5)
+                with open(hedef5, "a", encoding="utf-8") as f:
+                    f.write(M5_GOVDE)
+                with open(hedef5, encoding="utf-8") as f:
+                    metin5 = f.read()
+                try:
+                    ast.parse(metin5, filename=hedef5)
+                    ayristi5 = True
+                except SyntaxError:
+                    ayristi5 = False
+                if ayristi5:
+                    bulgu5 = _yasak_kill_bulgulari(hedef5)
+            except Exception as e:  # noqa: BLE001
+                print("MUTANT M5 SANDBOX_DUSTU %s" % e)
+                yama_tutmadi += 1
+                shutil.rmtree(kok5, ignore_errors=True)
+                if kok5 in _SANDBOXLAR:
+                    _SANDBOXLAR.remove(kok5)
+                continue
+            finally:
+                shutil.rmtree(kok5, ignore_errors=True)
+                if kok5 in _SANDBOXLAR:
+                    _SANDBOXLAR.remove(kok5)
+            if taban5:
+                print("MUTANT M5 YAMA_TUTMADI (kopya TABANI zaten kirmizi: "
+                      "%d bulgu) 🔴" % len(taban5))
+                yama_tutmadi += 1
+                continue
+            if not ayristi5:
+                print("MUTANT M5 YAMA_TUTMADI (enjekte edilen govde "
+                      "ayristirilamadi) 🔴")
+                yama_tutmadi += 1
+                continue
+            if bulgu5:
+                olen += 1
+                atif += 1
+                print("MUTANT %s OLDU hedef=%s atif=EVET — %s (bulgu=%d %s)"
+                      % (m["ad"], m["hedef"], m["aciklama"], len(bulgu5),
+                         bulgu5[:1]))
+            else:
+                print("MUTANT %s 🔴 YASADI (V10 birlestirmeyi GORMEDI) — %s"
                       % (m["ad"], m["aciklama"]))
             continue
         try:
@@ -936,7 +1245,7 @@ def main():
                 p_m, log_m, _h = isci_kos_parallel(kok, stub, spec, mod)
             else:
                 p_m, log_m, _h = isci_kos(kok, stub, spec, mod)
-            # PKILL/-f YASAK: kendi pgid'lerimizi isci_kos zaten topladi;
+            # Desen-kill YASAK: kendi pgid'lerimizi isci_kos zaten topladi;
             # ic pgid'leri (claude wrapper) temizle.
             _ic_pgid_temizle(kok)
             time.sleep(0.3)
