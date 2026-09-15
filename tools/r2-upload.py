@@ -71,12 +71,28 @@ DOĞRULAMA (sessiz-yükleme kalkanı — put_object çağrısı REFAKTÖR EDİLM
   (sahte YEŞİL "silindi" demektense sahte KIRMIZI ile durmak yeğlenir).
 """
 import argparse
+import importlib.util
+import re
 import sys, os, json, time, boto3
 
 CFG_PATH = os.path.join(os.path.dirname(__file__), "..", ".r2-credentials.json")
 
+# r2_anahtar.py — GORSEL_KLASOR + anahtar_coz TEK KAYNAK (R7 ön-kontrol bu modüle
+# delege olur; ikinci bir "urunler" sabiti burada YAZILMAZ). Yükleme betiği CLI aracı
+# olduğu için lazy import (test ağsız koşar, modül yükü başta ödenmez).
+_R2K_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "r2_anahtar.py")
+_spec = importlib.util.spec_from_file_location("_r2k", _R2K_PATH)
+_r2k = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_r2k)
+
 # CLI çıkış kodu: mevcut anahtar EZİLECEKTİ, yazma YAPILMADI (fail-closed, sessiz başarı YOK).
 KOD_EZME = 4
+
+# R7 (15 Eyl 2026): CLI çıkış kodu — anahtar 'urunler/<key>-<n>.jpg' kalıbından SOYULMUŞ
+# (klasörsüz + uzantısız). 528 canlı kayıt bu hatayla yazıldı → katalog URL'leri 404
+# ([[r2-anahtar-gelenek-disi]]). Tek kaynak `r2_anahtar.anahtar_coz` — burada YENİDEN
+# kurallar YAZILMAZ, sadece "yazılmamalı" hükmü uygulanır.
+KOD_GELENEK_DISI = 5
 
 # R1 asgari boyut: 1024 bayt. Gerçek ürün görselleri (JPEG/PNG/WebP/AVIF) daima kByte'larca olur;
 # 0-bayt, kesik yazma ve Cloudflare-403 HTML gövdeleri bu eşiğin altında ya da geçerli-magic'siz kalır.
@@ -261,6 +277,40 @@ class EzmeReddi(ValueError):
     """R6: mevcut bir anahtarın ÜZERİNE yazılacaktı; yazma YAPILMADI (fail-closed)."""
 
 
+class GelenegeAykiri(ValueError):
+    """R7: anahtar 'urunler/<key>-<n>.jpg' kalıbından SOYULMUŞ (klasörsüz + uzantısız).
+
+    Yazma YAPILMADI (fail-closed, sessiz başarı YOK). 528 canlı kayıt bu hatayla doldu
+    (Canon×TV d13–d28); katalog `urunler/<key>-<n>.jpg` diyor, R2'de `th<id>-N` duruyor
+    → 1.762 URL 404. Bilerek geçmek için --ham-anahtar bayrağı GEREKLİ."""
+
+
+# R7 ön-kontrol DESENLERİ (SENTETİK ipucu — asıl yargı `anahtar_coz`a delege):
+#   1. `th<id>-<sira>`  (15 Eyl 2026 canlı hatası — sadece Thingiverse değil, tüm
+#      platformlar için AYNI kalıp uygulanır; sıra eki -<digit>+ ile biter)
+#   2. uzantısız + '/'suz + '-<digit>+' ile biten anahtar (genel "soyuş" işareti)
+# İki desen de naked_urun_gorseli_mi() içinde OR'lanır; anahtar_coz (None, None)
+# dönüyorsa GELENEK DIŞI sayılır ve yazma YAPILMAZ.
+_NAKED_TH_RE = re.compile(r"^th\d+-\d+$")
+_NAKED_SAYI_SONEK_RE = re.compile(r"-\d+$")
+
+
+def naked_urun_gorseli_mi(key):
+    """Anahtar "çıplak ürün görseli" desenine benziyor mu?
+
+    YALNIZCA sentetik ipucu: ya 'th<id>-<sira>' (15 Eyl 2026 canlı hatası), ya da '/'suz
+    + uzantısız + '-<digit>+' ile biten anahtar (genel "soyuş" işareti). Tek başına
+    ret sebebi DEĞİLDİR — asıl yargı `r2_anahtar.anahtar_coz(key) == (None, None)`'a
+    bırakılır (meşru yollar — urunler/...jpg, banner/...jpg — bu kalıba uymaz)."""
+    if "/" in key or "." in key:
+        return False
+    if _NAKED_TH_RE.match(key):
+        return True
+    if _NAKED_SAYI_SONEK_RE.search(key):
+        return True
+    return False
+
+
 def _hata_imzasi(exc):
     """(hata_kodu, http_durumu) — boto3/ClientError imzası; tanınmazsa ("", None)."""
     yanit = getattr(exc, "response", None)
@@ -321,11 +371,27 @@ def kosullu_put(s3, bucket, key, data, content_type, kosullu=True):
 
 
 def dogrula_ve_yukle(s3, bucket, key, data, var_mi=None, ezmeye_izin_ver=False,
-                     kuru_prova=False):
+                     kuru_prova=False, ham_anahtar=False):
     """Tek dosyayı doğrula → (R6 ezme kapısı) → yükle → readback ile teyit et.
 
     content_type döndürür. `var_mi` ENJEKTE edilebilir (ağsız test); verilmezse
-    `s3_var_mi(s3, bucket)` sondası KULLANILIR — silme yolundakinin AYNISI."""
+    `s3_var_mi(s3, bucket)` sondası KULLANILIR — silme yolundakinin AYNISI.
+    `ham_anahtar=True`: R7 ön-kontrolu BİLEREK atlanır (meşru yol değil; kullanıcı
+    işaretli). Diğer kapılar (R1 gövde, R6 ezme) hâlâ YÜRÜRLÜKTE."""
+    # R7 (15 Eyl 2026) — anahtar biçimi: çıplak urun gorseli desenine benziyorsa ve
+    # `r2_anahtar.anahtar_coz` (None, None) donuyorsa CANONIK yoldan ('urunler/...jpg')
+    # soyulmus demektir → yazma YAPILMAZ. on_dogrula'dan ONCE kosar: S3'e hic
+    # dokunulmamis olur (var_mi + put HIC cagirilmaz). ham_anahtar=True ile bilerek gecilir.
+    if not ham_anahtar and naked_urun_gorseli_mi(key) and _r2k.anahtar_coz(key) == (None, None):
+        onerilen = "%s/%s.jpg" % (_r2k.GORSEL_KLASOR, key)
+        raise GelenegeAykiri(
+            "ANAHTAR_GELENEK_DISI %r: urun gorseli yolu CANONIK '%s' biciminde olmali "
+            "(klasorsuz + uzantisiz anahtar yazildi -> katalog URL'leri 404 verir). "
+            "Cozum: r2_anahtar.gorsel_yolu(anahtar, sira) ile uretin ya da bilerek gecmek "
+            "icin --ham-anahtar kullanin (varsayilan KAPALI; meşru yollar 'urunler/...jpg', "
+            "'banner/...jpg' vb. degismez)."
+            % (key, onerilen)
+        )
     content_type = on_dogrula(data, key)          # R1 + R2 + R3 (fail-closed önce)
     if var_mi is None:
         var_mi = s3_var_mi(s3, bucket)
@@ -367,6 +433,9 @@ def parser_kur():
                     help="YIKICI: mevcut R2 anahtarinin UZERINE yaz (varsayilan KAPALI)")
     ap.add_argument("--kuru-prova", dest="kuru_prova", action="store_true",
                     help="hicbir sey yazma, ne olacagini bas")
+    ap.add_argument("--ham-anahtar", dest="ham_anahtar", action="store_true",
+                    help="R7 one-kontrolunu BILEREK atla (ciplak 'th<id>-N' gibi anahtarlar; "
+                         "varsayilan KAPALI — meşru yol 'urunler/<key>-<n>.jpg')")
     return ap
 
 
@@ -393,10 +462,14 @@ def main():
             data = f.read()
         try:
             dogrula_ve_yukle(s3, cfg["bucket"], key, data, var_mi=var_mi,
-                             ezmeye_izin_ver=a.ezmeye_izin_ver, kuru_prova=a.kuru_prova)
+                             ezmeye_izin_ver=a.ezmeye_izin_ver, kuru_prova=a.kuru_prova,
+                             ham_anahtar=a.ham_anahtar)
         except EzmeReddi as exc:
             print(str(exc), file=sys.stderr)
             sys.exit(KOD_EZME)
+        except GelenegeAykiri as exc:
+            print(str(exc), file=sys.stderr)
+            sys.exit(KOD_GELENEK_DISI)
         print(cfg["public_base"] + "/" + key)
 
 
