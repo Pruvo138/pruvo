@@ -99,6 +99,18 @@ _mw = _load_adaptor("makerworld-api.py", "mw_api")
 _c3 = _load_adaptor("cults3d-api.py", "c3_api")
 _mmf = _load_adaptor("myminifactory-api.py", "mmf_api")
 tr_lower = pr.tr_lower
+# K390 — feed BLOKLAYICI jeton kumesi + taban yolu TEK KAYNAK (feed-politika-kapisi.py'den
+# import). Burada ikinci bir liste YAZILMAZ; ikiz tanim sessizce ayrisirdi
+# ([[ikiz-tanim-sessiz-ayrisma]]). Tembel yukleme (import aninda calismaz; ilk kullanimda
+# yuklenir) — modul duzeyinde yuklenmesi PARTI-KONTROL semasi gibi yuzeylere baglabilirdi.
+_fpk = None
+
+
+def _fpk_modul():
+    global _fpk
+    if _fpk is None:
+        _fpk = _load_adaptor("feed-politika-kapisi.py", "fpk")
+    return _fpk
 
 # --- olcu ifadesi: OTOMATIK URETILEN CAPALI IFADEye baglan -------------------
 # KUSUR-1 (MaCiT teshisi): eski gevsek desen (r"\d[\d\s.,×xX*+-]*mm\b") "aciklamada HERHANGI
@@ -1167,6 +1179,72 @@ def kapi_gorselsiz(urun):
         % "; ".join(bulgular))
 
 
+# =============================================================================
+# KAPI 11 (K390): FEED BLOKLAYICI JETON TASIYAN, GIZLI OLMAYAN, TABANDA OLMAYAN KAYIT
+# -----------------------------------------------------------------------------
+# 🔴 NEDEN EKLENDI (MaCiT teshisi, 15 Eyl 2026): feed kapisi SERIT B'de (nobet.yml:3399)
+# kosuyor; ekleme hattinda BLOKLAYICI jeton kontrolu YOKTU. Yani bir urun commit'lenip
+# main'e gecince Merchant feed'e vape/e-sigara tasirsa GERCEK bir red gelene kadar kimse
+# GORMEZ — sessiz satis kaybi. Bu kapi urunu EKLEME ANINDA yakalar.
+#
+# KAPSAM: gizli OLMAYAN kayit (gizli kayitlar build.load_products() ile elendigi icin
+# merchant-feed.xml'e GIRMEZ; zaten feed kapisi da gormez). Tabanda OLMAYAN (bilinen
+# borc olarak kabul edilmis). Baslik/aciklamada feed BLOKLAYICI jeton kumesinden en az
+# biri geciyorsa → ihlal (urun SILINMEZ; kapsamci karar). Cozum yolu mesajda:
+#   * Gizle (yayindan cek): `tools/duzelt.py <id> --alan gizli=true` — gizli urunler
+#     merchant-feed.xml'e HICBIR ZAMAN girmez, ekleme hatti temizlenir.
+#   * Kabul ediyorsan: tools/feed-politika-taban.json'a kayit EKLE (kok_baslangic'i da
+#     guncelle). Tabana yazilan kayit feed kapisi tarafindan YESIL sayilir.
+#
+# TEK KAYNAK: jeton kumesi + taban yolu feed-politika-kapisi.py'den import edilir;
+# burada ikinci bir liste YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]). feed-politika-kapisi.py
+# KENDISI gizli elemeyi uygular (K390-a); bu kapi onun KAYIT Duzlemindeki TAM noktasidir.
+# NOT: TABAN dosyasinin OKUMA HATASI fail-CLOSED: dosya yok/bozuksa "tabanda DEGIL"
+# kabul edilir → kayit ihlal gorunur → kullanici ya duzeltir ya taban'a ekler.
+# Bu tasarim MaCiT'in 'sesiz yesil korkusu'na karsi EN SAGDAM secim (dosyanin hic
+# var olmadigi durum = en tehlikeli sessiz yesil; burada onu engelliyoruz).
+_FEED_TABAN_OKUMA_Hatasi = (OSError, ValueError)
+
+
+def _feed_taban_idleri():
+    """tools/feed-politika-taban.json'daki id'leri (set) dondurur.
+    HATA durumunda BOS set doner: 'tabanda DEGIL' kabul edilir → sessiz yesil yerine
+    ihlal gorunur. Opsiyonel: hata durumunu debug icin stderr'e yazabilir, ama HICBIR
+    kosumda BOZUK DOSYA = 'tabanda' sayilmaz (fail-closed)."""
+    try:
+        with open(_fpk_modul().TABAN_YOL, encoding="utf-8") as f:
+            t = json.load(f)
+    except _FEED_TABAN_OKUMA_Hatasi:
+        return set()
+    return {k.get("id") for k in (t.get("kok") or [])
+            if isinstance(k, dict) and k.get("id")}
+
+
+def kapi_feed_bloklayici(urun):
+    """(ihlal_kapi|None, gerekce) — KAPI 11 (K390). gizli OLMAYAN + feed tabaninda OLMAYAN
+    kayit, BLOKLAYICI jetonu baslik/aciklamada tasiyorsa → ihlal (SİLMEZ, bloklar).
+    Okan hukmu (K390): urun SILINMEZ; care `gizli:true` ile yayindan cekmek ya da
+    tabana borc olarak kaydetmek.
+    """
+    if not isinstance(urun, dict):
+        return None, ""
+    if urun.get("gizli"):
+        return None, ""                          # gizli kayitlar feed'e GIRMEZ -> kapsam disi
+    uid = urun.get("id")
+    if uid in _feed_taban_idleri():
+        return None, ""                          # bilinen borc -> kapsam disi
+    metin = (urun.get("baslik") or "") + "\n" + (urun.get("aciklama") or "")
+    bulunan = _fpk_modul().bloklayici_bul(metin)
+    if not bulunan:
+        return None, ""
+    return "feed-bloklayici", (
+        "feed BLOKLAYICI jetonu musteriye gorunen metinde: %s — urun SİLİNMEZ (Okan hukmu). "
+        "Cozum yolu: (a) `tools/duzelt.py %s --alan gizli=true` ile gizle (gizli kayitlar "
+        "merchant-feed.xml'e HICBIR ZAMAN girmez), veya (b) borcu kabul et: "
+        "tools/feed-politika-taban.json'a kayit EKLE (`kok_baslangic` da +1)."
+        % ("/".join(bulunan), uid))
+
+
 def kapi_gorsel_cakisma(yeni, tum):
     """Yeni urunlerden gorseller[0] dosya adini (yeni ya da mevcut) baska urunle paylasan
     her biri icin eskalasyon kaydi. Silme."""
@@ -1257,6 +1335,11 @@ def denetle(urunler, yeni_ids, head_ids, kaynaklar):
             ihlal.append({"id": uid, "kapi": kapi, "gerekce": g})
         # 10 GORSELSIZ KAYIT (ihlal — silme DEGIL, gorsel/beyan ister; bkz kapi_gorselsiz)
         kapi, g = kapi_gorselsiz(u)
+        if kapi:
+            ihlal.append({"id": uid, "kapi": kapi, "gerekce": g})
+        # 11 (K390) FEED BLOKLAYICI JETON tasima (ihlal — silme DEGIL; gizle veya tabana
+        # kabul et; bkz kapi_feed_bloklayici)
+        kapi, g = kapi_feed_bloklayici(u)
         if kapi:
             ihlal.append({"id": uid, "kapi": kapi, "gerekce": g})
         # 8 URETIM-SURECI IFSASI: sert -> ihlal (bloklar), uyari -> eskalasyon (bloklamaz)
@@ -1394,8 +1477,8 @@ def _commit_farki_ids():
 
 
 def _urun_ihlalleri(u):
-    """Tek urunun IHLAL kumesi -> {(kapi, gerekce)}. denetle()'deki 7/8/9/10 kollariyla AYNI
-    fonksiyonlari cagirir (kopya kural YOK); 'onceden var miydi' karsilastirmasi icin."""
+    """Tek urunun IHLAL kumesi -> {(kapi, gerekce)}. denetle()'deki 7/8/9/10/11 kollariyla
+    AYNI fonksiyonlari cagirir (kopya kural YOK); 'onceden var miydi' karsilastirmasi icin."""
     s = set()
     if not isinstance(u, dict):
         return s
@@ -1406,6 +1489,9 @@ def _urun_ihlalleri(u):
     if kapi:
         s.add((kapi, g))
     kapi, g = kapi_gorselsiz(u)
+    if kapi:
+        s.add((kapi, g))
+    kapi, g = kapi_feed_bloklayici(u)
     if kapi:
         s.add((kapi, g))
     ifsa = kapi_ifsa(u)
@@ -1995,6 +2081,58 @@ def kendini_test():
     commit("temizlik: ifsa kaldirildi")
     rc, out = kos()
     iddia("P6 temizlik commit'i (ifsa kaldirildi) -> rc 0", rc == 0, "rc=%d" % rc)
+
+    # =========================================================================
+    # KAPI 11 (K390) — FEED BLOKLAYICI JETON tasima, ekleme hatTI kontrolu
+    # -------------------------------------------------------------------------
+    # MaCiT tarafindan 15 Eyl 2026'da eklendi: ekleme hattinda (MaCiT her dilimde
+    # kosuyor) feed BLOKLAYICI jetonunu tasiyan gizli OLMAYAN + tabanda OLMAYAN kayit
+    # artik BLOKLANIR (urun SILINMEZ; kapi mesajinda `duzelt.py` ile `gizli:true`
+    # yazma ya da tabana kayit ekleme yonlendirmesi var). Kapsam = YENI/DEGISEN
+    # (--commit-farki kolu).
+    p6_sayac = len(p6)
+    yaz(p6)
+    commit("K390 KAPI 11 tabani (p6)")
+    vape_gizlisiz = _kt_urun("v1", baslik="Renault Laguna Vape Tutucu Aparati v1",
+                             aciklama="Araca vape cihazini sabitlemek icin tutucu. "
+                                      "Yaklasik dis olculer: 40 × 30 × 12 mm.")
+    yaz(p6 + [vape_gizlisiz])
+    commit("K390 K11: gizli OLMAYAN + vape tasiyor")
+    rc, out = kos()
+    sha_p11 = subprocess.run(["git", "-C", depo, "rev-parse", "HEAD:urunler.json"],
+                             capture_output=True, text=True).stdout.strip()
+    iddia("K11-1 gizli OLMAYAN + vape -> rc 1 + feed-bloklayici IHLAL",
+          rc == 1 and "feed-bloklayici" in out, "rc=%d out=%r" % (rc, "feed-bloklayici" in out))
+    # SILME YOK: urunler.json SHA HEAD'le ayni KALMALI (duzelt.py/tabana ekleme disinda
+    # kapi urunle dokunmaz; SPEC gereksinimi).
+    sha_p11_sonra = subprocess.run(["git", "-C", depo, "rev-parse", "HEAD:urunler.json"],
+                                   capture_output=True, text=True).stdout.strip()
+    iddia("K11-2 gizli OLMAYAN + vape -> urunler.json SHA DEGISMEDI (silme yok)",
+          sha_p11 == sha_p11_sonra, "sha once=%s sonra=%s" % (sha_p11[:8], sha_p11_sonra[:8]))
+    # Kayit sayisi da AYNI (K390 Okan hukmu: urun SILINMEZ).
+    with open(os.path.join(depo, "urunler.json"), encoding="utf-8") as f:
+        n_p11_sonra = len(json.load(f))
+    iddia("K11-3 gizli OLMAYAN + vape -> kayit sayisi AYNI (silme yok, evvel=%d sonra=%d)"
+          % (p6_sayac + 1, n_p11_sonra), n_p11_sonra == p6_sayac + 1,
+          "evvel=%d sonra=%d" % (p6_sayac + 1, n_p11_sonra))
+    # Geri al
+    yaz(p6)
+    commit("K390 K11 vaka 1 geri alindi")
+
+    # Gizli + vape -> temiz (gizli kayitlar feed'e GIRMEDIGI icin kapsam disi)
+    vape_gizli = _kt_urun("v2", baslik="Renault Laguna Vape Tutucu Aparati v2",
+                          aciklama="Araca vape cihazini sabitlemek icin tutucu. "
+                                   "Yaklasik dis olculer: 40 × 30 × 12 mm.",
+                          gizli=True)
+    yaz(p6 + [vape_gizli])
+    commit("K390 K11: gizli + vape tasiyor")
+    rc, out = kos()
+    iddia("K11-4 gizli + vape -> rc 0 (kapsam disi; feed'e GIRMEZ)",
+          rc == 0 and "feed-bloklayici" not in out,
+          "rc=%d out_feed_bloklayici=%s" % (rc, "feed-bloklayici" in out))
+    # Geri al
+    yaz(p6)
+    commit("K390 K11 vaka 2 geri alindi")
 
     # --- KAPI 9 (ASCII-DISI ID) UCTAN UCA: kapi gercekten CAGRILIYOR mu? -----------
     # 🔴 MENZIL DERSI: kapi_ascii_id() birim olarak kusursuz olsa bile denetle()/main()
