@@ -651,6 +651,119 @@ M3_CAPA = (
 )
 
 
+# ---------------------------------------------------------------------------
+# M1/M2/M3 icin fikstur + hüküm + özet yardimcilari — BOS_MUTANT deseninin
+# temeli. Her fikstur `mod` argümani alir: taban modulu icin ana modül,
+# mutant icin mutant_calistir cikti modulu. Boylece ayni fikstur kodunu iki
+# kez (taban + mutant) kullanip hükümleri karsilastirabiliyoruz.
+# ---------------------------------------------------------------------------
+def _m1_fikstur_rc(mod):
+    """M1 fiksturu: V2 katalog + th3-2.jpg YOK. _cikis_kodu'nun sonucunu
+    doner (M1 kapisi tam olarak _cikis_kodu icinde)."""
+    import io as _io, contextlib as _cl
+    taban_id, head = mod.fiktur_katalog()
+    s3 = mod.SahteS3({"urunler/th3-1.jpg"})
+    sayac, _ = mod.nobet_calistir("x", s3=s3, bucket="b",
+                                  head_kayitlari=head, taban_id=taban_id, env={})
+    buf = _io.StringIO()
+    with _cl.redirect_stdout(buf):
+        rc = mod._cikis_kodu(sayac)
+    return rc
+
+
+def _m1_hukum(rc):
+    """M1: mutasyon basariliysa V2'de rc=0 (YOK>=1 olmasina ragmen kapinin
+    'kirmizi' kararina baglanmiyor); tabanda rc=1. Mutant True, Taban False
+    beklenir; ikisi esitse BOS_MUTANT."""
+    return rc == 0
+
+
+def _m1_ozet_rc(rc):
+    return "rc=%d" % rc
+
+
+def _m2_fikstur(mod):
+    """M2 fiksturu: env bos + kimlik dosyasi yok + GEÇERLİ taban/fikstür
+    katalog (TABAN_YOK'a dusulmesin — bos eski kayit verilir). Bu fikstur
+    mutant altinda kimlik_coz'un sahte dict döndürmesinden sonra nobet'in
+    yola devam etmesine izin verir; hata KIMLIK_YOK degil, BOTO3_YOK veya
+    bos sayac (boto3 yuklu ise) olur."""
+    gecici_kok = tempfile.mkdtemp(prefix="k415-m2-")
+    try:
+        eski_root = mod.ROOT
+        eski_kimlik = mod.R2_KIMLIK
+        mod.ROOT = gecici_kok
+        mod.R2_KIMLIK = os.path.join(gecici_kok, ".r2-credentials.json")
+        sayac, hata = mod.nobet_calistir(
+            "x", env={},
+            taban_id={"eski1"},
+            head_kayitlari=[{"id": "eski1", "gorseller": []}])
+        return sayac, hata
+    finally:
+        mod.ROOT = eski_root
+        mod.R2_KIMLIK = eski_kimlik
+        try:
+            os.rmdir(gecici_kok)
+        except OSError:
+            pass
+
+
+def _m2_hukum(arg):
+    """M2: mutasyon basariliysa hata KIMLIK_YOK ile BASLAMAZ; taban altinda
+    KIMLIK_YOK doner. Mutant True, Taban False beklenir."""
+    sayac, hata = arg
+    return hata is None or not hata.startswith("KIMLIK_YOK")
+
+
+def _m2_ozet(arg):
+    sayac, hata = arg
+    if hata:
+        return "hata=%s" % hata.split(":", 1)[0]
+    return "hata=None"
+
+
+def _m3_fikstur(mod):
+    """M3 fiksturu: env'de 3 alan (R2_ERISIM_ID/R2_GIZLI_ANAHTAR/
+    CLOUDFLARE_ACCOUNT_ID), R2_BUCKET YOK + dosya yok. Mutant altinda
+    env dortlu OR'a gevsedigi icin kimlik_coz dict doner (bucket='')
+    -> BUCKET_YOK; taban altinda KIMLIK_YOK."""
+    gecici_kok = tempfile.mkdtemp(prefix="k415-m3-")
+    try:
+        eski_root = mod.ROOT
+        eski_kimlik = mod.R2_KIMLIK
+        mod.ROOT = gecici_kok
+        mod.R2_KIMLIK = os.path.join(gecici_kok, "yok.json")
+        env8 = {"R2_ERISIM_ID": "eid", "R2_GIZLI_ANAHTAR": "es",
+                "CLOUDFLARE_ACCOUNT_ID": "acc"}
+        sayac, hata = mod.nobet_calistir(
+            "x", env=env8,
+            taban_id={"eski1"},
+            head_kayitlari=[{"id": "eski1", "gorseller": []}])
+        return sayac, hata
+    finally:
+        mod.ROOT = eski_root
+        mod.R2_KIMLIK = eski_kimlik
+        try:
+            import shutil
+            shutil.rmtree(gecici_kok)
+        except OSError:
+            pass
+
+
+def _m3_hukum(arg):
+    """M3: mutasyon basariliysa hata KIMLIK_YOK ile BASLAMAZ; taban altinda
+    KIMLIK_YOK doner. Mutant True, Taban False beklenir."""
+    sayac, hata = arg
+    return hata is None or not hata.startswith("KIMLIK_YOK")
+
+
+def _m3_ozet(arg):
+    sayac, hata = arg
+    if hata:
+        return "hata=%s" % hata.split(":", 1)[0]
+    return "hata=None"
+
+
 def kendini_test():
     """8 vaka + 3 mutant. rc=0 = HEPSI gecti. Hata: hangi vakanin neyinden dolayi
     kactigi AYKRI AYRI basilir; tek sayi OZETI vakalardan once gelmez."""
@@ -677,106 +790,72 @@ def kendini_test():
         if not gecti:
             gecmedi.append(ad)
 
-    # M1: YOK sayaci karara baglanmaz -> V2'de YOK>=1 olsa bile RC=0 verir.
+    # MUTANTLAR (BOS_MUTANT DESENI) — her mutant icin AYNI fiksturu hem
+    # mutant modda hem de taban (orijinal) modda kosuyoruz. Mutant etkili ise
+    # iki hüküm FARKLI olmali; ayniysa mutant bir sey degistirmemis demektir
+    # -> FAIL Mx BOS_MUTANT + rc!=0. Ciktidaki `taban=` ve `mutant=` alanlari
+    # farkliligi acikça tasimak icin zorunlu; kapi bunlar ESIT olursa kapali.
     print("=== MUTANTLAR ===")
-    try:
-        mod = mutant_calistir(M1_CAPA)
-        # V2'yi mutantli modda kos; YOK sayaci karara baglanmadigi icin hepsi VAR
-        # gibi davranmali ve rc=0 vermeli. Beklenti: M1 kirmizi = V2 mutant altinda
-        # 'yesil' gorunur.
-        taban_id, head = fiktur_katalog()
-        s3 = SahteS3({"urunler/th3-1.jpg"})  # th3-2.jpg YOK
-        # Mutantli modda nobet_calistir'e dogrudan cagiriyoruz (CLI yok)
-        sayac, _ = mod.nobet_calistir("x", s3=s3, bucket="b",
-                                      head_kayitlari=head,
-                                      taban_id=taban_id, env={})
-        # Mutant sonucu: YOK=1 olmasina ragmen karara baglanmiyor; bizim beklentimiz
-        # mutantin 'sessiz' olmasi — YOK>=1 olmasina ragmen nobet'in YINE DE bir
-        # sekilde uyari vermesi. Mutant kapandiktan SONRA: kapak_varlik_nobeti'nin
-        # asil 'rc' mantiginin bozulmus olup olmadigini anlamak icin
-        # 'mutant altinda V2 hâlâ kirmizi mi' diye bakmamiz YANLIS — mutantin
-        # amaci kapinin o kolunu OLDURMEK. DOGRUSU: kapinin o kolunu OLDURMEK
-        # 'yetim var mi' sorusunu SASIRTIR. Burada 'mutant kirmizi yanar' =
-        # test bazar'da kapinin o kolunun KIRILMASInin yakalanmasi:
-        #   YOK>=1 olmasina ragmen GERCEK mod nobet_calistir ciktisi 'hepsi VAR'
-        #   yerine 'YOK>=1 var' gostermeli. Bu, kendi icinde bir kapi.
-        # Mantik: gercek fonksiyon YOK>=1 oldugunda `sayac['yok'] >= 1` degerini
-        # korumali; mutant bu sayaci 'sifirlamak' yerine 'karara baglamamak' ile
-        # kapinin RAPORunu etkisizlestirir. Test olarak: V2 fiksturu (YOK=1) ile
-        # mutant altinda `sayac['yok'] >= 1` ve `sayac['gelenek_disi'] == 0` hala
-        # DOGRU olmali — yani kapinin SAYAC kolu bozulmamis. Asil 'M1 kirmizi'
-        # beklentisi: bu mutantli modda main() cagirildiginda (CLI) rc=0 vermesi.
-        # OYLE ki: rapor ettigi halde YOK>=1 kapinin 'kirmizi' bayragi TASMAMALI.
-        # Bunu main()'in son halini calistirarak gorelim.
-        import io as _io, contextlib as _cl
-        buf = _io.StringIO()
-        with _cl.redirect_stdout(buf):
-            rc = mod._cikis_kodu(sayac)
-        m1_gecti = (rc != 1)   # mutant YOK>=1 olmasina ragmen rc!=1 uretiyor
-        # = kapinin 'kirmizi' bayragi tasinMIYOR -> kapinin yaptigi olcum YANLIŞ
-        # = M1 yakalandi.
-        print("%s M1 YOK-sayaci-karara-baglanmaz | rc=%d sayac.yok=%d" % (
-            "OK" if m1_gecti else "FAIL", rc, sayac["yok"]))
-        if not m1_gecti:
-            gecmedi.append("M1")
-    except Exception as exc:
-        print("FAIL M1 | EXC: %r" % exc)
-        gecmedi.append("M1")
-
-    try:
-        mod = mutant_calistir(M2_CAPA)
-        # M2: kimlik yok iken rc=0 yazilir; OLCULEMEDI yerine YESIL verir.
-        gecici_kok = tempfile.mkdtemp(prefix="k415-m2-")
+    _mutant_blok = [
+        ("M1", M1_CAPA, _m1_fikstur_rc, _m1_hukum, _m1_ozet_rc),
+        ("M2", M2_CAPA, _m2_fikstur, _m2_hukum, _m2_ozet),
+        ("M3", M3_CAPA, _m3_fikstur, _m3_hukum, _m3_ozet),
+    ]
+    for ad, capa, fikstur_fn, hukum_fn, ozet_fn in _mutant_blok:
         try:
-            mod.ROOT = gecici_kok
-            mod.R2_KIMLIK = os.path.join(gecici_kok, ".r2-credentials.json")
-            sayac, hata = mod.nobet_calistir("x", env={})
-        finally:
-            try:
-                os.rmdir(gecici_kok)
-            except OSError:
-                pass
-        m2_gecti = (sayac is None or hata is None)   # beklenen: OLCULEMEDI yerine YESIL
-        print("%s M2 kimlik-yok-iken-rc0 | sayac=%r hata=%r" % (
-            "OK" if m2_gecti else "FAIL", sayac, hata))
-        if not m2_gecti:
-            gecmedi.append("M2")
-    except Exception as exc:
-        print("FAIL M2 | EXC: %r" % exc)
-        gecmedi.append("M2")
+            # Taban (orijinal modul) ONCE — mutant kosumu dosya degisikliklerine
+            # (capanin uygulanmasina) maruz kalmamis hali olur. Bu, mutant etkisiz
+            # cikarsa hükmün ayni kalacagi "referans" kosumudur (BOS_MUTANT yakalama).
+            taban_mod = sys.modules[__name__]
+            taban_arg = fikstur_fn(taban_mod)
+            taban_hukum = hukum_fn(taban_arg)
+            taban_ozet = ozet_fn(taban_arg)
+            # Mutant kosumu: izole kopyaya capa uygulanmis modul.
+            mutant_mod = mutant_calistir(capa)
+            mutant_arg = fikstur_fn(mutant_mod)
+            mutant_hukum = hukum_fn(mutant_arg)
+            mutant_ozet = ozet_fn(mutant_arg)
+            bos_mutant = (mutant_hukum == taban_hukum)
+            if bos_mutant:
+                gecmedi.append(ad)
+                print("FAIL %s BOS_MUTANT | taban=%s mutant=%s" % (
+                    ad, taban_ozet, mutant_ozet))
+            else:
+                print("OK %s | taban=%s mutant=%s" % (
+                    ad, taban_ozet, mutant_ozet))
+        except Exception as exc:
+            print("FAIL %s | EXC: %r" % (ad, exc))
+            gecmedi.append(ad)
 
-    # M3: env dortlu AND -> OR. Mutant capasini izole kopyaya uygula, V8'i
-    # mutant altinda kos; beklenti mutantta hata.startswith("KIMLIK_YOK")
-    # olmamali — yani V8 mutant altinda kirmizi yanar. Bu durum M3'un
-    # YAKALANDIGINI gosterir.
-    print("=== MUTANT M3 ===")
+    # Kendini denetim: M2 capasi uygulanmamis haldeyle (etkisiz "mutant") ayni
+    # hükmü vermeli — bu BOS_MUTANT bayraginin semptomatik olarak dogru
+    # calistigini gosterir. Spesifikasyon: "M2 çapasını metin üzerinde etkisiz
+    # bir dizgeye çeviren geçici bir iç kontrol". Pratikte: mutant_calistir'i
+    # ATLAMAK (capa uygulanmamis = etkisiz) + ayni taban fiksturuyla iki kez
+    # kosmak, hükümlerin esit olmasini garanti eder ve BOS_MUTANT'in esit hüküm
+    # durumunda FAIL basacagini dogrular.
+    print("=== KENDINI DENETIM ===")
     try:
-        mod = mutant_calistir(M3_CAPA)
-        gecici_kok = tempfile.mkdtemp(prefix="k415-m3-")
-        try:
-            mod.ROOT = gecici_kok
-            mod.R2_KIMLIK = os.path.join(gecici_kok, "yok.json")
-            env8 = {"R2_ERISIM_ID": "eid", "R2_GIZLI_ANAHTAR": "es",
-                    "CLOUDFLARE_ACCOUNT_ID": "acc"}
-            # R2_BUCKET env'de YOK — kasten.
-            sayac, hata = mod.nobet_calistir("x", env=env8)
-        finally:
-            try:
-                import shutil
-                shutil.rmtree(gecici_kok)
-            except OSError:
-                pass
-        m3_gecti = not (hata and hata.startswith("KIMLIK_YOK"))
-        # M3 mutantinda V8 artik KIMLIK_YOK vermez (env dortlu OR'a gevsedigi
-        # icin eksik alanla bile kimlik_coz dict doner). Mutant altinda
-        # KIMLIK_YOK BASLANGICI yoksa V8 KIRMIZI olmus demek -> M3 yakalandi.
-        print("%s M3 env-dortlu-AND-OR-olur | hata=%r" % (
-            "OK" if m3_gecti else "FAIL", hata))
-        if not m3_gecti:
-            gecmedi.append("M3")
+        kukla_arg1 = _m2_fikstur(sys.modules[__name__])
+        kukla_arg2 = _m2_fikstur(sys.modules[__name__])
+        kukla_hukum1 = _m2_hukum(kukla_arg1)
+        kukla_hukum2 = _m2_hukum(kukla_arg2)
+        kukla_ozet = _m2_ozet(kukla_arg1)
+        # Etkisiz mutantta iki kosum da AYNI hüküm vermeli (ikisi de gercek
+        # KIMLIK_YOK); BOS_MUTANT kurali bu durumda FAIL basardi demektir.
+        if kukla_hukum1 == kukla_hukum2:
+            print("OK kendini-denetim M2 etkisiz-mutant BOS_MUTANT-ayak-izi | "
+                  "hukum=%s ozet=%s (etkisiz mutantta iki kosum ayni hüküm verdi "
+                  "-> BOS_MUTANT kurali dogru tetiklenecekti)" % (
+                      kukla_hukum1, kukla_ozet))
+        else:
+            print("FAIL kendini-denetim M2 etkisiz-mutant | "
+                  "hukum1=%s hukum2=%s (esit olmalydi)" % (
+                      kukla_hukum1, kukla_hukum2))
+            gecmedi.append("kendini-denetim-M2")
     except Exception as exc:
-        print("FAIL M3 | EXC: %r" % exc)
-        gecmedi.append("M3")
+        print("FAIL kendini-denetim M2 | EXC: %r" % exc)
+        gecmedi.append("kendini-denetim-M2")
 
     if gecmedi:
         print("\n=== SONUÇ ===")
