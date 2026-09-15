@@ -66,11 +66,40 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-# build.py MODUL olarak import edilir (komut olarak KOSTURULMAZ: build.py main()'i izlenen
-# statik sayfalari YERINDE yeniden yazar -> calisma agacini kirletir).
-import build  # noqa: E402
+# build.py TEMBEL import (komut olarak KOSTURULMAZ: build.py main()'i izlenen statik sayfalari
+# YERINDE yeniden yazar -> calisma agacini kirletir). OLCULDU (K390): modul duzeyinde
+# `import build` denetim-kapisi.py'nin kendini-testinde model_kanon zinciri uzerinden
+# `index.html` ACMAYA calismasina ve SENTETIK depoda FileNotFoundError vermesine yol aciyordu.
+# BLOKLAYICI / bloklayici_bul / TABAN_YOL gibi KAMU API build'e BAGIMLI DEGIL; sadece
+# render_merchant_feed / load_products / feed_id gerektiren yerlerden _build_modul() CAGRILIR.
+_build = None
+
+
+def _build_modul():
+    """build.py tembel import — sadece render/feed_id kullanan yerlerden cagrilir.
+    Modul duzeyinde import edilmez; boylece bu modulun import edilmesi (denetim-kapisi
+    kendini-testi gibi hafif baglamlar) build'in agir zincirini (marka_model_build,
+    model_kanon, index.html) TETIKLEMEZ."""
+    global _build
+    if _build is None:
+        import build as _b  # noqa: E402
+        _build = _b
+    return _build
 
 TABAN_YOL = os.path.join(HERE, "feed-politika-taban.json")
+
+
+# ------------------------------------------------------------------ gizli eleme (K390)
+# 🔴 K390 TEK KURAL: feed kapsami = build'in gizli elemesi. `gizli:true` kayitlar GERCEK
+# merchant-feed.xml'e HICBIR ZAMAN girmez; kapinin onlari 'ihlal' saymasi YANLIS-POZITIFTIR
+# (Arac Kusuru, K390 baglaminda MaCiT tarafindan fark edildi). Varsayilan yolda
+# build.load_products() CAGRILIR (gizli elemeyi + fiyat normalize'u KENDI yapar);
+# --urunler kopyasinda ise AYNI elemeyi uygulayan BU yardimci cagrilir. Iki yolun DRIFT
+# etmemesi --kendini-test tarafindan korunur (kimlik esitligi id listesi + sira dahil).
+def _gizli_eleme(products):
+    """build.load_products() ile AYNI gizli eleme (yalniz `gizli:true` olanlari dusurur).
+    --urunler kopyasi icin cagrilir; varsayilan yolda build.load_products() zaten bunu yapar."""
+    return [p for p in products if not p.get("gizli")]
 
 # ---------------------------------------------------------------- 1) BLOKLAYICI jetonlar
 # 🔴 BU LISTEYE JETON EKLEMENIN IKI SARTI VAR (ikisi de gerekli):
@@ -205,7 +234,7 @@ def feed_kalemleri(products):
     TERTEMIZ bulur ve cikis 0 verir; ne self-check ne mutasyon harness'i bunu gorurdu.
     Olculdu: feed'in ilk N kalemine kirpan bir mutasyonla 3000. siradaki GERCEK bir vape
     urunu SESSIZCE geciyordu. Kapi neyi TARADIGINI bilmiyorsa hukum VEREMEZ."""
-    xml, _n = build.render_merchant_feed(products)
+    xml, _n = _build_modul().render_merchant_feed(products)
     kalemler = []
     for govde in _ITEM.findall(xml):
         al = {}
@@ -227,7 +256,7 @@ def _tara(products, bulucu):
     'aciklama_jeton','jeton'}  (id = GERCEK urun id'si; feed g:id kisaltilmis olabilir)."""
     gid_pid = {}
     for p in products:
-        gid_pid[build.feed_id(p["id"])] = p["id"]
+        gid_pid[_build_modul().feed_id(p["id"])] = p["id"]
     out = []
     kalemler = feed_kalemleri(products)
     for gid, title, desc in kalemler:
@@ -476,16 +505,61 @@ def taban_yukle(yol=None):
     return t, kayit, int(t.get("kok_baslangic", len(kayit)))
 
 
+def kendini_test():
+    """Tek cikti: yardimci (_gizli_eleme) ile build.load_products() ayni urun listesini
+    veriyor mu? DRIFT korumasi (K390): birinin gizli filtresi degisirse kirmizi yakar.
+
+    GERCEK katalog (build.JSON_PATH) uzerinde calisir; sentetik depo yok. id listesi
+    + sira birebir esit olmali; aksi halde ikiz tanim ayrimis demektir (bkz
+    [[ikiz-tanim-sessiz-ayrisma]]) ve kapinin gizli elemeye olan guveni kirilir.
+    """
+    try:
+        with open(_build_modul().JSON_PATH, encoding="utf-8") as f:
+            raw = json.load(f)
+        yardimci = _gizli_eleme(raw)
+        kanonik = _build_modul().load_products()
+        yardimci_id = [p.get("id") for p in yardimci]
+        kanonik_id = [p.get("id") for p in kanonik]
+        if yardimci_id != kanonik_id:
+            print("PARITE: ❌ _gizli_eleme(%d urun) != build.load_products()(%d urun)"
+                  % (len(yardimci_id), len(kanonik_id)))
+            fark = [(a, b) for a, b in zip(yardimci_id, kanonik_id) if a != b]
+            if not fark:
+                fark = ("uzunluk farki: yardimci=%d kanonik=%d"
+                        % (len(yardimci_id), len(kanonik_id)),)
+            print("  ornek fark (ilk 5): %s" % (fark[:5],))
+            print("  yardimci ilk 5 id: %s" % (yardimci_id[:5],))
+            print("  kanonik ilk 5 id  : %s" % (kanonik_id[:5],))
+            return 1
+        print("PARITE: _gizli_eleme == build.load_products()  (%d urun, sira dahil)" % len(yardimci_id))
+        return 0
+    except OSError as e:
+        print("HATA: %s: %s" % (type(e).__name__, e))
+        return 2
+
+
 def main():
     ap = argparse.ArgumentParser(description="Merchant feed politika jetonu kapisi (2 katmanli)")
     ap.add_argument("--urunler", help="alternatif urunler.json (mutasyon/tanilama; CI kullanmaz)")
     ap.add_argument("--taban", help="alternatif taban dosyasi (mutasyon/tanilama)")
     ap.add_argument("--liste", action="store_true", help="bloklayici ihlalleri tek tek bas")
     ap.add_argument("--rapor-tam", action="store_true", help="rapor katmanindaki her kalemi bas")
+    ap.add_argument("--kendini-test", action="store_true",
+                    help="kapinin kendi kabul testi (gizli-eleme parite iddiasi; sentetik depo yok)")
     args = ap.parse_args()
 
-    with open(args.urunler or build.JSON_PATH, encoding="utf-8") as f:
-        products = json.load(f)
+    if args.kendini_test:
+        return kendini_test()
+
+    # K390: varsayilan yolda build.load_products() CAGRILIR (gizli elemeyi + fiyat normalize'u
+    # KENDI yapar); --urunler kopyasinda ise AYNI elemeyi yapan _gizli_eleme() cagrilir. Iki
+    # yolun esitligi kendini_test() tarafindan dOGRULANIR (DRIFT korumasi).
+    if args.urunler:
+        with open(args.urunler, encoding="utf-8") as f:
+            raw = json.load(f)
+        products = _gizli_eleme(raw)
+    else:
+        products = _build_modul().load_products()
 
     _t, taban, kok_baslangic = taban_yukle(args.taban)
 
