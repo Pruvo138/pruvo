@@ -1220,6 +1220,13 @@ jobs:
       - name: Landing/hukuk beyan kapisi mutant kabul testi
         run: python3 tools/landing-hukuk-kapisi-test.py
 
+      # SEO md donusumu: _seo_md_to_html() satir ici **bold** -> <strong>. Dalga 53/54
+      # sayfalarinda canli literal `**` kusuru (ornek: pos-terminali-ve-satis-noktasi...).
+      # _satir_ici yardimcisi: paragraf, liste, h1/h2 metnine uygulanir; kapanmamis `**`
+      # bozulmaz. Mutant testi (re.sub etkisiz) V1-V4 KIRMIZI, V5/V6 YEŞIL.
+      - name: "SEO md donusumu — satir ici bold kabul testi"
+        run: python3 tools/seo-md-donusum-test.py
+
       # LANDING WHATSAPP KAPISI: CONTENT_PAGES'ten uretilen tum uzun-kuyruk sayfalarda
       # tiklanabilir, dogru numarali ve on-dolu WhatsApp CTA'si bulunur. Orneklem yapmaz;
       # ortak render sablonunun gercek HTML ciktisini ayristirir. Offline ve fail-closed.
