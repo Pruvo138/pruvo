@@ -146,28 +146,18 @@ def vakalari_kos(mod):
 def katalog_ekseni(mod):
     """CONTENT_PAGES'in tumunu render eder; literal `**` tasiyan sayfa sayisini olcer.
 
-    YALNIZ _seo_md_to_html kullanan sayfalar olculur (spec kapsami: spec'te adres gosterilen
-    dalga 53/54 kusuru BU fonksiyondan gecmedi; hard-HTML sayfalarin literal `**`'i ayri bir
-    konu ve scope disidir). Dosya YAZMAZ; sadece fn() cagirir.
+    TUM CONTENT_PAGES olculur — hard-HTML sayfalarin literal `**` kusuru da BU eksen
+    kapsamindadir. Onceki "_seo_md_to_html kullananlar" suzgeci spec'i sessizce
+    daraltip 14 sayfayi gizliyordu. Dosya YAZMAZ; sadece fn() cagirir.
 
-    Returns: (literal_sayfa, literal_toplam, ornekler, kapsam_sayfa, toplam_sayfa, render_hatasi)
+    Returns: (literal_sayfa, literal_toplam, ornekler, katalog_sayfa, render_hatasi)
     """
     sayfalar = mod.CONTENT_PAGES
-    import inspect
     literal_sayfa = 0
     literal_toplam = 0
     ornekler = []
-    kapsam_sayfa = 0
     render_hatasi = 0
     for slug, _baslik, _meta, uretici in sayfalar:
-        # Sayfa _seo_md_to_html kullaniyor mu? (spec'in hedefledigi fonksiyon)
-        try:
-            src = inspect.getsource(uretici)
-        except Exception:
-            src = ""
-        if "_seo_md_to_html" not in src:
-            continue
-        kapsam_sayfa += 1
         try:
             html = uretici()
         except Exception:
@@ -179,7 +169,7 @@ def katalog_ekseni(mod):
             literal_toplam += n
             if len(ornekler) < 5:
                 ornekler.append((slug, n))
-    return literal_sayfa, literal_toplam, ornekler, kapsam_sayfa, len(sayfalar), render_hatasi
+    return literal_sayfa, literal_toplam, ornekler, len(sayfalar), render_hatasi
 
 
 def mutant_ekseni():
@@ -297,10 +287,9 @@ def main():
     vg, vt = vakalari_kos(mod)
 
     print()
-    print("=== KATALOG EKSENI: _seo_md_to_html kullanan tum sayfalar ===")
-    l_sayfa, l_toplam, ornekler, kapsam_sayfa, toplam_sayfa, render_hatasi = katalog_ekseni(mod)
-    print("  toplam sayfa                : %d" % toplam_sayfa)
-    print("  _seo_md_to_html kapsaminda  : %d" % kapsam_sayfa)
+    print("=== KATALOG EKSENI: tum CONTENT_PAGES (hard-HTML dahil) ===")
+    l_sayfa, l_toplam, ornekler, katalog_sayfa, render_hatasi = katalog_ekseni(mod)
+    print("  KATALOG_SAYFA                : %d" % katalog_sayfa)
     print("  render hatasi sayfa         : %d" % render_hatasi)
     print("  literal '**' tasiyan        : %d sayfa, toplam %d adet" % (l_sayfa, l_toplam))
     for slug, n in ornekler:
@@ -314,9 +303,10 @@ def main():
 
     print()
     print("-" * 70)
-    hukum = "YESIL" if (vg == vt and l_sayfa == 0 and mutant_ok) else "KIRMIZI"
-    print("SONUC: VAKA=%d/%d MUTANT=%s/4 LITERAL_BOLD_SAYFA=%d HUKUM=%s"
-          % (vg, vt, ("oldu" if mutant_ok else "olmadı"), l_sayfa, hukum))
+    # fail-closed: render_hatasi>0 ise kirmizi
+    hukum = "YESIL" if (vg == vt and l_sayfa == 0 and render_hatasi == 0 and mutant_ok) else "KIRMIZI"
+    print("SONUC: VAKA=%d/%d MUTANT=%s/4 KATALOG_SAYFA=%d LITERAL_BOLD_SAYFA=%d RENDER_HATASI=%d HUKUM=%s"
+          % (vg, vt, ("oldu" if mutant_ok else "olmadı"), katalog_sayfa, l_sayfa, render_hatasi, hukum))
     return 0 if hukum == "YESIL" else 1
 
 
