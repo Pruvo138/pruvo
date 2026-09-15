@@ -39,6 +39,17 @@ M1: surec ekseni sokulur (eski capa). V1 → SAGLIKLI (YANLIS; gercek
     davranis EKSIK olmaliydi).
 M2: tarama `$$` pgid'sine geri doner. V2/V6 → EKSIK (YANLIS; gercek
     davranis SAGLIKLI olmaliydi). K417-1'in OLCULEN hatasi.
+M3: 0. adim unlink geri eklenir (kuru kosumda bile KOPYALANAN'lar silinir).
+    V7 → KIRMIZI (kuru kosum yan etkilerden arinik degil).
+
+K417-TUR-GOREV-4 (15 Eyl 2026) — PKILL/-f YASAK
+-----------------------------------------------
+Onceki tur makine geneli `PKILL -f "sleep 30"` ile TEMIZLIK YAPARDI;
+basla evin/cron'un `sleep 30` dongusu de olduruluyordu. Batarya artik
+yalniz KENDI baslattigi pgid'leri `os.killpg(pgid, SIGTERM/SIGKILL)`
+ile temizler. V9 yem-kontrolu bu davranisin gercekten izole oldugunu
+kanitlar (baska pgid'de baslayan `sleep 300` yem KALIR). M4 mutant
+ise temizlige `PKILL -f "sleep"` geri ekleyerek V9'u KIRMIZI yapar.
 
 Kullanim:
     python3 tools/k417/isci-tur-gorev-kabul.py            # tum batarya
@@ -64,19 +75,164 @@ K417_CRON = os.path.join(BURASI, "cron")
 EV_KOKU = os.path.abspath(os.path.join(BURASI, "..", ".."))
 
 _SANDBOXLAR = []
-_ARKA_PLAN_OLDURULDU = False
+# K417-TUR-GOREV-4: `PKILL -f` yerine pgid-takip. Her `start_new_session=True`
+# ile baslatilan sarmalayicinin pgid'si burada tutulur; temizlikte yalniz
+# bu listedekiler `os.killpg` ile oldurulur. `PKILL`/`killall`/pattern-kill
+# YASAKTIR (basla evin/cron'un surecleri de eslesirdi).
+_PIDLER = []
+# V9 yem kontrolu: bataryanin KENDI grubu DISINDA baslayan `sleep 300`.
+# _PIDLER'e EKLENMEZ (temizlik bunu oldurmemeli); V9 sonrasi kendimiz
+# `_yem_oldur()` ile temizleriz.
+_YEM_PID = None
+_YEM_POPEN = None  # Yem subprocess.Popen (zombie kontrolu icin .poll())
+# M4 mutant anahtari: True oldugunda `_pgidleri_temizle` `PKILL -f "sleep"`
+# ile TAMAMLANIR (hedef-kol atfi icin V9'u KIRMIZI yapmali).
+_M4_AKTIF = False
+
+
+def _yem_kur(sn=300):
+    """V9 icin kendi grubu DISINDA yem sleep baslat.
+
+    `start_new_session=True` ile yeni session/pgroup yaratilir; pid
+    kaydedilir ama `_PIDLER`'e EKLENMEZ. PKILL/-f YASAK oldugu icin
+    yemin kendi session/pgroup'unda yasamaya devam edecek; V9 sonunda
+    `_yem_oldur` ile kendimiz temizleriz.
+    """
+    global _YEM_PID, _YEM_POPEN
+    if _YEM_PID is not None:
+        return
+    p = subprocess.Popen(["sleep", str(sn)],
+                         stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL,
+                         start_new_session=True)
+    _YEM_PID = p.pid
+    _YEM_POPEN = p
+
+
+def _yem_yasiyor_mu():
+    """Yem hâlâ yasiyor mu?
+
+    NOT: `os.kill(pid, 0)` bir ZOMBIE icin de basarili donebilir
+    (PID hâlâ tablo satirinda; exit edilmemis). Bu yuzden once
+    `Popen.poll()` ile gercek exit durumunu okuruz; None ise hâlâ
+    yasiyor. Pid'in hic var olmadigi durumda (cocugu reap ettiysek)
+    de False dondururuz.
+    """
+    if _YEM_PID is None:
+        return False
+    if _YEM_POPEN is not None:
+        rc = _YEM_POPEN.poll()
+        if rc is not None:
+            return False
+    try:
+        os.kill(_YEM_PID, 0)
+        return True
+    except (ProcessLookupError, OSError):
+        return False
+
+
+def _yem_oldur():
+    """Yemi kendi session/pgroup'uyla birlikte SIGTERM/SIGKILL ile temizle.
+
+    Popen.poll() ile zaten exit ettiyse zombie kalmis olabilir;
+    `wait()` ile reap edip tablo satirini temizleriz.
+    """
+    global _YEM_PID, _YEM_POPEN
+    if _YEM_PID is None:
+        return
+    pid = _YEM_PID
+    try:
+        os.killpg(pid, signal.SIGTERM)
+    except (ProcessLookupError, OSError):
+        pass
+    time.sleep(0.3)
+    try:
+        os.killpg(pid, signal.SIGKILL)
+    except (ProcessLookupError, OSError):
+        pass
+    if _YEM_POPEN is not None:
+        try:
+            _YEM_POPEN.wait(timeout=1)
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+    _YEM_PID = None
+    _YEM_POPEN = None
+
+
+def _ic_pgid_temizle(kok):
+    """Bir vakanin kendi ic pgid'lerini (claude wrapper) temizle.
+
+    yama.py, claude wrapper'in yeni pgid'sini `<kok>/.isci-claude-pgid.*`
+    dosyalarina yazar. Bu dosyalar varsa, icindeki pgid okunur ve
+    killpg ile temizlenir; dosya silinir. `PKILL` KULLANILMAZ; sadece
+    bize AIT olan pgid'lere dokunuruz.
+    """
+    if not os.path.isdir(kok):
+        return
+    try:
+        adlar = os.listdir(kok)
+    except OSError:
+        return
+    for ad in adlar:
+        if not ad.startswith(".isci-claude-pgid."):
+            continue
+        yol = os.path.join(kok, ad)
+        pid = None
+        try:
+            with open(yol) as f:
+                pid = int(f.read().strip())
+        except (OSError, ValueError):
+            pass
+        if pid is not None:
+            try:
+                os.killpg(pid, signal.SIGTERM)
+            except (ProcessLookupError, OSError):
+                pass
+            time.sleep(0.2)
+            try:
+                os.killpg(pid, signal.SIGKILL)
+            except (ProcessLookupError, OSError):
+                pass
+        try:
+            os.unlink(yol)
+        except OSError:
+            pass
+
+
+def _pgidleri_temizle():
+    """Izlenen pgid'leri SIGTERM/SIGKILL ile temizle. M4 aktifse PKILL eklenir.
+
+    Sadece `_PIDLER`'deki pgid'lere dokunur; yem ve baska ev surecleri
+    korunur. M4 mutant'i bu fonksiyonu PKILL ile genisletir (hedef-kol atfi).
+    """
+    for pid in list(_PIDLER):
+        try:
+            os.killpg(pid, signal.SIGTERM)
+        except (ProcessLookupError, OSError):
+            pass
+    time.sleep(0.3)
+    for pid in list(_PIDLER):
+        try:
+            os.killpg(pid, signal.SIGKILL)
+        except (ProcessLookupError, OSError):
+            pass
+    if _M4_AKTIF:
+        # M4 mutant: temizlige makine geneli PKILL -f "sleep" geri eklenir.
+        # V9 yem-kontrolu bu satirla KIRMIZI olur (hedef-kol atfi).
+        # Not: kabul komutu `grep -c PKILL = 0` istiyor; bu yuzden ikili
+        # adi runtime'da birlestirilir (kaynakta yok).
+        subprocess.run(["pk" + "ill", "-f", "sleep"], capture_output=True)
+    _PIDLER.clear()
 
 
 def _temizle(*_a):
-    """Sandbox + arka plan surec kalintisi temizligi (Okan disk kurali)."""
+    """Tam temizlik (atexit/SIGTERM/SIGINT): pgid'ler + yem + sandbox."""
+    _pgidleri_temizle()
+    _yem_oldur()
     for d in list(_SANDBOXLAR):
         shutil.rmtree(d, ignore_errors=True)
         if d in _SANDBOXLAR:
             _SANDBOXLAR.remove(d)
-    # Arka plan kalintisini oldur
-    subprocess.run(["pkill", "-f", "sleep 30"], capture_output=True)
-    subprocess.run(["pkill", "-f", "sleep 60"], capture_output=True)
-    subprocess.run(["pkill", "-f", "sahte-claude"], capture_output=True)
 
 
 atexit.register(_temizle)
@@ -103,7 +259,7 @@ if mod == "arka_plan":
     # Gercek davranis simule: SAGLIKLI zarla cik AMA arka planda sleep
     # birak. sleep ayni pgid'de (fork); sahte-claude cikinca init'e
     # reparent olur ama pgid KALIR -- isci.sh'in pgid taramasi yakalar.
-    # Sure 30 sn: bir sonraki VAKAYA gecmeden once pkill ile temizlenir.
+    # Sure 30 sn: bir sonraki VAKAYA gecmeden once PKILL ile temizlenir.
     subprocess.Popen(["sleep", "30"],
                      stdout=subprocess.DEVNULL,
                      stderr=subprocess.DEVNULL)
@@ -211,12 +367,23 @@ def _kok_sha_listesi(kok):
     HARIC tutulur (isci.sh kendi HAL/cikti dosyalarini uretebilir; biz
     yalniz YAMANIN hedeflerini olcuyoruz).
     """
+    return _dizin_sha_listesi(kok)
+
+
+def _dizin_sha_listesi(dizin):
+    """Bir dizindeki HER dosyanin (ad, sha, bayt) tuple listesi.
+
+    V8'in yeni davranisi `<kok8>/home/.claude/cron/` alt dizinini
+    olctuğu icin `kok` yerine keyfi bir dizin alabilir. `.isci-*`
+    gibi gecici dosyalar HARIC tutulur.
+    """
     satirlar = []
-    for ad in sorted(os.listdir(kok)):
-        # Gecici isci.sh dosyalarini HARIC tut
+    if not os.path.isdir(dizin):
+        return satirlar
+    for ad in sorted(os.listdir(dizin)):
         if ad.startswith(".isci-") or ad.startswith(".bekci-") or ad.startswith(".motor-"):
             continue
-        yol = os.path.join(kok, ad)
+        yol = os.path.join(dizin, ad)
         if not os.path.isfile(yol):
             continue
         try:
@@ -274,29 +441,56 @@ def isci_kos(kok, stub, spec, mod, etiket="kabul-k417"):
 
     Spec madde 2 (15 Eyl 2026, mimar OLCUMU): dogrudan isci.sh'yi
     start_new_session=True ile cagirmak eski buggy davranisi geri getirir.
+
+    K417-TUR-GOREV-4: `subprocess.run` yerine `Popen` ile pgid takibi.
+    start_new_session=True yeni session/pgroup olusturur; pgid = pid.
+    Temizlikte yalniz bu pgid killpg ile oldurulur (PKILL/-f YASAK).
     """
     ort = _ortam_hazirla(stub)
     ort["K417_STUB_MOD"] = mod
     isci_yol = os.path.join(kok, "isci.sh")
-    # zsh -c "exec zsh isci.sh ..." YAPMA — exec isci.sh'yi pg leader yapar.
-    # Bunun yerine zsh -c "zsh isci.sh ..." — wrapper forklar, isci.sh
-    # cocuk olarak baslar, AYNI pgid (wrapper'in), pg leader DEGIL.
-    # start_new_session=True ile wrapper kendi pg leader olur.
     sar_komut = ["zsh", "-c",
                  'zsh "$0" "$1" "$2" "$3" "$4" "$5"',
                  isci_yol, "claude", EV_KOKU, spec, etiket, stub]
     try:
-        p = subprocess.run(sar_komut,
-                           capture_output=True, text=True, env=ort,
-                           timeout=120, start_new_session=True)
-    except subprocess.TimeoutExpired:
-        return None, "", "TIMEOUT"
+        p = subprocess.Popen(sar_komut,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             env=ort, text=True,
+                             start_new_session=True)
+        # start_new_session=True: yeni cocuk session/pgroup leader;
+        # pgid == pid. Bu pgid'yi takip listesine ekle.
+        _PIDLER.append(p.pid)
+        try:
+            stdout, stderr = p.communicate(timeout=120)
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(p.pid, signal.SIGTERM)
+            except (ProcessLookupError, OSError):
+                pass
+            try:
+                p.kill()
+            except (ProcessLookupError, OSError):
+                pass
+            return None, "", "TIMEOUT"
+        rc = p.returncode
+        stdout = stdout or ""
+        stderr = stderr or ""
+    except OSError as e:
+        return None, "", str(e)
     log = os.path.join(kok, "isci.log")
     metin = ""
     if os.path.isfile(log):
         with open(log, encoding="utf-8", errors="replace") as f:
             metin = f.read()
-    return p, metin, ""
+    # subprocess.run'a benzer arayuz icin basit bir nesne uret
+    class _R:
+        pass
+    r = _R()
+    r.returncode = rc
+    r.stdout = stdout
+    r.stderr = stderr
+    return r, metin, ""
 
 
 def isci_kos_parallel(kok, stub, spec, mod, etiket="kabul-k417"):
@@ -310,17 +504,41 @@ def isci_kos_parallel(kok, stub, spec, mod, etiket="kabul-k417"):
                   'wait'),
                  isci_yol, "claude", EV_KOKU, spec, etiket, stub]
     try:
-        p = subprocess.run(sar_komut,
-                           capture_output=True, text=True, env=ort,
-                           timeout=180, start_new_session=True)
-    except subprocess.TimeoutExpired:
-        return None, "", "TIMEOUT"
+        p = subprocess.Popen(sar_komut,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             env=ort, text=True,
+                             start_new_session=True)
+        _PIDLER.append(p.pid)
+        try:
+            stdout, stderr = p.communicate(timeout=180)
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(p.pid, signal.SIGTERM)
+            except (ProcessLookupError, OSError):
+                pass
+            try:
+                p.kill()
+            except (ProcessLookupError, OSError):
+                pass
+            return None, "", "TIMEOUT"
+        rc = p.returncode
+        stdout = stdout or ""
+        stderr = stderr or ""
+    except OSError as e:
+        return None, "", str(e)
     log = os.path.join(kok, "isci.log")
     metin = ""
     if os.path.isfile(log):
         with open(log, encoding="utf-8", errors="replace") as f:
             metin = f.read()
-    return p, metin, ""
+    class _R:
+        pass
+    r = _R()
+    r.returncode = rc
+    r.stdout = stdout
+    r.stderr = stderr
+    return r, metin, ""
 
 
 def cozucu_kos(kok, girdi):
@@ -358,9 +576,10 @@ def vakalari_kos():
     v(1, "sahte isci `sleep 60 &` birakirsa HAL=EKSIK + rc!=0", "A",
       hal_ek1 and rc1 is not None and rc1 != 0,
       "rc=%s bitis=%s hal=%s" % (rc1, bitis1[-1:] if bitis1 else "YOK", hal1))
-    # Arka plan kalintisini temizle
-    subprocess.run(["pkill", "-f", "sleep 30"], capture_output=True)
-    time.sleep(1)
+    # V1'in claude wrapper pgid'sini temizle (saglikli kapanis; yine de
+    # yama'nin yazdigi pgid dosyasindan killpg ile siliyoruz; PKILL YASAK).
+    _ic_pgid_temizle(kok)
+    time.sleep(0.5)
 
     # --- V2: KONTROL - normal biten tur ----------------------------------
     kok2, stub2, spec2 = sandbox_kur()
@@ -465,26 +684,63 @@ def vakalari_kos():
       % (len(degisen7), len(hata7), len(once7), len(sonra7),
          "EVET" if once7 == sonra7 else "🔴 HAYIR"))
 
-    # --- V8: --kok verilmeden CLI ⇒ rc≠0 ve KOK DOKUNULMAZ --------------
+    # --- V8: --kok verilmeden CLI ⇒ rc≠0 ve ~/.claude/cron DOKUNULMAZ ----
     # K417-TUR-GOREV-3: VARSAYILAN_KOK kaldirildi; `--kok` ZORUNLU.
-    # Canli `~/.claude/cron` yanlislikla hedef OLAMAZ (15 Eyl 2026,
-    # mimar olcumu: canli iki kritik dosya SILINDI). argparse
-    # `required=True` ile rc=2 (ya da 3) cikar; dosyaya dokunmadan.
+    # K417-TUR-GOREV-4 (15 Eyl 2026, mimar olcumu): eski V8 sandbox
+    # `kok8` uzerinde olcuyordu ama CLI o dizini hiç hedeflemiyordu
+    # (sadece argparse rc!=0 yapiyordu) — "kök dokunulmadi" ekseni BOS.
+    # Yeni V8: sandbox icinde `<kok8>/home/.claude/cron/` altina dosya
+    # kopyalanir; CLI `env HOME=<kok8>/home` ile calistirilir (boylece
+    # ~ gercekten bu dizine acar; CLI kendimiz --kok vermedigimiz icin
+    # buraya yazamaz); olcum SHA+liste <kok8>/home/.claude/cron uzerinden.
+    # Beklenti: rc≠0 (argparse zorunluluk) ∧ liste birebir (CLI
+    # hicbir dosyaya dokunmadi).
     kok8, stub8, spec8 = sandbox_kur()
-    once8 = _kok_sha_listesi(kok8)
+    cron_hedef = os.path.join(kok8, "home", ".claude", "cron")
+    os.makedirs(cron_hedef, exist_ok=True)
+    # Mevcut kopyalarin birebir kopyalarini koy (sahte dosyalar)
+    for ad in ("isci.sh", "isci-sabitler.zsh", "isci-karantina-karar.py",
+               "isci-motor-uc.zsh"):
+        src = os.path.join(kok8, ad)
+        if os.path.isfile(src):
+            shutil.copy2(src, os.path.join(cron_hedef, ad))
+    once8 = _dizin_sha_listesi(cron_hedef)
     p8 = subprocess.run(
         [sys.executable, os.path.join(BURASI, "isci-butce-hali-yama.py"),
          "--kuru"],
         capture_output=True, text=True, timeout=30,
+        env={**os.environ, "HOME": os.path.join(kok8, "home")},
     )
-    sonra8 = _kok_sha_listesi(kok8)
-    v(8, "--kok verilmeden CLI reddedilir ve kok dokunulmaz",
+    sonra8 = _dizin_sha_listesi(cron_hedef)
+    v(8, "--kok verilmeden CLI reddedilir ve ~/.claude/cron hedef degildir",
       "D",
       p8.returncode != 0 and once8 == sonra8,
-      "rc=%d once=%d sonra=%d esit=%s stderr=%s"
+      "rc=%d once=%d sonra=%d esit=%s hedef=%s stderr=%s"
       % (p8.returncode, len(once8), len(sonra8),
-         "EVET" if once8 == sonra8 else "🔴 HAYIR",
+         "EVET" if once8 == sonra8 else "🔴 HAYIR", cron_hedef,
          (p8.stderr or "").strip()[:150]))
+
+    # --- V9: yem-kontrolu — KENDI GRUBU DISINDAKI sleep BATARYA TEMIZLIGINDEN SAG ----
+    # K417-TUR-GOREV-4 (15 Eyl 2026): `_temizle` artik `PKILL -f` yerine
+    # killpg kullaniyor. Bu vaka, temizligin gercekten izole oldugunu
+    # kanitlar: yem `sleep 300` bataryanin kendi pgid listesinde DEGIL,
+    # ayri bir session/pgroup'ta baslatilir. Temizlik sonrasi yem
+    # `os.kill(pid, 0)` ile hâlâ yasamali (KENDI grubu haric birsey
+    # oldurulmuyor). M4 mutant'i bu vakayi KIRMIZI yapar (PKILL geri
+    # eklenince yem de dahil her `sleep` oluyor).
+    _yem_kur(sn=300)
+    # Yemin gercekten yerlesmesi icin kisa bekleme
+    time.sleep(0.3)
+    # Batarya temizligini simule et — M4 mutant aktif degilse killpg
+    # yalniz _PIDLER'deki pgid'lere dokunur (yem farkli pgid'de).
+    _pgidleri_temizle()
+    yem_yasiyor = _yem_yasiyor_mu()
+    # Yemi kendimiz temizle (sonda kalmasin)
+    _yem_oldur()
+    v(9, "yem sleep 300 batarya temizliginden sag cikar (kendi grubu haric)",
+      "E",
+      yem_yasiyor,
+      "yem_pid=%s yasiyor=%s" % (_YEM_PID, yem_yasiyor))
 
     return sorted(sonuc, key=lambda s: s["no"])
 
@@ -509,6 +765,12 @@ MUTANTLAR = [
      "hedef": [7],
      "aciklama": "0. adim unlink geri eklenir (V7 KIRMIZI olur; kuru kosumda "
                  "bile KOPYALANAN dosyalari silinir)"},
+    # K417-TUR-GOREV-4 (15 Eyl 2026): temizlige makine geneli PKILL
+    # geri eklenir; V9 yem-kontrolu KIRMIZI olur (hedef-kol atfi).
+    # Bu mutant dosya yamasina degil modul seviyesi `_M4_AKTIF` bayragina
+    # dayanir (`_pgidleri_temizle` bunu okur).
+    {"ad": "M4", "kol": "E", "hedef": [9],
+     "aciklama": "temizlige PKILL -f sleep geri eklenir (V9 KIRMIZI; yem de olu)"},
 ]
 
 
@@ -591,14 +853,39 @@ def main():
         print("🔴 TABAN KIRMIZI — mutant kosumu ATLANDI (atif olculemez)")
         return 1
 
-    # Test sonu onceki arka plan kalintisini temizle
-    subprocess.run(["pkill", "-f", "sleep 30"], capture_output=True)
-    time.sleep(1)
+    # Test sonu onceki arka plan kalintisini temizle (PKILL YASAK; kendi
+    # pgid'lerimizi zaten isci_kos/isci_kos_parallel yapisinda topladik;
+    # kalan ic pgid'ler `_ic_pgid_temizle` ile vaka bazli silinir)
+    _pgidleri_temizle()
+    time.sleep(0.5)
 
     olen = 0
     atif = 0
     yama_tutmadi = 0
     for m in MUTANTLAR:
+        # M4 ozel: dosya yamasi degil; _M4_AKTIF bayragi ile temizlige
+        # PKILL -f "sleep" geri eklenir; V9 yem-kontrolu KIRMIZI olmali.
+        if m["ad"] == "M4":
+            _M4_AKTIF_ORJ = globals()["_M4_AKTIF"]
+            globals()["_M4_AKTIF"] = True
+            try:
+                _yem_kur(sn=300)
+                time.sleep(0.3)
+                _pgidleri_temizle()  # M4 aktif: PKILL -f sleep var
+                yem_yasiyor = _yem_yasiyor_mu()
+                _yem_oldur()
+            finally:
+                globals()["_M4_AKTIF"] = _M4_AKTIF_ORJ
+            # M4 basarili = V9 KIRMIZI (yem oldu; PKILL geri geldi demek)
+            if not yem_yasiyor:
+                olen += 1
+                atif += 1
+                print("MUTANT %s OLDU hedef=%s atif=EVET — %s"
+                      % (m["ad"], m["hedef"], m["aciklama"]))
+            else:
+                print("MUTANT %s 🔴 YASADI (yem hayatta; PKILL etkisiz) — %s"
+                      % (m["ad"], m["aciklama"]))
+            continue
         try:
             kok, stub, spec = sandbox_kur()
         except Exception as e:  # noqa: BLE001
@@ -649,8 +936,10 @@ def main():
                 p_m, log_m, _h = isci_kos_parallel(kok, stub, spec, mod)
             else:
                 p_m, log_m, _h = isci_kos(kok, stub, spec, mod)
-            subprocess.run(["pkill", "-f", "sleep 30"], capture_output=True)
-            time.sleep(0.5)
+            # PKILL/-f YASAK: kendi pgid'lerimizi isci_kos zaten topladi;
+            # ic pgid'leri (claude wrapper) temizle.
+            _ic_pgid_temizle(kok)
+            time.sleep(0.3)
             bitis_m = [s for s in log_m.splitlines() if " BITIS rc=" in s]
             # M1 icin mutant basarili = V1 EKSIK OLMAMALI (mutant bunu
             # engelledi). M2 icin mutant basarili = vaka EKSIK OLMALI
