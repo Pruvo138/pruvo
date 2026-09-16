@@ -33,15 +33,22 @@ Bu modul TEK KAYNAKTIR: shim metnini uretir, evleri siniflar. Kapi
 (`tools/kapi-dagitim-kapisi.py`) bu modulu cagirir — ikinci bir renderer YAZILMAZ
 ([[ikiz-tanim-sessiz-ayrisma]]).
 
-🔴 KURUCU VE KABUL TESTI YOK (ACIK KALEM, 11 Eyl 2026). Bu cumle eskiden "kurucu
-(kapi-dagitim-kur.py) ve kabul testi (kapi-dagitim-test.py) UCU DE bu modulu cagirir"
-diyordu; IKISI DE ca8c3815 ile SILINDI (28 Agu supurmesi). Yani shim'i EVLERE KURAN kol
-da, kurulan shim'in bu modulden TUREDIGINI olcen kol da bugun YOK: kurulu shim'ler
-kaynaktan sapsa hicbir sey kirmizi yanmaz. Tek canli komsu `tools/kapi-dagitim-kapisi.py`
-ve o BASKA sey olcer.
+KURUCU `tools/kapi-dagitim-kur.py` ve kabul testi `tools/kapi-dagitim-test.py` (16 Eyl
+2026, K335) bu modulu cagirir; ikisi 28 Agu supurmesinde (ca8c3815) silinmisti, K335
+onarimiyla geri kuruldu.
+
+🔴 K335 — IKINCI DUZLEM: GIT. Disk esitligi KALICILIK DEGILDIR. Kardes evin
+settings.json'u shim'i `${CLAUDE_PROJECT_DIR}/.claude/...` ile cagirir; o evde acilan
+HER worktree dosyayi yalniz GIT'ten alir. Olculen vaka (16 Eyl): ArTisT ve HocA'da shim
+`.git/info/exclude`'da (commit YOK) -> dort ArTisT worktree'sinin hicbirinde shim yok,
+her Bash cagrisi kanca zincirinde dusuyordu; TeKiN ve BaBa'da shim `skip-worktree`
+bayrakli (diskteki yeni, commit'teki bayat). Eski olcum ikisine de GUNCEL diyordu.
+Bu yuzden diskte GUNCEL olan shim ayrica HEAD'de de birebir olmali ve gizleme bayragi
+tasimamali; aksi GIT_YOK / GIT_BAYAT / GIT_GIZLI (KIRMIZI).
 """
 import hashlib
 import os
+import subprocess
 
 # CANLI MAKINEDE tek kaynak buradadir. CI kosucusunda (GitHub) bu yol YOKTUR; orada
 # yalnizca MEKANIZMA olculur (fikstur evleri + mutasyon), FILO olculemez ve kabul testi
@@ -85,6 +92,10 @@ ESKI_KOPYA = "ESKI_KOPYA"  # shim degil, DONMUS tam govde kopyasi (bugunku hasta
 YOK = "YOK"                # dosya yok
 OKUNAMADI = "OKUNAMADI"    # okunamadi / cozulemedi
 CAPA_KIRIK = "CAPA_KIRIK"  # kaynak evinde iki capa TAM BIR KEZ gecmiyor (filo KARARIR)
+# K335 git duzlemi — diskte GUNCEL ama taze worktree/checkout onu GERI GETIRMEZ:
+GIT_YOK = "GIT_YOK"        # shim git'e hic girmemis (izlenmiyor; worktree'de dosya YOK)
+GIT_BAYAT = "GIT_BAYAT"    # HEAD'deki shim diskteki beklenenden farkli (checkout bayati getirir)
+GIT_GIZLI = "GIT_GIZLI"    # skip-worktree / assume-unchanged: fark git'ten SAKLANIYOR
 
 YESIL_SINIFLAR = (GUNCEL, KAYNAK_EVI)
 
@@ -195,6 +206,36 @@ def kurulu_yol(ev_koku, goreli):
     return os.path.join(ev_koku, goreli)
 
 
+def _git(ev_koku, *args):
+    return subprocess.run(["git", "-C", ev_koku] + list(args),
+                          capture_output=True, timeout=30)
+
+
+def git_duzlemi(ev_koku, goreli, beklenen_sha):
+    """Diskte GUNCEL olan shim'in git'teki hali. Doner: GUNCEL ya da bir GIT_* sinifi.
+
+    Fail-closed: git kosturulamazsa / ev bir git deposu degilse OKUNAMADI (yesil DEGIL)."""
+    try:
+        ls = _git(ev_koku, "ls-files", "-v", "--", goreli)
+        if ls.returncode != 0:
+            return OKUNAMADI
+        satirlar = [s for s in ls.stdout.decode("utf-8", "replace").splitlines() if s.strip()]
+        if not satirlar:
+            return GIT_YOK
+        # ls-files -v: 'S' = skip-worktree, kucuk harf = assume-unchanged.
+        etiket = satirlar[0][0]
+        if etiket == "S" or etiket.islower():
+            return GIT_GIZLI
+        blob = _git(ev_koku, "show", "HEAD:" + goreli)
+        if blob.returncode != 0:
+            return GIT_YOK  # index'te var ama HEAD'de yok: taze checkout almaz
+        if hashlib.sha256(blob.stdout).hexdigest() != beklenen_sha:
+            return GIT_BAYAT
+        return GUNCEL
+    except Exception:
+        return OKUNAMADI
+
+
 def siniflandir(ev_adi, ev_koku, goreli, mod):
     """Bir evin KURULU dosyasini sinifla. Doner: (sinif, kurulu_sha, beklenen_sha).
 
@@ -225,7 +266,7 @@ def siniflandir(ev_adi, ev_koku, goreli, mod):
     beklenen_metin = shim_metni(ev_adi, ev_koku)
     beklenen = sha256_metin(beklenen_metin)
     if kurulu == beklenen:
-        return (GUNCEL, kurulu, beklenen)
+        return (git_duzlemi(ev_koku, goreli, beklenen), kurulu, beklenen)
     if SHIM_IMZASI in icerik:
         return (SHIM_BAYAT, kurulu, beklenen)
     return (ESKI_KOPYA, kurulu, beklenen)

@@ -687,6 +687,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/tamirci-16eyl-kabul.py
 
+      # 🔴 K335 (16 Eyl 2026) — MIMAR ICRA KAPISI SHIM'INDE GIT DUZLEMI + KURUCU.
+      # Olcum shim'i yalniz DISKTE esitliyordu: exclude'daki (commit'siz) ya da
+      # skip-worktree bayrakli shim GUNCEL gorunuyor, taze worktree ise shim'siz
+      # doguyor ve kanca zinciri her cagrida dusuyordu. Batarya gecici fikstur git
+      # depolarinda kosar (gercek ev yoluna yazmaz): GIT_YOK/GIT_BAYAT/GIT_GIZLI
+      # siniflari + worktree tatbikati + kurucu kuru/uygula + git duzlemi mutanti.
+      - name: K335 kapi dagitim git duzlemi kabul testi
+        if: ${{ !cancelled() }}
+        run: python3 tools/kapi-dagitim-test.py
+
       # MARKA DURUM PANELI: parity-panel/parity-csv/marka-kapsama satır evreni ham defter
       # anahtarları değil KANONIK TANINMIS_MARKALAR'dan gelir; ham defterdeki sayımlar
       # markaKatla ile kanonik markaya KATLANIR (Toyota cover/mount... -> tek Toyota),
