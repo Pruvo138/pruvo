@@ -661,6 +661,54 @@ def acik_kalem_listesi(defter_yolu, *, gecersiz_sink=None):
     return kalemler, True, None
 
 
+def kalem_kimlikleri(defter_yolu):
+    """Defterde SATIRI OLAN TUM kalem kimliklerini doner (durum FARK ETMEZ).
+
+    🔴 NEDEN `acik_kalem_listesi` YETMEZ (K309, 16 Eyl 2026): o fonksiyon
+    yalniz `ACIK_DURUMLAR` satirlarini dondurur. "Bu id'nin defterde SATIRI
+    var mi?" sorusu ise durum-bagimsizdir — KAPANDI satiri da bir satirdir.
+    K309'un menzil olcumu `acik_kalem_listesi` uzerine kurulsaydi, kapanmis
+    her kalem "defter disi" gorunur ve menzil sayisi SISERDI
+    ([[eslesme-anahtari-yanlissa-sifir-bulgu-yesil-sanilir]]).
+
+    🔴 IKINCI PARSER YAZILMAZ: satir tanima (`TabloSatir`), hucre bolme
+    (`hucrelere_bol`) ve ayrac elemesi (`_ayrac_satiri_mi`) ayni ilkellerdir;
+    burada YALNIZ durum filtresi yoktur. Ilkeller degisirse iki okuyucu
+    BIRLIKTE kayar ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    Return: (kimlikler_set, okundu_mu_bool, hata_mesaji_str_or_None)
+    Fail-closed: dosya yok / IO / tablo yok -> (set(), False, hata).
+    """
+    if not defter_dosyasi_var_mi(defter_yolu):
+        return set(), False, "defter dosyasi yok: %s" % defter_yolu
+    try:
+        with open(defter_yolu, encoding="utf-8") as f:
+            icerik = f.read()
+    except OSError as e:
+        return set(), False, "defter okunamadi (IO): %r" % e
+    if not icerik.strip():
+        return set(), False, "defter bos"
+
+    kimlikler = set()
+    tablo_gorundu = False
+    for satir in icerik.splitlines():
+        if not TabloSatir.match(satir):
+            continue
+        kolonlar = [k.strip() for k in hucrelere_bol(satir)]
+        if len(kolonlar) < 7:
+            continue
+        if _ayrac_satiri_mi(kolonlar):
+            continue
+        tablo_gorundu = True
+        kimlik = kolonlar[1].strip()
+        if not kimlik or kimlik.lower() in ("kimlik", "kalem", "id"):
+            continue
+        kimlikler.add(kimlik)
+    if not tablo_gorundu:
+        return set(), False, "defter icinde tablo bulunamadi (format bozuk)"
+    return kimlikler, True, None
+
+
 # ------------------------------------------------------------------------------
 # K289 — OLCUTSUZ KALEM KOLU (T4-OLCUTSUZ)
 # ------------------------------------------------------------------------------
@@ -1018,17 +1066,54 @@ def _k382_m_c_yama(kaynak):
     return capa.sub(lambda _m: yeni, kaynak, count=1), None
 
 
-def _k382_m_d_yama(kaynak):
-    """M-d: AYRAC SATIRI elemesini OLDURUR (`|---|---|` durum sayilir)."""
-    capa = re.compile(r"^(?P<girinti>[ ]+)if _ayrac_satiri_mi\(kolonlar\):$", re.M)
-    n = len(capa.findall(kaynak))
+def _fonksiyon_dilimi(kaynak, ad):
+    """`def <ad>(` govdesinin (bas, son) ofsetleri; bulunamazsa None.
+
+    🔴 NICIN VAR (K309 turu, 16 Eyl 2026 — OLCULDU): M-d capasi
+    `if _ayrac_satiri_mi(kolonlar):` dizgesini TUM KAYNAKTA ariyordu. Ayni
+    ILKELI kullanan IKINCI bir okuyucu (`kalem_kimlikleri`) eklenince dizge 2
+    kez eslesti ve mutant `CAPA-COZULMEDI` ile GURULTULU dustu — bekci dogru
+    calisti ama capa, HEDEF KOLU degil KAYNAK METNI nisan aliyordu
+    ([[capa-komsuya-nisanlanirsa-yabanci-degisiklik-kopartir]]).
+    SINIF ONARIMI: capa once HEDEF FONKSIYONUN govdesine daraltilir; boylece
+    komsu bir fonksiyonda ayni satirin gecmesi mutanti KIRMAZ, ve capa yine de
+    kendi diliminde TAM 1 kez eslesmek ZORUNDADIR (gevsetme YOK).
+    """
+    bas = re.search(r"^def %s\(" % re.escape(ad), kaynak, re.M)
+    if not bas:
+        return None
+    kalan = kaynak[bas.end():]
+    son = re.search(r"^(?:def |class |@|# =====)", kalan, re.M)
+    return bas.start(), bas.end() + (son.start() if son else len(kalan))
+
+
+def _dilimde_capa(kaynak, fonksiyon, capa, uretici, mutant_adi, capa_metni):
+    """Capayi YALNIZ `fonksiyon` govdesinde coz ve TAM 1 eslesme SART kos."""
+    dilim = _fonksiyon_dilimi(kaynak, fonksiyon)
+    if dilim is None:
+        return None, ("CAPA-COZULMEDI %s: hedef fonksiyon `%s` kaynakta YOK"
+                      % (mutant_adi, fonksiyon))
+    bas, son = dilim
+    govde = kaynak[bas:son]
+    n = len(capa.findall(govde))
     if n != 1:
-        return None, ("CAPA-COZULMEDI M-d: `if _ayrac_satiri_mi(kolonlar):` "
-                      "kaynakta %d kez eslesti (1 bekleniyordu)" % n)
+        return None, ("CAPA-COZULMEDI %s: `%s` `%s` govdesinde %d kez eslesti "
+                      "(1 bekleniyordu)" % (mutant_adi, capa_metni, fonksiyon, n))
+    return kaynak[:bas] + capa.sub(uretici, govde, count=1) + kaynak[son:], None
+
+
+def _k382_m_d_yama(kaynak):
+    """M-d: AYRAC SATIRI elemesini OLDURUR (`|---|---|` durum sayilir).
+
+    Capa `acik_kalem_listesi` GOVDESINE daraltilir — ayni ilkeli kullanan
+    komsu okuyucular (`kalem_kimlikleri`) capayi KIRMAZ.
+    """
+    capa = re.compile(r"^(?P<girinti>[ ]+)if _ayrac_satiri_mi\(kolonlar\):$", re.M)
 
     def _degistir(m):
         return "%sif False:  # K382 M-d MUTANT — ayrac elemesi OLDURULDU" % m.group("girinti")
-    return capa.sub(_degistir, kaynak, count=1), None
+    return _dilimde_capa(kaynak, "acik_kalem_listesi", capa, _degistir, "M-d",
+                         "if _ayrac_satiri_mi(kolonlar):")
 
 
 K380_MUTANTLARI = {

@@ -1314,6 +1314,13 @@ def main(argv=None):
                         " birak. Korumali basliklar (ACIK KALEMLER / OKAN'DA /"
                         " ARSIVDE) ASLA indirilmez. Bayrak YOKSA davranis"
                         " degismez (KAYIP / ILERLEME_YOK).")
+    p.add_argument("--onlem", action="store_true",
+                   help="K351-31AGU: BASLANGIC kapisini CEZA esigi (tavan)"
+                        " yerine ONARIM esigine (su seviyesi) bagla. Tavan"
+                        " altinda da is yapar. Sayi komut satirina YAZILMAZ:"
+                        " esik `defter-kota-taban.py::su_seviyesi`den TURER."
+                        " Tavan degerleri verilmemisse --tavan-kaynaktan"
+                        " ima edilir.")
     p.add_argument("--tavan-kaynaktan", action="store_true",
                    help="tavanlari tools/defter-kota-taban.py'dan (kota kapisinin"
                         " okudugu TEK KAYNAK) al. Komut satirina SAYI YAZILMAZ:"
@@ -1321,11 +1328,42 @@ def main(argv=None):
                         " sessizce ayrisir. Acikca verilen --tavan-* bunu ezer.")
     a = p.parse_args(argv)
 
-    if a.tavan_kaynaktan:
+    if a.tavan_kaynaktan or a.onlem:
         if a.tavan_sayi is None:
             a.tavan_sayi = TAVAN_SATIR
         if a.tavan_bayt is None:
             a.tavan_bayt = TAVAN_BAYT
+
+    # === K351-31AGU — BASLANGIC BACAGININ ESIGI ==============================
+    # 🔴 OLCULEN ARIZA (29 + 31 Agu, uc kez; 16 Eyl'de kodda birebir dogrulandi):
+    # asagidaki BASLANGIC kapisi (`if not _tavan_asildi_mi(...): return 0`)
+    # CEZA esigini soruyor. Onarim esigi (`_su_seviyesi_ustunde_mi`) yalnizca
+    # DURMA kolunda kullaniliyordu. Yani K353'un esik ayrimi DURMA bacagina
+    # uygulanmis, BASLAMA bacagi ceza esiginde kalmisti
+    # ([[onarim-kolu-zarar-esiginin-arkasinda]]). Sonuc: arac ancak tavan
+    # ASILDIKTAN sonra is yapabiliyordu — ama tavan asildigi anda
+    # `defter-kota-kapisi.py` evin TUM commit'ini zaten kilitlemis oluyordu:
+    # koruma, korudugu isi ancak zarar olustuktan SONRA yapabiliyordu.
+    #
+    # ONARIM SINIF DUZEYINDE: `--onlem` verildiginde BASLANGIC kapisi DURMA
+    # kolunun esigiyle AYNI yuklemi kullanir. Iki bacak TEK esikten turer;
+    # ikinci bir oran/sabit ACILMAZ (`ONLEM_ORANI` gibi bir ikiz tanim
+    # yazilsaydi `SU_SEVIYESI_ORANI` ile sessizce ayrisirdi
+    # ([[ikiz-tanim-sessiz-ayrisma]])).
+    _baslangic_asildi_mi = _tavan_asildi_mi
+    if a.onlem:
+        # FAIL-CLOSED: esik cozulemiyorsa TAVANA GERI DUSME — sessiz no-op
+        # bu bayragin kapatmak icin var oldugu arizanin ta kendisidir.
+        if getattr(_tab_mod, "su_seviyesi", None) is None:
+            print("OLCULEMEDI: --onlem istendi ama tek kaynakta"
+                  " `su_seviyesi()` YOK (%s)" % _TABAN_YOL, file=sys.stderr)
+            return 4
+        _baslangic_asildi_mi = _su_seviyesi_ustunde_mi
+        print("ONLEM_HEDEFI satir=%s bayt=%s (tavan %s/%s, oran=%s)"
+              % (_tab_mod.su_seviyesi(a.tavan_sayi),
+                 _tab_mod.su_seviyesi(a.tavan_bayt),
+                 a.tavan_sayi, a.tavan_bayt,
+                 getattr(_tab_mod, "SU_SEVIYESI_ORANI", "?")))
 
     tarih = a.tarih if a.tarih is not None else _bugun()
 
@@ -1340,7 +1378,7 @@ def main(argv=None):
         # bayt-bayt ayni kalmali; eger zaten tavan altindaysa NO-OP.
         with open(defter_yol, "rb") as f:
             onceki_ham = f.read()
-        if not _tavan_asildi_mi(defter_yol, a.tavan_sayi, a.tavan_bayt):
+        if not _baslangic_asildi_mi(defter_yol, a.tavan_sayi, a.tavan_bayt):
             satir = len(onceki_ham.splitlines())
             arsiv_satir = (len(open(arsiv_yol, "rb").read().splitlines())
                            if os.path.exists(arsiv_yol) else 0)

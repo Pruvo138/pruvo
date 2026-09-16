@@ -1894,6 +1894,38 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/defter-kota-kapisi.py --kendini-test
 
+      # K351-31AGU (16 Eyl 2026) — ROTASYONUN BASLANGIC BACAGI. Ustteki adim kota
+      # KAPISINI olcer; bu adim rotasyon ARACININ tavan ALTINDA calisip
+      # calismadigini olcer. OLCULEN ARIZA (29 + 31 Agu, uc bagimsiz kosum):
+      # baslangic kapisi `if not _tavan_asildi_mi(...): return 0` CEZA esigini
+      # soruyordu, onarim esigi (K353 su seviyesi) YALNIZ durma kolundaydi —
+      # yani arac ancak tavan ASILDIKTAN sonra is yapabiliyordu, ama o an kota
+      # kapisi evin TUM commit'ini zaten kilitlemis oluyordu. `--onlem` bayragi
+      # baslangic bacagini DURMA kolunun esigine baglar; ikinci bir oran/sabit
+      # ACILMAZ (tek kaynak `defter-kota-taban.py::su_seviyesi`).
+      # NEDEN SERIT B: defter hijyeni, yayinlanan icerik DEGIL. Tamamen offline —
+      # arac IZOLE kopyalanir, fiksturler `tempfile.mkdtemp` altinda, GERCEK
+      # DEVAM.md/DEVAM-ARSIV.md'ye DOKUNULMAZ; mutantlar yalniz gecici kopyada
+      # yasar ([[mutant-canli-govdede-yasamaz]]). ~20 s.
+      - name: "K351-31AGU rotasyon onlem bacagi kabul testi (18 vaka + 4 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/defter-onlem-bacagi-test.py
+
+      # K309 (16 Eyl 2026) — MENZIL KAPISI. Defterde SATIRI OLMAYAN kalem id'si
+      # sayisini olcer: `acik-kalemler.md` nobetin olcum EVRENIDIR, orada satiri
+      # olmayan kalem ne kapanabilir ne olculebilir; bugun kayitlarda yasayan
+      # id'lerin cogunun defterde satiri YOK (16 Eyl olcumu: MENZIL_DISI=238).
+      # 🔴 BU ADIM `--kendini-test`TIR, CANLI OLCUM DEGIL: canli olcum
+      # `DEVAM-ARSIV.md`yi okur, o dosya GIT DISIDIR ve CI'da YOKTUR — kapi orada
+      # kosturulsaydi `OLCULEMEDI` + rc=4 ile SERIT B'yi kirmiziya yakardi. Canli
+      # kosumu mimar yapar: `python3 tools/kalem-menzil-kapisi.py`
+      # (taban `tools/k309-menzil-taban.json`, ARTISTA rc=3).
+      # Batarya offline: fiksturler `tempfile.mkdtemp` altinda, gercek defter/
+      # kayit duzlemleri OKUNMAZ. 41 vaka + 5 hedef-kol atifli mutant + KONTROL.
+      - name: "K309 kalem menzil kapisi kabul testi (41 vaka + 5 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kalem-menzil-kapisi.py --kendini-test
+
       # HAFIZA INDEKSI EKSENI (K366, KraL-HafizaTavani-05Eyl) — AYRI ADIM, AYRI TALLY.
       # Kapsam iki yuzey: (A) `tools/hafiza-indeks-arsivle.py` (MEMORY.md tavan sahibi +
       # LOSSLESS rotasyon) ve (B) `defter-kota-kapisi.py`nin UCUNCU ekseni (HAFIZA_* kovalari).
