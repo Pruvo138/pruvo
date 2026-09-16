@@ -2751,8 +2751,19 @@ jobs:
   #   model-uyelik   2788 s · marka-bolum 2406 s · marka-sayfa 1277 s · model-baslik 899 s
   # Is akisi `push` tetikli ve `concurrency: nobet-serit-b` + `cancel-in-progress: false`
   # -> saatte birkac katalog partisi inerken son 12 SERIT B kosumunun 8'i kuyrukta
-  # `cancelled` oldu. Zarar YAYIN DEGIL (bu joblarin hicbiri `deploy: needs`te degil),
-  # GERI BILDIRIM GECIKMESI: bir kapi kirildiginda ~2,5 saat sonra goruluyordu.
+  # `cancelled` oldu. Zarar YAYIN DEGIL (bu joblarin hicbiri `deploy: needs`te degil).
+  # 🔴 BU YORUMUN ILK HALI ZARARI YANLIS SINIFLADI (K339-EK, 28 Agu 2026): "GERI BILDIRIM
+  # GECIKMESI: bir kapi kirildiginda ~2,5 saat sonra goruluyordu" yaziyordu. Olculen hal
+  # gecikme DEGIL: iptal edilen SHA'nin hukmu HIC DOGMUYOR ve telafi edilmiyor. Dogru
+  # olcut **hukum ureten kosum orani** (iptal SAYISI degil): 28 Agu'da 25 kosumda 0
+  # success; 16 Eyl 2026'da n=200 penceresinde 76/198 = %38 (push kolu 57/177 = %32,
+  # HEAD garantili `schedule` kolu 18/20 = %90).
+  # 🔴 OLCEN KOL -> tools/serit-b-hukum-test.py (K339 kabul ② sayaci: HUKUMSUZ_SERI HER
+  # kosumda ADIYLA basilir, 0 ile n AYNI satirdan okunur; esik HEAD garantili kola bagli,
+  # push kolunun orani BILGI olarak basilir ve rc'yi belirlemez — push kuyrugunu bolmek
+  # G9 tarafindan YASAK). Bu atif ya da zarar sinifi cumlesi yorumdan dusurulurse o
+  # kapinin P5 iddiasi KIRMIZI yanar; bilgi YORUMDA kalirsa ayni ariza ucuncu kez
+  # yeniden kesfedilir ([[aracin-teshis-cumlesi-olcum-degil]]).
   #
   # 🔴 BU BIR TASIMA ISIDIR, OPTIMIZASYON DEGIL: mutant sayisi, mutant listesi, komut,
   # bayrak ve adim adi BIREBIR korundu. Bu evde olculdu — bir adimi baska job'a/seride
