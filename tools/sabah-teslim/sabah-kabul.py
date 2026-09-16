@@ -408,7 +408,171 @@ def a6_ortam_turetme():
 MUT_A7_CAPA = "        if yeni_adedi == 1:\n"
 MUT_A7_YAMA = "        if yeni_adedi == 1 and capa_adedi == 0:  # MUTANT: eski kol\n"
 
-YAMA_HEDEFLERI = ("cip_dogum_bekcisi.py", "bekci-kabul.py", "bekci-kur.py")
+# 🔴 SENTETIK TABAN (16 Eyl 2026) — A7 ARTIK GERCEK YEDEK DUZLEMINE BAGLI DEGIL.
+# ONCE: taban `_en_eski_yedek()` ile `~/.claude/cron/<ad>.yedek-sabahteslim-*`
+# dosyalarindan kuruluyordu. O yedekler BU makinede yoktu ve CI'da HICBIR ZAMAN
+# olmayacak -> A7b/A7c `OLCULEMEDI` donuyor, K320'nin onarimi kabul EDILEMIYORDU
+# ([[emir-canliligi-kurulu-kopyadan-olculur]] kardesi: olculen duzlem YOKSA hukum
+# de yok). SIMDI taban `kur.py` `yamalar()` CAPA SOZLESMESINDEN URETILIR: her
+# hedef dosya icin capalari BIREBIR tasiyan, DERLENEBILIR bir stub yazilir.
+# Hedef listesi de ELLE TUTULMAZ, `yamalar()`tan turer (bayat liste sinifi yok).
+
+_ACIK = {"(": ")", "[": "]", "{": "}"}
+_KAPALI = {")": "(", "]": "[", "}": "{"}
+_TIRNAKLAR = ('"""', "'''", '"', "'")
+_BLOK_DEVAMI = ("elif ", "else:", "except", "finally:")
+
+
+def _parantez_dengesi(metin):
+    """(ONCE acilmasi gereken parantezler, SONRA kapatilmasi gerekenler).
+
+    Capa metinleri ifade ORTASINDAN baslayabilir (or. bir liste literalinin
+    kapanis `]`'i). Dizge (tek/uc tirnak, kacis) ve `#` yorumu farkindadir.
+    """
+    yigin, eksik = [], []
+    i, n, tirnak = 0, len(metin), None
+    while i < n:
+        c = metin[i]
+        if tirnak:
+            if c == "\\" and len(tirnak) == 1:
+                i += 2
+            elif metin.startswith(tirnak, i):
+                i += len(tirnak)
+                tirnak = None
+            else:
+                i += 1
+            continue
+        if c == "#":
+            j = metin.find("\n", i)
+            i = n if j < 0 else j
+            continue
+        acilan = next((t for t in _TIRNAKLAR if metin.startswith(t, i)), None)
+        if acilan:
+            tirnak = acilan
+            i += len(acilan)
+            continue
+        if c in _ACIK:
+            yigin.append(c)
+        elif c in _KAPALI:
+            if yigin and yigin[-1] == _KAPALI[c]:
+                yigin.pop()
+            else:
+                eksik.append(_KAPALI[c])
+        i += 1
+    return eksik, yigin
+
+
+def _girinti(satir):
+    return len(satir) - len(satir.lstrip())
+
+
+def _dolu_satirlar(metin):
+    return [s for s in metin.splitlines() if s.strip()]
+
+
+def _iskele_olcutu(metin):
+    """Bir metin parcasini derlenebilir kilmak icin gereken iskelenin TARIFI."""
+    sat = _dolu_satirlar(metin)
+    if not sat:
+        return (0, None, (), (), ())
+    taban = min(_girinti(s) for s in sat)
+    kuyruk = _girinti(sat[-1]) + 4 if sat[-1].rstrip().endswith(":") else None
+    eksik, acik = _parantez_dengesi(metin)
+    bas = tuple(k for k in _BLOK_DEVAMI if sat[0].lstrip().startswith(k))
+    return (taban, kuyruk, tuple(eksik), tuple(acik), bas)
+
+
+def _sar(capa, yeni, sira):
+    """Capayi BIREBIR koruyarak derlenebilir bir govdeye sarar.
+
+    🔴 FAIL-CLOSED: iskele hem capa hem de YAMA SONRASI metin (`yeni`) icin
+    gecerli olmali. Ikisinin olcutu ayrisiyorsa stub URETILMEZ — sessizce
+    derlenmeyen bir taban yazip "olculemedi"yi gizlemek yerine SEBEP basilir.
+    """
+    o_capa, o_yeni = _iskele_olcutu(capa), _iskele_olcutu(yeni)
+    if o_capa != o_yeni:
+        raise ValueError("yama %02d: capa/yeni iskele olcutu AYRISIYOR %r != %r"
+                         % (sira, o_capa, o_yeni))
+    taban, kuyruk, eksik, acik, bas = o_capa
+
+    on = []
+    if taban:
+        on.append("def _capa_%02d():\n" % sira)
+        for d in range(4, taban, 4):
+            on.append(" " * d + "if True:\n")
+    if bas:
+        on.append(" " * taban + "if False:\n")
+        on.append(" " * (taban + 4) + "pass\n")
+    if eksik:
+        on.append(" " * taban + "_iskele = "
+                  + "".join(reversed(eksik)) + "\n")
+
+    arka = []
+    if acik:
+        arka.append(" " * taban + "".join(_ACIK[k] for k in reversed(acik)) + "\n")
+    if kuyruk is not None:
+        arka.append(" " * kuyruk + "pass\n")
+    if taban:
+        arka.append(" " * taban + "pass\n")
+    govde = capa if capa.endswith("\n") else capa + "\n"
+    return "".join(on) + govde + "".join(arka)
+
+
+def _stub_metni(Y, hedef):
+    parcalar = ["#!/usr/bin/env python3\n", "# -*- coding: utf-8 -*-\n",
+                '"""SENTETIK A7 FIKSTURU — %s.\n\n'
+                'Bu dosya gercek `%s`nin kopyasi DEGILDIR; `kur.py` yamalar()\n'
+                'capa sozlesmesinden URETILMISTIR. Amaci kurucunun IDEMPOTENS\n'
+                'kolunu (`capa subset yeni` sinifi) gercek yedek duzlemine\n'
+                'dokunmadan olcmektir.\n"""\n' % (hedef, hedef)]
+    for sira, (h, capa, yeni, _a) in enumerate(Y):
+        if h != hedef:
+            continue
+        parcalar.append("\n\n# =capa= %02d =\n" % sira)
+        parcalar.append(_sar(capa, yeni, sira))
+    return "".join(parcalar)
+
+
+def _yamalari_oku(kurucu):
+    """`kur.py`nin yamalar() sozlesmesini OKUR (ONCUL: capa listesi oradan turer)."""
+    import importlib.util
+    onceki = list(sys.path)
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(kurucu)))
+        spec = importlib.util.spec_from_file_location("_a7_kurmod", kurucu)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod.yamalar()
+    finally:
+        sys.path[:] = onceki
+
+
+def _sentetik_cron(Y, dizin):
+    """Sahte CRON dizinini capa sozlesmesinden kurar; (hedefler, sorun) dondurur."""
+    os.makedirs(dizin, exist_ok=True)
+    hedefler = sorted({y[0] for y in Y})
+    sorunlar = []
+    for hedef in hedefler:
+        try:
+            metin = _stub_metni(Y, hedef)
+        except ValueError as hata:
+            sorunlar.append(str(hata))
+            continue
+        try:
+            compile(metin, hedef, "exec")
+        except SyntaxError as hata:
+            sorunlar.append("%s stub DERLENMIYOR: %s (satir %s)"
+                            % (hedef, hata.msg, hata.lineno))
+            continue
+        cogul = [i for i, (h, c, _y, _a) in enumerate(Y)
+                 if h == hedef and metin.count(c) != 1]
+        if cogul:
+            sorunlar.append("%s stub'unda capa sayimi != 1: yama %s"
+                            % (hedef, ",".join("%02d" % i for i in cogul)))
+            continue
+        with open(os.path.join(dizin, hedef), "w", encoding="utf-8") as f:
+            f.write(metin)
+    return hedefler, sorunlar
 
 
 KURUCU_YOLU = None  # --kurucu ile civilenir
@@ -434,12 +598,6 @@ def _kurucu_yolu():
     if os.path.isfile(aday):
         return aday, "ana_checkout"
     return None, "BULUNAMADI"
-
-
-def _en_eski_yedek(ad):
-    import glob
-    adaylar = sorted(glob.glob(os.path.join(CRON, ad + ".yedek-sabahteslim-*")))
-    return adaylar[0] if adaylar else None
 
 
 def _dizin_parmak_izi(dizin):
@@ -493,20 +651,35 @@ def a7_kurucu_idempotens():
           "%s (bu yamalarda capa kurulumdan SONRA da gorunur)" % satirS[:110])
 
     with tempfile.TemporaryDirectory(prefix="sabah-a7-") as td:
-        sahte_cron = os.path.join(td, "cron")
-        os.makedirs(sahte_cron)
-        eksik = []
-        for ad in YAMA_HEDEFLERI:
-            y = _en_eski_yedek(ad)
-            if not y:
-                eksik.append(ad)
-                continue
-            shutil.copy2(y, os.path.join(sahte_cron, ad))
-        if eksik:
-            # 🔴 Sessiz yesil YOK: taban olculemedi, sebebi ADIYLA yazilir.
+        # --- SENTETIK TABAN: capa sozlesmesinden uretilir (gercek yedek YOK).
+        try:
+            Y = _yamalari_oku(kurucu)
+        except Exception as hata:
             kayit("A7b TAZE kurulum + IKINCI kosum BIREBIR", None,
-                  "TABAN OLCULEMEDI — yedek YOK: %s" % ", ".join(eksik))
-            kayit("A7c MUTANT eski kolu geri getirir -> COGALTIR", None, "taban yok")
+                  "yamalar() OKUNAMADI: %s: %s" % (type(hata).__name__, hata))
+            kayit("A7c MUTANT capasi TEK", None, "taban yok")
+            kayit("A7d MUTANT ikinci kosumu COGALTIR", None, "taban yok")
+            return
+
+        sahte_cron = os.path.join(td, "cron")
+        hedefler, sorunlar = _sentetik_cron(Y, sahte_cron)
+        alt_kume = sum(1 for _h, c, y, _a in Y if c in y)
+        print("  SENTETIK_TABAN hedef=%d (%s) capa_alt_kume=%d"
+              % (len(hedefler), ",".join(hedefler), alt_kume))
+        if sorunlar:
+            # 🔴 Sessiz yesil YOK: taban kurulamadi, sebebi ADIYLA yazilir.
+            kayit("A7b TAZE kurulum + IKINCI kosum BIREBIR", None,
+                  "SENTETIK TABAN KURULAMADI: %s" % " | ".join(sorunlar)[:220])
+            kayit("A7c MUTANT capasi TEK", None, "taban yok")
+            kayit("A7d MUTANT ikinci kosumu COGALTIR", None, "taban yok")
+            return
+        if alt_kume < 1:
+            # Mutantin oldurecegi SINIF bos ise A7d anlamsizdir; sessizce
+            # yesil yanmasin diye ADIYLA durulur.
+            kayit("A7b TAZE kurulum + IKINCI kosum BIREBIR", None,
+                  "capa_alt_kume=0 — olculecek `capa subset yeni` sinifi YOK")
+            kayit("A7c MUTANT capasi TEK", None, "sinif bos")
+            kayit("A7d MUTANT ikinci kosumu COGALTIR", None, "sinif bos")
             return
 
         cikti_d = os.path.join(td, "log")
@@ -541,15 +714,21 @@ def a7_kurucu_idempotens():
         kayit("A7c MUTANT capasi TEK", True, "capa_adedi=1")
 
         mut_dizin = os.path.join(td, "mutant-kaynak")
-        shutil.copytree(os.path.dirname(kurucu), mut_dizin)
+        shutil.copytree(os.path.dirname(kurucu), mut_dizin,
+                        ignore=shutil.ignore_patterns("__pycache__"))
         mut_kurucu = os.path.join(mut_dizin, "kur.py")
         with open(mut_kurucu, "w", encoding="utf-8") as f:
             f.write(kur_kaynak.replace(MUT_A7_CAPA, MUT_A7_YAMA, 1))
 
+        # Mutant TAZE bir sentetik tabandan baslar (taban AYNI sozlesmeden
+        # uretilir; degisen TEK sey kurucunun idempotens koludur).
         m_cron = os.path.join(td, "cron-mutant")
-        os.makedirs(m_cron)
-        for ad in YAMA_HEDEFLERI:
-            shutil.copy2(_en_eski_yedek(ad), os.path.join(m_cron, ad))
+        _hedefler_m, m_sorun = _sentetik_cron(Y, m_cron)
+        if m_sorun:
+            kayit("A7d MUTANT ikinci kosumu COGALTIR (hedef-kol atifli)", None,
+                  "mutant tabani kurulamadi: %s" % " | ".join(m_sorun)[:160])
+            kayit("A7e MUTANT KONTROL: ILK kosum DEGISMEDI", None, "mutant tabani yok")
+            return
         m_ortak = ["--cron-dizin", m_cron, "--cikti-dizin", os.path.join(td, "log-m")]
 
         rcM1, cM1 = kos([PY, mut_kurucu] + m_ortak, 240)
@@ -620,7 +799,11 @@ def main(argv=None):
         ARAC, "BAYRAKLA" if args.arac else "VARSAYILAN/kurulu"))
     print("SPEC_DIZINI=%s" % SPEC_DIZINI)
 
-    if not os.path.isfile(ARAC):
+    # 🔴 ARAC SARTI VAKAYA BAGLI (16 Eyl 2026). A7 kurucuyu (`kur.py`) olcer ve
+    # sentetik tabanda kosar; A8 `kral-sabah.py` KAYNAGINI `--arac` ile alir.
+    # Ikisi de KURULU KOPYAYA (`~/.claude/cron/kral-sabah.py`) muhtac degildir —
+    # eski kosulsuz kontrol CI'da rc=2 ile ikisini de olduruyordu.
+    if args.vaka is None and not os.path.isfile(ARAC):
         print("HATA: arac YOK -> %s" % ARAC)
         return 2
 
