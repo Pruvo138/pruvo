@@ -697,6 +697,22 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kapi-dagitim-test.py
 
+      # 🔴🔴 K340 · K336 · K332 (16 Eyl 2026) — ICRA KAPISI MENZILI.
+      # Olculdu (canli kapiya dogrudan cagri): `env -C <dizin> python3 x.py`,
+      # `cd <dizin> && python3 x.py` ve `env --chdir=<dizin> ...` kapinin yol
+      # taramasini HIC tetiklemiyordu — kapi komutun ETKISINI degil DIZGESINI
+      # olcuyordu; ayni delik `env -C <dizin> curl ...` ile curl yasagini da
+      # turluyordu. Batarya sentetik EV fiksturunde (tempfile) kosar: 8 pozitif
+      # kaydirma vakasi + 6 KONTROL (mesru repo-ici cagri alarma donmez) +
+      # betik-ici cagri RAPOR kolu + K336 dagitim ailesi + K332 ortak altyapi
+      # duzlemi, ustune 8 mutant (7 hedef-kol atifli + 1 davranis-disi KONTROL).
+      # 🔴 Kanonik ev (/Users/okan/dev/pruvo) ve ~/.claude/cron/ duzlemi CI'da
+      # YOKTUR: o vakalar UYDURULMAZ, `CI-DISI` adiyla basilir ve `CIDISI=` ile
+      # ayri sayilir (sessiz yesil YOK). Saf Python, OFFLINE.
+      - name: K340 icra kapisi menzil kabul testi (etkin cwd + betik ici + dagitim)
+        if: ${{ !cancelled() }}
+        run: python3 tools/k340-menzil-kabul-test.py
+
       # MARKA DURUM PANELI: parity-panel/parity-csv/marka-kapsama satır evreni ham defter
       # anahtarları değil KANONIK TANINMIS_MARKALAR'dan gelir; ham defterdeki sayımlar
       # markaKatla ile kanonik markaya KATLANIR (Toyota cover/mount... -> tek Toyota),

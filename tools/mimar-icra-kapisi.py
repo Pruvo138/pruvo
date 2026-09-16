@@ -317,14 +317,30 @@ CIP_BEKCI_YOL = SC.CIP_BEKCI_YOL
 #     CALISMA ANINDA turetilir ([[ikiz-tanim-sessiz-ayrisma]]). Modul okunamazsa muafiyet
 #     YOK (fail-closed) — olculemeyen bir kume "izinli" sayilmaz.
 KAPI_DAGITIM_KURUCU_ADI = "tools/kapi-dagitim-kur.py"
+# 🔴 16 EYL 2026 (K336) — KOVA "KURUCU" DEGIL "DAGITIM AILESI"dir.
+# OLCULEN ARIZA (16 Eyl, dogrudan cagri, ANA ve CIP oturumu AYNI sonucu verdi):
+#   `python3 tools/kapi-dagitim-kapisi.py --ev /Users/okan/dev/pruvo-hasat` -> deny (R2)
+#   `python3 tools/kapi-dagitim-kapisi.py --filo`                           -> allow
+# Yani dagitimin KURULUM ayagi muaf, DOGRULAMA ayagi degildi: bir evi kurabiliyor ama
+# kurdugunu OLCEMIYORDUN. Kusur tekil bir arac adi degil KOVANIN TANIMIYDI — kova tek bir
+# betige capalanmisti. K258'in ogrettigi sinif burada aynen tekrarliyordu: `kapi_dagitim.py`
+# shim'in ICINE `python3 .../kapi-dagitim-kapisi.py --ev <kok>` CARESINI basiyor, kapi ayni
+# komutu reddediyordu — kapi cozumu soyluyor, kapi cozumu reddediyor.
+# Kova hala ADLIDIR ve TURETILMISTIR: kume BURADA ELLE genisletilmez, iki kanonik arac da
+# `kapi_dagitim.KAYNAK_KOK`a gore TAM ESITLIKLE cozulur; basename/goreli ad KABUL EDILMEZ
+# ve "disari cozulen HER token kayitli ev koku olacak" sarti AYNEN korunur.
+KAPI_DAGITIM_ARAC_ADLARI = (
+    KAPI_DAGITIM_KURUCU_ADI,               # kurulum ayagi
+    "tools/kapi-dagitim-kapisi.py",        # dogrulama/olcum ayagi (K336)
+)
 
 
 def _kapi_dagitim_evreni():
-    """(kurucu_mutlak_yolu, {kayitli ev kokleri}) — TEK KAYNAK tools/kapi_dagitim.py.
+    """({kanonik dagitim araclari}, {kayitli ev kokleri}) — TEK KAYNAK tools/kapi_dagitim.py.
 
-    Fail-closed: modul bulunamaz/okunamaz/sozlesmesi degismisse (None, set()) doner ve
-    muafiyet ISLEMEZ. Kaynak kok de modulden okunur; bu sayede kural BES KARDES EVDE de
-    ayni kurucuyu tanir (shim REPO_ONEKI'yi eve cevirir, KAYNAK_KOK'u cevirmez)."""
+    Fail-closed: modul bulunamaz/okunamaz/sozlesmesi degismisse (frozenset(), set()) doner
+    ve muafiyet ISLEMEZ. Kaynak kok de modulden okunur; bu sayede kural BES KARDES EVDE de
+    ayni araclari tanir (shim REPO_ONEKI'yi eve cevirir, KAYNAK_KOK'u cevirmez)."""
     try:
         tools = os.path.dirname(os.path.abspath(__file__))
         if tools not in sys.path:
@@ -335,10 +351,11 @@ def _kapi_dagitim_evreni():
         for _kayit in _KD.EVLER:
             kokler.add(os.path.normpath(_kayit[1]))
         if not kok or not kokler:
-            return (None, set())
-        return (os.path.normpath(kok + "/" + KAPI_DAGITIM_KURUCU_ADI), kokler)
+            return (frozenset(), set())
+        return (frozenset(os.path.normpath(kok + "/" + a)
+                          for a in KAPI_DAGITIM_ARAC_ADLARI), kokler)
     except Exception:
-        return (None, set())
+        return (frozenset(), set())
 
 
 def _kapi_dagitim_muaf(ad, argumanlar, cwd):
@@ -352,21 +369,21 @@ def _kapi_dagitim_muaf(ad, argumanlar, cwd):
         return False
     if not argumanlar:
         return False
-    kurucu, ev_kokleri = _kapi_dagitim_evreni()
-    if kurucu is None:
+    araclar, ev_kokleri = _kapi_dagitim_evreni()
+    if not araclar:
         return False
-    # 1) CAGRILAN BETIK kanonik kurucu olacak (ilk bayraksiz token, TAM ESITLIK).
+    # 1) CAGRILAN BETIK kanonik dagitim aracı olacak (ilk bayraksiz token, TAM ESITLIK).
     betik = None
     for t in argumanlar:
         if t.startswith("-"):
             continue
         betik = t
         break
-    if betik is None or _coz(betik, cwd) != kurucu:
+    if betik is None or _coz(betik, cwd) not in araclar:
         return False
     # 2) DISARI COZULEN HER token izinli kumede olacak (ilki degil, HEPSI).
     izinli = set(ev_kokleri)
-    izinli.add(kurucu)
+    izinli.update(araclar)
     for t in argumanlar:
         adaylar = []
         if t.startswith("-"):
@@ -1162,10 +1179,41 @@ def parcala(segment):
         return segment.split()
 
 
-def sarmalayici_soy(tokenlar):
+# === 🔴🔴 16 EYL 2026 (K340①) — SARMALAYICI BAYRAK DEGERI ARGV0'I YUTUYORDU =====
+# OLCULEN ARIZA (16 Eyl, dogrudan cagri, ANA oturum):
+#   `env -C /private/tmp python3 x.py`                      -> allow (iz=MIMAR-kural-yok)
+#   `env -C /Users/okan/dev/pruvo python3 tools/d1-sync.py` -> allow (iz=MIMAR-kural-yok)
+# Sebep: eski dongu sarmalayiciyi ve ARDINDAKI '-' bayraklarini atliyor ama bayragin
+# DEGERINI (`/private/tmp`) atlamiyordu; o deger argv0 sanilinca `ad` = 'tmp' olur, ne
+# YORUMLAYICI'ya ne curl/wget koluna uyar ve SEGMENTIN TAMAMI sessizce dusardi. Yani
+# `env -C <dizin> curl ...` curl yasagini da, `env -u FOO python3 -c ...` satir-ici kod
+# yasagini da turluyordu. Bu, K340'in "kapi DIZGE olcuyor, dizgeyi degistirerek turlanir"
+# sinifinin en ucuz halidir ([[n2b-kapisi-dizge-olcer]]).
+#
+# 🔴 COZUM TABLO DEGIL, 27 TEM'DEKI IKI OKUMA IDIOMUDUR ([[kapinin-menzili-cagri-yeridir]]):
+# "hangi sarmalayicinin hangi bayragi deger alir" TABLOSU TUTULMAZ (27 Tem mimar hukmu,
+# bu dosyanin bas yorumu madde 2). Onun yerine ADAY argv0 PROGRAM OLABILIR MI diye
+# olculur: diskte DIZIN olan ya da salt SAYI olan bir token program DEGILDIR — o bir
+# bayrak degeridir, atlanir ve (dizinse) ETKIN CWD ADAYI olarak kaydedilir. Bitisik/
+# esitlikli bicim (`-C/private/tmp`, `--chdir=/private/tmp`) dis_yol'un zaten kullandigi
+# IKI OKUMA ile ayni yerden okunur. Yeni program adi/whitelist EKLENMEZ.
+def _cwd_adayi_ekle(adaylar, ham, cwd):
+    """Bayrak token'indan cwd adayi cikarir (bitisik ve esitlikli bicim dahil)."""
+    for aday in (ham, ham[ham.index("/"):] if "/" in ham else "",
+                 ham.split("=", 1)[1] if "=" in ham else ""):
+        if not aday or aday.startswith("-"):
+            continue
+        coz = _coz(aday, cwd)
+        if os.path.isdir(coz) and coz not in adaylar:
+            adaylar.append(coz)
+
+
+def sarmalayici_soy(tokenlar, cwd=None):
     """Basa yapisan env atamalarini/sarmalayicilari soyar.
-    Doner: (kalan_tokenlar, gorulen_env_atamalari)."""
+    Doner: (kalan_tokenlar, gorulen_env_atamalari, etkin_cwd_adaylari)."""
     atamalar = []
+    adaylar = []
+    cwd = cwd or REPO_ONEKI.rstrip("/")
     while tokenlar:
         ilk = os.path.basename(tokenlar[0])
         m = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)=", tokenlar[0])
@@ -1175,12 +1223,25 @@ def sarmalayici_soy(tokenlar):
             continue
         if ilk in SARMALAYICI:
             tokenlar = tokenlar[1:]
-            # env -i / -S gibi bayraklari da atla
+            # env -i / -S gibi bayraklari da atla (bitisik/esitlikli dizin degeri
+            # BURADA okunur: `env -C/private/tmp ...`, `env --chdir=/private/tmp ...`)
             while tokenlar and tokenlar[0].startswith("-"):
+                _cwd_adayi_ekle(adaylar, tokenlar[0], cwd)
                 tokenlar = tokenlar[1:]
+                # IKINCI OKUMA: bayragin AYRIK degeri program olamaz (dizin ya da
+                # salt sayi) -> o da atlanir; dizinse etkin cwd adayidir.
+                while tokenlar and not tokenlar[0].startswith("-"):
+                    aday = tokenlar[0]
+                    coz = _coz(aday, cwd)
+                    if os.path.isdir(coz):
+                        if coz not in adaylar:
+                            adaylar.append(coz)
+                    elif not re.match(r"^\d+$", aday):
+                        break
+                    tokenlar = tokenlar[1:]
             continue
         break
-    return tokenlar, atamalar
+    return tokenlar, atamalar, adaylar
 
 
 def _coz(yol, cwd):
@@ -1189,6 +1250,45 @@ def _coz(yol, cwd):
     if not os.path.isabs(yol):
         yol = os.path.join(cwd, yol)
     return os.path.normpath(yol)
+
+
+# === 🔴🔴 16 EYL 2026 (K340①) — ETKIN CWD (komutun ETKISI, dizgesi DEGIL) ======
+# OLCULEN ARIZA (16 Eyl, ANA oturum, dogrudan cagri):
+#   `cd /private/tmp && python3 x.py`        -> allow   (x.py repo ICI sanildi)
+#   `env --chdir=/private/tmp python3 x.py`  -> allow   (ayni sebep)
+# Kapi goreli yolu HER ZAMAN kancanin bildirdigi cwd'ye cozuyordu; oysa komutun kendisi
+# cwd'yi kaydirir. Yani "repo ICINDEKI betik kosar" kurali, betigin GERCEKTE nerede
+# oldugunu degil ADININ nasil yazildigini olcuyordu.
+# BELIRSIZ_CWD: cozulemeyen kaydirma (cd -, cd "$VAR", popd). Deger BILEREK repo
+# onekiyle BASLAMAYAN, diskte de bulunmayan bir kok; goreli yol buna cozulunce repo_ici
+# False doner -> belirsizlik DISARI sayilir (fail-closed).
+BELIRSIZ_CWD = "/\x00belirsiz-cwd"
+DIZIN_KOMUTLARI = {"cd", "pushd", "popd", "chdir"}
+
+
+def _cd_hedefi(tokenlar, mevcut):
+    """`cd`/`pushd`/`popd` segmentinin SONRAKI segmentlere birakacagi etkin cwd."""
+    ad = os.path.basename(tokenlar[0])
+    if ad == "popd":
+        return BELIRSIZ_CWD                      # yigindan ne cikacagi OLCULEMEZ
+    argumanlar = [t for t in tokenlar[1:] if not t.startswith("-")]
+    if not argumanlar:
+        return os.path.expanduser("~")           # ciplak `cd` -> HOME (repo DISI)
+    hedef = argumanlar[0]
+    if hedef == "-" or "$" in hedef or "`" in hedef or "*" in hedef:
+        return BELIRSIZ_CWD
+    return _coz(hedef, mevcut)
+
+
+def _cwd_sec(adaylar, baz):
+    """Sarmalayici kaydirmasindan cikan adaylardan ETKIN cwd'yi secer.
+    FAIL-CLOSED: repo DISINA cozulen bir aday varsa O kazanir."""
+    if not adaylar:
+        return baz
+    for aday in adaylar:
+        if not repo_ici(aday, baz):
+            return aday
+    return adaylar[-1]
 
 
 def repo_ici(yol, cwd):
@@ -1615,6 +1715,88 @@ def dis_yol(argumanlar, cwd):
     return None
 
 
+# === 🔴 16 EYL 2026 (K340②) — BETIK ICI CAGRI EKSENI ==========================
+# OLCULEN ARIZA (K340, canli): `subprocess.run(["python3", "<repo disi arac>", ...])`
+# bir `.py` betiginin ICINE saklaninca kapi HIC gormedi — kapi yalnizca Bash komut
+# METNINI tariyordu. Menzil CAGRI YERI olmaliydi ([[kapinin-menzili-cagri-yeridir]]).
+#
+# 🔴 BU KOL RAPOR EDER, REDDETMEZ — ve bu bir sessiz gecit DEGILDIR:
+#   * 11 Eyl 2026 sozlesmesi (Okan: "tum tikayicilari kaldir") python3 ARAC KOSUMUNU
+#     ANA oturumda da acti; repo ICINDEKI araci calistirmak ZATEN serbest. RED koymak
+#     mesru delegasyon yolunu (`~/.claude/cron/isci.sh` cagiran araclar) keserdi —
+#     K87'nin olculmus TERS TESVIKI aynen geri gelirdi.
+#   * Kazanc OLCUMDUR: hangi cagri hangi repo-disi hedefi betik ICINDEN kosturuyor,
+#     artik ADIYLA stderr'e yazilir ve sayilabilir. Kapatma karari OKAN/BaBa kalemidir.
+BETIK_ICI_UZANTILARI = (".py", ".pyw", ".js", ".mjs", ".cjs", ".sh", ".bash")
+BETIK_ICI_ICRA = re.compile(
+    r"subprocess\.(run|Popen|call|check_output|check_call)|os\.system|os\.exec|"
+    r"os\.spawn|child_process|execFile|spawnSync|\bexec\s|\bsh\s+-c")
+# TAVAN 1 MB: olculdu (16 Eyl) — `tools/*.py` icinde 256 KB ustu BES dosya var
+# (build.py, d1-sync.py, ci-kapsam-test.py, is-akisi-kapisi.py, sayfalar.py); 256 KB
+# tavani bu beside kolu KOR birakiyordu.
+BETIK_ICI_TAVAN = 1048576           # 1 MB ustu dosya OLCULMEZ (ad ile bildirilir)
+
+
+def _betik_ici_dis_hedefler(betik_mutlak, cwd):
+    """Repo ICINDEKI bir betigin ICINDEN kosturulan repo DISI hedefler (ADLI olcum).
+
+    Doner: (hedef_listesi, hal) — hal: 'olculdu' | 'OLCULEMEDI:<sebep>' | 'kapsam-disi'."""
+    if not betik_mutlak.lower().endswith(BETIK_ICI_UZANTILARI):
+        return [], "kapsam-disi"
+    try:
+        if os.path.getsize(betik_mutlak) > BETIK_ICI_TAVAN:
+            return [], "OLCULEMEDI:tavan"
+        with open(betik_mutlak, encoding="utf-8", errors="replace") as f:
+            satirlar = f.read().splitlines()
+    except Exception as e:                                  # noqa: BLE001
+        return [], "OLCULEMEDI:" + type(e).__name__
+    hedefler = []
+    for satir in satirlar:
+        if not BETIK_ICI_ICRA.search(satir):
+            continue
+        for parca in re.findall(r"""['"]([^'"\n]+)['"]""", satir):
+            if parca in ("curl", "wget"):
+                if parca not in hedefler:
+                    hedefler.append(parca)
+                continue
+            if "/" not in parca and not parca.startswith("~"):
+                continue
+            aday = os.path.expanduser(parca)
+            if not os.path.isabs(aday):
+                continue
+            if repo_ici(aday, cwd):
+                continue
+            # GURULTU KAPISI (olculdu 16 Eyl: 524 dosyada 6 vurus, 3'u URL parcasi
+            # ya da '/' idi): hedef ya diskte DOSYA olacak ya da calistirilabilir
+            # uzanti tasiyacak. Aksi halde bir metin parcasidir, cagri degil.
+            if not (os.path.isfile(aday) or
+                    aday.lower().endswith(BETIK_ICI_UZANTILARI)):
+                continue
+            if aday not in hedefler:
+                hedefler.append(aday)
+    return hedefler[:6], "olculdu"
+
+
+def _betik_ici_iz(betik, cwd, cip):
+    """K340② — betik ici cagri ekseni RAPOR kolu (karar DEGISTIRMEZ)."""
+    try:
+        mutlak = _coz(betik, cwd)
+        hedefler, hal = _betik_ici_dis_hedefler(mutlak, cwd)
+    except Exception:                                       # noqa: BLE001
+        return
+    if hal == "kapsam-disi":
+        return
+    if hal.startswith("OLCULEMEDI"):
+        iz_bas("BETIK-ICI-" + hal + " rol=" + ("CIP" if cip else "ANA") +
+               " betik=" + os.path.basename(mutlak))
+        return
+    if hedefler:
+        iz_bas("BETIK-ICI-DIS-CAGRI rol=" + ("CIP" if cip else "ANA") +
+               " betik=" + os.path.basename(mutlak) + " hedef=" +
+               ",".join(h[:160] for h in hedefler)[:400] +
+               " | K340②: bu kol RAPOR eder, REDDETMEZ (11 Eyl sozlesmesi).")
+
+
 def main():
     try:
         girdi = json.load(sys.stdin)
@@ -1719,8 +1901,29 @@ def main():
              "<YOK>")[:80] + " kayitli_worktree=" + str(len(kayitli_worktree_kokleri())) + "]"
         )
 
+    # 🔴 16 EYL (K340①) — ETKIN CWD: `cd <dizin> &&` ve `env -C <dizin>` kaydirmasi
+    # KOMUTUN ETKISIYLE olculur; kapinin gordugu cwd artik kancanin bildirdigi deger
+    # DEGIL, o segmentte FIILEN gecerli olan dizindir. Cozulemeyen kaydirma
+    # (`cd -`, `cd "$VAR"`, `popd`) BELIRSIZ_CWD'ye duser ve BELIRSIZ_CWD repo
+    # DISIDIR — "belirsizlik DISARI sayilir" yonu degismedi.
+    etkin_kok = cwd
     for segment in segmentlere_ayir(komut):
-        tokenlar, env_atamalari = sarmalayici_soy(parcala(segment))
+        ham_tokenlar = parcala(segment)
+        if ham_tokenlar and os.path.basename(ham_tokenlar[0]) in DIZIN_KOMUTLARI:
+            yeni = _cd_hedefi(ham_tokenlar, etkin_kok)
+            if yeni != etkin_kok:
+                iz_bas("CWD-KAYDI rol=" + ("CIP" if cip else "ANA") +
+                       " komut=" + os.path.basename(ham_tokenlar[0]) +
+                       " etkin_cwd=" + yeni[:90])
+            etkin_kok = yeni
+            continue
+        tokenlar, env_atamalari, cwd_adaylari = sarmalayici_soy(ham_tokenlar, etkin_kok)
+        # Segment-yerel kaydirma (`env -C <dizin> ...`): SONRAKI segmentlere TASINMAZ.
+        seg_cwd = _cwd_sec(cwd_adaylari, etkin_kok)
+        if seg_cwd != etkin_kok:
+            iz_bas("CWD-KAYDI rol=" + ("CIP" if cip else "ANA") +
+                   " komut=env-C etkin_cwd=" + seg_cwd[:90])
+        cwd = seg_cwd                       # bu segmentin TUM kollari etkin cwd'yi kullanir
         if not tokenlar:
             continue
         argv0 = tokenlar[0]
@@ -1809,6 +2012,10 @@ def main():
         # sh/bash/ruby/perl/php/osascript BU kisitin DISINDA (asagida C/E2/F ile denetlenir).
         if PY_NODE.match(ad):
             if _py_izinli(ad, argumanlar, cwd, kok=ev_kok):
+                for _t in argumanlar:                       # K340② olcum kolu
+                    if not _t.startswith("-"):
+                        _betik_ici_iz(_t, cwd, cip)
+                        break
                 continue
             # 27 AGU (K318): CIP'te ALLOWLIST atlanir — AMA SEGMENT KAPATILMAZ. Akis
             # bilerek asagi duser: C (satir-ici kod), R2 (argumanlarda repo DISI yol) ve
@@ -1938,6 +2145,8 @@ def main():
                 "yazılmış analiz/ölçüm betikleri de buna dahildir — mimar kod yazmaz, "
                 "kod YAZDIRIR; sonucu testle kapatır."
             )
+
+        _betik_ici_iz(betik, cwd, cip)                      # K340② olcum kolu
 
     iz_bas("MIMAR-kural-yok")
     sys.exit(0)
