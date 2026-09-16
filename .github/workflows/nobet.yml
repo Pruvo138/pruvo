@@ -670,6 +670,23 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/nobetci-mutasyon-test.py
 
+      # 🔴 16 EYL 2026 TAMIRCI TURU — UC SESSIZ-HATA ONARIMININ KABUL KAPISI.
+      # BaBa'nin 16 Eyl 09:1x gunluk olcumunde KraL'a yazilan arac kusurlari;
+      # ucu de "kapi olcmedigi halde YESIL basiyor" sinifindandir:
+      #   ② denetim-kapisi.py --idler taninmayan id'de sessiz-yesil (3 tetikleyici:
+      #     kaynak-platform id'si · virgullu liste · bos liste) -> artik rc=5.
+      #   ③ urun-ekle.py lisans_map GPL/LGPL/BSD'de `lisans` alanini hic yazmiyor,
+      #     kayit ATIFSIZ doguyordu -> artik tur yaziliyor (CC0 atifsiz KALIR).
+      #   ④ defter-rotasyon.py isaretciye indirme hedefi YASA degil BOYUTA gore
+      #     seciyor, defterin EN GUNCEL blogunu yagmaliyordu -> sira 0 vetolu.
+      # Batarya 20 iddia tasir: 3 MUTANT (her onarim izole kopyada geri alininca
+      # ilgili vaka KIRMIZI yanmali) + 6 POZITIF KONTROL (CC0/NC/CC BY dallari ve
+      # gercek id "her seye kirmizi" demedigini kanitlar). Mutantlar tempfile
+      # sandbox'inda kosar; canli tools/ dizinine YAZILMAZ. Saf Python, OFFLINE.
+      - name: Tamirci 16 Eyl kabul kapisi (3 sessiz-hata onarimi + 3 mutant)
+        if: ${{ !cancelled() }}
+        run: python3 tools/tamirci-16eyl-kabul.py
+
       # MARKA DURUM PANELI: parity-panel/parity-csv/marka-kapsama satır evreni ham defter
       # anahtarları değil KANONIK TANINMIS_MARKALAR'dan gelir; ham defterdeki sayımlar
       # markaKatla ile kanonik markaya KATLANIR (Toyota cover/mount... -> tek Toyota),

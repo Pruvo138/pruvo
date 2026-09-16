@@ -67,6 +67,21 @@ def _ai_bacagi(anahtar):
     return ai.returncode == 0
 
 
+def kaynak_tur_etiketi(lic, cc_tur):
+    """Gizli kaynak kaydinin `tur` etiketi. GPL/LGPL/BSD artik `lisans` yazdigi icin
+    (bkz. lisans_map) bu etiket `cc_tur` dolulugundan TURETILEMEZ — yoksa GPL sessizce
+    'ucretsiz-cc' kovasina duserdi. Etiketler kaynak kayittaki BASKIN yazimlardir
+    (olculdu: ucretsiz-cc 32932 · ucretsiz-gpl-lgpl-bsd 19 · ucretsiz-cc0 12 · diger 1605)."""
+    l = (lic or "").lower()
+    if not cc_tur:
+        if "public domain" in l or "cc0" in l:
+            return "ucretsiz-cc0"
+        return "diger"
+    if "lgpl" in l or "gpl" in l or "gnu" in l or "bsd" in l:
+        return "ucretsiz-gpl-lgpl-bsd"
+    return "ucretsiz-cc"
+
+
 def lisans_map(lic):
     l = (lic or "").lower()
     if "noncommercial" in l or "non-commercial" in l or "non commercial" in l:
@@ -79,8 +94,20 @@ def lisans_map(lic):
         if "no deriv" in l:
             return True, "CC BY-ND 4.0"
         return True, "CC BY 4.0"
-    if "gnu" in l or "gpl" in l or "bsd" in l:
-        return True, None
+    # 🔴 16 Eyl 2026 — GPL/BSD ATIF KUSURU KAPATILDI (MaCiT, dilim-44: 5105446+4188438).
+    # Eskiden bu dal `(True, None)` donuyordu; cagiran `if cc_tur:` ile `lisans` alanini
+    # YAZMIYOR, kayit ATIFSIZ doguyordu. GPL/LGPL/BSD atif GEREKTIREN lisanslardir —
+    # atifsiz kayit CLAUDE.md'nin "ucretsiz lisans -> ATIF+LINK VERILIR ve KALIR"
+    # hukmunu ihlal eder. CC0/public-domain atif GEREKTIRMEZ: o dal (yukarida) `None`
+    # donmeye DEVAM EDER — bu duzeltme onu KAPSAMAZ.
+    # Tur yazimi katalogdaki baskin yazimlardan secildi (olculdu: GNU GPL 85 · BSD 82 ·
+    # LGPL 17), uydurulmadi.
+    if "lgpl" in l:
+        return True, "LGPL"
+    if "gnu" in l or "gpl" in l:
+        return True, "GNU GPL"
+    if "bsd" in l:
+        return True, "BSD"
     return True, None
 
 
@@ -164,7 +191,8 @@ def process_one(tid):
             urun["lisans"] = {"tasarimci": meta.get("tasarimci", "?"), "tur": cc_tur}
         src = {"kaynak": "Thingiverse", "link": "https://www.thingiverse.com/thing:" + tid,
                "lisans": meta.get("lisans", ""), "tasarimci": meta.get("tasarimci", "?"),
-               "tur": "ucretsiz-cc" if cc_tur else "diger", "baski": meta.get("baski", ""),
+               "tur": kaynak_tur_etiketi(meta.get("lisans"), cc_tur),
+               "baski": meta.get("baski", ""),
                "not": "en buyuk parca %s mm; %d STL" % (meta.get("olcu_mm"), meta.get("stl_adet", 0))}
         return {"id": tid, "durum": "STAGED", "urun": urun, "src": src,
                 "kategori": urun["kategori"], "marka": urun["marka"], "gorsel": len(urls),

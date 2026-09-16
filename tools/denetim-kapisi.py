@@ -1537,6 +1537,16 @@ SILME_ONAY_TAVANI = 50
 # onaysiz silme reddedildiginde donen cikis kodu (0/1/2/3 zaten kullanimda)
 RC_ONAY_GEREKLI = 4
 
+# 🔴 SINIF KAPISI (16 Eyl 2026) — --idler'de TANINMAYAN id FAIL-CLOSED durur.
+# Olculmus vaka (MaCiT, dilim-44/45/46 · kutuda 3 ayri satir): --idler'e katalogda
+# OLMAYAN bir deger verilince kapi hicbir sey olcmeden "yeni urun: 0 / IHLAL: 0"
+# basip rc=0 donuyordu — yani IHLAL kontrolu HIC YAPILMAMIS oluyor ama cagiran
+# YESIL goruyor. Uc tetikleyici AYNI SINIF: (a) kaynak-platform id'si (katalog
+# .id'si degil), (b) virgulle ayrilmis liste ("a,b" tek token olarak gelir),
+# (c) --idler'in BOS verilmesi. Tekil yama YASAK oldugu icin uc tetikleyici de
+# TEK invaryantla kapatilir: "verilen her id katalogda BULUNMALI, yoksa rc != 0".
+RC_ID_BULUNAMADI = 5
+
 
 def _onay_gerekce(tum_katalog, sil_sayisi, tavan=SILME_ONAY_TAVANI):
     """Onay gerektiren kosullarin insan-okur listesi. BOS liste = onay gerekmez.
@@ -2707,7 +2717,27 @@ def main():
                   file=sys.stderr)
             return 3
     elif args.idler is not None:
-        yeni_ids = set(args.idler)
+        # SINIF KAPISI: taninmayan id sessiz-yesil URETEMEZ (bkz. RC_ID_BULUNAMADI).
+        katalog_ids = {str(u.get("id")) for u in urunler
+                       if isinstance(u, dict) and u.get("id") is not None}
+        istenen = [str(x) for x in args.idler]
+        if not istenen:
+            print("ID BULUNAMADI: --idler BOS verildi — olculecek kayit yok, "
+                  "YESIL SAYILMAZ (fail-closed).", file=sys.stderr)
+            return RC_ID_BULUNAMADI
+        bilinmeyen = [x for x in istenen if x not in katalog_ids]
+        if bilinmeyen:
+            print("ID BULUNAMADI: --idler ile verilen %d id'nin %d tanesi katalogda YOK: %s"
+                  % (len(istenen), len(bilinmeyen), " ".join(bilinmeyen[:10])),
+                  file=sys.stderr)
+            if any("," in x for x in bilinmeyen):
+                print("  ipucu: id listesi VIRGULLE degil BOSLUKLA ayrilir "
+                      "(--idler a b c).", file=sys.stderr)
+            print("  ipucu: --idler katalog .id'si bekler, kaynak-platform id'si DEGIL.",
+                  file=sys.stderr)
+            print("  bu kayitlar OLCULMEDI — YESIL SAYILMAZ (fail-closed).", file=sys.stderr)
+            return RC_ID_BULUNAMADI
+        yeni_ids = set(istenen)
     else:
         working_ids = {u.get("id") for u in urunler if isinstance(u, dict) and u.get("id") is not None}
         yeni_ids = working_ids - head_ids
