@@ -60,7 +60,11 @@ _OLCU_RE_LOOSE = re.compile(r"Yaklaşık dış ölçüler:[^\n]*", re.UNICODE)
 _AYRAC_RE = re.compile(r"(?<=.)(?:\.\s+|;\s+|\n)|^[.\s;]+")
 
 # SABIT SABLON: iki form
-_MALZ_LIST = ["PLA", "PETG", "ABS", "ASA", "TPU", "PC", "Naylon"]
+# Envanterden TURETILIR (cumle-plan.py ile ayni kural; PC/Naylon uretilemez -> sablona giremez).
+_MALZ_LIST = [f["ad"] for f in json.loads((ROOT / "tools" / "filamentler.json").read_text(encoding="utf-8"))["filamentler"]
+              if re.fullmatch(r"[A-Z]{2,5}", f.get("ad", ""))]
+if not _MALZ_LIST:
+    sys.exit("MALZEME_ENVANTERI_BOS: tools/filamentler.json okunamadi -> OLCULEMEDI")
 SABLON_TEKIL = "|".join(re.escape(m) for m in _MALZ_LIST)
 SABLON_RE = re.compile(
     rf"^(?:{SABLON_TEKIL}) malzemeden üretilir\.$|"
