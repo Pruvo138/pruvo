@@ -100,5 +100,129 @@
       },
       "altkategori": "Kano ve Kayak"
     }
+  },
+  {
+    "silinme_ts": "2026-09-16T18:43:17Z",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null,
+    "kayit": {
+      "id": "chassis-chevy-k30",
+      "kategori": "Otomobil",
+      "marka": [
+        "Chevrolet",
+        "K30"
+      ],
+      "baslik": "Chevy K30 Şasi",
+      "aciklama": "Ladder frame yapısı, travers ve süspansiyon bağlantı noktaları detaylandırılmıştır. kaynak CGTrader, özel üretim olarak listelenir.",
+      "fiyat": "5300 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/cgt2568870-1.jpg",
+        "https://media.pruvo3d.com/urunler/cgt2568870-2.jpg",
+        "https://media.pruvo3d.com/urunler/cgt2568870-3.jpg",
+        "https://media.pruvo3d.com/urunler/cgt2568870-4.jpg",
+        "https://media.pruvo3d.com/urunler/cgt2568870-5.jpg",
+        "https://media.pruvo3d.com/urunler/cgt2568870-6.jpg"
+      ],
+      "altkategori": "Dış Aksam"
+    }
+  },
+  {
+    "silinme_ts": "2026-09-16T18:43:22Z",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null,
+    "kayit": {
+      "id": "chevrolet-350-small-block-v8",
+      "kategori": "Otomobil",
+      "marka": [
+        "Chevrolet",
+        "350 Small Block"
+      ],
+      "baslik": "Chevrolet 350 Small Block V8 Motor",
+      "aciklama": "Krank mili, silindir kapakları, subap kapakları ve egzoz manifoldı detaylı. Maket, görsel veya eğitim amaçlı kullanıma uygundur; kaynak CGTrader, özel üretim olarak hazırlanır.",
+      "fiyat": "1000 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/cgt5471608-1.jpg",
+        "https://media.pruvo3d.com/urunler/cgt5471608-2.jpg",
+        "https://media.pruvo3d.com/urunler/cgt5471608-3.jpg",
+        "https://media.pruvo3d.com/urunler/cgt5471608-4.jpg",
+        "https://media.pruvo3d.com/urunler/cgt5471608-5.jpg",
+        "https://media.pruvo3d.com/urunler/cgt5471608-6.jpg"
+      ],
+      "altkategori": "Motor Bölümü"
+    }
+  },
+  {
+    "silinme_ts": "2026-09-16T18:43:26Z",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null,
+    "kayit": {
+      "id": "chevrolet-big-block-454-supercharger",
+      "kategori": "Otomobil",
+      "marka": [
+        "Chevrolet",
+        "Big Block 454"
+      ],
+      "baslik": "Chevrolet Big Block 454 Supercharger",
+      "aciklama": "Krank kasnağı, kayış gergin düzeni ve üst plaka yapısı görünür durumda. kaynak CGTrader, özel üretim olarak listelenir.",
+      "fiyat": "1000 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/cgt4085497-1.jpg",
+        "https://media.pruvo3d.com/urunler/cgt4085497-2.jpg",
+        "https://media.pruvo3d.com/urunler/cgt4085497-3.jpg",
+        "https://media.pruvo3d.com/urunler/cgt4085497-4.jpg",
+        "https://media.pruvo3d.com/urunler/cgt4085497-5.jpg",
+        "https://media.pruvo3d.com/urunler/cgt4085497-6.jpg"
+      ],
+      "altkategori": "Motor Bölümü"
+    }
+  },
+  {
+    "silinme_ts": "2026-09-16T18:43:29Z",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null,
+    "kayit": {
+      "id": "chevy-klasik-jant",
+      "kategori": "Otomobil",
+      "marka": [
+        "Chevrolet"
+      ],
+      "baslik": "Chevy Klasik Jant",
+      "aciklama": "maket, OEM restorasyon veya görsel amaçlı kullanıma uygundur. kaynak CGTrader, özel üretim olarak hazırlanır.",
+      "fiyat": "600 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/cgt3131554-1.jpg",
+        "https://media.pruvo3d.com/urunler/cgt3131554-2.jpg",
+        "https://media.pruvo3d.com/urunler/cgt3131554-3.jpg",
+        "https://media.pruvo3d.com/urunler/cgt3131554-4.jpg",
+        "https://media.pruvo3d.com/urunler/cgt3131554-5.jpg",
+        "https://media.pruvo3d.com/urunler/cgt3131554-6.jpg"
+      ],
+      "altkategori": "Tekerlek ve Jant"
+    }
+  },
+  {
+    "silinme_ts": "2026-09-16T18:43:32Z",
+    "yazan": "duzelt.py",
+    "kuyruk_id": null,
+    "kayit": {
+      "id": "chevy-small-block-v8-hilborn-intake",
+      "kategori": "Otomobil",
+      "marka": [
+        "Chevrolet",
+        "Small Block"
+      ],
+      "baslik": "Chevy Small Block V8 Hilborn Emme Manifoldu",
+      "aciklama": "Yarış motoru görünümü için intake crossover hatları ve tek nokta gaz kelebeği yapısı detaylı. Maket veya görsel amaçlı üretimde ölçek serbest; kaynak CGTrader, özel üretim olarak listelenir.",
+      "fiyat": "1000 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/cgt3458403-1.jpg",
+        "https://media.pruvo3d.com/urunler/cgt3458403-2.jpg",
+        "https://media.pruvo3d.com/urunler/cgt3458403-3.jpg",
+        "https://media.pruvo3d.com/urunler/cgt3458403-4.jpg",
+        "https://media.pruvo3d.com/urunler/cgt3458403-5.jpg",
+        "https://media.pruvo3d.com/urunler/cgt3458403-6.jpg"
+      ],
+      "altkategori": "Motor Bölümü"
+    }
   }
 ]
