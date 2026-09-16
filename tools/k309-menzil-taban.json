@@ -1,0 +1,10 @@
+{
+  "defter": "acik-kalemler.md",
+  "kaynaklar": [
+    "DEVAM.md",
+    "DEVAM-ARSIV.md"
+  ],
+  "menzil_disi": 238,
+  "not": "K309 menzil tabani. ELLE DEGISTIRILMEZ; yalniz --taban-yaz ile OLCULEREK guncellenir. Sayi DUSTUKCE tekrar civilenir.",
+  "olcum_komutu": "python3 tools/kalem-menzil-kapisi.py --taban-yaz"
+}

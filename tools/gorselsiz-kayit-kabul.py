@@ -384,6 +384,8 @@ def main():
     ap.add_argument("--taban", action="store_true",
                     help="ADIM 0B: yalniz TABAN-A/B/C (onarim ONCESI de kosar)")
     ap.add_argument("--cikti", default=CIKTI_VARSAYILAN, help="ham cikti dosyasi (GIT DISI)")
+    ap.add_argument("--kapanis-tabani", action="store_true",
+                    help="K5'te 27 Agu onarim anindaki VURUS/AYRIK sayilariyla birebir kiyas")
     args = ap.parse_args()
 
     kapi_sha_once = _sha(KAPI)
@@ -483,9 +485,19 @@ def main():
                 % (c["rc_parti"], c["rc_envanter"], a_son, v_son))
             yaz("  --kendini-test (CI bloklayici kolu): ONCE(ANA checkout)=%s · SONRA(bu agac)=%s"
                 % (c["rc_kendini_test_ana"], c["rc_kendini_test"]))
+            # 🔴 16 Eyl 2026 (K313 kapanisi): VURUS/AYRIK esitligi 27 Agu ONARIM ANININ
+            # tek seferlik kiyasiydi; katalog buyudukce (320->326, K161 icerik ekseni)
+            # bu sinif kolundan BAGIMSIZ olarak bayatlar ve bataryayi CI'ya baglanamaz
+            # kilardi. Sayi kiyasi yalniz `--kapanis-tabani` ile kosar; rc eksenleri
+            # (parti · envanter · --kendini-test) HER kosumda olculmeye DEVAM eder.
+            sayi_ok = (not args.kapanis_tabani
+                       or (v_son == TABAN_VURUS and a_son == TABAN_AYRIK))
+            if not args.kapanis_tabani:
+                yaz("  (VURUS/AYRIK sayi kiyasi ATLANDI — tek seferlik kapanis tabani; "
+                    "--kapanis-tabani ile kosar)")
             k5_ok = (c["rc_parti"] == TABAN_RC_PARTI
                      and c["rc_envanter"] == TABAN_RC_ENVANTER
-                     and v_son == TABAN_VURUS and a_son == TABAN_AYRIK
+                     and sayi_ok
                      and c["rc_kendini_test"] == 0
                      and (c["rc_kendini_test_ana"] is None
                           or c["rc_kendini_test"] == c["rc_kendini_test_ana"]))

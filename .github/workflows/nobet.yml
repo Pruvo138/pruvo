@@ -687,6 +687,22 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/tamirci-16eyl-kabul.py
 
+      # 🔴 W2 NOBET ONARIM KABUL KAPISI (16 Eyl 2026) — K316 V1+V2 ekseni.
+      # Nobet/gozcu ailesinin kaynagi `~/.claude/cron` altinda, yani SURUM
+      # KONTROLU DISINDA ve CI'da HIC YOK. Kopyalari `tools/nobet-onarim/cron/`
+      # altinda duruyor; batarya onlari gecici bir sandbox'a alip olcumu ORADAN
+      # yapar (`PRUVO_CRON_KOKU` / `PRUVO_EV_KOKU`). Canli dizine TEK BAYT
+      # yazilmaz ve sandbox is bitince SILINIR (Okan disk kurali).
+      # Tasidigi iddia: V1 `MUTANT=16/16 YAMA_TUTMADI=0` (kapsam tabandan
+      # DUSMEZ) · V2 vaka 8 motor ARITESI tek kaynaktan turer + hedef-kol
+      # atifli M-ARITE mutanti · V2 vaka 19+41 el kitabi URETICIYLE kapanir
+      # (duz metin yamasi DEGIL) + 2 KONTROL (canli mtime · sandbox temizligi).
+      # K334 · K325 · K326 · K311 bu bataryada ONARILMADI ve SESSIZ YESIL
+      # SAYILMAZ: her biri icin ADIYLA `OLCULEMEDI` satiri basilir.
+      - name: W2 nobet onarim kabul kapisi (K316 V1+V2 · 4 vaka + 1 mutant + 2 kontrol)
+        if: ${{ !cancelled() }}
+        run: python3 tools/nobet-onarim/nobet-onarim-kabul.py
+
       # 🔴 K335 (16 Eyl 2026) — MIMAR ICRA KAPISI SHIM'INDE GIT DUZLEMI + KURUCU.
       # Olcum shim'i yalniz DISKTE esitliyordu: exclude'daki (commit'siz) ya da
       # skip-worktree bayrakli shim GUNCEL gorunuyor, taze worktree ise shim'siz
@@ -712,6 +728,28 @@ jobs:
       - name: K340 icra kapisi menzil kabul testi (etkin cwd + betik ici + dagitim)
         if: ${{ !cancelled() }}
         run: python3 tools/k340-menzil-kabul-test.py
+
+      # 🔴 K321 (16 Eyl 2026) — ISCI KARANTINA KARARI, ARDISIK EKSEN.
+      # 27 Agu'da `motor=claude` 13 ardisik kosumda rc=1 dondu ve karar kolu her
+      # seferinde `yazildi=hayir sebep=fatal-satir-yok` bastigi icin karantina HIC
+      # yazilmadi: hukum TEK EKSENE (cikti icinde `fatal` satiri) bagliydi. Onarim
+      # CANLI kolda (`~/.claude/cron/isci-karantina-karar.py`) duruyor ama kabul
+      # KOSULAMIYORDU. Batarya repodaki BIREBIR KOPYAYI (tools/k321/cron/) gecici
+      # fikstur dizinlerinde kosar: canli cron'a ve gercek HOME'a TEK BAYT yazmaz.
+      # CI'da canli ev YOKTUR -> B0 (bayatlik) `OLCULEMEDI` der ve kopya hash'ini
+      # ADIYLA basar; B1/B2/B3/B4 tam olculur, sessiz yesil YOK.
+      - name: K321 isci karantina ardisik eksen kabul testi (4 vaka + mutant + 2 kontrol)
+        if: ${{ !cancelled() }}
+        run: python3 tools/k321-karantina-ardisik-test.py
+
+      # 🔴 K313 SINIF KOLU (16 Eyl 2026 kablolandi) — gorselsiz kayit denetim
+      # kapisinda IHLAL olarak dusmeli (silme DEGIL). Batarya 27 Agu'dan beri vardi
+      # ama HICBIR is akisinda kosmuyordu: kol sessizce solsaydi kimse gormezdi.
+      # Sentetik fikstur partisi RED + 2 hedef-kol atifli mutant + pozitif kontrol
+      # + canli katalogda beyansiz gorselsiz kayit 0 + iki ardisik kosum birebir.
+      - name: K313 gorselsiz kayit sinif kolu kabul bataryasi
+        if: ${{ !cancelled() }}
+        run: python3 tools/gorselsiz-kayit-kabul.py
 
       # MARKA DURUM PANELI: parity-panel/parity-csv/marka-kapsama satır evreni ham defter
       # anahtarları değil KANONIK TANINMIS_MARKALAR'dan gelir; ham defterdeki sayımlar
@@ -1909,6 +1947,38 @@ jobs:
       - name: "Defter kota kapisi kabul testi (6 fikstur + 6 mutant, SERIT B)"
         if: ${{ !cancelled() }}
         run: python3 tools/defter-kota-kapisi.py --kendini-test
+
+      # K351-31AGU (16 Eyl 2026) — ROTASYONUN BASLANGIC BACAGI. Ustteki adim kota
+      # KAPISINI olcer; bu adim rotasyon ARACININ tavan ALTINDA calisip
+      # calismadigini olcer. OLCULEN ARIZA (29 + 31 Agu, uc bagimsiz kosum):
+      # baslangic kapisi `if not _tavan_asildi_mi(...): return 0` CEZA esigini
+      # soruyordu, onarim esigi (K353 su seviyesi) YALNIZ durma kolundaydi —
+      # yani arac ancak tavan ASILDIKTAN sonra is yapabiliyordu, ama o an kota
+      # kapisi evin TUM commit'ini zaten kilitlemis oluyordu. `--onlem` bayragi
+      # baslangic bacagini DURMA kolunun esigine baglar; ikinci bir oran/sabit
+      # ACILMAZ (tek kaynak `defter-kota-taban.py::su_seviyesi`).
+      # NEDEN SERIT B: defter hijyeni, yayinlanan icerik DEGIL. Tamamen offline —
+      # arac IZOLE kopyalanir, fiksturler `tempfile.mkdtemp` altinda, GERCEK
+      # DEVAM.md/DEVAM-ARSIV.md'ye DOKUNULMAZ; mutantlar yalniz gecici kopyada
+      # yasar ([[mutant-canli-govdede-yasamaz]]). ~20 s.
+      - name: "K351-31AGU rotasyon onlem bacagi kabul testi (18 vaka + 4 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/defter-onlem-bacagi-test.py
+
+      # K309 (16 Eyl 2026) — MENZIL KAPISI. Defterde SATIRI OLMAYAN kalem id'si
+      # sayisini olcer: `acik-kalemler.md` nobetin olcum EVRENIDIR, orada satiri
+      # olmayan kalem ne kapanabilir ne olculebilir; bugun kayitlarda yasayan
+      # id'lerin cogunun defterde satiri YOK (16 Eyl olcumu: MENZIL_DISI=238).
+      # 🔴 BU ADIM `--kendini-test`TIR, CANLI OLCUM DEGIL: canli olcum
+      # `DEVAM-ARSIV.md`yi okur, o dosya GIT DISIDIR ve CI'da YOKTUR — kapi orada
+      # kosturulsaydi `OLCULEMEDI` + rc=4 ile SERIT B'yi kirmiziya yakardi. Canli
+      # kosumu mimar yapar: `python3 tools/kalem-menzil-kapisi.py`
+      # (taban `tools/k309-menzil-taban.json`, ARTISTA rc=3).
+      # Batarya offline: fiksturler `tempfile.mkdtemp` altinda, gercek defter/
+      # kayit duzlemleri OKUNMAZ. 41 vaka + 5 hedef-kol atifli mutant + KONTROL.
+      - name: "K309 kalem menzil kapisi kabul testi (41 vaka + 5 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kalem-menzil-kapisi.py --kendini-test
 
       # HAFIZA INDEKSI EKSENI (K366, KraL-HafizaTavani-05Eyl) — AYRI ADIM, AYRI TALLY.
       # Kapsam iki yuzey: (A) `tools/hafiza-indeks-arsivle.py` (MEMORY.md tavan sahibi +

@@ -313,16 +313,86 @@ def _tasima_korunumu(kaynak, varis, hedef_ad):
                             hedef_ad))
 
 
+def _beyan_anahtari_sec(kaynak, beyanlar):
+    """Bu kaynagi kapsayan EN OZGUL beyan anahtarini sec. Doner: (anahtar, kayit).
+
+    🔴 YOL EKSENI (K338, olculdu 28 Agu 2026 — eksen eskiden YALNIZ DOSYA ADI idi):
+    K304 kapi dagitimindan sonra `mimar-icra-kapisi.py` adi IKI AYRI ROLDE yasiyor:
+      * KAYNAK — `pruvo/tools/mimar-icra-kapisi.py` (bugun 100 KB+); 4096 B altina
+        DUSMESI ARIZADIR ve MUTLAKA kirmizi yanmalidir.
+      * SHIM   — `<kardes ev>/.claude/mimar-icra-kapisi.py` (2658 · 2666 · 2670 ·
+        2678 · 2680 B — govde ev kokunu icerdigi icin boyut EV BASINA degisir);
+        bunlarin kucuklugu MESRUDUR.
+    Ad ekseninde TEK anahtar ikisini birden kapsiyordu: `surekli` + `azami_bayt 4096`
+    yazmak dort shim'i kurtariyor ama AYNI HAMLEDE KraL kaynagini da sessizce muaf
+    yapiyordu. Yani beyan, kapatmak icin kuruldugu deligi kendisi aciyordu
+    ([[sinif-adi-kol-adi-olarak-basilirsa-yanlis-alan-dogrulanir]]).
+
+    Eksen artik YOL SON-EKI: `/` iceren bir anahtar (`pruvo-bot/.claude/x.py`)
+    yalniz o son-eke uyan yola isler; `/` icermeyen anahtar eski ad davranisini
+    AYNEN korur (geriye donuk uyum — 13 mevcut kayit bozulmaz). Birden fazla
+    anahtar uyarsa EN OZGUL olan (en cok yol parcasi) kazanir: dar bir kayit, genis
+    bir kaydin YANINDA durabilir ve onu EZER.
+    """
+    if not isinstance(beyanlar, dict):
+        return (None, None)
+    parcalar = os.path.abspath(kaynak).replace(os.sep, "/").strip("/").split("/")
+    # Yolun TUM son-ekleri -> derinlik (parca sayisi). "c":1, "b/c":2, "a/b/c":3 ...
+    adaylar = {}
+    for i in range(len(parcalar)):
+        adaylar["/".join(parcalar[i:])] = len(parcalar) - i
+    en_iyi = None                     # (derinlik, anahtar, kayit)
+    for anahtar, kayit in beyanlar.items():
+        if not isinstance(anahtar, str) or not isinstance(kayit, dict):
+            continue
+        norm = anahtar.replace(os.sep, "/").strip("/")
+        derinlik = adaylar.get(norm)
+        if derinlik is None:
+            continue
+        if en_iyi is None or derinlik > en_iyi[0]:
+            en_iyi = (derinlik, norm, kayit)
+    if en_iyi is None:
+        return (None, None)
+    return (en_iyi[1], en_iyi[2])
+
+
+def _tek_seferlik_esler(ilan, boyut):
+    """`tek-seferlik` ilani bu boyutu kapsiyor mu?
+
+    🔴 UC BICIM (K338 ②): TEK sayi · SAYI KUMESI (liste) · ARALIK ({en_az, en_cok}).
+    Kume/aralik NEDEN VAR: ayni ROL birden cok evde yasadiginda (shim, ankor) boyut
+    ev basina birkac bayt oynar; tek sayi bu kumeyi IFADE EDEMEZ ve mimar TEK cikis
+    olarak `surekli` yazmak zorunda kalir — o da UST sinir koyar, DUSUSE kordur
+    (blanket muafiyet). Kume/aralik dusus eksenini KAPALI TUTAR.
+
+    FAIL-CLOSED: `bool` sayi sayilmaz; aralikta IKI ucun da int olmasi ZORUNLU
+    (tek uclu aralik acik ucludur = blanket). Taninmayan bicim -> ESLESMEZ.
+    """
+    def _sayi(x):
+        return isinstance(x, int) and not isinstance(x, bool)
+
+    if _sayi(ilan):
+        return ilan == boyut
+    if isinstance(ilan, (list, tuple)):
+        return any(_sayi(x) and x == boyut for x in ilan)
+    if isinstance(ilan, dict):
+        en_az, en_cok = ilan.get("en_az"), ilan.get("en_cok")
+        if not _sayi(en_az) or not _sayi(en_cok) or en_az > en_cok:
+            return False
+        return en_az <= boyut <= en_cok
+    return False
+
+
 def _dusus_beyanli_mi(kaynak, beyanlar=None, varis=None):
     """Bu kaynagin dususu ILAN EDILMIS mi? Doner: (evet_mi, tur, gerekce).
 
-    ⚠️ Eslesme DOSYA ADI uzerindendir (kapinin hata metinleri de ad basar). Ayni ada
-    sahip iki dosya varsa beyan ikisini de kapsar — bu yuzden beyan TEK BASINA yetmez,
-    daima bir SAYI sartiyla birlikte olcuLur (tek-seferlik: tam boyut · surekli: tavan ·
+    ⚠️ Eslesme YOL SON-EKI uzerindendir (bkz. `_beyan_anahtari_sec`); `/` icermeyen
+    anahtar eski ADRES davranisini korur. Beyan TEK BASINA yetmez, daima bir SAYI
+    sartiyla birlikte olculur (tek-seferlik: boyut/kume/aralik · surekli: tavan ·
     tasima: korunum).
     """
     beyanlar = _dusus_beyani_oku() if beyanlar is None else beyanlar
-    kayit = beyanlar.get(os.path.basename(kaynak))
+    _anahtar, kayit = _beyan_anahtari_sec(kaynak, beyanlar)
     if not isinstance(kayit, dict):
         return (False, None, None)
     tur = kayit.get("tur")
@@ -332,7 +402,7 @@ def _dusus_beyanli_mi(kaynak, beyanlar=None, varis=None):
     except OSError:
         return (False, None, None)
     if tur == "tek-seferlik":
-        if kayit.get("kaynak_bayt") == kaynak_boyut:
+        if _tek_seferlik_esler(kayit.get("kaynak_bayt"), kaynak_boyut):
             return (True, tur, gerekce)
         return (False, None, None)
     if tur == "surekli":
@@ -356,10 +426,17 @@ def _dusus_beyanli_mi(kaynak, beyanlar=None, varis=None):
 
 
 def _beyan_gecerse(kaynak, beyanlar=None, varis=None):
-    """Beyan varsa kullanildi defterine yazar ve True doner."""
+    """Beyan varsa kullanildi defterine yazar ve True doner.
+
+    🔴 DEFTERE ESLESEN ANAHTAR YAZILIR, dosya adi DEGIL (K338): dar bir yol kaydi ile
+    genis bir ad kaydini AYIRAN sey anahtarin kendisidir; ciktida ad basilirsa hangi
+    beyanin isirdigini okumak imkansizlasir ve daraltma SESSIZCE geri alinabilir."""
     evet, tur, gerekce = _dusus_beyanli_mi(kaynak, beyanlar, varis=varis)
     if evet:
-        _BEYAN_KULLANILDI.append((os.path.basename(kaynak), tur, gerekce))
+        anahtar, _ = _beyan_anahtari_sec(
+            kaynak, _dusus_beyani_oku() if beyanlar is None else beyanlar)
+        _BEYAN_KULLANILDI.append(
+            (anahtar or os.path.basename(kaynak), tur, gerekce))
     return evet
 
 
