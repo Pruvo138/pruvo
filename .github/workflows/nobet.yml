@@ -697,6 +697,15 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kapi-dagitim-test.py
 
+      # 🔴 K313 SINIF KOLU (16 Eyl 2026 kablolandi) — gorselsiz kayit denetim
+      # kapisinda IHLAL olarak dusmeli (silme DEGIL). Batarya 27 Agu'dan beri vardi
+      # ama HICBIR is akisinda kosmuyordu: kol sessizce solsaydi kimse gormezdi.
+      # Sentetik fikstur partisi RED + 2 hedef-kol atifli mutant + pozitif kontrol
+      # + canli katalogda beyansiz gorselsiz kayit 0 + iki ardisik kosum birebir.
+      - name: K313 gorselsiz kayit sinif kolu kabul bataryasi
+        if: ${{ !cancelled() }}
+        run: python3 tools/gorselsiz-kayit-kabul.py
+
       # MARKA DURUM PANELI: parity-panel/parity-csv/marka-kapsama satır evreni ham defter
       # anahtarları değil KANONIK TANINMIS_MARKALAR'dan gelir; ham defterdeki sayımlar
       # markaKatla ile kanonik markaya KATLANIR (Toyota cover/mount... -> tek Toyota),
