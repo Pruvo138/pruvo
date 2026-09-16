@@ -16837,7 +16837,7 @@ def _olcuye_ozel_plastik_gecme_percin_uretimi():
 
 
 def _olcuye_ozel_plastik_kapi_alti_firca_fitil_tutucusu_uretimi():
-    return (u"""<h1>Kapı altı fırça fitil tutucusu ölçüye özel</h1>
+    return (u"""<h1>Kapı altı fırça fitil tutucusu ölçüye özel üretim</h1>
 <p>Kapı altından geçen hava, toz ve böceği kesmenin en temiz yolu zemine süpürülen fırça ya da fitil profilidir. Piyasada belirli kapı ölçülerine uyan hazır fırça fitil tutucuları vardır, ama kapı genişliği atipik olduğunda, eşik düz değil de çıkıntılı olduğunda veya fırça yüksekliği zeminden farklı yükseklikte istendiğinde hazır tutucu ya yetmez ya oturmaz. Bu durumda kapı altı fırça fitil tutucusunu ölçüye özel üretmek devreye girer.</p>
 <p>Kapı altı fırça fitil tutucusu, kapı kanadının alt kenarına vidalanan ya da geçmeli takılan, içinde fırça veya kıl fitil barındıran bir plastik profildir. Genellikle bina ve işyeri girişlerinde, garaj ve depo kapılarında, soğuk oda kapılarında kullanılır. Aynı zamanda retro fit amacıyla mevcut hazır tutucunun yetersiz kaldığı her durumda ölçüye özel olarak ürettirilir.</p>
 <h2>Nasıl çalışır</h2>
@@ -16861,7 +16861,7 @@ def _olcuye_ozel_plastik_kapi_alti_firca_fitil_tutucusu_uretimi():
 
 
 def _olcuye_ozel_plastik_havalandirma_bacasi_sapkasi_uretimi():
-    return (u"""<h1>Havalandırma bacası şapkası ölçüye özel</h1>
+    return (u"""<h1>Havalandırma bacası şapkası ölçüye özel üretim</h1>
 <p>Bir havalandırma bacasının ucuna takılan şapka, yağmurun ve kuşun içeri girmesini engelleyen, rüzgârın içeri itmesini sınırlayan bir parçadır. Hazır piyasada belirli çaplar için baca şapkası bulunur, ama baca dış çapı atipik olduğunda, şapka açıklığı farklı ölçüde istendiğinde veya rüzgâr yönüne bağımsız çalışan bir model gerektiğinde ölçüye özel üretim gerekir. Bu sayfada havalandırma bacası şapkasının ölçüye özel üretim biçimini anlatıyoruz.</p>
 <p>Havalandırma bacası şapkası, binaların ve tesislerin havalandırma sistemlerinin ucunda, çatı çıkışında yer alan plastik bir parçadır. Genellikle konut, sera, kümes, ahır, depo gibi tesislerin hava giriş çıkış noktalarında kullanılır. Şapka hem yağmur suyunu saptırır hem de rüzgâr etkisiyle ters yönlü hava akışını sınırlandırır.</p>
 <h2>Nasıl çalışır</h2>
@@ -16886,7 +16886,7 @@ def _olcuye_ozel_plastik_havalandirma_bacasi_sapkasi_uretimi():
 
 
 def _soyunma_odasi_dolabi_ve_locker_plastik_parca_uretimi():
-    return (u"""<h1>Soyunma dolabı ve locker plastik parçası</h1>
+    return (u"""<h1>Soyunma dolabı ve locker plastik parça üretimi</h1>
 <p>Spor salonları, okullar, fabrikalar, hastaneler, kamu tesisleri ve şantiyeler soyunma dolabı ya da kilitli dolap kullanır. Bu dolapların küçük plastik parçaları sıkça kırılır: mandal, kilit dili, numara plakası, kapak menteşesi, ayak pabucu, raf desteği, kapak durdurucu gibi parçalar. Orijinal yedek parça çoğu zaman piyasada tek başına satılmaz, bütün modül fiyatına yaklaşır veya hiç bulunmaz. Bu sayfada soyunma dolabı ve locker sınıfı plastik parçaların ölçüye özel üretim biçimini anlatıyoruz.</p>
 <p>Spor salonu ve okul soyunma dolabı, fabrika ve şantiye işçi dolabı, hastane personel dolabı farklı marka ve modelde olsa da parça sınıfları büyük ölçüde aynıdır. Müşteri tarafında yaşanan tipik problem şudur: mandal kırılır, anahtar kaybolur, kapak düşmez, ayak pabucu kırılır veya numara plakası düşer. Tek tek dolap tamiri için modülü yenilemek gereksiz maliyetlidir; o tek parçanın ölçüye özel olarak üretilmesi gerekir.</p>
 <h2>Nasıl çalışır</h2>
@@ -16910,7 +16910,7 @@ def _soyunma_odasi_dolabi_ve_locker_plastik_parca_uretimi():
 
 
 def _cam_atolyesi_ve_cam_isleme_ekipmani_plastik_parca_uretimi():
-    return (u"""<h1>Atölye cam tutucu ve plastik parça üretimi</h1>
+    return (u"""<h1>Cam atölyesi ve cam işleme ekipmanı plastik parçası</h1>
 <p>Atölye tarafında çalışan ahşap, taş ve mermer atölyelerinin plastik parçalarını ayrıca ele alıyoruz. Cam işleme atölyeleri de benzer bir kategori: kesim hatları, kenar rodaj makinaları, taşıma sehpaları, vantuz tutucular bu atölyelerde plastik aksam taşır. Cam kesme veya işleme hizmeti vermiyoruz; ürettiğimiz, cam işleyen ekipmanın kendisinde kullanılan plastik aksam parçalarıdır. Bu sayfada ölçüye özel üretim biçimini anlatıyoruz.</p>
 <p>Cam işleme hattı ekipmanında plastik parça kullanımı çok somuttur. Kesim masasındaki taşıma sehpasının plastik pabucu, vantuz tutucu gövdesi, kenar koruma takozu, konveyör kılavuzu, çıtçıt ve bağlantı kelepçesi gibi parçalar yıpranır ve belirli aralıklarla yenilenir. Bu parçalar aşınan parçalar sınıfındadır ve ölçüye özel yeniden üretilebilir.</p>
 <h2>Nasıl çalışır</h2>
@@ -16982,7 +16982,7 @@ def _ozel_uretim_parca_orijinaliyle_ayni_agirlikta_mi():
 
 
 def _glikol_antifriz_temasli_plastik_parca_uretimi():
-    return (u"""<h1>Antifriz glikol temaslı plastik parça üretimi</h1>
+    return (u"""<h1>Antifriz (glikol) temaslı plastik parça üretimi</h1>
 <p>Otomobil ve ticari araç soğutma devrelerinde, endüstriyel soğutma hatlarında ve kapalı devre ısıtma sistemlerinde akışkan olarak antifriz yani glikol bazlı sıvı kullanılır. Bu sıvıyla temas eden plastik parçaların belirli kimyasal dayanıma sahip olması beklenir. Genleşme kabı kapağı, hortum rakoru, sensör yuvası, bağlantı parçası gibi ölçüye özel plastik aksam üretimi bu sayfada duruyor.</p>
 <p>Antifrizin yapısı etilen glikol veya propilen glikol bazlıdır; su ile karıştırılarak kullanılır, içinde inhibitör katkılar bulunur. Bu kimyasal yapı bazı plastiklerle uyumlu çalışırken bazılarıyla uzun süreli temas sonrası şişme, yumuşama veya çatlama gösterebilir. Bu nedenle parçanın çalışacağı sıcaklık ve konsantrasyon, doğru malzeme seçimini belirler.</p>
 <h2>Nasıl çalışır</h2>
@@ -17007,7 +17007,7 @@ def _glikol_antifriz_temasli_plastik_parca_uretimi():
 
 
 def _adblue_ure_cozeltisi_temasli_plastik_parca_uretimi():
-    return (u"""<h1>AdBlue üre çözeltisi temaslı plastik parça</h1>
+    return (u"""<h1>AdBlue (üre çözeltisi) temaslı plastik parça üretimi</h1>
 <p>Dizel ticari araçlarda egzoz emisyon sisteminin parçası olan SCR sistemi AdBlue olarak bilinen yüzde otuz iki konsantrasyonda üre çözeltisi kullanır. Bu çözelti su bazlı ve hafif alkalidir; SCR katalizörü içinde amonyağa dönüşür. AdBlue ile temas eden plastik parçalarda genellikle tank kapağı, seviye şamandırası yuvası, dolum ağzı, bağlantı rakoru veya hortum bağlantı elemanı yer alır. Bu parçaların korozyon ve şişme olmadan uzun süre çalışması için ölçüye özel plastik parça üretimi ayrı bir değerlendirme gerektirir.</p>
 <p>AdBlue kimyasal yapısı su bazlı olması, fosil yakıt temaslı plastik parçalardan farklı davranır. Yapısal olarak üre ve su karışımıdır; sıcakta amonyağa hidrolize olabilir ve bu da plastik yüzeylerde uzun süreli temas sonrası şişme veya mikro çatlak riskini artırır. Bu nedenle malzeme seçimi yakıt temaslı parçalardan ayrı tutulur.</p>
 <h2>Nasıl çalışır</h2>
@@ -17032,7 +17032,7 @@ def _adblue_ure_cozeltisi_temasli_plastik_parca_uretimi():
 
 
 def _akilli_kapi_kilidi_govde_kapagi_plastik_oem_parca_uretimi():
-    return (u"""<h1>Akıllı kapı kilidi gövde kapağı OEM parça</h1>
+    return (u"""<h1>Akıllı kapı kilidi gövde kapağı plastik OEM parça</h1>
 <p>Motorlu ve dijital kapı kilitleri, parmak izli veya şifreli sistemler günlük hayatta yaygınlaştı. Bu cihazların birkaç dış plastik parçası sıkça kırılır, kaybolur veya yıpranır: pil bölmesi kapağı, dış gövde kapağı, mandal muhafazası, elektronik modül dış kapağı. Orijinal yedek parça çoğu modelde ayrı satılmaz, tam kilit modülü fiyatına yaklaşır veya hiç bulunmaz. Bu sayfada akıllı kapı kilidi gövde kapağı sınıfı plastik parçaların ölçüye özel OEM üretim biçimini anlatıyoruz.</p>
 <p>Akıllı kilit gövde kapağı taşıyıcı bir parça değildir; kapağın temel görevi iç mekanizmayı dış etkenlerden korumak, pil bölmesini kapatmak ve cihazın görünümünü tamamlamaktır. Yük taşıma, kilit dayanımı veya güvenlik sertifikası işlevi yoktur; bu ayrım net biçimde konur.</p>
 <h2>Nasıl çalışır</h2>
@@ -17057,7 +17057,7 @@ def _akilli_kapi_kilidi_govde_kapagi_plastik_oem_parca_uretimi():
 
 
 def _tansiyon_aleti_manset_baglanti_klipsi_plastik_oem_parca_uretimi():
-    return (u"""<h1>Tansiyon aleti manşet bağlantı klipsi üretimi</h1>
+    return (u"""<h1>Tansiyon aleti manşet bağlantı klipsi plastik OEM parça</h1>
 <p>Ev tipi tansiyon aletlerinde manşetin kola sarılmasını sağlayan plastik bağlantı klipsi cihazın en çok yıpranan parçalarından biridir. Manşet hortum bağlantısı sık kullanımda kırılır veya esner; çoğu cihazda klip tek parça olarak ayrı satılmaz, tüm manşet veya cihaz modülünün değişimi gerekir. Bu sayfada tansiyon aleti manşet bağlantı klipsi sınıfı plastik parçaların ölçüye özel OEM üretim biçimini anlatıyoruz.</p>
 <p>Burada anlattığımız parçanın sınırı nettir: mekanik bağlantı klipsi üretiriz, ölçüm cihazının kendisi, manşetin hava yastığı kısmı veya elektronik ölçüm devresi tarafında bir müdahale yapmayız. Cihazın ölçüm doğruluğu, kalibrasyonu veya tıbbi cihaz belgelendirmesi kapsamımızın dışındadır.</p>
 <h2>Nasıl çalışır</h2>
