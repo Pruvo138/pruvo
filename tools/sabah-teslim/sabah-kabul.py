@@ -591,6 +591,18 @@ def main(argv=None):
     ap.add_argument("--kurucu", default=None,
                     help="A7'de olculecek kur.py (dal olcumu icin ZORUNLU — "
                          "aksi halde ANA CHECKOUT'un kopyasi olculur)")
+    # 🔴 K320 SECICI (16 Eyl 2026): A7 vakasini TEK BASINA kosar.
+    # NEDEN: A7'nin onarimi (kur.py `yeni_adedi == 1 -> ZATEN` / `> 1 -> COGALMIS`)
+    # main'de DURUYOR ama kabul KOSULAMIYORDU — `--faz tam` A2'de GERCEK kral-sabah.py
+    # kosup `~/.claude/cron/tamirci-spec/` yaziyor, `--faz on` ise A1/A6 ile ORTAMA
+    # (kurulu kopya, gercek yedek duzlemi) bagli. Ikisi de CI'da ve dal olcumunde
+    # KOSULAMAZ hale geliyordu; sonuc: onarim VAR, kabul `OLCULEMEDI`.
+    # A7'nin KENDISI zaten hermetiktir: SAHTE CRON dizini (`tempfile` altinda)
+    # kurar, kurucuyu orada iki kez kosar, mutanti IZOLE kopyada dener. Secici
+    # yalnizca yanindaki ORTAM-bagimli vakalari DISARIDA birakir.
+    ap.add_argument("--vaka", choices=("A7",), default=None,
+                    help="YALNIZ bu vakayi kos (A7: kurucu idempotensi, hermetik "
+                         "sahte CRON dizini; A1/A6/A2 KOSULMAZ)")
     ap.add_argument("--arac", default=None, metavar="YOL",
                     help="olculecek kral-sabah.py (varsayilan: kurulu kopya "
                          "~/.claude/cron/kral-sabah.py). Dalin KENDI dosyasini "
@@ -612,14 +624,19 @@ def main(argv=None):
         print("HATA: arac YOK -> %s" % ARAC)
         return 2
 
-    a1_ortam()
-    # A6/A7 CANLI DUZLEME YAZMAZ (yalniz gecici dizin + salt-okuma) -> her fazda.
-    a6_ortam_turetme()
-    a7_kurucu_idempotens()
-    if args.faz == "tam":
-        a2_gercek_kosum()
-        a3_a4_sonuc_kolu()
-        a5_iki_tur()
+    if args.vaka == "A7":
+        # Hermetik kol: SAHTE CRON dizini + izole mutant kopyasi. Gercek
+        # `kral-sabah.py` KOSMAZ, `~/.claude/cron` altina TEK BAYT yazilmaz.
+        a7_kurucu_idempotens()
+    else:
+        a1_ortam()
+        # A6/A7 CANLI DUZLEME YAZMAZ (yalniz gecici dizin + salt-okuma) -> her fazda.
+        a6_ortam_turetme()
+        a7_kurucu_idempotens()
+        if args.faz == "tam":
+            a2_gercek_kosum()
+            a3_a4_sonuc_kolu()
+            a5_iki_tur()
 
     baslik("OZET")
     gecen = sum(1 for _, g, _ in SONUC if g is True)

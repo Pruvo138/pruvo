@@ -697,6 +697,19 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kapi-dagitim-test.py
 
+      # 🔴 K321 (16 Eyl 2026) — ISCI KARANTINA KARARI, ARDISIK EKSEN.
+      # 27 Agu'da `motor=claude` 13 ardisik kosumda rc=1 dondu ve karar kolu her
+      # seferinde `yazildi=hayir sebep=fatal-satir-yok` bastigi icin karantina HIC
+      # yazilmadi: hukum TEK EKSENE (cikti icinde `fatal` satiri) bagliydi. Onarim
+      # CANLI kolda (`~/.claude/cron/isci-karantina-karar.py`) duruyor ama kabul
+      # KOSULAMIYORDU. Batarya repodaki BIREBIR KOPYAYI (tools/k321/cron/) gecici
+      # fikstur dizinlerinde kosar: canli cron'a ve gercek HOME'a TEK BAYT yazmaz.
+      # CI'da canli ev YOKTUR -> B0 (bayatlik) `OLCULEMEDI` der ve kopya hash'ini
+      # ADIYLA basar; B1/B2/B3/B4 tam olculur, sessiz yesil YOK.
+      - name: K321 isci karantina ardisik eksen kabul testi (4 vaka + mutant + 2 kontrol)
+        if: ${{ !cancelled() }}
+        run: python3 tools/k321-karantina-ardisik-test.py
+
       # MARKA DURUM PANELI: parity-panel/parity-csv/marka-kapsama satır evreni ham defter
       # anahtarları değil KANONIK TANINMIS_MARKALAR'dan gelir; ham defterdeki sayımlar
       # markaKatla ile kanonik markaya KATLANIR (Toyota cover/mount... -> tek Toyota),
