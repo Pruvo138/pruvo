@@ -216,8 +216,21 @@ def _blok_anlamli_govde_satiri(blok):
     return len([s for s in blok["govde"] if s.strip()])
 
 
-def _indirme_vetosu(blok):
+def _indirme_vetosu(blok, sira=None):
     """Blok isaretciye INDIRILEMEZ ise SEBEP dizesi, indirilebilirse None.
+
+    🔴 16 EYL 2026 — "EN YENI EN USTTE KALIR" INVARYANTI EKLENDI (MaCiT olcumu,
+    pruvo-hasat DEVAM.md 508 satir rotasyonu). Olculen ariza: hedef secimi
+    `max(..., key=bayt)` ile YAPILIYOR — yani blok YASA gore degil BOYUTA gore
+    seciliyor. MaCiT'in az once ekledigi EN GUNCEL blok ("dilim-42 KAPANDI")
+    ayni zamanda EN BUYUK blok oldugu icin govdesi arsive indirildi; defterin
+    basinda bir SAP (baslik + isaretci) kaldi, gercek icerik tasiyan ilk blok
+    ondan ESKI olan blok oldu. `LOSSLESS=EVET` dogruydu (icerik kayip degil)
+    ama defterin ISLEVI — "nerede kaldim"i EN USTTE okumak — bozuldu: lossless
+    beyani SIRA/GUNCELLIK eksenini OLCMEZ.
+    Kapatan invaryant: defterin BASINDAKI blok (sira 0) = canli durum, govdesi
+    ASLA indirilmez. `sira` verilmezse (olcum/prob cagrisi) konum vetosu
+    UYGULANMAZ — ikinci bir jeton tablosu acilmaz, yalnizca konum eklenir.
 
     🔴 K195 §1.2 — ACIK KALEM ASLA ARSIVLENMEZ. Eski surumde veto YALNIZ
     BASLIGA bakiyordu (KORUMALI_BASLIK_DESENLERI); govdesinde 🔴/🔧/🟠 ya da
@@ -230,6 +243,9 @@ def _indirme_vetosu(blok):
     (fail-closed; `_tasinir_mi` ile ayni ACIK jeton kaynagi kullanilir,
     ikinci bir jeton tablosu ACILMAZ).
     """
+    if sira == 0:
+        return ("DEFTERIN BASI (sira 0 = en guncel blok, canli durum) — "
+                "'en yeni en ustte kalir' invaryanti")
     if _blok_korumali_mi(blok):
         return "KORUMALI BASLIK (%s)" % ", ".join(KORUMALI_BASLIK_DESENLERI)
     tum = blok["baslik"] + "\n" + "\n".join(blok["govde"])
@@ -1482,8 +1498,8 @@ def _isaretciye_indir_gecis(defter_yol, arsiv_yol, tarih):
     baslik_bolgesi, bloklar = _bloklari_ayir(defter_metin)
     adaylar = []
     vetolar = []
-    for b in bloklar:
-        sebep = _indirme_vetosu(b)
+    for _sira, b in enumerate(bloklar):
+        sebep = _indirme_vetosu(b, sira=_sira)
         if sebep is None:
             adaylar.append(b)
         else:
