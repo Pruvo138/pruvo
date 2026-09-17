@@ -2,6 +2,17 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔁 DEVIR — 17 Eyl 2026 18:5x, KraL ana-oturum (bağlam kotası RED 460K ile kapandı) → yeni hesap
+**ACILIS 19:4x (yeni hesap):** jeton tazelendi (108 bayt, `loggedIn:true`) · görev kaydı listesi boş → `OLCULEMEDI`, kurulum YAPILMADI (BaBa 2/2 kurdu) · devir işi KAPANDI: `f6f3a637` spec ifşa kapısı 1→0, test 22/22, Spec alarmı success, Build&deploy `35248178240` deploy+yayin success SKIPPED 0.
+**SIRADAKI TEK IS:** BaBa 19:4x hükmü — `claude/objective-greider-1334d1` dalını `merge-kapisi` ile main'e al (kabul a/b/c kutuda).
+**Nerede kaldım (17 Eyl):** bot kart testi olayı KAPANDI — `/baslat` IP tavanı `c03159ae` (10/60 sn) + Cloudflare Turnstile `1951a4c9`/`2db3115b`/`f1627867` (widget panelden, sitekey public, secret `tools/turnstile-secret-yukle.py --uygula` ile worker'da; test 22/22 + mutant; Pages `35201279801` deploy+yayin success; worker `d36e8e7f` %100; canlı tokensız/sahte token 403; Okan canlıda gerçek ödeme akışını doğruladı). iyzico zorunlu 3DS açtı. 97 bot siparişi D1'den SİLİNDİ (Okan kendi terminalinden; ölçüm işaretli 0, tablo 46, bekliyor 0). Hafıza: `public-uclar-kotuye-kullanim-modeli`. Açık öneri: diğer public uçların (yonet girişi · wa-siparis · stl-yukle · ref) kötüye kullanım taraması — Okan'a soruldu, cevap yok.
+**Açık worktree/dal:** 5 ağaç (sıradaki iş ağacı · w2 · w4 · w5 yalnız yerel WIP · başka oturumun `objective-greider-1334d1`) — adlar, SHA'lar ve neden açık oldukları aynı arşiv bloğunda.
+**Başkasının çalışma kopyasında duran:** ana checkout `DEVAM.md` (MaCiT K161 kapanış satırı, base `c03159ae`) + `tools/sayfalar.py` (SEO metin, ±47) — commit'siz, DOKUNULMADI; ana checkout `origin/main`'in 5 commit gerisinde.
+**Kutudaki KraL kalemleri (BaBa 18:5x ⚖️):** ③ `gunluk-motor-raporu.py` `ev=tekin-gunluk-*`/`DİĞER` satırlarını eve katla · ⑥ ci-nobeti 21× `ESKALASYON_ACIK` kapat/gerekçe · ⑦ K309 enümerasyonu · ArTisT önerisi `llms-txt-kapisi`.
+**Zamanlanmış nöbetler:** bu oturum kurmadı/değiştirmedi (tablo `devir` skill'inde).
+**Jeton:** `.ci-token` yeni hesapta KOŞULSUZ tazelenir — ACILIS adım 4.
+**Okan'da bekleyen karar:** diğer public uçları tarayayım mı (evet/hayır).
+
 ## 🔁 16 EYL 15:0x–15:5x ana-oturum-25 3. tur (Okan: "devam") — **K161 planı KABUL (tur 3) → MaCiT UYGULADI, commit `53ecdcc1` push edildi · K416 ③ tuttu · 3 artık ağaç silindi**
 **AÇILIŞ:** main `111ffdef` = origin · kutuda KraL 48 · `111ffdef` Build & deploy `35093851160` deploy+yayin success SKIPPED 0.
 ↩︎ **K161 KAPANDI (MaCiT) — tam metin ARŞİVDE** (`DEVAM-ARSIV.md`, "2026-09-18" başlığı altında; commit `53ecdcc1` push edildi). Açık kalan: `ELLE.json` (163 kayıt) + yasak-tür silme kararı mimar önünde.
