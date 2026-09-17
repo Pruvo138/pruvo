@@ -55,6 +55,16 @@ IZINLI = {
     "tools/mimar-kapi-mutasyon-test.py": (20, "mutant yamalari CANLI GOVDEYE birebir esitlenir"),
     "tools/k260/nobet-kat-kovasi-test.py": (3, "goc kaydi fiksturu (emekli kat adi)"),
     "tools/n4b/b4-kur.py": (4, "bayat kayit fiksturu: dosyadaki GERCEK dizgeye eslesir"),
+    # 17 Eyl 2026 (KraL-Tamirci-17Eyl, BILINCLI): W2 `3f758531` canli
+    # `~/.claude/cron` nobet dosyalarinin REPO KOPYALARINI kurdu; SERIT B
+    # hijyen-a3 o andan beri KIRMIZI (IHLAL=2). Kopyalar canliyla BAYT eslesir
+    # (`nobet-kabul-test.py` sha 864308b8 = canli) — ad burada degistirilirse
+    # kopya canlidan AYRISIR. Olculen siniflama: nobet-kapi.py 10 gecis =
+    # `KAT_CODEX = KAT_MIMAR` takma adi + `CODEX_JETONLARI` (emekli kat gocu
+    # KODU) + gocun gerekce yorumlari; nobet-kabul-test.py 5 gecis = motor
+    # zinciri/emekli kume FIKSTURU. Sinif (b), ATIF degil. Tavan olculen sayidir.
+    "tools/nobet-onarim/cron/nobet-kapi.py": (10, "canli cron KOPYASI: emekli kat gocu kodu (KAT_CODEX takma adi + jeton tablosu)"),
+    "tools/nobet-onarim/cron/nobet-kabul-test.py": (5, "canli cron KOPYASI: emekli motor zinciri fiksturu"),
     # --- ucuncu taraf MAKINE ADRESI: bizim adlandirmamiz degil, degistirilemez ---
     # 10 Eyl 2026 (K399): BAGIMLILIK KAPANDI — bu arac artik CANLI uca dogrudan
     # HTTP ile konusur; ikili yolu / oturum dizini / model sabiti KALMADI. Tavan
