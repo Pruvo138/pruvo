@@ -476,7 +476,27 @@ async function sepetiFiyatla(env, kalemler) {
 
 // ---------------------------------------------------------------- /baslat
 
+/** POST /baslat IP tavani. true -> tavan asildi -> 429 (D1'e YAZILMAZ, iyzico ACILMAZ).
+ *  FAIL-OPEN: binding yok/patladi -> false + yuksek sesli log (odeme yolu kapanmaz). */
+async function baslatHizSiniriAsildi(request, env) {
+  const rl = env && env.BASLAT_RATE_LIMIT;
+  if (!rl || typeof rl.limit !== "function") {
+    console.error("BASLAT_RATE_LIMIT binding YOK/BOZUK -> /baslat TAVANSIZ (fail-open)");
+    return false;
+  }
+  const ip = (request.headers && typeof request.headers.get === "function"
+    ? request.headers.get("CF-Connecting-IP") : "") || "yok";
+  try {
+    const sonuc = await rl.limit({ key: ip });
+    return !(sonuc && sonuc.success);
+  } catch (e) {
+    console.error("baslat rate-limit hatasi (fail-open):", (e && e.stack) || e);
+    return false;
+  }
+}
+
 async function baslat(request, env, url, ctx) {
+  if (await baslatHizSiniriAsildi(request, env)) { return cokIstek(env); }
   let govde;
   try {
     govde = await request.json();

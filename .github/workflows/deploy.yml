@@ -537,6 +537,13 @@ jobs:
       - name: Konfigur fail-closed kabul testi (shop sessiz eksik-tahsilat kapisi)
         run: node shop/test/konfigur-fail-closed.mjs
 
+      # BASLAT IP TAVANI (17 Eyl 2026 olayi: bot 96 sahte kart odemesi baslatti, uc tavansizdi).
+      # shop/src/index.js GERCEK kodu sahte D1+iyzico ile: tavan asilinca 429 + D1/iyzico 0,
+      # binding yok/patlarsa FAIL-OPEN (odeme yolu kapanmaz), wrangler.toml blogu + ayri namespace,
+      # tavan cagrisi silinince KIRMIZI (mutant). OFFLINE, wrangler YOK, ag YOK, <1 s.
+      - name: Baslat IP tavani kabul testi (shop siparis-baslatma kotu kullanim kapisi)
+        run: node shop/test/baslat-hiz-siniri.mjs
+
       # YONET (ADMIN GIRIS) KAPISI — deterministik alt kume. AG YOK, WRANGLER YOK,
       # D1 YOK: shop/src/yonet.js (deploy edilen dosya, kopya DEGIL) dogrudan yuklenir, ~0,3 s.
       # 🔴 IDDIA SAYISI BURAYA YAZILMAZ (ayni depoda olculdu; bkz. bu dosyada `mesaj-nobeti`
