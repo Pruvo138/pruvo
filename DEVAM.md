@@ -2,6 +2,16 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔁 DEVIR — 17 Eyl 2026 18:5x, KraL ana-oturum (bağlam kotası RED 460K ile kapandı) → yeni hesap
+**SIRADAKI TEK IS:** `shop/test/turnstile-kapisi.mjs` başlık yorumundaki tek alarm satırını nötrle ve main'e it — tam tarif `DEVAM-ARSIV.md` "17 Eyl 18:5x E6 taşıması".
+**Nerede kaldım (17 Eyl):** bot kart testi olayı KAPANDI — `/baslat` IP tavanı `c03159ae` (10/60 sn) + Cloudflare Turnstile `1951a4c9`/`2db3115b`/`f1627867` (widget panelden, sitekey public, secret `tools/turnstile-secret-yukle.py --uygula` ile worker'da; test 22/22 + mutant; Pages `35201279801` deploy+yayin success; worker `d36e8e7f` %100; canlı tokensız/sahte token 403; Okan canlıda gerçek ödeme akışını doğruladı). iyzico zorunlu 3DS açtı. 97 bot siparişi D1'den SİLİNDİ (Okan kendi terminalinden; ölçüm işaretli 0, tablo 46, bekliyor 0). Hafıza: `public-uclar-kotuye-kullanim-modeli`. Açık öneri: diğer public uçların (yonet girişi · wa-siparis · stl-yukle · ref) kötüye kullanım taraması — Okan'a soruldu, cevap yok.
+**Açık worktree/dal:** 5 ağaç (sıradaki iş ağacı · w2 · w4 · w5 yalnız yerel WIP · başka oturumun `objective-greider-1334d1`) — adlar, SHA'lar ve neden açık oldukları aynı arşiv bloğunda.
+**Başkasının çalışma kopyasında duran:** ana checkout `DEVAM.md` (MaCiT K161 kapanış satırı, base `c03159ae`) + `tools/sayfalar.py` (SEO metin, ±47) — commit'siz, DOKUNULMADI; ana checkout `origin/main`'in 5 commit gerisinde.
+**Kutudaki KraL kalemleri (BaBa 18:5x ⚖️):** ③ `gunluk-motor-raporu.py` `ev=tekin-gunluk-*`/`DİĞER` satırlarını eve katla · ⑥ ci-nobeti 21× `ESKALASYON_ACIK` kapat/gerekçe · ⑦ K309 enümerasyonu · ArTisT önerisi `llms-txt-kapisi`.
+**Zamanlanmış nöbetler:** bu oturum kurmadı/değiştirmedi (tablo `devir` skill'inde).
+**Jeton:** `.ci-token` yeni hesapta KOŞULSUZ tazelenir — ACILIS adım 4.
+**Okan'da bekleyen karar:** diğer public uçları tarayayım mı (evet/hayır).
+
 ## 🔁 16 EYL 15:0x–15:5x ana-oturum-25 3. tur (Okan: "devam") — **K161 planı KABUL (tur 3, uygulama MaCiT) · K416 ③ tuttu · 3 artık ağaç silindi**
 **AÇILIŞ:** main `111ffdef` = origin · kutuda KraL 48 · `111ffdef` Build & deploy `35093851160` deploy+yayin success SKIPPED 0.
 **K161:** tur 2 REDDEDİLDİ, tur 3 planı yapısal denetim + 2 mutant + mimar onarımı `33bf9ae1` ile KABUL; uygulama MaCiT'te (kutu). Tam metin → `DEVAM-ARSIV.md` "16 Eyl 15:5x E6 taşıması".
