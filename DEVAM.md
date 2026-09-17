@@ -2,13 +2,13 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 16 EYL 15:0x–15:5x ana-oturum-25 3. tur (Okan: "devam") — **K161 planı KABUL (tur 3, uygulama MaCiT) · K416 ③ tuttu · 3 artık ağaç silindi**
+## 🔁 16 EYL 15:0x–15:5x ana-oturum-25 3. tur (Okan: "devam") — **K161 planı KABUL (tur 3) → MaCiT UYGULADI, commit `53ecdcc1` push edildi · K416 ③ tuttu · 3 artık ağaç silindi**
 **AÇILIŞ:** main `111ffdef` = origin · kutuda KraL 48 · `111ffdef` Build & deploy `35093851160` deploy+yayin success SKIPPED 0.
-**K161:** tur 2 REDDEDİLDİ, tur 3 planı yapısal denetim + 2 mutant + mimar onarımı `33bf9ae1` ile KABUL; uygulama MaCiT'te (kutu). Tam metin → `DEVAM-ARSIV.md` "16 Eyl 15:5x E6 taşıması".
+↩︎ **K161 KAPANDI (MaCiT) — tam metin ARŞİVDE** (`DEVAM-ARSIV.md`, "2026-09-18" başlığı altında; commit `53ecdcc1` push edildi). Açık kalan: `ELLE.json` (163 kayıt) + yasak-tür silme kararı mimar önünde.
 **K416:** ③ `0210a8bb` SERIT B success (`hijyen-a3` + `marka-invaryant`). ④ ArTisT pre-push'ta geçmiş geri-dönüş bloğu YOK, araç o depoda YOK (fail-closed kurulum push'u kilitlerdi) → ArTisT'e kutu.
 **CI:** `fe7cd273`/`768197de` deploy kırmızısı `111ffdef` ile kapandı; `cron-nabzi` tek seferlik kırmızı yerelde rc=0. Tam metin → aynı arşiv bloğu.
 **TEMİZLİK:** worktree 8→5 (k313-ci · w1 · w3 silindi). **MOTOR ORANI:** Claude 0 / m3 2.
-**⏭️ SIRADAKİ:** 21:00 sonrası W2-2 · W3-2 · W4-2 · W5 yeniden başlat · MaCiT K161 uygulama kabulü (ölçüt arşiv bloğunda) · ArTisT K416 ④.
+**⏭️ SIRADAKİ:** 21:00 sonrası W2-2 · W3-2 · W4-2 · W5 yeniden başlat · K161 ELLE.json (163 kayıt) + 5 YASAK-tür silme kararı mimar önünde · ArTisT K416 ④.
 
 ## 🔁 16 EYL 14:1x–14:5x ana-oturum-25 2. tur (Okan: "Tüm açık görevleri tamamla, işi biten görev ve oturumları temizle") — **borç 27→14 · 5 Claude + 2 m3 işçisi · bağlam kotası RED (451K) ile kapandı**
 **KAPANDI (13):** K313 (`86778c63` görselsiz sınıf bataryası serit-b'ye; K5 sayı kıyası `--kapanis-tabani`) · K312 (urun-silme-kapisi 25/25 · 13 mutant, ölçüm) · K415 (③ `thumbnail-uret.py` 37.822 kapak HATA=0) · K338 + K321 (W4 `089c567a`) · K309 + K310 + K317 + K351 (W3 `fe7cd273`; `jolly-yalow` dalı ölçümle MERGE EDİLMEDİ, silindi) · K340 + K336 + K332 + K319 (W1 `ffbb8a1a`; canlı kapı — mimar duman kıyası 24 gerçek komutta FARK=3, üçü hedeflenen; kilit-test 5 taban kırmızısı main=dal). Satır içi kanıtlar `acik-kalemler.md`'de.
