@@ -520,7 +520,12 @@ def kos(GZ):
         T.esit("12.1 cron PATH tam adayla olculur", (veri, sebep), ([], "TAMAM"))
 
         GZ.BILINEN_BIN_DIZINLERI = (os.path.join(kok12, "yok"),)
+        # 17 Eyl (KraL-Tamirci-17Eyl): "/usr/bin:/bin" ev sahibine BAGLIYDI — GitHub
+        # runner'da gh TAM /usr/bin/gh'dedir, `shutil.which` bulur ve vaka CI'da
+        # ([], "TAMAM") doner (dispatch 35193596658). PATH bos bir dizine cekilir.
+        os.environ["PATH"] = os.path.join(kok12, "yok")
         T.esit("12.2 ikili yok sebebi", GZ._gh_kosumlar(), (None, "IKILI_YOK"))
+        os.environ["PATH"] = "/usr/bin:/bin"
 
         GZ.BILINEN_BIN_DIZINLERI = (sahte_bin,)
         GZ.subprocess.run = lambda komut, **kwargs: Sonuc(1, "")
