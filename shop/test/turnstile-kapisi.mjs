@@ -11,7 +11,7 @@
  *   V2 siteverify success:false          -> 403
  *   V3 siteverify hostname YABANCI       -> 403
  *   V4 gecerli jeton                     -> 403 DEGIL ve iyzico ACILIR
- *   V5 secret YOK (henuz konmadi)        -> 403 DEGIL (FAIL-OPEN: yayin sirasi)
+ *   V5 secret TANIMSIZ ortam             -> 403 DEGIL (FAIL-OPEN: secret yoksa kapi pasif)
  *   V6 siteverify FIRLATIR               -> 403 DEGIL (FAIL-OPEN: CF duserse satis durmaz)
  *   V7 siteverify'a remoteip = CF-Connecting-IP iletilir
  *   V8 HAVALE yolu da kapsanir           -> jetonsuz 403 · D1'e YAZILMAZ
