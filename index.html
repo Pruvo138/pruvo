@@ -940,6 +940,8 @@ setTimeout(L,5000);})();
      üretim olan sepette ödeme ekranı bugünkü haliyle birebir aynı görünür. */
   .odeme-cayma{display:block;margin:6px 0}
   .odeme-cayma:empty{display:none}
+  /* Turnstile kutusu: widget gelmezse BOŞ kalır ve hiç yer kaplamaz (düzen kaymaz). */
+  .odeme-turnstile:not(:empty){margin:0 0 10px}
   .odeme-btnler{display:flex;gap:8px;align-items:stretch}
   .odeme-btnler .cart-pay-btn{margin-bottom:0}
   .odeme-vazgec{
@@ -1362,6 +1364,11 @@ setTimeout(L,5000);})();
       <a href="/gizlilik/" target="_blank" rel="noopener">Gizlilik</a> ·
       <a href="/teslimat-iade/" target="_blank" rel="noopener">Teslimat & İade</a>
     </div>
+    <!-- BOT KAPISI (Turnstile, 17 Eyl 2026): widget BURAYA çizilir — ödeme butonunun HEMEN
+         üstüne. Kutu boş doğar; script sayfa ilk yükünde DEĞİL, ödeme formu açılınca
+         (odemeFormuGoster) tembelce istenir. Script gelmezse kutu boş kalır, sayfa
+         kırılmaz ve token boş gider — hükmü sunucu verir. -->
+    <div id="turnstileKutu" class="odeme-turnstile"></div>
     <div class="odeme-btnler">
       <button type="button" id="odemeVazgec" class="odeme-vazgec">Geri</button>
       <button type="submit" id="odemeGonder" class="cart-pay-btn">iyzico ile Öde</button>
@@ -2600,7 +2607,64 @@ setTimeout(L,5000);})();
   // ---------------------------------------------------------------- ödeme (iyzico redirect)
   var SHOP_UC = "/api/shop";
 
+  /* ================= CLOUDFLARE TURNSTILE — /baslat bot kapısı (17 Eyl 2026) =================
+     ÖLÇÜLEN OLAY: 17 Eyl 03:45-05:30 bir bot 188 çalıntı kart denedi; tek sipariş token'ıyla
+     ~50 kart denenebildiği için IP tavanı tek başına yetmedi. Widget'ı çözmeyen istemci
+     artık sipariş AÇAMAZ (hüküm sunucuda: /baslat turnstileDogrula).
+
+     🔴 İLK YÜKE GİRMEZ: dış script YALNIZ ödeme formu açılınca istenir (LCP ArTisT'in alanı;
+     sayfa açılışında hiçbir harici istek eklenmez). Script hiç gelmezse kutu boş kalır,
+     sayfa KIRILMAZ, token boş gider ve kararı sunucu verir. */
+  var TURNSTILE_SITEKEY = "TURNSTILE_SITEKEY_BEKLIYOR";
+  var TURNSTILE_API = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+  var turnstileWidget = null, turnstileIstendi = false;
+  /* 🔴 TÜMÜ TRY İÇİNDE: bot kutusu ödeme formunun ÖNKOŞULU DEĞİLDİR. Script eklenemezse
+     (head yok, CSP, ağ) form yine açılır, token boş gider ve hükmü sunucu verir —
+     bu fonksiyonun fırlatması ödeme ekranını kapatırdı. */
+  function turnstileYukle(){
+    try{
+      if(turnstileIstendi){ turnstileCiz(); return; }
+      var hedef = document.head || document.body || document.documentElement;
+      if(!hedef || typeof hedef.appendChild !== "function"){ return; }
+      turnstileIstendi = true;
+      var s = document.createElement("script");
+      s.src = TURNSTILE_API;
+      s.async = true; s.defer = true;
+      s.onload = turnstileCiz;
+      // Yüklenemezse bayrağı geri al: müşteri formu kapatıp açınca bir kez daha denensin.
+      s.onerror = function(){ turnstileIstendi = false; };
+      hedef.appendChild(s);
+    }catch(e){ turnstileIstendi = false; }
+  }
+  function turnstileCiz(){
+    var kutu = document.getElementById("turnstileKutu");
+    if(!kutu || turnstileWidget !== null){ return; }
+    if(!window.turnstile || typeof window.turnstile.render !== "function"){ return; }
+    try{ turnstileWidget = window.turnstile.render(kutu, { sitekey: TURNSTILE_SITEKEY }); }
+    catch(e){ turnstileWidget = null; }
+  }
+  /* Token TEK KULLANIMLIKTIR: her /baslat cevabından sonra reset edilir, yoksa ikinci
+     deneme sunucuda "timeout-or-duplicate" ile 403 alır ve müşteri sebebini göremez. */
+  function turnstileJeton(){
+    try{
+      if(turnstileWidget !== null && window.turnstile &&
+         typeof window.turnstile.getResponse === "function"){
+        return window.turnstile.getResponse(turnstileWidget) || "";
+      }
+    }catch(e){}
+    return "";
+  }
+  function turnstileSifirla(){
+    try{
+      if(turnstileWidget !== null && window.turnstile &&
+         typeof window.turnstile.reset === "function"){
+        window.turnstile.reset(turnstileWidget);
+      }
+    }catch(e){}
+  }
+
   function odemeFormuGoster(ac){
+    if(ac){ turnstileYukle(); }
     document.getElementById("odemeForm").style.display = ac ? "block" : "none";
     document.getElementById("havaleEkran").style.display = "none";
     document.getElementById("cartItems").style.display = ac ? "none" : "block";
@@ -2715,7 +2779,10 @@ setTimeout(L,5000);})();
     "bilinmeyen-parametre": "Ölçüye özel ürün bilgisi eski görünüyor. Ürünü sepetten çıkarıp yeniden ekleyin.",
     "taban-fiyat-yok": "Bu ölçüye özel ürün şu an kartla ödenemiyor; WhatsApp'tan teklif alın.",
     "havale-hazir-degil": "Havale/EFT şu an kullanılamıyor; kartla ödeyebilir veya WhatsApp'tan yazabilirsiniz.",
-    "sozlesme-onay-yok": "Devam etmek için sözleşme onay kutusunu işaretleyin."
+    "sozlesme-onay-yok": "Devam etmek için sözleşme onay kutusunu işaretleyin.",
+    // Worker bot kapısının 403'ü (Turnstile): jeton yok/geçersiz/tekrar kullanılmış.
+    // Bu kod olmadan müşteri jenerik "Ödeme başlatılamadı" görür ve doğrulamayı yenilemez.
+    "bot-dogrulama": "Güvenlik doğrulaması tamamlanamadı. Lütfen doğrulamayı yenileyip tekrar deneyin."
   };
   async function odemeBaslat(){
     var btn = document.getElementById("odemeGonder");
@@ -2776,6 +2843,8 @@ setTimeout(L,5000);})();
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ sepet: sepet, odeme: havale ? "havale" : "kart",
           sozlesme_onay: document.getElementById("oOnay").checked === true,
+          // Bot kapısı jetonu (Turnstile). Widget çizilmediyse "" gider — hükmü sunucu verir.
+          turnstile_token: turnstileJeton(),
           // Reklam atıf kimlikleri (UTM + GA client_id + Meta fbp/fbc) — sunucu order kaydına
           // yazar, purchase event kullanır (reklam-roi-sistemi.md Faz 0). Boşsa {} gider.
           atif: PRUVO_ATIF.topla(),
@@ -2788,6 +2857,9 @@ setTimeout(L,5000);})();
             adres: document.getElementById("oAdres").value.trim()
           }})
       });
+      // Jeton tek kullanımlık: cevap ne olursa olsun tazelenir (başarılı kartta zaten
+      // yönlendiriliyoruz, kalan her yolda müşteri ikinci kez deneyebilsin).
+      turnstileSifirla();
       var veri = await cevap.json();
       if(!cevap.ok || (havale ? !veri.havale : !veri.url)){
         odemeHata(HATA_METNI[veri.hata] || "Ödeme başlatılamadı. WhatsApp'tan sipariş verebilirsiniz.");
@@ -2803,6 +2875,7 @@ setTimeout(L,5000);})();
       // iyzico'nun kendi ödeme sayfası — kart burada değil ORADA girilir.
       location.href = veri.url;
     }catch(e){
+      turnstileSifirla();
       odemeHata("Bağlantı kurulamadı. İnternetinizi kontrol edip tekrar deneyin.");
       btn.disabled = false; btn.textContent = odemeButonMetni();
     }

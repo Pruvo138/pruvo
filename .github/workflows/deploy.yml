@@ -544,6 +544,16 @@ jobs:
       - name: Baslat IP tavani kabul testi (shop siparis-baslatma kotu kullanim kapisi)
         run: node shop/test/baslat-hiz-siniri.mjs
 
+      # TURNSTILE BOT KAPISI (17 Eyl 2026: bot 188 CALINTI KART denedi; TEK siparis token'inda
+      # ~50 kart denenebildigi icin istek hizi kolu tek basina yetmedi). shop/src/index.js GERCEK
+      # kodu sahte D1 + sahte iyzico + sahte siteverify ile: jetonsuz/gecersiz/yabanci-hostname
+      # istek 403 + D1 INSERT 0 + iyzico 0 (havale yolu DAHIL), secret yokken ve siteverify
+      # duserken FAIL-OPEN (yayin sirasi korunur), remoteip=CF-Connecting-IP iletilir,
+      # index.html'de api.js ILK YUKE GIRMEZ (harici script host kumesi genislemedi) ve
+      # dogrulama cagrisi silinince KIRMIZI (mutant). OFFLINE, ag YOK, <1 s.
+      - name: Turnstile bot kapisi kabul testi (shop /baslat + on yuz tembel yukleme)
+        run: node shop/test/turnstile-kapisi.mjs
+
       # YONET (ADMIN GIRIS) KAPISI — deterministik alt kume. AG YOK, WRANGLER YOK,
       # D1 YOK: shop/src/yonet.js (deploy edilen dosya, kopya DEGIL) dogrudan yuklenir, ~0,3 s.
       # 🔴 IDDIA SAYISI BURAYA YAZILMAZ (ayni depoda olculdu; bkz. bu dosyada `mesaj-nobeti`
