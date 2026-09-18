@@ -134,13 +134,16 @@ def v10_uctan_uca(mod):
         with open(sahte, "w", encoding="utf-8") as f:
             f.write("#!%s\nimport sys\nsys.stdout.write(%r)\n" % (sys.executable, json.dumps(data)))
         os.chmod(sahte, 0o700)
-        eski = (mod.gh_yolu, mod._repo_slug)
+        # REPO da kuma çevrilir: araç `cwd=REPO` (sabit Mac yolu) ile koşar; CI koşucusunda
+        # o dizin YOK -> subprocess FileNotFoundError -> OLCULEMEDI (18 Eyl run 35346692885).
+        eski = (mod.gh_yolu, mod._repo_slug, mod.REPO)
         mod.gh_yolu = lambda: (sahte, "test")
         mod._repo_slug = lambda: None
+        mod.REPO = type(mod.REPO)(td)
         try:
             hukum, blok, adet, _ = mod.bugunun_kirmizilari()
         finally:
-            mod.gh_yolu, mod._repo_slug = eski
+            mod.gh_yolu, mod._repo_slug, mod.REPO = eski
     ok = (hukum == "OK" and adet == 2 and "**CANLI=1**" in blok and "ARDILI_YESIL=1" in blok)
     return ok, (hukum, adet, blok[:160])
 
