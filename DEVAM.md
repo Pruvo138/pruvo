@@ -2,6 +2,16 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔁 18 EYL 15:4x–16:5x KraL ana-oturum (Okan: "Tüm açık görevleri tamamla, işi biten görev ve oturumları temizle") — **4 dal main'de · yayın kırmızısı onarıldı · K418/K420/K421 KAPANDI · 3 çip açıldı**
+**AÇILIŞ:** ana checkout yerel `main` origin'in 10 gerisinde + 20 dosya "stage": index = `4b7ec9f7` ağacı (04:08 `reset --soft` artığı), `sayfalar.py` = `db20fb0c` blob'u, `DEVAM.md` = `ca568d72` — hepsi commit'li içerik, kayıp 0 → `reset --hard origin/main`.
+**MERGE:** `7f3ffcd9` k260 test = canlı (EMEKLI_MOTOR_JETONLARI) · `553572d9` sabah spec KAPANDI/CANLI ardıl hükmü · `5c4d2d99` K418 atıf kapısı, taban 308→**1** (ana kopya verisiyle ölçüldü; kalan 1 kasti istisna) · `b0383312` veri kökü yeniden ekleme (birleşik ağaç dal CI `35348595480` build+a2+a3+a4 success; yerelde 12 kapı rc=0, veri-kok mutasyon 7/7). Hepsi çakışma 0, geri-dönüş taraması 0 bulgu, D1 38352 UYUŞMAZ/EKSİK/FAZLA 0.
+**🔴 YAYIN KIRMIZISI (kendi merge'üm):** `5c4d2d99` serit-a3 `sabah-ardil-kova-test` V10 — araç `cwd=/Users/okan/dev/pruvo` (cron sabiti) CI koşucusunda yok → `FileNotFoundError`. Onarım `b3639412` (test REPO'yu kuma çevirir). Onun yayın koşumu `35348462623` benim dal dispatch'imle `cancelled` oldu (`pages` kovası; hafıza `dal-dispatch-pages-kovasi-main-yayinini-ezer`). **Son yayın `b0383312` run `35350167808` 6/6 success, deploy+yayin success, SKIPPED 0.**
+**CANLI KURULUM (m3 ×2, bağımsız doğrulandı):** `kral-sabah.py` canlı = repo `a082462b` (gh-civi İKİZ_AYRISIK 1→0) · K421 3 nöbet kopyası sha canlı=repo 3/3, onarım-kabul + gözcü testi rc=0.
+**TEMİZLİK:** worktree 7→1 (kalan `w2-nobet-tur` = W2 çipinin yarım işi) · uzak dal −9 · oturum arşivi 3 (İhtar 09:00 · Teftiş 23:00 · MaCiT bisiklet çipi) · eski işçi çıktı dizini 17.
+**BORÇ:** `parti-borc-kapisi --ev KraL` ACIK 14 · GECERSIZ_DURUM 3→0 · OLCUTSUZ 0.
+**AÇIK ÇİPLER:** `task_b3cdc89a` W2-2 (K316·K325·K326·K334·K311 + ci-nöbeti eskalasyonu ardıl körlüğü) · `task_6c9e53f9` W4-2 (K320·K356 + `kur.py` çapa çökmesi) · `task_bd88f986` W3-2+W5 (K329-EK·K351-31AGU·K140·K339·K339-EK·K416).
+**⏭️ SIRADAKİ:** ① `b0383312` SERIT B hükmü (koşum sürüyordu — OLCULEMEDI; kapatır: o koşum success) ② 3 çipin kapanışlarını bağımsız doğrula ③ K161 (MaCiT) ④ TeKiN tetiği: ağaç kirli + cron'da push kimliği yok (kutuda).
+
 ## 🔁 DEVIR — 17 Eyl 2026 18:5x, KraL ana-oturum (bağlam kotası RED 460K ile kapandı) → yeni hesap
 **ACILIS 19:4x (yeni hesap):** jeton tazelendi (108 bayt, `loggedIn:true`) · görev kaydı listesi boş → `OLCULEMEDI`, kurulum YAPILMADI (BaBa 2/2 kurdu) · devir işi KAPANDI: `f6f3a637` spec ifşa kapısı 1→0, test 22/22, Spec alarmı success, Build&deploy `35248178240` deploy+yayin success SKIPPED 0.
 **SIRADAKI TEK IS:** SERIT B run `35302195200` (`84a60965`) `serit-b` işinin sonucunu oku — 16/17 iş success, kapanışta `serit-b` hâlâ koşuyordu (ÖLÇÜLEMEDİ); kırmızıysa suçluyu tarihle bul.
