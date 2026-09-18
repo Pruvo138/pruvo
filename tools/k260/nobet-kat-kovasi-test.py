@@ -537,6 +537,10 @@ def kabul():
     if dusen:
         print("KALAN=%s" % ",".join(dusen))
     print("HUKUM=%s" % ("YESIL" if not dusen else "KIRMIZI"))
+    # 🔴 18 Eyl 2026: `testler.py` sozlesmesi SON `KABUL=` satiridir; yalniz
+    # `HUKUM=` basan paket `KABUL=YOK(rc=..)` ile KALDI sayiliyordu.
+    print("KABUL=%s (%d/%d vaka)" % ("GECTI" if not dusen else "KALDI",
+                                     len(sonuc) - len(dusen), len(sonuc)))
     return 0 if not dusen else 1
 
 
