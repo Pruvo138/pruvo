@@ -975,11 +975,39 @@ def _a8_kos(arac, gh_yolu, spec_dizin):
 A8_KUM_SABITLERI = ("KUTU", "KALEMLER", "DEVAM", "REPO", "MOTOR_RAPORU_DOSYA")
 
 
+def _a8_repo_koku(kaynak):
+    """REPO icin salt-okunur depo koku: (yol, nereden) ya da (None, sebep).
+
+    🔴 Ilk surum koku `__file__`dan turetiyordu; KURULU kopyada (`~/.claude/cron/`)
+    bu `~/.claude` cikti ve A8a rc=1 dustu (olculdu 18 Eyl). Sira: (1) bataryanin
+    git koku — icinde `tools/sabah-teslim/kral-sabah.py` varsa (dal/CI checkout'u);
+    (2) aracin KENDI `REPO` sabiti — dizin VARSA (kurulu kopya, Mac); (3) fail-closed.
+    """
+    ortam = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    try:
+        r = subprocess.run(["git", "-C", os.path.dirname(os.path.abspath(__file__)),
+                            "rev-parse", "--show-toplevel"],
+                           capture_output=True, text=True, timeout=30, env=ortam)
+        aday = r.stdout.strip() if r.returncode == 0 else ""
+    except Exception:
+        aday = ""
+    if aday and os.path.isfile(os.path.join(aday, "tools", "sabah-teslim", "kral-sabah.py")):
+        return aday, "batarya_git_koku"
+    m = re.search(r'^REPO = Path\("([^"\n]*)"\)\n', kaynak, re.M)
+    if m and os.path.isdir(m.group(1)):
+        return m.group(1), "arac_sabiti"
+    return None, "depo koku bulunamadi (git koku=%r, arac sabiti=%r)" % (
+        aday or "-", m.group(1) if m else "-")
+
+
 def _a8_kumla(kaynak, td):
-    """(kumlu_kaynak, None) ya da (None, sebep). REPO/DEVAM = bu checkout (salt okuma)."""
+    """(kumlu_kaynak, None) ya da (None, sebep). REPO/DEVAM salt okunur depo kokunden."""
     kum = os.path.join(td, "kum")
     os.makedirs(kum, exist_ok=True)
-    repo = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    repo, nereden = _a8_repo_koku(kaynak)
+    if repo is None:
+        return None, nereden
+    print("  A8_KUM REPO=%s (%s)" % (repo, nereden))
     yollar = {
         "KUTU": os.path.join(kum, "mimar-posta-kutusu.md"),
         "KALEMLER": os.path.join(kum, "acik-kalemler.md"),
