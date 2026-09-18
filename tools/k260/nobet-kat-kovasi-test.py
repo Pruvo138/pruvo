@@ -455,6 +455,97 @@ MUTANTLAR = (
 )
 
 
+def bolum_g(nk, ek=""):
+    """KORGOZ_K311_SOZLUK — ACIK KALEM SOZLUGU TEK KAYNAK (27 Agu 2026).
+
+    TABAN OLCULDU: `onarim_kalemleri()` YALNIZ 🔧 sayiyordu ve defterin durum
+    KOLONUNDA 🔧 degeri **0 kez** geciyordu -> liste her turda BOS
+    (`ACIK_KALEM=0` x 63 tur). Kanonik deger `ACIK`ti ve 11 satir tasiyordu.
+    """
+    print("--- BOLUM G%s: ACIK KALEM SOZLUGU (KORGOZ_K311_SOZLUK) ---" % ek)
+
+    def _durumlu(kimlik, durum):
+        kalem = _kalem(nk, kimlik, M_K77)
+        kalem["durum"] = durum
+        kalem["durum_ham"] = durum
+        return kalem
+
+    kume = [_durumlu("K901", "ACIK"), _durumlu("K902", nk.ONARIM_DURUMU),
+            _durumlu("K903", "UCUSTA"), _durumlu("K904", "OKAN-KAPISI"),
+            _durumlu("K905", "KAPANDI"), _durumlu("K906", "DEVREDILDI (ArTisT)")]
+    onarilacak = [k["id"] for k in nk.onarim_kalemleri(kume)]
+    vaka("G1-ACIK-sayiliyor%s" % ek, "VAR",
+         "VAR" if "K901" in onarilacak else "YOK")
+    vaka("G2-onarim-emojisi-sayiliyor%s" % ek, "VAR",
+         "VAR" if "K902" in onarilacak else "YOK")
+    # UCUSTA/OKAN-KAPISI ACIK ama SAHIPLI: yeniden dagitmak ayni isi iki kez
+    # actirir (UCUSTA'yi bir cip tasiyor; OKAN-KAPISI insan karari).
+    vaka("G3-UCUSTA-dagitilmaz%s" % ek, "YOK",
+         "VAR" if "K903" in onarilacak else "YOK")
+    vaka("G4-OKAN-KAPISI-dagitilmaz%s" % ek, "YOK",
+         "VAR" if "K904" in onarilacak else "YOK")
+    vaka("G5-KAPANDI-sayilmaz%s" % ek, "YOK",
+         "VAR" if "K905" in onarilacak else "YOK")
+    vaka("G6-onarilacak-adedi%s" % ek, 2, len(onarilacak))
+    vaka("G7-sahipli-adedi%s" % ek, 2, len(nk.sahipli_kalemler(kume)))
+    # 🔴 Hicbir kovaya girmeyen satir SESSIZ DUSMEZ (canli defterde 3 tane var).
+    vaka("G8-bilinmeyen-gorunur%s" % ek, "K906",
+         ",".join(k["id"] for k in nk.bilinmeyen_durumlu_kalemler(kume)))
+    kanonik = set(nk.DURUM_DEGERLERI) | {nk.ONARIM_DURUMU}
+    birlesim = (set(nk.ONARILACAK_DURUMLAR) | set(nk.SAHIPLI_DURUMLAR)
+                | set(nk.KAPALI_DURUMLAR_DEFTER))
+    vaka("G9-partisyon-tam%s" % ek, "TAM",
+         "TAM" if kanonik == birlesim else "EKSIK")
+    # CANLI defter, BAGIMSIZ okuyucu: ciplak kolon-5 taramasi ile okuyucunun
+    # sayisi ESIT olmali. Defter tamamen kapanirsa ikisi de 0 olur — bu vaka
+    # komsuyu kirmiziya YAKMAZ.
+    ham_acik = 0
+    try:
+        with open(DEFTER_YOLU, encoding="utf-8") as _d:
+            for _s in _d:
+                if not _s.startswith("| K"):
+                    continue
+                # 🔴 K382 kanonik BOLUCU (nk uzerinden tek kaynaktan gelir).
+                # Bagimsizlik iddiasi DURUM SOZLUGU duzlemindedir (asagidaki
+                # literal), AYIRICI duzleminde DEGIL: ham `split("|")` markdown
+                # `\|` kacisini tanimaz ve bu vakayi olctugu okuyucularla AYNI
+                # korluge sokardi.
+                _kol = nk.hucrelere_bol(_s)
+                if len(_kol) < 7:
+                    continue
+                # 🔴 LITERAL BILEREK SABIT — bu vaka BAGIMSIZ IKINCI GORUSTUR.
+                # `nk.ONARILACAK_DURUMLAR` okunursa mutant iki tarafi birden
+                # kaydirir ve vaka hicbir zaman kirmizi yanmaz (olculdu: M8
+                # G1+G6'yi oldurdu, G10'u OLDUREMEDI).
+                if _kol[5].strip() in ("ACIK", "\U0001f527"):
+                    ham_acik += 1
+    except OSError:
+        ham_acik = -1
+    vaka("G10-canli-ciplak-grep-esit%s" % ek, ham_acik,
+         len(nk.onarim_kalemleri(nk.defter_oku())) if ham_acik >= 0 else -1)
+
+
+# KORGOZ_K311_SOZLUK mutantlari: IKI hedef-kol atifli + BIR kontrol.
+MUTANTLAR = MUTANTLAR + (
+    ("M8_SOZLUK_TABANA_DONDU",
+     'ONARILACAK_DURUMLAR = (ONARIM_DURUMU, "ACIK")\n'
+     'SAHIPLI_DURUMLAR = ("UCUSTA", "OKAN-KAPISI")\n'
+     'KAPALI_DURUMLAR_DEFTER = ("KAPANDI",)\n',
+     'ONARILACAK_DURUMLAR = (ONARIM_DURUMU,)\n'
+     'SAHIPLI_DURUMLAR = ("UCUSTA", "OKAN-KAPISI")\n'
+     'KAPALI_DURUMLAR_DEFTER = ("KAPANDI", "ACIK")\n',
+     ("G1-", "G6-", "G10-"), False),
+    ("M9_BILINMEYEN_KOL_KALDIRILDI",
+     "    return [k for k in kalemler if k[\"durum\"] not in bilinen]",
+     "    return []",
+     ("G8-",), False),
+    ("M10_KONTROL_SOZLUK",
+     "# --- KORGOZ_K311_SOZLUK sonu",
+     "# --- KORGOZ_K311_SOZLUK sonu (KONTROL MUTANTI)",
+     (), True),
+)
+
+
 def _batarya(nk, yol, ek):
     del VAKALAR[:]
     bolum_a(nk, ek)
@@ -462,6 +553,7 @@ def _batarya(nk, yol, ek):
     bolum_c(nk, ek)
     bolum_d(nk, ek)
     bolum_f(nk, ek)
+    bolum_g(nk, ek)
     bolum_e(yol, ek)
     return list(VAKALAR)
 
