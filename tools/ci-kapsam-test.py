@@ -3432,10 +3432,11 @@ IZIN_LISTESI = {
     # `d1-sync.py::ZORUNLU_KOLONLAR`dan TURETILIYOR ve turetici kendi bataryasina sahip.
     # Kapiyi bu satir degil, o iki bayrak korur; kapsam kapisi bu izni "BAYAT" diye DOGRU
     # yakti ve kayit boylece dustu.
-    "tools/marka-invaryant-mutasyon.py": (
-        "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 283,8 s, `19 mutant: her "
-        "OLDURUCU kirmizi, her KONTROL yesil`. 40 s esiginin ~7 kati; mutant basina "
-        "~15 s (her mutant tum marka envanterini yeniden turetir)."),
+    # 🔴 tools/marka-invaryant-mutasyon.py IZINDEN CIKARILDI (18 Eyl 2026, K140): SURE
+    # gerekcesi yayini bloklayan seritler icindi; batarya artik yayini BLOKLAMAYAN
+    # `nobet.yml::marka-invaryant-sayac-bataryasi` job'unda (90 dk) kosuyor. Izin
+    # durdugu surece M3 capasi `CAPA-YOK(0)`a dustu ve M12/M18 survivor'lari 6-13 Eyl
+    # arasi hicbir kosumda GORUNMEDI — izin kapsami degil KORLUGU tasiyordu.
     "tools/marka-sayac-mutasyon.py": (
         "SURE + CALISMA AGACINI KIRLETIYOR (iki bagimsiz gerekce). OLCULDU (8 Agu "
         "2026, temiz klon): 300 s'de KESILDI (TIMEOUT) VE kosum sonunda "

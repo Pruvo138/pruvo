@@ -90,10 +90,17 @@ MUTANTLAR = [
     # Eski hali serbest metin dalini mutasyona ugratiyordu; o dal artik OLU KOD (her kanonik
     # marka MARKA SORGUSU olarak taniniyor, Q ekseni bunu olcer) ve mutasyon YESIL kalirdi —
     # yani "beyan edilmis survivor" uretirdi ([[beyan-edilmis-survivor]]).
+    # 🔴 CAPA 16 Eyl 2026'da GIRIS NOKTASININ OKUDUGU DEGERE YENIDEN CAPALANDI: K133
+    # ile `uyelik` adi `uyelik_sorgu`ya ayrildiginda capa 0 eslesmeye dusmustu
+    # (`CAPA-YOK(0)`) ve eksen OLCULMUYORDU. Capayi tazelemek TEK BASINA yetmezdi
+    # (6 Eyl'de olculdu: bagli haliyle mutant HAYATTA KALIYOR, rc=0) — o yuzden ayni
+    # turda kapiya TOTOLOJI NOBETCISI eklendi (`TOT:` kolu, TOTOLOJI_ASGARI_AYRISAN):
+    # `srch = set(sayfa)` ARAMA ⊋ SAYFA sayisini 38'den 0'a dusurur, kol KIRMIZI yanar.
+    # Yani capa tazeleme + SINIF ONARIMI birlikte; tekil yama DEGIL.
     ("OLDURUCU M3 TOTOLOJI — marka sorgusu modelini SAYFA kumesine cevir",
      KAPI_ADI,
-     "            srch = {pid for pid in uyelik\n"
-     "                    if arama.marka_sorgusu_esler(kanon_marka, uyelik[pid], "
+     "            srch = {pid for pid in uyelik_sorgu\n"
+     "                    if arama.marka_sorgusu_esler(kanon_marka, uyelik_sorgu[pid], "
      "baslik_uyum[pid])}",
      "            srch = set(sayfa)", "KIRMIZI"),
     ("OLDURUCU M4 SAYFA kumesinden IKINCIL markali urunleri dusur",

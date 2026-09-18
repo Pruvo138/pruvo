@@ -201,6 +201,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 tools/cron-nabiz-kapisi.py
+      # 🔴 K339 + K339-EK (18 Eyl 2026): SERIT B HUKUM ORANI SAYACI. Politika (P1-P5,
+      # gercek YAML) + sayac fiksturleri (S1-S8) + mutasyon (8 OLDURUCU + 2 KONTROL)
+      # + CANLI kol: son 100 SERIT B kosumunda HUKUMSUZ_SERI ve kol basina hukum orani
+      # ADIYLA basilir; esik HEAD garantili kola (`schedule`, >= %80) baglidir, push
+      # kolu BILGI. Bu job `actions: read` + pyyaml tasidigi icin burada.
+      - name: "SERIT B hukum orani: politika + sayac fiksturleri (K339)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/serit-b-hukum-test.py
+      - name: "SERIT B hukum orani: mutasyon bataryasi (K339)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/serit-b-hukum-test.py --mutasyon
+      - name: "SERIT B hukum orani: CANLI sayac (HUKUMSUZ_SERI + HEAD kolu esigi)"
+        if: ${{ !cancelled() }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/serit-b-hukum-test.py --canli
   # ═════════════════════════════════════════════════════════════════════════════
   # D1 KADANS KOLU — uzlastirmayi GitHub CRON KUYRUGUNDAN kurtarir (4 Agu 2026)
   # ═════════════════════════════════════════════════════════════════════════════
@@ -697,9 +713,13 @@ jobs:
       # DUSMEZ) · V2 vaka 8 motor ARITESI tek kaynaktan turer + hedef-kol
       # atifli M-ARITE mutanti · V2 vaka 19+41 el kitabi URETICIYLE kapanir
       # (duz metin yamasi DEGIL) + 2 KONTROL (canli mtime · sandbox temizligi).
-      # K334 · K325 · K326 · K311 bu bataryada ONARILMADI ve SESSIZ YESIL
-      # SAYILMAZ: her biri icin ADIYLA `OLCULEMEDI` satiri basilir.
-      - name: W2 nobet onarim kabul kapisi (K316 V1+V2 · 4 vaka + 1 mutant + 2 kontrol)
+      # W2-2 (18 Eyl 2026): K316 vaka 6 + batarya tam yesil (2 kosum birebir)
+      # · K334 GERCEK ci-nobeti.sh -> nobet-tetik --karar zincirinde gunluk
+      # kolu FIILEN ateslenir (damga diske yazilir) · K326 ardilsiz kirmizi
+      # ekseni + K311 YUZ B (ardili yesil eskalasyon kapanir) · K325 sayac
+      # saturasyonu + tuketici · K311(b) sozluk tek kaynak. Hedef-kol atifli
+      # mutant + KONTROL'ler. `OLCULEMEDI=0` — dilim 1'in dort satiri KALKTI.
+      - name: W2 nobet onarim kabul kapisi (K316 · K334 · K326 · K325 · K311 — vaka+mutant+kontrol)
         if: ${{ !cancelled() }}
         run: python3 tools/nobet-onarim/nobet-onarim-kabul.py
 
@@ -2887,8 +2907,19 @@ jobs:
   #   model-uyelik   2788 s · marka-bolum 2406 s · marka-sayfa 1277 s · model-baslik 899 s
   # Is akisi `push` tetikli ve `concurrency: nobet-serit-b` + `cancel-in-progress: false`
   # -> saatte birkac katalog partisi inerken son 12 SERIT B kosumunun 8'i kuyrukta
-  # `cancelled` oldu. Zarar YAYIN DEGIL (bu joblarin hicbiri `deploy: needs`te degil),
-  # GERI BILDIRIM GECIKMESI: bir kapi kirildiginda ~2,5 saat sonra goruluyordu.
+  # `cancelled` oldu. Zarar YAYIN DEGIL (bu joblarin hicbiri `deploy: needs`te degil).
+  # 🔴 BU YORUMUN ILK HALI ZARARI YANLIS SINIFLADI (K339-EK, 28 Agu 2026): "GERI BILDIRIM
+  # GECIKMESI: bir kapi kirildiginda ~2,5 saat sonra goruluyordu" yaziyordu. Olculen hal
+  # gecikme DEGIL: iptal edilen SHA'nin hukmu HIC DOGMUYOR ve telafi edilmiyor. Dogru
+  # olcut **hukum ureten kosum orani** (iptal SAYISI degil): 28 Agu'da 25 kosumda 0
+  # success; 16 Eyl 2026'da n=200 penceresinde 76/198 = %38 (push kolu 57/177 = %32,
+  # HEAD garantili `schedule` kolu 18/20 = %90).
+  # 🔴 OLCEN KOL -> tools/serit-b-hukum-test.py (K339 kabul ② sayaci: HUKUMSUZ_SERI HER
+  # kosumda ADIYLA basilir, 0 ile n AYNI satirdan okunur; esik HEAD garantili kola bagli,
+  # push kolunun orani BILGI olarak basilir ve rc'yi belirlemez — push kuyrugunu bolmek
+  # G9 tarafindan YASAK). Bu atif ya da zarar sinifi cumlesi yorumdan dusurulurse o
+  # kapinin P5 iddiasi KIRMIZI yanar; bilgi YORUMDA kalirsa ayni ariza ucuncu kez
+  # yeniden kesfedilir ([[aracin-teshis-cumlesi-olcum-degil]]).
   #
   # 🔴 BU BIR TASIMA ISIDIR, OPTIMIZASYON DEGIL: mutant sayisi, mutant listesi, komut,
   # bayrak ve adim adi BIREBIR korundu. Bu evde olculdu — bir adimi baska job'a/seride
@@ -3036,6 +3067,12 @@ jobs:
           node-version: "20"
       - name: "Sayfa sayaci invaryanti mutasyon bataryasi (7 oldurucu + 2 kontrol)"
         run: python3 tools/marka-invaryant-sayac-mutasyon.py
+      # 🔴 K140 (18 Eyl 2026): marka invaryant KAPISININ mutasyon bataryasi CI'da HIC
+      # koşmuyordu — M3 capasi 0 eslesmeye dusmus (`CAPA-YOK`), M12/M18 survivor
+      # olarak 6-13 Eyl arasi GORULMEDEN durdu. Kapi hijyen-a2'de; bataryasi burada.
+      - name: "Marka invaryant kapisi mutasyon bataryasi (K140 — 18 oldurucu + 6 kontrol)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/marka-invaryant-mutasyon.py
 
   # ═════════════════════════════════════════════════════════════════════════════
   # CIKTI_KOK YONLENDIRME MUTASYON BATARYASI (K3, 27 Agu 2026) — SERIT B, AYRI JOB
