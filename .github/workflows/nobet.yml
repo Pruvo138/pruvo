@@ -697,9 +697,13 @@ jobs:
       # DUSMEZ) · V2 vaka 8 motor ARITESI tek kaynaktan turer + hedef-kol
       # atifli M-ARITE mutanti · V2 vaka 19+41 el kitabi URETICIYLE kapanir
       # (duz metin yamasi DEGIL) + 2 KONTROL (canli mtime · sandbox temizligi).
-      # K334 · K325 · K326 · K311 bu bataryada ONARILMADI ve SESSIZ YESIL
-      # SAYILMAZ: her biri icin ADIYLA `OLCULEMEDI` satiri basilir.
-      - name: W2 nobet onarim kabul kapisi (K316 V1+V2 · 4 vaka + 1 mutant + 2 kontrol)
+      # W2-2 (18 Eyl 2026): K316 vaka 6 + batarya tam yesil (2 kosum birebir)
+      # · K334 GERCEK ci-nobeti.sh -> nobet-tetik --karar zincirinde gunluk
+      # kolu FIILEN ateslenir (damga diske yazilir) · K326 ardilsiz kirmizi
+      # ekseni + K311 YUZ B (ardili yesil eskalasyon kapanir) · K325 sayac
+      # saturasyonu + tuketici · K311(b) sozluk tek kaynak. Hedef-kol atifli
+      # mutant + KONTROL'ler. `OLCULEMEDI=0` — dilim 1'in dort satiri KALKTI.
+      - name: W2 nobet onarim kabul kapisi (K316 · K334 · K326 · K325 · K311 — vaka+mutant+kontrol)
         if: ${{ !cancelled() }}
         run: python3 tools/nobet-onarim/nobet-onarim-kabul.py
 
