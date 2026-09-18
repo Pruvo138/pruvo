@@ -964,6 +964,43 @@ def _a8_kos(arac, gh_yolu, spec_dizin):
     return rc, satir, cikti
 
 
+# 🔴 A8 KUMU (18 Eyl 2026, `elegant-swanson-2a0319`). `kral-sabah.py` KUTU/KALEMLER/
+# DEVAM/REPO/MOTOR_RAPORU_DOSYA'yi SABIT Mac yoluyla okur. Mac'te bos-HOME aynasi
+# bile YESIL verdi (yollar HOME'dan degil mutlak) ama CI dal kosumu `35355261365`
+# A8'i KIRMIZI yakti: KALEMLER okunamayinca arac `rc=1` doner (fail-loud kolu) ve
+# A8a "temiz gun rc=0" sarti duser ([[ayna-kosumu-ci-git-baglam-env-mirasi-alir]]).
+# Onarim araca DOKUNMAZ (canli kurulu kopya korunur): A8 kopyasinda bu bes sabit
+# ayni bicimde kuma cevrilir; mutant AYNI kumlu kopyadan turer -> iki taraf arasindaki
+# TEK fark A8 capasidir (hedef-kol atfi korunur). Sabit bulunamazsa fail-closed.
+A8_KUM_SABITLERI = ("KUTU", "KALEMLER", "DEVAM", "REPO", "MOTOR_RAPORU_DOSYA")
+
+
+def _a8_kumla(kaynak, td):
+    """(kumlu_kaynak, None) ya da (None, sebep). REPO/DEVAM = bu checkout (salt okuma)."""
+    kum = os.path.join(td, "kum")
+    os.makedirs(kum, exist_ok=True)
+    repo = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    yollar = {
+        "KUTU": os.path.join(kum, "mimar-posta-kutusu.md"),
+        "KALEMLER": os.path.join(kum, "acik-kalemler.md"),
+        "DEVAM": os.path.join(repo, "DEVAM.md"),
+        "REPO": repo,
+        "MOTOR_RAPORU_DOSYA": os.path.join(kum, "gunluk-motor-raporu-YOK.py"),
+    }
+    with open(yollar["KUTU"], "w", encoding="utf-8") as f:
+        f.write("# A8 kum kutusu\n")
+    with open(yollar["KALEMLER"], "w", encoding="utf-8") as f:
+        f.write("# A8 kum defteri\n\n| ID | Tarih | Kimden | Is | Durum | Kanit |\n"
+                "|---|---|---|---|---|---|\n")
+    for ad in A8_KUM_SABITLERI:
+        desen = re.compile(r'^%s = Path\("[^"\n]*"\)\n' % ad, re.M)
+        adet = len(desen.findall(kaynak))
+        if adet != 1:
+            return None, "%s sabiti adedi=%d (1 bekleniyor)" % (ad, adet)
+        kaynak = desen.sub(lambda _m, a=ad: "%s = Path(%r)\n" % (a, yollar[a]), kaynak)
+    return kaynak, None
+
+
 def a8_ucuncu_kova():
     """A8 — HUKMU OLMAYAN KOSUM YESIL SAYILAMAZ (K356).
 
@@ -991,8 +1028,22 @@ def a8_ucuncu_kova():
             ("Nöbet şeridi (SERIT B)", "in_progress", None, "02:24:45"),
         ])
 
+        with open(ARAC, encoding="utf-8") as f:
+            kaynak, kum_sorun = _a8_kumla(f.read(), td)
+        if kum_sorun:
+            for ad in ("A8a KONTROL temiz gun: OK + ADET=0 + rc=0",
+                       "A8b SUREN KOSUM yesil sayilmaz -> OLCULEMEDI + rc=1 + ACIK KALEM",
+                       "A8c KIRMIZI=1 iken hukumsuz kosum ADIYLA GORUNUR",
+                       "A8d MUTANT capasi TEK"):
+                kayit(ad, None, "KUM KURULAMADI: %s" % kum_sorun)
+            return
+        taban = os.path.join(td, "kral-sabah-kum.py")
+        with open(taban, "w", encoding="utf-8") as f:
+            f.write(kaynak)
+        print("  A8_KUM arac=%s kopya=%s sabit=%d" % (ARAC, taban, len(A8_KUM_SABITLERI)))
+
         # --- A8a KONTROL: gercekten temiz gun -> OLCULMUS SIFIR, rc=0
-        rcA, satirA, _ = _a8_kos(ARAC, gh_saglikli, spec_dizin)
+        rcA, satirA, _ = _a8_kos(taban, gh_saglikli, spec_dizin)
         kayit("A8a KONTROL temiz gun: OK + ADET=0 + rc=0",
               rcA == 0 and _alan(satirA, "CI_HUKUM") == "OK"
               and _alan(satirA, "KIRMIZI") == "0",
@@ -1000,7 +1051,7 @@ def a8_ucuncu_kova():
                   rcA, _alan(satirA, "CI_HUKUM"), _alan(satirA, "KIRMIZI")))
 
         # --- A8b TABAN: kapanmis kirmizi YOK ama bir kosum SURUYOR
-        rcB, satirB, _ = _a8_kos(ARAC, gh_suren, spec_dizin)
+        rcB, satirB, _ = _a8_kos(taban, gh_suren, spec_dizin)
         spec_yolu = os.path.join(spec_dizin, os.path.basename(bugunun_spec_yolu()))
         govde = ""
         if os.path.isfile(spec_yolu):
@@ -1014,7 +1065,7 @@ def a8_ucuncu_kova():
                   rcB, _alan(satirB, "CI_HUKUM"), _alan(satirB, "KIRMIZI"), int(kalem_var)))
 
         # --- A8c KIRMIZI VARKEN hukumsuz YUTULMAZ (adet'e girmez, ama GORUNUR)
-        rcC, satirC, _ = _a8_kos(ARAC, gh_karma, spec_dizin)
+        rcC, satirC, _ = _a8_kos(taban, gh_karma, spec_dizin)
         govde_c = ""
         if os.path.isfile(spec_yolu):
             with open(spec_yolu, encoding="utf-8") as f:
@@ -1027,8 +1078,7 @@ def a8_ucuncu_kova():
                   rcC, _alan(satirC, "CI_HUKUM"), _alan(satirC, "KIRMIZI"), int(gorunur)))
 
         # --- A8d/A8e MUTANT: ucuncu kova SOKULUNCE A8b YESILE DONMELI
-        with open(ARAC, encoding="utf-8") as f:
-            kaynak = f.read()
+        #     (kaynak = KUMLU kopya; taban ile tek fark A8 capasi)
         adetler = [kaynak.count(capa) for capa, _y in A8_CAPALAR]
         if adetler != [1] * len(A8_CAPALAR):
             kayit("A8d MUTANT capasi TEK", False,
