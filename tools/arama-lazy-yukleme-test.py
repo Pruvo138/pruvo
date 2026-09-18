@@ -12,6 +12,12 @@ import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
+# Kardes kapanisi (veri_kok.py ...) ELLE LISTELENMEZ — import'lardan TURETILIR
+# (veri_kok.kum_kur); elle liste 18 Eyl'de veri_kok.py'yi kacirdi.
+_vk_spec = importlib.util.spec_from_file_location(
+    "veri_kok", os.path.join(os.path.dirname(os.path.abspath(__file__)), "veri_kok.py"))
+veri_kok = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(veri_kok)
 SONUCLAR = []
 
 
@@ -43,9 +49,7 @@ def a1():
     kok = tempfile.mkdtemp(prefix="arama-lazy-a1-")
     try:
         arama_yolu = arac_kopyasi(kok)
-        shutil.copy(os.path.join(TOOLS, "duzelt.py"), os.path.join(kok, "tools", "duzelt.py"))
-        shutil.copy(os.path.join(TOOLS, "gorsel_koken.py"),
-                    os.path.join(kok, "tools", "gorsel_koken.py"))
+        veri_kok.kum_kur(os.path.join(kok, "tools"), {"duzelt.py": None}, TOOLS)
         arama = modul_yukle(arama_yolu, "arama_lazy_a1")
         duzelt = modul_yukle(os.path.join(kok, "tools", "duzelt.py"), "duzelt_lazy_a1")
         kontrol("A1", arama is not None and duzelt is not None,
