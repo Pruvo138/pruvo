@@ -317,7 +317,10 @@ def _oz_sinama():
 
 
 def _git_oku(args):
-    return subprocess.run(["git", "-C", ROOT] + args, capture_output=True, text=True)
+    # K420 SINIFLAMA: --pre-commit'in index/HEAD okumasi COMMIT BAGLAMIDIR (kancayi kosan
+    # agac = kod koku), VERI koku DEGIL. ROOT (ana kopya) okunsaydi worktree'deki commit'in
+    # stage'i yerine ANA index yargilanirdi (mukerrer-kapsam-test A6-A8 olcer).
+    return subprocess.run(["git", "-C", _KOD_KOK] + args, capture_output=True, text=True)
 
 
 def _index_urunler():
