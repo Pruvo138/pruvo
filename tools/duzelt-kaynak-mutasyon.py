@@ -9,6 +9,7 @@ Spec:
   M4: raporlayiciya kayit govdesini bastir -> gizlilik taramasi bulgu vermeli.
   Uygulanamayan mutant UYGULANAMADI yazilir, 0 SAYILMAZ.
 """
+import importlib.util
 import os
 import re
 import shutil
@@ -19,7 +20,12 @@ import tempfile
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 DUZELT = os.path.join(TOOLS, "duzelt.py")
 KAYNAK_TEST = os.path.join(TOOLS, "duzelt-kaynak-test.py")
-YARDIMCILAR = ("gorsel_koken.py", "arama.py")
+# duzelt.py'nin kardes kapanisi (gorsel_koken/arama/veri_kok ...) ELLE LISTELENMEZ —
+# kopyalanan kaynagin import'larindan TURETILIR (veri_kok.kum_kur). Elle liste 18 Eyl'de
+# veri_kok.py'yi kacirip yayini durdurdu ([[elle-tutulan-bagimlilik-listesi-sessizce-bayatlar]]).
+_vk_spec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+veri_kok = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(veri_kok)
 
 FAILS = []
 
@@ -33,9 +39,8 @@ def check(mesaj, kosul, detay=""):
 
 def ayna_kur():
     d = tempfile.mkdtemp(prefix="duzelt-kaynak-mut-")
-    os.makedirs(os.path.join(d, "tools"))
-    for y in (DUZELT, KAYNAK_TEST) + tuple(os.path.join(TOOLS, y) for y in YARDIMCILAR):
-        shutil.copy2(y, os.path.join(d, "tools", os.path.basename(y)))
+    veri_kok.kum_kur(os.path.join(d, "tools"),
+                     {"duzelt.py": None, "duzelt-kaynak-test.py": None}, TOOLS)
     return d
 
 

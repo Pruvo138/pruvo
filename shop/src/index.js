@@ -476,13 +476,102 @@ async function sepetiFiyatla(env, kalemler) {
 
 // ---------------------------------------------------------------- /baslat
 
+/** POST /baslat IP tavani. true -> tavan asildi -> 429 (D1'e YAZILMAZ, iyzico ACILMAZ).
+ *  FAIL-OPEN: binding yok/patladi -> false + yuksek sesli log (odeme yolu kapanmaz). */
+async function baslatHizSiniriAsildi(request, env) {
+  const rl = env && env.BASLAT_RATE_LIMIT;
+  if (!rl || typeof rl.limit !== "function") {
+    console.error("BASLAT_RATE_LIMIT binding YOK/BOZUK -> /baslat TAVANSIZ (fail-open)");
+    return false;
+  }
+  const ip = (request.headers && typeof request.headers.get === "function"
+    ? request.headers.get("CF-Connecting-IP") : "") || "yok";
+  try {
+    const sonuc = await rl.limit({ key: ip });
+    return !(sonuc && sonuc.success);
+  } catch (e) {
+    console.error("baslat rate-limit hatasi (fail-open):", (e && e.stack) || e);
+    return false;
+  }
+}
+
+const TURNSTILE_UC = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+const TURNSTILE_HOSTLAR = ["pruvo3d.com", "www.pruvo3d.com"];
+const TURNSTILE_ZAMAN_ASIMI_MS = 5000;
+
+/** CLOUDFLARE TURNSTILE — /baslat'ta bot dogrulamasi (17 Eyl 2026).
+ *  OLCULEN OLAY: 17 Eyl 03:45-05:30 bir bot 188 CALINTI KART denedi (iyzico 0 basarili,
+ *  iyzico zorunlu 3DS'e gecti). Istek hizi kolu (baslatHizSiniriAsildi) bu akisi
+ *  durdurmuyordu: tek
+ *  siparis token'inda ~50 kart denenebiliyor, yani bot BIR /baslat ile 50 deneme satin
+ *  aliyor. Bu kol botun /baslat'a HIC siparis actiramamasini hedefler.
+ *
+ *  Donus: null -> GEC · Response(403) -> RED. Cagri yeri baslat() icinde, hiz kolundan
+ *  SONRA ve D1/iyzico'dan ONCE (havale yolu dahil TUM /baslat yollari kapsanir).
+ *
+ *  🔴 FAIL-OPEN/CLOSED HUKMU (bilerek asimetrik):
+ *   - secret YOK      -> GEC. Yayin sirasi: kod once cikar, secret en son konur; aksi halde
+ *                        deploy ile `secret put` arasindaki pencerede TUM odeme yolu duserdi.
+ *   - token yok/bos   -> RED (403). Kolun BUTUN degeri burada: bot widget'i cozmez.
+ *   - success!==true  -> RED. CF'in KESIN hukmu; "belki bottur" degil, "dogrulanamadi"dir.
+ *   - hostname yabanci-> RED. Baska bir sitede cozdurulen token bize TASINMASIN.
+ *   - ag hatasi/zaman asimi/bozuk JSON -> GEC. Burada KESIN HUKUM YOKTUR: CF dogrulayicisi
+ *     dusunce satisi durdurmak, botun bize odettigi bedeli ARTIRIR; kart denemesinin
+ *     karsiliginda zaten iyzico tarafinda zorunlu 3DS ve istek hizi kolu duruyor. */
+async function turnstileDogrula(request, env, token) {
+  const gizli = env && env.TURNSTILE_SECRET;
+  if (!gizli) {
+    console.error("TURNSTILE_SECRET YOK -> /baslat bot dogrulamasi KAPALI (fail-open)");
+    return null;
+  }
+  if (typeof token !== "string" || token.trim() === "") {
+    return json({ hata: "bot-dogrulama" }, 403, env);
+  }
+  const ip = (request.headers && typeof request.headers.get === "function"
+    ? request.headers.get("CF-Connecting-IP") : "") || "";
+  const form = new URLSearchParams();
+  form.set("secret", gizli);
+  form.set("response", token);
+  if (ip) { form.set("remoteip", ip); }
+  let sonuc;
+  try {
+    const iptal = new AbortController();
+    const saat = setTimeout(() => iptal.abort(), TURNSTILE_ZAMAN_ASIMI_MS);
+    try {
+      const cevap = await fetch(TURNSTILE_UC, { method: "POST", body: form, signal: iptal.signal });
+      sonuc = await cevap.json();
+    } finally { clearTimeout(saat); }
+  } catch (e) {
+    // Ag/zaman asimi/JSON: hukum YOK -> gec (yukaridaki gerekce), ama YUKSEK SESLE logla.
+    console.error("turnstile siteverify ulasilamadi (fail-open):", (e && e.stack) || e);
+    return null;
+  }
+  if (!sonuc || sonuc.success !== true) {
+    console.error("turnstile RED (success degil): " +
+      JSON.stringify((sonuc && sonuc["error-codes"]) || []));
+    return json({ hata: "bot-dogrulama" }, 403, env);
+  }
+  // hostname YOKSA da RED: CF basarili dogrulamada bu alani HER ZAMAN doner; bos gelmesi
+  // "bizim alan adimizda cozuldu" kanitinin YOKLUGU demektir, yesile katlanmaz.
+  if (!TURNSTILE_HOSTLAR.includes(String(sonuc.hostname || ""))) {
+    console.error("turnstile RED (yabanci hostname): " + String(sonuc.hostname || "yok"));
+    return json({ hata: "bot-dogrulama" }, 403, env);
+  }
+  return null;
+}
+
 async function baslat(request, env, url, ctx) {
+  if (await baslatHizSiniriAsildi(request, env)) { return cokIstek(env); }
   let govde;
   try {
     govde = await request.json();
   } catch (e) {
     return json({ hata: "gecersiz-json" }, 400, env);
   }
+  // BOT KAPISI: govde ayristirildi, D1/iyzico'ya HENUZ dokunulmadi. Token tek kullanimliktir;
+  // istemci her cevaptan sonra turnstile.reset() cagirir.
+  const botRed = await turnstileDogrula(request, env, govde && govde.turnstile_token);
+  if (botRed) { return botRed; }
   const c = istekCoz(govde);
   if (c.hata) return json(c, 400, env);
   const { musteri, kalemler, odeme, atif, musteri_notu } = c;

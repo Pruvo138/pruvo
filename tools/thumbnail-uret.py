@@ -46,7 +46,17 @@ from PIL import Image, ImageOps
 
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-REPO = os.path.abspath(os.path.join(BASE, ".."))
+# VERI KOKU DAIMA ANA KOPYA (bkz veri_kok.py) — worktree'den kosulunca KOD kokune
+# degil ana depoya bakilmali, yoksa .r2-credentials.json (yalniz ana kopyada,
+# gitignore'lu) bulunamaz ve thumbnail uretimi FileNotFoundError ile patlar
+# (izole worktree'den push-hook cagrisinda gorulen vaka — bkz r2-upload.py ayni desen).
+_vkspec = importlib.util.spec_from_file_location(
+    "veri_kok", os.path.join(BASE, "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec)
+_vkspec.loader.exec_module(_vk)
+_KOD_KOK, REPO, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 
 _spec = importlib.util.spec_from_file_location(
     "r2_upload", os.path.join(BASE, "r2-upload.py")

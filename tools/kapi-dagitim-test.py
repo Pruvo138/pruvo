@@ -28,13 +28,13 @@ import hashlib
 import importlib.util
 import os
 import shutil
-import subprocess
 import sys
 import tempfile
 
 ARAC = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ARAC)
 import kapi_dagitim as KD  # noqa: E402
+from git_ortami import sentetik_git  # noqa: E402
 
 GORELI = ".claude/mimar-icra-kapisi.py"
 AD = "FIKSTUR"
@@ -42,8 +42,11 @@ SONUC = []
 
 
 def git(kok, *args):
-    r = subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-C", kok] + list(args),
-                       capture_output=True)
+    # 🔴 Fikstur git'i YALNIZ kanonik yardimciyla (17 Eyl, KraL-Tamirci-17Eyl): ham
+    # `subprocess.run(["git", ...])` miras GIT_* baglamini tasir; kanca/CI icinden
+    # kosunca fikstur yerine GERCEK depoya yazabilir. SERIT B `Sentetik git fiksturu
+    # sizinti kapisi` bu dosyayi 16 Eyl'den beri OLCULEMEDI (KIRMIZI) yakiyordu.
+    r = sentetik_git(kok, *args, kimlik_ad="t", kimlik_eposta="t@t", capture_output=True)
     if r.returncode != 0:
         raise RuntimeError("git " + " ".join(args) + ": " + r.stderr.decode("utf-8", "replace"))
     return r

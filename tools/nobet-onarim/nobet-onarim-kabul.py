@@ -37,8 +37,74 @@ KOPYA_DIZINI = os.path.join(KOK, "cron")
 KOPYALAR = (
     "gozcu.py", "gozcu-mutasyon.py", "gozcu-test.py", "kilit.py",
     "nobet-tetik.py", "nobet-kapi.py", "nobet-kabul-test.py",
-    "nobet_merdiven.py", "cip_dogum_bekcisi.py", "onarim-el-kitabi.md",
+    "nobet_merdiven.py", "cip_dogum_bekcisi.py",
 )
+
+# 🔴 EL KITABI KOPYA DEGIL, FIKSTUR (17 Eyl 2026, KraL-Tamirci-17Eyl).
+# OLCULEN KILITLENME: `111ffdef` izlenen `cron/onarim-el-kitabi.md` kopyasini
+# depodan cikardi (ad `onarim*.md` = ic rapor sizinti nobetcisi, seritA3 ->
+# yayin SKIPPED). Batarya ise o kopyayi KOPYALAR'da sart kosuyordu -> 6/6 vaka
+# `KOPYA EKSIK` ile dustu (SERIT B 16-17 Eyl kosumlari). Iki kapi AYNI dosyayi
+# zit yonde istedi; kopyayi geri koymak sizinti kapisini, kopyasiz birakmak
+# bataryayi kirmizi yakar. SINIF COZUMU: el kitabi IZLENEN bir belge olarak
+# degil, sandbox icinde URETILEN bir fikstur olarak yasar (diskte yalniz
+# sandbox omru kadar; depoda `.md` YOK). `kat` sutunu motor adi TASIMAZ: hepsi
+# `SAHTE-KAT` yazilir, dogru deger `nobet-kapi.py --el-kitabi-uret` ile
+# `kat_sec`ten TURER. Boylece (a) V2 uretici vakasinin "once KIRMIZI" tabani
+# motor kararindan bagimsiz tutar, (b) emekli motor adi nobetcisi bu dosyada
+# ad bulmaz, (c) fikstur canli el kitabindan SESSIZCE ayrisamaz — ayrismanin
+# tek ekseni olan `kat` zaten uretilir.
+EL_KITABI_ADI = "onarim-el-kitabi.md"
+FIKSTUR_KAT = "SAHTE-KAT"
+_EL_KITABI_SATIRLARI = (
+    ("D1 senkron / sapma / drift",
+     "d1-sync, d1 senkron, d1 sapma, d1 drift, uzlastirici, katalog senkron",
+     "tools/d1-sync.py",
+     "python3 /Users/okan/dev/pruvo/tools/d1-sync.py --durum"),
+    ("Arama paritesi (site/Ege)",
+     "parite, arama paritesi, esanlam, ege arama",
+     "tools/parite-ege.js · tools/parite-test.js",
+     "node /Users/okan/dev/pruvo/tools/parite-ege.js"),
+    ("Katalog alan / tip sapmasi",
+     "katalog alan, alan tipi, tip sapmasi, sema gocu",
+     "tools/katalog-alan-kapisi.py",
+     "python3 /Users/okan/dev/pruvo/tools/katalog-alan-kapisi.py"),
+    ("Kisisel veri / gizlilik sizintisi",
+     "kisisel veri, gizlilik, sizinti, tedarikci adi",
+     "tools/kisisel-veri-test.py",
+     "python3 /Users/okan/dev/pruvo/tools/kisisel-veri-test.py"),
+    ("Shop / panel / odeme yuzeyi",
+     "shop, odeme, sepet, panel yuzeyi, konfigur",
+     "shop/test/kabul.js",
+     "node /Users/okan/dev/pruvo/shop/test/kabul.js --paritesiz"),
+    ("Yeni test CI'da kosmuyor",
+     "ci kapsam, ci'da kosmuyor, kancada yok, kabul testi cagrilmiyor, adim envanteri",
+     "tools/ci-kapsam-test.py",
+     "python3 /Users/okan/dev/pruvo/tools/ci-kapsam-test.py"),
+    ("CI adimi yanlis seritte / beyansiz kapi",
+     "serit, is akisi, beyansiz kapi, kapi kirmizi, workflow adimi",
+     "tools/is-akisi-kapisi.py",
+     "python3 /Users/okan/dev/pruvo/tools/is-akisi-kapisi.py"),
+    ("STL R2/Drive kopya sapmasi",
+     "stl kopya, stl r2, stl drive, uc kopya, sadece drive, uretim dosyasi eksik",
+     "tools/stl-uc-kopya-nobet.py",
+     "python3 /Users/okan/dev/pruvo/tools/stl-uc-kopya-nobet.py"),
+    ("Kardes depo testi",
+     "kardes depo, kardes depo testi, kardes depodaki test, kardes repo testi",
+     "pruvo-hasat/test/hasat_denetim_kabul.py",
+     "python3 /Users/okan/dev/pruvo-hasat/test/hasat_denetim_kabul.py"),
+)
+
+
+def el_kitabi_fiksturu():
+    """Sandbox el kitabi metni (tablo bicimi `nobet-kapi.py::el_kitabi_oku`)."""
+    satirlar = ["# el kitabi fiksturu (nobet-onarim-kabul sandbox)", "",
+                "| sinif | jetonlar | arac | kabul komutu | kat |",
+                "|---|---|---|---|---|"]
+    for sinif, jetonlar, arac, komut in _EL_KITABI_SATIRLARI:
+        satirlar.append("| %s | %s | %s | `%s` | %s |"
+                        % (sinif, jetonlar, arac, komut, FIKSTUR_KAT))
+    return "\n".join(satirlar) + "\n"
 
 _SANDBOXLAR = []
 
@@ -52,6 +118,8 @@ def _sandbox_kur():
         if not os.path.exists(kaynak):
             raise AssertionError("KOPYA EKSIK: %s (sandbox kurulamaz)" % ad)
         shutil.copy2(kaynak, os.path.join(kok, ad))
+    with open(os.path.join(kok, EL_KITABI_ADI), "w", encoding="utf-8") as dosya:
+        dosya.write(el_kitabi_fiksturu())
     return kok
 
 

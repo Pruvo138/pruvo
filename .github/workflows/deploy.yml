@@ -537,6 +537,23 @@ jobs:
       - name: Konfigur fail-closed kabul testi (shop sessiz eksik-tahsilat kapisi)
         run: node shop/test/konfigur-fail-closed.mjs
 
+      # BASLAT IP TAVANI (17 Eyl 2026 olayi: bot 96 sahte kart odemesi baslatti, uc tavansizdi).
+      # shop/src/index.js GERCEK kodu sahte D1+iyzico ile: tavan asilinca 429 + D1/iyzico 0,
+      # binding yok/patlarsa FAIL-OPEN (odeme yolu kapanmaz), wrangler.toml blogu + ayri namespace,
+      # tavan cagrisi silinince KIRMIZI (mutant). OFFLINE, wrangler YOK, ag YOK, <1 s.
+      - name: Baslat IP tavani kabul testi (shop siparis-baslatma kotu kullanim kapisi)
+        run: node shop/test/baslat-hiz-siniri.mjs
+
+      # TURNSTILE BOT KAPISI (17 Eyl 2026: bot 188 CALINTI KART denedi; TEK siparis token'inda
+      # ~50 kart denenebildigi icin istek hizi kolu tek basina yetmedi). shop/src/index.js GERCEK
+      # kodu sahte D1 + sahte iyzico + sahte siteverify ile: jetonsuz/gecersiz/yabanci-hostname
+      # istek 403 + D1 INSERT 0 + iyzico 0 (havale yolu DAHIL), secret yokken ve siteverify
+      # duserken FAIL-OPEN (yayin sirasi korunur), remoteip=CF-Connecting-IP iletilir,
+      # index.html'de api.js ILK YUKE GIRMEZ (harici script host kumesi genislemedi) ve
+      # dogrulama cagrisi silinince KIRMIZI (mutant). OFFLINE, ag YOK, <1 s.
+      - name: Turnstile bot kapisi kabul testi (shop /baslat + on yuz tembel yukleme)
+        run: node shop/test/turnstile-kapisi.mjs
+
       # YONET (ADMIN GIRIS) KAPISI — deterministik alt kume. AG YOK, WRANGLER YOK,
       # D1 YOK: shop/src/yonet.js (deploy edilen dosya, kopya DEGIL) dogrudan yuklenir, ~0,3 s.
       # 🔴 IDDIA SAYISI BURAYA YAZILMAZ (ayni depoda olculdu; bkz. bu dosyada `mesaj-nobeti`
@@ -1099,6 +1116,17 @@ jobs:
       - name: Urun silme kapisi kabul + mutant bataryasi
         run: python3 tools/urun-silme-kapisi-test.py
 
+      # VERI KOKU SIRASI + KUM ANLAMI (18 Eyl, run 35294096925 yayini durdurdu): 7 urun
+      # araci veri kokunu tools/veri_kok.py'den cozer (PRUVO_VERI_KOK -> git ortak-dizin ->
+      # __file__). Araci gecici koke kopyalayan testler kapanisi import'lardan TURETIR
+      # (veri_kok.kum_kur) ve override'i kendi kumuna kurar. Kabul: (i) kumda 1 sahte urun
+      # -> duzelt/denetim 1 gorur · (ii) linked worktree'den bayraksiz denetim ANA koke gore
+      # sayar (eski ROOT mutanti 0) · (iii) override'siz de canliya dusmez; canli sha sabit.
+      - name: Veri koku sirasi + kum anlami kabul
+        run: python3 tools/veri-kok-test.py
+      - name: Veri koku mutant bataryasi
+        run: python3 tools/veri-kok-test.py --mutasyon
+
       # MUKERRER PRECOMMIT KAPSAMI: mukerrer-kontrol.py --pre-commit'in calisma agacini
       # DEGIL commit icerigini (index/HEAD) yargiladigini ve okunamazsa fail-closed eski
       # davranisa dustugunu kanitlar (5 iddia). Bloklayici: kapsam calisma agacina kayarsa
@@ -1112,6 +1140,13 @@ jobs:
       # ISTEMEZ, yalniz tempfile fiksturu. Mutant (kol sokulur) ayni kosumda KIRMIZI olmali.
       - name: Sabah kurucusu tam-kopya fail-closed bataryasi (K357)
         run: python3 tools/sabah-kur-tam-kopya-test.py
+
+      # SABAH SPEC KIRMIZI SEVIYESI (18 Eyl Tamirci): kral-sabah.py her kirmiziyi is
+      # akisi+dal basina EN YENI hukumlu ardilindan okur (ardili success -> KAPANDI,
+      # yoksa CANLI; cancelled hukum DEGIL). Spec ADET=8 basmisti, 3'u zaten kapaliydi.
+      # Bloklayici: saf fonksiyon + fake gh, ag ISTEMEZ; 3 mutant ayni kosumda KIRMIZI.
+      - name: Sabah spec kirmizi seviyesi bataryasi (ardil kovasi)
+        run: python3 tools/sabah-ardil-kova-test.py
 
       # RIZA TIK-KIMLIGI (GIZLILIK) — 30 Tem'e kadar CI'da HIC kosmuyordu. Muafiyet gerekcesi
       # "CI build job'u Python-only (setup-node yok)" DIYORDU; olculdu ki YANLIS: yukaridaki

@@ -31,6 +31,7 @@ Cikis 0 = her mutant beyanina UYDU + kontroller YESIL + her eksenin tek-kirmizi
 mutanti VAR + canli kaynaklar sha256 olarak DEGISMEDI.
 """
 import hashlib
+import importlib.util
 import os
 import re
 import shutil
@@ -44,6 +45,9 @@ ARAMA = os.path.join(TOOLS, "arama.py")
 KOKEN = os.path.join(TOOLS, "gorsel_koken.py")
 TEST = os.path.join(TOOLS, "duzelt-uyum-test.py")
 AYNA_DOSYALAR = (DUZELT, ARAMA, KOKEN, TEST)
+_vk_spec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+veri_kok = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(veri_kok)
 
 EKSENLER = ("D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8")
 
@@ -257,6 +261,9 @@ def ayna_kur():
     for yol in AYNA_DOSYALAR:
         shutil.copy2(yol, os.path.join(d, "tools", os.path.basename(yol)),
                      follow_symlinks=True)
+    # Kardes kapanisi (veri_kok.py ...) import'lardan TURETILIR — elle liste bayatlar.
+    veri_kok.kum_kur(os.path.join(d, "tools"),
+                     {os.path.basename(y): None for y in AYNA_DOSYALAR}, TOOLS)
     return d
 
 

@@ -12,6 +12,7 @@ kasitli bir delik acilir ve ilgili iddianin KIRMIZI yanmasi SART kosulur. Kanit
 anlatilmaz, KOSTURULUR ([[mutasyon-kaniti-yeniden-uretilebilir]]).
 """
 
+import importlib.util
 import json
 import os
 import shutil
@@ -22,6 +23,10 @@ import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 KAPI = os.path.join(TOOLS, "mukerrer-kontrol.py")
+# Kapinin kardes kapanisi (veri_kok.py ...) ELLE LISTELENMEZ — import'lardan TURETILIR.
+_vk_spec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+veri_kok = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(veri_kok)
 TEMIZ = [
     {"id": "urun-a", "baslik": "Baslik A"},
     {"id": "urun-b", "baslik": "Baslik B"},
@@ -49,13 +54,14 @@ def _kapi_yaz(hedef):
             raise AssertionError(
                 "MUTASYON UYGULANAMADI — desen kaynakta YOK: %r" % bul)
         kaynak = kaynak.replace(bul, koy, 1)
-    with open(hedef, "w", encoding="utf-8") as dosya:
-        dosya.write(kaynak)
+    veri_kok.kum_kur(os.path.dirname(hedef), {os.path.basename(hedef): kaynak}, TOOLS)
     shutil.copymode(KAPI, hedef)
 
 
-def _kos(kok, *args, env_ek=None):
-    ortam = dict(os.environ)
+def _kos(kok, *args, env_ek=None, veri=None):
+    # VERI KOKU acikca kurulur (vars. kok; worktree vakalarinda ANA agac = uretim
+    # cozumu) — git/__file__ sansina birakilmaz.
+    ortam = veri_kok.kum_ortami(veri or kok)
     if env_ek:
         ortam.update(env_ek)
     return subprocess.run(
@@ -95,7 +101,7 @@ def _depo(ilk=TEMIZ, commit=True, git=True):
     _git(kok, "config", "user.name", "Kapsam Testi")
     _git(kok, "config", "user.email", "kapsam@example.invalid")
     if commit:
-        _git(kok, "add", "urunler.json", "tools/mukerrer-kontrol.py")
+        _git(kok, "add", "urunler.json", "tools")
         _git(kok, "commit", "-q", "--no-verify", "-m", "taban")
     return gecici, kok
 
@@ -204,18 +210,18 @@ def _paylasilan_kaynak_deposu(istisna=None):
 
 
 def _a6():
-    gecici, _kok, wt = _paylasilan_kaynak_deposu([{"kaynak": KAYNAK_URL}])
+    gecici, ana, wt = _paylasilan_kaynak_deposu([{"kaynak": KAYNAK_URL}])
     try:
-        sonuc = _kos(wt, "--pre-commit")
+        sonuc = _kos(wt, "--pre-commit", veri=ana)
         return sonuc.returncode == 0, sonuc
     finally:
         gecici.cleanup()
 
 
 def _a7():
-    gecici, _kok, wt = _paylasilan_kaynak_deposu(None)
+    gecici, ana, wt = _paylasilan_kaynak_deposu(None)
     try:
-        sonuc = _kos(wt, "--pre-commit")
+        sonuc = _kos(wt, "--pre-commit", veri=ana)
         return (sonuc.returncode != 0
                 and "MUKERRER KAYNAK" in sonuc.stdout), sonuc
     finally:
@@ -223,10 +229,10 @@ def _a7():
 
 
 def _a8():
-    gecici, _kok, wt = _paylasilan_kaynak_deposu(
+    gecici, ana, wt = _paylasilan_kaynak_deposu(
         [{"kaynak": "https://example.invalid/BASKA-kaynak"}])
     try:
-        sonuc = _kos(wt, "--pre-commit")
+        sonuc = _kos(wt, "--pre-commit", veri=ana)
         return (sonuc.returncode != 0
                 and "MUKERRER KAYNAK" in sonuc.stdout), sonuc
     finally:

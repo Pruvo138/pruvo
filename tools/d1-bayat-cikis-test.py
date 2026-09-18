@@ -28,6 +28,7 @@ DOKUNMAZ. Stdlib + sqlite (offline fikstur); ~2 s.
 import importlib.util
 import os
 import re
+import shutil
 import sys
 import tempfile
 
@@ -38,6 +39,9 @@ sys.path.insert(0, TOOLS)
 sys.dont_write_bytecode = True       # hedef repoya __pycache__ YAZMA
 
 # d1-sync modulunu adiyla degil dosyadan yukle (import sistemi `.` icermeyen ad ister).
+_vk_spec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(_vk)
 _spec = importlib.util.spec_from_file_location("d1_sync_under_test", D1_SYNC)
 _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
@@ -156,15 +160,27 @@ def main():
             _mutant = (_kaynak_mut[:_return_idx_mut]
                        + '        sys.exit("MUTANT: eski sinif-bozuk hal")  # M1\n'
                        + _kaynak_mut[_return_idx_mut + len('        return\n'):])
+            # Mutant gecici KUM KOKUNDE yasar: <kum>/tools/d1-sync.py + import'lardan
+            # TURETILEN kardes kapanisi (veri_kok.py dahil; elle liste YOK) ve veri koku
+            # PRUVO_VERI_KOK=<kum> (git/__file__ sansina birakilmaz). 18 Eyl: tek dosya
+            # /tmp/tmpXXX.py yaninda veri_kok.py yoktu -> FileNotFoundError, yayin DURDU.
+            _kum = tempfile.mkdtemp(prefix="d1-bayat-cikis-mutant-")
+            _eski_ov = os.environ.get(_vk.ENV_AD)
             try:
-                with tempfile.NamedTemporaryFile(
-                        "w", suffix=".py", delete=False, encoding="utf-8") as _mf:
-                    _mf.write(_mutant)
-                    _mutant_yol = _mf.name
+                _vk.kum_kur(os.path.join(_kum, "tools"), {"d1-sync.py": _mutant}, TOOLS)
+                _mutant_yol = os.path.join(_kum, "tools", "d1-sync.py")
+                os.environ[_vk.ENV_AD] = _kum
                 _mspec = importlib.util.spec_from_file_location(
                     "d1_sync_mutant", _mutant_yol)
                 _mmod = importlib.util.module_from_spec(_mspec)
                 _mspec.loader.exec_module(_mmod)
+                if _eski_ov is None:
+                    os.environ.pop(_vk.ENV_AD, None)
+                else:
+                    os.environ[_vk.ENV_AD] = _eski_ov
+                dogrula("M0 KUM: mutantin veri koku gecici kum (canli katalog DEGIL)",
+                        os.path.realpath(_mmod.KOK) == os.path.realpath(_kum),
+                        (_mmod.KOK, _kum))
                 # MUTANT altinda ayni V1 fiksturu: eski kod sys.exit(1) ile cikar.
                 mconn = _mmod._kt_baglan()
                 _mmod._kt_kos(mconn, eski_agac, [])
@@ -180,11 +196,11 @@ def main():
                         msayac["yazma"] == 0
                         and _mmod._kt_deger(mconn, "ny00", "hash") is None)
             finally:
-                if _mutant_yol:
-                    try:
-                        os.unlink(_mutant_yol)
-                    except OSError:
-                        pass
+                if _eski_ov is None:
+                    os.environ.pop(_vk.ENV_AD, None)
+                else:
+                    os.environ[_vk.ENV_AD] = _eski_ov
+                shutil.rmtree(_kum, ignore_errors=True)
 
     print()
     print("=== OZET: %d gecti, %d kaldi ===" % (gecen, kalan))

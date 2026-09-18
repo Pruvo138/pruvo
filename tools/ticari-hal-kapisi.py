@@ -96,8 +96,13 @@ ONCE_REF = "026baebc^"                       # yalnizca O0b capraz dogrulamasini
 ONCE_FIKSTUR = os.path.join(TOOLS, "fikstur", "duzelt-once-gorselsiz.py")
 ONCE_FIKSTUR_SHA256 = "17a8095d51af5b5b44539144aa1804b153d8fbf647d8fe00ba2f19072f939b01"
 
-# duzelt.py bunlari KOSULSUZ import eder -> sahte repoya da kopyalanmalilar.
-YARDIMCILAR = ["gorsel_koken.py", "arama.py"]
+# duzelt.py'nin kardes kapanisi (gorsel_koken/arama/veri_kok ...) ELLE LISTELENMEZ —
+# sahte repoya yazilan duzelt kaynaginin import'larindan TURETILIR (veri_kok.kum_kur).
+# Elle liste 18 Eyl'de veri_kok.py'yi kacirdi: 28 bulgu, yayin DURDU.
+import importlib.util  # noqa: E402
+_vk_spec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+veri_kok = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(veri_kok)
 
 # --mutasyon kipinde sahte repoya yazilacak MUTANT duzelt.py kaynagi (None = gercegi).
 # TOOLS/ROOT sabitleri ASLA degistirilmez: P1 iddiasi (parti-kontrol) ve "ONCE" kolu
@@ -174,14 +179,10 @@ def sahte_repo(duzelt_kaynak=None, katalog=None):
     duzelt.py yollarini kendi __file__'indan turettigi icin kopya sahte katalogda calisir.
     Gercek repoya HICBIR SEY yazilmaz (mutant da yalniz bu kopyaya girer)."""
     d = tempfile.mkdtemp(prefix="ticari-hal-kapisi-")
-    os.makedirs(os.path.join(d, "tools"))
-    for ad in YARDIMCILAR:
-        shutil.copy(os.path.join(TOOLS, ad), os.path.join(d, "tools", ad))
     src = duzelt_kaynak
     if src is None:
         src = MUTANT_SRC if MUTANT_SRC is not None else _duzelt_kaynagi()
-    with open(os.path.join(d, "tools", "duzelt.py"), "w", encoding="utf-8") as f:
-        f.write(src)
+    veri_kok.kum_kur(os.path.join(d, "tools"), {"duzelt.py": src}, TOOLS)
     with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
         json.dump(KATALOG if katalog is None else katalog, f,
                   ensure_ascii=False, indent=2)
@@ -190,8 +191,10 @@ def sahte_repo(duzelt_kaynak=None, katalog=None):
 
 def cagir(repo, *argv):
     """duzelt.py'yi SUREC olarak kostur -> gercek cikis kodu."""
+    # VERI KOKU = sahte repo (PRUVO_VERI_KOK) — git/__file__ sansina birakilmaz.
     r = subprocess.run([sys.executable, os.path.join(repo, "tools", "duzelt.py")]
-                       + list(argv), capture_output=True, text=True, timeout=120)
+                       + list(argv), capture_output=True, text=True, timeout=120,
+                       env=veri_kok.kum_ortami(repo))
     return r.returncode, (r.stdout or "") + (r.stderr or "")
 
 

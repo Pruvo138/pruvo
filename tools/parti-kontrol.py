@@ -48,7 +48,17 @@ import re
 import subprocess
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# VERI KOKU DAIMA ANA KOPYA (bkz veri_kok.py) — worktree'den kosulunca KOD kokune
+# degil ana depoya bakilmali, yoksa "parti" HEP bos gorunur (worktree'nin kendi
+# eski urunler.json kopyasi kendine kiyaslanir) ve kabul testi sessizce hicbir
+# seyi denetlememis olur.
+_vkspec = importlib.util.spec_from_file_location(
+    "veri_kok", os.path.join(os.path.dirname(os.path.abspath(__file__)), "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec)
+_vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAKLAR = os.path.join(ROOT, ".urun-kaynaklari.json")
 
@@ -58,7 +68,7 @@ def _gecerli_kategoriler():
     Liste burada TUTULMAZ (ikinci kopya = drift kaynagi); tools/kategori-kapisi.py
     iki kaynagi karsilastirip birlesimi dondurur (nav + GIZLI "Jeneratör").
     """
-    yol = os.path.join(ROOT, "tools", "kategori-kapisi.py")
+    yol = os.path.join(_KOD_KOK, "tools", "kategori-kapisi.py")    # KOD (K420)
     spec = importlib.util.spec_from_file_location("kategori_kapisi", yol)
     if spec is None or spec.loader is None:
         sys.exit("HATA: tools/kategori-kapisi.py yuklenemedi: " + yol)
@@ -82,7 +92,7 @@ def _arama_modulu():
     kullanir. Yuklenemezse FAIL-CLOSED cikilir — sinif belirlenemeden gorsel muafiyeti
     verilemez (sessizce "muaf degil" demek de yanlis olurdu: kapi sessizce ayrisirdi).
     """
-    yol = os.path.join(ROOT, "tools", "arama.py")
+    yol = os.path.join(_KOD_KOK, "tools", "arama.py")    # KOD (K420)
     spec = importlib.util.spec_from_file_location("arama_parti_kontrol", yol)
     if spec is None or spec.loader is None:
         sys.exit("HATA: tools/arama.py yuklenemedi: " + yol)

@@ -713,6 +713,22 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kapi-dagitim-test.py
 
+      # 🔴🔴 K340 · K336 · K332 (16 Eyl 2026) — ICRA KAPISI MENZILI.
+      # Olculdu (canli kapiya dogrudan cagri): `env -C <dizin> python3 x.py`,
+      # `cd <dizin> && python3 x.py` ve `env --chdir=<dizin> ...` kapinin yol
+      # taramasini HIC tetiklemiyordu — kapi komutun ETKISINI degil DIZGESINI
+      # olcuyordu; ayni delik `env -C <dizin> curl ...` ile curl yasagini da
+      # turluyordu. Batarya sentetik EV fiksturunde (tempfile) kosar: 8 pozitif
+      # kaydirma vakasi + 6 KONTROL (mesru repo-ici cagri alarma donmez) +
+      # betik-ici cagri RAPOR kolu + K336 dagitim ailesi + K332 ortak altyapi
+      # duzlemi, ustune 8 mutant (7 hedef-kol atifli + 1 davranis-disi KONTROL).
+      # 🔴 Kanonik ev (/Users/okan/dev/pruvo) ve ~/.claude/cron/ duzlemi CI'da
+      # YOKTUR: o vakalar UYDURULMAZ, `CI-DISI` adiyla basilir ve `CIDISI=` ile
+      # ayri sayilir (sessiz yesil YOK). Saf Python, OFFLINE.
+      - name: K340 icra kapisi menzil kabul testi (etkin cwd + betik ici + dagitim)
+        if: ${{ !cancelled() }}
+        run: python3 tools/k340-menzil-kabul-test.py
+
       # 🔴 K321 (16 Eyl 2026) — ISCI KARANTINA KARARI, ARDISIK EKSEN.
       # 27 Agu'da `motor=claude` 13 ardisik kosumda rc=1 dondu ve karar kolu her
       # seferinde `yazildi=hayir sebep=fatal-satir-yok` bastigi icin karantina HIC
@@ -1183,6 +1199,15 @@ jobs:
       - name: "Urun denetim kapisi — kendini test (pozitif + negatif + OLCULEMEDI + mutasyon)"
         if: ${{ !cancelled() }}
         run: python3 tools/denetim-kapisi.py --kendini-test
+      # ATIF KOLU (K418, 18 Eyl): gizli tur atif-zorunlu (CC BY/GPL/MIT/BSD... COK VARYANTLI
+      # dizge) => public `lisans` dolu; NON-GROWTH taban. Canli olcum gizli
+      # .urun-kaynaklari.json ister (CI'da YOK -> kol OLCULEMEDI basar, rc'yi etkilemez);
+      # burada SINIFLAYICI + taban mantigi SENTETIK veriyle olculur: 41 iddia + 4 oldurucu
+      # mutant (her sey muaf / eski GPL deseni / taban+1 serbest / SINIFLANAMADI muaf) +
+      # K0 kontrol + sha256 once==sonra. Agsiz, <1 s, urunler.json'a DOKUNMAZ.
+      - name: "Urun denetim kapisi — ATIF KOLU kabul + mutant (K418: atif-zorunlu => public lisans)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/atif-kolu-test.py
       # SERIT B — bu adim 68 adimindan AYRILDI (kapi SILINMEDI, ikiye bolundu):
       # bayraksiz (gercek olcum) kol SERIT A'da bloklayici kaldi, oz-nobetci kolu
       # buraya tasindi. Gerekce: tools/is-akisi-kapisi.py :: SERIT_B tablosu.
@@ -1237,6 +1262,16 @@ jobs:
       - name: Onizleme onbellek surum kapisi (bayat mesh servis edilmesin)
         if: ${{ !cancelled() }}
         run: node onizleme/test/onbellek-surum.mjs
+
+      # ONIZLEME DERLEME TAVANI (18 Eyl 2026 public uc taramasi): /olustur herkese acik ve her
+      # onbellek iskasi TEK paylasilan derleyici konteynerine is yukler; eski izolat-ici Map
+      # fiilen fren degildi. GERCEK onizleme/src/index.js sahte R2 + sahte derleyici ile:
+      # limiter reddedince 429 + derleyici/R2 0, onbellek isabeti muaf, binding yok/patlarsa
+      # izolat sayacina duser (fail-open DEGIL), wrangler.toml blogu + benzersiz namespace,
+      # tavan cagrisi silinince KIRMIZI (mutant). OFFLINE, ag YOK, wrangler YOK, <1 s.
+      - name: Onizleme derleme tavani kabul testi (public /olustur kotu kullanim kapisi)
+        if: ${{ !cancelled() }}
+        run: node onizleme/test/derleme-hiz-siniri.mjs
 
       # ONIZLEME GORUNURLUK KAPISI (Okan canli sikayeti, 29 Tem — olcuye-ozel-cerceve):
       # (1) "renk secimi onizlemeyi degistirmiyor": sayfa scripti rengi YALNIZ aile
@@ -1931,6 +1966,38 @@ jobs:
       - name: "Defter kota kapisi kabul testi (6 fikstur + 6 mutant, SERIT B)"
         if: ${{ !cancelled() }}
         run: python3 tools/defter-kota-kapisi.py --kendini-test
+
+      # K351-31AGU (16 Eyl 2026) — ROTASYONUN BASLANGIC BACAGI. Ustteki adim kota
+      # KAPISINI olcer; bu adim rotasyon ARACININ tavan ALTINDA calisip
+      # calismadigini olcer. OLCULEN ARIZA (29 + 31 Agu, uc bagimsiz kosum):
+      # baslangic kapisi `if not _tavan_asildi_mi(...): return 0` CEZA esigini
+      # soruyordu, onarim esigi (K353 su seviyesi) YALNIZ durma kolundaydi —
+      # yani arac ancak tavan ASILDIKTAN sonra is yapabiliyordu, ama o an kota
+      # kapisi evin TUM commit'ini zaten kilitlemis oluyordu. `--onlem` bayragi
+      # baslangic bacagini DURMA kolunun esigine baglar; ikinci bir oran/sabit
+      # ACILMAZ (tek kaynak `defter-kota-taban.py::su_seviyesi`).
+      # NEDEN SERIT B: defter hijyeni, yayinlanan icerik DEGIL. Tamamen offline —
+      # arac IZOLE kopyalanir, fiksturler `tempfile.mkdtemp` altinda, GERCEK
+      # DEVAM.md/DEVAM-ARSIV.md'ye DOKUNULMAZ; mutantlar yalniz gecici kopyada
+      # yasar ([[mutant-canli-govdede-yasamaz]]). ~20 s.
+      - name: "K351-31AGU rotasyon onlem bacagi kabul testi (18 vaka + 4 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/defter-onlem-bacagi-test.py
+
+      # K309 (16 Eyl 2026) — MENZIL KAPISI. Defterde SATIRI OLMAYAN kalem id'si
+      # sayisini olcer: `acik-kalemler.md` nobetin olcum EVRENIDIR, orada satiri
+      # olmayan kalem ne kapanabilir ne olculebilir; bugun kayitlarda yasayan
+      # id'lerin cogunun defterde satiri YOK (16 Eyl olcumu: MENZIL_DISI=238).
+      # 🔴 BU ADIM `--kendini-test`TIR, CANLI OLCUM DEGIL: canli olcum
+      # `DEVAM-ARSIV.md`yi okur, o dosya GIT DISIDIR ve CI'da YOKTUR — kapi orada
+      # kosturulsaydi `OLCULEMEDI` + rc=4 ile SERIT B'yi kirmiziya yakardi. Canli
+      # kosumu mimar yapar: `python3 tools/kalem-menzil-kapisi.py`
+      # (taban `tools/k309-menzil-taban.json`, ARTISTA rc=3).
+      # Batarya offline: fiksturler `tempfile.mkdtemp` altinda, gercek defter/
+      # kayit duzlemleri OKUNMAZ. 41 vaka + 5 hedef-kol atifli mutant + KONTROL.
+      - name: "K309 kalem menzil kapisi kabul testi (41 vaka + 5 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kalem-menzil-kapisi.py --kendini-test
 
       # HAFIZA INDEKSI EKSENI (K366, KraL-HafizaTavani-05Eyl) — AYRI ADIM, AYRI TALLY.
       # Kapsam iki yuzey: (A) `tools/hafiza-indeks-arsivle.py` (MEMORY.md tavan sahibi +
