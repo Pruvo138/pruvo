@@ -430,6 +430,9 @@ def k4_claude_isci(mutant=None):
 # 🔴 SPEC KALEM 3'UN AYRIMI BURADA SAYIYA DONUSUR. Iki ayak AYNI kosumda:
 #   ① `--azami-sn` MUTLAK SURE kolu KESMEYE DEVAM ETMELI (gercek kilitlenme)
 #   ② TUR SAYISINA bagli kesme OLMAMALI (uretken isi ortasindan kesmek)
+#   ③ 18 EYL 2026 (Okan hukmu "kessin ama genis tavanla"): ② RAPOR tavani
+#      (45) icin AYNEN gecerlidir; AYRI ve GENIS bir KESICI tavan (150,
+#      `args.kesici_tavan`) VAR olmalidir — kacak kosumun tek sayi freni.
 # Tek ayak olculseydi "hepsini kaldirdim" da "hicbirini kaldirmadim" da ayni
 # yesili verirdi.
 def k5_tur_tavani(mutant=None):
@@ -469,6 +472,18 @@ def k5_tur_tavani(mutant=None):
             "                        _pid_kes(args.pid, kok_pid_korunsun=True)\n"
             "                        return 0\n"
             "                    if False:", mutant)
+    isci = _metin(ISCI_SH)
+    if isci is None:
+        if ci_kapsam_disi(ISCI_SH):
+            return KAPSAM_DISI, ["    | KAPSAM_DISI: CI kosucusu, ev-disi dizin YOK (%s)"
+                                 % os.path.dirname(ISCI_SH)]
+        return None, ["    | OLCULEMEDI: %s okunamadi" % ISCI_SH]
+    if mutant == "MUT-KESICI-TAVAN-SILINDI":
+        # ③ 18 Eyl kesici guvenlik tavani SUSTURULUR.
+        bekci = _mutasyon(
+            bekci,
+            "if args.kesici_tavan and son_tur >= args.kesici_tavan:",
+            "if False:", mutant)
 
     # ① ASILMA (ZAMAN) kolu — KALMALI.
     asilma_esigi = bool(re.search(r"^TUR_ZAMAN_ASIMI_SN\s*=\s*\d+", nobet,
@@ -486,6 +501,28 @@ def k5_tur_tavani(mutant=None):
             tur_kesme.append("%s:%d %s"
                              % (os.path.basename(BEKCI), no, s.strip()[:80]))
     tur_raporu = "BEKCI=TUR_TAVANI_ASILDI" in bekci
+    # ③ 18 EYL 2026 — OKAN HUKMU "kessin ama genis tavanla": ② AYNEN durur
+    # (RAPOR tavani kesmez) VE ayri, genis bir KESICI tavan VAR olmali.
+    # Bekci: `son_tur >= args.kesici_tavan` kolu _kesici_uygula'yi cagirir.
+    # isci.sh: varsayilan 150, env PRUVO_ISCI_KESICI_TUR_TAVANI, bekciye
+    # `--kesici-tavan` ile gecer. Uc ayak da ayri olculur — biri eksikse
+    # kesici OLUdur (bekcide kol var ama isci.sh gecirmiyorsa 0 = kapali).
+    kesici_kol = False
+    for no, s in _kod_govdesi(bekci):
+        if not re.search(r"son_tur\s*>=\s*args\.kesici_tavan", s):
+            continue
+        pencere = "\n".join(bekci_satirlari[no:no + 10])
+        if re.search(r"_kesici_uygula\(", pencere):
+            kesici_kol = True
+    kesici_varsayilan = bool(re.search(r"^\s*KESICI_TUR_TAVANI=150\s*$", isci,
+                                       re.M))
+    kesici_gecer = '--kesici-tavan "$KESICI_TUR_TAVANI"' in isci
+    satirlar.append(
+        "    | ③ KESICI tavan (18 Eyl Okan hukmu): bekci kolu=%s · isci.sh "
+        "varsayilan 150=%s · bekciye gecer=%s"
+        % ("VAR" if kesici_kol else "🔴 YOK",
+           "VAR" if kesici_varsayilan else "🔴 YOK",
+           "VAR" if kesici_gecer else "🔴 YOK"))
     for b in tur_kesme[:8]:
         satirlar.append("    | 🔴 TUR ZORLAMASI (kesme kolu GERI GELDI): %s" % b)
     satirlar.insert(0,
@@ -499,7 +536,8 @@ def k5_tur_tavani(mutant=None):
                     "kesme sayisi=%d (beklenen 0) · RAPOR jetonu=%s"
                     % (len(tur_kesme), "VAR" if tur_raporu else "🔴 YOK"))
     return (asilma_esigi and asilma_onarim and not tur_kesme
-            and tur_raporu), satirlar
+            and tur_raporu and kesici_kol and kesici_varsayilan
+            and kesici_gecer), satirlar
 
 
 # ------------------------------------------------------------------------------
@@ -651,6 +689,7 @@ MUTANT_HEDEFI = {
     "MUT-CLAUDE-RED-GERI": "K4",
     "MUT-ASILMA-KESICI-SILINDI": "K5",   # (b) ASILMA korumasi susturulur
     "MUT-TUR-ZORLAMASI-GERI": "K5",      # (a) tur kesmesi geri konur
+    "MUT-KESICI-TAVAN-SILINDI": "K5",    # (b) 18 Eyl kesici tavan susturulur
     "MUT-WORKTREE-SAYI-GERI": "K6",      # (a) sayi uyarisi geri konur
     "MUT-ARTIK-SUSTURULDU": "K6",        # (b) ARTIK olcusu susturulur
 }
