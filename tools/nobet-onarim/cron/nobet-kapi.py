@@ -54,6 +54,10 @@ NOBET_LOGU = os.path.join(CRON_KOKU, "ci-nobeti.log")
 GOREV_YOLU = os.path.join(CRON_KOKU, "ci-nobeti-gorev.md")
 ISCI_SH = os.path.join(CRON_KOKU, "isci.sh")
 ONARIMSIZ_SAYAC_YOLU = os.path.join(CRON_KOKU, "nobet-onarimsiz-sayac.json")
+# K325 (W2-2, 18 Eyl 2026): ust uste onarimsiz tur ESIGI — TEK KAYNAK. Hem
+# sayacin SATURASYON noktasi (`ustuste_onarimsiz_sonraki`) hem tuketicinin
+# `ESKALASYON=OKAN USTUSTE_ONARIMSIZ` karari bu sayiyi okur; iki literal YOK.
+USTUSTE_ONARIMSIZ_ESIGI = 3
 ATLANAN_SAYAC_YOLU = os.path.join(CRON_KOKU, "nobet-atlanan-sayac.json")
 KARANTINA_YOLU = os.path.join(CRON_KOKU, ".motor-karantina")
 KARANTINA_OMUR_SN = 6 * 3600   # 15 Agu 2026: 6 saat karantina, sure dolunca geri gelir
@@ -319,10 +323,16 @@ KAPALI_DURUMLAR_DEFTER = ("KAPANDI",)
 BILINMEYEN_DURUM = "BILINMIYOR"
 
 
-def _partisyon_dogrula():
-    """Fail-loud butunluk: kanonik kumenin HER degeri TAM BIR kovada olmali."""
+def _partisyon_dogrula(kanonik=None):
+    """Fail-loud butunluk: kanonik kumenin HER degeri TAM BIR kovada olmali.
+
+    `kanonik` verilirse (K311 b, W2-2) olcu YEREL literal degil, defterin
+    TEK PARSER'inin (`tools/parti-borc-kapisi.py::KANONIK_DURUMLAR`) kumesidir.
+    """
     kovalar = (ONARILACAK_DURUMLAR, SAHIPLI_DURUMLAR, KAPALI_DURUMLAR_DEFTER)
-    kanonik = set(DURUM_DEGERLERI) | {ONARIM_DURUMU}
+    if kanonik is None:
+        kanonik = set(DURUM_DEGERLERI) | {ONARIM_DURUMU}
+    kanonik = set(kanonik)
     birlesim = set()
     for kova in kovalar:
         for deger in kova:
@@ -455,6 +465,23 @@ except Exception as _eb:                                           # noqa: BLE00
     KalemKimligi = None
     BOLUCU_OLCULDU = False
     BOLUCU_SEBEBI = "%s: %r" % (_bolucu_yolu, _eb)
+
+# 🔴 K311 (b) — DURUM SOZLUGU TEK KAYNAK (W2-2, 18 Eyl 2026).
+# OLCULDU (taban, canli defter, ayni tur): nobet-kapi 153 satir -> onarilacak
+# 13 + sahipli 3; parti-borc `acik_kalem_listesi` -> 16 acik, gecersiz 0;
+# satir-satir AYRISMA=0. Yani 26 Agu'daki `ACIK_KALEM=0` arizasi KAPANMIS
+# (KORGOZ_K311_SOZLUK). Kalan SINIF kusuru: iki okuyucu IKI LITERAL tasiyordu
+# (`DURUM_DEGERLERI` burada, `KANONIK_DURUMLAR` parti-borc'ta) ve partisyon
+# butunlugu YEREL literale karsi olculuyordu — parti-borc'a yeni bir deger
+# eklenince bu dosya onu SESSIZCE "BILINMIYOR" kovasina atardi.
+# Simdi: bolucuyu yukleyen AYNI modulun kumesi olcudur; ayrisma YUKLEMEDE
+# patlar. Bolucu yuklenemezse sozluk kaynagi ADIYLA `YEREL_LITERAL` olur
+# (bolucusuz yazma yolu zaten K382 geregi FAIL-LOUD).
+if BOLUCU_OLCULDU and hasattr(_mod_bol, "KANONIK_DURUMLAR"):
+    _partisyon_dogrula(_mod_bol.KANONIK_DURUMLAR)
+    SOZLUK_KAYNAGI = "parti-borc-kapisi.KANONIK_DURUMLAR"
+else:
+    SOZLUK_KAYNAGI = "YEREL_LITERAL"
 
 
 def _kimlik_uygun(kimlik):
@@ -1248,10 +1275,19 @@ def ustuste_onarimsiz_sonraki(onceki, onarim, kova_bos=False, dondu=False):
     ([[emir-ariza-kovasina-duserse-hat-kendi-kendine-kirmizi-yanar]]).
     `kova_bos` ile AYRI parametre: "kova bostu" ile "kova doluydu ama emir
     kapatti" AYRI iddialardir ve kayitta ayri okunur.
+
+    🔴 K325 SATURASYON (W2-2, 18 Eyl 2026): sayac ESIKTE DURUR. Olculdu 28
+    Agu: esik 88 tur once gecilmisti ve sayi 89 -> 93 -> ... -> 154 tirmandi;
+    esigin ustunde artan sayi EK BILGI TASIMIYOR ve TEK tuketicisi
+    (`ESKALASYON=OKAN USTUSTE_ONARIMSIZ=<n>` karari) yalniz `>= esik`
+    soruyordu. `ilk_*` alani BILEREK yok (bkz. `ustuste_onarimsiz_guncelle`),
+    yani mesru yol saturasyondur. DURUSTLUK: esigin USTUNDE bir eski deger
+    (or. 105) DUSURULMEZ — onarimsiz tur sayaci hicbir kosulda DUSUREMEZ
+    (`tools/nobet-sayac-durustluk-test.py` invaryanti); yalniz BUYUMEZ.
     """
     if kova_bos or dondu or onarim > 0:
         return 0
-    return onceki + 1
+    return max(onceki, min(onceki + 1, USTUSTE_ONARIMSIZ_ESIGI))
 
 
 def ustuste_onarimsiz_guncelle(onarim, yol=None, kova_bos=False, dondu=False,
@@ -2289,8 +2325,11 @@ def tur_kapat(kuru=False, calistirici=None, yaz=True, kabul_kosucu=None,
     if mimar_eskale:
         satirlar.append("ESKALASYON=MIMAR kalemler=%s" % ",".join(mimar_eskale))
     eskale_hepsi = sorted(set(okan_eskale) | set(mimar_eskale))
-    if ustuste_onarimsiz >= 3:
-        satirlar.append("ESKALASYON=OKAN USTUSTE_ONARIMSIZ=%d" % ustuste_onarimsiz)
+    if ustuste_onarimsiz >= USTUSTE_ONARIMSIZ_ESIGI:
+        # K325: sayac esikte SATURE olur; SATURE=1 "esik asildi, daha fazlasi
+        # sayilmiyor" demektir — sayi bir sure olcusu DEGILDIR.
+        satirlar.append("ESKALASYON=OKAN USTUSTE_ONARIMSIZ=%d SATURE=1"
+                        % ustuste_onarimsiz)
     # 🔴 K341 E4 TUKETICI: seviye YAZILIP OKUNUR. Yazilip okunmayan alan kayit
     # degil SUStur ([[kapinin-menzili-cagri-yeridir]]); ve duran bir emir
     # gorunmez olursa hat en cok gereken anda korlesir
@@ -2337,6 +2376,9 @@ def tur_kapat(kuru=False, calistirici=None, yaz=True, kabul_kosucu=None,
             len([k for k in tum_kalemler
                  if k["durum"] in KAPALI_DURUMLAR_DEFTER]),
             len(_bilinmeyen)))
+    # K311 (b): sozlugun NEREDEN olculdugu ADIYLA — `YEREL_LITERAL` gorulurse
+    # parti-borc bolucusu yuklenemedi demektir (tek kaynak olculmedi).
+    satirlar.append("DURUM_SOZLUGU_KAYNAGI=%s" % SOZLUK_KAYNAGI)
     if _bilinmeyen:
         satirlar.append("BILINMEYEN_DURUM_KALEM=%s" % ",".join(
             "%s(%s)" % (k["id"], k["durum"]) for k in _bilinmeyen))

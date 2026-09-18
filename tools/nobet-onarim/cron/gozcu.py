@@ -274,6 +274,76 @@ def kirmizi_kosumlar(kosumlar, dal="main"):
     return sonuc
 
 
+def ardilsiz_kirmizilar(kosumlar, dal="main"):
+    """K326 — SEVIYE ekseni: ARDILI OLMAYAN kirmizilar (W2-2, 18 Eyl 2026).
+
+    `kirmizi_toplam = len(kirmizi_kosumlar(...))` 40-kosumluk PENCERENIN
+    fonksiyonuydu, agacin DEGIL (olculdu 27 Agu: ayni is akisinin uc eski SHA
+    dususu 3 ayri kirmizi sayildi; o uc kosum pencereden dusunce hicbir sey
+    onarilmadan 3 -> 0). Canli ikinci olcum (18 Eyl): `Build & deploy`
+    35346692885 failure'inin ARDILI 35350167808 success iken pencere onu hala
+    kirmizi sayiyordu; ESKALASYON sayaci da ayni sebeple ~3 gun `1`de kaldi
+    (K311 YUZ B).
+
+    ARDIL = ayni DAL + ayni is akisi ADI + daha BUYUK `databaseId` + conclusion
+    `success`. `cancelled`/`in_progress` ardil DEGILDIR — iptal edilen ya da
+    suren kosum kirmiziyi COZMEZ (duran kirmizi gorunur kalir; ters yon
+    korlugu geri gelmez). Pencere sayaci (`kirmizi_toplam`) SILINMEZ; bu
+    fonksiyon onun YANINA ikinci ekseni koyar.
+    """
+    son_basari = {}
+    for ham in kosumlar or []:
+        if not isinstance(ham, dict):
+            continue
+        if (ham.get("headBranch") or "") != dal:
+            continue
+        if (ham.get("conclusion") or "") != "success":
+            continue
+        ad = ham.get("name") or ham.get("workflowName") or ""
+        try:
+            kimlik = int(ham.get("databaseId") or 0)
+        except (TypeError, ValueError):
+            continue
+        if kimlik > son_basari.get(ad, 0):
+            son_basari[ad] = kimlik
+    sonuc = []
+    for kirmizi in kirmizi_kosumlar(kosumlar, dal):
+        try:
+            kimlik = int(kirmizi["id"])
+        except (TypeError, ValueError):
+            sonuc.append(kirmizi)     # olculemeyen kimlik ELENMEZ (fail-closed)
+            continue
+        if son_basari.get(kirmizi.get("ad") or "", 0) > kimlik:
+            continue                  # ardili yesil: kirmizi COZULMUS
+        sonuc.append(kirmizi)
+    return sonuc
+
+
+def icra_anahtari(tetik, icra_denendi, hedef_run, simdi):
+    """K334 — gozcunun ACTIGI turun ANAHTARI (W2-2, 18 Eyl 2026).
+
+    `nobet-tetik.karar()` cift atesleme yasagini `icra_denendi` BAYRAGI
+    uzerinden BLANKET uyguluyordu: gozcu HANGI turu actiysa acsin, tetigin
+    tur ACAN iki kolu (4 CI_KIRMIZI · 5 GUNLUK_DEFTER) ulasilamaz oluyordu.
+    Yasak ANAHTAR eksenine cekilir: gozcu actigi turun anahtarini bu
+    fonksiyonla kalbe yazar; tetik yalniz AYNI anahtar icin ACMA der.
+    Anahtar bicimi tetigin tuketim damgasiyla AYNI sozlesmedir
+    (`kirmizi:<run-id>` · `gunluk:<YYYY-AA-GG>`). DEFTER_DAGITIM turunun
+    anahtari `dagitim:<gun>`dur: o tur gunluk defter turu DEGILDIR.
+    Tur acilmadiysa "" doner.
+    """
+    if not icra_denendi:
+        return ""
+    gun = time.strftime("%Y-%m-%d", time.gmtime(simdi))
+    if tetik == "CI_KIRMIZI" and hedef_run:
+        return "kirmizi:%s" % hedef_run
+    if tetik == "GUNLUK_DEFTER":
+        return "gunluk:%s" % gun
+    if tetik == "DEFTER_DAGITIM":
+        return "dagitim:%s" % gun
+    return ""
+
+
 def yeni_kirmizilar(kirmizilar, durum):
     """Daha once ele alinmamis kirmizilar (flapping freni)."""
     kayitlar = (durum or {}).get("kosumlar") or {}
@@ -778,6 +848,8 @@ def tur(kuru=False, simdi=None, kosum_okuyucu=None, defter_okuyucu=None,
         ci_sebep = "TAMAM" if ham_kosumlar is not None else "OLCULEMEDI"
     ci_olculdu = ci_sebep == "TAMAM" and ham_kosumlar is not None
     kirmizilar = kirmizi_kosumlar(ham_kosumlar or [])
+    # K326: SEVIYE ekseni — ardili yesil olan kirmizi DURAN kirmizi degildir.
+    ardilsiz = ardilsiz_kirmizilar(ham_kosumlar or [])
 
     kalemler = defter_okuyucu()
     defter_olculdu = kalemler is not None
@@ -906,7 +978,13 @@ def tur(kuru=False, simdi=None, kosum_okuyucu=None, defter_okuyucu=None,
     # 🔴 K311 YUZ B — eskalasyon artik TUKETILIYOR. Hala kirmizi olan bir
     # run-id ESKALASYON'a dustuyse gozcu KIRMIZI kapanir; 42 sessiz satirin
     # sinifi budur.
-    eskalasyon_acik = eskalasyon_acik_say(durum, kirmizilar)
+    # 🔴 W2-2 (18 Eyl 2026) — kesisim kumesi PENCERE degil ARDILSIZ kirmizi.
+    # Olculdu: run 35323115483 (SERIT B) ESKALASYON'a dustu, ardili
+    # 35328100912 SUCCESS oldu; sayac yine de `1`de kaldi ve ci-nobeti
+    # `HUKUM=ESKALASYON_ACIK rc=1` basmaya devam etti — ta ki kosum 40'lik
+    # pencereden dusene kadar (onarimla degil, ZAMANLA). Basarisiz bir kosum
+    # ASLA yesile donmez; "cozuldu" sorusunun cevabi ARDILDADIR.
+    eskalasyon_acik = eskalasyon_acik_say(durum, ardilsiz)
     if eskalasyon_acik:
         rc = max(rc, 1)
 
@@ -934,7 +1012,8 @@ def tur(kuru=False, simdi=None, kosum_okuyucu=None, defter_okuyucu=None,
         "llm_turu": bool(llm_turu),
         "yeni_kirmizi": len(yeni),
         "hedef_run": hedef_run,
-        "kirmizi_toplam": len(kirmizilar),
+        "kirmizi_toplam": len(kirmizilar),     # PENCERE ekseni (SILINMEZ)
+        "kirmizi_ardilsiz": len(ardilsiz),     # K326 SEVIYE ekseni
         "dagitilabilir": len(dagitilabilir),
         "kat_mimar": sayac["MIMAR"],
         "kat_okan": sayac["OKAN"],
@@ -950,6 +1029,8 @@ def tur(kuru=False, simdi=None, kosum_okuyucu=None, defter_okuyucu=None,
         "icra_sebep": icra_sebep,  # KOL B4: KOSTU_DUSTU'nun SEBEBI, adiyla
         "kosum_hukmu": kosum_hukmu,  # B5: run-id oznesi, defterden AYRI
         "icra_denendi": bool(icra_denendi),
+        # K334: cift atesleme yasagi ANAHTAR ekseninde (nobet-tetik.karar).
+        "icra_anahtar": icra_anahtari(tetik, icra_denendi, hedef_run, simdi),
         # K311: rc yolunun FIILEN TUKETTIGI alanlar. `k311-baglanti-kapisi.py`
         # bu alanlarin canli tuketicisini SAYARAK olcer.
         "uretken": bool(uretken),

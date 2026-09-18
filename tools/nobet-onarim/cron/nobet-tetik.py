@@ -168,12 +168,20 @@ def seviye_kirmizisi(kalp):
     FAIL-CLOSED: alan YOKSA (eski kalp / yarim kurulum) SESSIZ SIFIR
     URETILMEZ -> -1 doner ve cagiran bunu OLCULEMEDI sayar. Sessiz sifir,
     tam da kapatmaya calistigimiz korlugun kendisidir.
+
+    🔴 K326 (W2-2, 18 Eyl 2026): `kirmizi_toplam` 40-kosumluk PENCERENIN
+    sayisidir — ardili YESIL olan eski kirmiziyi da sayar, pencereden dusen
+    duran kirmiziyi da unutur. Gozcu artik `kirmizi_ardilsiz` (is akisi
+    basina ardili olmayan kirmizi) yazar; SEVIYE once ONU okur. Alan yoksa
+    (eski kalp) pencere sayisina DUSER — geriye donuk kol korunur, sessiz
+    sifir URETILMEZ. Pencere alani SILINMEZ (iki eksen yan yana).
     """
     kalp = kalp or {}
-    if "kirmizi_toplam" not in kalp:
+    alan = "kirmizi_ardilsiz" if "kirmizi_ardilsiz" in kalp else "kirmizi_toplam"
+    if alan not in kalp:
         return -1
     try:
-        return max(0, int(kalp.get("kirmizi_toplam") or 0))
+        return max(0, int(kalp.get(alan) or 0))
     except (TypeError, ValueError):
         return -1
 
@@ -194,12 +202,108 @@ def seviye_karari(kalp):
     return None
 
 
+def icra_etti_karari(kalp, olculemedi):
+    """3. basamagin GOVDESI: gozcu bu nabizda bir tur ACTI — hukum ACMA.
+
+    W2-2'de `karar()`dan AYNEN cikarildi (davranis degismedi); K334'un
+    anahtar ekseni bu hukmun KIRMIZI bayragini asagi basamaga tasiyabilsin
+    diye ayri fonksiyondur.
+    """
+    # 🔴 K311 YUZ C — "gozcu bir tur ACTI MI?" ile "gozcu IS GORDU MU?"
+    # AYRI sorulardir. Eskiden bu kol yalniz `olculemedi`yi (ci/defter
+    # olcumu) tasiyordu; gozcunun KENDI kosum hukmu buraya HIC GELMIYORDU.
+    # Sonuc: "kostu, hicbir sey uretmedi" hali `RC_ACMA_YESIL=10` donuyor
+    # ve `ci-nobeti.sh` `BITIS rc=0` yaziyordu (taban: 46 yesil bitis).
+    # 🔴 Bu kol HALA "ACMA" der — cift atesleme yasagi DEGISMEDI; degisen
+    # yalniz o ACMA'nin YESIL mi KIRMIZI mi oldugudur.
+    uretken, uret_sebep = _uretken_karari(kalp)
+    if not uretken:
+        # 🔴 UCUNCU HAL — SESSIZ AMA DAR. Iki emniyet birlikte aranir:
+        #   M1: sebep TAM O JETON olacak. Gercek `OLCULEMEDI` (gozcu FIILEN
+        #       okuyamiyor) bu kola GIREMEZ ve KIRMIZI kalir.
+        #   M2: kosum GERCEKTEN basarili bitmis olacak. Dusen/atlanan bir
+        #       kosum, jeton tasisa bile SUSTURULAMAZ — yeni hal, acik
+        #       koldaki bir arizayi gizlemek icin kullanilamaz.
+        if (LLM_KOLU_KAPALI is not None
+                and uret_sebep == LLM_KOLU_KAPALI
+                and (kalp.get("icra_hal") or "") == "KOSTU_BASARILI"
+                and kalp.get("icra_rc") == 0):
+            return Karar("ACMA", LLM_KOLU_KAPALI, "", (), False)
+        return Karar("ACMA", "GOZCU_URETMEDI_%s" % uret_sebep, "", (), True)
+    # 🔴 K311 YUZ B — gozcunun KENDI saydigi ACIK ESKALASYON hatti KIRMIZI
+    # yakar. `gozcu-eskalasyon.md`ye 19-26 Agu arasi 42 satir yazildi
+    # (ISTISNASIZ deneme=3) ve HICBIRI bir karara donusmedi; bu kol o
+    # sayiyi TUKETIR. Kendini temizler: ARDILI yesil olunca sayi duser
+    # (W2-2: gozcu kesisimi `ardilsiz_kirmizilar` ile yapar, pencereyle DEGIL).
+    if int(kalp.get("eskalasyon_acik") or 0) > 0:
+        return Karar("ACMA", "ESKALASYON_ACIK", "", (), True)
+    # 3b. KORGOZ_K311_SEVIYE — "gozcu bir tur ACTI MI?" ile "SU AN kac
+    # kirmizi DURUYOR?" AYRI sorulardir. Duran kirmizi, cozulmusle ayni
+    # kovada kalmaz. Hukum HALA "ACMA" (cift atesleme yasagi DEGISMEDI).
+    _seviye = seviye_karari(kalp)
+    if _seviye is not None:
+        return _seviye
+    return Karar("ACMA", "GOZCU_ICRA_ETTI", "", (), olculemedi)
+
+
+def aday_anahtar(kalp, bugun):
+    """4./5. basamagin ACACAGI turun anahtari ("" = acacak tur YOK).
+
+    Sira `karar()` ile AYNI: once kirmizi (4), sonra gunluk (5). Gunluk
+    aday YALNIZ kalbin gunu tetigin gunuyle ayniysa verilir — gece yarisini
+    asan bir kalp (gozcu 23:53'te `gunluk:D` acti, tetik 00:07'de kostu)
+    ertesi gunun turunu gozcuyle YARISTIRMAZ; o hal eski BLANKET kolda kalir.
+    """
+    hedef = str(kalp.get("hedef_run") or "")
+    if kalp.get("tetik") == "CI_KIRMIZI" and hedef:
+        return "kirmizi:%s" % hedef
+    if kalp.get("gunluk_gerekli"):
+        epok = kalp.get("epok")
+        try:
+            kalp_gunu = bugunun_adi(float(epok)) if epok is not None else None
+        except (TypeError, ValueError):
+            kalp_gunu = None
+        if kalp_gunu == bugun:
+            return "gunluk:%s" % bugun
+    return ""
+
+
+def ayni_tur_mu(kalp, bugun):
+    """K334 — CIFT ATESLEME YASAGI ANAHTAR EKSENINDE (W2-2, 18 Eyl 2026).
+
+    OLCULDU (27 Agu, 768 noktalik uzay): `rc=0` (AC) 60 kombinasyonda cikti
+    ve ISTISNASIZ `icra_denendi=False` ile — 3. basamak BLANKET oldugu icin
+    gozcu HERHANGI bir tur actiginda 4 (CI_KIRMIZI) ve 5 (GUNLUK_DEFTER)
+    kollari yapisal olarak ULASILAMAZDI. Ornek: gozcu `DEFTER_DAGITIM`
+    (`--tur-kapat`) kosturdu ve `gunluk_gerekli=True`; gunluk defter turu o
+    nabizda HIC acilmadi, cunku "gozcu bir tur acti" = "gunluk tur acildi"
+    sayiliyordu.
+
+    Doner True (= 3. basamak hukmu gecerli, ACMA) su hallerde:
+      · kalpte `icra_anahtar` alani YOK (eski kalp) -> BLANKET (geriye donuk)
+      · alan BOS (gozcu tur acti ama anahtar yazmadi) -> BLANKET (fail-closed:
+        bilinmeyen tur, ayni tur sayilir; cift atesleme riski alinmaz)
+      · acilacak aday tur YOK
+      · aday anahtar == gozcunun anahtari (ayni tur ikinci kez ACILMAZ)
+    """
+    if "icra_anahtar" not in kalp:
+        return True
+    gozcu_anahtari = str(kalp.get("icra_anahtar") or "")
+    if not gozcu_anahtari:
+        return True
+    aday = aday_anahtar(kalp, bugun)
+    if not aday:
+        return True
+    return aday == gozcu_anahtari
+
+
 def karar(kalp, simdi, bugun, bayat_tavani=None):
     """SAF karar — dosya OKUMAZ, YAZMAZ. Tek karar noktasi.
 
     Merdiven (SIRALAMA HUKUMDUR, karistirma):
       1-2. kalp yok / bayat        -> FAIL-LOUD: AC + KIRMIZI (gunluk anahtar)
-      3.   gozcu ZATEN icra etti   -> ACMA (cift atesleme yasagi)
+      3.   gozcu ZATEN icra etti   -> ACMA (cift atesleme yasagi; K334: yalniz
+                                      AYNI anahtar icin — `ayni_tur_mu`)
       4.   yeni kirmizi            -> AC, anahtar = kirmizi:<run-id>  (TEK TUR)
       5.   gunluk defter turu      -> AC, anahtar = gunluk:<gun>      (24 saatte 1)
       6.   gozcu OLCEMEDI          -> ACMA + KIRMIZI (olculemedi != yesil)
@@ -227,50 +331,27 @@ def karar(kalp, simdi, bugun, bayat_tavani=None):
     # alandadir. `icra_rc` ATLANDI'da None olur; bu kol ona bakarsa
     # ucustaki turun ustune IKINCI tur acar. Eski kalplerde
     # `icra_denendi` yoktur -> geriye donuk kol korunur.
+    # 🔴 K334 (W2-2, 18 Eyl 2026): yasak ANAHTAR eksenindedir — gozcunun
+    # actigi tur ile 4./5. basamagin acacagi tur AYNI anahtarsa ACMA; FARKLI
+    # ise asagi inilir (bkz. `ayni_tur_mu`). Gozcunun kendi turunun KIRMIZISI
+    # (uretmedi / eskalasyon / seviye) asagidaki AC hukmune TASINIR.
+    ic_kirmizi = False
     if kalp.get("icra_denendi", kalp.get("icra_rc") is not None):
-        # 🔴 K311 YUZ C — "gozcu bir tur ACTI MI?" ile "gozcu IS GORDU MU?"
-        # AYRI sorulardir. Eskiden bu kol yalniz `olculemedi`yi (ci/defter
-        # olcumu) tasiyordu; gozcunun KENDI kosum hukmu buraya HIC GELMIYORDU.
-        # Sonuc: "kostu, hicbir sey uretmedi" hali `RC_ACMA_YESIL=10` donuyor
-        # ve `ci-nobeti.sh` `BITIS rc=0` yaziyordu (taban: 46 yesil bitis).
-        # 🔴 Bu kol HALA "ACMA" der — cift atesleme yasagi DEGISMEDI; degisen
-        # yalniz o ACMA'nin YESIL mi KIRMIZI mi oldugudur.
-        uretken, uret_sebep = _uretken_karari(kalp)
-        if not uretken:
-            # 🔴 UCUNCU HAL — SESSIZ AMA DAR. Iki emniyet birlikte aranir:
-            #   M1: sebep TAM O JETON olacak. Gercek `OLCULEMEDI` (gozcu FIILEN
-            #       okuyamiyor) bu kola GIREMEZ ve KIRMIZI kalir.
-            #   M2: kosum GERCEKTEN basarili bitmis olacak. Dusen/atlanan bir
-            #       kosum, jeton tasisa bile SUSTURULAMAZ — yeni hal, acik
-            #       koldaki bir arizayi gizlemek icin kullanilamaz.
-            if (LLM_KOLU_KAPALI is not None
-                    and uret_sebep == LLM_KOLU_KAPALI
-                    and (kalp.get("icra_hal") or "") == "KOSTU_BASARILI"
-                    and kalp.get("icra_rc") == 0):
-                return Karar("ACMA", LLM_KOLU_KAPALI, "", (), False)
-            return Karar("ACMA", "GOZCU_URETMEDI_%s" % uret_sebep, "", (), True)
-        # 🔴 K311 YUZ B — gozcunun KENDI saydigi ACIK ESKALASYON hatti KIRMIZI
-        # yakar. `gozcu-eskalasyon.md`ye 19-26 Agu arasi 42 satir yazildi
-        # (ISTISNASIZ deneme=3) ve HICBIRI bir karara donusmedi; bu kol o
-        # sayiyi TUKETIR. Kendini temizler: run yesile donunce sayi duser.
-        if int(kalp.get("eskalasyon_acik") or 0) > 0:
-            return Karar("ACMA", "ESKALASYON_ACIK", "", (), True)
-        # 3b. KORGOZ_K311_SEVIYE — "gozcu bir tur ACTI MI?" ile "SU AN kac
-        # kirmizi DURUYOR?" AYRI sorulardir. Duran kirmizi, cozulmusle ayni
-        # kovada kalmaz. Hukum HALA "ACMA" (cift atesleme yasagi DEGISMEDI).
-        _seviye = seviye_karari(kalp)
-        if _seviye is not None:
-            return _seviye
-        return Karar("ACMA", "GOZCU_ICRA_ETTI", "", (), olculemedi)
+        ic = icra_etti_karari(kalp, olculemedi)
+        if ayni_tur_mu(kalp, bugun):
+            return ic
+        ic_kirmizi = ic.kirmizi
 
     # 4. Yeni kirmizi var, gozcu acamamis (kilit doluydu vb.) -> o run-id icin TEK tur.
     hedef = str(kalp.get("hedef_run") or "")
     if kalp.get("tetik") == "CI_KIRMIZI" and hedef:
-        return Karar("AC", "CI_KIRMIZI", "kirmizi:%s" % hedef, ("--tur",), olculemedi)
+        return Karar("AC", "CI_KIRMIZI", "kirmizi:%s" % hedef, ("--tur",),
+                     olculemedi or ic_kirmizi)
 
     # 5. Gunluk defter turu — 24 saatlik pencerede TAM 1.
     if kalp.get("gunluk_gerekli"):
-        return Karar("AC", "GUNLUK_DEFTER", "gunluk:%s" % bugun, ("--tur",), olculemedi)
+        return Karar("AC", "GUNLUK_DEFTER", "gunluk:%s" % bugun, ("--tur",),
+                     olculemedi or ic_kirmizi)
 
     # 6. Acilacak is yok ama gozcu olcemedi: SESSIZ YESIL URETME.
     if olculemedi:

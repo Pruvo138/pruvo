@@ -23,11 +23,16 @@ TETIK_YOLU = os.path.join(KOK, "nobet-tetik.py")
 TEST_YOLU = os.path.join(KOK, "nobet-tetik-test.py")
 
 # (ad, hedef, yeni, beklenen_ilk_olen_vaka). Capa kaynakta TAM 1 kez gecmeli.
+# 🔴 CAPA YORUM TASIMAZ (W2-2, 18 Eyl 2026). OLCULDU: MA capasi
+# `# 7. Yesil: tur ACILMAZ.` yorum satirini da kapsiyordu; 27 Agu'da o yoruma
+# bir cumle eklenince capa kaynakta 0 kez gecti -> `YAMA_TUTMADI=1`,
+# `MUTANT=2/3`, rc=1 (canli ve kopya AYNI). Yorum PROSE'dur ve kolun
+# davranisiyla ilgisiz degisir; capa yalniz KOD satirlarina baglanir.
+# `_capa_yorum_tasiyor()` bunu her kosumda OLCER — yorumlu capa sessizce
+# "tutmadi" diye sayilmaz, ADIYLA reddedilir.
 MUTANTLAR = [
     ("MA kosul kolu kalkar: yesil gun de tur acar",
-     '    # 7. Yesil: tur ACILMAZ.\n'
      '    return Karar("ACMA", "YESIL", "", (), False)',
-     '    # 7. Yesil: tur ACILMAZ.\n'
      '    return Karar("AC", "YESIL", "gunluk:%s" % bugun, ("--tur",), False)',
      "A1"),
     ("MB kilit kalkar: ayni run-id ikinci tur acar",
@@ -69,6 +74,11 @@ def _pycache_temizle():
         shutil.rmtree(yol, ignore_errors=True)
 
 
+def _capa_yorum_tasiyor(hedef):
+    """Capa satirlarindan biri `#` ile basliyorsa (yorum) True."""
+    return any(satir.lstrip().startswith("#") for satir in hedef.split("\n"))
+
+
 def _ilk_hata_vakasi(sonuc):
     if not sonuc.hatalar:
         return "?"
@@ -93,6 +103,10 @@ def main():
     sayac = {"IDDIA": 0, "ISTASYON": 0, "ATIF_SAPTI": 0, "YAMA_TUTMADI": 0}
     eslesme = {}
     for sira, (ad, hedef, yeni, beklenen) in enumerate(MUTANTLAR, 1):
+        if _capa_yorum_tasiyor(hedef):
+            print("%-52s YAMA_TUTMADI (CAPA_YORUM_TASIYOR)" % ad)
+            sayac["YAMA_TUTMADI"] += 1
+            continue
         adet = kaynak.count(hedef)
         if adet != 1:
             print("%-52s YAMA_TUTMADI (kaynakta %d kez)" % (ad, adet))
