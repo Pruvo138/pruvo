@@ -256,6 +256,65 @@ def kos():
         iddia("MUTANT-M2 tam-ad-eslemesi-canli", m2_oldurdu,
               "alt-dize eslemesi komsuyu KOSAN yapmali — yapmadiysa IDDIA-3 OLU")
 
+        # ---- IDDIA-11 (17 Eyl, SURULEN kova): CLI'li govdeyi CI'da KOSAN bir test
+        #      YUKLUYORSA govde SURULEN'dir (kapi-dagitim-kur.py <- kapi-dagitim-test.py).
+        GIRISLI_GOVDE = ('def main(argv):\n    return 0\n'
+                         'def yardim():\n    return 1\n'
+                         'if __name__ == "__main__":\n    main([])\n')
+        YUKLE_KUR = YUKLEYICI.replace("k_kapisi", "m-kapi-kur")
+        SURUCU_TEST = (YUKLE_KUR + "KUR = importlib.util.module_from_spec(_s)\n"
+                       "KUR.main(['--ev', 'x'])\n" + CLI_GOVDE)
+        k, _ = kur({"m-kapi-kur.py": GIRISLI_GOVDE, "m-kapi-test.py": SURUCU_TEST},
+                   {"x.yml": "      - run: python3 tools/m-kapi-test.py\n"})
+        iddia("IDDIA-11 kosan-testin-giris-cagirdigi-govde-surulen",
+              kovada(k, "surulen", "m-kapi-kur.py"))
+
+        # ---- KONTROL-E: AYNI surucu ama is akisinda YOK -> SAHIPSIZ (yukleyen KOSMALI)
+        k, _ = kur({"m-kapi-kur.py": GIRISLI_GOVDE, "m-kapi-test.py": SURUCU_TEST},
+                   {"x.yml": "      # - run: python3 tools/m-kapi-test.py\n"})
+        iddia("KONTROL-E kosmayan-yukleyici-surmez", kovada(k, "sahipsiz", "m-kapi-kur.py"))
+
+        # ---- KONTROL-G: KOSAN test yukler ama yalniz IC fonksiyon cagirir -> SAHIPSIZ
+        #      (gorsel-boyut-test.py -> gorsel_boyut_kapisi'nin GERCEK hali, 17 Eyl olcumu)
+        k, _ = kur({"m-kapi-kur.py": GIRISLI_GOVDE,
+                    "m-kapi-test.py": YUKLE_KUR + "g = None\ng.yardim()\n" + CLI_GOVDE},
+                   {"x.yml": "      - run: python3 tools/m-kapi-test.py\n"})
+        iddia("KONTROL-G ic-fonksiyon-cagrisi-surmek-degil", kovada(k, "sahipsiz", "m-kapi-kur.py"),
+              "kapinin taramasi (CLI girisi) kosmuyorsa fikstur testi onu kurtarmaz")
+
+        # ---- MUTANT-M5: SURULEN kolu oldurulur (surucu hic bulunmaz) -> IDDIA-11 DUSMELI
+        asil_surucu = m.kosan_yukleyici
+        m.kosan_yukleyici = lambda ad, kosan_adlari, tools_dizini=None: None
+        k, _ = kur({"m-kapi-kur.py": GIRISLI_GOVDE, "m-kapi-test.py": SURUCU_TEST},
+                   {"x.yml": "      - run: python3 tools/m-kapi-test.py\n"})
+        m5_oldurdu = kovada(k, "sahipsiz", "m-kapi-kur.py")
+        m.kosan_yukleyici = asil_surucu
+        iddia("MUTANT-M5 surulen-kolu-canli", m5_oldurdu,
+              "kol oldurulunce IDDIA-11 vakasi SAHIPSIZ'e dusmeli — dusmediyse iddia OLU")
+
+        # ---- MUTANT-M6: surucu KOSAN kumesi yerine TUM govdeler -> KONTROL-E DUSMELI
+        def mutant_kosan_filtresiz(ad, kosan_adlari, tools_dizini=None):
+            return asil_surucu(ad, [x for x in os.listdir(tools_dizini) if x != ad],
+                               tools_dizini)
+        m.kosan_yukleyici = mutant_kosan_filtresiz
+        k, _ = kur({"m-kapi-kur.py": GIRISLI_GOVDE, "m-kapi-test.py": SURUCU_TEST},
+                   {"x.yml": "      # - run: python3 tools/m-kapi-test.py\n"})
+        m6_oldurdu = kovada(k, "surulen", "m-kapi-kur.py")
+        m.kosan_yukleyici = asil_surucu
+        iddia("MUTANT-M6 kosan-filtresi-canli", m6_oldurdu,
+              "KOSAN filtresi kalkinca KONTROL-E vakasi SURULEN olmali — olmadiysa KONTROL-E OLU")
+
+        # ---- MUTANT-M7: giris-cagrisi sarti kaldirilir -> KONTROL-G DUSMELI
+        asil_giris = m.giris_cagiriyor_mu
+        m.giris_cagiriyor_mu = lambda govde, girisler: True
+        k, _ = kur({"m-kapi-kur.py": GIRISLI_GOVDE,
+                    "m-kapi-test.py": YUKLE_KUR + "g = None\ng.yardim()\n" + CLI_GOVDE},
+                   {"x.yml": "      - run: python3 tools/m-kapi-test.py\n"})
+        m7_oldurdu = kovada(k, "surulen", "m-kapi-kur.py")
+        m.giris_cagiriyor_mu = asil_giris
+        iddia("MUTANT-M7 giris-cagrisi-sarti-canli", m7_oldurdu,
+              "sart kalkinca KONTROL-G vakasi SURULEN olmali — olmadiysa KONTROL-G OLU")
+
         # ---- META: mutantlarin KONTROLU — asil govde geri yuklendi mi
         k, _ = kur({"a-kapisi.py": CLI_GOVDE},
                    {"x.yml": "      - run: python3 tools/a-kapisi.py\n"})
