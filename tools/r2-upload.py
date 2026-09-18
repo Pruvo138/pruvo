@@ -75,18 +75,7 @@ import importlib.util
 import re
 import sys, os, json, time, boto3
 
-# .r2-credentials.json SIR dosyasidir, ana kopyada durur (gitignore) — worktree'den
-# kosulunca KOD kokunun degil VERI kokunun (ana kopya) yanina bakilmali, yoksa her
-# worktree'de "dosya yok" sanilip yukleme sessizce/gurultuyle patlar (bkz veri_kok.py,
-# ayni desen makerworld-ekle.py/printables-ekle.py/urun-ekle.py'de zaten kullaniliyor).
-_vk_spec = importlib.util.spec_from_file_location(
-    "_veri_kok", os.path.join(os.path.dirname(os.path.abspath(__file__)), "veri_kok.py"))
-_vk = importlib.util.module_from_spec(_vk_spec)
-_vk_spec.loader.exec_module(_vk)
-_KOD_KOK, _VERI_KOK, _KOK_UYARI = _vk.cozumle(__file__)
-if _KOK_UYARI:
-    sys.stderr.write(_KOK_UYARI)
-CFG_PATH = os.path.join(_VERI_KOK, ".r2-credentials.json")
+CFG_PATH = os.path.join(os.path.dirname(__file__), "..", ".r2-credentials.json")
 
 # r2_anahtar.py — GORSEL_KLASOR + anahtar_coz TEK KAYNAK (R7 ön-kontrol bu modüle
 # delege olur; ikinci bir "urunler" sabiti burada YAZILMAZ). Yükleme betiği CLI aracı

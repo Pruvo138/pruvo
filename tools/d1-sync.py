@@ -74,16 +74,7 @@ _kbk_spec = importlib.util.spec_from_file_location("konfigur_bundle_kapisi", _KB
 kbk = importlib.util.module_from_spec(_kbk_spec)
 _kbk_spec.loader.exec_module(kbk)
 
-# VERI KOKU DAIMA ANA KOPYA (bkz veri_kok.py) — worktree'den kosulunca KOD kokune
-# degil ana depoya bakilmali, yoksa --durum worktree'nin kendi eski urunler.json
-# kopyasini D1'e kiyaslar ve sapma tamamen yanlis olcumlenir.
-_vk_spec = importlib.util.spec_from_file_location(
-    "veri_kok", os.path.join(os.path.dirname(os.path.abspath(__file__)), "veri_kok.py"))
-_vk = importlib.util.module_from_spec(_vk_spec)
-_vk_spec.loader.exec_module(_vk)
-_KOD_KOK, KOK, _KOK_UYARI = _vk.cozumle(__file__)
-if _KOK_UYARI:
-    sys.stderr.write(_KOK_UYARI)
+KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 URUNLER = os.path.join(KOK, "urunler.json")
 SEMA = os.path.join(KOK, "tools", "d1-sema.sql")
 # PARAMETRIK TABAN FIYAT kaynagi = jenerator/urunler/<id>.json "tabanFiyatTL" (tam sayi TL).
