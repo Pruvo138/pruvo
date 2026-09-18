@@ -114,7 +114,18 @@ import os
 import re
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# VERI KOKU (urunler.json + .urun-kaynaklari.json + kilit) HER ZAMAN ANA KOPYADIR —
+# worktree'den kosulunca KOD kokune (bu betigin kendi worktree'si) DEGIL ana depoya
+# yazilmali, yoksa duzeltme sessizce yanlis (bos/eski) bir kopyaya gider ve ana
+# kopyadaki gercek parti hic degismez (bkz veri_kok.py; makerworld-ekle.py/
+# printables-ekle.py/urun-ekle.py/r2-upload.py ayni desen).
+_vkspec = importlib.util.spec_from_file_location(
+    "veri_kok", os.path.join(os.path.dirname(os.path.abspath(__file__)), "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec)
+_vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 # GORSEL-KOKEN DOGRULAMASI (bkz tools/gorsel_koken.py): figur/ozgun urunun (kategori
 # "Skan Art") sayfa gorselleri gercek STL'den turemis olmali. duzelt.py `gorseller` ve
 # `kategori` alanlarini degistirebildigi icin cipasiz gorsel yayinlamanin GERCEK
