@@ -84,8 +84,12 @@ _vk_spec.loader.exec_module(_vk)
 _KOD_KOK, KOK, _KOK_UYARI = _vk.cozumle(__file__)
 if _KOK_UYARI:
     sys.stderr.write(_KOK_UYARI)
+# K420 SINIFLAMA: KOD (_KOD_KOK) = d1-sema.sql, kendi kaynagi/deploy.yml capasi, --adim'in
+# alt surec d1-sync.py'si. VERI (KOK) = urunler.json, jenerator/urunler, kaynaklar, git
+# HEAD/merge-base, yazici kilidi, index.html (D1'e giden marka evreni senkronlanan katalogla
+# AYNI agactan; bellek anahtari KOK'a bagli, kendini_test KOK'u oynatarak olcer).
 URUNLER = os.path.join(KOK, "urunler.json")
-SEMA = os.path.join(KOK, "tools", "d1-sema.sql")
+SEMA = os.path.join(_KOD_KOK, "tools", "d1-sema.sql")          # KOD (K420)
 # PARAMETRIK TABAN FIYAT kaynagi = jenerator/urunler/<id>.json "tabanFiyatTL" (tam sayi TL).
 # TEK KAYNAK, build.py uret_taban_fiyatlar() ile AYNI dosyalari okur. Bu dizin GIT'TE
 # (izlenir) -> hem yerelde hem GitHub Actions'ta erisilir. taban-fiyatlar.js DEGIL: o
@@ -4281,7 +4285,7 @@ def kendini_test():
     # V64 YAPISAL — kaynak metni (K131): --bayatlik sync'ten ONCE + returncode
     # fiilen KULLANILMALI (mensiyon degil). 16 Agu 2026 K129: --bayatlik cagrisi
     # disaridan ozel bir _adim_kos'a tasindi; burasi davranis kapisi icin referans.
-    _kaynak = open(os.path.join(KOK, "tools", "d1-sync.py"), encoding="utf-8").read()
+    _kaynak = open(os.path.join(_KOD_KOK, "tools", "d1-sync.py"), encoding="utf-8").read()
     _adim_fn = _kaynak[_kaynak.find("def _adim_kos()"):_kaynak.find("\ndef ", _kaynak.find("def _adim_kos()"))]
     _bayat_idx = _adim_fn.find("--bayatlik")
     # Senkron cagrisinin imzasi: ayni "d1-sync.py" alt-string'i, BAYATLIK cagrisindan SONRA.
@@ -4297,7 +4301,7 @@ def kendini_test():
     # V64b YAML CAPASI — zayif ama kalsin (K131): deploy.yml metninde adim
     # tam olarak `python3 tools/d1-sync.py --adim` cagirir; ham bayraksiz cagri
     # (eski V63'un metin umudu) kapidan YAKALANMAZ, bu satir o yuzden duruyor.
-    _dy = os.path.join(KOK, ".github", "workflows", "deploy.yml")
+    _dy = os.path.join(_KOD_KOK, ".github", "workflows", "deploy.yml")
     if not os.path.exists(_dy):
         dogrula("V64b YAML CAPASI: deploy.yml BULUNAMADI (olculemedi = KIRMIZI)",
                 False, _dy)
@@ -5501,7 +5505,7 @@ def _adim_kos():
     #     --bayatlik KENDI yolunda D1'e DOKUNMAZ (sadece git ls-remote + merge-base).
     #     DAVRANIS KAPISI (K131): donus kodu YOKSAYMAZ; sifir-disi => sync ATLANIR.
     bayatlik = _alt_surec_calistir(
-        [sys.executable, os.path.join(KOK, "tools", "d1-sync.py"), "--bayatlik"])
+        [sys.executable, os.path.join(_KOD_KOK, "tools", "d1-sync.py"), "--bayatlik"])
     if bayatlik.returncode != 0:
         print("BAYAT KOSUM — bu checkout uzak main'in ucunda DEGIL; D1 senkronu ATLANDI.")
         print("(Ucta kosan is + pre-push hook + d1-uzlastirici.yml katalogu senkron tutar.)")
@@ -5510,7 +5514,7 @@ def _adim_kos():
     #     Canli lease halinde main() DagitikYaziciCanliLease'i yakalar ve rc=4 ile
     #     cikar; gercek hata sys.exit ile fail-closed.
     senkron = _alt_surec_calistir(
-        [sys.executable, os.path.join(KOK, "tools", "d1-sync.py")])
+        [sys.executable, os.path.join(_KOD_KOK, "tools", "d1-sync.py")])
     if senkron.returncode == 4:
         # CANLI lease (16 Agu 2026): baska makine aktif yaziyor; yazma YAPILMAZ,
         # yayin DEVAM. Emniyet agi zaten var: ucta kosan is + pre-push hook +

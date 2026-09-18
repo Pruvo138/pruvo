@@ -88,7 +88,7 @@ if _KOK_UYARI:
     sys.stderr.write(_KOK_UYARI)
 URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAKLAR = os.path.join(ROOT, ".urun-kaynaklari.json")
-DUZELT = os.path.join(ROOT, "tools", "duzelt.py")
+DUZELT = os.path.join(_KOD_KOK, "tools", "duzelt.py")          # KOD (K420)
 CACHE = os.path.join(ROOT, ".thing-cache")
 RAPOR = os.path.join(CACHE, "denetim-kapisi-rapor.json")
 

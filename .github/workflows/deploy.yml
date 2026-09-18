@@ -1116,6 +1116,17 @@ jobs:
       - name: Urun silme kapisi kabul + mutant bataryasi
         run: python3 tools/urun-silme-kapisi-test.py
 
+      # VERI KOKU SIRASI + KUM ANLAMI (18 Eyl, run 35294096925 yayini durdurdu): 7 urun
+      # araci veri kokunu tools/veri_kok.py'den cozer (PRUVO_VERI_KOK -> git ortak-dizin ->
+      # __file__). Araci gecici koke kopyalayan testler kapanisi import'lardan TURETIR
+      # (veri_kok.kum_kur) ve override'i kendi kumuna kurar. Kabul: (i) kumda 1 sahte urun
+      # -> duzelt/denetim 1 gorur · (ii) linked worktree'den bayraksiz denetim ANA koke gore
+      # sayar (eski ROOT mutanti 0) · (iii) override'siz de canliya dusmez; canli sha sabit.
+      - name: Veri koku sirasi + kum anlami kabul
+        run: python3 tools/veri-kok-test.py
+      - name: Veri koku mutant bataryasi
+        run: python3 tools/veri-kok-test.py --mutasyon
+
       # MUKERRER PRECOMMIT KAPSAMI: mukerrer-kontrol.py --pre-commit'in calisma agacini
       # DEGIL commit icerigini (index/HEAD) yargiladigini ve okunamazsa fail-closed eski
       # davranisa dustugunu kanitlar (5 iddia). Bloklayici: kapsam calisma agacina kayarsa

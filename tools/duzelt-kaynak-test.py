@@ -20,6 +20,7 @@ Kabul eksenleri:
       Bu eksen asagidaki kisisel-veri-test'i davet eder; burada 'uyelik'/'link'
       gecmedigini GORUNEN cikti uzerinden teyit ederiz.
 """
+import importlib.util
 import json
 import os
 import shutil
@@ -29,7 +30,12 @@ import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 DUZELT = os.path.join(TOOLS, "duzelt.py")
-YARDIMCILAR = ("gorsel_koken.py", "arama.py")
+# duzelt.py'nin kardes kapanisi (gorsel_koken/arama/veri_kok ...) ELLE LISTELENMEZ —
+# kopyalanan kaynagin import'larindan TURETILIR (veri_kok.kum_kur). Elle liste 18 Eyl'de
+# veri_kok.py'yi kacirip yayini durdurdu ([[elle-tutulan-bagimlilik-listesi-sessizce-bayatlar]]).
+_vk_spec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+veri_kok = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(veri_kok)
 
 FAILS = []
 
@@ -48,6 +54,8 @@ def cagir(repo, *argv):
         # KAYNAK TEMIZLEME mekanigini olcer -> izinle kosar; izinsiz RED'i
         # tools/urun-silme-kapisi-test.py (V13/V14 + M1/M2) olcer.
         "PRUVO_URUN_SIL_IZNI": "OKAN",
+        # VERI KOKU = sahte repo — git/__file__ sansina birakilmaz.
+        veri_kok.ENV_AD: os.path.abspath(repo),
     }
     env = os.environ.copy()
     env.update(yeni)
@@ -61,10 +69,7 @@ def cagir(repo, *argv):
 def sahte_repo(kaynaklar=None, urunler=None):
     """Sahte repo: <tmp>/urunler.json + <tmp>/.urun-kaynaklari.json + tools/duzelt.py."""
     d = tempfile.mkdtemp(prefix="duzelt-kaynak-testi-")
-    os.makedirs(os.path.join(d, "tools"))
-    shutil.copy2(DUZELT, os.path.join(d, "tools", "duzelt.py"))
-    for y in YARDIMCILAR:
-        shutil.copy2(os.path.join(TOOLS, y), os.path.join(d, "tools", y))
+    veri_kok.kum_kur(os.path.join(d, "tools"), {"duzelt.py": None}, TOOLS)
     with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
         json.dump(
             urunler if urunler is not None

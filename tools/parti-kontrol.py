@@ -68,7 +68,7 @@ def _gecerli_kategoriler():
     Liste burada TUTULMAZ (ikinci kopya = drift kaynagi); tools/kategori-kapisi.py
     iki kaynagi karsilastirip birlesimi dondurur (nav + GIZLI "Jeneratör").
     """
-    yol = os.path.join(ROOT, "tools", "kategori-kapisi.py")
+    yol = os.path.join(_KOD_KOK, "tools", "kategori-kapisi.py")    # KOD (K420)
     spec = importlib.util.spec_from_file_location("kategori_kapisi", yol)
     if spec is None or spec.loader is None:
         sys.exit("HATA: tools/kategori-kapisi.py yuklenemedi: " + yol)
@@ -92,7 +92,7 @@ def _arama_modulu():
     kullanir. Yuklenemezse FAIL-CLOSED cikilir — sinif belirlenemeden gorsel muafiyeti
     verilemez (sessizce "muaf degil" demek de yanlis olurdu: kapi sessizce ayrisirdi).
     """
-    yol = os.path.join(ROOT, "tools", "arama.py")
+    yol = os.path.join(_KOD_KOK, "tools", "arama.py")    # KOD (K420)
     spec = importlib.util.spec_from_file_location("arama_parti_kontrol", yol)
     if spec is None or spec.loader is None:
         sys.exit("HATA: tools/arama.py yuklenemedi: " + yol)
