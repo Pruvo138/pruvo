@@ -40,6 +40,10 @@ KAPILAR (her biri ayri, tek tek test edilebilir fonksiyon):
      Altindaysa/kararsizsa -> ESKALASYON (muhafazakar: yanlis oto-silmektense eskale et).
   6. MARKA KIRLILIGI: marka dizisinde arac-markasi-olmayan tokenlar (Apple/GoPro/Yeti...)
      -> eskalasyon/temizlik onerisi (asla oto-silme).
+  K418 ATIF KOLU (TUM KATALOG, her kipte): gizli tur atif-zorunlu (atif_sinifi) + public
+     `lisans` bos -> sayilir; NON-GROWTH (ATIF_IHLAL_TABANI asilirsa rc 1; --envanter RAPOR).
+     Taninmayan dizge SINIFLANAMADI (muaf DEGIL, kendi tabani). Gizli dosya yoksa (CI)
+     OLCULEMEDI, rc'yi etkilemez. Worktree'den: --kaynaklar <ana kopya>/.urun-kaynaklari.json.
 
 CIKTI: .thing-cache/denetim-kapisi-rapor.json
   {auto_sil:[{id,kapi,gerekce}], dedup:[{baslik,tut,sil:[]}],
@@ -72,10 +76,23 @@ from git_ortami import sentetik_git
 import sys
 from collections import defaultdict
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# VERI KOKU DAIMA ANA KOPYA (bkz veri_kok.py) — worktree'den kosulunca KOD kokune
+# degil ana depoya bakilmali, yoksa hem urunler.json/.urun-kaynaklari.json hem
+# `git show HEAD:...` (_git()) WORKTREE'nin KENDI bagimsiz dalina duser -> "parti"
+# sessizce BOS gorunur (working tree == worktree'nin kendi HEAD'i) ve --commit-farki
+# worktree dalinin KENDI HEAD^->HEAD farkini (tamamen ilgisiz eski bir commit) rapor
+# eder. Bu kapi push'tan ONCEKI TEK ölçülebilir kapı oldugu icin sessiz-bos parti en
+# tehlikeli sinif: IHLAL:0 basar ama hicbir seyi denetlememis olur.
+_vkspec = importlib.util.spec_from_file_location(
+    "veri_kok", os.path.join(os.path.dirname(os.path.abspath(__file__)), "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec)
+_vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAKLAR = os.path.join(ROOT, ".urun-kaynaklari.json")
-DUZELT = os.path.join(ROOT, "tools", "duzelt.py")
+DUZELT = os.path.join(_KOD_KOK, "tools", "duzelt.py")          # KOD (K420)
 CACHE = os.path.join(ROOT, ".thing-cache")
 RAPOR = os.path.join(CACHE, "denetim-kapisi-rapor.json")
 
@@ -895,6 +912,188 @@ def kapi_lisans(urun, kayit):
     if not pr.satilabilir(abbr):
         return "lisans", "satilamaz lisans: %r (norm: %s)" % (ham, abbr)
     return None, ""
+
+
+# =============================================================================
+# KOL K418: ATIF EKSENI — gizli tur ATIF-ZORUNLU => public `lisans` DOLU (NON-GROWTH)
+# =============================================================================
+# 🔴 NEDEN (K418, 18 Eyl 2026): gizli kayitta lisansi atif-zorunlu (CC BY / GPL / MIT ...)
+# olan urunlerin bir kismi public `urunler.json`da `lisans: null` ile GORUNUR satiliyordu
+# (atifsiz satis). KAPI 1 (kapi_lisans) yalniz "SATILABILIR MI" sorar; "satilabilir VE atif
+# istiyor => public atif VAR MI" eksenini olcen kol YOKTU -> denetim IHLAL=0 basiyordu.
+# KURAL (CLAUDE.md "PARA EL DEGISTIRDI MI"): (1) para odedigimiz/odeyecegimiz model (uyelik,
+# satin-alma, "... SATIN ALINMADI", royalty/editorial/standard) -> public atif YOK, IHLAL
+# SAYILMAZ; (2) ucretsiz atif-zorunlu -> atif+link VERILIR ve KALIR. -NC hic satilmaz (ayri
+# sayac). 🔴 GIZLI DIZGE COK VARYANTLI ("BY", "cc_by", "GNU General Public License v3.0",
+# "CC BY - Attribution" ...): ilk elle sayim varyantlari kacirip 114 saymisti (gercek 308).
+# Bu yuzden siniflama TEK fonksiyondadir (atif_sinifi) ve TANINMAYAN dizge "muaf" DEGIL
+# SINIFLANAMADI sayilir (fail-closed raporlama).
+# NON-GROWTH: borc (onceden var olan atifsiz kayit) KIRMIZI YAKMAZ, TABANI ASAN her yeni
+# kayit KIRMIZI yakar. Taban YALNIZ ASAGI cekilir (MaCiT onarimi = tools/duzelt.py).
+# 🔴 GIZLI DOSYA CI'DA YOK (gitignore): kol orada OLCULEMEDI basar, cikis kodunu ETKILEMEZ
+# (mevcut gizli-dosya davranisi: KAPI 1 de CI'da kaynaksiz kosar, rc yalniz `ihlal`den).
+# Yerelde (gizli dosya varken; urun ekleme partisi) taban asimi rc 1 verir.
+ATIF_SINIFLARI = ("ATIF", "SERBEST", "UCRETLI", "NC", "BELIRSIZ", "SINIFLANAMADI", "KAYITSIZ")
+
+#: 🔴 TABAN (K418 olcumu, 18 Eyl 2026, main 3518c223 urunler.json x gizli kayit):
+#: atif-zorunlu gizli tur + public `lisans` bos/null kayit sayisi. YALNIZ ASAGI cekilir.
+#: 18 Eyl 2026 (merge turu): MaCiT K418 veri onarimi (`85673d2f`) sonrasi olculen 308 -> 1.
+#: Kalan 1 = mercedes-r129 koltuk baslik ayar dislisi — lisans alani 12 Agu'da (e5a8d42b)
+#: Okan talimatiyla BILEREK kaldirildi; kasti istisna, borc degil.
+ATIF_IHLAL_TABANI = 1
+#: SINIFLANAMADI (taninmayan gizli dizge) + public `lisans` bos kayit tabani. Taninmayan dizge
+#: atif-zorunlu da olabilir -> buyumesi sessiz kalmaz (fail-closed); YALNIZ ASAGI cekilir.
+#: 18 Eyl olcumu: 22 SINIFLANAMADI kaydin HEPSI yalniz `link` tasiyan (lisans+tur YOK) gizli
+#: kayit; 18'inin public `lisans`i bos.
+SINIFLANAMADI_BOS_TABANI = 18
+
+_ATIF_UCRETLI_TUR = {"satin-alma", "deal", "uyelik"}
+_ATIF_KENDI_TUR = {"ozgun-tasarim", "ozgun-model-okan", "yedek-parca", "kendi-tasarim"}
+_ATIF_UCRETLI_RE = re.compile(
+    r"\bsatin alinmadi\b|\buyelik\b|\bstandard digital file license\b|\broyalty free\b"
+    r"|\beditorial license\b|\bcults (?:pu|cu)\b|\bcgtrader custom\b")
+_ATIF_NC_RE = re.compile(r"\bnc\b|\bnoncommercial\b|\bnon commercial\b")
+_ATIF_BELIRSIZ_RE = re.compile(
+    r"\bbilinmiyor\b|\bbelirsiz\b|\bopen community license\b|\bkendi tasarim\b")
+_ATIF_SERBEST_RE = re.compile(r"\bcc0\b|\bpublic domain\b|\bkamu mali\b")
+_ATIF_ZORUNLU_RE = re.compile(
+    r"\bcc by\b|\battribution\b|^by(?: sa| nd)?(?: [\d ]+)?$"
+    r"|\bl?gpl\b|\bgnu\b|\bgeneral public license\b|\bmit\b|\bbsd\b")
+
+
+def _atif_norm(ham):
+    """Gizli lisans dizgesini karsilastirilabilir bicime indirger: Turkce I/ı -> i (tr_lower
+    'MIT'i 'mıt' yapar — BURADA KULLANILMAZ), kucuk harf, ayirici [-_—–/().,:*] -> bosluk."""
+    s = str(ham).replace("İ", "i").replace("I", "i").lower().replace("ı", "i")
+    return re.sub(r"[\s_\-—–/().,:*]+", " ", s).strip()
+
+
+def _atif_ham(kayit):
+    """Gizli kayittaki lisans TUR dizgesi (dizge ya da {tasarimci, tur} nesnesi)."""
+    l = kayit.get("lisans") if isinstance(kayit, dict) else None
+    if isinstance(l, dict):
+        l = l.get("tur")
+    return l if isinstance(l, str) else ""
+
+
+def atif_sinifi(kayit, urun=None):
+    """TEK siniflayici — gizli kaydin atif sinifi (ATIF_SINIFLARI'ndan biri).
+    Sira: kayitsiz -> parametrik (kendi IP) -> UCRETLI -> NC -> BELIRSIZ -> SERBEST -> ATIF;
+    lisans dizgesi bossa `uyelik`/`tur`a bakilir; HICBIRINE uymayan -> SINIFLANAMADI (muaf
+    SAYILMAZ). UCRETLI once gelir: 'cults_cu_nd ... SATIN ALINMADI' / 'cc_by_sa (satin
+    alinirsa Ticari) - SATIN ALINMADI' ucretli modeldir, atif kolu DEGIL."""
+    if isinstance(urun, dict) and bool(urun.get("parametrik")):
+        return "UCRETLI"
+    if not isinstance(kayit, dict):
+        return "KAYITSIZ"
+    s = _atif_norm(_atif_ham(kayit))
+    if not s:
+        tur = str(kayit.get("tur") or "").strip().lower()
+        if kayit.get("uyelik") or tur in _ATIF_UCRETLI_TUR:
+            return "UCRETLI"
+        if tur in _ATIF_KENDI_TUR or "jenerator" in str(kayit.get("kaynak") or "").lower():
+            return "BELIRSIZ"
+        return "SINIFLANAMADI"
+    if _ATIF_UCRETLI_RE.search(s):
+        return "UCRETLI"
+    if _ATIF_NC_RE.search(s):
+        return "NC"
+    if _ATIF_BELIRSIZ_RE.search(s):
+        return "BELIRSIZ"
+    if _ATIF_SERBEST_RE.search(s):
+        return "SERBEST"
+    if _ATIF_ZORUNLU_RE.search(s):
+        return "ATIF"
+    return "SINIFLANAMADI"
+
+
+def _public_lisans_dolu(urun):
+    l = urun.get("lisans")
+    if isinstance(l, dict):
+        return bool(str(l.get("tur") or "").strip())
+    return isinstance(l, str) and bool(l.strip())
+
+
+def atif_kolu(urunler, kaynaklar, taban=None, siniflanamadi_tabani=None):
+    """Katalog genelinde ATIF ekseni. kaynaklar None (gizli dosya yok/bozuk) -> OLCULEMEDI.
+    Donus: {durum: YESIL|KIRMIZI|OLCULEMEDI, ihlal, siniflanamadi_bos, sinif{}, ihlal_ids,
+    siniflanamadi_dizge{}, nc_bos, taban, siniflanamadi_tabani, notlar[]}."""
+    taban = ATIF_IHLAL_TABANI if taban is None else taban
+    stab = SINIFLANAMADI_BOS_TABANI if siniflanamadi_tabani is None else siniflanamadi_tabani
+    r = {"durum": "OLCULEMEDI", "ihlal": 0, "siniflanamadi_bos": 0, "nc_bos": 0,
+         "kayitsiz_bos": 0,
+         "sinif": {k: 0 for k in ATIF_SINIFLARI}, "ihlal_ids": [], "ihlal_kategori": {},
+         "siniflanamadi_dizge": {}, "taban": taban, "siniflanamadi_tabani": stab,
+         "notlar": []}
+    if not isinstance(kaynaklar, dict):
+        r["notlar"].append("gizli .urun-kaynaklari.json YOK/bozuk (CI'da beklenen) — "
+                           "atif ekseni OLCULEMEDI, cikis kodunu ETKILEMEZ")
+        return r
+    for u in urunler:
+        if not isinstance(u, dict) or u.get("id") is None:
+            continue
+        kayit = kaynaklar.get(str(u.get("id")))
+        sinif = atif_sinifi(kayit, u)
+        r["sinif"][sinif] += 1
+        if _public_lisans_dolu(u):
+            continue
+        if sinif == "ATIF":
+            r["ihlal"] += 1
+            r["ihlal_ids"].append(u["id"])
+            k = str(u.get("kategori") or "-")
+            r["ihlal_kategori"][k] = r["ihlal_kategori"].get(k, 0) + 1
+        elif sinif == "SINIFLANAMADI":
+            r["siniflanamadi_bos"] += 1
+            d = _atif_ham(kayit)[:60] or "(bos lisans, tur=%s)" % (
+                str(kayit.get("tur") or "-") if isinstance(kayit, dict) else "-")
+            r["siniflanamadi_dizge"][d] = r["siniflanamadi_dizge"].get(d, 0) + 1
+        elif sinif == "NC":
+            r["nc_bos"] += 1
+        elif sinif == "KAYITSIZ":
+            r["kayitsiz_bos"] += 1
+    kirmizi = False
+    if r["ihlal"] > taban:
+        kirmizi = True
+        r["notlar"].append("KIRMIZI: atifsiz atif-zorunlu kayit TABANI ASTI (%d > %d) — yeni "
+                           "kayit public `lisans`siz eklendi" % (r["ihlal"], taban))
+    elif r["ihlal"] < taban:
+        r["notlar"].append("taban dusurulebilir: ATIF_IHLAL_TABANI %d -> %d (yalniz ASAGI)"
+                           % (taban, r["ihlal"]))
+    if r["siniflanamadi_bos"] > stab:
+        kirmizi = True
+        r["notlar"].append("KIRMIZI: SINIFLANAMADI + public `lisans` bos kayit TABANI ASTI "
+                           "(%d > %d) — taninmayan gizli dizge atif-zorunlu olabilir; "
+                           "atif_sinifi()'na ekle" % (r["siniflanamadi_bos"], stab))
+    elif r["siniflanamadi_bos"] < stab:
+        r["notlar"].append("taban dusurulebilir: SINIFLANAMADI_BOS_TABANI %d -> %d"
+                           % (stab, r["siniflanamadi_bos"]))
+    r["durum"] = "KIRMIZI" if kirmizi else "YESIL"
+    return r
+
+
+def atif_kolu_bas(r):
+    print("\n=== ATIF KOLU (K418: gizli atif-zorunlu => public `lisans` dolu; NON-GROWTH) ===")
+    if r["durum"] == "OLCULEMEDI":
+        print("  ATIF_KOLU=OLCULEMEDI — %s" % "; ".join(r["notlar"]))
+        return
+    print("  atifsiz atif-zorunlu : %d (taban %d)" % (r["ihlal"], r["taban"]))
+    if r["ihlal_kategori"]:
+        print("    kategori: %s" % " · ".join(
+            "%s %d" % (k, n) for k, n in sorted(r["ihlal_kategori"].items(),
+                                                 key=lambda x: (-x[1], x[0]))))
+    print("  SINIFLANAMADI        : %d (public bos: %d, taban %d)"
+          % (r["sinif"]["SINIFLANAMADI"], r["siniflanamadi_bos"], r["siniflanamadi_tabani"]))
+    for d, n in sorted(r["siniflanamadi_dizge"].items(), key=lambda x: -x[1])[:10]:
+        print("    %5d  %s" % (n, d))
+    print("  NC (public bos)      : %d (-NC satilmaz; ayri sayac)" % r["nc_bos"])
+    print("  KAYITSIZ (public bos): %d (gizli kayit YOK — eksen tools/yetim-kayit-kapisi.py; "
+          "burada RAPOR)" % r["kayitsiz_bos"])
+    print("  sinif dagilimi       : %s" % " · ".join(
+        "%s %d" % (k, r["sinif"][k]) for k in ATIF_SINIFLARI))
+    for n in r["notlar"]:
+        print("  %s" % n)
+    print("  ATIF_KOLU=%s IHLAL=%d SINIFLANAMADI=%d" % (
+        r["durum"], r["ihlal"], r["sinif"]["SINIFLANAMADI"]))
 
 
 def kapi_maket_auto(urun):
@@ -2689,6 +2888,9 @@ def main():
                     help="ENVANTER KOLU (BLOKLAMAZ): --tum-katalog ile birlikte kullanilir; "
                          "onceden var olan ihlalleri kural kural sayar ve rc 0 doner. "
                          "Yayin yolunu (deploy) BEKLETMEZ — ayri, bagimsiz bir CI isidir.")
+    ap.add_argument("--kaynaklar", default=None, metavar="YOL",
+                    help="gizli kaynak kaydi yolu (varsayilan: <kok>/.urun-kaynaklari.json). "
+                         "Worktree'den ANA kopyanin gizli kaydini olcmek icin (salt okuma).")
     args = ap.parse_args()
 
     if args.kendini_test:
@@ -2698,7 +2900,11 @@ def main():
     if not isinstance(urunler, list):
         print("HATA: urunler.json okunamadi/dizi degil.", file=sys.stderr)
         return 2
-    kaynaklar = _oku_json(KAYNAKLAR, {})
+    kaynaklar = _oku_json(args.kaynaklar or KAYNAKLAR, None)
+    # K418 ATIF KOLU: gizli dosya YOK/bozuk -> None -> OLCULEMEDI (CI'da beklenen, rc'yi
+    # ETKILEMEZ). Asagidaki KAPI 1 eski davranisini korur ({} ile fail-closed auto_sil).
+    atif = atif_kolu(urunler, kaynaklar if isinstance(kaynaklar, dict) else None)
+    atif_kirmizi = atif["durum"] == "KIRMIZI"
     if not isinstance(kaynaklar, dict):
         kaynaklar = {}
 
@@ -2791,6 +2997,7 @@ def main():
         print("  onceden var  : %d (HEAD^'te de vardi — bu itme GETIRMEDI, bloklamaz; "
               "ayri temizlik isi)" % len(onceden))
     print("  rapor -> %s" % args.rapor)
+    atif_kolu_bas(atif)
 
     # === ENVANTER KOLU: BLOKLAMAYAN kural-kural dokum + rc 0 ==========================
     # 🔴 NEDEN BLOKLAMAZ (OLCULDU, 31 Tem): bu depoda kapi birikmesi yayin suresini 21 gunde
@@ -2809,6 +3016,8 @@ def main():
                                 len({it["id"] for it in rapor["ihlal"]})))
         print("  %-34s | %d" % ("TOPLAM VURUS", len(rapor["ihlal"])))
         print("  temizlik partisi -> tools/duzelt.py --toplu (ayri is; bu kol RAPORDUR)")
+        if atif_kirmizi:
+            print("  (ATIF KOLU KIRMIZI — envanter kipi RAPORLAR, rc 0)")
         return 0
 
     if rapor["ihlal"]:
@@ -2820,7 +3029,7 @@ def main():
         sil_ids = rapor["_sil_ids"]
         if not sil_ids:
             print("uygulanacak silme yok.")
-            return 0
+            return 1 if atif_kirmizi else 0
         # --- ONAY KAPISI (kapsam-patlamasi korumasi; bkz SILME_ONAY_TAVANI) ----------
         # Onay iki kosuldan biri dogruysa SART. Ayrica --evet-sil VERILDIYSE kosul
         # olmasa bile esitlik aranir (fail-closed: verilen sayi tutmuyorsa olcum ile
@@ -2842,7 +3051,7 @@ def main():
         print("--uygula: %d urun duzelt.py --sil ile kaldiriliyor..." % len(sil_ids))
         ok, hata = _uygula(sil_ids, rapor["_gerekce"])
         print("uygulandi: %d silindi, %d hata" % (len(ok), len(hata)))
-        return 1 if (hata or rapor["ihlal"]) else 0
+        return 1 if (hata or rapor["ihlal"] or atif_kirmizi) else 0
 
     _sil_n = len(rapor["_sil_ids"])
     if _sil_n:
@@ -2851,7 +3060,7 @@ def main():
         for n in _onay_gerekce(args.tum_katalog, _sil_n):
             print("  onay kapisi ETKIN — %s" % n)
     print("(report-only — silmek icin --uygula)")
-    return 1 if rapor["ihlal"] else 0
+    return 1 if (rapor["ihlal"] or atif_kirmizi) else 0
 
 
 if __name__ == "__main__":

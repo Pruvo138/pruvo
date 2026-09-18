@@ -17,6 +17,9 @@ SOZLESME — bir kapi/nobetci/test govdesi su UC halden BIRINDE olmalidir:
   (2) MUAF    : `ci-kapsam-test.py::IZIN_LISTESI` icinde GEREKCESIYLE kayitli,
   (3) YARDIMCI: CLI'si yok (`if __name__ == "__main__"` blogu YOK) ve en az bir baska
                 tools/*.py onu import ediyor -> kutuphanedir, ayri cagri yeri BEKLENMEZ.
+  (3b) SURULEN: CLI'si var, (1)'deki KOSAN bir govde onu YUKLER ve CLI GIRISINI
+                (`main` vb.) `<modul>.<giris>(...)` ile FIILEN cagirir (17 Eyl 2026 —
+                kurucu `kapi-dagitim-kur.py`). Ic fonksiyon cagrisi SURMEK DEGILDIR.
 Dorduncu hal — hicbiri — SESSIZ SAHIPSIZLIKTIR ve bu kapi onu sayar.
 
 🔴 EVREN TUZAGI (bu kapinin dogum sebebi): ilk olcum yalnizca `deploy.yml` + `nobet.yml`e
@@ -223,7 +226,8 @@ def denetle(tools_dizini=None, akis_dizini=None, ci_kapsam_yolu=None):
         return None, ("ci-kapsam-test.py::IZIN_LISTESI OKUNAMADI — muafiyet kaydi "
                       "TEK KAYNAKTIR, onsuz sahipsizlik hukmu verilemez (fail-closed)")
     atif = kosan_atiflar(akis_dizini)
-    kovalar = {"kosan": [], "muaf": [], "yardimci": [], "sahipsiz": []}
+    kovalar = {"kosan": [], "muaf": [], "yardimci": [], "surulen": [], "sahipsiz": []}
+    kalan = []
     for ad in sinif_govdeleri(tools_dizini):
         if atif.get(ad):
             kovalar["kosan"].append((ad, ",".join(atif[ad])))
@@ -232,8 +236,82 @@ def denetle(tools_dizini=None, akis_dizini=None, ci_kapsam_yolu=None):
         elif yardimci_modul_mu(ad, tools_dizini):
             kovalar["yardimci"].append((ad, "CLI yok + import ediliyor"))
         else:
+            kalan.append(ad)
+    for ad in kalan:
+        surucu = kosan_yukleyici(ad, [k for k, _ in kovalar["kosan"]], tools_dizini)
+        if surucu:
+            kovalar["surulen"].append((ad, "CI'da KOSAN %s yukleyip CLI girisini cagirir" % surucu))
+        else:
             kovalar["sahipsiz"].append((ad, "hicbir is akisinda YOK, gerekce YOK"))
     return kovalar, None
+
+
+def kosan_yukleyici(ad, kosan_adlari, tools_dizini=None):
+    """SURULEN kova (17 Eyl 2026, KraL-Tamirci-17Eyl): CLI'li `ad` govdesini
+    CI'da KOSAN bir govde `yukluyor_mu` (AST) olcutuyle YUKLUYORSA o surucunun adi.
+
+    OLCULEN KUSUR: K335 kurucusu `kapi-dagitim-kur.py` adindaki `kapi-` izi
+    yuzunden evrene girdi; `run:` satirinda yok, IZIN_LISTESI'ne de yazilamaz
+    (`ci-kapsam-test.py` kural 3: KESFEDILMEYEN giris exit 1). Oysa SERIT B'de
+    kosan `kapi-dagitim-test.py` onu `spec_from_file_location` ile yukleyip
+    fonksiyonlarini fiilen surer -> "sessiz sahipsiz" DEGIL. Kapi uc yolu da
+    kapaliyken govdeyi SAHIPSIZ sayip taban asimiyla SERIT B'yi kirmizi yakti.
+    🔴 KONTROL-D KORUNUR: yukleyen govde KOSMUYORSA (urun-ekle.py gibi) CLI'li
+    govde yine SAHIPSIZ'dir. Adini ANMAK da yetmez (M3/M4 ile ayni olcut).
+    🔴 KONTROL-A KORUNUR — YUKLEMEK + IC FONKSIYON CAGIRMAK SURMEK DEGILDIR: bir
+    kapinin degeri CLI taramasidir; fiksturde yardimci fonksiyonunu test etmek o
+    taramayi gercek veride KOSMAZ (`gorsel-boyut-test.py` -> `gorsel_boyut_kapisi`
+    yalniz `boyut/filtrele` cagirir -> SAHIPSIZ kalir). Surucu, govdenin
+    `if __name__ == "__main__"` blogunda cagrilan GIRIS fonksiyonunu (`main` vb.)
+    `<modul>.<giris>(...)` bicimiyle FIILEN cagirmalidir.
+    """
+    d = tools_dizini or TOOLS
+    try:
+        girisler = cli_giris_fonksiyonlari(_oku(os.path.join(d, ad)))
+    except OSError:
+        return None
+    if not girisler:
+        return None
+    for surucu in sorted(kosan_adlari):
+        try:
+            govde = _oku(os.path.join(d, surucu))
+        except OSError:
+            continue
+        if yukluyor_mu(govde, ad) and giris_cagiriyor_mu(govde, girisler):
+            return surucu
+    return None
+
+
+def cli_giris_fonksiyonlari(govde):
+    """`if __name__ == "__main__"` blogunda CAGRILAN ve govdede TANIMLI fonksiyon adlari."""
+    try:
+        agac = ast.parse(govde)
+    except (SyntaxError, ValueError):
+        return set()
+    tanimli = {d.name for d in agac.body
+               if isinstance(d, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    cagrilan = set()
+    for d in agac.body:
+        if not isinstance(d, ast.If):
+            continue
+        test = d.test
+        if not (isinstance(test, ast.Compare) and isinstance(test.left, ast.Name)
+                and test.left.id == "__name__"):
+            continue
+        for c in ast.walk(d):
+            if isinstance(c, ast.Call) and isinstance(c.func, ast.Name):
+                cagrilan.add(c.func.id)
+    return cagrilan & tanimli
+
+
+def giris_cagiriyor_mu(govde, girisler):
+    """Surucu govdede `<nesne>.<giris>(...)` bicimli bir cagri var mi (AST)."""
+    try:
+        agac = ast.parse(govde)
+    except (SyntaxError, ValueError):
+        return False
+    return any(isinstance(c, ast.Call) and isinstance(c.func, ast.Attribute)
+               and c.func.attr in girisler for c in ast.walk(agac))
 
 
 def taban_oku():
@@ -279,13 +357,14 @@ def main(argv=None):
           % n["kosan"])
     print("  (2) MUAF        : %d  (ci-kapsam-test.py::IZIN_LISTESI, gerekceli)" % n["muaf"])
     print("  (3) YARDIMCI    : %d  (CLI yok + baska arac import ediyor)" % n["yardimci"])
+    print("  (3b) SURULEN    : %d  (CI'da KOSAN bir govde yukleyip CLI GIRISINI cagirir)" % n["surulen"])
     print("  (4) SAHIPSIZ    : %d  (hicbiri — SESSIZ SAHIPSIZLIK)" % n["sahipsiz"])
     print("  is akisi dosyasi: %d (GLOB'dan turedi, elle liste YOK)"
           % len([w for w in sorted(os.listdir(AKIS_DIZINI))
                  if w.endswith((".yml", ".yaml"))]))
 
     if a.envanter:
-        for kova in ("sahipsiz", "yardimci", "muaf", "kosan"):
+        for kova in ("sahipsiz", "surulen", "yardimci", "muaf", "kosan"):
             print("\n--- %s (%d) ---" % (kova.upper(), n[kova]))
             for ad, nk in kovalar[kova]:
                 print("  %-52s %s" % (ad, nk))

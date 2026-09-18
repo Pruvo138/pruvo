@@ -84,6 +84,19 @@ type = "ratelimit"
 namespace_id = "1002"
 simple = { limit = 60, period = 60 }
 
+# IP basina SIPARIS BASLATMA tavani (POST /api/shop/baslat). OLCULEN OLAY (17 Eyl 2026 00:44-02:30Z):
+# bot sahte musteri verisiyle 96 kart odemesi BASLATTI (hepsi en ucuz 15 TL urun, saniye arali
+# seriler, uydurma GA/fbp kimlikleri) — kart testi oruntusu; uc tavansizdi. Gercek musteri
+# dakikada birkac kez odeme baslatmaz -> 10/60 sn yanlis-pozitif uretmez. EN IYI CABA (sayac
+# kolo basina bolunur, bkz. FIYAT blogu). AYRI namespace: fiyat/beacon kotasini tuketmez.
+# Kod FAIL-OPEN (bilincli, /fiyat'in tersi): binding yoksa odeme yolu KAPANMAZ, yuksek sesli log
+# basar — tavan eksikligi satis kaybindan ucuzdur. Blogun varligini shop/test/baslat-hiz-siniri.mjs olcer.
+[[unsafe.bindings]]
+name = "BASLAT_RATE_LIMIT"
+type = "ratelimit"
+namespace_id = "1003"
+simple = { limit = 10, period = 60 }
+
 # Uretim dosyalari (STL/3MF) OZEL R2 kovasinda (pruvo-media DEGIL — ticari dosya public'e
 # sizmaz). Yonetim /stl ucu SALT-OKUMA ile stream eder; toplu yukleme tools/stl-r2-yukle.py.
 # T2 (30 Agu 2026): /stl-yukle ve /stl-cikar uclari da BU binding'i kullanir — yukleme

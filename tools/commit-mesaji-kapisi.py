@@ -542,6 +542,21 @@ def _kayitli_govde(host):
     return normalize(govde).replace(" ", "")
 
 
+# 🔴 REZERVE TLD (17 Eyl 2026, KraL-Tamirci-17Eyl): RFC 6761/6762 ile genel DNS'te
+# ASLA cozulmeyen ozel-kullanim adlari. Boyle bir host bir satici/vitrin OLAMAZ.
+# OLCULEN KUSUR: ArTisT PR merge'lerinin `Co-authored-by: ...@pruvo.local` trailer'i
+# e-posta ekseninde "TANINMAYAN ALAN ADI" yakiyordu; merge GitHub'da (pre-push'suz)
+# oldugu icin onleyemiyor, SERIT B zamanlanmis kosumu (son 50 commit) kronik KIRMIZI
+# kaliyordu (35185836202). Muafiyet GIZLI DESEN kontrolunden SONRA gelir: vitrin adi
+# rezerve TLD'ye sarilsa (`<vitrin>.local`) bile ad ekseni hukmu EZER (C4/C5 iddialari).
+REZERVE_TLD = frozenset(("local", "invalid", "test", "example", "localhost"))
+
+
+def rezerve_tld_mi(host):
+    etiketler = (host or "").lower().strip(".").split(".")
+    return len(etiketler) >= 2 and etiketler[-1] in REZERVE_TLD
+
+
 def alan_adi_isabetleri(mesaj, kayit=None, markalar=None):
     """[(host, konum, desen_no), ...] — hukme giren host jetonlari.
 
@@ -578,6 +593,8 @@ def alan_adi_isabetleri(mesaj, kayit=None, markalar=None):
         no = _host_desen_isabeti(host, kayit)
         if no is not None:
             isabet.append((host, konum, no))
+            continue
+        if rezerve_tld_mi(host):
             continue
         govde = _kayitli_govde(host)
         if govde is not None and govde in markalar:
@@ -1571,6 +1588,28 @@ def kendini_test():
         kontrol("J6 katalogda OLMAYAN taninmayan host HALA KIRMIZI (fail-closed)",
                 bool(alan_adi_isabetleri("kaynak: bilinmeyensatici.com/liste",
                                          kayit, gercek_markalar)))
+        # ---- REZERVE TLD (17 Eyl): bot trailer'i YESIL · vitrin adi yine KIRMIZI
+        trailer = "Co-authored-by: ArTisT-bot <artist@pruvo.local>"
+        kontrol("R1 rezerve TLD trailer'i (`@*.local`) YESIL",
+                not alan_adi_isabetleri(trailer, kayit, gercek_markalar))
+        kontrol("R2 rezerve TLD'ye sarili VITRIN adi HALA KIRMIZI (ad ekseni once gelir)",
+                bool(alan_adi_isabetleri("x <satis@gizlivitrin.local>", kayit,
+                                         gercek_markalar)))
+        kontrol("R3 rezerve OLMAYAN benzer TLD (`.lokal`/`.co`) muaf DEGIL",
+                bool(alan_adi_isabetleri("kaynak: bilinmeyensatici.co/liste", kayit,
+                                         gercek_markalar))
+                and not rezerve_tld_mi("pruvo.lokal") and not rezerve_tld_mi("local"))
+        _asil_rez = rezerve_tld_mi
+        globals()["rezerve_tld_mi"] = lambda host: True
+        try:
+            m_rez = bool(alan_adi_isabetleri("x <satis@gizlivitrin.local>", kayit,
+                                             gercek_markalar))
+            m_j6 = bool(alan_adi_isabetleri("kaynak: bilinmeyensatici.com/liste",
+                                            kayit, gercek_markalar))
+        finally:
+            globals()["rezerve_tld_mi"] = _asil_rez
+        kontrol("R4 MUTANT (her host rezerve sayilir): J6 OLUR, R2 ad ekseni SAYESINDE yasar",
+                m_rez and not m_j6)
         kontrol("J7 urunler.json YOKKEN muafiyet KAPALI (bos kume = KATI davranis)",
                 katalog_markalari(os.path.join(tmp, "yok.json")) == frozenset())
 

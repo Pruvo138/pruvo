@@ -45,6 +45,12 @@ import sys
 import tempfile
 
 GERCEK_KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Kopya kapanisi ELLE LISTELENMEZ — import'lardan TURETILIR (veri_kok.kum_kur); elle liste
+# 18 Eyl'de veri_kok.py'yi kacirip yayini durdurdu. Alt surecin veri koku = kum (override).
+_vk_spec = importlib.util.spec_from_file_location(
+    "veri_kok", os.path.join(os.path.dirname(os.path.abspath(__file__)), "veri_kok.py"))
+veri_kok = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(veri_kok)
 
 gecen = [0]
 kalan = [0]
@@ -130,9 +136,7 @@ _SAHTE_KATALOG = [
 
 def sahte_repo(kok):
     d = tempfile.mkdtemp(prefix="altkategori-kapisi-")
-    os.makedirs(os.path.join(d, "tools"))
-    for ad in ("duzelt.py", "arama.py", "gorsel_koken.py"):
-        shutil.copy2(os.path.join(kok, "tools", ad), os.path.join(d, "tools", ad))
+    veri_kok.kum_kur(os.path.join(d, "tools"), {"duzelt.py": None}, os.path.join(kok, "tools"))
     with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
         json.dump(_SAHTE_KATALOG, f, ensure_ascii=False, indent=2)
     return d
@@ -141,7 +145,7 @@ def sahte_repo(kok):
 def duzelt_cagir(repo, argv):
     """Sahte repodaki GERCEK duzelt.py'yi cagir; (rc, urunler.json sha256) dondur."""
     p = subprocess.run([sys.executable, os.path.join(repo, "tools", "duzelt.py")] + argv,
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, env=veri_kok.kum_ortami(repo))
     with open(os.path.join(repo, "urunler.json"), "rb") as f:
         return p.returncode, hashlib.sha256(f.read()).hexdigest(), (p.stdout + p.stderr)
 
@@ -562,8 +566,8 @@ MUTANTLAR = [
 # sanar; 14 oldurucu mutantin hepsi ayni sebeple yalanci-KIRMIZI olur (olculdu, 1 Agu:
 # konfigur-bundle-kapisi.py eksikti, 16 mutantin 16'si "0 iddia kirmizi" ile duştu).
 # MUTASYONSUZ KONTROL bu yuzden mutasyon() icinde ZORUNLU on-kosuldur (asagida M00).
-KOPYALANAN = ["arama.py", "d1-sync.py", "d1-sema.sql", "duzelt.py", "gorsel_koken.py",
-              "konfigur-bundle-kapisi.py"]
+# Mutasyon hedefleri + .py DISI kod varligi (d1-sema.sql); .py kardesleri kum_kur TURETIR.
+KOPYALANAN = ["arama.py", "d1-sync.py", "d1-sema.sql", "duzelt.py"]
 
 
 def _sha(yol):
@@ -577,6 +581,9 @@ def _kopya_kur():
     os.makedirs(os.path.join(tmp, "tools"))
     for ad in KOPYALANAN:
         shutil.copy2(os.path.join(GERCEK_KOK, "tools", ad), os.path.join(tmp, "tools", ad))
+    veri_kok.kum_kur(os.path.join(tmp, "tools"),
+                     {ad: None for ad in KOPYALANAN if ad.endswith(".py")},
+                     os.path.join(GERCEK_KOK, "tools"))
     os.symlink(os.path.join(GERCEK_KOK, "urunler.json"), os.path.join(tmp, "urunler.json"))
     return tmp
 

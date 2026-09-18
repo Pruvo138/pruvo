@@ -23,6 +23,19 @@ DERLEYICI_AD = "derleyici-2"
 # deger secret olarak durur. Tanimsizsa ic uc 404 (ozellik kapali):
 #   npx wrangler secret put IC_DERLE_ANAHTAR   # onizleme + shop AYNI deger
 
+# IP basina DERLEME tavani (POST /api/onizleme/olustur, yalniz onbellek ISKASI sayilir).
+# 18 Eyl 2026 public uc taramasi: eski izolat-ici Map sayaci fiilen fren degildi (shop /fiyat
+# 29 Tem olcumu: yeni baglantili istemciye 40/40 200). Her iska TEK paylasilan derleyici
+# konteynerine OpenSCAD isi yukler. EN IYI CABA (sayac kolo basina bolunur, bkz.
+# shop/wrangler.toml FIYAT blogu). namespace_id hesap genelinde benzersiz: shop 1001-1003
+# kullanir. period yalniz 10 veya 60. Kod: binding yoksa izolat sayacina duser (fail-open
+# DEGIL). Blogun varligini onizleme/test/derleme-hiz-siniri.mjs olcer. SIR YOK.
+[[unsafe.bindings]]
+name = "ONIZLEME_RATE_LIMIT"
+type = "ratelimit"
+namespace_id = "1004"
+simple = { limit = 10, period = 60 }
+
 [[r2_buckets]]
 binding = "ONBELLEK"
 bucket_name = "pruvo-onizleme"

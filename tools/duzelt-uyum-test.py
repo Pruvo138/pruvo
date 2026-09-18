@@ -45,8 +45,12 @@ import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 
-# duzelt.py bunlari KOSULSUZ import eder -> sahte repoya da kopyalanmalilar.
-YARDIMCILAR = ("gorsel_koken.py", "arama.py")
+# duzelt.py'nin kardes kapanisi (gorsel_koken/arama/veri_kok ...) ELLE LISTELENMEZ —
+# kopyalanan kaynagin import'larindan TURETILIR (veri_kok.kum_kur). Elle liste 18 Eyl'de
+# veri_kok.py'yi kacirip yayini durdurdu ([[elle-tutulan-bagimlilik-listesi-sessizce-bayatlar]]).
+_vk_spec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+veri_kok = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(veri_kok)
 
 # 🔴 BAGIMSIZ CAPA — duzelt.RC_UYUM'dan import EDILMEZ. Iki taraf ayni sabiti okusaydi
 # kod sessizce degistirilip test yine yesil yanardi ([[kapi-anchor-coupling-ikilemi]]).
@@ -89,10 +93,7 @@ def urun(uid, **ek):
 
 def sahte_repo(katalog):
     d = tempfile.mkdtemp(prefix="duzelt-uyum-testi-")
-    os.makedirs(os.path.join(d, "tools"))
-    shutil.copy(os.path.join(TOOLS, "duzelt.py"), os.path.join(d, "tools", "duzelt.py"))
-    for ad in YARDIMCILAR:
-        shutil.copy(os.path.join(TOOLS, ad), os.path.join(d, "tools", ad))
+    veri_kok.kum_kur(os.path.join(d, "tools"), {"duzelt.py": None}, TOOLS)
     with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
         json.dump(katalog, f, ensure_ascii=False, indent=2)
     return d
@@ -106,8 +107,10 @@ def temizle(*repolar):
 def cagir(repo, *argv):
     """duzelt.py'yi SUREC olarak kostur -> GERCEK cikis kodu (in-process cagri
     cikis kodunu ve argparse davranisini taklit ederdi)."""
+    # VERI KOKU = sahte repo (PRUVO_VERI_KOK) — git/__file__ sansina birakilmaz.
     r = subprocess.run([sys.executable, os.path.join(repo, "tools", "duzelt.py")]
-                       + list(argv), capture_output=True, text=True, timeout=600)
+                       + list(argv), capture_output=True, text=True, timeout=600,
+                       env=veri_kok.kum_ortami(repo))
     return r.returncode, (r.stdout or "") + (r.stderr or "")
 
 

@@ -22,7 +22,6 @@ import importlib.util
 import json
 import os
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -31,7 +30,12 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 KOK = os.path.dirname(TOOLS)
 KAPI = os.path.join(TOOLS, "urun-silme-kapisi.py")
 DUZELT = os.path.join(TOOLS, "duzelt.py")
-DUZELT_YARDIMCI = ("gorsel_koken.py", "arama.py")   # duzelt.py KOSULSUZ import eder
+# duzelt.py'nin kardes kapanisi (veri_kok.py dahil) ELLE LISTELENMEZ — kopyalanan
+# kaynagin import'larindan TURETILIR (veri_kok.kum_kur). Elle liste 18 Eyl'de
+# `veri_kok.py`yi kacirip yayini durdurdu ([[elle-tutulan-bagimlilik-listesi-sessizce-bayatlar]]).
+_vk_spec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+veri_kok = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(veri_kok)
 PANEL = os.path.join(TOOLS, "panel-uygulayici.py")
 KANCA = os.path.join(TOOLS, "kancalar", "pre-commit")
 DEPLOY = os.path.join(KOK, ".github", "workflows", "deploy.yml")
@@ -116,16 +120,15 @@ def kapi_kos(kapi, depo, args, env=None):
 
 def duzelt_sahte(tmp, duzelt, katalog):
     d = tempfile.mkdtemp(dir=tmp, prefix="sahte-")
-    os.makedirs(os.path.join(d, "tools"))
-    shutil.copy(duzelt, os.path.join(d, "tools", "duzelt.py"))
-    for y in DUZELT_YARDIMCI:
-        shutil.copy(os.path.join(TOOLS, y), os.path.join(d, "tools", y))
+    with open(duzelt, encoding="utf-8") as f:
+        veri_kok.kum_kur(os.path.join(d, "tools"), {"duzelt.py": f.read()}, TOOLS)
     yaz(d, katalog)
     return d
 
 
 def duzelt_kos(depo, args, izin=False):
-    env = temiz_env(**({"PRUVO_URUN_SIL_IZNI": "OKAN"} if izin else {}))
+    # VERI KOKU = sahte depo (PRUVO_VERI_KOK) — git/__file__ sansina birakilmaz.
+    env = veri_kok.kum_ortami(depo, temiz_env(**({"PRUVO_URUN_SIL_IZNI": "OKAN"} if izin else {})))
     p = subprocess.run([sys.executable, os.path.join(depo, "tools", "duzelt.py")] + list(args),
                        capture_output=True, text=True, env=env, cwd=depo, timeout=300)
     return p.returncode, p.stdout + p.stderr

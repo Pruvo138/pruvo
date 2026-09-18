@@ -27,10 +27,20 @@ import shutil
 import sys
 import tempfile
 
-CRON_KOKU = "/Users/okan/.claude/cron"
-NOBET_KAPI = os.path.join(CRON_KOKU, "nobet-kapi.py")
-ESKALASYON_MD = os.path.join(CRON_KOKU, "gozcu-eskalasyon.md")
-SAYAC_JSON = os.path.join(CRON_KOKU, "nobet-onarimsiz-sayac.json")
+# 🔴 KUM HAVUZU (18 Eyl 2026): nobet-kapi ve TUM mutantlari gecici bir
+# CRON_KOKU'dan (`nobet_kum.py`) yuklenir/yazilir. Eskiden mutantlar canli koke
+# `.b4-mutant-*.py` olarak yaziliyor, modulun varsayilan yollari (sayac, log,
+# geri-iz) canliyi gosteriyordu. D6 kanit dosyasi KUMDAKI kopyadir — modulun
+# yazabilecegi TEK kopya odur. Kum kurulamazsa KABUL=KALDI (fail-closed).
+CRON_KOKU = "/Users/okan/.claude/cron"          # yalniz nobet_kum.py okunur
+NOBET_KUM_YOLU = os.path.join(CRON_KOKU, "nobet_kum.py")
+NOBET_KAPI = "nobet-kapi.py"                     # kum icindeki ad
+KUM = None                                       # main() kurar
+NOBET_KUM = None
+
+
+def _eskalasyon_md():
+    return os.path.join(str(KUM), "gozcu-eskalasyon.md")
 
 EMEKLI = "deepseek-pro"
 VAKALAR = []
@@ -44,14 +54,23 @@ def vaka(vid, beklenen, olculen):
     return gecti
 
 
-def modul_yukle(yol, ad):
-    if CRON_KOKU not in sys.path:
-        sys.path.insert(0, CRON_KOKU)
-    spec = importlib.util.spec_from_file_location(ad, yol)
+def _nobet_kum_yukle():
+    """Kurucu canli kokten YOLLA yuklenir; canli kok sys.path'e GIRMEZ
+    (girerse `import kilit` canli kopyayi bulurdu)."""
+    spec = importlib.util.spec_from_file_location("b4_nobet_kum", NOBET_KUM_YOLU)
     mod = importlib.util.module_from_spec(spec)
-    sys.modules[ad] = mod
-    spec.loader.exec_module(mod)
+    onceki = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True       # canli __pycache__'e .pyc DUSMESIN
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        sys.dont_write_bytecode = onceki
     return mod
+
+
+def modul_yukle(dosya_adi, ad):
+    """Modulu KUMDAN yukle (kum disi yol kurucuda RED)."""
+    return NOBET_KUM.modul_yukle(KUM, os.path.basename(dosya_adi), ad)
 
 
 def _geri_iz(motor, durum="ESKALASYON", kalem_id="K55"):
@@ -182,11 +201,11 @@ def bolum_d4(nk, kaynak, tmp, ek=""):
          "VAR" if os.path.exists(sahte_sayac) else "YOK")
 
     # D6 — KANIT DOSYASI: gozcu-eskalasyon.md'ye DOKUNULMAZ (kabul-6).
-    once_md = _dosya_imzasi(ESKALASYON_MD)
+    once_md = _dosya_imzasi(_eskalasyon_md())
     nk.bayat_eskalasyonlari_gocur(_geri_iz(EMEKLI), damga="D",
                                   canli_motorlar=tuple(nk.CANLI_ISCI_MOTORLARI))
     vaka("D6-kanit-dosyasi-degismedi%s" % ek, once_md,
-         _dosya_imzasi(ESKALASYON_MD))
+         _dosya_imzasi(_eskalasyon_md()))
 
 
 SAYAC_ADLARI = ("ustuste_onarimsiz_guncelle", "ustuste_onarimsiz_oku",
@@ -258,10 +277,9 @@ def mutant_kos(ad, kaynak, tmp, hedef_onek, yan_onek, taban=None):
               % ad)
         return False, False
     isaret = len(VAKALAR)
-    yol = os.path.join(CRON_KOKU, ".b4-mutant-%s.py" % ad.split("-")[0].lower())
+    yol = os.path.join(str(KUM), ".b4-mutant-%s.py" % ad.split("-")[0].lower())
     try:
-        with open(yol, "w", encoding="utf-8") as dosya:
-            dosya.write(kaynak)
+        NOBET_KUM.kuma_yaz(KUM, os.path.basename(yol), kaynak)   # KUMA, canliya ASLA
         mod = modul_yukle(yol, "b4_mutant_%s" % ad.split("-")[0].lower())
         # 🔴 Mutant URETIM sayacina YAZMASIN: R4 mutanti goc yolunda
         # `ustuste_onarimsiz_guncelle` cagirir ve varsayilan yol GERCEK
@@ -339,10 +357,9 @@ def bolum_r(kaynak, tmp):
 
     # K0 — KONTROL: kaynak DEGISMEDEN ayni harness'ten gecer.
     isaret = len(VAKALAR)
-    yol = os.path.join(CRON_KOKU, ".b4-mutant-k0.py")
+    yol = os.path.join(str(KUM), ".b4-mutant-k0.py")
     try:
-        with open(yol, "w", encoding="utf-8") as dosya:
-            dosya.write(kaynak)
+        NOBET_KUM.kuma_yaz(KUM, os.path.basename(yol), kaynak)   # KUMA, canliya ASLA
         mod = modul_yukle(yol, "b4_mutant_k0")
         mod.ONARIMSIZ_SAYAC_YOLU = os.path.join(tmp, "mutant-sayac-K0.json")
         bolum_d1(mod, ek="-K0")
@@ -364,19 +381,43 @@ def bolum_r(kaynak, tmp):
 # ===========================================================================
 
 def main():
+    """Kum kur -> bataryayi kos -> kumu sil -> canli modul imzasini olc.
+    Canli imza DEGISTIYSE hukum ne olursa olsun KABUL=KALDI."""
+    global KUM, NOBET_KUM
     try:
-        with open(NOBET_KAPI, encoding="utf-8") as dosya:
+        NOBET_KUM = _nobet_kum_yukle()
+        imza_once = NOBET_KUM.canli_modul_imzasi()
+        KUM = NOBET_KUM.kum_kur("b4-")
+    except Exception as hata:                           # noqa: BLE001
+        print("KABUL=KALDI (KUM KURULAMADI — canliya kosulmaz: %s)" % hata)
+        return 2
+    try:
+        rc, kabul = _batarya()
+    finally:
+        NOBET_KUM.kum_sil(KUM)
+    imza_sonra = NOBET_KUM.canli_modul_imzasi()
+    print("KUM=%s SILINDI=%s CANLI_IMZA=%s CANLI_ARTIK=%d"
+          % (KUM, not os.path.exists(str(KUM)),
+             "AYNI" if imza_once == imza_sonra else "DEGISTI",
+             len(imza_sonra[1])))
+    if imza_once != imza_sonra:
+        print("KABUL=KALDI (CANLI modul/artik DEGISTI — kum sizdi)")
+        return 1
+    print(kabul)
+    return rc
+
+
+def _batarya():
+    try:
+        with open(os.path.join(str(KUM), NOBET_KAPI), encoding="utf-8") as dosya:
             kaynak = dosya.read()
     except OSError as hata:
-        print("KABUL=KALDI (nobet-kapi.py okunamadi: %s)" % hata)
-        return 2
+        return 2, "KABUL=KALDI (nobet-kapi.py okunamadi: %s)" % hata
     nk = modul_yukle(NOBET_KAPI, "b4_nobet_kapi")
     if not hasattr(nk, "bayat_eskalasyonlari_gocur"):
-        print("KABUL=KALDI (B4 yamasi KURULU DEGIL)")
-        return 2
+        return 2, "KABUL=KALDI (B4 yamasi KURULU DEGIL)"
     if not nk.CANLI_ISCI_MOTORLARI:
-        print("KABUL=OLCULEMEDI (CANLI_ISCI_MOTORLARI BOS — kapsam olculemez)")
-        return 3
+        return 3, "KABUL=OLCULEMEDI (CANLI_ISCI_MOTORLARI BOS — kapsam olculemez)"
 
     tmp = tempfile.mkdtemp(prefix="b4-bayat-")
     try:
@@ -395,18 +436,14 @@ def main():
              k0_n if k0_yesil else 0, k0_n))
     print("TOPLAM=%d GECTI=%d KALDI=%d" % (toplam, gecen, toplam - gecen))
     if MUTASYON_UYGULANMADI:
-        print("KABUL=OLCULEMEDI (mutasyon capasi BAYAT: %s)"
-              % ",".join(MUTASYON_UYGULANMADI))
-        return 3
+        return 3, ("KABUL=OLCULEMEDI (mutasyon capasi BAYAT: %s)"
+                   % ",".join(MUTASYON_UYGULANMADI))
     if not k0_yesil:
-        print("KABUL=OLCULEMEDI (K0 kontrol mutanti kirmizi — batarya kararsiz)")
-        return 3
+        return 3, "KABUL=OLCULEMEDI (K0 kontrol mutanti kirmizi — batarya kararsiz)"
     if gecen == toplam and m_gecen == len(mutantlar):
-        print("KABUL=GECTI (%d/%d vaka)" % (gecen, toplam))
-        return 0
-    print("KABUL=KALDI (%d/%d vaka, %d/%d mutant)"
-          % (gecen, toplam, m_gecen, len(mutantlar)))
-    return 1
+        return 0, "KABUL=GECTI (%d/%d vaka)" % (gecen, toplam)
+    return 1, ("KABUL=KALDI (%d/%d vaka, %d/%d mutant)"
+               % (gecen, toplam, m_gecen, len(mutantlar)))
 
 
 if __name__ == "__main__":
