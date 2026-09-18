@@ -19,6 +19,21 @@ OLCULEN KABUL MADDELERI
      · `gozcu.deneme_sonraki` — ATLANDI turunda HIC CAGRILMAZ (H2-A olcer)
      · `nobet-tetik.karar` — "gozcu icra etti mi" sorusu `icra_denendi`den okunur
      · envanter: `icra_rc`'yi gozcu.py DISINDA okuyan dosya sayisi CIVILI=1
+
+🔴 KUM HAVUZU (18 Eyl 2026): gozcu/nobet-tetik ve TUM mutantlari gecici bir
+CRON_KOKU'dan (`nobet_kum.py`) yuklenir/yazilir. Eskiden mutantlar canli koke
+`.b6-*.py` olarak yaziliyor, `gozcu.tur(kuru=False)` canli kokteki bekci
+logu/damgasi gibi varsayilan yollara erisebiliyordu. Canli kok yalniz OKUNUR
+(H3e tuketici envanteri). Kum kurulamazsa KABUL=KALDI (fail-closed).
+
+🔴 FIKSTUR TAZELEMESI (18 Eyl 2026, K0 kirmizisinin SEBEBI olculdu):
+  · H2b rc=1: B5 (sonradan) `KOSUM_HUKMU=` jetonunu ZORUNLU kildi; jetonsuz
+    cikti `OLCULEMEDI` -> K311 `uretken_mi` KIRMIZI. `TEMIZ` fiksturu gercek
+    turun bastigi jetonu tasir.
+  · H3a/b/d: K311 (27 Agu) `karar()`a SEVIYE (`kirmizi_toplam`) ve URETKEN
+    (`kosum_hukmu`) kollarini ekledi; alan YOKSA fail-closed OLCULEMEDI.
+    `_kalp()` bugunku gozcunun yazdigi alanlari tasir.
+  K0 "kararsiz" degildi: ana batarya da AYNI vakalarda kirmiziydi.
 """
 
 import importlib.util
@@ -30,9 +45,12 @@ import sys
 import tempfile
 import time
 
-CRON_KOKU = "/Users/okan/.claude/cron"
-GOZCU = os.path.join(CRON_KOKU, "gozcu.py")
-TETIK = os.path.join(CRON_KOKU, "nobet-tetik.py")
+CRON_KOKU = "/Users/okan/.claude/cron"          # YALNIZ OKUNUR (H3e)
+NOBET_KUM_YOLU = os.path.join(CRON_KOKU, "nobet_kum.py")
+GOZCU = "gozcu.py"                               # kum icindeki ad
+TETIK = "nobet-tetik.py"
+KUM = None                                       # main() kurar
+NOBET_KUM = None
 
 SIMDI = 1_755_000_000.0
 VAKALAR = []
@@ -46,14 +64,23 @@ def vaka(vid, beklenen, olculen):
     return gecti
 
 
-def modul_yukle(yol, ad):
-    if CRON_KOKU not in sys.path:
-        sys.path.insert(0, CRON_KOKU)
-    spec = importlib.util.spec_from_file_location(ad, yol)
+def _nobet_kum_yukle():
+    """Kurucu canli kokten YOLLA yuklenir; canli kok sys.path'e GIRMEZ
+    (girerse `import kilit` canli kopyayi bulurdu)."""
+    spec = importlib.util.spec_from_file_location("b6_nobet_kum", NOBET_KUM_YOLU)
     mod = importlib.util.module_from_spec(spec)
-    sys.modules[ad] = mod
-    spec.loader.exec_module(mod)
+    onceki = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True       # canli __pycache__'e .pyc DUSMESIN
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        sys.dont_write_bytecode = onceki
     return mod
+
+
+def modul_yukle(dosya_adi, ad):
+    """Modulu KUMDAN yukle (kum disi yol kurucuda RED)."""
+    return NOBET_KUM.modul_yukle(KUM, os.path.basename(dosya_adi), ad)
 
 
 # --- fikstur (gozcu-test.py deseninin bagimsiz kopyasi) --------------------
@@ -91,8 +118,14 @@ ATLAMA_B8 = ("=== 2026-08-20T09:23:02Z NOBET ATLANDI "
              "SAYAC_YAZILDI=0\n")
 ATLAMA_ESKI = ("=== 2026-08-20T09:23:02Z NOBET ATLANDI "
                "HUKUM=ONCEKI_TUR_SURUYOR ATLANAN_ARDISIK=1 ===\n")
-TEMIZ = "MOTOR=minimax-m3\nHUKUM=TEMIZ rc=0\n"
-DUSEN = "TUR_HALI=KOSTU_DUSTU SEBEP=SURE_TAVANI\nHUKUM=SURE_TAVANI rc=1\n"
+# 🔴 B5'ten beri tur `KOSUM_HUKMU=` jetonunu HER cikista basar; jetonsuz cikti
+# gozcuda OLCULEMEDI -> K311 uretken_mi KIRMIZI (H2b rc=1 bunun izi idi).
+TEMIZ = ("MOTOR=minimax-m3\n"
+         "KOSUM_HUKMU=TEMIZ MOTOR_RC=0 TUR_HUKMU=TEMIZ\n"
+         "HUKUM=TEMIZ rc=0\n")
+DUSEN = ("TUR_HALI=KOSTU_DUSTU SEBEP=SURE_TAVANI\n"
+         "KOSUM_HUKMU=MOTOR_DUSTU MOTOR_RC=- TUR_HUKMU=SURE_TAVANI\n"
+         "HUKUM=SURE_TAVANI rc=1\n")
 
 
 # ===========================================================================
@@ -209,9 +242,14 @@ def bolum_h2(gz, tmp, ek=""):
 # ===========================================================================
 
 def _kalp(**ek):
+    # 🔴 K311 (27 Agu): `karar()` SEVIYE kolu `kirmizi_toplam`, URETKEN kolu
+    # `kosum_hukmu` okur; alan YOKSA fail-closed OLCULEMEDI doner. Bugunku
+    # gozcu ikisini de HER kalbe yazar -> fikstur da yazar. "Eski kalp"
+    # (H3d) yalniz B6'nin `icra_denendi` alanindan yoksundur.
     temel = {"damga": "x", "epok": SIMDI, "tetik": "CI_KIRMIZI",
              "ci_olculdu": True, "defter_olculdu": True, "hedef_run": "4242",
-             "gunluk_gerekli": False, "rc": 0}
+             "gunluk_gerekli": False, "rc": 0, "kirmizi_toplam": 0,
+             "kosum_hukmu": "TEMIZ"}
     temel.update(ek)
     return temel
 
@@ -280,10 +318,22 @@ def _atif(ad, isaret, hedef_onek, yan_onek):
     return hedef_oldu, yan_yesil
 
 
+CAPA_BAYAT = []
+
+
+def _mutasyon(ad, kaynak, eski, yeni):
+    """Capa TAM BIR kez gecmeli; aksi halde mutasyon UYGULANMAMISTIR ve
+    mutant "yasadi/oldu" diye SESSIZ raporlanamaz -> KABUL=OLCULEMEDI
+    ([[mutant-capasi-giris-noktasinin-okumadigi-degerde-olmez]])."""
+    if kaynak.count(eski) != 1:
+        CAPA_BAYAT.append("%s(%d)" % (ad, kaynak.count(eski)))
+        print("MUTANT=%-30s CAPA_BAYAT sayi=%d" % (ad, kaynak.count(eski)))
+    return kaynak.replace(eski, yeni, 1)
+
+
 def _gecici_modul(ad, kaynak, dosya_adi):
-    yol = os.path.join(CRON_KOKU, dosya_adi)
-    with open(yol, "w", encoding="utf-8") as dosya:
-        dosya.write(kaynak)
+    """Mutant kaynagi KUMA yazilir — canli koke ASLA."""
+    yol = NOBET_KUM.kuma_yaz(KUM, dosya_adi, kaynak)
     try:
         return modul_yukle(yol, ad), yol
     except Exception:                                   # noqa: BLE001
@@ -320,9 +370,10 @@ def bolum_h4(gz, tetik_mod, gz_kaynak, tt_kaynak, tmp):
 
     # P2 — TUKETICI eski kola dondu (`icra_rc is not None`)
     isaret = len(VAKALAR)
-    tt_mut = tt_kaynak.replace(
+    tt_mut = _mutasyon(
+        "P2", tt_kaynak,
         'if kalp.get("icra_denendi", kalp.get("icra_rc") is not None):',
-        'if kalp.get("icra_rc") is not None:', 1)
+        'if kalp.get("icra_rc") is not None:')
     mod, yol = _gecici_modul("b6_tetik_p2", tt_mut, ".b6-tetik-p2.py")
     try:
         bolum_h3(mod, ek="-P2")
@@ -333,11 +384,14 @@ def bolum_h4(gz, tetik_mod, gz_kaynak, tt_kaynak, tmp):
 
     # P3 — ATLANDI turu yeniden DENEME sayiyor
     isaret = len(VAKALAR)
-    gz_mut = gz_kaynak.replace(
+    # 🔴 Eskiden ikinci bir `.replace('deneme_sonraki(kayit, icra_hal == ...)')`
+    # vardi; B5 o satiri `kosum_hukmu == "TEMIZ"`e cevirince capa BAYATLADI
+    # ve SESSIZCE hicbir sey degistirmedi. Hedef kol (ATLANDI deneme sayar)
+    # tek capayla olur; bayat ikinci capa KALDIRILDI.
+    gz_mut = _mutasyon(
+        "P3", gz_kaynak,
         '            if icra_hal in ("KOSTU_BASARILI", "KOSTU_DUSTU"):',
-        '            if True:', 1).replace(
-        'deneme_sonraki(kayit, icra_hal == "KOSTU_BASARILI")',
-        'deneme_sonraki(kayit, True)', 1)
+        '            if True:')
     mod, yol = _gecici_modul("b6_gozcu_p3", gz_mut, ".b6-gozcu-p3.py")
     try:
         bolum_h2(mod, tmp, ek="-P3")
@@ -368,18 +422,43 @@ def bolum_h4(gz, tetik_mod, gz_kaynak, tt_kaynak, tmp):
 # ===========================================================================
 
 def main():
+    """Kum kur -> bataryayi kos -> kumu sil -> canli modul imzasini olc.
+    Canli imza DEGISTIYSE hukum ne olursa olsun KABUL=KALDI."""
+    global KUM, NOBET_KUM
     try:
-        with open(GOZCU, encoding="utf-8") as dosya:
+        NOBET_KUM = _nobet_kum_yukle()
+        imza_once = NOBET_KUM.canli_modul_imzasi()
+        KUM = NOBET_KUM.kum_kur("b6-")
+    except Exception as hata:                           # noqa: BLE001
+        print("KABUL=KALDI (KUM KURULAMADI — canliya kosulmaz: %s)" % hata)
+        return 2
+    try:
+        rc, kabul = _batarya()
+    finally:
+        NOBET_KUM.kum_sil(KUM)
+    imza_sonra = NOBET_KUM.canli_modul_imzasi()
+    print("KUM=%s SILINDI=%s CANLI_IMZA=%s CANLI_ARTIK=%d"
+          % (KUM, not os.path.exists(str(KUM)),
+             "AYNI" if imza_once == imza_sonra else "DEGISTI",
+             len(imza_sonra[1])))
+    if imza_once != imza_sonra:
+        print("KABUL=KALDI (CANLI modul/artik DEGISTI — kum sizdi)")
+        return 1
+    print(kabul)
+    return rc
+
+
+def _batarya():
+    try:
+        with open(os.path.join(str(KUM), GOZCU), encoding="utf-8") as dosya:
             gz_kaynak = dosya.read()
-        with open(TETIK, encoding="utf-8") as dosya:
+        with open(os.path.join(str(KUM), TETIK), encoding="utf-8") as dosya:
             tt_kaynak = dosya.read()
     except OSError as hata:
-        print("KABUL=KALDI (kaynak okunamadi: %s)" % hata)
-        return 2
+        return 2, "KABUL=KALDI (kaynak okunamadi: %s)" % hata
     gz = modul_yukle(GOZCU, "b6_gozcu")
     if not hasattr(gz, "icra_halini_coz"):
-        print("KABUL=KALDI (B6 yamasi KURULU DEGIL: icra_halini_coz yok)")
-        return 2
+        return 2, "KABUL=KALDI (B6 yamasi KURULU DEGIL: icra_halini_coz yok)"
     tetik_mod = modul_yukle(TETIK, "b6_tetik")
 
     tmp = tempfile.mkdtemp(prefix="b6-icra-")
@@ -399,15 +478,15 @@ def main():
              sum(1 for _, h, _y in mutantlar if h), len(mutantlar),
              k0_n if k0_yesil else 0, k0_n))
     print("TOPLAM=%d GECTI=%d KALDI=%d" % (toplam, gecen, toplam - gecen))
+    if CAPA_BAYAT:
+        return 3, ("KABUL=OLCULEMEDI (mutasyon capasi BAYAT: %s)"
+                   % ",".join(CAPA_BAYAT))
     if not k0_yesil:
-        print("KABUL=OLCULEMEDI (K0 kontrol mutanti kirmizi — batarya kararsiz)")
-        return 3
+        return 3, "KABUL=OLCULEMEDI (K0 kontrol mutanti kirmizi — batarya kararsiz)"
     if gecen == toplam and m_gecen == len(mutantlar):
-        print("KABUL=GECTI (%d/%d vaka)" % (gecen, toplam))
-        return 0
-    print("KABUL=KALDI (%d/%d vaka, %d/%d mutant)"
-          % (gecen, toplam, m_gecen, len(mutantlar)))
-    return 1
+        return 0, "KABUL=GECTI (%d/%d vaka)" % (gecen, toplam)
+    return 1, ("KABUL=KALDI (%d/%d vaka, %d/%d mutant)"
+               % (gecen, toplam, m_gecen, len(mutantlar)))
 
 
 if __name__ == "__main__":

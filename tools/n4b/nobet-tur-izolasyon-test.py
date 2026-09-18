@@ -38,10 +38,21 @@ import threading
 import time
 
 CRON_KOKU = "/Users/okan/.claude/cron"
-ISCI_SH = os.path.join(CRON_KOKU, "isci.sh")
-NOBET_KAPI = os.path.join(CRON_KOKU, "nobet-kapi.py")
-ISCI_LOG = os.path.join(CRON_KOKU, "isci.log")
-TUR_CIKTI_DIZINI = os.path.join(CRON_KOKU, "isci-tur-cikti")
+NOBET_KAPI = os.path.join(CRON_KOKU, "nobet-kapi.py")   # modul olarak OKUNUR
+
+# 🔴 18 Eyl 2026 KUM HAVUZU + CANLI MOTOR: BOLUM A/D eskiden CANLI isci.sh'i
+# emekli `kimi` motoruyla kosuyordu (6 Eyl'den beri `Bilinmeyen motor` exit 2
+# -> A0/A1/A3 kalici KIRMIZI), CANLI kokte `profil-kimi-*` kurup siliyor ve
+# canli isci.log'a / isci-tur-cikti/'ya yaziyordu. Artik isci.sh `isci_kum`
+# ile gecici CRON_KOKU'da `minimax-m3` (sahte motor) ile kosar; profil,
+# isci.log, isci-tur-cikti ve karantina sayaci KUMDADIR. Kum kurulamazsa
+# fail-closed (canliya kosulmaz). Kanonik kaynak: pruvo `tools/n4b/`.
+sys.path.insert(0, CRON_KOKU)
+import isci_kum  # noqa: E402
+
+KUM = None                  # main() kurar
+ISCI_SH = ISCI_LOG = TUR_CIKTI_DIZINI = None
+ISCI_MOTORU = "minimax-m3"
 
 TAG_A = "B7TURA"
 TAG_B = "B7TURB"
@@ -97,6 +108,7 @@ def temiz_env(ekstra=None):
     beyaz = {"PATH", "HOME", "USER", "LOGNAME", "SHELL", "LANG",
              "LC_ALL", "LC_CTYPE", "TERM", "TMPDIR"}
     env = {k: v for k, v in os.environ.items() if k in beyaz}
+    env = isci_kum.kum_env(KUM, env)    # CRON_KOKU=KUM (isci-temizlik.py)
     env["PRUVO_ISCI_BAGLAM"] = "kapali"
     env["PRUVO_ISCI_BEKCI_ARALIK"] = "1"
     env["BEKCI_SIGKILL_BEKLEME_SN"] = "3"
@@ -137,12 +149,9 @@ class IsciKosumu:
         self.spec = os.path.join(tmp, "spec-%s.md" % etiket)
         with open(self.spec, "w", encoding="utf-8") as dosya:
             dosya.write("# B7 TEST SPEC (%s)\nBos spec.\n" % etiket)
-        self.profil = os.path.join(
-            CRON_KOKU, "profil-kimi-%s" % re.sub(r"[^A-Za-z0-9._-]", "_",
-                                                 os.path.basename(self.ev)))
-        if os.path.exists(self.profil):
-            shutil.rmtree(self.profil)
-        os.makedirs(os.path.join(self.profil, "projects"))
+        # Profil ONCEDEN KURULMAZ: canlida `PROFIL/projects` motorun ilk
+        # yazimina kadar yoktur; isci.sh kendisi kurar (18 Eyl tur bekcisi
+        # onarimi). Profil kumdadir; kum_sil ile gider.
         self.env = temiz_env({
             "PRUVO_ISCI_CLAUDE_BIN": sahte,
             "PRUVO_ISCI_TUR_CIKTI": tur_cikti,
@@ -155,14 +164,14 @@ class IsciKosumu:
     def _kos(self):
         try:
             proc = subprocess.run(
-                [ISCI_SH, "kimi", self.ev, self.spec, "kabul-b7-%s" % self.etiket],
+                [ISCI_SH, ISCI_MOTORU, self.ev, self.spec, "kabul-b7-%s" % self.etiket],
                 env=self.env, capture_output=True, text=True, timeout=ISCI_TIMEOUT)
             self.rc = proc.returncode
         except subprocess.TimeoutExpired:
             self.rc = -2
 
     def temizle(self):
-        shutil.rmtree(self.profil, ignore_errors=True)
+        pass                # profil kumdadir; main() kum_sil ile kaldirir
 
 
 def izolasyon_kos(tmp, sahte, yol_a, yol_b):
@@ -455,6 +464,16 @@ def main():
         print("KABUL=KALDI (B7 yamasi KURULU DEGIL: %s)" % ",".join(eksik))
         return 2
 
+    global KUM, ISCI_SH, ISCI_LOG, TUR_CIKTI_DIZINI
+    try:
+        KUM = isci_kum.kum_kur("b7-izolasyon-")
+    except isci_kum.KumKurulamadi as hata:
+        print("%s\nKABUL=KALDI (kum havuzu kurulamadi; canliya kosulmadi)" % hata)
+        return 2
+    ISCI_SH = str(KUM / "isci.sh")
+    ISCI_LOG = str(KUM / "isci.log")
+    TUR_CIKTI_DIZINI = str(KUM / "isci-tur-cikti")
+
     tmp = tempfile.mkdtemp(prefix="b7-izolasyon-")
     bin_dizin = os.path.join(tmp, "bin")
     os.makedirs(bin_dizin)
@@ -470,6 +489,7 @@ def main():
         mutantlar, k0_yesil, k0_n = bolum_d(kapi, tmp, sahte)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+        isci_kum.kum_sil(KUM)
 
     gecen, toplam = sayim()
     m_gecen = sum(1 for _, h, y in mutantlar if h and y)
