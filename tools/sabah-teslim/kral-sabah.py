@@ -526,6 +526,113 @@ def _repo_slug() -> str | None:
         return None
 
 
+KIRMIZI_KUME = ("failure", "cancelled", "timed_out")
+YESIL_KUME = ("success", "neutral", "skipped")
+# Seviyeyi belirleyen HÜKÜM kümesi: `cancelled` hüküm DEĞİLDİR (K339 — concurrency
+# iptali koşumu öldürür, sonucu söylemez); ardıl aranırken atlanır.
+HUKUM_KUME = ("success", "failure", "timed_out")
+
+
+def _run_zamani(run):
+    try:
+        return dt.datetime.fromisoformat((run.get("createdAt") or "").replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+
+def ardil_hukum(data, run):
+    """`run` ile AYNI iş akışı + dalda, ondan SONRA açılmış EN YENİ hükümlü koşum.
+
+    Yoksa None. Bir kırmızının kapanıp kapanmadığı kırmızının kendisinden değil,
+    iş akışının SEVİYESİNDEN okunur (K326 ekseni: "ardılı olmayan kırmızı").
+    """
+    t0 = _run_zamani(run)
+    if t0 is None:
+        return None
+    en_yeni, en_yeni_t = None, None
+    for d in data:
+        if d.get("name") != run.get("name") or d.get("headBranch") != run.get("headBranch"):
+            continue
+        t = _run_zamani(d)
+        if t is None or t <= t0:
+            continue
+        if (d.get("status") or "").lower() != "completed":
+            continue
+        if (d.get("conclusion") or "").lower() not in HUKUM_KUME:
+            continue
+        if en_yeni_t is None or t > en_yeni_t:
+            en_yeni, en_yeni_t = d, t
+    return en_yeni
+
+
+def kirmizi_siniflandir(data, bugun):
+    """Bugünün koşumlarını kovalara ayırır (saf fonksiyon — gh/ağ YOK, testlenir).
+
+    Döner: (kirmizi_satirlari, hukumsuz_satirlari, canli_n, ardili_yesil_n)
+
+    🔴 K356 (31 Ağu 2026) — ÜÇÜNCÜ KOVA: "HÜKMÜ HENÜZ OLMAYAN KOŞUM".
+    Eski döngü İKİ kova tanıyordu: kırmızı küme ve "geri kalan". Sürmekte
+    olan koşumun `conclusion`u null'dur → ikinci kovaya düşer → SESSİZCE
+    YEŞİL sayılırdı ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]],
+    [[yeni-hal-cozucunun-varsayilan-kovasina-duser]]).
+    ÖLÇÜLDÜ (31 Ağu, iddia değil): `Nöbet şeridi (SERIT B)` koşumu
+    02:24:45Z başladı, **03:30:16Z `failure` kapandı**; spec 03:20:02Z
+    üretildi → o an `status=in_progress, conclusion=null`, atlandı ve
+    başlık "HÜKÜM=OK · ADET=0 (ÖLÇÜLDÜ)" bastı. AYNI KOD 09:5xZ'de tek
+    satır değiştirilmeden `KIRMIZI=1` verdi. Tarihsel tarama (300 koşum,
+    28–31 Ağu): 4 günün 2'sinde kesim anında hükümsüz bir koşum vardı ve
+    İKİSİ DE sonradan `failure` kapandı; 1 gün TAM SAHTE YEŞİL doğdu.
+    "Yeşil yok" bir KIRMIZI değildir, HÜKMÜN YOKLUĞUDUR (K339 sınıfı) →
+    kırmızı yoksa ve hükümsüz varsa alan `OLCULEMEDI`dir, `0` DEĞİL.
+
+    🔴 18 Eyl 2026 (KraL-Tamirci-18Eyl) — KIRMIZININ SEVİYESİ. Spec 03:20Z'de
+    `ADET=8` bastı; satırda SHA/run yoktu, Tamirci her kırmızıyı elle SHA'ya
+    eşlemek zorunda kaldı. Ölçüldü: o anda 3 Build&deploy satırı ZATEN kapalıydı
+    (ardılı `45616be8` success 02:09Z), 5 SERIT B satırı canlıydı (en yeni hüküm
+    `45616be8` failure; ardıl `84a60965` 04:33Z'de success kapattı). "8 kırmızı"
+    ile "3 kapalı + 5 canlı" aynı sayıya çöküyordu. Artık her kırmızı ardılının
+    hükmüyle basılır:
+    ardılı `success` → KAPANDI; ardıl yok / ardıl kırmızı → CANLI. `ADET`
+    anlamı DEĞİŞMEDİ (k333 bataryası onu yer gerçeğiyle kıyaslar).
+    """
+    kirmizi, hukumsuz = [], []
+    canli_n = kapanan_n = 0
+    for run in data:
+        t = _run_zamani(run)
+        if t is None or t.date() != bugun:
+            continue
+        durum = (run.get("status") or "").lower()
+        conc = (run.get("conclusion") or "").lower()
+        ad = run.get("name", "?")
+        dal = run.get("headBranch", "?")
+        if durum != "completed":
+            hukumsuz.append("- [{}] {} · dal={} (HÜKÜM YOK: koşum sürüyor)".format(
+                durum or "durum-yok", ad, dal))
+        elif conc in KIRMIZI_KUME:
+            sha = (run.get("headSha") or "?")[:8]
+            rid = run.get("databaseId", "?")
+            ardil = ardil_hukum(data, run)
+            if ardil is not None and (ardil.get("conclusion") or "").lower() == "success":
+                kapanan_n += 1
+                seviye = "KAPANDI: ardılı `{}` success (run {})".format(
+                    (ardil.get("headSha") or "?")[:8], ardil.get("databaseId", "?"))
+            else:
+                canli_n += 1
+                seviye = ("CANLI: ardıl hüküm YOK" if ardil is None else
+                          "CANLI: ardılı `{}` {} (run {})".format(
+                              (ardil.get("headSha") or "?")[:8],
+                              (ardil.get("conclusion") or "").lower(),
+                              ardil.get("databaseId", "?")))
+            kirmizi.append("- [{}] {} · dal={} · sha=`{}` · run {} → {}".format(
+                conc, ad, dal, sha, rid, seviye))
+        elif conc not in YESIL_KUME:
+            # Bilinmeyen sonuç (action_required/stale/yeni bir hâl) da varsayılan
+            # yeşil kovasına DÜŞMEZ; adıyla hükümsüz sayılır.
+            hukumsuz.append("- [{}] {} · dal={} (BİLİNMEYEN SONUÇ)".format(
+                conc or "sonuc-yok", ad, dal))
+    return kirmizi, hukumsuz, canli_n, kapanan_n
+
+
 def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
     """Bugünün kırmızı CI koşumlarını ölçer.
 
@@ -552,7 +659,7 @@ def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
     #   ② `cwd=REPO`  — argv çivisi hiç kurulamasa bile çağrı repo kökünden koşar.
     # Ölçen: `tools/gh-civi-nobetcisi.py` (AST, üç kova, mutant 4/4).
     argv = [yol, "run", "list", "--limit", "30",
-            "--json", "conclusion,name,createdAt,headBranch,status"]
+            "--json", "conclusion,name,createdAt,headBranch,status,headSha,databaseId"]
     slug = _repo_slug()
     if slug:
         argv += ["-R", slug]
@@ -568,48 +675,13 @@ def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
         import json
         data = json.loads(r.stdout or "[]")
         bugun = dt.datetime.now(dt.timezone.utc).date()
-        # 🔴 K356 (31 Ağu 2026) — ÜÇÜNCÜ KOVA: "HÜKMÜ HENÜZ OLMAYAN KOŞUM".
-        # Eski döngü İKİ kova tanıyordu: kırmızı küme ve "geri kalan". Sürmekte
-        # olan koşumun `conclusion`u null'dur → ikinci kovaya düşer → SESSİZCE
-        # YEŞİL sayılırdı ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]],
-        # [[yeni-hal-cozucunun-varsayilan-kovasina-duser]]).
-        # ÖLÇÜLDÜ (31 Ağu, iddia değil): `Nöbet şeridi (SERIT B)` koşumu
-        # 02:24:45Z başladı, **03:30:16Z `failure` kapandı**; spec 03:20:02Z
-        # üretildi → o an `status=in_progress, conclusion=null`, atlandı ve
-        # başlık "HÜKÜM=OK · ADET=0 (ÖLÇÜLDÜ)" bastı. AYNI KOD 09:5xZ'de tek
-        # satır değiştirilmeden `KIRMIZI=1` verdi. Tarihsel tarama (300 koşum,
-        # 28–31 Ağu): 4 günün 2'sinde kesim anında hükümsüz bir koşum vardı ve
-        # İKİSİ DE sonradan `failure` kapandı; 1 gün TAM SAHTE YEŞİL doğdu.
-        # "Yeşil yok" bir KIRMIZI değildir, HÜKMÜN YOKLUĞUDUR (K339 sınıfı) →
-        # kırmızı yoksa ve hükümsüz varsa alan `OLCULEMEDI`dir, `0` DEĞİL.
-        KIRMIZI_KUME = ("failure", "cancelled", "timed_out")
-        YESIL_KUME = ("success", "neutral", "skipped")
-        kirmizi = []
-        hukumsuz = []
-        for run in data:
-            ts = run.get("createdAt", "")
-            try:
-                run_date = dt.datetime.fromisoformat(ts.replace("Z", "+00:00")).date()
-            except Exception:
-                continue
-            if run_date != bugun:
-                continue
-            durum = (run.get("status") or "").lower()
-            conc = (run.get("conclusion") or "").lower()
-            ad = run.get("name", "?")
-            dal = run.get("headBranch", "?")
-            if durum != "completed":
-                hukumsuz.append("- [{}] {} · dal={} (HÜKÜM YOK: koşum sürüyor)".format(
-                    durum or "durum-yok", ad, dal))
-            elif conc in KIRMIZI_KUME:
-                kirmizi.append("- [{}] {} · dal={}".format(conc, ad, dal))
-            elif conc not in YESIL_KUME:
-                # Bilinmeyen sonuç (action_required/stale/yeni bir hâl) da varsayılan
-                # yeşil kovasına DÜŞMEZ; adıyla hükümsüz sayılır.
-                hukumsuz.append("- [{}] {} · dal={} (BİLİNMEYEN SONUÇ)".format(
-                    conc or "sonuc-yok", ad, dal))
+        kirmizi, hukumsuz, canli_n, kapanan_n = kirmizi_siniflandir(data, bugun)
         if kirmizi:
-            blok = "\n".join(kirmizi)
+            blok = ("> SEVİYE (iş akışı+dal başına EN YENİ hükümlü koşum; `cancelled` hüküm "
+                    "DEĞİL): **CANLI={}** · ARDILI_YESIL={} — ADET bugünün TÜM kırmızı "
+                    "koşumlarını sayar; tamir edilecek olan yalnız CANLI olanlardır.\n\n".format(
+                        canli_n, kapanan_n)
+                    + "\n".join(kirmizi))
             if hukumsuz:
                 blok += ("\n\n> ⚠️ AYRICA HÜKMÜ OLMAYAN {} koşum var — ADET'e GİRMEZLER, "
                          "kırmızı çıkabilirler; hüküm kapanınca YENİDEN ölç:\n".format(len(hukumsuz))
