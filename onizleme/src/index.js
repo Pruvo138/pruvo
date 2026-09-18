@@ -23,10 +23,9 @@
  *  - Onbellek anahtari = aile + SHA-256(normalize parametreler); isabet derleyiciye
  *    GITMEZ ve hiz sinirina SAYILMAZ.
  *
- * Hiz siniri: IP basina dakikada 10 DERLEME (izolat ici bellek; Cloudflare'da
- * izolat basina ayri sayac olabilir = pilot icin kabul edilen yumusaklik, cunku
- * onbellek isabetleri zaten muaf ve asil koruma derleme maliyetine. Ileride
- * Cloudflare rate-limit binding'ine tek fonksiyon degisikligiyle gecilir).
+ * Hiz siniri: IP basina dakikada 10 DERLEME — native Cloudflare rate limiting binding
+ * (ONIZLEME_RATE_LIMIT; 18 Eyl 2026'dan beri). Binding yoksa izolat-ici sayaca duser
+ * (zayif fren; bkz. derlemeHizSiniriAsildi). Onbellek isabetleri muaf.
  */
 
 import KONF from "../../jenerator/konfigurator.js";
@@ -141,7 +140,35 @@ async function gzipLe(buf) {
   return await new Response(akis).arrayBuffer();
 }
 
-// ---- hiz siniri (izolat ici bellek; onbellek isabetleri muaf) ----
+// ---- hiz siniri (onbellek isabetleri muaf) ----
+// 🔴 18 Eyl 2026 (public uc taramasi): izolat-ici Map TEK BASINA fren DEGILDIR. Ayni desen
+// shop /fiyat'ta 29 Tem'de canli olculdu: her istekte yeni baglanti acan istemciye 40/40
+// HTTP 200 (her isolate'in Map'i BOS baslar). Bu uc herkese acik ve her onbellek iskasi
+// TEK paylasilan derleyici konteynerine (DERLEYICI_AD, max 1 DO) OpenSCAD isi yukler —
+// ayni konteyner yonetimin uretim STL'ini de (/ic-derle) derler. Parametre uzayi genis
+// oldugundan bot her istekte iska uretir (R2 PUT + konteyner CPU + musteriye 502/504).
+// ASIL FREN: native Cloudflare rate limiting binding (env.ONIZLEME_RATE_LIMIT, onizleme/
+// wrangler.toml). O da EN IYI CABADIR (sayac kolo basina bolunur, /fiyat olcumu ~4,4x) ama
+// sinirsizdan sonluya gecis olculmustur. Binding YOK/PATLARSA eski izolat sayacina DUSER:
+// bugunku davranistan KOTU olamaz (fail-open DEGIL, eski frene geri cekilme); onizleme
+// odeme yolu degildir, ucu tamamen kapatmak (fail-closed) sari serinin satisini durdururdu.
+// Nobetci: onizleme/test/derleme-hiz-siniri.mjs (mutant: cagri silinince KIRMIZI).
+async function derlemeHizSiniriAsildi(request, env) {
+  const ip = request.headers.get("CF-Connecting-IP") || "yerel";
+  const rl = env && env.ONIZLEME_RATE_LIMIT;
+  if (rl && typeof rl.limit === "function") {
+    try {
+      const sonuc = await rl.limit({ key: ip });
+      return !(sonuc && sonuc.success);
+    } catch (e) {
+      console.error("onizleme rate-limit hatasi (izolat sayacina dusuldu):", (e && e.stack) || e);
+    }
+  } else {
+    console.error("ONIZLEME_RATE_LIMIT binding YOK/BOZUK -> yalniz izolat sayaci (zayif fren)");
+  }
+  return hizSiniriAsildi(ip);
+}
+
 const sayaclar = new Map(); // ip -> son SINIR_PENCERE_MS icindeki derleme zamanlari
 
 function hizSiniriAsildi(ip) {
@@ -262,8 +289,7 @@ async function olustur(request, env) {
   }
 
   // HIZ SINIRI: yalniz derleme yoluna girenler sayilir.
-  const ip = request.headers.get("CF-Connecting-IP") || "yerel";
-  if (hizSiniriAsildi(ip)) {
+  if (await derlemeHizSiniriAsildi(request, env)) {
     return json({ hata: "hiz-siniri", mesaj: "Dakikada en fazla " + SINIR_ADET +
                   " yeni onizleme uretilebilir; az sonra tekrar deneyin." }, 429, env);
   }

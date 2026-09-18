@@ -1254,6 +1254,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: node onizleme/test/onbellek-surum.mjs
 
+      # ONIZLEME DERLEME TAVANI (18 Eyl 2026 public uc taramasi): /olustur herkese acik ve her
+      # onbellek iskasi TEK paylasilan derleyici konteynerine is yukler; eski izolat-ici Map
+      # fiilen fren degildi. GERCEK onizleme/src/index.js sahte R2 + sahte derleyici ile:
+      # limiter reddedince 429 + derleyici/R2 0, onbellek isabeti muaf, binding yok/patlarsa
+      # izolat sayacina duser (fail-open DEGIL), wrangler.toml blogu + benzersiz namespace,
+      # tavan cagrisi silinince KIRMIZI (mutant). OFFLINE, ag YOK, wrangler YOK, <1 s.
+      - name: Onizleme derleme tavani kabul testi (public /olustur kotu kullanim kapisi)
+        if: ${{ !cancelled() }}
+        run: node onizleme/test/derleme-hiz-siniri.mjs
+
       # ONIZLEME GORUNURLUK KAPISI (Okan canli sikayeti, 29 Tem — olcuye-ozel-cerceve):
       # (1) "renk secimi onizlemeyi degistirmiyor": sayfa scripti rengi YALNIZ aile
       # sabit tablosundan okuyordu, musteri secimi viewer'a HIC gitmiyordu. (2) "yazi
