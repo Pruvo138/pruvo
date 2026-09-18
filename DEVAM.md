@@ -2,6 +2,11 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ 18 EYL 16:5x–18:xx KraL çip `laughing-cannon-ac6c6e` — **W3-2 + W5 BİTTİ: K329-EK · K351-31AGU · K140 · K339 · K339-EK KAPANDI · K416 ③ tuttu → main `9dddcc3a`**
+**K351-31AGU ③ GERÇEK ARIZA:** `defter-rotasyon.py::_tavan_asildi_mi` ölü bayt eksenini hükme sokuyordu → canlı defter kopyasında `--onlem` 399→381 satır inip durmadı, `KAYIP:` rc=2. Onarım: yüklem `BAYT_HUKUM_VERIR`'i okur → aynı kopyada `DOLU_NO_OP rc=0`. Ölçüt SATIR ekseninde: `DEVAM.md` ≤ 400 satır. ② karışık blok `KAPALI=2`. `defter-onlem-bacagi-test.py` 6/6 mutant (hedef-kol atfı eklendi).
+**K140:** mutasyon main'de 3 KALDI (M3 çapa-yok · M12 · M18) → 24/24; batarya CI'ya (`marka-invaryant-sayac-bataryasi`). **K339/K339-EK:** `serit-b-hukum-test.py` politika+sayaç+mutasyon+CANLI `cron-nabzi`'de; CI canlı `HUKUMSUZ_SERI=7 · schedule 12/12`. **K329-EK:** kapanmıştı (kuru, tavan 150: 9/9 açık blok yerinde atlandı).
+**YAYIN:** `35356795839` deploy+yayin success, SKIPPED 0 · D1 38.352/38.352. SERIT B push koşumu `cancelled` (K339 sınıfı) → dispatch `35359143643` (`d19a2fb5`, ata kanıtlı).
+
 ## ✅ 18 EYL 16:5x–17:4x KraL çip `vigorous-hofstadter-e2616c` — **W2-2 nöbet turu BİTTİ: K334 · K326(+K311 yüz B) · K325 · K311(b) · K316 vaka 6 → main `e639b5d4` + canlıya kuruldu**
 **TABAN (onarımdan ÖNCE, canlıyla birebir kopya):** nobet-kabul-test `VAKA=51 DUSEN=2 K316_MUTANT=0/1 RC=1` (vaka 6 + mutant çapası `EV_KOKU` env'e geçince 0 kez) · nobet-tetik-mutasyon `MUTANT=2/3 YAMA_TUTMADI=1` (MA çapası yorum taşıyordu) · canlı pencere 2 failure / ardılsız 1 · ESKALASYON_ACIK run'ı ardılı success iken ~3 gün `1` (pencereden düşünce kapandı, onarımla değil) · iki defter okuyucusu AYRIŞMA=0 (13+3=16).
 **SONRA:** nobet-onarim-kabul **VAKA=28 DUSEN=0 OLCULEMEDI=0 RC=0** (dilim 1'in 4 OLCULEMEDI'si kalktı; 11 hedef-kol atıflı mutant) · nobet-kabul-test kumda `VAKA=53 DUSEN=0 K316_MUTANT=1/1 RC=0` · tetik-mutasyon 3/3 · gözcü 122/0 + 16/16 · ci-kapsam rc=0 · is-akışı rc=0 · bağımsız çürütücü 1. tur **MERGE EDİLEMEZ** (ardıl yalnız ADla → schedule success push kırmızısını silerdi; AC hükmü kırmızının ADINI siliyordu) → onarıldı (`048d7cc6`: anahtar (ad, olay) + sebep `<gözcü>+<kol>`) → 2. tur **MERGE EDİLEBİLİR**.
