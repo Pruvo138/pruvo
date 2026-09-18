@@ -50,10 +50,17 @@ ENV_AD = "PRUVO_VERI_KOK"
 
 
 def _git_ortak_dizin(kok):
-    """`git rev-parse --git-common-dir` ciktisi (str) ya da None (git yok / depo degil)."""
+    """`git rev-parse --git-common-dir` ciktisi (str) ya da None (git yok / depo degil).
+
+    Miras GIT_* baglami (kanca/CI: GIT_DIR, GIT_WORK_TREE ...) SUZULUR: kok betigin KENDI
+    konumundan kesfedilir. Suzulmezse gecici dizine kopyalanan arac, GIT_DIR mirasiyla
+    CANLI deponun kokunu "veri koku" sanip canli kataloga yazardi (olculdu: veri-kok-test
+    K4). Ad listesi yerine ONEK: kanonik liste yalniz git_ortami.py'de yasar ve bu modul
+    kopyalara TEK BASINA tasinir (yeni kardes bagimliligi eklenmez)."""
+    ortam = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
     try:
         r = subprocess.run(["git", "-C", kok, "rev-parse", "--git-common-dir"],
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, env=ortam)
     except (OSError, ValueError):
         return None
     if r.returncode != 0:

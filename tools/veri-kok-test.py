@@ -20,8 +20,9 @@ IDDIALAR
   K2 (ii)  linked worktree'den BAYRAKSIZ denetim-kapisi.py ANA kopyanin calisma agacina
            gore sayar: 1. Ayni kurulumda eski ROOT (kod koku) mutanti: 0 (17 Eyl mutanti).
   K3 (iii) override KALDIRILINCA K1 yine gecici kokte kalir (canliya dusmez).
-  K4       GIT_DIR mirasi (CI/kanca baglami) varken override'siz kok CANLIYA duser (tehlike
-           kaniti; yalniz modul yuklenir, YAZMA YOK), override ile kumda kalir.
+  K4       GIT_DIR/GIT_WORK_TREE mirasi (kanca/CI baglami, canli depoyu gosterir) varken
+           override'siz de kok KUMDA kalir (veri_kok miras GIT_* SUZER; M6 suzmeyi kaldirinca
+           kok CANLIYA duser — yalniz modul yuklenir, YAZMA YOK); override ile de kumda.
   C1       canli katalog (bu checkout'un veri koku) sha256 ONCE = SONRA.
 
 --mutasyon: `veri_kok.py`'nin mutantlari kum kopyasinda kosulur; her biri en az bir iddiayi
@@ -264,9 +265,9 @@ def k4(tmp, stub):
     vk.kum_kur(os.path.join(d, "tools"), {"duzelt.py": None}, TOOLS)
     katalog_yaz(d, [urun(SAHTE_ID)])
     rc, kok, out = yukle(os.path.join(d, "tools", "duzelt.py"), "ROOT",
-                         ortam(GIT_DIR=ortak), stub)
-    iddia("K4 TEHLIKE KANITI: GIT_DIR mirasi + override YOK -> kopya aracin veri koku CANLI "
-          "checkout'a duser (yalniz yuklendi, yazma YOK)", ayni(kok, canli),
+                         ortam(GIT_DIR=ortak, GIT_WORK_TREE=canli), stub)
+    iddia("K4 GIT_DIR/GIT_WORK_TREE mirasi (canli depo) + override YOK -> veri koku yine "
+          "kum (miras SUZULDU; suzulmese CANLIYA duserdi — M6)", ayni(kok, d),
           "kok=%s canli=%s %s" % (kok, canli, out[-200:]))
     rc, kok, out = yukle(os.path.join(d, "tools", "duzelt.py"), "ROOT",
                          vk.kum_ortami(d, ortam(GIT_DIR=ortak)), stub)
@@ -333,6 +334,9 @@ MUTANTLAR = (
     ("M5_DIZGE_KANITI_DUSTU",
      "                adlar.add(dugum.value)\n",
      "                pass\n", True),
+    ("M6_GIT_MIRASI_SUZULMEDI",
+     "    ortam = {k: v for k, v in os.environ.items() if not k.startswith(\"GIT_\")}\n",
+     "    ortam = dict(os.environ)\n", True),
     ("K0_ZARARSIZ_YORUM",
      "    git = _git or _git_ortak_dizin\n",
      "    git = _git or _git_ortak_dizin  # zararsiz\n", False),
