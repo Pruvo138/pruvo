@@ -37,6 +37,12 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 KAYNAK = os.path.join(BASE, "thumbnail-uret.py")
 R2_KAYNAK = os.path.join(BASE, "r2-upload.py")
 R2_ANAHTAR = os.path.join(BASE, "r2_anahtar.py")
+# Kardes kapanisi (veri_kok.py ...) ELLE LISTELENMEZ — import'lardan TURETILIR
+# (veri_kok.kum_kur); elle liste 18 Eyl'de veri_kok.py'yi kacirdi.
+_vk_spec = importlib.util.spec_from_file_location(
+    "veri_kok", os.path.join(os.path.dirname(os.path.abspath(__file__)), "veri_kok.py"))
+veri_kok = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(veri_kok)
 
 PUBLIC_BASE = "https://media.pruvo3d.com"
 BUCKET = "pruvo-test"
@@ -177,10 +183,21 @@ def modul_yukle(kaynak_metin, gecici_kokler):
         f.write(kaynak_metin)
     os.symlink(R2_KAYNAK, os.path.join(kok, "r2-upload.py"))
     os.symlink(R2_ANAHTAR, os.path.join(kok, "r2_anahtar.py"))
+    # Kalan kardesler (veri_kok.py ...) TURETILIR; var olan sembolik baglar ezilmez.
+    veri_kok.kum_kur(kok, {"thumbnail-uret.py": kaynak_metin}, BASE)
     spec = importlib.util.spec_from_file_location("k306_thumb_%d" % len(gecici_kokler),
                                                   hedef)
     mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    # VERI KOKU = gecici kok (duz dizin: __file__ kokü $TMPDIR olurdu) — acikca kurulur.
+    eski = os.environ.get(veri_kok.ENV_AD)
+    os.environ[veri_kok.ENV_AD] = kok
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        if eski is None:
+            os.environ.pop(veri_kok.ENV_AD, None)
+        else:
+            os.environ[veri_kok.ENV_AD] = eski
     return mod
 
 

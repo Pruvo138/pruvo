@@ -76,10 +76,23 @@ from git_ortami import sentetik_git
 import sys
 from collections import defaultdict
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# VERI KOKU DAIMA ANA KOPYA (bkz veri_kok.py) — worktree'den kosulunca KOD kokune
+# degil ana depoya bakilmali, yoksa hem urunler.json/.urun-kaynaklari.json hem
+# `git show HEAD:...` (_git()) WORKTREE'nin KENDI bagimsiz dalina duser -> "parti"
+# sessizce BOS gorunur (working tree == worktree'nin kendi HEAD'i) ve --commit-farki
+# worktree dalinin KENDI HEAD^->HEAD farkini (tamamen ilgisiz eski bir commit) rapor
+# eder. Bu kapi push'tan ONCEKI TEK ölçülebilir kapı oldugu icin sessiz-bos parti en
+# tehlikeli sinif: IHLAL:0 basar ama hicbir seyi denetlememis olur.
+_vkspec = importlib.util.spec_from_file_location(
+    "veri_kok", os.path.join(os.path.dirname(os.path.abspath(__file__)), "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec)
+_vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAKLAR = os.path.join(ROOT, ".urun-kaynaklari.json")
-DUZELT = os.path.join(ROOT, "tools", "duzelt.py")
+DUZELT = os.path.join(_KOD_KOK, "tools", "duzelt.py")          # KOD (K420)
 CACHE = os.path.join(ROOT, ".thing-cache")
 RAPOR = os.path.join(CACHE, "denetim-kapisi-rapor.json")
 

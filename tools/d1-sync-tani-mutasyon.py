@@ -29,6 +29,13 @@ BURASI = os.path.dirname(os.path.abspath(__file__))
 GOVDE = os.path.join(BURASI, "d1-sync.py")
 BATARYA = os.path.join(BURASI, "d1-sync-tani-test.py")
 KOMSU = "konfigur-bundle-kapisi.py"
+# Mutant govdenin kalan kardesleri (veri_kok.py ...) ELLE LISTELENMEZ — import'lardan
+# TURETILIR (veri_kok.kum_kur). Elle liste (yalniz KOMSU) 18 Eyl'de veri_kok.py'yi
+# kacirdi: 14 mutantin HEPSI "HEDEFE ULASMADI" (import coktu), kontrol mutantlari KIRMIZI.
+import importlib.util  # noqa: E402
+_vk_spec = importlib.util.spec_from_file_location("veri_kok", os.path.join(BURASI, "veri_kok.py"))
+veri_kok = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(veri_kok)
 TUR_TAVANI = 180          # tek mutant kosumu icin sert tavan (sn)
 
 # (ad, eski, yeni, oldurmesi_beklenen_iddia_onekleri)  — bos kume = KONTROL
@@ -133,10 +140,11 @@ MUTANTLAR = [
 ]
 
 
-def bataryayi_kos(govde_yolu):
-    """(rc, iddia, gecti, kirmizi, dusenler) dondur."""
+def bataryayi_kos(govde_yolu, veri=None):
+    """(rc, iddia, gecti, kirmizi, dusenler) dondur. veri: mutant kumunun veri koku."""
     p = subprocess.run([sys.executable, BATARYA, "--govde", govde_yolu],
-                       capture_output=True, text=True, timeout=TUR_TAVANI)
+                       capture_output=True, text=True, timeout=TUR_TAVANI,
+                       env=veri_kok.kum_ortami(veri) if veri else None)
     ham = (p.stdout or "") + (p.stderr or "")
     iddia = gecti = kirmizi = None
     dusenler = []
@@ -158,6 +166,7 @@ def mutant_kok_kur(kaynak_metin):
     with open(os.path.join(tools, "d1-sync.py"), "w", encoding="utf-8") as f:
         f.write(kaynak_metin)
     os.symlink(os.path.join(BURASI, KOMSU), os.path.join(tools, KOMSU))
+    veri_kok.kum_kur(tools, {"d1-sync.py": kaynak_metin}, BURASI)
     return kok, os.path.join(tools, "d1-sync.py")
 
 
@@ -192,7 +201,7 @@ def main():
             continue
         kok, mutant_yol = mutant_kok_kur(mutant_metin)
         try:
-            m_rc, m_iddia, m_gecti, m_kirmizi, m_dusenler, m_ham = bataryayi_kos(mutant_yol)
+            m_rc, m_iddia, m_gecti, m_kirmizi, m_dusenler, m_ham = bataryayi_kos(mutant_yol, kok)
         except subprocess.TimeoutExpired:
             m_rc, m_iddia, m_gecti, m_kirmizi, m_dusenler, m_ham = (
                 -1, None, None, None, ["(TUR TAVANI ASILDI)"], "")

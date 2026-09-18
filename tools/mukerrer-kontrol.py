@@ -2,6 +2,7 @@
 """Katalogda mukerrer id, baslik ve kaynak linklerini denetler."""
 
 import argparse
+import importlib.util
 import json
 import os
 import subprocess
@@ -10,7 +11,17 @@ import tempfile
 from collections import defaultdict
 
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# VERI KOKU DAIMA ANA KOPYA (bkz veri_kok.py) — worktree'den kosulunca KOD kokune
+# degil ana depoya bakilmali, yoksa "parti" HEP bos gorunur (worktree'nin kendi
+# eski urunler.json kopyasi kendine kiyaslanir) ve mukerrer denetimi sessizce
+# hicbir seyi taramamis olur.
+_vkspec = importlib.util.spec_from_file_location(
+    "veri_kok", os.path.join(os.path.dirname(os.path.abspath(__file__)), "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec)
+_vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAKLAR = os.path.join(ROOT, ".urun-kaynaklari.json")
 ISTISNALAR = os.path.join(ROOT, ".mukerrer-istisna.json")
@@ -306,7 +317,10 @@ def _oz_sinama():
 
 
 def _git_oku(args):
-    return subprocess.run(["git", "-C", ROOT] + args, capture_output=True, text=True)
+    # K420 SINIFLAMA: --pre-commit'in index/HEAD okumasi COMMIT BAGLAMIDIR (kancayi kosan
+    # agac = kod koku), VERI koku DEGIL. ROOT (ana kopya) okunsaydi worktree'deki commit'in
+    # stage'i yerine ANA index yargilanirdi (mukerrer-kapsam-test A6-A8 olcer).
+    return subprocess.run(["git", "-C", _KOD_KOK] + args, capture_output=True, text=True)
 
 
 def _index_urunler():

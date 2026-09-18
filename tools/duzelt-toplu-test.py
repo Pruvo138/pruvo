@@ -51,6 +51,12 @@ KAYNAK_GUARD = os.path.join(KOK, "tools", "urunler-guard.py")
 KAYNAK_KOKEN = os.path.join(KOK, "tools", "gorsel_koken.py")
 KAYNAK_ARAMA = os.path.join(KOK, "tools", "arama.py")
 KAYNAK_URUN_EKLE = os.path.join(KOK, "tools", "urun-ekle.py")
+# Kardes kapanisi (veri_kok.py ...) ELLE LISTELENMEZ — import'lardan TURETILIR
+# (veri_kok.kum_kur); elle liste 18 Eyl'de veri_kok.py'yi kacirdi.
+_vk_spec = importlib.util.spec_from_file_location(
+    "veri_kok", os.path.join(os.path.dirname(os.path.abspath(__file__)), "veri_kok.py"))
+veri_kok = importlib.util.module_from_spec(_vk_spec)
+_vk_spec.loader.exec_module(veri_kok)
 
 KATALOG = [
     {"id": "test-urun-1", "kategori": "Marin", "marka": ["Volvo"],
@@ -81,14 +87,8 @@ def kontrol(kosul, mesaj):
 def sahte_repo(katalog=None):
     d = tempfile.mkdtemp(prefix="duzelt-toplu-testi-")
     os.makedirs(os.path.join(d, "tools"))
-    shutil.copy(KAYNAK_DUZELT, os.path.join(d, "tools", "duzelt.py"))
-    shutil.copy(KAYNAK_GUARD, os.path.join(d, "tools", "urunler-guard.py"))
-    # duzelt.py gorsel_koken.py'yi KOSULSUZ import eder (nobetci "dosyasi yoksa gecer"
-    # olamaz) -> sahte repoya da kopyalanmali.
-    shutil.copy(KAYNAK_KOKEN, os.path.join(d, "tools", "gorsel_koken.py"))
-    # duzelt.py arama.py'yi de KOSULSUZ import eder (alt kategori taksonomisi + imza
-    # nobeti orada TEK kaynak olarak yasar) -> sahte repoya kopyalanmali.
-    shutil.copy(KAYNAK_ARAMA, os.path.join(d, "tools", "arama.py"))
+    veri_kok.kum_kur(os.path.join(d, "tools"),
+                     {"duzelt.py": None, "urunler-guard.py": None}, os.path.join(KOK, "tools"))
     with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
         json.dump(KATALOG if katalog is None else katalog, f, ensure_ascii=False, indent=2)
     return d
@@ -98,7 +98,16 @@ def modul_yukle(repo, dosya, ad):
     yol = os.path.join(repo, "tools", dosya)
     spec = importlib.util.spec_from_file_location(ad, yol)
     m = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(m)
+    # VERI KOKU = sahte repo (PRUVO_VERI_KOK yukleme aninda okunur) — sansa birakilmaz.
+    eski = os.environ.get(veri_kok.ENV_AD)
+    os.environ[veri_kok.ENV_AD] = repo
+    try:
+        spec.loader.exec_module(m)
+    finally:
+        if eski is None:
+            os.environ.pop(veri_kok.ENV_AD, None)
+        else:
+            os.environ[veri_kok.ENV_AD] = eski
     return m
 
 
