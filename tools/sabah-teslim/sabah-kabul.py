@@ -959,7 +959,9 @@ def _a8_gh_yaz(td, ad, kayitlar):
 
 def _a8_kos(arac, gh_yolu, spec_dizin):
     rc, cikti = kos([PY, arac, "--spec-dizin", spec_dizin], 240,
-                    ortam={"_KRAL_SABAH_GH_YOL": gh_yolu})
+                    ortam={"_KRAL_SABAH_GH_YOL": gh_yolu,
+                           # kum REPO/tools icinden ice aktarim .pyc IZI birakmasin
+                           "PYTHONDONTWRITEBYTECODE": "1"})
     satir = jeton(cikti, "SABAH_SPEC=")
     return rc, satir, cikti
 
