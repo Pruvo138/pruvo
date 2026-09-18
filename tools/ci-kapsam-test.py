@@ -2763,6 +2763,14 @@ IZIN_LISTESI = {
     "tools/nobet-onarim/cron/gozcu-test.py": R_CANLI_CRON + _R_W2_DOLAYLI,
     "tools/nobet-onarim/cron/gozcu-mutasyon.py": R_CANLI_CRON + _R_W2_DOLAYLI,
     "tools/nobet-onarim/cron/nobet-kabul-test.py": R_CANLI_CRON + _R_W2_DOLAYLI,
+    # W2-2 (18 Eyl, e639b5d4) ayni dizine iki dosya daha getirdi; genisleme onlari
+    # merge ANINDA gordu (eski yuklemle sessizdiler). Canliyla git hash-object BIREBIR.
+    "tools/nobet-onarim/cron/nobet-tetik-test.py": R_CANLI_CRON + _R_W2_DOLAYLI + (
+        " Bu dosya icin cagri yeri: `nobet-onarim-kabul.py` F4 (:787) + W2-2 kontrolu "
+        "(:1035) KUMDA kosar."),
+    "tools/nobet-onarim/cron/nobet-tetik-mutasyon.py": R_CANLI_CRON + _R_W2_DOLAYLI + (
+        " Bu dosya icin cagri yeri: `nobet-onarim-kabul.py` W2-2 kontrolu (:1036) KUMDA "
+        "kosar, `MUTANT=3/3 YAMA_TUTMADI=0` hukmunu okur."),
     "tools/devir-4saat-kabul.py": R_CANLI_CRON + (
         " Statik (KOSTURULMADI — sabit yol canliya yazim riski): CRON_KOKU sabit "
         "`/Users/okan/.claude/cron`, olculen ozne `~/.claude/cron/nobet_devir.py`."),
