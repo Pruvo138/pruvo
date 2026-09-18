@@ -924,7 +924,10 @@ ATIF_SINIFLARI = ("ATIF", "SERBEST", "UCRETLI", "NC", "BELIRSIZ", "SINIFLANAMADI
 
 #: 🔴 TABAN (K418 olcumu, 18 Eyl 2026, main 3518c223 urunler.json x gizli kayit):
 #: atif-zorunlu gizli tur + public `lisans` bos/null kayit sayisi. YALNIZ ASAGI cekilir.
-ATIF_IHLAL_TABANI = 308
+#: 18 Eyl 2026 (merge turu): MaCiT K418 veri onarimi (`85673d2f`) sonrasi olculen 308 -> 1.
+#: Kalan 1 = mercedes-r129 koltuk baslik ayar dislisi — lisans alani 12 Agu'da (e5a8d42b)
+#: Okan talimatiyla BILEREK kaldirildi; kasti istisna, borc degil.
+ATIF_IHLAL_TABANI = 1
 #: SINIFLANAMADI (taninmayan gizli dizge) + public `lisans` bos kayit tabani. Taninmayan dizge
 #: atif-zorunlu da olabilir -> buyumesi sessiz kalmaz (fail-closed); YALNIZ ASAGI cekilir.
 #: 18 Eyl olcumu: 22 SINIFLANAMADI kaydin HEPSI yalniz `link` tasiyan (lisans+tur YOK) gizli
