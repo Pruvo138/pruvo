@@ -285,27 +285,40 @@ def ardilsiz_kirmizilar(kosumlar, dal="main"):
     kirmizi sayiyordu; ESKALASYON sayaci da ayni sebeple ~3 gun `1`de kaldi
     (K311 YUZ B).
 
-    ARDIL = ayni DAL + ayni is akisi ADI + daha BUYUK `databaseId` + conclusion
-    `success`. `cancelled`/`in_progress` ardil DEGILDIR — iptal edilen ya da
-    suren kosum kirmiziyi COZMEZ (duran kirmizi gorunur kalir; ters yon
-    korlugu geri gelmez). Pencere sayaci (`kirmizi_toplam`) SILINMEZ; bu
-    fonksiyon onun YANINA ikinci ekseni koyar.
+    ARDIL = ayni DAL + ayni is akisi ADI + ayni OLAY (`event`) + daha BUYUK
+    `databaseId` + conclusion `success`. `cancelled`/`in_progress` ardil
+    DEGILDIR — iptal edilen ya da suren kosum kirmiziyi COZMEZ (duran kirmizi
+    gorunur kalir; ters yon korlugu geri gelmez). Pencere sayaci
+    (`kirmizi_toplam`) SILINMEZ; bu fonksiyon onun YANINA ikinci ekseni koyar.
+
+    🔴 OLAY ANAHTARI (W2-2 bagimsiz curutucu bulgusu, 18 Eyl): nobet.yml'de
+    isler OLAYA gore kosar (or. bir is yalniz `push`ta, digeri yalniz
+    `workflow_dispatch`te). Yalniz ADLA eslesen ardil, push'ta DUSEN bir isi
+    o isi HIC KOSMAYAN bir `schedule` success'iyle "cozulmus" sayardi ->
+    sahte yesil. Olay alani YOKSA (eski veri) anahtar `""` olur ve yalniz
+    olaysiz bir success ile eslesir — fail-closed.
     """
+    def _anahtar(ham):
+        return (ham.get("name") or ham.get("workflowName") or "",
+                ham.get("event") or "")
+
     son_basari = {}
+    olay = {}
     for ham in kosumlar or []:
         if not isinstance(ham, dict):
             continue
         if (ham.get("headBranch") or "") != dal:
             continue
+        olay[str(ham.get("databaseId"))] = _anahtar(ham)
         if (ham.get("conclusion") or "") != "success":
             continue
-        ad = ham.get("name") or ham.get("workflowName") or ""
         try:
             kimlik = int(ham.get("databaseId") or 0)
         except (TypeError, ValueError):
             continue
-        if kimlik > son_basari.get(ad, 0):
-            son_basari[ad] = kimlik
+        anahtar = _anahtar(ham)
+        if kimlik > son_basari.get(anahtar, 0):
+            son_basari[anahtar] = kimlik
     sonuc = []
     for kirmizi in kirmizi_kosumlar(kosumlar, dal):
         try:
@@ -313,8 +326,9 @@ def ardilsiz_kirmizilar(kosumlar, dal="main"):
         except (TypeError, ValueError):
             sonuc.append(kirmizi)     # olculemeyen kimlik ELENMEZ (fail-closed)
             continue
-        if son_basari.get(kirmizi.get("ad") or "", 0) > kimlik:
-            continue                  # ardili yesil: kirmizi COZULMUS
+        anahtar = olay.get(str(kirmizi["id"]), (kirmizi.get("ad") or "", ""))
+        if son_basari.get(anahtar, 0) > kimlik:
+            continue                  # ayni is akisi+olay ardili yesil: COZULMUS
         sonuc.append(kirmizi)
     return sonuc
 
@@ -769,7 +783,7 @@ def _gh_kosumlar(dal="main", limit=40):
     if ikili is None:
         return (None, "IKILI_YOK")
     komut = [ikili, "run", "list", "--branch", dal, "--limit", str(limit),
-             "--json", "databaseId,name,conclusion,status,headBranch,headSha,createdAt"]
+             "--json", "databaseId,name,conclusion,status,headBranch,headSha,createdAt,event"]
     try:
         sonuc = subprocess.run(komut, cwd=NK.EV_KOKU, capture_output=True,
                                text=True, timeout=GH_ZAMAN_ASIMI_SN)

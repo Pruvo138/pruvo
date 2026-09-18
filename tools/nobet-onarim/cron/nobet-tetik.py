@@ -333,24 +333,31 @@ def karar(kalp, simdi, bugun, bayat_tavani=None):
     # `icra_denendi` yoktur -> geriye donuk kol korunur.
     # 🔴 K334 (W2-2, 18 Eyl 2026): yasak ANAHTAR eksenindedir — gozcunun
     # actigi tur ile 4./5. basamagin acacagi tur AYNI anahtarsa ACMA; FARKLI
-    # ise asagi inilir (bkz. `ayni_tur_mu`). Gozcunun kendi turunun KIRMIZISI
-    # (uretmedi / eskalasyon / seviye) asagidaki AC hukmune TASINIR.
+    # ise asagi inilir (bkz. `ayni_tur_mu`). Gozcunun kendi turunun hukmu
+    # (uretmedi / eskalasyon / seviye / kol kapali) asagidaki AC hukmune
+    # ADIYLA ve RENGIYLE tasinir: sebep `<gozcu-sebebi>+<kol>` olur.
+    # 🔴 Bagimsiz curutucu bulgusu (18 Eyl): ilk surum yalniz KIRMIZI
+    # bayragini tasiyordu; `ESKALASYON_ACIK` adi `GUNLUK_DEFTER`e donusup
+    # ci-nobeti HUKUM'unda KAYBOLUYORDU (A4/A7 kolunun tam korudugu sey).
+    # Gozcu sebebi ONDE durur: ci-nobeti HUKUM'u kirmizinin ADIYLA baslar.
+    ic_sebep = ""
     ic_kirmizi = False
     if kalp.get("icra_denendi", kalp.get("icra_rc") is not None):
         ic = icra_etti_karari(kalp, olculemedi)
         if ayni_tur_mu(kalp, bugun):
             return ic
+        ic_sebep = ic.sebep + "+"
         ic_kirmizi = ic.kirmizi
 
     # 4. Yeni kirmizi var, gozcu acamamis (kilit doluydu vb.) -> o run-id icin TEK tur.
     hedef = str(kalp.get("hedef_run") or "")
     if kalp.get("tetik") == "CI_KIRMIZI" and hedef:
-        return Karar("AC", "CI_KIRMIZI", "kirmizi:%s" % hedef, ("--tur",),
+        return Karar("AC", ic_sebep + "CI_KIRMIZI", "kirmizi:%s" % hedef, ("--tur",),
                      olculemedi or ic_kirmizi)
 
     # 5. Gunluk defter turu — 24 saatlik pencerede TAM 1.
     if kalp.get("gunluk_gerekli"):
-        return Karar("AC", "GUNLUK_DEFTER", "gunluk:%s" % bugun, ("--tur",),
+        return Karar("AC", ic_sebep + "GUNLUK_DEFTER", "gunluk:%s" % bugun, ("--tur",),
                      olculemedi or ic_kirmizi)
 
     # 6. Acilacak is yok ama gozcu olcemedi: SESSIZ YESIL URETME.
@@ -441,7 +448,9 @@ def kol_hali(k):
     """
     if LLM_KOLU_KAPALI is None:
         return "OLCULEMEDI"
-    return LLM_KOLU_KAPALI if k.sebep == LLM_KOLU_KAPALI else KOL_HALI_ACIK
+    # K334 (W2-2): sebep `<gozcu-sebebi>+<kol>` birlesik olabilir; kapali kol
+    # jetonu HERHANGI bir parcada ise kol KAPALI'dir (ACIK diye raporlanmaz).
+    return LLM_KOLU_KAPALI if LLM_KOLU_KAPALI in k.sebep.split("+") else KOL_HALI_ACIK
 
 
 def karar_satiri(k):

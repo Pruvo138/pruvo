@@ -481,10 +481,10 @@ def _damga_var(sandbox, onek):
         return []
 
 
-def _kosum(kimlik, ad, sonuc):
+def _kosum(kimlik, ad, sonuc, olay="push"):
     return {"databaseId": kimlik, "name": ad, "conclusion": sonuc,
             "status": "completed", "headBranch": "main",
-            "headSha": "", "createdAt": ""}
+            "headSha": "", "createdAt": "", "event": olay}
 
 
 # Gunluk tur borcu VAR + dagitilabilir TEK kalem -> gozcu DEFTER_DAGITIM kosar.
@@ -524,14 +524,14 @@ def vaka_k334_gunluk_kolu_fiilen_kosar():
     try:
         kalp, rc, log = _k334_zinciri(sandbox)
         assert kalp["icra_anahtar"].startswith("dagitim:"), kalp
-        assert "TUR ACILIYOR sebep=GUNLUK_DEFTER" in log, (
+        assert "TUR ACILIYOR sebep=GOZCU_ICRA_ETTI+GUNLUK_DEFTER " in log, (
             "5. kol ATESLENMEDI:\n%s" % log[-800:])
         assert re.search(r"TETIK_HUKMU tetik_rc=0 .*tetik_karari=AC\b", log), log[-800:]
         assert re.search(r"BITIS rc=0 ===", log), log[-800:]
         damga = _damga_var(sandbox, "gunluk_")
         assert len(damga) == 1, "gunluk damgasi yazilmadi: %s" % damga
         assert rc == 0, "ci-nobeti rc=%d" % rc
-        return ("gozcu=%s -> TUR ACILIYOR sebep=GUNLUK_DEFTER · tetik_rc=0 · "
+        return ("gozcu=%s -> TUR ACILIYOR sebep=GOZCU_ICRA_ETTI+GUNLUK_DEFTER · tetik_rc=0 · "
                 "BITIS rc=0 · damga=%s" % (kalp["icra_anahtar"], damga[0]))
     finally:
         _sandbox_sil(sandbox)
@@ -561,7 +561,7 @@ def kontrol_k334_ayni_anahtar_iki_kez_acilmaz():
     try:
         _k334_zinciri(sandbox)
         _rc, log_b = _ci_nobeti(sandbox)
-        assert "TUR ACILMADI sebep=GUNLUK_DEFTER_TUKETILDI" in log_b, log_b[-800:]
+        assert "TUR ACILMADI sebep=GOZCU_ICRA_ETTI+GUNLUK_DEFTER_TUKETILDI" in log_b, log_b[-800:]
         assert len(_damga_var(sandbox, "gunluk_")) == 1
         # (c) eski kalp: alan cikarilir, ayni kalp -> BLANKET ACMA
         yol = os.path.join(sandbox, "gozcu-kalp.json")
@@ -592,7 +592,7 @@ def mutant_k334_merdiven_eski_sira():
                        "        if ayni_tur_mu(kalp, bugun):",
                        "        if True:")
         _kalp, _rc, log = _k334_zinciri(sandbox)
-        assert "TUR ACILIYOR sebep=GUNLUK_DEFTER" not in log, "MUTANT OLMEDI"
+        assert "TUR ACILIYOR" not in log, "MUTANT OLMEDI"
         assert "TUR ACILMADI sebep=GOZCU_ICRA_ETTI" in log, (
             "ATIF SAPTI: kol baska sebeple sustu:\n%s" % log[-600:])
         return "M-K334-SIRA oldu: blanket merdivende 5. kol ULASILAMAZ (sebep=GOZCU_ICRA_ETTI)"
@@ -614,7 +614,7 @@ def mutant_k334_gozcu_anahtar_yazmaz():
         kalp, kosucu = _gozcu_senaryo(sandbox, _k334_dagitim_senaryosu())
         assert kalp["icra_anahtar"] == "<YOK>", kalp
         _rc, log = _ci_nobeti(sandbox)
-        assert "TUR ACILIYOR sebep=GUNLUK_DEFTER" not in log, "MUTANT OLMEDI"
+        assert "TUR ACILIYOR" not in log, "MUTANT OLMEDI"
         assert "sebep=GOZCU_ICRA_ETTI" in log, "ATIF SAPTI:\n%s" % log[-600:]
         return "M-K334-KABLO oldu: gozcu anahtar yazmayinca tetik BLANKET'e dustu"
     finally:
@@ -638,6 +638,11 @@ def _k326_senaryolari():
         # iptal ARDIL DEGIL
         "IPTAL": {"kosumlar": [_kosum(101, "A", "cancelled"), _kosum(100, "A", "failure")],
                   "durum": _ESKALE_100, "gunluk_yapildi": True},
+        # curutucu bulgusu (b): push'ta DUSEN is, o isi kosmayan SCHEDULE
+        # success'iyle cozulmus SAYILMAZ (ayni ad, farkli olay)
+        "OLAY": {"kosumlar": [_kosum(101, "A", "success", "schedule"),
+                              _kosum(100, "A", "failure", "push")],
+                 "durum": _ESKALE_100, "gunluk_yapildi": True},
     }
 
 
@@ -687,6 +692,74 @@ def vaka_k326_duran_kirmizi_gorunur():
     finally:
         _sandbox_sil(sandbox)
     return "duran kirmizi -> ardilsiz=1 eskalasyon=1 SEVIYE_KIRMIZI_1 rc=1 · iptal ardil DEGIL"
+
+
+def vaka_k326_olay_ekseni():
+    """K326 (curutucu bulgusu b): ardil AYNI OLAYDAN olmali.
+
+    nobet.yml isleri olaya gore kosar; push'ta dusen bir isi hic kosmayan
+    `schedule` success'i kirmiziyi COZMEZ. Ad-yalniz eslesme bu senaryoda
+    `ardilsiz=0 eskalasyon=0 HUKUM=TEMIZ` uretiyordu (sahte yesil).
+    """
+    sandbox = _sandbox_kur()
+    try:
+        kalp, rc, log = _k326_kos(sandbox, "OLAY")
+        assert kalp["kirmizi_ardilsiz"] == 1 and kalp["eskalasyon_acik"] == 1, (
+            "farkli olay ardil SAYILDI: %s" % kalp)
+        assert rc == 1 and "sebep=SEVIYE_KIRMIZI_1" in log, "rc=%d\n%s" % (rc, log[-500:])
+        return "push failure + schedule success -> ardilsiz=1 eskalasyon=1 rc=1 (sahte yesil YOK)"
+    finally:
+        _sandbox_sil(sandbox)
+
+
+def mutant_k326_olay_kor():
+    """K326 MUTANT (hedef kol: ardil anahtarinin OLAY bileseni)."""
+    sandbox = _sandbox_kur()
+    try:
+        _mutant_uygula(sandbox, "gozcu.py", '                ham.get("event") or "")',
+                       '                "")')
+        kalp, rc, _log = _k326_kos(sandbox, "OLAY")
+        assert kalp["kirmizi_ardilsiz"] == 0 and rc == 0, "MUTANT OLMEDI: %s rc=%d" % (kalp, rc)
+        return "M-K326-OLAY oldu: olaysiz anahtarla schedule success push kirmizisini SILDI"
+    finally:
+        _sandbox_sil(sandbox)
+
+
+def vaka_k334_kirmizi_adi_korunur():
+    """K334 (curutucu bulgusu a): anahtar farkli oldugunda da gozcunun KIRMIZI
+    hukmunun ADI ci-nobeti HUKUM'unda ONDE durur (A4/A7 sozlesmesi)."""
+    sandbox = _sandbox_kur()
+    try:
+        senaryo = _k334_dagitim_senaryosu()
+        senaryo["kosumlar"] = [_kosum(100, "A", "failure")]
+        senaryo["durum"] = _ESKALE_100
+        kalp, _ = _gozcu_senaryo(sandbox, senaryo)
+        assert kalp["tetik"] == "DEFTER_DAGITIM" and kalp["eskalasyon_acik"] == 1, kalp
+        rc, log = _ci_nobeti(sandbox)
+        assert "TUR ACILIYOR sebep=ESKALASYON_ACIK+GUNLUK_DEFTER " in log, log[-600:]
+        assert re.search(r"^HUKUM=ESKALASYON_ACIK", log, re.MULTILINE), log[-600:]
+        assert rc == 1 and re.search(r"BITIS rc=1 ===", log), "rc=%d" % rc
+        return "eskalasyon acik + dagitim turu -> HUKUM=ESKALASYON_ACIK+GUNLUK_DEFTER rc=1"
+    finally:
+        _sandbox_sil(sandbox)
+
+
+def mutant_k334_kirmizi_adi_silinir():
+    """K334 MUTANT (hedef kol: gozcu sebebinin AC hukmune tasinmasi)."""
+    sandbox = _sandbox_kur()
+    try:
+        _mutant_uygula(sandbox, "nobet-tetik.py", '        ic_sebep = ic.sebep + "+"',
+                       '        ic_sebep = ""')
+        senaryo = _k334_dagitim_senaryosu()
+        senaryo["kosumlar"] = [_kosum(100, "A", "failure")]
+        senaryo["durum"] = _ESKALE_100
+        _gozcu_senaryo(sandbox, senaryo)
+        _rc, log = _ci_nobeti(sandbox)
+        assert not re.search(r"^HUKUM=ESKALASYON_ACIK", log, re.MULTILINE), "MUTANT OLMEDI"
+        assert re.search(r"^HUKUM=GUNLUK_DEFTER", log, re.MULTILINE), "ATIF SAPTI:\n%s" % log[-500:]
+        return "M-K334-AD oldu: sebep tasinmayinca HUKUM=GUNLUK_DEFTER (kirmizinin adi KAYBOLDU)"
+    finally:
+        _sandbox_sil(sandbox)
 
 
 def vaka_k326_f2_f3_ayri():
@@ -980,6 +1053,10 @@ VAKALAR = (
     ("K334 KONTROL cift atesleme", kontrol_k334_ayni_anahtar_iki_kez_acilmaz),
     ("K334 MUTANT eski merdiven", mutant_k334_merdiven_eski_sira),
     ("K334 MUTANT kablo kopuk", mutant_k334_gozcu_anahtar_yazmaz),
+    ("K334 kirmizi adi korunur", vaka_k334_kirmizi_adi_korunur),
+    ("K334 MUTANT ad silinir", mutant_k334_kirmizi_adi_silinir),
+    ("K326 olay ekseni", vaka_k326_olay_ekseni),
+    ("K326 MUTANT olay kor", mutant_k326_olay_kor),
     ("K326+K311B ardilli kirmizi", vaka_k326_ardilli_kirmizi_duran_sayilmaz),
     ("K326 duran kirmizi gorunur", vaka_k326_duran_kirmizi_gorunur),
     ("K326 F2/F3 ayri F4 sabit", vaka_k326_f2_f3_ayri),
@@ -1006,10 +1083,18 @@ def main():
     print("=== NOBET ONARIM KABUL (W2 dilim 1+2) ===")
     print("kopya dizini: %s" % os.path.relpath(KOPYA_DIZINI, EV_KOKU))
     dusen = 0
+    olculemedi = len(OLCULEMEYENLER)
     for ad, islev in VAKALAR:
         try:
             not_metni = islev()
-            print("YESIL   %-28s %s" % (ad, not_metni))
+            # W2-2 (curutucu bulgusu): `OLCULEMEDI:` notu donen vaka YESIL
+            # SAYILMAZ — CI'da `KONTROL canli yazma` boyle donuyordu ve ozet
+            # yine `OLCULEMEDI=0` basiyordu. rc'yi yukseltmez, ama sayilir.
+            if str(not_metni).startswith("OLCULEMEDI"):
+                olculemedi += 1
+                print("OLCULEMEDI %-25s %s" % (ad, not_metni))
+            else:
+                print("YESIL   %-28s %s" % (ad, not_metni))
         except BaseException as hata:
             dusen += 1
             print("KIRMIZI %-28s %s: %s" % (ad, type(hata).__name__, hata))
@@ -1017,7 +1102,7 @@ def main():
         print("OLCULEMEDI %s — %s" % (kalem, sebep))
     rc = 1 if dusen else 0
     print("VAKA=%d DUSEN=%d OLCULEMEDI=%d RC=%d"
-          % (len(VAKALAR), dusen, len(OLCULEMEYENLER), rc))
+          % (len(VAKALAR), dusen, olculemedi, rc))
     return rc
 
 
