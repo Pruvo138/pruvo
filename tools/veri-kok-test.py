@@ -23,6 +23,8 @@ IDDIALAR
   K4       GIT_DIR/GIT_WORK_TREE mirasi (kanca/CI baglami, canli depoyu gosterir) varken
            override'siz de kok KUMDA kalir (veri_kok miras GIT_* SUZER; M6 suzmeyi kaldirinca
            kok CANLIYA duser — yalniz modul yuklenir, YAZMA YOK); override ile de kumda.
+  K5 (K420) linked worktree'den parti-kontrol.py: KOD (kategori-kapisi) worktree'den
+           yuklenir, ANA'nin sentinel'i 0; eski ROOT mutantinda ANA yuklenir.
   C1       canli katalog (bu checkout'un veri koku) sha256 ONCE = SONRA.
 
 --mutasyon: `veri_kok.py`'nin mutantlari kum kopyasinda kosulur; her biri en az bir iddiayi
@@ -252,6 +254,53 @@ def k2(tmp):
           n0 == 0, "n=%s rc=%d %s" % (n0, rc, out[-300:]))
 
 
+def k5(tmp, stub):
+    """K420: worktree'den kosulan arac KOD'u (kategori-kapisi) KENDI agacindan yukler,
+    VERI'yi ana kopyadan okur. Sentinel: iki agacin kategori-kapisi.py'si yuklenince
+    ayri isaret dosyasi birakir."""
+    ana = os.path.join(tmp, "k5-ana")
+    vk.kum_kur(os.path.join(ana, "tools"), {"parti-kontrol.py": None}, TOOLS)
+    shutil.copy(os.path.join(os.path.dirname(TOOLS), "index.html"), ana)
+    katalog_yaz(ana, [])
+    git(ana, "init", "-q")
+    git(ana, "add", "-A")
+    git(ana, "commit", "-q", "-m", "taban")
+    wt = os.path.join(tmp, "k5-wt")
+    git(ana, "worktree", "add", "-q", "-b", "yan", wt)
+    isaret = os.path.join(tmp, "k5-isaret")
+    os.makedirs(isaret)
+    for kok, ad in ((ana, "ana"), (wt, "wt")):
+        with open(os.path.join(kok, "tools", "kategori-kapisi.py"), "a", encoding="utf-8") as f:
+            f.write("\nopen(%r, 'w').close()  # K5 SENTINEL\n" % os.path.join(isaret, ad))
+    parti = os.path.join(wt, "tools", "parti-kontrol.py")
+
+    def olc():
+        for ad in ("ana", "wt"):
+            if os.path.exists(os.path.join(isaret, ad)):
+                os.unlink(os.path.join(isaret, ad))
+        rc, kok, out = yukle(parti, "ROOT", ortam(), stub)
+        return (rc, kok, os.path.exists(os.path.join(isaret, "wt")),
+                os.path.exists(os.path.join(isaret, "ana")), out)
+
+    rc, kok, wt_yuklendi, ana_yuklendi, out = olc()
+    iddia("K5 (K420) worktree'den parti-kontrol: KOD (kategori-kapisi) WORKTREE'den yuklendi, "
+          "ANA'nin nobetcisi 0; VERI koku ANA",
+          rc == 0 and wt_yuklendi and not ana_yuklendi and ayni(kok, ana),
+          "rc=%s wt=%s ana=%s kok=%s %s" % (rc, wt_yuklendi, ana_yuklendi, kok, out[-200:]))
+    with open(parti, encoding="utf-8") as f:
+        metin = f.read()
+    capa = 'os.path.join(_KOD_KOK, "tools", "kategori-kapisi.py")'
+    if metin.count(capa) != 1:
+        iddia("K5 eski-ROOT mutant capasi TEKIL", False, "capa %d kez" % metin.count(capa))
+        return
+    with open(parti, "w", encoding="utf-8") as f:
+        f.write(metin.replace(capa, 'os.path.join(ROOT, "tools", "kategori-kapisi.py")'))
+    rc, kok, wt_yuklendi, ana_yuklendi, out = olc()
+    iddia("K5 K420 oncesi mutant (kod yolu ROOT'tan): ANA'nin nobetcisi yuklenir "
+          "(deney ayirt edici)", ana_yuklendi and not wt_yuklendi,
+          "rc=%s wt=%s ana=%s %s" % (rc, wt_yuklendi, ana_yuklendi, out[-200:]))
+
+
 def k4(tmp, stub):
     ortak = vk._git_ortak_dizin(os.path.dirname(TOOLS))
     if not ortak:
@@ -303,6 +352,7 @@ def kabul():
         k2(tmp)
         k1_k3(tmp, override=False)
         k4(tmp, stub)
+        k5(tmp, stub)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     sonra = [sha(y) for y in canli]
