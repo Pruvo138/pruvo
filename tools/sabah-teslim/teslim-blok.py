@@ -168,11 +168,12 @@ def teslim_karari(simdi=None, dizin=None, esik_saat=None, damga_dizini=None,
     prompt_dizini = prompt_dizini or TESLIM_PROMPT_DIZINI
 
     k = karar(simdi, dizin, esik_saat, yerel_cozucu, teslim_kollari,
-              teslim_kalp_yolu, teslim_bayatlik_saat)
+              teslim_kalp_yolu, teslim_bayatlik_saat, log_yolu, anahtar_oneki)
     anahtar = "%s%s" % (anahtar_oneki, str(k.get("tarih") or "-").replace("-", ""))
     taban = {"karar": "OLCULEMEDI", "anahtar": anahtar, "hukum": k.get("hukum"),
              "sebep": k.get("sebep"), "cip_adi": "-", "prompt_yolu": "-",
-             "ayrinti": "-", "kanit_yolu": k.get("kanit_yolu")}
+             "ayrinti": "-", "kanit_yolu": k.get("kanit_yolu"),
+             "kanit": k.get("kanit"), "dogum": k.get("dogum")}
 
     def _don(karar_adi, ayrinti, rc, teslim, detay):
         s = dict(taban)
@@ -295,6 +296,11 @@ if __name__ == "__main__":
         print("ANAHTAR=%s" % _t["anahtar"])
         print("HUKUM=%s" % _t["hukum"])
         print("SEBEP=%s" % _t["sebep"])
+        print("KANIT=%s" % ("VAR" if _t.get("kanit") else "YOK"))
+        print("DOGUM=%s sebep=%s task_id=%s" % (
+            (_t.get("dogum") or {}).get("dogdu"),
+            (_t.get("dogum") or {}).get("sebep"),
+            (_t.get("dogum") or {}).get("task_id")))
         print("CIP_ADI=%s" % _t["cip_adi"])
         print("PROMPT_YOLU=%s" % _t["prompt_yolu"])
         print("AYRINTI=%s" % _t["ayrinti"])

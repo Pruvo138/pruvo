@@ -762,6 +762,37 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/k321-karantina-ardisik-test.py
 
+      # 🔴 K320 + K356 (18 Eyl 2026 kablolandi) — SABAH RUTINI KABUL BATARYASI.
+      # `tools/sabah-teslim/sabah-kabul.py` HICBIR is akisinda kosmuyordu ve
+      # `ci-kapsam-test.py` onu goremiyordu (kesif yuklemi alt dizini ve `-kabul`
+      # ekini tanimiyordu — ayni turda onarildi). A7 (kurucu idempotensi + KAYNAK
+      # GERIDE kolu) sentetik sahte CRON dizininde, A8 (ucuncu kova: suren kosum
+      # yesil sayilmaz) enjekte `gh` fiksturu + gecici spec dizininde kosar; ikisi
+      # de `~/.claude/cron`a dokunmaz. Mutantlar: A7d/A7d2/A7g + A8e.
+      - name: K320 sabah kurucu idempotensi + KAYNAK GERIDE kabul (A7, 9 vaka)
+        if: ${{ !cancelled() }}
+        run: python3 tools/sabah-teslim/sabah-kabul.py --vaka A7 --kurucu tools/sabah-teslim/kur.py
+
+      - name: K356 sabah ucuncu kova kabul (A8, 6 vaka + mutant)
+        if: ${{ !cancelled() }}
+        run: python3 tools/sabah-teslim/sabah-kabul.py --vaka A8 --arac tools/sabah-teslim/kral-sabah.py
+
+      # 🔴 18 Eyl 2026 — kesif genislemesinin (`-kabul` eki) getirdigi, CI aynasinda
+      # (bos HOME) HERMETIK olculen iki batarya: K324 (tasima birimi + kutu kolu,
+      # rc=0 0.9 sn) ve K399 thing-icerik portu (rc=0; `--mutasyon` alt kumesini
+      # dosya KENDISI CI'ya baglanabilir ilan ediyor, ikisi de kosar).
+      - name: K324 tasima birimi + kutu kolu kabul bataryasi
+        if: ${{ !cancelled() }}
+        run: python3 tools/k324-kabul.py
+
+      - name: K399 thing-icerik port kabul (uc kol)
+        if: ${{ !cancelled() }}
+        run: python3 tools/thing-icerik-port-kabul.py
+
+      - name: K399 thing-icerik port kabul — izole golge mutasyon
+        if: ${{ !cancelled() }}
+        run: python3 tools/thing-icerik-port-kabul.py --mutasyon
+
       # 🔴 K313 SINIF KOLU (16 Eyl 2026 kablolandi) — gorselsiz kayit denetim
       # kapisinda IHLAL olarak dusmeli (silme DEGIL). Batarya 27 Agu'dan beri vardi
       # ama HICBIR is akisinda kosmuyordu: kol sessizce solsaydi kimse gormezdi.
