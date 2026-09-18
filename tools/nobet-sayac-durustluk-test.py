@@ -327,11 +327,24 @@ def kos():
         print("")
 
         vaka_gecen = 0
+        # 🔴 K325 (W2-2, 18 Eyl 2026): uretim sayaci ESIKTE SATURE olur.
+        # Beklenti ELLE yazilmaz, uretim modulunun KENDI esik sabitinden
+        # TURER; sabit yoksa (eski uretim) eski sozlesme olculur. Iki halde de
+        # DURUSTLUK invaryanti (onarimsiz tur sayaci DUSUREMEZ) AYNEN aranir.
+        esik = getattr(mod, "USTUSTE_ONARIMSIZ_ESIGI", None)
+        print("sayac sozlesmesi: %s" % ("SATURASYON esik=%d" % esik
+                                         if esik is not None else "SINIRSIZ (eski)"))
         # --- V1: onarimsiz tur -> ARTAR (dusmez) --------------------------
-        v1_deger = sonraki(105, 0)
-        v1 = (v1_deger == 106)
-        print("V1 onarimsiz tur ARTIRIR      : sonraki(105, 0)=%s (beklenen 106) %s"
-              % (v1_deger, "✓" if v1 else "✗"))
+        if esik is None:
+            v1_deger = sonraki(105, 0)
+            v1 = (v1_deger == 106)
+            v1_beklenen = "106"
+        else:
+            v1_deger = (sonraki(0, 0), sonraki(esik, 0), sonraki(105, 0))
+            v1 = (v1_deger == (1, esik, 105))
+            v1_beklenen = "(1, %d, 105) — altta artar · esikte durur · ustte DUSMEZ" % esik
+        print("V1 onarimsiz tur ARTIRIR      : sonraki(...,0)=%s (beklenen %s) %s"
+              % (v1_deger, v1_beklenen, "✓" if v1 else "✗"))
         vaka_gecen += 1 if v1 else 0
 
         # --- V2: onarim olan tur -> SIFIRLANIR ----------------------------
@@ -343,15 +356,20 @@ def kos():
 
         # --- V3: GERCEK dosya yolu (atomik yazici) ------------------------
         yol = os.path.join(gecici, "nobet-onarimsiz-sayac.json")
-        _sayac_yaz_elle(yol, 105)
+        taban = 105 if esik is None else esik - 1
+        _sayac_yaz_elle(yol, taban)
         d1 = guncelle(0, yol=yol)
         d2 = guncelle(0, yol=yol)
         d3 = guncelle(2, yol=yol)
         d4 = oku(yol=yol)
-        v3 = (d1 == 106 and d2 == 107 and d3 == 0 and d4 == 0)
-        print("V3 dosya yolu (atomik)        : 105 -> %s -> %s -> (onarim=2) %s "
+        if esik is None:
+            v3 = (d1 == 106 and d2 == 107 and d3 == 0 and d4 == 0)
+        else:
+            # esik-1 -> esik (artar) -> esik (SATURE) -> onarim=2 -> 0
+            v3 = (d1 == esik and d2 == esik and d3 == 0 and d4 == 0)
+        print("V3 dosya yolu (atomik)        : %s -> %s -> %s -> (onarim=2) %s "
               "-> oku %s %s"
-              % (d1, d2, d3, d4, "✓" if v3 else "✗"))
+              % (taban, d1, d2, d3, d4, "✓" if v3 else "✗"))
         vaka_gecen += 1 if v3 else 0
 
         # --- V4: INVARYANT uretim kodunda TUTUYOR -------------------------

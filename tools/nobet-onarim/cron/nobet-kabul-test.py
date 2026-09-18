@@ -11,6 +11,7 @@ Her vaka en az bir OLDURUCU MUTANT'i kirmizi yakmak icin vardir.
 """
 
 import importlib.util
+import json
 import os
 import shutil
 import subprocess
@@ -44,9 +45,23 @@ _SPEC.loader.exec_module(kapi)
 # davranisa tasiyan bir DARALTMA olurdu. Dogru onarim: goc kolunu ozne alan
 # vakalar (5 · 11 · 41) emekli adi ACIKCA tasir, geri kalanlar tek kaynaktan
 # turer — ve bu ayrim vaka 6'nin merdiven basamagi ile BIRLIKTE olculur.
-# SIRADAKI DILIME BIRAKILDI (mimara giden is raporunun "kalan" bolumu).
+#
+# ✅ W2-2 (18 Eyl 2026) UYGULANDI VE OLCULDU:
+#   · vaka 6 (oznesi "3. dagitimda eskalasyon", kat DEGIL) -> FIKSTUR_KAT.
+#     Merdiven hukmu: emekli adla `ESKALASYON_BAYAT` gocu sayaci itip
+#     KRAL->BABA basamagina cikariyor ve kalemi YENIDEN dagitiyordu
+#     (`dagitilan=1`); canli katla basamak `ESKALASYON=OKAN` (3. dagitim),
+#     `dagitilan=0` — vaka 6 KIRMIZI -> YESIL, DUSEN 1 -> 0.
+#   · vaka 5 · 11 (`_tek_kalem_tezgahi`) GOC KOLUNU OZNE alir: uc fiksturu
+#     birden FIKSTUR_KAT'a cevirmek YENIDEN olculdu (sahte motor anahtarli
+#     kumda) -> vaka 5 + 11 KIRMIZI (`dagitilan=0 hukum=ONARIMSIZ_TUR`).
+#     Dilim 1 hukmu dogru: emekli ad bu vakalarda YUK TASIR. Artik ELLE
+#     literal degil, ADLI sabit `GOC_OZNESI_KAT`; emekliligi `kapi`nin tek
+#     kaynagina (EMEKLI_ISCI_MOTORLARI) karsi vaka 42'de olculur — motor
+#     geri canlanirsa vakalar SESSIZCE ozne degistirmez, 42 KIRMIZI yanar.
 FIKSTUR_KAT = (kapi.CANLI_ISCI_MOTORLARI[0] if kapi.CANLI_ISCI_MOTORLARI
                else kapi.VARSAYILAN_KAT)
+GOC_OZNESI_KAT = "kimi"
 
 DEFTER_BASI = "\n".join([
     "# fikstur defteri",
@@ -207,7 +222,7 @@ def vaka5_raporsuz_is_duser_ve_yeniden_dagitilir():
     """5) Dagitilan kalem 2 tur rapor uretmezse DUSTU + YENIDEN dagitim (M3)."""
     metin = defter([satir("K01", "Tamirci", "🔧 tarama kök neden bulunacak", "🔧")])
     geri_iz = {"tur_no": 2, "kalemler": {"K01": {
-        "id": "K01", "etiket": "nobet-K01-t1", "tur": 1, "kat": "kimi",
+        "id": "K01", "etiket": "nobet-K01-t1", "tur": 1, "kat": GOC_OZNESI_KAT,
         "rapor_yolu": "/yok/rapor-yok.md", "durum": "DAGITILDI",
         "dagitim_sayisi": 1}}}
     with Tezgah(metin, geri_iz=geri_iz) as t:
@@ -219,7 +234,7 @@ def vaka5_raporsuz_is_duser_ve_yeniden_dagitilir():
     # kontrol kolu: rapor VARSA, HUKUM=KAPANDI ise VE kabul komutu rc=0 verirse kapanir
     # (C3, 14 Agu: rapor tek basina yetmez — komut kosulur.)
     geri_iz2 = {"tur_no": 2, "kalemler": {"K01": {
-        "id": "K01", "etiket": "nobet-K01-t1", "tur": 1, "kat": "kimi",
+        "id": "K01", "etiket": "nobet-K01-t1", "tur": 1, "kat": GOC_OZNESI_KAT,
         "rapor_yolu": "KAPANDI_RAPORU", "durum": "DAGITILDI", "dagitim_sayisi": 1}}}
     metin2 = defter([satir("K01", "Tamirci", "🔧 tarama kök neden bulunacak", "🔧",
                            kabul="python3 {BETIK}/yesil.py")])
@@ -237,7 +252,7 @@ def vaka6_ucuncu_turda_eskalasyon():
     """6) 3. dagitimda hala acik -> ESKALASYON=OKAN."""
     metin = defter([satir("K01", "Tamirci", "🔧 tarama kök neden bulunacak", "🔧")])
     geri_iz = {"tur_no": 2, "kalemler": {"K01": {
-        "id": "K01", "etiket": "nobet-K01-t1", "tur": 1, "kat": "kimi",
+        "id": "K01", "etiket": "nobet-K01-t1", "tur": 1, "kat": FIKSTUR_KAT,
         "rapor_yolu": "/yok/rapor-yok.md", "durum": "DAGITILDI",
         "dagitim_sayisi": 3}}}
     with Tezgah(metin, geri_iz=geri_iz) as t:
@@ -372,7 +387,7 @@ def _tek_kalem_tezgahi(kabul="", rapor=KAPANDI_RAPORU, betikler=None):
     """Tek DAGITILDI kalemi + raporu olan tezgah (C paketi vakalarinin iskeleti)."""
     metin = defter([satir("K01", "Tamirci", "🔧 tarama kök neden bulunacak", "🔧", kabul=kabul)])
     geri_iz = {"tur_no": 1, "kalemler": {"K01": {
-        "id": "K01", "etiket": "nobet-K01-t1", "tur": 1, "kat": "kimi",
+        "id": "K01", "etiket": "nobet-K01-t1", "tur": 1, "kat": GOC_OZNESI_KAT,
         "rapor_yolu": "KAPANDI_RAPORU", "durum": "DAGITILDI", "dagitim_sayisi": 1}}}
     return Tezgah(metin, geri_iz=geri_iz, betikler=betikler or {},
                   raporlar={"nobet-K01-t1.md": rapor})
@@ -1353,6 +1368,62 @@ def vakaD4_dondurma_eskalasyon_ve_gozcu_kollarini_degistirmez():
     return "eskalasyon/SLA/merdiven satirlari ON/OFF BIREBIR AYNI"
 
 
+def vaka42_goc_oznesi_kat_emekli_kumede():
+    """42) K316 (W2-2): goc kolunu OZNE alan fiksturlerin kati GERCEKTEN emekli.
+
+    Vaka 5 · 11 `GOC_OZNESI_KAT` tasir cunku `ESKALASYON_BAYAT` gocunu BILEREK
+    tetiklerler. O ad emekli kumeden cikarsa (motor geri canlanir) goc kolu
+    SUSAR ve iki vaka sessizce BASKA bir davranisi olcmeye baslar. Bu vaka o
+    kaymayi ADIYLA yakar; ayrica canli-kat fiksturunun emekli OLMADIGINI
+    (vaka 6'nin oznesi) ayni kaynaktan dogrular.
+    """
+    emekli = tuple(getattr(kapi, "EMEKLI_ISCI_MOTORLARI", ()) or ())
+    assert emekli, "EMEKLI_ISCI_MOTORLARI BOS/okunamadi — goc oznesi OLCULEMEDI"
+    assert GOC_OZNESI_KAT in emekli, (
+        "goc oznesi %r EMEKLI kumede DEGIL (%s) — vaka 5/11 goc kolunu artik "
+        "OLCMUYOR" % (GOC_OZNESI_KAT, emekli))
+    assert FIKSTUR_KAT not in emekli, (
+        "canli fikstur kati %r EMEKLI kumede — vaka 6 goce dusuyor" % FIKSTUR_KAT)
+    return "goc oznesi=%s EMEKLI · canli fikstur=%s CANLI" % (GOC_OZNESI_KAT, FIKSTUR_KAT)
+
+
+def vaka43_ustuste_sayaci_esikte_sature_tuketici_esige_gore_davranir():
+    """43) K325 (W2-2): sayac ESIKTE durur + tuketici SAYIYA gore davranir.
+
+    Olculdu 28 Agu: esik 88 tur once gecilmis, sayi 89 -> 154 tirmanmisti;
+    esik ustu artis bilgi tasimiyordu. Iki eksen AYRI olculur:
+      (a) TUKETICI: esik ALTINDA `ESKALASYON=OKAN USTUSTE_ONARIMSIZ` satiri
+          YOK, esikte VAR -> kol sayiya gore DAVRANIS degistiriyor
+          (M-K325-TUKETICI bu satiri olurdurunce (a) KIRMIZI).
+      (b) SATURASYON: esikten sonra 3 onarimsiz tur daha -> sayac HALA esik
+          ve satir `SATURE=1` tasir (M-K325-SATURE sinirsiz +1'e donunce
+          (b) KIRMIZI).
+    Senaryo vaka 1'in AYNISI (3 OKAN kalemi, onarim 0 -> KOSTU_DUSTU).
+    """
+    esik = kapi.USTUSTE_ONARIMSIZ_ESIGI
+    metin = defter([satir("K01", "Okan", "🔧 iyzico ödeme paneli kararı", "🔧"),
+                    satir("K02", "Okan", "🔧 shop worker deploy hükmü", "🔧"),
+                    satir("K03", "Okan", "🔧 üyelik yenileme kararı", "🔧")])
+    with Tezgah(metin) as t:
+        with open(kapi.ONARIMSIZ_SAYAC_YOLU, "w", encoding="utf-8") as dosya:
+            json.dump({"ustuste_onarimsiz": esik - 2}, dosya)
+        alt = t.kapat()
+        assert alt["ustuste_onarimsiz"] == esik - 1, alt["ustuste_onarimsiz"]
+        assert "ESKALASYON=OKAN USTUSTE_ONARIMSIZ=" not in alt["rapor"], (
+            "(a) esik ALTINDA tuketici ateslendi: %s" % alt["ustuste_onarimsiz"])
+        esikte = t.kapat()
+        assert esikte["ustuste_onarimsiz"] == esik, esikte["ustuste_onarimsiz"]
+        assert ("ESKALASYON=OKAN USTUSTE_ONARIMSIZ=%d SATURE=1" % esik
+                in esikte["rapor"]), "(a) esikte tuketici SUSTU"
+        for _ in range(3):
+            son = t.kapat()
+        assert son["ustuste_onarimsiz"] == esik, (
+            "(b) sayac esikte SATURE OLMADI: %s" % son["ustuste_onarimsiz"])
+        assert kapi.ustuste_onarimsiz_oku() == esik, kapi.ustuste_onarimsiz_oku()
+    return ("esik=%d · alt=%d satirsiz · esikte satir+SATURE=1 · +3 tur -> %d"
+            % (esik, esik - 1, esik))
+
+
 def vaka41_el_kitabi_ureticisi_kat_sutununu_turetir():
     """41) K316: el kitabinin `kat` sutunu URETILIR — elle yazilmaz.
 
@@ -1443,6 +1514,8 @@ VAKALAR = [
     ("D3 ADAY=0 bayrak isirmis gorunmez", vakaD3_aday_sifirken_bayrak_isirmis_gibi_gorunmez),
     ("D4 dondurma komsu kollari bozmaz", vakaD4_dondurma_eskalasyon_ve_gozcu_kollarini_degistirmez),
     ("41 el kitabi kat sutunu URETILIR", vaka41_el_kitabi_ureticisi_kat_sutununu_turetir),
+    ("42 goc oznesi kat EMEKLI kumede", vaka42_goc_oznesi_kat_emekli_kumede),
+    ("43 ustuste sayac SATURE + tuketici", vaka43_ustuste_sayaci_esikte_sature_tuketici_esige_gore_davranir),
 ]
 
 
@@ -1587,11 +1660,16 @@ def k316_el_kitabi_mutasyon_bataryasi():
     oraya cevrilir — yani gercekten TEK KAYNAK degistirilir, kat sabiti elle
     ezilmez.
     """
+    # 🔴 W2-2 (18 Eyl 2026) — CAPA KALDIRILDI, EV_KOKU ENV ILE CEVRILIR.
+    # OLCULDU: W2 dilim 1 `EV_KOKU`yu `os.environ.get("PRUVO_EV_KOKU") or
+    # "/Users/okan/..."` yapinca eski capa (`EV_KOKU = "/Users/okan/dev/pruvo"`)
+    # kaynakta 0 kez gecti -> `MUTASYON K316 BOZUK`, `K316_MUTANT_KIRMIZI=0/1`,
+    # RC=1 (canli + kopya). Kaynak metni degistirmek yerine modulun KENDI
+    # sozlesmesi (env) kullanilir: kopya BAYT BAYT uretim kaynagidir, yalniz
+    # tek kaynagin YERI fiksture cevrilir. Kaynak metni degisse de mutant
+    # kirilmaz; env sozlesmesi kalkarsa asagidaki ISIRMADI kolu ADIYLA soyler.
     with open(_YOL, encoding="utf-8") as dosya:
         kaynak = dosya.read()
-    ankraj = 'EV_KOKU = "/Users/okan/dev/pruvo"'
-    if kaynak.count(ankraj) != 1:
-        raise AssertionError("K316 mutant ankraji TEKIL degil: %d" % kaynak.count(ankraj))
 
     # KONTROL: mutasyonsuz kolda vaka 19 YESIL olmali.
     try:
@@ -1611,14 +1689,20 @@ def k316_el_kitabi_mutasyon_bataryasi():
             dosya.write(K316_FIKSTUR_KIMLIK)
         mutant_yolu = os.path.join(kok, "nobet-kapi.py")
         with open(mutant_yolu, "w", encoding="utf-8") as dosya:
-            dosya.write(kaynak.replace(ankraj, "EV_KOKU = %r" % kok, 1))
+            dosya.write(kaynak)
         sys.path.insert(0, araclar)
+        eski_ev = os.environ.get("PRUVO_EV_KOKU")
+        os.environ["PRUVO_EV_KOKU"] = kok
         try:
             mutant_spec = importlib.util.spec_from_file_location(
                 "nobet_kapi_k316_mutant", mutant_yolu)
             mutant_kapi = importlib.util.module_from_spec(mutant_spec)
             mutant_spec.loader.exec_module(mutant_kapi)
         finally:
+            if eski_ev is None:
+                os.environ.pop("PRUVO_EV_KOKU", None)
+            else:
+                os.environ["PRUVO_EV_KOKU"] = eski_ev
             if araclar in sys.path:
                 sys.path.remove(araclar)
         if mutant_kapi.KAT_TARAMA != "K316-SAHTE-BIRINCIL":
