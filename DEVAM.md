@@ -2,6 +2,12 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ 18 EYL 16:5x–18:2x KraL çip `elegant-swanson-2a0319` — **W4-2 BİTTİ: K320 · K356 KAPANDI · `kur.py --kuru` çapa çökmesi 1→0 · canlı `sabah-kabul.py` = repo**
+**TAŞIMA:** canlı `sabah-kabul.py`'nin A8 (üçüncü kova) + A9 (tavan freni) gövdesi repoya taşındı (hiçbir git nesnesinde yoktu); canlı `cip_dogum_bekcisi.py` teslim bloğu + `bekci-kabul.py` H bataryası (K331, 28 Ağu) `teslim-blok.py`/`kabul-blok.py`'ye taşındı → `YAMA_OZET 16/16 zaten capa_yok=0`. Yeni sınıf kolu `kur.py` KAYNAK GERİDE: H yaması `UYGULANDI` diyordu (eski blok 2. kez eklenecekti).
+**KABUL:** `--vaka A7` 9/9 · `--vaka A8` 6/6 (kumlu: CI'da KALEMLER sabit Mac yolu yok → ilk dal koşumu kırmızıydı, kök ölçüldü) · `--vaka A9` 11/11 · dal nobet serit-b 5 yeni adım success · yayın run `35358444193` deploy+yayin success.
+**KAPSAM:** `ci-kapsam-test.py` yüklemi alt dizin + `-kabul` eki; 27 aday: 5 serit-b'ye bağlandı, 22 ölçülmüş gerekçeyle muaf. Yeni kalem **K422** `yedek-dusus-kabul.py` çürümüş (rc=1, M6 yaması tutmuyor).
+**CANLI:** `sabah-kabul.py` `4d7a32da`→repo (her kurulumda yedek git blob'uyla eşlenip silindi) · `kral-sabah.py` `a082462b` DEĞİŞMEDİ · 3 yama hedefi bayt-aynı.
+
 ## ✅ 18 EYL 16:5x–18:xx KraL çip `laughing-cannon-ac6c6e` — **W3-2 + W5 BİTTİ: K329-EK · K351-31AGU · K140 · K339 · K339-EK KAPANDI · K416 ③ tuttu → main `9dddcc3a`**
 **K351-31AGU ③ GERÇEK ARIZA:** `defter-rotasyon.py::_tavan_asildi_mi` ölü bayt eksenini hükme sokuyordu → canlı defter kopyasında `--onlem` 399→381 satır inip durmadı, `KAYIP:` rc=2. Onarım: yüklem `BAYT_HUKUM_VERIR`'i okur → aynı kopyada `DOLU_NO_OP rc=0`. Ölçüt SATIR ekseninde: `DEVAM.md` ≤ 400 satır. ② karışık blok `KAPALI=2`. `defter-onlem-bacagi-test.py` 6/6 mutant (hedef-kol atfı eklendi).
 **K140:** mutasyon main'de 3 KALDI (M3 çapa-yok · M12 · M18) → 24/24; batarya CI'ya (`marka-invaryant-sayac-bataryasi`). **K339/K339-EK:** `serit-b-hukum-test.py` politika+sayaç+mutasyon+CANLI `cron-nabzi`'de; CI canlı `HUKUMSUZ_SERI=7 · schedule 12/12`. **K329-EK:** kapanmıştı (kuru, tavan 150: 9/9 açık blok yerinde atlandı).
