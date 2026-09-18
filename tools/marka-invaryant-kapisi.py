@@ -128,6 +128,11 @@ CAPALAR = [
 # gecerdi. Veri iliskisi mutanttan BAGIMSIZDIR: mutant altinda havuz DOLU kalir, capa
 # "aramada VAR" iddiasi KIRMIZI yanar.
 UYUM_CAPA_ADEDI = 3      # kac capa secilir (ayarlanabilir; artirmak iddiayi guclendirir)
+# 🔴 TOTOLOJI NOBETCISI TABANI (16 Eyl 2026, K140/M3): ARAMA kumesi SAYFA kumesinin
+# kopyasi olamaz. Olculen: 142 markanin 38'inde ARAMA ⊋ SAYFA. Esik 10 — olculenin cok
+# altinda (katalog daralmasi sahte kirmizi vermesin) ama `srch = set(sayfa)` turu her
+# totoloji mutanti 0'a duser ve KIRMIZI yanar.
+TOTOLOJI_ASGARI_AYRISAN = 10
 UYUM_CAPA_ASGARI = 3     # CIVILI TABAN: bu sayidan az capa OLCULDUYSE iddia YOK sayilir.
 #                          ADEDI'den AYRI durur: ADEDI'yi 0'a indiren bir mutant, kendi
 #                          esigini de dusurerek sessizce yesil gecemesin.
@@ -373,7 +378,11 @@ def olc(mmb, arama, urunler, index_html):
             tok = arama.tokenlar(marka)
             srch = {i for i, h in hs if i and arama.esles(h, tok)}
         kumeler[marka] = (sayfa, filtre, srch)
-    return veri, kumeler, serbeste_dusen, uyelik_sorgu, baslik_uyum, kanon
+    # 🔴 `evren` de DONER (16 Eyl 2026, K140/M18): kapinin FIILEN kullandigi marka
+    # evreni disaridan OLCULEBILIR olmali. Donmezse "kapida ikiz tanim var mi"
+    # sorusunun cevabi kapinin ICINDE kalir ve M18 gibi bir mutant (kapiya kuratorlu
+    # liste KOPYALAMA) olculmeden gecer — nitekim 6-13 Eyl arasi gecti.
+    return veri, kumeler, serbeste_dusen, uyelik_sorgu, baslik_uyum, kanon, evren
 
 
 def taban_kur(veri, kumeler, katalog):
@@ -445,7 +454,8 @@ def main():
 
     try:
         (veri, kumeler, serbeste_dusen,
-         uyelik, baslik_uyum, kanon) = olc(mmb, arama, urunler, index_html)
+         uyelik, baslik_uyum, kanon, evren_kullanilan) = olc(mmb, arama, urunler,
+                                                            index_html)
     except SystemExit as e:
         olculemedi("olcum kosulamadi (SystemExit: %s)" % (e.code,))
     except Exception as e:                                        # noqa: BLE001
@@ -615,6 +625,14 @@ def main():
     for marka, pid in secim:
         sayfa, _filtre, srch = kumeler[marka]
         uy, bs = uyelik.get(pid) or [], baslik_uyum.get(pid) or []
+        # 0) 🔴 HAVUZ SOZLESMESI OLCULUR (16 Eyl 2026, K140/M12). Asagidaki uc iddianin
+        # METNI "uyelik YOK, baslik VAR" diyordu ama bunu KIMSE olcmuyordu; havuzu
+        # UYELIKTEN kuran bir mutant (`marka not in uy` -> `marka in uy`) capalari
+        # totolojiye cevirip SESSIZCE hayatta kaliyordu (6 Eyl'den beri bilinen
+        # survivor). Secilen capanin SINIFI burada civilenir: uyeligi YOKTUR ve
+        # baslikta TAM KELIME uyumu VARDIR — bozuk secim bu kolda KIRMIZI yanar.
+        kontrol("UYUM CAPASI %s x '%s' -> HAVUZ SOZLESMESI: uyelik YOK ve baslik uyumu VAR"
+                % (pid, marka), (marka not in uy) and (marka in bs))
         # 1) GECIS KURALI bu urunu GERCEKTEN eslestiriyor mu (uretim yuklemi kosulur)
         kontrol("UYUM CAPASI %s x '%s' -> gecis kurali ESLESTIRIYOR (uyelik YOK, baslik VAR)"
                 % (pid, marka), arama.marka_sorgusu_esler(marka, uy, bs))
@@ -631,6 +649,39 @@ def main():
         # OLMAMASINI beklemek gerekirdi, kapi KIRMIZI yakardı).
         kontrol("UYUM CAPASI %s x '%s' -> /marka/ SAYFASINDA (FAZ 1B: uyelik+baslik)"
                 % (pid, marka), pid in sayfa)
+
+    # ── TOT) TOTOLOJI NOBETCISI — ARAMA modeli SAYFA kumesinin KOPYASI DEGIL ────
+    # 🔴 16 Eyl 2026 (K140/M3). Surucunun kendi docstring'i "kapinin en buyuk riski
+    # TOTOLOJI'dir" der ve `srch = set(sayfa)` mutantini tam bunun icin tasir; ama
+    # kapida o hali ADIYLA olcen bir kol YOKTU: ARAMA_FAZLA ekseni BLOKLAMAZ
+    # (katalog buyudukce artar, civilenmez) ve digerleri iki kume ayni olunca da
+    # yesil kalir. Sonuc: mutant "beyan edilmis survivor" olarak duruyordu.
+    # OLCULEN TABAN (16 Eyl 2026, bu agac): 142 markanin 38'inde ARAMA ⊋ SAYFA
+    # (314 kalem) · SAYFA ⊋ ARAMA olan marka 0 (ARAMA ⊇ SAYFA yapisaldir, `ne_olculmedi`
+    # #3). Asgari 10 CIVILI: olculen 38'in cok altinda (katalog daralmasi sahte
+    # kirmizi uretmesin) ama modeli sayfaya esitleyen her mutant 0'a duser -> KIRMIZI.
+    # Esik olculen degerden AYRI durur (UYUM_CAPA_ADEDI/ASGARI ayrimiyla ayni gerekce).
+    ayrisan = [m for m, (p, _f, s) in kumeler.items() if s - p]
+    ters_ayrisan = [m for m, (p, _f, s) in kumeler.items() if p - s]
+    print("  TOTOLOJI NOBETCISI: ARAMA ⊋ SAYFA olan marka %d/%d (asgari %d) · "
+          "SAYFA ⊋ ARAMA olan marka %d"
+          % (len(ayrisan), len(kumeler), TOTOLOJI_ASGARI_AYRISAN, len(ters_ayrisan)))
+    kontrol("TOT: ARAMA modeli SAYFA kumesinin KOPYASI DEGIL (ARAMA ⊋ SAYFA olan marka "
+            "%d >= %d)" % (len(ayrisan), TOTOLOJI_ASGARI_AYRISAN),
+            len(ayrisan) >= TOTOLOJI_ASGARI_AYRISAN)
+
+    # ── TEK) TEK KAYNAK — kapinin kullandigi evren KAYNAKTAN yeniden turetilenle AYNI ──
+    # 🔴 16 Eyl 2026 (K140/M18). "Kapida kuratorlu liste KOPYALANAMAZ" invarianti
+    # YALNIZCA YORUMDA yaziyordu; kapiya elle bir ad eklemek (M18) olculebilir bir
+    # ihlal uretmiyordu — cunku uydurma ad katalogda hicbir urune baglanmadigi icin
+    # sayfa/filtre/arama kumelerinin UCU DE bos kaliyor. Burada olculen sey KUME
+    # DEGIL, EVRENIN KENDISI: kapinin fiilen kullandigi `taninmis` listesi, AYNI
+    # kaynaktan (index.html) YENIDEN turetilenle BIREBIR ayni olmali.
+    evren_tekrar = mmb.MarkaEvreni(index_html)
+    _fark = (set(evren_kullanilan.taninmis) ^ set(evren_tekrar.taninmis))
+    kontrol("TEK: kapinin kullandigi marka evreni KAYNAKTAN yeniden turetilenle BIREBIR "
+            "AYNI (ikiz tanim/kapida liste YASAK; fark: %s)"
+            % (sorted(_fark)[:5] if _fark else "yok"), not _fark)
 
     # ── G) GURULTU CAPASI — serbest metnin yanlis bagladigi urun ARAMADA OLMAMALI ──
     for pid, marka, sinif in GURULTU_CAPALARI:
