@@ -25,13 +25,24 @@ konusuz: kacirilacak taban DOSYASI yok, ve TABAN SAYILARI her kosumda BASILIR.
       IKINCI KOSUM bayt-birebir olmali (cogaltma=0). MUTANT eski kolu geri
       getirir ve ikinci kosumu COGALTIR.
 
+18 Eyl 2026, `elegant-swanson-2a0319` — CANLIDAN TASINAN IKI VAKA + KAYNAK GERIDE:
+
+  A8  UCUNCU KOVA (K356): suren kosum yesil sayilmaz (enjekte `gh` fiksturu).
+  A9  TAVAN FRENI: panel sinirina KAYIPSIZ kirpma (A9-1 canli defteri okur).
+  A7d2/A7f-h  `kur.py` KAYNAK GERIDE kolu: canli hedef yamanin ilerletilmis
+      halini tasiyorsa kurulum DURUR (eski blok ikinci kez EKLENMEZ).
+  A8/A9 10 Eyl'den beri yalniz `~/.claude/cron/sabah-kabul.py`de yasiyordu.
+
 Fazlar:
-  --faz on   : A1 + A6 + A7 (yazim YAPMAZ — canli spec'e dokunmaz)
-  --faz tam  : A1..A7 (A2 canli spec'i URETIR)
+  --faz on   : A1 + A6 + A7 + A8 + A9 (yazim YAPMAZ — canli spec'e dokunmaz)
+  --faz tam  : hepsi (A2 canli spec'i URETIR)
+  --vaka A7|A8|A9 : yalniz o vaka (A7/A8 hermetik — CI serit-b bunlari kosar)
 """
 
 import argparse
+import datetime as dt
 import hashlib
+import importlib.util
 import os
 import re
 import shutil
@@ -66,9 +77,15 @@ def baslik(m):
     print("\n=== %s ===" % m)
 
 
-def kos(argv, zaman_asimi=180):
+def kos(argv, zaman_asimi=180, ortam=None):
+    """`ortam`: ek ortam degiskenleri (A8 `gh` enjeksiyonu). None ise ortam AYNEN."""
     try:
-        r = subprocess.run(argv, capture_output=True, text=True, timeout=zaman_asimi)
+        cevre = None
+        if ortam:
+            cevre = dict(os.environ)
+            cevre.update(ortam)
+        r = subprocess.run(argv, capture_output=True, text=True, timeout=zaman_asimi,
+                           env=cevre)
         return r.returncode, (r.stdout or "") + (r.stderr or "")
     except subprocess.TimeoutExpired:
         return 124, "ZAMAN_ASIMI %ds" % zaman_asimi
@@ -713,12 +730,26 @@ def a7_kurucu_idempotens():
             return
         kayit("A7c MUTANT capasi TEK", True, "capa_adedi=1")
 
+        # 🔴 18 Eyl 2026: `kur.py` ARTIK IKI KATLI — idempotens kolunun arkasinda
+        # KAYNAK GERIDE kolu (A7f) durur ve eski-kol mutantinin ikinci kosumunu
+        # fail-closed DURDURUR (rc=3, yazim yok). Tek kolu soken mutant bu yuzden
+        # COGALTAMAZ ve A7d'yi olduremezdi ([[fail-closed-kol-arkasindaki-kolu-maskeler]]).
+        # A7d'nin mutanti IKI kolu birlikte soker (idempotens kolunun cogaltmayi
+        # onleyen kol oldugunu korumasiz zeminde kanitlar); tek-kol mutanti A7d2'de
+        # ikinci katin DURDURDUGUNU olcer.
         mut_dizin = os.path.join(td, "mutant-kaynak")
         shutil.copytree(os.path.dirname(kurucu), mut_dizin,
                         ignore=shutil.ignore_patterns("__pycache__"))
         mut_kurucu = os.path.join(mut_dizin, "kur.py")
+        tek_kol = kur_kaynak.replace(MUT_A7_CAPA, MUT_A7_YAMA, 1)
+        ikinci_kat = kur_kaynak.count(MUT_A7G_CAPA) == 1
         with open(mut_kurucu, "w", encoding="utf-8") as f:
-            f.write(kur_kaynak.replace(MUT_A7_CAPA, MUT_A7_YAMA, 1))
+            f.write(tek_kol.replace(MUT_A7G_CAPA, MUT_A7G_YAMA, 1) if ikinci_kat else tek_kol)
+        tek_dizin = os.path.join(td, "mutant-tek-kol")
+        shutil.copytree(os.path.dirname(kurucu), tek_dizin,
+                        ignore=shutil.ignore_patterns("__pycache__"))
+        with open(os.path.join(tek_dizin, "kur.py"), "w", encoding="utf-8") as f:
+            f.write(tek_kol)
 
         # Mutant TAZE bir sentetik tabandan baslar (taban AYNI sozlesmeden
         # uretilir; degisen TEK sey kurucunun idempotens koludur).
@@ -750,6 +781,548 @@ def a7_kurucu_idempotens():
               "taban ilk=%s mutant ilk=%s" % (
                   _alan(ozet1, "uygulanan"), _alan(jeton(cM1, "YAMA_OZET "), "uygulanan")))
 
+        # --- A7d2: YALNIZ idempotens kolu sokuldu -> ikinci kat DURDURUR.
+        if not ikinci_kat:
+            kayit("A7d2 TEK-KOL MUTANT: ikinci kat (KAYNAK GERIDE) DURDURUR", False,
+                  "kurucuda KAYNAK GERIDE kolu YOK (capa_adedi=%d)"
+                  % kur_kaynak.count(MUT_A7G_CAPA))
+        else:
+            t_cron = os.path.join(td, "cron-tek-kol")
+            _sentetik_cron(Y, t_cron)
+            t_ortak = ["--cron-dizin", t_cron, "--cikti-dizin", os.path.join(td, "log-t")]
+            t_kurucu = os.path.join(tek_dizin, "kur.py")
+            kos([PY, t_kurucu] + t_ortak, 240)
+            izT1 = _dizin_parmak_izi(t_cron)
+            rcT2, cT2 = kos([PY, t_kurucu] + t_ortak, 240)
+            ozT2 = jeton(cT2, "YAMA_OZET ")
+            kayit("A7d2 TEK-KOL MUTANT: ikinci kat (KAYNAK GERIDE) DURDURUR",
+                  rcT2 == 3 and _dizin_parmak_izi(t_cron) == izT1
+                  and _alan(ozT2, "kaynak_geride") not in ("-", "0"),
+                  "T2 rc=%d bayt_degismedi=%d %s" % (
+                      rcT2, int(_dizin_parmak_izi(t_cron) == izT1), ozT2[-44:]))
+
+        a7_kaynak_geride(kurucu, kur_kaynak, Y, sahte_cron, td)
+
+
+# 🔴 A7f-h — KAYNAK GERIDE (18 Eyl 2026, `elegant-swanson-2a0319`). Olculen vaka:
+# canli `bekci-kabul.py` H bataryasi 28 Agu'da (K331) elle ilerletildi, repodaki
+# `kabul-blok.py` geride kaldi. `kur.py --kuru` bu yamaya `UYGULANDI` dedi: capa
+# (`# ---- ana`) hala TEK, `yeni` artik yok -> ESKI H blogu IKINCI KEZ eklenecekti;
+# yalniz komsu yamanin capa cokmesi kurulumu durdurdu (tesaduf korumasi).
+MUT_A7G_CAPA = "        if imza is not None and imza in metin:\n"
+MUT_A7G_YAMA = "        if False:  # MUTANT: KAYNAK GERIDE kolu YOK\n"
+A7F_SATIR = "# A7f FIKSTURU: canli bu blogu kurulumdan SONRA ilerletti\n"
+
+
+def _ileri_surum(Y, sahte_cron, imza_fn):
+    """Kurulu sahte tabanda bir EKLE yamasini 'canli ilerletti' haline getirir.
+
+    Doner (yama_sirasi, hedef) ya da (None, sebep)."""
+    for sira, (hedef, capa, yeni, _a) in enumerate(Y):
+        if capa not in yeni:
+            continue
+        imza = imza_fn(capa, yeni)
+        if imza is None:
+            continue
+        yol = os.path.join(sahte_cron, hedef)
+        with open(yol, encoding="utf-8") as f:
+            metin = f.read()
+        if metin.count(yeni) != 1 or metin.count(imza + "\n") != 1:
+            continue
+        girinti = " " * _girinti(imza)
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write(metin.replace(imza + "\n", imza + "\n" + girinti + A7F_SATIR, 1))
+        return sira, hedef
+    return None, "uygun EKLE yamasi yok (capa ⊂ yeni ∧ imza TEK)"
+
+
+def a7_kaynak_geride(kurucu, kur_kaynak, Y, sahte_cron, td):
+    try:
+        import importlib.util as _u
+        s = _u.spec_from_file_location("_a7f_kurmod", kurucu)
+        m = _u.module_from_spec(s)
+        s.loader.exec_module(m)
+        imza_fn = m.yama_imzasi
+    except Exception as hata:
+        kayit("A7f KAYNAK GERIDE: ilerlemis hedef -> kurulum DURUR", False,
+              "kurucu `yama_imzasi` TASIMIYOR: %s: %s" % (type(hata).__name__, hata))
+        kayit("A7g MUTANT ilerlemis hedefe ESKI blogu IKINCI KEZ ekler", None, "kol yok")
+        kayit("A7h MUTANT KONTROL: ilerlememis hedef DEGISMEDI", None, "kol yok")
+        return
+
+    f_cron = os.path.join(td, "cron-geride")
+    shutil.copytree(sahte_cron, f_cron)
+    sira, hedef = _ileri_surum(Y, f_cron, imza_fn)
+    if sira is None:
+        kayit("A7f KAYNAK GERIDE: ilerlemis hedef -> kurulum DURUR", None, hedef)
+        kayit("A7g MUTANT ilerlemis hedefe ESKI blogu IKINCI KEZ ekler", None, "fikstur yok")
+        kayit("A7h MUTANT KONTROL: ilerlememis hedef DEGISMEDI", None, "fikstur yok")
+        return
+    m_fikstur = os.path.join(td, "cron-geride-mutant")
+    shutil.copytree(f_cron, m_fikstur)
+
+    iz0 = _dizin_parmak_izi(f_cron)
+    rcF, cF = kos([PY, kurucu, "--cron-dizin", f_cron,
+                   "--cikti-dizin", os.path.join(td, "log-f")], 240)
+    izF = _dizin_parmak_izi(f_cron)
+    kayit("A7f KAYNAK GERIDE: ilerlemis hedef -> kurulum DURUR (hic yazim yok)",
+          rcF == 3 and "[KAYNAK_GERIDE]" in cF and izF == iz0
+          and _alan(jeton(cF, "YAMA_OZET "), "kaynak_geride") == "1",
+          "yama=%02d hedef=%s rc=%d %s | bayt_degismedi=%d" % (
+              sira, hedef, rcF, jeton(cF, "YAMA_OZET ")[-40:], int(izF == iz0)))
+
+    if kur_kaynak.count(MUT_A7G_CAPA) != 1:
+        kayit("A7g MUTANT ilerlemis hedefe ESKI blogu IKINCI KEZ ekler", False,
+              "capa_adedi=%d (1 bekleniyor)" % kur_kaynak.count(MUT_A7G_CAPA))
+        kayit("A7h MUTANT KONTROL: ilerlememis hedef DEGISMEDI", None, "capa yok")
+        return
+    mut_dizin = os.path.join(td, "mutant-geride")
+    shutil.copytree(os.path.dirname(kurucu), mut_dizin,
+                    ignore=shutil.ignore_patterns("__pycache__"))
+    mut = os.path.join(mut_dizin, "kur.py")
+    with open(mut, "w", encoding="utf-8") as f:
+        f.write(kur_kaynak.replace(MUT_A7G_CAPA, MUT_A7G_YAMA, 1))
+
+    izM0 = _dizin_parmak_izi(m_fikstur)
+    rcM, cM = kos([PY, mut, "--cron-dizin", m_fikstur,
+                   "--cikti-dizin", os.path.join(td, "log-fm")], 240)
+    izM = _dizin_parmak_izi(m_fikstur)
+    with open(os.path.join(m_fikstur, hedef), encoding="utf-8") as f:
+        yeni_adedi = f.read().count(Y[sira][2])
+    # HEDEF-KOL ATFI: mutant YALNIZ imza kolunu soker; olen sey tam olarak o
+    # kol ise mutant ilerlemis hedefe ESKI `yeni`yi ekler (yeni_adedi 0 -> 1)
+    # ve rc=0 ile "basarili kurulum" der.
+    kayit("A7g MUTANT ilerlemis hedefe ESKI blogu IKINCI KEZ ekler (hedef-kol atifli)",
+          rcM == 0 and izM != izM0 and yeni_adedi == 1,
+          "mutant rc=%d bayt_degisti=%d eski_blok_eklendi=%d" % (
+              rcM, int(izM != izM0), yeni_adedi))
+
+    izK0 = _dizin_parmak_izi(sahte_cron)
+    rcK, cK = kos([PY, mut, "--cron-dizin", sahte_cron,
+                   "--cikti-dizin", os.path.join(td, "log-fk")], 240)
+    kayit("A7h MUTANT KONTROL: ilerlememis hedef DEGISMEDI",
+          rcK == 0 and _dizin_parmak_izi(sahte_cron) == izK0
+          and _alan(jeton(cK, "YAMA_OZET "), "uygulanan") == "0",
+          "mutant rc=%d %s" % (rcK, jeton(cK, "YAMA_OZET ")[:70]))
+
+
+# --------------------------------------------------------------------- A8
+
+# 🔴 K356 — UCUNCU KOVA CAPASI. Mutant, kolu ESKI IKI-KOVALI hale geri cevirir:
+# "kirmizi kumesinde degilse ATLA" (yani suren kosum SESSIZCE YESIL sayilir).
+# 🔴 18 Eyl 2026 (`elegant-swanson-2a0319`): capa BAYATLAMISTI — 18 Eyl sabahi
+# siniflama `kirmizi_siniflandir()`e tasindi (girinti 12->8, kirmizi satiri
+# ardil hukmunu tasiyor) ve canli A8d `capa_adedi=0` ile DUSUYORDU. Kirmizi
+# satirinin govdesi artik capaya GIRMEZ: capa YALNIZ iki hukumsuz kolu tutar
+# (ikisi de sokulmeli — biri kalirsa suren kosum "BILINMEYEN SONUC" kovasindan
+# yine yakalanir ve mutant OLMEZ). Her capa TEK olmali.
+A8_CAPALAR = (
+    ('        if durum != "completed":\n'
+     '            hukumsuz.append("- [{}] {} · dal={} (HÜKÜM YOK: koşum sürüyor)".format(\n'
+     '                durum or "durum-yok", ad, dal))\n'
+     '        elif conc in KIRMIZI_KUME:\n',
+     '        if False:  # MUTANT (K356): UCUNCU KOVA YOK — iki-kovali eski hal\n'
+     '            pass\n'
+     '        elif conc in KIRMIZI_KUME:\n'),
+    ('        elif conc not in YESIL_KUME:\n',
+     '        elif False:  # MUTANT (K356): bilinmeyen sonuc da yesil sayilir\n'),
+)
+
+_A8_SAHTE_GH = (
+    "#!/usr/bin/env python3\n"
+    "# GECICI KABUL FIKSTURU (A8) — argv'yi yok sayar, sabit JSON basar.\n"
+    "import sys\n"
+    "print(%r)\n"
+    "sys.exit(0)\n"
+)
+
+
+def _a8_gh_yaz(td, ad, kayitlar):
+    """`gh run list --json ...` ciktisini TAKLIT eden calistirilabilir fikstur."""
+    import json as _json
+    gun = time.strftime("%Y-%m-%d", time.gmtime())
+    veri = []
+    for ad_i, durum, conc, saat in kayitlar:
+        veri.append({
+            "name": ad_i,
+            "status": durum,
+            "conclusion": conc,
+            "createdAt": "%sT%sZ" % (gun, saat),
+            "headBranch": "main",
+        })
+    yol = os.path.join(td, ad)
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(_A8_SAHTE_GH % _json.dumps(veri, ensure_ascii=False))
+    os.chmod(yol, 0o755)
+    return yol
+
+
+def _a8_kos(arac, gh_yolu, spec_dizin):
+    rc, cikti = kos([PY, arac, "--spec-dizin", spec_dizin], 240,
+                    ortam={"_KRAL_SABAH_GH_YOL": gh_yolu})
+    satir = jeton(cikti, "SABAH_SPEC=")
+    return rc, satir, cikti
+
+
+def a8_ucuncu_kova():
+    """A8 — HUKMU OLMAYAN KOSUM YESIL SAYILAMAZ (K356).
+
+    31 Agu 2026 OLCUMU (iddia degil): `Nöbet şeridi (SERIT B)` 02:24:45Z basladi,
+    03:30:16Z `failure` kapandi; sabah spec'i 03:20:02Z uretildi -> o an
+    `conclusion=null` idi, eski iki-kovali dongu onu ATLADI ve baslik
+    "HUKUM=OK · ADET=0 (OLCULDU)" bastı. AYNI KOD 09:5xZ'de degistirilmeden
+    `KIRMIZI=1` verdi. Bu vaka o ucuncu kovayi olcer.
+    """
+    baslik("A8 — UCUNCU KOVA: HUKMU OLMAYAN KOSUM (K356) + MUTANT")
+    with tempfile.TemporaryDirectory(prefix="sabah-a8-") as td:
+        spec_dizin = os.path.join(td, "spec")
+        os.makedirs(spec_dizin, exist_ok=True)
+
+        gh_saglikli = _a8_gh_yaz(td, "gh-saglikli", [
+            ("Build & deploy to GitHub Pages", "completed", "success", "02:24:45"),
+            ("D1 uzlastirici", "completed", "success", "01:39:05"),
+        ])
+        gh_suren = _a8_gh_yaz(td, "gh-suren", [
+            ("Build & deploy to GitHub Pages", "completed", "success", "02:24:45"),
+            ("Nöbet şeridi (SERIT B)", "in_progress", None, "02:24:45"),
+        ])
+        gh_karma = _a8_gh_yaz(td, "gh-karma", [
+            ("Odeme yolu bayatlik nabzi", "completed", "failure", "02:24:45"),
+            ("Nöbet şeridi (SERIT B)", "in_progress", None, "02:24:45"),
+        ])
+
+        # --- A8a KONTROL: gercekten temiz gun -> OLCULMUS SIFIR, rc=0
+        rcA, satirA, _ = _a8_kos(ARAC, gh_saglikli, spec_dizin)
+        kayit("A8a KONTROL temiz gun: OK + ADET=0 + rc=0",
+              rcA == 0 and _alan(satirA, "CI_HUKUM") == "OK"
+              and _alan(satirA, "KIRMIZI") == "0",
+              "rc=%d CI_HUKUM=%s KIRMIZI=%s" % (
+                  rcA, _alan(satirA, "CI_HUKUM"), _alan(satirA, "KIRMIZI")))
+
+        # --- A8b TABAN: kapanmis kirmizi YOK ama bir kosum SURUYOR
+        rcB, satirB, _ = _a8_kos(ARAC, gh_suren, spec_dizin)
+        spec_yolu = os.path.join(spec_dizin, os.path.basename(bugunun_spec_yolu()))
+        govde = ""
+        if os.path.isfile(spec_yolu):
+            with open(spec_yolu, encoding="utf-8") as f:
+                govde = f.read()
+        kalem_var = "CI-OLCULEMEDI" in govde
+        kayit("A8b SUREN KOSUM yesil sayilmaz -> OLCULEMEDI + rc=1 + ACIK KALEM",
+              rcB >= 1 and _alan(satirB, "CI_HUKUM") == "OLCULEMEDI"
+              and _alan(satirB, "KIRMIZI") == "OLCULEMEDI" and kalem_var,
+              "rc=%d CI_HUKUM=%s KIRMIZI=%s CI-OLCULEMEDI_kalemi=%d" % (
+                  rcB, _alan(satirB, "CI_HUKUM"), _alan(satirB, "KIRMIZI"), int(kalem_var)))
+
+        # --- A8c KIRMIZI VARKEN hukumsuz YUTULMAZ (adet'e girmez, ama GORUNUR)
+        rcC, satirC, _ = _a8_kos(ARAC, gh_karma, spec_dizin)
+        govde_c = ""
+        if os.path.isfile(spec_yolu):
+            with open(spec_yolu, encoding="utf-8") as f:
+                govde_c = f.read()
+        gorunur = "HÜKMÜ OLMAYAN" in govde_c and "Nöbet şeridi (SERIT B)" in govde_c
+        kayit("A8c KIRMIZI=1 iken hukumsuz kosum ADIYLA GORUNUR",
+              _alan(satirC, "CI_HUKUM") == "OK" and _alan(satirC, "KIRMIZI") == "1"
+              and gorunur,
+              "rc=%d CI_HUKUM=%s KIRMIZI=%s hukumsuz_gorunur=%d" % (
+                  rcC, _alan(satirC, "CI_HUKUM"), _alan(satirC, "KIRMIZI"), int(gorunur)))
+
+        # --- A8d/A8e MUTANT: ucuncu kova SOKULUNCE A8b YESILE DONMELI
+        with open(ARAC, encoding="utf-8") as f:
+            kaynak = f.read()
+        adetler = [kaynak.count(capa) for capa, _y in A8_CAPALAR]
+        if adetler != [1] * len(A8_CAPALAR):
+            kayit("A8d MUTANT capasi TEK", False,
+                  "capa_adetleri=%s (hepsi 1 bekleniyor) -> mutant KOSTURULAMADI" % adetler)
+            kayit("A8e MUTANT A8b fiksturunu YESILE DONDURUR", None, "capa yok")
+            kayit("A8f MUTANT KONTROL DEGISMEDI", None, "capa yok")
+            return
+        kayit("A8d MUTANT capasi TEK", True, "capa_adetleri=%s" % adetler)
+
+        mutant = os.path.join(td, "kral-sabah-mutant-k356.py")
+        for capa, yama in A8_CAPALAR:
+            kaynak = kaynak.replace(capa, yama, 1)
+        with open(mutant, "w", encoding="utf-8") as f:
+            f.write(kaynak)
+
+        rcM, satirM, ciktiM = _a8_kos(mutant, gh_suren, spec_dizin)
+        kayit("A8e MUTANT A8b fiksturunu YESILE DONDURUR (hedef-kol atifli)",
+              rcB >= 1 and rcM == 0 and _alan(satirM, "CI_HUKUM") == "OK"
+              and _alan(satirM, "KIRMIZI") == "0",
+              "taban rc=%d/%s | mutant rc=%d CI_HUKUM=%s KIRMIZI=%s" % (
+                  rcB, _alan(satirB, "CI_HUKUM"), rcM,
+                  _alan(satirM, "CI_HUKUM"), _alan(satirM, "KIRMIZI")))
+
+        rcMK, satirMK, _ = _a8_kos(mutant, gh_saglikli, spec_dizin)
+        kayit("A8f MUTANT KONTROL (temiz gun) DEGISMEDI",
+              rcMK == rcA == 0 and _alan(satirMK, "KIRMIZI") == _alan(satirA, "KIRMIZI"),
+              "kontrol taban rc=%d KIRMIZI=%s | mutant rc=%d KIRMIZI=%s" % (
+                  rcA, _alan(satirA, "KIRMIZI"), rcMK, _alan(satirMK, "KIRMIZI")))
+
+
+# --------------------------------------------------------------------- A9
+# A9 — TAVAN FRENI (kayipsiz kirpma). Cip: KraL-TamirciTavan-10Eyl.
+#
+# 🔴 NEDEN A9-0 BIR "ALTIN DOSYA" KULLANMIYOR: onarim oncesi ciktiyi diske
+# donduran bir altin fikstur, BUGUNUN canli girdisini (52 kalem / 67 dal / o anki
+# DEVAM) icine gomer. Yarin defter degisince altin bayatlar ve A9-0 KRONIK
+# KIRMIZI yanar — arizanin adi "davranis bozuldu" sanilir, oysa bayat olan
+# FIKSTURDUR ([[elle-tutulan-bagimlilik-listesi-sessizce-bayatlar]] sinifi).
+# Ustelik olculdu (10 Eyl): `_motor_raporu_bolumu` CANLI jeton sayaclarini okur;
+# onbellek OLMADAN iki ardisik kosumun metni KENDILIGINDEN farkliydi — ham md5
+# zaten kararsizdi. Bu yuzden kalici kol BAYATLAMAYAN bir DEGISMEZ olcer:
+# sinir verilmezse (a) isaretci blogu YOK, (b) her kalem ve her dal render
+# EDILMIS, (c) DEVAM blogu tam. Onarim turundaki tek seferlik md5 esitligi
+# mimarin kapanis raporunda sayiyla durur.
+
+A9_TAVAN = 28000
+A9_KOLLARI = ("A9-S SABIT", "A9-0 DAVRANIS KORUNDU", "A9-1 BUGUNUN GIRDISI",
+              "A9-2 MUTANT 200/200", "A9-3 MUTANT 1000/1000",
+              "A9-4 MUTANT TEK DEV MADDE", "A9-5 KAYIPSIZLIK",
+              "A9-6 ISARETCI BASTA", "A9-7 SON EMNIYET KOLU",
+              "A9-8 UZUN EK YOLU", "A9-NEG FRENSIZ MUTANT")
+
+
+def _a9_arac():
+    """kral-sabah.py'yi modul olarak yukler (dosyada zaten kullanilan desen)."""
+    spec = importlib.util.spec_from_file_location("kral_sabah_a9", ARAC)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["kral_sabah_a9"] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _a9_kalem(i):
+    return {
+        "id": "K%04d" % i,
+        "durum": "ACIK",
+        "is": "sentetik kalem %d — " % i + ("olcum kolu civilenecek " * 8),
+        "kimden": "A9",
+        "kanit": "kanit sutunu %d " % i + ("bagimsiz kosum " * 4),
+    }
+
+
+def _a9_dal(i):
+    return "claude/sentetik-dal-%04d-uzun-ad-parcasi" % i
+
+
+def _a9_okunabilir():
+    return {"kutu": True, "kalemler": True, "devam": True, "gh": True, "git": True}
+
+
+def _a9_uret_fabrika(ks, kalemler, dallar, devam_blok, ek_yolu):
+    """`tavana_indir`'in bekledigi uret(sinir_kalem, sinir_dal, sinir_devam_kar)."""
+    dal_blok = "\n".join("- " + d for d in dallar) if dallar else "Main disi dal YOK."
+    kutu_blok = "Son 24 saatte kutuya yeni blok DUSMEMIS."
+
+    def uret(sinir_kalem, sinir_dal, sinir_devam_kar):
+        return ks.build_spec(
+            dt.date.today(), kalemler, "CI temiz.", dal_blok, kutu_blok, devam_blok,
+            0, len(dallar), 0, _a9_okunabilir(), ci_hukum="OK", gh_kaynak="-",
+            dallar=dallar, sinir_kalem=sinir_kalem, sinir_dal=sinir_dal,
+            sinir_devam_kar=sinir_devam_kar, ek_yolu=ek_yolu)
+
+    return uret
+
+
+def _a9_mutant(ks, ek_yolu, kalem_n, dal_n, devam_kar, dev_madde=False):
+    """Sentetik girdiden (kalemler, dallar, tam, metin, ek, olcum, uret) uretir."""
+    if dev_madde:
+        k = _a9_kalem(1)
+        k["is"] = "D" * 200000
+        kalemler = [k]
+    else:
+        kalemler = [_a9_kalem(i) for i in range(1, kalem_n + 1)]
+    dallar = [_a9_dal(i) for i in range(1, dal_n + 1)]
+    devam_blok = ("devam satiri uzun bir kuyruk tasiyor " * (devam_kar // 40 + 1))
+    uret = _a9_uret_fabrika(ks, kalemler, dallar, devam_blok, ek_yolu)
+    tam = uret(None, None, None)
+    metin, ek_metin, olcum = ks.tavana_indir(uret, tam, ek_yolu, tavan=A9_TAVAN)
+    return kalemler, dallar, tam, metin, ek_metin, olcum, uret
+
+
+def _a9_hepsini_dusur(gecti, ayrinti):
+    for ad in A9_KOLLARI:
+        kayit(ad, gecti, ayrinti)
+
+
+def a9_tavan_freni():
+    baslik("A9 — TAVAN FRENI: panel 32.000 karakterini KAYIPSIZ kirpma")
+
+    try:
+        ks = _a9_arac()
+    except Exception as hata:
+        _a9_hepsini_dusur(None, "arac yuklenemedi: %s: %s" % (
+            type(hata).__name__, str(hata)[:80]))
+        return
+
+    # Fren KURULMAMISSA kollar OLCULEMEDI degil KIRMIZI yanar: eksik fren, olcum
+    # arizasi degil URUN arizasidir.
+    for gerek in ("tavana_indir", "SPEC_TAVANI"):
+        if not hasattr(ks, gerek):
+            _a9_hepsini_dusur(False, "arac `%s` TASIMIYOR (tavan freni kurulmamis)" % gerek)
+            return
+
+    kayit("A9-S SABIT: SPEC_TAVANI karakter tavani", ks.SPEC_TAVANI == A9_TAVAN,
+          "SPEC_TAVANI=%s beklenen=%d" % (ks.SPEC_TAVANI, A9_TAVAN))
+
+    with tempfile.TemporaryDirectory(prefix="sabah-kabul-a9-") as td:
+        ek_yolu = os.path.join(td, "KraL-Tamirci-A9-TAM.md")
+
+        # ---------- A9-0: SINIR YOKSA KIRPMA YOK (bayatlamayan degismez)
+        kalemler = [_a9_kalem(i) for i in range(1, 13)]
+        dallar = [_a9_dal(i) for i in range(1, 9)]
+        devam_blok = "devam satiri\n" * 12
+        uret0 = _a9_uret_fabrika(ks, kalemler, dallar, devam_blok, ek_yolu)
+        sinirsiz = uret0(None, None, None)
+        kimlik_hepsi = all(k["id"] in sinirsiz for k in kalemler)
+        dal_hepsi = all(d in sinirsiz for d in dallar)
+        devam_tam = devam_blok.strip() in sinirsiz
+        isaretci_yok = ("TAVAN FRENI ETKIN" not in sinirsiz
+                        and "TAVAN FRENİ ETKİN" not in sinirsiz)
+        kayit("A9-0 DAVRANIS KORUNDU (sinir yok -> kirpma yok)",
+              kimlik_hepsi and dal_hepsi and devam_tam and isaretci_yok,
+              "kalem_hepsi=%s dal_hepsi=%s devam_tam=%s isaretci_yok=%s kar=%d" % (
+                  kimlik_hepsi, dal_hepsi, devam_tam, isaretci_yok, len(sinirsiz)))
+
+        # ---------- A9-1: BUGUNUN GERCEK GIRDISI
+        try:
+            kutu_txt = ks.oku_yol(ks.KUTU)
+            kalem_txt = ks.oku_yol(ks.KALEMLER)
+            devam_txt = ks.oku_yol(ks.DEVAM)
+            g_kalemler, _ = ks.acik_kalemleri_topla(kalem_txt or "")
+            g_dal = ks.merge_kuyrugu()
+            g_dallar = g_dal[2] if len(g_dal) >= 3 else []
+            g_devam = ks.devam_ozet(devam_txt)
+            g_kutu, g_kutu_n = ks.kutuda_yeni(kutu_txt)
+
+            def uret1(sk, sd, sdk):
+                return ks.build_spec(
+                    dt.date.today(), g_kalemler, "CI temiz.", g_dal[0], g_kutu, g_devam,
+                    0, g_dal[1], g_kutu_n, _a9_okunabilir(), ci_hukum="OK",
+                    gh_kaynak="-", dallar=g_dallar, sinir_kalem=sk, sinir_dal=sd,
+                    sinir_devam_kar=sdk, ek_yolu=ek_yolu)
+
+            tam1 = uret1(None, None, None)
+            m1, _, o1 = ks.tavana_indir(uret1, tam1, ek_yolu, tavan=A9_TAVAN)
+            kayit("A9-1 BUGUNUN GIRDISI <= 28000", len(m1) <= A9_TAVAN,
+                  "kalem=%d dal=%d tam=%d -> teslim=%d tavan=%d" % (
+                      len(g_kalemler), len(g_dallar), len(tam1), len(m1), A9_TAVAN))
+        except Exception as hata:
+            kayit("A9-1 BUGUNUN GIRDISI <= 28000", None,
+                  "canli girdi okunamadi: %s: %s" % (type(hata).__name__, str(hata)[:80]))
+
+        # ---------- A9-2/3/4: MUTANTLAR (+ A9-NEG sayimi ayni turda)
+        mutantlar = (
+            ("A9-2 MUTANT 200/200", 200, 200, 4000, False),
+            ("A9-3 MUTANT 1000/1000", 1000, 1000, 4000, False),
+            ("A9-4 MUTANT TEK DEV MADDE", 1, 1, 400, True),
+        )
+        frensiz_asan = 0
+        a9_2 = None
+        for ad, kn, dn, dk, dev in mutantlar:
+            kalemlerM, dallarM, tamM, metinM, ekM, olcumM, uretM = _a9_mutant(
+                ks, ek_yolu, kn, dn, dk, dev)
+            # 🔴 A9-4'te `son_emniyet` SART KOSULMAZ — olculdu (10 Eyl): merdivenin
+            # son basamagi (0,0,200) dev maddeyi TAMAMEN dusurur, metin tavan altina
+            # iner ve son emniyete GEREK KALMAZ. Bu, frenin dogru calistigidir.
+            # Son emniyet kolu ayri bir kolda (A9-7) ATESLENIR ve orada olculur;
+            # burada sart kosmak, calisan freni KIRMIZI yakardi.
+            gecti = len(metinM) <= A9_TAVAN
+            kayit(ad, gecti, "tam=%d -> teslim=%d tavan=%d son_emniyet=%s" % (
+                len(tamM), len(metinM), A9_TAVAN, olcumM.get("son_emniyet")))
+            # A9-NEG: AYNI mutant, fren DEVRE DISI -> tavani ASMALI
+            mN, _, _ = ks.tavana_indir(uretM, tamM, ek_yolu, tavan=10 ** 9)
+            if len(mN) > A9_TAVAN:
+                frensiz_asan += 1
+            if a9_2 is None:
+                a9_2 = (kalemlerM, dallarM, tamM, metinM, ekM, olcumM)
+
+        # ---------- A9-5: KAYIPSIZLIK (A9-2 uzerinden)
+        if a9_2 is None:
+            kayit("A9-5 KAYIPSIZLIK", None, "A9-2 kosulamadi")
+            kayit("A9-6 ISARETCI BASTA", None, "A9-2 kosulamadi")
+        else:
+            kalemlerM, dallarM, tamM, metinM, ekM, olcumM = a9_2
+            if ekM is None:
+                kayit("A9-5 KAYIPSIZLIK", False,
+                      "kirpma yapildi ama ek metin URETILMEDI (veri KAYBI)")
+            else:
+                with open(ek_yolu, "w", encoding="utf-8") as f:
+                    f.write(ekM)
+                var = os.path.isfile(ek_yolu)
+                ek_satir = ekM.count("\n") + 1
+                sk = olcumM.get("sinir_kalem")
+                render_kalem = len(kalemlerM) if sk is None else min(sk, len(kalemlerM))
+                kirpilan = len(kalemlerM) - render_kalem
+                eksik = [k["id"] for k in kalemlerM if k["id"] not in ekM]
+                birebir = (ekM == tamM)   # KAYIPSIZ = ek, tam metnin BIREBIR kendisi
+                kayit("A9-5 KAYIPSIZLIK (ek dosya + kimlik eksigi 0)",
+                      var and birebir and len(eksik) == 0 and ek_satir >= kirpilan,
+                      "ek=VAR birebir=%s ek_satir=%d kirpilan_madde=%d kimlik_eksik=%d"
+                      % (birebir, ek_satir, kirpilan, len(eksik)))
+
+            # ---------- A9-6: ISARETCI BASTA
+            i_isaret = -1
+            for aday in ("TAVAN FRENİ ETKİN", "TAVAN FRENI ETKIN"):
+                if aday in metinM:
+                    i_isaret = metinM.index(aday)
+                    break
+            i_ci = metinM.find("## BUGÜNÜN KIRMIZILARI")
+            if i_ci < 0:
+                i_ci = metinM.find("## BUGUNUN KIRMIZILARI")
+            kayit("A9-6 ISARETCI BASTA (CI basligindan ONCE)",
+                  i_isaret >= 0 and i_ci >= 0 and i_isaret < i_ci,
+                  "isaretci_indeks=%d ci_indeks=%d" % (i_isaret, i_ci))
+
+        # ---------- A9-7: SON EMNIYET KOLU OLU KOD DEGIL
+        # Merdiven YALNIZ kalem/dal/devam'i kisitlar; `kirmizi_blok` her basamakta
+        # AYNEN render edilir. Tek basina tavani asan bir kirmizi_blok merdiveni
+        # bastan sona tuketir ve SON EMNIYETI atesler. Bu kol olmadan, "girdi ne
+        # olursa olsun <= tavan" KOSULSUZ garantisi HIC kosulmamis olurdu.
+        dev_kirmizi = "K" * 120000
+
+        def uret7(sk, sd, sdk):
+            return ks.build_spec(
+                dt.date.today(), [], dev_kirmizi, "dal yok", "kutu yok", "devam yok",
+                0, 0, 0, _a9_okunabilir(), ci_hukum="OK", gh_kaynak="-",
+                dallar=[], sinir_kalem=sk, sinir_dal=sd, sinir_devam_kar=sdk,
+                ek_yolu=ek_yolu)
+
+        tam7 = uret7(None, None, None)
+        m7, ek7, o7 = ks.tavana_indir(uret7, tam7, ek_yolu, tavan=A9_TAVAN)
+        kayit("A9-7 SON EMNIYET KOLU ATESLENIR (olu kod DEGIL)",
+              len(m7) <= A9_TAVAN and o7.get("son_emniyet") is True and ek7 == tam7,
+              "tam=%d -> teslim=%d son_emniyet=%s ek_birebir=%s kuyruk_notu=%s" % (
+                  len(tam7), len(m7), o7.get("son_emniyet"), ek7 == tam7,
+                  "KUYRUK KESİLDİ" in m7))
+
+        # ---------- A9-8: ISARETCI PAYI SABIT DEGIL, OLCULMUS
+        # Isaretci blogu `ek_yolu`'nu ICINDE tasir; yol uzarsa blok uzar. Sabit
+        # bir emniyet payi (or. `tavan - 240`) bu vakada OLUR: uzun yol payi
+        # tasirir ve fonksiyon tavani ASAN metin dondurur. Bu kol, payin
+        # OLCULMUS oldugunu kanitlar — A9-7 ile ayni girdi, YALNIZ yol uzun.
+        uzun_yol = os.path.join(td, "U" * 280 + ".md")
+
+        def uret8(sk, sd, sdk):
+            return ks.build_spec(
+                dt.date.today(), [], dev_kirmizi, "dal yok", "kutu yok", "devam yok",
+                0, 0, 0, _a9_okunabilir(), ci_hukum="OK", gh_kaynak="-",
+                dallar=[], sinir_kalem=sk, sinir_dal=sd, sinir_devam_kar=sdk,
+                ek_yolu=uzun_yol)
+
+        tam8 = uret8(None, None, None)
+        m8, ek8, o8 = ks.tavana_indir(uret8, tam8, uzun_yol, tavan=A9_TAVAN)
+        kayit("A9-8 UZUN EK YOLU: pay SABIT degil OLCULMUS",
+              len(m8) <= A9_TAVAN and ek8 == tam8,
+              "yol_kar=%d tam=%d -> teslim=%d tavan=%d asim=%d" % (
+                  len(uzun_yol), len(tam8), len(m8), A9_TAVAN,
+                  max(0, len(m8) - A9_TAVAN)))
+
+        # ---------- A9-NEG: FREN YOKSA TEST GECMEMELI
+        kayit("A9-NEG FRENSIZ MUTANT KIRMIZI YANAR", frensiz_asan == 3,
+              "frensiz_mutant_asti=%d/3 (3 degilse test kendini YANLIS-YESILE boyuyor)"
+              % frensiz_asan)
+
 
 def main(argv=None):
     # 🔴 CAKISMA COZUMU (27 Agu 2026, KraL-DogrulaMerge-27Agu) — BIRLESIM, taraf
@@ -779,9 +1352,15 @@ def main(argv=None):
     # A7'nin KENDISI zaten hermetiktir: SAHTE CRON dizini (`tempfile` altinda)
     # kurar, kurucuyu orada iki kez kosar, mutanti IZOLE kopyada dener. Secici
     # yalnizca yanindaki ORTAM-bagimli vakalari DISARIDA birakir.
-    ap.add_argument("--vaka", choices=("A7",), default=None,
+    # 18 Eyl 2026 (`elegant-swanson-2a0319`): A8/A9 CANLIDAN TASINDI. Iki vaka
+    # 31 Agu / 10 Eyl'de yalniz `~/.claude/cron/sabah-kabul.py`de yazilmisti
+    # (hicbir git nesnesinde yoktu) -> CI onlari HIC kosmuyordu ve `kur.py`
+    # KOPYA_AYRISIK ile duruyordu. A8 hermetiktir (enjekte `gh` + gecici spec
+    # dizini); A9'un A9-1 kolu CANLI defteri okur, o yuzden A9 CI'ya baglanmaz.
+    ap.add_argument("--vaka", choices=("A7", "A8", "A9"), default=None,
                     help="YALNIZ bu vakayi kos (A7: kurucu idempotensi, hermetik "
-                         "sahte CRON dizini; A1/A6/A2 KOSULMAZ)")
+                         "sahte CRON dizini · A8: ucuncu kova, enjekte gh · A9: "
+                         "tavan freni; A1/A6/A2 KOSULMAZ)")
     ap.add_argument("--arac", default=None, metavar="YOL",
                     help="olculecek kral-sabah.py (varsayilan: kurulu kopya "
                          "~/.claude/cron/kral-sabah.py). Dalin KENDI dosyasini "
@@ -803,7 +1382,7 @@ def main(argv=None):
     # sentetik tabanda kosar; A8 `kral-sabah.py` KAYNAGINI `--arac` ile alir.
     # Ikisi de KURULU KOPYAYA (`~/.claude/cron/kral-sabah.py`) muhtac degildir —
     # eski kosulsuz kontrol CI'da rc=2 ile ikisini de olduruyordu.
-    if args.vaka is None and not os.path.isfile(ARAC):
+    if args.vaka != "A7" and not os.path.isfile(ARAC):
         print("HATA: arac YOK -> %s" % ARAC)
         return 2
 
@@ -811,11 +1390,20 @@ def main(argv=None):
         # Hermetik kol: SAHTE CRON dizini + izole mutant kopyasi. Gercek
         # `kral-sabah.py` KOSMAZ, `~/.claude/cron` altina TEK BAYT yazilmaz.
         a7_kurucu_idempotens()
+    elif args.vaka == "A8":
+        a8_ucuncu_kova()
+    elif args.vaka == "A9":
+        a9_tavan_freni()
     else:
         a1_ortam()
         # A6/A7 CANLI DUZLEME YAZMAZ (yalniz gecici dizin + salt-okuma) -> her fazda.
         a6_ortam_turetme()
         a7_kurucu_idempotens()
+        # A8 CANLI DUZLEME YAZMAZ (gecici spec dizini + enjekte `gh`) -> her fazda.
+        a8_ucuncu_kova()
+        # A9 CANLI DUZLEME YAZMAZ (build_spec/tavana_indir DOGRUDAN cagrilir, ek
+        # dosya gecici dizine yazilir) -> her fazda.
+        a9_tavan_freni()
         if args.faz == "tam":
             a2_gercek_kosum()
             a3_a4_sonuc_kolu()

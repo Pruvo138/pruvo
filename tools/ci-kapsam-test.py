@@ -271,10 +271,20 @@ YAML_OKU = _yaml_oku_yukle()
 # ([[envanter-drift-parti-basina]]). Predikat ratchet'i BAKIMSIZ tasir.
 # YANLIS-POZITIF SINIRI (fikstur ile civili — KESIF_PREDIKAT_FIKSTURLERI): yalniz
 # `tools/` DOGRUDAN altindaki `.py`/`.js`. Fikstur/veri/dokuman (`.md`, `.json`,
-# `.txt`), `tools/arsiv/` ve alt dizinler YAKALANMAZ.
+# `.txt`), `tools/arsiv/` YAKALANMAZ (alt dizin siniri 18 Eyl KALKTI, asagi bkz.).
+# 🔴 DORDUNCU META-DELIK ONARIMI (18 Eyl 2026, `elegant-swanson-2a0319`) — ALT DIZIN +
+# `-kabul` EKI. Yukaridaki sinir ("yalniz `tools/` DOGRUDAN alti") bir KONVANSIYON
+# degil bir KORLUKTU: `tools/sabah-teslim/sabah-kabul.py` (K320 A7 + K356 A8) HICBIR is
+# akisinda kosmuyordu ve bu kapi YESIL yaniyordu — ne kapsamsiz ne muaf, hic
+# sorulmuyordu. OLCULEN ENVANTER (18 Eyl, `git ls-files`): alt dizinde 17 aday, `-kabul`
+# ekiyle ust duzeyde 12 aday; 29'un 4'u zaten kosuyordu, 25'i HIC sorulmamisti. Her
+# biri tek tek olculdu (CI aynasi: bos HOME) ve ya baglandi ya da SOMUT gerekceyle
+# muaf tutuldu (IZIN_LISTESI, 18 EYL blogu). `tools/arsiv/` YUKLEMIN ICINDE disarida
+# kalir (negatif ileri-bakis) — maske yalniz `_kesif_adayi_mi`de olsaydi fikstur
+# predikatin gevsemesini gormezdi.
 TOOLS_PAT = re.compile(
-    r"^tools/([^/]*-test\.(?:py|js)|test-[^/]*\.(?:py|js)|[^/]*-kapisi\.py"
-    r"|[^/]*-mutasyon\.(?:py|js))$")
+    r"^tools/(?!arsiv/)(?:[^/]+/)*([^/]*-test\.(?:py|js)|test-[^/]*\.(?:py|js)"
+    r"|[^/]*-kapisi\.py|[^/]*-mutasyon\.(?:py|js)|[^/]*-kabul\.py)$")
 DIR_PAT = re.compile(r"^(?:shop/test|onizleme/test|jenerator/test)/[^/]+\.(?:py|js|mjs|cjs)$")
 
 # ---- KESIF PREDIKATI FIKSTURLERI (POZITIF + NEGATIF, iki yonlu) -------------
@@ -293,12 +303,20 @@ KESIF_PREDIKAT_FIKSTURLERI = (
     ("tools/uyum-kapisi.py", True, "`-kapisi.py` kolu AYNEN durmali"),
     ("shop/test/eposta.mjs", True, "DIR_PAT kolu AYNEN durmali"),
     ("jenerator/test/kisit-mutasyon.js", True, "DIR_PAT zaten yakaliyordu"),
+    # --- POZITIF: 18 Eyl alt dizin + `-kabul` (dorduncu meta-delik) ---
+    ("tools/sabah-teslim/sabah-kabul.py", True, "18 Eyl somut vakasi (alt dizin + -kabul)"),
+    ("tools/alt/dizin/x-mutasyon.py", True, "alt dizin derinligi SINIR DEGIL"),
+    ("tools/n4b/nobet-yeni-test.py", True, "alt dizin `-test.py`"),
+    ("tools/zzz-yeni-kabul.py", True, "`-kabul.py` eki ust duzeyde de kabul testidir"),
     # --- NEGATIF: benzer ADLI ama kapsam DISI ---
     ("tools/mutasyon-notlari.md", False, "DOKUMAN — kosulabilir suite degil"),
     ("tools/varlik-referans-mutasyon.json", False, "VERI/fikstur — kosulabilir degil"),
     ("tools/mutasyon-kayit.txt", False, "duz metin"),
     ("tools/arsiv/eski-mutasyon.py", False, "tools/arsiv/ BILINCLI olarak kapsam disi"),
-    ("tools/alt/dizin/x-mutasyon.py", False, "tools/ DOGRUDAN alti degil"),
+    ("tools/arsiv/alt/eski-kabul.py", False, "tools/arsiv/ ALT DIZINI de kapsam disi"),
+    ("tools/sabah-teslim/kabul-blok.py", False, "`kabul-` ONEKI kabul testi DEGIL (yama metni)"),
+    ("tools/x-kabulu.py", False, "jeton siniri: `-kabulu` EK DEGILDIR"),
+    ("tools/sabah-teslim/sabah-kabul.md", False, "alt dizinde DOKUMAN"),
     ("jenerator/test/aileler/x-mutasyon.js", False, "DIR_PAT alt dizini kapsamaz"),
     ("belgeler/x-mutasyon.py", False, "tools/ disinda"),
     ("tools/mutasyon.py", False, "`-mutasyon` EKI yok (ciplak ad) — konvansiyon disi"),
@@ -320,9 +338,9 @@ def kesif_predikat_kontrol():
                            "beklenen=%s (%s)" % (yol, goruldu, beklenen, neden))
     poz = sum(1 for _y, b, _n in KESIF_PREDIKAT_FIKSTURLERI if b)
     neg = len(KESIF_PREDIKAT_FIKSTURLERI) - poz
-    if poz < 8 or neg < 9:
+    if poz < 12 or neg < 12:
         hatalar.append("KESIF PREDIKATI FIKSTUR TABLOSU KUCULDU (pozitif %d, negatif %d; "
-                       "taban 8/9) — tabloyu kucultmek nobetciyi SESSIZCE oldurur "
+                       "taban 12/12) — tabloyu kucultmek nobetciyi SESSIZCE oldurur "
                        "([[fikstur-degeri-mutasyon-koru]])." % (poz, neg))
     return (not hatalar), hatalar
 
@@ -555,8 +573,10 @@ _IZ_PUSH_DISI = "tools/zzz-wip-kapisi.py"
 # `zzz-uretilen-*`: `.gitignore` ile ELENIR -> `--exclude-standard` iddiasini FIILEN
 # olcer (curutucu: fikstur `.gitignore`suz oldugu icin o iddia hic olculmuyordu).
 _IZ_GITIGNORE = "zzz-uretilen-*\n"
+# 18 Eyl: alt dizin artik kovaya GIRER (dorduncu meta-delik); negatif alt dizin ornegi
+# `tools/alt/dizin/` yerine `tools/arsiv/alt/` altina tasindi (arsiv HER derinlikte disarida).
 _IZ_NEGATIF = ("tools/zzz-notlar.md", "tools/zzz-veri-mutasyon.json",
-               "tools/alt/dizin/zzz-x-mutasyon.py", "tools/arsiv/zzz-eski-kapisi.py",
+               "tools/arsiv/alt/zzz-eski-kabul.py", "tools/arsiv/zzz-eski-kapisi.py",
                "tools/zzz-uretilen-kapisi.py")
 _IZ_DEPLOY = ("jobs:\n  a:\n    steps:\n      - name: taban\n"
               "        run: python3 %s\n" % _IZ_TABAN)
@@ -2690,8 +2710,101 @@ R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VI
 # kapi artik nobet.yml SERIT B adimi olarak OTOMATIK kosar (`python3 tools/sahiplik-kapisi.py`).
 # Referans yorum olarak korunur; muafiyet/izin anlamsiz ve yanlis yon olurdu.
 
+# 🔴 18 EYL 2026 (`elegant-swanson-2a0319`) — KESIF ALT DIZIN + `-kabul` GENISLEMESININ
+# getirdigi dosyalar icin. Her giris CI aynasinda (bos HOME, worktree-disi yazim YOK)
+# ya KOSTURULDU ya da sabit canli yol tasidigi icin KOSTURULMADAN statik siniflandi;
+# hangisi oldugu girisin kendi satirinda yazar.
+R_CANLI_CRON = (
+    "YAPISAL CI-KIRMIZI — CANLI `~/.claude/cron` DUZLEMINI OLCER. Dosya ya canli cron "
+    "dosyasinin kopyasidir ya da olcum tabanini KURULU canli kopyalardan (sabit "
+    "`/Users/okan/.claude/cron` ya da `expanduser('~/.claude/cron')`) kurar; GitHub "
+    "checkout'unda o duzlem YOKTUR -> ya `OLCULEMEDI` + rc!=0 doner ya da sabit yol "
+    "yuzunden hic kurulamaz (18 Eyl olcumu girisin kendi satirinda). Kosum yeri CANLI "
+    "koşucudur (`~/.claude/cron/testler.py` PAKETLER listesi) ya da kalemin kendi kabul "
+    "turu. MUAFIYETIN OLUM SARTI: olctugu canli modulun kaynagi repoya tasinip test o "
+    "kaynaga KUM dizininde baglanirsa (emsal `tools/sabah-teslim/sabah-kabul.py --vaka A7/"
+    "A8`, 18 Eyl) bu satir SILINIR ve adim nobet.yml serit-b'ye eklenir.")
+
+_R_TESTLER = (" OLCULDU 18 Eyl: repo kopyasi canli `~/.claude/cron/<ad>` ile git hash-object "
+              "BIREBIR ve canli `testler.py` PAKETLER listesinde; CRON_KOKU sabit "
+              "`/Users/okan/.claude/cron` (yalniz `nobet_kum.py` oradan okunur) -> CI'da "
+              "kurulamaz, KOSTURULMADAN statik siniflandi.")
+_R_W2_DOLAYLI = (" DOLAYLI KOSULUR: `tools/nobet-onarim/nobet-onarim-kabul.py` (nobet.yml "
+                 "serit-b, bloklayici) bu kopyayi sandbox'a alip `gozcu-mutasyon.py` + "
+                 "`nobet-kabul-test.py`yi kosar; `gozcu-test.py`yi de `gozcu-mutasyon.py` "
+                 "KONTROL olarak kosar (TEST_YOLU). Dogrudan cagri satiri EKLENMEZ: kopya "
+                 "sabit `/Users/okan` ev yoluna bagli, sarmalayici `PRUVO_CRON_KOKU` / "
+                 "`PRUVO_EV_KOKU` ile kumlar.")
+
 # ---- IZIN LISTESI (muaf test -> GEREKCE). Bos gerekce = exit 1. ----------
 IZIN_LISTESI = {
+    # ═══════════════════════════════════════════════════════════════════════
+    # 18 EYL 2026 — KESIF ALT DIZIN + `-kabul` GENISLEMESI (cip elegant-swanson-2a0319)
+    # ═══════════════════════════════════════════════════════════════════════
+    "tools/k260/nobet-kat-kovasi-test.py": R_CANLI_CRON + _R_TESTLER,
+    "tools/k271/nobet-damga-tasima-test.py": R_CANLI_CRON + _R_TESTLER,
+    "tools/n4b/nobet-eskalasyon-bayat-test.py": R_CANLI_CRON + _R_TESTLER,
+    "tools/n4b/nobet-icra-hali-test.py": R_CANLI_CRON + _R_TESTLER,
+    "tools/n4b/nobet-kosum-hukmu-test.py": R_CANLI_CRON + _R_TESTLER,
+    "tools/n4b/nobet-sayac-cikis-yollari-test.py": R_CANLI_CRON + _R_TESTLER,
+    "tools/n4b/nobet-tur-izolasyon-test.py": R_CANLI_CRON + _R_TESTLER,
+    "tools/k311/k311-baglanti-kapisi.py": R_CANLI_CRON + (
+        " Statik (KOSTURULMADI): CRON_KOKU sabit `/Users/okan/.claude/cron`; kapi canli "
+        "`ci-nobeti.sh`/`nobet-tetik.py`/`gozcu.py` ucusunun tuketici baglarini olcer."),
+    "tools/k311/k311-mutasyon.py": R_CANLI_CRON + (
+        " Statik (KOSTURULMADI): CRON sabit `/Users/okan/.claude/cron`; MU-E2E kolu GERCEK "
+        "`ci-nobeti.sh`i mutasyonlu tetikle kosar — CI'da o kabuk YOK."),
+    "tools/k337/isci-butce-hali-kabul.py": R_CANLI_CRON + (
+        " Statik: batarya `expanduser('~/.claude/cron')`daki KURULU isci kopyalarini "
+        "sandbox'a alir (kendi docstring'i); kopyalanacak kaynak CI'da yok."),
+    "tools/k417/isci-tur-gorev-kabul.py": R_CANLI_CRON + (
+        " OLCULDU 18 Eyl (bos HOME aynasi): rc=3 `OLCULEMEDI sebep=canli-cron-dizin-yok` "
+        "— batarya sessiz yesil VERMIYOR, CI'da hukum uretemiyor."),
+    "tools/nobet-onarim/cron/gozcu-test.py": R_CANLI_CRON + _R_W2_DOLAYLI,
+    "tools/nobet-onarim/cron/gozcu-mutasyon.py": R_CANLI_CRON + _R_W2_DOLAYLI,
+    "tools/nobet-onarim/cron/nobet-kabul-test.py": R_CANLI_CRON + _R_W2_DOLAYLI,
+    "tools/devir-4saat-kabul.py": R_CANLI_CRON + (
+        " Statik (KOSTURULMADI — sabit yol canliya yazim riski): CRON_KOKU sabit "
+        "`/Users/okan/.claude/cron`, olculen ozne `~/.claude/cron/nobet_devir.py`."),
+    "tools/gunluk-motor-raporu-kabul.py": R_CANLI_CRON + (
+        " OLCULDU 18 Eyl (bos HOME aynasi): rc=2 `OLCULEMEDI: betik yok` — ozne "
+        "`~/.claude/cron/gunluk-motor-raporu.py` hicbir depoda degil."),
+    "tools/nobet-sayac-dondurma-kabul.py": R_CANLI_CRON + (
+        " OLCULDU 18 Eyl (bos HOME aynasi): rc=1 FileNotFoundError — hedef canli "
+        "`~/.claude/cron/nobet-kapi.py`."),
+    "tools/nobet-uc-kol-kabul.py": R_CANLI_CRON + (
+        " OLCULDU 18 Eyl (bos HOME aynasi): rc=1 `gozlenen=HATA:FileNotFoundError` — "
+        "canli dosyayi YUKLER (kendi docstring'i)."),
+    "tools/k86-kabul.py": (
+        "OZET SURUCU — KENDI OLCUMU YOK, ALT KUMESI ZATEN CI'DA. Statik olculdu 18 Eyl: "
+        "dort alt komutun TAM hali kosuyor (`is-akisi-kapisi.py` deploy.yml 7 / nobet.yml "
+        "32 atif · `marka-cip-mutasyon.py` nobet.yml:1679 · `marka-bolum-mutasyon.py` "
+        ":2927 · `model-baslik-kolu-test.py --kendini-test` :2992); `--k86` bayragi yalniz "
+        "o tam mutant kumesinden K86 alt kumesini SUZER. CI'ya baglamak ayni olcumu ikinci "
+        "kez odemek olur (yerel aynada >5 dk). MUAFIYETIN OLUM SARTI: alt komutlardan biri "
+        "CI'dan duserse bu satir SILINIR ve surucu serit-b'ye baglanir."),
+    "tools/k308-k310-kabul.py": (
+        "TEK SEFERLIK TABAN/SONRA SURUCUSU — ZORUNLU ARGUMAN. OLCULDU 18 Eyl: argumansiz "
+        "rc=2 `--cikti` ZORUNLU (git-disi olmali, depo icine yazarsa fail-loud) ve "
+        "`--taban-ref` ile GECMIS bir ref'i `git show` ile diske cikarip kosturur. Kalici "
+        "nobet degil, K308/K310 kapanisinin kanit ureticisi; iddialarin kalici kollari "
+        "`tools/yedek-dusus-kabul.py` + `tools/kutu-arsivle-test.py`de."),
+    "tools/yedek-dusus-kabul.py": (
+        "OLCULMUS CURUME — CI'YA KIRMIZI BAGLANAMAZ. OLCULDU 18 Eyl (bos HOME aynasi VE "
+        "gercek ortam, dosyaya bu turda DOKUNULMADI): rc=1 `DUSEN=2 (B3-kanca-suzgeci, "
+        "KONTROL-zararsiz) YAMA_TUTMAYAN=M6-kanca-tail3-geri HUKUM=KIRMIZI` — pre-push "
+        "kanca govdesi degismis, batarya capasi bayat. Kesif bugune dek bu dosyayi HIC "
+        "gormedigi icin curume sessizdi. MUAFIYETIN OLUM SARTI: K422 (acik-kalemler) "
+        "capayi tazeleyip rc=0 olculdugu gun bu satir SILINIR ve adim serit-b'ye "
+        "baglanir."),
+    "tools/yetkinlik/dogrula-test.py": (
+        "YAPISAL CI-KIRMIZI — macOS'A CIVILI GECICI KOK. OLCULDU 18 Eyl (bos HOME "
+        "aynasi, macOS): rc=0 `VAKA=21 DUSEN=0` — batarya hermetik ve CANLI. Ama "
+        "`GECICI_KOK = Path('/private/tmp/claude-501')` + `mkdir(parents=True)`: Linux "
+        "koşucusunda `/private` kok altinda yok ve `runner` kullanicisi `/`a yazamaz -> "
+        "adim yapisal olarak coker. Yetkinlik alt-projesi (motor olcum harness'i), yayin "
+        "hattinin girdisi degil. MUAFIYETIN OLUM SARTI: GECICI_KOK `tempfile.gettempdir()` "
+        "tabanina tasinirsa bu satir SILINIR ve adim serit-b'ye eklenir."),
     # ═══════════════════════════════════════════════════════════════════════
     # 10 EYL 2026 — WORKTREE KAPI BAYATLIK KAPISI (cip KraL-WorktreeKancaBayatligi)
     # ═══════════════════════════════════════════════════════════════════════

@@ -323,6 +323,26 @@ def dosya_oku(yol):
         return f.read()
 
 
+def yama_imzasi(capa, yeni):
+    """Yamanin EKLEDIGI metnin ilk AYIRT EDICI satiri (yoksa None).
+
+    🔴 18 Eyl 2026 (`elegant-swanson-2a0319`) — KAYNAK GERIDE SINIFI. Canli hedef
+    kurulumdan SONRA elle ilerletilirse (K331, 28 Agu: teslim blogu + H
+    bataryasi) `yeni` artik hedefte BIREBIR bulunmaz. Iki ayri kotu sonuc
+    olculdu: DEGISTIR yamasi `CAPA_YOK` ile coker (sebep adsiz), EKLE yamasi
+    (capa ⊂ yeni) ise capa hala durdugu icin `UYGULANDI` der ve ESKI blogu
+    IKINCI KEZ ekler. Imza hedefte VARSA yama uygulanmaz: kaynak canlidan
+    TASINMALIDIR. Ayirt edici = capada olmayan, >=24 karakter, salt ayrac
+    (`# ====`) olmayan ilk satir.
+    """
+    ek = yeni.replace(capa, "", 1) if capa in yeni else yeni
+    for satir in ek.splitlines():
+        govde = satir.strip()
+        if len(govde) >= 24 and govde.strip("#=-_ ") and satir not in capa:
+            return satir
+    return None
+
+
 TAM_KOPYA = (("kral-sabah.py", 0o700), ("sabah-kabul.py", 0o700))
 KOPYA_AYRISIK_RC = 4
 
@@ -422,6 +442,7 @@ def kur(kuru=False, tam_kopya_ez=False):
     dusen = []
 
     cogalmis = 0
+    geride = 0
     for hedef, capa, yeni, aciklama in Y:
         metin = metinler[hedef]
         capa_adedi = metin.count(capa)
@@ -449,6 +470,14 @@ def kur(kuru=False, tam_kopya_ez=False):
             dusen.append("%s :: %s (COGALMIS yeni_adedi=%d)" % (hedef, aciklama, yeni_adedi))
             yaz("YAMA  [COGALMIS] %-12s %s  yeni_adedi=%d" % (hedef, aciklama, yeni_adedi))
             continue
+        imza = yama_imzasi(capa, yeni)
+        if imza is not None and imza in metin:
+            # 🔴 KAYNAK GERIDE: hedef bu yamanin ILERLETILMIS halini tasiyor.
+            geride += 1
+            dusen.append("%s :: %s (KAYNAK_GERIDE imza=%r)" % (hedef, aciklama, imza.strip()[:60]))
+            yaz("YAMA  [KAYNAK_GERIDE] %-8s %s  imza hedefte VAR, yeni metin YOK "
+                "(canli ileride — kaynagi canlidan TASI)" % (hedef, aciklama))
+            continue
         if capa_adedi != 1:
             dusen.append("%s :: %s (capa_adedi=%d)" % (hedef, aciklama, capa_adedi))
             yaz("YAMA  [CAPA_YOK] %-12s %s  capa_adedi=%d" % (hedef, aciklama, capa_adedi))
@@ -457,8 +486,9 @@ def kur(kuru=False, tam_kopya_ez=False):
         uygulanan += 1
         yaz("YAMA  [UYGULANDI] %-10s %s" % (hedef, aciklama))
 
-    yaz("YAMA_OZET toplam=%d uygulanan=%d zaten=%d capa_yok=%d cogalmis=%d" % (
-        len(Y), uygulanan, zaten, len(dusen) - cogalmis, cogalmis))
+    yaz("YAMA_OZET toplam=%d uygulanan=%d zaten=%d capa_yok=%d cogalmis=%d "
+        "kaynak_geride=%d" % (
+            len(Y), uygulanan, zaten, len(dusen) - cogalmis - geride, cogalmis, geride))
 
     if dusen:
         # 🔴 FAIL-CLOSED: tek bir capa bile bulunamazsa HICBIR SEY yazilmaz.

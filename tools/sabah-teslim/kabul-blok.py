@@ -111,13 +111,97 @@ def _teslim_kolunu_kos(CDB, td, ad):
         sabah_log=fx["sabah_log"])
     o["b3_karar"] = t3["karar"]
 
-    # --- B2 POZITIF KONTROL: kanit VAR -> cip DOGMAZ
-    t2, damga2, log2, prompt2 = _teslim_cagri(CDB, fx, td, fx["dolu"], "%s-b2" % ad)
+    # --- B2 POZITIF KONTROL (K331 YANLIS-POZITIF KOLU): kanit VAR **VE** cip
+    #     GERCEKTEN DOGMUS -> cip DOGMAZ, damga TUKETILMEZ.
+    #     🔴 Bu vaka DUSERSE alarm HER GUNE yanar; onarim degil GURULTU olur.
+    #     Fikstur, 27 Agu'nun GERCEK kaydinin bicimini tasir (task_db2ede9f).
+    bugun_anahtar = bugun.strftime("%Y%m%d")
+    log_dogumlu = os.path.join(td, "log-%s-b2.log" % ad)
+    with open(log_dogumlu, "w", encoding="utf-8") as f:
+        f.write("2026-08-27T08:15:42Z BEKCI_BILDIRIM anahtar=%s kanal=cip rc=0 "
+                "teslim=BASARILI (cip panelde DOGDU) ayrinti=task_id=task_db2ede9f\\n"
+                % bugun_anahtar)
+    t2 = CDB.teslim_karari(
+        simdi=yerel_epok(bugun, 10), dizin=fx["dolu"], esik_saat=9,
+        damga_dizini=os.path.join(td, "damga-%s-b2" % ad),
+        log_yolu=log_dogumlu,
+        prompt_dizini=os.path.join(td, "prompt-%s-b2" % ad),
+        teslim_kollari=fx["kollar"], teslim_kalp_yolu=fx["kalp"],
+        sabah_log=fx["sabah_log"])
+    damga2 = os.path.join(td, "damga-%s-b2" % ad)
+    prompt2 = os.path.join(td, "prompt-%s-b2" % ad)
     o["b2_karar"] = t2["karar"]
+    o["b2_hukum"] = t2["hukum"]
+    o["b2_sebep"] = t2["sebep"]
+    o["b2_dogum"] = (t2.get("dogum") or {}).get("dogdu")
+    o["b2_task"] = (t2.get("dogum") or {}).get("task_id")
     o["b2_damga_dizini_var"] = int(os.path.isdir(damga2)
                                    and bool(os.listdir(damga2)))
     o["b2_prompt_dizini_var"] = int(os.path.isdir(prompt2)
                                     and bool(os.listdir(prompt2)))
+
+    # --- B2b ASIL K331 VAKASI: kanit VAR ama DOGUM KAYDI YOK -> cip DOGMALI.
+    #     28 Agu'nun canli hali budur: spec 17.606 B uretildi, cip hic dogmadi,
+    #     bekci YESIL dedi. Artik KIRMIZI olmali ve teslim GEREKLI cikmali.
+    log_dogumsuz = os.path.join(td, "log-%s-b2b.log" % ad)
+    with open(log_dogumsuz, "w", encoding="utf-8") as f:
+        f.write("2026-08-28T09:21:28Z BEKCI_BILDIRIM anahtar=%s kanal=cip rc=0 "
+                "teslim=GEREKMEDI (hukum=YESIL) ayrinti=hukum=YESIL\\n"
+                % bugun_anahtar)
+    t2b = CDB.teslim_karari(
+        simdi=yerel_epok(bugun, 10), dizin=fx["dolu"], esik_saat=9,
+        damga_dizini=os.path.join(td, "damga-%s-b2b" % ad),
+        log_yolu=log_dogumsuz,
+        prompt_dizini=os.path.join(td, "prompt-%s-b2b" % ad),
+        teslim_kollari=fx["kollar"], teslim_kalp_yolu=fx["kalp"],
+        sabah_log=fx["sabah_log"])
+    o["b2b_karar"] = t2b["karar"]
+    o["b2b_hukum"] = t2b["hukum"]
+    o["b2b_sebep"] = t2b["sebep"]
+    o["b2b_dogum"] = (t2b.get("dogum") or {}).get("dogdu")
+    o["b2b_kanit"] = t2b.get("kanit")
+
+    # --- B2c ERKEN SAAT: pencere ACILMADAN dogum beklenmez (sahte alarm YOK).
+    t2c = CDB.teslim_karari(
+        simdi=yerel_epok(bugun, 7), dizin=fx["dolu"], esik_saat=9,
+        damga_dizini=os.path.join(td, "damga-%s-b2c" % ad),
+        log_yolu=log_dogumsuz,
+        prompt_dizini=os.path.join(td, "prompt-%s-b2c" % ad),
+        teslim_kollari=fx["kollar"], teslim_kalp_yolu=fx["kalp"],
+        sabah_log=fx["sabah_log"])
+    o["b2c_karar"] = t2c["karar"]
+    o["b2c_hukum"] = t2c["hukum"]
+
+    # --- B2d BICIMSIZ JETON DOGUM SAYILMAZ (uydurma jetonla yesile kacis YOK).
+    log_bicimsiz = os.path.join(td, "log-%s-b2d.log" % ad)
+    with open(log_bicimsiz, "w", encoding="utf-8") as f:
+        f.write("2026-08-28T09:00:00Z BEKCI_BILDIRIM anahtar=%s kanal=cip rc=0 "
+                "teslim=BASARILI (cip panelde DOGDU) "
+                "ayrinti=task_id=cip-dusurdum-soz-veriyorum\\n" % bugun_anahtar)
+    t2d = CDB.teslim_karari(
+        simdi=yerel_epok(bugun, 10), dizin=fx["dolu"], esik_saat=9,
+        damga_dizini=os.path.join(td, "damga-%s-b2d" % ad),
+        log_yolu=log_bicimsiz,
+        prompt_dizini=os.path.join(td, "prompt-%s-b2d" % ad),
+        teslim_kollari=fx["kollar"], teslim_kalp_yolu=fx["kalp"],
+        sabah_log=fx["sabah_log"])
+    o["b2d_karar"] = t2d["karar"]
+    o["b2d_hukum"] = t2d["hukum"]
+
+    # --- B2e BASKA GUNUN DOGUM SATIRI BU GUNE SAYILMAZ (anahtar esitligi).
+    log_baska_gun = os.path.join(td, "log-%s-b2e.log" % ad)
+    with open(log_baska_gun, "w", encoding="utf-8") as f:
+        f.write("2026-08-27T08:15:42Z BEKCI_BILDIRIM anahtar=19700101 kanal=cip rc=0 "
+                "teslim=BASARILI (cip panelde DOGDU) ayrinti=task_id=task_db2ede9f\\n")
+    t2e = CDB.teslim_karari(
+        simdi=yerel_epok(bugun, 10), dizin=fx["dolu"], esik_saat=9,
+        damga_dizini=os.path.join(td, "damga-%s-b2e" % ad),
+        log_yolu=log_baska_gun,
+        prompt_dizini=os.path.join(td, "prompt-%s-b2e" % ad),
+        teslim_kollari=fx["kollar"], teslim_kalp_yolu=fx["kalp"],
+        sabah_log=fx["sabah_log"])
+    o["b2e_karar"] = t2e["karar"]
+    o["b2e_hukum"] = t2e["hukum"]
 
     # --- B4: prompt GOVDESI (spec YOK hali)
     o["b4_govde_yok"] = ""
@@ -204,11 +288,39 @@ def teslim_cip_bataryasi():
               T["b3_karar"] == "MUKERRER",
               "karar=%s" % T["b3_karar"])
 
-        kayit("H7 (B2) KONTROL: kanit VAR -> cip DOGMAZ, damga TUKETILMEZ",
+        # 🔴 K350: UCUNCU HAL ADIYLA CIVILENSIN — H7 `KOSTU`, H7b `SPEC_VAR_KOSMADI`
+        # hâlini olcer; `KANIT_YOK` hâli B1'de KIRMIZI/CIP_DOGMADI olarak zaten
+        # olculuyor (hüküm ve sebep ayri ayri adla anilir). SPEC_VAR_KOSMADI
+        # YESIL DEGIL — KIRMIZI = bekci ateslemeli.
+        kayit("H7 (B2) K331 KONTROL: KOSTU hâli — kanit VAR + cip DOGMUS -> YESIL",
               T["b2_karar"] == "GEREKSIZ" and T["b2_damga_dizini_var"] == 0
-              and T["b2_prompt_dizini_var"] == 0,
-              "karar=%s damga=%d prompt=%d" % (
-                  T["b2_karar"], T["b2_damga_dizini_var"], T["b2_prompt_dizini_var"]))
+              and T["b2_prompt_dizini_var"] == 0
+              and T["b2_hukum"] == "YESIL"
+              and T["b2_sebep"] == "KANIT_VAR_CIP_DOGDU"
+              and T["b2_dogum"] is True and T["b2_task"] == "task_db2ede9f",
+              "karar=%s hukum=YESIL sebep=KANIT_VAR_CIP_DOGDU (KOSTU) dogum=%s task=%s damga=%d prompt=%d" % (
+                  T["b2_karar"], T["b2_dogum"], T["b2_task"],
+                  T["b2_damga_dizini_var"], T["b2_prompt_dizini_var"]))
+
+        kayit("H7b (B2b) K331 ASIL: SPEC_VAR_KOSMADI hâli — kanit VAR + DOGUM YOK -> KIRMIZI + GEREKLI",
+              T["b2b_hukum"] == "KIRMIZI"
+              and T["b2b_sebep"] == "KANIT_VAR_CIP_DOGMADI"
+              and T["b2b_karar"] == "GEREKLI"
+              and T["b2b_dogum"] is False and T["b2b_kanit"] is True,
+              "hukum=KIRMIZI sebep=KANIT_VAR_CIP_DOGMADI (SPEC_VAR_KOSMADI) karar=%s kanit=%s dogum=%s" % (
+                  T["b2b_karar"], T["b2b_kanit"], T["b2b_dogum"]))
+
+        kayit("H7c (B2c) ERKEN SAAT: pencere acilmadan dogum BEKLENMEZ",
+              T["b2c_hukum"] == "YESIL" and T["b2c_karar"] == "GEREKSIZ",
+              "hukum=%s karar=%s" % (T["b2c_hukum"], T["b2c_karar"]))
+
+        kayit("H7d (B2d) BICIMSIZ task_id DOGUM SAYILMAZ",
+              T["b2d_hukum"] == "KIRMIZI" and T["b2d_karar"] == "GEREKLI",
+              "hukum=%s karar=%s" % (T["b2d_hukum"], T["b2d_karar"]))
+
+        kayit("H7e (B2e) BASKA GUNUN dogum satiri BU GUNE SAYILMAZ",
+              T["b2e_hukum"] == "KIRMIZI" and T["b2e_karar"] == "GEREKLI",
+              "hukum=%s karar=%s" % (T["b2e_hukum"], T["b2e_karar"]))
 
         kayit("H8 (B4) spec YOK -> prompt SEBEBI tasir",
               "SPEC URETILMEDI" in T["b4_govde_yok"]
@@ -275,6 +387,14 @@ def teslim_cip_bataryasi():
         kayit("H17 en_genis_bosluk() fiksturu 5/5",
               not dusen_fx, "dusen=%s" % (dusen_fx or "YOK"))
 
+        # Formulun KENDISI fiksturle olculur (yoksa "30 cikti, demek dogru" olurdu)
+        fx_bosluk = [((9, 15), 18.0), ((17, 23), 18.0), ((15,), 24.0),
+                     ((0, 12), 12.0), ((6, 12, 18), 12.0)]
+        dusen_fx = ["%s->%s(bekl %s)" % (s, CDB.en_genis_bosluk(s), b)
+                    for s, b in fx_bosluk if CDB.en_genis_bosluk(s) != b]
+        kayit("H17 en_genis_bosluk() fiksturu 5/5",
+              not dusen_fx, "dusen=%s" % (dusen_fx or "YOK"))
+
         # ================================================================
         # B5 MUTANT — teslim kolu OLDURULUR
         # ================================================================
@@ -305,7 +425,48 @@ def teslim_cip_bataryasi():
               "taban=%s mutant=%s prompt_bayt=%d (sebep: kirmizi_mi() kolu)" % (
                   T["b1_karar"], M["b1_karar"], M["b1_prompt_bayt"]))
 
-        kayit("H12 MUTANT KONTROL B2 DEGISMEDI",
-              M["b2_karar"] == T["b2_karar"] == "GEREKSIZ",
-              "taban=%s mutant=%s" % (T["b2_karar"], M["b2_karar"]))
+        # === K331 MUTANTI — ERISILEMEZLIGI GERI GETIR ===
+        # `dogum` kolu SOKULUR: `if var` yine dogrudan YESIL/KANIT_VAR doner,
+        # yani 28 Agu'nun SESSIZ YESILI geri gelir. Hedef kol ADLIDIR: B2b.
+        # KONTROL: B2 (gercekten dogmus gun) mutantla DA GEREKSIZ kalir —
+        # yani mutant bataryayi TOPTAN kirmizilastirmiyor, TEK kolu olduruyor.
+        with tempfile.TemporaryDirectory(prefix="bekci-k331-mutant-") as td331:
+            # Capa `cip_dogum_bekcisi.py` kaynaginda, `bekci-kabul.py`da degil;
+            # _mutant_modul bekci-kabul.py'i okur, biz k331 icin kendi yolumuzu
+            # acarak dogru kaynaga uyguluyoruz. _mutant_modul imzasi
+            # (td, ad, capa, yeni) DEGISTIRILMEDI.
+            k331_capa = ("        dogum = dogum_olc(_anahtar, log_yolu)\\n"
+                         "        if not dogum[\\"olculdu\\"]:\\n")
+            k331_yeni = ("        dogum = dogum_olc(_anahtar, log_yolu)\\n"
+                         "        return _don(\\"YESIL\\", \\"KANIT_VAR\\", teslim, dogum)\\n"
+                         "        if not dogum[\\"olculdu\\"]:\\n")
+            with open(MODUL, encoding="utf-8") as f:
+                k331_kaynak = f.read()
+            k331_adedi = k331_kaynak.count(k331_capa)
+            if k331_adedi != 1:
+                kayit("H16 MUTANT: B2 kolu DEGISMEZ (mutant menzili B1'dir)",
+                      None, "K331 capa BULUNAMADI (cip_dogum_bekcisi.py adet=%d)" % k331_adedi)
+                kayit("H17 K331 MUTANT: dogum kolu sokulur -> B2b SESSIZ YESILE doner",
+                      None, "K331 capa BULUNAMADI")
+                kayit("H18 K331 MUTANT AYIRT EDICILIK: B2 (gercek dogum) YESIL KALIR",
+                      None, "K331 capa BULUNAMADI")
+                return
+            k331_hedef = os.path.join(td331, "cip_dogum_bekcisi_k331m.py")
+            with open(k331_hedef, "w", encoding="utf-8") as f:
+                f.write(k331_kaynak.replace(k331_capa, k331_yeni))
+            CDB_M = modul_yukle(k331_hedef, "bekci_kabul_k331m", (CRON,))
+            M331 = _teslim_kolunu_kos(CDB_M, td331, "k331m")
+            kayit("H16 MUTANT: B2 kolu DEGISMEZ (mutant menzili B1'dir)",
+                  M["b2_karar"] == T["b2_karar"] == "GEREKSIZ",
+                  "taban=%s mutant=%s" % (T["b2_karar"], M["b2_karar"]))
+            kayit("H17 K331 MUTANT: dogum kolu sokulur -> B2b SESSIZ YESILE doner",
+                  M331["b2b_hukum"] == "YESIL" and M331["b2b_karar"] == "GEREKSIZ"
+                  and T["b2b_hukum"] == "KIRMIZI",
+                  "taban_b2b=%s/%s mutant_b2b=%s/%s" % (
+                      T["b2b_hukum"], T["b2b_karar"],
+                      M331["b2b_hukum"], M331["b2b_karar"]))
+            kayit("H18 K331 MUTANT AYIRT EDICILIK: B2 (gercek dogum) YESIL KALIR",
+                  M331["b2_karar"] == "GEREKSIZ" and M331["b2_hukum"] == "YESIL",
+                  "mutant_b2=%s/%s (mutant TEK kolu oldurdu, batarya TOPTAN degil)" % (
+                      M331["b2_hukum"], M331["b2_karar"]))
 '''
