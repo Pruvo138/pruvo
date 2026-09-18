@@ -1199,6 +1199,15 @@ jobs:
       - name: "Urun denetim kapisi — kendini test (pozitif + negatif + OLCULEMEDI + mutasyon)"
         if: ${{ !cancelled() }}
         run: python3 tools/denetim-kapisi.py --kendini-test
+      # ATIF KOLU (K418, 18 Eyl): gizli tur atif-zorunlu (CC BY/GPL/MIT/BSD... COK VARYANTLI
+      # dizge) => public `lisans` dolu; NON-GROWTH taban. Canli olcum gizli
+      # .urun-kaynaklari.json ister (CI'da YOK -> kol OLCULEMEDI basar, rc'yi etkilemez);
+      # burada SINIFLAYICI + taban mantigi SENTETIK veriyle olculur: 41 iddia + 4 oldurucu
+      # mutant (her sey muaf / eski GPL deseni / taban+1 serbest / SINIFLANAMADI muaf) +
+      # K0 kontrol + sha256 once==sonra. Agsiz, <1 s, urunler.json'a DOKUNMAZ.
+      - name: "Urun denetim kapisi — ATIF KOLU kabul + mutant (K418: atif-zorunlu => public lisans)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/atif-kolu-test.py
       # SERIT B — bu adim 68 adimindan AYRILDI (kapi SILINMEDI, ikiye bolundu):
       # bayraksiz (gercek olcum) kol SERIT A'da bloklayici kaldi, oz-nobetci kolu
       # buraya tasindi. Gerekce: tools/is-akisi-kapisi.py :: SERIT_B tablosu.

@@ -262,7 +262,7 @@ OKAN_JETONLARI = (
 # 🔴 Cıplak "panel" jetonu 14 Agu kuru turunda K54'u (parca adlari listesi, icinde
 # "door panel" geciyor) DAGITILMAZ/OKAN kovasina dusurdu — Okan yetkisi jetonu
 # YAPISAL olmali: birincil isaret `kime == Okan` sutunudur, metin jetonu daralttildi.
-CODEX_JETONLARI = (
+EMEKLI_MOTOR_JETONLARI = (
     "kapi", "kapı", "nobetci", "nöbetçi", "guvenlik", "güvenlik", "secret", "sir ",
     "gizlilik", "sema", "şema", "lisans", "odeme", "ödeme", "fiyat", "mutasyon",
     "fail-open", "fail-closed", "kilit", "flock", "kanca", "hook", "kabul testi",
@@ -648,7 +648,7 @@ def kat_sec(kalem, geri_iz=None):
     if kime.startswith("okan") or _jeton_var(ham, OKAN_JETONLARI):
         return KAT_OKAN
     metin = _serbest_metin(ham)
-    if _jeton_var(metin, CODEX_JETONLARI):
+    if _jeton_var(metin, EMEKLI_MOTOR_JETONLARI):
         # 🔴 HUKUM-1: emekli-kat artigi MIMAR hukmunu EZEMEZ.
         if _emekli_kattan_gocmus(kalem, geri_iz):
             return _gocmus_kat(kalem, geri_iz)

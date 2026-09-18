@@ -60,10 +60,13 @@ IZINLI = {
     # hijyen-a3 o andan beri KIRMIZI (IHLAL=2). Kopyalar canliyla BAYT eslesir
     # (`nobet-kabul-test.py` sha 864308b8 = canli) — ad burada degistirilirse
     # kopya canlidan AYRISIR. Olculen siniflama: nobet-kapi.py 10 gecis =
-    # `KAT_CODEX = KAT_MIMAR` takma adi + `CODEX_JETONLARI` (emekli kat gocu
+    # `KAT_CODEX = KAT_MIMAR` takma adi + emekli kat jeton tablosu (gocu
     # KODU) + gocun gerekce yorumlari; nobet-kabul-test.py 5 gecis = motor
     # zinciri/emekli kume FIKSTURU. Sinif (b), ATIF degil. Tavan olculen sayidir.
-    "tools/nobet-onarim/cron/nobet-kapi.py": (10, "canli cron KOPYASI: emekli kat gocu kodu (KAT_CODEX takma adi + jeton tablosu)"),
+    # 18 Eyl 2026: jeton tablosu CANLIDA VE kopyada `EMEKLI_MOTOR_JETONLARI`
+    # adini aldi (k260 test kopyasi canliyla esitlenirken; iki okuyucu:
+    # nobet-kapi.py kat_sec + nobet-kat-kovasi-test.py). Olculen 10 -> 8.
+    "tools/nobet-onarim/cron/nobet-kapi.py": (8, "canli cron KOPYASI: emekli kat gocu kodu (KAT_CODEX takma adi + gerekce yorumlari)"),
     "tools/nobet-onarim/cron/nobet-kabul-test.py": (5, "canli cron KOPYASI: emekli motor zinciri fiksturu"),
     # --- ucuncu taraf MAKINE ADRESI: bizim adlandirmamiz degil, degistirilemez ---
     # 10 Eyl 2026 (K399): BAGIMLILIK KAPANDI — bu arac artik CANLI uca dogrudan

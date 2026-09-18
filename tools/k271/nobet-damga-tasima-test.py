@@ -22,14 +22,25 @@ KOSUM
 """
 
 import argparse
+import contextlib
 import importlib.util
+import io
 import os
 import shutil
 import sys
 import tempfile
 
-CRON_KOKU = "/Users/okan/.claude/cron"
-NOBET_KAPI = os.path.join(CRON_KOKU, "nobet-kapi.py")
+# 🔴 KUM HAVUZU (18 Eyl 2026): `kalem_dagit` GERCEK imzasiyla cagrilir ve
+# `SPEC_DIZINI`ne spec DOSYASI yazar — canli modul yuklendiginde fikstur
+# kalemleri (K86/KZ1/KZ2/KZ9) CANLI `nobet-specler/`e `nobet-*-t700.md`
+# olarak dusuyordu (olculdu: testler.py kosumu sonrasi 4 dosya). Modul ve
+# mutantlari artik gecici CRON_KOKU'dan (`nobet_kum.py`) yuklenir; kum
+# kurulamazsa KABUL=KALDI (fail-closed).
+CRON_KOKU = "/Users/okan/.claude/cron"          # yalniz nobet_kum.py okunur
+NOBET_KUM_YOLU = os.path.join(CRON_KOKU, "nobet_kum.py")
+KUM = None                                       # main() kurar
+NOBET_KUM = None
+NOBET_KAPI = None                                # KUMDAKI nobet-kapi.py
 VAKALAR = []
 _SAYAC = [0]
 
@@ -42,16 +53,24 @@ def vaka(vid, beklenen, olculen):
     return gecti
 
 
+def _nobet_kum_yukle():
+    """Kurucu canli kokten YOLLA yuklenir; canli kok sys.path'e GIRMEZ."""
+    spec = importlib.util.spec_from_file_location("k271_nobet_kum", NOBET_KUM_YOLU)
+    mod = importlib.util.module_from_spec(spec)
+    onceki = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True       # canli __pycache__'e .pyc DUSMESIN
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        sys.dont_write_bytecode = onceki
+    return mod
+
+
 def modul_yukle(yol):
-    if CRON_KOKU not in sys.path:
-        sys.path.insert(0, CRON_KOKU)
+    """Modul KUMDAN yuklenir; yol kumun DISINDAYSA kurucu RED eder."""
     _SAYAC[0] += 1
     ad = "_k271_nk_%d" % _SAYAC[0]
-    spec = importlib.util.spec_from_file_location(ad, yol)
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[ad] = mod
-    spec.loader.exec_module(mod)
-    return mod
+    return NOBET_KUM.modul_yukle(KUM, os.path.relpath(yol, str(KUM)), ad)
 
 
 # K86'nin GERCEK metninden alinmis parca (serbest metinde "mutasyon" geciyor,
@@ -274,8 +293,10 @@ def _batarya(nk, ek):
 
 def mutasyon():
     print("=== K271 MUTASYON BATARYASI (GECICI KOPYA) ===")
-    taban_kaynak = open(NOBET_KAPI, encoding="utf-8").read()
-    gecici = tempfile.mkdtemp(prefix="k271-mut-")
+    with open(NOBET_KAPI, encoding="utf-8") as d:
+        taban_kaynak = d.read()
+    # Mutant kopyalari KUMUN ICINDE: kaynaklarindaki CRON_KOKU kumu gosterir.
+    gecici = tempfile.mkdtemp(prefix="k271-mut-", dir=str(KUM))
     try:
         taban_yol = os.path.join(gecici, "nk_taban.py")
         shutil.copy2(NOBET_KAPI, taban_yol)
@@ -335,6 +356,12 @@ def kabul():
     if dusen:
         print("KALAN=%s" % ",".join(dusen))
     print("HUKUM=%s" % ("YESIL" if not dusen else "KIRMIZI"))
+    # 🔴 18 Eyl 2026: `testler.py` sozlesmesi SON `KABUL=` satiridir (14
+    # paketin 12'si boyle basar); yalniz `HUKUM=` basan bu paket 23/23 yesilken
+    # `KABUL=YOK(rc=0)` ile KALDI sayiliyordu. Tek kaynak kosucunun
+    # sozlesmesi — kosucuya ikinci bir sozluk (HUKUM=) OGRETILMEDI.
+    print("KABUL=%s (%d/%d vaka)" % ("GECTI" if not dusen else "KALDI",
+                                     len(sonuc) - len(dusen), len(sonuc)))
     return 0 if not dusen else 1
 
 
@@ -342,7 +369,39 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="K271 damga tasima bataryasi")
     ap.add_argument("--mutasyon", action="store_true")
     args = ap.parse_args(argv)
-    return mutasyon() if args.mutasyon else kabul()
+    global KUM, NOBET_KUM, NOBET_KAPI
+    try:
+        NOBET_KUM = _nobet_kum_yukle()
+        imza_once = NOBET_KUM.canli_modul_imzasi()
+        KUM = NOBET_KUM.kum_kur("k271-")
+        NOBET_KAPI = os.path.join(str(KUM), "nobet-kapi.py")
+    except Exception as hata:                           # noqa: BLE001
+        print("KABUL=KALDI (KUM KURULAMADI — canliya kosulmaz: %s)" % hata)
+        return 2
+    tampon = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(tampon):
+            rc = mutasyon() if args.mutasyon else kabul()
+    finally:
+        NOBET_KUM.kum_sil(KUM)
+    # KABUL satiri SON satir kalsin: bataryanin ciktisi once basilir,
+    # kum/imza satiri ardindan, KABUL en sonda.
+    satirlar = tampon.getvalue().splitlines()
+    kabul_satiri = [s for s in satirlar if s.startswith("KABUL=")]
+    for s in satirlar:
+        if not s.startswith("KABUL="):
+            print(s)
+    imza_sonra = NOBET_KUM.canli_modul_imzasi()
+    print("KUM=%s SILINDI=%s CANLI_IMZA=%s CANLI_ARTIK=%d"
+          % (KUM, not os.path.exists(str(KUM)),
+             "AYNI" if imza_once == imza_sonra else "DEGISTI",
+             len(imza_sonra[1])))
+    if imza_once != imza_sonra:
+        print("KABUL=KALDI (CANLI modul/artik DEGISTI — kum sizdi)")
+        return 1
+    for s in kabul_satiri:
+        print(s)
+    return rc
 
 
 if __name__ == "__main__":

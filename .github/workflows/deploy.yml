@@ -1141,6 +1141,13 @@ jobs:
       - name: Sabah kurucusu tam-kopya fail-closed bataryasi (K357)
         run: python3 tools/sabah-kur-tam-kopya-test.py
 
+      # SABAH SPEC KIRMIZI SEVIYESI (18 Eyl Tamirci): kral-sabah.py her kirmiziyi is
+      # akisi+dal basina EN YENI hukumlu ardilindan okur (ardili success -> KAPANDI,
+      # yoksa CANLI; cancelled hukum DEGIL). Spec ADET=8 basmisti, 3'u zaten kapaliydi.
+      # Bloklayici: saf fonksiyon + fake gh, ag ISTEMEZ; 3 mutant ayni kosumda KIRMIZI.
+      - name: Sabah spec kirmizi seviyesi bataryasi (ardil kovasi)
+        run: python3 tools/sabah-ardil-kova-test.py
+
       # RIZA TIK-KIMLIGI (GIZLILIK) — 30 Tem'e kadar CI'da HIC kosmuyordu. Muafiyet gerekcesi
       # "CI build job'u Python-only (setup-node yok)" DIYORDU; olculdu ki YANLIS: yukaridaki
       # actions/setup-node@v4 (node 20) BLOKLAYICI on-kosuldur ve bu is akisinda zaten
