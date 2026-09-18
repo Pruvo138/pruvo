@@ -853,6 +853,16 @@ def _tavan_asildi_mi(defter_yol, tavan_sayi, tavan_bayt):
 
     tavan_sayi/tavan_bayt None ise o eksen yok sayilir. Ikisi de None ise
     her zaman False (mevcut tek-gecis davranisina geri doner).
+
+    🔴 K351-31AGU ③ (18 Eyl 2026 olculdu): BAYT ekseni YALNIZ tek kaynaktaki
+    `BAYT_HUKUM_VERIR` acikken hukum verir — kota kapisi
+    (`defter-kota-kapisi.py`) ile AYNI anahtar, ikinci kopya ACILMAZ. Anahtar
+    11 Eyl'de kapandi ama bu yuklem ona bagli degildi: canli defter KOPYASINDA
+    `--onlem` satir ekseninde 399 -> 381 inip su seviyesinin (400) ALTINA
+    dustugu halde DURMADI (bayt hedefi 9.830 B, defter 123 KB), ikinci gecis
+    ilerleyemedi ve `KAYIP:` + rc=2 basti — yani onlem bacagi canli defterde
+    ASLA temiz bitemiyordu. Bu yuklem hem BASLANGIC hem DURMA bacaginin ve
+    hem tavanin hem su seviyesinin TEK ortak noktasi oldugundan onarim burada.
     """
     if tavan_sayi is None and tavan_bayt is None:
         return False
@@ -865,7 +875,8 @@ def _tavan_asildi_mi(defter_yol, tavan_sayi, tavan_bayt):
     bayt = len(ham)
     if tavan_sayi is not None and satir > tavan_sayi:
         return True
-    if tavan_bayt is not None and bayt > tavan_bayt:
+    if (tavan_bayt is not None and bayt > tavan_bayt
+            and getattr(_tab_mod, "BAYT_HUKUM_VERIR", True)):
         return True
     return False
 

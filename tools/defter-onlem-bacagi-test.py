@@ -29,9 +29,14 @@ BU BATARYA NE OLCER
   V6  KONTROL: su seviyesinin de ALTINDAKI defterde `--onlem` NO-OP kalir ve
       dosya BAYT BAYT ayni durur
 
-MUTANTLAR (hedef-kol ATIFLI)
-  M1  BASLANGIC kapisi ceza esigine GERI konur   -> V2 OLMELI
-  M2  `--onlem` bayragi YOK SAYILIR              -> V2 OLMELI
+  V2f 🔴 K351-31AGU ②: KAPALI kovasi >0 — karisik blokta (acik jetonlu)
+      kapanmis madde KAPALI sayilir; V2g arsive cikar; V2h KONTROL acik madde
+      defterde kalir
+
+MUTANTLAR (hedef-kol ATIFLI — dusenler arasinda hedef vakanin ADI aranir)
+  M1  BASLANGIC kapisi ceza esigine GERI konur   -> V2c OLMELI
+  M2  `--onlem` bayragi YOK SAYILIR              -> V2b OLMELI
+  M5  siniflandiricinin KAPALI kolu sokulur      -> V2f OLMELI
   M3  fail-closed kolu kaldirilir (esik yoksa tavana duser) -> V4 OLMELI
   M4  KONTROL: ilgisiz metin degisikligi         -> HEPSI YESIL KALMALI
 
@@ -88,8 +93,22 @@ ACIK_BLOK = """## 2026-09-16 — K{no} suruyor
 """
 
 
+# 🔴 K351-31AGU ② KARISIK BLOK: kapanmis maddeler + TEK acik madde AYNI blokta.
+# Blok duzeyinde vetolu (acik jeton geciyor) ama kapanmis maddeleri CIKARILABILIR
+# olmali. `KAPALI` kovasi YALNIZ vetolu blogun icindeki maddeleri sayar — saf
+# kapali bloklar BLOK olarak tasinir ve kovaya HIC dusmez (18 Eyl olculdu:
+# karisik blok yokken `INCELENEN=1 KAPALI=0`, 113 blok tasindi).
+KARISIK_BLOK = """## 2026-08-31 — K499 karisik blok
+- ✅ K499 birinci madde kapandi, kanit sha 0a1b2c
+- ✅ K499 ikinci madde kapandi, kanit sha 3d4e5f
+- 🔴 ACIK: K499 ucuncu madde suruyor
+"""
+KARISIK_KAPALI_IZ = "K499 birinci madde kapandi"
+KARISIK_ACIK_IZ = "K499 ucuncu madde suruyor"
+
+
 def fikstur_defter(kapali_adet, acik_adet):
-    parca = ["# DEVAM — calisma defteri", ""]
+    parca = ["# DEVAM — calisma defteri", "", KARISIK_BLOK]
     for i in range(kapali_adet):
         parca.append(KAPALI_BLOK.format(tarih="2026-09-%02d" % (1 + i % 28),
                                         no=500 + i, sha="%06x" % (i * 7919)))
@@ -176,6 +195,20 @@ def m3_taban_bozar(hedef):
     _yaz(yol, yeni)
 
 
+def m5_kapali_kolu_sokulur(hedef):
+    """M5: siniflandiricinin KAPALI kolu sokulur (K351-31AGU ②)."""
+    yol = os.path.join(hedef, "defter-rotasyon.py")
+    s = _oku(yol)
+    capa = ("    elif _madde_arsiv_vetolu(metin):\n"
+            "        sinif = MADDE_ARSIV_ISARETCISI\n"
+            "    else:\n"
+            "        sinif = MADDE_KAPALI\n")
+    if s.count(capa) != 1:
+        raise SystemExit("M5 MUTANT ULASMADI — capa %d kez" % s.count(capa))
+    _yaz(yol, s.replace(capa, capa.replace("sinif = MADDE_KAPALI",
+                                           "sinif = MADDE_SINIFLANAMAZ")))
+
+
 def m4_ilgisiz(hedef):
     """M4 KONTROL: anlam degistirmeyen metin dokunusu."""
     yol = os.path.join(hedef, "defter-rotasyon.py")
@@ -248,6 +281,25 @@ def batarya(arac_kok, etiket):
               satir1 < satir0, (satir0, satir1))
         iddia("%s V2e DOLU_NO_OP BASILMADI" % etiket,
               "TAVAN=DOLU_NO_OP" not in c2, c2[-400:])
+        # 🔴 K351-31AGU ② — KOVA KORLUGU: 31 Agu'da uc rotada `KAPALI=0`
+        # basildi ve "arac kapanmis maddeyi goremiyor" mu yoksa "defterde
+        # kapanmis madde yok" mu AYRILAMADI. Bu fikstur kapanmis madde
+        # TASIR; siniflandirici onu `KAPALI` kovasina koymuyorsa sayac yalan
+        # soyler. Kova TASIMADAN ONCE sayilan satirdan okunur.
+        mk = re.search(r"MADDE_KOVALARI INCELENEN=(\d+) .*?KAPALI=(\d+)", c2)
+        kapali_kova = int(mk.group(2)) if mk else -1
+        iddia("%s V2f 🔴 KAPALI kovasi >0 (kapanmis madde GORUNUR)" % etiket,
+              kapali_kova > 0,
+              (kapali_kova, mk.group(0) if mk else "MADDE_KOVALARI YOK",
+               c2[:500]))
+        d1, a1 = _oku(defter), _oku(arsiv)
+        iddia("%s V2g 🔴 karisik bloktaki KAPANMIS madde ARSIVE cikti" % etiket,
+              KARISIK_KAPALI_IZ in a1 and KARISIK_KAPALI_IZ not in d1,
+              (KARISIK_KAPALI_IZ in a1, KARISIK_KAPALI_IZ in d1))
+        iddia("%s V2h KONTROL: karisik bloktaki ACIK madde DEFTERDE kaldi"
+              % etiket,
+              KARISIK_ACIK_IZ in d1 and KARISIK_ACIK_IZ not in a1,
+              (KARISIK_ACIK_IZ in d1, KARISIK_ACIK_IZ in a1))
 
         print("\n[V3] 🔴 IKI BACAK TEK ESIKTEN — su seviyesine inince DURUR")
         iddia("%s V3a defter su seviyesinin ALTINA indi" % etiket,
@@ -264,6 +316,63 @@ def batarya(arac_kok, etiket):
         iddia("%s V6b rc=0" % etiket, rc == 0, (rc, c6[-300:]))
     finally:
         shutil.rmtree(kok, ignore_errors=True)
+    olu_bayt_vakasi(arac_kok, etiket)
+
+
+def olu_bayt_vakasi(arac_kok, etiket):
+    """V7 — K351-31AGU ③: ONLEM bacagi OLU bayt ekseninden hukum ALMAZ.
+
+    Canli defterin SEKLI (18 Eyl olculdu): satir su seviyesinin hemen ustunde,
+    bayt tavanin ~10 kati (uzun satirli ACIK bloklar tasinamaz). Bayt ekseni
+    `BAYT_HUKUM_VERIR=False` iken hukum verirse `--onlem` satirda su seviyesine
+    indikten SONRA durmaz, kapali icerik tukenince ilerleyemez ve rc!=0 basar.
+    """
+    print("\n[V7] 🔴 OLU BAYT EKSENI — `--onlem` SATIR su seviyesinde DURUR")
+    kok = tempfile.mkdtemp(prefix="k351-olubayt-")
+    try:
+        tavan, su = _esikler(arac_kok)
+        defter = os.path.join(kok, "DEVAM.md")
+        arsiv = os.path.join(kok, "DEVAM-ARSIV.md")
+        uzun = "- 🔴 ACIK: K9%02d suruyor " + "x" * 700 + "\n"
+        acik = "".join("## 2026-09-18 — K9%02d acik\n" % i + uzun % i
+                       for i in range(40))
+        # Kapali bloklar EN BASTA (en eski); ust sinir: satir (su, tavan].
+        kapali_adet = 4
+        while True:
+            metin = fikstur_defter(kapali_adet, 0) + acik
+            if len(metin.splitlines()) >= su + 20:
+                break
+            kapali_adet += 1
+        _yaz(defter, metin)
+        _yaz(arsiv, "# DEVAM ARSIV\n")
+        satir0 = len(metin.splitlines())
+        bayt0 = os.path.getsize(defter)
+        iddia("%s V7a fikstur canli SEKLINDE: satir (su, tavan], bayt > tavan"
+              % etiket, su < satir0 <= tavan and bayt0 > 12288,
+              (su, satir0, tavan, bayt0))
+        rc, c = kos(arac_kok, [defter, arsiv, "--onlem"])
+        satir1 = len(_oku(defter).splitlines())
+        iddia("%s V7b 🔴 rc=0 (bayt ekseni hukum VERMEDI)" % etiket,
+              rc == 0 and "KAYIP:" not in c and "ILERLEME_YOK" not in c,
+              (rc, c[-500:]))
+        iddia("%s V7c satir su seviyesine indi (%d -> %d <= %d)"
+              % (etiket, satir0, satir1, su), satir1 <= su, (satir1, su))
+        iddia("%s V7d KONTROL: acik bloklar DEFTERDE (40/40)" % etiket,
+              _oku(defter).count("🔴 ACIK: K9") == 40,
+              _oku(defter).count("🔴 ACIK: K9"))
+    finally:
+        shutil.rmtree(kok, ignore_errors=True)
+
+
+def m6_bayt_anahtari_yok_sayilir(hedef):
+    """M6: `_tavan_asildi_mi` BAYT_HUKUM_VERIR anahtarini okumaz (onarim oncesi)."""
+    yol = os.path.join(hedef, "defter-rotasyon.py")
+    s = _oku(yol)
+    capa = ("    if (tavan_bayt is not None and bayt > tavan_bayt\n"
+            "            and getattr(_tab_mod, \"BAYT_HUKUM_VERIR\", True)):\n")
+    if s.count(capa) != 1:
+        raise SystemExit("M6 MUTANT ULASMADI — capa %d kez" % s.count(capa))
+    _yaz(yol, s.replace(capa, "    if tavan_bayt is not None and bayt > tavan_bayt:\n"))
 
 
 def fail_closed_vakasi(arac_kok, etiket, *, beklenen_rc):
@@ -335,8 +444,16 @@ def main():
     mutantlar = [
         ("M1 BASLANGIC kapisi CEZA esigine geri konur", m1_baslangic_geri,
          "V2c", True),
+        # 🔴 M2 HEDEFI V2b (18 Eyl olculdu, hedef-kol atfi eklenince): bayrak
+        # yok sayilinca arac BAYRAKSIZ yola (tavansiz tam rotasyon) duser ve
+        # YINE tasir — V2c/V2d bu mutanti AYIRAMAZ. Onu oldüren TEK vaka esigin
+        # GORUNURLUGU (V2b). Eski "V2c" atfi olculmemis bir iddiaydi.
         ("M2 `--onlem` bayragi yok sayilir", m2_bayrak_yok_sayilir,
-         "V2c", True),
+         "V2b", True),
+        ("M5 siniflandiricinin KAPALI kolu sokulur", m5_kapali_kolu_sokulur,
+         "V2f", True),
+        ("M6 esik yuklemi BAYT_HUKUM_VERIR anahtarini okumaz",
+         m6_bayt_anahtari_yok_sayilir, "V7b", True),
         ("M4 KONTROL: ilgisiz metin dokunusu", m4_ilgisiz, "-", False),
     ]
     mutant_sonuc = []
@@ -350,7 +467,10 @@ def main():
         finally:
             shutil.rmtree(kok, ignore_errors=True)
         dusen = len(_KALAN) - onceki
-        oldu = dusen > 0
+        # HEDEF-KOL ATFI: mutant BASKA bir vakayi dusurup "oldu" sayilamaz;
+        # dusenler arasinda hedef vakanin ADI olmali.
+        oldu = dusen > 0 and (hedef == "-" or any(
+            (" %s " % hedef) in n for n in _KALAN[onceki:]))
         uygun = (oldu == olmeli)
         mutant_sonuc.append((ad, oldu, olmeli, uygun, dusen))
         print("  -> DUSEN=%d (beklenen: %s)"
