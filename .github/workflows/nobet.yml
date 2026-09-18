@@ -701,9 +701,9 @@ jobs:
       # · K334 GERCEK ci-nobeti.sh -> nobet-tetik --karar zincirinde gunluk
       # kolu FIILEN ateslenir (damga diske yazilir) · K326 ardilsiz kirmizi
       # ekseni + K311 YUZ B (ardili yesil eskalasyon kapanir) · K325 sayac
-      # saturasyonu + tuketici · K311(b) sozluk tek kaynak. 9 hedef-kol atifli
+      # saturasyonu + tuketici · K311(b) sozluk tek kaynak. Hedef-kol atifli
       # mutant + KONTROL'ler. `OLCULEMEDI=0` — dilim 1'in dort satiri KALKTI.
-      - name: W2 nobet onarim kabul kapisi (K316 · K334 · K326 · K325 · K311 — 24 vaka/mutant/kontrol)
+      - name: W2 nobet onarim kabul kapisi (K316 · K334 · K326 · K325 · K311 — vaka+mutant+kontrol)
         if: ${{ !cancelled() }}
         run: python3 tools/nobet-onarim/nobet-onarim-kabul.py
 
