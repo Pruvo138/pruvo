@@ -594,7 +594,12 @@ def kablo_kontrol():
             })
             if tetik:
                 ortam["PRUVO_NOBET_TETIK"] = tetik
-            sonuc = subprocess.run([CI_NOBETI_YOLU], env=ortam, cwd=kok,
+            # 🔴 19 Eyl 2026 (Tamirci): ci-nobeti.sh `#!/bin/zsh`; Linux CI
+            # kosucusunda zsh YOK -> dogrudan exec shebang'de FileNotFoundError
+            # verdi ve W2 kabul kapisi 3 koşum kirmizi kaldi. Kabulun `_kabuk()`
+            # deseni: zsh, yoksa bash (soz dizimi uyumlu). Mac'te davranis AYNI.
+            kabuk = shutil.which("zsh") or shutil.which("bash")
+            sonuc = subprocess.run([kabuk, CI_NOBETI_YOLU], env=ortam, cwd=kok,
                                    capture_output=True, text=True, timeout=120)
             return sonuc.returncode
 

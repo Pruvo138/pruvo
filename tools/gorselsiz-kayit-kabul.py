@@ -90,6 +90,11 @@ def _u(uid, gorseller=None, **kw):
          "aciklama": ("Araca birebir oturan dayanikli baglanti parcasi. "
                       "Yaklasik dis olculer: 40 × 30 × 12 mm."),
          "fiyat": "850 TL",
+         # 🔴 19 Eyl 2026 (Tamirci): gizli kayit `CC BY` (atif-zorunlu) -> K418 ATIF
+         # KOLU (`d9fc4498`, 18 Eyl) public `lisans` BOS fiksturu ihlal sayiyordu
+         # (7 > taban 1) ve K2 pozitif kontrol + K3 mutant 3 koşum KIRMIZI kaldi.
+         # Atif bu bataryanin ekseni DEGIL — gurultu kaynaginda kesilir.
+         "lisans": {"tasarimci": "fikstur", "tur": "CC BY 4.0"},
          "gorseller": ["https://media.pruvo3d.com/urunler/%s-1.jpg" % uid]}
     if gorseller is _YOK:
         del u["gorseller"]

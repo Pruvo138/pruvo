@@ -266,7 +266,11 @@ for pid, marka, sinif in GURULTU_CAPALARI:
 # uygulanan bir mutant (baslik kolunu at, yuklemi serbest metne cevir) KIRMIZI yanar.
 print("\n[C] SITE PARITESI — kolondan turetilen marka kumesi = SITENIN kumesi mi")
 try:
-    veri, kumeler, serbeste_dusen, _uyelik, _bs, _kanon = kapi.olc(mmb, arama, URUNLER, INDEX)
+    # 🔴 19 Eyl 2026 (Tamirci): K140/W5 olc()'ye 7. donus (`evren`) ekledi; sabit
+    # 6'li acma `ValueError: too many values to unpack` ile 3 koşum hijyen-a2'yi
+    # KIRMIZI tuttu. Sozlesme: ILK 6 alan sabit sirada, sona ekleme serbest.
+    veri, kumeler, serbeste_dusen, _uyelik, _bs, _kanon = kapi.olc(
+        mmb, arama, URUNLER, INDEX)[:6]
 except SystemExit as e:                                               # noqa: BLE001
     veri, kumeler, serbeste_dusen, _kanon = {}, {}, [], None
     ATLANAN.append("site referansi (marka-invaryant-kapisi.olc) kosulamadi: SystemExit %s"
