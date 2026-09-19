@@ -46,6 +46,13 @@ MUTANTLAR = {
            '        if d.get("headBranch") != run.get("headBranch"):  # MUTANT\n', "V6"),
     "M3": ("        if en_yeni_t is None or t > en_yeni_t:\n",
            "        if en_yeni_t is None:  # MUTANT\n", "V4"),
+    # 19 Eyl — DEVREDEN CANLI ekseni
+    "M4": ("        if conc not in KIRMIZI_KUME or t.date() >= bugun:\n",
+           "        if conc not in KIRMIZI_KUME:  # MUTANT\n", "V14"),
+    "M5": ("        if ad not in son or t > son[ad][0]:\n",
+           "        if ad not in son:  # MUTANT\n", "V12"),
+    "M6": ("                + devreden, 0, kaynak)\n",
+           "                , 0, kaynak)  # MUTANT\n", "V15"),
 }
 
 
@@ -119,6 +126,33 @@ def vakalar(mod, gun=GUN):
     ]
     r, h, c, kp = s(gercek)
     sonuc["V9"] = (len(r) == 8 and c == 5 and kp == 3 and len(h) == 2, (len(r), c, kp, len(h)))
+
+    # --- DEVREDEN CANLI ekseni (19 Eyl 2026, KraL-Tamirci-19Eyl) ------------------
+    dv = lambda data, b=gun: mod.devreden_canlilar(data, b)
+    dun = gun - dt.timedelta(days=1)
+    kd = lambda *a, **kw: k(*a, gun=dun, **kw)
+    # V11: 19 Eyl 03:20Z ölçülmüş anlık görüntü (bugün=gun) — SERIT B dün 3 kez failure,
+    # o an bugün açılmış koşum YOK (05:08Z schedule spec'ten SONRA açıldı, cancelled);
+    # Build&deploy dün success. Eski kod bunu "ADET=0 · kırmızı yok" diye bastı.
+    anlik = [kd(SB, "22:50:08", "failure", "3d73bc45", 35403252251),
+             kd(SB, "19:13:05", "failure", "3d73bc45", 35384686461),
+             kd(BD, "15:17:23", "success", "3d73bc45", 35361503500),
+             kd(SB, "15:17:23", "failure", "3d73bc45", 35361503557)]
+    r = dv(anlik)
+    r0, _, c0, _ = s(anlik)
+    sonuc["V11"] = (len(r) == 1 and "35403252251" in r[0] and "DEVREDEN CANLI" in r[0]
+                    and c0 == 0, (r, c0))
+    # V12: dünkü failure'ın ardılı (dün, daha geç) success -> devreden YOK.
+    r = dv([kd(SB, "10:00:00", "failure", "aaaaaaaa", 1),
+            kd(SB, "20:00:00", "success", "bbbbbbbb", 2)])
+    sonuc["V12"] = (r == [], r)
+    # V13: main dışı dalın dünkü failure'ı -> devreden YOK (dal ekseni).
+    r = dv([kd(SB, "10:00:00", "failure", "aaaaaaaa", 1, dal="claude/x")])
+    sonuc["V13"] = (r == [], r)
+    # V14: en-yeni kırmızı BUGÜN açıldı -> ana eksende CANLI, devreden'de ÇİFT SAYILMAZ.
+    r = dv([kd(SB, "10:00:00", "failure", "aaaaaaaa", 1),
+            kk(SB, "01:00:00", "failure", "bbbbbbbb", 2)])
+    sonuc["V14"] = (r == [], r)
     return sonuc
 
 
@@ -148,6 +182,31 @@ def v10_uctan_uca(mod):
     return ok, (hukum, adet, blok[:160])
 
 
+def v15_devreden_uctan_uca(mod):
+    """Bugün kırmızı YOK ama dünden devreden main kırmızısı var -> ADET=0 (k333 anlamı
+    korunur) ∧ blok `DEVREDEN_CANLI=1` taşır (19 Eyl'in birebir sahte-yeşil hâli)."""
+    bugun = dt.datetime.now(dt.timezone.utc).date()
+    dun = bugun - dt.timedelta(days=1)
+    import json
+    data = [k(SB, "22:50:08", "failure", "3d73bc45", 8, gun=dun),
+            k(BD, "15:17:23", "success", "3d73bc45", 7, gun=dun)]
+    with tempfile.TemporaryDirectory() as td:
+        sahte = os.path.join(td, "gh")
+        with open(sahte, "w", encoding="utf-8") as f:
+            f.write("#!%s\nimport sys\nsys.stdout.write(%r)\n" % (sys.executable, json.dumps(data)))
+        os.chmod(sahte, 0o700)
+        eski = (mod.gh_yolu, mod._repo_slug, mod.REPO)
+        mod.gh_yolu = lambda: (sahte, "test")
+        mod._repo_slug = lambda: None
+        mod.REPO = type(mod.REPO)(td)
+        try:
+            hukum, blok, adet, _ = mod.bugunun_kirmizilari()
+        finally:
+            mod.gh_yolu, mod._repo_slug, mod.REPO = eski
+    ok = (adet == 0 and "**DEVREDEN_CANLI=1**" in blok and "run 8" in blok)
+    return ok, (hukum, adet, blok[-240:])
+
+
 def main():
     mod = modul_yukle(KAYNAK, "kral_sabah_test")
     kirmizi = 0
@@ -157,6 +216,9 @@ def main():
         kirmizi += 0 if ok else 1
     ok, kanit = v10_uctan_uca(mod)
     print("%s V10 %s" % ("YESIL " if ok else "KIRMIZI", "" if ok else kanit))
+    kirmizi += 0 if ok else 1
+    ok, kanit = v15_devreden_uctan_uca(mod)
+    print("%s V15 %s" % ("YESIL " if ok else "KIRMIZI", "" if ok else kanit))
     kirmizi += 0 if ok else 1
 
     with open(KAYNAK, encoding="utf-8") as f:
@@ -173,6 +235,7 @@ def main():
                 f.write(govde.replace(capa, yama))
             mm = modul_yukle(yol, "kral_sabah_" + mad)
             sonuc = vakalar(mm)
+            sonuc["V15"] = v15_devreden_uctan_uca(mm)
         hedef_dustu = not sonuc[hedef][0]
         kontrol = sonuc["V2"][0]
         ok = hedef_dustu and kontrol
@@ -181,7 +244,7 @@ def main():
             "YESIL " if ok else "KIRMIZI", mad, hedef, int(hedef_dustu), int(kontrol)))
         kirmizi += 0 if ok else 1
 
-    print("SABAH_ARDIL_KOVA VAKA=10 MUTANT_OLDU=%d/%d KIRMIZI=%d rc=%d" % (
+    print("SABAH_ARDIL_KOVA VAKA=15 MUTANT_OLDU=%d/%d KIRMIZI=%d rc=%d" % (
         oldu, len(MUTANTLAR), kirmizi, 1 if kirmizi else 0))
     return 1 if kirmizi else 0
 

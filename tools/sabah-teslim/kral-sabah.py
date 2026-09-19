@@ -633,6 +633,54 @@ def kirmizi_siniflandir(data, bugun):
     return kirmizi, hukumsuz, canli_n, kapanan_n
 
 
+def devreden_canlilar(data, bugun, dal="main"):
+    """`dal` üzerinde iş akışı başına EN YENİ hükümlü koşum kırmızıysa ve o koşum
+    BUGÜNDEN ÖNCE açıldıysa satırını döner (saf fonksiyon — gh/ağ YOK, testlenir).
+
+    🔴 19 Eyl 2026 (KraL-Tamirci-19Eyl) — TARİH FİLTRESİ CANLI KIRMIZIYI YUTAR.
+    `kirmizi_siniflandir()` tarihi `bugun` olmayan her koşumu İLK satırda atar.
+    ÖLÇÜLDÜ: main `3d73bc45`'te SERIT B üç koşum üst üste `failure` (18 Eyl
+    15:17Z push · 19:13Z · 22:50Z schedule; 19 Eyl 05:08Z koşumu `cancelled` =
+    hüküm DEĞİL); spec 19 Eyl 03:20Z'de "Bugün kırmızı CI yok · ADET=0" bastı
+    ve Tamirci'ye tamir edilecek tek kalemi GÖSTERMEDİ. Bu eksen ADET'e GİRMEZ
+    (k333 sözleşmesi: ADET = bugünün kırmızı koşumları); ayrı satırla basılır.
+    Bugün açılmış en-yeni kırmızı zaten ana eksende CANLI görünür → burada ATLANIR.
+    """
+    son = {}
+    for run in data:
+        if run.get("headBranch") != dal:
+            continue
+        if (run.get("status") or "").lower() != "completed":
+            continue
+        if (run.get("conclusion") or "").lower() not in HUKUM_KUME:
+            continue
+        t = _run_zamani(run)
+        if t is None:
+            continue
+        ad = run.get("name", "?")
+        if ad not in son or t > son[ad][0]:
+            son[ad] = (t, run)
+    satirlar = []
+    for ad, (t, run) in sorted(son.items()):
+        conc = (run.get("conclusion") or "").lower()
+        if conc not in KIRMIZI_KUME or t.date() >= bugun:
+            continue
+        satirlar.append("- [{}] {} · dal={} · sha=`{}` · run {} · {} → DEVREDEN CANLI: "
+                        "iş akışının EN YENİ hükmü bu (ardıl success YOK)".format(
+                            conc, ad, dal, (run.get("headSha") or "?")[:8],
+                            run.get("databaseId", "?"), t.strftime("%Y-%m-%d %H:%MZ")))
+    return satirlar
+
+
+def _devreden_blogu(data, bugun):
+    satirlar = devreden_canlilar(data, bugun)
+    if not satirlar:
+        return ""
+    return ("\n\n> 🔴 **DEVREDEN_CANLI={}** — bugünden ÖNCE düşmüş, iş akışının EN YENİ "
+            "hükmü hâlâ kırmızı (main). ADET'e GİRMEZ ama TAMİR EDİLECEK kalemdir:\n"
+            .format(len(satirlar)) + "\n".join(satirlar))
+
+
 def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
     """Bugünün kırmızı CI koşumlarını ölçer.
 
@@ -676,6 +724,7 @@ def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
         data = json.loads(r.stdout or "[]")
         bugun = dt.datetime.now(dt.timezone.utc).date()
         kirmizi, hukumsuz, canli_n, kapanan_n = kirmizi_siniflandir(data, bugun)
+        devreden = _devreden_blogu(data, bugun)
         if kirmizi:
             blok = ("> SEVİYE (iş akışı+dal başına EN YENİ hükümlü koşum; `cancelled` hüküm "
                     "DEĞİL): **CANLI={}** · ARDILI_YESIL={} — ADET bugünün TÜM kırmızı "
@@ -686,16 +735,18 @@ def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
                 blok += ("\n\n> ⚠️ AYRICA HÜKMÜ OLMAYAN {} koşum var — ADET'e GİRMEZLER, "
                          "kırmızı çıkabilirler; hüküm kapanınca YENİDEN ölç:\n".format(len(hukumsuz))
                          + "\n".join(hukumsuz))
-            return "OK", blok, len(kirmizi), kaynak
+            return "OK", blok + devreden, len(kirmizi), kaynak
         if hukumsuz:
             return ("OLCULEMEDI",
                     "CI=OLCULEMEDI (kapanmış kırmızı YOK ama {} koşumun HÜKMÜ YOK — "
                     "sürüyor/bilinmeyen sonuç; hüküm kapandıktan sonra YENİDEN ölçülmeli "
-                    "· gh={})\n{}".format(len(hukumsuz), yol, "\n".join(hukumsuz)),
+                    "· gh={})\n{}".format(len(hukumsuz), yol, "\n".join(hukumsuz))
+                    + devreden,
                     None, kaynak)
         return ("OK",
                 "Bugün kırmızı CI yok (ÖLÇÜLDÜ: 30 koşum tarandı, filtre: bugün + "
-                "failure/cancelled/timed_out; HÜKMÜ OLMAYAN koşum da YOK · gh=%s)." % yol, 0, kaynak)
+                "failure/cancelled/timed_out; HÜKMÜ OLMAYAN koşum da YOK · gh=%s)." % yol
+                + devreden, 0, kaynak)
     except FileNotFoundError:
         return ("OLCULEMEDI", "CI=OLCULEMEDI (gh yolu koşturulamadı: %s)" % yol, None, kaynak)
     except subprocess.TimeoutExpired:
