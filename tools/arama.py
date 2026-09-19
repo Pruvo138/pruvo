@@ -846,6 +846,12 @@ UYUM_MARKA_IZINLI = frozenset({
     # ve YINE `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (48 -> 49, esitlik
     # TUTTU). Ayni turda `len(UYUM_MARKA_IZINLI)` 187 -> 188 ve FARK (izinli − eki) 139
     # SABIT kaldi -> jeton IKI kumeye de girdi, yargilanmis bolumleme kirilmadi.
+    # 12. tur (19 Eyl 2026, KraL-Whitelist-HPF): IKI jeton girdi (`Hero`, `Panasonic`),
+    # sayi 49 -> 51 ELLE guncellendi ve YINE `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK
+    # dogrulandi (49 -> 51, esitlik TUTTU). Ayni turda `len(UYUM_MARKA_IZINLI)`
+    # 188 -> 190 ve FARK (izinli − eki) 139 SABIT kaldi -> ikisi de IKI kumeye girdi.
+    # 🔴 UCUNCU TALEP (`Fujifilm`) BU TURDA GIRMEDI — gerekce C grubunun 12. tur
+    # basliginda, ADIYLA ve olcumle yazili (uyum-kapisi A1/V16 kirmizisi, VERI kalemi).
     # 🔴 KALEM HALA ACIK: bu bir MAKINE iddiasi degil, tek seferlik bir olcumdur —
     # bir sonraki tur yine guncellemeyi UNUTABILIR. Kalici cozum bu sayiyi `len()`ten
     # TURETMEK ya da bir kapiya iddia olarak KOYMAKTIR; ikisi de mimar hukmunu bekliyor
@@ -1313,6 +1319,92 @@ UYUM_MARKA_IZINLI = frozenset({
     #   bir model sayfasinin olumunu GERCEKTEN goruyor -> asil kosumun "KAYBOLAN = 0"
     #   hukmu ANLAMLIDIR, kor bir yesil DEGILDIR.
     "Triumph",
+    # 12. tur, C grubu (2) — mimar karari 19 Eyl 2026 (cip KraL-Whitelist-HPF). Talep
+    #   KUTUDAN geldi: MaCiT'in Panasonic×Thingiverse (217 aday) ve Fujifilm×Thingiverse
+    #   (261 aday) partileri `hasat_ekle.py::_marka_ayristir()` -> `marka_uyumdan_turet()`
+    #   yolunda fail-closed duruyordu; `Hero` ise Tamirci'nin 19 Eyl kapanisinda olcutu
+    #   civilenmis 1 urunluk dusuk hacimli partisidir.
+    #   SINIF: `Hero` (Hero MotoCorp, Hindistan) MOTOSIKLET URETICISIDIR, `Panasonic`
+    #   (Japonya) TUKETICI ELEKTRONIGI/KAMERA ureticisidir — ikisi de EV SAHIBI marka,
+    #   parca ONLARA takilir. YENI SINIF ACMAZ: motosiklet tarafinda `Aprilia`, `Ducati`,
+    #   `KTM`, `Royal Enfield`, `Triumph`; elektronik tarafinda `Sony`, `Samsung`,
+    #   `Kenwood`, `Pioneer`, `Anker`, `GoPro`, `Huawei` ZATEN kumede.
+    #   Olculen katalog agirligi (38389 urun, tam tarama):
+    #     `Hero`       marka[] TAM 0 · marka[] ALT-DIZGE 3 · uyum[].marka 0 ·
+    #        uyum[].model 0 TAM (ALT-DIZGE 1) · uyum[].motor 0 · uyum[].oem 0 ·
+    #        serbest metin 9
+    #     `Panasonic`  BES ALANIN BESI DE 0 (TAM ve ALT-DIZGE) · serbest metin 1
+    #   🔴 `Hero`da ALT-DIZGE != TAM ve AYRISMA ADIYLA kayda gecer: uc alt-dizge kaydinin
+    #   UCU DE ESADDIR, hicbiri Hero markasi DEGIL — `Grand Cherokee` ×2 (Jeep) ve
+    #   `Ranchero` ×1 (Ford; ayni kayit `uyum[0].model="Ranchero"` tasir, tek uyum
+    #   alt-dizgesi odur). Eslesme TAM oldugu icin ucu de sozluk yoluna GIRMEZ; ayrica
+    #   `model_normalize` ile de carpismazlar (`hero` != `grandcherokee` != `ranchero`).
+    #   Serbest metindeki 9 kaydin tamami GoPro HERO baglanti parcasidir — serbest metin
+    #   sozluk yoluna GIRMEZ, AYRI EKSEN, hukmu DEGISTIRMEZ.
+    #   Kume KAPALI kalir; `UYUM_MARKA_ELENEN`de DEGIL, `URETICI_MARKA`da DEGIL,
+    #   `MODEL_OLMAYAN_JETON`da DEGIL (ucu de olculdu) — elenmis jeton geri sizmaz.
+    # 🔴 JETON VARYANTI OLCUMLE SECILDI — `Hero MotoCorp` DEGIL, CIPLAK `Hero`:
+    #   Tamirci'nin 19 Eyl onerisi cok-kelimeli `Hero MotoCorp` idi (gerekce: ciplak
+    #   `Hero` GoPro HERO basliklarina ve Cherokee/Ranchero alt-dizgesine K220 riski).
+    #   IKI VARYANT DA IZOLE ROOT'ta TAM KOSULDU ve oneri OLCUMLE DUSTU:
+    #     (a) K220 riski GERCEKLESMEDI — ciplak `Hero` varyantinda uretilen URL kumesi
+    #         40373 = 40373, KAYBOLAN 0, DOGAN 0; menzildeki 9 canli sayfanin (GoPro ×4,
+    #         Fujifilm, Jeep, Jeep/Grand Cherokee, Ford, Honda) DOKUZUNUN DA sha256'si
+    #         BIREBIR ayni ve urun sayilari ONCE=SONRA (GoPro 80/99/80/19 · Jeep 15 ·
+    #         Jeep/Grand Cherokee 3 · Ford 80 · Honda 80 · Fujifilm 3).
+    #     (b) `Hero MotoCorp` varyanti ise 8. OLCUTTEN (BILESIK MARKA AYNASI) DUSTU:
+    #         cok-kelimeli oldugu icin otorite (`UYUM_MARKA_IZINLI ∪ URETICI_MARKA`
+    #         cok-kelimelileri) 19 -> 20 olur, `index.html::BILESIK_MARKA` aynasi 19'da
+    #         kalir ve `model-uyelik-kapisi.py` K8 KIRMIZI yanar. OLCULDU (borusuz rc):
+    #         ayni izole ROOT'ta `model-uyelik-kapisi.py` ONCE rc=0, `Hero MotoCorp`
+    #         varyantinda rc=1 ("1/30 iddia KALDI"), ciplak `Hero` varyantinda rc=0.
+    #         Aynayi esitlemek `index.html` yazmayi gerektirir; bu cipin menzili DISI.
+    #   Yani secim gerekcesi "risk soyut" DEGIL, iki varyantin da TAM kosulmus olmasidir.
+    # 🔴 UCUNCU TALEP `Fujifilm` BU TURDA GIRMEDI — SOZLUK sorunu DEGIL, VERI sorunu
+    #   (`Sierra` emsali). Jeton eklenince `uyum-kapisi.py` A1 KIRMIZI yaniyor; sebep
+    #   ADIYLA: `canon-ef-tilt-adaptor-eosm-fuji` kaydi `marka=["Canon","Fujifilm"]`
+    #   tasirken AYNI zamanda `uyum[0].model="Fujifilm"` tasiyor — V16 sinir kurali
+    #   (kapali kumedeki bir markanin yazim varyanti model/motor alanina yazilamaz)
+    #   tam da bunu reddeder. OLCULDU (borusuz rc, izole ROOT): `uyum-kapisi.py` ONCE
+    #   rc=0 (39/39 yesil), `Fujifilm` eklenince rc=1 (gecen 38 · kalan 1) ve KALAN
+    #   iddia A1'in TEK bulgusu bu kayittir. Onarim `urunler.json` duzlemindedir
+    #   (`tools/duzelt.py` ile `uyum[0].model` bosaltilir/dogru modele cevrilir) ve BU
+    #   CIPIN MENZILI DISIDIR (YAPMA listesi). Kayit duzelince jeton TEK BASINA eklenebilir.
+    #   Not: `/marka/fujifilm/` sayfasi CANLIDIR (3 urun) ve o sayfa bu jetona BAGLI
+    #   DEGIL — `marka[]` alanindan dogar, kume degisimi onu ne dogurur ne oldurur.
+    # 🔴 ESLESME TAM/EXACT'tir — ALT DIZGE/ONEK YOK: `uyum_marka_kanonik()` HAM string
+    #   uyelik testi yapar (`deger not in UYUM_MARKA_IZINLI`, strip() YOK). VARSAYILMADI:
+    #   34 varyant ONCE ve SONRA olculdu. ONCE hepsi RED (''); SONRA yalniz TAM formlar
+    #   `"Hero"` ve `"Panasonic"` kabul edildi ve AYNEN dondu, geri kalan 32 varyant —
+    #   `"hero"` · `"HERO"` · `"Hero MotoCorp"` · `"HeroMotoCorp"` · `"Hero-MotoCorp"` ·
+    #   `" Hero MotoCorp"` · `"Hero MotoCorp "` · `"Hero  MotoCorp"` ·
+    #   `"Hero MotoCorp Splendor"` · Kiril homoglifli `"Hero MotoCorp"` ·
+    #   `"panasonic"` · `"PANASONIC"` · `"Panasonic Lumix"` · `"PanasonicLumix"` ·
+    #   `"Panasonic-"` · `" Panasonic"` · `"Panasonic "` · homoglifli `"Panasonic"` ve
+    #   Fujifilm ailesinin 14 formu — REDDEDILDI.
+    # 🔴 IZOLASYON: `build.py --cikti-kok` KULLANILMADI (7. turda olculen sizinti —
+    #   marka_model/landing/kategori_hub `ctx["ROOT"]`e yazar ve gitignore yuzunden
+    #   `git status` TEMIZ kalir, sizinti GORUNMEZ). Izolasyon `git archive HEAD` ile
+    #   AYRI ROOT kopyalari kurularak saglandi, build.py ORADAN kosuldu (log
+    #   `CIKTI_KOK=<izole ROOT> (varsayilan)`, yonlendirme YOK). Izolasyonun UC olcusu de
+    #   TUTTU: (1) sitemap `loc` 40373 ile fiziksel `index.html` dizini 40378 arasindaki
+    #   fark 5'tir ve BESI DE sitemap'e bilerek girmeyen landing sayfasidir
+    #   (`loc − fiziksel = 0`, yani her URL'in fiziksel karsiligi VAR); (2) izole ONCE
+    #   kosumu CANLI `sitemap.xml`in loc sayisini (40373) BIREBIR yeniden uretti;
+    #   (3) kaynak agacta `/marka/` dizini HIC OLUSMADI (olculdu: dizin YOK).
+    # 🔴 KIYAS KUME FARKIYLA YAPILIR, SAYIYLA DEGIL: kaybolan ve dogan AYRI basilir
+    #   (sayi-only kiyas bir sayfanin olup yerine baskasinin dogmasini GORMEZ).
+    # 🔴 K220 DUYARLILIK MUTANTI — "KAYBOLAN = 0" bir NULL sonuctur, TEK BASINA eksenin
+    #   CALISTIGINI kanitlamaz. Dorduncu bir izole ROOT kuruldu ve kapali kumeye
+    #   `Grand Cherokee` jetonu yazildi (`Range Rover`/`Tiger` emsalinin BIREBIR
+    #   mekanizmasi: `marka_model_build.py:471` kapali kumeyi normalize edip MODEL
+    #   jetonunu REDDEDER). Sonuc: sitemap 40373 -> **40372**, **KAYBOLAN = 1 ve tam
+    #   olarak `https://pruvo3d.com/marka/jeep/grand-cherokee/`** (3 urunluk CANLI MODEL
+    #   sayfasi), DOGAN = 0. Yani eksen bu katalogda, bu mekanizmayla bir model
+    #   sayfasinin olumunu GERCEKTEN goruyor -> asil kosumun "KAYBOLAN = 0" hukmu
+    #   ANLAMLIDIR, kor bir yesil DEGILDIR. Mutant CANLI govdeye DEGIL izole kopyaya
+    #   uygulandi; canli `tools/arama.py` mutant kosumlarindan ETKILENMEDI.
+    "Hero", "Panasonic",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1369,6 +1461,13 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # (bilesik marka aynasi; `Triumph` TEK KELIME, aynayi tetiklemedi — OLCULDU)
     # UYUM_MARKA_IZINLI'nin "C grubu" 11. tur basliginda yazili. Burada TEKRAR EDILMEZ.
     "Triumph",
+    # 12. tur (19 Eyl 2026) — gerekce + olculen katalog agirligi + K220 ikinci-rol olcumu
+    # (bu turda K220 menzili BOS DEGIL ama OLUM YOK: 9 canli sayfa olculdu, KAYBOLAN 0) +
+    # 8. olcut (bilesik marka aynasi; `Hero MotoCorp` varyanti aynayi TETIKLEDI ve
+    # OLCUMLE DUSTU, ciplak `Hero` TEK KELIME -> aynayi tetiklemedi) + K220 DUYARLILIK
+    # mutanti (`Grand Cherokee`, KAYBOLAN 1). `Fujifilm` BU TURDA GIRMEDI (VERI kalemi).
+    # UYUM_MARKA_IZINLI'nin "C grubu" 12. tur basliginda yazili. Burada TEKRAR EDILMEZ.
+    "Hero", "Panasonic",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
