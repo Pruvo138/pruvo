@@ -188,36 +188,113 @@ const cizilen = taban.map(function (p) { return p.baslik; });
    "BISIKLET"/"TAMIRAT" yazilirsa hicbiri eslesmez ve kollar YANLIS-NEGATIF kirmizi
    yanar (ilk kosumda tam bunu yaptilar). Adlar BILEREK elle yazildi: `gorunurKategori`
    + `toLocaleUpperCase` zincirinden TURETILSEYDI iddia tautoloji olurdu ("panel neyi
-   basiyorsa o dogrudur") ve basliktaki bir bozulmayi olcemezdi. */
-const bekleniyorYok = ['TAMİRAT', 'OFİS', 'KAMERA', 'BAHÇE', 'OYUN/HOBİ'];
-const BISIKLET = 'BİSİKLET';
-kontrol('B2 esigi gecemeyen 5 kalkan kategorisi ana sayfada panel ACMIYOR',
-        bekleniyorYok.every(function (k) { return cizilen.indexOf(k) === -1; }),
-        bekleniyorYok.filter(function (k) { return cizilen.indexOf(k) !== -1; }));
+   basiyorsa o dogrudur") ve basliktaki bir bozulmayi olcemezdi.
 
-kontrol('B3 BISIKLET paneli ana sayfada DURUYOR (① alt kategorileriyle esigi DOGAL gecti)',
-        cizilen.indexOf(BISIKLET) !== -1, cizilen);
+   🔴 BEKLENTI DEFTERI (19 Eyl 2026) — TEK bir "cizilmez" listesi yerine kategori basina
+   ELLE yazilmis BEKLENTI tasinir:
+     'kalkan'      = DOGAL cipi esigin ALTINDA, ana sayfada panel ACMAMALI
+     'dogal-gecen' = esigi OZEL-DURUM SATIRI OLMADAN gecti, panel ACMALI
+   Neden iki kova: veri buyudukce bir kategori kovadan kovaya GECER. Eski tek liste bunu
+   "B2 KALDI — [KAMERA]" diye YALNIZCA kirmizi yakiyordu; okuyan kisi bunun bir GERILEME
+   mi yoksa BUYUME mu oldugunu ciktidan ayirt edemiyordu. Artik B2b/B4b kollari hangi
+   kategorinin HANGI kovaya tasinacagini ADIYLA soyler. Kova degisimi TEKIL YAMA DEGILDIR
+   (veri gercekten degismistir); degisimin gerekcesi asagida yorumda KALIR. */
+const DEFTER = [
+  { ad: 'TAMİRAT',   beklenti: 'kalkan' },
+  { ad: 'OFİS',      beklenti: 'kalkan' },
+  { ad: 'BAHÇE',     beklenti: 'kalkan' },
+  { ad: 'OYUN/HOBİ', beklenti: 'kalkan' },
+  /* 5 Eyl 2026'da 0 cipliydi (kalkan). 19 Eyl 2026: Canon/Nikon/Sony kamera partileri
+     KAMERA'yi 3 MARKA cipine cikardi ve esigi DOGAL gecti — Bisiklet emsali, koda
+     hicbir kategori adi gomulmedi (A3 bunu ayrica olcer). */
+  { ad: 'KAMERA',    beklenti: 'dogal-gecen' },
+  /* 5 Eyl 2026: 16 alt kategorisiyle esigi ozel-durum satiri OLMADAN gecti. */
+  { ad: 'BİSİKLET',  beklenti: 'dogal-gecen' },
+];
+const kalkan = DEFTER.filter(function (x) { return x.beklenti === 'kalkan'; })
+                     .map(function (x) { return x.ad; });
+const dogalGecen = DEFTER.filter(function (x) { return x.beklenti === 'dogal-gecen'; })
+                         .map(function (x) { return x.ad; });
 
-const bis = taban.filter(function (p) { return p.baslik === BISIKLET; })[0];
-kontrol('B4 BISIKLET panelinde >=3 cip RENDER EDILIYOR (ayri iddia: esigi ne kadar gectigi)',
-        !!bis && bis.cip >= 3, bis);
-bildir('B4-r Bisiklet panel cipi', bis ? bis.cip : 0);
+/* ESIKSIZ KOSUM (esik 0): HER kategori cizilir, yani KALKAN kategorilerin DOGAL cip
+   sayisi ancak burada gorunur (esik altinda kalan panel DOM'a hic girmedigi icin taban
+   kosumunda sayilamaz). Ayni olcum [C]'de C1/C2 mutanti olarak da kullanilir. */
+const m0 = panelOlc(indeks, 0);
+const m0Adlar = m0.map(function (p) { return p.baslik; });
+const dogalCip = {};
+m0.forEach(function (p) { dogalCip[p.baslik] = p.cip; });
+
+/* 🔴 YAZIM HATASI BEDAVAYA GECEMEZ: "panel acmiyor" iddiasi, ad YANLIS yazildiginda da
+   dogrudur (hicbir panel o adla cizilmez). Defterdeki her ad esiksiz kosumda GERCEKTEN
+   bulunmalidir; bulunmazsa kalkan kollari BOSA olcuyor demektir. */
+function defterYabancilari(adlar) {
+  return adlar.filter(function (a) { return m0Adlar.indexOf(a) === -1; });
+}
+kontrol('B0b DEFTER\'deki HER ad esiksiz kosumda GERCEKTEN var (yazim hatasi/kategori '
+        + 'yeniden adlandirmasi kalkan kolunu BOSA dusuremez)',
+        defterYabancilari(DEFTER.map(function (x) { return x.ad; })).length === 0,
+        { yabanci: defterYabancilari(DEFTER.map(function (x) { return x.ad; })), evren: m0Adlar });
+
+kontrol('B2 DEFTER kalkan kategorileri (' + kalkan.length + ') ana sayfada panel ACMIYOR',
+        kalkan.every(function (k) { return cizilen.indexOf(k) === -1; }),
+        kalkan.filter(function (k) { return cizilen.indexOf(k) !== -1; }));
+
+const buyuyen = kalkan.filter(function (k) { return (dogalCip[k] || 0) >= esik; });
+kontrol('B2b DEFTER kalkan kategorilerinin DOGAL cipi esigin ALTINDA (BUYUME ALARMI)',
+        buyuyen.length === 0,
+        buyuyen.map(function (k) {
+          return k + ' esigi DOGAL gecti (cip=' + dogalCip[k] + ' >= ' + esik
+                 + ') — DEFTER\'de beklenti\'yi "dogal-gecen" yap (gerekce: hangi urun '
+                 + 'partisi buyuttu)';
+        }));
+
+const acilmayan = dogalGecen.filter(function (k) { return cizilen.indexOf(k) === -1; });
+kontrol('B3 DEFTER dogal-gecen kategorilerinin paneli ana sayfada DURUYOR '
+        + '(ozel-durum satiri DEGIL, alt kategori/marka cipiyle)',
+        acilmayan.length === 0,
+        acilmayan.map(function (k) {
+          return k + ' paneli KAYBOLDU (dogal cip=' + (dogalCip[k] === undefined ? '?' : dogalCip[k])
+                 + ', esik=' + esik + ') — veri kuculduyse DEFTER\'de "kalkan" yap, '
+                 + 'kuculmediyse GERILEME: render govdesini olc';
+        }));
+
+const zayif = dogalGecen.filter(function (k) {
+  const p = taban.filter(function (x) { return x.baslik === k; })[0];
+  return !p || p.cip < esik;
+});
+kontrol('B4 DEFTER dogal-gecen kategorilerinde >=' + esik + ' cip RENDER EDILIYOR '
+        + '(ayri iddia: esigi ne kadar gectigi)', zayif.length === 0, zayif);
+dogalGecen.forEach(function (k) {
+  const p = taban.filter(function (x) { return x.baslik === k; })[0];
+  bildir('B4-r ' + k + ' panel cipi', p ? p.cip : 0);
+});
 
 console.log('\n[C] MUTANT — olcum esige DUYARLI mi (K182: her mutant HEDEF KOLU oldurmeli)');
-const m0 = panelOlc(indeks, 0);
 kontrol('C1 esik 0 yapilinca CIZILEN PANEL SAYISI ARTIYOR (taban ' + taban.length
         + ' -> mutant ' + m0.length + ') — "panel ' + taban.length
         + '" iddiasi esigi FIILEN olcuyor',
         m0.length > taban.length, { taban: taban.length, mutant: m0.length });
-kontrol('C2 esik 0 mutantinda 5 kalkan kategorisi GERI GELIYOR (B2 kolu mutantla KIRMIZI)',
-        bekleniyorYok.every(function (k) {
-          return m0.map(function (p) { return p.baslik; }).indexOf(k) !== -1;
-        }),
-        m0.map(function (p) { return p.baslik; }));
+kontrol('C2 esik 0 mutantinda ' + kalkan.length
+        + ' kalkan kategorisi GERI GELIYOR (B2 kolu mutantla KIRMIZI)',
+        kalkan.every(function (k) { return m0Adlar.indexOf(k) !== -1; }), m0Adlar);
 
 const mYuksek = panelOlc(indeks, 999);
 kontrol('C3 esik 999 yapilinca HICBIR panel cizilmiyor (esik tek yonlu degil, FIILEN suzuyor)',
         mYuksek.length === 0, mYuksek.length);
+
+/* C4 DEFTER MUTANTI — kalkan iddiasinin YAZIM HATASINA karsi bagisikligi. Burada mutant
+   esige degil DEFTER'e uygulanir: sahte bir ada ('KAMERAX') hicbir panel cizilmez, yani
+   B2 kolu bedavaya YESIL kalir; onu yakalayacak olan B0b kolu KIRMIZI yanmalidir. Mutant
+   B0b'yi OLDURMUYORSA B2'nin yesili bir sey KANITLAMIYOR demektir. */
+const SAHTE = 'KAMERAX';
+const sahteDefter = kalkan.concat([SAHTE]);
+kontrol('C4 DEFTER\'e SAHTE ad eklenince B0b kolu KIRMIZI yanar '
+        + '(kalkan iddiasi yazim hatasiyla bedavaya gecilemez)',
+        sahteDefter.every(function (k) { return cizilen.indexOf(k) === -1; })
+        && defterYabancilari(sahteDefter).length === 1
+        && defterYabancilari(sahteDefter)[0] === SAHTE,
+        { b2SahteyleYesil: sahteDefter.every(function (k) { return cizilen.indexOf(k) === -1; }),
+          b0bYabanci: defterYabancilari(sahteDefter) });
 
 console.log('\n' + (FAILS.length ? 'SONUC: KIRMIZI — kalan ' + FAILS.length : 'SONUC: YESIL'));
 process.exit(FAILS.length ? 1 : 0);

@@ -19,7 +19,8 @@ OLCULEN / KAPATILAN SESSIZ-HATA SINIFLARI:
   2. MUKERRER SAYIM — sayi marka/uyum eksenli bir tablodan turetilirse cok markali urun
      birden fazla sayilir. D2/D3 olcer; M06 mutanti tam bu yolu acar.
   3. FAIL-OPEN — indeks/alan/deger yokken istemci COKER ya da bozuk deger BASAR ve panel
-     komple kaybolur. D13/D14/D15 olcer (M01/M02 oldurucu).
+     komple kaybolur. D13/D14/D15 olcer (M01/M02 oldurucu). D17, indeks YOKKEN panel
+     kaybinin SEBEBINI ayirir (marka cipi mi, `katSayisi` yan hasari mi).
   4. GORUNMEZ SOZLESME KIRILMASI — indekse alan eklerken mevcut tuketicilerin okudugu
      `surum`/`alt`/`kat`/`katalt` anlamca kayar. D6/D7/D8 olcer.
   5. CSS KANCASININ KOPMASI — sayi basilir ama kendi sinifini almaz; o zaman basligin
@@ -58,7 +59,7 @@ GERCEK_KOK = os.path.dirname(DIR)
 
 # 🔴 IDDIA SAYISI SOZLESMESI (olcut ESIT, ">=" DEGIL): bir iddia SESSIZCE dusurulurse
 # ya da bir kol hic kosmazsa kapi KIRMIZI yanar ([[fail-closed-kol-arkasindaki-kolu-maskeler]]).
-BEKLENEN_IDDIA = 16
+BEKLENEN_IDDIA = 17
 
 # En az bu kadar panel basliginda sayi GORUNMELI (Okan'in kabul olcutu "uc kategori").
 # SAYI DEGIL AD civilenemez cunku panel kumesi esikten (KAT_PANEL_MIN_CIP) turer; taban
@@ -286,11 +287,47 @@ def kabul(kok):
           % (r_var.get("hata"), r_var.get("konsolHatalari"), r_var.get("_cokme")))
 
         # --- FAIL-CLOSED 1: indeks HIC YOK (yayin oncesi / gomme basarisiz hal) ---
+        # 🔴 19 Eyl 2026 — IDDIA DARALTILDI DEGIL, IKIYE AYRILDI (OLCULDU, asagida D17).
+        # Eski D13 "panel kumesi indeks-VARKEN ile BIREBIR ayni" diyordu. Bu, yazildigi gun
+        # (9 Eyl) DOGRUYDU ama `katSayisi` ozelligiyle ILGISIZ ikinci bir bagimliligi
+        # sessizce iceriyordu: panel cipleri iki kaynaktan gelir — MARKA cipi YALNIZ
+        # indeksten, GRUP cipi ALTKATEGORILER'den. Indeks hic yokken marka cipi de yoktur;
+        # cipi SADECE markadan gelen bir kategori (19 Eyl'de KAMERA: Canon/Nikon/Sony = 3
+        # cip, 0 grup) esigin altina duser ve paneli DOGRU sekilde acilmaz. Bu FAIL-CLOSED
+        # davranisin TA KENDISIDIR (indekssiz sayfada cizilecek cip yoktur); "birebir ayni"
+        # iddiasi ise indekse bagli her buyumede kirilacak YANLIS bir sabittir.
+        # Bu yuzden D13 artik YON tutar (alt dizi: panel EKLENMEZ, ad/bag BOZULMAZ) ve
+        # farkin SEBEBI D17'de AYRI, kosulabilir bir kolla kanitlanir.
         r_yok = _kosum(kok, "YOK")
-        d("D13 FAIL-CLOSED indeks YOK: baslik BUGUNKU gibi (sayi basilmaz), JS hatasi YOK, "
-          "panel kumesi ve ad metinleri indeks-VARKEN ile BIREBIR ayni",
-          _sayisiz_ve_ayni(r_yok, r_var),
+        d("D13 FAIL-CLOSED indeks YOK: sayi HIC basilmaz, JS hatasi YOK, cizilen panel "
+          "kumesi indeks-VARKEN'in ALT DIZISI (yeni panel DOGMAZ, sira/ad/href BOZULMAZ)",
+          _sayisiz_ve_alt_dizi(r_yok, r_var),
           _fark_ozeti(r_yok, r_var))
+
+        # --- D17: indeks YOKKEN kaybolan panelin SEBEBI marka cipidir, katSayisi DEGIL ---
+        # KONTROL KOSUMU: `kat` (marka) haritasi BOSALTILMIS ama `katalt` + `katSayisi`
+        # SAGLAM indeks. Bu kosumda sayi BASILMAYA DEVAM EDER (yani katSayisi ozelligi
+        # calisiyor) ama marka cipi yoktur. Hayatta kalan panel kumesi indeks-YOK kosumuyla
+        # BIREBIR ayni cikiyorsa, indeks-YOK'taki kayip MARKA EKSENINDEN gelir — `katSayisi`
+        # ozelliginin yan hasari DEGIL. Kume ayrisirsa bu kol ACIKLAYICI mesajla kirilir.
+        ix_markasiz = dict(ix)
+        ix_markasiz["kat"] = dict((k, {}) for k in ix["kat"])
+        r_markasiz = _kosum(kok, _yaz(tmp, "ix-markasiz.json", ix_markasiz))
+        yok_kimlik = _kimlikler(r_yok)
+        markasiz_kimlik = _kimlikler(r_markasiz)
+        var_kimlik = _kimlikler(r_var)
+        d("D17 indeks YOKKEN kaybolan panelin SEBEBI MARKA cipi (katSayisi DEGIL): marka "
+          "haritasi bosaltilmis AMA katSayisi SAGLAM indeksle ayni paneller kaybolur ve "
+          "o kosumda sayi BASILMAYA DEVAM EDER",
+          bool(markasiz_kimlik) and yok_kimlik == markasiz_kimlik
+          and not r_markasiz.get("_cokme") and r_markasiz.get("hata") is None
+          and sum(1 for x in (r_markasiz.get("basliklar") or [])
+                  if x.get("sayiOgeAdedi")) > 0,
+          "kayip(indeks-YOK)=%s kayip(markasiz)=%s markasiz_sayili=%d/%d"
+          % ([a for a, _s, _h in var_kimlik if (a, _s, _h) not in yok_kimlik],
+             [a for a, _s, _h in var_kimlik if (a, _s, _h) not in markasiz_kimlik],
+             sum(1 for x in (r_markasiz.get("basliklar") or []) if x.get("sayiOgeAdedi")),
+             len(r_markasiz.get("basliklar") or [])))
 
         # --- FAIL-CLOSED 2: ESKI gomulu indeks (alan SILINMIS) + YENI istemci ---
         ix_eksik = dict(ix)
@@ -370,6 +407,40 @@ def _sayisiz_ve_ayni(r, taban):
             == [(x.get("adMetni"), x.get("sinif"), x.get("href")) for x in t])
 
 
+def _kimlikler(r):
+    """Panelin DAVRANIS kimligi: (ad metni, sinif, href) — sayi METNI disaridadir."""
+    return [(x.get("adMetni"), x.get("sinif"), x.get("href"))
+            for x in (r.get("basliklar") or [])]
+
+
+def _alt_dizi(kucuk, buyuk):
+    """`kucuk`, `buyuk`in SIRA KORUYAN alt dizisi mi (eleman EKLENMEMIS mi)?"""
+    it = iter(buyuk)
+    return all(any(x == y for y in it) for x in kucuk)
+
+
+def _sayisiz_ve_alt_dizi(r, taban):
+    """Sayi HIC basilmamis + JS hatasi yok + panel kumesi tabanin ALT DIZISI mi?
+
+    `_sayisiz_ve_ayni`den farki: TAM esitlik istemez, YON tutar. Indeks hic yokken marka
+    cipi de yok oldugu icin cipi yalniz markadan gelen bir kategori esigin altina duser —
+    bu FAIL-CLOSED'in dogru davranisidir. Yasak olan sey TERS yondur: indeks yokken YENI
+    panel dogmasi, sira degismesi ya da ad/href bozulmasi. Bos kume de KABUL DEGIL (o
+    zaman sayfa komple bosalmis demektir).
+    """
+    if r.get("_cokme") or r.get("hata") is not None or r.get("konsolHatalari"):
+        return False
+    b = r.get("basliklar") or []
+    t = taban.get("basliklar") or []
+    if not b or not t or len(b) > len(t):
+        return False
+    if any(x.get("sayiOgeAdedi") for x in b):
+        return False
+    if any((x.get("metin") or "") != (x.get("adMetni") or "") for x in b):
+        return False
+    return _alt_dizi(_kimlikler(r), _kimlikler(taban))
+
+
 def _fark_ozeti(r, taban):
     b = r.get("basliklar") or []
     return ("cokme=%r hata=%r konsol=%s panel=%d/%d sayili=%d ornek=%r"
@@ -429,8 +500,24 @@ MUTANTLAR = [
      '    sayiEl.className = "kat-panel-sayi-x";', "KIRMIZI",
      "CSS KANCASI KOPAR: sayi basilir ama 46px baslik puntosu/harf araligiyla cizilir, "
      "mobilde basligi kirar (D11)"),
+    # --- FAIL-CLOSED YON kolu (D13/D17'nin HEDEF KOLU) ---
+    # Indeks yokken `dolu` null'dur ve grup evreni ALTKATEGORILER'den (indeksten BAGIMSIZ)
+    # gelir; bu satir o geri-dusme yoludur. `: false` yapilinca indekssiz sayfada marka
+    # cipi de grup cipi de kalmaz -> HICBIR panel cizilmez. Eski "birebir ayni" iddiasi
+    # bunu da yakalardi AMA bos kumeyi de kirmizi yakan sey oydu; yeni D13 alt-dizi
+    # oldugu icin bos kumeyi AYRICA reddeder (`not b` kolu) ve D17 kume ayrismasini gorur.
+    ("index.html",
+     "        return dolu ? (dolu[g] > 0) : true;",
+     "        return dolu ? (dolu[g] > 0) : false;", "KIRMIZI",
+     "FAIL-CLOSED GERILEME: indeks yokken grup evreni de duser -> indekssiz/yayin-oncesi "
+     "sayfada HICBIR kategori paneli cizilmez (D13 + D17)"),
     # --- KONTROL MUTANTLARI (YESIL bekleniyor) — iddialar ILGISIZ degisikliklere
     # PINLENMIS mi? Yesil kalmazlarsa kapi asiri-baglanmistir.
+    ("index.html",
+     "        return dolu ? (dolu[g] > 0) : true;",
+     "        return dolu ? (dolu[g] >= 1) : true;", "YESIL",
+     "KONTROL: esdeger esik yazimi (sayimlar tamsayi) — D13/D17 iddialari satirin "
+     "BICIMINE degil DAVRANISINA baglanmali"),
     ("index.html",
      '    color:var(--gray-text);\n    white-space:nowrap;',
      '    color:var(--navy-2);\n    white-space:nowrap;', "YESIL",
