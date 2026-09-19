@@ -544,24 +544,33 @@ def vaka16_guvenlik_realpath_kok_disina_cikamaz():
     argv, sebep = kapi.kabul_komutu_dogrula(kotu)
     assert argv is None, "kok disina cikan yol GECTI: %s" % argv
     assert sebep == "BEYAZ_LISTE_DISI", sebep
-    # sembolik link de cozulur: link beyaz listede, hedef DISARIDA
+    # sembolik link de cozulur: link beyaz listede, hedef DISARIDA.
+    # 🔴 19 Eyl 2026 (Tamirci): link eskiden GERCEK `~/.claude/cron`a (BEYAZ_LISTE_
+    # KOKLERI[1]) yaziliyordu — CI kosucusunda o dizin YOK -> FileNotFoundError, W2
+    # kabul kapisi 3 koşum kirmizi; Mac'te ise test canli cron dizinini kirletiyordu.
+    # Artik izinli kok KUMDA (`koklar=`), ve reddin LINK yuzunden oldugunu kanitlayan
+    # POZITIF KONTROL var: ayni kokteki duz dosya GECERLI sayilmali.
     kok = tempfile.mkdtemp(prefix="nobet-link-")
+    izinli = os.path.realpath(tempfile.mkdtemp(prefix="nobet-beyaz-"))
     try:
         hedef = os.path.join(kok, "disarida.py")
         with open(hedef, "w", encoding="utf-8") as dosya:
             dosya.write("import sys\nsys.exit(0)\n")
-        link = os.path.join(kapi.BEYAZ_LISTE_KOKLERI[1], ".nobet-kabul-link-test.py")
-        try:
-            os.symlink(hedef, link)
-            argv2, sebep2 = kapi.kabul_komutu_dogrula("python3 %s" % link)
-            assert argv2 is None, "beyaz listedeki LINK disariyi gosterirken GECTI"
-            assert sebep2 == "BEYAZ_LISTE_DISI", sebep2
-        finally:
-            if os.path.islink(link):
-                os.unlink(link)
+        duz = os.path.join(izinli, "icerde.py")
+        with open(duz, "w", encoding="utf-8") as dosya:
+            dosya.write("import sys\nsys.exit(0)\n")
+        argv0, sebep0 = kapi.kabul_komutu_dogrula("python3 %s" % duz, koklar=(izinli,))
+        assert argv0 is not None and sebep0 == "GECERLI", \
+            "POZITIF KONTROL: izinli kokteki duz dosya REDDEDILDI (%s)" % sebep0
+        link = os.path.join(izinli, ".nobet-kabul-link-test.py")
+        os.symlink(hedef, link)
+        argv2, sebep2 = kapi.kabul_komutu_dogrula("python3 %s" % link, koklar=(izinli,))
+        assert argv2 is None, "beyaz listedeki LINK disariyi gosterirken GECTI"
+        assert sebep2 == "BEYAZ_LISTE_DISI", sebep2
     finally:
         shutil.rmtree(kok, ignore_errors=True)
-    return "`..` cikisi ve beyaz-liste-ici SEMBOLIK LINK realpath ile REDDEDILDI"
+        shutil.rmtree(izinli, ignore_errors=True)
+    return "`..` cikisi ve beyaz-liste-ici SEMBOLIK LINK realpath ile REDDEDILDI (kum koku, pozitif kontrol GECERLI)"
 
 
 def vaka17_zaman_asimi_yesil_sayilmaz():
