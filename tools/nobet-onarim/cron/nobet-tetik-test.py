@@ -594,7 +594,12 @@ def kablo_kontrol():
             })
             if tetik:
                 ortam["PRUVO_NOBET_TETIK"] = tetik
-            sonuc = subprocess.run([CI_NOBETI_YOLU], env=ortam, cwd=kok,
+            # 🔴 19 Eyl 2026 (Tamirci): ci-nobeti.sh `#!/bin/zsh`; Linux CI
+            # kosucusunda zsh YOK -> dogrudan exec shebang'de FileNotFoundError
+            # verdi ve W2 kabul kapisi 3 koşum kirmizi kaldi. Kabulun `_kabuk()`
+            # deseni: zsh, yoksa bash (soz dizimi uyumlu). Mac'te davranis AYNI.
+            kabuk = shutil.which("zsh") or shutil.which("bash")
+            sonuc = subprocess.run([kabuk, CI_NOBETI_YOLU], env=ortam, cwd=kok,
                                    capture_output=True, text=True, timeout=120)
             return sonuc.returncode
 
@@ -728,7 +733,10 @@ def kablo_kontrol():
         # J5 TUKETICI PARITESI — `ci-nobeti.log`'un BITIS satirini OKUYAN arac
         # `tools/t1-kiyas.py`'dir. Desen KOPYALANMAZ, tuketiciden ITHAL edilir:
         # ikiz desen sessizce ayrisir ve kirilma KIRMIZI YAKMADAN olur.
-        t1_yolu = "/Users/okan/dev/pruvo/tools/t1-kiyas.py"
+        # 🔴 19 Eyl 2026 (Tamirci): sabit Mac yolu CI kosucusunda YOK -> J5b ithal
+        # edemedi. Ev koku kabulun verdigi `PRUVO_EV_KOKU`dan; canlida bos ise ESKI yol.
+        t1_yolu = os.path.join(os.environ.get("PRUVO_EV_KOKU") or "/Users/okan/dev/pruvo",
+                               "tools", "t1-kiyas.py")
         bitis_satirlari = [s for s in log_metni().split("\n") if " BITIS " in s]
         T.dogru("J5a log'da BITIS satiri URETILDI", len(bitis_satirlari) > 0)
         t1_regex = None

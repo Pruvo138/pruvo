@@ -2797,14 +2797,6 @@ IZIN_LISTESI = {
         "`--taban-ref` ile GECMIS bir ref'i `git show` ile diske cikarip kosturur. Kalici "
         "nobet degil, K308/K310 kapanisinin kanit ureticisi; iddialarin kalici kollari "
         "`tools/yedek-dusus-kabul.py` + `tools/kutu-arsivle-test.py`de."),
-    "tools/yedek-dusus-kabul.py": (
-        "OLCULMUS CURUME — CI'YA KIRMIZI BAGLANAMAZ. OLCULDU 18 Eyl (bos HOME aynasi VE "
-        "gercek ortam, dosyaya bu turda DOKUNULMADI): rc=1 `DUSEN=2 (B3-kanca-suzgeci, "
-        "KONTROL-zararsiz) YAMA_TUTMAYAN=M6-kanca-tail3-geri HUKUM=KIRMIZI` — pre-push "
-        "kanca govdesi degismis, batarya capasi bayat. Kesif bugune dek bu dosyayi HIC "
-        "gormedigi icin curume sessizdi. MUAFIYETIN OLUM SARTI: K422 (acik-kalemler) "
-        "capayi tazeleyip rc=0 olculdugu gun bu satir SILINIR ve adim serit-b'ye "
-        "baglanir."),
     "tools/yetkinlik/dogrula-test.py": (
         "YAPISAL CI-KIRMIZI — macOS'A CIVILI GECICI KOK. OLCULDU 18 Eyl (bos HOME "
         "aynasi, macOS): rc=0 `VAKA=21 DUSEN=0` — batarya hermetik ve CANLI. Ama "
