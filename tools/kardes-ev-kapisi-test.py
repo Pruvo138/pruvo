@@ -219,6 +219,16 @@ def main():
              "curl -s https://pruvo3d.com/", wt, CIP, "allow", None),
             ("B11 KONTROL: CIP x repo-ici arac -> IZIN (degismedi)",
              "python3 " + REPO + "/tools/durum.py", wt, CIP, "allow", None),
+            # B12 — `..` ILE KARDES EVE INEN CAGRI. K332'nin 817 vakasi bu hedefi
+            # "duzlemden KACIS" diye REDDEDIYORDU; 19 Eyl'den sonra hukmu veren kol
+            # KARDES-EV'dir ve karar IZIN'dir. Karar DIZGEDEN degil COZULMUS yoldan
+            # cikar (`_coz` normpath uygular), yani `..` bir KACAMAK degildir: ayni
+            # hedefe duz yazimla (B1) zaten erisilir. 817 kendi iddiasini (duzlemden
+            # kacis) HICBIR kayitli ev kokune dusmeyen bir hedefle olcmeye devam eder.
+            ("B12 CIP x '..' ile kardes eve inen yol -> IZIN (hukum KARDES-EV kolundan)",
+             "python3 " + os.path.expanduser("~/.claude/cron") + "/../../dev/" +
+             os.path.basename(KARDES_EV) + "/olcum/hasat_ekle.py", wt, CIP,
+             "allow", "KARDES-EV("),
         ]
         for ad, komut, cwd, yuk, beklenen, iz_capasi in vakalar:
             olculen, iz = kapiya_ver(ICRA, komut, cwd, yuk)
