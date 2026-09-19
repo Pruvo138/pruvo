@@ -1107,8 +1107,17 @@ ROL_VAKALARI = [
     (820, "deny", "Bash",
      "python3 " + K332_ARAC, None,
      "K332 FAIL-CLOSED: damga YOK (rol OLCULEMEDI) -> RED", {}, None, {}),
+    # 🔴 19 EYL 2026 — FIKSTUR HEDEFI DEGISTI, IDDIA DEGISMEDI. Eski hedef
+    # `<CRON_KOK>/../../dev/pruvo-hasat/tools/x.py` idi; `pruvo-hasat` o tarihte
+    # "duzlem DISI yabanci bir kok"tu. 19 Eyl'de kardes EV KOKLERI cip rolunde
+    # ADLI bir kolla acildi (`_kardes_ev_muaf`) — yani o hedef artik MESRU, ve
+    # vaka "'..' kacisini" degil "kardes evi" olcer hale gelmisti (allow).
+    # IDDIA ('..' ile duzlemden KACIS REDDEDILIR) korunsun diye hedef, HICBIR
+    # kayitli ev kokune ve ortak altyapi duzlemine dusmeyen bir yola cekildi.
+    # Kardes eve `..` ile inen cagrinin ARTIK ACIK oldugu ayri bir vakada,
+    # hukmu veren kolun ADIYLA olculur: tools/kardes-ev-kapisi-test.py :: B12.
     (817, "deny", "Bash",
-     "python3 " + CRON_KOK + "/../../dev/pruvo-hasat/tools/x.py", None,
+     "python3 " + CRON_KOK + "/../../Desktop/kacis.py", None,
      "K332 SINIR: '..' ile duzlemden KACIS -> RED", {}, None, _CIP),
     (818, "deny", "Bash",
      "python3 " + K332_ARAC + " --spec /private/tmp/spec.md", None,
@@ -1116,6 +1125,17 @@ ROL_VAKALARI = [
     (819, "deny", "Bash",
      "python3 " + CRON_KOK + "-sahte/cip_dogum_bekcisi.py", None,
      "K332 SINIR: kardes dizin onek tuzagi ('<kok>-sahte') -> RED", {}, None, _CIP),
+    # === 🔴 19 EYL 2026 (K-KARDES-EV) — VAKALAR NEREDE? ==========================
+    # Kardes EV KOKLERI (`/Users/okan/dev/pruvo-hasat` vb.) icin ayni rol ekseni
+    # 19 Eyl'de R2/F'de tuketildi (`_kardes_ev_muaf`). Vakalari BURAYA EKLEMEDIK ve
+    # sebep olculmus bir SINIFTIR: bu listeye eklenen her YENI CIP-DENY vakasi,
+    # `mimar-kapi-mutasyon-test.py`'deki `tam=True` mutantlarin (or. cip'i TAM MUAF
+    # yapan mutantin 13 vakalik kumesi) patlama yaricapina HAKLI OLARAK girer ve o
+    # kumeleri BAYATLATIR — 46 mutant yeniden olculmeden batarya sessizce kirmiziya
+    # doner ([[mutant-beklenen-kirmizi-kumesi-taban-degisince-ikinci-kat-bayatlar]],
+    # K332 DERS 1). IDDIA KAYBOLMADI, kendi bataryasinda + kendi mutantlariyla durur:
+    #     python3 tools/kardes-ev-kapisi-test.py      (nobet.yml :: serit-b)
+    # Vakalari buraya TASIMAK isteyen once o mutant kumelerini YENIDEN OLCMELI.
 ]
 
 

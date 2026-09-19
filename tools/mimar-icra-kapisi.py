@@ -912,6 +912,103 @@ def _ortak_altyapi_muaf(argumanlar, cwd, cip):
     return True
 
 
+# === 🔴🔴 19 EYL 2026 (K-KARDES-EV) — KARDES EV KOKLERI: ROL EKSENI R2/F'DE TUKETILIR =
+# OLCULEN ARIZA (19 Eyl 2026, MaCiT cipleri; kutu: mimar-posta-kutusu.md):
+#   CIP, pruvo/.claude/worktrees/... altinda acilmis (yani KraL GOVDESI kosar):
+#     `python3 /Users/okan/dev/pruvo-hasat/olcum/hasat_gorsel_indir.py --marka ...`
+#       -> DENY  (R2: "argumanlarda repo DISINA cozulen bir yol var")
+#   AYNI GUN, AYNI SINIF IS — Sony pilot dilimi, oturum koku /Users/okan/dev/pruvo-hasat
+#   (yani MaCiT SHIM'i kosar ve shim REPO_ONEKI'yi KENDI EVINE cevirir):
+#     `python3 olcum/hasat_ekle.py ...`            -> ALLOW (hedef O EVDE repo ICI)
+# Yani hukum ISE degil, OTURUMUN HANGI EVDE ACILDIGINA bagliydi. Tutarsizligin bedelini
+# tam da KANONIK yol oduyordu: MaCiT'in urun-veri cipleri BILEREK pruvo altinda acilir
+# (urunler.json pruvo'nundur — [[macit-urun-yazimi-cwd-pruvo-dogrudur]]), ve o cipler ya
+# BLOKE kaldi (Panasonic/Fujifilm/Marin) ya da worktree-ici bir sarmalayici `.py` ile
+# kapiyi ASTI ([[icra-kapisi-repo-disi-sarmalayici-ile-asilir]]) — yani kapi guvenligi
+# AZALTTI: gorunur cagri yerine gorunmez sarmalayici.
+#
+# KURAL (K332/ORTAK-ALTYAPI ile AYNI KALIP — ikinci mekanizma YAZILMADI):
+#   * YALNIZ CIP/ISCI rolunde acilir (`cip`); ANA oturumun reddi AYNEN DURUR.
+#   * Cagrilan betik KAYITLI BIR EV KOKUNUN icinde olacak. Kume `kapi_dagitim.EVLER`den
+#     TURER (`_kapi_dagitim_evreni`); burada IKINCI bir ev listesi TUTULMAZ
+#     ([[tuketici-yazilirken-tum-okuyucular-sayilir]]). Ev eklenirse kural birlikte tasinir.
+#   * DISARI COZULEN HER token (ilki degil, HEPSI) ya repo ICI ya kayitli ev koku icinde
+#     olacak: `--spec /private/tmp/x.md` eki kolu KAPATIR.
+#   * Onek siniri '/' ile cizilir: `<ev_koku>-sahte` ICERDE SAYILMAZ.
+# SINIR (adiyla, gevsetme olmasin diye):
+#   * `python3 -c` / satir-ici kod (C kolu), `curl|wget`, AGENT-KAPISI, ISCI-SARMALAYICI
+#     ve A2 (env ile kod enjeksiyonu) bu yuklemden ETKILENMEZ — her rolde aynen kosar.
+#   * A kolu (repo DISI betigi YORUMLAYICISIZ, dogrudan calistirma: `.../hasat.sh`)
+#     muafiyeti TUKETMEZ; cipte de RED kalir. Acilsaydi kapsam duzeltmesi degil
+#     gevsetme olurdu.
+KARDES_EV_KURAL_SURUMU = "19eyl-1"
+
+
+def _kardes_ev_kokleri():
+    """KAYITLI ev kokleri (mutlak + normalize). TEK KAYNAK: tools/kapi_dagitim.py:EVLER.
+
+    Fail-closed: kaynak okunamazsa BOS kume doner ve muafiyet ISLEMEZ (dar taraf)."""
+    _araclar, kokler = _kapi_dagitim_evreni()
+    return {os.path.normpath(k) for k in kokler if k and os.path.isabs(k)}
+
+
+def _kardes_ev_ici(yol, cwd, kokler):
+    """Cozulmus yol KAYITLI bir ev kokunun ICINDE mi? (repo_ici / _ortak_altyapi_ici kalibi)"""
+    hedef = _coz(yol, cwd)
+    for kok in kokler:
+        if hedef == kok or hedef.startswith(kok + "/"):
+            return True
+    return False
+
+
+def _kardes_ev_muaf(argumanlar, cwd, cip):
+    """R2/F kollari icin ROL muafiyeti. True = bu CIP cagrisi KARDES BIR EVIN kokundeki
+    araci kosturuyor ve argumanlarindaki repo-disi yollarin HEPSI kayitli ev koku icinde.
+
+    MENZIL = CAGRI YERI: yuklem R2 ve F'nin cagri yerinde TUKETILIR; kollarin govdesi
+    DEGISMEZ. 'cip' parametresi K318 rol ekseninden gelir — dusurulurse (mutant) cip
+    yine RED alir; TRUE'ya civilenirse (mutant) ANA oturum ACILIR ve KONTROL vakasi
+    KIRMIZI yanar."""
+    if not cip:
+        return False
+    if not argumanlar:
+        return False
+    kokler = _kardes_ev_kokleri()
+    if not kokler:
+        return False
+    # 1) CAGRILAN BETIK kayitli bir ev kokunun icinde olacak (ilk bayraksiz token).
+    betik = None
+    for t in argumanlar:
+        if t.startswith("-"):
+            continue
+        betik = t
+        break
+    if betik is None or not _kardes_ev_ici(betik, cwd, kokler):
+        return False
+    # 2) DISARI COZULEN HER token ya repo ICI ya ev koku ICINDE olacak (ilki degil, HEPSI).
+    #    Aday cikarimi dis_yol ile AYNI okumadir (bayraga bitisik / '='li formlar dahil).
+    for t in argumanlar:
+        adaylar = []
+        if t.startswith("-"):
+            if "/" in t:
+                adaylar.append(t)
+                adaylar.append(t[t.index("/"):])
+            if "=" in t:
+                adaylar.append(t.split("=", 1)[1])
+        elif "/" in t or t.startswith("."):
+            adaylar.append(t)
+        for aday in adaylar:
+            if not aday:
+                continue
+            if "/" not in aday and not aday.startswith("."):
+                continue
+            if repo_ici(aday, cwd):
+                continue
+            if not _kardes_ev_ici(aday, cwd, kokler):
+                return False
+    return True
+
+
 # KAPALI KUME ortak mimar_kimlik.py kaynagindan gelir; burada ikinci tablo tutulmaz.
 # Argument sayisi (motor DAHIL): 3 (<motor> <ev> <spec>) ya da 4 (+ <etiket>).
 ISCI_ARGUMAN_SAYILARI = (3, 4)
@@ -1737,10 +1834,17 @@ BETIK_ICI_ICRA = re.compile(
 BETIK_ICI_TAVAN = 1048576           # 1 MB ustu dosya OLCULMEZ (ad ile bildirilir)
 
 
-def _betik_ici_dis_hedefler(betik_mutlak, cwd):
+def _betik_ici_dis_hedefler(betik_mutlak, cwd, desen=None, dizin_sayilir=False):
     """Repo ICINDEKI bir betigin ICINDEN kosturulan repo DISI hedefler (ADLI olcum).
 
+    `desen`: hangi satirlarin okunacagini secer; varsayilan K340② icra deseni
+    (BETIK_ICI_ICRA). 19 Eyl'de parametre EKLENDI ki MENZIL ACIGI kolu (sarmalayici:
+    sys.path/importlib) AYNI okumayi — tavan, kodlama, gurultu kapisi — ikinci kez
+    yazmadan kullanabilsin. Varsayilan cagri bicimi ve davranisi DEGISMEDI.
+
     Doner: (hedef_listesi, hal) — hal: 'olculdu' | 'OLCULEMEDI:<sebep>' | 'kapsam-disi'."""
+    if desen is None:
+        desen = BETIK_ICI_ICRA
     if not betik_mutlak.lower().endswith(BETIK_ICI_UZANTILARI):
         return [], "kapsam-disi"
     try:
@@ -1752,7 +1856,7 @@ def _betik_ici_dis_hedefler(betik_mutlak, cwd):
         return [], "OLCULEMEDI:" + type(e).__name__
     hedefler = []
     for satir in satirlar:
-        if not BETIK_ICI_ICRA.search(satir):
+        if not desen.search(satir):
             continue
         for parca in re.findall(r"""['"]([^'"\n]+)['"]""", satir):
             if parca in ("curl", "wget"):
@@ -1769,16 +1873,71 @@ def _betik_ici_dis_hedefler(betik_mutlak, cwd):
             # GURULTU KAPISI (olculdu 16 Eyl: 524 dosyada 6 vurus, 3'u URL parcasi
             # ya da '/' idi): hedef ya diskte DOSYA olacak ya da calistirilabilir
             # uzanti tasiyacak. Aksi halde bir metin parcasidir, cagri degil.
-            if not (os.path.isfile(aday) or
-                    aday.lower().endswith(BETIK_ICI_UZANTILARI)):
+            gecerli = (os.path.isfile(aday) or
+                       aday.lower().endswith(BETIK_ICI_UZANTILARI))
+            # 19 EYL — SARMALAYICI kolunun hedefi bir DIZINDIR (`sys.path.insert(0,
+            # ".../olcum")`), dosya degil: gurultu kapisi onu oldururdu. Kapi
+            # GEVSETILMEDI, ayri bir KOL icin genisletildi ve olcut hala DAR:
+            # ya diskte dizin, ya KAYITLI bir ev kokunun icinde (kume
+            # `kapi_dagitim.EVLER`den turer, CI'da diski OLMASA da olcer).
+            if dizin_sayilir and not gecerli:
+                gecerli = (os.path.isdir(aday) or
+                           _kardes_ev_ici(aday, cwd, _kardes_ev_kokleri()))
+            if not gecerli:
                 continue
             if aday not in hedefler:
                 hedefler.append(aday)
     return hedefler[:6], "olculdu"
 
 
+# === 🔴🔴 19 EYL 2026 — KAPININ MENZILI, ADIYLA ===============================
+# BU KAPI **BASH KOMUTUNUN ARGUMAN EKSENINI** OLCER: argv0, bayraklar, argumanlardaki
+# yollar. Bir `.py`/`.sh` DOSYASININ ICERIGI MENZIL DISIDIR.
+#
+# OLCULEN ACIK (19 Eyl 2026, Panasonic cipi — [[icra-kapisi-repo-disi-sarmalayici-ile-
+# asilir]]): worktree ICINE (yani repo SINIRLARI icine) yazilan kucuk bir sarmalayici
+#     sys.path.insert(0, "/Users/okan/dev/pruvo-hasat/olcum")
+#     sys.argv = [...]; import hasat_gorsel_indir; hasat_gorsel_indir.main()
+# argv'de YALNIZ repo-ici bir yol tasir; kapinin gordugu her token repo icidir ve cagri
+# GECER. Yani R2/F reddi, "repo disi kod kosmaz" DEGIL "repo disi yol YAZILMAZ" kuralidir.
+#
+# 🔴 BU KOL RAPOR EDER, REDDETMEZ — ve bu bilincli bir karardir:
+#   * Icerik taramasiyla REDDETMEK ayri bir hukumdur (OKAN/BaBa kalemi): her `import`u
+#     kapi kararina cevirmek mesru arac cagrilarinin buyuk kismini da keserdi.
+#   * Ama acik ADSIZ kalmaz: sinif ADIYLA stderr'e yazilir, K340② ile AYNI doktrin
+#     ([[kapinin-menzili-cagri-yeridir]]). Sayilamayan acik, kapatilamaz.
+SARMALAYICI_DESENI = re.compile(
+    r"sys\.path\.insert|sys\.path\.append|importlib\.util\.spec_from_file_location|"
+    r"runpy\.run_path|module_from_spec")
+
+
+def _sarmalayici_acigi_iz(betik, cwd, cip):
+    """MENZIL ACIGI (sarmalayici sinifi) RAPOR kolu — karar DEGISTIRMEZ.
+
+    Cagrilan betigin ICINDE, repo DISINA cozulen bir yol `sys.path`e ekleniyorsa (ya da
+    dosyadan modul yukleniyorsa) sinif ADIYLA basilir. `_betik_ici_iz` ile AYNI okuma
+    (tavan + gurultu kapisi) kullanilir; ikinci bir tarayici yazilmaz."""
+    try:
+        mutlak = _coz(betik, cwd)
+        hedefler, hal = _betik_ici_dis_hedefler(mutlak, cwd, SARMALAYICI_DESENI,
+                                                dizin_sayilir=True)
+    except Exception:                                       # noqa: BLE001
+        return
+    if hal != "olculdu" or not hedefler:
+        return
+    iz_bas("SARMALAYICI-ACIGI rol=" + ("CIP" if cip else "ANA") +
+           " betik=" + os.path.basename(mutlak) + " hedef=" +
+           ",".join(h[:160] for h in hedefler)[:400] +
+           " | MENZIL: kapi ARGUMAN eksenini olcer, dosya ICERIGI menzil DISIDIR; "
+           "bu kol RAPOR eder, REDDETMEZ (kapatma karari OKAN/BaBa kalemi).")
+
+
 def _betik_ici_iz(betik, cwd, cip):
-    """K340② — betik ici cagri ekseni RAPOR kolu (karar DEGISTIRMEZ)."""
+    """K340② — betik ici cagri ekseni RAPOR kolu (karar DEGISTIRMEZ).
+
+    19 EYL: MENZIL ACIGI kolu BURADAN cagrilir — tek cagri yeri, boylece yeni bir
+    tuketici eklenince ikinci kol unutulmaz ([[tuketici-yazilirken-tum-okuyucular-sayilir]])."""
+    _sarmalayici_acigi_iz(betik, cwd, cip)
     try:
         mutlak = _coz(betik, cwd)
         hedefler, hal = _betik_ici_dis_hedefler(mutlak, cwd)
@@ -2103,6 +2262,13 @@ def main():
         if disari and _ortak_altyapi_muaf(argumanlar, cwd, cip):
             iz_bas("ORTAK-ALTYAPI(R2)")
             disari = None
+        # 19 EYL (K-KARDES-EV) — KARDES EV DUZLEMI. K332 ile AYNI cagri yeri, AYNI rol
+        # parametresi. ANA oturumda 'cip' False'tur -> yuklem daima False -> RED aynen
+        # durur (vaka 831/832). Bu satiri 'True'ya civileyen mutant ANA vakasini KIRMIZI
+        # yakar — kol bir GEVSETME degil, KAPSAM duzeltmesidir.
+        if disari and _kardes_ev_muaf(argumanlar, cwd, cip):
+            iz_bas("KARDES-EV(R2) rol=" + ("CIP" if cip else "ANA"))
+            disari = None
         if disari:
             reddet(
                 "komutun argümanlarında repo DIŞINA çözülen bir yol var (" + disari + "). "
@@ -2137,6 +2303,14 @@ def main():
         # Iki kol da tuketilmezse cip duzlemi kosturamaz (R2 gecse F reddeder).
         if not repo_ici(betik, cwd) and _ortak_altyapi_muaf(argumanlar, cwd, cip):
             iz_bas("ORTAK-ALTYAPI(F)")
+            continue
+
+        # 19 EYL (K-KARDES-EV) — F kolunun CAGRI YERI: R2 ile AYNI yuklem, AYNI rol
+        # parametresi. Iki kol da tuketilmezse cip kardes evin aracini kosturamaz
+        # (R2 gecse F reddeder) — K332'nin MR7 dersi burada da gecerlidir.
+        if not repo_ici(betik, cwd) and _kardes_ev_muaf(argumanlar, cwd, cip):
+            iz_bas("KARDES-EV(F) rol=" + ("CIP" if cip else "ANA"))
+            _sarmalayici_acigi_iz(betik, cwd, cip)
             continue
 
         if not repo_ici(betik, cwd):
