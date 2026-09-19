@@ -1116,6 +1116,17 @@ ROL_VAKALARI = [
     (819, "deny", "Bash",
      "python3 " + CRON_KOK + "-sahte/cip_dogum_bekcisi.py", None,
      "K332 SINIR: kardes dizin onek tuzagi ('<kok>-sahte') -> RED", {}, None, _CIP),
+    # === 🔴 19 EYL 2026 (K-KARDES-EV) — VAKALAR NEREDE? ==========================
+    # Kardes EV KOKLERI (`/Users/okan/dev/pruvo-hasat` vb.) icin ayni rol ekseni
+    # 19 Eyl'de R2/F'de tuketildi (`_kardes_ev_muaf`). Vakalari BURAYA EKLEMEDIK ve
+    # sebep olculmus bir SINIFTIR: bu listeye eklenen her YENI CIP-DENY vakasi,
+    # `mimar-kapi-mutasyon-test.py`'deki `tam=True` mutantlarin (or. cip'i TAM MUAF
+    # yapan mutantin 13 vakalik kumesi) patlama yaricapina HAKLI OLARAK girer ve o
+    # kumeleri BAYATLATIR — 46 mutant yeniden olculmeden batarya sessizce kirmiziya
+    # doner ([[mutant-beklenen-kirmizi-kumesi-taban-degisince-ikinci-kat-bayatlar]],
+    # K332 DERS 1). IDDIA KAYBOLMADI, kendi bataryasinda + kendi mutantlariyla durur:
+    #     python3 tools/kardes-ev-kapisi-test.py      (nobet.yml :: serit-b)
+    # Vakalari buraya TASIMAK isteyen once o mutant kumelerini YENIDEN OLCMELI.
 ]
 
 
