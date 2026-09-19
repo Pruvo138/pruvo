@@ -749,6 +749,27 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/k340-menzil-kabul-test.py
 
+      # 🔴🔴 K-KARDES-EV (19 Eyl 2026) — AYNI IS, IKI EV, IKI HUKUM.
+      # Olculdu (MaCiT cipleri, mimar-posta-kutusu.md): `pruvo/.claude/worktrees/`
+      # altinda acilan cip `python3 /Users/okan/dev/pruvo-hasat/olcum/hasat_*.py`
+      # cagrisinda R2'den DENY aliyordu; AYNI GUN ayni isi yapan Sony pilotu ayni
+      # komutu kardes evin SHIM'i altinda ALLOW ile kosturdu (shim REPO_ONEKI'yi
+      # kendi evine cevirir). Karar ISE degil OTURUMUN ACILDIGI EVE bagliydi — ve
+      # bedelini kanonik yol odedi: MaCiT'in urun-veri cipleri BILEREK pruvo
+      # altinda acilir. Sonucu ya BLOKE cip ya da worktree-ici sarmalayici `.py`
+      # ile kapiyi asmak oluyordu (gorunur cagri yerine gorunmez sarmalayici).
+      # Batarya: (A) ev ekseni kok-neden tablosu (KraL govdesi vs shim ESDEGERI),
+      # (B) 11 davranis vakasi — cip ACIK / ANA KAPALI / damgasiz KAPALI / ev DISI
+      # yan argüman KAPALI / onek tuzagi KAPALI / `python3 -c` HER ROLDE KAPALI,
+      # (C) MENZIL acigi (sarmalayici sinifi) ADIYLA raporlanir + gurultu kontrolu,
+      # (D) 3 mutant: izin kolunu ANA'ya genisleten kopya ANA vakasini KIRMIZI
+      # yakar, R2 ve F cagri yerlerinin rol parametresi ayri ayri oldurulur.
+      # Hermetik + offline: kendi gecici worktree'sini kurar, kardes ev kokleri
+      # `kapi_dagitim.EVLER`den TURER (diskte olmalari SART DEGIL, CI'da kosar).
+      - name: K-KARDES-EV icra kapisi kabul testi (rol ekseni R2/F + menzil acigi)
+        if: ${{ !cancelled() }}
+        run: python3 tools/kardes-ev-kapisi-test.py
+
       # 🔴 K321 (16 Eyl 2026) — ISCI KARANTINA KARARI, ARDISIK EKSEN.
       # 27 Agu'da `motor=claude` 13 ardisik kosumda rc=1 dondu ve karar kolu her
       # seferinde `yazildi=hayir sebep=fatal-satir-yok` bastigi icin karantina HIC
