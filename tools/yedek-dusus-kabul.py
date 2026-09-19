@@ -41,6 +41,7 @@ SAYAC = {"vaka": 0, "dusen": 0, "mutant": 0, "mutant_oldu": 0,
          "yama_tutmadi": 0, "kontrol_yesil": 0}
 DUSEN_ADLAR = []
 YAMA_TUTMAYAN = []
+CI_KIPI = "--ci" in sys.argv[1:]
 
 
 # ---------------------------------------------------------------- altyapi ----
@@ -100,23 +101,56 @@ def kalp_oku(mod):
         return {}
 
 
+YEDEK_BLOK_BAS = "# >>> PRUVO YEDEK BLOGU"
+YEDEK_BLOK_SON = "# <<< PRUVO YEDEK BLOGU"
+SUZGEC_ONEKI = "| grep -E '^("
+
+
+def yedek_blogu_satirlari(kanca_metni):
+    """Kancadaki YEDEK blogunun satirlari (bas isaretinden son isaretine ya da
+    dosya sonuna). Blok yoksa bos liste."""
+    satirlar, icinde = [], False
+    for satir in kanca_metni.splitlines():
+        if satir.startswith(YEDEK_BLOK_BAS):
+            icinde = True
+            continue
+        if icinde and satir.startswith(YEDEK_BLOK_SON):
+            break
+        if icinde:
+            satirlar.append(satir)
+    return satirlar
+
+
+def suzgec_satiri(kanca_metni):
+    """YEDEK blogundaki `| grep -E '^(...)'` suzgec satirinin HAM hali.
+
+    🔴 K422 (19 Eyl 2026): bu satir eskiden ILK ALTERNATIFIYLE
+    (`^(KORUMA KARANTINASI`) sabit kodluydu; K308-C (`4caea075`) suzgecin
+    basina `Yedek ALINMADI|` ekleyince hem suzgec cikarimi (B3) hem M6
+    mutant capasi AYNI ANDA bayatladi ve batarya ci-kapsam'in gozu
+    disinda kirmizi kaldi. Artik yalniz ONEK (`| grep -E '^(`) ve blok
+    siniri aranir; alternatif kumesi kancanin kendisinden okunur."""
+    for satir in yedek_blogu_satirlari(kanca_metni):
+        if satir.strip().startswith(SUZGEC_ONEKI):
+            return satir
+    return None
+
+
 def kanca_suzgeci(kanca_metni, cikti):
     """pre-push YEDEK blogundaki SUZGECI cikarip ayni girdiyle kosturur.
 
     Kancanin kendi satirini kaynaktan okur — testin icine ikinci bir kopya
     YAZILMAZ ([[ad-iki-rolde-mutanti-golgeler]] / elle kopyalanan olcut sinifi)."""
     suzgec = None
-    for satir in kanca_metni.splitlines():
-        s = satir.strip()
-        if s.startswith("| grep -E '^(KORUMA KARANTINASI"):
-            suzgec = s.lstrip("|").strip().rstrip("\\").strip()
-            break
-        if s.startswith("' \"$pruvo_yedek_cikti\" | tail -3"):
-            suzgec = "tail -3"
-            break
-        if s == "| tail -3":
-            suzgec = "tail -3"
-            break
+    ham = suzgec_satiri(kanca_metni)
+    if ham is not None:
+        suzgec = ham.strip().lstrip("|").strip().rstrip("\\").strip()
+    else:
+        for satir in yedek_blogu_satirlari(kanca_metni):
+            s = satir.strip()
+            if s == "| tail -3" or s.startswith("' \"$pruvo_yedek_cikti\" | tail -3"):
+                suzgec = "tail -3"
+                break
     if suzgec is None:
         return None
     p = subprocess.run(["sh", "-c", suzgec], input=cikti,
@@ -232,8 +266,9 @@ MUTANTLAR = [
      "            bayt_farki = (bayt_farki or 0) + (yeni - eski)",
      "            bayt_farki = 0",
      ["B1-sayili-beyan", "B2-cok-dosya"]),
+    # capa None = kancanin CANLI suzgec satiri (suzgec_satiri) — elle kopya YOK (K422).
     ("M6-kanca-tail3-geri", "kanca",
-     "      | grep -E '^(KORUMA KARANTINASI|  ATLANDI:|BEYAN UYARISI:|ESKALASYON=|YEDEK=)' \\",
+     None,
      "      | tail -3",
      ["B3-kanca-suzgeci"]),
 ]
@@ -266,7 +301,9 @@ def mutant_kos(tanim, gecici):
             return
         open(m_yedekle, "w", encoding="utf-8").write(metin.replace(capa, yeni, 1))
     else:
-        if capa not in kanca_metni:
+        if capa is None:
+            capa = suzgec_satiri(kanca_metni)
+        if capa is None or capa not in kanca_metni:
             SAYAC["yama_tutmadi"] += 1
             YAMA_TUTMAYAN.append(ad)
             print("  YAMA_TUTMADI %s — capa kancada YOK, bu eksen OLCULMUYOR" % ad)
@@ -382,6 +419,13 @@ def main():
 
         print("[3/3] GERI YUKLEME KANITI (bayt-birebir)")
         geri_hukum, geri_detay = geri_yukleme_kaniti(gecici)
+        # K422 (19 Eyl 2026): CI kosucusunda Drive YOKTUR — yapisal. `--ci`
+        # YALNIZ bu tek sebebi KAPSAM_DISI'na indirir (N4A emsali); Drive varken
+        # yedek koku yoksa / eslesen dosya yoksa / drive_yolu patlarsa hukum
+        # OLCULEMEDI kalir ve KIRMIZI yakar. Bayraksiz (yerel) kosum AYNEN kati.
+        if (CI_KIPI and geri_hukum == "OLCULEMEDI"
+                and geri_detay == "Drive mount cozulemedi"):
+            geri_hukum = "KAPSAM_DISI"
         print("  GERI_YUKLEME=%s   %s" % (geri_hukum, geri_detay))
     finally:
         shutil.rmtree(gecici, ignore_errors=True)
@@ -403,7 +447,8 @@ def main():
     kirmizi = (SAYAC["dusen"] or SAYAC["yama_tutmadi"]
                or SAYAC["mutant_oldu"] != hedefli
                or SAYAC["kontrol_yesil"] != 1
-               or geri_hukum != "GECTI"
+               or geri_hukum not in (("GECTI", "KAPSAM_DISI") if CI_KIPI
+                                     else ("GECTI",))
                or artik)
     print("HUKUM=%s" % ("KIRMIZI" if kirmizi else "YESIL"))
     return 1 if kirmizi else 0

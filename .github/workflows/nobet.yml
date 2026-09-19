@@ -1817,6 +1817,18 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kutu-arsivle-test.py --mutasyon
 
+      # K308 KABUL BATARYASI (K422, 19 Eyl 2026) — yedek dususu GORUNUR + KALICI
+      # + SAYILI mi; 9 vaka + 6 hedef-kol atifli mutant + zararsiz KONTROL.
+      # 18 Eyl'e dek kesif `-kabul` ekini tanimadigi icin CI'da HIC kosmadi ve
+      # pre-push suzgeci degisince (K308-C `4caea075`) capasi sessizce curudu.
+      # Suzgec + M6 capasi artik kancanin CANLI satirindan turetilir.
+      # Hermetik: kalp/log gecici dizine izole, canli ~/.claude'a YAZMAZ.
+      # `--ci`: kosucuda Drive YOK -> yalniz "Drive mount cozulemedi" KAPSAM_DISI;
+      # geri yuklemenin diger OLCULEMEDI sebepleri KIRMIZI kalir.
+      - name: "K308 yedek dususu kabul bataryasi (K422, mutant 6/6 + KONTROL)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/yedek-dusus-kabul.py --ci
+
       # ARSIV KAPISI (tools/arsiv-kapisi.py) — 4 Eyl 2026.
       # NEDEN VAR: `archive_session` oturumun surecini durdurur VE VARSAYILAN OLARAK
       # WORKTREE'SINI SILER. Worktree kirliyse ya da dalin icerigi main'e girmemisse
