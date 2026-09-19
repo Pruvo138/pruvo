@@ -2,6 +2,12 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔁 19 EYL 18:0x–18:5x KraL ana-oturum (Okan: "açık kalan işlerini bitir" → "whitelist bitince merge et") — **2 dal main'de · whitelist dalı HAZIR ama PUSH EDİLMEDİ (bağlam kotası RED)**
+**MERGE `ee43278d`** kategori paneli: KAMERA eşiği doğal geçti (büyüme kovası) + D13 iddiası alt-dizi/sebep (D17) olarak ayrıldı — birleşik ağaçta iki test rc=0, mutasyon 12/12. **MERGE `b6720f20`** icra kapısı: çip rolünde kardeş ev (`pruvo-*`) betikleri açık (R2+F), ANA reddi aynı; `kardes-ev-kapisi-test` 19/19; `mimar-kilit-test` 318/323 kırmızı küme main=dal; `mimar-kapi-mutasyon-test` taban ve dalda BİREBİR aynı çıktı (ikisi de rc=1 — batarya main'de zaten bayat: 27 mutant BAYAT-ANKRAJ/eşik; CI'da yok → yeni kalem adayı). Kanca kanonik dosyadan okunduğu için 5 evde canlı.
+**⏭️ SIRADAKİ TEK İŞ — whitelist:** dal `claude/kral-whitelist-hpf` (ağaç `.claude/worktrees/kral-whitelist-hpf`, uç `8cb40007` = `567012af` + origin/main birleşimi) — Hero + Panasonic, K220 tam (URL kümesi 40373=40373, kaybolan 0). Birleşik ağaçta uyum/k302/marka-sayac/model-uyelik/ci-kapsam/is-akisi rc=0. **Ana checkout'ta TAM parite `parite-test.js` + `parite-ege.js` ikisi de rc=3 → sebebi ÖLÇÜLEMEDİ (kota RED)**; yerel merge `0e95b81c` bu yüzden geri alındı (`reset --hard origin/main`; o anda ağaçta 1 commit'siz dosya vardı — büyük olasılıkla parite-ege'nin geçici dosyası, kimliği OLCULEMEDI). Kapatır: pariteyi `origin/main`'de (merge'süz) koş → aynı rc=3 ise taban/ortam, dalı merge+push et; değilse dal sebep.
+**Fujifilm:** `canon-ef-tilt-adaptor-eosm-fuji` kaydında `uyum[0].model="Fujifilm"` (marka model alanında) → `uyum-kapisi` A1 haklı kırmızı; MaCiT `duzelt.py` ile düzeltince Fujifilm tek başına eklenir. MaCiT Hero partisinde marka alanına **`"Hero"`** yazmalı (`Hero MotoCorp` `BILESIK_MARKA` aynasını kırar).
+**TEMİZLİK:** worktree kral-kat-panel · kral-icra-cip · kral-taban-mut silindi; uzak `claude/kral-icra-cip` silindi. **MOTOR:** Claude işçi 3 (kat-panel $4,2 · icra $9,9 · whitelist $6,0).
+
 ## 🔁 19 EYL 17:3x–18:0x KraL ana-oturum (Okan: "Tüm açık görevleri tamamla, işi biten görev ve oturumları temizle") — **borç 1→0 · Tamirci dalı main'de · 3 çip açıldı**
 **AÇILIŞ:** main `e00c12be` = origin, ağaç 0 · 18 Eyl'in 3 çipi (W2-2 · W4-2 · W3-2+W5) kapanmış → `parti-borc-kapisi --ev KraL` ACIK **1** (K161).
 **K161 KAPANDI:** kabul komutu `denetim-kapisi.py --tum-katalog --envanter` → `TOPLAM VURUS` **1** (≤21; 26 Ağu 292). Borç **0**, `HUKUM: GECER`.
