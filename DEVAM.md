@@ -2,6 +2,15 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔁 19 EYL 17:3x–18:0x KraL ana-oturum (Okan: "Tüm açık görevleri tamamla, işi biten görev ve oturumları temizle") — **borç 1→0 · Tamirci dalı main'de · 3 çip açıldı**
+**AÇILIŞ:** main `e00c12be` = origin, ağaç 0 · 18 Eyl'in 3 çipi (W2-2 · W4-2 · W3-2+W5) kapanmış → `parti-borc-kapisi --ev KraL` ACIK **1** (K161).
+**K161 KAPANDI:** kabul komutu `denetim-kapisi.py --tum-katalog --envanter` → `TOPLAM VURUS` **1** (≤21; 26 Ağu 292). Borç **0**, `HUKUM: GECER`.
+**MERGE `dacb0f14`** ← `claude/recursing-darwin-b4a79c` (Tamirci 19 Eyl, "merge mimarda"): SERIT B'nin 3 kırmızı adımı (W2 kabul · K313 · marka-arama-d1) birleşik ağaçta rc=0 + 8 komşu kapı rc=0, çakışma 0, geri-dönüş taraması 0 bulgu, D1 UYUŞMAZ 0. Yayın run `35449774779` 6/6 success, deploy+yayin success, SKIPPED 0. Canlı kurulum (m3 `kral-kur-19eyl`): `kral-sabah.py` + `nobet-tetik-test.py` + `nobet-kabul-test.py` canlı=repo 3/3, gh-civi rc=0.
+**SERIT B'de KALAN (yeni sınıf):** `hijyen-a3` `kat-panel-test.js` B2 (KAMERA kamera partileriyle panel eşiğini geçti, test sabiti bayat) + `kat-sayisi-test.py` D13 (indeks yok 7 panel / var 8) → çip `task_354dfbcf`.
+**AÇIK ÇİPLER:** `task_87e653fa` Hero·Panasonic·Fujifilm marka whitelist (MaCiT 3 partisi bunun için BLOKE) · `task_cb03b3d4` icra kapısının MaCiT çiplerinde `pruvo-hasat` araçlarını tutarsız reddetmesi + sarmalayıcı açığı · `task_354dfbcf` KAMERA panel eşiği.
+**TEMİZLİK:** worktree 5→1 (+ yeni çip ağacı) · yerel dal −19 · uzak dal −1 · oturum arşivi 2 (İhtar 19 Eyl · Teftiş 18 Eyl).
+**⏭️ SIRADAKİ:** 3 çipin kapanışını bağımsız doğrula + merge · `dacb0f14` SERIT B hükmü (koşum sürüyordu — OLCULEMEDI; kapatır: hijyen-a3 dışındaki adımlar success).
+
 ## 🔧 19 EYL 09:2x–11:xx KraL çip `xenodochial-khayyam-4a37f4` (KraL-Tamirci-19Eyl) — **main SERIT B 3 kalıcı kırmızısı onarıldı · K422 KAPANDI · spec'e DEVREDEN CANLI ekseni · MERGE MİMARDA**
 **SPEC YANILDI:** "bugün kırmızı 0/30" dedi; main `3d73bc45` SERIT B 3 koşum `failure` (18 Eyl 15:17Z/19:13Z/22:50Z) — tarih filtresi dünü atıyordu → `kral-sabah.py::devreden_canlilar` (ADET anlamı aynı), batarya 10→15 vaka · mutant 3→6/6.
 **3 KIRMIZI ADIM / 5 SEBEP (dal `claude/recursing-darwin-b4a79c`):** ① W2 kabul — (a) `nobet-tetik-test.py` `ci-nobeti.sh`'i doğrudan exec (shebang zsh, Ubuntu'da yok) → `_kabuk()` düşüşü; (b) arkasında gizli J5b: `t1-kiyas.py` sabit Mac yolu → `PRUVO_EV_KOKU`; (c) `nobet-kabul-test` vaka 16 GERÇEK `~/.claude/cron`'a symlink yazıyordu (CI'da yok, Mac'te kirletir) → kum kökü + pozitif kontrol · ② K313: fikstür gizli `CC BY` + public `lisans` boş → K418 atıf kolu 7>1 → fikstüre public lisans · ③ hijyen-a2 `marka-arama-d1-test`: K140 `olc()` 7. dönüş → `[:6]`. Dal koşumları: onarımsız `35426909829` 3 kırmızıyı birebir üretti (taban) · `35427874787` ②③ success, ① (b)+(c)'ye indi (fail-closed kol arkasını maskeliyordu) · **son `875ac452` koşumu `35430322589`: 496 adım success, W2+K313+K308+marka-D1 4/4 success, tek kırmızı aşağıdaki önceden var olan `hacim-tam-takim`.**
