@@ -139,7 +139,7 @@ def mutant_kopya(kok, yamalar):
     hedef = os.path.join(kok, "mimar-icra-kapisi.py")
     with open(hedef, encoding="utf-8") as f:
         metin = f.read()
-    for eski, yeni in yamalar:
+    for eski, yeni in yamalar + EV_CAPALARI:
         if metin.count(eski) != 1:
             return None, "BAYAT ANKRAJ (%d vurus): %s" % (
                 metin.count(eski), eski.strip()[:70])
@@ -147,6 +147,20 @@ def mutant_kopya(kok, yamalar):
     with open(hedef, "w", encoding="utf-8") as f:
         f.write(metin)
     return hedef, None
+
+
+# 🔴 20 EYL 2026 — IKINCI KAT (run 35497808434, dal koşumu): sabit `REPO` onarildikten
+# SONRA gecici worktree kuruldu ama 19 vakanin 6'si KIRMIZI kaldi (B1/B10/B11/B12/C1/C2):
+# kapi GOVDESININ KENDI sabitleri (`REPO_ONEKI` + `GIT_WORKTREE_KAYIT`) hala Mac yolunu
+# gosterdigi icin K318 ROL EKSENI cip agacini TANIMADI -> her cip vakasi ANA sayilip
+# reddedildi. Govde sabitleri PRODUKSIYON kaynagidir ve kapi_dagitim shim'i onlari METIN
+# olarak degistirir; bu yuzden onlara DOKUNULMAZ — test, KraL govdesini de tam olarak
+# shim'in yaptigi gibi OLCULEN EVE cevirir. Canli Mac'te REPO == CANLI_KOK oldugu icin
+# degisim BIREBIR AYNI metni uretir (davranis degismez), kosucuda checkout kokune duser.
+EV_CAPALARI = [
+    (KD.CAPA_REPO, 'REPO_ONEKI = "%s/"' % REPO),
+    (KD.CAPA_WT, 'GIT_WORKTREE_KAYIT = "%s/.git/worktrees"' % REPO),
+]
 
 
 R2_CAGRI = "        if disari and _kardes_ev_muaf(argumanlar, cwd, cip):\n"
@@ -177,6 +191,10 @@ def main():
         shutil.rmtree(temel, ignore_errors=True)
         return 1
     wt = os.path.normpath(wt)
+    # KraL GOVDESI de OLCULEN EVE cevrilir (yukaridaki EV_CAPALARI notu): Mac'te
+    # birebir ayni metin, kosucuda checkout koku. Boylece K318 rol ekseni gecici
+    # worktree'yi KAYITLI cip agaci olarak TANIR ve cip/ANA ayrimi gercekten olculur.
+    KRAL_GOVDE = shim_yaz(os.path.join(temel, "govde-kral.py"), REPO)
     CIP = {"transcript_path": TRANSCRIPT_KOK + "/" + damga(wt) + "/oturum.jsonl",
            "cwd": wt}
     ANA = {"transcript_path": TRANSCRIPT_KOK + "/" + damga(REPO) + "/oturum.jsonl"}
@@ -188,7 +206,7 @@ def main():
         print("=" * 100)
         print("(A) KOK NEDEN — AYNI CAGRI, IKI EV. Kardes ev koku: " + KARDES_EV)
         print("=" * 100)
-        kral, _ = kapiya_ver(ICRA, KOMUT, wt, CIP)
+        kral, _ = kapiya_ver(KRAL_GOVDE, KOMUT, wt, CIP)
         shim = shim_yaz(os.path.join(temel, "shim-kardes-ev.py"), KARDES_EV)
         # Shim evinde ayni cagri GORELI yazimla gelir (Sony pilotunun bicimi).
         macit, _ = kapiya_ver(shim, "python3 olcum/hasat_ekle.py --marka sony",
@@ -235,13 +253,16 @@ def main():
             # cikar (`_coz` normpath uygular), yani `..` bir KACAMAK degildir: ayni
             # hedefe duz yazimla (B1) zaten erisilir. 817 kendi iddiasini (duzlemden
             # kacis) HICBIR kayitli ev kokune dusmeyen bir hedefle olcmeye devam eder.
+            # 20 Eyl: yazim `~/.claude/cron/../../dev/<ev>` idi; HOME'a bagliydi ve
+            # kosucuda (`/home/runner`) BASKA bir yere cozuluyordu -> vaka ev eksenini
+            # degil ORTAMI olcuyordu. Ayni eksen (`..` ICEREN, kayitli ev kokune
+            # COZULEN yol) HOME'dan BAGIMSIZ yazildi.
             ("B12 CIP x '..' ile kardes eve inen yol -> IZIN (hukum KARDES-EV kolundan)",
-             "python3 " + os.path.expanduser("~/.claude/cron") + "/../../dev/" +
-             os.path.basename(KARDES_EV) + "/olcum/hasat_ekle.py", wt, CIP,
-             "allow", "KARDES-EV("),
+             "python3 " + KARDES_EV + "/../" + os.path.basename(KARDES_EV) +
+             "/olcum/hasat_ekle.py", wt, CIP, "allow", "KARDES-EV("),
         ]
         for ad, komut, cwd, yuk, beklenen, iz_capasi in vakalar:
-            olculen, iz = kapiya_ver(ICRA, komut, cwd, yuk)
+            olculen, iz = kapiya_ver(KRAL_GOVDE, komut, cwd, yuk)
             gecti = olculen == beklenen
             not_ = ""
             if gecti and iz_capasi:
@@ -264,13 +285,13 @@ def main():
         masum = os.path.join(wt, "masum-olcum.py")
         with open(masum, "w", encoding="utf-8") as f:
             f.write("print('olcum')\n")
-        olculen, iz = kapiya_ver(ICRA, "python3 " + sarmalayici, wt, CIP)
+        olculen, iz = kapiya_ver(KRAL_GOVDE, "python3 " + sarmalayici, wt, CIP)
         kaydet("C1 sarmalayici GECER (acik KAPATILMADI, bu kol REDDETMEZ)",
                olculen == "allow", olculen, "allow")
         kaydet("C2 sarmalayici ADIYLA raporlanir (SARMALAYICI-ACIGI)",
                "SARMALAYICI-ACIGI" in iz, "SARMALAYICI-ACIGI" in iz, True,
                "" if "SARMALAYICI-ACIGI" in iz else iz.strip().replace("\n", " ")[:70])
-        _o2, iz2 = kapiya_ver(ICRA, "python3 " + masum, wt, CIP)
+        _o2, iz2 = kapiya_ver(KRAL_GOVDE, "python3 " + masum, wt, CIP)
         kaydet("C3 KONTROL: sarmalayici OLMAYAN betik iz URETMEZ (gurultu yok)",
                "SARMALAYICI-ACIGI" not in iz2, "SARMALAYICI-ACIGI" in iz2, False)
 

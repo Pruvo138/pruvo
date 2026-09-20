@@ -48,7 +48,7 @@ import sys
 import tempfile
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CANLI_ONEK = "/Users/okan/"
+CANLI_ONEK_ANKRAJ = "/Users/okan/"   # ANKRAJ: taranan ONEK, acilacak yol DEGIL
 
 # `run:` satirindan cagrilan betik. `python3 -m` ve kabuk degiskenli yollar disarida
 # kalir (yol cozulemez -> olculemez, sessizce yesil sayilmaz: RAPOR'da gorunur).
@@ -71,10 +71,11 @@ _N = ("OLCULDU nobet.yml run 35473498152 (main 9e1dfecb, 19 Eyl 22:29Z): bu adim
       "success — sabit canli yol CI'da cozulmese de kol OLCULEMEDI/atlama ile rc=0. ")
 _D = ("OLCULDU deploy.yml run 35469221473 (main 9e1dfecb): is akisi success — sabit "
       "kardes-ev yolu CI'da yok, kol kapsam-disi sayip rc=0 doner. ")
+# NOT (20 Eyl): ilk taslakta 3 giris daha vardi (`arsiv-kapisi.VARSAYILAN_REPO`,
+# `k340-menzil-kabul-test.KANONIK_EV`, `parti-borc-kapisi.EVLER_JSON_VARSAYILAN`).
+# BAYAT-IZIN kolu onlari ADIYLA dusurdu: uc dosya da sabitini modulun KENDI yedegiyle
+# (`... or SABIT`) kullaniyor, yani muafiyet GEREKMIYOR. Kayit disi birakildilar.
 IZIN_LISTESI = {
-    "tools/arsiv-kapisi.py": {
-        "VARSAYILAN_REPO": _N + "Yalniz `--repo` verilmediginde VARSAYILAN; CI cagrisi "
-                                "repo kokunu acikca gecer."},
     "tools/boy-secenekleri-kabul.py": {
         "EDGE_WORKER": _D + "Kardes ev (pruvo-bot) worker dosyasi; yoksa o eksen "
                             "olculemez sayilir."},
@@ -94,14 +95,10 @@ IZIN_LISTESI = {
                          "kiyas yapilamaz, kol olculemedi der."},
     "tools/id-rename-test.py": {
         "HEDEF": _N + "Canli `index.html` yolu; CI'da fikstur uzerinden olculur."},
-    "tools/k340-menzil-kabul-test.py": {
-        "KANONIK_EV": _N + "Menzil kabulu kanonik ev adini METIN olarak kiyaslar."},
     "tools/mimar-commit-kapisi-test.py": {
         "MAIN": _N + "ANA checkout kiyas ekseni; CI'da kum dizininde kosar."},
     "tools/nobet-sayac-durustluk-test.py": {
         "URETIM_YOLU": _N + "Canli `~/.claude/cron` kopyasi; CI'da repo kopyasi olculur."},
-    "tools/parti-borc-kapisi.py": {
-        "EVLER_JSON_VARSAYILAN": _N + "VARSAYILAN; CI cagrisi kendi fiksturunu gecer."},
     "tools/parti-kapisi.py": {
         "SARMALAYICI_DIZINI": _N + "Canli cron sarmalayici dizini; CI'da yok, kol atlar.",
         "PROJE_ONEKI": _N + "Canli transcript oneki; CI'da damga uretilemez, kol atlar."},
@@ -159,7 +156,7 @@ def korunan_adlar(agac):
 
 
 def sabit_yollar(kaynak_metni):
-    """MODUL duzeyinde `AD = "<CANLI_ONEK>..."` duz sabit atamalari: [(ad, deger, satir)].
+    """MODUL duzeyinde `AD = "<CANLI_ONEK_ANKRAJ>..."` duz sabit atamalari: [(ad, deger, satir)].
 
     AST ile okunur; yorum ve docstring icindeki ayni metin SAYILMAZ (yanlis pozitif yok).
     Tuple/dict/cagri/BoolOp/IfExp degerleri de sayilmaz: onlar yedek tasiyan biciml
@@ -181,7 +178,7 @@ def sabit_yollar(kaynak_metni):
         deger = dugum.value
         if not (isinstance(deger, ast.Constant) and isinstance(deger.value, str)):
             continue                              # yedekli bicim -> muaf (c)
-        if not deger.value.startswith(CANLI_ONEK):
+        if not deger.value.startswith(CANLI_ONEK_ANKRAJ):
             continue
         if ('"' in deger.value) or ("'" in deger.value) or ("=" in deger.value):
             continue                              # ANKRAJ metni -> muaf (a)
