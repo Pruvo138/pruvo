@@ -770,6 +770,25 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kardes-ev-kapisi-test.py
 
+      # 🔴 20 EYL 2026 — CI'DA SABIT CANLI MAKINE YOLU (bu adimin KENDI arizasinin
+      # nobetcisi). Ustteki K-KARDES-EV adimi 19 Eyl `b6720f20` ile CI'ya girdi,
+      # yerel Mac'te 19/19 YESILDI ve ILK zamanlanmis koşumda (run 35473498152,
+      # main `9e1dfecb`, 22:29Z) KIRMIZI yandi: modul duzeyindeki
+      # `REPO = "/Users/okan/dev/pruvo"` kosucuda cozulmedigi icin gecici worktree
+      # kurulamadi. AYNI SINIF 19 Eyl'de `t1-kiyas.py`de de yasandi (J5b). Kapi
+      # dar bir hukum verir: CI adimi olarak cagrilan bir betik, MODUL duzeyinde
+      # YEDEKSIZ `/Users/okan/...` sabiti tasiyamaz; tasiyorsa IZIN_LISTESI'nde
+      # ADIYLA + KOSUM KANITIYLA yazili olmali (bos gerekce ve BAYAT izin = rc=1).
+      # Kendini test: 9 vaka + 3 gercek mutant (kopya uzerinde ankrajli) + 19 Eyl
+      # arizasinin birebir bicimi icin regresyon capasi.
+      - name: CI sabit canli yol kapisi — kendini test (9 vaka + 3 mutant)
+        if: ${{ !cancelled() }}
+        run: python3 tools/ci-sabit-canli-yol-kapisi.py --kendini-test
+
+      - name: CI sabit canli yol kapisi — repo hukmu (yedeksiz sabit yol = KIRMIZI)
+        if: ${{ !cancelled() }}
+        run: python3 tools/ci-sabit-canli-yol-kapisi.py
+
       # 🔴 K321 (16 Eyl 2026) — ISCI KARANTINA KARARI, ARDISIK EKSEN.
       # 27 Agu'da `motor=claude` 13 ardisik kosumda rc=1 dondu ve karar kolu her
       # seferinde `yazildi=hayir sebep=fatal-satir-yok` bastigi icin karantina HIC

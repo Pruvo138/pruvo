@@ -38,10 +38,20 @@ import gecici_worktree  # noqa: E402
 TOOLS = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
     os.path.abspath(__file__))
 ICRA = os.path.join(TOOLS, "mimar-icra-kapisi.py")
-REPO = "/Users/okan/dev/pruvo"
 # Kardes ev koku: TEK KAYNAK kapi_dagitim.EVLER — burada ikinci liste tutulmaz.
 sys.path.insert(0, TOOLS)
 import kapi_dagitim as KD  # noqa: E402
+
+# 🔴 19 EYL 2026 22:29Z ARIZASI (run 35473498152, main `9e1dfecb`): burada
+# `REPO = "/Users/okan/dev/pruvo"` SABITI duruyordu. Yerel Mac'te 19/19 YESIL,
+# GitHub kosucusunda ILK zamanlanmis koşumda KIRMIZI:
+#     CEVRE: gecici worktree kurulamadi -> fatal: cannot change to
+#     '/Users/okan/dev/pruvo': No such file or directory
+# Bu dosyanin kendi docstring'i "CI'da da kosar" diyordu; beyan OLCULMEMISTI.
+# Kok artik TEK KAYNAKTAN turer: `kapi_dagitim.KAYNAK_KOK` canli makinede
+# `/Users/okan/dev/pruvo`, kosucuda checkout kokudur (ikinci sabit BURADA TUTULMAZ).
+# Sinifin nobetcisi: `tools/ci-sabit-canli-yol-kapisi.py`.
+REPO = os.path.normpath(KD.KAYNAK_KOK)
 
 KARDES_EV = None
 for _ad, _kok, _yol, _mod in KD.EVLER:
