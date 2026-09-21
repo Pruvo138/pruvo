@@ -524,6 +524,13 @@ def stokta_kanonik(u):
 #         Elektronik 487 · Dekorasyon 376 · Ev 214
 #   ALMAYAN (<100, KARARDIR): Oyun/Hobi 85 · Bahçe 72 · Ofis 71 · Jeneratör 40 ·
 #         Tamirat 31 · Kamera 24 · Skan Art 16
+# 🔴 YUKARIDAKI 5 EYL SATIRI DA BAYATLADI — AYNI DERS IKINCI KEZ: `Kamera` o gun 24
+# kayitti, 21 Eyl 2026'da Nikon/Canon/Panasonic dilimleriyle **1.334** oldu ve >=100
+# esigini kendi kendine gecti; asagiya KAMERA blogu eklendi. 21 Eyl olcumu (38.616
+# kayit) — ALAN: Otomobil 22.548+ · Motosiklet · Marin · Bisiklet · Kamera 1.334 ·
+# Elektronik · Dekorasyon · Ev · ALMAYAN (<100): Oyun/Hobi 85 · Bahçe 73 · Ofis 71 ·
+# Jeneratör 41 · Tamirat 35 · Skan Art 16. Esik alti liste tools/altkategori-sinifla-
+# test.py'de KATALOGTAN olculur (elle yazilmaz), bu satirlar yalniz INSAN NOTUDUR.
 # Bu satirlari guncellemeden esige dayanip hukum verme; sayi olcumden gelir, yorumdan degil.
 #
 # 🔴 MARIN'IN MEVCUT 12 DEGERI BAYT OLARAK KORUNDU (K3): 935 kayit onlari kullaniyor,
@@ -639,6 +646,42 @@ ALTKATEGORI_IZINLI = {
         "Cihaz Parçaları",
         "Ev ve Mutfak Cihazları",
         "Ses ve Müzik",
+    ),
+    # ── KAMERA (21 Eyl eki, Okan emri: "kamera kategorisini alt kategori ve markalara
+    # bolerek ana sayfaya al") ────────────────────────────────────────────────────────
+    # OLCULDU (21 Eyl, urunler.json 38.616 kayit): Kamera 1.334 urun — K4'un >=100 sarti
+    # COKTAN gerceklesti (5 Eyl notu "Kamera 24" diyordu ve BAYATLADI; Nikon/Canon/
+    # Panasonic dilimleriyle kategori 55 KAT buyudu). Alani DOLU kayit 0'di: kategori
+    # sayfasi 1.334 urunle aciliyor, daraltma yuzeyi YOKTU. Ana sayfa panelinde de
+    # KAMERA en zayif paneldi (cip=3; marka 3 + grup 0) — eksik olan GRUP EKSENIYDI.
+    #
+    # 11 grup adi OKAN tarafindan secildi ve onaylandi; adlar BAYT OLARAK korunur.
+    # Hepsi imza nobetinden GECIYOR (11/11 sebep None), en uzunu 19 karakter / 3 kelime,
+    # katalogun 3.337 tekil marka-model adiyla carpisma 0, baska kategoride ayni ad 0.
+    #
+    # EKSEN (K1): adlar YER (`Gövde ve Kafes`), SISTEM (`Lens Adaptörleri`,
+    # `Flaş ve Işık`, `Pil ve Şarj`) ya da KULLANIM ALANI (`Teleskop ve Astro`,
+    # `Araç Kamera Montajı`, `Kayış ve Taşıma`) adlandirir. `Montaj ve Tripod` ARTIK
+    # kovasidir (oncelikte EN SONDA) ve K6 geregi tasidigi icerigi DURUSTCE adlandirir.
+    #
+    # 🔴 ESIK ALTI TEK GRUP — `Araç Kamera Montajı` 1. geciste 5 urun tasiyor (<15).
+    # Kumeye YINE DE alindi: ad kumesi OKAN KARARIDIR (11/11), ve K4'un grup esigi
+    # kapi kurali DEGIL mimar kararidir (tools/altkategori-sinifla-test.py T4c bunu
+    # RAPORLAR, kirmizi YAKMAZ). Sayi OLCULDU ve KAYITLI ki bir sonraki tur "bu grup
+    # neden bu kadar kucuk" diye yeniden olcmesin: katalogda araca ozel kamera braketi
+    # (Mitsubishi/Mercedes geri gorus kamerasi) FIILEN bu kadar.
+    "Kamera": (
+        "Araç Kamera Montajı",
+        "Filtre ve Parasoley",
+        "Flaş ve Işık",
+        "Gövde ve Kafes",
+        "Kayış ve Taşıma",
+        "Lens Adaptörleri",
+        "Lens Kapakları",
+        "Montaj ve Tripod",
+        "Pil ve Şarj",
+        "Teleskop ve Astro",
+        "Uzaktan Kumanda",
     ),
 }
 
