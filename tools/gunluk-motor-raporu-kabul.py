@@ -63,7 +63,7 @@ PRUVO_OPUS = 33334
 PRUVO_SONNET = 26
 ADVISOR_CLAUDE = 1100          # KATLANMAMALI: pruvo'ya karismaz
 HASAT_CLAUDE = 28
-BASLANGIC_PENCEREDE = 5        # R1..R5; R6 (dun) ve R7 (23:30) HARIC
+BASLANGIC_PENCEREDE = 7        # R1..R5 + R8/R9 (etiket-onek); R6 (dun) ve R7 (23:30) HARIC
 
 
 def yerel(gun, saat, dakika=0):
@@ -186,6 +186,17 @@ def fikstur_kur(kok):
         # R5 EMEKLI motor
         basla(15, "deepseek", "pruvo-bot", "emekli", model="deepseek-chat"),
         bitis(15, 0, 10),
+        # R8 ETIKET-ONEK: `ev=` alanina EV degil ETIKET yazilmis (TeKiN'in gunluk
+        # cron tetigi boyle yaziyor) -> `pruvo-jenerator`a KATLANMALI.
+        basla(16, "minimax-m3", "tekin-gunluk-20260902", "tekin-gunluk-otomatik"),
+        "HAL=SAGLIKLI SUBTYPE=success IS_ERROR=0 MALIYET_USD=1.30 TUR=32 "
+        "OTURUM=z SEBEP=zarf-okundu",
+        bitis(16, 0, 200),
+        # R9 NEGATIF KONTROL: onek "tekin-gunluk"un KOMSUSU (tire ile ayrilmiyor)
+        # -> KATLANMAMALI, `bilinmeyen:` olarak kalmali. Ciplak `startswith` bu
+        # satiri de yutar; vaka o siniri olcer.
+        basla(17, "minimax-m3", "tekin-gunlukcu-9", "komsu-etiket"),
+        bitis(17, 0, 30),
         # R6 DUN -> sayilmaz
         "=== %s BASLANGIC motor=minimax-m3 ev=pruvo etiket=disarida butce=10.00 "
         "model=MiniMax-M3[1m] ===" % utc_damga("2026-09-01", 10),
@@ -368,6 +379,28 @@ def vakalar(betik, kok):
     vaka("V21-tekrar-yazimda-silme-yok",
          all(satir in kutu_ucuncu.splitlines() for satir in eski_satirlar),
          "tekrar yazimda da mevcut kutu icerigi KORUNMALI")
+
+    # --- ETIKET-ONEK EV KATLAMASI (21 Eyl 2026, BaBa hukmu ② — KraL kalemi) ---
+    # Olculen ariza: `ev=tekin-gunluk-<tarih>` satiri hicbir eve katlanmiyordu;
+    # rapor 3 gun ust uste `pruvo-jenerator` m3 **0** gosterdi, oysa kosum VARDI.
+    ev_anahtarlari = set()
+    if isinstance(blok, dict) and isinstance(blok.get("ev"), dict):
+        ev_anahtarlari = set(blok["ev"].keys())
+    jenerator = ev_al(blok, "pruvo-jenerator")
+    vaka("V22-etiket-onek-katlama-POZITIF",
+         sayi(jenerator.get("m3")) == 1
+         and not any(a.startswith("bilinmeyen:tekin-gunluk-") for a in ev_anahtarlari),
+         "pruvo-jenerator m3=%r beklenen=1; bilinmeyen:tekin-gunluk-* anahtari "
+         "KALMAMALI. ev anahtarlari=%s"
+         % (jenerator.get("m3"), sorted(ev_anahtarlari)))
+    vaka("V23-etiket-onek-katlama-NEGATIF",
+         "bilinmeyen:tekin-gunlukcu-9" in ev_anahtarlari
+         and sayi(jenerator.get("m3")) != 2,
+         "komsu etiket (tire ile ayrilmayan onek) KATLANMAMALI: "
+         "bilinmeyen:tekin-gunlukcu-9 var mi=%s · pruvo-jenerator m3=%r "
+         "(2 olursa komsu YUTULMUS)"
+         % ("bilinmeyen:tekin-gunlukcu-9" in ev_anahtarlari,
+            jenerator.get("m3")))
     return cikti
 
 
@@ -458,7 +491,27 @@ def m_kutu_hep_ekle(metin):
         "    _capa = mevcut.find(baslik)", 1)
 
 
+CAPA_ETIKET_ONEK = (
+    '        if ev_alani == _onek or ev_alani.startswith(_onek + "-"):')
+
+
+def m_etiket_onek_kapali(metin):
+    """Etiket-onek katlamasi KAPANIR -> POZITIF kol duser (bilinmeyen: geri gelir)."""
+    return _tekil(metin, CAPA_ETIKET_ONEK,
+                  "        if False:  # MUTANT-M7: etiket-onek katlamasi kapali")
+
+
+def m_etiket_onek_ciplak(metin):
+    """Sinir kalkar (ciplak startswith) -> KOMSU etiket de yutulur, NEGATIF duser."""
+    return _tekil(metin, CAPA_ETIKET_ONEK,
+                  "        if ev_alani.startswith(_onek):  # MUTANT-M8: sinir yok")
+
+
 MUTANTLAR = [
+    ("M7-etiket-onek-kapali", m_etiket_onek_kapali,
+     "V22-etiket-onek-katlama-POZITIF"),
+    ("M8-etiket-onek-sinirsiz", m_etiket_onek_ciplak,
+     "V23-etiket-onek-katlama-NEGATIF"),
     ("M6-kutu-degistirme-kapali", m_kutu_hep_ekle, "V20-ayni-gun-blogu-cogalmaz"),
     ("M1-katlama-kapali", m_katlama_kapat, "V04-katlama-POZITIF"),
     ("M2-katlama-cikplak-onek", m_katlama_onek, "V05-katlama-NEGATIF"),
