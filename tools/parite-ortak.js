@@ -399,29 +399,52 @@ function bekle(ms) {
 // gecit ZATEN istekleri araliyor; ustune ustel bekleme koymak ayni gecikmeyi IKI KEZ
 // odemektir. 429 sonrasi ek bekleme artik TEK KADEME (_hizAra) kadardir.
 //
-// BUTCE (fail-closed): frende harcanan TOPLAM bekleme HIZ_BUTCESI_MS'i asarsa 429
-// ESKISI GIBI OlcumHatasi'na doner -> kosum SONSUZA KADAR SURUKLENMEZ, en kotu
+// BUTCE (fail-closed): fren DEVREYE GIRDIGINDEN BERI gecen DUVAR SAATI HIZ_BUTCESI_MS'i
+// asarsa 429 ESKISI GIBI OlcumHatasi'na doner -> kosum SONSUZA KADAR SURUKLENMEZ, en kotu
 // ihtimalle bugunku sonucu (cikis 3) GEC verir. "Olcemedim" hicbir kolda YESILE donmez.
-// Tavanda TAM kosum (1713 istek x 600 ms ~= 17 dk) butcenin ALTINDA kalir: saglikli
-// yakinsama BITIRIR, patolojik hal FAIL-CLOSED durur.
-const HIZ_TABAN_ARA_MS = 200;      // ilk 429 sonrasi asgari aralik (5 istek/sn)
-const HIZ_AZAMI_ARA_MS = 600;      // fren tavani (~1,67 istek/sn; olculen kararli hal 1,9)
+//
+// 🔴 BUTCE DUVAR SAATIDIR, "beklemelerin TOPLAMI" DEGIL (olculdu 21 Eyl, ara surumun
+// IKINCI kusuru): toplam bekleme her ISCI icin ayri sayiliyordu; 8 eszamanli isci varken
+// toplam, gercek zamandan ~8 KAT hizli buyudu ve 25 dk'lik butce 288 SANIYEDE tukendi
+// (cikti "frende harcanan 1509 sn / butce 1500 sn" derken kosum 288,2 sn surmustu).
+// Butce tukenince 429 yeniden denemesi kapandi ve kosum 539/1334 sorguda DURDU.
+// Butcenin KORUDUGU SEY "kosum saatlerce surmesin"dir; o da duvar saatiyle olculur.
+//
+// TAVAN: tam kosum (sorgu 1334 + supurme 378 + on-kosul = 1713 istek) tavanda
+// 1713 x 1000 ms ~= 29 dk surer; butce bunun USTUNDE secilir ki saglikli yakinsama
+// BITIRSIN, patolojik hal FAIL-CLOSED dursun.
+//
+// 🔴 KADEMELER BEKLEME_MS'TEN TURER, SABIT DEGIL: `PARITE_BEKLEME_MS` bu dosyada ZATEN
+// "gecici hata sonrasi bekleme" knob'udur ve FIKSTUR_ENV'dedir (verildigi kosum pariteyi
+// BELGELENDIREMEZ, yani uretim baypasi OLAMAZ). Sabit yazilinca kabul fiksturu kirildi
+// (olculdu: parite-fikstur-test.js S14 "GECICI 429" senaryosu `PARITE_BEKLEME_MS=5` ile
+// kosuyor; sabit 200 ms'lik gecit 220 sorguyu 60 sn'lik cocuk sure sinirinin USTUNE
+// tasidi -> 4 iddia dustu). Knob'u yok saymak, fiksturun HIZ eksenini KORLESTIRIR:
+// tek knob hem backoff'u hem freni ayarlamali ([[tuketici-yazilirken-tum-okuyucular-sayilir]]).
+// Varsayilan BEKLEME_MS=400 -> taban 200 ms, tavan 1000 ms (asagidaki olcumle secildi).
+const HIZ_TABAN_ARA_MS = Math.max(1, Math.round(BEKLEME_MS / 2));    // varsayilan 200 ms
+const HIZ_AZAMI_ARA_MS = Math.max(2, Math.round(BEKLEME_MS * 2.5));  // varsayilan 1000 ms
 const DENEME_429 = 8;              // 429'a OZGU deneme sayisi (oteki hatalar DENEME'de)
-const HIZ_BUTCESI_MS = 1500000;    // frende harcanabilecek TOPLAM bekleme (25 dk)
+const HIZ_BUTCESI_MS = 2400000;    // fren aciktan sonraki DUVAR SAATI tavani (40 dk)
 
 let _hizAra = 0;              // su anki kuresel istekler-arasi asgari aralik (ms)
 let _hizSonrakiAn = 0;        // rezerve edilmis bir sonraki gonderim ani (epoch ms)
-let _hizHarcananMs = 0;       // gecitte + 429 sonrasi beklemede harcanan TOPLAM sure
+let _hizBaslangicAni = 0;     // frenin ILK devreye girdigi an (epoch ms); 0 = hic girmedi
 
-/** Fren durumu (kabul testi ve rapor icin). SAF. */
+/** Fren devreye gireli gecen DUVAR SAATI (ms). Fren hic girmediyse 0. */
+function hizFrenSuresiMs() {
+  return _hizBaslangicAni ? Date.now() - _hizBaslangicAni : 0;
+}
+
+/** Fren durumu (kabul testi ve rapor icin). */
 function hizFreniDurumu() {
-  return { araMs: _hizAra, harcananMs: _hizHarcananMs, butceMs: HIZ_BUTCESI_MS,
+  return { araMs: _hizAra, frenSuresiMs: hizFrenSuresiMs(), butceMs: HIZ_BUTCESI_MS,
     tabanMs: HIZ_TABAN_ARA_MS, tavanMs: HIZ_AZAMI_ARA_MS, deneme429: DENEME_429 };
 }
 
 /** YALNIZ kabul testi icin: fren durumunu sifirla (vakalar birbirini kirletmesin). */
 function hizFreniSifirla() {
-  _hizAra = 0; _hizSonrakiAn = 0; _hizHarcananMs = 0;
+  _hizAra = 0; _hizSonrakiAn = 0; _hizBaslangicAni = 0;
 }
 
 /** Fren KAPALIYKEN hicbir bekleme uretmez (varsayilan yol: tek satir kontrol). */
@@ -431,11 +454,12 @@ async function hizGecidi() {
   const an = Math.max(simdi, _hizSonrakiAn);
   _hizSonrakiAn = an + _hizAra;          // rezervasyon SENKRON: eszamanli isciler siraya girer
   const gecikme = an - simdi;
-  if (gecikme > 0) { _hizHarcananMs += gecikme; await bekle(gecikme); }
+  if (gecikme > 0) await bekle(gecikme);
 }
 
 /** TEK YONLU: her 429'da bir kademe sikar, tavanda doyar. Gevseme YOK (yukari bak). */
 function hizFreniSik() {
+  if (!_hizBaslangicAni) _hizBaslangicAni = Date.now();
   _hizAra = Math.min(Math.max(_hizAra * 2, HIZ_TABAN_ARA_MS), HIZ_AZAMI_ARA_MS);
 }
 
@@ -496,15 +520,14 @@ async function canliGetir(url, sayac, deneme) {
       gorulen429++;
       hizFreniSik();
       son = new OlcumHatasi("429", "HTTP 429 (hiz siniri, " + (i + 1) + "/" + azamiTur +
-        " deneme tukendi, fren " + _hizAra + " ms, frende harcanan " +
-        Math.round(_hizHarcananMs / 1000) + " sn / butce " +
+        " deneme tukendi, fren " + _hizAra + " ms, fren suresi " +
+        Math.round(hizFrenSuresiMs() / 1000) + " sn / butce " +
         Math.round(HIZ_BUTCESI_MS / 1000) + " sn): " + url, 429);
       // Butce dolduysa ESKI davranisa doneriz: beklemeyiz, hak tukenir -> cikis 3.
-      const butceVar = _hizHarcananMs < HIZ_BUTCESI_MS;
+      const butceVar = hizFrenSuresiMs() < HIZ_BUTCESI_MS;
       if (butceVar && i + 1 < azamiTur) {
         // TEK KADEME: kuresel gecit zaten bir sonraki denemeyi _hizAra kadar oteler;
         // buradaki ek bekleme o kademenin AYNISIDIR, ustel DEGIL (yukaridaki olcum).
-        _hizHarcananMs += _hizAra;
         await bekle(_hizAra);
         continue;
       }
@@ -1060,9 +1083,9 @@ function sonucYaz({ etiket, gecti, atlandi, hatalar, onKosul, sayac, sn, fazlaKu
     sayac.istek, sayac.r429 || 0, sayac.yenidenDeneme || 0, sayac.supurmeParti || 0);
   // Fren DEVREYE GIRDIYSE gorunur olsun: "test neden 14 dk surdu" sorusu ciktidan
   // cevaplanabilmeli. Fren hic girmediyse (CI yolu) bu satir BASILMAZ -> eski cikti aynen.
-  if (_hizHarcananMs > 0) {
-    console.log("adaptif hiz freni: aralik %d ms | frende harcanan %d sn / butce %d sn",
-      _hizAra, Math.round(_hizHarcananMs / 1000), Math.round(HIZ_BUTCESI_MS / 1000));
+  if (_hizBaslangicAni) {
+    console.log("adaptif hiz freni: aralik %d ms | fren suresi %d sn / butce %d sn (duvar saati)",
+      _hizAra, Math.round(hizFrenSuresiMs() / 1000), Math.round(HIZ_BUTCESI_MS / 1000));
   }
 
   const aciklananYaz = () => {
@@ -1146,9 +1169,9 @@ function olcumNotu(e, etiket) {
   }
   if (e.tur === "429") {
     return "ÖLÇÜLEMEDİ: HIZ SINIRI (429) — adaptif fren tavanda, " + DENEME_429 +
-      " deneme TUKENDI (" + etiket + "; fren " + _hizAra + " ms, frende harcanan " +
-      Math.round(_hizHarcananMs / 1000) + " sn / butce " + Math.round(HIZ_BUTCESI_MS / 1000) +
-      " sn). Ayrisma SAYILMADI, ama parite de BELGELENMEDI.";
+      " deneme TUKENDI (" + etiket + "; fren " + _hizAra + " ms, fren suresi " +
+      Math.round(hizFrenSuresiMs() / 1000) + " sn / butce " + Math.round(HIZ_BUTCESI_MS / 1000) +
+      " sn duvar saati). Ayrisma SAYILMADI, ama parite de BELGELENMEDI.";
   }
   if (e.tur === "ZAMAN_ASIMI") {
     return "ÖLÇÜLEMEDİ: ZAMAN ASIMI (" + ZAMAN_ASIMI_MS + " ms/istek, " + DENEME +
@@ -1207,7 +1230,7 @@ module.exports = {
   mutlakTavan, katalogIdAdedi, MUTLAK_KAT, MUTLAK_TABAN_PARTI,
   FIKSTUR_ENV,
   DENEME_429, HIZ_TABAN_ARA_MS, HIZ_AZAMI_ARA_MS, HIZ_BUTCESI_MS,
-  hizFreniDurumu, hizFreniSifirla,
+  hizFreniDurumu, hizFreniSifirla, hizFrenSuresiMs,
   OlcumHatasi, WafHatasi, kardesUc, sayacYeni, canliGetir, nonceUret,
   canliKatalogSayisi, d1deOlmayanlar, onKosulOlc, siniflandir,
   sonucYaz, wafYaz, olcumNotu, fazlaKumeTutarli, fazlalikTeshis,

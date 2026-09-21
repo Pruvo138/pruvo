@@ -8,7 +8,7 @@
  * AGSIZ: global `fetch` sahte bir fonksiyonla degistirilir; hicbir canli istek ATILMAZ,
  * hicbir dosya YAZILMAZ. Bu yuzden CI'da bloklayici kosabilir.
  *
- * NE OLCER (yedi AYRI eksen — biri otekini maskelemesin):
+ * NE OLCER (sekiz AYRI eksen — biri otekini maskelemesin):
  *   V1 VARSAYILAN YOL DOKUNULMADI: 429 gorulmeyen kosumda fren ARALIGI 0 kalir ve
  *      HICBIR ek bekleme uretilmez. Bu, "bloklayici testi yavaslatma" sartinin
  *      calistirilabilir karsiligidir — yorumda degil, OLCUMDE.
@@ -25,6 +25,14 @@
  *   V7 YAKINSAMA (olculen kusurun nobetcisi): donusumlu 429/200 akisinda aralik TAVANA
  *      cikar ve basarilar onu GERI INDIRMEZ. Ilk surum burada SALINIYORDU -> canli
  *      kosum 141/1334 sorguda durmustu.
+ *   ⚠️ FRENIN KADEMELERI (taban/tavan) `BEKLEME_MS`TEN TURER ve o knob FIKSTUR_ENV'dedir.
+ *      Bu baginin nobetcisi BURASI DEGIL, tools/parite-fikstur-test.js S14'tur ("GECICI
+ *      429", `PARITE_BEKLEME_MS=5`): kademeler sabit yazilirsa o cocuk kosum 60 sn'lik
+ *      sure sinirini asar ve S14'un 4 iddiasi duser (21 Eyl'de tam olarak bu olculdu).
+ *   V8 BUTCE DUVAR SAATIDIR (ikinci olculen kusurun nobetcisi): butce, ESZAMANLI
+ *      iscilerin beklemelerini TOPLAMAZ. Ara surum topluyordu; 8 isciyle butce gercek
+ *      zamandan ~8 kat hizli tukendi (cikti "frende harcanan 1509 sn" derken kosum
+ *      288,2 sn surmustu) ve kosum 539/1334 sorguda durdu.
  */
 const ortak = require("./parite-ortak.js");
 
@@ -68,7 +76,7 @@ function sahteUc(durumlar) {
     const sure = Date.now() - t0;
     const d = ortak.hizFreniDurumu();
     ona(d.araMs === 0, "fren araligi 0 kaldi", "aralik=" + d.araMs + " ms");
-    ona(d.harcananMs === 0, "frende harcanan bekleme 0", "harcanan=" + d.harcananMs + " ms");
+    ona(d.frenSuresiMs === 0, "fren HIC devreye girmedi", "frenSuresi=" + d.frenSuresiMs + " ms");
     ona(sure < 250, "25 istek ek beklemesiz tamamlandi", sure + " ms");
     ona(sayac.istek === 25 && sayac.r429 === 0 && sayac.yenidenDeneme === 0,
       "sayaclar bozulmadi", JSON.stringify(sayac));
@@ -178,8 +186,37 @@ function sahteUc(durumlar) {
       "en gec 3. istekte tavana cikti (yakinsama HIZLI)", araliklar.join(" -> "));
   }
 
+  // ── V8: BUTCE DUVAR SAATI — ikinci olculen kusurun regresyon nobetcisi ───────────
+  // 🔴 21 Eyl 2026 (2. kusur): butce "beklemelerin TOPLAMI" idi ve her ISCI icin ayri
+  // sayiliyordu. 8 eszamanli isciyle toplam, gercek zamandan ~8 KAT hizli buyudu:
+  // cikti "frende harcanan 1509 sn / butce 1500 sn" derken kosum 288,2 SANIYE surmustu.
+  // Butce tukenince 429 yeniden denemesi kapandi ve kosum 539/1334 sorguda DURDU.
+  // Bu eksen olcer: fren suresi EN COK gecen duvar saati kadar olabilir.
+  console.log("\nV8) butce DUVAR SAATI: eszamanli iscilerin beklemeleri TOPLANMAZ");
+  ortak.hizFreniSifirla();
+  {
+    const durumlar = [429].concat(Array.from({ length: 60 }, () => 200));
+    sahteUc(durumlar);
+    const sayac = ortak.sayacYeni();
+    await ortak.canliGetir("http://x/v8-ac", sayac, ortak.DENEME);   // freni ac
+    const t0 = Date.now();
+    const ESZ = 8;
+    await Promise.all(Array.from({ length: ESZ }, (_, k) =>
+      ortak.canliGetir("http://x/v8-" + k, sayac, ortak.DENEME)));
+    const duvar = Date.now() - t0;
+    const fren = ortak.hizFreniDurumu().frenSuresiMs;
+    // Fren suresi frenin ACILDIGI andan beri sayar, yani bu blogun duvar saatinden
+    // biraz BUYUK olabilir; ama ESZ katina ASLA cikmamalidir.
+    ona(fren < duvar * 2 + 500, "fren suresi DUVAR SAATIYLE ayni mertebede",
+      "fren=" + fren + " ms · duvar=" + duvar + " ms");
+    const toplamVarsayim = duvar * ESZ;
+    ona(fren < toplamVarsayim / 2,
+      "fren suresi eszamanli beklemelerin TOPLAMI DEGIL (eski kusur)",
+      "fren=" + fren + " ms · toplam-varsayimi≈" + toplamVarsayim + " ms");
+  }
+
   global.fetch = GERCEK_FETCH;
   ortak.hizFreniSifirla();
-  console.log("\n%s", kalan ? "KIRMIZI: " + kalan + " iddia dustu" : "GECTI: 7 eksen, tum iddialar");
+  console.log("\n%s", kalan ? "KIRMIZI: " + kalan + " iddia dustu" : "GECTI: 8 eksen, tum iddialar");
   process.exit(kalan ? 1 : 0);
 })();
