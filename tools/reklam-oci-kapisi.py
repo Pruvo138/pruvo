@@ -67,6 +67,7 @@ RC_OLCULEMEDI = 3
 REF_DEGERI = "REF:GS-OCI-Q7M4"
 GCLID_DEGERI = "Cj0KCQ-OCI-TEST-GCLID"
 SIPARIS_NO = "PR-260921-101500-A1B"
+SIPARIS_NO_ATIFSIZ = "PR-260921-110000-B2C"   # atif='' (dogrudan geldi) — (k1) yuku
 TUTAR_KURUS = 43290          # 432,90 TL urun
 KARGO_KURUS = 25000          # 250,00 TL kargo -> tahsilat 68290 kurus = 682,90 TL
 BEKLENEN_TRY = 682.90
@@ -172,6 +173,11 @@ def vt_kur(yol, sema_metni, ref_yaz=True, gclid=GCLID_DEGERI, durum="tamamlandi"
         if blok:
             conn.executescript(sql_yorumsuz(blok))
     atif = json.dumps({"ref": REF_DEGERI, "utm_source": "google", "utm_medium": "cpc"})
+    # 🔴 BOS `atif` SATIRI FIKSTURE BILEREK KONUR: kolon `NOT NULL DEFAULT ''`tir ve
+    # dogrudan/ic gezinmeyle gelen sipariste deger BOS DIZEDIR. Canli D1 bu satirda
+    # `json_extract('', '$.ref')` cagrisini SQLITE_ERROR ile REDDEDER (yerel sqlite
+    # sessizce NULL doner) -> kalkansiz sorgu boyle bir siparis odendigi GUN kuyrugu
+    # KOMPLE DURDURUR. Bu satir (k1) bacaginin yukudur.
     gecmis = json.dumps([{"d": "odendi", "z": ODENDI_ISO, "o": 1}])
     try:
         conn.execute(
@@ -180,6 +186,12 @@ def vt_kur(yol, sema_metni, ref_yaz=True, gclid=GCLID_DEGERI, durum="tamamlandi"
             "VALUES (?,?,?,?,?,?,?,?,?,?)",
             (SIPARIS_NO, "tok-oci-1", "2026-09-21T10:14:00.000Z", durum, TUTAR_KURUS,
              KARGO_KURUS, "[]", atif, gecmis, "site"))
+        conn.execute(
+            "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, "
+            "kargo_kurus, urunler, atif, durum_gecmisi, kanal) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (SIPARIS_NO_ATIFSIZ, "tok-oci-2", "2026-09-21T11:00:00.000Z", durum, 10000,
+             0, "[]", "", gecmis, "site"))
         if ref_yaz:
             conn.execute(
                 "INSERT INTO reklam_ref_gclid (ref, gclid, gbraid, wbraid, grup, src, "
@@ -268,6 +280,26 @@ def kapi(sema_yolu=SEMA_VARSAYILAN, yukleyici_yolu=YUKLEYICI_VARSAYILAN, sessiz=
                   "(json_extract(atif,'$.ref') == reklam_ref_gclid.ref)",
                   len(adaylar) == 1 and (adaylar[0].get("gclid") == GCLID_DEGERI),
                   "aday=%d" % len(adaylar))
+
+            # ── (k) BOS `atif` KALKANI — CANLI D1'de OLCULEN AYRIM ---------------
+            # (k1) DAVRANIS: fiksturde `atif=''` olan ODENMIS bir siparis VAR; aday
+            #      sorgusu COKMEDEN kosmali ve o satiri ELEMELI.
+            iddia("(k1) `atif=''` olan odenmis siparis sorguyu COKERTMEDI ve adaylardan "
+                  "ELENDI (dogrudan gelen musteri kuyrugu durduramaz)",
+                  len(adaylar) == 1
+                  and all(a["siparis_no"] != SIPARIS_NO_ATIFSIZ for a in adaylar),
+                  "aday=%s" % [a["siparis_no"] for a in adaylar])
+            # (k2) YAPISAL — ve bu bacagin SINIRI ACIKCA YAZILIDIR: asil ariza
+            #      MOTOR FARKINDADIR, mantikta DEGIL. Canli D1 `json_extract('', ...)`
+            #      cagrisini `SQLITE_ERROR [7500] malformed JSON` ile REDDEDER; yerel
+            #      sqlite AYNI cagriya sessizce NULL doner. Yani (k1) yerelde kalkan
+            #      OLMASA DA yesil kalir -> tek basina YETMEZ. Kalkanin VARLIGI bu
+            #      yuzden JETON ekseninde olculur; gerekcesi canlida olculmustur
+            #      (kalkansiz sorgu 'iptal' kumesinde CANLIDA HATA verdi, kalkanli
+            #      ayni kumede 12 satir dondu).
+            iddia("(k2) aday sorgusu `json_valid` kalkanini TASIYOR "
+                  "(D1 <-> sqlite ayrimi yerelde taklit EDILEMEZ — jeton ekseni)",
+                  "json_valid" in y.ADAY_SQL, y.ADAY_SQL[:120])
 
             # ── (b1) KUYRUKLAMA IDEMPOTENS: iki kez kos, 1 satir --------------
             d1k = y.kuyrukla(vt, simdi_ms=1789000001000)
@@ -515,6 +547,9 @@ CAPA_GIZLE = "            s = s.replace(sir, \"***\")"
 MUT_GIZLE = "            s = s"
 CAPA_KACIS = '    return "\'" + str(s).replace("\'", "\'\'") + "\'"'
 MUT_KACIS = '    return "\'" + str(s) + "\'"'
+CAPA_KALKAN = ("  ON r.ref = CASE WHEN json_valid(s.atif)\n"
+               "                  THEN json_extract(s.atif, '$.ref') ELSE NULL END")
+MUT_KALKAN = "  ON r.ref = json_extract(s.atif, '$.ref')"
 
 
 def kendini_test():
@@ -544,7 +579,9 @@ def kendini_test():
          None, _capa_degistir(CAPA_GIZLE, MUT_GIZLE), RC_KIRMIZI),
         ("MU8 (j) SQL tek-tirnak kacisi oldu (d1-sync.py::q ile AYRISMA)",
          None, _capa_degistir(CAPA_KACIS, MUT_KACIS), RC_KIRMIZI),
-        ("MU9 (f) `reklam_oci_kuyruk` KANONIK SEMADAN SILINDI",
+        ("MU9 (k) `json_valid` kalkani SOKULDU (canlida 'malformed JSON' sinifi)",
+         None, _capa_degistir(CAPA_KALKAN, MUT_KALKAN), RC_KIRMIZI),
+        ("MU9b (f) `reklam_oci_kuyruk` KANONIK SEMADAN SILINDI",
          _tablo_sil("reklam_oci_kuyruk"), None, RC_KIRMIZI),
         # 🔴 BEKLENEN HUKUM OLCULMUS HALDIR, TEMENNI DEGIL: JOIN'in KARSI tarafi
         # semadan silinince fikstur KURULAMAZ -> kapi FAIL-CLOSED `OLCULEMEDI` der

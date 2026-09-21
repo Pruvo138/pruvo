@@ -353,6 +353,17 @@ def vt_ac(vt_yolu=None):
 # ══════════════════════════════════════════════════════════════════════════════
 # KUYRUK DOLDURMA — gerceklesen satin alma JOIN tiklama kimligi
 # ══════════════════════════════════════════════════════════════════════════════
+# 🔴 `json_valid` KALKANI KEYFI DEGIL — CANLI D1'DE OLCULDU (21 Eyl 2026):
+#   `siparisler.atif` kolonu `NOT NULL DEFAULT ''`tir; atif yakalanmamis sipariste deger
+#   BOS DIZEDIR. Canli D1 `json_extract('', '$.ref')` cagrisinda TUM SORGUYU
+#   `SQLITE_ERROR [code: 7500] malformed JSON` ile REDDEDER; YEREL sqlite ise ayni cagriya
+#   sessizce NULL doner. Yani kalkansiz sorgu "yerelde YESIL, canlida KIRMIZI" sinifindadir
+#   ve testle YAKALANAMAZ.
+#   Olculen canli hal: 59 siparisin 2'sinde `atif=''` (ikisi de 'iptal'), odenmis kumede
+#   BUGUN 0 -> sorgu SANS ESERI calisiyordu. Dogrudan/ic gezinmeyle gelen (REF'siz) bir
+#   siparis 'odendi'ye gectigi GUN bu kuyruk komple DURURDU.
+#   CASE kullanilir, WHERE'e yazilmaz: SQLite CASE'i KISA DEVRE degerlendirir, WHERE
+#   yan tumcesinin JOIN kosulundan ONCE kosacagi ise GARANTI DEGILDIR.
 ADAY_SQL = """
 SELECT s.siparis_no      AS siparis_no,
        s.tarih           AS tarih,
@@ -364,7 +375,9 @@ SELECT s.siparis_no      AS siparis_no,
        r.wbraid          AS wbraid,
        r.src             AS src
 FROM siparisler s
-JOIN reklam_ref_gclid r ON r.ref = json_extract(s.atif, '$.ref')
+JOIN reklam_ref_gclid r
+  ON r.ref = CASE WHEN json_valid(s.atif)
+                  THEN json_extract(s.atif, '$.ref') ELSE NULL END
 LEFT JOIN {tablo} k ON k.siparis_no = s.siparis_no
 WHERE s.durum IN ({durumlar})
   AND k.siparis_no IS NULL
