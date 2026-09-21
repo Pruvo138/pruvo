@@ -3,7 +3,9 @@
 
 ESIKLER — OKAN EMRI (6 Eyl 2026, iki emir): ① "baglam kapisi tur 500, 450K olarak
 yeniden duzenle" ② DUZELTME: "uyariyi da 500'e cek, ayri esik istemiyorum".
-Yani TEK ESIK: UYARI == RED == 500 tur / 450K; AYRI BIR UYARI BANDI YOKTUR.
+③ (21 Eyl 2026, birebir): "RED_TUR 700 · RED_JETON 500K — bunu tum evlere yap,
+sadece FaR icin yapmissin."
+Yani TEK ESIK: UYARI == RED == 700 tur / 500K; AYRI BIR UYARI BANDI YOKTUR.
 Sonucu [4] vakasi olcer: hicbir girdide uyari satiri basilmaz (uyari kolu ERISILMEZ,
 olu DEGIL — M6/M7 sabitleri ayirinca uyari GERI GELIYOR, kol calisiyor demektir).
 Bu dosya sayilari KAPIDAN IMPORT ETMEZ, ELDE CIVILER — import etseydi sabitin
@@ -31,8 +33,8 @@ BURASI = os.path.dirname(os.path.abspath(__file__))
 KAPI = os.path.join(BURASI, "baglam-kotasi-kapisi.py")
 
 # ── CIVILENEN ESIKLER (kapidan TURETILMEZ) — TEK ESIK ─────────────────────────────
-RED_TUR, RED_JETON = 500, 450_000
-UYARI_TUR, UYARI_JETON = 500, 450_000      # Okan: "ayri esik istemiyorum"
+RED_TUR, RED_JETON = 700, 500_000
+UYARI_TUR, UYARI_JETON = 700, 500_000      # Okan: "ayri esik istemiyorum"
 
 gecti, kaldi = [], []
 
@@ -98,13 +100,13 @@ F = {}
 def fikstur_kur(kok):
     F["alt"] = transkript_yaz(kok, tur=100, baglam=120_000, ad="alt.jsonl")
     # RED sinirinin BIR ALTI — iki eksen AYRI
-    F["red_jeton_alti"] = transkript_yaz(kok, tur=120, baglam=449_000,
+    F["red_jeton_alti"] = transkript_yaz(kok, tur=120, baglam=499_000,
                                          ad="red-jeton-alti.jsonl")
-    F["red_tur_alti"] = transkript_yaz(kok, tur=499, baglam=90_000,
+    F["red_tur_alti"] = transkript_yaz(kok, tur=699, baglam=90_000,
                                        ad="red-tur-alti.jsonl")
     # RED sinirinin TAM USTU — iki eksen AYRI (VEYA kolu)
-    F["red_jeton"] = transkript_yaz(kok, tur=120, baglam=450_000, ad="red-jeton.jsonl")
-    F["red_tur"] = transkript_yaz(kok, tur=500, baglam=90_000, ad="red-tur.jsonl")
+    F["red_jeton"] = transkript_yaz(kok, tur=120, baglam=500_000, ad="red-jeton.jsonl")
+    F["red_tur"] = transkript_yaz(kok, tur=700, baglam=90_000, ad="red-tur.jsonl")
     # AYRI UYARI BANDI YOK — eski bandin tam ortasindaki noktalar da SESSIZ olmali
     F["eski_bant_tur"] = transkript_yaz(kok, tur=450, baglam=100_000,
                                         ad="eski-bant-tur.jsonl")
@@ -132,26 +134,26 @@ def vaka1():
 
 
 def vaka2():
-    print("\n[2] RED SINIRI — 499 tur / 449K RED DEGIL, 500 tur / 450K RED")
+    print("\n[2] RED SINIRI — 699 tur / 499K RED DEGIL, 700 tur / 500K RED")
     karar, _s = kos("Write", KOD_WRITE, F["red_jeton_alti"])
-    iddia("2a 449K (RED tavani %dK) + kod Write -> IZIN (RED YOK)" % (RED_JETON // 1000),
+    iddia("2a 499K (RED tavani %dK) + kod Write -> IZIN (RED YOK)" % (RED_JETON // 1000),
           karar == "allow", "karar=%s" % karar)
     karar, _s = kos("Write", KOD_WRITE, F["red_tur_alti"])
-    iddia("2b 499 tur (RED tavani %d) + kod Write -> IZIN (RED YOK)" % RED_TUR,
+    iddia("2b 699 tur (RED tavani %d) + kod Write -> IZIN (RED YOK)" % RED_TUR,
           karar == "allow", "karar=%s" % karar)
 
     karar, sebep = kos("Write", KOD_WRITE, F["red_jeton"])
-    iddia("2c 450K JETON ekseni + kod Write -> RED", karar == "deny", "karar=%s" % karar)
-    iddia("2d red gerekcesi SAYIYI ve careyi soyluyor (450K/500 + /clear)",
-          "450K" in sebep and "500" in sebep and "/clear" in sebep and "KAPANIS" in sebep,
+    iddia("2c 500K JETON ekseni + kod Write -> RED", karar == "deny", "karar=%s" % karar)
+    iddia("2d red gerekcesi SAYIYI ve careyi soyluyor (500K/700 + /clear)",
+          "500K" in sebep and "700" in sebep and "/clear" in sebep and "KAPANIS" in sebep,
           sebep)
     karar, _s = kos("Bash", AGIR, F["red_jeton"])
-    iddia("2e 450K + agir Bash -> RED", karar == "deny", "karar=%s" % karar)
+    iddia("2e 500K + agir Bash -> RED", karar == "deny", "karar=%s" % karar)
 
     karar, sebep = kos("Write", KOD_WRITE, F["red_tur"])
-    iddia("2f 500 TUR ekseni (baglam 90K, jeton esigi TETIKLENMEDI) -> RED "
+    iddia("2f 700 TUR ekseni (baglam 90K, jeton esigi TETIKLENMEDI) -> RED "
           "(iki eksen VEYA ile bagli)", karar == "deny", "karar=%s" % karar)
-    iddia("2g tur ekseninin gerekcesi tur SAYISINI basiyor", "tur=500" in sebep, sebep)
+    iddia("2g tur ekseninin gerekcesi tur SAYISINI basiyor", "tur=700" in sebep, sebep)
 
 
 def vaka3():
@@ -214,15 +216,15 @@ def vaka6(kok):
 # Her ÖLDÜRÜCÜ mutant, YUKARIDAKI iddialardan BIRINI adiyla hedefler; taban ile ayni
 # sonucu veren mutant "HEDEFE ULASMADI" diye KIRMIZI yanar.
 MUTANTLAR = [
-    ("M1", "OLDURUCU", "\nRED_JETON = 450_000\n", "\nRED_JETON = 350_000\n",
-     "2a — 449K RED DEGIL iddiasi GERCEKTEN 450K sabitine baglimi",
+    ("M1", "OLDURUCU", "\nRED_JETON = 500_000\n", "\nRED_JETON = 350_000\n",
+     "2a — 499K RED DEGIL iddiasi GERCEKTEN 500K sabitine baglimi",
      [("Write", KOD_WRITE, "red_jeton_alti", "deny")]),
-    ("M2", "OLDURUCU", "\nRED_TUR = 500\n", "\nRED_TUR = 400\n",
-     "2b — 499 tur RED DEGIL iddiasi GERCEKTEN 500 sabitine baglimi",
+    ("M2", "OLDURUCU", "\nRED_TUR = 700\n", "\nRED_TUR = 400\n",
+     "2b — 699 tur RED DEGIL iddiasi GERCEKTEN 700 sabitine baglimi",
      [("Write", KOD_WRITE, "red_tur_alti", "deny")]),
     ("M3", "OLDURUCU", "    if tur >= RED_TUR or baglam >= RED_JETON:\n",
      "    if False:\n",
-     "2c/2f — RED kolu kaldirilinca 450K ve 500 tur GECMELI",
+     "2c/2f — RED kolu kaldirilinca 500K ve 700 tur GECMELI",
      [("Write", KOD_WRITE, "red_jeton", "allow*"),
       ("Write", KOD_WRITE, "red_tur", "allow*")]),
     ("M4", "OLDURUCU", "    if tur >= RED_TUR or baglam >= RED_JETON:\n",
@@ -238,11 +240,11 @@ MUTANTLAR = [
     # M6/M7 iki isi BIRDEN olcer: (a) "ayri bant YOK" iddiasi gercekten UYARI
     # sabitlerine bagli mi, (b) uyari kolu OLU MU — sabit ayrilinca uyari GERI
     # GELIYORSA kol calisiyor, yalnizca ERISILMEZ demektir.
-    ("M6", "OLDURUCU", "\nUYARI_JETON = 450_000\n", "\nUYARI_JETON = 300_000\n",
-     "4 — UYARI_JETON ayrilinca 449K'da uyari GERI GELIR (kol olu DEGIL, erisilmez)",
+    ("M6", "OLDURUCU", "\nUYARI_JETON = 500_000\n", "\nUYARI_JETON = 300_000\n",
+     "4 — UYARI_JETON ayrilinca 499K'da uyari GERI GELIR (kol olu DEGIL, erisilmez)",
      [("Write", KOD_WRITE, "red_jeton_alti", "allow+UYARI")]),
-    ("M7", "OLDURUCU", "\nUYARI_TUR = 500\n", "\nUYARI_TUR = 450\n",
-     "4 — UYARI_TUR ayrilinca 499 turda uyari GERI GELIR (kol olu DEGIL, erisilmez)",
+    ("M7", "OLDURUCU", "\nUYARI_TUR = 700\n", "\nUYARI_TUR = 450\n",
+     "4 — UYARI_TUR ayrilinca 699 turda uyari GERI GELIR (kol olu DEGIL, erisilmez)",
      [("Write", KOD_WRITE, "red_tur_alti", "allow+UYARI")]),
     ("M8", "KONTROL", '"(defter/kutu Write · git commit/push · okuma-olcme)."',
      '"(defter/kutu Write · git commit/push · okuma-olcme). [kontrol metni]"',

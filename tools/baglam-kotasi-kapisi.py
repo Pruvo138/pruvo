@@ -9,9 +9,9 @@ NEDEN VAR — OLCULDU, TAHMIN DEGIL (BaBa filo olcumu, her evin son transkripti)
   mimar "bir sey daha bakayim" diyerek kapanisi ERTELER.
 
 NE YAPAR (iki esik, iki ayri kol):
-  UYARI  (>=500 tur VEYA >=450K): kol DURUYOR ama ERISILMEZ — Okan 6 Eyl "ayri esik
+  UYARI  (>=700 tur VEYA >=500K): kol DURUYOR ama ERISILMEZ — Okan 6 Eyl "ayri esik
          istemiyorum" dedi, esik RED ile AYNI noktaya cekildi; ayrintisi ESIKLER blogunda.
-  RED    (>=500 tur VEYA >=450K): YALNIZ KAPANIS-SINIFI arac gecer; gerisi RED
+  RED    (>=700 tur VEYA >=500K): YALNIZ KAPANIS-SINIFI arac gecer; gerisi RED
          "ONCE kapanis + /clear". Kapanis sinifi = defteri/kutuyu yazmak, commit/push
          etmek ve okuma/olcme (grep/ls/git status) — yani oturumu KAPATMAYA yarayan
          her sey. Boylece kapi, kapanmasini istedigi seyi ENGELLEMEZ
@@ -47,10 +47,15 @@ import sys
 #    sabitler ayrilir ayrilmaz kol yeniden CALISIR. Bu, `baglam-kotasi-test.py`
 #    [4] vakasinda OLCULUR (hicbir fikstur uyari basmaz) ve M6/M7 mutantlari
 #    sabitleri ayirinca uyari GERI GELIR — yani kol olu degil, ERISILMEZ.
-UYARI_TUR = 500
-UYARI_JETON = 450_000
-RED_TUR = 500
-RED_JETON = 450_000
+# 🔴 Emir 3 (21 Eyl 2026, birebir): "RED_TUR 700 · RED_JETON 500K — bunu tum evlere
+#    yap, sadece FaR icin yapmissin." FaR 19 Eyl'de kendi kopyasina almisti
+#    (faralya/tools/baglam-kotasi-kancasi.py, commit 7952439); PRUVO kapisi o gun
+#    500/450K'da kalmisti. TEK ESIK duzeni (Emir 2) AYNEN korunur: UYARI == RED.
+#    Bu dosyayi 9 evin settings.json'u cagirir -> tek degisiklik dokuzunu birden kapatir.
+UYARI_TUR = 700
+UYARI_JETON = 500_000
+RED_TUR = 700
+RED_JETON = 500_000
 MEKANIK_WRITE = 15          # kod/test dosyasina Write sayisi
 
 # Kod/test sayilan uzantilar (mekanik kol). Defter/kutu/markdown BURADA DEGIL:
