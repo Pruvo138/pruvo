@@ -304,6 +304,7 @@ setTimeout(L,5000);})();
     // ziyaretci sonradan arama motorundan donse bile eski paid REF'i korur (dogru atif onceligi).
     if (record && (!hasClickId || record.gclid === url.gclid)) {
       activeRef = record.ref;
+      persistPaidOnLoad(record);   // OCI #2: donen paid ziyaretci de lead tikini beklemez
       return;
     }
 
@@ -319,6 +320,7 @@ setTimeout(L,5000);})();
                  grup: group, src: source, ts: now };
       writeRecord(record);
       activeRef = ref;
+      persistPaidOnLoad(record);   // OCI #2: ilk paid tikta da lead beklenmez
       return;
     }
 
@@ -411,7 +413,15 @@ setTimeout(L,5000);})();
       if (!(record.gclid || record.gbraid || record.wbraid)) { return; }
     }
     if (record.logged) { leadSent = true; return; }
+    if (persistRef(record)) { leadSent = true; }
+  }
 
+  /* REF -> click-id eslemesini sunucuda (reklam_ref_gclid) KALICI kilar. Govde ve guard'lar
+     sendLead'den AYNEN cikarildi; tek fark CAGRI YERININ artik birden fazla olmasi.
+     Idempotent iki kat: istemcide `record.logged`, sunucuda `INSERT OR IGNORE`
+     (ref PRIMARY KEY, first-write-wins). Doner: beacon kuyruga girdi mi. */
+  function persistRef(record) {
+    if (!record || record.logged) { return false; }
     var payload = { ref: record.ref, grup: record.grup, src: record.src, ts: record.ts };
     if (record.gclid) { payload.gclid = record.gclid; }
     if (record.gbraid) { payload.gbraid = record.gbraid; }
@@ -427,10 +437,24 @@ setTimeout(L,5000);})();
       ok = false;
     }
     if (ok) {
-      leadSent = true;
       record.logged = true;
       writeRecord(record);
     }
+    return ok;
+  }
+
+  /* Reklam kaydini SAYFA ACILISINDA kalicilastirir; daha once yalnizca sohbet baglantisina
+     tiklandiginda yaziliyordu, dolayisiyla baglantiya hic dokunmadan odemeye gecen ziyaretci
+     icin kayit hic olusmuyordu.
+
+     Kapsam bilerek dar: organik ziyaret bu kola GIRMEZ — her acilista yazmak kaydi bir ziyaret
+     loguna cevirirdi. Gizlilik: yeni bir alan TOPLANMAZ; bu kol zaten analitik rizasi ve
+     tiklama kimligi sarti altindadir. Degisen tek sey ZAMAN, VERI DEGIL. */
+  function persistPaidOnLoad(record) {
+    if (!record || record.src === SEARCH_SRC) { return; }
+    if (!hasConsent()) { return; }
+    if (!(record.gclid || record.gbraid || record.wbraid)) { return; }
+    persistRef(record);
   }
 
   initialize();
