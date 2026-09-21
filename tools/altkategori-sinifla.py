@@ -52,9 +52,12 @@ ONUNE almak 27 ANOTU pervane rafina tasirdi — toplama degil REGRESYON. Bu yuzd
 sirasi DEGISTIRILMEDI. Kayit ki bir sonraki tur ayni "duzeltmeyi" yeniden onermesin.
 
 ── ESIKLER (mimar karari K4) ──────────────────────────────────────────────────────────
-  * Bir KATEGORI ancak >=100 urunu varsa alt kategori ALIR. Bugun hak eden 6 kategori
-    asagida; kalan 8 kategori (Ofis 71, Bisiklet 31, Bahce 25, Tamirat 25, Jenerator 23,
-    Kamera 21, Skan Art 17, Oyun/Hobi 15) alt kategori ALMAZ. Bu bir EKSIKLIK DEGIL
+  * Bir KATEGORI ancak >=100 urunu varsa alt kategori ALIR. 🔴 ASAGIDAKI SAYILAR
+    KATALOGLA BIRLIKTE KAYAR — YENIDEN OLC, KOPYALAMA: bu satir 2 Agu'da "Bisiklet 31"
+    ve "Kamera 21" yaziyordu, ikisi de BAYATLADI (Bisiklet 5 Eyl'de 2.618, Kamera 21
+    Eyl'de 1.334) ve ikisi de esigi kendi kendine gecti. 21 Eyl 2026 olcumu (38.616
+    kayit): kume TANIMLI 8 kategori · alt kategori ALMAYAN 6 kategori (Oyun/Hobi 85,
+    Bahce 73, Ofis 71, Jenerator 41, Tamirat 35, Skan Art 16). Bu bir EKSIKLIK DEGIL
     KARARDIR: tek ekranda gezilen kategoriye filtre seridi koymak gurultu uretir.
   * Bir GRUP ancak >=15 urun tasiyorsa kumeye girer. Altinda kalan adaylar `ELENEN`
     sinifiyla GEREKCESIYLE kayitli kalir (UYUM_MARKA_ELENEN deseni).
@@ -552,6 +555,161 @@ ADAYLAR = collections.OrderedDict([
          "K1 ihlali: BICIM adi (olcumde 9 urun)"),
         ("Dişliler", SEKIL_RED, ("disli", "dislisi"),
          "K1 ihlali: BICIM adi (olcumde 11 urun)"),
+    )),
+    # ══ KAMERA — 1.334 urun (21 Eyl). Okan emri: "kamera kategorisini alt kategori ve
+    # markalara bolerek ana sayfaya al". 11 grup ADI OKAN KARARIDIR (bayt olarak korunur);
+    # bu tablonun isi ADLARI degil, hangi urunun hangi gruba dustugunu belirlemektir.
+    #
+    # 🔴 ONCELIK GEREKCESI (K8) — NAIF ILK-ESLESME YETMEZ: olculdu ki Kamera kayitlarinin
+    # %48'i BIRDEN FAZLA kurala uyuyor ("50mm lens icin arka kapak adaptoru", "pil kapagi
+    # tutucusu"). Sira su UC KATMANDIR ve her katman bir ONCEKININ istisnasi degil, daha
+    # DAR bir evrendir:
+    #   1) AYRI ALAN — `Teleskop ve Astro` (astronomi optigi) ve `Araç Kamera Montajı`
+    #      (araca sabitlenen kamera) fotograf aksesuari evreninin DISINDADIR; en basta
+    #      olmazlarsa "teleskop adaptoru" bir lens adaptoru, "geri gorus kamerasi
+    #      braketi" bir tripod montaji sanilir.
+    #   2) URUNUN KENDI TIPI (K5 — TIP YERI YENER): `Uzaktan Kumanda`, `Pil ve Şarj`,
+    #      `Filtre ve Parasoley`, `Lens Kapakları`, `Kayış ve Taşıma`. OLCULDU: bunlar
+    #      `Flaş ve Işık`/`Lens Adaptörleri`nin ARKASINA alindiginda "Lens Parasoleyi
+    #      (Lens Hood)" `Flaş ve Işık`a, "Lens Kapağı Tutucusu" `Kayış ve Taşıma`ya
+    #      dusuyordu — baglanti noktasi (hot shoe, aski) urunun TIPINI yeniyordu.
+    #   3) SISTEM, sonra YER: `Flaş ve Işık` -> `Lens Adaptörleri` -> `Gövde ve Kafes`.
+    #      🔴 `Gövde ve Kafes` LENS ADAPTORLERINDEN SONRA olmak ZORUNDA: adaptor
+    #      aciklamalarinin govdesi "... lensleri ... govdelere baglayan" kalibidir
+    #      (olculdu: `govdeler` 36, `govdelere` 32, `govdeye` 28 baslik) — YER adi one
+    #      alinsaydi adaptorlerin buyuk kismi `Gövde ve Kafes`e sizardi.
+    #   4) ARTIK KOVA EN SONDA: `Montaj ve Tripod`.
+    #
+    # 🔴 SEKIL JETONLARI GRUP ADINA CIKMADI (K1) — baslik ekseninin en buyuk jetonlari
+    # `adaptoru` (214), `kapagi` (200), `tutucusu` (72), `montaj` (65), `kutusu` (64).
+    # `Tutucular`/`Kapaklar`/`Braketler` adlari ACILMADI; bare `kapak`/`kapagi`/`tutucu`/
+    # `halka`/`tapa`/`kutu` terimleri ARTIK kovasina kondu (Otomobil/Marin/Bisiklet ile
+    # AYNI desen). `Lens Kapakları` YALNIZ BILESIK ifadelerle eslesir ("lens kapagi",
+    # "arka kapak", "govde kapagi") — bare `kapak` ona verilseydi ad bir BICIM kovasi
+    # olurdu.
+    #
+    # 🔴 MARKA JETONU TERIM OLARAK YAZILAMAZ (Bisiklet'teki AYNI ders): `urun_metni`
+    # marka jetonlarini SILER, yani `canon`/`gopro`/`zwo` terimleri OLU kalirdi. Kamera
+    # ekseni jenerik Turkce/teknik jetonlarla olculur.
+    #
+    # 🔴 2. GECIS MIKNATISI OLCULDU VE KAPATILDI — KUCUK GRUP CANLIYKEN TEHLIKELIDIR:
+    # ilk taslakta 1. gecis BOS havuzu 62 kayitti ve yakinlik kolu bunlarin 16'sini
+    # `Araç Kamera Montajı`ya atadi ("Güç Düğmesi", "Zoom Dişlisi", "Film Sarma Kolu" —
+    # HICBIRI araca ait DEGIL). SEBEP: o grubun sozlugu YALNIZ 5 urunden turuyor, n_grup
+    # kucukken log-odds nadir jetonlara devasa puan veriyor, yani ESIK ALTI GRUP BIR
+    # MIKNATISA DONUSUYOR. Cozum kolu DEGISTIRMEK degil (ESIK_YAKINLIK tum kategorilerin
+    # ortak sabiti) 1. GECIS HAVUZUNU DARALTMAKTI: BOS kalan kayitlarin terimleri DOGRU
+    # gruplara yazildi (handgrip/tutus/dugme/kadran -> Gövde ve Kafes · disli/follow
+    # focus/kablo/kiti -> artik kova · pinhole/tube/mft -> Lens Adaptörleri · lens
+    # siperligi/hoods/bokeh -> Filtre ve Parasoley). BOS havuzu 62 -> 3 indi ve 2. GECIS
+    # ARTIK HICBIR KAYIT ATAMIYOR (0) — yanlis etiket kalmadi.
+    #
+    # OLCULEN NIHAI DAGILIM (21 Eyl, 1.334 urun · 1.gecis 1.331 · 2.gecis 0 · 3.gecis 3):
+    # Lens Adaptörleri 235 · Pil ve Şarj 187 · Filtre ve Parasoley 185 ·
+    # Gövde ve Kafes 156 · Montaj ve Tripod 143 (artik kova) · Flaş ve Işık 125 ·
+    # Teleskop ve Astro 117 · Lens Kapakları 113 · Kayış ve Taşıma 47 ·
+    # Uzaktan Kumanda 21 · Araç Kamera Montajı 5 · BOS KALAN 0.
+    ("Kamera", (
+        # ── 1) AYRI ALAN ────────────────────────────────────────────────────────────
+        ("Teleskop ve Astro", BELIRGIN,
+         ("teleskop", "teleskobu", "teleskoplar", "okuler", "okuleri", "okulerleri",
+          "bahtinov", "astro", "astrofotografi", "astronomi", "durbun", "durbunleri",
+          "mikroskop", "mikroskobu", "ekvatoryal", "optik tup", "yildiz"),
+         "AYRI OPTIK ALAN — olculdu 117 urun; en basta olmazsa 'teleskop adaptoru' "
+         "`Lens Adaptörleri`ne, 'okuler' `Gövde ve Kafes`e dusuyordu"),
+        ("Araç Kamera Montajı", BELIRGIN,
+         ("geri gorus", "arka gorus", "on gorus", "dikiz", "dashcam",
+          "gosterge kamera", "on kamera", "torpido", "kontrol paneli", "arac ici",
+          "gosterge paneli"),
+         "AYRI ALAN (araca sabitlenen kamera) — olculdu 5 urun, K4 grup esiginin (15) "
+         "ALTINDA; kumede olmasi OKAN KARARI. Terimler ARAC BAGLAMI adlandirir, bare "
+         "`kamera` ALINMADI (93 baslikta geciyor, kategoriye ait jenerik jeton)"),
+        # ── 2) URUNUN KENDI TIPI (K5: TIP YERI/BAGLANTI NOKTASINI YENER) ────────────
+        ("Uzaktan Kumanda", BELIRGIN,
+         ("uzaktan", "kumanda", "kumandasi", "deklansor", "deklansoru", "kablosuz",
+          "intervalometre", "zamanlayici", "tetikleyici", "shutter", "kablolu tetik"),
+         "TIP — olculdu 21 urun"),
+        ("Pil ve Şarj", BELIRGIN,
+         ("pil", "pili", "pilleri", "piller", "batarya", "bataryasi", "bataryalar",
+          "sarj", "dummy", "guc kaynagi", "powerbank", "hafiza karti", "kart yuvasi",
+          "pil yuvasi", "pil bolmesi", "battery door", "pil kapisi"),
+         "TIP — olculdu 186 urun (pil 89 · pili 36 · bataryalar 12 · sarj 16 baslik)"),
+        ("Filtre ve Parasoley", BELIRGIN,
+         ("filtre", "filtresi", "filtreleri", "parasoley", "parasoleyi", "hood",
+          "hoods", "lens siperligi", "lens siperi", "gunes siperligi", "gunes siperi",
+          "nem siperi", "ciy siperi", "gunesligi", "golgelik", "golgeligi",
+          "parlama onleyici", "polarizasyon", "bokeh"),
+         "TIP — olculdu 174 urun. 🔴 bare `siperlik`/`siperligi` CIKARILDI: 'Göz "
+         "Siperliği (Eyecup)' urunlerini yutuyordu (olculdu) — o icerik "
+         "`Gövde ve Kafes`in"),
+        ("Lens Kapakları", BELIRGIN,
+         ("lens kapagi", "lens kapaklari", "lens kapak", "objektif kapagi",
+          "objektif kapak", "arka kapak", "arka kapagi", "govde kapagi", "body cap",
+          "rear cap", "kapak seti", "on kapak", "on kapagi"),
+         "TIP — olculdu 113 urun. YALNIZ BILESIK ifade: bare `kapak`/`kapagi` (200 "
+         "baslik) BICIM jetonudur ve ARTIK kovasindadir (K1)"),
+        ("Kayış ve Taşıma", BELIRGIN,
+         ("kayis", "kayisi", "kayisina", "aski", "askisi", "askiya", "tasima",
+          "tasiyici", "canta", "cantasi", "kilif", "kilifi", "omuz", "kemer",
+          "boyun", "saklama", "organizer"),
+         "KULLANIM ALANI — olculdu 48 urun. `Lens Kapakları`ndan SONRA (K5 kosesi): "
+         "'Lens Kapağı Tutucusu (Askıya Takılan)' tipi 14 baslik aksi sirada buraya "
+         "dusuyordu — `aski` BAGLANTI noktasi, `lens kapagi` urunun TIPI"),
+        # ── 3) SISTEM, sonra YER ────────────────────────────────────────────────────
+        ("Flaş ve Işık", BELIRGIN,
+         ("flas", "flasi", "flaslari", "speedlite", "speedlight", "difuzor",
+          "difuzoru", "hotshoe", "hot shoe", "hot-shoe", "cold shoe", "snoot",
+          "softbox", "halka isik", "ring isik", "ring flash", "ring light",
+          "flas kizagi", "aydinlatma", "yumusatici"),
+         "SISTEM — olculdu 126 urun. 🔴 bare `isik`/`isigi`/`led` CIKARILDI: aciklama "
+         "boilerplate'inde her yerde geciyor ve parasoley/vizor urunlerini yutuyordu "
+         "(olculdu: 'Lens Parasoleyi (Lens Hood)' buraya dusmustu)"),
+        ("Lens Adaptörleri", BELIRGIN,
+         ("adaptor", "adaptoru", "adaptorleri", "adaptorlu", "mount", "bayonet",
+          "mft", "m42", "uzatma tupu", "extension tube", "tube", "ara halka",
+          "ters cevirme", "donusturucu", "converter", "coverter", "yukseltici",
+          "makro halka", "step up", "step down", "cevirici", "pinhole", "spyglass",
+          "obscura"),
+         "SISTEM (lens<->govde bagi) — olculdu 227 urun, kumenin EN BUYUK grubu. bare "
+         "`lens`/`objektif` ALINMADI: kategorinin TAMAMINA ait jenerik jeton (362 "
+         "baslik), grup adini catik bir torbaya cevirirdi"),
+        ("Gövde ve Kafes", BELIRGIN,
+         ("govde", "govdesi", "kafes", "kafesi", "cage", "rig", "riggi", "grip",
+          "handgrip", "kabza", "kabzasi", "kavrama", "kavramasi", "tutus", "tutamak",
+          "tutamagi", "basparmak", "dayanagi", "destegi", "dugme", "dugmesi", "kolu",
+          "carki", "kadran", "anahtari", "film sarma", "sarma kolu", "vizor", "vizoru",
+          "eyecup", "eyepiece", "goz mercegi", "goz siperligi", "goz siperi", "ekran",
+          "ekrani", "lcd", "gimbal", "sapi", "gripi", "kapi", "muhafazasi",
+          "ruzgarlik", "ruzgarligi"),
+         "YER — olculdu 114 urun. `Lens Adaptörleri`nden SONRA olmak ZORUNDA (yukarida "
+         "3. madde): adaptor aciklamalari 'govdelere baglayan' kalibiyla yazilir"),
+        # 🔴 ARTIK KOVA — oncelikte EN SONDA (kural _sira()'da, TEK yerde).
+        # K6 geregi DURUSTCE adlandirilmis: olculen icerigi montaj 65 · tutucusu 72 ·
+        # kapagi 200 · kutusu 64 · halkasi 58 · tripod 16 · braketi 12 · klipsi 14.
+        ("Montaj ve Tripod", ARTIK,
+         ("tripod", "tripodu", "montaj", "montaji", "montajli", "tutucu", "tutucusu",
+          "braket", "braketi", "plaka", "plakasi", "arca", "quick release", "stand",
+          "standi", "klips", "klipsi", "aparat", "aparati", "masaustu", "monopod",
+          "kizak", "kizagi", "ayak", "ayagi", "vida", "vidali", "seti", "parcasi",
+          "baglanti", "baglantisi", "kelepce", "kelepcesi", "kapak", "kapagi",
+          "halka", "halkasi", "tapa", "tapasi", "kutu", "kutusu", "yuva", "yuvasi",
+          "disli", "dislisi", "follow focus", "mekanizmasi", "sistemi", "kiti",
+          "eklentisi", "kablo", "kablosu", "klemp", "koruyucu", "koruyucusu",
+          "kafasi", "cubugu", "rehberi"),
+         "artik kova (SON) — hicbir alan/tip/sistem sinyali olmayan kamera aksesuari"),
+        # ── REDDEDILEN sekil adlari (K1; kayit ki bir sonraki tur yeniden tartismasin) ──
+        ("Adaptörler", SEKIL_RED, ("adaptor", "adaptoru"),
+         "K1 ihlali: BICIM/baglanti adi. Baslik ekseninin EN BUYUK jetonu (214 urun) — "
+         "sayisi degil EKSENI yanlis; kullanim alani `Lens Adaptörleri`dir"),
+        ("Kapaklar", SEKIL_RED, ("kapak", "kapagi"),
+         "K1 ihlali: BICIM adi (olcumde 200 urun); icerik ARTIK kovasinda, bilesik "
+         "ifadeler `Lens Kapakları`nda"),
+        ("Tutucular", SEKIL_RED, ("tutucu", "tutucusu"),
+         "K1 ihlali: BICIM adi (olcumde 121 urun) — Motosiklet/Bisiklet/Elektronik'te "
+         "AYNI karar verildi"),
+        ("Halkalar", SEKIL_RED, ("halka", "halkasi"),
+         "K1 ihlali: BICIM adi (olcumde 68 urun); filtre/adaptor halkasi zaten kendi "
+         "kullanim gruplarinda"),
     )),
 ])
 
