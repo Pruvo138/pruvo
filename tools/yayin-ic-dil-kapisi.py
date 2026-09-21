@@ -380,7 +380,22 @@ def kapsam(kok):
 
 # KAYNAK kolu: tarayiciya AYNEN inen kaynak dosyalar (index.html -> index.built.html'in
 # govdesi; JS varliklari _site'a aynen kopyalanir). build.py GEREKMEZ.
-KAYNAK_VARLIKLAR = ("index.html",) + tuple(r for r in SABIT_VARLIKLAR if r != "index.built.html")
+#
+# 🔴 21 Eyl 2026 — OLCULEN DELIK: `attribution-ref.js` SABIT_VARLIKLAR'da YOK'tu, dolayisiyla
+# KAYNAK kolunun kapsamina hic girmiyordu. Ama build.py onu yasal sayfalara AYNEN gomuyor →
+# yorumu tarayiciya iniyor. Sonuc: icine ic sahis adi + ic is olcumu tasiyan bir yorum KAYNAK
+# kolundan (saniyeler) gecti, ancak URETILEN CIKTI kolunda (~20 dk build'in sonunda) yakalandi:
+# `IHLAL 4 vurus / 4 dosya` (hakkimizda·iletisim·sss·gizlilik) → build failure → deploy ve yayin
+# SKIPPED → katalog canliya INMEDI. Kapinin menzili, olctugu yuzeyin GERCEK kapsamindan dardi.
+# Ayri tuple: SABIT_VARLIKLAR uretilen-agac kolunun tabanidir, orayi genisletmek baska iddialari
+# kaydirir — bu dosya yalniz KAYNAK koluna eklenir.
+# 🔴 KAYNAK_TABAN'a EKLENMEZ — olculdu: eklenince sentetik fikstur agaclarinda dosya "eksik"
+# sayilip 7 KS vakasi YESIL/KIRMIZI yerine OLCULEMEDI'ye (kod=3) dustu (90/90 -> 83/90).
+# TABAN'in isi "bos kumede vurus 0 YESIL'i imkansiz kilmak"; onu index.html + TABAN_JS zaten
+# sagliyor. Buraya eklemek kapsami genisletir, tabani DEGISTIRMEZ.
+KAYNAK_EK_VARLIKLAR = ("attribution-ref.js",)
+KAYNAK_VARLIKLAR = (("index.html",) + KAYNAK_EK_VARLIKLAR
+                    + tuple(r for r in SABIT_VARLIKLAR if r != "index.built.html"))
 KAYNAK_TABAN = ("index.html",) + TABAN_JS
 
 
