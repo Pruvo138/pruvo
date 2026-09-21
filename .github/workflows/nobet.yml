@@ -1299,6 +1299,16 @@ jobs:
       - name: "Urun denetim kapisi — ATIF KOLU kabul + mutant (K418: atif-zorunlu => public lisans)"
         if: ${{ !cancelled() }}
         run: python3 tools/atif-kolu-test.py
+      # RIZA TAVANI (21 Eyl 2026, cip KraL-RizaOrani-21Eyl): Ads'e OCI ile yuklenebilecek
+      # satin almanin UST SINIRI riza oranidir — tiklama kimligi rizasiz oturumda HIC
+      # saklanmiyor (attribution-ref.js:355). Olcum ekseni SIPARIS: payda `siparisler.atif.
+      # $.ref` 'REF:GS-' (riza kapisinin DISINDA yazilir), pay `reklam_ref_gclid` tik
+      # kimlikli satir (riza kapili). Bu adim CANLI D1'e DOKUNMAZ: 25 vaka fikstur +
+      # izole kopya mutanti (payda kaynagi · pay kaynagi · alan denetimi) + negatif
+      # kontrol + fail-closed girdi ucu. Agsiz, <2 s.
+      - name: "Riza tavani olcumu — kabul + mutant (OCI tavani, agsiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/riza-tavani-test.py
       # SERIT B — bu adim 68 adimindan AYRILDI (kapi SILINMEDI, ikiye bolundu):
       # bayraksiz (gercek olcum) kol SERIT A'da bloklayici kaldi, oz-nobetci kolu
       # buraya tasindi. Gerekce: tools/is-akisi-kapisi.py :: SERIT_B tablosu.
