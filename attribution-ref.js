@@ -338,18 +338,13 @@
     return ok;
   }
 
-  /* 🔴 OCI #2 (21 Eyl 2026) — SATIN ALMA YOLU. OCI #1 click-id'yi YALNIZ wa.me lead tikinda
-     kalicilastiriyordu (sendLead -> isTarget guard'i). Reklamdan gelip wa.me'ye HIC dokunmadan
-     odemeye giden ziyaretci icin `reklam_ref_gclid`e satir HIC dusmuyordu -> siparisin
-     `atif.ref`i JOIN'de karsiliksiz kaliyor -> o satin alma Ads'e OCI ile YUKLENEMIYOR.
-     Olculdu (ArTisT, 21 Eyl): GA4'te 1-21 Eyl 21 purchase, Ads'te 0; Ads'in son satin almasi
-     30 Agu. Kapatan bu cagri: paid kayit SAYFA ACILISINDA kalicilasir, lead tikini BEKLEMEZ.
+  /* Reklam kaydini SAYFA ACILISINDA kalicilastirir; daha once yalnizca sohbet baglantisina
+     tiklandiginda yaziliyordu, dolayisiyla baglantiya hic dokunmadan odemeye gecen ziyaretci
+     icin kayit hic olusmuyordu.
 
-     🔴 KAPSAM DAR TUTULDU — ORGANIK (src=OG) BU KOLA GIRMEZ. Sebep: OG kaydini her sayfa
-     acilisinda yazmak, lead tablosunu ZIYARET LOGUNA cevirirdi (anlam + hacim degisir).
-     Organik kol bugunku "lead ani" anlaminda KALIR.
-     GIZLILIK: yeni bir alan TOPLANMAZ; paid kol zaten hasConsent() + click-id sarti altinda.
-     Degisen tek sey ZAMAN (lead tiki -> sayfa acilisi), VERI DEGIL. */
+     Kapsam bilerek dar: organik ziyaret bu kola GIRMEZ — her acilista yazmak kaydi bir ziyaret
+     loguna cevirirdi. Gizlilik: yeni bir alan TOPLANMAZ; bu kol zaten analitik rizasi ve
+     tiklama kimligi sarti altindadir. Degisen tek sey ZAMAN, VERI DEGIL. */
   function persistPaidOnLoad(record) {
     if (!record || record.src === SEARCH_SRC) { return; }
     if (!hasConsent()) { return; }
