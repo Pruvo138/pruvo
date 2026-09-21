@@ -5315,7 +5315,14 @@ jobs:
       # ilk parti eszamanli istek onun arkasinda kuyruga giriyordu. 4 OLDURUCU (3'u SM1
       # kolu, 1'i S8 zamanlama kolu) + 4 KONTROL (biri BEYAN EDILMIS kor nokta: iki tarafi
       # AYNI sekilde korlestiren degisiklik ayrisma URETMEZ). Agsiz, ~1 dk.
-      - name: Arama parite karar-cekirdegi (sozlesme + fikstur + yayin penceresi + tavan, AGSIZ)
+      # 🔴 HIZ FRENI KOLU (21 Eyl 2026): `canliGetir`in 429 kolu. Fren yalnizca GERCEK bir
+      # 429 goruldugunde devreye girer; bu kolun ASIL olctugu sey V1'dir — 429 YOKKEN
+      # HICBIR ek bekleme uretilmedigi, yani BU BLOKLAYICI SERININ UZAMADIGI. Yaninda
+      # iki REGRESYON nobetcisi tasir: V7 (fren TAVANA yakinsar, basari serisi onu GERI
+      # INDIRMEZ) ve V8 (butce DUVAR SAATIDIR, eszamanli iscilerin beklemelerini
+      # TOPLAMAZ). Ikisi de canli kosumda OLCULMUS kusurlardir: ilkinde kosum 141/1334,
+      # ikincisinde 539/1334 sorguda durmustu. Agsiz (global fetch sahtelenir), ~15 sn.
+      - name: Arama parite karar-cekirdegi (sozlesme + fikstur + yayin penceresi + tavan + hiz freni, AGSIZ)
         if: ${{ !cancelled() }}
         run: |
           python3 tools/parite-sozlesme-test.py
@@ -5323,6 +5330,7 @@ jobs:
           node tools/parite-yayin-fikstur-test.js
           node tools/parite-tavan-test.js --kendini-test
           node tools/parite-etiket-test.js
+          node tools/parite-hiz-freni-test.js
           python3 tools/parite-fikstur-olcum-ortami-mutasyon.py
 
       # 🔴 SENARYO CAPASI KOLU (7 Eyl 2026, defter K196'nin icrasi — OLCULDU):
