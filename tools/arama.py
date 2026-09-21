@@ -866,7 +866,7 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 49 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 52 jeton) ──
     # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
     # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
     # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
@@ -893,7 +893,14 @@ UYUM_MARKA_IZINLI = frozenset({
     # sayi 49 -> 51 ELLE guncellendi ve YINE `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK
     # dogrulandi (49 -> 51, esitlik TUTTU). Ayni turda `len(UYUM_MARKA_IZINLI)`
     # 188 -> 190 ve FARK (izinli − eki) 139 SABIT kaldi -> ikisi de IKI kumeye girdi.
-    # 🔴 UCUNCU TALEP (`Fujifilm`) BU TURDA GIRMEDI — gerekce C grubunun 12. tur
+    # 13. tur (21 Eyl 2026, KraL-Whitelist-Fujifilm): TEK jeton girdi (`Fujifilm`),
+    # 12. turun ACIK biraktigi VERI kalemi giderildikten sonra. Basliktaki sayi BAYATTI
+    # (metin 49 diyordu, kumenin GERCEK boyu 51'di — 10./11./12. tur govdede sayiyi
+    # guncelledi ama BU BASLIGI unuttu, tam da yukarida uyarilan tuzak). Bu turda
+    # baslik 49 -> 52 ELLE duzeltildi ve `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK
+    # dogrulandi (51 -> 52, esitlik TUTTU). Ayni turda `len(UYUM_MARKA_IZINLI)`
+    # 190 -> 191 ve FARK (izinli − eki) 139 SABIT kaldi -> jeton IKI kumeye de girdi.
+    # 🔴 12. TURUN UCUNCU TALEBI BUYDU — o turda GIRMEDI, gerekce C grubunun 12. tur
     # basliginda, ADIYLA ve olcumle yazili (uyum-kapisi A1/V16 kirmizisi, VERI kalemi).
     # 🔴 KALEM HALA ACIK: bu bir MAKINE iddiasi degil, tek seferlik bir olcumdur —
     # bir sonraki tur yine guncellemeyi UNUTABILIR. Kalici cozum bu sayiyi `len()`ten
@@ -1448,6 +1455,82 @@ UYUM_MARKA_IZINLI = frozenset({
     #   ANLAMLIDIR, kor bir yesil DEGILDIR. Mutant CANLI govdeye DEGIL izole kopyaya
     #   uygulandi; canli `tools/arama.py` mutant kosumlarindan ETKILENMEDI.
     "Hero", "Panasonic",
+    # 13. tur, C grubu (1) — mimar karari 21 Eyl 2026 (cip KraL-Whitelist-Fujifilm).
+    #   Bu jeton 12. turun UCUNCU talebiydi ve o turda SOZLUK gerekcesiyle DEGIL, VERI
+    #   kusuru yuzunden GIRMEDI (yukarida ADIYLA yazili). Kusur giderildi: 19 Eyl
+    #   `16a4489f5` commit'i `canon-ef-tilt-adaptor-eosm-fuji` kaydini duzeltti.
+    #   SINIF: `Fujifilm` (Japonya) FOTOGRAF MAKINESI/OPTIK ureticisidir — EV SAHIBI
+    #   marka, uretilen parca (lens adaptoru, kapak, braket) ONA takilir. YENI SINIF
+    #   ACMAZ: `Canon`, `Nikon`, `Sony`, `Panasonic`, `GoPro`, `Yunteng` ZATEN kumede.
+    #   Olculen katalog agirligi (38609 urun, tam tarama):
+    #     `Fujifilm`  marka[] TAM 0 · uyum[].marka TAM 0 · uyum[].model TAM 0 ·
+    #        baslik TAM-YAZIM alt-dizge 3 · aciklama TAM-YAZIM alt-dizge 4
+    #   🔴 SPEC'TEKI "baslik 6 · aciklama 8" SAYILARI BUYUK-KUCUK DUYARSIZ `fuji`
+    #   olcumudur (KOMSU jetonlari da sayar), TAM-YAZIM `Fujifilm` olcumu DEGIL. Iki
+    #   olcum de bu turda yeniden kosuldu ve IKISI DE birebir dogrulandi (3/4 ve 6/8);
+    #   eksen ADIYLA ayrildi ki bir sonraki tur ayni sayiyi yanlis eksene BAGLAMASIN.
+    #   Kume KAPALI kalir; `UYUM_MARKA_ELENEN`de DEGIL, `URETICI_MARKA`da DEGIL,
+    #   `MODEL_OLMAYAN_JETON`da DEGIL (ucu de olculdu) — elenmis jeton geri sizmaz.
+    # 🔴 KOMSU JETONLAR YUTULMADI — BU TURUN ASIL RISKI, OLCULDU: katalogda `Fujinon`
+    #   (4 jeton / 2 kayit), `Fujica` (2 jeton / 1 kayit), `Fujitsu` (1 jeton / 1 kayit)
+    #   GECER ve UCU DE AYRI markadir. Eslesme TAM/EXACT'tir, alt dizge/onek YOK:
+    #   `uyum_marka_kanonik()` HAM string uyelik testi yapar, `marka_jetonu_mu()`
+    #   normalize edip TAM uyelik bakar, `altkategori-sinifla.py::_MARKA_RE` ise
+    #   `(?<![a-z0-9])fujifilm(?![a-z0-9])` ile IKI YANDAN capalidir — `fujinon` /
+    #   `fujica` / `fujitsu` dizgeleri `fujifilm`i ICERMEZ, yutulma YOLU YOK.
+    #   VARSAYILMADI: dort kaydin DORDU DE ONCE/SONRA kosuldu, `marka` ciktisi ve
+    #   arama sonucu BIREBIR ayni kaldi.
+    # 🔴 YAZIM VARYANTI REDDI OLCULDU: `FujiFilm` · `FUJIFILM` · `fujifilm` · `Fuji` ·
+    #   `Fujinon` · `Fujica` · `Fujitsu` · `Fujifilm X` · `FujifilmX` · `Fujifilm-` ·
+    #   ` Fujifilm` · `Fujifilm ` · Kiril homoglifli `Fujifilm` — ONCE hepsi RED,
+    #   SONRA da hepsi RED; yalniz KANONIK `Fujifilm` kabul edildi ve AYNEN dondu.
+    # 🔴 8. OLCUT (BILESIK MARKA AYNASI): `Fujifilm` TEK KELIMEDIR -> otoritenin
+    #   cok-kelimeli uye sayisi DEGISMEZ, `index.html::BILESIK_MARKA` aynasi
+    #   TETIKLENMEZ. VARSAYILMADI, OLCULDU: `model-uyelik-kapisi.py` ONCE rc=0,
+    #   SONRA rc=0 ve cok-kelimeli uye sayisi 19 = 19.
+    # 🔴 K220 MENZILI CANLI SITEMAP'TEN OLCULDU (varsayilmadi): 21 Eyl canli
+    #   `sitemap.xml` (40592 loc) cekildi; `fuji` gecen TEK URL sinifi 5 adet `/urun/`
+    #   sayfasidir, `/marka/fujifilm/` hub'i ve HICBIR model alt yolu CANLIDA YOKTUR.
+    # 🔴 ONEMLI AYRIM — 12. TURUN "`/marka/fujifilm/` CANLIDIR (3 urun)" NOTU ARTIK
+    #   GECERSIZDIR ve sebebi BU CIP DEGILDIR: o sayfa `marka[]` alanindan doguyordu;
+    #   19 Eyl `16a4489f5` commit'i (mesaji YALNIZ `uyum[0].model temizlendi` der)
+    #   AYNI kayittan `marka` dizisindeki `"Fujifilm"`i DE dusurdu
+    #   (`['Canon','Fujifilm']` -> `['Canon']`), boylece katalogda `marka[]` TAM
+    #   `Fujifilm` 1 -> 0 oldu ve hub SONDU. Bu bir VERI kalemidir (MaCiT duzlemi),
+    #   sozluk kalemi DEGIL; jeton eklemek onu ne geri getirir ne daha da bozar.
+    # 🔴 IZOLASYON: `build.py --cikti-kok` KULLANILMADI (7. turda olculen sizinti).
+    #   Izolasyon `git archive HEAD` ile AYRI ROOT kopyalari kurularak saglandi, build.py
+    #   ORADAN kosuldu (log `CIKTI_KOK=<izole ROOT> (varsayilan)`, yonlendirme YOK).
+    #   UC olcu de TUTTU: (1) kaynak agacta `/marka` `/kategori` `/urun` `sitemap.xml`
+    #   `index.built.html` HIC OLUSMADI; (2) `git status` ONCE ve SONRA TEMIZ;
+    #   (3) 🔴 izole ONCE kosumu CANLI sitemap'i SAYIYLA DEGIL KUME OLARAK yeniden
+    #   uretti: canli 40592 loc vs izole-ONCE 40592 loc, KAYBOLAN 0 ve DOGAN 0 —
+    #   yani olcum duzenegi uretimi BIREBIR modelliyor (bu tur EKLENEN olcu).
+    # 🔴 5. OLCUT — URL KUMESI (kume farkiyla, sayi kiyasi DEGIL): izole ONCE 40592 =
+    #   izole SONRA 40592, **KAYBOLAN 0 · DOGAN 0**.
+    # 🔴 6. OLCUT — ICERIK sha256. Menzil HIPOTEZINE GUVENILMEDI: "menzil" diye bir
+    #   alt kume secilmedi, URETILEN TUM YUZEY tarandi (41822 dosya = 41822 dosya,
+    #   kaybolan 0 / dogan 0). Icerigi farkli dosya SADECE 13'tur ve 13'u de YAYIN
+    #   DISIDIR: `tools/arama.py` (bu turun kendi edit'i) + 12 adet
+    #   `tools/__pycache__/*.pyc` (yorumlayici onbellegi; kaynak mtime'i gomer).
+    #   **YAYINLANAN SAYFA ICERIGI DEGISIMI = 0** — `sitemap.xml`, `index.html`,
+    #   `index.built.html`, merchant feed ve 40592 URL'in HEPSI BIREBIR ayni.
+    #   Menzildeki 10 sayfa AYRICA ADIYLA sha'landi (5 fuji `/urun/` + 3 komsu kayit
+    #   `/urun/` + `/marka/canon/` + `/marka/subaru/`): ONUNUN DE sha256'si BIREBIR.
+    # 🔴 K220 DUYARLILIK MUTANTI — "KAYBOLAN = 0" bir NULL sonuctur, TEK BASINA eksenin
+    #   CALISTIGINI kanitlamaz (bu turda menzil ZATEN bostu, o yuzden mutant SART).
+    #   Ucuncu bir izole ROOT kuruldu ve kapali kumeye `Grand Cherokee` yazildi
+    #   (`Range Rover` emsalinin BIREBIR mekanizmasi). Sonuc: 40592 -> **40591**,
+    #   **KAYBOLAN = 1 ve tam olarak `https://pruvo3d.com/marka/jeep/grand-cherokee/`**,
+    #   DOGAN = 0. Yani eksen bu katalogda bir model sayfasinin olumunu GERCEKTEN
+    #   goruyor -> asil kosumun "KAYBOLAN 0" hukmu ANLAMLIDIR, kor bir yesil DEGILDIR.
+    #   Mutant CANLI govdeye DEGIL izole kopyaya uygulandi.
+    # 🔴 3. OLCUT — KAPILAR ONCE=SONRA (borusuz rc): `uyum-kapisi.py` ONCE rc=0
+    #   (YESIL, gecen 39 · kalan 0) = SONRA rc=0 (YESIL, gecen 39 · kalan 0);
+    #   `k302-marka-kabul-kapisi.py` ONCE rc=0 = SONRA rc=0 (A1-A5+KONTROL+M1+M2 ve
+    #   KONTROL-MUTANT=YESIL, ikisinde de AYNI); `model-uyelik-kapisi.py` ONCE rc=0
+    #   (30/30) = SONRA rc=0 (30/30). Gecen sayisi HICBIRINDE DUSMEDI.
+    "Fujifilm",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1511,6 +1594,13 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # mutanti (`Grand Cherokee`, KAYBOLAN 1). `Fujifilm` BU TURDA GIRMEDI (VERI kalemi).
     # UYUM_MARKA_IZINLI'nin "C grubu" 12. tur basliginda yazili. Burada TEKRAR EDILMEZ.
     "Hero", "Panasonic",
+    # 13. tur (21 Eyl 2026) — gerekce + olculen katalog agirligi + komsu-jeton (Fujinon/
+    # Fujica/Fujitsu) yutulmama olcumu + K220 menzil olcumu (canli sitemap'ten; menzil
+    # BOS: `/marka/fujifilm/` hub'i 19 Eyl VERI commit'iyle zaten SONMUS) + 8. olcut
+    # (bilesik marka aynasi; `Fujifilm` TEK KELIME -> aynayi tetiklemedi, OLCULDU) +
+    # K220 DUYARLILIK mutanti. UYUM_MARKA_IZINLI'nin "C grubu" 13. tur basliginda
+    # yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
+    "Fujifilm",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
