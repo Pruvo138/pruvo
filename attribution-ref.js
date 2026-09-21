@@ -199,6 +199,7 @@
     // ziyaretci sonradan arama motorundan donse bile eski paid REF'i korur (dogru atif onceligi).
     if (record && (!hasClickId || record.gclid === url.gclid)) {
       activeRef = record.ref;
+      persistPaidOnLoad(record);   // OCI #2: donen paid ziyaretci de lead tikini beklemez
       return;
     }
 
@@ -214,6 +215,7 @@
                  grup: group, src: source, ts: now };
       writeRecord(record);
       activeRef = ref;
+      persistPaidOnLoad(record);   // OCI #2: ilk paid tikta da lead beklenmez
       return;
     }
 
@@ -306,7 +308,15 @@
       if (!(record.gclid || record.gbraid || record.wbraid)) { return; }
     }
     if (record.logged) { leadSent = true; return; }
+    if (persistRef(record)) { leadSent = true; }
+  }
 
+  /* REF -> click-id eslemesini sunucuda (reklam_ref_gclid) KALICI kilar. Govde ve guard'lar
+     sendLead'den AYNEN cikarildi; tek fark CAGRI YERININ artik birden fazla olmasi.
+     Idempotent iki kat: istemcide `record.logged`, sunucuda `INSERT OR IGNORE`
+     (ref PRIMARY KEY, first-write-wins). Doner: beacon kuyruga girdi mi. */
+  function persistRef(record) {
+    if (!record || record.logged) { return false; }
     var payload = { ref: record.ref, grup: record.grup, src: record.src, ts: record.ts };
     if (record.gclid) { payload.gclid = record.gclid; }
     if (record.gbraid) { payload.gbraid = record.gbraid; }
@@ -322,10 +332,29 @@
       ok = false;
     }
     if (ok) {
-      leadSent = true;
       record.logged = true;
       writeRecord(record);
     }
+    return ok;
+  }
+
+  /* 🔴 OCI #2 (21 Eyl 2026) — SATIN ALMA YOLU. OCI #1 click-id'yi YALNIZ wa.me lead tikinda
+     kalicilastiriyordu (sendLead -> isTarget guard'i). Reklamdan gelip wa.me'ye HIC dokunmadan
+     odemeye giden ziyaretci icin `reklam_ref_gclid`e satir HIC dusmuyordu -> siparisin
+     `atif.ref`i JOIN'de karsiliksiz kaliyor -> o satin alma Ads'e OCI ile YUKLENEMIYOR.
+     Olculdu (ArTisT, 21 Eyl): GA4'te 1-21 Eyl 21 purchase, Ads'te 0; Ads'in son satin almasi
+     30 Agu. Kapatan bu cagri: paid kayit SAYFA ACILISINDA kalicilasir, lead tikini BEKLEMEZ.
+
+     🔴 KAPSAM DAR TUTULDU — ORGANIK (src=OG) BU KOLA GIRMEZ. Sebep: OG kaydini her sayfa
+     acilisinda yazmak, lead tablosunu ZIYARET LOGUNA cevirirdi (anlam + hacim degisir).
+     Organik kol bugunku "lead ani" anlaminda KALIR.
+     GIZLILIK: yeni bir alan TOPLANMAZ; paid kol zaten hasConsent() + click-id sarti altinda.
+     Degisen tek sey ZAMAN (lead tiki -> sayfa acilisi), VERI DEGIL. */
+  function persistPaidOnLoad(record) {
+    if (!record || record.src === SEARCH_SRC) { return; }
+    if (!hasConsent()) { return; }
+    if (!(record.gclid || record.gbraid || record.wbraid)) { return; }
+    persistRef(record);
   }
 
   initialize();

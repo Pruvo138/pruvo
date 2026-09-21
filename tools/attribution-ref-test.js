@@ -273,9 +273,60 @@ scenario("lead beacon basarisizsa loglanmaz", function () {
   var storage = new Storage({ pruvo_onay_analitik: "kabul" });
   var result = run("?gclid=X&pg=OTO", storage, [WA], null, { beaconFails: true });
   click(result);
-  assert(result.beacons.length === 1, "basarisiz beacon denenmedi");
+  // OCI #2 (21 Eyl): paid kol artik SAYFA ACILISINDA da deniyor -> basarisiz acilis denemesi
+  // `logged` YAZMADIGI icin lead tiki ikinci kez dener. Iki deneme, iki AYRI cagri yeri.
+  // Sayi ZAYIFLATILMADI (>=1 degil, TAM 2): "basarisizsa tekrar denenir" iddiasi tam da
+  // ikinci denemenin VARLIGIYLA olculur.
+  assert(result.beacons.length === 2,
+         "basarisiz beacon iki cagri yerinden de denenmedi: " + result.beacons.length);
   var kayit = JSON.parse(storage.getItem("pruvo_ref"));
   assert(!kayit.logged, "basarisiz beacon logged=true yazdi");
+});
+
+// ---- OCI #2: SATIN ALMA YOLU — paid kalicilik wa.me tikini BEKLEMEZ ----
+
+scenario("OCI#2 paid: wa.me'ye HIC tiklanmadan ref->gclid kalicilasir", function () {
+  // Olculen ariza (ArTisT, 21 Eyl): reklamdan gelip odemeye giden ziyaretci beacon
+  // atesLEMIYORdu -> reklam_ref_gclid bos -> siparisin atif.ref'i JOIN'de karsiliksiz
+  // -> Ads'e OCI yuklenemiyor. Bu vaka TIK OLMADAN beacon'i olcer.
+  var storage = new Storage({ pruvo_onay_analitik: "kabul" });
+  var result = run("?gclid=ABC123&pg=OTO", storage, [WA]);   // click() CAGRILMIYOR
+  assert(result.beacons.length === 1,
+         "tik olmadan beacon gonderilmedi (OCI#2 kolu olu): " + result.beacons.length);
+  var p = JSON.parse(result.beacons[0].body);
+  assert(p.gclid === "ABC123", "payload gclid yanlis: " + p.gclid);
+  assert(/^REF:GS-OTO-[A-Z0-9]{4}$/.test(p.ref), "payload REF gecersiz: " + p.ref);
+  var kayit = JSON.parse(storage.getItem("pruvo_ref"));
+  assert(kayit.logged === true, "basarili beacon logged yazmadi");
+});
+
+scenario("OCI#2 paid: acilis beacon'i sonra gelen wa.me tikinda TEKRARLANMAZ", function () {
+  // Idempotence: acilista logged=true yazildi -> lead tiki ikinci satir URETMEZ.
+  var storage = new Storage({ pruvo_onay_analitik: "kabul" });
+  var result = run("?gclid=ABC123&pg=OTO", storage, [WA]);
+  click(result);
+  assert(result.beacons.length === 1,
+         "ayni REF icin ikinci beacon gonderildi: " + result.beacons.length);
+});
+
+scenario("OCI#2 NEGATIF: riza yokken acilis beacon'i GONDERILMEZ", function () {
+  // Gizlilik regresyonu kolu — OCI#2 yeni bir alan TOPLAMAZ, yalniz ZAMANI degistirir.
+  var result = run("?gclid=ABC123&pg=OTO", new Storage(), [WA]);
+  assert(result.beacons.length === 0, "rizasiz acilis beacon'i gonderildi");
+  var red = run("?gclid=ABC123&pg=OTO",
+                new Storage({ pruvo_onay_analitik: "red" }), [WA]);
+  assert(red.beacons.length === 0, "riza 'red' iken acilis beacon'i gonderildi");
+});
+
+scenario("OCI#2 NEGATIF: ORGANIK (OG) kol acilista beacon GONDERMEZ", function () {
+  // Kapsam BILEREK dar: OG'yi her acilista yazmak lead tablosunu ZIYARET LOGUNA cevirirdi.
+  // OG kolu bugunku "lead ani" anlaminda KALIR — bu vaka o siniri civiler.
+  var result = run("", new Storage({ pruvo_onay_analitik: "kabul" }), [WA], null,
+                   { referrer: "https://www.google.com/search?q=pruvo" });
+  assert(result.beacons.length === 0,
+         "organik REF acilista beacon gonderdi (kapsam genisledi): " + result.beacons.length);
+  click(result);
+  assert(result.beacons.length === 1, "organik lead tiki beacon gondermedi");
 });
 
 // ---- ORGANIK ATIF (YENI): arama motoru referrer -> src=OG ----
