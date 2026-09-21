@@ -2380,6 +2380,21 @@ GOC_INDEKS = [
      "gerekli": ("ref", "created_at"), "benzersiz": False,
      "sql": "CREATE INDEX IF NOT EXISTS idx_reklam_ref_gclid_created "
             "ON reklam_ref_gclid(created_at);"},
+    # REKLAM OCI YUKLEME KUYRUGU (21 Eyl 2026) — `reklam_oci_kuyruk` tablosu kanonik
+    # semada (tools/d1-sema.sql); indeksi K99'un gerekcesiyle BURADA durur (bu kayit
+    # defteri kolon gocunden SONRA kosar; ayrica defterde duran indeksin hali `--durum`
+    # SEMA ekseninde CANLI olculur — defter disi indeks olculemez ve sessizce kaybolur).
+    # SORGU EKSENI: yukleyicinin sicak yolu `WHERE yuklendi_mi = 0 ORDER BY olusturuldu`
+    # (tools/reklam-oci-yukleyici.py::BEKLEYEN_SQL) — indeks TAM bu erisimi karsilar.
+    # BENZERSIZ DEGIL: tekillik `siparis_no` PRIMARY KEY'inden gelir, bu indeks yalniz
+    # BEKLEYEN taramasini ucuzlatir -> "ikiz satir indeksi kalici kurulamaz yapar"
+    # tek-yonlu kapi sinifi bu kayitta YOKTUR (ikiz_sql gereksiz).
+    # `gerekli` ucu de tablonun KENDI kolonlari: tablo henuz yoksa (eski ortam) hal
+    # UYGULANMAZ olur ve `--sema` gurultu yapmadan once tabloyu kurar.
+    {"ad": "idx_reklam_oci_bekleyen", "tablo": "reklam_oci_kuyruk", "yayin": False,
+     "gerekli": ("siparis_no", "yuklendi_mi", "olusturuldu"), "benzersiz": False,
+     "sql": "CREATE INDEX IF NOT EXISTS idx_reklam_oci_bekleyen "
+            "ON reklam_oci_kuyruk(yuklendi_mi, olusturuldu);"},
 ]
 
 # SOZLESME SEMBOLU (tools/ara-maliyet-kapisi.py bunu ADIYLA import eder): atomik yayin

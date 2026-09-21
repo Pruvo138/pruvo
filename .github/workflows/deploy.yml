@@ -1578,6 +1578,32 @@ jobs:
       - name: Reklam atif halkasi kapisi (REF -> siparis -> reklam_ref_gclid JOIN)
         run: python3 tools/reklam-ref-halkasi-kapisi.py
 
+      # REKLAM OCI HATTI (21 Eyl 2026) — yukaridaki halkanin EKSIK SON ADIMI.
+      # OLCULEN ARIZA: Ads panelinde 1-21 Eyl purchase **0** (son Ads purchase 30 Agu)
+      # iken GA4 ayni pencerede **21 gercek purchase** sayiyordu. Halka (yukaridaki kapi)
+      # 10/10 YESILDI — yani "hangi reklamdan geldi" CEVAPLANABILIYORDU; eksik olan
+      # CEVABI GONDEREN adimdi: `offline conversion|googleads|conversionAction` deseni
+      # tum repoda 3 vurus veriyordu ve UCU DE YORUMDU (icra kodu SIFIR).
+      # 🔴 AYNI SESSIZ-HATA SINIFI, PARA EKSENI: hat koparsa hicbir sey patlamaz —
+      # siparis normal akar, musteri etkilenmez; yalnizca Google donusumu GORMEZ ve
+      # PMax butcesi (650 TL/gun) kor surulur. Kirmizi yanacak kimse olmadigi icin kapi
+      # gerekir.
+      # Bu adim BES sartname iddiasini + dort yapisal bacagi FIILEN kosturur:
+      #   (a) gonderilen govde MUSTERI VERISI TASIMIYOR — anahtar kumesi pozitif beyaz
+      #       listeye BIREBIR esit (Enhanced Conversions Okan tarafindan REDDEDILDI:
+      #       e-posta/telefon/ad/adres HASH'LI BILE OLSA Google'a GITMEZ),
+      #   (b) ayni siparis IKI KEZ gonderilmez (INSERT OR IGNORE + yuklendi_mi),
+      #   (c) KIMLIK YOKKEN rc != 0 ve HICBIR ISTEK CIKMAZ (fail-closed; "0 satir
+      #       yuklendi" deyip yesil yanma sinifi),
+      #   (d) basarisiz yukleme `yuklendi_mi` ISARETLEMEZ -> satir tekrar denenebilir,
+      #   (e) tutar/para birimi siparisle BIREBIR (kargo DAHIL — olcum.js ile ayni kural).
+      # Gercek sema sqlite'a yuklenir, gercek JOIN kosar, GERCEK yukleyici kodu sahte bir
+      # Google ucuna gonderir: AG YOK, canli D1 YOK, wrangler YOK, GERCEK KIMLIK YOK.
+      # Cift yonlu mutasyon (10 oldurucu KIRMIZI + K0 dar-eksen kontrolu YESIL) elle:
+      #   python3 tools/reklam-oci-kapisi.py --kendini-test
+      - name: Reklam OCI kapisi (satin alma -> Google Ads offline conversion yolu)
+        run: python3 tools/reklam-oci-kapisi.py
+
       # ONIZLEME VAAT KAPISI (2026-08-03, PARA + MUSTERI BEYANI — SESSIZ-HATA).
       # OLCULEN ARIZA: sema kapisi (KONF.dogrula) 'gecerli:true' derken uretim ucu
       # (/ic-derle) AYNI seti assert ile reddediyordu; o bolgede fiyat URETILIYOR ve
