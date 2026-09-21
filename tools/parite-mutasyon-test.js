@@ -31,13 +31,13 @@ const path = require("path");
 const { spawn } = require("child_process");
 
 const TOOLS = __dirname;
-// 🔴 BU LISTE BAYATLAR ([[kardes-fikstur-yeni-kanca-adiminda-kirilir]]): kopya GECICI bir
-// dizinde kosar, `require("./x.js")` orada cozulur. Parite dosyalarina YENI bir yerel
-// bagimlilik eklendiginde bu listeye de eklenmezse butun mutantlar "MODULE_NOT_FOUND" ile
-// coker ve nobet ariza sanilan bir kirmiziya doner.
-const DOSYALAR = ["parite-ortak.js", "parite-test.js", "parite-ege.js", "parite-fikstur-test.js",
-  "parite-yayin-fikstur-test.js", "index-arama-referansi.js", "ege-marka-referansi.js",
-  "parite-marka-sinifi.js"];
+// 🔴 ELLE TUTULAN `DOSYALAR` LISTESI 21 Eyl 2026'da KALDIRILDI — bayatladigi OLCULDU.
+// Kopyalanacak dosyalar elle sayiliyordu; 6 Eyl'de `parite-marka-sinifi.js`
+// `marka-kanon-uret.py`yi cagirmaya basladi, liste uzamadi ve POZITIF KONTROL dahil her
+// kosum kirmizi yandi — nobet yine de "5/32 mutant nobetsiz" diye OLCULMUS bir hukum
+// basiyordu ([[elle-tutulan-bagimlilik-listesi-sessizce-bayatlar]]). Yerine gecen:
+// `kopyaKur()` tum `tools/` agacini TURETEREK kopyalar. Listeyi uzatmak ayni kusuru bir
+// sonraki bagimlilikta yeniden uretirdi.
 const VARSAYILAN_FIKSTUR = "parite-fikstur-test.js";
 
 /**
@@ -288,10 +288,45 @@ const MUTANTLAR = [
   },
 ];
 
+/**
+ * 🔴 TURETILMIS KOPYA (21 Eyl 2026 onarimi) — kaldirilan `DOSYALAR` listesi artik
+ * KOPYALAMA icin KULLANILMAZ; yalnizca mutant capalarinin hangi dosyalarda gezindigini
+ * BELGELER. Liste 6 Eyl'de bayatlamisti: `parite-marka-sinifi.js` o gun
+ * `marka-kanon-uret.py`yi (-> `d1-sync.py` -> derin python zinciri) cagirmaya basladi,
+ * liste ona uzamadi ve POZITIF KONTROL DAHIL her kosum kirmizi yandi — nobet "5/32
+ * mutant nobetsiz" diye rapor ederken aslinda HICBIR SEY olcmuyordu
+ * ([[elle-tutulan-bagimlilik-listesi-sessizce-bayatlar]]). KARDESI
+ * `tools/parite-kapsam-mutasyon.js` ile AYNI SINIF, AYNI EKSIK DOSYA (olculdu).
+ *
+ * Kopya artik `tools/` agacinin TAMAMIDIR ve DEPO KOKU SEKLINDE kurulur
+ * (<tmp>/kok/tools/...): kopyalanan python govdesi KOK'u `__file__`den turetip
+ * `index.html` arar; duz bir tools kopyasinda KOK=<tmp> olur ve o dosya bulunamaz.
+ * Kok girisleri SEMBOLIK baglanir (urunler.json tek basina 32 MB).
+ */
+const KOK_HARIC = new Set(["tools", ".git", ".claude"]);
+
 function kopyaKur() {
   const dizin = fs.mkdtempSync(path.join(os.tmpdir(), "parite-mutasyon-"));
-  for (const d of DOSYALAR) fs.copyFileSync(path.join(TOOLS, d), path.join(dizin, d));
-  return dizin;
+  const kok = path.join(dizin, "kok");
+  fs.mkdirSync(kok);
+  fs.cpSync(TOOLS, path.join(kok, "tools"), {
+    recursive: true,
+    filter: (kaynak) =>
+      !/(^|[/\\])(__pycache__|node_modules|\.git)([/\\]|$)/.test(kaynak) &&
+      !kaynak.endsWith(".pyc"),
+  });
+  for (const g of fs.readdirSync(path.dirname(TOOLS))) {
+    if (KOK_HARIC.has(g) || g.startsWith(".olcum-")) continue;
+    try {
+      fs.symlinkSync(path.join(path.dirname(TOOLS), g), path.join(kok, g));
+    } catch (e) { /* yok say */ }
+  }
+  return path.join(kok, "tools");
+}
+
+/** Kopyayi kaldirir: `dizin` TOOLS kopyasidir, silinmesi gereken mkdtemp KOKUDUR. */
+function temizle(dizin) {
+  fs.rmSync(path.dirname(path.dirname(dizin)), { recursive: true, force: true });
 }
 
 // 🔴 BACKSTOP SURE SINIRI: fikstur'un KENDI cocuk-sinir'i (COCUK_SURE_SINIRI_MS) birincil
@@ -358,12 +393,27 @@ async function main() {
       if (r.kod === 0) {
         console.log("\n✅ POZITIF KONTROL (%s): mutasyonsuz kopya YESIL (exit 0)", f);
       } else {
-        console.log("\n❌ POZITIF KONTROL BASARISIZ (%s): exit %d", f, r.kod);
-        console.log(r.cikti.slice(-1500));
-        hatalar.push("pozitif kontrol kirmizi (" + f + ") — mutant sonuclari YORUMLANAMAZ");
+        // 🔴 POZITIF KONTROL DUSERSE NOBET "KIRMIZI" DEGIL "KOR"DUR — ve DURUR.
+        // Eskiden bu satir hatalara eklenip mutantlar yine kosuluyordu; hepsi ayni
+        // ariza yuzunden kirmizi yanip "yakalandi" sayiliyor, sonda "5/32 mutant
+        // nobetsiz" gibi OLCULMUS bir hukum basiliyordu. Olculmeyen ile olculup dusen
+        // ayni isarete biniyordu ([[fail-closed-kol-arkasindaki-kolu-maskeler]]).
+        console.log("\n" + "═".repeat(78));
+        console.log("SONUC: NOBET KOR ⚪ — OLCULEMEDI (cikis 3, KIRMIZI DEGIL)");
+        console.log("MUTANT_KIRMIZI=OLCULEMEDI");
+        console.log("KOR_SEBEP: mutasyonsuz kopya bile %s fiksturunu yesil kosturamiyor " +
+          "(exit %d). Mutant hukmu KURULMADI.", f, r.kod);
+        const KOR_DESEN =
+          /can't open file|No such file|MODULE_NOT_FOUND|Cannot find module|ModuleNotFoundError|TURETILEMEDI/;
+        for (const s of r.cikti.split("\n").filter((x) => KOR_DESEN.test(x)).slice(0, 4)) {
+          console.log("   • " + s.trim().slice(0, 200));
+        }
+        console.log(r.cikti.slice(-1200));
+        temizle(temiz);
+        return process.exit(3);
       }
     } finally {
-      fs.rmSync(temiz, { recursive: true, force: true });
+      try { temizle(temiz); } catch (e) { /* zaten silindi */ }
     }
   }
 
@@ -416,7 +466,7 @@ async function main() {
         hatalar.push(m.ad + " — YAKALANMADI (fikstur exit " + r.kod + ")");
       }
     } finally {
-      fs.rmSync(dizin, { recursive: true, force: true });
+      temizle(dizin);
     }
   }
 

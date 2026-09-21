@@ -37,6 +37,24 @@ const CIKIS_TAM = 0;
 const CIKIS_EKSIK = 1;
 const CIKIS_OLCULEMEDI = 3;
 
+// 🔴 YEREL BAGIMLILIK YOKSA "EKSIK" DEGIL "OLCULEMEDI"DIR (21 Eyl 2026, olculdu).
+// Node'da cozulemeyen bir `require` yakalanmazsa surec cikis 1 ile duser — yani tam
+// olarak "kapsam EKSIK" isareti. Mutasyon nobeti bu iki hali AYIRT EDEMIYORDU: eksik
+// bir bagimlilik, olculmus bir kirmizi gibi gorunuyordu
+// ([[elle-tutulan-bagimlilik-listesi-sessizce-bayatlar]]). Bu kanca cozulme hatasini
+// 3'e cevirir; ayrimi `tools/parite-kapsam-mutasyon.js` KORLUK ON-TESTI kolu olcer.
+process.on("uncaughtException", (e) => {
+  if (e && e.code === "MODULE_NOT_FOUND") {
+    console.error("------------------------------------------------------------------");
+    console.error("SONUC: ÖLÇÜLEMEDİ ⚪ — YEREL BAGIMLILIK COZULEMEDI (cikis " +
+      CIKIS_OLCULEMEDI + ", KIRMIZI DEGIL)");
+    console.error("   • " + e.message.split("\n")[0]);
+    return process.exit(CIKIS_OLCULEMEDI);
+  }
+  console.error(e && e.stack ? e.stack : e);
+  return process.exit(CIKIS_EKSIK);
+});
+
 const SINIF = require("./parite-marka-sinifi.js");
 
 // 🔴 SPEC ESIKLERI KAPININ KENDI DEFTERINDE DURUR — modulun sabitine BAGLANMAZ.
