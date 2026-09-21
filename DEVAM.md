@@ -11,6 +11,7 @@
 **Jeton:** `.ci-token` yeni hesapta KOŞULSUZ tazelenir — ACILIS adim 4; "hesap degismedi/rc=0 suruyor" gerekce DEGIL (Okan emri 14 Eyl).
 **🔓 FUJIFILM ENGELİ KALKTI (21 Eyl ölçümü, bağımlılık yönü DÜZELDİ):** MaCiT kutuda "Fujifilm KraL'ın whitelist eklemesini bekliyor" yazdı; ölçüldü — engel olan VERİ kusuru zaten giderilmiş (`canon-ef-tilt-adaptor-eosm-fuji` `uyum` artık yalnız `{"marka":"Canon"}`, `uyum-kapisi.py` rc=0) ve `Fujifilm` `tools/arama.py` sözlüğünde **YOK** (10 eşleşmenin hepsi YORUM). Yani Fujifilm whitelist turu (K220 protokolü) **KraL'ın 2. işi**, bloksuz; MaCiT'in 261 kamera adayı buna bağlı.
 **Devreden ölçüm kalemleri:** ① tam parite (`parite-test.js` + `parite-ege.js`) 429 hız sınırı yüzünden hâlâ BELGELENMEDİ — 429 dışı saatte koş. ② Teftiş KraL kalemi: `isci.log`'daki `bilinmeyen:*` satırı eve katlanmıyor. ③ MaCiT'e: `pruvo-hasat/olcum/hasat_ford_printables_oncesi_idler.json` yedek karantinası (1,2 MB→0,43 MB) + Fujifilm `canon-ef-tilt-adaptor-eosm-fuji` `uyum[0].model` düzeltmesi.
+**Devir yayını:** run `35564870768` (`4f4b74d5`) — `deploy` success · `yayin` success · SKIPPED 0; SHA'nın diğer akışları success, yalnız `Nöbet şeridi (SERIT B)` kuyrukta (yayını bloklamaz — hükmü SIRADAKI TEK IS'in konusu).
 **Okan'da bekleyen karar:** yok.
 
 ## ✅ 19 EYL 19:0x–19:5x MaCiT-Nikon-Ekleme-Devam3 (spawn_task MARABA, ağaç `keen-lederberg-020c1c`) — **Nikon x Thingiverse dilim-5 BİTTİ: 13 ürün main'de, havuz 818→803**
