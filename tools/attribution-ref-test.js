@@ -406,4 +406,14 @@ scenario("paid arama referrer'inda bile OG'ye donmez", function () {
   assert(/^REF:GS-BYP-[A-Z0-9]{4}$/.test(result.window.pruvoRef()), "paid REF OG'ye kaydi");
 });
 
-console.log("PASS " + passed + "/28");
+// Payda SABIT YAZILMAZ — 21 Eyl 2026'da 32 senaryo kosarken "/28" basiyordu (4 tur bayat).
+// Kaynaktan sayilir: ust duzey `scenario(` cagrilari BEYAN, `passed` KOSAN. Ikisi ayrisirsa
+// KIRMIZI — bir senaryo blok icine gomulup hic kosmazsa (ya da iki kez sayilirsa) burada yakalanir.
+var beyanEdilen = (
+  require("fs").readFileSync(__filename, "utf8").match(/^scenario\(/gm) || []
+).length;
+if (passed !== beyanEdilen) {
+  console.error("FAIL sayac: kosan " + passed + " != kaynakta beyan edilen " + beyanEdilen);
+  process.exit(1);
+}
+console.log("PASS " + passed + "/" + beyanEdilen);
