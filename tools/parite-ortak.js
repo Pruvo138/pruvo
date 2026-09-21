@@ -363,6 +363,82 @@ function bekle(ms) {
   return new Promise((res) => setTimeout(res, ms));
 }
 
+// ── ADAPTIF HIZ FRENI — 429 GORULENE KADAR TAMAMEN KAPALI ───────────────────────────
+// 🔴 OLCULEN KUSUR (21 Eyl 2026): id supurmesi (378 parti) canli ucun hiz sinirina
+// carpiyordu; 3 deneme x 400/800 ms bekleme sinirin TOPARLANMA hizinin ALTINDA kaldigi
+// icin tukeniyordu ve on-kosul "kanit yok -> siniflandirma KAPALI" diyordu. Sonuc:
+// katalog farkiyla ACIKLANABILIR her sapma KIRMIZI yaniyordu; parite ne yesil ne
+// gercekten kirmizi, OLCULEMEDI idi ([[hukum-yanlis-birimde]]).
+//
+// OLCUM (ayni uc, ayni makine, deneme KAPALI, ham durum kodu):
+//   378 istek / eszaman 4 / freni yok -> 319x200 + 59x429; ilk 429 t=39,9 sn, 231. istekte
+//   378 istek / eszaman 1 (3,3 ist/sn) -> 268x200 + 110x429 (kova ONCEKI kosumdan bosti)
+//   Kova bosaldiktan SONRAKI kararli hal: 104 sn'de 198 basari = ~1,9 istek/sn.
+// Yani sinir "patlama kovasi (~230 istek) + ~2 istek/sn tazeleme" desenindedir.
+//
+// TASARIM KARARI — VARSAYILAN DAVRANIS DEGISMEZ: fren yalnizca GERCEK bir 429
+// GORULDUGUNDE devreye girer (_hizAra 0'dan cikar). 429 gorulmeyen bir kosumda
+// (CI kosucusu, farkli IP) tek bir ek bekleme YOKTUR -> bu bloklayici test CI'da
+// UZAMAZ. Env/bayrak ile acilan bir kol DEGILDIR: acik kalsaydi kimse acmazdi ve
+// arizanin kendisi olculmeden kalirdi.
+//
+// FREN NASIL CALISIR: butun eszamanli isciler TEK kuresel aralik uzerinden gecer
+// (rezervasyon senkron yapilir, JS tek is parcacikli -> yaris yok). Her 429'da aralik
+// IKIYE KATLANIR: 0 -> taban -> ... -> tavan. Tavan, OLCULEN kararli halin (1,9 ist/sn)
+// ALTINA denk gelir, yani fren yeterince sikildiginda 429 URETMEYEN bir hiza yakinsar.
+//
+// 🔴 GEVSEME YOK — BILEREK (olculdu 21 Eyl, ilk surumun KUSURU): fren once "N ardisik
+// basaridan sonra bir kademe gevse" diye yazilmisti. Olcum: aralik TABAN'da (200 ms)
+// SALINDI, tavana HIC cikamadi (basari serisi freni 0'a indiriyor, sonraki 429 onu yine
+// 200'e cikariyordu) -> sunulan hiz 5 ist/sn, yani sinirin ~2,5 KATI; 429 hic bitmedi,
+// 651 istegin 131'i 429 oldu ve kosum 141/1334 sorguda durdu. Yakinsamayan bir fren,
+// olmayan frenden DAHA KOTUDUR: hem bekler hem de olcemez. Fren artik TEK YONLUDUR.
+//
+// 🔴 USTEL BACKOFF DA KALKTI — AYNI OLCUM: 429 basina 400/800/1600/3200/6400 ms bekleme
+// 1091 sn harcadi (butce 900 sn) ve butce BITTIGI icin fren buyumesi kapandi. Kuresel
+// gecit ZATEN istekleri araliyor; ustune ustel bekleme koymak ayni gecikmeyi IKI KEZ
+// odemektir. 429 sonrasi ek bekleme artik TEK KADEME (_hizAra) kadardir.
+//
+// BUTCE (fail-closed): frende harcanan TOPLAM bekleme HIZ_BUTCESI_MS'i asarsa 429
+// ESKISI GIBI OlcumHatasi'na doner -> kosum SONSUZA KADAR SURUKLENMEZ, en kotu
+// ihtimalle bugunku sonucu (cikis 3) GEC verir. "Olcemedim" hicbir kolda YESILE donmez.
+// Tavanda TAM kosum (1713 istek x 600 ms ~= 17 dk) butcenin ALTINDA kalir: saglikli
+// yakinsama BITIRIR, patolojik hal FAIL-CLOSED durur.
+const HIZ_TABAN_ARA_MS = 200;      // ilk 429 sonrasi asgari aralik (5 istek/sn)
+const HIZ_AZAMI_ARA_MS = 600;      // fren tavani (~1,67 istek/sn; olculen kararli hal 1,9)
+const DENEME_429 = 8;              // 429'a OZGU deneme sayisi (oteki hatalar DENEME'de)
+const HIZ_BUTCESI_MS = 1500000;    // frende harcanabilecek TOPLAM bekleme (25 dk)
+
+let _hizAra = 0;              // su anki kuresel istekler-arasi asgari aralik (ms)
+let _hizSonrakiAn = 0;        // rezerve edilmis bir sonraki gonderim ani (epoch ms)
+let _hizHarcananMs = 0;       // gecitte + 429 sonrasi beklemede harcanan TOPLAM sure
+
+/** Fren durumu (kabul testi ve rapor icin). SAF. */
+function hizFreniDurumu() {
+  return { araMs: _hizAra, harcananMs: _hizHarcananMs, butceMs: HIZ_BUTCESI_MS,
+    tabanMs: HIZ_TABAN_ARA_MS, tavanMs: HIZ_AZAMI_ARA_MS, deneme429: DENEME_429 };
+}
+
+/** YALNIZ kabul testi icin: fren durumunu sifirla (vakalar birbirini kirletmesin). */
+function hizFreniSifirla() {
+  _hizAra = 0; _hizSonrakiAn = 0; _hizHarcananMs = 0;
+}
+
+/** Fren KAPALIYKEN hicbir bekleme uretmez (varsayilan yol: tek satir kontrol). */
+async function hizGecidi() {
+  if (_hizAra <= 0) return;
+  const simdi = Date.now();
+  const an = Math.max(simdi, _hizSonrakiAn);
+  _hizSonrakiAn = an + _hizAra;          // rezervasyon SENKRON: eszamanli isciler siraya girer
+  const gecikme = an - simdi;
+  if (gecikme > 0) { _hizHarcananMs += gecikme; await bekle(gecikme); }
+}
+
+/** TEK YONLU: her 429'da bir kademe sikar, tavanda doyar. Gevseme YOK (yukari bak). */
+function hizFreniSik() {
+  _hizAra = Math.min(Math.max(_hizAra * 2, HIZ_TABAN_ARA_MS), HIZ_AZAMI_ARA_MS);
+}
+
 function zamanAsimiMi(e) {
   if (!e) return false;
   const adlar = [e.name, e.cause && e.cause.name, e.code, e.cause && e.cause.code];
@@ -373,20 +449,28 @@ function zamanAsimiMi(e) {
 /**
  * Tarayici UA + no-cache + ZAMAN ASIMI ile GET.
  *   403      -> WafHatasi (duvar; denemek yalniz yuk bindirir)
- *   429      -> GECICI kabul edilir: ustel beklemeyle `deneme` kez tekrar; tukenirse
+ *   429      -> GECICI kabul edilir: ADAPTIF FREN sikilir (yukari bak) ve istek
+ *               DENEME_429 kez tekrarlanir; fren butcesi bitip tukenirse
  *               OlcumHatasi("429")  (asla sessiz gecmez, asla KIRMIZI olmaz)
  *   zaman as.-> OlcumHatasi("ZAMAN_ASIMI") (tekrar denendikten sonra)
  *   5xx/JSON -> tekrar denenir, tukenirse duz Error (= AYRISMA sayilir, eski davranis)
+ *
+ * 🔴 429 DISINDAKI HICBIR KOLUN DENEME SAYISI DEGISMEDI: 429'a ozgu hak (DENEME_429)
+ * yalnizca 429 gorulmusse kullanilir, cunku yalniz O ariza "bekleyince gecen" turdendir.
+ * Zaman asimi/5xx'te uzun bekleme ariza suresini uzatmaktan baska ise yaramaz.
  */
 async function canliGetir(url, sayac, deneme) {
   const kere = Math.max(1, Math.min(deneme || 1, DENEME));
+  const azamiTur = Math.max(kere, DENEME_429);
   let son = null;
-  for (let i = 0; i < kere; i++) {
+  let gorulen429 = 0;
+  for (let i = 0; i < azamiTur; i++) {
     if (sayac.tavan && sayac.istek >= sayac.tavan) {
       throw new OlcumHatasi("TAVAN", "istek TAVANI asildi (" + sayac.tavan + ") — " + url);
     }
     if (i > 0) sayac.yenidenDeneme++;
     sayac.istek++;
+    await hizGecidi();
     let r;
     try {
       r = await fetch(url, {
@@ -409,8 +493,21 @@ async function canliGetir(url, sayac, deneme) {
     if (r.status === 429) {
       await r.text().catch(() => {});
       sayac.r429++;
-      son = new OlcumHatasi("429", "HTTP 429 (hiz siniri, " + kere + " deneme tukendi): " + url, 429);
-      if (i + 1 < kere) { await bekle(BEKLEME_MS * Math.pow(2, i)); continue; }
+      gorulen429++;
+      hizFreniSik();
+      son = new OlcumHatasi("429", "HTTP 429 (hiz siniri, " + (i + 1) + "/" + azamiTur +
+        " deneme tukendi, fren " + _hizAra + " ms, frende harcanan " +
+        Math.round(_hizHarcananMs / 1000) + " sn / butce " +
+        Math.round(HIZ_BUTCESI_MS / 1000) + " sn): " + url, 429);
+      // Butce dolduysa ESKI davranisa doneriz: beklemeyiz, hak tukenir -> cikis 3.
+      const butceVar = _hizHarcananMs < HIZ_BUTCESI_MS;
+      if (butceVar && i + 1 < azamiTur) {
+        // TEK KADEME: kuresel gecit zaten bir sonraki denemeyi _hizAra kadar oteler;
+        // buradaki ek bekleme o kademenin AYNISIDIR, ustel DEGIL (yukaridaki olcum).
+        _hizHarcananMs += _hizAra;
+        await bekle(_hizAra);
+        continue;
+      }
       throw son;
     }
     let j;
@@ -426,6 +523,7 @@ async function canliGetir(url, sayac, deneme) {
       if (i + 1 < kere) { await bekle(BEKLEME_MS * Math.pow(2, i)); continue; }
       throw son;
     }
+
     return { durum: r.status, govde: j };
   }
   throw son || new OlcumHatasi("AG", "istek yapilamadi: " + url);
@@ -960,6 +1058,12 @@ function sonucYaz({ etiket, gecti, atlandi, hatalar, onKosul, sayac, sn, fazlaKu
     gecti, kirmiziLar.length, aciklananLar.length, atlandi || 0, sn);
   console.log("canli istek: %d (429: %d | yeniden deneme: %d | supurme partisi: %d)",
     sayac.istek, sayac.r429 || 0, sayac.yenidenDeneme || 0, sayac.supurmeParti || 0);
+  // Fren DEVREYE GIRDIYSE gorunur olsun: "test neden 14 dk surdu" sorusu ciktidan
+  // cevaplanabilmeli. Fren hic girmediyse (CI yolu) bu satir BASILMAZ -> eski cikti aynen.
+  if (_hizHarcananMs > 0) {
+    console.log("adaptif hiz freni: aralik %d ms | frende harcanan %d sn / butce %d sn",
+      _hizAra, Math.round(_hizHarcananMs / 1000), Math.round(HIZ_BUTCESI_MS / 1000));
+  }
 
   const aciklananYaz = () => {
     console.log("\nAÇIKLANAN AYRISIMLAR (ilk 10) — hepsi 'D1 fazla / yerel eksik' yonunde:");
@@ -1041,8 +1145,10 @@ function olcumNotu(e, etiket) {
       "Tarayici UA gonderilmesine ragmen duvara carpildi: AYRISMA DEGIL, olcum yapilamadi.";
   }
   if (e.tur === "429") {
-    return "ÖLÇÜLEMEDİ: HIZ SINIRI (429) — ustel beklemeyle " + DENEME +
-      " deneme TUKENDI (" + etiket + "). Ayrisma SAYILMADI, ama parite de BELGELENMEDI.";
+    return "ÖLÇÜLEMEDİ: HIZ SINIRI (429) — adaptif fren tavanda, " + DENEME_429 +
+      " deneme TUKENDI (" + etiket + "; fren " + _hizAra + " ms, frende harcanan " +
+      Math.round(_hizHarcananMs / 1000) + " sn / butce " + Math.round(HIZ_BUTCESI_MS / 1000) +
+      " sn). Ayrisma SAYILMADI, ama parite de BELGELENMEDI.";
   }
   if (e.tur === "ZAMAN_ASIMI") {
     return "ÖLÇÜLEMEDİ: ZAMAN ASIMI (" + ZAMAN_ASIMI_MS + " ms/istek, " + DENEME +
@@ -1100,6 +1206,8 @@ module.exports = {
   ZAMAN_ASIMI_MS, DENEME, BEKLEME_MS, SUPURME_MUTLAK_TAVAN, supurmeTavani, IDS_PARTI,
   mutlakTavan, katalogIdAdedi, MUTLAK_KAT, MUTLAK_TABAN_PARTI,
   FIKSTUR_ENV,
+  DENEME_429, HIZ_TABAN_ARA_MS, HIZ_AZAMI_ARA_MS, HIZ_BUTCESI_MS,
+  hizFreniDurumu, hizFreniSifirla,
   OlcumHatasi, WafHatasi, kardesUc, sayacYeni, canliGetir, nonceUret,
   canliKatalogSayisi, d1deOlmayanlar, onKosulOlc, siniflandir,
   sonucYaz, wafYaz, olcumNotu, fazlaKumeTutarli, fazlalikTeshis,
