@@ -29,8 +29,10 @@ OKAN KARARI — BAGLAYICI, TARTISMA YOK (21 Eyl 2026):
   `tools/reklam-oci-kapisi.py` IDDIA (a) — govdede musteri verisi alani gorulurse KIRMIZI.
 
 KIMLIK = OKAN KAPISI (PARA ve SIFRE sinifi):
-  developer token / OAuth istemci + refresh token / musteri hesabi kimligi ORTAMDAN ya da
-  wrangler secret'tan okunur. Repoya GIRMEZ, log'a BASILMAZ (govde/hata metinleri `gizle()`
+  OAuth istemci + refresh token / musteri hesabi kimligi / donusum eylemi kimligi ORTAMDAN
+  ya da wrangler secret'tan okunur (BES ZORUNLU alan; `developer token` 9 Eyl 2026'da EMEKLI
+  edildi, artik ISTEGE BAGLI -> `KIMLIK_SECMELI`).
+  Repoya GIRMEZ, log'a BASILMAZ (govde/hata metinleri `gizle()`
   suzgecinden gecer). Kimlik YOKSA arac FAIL-CLOSED durur: `HAL=KIMLIK-YOK` + rc=2 ve
   HICBIR ISTEK CIKMAZ — "0 satir yuklendi" deyip yesil yanmaz (sessiz fail-open sinifi).
 
@@ -127,16 +129,36 @@ class Olculemedi(Exception):
 # KIMLIK — OKAN KAPISI (SIFRE sinifi). Degerler ASLA basilmaz.
 # ══════════════════════════════════════════════════════════════════════════════
 # (ortam degiskeni, insan adi) — SIRA red metnindeki sirayi da belirler.
+#
+# 🔴🔴 BU TUPLE TEK KAYNAKTIR. Alan kumesini YAZAN her yuzey burayi IMPORT EDER
+# (`reklam-oci-kapisi.py`, `reklam-oci-kosucu-test.py`). Kume bu depoda bir kez
+# DORT AYRI YERDE elle yaziliydi ve elle yamamak olculmus bayatlama sinifidir.
+# Python'un IMPORT EDEMEDIGI tek yuzey `.github/workflows/reklam-oci.yml`
+# (`KIMLIK_BAYRAK` ifadesi) — o IKIZ SESSIZ AYRISAMAZ: `reklam-oci-kosucu-test.py`
+# icindeki YAML ikiz vakasi kumeleri BIREBIR karsilastirir, ayrisirsa KIRMIZI.
 KIMLIK_ALANLARI = (
-    ("GOOGLE_ADS_DEVELOPER_TOKEN", "developer token"),
     ("GOOGLE_ADS_CLIENT_ID", "OAuth istemci kimligi"),
     ("GOOGLE_ADS_CLIENT_SECRET", "OAuth istemci sirri"),
     ("GOOGLE_ADS_REFRESH_TOKEN", "OAuth refresh token"),
     ("GOOGLE_ADS_CUSTOMER_ID", "musteri hesabi kimligi (10 hane, tiresiz)"),
     ("GOOGLE_ADS_CONVERSION_ACTION_ID", "donusum eylemi kimligi (sayisal)"),
 )
-# Istege bagli: MCC (yonetici hesap) altindan cagriliyorsa.
-KIMLIK_SECMELI = ("GOOGLE_ADS_LOGIN_CUSTOMER_ID",)
+# Tuketicilerin okudugu TUREV: ZORUNLU alanlarin yalin adlari.
+ZORUNLU_ALAN_ADLARI = tuple(ad for ad, _insan in KIMLIK_ALANLARI)
+
+# Istege bagli alanlar — YOKLUGU kimligi DUSURMEZ, varsa kullanilir.
+#
+# 🔴 GOOGLE_ADS_DEVELOPER_TOKEN — 9 EYLUL 2026'DA EMEKLI EDILDI (Google'in kendi
+# dokumani, `docs/get-started/dev-token`): jeton gonderilse bile "istege baglidir
+# ve API sunuculari tarafindan YOK SAYILIR"; erisim duzeyi artik OAuth kimligini
+# ureten Google Cloud PROJESINE baglidir, yonetici (MCC) hesabi GEREKMEZ ve API
+# Merkezi'nden yapilan basvurular ISLEME ALINMAZ. Yani bu deger bugun ARTIK
+# URETILEMEZ. ZORUNLU kumede kalirsa hat, ALINMASI IMKANSIZ bir degeri bekleyerek
+# SONSUZA KADAR fail-closed kalirdi — fail-closed'in mesru oldugu yer "deger
+# alinabilir ama henuz yok"tur, "deger artik yok"ta ayni yapi OLU HAT uretir.
+# GIZLI_ALANLAR'da KALIR: kurulu birakilmis eski bir jeton hala SIR sinifidir ve
+# maskelenmesi gerekir.
+KIMLIK_SECMELI = ("GOOGLE_ADS_DEVELOPER_TOKEN", "GOOGLE_ADS_LOGIN_CUSTOMER_ID")
 
 # 🔴 IKI SINIF, AYNI KUTUDA DEGIL — ilk kosumda kapi bunu bana KIRMIZI yakarak ogretti:
 #   GIZLI  : SIFRE sinifi. Yalniz OAuth token takasinda (govde) ve `developer-token`
@@ -666,8 +688,13 @@ def yukle(vt, kimlik, tasiyici, tavan=200, kuru=False, simdi_ms=None, sessiz=Fal
         dokum["hata"] = hata
         return RC_KIRMIZI, dokum
 
-    basliklar = {"Authorization": "Bearer " + jeton,
-                 "developer-token": kimlik.d["GOOGLE_ADS_DEVELOPER_TOKEN"]}
+    basliklar = {"Authorization": "Bearer " + jeton}
+    # 🔴 EMEKLI ALAN (9 Eyl 2026): `developer-token` YALNIZ DEGER VARSA eklenir.
+    # Kosulsuz eklemek, alan artik URETILEMEDIGI icin `developer-token: ""` gibi BOS
+    # bir baslik gondermek demekti ve bos baslik 400 sebebidir; Google jetonu zaten
+    # YOK SAYIYOR. Kurulu kalmis eski bir jeton varsa zararsizdir, gonderilir.
+    if kimlik.d.get("GOOGLE_ADS_DEVELOPER_TOKEN"):
+        basliklar["developer-token"] = kimlik.d["GOOGLE_ADS_DEVELOPER_TOKEN"]
     if kimlik.d.get("GOOGLE_ADS_LOGIN_CUSTOMER_ID"):
         basliklar["login-customer-id"] = re.sub(
             r"\D", "", kimlik.d["GOOGLE_ADS_LOGIN_CUSTOMER_ID"])

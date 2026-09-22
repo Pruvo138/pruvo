@@ -76,6 +76,14 @@ BEKLENEN_ZAMAN = "2026-09-21 10:15:00+03:00"
 
 # Sahte kimlik — GERCEK DEGIL, hicbir yere gitmez (tasiyici sahte). Degerler kasten
 # "sir gibi" uzun: (i) bacaginda log/hata metinlerinde GORUNMEDIKLERI olculur.
+#
+# 🔴 BU SOZLUK ALAN KUMESININ TANIMI DEGIL, yalnizca FIKSTUR DEGERLERIDIR. Kumenin
+# TEK KAYNAGI `reklam-oci-yukleyici.py::KIMLIK_ALANLARI`; (c3) bacagi bu sozlugun
+# o kaynagi TAM KAPSADIGINI olcer. Kaynaga yeni bir ZORUNLU alan eklenirse fikstur
+# sessizce eksik kalmaz — kapi KIRMIZI yanar.
+# `GOOGLE_ADS_DEVELOPER_TOKEN` artik ZORUNLU DEGIL (9 Eyl 2026'da emekli edildi) ama
+# fiksturde KALIR: (i1b) "kurulu jeton YALNIZ BASLIKTA tasinir" ve (i1c) "jeton yokken
+# baslik HIC OLUSMAZ" bacaklari IKI YONU de olcer.
 SAHTE_ORTAM = {
     "GOOGLE_ADS_DEVELOPER_TOKEN": "SAHTE-DEV-TOKEN-0123456789",
     "GOOGLE_ADS_CLIENT_ID": "sahte-istemci.apps.googleusercontent.com",
@@ -336,6 +344,27 @@ def kapi(sema_yolu=SEMA_VARSAYILAN, yukleyici_yolu=YUKLEYICI_VARSAYILAN, sessiz=
             iddia("(c2) kimliksiz kosum kuyrugu BOZMADI (satir BEKLEYEN kaldi)",
                   hala_bekleyen == 1, "bekleyen=%s" % hala_bekleyen)
 
+            # ── (c3) FIKSTUR TEK KAYNAGI TAM KAPSIYOR -------------------------
+            # Alan kumesi bu dosyada ELLE YAZILMAZ; `KIMLIK_ALANLARI`dan TURETILIR.
+            # Kaynaga yeni bir ZORUNLU alan eklenip fikstur guncellenmezse asagidaki
+            # butun kimlikli bacaklar (d/b/i) SESSIZCE "kimlik yok" yoluna duser ve
+            # kapi yine de yesil gorunurdu — bu bacak o yolu kapatir.
+            kapsanmayan = [ad for ad in y.ZORUNLU_ALAN_ADLARI if not SAHTE_ORTAM.get(ad)]
+            iddia("(c3) SAHTE_ORTAM fiksturu `KIMLIK_ALANLARI` TEK KAYNAGINI tam "
+                  "kapsiyor (%d zorunlu alan)" % len(y.ZORUNLU_ALAN_ADLARI),
+                  not kapsanmayan and len(eksik) == len(y.ZORUNLU_ALAN_ADLARI),
+                  "kapsanmayan=%s · bos ortamda eksik=%d (beklenen %d)"
+                  % (kapsanmayan, len(eksik), len(y.ZORUNLU_ALAN_ADLARI)))
+            iddia("(c4) EMEKLI alan ZORUNLU kumede DEGIL, SECMELI kumede VE hala "
+                  "GIZLI sinifinda (kurulu eski jeton maskelenir)",
+                  "GOOGLE_ADS_DEVELOPER_TOKEN" not in y.ZORUNLU_ALAN_ADLARI
+                  and "GOOGLE_ADS_DEVELOPER_TOKEN" in y.KIMLIK_SECMELI
+                  and "GOOGLE_ADS_DEVELOPER_TOKEN" in y.GIZLI_ALANLAR,
+                  "zorunlu=%s secmeli=%s gizli=%s"
+                  % ("GOOGLE_ADS_DEVELOPER_TOKEN" in y.ZORUNLU_ALAN_ADLARI,
+                     "GOOGLE_ADS_DEVELOPER_TOKEN" in y.KIMLIK_SECMELI,
+                     "GOOGLE_ADS_DEVELOPER_TOKEN" in y.GIZLI_ALANLAR))
+
             # ── (d) BASARISIZ YUKLEME: isaretlemez, tekrar denenebilir --------
             kimlik, _ = y.kimlik_coz(SAHTE_ORTAM)
             kotu = SahteTasiyici(yukleme_hatasi=True)
@@ -425,6 +454,40 @@ def kapi(sema_yolu=SEMA_VARSAYILAN, yukleyici_yolu=YUKLEYICI_VARSAYILAN, sessiz=
                   and not [u for u, _g, _b in iyi.istekler
                            if SAHTE_ORTAM["GOOGLE_ADS_DEVELOPER_TOKEN"] in u],
                   "baslik=%s" % (sorted(basliklar[0]) if basliklar else None))
+
+            # ── (i1c) EMEKLI ALAN, TERS YON: jeton YOKKEN baslik HIC OLUSMAZ ----
+            # 🔴 (i1b) yalniz "kurulu jeton nereye gidiyor"u olcer; bugunku GERCEK
+            # hal jetonun HIC OLMAMASIDIR (Google 9 Eyl 2026'da uretimi durdurdu).
+            # Olculmezse iki ariza sessiz kalirdi: (1) alan zorunlu sanilip kimlik
+            # DUSER -> hat sonsuza kadar fail-closed; (2) baslik kosulsuz eklenip
+            # `developer-token: ""` gider -> 400.
+            vt2 = None
+            try:
+                vt2_yolu = os.path.join(gec, "oci-jetonsuz.sqlite")
+                vt_kur(vt2_yolu, sema)
+                vt2 = y.YerelVt(vt2_yolu)
+                y.kuyrukla(vt2, simdi_ms=1789000008000)
+                ortam_jetonsuz = dict(SAHTE_ORTAM)
+                ortam_jetonsuz.pop("GOOGLE_ADS_DEVELOPER_TOKEN", None)
+                kimlik2, eksik2 = y.kimlik_coz(ortam_jetonsuz)
+                tasiyici2 = SahteTasiyici()
+                rc2, _dj = y.yukle(vt2, kimlik2, tasiyici2, simdi_ms=1789000009000,
+                                   sessiz=True)
+                bas2 = [b for u, _g, b in tasiyici2.istekler
+                        if "uploadClickConversions" in u]
+                iddia("(i1c) `developer token` YOKKEN kimlik DUSMUYOR, yukleme GECIYOR "
+                      "ve `developer-token` basligi HIC OLUSMUYOR (bos baslik = 400)",
+                      kimlik2 is not None and not eksik2 and rc2 == y.RC_YESIL
+                      and bool(bas2) and "developer-token" not in bas2[0],
+                      "kimlik=%s eksik=%s rc=%s baslik=%s"
+                      % (kimlik2 is not None, eksik2, rc2,
+                         sorted(bas2[0]) if bas2 else None))
+            except Olculemedi as e:
+                iddia("(i1c) jetonsuz fikstur kurulabildi", False, e)
+            finally:
+                if vt2 is not None:
+                    vt2.kapat()
+
             kayit_metni = json.dumps([dict(r) for r in vt.sorgu(
                 "SELECT siparis_no, son_hata FROM %s" % y.TABLO)])
             iddia("(i2) D1 kaydindaki `son_hata` metninde kimlik sirri YOK "

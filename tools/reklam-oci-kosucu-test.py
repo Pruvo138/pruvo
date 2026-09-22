@@ -33,15 +33,14 @@ Kullanim:
 import argparse
 import importlib.util
 import os
+import re
 import sys
 import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 KOSUCU = os.path.join(TOOLS, "reklam-oci-kosucu.py")
+YUKLEYICI = os.path.join(TOOLS, "reklam-oci-yukleyici.py")
 AKIS = os.path.join(os.path.dirname(TOOLS), ".github", "workflows", "reklam-oci.yml")
-
-DORT_ALAN = ["GOOGLE_ADS_DEVELOPER_TOKEN", "GOOGLE_ADS_CLIENT_ID",
-             "GOOGLE_ADS_CLIENT_SECRET", "GOOGLE_ADS_REFRESH_TOKEN"]
 
 
 def modul_yukle(yol, ad):
@@ -49,6 +48,67 @@ def modul_yukle(yol, ad):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+# 🔴🔴 ALAN KUMESI ELLE YAZILMAZ — TEK KAYNAKTAN TURETILIR.
+# Bu liste bir zamanlar `DORT_ALAN` adiyla elle yaziliydi ve kume dort ayri yerde
+# ayri ayri duruyordu. `developer token` emekli edilince (9 Eyl 2026) dordunu elle
+# yamamak gerekti: bu depoda OLCULMUS bayatlama sinifidir. Artik kume yalnizca
+# `reklam-oci-yukleyici.py::KIMLIK_ALANLARI` icinde yasiyor, burasi onu IMPORT EDER.
+ZORUNLU_ALANLAR = list(
+    modul_yukle(YUKLEYICI, "reklam_oci_yukleyici_kabul").ZORUNLU_ALAN_ADLARI)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# YAML IKIZI — Python'un IMPORT EDEMEDIGI tek yuzey
+# ══════════════════════════════════════════════════════════════════════════════
+# Is akisindaki `KIMLIK_BAYRAK` ifadesi alan kumesini elle sayar ve Python onu
+# import EDEMEZ. Ikizi silemiyoruz; yapabilecegimiz sey SESSIZ AYRISMASINI
+# engellemektir: asagidaki kol YAML'in saydigi kumeyi AYRISTIRIR ve TEK KAYNAK
+# ile BIREBIR karsilastirir. Bir alan eklenir/silinirse kabul KIRMIZI yanar.
+#
+# 🔴 Bu kolun kapattigi ASIL ARIZA soyle isliyordu: emekli alan bayraktan
+# CIKARILMAZSA ifade ASLA 'VAR' olamaz -> hat merge edilmis olmasina ragmen OLU
+# kalir ve hicbir kirmizi yanmaz (kimlik yoklugu tek basina kirmizi DEGIL).
+def yaml_bayrak_alanlari(metin):
+    """`KIMLIK_BAYRAK:` ifadesindeki `secrets.<AD> != ''` adlarini AYIKLA.
+
+    🔴 MENZIL KASITLI DAR — yalniz bayrak IFADESININ govdesi taranir:
+      * asagidaki `env:` bloku alanlari zaten TEK TEK gecirir (gecirmesi de gerekir,
+        emekli alan dahil) — orasi bayragin SAYDIGI kume DEGILDIR;
+      * yorum satirlari da `secrets.X != ''` yazar (ornek olarak).
+    Tum dosyayi taramak bu yuzden YANLIS EKSEN olurdu
+    ([[eslesme-anahtari-yanlissa-sifir-bulgu-yesil-sanilir]]).
+    Doner: sirali ad listesi. Ifade bulunamazsa `None` (YESIL DEGIL -> OLCULEMEDI).
+    """
+    govde, topluyor = [], False
+    for satir in metin.splitlines():
+        cip = satir.lstrip()
+        if not topluyor:
+            if cip.startswith("#") or not cip.startswith("KIMLIK_BAYRAK:"):
+                continue
+            topluyor = True
+        govde.append(satir)
+        if "}}" in satir:
+            break
+    else:
+        # Bayrak hic bulunmadi YA DA ifade `}}` ile KAPANMADI -> OLCULEMEDI.
+        return None
+    return sorted(set(re.findall(r"secrets\.([A-Za-z0-9_]+)\s*!=\s*''",
+                                 "\n".join(govde))))
+
+
+def ikiz_ayrismasi(yaml_metni, zorunlu):
+    """Doner: "" (ayrisma YOK) | ayrismayi ADIYLA soyleyen metin."""
+    yaml_kume = yaml_bayrak_alanlari(yaml_metni)
+    if yaml_kume is None:
+        return "KIMLIK_BAYRAK ifadesi is akisinda BULUNAMADI (OLCULEMEDI)"
+    kaynak = sorted(set(zorunlu))
+    if yaml_kume == kaynak:
+        return ""
+    return ("YAML fazlasi=%s · YAML eksigi=%s"
+            % (sorted(set(yaml_kume) - set(kaynak)),
+               sorted(set(kaynak) - set(yaml_kume))))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -68,7 +128,7 @@ def durum_patlar():
 
 def kimlik_sabit(tam):
     def _kol():
-        return (True, []) if tam else (False, list(DORT_ALAN))
+        return (True, []) if tam else (False, list(ZORUNLU_ALANLAR))
     return _kol
 
 
@@ -88,8 +148,16 @@ def yukle_sayaci(rc=0, metin="YUKLEME: gonderilen=3 basarili=3 basarisiz=0 istek
 def batarya(M):
     sonuc = []
 
-    def ekle(ad, kosul, mesaj):
-        sonuc.append((ad, bool(kosul), mesaj))
+    def ekle(ad, kosul, mesaj, m_bagimli=True):
+        """`m_bagimli=False` -> vaka OLCULEN MODULDEN bagimsizdir (kaynak/YAML ekseni).
+
+        🔴 Bu bayrak bir MASKELEMEYI onler: modulden bagimsiz bir vaka kirmizi
+        yanarsa HER mutant da kirmizi yanar ve hepsi "oldu" gorunur -> gercek
+        SAGKALAN gizlenirdi ([[fail-closed-kol-arkasindaki-kolu-maskeler]]).
+        `mutant_kolu` bu vakalari OLDURME hesabina KATMAZ; gercek bataryada ise
+        tam yetkiyle sayilir ve kirmizi yakar.
+        """
+        sonuc.append((ad, bool(kosul), mesaj, bool(m_bagimli)))
 
     # ── 1. bekleyen=0, kimlik YOK -> YESIL + birebir satir ──────────────────
     yk, say = yukle_sayaci()
@@ -153,6 +221,34 @@ def batarya(M):
     ekle("7c dogru bayrak karari bozmaz", rc == 0 and eylem == M.EYLEM_BEKLE,
          "bayrak YOK iken rc=%d eylem=%s (beklenen 0/BEKLE)" % (rc, eylem))
 
+    # ── 8. OLCULEN IKIZ: YAML `KIMLIK_BAYRAK` == TEK KAYNAK ─────────────────
+    # 7. vaka bayragin KOSUM ANINDAKI degerini capraz olcer; bu vaka bayragin
+    # TANIMINI olcer. Ikisi ayri eksendir: yanlis alan kumesiyle yazilmis bir
+    # bayrak KOSUMDA tutarli gorunur (bayrak YOK, olcum de YOK) ama hat ASLA
+    # 'VAR' olamayacagi icin SESSIZCE OLU kalir.
+    try:
+        yaml_metni = open(AKIS, encoding="utf-8").read()
+    except OSError as e:                              # noqa: BLE001
+        ekle("8a YAML ikizi okunabildi", False, "is akisi okunamadi: %s" % e,
+             m_bagimli=False)
+    else:
+        ayrisma = ikiz_ayrismasi(yaml_metni, ZORUNLU_ALANLAR)
+        ekle("8a YAML ikizi TEK KAYNAKLA birebir", not ayrisma,
+             "KIMLIK_BAYRAK kumesi `KIMLIK_ALANLARI` ile AYRISTI -> %s" % ayrisma,
+             m_bagimli=False)
+        bayrak_kume = yaml_bayrak_alanlari(yaml_metni) or []
+        ekle("8b emekli alan bayrakta DEGIL",
+             "GOOGLE_ADS_DEVELOPER_TOKEN" not in bayrak_kume,
+             "developer token (9 Eyl 2026'da EMEKLI, artik URETILEMEZ) hala "
+             "KIMLIK_BAYRAK'ta -> ifade ASLA 'VAR' olamaz, hat OLU kalir",
+             m_bagimli=False)
+        ekle("8c ayristirici FIILEN alan buluyor (pozitif kontrol)",
+             len(bayrak_kume) == len(set(ZORUNLU_ALANLAR)) and len(bayrak_kume) > 0,
+             "bayraktan %d alan ayristirildi (beklenen %d) — 0 ise ikiz kolu KOR, "
+             "'ayrisma yok' YESILI sahtedir"
+             % (len(bayrak_kume), len(set(ZORUNLU_ALANLAR))),
+             m_bagimli=False)
+
     return sonuc
 
 
@@ -184,6 +280,92 @@ MUTANTLAR = [
 ]
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# KAYNAK / IKIZ MUTANTLARI — yeni iddialarin GERCEKTEN oldurdugunu olcer
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 Yukaridaki MUTANTLAR yalniz `reklam-oci-kosucu.py` govdesini mutasyona ugratir;
+# 8a/8b/8c iddialari ise KAYNAK ile YAML ekseninde yasar ve o mutantlarin HICBIRI
+# onlara dokunmaz. Olculmeseydi yeni iddialar KAPSAM YANILSAMASI olurdu: "bu satiri
+# silsem hangi iddia kirmizi yanar?" sorusunun cevabi YOK demekti.
+#
+# CANLI DOSYAYA YAZMA YOK: yukleyici IZOLE bir kopyaya yazilir, YAML yalniz BELLEKTE
+# degistirilir. Silinecek gercek ev yolu YOKTUR ([[mutant-canli-govdede-yasamaz]]).
+_MK1_CAPA = 'KIMLIK_ALANLARI = (\n    ("GOOGLE_ADS_CLIENT_ID"'
+_MK1_YERINE = ('KIMLIK_ALANLARI = (\n'
+               '    ("GOOGLE_ADS_DEVELOPER_TOKEN", "developer token"),\n'
+               '    ("GOOGLE_ADS_CLIENT_ID"')
+_MK2_CAPA = "&& secrets.GOOGLE_ADS_CLIENT_SECRET != ''\n"
+
+
+def kaynak_mutant_kolu(dizin):
+    """Doner: (olen_sayisi, sagkalan_listesi, toplam_vaka)."""
+    olen, sagkalan, toplam = 0, [], 0
+    try:
+        yaml_metni = open(AKIS, encoding="utf-8").read()
+        kaynak = open(YUKLEYICI, encoding="utf-8").read()
+    except OSError as e:                              # noqa: BLE001
+        return 0, ["KAYNAK/YAML OKUNAMADI: %s (OLCULEMEDI — YESIL DEGIL)" % e], 0
+
+    # ── MK1: emekli alan `KIMLIK_ALANLARI`na GERI ALINDI (izole kopya) ──────
+    toplam += 1
+    ad = "MK1 emekli alan KIMLIK_ALANLARI'na geri alindi"
+    if _MK1_CAPA not in kaynak:
+        sagkalan.append(ad + " — CAPA TUTMADI (kaynak degisti, mutant hedefini bulamadi)")
+    else:
+        yol = os.path.join(dizin, "mutant_yukleyici.py")
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write(kaynak.replace(_MK1_CAPA, _MK1_YERINE, 1))
+        try:
+            MY = modul_yukle(yol, "reklam_oci_yukleyici_mk1")
+            mutant_zorunlu = list(MY.ZORUNLU_ALAN_ADLARI)
+        except Exception as e:                        # noqa: BLE001
+            print("  ☠️  %-52s (mutant yuklenemedi: %s)" % (ad, e))
+            olen += 1
+        else:
+            tuttu = "GOOGLE_ADS_DEVELOPER_TOKEN" in mutant_zorunlu
+            ayrisma = ikiz_ayrismasi(yaml_metni, mutant_zorunlu)
+            if tuttu and ayrisma:
+                print("  ☠️  %-52s (ikiz vakasi KIRMIZI: %s)" % (ad, ayrisma))
+                olen += 1
+            elif not tuttu:
+                sagkalan.append(ad + " — MUTASYON TUTMADI (alan zorunlu kumeye girmedi)")
+            else:
+                sagkalan.append(ad + " — IKIZ VAKASI YESIL KALDI (8a KOR)")
+
+    # ── MK2: YAML bayragindan BASKA bir alan silindi ────────────────────────
+    toplam += 1
+    ad = "MK2 YAML KIMLIK_BAYRAK'tan CLIENT_SECRET silindi"
+    if _MK2_CAPA not in yaml_metni:
+        sagkalan.append(ad + " — CAPA TUTMADI (is akisi degisti)")
+    else:
+        mutant_yaml = yaml_metni.replace(_MK2_CAPA, "", 1)
+        ayrisma = ikiz_ayrismasi(mutant_yaml, ZORUNLU_ALANLAR)
+        if ayrisma:
+            print("  ☠️  %-52s (ikiz vakasi KIRMIZI: %s)" % (ad, ayrisma))
+            olen += 1
+        else:
+            sagkalan.append(ad + " — IKIZ VAKASI YESIL KALDI (8a KOR)")
+
+    # ── K0 KONTROL: ILGISIZ degisiklik ikizi KIRMIZI YAKMAMALI ──────────────
+    # 🔴 Menzil kontrolu: ayristirici TUM dosyayi tarasaydi (yanlis eksen), asagidaki
+    # YORUM satiri kumeyi kirletir ve kapi ILGISIZ bir degisiklikte kirmizi yanardi.
+    toplam += 1
+    kirli = yaml_metni.replace(
+        "        env:\n",
+        "        # ornek yorum: secrets.GOOGLE_ADS_ILGISIZ_ALAN != '' yazilabilir\n"
+        "        env:\n", 1)
+    if kirli == yaml_metni:
+        sagkalan.append("K0 KONTROL — capa tutmadi (env: bloku bulunamadi)")
+    elif ikiz_ayrismasi(kirli, ZORUNLU_ALANLAR):
+        sagkalan.append("K0 KONTROL — ILGISIZ yorum satiri ikizi KIRMIZI yakti "
+                        "(ayristirici menzili COK GENIS)")
+    else:
+        print("  ✅  %-52s (dar eksen: komsuyu kirmiziya yakmaz)"
+              % "K0 KONTROL ilgisiz yorum satiri eklendi")
+        olen += 1
+    return olen, sagkalan, toplam
+
+
 def mutant_kolu(govde, dizin):
     """Mutantlari IZOLE dizinde kos. CANLI dosyaya HICBIR yazma YOK."""
     olen, sagkalan = 0, []
@@ -203,7 +385,10 @@ def mutant_kolu(govde, dizin):
             olen += 1
             continue
         try:
-            dusen = [v for v in batarya(M) if not v[1]]
+            # 🔴 YALNIZ MODULE BAGLI vakalar oldurme hesabina girer (v[3]) —
+            # kaynak/YAML ekseni her mutantta ayni yanar, girseydi SAGKALANI
+            # maskelerdi.
+            dusen = [v for v in batarya(M) if not v[1] and v[3]]
         except Exception as e:                    # noqa: BLE001
             print("  ☠️  %-44s (batarya istisna atti: %s)" % (ad, e))
             olen += 1
@@ -244,7 +429,7 @@ def main(argv=None):
         M = modul_yukle(KOSUCU, "reklam_oci_kosucu_gercek")
         vakalar = batarya(M)
         dusen = [v for v in vakalar if not v[1]]
-        for ad, gecti, mesaj in vakalar:
+        for ad, gecti, mesaj, _m_bagimli in vakalar:
             if not gecti:
                 print("  ❌ %-28s %s" % (ad, mesaj))
         print("  VAKA=%d GECEN=%d DUSEN=%d"
@@ -260,9 +445,13 @@ def main(argv=None):
     print("MUTANT KOLU (izole kopya — canli govde DEGISMEZ)")
     with tempfile.TemporaryDirectory(prefix="oci-kosucu-mutant-") as d:
         olen, sagkalan = mutant_kolu(govde, d)
+        print("  KAYNAK/IKIZ MUTANTLARI (tek kaynak + YAML ekseni)")
+        k_olen, k_sagkalan, k_toplam = kaynak_mutant_kolu(d)
+    sagkalan = list(sagkalan) + list(k_sagkalan)
     for s in sagkalan:
         print("  🔴 SAGKALAN: %s" % s)
-    print("  MUTANT=%d OLEN=%d SURVIVOR=%d" % (len(MUTANTLAR), olen, len(sagkalan)))
+    print("  MUTANT=%d OLEN=%d SURVIVOR=%d"
+          % (len(MUTANTLAR) + k_toplam, olen + k_olen, len(sagkalan)))
     if sagkalan:
         rc = 1
 

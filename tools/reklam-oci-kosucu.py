@@ -52,9 +52,11 @@ kopyasidir ve ikiz tanimlar bu depoda SESSIZCE AYRISIR. Bu yuzden bayrak KARAR V
 yalnizca CAPRAZ OLCULUR: bayrak ile aracin olcumu ayrisirsa hal `OLCULEMEDI`dir (rc=3),
 "secret eklendi ama is akisi gormuyor" ya da tersi SESSIZ KALAMAZ.
 
-🔴 Bu arac dort SIFRE sinifi alani (DEVELOPER_TOKEN / CLIENT_ID / CLIENT_SECRET /
-REFRESH_TOKEN) URETMEZ, ISTEMEZ, LOG'A YAZMAZ. Degerleri yalnizca ortamdan OKUNUR
-sayar; maskeleme `reklam-oci-yukleyici.py::gizle` kolundadir (ikinci kopya YOK).
+🔴 Bu arac SIFRE sinifi alanlari (CLIENT_ID / CLIENT_SECRET / REFRESH_TOKEN) URETMEZ,
+ISTEMEZ, LOG'A YAZMAZ. Degerleri yalnizca ortamdan OKUNUR sayar; maskeleme
+`reklam-oci-yukleyici.py::gizle` kolundadir (ikinci kopya YOK). Alan KUMESI de ikinci
+kopya DEGILDIR: TEK KAYNAK `reklam-oci-yukleyici.py::KIMLIK_ALANLARI`. `DEVELOPER_TOKEN`
+9 Eyl 2026'da Google tarafindan EMEKLI edildi -> ZORUNLU kumeden CIKTI (istege bagli).
 
 Cikis kodlari (`reklam-oci-yukleyici.py` ile AYNI SOZLESME):
     0 YESIL       · 1 KIRMIZI · 2 KIMLIK-YOK (bu kolda 0/1'e indirgenir) · 3 OLCULEMEDI
@@ -163,7 +165,11 @@ def ozet_satirlari(eylem, rc, bekleyen, eksik, yukleme_metni):
         s.append("  Donusumler YASLANIYOR: Google Ads tiklama donusumlerini sinirli bir")
         s.append("  pencerede kabul eder; bekleyen satirlar gonderilemezse ATIF KAYBOLUR.")
         s.append("  Eksik alan (%d): %s" % (len(eksik), ", ".join(eksik) or "-"))
-        s.append("  🔴 Kapatan sey: dort SIFRE alaninin repo secret'ina kurulmasi (OKAN KAPISI).")
+        # 🔴 SAYI YAZILMAZ, EKSIK LISTESINDEN OKUNUR: alan kumesi degistiginde
+        # (ornek: `developer token` 9 Eyl 2026'da emekli edildi) elle yazilmis bir
+        # sayi SESSIZCE bayatlar ve red metni yanlis yeri gosterir.
+        s.append("  🔴 Kapatan sey: yukarida ADIYLA sayilan %d SIFRE alaninin repo "
+                 "secret'ina kurulmasi (OKAN KAPISI)." % len(eksik))
         return s
     # EYLEM_YUKLE
     s.append("%s — kimlik TAM, yukleme DENENDI. BEKLEYEN(once)=%d"
