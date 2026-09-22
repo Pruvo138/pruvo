@@ -1064,11 +1064,68 @@ def _ad_gecerli(ad):
     return not _arac_ifadesi_mi(ad)
 
 
+# ------------------------------------------------ K400 AGAC KIMLIGI (22 Eyl 2026)
+# 🔴 OLCULEN VAKA (canli kutu, 22 Eyl): kutu 533/500 satirda, `defter-kota-kapisi`
+# `KUTU_ASILDI` ile evin commit'ini KILITLEMIS durumdayken `kilitledi=9` idi ve
+# kilitleyen dokuz blogun UCU su cifti tasiyordu:
+#   ACILIS  (kutu)  `## … 🟡 BAŞLIYORUM `KraL-SeritB-13Eyl` (ağaç `lucid-tereshkova-ea13cc`)`
+#   KAPANIS (arsiv) `lucid-tereshkova-ea13cc` ADIYLA imzali/baslikli
+# Yani ayni cip ACILISTA CIP ADIYLA, KAPANISTA AGAC ADIYLA kimliklenmisti. K375
+# bu ayrismanin TERSINI (kapanis agac adli, acilis cip adli) `(çip `<ad>`)`
+# parantezini okuyarak zaten cozuyordu; AYNI cift bu yonde COZULMEDEN kaliyordu ->
+# blok SONSUZA KADAR pinli, rotasyon 11-13 Eyl'de kapanmis isleri tasiyamiyordu.
+#
+# 🔴 GENISLETME K375 ILE AYNI SINIRDA: "ANMAK ≠ IMZALAMAK" sinifi ACILMAZ. Basliktaki
+# HER backtick'li jeton kimlik SAYILMAZ; ikincil kimlik YALNIZ yordamin CIVILEDIGI
+# kanonik BEYAN bicimiyle kabul edilir: `ağaç `<ad>`` / `agac: `<ad>``. Bu bir ANMA
+# degil, blogun HANGI AGACTA kosuldugunun BEYANIDIR.
+#
+# 🔴 SEKIL SARTI ZORUNLUDUR VE OLCULDU (tahmin degil): kutu+arsivdeki 3820 `## `
+# basligi tarandi — `ağaç `<...>`` beyani **51** yerde geciyor. Bunlarin 41'i
+# harness agac sekli (`<soz>-<soz>-<6 hex>`), 10'u DEGIL ve onlarin HEPSI agac
+# adi OLMAYAN seylerdir: `main`, dal adlari (`shop-turnstile`, `w2-nobet-tur`,
+# `w3-defter-kutu`, `w4-yedek-karantina`, `shop-baslat-hiz`, `k161-ifsa-plan`) ve
+# bir YOL (`.claude/worktrees/determined-heisenberg-b0c4ed`). `main` sekil suzgeci
+# OLMADAN kimlik kumesine girseydi `main` ADINI TASIYAN her kapanis `main` diyen
+# her acilisi acardi — BATTANIYE ESLESME. Bu yuzden kol `_harness_adi_sekli()`
+# ile sinirlidir; ikinci bir sekil olcutu YAZILMAZ (K373 ile AYNI KAYNAK).
+#
+# 🔴 GERI DONUSUM KORUMASI ZATEN VAR VE BU KOLA DA UYGULANIR: agac adlari GERI
+# DONUSTURULUR ([[worktree-adi-geri-donusturulur-canli-cipi-siler]]). `arsiv_serbest()`
+# zaman kolunu `_harness_adi_sekli(ad)` ile `geri_donusur=True`ya cevirir; bu kolun
+# urettigi adlar TANIMI GEREGI harness seklinde oldugu icin o koruma OTOMATIK isler
+# (iki yan da saatsizse KORU).
+AGAC_BEYAN_RE = re.compile(r"a(?:ğ|g)a(?:ç|c)\s*:?\s*`([^`\n]+)`", re.IGNORECASE)
+
+
+def agac_kimlikleri(baslik):
+    """Baslikta KANONIK `ağaç `<ad>`` beyaniyla bildirilen AGAC adlari (sirali, tekil).
+
+    🔴 Sekil suzgeci `_harness_adi_sekli()`dir — `main`/dal adi/yol BEYAN edilse bile
+    kimlik SAYILMAZ. Sekil olcutu ikinci kez YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
+    """
+    adlar = []
+    for aday in AGAC_BEYAN_RE.findall(baslik):
+        ad = aday.strip()
+        if not _harness_adi_sekli(ad):
+            continue
+        if not _ad_gecerli(ad):
+            continue
+        if ad not in adlar:
+            adlar.append(ad)
+    return tuple(adlar)
+
+
 def cip_adlari(baslik):
     """Basliktan cozulen TUM DAR kimlikler — SIRALI, TEKIL; birincisi BIRINCIL ad.
 
     Birincil ad `cip_adi()`dir (basimda gecen, ILK backtick). Ardindan kanonik
-    `(çip `<ad>`)` parantezindeki adlar gelir. Eslesme bu KUMELERIN KESISIMIDIR.
+    `(çip `<ad>`)` parantezindeki adlar, EN SON kanonik `ağaç `<ad>`` beyanindaki
+    AGAC adlari gelir (K400). Eslesme bu KUMELERIN KESISIMIDIR.
+
+    🔴 SIRA KORUNUR: agac adi DAIMA SONA eklenir, cunku `kapanis_cip_adi()` bu
+    demetin BIRINCI elemanini "kapanisin sahibi" diye basar — K400 o basimi
+    DEGISTIRMEZ, yalnizca ESLESME kumesini genisletir.
     """
     adlar = []
     ilk = cip_adi(baslik)
@@ -1077,6 +1134,9 @@ def cip_adlari(baslik):
     for aday in CIP_PARANTEZ_RE.findall(baslik):
         ad = aday.strip()
         if _ad_gecerli(ad) and ad not in adlar:
+            adlar.append(ad)
+    for ad in agac_kimlikleri(baslik):          # K400 — ACILIS ve KAPANIS icin AYNI kol
+        if ad not in adlar:
             adlar.append(ad)
     return tuple(adlar)
 
