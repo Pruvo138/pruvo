@@ -1,0 +1,133 @@
+name: Reklam OCI kosucu
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NEDEN VAR — OLCULEN SESSIZLIK (22 Eyl 2026)
+# ══════════════════════════════════════════════════════════════════════════════
+# `tools/reklam-oci-yukleyici.py` 22 Eyl'de main'e indi ve YAYINDA. Kapisi
+# (`tools/reklam-oci-kapisi.py`) `deploy.yml::serit-a3`te kosuyor — yani KOD
+# olculuyor. Ama aracin KENDISI hicbir zamanlayiciya BAGLI DEGILDI:
+#
+#     grep -rn "reklam-oci" .github/workflows/ ~/.claude/cron/
+#       -> deploy.yml:1603 (yorum) · deploy.yml:1605 (KAPI) · cron'da HIC
+#
+# Sonuc: `--kuyrukla` HIC kosmadi (kuyruk hic dolmadi), `--yukle` HIC denenmedi.
+# Hat CANLI saniliyordu ama OLUYDU. Defterdeki "kirmizi gorunur ama okunmuyorsa
+# kapi degildir" dersinin kardesi: **kosmayan bir adim YESIL GORUNUR.**
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 NEDEN AYRI IS AKISI — `deploy.yml`E ADIM EKLENMEDI
+# ══════════════════════════════════════════════════════════════════════════════
+#   * `push`/`pull_request`/`workflow_call` tetigi YOK -> deploy.yml bunu HIC
+#     baslatmaz; yayin kritik yoluna 0 sn maliyet.
+#   * deploy.yml'e `needs:` ile BAGLI DEGIL -> buradaki kirmizi yayini DURDURMAZ.
+#   * `concurrency` grubu AYRI (`pages` DEGIL) -> hicbir yayin adimini bekletmez.
+#     🔴 Daldan atilan bir dispatch `pages` kovasina girseydi main yayinini EZERDI
+#     ([[dal-dispatch-pages-kovasi-main-yayinini-ezer]]).
+# Gerekce: donusum yuklemesini olcen bir kolun yayini bloklamasi kusuru buyutur;
+# kapi birikmesi bu depoda yayin suresini 21 gunde 15,6x uzatti.
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# CADANS — 6 SAAT
+# ══════════════════════════════════════════════════════════════════════════════
+# Google Ads tiklama donusumlerini sinirli bir pencerede kabul eder; 6 saat o
+# pencereye gore FAZLASIYLA erken, gunluk kosum ise gec kalirdi. 🔴 DAKIKA komsu
+# is akislarinin fazlarina CARPMAZ (olculdu, 22 Eyl): panel-uygulayici 8,23,38,53 ·
+# d1-uzlastirici 9,24,39,54 · paket-tazelik 13,28,43,58 · yayin-erisim 26 ·
+# yayin-yasi 41 · nobet 47. Bos dakika secildi: 34.
+# UTC 00:34 · 06:34 · 12:34 · 18:34  =  TRT (UTC+3) 03:34 · 09:34 · 15:34 · 21:34
+on:
+  schedule:
+    - cron: "34 */6 * * *"
+  # Elle kosum yolu HER ZAMAN acik (cron kacarsa insan tetikleyebilir; kimlik
+  # kurulur kurulmaz beklemeden bir kosum atilabilsin diye).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Yayin is akisiyla (deploy.yml `group: pages`) AYRI grup.
+concurrency:
+  group: reklam-oci-kosucu
+  cancel-in-progress: false      # yarim kalan bir yukleme KESILMEZ (idempotens
+                                 # anahtari var ama kesilen kosum `deneme_sayisi`yi
+                                 # kirletir; kuyruk zaten 6 saatte bir bosaltilir)
+
+jobs:
+  oci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # KABUL — hukum once KENDI fiksturunde olculur (ag YOK, D1 YOK, ~1 sn)
+      # ═══════════════════════════════════════════════════════════════════════
+      # Kosucu kirmizi yandiginda ilk soru "kapi mi bozuk" olur; bu adim o soruyu
+      # AYNI kosumda kapatir. Mutant bataryasi da buradadir (SURVIVOR=0 sarti).
+      # `continue-on-error` YOK ve cikis kodu kabukta YAKALANMAZ.
+      - name: "Kabul + mutant (ag YOK, secret YOK)"
+        run: python3 tools/reklam-oci-kosucu-test.py
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # ADIM A — KUYRUKLAMA. Kimlik GEREKTIRMEZ, HER kosumda calisir.
+      # ═══════════════════════════════════════════════════════════════════════
+      # Gerceklesen satin almalari (siparisler ⋈ reklam_ref_gclid) kuyruga alir.
+      # 🔴 `|| true` YOK, boru YOK: rc DOGRUDAN konusur
+      # ([[boru-rc-isci-olcumunu-yalanlar]]).
+      #   rc 0 -> kuyruklandi (0 aday da mesru bir yesildir)
+      #   rc 3 -> OLCULEMEDI = **KIRMIZI**. Yesile SAYILMAZ: D1 acilamadiysa
+      #           kuyrugun dolup dolmadigi BILINMIYOR demektir, "sorun yok" demek
+      #           degil. Kimlik bu kolda HIC ISTENMEZ.
+      - name: "A — kuyrukla (kimlik GEREKTIRMEZ)"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: python3 tools/reklam-oci-yukleyici.py --kuyrukla
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # ADIM B + C — DURUM olcumu, ZARAR ESIGI karari, ve (kimlik tamsa) YUKLEME
+      # ═══════════════════════════════════════════════════════════════════════
+      # 🔴 NEDEN TEK ADIM: B'nin olctugu `BEKLEYEN` sayisi C'nin karar girdisidir.
+      # Ayri adimlara bolunup sayi `$GITHUB_OUTPUT` uzerinden tasinsaydi kuyruk IKI
+      # KEZ olculurdu (ikiz tanim) ve iki olcum arasinda ayrisma SESSIZ kalirdi.
+      # Tek olcum -> tek karar sitesi. Kosucu BEKLEYEN sayisini HER kolda is
+      # ozetine (`$GITHUB_STEP_SUMMARY`) yazar.
+      #
+      # 🔴 ZARAR ESIGI (`tools/reklam-oci-kosucu.py::karar` — kabul testi BUNU kosar):
+      #     bekleyen > 0  ∧ kimlik YOK -> exit 1  KIRMIZI (donusumler yasliyor)
+      #     bekleyen = 0  ∧ kimlik YOK -> exit 0  YESIL + `HAL=KIMLIK-BEKLIYOR BEKLEYEN=0`
+      #     kimlik VAR                 -> yukleme DENENIR, rc yuklemeden gelir
+      #     kuyruk OLCULEMEDI          -> exit 3  (YESIL DEGIL)
+      # "Kimlik yok" TEK BASINA kirmizi DEGILDIR: bugun kimlik yok ve her kosum
+      # kirmizi yansaydi ekip bu kirmiziyi OKUMAYI BIRAKIRDI — gurultu fail-open'in
+      # en ucuz yoludur ([[onarim-kolu-zarar-esiginin-arkasinda]]).
+      #
+      # KIMLIK_BAYRAK: kimlik varligini `secrets.X != ''` ile bir `env` bayragina
+      # indirir. 🔴 Bayrak KARAR VERMEZ — aracin kendi `kimlik_coz()` olcumuyle
+      # CAPRAZ olculur; ayrisirsa hal `OLCULEMEDI` (rc=3). Ikiz tanim bu depoda
+      # sessizce ayrisir, bu yuzden ikinci kopyaya HUKUM verdirilmedi.
+      # 🔴 Dort SIFRE alani (DEVELOPER_TOKEN/CLIENT_ID/CLIENT_SECRET/REFRESH_TOKEN)
+      # OKAN KAPISIDIR: bu is akisi onlari URETMEZ, ISTEMEZ, LOG'A YAZMAZ — yalnizca
+      # KURULU olup olmadiklarini sayar. Bugun 4'u de YOK, ikisi (CUSTOMER_ID,
+      # CONVERSION_ACTION_ID) repo secret'inda KURULU.
+      - name: "B + C — durum olcumu, zarar esigi, (kimlik tamsa) yukleme"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          KIMLIK_BAYRAK: ${{ (secrets.GOOGLE_ADS_DEVELOPER_TOKEN != ''
+                          && secrets.GOOGLE_ADS_CLIENT_ID != ''
+                          && secrets.GOOGLE_ADS_CLIENT_SECRET != ''
+                          && secrets.GOOGLE_ADS_REFRESH_TOKEN != ''
+                          && secrets.GOOGLE_ADS_CUSTOMER_ID != ''
+                          && secrets.GOOGLE_ADS_CONVERSION_ACTION_ID != '')
+                          && 'VAR' || 'YOK' }}
+          GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_CLIENT_ID: ${{ secrets.GOOGLE_ADS_CLIENT_ID }}
+          GOOGLE_ADS_CLIENT_SECRET: ${{ secrets.GOOGLE_ADS_CLIENT_SECRET }}
+          GOOGLE_ADS_REFRESH_TOKEN: ${{ secrets.GOOGLE_ADS_REFRESH_TOKEN }}
+          GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_CUSTOMER_ID }}
+          GOOGLE_ADS_CONVERSION_ACTION_ID: ${{ secrets.GOOGLE_ADS_CONVERSION_ACTION_ID }}
+          GOOGLE_ADS_LOGIN_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_LOGIN_CUSTOMER_ID }}
+        run: python3 tools/reklam-oci-kosucu.py --gh-ozet
