@@ -4050,6 +4050,144 @@ def v58_saat_araligi(arac, kok):
     iddia("58x lossless GECTI", "lossless_dogrulama=GECTI" in cikti, cikti[-900:])
 
 
+# ── V59 FIKSTURU: K400 — AGAC KIMLIGI (22 Eyl 2026) ─────────────────────────────
+# Canli vaka (22 Eyl, kutu 533/500, `defter-kota-kapisi` KUTU_ASILDI): kilitleyen 9
+# blogun UCU acilisi CIP ADIYLA, kapanisi AGAC ADIYLA kimliklenmisti; iki kume HIC
+# kesismedigi icin bloklar SONSUZA KADAR pinliydi.
+#   A = ANA VAKA        — acilis `(ağaç `X`)` BEYAN eder, kapanis ARSIVDE `X` adli.
+#                         Cip adi kapanista GECMEZ -> eslesme YALNIZ agac kolundan.
+#   B = POZITIF KONTROL — GERCEKTEN acik cip: kapanisi HICBIR duzlemde YOK -> PINLI.
+#   C = POZITIF KONTROL — kapanis adi, acilisin agac adini ICEREN BASKA bir addir
+#                         (`...-eski`). TAM kimlik eslesmesinde PINLI kalir; eslesme
+#                         alt-dizgeye/benzerlige GEVSETILIRSE yanlislikla ACILIR.
+#   D = ADSIZ SINIFI    — `AD_YOK` blogu K400 ile ACILMAZ, ayri sinifta PINLI kalir.
+K59_A_CIP, K59_A_AGAC = "KraL-AgacCifti-22Eyl", "quirky-feynman-3d71ab"
+K59_B_CIP, K59_B_AGAC = "KraL-CanliCip-22Eyl", "jolly-hopper-9c42fe"
+K59_C_CIP, K59_C_AGAC = "KraL-YakinAd-22Eyl", "merry-poitras-4b19de"
+K59_C_KAPANAN = K59_C_AGAC + "-eski"      # agac adini ICEREN, AYRI bir ad
+
+
+def _k59_acik(saat, cip, agac):
+    """ACILIS: kimlik CIP ADINDA, agac KANONIK BEYANDA — canli kutunun birebir sekli."""
+    return ("## 2026-09-22 %s— 🟡 BAŞLIYORUM `%s` (ağaç `%s`) — sentetik cip."
+            % (saat, cip, agac))
+
+
+def _k59_kapanis(saat, ad):
+    """KAPANIS: YALNIZ tek ad tasir. Cip adi BILEREK gecmez (agac kolunu izole eder)."""
+    return "## 2026-09-22 %s— ✅ KraL (`%s`) **SAYILI KAPANIŞ — bitti.**" % (saat, ad)
+
+
+K59_ADSIZ = "## 2026-09-22 03:5x — 🚀 HocA → **KraL** **BAŞLIYORUM — adsiz sentetik blok**"
+
+
+def kutu_uret_k59():
+    parcalar = [FM]
+    i = 0
+    while i < 3:
+        parcalar.append(cip_blogu(i, "## 2026-09-22 — MimarA → MimarB: koru dolgusu %d" % i)
+                        + "— MimarA\n\n---\n\n")
+        i += 1
+    for cip, agac in ((K59_A_CIP, K59_A_AGAC), (K59_B_CIP, K59_B_AGAC),
+                      (K59_C_CIP, K59_C_AGAC)):
+        parcalar.append(cip_blogu(i, _k59_acik("03:5x ", cip, agac)) + "— KraL\n\n---\n\n")
+        i += 1
+    parcalar.append(cip_blogu(i, K59_ADSIZ) + "— HocA\n\n---\n\n")
+    i += 1
+    j = 0
+    while j < 3:
+        parcalar.append(blok(840 + j) + "---\n\n")
+        j += 1
+    return "".join(parcalar)
+
+
+def arsiv_uret_k59():
+    """ARSIV: A'nin AGAC adiyla kapanisi + C'ye YAKIN ama AYRI adli bir kapanis.
+
+    B'nin hicbir kapanisi YOKTUR (pozitif kontrol) ve ADSIZ blogun da yoktur.
+    """
+    parcalar = ["---\nname: sentetik-arsiv\n---\n\n"]
+    for i, ad in enumerate((K59_A_AGAC, K59_C_KAPANAN)):
+        parcalar.append(cip_blogu(940 + i, _k59_kapanis("06:4x ", ad))
+                        + "— KraL\n\n---\n\n")
+    return "".join(parcalar)
+
+
+def v59_agac_kimligi(arac, kok):
+    """[59] 🔴 K400 — ACILISTA CIP ADI / KAPANISTA AGAC ADI cifti ESLESIR.
+
+    BIRIM: `agac_kimlikleri()` YALNIZ kanonik `ağaç `<ad>`` BEYANINI ve YALNIZ harness
+      seklini kabul eder (`main`, dal adi, yol REDDEDILIR — canli olcumden gelen 10
+      gercek yanlis-pozitif). Backtick'li ad BEYANSIZ geciyorsa kimlik DEGILDIR.
+    DAVRANIS: A SERBEST (kapanis yalnizca AGAC adini tasir), B ve C PINLI.
+      🔴 B ve C POZITIF KONTROLDUR: koruma delinirse bu iki iddia KIRMIZI yanar.
+      🔴 D: `AD_YOK` sinifi K400 ile ACILMAZ, sayisiyla birlikte ayri kovada kalir.
+    Mutantlar `MUTANTLAR` bataryasindadir: `as)` agac kolunu kaldirir (A kirmizi),
+      `at)` eslesmeyi alt-dizgeye gevsetir (C kirmizi).
+    """
+    print("\n[59] K400 AGAC KIMLIGI — acilis cip adli, kapanis agac adli")
+    try:
+        mod = _arac_modulu(arac)
+    except Exception as exc:                                  # noqa: BLE001
+        iddia("59a BIRIM: arac modulu yuklendi", False, "%r" % (exc,))
+        return
+    ak = mod.agac_kimlikleri
+    for etiket, baslik, bekle in (
+            ("59a", "## x — 🟡 BAŞLIYORUM `KraL-X-22Eyl` (ağaç `quirky-feynman-3d71ab`)",
+             ("quirky-feynman-3d71ab",)),
+            ("59b", "## x — 🟡 BAŞLIYORUM `KraL-X-22Eyl` (agac: `quirky-feynman-3d71ab`)",
+             ("quirky-feynman-3d71ab",)),
+            ("59c", "## x — ✅ KraL (mimar oturumu, ağaç `main`) **KAPANIŞ**", ()),
+            ("59d", "## x — 🚧 KraL (ağaç `shop-turnstile`) **BAŞLIYORUM**", ()),
+            ("59e", "## x — 🚧 KraL (ağaç `w3-defter-kutu`) **BAŞLIYORUM**", ()),
+            ("59f", "## x — 🚧 KraL (ağaç `.claude/worktrees/determined-heisenberg-b0c4ed`)",
+             ()),
+            ("59g", "## x — 🚧 KraL (`quirky-feynman-3d71ab`) **BAŞLIYORUM**", ())):
+        iddia("%s 🔴 BIRIM: `%s` -> %r" % (etiket, baslik[5:60], bekle),
+              ak(baslik) == bekle, "%r" % (ak(baslik),))
+    cift = ("## x — ✅ ArTisT (çip `ArTisT-MotorOrani-11Eyl`, ağaç `focused-lederberg-097851`)"
+            " **SAYILI KAPANIŞ**")
+    adlar = mod.cip_adlari(cift)
+    iddia("59h 🔴 BIRIM: BIRINCIL ad DEGISMEDI (kapanis sahibi basimi korunur)",
+          adlar[0] == "ArTisT-MotorOrani-11Eyl", "%r" % (adlar,))
+    iddia("59i 🔴 BIRIM: agac adi kimlik KUMESINE girdi",
+          "focused-lederberg-097851" in adlar, "%r" % (adlar,))
+
+    metin = kutu_uret_k59()
+    a = Alan(kok, metin, arsiv_uret_k59())
+    iddia("59j fikstur tavani GERCEKTEN asiyor",
+          len(metin.splitlines()) > K360_TAVAN, "satir=%d" % len(metin.splitlines()))
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=K360_TAVAN, koru=3)
+    kutu_s, arsiv_s = oku(a.kutu), oku(a.arsiv)
+    adlar_s = satir_al(cikti, "ACIK_BASLIYORUM_ADLARI=")
+    serbest = satir_al(cikti, "ARSIV_SERBEST_ADLARI=")
+    iddia("59k rc=0", rc == 0, "rc=%d\n%s" % (rc, cikti[-1500:]))
+
+    a_blok = _k59_acik("03:5x ", K59_A_CIP, K59_A_AGAC)
+    iddia("59l 🔴 DAVRANIS ANA VAKA: `%s` SERBEST — kapanis YALNIZ agac adini tasiyor"
+          % K59_A_CIP,
+          K59_A_AGAC in serbest and K59_A_CIP not in adlar_s
+          and a_blok in arsiv_s and a_blok not in kutu_s,
+          "serbest=%s adlar=%s" % (serbest, adlar_s))
+    for etiket, cip, agac, neden in (
+            ("59m", K59_B_CIP, K59_B_AGAC, "kapanisi HICBIR duzlemde YOK"),
+            ("59n", K59_C_CIP, K59_C_AGAC, "kapanis adi AYRI (`-eski`), TAM eslesme YOK")):
+        b_blok = _k59_acik("03:5x ", cip, agac)
+        iddia("%s 🔴 POZITIF KONTROL: `%s` PINLI (%s)" % (etiket, cip, neden),
+              cip in adlar_s and agac not in serbest
+              and b_blok in kutu_s and b_blok not in arsiv_s,
+              "serbest=%s adlar=%s" % (serbest, adlar_s))
+    iddia("59o 🔴 ADSIZ SINIFI K400 ile ACILMAZ", "AD_YOK" in adlar_s
+          and K59_ADSIZ in kutu_s and K59_ADSIZ not in arsiv_s, adlar_s)
+    iddia("59p 🔴 TAM SAYI: ARSIV_SERBEST=1 (yalniz A)", "ARSIV_SERBEST=1 " in cikti,
+          cikti[-1800:])
+    iddia("59q 🔴 TAM SAYI: ACIK_BASLIYORUM=3 (B + C + ADSIZ)",
+          "ACIK_BASLIYORUM=3 " in cikti, cikti[-1800:])
+    iddia("59r 🔴 TAM SAYI: ADSIZ_SERBEST=0 (adsiz kol K400'den ETKILENMEDI)",
+          "ADSIZ_SERBEST=0 " in cikti, cikti[-1800:])
+    iddia("59s lossless GECTI", "lossless_dogrulama=GECTI" in cikti, cikti[-900:])
+
+
 VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v04_frontmatter_ve_ust_bloklar, v05_blok_bolunmez,
            v06_arsiv_yoksa_frontmatter, v07_kilit, v08_bozuk_frontmatter,
@@ -4075,7 +4213,7 @@ VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v51_kapanis_kuyrugu, v52_adsiz_kilit_acma, v53_arac_ifadesi_ad_degil,
            v54_kimlik_kumesi,
            v55_blok_sha_kolu, v56_beyan_araci_yazar, v57_etiket_dustu,
-           v58_saat_araligi)
+           v58_saat_araligi, v59_agac_kimligi)
 
 
 def suite(arac, sessiz=False):
@@ -4101,6 +4239,16 @@ def suite(arac, sessiz=False):
 # DEGILDIR — kirmizinin hangi vakalarda ciktigi da olculur ve HEDEFLE KARSILASTIRILIR
 # ([[ikinci-gorus-vakasi-birinci-gorusu-tekrar-ederse-totolojidir]]). `hedefler` None
 # ise (eski mutantlar) yalnizca kirmizi/yesil beklentisi olculur ve atif RAPOR kalir.
+# 🔴🔴 ATIF KUMELERI IKINCI KAT BAYATLAR (22 Eyl 2026, K400 turunda OLCULDU).
+# V59 eklenince ALTI mutantin `hedef vakalar` kumesi BIREBIR bir eleman eksik kaldi
+# (`j) l) o) u) ab) ag)`): mutantlarin HEPSI OLDU (`MUTANT=41/41`), ama olen kume
+# artik `59`u da iceriyordu -> `HEDEF_KOL_ATFI` 38/38'den 34/40'a dustu ve tur rc=1
+# verdi. SURVIVOR YOKTU; duesen sey ATIFTI ([[mutant-beklenen-kirmizi-kumesi-taban-degisince-ikinci-kat-bayatlar]]).
+# 🔴 `59` O ALTI KUMEYE "kirmizi susmasin diye" DEGIL, OLCULDUGU ICIN eklendi: v59
+# fiksturu kapanislarini ARSIVE koyar (ab), agac adini HARNESS SEKLINDEN cozer (ag),
+# acik-cip veto/eslestirme kollarini kullanir (l, o), ucbirlik kapanis olcutune
+# dayanir (u) ve serbest kalan blok korumalilarin ARASINDA durur (j). Yani v59 o alti
+# kolu GERCEKTEN olcer; kume genislemesi kapsamin BUYUDUGUNU soyler, gevsedigini DEGIL.
 MUTANTLAR = (
     ("a) LOSSLESS DOGRULAMASI OLDURULDU (dogrula -> daima bos liste)",
      "    h = []\n    kutu_satir =",
@@ -4228,7 +4376,7 @@ MUTANTLAR = (
      # 🔴 58 EKLENDI (K375, 13 Eyl): v58'de SERBEST birakilan C/F, KORUNAN A/B/D/E
      # ile ayni sirada durur (47 ile ayni sekil); 58r/58u bitisik kuyrukta ULASILMAZ.
      True, {"20", "22", "28", "31", "32", "33", "37", "38", "42", "43", "44",
-            "46", "47", "49", "50", "51", "52", "53", "54", "58"}),
+            "46", "47", "49", "50", "51", "52", "53", "54", "58", "59"}),
     # 🔴 K318 KOL-2 (27 Agu): kayipsizligin IKI EKSENDE BASILMASI sarti. Beyan
     # susturulursa 28 OLMELI; hesap dogru kalsa bile "basilmayan sayi olculmemis
     # sayidir" ([[aracin-teshis-cumlesi-olcum-degil]]).
@@ -4263,7 +4411,7 @@ MUTANTLAR = (
      # 🔴 58 EKLENDI (K375, 13 Eyl): v58'in KORUNAN dort acilisi (A/B/D/E) veto
      # bacagiyla sabit kumede durur; bacak olunce arsive kacar ve D17 rc=1 yakar.
      True, {"31", "32", "33", "36", "41", "42", "43", "46", "47", "49",
-            "51", "52", "53", "54", "58"}),
+            "51", "52", "53", "54", "58", "59"}),
     ("m) D17 ACIK CIP DENETIMI OLDURULDU (sizan acik blok sessizce yazilir)",
      "    for _bi, ad, ozet, sinif in ek_acik:\n",
      "    for _bi, ad, ozet, sinif in []:  # MUTANT: D17 susturuldu\n",
@@ -4295,7 +4443,7 @@ MUTANTLAR = (
      # 🔴 58 EKLENDI (K375, 13 Eyl): her blok KAPANIS sayilinca v58'in acilislari
      # KUTU ICINDE kendilerini kapatir; arsiv zaman kolu hic sorulmadan dort KORU duser.
      True, {"31", "32", "33", "36", "42", "43", "46", "47", "48",
-            "49", "51", "53", "54", "58"}),
+            "49", "51", "53", "54", "58", "59"}),
     # 🔴 GEVSEK AD kolu (28 Agu, ucuncu canli vaka) — backtick'siz yazilmis cip adini
     # okuyan asimetrik bacak. Olmezse vaka 36'nin ② sarmali `ACIK_ADSIZ`a duser: blok
     # HALA korunur (fail-closed dogru) ama SINIFI degisir — yani kol "kismen" olur ve
@@ -4383,7 +4531,7 @@ MUTANTLAR = (
      # 🔴 58 EKLENDI (K375, 13 Eyl): uc sart gevseyince v58'in `BASLIYORUM`
      # basliklari da KAPANIS sayilir (o) ile ayni yol); KORU bacaklari duser.
      True, {"31", "32", "33", "34", "36", "42", "43", "47", "48", "49",
-            "51", "53", "54", "58"}),
+            "51", "53", "54", "58", "59"}),
     ("v) 🔴 MP3: TIRNAK ELEMESI KALDIRILDI (alintidaki jeton yine sayilir)",
      "    return _TIRNAK_RE.sub(\" \", metin)\n",
      "    return metin  # MUTANT MP3: TIRNAK elemesi KALDIRILDI\n",
@@ -4462,7 +4610,7 @@ MUTANTLAR = (
      "    if True:\n        return {}  # MUTANT: arsiv duzlemi korlestirildi\n",
      # 🔴 58 EKLENDI (K375, 13 Eyl): v58'in SERBEST bacaklari (C, F) arsiv
      # kapanisina dayanir; duzlem korlesince ikisi de kutuda kalir.
-     True, {"47", "49", "58"}),
+     True, {"47", "49", "58", "59"}),
     ("ac) 🔴 K360-B: ZAMAN SIRASI OLDURULDU (ESKI kapanis YENI acilisi acar)",
      "    a_gun, a_dk = acilis_z\n",
      "    return True  # MUTANT: zaman sirasi kaldirildi\n    a_gun, a_dk = acilis_z\n",
@@ -4490,6 +4638,20 @@ MUTANTLAR = (
      "        return not geri_donusur\n",
      "        return True  # MUTANT: K375 kimlik kurali kaldirildi\n",
      True, {"58"}),
+    # 🔴 K400 (22 Eyl 2026) — IKI KOL, IKI TERS YON. `as)` ikinci kimligi KALDIRIR
+    # (onarim oncesi hale doner: eski bloklar pinli kalir, ANA VAKA kirmizi yanar).
+    # `at)` eslesmeyi ALT-DIZGEYE gevsetir — yani "kimlikler eslessin" hukmunu
+    # "benzesin" diye okur; POZITIF KONTROL (C) kirmizi yanar, cunku gercekten ACIK
+    # bir cip, adini ICEREN baska bir cipin kapanisiyla yanlislikla ACILIR.
+    ("as) 🔴 K400: AGAC KIMLIK KOLU OLDURULDU (acilis cip adli / kapanis agac adli cift ESLESMEZ)",
+     "    for ad in agac_kimlikleri(baslik):          # K400 — ACILIS ve KAPANIS icin AYNI kol\n",
+     "    for ad in ():  # MUTANT: K400 agac kolu kaldirildi\n",
+     True, {"59"}),
+    ("at) 🔴 K400: ESLESME ALT-DIZGEYE GEVSETILDI (adini ICEREN kapanis de acar)",
+     "            liste = havuz.get(ad)\n",
+     "            liste = next((v for k, v in havuz.items() if ad in k and v), None)"
+     "  # MUTANT: TAM kimlik -> alt-dizge\n",
+     True, {"59"}),
     ("ae) 🔴 K360-C: KONUM OLCUTU OLDURULDU (proza anmasi yine MARKER sayilir)",
      "    return sade.find(BASLIYORUM_JETON) <= KONUM_TAVANI\n",
      "    return True  # MUTANT: KONUM olcutu kaldirildi\n",
@@ -4513,7 +4675,7 @@ MUTANTLAR = (
      "    return False  # MUTANT: harness sekil kolu kaldirildi\n",
      # 🔴 58 EKLENDI (K375, 13 Eyl): iki yan saatsiz ciftte KORU karari harness
      # sekline dayanir; sekil taninmayinca `saatsiz-agac-3c5e7a` SERBEST kalir (58t).
-     True, {"49", "58"}),
+     True, {"49", "58", "59"}),
     ("ah) 🔴 K373: RAKAM SARTI KALDIRILDI (salt-hex kelime de ad sayilir)",
      '    return any(k.isdigit() for k in ad.rsplit("-", 1)[1])\n',
      "    return True  # MUTANT: rakam sarti kaldirildi (GEVSETME yonu)\n",
