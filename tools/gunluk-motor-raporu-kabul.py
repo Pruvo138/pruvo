@@ -63,7 +63,8 @@ PRUVO_OPUS = 33334
 PRUVO_SONNET = 26
 ADVISOR_CLAUDE = 1100          # KATLANMAMALI: pruvo'ya karismaz
 HASAT_CLAUDE = 28
-BASLANGIC_PENCEREDE = 7        # R1..R5 + R8/R9 (etiket-onek); R6 (dun) ve R7 (23:30) HARIC
+BASLANGIC_PENCEREDE = 9        # R1..R5 + R8/R9 (etiket-onek) + R10/R11 (ev-koku);
+                               # R6 (dun) ve R7 (23:30) HARIC
 
 
 def yerel(gun, saat, dakika=0):
@@ -102,7 +103,15 @@ def kayit(session, model, girdi, cikti, cc, cr, damga, sidechain=False):
 
 
 def fikstur_kur(kok):
-    """projects/ agaci + isci.log. Sayilar yukarida civili."""
+    """projects/ agaci + isci.log + dev-koku/. Sayilar yukarida civili."""
+    # --- dev-koku/: ev kumesinin TURETILDIGI kok (22 Eyl 2026 sinif kapisi) ----
+    # `gorsel-atolye` GIT DEPOSU  -> ev SAYILMALI (POZITIF, V24)
+    # `arsiv-klasoru` depo DEGIL  -> ev SAYILMAMALI (NEGATIF, V25)
+    # Ikisi de TABAN kumesinde YOK; yalniz turetme onlari eve cevirebilir.
+    dev_koku = kok / "dev-koku"
+    (dev_koku / "gorsel-atolye" / ".git").mkdir(parents=True, exist_ok=True)
+    (dev_koku / "arsiv-klasoru").mkdir(parents=True, exist_ok=True)
+
     projects = kok / "projects"
     dizinler = {
         "ana": "-Users-okan-dev-pruvo",
@@ -197,6 +206,17 @@ def fikstur_kur(kok):
         # satiri de yutar; vaka o siniri olcer.
         basla(17, "minimax-m3", "tekin-gunlukcu-9", "komsu-etiket"),
         bitis(17, 0, 30),
+        # R10 EV-KOKU POZITIF: `gorsel-atolye` TABAN kumesinde YOK ama dev-koku/
+        # altinda GIT DEPOSU -> `gorsel-atolye` evine KATLANMALI, `bilinmeyen:`
+        # satiri DOGMAMALI. 22 Eyl 2026'da canli olan ariza birebir budur.
+        basla(18, "minimax-m3", "gorsel-atolye", "ev-koku-pozitif"),
+        "HAL=SAGLIKLI SUBTYPE=success IS_ERROR=0 MALIYET_USD=0.75 TUR=6 "
+        "OTURUM=w SEBEP=zarf-okundu",
+        bitis(18, 0, 45),
+        # R11 EV-KOKU NEGATIF: `arsiv-klasoru` ayni kokte ama GIT DEPOSU DEGIL
+        # -> ev SAYILMAMALI. Ciplak `listdir` (git sarti kalkarsa) bunu yutar.
+        basla(19, "minimax-m3", "arsiv-klasoru", "ev-koku-negatif"),
+        bitis(19, 0, 20),
         # R6 DUN -> sayilmaz
         "=== %s BASLANGIC motor=minimax-m3 ev=pruvo etiket=disarida butce=10.00 "
         "model=MiniMax-M3[1m] ===" % utc_damga("2026-09-01", 10),
@@ -226,9 +246,13 @@ def python_ayarla(yol):
 
 def kosa(betik, kok, projects, isci_log, kutu, ek=()):
     cikti_dizin = kok / "gunluk-rapor"
+    # 🔴 `--ev-kok` HER kosumda fikstur kokune baglanir: 22 Eyl'den beri ev kumesi
+    # DISKTEN turetiliyor, bagsiz kosum gercek `~/dev`i okur ve batarya HERMETIK
+    # olmaktan cikardi ([[test-gercek-home-yazarsa-komsu-bataryanin-onculunu-kirletir]]).
     komut = [PYTHON, str(betik), "--gun", GUN,
              "--projects", str(projects), "--isci-log", str(isci_log),
-             "--cikti-dizin", str(cikti_dizin), "--kutu", str(kutu)]
+             "--cikti-dizin", str(cikti_dizin), "--kutu", str(kutu),
+             "--ev-kok", str(kok / "dev-koku")]
     komut.extend(ek)
     sonuc = subprocess.run(komut, capture_output=True, text=True, timeout=300)
     return sonuc, cikti_dizin / (GUN + ".md")
@@ -401,6 +425,50 @@ def vakalar(betik, kok):
          "(2 olursa komsu YUTULMUS)"
          % ("bilinmeyen:tekin-gunlukcu-9" in ev_anahtarlari,
             jenerator.get("m3")))
+
+    # --- EV KUMESI DISKTEN TURETILIR (22 Eyl 2026 — SINIF KAPISI) -------------
+    # Olculen ariza: elle tutulan `BILINEN_EVLER` 3. kez bayatladi
+    # (13 Eyl faralya-panel/pazarlama · 22 Eyl gorsel-atolye) -> kosumlar
+    # `bilinmeyen:<ev>` satirinda kaldi, ev satiri "0 m3 · 🔴" gosterdi.
+    # [[ucuncu-tekrar-sinif-kapisi]]: liste uzatmak yasak, kume TURETILIR.
+    atolye = ev_al(blok, "gorsel-atolye")
+    vaka("V24-ev-koku-turetme-POZITIF",
+         sayi(atolye.get("m3")) == 1
+         and "bilinmeyen:gorsel-atolye" not in ev_anahtarlari,
+         "gorsel-atolye TABAN kumesinde YOK ama dev-koku/ altinda git deposu: "
+         "m3=%r beklenen=1 · bilinmeyen:gorsel-atolye var mi=%s (olmamali). "
+         "ev anahtarlari=%s"
+         % (atolye.get("m3"),
+            "bilinmeyen:gorsel-atolye" in ev_anahtarlari,
+            sorted(ev_anahtarlari)))
+    vaka("V25-ev-koku-git-sarti-NEGATIF",
+         "bilinmeyen:arsiv-klasoru" in ev_anahtarlari
+         and "arsiv-klasoru" not in ev_anahtarlari,
+         "ayni kokte ama GIT DEPOSU DEGIL -> ev SAYILMAMALI: "
+         "bilinmeyen:arsiv-klasoru var mi=%s · arsiv-klasoru ev satiri var mi=%s "
+         "(ciplak listdir bu klasoru YUTAR)"
+         % ("bilinmeyen:arsiv-klasoru" in ev_anahtarlari,
+            "arsiv-klasoru" in ev_anahtarlari))
+
+    # FAIL-SAFE: turetme kaynagi YOKSA rapor COKMEZ ve TABAN kumesiyle 22 Eyl
+    # ONCESI davranisa doner — sessizce BOS kumeye DUSMEZ.
+    sonuc_fs, rapor_fs = kosa(betik, kok, projects, isci_log, kutu,
+                              ek=["--ev-kok", str(kok / "boyle-bir-kok-yok")])
+    metin_fs = rapor_fs.read_text(encoding="utf-8") if rapor_fs.is_file() else ""
+    blok_fs = makine_blogu(metin_fs)
+    ev_anahtarlari_fs = set()
+    if isinstance(blok_fs, dict) and isinstance(blok_fs.get("ev"), dict):
+        ev_anahtarlari_fs = set(blok_fs["ev"].keys())
+    vaka("V26-ev-koku-YOK-fail-safe",
+         sonuc_fs.returncode == 0
+         and sayi(ev_al(blok_fs, "pruvo-hasat").get("m3")) == 2
+         and "bilinmeyen:gorsel-atolye" in ev_anahtarlari_fs,
+         "kok yokken: rc=%d (0 olmali) · TABAN evi pruvo-hasat m3=%r (2 olmali) · "
+         "turetilen ev bilinmeyen'e DUSMELI, var mi=%s. Kume BOSALIRSA "
+         "pruvo-hasat da bilinmeyen'e duser."
+         % (sonuc_fs.returncode,
+            ev_al(blok_fs, "pruvo-hasat").get("m3"),
+            "bilinmeyen:gorsel-atolye" in ev_anahtarlari_fs))
     return cikti
 
 
@@ -507,7 +575,37 @@ def m_etiket_onek_ciplak(metin):
                   "        if ev_alani.startswith(_onek):  # MUTANT-M8: sinir yok")
 
 
+CAPA_EV_KOK_DIZIN = "        if not p.is_dir():"
+CAPA_EV_KOK_GIT = '            if (p / ad / ".git").exists():'
+CAPA_EV_KOK_TABAN = "    BILINEN_EVLER = BILINEN_EVLER_TABAN | turetilen"
+
+
+def m_ev_koku_kapali(metin):
+    """Diskten turetme KAPANIR -> elle tutulan TABAN'a geri donulur; TABAN'da
+    olmayan ev (gorsel-atolye) yine `bilinmeyen:` satirinda kalir."""
+    return _tekil(metin, CAPA_EV_KOK_DIZIN,
+                  "        if True:  # MUTANT-M9: diskten turetme kapali")
+
+
+def m_ev_koku_git_sarti_yok(metin):
+    """`.git` sarti KALKAR (ciplak listdir) -> depo olmayan klasor de ev sayilir."""
+    return _tekil(metin, CAPA_EV_KOK_GIT,
+                  "            if True:  # MUTANT-M10: git sarti yok")
+
+
+def m_ev_koku_taban_yok(metin):
+    """TABAN birlesimi KALKAR -> turetme dustugunde kume BOSALIR (fail-safe olur)."""
+    return _tekil(metin, CAPA_EV_KOK_TABAN,
+                  "    BILINEN_EVLER = turetilen  # MUTANT-M11: taban yedegi yok")
+
+
 MUTANTLAR = [
+    ("M9-ev-koku-turetme-kapali", m_ev_koku_kapali,
+     "V24-ev-koku-turetme-POZITIF"),
+    ("M10-ev-koku-git-sarti-yok", m_ev_koku_git_sarti_yok,
+     "V25-ev-koku-git-sarti-NEGATIF"),
+    ("M11-ev-koku-taban-yedegi-yok", m_ev_koku_taban_yok,
+     "V26-ev-koku-YOK-fail-safe"),
     ("M7-etiket-onek-kapali", m_etiket_onek_kapali,
      "V22-etiket-onek-katlama-POZITIF"),
     ("M8-etiket-onek-sinirsiz", m_etiket_onek_ciplak,
