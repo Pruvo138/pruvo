@@ -108,16 +108,28 @@ jobs:
       # indirir. 🔴 Bayrak KARAR VERMEZ — aracin kendi `kimlik_coz()` olcumuyle
       # CAPRAZ olculur; ayrisirsa hal `OLCULEMEDI` (rc=3). Ikiz tanim bu depoda
       # sessizce ayrisir, bu yuzden ikinci kopyaya HUKUM verdirilmedi.
-      # 🔴 Dort SIFRE alani (DEVELOPER_TOKEN/CLIENT_ID/CLIENT_SECRET/REFRESH_TOKEN)
-      # OKAN KAPISIDIR: bu is akisi onlari URETMEZ, ISTEMEZ, LOG'A YAZMAZ — yalnizca
-      # KURULU olup olmadiklarini sayar. Bugun 4'u de YOK, ikisi (CUSTOMER_ID,
+      # 🔴 Uc SIFRE alani (CLIENT_ID/CLIENT_SECRET/REFRESH_TOKEN) OKAN KAPISIDIR: bu
+      # is akisi onlari URETMEZ, ISTEMEZ, LOG'A YAZMAZ — yalnizca KURULU olup
+      # olmadiklarini sayar. Bugun 3'u de YOK, ikisi (CUSTOMER_ID,
       # CONVERSION_ACTION_ID) repo secret'inda KURULU.
+      #
+      # 🔴 GOOGLE_ADS_DEVELOPER_TOKEN BAYRAKTAN CIKARILDI (9 Eyl 2026): Google alani
+      # EMEKLI etti, artik URETILEMIYOR. Bayrakta kalsaydi ifade ASLA 'VAR' olamaz,
+      # hat merge edilmis olmasina ragmen OLU kalirdi. Alan yine de ORTAMA
+      # GECIRILIYOR (asagida): kurulu kalmis eski bir jeton varsa arac onu ISTEGE
+      # BAGLI okur, yoksa `developer-token` basligi HIC OLUSMAZ (bos baslik = 400).
+      #
+      # 🔴🔴 BU IFADE IKINCI KOPYADIR — TEK KAYNAK `reklam-oci-yukleyici.py::
+      # KIMLIK_ALANLARI`. YAML'i Python IMPORT EDEMEDIGI icin kume burada elle
+      # yaziliyor; SESSIZ AYRISMASINI `tools/reklam-oci-kosucu-test.py` icindeki
+      # YAML IKIZ vakasi engeller: buradaki `secrets.X != ''` adlarini AYRISTIRIR
+      # ve `KIMLIK_ALANLARI` ile BIREBIR karsilastirir. Bir alan eklenir/silinirse
+      # kabul KIRMIZI yanar. Burayi elle degistirirken TEK KAYNAGI da degistir.
       - name: "B + C — durum olcumu, zarar esigi, (kimlik tamsa) yukleme"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          KIMLIK_BAYRAK: ${{ (secrets.GOOGLE_ADS_DEVELOPER_TOKEN != ''
-                          && secrets.GOOGLE_ADS_CLIENT_ID != ''
+          KIMLIK_BAYRAK: ${{ (secrets.GOOGLE_ADS_CLIENT_ID != ''
                           && secrets.GOOGLE_ADS_CLIENT_SECRET != ''
                           && secrets.GOOGLE_ADS_REFRESH_TOKEN != ''
                           && secrets.GOOGLE_ADS_CUSTOMER_ID != ''
