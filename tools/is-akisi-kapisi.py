@@ -1086,6 +1086,20 @@ NOBET_DOSYALARI = (
     # Ucuncu kez unutulursa liste yerine TURETIM'e gecilmeli (Pages job'u YOK **ve**
     # deploy.yml `uses:` ile cagirmiyor -> hepsi B) — [[kapsam-evrenini-cagri-grafindan-turet]].
     "yayin-yasi-alarmi.yml",
+    # 22 Eyl 2026: Reklam OCI kosucusu — 6 saatlik cron + workflow_dispatch, icinde
+    # Pages yayin job'u YOK, `deploy.yml` onu `uses:` ile CAGIRMAZ, `needs:` ile bagli
+    # DEGIL, `concurrency` grubu `pages` DEGIL -> tum joblari SERIT B'dir.
+    # Kayitsizken kapi yine fail-closed "SERIT AYRIMI OLCULEMEDI" verdi (DOGRU davranis:
+    # yeni dosya sessizce A varsayilmadi).
+    # 🔴 SAYIM — UCUNCU TEKRAR SINIF KAPISINI ZORUNLU KILAR ([[ucuncu-tekrar-sinif-kapisi]]):
+    # bu listeye SONRADAN (kapi kirmizi yandiktan sonra) eklenen dosyalar:
+    #   1) yayin-yasi-alarmi.yml  — 43c15ee9f (16 Agu 2026, K123)
+    #   2) reklam-oci.yml         — BU KAYIT (22 Eyl 2026)
+    # (`d4ccdfa14`teki 7 kalem TOPLU sinif-kapisi tasimasidir, "unutma" SAYILMAZ.)
+    # UCUNCUSUNDE tekil yama YASAK: liste yerine TURETIME gecilecek — "Pages job'u YOK
+    # **ve** deploy.yml `uses:` ile cagirmiyor -> hepsi B"
+    # ([[kapsam-evrenini-cagri-grafindan-turet]] · [[elle-tutulan-bagimlilik-listesi-sessizce-bayatlar]]).
+    "reklam-oci.yml",
 )
 SERIT_B_DOSYALARI = (E_DOSYA,) + NOBET_DOSYALARI
 
