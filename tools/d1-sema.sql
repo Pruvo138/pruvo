@@ -538,3 +538,57 @@ CREATE TABLE IF NOT EXISTS reklam_ref_gclid (
   ts         INTEGER,            -- landing damgasi (istemci)
   created_at INTEGER             -- sunucu damgasi (Date.now(), beacon ani)
 );
+
+-- REKLAM OCI YUKLEME KUYRUGU — gerceklesen satin almanin Google Ads'e GONDERILME defteri
+-- (OCI #2; tools/reklam-oci-yukleyici.py yazar/okur).
+--
+-- 🔴 NEDEN VAR (olculdu, 21 Eyl 2026): Ads panelinde 1-21 Eyl purchase **0** (son Ads
+-- purchase 30 Agu) iken GA4 ayni pencerede **21 gercek purchase** sayiyordu. Sebep
+-- `reklam_ref_gclid`de DEGILDI (o halka 10/10 yesil): Ads'e satin alma sinyali GONDEREN
+-- ADIM repoda HIC YOKTU — `offline conversion|googleads|conversionAction` deseni tum
+-- repoda 3 vurus veriyordu ve UCU DE YORUMDU. Tiklama kimligini mukemmel saklasak bile
+-- Google'a hicbir sey gitmiyordu. Bu tablo o eksik adimin KALICI defteridir.
+--
+-- NEDEN AYRI TABLO (siparisler'e kolon DEGIL):
+--   * `siparisler` TICARI kayittir; gonderim denemesi/hata metni oraya yazilsaydi her
+--     yeniden deneme siparis satirini yazar ve durum_gecmisi disiplinini kirletirdi.
+--   * Kuyruk satiri SILINEBILIR/prune edilebilir bir OLCUM artefaktidir; siparis DEGIL.
+--   * `reklam_ref_gclid` ile ayni sinif: atif altyapisi, siparisin kendisi degil.
+--
+-- IDEMPOTENS IKI KATMANLI ve HER IKISI DE BU TABLODA:
+--   1. `siparis_no` PRIMARY KEY + yazicinin `INSERT OR IGNORE`i -> ayni siparis kuyruga
+--      IKINCI KEZ GIRMEZ (dolduran adim kac kez kosarsa kossun).
+--   2. `yuklendi_mi` -> bir kez Google'a gitmis satir bir daha GONDERILMEZ. Bu yuzden
+--      Google govdesine `orderId` gibi bir dedup alani koymaya GEREK YOKTUR (Okan karari
+--      21 Eyl: gonderilen alanlar YALNIZ tiklama kimligi · donusum eylemi · zaman ·
+--      tutar · para birimi; musteri verisi HASH'LI BILE OLSA GITMEZ).
+-- 🔴 BASARISIZ DENEME `yuklendi_mi`yi ISARETLEMEZ: yalniz `deneme_sayisi` artar ve
+--    `son_hata` yazilir -> satir BEKLEYEN kalir, bir sonraki kosumda TEKRAR DENENIR.
+--    Ters davranis (hatada da isaretlemek) SESSIZ KAYIP sinifidir: donusum bir daha
+--    hic gonderilmez ve kimse kirmizi gormez.
+--
+-- 🔒 PII YOK: musteri adi/e-postasi/telefonu/adresi bu tabloya YAZILMAZ ve Google'a
+--    GONDERILMEZ. `click_id` Google'in kendi opak tik kimligidir (bizim musterimizin
+--    kimligi DEGIL) ve zaten `reklam_ref_gclid`de duruyor.
+--
+-- 🔴 INDEKS BU DOSYADA DEGIL: `idx_reklam_oci_bekleyen` d1-sync.py GOC_INDEKS kayit
+--    defterindedir (bu dosya kolon gocunden ONCE kosar — 1 Agu'da `siparisler`de
+--    olculmus tikanma sinifi; ayrica defterde durunca hali `--durum` SEMA ekseninde
+--    CANLI olculur).
+-- Halkanin her bacagi tools/reklam-oci-kapisi.py'de FIILEN kosturulur (jeton taramasi
+-- DEGIL: gercek sema sqlite'a yuklenir, gercek JOIN kosar, gercek govde uretilir ve
+-- sahte bir Google ucuna GERCEK yukleyici koduyla gonderilir).
+CREATE TABLE IF NOT EXISTS reklam_oci_kuyruk (
+  siparis_no      TEXT PRIMARY KEY,       -- siparisler.siparis_no — IDEMPOTENS anahtari
+  click_id        TEXT NOT NULL,          -- gclid | gbraid | wbraid degeri (opak, Google'in)
+  click_tur       TEXT NOT NULL,          -- 'gclid' | 'gbraid' | 'wbraid'
+  donusum_adi     TEXT NOT NULL,          -- donusum eyleminin INSAN adi (kaynak adi ENV'den)
+  tutar_kurus     INTEGER NOT NULL,       -- GERCEK tahsilat = tutar_kurus + kargo_kurus
+  para_birimi     TEXT NOT NULL,          -- 'TRY' (ZORUNLU; yoksa Google hesap birimi sayar)
+  donusum_zamani  TEXT NOT NULL,          -- 'yyyy-mm-dd hh:mm:ss+03:00' (Google bicimi)
+  yuklendi_mi     INTEGER NOT NULL DEFAULT 0,   -- 1 = Google KABUL ETTI (bir daha gitmez)
+  deneme_sayisi   INTEGER NOT NULL DEFAULT 0,   -- kac kez gonderilmeye calisildi
+  son_hata        TEXT NOT NULL DEFAULT '',     -- son basarisizligin SIR-MASKELI metni
+  yuklenme_zamani INTEGER,                      -- basarili gonderim ani (ms); yoksa NULL
+  olusturuldu     INTEGER NOT NULL        -- kuyruga girdigi an (ms)
+);
