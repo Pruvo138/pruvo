@@ -37,8 +37,32 @@ gurultu, fail-open'in en ucuz yoludur. Kirmizi sarti ZARARA baglanir:
 
     bekleyen > 0  ∧  kimlik YOK   ->  exit 1   (donusumler YASLANIYOR, gercek kayip)
     bekleyen = 0  ∧  kimlik YOK   ->  exit 0   + birebir `HAL=KIMLIK-BEKLIYOR BEKLEYEN=0`
-    kimlik VAR                    ->  yukleme DENENIR, rc yuklemeden gelir
+    kimlik VAR                    ->  EL SIKISMA, sonra yukleme DENENIR
     kuyruk OLCULEMEDI             ->  exit 3   (YESIL DEGIL)
+
+══════════════════════════════════════════════════════════════════════════════
+🔴 EL SIKISMA — "KOSUM YESIL AMA istek=0" BOSLUGUNU KAPATIR
+══════════════════════════════════════════════════════════════════════════════
+Kimlikli ilk kosum (22 Eyl 2026, run 35776509904) `success` dondu ve birebir sunu
+bastı:  `HAL=YESIL — kimlik TAM, yukleme DENENDI. BEKLEYEN(once)=0` /
+        `YUKLEME: gonderilen=0 basarili=0 basarisiz=0 istek=0`
+Bes alan da secret'ta KURULU, kosum YESIL — ve **istek=0**: gercek Google ucuna TEK
+BIR ISTEK BILE CIKMADI. Kuyruk bos oldugu icin bu hal HAFTALARCA surebilirdi ve
+**ilk gercek donusum ayni zamanda ilk testimiz** olurdu; kimlik kirikken ogrendigimiz
+an KAYBEDILMIS bir donusumun ustunde olurdu.
+
+Bu yuzden kimlik TAMken HER kosumda `reklam-oci-yukleyici.py::el_sikisma` kosar:
+`googleAds:search` ile donusum eylemi SORGULANIR (SALT OKUMA) ve tek cagri uc seyi
+birden kanitlar — OAuth takasi · hesap erisimi · donusum eyleminin kimligi+tipi.
+
+🔴🔴 YAN ETKI YASAK: `uploadClickConversions` bu koldan CAGRILMAZ, `validateOnly`
+ile BILE. Uretim donusum verisine / teklife / butceye HICBIR sey yazilmaz.
+
+El sikisma hal sozlesmesi:
+    200 + beklenen kayit    ->  `HAL=EL-SIKISMA-TAMAM`, kosum DEVAM eder
+    kimlik EKSIK            ->  el sikisma ATLANIR (KIMLIK-BEKLIYOR kolu KORUNUR)
+    401/403 / bulunamadi    ->  exit 1 KIRMIZI, metin `gizle()` suzgecinden GECER
+    ag / zaman asimi / 5xx  ->  exit 3 OLCULEMEDI (YESIL DEGIL)
 
 Ayrimi [[onarim-kolu-zarar-esiginin-arkasinda]] dersi zorunlu kilar: onarim kolu zarar
 esiginin ARKASINDA durur, esigin ONUNDE degil.
@@ -93,7 +117,8 @@ HAL_OLCULEMEDI = "HAL=OLCULEMEDI"
 # "hangi kol kosdu" sorusunu cevaplar.
 EYLEM_BEKLE = "BEKLE"            # kimlik yok, zarar YOK  -> yesil, yukleme DENENMEZ
 EYLEM_ZARAR = "ZARAR"            # kimlik yok, bekleyen>0 -> KIRMIZI
-EYLEM_YUKLE = "YUKLE"            # kimlik var             -> yukleme DENENIR
+EYLEM_YUKLE = "YUKLE"            # kimlik var + el sikisma TAMAM -> yukleme DENENIR
+EYLEM_EL_SIKISMA = "EL-SIKISMA"  # el sikisma DUSTU/OLCULEMEDI -> yukleme DENENMEZ
 EYLEM_OLCULEMEDI = "OLCULEMEDI"  # kuyruk durumu okunamadi
 
 BAYRAK_VAR = "VAR"
@@ -183,12 +208,20 @@ def ozet_satirlari(eylem, rc, bekleyen, eksik, yukleme_metni):
 # ══════════════════════════════════════════════════════════════════════════════
 # KOSUM GOVDESI — uc kol da ENJEKTE edilir; kabul testi AG'A CIKMADAN kosar.
 # ══════════════════════════════════════════════════════════════════════════════
-def kos(durum_kolu, kimlik_kolu, yukle_kolu, bayrak=None, yaz=None):
+def kos(durum_kolu, kimlik_kolu, yukle_kolu, bayrak=None, yaz=None,
+        el_sikisma_kolu=None):
     """Doner: (rc, satirlar, eylem).
 
-    durum_kolu()  -> bekleyen (int) | None (olculemedi)
-    kimlik_kolu() -> (kimlik_tam: bool, eksik: list[str])
-    yukle_kolu()  -> (rc: int, metin: str)   — YALNIZ eylem YUKLE ise CAGRILIR
+    durum_kolu()      -> bekleyen (int) | None (olculemedi)
+    kimlik_kolu()     -> (kimlik_tam: bool, eksik: list[str])
+    el_sikisma_kolu() -> (rc: int, satirlar: list[str]) — YALNIZ kimlik TAMken CAGRILIR
+    yukle_kolu()      -> (rc: int, metin: str)   — YALNIZ el sikisma YESILSE CAGRILIR
+
+    🔴 EL SIKISMA ZARAR ESIGININ ARKASINDADIR, ONUNDE DEGIL: kimlik EKSIKken
+    (bugunku fail-closed hal) kol HIC CAGRILMAZ ve `KIMLIK-BEKLIYOR` bacagi aynen
+    korunur. Esigin ONUNE konsaydi, kimliksiz gunlerde her kosum ag'a cikmaya
+    calisirdi ve gurultu fail-open'i geri getirirdi
+    ([[onarim-kolu-zarar-esiginin-arkasinda]]).
     """
     try:
         bekleyen = durum_kolu()
@@ -211,10 +244,39 @@ def kos(durum_kolu, kimlik_kolu, yukle_kolu, bayrak=None, yaz=None):
     eylem, rc = karar(bekleyen, kimlik_tam)
 
     yukleme_metni = ""
+    el_satirlari = []
     if eylem == EYLEM_YUKLE:
+        # ── EL SIKISMA — YAN ETKISIZ, SALT-OKUMA; yuklemeden ONCE ───────────
+        if el_sikisma_kolu is None:
+            # 🔴 FAIL-CLOSED: kol KABLOLANMAMIS. "Adim yoksa gecmis say" yolu ACILMAZ —
+            # bu aracin VAR OLMA SEBEBI tam olarak budur: kosmayan bir adim YESIL
+            # GORUNUR. Kablolanmamis bir dogrulama OLCULEMEDI'dir, yesil DEGIL.
+            satirlar = [
+                "%s — EL SIKISMA KOLU KABLOLANMAMIS (kimlik TAM ama dogrulama YOK)."
+                % HAL_OLCULEMEDI,
+                "  Yukleme DENENMEDI: dogrulanmamis bir kimlikle uretim donusumu",
+                "  gondermek, ilk gercek donusumu ayni zamanda ilk teste cevirir.",
+                "  Neyi olcmek kapatir: `kos()` cagrisina `el_sikisma_kolu` gecilmesi",
+                "  (uretim yolu `main()` icinde `gercek_el_sikisma_kolu` ile baglidir).",
+            ]
+            if yaz:
+                yaz(RC_OLCULEMEDI, satirlar)
+            return RC_OLCULEMEDI, satirlar, EYLEM_EL_SIKISMA
+
+        el_rc, el_satirlari = el_sikisma_kolu()
+        el_satirlari = list(el_satirlari or [])
+        if el_rc != RC_YESIL:
+            satirlar = el_satirlari + [
+                "  🔴 YUKLEME DENENMEDI: el sikisma yesil donmeden uretim donusumu",
+                "     gonderilmez. BEKLEYEN(once)=%s" % bekleyen,
+            ]
+            if yaz:
+                yaz(el_rc, satirlar)
+            return el_rc, satirlar, EYLEM_EL_SIKISMA
+
         rc, yukleme_metni = yukle_kolu()
 
-    satirlar = ozet_satirlari(eylem, rc, bekleyen, eksik, yukleme_metni)
+    satirlar = el_satirlari + ozet_satirlari(eylem, rc, bekleyen, eksik, yukleme_metni)
     if yaz:
         yaz(rc, satirlar)
     return rc, satirlar, eylem
@@ -254,6 +316,45 @@ def gercek_kimlik_kolu(mod):
         kimlik, eksik = mod.kimlik_coz()
         return (kimlik is not None), list(eksik)
     return _kol
+
+
+def gercek_el_sikisma_kolu(mod):
+    """YAN ETKISIZ el sikisma kolu — `googleAds:search` (SALT OKUMA).
+
+    🔴 Yukleme kolunun aksine AYRI SURECTE kosmaz: hicbir sey YAZMADIGI icin
+    izole etmeye gerek yoktur ve rc dogrudan fonksiyondan gelir.
+    🔴 `uploadClickConversions` BU KOLDAN CAGRILMAZ — `validateOnly` ile BILE.
+    """
+    def _kol():
+        kimlik, eksik = mod.kimlik_coz()
+        if kimlik is None:                       # pragma: no cover (savunma)
+            # `kos()` bu kolu yalniz kimlik TAMken cagirir; buraya dusulurse
+            # olcum ile kol ayrismis demektir -> YESIL DEGIL.
+            return mod.RC_OLCULEMEDI, [
+                "%s — EL SIKISMA: kol kimlik TAM sanilarak cagrildi ama %d alan EKSIK."
+                % (mod.HAL_OLCULEMEDI, len(eksik))]
+        return mod.el_sikisma(kimlik, mod.HttpTasiyici())
+    return _kol
+
+
+def secili_el_sikisma_kolu(mod, kuru=False):
+    """Kosum kipine gore el sikisma kolunu SEC.
+
+    🔴 `--kuru` KOLUNDA EL SIKISMA ATLANIR ve bu FAIL-OPEN DEGILDIR: el sikismanin
+    kapattigi risk "bozuk kimlikle GERCEK yukleme"dir, kuru kosumda gercek yukleme
+    YOKTUR (yukleyici govdeyi basar, ag'a CIKMAZ). Atlamanin URETIME sizmasini
+    ONLEYEN sey bir yorum degil, OLCUMDUR: is akisi kosucuya `--kuru` GECEMEZ ve
+    bunu `reklam-oci-kosucu-test.py::akis_kablolamasi` KIRMIZI yakarak zorlar.
+    """
+    if not kuru:
+        return gercek_el_sikisma_kolu(mod)
+
+    def _kuru_kol():
+        return RC_YESIL, [
+            "EL SIKISMA ATLANDI — `--kuru` kolu AG'A CIKMAZ (uretime hicbir sey",
+            "  gonderilmez). CI kolu `--kuru` GECMEZ; bunu kabul testi OLCER.",
+        ]
+    return _kuru_kol
 
 
 def gercek_yukle_kolu(vt_yolu=None, kuru=False, tavan=200):
@@ -311,6 +412,7 @@ def main(argv=None):
     rc, satirlar, eylem = kos(
         durum_kolu=gercek_durum_kolu(mod, a.vt),
         kimlik_kolu=gercek_kimlik_kolu(mod),
+        el_sikisma_kolu=secili_el_sikisma_kolu(mod, kuru=a.kuru),
         yukle_kolu=gercek_yukle_kolu(a.vt, kuru=a.kuru, tavan=a.tavan),
         bayrak=os.environ.get("KIMLIK_BAYRAK"),
         yaz=gh_yazici() if a.gh_ozet else None,

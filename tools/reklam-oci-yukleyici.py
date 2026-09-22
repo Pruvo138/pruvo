@@ -82,6 +82,7 @@ HAL_YESIL = "HAL=YESIL"
 HAL_KIRMIZI = "HAL=KIRMIZI"
 HAL_KIMLIK_YOK = "HAL=KIMLIK-YOK"
 HAL_OLCULEMEDI = "HAL=OLCULEMEDI"
+HAL_EL_SIKISMA = "HAL=EL-SIKISMA-TAMAM"
 
 TABLO = "reklam_oci_kuyruk"
 
@@ -588,8 +589,15 @@ def govde_ihlalleri(govde):
     return ihlal
 
 
-def erisim_jetonu(kimlik, tasiyici):
-    """OAuth refresh token -> access token. Doner: (jeton|None, hata_metni)."""
+def erisim_jetonu_kodlu(kimlik, tasiyici):
+    """OAuth refresh token -> access token. Doner: (jeton|None, http_kodu, hata_metni).
+
+    🔴 KOD DISARI VERILIR cunku HATA METNI SINIFI AYIRT ETMEZ: `HttpTasiyici` ag/DNS/TLS
+    arizasinda kod **0** doner, Google `invalid_grant`te **400**. Ikisi de "jeton
+    alinamadi" metni uretir ama HUKUMLERI ZITTIR — biri OLCULEMEDI (rc=3), oteki
+    KIRMIZI (rc=1). Kodu yutan bir imza, ag kesintisini "kimlik bozuk" diye
+    RAPORLARDI ([[olculemedi-bypass-degil-menzil-daraltmasi]]).
+    """
     kod, govde = tasiyici.istek(
         OAUTH_UCU,
         {"client_id": kimlik.d["GOOGLE_ADS_CLIENT_ID"],
@@ -598,18 +606,203 @@ def erisim_jetonu(kimlik, tasiyici):
          "grant_type": "refresh_token"},
         {}, bicim="form")
     if kod != 200:
-        return None, gizle("OAuth %s: %s" % (kod, govde[:300]), kimlik.sirlar())
+        return None, kod, gizle("OAuth %s: %s" % (kod, govde[:300]), kimlik.sirlar())
     try:
         jeton = (json.loads(govde) or {}).get("access_token")
     except ValueError:
-        return None, "OAuth yaniti JSON degil"
+        return None, kod, "OAuth yaniti JSON degil"
     if not jeton:
-        return None, "OAuth yanitinda access_token YOK"
-    return jeton, ""
+        return None, kod, "OAuth yanitinda access_token YOK"
+    return jeton, kod, ""
+
+
+def erisim_jetonu(kimlik, tasiyici):
+    """`erisim_jetonu_kodlu`nun IKI DEGERLI sarmalayicisi (yukleme kolunun imzasi).
+
+    🔴 IKINCI KOPYA DEGIL: govde TEK yerde yasar, burasi yalnizca kodu atar.
+    """
+    jeton, _kod, hata = erisim_jetonu_kodlu(kimlik, tasiyici)
+    return jeton, hata
 
 
 def yukleme_ucu(kimlik):
     return "%s/customers/%s:uploadClickConversions" % (ADS_TABAN, kimlik.musteri_id)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# EL SIKISMA — YAN ETKISIZ, SALT-OKUMA KIMLIK DOGRULAMASI
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 NEDEN VAR — OLCULEN BOSLUK (22 Eyl 2026, run 35776509904):
+#   HAL=YESIL — kimlik TAM, yukleme DENENDI. BEKLEYEN(once)=0
+#     YUKLEME: gonderilen=0 basarili=0 basarisiz=0 istek=0
+# Bes alan da secret'a KURULU, kosum YESIL, ve `istek=0` — yani gercek Google ucuna
+# TEK BIR ISTEK BILE CIKMADI. Kuyruk bos oldugu icin bu hal HAFTALARCA surebilir:
+# boylece **ilk gercek donusum, ayni zamanda ilk testimiz** olurdu. OAuth/erisim
+# duzeyi/hesap yetkisi kirikken ogrendigimiz an, KAYBEDILMIS bir donusumun ustunde
+# olurdu — bu depoda adi konmus bir kusur sinifidir.
+#
+# 🔴🔴 YAN ETKI YASAK: bu kol `uploadClickConversions` CAGIRMAZ — `validateOnly` ile
+# BILE cagirmaz. Uretim donusum verisine, teklif ayarlarina, butceye HICBIR sey
+# yazilmaz. `googleAds:search` SALT OKUMADIR ve tek cagriyla UC seyi birden kanitlar:
+#   ① OAuth ucluSU (istemci + yenileme jetonu) gercekten jeton TAKAS EDEBILIYOR
+#   ② musteri hesabina ERISIM VAR
+#   ③ donusum eylemi kimligi DOGRU ve tipi YUKLEMEYE UYGUN
+#
+# Alanlar Google'in KENDI `upload-clicks` rehberinden dogrulandi (ezberden YAZILMADI):
+# yuklenen tiklama donusumu icin eylem `type = UPLOAD_CLICKS` ve `status = ENABLED`
+# olmak ZORUNDADIR. Yanit alanlari camelCase doner (`results[].conversionAction.id`).
+EL_SIKISMA_SORGUSU = ("SELECT conversion_action.id, conversion_action.status, "
+                      "conversion_action.type FROM conversion_action "
+                      "WHERE conversion_action.id = %s")
+BEKLENEN_TIP = "UPLOAD_CLICKS"
+BEKLENEN_DURUM = "ENABLED"
+
+
+def arama_ucu(kimlik):
+    """SALT-OKUMA arama ucu. 🔴 `uploadClickConversions` DEGILDIR."""
+    return "%s/customers/%s/googleAds:search" % (ADS_TABAN, kimlik.musteri_id)
+
+
+def gecici_kod(kod):
+    """Ariza GECICI mi (ag/sunucu/kota) — OLCULEMEDI sinifi, KIRMIZI DEGIL.
+
+    🔴 `HttpTasiyici` ag/DNS/TLS/zaman asiminda **0** doner. 5xx sunucunun kendi
+    arizasi, 429 kota penceresi — ucunun da hukmu "bu kosumda OLCULEMEDI"dir; kimligi
+    KIRMIZI yakmak yanlis yeri gosterirdi ve ekip kirmiziyi okumayi birakirdi.
+    """
+    try:
+        k = int(kod or 0)
+    except (TypeError, ValueError):
+        return False
+    return k == 0 or k == 429 or 500 <= k < 600
+
+
+def el_sikisma_hukmu(kod, govde, beklenen_id):
+    """SAF HUKUM — arama yanitini (rc, satirlar)'a cevirir. AG YOK, IO YOK.
+
+    🔴 Govde BURADA yasar, cagri yerinde DEGIL: kabul testi dort kolu da (200-beklenen ·
+    403 · bulunamadi · zaman asimi) GERCEKTEN kosar. Karar `kos()` icinde kabuk gibi
+    dagilsaydi test ancak dizge ARAYABILIRDI ve alet KOR kalirdi
+    ([[kabul-teslim-edilmeyen-iskeleyle-saglanirsa-alet-kor-kalir]]).
+    """
+    try:
+        k = int(kod or 0)
+    except (TypeError, ValueError):
+        k = 0
+    hedef = re.sub(r"\D", "", str(beklenen_id or ""))
+
+    if gecici_kod(k):
+        return RC_OLCULEMEDI, [
+            "%s — EL SIKISMA: Google ucu CEVAP VERMEDI (HTTP %s)." % (HAL_OLCULEMEDI, k),
+            "  Bu YESIL DEGILDIR: kimlik dogru olabilir de olmayabilir de, bu kosumda",
+            "  OLCULEMEDI. Ag/sunucu/kota penceresi gecici sinifitir.",
+            "  Neyi olcmek kapatir: kosumu TEKRARLA; ayni kod israr ederse",
+            "  `googleads.googleapis.com` erisimi ve hesap kota duzeyi bakilir.",
+            "  Yanit: %s" % (str(govde or "")[:200]),
+        ]
+    if k != 200:
+        return RC_KIRMIZI, [
+            "%s — EL SIKISMA DUSTU: Google ucu HTTP %s dondu." % (HAL_KIRMIZI, k),
+            "  401/403 = OAuth jetonu ya da HESAP ERISIMI gecersiz; 400 = sorgu ya da",
+            "  musteri kimligi hatali. Kimlik KURULU ama CALISMIYOR — yukleme",
+            "  DENENMEDI (yan etkisiz kol).",
+            "  Neyi olcmek kapatir: OAuth istemcisinin Google Cloud PROJESININ Ads API",
+            "  erisim duzeyi + refresh token'in yetkilendirdigi hesabin musteri",
+            "  kimligine (%s) erisimi." % (hedef or "?"),
+            "  Yanit: %s" % (str(govde or "")[:300]),
+        ]
+
+    try:
+        y = json.loads(govde or "{}") or {}
+    except ValueError:
+        return RC_KIRMIZI, [
+            "%s — EL SIKISMA DUSTU: HTTP 200 ama yanit JSON DEGIL." % HAL_KIRMIZI,
+            "  Yanit: %s" % (str(govde or "")[:200]),
+        ]
+
+    kayitlar = y.get("results") or []
+    bulunan = None
+    for r in kayitlar:
+        ca = ((r or {}).get("conversionAction") or {})
+        if re.sub(r"\D", "", str(ca.get("id") or "")) == hedef:
+            bulunan = ca
+            break
+    if bulunan is None:
+        return RC_KIRMIZI, [
+            "%s — EL SIKISMA DUSTU: donusum eylemi %s BULUNAMADI (donen kayit=%d)."
+            % (HAL_KIRMIZI, hedef or "?", len(kayitlar)),
+            "  Hesaba erisim VAR (200 dondu) ama bu kimlikte bir `conversion_action`",
+            "  YOK. Yukleme denenirse Google satirlari REDDEDER ve atif KAYBOLUR.",
+            "  Neyi olcmek kapatir: GOOGLE_ADS_CONVERSION_ACTION_ID degerinin bu",
+            "  musteri hesabindaki donusum eylemiyle eslesmesi.",
+        ]
+
+    durum_d = str(bulunan.get("status") or "")
+    tip = str(bulunan.get("type") or "")
+    kusur = []
+    if durum_d != BEKLENEN_DURUM:
+        kusur.append("status=%s (beklenen %s)" % (durum_d or "?", BEKLENEN_DURUM))
+    if tip != BEKLENEN_TIP:
+        kusur.append("type=%s (beklenen %s)" % (tip or "?", BEKLENEN_TIP))
+    if kusur:
+        return RC_KIRMIZI, [
+            "%s — EL SIKISMA DUSTU: donusum eylemi %s YUKLEMEYE UYGUN DEGIL — %s."
+            % (HAL_KIRMIZI, hedef, " · ".join(kusur)),
+            "  Google'in `upload-clicks` sozlesmesi: tiklama donusumu yuklenen eylem",
+            "  %s tipinde ve %s durumunda OLMAK ZORUNDADIR." % (BEKLENEN_TIP,
+                                                               BEKLENEN_DURUM),
+            "  Neyi olcmek kapatir: Ads panelinde eylemin tipi/durumu ya da",
+            "  GOOGLE_ADS_CONVERSION_ACTION_ID'nin DOGRU eyleme isaret etmesi.",
+        ]
+
+    return RC_YESIL, [
+        "%s — OAuth takasi OK · hesap erisimi OK · donusum eylemi %s (%s/%s)."
+        % (HAL_EL_SIKISMA, hedef, durum_d, tip),
+        "  Salt-okuma dogrulama: `googleAds:search` cagrildi, HICBIR sey YAZILMADI.",
+    ]
+
+
+def el_sikisma(kimlik, tasiyici):
+    """YAN ETKISIZ el sikisma. Doner: (rc, satirlar) — satirlar `gizle()`den GECMIS.
+
+    🔴 Bu fonksiyon `uploadClickConversions` UCUNA DOKUNMAZ. Tek yazma-yolu
+    `yukle()`tedir ve bu kol onu CAGIRMAZ.
+    """
+    sirlar = kimlik.sirlar()
+
+    def maskeli(rc, satirlar):
+        return rc, [gizle(s, sirlar) for s in satirlar]
+
+    jeton, kod, hata = erisim_jetonu_kodlu(kimlik, tasiyici)
+    if not jeton:
+        if gecici_kod(kod):
+            return maskeli(RC_OLCULEMEDI, [
+                "%s — EL SIKISMA: OAuth jeton takasi CEVAPSIZ (HTTP %s)."
+                % (HAL_OLCULEMEDI, kod),
+                "  YESIL DEGIL: ag/sunucu gecici arizasi kimlik hukmu VERMEZ.",
+                "  Ayrinti: %s" % hata,
+            ])
+        return maskeli(RC_KIRMIZI, [
+            "%s — EL SIKISMA DUSTU: OAuth jetonu ALINAMADI (HTTP %s)."
+            % (HAL_KIRMIZI, kod),
+            "  OAuth uclusu (CLIENT_ID + CLIENT_SECRET + REFRESH_TOKEN) jeton TAKAS",
+            "  EDEMIYOR — `invalid_grant` genelde iptal edilmis/suresi dolmus refresh",
+            "  token demektir. Yukleme DENENMEDI.",
+            "  Ayrinti: %s" % hata,
+        ])
+
+    basliklar = {"Authorization": "Bearer " + jeton}
+    if kimlik.d.get("GOOGLE_ADS_DEVELOPER_TOKEN"):
+        basliklar["developer-token"] = kimlik.d["GOOGLE_ADS_DEVELOPER_TOKEN"]
+    if kimlik.d.get("GOOGLE_ADS_LOGIN_CUSTOMER_ID"):
+        basliklar["login-customer-id"] = re.sub(
+            r"\D", "", kimlik.d["GOOGLE_ADS_LOGIN_CUSTOMER_ID"])
+
+    hedef = re.sub(r"\D", "", kimlik.d["GOOGLE_ADS_CONVERSION_ACTION_ID"])
+    kod, yanit = tasiyici.istek(arama_ucu(kimlik),
+                                {"query": EL_SIKISMA_SORGUSU % hedef},
+                                basliklar)
+    return maskeli(*el_sikisma_hukmu(kod, yanit, hedef))
 
 
 def sonuc_isaretle_sql(siparis_no, basarili, hata, simdi_ms):
