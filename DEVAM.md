@@ -1,6 +1,21 @@
 # DEVAM (KraL) — 8 Agu 2026
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
+## 2026-09-22 16:21 — ✅ KraL (çip `friendly-dubinsky-f6932a`) **KAPANIŞ — worktree temizliği + infallible-robinson-945747 dalı main'e alındı (merge-kapisi)**
+**ÖLÇÜM:** worktree 4→2 (main + canlı çip); `bold-satoshi-22da1c` (temiz+main'de+canlı oturum yok) ve `infallible-robinson-945747` (merge sonrası main'de) silindi, dal `-D` ile temizlendi.
+**MERGE:** `infallible-robinson-945747` (3 commit, gerçek kapsam merge-base'den ölçüldü: `nobet.yml` 10 satır + yeni `tools/parite-hiz-freni-test.js` 222 satır + `tools/parite-ortak.js` 143 satır — `urunler.json`/secret/html'e DOKUNULMADI, sızıntı taraması temiz). Konu: `/ara` parite testinin canlı 429 (rate-limit) ile çarpışmasını gideren tek-yönlü adaptif hız freni (duvar-saati bütçeli), CI'ya `nobet.yml`'in var olan ağsız "parite karar-çekirdeği" bloğuna eklendi. Bağımsız doğrulama (öz-rapora güvenilmedi): `node tools/parite-hiz-freni-test.js` rc=0 (8/8 eksen) + `python3 tools/ci-kapsam-test.py` rc=0 — mühendis raporundaki (çip kimliği: KraL-Parite429-21Eyl) iddialarla birebir eşleşti. FF-only imkansızdı (main dalın tabanından 17 commit ileride) → merge commit ile alındı, çakışma YOK (`merge-tree` tek ağaç OID).
+**EV:** `f3b95f32` → `99bc5dcb` (1 merge commit, main = origin/main EVET), push doğrudan (onay sorulmadı, kural gereği).
+**YAYIN:** run `35730667818` — `deploy` success · `yayin` success · SKIPPED sayısı 0.
+**D1:** `d1-sync.py --durum` 5 eksen ✅ (38722=38722, hash UYUŞMAZ 0) — bu merge `urunler.json`'a dokunmadığı için beklenen.
+**TEMİZLİK:** çalışma ağacı commit'siz dosya main'de 0, worktree'lerde 0; scratchpad'e geçici dosya YAZILMADI (bu kapanış notu hariç, ARŞİVLENEBİLİR).
+**MOTOR ORANI:** Claude (mimar eliyle merge prosedürü) — m3'e devredilmedi, gerekçe: merge/deploy hükmü + ölçüm-kapı sınıfı, CLAUDE'da kalan iş listesinde.
+**Okan'a çıkan:** YOK (para/şifre yok; push/merge/worktree silme Okan kapısı değil).
+**AÇIK BULGU (bu merge'in SEBEBİ DEĞİL, önceden vardı — tarihle doğrulandı):** `Spec/tasarim ifsasi alarmi` (`ifsa-nobeti`) `DEVAM.md:6` [EKSEN-B yonetim-ucu] için KIRMIZI — aynı kırmızı bu merge'den ÖNCEKİ `f3b95f32`'de de vardı (`gh run list --workflow` ile iki ayrı SHA'da `failure` görüldü), bu merge'in 3 dosyalık kapsamı DEVAM.md'ye dokunmuyor. Deploy/yayin zincirinin (`deploy.yml::needs`) DIŞINDA ayrı bir workflow, yayını bloklamadı. Mimara: satır 6'yı aç, meşruysa `--muafiyet-hash` ile muaf tut ya da ADSIZ anlat.
+**AÇIK — `dal-olc.py` ana oturumdan koşulamadı:** repo-dışı yol (mimar icra kapısı fail-closed) → §2/§3 ölçümleri elle (git merge-base/diff/merge-tree) yapıldı, sonuç aynı ama otomatik araç atlandı; işçiye devredilmedi (tekil, hızlı iş).
+— KraL (çip `friendly-dubinsky-f6932a`)
+
+✅ İŞ BİTTİ — ARŞİVLENEBİLİRİM
+
 
 ## ✅ 22 EYL MaCiT çipi (Giaopx-Giaopx-CGTrader-Otomobil-20260922) — **giaopx (CGTrader) otomobil partisi + fiyat kalibrasyonu KAPANDI, paralel MaCiT oturumuyla çakışma tespit edilip düzeltildi**
 **Marka/kaynak:** tasarımcı `giaopx` (CGTrader), profil tam taralandı (`/api/internal/profile/giaopx/items` uç noktası) — 138 toplam ilan, **108 tekil "Automotive & Car parts"** kaydı bulundu.
