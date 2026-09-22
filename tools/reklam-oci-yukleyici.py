@@ -100,7 +100,13 @@ DONUSUM_ADI = "PRUVO Satin Alma (OCI)"
 PARA_BIRIMI = "TRY"          # ZORUNLU: gonderilmezse Google degeri hesap para biriminde sayar
 
 # ── GOOGLE ADS UCU ────────────────────────────────────────────────────────────
-ADS_SURUM = "v21"
+# 🔴 SURUM OLCULDU, VARSAYILMADI (22 Eyl 2026): `v21` SUNSET olmustu ve canli uc HTTP **404**
+# donuyordu — kimlik dogruydu, YOL yoktu. Bunu yakalayan sey el sikisma adimiydi; onsuz ilk
+# gercek donusum ayni zamanda ilk testimiz olurdu. Google'in kendi surum notlarindan (mimar
+# WebFetch ile okudu) o gun desteklenen kume: **v23 · v24 · v25**; en yenisi v25 (2026-07-22,
+# nokta surum v25.1 2026-08-19) -> en uzun omur. Bu sabit YENIDEN BAYATLAYACAK; onu SESSIZ
+# birakmayan kol el sikismadir (404 -> rc=1 KIRMIZI), sayi degil KOL korunmalidir.
+ADS_SURUM = "v25"
 ADS_TABAN = "https://googleads.googleapis.com/" + ADS_SURUM
 OAUTH_UCU = "https://oauth2.googleapis.com/token"
 
