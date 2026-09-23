@@ -470,6 +470,18 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/merge-kanit.py --kendini-test
 
+      # DAL ENVANTERI (23 Eyl 2026, KraL-Tamirci-23Eyl): merge kuyrugu olcum araci
+      # yalniz yerel dallari okuyordu -> 76 adlik kuyrugun 31'i (yalniz uzakta) olcum
+      # DISINDAYDI. Olcum evreni yerel ∪ uzak'a genisletildi. Bu adim birlesim kollarini
+      # (yalniz-uzak · ayni uc tek ref · farkli uc iki ref · HEAD disi) GECICI fikstur
+      # depoda olcer ve 5 mutanti IZOLE kopyada oldurur. HERMETIK: gercek depo/ag OKUNMAZ.
+      # SERIT B: kirmizisi yayini DURDURMAZ (arac hukum vermez, aday listesi uretir).
+      - name: "Dal envanteri — kendini test (17 iddia) + mutasyon (5 mutant)"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/dal-envanteri.py --kendini-test
+          python3 tools/dal-envanteri.py --mutasyon
+
       # NOBET OLCUM BETIGI (11 Eyl 2026, Okan karari 23:3x madde 1) — BaBa'nin iki
       # cron rutininin ev ev attigi grep/ls/git turlarini TEK deterministik betige
       # indiren `tools/nobet-olcum.py`nin kabul bataryasi: 26 vaka + 3 mutant
