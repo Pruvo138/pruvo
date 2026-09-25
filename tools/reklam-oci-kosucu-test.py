@@ -25,6 +25,11 @@ BATARYA (dort zorunlu vaka + ek eksenler):
  10. EL SIKISMA — `reklam-oci-yukleyici.py::el_sikisma` GOVDESI, SAHTE TASIYICIYLA:
      200-beklenen · 403 · bulunamadi · zaman asimi · OAuth kirmizisi/olculemedisi ·
      tip-durum uyumsuzlugu · YAN ETKI YASAGI · `gizle()` maskelemesi
+ 11. OAuth HATA SINIFI — canli `invalid_rapt` govdesi OTURUM-DENETIMI diye okunur ve
+     onarim DAR KAPSAMLI araca yonlenir; duz `invalid_grant` AYRI sinifa duser
+ 12. JETON ARACI (`reklam-oci-jeton-yenile.py`) — yetki URL'si yalniz `adwords`,
+     donen kapsam BIREBIR olculur, secret degeri argv'de DEGIL stdin'de, istemci
+     json'u silinir, PKCE RFC 7636 vektoruyle eslesir
 
 🔴 EL SIKISMA KOLU AG'A CIKMAZ: sahte tasiyici aletin KENDI dikis yerine takilir
 (`HttpTasiyici` yerine gecer) ve `el_sikisma()` TAM YOLU gercek kodla kosar. Sahte
@@ -35,8 +40,8 @@ MUTANT (izole kopyada; CANLI govde DEGISMEZ — [[mutant-canli-govdede-yasamaz]]
   her mutant EN AZ BIR vakayi KIRMIZI yakmalidir. `SURVIVOR=0` basilmazsa kabul DUSER.
   🔴 Hangi vakanin oldurdugu CIVILENMEZ — beklenen-kirmizi kumesi taban degisince
   ikinci kat bayatlar ([[mutant-beklenen-kirmizi-kumesi-taban-degisince-ikinci-kat-bayatlar]]).
-  🔴 UC AYRI EKSEN, UC AYRI OLDURME HESABI (`eksen` alani): "M" kosucu govdesi ·
-  "Y" yukleyici govdesi (el sikisma) · "-" kaynak/YAML. Tek hesapta toplansalardi
+  🔴 DORT AYRI EKSEN, DORT AYRI OLDURME HESABI (`eksen` alani): "M" kosucu govdesi ·
+  "Y" yukleyici govdesi (el sikisma) · "J" jeton araci · "-" kaynak/YAML. Tek hesapta toplansalardi
   bir eksende KIRMIZI yanan vaka oteki eksenin SAGKALANINI MASKELERDI
   ([[fail-closed-kol-arkasindaki-kolu-maskeler]]).
 
@@ -52,11 +57,13 @@ import os
 import re
 import sys
 import tempfile
+import urllib.parse
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 KOSUCU = os.path.join(TOOLS, "reklam-oci-kosucu.py")
 YUKLEYICI = os.path.join(TOOLS, "reklam-oci-yukleyici.py")
-AKIS = os.path.join(os.path.dirname(TOOLS), ".github", "workflows", "reklam-oci.yml")
+JETON = os.path.join(TOOLS, "reklam-oci-jeton-yenile.py")
+AKIS =os.path.join(os.path.dirname(TOOLS), ".github", "workflows", "reklam-oci.yml")
 
 
 def modul_yukle(yol, ad):
@@ -73,6 +80,17 @@ def modul_yukle(yol, ad):
 # `reklam-oci-yukleyici.py::KIMLIK_ALANLARI` icinde yasiyor, burasi onu IMPORT EDER.
 Y_GERCEK = modul_yukle(YUKLEYICI, "reklam_oci_yukleyici_kabul")
 ZORUNLU_ALANLAR = list(Y_GERCEK.ZORUNLU_ALAN_ADLARI)
+J_GERCEK = modul_yukle(JETON, "reklam_oci_jeton_kabul")
+
+# 🔴 CANLI GOVDE, BIREBIR (run 35958968753, 24 Eyl 05:13Z) — uydurma DEGIL. Bu
+# govdeyi eski kol "iptal edilmis/suresi dolmus jeton" diye okuyordu; oysa sinif
+# Workspace oturum denetimiydi ve tarif edilen onarim (gcloud ile yenile) 16 sa
+# sonra YINE duserdi.
+CANLI_INVALID_RAPT = json.dumps({
+    "error": "invalid_grant",
+    "error_description": "reauth related error (invalid_rapt)",
+    "error_uri": "https://support.google.com/a/answer/9368756",
+    "error_subtype": "invalid_rapt"}, indent=2)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -246,9 +264,11 @@ def el_kolu_govdeli(Y, tasiyici):
 # ══════════════════════════════════════════════════════════════════════════════
 # BATARYA — her vaka (ad, gecti_mi, mesaj) doner. M = olculen modul (gercek|mutant)
 # ══════════════════════════════════════════════════════════════════════════════
-def batarya(M, Y=None):
-    """M = olculen KOSUCU modulu · Y = olculen YUKLEYICI modulu (el sikisma govdesi)."""
+def batarya(M, Y=None, J=None):
+    """M = olculen KOSUCU modulu · Y = olculen YUKLEYICI modulu (el sikisma govdesi)
+    · J = olculen JETON ARACI modulu (`reklam-oci-jeton-yenile.py`)."""
     Y = Y_GERCEK if Y is None else Y
+    J = J_GERCEK if J is None else J
     sonuc = []
 
     def ekle(ad, kosul, mesaj, eksen="M"):
@@ -545,6 +565,143 @@ def batarya(M, Y=None):
          "maskelenmis deger yok — `gizle()` kolu bu yolda KOSMAMIS olabilir "
          "(iddia KOR)", eksen="Y")
 
+    # ── 11. OAuth HATA SINIFI — KIRMIZI DOGRU, TARIF ETTIGI ONARIM DA DOGRU OLMALI ─
+    # 🔴 Olculen ariza (23-24 Eyl): hukum (rc=1) dogruydu ama metin `invalid_rapt`i
+    # "iptal/suresi dolmus" diye okudu ve onarimi gcloud ile YENILEMEYE yonlendirdi —
+    # o onarim 16 sa sonra YINE duserdi. Bu bolum METNIN sinifini olcer, hukmu degil.
+    trapt = SahteTasiyici(oauth=(400, CANLI_INVALID_RAPT))
+    rc_rapt, sat_rapt = Y.el_sikisma(kml, trapt)
+    m_rapt = "\n".join(sat_rapt)
+    ekle("11a invalid_rapt -> KIRMIZI (hukum AYNI)", rc_rapt == 1,
+         "canli invalid_rapt govdesi -> rc=%d (beklenen 1)" % rc_rapt, eksen="Y")
+    ekle("11b invalid_rapt SINIFI ADIYLA",
+         "OAUTH_SINIF=OTURUM-DENETIMI" in m_rapt,
+         "canli invalid_rapt govdesi OTURUM-DENETIMI diye SINIFLANMADI:\n%s" % m_rapt,
+         eksen="Y")
+    ekle("11c onarim DAR KAPSAMLI araci ADIYLA gosteriyor",
+         "reklam-oci-jeton-yenile.py" in m_rapt and "cloud-platform" in m_rapt,
+         "invalid_rapt metni dar kapsamli araci / cloud-platform sebebini BASMIYOR",
+         eksen="Y")
+    ekle("11d invalid_rapt 'iptal/sure' sinifina DUSMEDI",
+         "IPTAL-VEYA-SURE" not in m_rapt,
+         "oturum denetimi iptal sinifi gibi basildi (yanlis onarim tarifi)", eksen="Y")
+    ekle("11e invalid_rapt'ta arama DENENMEDI", len(trapt.istekler) == 1,
+         "OAuth dustugu halde %d istek cikti (beklenen 1)" % len(trapt.istekler),
+         eksen="Y")
+    # NEGATIF KONTROL: siniflayici her seyi OTURUM'a atsaydi 11b yine yesil kalirdi.
+    ekle("11f duz invalid_grant -> IPTAL-VEYA-SURE (sinif AYIRT EDIYOR)",
+         "OAUTH_SINIF=IPTAL-VEYA-SURE" in "\n".join(sat_oa),
+         "duz invalid_grant IPTAL sinifina DUSMEDI: %s" % sat_oa, eksen="Y")
+    tcl = SahteTasiyici(oauth=(401, json.dumps(
+        {"error": "invalid_client", "error_description": "Unauthorized"})))
+    rc_cl, sat_cl = Y.el_sikisma(kml, tcl)
+    ekle("11g invalid_client -> KIRMIZI + ISTEMCI",
+         rc_cl == 1 and "OAUTH_SINIF=ISTEMCI" in "\n".join(sat_cl),
+         "invalid_client -> rc=%d sinif satiri=%s" % (rc_cl, sat_cl[:1]), eksen="Y")
+    ekle("11h sinifsiz metin BILINMEYEN (uydurma sinif YOK)",
+         Y.oauth_hata_sinifi("AG HATASI: timed out") == "BILINMEYEN",
+         "sinifsiz metin %r diye siniflandi"
+         % Y.oauth_hata_sinifi("AG HATASI: timed out"), eksen="Y")
+
+    # ── 12. JETON ARACI — dar kapsam OLCULUR, deger argv'ye/ekrana CIKMAZ ────────
+    url = J.yetki_url("SAHTE-CID", "http://127.0.0.1:5/", "MEYDAN", "DURUM")
+    q = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+    ekle("12a yetki URL kapsami BIREBIR adwords", q.get("scope") == [J.ADS_KAPSAMI],
+         "yetki URL kapsami=%s (beklenen yalniz %s)" % (q.get("scope"), J.ADS_KAPSAMI),
+         eksen="J")
+    ekle("12b yetki URL offline + consent + S256",
+         q.get("access_type") == ["offline"] and q.get("prompt") == ["consent"]
+         and q.get("code_challenge_method") == ["S256"],
+         "yenileme jetonu/PKCE parametreleri eksik: %s" % sorted(q), eksen="J")
+    ekle("12c yetki URL'de cloud kapsami YOK",
+         "cloud" not in (q.get("scope") or [""])[0],
+         "yetki URL'si Cloud kapsami istiyor -> jeton oturum denetimine girer",
+         eksen="J")
+
+    def _yanit(kapsam, rt="SAHTE-RT-5a1"):
+        d = {"access_token": "SAHTE-AT-9f2", "expires_in": 3599,
+             "token_type": "Bearer", "scope": kapsam}
+        if rt:
+            d["refresh_token"] = rt
+        return json.dumps(d)
+
+    rc_d, sat_d, rt_d = J.jeton_yaniti_hukmu(200, _yanit(J.ADS_KAPSAMI))
+    ekle("12d dar kapsam -> YESIL + jeton doner", rc_d == 0 and rt_d == "SAHTE-RT-5a1",
+         "dar kapsamli yanit -> rc=%d jeton_dondu=%s" % (rc_d, rt_d is not None),
+         eksen="J")
+    m_d = "\n".join(sat_d)
+    ekle("12e hukum satirlari jetonu TASIMIYOR",
+         "SAHTE-RT-5a1" not in m_d and "SAHTE-AT-9f2" not in m_d,
+         "jeton degeri hukum satirina SIZDI", eksen="J")
+    rc_g, _sg, rt_g = J.jeton_yaniti_hukmu(200, _yanit(
+        "https://www.googleapis.com/auth/cloud-platform " + J.ADS_KAPSAMI))
+    ekle("12f cloud-platform sizdi -> KIRMIZI, jeton VERILMEZ",
+         rc_g == 1 and rt_g is None,
+         "genis kapsamli yanit -> rc=%d jeton_dondu=%s" % (rc_g, rt_g is not None),
+         eksen="J")
+    rc_n, _sn, rt_n = J.jeton_yaniti_hukmu(200, _yanit(J.ADS_KAPSAMI, rt=None))
+    ekle("12g refresh_token yok -> KIRMIZI", rc_n == 1 and rt_n is None,
+         "yenileme jetonsuz yanit -> rc=%d" % rc_n, eksen="J")
+    rc_e, _se, _re = J.jeton_yaniti_hukmu(200, _yanit(""))
+    ekle("12h kapsam BOS -> KIRMIZI (dar kapsam kanitlanamadi)", rc_e == 1,
+         "kapsamsiz yanit -> rc=%d (beklenen 1)" % rc_e, eksen="J")
+    rc_f, _sf, _rf = J.jeton_yaniti_hukmu(200, _yanit(J.ADS_KAPSAMI + " openid"))
+    ekle("12i fazla kapsam -> KIRMIZI", rc_f == 1,
+         "fazla kapsamli yanit -> rc=%d (beklenen 1)" % rc_f, eksen="J")
+    rc_400, _s4, _r4 = J.jeton_yaniti_hukmu(400, '{"error": "invalid_grant"}')
+    rc_ag0, _s0, _r0 = J.jeton_yaniti_hukmu(0, "AG HATASI")
+    ekle("12j takas 400 -> KIRMIZI · ag -> OLCULEMEDI", rc_400 == 1 and rc_ag0 == 3,
+         "400 -> rc=%d · ag -> rc=%d (beklenen 1 · 3)" % (rc_400, rc_ag0), eksen="J")
+
+    cagri = {}
+
+    class _Surec(object):
+        returncode = 0
+
+    def _sahte_calistir(argv, **kw):
+        cagri["argv"] = list(argv)
+        cagri["input"] = kw.get("input")
+        return _Surec()
+
+    rc_s = J.gh_secret_yaz("GOOGLE_ADS_REFRESH_TOKEN", "SAHTE-DEGER-77", "o/r",
+                           calistir=_sahte_calistir)
+    ekle("12k secret DEGERI argv'de YOK",
+         "SAHTE-DEGER-77" not in " ".join(cagri.get("argv") or []),
+         "secret degeri argv'de (ps ile gorunur): %s" % cagri.get("argv"), eksen="J")
+    ekle("12l secret DEGERI stdin'den gidiyor",
+         cagri.get("input") == "SAHTE-DEGER-77" and rc_s == 0,
+         "stdin=%r rc=%d" % (cagri.get("input") is not None, rc_s), eksen="J")
+
+    cid, sir_i = J.istemci_oku(json.dumps(
+        {"installed": {"client_id": "C-1", "client_secret": "S-1"}}))
+    ekle("12m masaustu istemci json'u okundu", (cid, sir_i) == ("C-1", "S-1"),
+         "istemci json'u yanlis okundu", eksen="J")
+    try:
+        J.istemci_oku(json.dumps({"installed": {"client_id": "C-1"}}))
+        sirsiz_red = False
+    except ValueError:
+        sirsiz_red = True
+    ekle("12n sirsiz istemci json'u REDDEDILDI", sirsiz_red,
+         "client_secret'siz istemci json'u KABUL edildi", eksen="J")
+    # RFC 7636 Ek B test vektoru — S256 donusumu ELLE ikinci kez yazilmaz, sabite baglanir.
+    _dv, meydan = J.pkce_cifti("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
+    ekle("12o PKCE S256 = RFC 7636 test vektoru",
+         meydan == "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+         "PKCE meydan okumasi RFC vektoruyle eslesmedi: %s" % meydan, eksen="J")
+    # 🔴 Silme yuku GECICI dizindedir — gercek ev yolu DEGIL (FILO DERSI).
+    with tempfile.TemporaryDirectory(prefix="oci-jeton-sil-") as gd:
+        gyol = os.path.join(gd, "istemci.json")
+        with open(gyol, "w", encoding="utf-8") as f:
+            f.write("{}")
+        silindi = J.istemci_sil(gyol)
+        ekle("12p istemci json'u SILINDI (disk kurali)",
+             silindi and not os.path.exists(gyol),
+             "istemci json'u silinmedi: donus=%s var_mi=%s"
+             % (silindi, os.path.exists(gyol)), eksen="J")
+    ekle("12q secret adlari TEK KAYNAKTA", J.secret_adlari_dogrula(Y_GERCEK) == [],
+         "jeton aracinin yazdigi secret adlari KIMLIK_ALANLARI'nda yok: %s"
+         % J.secret_adlari_dogrula(Y_GERCEK), eksen="-")
+
     return sonuc
 
 
@@ -614,7 +771,73 @@ MUTANTLAR_Y = [
     ("MY6 gecici kod kumesi bosaltildi (ag arizasi KIRMIZI sayilir)",
      "    return k == 0 or k == 429 or 500 <= k < 600",
      "    return False"),
+    ("MY7 invalid_rapt sinifi iptal sinifina dusuruldu",
+     "    if \"invalid_rapt\" in m:\n        return OAUTH_SINIF_OTURUM",
+     "    if False:\n        return OAUTH_SINIF_OTURUM"),
+    ("MY8 OAuth kirmizisi onarim tarifini basmiyor",
+     "        ] + oauth_sinif_satirlari(sinif) + [",
+     "        ] + [] + ["),
 ]
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# JETON ARACI MUTANTLARI (`reklam-oci-jeton-yenile.py`) — "J" ekseni
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 Arac SIFRE sinifi degeri tasir: dar kapsam, stdin ve silme iddialari ancak
+# govde bozulunca KIRMIZI yaniyorsa koruma sayilir.
+MUTANTLAR_J = [
+    ("MJ1 donen kapsam OLCULMEDI, varsayildi",
+     "    kume = set(str(kapsam_metni or \"\").split())",
+     "    kume = {ADS_KAPSAMI}"),
+    ("MJ2 yetki URL'sine cloud-platform eklendi",
+     "        (\"scope\", ADS_KAPSAMI),",
+     "        (\"scope\", \"https://www.googleapis.com/auth/cloud-platform \" + ADS_KAPSAMI),"),
+    ("MJ3 secret degeri argv'ye tasindi",
+     "    p = calistir([\"gh\", \"secret\", \"set\", ad, \"--repo\", repo],",
+     "    p = calistir([\"gh\", \"secret\", \"set\", ad, \"--repo\", repo, \"--body\", deger],"),
+    ("MJ4 refresh_token yoklugu yutuldu",
+     "    if not yenileme:\n        return RC_KIRMIZI",
+     "    if False:\n        return RC_KIRMIZI"),
+    ("MJ5 istemci json'u silinmiyor",
+     "        os.remove(yol)",
+     "        pass"),
+]
+
+
+def mutant_j_kolu(dizin):
+    """Jeton araci mutantlari. IZOLE kopyada kosar. Doner: (olen, sagkalan, toplam)."""
+    olen, sagkalan = 0, []
+    try:
+        kaynak = open(JETON, encoding="utf-8").read()
+    except OSError as e:                              # noqa: BLE001
+        return 0, ["JETON ARACI OKUNAMADI: %s (OLCULEMEDI — YESIL DEGIL)" % e], 0
+    M = modul_yukle(KOSUCU, "reklam_oci_kosucu_j_ekseni")
+    for i, (ad, eski, yeni) in enumerate(MUTANTLAR_J):
+        if eski not in kaynak:
+            sagkalan.append("%s — CAPA TUTMADI (kaynak degisti, mutant hedefini "
+                            "bulamadi)" % ad)
+            continue
+        yol = os.path.join(dizin, "mutant_j_%02d.py" % i)
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write(kaynak.replace(eski, yeni, 1))
+        try:
+            MJ = modul_yukle(yol, "reklam_oci_jeton_mutant_%02d" % i)
+        except Exception as e:                        # noqa: BLE001
+            print("  ☠️  %-52s (mutant yuklenemedi: %s)" % (ad, e))
+            olen += 1
+            continue
+        try:
+            dusen = [v for v in batarya(M, J=MJ) if not v[1] and v[3] == "J"]
+        except Exception as e:                        # noqa: BLE001
+            print("  ☠️  %-52s (batarya istisna atti: %s)" % (ad, e))
+            olen += 1
+            continue
+        if dusen:
+            print("  ☠️  %-52s (olduren vaka: %s)" % (ad, dusen[0][0]))
+            olen += 1
+        else:
+            sagkalan.append("%s — HICBIR VAKA KIRMIZI YANMADI" % ad)
+    return olen, sagkalan, len(MUTANTLAR_J)
 
 
 def mutant_y_kolu(dizin):
@@ -886,12 +1109,15 @@ def main(argv=None):
         y_olen, y_sagkalan, y_toplam = mutant_y_kolu(d)
         print("  KAYNAK/IKIZ MUTANTLARI (tek kaynak + YAML ekseni)")
         k_olen, k_sagkalan, k_toplam = kaynak_mutant_kolu(d)
-    sagkalan = list(sagkalan) + list(y_sagkalan) + list(k_sagkalan)
+        print("  JETON ARACI MUTANTLARI (dar kapsam + stdin + silme ekseni)")
+        j_olen, j_sagkalan, j_toplam = mutant_j_kolu(d)
+    sagkalan = (list(sagkalan) + list(y_sagkalan) + list(k_sagkalan)
+                + list(j_sagkalan))
     for s in sagkalan:
         print("  🔴 SAGKALAN: %s" % s)
     print("  MUTANT=%d OLEN=%d SURVIVOR=%d"
-          % (len(MUTANTLAR) + y_toplam + k_toplam, olen + y_olen + k_olen,
-             len(sagkalan)))
+          % (len(MUTANTLAR) + y_toplam + k_toplam + j_toplam,
+             olen + y_olen + k_olen + j_olen, len(sagkalan)))
     if sagkalan:
         rc = 1
 

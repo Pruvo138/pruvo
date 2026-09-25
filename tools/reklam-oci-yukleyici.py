@@ -683,6 +683,79 @@ def gecici_kod(kod):
     return k == 0 or k == 429 or 500 <= k < 600
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# OAuth HATA SINIFI — "jeton alinamadi" TEK SINIF DEGILDIR
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 NEDEN VAR — OLCULEN ARIZA (23-24 Eyl 2026, 4 ardisik zamanlanmis kosum,
+# run 35857755888 -> 35958968753): el sikisma `HTTP 400` ile dustu ve kol birebir
+# "`invalid_grant` genelde iptal edilmis/suresi dolmus refresh token" dedi. Google'in
+# yaniti ise baska bir sey soyluyordu:
+#     "error": "invalid_grant", "error_subtype": "invalid_rapt",
+#     "error_description": "reauth related error (invalid_rapt)"
+# Jeton IPTAL EDILMEMISTI: Workspace'in Google Cloud OTURUM DENETIMI, Cloud kapsamli
+# (`cloud-platform`) jetonu yeniden-kimlik suresi dolunca DURDURUR. Jeton secret'a
+# 22 Eyl 19:51Z'de kondu; son yesil +9,2 sa, ilk kirmizi +16,1 sa.
+# Eski metin okuyucuyu "jetonu yenile" ONARIMINA yonlendiriyordu; ayni yolla (gcloud
+# ADC `cloud-platform`u ZORUNLU tutar) uretilen jeton AYNI sure sonra YINE olurdu —
+# kirmizinin kendisi dogru, TARIF ETTIGI ONARIM tekil yamaydi.
+# 🔴 SINIF YALNIZ METNI SECER, HUKMU DEGIL: dort sinifin hepsi RC_KIRMIZI'dir.
+OAUTH_SINIF_OTURUM = "OTURUM-DENETIMI"
+OAUTH_SINIF_IPTAL = "IPTAL-VEYA-SURE"
+OAUTH_SINIF_ISTEMCI = "ISTEMCI"
+OAUTH_SINIF_BILINMEYEN = "BILINMEYEN"
+JETON_ARACI = "tools/reklam-oci-jeton-yenile.py"
+
+
+def oauth_hata_sinifi(metin):
+    """SAF — OAuth hata metnini SINIFA cevirir. AG YOK.
+
+    🔴 JSON AYRISTIRILMAZ, alt dizge aranir: `erisim_jetonu_kodlu` govdeyi 300
+    karakterde KESER ve `gizle()`den gecirir; kesik/maskeli bir JSON ayristirilamaz
+    ve sinif sessizce BILINMEYEN'e duserdi. Sira onemlidir: `invalid_rapt` bir
+    `invalid_grant` ALT TURUDUR, once o sorulur.
+    """
+    m = str(metin or "")
+    if "invalid_rapt" in m:
+        return OAUTH_SINIF_OTURUM
+    if "invalid_grant" in m:
+        return OAUTH_SINIF_IPTAL
+    if "invalid_client" in m or "unauthorized_client" in m:
+        return OAUTH_SINIF_ISTEMCI
+    return OAUTH_SINIF_BILINMEYEN
+
+
+def oauth_sinif_satirlari(sinif):
+    """Sinifa gore ONARIM tarifi. Her kol kapatan seyi ADIYLA basar."""
+    if sinif == OAUTH_SINIF_OTURUM:
+        return [
+            "  SINIF=%s (invalid_rapt): jeton IPTAL EDILMEDI. Workspace'in Google Cloud"
+            % sinif,
+            "  oturum denetimi `cloud-platform` kapsamli jetonu yeniden-kimlik suresi",
+            "  dolunca durdurur (yonetici ayari, 1-24 sa). gcloud ADC ile YENILEMEK",
+            "  AYNI sure sonra YINE dusurur (gcloud `cloud-platform`u zorunlu tutar).",
+            "  Kapatan sey: YALNIZ `adwords` kapsamli jeton —",
+            "  `python3 %s --istemci <istemci json>`" % JETON_ARACI,
+            "  (SIFRE sinifi = OKAN KAPISI: konsolda istemci anahtari + onay tiki).",
+        ]
+    if sinif == OAUTH_SINIF_IPTAL:
+        return [
+            "  SINIF=%s (invalid_grant): refresh token iptal edilmis ya da suresi" % sinif,
+            "  dolmus. Dis kullanicili + `Testing` yayin durumundaki OAuth uygulamasi",
+            "  jetonu 7 gunde oldurur. Kapatan sey: yeni jeton —",
+            "  `python3 %s --istemci <istemci json>` (OKAN KAPISI)." % JETON_ARACI,
+        ]
+    if sinif == OAUTH_SINIF_ISTEMCI:
+        return [
+            "  SINIF=%s: CLIENT_ID / CLIENT_SECRET ikilisi gecersiz ya da istemci" % sinif,
+            "  silinmis. Kapatan sey: istemci anahtarinin secret'la eslesmesi —",
+            "  `python3 %s --istemci <istemci json>` ikisini BIRLIKTE yazar." % JETON_ARACI,
+        ]
+    return [
+        "  SINIF=%s: Google yanitindan sinif cikarilamadi; asagidaki ayrintiya bak."
+        % sinif,
+    ]
+
+
 def el_sikisma_hukmu(kod, govde, beklenen_id):
     """SAF HUKUM — arama yanitini (rc, satirlar)'a cevirir. AG YOK, IO YOK.
 
@@ -788,12 +861,13 @@ def el_sikisma(kimlik, tasiyici):
                 "  YESIL DEGIL: ag/sunucu gecici arizasi kimlik hukmu VERMEZ.",
                 "  Ayrinti: %s" % hata,
             ])
+        sinif = oauth_hata_sinifi(hata)
         return maskeli(RC_KIRMIZI, [
-            "%s — EL SIKISMA DUSTU: OAuth jetonu ALINAMADI (HTTP %s)."
-            % (HAL_KIRMIZI, kod),
+            "%s — EL SIKISMA DUSTU: OAuth jetonu ALINAMADI (HTTP %s) · OAUTH_SINIF=%s."
+            % (HAL_KIRMIZI, kod, sinif),
             "  OAuth uclusu (CLIENT_ID + CLIENT_SECRET + REFRESH_TOKEN) jeton TAKAS",
-            "  EDEMIYOR — `invalid_grant` genelde iptal edilmis/suresi dolmus refresh",
-            "  token demektir. Yukleme DENENMEDI.",
+            "  EDEMIYOR. Yukleme DENENMEDI.",
+        ] + oauth_sinif_satirlari(sinif) + [
             "  Ayrinti: %s" % hata,
         ])
 
