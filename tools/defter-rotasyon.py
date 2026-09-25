@@ -216,7 +216,127 @@ def _blok_anlamli_govde_satiri(blok):
     return len([s for s in blok["govde"] if s.strip()])
 
 
-def _indirme_vetosu(blok, sira=None):
+# === 25 EYL 2026 — ASILMIS KAPANIS BLOGU YUKLEMI (BaBa hukmu, ③ kalemi) ====
+# OLCULEN ARIZA (BaBa salt-okuma, 25 Eyl): canli DEVAM.md 497 st / 175 KB /
+# 65 blok, icinde 15 ayri `SIRADAKI TEK IS` satiri — yalniz EN YENISI canli,
+# 14'u ASILMIS. `--isaretciye-indir` 65/65 blogu VETOLADI ve `ACIK=75` sayisi
+# GERCEK acik kalem sayisi DEGIL, SINIFLANDIRMA ARTEFAKTI cikti: sebep, KAPANMIS
+# bir blogun ANLATI VURGUSUNUN ("🔴🔴 CURUTME HOL BULDU", "🔴 UC YARIS") jeton
+# kumesine carpip blogun KENDISINI acik kalem saydirmasiydi.
+#
+# 🔴 EMOJI KUMESI (`ACIK_ISARETCILER`) SILINMEZ ve BOSALTILMAZ. `## ACIK
+# KALEMLER` bolumunde, madde duzleminde (`_madde_tasinir_mi`), blok tasimasinda
+# (`_tasinir_mi`) ve kimliksiz-acik-kalem kolunda AYNEN calisir. Degisen TEK
+# sey: `_indirme_vetosu`nun ACIK-jeton kolunda, bir blok
+#   ① basligi `## ✅` ya da `KAPANIS` tasiyorsa ∧
+#   ② kendi `SIRADAKI TEK IS` satiri ASILMISSA (daha YENI bir blokta da var)
+# ise, jeton ARTIK TEK BASINA veto uretmez; yerine ③ GERCEK kalem yuklemi
+# kosar: bloktaki K-kimlikli / `BEKLIYOR` / `OKAN'DA` kalemlerin HEPSININ
+# `## ACIK KALEMLER` bolumunde karsiligi OLMALI.
+#
+# 🔴 ③ FAIL-CLOSED'DIR: karsiligi olmayan TEK kimlik blogu VETO eder; kimlik
+# TASIMAYAN bir acik kalem satiri da VETO eder, cunku karsiligi KANITLANAMAZ.
+# Yani gevsetme YONU TEK: "anlati emojisi" veto uretmez, "gercek kalem" uretir.
+_TR_BUYUK_HARITASI = str.maketrans("İıŞşĞğÜüÖöÇç’`", "IISSGGUUOOCC''")
+
+
+def _tr_buyuk(metin):
+    """Turkce-guvenli BUYUK normal (İ/ı/ş/ğ… ASCII'ye, ’/` -> ').
+
+    OLCULDU (25 Eyl, canli DEVAM.md): ayni jeton IKI YAZIMLA geciyor —
+    `SIRADAKİ TEK İŞ` 13 kez, ASCII `SIRADAKI TEK IS` 2 kez. Tek yazima
+    capalanan bir yuklem 15 kalemin 2'sini GORMEZ.
+    """
+    return metin.translate(_TR_BUYUK_HARITASI).upper()
+
+
+# ① KAPANIS basligi jetonlari — normalize edilmis BASLIKTA alt-dize aranir.
+KAPANIS_BASLIK_JETONLARI = ("✅", "KAPANIS")
+# ② asilmislik ekseni. Defter YENI-USTTE sirali (ayni invaryant `sira == 0`
+# vetosunu da kuruyor), bu yuzden EN KUCUK sira = EN YENI beyan; gerisi ASILMIS.
+_SIRADAKI_TEK_IS_RE = re.compile(r"SIRADAKI\s+TEK\s+IS")
+# ③ kimliksiz acik kalem jetonlari: satir bunlardan birini tasiyip `K###`
+# kimligi TASIMIYORSA `## ACIK KALEMLER`deki karsiligi kanitlanamaz -> VETO.
+_KIMLIKSIZ_ACIK_RE = re.compile(r"BEKLIYOR|OKAN'DA")
+# ③ karsilik evreni: kalemlerin aranacagi bolum basligi.
+ACIK_KALEM_BOLUM_DESENI = "ACIK KALEMLER"
+
+
+def _blok_kapanis_basligi_mi(blok):
+    """① Blogun BASLIGI kapanis beyani tasiyor mu? (`## ✅` ya da `KAPANIS`)"""
+    bas = _tr_buyuk(blok["baslik"])
+    return any(j in bas for j in KAPANIS_BASLIK_JETONLARI)
+
+
+def _siradaki_tek_is_tasiyor_mu(metin):
+    """Metin bir `SIRADAKI TEK IS` beyani tasiyor mu? (iki yazim da)"""
+    return _SIRADAKI_TEK_IS_RE.search(_tr_buyuk(metin)) is not None
+
+
+def _asilmis_kapanis_baglami(bloklar):
+    """Defterin TAMAMINDAN turetilen baglam — tek blok bu soruyu CEVAPLAYAMAZ.
+
+    Doner: {"en_yeni_siradaki": sira|None, "acik_kalem_kimlikleri": set}
+
+    `en_yeni_siradaki` None ise defterde HIC `SIRADAKI TEK IS` beyani yoktur;
+    o halde hicbir blok "asilmis" SAYILAMAZ ve yuklem ACILMAZ (fail-closed).
+    """
+    en_yeni = None
+    for sira, b in enumerate(bloklar):
+        if _siradaki_tek_is_tasiyor_mu(_blok_metni(b)):
+            en_yeni = sira
+            break
+    acik_kimlikler = set()
+    for b in bloklar:
+        if ACIK_KALEM_BOLUM_DESENI in _tr_buyuk(b["baslik"]):
+            acik_kimlikler |= set(_KIMLIK_RE.findall(_blok_metni(b)))
+    return {"en_yeni_siradaki": en_yeni,
+            "acik_kalem_kimlikleri": acik_kimlikler}
+
+
+def _asilmis_kapanis_mi(blok, sira, baglam):
+    """① ∧ ② — blok ASILMIS bir KAPANIS blogu mu?
+
+    `baglam` ya da `sira` yoksa (olcum/prob cagrisi) CEVAP HAYIR: yuklem
+    acilmaz, eski (kati) davranis surer.
+    """
+    if baglam is None or sira is None:
+        return False
+    if not _blok_kapanis_basligi_mi(blok):                      # ①
+        return False
+    if not _siradaki_tek_is_tasiyor_mu(_blok_metni(blok)):      # ②
+        return False
+    en_yeni = baglam.get("en_yeni_siradaki")
+    if en_yeni is None:
+        return False
+    return sira > en_yeni                                       # ② asilmis
+
+
+def _karsiligi_olmayan_kalemler(blok, baglam):
+    """③ Bloktaki kalemlerden `## ACIK KALEMLER`de KARSILIGI OLMAYANLAR.
+
+    Kalem = `K###` kimlikli satir · `BEKLIYOR`/`OKAN'DA` tasiyan satir.
+    Kimlikli satir KIMLIKLE eslesir; kimliksiz acik satirin karsiligi
+    KANITLANAMAZ ve `KIMLIKSIZ:` etiketiyle listeye girer (fail-closed).
+    Bos liste = ③ GECTI.
+    """
+    acik = baglam.get("acik_kalem_kimlikleri") or set()
+    eksik = []
+    for satir in _blok_metni(blok).splitlines():
+        kimlikler = _KIMLIK_RE.findall(satir)
+        if kimlikler:
+            for k in kimlikler:
+                if k not in acik and k not in eksik:
+                    eksik.append(k)
+            continue
+        if _KIMLIKSIZ_ACIK_RE.search(_tr_buyuk(satir)):
+            etiket = "KIMLIKSIZ:%s" % satir.strip()[:40]
+            if etiket not in eksik:
+                eksik.append(etiket)
+    return eksik
+
+
+def _indirme_vetosu(blok, sira=None, baglam=None):
     """Blok isaretciye INDIRILEMEZ ise SEBEP dizesi, indirilebilirse None.
 
     🔴 16 EYL 2026 — "EN YENI EN USTTE KALIR" INVARYANTI EKLENDI (MaCiT olcumu,
@@ -250,7 +370,15 @@ def _indirme_vetosu(blok, sira=None):
         return "KORUMALI BASLIK (%s)" % ", ".join(KORUMALI_BASLIK_DESENLERI)
     tum = blok["baslik"] + "\n" + "\n".join(blok["govde"])
     if _acik_eslesiyor(tum):
-        return "ACIK KALEM tasiyor (ACIK jetonu blokta gecti) — K195 §1.2"
+        # 🔴 25 EYL ③ — ASILMIS KAPANIS BLOGUNDA JETON TEK BASINA VETO DEGIL.
+        # ①∧② tutmuyorsa eski (kati) hukum AYNEN doner; tutuyorsa karari
+        # ANLATI EMOJISI degil GERCEK KALEM yuklemi verir.
+        if not _asilmis_kapanis_mi(blok, sira, baglam):
+            return "ACIK KALEM tasiyor (ACIK jetonu blokta gecti) — K195 §1.2"
+        eksik = _karsiligi_olmayan_kalemler(blok, baglam)
+        if eksik:
+            return ("ASILMIS KAPANIS blogu ama `## ACIK KALEMLER`de karsiligi "
+                    "OLMAYAN kalem tasiyor: %s — 25 Eyl ③" % ", ".join(eksik[:5]))
     anlamli = _blok_anlamli_govde_satiri(blok)
     if anlamli <= _ISARETCI_ASGARI_GOVDE:
         return ("govde zaten isaretciye inmis (anlamli satir %d <= esik %d)"
@@ -258,9 +386,39 @@ def _indirme_vetosu(blok, sira=None):
     return None
 
 
-def _isaretciye_indirilebilir_mi(blok):
+def _isaretciye_indirilebilir_mi(blok, sira=None, baglam=None):
     """Blok isaretciye INDIRILEBILIR mi? (veto YOKsa evet)"""
-    return _indirme_vetosu(blok) is None
+    return _indirme_vetosu(blok, sira=sira, baglam=baglam) is None
+
+
+def _kuru_kosum(defter_yol):
+    """`--kuru`: SALT OKUMA veto dokumu. Hicbir dosyaya DOKUNMAZ.
+
+    Amaci tek: yuklem degistikten sonra "canli defterde kac blok artik
+    INDIRILEBILIR sayiliyor" sorusunu TASIMA YAPMADAN cevaplamak. Gercek
+    tasimayi `--isaretciye-indir` yapar; bu kol ondan TAMAMEN ayridir.
+    """
+    with open(defter_yol, "rb") as f:
+        ham = f.read()
+    baslik_bolgesi, bloklar = _bloklari_ayir(ham.decode("utf-8"))
+    baglam = _asilmis_kapanis_baglami(bloklar)
+    adaylar, vetolar = [], []
+    for sira, b in enumerate(bloklar):
+        sebep = _indirme_vetosu(b, sira=sira, baglam=baglam)
+        if sebep is None:
+            adaylar.append(b)
+        else:
+            vetolar.append((b["baslik"], sebep))
+    print("KURU_KOSUM (salt okuma, dosyaya DOKUNULMADI): %s" % defter_yol)
+    print("KURU_EN_YENI_SIRADAKI=%s KURU_ACIK_KALEM_KIMLIK=%d"
+          % (baglam["en_yeni_siradaki"], len(baglam["acik_kalem_kimlikleri"])))
+    for b in adaylar:
+        print("KURU_INDIRILEBILIR-BLOK: %s" % b["baslik"][:100])
+    for baslik, sebep in vetolar:
+        print("KURU_VETO: %s — %s" % (baslik[:70], sebep))
+    print("KURU_BLOK=%d KURU_INDIRILEBILIR=%d KURU_VETO=%d"
+          % (len(bloklar), len(adaylar), len(vetolar)))
+    return 0
 
 
 def _satir_sayisi(metin):
@@ -1078,7 +1236,17 @@ def _kendini_test():
             f.write(icerik.encode("utf-8"))
         return {"yol": yol, "icerik": icerik}
 
-    fikstur = _fikstur_turkce(TAVAN_SATIR - 30, TAVAN_BAYT + 200)
+    # 🔴 SATIR SAYISI TAVANDAN TURETILIR, SABIT YAZILMAZ (25 Eyl onarimi).
+    # OLCULEN ARIZA: fikstur `TAVAN_SATIR - 30` = 470 satira capaliydi; 11 Eyl'de
+    # TAVAN_SATIR 6->500 olunca ayni fikstur 470 satir x 161 bayt = 73.341 bayt /
+    # 37.069 KARAKTER uretti — ikisi de 12.288 tavanini astigi icin vakanin ta
+    # kendisi ("byte asar, char asmaz") IMKANSIZLASTI ve M4 taban olcumumde
+    # KIRMIZI yaniyordu ([[mutant-beklenen-kirmizi-kumesi-taban-degisince-ikinci-
+    # kat-bayatlar]]). Satir basi 80 'ş' = 161 bayt / 81 karakter; gecerli pencere
+    # (TAVAN_BAYT/161, TAVAN_BAYT/81] ve ORTASI secilir — tavan bir daha degisirse
+    # fikstur KENDI KENDINE tasinir, ikinci kat bayatlama olmaz.
+    _m4_satir = max(1, int((TAVAN_BAYT / 161.0 + TAVAN_BAYT / 81.0) / 2))
+    fikstur = _fikstur_turkce(_m4_satir, TAVAN_BAYT + 200)
     arsiv_yol = fikstur["yol"] + ".arsiv"
     if os.path.exists(arsiv_yol):
         os.unlink(arsiv_yol)
@@ -1278,6 +1446,210 @@ def _kendini_test():
                           "rc=%d kayip_yok=%s yer_tutucu=%s (mutant KAYIP basMAMALI, yer tutucu basMALI)" %
                           (r_mut.returncode, mut_kayip_yok, mut_yer_tutucu)))
 
+    # === 25 EYL — ASILMIS KAPANIS BLOGU YUKLEMI (BaBa ③) ==================
+    # Y1..Y9 fikstur + M-Y1..M-Y3 IZOLE mutant. Fikstur defterleri BIREBIR
+    # canli seklindedir: en ustte CANLI blok (`SIRADAKI TEK IS` beyani),
+    # altinda ASILMIS kapanis bloklari, en altta `## ACIK KALEMLER`.
+    _Y_CANLI = ("## 🔴 25 EYL CANLI BLOK — en yeni beyan\n"
+                "**SIRADAKİ TEK İŞ:** K900 kapisini kur\n"
+                "- 🔴 **K900** acik kalem, bugun kosuyor\n")
+    _Y_GOVDE = ("🔴🔴 ÇÜRÜTME HOL BULDU — anlati vurgusu (emoji, KALEM DEGIL)\n"
+                "🔴 ÜÇ YARIŞ — hicbirinde zorlanmadi\n"
+                "- ✅ **K901 KAPANDI** (kanit sha 0a1b2c)\n"
+                "- ✅ dal main'de, yayin indi SKIPPED=0\n"
+                "- ✅ ucuncu kapanis satiri\n"
+                "- ✅ dorduncu kapanis satiri\n")
+
+    def _y_defter(baslik, acik_kalemler=("K900", "K901"), ek_satir="",
+                  canli_ustte=True):
+        """Fikstur defteri kur; (yol, ham_bayt) doner."""
+        parcalar = ["# DEVAM (fikstur)\n\n"]
+        if canli_ustte:
+            parcalar.append(_Y_CANLI + "\n")
+        else:
+            parcalar.append("## 🔴 25 EYL USTTEKI BLOK (SIRADAKI beyani YOK)\n"
+                            "- 🔴 **K900** acik kalem\n\n")
+        parcalar.append(baslik + "\n**SIRADAKİ TEK İŞ:** K901 dali main'e\n"
+                        + _Y_GOVDE + ek_satir + "\n")
+        parcalar.append("## ACIK KALEMLER (kapananlarin tam metni arsivde)\n")
+        for k in acik_kalemler:
+            parcalar.append("- 🔧 **%s:** acik kalem\n" % k)
+        icerik = "".join(parcalar)
+        fd, yol = tempfile.mkstemp(suffix=".md", prefix="y25eyl-")
+        with os.fdopen(fd, "wb") as f:
+            f.write(icerik.encode("utf-8"))
+        return yol, icerik.encode("utf-8")
+
+    def _y_veto(defter_yol, sira_hedef=1):
+        """Hedef blogun veto SEBEBI (None = INDIRILEBILIR) + blok sayisi."""
+        with open(defter_yol, encoding="utf-8") as f:
+            _, bloklar = _bloklari_ayir(f.read())
+        baglam = _asilmis_kapanis_baglami(bloklar)
+        return (_indirme_vetosu(bloklar[sira_hedef], sira=sira_hedef,
+                                baglam=baglam), len(bloklar), baglam)
+
+    _Y_KAPANIS_BASLIK = "## ✅ 24 EYL KAPANIS — asilmis kapanis blogu"
+    _Y_TEMIZ = []
+
+    # ---- Y1: asilmis kapanis + TUM K-kimlikler listede -> INDIRILEBILIR --
+    y1_yol, y1_ham = _y_defter(_Y_KAPANIS_BASLIK)
+    _Y_TEMIZ.append(y1_yol)
+    y1_sebep, y1_blok, y1_baglam = _y_veto(y1_yol)
+    sonuclar.append(("Y1 ASILMIS-INER", y1_sebep is None and y1_blok == 3,
+                     "sebep=%r blok=%d (veto YOK beklenir — anlati emojisi "
+                     "TEK BASINA veto uretMEMELI)" % (y1_sebep, y1_blok)))
+
+    # ---- Y2: 🔴 POZITIF KONTROL — K-kimligi listede YOK -> VETO ----------
+    # 🔴 BU VAKA YESIL KALMAZSA KAPI KORELMISTIR: yuklem gevsetildiginde
+    # GERCEK acik kalem tasiyan blok da arsive gomulurdu (K195 §1.2 ihlali).
+    y2_yol, _ = _y_defter(_Y_KAPANIS_BASLIK, acik_kalemler=("K900",))
+    _Y_TEMIZ.append(y2_yol)
+    y2_sebep, _, _ = _y_veto(y2_yol)
+    sonuclar.append(("Y2 POZITIF-KONTROL",
+                     y2_sebep is not None and "karsiligi OLMAYAN" in y2_sebep
+                     and "K901" in y2_sebep,
+                     "sebep=%r (VETO + `karsiligi OLMAYAN` + K901 adiyla "
+                     "beklenir)" % (y2_sebep,)))
+
+    # ---- Y3: EN YENI blok (sira 0) asla inmez ----------------------------
+    with open(y1_yol, encoding="utf-8") as f:
+        _, _y3_bloklar = _bloklari_ayir(f.read())
+    _y3_baglam = _asilmis_kapanis_baglami(_y3_bloklar)
+    y3_sebep = _indirme_vetosu(_y3_bloklar[0], sira=0, baglam=_y3_baglam)
+    sonuclar.append(("Y3 EN-YENI-INMEZ",
+                     y3_sebep is not None and "DEFTERIN BASI" in y3_sebep,
+                     "sebep=%r (DEFTERIN BASI vetosu beklenir)" % (y3_sebep,)))
+
+    # ---- Y4: `## ACIK KALEMLER` bolumu asla inmez ------------------------
+    y4_sebep = _indirme_vetosu(_y3_bloklar[2], sira=2, baglam=_y3_baglam)
+    sonuclar.append(("Y4 ACIK-KALEMLER-INMEZ",
+                     y4_sebep is not None and "KORUMALI BASLIK" in y4_sebep,
+                     "sebep=%r (KORUMALI BASLIK vetosu beklenir)" % (y4_sebep,)))
+
+    # ---- Y5: SIRADAKI beyani ASILMAMIS blok inmez ------------------------
+    # Ustteki blok SIRADAKI tasimazsa EN YENI beyan kapanis blogunun KENDISIDIR.
+    y5_yol, _ = _y_defter(_Y_KAPANIS_BASLIK, canli_ustte=False)
+    _Y_TEMIZ.append(y5_yol)
+    y5_sebep, _, y5_baglam = _y_veto(y5_yol)
+    sonuclar.append(("Y5 ASILMAMIS-INMEZ",
+                     y5_sebep is not None and "K195 §1.2" in y5_sebep
+                     and y5_baglam["en_yeni_siradaki"] == 1,
+                     "sebep=%r en_yeni=%s (eski KATI veto beklenir, en_yeni=1)"
+                     % (y5_sebep, y5_baglam["en_yeni_siradaki"])))
+
+    # ---- Y6: EMOJI KUMESI DURUYOR (bosaltilarak "cozulmedi") -------------
+    _y6_emoji = all(j in ACIK_ISARETCILER for j in ("🔴", "🔧", "🟠", "🟡"))
+    _y6_calisiyor = _acik_eslesiyor("🔴🔴 ÇÜRÜTME HOL BULDU")
+    _y6_harf = _acik_eslesiyor("- BEKLIYOR: Okan penceresi")
+    sonuclar.append(("Y6 EMOJI-KUME-DURUYOR",
+                     _y6_emoji and _y6_calisiyor and _y6_harf,
+                     "kume=%s emoji_eslesme=%s harf_eslesme=%s (ucu de True)"
+                     % (_y6_emoji, _y6_calisiyor, _y6_harf)))
+
+    # ---- Y7: KAPANIS basligi TASIMAYAN asilmis blok inmez (① tutar) ------
+    y7_yol, _ = _y_defter("## 🔧 24 EYL ARA BLOK — bitis beyani YOK")
+    _Y_TEMIZ.append(y7_yol)
+    y7_sebep, _, _ = _y_veto(y7_yol)
+    sonuclar.append(("Y7 KAPANIS-BASLIGI-SART",
+                     y7_sebep is not None and "K195 §1.2" in y7_sebep,
+                     "sebep=%r (① tutmali: eski KATI veto beklenir)" % (y7_sebep,)))
+
+    # ---- Y8: `--kuru` SALT OKUMA + INDIRILEBILIR sayisini basar ----------
+    y8_arsiv = y1_yol + ".arsiv"
+    if os.path.exists(y8_arsiv):
+        os.unlink(y8_arsiv)
+    _y8 = subprocess.run(
+        [sys.executable, os.path.abspath(__file__), y1_yol, y8_arsiv, "--kuru"],
+        capture_output=True, text=True)
+    with open(y1_yol, "rb") as f:
+        y8_sonra = f.read()
+    _y8_m = re.search(r"KURU_INDIRILEBILIR=(\d+)", _y8.stdout)
+    y8_sayi = int(_y8_m.group(1)) if _y8_m else -1
+    sonuclar.append(("Y8 KURU-YAN-ETKISIZ",
+                     _y8.returncode == 0 and y8_sayi == 1
+                     and y8_sonra == y1_ham and not os.path.exists(y8_arsiv),
+                     "rc=%d indirilebilir=%d birebir=%s arsiv_yok=%s "
+                     "(rc=0, 1 blok, dosya BIREBIR, arsiv YAZILMAMIS beklenir)"
+                     % (_y8.returncode, y8_sayi, y8_sonra == y1_ham,
+                        not os.path.exists(y8_arsiv))))
+
+    # ---- Y9: KIMLIKSIZ acik kalem (BEKLIYOR) -> VETO (fail-closed) -------
+    y9_yol, _ = _y_defter(_Y_KAPANIS_BASLIK,
+                          ek_satir="- 🟠 BEKLIYOR: Okan penceresi acilacak\n")
+    _Y_TEMIZ.append(y9_yol)
+    y9_sebep, _, _ = _y_veto(y9_yol)
+    sonuclar.append(("Y9 KIMLIKSIZ-VETO",
+                     y9_sebep is not None and "KIMLIKSIZ" in y9_sebep,
+                     "sebep=%r (kimliksiz acik kalem VETO etmeli)" % (y9_sebep,)))
+
+    # === IZOLE MUTANTLAR — CANLI GOVDEDE DEGIL, KOPYADA ===================
+    # Her mutant: (a) capa BIR KEZ gecmeli, (b) kaynak BAYT FARKI != 0 olmali
+    # (tutmayan mutant OLU sayilmaz), (c) CANLI arac fikstur uzerinde 0
+    # INDIRILEBILIR derken MUTANT >0 demeli — yani hedef kolu ADIYLA oldurmeli.
+    with open(os.path.abspath(__file__), encoding="utf-8") as f:
+        _ana_govde = f.read()
+
+    def _y_mutant(ad, capa, yerine, fikstur_yol, hedef_vaka):
+        canli = subprocess.run(
+            [sys.executable, os.path.abspath(__file__), fikstur_yol,
+             fikstur_yol + ".arsiv", "--kuru"], capture_output=True, text=True)
+        _cm = re.search(r"KURU_INDIRILEBILIR=(\d+)", canli.stdout)
+        canli_sayi = int(_cm.group(1)) if _cm else -1
+        if _ana_govde.count(capa) != 1:
+            sonuclar.append((ad, False, "capa %d kez gecti (1 beklenir) — kod "
+                                        "degismis olabilir" % _ana_govde.count(capa)))
+            return
+        mutant_kod = _ana_govde.replace(capa, yerine, 1)
+        fark = len(mutant_kod.encode("utf-8")) - len(_ana_govde.encode("utf-8"))
+        dizin = tempfile.mkdtemp(prefix="y25eyl-mut-")
+        try:
+            mut_yol = os.path.join(dizin, "defter-rotasyon.py")
+            with open(mut_yol, "w", encoding="utf-8") as f:
+                f.write(mutant_kod)
+            shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                     "defter-kota-taban.py"),
+                        os.path.join(dizin, "defter-kota-taban.py"))
+            mut = subprocess.run(
+                [sys.executable, mut_yol, fikstur_yol,
+                 os.path.join(dizin, "arsiv.md"), "--kuru"],
+                capture_output=True, text=True)
+        finally:
+            shutil.rmtree(dizin, ignore_errors=True)
+        _mm = re.search(r"KURU_INDIRILEBILIR=(\d+)", mut.stdout)
+        mut_sayi = int(_mm.group(1)) if _mm else -1
+        oldu = fark != 0 and canli_sayi == 0 and mut_sayi > 0
+        # 🔴 SESSIZ MUTANT YOK: her mutant SONUCUYLA basilir, yesilken de.
+        print("Y-MUTANT %s: kaynak_fark=%+d bayt canli=%d mutant=%d hedef=%s "
+              "-> %s" % (ad, fark, canli_sayi, mut_sayi, hedef_vaka,
+                         "OLDU" if oldu else "SURVIVOR"))
+        sonuclar.append((ad, oldu,
+                         "kaynak_fark=%+d bayt canli=%d mutant=%d hedef=%s "
+                         "(fark!=0, canli=0, mutant>0 beklenir)"
+                         % (fark, canli_sayi, mut_sayi, hedef_vaka)))
+
+    _y_mutant(
+        "M-Y1 ③-NO-OP",
+        "        eksik = _karsiligi_olmayan_kalemler(blok, baglam)\n",
+        "        eksik = []  # M-Y1 mutanti: ③ kalem yuklemi no-op\n",
+        y2_yol, "Y2 POZITIF-KONTROL")
+    _y_mutant(
+        "M-Y2 ②-SOKULDU",
+        "    return sira > en_yeni                                       # ② asilmis\n",
+        "    return True  # M-Y2 mutanti: ② asilmislik ekseni sokuldu\n",
+        y5_yol, "Y5 ASILMAMIS-INMEZ")
+    _y_mutant(
+        "M-Y3 ①-SOKULDU",
+        "    if not _blok_kapanis_basligi_mi(blok):                      # ①\n",
+        "    if False:  # M-Y3 mutanti: ① KAPANIS basligi sarti sokuldu\n",
+        y7_yol, "Y7 KAPANIS-BASLIGI-SART")
+
+    for _y in _Y_TEMIZ:
+        for _p in (_y, _y + ".arsiv"):
+            try:
+                os.unlink(_p)
+            except OSError:
+                pass
+
     gecen = 0
     dusen = 0
     for ad, gecti, detay in sonuclar:
@@ -1325,6 +1697,11 @@ def main(argv=None):
                         " birak. Korumali basliklar (ACIK KALEMLER / OKAN'DA /"
                         " ARSIVDE) ASLA indirilmez. Bayrak YOKSA davranis"
                         " degismez (KAYIP / ILERLEME_YOK).")
+    p.add_argument("--kuru", action="store_true",
+                   help="SALT OKUMA veto dokumu: her blok icin INDIRILEBILIR mi,"
+                        " degilse SEBEBI. Hicbir dosyaya DOKUNMAZ, hicbir sey"
+                        " tasimaz; sonda KURU_BLOK / KURU_INDIRILEBILIR /"
+                        " KURU_VETO sayilarini basar.")
     p.add_argument("--onlem", action="store_true",
                    help="K351-31AGU: BASLANGIC kapisini CEZA esigi (tavan)"
                         " yerine ONARIM esigine (su seviyesi) bagla. Tavan"
@@ -1338,6 +1715,15 @@ def main(argv=None):
                         " yordama elle yazilan her tavan ikinci bir kopyadir ve"
                         " sessizce ayrisir. Acikca verilen --tavan-* bunu ezer.")
     a = p.parse_args(argv)
+
+    # 🔴 `--kuru` HER SEYDEN ONCE doner: salt okuma kolunun tavan/tarih/yazma
+    # dallarina hic girmemesi, "kuru kosum yan etkisi kontrolden once gelirse
+    # canliyi siler" arizasinin bu araca girmesini ENGELLER.
+    if a.kuru:
+        if not os.path.exists(a.defter):
+            print("OLCULEMEDI: defter yok: %s" % a.defter, file=sys.stderr)
+            return 4
+        return _kuru_kosum(a.defter)
 
     if a.tavan_kaynaktan or a.onlem:
         if a.tavan_sayi is None:
@@ -1545,10 +1931,13 @@ def _isaretciye_indir_gecis(defter_yol, arsiv_yol, tarih):
     arsiv_metin = arsiv_ham.decode("utf-8") if arsiv_ham else ""
 
     baslik_bolgesi, bloklar = _bloklari_ayir(defter_metin)
+    # 🔴 25 EYL ③ — baglam DEFTERIN TAMAMINDAN turer (en yeni SIRADAKI beyani +
+    # `## ACIK KALEMLER` kimlik evreni); tek blok bu iki soruyu cevaplayamaz.
+    baglam = _asilmis_kapanis_baglami(bloklar)
     adaylar = []
     vetolar = []
     for _sira, b in enumerate(bloklar):
-        sebep = _indirme_vetosu(b, sira=_sira)
+        sebep = _indirme_vetosu(b, sira=_sira, baglam=baglam)
         if sebep is None:
             adaylar.append(b)
         else:
