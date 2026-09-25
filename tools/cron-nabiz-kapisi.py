@@ -660,6 +660,75 @@ def gecmis_capasi(g, simdi, pencere_saat):
     return kayit_an, gecmis_saat, uyari
 
 
+def sayfa_tutarsizligi(g, simdi, pencere_saat=TESLIM_PENCERESI_SAAT):
+    """None | sebep metni — GITHUB KOSUM YANITININ KENDI ICINDE TUTARSIZ oldugu SINIF.
+
+    🔴 NEDEN VAR — OLCULDU 22 Eyl 2026, `nobet.yml` kosumu 35776723679 (event=schedule,
+    19:53:49Z), job `cron-nabzi` = failure. Basilan hukum birebir:
+        '🔴 A3 NABIZ (ikincil) <akis> -> son event=schedule kosumu 645.8 saat once ...
+         Cron SESSIZ.'
+        '🔴 A5 TESLIM <akis> -> ZAMANLANMIS KOSUMLAR DUSUYOR: teslim 0 / nominal 192'
+    AYNI DAKIKALARDA `gh` ile olculen GERCEK: o is akisinin son zamanlanmis kosumu
+    **3,1 SAAT** oncesindeydi ve son bes zamanlanmis kosumun HEPSI `success`. Ayni
+    kosumda diger iki is akisi TAZE olculdu -> kirik GENEL DEGIL, TEK CAGRIYA aitti:
+    GitHub Actions API'si `total_count`u BUYUK bildirip sayfayi DOLDURMADAN cok daha
+    ESKI bir kayit kumesi dondurdu. `gozlem_topla` `son_kosum`u YALNIZ o sayfadan
+    turetir (`g["son_kosum"] = max(damgalar)`) ve eksik sayfa KESIN bir sessizlik
+    hukmune donustu. Tekil yama YASAK: sinif is akisi adindan BAGIMSIZDIR, bu yuzden
+    burada hicbir dosya adi GECMEZ.
+
+    UC SART BIRDEN (hepsi gerekli):
+      (1) BEYAN > TESLIM: `total_count` donen kayit sayisindan FAZLA,
+      (2) SAYFA DOLMAMIS: donen kayit < TESLIM_SAYFA — API ayni yanitta hem "elimdeki
+          bu kadar" hem "daha cok var" diyor; iki beyan birbirini YALANLAR,
+      (3) PENCEREDE HICBIR KAYIT YOK: donen kayitlarin EN YENISI olcum penceresinin (W)
+          TAMAMEN disinda — yani yanit "pencerede sifir kosum" ima ediyor ama pencereyi
+          kapsayan kayitlari VERMEDI.
+
+    🔴 GERCEK SESSIZLIGI SUSTURMAZ — susmus bir cron bu kumeye DUSEMEZ:
+      · lifetime kosumu sayfa boyunun ALTINDAYSA API hepsini dondurur
+        (total_count == donen) -> (1) DUSER -> 🔴 ALARM aynen yanar (fikstur T-POZ-1);
+      · lifetime kosumu sayfa boyunun USTUNDEYSE API sayfayi DOLDURUR
+        (donen >= TESLIM_SAYFA) -> (2) DUSER -> 🔴 ALARM aynen yanar (fikstur T-POZ-2).
+    T-POZ-2, T-TUT-1 ile AYNI `total_count`u (774) tasir ve YALNIZCA sayfanin dolup
+    dolmadigi degisir: ayirt edici tek degisken budur.
+    """
+    if not g.get("kayitli"):
+        return None
+    beyan = g.get("kosum_sayisi")
+    donen = g.get("donen_kayit")
+    if not isinstance(beyan, int) or not isinstance(donen, int):
+        return None
+    if donen <= 0:
+        return None                      # "hic kosum yok" AYRI sinif, sahibi A3'tur
+    if beyan <= donen:
+        return None                      # (1) DUSTU: API her sey elinde teslim etti
+    if donen >= TESLIM_SAYFA:
+        return None                      # (2) DUSTU: sayfa DOLU -> kirpilma, tutarsizlik DEGIL
+    tum = g.get("tum_kosumlar") or []
+    if not tum:
+        return None
+    en_yeni = max(tum)
+    if en_yeni > simdi - timedelta(hours=pencere_saat):
+        return None                      # (3) DUSTU: pencerede kayit VAR -> hukum verilebilir
+    yas = (simdi - en_yeni).total_seconds() / 3600.0
+    return ("GitHub kosum yaniti KENDI ICINDE TUTARSIZ: `total_count` %d kosum oldugunu "
+            "BEYAN ediyor ama sayfa siniri (%d) DOLMADAN yalnizca %d kayit TESLIM etti "
+            "(%d kayit eksik) ve teslim ettiklerinin EN YENISI olcum penceresinin (%d sa) "
+            "DISINDA (%.1f sa once). Yani yanit ayni anda hem 'elimdeki bu kadar' hem "
+            "'daha cok var' diyor. Bu sayfa pencerenin EN YENI dilimi OLAMAZ; 'cron "
+            "SESSIZ' ve 'teslim DUSUYOR' hukumleri bundan CIKARILAMAZ (OLCULDU 22 Eyl "
+            "2026 kosumu 35776723679: kapi 645,8 saatlik sessizlik yazarken gercek son "
+            "kosum 3,1 saat oncesiydi ve `success`ti). "
+            "KAPATAN OLCUM: AYNI cagri "
+            "(`repos/<depo>/actions/workflows/<id>/runs?event=schedule&per_page=%d`) "
+            "yeniden cekilir; DONEN kayit sayisi min(total_count, %d) ile ESITLENDIGINDE "
+            "bu eksen yeniden hukum verir. Esitlenmiyorsa olculecek sey GitHub Actions "
+            "API'sinin bu is akisi icin EKSIK SAYFA dondurmesidir — cron'un kendisi "
+            "DEGIL." % (beyan, TESLIM_SAYFA, donen, beyan - donen, pencere_saat, yas,
+                        TESLIM_SAYFA, TESLIM_SAYFA))
+
+
 def teslim_hukmu(g, simdi):
     """A5 — (satir, alarm_mi). Cron METNINI degil FIILI DAGILIMI olcer.
 
@@ -845,6 +914,10 @@ def gozlem_topla(dosyalar, getir=api_getir):
              "durum": (wf or {}).get("state"), "kosum_sayisi": None, "son_kosum": None,
              "kayit_an": _iso(wf["created_at"]) if wf is not None else None,
              "yenileme_an": None, "tum_kosumlar": [], "pencere_kirpildi": False,
+             # 🔴 `kosum_sayisi` API'nin BEYANI (`total_count`), `donen_kayit` API'nin
+             # FIILEN TESLIM ETTIGI kayit sayisi. TEK ALANA INDIRGENEMEZ: ikisinin
+             # AYRISMASI basli basina bir OLCUM SINIFIDIR (bkz. sayfa_tutarsizligi).
+             "donen_kayit": 0,
              # A0/A4 TETIKLEYICI SARTININ KAYNAGI: `event=schedule` kosumlarinin KIMLIK
              # kumesi. Bir damganin CRON teslimi olup olmadigi, damganin `workflow_run.id`
              # degerinin bu kumede olup olmamasiyla olculur. EK API CAGRISI YOK — bu
@@ -907,6 +980,10 @@ def gozlem_topla(dosyalar, getir=api_getir):
                 g["schedule_kimlikleri"] = kimlikler
                 # Sayfa DOLU ise pencerenin tamami gozlenmemis olabilir — bu BEYAN EDILIR.
                 g["pencere_kirpildi"] = len(satirlar) >= TESLIM_SAYFA
+                # API'nin FIILEN teslim ettigi kayit sayisi HAM olarak saklanir; hukum
+                # `sayfa_tutarsizligi`nda verilir (gozlem toplama `simdi`yi BILMEZ ve
+                # pencere karsilastirmasi orada YAPILAMAZ).
+                g["donen_kayit"] = len(satirlar)
             # GitHub cron tanimi degistiginde zamanlayici yeniden kaydedilir. Workflow API'sinin
             # `updated_at` alani bunu yansitmiyor (olculdu: dosya degisti, alan created_at ile
             # ayni kaldi); bu yuzden dosyaya dokunan son commit GitHub commits API'sinden okunur.
@@ -1033,17 +1110,24 @@ def paket_alarm_esigi(dosyalar):
 
 
 # ---- HUKUM ------------------------------------------------------------------
-def _damga_kaynagi(gozlemler, dosya):
+def _damga_kaynagi(gozlemler, dosya, simdi):
     """Damgayi YAZAN is akisinin `event=schedule` kosum KIMLIKLERI + sayfa sinirlari.
 
     Bu, A0/A4'un TETIKLEYICI SARTININ tek veri kaynagidir ve EK API CAGRISI GEREKTIRMEZ:
-    kosum listesi A5 icin ZATEN cekiliyor."""
+    kosum listesi A5 icin ZATEN cekiliyor.
+
+    🔴 `tutarsiz` AYNI TEK KAYNAKTAN (`sayfa_tutarsizligi`) gelir. A0/A4 kimlik kumesini
+    BU sayfadan kurar; sayfa eksikse kume de eksiktir ve 'damgayi cron YAZMADI' hukmu
+    SAHTE olur — 22 Eyl kosumunda A4 de tam bu yoldan dustu (DUSEN KOL: A4 · A5 · A3).
+    Ikinci bir tutarsizlik tanimi yazilsaydi eksenler sessizce AYRISIRDI
+    ([[ikiz-tanim-sessiz-ayrisma]])."""
     for g in gozlemler:
         if g["dosya"] == dosya:
             tum = g.get("tum_kosumlar") or []
             return {"dosya": dosya,
                     "kimlikler": set(g.get("schedule_kimlikleri") or ()),
                     "kirpik": bool(g.get("pencere_kirpildi")),
+                    "tutarsiz": sayfa_tutarsizligi(g, simdi),
                     "en_eski": min(tum) if tum else None}
     return None
 
@@ -1082,6 +1166,17 @@ def _cron_kaynakli_damga(eksen, damga, kaynak, n, simdi):
                 "OKUNAMADI, tetikleyici sarti olculemez" % eksen)
         if kimlik in kaynak["kimlikler"]:
             return kayit
+        # 🔴 KUME EKSIKSE 'KUMEDE YOK' HUKMU VERILEMEZ. Kimlik kumesi kosum sayfasindan
+        # kurulur; sayfa kendi icinde tutarsizsa (API teslim ettiginden FAZLASI oldugunu
+        # beyan ediyor) damgayi yazan CRON kosumu kumeden DUSMUS olabilir ve satir
+        # 'damga ELLE tazelendi' diye SAHTE kirmizi yanar. 22 Eyl 2026 kosumu
+        # 35776723679'da A4 tam bu yoldan dustu. POZITIF uyelik (ustteki `return`)
+        # ETKILENMEZ: kumede BULUNMAK hala gecerli kanittir.
+        if kaynak.get("tutarsiz"):
+            raise OlcumHatasi(
+                "%s: damgayi yazan is akisinin kosum sayfasi KENDI ICINDE TUTARSIZ -> "
+                "damganin CRON teslimi mi elle mi oldugu SINIFLANDIRILAMAZ (eksik kume "
+                "'elle' hukmu uretirdi = sahte kirmizi). %s" % (eksen, kaynak["tutarsiz"]))
         # Kosum sayfasi DOLU ve damga, cekilen EN ESKI zamanlanmis kosumdan da eskiyse
         # "kumede yok" hukmu VERILEMEZ (kume o zamani KAPSAMIYOR olabilir).
         if kaynak["kirpik"] and (kaynak["en_eski"] is None
@@ -1209,7 +1304,7 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
         esik = (turetilen[0] if turetilen else esik) or esik
         try:
             satir, yandi = _damga_satiri(eksen, gozlem, esik or ESIK_TABAN_SAAT, simdi,
-                                         sablon, _damga_kaynagi(gozlemler, capa))
+                                         sablon, _damga_kaynagi(gozlemler, capa, simdi))
         except OlcumHatasi as e:
             satirlar.append("🔴 %s -> OLCULEMEDI: %s" % (eksen, e))
             olculemedi = True
@@ -1243,6 +1338,17 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
             alarm = True
             continue
         satirlar.append("✅ A2 DURUM %s -> state=active" % etiket)
+
+        # 🔴 SINIF KAPISI — A5 ve A3'ten ONCE: ikisi de AYNI kosum sayfasindan beslenir,
+        # o sayfa kendi icinde tutarsizsa IKISI DE hukum veremez. Bu kol ALARMI
+        # SUSTURMAZ, sinifi AYIRIR: rc 1 (ALARM) degil rc 2 (OLCULEMEDI) uretir ve
+        # OLCULEMEDI bu depoda 'yesil SAYILMAZ' (bkz. `rapor`). Gercekten sessiz bir cron
+        # bu kola DUSEMEZ — gerekcesi ve iki pozitif kontrolu `sayfa_tutarsizligi`nda.
+        tutarsiz = sayfa_tutarsizligi(g, simdi)
+        if tutarsiz:
+            satirlar.append("🔴 A3+A5 %s -> OLCULEMEDI: %s" % (etiket, tutarsiz))
+            olculemedi = True
+            continue
 
         # A5 TESLIM — A3'ten AYRI EKSEN, AYRI SATIR, ve A3'un `continue` kollarindan
         # ONCE: "kosum yok" / "yeni tanim" hallerinde de teslim satiri BASILIR, sessizce
@@ -4285,6 +4391,124 @@ def kendini_test():
           "-> oran 7/192 (0,0365), 137/192 (0,71) DEGIL. Toplam sayiya bakan bir turetim "
           "esigi 18 sa'ten 3 sa'e cekip BOS KIRMIZI uretirdi",
           oran_t is not None and abs(oran_t - 7 / 192.0) < 1e-9, "olculen %r" % oran_t)
+
+    # === T — TUTARSIZ API YANITI SINIFI (22 Eyl 2026, kosum 35776723679) ==========
+    # 🔴 OLCULEN ARIZA: kapi '645,8 saat once ... Cron SESSIZ' + 'teslim 0 / nominal 192'
+    # yazdi; AYNI DAKIKALARDA gercek son zamanlanmis kosum 3,1 saat oncesiydi ve
+    # `success`ti. Yanit KENDI ICINDE tutarsizdi (total_count buyuk · sayfa DOLMAMIS ·
+    # donen kayitlarin en yenisi pencerenin cok disinda). Bu blok SINIFI olcer; hicbir
+    # iddiada is akisi ADI GECMEZ (tekil yama YASAK — 3. tekrar sinifi).
+    TT = dict(kayit_yas_saat=4000.0, yenileme_yas_saat=4000.0)
+
+    # --- T-TUT-1 TUTARSIZ YANIT -> OLCULEMEDI, ALARM YOK -------------------------
+    tutarsiz_yaslari = [645.8, 700.0, 745.0]      # 3 kayit, HEPSI W=48 sa DISINDA
+    rc, s = kos(D, _sahte_api(kosum_sayisi=774, yas_saat=645.8,
+                              kosum_yaslari=tutarsiz_yaslari, **TT))
+    iddia("T-TUT-1 TUTARSIZ YANIT (total_count 774 · sayfa DOLMAMIS 3 kayit · en yeni "
+          "645,8 sa = pencere DISI) -> OLCULEMEDI (rc=2). 22 Eyl'de bu yanit rc=1 ALARM "
+          "uretiyordu ve gercek son kosum 3,1 saat oncesiydi", rc == 2, "rc=%d" % rc)
+    iddia("T-TUT-1 'Cron SESSIZ' hukmu URETILMEZ (sahte kirmizi ortadan kalkti)",
+          not any("Cron SESSIZ" in x for x in s), s)
+    iddia("T-TUT-1 'ZAMANLANMIS KOSUMLAR DUSUYOR' hukmu URETILMEZ (A5 de ayni sayfadan "
+          "besleniyordu)", not any("ZAMANLANMIS KOSUMLAR DUSUYOR" in x for x in s), s)
+    iddia("T-TUT-1 satir NEYIN olculemedigini SAYIYLA yazar (beyan · teslim · sayfa "
+          "siniri · pencere disi yas)",
+          any("OLCULEMEDI" in x and "774" in x and "100" in x and "645.8" in x
+              for x in s), s)
+    iddia("T-TUT-1 satir NEYI OLCMENIN kapatacagini ADIYLA yazar (ayni cagri · donen "
+          "kayit = min(total_count, sayfa siniri))",
+          any("KAPATAN OLCUM" in x and "min(total_count" in x
+              and "event=schedule&per_page" in x for x in s), s)
+
+    # --- T-POZ-1 POZITIF KONTROL: GERCEKTEN SESSIZ CRON, TUTARLI YANIT -> 🔴 ------
+    # Lifetime kosumu sayfa boyunun ALTINDA: API HEPSINI teslim eder (total_count==donen)
+    # -> sart (1) DUSER -> alarm AYNEN yanar. Bu iddia YESIL kalmazsa kapi KORELMISTIR.
+    sessiz_yaslari = [55.0, 60.0, 65.0, 70.0]
+    rc, s = kos(D, _sahte_api(kosum_sayisi=4, yas_saat=55.0,
+                              kosum_yaslari=sessiz_yaslari, **TT))
+    iddia("T-POZ-1 POZITIF KONTROL: GERCEKTEN sessiz cron (tutarli yanit — total_count "
+          "4 = donen 4, en yeni 55 sa) -> 🔴 ALARM (rc=1). Tutarsizlik kapisi gercek "
+          "sessizligi SUSTURMAZ", rc == 1, "rc=%d" % rc)
+    iddia("T-POZ-1 'Cron SESSIZ' hukmu HALA basilir",
+          any(x.startswith("🔴 A3 NABIZ") and "Cron SESSIZ" in x for x in s), s)
+    iddia("T-POZ-1 A5 de HALA kirmizi (teslim 0/48 sa)",
+          any(x.startswith("🔴 A5 TESLIM") and "ZAMANLANMIS KOSUMLAR DUSUYOR" in x
+              for x in s), s)
+
+    # --- T-POZ-2 POZITIF KONTROL: SESSIZ CRON + UZUN GECMIS (sayfa DOLU) -> 🔴 ----
+    # 🔴 AYIRT EDICI CIFT: T-TUT-1 ile AYNI `total_count` (774); degisen TEK sey sayfanin
+    # DOLMASI. Sart (2) DUSER -> alarm yanar. 'total_count buyukse olculemedi' diyen bir
+    # mutant bu fiksturde SURVIVOR olamaz.
+    uzun_sessiz = [50.0 + 0.5 * i for i in range(TESLIM_SAYFA)]   # 100 kayit, hepsi eski
+    rc, s = kos(D, _sahte_api(kosum_sayisi=774, yas_saat=50.0,
+                              kosum_yaslari=uzun_sessiz, **TT))
+    iddia("T-POZ-2 POZITIF KONTROL: sessiz cron + UZUN gecmis (total_count 774 = T-TUT-1 "
+          "ile AYNI, ama sayfa %d kayitla DOLU) -> 🔴 ALARM (rc=1). Ayirt edici tek "
+          "degisken sayfanin dolmasidir" % TESLIM_SAYFA, rc == 1, "rc=%d" % rc)
+    iddia("T-POZ-2 'Cron SESSIZ' hukmu HALA basilir",
+          any(x.startswith("🔴 A3 NABIZ") and "Cron SESSIZ" in x for x in s), s)
+
+    # --- T-TAZE-3 TAZE CRON -> ✅ (sinif kapisi saglikli hali kirmizi/olculemedi yapmaz)
+    taze_yaslari = [0.5 + 6.0 * i for i in range(8)]              # 8 teslim / 48 sa
+    rc, s = kos(D, _sahte_api(kosum_sayisi=8, yas_saat=0.5, kosum_yaslari=taze_yaslari,
+                              damgalar=[_damga_kaydi(0.5)], **TT), damga_ile=True)
+    iddia("T-TAZE-3 TAZE cron (tutarli yanit · pencerede 8 teslim) -> ✅ YESIL (rc=0)",
+          rc == 0, "rc=%d" % rc)
+    iddia("T-TAZE-3 OLCULEMEDI satiri BASILMAZ (kapi saglikli halde sessiz durur)",
+          not any("OLCULEMEDI" in x for x in s), s)
+
+    # --- T-DAMGA A0/A4 LEGI: eksik kume 'damgayi CRON yazmadi' hukmu URETEMEZ -----
+    # 22 Eyl kosumunda DUSEN KOL listesi 'A4 · A5 · A3' idi: A0/A4 kimlik kumesi de AYNI
+    # kosum sayfasindan kuruluyor, sayfa eksikse damgayi yazan cron kosumu kumeden duser
+    # ve satir 'DENETIM YAPILDI AMA CRON YAPMADI' der (sahte kirmizi).
+    rc, s = kos(D, _sahte_api(kosum_sayisi=774, yas_saat=645.8,
+                              kosum_yaslari=tutarsiz_yaslari,
+                              damgalar=[_damga_kaydi(0.5)], damga_kosum="elle", **TT),
+                damga_ile=True)
+    iddia("T-DAMGA-1 TUTARSIZ sayfa + kumede OLMAYAN damga -> A0 OLCULEMEDI (rc=2), "
+          "'elle tazelendi' hukmu URETILMEZ", rc == 2, "rc=%d" % rc)
+    iddia("T-DAMGA-1 A0 satiri SINIFLANDIRILAMAZ der, 'CRON YAPMADI' DEMEZ",
+          any("A0 DAMGA" in x and "SINIFLANDIRILAMAZ" in x for x in s)
+          and not any("DENETIM YAPILDI AMA CRON YAPMADI" in x for x in s), s)
+    # POZITIF KONTROL: TUTARLI sayfa + kumede olmayan damga -> 'elle' kirmizisi HALA yanar
+    rc, s = kos(D, _sahte_api(kosum_sayisi=4, yas_saat=55.0, kosum_yaslari=sessiz_yaslari,
+                              damgalar=[_damga_kaydi(0.5)], damga_kosum="elle", **TT),
+                damga_ile=True)
+    iddia("T-DAMGA-2 POZITIF KONTROL: TUTARLI sayfa + kumede olmayan damga -> 🔴 'DENETIM "
+          "YAPILDI AMA CRON YAPMADI' HALA yanar (4 Agu'nun elle-sondurme sinifi "
+          "susturulmadi)",
+          rc == 1 and any("DENETIM YAPILDI AMA CRON YAPMADI" in x for x in s),
+          "rc=%d" % rc)
+
+    # --- T-SART: UC SARTIN HER BIRI TEK BASINA sinifi DUSURUR (birim ekseni) ------
+    # Her sart AYRI iddiayla civilenir: birini silen mutant TEK KIRMIZI ile yakalanir.
+    def _g_tutarsiz(beyan=774, donen=3, en_yeni_yas=645.8):
+        simdi_ = datetime.now(timezone.utc)
+        return {"dosya": "x.yml", "kayitli": True, "aralik": 15,
+                "kosum_sayisi": beyan, "donen_kayit": donen,
+                "tum_kosumlar": [simdi_ - timedelta(hours=en_yeni_yas + 10.0 * i)
+                                 for i in range(max(donen, 1))]}, simdi_
+
+    g_t, simdi_t = _g_tutarsiz()
+    iddia("T-SART-0 UC SART BIRDEN saglaninca sinif TANINIR",
+          sayfa_tutarsizligi(g_t, simdi_t) is not None)
+    g_t, simdi_t = _g_tutarsiz(beyan=3)
+    iddia("T-SART-1 BEYAN == TESLIM (total_count == donen) -> sinif DUSER (API her seyi "
+          "verdi; sessizlik GERCEK olabilir)", sayfa_tutarsizligi(g_t, simdi_t) is None,
+          sayfa_tutarsizligi(g_t, simdi_t))
+    g_t, simdi_t = _g_tutarsiz(donen=TESLIM_SAYFA)
+    iddia("T-SART-2 SAYFA DOLU (donen >= %d) -> sinif DUSER (bu KIRPILMA, tutarsizlik "
+          "DEGIL)" % TESLIM_SAYFA, sayfa_tutarsizligi(g_t, simdi_t) is None,
+          sayfa_tutarsizligi(g_t, simdi_t))
+    g_t, simdi_t = _g_tutarsiz(en_yeni_yas=1.0)
+    iddia("T-SART-3 PENCEREDE KAYIT VAR (en yeni %d sa icinde) -> sinif DUSER (hukum "
+          "verilebilir)" % TESLIM_PENCERESI_SAAT,
+          sayfa_tutarsizligi(g_t, simdi_t) is None, sayfa_tutarsizligi(g_t, simdi_t))
+    g_t, simdi_t = _g_tutarsiz(donen=0)
+    g_t["tum_kosumlar"] = []
+    iddia("T-SART-4 HIC KAYIT DONMEDI -> sinif DUSER (o sinifin sahibi A3'tur, "
+          "tutarsizlik kolu onu YUTMAZ)", sayfa_tutarsizligi(g_t, simdi_t) is None,
+          sayfa_tutarsizligi(g_t, simdi_t))
 
     print("\n%d iddia kosturuldu, %d KIRMIZI." % (sayac[0], len(hatalar)))
     return hatalar
