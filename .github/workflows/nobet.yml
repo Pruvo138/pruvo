@@ -2329,6 +2329,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/ata-lisans-mutasyon.py
 
+      # KESME GORUNURLUGU (uyum-kapisi rapor yuzeyi): kapi 6 ihlal sayip ekrana 5 basiyor
+      # ve 400 karakterlik detay kesmesi kestigini SOYLEMIYORDU (olculen zarar: eksik
+      # onarim). Kol SENTETIK katalogla kosar (M00'a / canli veriye bagli DEGIL), mutant
+      # YALNIZ gecici kopyaya; 2 oldurucu (KIRP1/KIRP2 AYRI kume) + 2 kontrol, ~0,4 s.
+      - name: "Uyum kapisi kesme gorunurlugu mutasyon bataryasi (kesme sessiz mi)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/uyum-kapisi.py --kirpma-mutasyonu
+
       - name: "CTA denge kapisi mutasyon bataryasi (duzen sessizce geri gelirse kirmizi mi)"
         if: ${{ !cancelled() }}
         run: python3 tools/cta-denge-mutasyon.py

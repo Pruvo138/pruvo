@@ -15,6 +15,12 @@ BASARISIZ dokumu o delige ait etiketi ICERMELIDIR.
 🔴 CANLI AGACA ASLA DOKUNMAZ: tools/ gecici bir dizine KOPYALANIR, mutasyon KOPYAYA
 uygulanir, test KOPYADAN kosulur ([[mutasyon-diske-yazma-tuzagi]]).
 
+🔴 CAPA TEKILLIGI (2. tur onarimi): dusen iddianin kaniti ALT-DIZE testidir — bu yuzden capa
+TEKIL olmak ZORUNDADIR. Eskiden OLD-03'un capasi 'D1' idi ve dokumdeki 'D11b' / 'D12'
+satirlarina da uyuyordu: mutant BASKA bir iddiayi dusurse bile kanit YESIL yanardi. Artik
+test her BASARISIZ satirini '[<etiket>]' ile yazar ve capalar KOSELI PARANTEZLIDIR
+('[D1]' ile '[D11b]' artik ayrisir).
+
 KONTROL MUTANTLARI (gurultu makinesi olmadigimizin kaniti): gercek ama KAPSAM DISI
 davranis/sabit degisiklikleri YESIL kalmalidir.
 
@@ -37,24 +43,24 @@ MUTANTLAR = [
     ("OLD-01 host korlugu",
      '            if host == h or host.endswith("." + h):',
      '            if True:',
-     "KIRMIZI", "AYIRT EDICI"),
+     "KIRMIZI", "[S-AYIRT-HOST]"),
     ("OLD-02 yargi tersine",
      '    if not satilabilir_ile(lisans_metni, adaptor.satilabilir):',
      '    if satilabilir_ile(lisans_metni, adaptor.satilabilir):',
-     "KIRMIZI", "POZITIF"),
+     "KIRMIZI", "[S-POZ-NCSA]"),
 
     # ---------------- D1: turev detayi None -> sessiz "ata yok" ----------------
     ("OLD-03 (D1) turev detayi None sessiz gecer",
      '        out = [_sonuc(DURUM_KALICI, "turev detayi YOK (API null / kayit silinmis-gizli)")]',
      '        out = [_sonuc(DURUM_ALAN_YOK, "turev detayi YOK -> ata yok sayildi")]',
-     "KIRMIZI", "D1"),
+     "KIRMIZI", "[D1]"),
 
     # ---------------- D2: ata alan adlari ----------------
     ("OLD-04 (D2) ata alan listesi TEK ada iner",
      'ATA_ALANLARI = ("originals", "remixParents", "derivedFrom", "ancestors",\n'
      '                "originalDesigns", "remixOf")',
      'ATA_ALANLARI = ("originals",)',
-     "KIRMIZI", "D2"),
+     "KIRMIZI", "[D2a]"),
 
     # ---------------- D3: sekil varyasyonlari ----------------
     ("OLD-05 (D3a) dict/string ata sekli atlanir",
@@ -62,28 +68,28 @@ MUTANTLAR = [
      '            elemanlar = [ham]                           # tekil sekil de COZULUR, atlanmaz',
      '        elif isinstance(ham, (dict, str)):\n'
      '            continue',
-     "KIRMIZI", "D3a"),
+     "KIRMIZI", "[D3a]"),
     ("OLD-06 (D3c) taninmayan ata sekli sessiz gecer",
      "            hatalar.append(\"ata alani '%s' TANINMAYAN sekilde (%s)\" "
      "% (alan, type(ham).__name__))",
      '            pass',
-     "KIRMIZI", "D3c"),
+     "KIRMIZI", "[D3c]"),
     ("OLD-07 (D3d) zarf acilmaz",
-     '        icler = [d[k] for k in ZARF_ANAHTARLARI if isinstance(d.get(k), dict)]',
+     '        icler = [d[k] for k in d if _ad(k) in _ZARF_N and isinstance(d[k], dict)]',
      '        icler = []',
-     "KIRMIZI", "D3d"),
+     "KIRMIZI", "[D3d]"),
     ("OLD-08 (D3e) BOS turev detayi 'ata yok' sayilir",
-     '        if not isinstance(acik, dict) or not acik:\n'
+     '        elif not isinstance(acik, dict) or not acik:\n'
      '            out = [_sonuc(DURUM_KALICI, "turev detayi BOS (zarf acildiktan sonra da)")]',
-     '        if False:\n'
+     '        elif False:\n'
      '            out = [_sonuc(DURUM_KALICI, "turev detayi BOS (zarf acildiktan sonra da)")]',
-     "KIRMIZI", "D3e"),
+     "KIRMIZI", "[D3e]"),
 
     # ---------------- D4: tek alanda coklu URL ----------------
     ("OLD-09 (D4) yalniz ILK ata URL'sine bakilir",
      '    return [{"link": u, "license": lis, "kimlik_alani": kim, "alan": alan} for u in urller]',
      '    return [{"link": urller[0], "license": lis, "kimlik_alani": kim, "alan": alan}]',
-     "KIRMIZI", "D4"),
+     "KIRMIZI", "[D4]"),
 
     # ---------------- D5: zincir ----------------
     ("OLD-10 (D5a) zincir ozyinelemesi kapali",
@@ -91,17 +97,17 @@ MUTANTLAR = [
      '            out.extend(ata_yargi(ust, defter, gs, adaptor, derinlik + 1, gorulen))',
      '        for ust in ustler:\n'
      '            pass',
-     "KIRMIZI", "D5a"),
+     "KIRMIZI", "[D5a]"),
     ("OLD-11 (D5b) derinlik tavani fail-OPEN",
      '        if derinlik >= DERINLIK_TAVANI:',
      '        if False:',
-     "KIRMIZI", "D5b"),
+     "KIRMIZI", "[D5b]"),
 
     # ---------------- D6: gomulu lisans sozlugu ----------------
     ("OLD-12 (D6) gomulu lisans TEK sozlukle yargilanir",
      '    if gomulu and not coklu_sozluk_satilabilir(gomulu, kaynak_adaptor):',
      '    if gomulu and not genel_satilabilir(gomulu):',
-     "KIRMIZI", "D6"),
+     "KIRMIZI", "[D6-gomulu-yp]"),
     # VETO'nun KENDI BASINA olculebilmesi icin ayirt edici fikstur gerekir: alt sozluklerin
     # HICBIRININ yakalamadigi ama ticari kullanimi kapatan serbest-metin yazimlar
     # ("... not for commercial use", "... Premium License"). Onlar olmadan bu mutant
@@ -109,7 +115,23 @@ MUTANTLAR = [
     ("OLD-13 NC/tescilli VETOSU tamamen kaldirilir",
      '    if not isinstance(ham, str):\n        return True',
      '    if True:\n        return False\n    if not isinstance(ham, str):\n        return True',
-     "KIRMIZI", "yanlis-negatif"),
+     "KIRMIZI", "[yanlis-negatif]"),
+    # V1: "exclusive" ONEK MUAFIYETI. Duz alt-dize aramasina donunce TAM METIN CC lisanslari
+    # ("... royalty-free, non-exclusive ...") veto yer = yanlis-pozitif; yayin durur.
+    ("OLD-21 (V1) 'exclusive' yeniden DUZ ALT-DIZE arar",
+     '_TESCILLI_DESEN = (re.compile(r"(?<!non)(?<!non[ -])\\bexclusive\\b"),)',
+     '_TESCILLI_DESEN = (re.compile(r"exclusive"),)',
+     "KIRMIZI", "[veto-tam-metin]"),
+    ("OLD-29 (V1) 'non'+'commercial' yan yana sarti KUME uyeligine doner",
+     '    if any(a == "non" and b == "commercial" for a, b in zip(toks, toks[1:])):',
+     '    if "non" in toks and "commercial" in toks:',
+     "KIRMIZI", "[veto-tam-metin]"),
+    ("OLD-30 (V1) 'non'+'commercial' jeton kurali tamamen kalkar",
+     '    if any(a == "non" and b == "commercial" for a, b in zip(toks, toks[1:])):\n'
+     '        return True\n'
+     '    return False',
+     '    return False',
+     "KIRMIZI", "[yanlis-negatif]"),
 
     # ---------------- D7 / D12: hata siniflandirmasi ----------------
     ("OLD-14 (D7) timeout KALICI kovasina duser",
@@ -119,22 +141,22 @@ MUTANTLAR = [
      '    except (socket.timeout, TimeoutError):\n'
      '        raise KaliciHata("okuma timeout")\n'
      '    except ValueError:',
-     "KIRMIZI", "D7"),
+     "KIRMIZI", "[D7]"),
     ("OLD-15 (D12) bozuk JSON GECICI sayilir",
      '        raise KaliciHata("bozuk JSON / gecersiz deger")',
      '        raise GeciciHata("bozuk JSON / gecersiz deger")',
-     "KIRMIZI", "D12"),
+     "KIRMIZI", "[D12]"),
 
     # ---------------- D8: kapsam ayrimi ----------------
     ("OLD-16 (D8) kapsam kovalari birlestirilir",
      '        elif not ad.ata_destegi:\n            olculmedi_adaptorlu.append(urun_id)',
      '        elif not ad.ata_destegi:\n            olculmedi_adaptorsuz.append(urun_id)',
-     "KIRMIZI", "D8"),
+     "KIRMIZI", "[D8-kapsam]"),
     ("OLD-17 (D8) OLCULMEMIS kapsam rc'yi 2'ye cekmez",
      '    if kapsam and (kapsam.get("olculmedi_adaptorlu") or kapsam.get("olculmedi_adaptorsuz")\n'
      '                   or kapsam.get("taranmadi")):\n        return 2',
      '    if False:\n        return 2',
-     "KIRMIZI", "D8"),
+     "KIRMIZI", "[D8-rc]"),
 
     # ---------------- D9: izlenebilirlik ----------------
     ("OLD-18 (D9) sonuclarda urun kimligi set edilmez",
@@ -142,7 +164,7 @@ MUTANTLAR = [
      '        s["urun"] = urun_id                     # her sonuc IZLENEBILIR olmali (ALAN-YOK dahil)',
      '    for s in out:\n'
      '        s.setdefault("urun", None)',
-     "KIRMIZI", "D9"),
+     "KIRMIZI", "[D9]"),
 
     # ---------------- D11: ust kademe sekil hatasi ----------------
     ("OLD-19 (D11b) ust kademe sekil hatasi yutulur",
@@ -150,13 +172,51 @@ MUTANTLAR = [
      '            out.append(_sonuc(DURUM_KALICI, "ust kademe: " + h, ata, host, kimlik, None,',
      '        for h in []:\n'
      '            out.append(_sonuc(DURUM_KALICI, "ust kademe: " + h, ata, host, kimlik, None,',
-     "KIRMIZI", "D11b"),
+     "KIRMIZI", "[D11b]"),
 
     # ---------------- kimlik cikarimi: API bicimi (canli kuru kosumda olculdu) ----------------
     ("OLD-20 kimlik cikariminda API bicimi taninmaz",
      '        if parca.lower() in ("things", "thing") and i + 1 < len(parcalar):',
      '        if False:',
-     "KIRMIZI", "kendini-test"),
+     "KIRMIZI", "[kendini-test]"),
+
+    # ------- IKINCI TUR: "ALAN-YOK" IDDIASININ KANITI (D13..D18) — her eksen AYRI -------
+    ("OLD-22 (D13) zarf tavani 4 kademeyi acamayacak kadar dar",
+     'ZARF_TAVANI = 6',
+     'ZARF_TAVANI = 3',
+     "KIRMIZI", "[D13]"),
+    ("OLD-23 (D13b) zarf TAVANI asilinca fail-OPEN",
+     '        if n >= tavan:\n'
+     '            return d, ("detay zarfi %d kademeden derin (tavan %d) — govde ACILAMADI"\n'
+     '                       % (n + 1, tavan)), govde_gorundu',
+     '        if n >= tavan:\n'
+     '            return d, None, govde_gorundu',
+     "KIRMIZI", "[D13b-tavan]"),
+    ("OLD-24 (D13c) govde isareti inisi DURDURUR (zarf ici ata gorunmez olur)",
+     '        if ata_anahtarlari(d):\n'
+     '            return d, None, True                  # ata alani BULUNDU: iz aramaya gerek yok',
+     '        if ata_anahtarlari(d) or _govde_mi(d):\n'
+     '            return d, None, True',
+     "KIRMIZI", "[D13c]"),
+    ("OLD-25 (D14) BELIRSIZ zarf fail-OPEN (disaridaki sozluk donuyor)",
+     '        if len(icler) > 1:\n'
+     '            return d, ("detay zarfi BELIRSIZ: ayni duzeyde %d ic sozluk — govde OLCULMEDI"\n'
+     '                       % len(icler)), govde_gorundu',
+     '        if len(icler) > 1:\n'
+     '            return d, None, govde_gorundu',
+     "KIRMIZI", "[D14-belirsiz]"),
+    ("OLD-26 (D15/16/17) ata alani TAM ESLESME ile aranir (yazim varyanti korlugu)",
+     '    varlar = [k for k in d if _ad(k) in _ATA_N]',
+     '    varlar = [k for k in d if k in ATA_ALANLARI]',
+     "KIRMIZI", "[D16]"),
+    ("OLD-27 (D18) ALAN-YOK yeniden VARSAYILIR (govde izi aranmaz)",
+     '                if govde_gorundu:',
+     '                if True:',
+     "KIRMIZI", "[D18]"),
+    ("OLD-28 (D18) govde izi HER sekilde True (tanima olcusuz)",
+     '    return isinstance(d, dict) and any(_ad(k) in _GOVDE_N for k in d)',
+     '    return isinstance(d, dict)',
+     "KIRMIZI", "[D18-govde-izi]"),
 
     # ---------------- KONTROL (yanlis-pozitif olmadigi kaniti) ----------------
     ("KONTROL-1 ilgisiz davranis (kuru kosum tavani)",
