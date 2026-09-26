@@ -75,7 +75,7 @@ SONUC = []
 # akisinda FIILEN kosuyor olmasi ZORUNLU olur. deploy.yml `serit-a4`teki adim
 # silinirse ci-kapsam-test.py KIRMIZI yanar -> serit sessizce dusurulemez.
 # CI-ALT-KUME: --hermetik
-HERMETIK_ASGARI = 60
+HERMETIK_ASGARI = 81
 HERMETIK_SAYI_ONEKI = "HERMETIK IDDIA SAYISI:"
 HERMETIK_BAYRAK = "--hermetik"
 
@@ -886,7 +886,209 @@ def hermetik_bolum(yedekle):
                 all(ok for _e, ok, _a in geri) and len(geri) == len(saglam_iddia),
                 "%d/%d iddia" % (len([1 for _e, ok, _a in geri if ok]), len(geri)))
 
+    artik_bolumu(yedekle)
     return len(SONUC) - basla
+
+
+# ================= 16c) HEDEF ARTIK-SIR NOBETI (26 Eyl 2026) ==================
+# IDDIA: yedek hedefinde duran sir kopyasi (kok, alt agac, ya da adi masum ama kaynakta
+# icerik imzasiyla elenmis dosyanin ESKI kopyasi) CIKIS KODUNA (3), DAMGAYA (`tam`
+# false + artik alanlari) ve PANOYA ulasir; `--gerekliyse` (pre-push'un baskin yolu)
+# da olcer; hafiza agaclarindaki mesru `*secret*`/`*token*` adli notlar KIRMIZI YAKMAZ.
+# Main'de (402b2649) OLCULEN: kok artigi olan hedefte `--gerekliyse` rc=0 ve damga
+# tam=True; tam kosum rc=0; pano sessiz.
+# 🔴 HERMETIK: sahte HOME + stub drive_yolu + tempfile hedef (izole_ortam). Gercek
+# Drive/ev yolu OKUNMAZ/YAZILMAZ; fikstur "sir"leri UYDURMA degerdir.
+ARTIK_SAHTE_DEGER = "SAHTE-DEGER-YAZILMAMALI-7f3a"
+ARTIK_MESRU_NOTLAR = ("ornek-secret-ad-notu.md", "ornek-output-tokens-notu.md")
+
+
+def _dosya(yol, icerik="fikstur\n"):
+    os.makedirs(os.path.dirname(yol), exist_ok=True)
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(icerik)
+
+
+def artik_hedef_fiksturu(td, kirli):
+    """Sentetik hedef agaci. `kirli` ise 4 artik eklenir (biri hafiza agacinda TAM-AD)."""
+    b = os.path.join(td, "backup-v2")
+    for ad in ARTIK_MESRU_NOTLAR:
+        _dosya(os.path.join(b, "memory", ad))
+    _dosya(os.path.join(b, "ek", "memory-evler", "baska-ev", "cf-token-notu.md"))
+    _dosya(os.path.join(b, "skills", "ornek", "adim.md"))
+    _dosya(os.path.join(b, "SIR-ENVANTERI.txt"))
+    beklenen = set()
+    if kirli:
+        for gor in (".thingiverse-token", os.path.join("cron-nobet", ".ornek-kimlik.json"),
+                    os.path.join("ek", "evler", "pruvo-bot", ".env"),
+                    os.path.join("memory", "id_rsa")):
+            _dosya(os.path.join(b, gor), ARTIK_SAHTE_DEGER + "\n")
+            beklenen.add(gor)
+    return b, beklenen
+
+
+def artik_e2e(yedekle, td, betik_kaynagi=None):
+    """Izole kum havuzunda 4 adimli uctan uca kosum. Doner: gozlem sozlugu.
+    `betik_kaynagi` verilirse kum havuzunun yedekle.py'si o (MUTANT) kopyayla degisir."""
+    o = izole_ortam(td, yedekle, memory_adet=5, skills_adet=3)
+    if betik_kaynagi:
+        shutil.copy2(betik_kaynagi, o["betik"])
+    for ad in ARTIK_MESRU_NOTLAR:
+        _dosya(os.path.join(o["memory_kok"], ad))
+    g = {}
+    r1 = izole_kos(o)
+    d1 = damga_json(o["hedef"]) or {}
+    g["temiz"] = (r1.returncode, d1.get("tam"), d1.get("artik_sayisi"),
+                  "ARTIK SIR NOBETI: temiz" in r1.stdout)
+    g["hedef_klasorleri"] = (os.path.isdir(os.path.join(o["hedef"], yedekle.MEMORY_HEDEF)),
+                             os.path.isdir(os.path.join(o["hedef"], yedekle.SKILLS_HEDEF)))
+    # 2) KOK artigi + --gerekliyse (kaynak DEGISMEDI -> GUNCEL yolu)
+    kok_artik = os.path.join(o["hedef"], ".thingiverse-token")
+    _dosya(kok_artik, ARTIK_SAHTE_DEGER + "\n")
+    r2 = izole_kos(o, "--gerekliyse")
+    d2 = damga_json(o["hedef"]) or {}
+    try:
+        with open(o["kilit"], encoding="utf-8") as f:
+            iz = f.read()
+    except OSError:
+        iz = ""
+    g["kok"] = {"rc": r2.returncode, "guncel_yolu": "yedek GUNCEL" in r2.stdout,
+                "tam": d2.get("tam"), "kopya_tam": d2.get("kopya_tam"),
+                "sayi": d2.get("artik_sayisi"),
+                "baslik": "🔴 ARTIK SIR" in r2.stdout,
+                "makine": "YEDEK=ARTIK_SIR SAYI=1" in r2.stdout,
+                "deger_sizdi": ARTIK_SAHTE_DEGER in (r2.stdout + r2.stderr + json.dumps(d2)),
+                "iz_bitti": "bitti=" in iz and "hata=" not in iz}
+    # Pano: ayni damga uzerinden (durum.py KENDI yolundan okur).
+    try:
+        durum = modul_yukle(os.path.join(TOOLS, "durum.py"), "durum_artik")
+        g["pano"] = " ".join(durum.yedek_satirlari(durum.yedek_durumu(o["hedef"], "var")))
+    except Exception as e:                                  # noqa: BLE001
+        g["pano"] = "PANO COKTU: %s" % type(e).__name__
+    os.remove(kok_artik)
+    # 3) EKSEN 2: adi MASUM, kaynakta icerik imzasiyla elenen dosyanin ESKI kopyasi
+    _dosya(os.path.join(o["skills_kok"], "notlar.md"), SAHTE_ANAHTAR)
+    eski = os.path.join(o["hedef"], yedekle.SKILLS_HEDEF, "ornek-skill", "notlar.md")
+    _dosya(eski, SAHTE_ANAHTAR)
+    r3 = izole_kos(o)
+    d3 = damga_json(o["hedef"]) or {}
+    g["eksen2"] = {"rc": r3.returncode, "e1": d3.get("artik_eksen1"),
+                   "e2": d3.get("artik_eksen2"),
+                   "satir": "ARTIK[eksen2]: %s" % os.path.join(
+                       yedekle.SKILLS_HEDEF, "ornek-skill", "notlar.md") in r3.stdout}
+    # 4) TEMIZLENDI -> --gerekliyse: tam GERI KURULUR (artik hukmu yapiskan DEGIL)
+    os.remove(eski)
+    r4 = izole_kos(o, "--gerekliyse")
+    d4 = damga_json(o["hedef"]) or {}
+    g["geri"] = (r4.returncode, d4.get("tam"), d4.get("artik_sayisi"),
+                 "yedek GUNCEL" in r4.stdout)
+    return g
+
+
+def artik_bolumu(yedekle):
+    print("\n16c) HEDEF ARTIK-SIR NOBETI — bulgu cikis/damga/panoya ULASIYOR mu")
+    bos_plan = lambda _b: []                                # noqa: E731
+    with tempfile.TemporaryDirectory() as td:
+        b_temiz, _ = artik_hedef_fiksturu(os.path.join(td, "t"), kirli=False)
+        s = yedekle.artik_denetimi(b_temiz, plan_fn=bos_plan)
+        kontrol("16c NEGATIF: temiz hedef (hafizada mesru *secret*/*token* adli notlar "
+                "DAHIL) -> artik 0, kirmizi DEGIL",
+                s["sayi"] == 0 and not s["kirmizi"] and s["olculemedi"] is None,
+                "sayi=%s yol=%s" % (s["sayi"], [k["yol"] for k in s["artik"]][:3]))
+        b_kirli, bek = artik_hedef_fiksturu(os.path.join(td, "k"), kirli=True)
+        s = yedekle.artik_denetimi(b_kirli, plan_fn=bos_plan)
+        bulunan = set(k["yol"] for k in s["eksen1"])
+        kontrol("16c POZITIF: kok + alt agac + ek ev + HAFIZADA TAM-AD artik -> 4/4 "
+                "eksen1, kirmizi", s["kirmizi"] and bulunan == bek,
+                "eksik=%s fazla=%s" % (sorted(bek - bulunan), sorted(bulunan - bek)))
+        kontrol("16c hafiza muafiyeti YALNIZ ad-deseni katmani: memory/id_rsa (tam-ad "
+                "kara liste) YINE artik", os.path.join("memory", "id_rsa") in bulunan)
+        kontrol("16c rapor/damga DEGER tasimiyor (yalniz yol+kural)",
+                ARTIK_SAHTE_DEGER not in json.dumps(yedekle._artik_damga_alanlari(s)))
+        s = yedekle.artik_denetimi(os.path.join(td, "yok"), plan_fn=bos_plan)
+        kontrol("16c hedef YOK -> OLCULEMEDI (temiz DEGIL)",
+                bool(s["olculemedi"]) and "artik_olculemedi" in
+                yedekle._artik_damga_alanlari(s), str(s["olculemedi"]))
+        # EKSEN 2 primitifi: yalniz SIR sebepli haric sayilir.
+        e2k = os.path.join(td, "e2")
+        for gor in ("x/notlar.md", "y/kosum.log", "z/bag"):
+            _dosya(os.path.join(e2k, "skills", gor))
+        cikti = yedekle.haric_artiklari(
+            e2k, os.path.join(e2k, "skills"),
+            [("x/notlar.md", "icerik imzasi: ozel anahtar blogu"),
+             ("y/kosum.log", "allowlist disi: uzanti '.log' izinli degil"),
+             ("z/bag", "symlink (hedefi agac disina cikabilir)")])
+        kontrol("16c EKSEN 2 primitifi: yalniz SIR-sebepli haric artik sayilir "
+                "(allowlist/symlink elemesi DEGIL)",
+                [k["yol"] for k in cikti] == [os.path.join("skills", "x", "notlar.md")],
+                "%s" % [k["yol"] for k in cikti])
+        # Onek esitligi: sir_sebebi'nin GERCEK ciktilari _sir_sebepli_mi'den geciyor.
+        on = os.path.join(td, "onek")
+        _dosya(os.path.join(on, ".env"))
+        _dosya(os.path.join(on, "x-token.txt"))
+        _dosya(os.path.join(on, "notlar.md"), SAHTE_ANAHTAR)
+        sebepler = [yedekle.sir_sebebi(os.path.join(on, a), a)
+                    for a in (".env", "x-token.txt", "notlar.md")]
+        kontrol("16c sir_sebebi'nin UC sinifi da (kara liste/desen/icerik) SIR-sebepli "
+                "taniniyor (onek ikizi ayrismadi)",
+                all(sebepler) and all(yedekle._sir_sebepli_mi(x) for x in sebepler),
+                "%s" % sebepler)
+
+    with tempfile.TemporaryDirectory() as td:
+        g = artik_e2e(yedekle, td)
+    kontrol("16c E2E temiz kosum: rc 0, damga tam, artik 0, 'temiz' basildi",
+            g["temiz"] == (0, True, 0, True), "%s" % (g["temiz"],))
+    kontrol("16c E2E hedef klasorleri MEMORY_HEDEF/SKILLS_HEDEF ile AYNI (ikiz dize yok)",
+            g["hedef_klasorleri"] == (True, True), "%s" % (g["hedef_klasorleri"],))
+    k = g["kok"]
+    kontrol("16c E2E kok artigi + --gerekliyse (GUNCEL yolu): rc %d (ARTIK_CIKIS_KODU)"
+            % yedekle.ARTIK_CIKIS_KODU,
+            k["rc"] == yedekle.ARTIK_CIKIS_KODU and k["guncel_yolu"], "%s" % k)
+    kontrol("16c E2E damga: tam=False, kopya_tam=True, artik_sayisi=1",
+            k["tam"] is False and k["kopya_tam"] is True and k["sayi"] == 1, "%s" % k)
+    kontrol("16c E2E cikti: baslik + makine satiri (`YEDEK=` — pre-push suzgeci basar)",
+            k["baslik"] and k["makine"], "%s" % k)
+    kontrol("16c E2E sirrin DEGERI hicbir kanala (stdout/stderr/damga) SIZMADI",
+            not k["deger_sizdi"])
+    kontrol("16c E2E kilit izi `bitti=` (rc 3 'yarim kalmis yedek' SAYILMADI)",
+            k["iz_bitti"])
+    kontrol("16c E2E pano '7) YEDEK TAZELIGI' ARTIK SIR satirini basiyor",
+            "ARTIK SIR" in g["pano"], g["pano"][:120])
+    e2 = g["eksen2"]
+    kontrol("16c E2E EKSEN 2: adi masum, icerik-imzali eski kopya -> rc 3, eksen1=0 "
+            "eksen2=1, satir basildi",
+            e2["rc"] == yedekle.ARTIK_CIKIS_KODU and e2["e1"] == 0 and e2["e2"] == 1
+            and e2["satir"], "%s" % e2)
+    kontrol("16c E2E artik silinince --gerekliyse: rc 0, tam GERI True, artik 0 "
+            "(hukum yapiskan DEGIL)", g["geri"] == (0, True, 0, True), "%s" % (g["geri"],))
+
+    # ---- IZOLE MUTANTLAR (kopya dosyada; canli yedekle.py'ye DOKUNULMAZ) ----
+    with tempfile.TemporaryDirectory() as td:
+        m = modul_yukle(mutant_yaz(td, [(
+            '            if sebep and sebep.startswith("ad deseni") and _desen_muaf_mi(gor):',
+            '            if False:')], ad="mut_muaf.py"), "yedekle_mut_muaf")
+        b, _ = artik_hedef_fiksturu(os.path.join(td, "t"), kirli=False)
+        s = m.artik_denetimi(b, plan_fn=bos_plan)
+        kontrol("16c MUTANT hafiza muafiyeti kaldirildi -> negatif vaka KIRMIZI yaniyor",
+                s["sayi"] > 0, "sayi=%s" % s["sayi"])
+    for ad, degisim, anahtar, olcut in (
+            ("hukum susturuldu (kirmizi hep False)",
+             ('"kirmizi": bool(artik), "olculemedi": None}',
+              '"kirmizi": False, "olculemedi": None}'),
+             "kok", lambda x: x["rc"] != yedekle.ARTIK_CIKIS_KODU),
+            ("--gerekliyse yolu cikis kodu 0'a sabitlendi",
+             ('            return ARTIK_CIKIS_KODU if artik["kirmizi"] else 0',
+              '            return 0'),
+             "kok", lambda x: x["rc"] != yedekle.ARTIK_CIKIS_KODU),
+            ("EKSEN 2 kapatildi",
+             ('    eksen2 = [k for k in plan_fn(backup) if k["yol"] not in goruldu]',
+              '    eksen2 = []'),
+             "eksen2", lambda x: x["rc"] != yedekle.ARTIK_CIKIS_KODU or x["e2"] != 1)):
+        with tempfile.TemporaryDirectory() as td:
+            kopya = mutant_yaz(td, [degisim], ad="mut_e2e.py")
+            gm = artik_e2e(yedekle, os.path.join(td, "kum"), betik_kaynagi=kopya)
+        kontrol("16c MUTANT %s -> E2E iddiasi KIRMIZI yaniyor" % ad, olcut(gm[anahtar]),
+                "%s" % gm[anahtar])
 
 
 # ================= K212/A KUM HAVUZU — FAIL-CLOSED SILME (26 Agu 2026) =========
