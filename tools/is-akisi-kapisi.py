@@ -6077,6 +6077,33 @@ def _k80_commit_agacinda_kos(hedef, yeni):
     return bulgular, kosulan
 
 
+def _k80_uzakta_erisilebilir(sha):
+    """Yeni ref'in gosterdigi commit uzak-izleme ref'lerinden ZATEN erisilebilir mi?
+
+    🔴 NEDEN (26 Eyl 2026, OLCULDU — dal triyaji): ESKIMIS bir dalin ucuna `arsiv/dal/<ad>`
+    tag'i itilirken K80, YENI ref kolunda `(ucun ebeveyni, uc)` araligini kuruyor ve
+    16 Tem tarihli, K80'den (14 Agu) ONCE origin'e gitmis bir commit'in `mkdir` adimini
+    "yeni CI adimi" sayip `YENI CI ADIMI OLCULEMEDI` ile push'u durduruyordu. Tag yeni
+    agac TASIMIYORDU: commit dal olarak origin'deydi. Sonuc: arsiv tag'i itilemiyor,
+    dal SILINEMIYORDU ([[arsiv-tagi-k80-pre-push-eski-commiti-yeni-ci-adimi-sayar]]).
+
+    OLCUT: `rev-list <commit> --not --remotes` BOS ise push hicbir yeni commit
+    tasimaz -> eklenmis CI adimi OLAMAZ -> KAPSAM DISI. Karar YAPIDAN turer (erisilebilirlik),
+    ref ADINDAN degil: `refs/tags/arsiv/*` gibi bir ad muafiyeti YOK — yeni commit tasiyan
+    tag da, uzakta zaten olan commit'i gosteren yeni dal da ayni olcutle olculur.
+    FAIL-CLOSED SINIR (bilerek): hic uzak-izleme ref'i yoksa ya da sha commit'e
+    cozulmuyorsa muafiyet VERILMEZ (ilki eski davranisa duser, ikincisi OLCULEMEDI).
+    Kabul edilen sinir: uzak-izleme ref'i yerel bir kopyadir; uzakta silinmis ama
+    budanmamis bir ref'ten erisilen commit de "zaten gitmis" sayilir — o commit bir kez
+    itilmistir, yeni icerik degildir.
+    """
+    commit = _k80_git(["rev-parse", "--verify", sha + "^{commit}"]).strip()
+    if not _k80_git(["for-each-ref", "--count=1", "--format=%(refname)",
+                     "refs/remotes/"]).strip():
+        return False
+    return _k80_git(["rev-list", "-n", "1", commit, "--not", "--remotes"]).strip() == ""
+
+
 def _k80_araliklar(args):
     if args.base or args.hedef:
         if not (args.base and args.hedef):
@@ -6086,6 +6113,7 @@ def _k80_araliklar(args):
         araliklar = []
         satir_sayisi = 0
         silme_sayisi = 0
+        zaten_uzakta = 0
         for satir in sys.stdin:
             alan = satir.split()
             if len(alan) != 4:
@@ -6096,10 +6124,17 @@ def _k80_araliklar(args):
                 silme_sayisi += 1
                 continue
             if uzak_sha == K80_SIFIR_SHA:
+                if _k80_uzakta_erisilebilir(yerel_sha):
+                    zaten_uzakta += 1
+                    continue
                 ebeveyn = _k80_git(["rev-parse", yerel_sha + "^"]).strip()
                 araliklar.append((ebeveyn, yerel_sha))
             else:
                 araliklar.append((uzak_sha, yerel_sha))
+        if zaten_uzakta:
+            print("K80: YENI REF (%d) uzakta ZATEN erisilebilir commit'i gosteriyor — "
+                  "push edilen yeni commit YOK, eklenmis CI adimi olamaz: KAPSAM DISI."
+                  % zaten_uzakta)
         if not araliklar:
             # 🔴 14 Agu 2026 (ILK YAMANIN DUZELTMESI): "olcecek sey YOK" ile "olcemedim"
             # ayrimi BURADA DA gecerli. git, pre-push'a GUNCELLENECEK HER REF ICIN BIR
@@ -6114,8 +6149,9 @@ def _k80_araliklar(args):
                 print("K80: PRE-PUSH GIRDISI BOS — guncellenecek ref YOK, "
                       "eklenmis CI adimi olamaz: KAPSAM DISI.")
                 return []
-            print("K80: SILME PUSH'U (%d ref) — push edilen yeni agac YOK, "
-                  "eklenmis CI adimi olamaz: KAPSAM DISI." % silme_sayisi)
+            if silme_sayisi:
+                print("K80: SILME PUSH'U (%d ref) — push edilen yeni agac YOK, "
+                      "eklenmis CI adimi olamaz: KAPSAM DISI." % silme_sayisi)
             return []
         return araliklar
     ci_onceki = os.environ.get("PRUVO_CI_ONCEKI_SHA", "").strip()

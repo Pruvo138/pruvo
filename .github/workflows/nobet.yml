@@ -4244,6 +4244,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/k80-yorum-cagri-test.py
 
+      # K80 MENZIL (26 Eyl 2026) — uzakta ZATEN erisilebilir commit'i gosteren YENI ref
+      # (arsiv tag'i) "yeni CI adimi" tasimaz. Olculen kusur: K80'den once origin'e gitmis
+      # bir dal ucuna arsiv tag'i itilirken eski `mkdir` adimi OLCULEMEDI ile push'u durdurdu.
+      # P1-P3 kapsam disi (hafif/anotasyonlu tag + uctan uca) · N1-N5 yeni icerik hala
+      # olculur, uzak ref'siz depoda muafiyet YOK, bozuk sha fail-closed · M1/M2 iki yonlu
+      # mutant (yalniz kopyada). Hermetik gecici bare+depo, aga SIFIR dokunus.
+      - name: "K80 arsiv-tag menzili (uzakta zaten olan commit kapsam disi + iki yonlu mutant)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/k80-arsiv-tag-test.py
+
       # D1 UZLASTIRICI "ONARILAMADI" KOSUL KABULU (7 Agu 2026 onariminin nobetcisi).
       # d1-uzlastirici.yml'deki (3) ONARILAMADI adiminin `if:` kosulu GERCEK dosyadan
       # okunur ve GitHub kosul semantigi 5 vakada FIILEN calistirilir; 6. iddia bir
