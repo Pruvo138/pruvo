@@ -26,11 +26,19 @@ ayni yol HEAD'e 200).
   E8  GECICI     — 5xx/ag blip'i hukme yazilmadan ONCE BIR KEZ yeniden yoklanir
                    (no-cache); ikinci yoklama da basarisizsa hukum DEGISMEZ; 4xx/dongu
                    ASLA yeniden yoklanmaz; basarili yeniden yoklama SAYILIR (GECICI=<n>)
+  E9  ROLLOUT    — canli sitemap'te henuz olmayan 404 (kutuphane yolu) kirmizi degil
+  E10 HIZALAMA   — evren son BASARILI DEPLOY SHA'sindan turer (K78); kanit
+                   `merge-base --is-ancestor`; hizalanamayan olcum OLCULEMEDI; deploy'a
+                   DAHIL sayfanin 404'u KAPALI (korluk kolu); alarm kablosu tam gecmis
+                   + `actions: read` + jeton tasir
 
 Cikis: 0 = hepsi gecti, 1 = en az bir kusur. Dis ag YOK (yalniz 127.0.0.1 fiksturu;
-E8 hic soket bile acmaz — yoklayici ENJEKTE edilir).
+E8 hic soket bile acmaz — yoklayici ENJEKTE edilir; E10 gecici GERCEK git deposu kurar
+ve siler).
 """
+import atexit
 import os
+import shutil
 import sys
 import tempfile
 import time
@@ -85,6 +93,9 @@ HUB_SABLONU = "HUB_SLUG = %r\n"
 
 def sentetik_kok(statik, icerik, hub="hub-dizini", sitemap=None, manifest=None):
     kok = tempfile.mkdtemp(prefix="yayin-erisim-kok-")
+    # Ureten temizler: sentetik kok kosum sonunda silinir (26 Eyl olculdu: tek kosum
+    # ~165 `yayin-erisim-kok-*` dizini birakiyordu).
+    atexit.register(shutil.rmtree, kok, True)
     os.makedirs(os.path.join(kok, "tools"))
     with open(os.path.join(kok, "tools", "sayfalar.py"), "w", encoding="utf-8") as f:
         f.write(SAYFALAR_SABLONU % (statik, icerik))
@@ -530,6 +541,275 @@ def e9_rollout(ye, sunucu):
           sinif2 == "KAPALI" and rc2 == 1, "%s rc=%d" % (sinif2, rc2))
 
 
+# ------------------------------------------------------- E10) EVREN HIZALAMA (K78)
+# 🔴 UC GERCEK VAKA (12 Agu 2026, `gh run view --log` ile OLCULDU — anlatilan degil
+# OYNATILAN kanit). Her ucunde log'daki KAPALI kume, olculen agac ile o an SON
+# TAMAMLANMIS basarili deploy arasindaki HEAD-DELTA'ya TAM ESITTI:
+#   alarm 31579567151 (12 Agu 08:42Z) · agac 9835513e5d61 (372) · deploy b670e1a7e250
+#     (361) -> delta 11 == log KAPALI 11
+#   alarm 31528157635 (11 Agu 19:30Z) · agac f4caf59f411a (350) · deploy d27a8e06f45b
+#     (339) -> delta 11 == log KAPALI 11
+#   alarm 31521350805 (11 Agu 18:10Z) · agac 816340b3571f (350) · ayni deploy
+#     -> delta 11 == log KAPALI 11
+# Vakalar GERCEK bir git deposunda (deploy commit'i + ustune yeni landing'ler) oynatilir:
+# git'in ata semantigini taklit eden bir sahte, olculen seyi kendi varsayimimizla
+# aynalardi. 26 Eyl 2026: main'deki ROLLOUT kovasi bu vakalari ACIK'a cekiyordu ama
+# evren HEAD'den turemeye devam ediyordu (11 deploy-disi URL'ye istek) ve deploy'a
+# DAHIL bir sayfanin 404'u ROLLOUT'a dusup SESSIZ kaliyordu (korluk kolu asagida).
+VAKA_YENI_A = (
+    "olcuye-ozel-plastik-disli-kutusu-govdesi-ve-kapagi-uretimi",
+    "olcuye-ozel-plastik-doner-tabla-ve-donus-halkasi-uretimi",
+    "oto-aku-kutusu-kapagi-ve-baglanti-kelepcesi-yaptirma",
+    "oto-direksiyon-kolonu-ve-sinyal-kolu-kapagi-yaptirma",
+    "oto-tavan-tutamagi-ve-tavan-doseme-klipsi-yaptirma",
+    "otobus-ve-minibus-ic-ekipman-plastik-parca-uretimi",
+    "ozel-uretim-parca-garantiyi-bozar-mi",
+    "sik-dezenfekte-edilen-plastik-parca-uretimi",
+    "tekne-elektrik-panosu-ve-salter-paneli-plastik-parcasi-ozel-uretim",
+    "tekne-kabin-kapisi-kilidi-ve-tutamagi-ozel-uretim",
+    "traktor-ve-bicerdover-kabin-plastik-parca-uretimi",
+)
+VAKA_YENI_B = (
+    "alcipan-ve-asma-tavan-montaj-plastik-parcasi-uretimi",
+    "kasap-ve-et-isleme-ekipmani-plastik-parca-uretimi",
+    "olcuye-ozel-plastik-bayonet-kilit-ve-ceyrek-tur-gecme-uretimi",
+    "olcuye-ozel-plastik-gosterge-kadrani-ve-skala-halkasi-uretimi",
+    "oto-anahtar-kabugu-ve-kumanda-yuvasi-yaptirma",
+    "oto-bijon-kapagi-ve-sibop-tapasi-yaptirma",
+    "ozel-uretim-parca-orijinaliyle-ayni-renkte-olur-mu",
+    "parcanin-calisma-kosulunu-nasil-tarif-ederim",
+    "tekne-kamis-tutucu-ve-olta-aparati-ozel-uretim",
+    "tekne-merdiveni-ve-yuzme-platformu-plastik-parcasi-uretimi",
+    "yakit-ve-benzin-temasli-plastik-parca-uretimi",
+)
+# (alarm kosum id, ne zaman, deploy kume buyuklugu, deploy'da OLMAYAN yeni slug'lar)
+VAKALAR = (
+    ("31579567151", "12 Agu 08:42Z", 361, VAKA_YENI_A),
+    ("31528157635", "11 Agu 19:30Z", 339, VAKA_YENI_B),
+    ("31521350805", "11 Agu 18:10Z", 339, VAKA_YENI_B),
+)
+_GECICI_DEPOLAR = []
+
+
+def _gitk(kok, *args):
+    """Fikstur deposunda git. Kullanicinin kancalari/imzasi SIZMASIN diye izole."""
+    import subprocess
+    p = subprocess.run(["git", "-C", kok,
+                        "-c", "core.hooksPath=%s" % os.path.join(kok, ".bos-kanca"),
+                        "-c", "commit.gpgsign=false",
+                        "-c", "user.email=nobet@pruvo.test",
+                        "-c", "user.name=nobet"] + list(args),
+                       capture_output=True, text=True)
+    if p.returncode != 0:
+        raise RuntimeError("git %s -> rc=%d %s" % (args[0], p.returncode,
+                                                   (p.stderr or "")[:160]))
+    return (p.stdout or "").strip()
+
+
+def sentetik_git_kok(deploy_slug, yeni_slug, hub="hub-dizini"):
+    """GERCEK iki commit'li git deposu. Doner: (kok, deploy_sha, head_sha).
+
+    commit 1 = CANLIDA DURAN kume (deploy edilmis) · commit 2 = onun ustune inen,
+    HENUZ DEPLOY EDILMEMIS yeni landing'ler. Depo e10 sonunda SILINIR."""
+    kok = tempfile.mkdtemp(prefix="yayin-erisim-git-")
+    _GECICI_DEPOLAR.append(kok)
+    os.makedirs(os.path.join(kok, "tools"))
+    os.makedirs(os.path.join(kok, ".bos-kanca"))
+
+    def yaz(slugler):
+        with open(os.path.join(kok, "tools", "sayfalar.py"), "w",
+                  encoding="utf-8") as f:
+            f.write(SAYFALAR_SABLONU % (list(slugler), []))
+        with open(os.path.join(kok, "tools", "landing_hub_build.py"), "w",
+                  encoding="utf-8") as f:
+            f.write(HUB_SABLONU % hub)
+
+    _gitk(kok, "init", "-q", "-b", "main")
+    yaz(deploy_slug)
+    _gitk(kok, "add", "-A")
+    _gitk(kok, "commit", "-q", "-m", "deploy edilmis kume")
+    deploy_sha = _gitk(kok, "rev-parse", "HEAD")
+    yaz(list(deploy_slug) + list(yeni_slug))
+    _gitk(kok, "add", "-A")
+    _gitk(kok, "commit", "-q", "-m", "yeni landing partisi (HENUZ DEPLOY EDILMEDI)")
+    head_sha = _gitk(kok, "rev-parse", "HEAD")
+    return kok, deploy_sha, head_sha
+
+
+def canli_yuzey(acik_yollar):
+    """(yoklayici, istenen_yollar) — YALNIZ `acik_yollar` 200; gerisi 404.
+
+    Ag'a CIKMAZ; hangi URL'in ISTENDIGINI kaydeder: "olculmedi" iddiasi hukumden degil
+    ISTEK IZINDEN dogrulanir. `/sitemap.xml` istenirse yalniz `acik_yollar`i listeler
+    (canli sitemap, deploy'a dahil ama dusmus sayfayi TASIMAZ -> korluk kolu)."""
+    istenen = []
+
+    def yoklayici(url, yontem=None, zaman_asimi=None, acici=None, no_cache=False):
+        yol = urllib.parse.urlsplit(url).path
+        istenen.append(yol)
+        if yol == "/sitemap.xml":
+            govde = "".join("<loc>https://pruvo3d.com%s</loc>" % y
+                            for y in sorted(acik_yollar))
+            return 200, {"server": "cloudflare"}, govde.encode(), None
+        if yol in acik_yollar:
+            return 200, {"server": "cloudflare"}, b"<!doctype html><h1>acik</h1>", None
+        return 404, {"server": "cloudflare", "cf-cache-status": "DYNAMIC"}, b"404", None
+
+    return yoklayici, istenen
+
+
+def _api_susar(ortam=None):
+    return None, "fikstur: API cagrilmadi"
+
+
+def e10_hizalama(ye, iak):
+    try:
+        _e10_govde(ye, iak)
+    finally:
+        for kok in _GECICI_DEPOLAR:
+            shutil.rmtree(kok, ignore_errors=True)
+        del _GECICI_DEPOLAR[:]
+
+
+def _e10_govde(ye, iak):
+    bos_ortam = {}                       # GITHUB_TOKEN/REPOSITORY YOK -> API susar
+    for kosum, ne_zaman, deploy_n, yeni in VAKALAR:
+        deploy_slug = ["landing-%03d" % i for i in range(deploy_n - 2)]
+        kok, deploy_sha, _head = sentetik_git_kok(deploy_slug, yeni)
+        yollar, _kaynaklar, hz = ye.evren_hazirla(
+            kok=kok, ortam=bos_ortam, acik_sha=deploy_sha, api_fn=_api_susar)
+        yeni_yol = set("/%s/" % s for s in yeni)
+        kayit("E10", "vaka %s (%s): EVREN deploy SHA'sindan turer — %d URL, deploy'da "
+                     "OLMAYAN %d landing kumede YOK"
+              % (kosum, ne_zaman, deploy_n, len(yeni)),
+              len(yollar) == deploy_n and not (set(yollar) & yeni_yol),
+              "kume=%d beklenen=%d sizan=%s"
+              % (len(yollar), deploy_n, sorted(set(yollar) & yeni_yol)[:2]))
+        yoklayici, istenen = canli_yuzey(set(yollar))
+        kayitlar, _s = ye.hizali_olc(yollar, taban="http://ornek.invalid", hiz=0,
+                                     istek_fn=yoklayici, uyu=lambda _x: None)
+        sinif, rc, _sat, ozet = ye.degerlendir(kayitlar, kume_sayisi=len(yollar))
+        kayit("E10", "vaka %s: hukum ACIK rc 0, ROLLOUT=0 (deploy edilmemis sayfa "
+                     "canlida ARANMAZ; kovaya da SAKLANMAZ) -> %s rc=%d" % (kosum, sinif, rc),
+              sinif == "ACIK" and rc == 0 and not (ozet.get("rollout") or []),
+              "%s rc=%d rollout=%d" % (sinif, rc, len(ozet.get("rollout") or [])))
+        kayit("E10", "vaka %s: deploy edilmemis %d URL'ye TEK ISTEK bile atilmadi "
+                     "(iz ekseni)" % (kosum, len(yeni)),
+              not (set(istenen) & yeni_yol),
+              "istenen sizinti=%s" % sorted(set(istenen) & yeni_yol)[:2])
+        kayit("E10", "vaka %s: HIZALAMA KANITI ciktiya basiliyor "
+                     "(`merge-base --is-ancestor`, 1 commit onde)" % kosum,
+              "merge-base --is-ancestor" in hz["satir"] and hz["ileri"] == 1,
+              "ileri=%s satir=%s" % (hz["ileri"], hz["satir"][:60]))
+
+    # ─────────────── 🔴 KORLUK KOLU (26 Eyl'de main'de OLCULEN kusur; tautoloji kirici)
+    # Deploy'a DAHIL bir sayfa hem HTML'den hem canli sitemap'ten dustu, canlida 404.
+    # Main'deki ROLLOUT kovasi bunu "henuz tasinmamis" sayip ACIK rc 0 veriyordu.
+    deploy_slug = ["landing-%03d" % i for i in range(300)]
+    kok, deploy_sha, _h = sentetik_git_kok(deploy_slug, VAKA_YENI_A)
+    yollar, _k, _hz = ye.evren_hazirla(kok=kok, ortam=bos_ortam, acik_sha=deploy_sha,
+                                       api_fn=_api_susar)
+    kurban = "/landing-042/"
+    yoklayici, istenen = canli_yuzey(set(yollar) - {kurban})
+    kayitlar, _s = ye.hizali_olc(yollar, taban="http://ornek.invalid", hiz=0,
+                                 istek_fn=yoklayici, uyu=lambda _x: None)
+    sinif, rc, _sat, ozet = ye.degerlendir(kayitlar, kume_sayisi=len(yollar))
+    kayit("E10", "🔴 KORLUK KOLU: deploy'a DAHIL sayfa canlida 404 (canli sitemap'ten de "
+                 "dustu) -> KAPALI rc 1; ROLLOUT'a SAKLANMADI",
+          sinif == "KAPALI" and rc == 1
+          and [k["yol"] for k in ozet["kapali"]] == [kurban]
+          and not (ozet.get("rollout") or []) and kurban in istenen,
+          "%s rc=%d kapali=%s rollout=%s"
+          % (sinif, rc, [k["yol"] for k in ozet["kapali"]][:3],
+             [k["yol"] for k in ozet.get("rollout") or []][:3]))
+
+    # KONTROL — hizalama ACIK hukmunu KENDILIGINDEN uretmiyor ve yanlis-negatif yok.
+    yoklayici2, _i2 = canli_yuzey(set(yollar))
+    kayitlar2, _s2 = ye.hizali_olc(yollar, taban="http://ornek.invalid", hiz=0,
+                                   istek_fn=yoklayici2, uyu=lambda _x: None)
+    sinif2, rc2, _sat2, _oz2 = ye.degerlendir(kayitlar2, kume_sayisi=len(yollar))
+    kayit("E10", "KONTROL: hizalanmis kumenin TAMAMI 200 -> ACIK rc 0",
+          sinif2 == "ACIK" and rc2 == 0, "%s rc=%d" % (sinif2, rc2))
+
+    # ─────────────── FAIL-CLOSED, DOGRU EKSENDE
+    # (a) deploy SHA'si HIC YOK -> OLCULEMEDI; HEAD'e YEDEK YOL YOKTUR.
+    try:
+        ye.evren_hazirla(kok=kok, ortam=bos_ortam, acik_sha=None, api_fn=_api_susar)
+        oldu, tani = False, "OlcumHatasi ATILMADI (HEAD'e dusmus olabilir)"
+    except ye.OlcumHatasi as e:
+        oldu, tani = True, str(e)[:70]
+    kayit("E10", "deploy SHA'si YOK -> OLCULEMEDI (KAPALI DEGIL, ACIK HIC DEGIL); "
+                 "HEAD'e yedek yol YOK", oldu, tani)
+    # (a2) API yolu gercekten KAYNAKTIR: ortam bos, API SHA verirse o kullanilir.
+    try:
+        _y, _k2, hz_api = ye.evren_hazirla(
+            kok=kok, ortam=bos_ortam, acik_sha=None,
+            api_fn=lambda ortam=None: (deploy_sha, "fikstur kosum 1"))
+        oldu_api = hz_api["deploy_sha"] == deploy_sha and "GitHub API" in hz_api["kaynak"]
+        tani_api = hz_api["kaynak"][:60]
+    except ye.OlcumHatasi as e:
+        oldu_api, tani_api = False, str(e)[:70]
+    kayit("E10", "ortam bos + API head_sha verdi -> evren O SHA'dan (kaynak beyani "
+                 "'GitHub API')", oldu_api, tani_api)
+    # (b) deploy SHA'si depoda VAR ama HEAD'in ATASI DEGIL -> OLCULEMEDI.
+    agac = _gitk(kok, "rev-parse", "HEAD^{tree}")
+    oksuz = _gitk(kok, "commit-tree", agac, "-m", "oksuz (ata DEGIL)")
+    try:
+        ye.hizalama_kanitla(oksuz, kok=kok)
+        oldu2, tani2 = False, "OlcumHatasi ATILMADI (hizasiz SHA kabul edildi)"
+    except ye.OlcumHatasi as e:
+        oldu2, tani2 = "ATASI DEGIL" in str(e), str(e)[:70]
+    kayit("E10", "deploy SHA'si depoda VAR ama olculen ref'in ATASI DEGIL -> "
+                 "OLCULEMEDI", bool(oldu2), tani2)
+    # (c) deploy SHA'si depoda HIC YOK (sig klon) -> OLCULEMEDI.
+    try:
+        ye.hizalama_kanitla("0" * 40, kok=kok)
+        oldu3, tani3 = False, "OlcumHatasi ATILMADI (var olmayan SHA kabul edildi)"
+    except ye.OlcumHatasi as e:
+        oldu3, tani3 = "bu agacta YOK" in str(e), str(e)[:70]
+    kayit("E10", "deploy SHA'si agacta HIC YOK (sig klon) -> OLCULEMEDI",
+          bool(oldu3), tani3)
+    # (d) SHA bicimi bozuk -> OLCULEMEDI (enjeksiyon/bos deger fail-closed).
+    try:
+        ye.deploy_sha_bul(ortam={ye.DEPLOY_SHA_ORTAM: "main; rm -rf"})
+        oldu4, tani4 = False, "OlcumHatasi ATILMADI"
+    except ye.OlcumHatasi as e:
+        oldu4, tani4 = "SHA'ya benzemiyor" in str(e), str(e)[:70]
+    kayit("E10", "deploy SHA'si SHA bicimi degil -> OLCULEMEDI", bool(oldu4), tani4)
+
+    # ─────────────── KABLO: alarm is akisi hizalamayi KOSABILIR mi (ayristiricidan)
+    with open(ALARM, encoding="utf-8") as f:
+        alarm_metin = f.read()
+    govde, hata = iak.ayristir(alarm_metin)
+    if govde is None:
+        kayit("E10", "alarm is akisi ayristirilabiliyor", False, str(hata)[:80])
+        return
+    izin = govde.get("permissions") if isinstance(govde.get("permissions"), dict) else {}
+    kayit("E10", "alarm is akisi `actions: read` tasiyor (son basarili deploy SHA'si "
+                 "Actions API'den okunur) ve YAZMA yetkisi YOK",
+          izin.get("actions") == "read"
+          and not any(v == "write" for v in izin.values()),
+          "permissions=%s" % izin)
+    adimlar = []
+    for job in (govde.get("jobs") or {}).values():
+        if isinstance(job, dict):
+            adimlar += [a for a in (job.get("steps") or []) if isinstance(a, dict)]
+    checkout = [a for a in adimlar if str(a.get("uses", "")).startswith("actions/checkout")]
+    tam_gecmis = bool(checkout) and all(
+        str((a.get("with") or {}).get("fetch-depth")) == "0" for a in checkout)
+    sig_fetch = [a.get("name") for a in adimlar if "--depth" in str(a.get("run") or "")]
+    kayit("E10", "alarm checkout'u TAM gecmis (fetch-depth: 0) ve sonradan `--depth` ile "
+                 "SIGLASTIRILMIYOR (sig klonda `merge-base`/`archive` kosamaz -> kalici "
+                 "OLCULEMEDI)", tam_gecmis and not sig_fetch,
+          "checkout=%d tam=%s sig_fetch=%s" % (len(checkout), tam_gecmis, sig_fetch))
+    canli = [a for a in adimlar if NOBETCI_YOL in str(a.get("run") or "")
+             and "--kendini-test" not in str(a.get("run") or "")]
+    jetonlu = [a for a in canli if "GITHUB_TOKEN" in (a.get("env") or {})]
+    kayit("E10", "canli olcum adimi GITHUB_TOKEN ortamini tasiyor (API kaynagi canli)",
+          bool(canli) and len(jetonlu) == len(canli),
+          "canli=%d jetonlu=%d" % (len(canli), len(jetonlu)))
+
+
 # -------------------------------------------------------------- E7) KABLOLAMA
 def _cagrilar(iak, suzgec, metin, yollar):
     """(job_id, yol, argumanlar, sebepler) — GERCEK ayristirici + ortak icra suzgeci."""
@@ -680,7 +960,10 @@ IDDIALAR = (("E1", "KUME — kaynaklardan turer, taban altinda OLCULEMEDI"),
             ("E7", "KABLOLAMA — cron alarm kolu + serit B"),
             ("E8", "GECICI — 5xx/ag blip'i bir kez yeniden yoklanir, 4xx/dongu ASLA"),
             ("E9", "ROLLOUT — canli sitemap'te henuz olmayan 404 yayin penceresidir, "
-                   "kirmizi degil"))
+                   "kirmizi degil"),
+            ("E10", "HIZALAMA — evren son BASARILI DEPLOY SHA'sindan turer, kanit "
+                    "`merge-base --is-ancestor`; hizalanamayan olcum OLCULEMEDI; "
+                    "deploy'a dahil 404 KAPALI"))
 
 
 def main():
@@ -707,7 +990,8 @@ def main():
                     ("E6", lambda: e6_maliyet(ye, sunucu)),
                     ("E7", lambda: e7_kablolama(ye, iak, suzgec, cron)),
                     ("E8", lambda: e8_gecici(ye)),
-                    ("E9", lambda: e9_rollout(ye, sunucu)))
+                    ("E9", lambda: e9_rollout(ye, sunucu)),
+                    ("E10", lambda: e10_hizalama(ye, iak)))
         for kod, fn in kosumlar:
             try:
                 fn()

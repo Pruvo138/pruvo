@@ -58,9 +58,10 @@ KAPSAM SINIRI (bilerek DAR)
 ===========================
 Bu nobetci "yayin AKTI MI" sorusunu sorar. "Yayinlanan sayfa musteride ACIK MI"
 `tools/yayin-erisim-nobeti.py`; "D1 taslak yigini" `tools/yayin-gecikme-nobeti.py`.
-🔴 Ikisi de bu sinifi GORMEZ: erisim nobetcisi kumeyi main AGACINDAN turetir ve
-canli sitemap'te henuz olmayan 404'leri ROLLOUT sayar — yani yayin tamamen
-durdugunda tam olarak SESSIZLESIR. Bu betik o kor noktanin karsiligidir.
+🔴 Ikisi de bu sinifi GORMEZ: erisim nobetcisi kumeyi SON BASARILI DEPLOY'un
+SHA'sindan turetir (K78, 26 Eyl 2026; oncesinde main agaci + ROLLOUT kovasi) — yani
+yayin tamamen durdugunda olculen evren de o SHA'da DONAR ve hukum ACIK kalir: tam
+olarak SESSIZLESIR. Bu betik o kor noktanin karsiligidir.
 """
 import argparse
 import json
