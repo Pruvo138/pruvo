@@ -36,7 +36,8 @@
       "soru": "Bu mesaja bir insanın cevap yazması gerekiyor mu?"
     },
     "macit-kategori": {
-      "ev": "MaCiT", "tip": "secim", "esik": null,
+      "ev": "MaCiT", "tip": "secim", "esik": 0.8,
+      "_kalibrasyon": "26 Eyl 2026, MaCiT altın küme 88 örnek (son 40 + kategori başına 4): argmax %68–71, p>=0,8 25/26 = %96,2; hasat kancası yanlış alarm 1/88. Seçenek metni DEĞİŞİRSE eşik yeniden ölçülür.",
       "soru": "Bu parçanın ÇALIŞMA ALANI/PRENSİBİ hangi kategoriye girer? Tamirat marka-bağımsızdır; Elektronik'e kamera ve e-bike girmez; Ev elektriksizdir.",
       "secenekler": {
         "marin": "tekne, deniz",

@@ -34,8 +34,8 @@ Metinden verilen HER karar (kova · puan · evet) Jev'e gider. "Dışında" yaln
 | P2 | HocA | mesaj aciliyeti (`hoca-aciliyet` · puan 3) | aday · kalıp hazır | 26 Eyl | P1 ile aynı istek |
 | P3 | KraL | site formu / e-posta triyajı (`kral-eposta-triyaj` · secim 6) | aday · kalıp hazır | 26 Eyl | gelen kanal (Mail uygulaması / site formu) okuyucusu + altın küme 30 |
 | P4 | KraL | "cevap gerekli mi" (`kral-cevap-gerekli` · evet) | aday · kalıp hazır | 26 Eyl | P3 ile aynı |
-| P5 | MaCiT | ürün kategori önerisi (`macit-kategori` · secim 12) | aday · kalıp hazır | 26 Eyl | `hasat_ekle` kategori alanına ÖNERİ; altın küme = katalogdaki son 30 ürün (etiket hazır) |
-| P6 | MaCiT | RED gerekçesi sınıfı (`macit-red-gerekcesi` · secim 7) | aday · kalıp hazır | 26 Eyl | dilim RED listeleri (gerekçeli, etiket hazır) ile altın küme 30 |
+| P5 | MaCiT | ürün kategori ikinci görüşü (`macit-kategori` · secim 12) | ✅ **Jev'de, KALİBRE eşik 0,8** | 26 Eyl | `hasat_ekle` kancası kendiliğinden (pruvo-hasat `97a75454`); altın küme 88: p≥0,8 %96,2 (25/26), yanlış alarm 1/88. Açık: `tamirat` çekici, `dekorasyon`→`ev` kayıyor — seçenek metni düzeltilirse eşik YENİDEN ölçülür |
+| P6 | MaCiT | RED gerekçesi sınıfı (`macit-red-gerekcesi` · secim 7) | Jev'de — yalnız kayıt, KALİBRE DEĞİL | 26 Eyl | altın küme 60: argmax %33,3 ⇒ eşik yok (insan). `mukerrer_islev` (katalog) + `logo_tasiyor` (görsel) metinden seçilemez — kalıptan çıkar ya da girdiye kaynak ekle, sonra yeniden ölç |
 | P7 | ArTisT | arama/içerik niyeti (`artist-seo-niyet` · secim 6) | aday · kalıp hazır | 26 Eyl | GSC sorgu listesi 30 etiketli |
 | P8 | TeKiN | üretim/jeneratör hata sınıfı (`tekin-uretim-hatasi` · secim 6) | aday · kalıp hazır | 26 Eyl | jeneratör hata kaydından 30 örnek |
 
