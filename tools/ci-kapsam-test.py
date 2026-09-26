@@ -387,6 +387,14 @@ ACIK_KESIF = {
         "kesif disi kalirsa CI kapsam kapisinda OTOMATIK'te kosmuyor gorunurdu. "
         "Bu kayit RATCHET'tir — cagri satiri silinirse kapi KIRMIZI yanar. "
         "MUAFIYET DEGIL, kapsam ZORLAMASIDIR.",
+    "tools/dal-envanteri.py":
+        "Merge kuyrugu olcum araci (aday listesi, hukum vermez). `--kendini-test` "
+        "(17 iddia, gecici fikstur depo) + `--mutasyon` (5 mutant, izole kopya) kollari "
+        "vardir ama adi konvansiyonlara uymaz. OLCULEN BEDEL (23 Eyl 2026): yalniz "
+        "yerel dallari okudugu icin 76 adlik kuyrugun 31'i olcum disindaydi ve hicbir "
+        "nobet bunu gormedi. nobet.yml `serit-b` job'una baglandi; bu kayit "
+        "RATCHET'tir — cagri satiri silinirse kapi KIRMIZI yanar. MUAFIYET DEGIL, "
+        "kapsam ZORLAMASIDIR.",
 }
 
 
