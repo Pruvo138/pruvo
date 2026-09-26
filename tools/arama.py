@@ -866,7 +866,7 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 52 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 57 jeton) ──
     # 🔴 BU SAYIYI HICBIR KAPI OLCMUYOR (olculdu 31 Agu): Raymarine ONCESINDE burada
     # "34" yaziyordu ama kumenin GERCEK boyu 41'di — 3./4./5. tur eklerinde
     # guncellenmemis, uc tur boyunca kirmizi yakmadan yasamis BAYAT bir sayi.
@@ -902,6 +902,11 @@ UYUM_MARKA_IZINLI = frozenset({
     # 190 -> 191 ve FARK (izinli − eki) 139 SABIT kaldi -> jeton IKI kumeye de girdi.
     # 🔴 12. TURUN UCUNCU TALEBI BUYDU — o turda GIRMEDI, gerekce C grubunun 12. tur
     # basliginda, ADIYLA ve olcumle yazili (uyum-kapisi A1/V16 kirmizisi, VERI kalemi).
+    # 14. tur (26 Eyl 2026, KraL-Whitelist-Kamera5-26Eyl): BES jeton girdi (`Pentax`,
+    # `Olympus`, `Leica`, `Blackmagic`, `Insta360`), sayi 52 -> 57 ELLE guncellendi ve
+    # `len(UYUM_MARKA_MIMAR_EKI)` ile OLCULEREK dogrulandi (52 -> 57, esitlik TUTTU).
+    # Ayni turda `len(UYUM_MARKA_IZINLI)` 191 -> 196 ve FARK (izinli − eki) 139 SABIT
+    # kaldi -> besi de IKI kumeye girdi.
     # 🔴 KALEM HALA ACIK: bu bir MAKINE iddiasi degil, tek seferlik bir olcumdur —
     # bir sonraki tur yine guncellemeyi UNUTABILIR. Kalici cozum bu sayiyi `len()`ten
     # TURETMEK ya da bir kapiya iddia olarak KOYMAKTIR; ikisi de mimar hukmunu bekliyor
@@ -1531,6 +1536,69 @@ UYUM_MARKA_IZINLI = frozenset({
     #   KONTROL-MUTANT=YESIL, ikisinde de AYNI); `model-uyelik-kapisi.py` ONCE rc=0
     #   (30/30) = SONRA rc=0 (30/30). Gecen sayisi HICBIRINDE DUSMEDI.
     "Fujifilm",
+    # 14. tur, C grubu (5) — MaCiT istegi 26 Eyl 2026 (kamera hatti verimi dustu; cip
+    #   KraL-Whitelist-Kamera5-26Eyl). Oncelik sirasi Pentax -> Olympus -> Leica ->
+    #   Blackmagic -> Insta360; BESI DE olcumden gecti, hicbiri ELENMEDI.
+    #   SINIF: besi de FOTOGRAF/VIDEO KAMERASI ureticisidir — EV SAHIBI marka, uretilen
+    #   parca (lens adaptoru, govde kapagi, kafes, montaj) ONA takilir. YENI SINIF ACMAZ:
+    #   `Canon`, `Nikon`, `Sony`, `Panasonic`, `Fujifilm`, `GoPro` ZATEN kumede.
+    #   KANONIK YAZIM: `Blackmagic` (sirketin tam adi `Blackmagic Design`, cok-kelimeli
+    #   varyant BILESIK_MARKA aynasini tetiklerdi -> ciplak tek kelime secildi, 12. tur
+    #   `Hero` emsali); `Insta360` rakamla biter, TEK jetondur (`Insta 360` DEGIL).
+    #   Olculen katalog agirligi (38829 urun, tam tarama; TAM-YAZIM, buyuk-kucuk DUYARLI):
+    #     `Pentax`     marka[] 0 · uyum[].marka 0 · uyum[].model 0 · baslik 4 · aciklama 7
+    #     `Olympus`    marka[] 0 · uyum[].marka 0 · uyum[].model 0 · baslik 7 · aciklama 13
+    #     `Leica`      marka[] 0 · uyum[].marka 0 · uyum[].model 0 · baslik 10 · aciklama 13
+    #     `Blackmagic` marka[] 0 · uyum[].marka 0 · uyum[].model 0 · baslik 0 · aciklama 0
+    #                  (katalogdaki TEK gecis `BlackMagic` yazimidir: 1 kayit, baslik+aciklama)
+    #     `Insta360`   marka[] 0 · uyum[].marka 0 · uyum[].model 0 · baslik 10 · aciklama 10
+    #   uyum[].model/motor/oem icinde BES jetonun ve komsularinin ci alt-dizgesi: 0 kayit.
+    #   Kume KAPALI kalir; besi de `UYUM_MARKA_ELENEN`de, `URETICI_MARKA`da ve
+    #   `MODEL_OLMAYAN_JETON`da DEGIL (uc kume, tam ve buyuk-kucuk duyarsiz, OLCULDU).
+    # 🔴 KOMSU JETONLAR YUTULMADI — OLCULDU (tam-yazim katalog agirligi, baslik/aciklama):
+    #   `Olympia` 0/0 · `Leitz` 1/2 · `Pentacon` 3/4 · `Insta` (tam kelime) 1/1 ·
+    #   `Instax` marka[] 18 + uyum[].model 18 (Fujifilm modelleri: `Instax`, `Instax Mini`,
+    #   `Instax Square` ... — CANLI `/marka/fujifilm/instax*/` sayfalari bunlardan doger).
+    #   Eslesme TAM/EXACT: `uyum_marka_kanonik()` HAM uyelik, `marka_varyanti_sebebi()`
+    #   normalize TAM uyelik (`instax` != `insta360`), `altkategori-sinifla.py::_MARKA_RE`
+    #   iki yandan capali. `markasiz()` ONCE=SONRA: `Olympia typewriter`, `Leitz focotar`,
+    #   `Pentacon six`, `Insta story`, `Instax Mini 12` cumlelerinin ciktisi BIREBIR ayni;
+    #   yalniz bes kanonik jeton silinmeye BASLADI (beklenen).
+    # 🔴 YAZIM VARYANTI REDDI OLCULDU (jeton basina 11-14 form, toplam 64): buyuk/kucuk
+    #   (`PENTAX`/`pentax`/`PenTax`, `BlackMagic`, `INSTA360` ...), bas/son bosluk, `-`
+    #   soneki, bosluklu (`Black Magic`, `Insta 360`), komsu (`Olympia`, `Leitz`,
+    #   `Pentacon`, `Insta`, `Instax`), ek-kelime (`Leica M`, `Olympus OM`, `Pentax K`,
+    #   `Blackmagic Design`, `Insta360 X3`) ve Kiril homoglifli yazimlar (jeton basina
+    #   2, P/O/e/a/I harfi Kiril) — ONCE hepsi RED; SONRA yalniz KANONIK bes
+    #   form KABUL ve AYNEN dondu, geri kalan 59 form RED.
+    # 🔴 8. OLCUT (BILESIK MARKA AYNASI): besi de TEK KELIME -> `model-uyelik-kapisi.py`
+    #   K8 ONCE ayna=19 otorite=19 = SONRA 19=19; kapi ciktisi ONCE/SONRA BAYT BAYT ayni.
+    # 🔴 K220 MENZILI CANLI SITEMAP'TEN OLCULDU: 26 Eyl canli `sitemap.xml` 40845 loc;
+    #   bes jeton + `leitz`/`pentacon` gecen 29 URL'in 29'u da `/urun/` sayfasidir; komsu
+    #   `instax` ayrica 3 CANLI model sayfasi dogurur (`/marka/fujifilm/instax*/`, jetonla
+    #   bagi yok, SONRA'da da DURUYOR). `/marka/<x>/pentax|olympus|leica|blackmagic|insta360/`
+    #   model yolu ve bu adlarla hub CANLIDA YOK -> menzil BOS. Bos cikmasina RAGMEN 5+6
+    #   kosuldu ve duyarlilik mutanti SART sayildi.
+    # 🔴 IZOLASYON: `build.py --cikti-kok` KULLANILMADI; `git archive HEAD` ile uc AYRI
+    #   ROOT (scratchpad) kuruldu, build.py ORADAN kosuldu (log `CIKTI_KOK=<ROOT>
+    #   (varsayilan)`); kaynak agacta uretim dizini OLUSMADI, `git status` yalniz bu
+    #   dosya. Izole ONCE, CANLI sitemap'i KUME olarak yeniden uretti: 40845 = 40845,
+    #   KAYBOLAN 0 · DOGAN 0.
+    # 🔴 5. OLCUT — URL KUMESI: izole ONCE 40845 = izole SONRA 40845, KAYBOLAN 0 · DOGAN 0.
+    # 🔴 6. OLCUT — ICERIK sha256, TUM uretilen yuzey: 42089 = 42089 dosya, icerigi farkli
+    #   13 dosyanin 13'u YAYIN DISI (`tools/arama.py` + 12 `tools/__pycache__/*.pyc`).
+    #   **YAYINLANAN SAYFA ICERIGI DEGISIMI = 0** (menzildeki 29 canli URL dahil).
+    #   Bu yorum blogu SONRA kosumundan sonra yazildi; kosulan dosya ile commit'lenen
+    #   dosyanin `ast.dump`'i BIREBIR ayni (yorum disi degisim 0, OLCULDU).
+    # 🔴 K220 DUYARLILIK MUTANTI (ayri izole ROOT, kapali kumeye `Grand Cherokee`):
+    #   40845 -> 40844, KAYBOLAN = 1 = `/marka/jeep/grand-cherokee/`, DOGAN 0 -> eksen
+    #   bu katalogda model sayfasi olumunu GORUYOR; asil "KAYBOLAN 0" kor yesil DEGIL.
+    # 🔴 3. OLCUT — KAPILAR ONCE=SONRA (borusuz rc): `uyum-kapisi.py` rc=0 39/0 = rc=0
+    #   39/0 (fark YALNIZ kume boyu metni 191->196, 52->57); `k302-marka-kabul-kapisi.py`
+    #   rc=0 = rc=0 (A1-A5+KONTROL+M1+M2+KONTROL-MUTANT, cikti BAYT BAYT ayni);
+    #   `model-uyelik-kapisi.py` rc=0 30/30 = rc=0 30/30. Ek: `altkategori-sinifla-test`
+    #   rc=0 145/0 · `marka-uyelik-test` rc=0 · `marka-arama-d1-test` rc=0 56/0.
+    "Pentax", "Olympus", "Leica", "Blackmagic", "Insta360",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -1601,6 +1669,12 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     # K220 DUYARLILIK mutanti. UYUM_MARKA_IZINLI'nin "C grubu" 13. tur basliginda
     # yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
     "Fujifilm",
+    # 14. tur (26 Eyl 2026) — MaCiT kamera hatti istegi, BES jeton. Gerekce + olculen
+    # katalog agirligi + komsu-jeton (Olympia/Leitz/Pentacon/Insta/Instax) yutulmama
+    # olcumu + 64 formluk yazim varyanti reddi + K220 menzil olcumu (canli sitemap'ten;
+    # menzil BOS) + 8. olcut (besi de TEK KELIME, ayna 19=19) + K220 DUYARLILIK mutanti.
+    # UYUM_MARKA_IZINLI'nin "C grubu" 14. tur basliginda yazili. Burada TEKRAR EDILMEZ.
+    "Pentax", "Olympus", "Leica", "Blackmagic", "Insta360",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
