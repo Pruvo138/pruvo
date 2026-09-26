@@ -17,8 +17,9 @@ Metinden verilen HER karar (kova · puan · evet) Jev'e gider. "Dışında" yaln
 ## Durum (26 Eyl 2026)
 - ✅ Jev canlı: Workers AI REST üstünden `hoca-niyet` → `urun_sorusu`, güven 1, 569 giriş token, ~0,9 sn (ölçüldü).
 - ✅ `tools/jev_karar.py --kendini-test` 7 iddia / 0 kırmızı; 2 izole mutant (insan bandı · seçenek adı) ÖLDÜ.
-- 🔴 ENGEL 1 — ortak istemci CF REST dış zarfını (`{result,success}`) açmıyor ⇒ her karar `kume_disi_cevap`. EyLüL'e
-  düzeltme satırıyla bildirildi (26 Eyl 15:2x). Kapatan: `jev_karar.py --kalip hoca-niyet --metin "…"` → `motor=jev`.
+- ✅ ENGEL 1 KAPANDI (26 Eyl 15:2x) — ortak istemci CF REST dış zarfını açmıyordu; EyLüL onardı (jev-testi 65/65,
+  mutant 10/10). KraL canlı ölçümü: `hoca-niyet` → `urun_sorusu` 1,0 (656 ms) · `macit-kategori` → `otomobil` 0,93 ·
+  `hoca-aciliyet` → 1,98/2 (0,97) — üçü de `motor=jev`.
 - 🔴 ENGEL 2 — PRUVO mimar icra kapısı repo-dışı `jev.py` yolunu ANA oturumda reddediyor (5 evde). Çip
   `KraL-JevKapi-26Eyl` (`task_6d71d37a`): `serbest_cagrilar.SEKILLER`e Jev şekilleri + 5 ev vakası + mutant.
   Kapatan: çip dalı merge + `.claude/mimar-kapi-kur.py` ile 5 eve kurulum + her evde `jev.py saglik` serbest.
