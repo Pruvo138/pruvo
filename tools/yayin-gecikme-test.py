@@ -16,6 +16,8 @@ sessizce koreltilerek ise yaramaz hale gelir.
   Y6  TESHIS + SIZINTI — `gh` stderr'i disari cikmaz, hata SINIFI korunur
   Y7  YAS TABANI — taban `deploy` isinin BITISI (yayin ani); kosumun BASLANGICI DEGIL
   Y8  EKSEN 2 — KOSUM OMUR TAVANI; `ahead_by` kapisinin ONUNDE ve eksen 1'i MASKELEMEZ
+  Y9  EKSEN 3 — YAYINSIZ ZINCIR
+  Y10 YAS TABANI 3. ALT SINIR — main'e GIRIS ani (26 Eyl); olculemezse eski taban + not
 
 Y1/Y5/Y7/Y8 fiksturleri BOLUSUR (asagidaki EKSEN_FIKSTURLERI): her fikstur TAM BIR eksende
 yargilanir. Sebep olculdu — hepsini tek bir "fikstur kabulu" iddiasinda toplamak, her
@@ -41,7 +43,9 @@ Ag YOK (fiksturler agsiz; pano cagrisi `gh` yoksa OLCULEMEDI doner ve o da bir
 kabuldur). Cikis: 0 = hepsi gecti, 1 = en az bir kusur.
 """
 import ast
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import shutil
@@ -58,7 +62,8 @@ NOBET = os.path.join(ROOT, ".github", "workflows", "nobet.yml")
 
 # Fikstur envanteri TABANI — buyuyebilir, ALTINA DUSEMEZ (bkz. modul basligi).
 # 5 Agu: 21 -> 22 (EKSEN 3 kanarisi `bugun-iki-yayinsiz`; o gecenin GERCEK govdesi).
-FIKSTUR_TABANI = 22
+# 26 Eyl: 22 -> 25 (Y10 main'e giris ani kanarilari A/B/C).
+FIKSTUR_TABANI = 25
 ZORUNLU_SINIFLAR = ("AKIYOR", "GECIKME", "TIKALI", "ACLIK", "OLCULEMEDI")
 
 # 🔴 FIKSTUR -> EKSEN PAYLASIMI. Burada ADI GECMEYEN her fikstur Y1'e aittir; Y1 bu
@@ -80,7 +85,14 @@ EKSEN_FIKSTURLERI = {
     # yayin 74 dk durdu. Yanlis-alarm kontrolu FIKSTURDE DEGIL birim iddiadadir
     # (y9_yayinsiz_zinciri): zincir 1 · zincir>=2 ama yas<50 · bekleyen icerik yok.
     "Y9": ("bugun-iki-yayinsiz",),
+    # MAIN'E GIRIS ANI ekseninin UC kanarisi (26 Eyl 2026): A yanlis alarmin GERCEK govdesi
+    # (sessizlik + taze push -> YESIL), B gercek tikanma yonu (giristen 70 dk -> TIKALI),
+    # C kaynak olculemedi (eski taban + OLCULEMEDI notu, sessiz yesil YOK).
+    "Y10": ("giris-sessizlik-taze-push", "giris-70dk-yayinsiz", "giris-olculemedi"),
 }
+VAKA_GIRIS_A = "giris-sessizlik-taze-push"
+VAKA_GIRIS_B = "giris-70dk-yayinsiz"
+VAKA_GIRIS_C = "giris-olculemedi"
 
 YANLIS_ALARM_FIKSTURU = "bugun-serit-b-dustu"
 KORELME_FIKSTURU = "bugun-build-dustu"
@@ -646,6 +658,101 @@ def y9_yayinsiz_zinciri(yg):
              yg.TIKALI_HATA_ZINCIR))
 
 
+# ------------------------------------------- Y10) YAS TABANI 3. ALT SINIR: MAIN'E GIRIS
+def _cli_rc(yg, ad):
+    """`--fikstur <ad>` CLI yolunun cikis kodu (borusuz; ciktisi yutulur, rc OKUNUR)."""
+    tampon = io.StringIO()
+    with contextlib.redirect_stdout(tampon):
+        rc = yg.main(["--fikstur", ad])
+    return rc, tampon.getvalue()
+
+
+def _dk(simdi, an):
+    return (simdi - an).total_seconds() / 60.0
+
+
+def y10_giris_ani(yg):
+    """26 Eyl 2026: taban = max(commit, yayin ani, MAIN'E GIRIS ani); giris olculemezse
+    ESKI taban + OLCULEMEDI notu. Uc kanari + ayiklayicinin fail-closed kollari."""
+    # (A) GERCEK YANLIS ALARM: sessizlik 63 dk + 13 dk'lik bekleyen commit, deploy kosuyor.
+    sinif, beklenen, gerekce, o = _fikstur_hukmu(yg, VAKA_GIRIS_A)
+    rc, _ = _cli_rc(yg, VAKA_GIRIS_A)
+    kayit("Y10", "A %s: AKIYOR rc=0 (26 Eyl yanlis alarmi kapandi)" % VAKA_GIRIS_A,
+          sinif == beklenen == "AKIYOR" and rc == 0,
+          "%s rc %d · yas=%.1f dk · %s" % (sinif, rc, o.get("yas_dk") or -1,
+                                            "; ".join(gerekce)[:60]))
+    giris, simdi_, yayin = o.get("giris_ani"), o.get("simdi"), o.get("yayin_ani")
+    # Iddia SAYISI her kosulda AYNI kalir (alan yoksa iki iddia da KIRMIZI yazilir):
+    # mutasyon surucusu sayi dususunu "test coktu" diye okur.
+    tam = bool(giris and simdi_ and yayin)
+    kayit("Y10", "A: yas MAIN'E GIRIS anindan olculuyor (taban adi + sayi)",
+          tam and abs((o.get("yas_dk") or 0) - _dk(simdi_, giris)) < 0.5
+          and o.get("yas_tabani") == "main'e giris ani",
+          "giris %s · olculen %.1f dk · taban=%s · durum=%s"
+          % (tam and "%.1f dk" % _dk(simdi_, giris), o.get("yas_dk") or 0,
+             o.get("yas_tabani"), o.get("giris_durum")))
+    # KANARI YUK TASIYOR MU: ayni govde ESKI tabanla (yayin ani) TIKALI esigini asardi.
+    kayit("Y10", "A: ESKI taban (yayin ani) ayni govdede TIKALI esigini asardi "
+          "(kanari yuk tasiyor)", tam and _dk(simdi_, yayin) >= yg.TIKALI_YAS_DK,
+          "eski taban yasi %s · esik %d"
+          % (tam and "%.1f dk" % _dk(simdi_, yayin), yg.TIKALI_YAS_DK))
+
+    # (B) GERCEK TIKANMA: icerik 70 dk once main'e girdi, yayin yok.
+    sinif, beklenen, gerekce, o = _fikstur_hukmu(yg, VAKA_GIRIS_B)
+    rc, _ = _cli_rc(yg, VAKA_GIRIS_B)
+    kayit("Y10", "B %s: TIKALI rc=3 ve hukum yas ekseninden" % VAKA_GIRIS_B,
+          sinif == beklenen == "TIKALI" and rc == 3
+          and bool((o.get("eksenler") or {}).get("yas_tikali")),
+          "%s rc %d · yas=%.1f dk · %s" % (sinif, rc, o.get("yas_dk") or -1,
+                                            "; ".join(gerekce)[:60]))
+    giris, simdi_ = o.get("giris_ani"), o.get("simdi")
+    kayit("Y10", "B: giris = son yayinlanan sha'dan SONRAKI ILK push (en yeni push DEGIL)",
+          bool(giris and simdi_) and abs(_dk(simdi_, giris) - 70.0) < 0.5
+          and abs((o.get("yas_dk") or 0) - 70.0) < 0.5,
+          "giris %s · yas %.1f dk" % (giris and giris.strftime("%H:%M"), o.get("yas_dk") or 0))
+
+    # (C) KAYNAK OLCULEMEDI: eski davranis + OLCULEMEDI notu (sessiz yesil YOK).
+    sinif, beklenen, gerekce, o = _fikstur_hukmu(yg, VAKA_GIRIS_C)
+    rc, cikti = _cli_rc(yg, VAKA_GIRIS_C)
+    # Eski tabanin KENDISI (yayin ani mi, commit tarihi mi) Y7'nin iddiasidir; burada
+    # yalniz "giris tabana GIRMEDI, yas A'nin 13 dk'sina DUSMEDI, alarm KALDI" olculur.
+    kayit("Y10", "C %s: ESKI davranis — TIKALI rc=3, giris tabana girmedi" % VAKA_GIRIS_C,
+          sinif == beklenen == "TIKALI" and rc == 3 and o.get("giris_ani") is None
+          and (o.get("yas_dk") or 0) >= yg.TIKALI_YAS_DK,
+          "%s rc %d · yas=%.1f dk" % (sinif, rc, o.get("yas_dk") or -1))
+    kayit("Y10", "C: OLCULEMEDI notu olcumde + ozet satirinda + gerekcede (ILAN edildi)",
+          str(o.get("giris_durum") or "").startswith(yg.GIRIS_OLCULEMEDI)
+          and "main'e giris ani: %s" % yg.GIRIS_OLCULEMEDI in cikti
+          and any(yg.GIRIS_OLCULEMEDI in g for g in gerekce),
+          "durum=%s" % (str(o.get("giris_durum"))[:60],))
+
+    # (D) AYIKLAYICI fail-closed kollari — dogrudan, fikstursuz (kod olgusu).
+    import datetime as _dt
+    simdi = _dt.datetime(2026, 9, 26, 18, 0, tzinfo=_dt.timezone.utc)
+    sablon = {"after": "b" * 40, "before": "a" * 40, "ref": "refs/heads/main",
+              "timestamp": "2026-09-26T17:00:00Z", "activity_type": "push"}
+
+    def _patlar_mi(govde):
+        try:
+            yg.giris_anini_ayikla(govde, "a" * 40, simdi)
+        except yg.OlcumHatasi:
+            return True
+        return False
+    kayit("Y10", "ayiklayici: eslesen push YOK / gelecek damga / eksik alan / bos -> "
+          "OlcumHatasi (eski tabana duser)",
+          _patlar_mi([dict(sablon, before="c" * 40)])
+          and _patlar_mi([dict(sablon, timestamp="2026-09-26T18:30:00Z")])
+          and _patlar_mi([{k: v for k, v in sablon.items() if k != "before"}])
+          and _patlar_mi([]) and _patlar_mi({"x": 1}))
+    iki = [dict(sablon, timestamp="2026-09-26T17:30:00Z"),
+           dict(sablon, timestamp="2026-09-26T16:40:00Z"),
+           dict(sablon, activity_type="branch_deletion", timestamp="2026-09-26T15:00:00Z")]
+    g = yg.giris_anini_ayikla(iki, "A" * 40, simdi)
+    kayit("Y10", "ayiklayici: birden cok eslesmede EN ESKI alinir, dal silme sayilmaz, "
+          "sha buyuk/kucuk harf duyarsiz", g.strftime("%H:%M") == "16:40",
+          g.strftime("%H:%M"))
+
+
 # ---------------------------------------------------------------- kosum
 IDDIALAR = (("Y1", "EKSEN 1 — bekleyen icerik (yas/zincir/birikme)"),
             ("Y2", "SOZLESME — sinif kodlari + esiklerin olculen tabani"),
@@ -655,7 +762,8 @@ IDDIALAR = (("Y1", "EKSEN 1 — bekleyen icerik (yas/zincir/birikme)"),
             ("Y6", "TESHIS + SIZINTI — gh stderr"),
             ("Y7", "YAS TABANI — yayin ani"),
             ("Y8", "EKSEN 2 — kosum omur tavani"),
-            ("Y9", "EKSEN 3 — yayinsiz zincir (kostu ama yayinlaMADI)"))
+            ("Y9", "EKSEN 3 — yayinsiz zincir (kostu ama yayinlaMADI)"),
+            ("Y10", "YAS TABANI 3. ALT SINIR — main'e giris ani (activity)"))
 
 
 def main():
@@ -682,7 +790,8 @@ def main():
                 ("Y6", lambda: y6_teshis_ve_sizinti(yg)),
                 ("Y7", lambda: y7_yas_tabani(yg)),
                 ("Y8", lambda: y8_omur_ekseni(yg)),
-                ("Y9", lambda: y9_yayinsiz_zinciri(yg)))
+                ("Y9", lambda: y9_yayinsiz_zinciri(yg)),
+                ("Y10", lambda: y10_giris_ani(yg)))
     for kod, fn in kosumlar:
         try:
             fn()

@@ -58,14 +58,18 @@ DEPLOY = "deploy.yml"                     # .github/workflows/ altinda
 # CI'da kosmuyor" hem "kabul testi BLOKLAMAYAN seritte kosuyor" der.
 NOBET = "nobet.yml"                       # .github/workflows/ altinda
 
-AYNA_TOOLS = (NOBETCI, TEST, DURUM, SUZGEC, IS_AKISI)
+# 🔴 26 Eyl 2026 OLCULDU: `is-akisi-kapisi.py` 28 Agu'dan beri `import gecici_worktree`
+# yapiyor; ayna onu tasimadigi icin TABAN kosumu ModuleNotFoundError ile coktu ve surucu
+# o tarihten beri HICBIR mutanti olcemiyordu (taban kirmizi = olcum yok).
+GECICI_WT = "gecici_worktree.py"
+AYNA_TOOLS = (NOBETCI, TEST, DURUM, SUZGEC, IS_AKISI, GECICI_WT)
 FIKSTUR = os.path.join(TOOLS, "fikstur", "yayin-gecikme")
 DEPLOY_YOL = os.path.join(ROOT, ".github", "workflows", DEPLOY)
 NOBET_YOL = os.path.join(ROOT, ".github", "workflows", NOBET)
 DOKUNULMAZ = ([os.path.join(TOOLS, a) for a in AYNA_TOOLS]
               + [DEPLOY_YOL, NOBET_YOL])
 
-EKSENLER = ("Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9")
+EKSENLER = ("Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10")
 
 FAILS = []
 
@@ -95,8 +99,9 @@ M1 = ("M1", "ESIK GEVSETME: tikanma esikleri devre disi (tikanma sessizlesir)",
       # CAPRAZ (gerekce): zincir esigini oldurmek yalniz icerik ekseninin fiksturlerini
       # (Y1) degil, `bugun-build-dustu` KORELME kanarisini da (Y5) dusurur — o kanarinin
       # hukmu TAM DA hata zincirinden gelir. Iki eksen ayrik degil: ayni esik ikisini de
-      # tasiyor.
-      ["Y1", "Y5"], "ESIT")
+      # tasiyor. 26 Eyl: Y10 da duser — B/C kanarilarinin TIKALI hukmu ve A'nin "eski
+      # taban esigi asardi" iddiasi AYNI `TIKALI_YAS_DK` esiginden gelir.
+      ["Y1", "Y5", "Y10"], "ESIT")
 
 M2 = ("M2", "OLCULEMEDI -> YESIL: ag/yetki yoklugu 'sorun yok' diye okunuyor",
       NOBETCI,
@@ -127,8 +132,9 @@ M4 = ("M4", "BIRIKME SIFIRLAMA: `ahead_by` okunmuyor (bekleyen icerik GORUNMEZ)"
       # icerik ekseni (Y1), `bugun-build-dustu` korelme kanarisi (Y5) ve yas TABANI
       # olcumu (Y7 — yas artik hic hesaplanmiyor) ve EKSEN 3 (Y9 — yas kapisinin
       # arkasindadir) AYNI ANDA duser. Dort eksen de ayni fiziksel olgunun (bekleyen
-      # icerigin gorunmez olmasi) sonucudur.
-      ["Y1", "Y5", "Y7", "Y9"], "ESIT")
+      # icerigin gorunmez olmasi) sonucudur. 26 Eyl: Y10 da duser — giris ani yalniz
+      # bekleyen icerik VARKEN sorulur (geride 0 -> A/B/C'de yas hic hesaplanmaz).
+      ["Y1", "Y5", "Y7", "Y9", "Y10"], "ESIT")
 
 M5 = ("M5", "ZINCIR BASARIDA DURMUYOR: pencere boyu hatalar toplaniyor",
       NOBETCI,
@@ -149,8 +155,9 @@ M7 = ("M7", "ACLIK'ta VE -> VEYA: tek basina iptal zinciri alarm uretiyor",
         "    if eksen[\"iptal_zinciri\"] or eksen[\"yas_gecikme\"]:")],
       # CAPRAZ (gerekce): kural VEYA'ya donunce `yas_gecikme` TEK BASINA ACLIK uretir ve
       # ACLIK, TIKALI'dan ONCE dondugu icin EKSEN 3'un hukmunu de yutar (Y9 kanarisi
-      # ACLIK'a duser). Ayni tek satir iki ekseni birden bozuyor.
-      ["Y1", "Y9"], "ESIT")
+      # ACLIK'a duser). Ayni tek satir iki ekseni birden bozuyor. 26 Eyl: Y10'un B/C
+      # kanarilari (yas >= 50 dk, iptal 0) da ACLIK'a duser -> Y10.
+      ["Y1", "Y9", "Y10"], "ESIT")
 
 M8 = ("M8", "YAS TABANI KALDIRILDI: ff-only ile gelen eski tarihli commit yasi sisiriyor",
       NOBETCI,
@@ -264,6 +271,50 @@ M18 = ("M18", "EKSEN 3 ESIGI ETKISIZ: TIKALI_YAYINSIZ_ZINCIR yukseltildi (esik g
        # Ayirt edici (yalniz Y9) mutant M17'dir; bu giris esik yuzeyini ayrica olcer.
        ["Y2", "Y9"], "ESIT")
 
+# ── Y10: MAIN'E GIRIS ANI (26 Eyl 2026) ────────────────────────────────────────────
+# Kanarilar: A = 26 Eyl yanlis alarmi (YESIL olmali) · B = giristen 70 dk (TIKALI) ·
+# C = giris olculemedi (eski taban + OLCULEMEDI notu). Her mutant hangi kanariyi
+# kirmizi yaktigini aciklamasinda SOYLER; eksen kumesi ESIT olcutle nobet altindadir.
+G1 = ("G1", "TABAN ESKI YAYIN ANINA DONDU: giris ani okunuyor ama tabana GIRMIYOR "
+            "(26 Eyl yanlis alarmi geri gelir — A kirmizi, B hukmu degismez)",
+      NOBETCI,
+      [("            baslangic = max(baslangic, giris)",
+        "            baslangic = baslangic")],
+      ["Y10"], "ESIT")
+
+G2 = ("G2", "MAX YERINE MIN: taban giris ile eski tabanin ESKISI (A kirmizi; B yasi "
+            "120 dk'ya kayar — hukum TIKALI kalir, sayi iddiasi yakalar)",
+      NOBETCI,
+      [("            baslangic = max(baslangic, giris)",
+        "            baslangic = min(baslangic, giris)")],
+      ["Y10"], "ESIT")
+
+G3 = ("G3", "GIRIS EN YENI PUSH'TAN OKUNUYOR (ilk push degil): gercek tikanma KACAR "
+            "(B 10 dk -> AKIYOR; A tek push oldugu icin YESIL kalir)",
+      NOBETCI,
+      [("    giris = min(adaylar)\n",
+        "    giris = _iso(govde[0][\"timestamp\"], \"mutant\")\n")],
+      ["Y10"], "ESIT")
+
+G4 = ("G4", "OLCULEMEDI NOTU SILINDI: giris olculemeyince eski taban SESSIZCE kullanilir "
+            "(C'nin ILAN iddiasi kirmizi)",
+      NOBETCI,
+      [("            olcum[\"giris_durum\"] = \"%s — %s\" % (GIRIS_OLCULEMEDI, e)\n"
+        "            taban_adi += \"; main'e giris ani %s\" % GIRIS_OLCULEMEDI\n",
+        "            olcum[\"giris_durum\"] = None\n")],
+      ["Y10"], "ESIT")
+
+G5 = ("G5", "OLCULEMEDI -> SESSIZ YESIL: giris olculemeyince taban SIMDI (yas 0) — C "
+            "YESIL yanar",
+      NOBETCI,
+      [("            taban_adi += \"; main'e giris ani %s\" % GIRIS_OLCULEMEDI\n",
+        "            taban_adi += \"; main'e giris ani %s\" % GIRIS_OLCULEMEDI\n"
+        "            baslangic = simdi\n")],
+      # CAPRAZ (gerekce): 26 Eyl'den ONCE yazilmis fiksturler `aktivite` bildirmez, yani
+      # hepsi "giris olculemedi" kolundan gecer; bu mutant onlarin yasini da sifirlar.
+      # Kumenin tamami OLCULEREK yazildi (bkz. surucu matrisi).
+      ["Y1", "Y7", "Y9", "Y10"], "ESIT")
+
 # ── KONTROL MUTANTLARI (YESIL kalmali) ──────────────────────────────────────────────
 # Surucu "her seye kirmizi yanan" gurultulu bir alarma donusmesin: anlam tasimayan
 # degisiklikler bataryayi KIRMIZI yakmamali, yoksa yukaridaki "OLDU" hukumlerinin hicbiri
@@ -296,7 +347,7 @@ K5 = ("K5", "ilgisiz: EKSEN 3 sabitinin yanina aciklama yorumu eklendi (esik DEG
       [], "ESIT")
 
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, V1, V2, V3, M11, M12, M13,
-             M14, M15, M16, M17, M18, M19, K1, K2, K3, K4, K5)
+             M14, M15, M16, M17, M18, M19, G1, G2, G3, G4, G5, K1, K2, K3, K4, K5)
 OLCUTLER = ("ESIT",)
 
 IDDIA_RE = re.compile(r"^IDDIA SAYISI:\s*(\d+)\s*$", re.M)

@@ -1,5 +1,37 @@
 {
- "_aciklama": "GERCEK `gh api` govdesinin SEKLI (1 Agu 2026, repos/<depo>/actions/workflows/deploy.yml/runs ve .../compare ve .../actions/runs/<id>/jobs). Kisisel veri (ad/e-posta/commit mesaji) SABIT fikstur degerleriyle degistirildi; ALAN ADLARI ve IC ICE GECME AYNEN korundu. Senaryo fiksturleri bu capayi SABLON alir ve yalniz var olan alanlari ezer -> uydurma alan icat edilemez. Is (job) capasinda `steps` yalnizca ILK adima kirpildi (nobetci `steps` OKUMAZ; kirpma bu satirla ILAN EDILIR) — `name`/`status`/`conclusion` alanlari GERCEK govdeden gelir.",
+ "_aciklama": "GERCEK `gh api` govdesinin SEKLI (1 Agu 2026, repos/<depo>/actions/workflows/deploy.yml/runs ve .../compare ve .../actions/runs/<id>/jobs). Kisisel veri (ad/e-posta/commit mesaji) SABIT fikstur degerleriyle degistirildi; ALAN ADLARI ve IC ICE GECME AYNEN korundu. Senaryo fiksturleri bu capayi SABLON alir ve yalniz var olan alanlari ezer -> uydurma alan icat edilemez. Is (job) capasinda `steps` yalnizca ILK adima kirpildi (nobetci `steps` OKUMAZ; kirpma bu satirla ILAN EDILIR) — `name`/`status`/`conclusion` alanlari GERCEK govdeden gelir. `aktivite` (26 Eyl 2026): repos/<depo>/activity?ref=refs/heads/main govdesinin ILK kaydi; `actor` alt nesnesi kimlik alanlarinda (login/id/node_id) fikstur degerleriyle degistirildi, alan adlari AYNEN.",
+ "aktivite": [
+  {
+   "activity_type": "push",
+   "actor": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/0?v=4",
+    "events_url": "https://api.github.com/users/fikstur-kullanici/events{/privacy}",
+    "followers_url": "https://api.github.com/users/fikstur-kullanici/followers",
+    "following_url": "https://api.github.com/users/fikstur-kullanici/following{/other_user}",
+    "gists_url": "https://api.github.com/users/fikstur-kullanici/gists{/gist_id}",
+    "gravatar_id": "",
+    "html_url": "https://github.com/fikstur-kullanici",
+    "id": 0,
+    "login": "fikstur-kullanici",
+    "node_id": "U_fikstur",
+    "organizations_url": "https://api.github.com/users/fikstur-kullanici/orgs",
+    "received_events_url": "https://api.github.com/users/fikstur-kullanici/received_events",
+    "repos_url": "https://api.github.com/users/fikstur-kullanici/repos",
+    "site_admin": false,
+    "starred_url": "https://api.github.com/users/fikstur-kullanici/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/fikstur-kullanici/subscriptions",
+    "type": "User",
+    "url": "https://api.github.com/users/fikstur-kullanici",
+    "user_view_type": "public"
+   },
+   "after": "402b264971e7c6a1372a5ce0f8e0a9ffdc648a9b",
+   "before": "62c1c521c3db7b5f79ca0cde06e1fb79292429ee",
+   "id": 44663153808,
+   "node_id": "PSH_fikstur",
+   "ref": "refs/heads/main",
+   "timestamp": "2026-09-26T17:11:09Z"
+  }
+ ],
  "isler": {
   "jobs": [
    {

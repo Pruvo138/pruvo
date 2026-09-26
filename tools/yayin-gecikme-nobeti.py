@@ -222,11 +222,34 @@ yeniden kuruldu; `yz/cek.py` + `yz/tik-sim.py` sruculeri):
 yayinlaMADI" = hata sonuclari + `yayinsiz`) ama yas kapisi ARKASINDADIR. `ardisik_hata`
 (esik 4) yas'tan BAGIMSIZ hukum verir ve oyle KALIR; ikisi ayri satir uretir.
 
-🔴 BEYAN EDILMIS KALINTI SINIF (olculdu, ONARILMADI): gece boyu push gelmeyen pencerede
-(00:57 -> 08:41) sabah gelen commit'ler `--ff-only` ile ESKI committer tarihi tasidi ve
-taban da 7,7 saat oncesinin yayin aniydi -> yas 464,5 dk. ESKI tabanda da 491,7 idi, yani
-bu bir GERILEME DEGIL; kalan bir siniftir ve TIKALI yakar. Onarimi ayri bir tur isidir
-(taban ucuncu bir alt sinir daha ister: "kosum tetikleyen push'un GELDIGI an").
+🔴 BEYAN EDILMIS KALINTI SINIF (olculdu 2 Agu; 26 Eyl'de KAPATILDI — asagiya bkz.): gece
+boyu push gelmeyen pencerede (00:57 -> 08:41) sabah gelen commit'ler `--ff-only` ile ESKI
+committer tarihi tasidi ve taban da 7,7 saat oncesinin yayin aniydi -> yas 464,5 dk.
+Taban ucuncu bir alt sinir istiyordu: "bekleyen icerigin main'e GELDIGI an".
+
+🔴 UCUNCU ALT SINIR — MAIN'E GIRIS ANI (26 Eyl 2026, OLCULEN YANLIS ALARM)
+==========================================================================
+`paket-tazelik-alarmi` zamanlanmis kosumu 36256612737 (16:45Z) "TIKALI, en eski bekleyen
+commit 76 dk" dedi. Gercek: son yayin b3194e03 (`deploy` 15:29:51Z); 15:29-16:32 arasi
+main'e HIC push yok (sessizlik); 16:32:24'te 7808fd50 push'landi (dal merge'u; en eski
+commit'in committer tarihi 23 Eyl), deploy kosumu 36255819182 16:32:26'da basladi ve
+success indi. Bekleyen icerik ~13 dk'likti -> YANLIS ALARM. Kok: taban "son yayin ani"
+iken main SESSIZ kalinca yas, icerik main'de YOKKEN birikiyordu.
+
+Giris ani git'te YOKTUR (committer tarihi dalda yazildigi an; ff-only/merge bunu korur).
+Iki aday OLCULDU (26 Eyl, `gh api`):
+  * push-tetikli deploy kosumunun `created_at`'i — push'tan ~2 sn sonra; AMA 100 main
+    push'unun 4'u `github-actions[bot]`undu ve GITHUB_TOKEN push'u is akisi TETIKLEMEZ:
+    o push'lar kosumsuzdur -> giris GEC okunur -> yas ALTTAN (fail-OPEN yon). REDDEDILDI.
+  * `repos/<depo>/activity?ref=refs/heads/main` — HER push (bot dahil) `before`/`after`/
+    `timestamp` ile. Bekleyen icerigi main'e getiren push TANIM GEREGI `before ==
+    son yayinlanan sha` olan push'tur (sezgisel eslesme YOK). SECILDI.
+Kural:
+    giris_ani = min(timestamp | aktivite.before == son_basarili.head_sha)
+    taban     = max(en_eski_commit_tarihi, yayin_ani, giris_ani)
+Giris olculemezse (API hatasi / yetki / pencerede eslesen push yok / gelecek damga)
+taban ESKI davranistir (max(commit, yayin ani)) ve rapor `OLCULEMEDI` notu tasir: eski
+taban giris'ten ONCE ya da ESIT oldugu icin yas USTTEN olculur — sessiz yesil DOGMAZ.
 
 🔴 TEK IPTAL ALARM DEGILDIR. Eszamanlilik iptali bu depoda BILINCLI bir tasarimin
 (`cancel-in-progress: false` + tek bekleyen kuyrugu) normal sonucudur. ACLIK ancak
@@ -242,7 +265,8 @@ ise canli main'in TA KENDISIDIR; kosum zincirleri ne olursa olsun sonuc AKIYOR
 YAS NASIL OLCULUR (ve neden TABANLANIR)
 =======================================
     yayin_ani          = son_basarili kosumun `deploy` isinin `completed_at`'i
-    bekleme_baslangici = max(en_eski_bekleyen_commit_tarihi, yayin_ani)
+    giris_ani          = son yayinlanan sha'dan SONRAKI ilk push (activity API)
+    bekleme_baslangici = max(en_eski_bekleyen_commit_tarihi, yayin_ani, giris_ani)
     yas_dk             = simdi - bekleme_baslangici
 Taban SART: bu depoda dallar `--ff-only` ile alinir ve commit'ler ORIJINAL committer
 tarihini tasir. Tabansiz olcum, saatler once bir worktree'de yazilip bugun alinan bir
@@ -367,6 +391,16 @@ IS_ZORUNLU = ("name", "status", "conclusion", "completed_at")
 # Tarama ilk yayinlayan kosumda DURUR; tavan yalnizca butce sinuridir (bkz. baslik).
 IS_SORGU_TAVANI = 8
 
+# 🔴 MAIN'E GIRIS ANI (26 Eyl 2026, bkz. baslik "UCUNCU ALT SINIR"). Aktivite objesinde
+# OKUNAN alanlar — biri yoksa giris OLCULEMEDI (yas eski tabana duser, rapor ILAN eder).
+AKTIVITE_ZORUNLU = ("before", "after", "ref", "timestamp", "activity_type")
+# Pencere: olculen trafik ~20 push/gun (26 Eyl, 100 push ~5 gun) -> son yayin 5 gunden
+# eskiyse eslesen push pencere DISINDA kalir ve giris OLCULEMEDI olur (eski taban).
+AKTIVITE_PENCERE = 100
+# Dal SILME aktivitesi main'e icerik GETIRMEZ.
+AKTIVITE_ICERIKSIZ = ("branch_deletion",)
+GIRIS_OLCULEMEDI = "OLCULEMEDI"
+
 SINIF_RC = {"AKIYOR": 0, "GECIKME": 1, "OLCULEMEDI": 2, "TIKALI": 3, "ACLIK": 4}
 SINIF_ISARET = {"AKIYOR": "🟢", "GECIKME": "🟡", "OLCULEMEDI": "⚪",
                 "TIKALI": "🔴", "ACLIK": "🔴"}
@@ -413,6 +447,11 @@ def karsilastirma_yolu(taban, dal=DAL, depo=None):
 
 def is_yolu(kosum_id, depo=None):
     return "repos/%s/actions/runs/%s/jobs?per_page=100" % (depo or DEPO, kosum_id)
+
+
+def aktivite_yolu(depo=None, dal=DAL, pencere=None):
+    return ("repos/%s/activity?ref=refs/heads/%s&per_page=%d"
+            % (depo or DEPO, dal, AKTIVITE_PENCERE if pencere is None else pencere))
 
 
 # `gh` stderr'i -> SABIT sinif etiketi. Anahtarlar kucuk harfe cevrilmis metinde ARANIR.
@@ -537,6 +576,42 @@ def karsilastirmayi_ayikla(govde):
                           "olabilir")
     # compare en fazla 250 commit dondurur: uzerinde yas ALTTAN olculur, ILAN EDILIR.
     return geride, _iso(tarih, "commits[0] committer.date"), geride > len(commits)
+
+
+def giris_anini_ayikla(govde, taban_sha, simdi):
+    """activity govdesi -> son yayinlanan sha'dan SONRAKI ilk push'un zamani. FAIL-CLOSED.
+
+    Eslesme TANIMSALDIR, sezgisel DEGIL: bekleyen icerigi main'e getiren push `before`
+    alani son yayinlanan sha olan push'tur (main dogrusal; bot push'lari DAHIL — deploy
+    kosumu kaynagi onlari goremiyordu, bkz. baslik). Her ariza OlcumHatasi'dir; cagiran
+    onu YUTMAZ, eski tabana dusup `OLCULEMEDI` notunu rapora tasir.
+    """
+    if not isinstance(govde, list):
+        raise OlcumHatasi("aktivite govdesi liste degil (%s)" % type(govde).__name__)
+    if not govde:
+        raise OlcumHatasi("aktivite listesi BOS")
+    taban = str(taban_sha or "").lower()
+    if not taban:
+        raise OlcumHatasi("son yayinlanan sha BOS — eslesecek push yok")
+    adaylar = []
+    for i, a in enumerate(govde):
+        _sozluk(a, "aktivite[%d]" % i)
+        eksik = [f for f in AKTIVITE_ZORUNLU if f not in a]
+        if eksik:
+            raise OlcumHatasi("aktivite[%d] alanlari EKSIK: %s (API sekli degismis olabilir)"
+                              % (i, ", ".join(eksik)))
+        if a["activity_type"] in AKTIVITE_ICERIKSIZ:
+            continue
+        if str(a["before"] or "").lower() == taban:
+            adaylar.append(_iso(a["timestamp"], "aktivite[%d] timestamp" % i))
+    if not adaylar:
+        raise OlcumHatasi("son yayinlanan sha %s'den SONRAKI push aktivite penceresinde "
+                          "(%d kayit) YOK" % (taban[:8], len(govde)))
+    giris = min(adaylar)
+    if giris > simdi:
+        raise OlcumHatasi("giris ani (%s) simdiden (%s) SONRA — saat/govde tutarsiz"
+                          % (giris.strftime("%H:%M:%S"), simdi.strftime("%H:%M:%S")))
+    return giris
 
 
 # ---------------------------------------------------------------- is (job) duzeyi
@@ -697,6 +772,10 @@ def olc(getir=api_getir, simdi=None, depo=None, dal=DAL):
         "taslak_isi": None,
         "geride": None,
         "yas_dk": None,
+        # UCUNCU ALT SINIR (26 Eyl): bekleyen icerigin main'e GIRIS ani + olcum durumu.
+        "giris_ani": None,
+        "giris_durum": None,
+        "yas_tabani": None,
         "kirpildi": False,
         # EKSEN 2 — yas ekseninden BAGIMSIZ olculur, `ahead_by` kapisinin ONUNDE.
         "takilan_kosum_dk": takilan_dk,
@@ -731,6 +810,23 @@ def olc(getir=api_getir, simdi=None, depo=None, dal=DAL):
         # TABAN: bir commit son YAYINDAN once bekliyor olamaz (bekliyorsa o yayinda inerdi).
         # Kosumun BASLANGICI DEGIL — aradaki fark bu hatta 47,8 dk olculdu.
         baslangic = max(en_eski, olcum["yayin_ani"])
+        taban_adi = "yayin ani" if olcum["yayin_ani"] >= en_eski else "commit tarihi"
+        # UCUNCU ALT SINIR: icerik main'e GELMEDEN bekliyor olamaz (26 Eyl, bkz. baslik).
+        # Olculemezse ESKI taban kalir (yas USTTEN) ve durum ILAN edilir — sessiz yesil YOK.
+        try:
+            giris = giris_anini_ayikla(
+                getir(aktivite_yolu(depo=depo, dal=dal), etiket="activity"),
+                son_basarili["head_sha"], simdi)
+        except OlcumHatasi as e:
+            olcum["giris_durum"] = "%s — %s" % (GIRIS_OLCULEMEDI, e)
+            taban_adi += "; main'e giris ani %s" % GIRIS_OLCULEMEDI
+        else:
+            olcum["giris_ani"] = giris
+            olcum["giris_durum"] = "OLCULDU"
+            if giris > baslangic:
+                taban_adi = "main'e giris ani"
+            baslangic = max(baslangic, giris)
+        olcum["yas_tabani"] = taban_adi
         olcum["yas_dk"] = max(0.0, (simdi - baslangic).total_seconds() / 60.0)
     else:
         olcum["yas_dk"] = 0.0
@@ -837,14 +933,14 @@ def _icerik_hukmu(olcum, eksen):
                      % (olcum["ardisik_yayinsiz"], YAYIN_ISI, TIKALI_YAYINSIZ_ZINCIR,
                         yas, GECIKME_YAS_DK))
     if eksen["yas_tikali"]:
-        neden.append("en eski bekleyen commit %.0f dk (esik %d dk, taban: yayin ani)"
-                     % (yas, TIKALI_YAS_DK))
+        neden.append("en eski bekleyen commit %.0f dk (esik %d dk, taban: %s)"
+                     % (yas, TIKALI_YAS_DK, olcum.get("yas_tabani") or "yayin ani"))
     if neden:
         return "TIKALI", neden
 
     if eksen["yas_gecikme"]:
-        neden.append("en eski bekleyen commit %.0f dk (uyari esigi %d dk, taban: yayin ani)"
-                     % (yas, GECIKME_YAS_DK))
+        neden.append("en eski bekleyen commit %.0f dk (uyari esigi %d dk, taban: %s)"
+                     % (yas, GECIKME_YAS_DK, olcum.get("yas_tabani") or "yayin ani"))
     if eksen["birikme"]:
         neden.append("%d commit birikti (uyari esigi %d)" % (geride, GECIKME_BIRIKME))
     if neden:
@@ -889,12 +985,21 @@ def _ozet_satirlari(olcum):
                     "yok" if not olcum["geride"] else "%.0f dk" % olcum["yas_dk"]))
         # YAS TABANI = `deploy` isinin bitisi. Kosumun bitisi AYRI basilir: ikisi bu
         # hatta 47,8 dk'ya kadar ayrisir ve tabani karistirmak yanlis alarm uretmisti.
-        s.append("son yayinlanan sha: %s (`%s` isi %s'de BITTI = yas tabani · kosum %s'de "
+        s.append("son yayinlanan sha: %s (`%s` isi %s'de BITTI = yayin ani · kosum %s'de "
                  "bitti · kosum %s'de basladi)"
                  % (olcum["son_basarili_sha"], YAYIN_ISI,
                     olcum["yayin_ani"].strftime("%H:%M UTC"),
                     olcum["son_basarili_bitis"].strftime("%H:%M"),
                     olcum["son_basarili_baslangic"].strftime("%H:%M")))
+        if olcum["geride"]:
+            # UCUNCU ALT SINIR HER ZAMAN BASILIR: "olculdu" ile "olculemedi, eski taban"
+            # ayni satirda karismasin (sessiz yesil YOK).
+            giris = olcum.get("giris_ani")
+            s.append("main'e giris ani: %s · yas tabani: %s"
+                     % (giris.strftime("%H:%M UTC (push aktivitesi)") if giris
+                        else "%s (eski taban; yas USTTEN olculdu)"
+                        % (olcum.get("giris_durum") or GIRIS_OLCULEMEDI),
+                        olcum.get("yas_tabani")))
         taslak = olcum.get("taslak_isi")
         if taslak is not None and taslak != "success":
             # OLCULUR ama site tazeligi hakkinda hukum VERMEZ (bkz. modul basligi).
@@ -1102,9 +1207,30 @@ def fikstur_yukle(ad, capa=None):
             kars["commits"] = [_bindir(sablon, c, "karsilastirma.commits[%d]" % i)
                                for i, c in enumerate(commit_ust)]
 
+    # ---- MAIN'E GIRIS ANI (activity) govdesi ---------------------------------------
+    # `aktivite` = [{before, after, timestamp, ...}] (sablon: capa["aktivite"][0]).
+    # VERILMEMISSE uc SORULUNCA OlcumHatasi doner = gercek hattaki "giris olculemedi" hali
+    # (26 Eyl'den ONCE yazilmis fiksturler boylece ESKI tabanla, notlu, yargilanir).
+    # `_aktivite_hata` = uc hata versin (yetki/ag): ayni sinif, ACIK beyanla.
+    akt_ust = f_.get("aktivite")
+    akt_hata = f_.get("_aktivite_hata")
+    akt = None
+    if akt_ust is not None:
+        if not (isinstance(capa.get("aktivite"), list) and capa["aktivite"]):
+            raise OlcumHatasi("fikstur %s `aktivite` veriyor ama sekil capasinda "
+                              "`aktivite` sablonu YOK" % ad)
+        akt = [_bindir(capa["aktivite"][0], a, "aktivite[%d]" % i)
+               for i, a in enumerate(akt_ust)]
+
     def getir(yol_, zaman_asimi=25, etiket="api"):  # noqa: ARG001 — imza api_getir ile AYNI
         if hata:
             raise OlcumHatasi(hata)
+        if "/activity?" in yol_:
+            if akt_hata:
+                raise OlcumHatasi(akt_hata)
+            if akt is None:
+                raise OlcumHatasi("fikstur %s: aktivite govdesi TANIMSIZ" % ad)
+            return copy.deepcopy(akt)
         if "/actions/workflows/" in yol_:
             return {"total_count": len(kosumlar), "workflow_runs": copy.deepcopy(kosumlar)}
         if "/actions/runs/" in yol_ and "/jobs" in yol_:
