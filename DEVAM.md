@@ -2,6 +2,12 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔵 26 EYL 15:4x KraL ana-oturum (Okan: "devam") — **YAYIN 2bec95cd'den beri KAPALIYDI (serit-a3 kisisel-veri) → `94f77932` ile düzeltildi · RED kalıbı 7→5**
+**SIRADAKİ TEK İŞ:** değişmedi — çip `KraL-JevKapi-26Eyl` (`task_6d71d37a`) CANLI (ağaçta 4 dosya commit'siz, `deploy.yml` kablosu dahil); commit'leyince merge-kapısı → 5 eve kurulum. Önce `94f77932` yayın nöbeti (⑦).
+**🔴 YAYIN KIRIĞI:** `2bec95cd` köke `JEV-ENVANTER.md` koydu → `kisisel-veri-test` Kural B (`KOK_BELGE_IZIN`) `serit-a3`'ü kırdı, `deploy`+`yayin` SKIPPED (runs `36241469826` · `36241894677` failure). Önceki blokta yazan "kisisel-veri rc=0" dosya `git add` edilmeden koşulmuştu (ls-files ekseni) → [[yeni-kok-belge-commit-oncesi-kisisel-veri-yesil-yalan]]. Taşımak BaBa'nın kök ölçümünü körleştireceği için İZİN girdisi gerekçeyle eklendi. Yerel: `kisisel-veri` rc 1→0 · `ci-kapsam` rc=0.
+**JEV:** MaCiT (d) uygulandı `9f744ff9`: `macit-red-gerekcesi` `logo_tasiyor`+`mukerrer_islev` ÇIKTI (metinden seçilemez; kanca zaten BILGI sayıyor, hasat kodunda seçenek listesine bağ 0). `--kendini-test` 7/0 · canlı çağrı `lego_iliskili` 0,61 `motor=jev`. (c) kategori açıklamaları DEĞİŞMEDİ: metin değişirse 0,8 eşiği ölçümsüz kalır → aday metni + altın küme yeniden ölçümü MaCiT'e.
+**Okan'a çıkan:** YOK.
+
 ## 🔵 26 EYL 15:2x KraL ana-oturum (Okan /goal) — **JEV PRUVO'YA: kalıp katmanı main'de (`2bec95cd`), iki engel çözülüyor, 3 çip açık**
 **SIRADAKİ TEK İŞ:** çip `KraL-JevKapi-26Eyl` (`task_6d71d37a`) dalını merge-kapısıyla al → `.claude/mimar-kapi-kur.py` ile 5 eve kur → her evde `jev.py saglik` serbest mi ölç. Ardından EyLüL'ün ortak istemci zarf düzeltmesi gelince `jev_karar.py --kalip hoca-niyet --metin "…"` → `motor=jev` (şu an `kume_disi_cevap`).
 **YAPILAN:** ortak istemci `/Users/okan/.claude/jev/jev.py` (EyLüL) üstüne PRUVO **kalıp katmanı** `tools/jev_karar.py` + TEK KAYNAK `tools/jev-kaliplar.json` (5 ev, 8 kalıp, `esik: null` = insan onayı) + `JEV-ENVANTER.md` (P1–P8). Kendi yazdığım adaptör ortak istemci görününce SİLİNDİ (ikinci kopya yok). Kabul `--kendini-test` **7 iddia / 0 kırmızı**; izole mutant A (insan bandı) K4'te, B (seçenek adı) K2'de ÖLDÜ. `ci-kapsam` + `kisisel-veri` rc=0.
