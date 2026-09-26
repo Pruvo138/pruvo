@@ -1,0 +1,94 @@
+{
+  "_aciklama": "PRUVO Jev hazir kaliplari — TEK KAYNAK. Python: tools/jev_karar.py okur; worker'lar (HocA Ege) bu dosyayi import eder. esik null = altin kume henuz olculmedi: karar alinir ama DAIMA insan onayina duser (J1 3d). Ev >=30 gercek ornekle esigi olcunce sayiyi buraya yazar ve JEV-ENVANTER.md'ye isabeti duser.",
+  "kaliplar": {
+    "hoca-niyet": {
+      "ev": "HocA", "tip": "secim", "esik": null,
+      "soru": "Yedek parça / özel üretim atölyesinin WhatsApp hattına gelen müşteri mesajının niyeti nedir?",
+      "secenekler": {
+        "urun_sorusu": "belirli bir parça/ürün var mı, uyar mı, fiyatı ne",
+        "ozel_uretim": "katalogda olmayan, ölçüye/fotoğrafa göre üretim isteği",
+        "siparis_verme": "almak istiyor, adres/ödeme bilgisi veriyor",
+        "odeme_bildirimi": "ödeme yaptığını, dekont gönderdiğini söylüyor",
+        "kargo_takip": "siparişinin durumunu / kargosunu soruyor",
+        "sikayet_iade": "ürün hatalı, uymadı, iade/değişim istiyor",
+        "selam_diger": "selamlaşma, teşekkür ya da yukarıdakilerin hiçbiri"
+      }
+    },
+    "hoca-aciliyet": {
+      "ev": "HocA", "tip": "puan", "esik": null,
+      "soru": "Bu müşteri mesajına insanın ne kadar hızlı dönmesi gerekir?",
+      "olcek": ["bekleyebilir", "ayni_gun", "hemen"]
+    },
+    "kral-eposta-triyaj": {
+      "ev": "KraL", "tip": "secim", "esik": null,
+      "soru": "Bir e-ticaret atölyesine gelen e-posta / form mesajı hangi kovaya girer?",
+      "secenekler": {
+        "musteri_siparis": "sipariş, ürün sorusu, özel üretim talebi",
+        "musteri_sorun": "gecikme, hatalı ürün, iade, şikâyet",
+        "odeme_fatura": "ödeme, dekont, fatura talebi",
+        "tedarikci_is": "tedarikçi, kargo firması, iş ortaklığı",
+        "resmi_kurum": "vergi dairesi, banka, resmî kurum bildirimi",
+        "reklam_spam": "pazarlama, reklam teklifi, spam"
+      }
+    },
+    "kral-cevap-gerekli": {
+      "ev": "KraL", "tip": "evet", "esik": null,
+      "soru": "Bu mesaja bir insanın cevap yazması gerekiyor mu?"
+    },
+    "macit-kategori": {
+      "ev": "MaCiT", "tip": "secim", "esik": null,
+      "soru": "Bu parçanın ÇALIŞMA ALANI/PRENSİBİ hangi kategoriye girer? Tamirat marka-bağımsızdır; Elektronik'e kamera ve e-bike girmez; Ev elektriksizdir.",
+      "secenekler": {
+        "marin": "tekne, deniz",
+        "otomobil": "otomobil parçası",
+        "motosiklet": "motosiklet parçası",
+        "bisiklet": "bisiklet, e-bike",
+        "tamirat": "marka-bağımsız tamir aparatı/alet",
+        "ev": "elektriksiz ev eşyası",
+        "ofis": "ofis",
+        "elektronik": "elektronik cihaz (kamera hariç)",
+        "kamera": "kamera, lens, fotoğraf",
+        "bahce": "bahçe",
+        "dekorasyon": "dekor",
+        "oyun_hobi": "oyun, hobi"
+      }
+    },
+    "macit-red-gerekcesi": {
+      "ev": "MaCiT", "tip": "secim", "esik": null,
+      "soru": "Bu aday ürün kataloğa neden ALINMAMALI? Engel yoksa 'uygun' seç.",
+      "secenekler": {
+        "uygun": "eklenebilir",
+        "olcekli_maket": "ölçekli maket / model / oyuncak",
+        "logo_tasiyor": "baskıda marka logosu taşıyor",
+        "lego_iliskili": "LEGO ile ilişkili",
+        "diy_donor": "DIY / donör parça, tek başına ürün değil",
+        "kapsam_disi": "işlevsiz, dekoratif merch, kapsam dışı",
+        "mukerrer_islev": "katalogdaki bir ürünle aynı işlev"
+      }
+    },
+    "artist-seo-niyet": {
+      "ev": "ArTisT", "tip": "secim", "esik": null,
+      "soru": "Bu arama sorgusunun / içerik başlığının niyeti nedir?",
+      "secenekler": {
+        "parca_arama": "belirli bir parçayı arıyor",
+        "uyumluluk": "hangi araca/modele uyar",
+        "fiyat_satin_al": "fiyat, ucuz, satın al",
+        "nasil_yapilir": "tamir, montaj, nasıl yapılır",
+        "marka_genel": "marka/model genel bilgi",
+        "alakasiz": "işimizle ilgisiz"
+      }
+    },
+    "tekin-uretim-hatasi": {
+      "ev": "TeKiN", "tip": "secim", "esik": null,
+      "soru": "Bu üretim / dilimleme / jeneratör hata metni hangi sınıfa girer?",
+      "secenekler": {
+        "parametre_gecersiz": "girilen ölçü/parametre aralık dışı",
+        "geometri_bozuk": "manifold değil, kesişen yüzey, bozuk model",
+        "dilimleyici": "dilimleyici / slicer hatası",
+        "zaman_asimi": "süre aşımı, kaynak yetmedi",
+        "dosya_io": "dosya bulunamadı, yazılamadı, yükleme",
+        "bilinmeyen": "yukarıdakilerin hiçbiri"
+      }
+    }
+  }
+}
