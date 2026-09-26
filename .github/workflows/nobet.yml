@@ -2317,6 +2317,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kesif-kapsam-mutasyon.py
 
+      # CI KAPSAM KAPISI K14 (js/mjs/cjs bayrak cikarimi) + K15 (dar bayrak: ic nobet
+      # bayragiyla cagrilan test "kosuyor" sayilmaz) eksenlerinin mutasyon bataryasi.
+      # 9 kirmizi-beklentili + 3 kontrol mutant, olcut ESIT (fazla kirmizi da kusur),
+      # her eksenin tek-kirmizi mutanti; mutant diskte kalmaz (sha256 bas=son).
+      - name: "CI kapsam kapisi js-bayrak + dar-bayrak mutasyon bataryasi (K14/K15)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/ci-kapsam-dar-mutasyon.py
+
       - name: "Ata lisans kapisi mutasyon bataryasi (kabul testi gercekten olcuyor mu)"
         if: ${{ !cancelled() }}
         run: python3 tools/ata-lisans-mutasyon.py
