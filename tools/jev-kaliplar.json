@@ -56,15 +56,14 @@
     },
     "macit-red-gerekcesi": {
       "ev": "MaCiT", "tip": "secim", "esik": null,
+      "_kalibrasyon": "26 Eyl 2026: altın küme 60, argmax %33,3 ⇒ eşik yok. `logo_tasiyor` (görsel) + `mukerrer_islev` (katalog) metinden seçilemediği için ÇIKARILDI (0/10, 2/10); kanca o sınıfları zaten BILGI sayar. Yeniden ölçüm 5 seçenekle.",
       "soru": "Bu aday ürün kataloğa neden ALINMAMALI? Engel yoksa 'uygun' seç.",
       "secenekler": {
         "uygun": "eklenebilir",
         "olcekli_maket": "ölçekli maket / model / oyuncak",
-        "logo_tasiyor": "baskıda marka logosu taşıyor",
         "lego_iliskili": "LEGO ile ilişkili",
         "diy_donor": "DIY / donör parça, tek başına ürün değil",
-        "kapsam_disi": "işlevsiz, dekoratif merch, kapsam dışı",
-        "mukerrer_islev": "katalogdaki bir ürünle aynı işlev"
+        "kapsam_disi": "işlevsiz, dekoratif merch, kapsam dışı"
       }
     },
     "artist-seo-niyet": {
