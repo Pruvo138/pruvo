@@ -2931,6 +2931,38 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/sahipsiz-kapi-nobetcisi.py
 
+      # ═══ MIMAR KAPI BATARYALARI (26 Eyl 2026, cip KraL-KilitMutant-26Eyl) ═══
+      # OLCULDU (main b3194e03): `mimar-kilit-test` 318/323 KIRMIZI + `mimar-kapi-mutasyon-test`
+      # 37 SURVIVOR — ikisi de hicbir is akisinda KOSMUYORDU (yukaridaki K408 notu onlari
+      # ADIYLA anar), kirmizi 15+ gun GORUNMEDI. Onarim sonrasi yerelde 325/325 + SURVIVOR=0.
+      # 🔴 YEREL DUZLEM KURULUMU NEDEN SART (ci-kapsam-test.py'deki eski muafiyetin gerekcesi
+      # buydu): kapilar ve vakalar kanonik yollara SABITLENMIS dizge karsilastirmasi yapar
+      # (`/Users/okan/dev/pruvo`, `~/.claude/cron/isci.sh`) ve gecici worktree'yi
+      # `git -C /Users/okan/dev/pruvo worktree add` ile KAYDEDER. Runner'da bu duzlem kurulur:
+      # kanonik yol checkout'a SEMBOLIK BAG, HOME kanonik eve cevrilir. Kurulum dusmezse
+      # batarya CEVRE-ATLANAN ile KIRMIZI yanar (sessiz yesil yok — takimin kendi kurali).
+      # Bloklamaz (nobet.yml = serit B). `continue-on-error` KULLANILMADI.
+      - name: "Mimar kapi bataryalari — kanonik yerel duzlem (sembolik bag + HOME)"
+        if: ${{ !cancelled() }}
+        run: |
+          sudo mkdir -p /Users/okan/dev /Users/okan/.claude/cron
+          sudo chown -R "$(id -u):$(id -g)" /Users/okan
+          ln -sfn "$GITHUB_WORKSPACE" /Users/okan/dev/pruvo
+          git -C /Users/okan/dev/pruvo rev-parse --show-toplevel
+
+      - name: "Mimar kilit kabul testi (325 vaka: kod-kilidi + icra + commit + kablo + K214)"
+        if: ${{ !cancelled() }}
+        env:
+          HOME: /Users/okan
+        run: python3 tools/mimar-kilit-test.py
+
+      - name: "Mimar kapi mutasyon bataryasi (SURVIVOR=0 + sert/kontrol/cevre mutantlari)"
+        if: ${{ !cancelled() }}
+        timeout-minutes: 45
+        env:
+          HOME: /Users/okan
+        run: python3 tools/mimar-kapi-mutasyon-test.py
+
       # ═══ SAHIPSIZ 10 -> 5 KABLOLAMASI (13 Eyl 2026, cip KraL-SahipsizBagla-13Eyl) ═══
       # OLCULDU (temiz `git clone --no-local` + BOS HOME + CI=true, commit 9861d8cc):
       #   gh-civi-nobetcisi --kendini-test rc=0 (MUTANT 6/6) · okan-kapisi-penceresi
