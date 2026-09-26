@@ -61,7 +61,8 @@ TOOLS = os.path.abspath(TOOLS_ARGUMANLARI[0]) if TOOLS_ARGUMANLARI else os.path.
 KILIT = os.path.join(TOOLS, "mimar-kod-kilidi.py")
 ICRA = os.path.join(TOOLS, "mimar-icra-kapisi.py")
 COMMIT = os.path.join(TOOLS, "mimar-commit-kapisi.py")
-KUR = os.path.join(TOOLS, "mimar-kapi-kur.py")
+# KUR (mimar-kapi-kur.py) `ca8c3815` ile silindi; kablo vakalari 26 Eyl'de
+# tools/kapi-envanteri.py'ye nisanlandi (bkz. ENVANTER / kablo_kume_kostur).
 
 SCRATCH = "/private/tmp/claude-501/-Users-okan-dev-pruvo/2e8fe6f5-3e87-4e14-bc4d-d1447c25ea61/scratchpad"
 REPO = "/Users/okan/dev/pruvo"
@@ -108,12 +109,14 @@ ATLANAN_ISARETLER = ("EKSIK-KANCA", "COKTU", "PARSE-HATASI", "IZSIZ-ALLOW")
 #           yaninda. IDDIA (K332 rol ekseni) gevsetilmedi: 816 CIFTI ANA oturumda
 #           HALA deny alir.
 #
-#   ACIK KALEM (KIRMIZI KALIR, sessizce yesillenmedi) = 5
-#     *  3  110/111/114: kablo raporcusu `mimar-kapi-kur.py` ca8c3815 ile SILINDI,
-#           kol EKSIK-KURUCU basiyor. Diriltme mi durustce kaldirma mi -> OKAN/BaBa.
-#     *  2  921/922: SERT_BLOK bekleniyor, DIGER_RED olculuyor. Sert blok 11 Eyl'de
-#           KALDIRILDI; kolun ne beklemesi gerektigi (hangi RED sinifinin kalmasi)
-#           BaBa hukmune baglidir — tahminle yesillenmedi.
+#   ACIK KALEM (11 Eyl'de KIRMIZI birakildi) = 5 -> 26 EYL 2026'da KAPANDI (324/324):
+#     *  3  110/111/114: BAYAT TEST. Raporcu `mimar-kapi-kur.py` ca8c3815 (29 Agu) ile
+#           BILEREK silindi; vakalar iddianin canli sahibi `kapi-envanteri.py::bagli_mi`ya
+#           nisanlandi (POZITIF + 2 NEGATIF aynen). Nobetci mutantlar KE1/KE2.
+#     *  2  921/922: BAYAT TEST. `5db1750f` (11 Eyl) sert blogu RAPORA cevirdi; red artik
+#           ISCI-SARMALAYICI beyan kolundan gelir + stderr `MOTOR-SECIMI=claude` izi.
+#     *  +1 925 (YENI): 922/924'un ic mutanti `28aacc7c`den (7 Eyl) beri SESSIZ no-op'tu
+#           (sabit str.replace capasi bayatti); capa kaynaktan turetildi, tutmazsa KIRMIZI.
 #
 # 🔴 `-m` AILESI ICIN NEDEN `allow`A CEKILDI AMA "BAYAT" DEMEK YETMEZ:
 # Okan'in emri `python3 -c` ve `curl/wget` kollarini ACIKCA KAPALI BIRAKTI; `-m pip` /
@@ -128,6 +131,59 @@ ATLANAN_ISARETLER = ("EKSIK-KANCA", "COKTU", "PARSE-HATASI", "IZSIZ-ALLOW")
 #
 # EMRIN TEK KAYNAGI: `tools/tikayici-kaldirma-test.py` (bu turda rc=0, 0 KIRMIZI).
 # ====================================================================================
+# === 🔴 26 EYL 2026 — RAPOR_IZI: "allow"a CEKILEN VAKALARIN YERINE GECEN RAPOR OLCULUR ===
+# OLCULEN KUSUR (cip KraL-KilitMutant-26Eyl, `mimar-kapi-mutasyon-test.py` 37 SURVIVOR):
+# `db594148` (11 Eyl) 85 vakanin beklentisini deny -> allow'a CEKTI ama kapinin RED yerine
+# koydugu RAPORU (stderr izi) HICBIR vakada assert etmedi. Sonuc: kurali kapatan mutantlar
+# (ME1 olcum raporu, ME4/ME5 allowlist raporu, M3/M6/M7 kod-yazimi sayaci, MT1/I3 motor
+# secimi tanisi, MR1/MR2/MR4 rol ekseni, J2/J3 kimlik ekseni...) HICBIR vakayi kizartamadi;
+# kural kaynakta durdu ama OLCULMEDI — 11 Eyl emrinin kendi sozlesmesi ("REDDETME yetkisi
+# kalkti, OLCUM KALIR") test tarafinda tutulmadi.
+# DUZELTME: asagidaki vakalar "allow" kalir (emir geri alinmaz) AMA izde kapinin RAPOR
+# jetonu da aranir; jeton yoksa vaka KIRMIZI. Vaka tuple'inin 8. alani (beklenen_iz) doluysa
+# O kazanir; bu tablo yalniz bos olanlara uygulanir (ikiz beklenti YOK).
+# Jetonlar kapinin KENDI `iz_bas`/`_sert_blok_tanisi` satirlarindan alindi (mimar-icra-kapisi.py
+# ~2119 OLCUM-SERBEST · ~2216 PY-MODUL-ACIK · ~2221 PY-ARAC-SERBEST · 655 MOTOR-SECIMI;
+# mimar-kod-kilidi.py MIMAR-KOD-YAZDI / MIMAR-worktree). `rol=ANA` eki rol ekseninin
+# de olculdugu yerlerde BILEREK tutuldu (MR1/MR4 onu CIP'e cevirir).
+_RAPOR_OLCUM = "OLCUM-SERBEST rol=ANA"
+_RAPOR_PY = "PY-ARAC-SERBEST rol=ANA"
+_RAPOR_MODUL = "PY-MODUL-ACIK rol=ANA"
+_RAPOR_KOD = "MIMAR-KOD-YAZDI"
+_RAPOR_WT = "MIMAR-worktree"
+_RAPOR_MOTOR = "MOTOR-SECIMI=claude"
+_RAPOR_ISCI = "allow ISCI"
+RAPOR_IZI = {}
+RAPOR_IZI.update({n: _RAPOR_OLCUM for n in range(200, 217)})
+RAPOR_IZI.update({n: _RAPOR_PY for n in (
+    11, 21, 27, 29, 39, 40, 41, 42, 129, 137, 138, 152, 240, 241, 244, 254,
+    651, 655, 656, 657, 800, 801, 805, 806, 807, 812)})
+RAPOR_IZI.update({n: _RAPOR_MODUL for n in (
+    46, 47, 48, 49, 50, 85, 86, 93, 95, 121, 123, 125, 126, 127, 128, 130, 131, 132, 133)})
+RAPOR_IZI.update({n: _RAPOR_KOD for n in (1, 2, 19, 30, 80, 81, 84)})
+RAPOR_IZI.update({n: _RAPOR_WT for n in (82, 83)})
+RAPOR_IZI.update({n: _RAPOR_MOTOR for n in (
+    401, 403, 406, 407, 614, 700, 702, 704, 705, 707)})
+# ISCI ikizleri: allow'un ISCI kolundan geldigini iz soyler (M2 kimlik daima MIMAR ->
+# allow AYNI ama iz MIMAR'a doner). 60/73 Write, digerleri zaten deny/allow ile ayrisiyordu.
+RAPOR_IZI.update({n: _RAPOR_ISCI for n in (60, 73)})
+
+# === 🔴 26 EYL 2026 — codex (emekli motor) SURELI PENCERESI: TARIH SAATLI BOMBA ===
+# OLCULDU: `EMEKLI_MOTOR_PENCERE_BITIS = "2026-08-20"` (mimar_kimlik.py:76) GECTI; o
+# gunden beri HER `codex exec` cagrisi pencere kolunda RED donuyor ve ARKASINDAKI alt
+# kurallar (cikti-bayragi deger sarti, model bayragi, amiral, bilinmeyen model, ikinci
+# okuma) testte ERISILMEZ oldu -> ME6/ME9/ME11/ME13/ME14/ME15/M_K159_1..3 SURVIVOR.
+# Kod regresyonu DEGIL, TAKVIM: kurallar kaynakta CANLI ve pencere yeniden acilirsa
+# (PENCERE_BITIS ileri alinirsa) AYNEN devreye girer. K159 tasarimi bunu zaten ongoruyor:
+# tarih `PRUVO_BUGUN` ile enjekte edilir (905 bu kanali kullanir).
+# DUZELTME: asagidaki vakalar PENCERE ICI bir tarihle kosar (alt kurallari OLCER);
+# "BUGUN pencere kapali" iddiasini 902 (enjeksiyonsuz) + 905 (21 Agu) + 910 tasir.
+# Tarih SABIT ve gecmiste (PENCERE_BITIS'ten once) — bir daha saatli bomba olamaz.
+PENCERE_ICI = {"PRUVO_BUGUN": "2026-08-19"}
+PENCERE_ICI_VAKALARI = {
+    25, 230, 231, 232, 233, 235, 264, 265, 266, 267, 268, 269, 270, 273, 274, 275,
+    277, 278, 279, 280, 281, 283, 285, 900, 901, 903, 904, 907}
+
 # (no, beklenen, arac, hedef, agent_id, aciklama)
 VAKALAR = [
     (1, "allow", "Write", SCRATCH + "/analiz.py", None,
@@ -502,11 +558,11 @@ MIMAR_22TEM_VAKALARI = [
     (231, "deny", "Bash",
      "/Applications/ChatGPT.app/Contents/Resources/codex exec \"x\"", None,
      "26Tem: tam yol da olsa bayraksiz = RED"),
-    (232, "deny", "Bash",
+    (232, "allow", "Bash",
      "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec dosyasindaki isi yap\"", None,
      "26Tem POZITIF: -o ile isci-devri standardi + 17Agu model bayragi = GECER"),
-    (233, "deny", "Bash",
+    (233, "allow", "Bash",
      "/Applications/ChatGPT.app/Contents/Resources/codex exec -m gpt-5.6-luna "
      "--output-last-message " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
      "26Tem POZITIF: tam yol + --output-last-message + 17Agu model bayragi = GECER"),
@@ -557,11 +613,11 @@ MIMAR_22TEM_VAKALARI = [
     (272, "allow", "Bash", "codex -h", None, "27Tem: '-h' gozlem = GECER"),
     (276, "allow", "Bash", "codex -V", None, "27Tem: '-V' gozlem = GECER"),
     # (3e) MESRU CAGRILAR — daraltma/sikilastirma bunlari KAPATMAMALI. Sentinel: ME6.
-    (273, "deny", "Bash",
+    (273, "allow", "Bash",
      "codex exec -m gpt-5.6-luna -C " + REPO + " --sandbox danger-full-access -o " +
      SCRATCH + "/son-mesaj.txt \"ag isi: feed dogrula\"", None,
      "27Tem: ag isi recetesi (--sandbox danger-full-access) + 17Agu model bayragi = GECER"),
-    (274, "deny", "Bash",
+    (274, "allow", "Bash",
      "codex exec -m gpt-5.6-luna --output-last-message=" + SCRATCH + "/son-mesaj.txt \"spec\"",
      None, "27Tem: esitlikli bicim (DEGERLI) + 17Agu model bayragi = GECER"),
     # --- 27 TEM IKINCI TUR (BaBa: sart 6 EVE tasinir) — kapatilan IKI kusur ---
@@ -575,7 +631,7 @@ MIMAR_22TEM_VAKALARI = [
      "27Tem-2: 'nice -n 10' -> '10' argv0 sanilip kural atlaniyordu; ikinci okuma RED"),
     (283, "deny", "Bash", "env -u FOO codex exec \"x\"", None,
      "27Tem-2: ayni sizintinin env varyanti ('-u FOO') -> ikinci okuma RED"),
-    (281, "deny", "Bash",
+    (281, "allow", "Bash",
      "nice -n 10 codex exec -m gpt-5.6-luna -o " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
      "27Tem-2 POZITIF: ikinci okuma MESRU sarmalanmis cagriyi KAPATMAZ (17Agu model bayragi ekli)"),
     (282, "allow", "Bash", "time grep -rn codex " + REPO + "/tools/", None,
@@ -617,10 +673,16 @@ K159_CODEX_VAKALARI = [
      "codex exec -m gpt-5.6-sol -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec\"", None,
      "K159 V2: amiral model (gpt-5.6-sol) -> RED (Okan emri) [M2 sentinel]"),
+    # 26 Eyl: 902 BUGUNUN tarihiyle kosar (enjeksiyon YOK) -> pencere KAPALI sentinelidir
+    # (M_K159_4 onu kizartir). Pencere ICI pozitif hali 907'dir.
     (902, "deny", "Bash",
      "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec\"", None,
-     "K159 V3: izinli model (luna) + pencere ICINDE -> GECER"),
+     "K159 V3-BUGUN: izinli model (luna) ama BUGUN pencere KAPALI -> RED"),
+    (907, "allow", "Bash",
+     "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
+     "/son-mesaj.txt \"spec\"", None,
+     "K159 V3: izinli model (luna) + pencere ICINDE (PENCERE_ICI) -> GECER"),
     (903, "deny", "Bash",
      "codex exec -m gpt-5.6-luna \"spec\"", None,
      "K159 V4: model var, cikti bayragi YOK -> RED (eski kural korunuyor)"),
@@ -876,8 +938,11 @@ ISCI_SARMALAYICI_VAKALARI = [
     # --- DENY: YOL SINIRI (muafiyet anahtari TAM YOLA civilidir) ---
     # 🔴 YOL SINIRI vakalari CANLI motorla kosar: motor emekli olsaydi red YOL kolundan
     # DEGIL emekli kolundan gelirdi ve bu vakalar olctuklerini SANIP baskasini olcerdi.
+    # 🔴 26 EYL: motor `kimi` idi; `28aacc7c` (7 Eyl) kimi'yi EMEKLI yapinca I1 mutantinda
+    # bile sahte `/tmp/isci.sh` emekli-motor kolundan RED aldi -> I1 SURVIVOR (net=0).
+    # Sentinel ancak CANLI motorla ayirt edicidir; 600/601 ile ayni kanonik motor.
     (620, "deny", "Bash",
-     "/tmp/isci.sh kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "/tmp/isci.sh minimax-m3 /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "AYNI ADDA baska betik (/tmp/isci.sh) -> RED [I1 sentinel: basename esitligi delerdi]"),
     (621, "deny", "Bash",
      "/Users/okan/.claude/cron/eski-isci.sh kimi /Users/okan/dev/pruvo " +
@@ -1196,7 +1261,9 @@ def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None, ek_env=None, ek_payload
     if not cikti:
         # Fail-open korlugu onarimi: iz yoksa "allow" SAYILMAZ.
         if "MIMAR-KAPISI allow" in (sonuc.stderr or ""):
-            return "allow", (sonuc.stderr or "")[:160]
+            # 26 Eyl: iz KESILMEDEN doner. RAPOR_IZI (asagida) ikinci/ucuncu satirdaki
+            # rapor jetonunu arar; eski [:160] kesimi o satirlari GORMEZDI.
+            return "allow", (sonuc.stderr or "")
         return "IZSIZ-ALLOW", (sonuc.stderr or "")[:120]
     try:
         veri = json.loads(cikti)
@@ -1221,6 +1288,10 @@ def kume_kostur(baslik, vakalar, cwd=REPO):
         no, beklenen, arac, hedef, agent_id, aciklama = vaka[:6]
         ek_env = vaka[6] if len(vaka) > 6 else {}
         beklenen_iz = vaka[7] if len(vaka) > 7 else None
+        if beklenen_iz is None:
+            beklenen_iz = RAPOR_IZI.get(no)       # 26 Eyl: RAPOR'a donen kolun izi
+        if no in PENCERE_ICI_VAKALARI:            # 26 Eyl: codex alt kurallari pencere ICI
+            ek_env = dict(PENCERE_ICI, **(ek_env or {}))
         ek_payload = dict(vaka[8]) if len(vaka) > 8 else {}
         # K318: gecici worktree isaretleri hem hedefte hem payload alanlarinda cozulur
         # (rol vakalarinin damgasi o worktree'den turer — hermetiklik korunur).
@@ -1319,12 +1390,28 @@ def commit_kume_kostur(gecici_kok):
 BEKLENEN_KABLO_ANAHTARLARI = (
     "BASH_ZINCIRI_ICRA", "YAZMA_ZINCIRI_KILIT", "PRECOMMIT_COMMIT_KAPISI")
 
+# 🔴 26 EYL 2026 (cip KraL-KilitMutant-26Eyl) — KABLO VAKALARI YENIDEN NISANLANDI.
+# SINIF: BAYAT TEST (kod regresyonu DEGIL). Raporcu `mimar-kapi-kur.py --durum` `ca8c3815`
+# (29 Agu, BaBa 28 Agu filo karari + Okan "supur") ile BILEREK silindi ve geri
+# getirilmedi; 110/111/114 o gunden beri `EKSIK-KURUCU` basiyordu, yani IDDIA (raporcu
+# kabloyu dogru okur: var / eksik / yanlis matcher) 28 gundur OLCULMUYORDU.
+# Iddianin CANLI sahibi `tools/kapi-envanteri.py::bagli_mi` — `kapi-envanteri.py`nin
+# kendi docstring'i "BAGLI: settings.json / .git/hooks zincirinde gercekten kayitli"
+# sorusunu ADIYLA ustlenir. Vakalar o fonksiyona, raporcunun KENDI `GATES` tablosundaki
+# kapi tanimlariyla nisanlandi; uc vaka da (POZITIF + iki NEGATIF) AYNEN duruyor.
+# Matcher dizesi canli `.claude/settings.json` ve `kapi-envanteri.GATES` ile ayni yazildi
+# (envanter matcher'i TAM ESITLIKLE okur; eski raporcu alt-dize okuyordu).
+# Nobetcileri: `mimar-kapi-mutasyon-test.py::KE1` (matcher kontrolu silinir -> 114) ve
+# `KE2` (yalanci raporcu, daima bagli -> 111/114) — silinen M14/N1'in ARDILLARI.
+YAZMA_MATCHER = "Edit|Write|MultiEdit"
+ENVANTER = os.path.join(TOOLS, "kapi-envanteri.py")
+
 TAM_AYAR = {
     "hooks": {
         "PreToolUse": [
             {"matcher": "Bash", "hooks": [
                 {"type": "command", "command": 'python3 "${CLAUDE_PROJECT_DIR:-.}/tools/mimar-icra-kapisi.py"'}]},
-            {"matcher": "Write|Edit|MultiEdit", "hooks": [
+            {"matcher": YAZMA_MATCHER, "hooks": [
                 {"type": "command", "command": 'python3 "${CLAUDE_PROJECT_DIR:-.}/tools/mimar-kod-kilidi.py"'}]},
         ]
     }
@@ -1332,7 +1419,7 @@ TAM_AYAR = {
 EKSIK_AYAR = {
     "hooks": {
         "PreToolUse": [
-            {"matcher": "Write|Edit|MultiEdit", "hooks": [
+            {"matcher": YAZMA_MATCHER, "hooks": [
                 {"type": "command", "command": 'python3 "${CLAUDE_PROJECT_DIR:-.}/tools/mimar-kod-kilidi.py"'}]},
         ]
     }
@@ -1345,7 +1432,7 @@ EKSIK_AYAR = {
 YANLIS_MATCHER_AYAR = {
     "hooks": {
         "PreToolUse": [
-            {"matcher": "Write|Edit|MultiEdit", "hooks": [
+            {"matcher": YAZMA_MATCHER, "hooks": [
                 {"type": "command", "command": 'python3 "${CLAUDE_PROJECT_DIR:-.}/tools/mimar-kod-kilidi.py"'},
                 {"type": "command", "command": 'python3 "${CLAUDE_PROJECT_DIR:-.}/tools/mimar-icra-kapisi.py"'}]},
         ]
@@ -1353,97 +1440,123 @@ YANLIS_MATCHER_AYAR = {
 }
 
 
-def _kablo_oku(ayar_yolu, precommit_yolu):
-    sonuc = subprocess.run(
-        [sys.executable, KUR, "--durum", "--ayar", ayar_yolu, "--precommit", precommit_yolu],
-        capture_output=True, text=True)
+def _envanter_modulu():
+    """Kablo raporcusunu (tools/kapi-envanteri.py) TOOLS dizininden yukler.
+
+    MUTANT KOPYA olarak kosarken TOOLS = mutant dizinidir; bu yuzden
+    `mimar-kapi-mutasyon-test.py::KAPI_DOSYALARI` bu dosyayi da kopyalar."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("_kablo_envanter", ENVANTER)
+    modul = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modul)
+    return modul
+
+
+def _kablo_oku(envanter, kok):
+    """Gecici `kok` altindaki kabloyu raporcunun `bagli_mi` hukmuyle okur.
+
+    Kapi tanimlari raporcunun KENDI `GATES` tablosundan alinir (ikiz tablo YOK);
+    anahtar adlari eski raporcununkiyle ayni tutuldu ki beklentiler karsilastirilabilsin."""
+    tablo = {g["ad"]: g for g in envanter.GATES}
+    eslem = (("BASH_ZINCIRI_ICRA", "mimar-icra-kapisi"),
+             ("YAZMA_ZINCIRI_KILIT", "mimar-kod-kilidi"),
+             ("PRECOMMIT_COMMIT_KAPISI", "mimar-commit-kapisi"))
     okunan = {}
-    for satir in (sonuc.stdout or "").splitlines():
-        if "=" in satir:
-            k, _, v = satir.partition("=")
-            okunan[k.strip()] = v.strip()
-    return sonuc.returncode, okunan, sonuc.stdout
+    for anahtar, ad in eslem:
+        if ad not in tablo:
+            okunan[anahtar] = "TANIMSIZ"
+            continue
+        ok, _not = envanter.bagli_mi(kok, tablo[ad])
+        okunan[anahtar] = "var" if ok else "yok"
+    return okunan
+
+
+def _kablo_koku_kur(kablo_dizin, ad, ayar, precommit):
+    """`<kok>/.claude/settings.json` + `<kok>/.git/hooks/pre-commit` fiksturu.
+
+    Kok git deposu DEGILDIR ve sistem gecici dizinindedir: `core.hooksPath` okunamaz,
+    raporcu varsayilan `.git/hooks`'a duser; `tools/` YOKTUR, yani zincir kolu (bir kat)
+    hicbir giris noktasi cozemez — olculen sey YALNIZ dogrudan kablodur."""
+    kok = os.path.join(kablo_dizin, ad)
+    os.makedirs(os.path.join(kok, ".claude"), exist_ok=True)
+    os.makedirs(os.path.join(kok, ".git", "hooks"), exist_ok=True)
+    with open(os.path.join(kok, ".claude", "settings.json"), "w", encoding="utf-8") as f:
+        json.dump(ayar, f)
+    with open(os.path.join(kok, ".git", "hooks", "pre-commit"), "w", encoding="utf-8") as f:
+        f.write(precommit)
+    return kok
 
 
 def kablo_kume_kostur(gecici_kok):
-    """KABLO ASSERTION — raporcunun (mimar-kapi-kur.py --durum) KENDISI sinanir.
+    """KABLO ASSERTION — raporcunun (tools/kapi-envanteri.py::bagli_mi) KENDISI sinanir.
 
-    Eski surumde tek vaka vardi (110) ve CANLI settings.json'u okuyordu: raporcu
-    "her sey var" diye YALAN soylese bile YESIL yanardi (nobetsiz bolge) ve testin
-    yesili dal-disi bir dosyaya asiliydi. Artik iki HERMETIK vaka:
-      110 POZITIF: tam kurulu gecici kablo -> hepsi 'var', exit 0
-      111 NEGATIF: Bash zinciri EKSIK gecici kablo -> BASH_ZINCIRI_ICRA='yok', exit 1
-    Canli kablo BILGI olarak basilir (karar vermez); teshis araci:
-    python3 tools/kapi-envanteri.py"""
+    Uc HERMETIK vaka (canli settings.json OKUNMAZ):
+      110 POZITIF: tam kurulu gecici kablo -> uc anahtar da 'var'
+      111 NEGATIF: Bash zinciri + pre-commit EKSIK -> ICRA='yok', COMMIT='yok', KILIT='var'
+      114 NEGATIF: dogru kanca YANLIS matcher blogunda -> ICRA='yok'
+    Canli kablonun teshisi: python3 tools/kapi-envanteri.py"""
     print("")
     print("=" * 84)
     print("KABLO ASSERTION (raporcu sinanir — HERMETIK gecici kopyalar)")
     print("=" * 84)
     basarisiz = []
     atlanan = []
-    if not os.path.exists(KUR):
-        print("110/111/114  EKSIK: " + KUR)
-        return ([(110, "var", "EKSIK-KURUCU", "kablo raporu"),
-                 (111, "yok", "EKSIK-KURUCU", "kablo negatif"),
-                 (114, "yok", "EKSIK-KURUCU", "kablo yanlis-matcher")], [110, 111, 114])
+    if not os.path.exists(ENVANTER):
+        print("110/111/114  EKSIK: " + ENVANTER)
+        return ([(110, "var", "EKSIK-RAPORCU", "kablo raporu"),
+                 (111, "yok", "EKSIK-RAPORCU", "kablo negatif"),
+                 (114, "yok", "EKSIK-RAPORCU", "kablo yanlis-matcher")], [110, 111, 114])
+    try:
+        envanter = _envanter_modulu()
+    except Exception as e:  # raporcu yuklenemiyorsa vaka KOSMADI = KIRMIZI
+        print("110/111/114  YUKLENEMEDI: {}: {}".format(type(e).__name__, e))
+        return ([(110, "var", "RAPORCU-COKTU", "kablo raporu"),
+                 (111, "yok", "RAPORCU-COKTU", "kablo negatif"),
+                 (114, "yok", "RAPORCU-COKTU", "kablo yanlis-matcher")], [110, 111, 114])
 
     kablo_dizin = os.path.join(gecici_kok, "kablo")
     os.makedirs(kablo_dizin, exist_ok=True)
-    tam_ayar = os.path.join(kablo_dizin, "settings-tam.json")
-    eksik_ayar = os.path.join(kablo_dizin, "settings-eksik.json")
-    yanlis_ayar = os.path.join(kablo_dizin, "settings-yanlis-matcher.json")
-    tam_hook = os.path.join(kablo_dizin, "pre-commit-tam")
-    bos_hook = os.path.join(kablo_dizin, "pre-commit-bos")
-    with open(tam_ayar, "w", encoding="utf-8") as f:
-        json.dump(TAM_AYAR, f)
-    with open(eksik_ayar, "w", encoding="utf-8") as f:
-        json.dump(EKSIK_AYAR, f)
-    with open(yanlis_ayar, "w", encoding="utf-8") as f:
-        json.dump(YANLIS_MATCHER_AYAR, f)
-    with open(tam_hook, "w", encoding="utf-8") as f:
-        f.write('#!/bin/sh\npython3 "$(git rev-parse --show-toplevel)/tools/mimar-commit-kapisi.py"\n')
-    with open(bos_hook, "w", encoding="utf-8") as f:
-        f.write("#!/bin/sh\nexit 0\n")
+    tam_hook = '#!/bin/sh\npython3 "$(git rev-parse --show-toplevel)/tools/mimar-commit-kapisi.py"\n'
+    bos_hook = "#!/bin/sh\nexit 0\n"
+    tam_kok = _kablo_koku_kur(kablo_dizin, "tam", TAM_AYAR, tam_hook)
+    eksik_kok = _kablo_koku_kur(kablo_dizin, "eksik", EKSIK_AYAR, bos_hook)
+    yanlis_kok = _kablo_koku_kur(kablo_dizin, "yanlis-matcher", YANLIS_MATCHER_AYAR, tam_hook)
 
     # 110 POZITIF
-    rc, okunan, ham = _kablo_oku(tam_ayar, tam_hook)
+    okunan = _kablo_oku(envanter, tam_kok)
     eksik = [k for k in BEKLENEN_KABLO_ANAHTARLARI if okunan.get(k) != "var"]
-    gecti = (rc == 0) and not eksik
-    print("110  POZITIF exit={} eksik={} — {}".format(rc, eksik or "yok",
-                                                      "OK" if gecti else "KIRMIZI"))
+    gecti = not eksik
+    print("110  POZITIF eksik={} — {}".format(eksik or "yok", "OK" if gecti else "KIRMIZI"))
     if not gecti:
-        basarisiz.append((110, "hepsi=var/exit0", str(okunan), "kablo pozitif"))
+        basarisiz.append((110, "hepsi=var", str(okunan), "kablo pozitif"))
 
     # 111 NEGATIF — raporcu EKSIGI gormek ZORUNDA (yalanci raporcu nobetcisi)
-    rc2, okunan2, ham2 = _kablo_oku(eksik_ayar, bos_hook)
-    gecti2 = (rc2 == 1
-              and okunan2.get("BASH_ZINCIRI_ICRA") == "yok"
+    okunan2 = _kablo_oku(envanter, eksik_kok)
+    gecti2 = (okunan2.get("BASH_ZINCIRI_ICRA") == "yok"
               and okunan2.get("PRECOMMIT_COMMIT_KAPISI") == "yok"
               and okunan2.get("YAZMA_ZINCIRI_KILIT") == "var")
-    print("111  NEGATIF exit={} okunan={} — {}".format(
-        rc2, {k: okunan2.get(k) for k in BEKLENEN_KABLO_ANAHTARLARI},
+    print("111  NEGATIF okunan={} — {}".format(
+        {k: okunan2.get(k) for k in BEKLENEN_KABLO_ANAHTARLARI},
         "OK" if gecti2 else "KIRMIZI"))
     if not gecti2:
-        basarisiz.append((111, "bash=yok/precommit=yok/exit1", str(okunan2), "kablo negatif"))
+        basarisiz.append((111, "bash=yok/precommit=yok/kilit=var", str(okunan2),
+                          "kablo negatif"))
 
     # 114 YANLIS MATCHER — kanca KAYITLI ama Bash yerine Write blogunda (B5 ekseni).
     # Raporcu matcher'i denetlemezse 'var' der; denetlerse 'yok' demeli.
-    rc3, okunan3, ham3 = _kablo_oku(yanlis_ayar, tam_hook)
-    gecti3 = (rc3 == 1
-              and okunan3.get("BASH_ZINCIRI_ICRA") == "yok"
+    okunan3 = _kablo_oku(envanter, yanlis_kok)
+    gecti3 = (okunan3.get("BASH_ZINCIRI_ICRA") == "yok"
               and okunan3.get("YAZMA_ZINCIRI_KILIT") == "var"
               and okunan3.get("PRECOMMIT_COMMIT_KAPISI") == "var")
-    print("114  YANLIS-MATCHER exit={} okunan={} — {}".format(
-        rc3, {k: okunan3.get(k) for k in BEKLENEN_KABLO_ANAHTARLARI},
+    print("114  YANLIS-MATCHER okunan={} — {}".format(
+        {k: okunan3.get(k) for k in BEKLENEN_KABLO_ANAHTARLARI},
         "OK" if gecti3 else "KIRMIZI"))
     if not gecti3:
-        basarisiz.append((114, "bash=yok/exit1", str(okunan3),
+        basarisiz.append((114, "bash=yok/kilit=var/precommit=var", str(okunan3),
                           "kablo yanlis-matcher (dogru kanca, yanlis blok)"))
-
-    # BILGI: canli kablo (karar vermez — teshis tools/kapi-envanteri.py'de)
-    canli = subprocess.run([sys.executable, KUR, "--durum"], capture_output=True, text=True)
-    print("BILGI canli kablo exit={} | {}".format(
-        canli.returncode, " ".join((canli.stdout or "").split())[:120]))
+    # Canli kablo burada BASILMAZ: eski raporcunun `--durum` BILGI satiri silindi
+    # (raporcu yok); canli teshis `python3 tools/kapi-envanteri.py`nin isidir ve o
+    # arac NOBETTE sondasi icin gercek kapilari kosturur — bu bataryanin menzili degil.
     return basarisiz, atlanan
 
 
@@ -1718,6 +1831,7 @@ def k214_claude_kol_sirasi_denetim():
       922: mutantli kopyada (EMEKLI_ISCI_MOTORLARI + claude) -> EMEKLI kolundan red
       923: mutantsiz kopyada OKAN izni + beyan -> ALLOW (yetkili cikis acik)
       924: mutantli kopyada OKAN izni + beyan -> EMEKLI kolundan red (regresyon)
+      925: mutantli kopyanin CAPASI tuttu mu (claude GERCEKTEN emekli kumesinde) — 26 Eyl
     Boylece 538. satirdaki yorumun gercekten calistigi kanitlanir.
     """
     import importlib.util
@@ -1785,18 +1899,46 @@ def k214_claude_kol_sirasi_denetim():
             return "EMEKLI", sebep[:80]
         if "AGENT-KAPISI (13 Ağu Okan emri)" in sebep:
             return "SERT_BLOK", sebep[:80]
+        if "ISCI-SARMALAYICI KAPISI (13 Ağu)" in sebep and "BEYAN SATIRI YOK" in sebep:
+            # Sert blogun yerine gecen TESHIS stderr'e `MOTOR-SECIMI=claude` basar
+            # (`mimar-icra-kapisi.py::_sert_blok_tanisi`). Iz yoksa kol SESSIZ demektir.
+            tani = "MOTOR-SECIMI=claude" in (proc.stderr or "")
+            return ("BEYAN_RED+TANI" if tani else "BEYAN_RED-TANISIZ"), sebep[:80]
         return "DIGER_RED", sebep[:80]
+
+    # 🔴 26 EYL 2026 (cip KraL-KilitMutant-26Eyl) — 921/922 BEKLENTISI YENILENDI.
+    # SINIF: BAYAT TEST (kod regresyonu DEGIL). `5db1750f` (11 Eyl 04:25, Okan "tum
+    # tikayicilari kaldir") `_isci_karari` icindeki KOSULSUZ `return _sert_blok_gerekcesi()`
+    # satirini `_sert_blok_tanisi("isci.sh-claude")` (stderr RAPORU) ile degistirdi; cagri
+    # artik ALTTAKI BEYAN koluna iner. Beyansiz spec'le `isci.sh claude` HALA deny alir —
+    # yalniz sebep AGENT-KAPISI degil ISCI-SARMALAYICI "BEYAN SATIRI YOK"tur. Ayni emir
+    # 401/403/406/407/614/... vakalarini db594148'de allow'a cekmisti; bu iki vaka o turda
+    # "BaBa hukmu" diye ACIK birakilmisti. Hukum gereksiz: emir metni (sert blok = RAPOR)
+    # ve kapinin kaynagi ayni seyi soyluyor, beklenti KAYNAKTAN turetildi.
+    # IDDIA GEVSEMEDI, IKIYE AYRILDI: (a) red SURUYOR ve beyan kolundan geliyor, (b) eski
+    # sert blogun yerindeki TESHIS izi basiliyor. 922'nin asil iddiasi ("claude EMEKLI
+    # kolunun DISINDA") aynen durur: EMEKLI donerse kol degeri tutmaz, vaka KIRMIZI.
+    BEKLENEN_CLAUDE_RED = "BEYAN_RED+TANI"
 
     # (b) mutantsiz kopya
     kol_b, sebep_b = _claude_red_kolunu_olc(icra_yol)
-    b_ok = (kol_b == "SERT_BLOK")
-    print("921  K214 mutantsiz sert blok: kol={} | {} (sebep={})".format(
+    b_ok = (kol_b == BEKLENEN_CLAUDE_RED)
+    print("921  K214 mutantsiz claude reddi (beyan kolu + teshis izi): kol={} | {} (sebep={})".format(
         kol_b, "OK" if b_ok else "KIRMIZI", sebep_b[:60]))
     if not b_ok:
-        basarisiz.append((921, "SERT_BLOK", kol_b,
-                          "mutantsiz kopyada sert blok bekleniyordu: " + sebep_b))
+        basarisiz.append((921, BEKLENEN_CLAUDE_RED, kol_b,
+                          "mutantsiz kopyada beyansiz isci.sh claude BEYAN kolundan red + "
+                          "MOTOR-SECIMI izi bekleniyordu: " + sebep_b))
 
     # (c) mutantli kopya: EMEKLI_ISCI_MOTORLARI'na claude ekle
+    # 🔴 26 EYL 2026 — CAPA KAYNAKTAN TURETILIR ve TUTMAZSA KIRMIZI. Eski hali sabit bir
+    # `str.replace` idi: `28aacc7c` (7 Eyl, "kimi" EMEKLI kumesine girdi) tuple'i
+    # degistirince replace SESSIZCE no-op oldu ve 922/924 o gunden beri MUTASYONSUZ
+    # kopyayi olcuyordu ([[mutant-capasi-giris-noktasinin-okumadigi-degerde-olmez]]).
+    # Simdi atama satiri regex'le bulunur, kume `ast` ile okunur, "claude" eklenir;
+    # satir bulunamaz ya da yazim sonrasi claude kumede degilse vaka 925 KIRMIZI yanar.
+    import ast as _ast
+    import re as _re
     mutant_dizin = tempfile.mkdtemp(prefix="pruvo-k214-mutant-")
     try:
         mutant_tools = os.path.join(mutant_dizin, "tools")
@@ -1804,24 +1946,37 @@ def k214_claude_kol_sirasi_denetim():
         mutant_kimlik = os.path.join(mutant_tools, "mimar_kimlik.py")
         with open(mutant_kimlik, encoding="utf-8") as f:
             metin = f.read()
-        metin = metin.replace(
-            'EMEKLI_ISCI_MOTORLARI = ("codex", "deepseek-pro", "deepseek-flash")',
-            'EMEKLI_ISCI_MOTORLARI = ("codex", "deepseek-pro", "deepseek-flash", "claude")')
-        with open(mutant_kimlik, "w", encoding="utf-8") as f:
-            f.write(metin)
+        eslesme = _re.search(r"^EMEKLI_ISCI_MOTORLARI = (\(.*\))$", metin, _re.M)
+        capa_ok = False
+        if eslesme:
+            kume = tuple(_ast.literal_eval(eslesme.group(1))) + ("claude",)
+            metin = (metin[:eslesme.start()] + "EMEKLI_ISCI_MOTORLARI = " + repr(kume) +
+                     metin[eslesme.end():])
+            with open(mutant_kimlik, "w", encoding="utf-8") as f:
+                f.write(metin)
+            _ms = importlib.util.spec_from_file_location("_k214_mutant_kimlik", mutant_kimlik)
+            _mm = importlib.util.module_from_spec(_ms)
+            _ms.loader.exec_module(_mm)
+            capa_ok = "claude" in _mm.EMEKLI_ISCI_MOTORLARI
+        print("925  K214 mutant capasi (claude EMEKLI kumesine GERCEKTEN girdi): {}".format(
+            "OK" if capa_ok else "KIRMIZI"))
+        if not capa_ok:
+            basarisiz.append((925, "capa-tuttu", "CAPA-BAYAT",
+                              "EMEKLI_ISCI_MOTORLARI atamasi bulunamadi ya da mutant kumeye "
+                              "claude'u sokamadi — 922/924 mutasyonsuz kopyayi olcer"))
         mutant_icra = os.path.join(mutant_tools, "mimar-icra-kapisi.py")
         # 🔴 ONARIM SONRASI BEKLENTI DEGISTI (K214 ucuncu eksen). Emekli kolu artik
         # `motor != "claude"` kosuluyla claude'u DISARIDA birakiyor, dolayisiyla claude'u
-        # emekli kumesine sokmak claude'un ISLENISINI DEGISTIRMEZ: red yine SERT_BLOK
-        # kolundan gelir. Bu vaka "mutant ETKISIZ" diye ASSERT eder — kosul kaldirilirsa
-        # kol yeniden EMEKLI olur ve 922 KIRMIZI yanar (regresyon nobetcisi).
+        # emekli kumesine sokmak claude'un ISLENISINI DEGISTIRMEZ: red yine claude'un KENDI
+        # kolundan (26 Eyl'den beri: BEYAN kolu + teshis izi) gelir. Bu vaka "mutant
+        # ETKISIZ" diye ASSERT eder — kosul kaldirilirsa kol EMEKLI olur ve 922 KIRMIZI yanar.
         kol_c, sebep_c = _claude_red_kolunu_olc(mutant_icra)
-        c_ok = (kol_c == "SERT_BLOK")
+        c_ok = (kol_c == BEKLENEN_CLAUDE_RED)
         print("922  K214 mutantli claude EMEKLI kolunun DISINDA: kol={} | {} (sebep={})".format(
             kol_c, "OK" if c_ok else "KIRMIZI", sebep_c[:60]))
         if not c_ok:
-            basarisiz.append((922, "SERT_BLOK", kol_c,
-                              "claude emekli kumesine girse de SERT_BLOK kolu calismali "
+            basarisiz.append((922, BEKLENEN_CLAUDE_RED, kol_c,
+                              "claude emekli kumesine girse de claude'un kendi kolu calismali "
                               "(emekli kolu claude'u disarida birakmali): " + sebep_c))
 
         # (d) 🔴 ASIL REGRESYON NOBETCISI: claude EMEKLI kumesindeyken bile Okan'in
@@ -1928,7 +2083,7 @@ def main():
     # ([[batarya-kapsam-tabani-sayiyla-civilenir]]). Sayi artik TEK YERDE tanimlanir ve
     # `ek_vaka` ONDAN TURER; ikinci sabit BIRAKILMAZ.
     k159_mesaj_vaka_sayisi = 1 if not SADECE_KIMLIK_EKSENI else 0
-    k214_vaka_sayisi = 5 if not SADECE_KIMLIK_EKSENI else 0
+    k214_vaka_sayisi = 6 if not SADECE_KIMLIK_EKSENI else 0  # 920-925 (925: mutant capasi, 26 Eyl)
     ek_vaka = 0 if SADECE_KIMLIK_EKSENI else (
         len(COMMIT_VAKALARI) + 3 + k159_mesaj_vaka_sayisi + k214_vaka_sayisi)
     toplam = sum(len(v) for _, v, _ in kumeler) + ek_vaka

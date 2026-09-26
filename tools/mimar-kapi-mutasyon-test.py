@@ -14,6 +14,21 @@ Bitiminde gecici dizin silinir.
 arac ana repo calisma agacini kirletiyordu. Artik sistem gecici dizinine yazilir.
 
 Cikis kodu 0 = her mutasyon beklenen esigi tutturdu, 1 = en az biri tutturamadi.
+
+🔴 26 EYL 2026 — 37 SURVIVOR -> 0 (cip KraL-KilitMutant-26Eyl). Sebep SINIFLARI (kod
+regresyonu YOK; her sinifin onarimi ilgili satirin yaninda commit hash'iyle yazili):
+  S-A  CAPA BAYAT (3): ME1 `6ed952f8` · ME2 `fe7810f0` · J1 `154aed07` — capa yeniden adlandi.
+  S-B  CAPA TEKIL DEGIL (4): M13/M20/ME4/ME10 — ayni satir kardes fonksiyonlara kopyalandi,
+       `replace(...,1)` YANLIS kopyayi yamaliyordu. SINIF ONARIMI: yama() tekillik ister.
+  S-C  RAPOR OLCULMUYOR (~20): `db594148` 85 vakayi allow'a cekti ama `5db1750f`/`6ed952f8`in
+       RED yerine koydugu RAPORU assert etmedi -> kilit-test RAPOR_IZI tablosu.
+  S-D  TAKVIM (8): codex penceresi 20 Agu kapandi, alt kurallar erisilmez -> PENCERE_ICI.
+  S-E  BEKLENEN KUME KAYDI (MA1/MA2/I4/I5/M18/M13/M20/ME9/ME15/M_K159_2/4): kapi davranisi
+       degisti (sert blok RAPOR, allowlist RAPOR, K340 ilk-okuma) — kume OLCULEN degere
+       cekildi, her satirda gerekce + commit.
+  S-F  SAHTE VAKA (1): 620 emekli `kimi` motoruyla yaziliydi (`28aacc7c`) -> canli motor.
+  S-G  SERT MUTANT TABANI OLCULMUYORDU (S1/S2/S3): taban + RAPOR-farkindali olcum.
+  +    KE1/KE2: silinen M14/N1'in `kapi-envanteri.py` ardillari (kablo 110/111/114).
 """
 import ast
 import os
@@ -57,7 +72,12 @@ KAPI_DOSYALARI = (
     # `mimar-kilit-test.py` bu modulu YANINDAN yukler (sys.path[0] = mutant dizini).
     # Kopyalanmazsa her mutant kosumu ImportError ile coker ve batarya hukumsuz kalir.
     "gecici_worktree.py",
+    # 26 EYL 2026: kablo vakalari (110/111/114) silinen `mimar-kapi-kur.py` yerine iddianin
+    # canli sahibi `kapi-envanteri.py::bagli_mi`yi olcer; test onu TOOLS (= mutant dizini)
+    # yanindan yukler. Kopyalanmazsa TABAN'da 110/111/114 EKSIK-RAPORCU basar.
+    "kapi-envanteri.py",
 )
+ENVANTER = "kapi-envanteri.py"
 SERBEST = "serbest_cagrilar.py"
 
 KILIT = "mimar-kod-kilidi.py"
@@ -88,6 +108,15 @@ CEKIRDEK_NOBETCILERI = (
     '    "/Users/okan/dev/pruvo/.git/hooks/pre-commit",\n'
 )
 
+# 26 EYL: `dis_yol` (R2) govdesinin KAPSAM capasi — docstring kuyrugu + dongu basi yalniz
+# o fonksiyonda gecer; M13/M20 capalari bununla TEKIL kilinir.
+DIS_YOL_BASI = (
+    "    (birlesik kisa bayrak) ve '-s=/private/tmp/...' (esitlikli bitisik form).\"\"\"\n"
+    "    for t in argumanlar:\n"
+    "        adaylar = []\n"
+    '        if t.startswith("-"):\n'
+)
+
 KIMLIK_GOVDE_KILIT = (
     'def kimlik(girdi):\n'
     '    return "ISCI" if kimlik_ekseni(girdi) is not None else "MIMAR"\n'
@@ -111,6 +140,18 @@ def yama(dizin, dosya, eski, yeni, zorunlu=True):
         if zorunlu:
             raise SystemExit("MUTASYON ANKRAJI BULUNAMADI: " + dosya + " <- " + eski[:60])
         return
+    # 🔴 26 EYL 2026 — ANKRAJ TEKIL OLMALI (SINIF ONARIMI). OLCULDU: M13/M20'nin capasi
+    # `mimar-icra-kapisi.py`de 4 KEZ geciyordu (R2 yol-tarama dongusu `_kapi_dagitim_muaf`
+    # (K304, 28 Agu), `_ortak_altyapi_muaf` (K332, 28 Agu) ve `_kardes_ev_muaf` (19 Eyl)
+    # icine KOPYALANDI); ME4'unki 2 kez (`_kapi_dagitim_muaf` basi), ME10'unki 2 kez
+    # (K159 alt-komut korumasi). `replace(..., 1)` ILK eslesmeyi yamaliyordu — yani mutant
+    # hedef kolu DEGIL bir kopyasini oldurdu ve "net=0" ya da ilgisiz 27 vaka basti.
+    # "Capa bulundu" != "capa HEDEFI buldu". Tekil olmayan capa BAYAT-ANKRAJ sayilir ve
+    # `ankraj_on_denetimi` onu ADIYLA raporlar ([[mutant-yardimcisi-neyi-yamadigi-imzasindan-okunmaz]]).
+    sayi = ham.count(eski)
+    if sayi != 1:
+        raise SystemExit("MUTASYON ANKRAJI TEKIL DEGIL ({} eslesme): {} <- {}".format(
+            sayi, dosya, eski[:60]))
     with open(yol, "w", encoding="utf-8") as f:
         f.write(ham.replace(eski, yeni, 1))
 
@@ -262,18 +303,25 @@ MUTASYONLAR = [
      set(YAZMA_ALLOW_VAKALARI), False, len(YAZMA_ALLOW_VAKALARI)),
     # M13 (4. tur): R2'de bayrak oneki SOYULMAZ — yalniz HAM okuma kalir. Ham okuma
     # '-s/private/tmp/disari'yi goreli sayip cwd'ye ekler ve repo-ici gorur.
+    # 🔴 26 EYL: M13/M20 capasi `dis_yol` DOCSTRING KUYRUGUYLA kapsamlandi (DIS_YOL_BASI).
+    # Dongu govdesi 3 kardes fonksiyona kopyalandigi icin yalniz govde TEKIL DEGILDI ve
+    # ilk eslesme `_kapi_dagitim_muaf`i yamaliyordu (net=0) — bkz. yama() tekillik notu.
     ("M13", lambda d: yama(
         d, ICRA,
+        DIS_YOL_BASI +
         '            if "/" in t:\n'
         "                adaylar.append(t)\n"
         '                adaylar.append(t[t.index("/"):])\n'
         '            if "=" in t:\n'
         '                adaylar.append(t.split("=", 1)[1])\n',
+        DIS_YOL_BASI +
         '            if "/" in t:\n'
         "                adaylar.append(t)\n"),
      "R2: bayrak oneki soyulmaz (yalniz ham okuma) — bitisik/=li dis yol acilir "
      "(22Tem: dis_yol artik YALNIZ sh/bash icin canli, sentinel sh vakasi 251)",
-     {251}, True, 1),
+     # 26 Eyl: 11 Eyl allowlist RAPOR oldu -> python3 cagrilari da R2 (dis_yol) koluna iner;
+     # bitisik-bayrakli repo-disi yol tasiyan python vakalari da artik bu kolun sentinelidir.
+     {51, 92, 94, 120, 124, 135, 136, 150, 151, 251}, True, 10),
     # M14 KALDIRILDI (11 Eyl 2026): capasi `mimar-kapi-kur.py`daydi, dosya `ca8c3815`
     # ile silindi -> yama capasi YOK, mutant uygulanamiyordu. SAHIPSIZ KALAN IDDIA YOK:
     # nobetledigi 111/114 vakalari `mimar-kilit-test.py::kablo_kume_kostur` icinde
@@ -294,36 +342,80 @@ MUTASYONLAR = [
                            "        if not repo_ici(betik, cwd):",
                            "        if False:"),
      "F: betik repo_ici kontrolu silinir (sh betigi cwd repo DISI acilir)",
-     {250}, True, 1),
+     # 26 Eyl: 160 (cwd repo DISI + goreli python betigi) eskiden allowlist RED`i alirdi;
+     # 11 Eyl`den beri RED`i F veriyor -> F`nin ikinci sentinelidir.
+     {160, 250}, True, 2),
     # M20 (4. tur): R2 tiresiz token yol kontrolu silinir — bayrak degerleri denetlenir
     # ama duz arguman olarak verilen repo-disi yol acilir.
     ("M20", lambda d: yama(
         d, ICRA,
+        DIS_YOL_BASI +
+        '            if "/" in t:\n'
+        "                adaylar.append(t)\n"
+        '                adaylar.append(t[t.index("/"):])\n'
+        '            if "=" in t:\n'
+        '                adaylar.append(t.split("=", 1)[1])\n'
         '        elif "/" in t or t.startswith("."):\n'
         "            adaylar.append(t)\n",
+        DIS_YOL_BASI +
+        '            if "/" in t:\n'
+        "                adaylar.append(t)\n"
+        '                adaylar.append(t[t.index("/"):])\n'
+        '            if "=" in t:\n'
+        '                adaylar.append(t.split("=", 1)[1])\n'
         "        elif False:\n"
         "            adaylar.append(t)\n"),
      "R2: tiresiz ARGUMAN yol kontrolu silinir (duz repo-disi yol argumani acilir) "
      "(22Tem: sentinel sh vakasi 253)",
-     {253}, True, 1),
+     # 26 Eyl: 11 Eyl`den beri python3 da R2`ye iner (allowlist RAPOR) -> tiresiz repo-disi
+     # yol tasiyan python vakalari da bu kolun sentinelidir.
+     {87, 122, 134, 153, 253}, True, 5),
     # N1 KALDIRILDI (11 Eyl 2026): M14 ile ayni gerekce — capasi silinmis
     # `mimar-kapi-kur.py`daydi. Nobetledigi 114 vakasi da `kablo_kume_kostur`un
     # "EKSIK-KURUCU" kolundan GORUNUR dusuyor.
+    # 🔴 26 EYL 2026 — M14/N1'IN ARDILLARI (KE1/KE2). Kablo vakalari iddianin canli sahibi
+    # `kapi-envanteri.py::bagli_mi`ye nisanlandi; ayni iki kusur o raporcuda yeniden uretilir:
+    # KE1 = N1 (dogru kanca, YANLIS matcher gorulmez) · KE2 = M14 (YALANCI raporcu).
+    ("KE1", lambda d: yama(
+        d, ENVANTER,
+        '        if blok.get("matcher") != matcher:\n'
+        "            continue\n"
+        "        for k in blok.get(\"hooks\") or []:\n"
+        "            if basename in (k.get(\"command\") or \"\"):\n",
+        "        for k in blok.get(\"hooks\") or []:\n"
+        "            if basename in (k.get(\"command\") or \"\"):\n"),
+     "B5 ardili: kapi-envanteri `_settings_bagli` MATCHER kontrolu silinir (yanlis blok 'var')",
+     {114}, True, 1),
+    ("KE2", lambda d: yama(
+        d, ENVANTER,
+        "def _settings_bagli(root, basename, matcher):\n",
+        "def _settings_bagli(root, basename, matcher):\n"
+        "    return True\n"),
+     "M14 ardili: kapi-envanteri `_settings_bagli` daima True (YALANCI raporcu)",
+     {111, 114}, True, 2),
     ("M19", lambda d: yama(d, KILIT, CEKIRDEK_CANLI_ZINCIR, ""),
      "B8: canli Bash zinciri nobetcileri CEKIRDEK'ten cikarilir",
      {140, 141}, True, 2),
     # --- 22 TEM SERTLESTIRME NOBETCILERI (her yeni rule = bir kirmizi-mutasyon) ---
+    # 🔴 26 EYL — ME1 CAPASI BAYATTI (`6ed952f8`, 11 Eyl "tum tikayicilari kaldir"): kol
+    # `if ad in OLCUM_KOMUTLARI and not cip: reddet(...)` idi, artik
+    # `if ad in OLCUM_KOMUTLARI: iz_bas("OLCUM-SERBEST ...")` — RED degil RAPOR. Mutant
+    # RAPORU susturur; nobetci 200-216'nin RAPOR_IZI beklentisidir (mimar-kilit-test.py).
     ("ME1", lambda d: yama(d, ICRA,
-                           "        if ad in OLCUM_KOMUTLARI and not cip:\n",
-                           "        if False and ad in OLCUM_KOMUTLARI:\n"),
-     "22Tem: OLCUM/dosya-tarama denetimi kapatilir (du/ps/find/wc/head/... acilir)",
-     {200, 201, 202, 203, 216}, False, 5),
+                           "        if ad in OLCUM_KOMUTLARI:\n"
+                           '            iz_bas("OLCUM-SERBEST rol="',
+                           "        if False and ad in OLCUM_KOMUTLARI:\n"
+                           '            iz_bas("OLCUM-SERBEST rol="'),
+     "11Eyl: OLCUM/dosya-tarama RAPORU susturulur (du/ps/find/wc/head/... izsiz gecer)",
+     {200, 201, 202, 203, 216}, False, 17),
     # ME2 (26 Tem REPOINT): kural artik "codex = RED" degil, "codex ciktisiz = RED".
     # Mutasyon kurali komple kapatir -> bayraksiz cagrilar (25/230/231/235) acilir.
+    # 🔴 26 EYL — CAPA BAYATTI: `fe7810f0` (5 Eyl, emekli motor adi supurmesi) degiskeni
+    # `codex_karari` -> `emekli_motor_karari` yeniden adlandirdi.
     ("ME2", lambda d: yama(
         d, ICRA,
-        '        if codex_karari is not None and codex_karari != "gecer":\n',
-        '        if False and codex_karari is not None and codex_karari != "gecer":\n'),
+        '        if emekli_motor_karari is not None and emekli_motor_karari != "gecer":\n',
+        '        if False and emekli_motor_karari is not None and emekli_motor_karari != "gecer":\n'),
      "26Tem: codex KALITE KAPISI komple kapatilir (bayraksiz codex exec acilir)",
      {25, 230, 231, 235, 264, 265, 266, 267, 268, 269, 270, 275, 277, 278,
       279, 280, 283, 285}, False, 18),
@@ -337,7 +429,8 @@ MUTASYONLAR = [
         "    if True:\n"),
      "26/27Tem: cikti-bayragi muafiyeti silinir (codex yeniden KOSULSUZ RED); K159 son kol: "
      "910 yasak model cagrisinin yapisal izin yolunu da eklenen RED'a kat",
-     {232, 233, 273, 274, 281, 902, 910}, True, 7),
+     # 26 Eyl: pencere ICI pozitif 907 (902 artik BUGUN/pencere-kapali sentinelidir).
+     {232, 233, 273, 274, 281, 907, 910}, True, 7),
     ("ME7", lambda d: yama(
         d, ICRA,
         "    if all(t in EMEKLI_MOTOR_GOZLEM_BAYRAKLARI for t in kalan):\n"
@@ -368,11 +461,17 @@ MUTASYONLAR = [
      "27Tem: DARALTMA geri alinir (argv0 yerine TUM token taramasi) -> 6 yanlis-pozitif "
      "doner (27Tem-2 OLCUMU: 282 sarmalayici+kelime, 281 MESRU sarmalanmis '-o' cagrisi "
      "— genis tarama tokenlar[0]='10' oldugu icin alt-komutu 'codex' sanip reddediyor)",
-     {260, 261, 262, 263, 281, 282}, True, 6),
+     # 26 Eyl: 281 DUSTU — `d8c8f588` (16 Eyl K340) ilk okumada `nice -n 10`u soyuyor; genis
+     # tarama artik 281`de ayni tokenlari goruyor (kapi SIKILASTI, gevsemedi).
+     {260, 261, 262, 263, 282}, True, 5),
+    # 26 EYL: capa `return (` ile TEKIL kilindi — ayni kosul K159 alt-komut korumasinda
+    # (`return "gecer"`) ikinci kez geciyor; tekillik yama()'da artik zorunlu.
     ("ME10", lambda d: yama(
         d, ICRA,
-        "    if kalan[0] != EMEKLI_MOTOR_IZINLI_ALTKOMUT:\n",
-        "    if False and kalan[0] != EMEKLI_MOTOR_IZINLI_ALTKOMUT:\n"),
+        "    if kalan[0] != EMEKLI_MOTOR_IZINLI_ALTKOMUT:\n"
+        "        return (\n",
+        "    if False and kalan[0] != EMEKLI_MOTOR_IZINLI_ALTKOMUT:\n"
+        "        return (\n"),
      "27Tem: ALT-KOMUT kapisi kapatilir (resume/mcp/login/apply acilir)",
      {264, 265, 266, 275}, True, 4),
     ("ME11", lambda d: yama(
@@ -425,20 +524,29 @@ MUTASYONLAR = [
         "    return karar\n",
         "    return _emekli_motor_karari(tokenlar)\n"),
      "27Tem-2: SARMALAYICI ikinci okumasi silinir ('nice -n 10 codex exec' acilir)",
-     {280, 283}, True, 2),
+     # 26 Eyl: 280 DUSTU — `d8c8f588` (16 Eyl) `nice -n 10`u ILK okumada kapatti; ikinci okuma
+     # yalniz env-bayrak-degeri varyantinda (283) yuk tasiyor.
+     {283}, True, 1),
     ("ME3", lambda d: yama(d, ICRA,
                            '        if ad in ("curl", "wget") and not cip:\n',
                            '        if False and ad in ("curl", "wget"):\n'),
      "22Tem: curl/wget denetimi kapatilir (canli dogrulama acilir)",
      {220, 221}, False, 2),
+    # 🔴 26 EYL — CAPA TEKIL DEGILDI: ayni `re.match(python3)` satiri `_kapi_dagitim_muaf`
+    # (K304, 28 Agu) basinda da geciyor ve ILK eslesme ORAYI yamaliyordu -> mutant
+    # _py_izinli'yi degil kurucu muafiyetini acti (27 ilgisiz vaka). Capa `_py_izinli`
+    # docstring kuyruguyla kapsamlandi. 11 Eyl'den beri allowlist RED degil RAPOR:
+    # nobetci 240/241/244'un `PY-ARAC-SERBEST` RAPOR_IZI beklentisidir.
     ("ME4", lambda d: yama(
         d, ICRA,
+        "    kontrolu bunu saglar.\"\"\"\n"
         '    if not re.match(r"^python3(\\.\\d+)?$", ad):\n'
         "        return False\n",
+        "    kontrolu bunu saglar.\"\"\"\n"
         "    return True\n"
         '    if not re.match(r"^python3(\\.\\d+)?$", ad):\n'
         "        return False\n"),
-     "22Tem: _py_izinli daima True (tum python/node araclari acilir)",
+     "22Tem: _py_izinli daima True (tum python/node araclari allowlist RAPORUNSUZ gecer)",
      {240, 241, 244}, False, 3),
     # 28 AGU: HEDEF DEGISMEDI (durum.py'nin EKSTRA argüman toleransi), CAPA yer
     # degistirdi. Konumsal argüman SAYISI kontrolu artik kapida degil, cagri
@@ -466,7 +574,9 @@ MUTASYONLAR = [
         "    if True:\n"
         '        return "gecer"\n'),
      "28Tem AGENT: beyan REGEX kontrolu silinir (_agent_karari daima 'gecer')",
-     {710, 711}, True, 2),
+     # 26 Eyl: `5db1750f` (11 Eyl) sert blogu RAPOR yapti; beyan REGEX`i artik TUM beyansiz
+     # Agent/Task cagrilarinin TEK red kaynagi -> kume MA2 ile ayni (kolu olduren iki yol).
+     {400, 402, 408, 409, 701, 710, 711, 720, 721, 811}, True, 10),
     # MA2 (b): DAIMA-IZIN-VER — main() AGENT kolu reddi hicbir zaman tetiklemez.
     ("MA2", lambda d: yama(
         d, ICRA,
@@ -477,8 +587,11 @@ MUTASYONLAR = [
      # ROL ekseninin DISINDA, AGENT kolunda karara baglanir (rol kolu Agent'a HIC
      # ugramaz); bu mutant onu da acmali. Cakinin buyumesi kasitli: "cipte de kapali"
      # iddiasi ancak AGENT kolunu olduren mutant o vakayi da kizartirsa TASIYICIDIR.
-     {400, 401, 402, 403, 406, 407, 408, 409, 700, 701, 702, 704, 705, 710, 711, 811},
-     True, 16),
+     # 🔴 26 EYL: 401/403/406/407/700/702/704/705 DUSTU — `5db1750f` (11 Eyl) sert blogu
+     # RAPOR yapti; bu sekiz vaka (gecerli beyan) artik zaten GECER, kolu kapatmak onlari
+     # degistirmez. Sert blogun kendi izi RAPOR_IZI (MOTOR-SECIMI) ile MT1/I3'te olculur.
+     {400, 402, 408, 409, 701, 710, 711, 720, 721, 811},
+     True, 10),
     # MA3 (c): agent_id MUAFIYETI TERSINE — ICRA kimlik daima MIMAR (isci muafiyeti duser).
     # Boylece beyansiz ISCI Agent/Task cagrilari (404/405) reddedilir. Tekil dosya (ICRA)
     # patch'i M2'den (KILIT+ICRA birlikte) ayrisir; beklenen AGENT worker vakalaridir.
@@ -644,7 +757,9 @@ MUTASYONLAR = [
         "            return (\n"
         "                \"isçi sarmalayıcısı 'claude' MOTORUYLA çağrılıyor ama SPEC DOSYASI \"\n"),
      "13Agu ISCI: spec okunamadiginda RED yerine 'gecer' (FAIL-OPEN)",
-     {712}, True, 1),
+     # 26 Eyl: 615 (spec YOK) eskiden sert blokta RED alirdi; `5db1750f`den beri spec okuma
+     # koluna iner -> fail-open mutantinin ikinci sentinelidir.
+     {615, 712}, True, 2),
     # I5 (TERS YONLU): kural KOMPLE kapatilir -> 13 Agu ONCESI hale donus. Mesru
     # delegasyon cagrilarinin HEPSI yeniden RED alir (olculen delik geri gelir). Tek
     # yonlu nobetci olu nobetcidir: "kural yakaliyor mu" kadar "kural ACIYOR mu" da olculur.
@@ -662,17 +777,21 @@ MUTASYONLAR = [
      # I5 sarmalayici kuralinin TAMAMINI kapatir, dolayisiyla yetkili cikis da duser.
      # Beklenen kume elle tasinir; vaka eklendiginde guncellenmezse mutant
      # OLCULEMEDI'ye duser (K214 turunda: beklenen 8, gelen 12).
-     {600, 601, 602, 603, 604, 631, 708, 709, 921, 922, 923, 924}, True, 12),
+     # 26 Eyl: 614/707 (isci.sh claude + beyan) sert blok kalkinca kuraldan GECER; kural
+     # kapaninca A/R2`ye duser ve RED alir -> kume 12`den 14`e.
+     {600, 601, 602, 603, 604, 614, 631, 707, 708, 709, 921, 922, 923, 924}, True, 14),
     # --- 13 AGU-2 SARMALAYICI KIMLIK EKSENI ---
     # J mutantlari yalniz 650-659 kimlik takiminda kosar. Boylece beklenen kume TAM
     # esitliktir; bir ekseni oldurmenin katalogdaki ilgisiz yuzlerce vakayi topluca
     # dusurmesi kanit diye sunulmaz.
+    # 🔴 26 EYL — CAPA BAYATTI: `154aed07` (11 Eyl, kimlik ekseni civisi) kanal adini
+    # sabite tasidi (`cevre.get(ISCI_KOSUM_KANALI)`).
     ("J1", lambda d: yama(
         d, KIMLIKORTAK,
-        '    motor = cevre.get("PRUVO_ISCI_KOSUMU")\n'
+        '    motor = cevre.get(ISCI_KOSUM_KANALI)\n'
         '    if motor in ISCI_MOTORLARI:\n'
         '        return "sarmalayici:" + motor\n',
-        '    motor = cevre.get("PRUVO_ISCI_KOSUMU")\n'
+        '    motor = cevre.get(ISCI_KOSUM_KANALI)\n'
         '    if False and motor in ISCI_MOTORLARI:\n'
         '        return "sarmalayici:" + motor\n'),
      "13Agu-2 J1: ortam kimlik ekseni komple kaldirilir",
@@ -711,7 +830,9 @@ MUTASYONLAR = [
         '    if False and model in EMEKLI_MOTOR_YASAK_MODELLER:\n'),
      "17Agu K159: amiral reddi kaldirilir (gpt-5.6-sol amiral gecer); K159 son kol: "
      "910 yasak model RED'i da amiral kapisi kapali olunca ACILIR",
-     {901, 910}, True, 2),
+     # 26 Eyl: 910 DUSTU — 11 Eyl onarimi pencere kolunun metnine yasak adlari TURETTI; 910
+     # (BUGUN) o koldan dogru metni alir, amiral kolu ona ulasmaz.
+     {901}, True, 1),
     # M3: fail-closed (izinli kume disi) RED kaldirilir -> V5 (904) artik ALLOW olur.
     # Spec'te "fail-open" mutant — bilinmeyen model GECER yapilir.
     ("M_K159_3", lambda d: yama(
@@ -728,7 +849,8 @@ MUTASYONLAR = [
         '    if not _emekli_motor_pencere_acik_mi():\n',
         '    if False and not _emekli_motor_pencere_acik_mi():\n'),
      "17Agu K159: pencere/tarih kontrolu kaldirilir (21 Agu tarihli codex GECER)",
-     {905}, True, 1),
+     # 26 Eyl: 902 BUGUN (enjeksiyonsuz) pencere-kapali sentinelidir -> o da kizarir.
+     {902, 905}, True, 2),
     # === 27 AGU 2026 (K318) — ROL EKSENI NOBETCILERI =========================
     # Her mutant, rol ekseninin FARKLI bir kolunu oldurur ve HEDEF kolun vakalari
     # CAKILI bir kumeyle kirmizi yanar. Kumeler AYNI DEGILDIR — MR2 tekil (ad benzerligi),
@@ -954,19 +1076,38 @@ def _sert_tum_evlere_yay(dizin):
          'SERT_BLOK_EVLER = ("pruvo", "pruvo-hasat")\n',
          'SERT_BLOK_EVLER = ("pruvo", "pruvo-hasat", "pruvo-jenerator", '
          '"pruvo-pazarlama", "pruvo-bot", "pruvo-advisor")\n')
+    _jeneratore_tasi(dizin)
+
+
+def _jeneratore_tasi(dizin):
+    """S2 TABANI: yalniz ev kaydirilir (sert blok kumesi DOKUNULMAZ)."""
     yama(dizin, ICRA,
          'REPO_ONEKI = "/Users/okan/dev/pruvo/"\n',
          'REPO_ONEKI = "/Users/okan/dev/pruvo-jenerator/"\n')
 
 
+# 🔴 26 EYL 2026 — SERT MUTANTLAR IKI KUSURLA OLCUYORDU (cip KraL-KilitMutant-26Eyl):
+#  (1) `5db1750f` (11 Eyl) sert blogu RED'den RAPOR'a cevirdi (`_sert_blok_tanisi`,
+#      stderr `MOTOR-SECIMI=claude`). Karar artik HER evde `allow` (gecerli beyan) —
+#      mutantin degistirdigi tek sey RAPORDUR, yalniz karari okuyan olcum onu goremez
+#      (S2 SURVIVOR: dogru=allow mutant=allow).
+#  (2) TABAN HIC OLCULMUYORDU: kriter yalniz `mutant != dogru_beklenen` idi. S1/S3'un
+#      beyan ettigi `dogru=deny` 11 Eyl'den beri YANLISTI (mutasyonsuz kapi `allow`
+#      veriyor) ama ikisi de "GECTI" basiyordu — beklenti bayatken yesil (bos gecis).
+# ONARIM: olcum uc degerli (`deny` | `allow+TANI` | `allow`) ve her mutant once
+# MUTASYONSUZ (ya da ev-kaydirilmis) TABAN kopyada kosar; TABAN `dogru_beklenen`i
+# tutturmazsa mutant OLCULEMEZ sayilir (KALDI), tutturursa olduruldu = mutant != TABAN.
+# (ad, uygulayici, aciklama, ek_env, dogru_beklenen, taban_uygulayici|None)
 SERT_MUTASYONLAR = (
     ("S1", lambda d: yama(
         d, ICRA,
         'SERT_BLOK_EVLER = ("pruvo", "pruvo-hasat")\n',
         'SERT_BLOK_EVLER = ()\n'),
-     "sert blok ev kumesi bosaltilir", {}, "deny"),
+     "sert blok ev kumesi bosaltilir (KraL'da MOTOR-SECIMI raporu susar)", {},
+     "allow+TANI", None),
     ("S2", _sert_tum_evlere_yay,
-     "sert blok dort serbest eve sizdirilir (KaaN taklidi)", {}, "allow"),
+     "sert blok dort serbest eve sizdirilir (KaaN taklidi) — jeneratorde RAPOR belirir", {},
+     "allow", _jeneratore_tasi),
     ("S3", lambda d: yama(
         d, ICRA,
         'def _agent_karari(girdi):\n'
@@ -975,13 +1116,16 @@ SERT_MUTASYONLAR = (
         '    os.environ["PRUVO_CLAUDE_ISCI_IZNI"] = "OKAN" if '
         'os.environ.get("PRUVO_CLAUDE_ISCI_IZNI") else ""\n'
         '    """28 TEM — AGENT-KAPISI karari (mimar ANA oturumu bir Claude iscisi acarken). Doner:\n'),
-     "Okan izninde deger kontrolu kaldirilir; varlik yeterli olur",
-     {"PRUVO_CLAUDE_ISCI_IZNI": "evet"}, "deny"),
+     "Okan izninde deger kontrolu kaldirilir; varlik yeterli olur (sahte izin RAPORU susturur)",
+     {"PRUVO_CLAUDE_ISCI_IZNI": "evet"}, "allow+TANI", None),
 )
 
 
 def sert_mutasyonu_kostur(ad, uygulayici, ek_env):
+    """Doner: 'deny' | 'allow+TANI' (izin + MOTOR-SECIMI raporu) | 'allow' | 'COKTU'."""
     dizin = os.path.join(MUTASYON_KOK, ad)
+    if os.path.exists(dizin):
+        shutil.rmtree(dizin)
     os.makedirs(dizin)
     shutil.copyfile(os.path.join(TOOLS, ICRA), os.path.join(dizin, ICRA))
     shutil.copyfile(os.path.join(TOOLS, KIMLIKORTAK), os.path.join(dizin, KIMLIKORTAK))
@@ -1004,7 +1148,9 @@ def sert_mutasyonu_kostur(ad, uygulayici, ek_env):
                            text=True, env=ortam)
     if sonuc.returncode != 0:
         return "COKTU"
-    return "deny" if '"permissionDecision": "deny"' in (sonuc.stdout or "") else "allow"
+    if '"permissionDecision": "deny"' in (sonuc.stdout or ""):
+        return "deny"
+    return "allow+TANI" if "MOTOR-SECIMI=claude" in (sonuc.stderr or "") else "allow"
 
 
 def mutasyonu_kostur(ad, uygulayici, kendi_testi=False, yalniz_kimlik=False):
@@ -1071,7 +1217,7 @@ def ankraj_on_denetimi():
     """
     saglam, bayat = [], []
     kalemler = ([(ad, uyg) for ad, uyg, _a, _b, _t, _s in MUTASYONLAR]
-                + [(ad, uyg) for ad, uyg, _a, _e, _d in SERT_MUTASYONLAR])
+                + [(ad, uyg) for ad, uyg, _a, _e, _d, _t in SERT_MUTASYONLAR])
     for ad, uygulayici in kalemler:
         dizin = os.path.join(MUTASYON_KOK, "ANKRAJ-" + ad)
         if os.path.exists(dizin):
@@ -1155,13 +1301,20 @@ def main():
             if not tamam:
                 basarisiz.append(ad)
 
-        for ad, uygulayici, aciklama, ek_env, dogru_beklenen in SERT_MUTASYONLAR:
+        for ad, uygulayici, aciklama, ek_env, dogru_beklenen, taban_uyg in SERT_MUTASYONLAR:
             if ad in ATLA:
                 continue  # ankraj bayat — yukarida ADIYLA raporlandi ve KIRMIZI sayildi
+            # 26 Eyl: TABAN once olculur; beyan edilen dogru deger TABAN'da tutmazsa
+            # beklenti BAYATTIR ve mutant hakkinda hukum VERILMEZ (bos gecis yasak).
+            taban_olculen = sert_mutasyonu_kostur(
+                ad + "-TABAN", taban_uyg or (lambda d: None), ek_env)
             olculen = sert_mutasyonu_kostur(ad, uygulayici, ek_env)
-            olduruldu = olculen != dogru_beklenen
-            print("SERT MUTASYON {} | dogru={} mutant={} | {} | {}".format(
-                ad, dogru_beklenen, olculen, "GECTI" if olduruldu else "KALDI", aciklama))
+            taban_ok = (taban_olculen == dogru_beklenen)
+            olduruldu = taban_ok and olculen != taban_olculen and olculen != "COKTU"
+            print("SERT MUTASYON {} | dogru={} taban={} mutant={} | {} | {}{}".format(
+                ad, dogru_beklenen, taban_olculen, olculen,
+                "GECTI" if olduruldu else "KALDI", aciklama,
+                "" if taban_ok else " [OLCULEMEZ: TABAN beyan edilen dogru degeri vermiyor]"))
             if not olduruldu:
                 basarisiz.append(ad)
 

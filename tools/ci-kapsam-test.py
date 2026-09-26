@@ -2934,15 +2934,13 @@ IZIN_LISTESI = {
     # 🔴 KALAN RISK ADIYLA (K196 sinifi): yesilleri YALNIZ yerelde olculur; kapiyi degistiren
     # her is bu iki bataryayi kendi agacinda kosturmak ZORUNDADIR (kabul sarti), yoksa
     # regresyon CI'ya hic ugramadan main'e iner.
-    "tools/mimar-kilit-test.py": (
-        "YEREL-DUZLEM BATARYASI: mimar-icra-kapisi'nin izin tablosunu olcer; vakalar mutlak "
-        "yerel yollara + oturum damgasina + kayitli worktree koklerine capali, CI runner'da "
-        "bu duzlem YOK. 29 Agu supurmesinde silindi, K332 merge'unde geri geldi. Canliligi "
-        "kapiyi degistiren isin KABUL SARTI olarak yerelde olculur."),
-    "tools/mimar-kapi-mutasyon-test.py": (
-        "YEREL-DUZLEM BATARYASI (yukaridakinin mutant ciftı): ayni damga/worktree duzlemine "
-        "capali, CI'da kosturulamaz. Kapi kolunu olduren mutantlarin hedef-kol atfini olcer; "
-        "supurmede silindi, K332 merge'unde geri geldi."),
+    # 🔴 26 EYL 2026 (cip KraL-KilitMutant-26Eyl): `mimar-kilit-test.py` +
+    # `mimar-kapi-mutasyon-test.py` MUAFIYETTEN CIKTI -> nobet.yml::serit-b'de KOSUYOR.
+    # "Yerelde kabul sarti" sozu TUTULMADI: ikisi 15+ gun 318/323 + 37 SURVIVOR ile
+    # kirmizi durdu ve hicbir kosum bunu basmadi (K196 sinifinin ta kendisi). "CI'da
+    # duzlem YOK" gerekcesi de kesin degildi: kapilar kanonik yollari DIZGE olarak
+    # karsilastirir; runner'da `/Users/okan/dev/pruvo` -> checkout sembolik bagi + HOME
+    # ile duzlem KURULUR (adim: "Mimar kapi bataryalari — kanonik yerel duzlem").
     # --- Izin-kancasi KAYNAKLARI (silinemez sinif — BaBa 29 Agu FILO FELCI karari) ---
     # 29 Agu supurmesi (ca8c3815) bu iki govdeyi silmisti; oturum kancalari bunlari
     # calisma aninda OKUDUGU icin filodaki her oturumun Bash'i fail-closed kilitlendi
