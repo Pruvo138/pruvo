@@ -5748,8 +5748,11 @@ def _k80_matrix_genislet(run, strategy):
     return sonuc
 
 
-def _k80_komut_envreni(metinler, tespit_acik=True):
-    """{dosya: yaml_metin} -> Counter((dosya, job, komut)); H1'in tek tespit noktasi."""
+def _k80_komut_envreni(metinler, tespit_acik=True, yorum_ayrimi=True):
+    """{dosya: yaml_metin} -> Counter((dosya, job, komut)); H1'in tek tespit noktasi.
+
+    `komut` HAM `run` metni DEGIL, `_k80_komut_kimligi` ile YORUMU DUSURULMUS argv
+    dizisidir (K286): adimin kimligi ICRA EDILEN seydir, dosyada yazan aciklama degil."""
     if not tespit_acik:  # MUTASYON CAPASI — `_k80_mutasyon_kontrol` bu kolu oldurur.
         return collections.Counter()
     sonuc = collections.Counter()
@@ -5773,7 +5776,8 @@ def _k80_komut_envreni(metinler, tespit_acik=True):
                 if not isinstance(run, str) or not run.strip():
                     raise Olculemedi("%s::%s run BOS/gecersiz" % (dosya, job_id))
                 for genis in _k80_matrix_genislet(run, job.get("strategy", {})):
-                    sonuc[(dosya, str(job_id), genis.strip())] += 1
+                    sonuc[(dosya, str(job_id),
+                           _k80_komut_kimligi(genis, yorum_ayrimi=yorum_ayrimi))] += 1
     return sonuc
 
 
@@ -5866,7 +5870,8 @@ def _k80_tasinan_mi(anahtar, once):
     return any(d == dosya and k == komut for (d, _j, k) in once)
 
 
-def _k80_yeni_komutlar(base, hedef, tespit_acik=True, tasinan_defteri=None):
+def _k80_yeni_komutlar(base, hedef, tespit_acik=True, tasinan_defteri=None,
+                       yorum_ayrimi=True):
     """GERCEKTEN yeni komutlar. Taşınanlar AYRI defterde raporlanir, push'u bloklamaz.
 
     🔴 NEDEN TASIMA MUAFIYETI VAR (15 Agu 2026, KraL hukmu — olculdu, gevsetme DEGIL):
@@ -5890,8 +5895,9 @@ def _k80_yeni_komutlar(base, hedef, tespit_acik=True, tasinan_defteri=None):
     # TABAN tarafinda bos kume MESRUDUR: kok commit (bos agac tabani) ya da workflow
     # dosyasinin hic bulunmadigi erken gecmis. HEDEF tarafi fail-closed KALIR.
     once = _k80_komut_envreni(_k80_workflow_metinleri(base, bos_serbest=True),
-                              tespit_acik=tespit_acik)
-    sonra = _k80_komut_envreni(_k80_workflow_metinleri(hedef), tespit_acik=tespit_acik)
+                              tespit_acik=tespit_acik, yorum_ayrimi=yorum_ayrimi)
+    sonra = _k80_komut_envreni(_k80_workflow_metinleri(hedef), tespit_acik=tespit_acik,
+                               yorum_ayrimi=yorum_ayrimi)
     gercek = []
     for anahtar in (sonra - once).elements():
         if _k80_tasinan_mi(anahtar, once):
@@ -5916,19 +5922,77 @@ def _k80_betik_yolu(argv):
     return adaylar[0]
 
 
-def _k80_satirlar(run):
+# ── K286 (25 Agu 2026) — YORUM CAGRI DEGILDIR, ve ayrim YAPIDAN turer ─────────────
+# OLCULEN KUSUR: K80 kimligi `(dosya, job, run_metni)` uclusuydu ve `run: |` govdesindeki
+# YORUM satirlari o metnin PARCASIYDI. Bir adimin yorumunu duzeltmek — komutu BIR HARF
+# degistirmeden — kimligi degistiriyor, adim GERCEKTEN YENI sayiliyordu. nobet.yml'in
+# HICBIR isi `deploy.needs`te olmadigi icin sonuc her seferinde sahte `ZINCIR_DISI=1`;
+# bloklayici bir dosyada ayni kusur komutu BOSUNA yeniden kosturur (push bloklama riski).
+#
+# 🔴 NEDEN DIZGE DEGIL YAPI: satir-basi `#` taramasi tek basina YETMEZ ve YANLISTIR —
+# `python3 tools/x.py '#etiket'` icindeki `#` yorum DEGILDIR, argumandir. Ayrim, adimin
+# ICRA EDILEN argv'sinden turer: satirlar YAML `run:` skalarindan gelir (dosya
+# satirlarindan DEGIL) ve yorumu shlex'in KENDI yorum kurali duser, yani tirnak icindeki
+# `#` KORUNUR. Kimlik ve kosturucu AYNI govdeden okur — ikiz tanim YOK
+# ([[ikiz-tanim-sessiz-ayrisma]]).
+#
+# 🔴 FAIL-CLOSED SINIR (bilerek, yazili): argv'ye cevrilemeyen govde (kabuk
+# metakarakteri, `\` devami, dengesiz tirnak) icin kimlik HAM metin olarak kalir —
+# oradaki yorum degisikligi HALA "yeni" sayilir. Olcemedigimiz yerde ESKI SERT davranis
+# korunur; gevsetme YOK.
+def _k80_yorumsuz_argv(satir, yorum_ayrimi=True):
+    """Bir `run` satirini argv'ye cevirir; satir TAMAMEN yorum/bosluksa BOS liste doner.
+
+    🔴 SIRA HAYATIDIR — once YORUM dusulur, SONRA kabuk-metakarakteri emniyeti olculur.
+    Ters sirada `# (kusur degil) ... kosar; "dosya var ama` gibi TAMAMEN YORUM bir satir
+    icindeki `;` yuzunden OLCULEMEDI'ye duser, kimlik ham metne geri sarar ve K286 kusuru
+    AYNEN yasardi — nobet.yml'deki N4A yorum blogu tam olarak bu sekildedir. Yorum satiri
+    ICRA EDILMEZ; ona icra emniyeti uygulamak olcum degil, korlukTUR.
+
+    MUTASYON CAPASI: `yorum_ayrimi=False` iken `#` siradan bir jetondur -> yorum satiri
+    komut sayilir (K286 ONCESI hal). `tools/k80-yorum-cagri-test.py` bu kolu oldurur.
+    """
+    try:
+        argv = shlex.split(satir, comments=yorum_ayrimi)
+    except ValueError as hata:
+        raise Olculemedi("shlex ayristiramadi: %s" % hata)
+    if not argv:
+        return []
+    if K80_META.search(satir) or "\\" in satir:
+        raise Olculemedi("kabuk metakarakteri/ifadesi var: %r" % satir)
+    return argv
+
+
+def _k80_komut_kimligi(run, yorum_ayrimi=True):
+    """Bir `run` govdesinin KIMLIGI — yorum/bosluk YAPIDAN dusurulmus argv dizisi.
+
+    Kimlik ICRA EDILEN sey uzerinden kurulur, dosyada YAZAN metin uzerinden degil.
+    Olculemeyen govde HAM metne duser (fail-closed: bir bayt degisirse YENIdir)."""
+    satirlar = []
+    try:
+        for ham in run.splitlines():
+            satir = ham.strip()
+            if not satir:
+                continue
+            argv = _k80_yorumsuz_argv(satir, yorum_ayrimi=yorum_ayrimi)
+            if not argv:
+                continue                      # satir TAMAMEN yorumdu -> CAGRI DEGIL
+            satirlar.append(" ".join(shlex.quote(jeton) for jeton in argv))
+    except Olculemedi:
+        return run.strip()
+    if not satirlar:
+        return run.strip()
+    return "\n".join(satirlar)
+
+
+def _k80_satirlar(run, yorum_ayrimi=True):
     """Yalniz duz yerel komutlari argv'ye cevir; belirsizlik OLCULEMEDI."""
     satirlar = []
     for ham in run.splitlines():
         satir = ham.strip()
-        if not satir or satir.startswith("#"):
+        if not satir:
             continue
-        if K80_META.search(satir) or "\\" in satir:
-            raise Olculemedi("kabuk metakarakteri/ifadesi var: %r" % satir)
-        try:
-            argv = shlex.split(satir)
-        except ValueError as hata:
-            raise Olculemedi("shlex ayristiramadi: %s" % hata)
+        argv = _k80_yorumsuz_argv(satir, yorum_ayrimi=yorum_ayrimi)
         if not argv:
             continue
         if argv[0] not in ("python3", "node"):
@@ -6013,6 +6077,33 @@ def _k80_commit_agacinda_kos(hedef, yeni):
     return bulgular, kosulan
 
 
+def _k80_uzakta_erisilebilir(sha):
+    """Yeni ref'in gosterdigi commit uzak-izleme ref'lerinden ZATEN erisilebilir mi?
+
+    🔴 NEDEN (26 Eyl 2026, OLCULDU — dal triyaji): ESKIMIS bir dalin ucuna `arsiv/dal/<ad>`
+    tag'i itilirken K80, YENI ref kolunda `(ucun ebeveyni, uc)` araligini kuruyor ve
+    16 Tem tarihli, K80'den (14 Agu) ONCE origin'e gitmis bir commit'in `mkdir` adimini
+    "yeni CI adimi" sayip `YENI CI ADIMI OLCULEMEDI` ile push'u durduruyordu. Tag yeni
+    agac TASIMIYORDU: commit dal olarak origin'deydi. Sonuc: arsiv tag'i itilemiyor,
+    dal SILINEMIYORDU ([[arsiv-tagi-k80-pre-push-eski-commiti-yeni-ci-adimi-sayar]]).
+
+    OLCUT: `rev-list <commit> --not --remotes` BOS ise push hicbir yeni commit
+    tasimaz -> eklenmis CI adimi OLAMAZ -> KAPSAM DISI. Karar YAPIDAN turer (erisilebilirlik),
+    ref ADINDAN degil: `refs/tags/arsiv/*` gibi bir ad muafiyeti YOK — yeni commit tasiyan
+    tag da, uzakta zaten olan commit'i gosteren yeni dal da ayni olcutle olculur.
+    FAIL-CLOSED SINIR (bilerek): hic uzak-izleme ref'i yoksa ya da sha commit'e
+    cozulmuyorsa muafiyet VERILMEZ (ilki eski davranisa duser, ikincisi OLCULEMEDI).
+    Kabul edilen sinir: uzak-izleme ref'i yerel bir kopyadir; uzakta silinmis ama
+    budanmamis bir ref'ten erisilen commit de "zaten gitmis" sayilir — o commit bir kez
+    itilmistir, yeni icerik degildir.
+    """
+    commit = _k80_git(["rev-parse", "--verify", sha + "^{commit}"]).strip()
+    if not _k80_git(["for-each-ref", "--count=1", "--format=%(refname)",
+                     "refs/remotes/"]).strip():
+        return False
+    return _k80_git(["rev-list", "-n", "1", commit, "--not", "--remotes"]).strip() == ""
+
+
 def _k80_araliklar(args):
     if args.base or args.hedef:
         if not (args.base and args.hedef):
@@ -6022,6 +6113,7 @@ def _k80_araliklar(args):
         araliklar = []
         satir_sayisi = 0
         silme_sayisi = 0
+        zaten_uzakta = 0
         for satir in sys.stdin:
             alan = satir.split()
             if len(alan) != 4:
@@ -6032,10 +6124,17 @@ def _k80_araliklar(args):
                 silme_sayisi += 1
                 continue
             if uzak_sha == K80_SIFIR_SHA:
+                if _k80_uzakta_erisilebilir(yerel_sha):
+                    zaten_uzakta += 1
+                    continue
                 ebeveyn = _k80_git(["rev-parse", yerel_sha + "^"]).strip()
                 araliklar.append((ebeveyn, yerel_sha))
             else:
                 araliklar.append((uzak_sha, yerel_sha))
+        if zaten_uzakta:
+            print("K80: YENI REF (%d) uzakta ZATEN erisilebilir commit'i gosteriyor — "
+                  "push edilen yeni commit YOK, eklenmis CI adimi olamaz: KAPSAM DISI."
+                  % zaten_uzakta)
         if not araliklar:
             # 🔴 14 Agu 2026 (ILK YAMANIN DUZELTMESI): "olcecek sey YOK" ile "olcemedim"
             # ayrimi BURADA DA gecerli. git, pre-push'a GUNCELLENECEK HER REF ICIN BIR
@@ -6050,8 +6149,9 @@ def _k80_araliklar(args):
                 print("K80: PRE-PUSH GIRDISI BOS — guncellenecek ref YOK, "
                       "eklenmis CI adimi olamaz: KAPSAM DISI.")
                 return []
-            print("K80: SILME PUSH'U (%d ref) — push edilen yeni agac YOK, "
-                  "eklenmis CI adimi olamaz: KAPSAM DISI." % silme_sayisi)
+            if silme_sayisi:
+                print("K80: SILME PUSH'U (%d ref) — push edilen yeni agac YOK, "
+                      "eklenmis CI adimi olamaz: KAPSAM DISI." % silme_sayisi)
             return []
         return araliklar
     ci_onceki = os.environ.get("PRUVO_CI_ONCEKI_SHA", "").strip()
@@ -6071,7 +6171,7 @@ def _k80_araliklar(args):
     return [(base, hedef)]
 
 
-def yeni_ci_adimi_kontrol(args, tespit_acik=True):
+def yeni_ci_adimi_kontrol(args, tespit_acik=True, yorum_ayrimi=True):
     if os.environ.get(K80_IC_KOSUM) == "1":
         return [], 0, 0
     bulgular, yeni_sayisi, kosulan = [], 0, 0
@@ -6092,7 +6192,8 @@ def yeni_ci_adimi_kontrol(args, tespit_acik=True):
                 continue
             ebeveyn = _k80_ebeveyn(commit)
             yeni = _k80_yeni_komutlar(ebeveyn, commit, tespit_acik=tespit_acik,
-                                      tasinan_defteri=tasinan)
+                                      tasinan_defteri=tasinan,
+                                      yorum_ayrimi=yorum_ayrimi)
             # ZINCIR DISI (hijyen) ise eklenen yeni adim: RAPORLANIR, BLOKLAMAZ.
             bloklayici_harita = _k80_bloklayici_isler(hedef_wf)
             zincir_disi = [a for a in yeni
