@@ -99,7 +99,11 @@ ISCI_ISARETI_RE = re.compile(r"\bisciye:", re.IGNORECASE)
 # Cozum kaynagi geri sabitlemek DEGIL, tarayiciya turetimi COZDURMEKTIR: etiket
 # gorulunce gercek fonksiyon cagrilir ve komut metni yerine konur. Etiket
 # cozulemezse yerine konmaz -> recete AYIKLANAMADI kovasina duser (fail-closed).
-TURETILMIS_RECETE_RE = re.compile(r"cagri_ornegi\(\s*[\"']([A-Za-z0-9_\-]+)[\"']\s*\)")
+# 26 EYL 2026: `cagri_ornegi("etiket", kok=kok)` (ev eksenli CARE) de cozulur; ek
+# argumanlar YOK SAYILIR ve recete KANONIK evle cozulur — ek arguman gorulunce eslesme
+# dusseydi CARE satiri SESSIZCE tarama disina kayardi (python3 bulunamaz -> `continue`).
+TURETILMIS_RECETE_RE = re.compile(
+    r"cagri_ornegi\(\s*[\"']([A-Za-z0-9_\-]+)[\"']\s*(?:,[^()]*)?\)")
 _SERBEST_MODUL = None
 
 

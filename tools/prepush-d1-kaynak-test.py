@@ -155,6 +155,20 @@ _HATA_STUB = "#!/usr/bin/env python3\nimport sys\nsys.exit(1)\n"
 # yanlis-pozitif olarak durur — 20 Agu'da UC ust uste push boyle blokland.
 _ATLANDI_STUB = "#!/usr/bin/env python3\nimport sys\nsys.exit(4)\n"
 
+# SENTETIK "YARIS" STUB'I (26 Eyl 2026) — d1-sync'in rc=5 kolunu taklit eder: ayni
+# makinede baska yazici ucustaydi / uzak bekleme sirasinda ayristi, yazma YAPILMADI.
+_YARIS_STUB = ("#!/usr/bin/env python3\nimport sys\n"
+               "sys.stderr.write('D1_SENKRON=YARIS SEBEP=YEREL_YARIS\\n')\nsys.exit(5)\n")
+
+# ORTAM KAYIT STUB'I — kancanin d1-sync'e YARIS ortamini (bekleme + push sha) gecirip
+# gecirmedigini olcer. %(kayit)r depo DISINDA bir dosya.
+_ORTAM_STUB = '''#!/usr/bin/env python3
+import json, os
+with open(%(kayit)r, "w", encoding="utf-8") as f:
+    json.dump({k: os.environ.get(k) for k in
+               ("PRUVO_D1_YARIS_BEKLE_SN", "PRUVO_D1_PUSH_SHA")}, f)
+'''
+
 
 def fikstur_kur(tmp, ad, kanca_govdesi=None, sync_stub=None):
     """GERCEK git deposu + GERCEK uzak (bare) + KURULU pre-push kancasi.
@@ -461,6 +475,64 @@ try:
     dogrula("G4b 🔴 MUTANT: BASARISIZ kolu olunce rc=1 GECTI — demek ki TABANDA o kol "
             "GERCEKTEN blokluyor (onarim gevsetme DEGIL, AYIRIM)",
             rc_g4 == 0, "rc=%d" % rc_g4)
+
+    # ══ H) YEREL YARIS (26 Eyl 2026) — rc=5 AYRI kol + ortam GECIRILIYOR ══════════
+    # OLCULEN SAHTE RED: iki push ayni anda senkronlarken ikincisi yerel flock'a carpip
+    # rc=1 ("BASARISIZ") verdi, `--durum` hemen ardindan uyusmaz 0 dedi. d1-sync artik
+    # YARIS'i rc=5 ile ayirir ve kancanin gecirdigi ortamla BEKLEYIP yeniden olcer
+    # (davranis: tools/d1-yaris-test.py). Burada kancanin IKI yuzu olculur.
+    print("\n[H] YEREL YARIS — rc=5 ayri gerekceyle bloklar, ortam d1-sync'e gecer")
+    depo_h1, _k = fikstur_kur(tmp, "h1", sync_stub=_YARIS_STUB)
+    _katalog_yaz(depo_h1, ["u-commitli", "u-taban"])
+    _git(depo_h1, "add", "urunler.json")
+    _git(depo_h1, "commit", "-q", "-m", "commitli urun")
+    rc_h1, cikti_h1, _ = push_et(depo_h1)
+    dogrula("H1 rc=5 (yazma YAPILMADI) -> push BLOKLANDI (rc != 0)", rc_h1 != 0,
+            "rc=%d" % rc_h1)
+    dogrula("H2 gerekce YARIS diyor, 'BASARISIZ' DEMIYOR (sahte ariza metni yok)",
+            "D1 YARISI (rc=5)" in cikti_h1 and "D1 SENKRONU BASARISIZ" not in cikti_h1,
+            cikti_h1[-300:])
+
+    ham_h = open(KANCA_KAYNAGI, encoding="utf-8").read()
+    mutant_h = ham_h.replace('if [ "$d1_rc" = "5" ]; then', 'if [ "$d1_rc" = "9999" ]; then')
+    dogrula("H3a mutasyon FIILEN uygulandi (rc=5 kolu erisilemez)", mutant_h != ham_h)
+    depo_h3, _k = fikstur_kur(tmp, "h3", kanca_govdesi=mutant_h, sync_stub=_YARIS_STUB)
+    _katalog_yaz(depo_h3, ["u-commitli", "u-taban"])
+    _git(depo_h3, "add", "urunler.json")
+    _git(depo_h3, "commit", "-q", "-m", "commitli urun")
+    rc_h3, cikti_h3, _ = push_et(depo_h3)
+    dogrula("H3b 🔴 MUTANT: rc=5 kolu olunce YARIS yine 'BASARISIZ' diye basildi "
+            "(H2 bu mutantta KIRMIZI yanardi)",
+            rc_h3 != 0 and "D1 SENKRONU BASARISIZ" in cikti_h3
+            and "D1 YARISI" not in cikti_h3, cikti_h3[-300:])
+
+    kayit_h4 = os.path.join(tmp, "h4-ortam.json")
+    depo_h4, _k = fikstur_kur(tmp, "h4", sync_stub=_ORTAM_STUB % {"kayit": kayit_h4})
+    _katalog_yaz(depo_h4, ["u-commitli", "u-taban"])
+    _git(depo_h4, "add", "urunler.json")
+    _git(depo_h4, "commit", "-q", "-m", "commitli urun")
+    sha_h4 = _git(depo_h4, "rev-parse", "HEAD").stdout.strip()
+    rc_h4, cikti_h4, _ = push_et(depo_h4)
+    ort_h4 = kayit_oku(kayit_h4) or {}
+    dogrula("H4 kanca d1-sync'e PUSH EDILEN sha'yi ve pozitif bekleme tavanini GECIRDI "
+            "(sha=%s bekle=%s)" % (str(ort_h4.get("PRUVO_D1_PUSH_SHA"))[:12],
+                                   ort_h4.get("PRUVO_D1_YARIS_BEKLE_SN")),
+            rc_h4 == 0 and ort_h4.get("PRUVO_D1_PUSH_SHA") == sha_h4
+            and float(ort_h4.get("PRUVO_D1_YARIS_BEKLE_SN") or 0) > 0,
+            "rc=%d ortam=%s %s" % (rc_h4, ort_h4, cikti_h4[-200:]))
+    mutant_h5 = ham_h.replace('PRUVO_D1_YARIS_BEKLE_SN=480 PRUVO_D1_PUSH_SHA="$push_sha" '
+                              'python3 "$sync" "$@"', 'python3 "$sync" "$@"')
+    dogrula("H5a mutasyon FIILEN uygulandi (ortam cagridan sokuldu)", mutant_h5 != ham_h)
+    kayit_h5 = os.path.join(tmp, "h5-ortam.json")
+    depo_h5, _k = fikstur_kur(tmp, "h5", kanca_govdesi=mutant_h5,
+                              sync_stub=_ORTAM_STUB % {"kayit": kayit_h5})
+    _katalog_yaz(depo_h5, ["u-commitli", "u-taban"])
+    _git(depo_h5, "add", "urunler.json")
+    _git(depo_h5, "commit", "-q", "-m", "commitli urun")
+    push_et(depo_h5)
+    ort_h5 = kayit_oku(kayit_h5) or {}
+    dogrula("H5b 🔴 MUTANT: ortam sokulunce d1-sync push sha'yi GORMEDI (H4 KIRMIZI yanardi)",
+            not ort_h5.get("PRUVO_D1_PUSH_SHA"), str(ort_h5))
 
     # ══ E) SURE TAVANI — fail-slow = fail-open ═══════════════════════════════════
     print("\n[E] SURE — asili kalan kol iptal edilir, kapi HIC olculmez")

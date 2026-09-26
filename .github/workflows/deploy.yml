@@ -122,12 +122,18 @@ jobs:
       # (iki makine) ortak SQLite-D1 fiksturune baglar; D1 kosullu lease'inin ikinci
       # yaziciyi reddettigini, normal cikista birakildigini, crash lease'inin sona
       # erdigini ve main/finally kablosunun canli kaldigini olcer.
+      # YEREL YARIS (26 Eyl 2026): ayni makinede iki push ayni anda senkronlarken ikinci
+      # yazici rc=1 ("BASARISIZ") veriyordu, `--durum` uyusmaz 0 — sahte RED. Artik rc=5
+      # + jeton; kanca ortamiyla kilidi BEKLER ve uzak main'i yeniden olcer (YAZ /
+      # KAPSANDI / YARIS). d1-yaris-test gercek flock + gercek git fiksturu + 5 izole
+      # mutant (SURVIVOR=0); canli D1'e dokunmaz.
       - name: D1 seq ve tam-katalog yazici kilidi kabul testleri
         run: |
           python3 tools/d1-seq-kilit-test.py
           python3 tools/d1-seq-kilit-test.py --mutasyon
           python3 tools/d1-yazici-kilit-test.py
           python3 tools/d1-dagitik-kilit-test.py
+          python3 tools/d1-yaris-test.py
 
       # SITEMAP DAMGA ONBELLEGI — ayni kosum/katalog/dakika olcumunde hijyen-build
       # `önbellekten 29037 · git'ten 1 · çözülemedi 0 · yürünen commit 2 · 0,6 sn`,

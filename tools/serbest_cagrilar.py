@@ -782,7 +782,18 @@ def cagri_ornegi(etiket, kok=None):
     onerdigi carenin o evde REDDEDILMESI K319/K332 sinifidir
     ([[kapi-red-metni-ikinci-kopyadir]])."""
     sekil = {s.etiket: s for s in eve_gore(kok)}[etiket]
-    parcalar = ["python3", sekil.arac]
+    arac = sekil.arac
+    # 🔴 26 EYL 2026 (MaCiT Pentax kapanisi 3d): `tools/` tasimayan ev (pruvo-hasat)
+    # KANONIK kapiyi kendi kokuyle cagirir. Konumlar (DEVAM.md/arsiv) O EVE aittir ve
+    # yeniden koklenir; ama arac o evde YOKSA koklenmis yol olu bir komut olurdu ->
+    # arac, KOSAN KAPININ kendi kopyasindan cagrilir (bu modulun deposu; uretimde
+    # kanonik ev). Arac evde VARSA (kardes evin kendi kopyasi) o kalir.
+    if kok and not os.path.isfile(arac):
+        yerel = _yeniden_kokle(SEKIL_ETIKETLERI[etiket].arac,
+                               os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        if os.path.isfile(yerel):
+            arac = yerel
+    parcalar = ["python3", arac]
     if sekil.alt_komut is not None:
         parcalar.append(sekil.alt_komut)
     parcalar.extend(sekil.konumlar)

@@ -259,6 +259,116 @@ _KILIT_YOKLAMA_SN = 0.5
 _YEREL_KILIT_SAHIBI = False
 
 
+# ── YEREL YAZICI YARISI (26 Eyl 2026, KraL-PrePushD1-26Eyl) ────────────────────────
+# OLCULEN SAHTE RED (25 Eyl gecesi 2. kez + MaCiT 26 Eyl uc dilim): ayni makinede iki
+# push AYNI ANDA urunler.json degistirdi. Birincinin pre-push senkronu yerel flock'u
+# tutarken ikincinin YAZICI kolu LOCK_NB ile ANINDA `sys.exit` etti -> rc=1 -> kanca
+# "D1 SENKRONU BASARISIZ" diyip push'u durdurdu. Hemen ardindan `--durum` 38829=38829 /
+# uyusmaz 0 verdi: paylasilan checkout'ta ikinci push'un commit'i birincinin push'u
+# icinde origin'e gitmis, D1'i de birincinin senkronu yazmisti. Kilidi tutan bir
+# `--durum` OKUYUCUSU da (cagri duzeyinde flock) ayni rc=1'i uretiyordu.
+# Yani GERCEK HATA (rc=1: sema/ag/SQL) ile YARIS AYNI rc'yi tasiyordu; kanca ayiramazdi.
+# ONARIM (gevsetme DEGIL, AYIRIM):
+#   * YARIS kendi rc'sini ve jetonunu tasir: rc=5 + `D1_SENKRON=YARIS SEBEP=YEREL_YARIS`.
+#     Kanca rc=5'i BLOKLAMAYA devam eder (yazma OLMADI), ama gerekcesi artik ADIYLA.
+#   * Kanca `PRUVO_D1_YARIS_BEKLE_SN` verirse YAZICI kolu kilidi o kadar BEKLER (sesli).
+#     Kilidi aldiktan sonra uzak main YENIDEN olculur (`yaris_karari`), cunku bekleme
+#     sirasinda komsu push'un ref'i origin'e inmis olabilir:
+#       uzak == push edilen sha / uzak onun atasi -> YAZ (idempotent diff-upsert)
+#       push edilen sha uzagin KATI atasi          -> KAPSANDI: yazma YOK, rc=0.
+#           Daha yeni bir push (kendi senkronuyla) bizi ICERIYOR; ESKI katalogu simdi
+#           yazmak onun yazdigini GERI ALIRDI.
+#       ayrismis / olculemedi                      -> YARIS rc=5 (fail-closed).
+#   * Ortam degiskeni YOKSA (elle kosum, CI) davranis eskisi gibi ANINDA durur; yalniz
+#     rc 1 yerine 5 + jeton. Eski kanca rc=5'i "BASARISIZ" sayar = eski davranis.
+YARIS_RC = 5
+YARIS_BEKLE_ENV = "PRUVO_D1_YARIS_BEKLE_SN"
+YARIS_PUSH_SHA_ENV = "PRUVO_D1_PUSH_SHA"
+YARIS_JETONU = "D1_SENKRON=YARIS SEBEP=YEREL_YARIS"
+KAPSANDI_JETONU = "D1_SENKRON=KAPSANDI"
+# Son `yazici_kilidi_al` cagrisi kilidi BEKLEYEREK mi aldi (main() yeniden olcum icin okur).
+_SON_KILIT_BEKLEDI = [False]
+
+
+class YerelYaziciUcusta(SystemExit):
+    """Ayni makinede kilit baskasinda — yazma YAPILMADI (main() -> rc=5).
+
+    SystemExit'ten turer ve `e.code` eski `sys.exit(mesaj)` ile AYNI metindir: bu sinifi
+    tanimayan cagiran (eski testler, `alt()`) davranis farki GORMEZ."""
+
+    def __init__(self, mesaj):
+        super().__init__(mesaj)
+        self.mesaj = mesaj
+
+
+def yaris_bekleme_sn(ortam=None):
+    """Ortamdan bekleme tavani. Yok/gecersiz/negatif -> 0 (eski davranis, beklemez)."""
+    ham = (os.environ if ortam is None else ortam).get(YARIS_BEKLE_ENV, "")
+    try:
+        deger = float(ham)
+    except (TypeError, ValueError):
+        return 0.0
+    return deger if deger > 0 else 0.0
+
+
+def yaris_karari(push_sha, uzak_sha, uzak_push_atasi_mi, push_uzak_atasi_mi):
+    """Bekleme SONRASI hukum (saf fonksiyon). Doner: (karar, sebep).
+
+    karar: "YAZ" | "KAPSANDI" | "YARIS". `*_atasi_mi` True/False ya da None (olculemedi)."""
+    if not push_sha:
+        return "YARIS", "push edilen sha bilinmiyor (%s yok) — OLCULEMEDI" % YARIS_PUSH_SHA_ENV
+    if uzak_sha is None:
+        return "YARIS", "uzak main OLCULEMEDI"
+    if uzak_sha == "" or uzak_sha == push_sha:
+        return "YAZ", "uzak main %s (push edilen commit ile ayni/yok) — idempotent yaz" \
+            % (uzak_sha[:12] or "YOK")
+    if uzak_push_atasi_mi:
+        return "YAZ", "uzak main %s push edilen commit'in atasi" % uzak_sha[:12]
+    if push_uzak_atasi_mi:
+        return "KAPSANDI", ("push edilen %s uzak main %s'in KATI atasi — daha yeni push "
+                            "kendi senkronuyla KAPSADI; eski katalog YAZILMAZ"
+                            % (push_sha[:12], uzak_sha[:12]))
+    if uzak_push_atasi_mi is None or push_uzak_atasi_mi is None:
+        return "YARIS", "ata iliskisi OLCULEMEDI (uzak %s)" % uzak_sha[:12]
+    return "YARIS", "uzak main %s push edilen commit'ten AYRISMIS" % uzak_sha[:12]
+
+
+def _git_ata_mi(kok, ata, torun):
+    """`git merge-base --is-ancestor`: True/False; nesne yok/hata -> None."""
+    try:
+        p = subprocess.run(["git", "-C", kok, "merge-base", "--is-ancestor", ata, torun],
+                           capture_output=True, text=True, timeout=60, env=git_ortami())
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if p.returncode == 0:
+        return True
+    if p.returncode == 1:
+        return False
+    return None
+
+
+def yaris_olc(push_sha, kok=None, uzak="origin", dal="main"):
+    """Uzak main'i YENIDEN olcer ve `yaris_karari` hukmunu dondurur: (karar, sebep).
+
+    Yalniz OKUR (`ls-remote` + `merge-base`); fetch YAPMAZ, ref DEGISTIRMEZ."""
+    kok = kok or KOK
+    try:
+        # Miras GIT_* baglami (kanca icinden GIT_DIR) suzulur: kok ACIKCA -C ile verildi.
+        p = subprocess.run(["git", "-C", kok, "ls-remote", uzak, "refs/heads/" + dal],
+                           capture_output=True, text=True, timeout=120, env=git_ortami())
+    except (OSError, subprocess.SubprocessError) as e:
+        return "YARIS", "uzak main OLCULEMEDI (%s)" % type(e).__name__
+    if p.returncode != 0:
+        return "YARIS", "uzak main OLCULEMEDI (ls-remote rc=%d)" % p.returncode
+    satir = (p.stdout or "").strip().split()
+    uzak_sha = satir[0] if satir else ""
+    if not push_sha or not uzak_sha or uzak_sha == push_sha:
+        return yaris_karari(push_sha, uzak_sha, None, None)
+    return yaris_karari(push_sha, uzak_sha,
+                        _git_ata_mi(kok, uzak_sha, push_sha),
+                        _git_ata_mi(kok, push_sha, uzak_sha))
+
+
 def yazici_kilidi_al(yol=None, bekleme_sn=0.0, kol="YAZICI"):
     """flock al; donen fd acik kaldigi surece sahiplik surer.
 
@@ -268,6 +378,7 @@ def yazici_kilidi_al(yol=None, bekleme_sn=0.0, kol="YAZICI"):
     kilit_yolu = yol or yazici_kilit_yolu()
     basla = time.monotonic()
     duyuruldu = False
+    _SON_KILIT_BEKLEDI[0] = False
     try:
         fd = open(kilit_yolu, "r+")
     except OSError as e:
@@ -285,6 +396,7 @@ def yazici_kilidi_al(yol=None, bekleme_sn=0.0, kol="YAZICI"):
                     # "biri otekini bekliyor" halinde tikali kaldi ve hicbir yerde
                     # kirmizi yanmadi. Bekleme ANINDA ve ADIYLA duyurulur.
                     duyuruldu = True
+                    _SON_KILIT_BEKLEDI[0] = True
                     # 🔴 PID ETIKETI (6 Eyl onarimi): burada basilan PID BEKLEYEN
                     #   surecin (yani BIZIM) PID'imizdir, kilidi TUTANIN degil.
                     #   Eski metin `PID=` deyip "onculu kosum UCUSTA" cumlesinin
@@ -305,7 +417,7 @@ def yazici_kilidi_al(yol=None, bekleme_sn=0.0, kol="YAZICI"):
                 time.sleep(_KILIT_YOKLAMA_SN)
                 continue
             fd.close()
-            if bekleme_sn > 0:
+            if bekleme_sn > 0 and kol != "YAZICI":
                 sys.exit(
                     "!! D1 ARACI MESGUL — bu makinede baska bir `npx wrangler` kosumu "
                     "UCUSTA; ikinci cagri YIGINA EKLENMEDI (bekleyen PID=%d, "
@@ -317,8 +429,13 @@ def yazici_kilidi_al(yol=None, bekleme_sn=0.0, kol="YAZICI"):
                     "   (4 Eyl 2026: kilitsiz okuyan kollar 7 asili npx biriktirdi ve "
                     "yayin durdu — bu kol tam onu onler.)"
                     % (os.getpid(), gecen, bekleme_sn, kilit_yolu))
-            sys.exit("!! D1 YAZICI UCUSTA — ikinci tam-katalog yazicisi fail-closed DURDU "
-                     "(bekleyen PID=%d, kilit=%s)." % (os.getpid(), kilit_yolu))
+            # YARIS kendi sinifini tasir (main() -> rc=5); metin eskisiyle AYNI kalir.
+            raise YerelYaziciUcusta(
+                "!! D1 YAZICI UCUSTA — ikinci tam-katalog yazicisi fail-closed DURDU "
+                "(bekleyen PID=%d, kilit=%s%s)."
+                % (os.getpid(), kilit_yolu,
+                   (", beklendi=%.1f sn, tavan=%.0f sn" % (gecen, bekleme_sn))
+                   if bekleme_sn > 0 else ""))
         except OSError as e:
             try:
                 fd.close()
@@ -5555,7 +5672,27 @@ def main():
     a = argumanlari_oku()
     if a.adim:
         return _adim_kos()
-    yerel = yazici_kilidi_al() if yazici_yolu_mu(a) else None
+    # YEREL YARIS (26 Eyl) — bkz. YARIS_RC blogu. Ortam degiskeni yoksa bekleme 0 =
+    # eski davranis (aninda durur), yalniz rc 1 yerine YARIS_RC + jeton.
+    try:
+        yerel = yazici_kilidi_al(bekleme_sn=yaris_bekleme_sn()) \
+            if yazici_yolu_mu(a) else None
+    except YerelYaziciUcusta as e:
+        sys.stderr.write(e.mesaj + "\n")
+        sys.stderr.write("%s — yazma YAPILMADI; teyit: python3 tools/d1-sync.py --durum\n"
+                         % YARIS_JETONU)
+        return 5
+    if yerel is not None and _SON_KILIT_BEKLEDI[0]:
+        karar, sebep = yaris_olc(os.environ.get(YARIS_PUSH_SHA_ENV, ""))
+        print("D1 YARIS SONRASI OLCUM: %s — %s" % (karar, sebep))
+        if karar != "YAZ":
+            yazici_kilidi_birak(yerel)
+            if karar == "KAPSANDI":
+                print("%s — yazma YAPILMADI (daha yeni push kapsadi)" % KAPSANDI_JETONU)
+                return 0
+            sys.stderr.write("%s — yazma YAPILMADI; teyit: python3 tools/d1-sync.py "
+                             "--durum\n" % YARIS_JETONU)
+            return 5
     # YAZICI kolu kilidi TUM kosum boyunca tutar (eski davranis). `wrangler()` bunu
     # gorup kilidi YENIDEN ALMAZ — ayni dosyaya ikinci flock ayni surecte kendini kilitler.
     _YEREL_KILIT_SAHIBI = yerel is not None

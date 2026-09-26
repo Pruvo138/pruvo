@@ -346,9 +346,21 @@ echo "→ urunler.json degisti: D1 senkronlaniyor (Ege urunleri D1'den okuyor)..
 # iken push UC KEZ ust uste bu koldan durdu; blok YANLIS-POZITIFTI ve paylasilan
 # kanca oldugu icin EVIN TUM push'larini durduruyordu.
 # 🔴 GEVSETME DEGIL, AYIRIM: 4 DISINDAKI her sifir-disi kod push'u AYNEN BLOKLAR.
-python3 "$sync" "$@"
+# 🔴 YEREL YARIS (26 Eyl 2026): ayni makinede iki push ayni anda senkronlarken ikincisi
+# yerel flock'a carpip ANINDA rc=1 veriyordu ("BASARISIZ" ama `--durum` uyusmaz 0) —
+# sahte RED. Artik d1-sync kilidi en cok PRUVO_D1_YARIS_BEKLE_SN kadar BEKLER, sonra
+# uzak main'i PRUVO_D1_PUSH_SHA'ya gore YENIDEN olcer (yaz / KAPSANDI / YARIS rc=5).
+# Bu iki degiskeni tanimayan eski d1-sync onlari YOK SAYAR (eski davranis).
+PRUVO_D1_YARIS_BEKLE_SN=480 PRUVO_D1_PUSH_SHA="$push_sha" python3 "$sync" "$@"
 d1_rc=$?
-if [ "$d1_rc" = "4" ]; then
+if [ "$d1_rc" = "5" ]; then
+  echo "!! PUSH DURDURULDU — D1 YARISI (rc=5): bu makinede baska bir D1 yazicisi ucustaydi"
+  echo "!! ya da uzak main bekleme sirasinda AYRISTI; bu push'un senkronu YAZILMADI."
+  echo "!! Bu bir D1/sema ARIZASI DEGIL. Teyit: python3 $sync --durum ;"
+  echo "!! ref'in gecip gecmedigi: git ls-remote origin refs/heads/main . Sonra tekrar push et."
+  [ -n "$kaynak_gecici" ] && rm -f "$kaynak_gecici"
+  exit 1
+elif [ "$d1_rc" = "4" ]; then
   echo "D1 SENKRONU ATLANDI (rc=4): baska makine CANLI lease tutuyor — yazma YAPILMADI."
   echo "  Katalogu senkron tutan emniyet agi: ucta kosan is + d1-uzlastirici.yml."
   echo "  Bu bir HATA DEGILDIR; push DEVAM EDIYOR (K261)."

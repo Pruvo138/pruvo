@@ -382,12 +382,21 @@ def _hukum_red(satir, bayt, eksen, kok):
     # sonuc her oturumda ELLE cumle budamaktı. Tavanli + isaretciye indirmeli
     # bicim yaziliyor ve tavan sayisi komuta ELLE YAZILMIYOR (--tavan-kaynaktan
     # ayni TEK KAYNAKTAN okur; yordama yazilan sayi ikinci kopya olurdu).
-    print("!! CARE: " + _SC.cagri_ornegi("rotasyon-bakim"), file=sys.stderr)
+    # 🔴 26 EYL 2026 (MaCiT Pentax kapanisi 3d): CARE, kapiyi CAGIRAN EVIN kokunden
+    # turer. `kok` gecilmeden basildiginda pruvo-hasat'ta duran bir commit'e KraL'in
+    # /Users/okan/dev/pruvo/DEVAM.md'sini rotasyona sokan komut oneriliyordu.
+    print("!! CARE: " + _SC.cagri_ornegi("rotasyon-bakim", kok=kok), file=sys.stderr)
+    # KISA FORM konumsuzdur; defter-rotasyon.py'nin varsayilan konumlari KANONIK
+    # defterdir -> yalniz kanonik evde onerilir, baska evde YANLIS defteri dondururdu.
+    if not kok or os.path.normpath(kok) == _SC.KANONIK_KOK:
+        kisa = ". KISA FORM da serbesttir: " + _SC.cagri_ornegi("rotasyon-kisa") + ")"
+    else:
+        kisa = (". KISA FORM bu evde KULLANILMAZ: konumsuz cagri KANONIK defteri "
+                "(" + _SC.REPO_ONEKI + "DEVAM.md) dondurur)")
     print("!!   (K258, 20 Agu: bu cagri artik MIMARIN elinde de SERBEST — kapinin "
           "adlandirilmis DEFTER BAKIMI kovasi bayraklari TAM ESITLIKLE gecirir. "
           "Kume disi bayrak (--tavan-sayi / --tarih) RED kalir. Izinli kume: " +
-          " ".join(sorted(_SC.bayrak_kumesi("rotasyon-bakim"))) +
-          ". KISA FORM da serbesttir: " + _SC.cagri_ornegi("rotasyon-kisa") + ")",
+          " ".join(sorted(_SC.bayrak_kumesi("rotasyon-bakim"))) + kisa,
           file=sys.stderr)
     _sayaç_yaz(kok, satir, bayt)
     return 1
@@ -972,7 +981,7 @@ def main(argv=None):
               "PRUVO_HAFIZA_EKSENI=silahli)" % hafiza_rc)
         hafiza_rc = 0
     if kutu_rc or hafiza_rc or kaynak_rc or defter_rc:
-        care_son_bas(kutu_rc, hafiza_rc, kaynak_rc, defter_rc)
+        care_son_bas(kutu_rc, hafiza_rc, kaynak_rc, defter_rc, kok=kok)
         return 1
     return 0
 
@@ -1004,7 +1013,12 @@ CARE_SON_EKSENLERI = (
 )
 
 
-def care_son_satirlari(kutu_rc, hafiza_rc, kaynak_rc, defter_rc):
+# Kapiyi CAGIRAN EVE ait eksenler (26 Eyl). Kutu ve hafiza filonun ORTAK dosyalaridir,
+# kanonik kalir; DEVAM.md her evin KENDI defteridir -> CARE o evin kokunden turer.
+CARE_EV_EKSENLERI = frozenset({"DEVAM"})
+
+
+def care_son_satirlari(kutu_rc, hafiza_rc, kaynak_rc, defter_rc, kok=None):
     """[(eksen, care_metni)] — YALNIZ kirmizi yanan eksenler, SABIT sirada.
 
     Tek eksen kirmiziysa liste TEK ogelidir ve o oge kapinin SON SATIRI olur.
@@ -1018,13 +1032,14 @@ def care_son_satirlari(kutu_rc, hafiza_rc, kaynak_rc, defter_rc):
     for eksen, etiket, duz in CARE_SON_EKSENLERI:
         if not rc_haritasi.get(eksen):
             continue
-        cikti.append((eksen, _SC.cagri_ornegi(etiket) if etiket else duz))
+        ev = kok if eksen in CARE_EV_EKSENLERI else None
+        cikti.append((eksen, _SC.cagri_ornegi(etiket, kok=ev) if etiket else duz))
     return cikti
 
 
-def care_son_bas(kutu_rc, hafiza_rc, kaynak_rc, defter_rc):
+def care_son_bas(kutu_rc, hafiza_rc, kaynak_rc, defter_rc, kok=None):
     """Kirmizi eksenlerin caresini SON SOZ olarak basar (stderr)."""
-    satirlar = care_son_satirlari(kutu_rc, hafiza_rc, kaynak_rc, defter_rc)
+    satirlar = care_son_satirlari(kutu_rc, hafiza_rc, kaynak_rc, defter_rc, kok=kok)
     print("!! KIRMIZI_EKSENLER=%s" % (",".join(e for e, _c in satirlar) or "-"),
           file=sys.stderr)
     for eksen, care in satirlar:

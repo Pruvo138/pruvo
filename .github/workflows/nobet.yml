@@ -2137,6 +2137,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/hafiza-kota-kapisi-test.py
 
+      # CARE EV EKSENI (26 Eyl 2026, KraL-PrePushD1-26Eyl). pruvo-hasat pre-commit'i
+      # KANONIK defter kapisini kendi kokuyle cagirir; tavanda durunca onerilen rotasyon
+      # komutu KraL'in DEVAM.md'sini hedefliyordu (MaCiT Pentax kapanisi 3d). Batarya
+      # CARE'in CAGIRAN EVIN defterinden turedigini, arac yolunun diskte oldugunu, KUTU
+      # ekseninin kanonik kaldigini olcer + 5 izole mutant (SURVIVOR=0). Offline:
+      # fiksturler tempfile altinda, sayac gecici dosyaya yonlenir, canli defter OKUNMAZ.
+      - name: "CARE ev ekseni kabul testi (fikstur + 5 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/care-ev-ekseni-test.py
+
       # (KraL-KapiSupurmesi-29Agu: kota kapisi ve KUTU ekseni testi SILINDI —
       # K351: kapi evin TUM commit'ini kilitliyordu; kutu tasmasi kutu-esik-kapisi
       # + kutu-arsivle rotasyonuyla korunmaya devam ediyor.)

@@ -110,6 +110,9 @@ KARANTINA_IMZASI = uzlastirici_karantina.OKUNAMADI_IMZASI
 # TAM OLARAK calisan caredir. Kapsam kapisi (imza_kapsam_kapisi) bu sinifin d1-sync'te
 # GERCEKTEN uretildigini ve BASKA bir red sinifinin sessizce dogmadigini olcer.
 YAZICI_IMZASI = "D1_SENKRON=ATLANDI SEBEP=YAZICI_UCUSTA"
+# 26 Eyl 2026: AYNI MAKINEDE yerel flock yarisi (d1-sync rc=5). Sinif lease ile AYNIDIR:
+# yazma YAPILMADI, geri cekilip tekrar denemek calisan caredir -> "YAZICI" kovasina duser.
+YEREL_YARIS_IMZASI = "D1_SENKRON=YARIS SEBEP=YEREL_YARIS"
 # Silme karantinasi damgasinin kosum-ici yolu. Is akisi ayni dosyayi indirir/yukler
 # (ad TEK KAYNAK: uzlastirici_karantina.DAMGA_DOSYA).
 KARANTINA_DAMGASI = os.environ.get("PRUVO_KARANTINA_DAMGASI") or os.path.join(
@@ -159,8 +162,8 @@ ERTELENDI_RC = 5
 # KAPSAM KAPISI — surucunun ELE ALDIGI d1-sync sinif evreni (beyan). Kapi bu beyani
 # d1-sync.py'den TURETILEN evrenle karsilastirir; evrende olup burada olmayan bir
 # sinif KIRMIZI yakar ([[kapi-varlik-olcer-yokluk-olcmez]]).
-ELE_ALINAN_D1_RC = {0, 1, 4}          # 0 basari · 1 sys.exit(<mesaj>)=GERCEK HATA · 4 canli lease
-ELE_ALINAN_SEBEP = {"YAZICI_UCUSTA"}  # d1-sync'in `SEBEP=<JETON>` makine jetonlari
+ELE_ALINAN_D1_RC = {0, 1, 4, 5}       # 0 basari · 1 sys.exit(<mesaj>)=GERCEK HATA · 4 canli lease · 5 yerel yaris
+ELE_ALINAN_SEBEP = {"YAZICI_UCUSTA", "YEREL_YARIS"}  # d1-sync'in `SEBEP=<JETON>` makine jetonlari
 TURETILMIS_RC_IZNI = {"_adim_kos"}    # main() icinde sabit olmayan return'lerin izinli kaynagi
 
 
@@ -206,6 +209,8 @@ def _hukum_imzasi(cikti):
     if KARANTINA_IMZASI in cikti:
         return "KARANTINA"
     if YAZICI_IMZASI in cikti:
+        return "YAZICI"
+    if YEREL_YARIS_IMZASI in cikti:
         return "YAZICI"
     if BAYATLIK_IMZASI in cikti:
         return "BAYATLIK"
@@ -997,9 +1002,11 @@ def kendini_test():
         gecici_surucu = os.path.join(_tmp_surucu, "uzlastirici-onarim.py")
         with open(gecici_surucu, encoding="utf-8") as f:
             govde_surucu = f.read()
+        # Capa kumenin ACILISINA nisanli (26 Eyl: kume YEREL_YARIS ile buyudu; tam-kume
+        # capasi her yeni jetonda sessizce "enjekte EDILEMEDI"ye duserdi).
         yeni_surucu = govde_surucu.replace(
-            'ELE_ALINAN_SEBEP = {"YAZICI_UCUSTA"}',
-            'ELE_ALINAN_SEBEP = {"YAZICI_UCUSTA", "UYDURMA"}', 1)
+            'ELE_ALINAN_SEBEP = {"YAZICI_UCUSTA"',
+            'ELE_ALINAN_SEBEP = {"UYDURMA", "YAZICI_UCUSTA"', 1)
         if yeni_surucu == govde_surucu:
             iddia("V17 fikstur: `ELE_ALINAN_SEBEP'e 'UYDURMA' enjekte EDILEMEDI",
                   False, "eslesme yok")
