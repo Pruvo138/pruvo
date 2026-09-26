@@ -30,8 +30,8 @@ Metinden verilen HER karar (kova · puan · evet) Jev'e gider. "Dışında" yaln
 
 | # | Ev | Aday (kalıp · tip) | Durum | Tarih | Kapatan |
 |---|---|---|---|---|---|
-| P1 | HocA | Ege/WhatsApp gelen mesaj niyeti (`hoca-niyet` · secim 7) | aday · kalıp hazır | 26 Eyl | Ege worker her gelen mesajı Jev damgalı niyetle Notion CRM'e yazar; altın küme 30 (CRM konuşma geçmişi) |
-| P2 | HocA | mesaj aciliyeti (`hoca-aciliyet` · puan 3) | aday · kalıp hazır | 26 Eyl | P1 ile aynı istek |
+| P1 | HocA | Ege/WhatsApp gelen mesaj niyeti (`hoca-niyet` · secim 7) | ✅ **Jev'de, kendiliğinden, KALİBRE eşik 0,85** | 26 Eyl | Ege worker her gelen mesajı Jev damgalı niyetle KV `jev:<numara>:<wamid>`'e yazar (pruvo-bot canlı `5df2354f`); altın küme 60: argmax 42/60, net 33/36, t=0,85 net 26/0. Canlı gerçek mesaj OLCULEMEDI (Ege 26 Ağu'dan beri mesaj almıyor) |
+| P2 | HocA | mesaj aciliyeti (`hoca-aciliyet` · puan 3) | Jev'de, kendiliğinden — KALİBRE DEĞİL | 26 Eyl | P1 ile aynı kayıtta `aciliyet{puan,etiket}`; etiketlenmedi, güven ort 0,44 ⇒ eşik yok (insan) |
 | P3 | KraL | site formu / e-posta triyajı (`kral-eposta-triyaj` · secim 6) | aday · kalıp hazır | 26 Eyl | gelen kanal (Mail uygulaması / site formu) okuyucusu + altın küme 30 |
 | P4 | KraL | "cevap gerekli mi" (`kral-cevap-gerekli` · evet) | aday · kalıp hazır | 26 Eyl | P3 ile aynı |
 | P5 | MaCiT | ürün kategori ikinci görüşü (`macit-kategori` · secim 12) | ✅ **Jev'de, KALİBRE eşik 0,8** | 26 Eyl | `hasat_ekle` kancası kendiliğinden (pruvo-hasat `97a75454`); altın küme 88: p≥0,8 %96,2 (25/26), yanlış alarm 1/88. Açık: `tamirat` çekici, `dekorasyon`→`ev` kayıyor — seçenek metni düzeltilirse eşik YENİDEN ölçülür |

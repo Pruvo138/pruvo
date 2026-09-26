@@ -2,7 +2,8 @@
   "_aciklama": "PRUVO Jev hazir kaliplari — TEK KAYNAK. Python: tools/jev_karar.py okur; worker'lar (HocA Ege) bu dosyayi import eder. esik null = altin kume henuz olculmedi: karar alinir ama DAIMA insan onayina duser (J1 3d). Ev >=30 gercek ornekle esigi olcunce sayiyi buraya yazar ve JEV-ENVANTER.md'ye isabeti duser.",
   "kaliplar": {
     "hoca-niyet": {
-      "ev": "HocA", "tip": "secim", "esik": null,
+      "ev": "HocA", "tip": "secim", "esik": 0.85,
+      "_kalibrasyon": "26 Eyl 2026, HocA altın küme 60 (KV arşivi, maskeli, kör etiket; 24 belirsiz → net 36): argmax 42/60, net 33/36; t=0,85 tam 32 kapsam/2 yanlış-geçer (ikisi belirsiz), net 26/0. Seçenek metni DEĞİŞİRSE eşik yeniden ölçülür.",
       "soru": "Yedek parça / özel üretim atölyesinin WhatsApp hattına gelen müşteri mesajının niyeti nedir?",
       "secenekler": {
         "urun_sorusu": "belirli bir parça/ürün var mı, uyar mı, fiyatı ne",
