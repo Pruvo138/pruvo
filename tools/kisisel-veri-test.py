@@ -670,6 +670,10 @@ KOK_BELGE_IZIN = {
     # yuzeyindeki TEK telefon hattidir (Ege'nin WhatsApp'i); Okan'in kisisel hatti
     # GECMEZ ve o desen bu dosyanin KALIPLAR nobetiyle ayrica olculur.
     "llms.txt": "LLM/ajan okuyucular icin YAYINLANAN kok manifesti (musteriye donen icerik)",
+    # 26 Eyl 2026: Jev karar kaliplari envanteri — BaBa/OTeLLa olcumu her evin KOKUNDE
+    # `JEV-ENVANTER.md` arar (tasinirsa o olcum korlesir). Icerik: kalip adi, ev, esik,
+    # altin kume sayisi; tedarikci/sir/uyelik YAZILMAZ (icerik ekseni ayrica taranir).
+    "JEV-ENVANTER.md": "Jev karar kaliplari envanteri — BaBa olcumu kokte arar; ic sir tasimaz",
 }
 
 
