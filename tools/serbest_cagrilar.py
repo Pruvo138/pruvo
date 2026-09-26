@@ -159,15 +159,28 @@ class Sekil(object):
     serbest    : bulunabilir/bulunmayabilir bayraklar (bool bayrak).
     degerli    : '<bayrak> <deger>' seklinde deger alan bayraklar (opsiyonel).
     ornek      : CARE/ornek komut basilirken kullanilacak bayrak sirasi.
-    repo_disi  : arac repo agacinin DISINDA mi (bilgi amacli; kapida PY_NODE kolu
-                 eslesme halinde segmenti KAPATIR, R2/F'ye hic dusmez).
+    repo_disi  : arac SABIT MUTLAK yoldur — `eve_gore()` onu BASKA eve yeniden
+                 KOKLENDIRMEZ (cron araclari + 26 Eyl Jev araclari). Kapida PY_NODE
+                 kolu eslesme halinde segmenti KAPATIR, R2/F'ye hic dusmez.
+
+    26 EYL 2026 (Jev) — asagidaki alanlar bos birakilirsa eski davranis AYNEN kalir:
+    alt_komut  : ilk token bu DUZ KELIME olmali (yol degil, `coz` ile cozulmez).
+    metinli    : degeri SERBEST METIN olan bayraklar (`_metin_guvenli`).
+    okur_yollu : degeri OKUNACAK dosya yolu olan bayraklar (`_yol_degeri_guvenli`).
+    yazar_yollu: degeri YAZILACAK dosya yolu olan bayraklar (ayni kural + yazma kisiti).
+    tekrarli   : tekrarlanabilen bayraklar (argparse `append`); digerleri tekrar = RED.
+    yorumlayicilar: bos degilse argv0 bu kumede TAM ESIT olmali; argv0 verilmeyen
+                 cagri (eski tuketici) bu sekle ESLESMEZ — fail-closed.
     """
 
     __slots__ = ("etiket", "arac", "konumlar", "zorunlu", "serbest",
-                 "degerli", "ornek", "repo_disi")
+                 "degerli", "ornek", "repo_disi", "alt_komut", "metinli",
+                 "okur_yollu", "yazar_yollu", "tekrarli", "yorumlayicilar")
 
     def __init__(self, etiket, arac, konumlar=(), zorunlu=(), serbest=(),
-                 degerli=(), ornek=(), repo_disi=False):
+                 degerli=(), ornek=(), repo_disi=False, alt_komut=None,
+                 metinli=(), okur_yollu=(), yazar_yollu=(), tekrarli=(),
+                 yorumlayicilar=()):
         self.etiket = etiket
         self.arac = arac
         self.konumlar = tuple(konumlar)
@@ -176,10 +189,29 @@ class Sekil(object):
         self.degerli = frozenset(degerli)
         self.ornek = tuple(ornek)
         self.repo_disi = repo_disi
+        self.alt_komut = alt_komut
+        self.metinli = frozenset(metinli)
+        self.okur_yollu = frozenset(okur_yollu)
+        self.yazar_yollu = frozenset(yazar_yollu)
+        self.tekrarli = frozenset(tekrarli)
+        self.yorumlayicilar = frozenset(yorumlayicilar)
+
+    @property
+    def deger_alanlar(self):
+        return self.degerli | self.metinli | self.okur_yollu | self.yazar_yollu
 
     @property
     def tum_bayraklar(self):
-        return self.zorunlu | self.serbest | self.degerli
+        return self.zorunlu | self.serbest | self.deger_alanlar
+
+    def kopya(self, arac, konumlar):
+        """Ayni sekil, baska arac/konum yollariyla (eve_gore icin) — alan UNUTULMAZ."""
+        return Sekil(self.etiket, arac, konumlar=konumlar, zorunlu=self.zorunlu,
+                     serbest=self.serbest, degerli=self.degerli, ornek=self.ornek,
+                     repo_disi=self.repo_disi, alt_komut=self.alt_komut,
+                     metinli=self.metinli, okur_yollu=self.okur_yollu,
+                     yazar_yollu=self.yazar_yollu, tekrarli=self.tekrarli,
+                     yorumlayicilar=self.yorumlayicilar)
 
 
 # --- KANONIK YOLLAR (tek kaynak; tuketiciler bunlari BURADAN okur) -------------
@@ -202,6 +234,63 @@ ONARIM_DURUM_YOL = REPO_ONEKI + "tools/onarim-durum.py"
 ROTASYON_TAVAN_BAYRAGI = "--tavan-kaynaktan"
 ROTASYON_INDIRME_BAYRAGI = "--isaretciye-indir"
 ROTASYON_BAKIM_BAYRAKLARI = (ROTASYON_TAVAN_BAYRAGI, ROTASYON_INDIRME_BAYRAGI)
+
+# === 🔴 26 EYL 2026 — JEV (TypeSafe AI) ORTAK KARAR ISTEMCISI ===================
+# OKAN EMRI (26 Eyl, /goal): "Jev'in onunde hicbir engel olmamali, tum PRUVO evleri
+# Jev'i komut/izin beklemeden kullanmali." OLCULEN ENGEL (26 Eyl, ANA oturum):
+#   `python3 /Users/okan/.claude/jev/jev.py saglik`
+#     -> RED "komutun argumanlarinda repo DISINA cozulen bir yol var" (R2)
+# Istemci TANIMI GEREGI repo disidir (tek kaynak `faralya-pazarlama/tools/jev/jev.py`,
+# kurulu kopya `~/.claude/jev/jev.py`); PRUVO kalip araci KraL'da yasar ve kardes
+# evlerden bakinca o da repo disidir. Care: ADLI SEKILLER — kapi hic gevsemez,
+# yalniz asagidaki cagri bicimleri acilir. `python3 -c`, baska repo-disi betik,
+# curl/wget, bilinmeyen bayrak, benzer ad (`jev-sahte/`, `jev.py.bak`, `..`) RED kalir
+# (kabul: `tools/jev-kapi-test.py`).
+#
+# 🔴 JEV_KALIP_YOL SABIT MUTLAK YOLDUR (`repo_disi=True`): `eve_gore()` REPO_ONEKI
+# ile baslayan yolu her eve yeniden koklendirir. Oyle yazilsaydi MaCiT'te
+# `pruvo-hasat/tools/jev_karar.py` serbest kalirdi — YANLIS dosya, ve gercek arac
+# KAPIDA kalirdi. `repo_disi` sekiller koklendirmeden MUAF tutulur.
+JEV_ISTEMCI_YOLLARI = (
+    "/Users/okan/.claude/jev/jev.py",                          # kurulu ortak kopya
+    "/Users/okan/dev/faralya-pazarlama/tools/jev/jev.py",      # kaynak (EyLuL)
+)
+JEV_KALIP_YOL = "/Users/okan/dev/pruvo/tools/jev_karar.py"
+JEV_YORUMLAYICILAR = ("python3", "/opt/homebrew/bin/python3")
+JEV_TEKRARLI = ("--ad", "--secenek", "--olcek")
+
+
+def _jev_sekilleri():
+    """Istemcinin iki yolu x uc alt komut. Bayrak kumeleri `jev.py` argparse'indan."""
+    sekiller = []
+    for yol in JEV_ISTEMCI_YOLLARI:
+        ek = "" if yol == JEV_ISTEMCI_YOLLARI[0] else "@kaynak"
+        sekiller.append(Sekil(
+            "jev-karar" + ek, yol, alt_komut="karar",
+            zorunlu=("--tip", "--soru", "--esik"),
+            degerli=("--tip", "--esik", "--etiket"),
+            metinli=("--soru", "--metin", "--ad", "--secenek", "--olcek"),
+            okur_yollu=("--metin-dosya",),
+            tekrarli=JEV_TEKRARLI, repo_disi=True,
+            yorumlayicilar=JEV_YORUMLAYICILAR))
+        sekiller.append(Sekil(
+            "jev-toplu" + ek, yol, alt_komut="toplu",
+            zorunlu=("--istek-dosya", "--cikti"),
+            degerli=("--etiket",),
+            okur_yollu=("--istek-dosya",), yazar_yollu=("--cikti",),
+            repo_disi=True, yorumlayicilar=JEV_YORUMLAYICILAR))
+        sekiller.append(Sekil(
+            "jev-saglik" + ek, yol, alt_komut="saglik", repo_disi=True,
+            yorumlayicilar=JEV_YORUMLAYICILAR))
+    sekiller.append(Sekil(
+        "jev-kalip", JEV_KALIP_YOL,
+        serbest=("--kaliplar",),
+        degerli=("--kalip", "--etiket"),
+        metinli=("--metin", "--ad"),
+        okur_yollu=("--metin-dosya",),
+        tekrarli=("--ad",), repo_disi=True,
+        yorumlayicilar=JEV_YORUMLAYICILAR))
+    return tuple(sekiller)
 
 
 # === SEKILLER — MIMAR ELINDE SERBEST OLAN HER SEY, TEK YERDE ==================
@@ -289,7 +378,7 @@ SEKILLER = (
     # aga cikmaz, LLM/agent turu acmaz — bu yuzden mimar katinda serbest birakilmasi
     # SAKINCALI degil.
     Sekil("onarim-durum", ONARIM_DURUM_YOL),
-)
+) + _jev_sekilleri()
 
 SEKIL_ETIKETLERI = {s.etiket: s for s in SEKILLER}
 
@@ -313,11 +402,12 @@ def eve_gore(kok=None):
     kok = os.path.normpath(kok)
     if kok == KANONIK_KOK:
         return SEKILLER
+    # 🔴 26 EYL: `repo_disi` sekil SABIT MUTLAK yoldur, koklendirilmez (bkz.
+    # JEV_KALIP_YOL — MaCiT'te `pruvo-hasat/tools/jev_karar.py` YANLIS dosya olurdu).
     return tuple(
-        Sekil(s.etiket, _yeniden_kokle(s.arac, kok),
-              konumlar=tuple(_yeniden_kokle(k, kok) for k in s.konumlar),
-              zorunlu=s.zorunlu, serbest=s.serbest, degerli=s.degerli,
-              ornek=s.ornek, repo_disi=s.repo_disi)
+        s if s.repo_disi else
+        s.kopya(_yeniden_kokle(s.arac, kok),
+                tuple(_yeniden_kokle(k, kok) for k in s.konumlar))
         for s in SEKILLER
     )
 
@@ -408,6 +498,13 @@ DISARIDA = {
 
     CIP_BEKCI_YOL: {},
 
+    # 26 Eyl — Jev istemcisinin TUM argparse bayraklari bir sekilde serbest.
+    JEV_ISTEMCI_YOLLARI[0]: {},
+    JEV_ISTEMCI_YOLLARI[1]: {},
+    JEV_KALIP_YOL: {
+        "--kendini-test": "kabul kosumu — mimar elinde degil, isci kosturur",
+    },
+
     # `onarim-durum.py` SALT-OKUR: konumsal arguman YOK. TEK bayragi
     # `--kendini-test`tir (K347, 28 Agu 2026) ve DISARIDADIR: kabul kosumu,
     # isci kosturur. Mimarin serbest cagrisi BAYRAKSIZ haldir.
@@ -453,6 +550,76 @@ def _deger_guvenli(deger):
     return True
 
 
+# === 🔴 26 EYL 2026 — SERBEST METIN DEGERI (Jev --soru/--metin/--secenek ...) ===
+# `_deger_guvenli` bosluk/Turkce harf/'?' tasiyan soruyu DEGIL, yol tasiyan degeri
+# kesmek icin yazildi; ama '/' iceren her metni de (or. "ve/veya") keserdi. Serbest
+# metin icin AYRI kural, gerekcesiyle:
+#   * ';' '|' '&' KABUL — kapinin `segmentlere_ayir`i TIRNAK DUYARLIDIR: tirnak
+#     DISINDAKI ';|&' segmenti BOLER, yani bu karakterler bir DEGER token'ina ancak
+#     tirnak/kacis ICINDE (kabuk icin duz harf) ulasabilir. Tirnak disi zincir ayri
+#     segment olarak KENDI kurallarindan gecer (curl/-c/ciplak sh RED kalir).
+#   * '$' ve '`' RED — CIFT tirnak ICINDE de genisler (`"$(id)"`). shlex sonrasi
+#     tek/cift tirnak ayirt EDILEMEZ -> ikisi de RED (fail-closed).
+#   * '<' '>' RED — tirnak DISINDA segment bolmez ama YONLENDIRIR (`a>/x` tek token).
+#   * kontrol karakteri RED (\t \n \r haric); '-' ile baslayan deger bayrak sanilir, RED.
+#   * '/' ve '.' KABUL — metin yol DEGILDIR; araca yol olarak gitmez (jev.py bu
+#     degeri Jev'e metin olarak yollar, dosya acmaz). Yol alan bayraklar AYRI kural.
+_METIN_YASAK = re.compile(r"[$`<>\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+
+def _metin_guvenli(deger):
+    if not isinstance(deger, str) or not deger.strip() or deger.startswith("-"):
+        return False
+    return _METIN_YASAK.search(deger) is None
+
+
+# YOL degeri (--metin-dosya / --istek-dosya / --cikti): dosya icerigi Jev'e GIDER
+# (dis servis), yani `~/.ssh/...` ya da `.r2-credentials.json` okutmak SIR SIZDIRMA
+# olurdu. Kabul edilen yer YALNIZ: (a) cagiran EVIN koku (kayitli worktree'si dahil),
+# (b) Claude oturum scratchpad koku. Iki tabanda da kalan yolda '.' ile baslayan
+# bilesen RED (sir dosyalari + .git). realpath: symlink ile disari kacis kapali.
+# Yazilan yol (`--cikti`) ayrica '.jsonl' olmali ve EV icinde VAR OLAN dosyanin
+# ustune YAZAMAZ (izlenen veri ezilmesin; scratchpad serbest).
+SCRATCH_KOKU = "/private/tmp/claude-%d" % os.getuid()
+
+
+def _yol_degeri_guvenli(deger, coz, cwd, kok=None, yazar=False):
+    if not _metin_guvenli(deger):
+        return False
+    mutlak = os.path.realpath(coz(deger, cwd))
+    ev = os.path.realpath(os.path.normpath(kok or KANONIK_KOK))
+    kalan = None
+    ev_mi = False
+    for taban, ev_tabani in ((os.path.realpath(SCRATCH_KOKU), False), (ev, True)):
+        if mutlak.startswith(taban + "/"):
+            kalan = mutlak[len(taban) + 1:].split("/")
+            ev_mi = ev_tabani
+            break
+    if not kalan:
+        return False
+    if ev_mi and kalan[:2] == [".claude", "worktrees"] and len(kalan) > 3:
+        kalan = kalan[3:]
+    if any(p.startswith(".") for p in kalan):
+        return False
+    if yazar:
+        if not mutlak.endswith(".jsonl"):
+            return False
+        if ev_mi and os.path.lexists(mutlak):
+            return False
+    return True
+
+
+def _deger_uyuyor(sekil, bayrak, deger, coz, cwd, kok):
+    """Deger alan bayragin degeri, bayragin SINIFINA gore denetlenir."""
+    if bayrak in sekil.metinli:
+        return _metin_guvenli(deger)
+    if bayrak in sekil.okur_yollu:
+        return _yol_degeri_guvenli(deger, coz, cwd, kok)
+    if bayrak in sekil.yazar_yollu:
+        return _yol_degeri_guvenli(deger, coz, cwd, kok, yazar=True)
+    return _deger_guvenli(deger)
+
+
 # === 🔴 10 EYL 2026 — IKINCI EKSEN: KABUK YONLENDIRME EKI ====================
 # OLCULEN ARIZA (ANA oturumda, EV EKSENINDEN AYRI — ayni dosyada yasayan IKINCI
 # kor nokta; tek yama ikisini birden kapatmaz):
@@ -490,7 +657,7 @@ def yonlendirme_ekini_soy(argumanlar):
     return argumanlar
 
 
-def eslesen_sekil(argumanlar, coz, cwd, kok=None):
+def eslesen_sekil(argumanlar, coz, cwd, kok=None, yorumlayici=None):
     """python3 SONRASINDAKI tokenlari SEKILLERE karsi cozer.
 
     Doner: eslesen Sekil, yoksa None (fail-closed).
@@ -514,12 +681,20 @@ def eslesen_sekil(argumanlar, coz, cwd, kok=None):
     if not adaylar:
         return None
     for sekil in adaylar:
-        if _sekil_uyuyor(sekil, argumanlar[1:], coz, cwd):
+        # 26 EYL: yorumlayici kisitli sekil, argv0 VERILMEYEN cagriya ESLESMEZ.
+        if sekil.yorumlayicilar and yorumlayici not in sekil.yorumlayicilar:
+            continue
+        if _sekil_uyuyor(sekil, argumanlar[1:], coz, cwd, kok):
             return sekil
     return None
 
 
-def _sekil_uyuyor(sekil, kalan, coz, cwd):
+def _sekil_uyuyor(sekil, kalan, coz, cwd, kok=None):
+    if sekil.alt_komut is not None:
+        # 26 EYL: alt komut DUZ KELIME, TAM ESITLIK, ILK token (jev.py sys.argv[1]).
+        if not kalan or kalan[0] != sekil.alt_komut:
+            return False
+        kalan = kalan[1:]
     bayraklar = []
     konumlar = []
     i = 0
@@ -529,9 +704,11 @@ def _sekil_uyuyor(sekil, kalan, coz, cwd):
             if t not in sekil.tum_bayraklar:
                 return False
             bayraklar.append(t)
-            if t in sekil.degerli:
-                # Deger alan bayrak: SONRAKI token degerdir ve yol OLAMAZ.
-                if i + 1 >= len(kalan) or not _deger_guvenli(kalan[i + 1]):
+            if t in sekil.deger_alanlar:
+                # Deger alan bayrak: SONRAKI token degerdir; kurali bayragin
+                # SINIFINDAN gelir (duz deger yol OLAMAZ · metin · yol).
+                if i + 1 >= len(kalan) or not _deger_uyuyor(
+                        sekil, t, kalan[i + 1], coz, cwd, kok):
                     return False
                 i += 2
                 continue
@@ -540,7 +717,8 @@ def _sekil_uyuyor(sekil, kalan, coz, cwd):
         konumlar.append(t)
         i += 1
 
-    if len(bayraklar) != len(set(bayraklar)):
+    tekil = [b for b in bayraklar if b not in sekil.tekrarli]
+    if len(tekil) != len(set(tekil)):
         return False                       # tekrarlanan bayrak = RED
     if not sekil.zorunlu.issubset(set(bayraklar)):
         return False                       # zorunlu bayrak eksik = bu sekil DEGIL
@@ -572,10 +750,14 @@ def _kisa(yol, kok=None):
 def sekil_metni(sekil, kok=None):
     """TEK bir seklin insan-okur cagri metni ('python3 tools/x.py A B [--f]')."""
     parcalar = ["python3 " + _kisa(sekil.arac, kok)]
+    if sekil.alt_komut is not None:
+        parcalar.append(sekil.alt_komut)
     parcalar.extend(_kisa(k, kok) for k in sekil.konumlar)
-    parcalar.extend(sorted(sekil.zorunlu))
+    parcalar.extend(sorted(sekil.zorunlu - sekil.deger_alanlar))
+    parcalar.extend(b + " <deger>" for b in sorted(sekil.zorunlu & sekil.deger_alanlar))
     parcalar.extend("[" + b + "]" for b in sorted(sekil.serbest))
-    parcalar.extend("[" + b + " <deger>]" for b in sorted(sekil.degerli))
+    parcalar.extend("[" + b + " <deger>]"
+                    for b in sorted(sekil.deger_alanlar - sekil.zorunlu))
     return " ".join(parcalar)
 
 
@@ -601,6 +783,8 @@ def cagri_ornegi(etiket, kok=None):
     ([[kapi-red-metni-ikinci-kopyadir]])."""
     sekil = {s.etiket: s for s in eve_gore(kok)}[etiket]
     parcalar = ["python3", sekil.arac]
+    if sekil.alt_komut is not None:
+        parcalar.append(sekil.alt_komut)
     parcalar.extend(sekil.konumlar)
     parcalar.extend(b for b in sekil.ornek if b not in sekil.degerli)
     return " ".join(parcalar)

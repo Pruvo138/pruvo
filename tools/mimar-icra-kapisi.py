@@ -1736,7 +1736,7 @@ def _agent_karari(girdi):
     ).format(gorulen=_agent_gorulen_sinif(prompt), liste=AGENT_SINIF_LISTESI)
 
 
-def _py_izinli(ad, argumanlar, cwd, kok=None):
+def _py_izinli(ad, argumanlar, cwd, kok=None, argv0=None):
     """22 Tem — mimar tarafinda python/node ALLOWLIST'i. YALNIZ uc tam komut serbest:
         python3 tools/durum.py                          (baska argüman YOK)
         python3 tools/d1-sync.py --durum                (yalniz --durum)
@@ -1778,7 +1778,11 @@ def _py_izinli(ad, argumanlar, cwd, kok=None):
     # yonlendirme EKI tasidiginda da eslesir; normalize edilen kume
     # `serbest_cagrilar.yonlendirme_ekini_soy`da OLCUMLE daraltilmistir — dosya
     # adi tasiyan hicbir yonlendirme oraya giremez.
-    sekil = SC.eslesen_sekil(argumanlar, _coz, cwd, kok=kok or EV_KOKU_CAPASI)
+    # 🔴 26 EYL (Jev): yorumlayici kisitli sekiller (`Sekil.yorumlayicilar`) argv0'i
+    # TAM ESITLIKLE ister ('/private/tmp/python3' sahte yorumlayicisi R2'yi atlatmasin);
+    # argv0 verilmeyen eski cagri o sekillere ESLESMEZ (fail-closed).
+    sekil = SC.eslesen_sekil(argumanlar, _coz, cwd, kok=kok or EV_KOKU_CAPASI,
+                             yorumlayici=argv0)
     if sekil is None:
         return False
     return True
@@ -2170,7 +2174,7 @@ def main():
         # d1-sync.py --durum' allowlist'e ULASMADAN env yuzunden reddedilir.
         # sh/bash/ruby/perl/php/osascript BU kisitin DISINDA (asagida C/E2/F ile denetlenir).
         if PY_NODE.match(ad):
-            if _py_izinli(ad, argumanlar, cwd, kok=ev_kok):
+            if _py_izinli(ad, argumanlar, cwd, kok=ev_kok, argv0=argv0):
                 for _t in argumanlar:                       # K340② olcum kolu
                     if not _t.startswith("-"):
                         _betik_ici_iz(_t, cwd, cip)
