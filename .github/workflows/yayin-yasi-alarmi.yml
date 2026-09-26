@@ -13,9 +13,9 @@ name: Yayin yasi alarmi (main ilerledi mi, canli kaldi mi)
 # satir olarak kaybolur. Yani KOSUMUN YESILI YAYIN DEMEK DEGILDIR.
 #
 # 🔴 MEVCUT NOBETCILER BU SINIFI GORMEZ (olculdu):
-#   * `yayin-erisim-alarmi` kumeyi main AGACINDAN turetir ve canli sitemap'te henuz
-#     olmayan 404'leri ROLLOUT sayar -> yayin TAMAMEN durdugunda tam olarak
-#     SESSIZLESIR (yeni sayfalar "henuz tasinmamis" kovasina duser).
+#   * `yayin-erisim-alarmi` kumeyi SON BASARILI DEPLOY'un SHA'sindan turetir (K78,
+#     26 Eyl 2026; oncesinde main agaci + ROLLOUT kovasi) -> yayin TAMAMEN
+#     durdugunda evren de o SHA'da donar ve tam olarak SESSIZLESIR.
 #   * `yayin-gecikme-nobeti` D1 taslak yiginini olcer — CI/Pages yayin akisini DEGIL.
 # Bu is akisi o kor noktanin karsiligidir.
 #

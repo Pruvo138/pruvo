@@ -52,7 +52,7 @@ ALARM = ".github/workflows/yayin-erisim-alarmi.yml"
 HEDEFLER = (NOBETCI, TEST, IS_AKISI, DEPLOY, NOBET, ALARM)
 DOKUNULMAZ = [os.path.join(ROOT, y) for y in HEDEFLER]
 
-EKSENLER = ("E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9")
+EKSENLER = ("E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10")
 
 FAILS = []
 
@@ -85,7 +85,9 @@ M2 = ("M2", "404 'acik' sayiliyor (silinmis sayfa yesil yanar)",
       # bayat kaldi. E9'un KONTROL iddiasi ("sitemap'te VAR olan 404 -> KAPALI rc 1")
       # tam da 404'un KAPALI sayilmasina dayanir; M2 onu da dusurur. Beyan gercege
       # yetistirildi — olcum KISILMADI ([[beyan-edilmis-survivor]]).
-      ["E3", "E8", "E9"], "ESIT")
+      # 26 Eyl 2026 +E10: KORLUK KOLU "deploy'a dahil sayfanin 404'u KAPALI rc 1" der;
+      # 404 'acik' sayilinca o da yanar (ayni fiziksel olgu: 404 = kapali).
+      ["E3", "E8", "E9", "E10"], "ESIT")
 
 M3 = ("M3", "403 'acik' sayiliyor — hem metot ekseni hem hukum ekseni duser",
       NOBETCI, [("\nACIK_KODLAR = (200,)\n", "\nACIK_KODLAR = (200, 403)\n")],
@@ -129,7 +131,10 @@ M9 = ("M9", "SESSIZ ORNEKLEME (kume kirpiliyor ama 'hepsi acik' deniyor)",
       NOBETCI,
       [("    for i, yol in enumerate(yollar):",
         "    for i, yol in enumerate(yollar[:3]):")],
-      ["E6"], "ESIT")
+      # CAPRAZ (26 Eyl 2026 +E10): E10 gercek vakalari TAM kume uzerinden hukumler;
+      # kirpilmis olcum `olculen != beklenen` ile OLCULEMEDI verir -> E10 de yanar.
+      # Ayni olgu (kume TAMAMEN olculmeli), ikinci olcer.
+      ["E6", "E10"], "ESIT")
 
 M10 = ("M10", "YONLENDIRME HIC IZLENMIYOR (301 -> 200 sayfa KAPALI sanilir)",
        NOBETCI,
@@ -174,7 +179,9 @@ M16 = ("M16", "KUMEYE ELLE URL GOMULDU (kaynak disi liste sizdi)",
          '        sayfa.append("/")',
          '        kaynaklar.append(("K3 site koku (ana sayfa)", 1, True, "/"))\n'
          '        sayfa.append("/")\n        sayfa.append("/elle-yazilmis-sayfa/")')],
-       ["E1"], "ESIT")
+       # CAPRAZ (26 Eyl 2026 +E10): E10 deploy agacindan tureyen kumenin TAM
+       # buyuklugunu (deploy_n) olcer; gomulu URL o esitligi bozar -> E10 de yanar.
+       ["E1", "E10"], "ESIT")
 
 # ── GECICI SINIF (10 Agu 2026 yanlis-pozitifi) ──────────────────────────────────────
 M17 = ("M17", "🔴 YENIDEN YOKLAMA DEVRE DISI (anlik 503 blip'i yine KALICI KAPALI "
@@ -243,8 +250,29 @@ M23 = ("M23", "🔴 FIKSTUR HANDLER'I YINE DAEMON (kopan istemci kapanista stder
        NOBETCI, [("            daemon_threads = False", "            daemon_threads = True")],
        ["E5"], "ESIT")
 
+# ── K78 EVREN HIZALAMA (26 Eyl 2026) — E10'un TEK-KIRMIZI mutantlari ────────────────
+M24 = ("M24", "🔴 EVREN yine CALISMA AGACINDAN (HEAD) turuyor — 12 Agu sinifi: deploy "
+       "edilmemis sayfalar canlida aranir",
+       NOBETCI, [("        yollar, kaynaklar = kume_turet(kok=evren_kok, kapsam=kapsam,",
+                  "        yollar, kaynaklar = kume_turet(kok=kok, kapsam=kapsam,")],
+       ["E10"], "ESIT")
+
+M25 = ("M25", "🔴 HIZALI OLCUMDE ROLLOUT kovasi ACILDI (canli sitemap'e soruluyor) — "
+       "deploy'a dahil sayfanin 404'u sessiz kalir (korluk)",
+       NOBETCI, [("istek_fn=istek_fn, yeniden_bekleme=yeniden_bekleme, "
+                  "sitemap_yollar=None)",
+                  "istek_fn=istek_fn, yeniden_bekleme=yeniden_bekleme, "
+                  "sitemap_yollar=canli_sitemap_yollari(taban=taban, "
+                  "istek_fn=istek_fn))")],
+       ["E10"], "ESIT")
+
+M26 = ("M26", "alarm checkout'u yine SIG (fetch-depth: 0 kaldirildi) — hizalama kaniti "
+       "CI'da kosamaz, kalici OLCULEMEDI",
+       ALARM, [("        with:\n          fetch-depth: 0\n", "")],
+       ["E10"], "ESIT")
+
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, M13, M14, M15, M16,
-             M17, M18, M19, M20, M21, M22, M23, K1, K2, K3, K4, K5)
+             M17, M18, M19, M20, M21, M22, M23, M24, M25, M26, K1, K2, K3, K4, K5)
 OLCUTLER = ("ESIT",)
 
 IDDIA_RE = re.compile(r"^IDDIA SAYISI:\s*(\d+)\s*$", re.M)
