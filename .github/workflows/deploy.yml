@@ -1031,6 +1031,14 @@ jobs:
       - name: "Serbest cagri tablosu — EV EKSENI + yonlendirme eki (3 mutant)"
         run: python3 tools/serbest-kume-ev-ekseni-test.py
 
+      # 🔴 26 EYL 2026 (Okan /goal: "Jev'in onunde hicbir engel olmamali") — Jev
+      # istemcisi (karar/toplu/saglik) + PRUVO kalip araci `serbest_cagrilar.SEKILLER`de
+      # ADLI sekil. Adim her ev kokunde gercek PreToolUse yukuyle pozitif ALLOW +
+      # negatif DENY (python3 -c, curl, benzer yol, $(), >, sir yolu ...) olcer ve
+      # 7 izole mutant tasir (SURVIVOR=0); hicbiri canli govdede kosmaz.
+      - name: "Jev kapisi — serbest sekiller bes evde + negatifler (7 mutant)"
+        run: python3 tools/jev-kapi-test.py
+
       # SERIT DERINLIK OLCUMU (K314①) — gerekce `build` isindeki uzun blokta.
       # Olculen kanit tam da BU SERITTE: kosum 32995765098'de adim 19 `failure`,
       # adim 20-28 `skipped` — dokuz kapinin hukmu o kosumdan HIC okunamadi.
