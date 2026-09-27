@@ -34,7 +34,9 @@ import time
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 KAPI_VARSAYILAN = os.path.join(TOOLS, "mimar-icra-kapisi.py")
-GERCEK_MOTOR_SECIMI = "/Users/okan/.claude/jev/motor-secimi.py"
+# CI kosucusunda bu yol YOKTUR: G-vakalari asagida os.path.isfile ile atlanir (yerel olcum).
+GERCEK_MOTOR_SECIMI = (os.environ.get("PRUVO_GERCEK_MOTOR_SECIMI")
+                       or "/Users/okan/.claude/jev/motor-secimi.py")
 
 BEYAN = "isci-muafiyet: kapi kodu olcumu — sessiz-hata"
 FIKSTUR_ESIK = 0.75
