@@ -85,6 +85,22 @@
       "_kalibrasyon": "27 Eyl 2026 ArTisT P1 altın küme 42 örnek, isabet %95,8/24, insan bandı %42,9; bilinen kör nokta 'pvc aksesuar' yanlış evet. Soru metni değişirse eşik yeniden ölçülür.",
       "soru": "PRUVO, olcuye ozel kucuk mekanik/kozmetik plastik parca ureten bir atolyedir: ornekler arac/tekne icin model-ozel tutucu (telefon tutucu, kupa tutucu, kamis tutucu), kapak, mesnet, ayak, klips, konsol, dayanak, kilif, izgara, halka gibi kucuk parcalar. Bu Google Ads arama terimi boyle bir FIZIKSEL PARCA/AKSESUAR aramasi mi (evet), yoksa marka/site sayfasi (SSS, iade, giris, hakkimizda), jenerik bilgi sorgusu, ya da standart hazir hirdavat (civata gibi) mi (hayir)? Beyaz esya (buzdolabi, camasir makinesi, bulasik makinesi vb.) parcalari ve tekne itis pervanesi/pompa impelleri gibi sivi tasiyan donen parcalar KAPSAM DISIDIR, bunlar icin de hayir."
     },
+    "artist-yorum-sinifi": {
+      "ev": "ArTisT", "tip": "secim", "esik": 0.8,
+      "_kalibrasyon": "27 Eyl 2026 ArTisT P4 altın küme 32 yorum (pruvo-pazarlama 5ff68eb8): eşik 0,8'de confident-isabet 32/32, insan bandı 0/32. 1 altın etiket (tek emoji: spam→ovgu) Jev cevabı görüldükten SONRA düzeltildi — sızıntı payı. Soru/seçenek metni DEĞİŞİRSE eşik yeniden ölçülür.",
+      "soru": "Bu, PRUVO'nun (arac/tekne/ev icin olcuye ozel kucuk plastik parca ureten bir atolye) Google Isletme Profili ya da sosyal medya (Instagram/Facebook) sayfasina gelen bir musteri yorumudur. Yorumun sinifi nedir?",
+      "secenekler": {
+        "soru": "urun/hizmet hakkinda bilgi soruyor",
+        "sikayet": "memnuniyetsizlik, sorun, gecikme, hatali urun bildiriyor",
+        "ovgu": "tesekkur, memnuniyet, tavsiye",
+        "spam": "reklam, alakasiz, bot, takipci istegi"
+      }
+    },
+    "artist-yorum-cevap-gerekli": {
+      "ev": "ArTisT", "tip": "evet", "esik": 0.8,
+      "_kalibrasyon": "27 Eyl 2026 ArTisT P4 altın küme 32 yorum (pruvo-pazarlama 5ff68eb8): eşik 0,8'de confident-isabet 25/25, insan bandı 7/32 (hepsi övgü sınırı, yön doğru). Soru metni DEĞİŞİRSE eşik yeniden ölçülür.",
+      "soru": "Bu, PRUVO'nun (arac/tekne/ev icin olcuye ozel kucuk plastik parca ureten bir atolye) Google Isletme Profili ya da sosyal medya sayfasina gelen bir musteri yorumu. Bu yoruma bir insanin yanit yazmasi GEREKIYOR mu? Soru ve sikayetlere HER ZAMAN evet. Kisa tesekkur/ovgu yorumlarina (tek emoji dahil) yanit yazmak nazik ama ZORUNLU degil, hayir say. Spam/alakasiz reklam yorumlarina hayir."
+    },
     "tekin-uretim-hatasi": {
       "ev": "TeKiN", "tip": "secim", "esik": null,
       "soru": "Bu üretim / dilimleme / jeneratör hata metni hangi sınıfa girer?",

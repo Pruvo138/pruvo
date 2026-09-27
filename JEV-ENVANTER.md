@@ -39,6 +39,8 @@ Metinden verilen HER karar (kova · puan · evet) Jev'e gider. "Dışında" yaln
 | P7 | ArTisT | arama/içerik niyeti (`artist-seo-niyet` · secim 6) | ✅ **KALİBRE eşik 0,8** (v2 soru) | 27 Eyl | altın küme 40 (pruvo-pazarlama `4680cf94`): v1 %85,7 → v2 %95,2 (20/21), insan bandı 19/40; kör nokta "en iyi X markası" alakasız'a kayabilir |
 | P8 | TeKiN | üretim/jeneratör hata sınıfı (`tekin-uretim-hatasi` · secim 6) | aday · kalıp hazır | 26 Eyl | jeneratör hata kaydından 30 örnek |
 | P9 | ArTisT | Ads arama terimi alakası (`artist-arama-terimi` · evet) | ✅ **KALİBRE eşik 0,8** | 27 Eyl | altın küme 42 (pruvo-pazarlama `c7a32e09`): isabet %95,8/24, insan bandı %42,9; kör nokta "pvc aksesuar" yanlış evet. Soru değişirse eşik yeniden ölçülür |
+| P10 | ArTisT | Google/sosyal yorum sınıfı (`artist-yorum-sinifi` · secim 4) | ✅ **KALİBRE eşik 0,8** | 27 Eyl | altın küme 32 (pruvo-pazarlama `5ff68eb8`): 32/32, insan bandı 0/32; 1 etiket Jev cevabından sonra düzeltildi |
+| P11 | ArTisT | yoruma cevap gerekli mi (`artist-yorum-cevap-gerekli` · evet) | ✅ **KALİBRE eşik 0,8** | 27 Eyl | altın küme 32 (pruvo-pazarlama `5ff68eb8`): 25/25, insan bandı 7/32 (övgü sınırı) |
 
 ## Dışında (§1.3 — Jev KAYIT YAZMAZ, SAYI ÜRETMEZ)
 | Sınıf | Gerekçe |
