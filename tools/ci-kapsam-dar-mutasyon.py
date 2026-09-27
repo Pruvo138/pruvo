@@ -55,6 +55,8 @@ import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
+sys.path.insert(0, TOOLS)
+from git_ortami import sentetik_git  # noqa: E402
 
 KAPI = "ci-kapsam-test.py"
 DEPLOY_REL = os.path.join(".github", "workflows", "deploy.yml")
@@ -259,10 +261,9 @@ def ayna_kur(hedef, yollar):
         varis = os.path.join(hedef, rel)
         os.makedirs(os.path.dirname(varis), exist_ok=True)
         shutil.copy2(kaynak, varis, follow_symlinks=True)
-    subprocess.run(["git", "-C", hedef, "init", "-q"], check=True,
-                   capture_output=True)
-    subprocess.run(["git", "-C", hedef, "add", "-A", "-f"], check=True,
-                   capture_output=True)
+    # Kanonik yardimci: miras GIT_* baglami temizlenir (fikstur-git-sizinti-kapisi).
+    sentetik_git(hedef, "init", "-q", check=True, capture_output=True)
+    sentetik_git(hedef, "add", "-A", "-f", check=True, capture_output=True)
     return hedef
 
 

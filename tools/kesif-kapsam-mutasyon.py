@@ -114,6 +114,27 @@ def _akis_satiri_sil(akislar, akis_adi, kapi_yolu):
     return yeni, silinen
 
 
+def _taban_capasi(mutant_deger):
+    """(`KOL_BIRLESIM_TABANI = <canli>`, `KOL_BIRLESIM_TABANI = <mutant>`) cifti.
+
+    🔴 CAPA CANLI GOVDEDEN TURER (27 Eyl, KraL-SeritB-Onarim): elle yazili
+    `= 18` capasi 26 Eyl'deki bilincli 18->20 buyumesiyle bayatladi ve uc mutant
+    (M-KB8 · M-E5a · M-G6) COKTU. Deger tekil bulunamazsa ya da mutant degeri
+    canli tabanin ALTINDA degilse RuntimeError -> olc() COKME sayar (kirmizi DEGIL).
+    """
+    with open(KAPI_YOLU, encoding="utf-8") as f:
+        bulunan = re.findall(r"^KOL_BIRLESIM_TABANI = (\d+)\b", f.read(), re.M)
+    if len(bulunan) != 1:
+        raise RuntimeError("TABAN CAPASI OLCULEMEDI: `KOL_BIRLESIM_TABANI = <n>` %d kez "
+                           "gecti (beklenen 1)" % len(bulunan))
+    if not mutant_deger < int(bulunan[0]):
+        raise RuntimeError("TABAN CAPASI OLCULEMEDI: mutant %d canli taban %s'in altinda "
+                           "degil -> 'dusuruldu' mutanti kurulamaz"
+                           % (mutant_deger, bulunan[0]))
+    return ("KOL_BIRLESIM_TABANI = %s" % bulunan[0],
+            "KOL_BIRLESIM_TABANI = %d" % mutant_deger)
+
+
 def _mutant_modul(ad, eski, yeni, beklenen_adet=1):
     """KAYNAK METNI BELLEKTE mutasyona ugratip AYRI bir modul olarak yukler.
 
@@ -535,13 +556,13 @@ def main():
         lambda: _kablo_nobetcisi(
             ('                 "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",',
              '                 "suzgec_fikstur_kontrol",'),
-            ("KOL_BIRLESIM_TABANI = 18", "KOL_BIRLESIM_TABANI = 9")),
+            _taban_capasi(9)),
         True, "KAYIT DEFTERI EKSIK")
 
     olc("M-KB6 (KB-E) `--kendini-test` hukmu `and` yerine `or`",
         lambda: _kablo_nobetcisi(
-            ("                and ok10 and ok11 and ok12 and ok13):",
-             "                or ok10 or ok11 or ok12 or ok13):")),
+            ("                and ok10 and ok11 and ok12 and ok13 and ok14 and ok15):",
+             "                or ok10 or ok11 or ok12 or ok13 or ok14 or ok15):")),
         True, "KENDINI-TEST HUKMU `and` DEGIL")
 
     # ---- UCUNCU TUR: ORTAM SADAKATI · SEAM · BAYRAK SIZINTISI ---------------
@@ -596,9 +617,10 @@ def main():
 
     olc("M-E5a defterden kayit SILINDI (taban da dusurulse gizlenemez)",
         lambda: _kablo_nobetcisi(
-            ('"izlenmeyen_fikstur_kontrol", "kanca_kablo_serit_kontrol",',
-             '"izlenmeyen_fikstur_kontrol",'),
-            ("KOL_BIRLESIM_TABANI = 18", "KOL_BIRLESIM_TABANI = 9")),
+            ('"izlenmeyen_fikstur_kontrol", "js_bayrak_fikstur_kontrol",\n'
+             '              "kanca_kablo_serit_kontrol",',
+             '"izlenmeyen_fikstur_kontrol", "js_bayrak_fikstur_kontrol",'),
+            _taban_capasi(9)),
         True, "KAYIT DEFTERI EKSIK")
 
     olc("M-SERIT agir ayak adimi BLOKLAMAYAN job'a tasindi",
@@ -795,16 +817,15 @@ def main():
     # 🔴 MUTANT MODUL SART: taban CANLI sabitten okunur; kaynak gecirmek onu
     # degistirmez (olculdu: `_kablo_nobetcisi` ile rc=0).
     olc("M-G6 KOL_BIRLESIM_TABANI dusuruldu (esitlik sarti)",
-        lambda: _kablo_govdesi(_mutant_modul(
-            "g6", "KOL_BIRLESIM_TABANI = 18", "KOL_BIRLESIM_TABANI = 12")),
+        lambda: _kablo_govdesi(_mutant_modul("g6", *_taban_capasi(12))),
         True, "KOL BIRLESIMI TABANLA UYUSMUYOR")
 
     olc("KONTROL-5 hukumdeki `okN` sirasi degisti (SEMANTIK AYNI, yesil kalmali)",
         lambda: _kablo_nobetcisi(
             ("        if (ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 "
-             "and ok9\n                and ok10 and ok11 and ok12 and ok13):",
-             "        if (ok11 and ok10 and ok9 and ok8 and ok7 and ok6 and ok5 and "
-             "ok4 and ok3\n                and ok2 and ok1):")),
+             "and ok9\n                and ok10 and ok11 and ok12 and ok13 and ok14 and ok15):",
+             "        if (ok15 and ok14 and ok13 and ok12 and ok11 and ok10 and ok9 and ok8 "
+             "and ok7\n                and ok6 and ok5 and ok4 and ok3 and ok2 and ok1):")),
         False)
 
     olc("M-IZ2 izlenmeyen kova UYARI'ya cevrildi (exit koduna dokunmuyor)",

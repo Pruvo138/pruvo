@@ -7665,7 +7665,12 @@ def main():
         kirmizi = [kod for kod, ok in eksenler if not ok]
         print("IDDIA SAYISI: %d" % len(eksenler))
         print("KIRMIZI IDDIA: %s" % (",".join(kirmizi) or "-"))
-        if not kirmizi:
+        # 🔴 HUKUM `and` ZINCIRIDIR, liste anlamasi DEGIL (27 Eyl, KraL-SeritB-Onarim):
+        # `_kendini_test_hukum_kontrol` hukmu BoolOp `if` olarak arar; `if not kirmizi:`
+        # o nobetciye GORUNMEZ ve `and`->`or` mutanti (kesif-kapsam-mutasyon M-KB6)
+        # olculemez hale gelmisti. `kirmizi` ayni okN'lerden turer -> iki bicim ESDEGER.
+        if (ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 and ok9
+                and ok10 and ok11 and ok12 and ok13 and ok14 and ok15):
             print("SONUC: YESIL ✅")
             return 0
         print("SONUC: KIRMIZI ❌")

@@ -71,6 +71,18 @@ _N = ("OLCULDU nobet.yml run 35473498152 (main 9e1dfecb, 19 Eyl 22:29Z): bu adim
       "success — sabit canli yol CI'da cozulmese de kol OLCULEMEDI/atlama ile rc=0. ")
 _D = ("OLCULDU deploy.yml run 35469221473 (main 9e1dfecb): is akisi success — sabit "
       "kardes-ev yolu CI'da yok, kol kapsam-disi sayip rc=0 doner. ")
+# 27 Eyl 2026 (cip KraL-SeritB-Onarim-27Eyl): 26 Eyl merge'leriyle CI'a baglanan iki betik.
+# Kanit: nobet.yml run 36276628053 (`9ac32b92`) + 36282171264 (`4b860f0f`) — ikisinde de
+# asagidaki adimlar serit-b'de success (tek kirmizi bu kapinin kendisiydi).
+_K = ("OLCULDU nobet.yml run 36276628053 (9ac32b92) + 36282171264 (4b860f0f): 'Mimar kilit "
+      "kabul testi' success — adim ONCESINDE 'kanonik yerel duzlem' adimi /Users/okan/dev/pruvo "
+      "sembolik bagini + HOME=/Users/okan'i KURAR; yol CI'da COZULUR. Env yedegi eklenmez: "
+      "kapilar bu kanonik dizgeyle KARSILASTIRIR, vaka tarafi bagimsiz literal olmali "
+      "(oracle bagimsizligi, [[prob-kendi-baglamini-olcer]]). ")
+_C = ("OLCULDU nobet.yml run 36276628053 (9ac32b92) + 36282171264 (4b860f0f): 'CARE ev "
+      "ekseni kabul testi' success. Deger DISKTE ACILMAZ — kapinin bastigi CARE satirinda "
+      "aranan DIZGE oracle'idir (N1/P1/P3/N2); kapinin KANONIK_KOK'undan turetilseydi "
+      "mutant kaydirmasi oracle'i da kaydirirdi. ")
 # NOT (20 Eyl): ilk taslakta 3 giris daha vardi (`arsiv-kapisi.VARSAYILAN_REPO`,
 # `k340-menzil-kabul-test.KANONIK_EV`, `parti-borc-kapisi.EVLER_JSON_VARSAYILAN`).
 # BAYAT-IZIN kolu onlari ADIYLA dusurdu: uc dosya da sabitini modulun KENDI yedegiyle
@@ -79,6 +91,8 @@ IZIN_LISTESI = {
     "tools/boy-secenekleri-kabul.py": {
         "EDGE_WORKER": _D + "Kardes ev (pruvo-bot) worker dosyasi; yoksa o eksen "
                             "olculemez sayilir."},
+    "tools/care-ev-ekseni-test.py": {
+        "KANONIK_ONEK": _C + "Beklenen dizge; yol olarak kullanilmaz."},
     "tools/ege-uretim-sahipligi-test.py": {
         "BOT_INDEX": _D + "Ayni kardes-ev dosyasi; CI'da eksen OLCULEMEDI."},
     "tools/ev-haritasi-kapisi-test.py": {
@@ -95,6 +109,12 @@ IZIN_LISTESI = {
                          "kiyas yapilamaz, kol olculemedi der."},
     "tools/id-rename-test.py": {
         "HEDEF": _N + "Canli `index.html` yolu; CI'da fikstur uzerinden olculur."},
+    "tools/mimar-kilit-test.py": {
+        "REPO": _K + "Kapilarin tanidigi ANA checkout; CI'da sembolik bag.",
+        "HAFIZA": _K + "Kanonik hafiza koku; CI'da HOME=/Users/okan altinda kurulur.",
+        "ISCI_W": _K + "Kanonik isci sarmalayici yolu; icra kapisi bu dizgeyi tanir.",
+        "ISCI_M3": _K + "Kanonik m3 sarmalayici yolu; icra kapisi bu dizgeyi tanir.",
+        "TRANSCRIPT_KOK": _K + "Kanonik transcript koku; damga oracle'i bagimsiz literal."},
     "tools/mimar-commit-kapisi-test.py": {
         "MAIN": _N + "ANA checkout kiyas ekseni; CI'da kum dizininde kosar."},
     "tools/nobet-sayac-durustluk-test.py": {
