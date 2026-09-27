@@ -68,8 +68,9 @@
       }
     },
     "artist-seo-niyet": {
-      "ev": "ArTisT", "tip": "secim", "esik": null,
-      "soru": "Bu arama sorgusunun / içerik başlığının niyeti nedir?",
+      "ev": "ArTisT", "tip": "secim", "esik": 0.8,
+      "_kalibrasyon": "27 Eyl 2026, ArTisT altın küme 40 örnek (pruvo-pazarlama 4680cf94): v1 soru eşik 0,8'de confident-isabet 24/28 = %85,7 → v2 soru (iş tanımı + alakasız-istisna cümlesi) 20/21 = %95,2, insan bandı 19/40. Bilinen kör nokta: 'en iyi X markası' kalıbı alakasız'a kayabilir. Soru/seçenek metni DEĞİŞİRSE eşik yeniden ölçülür.",
+      "soru": "PRUVO, arac/tekne/ev/ofis icin olcuye ozel kucuk mekanik/kozmetik plastik parca ureten bir atolyedir (tutucu, kapak, mesnet, ayak, klips, konsol, dayanak, kilif, izgara, halka gibi). Bu arama sorgusu/icerik basligi bu is alaniyla ilgili mi, ilgiliyse niyeti nedir: belirli parca arama (parca_arama), arac/model uyumlulugu sorusu (uyumluluk), fiyat/satin alma (fiyat_satin_al), tamir/montaj/nasil-yapilir (nasil_yapilir), marka/model/malzeme hakkinda genel bilgi (marka_genel)? Eger TAMAMEN FARKLI bir is alaniyla ilgiliyse (orn. kase/damga yaptirma, dograma/marangozluk, site sayfalari - gizlilik/iade politikasi) YA DA bizim URETMEDIGIMIZ parca turuyse (beyaz esya parcasi: buzdolabi/camasir/bulasik makinesi; tekne itis pervanesi; sivi tasiyan pompa/sintine/sirkulasyon carki - impeller), sonuc HER ZAMAN alakasiz olmalidir - metinde fiyat/nasil-yapilir gibi kelimeler gecse bile.",
       "secenekler": {
         "parca_arama": "belirli bir parçayı arıyor",
         "uyumluluk": "hangi araca/modele uyar",
@@ -78,6 +79,11 @@
         "marka_genel": "marka/model genel bilgi",
         "alakasiz": "işimizle ilgisiz"
       }
+    },
+    "artist-arama-terimi": {
+      "ev": "ArTisT", "tip": "evet", "esik": 0.8,
+      "_kalibrasyon": "27 Eyl 2026 ArTisT P1 altın küme 42 örnek, isabet %95,8/24, insan bandı %42,9; bilinen kör nokta 'pvc aksesuar' yanlış evet. Soru metni değişirse eşik yeniden ölçülür.",
+      "soru": "PRUVO, olcuye ozel kucuk mekanik/kozmetik plastik parca ureten bir atolyedir: ornekler arac/tekne icin model-ozel tutucu (telefon tutucu, kupa tutucu, kamis tutucu), kapak, mesnet, ayak, klips, konsol, dayanak, kilif, izgara, halka gibi kucuk parcalar. Bu Google Ads arama terimi boyle bir FIZIKSEL PARCA/AKSESUAR aramasi mi (evet), yoksa marka/site sayfasi (SSS, iade, giris, hakkimizda), jenerik bilgi sorgusu, ya da standart hazir hirdavat (civata gibi) mi (hayir)? Beyaz esya (buzdolabi, camasir makinesi, bulasik makinesi vb.) parcalari ve tekne itis pervanesi/pompa impelleri gibi sivi tasiyan donen parcalar KAPSAM DISIDIR, bunlar icin de hayir."
     },
     "tekin-uretim-hatasi": {
       "ev": "TeKiN", "tip": "secim", "esik": null,

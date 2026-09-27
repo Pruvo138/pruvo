@@ -143,11 +143,13 @@ gorunmez ve kural hic calismaz. 1-2-3 MAIN'de de vardir — bu dal onlari ACMADI
   5. Commit duzlemindeki bypass'lar tools/mimar-commit-kapisi.py bas yorumunda.
 """
 import datetime
+import importlib.util
 import json
 import os
 import re
 import shlex
 import sys
+import threading
 
 from mimar_kimlik import (
     CANLI_ISCI_MOTORLARI,
@@ -613,7 +615,7 @@ AGENT_MUAFIYET_RE = re.compile(
 # SURUM DAMGASI — tools/mimar-kapi-kur.py --agent-kapisi bu dizeyi arayarak "bu evde
 # AGENT-KAPISI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev). Kurali
 # degistirirsen damgayi da yukselt.
-AGENT_KURAL_SURUMU = "13agu-2"
+AGENT_KURAL_SURUMU = "27eyl-1"
 # emekli motor reddindeki gibi: AGENT reddinde GEREKCE_SONU KULLANILMAZ ("bu isi isciye delege et"
 # der — oysa AGENT cagrisi ZATEN isci acma girisimi). Yerine IKI CIKISI net soyleyen kuyruk.
 AGENT_SINIF_LISTESI = " / ".join(AGENT_SINIFLARI)
@@ -675,6 +677,128 @@ def _agent_gorulen_sinif(prompt):
         parcalar = kalan[ayrac + 1:].strip().split()
         return parcalar[0] if parcalar else "<bos>"
     return "<bulunamadi>"
+
+
+# ============ 27 EYL 2026 — J2 §7.1: BEYAN YOKSA JEV MOTOR SECIMI (cip KraL-JevGomulu-27Eyl) ====
+# J2 §7.1: "sinif jetonu mimarin beyanidir; yerini bu karar alir". Beyan satiri YOKSA karar
+# EyLuL'un genel kancasinin (~/.claude/jev/motor-secimi.py) KENDI fonksiyonlarindan gelir:
+#   yargi / sessiz_hata  >= esik -> GECER
+#   mekanik              >= esik -> RED, metin motor-secimi GEREKCE_SABLON'u (BIREBIR, basliksiz)
+#   esik alti / Jev yok / ariza / butce asimi / muaf ajan -> None -> bugunku beyan sarti (fail-closed)
+# 🔴 IKINCI KOPYA YOK ([[ikiz-tanim-sessiz-ayrisma]]): soru/secenek/esik motor-secimi-soru.json'dan
+# (modulun _soru_yukle'si), gorev metni gorev_metni, donus hukmu gorev_doner_mi, asim etiketi
+# _asim_tara, muafiyet _muaf_mi, jev.py yolu _jev_modul_yukle, butce BUTCE_SANIYE, red metni
+# GEREKCE_SABLON. PRUVO'da Jev adaptoru YAZILMAZ; esik jev.py'nin insan_onayi'sindan okunur.
+# 🔴 BUTCE KENDI IPLIGIMIZDE (daemon): motor-secimi'nin _jev_cagir_butceli'si ThreadPoolExecutor
+# kullanir; OLCULDU (27 Eyl, 7 sn'lik sahte karar): cagri 4,0 sn'de doner ama surec cikista iplige
+# katilir -> kanca 7,04 sn yasar. Daemon iplik cikista beklenmez -> acilisa ek <= BUTCE_SANIYE.
+# 🔴 AYNI OLAYDA IKI JEV CAGRISI (olculdu, kabul edildi): motor-secimi ayni PreToolUse olayinda
+# PARALEL kosar; kaydi (jev-kayit/motor-secimi-<ay>.jsonl) gorev metni/ozeti ya da tool_use_id
+# TASIMAZ -> bizim kararimiz anindaki satirla eslestirilemez. Import + kendi cagrimiz.
+# 🔴 [GEÇER: yargi|sessiz_hata] ASIM ETIKETI beyan sayilir: motor-secimi'nin red metni mimara
+# TAM BUNU yazmasini soyler; PRUVO onu tanimasaydi ayni metinle ikinci kez RED donerdi (dongu).
+MOTOR_SECIMI_YOLU = "/Users/okan/.claude/jev/motor-secimi.py"
+# Yalniz SIKILASTIRIR: "kapali" -> Jev hic sorulmaz, bugunku beyan sarti (testlerin agsiz kolu).
+AGENT_JEV_ORTAM = "PRUVO_AGENT_JEV"
+AGENT_JEV_GECEN_SINIFLAR = ("yargi", "sessiz_hata")
+AGENT_JEV_ETIKET = "mimar-icra-kapisi"
+
+
+class _HamGerekce(str):
+    """GEREKCE_BASI eklenmeden basilan red metni (motor-secimi ile BIREBIR ayni kalsin diye)."""
+
+
+def _jev_tani(karar, sinif=None, olasilik=None):
+    """stderr'e TEK SATIR tani; karar TASIMAZ. `JEV-MOTOR karar=` jetonu grep'le sayilir."""
+    try:
+        sys.stderr.write("MIMAR-KAPISI JEV-MOTOR karar=%s sinif=%s olasilik=%s\n"
+                         % (karar, sinif if sinif is not None else "-",
+                            olasilik if olasilik is not None else "-"))
+    except Exception:
+        pass
+
+
+def _motor_secimi_yukle():
+    spec = importlib.util.spec_from_file_location("motor_secimi_pruvo_kapi", MOTOR_SECIMI_YOLU)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _jev_butceli(jev, istek, butce):
+    """jev.karar'i daemon iplikte kosar; butce asilirsa None (surec cikista BEKLEMEZ)."""
+    kutu = {}
+
+    def _is():
+        try:
+            kutu["sonuc"] = jev.karar(istek, etiket=AGENT_JEV_ETIKET)
+        except Exception:
+            pass
+
+    iplik = threading.Thread(target=_is, daemon=True)
+    iplik.start()
+    iplik.join(butce)
+    sonuc = kutu.get("sonuc")
+    return sonuc if isinstance(sonuc, dict) else None
+
+
+def _agent_jev_karari(girdi):
+    """Beyan YOKKEN Jev motor secimi. Doner: "gecer" | _HamGerekce (RED) | None (beyan sarti)."""
+    if os.environ.get(AGENT_JEV_ORTAM) == "kapali":
+        _jev_tani("kapali")
+        return None
+    try:
+        if not os.path.isfile(MOTOR_SECIMI_YOLU):
+            _jev_tani("modul_yok")
+            return None
+        ms = _motor_secimi_yukle()
+        ti = girdi.get("tool_input") or {}
+        alanlar = [ti.get(a) or "" for a in ("description", "prompt", "subagent_type", "model")]
+        if not all(isinstance(a, str) for a in alanlar):
+            _jev_tani("girdi")
+            return None
+        description, prompt, subagent_type, model = alanlar
+        asim = ms._asim_tara(description, prompt)
+        if asim is not None:
+            _jev_tani("asim", asim)
+            return "gecer"
+        muaf, _sebep = ms._muaf_mi(subagent_type, EV_ADI, model)
+        if muaf:
+            _jev_tani("muaf")
+            return None
+        soru = ms._soru_yukle(ms.SORU_DOSYASI_VARSAYILAN)
+        if soru is None:
+            _jev_tani("soru_yok")
+            return None
+        istek = {
+            "tip": "secim",
+            "metin": ms.gorev_metni(description, prompt),
+            "soru": soru["soru"],
+            "esik": soru["esik"],
+            "secenekler": soru["secenekler"],
+        }
+        sonuc = _jev_butceli(ms._jev_modul_yukle(), istek, ms.BUTCE_SANIYE)
+        if sonuc is None:
+            _jev_tani("yok")
+            return None
+        secim = sonuc.get("secim")
+        olasilik = sonuc.get("olasilik")
+        insan_onayi = sonuc.get("insan_onayi")
+        if (secim not in soru["secenekler"] or insan_onayi is not False
+                or isinstance(olasilik, bool) or not isinstance(olasilik, (int, float))):
+            _jev_tani("esik_alti", secim, olasilik)
+            return None
+        if ms.gorev_doner_mi(secim, insan_onayi):
+            _jev_tani("dondu", secim, olasilik)
+            return _HamGerekce(ms.GEREKCE_SABLON.format(olasilik=str(olasilik)))
+        if secim in AGENT_JEV_GECEN_SINIFLAR:
+            _jev_tani("gecti", secim, olasilik)
+            return "gecer"
+        _jev_tani("bilinmeyen", secim, olasilik)
+        return None
+    except Exception:
+        _jev_tani("ariza")
+        return None
 
 # ============ 8 AGU: MCP-TARAYICI ICRA KAPISI (Okan teftisi K17, 2. ihtar) ============
 # OLCULEN DELIK: 6 evin settings.json PreToolUse matcher'lari yalnizca 'Bash',
@@ -1216,12 +1340,12 @@ EMEKLI_MOTOR_GEREKCE_SONU = (
 ROL_TANI = ""
 
 
-def reddet(neden, sonu=None):
+def reddet(neden, sonu=None, bas=None):
     print(json.dumps({
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": GEREKCE_BASI + neden +
+            "permissionDecisionReason": (GEREKCE_BASI if bas is None else bas) + neden +
                                         (GEREKCE_SONU if sonu is None else sonu) +
                                         ROL_TANI,
         }
@@ -1729,6 +1853,10 @@ def _agent_karari(girdi):
     if AGENT_MUAFIYET_RE.search(prompt):
         return "gecer"
     if "isci-muafiyet:" not in prompt.lower():
+        # 27 Eyl J2 §7.1: beyan YOK -> Jev motor secimi; karar cikmazsa beyan sarti AYNEN.
+        jev_karari = _agent_jev_karari(girdi)
+        if jev_karari is not None:
+            return jev_karari
         return AGENT_GEREKCE
     return (
         "AGENT-KAPISI (28 Tem): BEYAN VAR, SINIF JETONU ESLESMEDI: gorulen "
@@ -1982,7 +2110,9 @@ def main():
     if tool_name in AGENT_ARACLARI:
         agent_karari = _agent_karari(girdi)
         if agent_karari != "gecer":
-            reddet(agent_karari, sonu="")
+            # Jev "mekanik" reddi motor-secimi metniyle BIREBIR: baslik da kuyruk da eklenmez.
+            reddet(agent_karari, sonu="",
+                   bas="" if isinstance(agent_karari, _HamGerekce) else None)
         iz_bas("MIMAR-agent-muafiyet")
         sys.exit(0)
 

@@ -36,8 +36,9 @@ Metinden verilen HER karar (kova · puan · evet) Jev'e gider. "Dışında" yaln
 | P4 | KraL | "cevap gerekli mi" (`kral-cevap-gerekli` · evet) | aday · kalıp hazır | 26 Eyl | P3 ile aynı |
 | P5 | MaCiT | ürün kategori ikinci görüşü (`macit-kategori` · secim 12) | ✅ **Jev'de, KALİBRE eşik 0,8** | 26 Eyl | `hasat_ekle` kancası kendiliğinden (pruvo-hasat `97a75454`); altın küme 88: p≥0,8 %96,2 (25/26), yanlış alarm 1/88. Açık: `tamirat` çekici, `dekorasyon`→`ev` kayıyor — seçenek metni düzeltilirse eşik YENİDEN ölçülür |
 | P6 | MaCiT | RED gerekçesi sınıfı (`macit-red-gerekcesi` · secim 5) | Jev'de — yalnız kayıt, KALİBRE DEĞİL | 26 Eyl | altın küme 60 (7 seçenekle): argmax %33,3 ⇒ eşik yok (insan). `mukerrer_islev` (katalog) + `logo_tasiyor` (görsel) metinden seçilemediği için kalıptan ÇIKARILDI (26 Eyl); yeniden ölçüm 5 seçenekle, logo/mükerrer örnekleri altın kümeden düşülerek |
-| P7 | ArTisT | arama/içerik niyeti (`artist-seo-niyet` · secim 6) | aday · kalıp hazır | 26 Eyl | GSC sorgu listesi 30 etiketli |
+| P7 | ArTisT | arama/içerik niyeti (`artist-seo-niyet` · secim 6) | ✅ **KALİBRE eşik 0,8** (v2 soru) | 27 Eyl | altın küme 40 (pruvo-pazarlama `4680cf94`): v1 %85,7 → v2 %95,2 (20/21), insan bandı 19/40; kör nokta "en iyi X markası" alakasız'a kayabilir |
 | P8 | TeKiN | üretim/jeneratör hata sınıfı (`tekin-uretim-hatasi` · secim 6) | aday · kalıp hazır | 26 Eyl | jeneratör hata kaydından 30 örnek |
+| P9 | ArTisT | Ads arama terimi alakası (`artist-arama-terimi` · evet) | ✅ **KALİBRE eşik 0,8** | 27 Eyl | altın küme 42 (pruvo-pazarlama `c7a32e09`): isabet %95,8/24, insan bandı %42,9; kör nokta "pvc aksesuar" yanlış evet. Soru değişirse eşik yeniden ölçülür |
 
 ## Dışında (§1.3 — Jev KAYIT YAZMAZ, SAYI ÜRETMEZ)
 | Sınıf | Gerekçe |
