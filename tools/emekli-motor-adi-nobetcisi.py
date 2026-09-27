@@ -51,7 +51,10 @@ IZINLI = {
     # dustugunu olcer; o vakalar ESKI ADI yazmak ZORUNDA. Nobetci bu iki satiri
     # kendisi KIRMIZI yakti ve tavan ancak GEREKCEYLE yukseltildi — mekanizma
     # calisti. Sinif (b): fikstur, ATIF degil.
-    "tools/mimar-kilit-test.py": (66, "yasagin negatif/yanlis-pozitif vaka komutlari"),
+    # 66 -> 65 (27 Eyl, KraL-SeritB-Onarim, DARALTMA): KilitMutant (26 Eyl) 4 gecis
+    # ekleyip 2 dusurdu -> 68. Eklenenlerin 3'u YORUM (atif, sinif a) idi; adsiz yeniden
+    # yazildi. Kalan tek yeni gecis vaka 907'nin (pencere ICI pozitif) KOMUT metni (sinif b).
+    "tools/mimar-kilit-test.py": (65,"yasagin negatif/yanlis-pozitif vaka komutlari"),
     "tools/mimar-kapi-mutasyon-test.py": (20, "mutant yamalari CANLI GOVDEYE birebir esitlenir"),
     "tools/k260/nobet-kat-kovasi-test.py": (3, "goc kaydi fiksturu (emekli kat adi)"),
     "tools/n4b/b4-kur.py": (4, "bayat kayit fiksturu: dosyadaki GERCEK dizgeye eslesir"),

@@ -168,9 +168,9 @@ RAPOR_IZI.update({n: _RAPOR_MOTOR for n in (
 # allow AYNI ama iz MIMAR'a doner). 60/73 Write, digerleri zaten deny/allow ile ayrisiyordu.
 RAPOR_IZI.update({n: _RAPOR_ISCI for n in (60, 73)})
 
-# === 🔴 26 EYL 2026 — codex (emekli motor) SURELI PENCERESI: TARIH SAATLI BOMBA ===
+# === 🔴 26 EYL 2026 — EMEKLI MOTOR SURELI PENCERESI: TARIH SAATLI BOMBA ===
 # OLCULDU: `EMEKLI_MOTOR_PENCERE_BITIS = "2026-08-20"` (mimar_kimlik.py:76) GECTI; o
-# gunden beri HER `codex exec` cagrisi pencere kolunda RED donuyor ve ARKASINDAKI alt
+# gunden beri emekli motorun HER `exec` cagrisi pencere kolunda RED donuyor ve ARKASINDAKI alt
 # kurallar (cikti-bayragi deger sarti, model bayragi, amiral, bilinmeyen model, ikinci
 # okuma) testte ERISILMEZ oldu -> ME6/ME9/ME11/ME13/ME14/ME15/M_K159_1..3 SURVIVOR.
 # Kod regresyonu DEGIL, TAKVIM: kurallar kaynakta CANLI ve pencere yeniden acilirsa
@@ -1290,7 +1290,7 @@ def kume_kostur(baslik, vakalar, cwd=REPO):
         beklenen_iz = vaka[7] if len(vaka) > 7 else None
         if beklenen_iz is None:
             beklenen_iz = RAPOR_IZI.get(no)       # 26 Eyl: RAPOR'a donen kolun izi
-        if no in PENCERE_ICI_VAKALARI:            # 26 Eyl: codex alt kurallari pencere ICI
+        if no in PENCERE_ICI_VAKALARI:            # 26 Eyl: emekli motor alt kurallari pencere ICI
             ek_env = dict(PENCERE_ICI, **(ek_env or {}))
         ek_payload = dict(vaka[8]) if len(vaka) > 8 else {}
         # K318: gecici worktree isaretleri hem hedefte hem payload alanlarinda cozulur

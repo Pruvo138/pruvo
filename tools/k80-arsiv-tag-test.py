@@ -37,11 +37,13 @@ import importlib.util
 import io
 import os
 import shutil
-import subprocess
 import sys
 import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, TOOLS)
+from git_ortami import sentetik_git  # noqa: E402
+
 URETIM = os.path.join(TOOLS, "is-akisi-kapisi.py")
 SUZGEC = os.path.join(TOOLS, "icra-suzgeci.py")
 SIFIR = "0" * 40
@@ -68,8 +70,9 @@ def akis(serit_run):
 
 
 def _git(kok, *a):
-    r = subprocess.run(["git", "-C", kok] + list(a), capture_output=True, text=True,
-                       timeout=60)
+    # Kanonik yardimci: miras GIT_* baglami temizlenir, cwd sabitlenir
+    # (fikstur-git-sizinti-kapisi).
+    r = sentetik_git(kok, *a, capture_output=True, text=True, timeout=60)
     if r.returncode != 0:
         raise RuntimeError("git %s -> %s" % (" ".join(a), r.stderr.strip()))
     return r.stdout.strip()

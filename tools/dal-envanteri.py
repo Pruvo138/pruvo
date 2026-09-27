@@ -54,7 +54,11 @@ import sys
 import tempfile
 import time
 
-KOK_VARSAYILAN = "/Users/okan/dev/pruvo"
+# Canli filoda ANA checkout; CI kosucusunda o yol yoktur -> bu dosyanin repo kokune duser
+# (ci-sabit-canli-yol-kapisi: yedeksiz sabit yol CI'da cozulmez).
+_KANONIK_KOK = "/Users/okan/dev/pruvo"
+KOK_VARSAYILAN = (_KANONIK_KOK if os.path.isdir(_KANONIK_KOK)
+                  else os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 ANA = "main"
 UZAK = "origin"
 
