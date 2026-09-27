@@ -83,13 +83,22 @@ function sunucuKur({ yerel, gizli, EGE }) {
   // olculmez kilardi (kapinin CI'da OLU kalmasi = onarilmamis kapi).
   const idx = EGE ? EGE.katalogIndeksle(gorunur) : null;
   const harita = new Map(gorunur.map((p) => [p.id, p]));
+  // OLCUM ORTAMI IZI: her /ara isteginde `marka_kanon`un HANGI katalogtan turedigi
+  // (cagri anindaki PARITE_URUNLER) + isleyici suresi. senaryoKos() bunu iddia eder.
+  const iz = { araIstek: 0, kanonYollari: new Set(), azamiMs: 0 };
 
   const sunucu = http.createServer((req, res) => {
     const u = new URL(req.url, "http://127.0.0.1");
+    const t0 = Date.now();
     const gonder = (obj, durum) => {
       res.writeHead(durum || 200, { "content-type": "application/json; charset=utf-8" });
       res.end(JSON.stringify(obj));
+      iz.azamiMs = Math.max(iz.azamiMs, Date.now() - t0);
     };
+    if (u.pathname === "/ara") {
+      iz.araIstek++;
+      iz.kanonYollari.add(process.env.PARITE_URUNLER || "(YOK -> uretim katalogu)");
+    }
     let limit = parseInt(u.searchParams.get("limit") || "", 10);
     if (!Number.isFinite(limit) || limit < 1) limit = 20;
 
@@ -129,6 +138,7 @@ function sunucuKur({ yerel, gizli, EGE }) {
   return new Promise((cozul) => {
     sunucu.listen(0, "127.0.0.1", () => cozul({
       port: sunucu.address().port,
+      iz,
       kapat() {
         if (typeof sunucu.closeAllConnections === "function") sunucu.closeAllConnections();
         sunucu.close();
@@ -279,13 +289,25 @@ function birimOlc() {
 }
 
 // ── Senaryo kosucu ───────────────────────────────────────────────────────────
+// 🔴 SAHTE UC KENDI KATALOGUNU OLCER (27 Eyl 2026 — OLCULDU; kardes fikstur
+// parite-fikstur-test.js'in 6 Eyl S8/SM1 onariminin IKIZI, bu dosyaya hic TASINMAMISTI).
+// Sahte ucun `REF.filtered` -> `SINIF.markaSinifi` cagrisi katalog yolunu CAGRI ANINDA
+// PARITE_URUNLER'den cozer; harness surecinde env YOKTU -> `marka-kanon-uret.py` HER
+// SENARYONUN ILK /ara isteginde URETIM katalogu (38.913 urun) uzerinde SENKRON kostu:
+// yerelde 21,9 sn olculdu, CI'da ~33 sn (push) / >61 sn (schedule). Olay dongusu bloke,
+// cocugun 8 eszamanli istegi 3 x 20 sn zaman asimina dustu -> Y1/Y12b `0/180 sorgu`
+// (SERIT B run 36298353171). Katalog her partide buyudugu icin kirmizi SIKLASACAKTI.
+// Cocuk ile sahte uc AYNI dosyadan (senaryonun D1'i = yerel katalog; taslak satir D1'de
+// DURUR) turetir -> ikiz tanim yok, soguk baslangic ~0.
 async function senaryoKos(s) {
-  const sunucu = await sunucuKur(s);
   const gecici = fs.mkdtempSync(path.join(os.tmpdir(), "parite-yayin-"));
   const urunlerYolu = path.join(gecici, "urunler.json");
   const betikYolu = path.join(gecici, "sahte-hal.js");
   fs.writeFileSync(urunlerYolu, JSON.stringify(s.yerel));
   fs.writeFileSync(betikYolu, SAHTE_BETIK);
+  const oncekiUrunlerEnv = process.env.PARITE_URUNLER;
+  process.env.PARITE_URUNLER = urunlerYolu;
+  const sunucu = await sunucuKur(s);
   aktifSenaryo = s.ad;
   const ekEnv = Object.assign({
     SAHTE_HAL_SPEC: JSON.stringify(s.spec || {}),
@@ -302,10 +324,20 @@ async function senaryoKos(s) {
       cokmusMu(r.cikti) ? r.cikti.slice(-700) : "");
     ONA(r.kod !== 124, "surec SURE SINIRINA TAKILMADI", r.kod === 124 ? r.cikti.slice(-700) : "");
     ONA(r.kod !== 0, "cikis 0 DEGIL (fikstur modu pariteyi BELGELENDIREMEZ)");
+    if (sunucu.iz.araIstek) {
+      const yollar = [...sunucu.iz.kanonYollari];
+      console.log("   · sahte uc: " + sunucu.iz.araIstek + " /ara istegi, azami isleyici " +
+        sunucu.iz.azamiMs + " ms");
+      ONA(yollar.length === 1 && yollar[0] === urunlerYolu,
+        "sahte uc KENDI katalogunu olcer (marka_kanon uretim katalogundan TURETILMEDI)",
+        yollar.join(" | "));
+    }
     s.dogrula(r);
     return r;
   } finally {
     sunucu.kapat();
+    if (oncekiUrunlerEnv === undefined) { delete process.env.PARITE_URUNLER; }
+    else { process.env.PARITE_URUNLER = oncekiUrunlerEnv; }
     fs.rmSync(gecici, { recursive: true, force: true });
   }
 }
