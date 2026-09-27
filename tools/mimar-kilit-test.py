@@ -1248,6 +1248,10 @@ def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None, ek_env=None, ek_payload
     ortam.pop("CLAUDE_PROJECT_DIR", None)
     ortam.pop("PRUVO_ISCI_KOSUMU", None)
     ortam.pop("PRUVO_CLAUDE_ISCI_IZNI", None)
+    # 27 Eyl (J2 §7.1): beyansiz Agent vakalari bu bataryada BEYAN SARTINI olcer; Jev
+    # motor secimi kolu AGSIZ, kendi bataryasinda (tools/mimar-agent-jev-test.py). Anahtar
+    # yalniz SIKILASTIRIR (Jev sorulmaz -> AGENT_GEREKCE); gercek ag/jev-kayit'e yazim yok.
+    ortam["PRUVO_AGENT_JEV"] = "kapali"
     ortam.update(ek_env or {})
     sonuc = subprocess.run(
         [sys.executable, kanca],

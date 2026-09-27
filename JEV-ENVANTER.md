@@ -38,6 +38,7 @@ Metinden verilen HER karar (kova · puan · evet) Jev'e gider. "Dışında" yaln
 | P6 | MaCiT | RED gerekçesi sınıfı (`macit-red-gerekcesi` · secim 5) | Jev'de — yalnız kayıt, KALİBRE DEĞİL | 26 Eyl | altın küme 60 (7 seçenekle): argmax %33,3 ⇒ eşik yok (insan). `mukerrer_islev` (katalog) + `logo_tasiyor` (görsel) metinden seçilemediği için kalıptan ÇIKARILDI (26 Eyl); yeniden ölçüm 5 seçenekle, logo/mükerrer örnekleri altın kümeden düşülerek |
 | P7 | ArTisT | arama/içerik niyeti (`artist-seo-niyet` · secim 6) | aday · kalıp hazır | 26 Eyl | GSC sorgu listesi 30 etiketli |
 | P8 | TeKiN | üretim/jeneratör hata sınıfı (`tekin-uretim-hatasi` · secim 6) | aday · kalıp hazır | 26 Eyl | jeneratör hata kaydından 30 örnek |
+| P9 | ArTisT | Ads arama terimi alakası (`artist-arama-terimi` · evet) | ✅ **KALİBRE eşik 0,8** | 27 Eyl | altın küme 42 (pruvo-pazarlama `c7a32e09`): isabet %95,8/24, insan bandı %42,9; kör nokta "pvc aksesuar" yanlış evet. Soru değişirse eşik yeniden ölçülür |
 
 ## Dışında (§1.3 — Jev KAYIT YAZMAZ, SAYI ÜRETMEZ)
 | Sınıf | Gerekçe |

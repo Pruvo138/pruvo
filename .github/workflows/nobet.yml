@@ -2979,6 +2979,16 @@ jobs:
           HOME: /Users/okan
         run: python3 tools/mimar-kapi-mutasyon-test.py
 
+      # 27 EYL 2026 (J2 §7.1, cip KraL-JevGomulu-27Eyl): AGENT-KAPISI beyan YOKSA EyLuL'un
+      # motor-secimi modulunden Jev karari okur. Batarya AGSIZ (sahte motor-secimi + sahte
+      # Jev, gecici dizin): pozitif/negatif vakalar + 15 izole mutant (SURVIVOR=0). Runner'da
+      # gercek motor-secimi yoktur -> G-vakalari SAYIYLA "ATLANDI" basilir; F-vakalari ayni kolu olcer.
+      - name: "Mimar AGENT-KAPISI x Jev motor secimi (vakalar + 15 mutant)"
+        if: ${{ !cancelled() }}
+        env:
+          HOME: /Users/okan
+        run: python3 tools/mimar-agent-jev-test.py
+
       # ═══ SAHIPSIZ 10 -> 5 KABLOLAMASI (13 Eyl 2026, cip KraL-SahipsizBagla-13Eyl) ═══
       # OLCULDU (temiz `git clone --no-local` + BOS HOME + CI=true, commit 9861d8cc):
       #   gh-civi-nobetcisi --kendini-test rc=0 (MUTANT 6/6) · okan-kapisi-penceresi
