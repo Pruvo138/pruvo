@@ -242,7 +242,7 @@ ROTASYON_BAKIM_BAYRAKLARI = (ROTASYON_TAVAN_BAYRAGI, ROTASYON_INDIRME_BAYRAGI)
 #     -> RED "komutun argumanlarinda repo DISINA cozulen bir yol var" (R2)
 # Istemci TANIMI GEREGI repo disidir (tek kaynak `faralya-pazarlama/tools/jev/jev.py`,
 # kurulu kopya `~/.claude/jev/jev.py`); PRUVO kalip araci KraL'da yasar ve kardes
-# evlerden bakinca o da repo disidir. Care: ADLI SEKILLER — kapi hic gevsemez,
+# evlerden bakinca o da repo disidir. Onarim yolu ADLI SEKILLER — kapi hic gevsemez,
 # yalniz asagidaki cagri bicimleri acilir. `python3 -c`, baska repo-disi betik,
 # curl/wget, bilinmeyen bayrak, benzer ad (`jev-sahte/`, `jev.py.bak`, `..`) RED kalir
 # (kabul: `tools/jev-kapi-test.py`).
