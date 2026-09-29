@@ -253,5 +253,35 @@
         }
       ]
     }
+  },
+  {
+    "silinme_ts": "2026-09-29T12:08:30Z",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 32,
+    "kayit": {
+      "id": "mercedes-w212-e-class-on-yan-hava-girisi",
+      "kategori": "Otomobil",
+      "marka": [
+        "Mercedes"
+      ],
+      "baslik": "Mercedes-Benz W212 E-Class Ön Yan Hava Girişi (W213 Tarzı)",
+      "aciklama": "Mercedes-Benz W212 E-Class Facelift Sport (2014-2016) için W213 tarzı ön tampon yan hava girişi paneli.\nÇift kanatlı tasarımıyla spor bir görünüm katar.\nABS/PETG malzemeyle üretilir.\nMevcut tampon boşluğuna uyacak şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 678 × 359 × 295 mm.",
+      "fiyat": "450 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/pr1730730-1.jpg",
+        "https://media.pruvo3d.com/urunler/pr1730730-2.jpg",
+        "https://media.pruvo3d.com/urunler/pr1730730-3.jpg"
+      ],
+      "lisans": {
+        "tasarimci": "auc7us",
+        "tur": "CC BY 4.0"
+      },
+      "altkategori": "Dış Aksam",
+      "uyum": [
+        {
+          "marka": "Mercedes"
+        }
+      ]
+    }
   }
 ]
