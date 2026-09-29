@@ -2,6 +2,11 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## ✅ 29 EYL 17:5x KraL ana-oturum (Okan "devam") — **J2 JEV GÖMÜLÜ PRUVO: KAPANIŞ ÖLÇÜTLERİ TAMAM**
+**Filo düzeltmesi:** HocA evi 21 Eyl Okan kararıyla KAPALI (dosyaları TeKiN'de) → PRUVO açık evleri 5 (KraL · MaCiT · TeKiN · ArTisT · BaBa); 27 Eyl'de çivilediğim "6 evde açılış izi" ölçütü kapalı evi sayıyordu, YANLIŞTI.
+**Ölçütler (jev-kayit, 29 Eyl 17:5x):** ① açılış izi 5/5 (KraL 9 · BaBa 6 · ArTisT 2 · MaCiT 1 · TeKiN 1) ✅ · ② motor seçimi PRUVO dönen 2 (KraL) + geçen 9 ✅ · ③ metin kapısı PRUVO yolu: kurulumdan beri 4 dışa-metin yolunda GERÇEK düzenleme 0 (find + git log) → işçi `isci.sh minimax-m3 … kabul` (0,29 $, 5 tur) ile TEK `JEV_DENEME=1` koşumu: `pruvo-pazarlama/icerik/*-gonderiler.md` → `tur=sosyal` · `kiyas_ovme 0,83` uyarı · `motor=jev` · `deneme:true` (satır bağımsız grep'le ölçüldü) ✅ · ④ KraL kapısı main'de `e4539bd8` ✅ · ⑤ kutu nöbeti kalın alıcı onarımı canlı `d0fa389` (boş alıcı 39/44 → 8/44); onarım sonrası BaBa açılışı aday 2 → 5-6, MaCiT 4 ✅.
+**Açık (doğal olay, iş değil):** ilk GERÇEK (deneme olmayan) PRUVO metin kapısı satırı — ArTisT içerik/SEO düzenlemesinde · worktree işçi koşumunda `agac=` alanı (isci.sh onarımı) · onarım sonrası ilk KraL açılışında OTeLLa 12:5x'in düşmesi.
+
 ## 🔵 28 EYL 15:5x KraL ana-oturum (Okan "devam", /goal J2 PRUVO)
 **BULGU (sessiz hata, EyLüL kodu):** `kutu-nobeti.py::blok_bilgi` alıcıyı `→`'den sonra İLK `**`'de kesiyor → PRUVO'nun kalın alıcı biçimi (`→ **KraL** · **MaCiT**`) BOŞ alıcı olur. PRUVO kutusunda `→`lı 42 başlığın 38'i bu biçimde ⇒ bu bloklar hiçbir eve gösterilmiyor ve cevap sayılmıyor (KraL'da 28 saattir "CEVAP BEKLEYEN 1 · OTeLLa 12:5x" bu yüzden; KABUL blokları var). Ölçüm + onarım önerisi (` — `'de kes, `*` sil, parantez at; test+mutant) EyLüL'e SendMessage 15:5x.
 **Canlı iz 15:5x:** motor seçimi PRUVO dönen 2 (KraL) + geçen 9 (MaCiT 3 · TeKiN 5 · BaBa 1) ✅ · açılış KraL 8 · ArTisT 2 · BaBa 2; MaCiT/HocA/TeKiN 0 (oturumları kurulumdan önce açık, HocA'da oturum yok) · metin kapısı PRUVO 0 — kurulumdan beri 4 PRUVO dışa-metin yolunda düzenleme 0 (find); `JEV_DENEME=1` denemesi EyLüL'den istendi (ANA oturum repo-dışı kancayı koşamaz, sarmalayıcıyla aşılmadı).
