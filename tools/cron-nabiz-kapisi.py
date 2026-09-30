@@ -171,6 +171,7 @@ import math
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -308,6 +309,27 @@ TESLIM_TABAN_ORANI = OLCULEN_TABAN_TESLIM / (OLCULEN_TABAN_NOMINAL * TESLIM_GUVE
 # kirpma = sahte yesil). Taban her gercekci cron icin bu sayinin ALTINDA kalir; iddia
 # `--kendini-test`te KOSULUR (teslim_tabani(1) < TESLIM_SAYFA).
 TESLIM_SAYFA = 100
+
+# ─── BAYAT ILK SAYFA — CAPRAZ GOZLEM (30 Eyl 2026, OLCULEN SINIF) ────────────
+# GitHub `runs?event=schedule&per_page=100` BAZI cagrilarda 130-160 SAAT ESKI bir kayit
+# kumesi dondurur (donmus kesit ~23 Eyl 03-05Z). OLCULDU: 28-30 Eyl arasi `cron-nabzi`
+# koşumlarinin 8/8'i ayni adimda dustu (rc=2 OLCULEMEDI); `total_count` ayni is akisi
+# icin 348 / 772 / 876 / 324 / 960 arasinda OYNADI (gercek: 960). Bayat kesit iki
+# bicimde gelir: (a) `total_count` > donen (sayfa dolu ya da eksik) -> 25 Eyl'de
+# OLCULEMEDI'ye baglandi, ama pencereli sorgu TAZE ve TUTARLI veri verdigi halde o veri
+# HUKME GIRMEDI (kapi yalniz SINIFLANDIRDI) -> SERIT B kalici kirmizi; (b) kesit KENDI
+# ICINDE TUTARLI (total_count == donen, orn. 77) -> hicbir tutarlilik testi yakalamaz ve
+# 🔴 "Cron SESSIZ 159.8 sa" KESIN hukmu basildi (nobet.yml 29 Eyl 15:07Z — o is akisi
+# 06:15Z'de `success` kosmustu).
+# COZUM: ilk sayfa pencerede HIC kayit gostermiyorsa (sessizlik/dusuk-teslim hukmunun
+# TEK kaynagi bu) sessizlige INANILMADAN once pencere suzgecli sorgu TEKRAR TEKRAR (en
+# cok TAZELIK_DENEME kez) cekilir; TAZE ve KENDI ICINDE TUTARLI bir kesit gelirse hukum
+# o kesitten cikar (gercek kosumlar SAYILIR, cikarilmaz — bayat sayfa asla tazeden
+# YUKSEK bir teslim uretemez); sessizlik ancak TAZELIK_KUORUM bagimsiz cekis BOS donerse
+# hukum olur. Kanit satira YAZILIR (sessiz ikame YOK).
+TAZELIK_DENEME = 3            # sessizlik hukmunden ONCE en cok kac pencereli cekis
+TAZELIK_KUORUM = 2            # sessizlik icin gereken BASARILI ve BOS cekis sayisi
+TAZELIK_BEKLEME_SN = 3.0      # cekisler arasi (yalniz GERCEK ag kolunda uyunur)
 
 # ─── CANLI KALIBRASYON (5 Agu 2026, kesim 11:42:54Z — OLCULEN KUSUR) ─────────
 # `TESLIM_ORANI` DONMUS bir sabitti: 31 Tem'de 4,016 SAATLIK tek bir pencerede olculdu
@@ -719,6 +741,20 @@ def sayfa_tutarsizligi(g, simdi, pencere_saat=TESLIM_PENCERESI_SAAT):
     dolmadigi degisir. T-DOLU-BAYAT ile T-DOLU-SESSIZ ise 25 Eyl vakasinin AYNI
     585/100'unu tasir ve YALNIZCA pencereli sorgunun yaniti degisir: iki ayirt edici
     cift, iki ayri eksende.
+
+    🔴🔴 30 EYL 2026 — YUKARIDAKI "UC SART" TEK BASINA YETMEDI, IKI HOL DAHA OLCULDU:
+      (a) 25 Eyl duzeltmesi bayat-dolu sayfayi OLCULEMEDI (rc=2) yapti ama pencereli
+          sorgunun dondurdugu TAZE ve TUTARLI kesit hukme GIRMEDI (yalniz siniflandirdi).
+          28-30 Eyl arasi `cron-nabzi` 8/8 kosumda ayni adimda dustu -> SERIT B kalici
+          kirmizi. Artik o kesit SAYILIR (`_pencereden_duzelt`): bayat sayfa tazeden
+          yuksek teslim URETEMEZ, yani bu yol fail-open olamaz.
+      (b) Sart (1) `beyan <= donen -> sinif DUSER` "tutarli sayfa bayat degildir" varsayimiydi
+          ve YANLISTI: bayat kesit KENDI ICINDE TUTARLI da gelir (nobet.yml 77/77, en yeni
+          159,8 sa — 29 Eyl 15:07Z'de KESIN 🔴 'Cron SESSIZ' basildi, o is akisi 06:15Z'de
+          `success` kosmustu). Artik pencerede kaydi olmayan HER ilk sayfa ikinci gozleme
+          gider (`_pencere_gozlemi` tetigi genisledi); tutarli sayfa hukmu
+          `_tutarli_sayfa_hukmu`dan cikar.
+      Sessizlik hukmu artik ancak TAZELIK_KUORUM bagimsiz BASARILI ve BOS cekisle verilir.
     """
     if not g.get("kayitli"):
         return None
@@ -728,8 +764,6 @@ def sayfa_tutarsizligi(g, simdi, pencere_saat=TESLIM_PENCERESI_SAAT):
         return None
     if donen <= 0:
         return None                      # "hic kosum yok" AYRI sinif, sahibi A3'tur
-    if beyan <= donen:
-        return None                      # (1) DUSTU: API her sey elinde teslim etti
     tum = g.get("tum_kosumlar") or []
     if not tum:
         return None
@@ -737,6 +771,12 @@ def sayfa_tutarsizligi(g, simdi, pencere_saat=TESLIM_PENCERESI_SAAT):
     if en_yeni > simdi - timedelta(hours=pencere_saat):
         return None                      # (2) DUSTU: pencerede kayit VAR -> hukum verilebilir
     yas = (simdi - en_yeni).total_seconds() / 3600.0
+    if beyan <= donen:
+        # (1) DUSTU: sayfa KENDI ICINDE tutarli. 🔴 30 Eyl 2026: TUTARLILIK BAYATLIK
+        # KANITI DEGILDIR — bayat kesit de kendi icinde tutarli gelir (nobet.yml 77/77,
+        # en yeni 159,8 sa) ve eski kod bunu KESIN 🔴 "Cron SESSIZ" yapti. Ikinci gozlem
+        # bu halde de yapilir (`_pencere_gozlemi`); hukum onun sonucundan cikar.
+        return _tutarli_sayfa_hukmu(g.get("pencere_gozlemi"), yas)
     # 🔴 SIRA ONEMLI: (2) sayfanin DOLULUGUNDAN ONCE olculur. Sayfa DOLU olsa bile
     # pencerede kayit VARSA hukum verilebilir ve IKINCI GOZLEM SORULMAZ (maliyet kolu:
     # saglikli yogun cron EK CAGRI URETMEZ).
@@ -759,6 +799,42 @@ def sayfa_tutarsizligi(g, simdi, pencere_saat=TESLIM_PENCERESI_SAAT):
             "API'sinin bu is akisi icin EKSIK SAYFA dondurmesidir — cron'un kendisi "
             "DEGIL." % (beyan, TESLIM_SAYFA, donen, beyan - donen, pencere_saat, yas,
                         TESLIM_SAYFA, TESLIM_SAYFA))
+
+
+def _tutarli_sayfa_hukmu(pg, yas):
+    """None (sessizlik GERCEK -> 🔴 ALARM aynen yanar) | sebep metni (OLCULEMEDI).
+
+    Girdi: KENDI ICINDE TUTARLI ama pencerede kaydi olmayan ilk sayfa + ikinci gozlem.
+    `pg` YOKSA (ag disi birim fiksturu / ikinci gozlem hic istenmedi) ESKI davranis: None.
+    `pg` VARSA ve pencere kesiti TAZE-TUTARLI gelseydi `_pencereden_duzelt` sayfayi zaten
+    DEGISTIRMIS olurdu (buraya gelinmezdi); gelindiyse ya ikinci gozlem BASARISIZ, ya
+    kesit KULLANILAMAZ (tutarsiz), ya da KUORUM BOS (sessizlik gercek).
+
+    🔴 SINIF KAPISI: hicbir is akisi ADI gecmez."""
+    if not isinstance(pg, dict):
+        return None
+    onek = ("ilk sayfa KENDI ICINDE tutarli ama pencerede kaydi YOK (en yeni %.1f sa once) "
+            "ve tutarlilik BAYATLIK KANITI DEGILDIR (bayat kesit de tutarli gelir; olculdu "
+            "30 Eyl 2026: 77/77 · 159,8 sa, o is akisi 06:15Z'de `success` kosmustu). "
+            % yas)
+    kapatan = ("KAPATAN OLCUM: pencere suzgecli ikinci sorgu "
+               "(`...runs?event=schedule&per_page=%d&created=>=<W basi>`) TAZE ve KENDI "
+               "ICINDE TUTARLI bir kesit dondurur ya da %d bagimsiz cekis BOS doner."
+               % (TESLIM_SAYFA, TAZELIK_KUORUM))
+    if pg.get("durum") != "yapildi":
+        return (onek + "IKINCI GOZLEM BASARISIZ (%s) -> sessizligin GERCEK mi bayat kesit "
+                "mi oldugu SINIFLANDIRILAMAZ; 'Cron SESSIZ' hukmu CIKARILAMAZ. %s"
+                % (pg.get("sebep") or "sebep bildirilmedi", kapatan))
+    p_donen = pg.get("donen")
+    if not isinstance(p_donen, int):
+        return (onek + "IKINCI GOZLEM donen kayit sayisi OKUNAMADI (%r) -> "
+                "SINIFLANDIRILAMAZ. %s" % (p_donen, kapatan))
+    if p_donen > 0:
+        return (onek + "pencere suzgecli ikinci sorgu %d kosum dondurdu AMA kesit KENDI "
+                "ICINDE TUTARSIZ (`total_count` %s) -> sayilamaz; ilk sayfanin BAYAT "
+                "oldugu kesin, teslim SAYISI ise bilinmiyor. %s"
+                % (p_donen, pg.get("beyan"), kapatan))
+    return None
 
 
 def _bayat_dolu_sayfa_hukmu(g, pencere_saat, beyan, donen, yas):
@@ -798,7 +874,13 @@ def _bayat_dolu_sayfa_hukmu(g, pencere_saat, beyan, donen, yas):
                 "SINIFLANDIRILAMAZ. %s" % (p_donen, kapatan))
     if p_donen > 0:
         p_yeni = pg.get("en_yeni")
-        return (ortak + "ILK SAYFA BAYAT: pencere suzgecli ikinci sorgu AYNI uctan %d "
+        # 30 Eyl 2026: TUTARLI kesit gelseydi `_pencereden_duzelt` sayfayi DEGISTIRIR ve
+        # buraya gelinmezdi. Gelindiyse kesit ya TUTARSIZ (sayilamaz) ya da fiksturdur.
+        tutarsiz_kesit = (" Pencere kesiti KENDI ICINDE TUTARSIZ (`total_count` %s) -> "
+                          "teslim SAYILAMAZ." % pg.get("beyan")
+                          if pg.get("tutarli") is False else "")
+        return (ortak + tutarsiz_kesit
+                + "ILK SAYFA BAYAT: pencere suzgecli ikinci sorgu AYNI uctan %d "
                 "zamanlanmis kosum dondurdu (en yenisi %s). Yani pencerede kosum VAR ve "
                 "suzgecsiz sayfa onlari VERMEMISTI; 'cron SESSIZ' ve 'teslim DUSUYOR' "
                 "hukumleri bundan CIKARILAMAZ (OLCULDU 25 Eyl 2026: suzgecsiz yanit "
@@ -876,6 +958,8 @@ def teslim_hukmu(g, simdi):
                100.0 * TESLIM_TABAN_ORANI, TESLIM_PENCERESI_SAAT, OLCULEN_TABAN_TESLIM,
                OLCULEN_TABAN_NOMINAL,
                100.0 * OLCULEN_TABAN_TESLIM / OLCULEN_TABAN_NOMINAL))
+    # 🔴 Ilk sayfa BAYAT sayildiysa hukum pencere kesitinden cikti: bu SESSIZ KALMAZ.
+    olcu += _duzeltme_notu(g, simdi)
     # Sayfa DOLDU ve en eski cekilen kosum HALA pencerenin icindeyse pencerenin tamami
     # gozlenmemistir. Bu SESSIZ KALMAZ; ama teslim sayfa boyu kadar oldugu icin hukum
     # zaten yesildir (taban her gercekci cron icin TESLIM_SAYFA'nin altindadir).
@@ -974,92 +1058,203 @@ def _iso(metin):
     return an if an.tzinfo else an.replace(tzinfo=timezone.utc)
 
 
-def _pencere_gozlem_yolu(wf_id, pencere_basi):
+def _pencere_gozlem_yolu(wf_id, pencere_basi, kaydirma_dk=0):
     """IKINCI GOZLEMIN cagri yolu — TEK KAYNAK (fikstur ile govde AYNI yolu kurar).
 
     `created` suzgeci GitHub Actions `runs` ucunda FIILEN calisir (olculdu 25 Eyl 2026,
     bkz. `sayfa_tutarsizligi`); `>=` isareti QUOTE EDILIR, aksi halde bazi vekiller
-    parametreyi sessizce DUSURUR ve suzgecsiz sayfa geri gelir."""
+    parametreyi sessizce DUSURUR ve suzgecsiz sayfa geri gelir.
+
+    `kaydirma_dk` (30 Eyl 2026): TEKRAR cekislerde sinir `n` dakika ERKEN alinir — yol
+    her cekiste FARKLI olur (ayni URL'ye takili bir bayat yanit tekrarlanmasin) ve pencere
+    hicbir zaman DARALMAZ (erken sinir pencereyi kapsar; fazla kayitlar istemci tarafinda
+    `_pencere_cek`te suzulur)."""
+    sinir = pencere_basi - timedelta(minutes=kaydirma_dk)
     return ("repos/%s/actions/workflows/%s/runs?event=schedule&per_page=%d&created=%s"
             % (DEPO, wf_id, TESLIM_SAYFA,
-               urllib.parse.quote(">=" + pencere_basi.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                                  safe="")))
+               urllib.parse.quote(">=" + sinir.strftime("%Y-%m-%dT%H:%M:%SZ"), safe="")))
 
 
-def _pencere_gozlemi(getir, wf_id, g, simdi, pencere_saat):
-    """None (gerek YOK) | {"durum": "yapildi"|"hata", ...} — IKINCI GOZLEM (AG).
-
-    🔴 NEDEN AYRI CAGRI: suzgecsiz DOLU bir sayfa, "BAYAT ama dolu dilim" ile "cron
-    GERCEKTEN sessiz" hallerini ayirt ETTIREMEZ (25 Eyl 2026 sahte kirmizisi; gerekce
-    `sayfa_tutarsizligi` docstring'inde). Tek durust yol IKINCI BIR GOZLEMDIR.
-
-    🔴 MALIYET — HER KOSUMDA DEGIL: cagri YALNIZCA (1) beyan > donen ∧ (2) pencerede
-    hicbir kayit yok ∧ (3) sayfa DOLU iken yapilir. Saglikli yogun bir cron (2)'yi
-    DUSURUR, sayfa dolmayan bir cron (3)'u DUSURUR -> EK CAGRI SIFIRDIR. Bu depoda cron
-    tasiyan 7 is akisi var; koşum basina taban cagri 1 (liste) + 7x2 (runs + commits) +
-    2 (damga) = 17. EN KOTU hal (7 is akisi BIRDEN dolu-sayfa + pencere bos) +7 = 24
-    (+%41); olculen saglikli hal +0. Jeton kotasi 1000/saat, tavan bu kolla asilmaz.
+def _pencere_cek(getir, yol, sinir):
+    """TEK pencere suzgecli cekis -> {beyan, donen, damgalar, kimlikler, son_id,
+    son_sonuc}. Her sekil arizasi OlcumHatasi (fail-closed).
 
     🔴 SUZGEC DOGRULANIR: `created`i YOK SAYAN bir uc ilk sayfanin AYNISINI dondururdu ve
-    "ilk sayfa BAYAT" hukmu HER sessiz cron'da sahte OLCULEMEDI uretirdi. Pencere DISINDA
-    kayit gelirse bu bir OLCUM HATASIDIR (fail-closed), 'bayat sayfa' kaniti DEGIL."""
+    "ilk sayfa BAYAT" hukmu HER sessiz cron'da sahte duzeltme uretirdi. `sinir`in DISINDA
+    kayit gelirse bu bir OLCUM HATASIDIR, 'bayat sayfa' kaniti DEGIL. Her kayitta `id` de
+    ZORUNLU: A0/A4 damganin CRON teslimi olup olmadigini bu kimlik kumesiyle olcer."""
+    y = getir(yol)
+    if not isinstance(y, dict) or "total_count" not in y:
+        raise OlcumHatasi("pencere suzgecli yanitta `total_count` YOK")
+    satirlar = y.get("workflow_runs")
+    if not isinstance(satirlar, list):
+        raise OlcumHatasi("pencere suzgecli yanitta `workflow_runs` liste DEGIL (%s)"
+                          % type(satirlar).__name__)
+    damgalar, kimlikler = [], []
+    for k in satirlar:
+        if not isinstance(k, dict) or "created_at" not in k:
+            raise OlcumHatasi("pencere suzgecli kosum kaydinda `created_at` YOK")
+        if k.get("event") != "schedule":
+            raise OlcumHatasi("pencere suzgecli sorguda event=schedule istendi ama "
+                              "kayit event=%r -> suzgec calismiyor" % (k.get("event"),))
+        if not isinstance(k.get("id"), int):
+            raise OlcumHatasi("pencere suzgecli kosum kaydinda `id` YOK/tamsayi degil (%r) "
+                              "-> damga tetikleyicisi SINIFLANDIRILAMAZ" % (k.get("id"),))
+        damgalar.append(_iso(k["created_at"]))
+        kimlikler.append(k["id"])
+    disari = [d for d in damgalar if d <= sinir]
+    if disari:
+        raise OlcumHatasi(
+            "`created=>=` suzgeci UYGULANMAMIS: donen %d kaydin %d tanesi sorgu "
+            "sinirinin (%s) DISINDA (en eskisi %s) -> pencereli sorgu "
+            "suzgecsiz sayfayi tekrarliyor, IKINCI GOZLEM degil"
+            % (len(damgalar), len(disari), sinir.isoformat(), min(disari).isoformat()))
+    # `son_*` alanlari API SIRASINA degil `created_at` maksimumuna baglanir.
+    ilk = (satirlar[max(range(len(damgalar)), key=lambda i: damgalar[i])]
+           if damgalar else {})
+    return {"beyan": int(y["total_count"]), "donen": len(satirlar),
+            "damgalar": damgalar, "kimlikler": kimlikler,
+            "son_id": ilk.get("id"), "son_sonuc": ilk.get("conclusion")}
+
+
+def _pencere_gozlemi(getir, wf_id, g, simdi, pencere_saat, bekle=None):
+    """None (gerek YOK) | {"durum": "yapildi"|"hata", ...} — IKINCI GOZLEM (AG).
+
+    🔴 NEDEN AYRI CAGRI: ilk sayfa (`event=schedule&per_page=100`) BAZI cagrilarda 130-160
+    SAAT ESKI bir kesit dondurur ve tek yanittan "bayat kesit" ile "cron GERCEKTEN sessiz"
+    AYIRT EDILEMEZ (25 Eyl 2026 sahte kirmizisi + 30 Eyl 2026 olcumu; gerekce
+    `sayfa_tutarsizligi` docstring'inde ve dosya basindaki BAYAT ILK SAYFA blogunda).
+    Tek durust yol IKINCI BIR GOZLEMDIR: `created=>=<W basi>` suzgecli sorgu.
+
+    🔴 TETIK (30 Eyl 2026 GENISLETILDI): ilk sayfa pencerede HIC kayit gostermiyorsa —
+    `total_count`/sayfa dolulugundan BAGIMSIZ. ESKI tetik `beyan > donen ∧ sayfa DOLU`
+    idi ve kendi icinde TUTARLI bayat kesiti (orn. 77/77, en yeni 159,8 sa) HIC
+    yakalamadi: nobet.yml 29 Eyl 15:07Z'de 🔴 "Cron SESSIZ" KESIN hukmu basildi, o is
+    akisi 06:15Z'de `success` kosmustu. Tutarlilik bayatlik KANITI DEGILDIR: bayat kesit
+    de kendi icinde tutarli olabilir.
+
+    🔴 KUORUM (tek cekis yetmez): sessizlik hukmu ancak TAZELIK_KUORUM bagimsiz, BASARILI
+    ve BOS cekisle verilir. Cekisler en cok TAZELIK_DENEME kez tekrarlanir; her cekisin
+    yolu FARKLI (sinir `n` dk erken) ve arada beklenir (yalniz gercek ag kolunda). TAZE ve
+    KENDI ICINDE TUTARLI (total_count == donen) ilk kesit BULUNURSA durulur: kosumlar
+    SAYILIR, cikarilmaz — bir bayat sayfa tazeden YUKSEK bir teslim URETEMEZ, yani bu yol
+    fail-open olamaz (en kotu hal eksik sayim = alarm).
+
+    🔴 MALIYET — HER KOSUMDA DEGIL: cagri YALNIZCA ilk sayfa pencerede kayit gostermediginde
+    yapilir; saglikli cron'da EK CAGRI SIFIRDIR. Sessiz/bayat halde is akisi basina en cok
+    TAZELIK_DENEME (3) cagri; 7 cron tasiyan is akisinda EN KOTU hal +21 (taban 17 -> 38);
+    jeton kotasi 1000/saat, tavan bu kolla asilmaz.
+
+    `bekle(sn)` ENJEKTE EDILIR: gozlem_topla gercek ag kolunda `time.sleep`, fikstur
+    kolunda no-op verir (testler uyumaz)."""
     beyan = g.get("kosum_sayisi")
     donen = g.get("donen_kayit")
     tum = g.get("tum_kosumlar") or []
     if not isinstance(beyan, int) or not isinstance(donen, int) or donen <= 0:
         return None
-    if beyan <= donen:
-        return None                      # (1) DUSTU
     if not tum:
         return None
     pencere_basi = simdi - timedelta(hours=pencere_saat)
     if max(tum) > pencere_basi:
-        return None                      # (2) DUSTU: pencerede kayit VAR
-    if donen < TESLIM_SAYFA:
-        return None                      # (3) DUSTU: tek yanit KENDI ICINDE yalanlaniyor
-    yol = _pencere_gozlem_yolu(wf_id, pencere_basi)
-    try:
-        y = getir(yol)
-        if not isinstance(y, dict) or "total_count" not in y:
-            raise OlcumHatasi("pencere suzgecli yanitta `total_count` YOK")
-        satirlar = y.get("workflow_runs")
-        if not isinstance(satirlar, list):
-            raise OlcumHatasi("pencere suzgecli yanitta `workflow_runs` liste DEGIL (%s)"
-                              % type(satirlar).__name__)
-        damgalar = []
-        for k in satirlar:
-            if not isinstance(k, dict) or "created_at" not in k:
-                raise OlcumHatasi("pencere suzgecli kosum kaydinda `created_at` YOK")
-            if k.get("event") != "schedule":
-                raise OlcumHatasi("pencere suzgecli sorguda event=schedule istendi ama "
-                                  "kayit event=%r -> suzgec calismiyor" % (k.get("event"),))
-            damgalar.append(_iso(k["created_at"]))
-        disari = [d for d in damgalar if d <= pencere_basi]
-        if disari:
-            raise OlcumHatasi(
-                "`created=>=` suzgeci UYGULANMAMIS: donen %d kaydin %d tanesi olcum "
-                "penceresinin (%g sa) DISINDA (en eskisi %s) -> pencereli sorgu "
-                "suzgecsiz sayfayi tekrarliyor, IKINCI GOZLEM degil"
-                % (len(damgalar), len(disari), pencere_saat, min(disari).isoformat()))
-        return {"durum": "yapildi", "yol": yol, "beyan": int(y["total_count"]),
-                "donen": len(satirlar),
-                "en_yeni": max(damgalar) if damgalar else None}
-    except OlcumHatasi as e:
-        # 🔴 YUKARI FIRLATILMAZ: bu kol TEK is akisini olcer; firlatmak butun kapiyi
-        # (tum eksenleri) dusururdu. Hal `hata` olarak TASINIR ve hukum yerinde
-        # OLCULEMEDI'ye cevrilir — sessiz YESIL yoktur.
-        return {"durum": "hata", "yol": yol, "sebep": str(e)}
+        return None                      # ilk sayfa pencerede kayit GOSTERIYOR: hukum verilir
+    bekle = bekle or (lambda _sn: None)
+    bos, hatalar, en_iyi, yol = 0, [], None, None
+    yapilan = 0
+    for i in range(TAZELIK_DENEME):
+        if i:
+            bekle(TAZELIK_BEKLEME_SN)
+        yol = _pencere_gozlem_yolu(wf_id, pencere_basi, i)
+        yapilan += 1
+        try:
+            c = _pencere_cek(getir, yol, pencere_basi - timedelta(minutes=i))
+        except OlcumHatasi as e:
+            # 🔴 YUKARI FIRLATILMAZ: bu kol TEK is akisini olcer; firlatmak butun kapiyi
+            # (tum eksenleri) dusururdu. Hata SAYILIR, sonraki cekis denenir.
+            hatalar.append(str(e))
+            continue
+        pencerede = [d for d in c["damgalar"] if d > pencere_basi]
+        if not pencerede:
+            bos += 1
+            continue
+        c["tutarli"] = (c["beyan"] == c["donen"]) or c["donen"] >= TESLIM_SAYFA
+        c["yol"] = yol
+        if en_iyi is None or (c["tutarli"] and not en_iyi["tutarli"]):
+            en_iyi = c
+        if c["tutarli"]:
+            break                        # TAZE ve TUTARLI kesit bulundu
+    sonuc = {"yol": yol, "deneme": yapilan, "bos": bos, "hata_sayisi": len(hatalar)}
+    if en_iyi is not None:
+        sonuc.update({"durum": "yapildi", "beyan": en_iyi["beyan"],
+                      "donen": en_iyi["donen"], "tutarli": en_iyi["tutarli"],
+                      "en_yeni": max(en_iyi["damgalar"]),
+                      "damgalar": en_iyi["damgalar"], "kimlikler": en_iyi["kimlikler"],
+                      "son_id": en_iyi["son_id"], "son_sonuc": en_iyi["son_sonuc"]})
+        return sonuc
+    if bos >= TAZELIK_KUORUM:
+        # Iki (ya da daha cok) BAGIMSIZ basarili cekis AYNI seyi soyluyor: pencerede kosum
+        # YOK -> sessizlik GERCEK. Hukum sayfa_tutarsizligi'nda ALARM olarak yasar.
+        sonuc.update({"durum": "yapildi", "beyan": 0, "donen": 0, "en_yeni": None})
+        return sonuc
+    sonuc.update({"durum": "hata", "sebep": "; ".join(hatalar) if hatalar else
+                  "kuorum (%d) tamamlanamadi: %d bos cekis" % (TAZELIK_KUORUM, bos)})
+    return sonuc
+
+
+def _pencereden_duzelt(g, pg):
+    """True | False. SAF (ag yok): tutarli, TAZE pencere kesiti varsa `g`nin kosum
+    alanlarini o kesitle DEGISTIRIR ve neyi degistirdigini `g["duzeltme"]`ye YAZAR.
+
+    Kosumlar SAYILIR, cikarilmaz: pencere kesiti GERCEK kayitlardir, bayat ilk sayfa
+    onlari VERMEMISTI. Ilk sayfanin pencere DISI kayitlari hicbir eksenin hukmune
+    girmedigi icin (A5 `> pencere_basi` suzer, A3 `max` alir) ATILIR; bu, A0/A4 kimlik
+    kumesinin de yalniz pencere kesitinden kurulmasi demektir (damganin uyeligi pencere
+    icindeki kosumlarla olculur, damga en cok N <= 18 sa eskidir < W)."""
+    if not isinstance(pg, dict) or pg.get("durum") != "yapildi":
+        return False
+    if not pg.get("tutarli") or not pg.get("damgalar"):
+        return False
+    tum = g.get("tum_kosumlar") or []
+    g["duzeltme"] = {"ilk_beyan": g.get("kosum_sayisi"), "ilk_donen": g.get("donen_kayit"),
+                     "ilk_en_yeni": max(tum) if tum else None,
+                     "pencere_donen": pg["donen"], "deneme": pg.get("deneme")}
+    g["tum_kosumlar"] = list(pg["damgalar"])
+    g["schedule_kimlikleri"] = list(pg["kimlikler"])
+    g["son_kosum"] = max(pg["damgalar"])
+    g["son_kosum_id"] = pg.get("son_id")
+    g["son_sonuc"] = pg.get("son_sonuc")
+    g["kosum_sayisi"] = pg["beyan"]
+    g["donen_kayit"] = pg["donen"]
+    g["pencere_kirpildi"] = pg["donen"] >= TESLIM_SAYFA
+    return True
+
+
+def _duzeltme_notu(g, simdi):
+    """Satira eklenen KANIT metni. Ilk sayfa bayat sayilip pencere kesitinden hukum
+    verildiyse bu SESSIZ KALMAZ: okuyan, hukmun hangi veriden ciktigini gorur."""
+    d = g.get("duzeltme")
+    if not d:
+        return ""
+    yas = ("%.1f sa once" % ((simdi - d["ilk_en_yeni"]).total_seconds() / 3600.0)
+           if d.get("ilk_en_yeni") else "yok")
+    return (" · ⚙ ILK SAYFA BAYATTI (beyan %s / donen %s / en yeni %s = pencere DISI): hukum "
+            "PENCERE SUZGECLI ikinci gozlemden verildi (%s kosum, cekis %s/%d)"
+            % (d.get("ilk_beyan"), d.get("ilk_donen"), yas, d.get("pencere_donen"),
+               d.get("deneme"), TAZELIK_DENEME))
 
 
 def gozlem_topla(dosyalar, getir=api_getir, simdi=None,
-                 pencere_saat=TESLIM_PENCERESI_SAAT):
+                 pencere_saat=TESLIM_PENCERESI_SAAT, bekle=None):
     """[{dosya, cron, aralik, esik, kayitli, durum, kosum_sayisi, son_kosum,
           yenileme_an, pencere_gozlemi}] — AG kolu.
 
     `getir` ENJEKTE EDILEBILIR: fikstur kolu GERCEK API govdesinin ayni seklini besler.
     `simdi` IKINCI GOZLEMIN pencere sinirini kurar (bkz. `_pencere_gozlemi`); verilmezse
-    olcum ani okunur."""
+    olcum ani okunur. `bekle(sn)`: pencereli TEKRAR cekisler arasi bekleme — verilmezse
+    yalniz GERCEK ag kolunda (`getir is api_getir`) `time.sleep`, enjekte edilen fikstur
+    `getir`inde no-op (testler uyumaz)."""
     simdi = simdi or datetime.now(timezone.utc)
+    if bekle is None:
+        bekle = time.sleep if getir is api_getir else (lambda _sn: None)
     liste = getir("repos/%s/actions/workflows?per_page=100" % DEPO)
     if not isinstance(liste, dict) or not isinstance(liste.get("workflows"), list):
         raise OlcumHatasi("is akisi listesi beklenen sekilde degil (`workflows` dizisi yok)")
@@ -1151,12 +1346,14 @@ def gozlem_topla(dosyalar, getir=api_getir, simdi=None,
                 # `sayfa_tutarsizligi`nda verilir (gozlem toplama `simdi`yi BILMEZ ve
                 # pencere karsilastirmasi orada YAPILAMAZ).
                 g["donen_kayit"] = len(satirlar)
-                # 🔴 IKINCI GOZLEM — SARTLI. Sayfa DOLU + pencerede hicbir kayit YOK
-                # halinde suzgecsiz tek yanit "bayat-dolu sayfa" ile "gercekten sessiz
-                # cron"u AYIRT EDEMEZ (25 Eyl 2026 sahte kirmizisi). Diger her halde
-                # cagri YAPILMAZ.
+                # 🔴 IKINCI GOZLEM — SARTLI. Ilk sayfa pencerede hicbir kayit
+                # GOSTERMIYORSA suzgecsiz tek yanit "bayat kesit" ile "gercekten sessiz
+                # cron"u AYIRT EDEMEZ (25 Eyl + 30 Eyl 2026). Diger her halde cagri
+                # YAPILMAZ. TAZE ve TUTARLI bir pencere kesiti gelirse kosum alanlari o
+                # kesitle DEGISTIRILIR (satira YAZILARAK — bkz. `_duzeltme_notu`).
                 g["pencere_gozlemi"] = _pencere_gozlemi(
-                    getir, wf["id"], g, simdi, pencere_saat)
+                    getir, wf["id"], g, simdi, pencere_saat, bekle)
+                _pencereden_duzelt(g, g["pencere_gozlemi"])
             # GitHub cron tanimi degistiginde zamanlayici yeniden kaydedilir. Workflow API'sinin
             # `updated_at` alani bunu yansitmiyor (olculdu: dosya degisti, alan created_at ile
             # ayni kaldi); bu yuzden dosyaya dokunan son commit GitHub commits API'sinden okunur.
@@ -1301,7 +1498,10 @@ def _damga_kaynagi(gozlemler, dosya, simdi):
                     "kimlikler": set(g.get("schedule_kimlikleri") or ()),
                     "kirpik": bool(g.get("pencere_kirpildi")),
                     "tutarsiz": sayfa_tutarsizligi(g, simdi),
-                    "en_eski": min(tum) if tum else None}
+                    "en_eski": min(tum) if tum else None,
+                    # 30 Eyl 2026: kimlik kumesi PENCERE kesitinden kurulduysa A0/A4
+                    # satiri bunu SOYLER (A3/A5 ile ayni kural — sessiz ikame yok).
+                    "not": _duzeltme_notu(g, simdi)}
     return None
 
 
@@ -1366,6 +1566,16 @@ def _cron_kaynakli_damga(eksen, damga, kaynak, n, simdi):
 # gevsedigi zaman oburu sessizce dogru kalir ve ayrisma gorunmezdi
 # ([[ikiz-tanim-sessiz-ayrisma]]). Konu metinleri disaridan verilir; MANTIK ORTAK.
 def _damga_satiri(eksen, damga, n, simdi, sablon, kaynak=None):
+    """(satir, alarm_mi) — `_damga_satiri_ic`in sonucuna, kimlik kumesi bayat ilk sayfa
+    yerine PENCERE kesitinden kurulduysa (`kaynak["not"]`) o notu ekler. Damga YOKSA
+    kimlik kumesi hukme girmez, not da eklenmez."""
+    satir, yandi = _damga_satiri_ic(eksen, damga, n, simdi, sablon, kaynak)
+    if kaynak and kaynak.get("not") and damga.get("var"):
+        satir += kaynak["not"]
+    return satir, yandi
+
+
+def _damga_satiri_ic(eksen, damga, n, simdi, sablon, kaynak=None):
     """(satir, alarm_mi). `sablon` = {"yok", "bayat", "taze", "elle"} bicim dizeleri.
        yok   <- (sebep, N)
        bayat <- (yas, N, yas, kosum, sha12)
@@ -1545,6 +1755,7 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
         # dokunmak alarmi 9 saat SUSTURUYORDU; artik SUSTURMAZ, satirda ⚠ olarak GORUNUR.
         kayit_an, kayit_yasi, capa_uyarisi = gecmis_capasi(g, simdi, n)
         ek = (" · " + capa_uyarisi) if capa_uyarisi else ""
+        ek += _duzeltme_notu(g, simdi)     # bayat ilk sayfa duzeltildiyse SATIRDA gorunur
         yeni_tanim = (g["son_kosum"] is None or kayit_an > g["son_kosum"])
         if yeni_tanim and kayit_yasi <= n:
             satirlar.append("🟡 A3 NABIZ %s -> is akisi GitHub'da %.1f saat once "
@@ -1812,7 +2023,7 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
                kayit_yas_saat=24.0, yenileme_yas_saat=24.0,
                dosya="d1-uzlastirici.yml", bozuk=None, event="schedule",
                damgalar=None, kosum_yaslari=None, damga_kosum="schedule",
-               pencere_yaslari=None):
+               pencere_yaslari=None, pencere_dizisi=None, pencere_tutarsiz=False):
     """GERCEK govdenin ayni seklini ureten enjekte edilebilir `getir`.
 
     `damgalar`: artifact kayitlari listesi (None -> tek TAZE damga).
@@ -1832,8 +2043,29 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
       yani GERCEK ucun davranisi taklit edilir (olculdu 25 Eyl 2026: suzgecsiz 585/100,
       pencereli 10/10, ileri tarihli 0/0). Liste verilirse suzgecsiz sayfanin VERMEDIGI
       kosumlar modellenir = 25 Eyl'de OLCULEN BAYAT-DOLU SAYFA arizasi. Bu knob MEVCUT
-      fiksturlerin HICBIRINI degistirmez (varsayilan durust suzmedir)."""
+      fiksturlerin HICBIRINI degistirmez (varsayilan durust suzmedir).
+    `pencere_dizisi` (30 Eyl 2026 KUORUM fiksturu): pencereli cekislerin SIRAYLA gordugu
+      yanitlar. Her oge: yas listesi (o cekiste API'nin verdigi kosumlar; [] = BOS) ya da
+      "hata" (HTTP 502) ya da ("tutarsiz", yas listesi) (o cekiste `total_count` donen
+      kayittan BUYUK). Dizi bitince SON oge tekrarlanir. `pencere_yaslari` ile birlikte
+      verilmez.
+    `pencere_tutarsiz`: pencereli kesitin `total_count`u donen kayittan BUYUK (kesit de
+      bayat/eksik) — sayilamayan kesit fiksturu.
+    `damga_kosum="pencere"`: damgayi yazan kosum PENCERE kesitindeki EN YENI kosumdur
+      (ilk sayfa bayat oldugu icin kimlik ilk sayfada YOKTUR)."""
     _kosum_onbellek = []
+    _pencere_cagri = [0]
+
+    def _pencere_ogesi(n):
+        """n. pencereli cekisin gordugu yas listesi | "hata"."""
+        if pencere_dizisi is not None:
+            return pencere_dizisi[min(n, len(pencere_dizisi) - 1)]
+        return pencere_yaslari
+
+    def _pencere_havuzu(ogesi):
+        """Pencere yas listesinden GERCEK govde seklinde kayitlar (kimlik 9000+i)."""
+        return [_kosum_kaydi(y, event, dosya, kimlik=9000 + i)
+                for i, y in enumerate(ogesi)]
 
     def _kosum_kayitlari():
         """Fikstur kosum kayitlari — TEK KEZ uretilir (kimlikler iki dalda AYNI olsun)."""
@@ -1850,6 +2082,15 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
         return uretilen
 
     def _damga_kosum_kimligi(mod=None):
+        if (mod or damga_kosum) == "pencere":
+            # damgayi PENCERE kesitindeki en yeni kosum yazdi (ilk sayfada YOK)
+            ogeler = ([o for o in pencere_dizisi if isinstance(o, list) and o]
+                      if pencere_dizisi is not None
+                      else ([pencere_yaslari] if pencere_yaslari else []))
+            if not ogeler:
+                return _CRON_DISI_KOSUM
+            en_yeni = min(ogeler[-1])
+            return 9000 + ogeler[-1].index(en_yeni)
         if (mod or damga_kosum) != "schedule":
             return _CRON_DISI_KOSUM
         kayitlar = _kosum_kayitlari()
@@ -1919,11 +2160,16 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
                 return {"total_count": max(kosum_sayisi, len(ayni)),
                         "workflow_runs": ayni}
             sinir = _pencere_siniri(yol)
-            havuz = (_kosum_kayitlari() if pencere_yaslari is None
-                     else [_kosum_kaydi(y, event, dosya, kimlik=9000 + i)
-                           for i, y in enumerate(pencere_yaslari)])
+            ogesi = _pencere_ogesi(_pencere_cagri[0])
+            _pencere_cagri[0] += 1
+            ekstra = 7 if pencere_tutarsiz else 0
+            if isinstance(ogesi, tuple) and ogesi[0] == "tutarsiz":
+                ogesi, ekstra = ogesi[1], 7        # SADECE bu cekis tutarsiz
+            if ogesi == "hata":
+                raise OlcumHatasi("GitHub API HTTP 502: pencere suzgecli kosum sorgusu")
+            havuz = (_kosum_kayitlari() if ogesi is None else _pencere_havuzu(ogesi))
             suzulen = [dict(k) for k in havuz if _iso(k["created_at"]) > sinir]
-            return {"total_count": len(suzulen), "workflow_runs": suzulen}
+            return {"total_count": len(suzulen) + ekstra, "workflow_runs": suzulen}
         if "/runs?" in yol:
             if bozuk == "kosum-sekli":
                 return {"workflow_runs": []}
@@ -4668,28 +4914,230 @@ def kendini_test():
     # Sinif kapisi: hicbir iddiada is akisi ADI GECMEZ.
     dolu_sayfa = [50.0 + 0.5 * i for i in range(TESLIM_SAYFA)]    # 100 kayit, hepsi eski
 
-    # --- T-DOLU-BAYAT (a) DOLU sayfa + BAYAT -> OLCULEMEDI, ALARM YOK -------------
+    # --- T-DOLU-BAYAT (a) DOLU sayfa + BAYAT -> HUKUM PENCERE KESITINDEN (30 Eyl) ------
     # Suzgecsiz sayfa 100 ESKI kayit verdi; pencereli sorgu AYNI uctan 4 TAZE kosum
-    # dondurdu -> ilk sayfa BAYATTIR. 25 Eyl'de bu yanit rc=1 ALARM uretiyordu.
+    # dondurdu -> ilk sayfa BAYATTIR. 25 Eyl'de bu yanit rc=1 ALARM uretiyordu; 25 Eyl
+    # DUZELTMESI onu rc=2 OLCULEMEDI'ye cevirdi ama TAZE kesit hukme GIRMEDI -> SERIT B
+    # 28-30 Eyl arasi 8/8 kosumda ayni adimda dustu. 30 Eyl: kesit SAYILIR, hukum ondan
+    # cikar (bayat sayfa tazeden YUKSEK teslim uretemez -> fail-open degil).
     rc, s = kos(D, _sahte_api(kosum_sayisi=585, yas_saat=50.0, kosum_yaslari=dolu_sayfa,
                               pencere_yaslari=[4.0, 10.0, 16.0, 22.0], **TT))
     iddia("T-DOLU-BAYAT (a) DOLU sayfa (585 beyan / %d donen) + pencereli sorgu 4 TAZE "
-          "kosum -> OLCULEMEDI (rc=2). 25 Eyl 17:58Z'de bu yanit rc=1 KESIN ALARM "
-          "uretiyordu ve gercek son kosum 4,0 saat oncesiydi (`success`)"
-          % TESLIM_SAYFA, rc == 2, "rc=%d" % rc)
+          "kosum -> HUKUM KESITTEN: ✅ (rc=0). Eskiden rc=2 OLCULEMEDI idi ve SERIT B'yi "
+          "8 koşumda arka arkaya kirmizi tuttu (28-30 Eyl)" % TESLIM_SAYFA,
+          rc == 0, "rc=%d" % rc)
     iddia("T-DOLU-BAYAT 'Cron SESSIZ' hukmu URETILMEZ",
           not any("Cron SESSIZ" in x for x in s), s)
-    iddia("T-DOLU-BAYAT 'ZAMANLANMIS KOSUMLAR DUSUYOR' hukmu URETILMEZ (A5 de AYNI bayat "
-          "sayfadan besleniyordu)",
+    iddia("T-DOLU-BAYAT 'ZAMANLANMIS KOSUMLAR DUSUYOR' hukmu URETILMEZ (A5 tazeyi SAYAR)",
           not any("ZAMANLANMIS KOSUMLAR DUSUYOR" in x for x in s), s)
-    iddia("T-DOLU-BAYAT satir NEDENI ADIYLA yazar (ILK SAYFA BAYAT) ve IKINCI GOZLEMIN "
-          "donen sayisini SAYIYLA verir",
-          any("ILK SAYFA BAYAT" in x and "2 zamanlanmis kosum" not in x
-              and "4 zamanlanmis kosum dondurdu" in x for x in s), s)
-    iddia("T-DOLU-BAYAT satir AYIRT EDICIYI adiyla yazar (pencere suzgecli ikinci sorgu) "
-          "ve OLCULECEK SEYI cron'dan AYIRIR",
-          any("pencere suzgecli ikinci sorgu" in x
-              and "BAYAT SAYFA dondurmesidir — cron'un kendisi DEGIL" in x for x in s), s)
+    iddia("T-DOLU-BAYAT OLCULEMEDI satiri BASILMAZ (taze kesit hukum verdirir)",
+          not any("OLCULEMEDI" in x for x in s), s)
+    iddia("T-DOLU-BAYAT duzeltilmis kesit KIRPIK sayilmaz (4 kayitli kesit sayfa siniri "
+          "DEGIL): hicbir satirda 'API sayfa siniri' notu YOK (bayat sayfanin dolulugu "
+          "kesite MIRAS KALMAZ)", not any("API sayfa siniri" in x for x in s), s)
+    iddia("T-DOLU-BAYAT A5 satiri TAZE kesiti SAYAR (teslim 4) ve DUZELTMEYI ADIYLA yazar "
+          "(ILK SAYFA BAYATTI · beyan 585 / donen 100 · cekis 1/%d) — sessiz ikame YOK"
+          % TAZELIK_DENEME,
+          any(x.startswith("✅ A5 TESLIM") and "teslim 4 /" in x
+              and "ILK SAYFA BAYATTI" in x and "beyan 585 / donen %d" % TESLIM_SAYFA in x
+              and "cekis 1/%d" % TAZELIK_DENEME in x for x in s), s)
+    iddia("T-DOLU-BAYAT A3 satiri da AYNI kesitten (son kosum 4,0 sa) ve duzeltme notunu "
+          "TASIR (iki eksen AYNI veriden hukum verir — ikiz ayrisma YOK)",
+          any(x.startswith("✅ A3 NABIZ") and "4.0 saat once" in x
+              and "ILK SAYFA BAYATTI" in x for x in s), s)
+
+    # --- T-BAYAT-TUTARLI (30 Eyl, nobet.yml 29 Eyl 15:07Z): KENDI ICINDE TUTARLI bayat --
+    # kesit. 77/77, en yeni 159,8 sa: hicbir tutarlilik testi yakalamaz; eski kod bunu
+    # KESIN 🔴 'Cron SESSIZ' yapti (o is akisi 06:15Z'de `success` kosmustu).
+    tutarli_bayat = [159.8 + 0.5 * i for i in range(77)]
+    taze_kesit = [1.0, 7.0, 13.0, 19.0, 25.0, 31.0, 37.0, 43.0]
+    rc, s = kos(D, _sahte_api(kosum_sayisi=77, yas_saat=159.8, kosum_yaslari=tutarli_bayat,
+                              pencere_yaslari=taze_kesit, **TT))
+    iddia("T-BAYAT-TUTARLI KENDI ICINDE TUTARLI bayat kesit (77/77 · en yeni 159,8 sa) + "
+          "pencereli sorgu 8 TAZE kosum -> ✅ (rc=0). Eski kod: rc=1 KESIN 'Cron SESSIZ'",
+          rc == 0, "rc=%d" % rc)
+    iddia("T-BAYAT-TUTARLI 'Cron SESSIZ' / 'ZAMANLANMIS KOSUMLAR DUSUYOR' URETILMEZ",
+          not any("Cron SESSIZ" in x or "ZAMANLANMIS KOSUMLAR DUSUYOR" in x for x in s), s)
+    iddia("T-BAYAT-TUTARLI satir duzeltmeyi yazar (beyan 77 / donen 77 · teslim 8)",
+          any(x.startswith("✅ A5 TESLIM") and "teslim 8 /" in x
+              and "beyan 77 / donen 77" in x for x in s), s)
+    # 🔴 AYIRT EDICI CIFT: AYNI 77/77 bayat sayfa, TEK degisken pencereli sorgunun BOS
+    # donmesi -> cron GERCEKTEN sessiz -> 🔴 ALARM aynen. Duzeltme alarmi SUSTURMAZ.
+    rc, s = kos(D, _sahte_api(kosum_sayisi=77, yas_saat=159.8, kosum_yaslari=tutarli_bayat,
+                              pencere_yaslari=[], **TT))
+    iddia("T-BAYAT-TUTARLI-SESSIZ POZITIF KONTROL: AYNI 77/77 sayfa, pencereli sorgu BOS "
+          "-> 🔴 ALARM (rc=1) — duzeltme GERCEK sessizligi SUSTURMAZ",
+          rc == 1 and any(x.startswith("🔴 A3 NABIZ") and "Cron SESSIZ" in x for x in s),
+          "rc=%d" % rc)
+
+    # --- T-BAYAT-TUTARSIZ-SAYFA: sayfa DOLMAMIS + tutarsiz + TAZE kesit -> hukum -------
+    rc, s = kos(D, _sahte_api(kosum_sayisi=774, yas_saat=645.8, kosum_yaslari=tutarsiz_yaslari,
+                              pencere_yaslari=taze_kesit, **TT))
+    iddia("T-BAYAT-TUTARSIZ-SAYFA 774 beyan / 3 donen / en yeni 645,8 sa + TAZE kesit -> ✅ "
+          "(rc=0; eskiden rc=2 OLCULEMEDI)", rc == 0, "rc=%d" % rc)
+
+    # --- T-BAYAT-KESIT-SAYILIR: dusuk teslim SAKLANMAZ, SAYILIR ------------------------
+    rc, s = kos(D, _sahte_api(kosum_sayisi=585, yas_saat=50.0, kosum_yaslari=dolu_sayfa,
+                              pencere_yaslari=[3.0, 30.0], **TT))
+    iddia("T-BAYAT-KESIT-SAYILIR bayat sayfa + TAZE ama az kesit (2 teslim < taban) -> 🔴 "
+          "A5 (rc=1) ve teslim SAYISI 2 yazilir. Kesit alarmi ORTBAS ETMEZ; bayat sayfa "
+          "tazeden YUKSEK teslim URETEMEZ",
+          rc == 1 and any(x.startswith("🔴 A5 TESLIM") and "teslim 2 /" in x
+                          and "ILK SAYFA BAYATTI" in x for x in s), "rc=%d" % rc)
+
+    # --- T-BAYAT-KUORUM: tek BOS cekis SESSIZLIK DEGILDIR ------------------------------
+    # 🔴 30 Eyl olcumu: bayatlik cagri bazinda DEGISIYOR (ayni is akisi iki cagrida 324 /
+    # 960 total_count verdi). Ilk BOS pencereli cekis bayat olabilir; sessizlik ancak
+    # TAZELIK_KUORUM bagimsiz BOS cekisle hukum olur.
+    rc, s = kos(D, _sahte_api(kosum_sayisi=77, yas_saat=159.8, kosum_yaslari=tutarli_bayat,
+                              pencere_dizisi=[[], [], taze_kesit], **TT))
+    iddia("T-BAYAT-KUORUM ilk IKI pencereli cekis BOS (bayat), UCUNCU taze -> ✅ (rc=0) ve "
+          "satir 'cekis 3/%d' der. Tek cekisle sessizlik hukmu verilseydi rc=1 olurdu"
+          % TAZELIK_DENEME,
+          rc == 0 and any("ILK SAYFA BAYATTI" in x and "cekis 3/%d" % TAZELIK_DENEME in x
+                          for x in s), "rc=%d" % rc)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=77, yas_saat=159.8, kosum_yaslari=tutarli_bayat,
+                              pencere_dizisi=[[]], **TT))
+    iddia("T-BAYAT-KUORUM POZITIF KONTROL: %d cekisin HEPSI BOS -> 🔴 ALARM (rc=1)"
+          % TAZELIK_DENEME,
+          rc == 1 and any(x.startswith("🔴 A3 NABIZ") and "Cron SESSIZ" in x for x in s),
+          "rc=%d" % rc)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=77, yas_saat=159.8, kosum_yaslari=tutarli_bayat,
+                              pencere_dizisi=["hata", "hata", []], **TT))
+    iddia("T-BAYAT-KUORUM 2 HATA + 1 BOS cekis (kuorum %d TAMAMLANAMADI) -> OLCULEMEDI "
+          "(rc=2): sessiz YESIL de kesin ALARM da DEGIL" % TAZELIK_KUORUM,
+          rc == 2 and any("IKINCI GOZLEM BASARISIZ" in x for x in s)
+          and not any(x.startswith("🔴 A3 NABIZ") or x.startswith("🔴 A5 TESLIM")
+                      for x in s), "rc=%d" % rc)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=77, yas_saat=159.8, kosum_yaslari=tutarli_bayat,
+                              pencere_dizisi=["hata", [], []], **TT))
+    iddia("T-BAYAT-KUORUM 1 HATA + 2 BOS cekis (kuorum TAMAM) -> 🔴 ALARM (rc=1): tek "
+          "gecici HTTP hatasi gercek sessizligi susturmaz",
+          rc == 1 and any(x.startswith("🔴 A3 NABIZ") for x in s), "rc=%d" % rc)
+
+    # --- T-BAYAT-KESIT-TUTARSIZ: kesit KENDI ICINDE TUTARSIZSA sayilmaz ----------------
+    rc, s = kos(D, _sahte_api(kosum_sayisi=77, yas_saat=159.8, kosum_yaslari=tutarli_bayat,
+                              pencere_yaslari=taze_kesit, pencere_tutarsiz=True, **TT))
+    iddia("T-BAYAT-KESIT-TUTARSIZ pencere kesiti total_count != donen -> OLCULEMEDI (rc=2): "
+          "eksik kesitten teslim SAYISI turetilmez (sahte 🔴 A5 ureteceksi)",
+          rc == 2 and any("KENDI ICINDE TUTARSIZ" in x for x in s)
+          and not any("ZAMANLANMIS KOSUMLAR DUSUYOR" in x for x in s), "rc=%d" % rc)
+
+    rc, s = kos(D, _sahte_api(kosum_sayisi=77, yas_saat=159.8, kosum_yaslari=tutarli_bayat,
+                              pencere_dizisi=[("tutarsiz", taze_kesit), taze_kesit], **TT))
+    iddia("T-BAYAT-KESIT-SIRA ILK cekis TUTARSIZ kesit, IKINCI cekis TUTARLI -> ✅ (rc=0), "
+          "'cekis 2/%d': tutarsiz kesit sonraki TUTARLI kesiti golgelemez (en iyi kesit "
+          "tutarli olandir)" % TAZELIK_DENEME,
+          rc == 0 and any("ILK SAYFA BAYATTI" in x and "cekis 2/%d" % TAZELIK_DENEME in x
+                          for x in s), "rc=%d" % rc)
+
+    # --- T-BAYAT-MARJ: erken sinir pencereyi DARALTMAZ, marj kaydi HAYAT kaniti degil ----
+    rc, s = kos(D, _sahte_api(kosum_sayisi=77, yas_saat=159.8, kosum_yaslari=tutarli_bayat,
+                              pencere_dizisi=[[], [], [48.03]], **TT))
+    iddia("T-BAYAT-MARJ yalniz pencere BASINDAN once (marj) bir kayit donen cekis "
+          "'pencerede kayit' SAYILMAZ -> 🔴 ALARM (rc=1)",
+          rc == 1 and any("Cron SESSIZ" in x for x in s), "rc=%d" % rc)
+
+    # --- T-BAYAT-A0: damga uyeligi PENCERE kesitiyle olculur ---------------------------
+    rc, s = kos(D, _sahte_api(kosum_sayisi=585, yas_saat=50.0, kosum_yaslari=dolu_sayfa,
+                              pencere_yaslari=taze_kesit, damgalar=[_damga_kaydi(0.5)],
+                              damga_kosum="pencere", **TT), damga_ile=True)
+    iddia("T-BAYAT-A0 bayat ilk sayfa + damgayi yazan CRON kosumu PENCERE kesitinde -> A0 ✅ "
+          "(rc=0). Eskiden A0 'kosum sayfasi TUTARSIZ -> SINIFLANDIRILAMAZ' (rc=2) idi",
+          rc == 0 and any(x.startswith("✅ A0 DAMGA") for x in s)
+          and not any("SINIFLANDIRILAMAZ" in x for x in s), "rc=%d" % rc)
+    iddia("T-BAYAT-A0 A0 satiri da kimlik kumesinin PENCERE kesitinden kuruldugunu YAZAR "
+          "(ILK SAYFA BAYATTI) — A0 ile A3/A5 ayni acikligi tasir",
+          any(x.startswith("✅ A0 DAMGA") and "ILK SAYFA BAYATTI" in x for x in s), s)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=585, yas_saat=50.0, kosum_yaslari=dolu_sayfa,
+                              pencere_yaslari=taze_kesit, damgalar=[_damga_kaydi(0.5)],
+                              damga_kosum="elle", **TT), damga_ile=True)
+    iddia("T-BAYAT-A0 POZITIF KONTROL: AYNI kesit, damgayi ELLE (kesitte OLMAYAN) kosum "
+          "yazdi -> 🔴 'DENETIM YAPILDI AMA CRON YAPMADI' (rc=1) — 4 Agu'un elle-sondurme "
+          "sinifi duzeltmeyle SUSTURULMADI",
+          rc == 1 and any("DENETIM YAPILDI AMA CRON YAPMADI" in x for x in s)
+          and not any("SINIFLANDIRILAMAZ" in x for x in s), "rc=%d" % rc)
+
+    # --- T-BAYAT-SAF: `_pencereden_duzelt` birim ekseni (ag yok) -----------------------
+    def _g_bayat():
+        simdi_ = datetime.now(timezone.utc)
+        return {"dosya": "x.yml", "kayitli": True, "aralik": 15, "kosum_sayisi": 585,
+                "donen_kayit": TESLIM_SAYFA,
+                "tum_kosumlar": [simdi_ - timedelta(hours=50.0 + 0.5 * i)
+                                 for i in range(TESLIM_SAYFA)],
+                "schedule_kimlikleri": list(range(1, TESLIM_SAYFA + 1)),
+                "pencere_kirpildi": True, "son_kosum": simdi_ - timedelta(hours=50.0)}, simdi_
+
+    def _pg(simdi_, **ov):
+        pg = {"durum": "yapildi", "beyan": 3, "donen": 3, "tutarli": True, "deneme": 1,
+              "damgalar": [simdi_ - timedelta(hours=h) for h in (1.0, 5.0, 9.0)],
+              "kimlikler": [9000, 9001, 9002], "son_id": 9000, "son_sonuc": "success"}
+        pg.update(ov)
+        return pg
+
+    g_b, simdi_b = _g_bayat()
+    ok_b = _pencereden_duzelt(g_b, _pg(simdi_b))
+    iddia("T-BAYAT-SAF tutarli kesit -> True; kosum alanlari KESITLE degisir (donen 3 · "
+          "kimlikler 9000-9002 · son kosum = kesit maksimumu · kirpik DEGIL) ve "
+          "`duzeltme` ilk sayfanin beyanini (585/100) SAKLAR",
+          ok_b is True and g_b["donen_kayit"] == 3 and g_b["kosum_sayisi"] == 3
+          and g_b["schedule_kimlikleri"] == [9000, 9001, 9002]
+          and g_b["son_kosum"] == max(g_b["tum_kosumlar"])
+          and g_b["pencere_kirpildi"] is False
+          and g_b["duzeltme"]["ilk_beyan"] == 585
+          and g_b["duzeltme"]["ilk_donen"] == TESLIM_SAYFA, g_b.get("duzeltme"))
+    for ad_, ov_ in (("tutarsiz kesit", {"tutarli": False}), ("BOS kesit", {"damgalar": []}),
+                     ("hata", {"durum": "hata"}), ("kesit YOK", None)):
+        g_b, simdi_b = _g_bayat()
+        onceki = json.dumps(g_b, default=str, sort_keys=True)
+        pg_b = None if ov_ is None else _pg(simdi_b, **ov_)
+        iddia("T-BAYAT-SAF %s -> False ve `g` DEGISMEZ (sessiz ikame yok)" % ad_,
+              _pencereden_duzelt(g_b, pg_b) is False
+              and json.dumps(g_b, default=str, sort_keys=True) == onceki)
+
+    # --- T-BAYAT-YOL: tekrar cekisler FARKLI yol + pencereyi KAPSAR ----------------------
+    _t0 = datetime.now(timezone.utc).replace(microsecond=0)
+    _y0 = _pencere_gozlem_yolu(1234, _t0, 0)
+    _y1 = _pencere_gozlem_yolu(1234, _t0, 1)
+    _y2 = _pencere_gozlem_yolu(1234, _t0, 2)
+    try:
+        _s0, _s1, _s2 = (_pencere_siniri(y_) for y_ in (_y0, _y1, _y2))
+        _yol_ok = (_s0 == _t0 and _s1 == _t0 - timedelta(minutes=1)
+                   and _s2 == _t0 - timedelta(minutes=2) and len({_y0, _y1, _y2}) == 3)
+    except OlcumHatasi:
+        _yol_ok = False
+    iddia("T-BAYAT-YOL tekrar cekislerin yolu HER SEFER FARKLI (ayni URL'ye takili bayat "
+          "yanit tekrarlanmaz) ve sinir n dk ERKEN — pencere DARALMAZ, GENISLER",
+          _yol_ok, "%s | %s | %s" % (_y0, _y1, _y2))
+
+    # --- T-BAYAT-BEKLEME: bekleme YALNIZ tekrar cekislerde, sayisi olculur ---------------
+    def _bekleyen(dizi):
+        bekledi = []
+        gb, sb = _g_bayat()
+        api_ = _sahte_api(kosum_sayisi=585, yas_saat=50.0,
+                          kosum_yaslari=[50.0 + 0.5 * i for i in range(TESLIM_SAYFA)],
+                          pencere_dizisi=dizi, **TT)
+        gb["kosum_sayisi"] = 585
+        _pencere_gozlemi(api_, 1234, gb, datetime.now(timezone.utc),
+                         TESLIM_PENCERESI_SAAT, bekle=bekledi.append)
+        return bekledi
+
+    iddia("T-BAYAT-BEKLEME ilk cekiste TAZE kesit -> bekleme 0",
+          _bekleyen([taze_kesit]) == [], _bekleyen([taze_kesit]))
+    iddia("T-BAYAT-BEKLEME %d BOS cekis -> %d bekleme (her tekrardan ONCE, sonuncudan "
+          "SONRA degil)" % (TAZELIK_DENEME, TAZELIK_DENEME - 1),
+          _bekleyen([[]]) == [TAZELIK_BEKLEME_SN] * (TAZELIK_DENEME - 1),
+          _bekleyen([[]]))
+    _sleep_asil = time.sleep
+    _uyunan = []
+    time.sleep = lambda sn: _uyunan.append(sn)
+    try:
+        gozlem_topla(D, _sahte_api(kosum_sayisi=585, yas_saat=50.0,
+                                   kosum_yaslari=dolu_sayfa, pencere_dizisi=[[]], **TT))
+    finally:
+        time.sleep = _sleep_asil
+    iddia("T-BAYAT-BEKLEME enjekte `getir` (fikstur) UYUMAZ — testler beklemez; yalniz "
+          "GERCEK ag kolu (`api_getir`) `time.sleep` cagirir", _uyunan == [], _uyunan)
 
     # --- T-DOLU-SESSIZ (b) POZITIF KONTROL: DOLU sayfa + GERCEKTEN sessiz -> 🔴 ---
     # 🔴 AYIRT EDICI TEK DEGISKEN: `pencere_yaslari` VERILMEZ, yani pencereli sorgu ANA
@@ -4756,21 +5204,33 @@ def kendini_test():
     sarmal, say_dolu = _sayan(_sahte_api(kosum_sayisi=585, yas_saat=50.0,
                                          kosum_yaslari=dolu_sayfa, **TT))
     gozlem_topla(D, sarmal)
-    iddia("T-DOLU-MALIYET DOLU-SAYFA + pencere BOS -> is akisi basina TAM 1 ek pencereli "
-          "cagri (7 cron tasiyan is akisinda EN KOTU hal +7; taban 17 -> 24)",
-          say_dolu["pencereli"] == 1, "pencereli=%d" % say_dolu["pencereli"])
+    iddia("T-DOLU-MALIYET DOLU-SAYFA + pencere BOS -> is akisi basina TAM %d ek pencereli "
+          "cagri (kuorum: sessizlik tek cekisle hukum OLMAZ; 7 cron tasiyan is akisinda "
+          "EN KOTU hal +%d; taban 17 -> %d)"
+          % (TAZELIK_DENEME, 7 * TAZELIK_DENEME, 17 + 7 * TAZELIK_DENEME),
+          say_dolu["pencereli"] == TAZELIK_DENEME, "pencereli=%d" % say_dolu["pencereli"])
     sarmal, say_tutarli = _sayan(_sahte_api(kosum_sayisi=4, yas_saat=55.0,
                                             kosum_yaslari=sessiz_yaslari, **TT))
     gozlem_topla(D, sarmal)
-    iddia("T-DOLU-MALIYET TUTARLI yanit (beyan == donen) -> EK pencereli cagri SIFIR "
-          "(sart (1) dustu, ikinci gozleme GEREK YOK)",
-          say_tutarli["pencereli"] == 0, "pencereli=%d" % say_tutarli["pencereli"])
+    iddia("T-DOLU-MALIYET TUTARLI ama pencerede kaydi olmayan yanit (beyan == donen) -> "
+          "%d ek pencereli cagri: tutarlilik BAYATLIK KANITI DEGILDIR (30 Eyl: 77/77 bayat "
+          "kesit KESIN 'Cron SESSIZ' uretti)" % TAZELIK_DENEME,
+          say_tutarli["pencereli"] == TAZELIK_DENEME,
+          "pencereli=%d" % say_tutarli["pencereli"])
     sarmal, say_kirpik = _sayan(_sahte_api(kosum_sayisi=774, yas_saat=645.8,
                                            kosum_yaslari=tutarsiz_yaslari, **TT))
     gozlem_topla(D, sarmal)
-    iddia("T-DOLU-MALIYET sayfa DOLMAMIS tutarsizlik (T-TUT-1 sekli) -> EK pencereli "
-          "cagri SIFIR (tek yanit KENDI ICINDE yalanlaniyor, ikinci gozleme GEREK YOK)",
-          say_kirpik["pencereli"] == 0, "pencereli=%d" % say_kirpik["pencereli"])
+    iddia("T-DOLU-MALIYET sayfa DOLMAMIS tutarsizlik (T-TUT-1 sekli) -> %d ek pencereli "
+          "cagri (tutarsiz sayfa da TAZE kesitle duzeltilebilir)" % TAZELIK_DENEME,
+          say_kirpik["pencereli"] == TAZELIK_DENEME,
+          "pencereli=%d" % say_kirpik["pencereli"])
+    sarmal, say_bayat = _sayan(_sahte_api(kosum_sayisi=585, yas_saat=50.0,
+                                          kosum_yaslari=dolu_sayfa,
+                                          pencere_yaslari=taze_kesit, **TT))
+    gozlem_topla(D, sarmal)
+    iddia("T-DOLU-MALIYET bayat sayfa + ILK cekiste TAZE kesit -> TAM 1 ek pencereli cagri "
+          "(kuorum yalniz SESSIZLIK icin gerekir; taze kesit bulununca DURULUR)",
+          say_bayat["pencereli"] == 1, "pencereli=%d" % say_bayat["pencereli"])
 
     # --- T-DOLU-YOL: ikinci gozlem yolu SUZGECI ve SAYFA BOYUNU TASIR ------------
     _simdi_y = datetime.now(timezone.utc)
