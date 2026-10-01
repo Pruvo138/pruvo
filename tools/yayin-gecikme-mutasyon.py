@@ -392,7 +392,11 @@ Z10 = ("Z10", "ILK HATA YUTULUYOR: hic cekim basarili degilken gercek hata metni
               "(teshis yok)",
        NOBETCI,
        [("            raise hatalar[0]", "            raise OlcumHatasi(\"cekim yok\")")],
-       ["Y11"], "ESIT")
+       # CAPRAZ (gerekce): Y8'in KABUL (5) vakasi (bos runs listesi) da TUM cekimlerin
+       # basarisiz oldugu bu yoldan gecer ve mesajin `BOS` korumasindan geldigini ister
+       # (V3 survivor'ini kapatan sikilastirma) -> Y8 de duser. Ayirt edici (yalniz Y11)
+       # mutantlar Z1-Z9/Z11-Z13'tur.
+       ["Y8", "Y11"], "ESIT")
 
 Z11 = ("Z11", "KANIT-YOK NOTU SESSIZLESTI: commits API yokken satir 'tazelik kaniti: VAR' "
               "diyor (sessiz ikame)",
