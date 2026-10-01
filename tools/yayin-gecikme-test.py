@@ -587,10 +587,17 @@ def y8_omur_ekseni(yg):
 
     def _bos_getir(yol_, zaman_asimi=25, etiket="api"):   # noqa: ARG001
         return {"workflow_runs": []}
-    sinif5, rc5, _, _ = yg.olc_ve_degerlendir(getir=_bos_getir)
+    sinif5, rc5, ger5, _ = yg.olc_ve_degerlendir(getir=_bos_getir)
+    # 🔴 K429 (1 Eki): HUKUM KASITLI KORUMADAN GELMELI, COKMEDEN DEGIL. V3 mutanti (BOS-liste
+    # korumasini kaldirir) bu vakadan SAG cikti: bos liste fuzyondan gecip `max()` icinde
+    # coktu ve genel `except Exception` kolundan YINE OLCULEMEDI dondu — test yalniz sinifi
+    # olctugu icin korumayi degil COKMEYI olcuyordu ([[fail-closed-kol-arkasindaki-kolu-
+    # maskeler]]). Simdi mesaj korumanin kendi metnini tasimali, "beklenmeyen" OLMAMALI.
+    mesaj5 = " ".join(ger5)
     kayit("Y8", "KABUL (5) kosum listesi BOS -> OLCULEMEDI + rc!=0 (fail-closed, "
-          "sessiz yesil YOK)",
-          sinif5 == "OLCULEMEDI" and rc5 != 0, "%s rc %d" % (sinif5, rc5))
+          "sessiz yesil YOK) ve hukum KASITLI korumadan (BOS mesaji), cokmeden DEGIL",
+          sinif5 == "OLCULEMEDI" and rc5 != 0 and "BOS" in mesaj5
+          and "beklenmeyen" not in mesaj5, "%s rc %d · %s" % (sinif5, rc5, mesaj5[:60]))
 
 
 # ------------------------------------------------- Y9) EKSEN 3: YAYINSIZ ZINCIR

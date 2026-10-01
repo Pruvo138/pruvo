@@ -110,8 +110,10 @@ M2 = ("M2", "OLCULEMEDI -> YESIL: ag/yetki yoklugu 'sorun yok' diye okunuyor",
       # CAPRAZ (gerekce): ayni bozulma hem OLCULEMEDI fiksturlerini (agsiz/yetkisiz,
       # Y1) hem SOZLESME'nin fail-closed nobetini (Y2) hem de KABUL vaka 5'i (bos
       # kosum listesi fail-closed, Y8) dusurur; ucu de AYNI olguyu (olculemedi'nin
-      # yesile dusmesi) olcer, ayrik degiller.
-      ["Y1", "Y2", "Y8"], "ESIT")
+      # yesile dusmesi) olcer, ayrik degiller. 1 Eki (K429): Y11 de duser — (b) bayat
+      # dilimin OLCULEMEDI'si ve "hic cekim basarili degil" vakasi AYNI `return` satirindan
+      # gecer; yesile dusurulunce o iki iddia kirmizi yanar.
+      ["Y1", "Y2", "Y8", "Y11"], "ESIT")
 
 M3 = ("M3", "IPTAL = HATA: eszamanlilik iptali TIKANMA sayiliyor (yanlis alarm)",
       NOBETCI,
@@ -134,7 +136,9 @@ M4 = ("M4", "BIRIKME SIFIRLAMA: `ahead_by` okunmuyor (bekleyen icerik GORUNMEZ)"
       # arkasindadir) AYNI ANDA duser. Dort eksen de ayni fiziksel olgunun (bekleyen
       # icerigin gorunmez olmasi) sonucudur. 26 Eyl: Y10 da duser — giris ani yalniz
       # bekleyen icerik VARKEN sorulur (geride 0 -> A/B/C'de yas hic hesaplanmaz).
-      ["Y1", "Y5", "Y7", "Y9", "Y10"], "ESIT")
+      # 1 Eki (K429): Y11 de duser — (c) `taze-gercek-tikanma` ve "KANARI YUK TASIYOR" eski-
+      # kural kolu TIKALI'yi `ahead_by` kapisinin arkasindan alir; kapi sifirlaninca AKIYOR.
+      ["Y1", "Y5", "Y7", "Y9", "Y10", "Y11"], "ESIT")
 
 M5 = ("M5", "ZINCIR BASARIDA DURMUYOR: pencere boyu hatalar toplaniyor",
       NOBETCI,
@@ -156,8 +160,10 @@ M7 = ("M7", "ACLIK'ta VE -> VEYA: tek basina iptal zinciri alarm uretiyor",
       # CAPRAZ (gerekce): kural VEYA'ya donunce `yas_gecikme` TEK BASINA ACLIK uretir ve
       # ACLIK, TIKALI'dan ONCE dondugu icin EKSEN 3'un hukmunu de yutar (Y9 kanarisi
       # ACLIK'a duser). Ayni tek satir iki ekseni birden bozuyor. 26 Eyl: Y10'un B/C
-      # kanarilari (yas >= 50 dk, iptal 0) da ACLIK'a duser -> Y10.
-      ["Y1", "Y9", "Y10"], "ESIT")
+      # kanarilari (yas >= 50 dk, iptal 0) da ACLIK'a duser -> Y10. 1 Eki (K429): Y11 de
+      # duser — (c) gercek tikanma ve eski-kural kanarisi (yas >= 50 dk, iptal 0) ACLIK'a
+      # doner (TIKALI beklenirken).
+      ["Y1", "Y9", "Y10", "Y11"], "ESIT")
 
 M8 = ("M8", "YAS TABANI KALDIRILDI: ff-only ile gelen eski tarihli commit yasi sisiriyor",
       NOBETCI,

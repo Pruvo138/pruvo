@@ -1008,6 +1008,13 @@ KOR_NOKTALAR = (
     ("bolum 9: `gh` yokken / yetki yokken yayin gecikmesi",
      "olcum ⚪ OLCULEMEDI olur ve bu YESIL DEGILDIR; o kosumda canlinin main'den kac "
      "commit geride oldugu BILINMIYOR demektir."),
+    ("bolum 9: commits API (bagimsiz tazelik kaniti) cevap vermezken runs ucunun TUTARLI "
+     "bayat kesiti",
+     "bayat dilim tespiti git'e (`commits?sha=main`) dayanir; o uc de dusunce hukum YALNIZ "
+     "3 cekimlik fuzyondan cikar ve her cekim ayni bayat kesiti dondurduyse sahte TIKALI "
+     "mumkundur (K429 kalan risk). Satir `tazelik kaniti: YOK` bunu ILAN eder. Ayrica "
+     "`jobs` ucu fuzyonlanmaz: bayat bir `jobs` yaniti deploy isini eksik gosterirse "
+     "olcum OLCULEMEDI olur (fail-closed), yanlis hukum vermez."),
 )
 
 
