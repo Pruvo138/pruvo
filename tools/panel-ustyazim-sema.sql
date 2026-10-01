@@ -10,7 +10,8 @@
 -- hal DORT DEGERLIDIR (iki kovali siniflama ucuncu sinifi yutar — olculmus sinif):
 --   'beklemede' : panel yazdi, uygulayici henuz islemedi.
 --   'islendi'   : tabana islendi (islendi_commit = urunler.json commit'i) ya da
---                 taban zaten esitti (sebep='TABAN_ZATEN_ESIT').
+--                 taban zaten esitti (sebep='TABAN_ZATEN_ESIT') ya da sil satirinin
+--                 urunu zaten arsivdeydi (sebep='ZATEN_ARSIVDE', K430 1 Eki 2026).
 --   'hata'      : islenemedi; sebep kolonu NEDENI adiyla tasir (or.
 --                 ALAN_BEYAZ_LISTE_DISI, FIYAT_BICIMI, PARAMETRIK_FIYAT, URUN_YOK,
 --                 YERINE_YENISI:<id>, DUZELT_RED:<rc>, URUN_SILINECEK). Sessiz dusme YOK.

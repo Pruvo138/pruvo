@@ -20,9 +20,23 @@
    duzelt'ten miras), **TAM taban kaydını `arsiv/urunler-arsiv.json`'a ekler**
    (aynı commit) ve push'tan SONRA satırı `islendi` damgalar. Aynı ürünün bekleyen
    alan düzenlemesi `URUN_SILINECEK` sebebiyle hata kovasına düşer (sessiz değil).
-4. **Senkron (otomatik, mevcut raylar):** `build.py` ürün sayfası/sitemap/feed'i
+4. **Aramadan anında düşüş (K430, Okan emri 1 Eki 2026):** push BAŞARILI olduktan
+   SONRA uygulayıcı silinen id'leri D1'de `yayinda=0`'a indirir (`d1_gizle`; SQL tek
+   kaynak `yayin-kapisi.gizle_sql`, istemci `d1-sync`). Küme **alan-bağlıdır**: yalnız
+   push'lanan commit'te (a) `urunler.json`'dan düşen VE (b) aynı commit'te arşive yeni
+   giriş olarak eklenen id'ler — keyfi id listesiyle gizleme YOKTUR. Push düşerse D1'e
+   dokunulmaz. Satır SİLİNMEZ (silmeyi adım 5 yapar). İndirme düşerse commit main'de
+   kalır, satır `islendi` olur, çıktı `D1_GIZLE=HATA:<…>` basar ve koşum rc=1 (kırmızı);
+   başarıda `D1_GIZLE=<n>`. Neden: arama (`/ara`) D1 `yayinda=1` okur; deploy'un D1
+   adımı bayat ağaç korumasıyla atlarsa/iptal olursa ürün aramada kalıyordu (ölçüldü
+   1 Eki: ~40 dk); `d1-uzlastirici` schedule'ı saatlerce kısılır (2,2–8,3 sa).
+5. **Senkron (otomatik, mevcut raylar):** `build.py` ürün sayfası/sitemap/feed'i
    tabandan yeniden üretir (silinen düşer); `d1-sync` silinen satırı D1'den DELETE
    eder (6 eksen tutarlı); uygulayıcı deploy'u `workflow_dispatch` ile tetikler.
+
+**İkinci "Sil" idempotenttir (K430):** ürün tabanda yok ama `arsiv/urunler-arsiv.json`'da
+varsa satır hata DEĞİL `islendi` + sebep `ZATEN_ARSIVDE` olur (panelde "Geçmiş"e iner;
+D1'e dokunmaz). Arşivde de yoksa `URUN_YOK` hata kalır.
 
 ## Silme kapısı (13 Eyl 2026) — panel dışı yol ve dürüst sınır
 
@@ -66,6 +80,10 @@ git push
   `arsiv/stl/<id>/...` anahtarından `stl/<id>/<dosya>`'ya kopyala (panel
   "STL/3MF yükle" de kullanılabilir).
 - Push sonrası D1 (pre-push senkronu) ve site (CI deploy) kendiliğinden döner.
+  Silmede `yayinda=0`'a inen D1 satırı henüz silinmemişse içerik güncellenir ama
+  `yayinda` 0 kalır (d1-sync `yayinda`'ya dokunmaz); deploy'un `yayin-kapisi --yayinla`
+  adımı canlı sayfa 200 dönünce onu yeniden yayına alır (`panel-uygulayici --kendini-test`
+  V22 ölçer).
 
 ## Sınırlar / bilinçli kararlar
 
@@ -74,5 +92,5 @@ git push
 - `panel_ustyazim` şeması DEĞİŞMEDİ (`alan` serbest metin) → canlıda migration
   gerekmez; worker deploy'u yeterli (deploy = Okan kapısı).
 - Testler: worker yüzeyi `shop/test/urunler-panel.mjs` (M bölümü), uygulayıcı
-  `tools/panel-uygulayici.py --kendini-test` (V13–V15 + M4/M5 mutantları),
+  `tools/panel-uygulayici.py --kendini-test` (V13–V22 + M4–M12 mutantları),
   geri yükleme `tools/urun-geri-yukle.py --kendini-test`.

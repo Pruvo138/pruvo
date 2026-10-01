@@ -620,16 +620,24 @@ def yayin_sql(idler, release, alinti):
     """Tek yon: 0 -> 1. `WHERE yayinda=0` sarti BILEREK var — zaten yayinda olan satirin
     release_id'sini ezmez (denetim izi korunur) ve gereksiz yazma uretmez.
     (1 -> 0 yonu AYRI ve ALAN-BAGLIDIR: gizle_sql, yalniz urunler.json `gizli` alanindan
-    turer — elle/keyfi unpublish yolu YOKTUR.)"""
+    ya da push'lanmis panel-silme commit'inden turer — elle/keyfi unpublish yolu YOKTUR.)"""
     return ("UPDATE urunler SET yayinda=1, release_id=%s WHERE yayinda=0 AND id IN (%s);"
             % (alinti(release), ",".join(alinti(i) for i in idler)))
 
 
 def gizle_sql(idler, alinti):
-    """GIZLEME YONU (1 -> 0) — tek-yon kuralinin TEK, ALAN-BAGLI istisnasi (Okan emri
-    31 Agu: ~940 urun siteden gizlenir, SILINMEZ). YALNIZ yerel urunler.json'da
-    `gizli: true` tasiyan id'ler icin uretilir (`--gizle`); keyfi id listesiyle
-    unpublish YAPILMAZ. `WHERE yayinda=1` gereksiz yazmayi onler; `release_id`
+    """GIZLEME YONU (1 -> 0) — tek-yon kuralinin TEK SQL'i, ALAN-BAGLI istisnasi (Okan
+    emri 31 Agu: ~940 urun siteden gizlenir, SILINMEZ). Keyfi id listesiyle unpublish
+    YAPILMAZ; id kumesi YALNIZ su IKI alan-bagli kaynaktan gelir:
+      1. `--gizle`: yerel urunler.json'da `gizli: true` tasiyan id'ler.
+      2. PANEL SILME (K430, Okan emri 1 Eki 2026 — panel-uygulayici.d1_gizle): push'u
+         BASARILI olmus sil commit'inin EBEVEYNINDE urunler.json'da olup commit'te
+         OLMAYAN VE ayni commit'te arsiv/urunler-arsiv.json'a YENI giris olarak eklenen
+         id'ler (kume commit'in kendisinden turer; push dusmusse cagrilmaz). Satir
+         SILINMEZ (sonraki deploy'un d1-sync'i siler); geri yuklenen urun --yayinla ile
+         doner.
+    Ucuncu bir kaynak eklemek bu docstring'i ve tools/urun-silme-yordami.md'yi
+    guncellemeden yapilmaz. `WHERE yayinda=1` gereksiz yazmayi onler; `release_id`
     KORUNUR (son yayinin denetim izi silinmez — geri acilista tazelenir)."""
     return ("UPDATE urunler SET yayinda=0 WHERE yayinda=1 AND id IN (%s);"
             % ",".join(alinti(i) for i in idler))
