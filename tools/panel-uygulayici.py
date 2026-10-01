@@ -29,14 +29,35 @@ duzenlemesi sil kazananinin golgesinde URUN_SILINECEK sebebiyle hata kovasina du
 (duzelt ayni id'de sil+alan karisimini reddeder; sessiz sira belirsizligi yerine
 ACIK sebep). R2 gorselleri SILINMEZ; toplu silme YOKTUR (satir basina tek urun).
 
+SILME ANINDA AKSAMDAN DUSER (K430, Okan emri 1 Eki 2026 "kalici onarimi da yap"):
+site aramasi (`/ara`) D1 `urunler.yayinda=1` okur; D1 satirini ancak sonraki
+deploy'un d1-sync'i siler — o kosum bayat agac korumasiyla ATLARSA ya da kuyrukta
+iptal olursa silinen urun aramada kalir (olculdu: ~40 dk; uzlastirici schedule'i
+saatlerce kisilir). Bu yuzden sil commit'i PUSH'LANDIKTAN SONRA (once DEGIL — push
+duserse D1'e hic dokunulmaz) silinen id'ler D1'de yayinda=0'a indirilir
+(`d1_gizle`). Kume ALAN-BAGLIDIR, kuyruktan/hafizadan gelmez: push'lanan commit'in
+EBEVEYNINDE urunler.json'da olup commit'te OLMAYAN (a) VE ayni commit'te
+arsiv/urunler-arsiv.json'a YENI giris olarak eklenen (b) id'ler. SQL tek kaynaktan
+gelir (yayin-kapisi.gizle_sql), istemci d1-sync; satir SILINMEZ (silmeyi sonraki
+deploy'un d1-sync'i yapar), yayinda=0 geri alinabilir: urun-geri-yukle sonrasi
+deploy'un `yayin-kapisi --yayinla` adimi canli 200 gorunce yeniden yayinlar.
+Indirme dusse bile commit main'de KALIR (geri alma yok), satirlar islendi
+damgalanir, cikti `D1_GIZLE=HATA:<..>` basar ve kosum rc=1 ile KIRMIZI olur.
+
+IDEMPOTENT SILME (K430): alan='sil' satirinin urunu tabanda YOK ama arsivde VARSA
+(ikinci "Sil" tiklamasi, ya da push sonrasi damgasi yarim kalmis kosumun tekrari)
+hata DEGILDIR: islendi + sebep ZATEN_ARSIVDE (TABAN_ZATEN_ESIT deseni). Arsivde de
+yoksa URUN_YOK aynen kalir. ZATEN_ARSIVDE D1'e DOKUNMAZ (kume (b) sartini tasimaz).
+
 HAL UC DEGERLIDIR: beklemede -> islendi | hata(sebep). Islenemeyen satir SESSIZCE
 dusmez; sebep adiyla satira yazilir ve panel kuyruk gorunumunde gorunur.
 
 SIRA (crash-guvenli, en-az-bir-kez + idempotent):
   oku -> sinifla -> hatalari damgala -> duzelt --toplu -> commit -> PUSH ->
-  islendi damgala. Push'tan ONCE hicbir satir islendi OLMAZ; push sonrasi damga
-  yarim kalirsa satirlar beklemede kalir, bir sonraki kosum ayni degeri yeniden
-  uygular (diff bos -> commit yok) ve damgayi tamamlar.
+  [sil varsa] D1 yayinda=0 -> islendi damgala. Push'tan ONCE hicbir satir islendi
+  OLMAZ; push sonrasi damga yarim kalirsa satirlar beklemede kalir, bir sonraki
+  kosum ayni degeri yeniden uygular (diff bos -> commit yok; sil satiri
+  ZATEN_ARSIVDE olur) ve damgayi tamamlar.
 
 KIPLER:
   --uygula        CI kosum kipi. Secret yoksa (K80 is-akisi probu dahil) exit 0,
@@ -171,6 +192,10 @@ class WranglerKuyruk:
                 cikti[s["hal"]] = s["adet"]
         return cikti
 
+    def d1_istemci(self, yk):
+        """urunler tablosu icin d1-sync istemcisinin kendisi (sorgu/dosya_calistir/q)."""
+        return self.d1
+
     def damgala(self, kayitlar):
         # kayitlar: [(id, hal, sebep|None, commit|None)] — tek --file kosumu.
         if not kayitlar:
@@ -208,6 +233,9 @@ class SqliteKuyruk:
         r = self.db.execute("SELECT hal, COUNT(*) AS adet FROM panel_ustyazim GROUP BY hal")
         return {s["hal"]: s["adet"] for s in r.fetchall()}
 
+    def d1_istemci(self, yk):
+        return _SqliteD1(self.db, yk.SahteD1.q)
+
     def damgala(self, kayitlar):
         ts = simdi_utc()
         for kid, hal, sebep, commit in kayitlar:
@@ -215,6 +243,23 @@ class SqliteKuyruk:
                 "UPDATE panel_ustyazim SET hal=?, sebep=?, islendi_ts=?,"
                 " islendi_commit=? WHERE id=? AND hal='beklemede'",
                 (hal, sebep, ts, commit, int(kid)))
+        self.db.commit()
+
+
+class _SqliteD1:
+    """d1-sync istemci yuzeyinin (sorgu / dosya_calistir / q) sqlite ikizi — YALNIZ
+    test dikisi. SQL metni cagirandan gelir (yayin-kapisi), burada SQL yazilmaz;
+    alintlama yayin-kapisi'nin sahte D1'inden (d1-sync.q ile ayni sozlesme)."""
+
+    def __init__(self, db, alinti):
+        self.db = db
+        self.q = alinti
+
+    def sorgu(self, sql):
+        return [{"results": [dict(s) for s in self.db.execute(sql).fetchall()]}]
+
+    def dosya_calistir(self, sql):
+        self.db.executescript(sql)
         self.db.commit()
 
 
@@ -276,7 +321,8 @@ def taban_esit(kayit, alan, deger):
     edilmis degerle yapilir (bicimsel bosluk farki sahte 'degisti' uretmesin)."""
     if alan == "sil":
         # Silme "taban zaten esit" OLAMAZ: kayit varsa silinmesi bir degisikliktir
-        # (kayit yoksa satir_sebebi URUN_YOK ile zaten hata kovasina duser).
+        # (kayit yoksa satir_sebebi URUN_YOK verir; sinifla onu arsivdeyse
+        # ZATEN_ARSIVDE'ye, degilse hata kovasina ayirir).
         return False
     if alan == "gorseller":
         try:
@@ -286,8 +332,11 @@ def taban_esit(kayit, alan, deger):
     return kayit.get(alan) == deger
 
 
-def sinifla(satirlar, katalog):
-    """(uygulanacak[satir], hata[(satir, sebep)], zaten_esit[satir]) doner.
+def sinifla(satirlar, katalog, arsiv_idler=frozenset()):
+    """(uygulanacak[satir], hata[(satir, sebep)], zaten[(satir, sebep)]) doner.
+    `zaten` = islem gerekmeden islendi sayilanlar: TABAN_ZATEN_ESIT ya da
+    ZATEN_ARSIVDE (sil satiri, urun tabanda yok AMA `arsiv_idler`de var — ikinci
+    "Sil" tiklamasi hata degildir; arsivde de yoksa URUN_YOK hata kalir).
     Ayni (urun_id, alan) icin EN YENI satir kazanir; eskisi hata kovasina
     YERINE_YENISI:<id> ile duser (uygulanmadigi halde 'islendi' DENMEZ).
     GECERLI bir 'sil' kazanani olan urunun DIGER kazanan satirlari URUN_SILINECEK
@@ -303,7 +352,7 @@ def sinifla(satirlar, katalog):
     for (uid, alan), kazanan in en_yeni.items():
         if alan == "sil" and satir_sebebi(kazanan, katalog) is None:
             silinecek.add(uid)
-    uygulanacak, hata, zaten_esit = [], [], []
+    uygulanacak, hata, zaten = [], [], []
     for s in satirlar:
         kazanan = en_yeni[(s.get("urun_id"), s.get("alan"))]
         if int(s["id"]) != int(kazanan["id"]):
@@ -313,13 +362,16 @@ def sinifla(satirlar, katalog):
             hata.append((s, "URUN_SILINECEK"))
             continue
         sebep = satir_sebebi(s, katalog)
-        if sebep:
+        if (sebep == "URUN_YOK" and s.get("alan") == "sil"
+                and s.get("urun_id") in arsiv_idler):
+            zaten.append((s, "ZATEN_ARSIVDE"))
+        elif sebep:
             hata.append((s, sebep))
         elif taban_esit(katalog[s["urun_id"]], s["alan"], s["deger"]):
-            zaten_esit.append(s)
+            zaten.append((s, "TABAN_ZATEN_ESIT"))
         else:
             uygulanacak.append(s)
-    return uygulanacak, hata, zaten_esit
+    return uygulanacak, hata, zaten
 
 
 # ── taban yazimi (duzelt --toplu) ───────────────────────────────────────────────
@@ -412,6 +464,72 @@ def arsiv_ekle(kok, kayitlar):
     os.replace(gecici, yol)
 
 
+def _arsiv_kayit_idleri(girisler):
+    return {e["kayit"].get("id") for e in girisler
+            if isinstance(e, dict) and isinstance(e.get("kayit"), dict)}
+
+
+def arsiv_idleri(kok):
+    """Arsiv duzlemindeki urun id'leri (ZATEN_ARSIVDE siniflamasi). Dosya yoksa bos
+    kume; BOZUKSA coker (arsiv_ekle ile ayni: bozuk arsiv sessizce bos sayilmaz)."""
+    yol = os.path.join(kok, ARSIV_DOSYASI)
+    if not os.path.exists(yol):
+        return set()
+    with open(yol, encoding="utf-8") as f:
+        return _arsiv_kayit_idleri(json.load(f))
+
+
+def _commit_json(kok, rev, yol, yoksa=None):
+    p = git(kok, ["show", "%s:%s" % (rev, yol)], kontrol=yoksa is None)
+    if p.returncode != 0:
+        return yoksa
+    return json.loads(p.stdout)
+
+
+def silinen_arsivli_idler(kok, commit):
+    """D1 GIZLEME KUMESI (K430) — ALAN-BAGLI, keyfi id listesi DEGIL. Kume push'lanan
+    commit'in KENDISINDEN turer (kuyruk satiri/bellek kopyasi degil):
+      (a) commit'in EBEVEYNINDE urunler.json'da olup commit'te OLMAYAN id'ler, VE
+      (b) ayni commit'te arsiv/urunler-arsiv.json'a YENI giris olarak eklenen id'ler.
+    Yalniz biri tutan id (arsivsiz dusus / tabanda duran arsiv girisi) kumeye GIRMEZ."""
+    once = {u.get("id") for u in _commit_json(kok, commit + "^", "urunler.json")}
+    sonra = {u.get("id") for u in _commit_json(kok, commit, "urunler.json")}
+    dusen = once - sonra
+    eski = {json.dumps(e, sort_keys=True, ensure_ascii=False)
+            for e in _commit_json(kok, commit + "^", ARSIV_DOSYASI, yoksa=[])}
+    eklenen = _arsiv_kayit_idleri(
+        e for e in _commit_json(kok, commit, ARSIV_DOSYASI, yoksa=[])
+        if json.dumps(e, sort_keys=True, ensure_ascii=False) not in eski)
+    return sorted(i for i in dusen & eklenen if i)
+
+
+def d1_gizle(kok, kuyruk, commit):
+    """Push'lanmis sil commit'inin ALAN-BAGLI kumesini D1'de yayinda=0'a indirir ve
+    GERI OKUR. Doner: "<n>" (indirilen kume boyu) ya da "HATA:<sebep>" — istisna
+    YUTULMAZ, metne cevrilip cagirana kirmizi olarak doner (commit geri alinmaz).
+    SQL TEK KAYNAK: yayin-kapisi.gizle_sql (+ parcala, yayin_hali_harita geri-okumasi);
+    istemci d1-sync (canli) / sqlite ikizi (test)."""
+    try:
+        idler = silinen_arsivli_idler(kok, commit)
+        if not idler:
+            # Sil satiri uygulandi ama commit'te (a)+(b) tutan id yok: turetim
+            # bozulmus demektir — sessiz 0 degil, KIRMIZI.
+            return "HATA:KUME_BOS"
+        yk = _modul_yukle(os.path.join(kok, "tools", "yayin-kapisi.py"),
+                          "pruvo_yayin_kapisi")
+        m = kuyruk.d1_istemci(yk)
+        for parca in yk.parcala(idler):
+            m.dosya_calistir(yk.gizle_sql(parca, m.q))
+        harita = yk.yayin_hali_harita(m, idler)
+        kalan = [u for u in idler if int(harita.get(u) or 0) == 1]
+        if kalan:
+            return "HATA:GERI_OKUMA_YAYINDA=%d" % len(kalan)
+        return "%d" % len(idler)
+    except (Exception, SystemExit) as e:
+        # d1-sync wrangler arizasinda SystemExit firlatir — o da yakalanir.
+        return "HATA:%s:%s" % (type(e).__name__, " ".join(str(e).split())[:160])
+
+
 # ── deploy tetigi ────────────────────────────────────────────────────────────────
 
 def deploy_tetikle():
@@ -471,7 +589,7 @@ def uygula():
     with open(os.path.join(kok, "urunler.json"), encoding="utf-8") as f:
         katalog = {u.get("id"): u for u in json.load(f)}
 
-    uygulanacak, hata, zaten_esit = sinifla(satirlar, katalog)
+    uygulanacak, hata, zaten = sinifla(satirlar, katalog, arsiv_idleri(kok))
     # Hata damgasi push'a BAGLI DEGIL — once yazilir ki bozuk satir kuyrugu tikamasin.
     kuyruk.damgala([(s["id"], "hata", sebep, None) for s, sebep in hata])
 
@@ -483,9 +601,10 @@ def uygula():
                 uca_tazele(kok)
                 with open(os.path.join(kok, "urunler.json"), encoding="utf-8") as f:
                     katalog = {u.get("id"): u for u in json.load(f)}
-                uygulanacak, ek_hata, ek_esit = sinifla(uygulanacak, katalog)
+                uygulanacak, ek_hata, ek_zaten = sinifla(uygulanacak, katalog,
+                                                         arsiv_idleri(kok))
                 kuyruk.damgala([(s["id"], "hata", sebep, None) for s, sebep in ek_hata])
-                zaten_esit.extend(ek_esit)
+                zaten.extend(ek_zaten)
             uygulanan = tabana_isle(kok, uygulanacak, hata)
             uygulanacak = uygulanan
             if not uygulanan:
@@ -527,19 +646,32 @@ def uygula():
             print("PANEL_UYGULAYICI: PUSH_OLMADI — satirlar beklemede birakildi (rc=1)")
             return 1  # PUSH-OLMADI-KOLU
 
+    # K430: silinen urun aramadan HEMEN dussun — YALNIZ push'lanmis commit varsa
+    # (push dustuyse yukarida rc=1 ile cikildi, D1'e dokunulmadi) ve commit sil
+    # tasiyorsa. Alan duzenlemesi (fiyat/baslik/...) yayinda'ya DOKUNMAZ.
+    gizle = None
+    if commit_sha and any(s["alan"] == "sil" for s in uygulanacak):
+        gizle = d1_gizle(kok, kuyruk, commit_sha)
+        print("PANEL_UYGULAYICI: D1_GIZLE=%s" % gizle)
+
     hedef_commit = commit_sha or taban_once
     damga = [(s["id"], "islendi", None, hedef_commit) for s in uygulanacak]
-    damga += [(s["id"], "islendi", "TABAN_ZATEN_ESIT", hedef_commit) for s in zaten_esit]
+    damga += [(s["id"], "islendi", sebep, hedef_commit) for s, sebep in zaten]
     kuyruk.damgala(damga)
 
     tetik = deploy_tetikle() if commit_sha else "COMMIT_YOK"
     print("PANEL_UYGULAYICI: beklemede=%d islendi=%d hata=%d commit=%s deploy_tetik=%s"
-          % (len(satirlar), len(uygulanacak) + len(zaten_esit), len(hata),
-             commit_sha or "-", tetik))
+          " d1_gizle=%s"
+          % (len(satirlar), len(uygulanacak) + len(zaten), len(hata),
+             commit_sha or "-", tetik, gizle or "-"))
     if commit_sha and tetik.startswith("HATA"):
         # Commit main'de ama yayin tetigi dusmus: kirmizi GORUNUR olsun — fiyat
         # bir sonraki push/deploy'a kadar canliya cikmaz.
         return 1
+    if gizle is not None and gizle.startswith("HATA"):
+        # Commit main'de KALIR (geri alma yok), satirlar islendi; ama silinen urun
+        # sonraki deploy'un d1-sync'ine kadar aramada gorunebilir: kirmizi GORUNUR.
+        return 1  # D1-GIZLE-HATA-KOLU
     return 0
 
 
@@ -597,9 +729,13 @@ def _fg(dizin, *args, **run_kw):
                         kimlik_eposta="test@pruvo.test", **run_kw)
 
 
-def _fikstur_kur(tmp, katalog_ek=None):
+def _fikstur_kur(tmp, katalog_ek=None, arsiv=None, d1_ek=()):
     """Sentetik repo (duzelt-toplu-test.sahte_repo TEK KAYNAK) + gercek git +
-    yerel bare uzak + sqlite kuyruk. (repo, bare, db_yolu) doner."""
+    yerel bare uzak + sqlite kuyruk. (repo, bare, db_yolu) doner.
+    sqlite'ta D1 `urunler` tablosunun yayin yuzeyi (id, yayinda) de kurulur: her
+    katalog id'si + `d1_ek` (yalniz D1'de duran, or. arsivdeki urunun bayat satiri)
+    yayinda=1 dogar. `arsiv`: verilirse arsiv/urunler-arsiv.json taban commit'e girer.
+    yayin-kapisi.py fikstur agacinin tools/'una kopyalanir (canli: kok/tools)."""
     dt = _modul_yukle(os.path.join(VARSAYILAN_KOK, "tools", "duzelt-toplu-test.py"),
                       "pruvo_duzelt_toplu_test")
     katalog = json.loads(json.dumps(dt.KATALOG))
@@ -609,6 +745,12 @@ def _fikstur_kur(tmp, katalog_ek=None):
     if katalog_ek:
         katalog.extend(katalog_ek)
     repo = os.path.realpath(dt.sahte_repo(katalog))  # realpath: sentetik git fiksturu sarti
+    shutil.copy(os.path.join(VARSAYILAN_KOK, "tools", "yayin-kapisi.py"),
+                os.path.join(repo, "tools", "yayin-kapisi.py"))
+    if arsiv is not None:
+        os.makedirs(os.path.join(repo, "arsiv"), exist_ok=True)
+        with open(os.path.join(repo, ARSIV_DOSYASI), "w", encoding="utf-8") as f:
+            json.dump(arsiv, f, ensure_ascii=False, indent=2)
     bare = os.path.realpath(tempfile.mkdtemp(prefix="panel-uyg-bare-", dir=tmp))
     _fg(os.path.dirname(bare), "init", "-q", "--bare", bare, check=True)
     for k in (["init", "-q"], ["config", "user.email", "test@pruvo.test"],
@@ -624,8 +766,21 @@ def _fikstur_kur(tmp, katalog_ek=None):
         sema = f.read()
     b = sqlite3.connect(db)
     b.executescript(sema)
+    b.execute("CREATE TABLE urunler (id TEXT PRIMARY KEY,"
+              " yayinda INTEGER NOT NULL DEFAULT 0, release_id TEXT)")
+    b.executemany("INSERT INTO urunler (id, yayinda, release_id) VALUES (?, 1, 'r0')",
+                  [(u["id"],) for u in katalog] + [(i,) for i in d1_ek])
+    b.commit()
     b.close()
     return repo, bare, db
+
+
+def _yayinda(db):
+    b = sqlite3.connect(db)
+    try:
+        return dict(b.execute("SELECT id, yayinda FROM urunler").fetchall())
+    finally:
+        b.close()
 
 
 def _satir_ekle(db, urun_id, alan, deger):
@@ -921,6 +1076,141 @@ def kendini_test():
            dok[g15]["sebep"] == "DEGER_BOS" and dok[y15]["sebep"] == "URUN_YOK"
            and once15 == sonra15 and "test-urun-1" in _katalog_oku(repo14), str(dok))
 
+        # ══ K430 (1 Eki 2026): silinen urun aramadan HEMEN duser + idempotent silme ══
+        # Arsivde duran (tabanda olmayan) urunun bayat D1 satiri — keyfi id sinavi.
+        ARSIVLI = {"silinme_ts": "2026-10-01T13:57:00Z", "yazan": "panel-uygulayici",
+                   "kuyruk_id": 900, "kayit": {"id": "test-arsivli", "kategori": "Ofis",
+                                               "marka": [], "baslik": "Test Arsivli",
+                                               "aciklama": "a", "fiyat": "50 TL",
+                                               "gorseller": []}}
+
+        # ── V16: sil push'lanir -> AYNI kosumda D1 yayinda=0 (yalniz silinen id),
+        #    cikti izi D1_GIZLE=1, rc=0; komsu satirlar yayinda=1 KALIR.
+        repo16, bare16, db16 = _fikstur_kur(tmp)
+        s16 = _satir_ekle(db16, "test-urun-1", "sil", "kobay v16")
+        rc, cikti16 = _uygulayici_kos(ARAC_YOLU, repo16, db16)
+        y16 = _yayinda(db16)
+        dok = {s["id"]: s for s in _kuyruk_dok(db16)}
+        ol("V16a sil push sonrasi D1 yayinda=0 + iz D1_GIZLE=1 + rc=0",
+           rc == 0 and y16.get("test-urun-1") == 0 and "D1_GIZLE=1\n" in cikti16,
+           "rc=%d y=%r | %s" % (rc, y16, cikti16))
+        ol("V16b komsu urunler yayinda=1 KALDI + satir islendi + D1 satiri SILINMEDI",
+           y16.get("test-urun-2") == 1 and y16.get("test-urun-3") == 1
+           and "test-urun-1" in y16 and dok[s16]["hal"] == "islendi", str(y16))
+
+        # ── V17: push DUSERSE D1'e 0 yazma (yayinda degismez, D1_GIZLE izi yok).
+        repo17, bare17, db17 = _fikstur_kur(tmp)
+        _fg(repo17, "remote", "set-url", "--push", "origin",
+            os.path.join(tmp, "olmayan-uzak-17"), check=True)
+        _satir_ekle(db17, "test-urun-1", "sil", "kobay v17")
+        rc, cikti17 = _uygulayici_kos(ARAC_YOLU, repo17, db17)
+        ol("V17 push dusunce rc!=0 + D1 yayinda AYNI + D1_GIZLE izi YOK",
+           rc != 0 and _yayinda(db17).get("test-urun-1") == 1
+           and "D1_GIZLE" not in cikti17 and _kuyruk_dok(db17)[0]["hal"] == "beklemede",
+           "rc=%d %s" % (rc, cikti17))
+
+        # ── V18: IDEMPOTENT SILME — urun tabanda yok, arsivde var -> islendi
+        #    ZATEN_ARSIVDE, commit YOK, D1'e DOKUNULMAZ (bayat satir yayinda=1 kalir:
+        #    keyfi id gizlenmez); arsivde de olmayan -> URUN_YOK hata AYNEN.
+        repo18, bare18, db18 = _fikstur_kur(tmp, arsiv=[ARSIVLI], d1_ek=("test-arsivli",))
+        once18 = _fg(bare18, "rev-parse", "main").stdout.strip()
+        a18 = _satir_ekle(db18, "test-arsivli", "sil", "ikinci tiklama")
+        y18 = _satir_ekle(db18, "olmayan-urun", "sil", "gerekce var")
+        rc, cikti18 = _uygulayici_kos(ARAC_YOLU, repo18, db18)
+        dok = {s["id"]: s for s in _kuyruk_dok(db18)}
+        ol("V18a arsivdeki urunun sil satiri islendi ZATEN_ARSIVDE (hata DEGIL)",
+           rc == 0 and dok[a18]["hal"] == "islendi" and dok[a18]["sebep"] == "ZATEN_ARSIVDE",
+           "rc=%d %s | %s" % (rc, dok, cikti18))
+        ol("V18b arsivde de olmayan -> hata URUN_YOK",
+           dok[y18]["hal"] == "hata" and dok[y18]["sebep"] == "URUN_YOK", str(dok))
+        ol("V18c commit YOK + keyfi (bu commit'te arsive girmeyen) id GIZLENMEDI",
+           once18 == _fg(bare18, "rev-parse", "main").stdout.strip()
+           and _yayinda(db18).get("test-arsivli") == 1 and "D1_GIZLE" not in cikti18,
+           cikti18)
+
+        # ── V19: D1 indirmesi DUSERSE: commit main'de KALIR, satir islendi, iz
+        #    D1_GIZLE=HATA:, rc!=0 (urunler tablosu yok = gercek D1 hatasi sinifi).
+        repo19, bare19, db19 = _fikstur_kur(tmp)
+        b = sqlite3.connect(db19)
+        b.execute("DROP TABLE urunler")
+        b.commit()
+        b.close()
+        s19 = _satir_ekle(db19, "test-urun-1", "sil", "kobay v19")
+        rc, cikti19 = _uygulayici_kos(ARAC_YOLU, repo19, db19)
+        uzak19 = _fg(bare19, "rev-parse", "main").stdout.strip()
+        dok = {s["id"]: s for s in _kuyruk_dok(db19)}
+        ol("V19a gizle hatasi -> rc!=0 + iz D1_GIZLE=HATA:",
+           rc != 0 and "D1_GIZLE=HATA:" in cikti19, "rc=%d %s" % (rc, cikti19))
+        ol("V19b commit uzakta KALDI (geri alinmadi) + satir islendi o commit'le",
+           dok[s19]["hal"] == "islendi" and dok[s19]["islendi_commit"] == uzak19
+           and "test-urun-1" not in _katalog_oku(repo19), str(dok))
+
+        # ── V20: alan duzenlemesi yayinda'ya DOKUNMAZ; karisik kosumda YALNIZ
+        #    silinen id iner (fiyat'i degisen ve dokunulmayan urun yayinda=1).
+        repo20, bare20, db20 = _fikstur_kur(tmp)
+        _satir_ekle(db20, "test-urun-2", "fiyat", "150 TL")
+        rc, cikti20a = _uygulayici_kos(ARAC_YOLU, repo20, db20)
+        y20a = _yayinda(db20)
+        ol("V20a yalniz fiyat: rc=0 + tum D1 yayinda=1 + D1_GIZLE izi YOK",
+           rc == 0 and all(v == 1 for v in y20a.values()) and "D1_GIZLE=" not in cikti20a
+           and _katalog_oku(repo20)["test-urun-2"]["fiyat"] == "150 TL",
+           "y=%r %s" % (y20a, cikti20a))
+        _satir_ekle(db20, "test-urun-2", "baslik", "V20 Yeni Baslik")
+        _satir_ekle(db20, "test-urun-1", "sil", "kobay v20")
+        rc, cikti20b = _uygulayici_kos(ARAC_YOLU, repo20, db20)
+        y20b = _yayinda(db20)
+        ol("V20b karisik: yalniz silinen 0, digerleri 1 + D1_GIZLE=1",
+           rc == 0 and y20b.get("test-urun-1") == 0
+           and all(v == 1 for k, v in y20b.items() if k != "test-urun-1")
+           and "D1_GIZLE=1\n" in cikti20b, "y=%r %s" % (y20b, cikti20b))
+
+        # ── V21: kume ALAN-BAGLI — elle kurulmus commit: A ve B tabandan duser,
+        #    arsive yalniz A ve C (C tabanda DURUYOR) girer -> kume yalniz [A].
+        def _v21_repo():
+            d = os.path.realpath(tempfile.mkdtemp(prefix="panel-uyg-v21-", dir=tmp))
+            for k in (["init", "-q"], ["config", "user.email", "test@pruvo.test"],
+                      ["config", "user.name", "panel-uyg-test"]):
+                _fg(d, *k, check=True)
+            os.makedirs(os.path.join(d, "arsiv"))
+
+            def yaz(urunler, arsiv_):
+                with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
+                    json.dump(urunler, f)
+                with open(os.path.join(d, ARSIV_DOSYASI), "w", encoding="utf-8") as f:
+                    json.dump(arsiv_, f)
+                _fg(d, "add", "-A", check=True)
+                _fg(d, "commit", "-q", "-m", "v21", check=True)
+            eski_giris = {"kuyruk_id": 1, "kayit": {"id": "Z"}}
+            yaz([{"id": i} for i in ("A", "B", "C", "D")], [eski_giris])
+            yaz([{"id": i} for i in ("C", "D")],
+                [eski_giris, {"kuyruk_id": 2, "kayit": {"id": "A"}},
+                 {"kuyruk_id": 3, "kayit": {"id": "C"}}])
+            return d, _fg(d, "rev-parse", "HEAD").stdout.strip()
+        repo21, sha21 = _v21_repo()
+        kume21 = silinen_arsivli_idler(repo21, sha21)
+        ol("V21 kume = (dusen) ∩ (bu commit'te arsive eklenen) = [A]",
+           kume21 == ["A"], repr(kume21))
+
+        # ── V22: GERI YUKLEME yolu bozulmadi — V16'da silinip yayinda=0'a inen urun
+        #    urun-geri-yukle ile tabana doner; D1 satiri durur (yayinda=0) ve
+        #    yayin-kapisi'nin yayina-alma karari onu ADAY secer, yayin_sql 1'e cevirir.
+        ort = dict(os.environ, URUN_GERI_KOK=repo16)
+        p = subprocess.run([sys.executable, os.path.join(VARSAYILAN_KOK, "tools",
+                                                         "urun-geri-yukle.py"),
+                            "test-urun-1", "--gerekce", "v22"],
+                           env=ort, capture_output=True, text=True)
+        yk = _modul_yukle(os.path.join(repo16, "tools", "yayin-kapisi.py"), "pruvo_yk_v22")
+        yerel22 = list(_katalog_oku(repo16))
+        adaylar22, _atl = yk.adaylari_sec(["test-urun-1"], yerel22, ["test-urun-1"])
+        b = sqlite3.connect(db16)
+        b.executescript(yk.yayin_sql(adaylar22, "r-v22", yk.SahteD1.q))
+        b.commit()
+        b.close()
+        ol("V22 geri-yukle rc=0 + tabanda + yayina-alma adayi + yayin_sql -> yayinda=1",
+           p.returncode == 0 and "test-urun-1" in yerel22
+           and adaylar22 == ["test-urun-1"] and _yayinda(db16).get("test-urun-1") == 1,
+           "rc=%d aday=%r %s" % (p.returncode, adaylar22, p.stdout + p.stderr))
+
         # ── MUTANTLAR: canli govdeye DOKUNULMAZ; gecici KOPYA mutasyonlanir.
         #    Once kopyanin KONTROL kosumu (mutasyonsuz, ayni argumanlar) yesil olmali.
         with open(ARAC_YOLU, encoding="utf-8") as f:
@@ -1029,6 +1319,95 @@ def kendini_test():
                        and dokM5[fM5]["sebep"] == "URUN_SILINECEK")
         mutant_sonuc.append(("M5-sil-onceligi-kalkar", m5_oldu, "URUN_SILINECEK"))
         ol("M5 mutant V14b iddiasini dusurdu (sil-onceligi kolu canli)", m5_oldu, cikti5)
+
+        # ── K430 MUTANTLARI (M6-M12): her biri IZOLE tek degisiklik; capa PARCALI
+        #    kurulur (M1 gerekcesi) ve canli govdede TEKIL olmali; mutant kopyasi
+        #    `--uygula` ile (ya da modul olarak) FIILEN hedef koda ulasir.
+        def mutant_yaz(ad, capa, yerine):
+            ol("%s capasi canli govdede tekil" % ad, govde.count(capa) == 1)
+            yol = os.path.join(tmp, "mutant-%s.py" % ad.lower())
+            with open(yol, "w", encoding="utf-8") as f:
+                f.write(govde.replace(capa, yerine))
+            return yol
+
+        # M6-gizle-pushtan-once: hedef = V17 (push duserse D1'e 0 yazma).
+        capa6 = 'p = git(kok, ["push", ' + '"origin", "HEAD:main"], kontrol=False)'
+        m6 = mutant_yaz("M6", capa6, 'on6 = d1_gizle(kok, kuyruk, git(kok, ["rev-parse",'
+                        ' "HEAD"]).stdout.strip()); ' + capa6)
+        repoM6, bareM6, dbM6 = _fikstur_kur(tmp)
+        _fg(repoM6, "remote", "set-url", "--push", "origin",
+            os.path.join(tmp, "olmayan-uzak-m6"), check=True)
+        _satir_ekle(dbM6, "test-urun-1", "sil", "m6 kobay")
+        rc6, cikti6 = _uygulayici_kos(m6, repoM6, dbM6)
+        # Olum = mutant PUSH-DUSTU kolunda (rc!=0) D1 yazdi; cokus olum SAYILMAZ.
+        m6_oldu = rc6 != 0 and "PUSH_OLMADI" in cikti6 and _yayinda(dbM6).get("test-urun-1") == 0
+        mutant_sonuc.append(("M6-gizle-pushtan-once", m6_oldu, "V17-push-dusunce-D1-0-yazma"))
+        ol("M6 mutant V17 iddiasini dusurdu (gizle push'a bagli)", m6_oldu, cikti6)
+
+        # M7/M10/M11 ayni capa (kume formulu), uc FARKLI izole sapma.
+        capa7 = "return sorted(i for i in " + "dusen & eklenen if i)"
+        # M7-arsiv-sarti-duser: hedef = V21 (arsivsiz dusus kumeye GIRMEZ).
+        m7 = mutant_yaz("M7", capa7, "return sorted(i for i in dusen if i)")
+        k7 = _modul_yukle(m7, "panel_uyg_m7").silinen_arsivli_idler(repo21, sha21)
+        m7_oldu = k7 != ["A"]
+        mutant_sonuc.append(("M7-arsiv-sarti-duser", m7_oldu, "V21-kume-(b)"))
+        ol("M7 mutant V21 iddiasini dusurdu (arsiv sarti canli) kume=%r" % k7, m7_oldu)
+
+        # M11-dusme-sarti-duser: hedef = V21 (tabanda duran arsiv girisi GIZLENMEZ).
+        m11 = mutant_yaz("M11", capa7, "return sorted(i for i in eklenen if i)")
+        k11 = _modul_yukle(m11, "panel_uyg_m11").silinen_arsivli_idler(repo21, sha21)
+        m11_oldu = k11 != ["A"]
+        mutant_sonuc.append(("M11-dusme-sarti-duser", m11_oldu, "V21-kume-(a)"))
+        ol("M11 mutant V21 iddiasini dusurdu (dusus sarti canli) kume=%r" % k11, m11_oldu)
+
+        # M10-gizle-tum-silinmeyenlere: hedef = V20b (yalniz silinen id iner).
+        m10 = mutant_yaz("M10", capa7, "return sorted(i for i in (dusen & eklenen) | sonra if i)")
+        repoM10, bareM10, dbM10 = _fikstur_kur(tmp)
+        _satir_ekle(dbM10, "test-urun-2", "fiyat", "150 TL")
+        _satir_ekle(dbM10, "test-urun-1", "sil", "m10 kobay")
+        rc10, cikti10 = _uygulayici_kos(m10, repoM10, dbM10)
+        m10_oldu = any(v == 0 for k, v in _yayinda(dbM10).items() if k != "test-urun-1")
+        mutant_sonuc.append(("M10-gizle-tum-silinmeyenlere", m10_oldu, "V20b-yalniz-silinen"))
+        ol("M10 mutant V20b iddiasini dusurdu (kume daralmasi canli)", m10_oldu, cikti10)
+
+        # M8-zaten-arsivde-hata-kovasina: hedef = V18a.
+        capa8 = 'zaten.append((s, "ZATEN_' + 'ARSIVDE"))'
+        m8 = mutant_yaz("M8", capa8, 'hata.append((s, "ZATEN_ARSIVDE"))')
+        repoM8, bareM8, dbM8 = _fikstur_kur(tmp, arsiv=[ARSIVLI], d1_ek=("test-arsivli",))
+        aM8 = _satir_ekle(dbM8, "test-arsivli", "sil", "m8 kobay")
+        rc8, cikti8 = _uygulayici_kos(m8, repoM8, dbM8)
+        dM8 = {s["id"]: s for s in _kuyruk_dok(dbM8)}[aM8]
+        # Olum = satir FIILEN hata kovasina indi (cokusle beklemede kalmasi sayilmaz).
+        m8_oldu = dM8["hal"] == "hata" and dM8["sebep"] == "ZATEN_ARSIVDE"
+        mutant_sonuc.append(("M8-zaten-arsivde-hata-kovasina", m8_oldu, "V18a-ZATEN_ARSIVDE"))
+        ol("M8 mutant V18a iddiasini dusurdu (idempotent silme kolu canli)", m8_oldu, cikti8)
+
+        # M9-gizle-rc-yutulur: hedef = V19a (gizle hatasi rc!=0).
+        capa9 = "return 1  # D1-GIZLE" + "-HATA-KOLU"
+        m9 = mutant_yaz("M9", capa9, "pass  # susturuldu")
+        repoM9, bareM9, dbM9 = _fikstur_kur(tmp)
+        b = sqlite3.connect(dbM9)
+        b.execute("DROP TABLE urunler")
+        b.commit()
+        b.close()
+        _satir_ekle(dbM9, "test-urun-1", "sil", "m9 kobay")
+        rc9, cikti9 = _uygulayici_kos(m9, repoM9, dbM9)
+        m9_oldu = rc9 == 0
+        mutant_sonuc.append(("M9-gizle-rc-yutulur", m9_oldu, "V19a-rc"))
+        ol("M9 mutant V19a iddiasini dusurdu (gizle hatasi kirmizi kalir)", m9_oldu, cikti9)
+
+        # M12-gizle-cagrisi-sahte-iz: gizle hic cagrilmaz ama iz "1" basilir —
+        # V16a yalniz izi degil D1 DURUMUNU da olctugu icin olmeli.
+        capa12 = "gizle = d1_gizle(kok, " + "kuyruk, commit_sha)"
+        m12 = mutant_yaz("M12", capa12, 'gizle = "1"')
+        repoM12, bareM12, dbM12 = _fikstur_kur(tmp)
+        _satir_ekle(dbM12, "test-urun-1", "sil", "m12 kobay")
+        rc12, cikti12 = _uygulayici_kos(m12, repoM12, dbM12)
+        # Olum = kosum TAMAMLANDI, sahte iz basildi, D1 ise yayinda=1 kaldi.
+        m12_oldu = (rc12 == 0 and "D1_GIZLE=1\n" in cikti12
+                    and _yayinda(dbM12).get("test-urun-1") == 1)
+        mutant_sonuc.append(("M12-gizle-cagrisi-sahte-iz", m12_oldu, "V16a-D1-durumu"))
+        ol("M12 mutant V16a iddiasini dusurdu (iz tek basina yetmez)", m12_oldu, cikti12)
 
         olen = sum(1 for _, oldu, _ in mutant_sonuc if oldu)
         print("SONUC: VAKA=%d DUSEN=%d MUTANT=%d/%d KONTROL=%s"

@@ -339,7 +339,10 @@ jobs:
       #   - olculen 18-27 s'lik adim suresi yayin yolundan DUSER.
       # `--bayatlik` D1'e DOKUNMAZ (yalniz `git ls-remote` + `merge-base`), UC ise 0 doner.
       # Fail-open KALIR: bayat/olculemez kosumda adim exit 0 ile ATLAR, yayin durmaz;
-      # kalintiyi d1-uzlastirici.yml (yayin yolu disinda, 15 dk) kapatir.
+      # kalintiyi d1-uzlastirici.yml (yayin yolu disinda) kapatir. Cron metni 15 dk'dir
+      # ama GitHub schedule'i KISAR: olculen son 30 schedule kosumu (26 Eyl-1 Eki 2026)
+      # arasi 2,2-8,3 sa, ortalama ~4,7 sa — "15 dk" garanti DEGILDIR. Panel silmesi bu
+      # pencereyi beklemez: panel-uygulayici push SONRASI D1'de yayinda=0 indirir (K430).
       - name: Katalogu D1'e senkronla
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
