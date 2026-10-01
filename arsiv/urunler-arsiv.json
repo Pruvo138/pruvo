@@ -313,5 +313,33 @@
         "tur": "CC BY-SA 4.0"
       }
     }
+  },
+  {
+    "silinme_ts": "2026-10-01T13:59:17Z",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 34,
+    "kayit": {
+      "id": "toyota-rav4-off-road-elik-n-tampon",
+      "kategori": "Otomobil",
+      "marka": [
+        "Toyota",
+        "RAV4"
+      ],
+      "baslik": "Toyota RAV4 Off-Road Çelik Ön Tampon",
+      "aciklama": "Toyota RAV4 aracınız için özel olarak tasarlanan off-road ön tampon, zorlu arazi koşullarında üstün koruma sağlar.\nAracınızın ön bölümünü darbelere ve engellere karşı maksimum düzeyde korur.\nÖzel tasarım üretim yapısı sayesinde aracın orijinal hatlarına kusursuz uyum sağlar.\nVinç ve ek aydınlatma montajına uygun altyapıya sahiptir.\nYaklaşık dış ölçüler: 76 × 76 × 60 mm.",
+      "fiyat": "950 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/toyota-rav4-off-road-elik-n-tampon-1.jpg",
+        "https://media.pruvo3d.com/urunler/toyota-rav4-off-road-elik-n-tampon-2.jpg",
+        "https://media.pruvo3d.com/urunler/toyota-rav4-off-road-elik-n-tampon-3.jpg",
+        "https://media.pruvo3d.com/urunler/toyota-rav4-off-road-elik-n-tampon-4.jpg",
+        "https://media.pruvo3d.com/urunler/panel-f1bea8bbbd64d06d4f76.png"
+      ],
+      "lisans": {
+        "tasarimci": "Kadanae Industries",
+        "tur": "CC BY-SA 4.0"
+      },
+      "altkategori": "Aydınlatma"
+    }
   }
 ]
