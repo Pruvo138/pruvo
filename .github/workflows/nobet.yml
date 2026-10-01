@@ -1879,6 +1879,22 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kutu-arsivle-test.py --mutasyon
 
+      # KUTU OKSUZ GOVDE OLCUM KOLU (K424, 1 Eki 2026) — kutunun DIBINE basliksiz eklenen
+      # gövde rotasyonu D11'de DURDURUR; kutu 500 satira varinca kota kapisi evin HER
+      # commit'ini kilitler ve kilidi acan arac calismaz. Olcumun kendisi (`tools/
+      # kutu-oksuz-nobeti.py`, `KUTU_OKSUZ_GOVDE=<n>`) gercek kutuyu CI'dan GOREMEZ
+      # (~/.claude altinda yasar) -> burada yalniz MANTIGI kanitlanir: 16 vaka / 63 iddia
+      # (tanim `kutu-arsivle --kuru` ile ESIT, ayracsiz kutuda 0 DEGIL OLCULEMEDI, dizin
+      # yoksa MAKINEDE_YOK) + 11 oldurucu / 1 kontrol mutant. HERMETIK: gecici dizin, gercek
+      # kutuya YAZILMAZ. Olcumun gorunur yuzu `tools/durum.py` bolum 10'dur (CI'da kosmaz).
+      - name: "Kutu oksuz govde nobetcisi kabul testi (K424, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kutu-oksuz-nobeti-test.py
+
+      - name: "Kutu oksuz govde nobetcisi mutasyon turu (K424, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kutu-oksuz-nobeti-test.py --mutasyon
+
       # K308 KABUL BATARYASI (K422, 19 Eyl 2026) — yedek dususu GORUNUR + KALICI
       # + SAYILI mi; 9 vaka + 6 hedef-kol atifli mutant + zararsiz KONTROL.
       # 18 Eyl'e dek kesif `-kabul` ekini tanimadigi icin CI'da HIC kosmadi ve
