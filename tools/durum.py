@@ -1249,6 +1249,26 @@ def _yayin_gecikme_satirlari():
     return satirlar
 
 
+# ------------------------------------------------- 10) ORTAK KUTU BUTUNLUGU
+# 🔴 NEDEN PANODA (K424, 26 Eyl 2026, OLCULDU): kutunun dibine basliksiz eklenen iki
+# kapanis gövdesi rotasyonu D11'de durdurdu; gorunur tek iz push kancasinin fail-open
+# satiriydi, 09:00 advisor kutuyu 489/500 SAYDI ama oksuz govdeyi saymadi. Kutu
+# ~/.claude altinda yasar -> CI GORMEZ; gorunurluk YEREL olmak zorunda ve mimarlarin
+# rutin baktigi yer bu panodur (bolum 8 / 9 ile ayni gerekce).
+# KOPYA YOK: hukum tek kaynaktan (tools/kutu-oksuz-nobeti.py) gelir; o da tespit
+# tanimini `kutu-arsivle.py::oksuz_govdeler`'den alir.
+def _kutu_oksuz_satirlari():
+    yol = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                       "kutu-oksuz-nobeti.py")
+    if not os.path.exists(yol):
+        return ["  ⚪ ÖLÇÜLEMEDİ: tools/kutu-oksuz-nobeti.py YOK -> kutunun yapisal "
+                "butunlugu (oksuz govde) olculMEDI ('sorun yok' demek DEGILDIR)."]
+    spec = importlib.util.spec_from_file_location("kutu_oksuz_pano", yol)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m.satirlar()
+
+
 def main():
     repo = repo_koku()
     kok = ana_repo(repo)
@@ -1378,6 +1398,16 @@ def main():
         yayin_satirlari = ["  ⚪ ÖLÇÜLEMEDİ: yayin gecikme nobetcisi kosturulamadi (%s)"
                            % type(e).__name__]
     for satir in yayin_satirlari:
+        print(satir)
+
+    # 10) ORTAK KUTU BUTUNLUGU — baslıksiz (oksuz) govde var mi? (bkz. _kutu_oksuz_satirlari)
+    print("\n10) ORTAK KUTU BUTUNLUGU (oksuz govde — K424)")
+    try:
+        kutu_satirlari = _kutu_oksuz_satirlari()
+    except Exception as e:                    # pano bir KAPI degil: hicbir hal exit'i bozmaz
+        kutu_satirlari = ["  ⚪ ÖLÇÜLEMEDİ: kutu oksuz govde nobetcisi kosturulamadi (%s)"
+                          % type(e).__name__]
+    for satir in kutu_satirlari:
         print(satir)
 
     print("")
