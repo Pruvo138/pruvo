@@ -289,9 +289,14 @@ Y3 = ("Y3", "🔴 COKMUS REJIM SABIR SATIN ALIYOR: A5 TABAN SARTI kaldirildi -> 
             "cokerken (1/48 sa) canli oran KABUL EDILIR, esik 9 -> 18 sa'e cikar ve "
             "12 saatlik sessizlik YESILE doner. Onarimin fail-open'a cevrilebildigi "
             "TAM NOKTA ([[duzeltme-fail-open-cevirebilir]])", KAPI,
-      [("    if teslim < a5_tabani:\n        return None, "
-        "(\"teslim %d < A5 tabani %d: COKMUS rejim kendi esigini BUYUTEMEZ\"\n"
-        "                      % (teslim, a5_tabani))\n", "")], True, {"A3", "IKIZ", "Y4"})
+      # 🔴 30 Eyl 2026 ONARIM (BAYAT MUTANT): eski mutant taban kolunu TAMAMEN siliyordu;
+      # 22 Eyl'in T-TUT-1 fiksturunde (teslim 0, sayfa kirpik degil) bu, SIFIR oranin
+      # `efektif_aralik_dk` fail-closed'ine (`OlcumHatasi`) carpip kendini-testi COKERTIYORDU
+      # (HEAD'de de: iddia sayisi None) — cokme kirmizisi bir OLCUM DEGILDIR. Mutant, teslim
+      # COKERKEN (0 < teslim < taban: 1/48 sa) oranin kabul edildigi HALE daraltildi;
+      # sifir teslim fail-closed'e birakilir (Y5'in tam kollugu).
+      [("    if teslim < a5_tabani:\n",
+        "    if teslim == 0:\n")], True, {"A3", "IKIZ", "Y4"})
 
 Y4 = ("Y4", "🔴 'KOSUM VAR' ile 'TESLIM VAR' KARISTIRILDI: oran W penceresindeki "
             "teslimden degil is akisinin TOPLAM kosum sayisindan turetiliyor (137/192 "
@@ -354,10 +359,125 @@ K6 = ("K6", "SIRALAMA DEGISIKLIGI: `canli_esik` icinde birbirinden BAGIMSIZ iki 
         "    donmus = esik_saat(aralik) if aralik else ESIK_TABAN_SAAT\n")],
       False, set())
 
+# ══ 30 EYL 2026 — BAYAT ILK SAYFA (CAPRAZ GOZLEM) MUTANTLARI (Z kolu) ═══════════════
+# Bu kol `_pencere_gozlemi` / `_pencereden_duzelt` / `_tutarli_sayfa_hukmu` ve satir
+# notunun HER BIRINI ayri ayri bozar. Beyan = kirmizi yanan iddia ADLARININ ilk sozcugu
+# (T-BAYAT-* ve T-DOLU-* aileleri). Kaynak olcum: dosya basindaki BAYAT ILK SAYFA blogu.
+Z1 = ("Z1", "🔴 DUZELTME KALDIRILDI: taze ve tutarli pencere kesiti bulunsa da `g` ESKI "
+             "bayat sayfayla KALIR (8 kosumluk SERIT B kirmizisi geri gelir)", KAPI,
+      [('    if not pg.get("tutarli") or not pg.get("damgalar"):\n        return False\n',
+        '    return False\n')], True, None)
+
+Z2 = ("Z2", "🔴 ESKI TETIK GERI GELDI: ikinci gozlem YALNIZ `beyan > donen ∧ sayfa DOLU` iken "
+             "yapilir -> KENDI ICINDE TUTARLI bayat kesit (77/77) yine KESIN 'Cron SESSIZ' "
+             "uretir", KAPI,
+      [("        return None                      # ilk sayfa pencerede kayit GOSTERIYOR: "
+        "hukum verilir\n",
+        "        return None                      # ilk sayfa pencerede kayit GOSTERIYOR: "
+        "hukum verilir\n"
+        "    if beyan <= donen or donen < TESLIM_SAYFA:\n        return None\n")],
+      True, None)
+
+Z3 = ("Z3", "🔴 KUORUM YOK: TEK basarili BOS cekis sessizlik hukmu olur (2 HATA + 1 BOS de "
+             "'cron sessiz' derdi)", KAPI,
+      [("    if bos >= TAZELIK_KUORUM:\n", "    if bos >= 1:\n")], True, None)
+
+Z4 = ("Z4", "🔴 TEK CEKIS: TAZELIK_DENEME 3 -> 1 (bayat ilk BOS cekis sessizlik sayilir)", KAPI,
+      [("TAZELIK_DENEME = 3            # sessizlik hukmunden ONCE en cok kac pencereli cekis",
+        "TAZELIK_DENEME = 1            # sessizlik hukmunden ONCE en cok kac pencereli cekis")],
+      True, None)
+
+Z5 = ("Z5", "🔴 TUTARLILIK KONTROLU KALKTI: `total_count != donen` kesit bile SAYILIYOR "
+             "(eksik kesitten sahte 🔴 teslim sayisi)", KAPI,
+      [('        c["tutarli"] = (c["beyan"] == c["donen"]) or c["donen"] >= TESLIM_SAYFA\n',
+        '        c["tutarli"] = True\n')], True, None)
+
+Z6 = ("Z6", "🔴 MARJ KAYDI HAYAT KANITI SAYILDI: pencere BASINDAN once (erken sinirin "
+             "getirdigi) kayit 'pencerede kosum var' diye okunuyor", KAPI,
+      [('        pencerede = [d for d in c["damgalar"] if d > pencere_basi]\n',
+        '        pencerede = c["damgalar"]\n')], True, None)
+
+Z7 = ("Z7", "🔴 SESSIZ IKAME: duzeltme yapildi ama satir bunu SOYLEMIYOR (okuyan hukmun "
+             "hangi veriden ciktigini goremez)", KAPI,
+      [('    d = g.get("duzeltme")\n    if not d:\n        return ""\n',
+        '    return ""\n')], True, None)
+
+Z8 = ("Z8", "🔴 KIMLIK KUMESI ESKI KALDI: A0/A4 damganin CRON teslimi mi oldugunu bayat "
+             "sayfanin kimlikleriyle olcer (damga 'kumede yok' -> sahte 'elle' / "
+             "SINIFLANDIRILAMAZ)", KAPI,
+      [('    g["schedule_kimlikleri"] = list(pg["kimlikler"])\n', '')], True, None)
+
+Z9 = ("Z9", "🔴 SON KOSUM ESKI KALDI: A3 bayat sayfanin en yenisini (159 sa) 'son kosum' "
+             "sayar -> duzeltilmis veriyle bile 'Cron SESSIZ'", KAPI,
+      [('    g["son_kosum"] = max(pg["damgalar"])\n', '')], True, None)
+
+Z10 = ("Z10", "🔴 YOL KAYDIRMA KALDI: tekrar cekislerin yolu AYNI (ayni URL'ye takili bayat "
+              "yanit her seferinde tekrarlanir)", KAPI,
+       [("    sinir = pencere_basi - timedelta(minutes=kaydirma_dk)\n",
+         "    sinir = pencere_basi\n")], True, None)
+
+Z11 = ("Z11", "🔴 ILK CEKISTEN ONCE DE BEKLENIYOR: saglikli/taze halde bile 3 sn gecikme "
+              "(her bayat is akisinda yavaslama)", KAPI,
+       [("        if i:\n            bekle(TAZELIK_BEKLEME_SN)\n",
+         "        bekle(TAZELIK_BEKLEME_SN)\n")], True, None)
+
+Z12 = ("Z12", "🔴 FIKSTUR DE UYUYOR: enjekte `getir` yerine HER ZAMAN time.sleep (testler "
+              "saniyelerce bekler, kapi kendini test edemez hale gelir)", KAPI,
+       [("        bekle = time.sleep if getir is api_getir else (lambda _sn: None)\n",
+         "        bekle = time.sleep\n")], True, None)
+
+Z13 = ("Z13", "🔴 TUTARLI SAYFADA IKINCI GOZLEM SONUCU YOK SAYILIYOR: ikinci gozlem HATA "
+               "verse ya da kesit TUTARSIZ olsa bile tutarli bayat sayfa 'Cron SESSIZ' "
+               "alarmina gider (belirsizlik OLCULEMEDI'ye degil ALARMA yazilir)", KAPI,
+       [("    if not isinstance(pg, dict):\n        return None\n    onek = (",
+         "    return None\n    onek = (")], True, None)
+
+Z14 = ("Z14", "🔴 ILK KESIT KAZANIR: tutarsiz ilk kesit, sonraki TUTARLI kesiti golgeler "
+               "(en iyi kesit secimi kalkti)", KAPI,
+       [('        if en_iyi is None or (c["tutarli"] and not en_iyi["tutarli"]):\n',
+         '        if en_iyi is None:\n')], True, None)
+
+Z15 = ("Z15", "🔴 HATA = BOS: ikinci gozlem HTTP hatasi 'pencerede kosum yok' sayiliyor "
+               "(kuorum hatalarla DOLAR, bayat sayfa + gecici 502 = sahte kesin alarm)", KAPI,
+       [("            hatalar.append(str(e))\n            continue\n",
+         "            bos += 1\n            continue\n")], True, None)
+
+Z16 = ("Z16", "🔴 A5 SATIRI NOTSUZ: teslim pencere kesitinden sayildi ama A5 satiri kesiti "
+               "ANMIYOR", KAPI,
+       [("    olcu += _duzeltme_notu(g, simdi)\n", "")], True, None)
+
+Z17 = ("Z17", "🔴 A3 SATIRI NOTSUZ: son kosum pencere kesitinden geldi ama A3 satiri kesiti "
+               "ANMIYOR (A3 ile A5 AYNI veriden hukum verdigini okuyan goremez)", KAPI,
+       [("        ek += _duzeltme_notu(g, simdi)     # bayat ilk sayfa duzeltildiyse SATIRDA "
+         "gorunur\n", "")], True, None)
+
+Z18 = ("Z18", "🔴 KESIT KIRPIKLIGI SILINDI: duzeltmeden sonra `pencere_kirpildi` ESKI (True) "
+               "kaliyor -> A5 'API sayfa siniri doldu' notu yalan yere basiliyor ve kimlik "
+               "kumesi 'kirpik' sayilip A0 SINIFLANDIRILAMAZ'a duser", KAPI,
+       [('    g["pencere_kirpildi"] = pg["donen"] >= TESLIM_SAYFA\n', '')], True, None)
+
+Z19 = ("Z19", "🔴 A0/A4 SATIRI NOTSUZ: damga uyeligi PENCERE kesitinden olculdu ama A0 satiri "
+               "bunu ANMIYOR (A0 ile A3/A5 farkli aciklik tasir)", KAPI,
+       [('        satir += kaynak["not"]\n', '        pass\n')], True, None)
+
+# ── KONTROL MUTANTLARI (Z kolu — YESIL kalmali) ─────────────────────────────
+K7 =("K7", "ilgisiz: kuorum sabitinin yanina aciklama yorumu eklendi", KAPI,
+      [("TAZELIK_KUORUM = 2            # sessizlik icin gereken BASARILI ve BOS cekis sayisi",
+        "TAZELIK_KUORUM = 2            # sessizlik icin gereken BASARILI ve BOS cekis sayisi"
+        " (30 Eyl kesimi)")], False, set())
+
+K8 = ("K8", "ANLAM TASIMAYAN SIRALAMA: `_pencere_gozlemi` sonuc sozlugundeki iki anahtar yer "
+             "degistirdi (davranis AYNI)", KAPI,
+      [('    sonuc = {"yol": yol, "deneme": yapilan, "bos": bos, "hata_sayisi": len(hatalar)}\n',
+        '    sonuc = {"yol": yol, "hata_sayisi": len(hatalar), "bos": bos, "deneme": yapilan}\n')],
+      False, set())
+
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12,
              X4, X5, X6, X7, X8, X9, X10, X11, X12, X13,
              Y1, Y2, Y3, Y4, Y5, Y6, Y7,
-             K1, K2, K3, K4, K5, K6)
+             K1, K2, K3, K4, K5, K6,
+             Z1, Z2, Z3, Z4, Z5, Z6, Z7, Z8, Z9, Z10, Z11, Z12, Z13, Z14, Z15, Z16,
+             Z17, Z18, Z19, K7, K8)
 
 # 🔴 ALAN SAYISI NOBETI: 6 alani olmayan bir mutant sessizce "beyansiz" moda kayardi.
 _bozuk = [m[0] for m in MUTANTLAR if len(m) != 6]
