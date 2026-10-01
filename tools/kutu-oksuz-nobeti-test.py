@@ -25,14 +25,17 @@ VAKALAR (hepsi gecici dizinde, CLI = gercek kullanim sekli):
   14 `--kutu` bir yol beklemeli                           -> OLCULEMEDI, rc=2
   15 gercek kutu DUMEN (smoke): sozlesme satiri bicimi dogru (yaz-yok)
   16 durum.py BAGLANTISI: bolum 10 main()'de CAGRILIR ve satirlar gelir
+  17 main() modulden SURULUR (temiz -> 0/rc0, dibe oksuz -> 1/rc1) ve alt surecle ESIT
 
 Kullanim:
     python3 tools/kutu-oksuz-nobeti-test.py
     python3 tools/kutu-oksuz-nobeti-test.py --mutasyon     # mutant KOPYAYA uygulanir
     python3 tools/kutu-oksuz-nobeti-test.py --tools <dizin> --sessiz   # (mutasyon ic kullanimi)
 """
+import contextlib
 import importlib.util
 import inspect
+import io
 import os
 import re
 import shutil
@@ -408,6 +411,30 @@ def kos(tools, ayrintili=True):
         s.bekle(ad, "🔴 KUTU_OKSUZ_GOVDE=1" in govde,
                 "pano oksuz govdede KIRMIZI satir basmali: %r" % govde[:300])
         s.bekle(ad, ("satir %d" % bolut_basi(DIBE, "MaCiT kapanis govdesi")) in govde, govde[:300])
+        goster(ad)
+
+        # ---- 17 CLI girisi modulden SURULUR (sahipsiz-kapi SURULEN olcutu) -
+        # Alt surec (VAKA 1-15) gercek kullanimi olcer; sahipsiz-kapi-nobetcisi ise
+        # yalniz modulu YUKLEYIP giris fonksiyonunu `<modul>.main(...)` bicimiyle
+        # cagiran surucuyu "surulen" sayar. Ayni iki hal (temiz / dibe oksuz) burada
+        # main() uzerinden de olculur: CLI girisi ile alt surec ayrisirsa KIRMIZI.
+        s.vaka += 1
+        ad = "VAKA 17 main() modulden surulur"
+        spec = importlib.util.spec_from_file_location(
+            "kutu_oksuz_nobeti_surucu", os.path.join(tools, "kutu-oksuz-nobeti.py"))
+        ko = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ko)
+        for etiket, metin, n, beklenen_rc in (("v17a", TEMIZ, "0", 0), ("v17b", DIBE, "1", 1)):
+            tampon = io.StringIO()
+            with contextlib.redirect_stdout(tampon):
+                rc = ko.main(["--kutu", p(etiket, metin)])
+            out = tampon.getvalue()
+            s.bekle(ad, ilk_satir(out) == "KUTU_OKSUZ_GOVDE=" + n,
+                    "%s: ilk satir %r" % (etiket, ilk_satir(out)))
+            s.bekle(ad, rc == beklenen_rc, "%s: rc=%r" % (etiket, rc))
+            rc_cli, out_cli, _ = cli(tools, "--kutu", p(etiket, metin))
+            s.bekle(ad, (rc_cli, out_cli) == (rc, out),
+                    "%s: main() ile alt surec AYRISTI" % etiket)
         goster(ad)
     finally:
         shutil.rmtree(kok, ignore_errors=True)
