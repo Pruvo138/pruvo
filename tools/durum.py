@@ -1214,7 +1214,14 @@ def _kanca_nobeti_satirlari():
 # baglidir (8) => ~9,7 sn. 12 sn'lik eski sinir tam da TIKANMA halinde (tarama
 # uzadiginda) asilirdi: nobetci en cok ihtiyac duyulan anda ⚪ OLCULEMEDI'ye duserdi.
 # 20 sn = olculen ust sinirin ~2 kati.
-YAYIN_ZAMAN_ASIMI = 20.0
+#
+# 🔴 K429 (1 Eki 2026) BUTCE YENIDEN OLCULDU: nobetci artik runs ucunu >= 3 kez ceker (fuzyon)
+# + commits (git, tazelik kaniti) sorar. Canli saglikli olcum: 10,5 sn (commits 1 + runs 3x1,7
+# + jobs 1 + compare 1 + activity 1). Bayat dilim yakalaninca 2 EK cekim (arada 3 sn bekleme)
+# eklenir: 5x1,7 + 2x3 + commits 1 + jobs <=8x1 + compare/activity 2 ~ 25,5 sn — eski 20 sn bu
+# kotu halde pano satirini sahte `OLCULEMEDI`ye dusururdu (bayat dilimi yakalayan ozellik kendi
+# olcumunu kesmis olurdu). 40 sn = kotu halin ~1,5 kati; saglikli yolu etkilemez.
+YAYIN_ZAMAN_ASIMI = 40.0
 
 
 def _yayin_gecikme_satirlari():

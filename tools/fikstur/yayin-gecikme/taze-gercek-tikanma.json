@@ -1,0 +1,250 @@
+{
+ "_aciklama": "K429 (c): 15-18 Eyl tipi GERCEK tikanma yonu \u2014 her cekim TAZE (git HEAD kosumu pencerede), 5 ardisik build hatasi ve son yayin 3 saat once. Bagimsiz taze kanit TUTAR ve hukum TIKALI KALIR: onarim 'bayat say, sus' DEGILDIR. (Sentetik govde; 12 gercek kirmizinin 12'si bayat dilimdi, bu yon yanlis-negatife karsi kilittir.)",
+ "_beklenen": "TIKALI",
+ "_isler": {
+  "50000000000": {
+   "build": "failure",
+   "deploy": "skipped",
+   "yayin": "skipped"
+  },
+  "50000000001": {
+   "build": "failure",
+   "deploy": "skipped",
+   "yayin": "skipped"
+  },
+  "50000000002": {
+   "build": "failure",
+   "deploy": "skipped",
+   "yayin": "skipped"
+  },
+  "50000000003": {
+   "build": "failure",
+   "deploy": "skipped",
+   "yayin": "skipped"
+  },
+  "50000000004": {
+   "build": "failure",
+   "deploy": "skipped",
+   "yayin": "skipped"
+  },
+  "50000000005": {
+   "build": "success",
+   "deploy": {
+    "completed_at": "2026-10-01T11:51:10Z",
+    "conclusion": "success"
+   },
+   "yayin": {
+    "completed_at": "2026-10-01T11:51:40Z",
+    "conclusion": "success"
+   }
+  },
+  "50000000006": {
+   "build": "success",
+   "deploy": {
+    "completed_at": "2026-10-01T11:01:10Z",
+    "conclusion": "success"
+   },
+   "yayin": {
+    "completed_at": "2026-10-01T11:01:40Z",
+    "conclusion": "success"
+   }
+  },
+  "50000000007": {
+   "build": "success",
+   "deploy": {
+    "completed_at": "2026-10-01T10:16:10Z",
+    "conclusion": "success"
+   },
+   "yayin": {
+    "completed_at": "2026-10-01T10:16:40Z",
+    "conclusion": "success"
+   }
+  }
+ },
+ "_karsilastirma_tabani": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+ "_simdi": "2026-10-01T15:00:00Z",
+ "aktivite": [
+  {
+   "after": "b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9",
+   "before": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+   "timestamp": "2026-10-01T11:55:01Z"
+  }
+ ],
+ "karsilastirma": {
+  "ahead_by": 7,
+  "commits": [
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-10-01T11:55:00Z"
+     }
+    },
+    "sha": "b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-10-01T12:00:00Z"
+     }
+    },
+    "sha": "b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-10-01T12:05:00Z"
+     }
+    },
+    "sha": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-10-01T12:10:00Z"
+     }
+    },
+    "sha": "b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-10-01T12:15:00Z"
+     }
+    },
+    "sha": "b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-10-01T12:20:00Z"
+     }
+    },
+    "sha": "b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-10-01T12:25:00Z"
+     }
+    },
+    "sha": "b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6"
+   }
+  ],
+  "status": "ahead",
+  "total_commits": 7
+ },
+ "komitler": [
+  {
+   "author": {
+    "login": "claude"
+   },
+   "commit": {
+    "committer": {
+     "date": "2026-10-01T14:51:20Z"
+    },
+    "message": "degisiklik"
+   },
+   "committer": {
+    "login": "claude"
+   },
+   "sha": "a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0"
+  },
+  {
+   "author": {
+    "login": "claude"
+   },
+   "commit": {
+    "committer": {
+     "date": "2026-10-01T14:19:50Z"
+    },
+    "message": "degisiklik"
+   },
+   "committer": {
+    "login": "claude"
+   },
+   "sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+  }
+ ],
+ "kosumlar": [
+  {
+   "conclusion": "failure",
+   "created_at": "2026-10-01T14:51:24Z",
+   "event": "push",
+   "head_sha": "a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0",
+   "id": 50000000000,
+   "run_started_at": "2026-10-01T14:51:24Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T14:57:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-10-01T14:20:02Z",
+   "event": "push",
+   "head_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+   "id": 50000000001,
+   "run_started_at": "2026-10-01T14:20:02Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T14:26:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-10-01T13:41:10Z",
+   "event": "push",
+   "head_sha": "a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2",
+   "id": 50000000002,
+   "run_started_at": "2026-10-01T13:41:10Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T13:47:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-10-01T12:58:00Z",
+   "event": "push",
+   "head_sha": "a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3",
+   "id": 50000000003,
+   "run_started_at": "2026-10-01T12:58:00Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T13:04:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-10-01T12:20:00Z",
+   "event": "push",
+   "head_sha": "a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4",
+   "id": 50000000004,
+   "run_started_at": "2026-10-01T12:20:00Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T12:26:00Z"
+  },
+  {
+   "conclusion": "success",
+   "created_at": "2026-10-01T11:30:00Z",
+   "event": "push",
+   "head_sha": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+   "id": 50000000005,
+   "run_started_at": "2026-10-01T11:30:00Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T11:52:00Z"
+  },
+  {
+   "conclusion": "success",
+   "created_at": "2026-10-01T10:40:00Z",
+   "event": "push",
+   "head_sha": "a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6",
+   "id": 50000000006,
+   "run_started_at": "2026-10-01T10:40:00Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T11:02:00Z"
+  },
+  {
+   "conclusion": "success",
+   "created_at": "2026-10-01T09:55:00Z",
+   "event": "push",
+   "head_sha": "a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7",
+   "id": 50000000007,
+   "run_started_at": "2026-10-01T09:55:00Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T10:17:00Z"
+  }
+ ]
+}

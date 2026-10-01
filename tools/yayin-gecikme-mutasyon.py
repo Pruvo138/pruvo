@@ -69,7 +69,7 @@ NOBET_YOL = os.path.join(ROOT, ".github", "workflows", NOBET)
 DOKUNULMAZ = ([os.path.join(TOOLS, a) for a in AYNA_TOOLS]
               + [DEPLOY_YOL, NOBET_YOL])
 
-EKSENLER = ("Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10")
+EKSENLER = ("Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10", "Y11")
 
 FAILS = []
 
@@ -315,6 +315,100 @@ G5 = ("G5", "OLCULEMEDI -> SESSIZ YESIL: giris olculemeyince taban SIMDI (yas 0)
       # Kumenin tamami OLCULEREK yazildi (bkz. surucu matrisi).
       ["Y1", "Y7", "Y9", "Y10"], "ESIT")
 
+# ── Y11: BAYAT DILIM (K429, 1 Eki 2026) ────────────────────────────────────────────────
+# Onarimin iki ayagi (fuzyon + bagimsiz tazelik kaniti) ve her ayagin iki yonu: bayat dilimden
+# KESIN hukum ciksin (kor) YA DA gercek tikanma/taze commit bayat sayilsin (sahte OLCULEMEDI).
+# Kanarilar: (a) ilk bayat/ikinci taze · (b) hepsi bayat · (c) taze gercek tikanma ·
+# (d) commits API yok · tolerans · bot commit · ek cekim (fikstur adlari kabul testinde).
+Z1 = ("Z1", "FUZYON KALDIRILDI: CEKIM_MIN 3 -> 1 (tek bayat cekimle yetinilir; (a)'nin cekim "
+             "sayisi 3 -> 2 + sabit-spec iddiasi kirmizi)",
+      NOBETCI,
+      [("\nCEKIM_MIN = 3\n", "\nCEKIM_MIN = 1\n")],
+      ["Y11"], "ESIT")
+
+Z2 = ("Z2", "TAZELIK KANITI KAPALI: aday HEP None -> (b) bayat dilimden KESIN TIKALI "
+             "(12/12 kirmizinin sinifi geri gelir)",
+      NOBETCI,
+      [("        aday = tazelik_adayi(komitler)\n", "        aday = None\n")],
+      ["Y11"], "ESIT")
+
+Z3 = ("Z3", "TAVAN ASILINCA SESSIZ KABUL: OLCULEMEDI yerine bayat dilimden hukum (tavan "
+             "kopar)",
+      NOBETCI,
+      [("        if n >= CEKIM_TAVAN:\n"
+        "            raise OlcumHatasi(_bayat_tavan_mesaji(n, len(cekimler), len(hatalar), "
+        "aday,\n"
+        "                                                  kosumlar, simdi))\n",
+        "        if n >= CEKIM_TAVAN:\n"
+        "            break\n")],
+      ["Y11"], "ESIT")
+
+Z4 = ("Z4", "FUZYON EN ESKI NESLI SECIYOR: `>` -> `<` (bayat nesil tazeyi ezer)",
+      NOBETCI,
+      [("                                  > _iso(onceki[\"updated_at\"], \"updated_at\")):",
+        "                                  < _iso(onceki[\"updated_at\"], \"updated_at\")):")],
+      ["Y11"], "ESIT")
+
+Z5 = ("Z5", "BOT/SKIP-CI ATLAMASI KALDIRILDI: bot HEAD aday olur -> kalici sahte OLCULEMEDI",
+      NOBETCI,
+      [("        bot = any(isinstance(c.get(r), dict) and str(c[r].get(\"login\") or \"\")"
+        ".endswith(\"[bot]\")\n"
+        "                  for r in (\"author\", \"committer\"))\n",
+        "        bot = False\n")],
+      ["Y11"], "ESIT")
+
+Z6 = ("Z6", "TOLERANS KALDIRILDI: 5 dk payi 0 (yeni itilen HEAD'in kosumu henuz listede yok "
+             "diye sahte OLCULEMEDI)",
+      NOBETCI,
+      [("\nTAZELIK_TOLERANS_DK = 5\n", "\nTAZELIK_TOLERANS_DK = 0\n")],
+      ["Y11"], "ESIT")
+
+Z7 = ("Z7", "BEKLEME HER KOLDA GERCEK: fikstur/test kolu da uyur (sure sisiyor, kabul "
+             "yavaslar)",
+      NOBETCI,
+      [("        bekle = time.sleep if getir is api_getir else (lambda _sn: None)",
+        "        bekle = time.sleep")],
+      ["Y11"], "ESIT")
+
+Z8 = ("Z8", "URL TEKRARLI: per_page cekimler arasinda sabit (URL'ye takili bayat yanit "
+             "tekrarlanir)",
+      NOBETCI,
+      [("pencere=PENCERE_KOSUM + n - 1", "pencere=PENCERE_KOSUM")],
+      ["Y11"], "ESIT")
+
+Z9 = ("Z9", "PENCERE KIRPMASI KALDIRILDI: fuzyondan sonra pencere SINIRSIZ buyur",
+      NOBETCI,
+      [("kosumlari_fuzyonla([l for _, l in cekimler])[:PENCERE_KOSUM]",
+        "kosumlari_fuzyonla([l for _, l in cekimler])")],
+      ["Y11"], "ESIT")
+
+Z10 = ("Z10", "ILK HATA YUTULUYOR: hic cekim basarili degilken gercek hata metni kaybolur "
+              "(teshis yok)",
+       NOBETCI,
+       [("            raise hatalar[0]", "            raise OlcumHatasi(\"cekim yok\")")],
+       ["Y11"], "ESIT")
+
+Z11 = ("Z11", "KANIT-YOK NOTU SESSIZLESTI: commits API yokken satir 'tazelik kaniti: VAR' "
+              "diyor (sessiz ikame)",
+       NOBETCI,
+       [("        s.append(\"tazelik kaniti: YOK — %s -> hukum YALNIZ %d cekimlik fuzyondan "
+         "cikti \"",
+         "        s.append(\"tazelik kaniti: VAR — %s -> hukum YALNIZ %d cekimlik fuzyondan "
+         "cikti \"")],
+       ["Y11"], "ESIT")
+
+Z12 = ("Z12", "BAYAT DILIM NOTU SILINDI: bayat cekim / ek cekim satirda GORUNMEZ (sessiz "
+              "ikame)",
+       NOBETCI,
+       [("    if d.get(\"bayat_cekim\") or d[\"cekim\"] > CEKIM_MIN:", "    if False:")],
+       ["Y11"], "ESIT")
+
+Z13 = ("Z13", "ADAY EN ESKI COMMIT: komit sirasi tersine (en yeni degil en eski aday secilir)",
+       NOBETCI,
+       [("    for k in komitler:\n        if not k[\"atlanir\"]:",
+         "    for k in reversed(komitler):\n        if not k[\"atlanir\"]:")],
+       ["Y11"], "ESIT")
+
 # ── KONTROL MUTANTLARI (YESIL kalmali) ──────────────────────────────────────────────
 # Surucu "her seye kirmizi yanan" gurultulu bir alarma donusmesin: anlam tasimayan
 # degisiklikler bataryayi KIRMIZI yakmamali, yoksa yukaridaki "OLDU" hukumlerinin hicbiri
@@ -346,8 +440,21 @@ K5 = ("K5", "ilgisiz: EKSEN 3 sabitinin yanina aciklama yorumu eklendi (esik DEG
         "TIKALI_YAYINSIZ_ZINCIR = 2   # olculen tavan 1 (5 Agu, 7 gun)\n")],
       [], "ESIT")
 
+K6 = ("K6", "ilgisiz: bayat dilim cekim araligi sabitinin yanina aciklama yorumu eklendi "
+            "(deger DEGISMEDI)",
+      NOBETCI,
+      [("\nCEKIM_ARASI_SN = 3\n", "\nCEKIM_ARASI_SN = 3   # sn; yalniz ek cekimlerden once\n")],
+      [], "ESIT")
+
+K7 = ("K7", "ilgisiz: tazelik_adayi'ndan once bos satir eklendi (nobetci)",
+      NOBETCI,
+      [("\ndef tazelik_adayi(komitler):", "\n\ndef tazelik_adayi(komitler):")],
+      [], "ESIT")
+
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, V1, V2, V3, M11, M12, M13,
-             M14, M15, M16, M17, M18, M19, G1, G2, G3, G4, G5, K1, K2, K3, K4, K5)
+             M14, M15, M16, M17, M18, M19, G1, G2, G3, G4, G5,
+             Z1, Z2, Z3, Z4, Z5, Z6, Z7, Z8, Z9, Z10, Z11, Z12, Z13,
+             K1, K2, K3, K4, K5, K6, K7)
 OLCUTLER = ("ESIT",)
 
 IDDIA_RE = re.compile(r"^IDDIA SAYISI:\s*(\d+)\s*$", re.M)
