@@ -1,0 +1,567 @@
+{
+ "_aciklama": "K429 (a): GitHub runs ucu ILK cekimde bayat kesit dondurdu (en yeni 4 kosumu GORMEYEN replika), ikinci cekimde taze. Tek cekimli eski nobetci bayat kesitten KESIN TIKALI verirdi; fuzyon taze nesli kullanir -> AKIYOR ve satir `BAYAT DILIM` notunu + kacinci cekimde taze bulundugunu tasir.",
+ "_beklenen": "AKIYOR",
+ "_cekimler": [
+  "bayat:4",
+  "taze",
+  "taze"
+ ],
+ "_isler": {
+  "50000000001": {
+   "build": "success",
+   "deploy": {
+    "completed_at": "2026-10-01T14:40:50Z",
+    "conclusion": "success"
+   },
+   "yayin": {
+    "completed_at": "2026-10-01T14:41:20Z",
+    "conclusion": "success"
+   }
+  },
+  "50000000002": {
+   "build": "success",
+   "deploy": {
+    "completed_at": "2026-10-01T14:02:10Z",
+    "conclusion": "success"
+   },
+   "yayin": {
+    "completed_at": "2026-10-01T14:02:40Z",
+    "conclusion": "success"
+   }
+  },
+  "50000000003": {
+   "build": "success",
+   "deploy": {
+    "completed_at": "2026-10-01T13:18:40Z",
+    "conclusion": "success"
+   },
+   "yayin": {
+    "completed_at": "2026-10-01T13:19:10Z",
+    "conclusion": "success"
+   }
+  },
+  "50000000004": {
+   "build": "failure",
+   "deploy": "skipped",
+   "yayin": "skipped"
+  },
+  "50000000005": {
+   "build": "failure",
+   "deploy": "skipped",
+   "yayin": "skipped"
+  },
+  "50000000006": {
+   "build": "failure",
+   "deploy": "skipped",
+   "yayin": "skipped"
+  },
+  "50000000007": {
+   "build": "failure",
+   "deploy": "skipped",
+   "yayin": "skipped"
+  },
+  "50000000008": {
+   "build": "failure",
+   "deploy": "skipped",
+   "yayin": "skipped"
+  },
+  "50000000009": {
+   "build": "success",
+   "deploy": {
+    "completed_at": "2026-10-01T09:15:30Z",
+    "conclusion": "success"
+   },
+   "yayin": {
+    "completed_at": "2026-10-01T09:15:58Z",
+    "conclusion": "success"
+   }
+  }
+ },
+ "_karsilastirma_tabani": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+ "_simdi": "2026-10-01T15:00:00Z",
+ "aktivite": [
+  {
+   "after": "a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0",
+   "before": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+   "timestamp": "2026-10-01T14:51:21Z"
+  }
+ ],
+ "karsilastirma": {
+  "ahead_by": 1,
+  "commits": [
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-10-01T14:51:20Z"
+     }
+    },
+    "sha": "b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0"
+   }
+  ],
+  "status": "ahead",
+  "total_commits": 1
+ },
+ "karsilastirma_tabanlari": {
+  "a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9": {
+   "ahead_by": 40,
+   "commits": [
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T09:20:00Z"
+      }
+     },
+     "sha": "b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T09:25:00Z"
+      }
+     },
+     "sha": "b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T09:30:00Z"
+      }
+     },
+     "sha": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T09:35:00Z"
+      }
+     },
+     "sha": "b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T09:40:00Z"
+      }
+     },
+     "sha": "b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T09:45:00Z"
+      }
+     },
+     "sha": "b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T09:50:00Z"
+      }
+     },
+     "sha": "b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T09:55:00Z"
+      }
+     },
+     "sha": "b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T10:00:00Z"
+      }
+     },
+     "sha": "b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T10:05:00Z"
+      }
+     },
+     "sha": "b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T10:10:00Z"
+      }
+     },
+     "sha": "babababababababababababababababa"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T10:15:00Z"
+      }
+     },
+     "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T10:20:00Z"
+      }
+     },
+     "sha": "bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbc"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T10:25:00Z"
+      }
+     },
+     "sha": "bdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbd"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T10:30:00Z"
+      }
+     },
+     "sha": "bebebebebebebebebebebebebebebebe"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T10:35:00Z"
+      }
+     },
+     "sha": "bfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbf"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T10:40:00Z"
+      }
+     },
+     "sha": "c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T10:45:00Z"
+      }
+     },
+     "sha": "c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T10:50:00Z"
+      }
+     },
+     "sha": "c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T10:55:00Z"
+      }
+     },
+     "sha": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T11:00:00Z"
+      }
+     },
+     "sha": "c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T11:05:00Z"
+      }
+     },
+     "sha": "c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T11:10:00Z"
+      }
+     },
+     "sha": "c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T11:15:00Z"
+      }
+     },
+     "sha": "c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T11:20:00Z"
+      }
+     },
+     "sha": "c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T11:25:00Z"
+      }
+     },
+     "sha": "c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T11:30:00Z"
+      }
+     },
+     "sha": "cacacacacacacacacacacacacacacaca"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T11:35:00Z"
+      }
+     },
+     "sha": "cbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcb"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T11:40:00Z"
+      }
+     },
+     "sha": "cccccccccccccccccccccccccccccccc"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T11:45:00Z"
+      }
+     },
+     "sha": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T11:50:00Z"
+      }
+     },
+     "sha": "cececececececececececececececece"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T11:55:00Z"
+      }
+     },
+     "sha": "cfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcf"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T12:00:00Z"
+      }
+     },
+     "sha": "d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T12:05:00Z"
+      }
+     },
+     "sha": "d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T12:10:00Z"
+      }
+     },
+     "sha": "d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T12:15:00Z"
+      }
+     },
+     "sha": "d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T12:20:00Z"
+      }
+     },
+     "sha": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T12:25:00Z"
+      }
+     },
+     "sha": "d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T12:30:00Z"
+      }
+     },
+     "sha": "d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6"
+    },
+    {
+     "commit": {
+      "committer": {
+       "date": "2026-10-01T12:35:00Z"
+      }
+     },
+     "sha": "d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7"
+    }
+   ],
+   "status": "ahead",
+   "total_commits": 40
+  }
+ },
+ "komitler": [
+  {
+   "author": {
+    "login": "claude"
+   },
+   "commit": {
+    "committer": {
+     "date": "2026-10-01T14:51:20Z"
+    },
+    "message": "degisiklik"
+   },
+   "committer": {
+    "login": "claude"
+   },
+   "sha": "a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0"
+  },
+  {
+   "author": {
+    "login": "claude"
+   },
+   "commit": {
+    "committer": {
+     "date": "2026-10-01T14:19:50Z"
+    },
+    "message": "degisiklik"
+   },
+   "committer": {
+    "login": "claude"
+   },
+   "sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+  }
+ ],
+ "kosumlar": [
+  {
+   "conclusion": null,
+   "created_at": "2026-10-01T14:51:24Z",
+   "event": "push",
+   "head_sha": "a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0",
+   "id": 50000000000,
+   "run_started_at": "2026-10-01T14:51:24Z",
+   "status": "in_progress",
+   "updated_at": "2026-10-01T14:59:40Z"
+  },
+  {
+   "conclusion": "success",
+   "created_at": "2026-10-01T14:20:02Z",
+   "event": "push",
+   "head_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+   "id": 50000000001,
+   "run_started_at": "2026-10-01T14:20:02Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T14:41:30Z"
+  },
+  {
+   "conclusion": "success",
+   "created_at": "2026-10-01T13:41:10Z",
+   "event": "push",
+   "head_sha": "a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2",
+   "id": 50000000002,
+   "run_started_at": "2026-10-01T13:41:10Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T14:02:50Z"
+  },
+  {
+   "conclusion": "success",
+   "created_at": "2026-10-01T12:58:00Z",
+   "event": "push",
+   "head_sha": "a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3",
+   "id": 50000000003,
+   "run_started_at": "2026-10-01T12:58:00Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T13:19:20Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-10-01T12:20:00Z",
+   "event": "push",
+   "head_sha": "a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4",
+   "id": 50000000004,
+   "run_started_at": "2026-10-01T12:20:00Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T12:26:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-10-01T11:40:00Z",
+   "event": "push",
+   "head_sha": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+   "id": 50000000005,
+   "run_started_at": "2026-10-01T11:40:00Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T11:46:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-10-01T11:00:00Z",
+   "event": "push",
+   "head_sha": "a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6",
+   "id": 50000000006,
+   "run_started_at": "2026-10-01T11:00:00Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T11:06:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-10-01T10:20:00Z",
+   "event": "push",
+   "head_sha": "a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7",
+   "id": 50000000007,
+   "run_started_at": "2026-10-01T10:20:00Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T10:26:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-10-01T09:40:00Z",
+   "event": "push",
+   "head_sha": "a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8",
+   "id": 50000000008,
+   "run_started_at": "2026-10-01T09:40:00Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T09:46:00Z"
+  },
+  {
+   "conclusion": "success",
+   "created_at": "2026-10-01T08:55:00Z",
+   "event": "push",
+   "head_sha": "a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9",
+   "id": 50000000009,
+   "run_started_at": "2026-10-01T08:55:00Z",
+   "status": "completed",
+   "updated_at": "2026-10-01T09:16:00Z"
+  }
+ ]
+}

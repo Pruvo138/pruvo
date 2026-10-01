@@ -283,6 +283,43 @@ sayilir ve bu BILEREK boyledir: `cancel-in-progress: false` kuyrugunda sonsuza k
 bekleyen bir kosum da "yayin inmiyor" demektir; olculen en uzun SAGLIKLI kosum omru
 (14 Agu 2026: 86,6 dk) KUYRUK BEKLEMESINI ZATEN ICERIR, esik onun uzerinden secilmistir.
 
+🔴 BAYAT DILIM — TEK BIR REST KESITINDEN KESIN HUKUM CIKMAZ (1 Eki 2026, K429, OLCULDU)
+======================================================================================
+`paket-tazelik-alarmi` :: `yayin-nabzi` son 100 kosumun 12'sinde KIRMIZI yandi; 12'si de
+TIKALI (rc 3). 23-30 Eyl'deki 8 kirmizinin hepsinde AYNI imza: "son yayinlanan sha: 01dd81b6
+(21 Eyl 21:07)" SABIT, "geride" 3 -> 4 -> 52 -> ... -> 133, "pencere: 40 kosum (40 tamamlandi,
+0 kosuyor)". Oysa deploy+yayin o gunlerde defalarca success'ti. GitHub `runs` ucu AYNI URL'ye
+ardisik cagrilarda once BAYAT sonra TAZE kesit dondu (ayni dakikada: total_count 1932 / en yeni
+22 Eyl, sonra 2500 / en yeni 1 Eki; `&status=completed` varyanti 493). `tools/durum.py` bolum 9
+ayni anda "TIKALI · 134 commit geride · 11687 dk" basti (gercek: 3 commit, deploy kosuyordu).
+Kesit bazen HAFTALARCA eski gelir ve KENDI ICINDE TUTARLIDIR (40/40 tamamlandi, hatasiz) —
+sayfa-doluluk/`total_count` testleri onu YAKALAMAZ ([[api-yaniti-kendi-icinde-tutarsizsa-kesin-hukum-cikmaz]]).
+
+15-18 Eyl'deki 4 kirmizi da AYNI sinif cikti (SINIFLANDIRILDI, 1 Eki): "son yayinlanan sha"
+c0301670 bir 17 AGUSTOS, b2d174aa bir 26 AGUSTOS commit'idir; o 4 gunun her birinde success
+deploy kosumlari VARDI (16 Eyl icin 22 · 17 Eyl icin 7 · 18 Eyl icin 16) ve 16 Eyl kirmizisinin
+kendi HEAD'i 5bf06d6e icin 18:46Z'de baslayan deploy kosumu success'ti. Yani 12 kirmizinin
+12'si BAYAT DILIM; GERCEK tikanma 0. Fiksturler (c) `taze-gercek-tikanma` bu yonu (taze + gercekten
+yayinsiz -> TIKALI KALIR) ayrica kilitler: onarim "bayat say, sus" DEGILDIR.
+
+ONARIM (iki ayak; ikisi de TEK kanonik yerde: `kosumlari_cek`):
+  1) FUZYON: runs sorgusu en az CEKIM_MIN (3) kez cekilir; her kosum id'si icin `updated_at`'i en
+     YENI nesil kazanir. Bayat replika bir kosumu yalnizca GERI gosterebilir, ILERI uyduramaz
+     -> fuzyon fail-open DEGILDIR (en kotu halde bayat nesil tazeyi yenemez). created_at azalan
+     siralanir, PENCERE_KOSUM'a kesilir. URL her cekimde FARKLIDIR (per_page 40, 41, ...): URL'ye
+     takili bir bayat yanit tekrarlanmasin.
+  2) BAGIMSIZ TAZELIK KANITI: `repos/<depo>/commits?sha=<dal>` (git; Actions indeksinden
+     BAGIMSIZ) en yeni commit'lerinden, bot/`[skip ci]` OLMAYAN (is akisi tetiklemez) en yenisi
+     `aday`tir. Aday TAZELIK_TOLERANS_DK (5 dk) dan eskiyse ve pencerede o sha'nin kosumu YOKSA
+     dilim BAYATTIR -> yeniden cekilir (CEKIM_TAVAN = 5 cekime kadar, ek cekimler arasi 3 sn).
+     Tavan asilirsa hukum TIKALI/ACLIK/AKIYOR DEGIL OLCULEMEDI (rc 2) olur: bayat dilimden kesin
+     hukum cikmaz. Satirda `⚙ BAYAT DILIM` notu + kacinci cekimde taze bulundugu GORUNUR.
+  3) Commits API cevap vermezse / aday yoksa: hukum YALNIZ fuzyondan cikar ve `tazelik kaniti: YOK`
+     satiri bunu ILAN eder (sessiz ikame yok). Aday 5 dk'dan taze ise bayatlik KANITLANMAZ
+     (TOLERANS): kosum henuz listede olmayabilir — bu pencerede sahte OLCULEMEDI uretilmez.
+  Fiksturler: `bayat-ilk-cekim-taze-ikinci` (a) · `bayat-tum-cekimler` (b) · `taze-gercek-tikanma`
+  (c) · `komit-api-yok-fuzyon` (d) + sinir vakalari; kabul testi Y11, mutasyon M20-M27.
+
 SINIFLAR ve CIKIS KODLARI (rc)
 ==============================
     AKIYOR      0   bekleyen yok ya da esiklerin altinda
@@ -307,6 +344,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -401,7 +439,27 @@ AKTIVITE_PENCERE = 100
 AKTIVITE_ICERIKSIZ = ("branch_deletion",)
 GIRIS_OLCULEMEDI = "OLCULEMEDI"
 
-SINIF_RC = {"AKIYOR": 0, "GECIKME": 1, "OLCULEMEDI": 2, "TIKALI": 3, "ACLIK": 4}
+# 🔴 BAYAT DILIM (1 Eki 2026, K429 — bkz. baslik "BAYAT DILIM"). Runs ucu bazen haftalarca
+# eski, kendi icinde TUTARLI bir kesit dondurur; tek cekimden KESIN hukum cikmaz.
+#   CEKIM_MIN   : fuzyon icin en az cekim (bayat replika yalniz GERI kalir -> fail-open degil)
+#   CEKIM_TAVAN : tazelik kaniti tutmazsa en cok bu kadar cekim (spec: 5); asilirsa OLCULEMEDI
+#   CEKIM_ARASI_SN: YALNIZ ek cekimlerden once (CEKIM_MIN'den sonra) ve YALNIZ gercek ag kolunda
+#   KOMIT_PENCERE: aday secimi icin bakilan en yeni commit sayisi (bot/skip-ci atlamasina pay)
+#   TAZELIK_TOLERANS_DK: commit bundan TAZEYSE kosumu henuz listede olmayabilir (kanit aranmaz)
+# Olculen: gercek aralik (commit.committer.date -> kosum.created_at) son 74 itme ucunda
+# ortanca 2,3 dk · p90 3,2 dk · max 12,1 dk (3/74 > 5 dk: `--ff-only` ile gelen eski tarihli
+# uc). 5 dk bu yuzden "kanit aranmaz" payidir; bayatlik EN FAZLA bu pay + CEKIM_TAVAN ek cekim
+# kadar gec yakalanir ve OLCULEMEDI (sahte TIKALI degil) uretir.
+CEKIM_MIN = 3
+CEKIM_TAVAN = 5
+CEKIM_ARASI_SN = 3
+KOMIT_PENCERE = 5
+TAZELIK_TOLERANS_DK = 5
+# GitHub'in belgeli "bu itme is akisi tetiklemesin" isaretleri (commit mesajinda).
+CI_ATLAMA_ISARETLERI = ("[skip ci]", "[ci skip]", "[no ci]", "[skip actions]",
+                        "[actions skip]")
+
+SINIF_RC ={"AKIYOR": 0, "GECIKME": 1, "OLCULEMEDI": 2, "TIKALI": 3, "ACLIK": 4}
 SINIF_ISARET = {"AKIYOR": "🟢", "GECIKME": "🟡", "OLCULEMEDI": "⚪",
                 "TIKALI": "🔴", "ACLIK": "🔴"}
 
@@ -452,6 +510,10 @@ def is_yolu(kosum_id, depo=None):
 def aktivite_yolu(depo=None, dal=DAL, pencere=None):
     return ("repos/%s/activity?ref=refs/heads/%s&per_page=%d"
             % (depo or DEPO, dal, AKTIVITE_PENCERE if pencere is None else pencere))
+
+
+def komit_yolu(depo=None, dal=DAL):
+    return "repos/%s/commits?sha=%s&per_page=%d" % (depo or DEPO, dal, KOMIT_PENCERE)
 
 
 # `gh` stderr'i -> SABIT sinif etiketi. Anahtarlar kucuk harfe cevrilmis metinde ARANIR.
@@ -739,11 +801,176 @@ def zincirler(kosumlar, etkin):
             len(tamam), calisan)
 
 
+# ---------------------------------------------------------------- bayat dilim (K429)
+def komitleri_ayikla(govde, simdi):
+    """commits govdesi -> [{sha, tarih, yas_dk, atlanir}] (en yeni basta). FAIL-CLOSED.
+
+    `atlanir` ("bot" | "ci-atla" | None): bu commit'in itilmesi is akisini TETIKLEMEZ
+    (GITHUB_TOKEN itmesi is akisi baslatmaz; `[skip ci]` isareti), yani pencerede kosumu
+    BEKLENMEZ ve tazelik adayi OLAMAZ. Aksi halde bot commit'i HEAD iken sonraki itmeye kadar
+    KALICI sahte OLCULEMEDI dogardi.
+    """
+    if not isinstance(govde, list):
+        raise OlcumHatasi("commit listesi govdesi liste degil (%s)" % type(govde).__name__)
+    if not govde:
+        raise OlcumHatasi("commit listesi BOS — tazelik kaniti alinamadi")
+    cikti = []
+    for i, c in enumerate(govde):
+        _sozluk(c, "commits[%d]" % i)
+        if "sha" not in c or "commit" not in c:
+            raise OlcumHatasi("commits[%d] alanlari EKSIK (sha/commit) — API sekli degismis "
+                              "olabilir" % i)
+        ic = _sozluk(c["commit"], "commits[%d].commit" % i)
+        try:
+            ham_tarih = ic["committer"]["date"]
+        except (KeyError, TypeError):
+            raise OlcumHatasi("commits[%d].commit.committer.date YOK — API sekli degismis "
+                              "olabilir" % i)
+        tarih = _iso(ham_tarih, "commits[%d] committer.date" % i)
+        sha = str(c["sha"] or "").lower()
+        if not sha:
+            raise OlcumHatasi("commits[%d].sha BOS" % i)
+        bot = any(isinstance(c.get(r), dict) and str(c[r].get("login") or "").endswith("[bot]")
+                  for r in ("author", "committer"))
+        mesaj = str(ic.get("message") or "").lower()
+        atla = "bot" if bot else ("ci-atla" if any(m in mesaj for m in CI_ATLAMA_ISARETLERI)
+                                  else None)
+        cikti.append({"sha": sha, "tarih": tarih, "atlanir": atla,
+                      "yas_dk": max(0.0, (simdi - tarih).total_seconds() / 60.0)})
+    return cikti
+
+
+def tazelik_adayi(komitler):
+    """Pencerede kosumu BEKLENEN en yeni commit (atlanmayan ilk) — yoksa None."""
+    for k in komitler:
+        if not k["atlanir"]:
+            return k
+    return None
+
+
+def pencere_tazeligi(kosumlar, aday):
+    """Bir kosum listesinin TAZELIGI -> TAZE | TOLERANS | BAYAT | KANIT_YOK.
+
+    BAYAT = aday commit pencerede YOK ve TAZELIK_TOLERANS_DK'dan eski (git bilir, Actions
+    indeksi bilmiyor). TOLERANS = commit cok taze: kosumu henuz listede olmayabilir, bayatlik
+    KANITLANMADI (sahte OLCULEMEDI uretilmez).
+    """
+    if aday is None:
+        return "KANIT_YOK"
+    for k in kosumlar:
+        if str(k.get("head_sha") or "").lower() == aday["sha"]:
+            return "TAZE"
+    if aday["yas_dk"] < TAZELIK_TOLERANS_DK:
+        return "TOLERANS"
+    return "BAYAT"
+
+
+def kosumlari_fuzyonla(listeler):
+    """Birden cok cekimi TEK pencereye birlestirir: id basina `updated_at`'i en YENI nesil kazanir.
+
+    Bayat replika bir kosumu yalnizca GERI gosterebilir (eski status/conclusion, eksik yeni
+    kosum), ILERI uyduramaz -> en yeni nesli secmek fail-open DEGILDIR: bayat nesil tazeyi
+    asla yenemez. Sonuc created_at azalan (esitlikte id azalan) siralidir; KESME cagirana ait.
+    """
+    en_iyi = {}
+    for liste in listeler:
+        for k in liste:
+            kimlik = str(k["id"])
+            onceki = en_iyi.get(kimlik)
+            if onceki is None or (_iso(k["updated_at"], "updated_at")
+                                  > _iso(onceki["updated_at"], "updated_at")):
+                en_iyi[kimlik] = k
+    return sorted(en_iyi.values(),
+                  key=lambda k: (_iso(k["created_at"], "created_at"), str(k["id"])),
+                  reverse=True)
+
+
+def _bayat_tavan_mesaji(cekim, basarili, hatali, aday, kosumlar, simdi):
+    en_yeni = max(_iso(k["created_at"], "created_at") for k in kosumlar)
+    return ("⚙ BAYAT DILIM: %d cekimin (%d basarili) HEPSI bayat — main HEAD %s (%.0f dk once, "
+            "git) kosum penceresinde YOK; penceredeki en yeni kosum %s (%.1f sa once). Bayat "
+            "dilimden KESIN hukum cikmaz: TIKALI/ACLIK/AKIYOR hukmu VERILMEDI (bu yesil de "
+            "kirmizi da DEGIL). KAPATAN OLCUM: GitHub runs ucu taze kesiti dondurdugunde "
+            "(sonraki tikte) hukum kendiliginden dogar; kesit KALICI bayat kalirsa yayin "
+            "kaniti commits/activity API'ye tasinir (K429)%s"
+            % (cekim, basarili, aday["sha"][:8], aday["yas_dk"],
+               en_yeni.strftime("%Y-%m-%d %H:%MZ"),
+               max(0.0, (simdi - en_yeni).total_seconds() / 3600.0),
+               (" · %d cekim ayrica HATA verdi" % hatali) if hatali else ""))
+
+
+def kosumlari_cek(getir, simdi, depo=None, dal=DAL, bekle=None):
+    """Fuzyonlu + bagimsiz tazelik kanitli kosum penceresi -> (kosumlar, dilim).
+
+    Sira: (1) commits API'den aday (git; Actions indeksinden BAGIMSIZ) · (2) runs >= CEKIM_MIN
+    kez cekilir ve fuzyonlanir · (3) aday pencerede yoksa ve TAZELIK_TOLERANS_DK'dan eskiyse
+    dilim BAYATTIR: CEKIM_TAVAN'a kadar yeniden cek · (4) tavan asilirsa OlcumHatasi
+    (=> OLCULEMEDI, ASLA TIKALI/AKIYOR). Commits API cevap vermezse yalniz fuzyon kalir ve
+    `dilim["komit_hata"]` bunu ILAN eder.
+
+    `bekle`: ek cekimlerden once beklenen sure; varsayilan YALNIZ gercek ag kolunda
+    (`getir is api_getir`) gercek bekler — fikstur/test beklemez.
+    """
+    if bekle is None:
+        bekle = time.sleep if getir is api_getir else (lambda _sn: None)
+    aday, komit_hata = None, None
+    try:
+        komitler = komitleri_ayikla(getir(komit_yolu(depo=depo, dal=dal), etiket="commits"),
+                                    simdi)
+        aday = tazelik_adayi(komitler)
+        if aday is None:
+            komit_hata = ("son %d commit'in HEPSI bot/[skip ci] — pencerede kosumu BEKLENEN "
+                          "aday YOK" % len(komitler))
+    except OlcumHatasi as e:
+        komit_hata = str(e)
+
+    cekimler, hatalar = [], []        # cekimler: [(cekim_no, kosum listesi)]
+    n = 0
+    while True:
+        if n >= CEKIM_MIN:
+            bekle(CEKIM_ARASI_SN)
+        n += 1
+        try:
+            # URL her cekimde FARKLI (per_page 40, 41, ...): URL'ye takili bayat yanit
+            # tekrarlanmasin. Fuzyondan sonra pencere PENCERE_KOSUM'a KESILIR.
+            cekimler.append((n, kosumlari_ayikla(
+                getir(kosum_yolu(depo=depo, dal=dal, pencere=PENCERE_KOSUM + n - 1),
+                      etiket="runs"))))
+        except OlcumHatasi as e:
+            hatalar.append(e)
+        if n < CEKIM_MIN:
+            continue
+        if not cekimler:
+            raise hatalar[0]          # hicbir cekim basarili degil: ILK hata AYNEN yukari cikar
+        kosumlar = kosumlari_fuzyonla([l for _, l in cekimler])[:PENCERE_KOSUM]
+        durum = pencere_tazeligi(kosumlar, aday)
+        if durum != "BAYAT":
+            break
+        if n >= CEKIM_TAVAN:
+            raise OlcumHatasi(_bayat_tavan_mesaji(n, len(cekimler), len(hatalar), aday,
+                                                  kosumlar, simdi))
+
+    bayat_cekim, ilk_taze = None, None
+    if aday is not None:
+        durumlar = [(no, pencere_tazeligi(l, aday)) for no, l in cekimler]
+        bayat_cekim = sum(1 for _, d in durumlar if d == "BAYAT")
+        ilk_taze = next((no for no, d in durumlar if d == "TAZE"), None)
+    return kosumlar, {
+        "cekim": n, "basarili": len(cekimler), "hatali": len(hatalar),
+        "hata_metni": str(hatalar[0]) if hatalar else None,
+        "durum": durum, "bayat_cekim": bayat_cekim, "ilk_taze_cekim": ilk_taze,
+        "aday_sha": aday["sha"][:8] if aday else None,
+        "aday_yas_dk": aday["yas_dk"] if aday else None,
+        "komit_hata": komit_hata,
+        "pencere_en_yeni": max(_iso(k["created_at"], "created_at") for k in kosumlar),
+    }
+
+
 # ---------------------------------------------------------------- olcum
 def olc(getir=api_getir, simdi=None, depo=None, dal=DAL):
     """Ham olcum sozlugu. HER ariza OlcumHatasi ile yukari cikar (fail-closed)."""
     simdi = simdi or _simdi()
-    kosumlar = kosumlari_ayikla(getir(kosum_yolu(depo=depo, dal=dal), etiket="runs"))
+    kosumlar, dilim = kosumlari_cek(getir, simdi, depo=depo, dal=dal)
 
     def is_getir(k):
         return getir(is_yolu(k.get("id"), depo=depo), etiket="jobs")
@@ -756,6 +983,8 @@ def olc(getir=api_getir, simdi=None, depo=None, dal=DAL):
 
     olcum = {
         "simdi": simdi,
+        # BAYAT DILIM (K429): kac cekim, tazelik kaniti, bayat cekim sayisi — satirda GORUNUR.
+        "dilim": dilim,
         "pencere": len(kosumlar),
         "tamamlanan": tamamlanan,
         "calisan": calisan,
@@ -972,6 +1201,37 @@ def olc_ve_degerlendir(getir=api_getir, simdi=None, depo=None, dal=DAL):
 
 
 # ---------------------------------------------------------------- cikti
+def _dilim_satirlari(d):
+    """K429: tazelik kaniti HER ZAMAN basilir ("kanit var" ile "kanit YOK" karismasin);
+    bayat dilim / ek cekim / basarisiz cekim `⚙` notuyla ILAN edilir (sessiz ikame yok)."""
+    if not d:
+        return []
+    s = []
+    if d["durum"] == "TAZE":
+        s.append("tazelik kaniti (commits API): TAZE — main HEAD %s (%.0f dk once) kosum "
+                 "penceresinde · %d cekim fuzyonu"
+                 % (d["aday_sha"], d["aday_yas_dk"], d["cekim"]))
+    elif d["durum"] == "TOLERANS":
+        s.append("tazelik kaniti (commits API): TOLERANS — main HEAD %s yalniz %.0f dk once "
+                 "(< %d dk): kosumu henuz listede olmayabilir, bayatlik KANITLANMADI · %d "
+                 "cekim fuzyonu" % (d["aday_sha"], d["aday_yas_dk"], TAZELIK_TOLERANS_DK,
+                                    d["cekim"]))
+    else:
+        s.append("tazelik kaniti: YOK — %s -> hukum YALNIZ %d cekimlik fuzyondan cikti "
+                 "(bayat dilim DOGRULANAMADI)" % (d.get("komit_hata") or "aday yok", d["cekim"]))
+    if d.get("bayat_cekim") or d["cekim"] > CEKIM_MIN:
+        s.append("⚙ BAYAT DILIM: %d cekimin %d'i bayat%s -> taze kesit %s; hukum fuzyon "
+                 "penceresinden cikti"
+                 % (d["basarili"], d.get("bayat_cekim") or 0,
+                    (" (main HEAD %s pencerede YOK)" % d["aday_sha"]) if d["aday_sha"] else "",
+                    ("%d. cekimde bulundu" % d["ilk_taze_cekim"]) if d.get("ilk_taze_cekim")
+                    else "bulunamadi"))
+    if d.get("hatali"):
+        s.append("⚙ %d/%d cekim BASARISIZ (%s) — kalan %d cekimle devam edildi"
+                 % (d["hatali"], d["cekim"], (d.get("hata_metni") or "")[:100], d["basarili"]))
+    return s
+
+
 def _ozet_satirlari(olcum):
     if olcum is None:
         return []
@@ -1025,6 +1285,7 @@ def _ozet_satirlari(olcum):
     s.append("pencere: %d kosum (%d tamamlandi · %d kosuyor/bekliyor) · is duzeyi "
              "sorulan: %d kosum" % (olcum["pencere"], olcum["tamamlanan"],
                                     olcum["calisan"], olcum.get("taranan", 0)))
+    s.extend(_dilim_satirlari(olcum.get("dilim")))
     if olcum.get("is_tavanina_dayandi"):
         s.append("⚠ is sorgu TAVANINA (%d) dayanildi — yayinlayan kosum daha geride "
                  "olabilir (alttan olcum)" % IS_SORGU_TAVANI)
@@ -1112,6 +1373,13 @@ def _bindir(sablon, ustyazim, iz="kok"):
     return sonuc
 
 
+# Fikstur dosyasinin TANINAN ust seviye anahtarlari (`fikstur_yukle(ust=...)` bunlarla sinirli).
+FIKSTUR_ANAHTARLARI = frozenset((
+    "_aciklama", "_beklenen", "_simdi", "_isler", "_hata", "_karsilastirma_tabani",
+    "_aktivite_hata", "_komit_hata", "_cekimler", "karsilastirma",
+    "karsilastirma_tabanlari", "komitler", "aktivite", "kosumlar"))
+
+
 def fikstur_yolu(ad):
     return os.path.join(FIKSTUR_DIZIN, ad if ad.endswith(".json") else ad + ".json")
 
@@ -1122,13 +1390,24 @@ def fikstur_adlari():
                   if os.path.basename(y) != "sekil-capasi.json")
 
 
-def fikstur_yukle(ad, capa=None):
-    """Fikstur -> (getir, simdi, beklenen_sinif, aciklama)."""
+def fikstur_yukle(ad, capa=None, ust=None):
+    """Fikstur -> (getir, simdi, beklenen_sinif, aciklama).
+
+    `ust` (K429): fikstur dosyasinin ust seviye anahtarlarini YUKLEMEDEN ONCE ezen/ekleyen
+    sozluk — kabul testi bir senaryonun turevini (or. `_cekimler` farkli, `_komit_hata` var)
+    DOSYA ACMADAN kurar. Yalniz FIKSTUR_ANAHTARLARI'ndaki anahtarlar kabul edilir (yazim
+    hatasi sessizce yok sayilmaz: OlcumHatasi).
+    """
     yol = fikstur_yolu(ad)
     if not os.path.exists(yol):
         raise OlcumHatasi("fikstur YOK: %s" % yol)
     with open(yol, encoding="utf-8") as f:
         f_ = json.load(f)
+    for anahtar, deger in (ust or {}).items():
+        if anahtar not in FIKSTUR_ANAHTARLARI:
+            raise OlcumHatasi("fikstur %s: ust-yazim anahtari `%s` TANINMIYOR (izinli: %s)"
+                              % (ad, anahtar, ", ".join(sorted(FIKSTUR_ANAHTARLARI))))
+        f_[anahtar] = deger
     capa = capa or sekil_capasi()
     beklenen = f_.get("_beklenen")
     if beklenen not in SINIF_RC:
@@ -1193,19 +1472,27 @@ def fikstur_yukle(ad, capa=None):
                               "is duzeyini sordu" % (ad, kosum_id))
         return _is_govdesi(is_ustyazim[str(kosum_id)], varsayilan_bitis,
                            "_isler[%s]" % kosum_id)
-    kars_ust = f_.get("karsilastirma")
-    kars = None
-    if kars_ust is not None:
+    def _kars_govdesi(kars_ust, iz):
         commit_ust = kars_ust.get("commits")
-        kars = _bindir({k: v for k, v in capa["karsilastirma"].items() if k != "commits"},
-                       {k: v for k, v in kars_ust.items() if k != "commits"},
-                       "karsilastirma")
+        k = _bindir({a: v for a, v in capa["karsilastirma"].items() if a != "commits"},
+                    {a: v for a, v in kars_ust.items() if a != "commits"}, iz)
         if commit_ust is None:
-            kars["commits"] = copy.deepcopy(capa["karsilastirma"]["commits"])
+            k["commits"] = copy.deepcopy(capa["karsilastirma"]["commits"])
         else:
             sablon = capa["karsilastirma"]["commits"][0]
-            kars["commits"] = [_bindir(sablon, c, "karsilastirma.commits[%d]" % i)
-                               for i, c in enumerate(commit_ust)]
+            k["commits"] = [_bindir(sablon, c, "%s.commits[%d]" % (iz, i))
+                            for i, c in enumerate(commit_ust)]
+        return k
+
+    kars_ust = f_.get("karsilastirma")
+    kars = None if kars_ust is None else _kars_govdesi(kars_ust, "karsilastirma")
+    # 🔴 K429: compare govdesi SORULAN TABANA gore secilebilir. Bayat bir kesit baska bir
+    # `son yayinlanan sha`ya (eski bir kosuma) baglanir; bu durumda compare AYNI sha icin
+    # ayni gercegi (ahead_by 133 gibi) dondurur — sabit TEK govde bu iki dunyayi birlikte
+    # temsil EDEMEZ. `karsilastirma_tabanlari` = {"<taban sha>": <karsilastirma govdesi>};
+    # eslesmezse `karsilastirma` (varsa) kullanilir.
+    kars_harita = {str(t).lower(): _kars_govdesi(u, "karsilastirma_tabanlari[%s]" % t)
+                   for t, u in (f_.get("karsilastirma_tabanlari") or {}).items()}
 
     # ---- MAIN'E GIRIS ANI (activity) govdesi ---------------------------------------
     # `aktivite` = [{before, after, timestamp, ...}] (sablon: capa["aktivite"][0]).
@@ -1222,6 +1509,46 @@ def fikstur_yukle(ad, capa=None):
         akt = [_bindir(capa["aktivite"][0], a, "aktivite[%d]" % i)
                for i, a in enumerate(akt_ust)]
 
+    # ---- BAYAT DILIM (K429): commit listesi + cekim senaryosu ----------------------------
+    # `komitler` = [{sha, commit.committer.date, ...}] (sablon: capa["komitler"][0]; bagimsiz
+    # TAZELIK KANITI). VERILMEMISSE uc SORULUNCA OlcumHatasi doner = "tazelik kaniti YOK"
+    # hali (K429'dan ONCE yazilmis fiksturler boylece yalniz fuzyonla, notlu, yargilanir).
+    # `_komit_hata` = commits ucu hata versin (ag/yetki): ayni sinif, ACIK beyanla.
+    # `_cekimler` = ["taze" | "bayat:<N>" | "hata:<metin>", ...]: SIRAYLA her `runs`
+    # cagrisinin donecegi kesit; liste bitince SON madde tekrarlanir. "bayat:N" gercek listenin
+    # EN YENI N kosumunu GORMEYEN (geride kalmis replika) kesittir; VERILMEMISSE hep "taze".
+    kom_ust = f_.get("komitler")
+    kom_hata = f_.get("_komit_hata")
+    kom = None
+    if kom_ust is not None:
+        if not (isinstance(capa.get("komitler"), list) and capa["komitler"]):
+            raise OlcumHatasi("fikstur %s `komitler` veriyor ama sekil capasinda `komitler` "
+                              "sablonu YOK" % ad)
+        kom = [_bindir(capa["komitler"][0], c, "komitler[%d]" % i)
+               for i, c in enumerate(kom_ust)]
+    cekim_ust = f_.get("_cekimler")
+    if cekim_ust is not None and not (isinstance(cekim_ust, list) and cekim_ust):
+        raise OlcumHatasi("fikstur %s: `_cekimler` bos ya da liste degil" % ad)
+    runs_sayaci = [0]
+
+    def _runs_govdesi():
+        spec = "taze" if cekim_ust is None else cekim_ust[min(runs_sayaci[0],
+                                                              len(cekim_ust) - 1)]
+        runs_sayaci[0] += 1
+        tur, _, arg = str(spec).partition(":")
+        if tur == "hata":
+            raise OlcumHatasi(arg or "cekim hatasi (fikstur)")
+        if tur == "bayat":
+            if not arg.isdigit():
+                raise OlcumHatasi("fikstur %s: `bayat:<N>` N sayi olmali (%r)" % (ad, spec))
+            kesit = kosumlar[int(arg):]
+        elif tur == "taze":
+            kesit = kosumlar
+        else:
+            raise OlcumHatasi("fikstur %s: bilinmeyen cekim turu %r (taze|bayat:N|hata:..)"
+                              % (ad, spec))
+        return {"total_count": len(kesit), "workflow_runs": copy.deepcopy(kesit)}
+
     def getir(yol_, zaman_asimi=25, etiket="api"):  # noqa: ARG001 — imza api_getir ile AYNI
         if hata:
             raise OlcumHatasi(hata)
@@ -1231,22 +1558,29 @@ def fikstur_yukle(ad, capa=None):
             if akt is None:
                 raise OlcumHatasi("fikstur %s: aktivite govdesi TANIMSIZ" % ad)
             return copy.deepcopy(akt)
+        if "/commits?" in yol_:
+            if kom_hata:
+                raise OlcumHatasi(kom_hata)
+            if kom is None:
+                raise OlcumHatasi("fikstur %s: commit listesi TANIMSIZ" % ad)
+            return copy.deepcopy(kom)
         if "/actions/workflows/" in yol_:
-            return {"total_count": len(kosumlar), "workflow_runs": copy.deepcopy(kosumlar)}
+            return _runs_govdesi()
         if "/actions/runs/" in yol_ and "/jobs" in yol_:
             return _kosum_isleri(yol_.split("/actions/runs/")[1].split("/")[0])
         if "/compare/" in yol_:
-            if kars is None:
+            taban = yol_.split("/compare/")[1].split("...")[0]
+            govde = kars_harita.get(taban.lower(), kars)
+            if govde is None:
                 raise OlcumHatasi("fikstur %s: compare govdesi TANIMSIZ ama nobetci "
                                   "sordu (%s)" % (ad, yol_))
             # Fikstur, DOGRU tabani sorup sormadigimizi da nobetler: taban SHA'si son
             # basarili kosumun SHA'si olmali (yanlis taban = sessiz yanlis olcum).
-            taban = yol_.split("/compare/")[1].split("...")[0]
             beklenen_taban = f_.get("_karsilastirma_tabani")
             if beklenen_taban and taban != beklenen_taban:
                 raise OlcumHatasi("fikstur %s: compare TABANI yanlis — beklenen %s, "
                                   "sorulan %s" % (ad, beklenen_taban, taban))
-            return copy.deepcopy(kars)
+            return copy.deepcopy(govde)
         raise OlcumHatasi("fikstur %s: bilinmeyen API yolu: %s" % (ad, yol_))
 
     return getir, simdi, beklenen, f_.get("_aciklama", "")

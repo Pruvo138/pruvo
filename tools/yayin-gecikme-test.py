@@ -18,6 +18,8 @@ sessizce koreltilerek ise yaramaz hale gelir.
   Y8  EKSEN 2 — KOSUM OMUR TAVANI; `ahead_by` kapisinin ONUNDE ve eksen 1'i MASKELEMEZ
   Y9  EKSEN 3 — YAYINSIZ ZINCIR
   Y10 YAS TABANI 3. ALT SINIR — main'e GIRIS ani (26 Eyl); olculemezse eski taban + not
+  Y11 BAYAT DILIM (K429, 1 Eki) — runs ucunun bayat kesitinden KESIN hukum cikmaz: fuzyon +
+      bagimsiz tazelik kaniti (commits API) + tavan asilirsa OLCULEMEDI
 
 Y1/Y5/Y7/Y8 fiksturleri BOLUSUR (asagidaki EKSEN_FIKSTURLERI): her fikstur TAM BIR eksende
 yargilanir. Sebep olculdu — hepsini tek bir "fikstur kabulu" iddiasinda toplamak, her
@@ -44,6 +46,7 @@ kabuldur). Cikis: 0 = hepsi gecti, 1 = en az bir kusur.
 """
 import ast
 import contextlib
+import copy
 import importlib.util
 import io
 import json
@@ -51,6 +54,7 @@ import os
 import shutil
 import sys
 import tempfile
+import types
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -63,7 +67,8 @@ NOBET = os.path.join(ROOT, ".github", "workflows", "nobet.yml")
 # Fikstur envanteri TABANI — buyuyebilir, ALTINA DUSEMEZ (bkz. modul basligi).
 # 5 Agu: 21 -> 22 (EKSEN 3 kanarisi `bugun-iki-yayinsiz`; o gecenin GERCEK govdesi).
 # 26 Eyl: 22 -> 25 (Y10 main'e giris ani kanarilari A/B/C).
-FIKSTUR_TABANI = 25
+# 1 Eki: 25 -> 32 (Y11 bayat dilim: a/b/c/d + tolerans · bot commit · ek cekim).
+FIKSTUR_TABANI = 32
 ZORUNLU_SINIFLAR = ("AKIYOR", "GECIKME", "TIKALI", "ACLIK", "OLCULEMEDI")
 
 # 🔴 FIKSTUR -> EKSEN PAYLASIMI. Burada ADI GECMEYEN her fikstur Y1'e aittir; Y1 bu
@@ -89,10 +94,24 @@ EKSEN_FIKSTURLERI = {
     # (sessizlik + taze push -> YESIL), B gercek tikanma yonu (giristen 70 dk -> TIKALI),
     # C kaynak olculemedi (eski taban + OLCULEMEDI notu, sessiz yesil YOK).
     "Y10": ("giris-sessizlik-taze-push", "giris-70dk-yayinsiz", "giris-olculemedi"),
+    # BAYAT DILIM ekseninin YEDI fiksturu (K429): dort spec vakasi + uc sinir vakasi.
+    "Y11": ("bayat-ilk-cekim-taze-ikinci", "bayat-tum-cekimler", "taze-gercek-tikanma",
+            "komit-api-yok-fuzyon", "bayat-taze-commit-tolerans", "bayat-bot-commit-atlanir",
+            "bayat-ek-cekim-tavan-icinde"),
 }
 VAKA_GIRIS_A = "giris-sessizlik-taze-push"
 VAKA_GIRIS_B = "giris-70dk-yayinsiz"
 VAKA_GIRIS_C = "giris-olculemedi"
+
+# BAYAT DILIM (K429, 1 Eki 2026) — fikstur adlari. (a)-(d) mimar spec'inin dort vakasi;
+# gerisi sinir vakalari. HEPSI Y11'e aittir (baska eksende yargilanmaz).
+VAKA_BAYAT_A = "bayat-ilk-cekim-taze-ikinci"        # (a) ilk bayat / ikinci taze -> AKIYOR + not
+VAKA_BAYAT_B = "bayat-tum-cekimler"                 # (b) hepsi bayat -> OLCULEMEDI, ASLA TIKALI
+VAKA_BAYAT_C = "taze-gercek-tikanma"                # (c) taze + gercekten yayinsiz -> TIKALI KALIR
+VAKA_BAYAT_D = "komit-api-yok-fuzyon"               # (d) commits API yok -> yalniz fuzyon + ILAN
+VAKA_TOLERANS = "bayat-taze-commit-tolerans"        # HEAD <5 dk, kosumu listede yok -> TOLERANS
+VAKA_BOT = "bayat-bot-commit-atlanir"               # HEAD bot commit'i -> aday ATLANIR
+VAKA_EK_CEKIM = "bayat-ek-cekim-tavan-icinde"       # ilk 3 bayat, 4. taze -> AKIYOR
 
 YANLIS_ALARM_FIKSTURU = "bugun-serit-b-dustu"
 KORELME_FIKSTURU = "bugun-build-dustu"
@@ -568,10 +587,17 @@ def y8_omur_ekseni(yg):
 
     def _bos_getir(yol_, zaman_asimi=25, etiket="api"):   # noqa: ARG001
         return {"workflow_runs": []}
-    sinif5, rc5, _, _ = yg.olc_ve_degerlendir(getir=_bos_getir)
+    sinif5, rc5, ger5, _ = yg.olc_ve_degerlendir(getir=_bos_getir)
+    # 🔴 K429 (1 Eki): HUKUM KASITLI KORUMADAN GELMELI, COKMEDEN DEGIL. V3 mutanti (BOS-liste
+    # korumasini kaldirir) bu vakadan SAG cikti: bos liste fuzyondan gecip `max()` icinde
+    # coktu ve genel `except Exception` kolundan YINE OLCULEMEDI dondu — test yalniz sinifi
+    # olctugu icin korumayi degil COKMEYI olcuyordu ([[fail-closed-kol-arkasindaki-kolu-
+    # maskeler]]). Simdi mesaj korumanin kendi metnini tasimali, "beklenmeyen" OLMAMALI.
+    mesaj5 = " ".join(ger5)
     kayit("Y8", "KABUL (5) kosum listesi BOS -> OLCULEMEDI + rc!=0 (fail-closed, "
-          "sessiz yesil YOK)",
-          sinif5 == "OLCULEMEDI" and rc5 != 0, "%s rc %d" % (sinif5, rc5))
+          "sessiz yesil YOK) ve hukum KASITLI korumadan (BOS mesaji), cokmeden DEGIL",
+          sinif5 == "OLCULEMEDI" and rc5 != 0 and "BOS" in mesaj5
+          and "beklenmeyen" not in mesaj5, "%s rc %d · %s" % (sinif5, rc5, mesaj5[:60]))
 
 
 # ------------------------------------------------- Y9) EKSEN 3: YAYINSIZ ZINCIR
@@ -753,6 +779,298 @@ def y10_giris_ani(yg):
           g.strftime("%H:%M"))
 
 
+# ------------------------------------------------ Y11) BAYAT DILIM (K429, 1 Eki 2026)
+def _olc(yg, ad, ust=None):
+    """Fiksturu (istege bagli ust-yazimla) KOSTURUR -> (sinif, rc, gerekce, olcum)."""
+    getir, simdi, _beklenen, _ = yg.fikstur_yukle(ad, ust=ust)
+    sinif, rc, gerekce, olcum = yg.olc_ve_degerlendir(getir=getir, simdi=simdi)
+    return sinif, rc, gerekce, (olcum or {})
+
+
+def _ozet(yg, olcum):
+    return "\n".join(yg._ozet_satirlari(olcum)) if olcum else ""
+
+
+def _eski_tek_cekim(yg, ad):
+    """ESKI davranisi (TEK cekim, tazelik kaniti YOK) yeniden kurar -> (sinif, rc).
+
+    Kanari yuk tasiyor mu sorusunun cevabi: bayat dilim fiksturu, eski kuralla bakilsa gercekten
+    KESIN TIKALI verir mi? Vermiyorsa fikstur bayat-dilim sinifini TEMSIL ETMIYOR demektir.
+    """
+    eski = (yg.CEKIM_MIN, yg.CEKIM_TAVAN)
+    yg.CEKIM_MIN = yg.CEKIM_TAVAN = 1
+    try:
+        sinif, rc, _, _ = _olc(yg, ad, ust={"_komit_hata": "eski davranis: tazelik kaniti YOK"})
+    finally:
+        yg.CEKIM_MIN, yg.CEKIM_TAVAN = eski
+    return sinif, rc
+
+
+def _bekleme_olcumu(yg, ad, gercek_ag, ust=None):
+    """`kosumlari_cek` icinde cagrilan bekleme sureleri. `gercek_ag=True`: `getir is
+    api_getir` kolu (time.sleep ESLENIR, gercekten UYUNMAZ); False: fikstur kolu."""
+    getir, simdi, _, _ = yg.fikstur_yukle(ad, ust=ust)
+    uyku = []
+    eski_time, eski_api = yg.time, yg.api_getir
+    yg.time = types.SimpleNamespace(sleep=lambda sn: uyku.append(sn))
+    if gercek_ag:
+        yg.api_getir = getir
+    try:
+        try:
+            yg.kosumlari_cek(getir, simdi)
+        except yg.OlcumHatasi:
+            pass
+    finally:
+        yg.time, yg.api_getir = eski_time, eski_api
+    return uyku
+
+
+def _kom_ust(yg, ad, duzenle):
+    """Fikstur `komitler` listesinin KOPYASINI `duzenle(liste)` ile degistirip `ust` dondurur."""
+    ham = yg._fikstur_ham(ad)
+    kom = copy.deepcopy(ham["komitler"])
+    duzenle(kom)
+    return {"komitler": kom}
+
+
+def _komut_govdesi(sha, tarih, mesaj="x", yazan="insan", yazan2=None):
+    return {"sha": sha, "commit": {"committer": {"date": tarih}, "message": mesaj},
+            "author": {"login": yazan}, "committer": {"login": yazan2 or yazan}}
+
+
+def y11_bayat_dilim(yg):
+    """K429: runs ucunun BAYAT kesitinden KESIN hukum cikmaz.
+
+    12/12 kirmizi (`yayin-nabzi` / TIKALI) ayni sinifti: GitHub ayni uca ardisik cagrilarda once
+    haftalarca eski, kendi icinde tutarli bir kesit, sonra tazesini verdi. Onarimin iki ayagi
+    (fuzyon + bagimsiz tazelik kaniti) ve iki yonlu risk burada olculur: bayat dilim TIKALI
+    URETMEZ, ama gercek tikanma da bayat SAYILMAZ.
+    """
+    # ---- (a) ilk cekim bayat / ikinci taze -> AKIYOR + not ------------------------------
+    sinif, rc, ger, o = _olc(yg, VAKA_BAYAT_A)
+    d, ozet = o.get("dilim") or {}, _ozet(yg, o)
+    kayit("Y11", "(a) ilk cekim bayat / ikinci taze: AKIYOR rc=0 (fuzyon taze nesli kullandi)",
+          sinif == "AKIYOR" and rc == 0, "%s rc %d" % (sinif, rc))
+    kayit("Y11", "(a) satir `BAYAT DILIM` notunu + KACINCI cekimde taze bulundugunu tasiyor",
+          d.get("cekim") == 3 and d.get("bayat_cekim") == 1 and d.get("ilk_taze_cekim") == 2
+          and "⚙ BAYAT DILIM" in ozet and "2. cekimde" in ozet,
+          "cekim=%s bayat=%s ilk_taze=%s" % (d.get("cekim"), d.get("bayat_cekim"),
+                                             d.get("ilk_taze_cekim")))
+    ek, ek_rc = _eski_tek_cekim(yg, VAKA_BAYAT_B)
+    kayit("Y11", "KANARI YUK TASIYOR: (b)'nin bayat dilimi TEK cekimle bakilinca KESIN TIKALI "
+          "(eski davranis = 12/12 kirmizinin sinifi)", ek == "TIKALI" and ek_rc == 3,
+          "eski kural: %s rc %s" % (ek, ek_rc))
+
+    # ---- (b) tum cekimler bayat -> OLCULEMEDI rc=2, ASLA TIKALI -------------------------
+    sinif, rc, ger, o = _olc(yg, VAKA_BAYAT_B)
+    mesaj = " ".join(ger)
+    kayit("Y11", "(b) k cekimin HEPSI bayat: OLCULEMEDI rc=2 ve ASLA TIKALI/ACLIK/AKIYOR",
+          sinif == "OLCULEMEDI" and rc == 2, "%s rc %d" % (sinif, rc))
+    kayit("Y11", "(b) gerekce: `BAYAT DILIM` + cekim sayisi + HEAD sha + KAPATAN OLCUM ADIYLA",
+          "BAYAT DILIM" in mesaj and ("%d cekim" % yg.CEKIM_TAVAN) in mesaj
+          and "a0a0a0a0" in mesaj and "KAPATAN OLCUM" in mesaj, mesaj[:90])
+    # tavan SINIRI: 5. cekimde taze gelirse hukum VAR, 6. cekimde gelirse (tavan asildi) YOK.
+    s5, _, _, _ = _olc(yg, VAKA_BAYAT_B,
+                       ust={"_cekimler": ["bayat:4"] * (yg.CEKIM_TAVAN - 1) + ["taze"]})
+    s6, _, _, _ = _olc(yg, VAKA_BAYAT_B,
+                       ust={"_cekimler": ["bayat:4"] * yg.CEKIM_TAVAN + ["taze"]})
+    kayit("Y11", "tavan siniri: %d. cekimde taze -> AKIYOR; %d. cekimde taze (tavan ASILDI) -> "
+          "OLCULEMEDI" % (yg.CEKIM_TAVAN, yg.CEKIM_TAVAN + 1),
+          s5 == "AKIYOR" and s6 == "OLCULEMEDI", "%d.=%s · %d.=%s"
+          % (yg.CEKIM_TAVAN, s5, yg.CEKIM_TAVAN + 1, s6))
+
+    # ---- (c) taze + gercekten yayinsiz -> TIKALI KALIR ----------------------------------
+    sinif, rc, ger, o = _olc(yg, VAKA_BAYAT_C)
+    d, ozet = o.get("dilim") or {}, _ozet(yg, o)
+    kayit("Y11", "(c) taze + gercekten yayinsiz (5 hata, 185 dk): TIKALI rc=3 KALIR — "
+          "onarim 'bayat say, sus' DEGIL", sinif == "TIKALI" and rc == 3,
+          "%s rc %d" % (sinif, rc))
+    kayit("Y11", "(c) bagimsiz kanit TAZE, bayat cekim 0, `BAYAT DILIM` notu YOK",
+          d.get("durum") == "TAZE" and d.get("bayat_cekim") == 0 and "BAYAT DILIM" not in ozet,
+          "durum=%s bayat=%s" % (d.get("durum"), d.get("bayat_cekim")))
+
+    # ---- (d) commits API yok -> yalniz fuzyon + ILAN ------------------------------------
+    sinif, rc, ger, o = _olc(yg, VAKA_BAYAT_D)
+    d, ozet = o.get("dilim") or {}, _ozet(yg, o)
+    kayit("Y11", "(d) commits API yok: fuzyon bayat ilk cekimi YINE duzeltir (pencere TAM) -> "
+          "AKIYOR", sinif == "AKIYOR" and rc == 0 and o.get("pencere") == 10,
+          "%s rc %d pencere=%s" % (sinif, rc, o.get("pencere")))
+    kayit("Y11", "(d) satir `tazelik kaniti: YOK` + hata SINIFI ILAN ediyor (sessiz ikame yok)",
+          d.get("durum") == "KANIT_YOK" and d.get("bayat_cekim") is None
+          and "tazelik kaniti: YOK" in ozet and "sunucu hatasi" in ozet,
+          "durum=%s" % d.get("durum"))
+
+    # ---- sinir: HEAD <5 dk -> TOLERANS (sahte OLCULEMEDI YOK) ---------------------------
+    sinif, rc, ger, o = _olc(yg, VAKA_TOLERANS)
+    d, ozet = o.get("dilim") or {}, _ozet(yg, o)
+    kayit("Y11", "HEAD 5 dk'dan taze, kosumu listede yok: AKIYOR + TOLERANS notu (OLCULEMEDI "
+          "DEGIL)", sinif == "AKIYOR" and d.get("durum") == "TOLERANS" and "TOLERANS" in ozet,
+          "%s durum=%s" % (sinif, d.get("durum")))
+    alt, _, _, o_alt = _olc(yg, VAKA_TOLERANS, ust=_kom_ust(yg,
+        VAKA_TOLERANS, lambda k: k[0]["commit"]["committer"].update(date="2026-10-01T14:55:01Z")))
+    ust_, _, _, _ = _olc(yg, VAKA_TOLERANS, ust=_kom_ust(yg,
+        VAKA_TOLERANS, lambda k: k[0]["commit"]["committer"].update(date="2026-10-01T14:54:59Z")))
+    kayit("Y11", "tolerans SINIRI: 4,98 dk -> AKIYOR (TOLERANS) · 5,02 dk -> OLCULEMEDI (BAYAT)",
+          alt == "AKIYOR" and (o_alt.get("dilim") or {}).get("durum") == "TOLERANS"
+          and ust_ == "OLCULEMEDI", "4,98 dk=%s · 5,02 dk=%s" % (alt, ust_))
+
+    # ---- sinir: bot / [skip ci] commit'i aday OLAMAZ ------------------------------------
+    sinif, rc, ger, o = _olc(yg, VAKA_BOT)
+    d = o.get("dilim") or {}
+    kayit("Y11", "HEAD bot commit'i (kosumu YOK): aday ATLANIR, onceki insan commit'i TAZE -> "
+          "AKIYOR (kalici sahte OLCULEMEDI YOK)",
+          sinif == "AKIYOR" and d.get("durum") == "TAZE" and d.get("aday_sha") == "a1a1a1a1",
+          "%s durum=%s aday=%s" % (sinif, d.get("durum"), d.get("aday_sha")))
+    ci, _, _, o_ci = _olc(yg, VAKA_BOT, ust=_kom_ust(yg, VAKA_BOT, lambda k: (
+        k[0].update(author={"login": "insan"}, committer={"login": "insan"}),
+        k[0]["commit"].update(message="veri senkronu [SKIP CI]"))))
+    kayit("Y11", "`[skip ci]` isaretli HEAD (buyuk/kucuk harf duyarsiz) da aday OLAMAZ",
+          ci == "AKIYOR" and (o_ci.get("dilim") or {}).get("aday_sha") == "a1a1a1a1", ci)
+    insan, _, _, _ = _olc(yg, VAKA_BOT, ust=_kom_ust(yg, VAKA_BOT, lambda k: k[0].update(
+        author={"login": "insan"}, committer={"login": "insan"})))
+    kayit("Y11", "NEGATIF KONTROL: ayni HEAD INSAN commit'iyse kosumu BEKLENIR -> pencerede yok "
+          "-> OLCULEMEDI (bot kurali yuk tasiyor)", insan == "OLCULEMEDI", insan)
+
+    # ---- sinir: ek cekim (tavan icinde) -------------------------------------------------
+    sinif, rc, ger, o = _olc(yg, VAKA_EK_CEKIM)
+    d, ozet = o.get("dilim") or {}, _ozet(yg, o)
+    kayit("Y11", "ilk 3 cekim bayat, 4. taze: AKIYOR + `4. cekimde bulundu` (ek cekim gorunur)",
+          sinif == "AKIYOR" and d.get("cekim") == 4 and d.get("bayat_cekim") == 3
+          and d.get("ilk_taze_cekim") == 4 and "4. cekimde" in ozet,
+          "cekim=%s bayat=%s ilk_taze=%s" % (d.get("cekim"), d.get("bayat_cekim"),
+                                             d.get("ilk_taze_cekim")))
+
+    # ---- fuzyon: updated_at'i en YENI nesil kazanir; bayat ILERI uyduramaz --------------
+    def _k(kid, olus, durum, sonuc, guncel):
+        return {"id": kid, "status": durum, "conclusion": sonuc, "created_at": olus,
+                "run_started_at": olus, "updated_at": guncel, "head_sha": "x", "event": "push"}
+    bayat_nesil = [_k(1, "2026-10-01T10:00:00Z", "in_progress", None, "2026-10-01T10:05:00Z")]
+    taze_nesil = [_k(1, "2026-10-01T10:00:00Z", "completed", "failure", "2026-10-01T10:30:00Z"),
+                  _k(2, "2026-10-01T11:00:00Z", "completed", "success", "2026-10-01T11:20:00Z")]
+    f1 = yg.kosumlari_fuzyonla([bayat_nesil, taze_nesil])
+    f2 = yg.kosumlari_fuzyonla([taze_nesil, bayat_nesil])
+    kayit("Y11", "fuzyon: id basina `updated_at` EN YENI nesil kazanir (sira BAGIMSIZ), sonuc "
+          "created_at azalan", [k["id"] for k in f1] == [2, 1] and f1 == f2
+          and f1[1]["status"] == "completed" and f1[1]["conclusion"] == "failure",
+          "ids=%s esit=%s" % ([k["id"] for k in f1], f1 == f2))
+    bir_cekim = yg.kosumlari_fuzyonla([bayat_nesil])
+    cift = yg.kosumlari_fuzyonla([taze_nesil, taze_nesil])
+    kayit("Y11", "fuzyon: bayat nesil ILERI uyduramaz (tek basina yalniz kendi kaydini verir) "
+          "ve ayni kosumu iki kez saymaz", bir_cekim == bayat_nesil
+          and [k["id"] for k in cift] == [2, 1] and len(cift) == 2,
+          "tek cekim ids=%s · cift=%s" % ([k["id"] for k in bir_cekim],
+                                          [k["id"] for k in cift]))
+
+    # ---- ayiklayici + yardimcilar -------------------------------------------------------
+    import datetime as _dt
+    simdi = _dt.datetime(2026, 10, 1, 15, 0, tzinfo=_dt.timezone.utc)
+    govde = [_komut_govdesi("AA" * 20, "2026-10-01T14:40:00Z", yazan="x[bot]"),
+             _komut_govdesi("BB" * 20, "2026-10-01T14:30:00Z", yazan="insan", yazan2="y[bot]"),
+             _komut_govdesi("CC" * 20, "2026-10-01T14:20:00Z", mesaj="a [Skip CI] b"),
+             _komut_govdesi("DD" * 20, "2026-10-01T14:10:00Z", yazan=None),
+             _komut_govdesi("EE" * 20, "2026-10-01T14:00:00Z")]
+    govde[3]["author"] = None            # iliskisiz e-posta: GERCEK `panel:` commit'lerinde null
+    k = yg.komitleri_ayikla(govde, simdi)
+    kayit("Y11", "komit ayiklayici: bot (author YA DA committer) ve [skip ci] ATLANIR; login "
+          "null (iliskisiz e-posta) bot DEGILDIR; sha kucuk harfe cevrilir",
+          [x["atlanir"] for x in k] == ["bot", "bot", "ci-atla", None, None]
+          and k[0]["sha"] == "aa" * 20 and abs(k[0]["yas_dk"] - 20.0) < 0.01
+          and yg.tazelik_adayi(k)["sha"] == "dd" * 20,
+          "atlanir=%s" % [x["atlanir"] for x in k])
+    ci_hepsi = all(yg.komitleri_ayikla([_komut_govdesi("ab" * 20, "2026-10-01T14:00:00Z",
+                                                       mesaj="m %s" % m)], simdi)[0]["atlanir"]
+                   for m in yg.CI_ATLAMA_ISARETLERI)
+    kayit("Y11", "GitHub'in belgeli bes `skip ci` isaretinin HEPSI taniniyor", ci_hepsi,
+          ", ".join(yg.CI_ATLAMA_ISARETLERI))
+
+    def _patlar(g):
+        try:
+            yg.komitleri_ayikla(g, simdi)
+        except yg.OlcumHatasi:
+            return True
+        return False
+    kayit("Y11", "komit ayiklayici FAIL-CLOSED: liste degil / bos / sha-commit eksik / tarih "
+          "eksik / bos sha -> OlcumHatasi",
+          _patlar({"x": 1}) and _patlar([]) and _patlar([{"sha": "a"}])
+          and _patlar([{"sha": "a", "commit": {}}]) and _patlar([{"sha": "a", "commit": {
+              "committer": {}}}]) and _patlar([_komut_govdesi("", "2026-10-01T14:00:00Z")]),
+          "")
+    aday = {"sha": "ab" * 20, "yas_dk": 10.0}
+    taze_aday = {"sha": "ab" * 20, "yas_dk": yg.TAZELIK_TOLERANS_DK - 0.1}
+    sinir_aday = {"sha": "ab" * 20, "yas_dk": float(yg.TAZELIK_TOLERANS_DK)}
+    pencere = [{"head_sha": "AB" * 20}]
+    kayit("Y11", "pencere tazeligi: sha var -> TAZE (buyuk/kucuk harf duyarsiz) · yok+eski -> "
+          "BAYAT · yok+<5 dk -> TOLERANS · tam 5 dk -> BAYAT · aday yok -> KANIT_YOK",
+          yg.pencere_tazeligi(pencere, aday) == "TAZE"
+          and yg.pencere_tazeligi([], aday) == "BAYAT"
+          and yg.pencere_tazeligi([], taze_aday) == "TOLERANS"
+          and yg.pencere_tazeligi([], sinir_aday) == "BAYAT"
+          and yg.pencere_tazeligi(pencere, None) == "KANIT_YOK",
+          "")
+
+    # ---- pencere KESMESI: fuzyondan sonra PENCERE_KOSUM'a kirpilir ----------------------
+    def _cok_getir(yol_, zaman_asimi=25, etiket="api"):     # noqa: ARG001 — imza ayni
+        if "/commits?" in yol_:
+            return [_komut_govdesi("%040x" % 59, "2026-10-01T14:30:00Z")]
+        return {"workflow_runs": [
+            {"id": 9000 + i, "status": "completed", "conclusion": "success",
+             "created_at": "2026-10-01T13:%02d:00Z" % i, "run_started_at":
+             "2026-10-01T13:%02d:00Z" % i, "updated_at": "2026-10-01T13:%02d:30Z" % i,
+             "head_sha": "%040x" % i, "event": "push"} for i in range(60)]}
+    cok, cok_dilim = yg.kosumlari_cek(_cok_getir, simdi)
+    kayit("Y11", "fuzyondan sonra pencere PENCERE_KOSUM'a KIRPILIR (en yeni %d kosum, "
+          "created_at azalan)" % yg.PENCERE_KOSUM,
+          len(cok) == yg.PENCERE_KOSUM and cok[0]["id"] == 9059
+          and cok[-1]["id"] == 9059 - (yg.PENCERE_KOSUM - 1) and cok_dilim["durum"] == "TAZE",
+          "n=%d ilk=%s son=%s" % (len(cok), cok[0]["id"], cok[-1]["id"]))
+
+    # ---- cekim mekanigi: URL farkli · bekleme yalniz EK cekimde ve yalniz GERCEK agda ----
+    getir, simdi_f, _, _ = yg.fikstur_yukle(VAKA_BAYAT_B)
+    yollar = []
+
+    def _kayitli(yol_, zaman_asimi=25, etiket="api"):
+        yollar.append(yol_)
+        return getir(yol_, zaman_asimi, etiket)
+    yg.olc_ve_degerlendir(getir=_kayitli, simdi=simdi_f)
+    runs = [y for y in yollar if "/actions/workflows/" in y]
+    kayit("Y11", "her cekim FARKLI URL (per_page degisir): bayat yanit URL'ye takilip tekrar "
+          "etmez; commits (git) cagrisi ISE runs cekimlerinden ONCE",
+          len(runs) == yg.CEKIM_TAVAN and len(set(runs)) == len(runs)
+          and yollar and "/commits?" in yollar[0], "runs=%d farkli=%d" % (len(runs),
+                                                                        len(set(runs))))
+    fikstur_kolu = _bekleme_olcumu(yg, VAKA_BAYAT_B, gercek_ag=False)
+    gercek_kol_b = _bekleme_olcumu(yg, VAKA_BAYAT_B, gercek_ag=True)
+    gercek_kol_a = _bekleme_olcumu(yg, VAKA_BAYAT_A, gercek_ag=True)
+    kayit("Y11", "bekleme: fikstur kolunda HIC; gercek ag kolunda YALNIZ ek cekimlerden once "
+          "(%d sn x %d); taze yolda 0" % (yg.CEKIM_ARASI_SN, yg.CEKIM_TAVAN - yg.CEKIM_MIN),
+          fikstur_kolu == []
+          and gercek_kol_b == [yg.CEKIM_ARASI_SN] * (yg.CEKIM_TAVAN - yg.CEKIM_MIN)
+          and gercek_kol_a == [],
+          "fikstur=%s gercek(b)=%s gercek(a)=%s" % (fikstur_kolu, gercek_kol_b, gercek_kol_a))
+
+    # ---- kismi cekim hatasi ve tam cekim hatasi -----------------------------------------
+    sinif, rc, ger, o = _olc(yg, VAKA_BAYAT_A,
+                             ust={"_cekimler": ["hata:gh sunucu hatasi (5xx)", "taze", "taze"]})
+    d, ozet = o.get("dilim") or {}, _ozet(yg, o)
+    kayit("Y11", "1/3 cekim HATA: kalan cekimle devam + `⚙ 1/3 cekim BASARISIZ` ILAN (hata "
+          "sinifi gorunur)", sinif == "AKIYOR" and d.get("hatali") == 1
+          and d.get("basarili") == 2 and "⚙ 1/3 cekim BASARISIZ" in ozet
+          and "sunucu hatasi" in ozet, "%s hatali=%s" % (sinif, d.get("hatali")))
+    sinif, rc, ger, _ = _olc(yg, VAKA_BAYAT_A,
+                             ust={"_cekimler": ["hata:ILK-HATA", "hata:IKINCI", "hata:UCUNCU"]})
+    kayit("Y11", "HIC cekim basarili degil: OLCULEMEDI rc=2 ve ILK hata AYNEN yukari cikar",
+          sinif == "OLCULEMEDI" and rc == 2 and "ILK-HATA" in " ".join(ger)
+          and "IKINCI" not in " ".join(ger), " ".join(ger)[:60])
+
+    # ---- sabitler spec'e bagli ----------------------------------------------------------
+    kayit("Y11", "sabitler: CEKIM_MIN >= 3 (fuzyon) · CEKIM_TAVAN == 5 · tolerans 5 dk · "
+          "tavan > min",
+          yg.CEKIM_MIN >= 3 and yg.CEKIM_TAVAN == 5 and yg.CEKIM_TAVAN > yg.CEKIM_MIN
+          and yg.TAZELIK_TOLERANS_DK == 5,
+          "min=%s tavan=%s tolerans=%s" % (yg.CEKIM_MIN, yg.CEKIM_TAVAN,
+                                           yg.TAZELIK_TOLERANS_DK))
+
+
 # ---------------------------------------------------------------- kosum
 IDDIALAR = (("Y1", "EKSEN 1 — bekleyen icerik (yas/zincir/birikme)"),
             ("Y2", "SOZLESME — sinif kodlari + esiklerin olculen tabani"),
@@ -763,7 +1081,8 @@ IDDIALAR = (("Y1", "EKSEN 1 — bekleyen icerik (yas/zincir/birikme)"),
             ("Y7", "YAS TABANI — yayin ani"),
             ("Y8", "EKSEN 2 — kosum omur tavani"),
             ("Y9", "EKSEN 3 — yayinsiz zincir (kostu ama yayinlaMADI)"),
-            ("Y10", "YAS TABANI 3. ALT SINIR — main'e giris ani (activity)"))
+            ("Y10", "YAS TABANI 3. ALT SINIR — main'e giris ani (activity)"),
+            ("Y11", "BAYAT DILIM — fuzyon + bagimsiz tazelik kaniti (K429)"))
 
 
 def main():
@@ -791,7 +1110,8 @@ def main():
                 ("Y7", lambda: y7_yas_tabani(yg)),
                 ("Y8", lambda: y8_omur_ekseni(yg)),
                 ("Y9", lambda: y9_yayinsiz_zinciri(yg)),
-                ("Y10", lambda: y10_giris_ani(yg)))
+                ("Y10", lambda: y10_giris_ani(yg)),
+                ("Y11", lambda: y11_bayat_dilim(yg)))
     for kod, fn in kosumlar:
         try:
             fn()
