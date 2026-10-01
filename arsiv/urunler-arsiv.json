@@ -283,5 +283,35 @@
         }
       ]
     }
+  },
+  {
+    "silinme_ts": "2026-10-01T13:57:55Z",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 33,
+    "kayit": {
+      "id": "toyota-rav4-offroad-celik-on-tampon",
+      "kategori": "Otomobil",
+      "marka": [
+        "Toyota"
+      ],
+      "uyum": [
+        {
+          "marka": "Toyota"
+        }
+      ],
+      "baslik": "Off-Road Çelik Ön Tampon (Toyota RAV4)",
+      "aciklama": "Toyota RAV4 için vinç destekli tam off-road çelik ön tampon tasarımıdır.\n- Komple tasarım dosyaları dahildir.\n- Arazi kullanımı için uygundur.\n- Siparişe göre özel tasarım üretimle hazırlanır.",
+      "fiyat": "500 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/th7198397-1.jpg",
+        "https://media.pruvo3d.com/urunler/th7198397-2.jpg",
+        "https://media.pruvo3d.com/urunler/th7198397-3.jpg",
+        "https://media.pruvo3d.com/urunler/th7198397-4.jpg"
+      ],
+      "lisans": {
+        "tasarimci": "Frame75",
+        "tur": "CC BY-SA 4.0"
+      }
+    }
   }
 ]
