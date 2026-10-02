@@ -139,8 +139,10 @@ def rastgele_set(sema, rnd, kisit):
 # alani makara icin genislik >= 0,3167*(dis-ic) = 23,9 mm ister (motor sinirindan
 # OLCULEREK turetildi, bkz. jenerator/test/rulman-uretilebilirlik-olcum.py) ve
 # jenerator/konfigurator.js KONF.dogrula onu REDDEDER. rastgele_set() yalniz
-# parametre basina min/max/adim/secim'i uyguluyor, capraz `kisitlar`'i GORMUYORDU
-# -> tohum her kosumda rastgele oldugu icin is OLASILIKSAL kirmizi yaniyordu.
+# parametre basina min/max/adim/secim'i uyguluyor, capraz `kisitlar`'i GORMUYORDU.
+# dogrula.py uretim ailelerine SABIT tohum (20260802) verdigi icin o nokta HER
+# kosumda olculuyordu -> is DETERMINISTIK kirmiziydi (BOSL2 eksikligi bunu
+# gizliyordu); --tohumlar ile verilen her baska tohumda da ayni sinif dogar.
 # Kural: olculen her rastgele nokta musteri sema kapisinin KABUL ettigi noktadir.
 # Hakem GERCEK KONF.dogrula'dir (kisit mantigi Python'da YENIDEN YAZILMAZ). Hakem
 # yalniz semada `kisitlar` VARSA sorulur: parametre basina kurallar rastgele_set'te
