@@ -34,6 +34,7 @@ SINIR_YUZDE = 3.0
 
 sys.path.insert(0, JEN_TEST)
 import stl_hacim  # noqa: E402
+import openscad_tani  # noqa: E402
 
 _spec = importlib.util.spec_from_file_location(
     "onizleme_server", os.path.join(REPO, "onizleme", "derleyici", "server.py"))
@@ -204,9 +205,7 @@ def aile_olc(aile, eslem, paket, openscad, set_sayisi, tohumlar, kisit):
                 # Siniflandirma DEGISMEDI (bu hala `hata`, yani KIRMIZI — sessiz bir
                 # "yerel dogrulanamadi"ya cevrilmedi); yalnizca tani GORUNUR oldu.
                 cikti_metni = proc.stdout.decode("utf-8", "replace")
-                tani = (hata_metni.strip().splitlines()[-1][:120] if hata_metni.strip()
-                        else (cikti_metni.strip().splitlines()[-1][:120]
-                              if cikti_metni.strip() else "cikti YOK"))
+                tani = derleme_tanisi(hata_metni, cikti_metni)
                 print("  [HATA] %-10s set%-2d derleme: %s [rc=%s stl=%s stderr=%dB "
                       "stdout=%dB] (%s)" %
                       (aile, i, tani, proc.returncode,
@@ -226,6 +225,22 @@ def aile_olc(aile, eslem, paket, openscad, set_sayisi, tohumlar, kisit):
                   % (durum, aile, i, js[i], ref, sapma, kisa[:110]))
             sonuc["satirlar"].append({"sapma": round(sapma, 2)})
     return sonuc
+
+
+def derleme_tanisi(hata_metni, cikti_metni):
+    """Derleme hatasinin tek satirlik tanisi — SAF fonksiyon; --kendini-test surer.
+    K427 (2 Eki 2026, OLCULDU kosum 36929560645): son satir ("Current top level
+    object is empty.") 9 uretim ailesinde asil nedeni (BOSL2 yok) GIZLEDI. Kutuphane
+    izi varsa ONCE o basilir (jeton KUTUPHANE-EKSIK, desen tek kaynak openscad_tani);
+    yoksa eski kural AYNEN: stderr son satiri, o bossa stdout son satiri."""
+    kok = openscad_tani.kutuphane_tanisi(hata_metni + "\n" + cikti_metni)
+    if kok:
+        return kok
+    if hata_metni.strip():
+        return hata_metni.strip().splitlines()[-1][:120]
+    if cikti_metni.strip():
+        return cikti_metni.strip().splitlines()[-1][:120]
+    return "cikti YOK"
 
 
 # ---- HUKUM (31 Tem 2026) — "HIC OLCULMEDI" YESIL DEGILDIR --------------------
@@ -285,6 +300,19 @@ def kendini_test():
           aile_durumu({}) == "olculemedi", aile_durumu({}))
     bekle("H8 KAPI: 'yesil' DISI her durum rc=1 uretir (main'in hukum kurali)",
           all(d != "yesil" for d in ("kirmizi", "kismi", "olculemedi", "eslem-yok")))
+
+    # K427: kutuphane tanisi — desen vakalari + derleme_tanisi kablosu
+    for ad, kosul, detay in openscad_tani.kendini_test_vakalari():
+        bekle(ad, kosul, detay)
+    t = derleme_tanisi("", "WARNING: Can't find include file 'BOSL2/std.scad'.\n"
+                           "Current top level object is empty.\n")
+    bekle("D1 POZITIF: stdout'taki eksik include son satirin ONUNE gecer",
+          t.startswith(openscad_tani.TANI_JETONU + ":"), t)
+    t = derleme_tanisi("", "Current top level object is empty.\n")
+    bekle("D2 NEGATIF: kutuphane izi yoksa eski son-satir tanisi AYNEN",
+          t == "Current top level object is empty.", t)
+    bekle("D3 NEGATIF: iki akis da bos -> 'cikti YOK'",
+          derleme_tanisi("", "") == "cikti YOK", derleme_tanisi("", ""))
 
     kirmizi = [x for x in vakalar if not x[1]]
     print("ESLEM-OLCUM HUKUM NOBETCISI — %d/%d YESIL"
