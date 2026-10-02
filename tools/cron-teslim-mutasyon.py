@@ -472,7 +472,7 @@ K8 = ("K8", "ANLAM TASIMAYAN SIRALAMA: `_pencere_gozlemi` sonuc sozlugundeki iki
         '    sonuc = {"yol": yol, "hata_sayisi": len(hatalar), "bos": bos, "deneme": yapilan}\n')],
       False, set())
 
-# ── W KOLU — KIRMIZI TEYIDI (K430, 3 Eki 2026) ───────────────────────────────
+# ── W KOLU — KIRMIZI TEYIDI (K431, 3 Eki 2026) ───────────────────────────────
 # OLGU: kosum 37028777028 — bayat ilk sayfanin en yenisi 45,2 sa (W=48 sa ICINDE) oldugu
 # icin K428 tetigi atesmedi; A0 · A5 · A3 sahte 🔴. Her mutantin OLDURUCU vakasi
 # ONCEDEN civilidir (parantez icinde): kanarya T-BIS-ONCE eski yolun olguyu urettigini,
@@ -540,7 +540,7 @@ W13 = ("W13", "🔴 TEYITLI NOTU SUSAR: kirmizi iki gozlemle teyit edildi ama sa
 
 K9 = ("K9", "ilgisiz: KIRMIZI TEYIDI blogunun MALIYET yorumuna kesim notu eklendi", KAPI,
       [("# MALIYET: yalniz kirmizi aday is akisinda (saglikli kosumda EK CAGRI SIFIR).",
-        "# MALIYET: yalniz kirmizi aday is akisinda (saglikli kosumda EK CAGRI SIFIR). (K430)")],
+        "# MALIYET: yalniz kirmizi aday is akisinda (saglikli kosumda EK CAGRI SIFIR). (K431)")],
       False, set())
 
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12,

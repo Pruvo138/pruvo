@@ -767,7 +767,7 @@ def sayfa_tutarsizligi(g, simdi, pencere_saat=TESLIM_PENCERESI_SAAT):
     tum = g.get("tum_kosumlar") or []
     if not tum:
         return None
-    # 🔴 3 Eki 2026 (K430): KIRMIZI aday ilk sayfa ikinci gozlemle TEYIT EDILEMEDIYSE
+    # 🔴 3 Eki 2026 (K431): KIRMIZI aday ilk sayfa ikinci gozlemle TEYIT EDILEMEDIYSE
     # (HTTP/kuorum hatasi ya da daha taze ama TUTARSIZ kesit) hukum OLCULEMEDI'dir —
     # pencerede kayit OLSA bile. Gerekce: `_teyit_siniflandir` ustundeki KIRMIZI TEYIDI.
     teyitsiz = _teyit_olculemedi(g, simdi)
@@ -1154,7 +1154,7 @@ def _pencere_gozlemi(getir, wf_id, g, simdi, pencere_saat, bekle=None, zorla=Fal
     `bekle(sn)` ENJEKTE EDILIR: gozlem_topla gercek ag kolunda `time.sleep`, fikstur
     kolunda no-op verir (testler uyumaz).
 
-    `zorla` (3 Eki 2026, K430): ilk sayfa pencerede kayit GOSTERSE bile cekilir. Cagiran
+    `zorla` (3 Eki 2026, K431): ilk sayfa pencerede kayit GOSTERSE bile cekilir. Cagiran
     `kirmizi_teyit`tir — ilk sayfa tek basina bir KIRMIZI hukmun dayanagi olacaksa (bkz.
     `teyitli_degerlendir`). Saglikli halde bu kol HIC cagrilmaz."""
     beyan = g.get("kosum_sayisi")
@@ -1261,7 +1261,7 @@ def _duzeltme_notu(g, simdi):
                d.get("deneme"), TAZELIK_DENEME))
 
 
-# ─── KIRMIZI TEYIDI (3 Eki 2026, K430 — OLCULEN HOL) ─────────────────────────
+# ─── KIRMIZI TEYIDI (3 Eki 2026, K431 — OLCULEN HOL) ─────────────────────────
 # OLCULDU: SERIT B push kosumu 37028777028 (2 Eki 17:05Z, f487f48e) `cron-nabzi` rc=1,
 # DUSEN KOL: A0 · A5(d1-uzlastirici.yml) · A3(d1-uzlastirici.yml). Satirlar: A3 "son
 # event=schedule kosumu 45.2 saat once ... Cron SESSIZ", A5 "teslim 1 / nominal 192",
@@ -1417,7 +1417,7 @@ def gozlem_topla(dosyalar, getir=api_getir, simdi=None,
         g = {"dosya": dosya, "cron": cron, "kayitli": wf is not None,
              "durum": (wf or {}).get("state"), "kosum_sayisi": None, "son_kosum": None,
              "kayit_an": _iso(wf["created_at"]) if wf is not None else None,
-             # KIRMIZI TEYIDI (K430) ikinci gozlemi SONRADAN cekebilsin diye.
+             # KIRMIZI TEYIDI (K431) ikinci gozlemi SONRADAN cekebilsin diye.
              "wf_id": wf["id"] if wf is not None else None,
              "yenileme_an": None, "tum_kosumlar": [], "pencere_kirpildi": False,
              # IKINCI GOZLEM (pencere suzgecli sorgu) — SARTLI doldurulur, bkz.
@@ -1799,7 +1799,7 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
 
     `kirmizi_kaynak` (set) verilirse KOSUM SAYFASINDAN beslenen her kirmizinin is akisi
     adi ona eklenir (A3/A5 -> kendi akisi, A0/A4 -> damgayi yazan akis). Tuketen:
-    `teyitli_degerlendir` (KIRMIZI TEYIDI, K430).
+    `teyitli_degerlendir` (KIRMIZI TEYIDI, K431).
 
     `damga`/`paket` verilmezse A0/A4 ekseni RAPORLANMAZ (agsiz A1 birim testleri icin);
     GERCEK olcum yolunda main() her ikisini de verir."""
@@ -3895,7 +3895,7 @@ def kendini_test():
                 p = damga_gozle(getir, PAKET_DAMGA_ADI)
         except OlcumHatasi as e:
             return 2, ["OLCULEMEDI: %s" % e]
-        # K430: GERCEK olcum yolunun AYNISI — kirmizi teyidi dahil.
+        # K431: GERCEK olcum yolunun AYNISI — kirmizi teyidi dahil.
         return teyitli_degerlendir(dosyalar, g, getir, damga=d, damga_esigi=n0,
                                    paket=p, paket_esigi=n4)
 
@@ -5498,7 +5498,7 @@ def kendini_test():
           "tutarsizlik kolu onu YUTMAZ)", sayfa_tutarsizligi(g_t, simdi_t) is None,
           sayfa_tutarsizligi(g_t, simdi_t))
 
-    # === T-BIS — BAYAT ILK SAYFA, EN YENISI PENCERENIN ICINDE (K430, 3 Eki 2026) ======
+    # === T-BIS — BAYAT ILK SAYFA, EN YENISI PENCERENIN ICINDE (K431, 3 Eki 2026) ======
     # OLGU: kosum 37028777028 (2 Eki 17:05Z) — ilk sayfa DOLU (100 kayit), en yenisi
     # 45,2 sa (W=48 sa ICINDE), pencerede 1 kayit; gercek son schedule kosumu ~4,3 sa
     # onceydi. K428 tetigi (pencerede HIC kayit yok) ATESLENMEDI -> A0 · A5 · A3 sahte 🔴.
@@ -5764,7 +5764,7 @@ def main():
           "OLCULEN ZARAR penceresinin (%.1f sa) ALTINDA)"
           % (pkt_dosya, pkt_aralik, paket_esigi, PAKET_BAYATLIK_TAVAN_SAAT,
              OLCULEN_PAKET_ZARAR_SAAT))
-    # 🔴 K430: KIRMIZI TEYIDI — kirmizi bir eksen bayat olabilecek TEK gozleme dayanamaz.
+    # 🔴 K431: KIRMIZI TEYIDI — kirmizi bir eksen bayat olabilecek TEK gozleme dayanamaz.
     return rapor(*teyitli_degerlendir(dosyalar, gozlemler, damga=damga,
                                       damga_esigi=damga_esigi, paket=paket,
                                       paket_esigi=paket_esigi))
