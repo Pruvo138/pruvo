@@ -767,6 +767,12 @@ def sayfa_tutarsizligi(g, simdi, pencere_saat=TESLIM_PENCERESI_SAAT):
     tum = g.get("tum_kosumlar") or []
     if not tum:
         return None
+    # 🔴 3 Eki 2026 (K430): KIRMIZI aday ilk sayfa ikinci gozlemle TEYIT EDILEMEDIYSE
+    # (HTTP/kuorum hatasi ya da daha taze ama TUTARSIZ kesit) hukum OLCULEMEDI'dir —
+    # pencerede kayit OLSA bile. Gerekce: `_teyit_siniflandir` ustundeki KIRMIZI TEYIDI.
+    teyitsiz = _teyit_olculemedi(g, simdi)
+    if teyitsiz:
+        return teyitsiz
     en_yeni = max(tum)
     if en_yeni > simdi - timedelta(hours=pencere_saat):
         return None                      # (2) DUSTU: pencerede kayit VAR -> hukum verilebilir
@@ -1117,7 +1123,7 @@ def _pencere_cek(getir, yol, sinir):
             "son_id": ilk.get("id"), "son_sonuc": ilk.get("conclusion")}
 
 
-def _pencere_gozlemi(getir, wf_id, g, simdi, pencere_saat, bekle=None):
+def _pencere_gozlemi(getir, wf_id, g, simdi, pencere_saat, bekle=None, zorla=False):
     """None (gerek YOK) | {"durum": "yapildi"|"hata", ...} — IKINCI GOZLEM (AG).
 
     🔴 NEDEN AYRI CAGRI: ilk sayfa (`event=schedule&per_page=100`) BAZI cagrilarda 130-160
@@ -1146,7 +1152,11 @@ def _pencere_gozlemi(getir, wf_id, g, simdi, pencere_saat, bekle=None):
     jeton kotasi 1000/saat, tavan bu kolla asilmaz.
 
     `bekle(sn)` ENJEKTE EDILIR: gozlem_topla gercek ag kolunda `time.sleep`, fikstur
-    kolunda no-op verir (testler uyumaz)."""
+    kolunda no-op verir (testler uyumaz).
+
+    `zorla` (3 Eki 2026, K430): ilk sayfa pencerede kayit GOSTERSE bile cekilir. Cagiran
+    `kirmizi_teyit`tir — ilk sayfa tek basina bir KIRMIZI hukmun dayanagi olacaksa (bkz.
+    `teyitli_degerlendir`). Saglikli halde bu kol HIC cagrilmaz."""
     beyan = g.get("kosum_sayisi")
     donen = g.get("donen_kayit")
     tum = g.get("tum_kosumlar") or []
@@ -1155,7 +1165,7 @@ def _pencere_gozlemi(getir, wf_id, g, simdi, pencere_saat, bekle=None):
     if not tum:
         return None
     pencere_basi = simdi - timedelta(hours=pencere_saat)
-    if max(tum) > pencere_basi:
+    if max(tum) > pencere_basi and not zorla:
         return None                      # ilk sayfa pencerede kayit GOSTERIYOR: hukum verilir
     bekle = bekle or (lambda _sn: None)
     bos, hatalar, en_iyi, yol = 0, [], None, None
@@ -1231,15 +1241,150 @@ def _pencereden_duzelt(g, pg):
 def _duzeltme_notu(g, simdi):
     """Satira eklenen KANIT metni. Ilk sayfa bayat sayilip pencere kesitinden hukum
     verildiyse bu SESSIZ KALMAZ: okuyan, hukmun hangi veriden ciktigini gorur."""
+    t = g.get("teyit") or {}
+    if t.get("sinif") == "dogrulandi":
+        # KIRMIZI aday ilk sayfa ikinci gozlemle TEYIT EDILDI: kirmizi yanar, ama
+        # hangi iki gozlemin anlastigini SOYLER (okuyan bayat kesit mi diye sormasin).
+        return (" · ✔ KIRMIZI TEYITLI: pencere suzgecli bagimsiz ikinci gozlem ilk sayfadan "
+                "TAZE kayit GOSTERMEDI (ikinci gozlem: beyan %s / en yeni %s · cekis %s/%d)"
+                % (t.get("beyan"), t.get("en_yeni_metin"), t.get("deneme"), TAZELIK_DENEME))
     d = g.get("duzeltme")
     if not d:
         return ""
     yas = ("%.1f sa once" % ((simdi - d["ilk_en_yeni"]).total_seconds() / 3600.0)
            if d.get("ilk_en_yeni") else "yok")
-    return (" · ⚙ ILK SAYFA BAYATTI (beyan %s / donen %s / en yeni %s = pencere DISI): hukum "
+    neden = ("= KIRMIZI ADAYDI, ikinci gozlem DAHA TAZE kayit gosterdi"
+             if d.get("tetik") == "teyit" else "= pencere DISI")
+    return (" · ⚙ ILK SAYFA BAYATTI (beyan %s / donen %s / en yeni %s %s): hukum "
             "PENCERE SUZGECLI ikinci gozlemden verildi (%s kosum, cekis %s/%d)"
-            % (d.get("ilk_beyan"), d.get("ilk_donen"), yas, d.get("pencere_donen"),
+            % (d.get("ilk_beyan"), d.get("ilk_donen"), yas, neden, d.get("pencere_donen"),
                d.get("deneme"), TAZELIK_DENEME))
+
+
+# ─── KIRMIZI TEYIDI (3 Eki 2026, K430 — OLCULEN HOL) ─────────────────────────
+# OLCULDU: SERIT B push kosumu 37028777028 (2 Eki 17:05Z, f487f48e) `cron-nabzi` rc=1,
+# DUSEN KOL: A0 · A5(d1-uzlastirici.yml) · A3(d1-uzlastirici.yml). Satirlar: A3 "son
+# event=schedule kosumu 45.2 saat once ... Cron SESSIZ", A5 "teslim 1 / nominal 192",
+# A0 "DENETIM YAPILDI AMA CRON YAPMADI". GERCEK (`gh run list`): ayni gun schedule
+# `success` 00:51Z · 06:18Z · 12:45Z — son kosum ~4,3 sa onceydi. K428'in ikinci gozlem
+# TETIGI "ilk sayfa pencerede (W=48 sa) HIC kayit gostermiyor" idi; bu bayat kesitin en
+# yenisi 45,2 sa = pencerenin ICINDE (48 sa'ten 2,8 sa genc) -> tetik ATESLENMEDI, bayat
+# sayfa dogru sanildi ve UC eksen AYNI sayfadan dustu: A3 `son_kosum`u (45,2 sa > N=9),
+# A5 pencere sayimini (1 < taban 4), A0 kimlik kumesini (12:45Z cron kosumu kumede YOK ->
+# 'elle'). "API sayfa siniri doldu" notu yalniz DONMUS esige (daha SIKI) dusurdu.
+# SINIF: tetik pencere geometrisine (W) bagliydi; bayat kesitin YASI ise W'den bagimsiz
+# (130-160 sa, 45 sa, haftalarca) — bir sonraki bayat kesit yine W'nin ic tarafina
+# dusebilir. Tekil yama (W'yi buyutmek / esik oynatmak) YASAK.
+# COZUM: tetik GEOMETRIYE degil HUKME baglanir — ilk sayfa tek basina bir KIRMIZI
+# hukmun dayanagi olacaksa (A0/A3/A4/A5 hangisi olursa) o is akisi icin ikinci gozlem
+# ZORUNLUDUR. Ikinci gozlem:
+#   · ilk sayfadan DAHA TAZE kayit (ya da daha cok pencere kosumu) gosterirse ilk sayfa
+#     BAYATTIR -> kesit TUTARLIYSA hukum ondan (⚙ notu), TUTARSIZSA OLCULEMEDI (rc 2);
+#   · daha taze bir sey gostermezse iki BAGIMSIZ gozlem anlasir -> KIRMIZI AYNEN yanar
+#     (✔ TEYITLI notu) — gercek sessizlik SUSTURULMAZ;
+#   · BASARISIZ olursa (HTTP / kuorum) kirmizi bayat kesitten ayirt EDILEMEZ -> OLCULEMEDI.
+# MALIYET: yalniz kirmizi aday is akisinda (saglikli kosumda EK CAGRI SIFIR).
+def _teyit_siniflandir(g, pg, simdi, pencere_saat=TESLIM_PENCERESI_SAAT):
+    """`g["teyit"]`i doldurur; ilk sayfa bayatsa ve kesit tutarliysa `g`yi duzeltir.
+
+    SAF (ag yok). Siniflar: dogrulandi · duzeltildi · tutarsiz · hata.
+    🔴 SINIF KAPISI: hicbir is akisi ADI gecmez."""
+    if not isinstance(pg, dict):
+        return None
+    tum = g.get("tum_kosumlar") or []
+    ilk_yeni = max(tum) if tum else None
+    pencere_basi = simdi - timedelta(hours=pencere_saat)
+    ilk_pencere = len([d for d in tum if d > pencere_basi])
+    t = {"deneme": pg.get("deneme"), "beyan": pg.get("beyan"), "en_yeni_metin": "yok"}
+    if pg.get("durum") != "yapildi":
+        t.update({"sinif": "hata", "sebep": pg.get("sebep") or "sebep bildirilmedi"})
+        g["teyit"] = t
+        return t
+    p_yeni = pg.get("en_yeni")
+    if p_yeni is not None:
+        t["en_yeni_metin"] = "%.1f sa once" % ((simdi - p_yeni).total_seconds() / 3600.0)
+    p_beyan = pg.get("beyan")
+    taze_kanit = ((p_yeni is not None and (ilk_yeni is None or p_yeni > ilk_yeni))
+                  or (isinstance(p_beyan, int) and p_beyan > ilk_pencere))
+    if not taze_kanit:
+        t["sinif"] = "dogrulandi"
+    elif pg.get("tutarli") and pg.get("damgalar"):
+        # `_pencereden_duzelt` KENDI sartlarini da olcer; False donerse `g` DEGISMEMISTIR
+        # (not yazilmaz, cokme de olmaz — mutant kolu cokme ile degil hukumle olur).
+        if _pencereden_duzelt(g, pg):
+            g["duzeltme"]["tetik"] = "teyit"
+        t["sinif"] = "duzeltildi"
+    else:
+        t.update({"sinif": "tutarsiz", "ilk_pencere": ilk_pencere,
+                  "ilk_yeni": ilk_yeni, "p_yeni": p_yeni})
+    g["teyit"] = t
+    return t
+
+
+def _teyit_olculemedi(g, simdi):
+    """None | OLCULEMEDI metni — kirmizi aday ilk sayfa TEYIT EDILEMEDIYSE."""
+    t = g.get("teyit") or {}
+    sinif = t.get("sinif")
+    if sinif not in ("hata", "tutarsiz"):
+        return None
+    tum = g.get("tum_kosumlar") or []
+    yas = ("%.1f sa" % ((simdi - max(tum)).total_seconds() / 3600.0)) if tum else "-"
+    onek = ("ilk sayfa (beyan %s / donen %s / en yeni %s once) tek basina KIRMIZI hukmun "
+            "dayanagi olacakti; KIRMIZI bagimsiz ikinci gozlemle TEYIT EDILMEDEN basilmaz "
+            "(OLCULDU 2 Eki 2026 kosumu 37028777028: bayat kesitin en yenisi 45,2 sa ile "
+            "pencerenin ICINDEYDI, gercek son kosum ~4,3 sa onceydi). "
+            % (g.get("kosum_sayisi"), g.get("donen_kayit"), yas))
+    kapatan = ("KAPATAN OLCUM: pencere suzgecli ikinci sorgu "
+               "(`...runs?event=schedule&per_page=%d&created=>=<W basi>`) KENDI ICINDE "
+               "TUTARLI bir kesit dondurur — daha taze kayit varsa hukum ondan, yoksa "
+               "KIRMIZI teyitli yanar." % TESLIM_SAYFA)
+    if sinif == "hata":
+        return (onek + "IKINCI GOZLEM BASARISIZ (%s) -> kirmizi ile bayat kesit AYIRT "
+                "EDILEMEZ. %s" % (t.get("sebep"), kapatan))
+    return (onek + "ILK SAYFA BAYAT: ikinci gozlem DAHA TAZE kayit gosterdi (ilk sayfa "
+            "pencerede %s kosum, ikinci gozlem beyan %s · en yeni %s) AMA kesit KENDI "
+            "ICINDE TUTARSIZ -> teslim SAYILAMAZ. %s"
+            % (t.get("ilk_pencere"), t.get("beyan"), t.get("en_yeni_metin"), kapatan))
+
+
+def kirmizi_teyit(gozlemler, adaylar, getir=None, simdi=None, bekle=None,
+                  pencere_saat=TESLIM_PENCERESI_SAAT):
+    """AG kolu: `adaylar` (dosya adlari) icin ZORLA ikinci gozlem + siniflandirma.
+
+    Yalniz ikinci gozlemi HENUZ yapilmamis is akislari cekilir (K428 tetigiyle zaten
+    cekilmis olan tekrar cekilmez). Doner: teyit edilen is akisi sayisi."""
+    getir = getir or api_getir
+    simdi = simdi or datetime.now(timezone.utc)
+    # gozlem_topla ile AYNI kural: yalniz GERCEK ag kolunda uyunur, fikstur uyumaz.
+    bekle = bekle or (time.sleep if getir is api_getir else (lambda _sn: None))
+    sayi = 0
+    for g in gozlemler:
+        if g.get("dosya") not in adaylar or g.get("pencere_gozlemi") is not None:
+            continue
+        if g.get("wf_id") is None or not g.get("tum_kosumlar"):
+            continue
+        pg = _pencere_gozlemi(getir, g["wf_id"], g, simdi, pencere_saat, bekle, zorla=True)
+        if pg is None:
+            continue
+        g["pencere_gozlemi"] = pg
+        _teyit_siniflandir(g, pg, simdi, pencere_saat)
+        sayi += 1
+    return sayi
+
+
+def teyitli_degerlendir(dosyalar, gozlemler, getir=None, simdi=None, bekle=None, **kw):
+    """(rc, satirlar) — `degerlendir` + KIRMIZI TEYIDI. GERCEK olcum yolu BUNU cagirir.
+
+    Birinci gecis kirmizi bir eksen uretirse, o kirmiziyi besleyen is akislari icin
+    bagimsiz ikinci gozlem yapilir ve hukum YENIDEN verilir. Kirmizi yoksa EK CAGRI YOK."""
+    simdi = simdi or datetime.now(timezone.utc)
+    kaynak = set()
+    rc, satirlar = degerlendir(dosyalar, gozlemler, simdi=simdi, kirmizi_kaynak=kaynak, **kw)
+    if not kaynak:
+        return rc, satirlar
+    if not kirmizi_teyit(gozlemler, kaynak, getir, simdi, bekle):
+        return rc, satirlar
+    return degerlendir(dosyalar, gozlemler, simdi=simdi, **kw)
 
 
 def gozlem_topla(dosyalar, getir=api_getir, simdi=None,
@@ -1272,6 +1417,8 @@ def gozlem_topla(dosyalar, getir=api_getir, simdi=None,
         g = {"dosya": dosya, "cron": cron, "kayitli": wf is not None,
              "durum": (wf or {}).get("state"), "kosum_sayisi": None, "son_kosum": None,
              "kayit_an": _iso(wf["created_at"]) if wf is not None else None,
+             # KIRMIZI TEYIDI (K430) ikinci gozlemi SONRADAN cekebilsin diye.
+             "wf_id": wf["id"] if wf is not None else None,
              "yenileme_an": None, "tum_kosumlar": [], "pencere_kirpildi": False,
              # IKINCI GOZLEM (pencere suzgecli sorgu) — SARTLI doldurulur, bkz.
              # `_pencere_gozlemi`. None = gerek YOKTU (maliyet kolu).
@@ -1647,8 +1794,12 @@ A4_SABLON = {
 
 
 def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
-                paket=None, paket_esigi=None):
+                paket=None, paket_esigi=None, kirmizi_kaynak=None):
     """(rc, satirlar). rc 0 yesil · 1 alarm · 2 olculemedi.
+
+    `kirmizi_kaynak` (set) verilirse KOSUM SAYFASINDAN beslenen her kirmizinin is akisi
+    adi ona eklenir (A3/A5 -> kendi akisi, A0/A4 -> damgayi yazan akis). Tuketen:
+    `teyitli_degerlendir` (KIRMIZI TEYIDI, K430).
 
     `damga`/`paket` verilmezse A0/A4 ekseni RAPORLANMAZ (agsiz A1 birim testleri icin);
     GERCEK olcum yolunda main() her ikisini de verir."""
@@ -1694,6 +1845,8 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
             continue
         satirlar.append(satir)
         alarm = alarm or yandi
+        if yandi and kirmizi_kaynak is not None:
+            kirmizi_kaynak.add(capa)
 
     for dosya, cron in dosyalar:
         hata, aralik = bicim_hukmu(dosya, cron)
@@ -1741,6 +1894,8 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
         satir5, yandi5 = teslim_hukmu(g, simdi)
         satirlar.append(satir5)
         alarm = alarm or yandi5
+        if yandi5 and kirmizi_kaynak is not None:
+            kirmizi_kaynak.add(g["dosya"])
 
         # 🔴 ESIK CANLI (5 Agu 2026): `g["esik"]` NOMINAL cadanstan turetilmis DONMUS
         # degerdi (15 dk -> 9 sa) ve GERCEKLESEN cadansin (%4,52) altinda kalip BOS
@@ -1795,6 +1950,8 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
                             % (etiket, yas, n, g["aralik"], efektif_dk, beklenen,
                                beklenen, esik_kaynak, ek))
             alarm = True
+            if kirmizi_kaynak is not None:
+                kirmizi_kaynak.add(g["dosya"])
         else:
             satirlar.append("✅ A3 NABIZ (ikincil) %s -> son event=schedule kosumu %.1f "
                             "saat once (esik N=%d sa · efektif cadans %.0f dk · ARDISIK "
@@ -3738,7 +3895,9 @@ def kendini_test():
                 p = damga_gozle(getir, PAKET_DAMGA_ADI)
         except OlcumHatasi as e:
             return 2, ["OLCULEMEDI: %s" % e]
-        return degerlendir(dosyalar, g, damga=d, damga_esigi=n0, paket=p, paket_esigi=n4)
+        # K430: GERCEK olcum yolunun AYNISI — kirmizi teyidi dahil.
+        return teyitli_degerlendir(dosyalar, g, getir, damga=d, damga_esigi=n0,
+                                   paket=p, paket_esigi=n4)
 
     D = [("d1-uzlastirici.yml", "7,22,37,52 * * * *")]
 
@@ -5339,6 +5498,168 @@ def kendini_test():
           "tutarsizlik kolu onu YUTMAZ)", sayfa_tutarsizligi(g_t, simdi_t) is None,
           sayfa_tutarsizligi(g_t, simdi_t))
 
+    # === T-BIS — BAYAT ILK SAYFA, EN YENISI PENCERENIN ICINDE (K430, 3 Eki 2026) ======
+    # OLGU: kosum 37028777028 (2 Eki 17:05Z) — ilk sayfa DOLU (100 kayit), en yenisi
+    # 45,2 sa (W=48 sa ICINDE), pencerede 1 kayit; gercek son schedule kosumu ~4,3 sa
+    # onceydi. K428 tetigi (pencerede HIC kayit yok) ATESLENMEDI -> A0 · A5 · A3 sahte 🔴.
+    # AYIRT EDICI CIFT: T-BIS-TAZE ile T-BIS-SESSIZ AYNI ilk sayfayi ve AYNI damgalari
+    # tasir; YALNIZ pencere suzgecli ikinci gozlemin yaniti degisir.
+    bis_ilk = [45.2] + [50.0 + 0.5 * i for i in range(TESLIM_SAYFA - 1)]   # 1 kayit W icinde
+    bis_taze = [4.3, 10.6, 16.3, 22.2, 28.0, 33.9, 39.8, 45.2]            # gercek kesit
+    bis_dusen = "DUSEN KOL: A0 · A5(d1-uzlastirici.yml) · A3(d1-uzlastirici.yml)"
+
+    def bis_damga():
+        # en yeni damga PUSH kosumundan (1,7 sa — 37026256367 sinifi), bir onceki CRON'dan
+        # (4,3 sa; kimligi pencere kesitinde, bayat ilk sayfada YOK).
+        return [_damga_kaydi(1.7, kosum_kimlik=_CRON_DISI_KOSUM), _damga_kaydi(4.3)]
+
+    def kos_teyitsiz(dosyalar, getir):
+        """ESKI yol (K428): degerlendir TEYITSIZ — olgunun fiksturde YENIDEN URETILDIGINI
+        olcer (kanarya: fikstur yuku tasiyor mu)."""
+        try:
+            g = gozlem_topla(dosyalar, getir)
+            _ad, n0, _ar = uzlastirici_esigi(dosyalar)
+            d = damga_gozle(getir, DAMGA_ADI)
+        except OlcumHatasi as e:
+            return 2, ["OLCULEMEDI: %s" % e]
+        return degerlendir(dosyalar, g, damga=d, damga_esigi=n0)
+
+    rc, s = kos_teyitsiz(D, _sahte_api(kosum_sayisi=1200, yas_saat=45.2,
+                                       kosum_yaslari=bis_ilk, pencere_yaslari=bis_taze,
+                                       damgalar=bis_damga(), damga_kosum="pencere", **TT))
+    iddia("T-BIS-ONCE KANARYA: teyitsiz (K428) yol olguyu BIREBIR uretir -> rc=1 ve %s"
+          % bis_dusen, rc == 1 and bis_dusen in dusen_ozeti(s),
+          "rc=%d · %s" % (rc, dusen_ozeti(s)))
+    iddia("T-BIS-ONCE KANARYA: A3 satiri olgunun metnini tasir (45.2 saat · Cron SESSIZ)",
+          any(x.startswith("🔴 A3 NABIZ") and "45.2 saat once" in x and "Cron SESSIZ" in x
+              for x in s), s)
+
+    sarmal, say_bis = _sayan(_sahte_api(kosum_sayisi=1200, yas_saat=45.2,
+                                        kosum_yaslari=bis_ilk, pencere_yaslari=bis_taze,
+                                        damgalar=bis_damga(), damga_kosum="pencere", **TT))
+    rc, s = kos(D, sarmal, damga_ile=True)
+    iddia("T-BIS-TAZE olgu + ikinci gozlem TAZE ve TUTARLI kesit (8 kosum, en yeni 4,3 sa) "
+          "-> KIRMIZI URETILMEZ, hukum kesitten: ✅ (rc=0)", rc == 0, "rc=%d · %s" % (rc, s))
+    iddia("T-BIS-TAZE 'Cron SESSIZ' / 'ZAMANLANMIS KOSUMLAR DUSUYOR' / 'CRON YAPMADI' YOK",
+          not any("Cron SESSIZ" in x or "ZAMANLANMIS KOSUMLAR DUSUYOR" in x
+                  or "DENETIM YAPILDI AMA CRON YAPMADI" in x for x in s), s)
+    iddia("T-BIS-TAZE A5 kesiti SAYAR (teslim 8) ve duzeltmeyi KIRMIZI ADAY gerekcesiyle "
+          "ADIYLA yazar (beyan 1200 / donen %d) — sessiz ikame YOK" % TESLIM_SAYFA,
+          any(x.startswith("✅ A5 TESLIM") and "teslim 8 /" in x
+              and "ILK SAYFA BAYATTI" in x and "KIRMIZI ADAYDI" in x
+              and "beyan 1200 / donen %d" % TESLIM_SAYFA in x for x in s), s)
+    iddia("T-BIS-TAZE A3 AYNI kesitten (son kosum 4.3 saat) ve notu TASIR",
+          any(x.startswith("✅ A3 NABIZ") and "4.3 saat once" in x
+              and "ILK SAYFA BAYATTI" in x for x in s), s)
+    iddia("T-BIS-TAZE A0 CRON damgasina gore YESIL (en yeni damganin CRON DISI oldugu "
+          "satirda yazar)",
+          any(x.startswith("✅ A0 DAMGA") and "CRON DISI" in x for x in s), s)
+    iddia("T-BIS-MALIYET kirmizi aday + ILK cekiste taze kesit -> TAM 1 ek pencereli cagri",
+          say_bis["pencereli"] == 1, "pencereli=%d" % say_bis["pencereli"])
+
+    rc, s = kos(D, _sahte_api(kosum_sayisi=1200, yas_saat=45.2, kosum_yaslari=bis_ilk,
+                              bozuk="ikinci-gozlem-ag", damgalar=bis_damga(),
+                              damga_kosum="pencere", **TT), damga_ile=True)
+    iddia("T-BIS-HATA olgu + ikinci gozlem HTTP 502 -> OLCULEMEDI (rc=2): kirmizi bayat "
+          "kesitten AYIRT EDILEMEZ, KESIN 🔴 basilmaz", rc == 2, "rc=%d" % rc)
+    iddia("T-BIS-HATA A3+A5 satiri TEYIT EDILMEDEN + 502 der; 'Cron SESSIZ' / 'CRON "
+          "YAPMADI' YOK; A0 SINIFLANDIRILAMAZ",
+          any(x.startswith("🔴 A3+A5") and "TEYIT EDILMEDEN" in x and "502" in x for x in s)
+          and any("A0 DAMGA" in x and "SINIFLANDIRILAMAZ" in x for x in s)
+          and not any("Cron SESSIZ" in x or "DENETIM YAPILDI AMA CRON YAPMADI" in x
+                      for x in s), s)
+
+    rc, s = kos(D, _sahte_api(kosum_sayisi=1200, yas_saat=45.2, kosum_yaslari=bis_ilk,
+                              pencere_yaslari=bis_taze, pencere_tutarsiz=True,
+                              damgalar=bis_damga(), damga_kosum="pencere", **TT),
+                damga_ile=True)
+    iddia("T-BIS-TUTARSIZ ikinci gozlem DAHA TAZE ama kesit KENDI ICINDE TUTARSIZ -> "
+          "OLCULEMEDI (rc=2), kesit SAYILMAZ, kirmizi da basilmaz",
+          rc == 2 and any(x.startswith("🔴 A3+A5") and "TUTARSIZ" in x
+                          and "SAYILAMAZ" in x for x in s)
+          and not any("Cron SESSIZ" in x for x in s), "rc=%d · %s" % (rc, s))
+
+    rc, s = kos(D, _sahte_api(kosum_sayisi=1200, yas_saat=45.2, kosum_yaslari=bis_ilk,
+                              damgalar=bis_damga(), damga_kosum="pencere", **TT),
+                damga_ile=True)
+    iddia("T-BIS-SESSIZ POZITIF KONTROL: AYNI ilk sayfa, ikinci gozlem DURUST (taze kayit "
+          "YOK) -> 🔴 ALARM AYNEN (rc=1) ve %s — gercek 45 sa sessizlik SUSTURULMAZ"
+          % bis_dusen, rc == 1 and bis_dusen in dusen_ozeti(s),
+          "rc=%d · %s" % (rc, dusen_ozeti(s)))
+    iddia("T-BIS-SESSIZ kirmizi satirlar ✔ KIRMIZI TEYITLI der, 'ILK SAYFA BAYATTI' DEMEZ, "
+          "OLCULEMEDI yok",
+          any(x.startswith("🔴 A3 NABIZ") and "KIRMIZI TEYITLI" in x for x in s)
+          and any(x.startswith("🔴 A5 TESLIM") and "KIRMIZI TEYITLI" in x for x in s)
+          and not any("ILK SAYFA BAYATTI" in x or "OLCULEMEDI" in x for x in s), s)
+
+    bis_tutarli = [45.2] + [50.0 + 0.5 * i for i in range(39)]          # 40/40, tutarli
+    rc0, _s0 = kos_teyitsiz(D, _sahte_api(kosum_sayisi=40, yas_saat=45.2,
+                                          kosum_yaslari=bis_tutarli, pencere_yaslari=bis_taze,
+                                          damgalar=bis_damga(), damga_kosum="pencere", **TT))
+    rc, s = kos(D, _sahte_api(kosum_sayisi=40, yas_saat=45.2, kosum_yaslari=bis_tutarli,
+                              pencere_yaslari=bis_taze, damgalar=bis_damga(),
+                              damga_kosum="pencere", **TT), damga_ile=True)
+    iddia("T-BIS-TUTARLI-BAYAT KENDI ICINDE TUTARLI (40/40) bayat kesit, en yenisi W icinde: "
+          "teyitsiz yol 🔴 (rc=1), teyitli yol ✅ (rc=0) — tutarlilik tazelik DEGILDIR",
+          rc0 == 1 and rc == 0, "teyitsiz rc=%d · teyitli rc=%d" % (rc0, rc))
+
+    # --- A0 TEK BASINA kirmizi aday: sayfa SAATLERCE bayat (A3/A5 yesil kalir) --------
+    a0_ilk = [3.0, 9.0, 15.0, 21.0, 27.0, 33.0, 39.0, 45.0]
+    a0_taze = [2.0, 3.0, 9.0, 15.0, 21.0, 27.0, 33.0, 39.0, 45.0]
+
+    def a0_damga():
+        return [_damga_kaydi(1.0, kosum_kimlik=_CRON_DISI_KOSUM), _damga_kaydi(2.0)]
+
+    rc0, _s0 = kos_teyitsiz(D, _sahte_api(kosum_sayisi=8, yas_saat=3.0, kosum_yaslari=a0_ilk,
+                                          pencere_yaslari=a0_taze, damgalar=a0_damga(),
+                                          damga_kosum="pencere", **TT))
+    rc, s = kos(D, _sahte_api(kosum_sayisi=8, yas_saat=3.0, kosum_yaslari=a0_ilk,
+                              pencere_yaslari=a0_taze, damgalar=a0_damga(),
+                              damga_kosum="pencere", **TT), damga_ile=True)
+    iddia("T-BIS-A0 ilk sayfa 1 sa bayat (A3/A5 yesil) + damgayi yazan CRON kosumu sayfada "
+          "YOK: teyitsiz yol 'CRON YAPMADI' 🔴, teyitli yol A0 kirmizisini da TEYIDE "
+          "goturur -> ✅ (rc=0)", rc0 == 1 and rc == 0,
+          "teyitsiz rc=%d · teyitli rc=%d · %s" % (rc0, rc, s))
+    rc, s = kos(D, _sahte_api(kosum_sayisi=8, yas_saat=3.0, kosum_yaslari=a0_ilk,
+                              damgalar=a0_damga(), damga_kosum="pencere", **TT),
+                damga_ile=True)
+    iddia("T-BIS-A0-SESSIZ POZITIF KONTROL: ayni sayfa, ikinci gozlem taze kayit "
+          "GOSTERMEZ -> 'DENETIM YAPILDI AMA CRON YAPMADI' AYNEN 🔴 (4 Agu elle-sondurme "
+          "sinifi susturulmadi)",
+          rc == 1 and any(x.startswith("🔴 A0 DAMGA") and "CRON YAPMADI" in x
+                          and "KIRMIZI TEYITLI" in x for x in s), "rc=%d · %s" % (rc, s))
+
+    # --- TEK EKSEN kirmizi adaylar: her eksenin kirmiziyi TEYIDE goturdugu AYRI civilenir
+    # (A0/A5 ayni is akisini eklese bile A3'u dusuren bir mutant baska fiksturde gizlenmesin).
+    # En yeni 20 sa: MUTLAK_SESSIZLIK_SAAT (18) USTUNDE — esik turetimi (canli/donmus)
+    # ne derse desin A3 kirmizi adaydir (Y7 gibi esik mutantlari bu kanaryayi KAYDIRAMAZ).
+    a3_ilk = [20.0, 22.0, 24.0, 26.0, 28.0] + [50.0 + 0.5 * i for i in range(TESLIM_SAYFA - 5)]
+    rc0, _s0 = kos_teyitsiz(D, _sahte_api(kosum_sayisi=1200, yas_saat=20.0,
+                                          kosum_yaslari=a3_ilk, pencere_yaslari=bis_taze,
+                                          **TT))
+    rc, s = kos(D, _sahte_api(kosum_sayisi=1200, yas_saat=20.0, kosum_yaslari=a3_ilk,
+                              pencere_yaslari=bis_taze, **TT))
+    iddia("T-BIS-A3 YALNIZ A3 kirmizi aday (DOLU sayfa, en yeni 20 sa > tavan %d; A5 5 "
+          "teslim yesil): teyitsiz 🔴, teyitli ✅" % MUTLAK_SESSIZLIK_SAAT, rc0 == 1 and rc == 0,
+          "teyitsiz rc=%d · teyitli rc=%d · %s" % (rc0, rc, s))
+    a5_ilk = [2.0, 40.0] + [50.0 + 0.5 * i for i in range(TESLIM_SAYFA - 2)]
+    rc0, _s0 = kos_teyitsiz(D, _sahte_api(kosum_sayisi=1200, yas_saat=2.0,
+                                          kosum_yaslari=a5_ilk, pencere_yaslari=bis_taze,
+                                          **TT))
+    rc, s = kos(D, _sahte_api(kosum_sayisi=1200, yas_saat=2.0, kosum_yaslari=a5_ilk,
+                              pencere_yaslari=[1.5] + bis_taze, **TT))
+    iddia("T-BIS-A5 YALNIZ A5 kirmizi aday (en yeni 2 sa — A3 yesil; pencerede 2 teslim < "
+          "taban 4): teyitsiz 🔴, teyitli ✅", rc0 == 1 and rc == 0,
+          "teyitsiz rc=%d · teyitli rc=%d · %s" % (rc0, rc, s))
+
+    sarmal, say_saglam = _sayan(_sahte_api(kosum_sayisi=8, yas_saat=0.5,
+                                           kosum_yaslari=taze_yaslari,
+                                           damgalar=[_damga_kaydi(0.5)], **TT))
+    rc, s = kos(D, sarmal, damga_ile=True)
+    iddia("T-BIS-MALIYET SAGLIKLI cron (rc=0) -> TEYIT cagrisi SIFIR (kirmizi yoksa ikinci "
+          "gozlem YOK)", rc == 0 and say_saglam["pencereli"] == 0,
+          "rc=%d pencereli=%d" % (rc, say_saglam["pencereli"]))
+
     print("\n%d iddia kosturuldu, %d KIRMIZI." % (sayac[0], len(hatalar)))
     return hatalar
 
@@ -5443,9 +5764,10 @@ def main():
           "OLCULEN ZARAR penceresinin (%.1f sa) ALTINDA)"
           % (pkt_dosya, pkt_aralik, paket_esigi, PAKET_BAYATLIK_TAVAN_SAAT,
              OLCULEN_PAKET_ZARAR_SAAT))
-    return rapor(*degerlendir(dosyalar, gozlemler, damga=damga,
-                              damga_esigi=damga_esigi, paket=paket,
-                              paket_esigi=paket_esigi))
+    # 🔴 K430: KIRMIZI TEYIDI — kirmizi bir eksen bayat olabilecek TEK gozleme dayanamaz.
+    return rapor(*teyitli_degerlendir(dosyalar, gozlemler, damga=damga,
+                                      damga_esigi=damga_esigi, paket=paket,
+                                      paket_esigi=paket_esigi))
 
 
 if __name__ == "__main__":
