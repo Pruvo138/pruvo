@@ -37,6 +37,10 @@ TABAN_TOLERANS = 0.001
 
 sys.path.insert(0, TEST_DIR)
 import stl_hacim  # noqa: E402
+import openscad_tani  # noqa: E402
+
+# scad_hacim()'in "kutuphane eksik" donusu: cokme (None -> ATLA) ile KARISTIRILMAZ.
+KUTUPHANE_EKSIK = "kutuphane-eksik"
 
 
 # ---- OPENSCAD YASAGI — ADA DEGIL COZUMLENMIS HEDEFE BAKAR -------------------
@@ -350,6 +354,15 @@ def scad_hacim(openscad, scad_yol, esleme, sset, tmpdir, etiket):
         if "ERROR:" in hata_metni:
             sys.exit("openscad GERCEK hata (%s):\n%s\n%s" % (
                 etiket, " ".join(komut), hata_metni[-2000:]))
+        # K427 (2 Eki 2026): eksik kutuphane COKME DEGILDIR — deterministiktir,
+        # yeniden denemek ve `[ATLA]` ile gecmek kok nedeni gizler (CI'da BOSL2
+        # yokken cerceve/disli/yay bu yoldan sessizce atlandi). stdout da okunur:
+        # xvfb-run sarmalayicisi akislari birlestirebilir.
+        tani = openscad_tani.kutuphane_tanisi(
+            hata_metni + "\n" + proc.stdout.decode("utf-8", "replace"))
+        if tani:
+            print("  [TANI] %s %s (kod %s)" % (etiket, tani, proc.returncode))
+            return KUTUPHANE_EKSIK
         print("  ... openscad cokme/bos cikti (%s, deneme %d/3, kod %s) — tekrar" %
               (etiket, deneme + 1, proc.returncode))
         import time
@@ -415,6 +428,10 @@ def aile_dogrula(aile, set_sayisi, rnd, openscad, scad_dir):
         for i, sset in enumerate(setler):
             ref = scad_hacim(openscad, scad_yol, esleme, sset, tmpdir,
                              "%s-%d" % (aile, i))
+            if ref == KUTUPHANE_EKSIK:
+                print("  [OLCULEMEDI] %-8s %s — derleme ortaminda kutuphane yok;"
+                      " ATLA DEGIL, YESIL SAYILMAZ" % (aile, openscad_tani.TANI_JETONU))
+                return "olculemedi"
             if ref is None:
                 print("  [ATLA] %-8s yerel dogrulanamadi (openscad israrla cokuyor)"
                       " — CI dogrulamasina birakildi" % aile)
@@ -549,6 +566,49 @@ def kendini_test():
         os.environ["PATH"] = eski_path
         import shutil as _sh
         _sh.rmtree(tmp, ignore_errors=True)
+
+    # --- K427: KUTUPHANE TANISI — desen tek kaynak openscad_tani + scad_hacim kablosu ---
+    for ad, kosul, detay in openscad_tani.kendini_test_vakalari():
+        bekle(ad, kosul, detay)
+    tmp2 = tempfile.mkdtemp(prefix="pruvo-tani-")
+    try:
+        scad = os.path.join(tmp2, "a.scad")
+        with io.open(scad, "w", encoding="utf-8") as f:
+            f.write("cube(1);\n")
+
+        def sahte_derleyici(ad, satirlar):
+            sayac = os.path.join(tmp2, ad + ".sayac")
+            govde = "#!/bin/sh\necho x >> '%s'\n" % sayac
+            govde += "".join("printf '%%s\\n' \"%s\"\n" % s for s in satirlar)
+            govde += "exit 1\n"
+            return _calistirilabilir_yaz(os.path.join(tmp2, ad), govde), sayac
+
+        def cagri_sayisi(sayac):
+            if not os.path.exists(sayac):
+                return 0
+            with io.open(sayac, encoding="utf-8") as f:
+                return len(f.read().splitlines())
+
+        sessiz = io.StringIO()
+        import contextlib
+        derleyici, sayac = sahte_derleyici("derleyici-kutuphanesiz", [
+            "WARNING: Can't find include file 'BOSL2/std.scad'.",
+            "Current top level object is empty."])
+        with contextlib.redirect_stdout(sessiz):
+            sonuc = scad_hacim(derleyici, scad, {}, {}, tmp2, "tani-0")
+        bekle("K1 POZITIF: kutuphane eksik -> KUTUPHANE_EKSIK, 1 cagri (ATLA'ya DUSMEZ)",
+              sonuc == KUTUPHANE_EKSIK and cagri_sayisi(sayac) == 1,
+              "sonuc=%r cagri=%d" % (sonuc, cagri_sayisi(sayac)))
+        derleyici, sayac = sahte_derleyici("derleyici-cokuyor", [
+            "Current top level object is empty."])
+        with contextlib.redirect_stdout(sessiz):
+            sonuc = scad_hacim(derleyici, scad, {}, {}, tmp2, "tani-1")
+        bekle("K2 NEGATIF: kutuphane izi yoksa eski cokme yolu AYNEN (None, 3 deneme)",
+              sonuc is None and cagri_sayisi(sayac) == 3,
+              "sonuc=%r cagri=%d" % (sonuc, cagri_sayisi(sayac)))
+    finally:
+        import shutil as _sh2
+        _sh2.rmtree(tmp2, ignore_errors=True)
 
     kirmizi = [v for v in vakalar if not v[1]]
     print("OPENSCAD YASAK NOBETCISI — %d/%d YESIL" % (len(vakalar) - len(kirmizi),

@@ -1225,9 +1225,16 @@ jobs:
       # Artefakt birakmaz: her iki kol da yazdigi gecici dosyayi (jenerator/*-gecici.js,
       # urun/_pruvo-kendini-test, __pycache__ .pyc) kendi temizler — olculdu, kosum sonrasi
       # `git status --porcelain` degismedi. Toplam ~0,5 s.
-      - name: "OpenSCAD yasak nobetcisi — kendini test (18 iddia; PATH/symlink/maskeli shim)"
+      - name: "OpenSCAD yasak nobetcisi — kendini test (26 iddia; PATH/symlink/maskeli shim + kutuphane tanisi)"
         if: ${{ !cancelled() }}
         run: python3 jenerator/test/dogrula.py --kendini-test
+
+      # K427 (2 Eki 2026): eksik kutuphane (BOSL2) tanisinin desen TEK KAYNAGI. Ayni
+      # vakalar dogrula.py (ustteki adim) ve eslem-olcum.py --kendini-test'te de kosar;
+      # bu adim modulu kendi basina sinar (ag/OpenSCAD YOK, ~0,05 s, artefakt YOK).
+      - name: "OpenSCAD kutuphane tanisi — kendini test (eksik include ATLA/bos-geometri diye gizlenmez)"
+        if: ${{ !cancelled() }}
+        run: python3 jenerator/test/openscad_tani.py --kendini-test
 
       # 31 Tem: bu kola SUITE BUTUNLUGU eksenleri (V6-V8) eklendi. Gerekce: bayraksiz
       # tam suite CI'da kosmaz (OpenSCAD + build.py ister) ve onun hukmu "kirmizi var mi"
@@ -3580,6 +3587,44 @@ jobs:
             > /usr/local/bin/openscad
           chmod +x /usr/local/bin/openscad
           openscad --version
+
+      # 🔴 BOSL2 (K427, 2 Eki 2026) — OLCULDU (kosum 36929560645): bu is 27 Agu'dan
+      # beri kirmiziydi cunku CI yalniz OpenSCAD kuruyordu, canli /uret imaji ise
+      # BOSL2'yi de kuruyor. Eksik include OpenSCAD'da UYARIDIR: 9 `motor: uretim`
+      # aile "Current top level object is empty" ile dustu, BOSL2 isteyen
+      # `motor: pruvo` aileler `[ATLA]` (cerceve/disli/yay) ya da sahte sapma
+      # (kase %6240, kavanoz %25-300) verdi. SURUM BURAYA YAZILMAZ: tek kaynak
+      # onizleme/derleyici/Dockerfile `ARG BOSL2_SURUM` (canli imajin kullandigi);
+      # ikinci sabit = ikinci bayatlama yuzeyi. Kurulum yeri Dockerfile ile ayni
+      # kullanici kutuphane dizini; xvfb-run sarmalayicisinin GERCEKTEN gordugu
+      # duman testiyle kanitlanir (gormezse fail-closed, TEST 1'e gidilmez).
+      - name: "BOSL2 (canli imajla ayni surum — Dockerfile'dan turetilir)"
+        run: |
+          SURUM=$(sed -n 's/^ARG BOSL2_SURUM=\([0-9][0-9.]*\)[[:space:]]*$/\1/p' onizleme/derleyici/Dockerfile)
+          ADET=$(printf '%s' "$SURUM" | grep -c . || true)
+          if [ "$ADET" != "1" ]; then
+            echo "::error::onizleme/derleyici/Dockerfile icinde TEK bir 'ARG BOSL2_SURUM=<surum>' bulunamadi (adet=$ADET) — fail-closed."
+            exit 1
+          fi
+          KUTUPHANE="$HOME/.local/share/OpenSCAD/libraries"
+          mkdir -p "$KUTUPHANE"
+          git clone --quiet --depth 1 --branch "v$SURUM" https://github.com/BelfrySCAD/BOSL2 "$KUTUPHANE/BOSL2"
+          echo "BOSL2 v$SURUM -> $KUTUPHANE/BOSL2 (commit $(git -C "$KUTUPHANE/BOSL2" rev-parse --short HEAD))"
+          openscad --info > "$RUNNER_TEMP/openscad-info.txt" 2>&1 || true
+          grep -i -A2 "librar" "$RUNNER_TEMP/openscad-info.txt" || echo "(openscad --info kutuphane satiri basmadi — karar duman testinde)"
+          printf 'include <BOSL2/std.scad>\ncuboid([10,10,10], rounding=1);\n' > "$RUNNER_TEMP/bosl2-duman.scad"
+          if ! openscad -o "$RUNNER_TEMP/bosl2-duman.stl" "$RUNNER_TEMP/bosl2-duman.scad" > "$RUNNER_TEMP/bosl2-duman.log" 2>&1; then
+            cat "$RUNNER_TEMP/bosl2-duman.log"
+            echo "::error::BOSL2 duman testi DERLENMEDI — openscad kutuphaneyi gormuyor, fail-closed."
+            exit 1
+          fi
+          if grep -qiE "can't (find|open) include file|can't open library|ignoring unknown (module|function)" "$RUNNER_TEMP/bosl2-duman.log"; then
+            cat "$RUNNER_TEMP/bosl2-duman.log"
+            echo "::error::BOSL2 duman testinde kutuphane uyarisi — fail-closed."
+            exit 1
+          fi
+          test -s "$RUNNER_TEMP/bosl2-duman.stl"
+          echo "BOSL2 duman testi YESIL: include <BOSL2/std.scad> derlendi ($(wc -c < "$RUNNER_TEMP/bosl2-duman.stl") B STL)"
 
       # GERCEK TEST 1: her aile kendi BEYAN ETTIGI motora karsi olculur
       # (esleme/<aile>.json "motor" alani). Beyan yoksa ya da beyan edilen motor
