@@ -3273,13 +3273,26 @@ jobs:
   #    3.12 · boto3+pyyaml · node 20) — ortam farki sessiz bir davranis farki uretirdi.
   #    `fetch-depth: 0` ZORUNLU: temizlik kolu 4 yasal sayfayi `git show HEAD:<yol>` ile
   #    bilinen HEAD iceriginden yeniden yazar.
-  # ⚠️ `timeout-minutes: 30` — batarya `build.py`yi IKI kez (mutant + kontrol) kosar;
+  # ⚠️ `timeout-minutes: 40` — batarya `build.py`yi IKI kez (mutant + kontrol) kosar;
   #    asilan bir kol job'u sahte-yesil bekletmesin ([[fail-slow-fail-opendir]]).
+  #    🔴 TAVAN OLCULEREK CIVILENDI (K427 artigi, 3 Eki 2026) — eski 30 dk TAVANA
+  #    YAPISIKTI: 36980285193 `cancelled` @1817 sn (kod degismeden; ayni is komsu
+  #    kosumlarda 1670/1729 sn success). OLCUM: son 25 tamamlanmis nobet.yml kosumunun
+  #    22'sinde bu is (21 success · 1 cancelled), success job suresi min 1063 · medyan
+  #    1600 · p95 1772 · max 1786 sn; batarya adimi job'un ~%97'si. KOSUCU SAPMASI
+  #    (AYNI SHA, ayni kod): 2bfcbe9a 1063↔1645 (Δ582) · 4e224fdc 1226↔1689 (Δ463) ·
+  #    5b7e16be 1066↔1419 (Δ353) · 7c2e7238 1355↔1670 (Δ315). FORMUL:
+  #    p95 + max(ayni-SHA Δ) = 1772 + 582 = 2354 sn = 39,2 dk -> 40 dk.
+  #    HIZLANDIRMA NEDEN SECILMEDI: iki build.py ARDISIK olmak ZORUNDA — mutant ortak
+  #    agaca yazar, kontrol o agacin DEGISMEDIGINI olcer (ayni job'da paralel = kontrol
+  #    mutantin kirini gorur). Bolmek = ayri iki job + parmak izi tabani yeniden
+  #    tasarimi (kapi kodu); ayri kalem. YENIDEN OLC: success p95 > 32 dk (tavanin %80'i)
+  #    olursa ayni formulle -- tahminle ARTIRMA.
   # 🔴 IDDIA SAYISI BURAYA YAZILMAZ (bayat sayi yanlis guven verir) — betigin KENDISI
   #    `M_KOK=` · `KONTROL=` · `YAKALAYAN_EKSEN=` satirlarini basar.
   k3-cikti-kok-bataryasi:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -3573,20 +3586,54 @@ jobs:
       # NOBETCI: tools/hacim-onkosul-test.py K10 — bu isin ortak action'i `uses:` ile
       # cagirdigini AYRICA olcer; cagri dusurulurse KIRMIZI yanar.
 
-      - name: "OpenSCAD (nightly AppImage + xvfb)"
+      # 🔴 OPENSCAD SURUMU (K427 artigi, 3 Eki 2026) — bu adim eskiden snapshot
+      # dizinindeki EN SON nightly'yi seciyordu (`sort -u | tail -1`); canli /uret imaji
+      # ise onizleme/derleyici/Dockerfile `ARG OPENSCAD_DOSYA` ile PINLI. Bugun ikisi
+      # ayni dosyaydi (2026.01.02.ai30348) ama yeni snapshot dustugu gun CI canlidan
+      # FARKLI bir derleyiciyi olcerdi — BOSL2 bosluguyla ayni sinif (ikinci parite
+      # boslugu). SURUM BURAYA YAZILMAZ: BOSL2 adimiyla ayni desen, tek kaynak Dockerfile;
+      # tek degil/yoksa fail-closed. Kurulan ikili `--version` ile turetilen surume
+      # karsi AYRICA dogrulanir. Pinli dosya indirilebilirligi OLCULDU (3 Eki 2026:
+      # HTTP 200, 84.613.624 B). NOBETCI: tools/hacim-onkosul-test.py K11-K14 + m4.
+      - name: "OpenSCAD surumu (canli imajla ayni — Dockerfile'dan turetilir)"
+        id: openscad-surum
+        run: |
+          DOSYA=$(sed -n 's/^ARG OPENSCAD_DOSYA=\(OpenSCAD-[0-9][0-9.]*\.ai[0-9][0-9]*-x86_64\.AppImage\)[[:space:]]*$/\1/p' onizleme/derleyici/Dockerfile)
+          ADET=$(printf '%s' "$DOSYA" | grep -c . || true)
+          if [ "$ADET" != "1" ]; then
+            echo "::error::onizleme/derleyici/Dockerfile icinde TEK bir 'ARG OPENSCAD_DOSYA=OpenSCAD-<surum>-x86_64.AppImage' bulunamadi (adet=$ADET) — fail-closed."
+            exit 1
+          fi
+          SURUM=${DOSYA#OpenSCAD-}
+          SURUM=${SURUM%-x86_64.AppImage}
+          echo "OpenSCAD pin: $DOSYA (surum $SURUM)"
+          echo "dosya=$DOSYA" >> "$GITHUB_OUTPUT"
+          echo "surum=$SURUM" >> "$GITHUB_OUTPUT"
+
+      - name: "OpenSCAD (pinli nightly AppImage + xvfb)"
+        env:
+          OPENSCAD_DOSYA: ${{ steps.openscad-surum.outputs.dosya }}
+          OPENSCAD_SURUM: ${{ steps.openscad-surum.outputs.surum }}
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb fonts-dejavu fonts-liberation \
             libegl1 libgl1 libglu1-mesa libopengl0
-          FN=$(curl -s https://files.openscad.org/snapshots/ \
-               | grep -oE 'OpenSCAD-[0-9.]+\.ai[0-9]+-x86_64\.AppImage' | sort -u | tail -1)
-          wget -q "https://files.openscad.org/snapshots/$FN" -O openscad.AppImage
+          if ! wget -q "https://files.openscad.org/snapshots/$OPENSCAD_DOSYA" -O openscad.AppImage \
+             || [ ! -s openscad.AppImage ]; then
+            echo "::error::$OPENSCAD_DOSYA indirilemedi/bos — canli imaj da bu dosyayla yeniden DERLENEMEZ. fail-closed."
+            exit 1
+          fi
           chmod +x openscad.AppImage
           ./openscad.AppImage --appimage-extract >/dev/null
           printf '#!/bin/sh\nexec xvfb-run -a "%s/squashfs-root/AppRun" "$@"\n' "$PWD" \
             > /usr/local/bin/openscad
           chmod +x /usr/local/bin/openscad
-          openscad --version
+          SURUM_CIKTI=$(openscad --version 2>&1 || true)
+          echo "$SURUM_CIKTI"
+          case "$SURUM_CIKTI" in
+            *"OpenSCAD version $OPENSCAD_SURUM"*) echo "OpenSCAD surum YESIL: $OPENSCAD_SURUM (Dockerfile pini ile ayni)" ;;
+            *) echo "::error::kurulan openscad surumu Dockerfile pini ($OPENSCAD_SURUM) DEGIL — fail-closed."; exit 1 ;;
+          esac
 
       # 🔴 BOSL2 (K427, 2 Eki 2026) — OLCULDU (kosum 36929560645): bu is 27 Agu'dan
       # beri kirmiziydi cunku CI yalniz OpenSCAD kuruyordu, canli /uret imaji ise
@@ -3706,13 +3753,21 @@ jobs:
       # UC MUTANT AYAGI: m1 on-kosulun fail-closed kolunu, m2 butunlugu ESKI tek-dosya
       # haline dondurur (K4+K5 BIRLIKTE olmeli), m3 anahtar caprazini dusurur.
       # Ucu de HEDEF kolu oldurdugunu AYRICA kanitlar; ulasamayan mutant rc=2 (OLCULEMEDI).
-      - name: "Hacim on-kosul + paket butunluk kabulu (K377/K378; 3 mutant ayagi dahil)"
+      #
+      # K427 artigi (3 Eki 2026) — OpenSCAD PINI: K11-K13 hacim-tam-takim'in surum
+      # turetme govdesini (Dockerfile `ARG OPENSCAD_DOSYA`) IZOLE dizinde kosar (gercek
+      # Dockerfile · ARG yok · ARG x2), K14 kurulum adiminin o ciktiya BAGLI oldugunu ve
+      # snapshot dizininin LISTELENMEDIGINI olcer. m4 turetmenin fail-closed kolunu,
+      # m5 kurulumu eski "en son nightly" secimine dondurur.
+      - name: "Hacim on-kosul + paket butunluk + OpenSCAD pin kabulu (K377/K378/K427; 5 mutant ayagi dahil)"
         if: ${{ !cancelled() }}
         run: |
           python3 tools/hacim-onkosul-test.py
           python3 tools/hacim-onkosul-test.py --mutant m1
           python3 tools/hacim-onkosul-test.py --mutant m2
           python3 tools/hacim-onkosul-test.py --mutant m3
+          python3 tools/hacim-onkosul-test.py --mutant m4
+          python3 tools/hacim-onkosul-test.py --mutant m5
 
       # SITEMAP DAMGA ONBELLEGI — <lastmod> tarihlerinin HIZLANDIRICISI, KAYNAGI DEGIL.
       # Tarihler git gecmisinden turer (tools/sitemap_damga.py); bu dosya yalnizca ayni

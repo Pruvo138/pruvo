@@ -39,6 +39,13 @@ KOLLAR
   K10 IKIZ BUTUNLUK TANIMI YOK: `parmakizi-dogrula` cagrisi HER IKI is akisinda da
       (nobet.yml + onizleme-imaj.yml) >=1 olmali (iki kol da CANLI) VE hacim-tam-takim
       govdesinde elle yazilmis ikinci bir ozet mantigi (`sha256sum` / `hashlib`) 0 olmali
+  K11 OpenSCAD surum turetme, GERCEK Dockerfile -> rc==0 VE GITHUB_OUTPUT'a yazilan
+      dosya/surum bu testin Dockerfile'dan BAGIMSIZ okudugu `ARG OPENSCAD_DOSYA` ile ayni
+  K12 OpenSCAD surum turetme, ARG YOK      -> rc!=0 + "adet=0"            (M4 hedefi)
+  K13 OpenSCAD surum turetme, ARG IKI KEZ  -> rc!=0 + "adet=2"
+  K14 OpenSCAD kurulumu PINLI: kurulum adimi turetilen ciktiyi `env` ile alir, indirme
+      URL'si `$OPENSCAD_DOSYA`, `--version` pine karsi dogrulanir VE isin hicbir
+      govdesinde snapshot dizini LISTELENMEZ (eski "en son nightly" secimi) (M5 hedefi)
 
 K4/K5 ikilisi, bu turun ONARDIGI SINIFIN ta kendisidir: "1 dosya gordum, gectim"
 davranisi geri gelirse ikisi birden KIRMIZI yanar (M2 mutanti bunu kanitlar).
@@ -54,6 +61,8 @@ sessizce yesile DUSMEZ.
   m2: butunluk govdesi ESKI HALINE dondurulur (yalniz `test -f eslem-ozel.json`)
       -> K4 ve K5 birlikte olmeli; hedef K4
   m3: butunluk govdesinden `--paket-anahtar` bayragi dusurulur -> hedef K7
+  m4: OpenSCAD surum turetme govdesinde `exit 1` -> `exit 0` -> hedef K12 (+K13)
+  m5: OpenSCAD kurulum govdesi ESKI "en son snapshot" secimine dondurulur -> hedef K14
 
 FIKSTUR — IZOLE VE SENTETIK: butunluk kollari gecici bir dizinde kurulur; icine
 kaynaktan KOPYALANAN tools/onizleme-kapisi.py + 26 SENTETIK dosya konur ve parmakizi
@@ -66,6 +75,7 @@ rc: 0 = YESIL · 1 = KIRMIZI · 2 = OLCULEMEDI (ayristirici yok / mutant ulasmad
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -94,6 +104,20 @@ SCAD_SAYISI = 25
 DOSYA_SAYISI = SCAD_SAYISI + 1
 TEST_ANAHTAR = "onizleme/paket-vTEST.tar.gz"
 BASKA_ANAHTAR = "onizleme/paket-vESKI.tar.gz"
+# OpenSCAD pini (K427 artigi, 3 Eki 2026): tek kaynak Dockerfile `ARG OPENSCAD_DOSYA`.
+DOCKERFILE = os.path.join(KOK, "onizleme", "derleyici", "Dockerfile")
+OPENSCAD_TURET_ADIM = "OpenSCAD surumu (canli imajla ayni — Dockerfile'dan turetilir)"
+OPENSCAD_KUR_ADIM = "OpenSCAD (pinli nightly AppImage + xvfb)"
+OPENSCAD_TURET_ID = "openscad-surum"
+OPENSCAD_ARG_RE = re.compile(r"^ARG OPENSCAD_DOSYA=(\S+)\s*$", re.M)
+SNAPSHOT_URL_RE = re.compile(r"files\.openscad\.org/snapshots/(\S*)")
+# m5 yuku: kurulum adiminin ESKI hali (snapshot dizininden EN SON nightly secimi).
+ESKI_KURULUM = ("FN=$(curl -s https://files.openscad.org/snapshots/ \\\n"
+                "     | grep -oE 'OpenSCAD-[0-9.]+\\.ai[0-9]+-x86_64\\.AppImage' "
+                "| sort -u | tail -1)\n"
+                'wget -q "https://files.openscad.org/snapshots/$FN" -O openscad.AppImage\n'
+                "openscad --version\n")
+
 # Kollar bu dosyayi hedefler (sentetik ad; gercek uretec adi kaynakta gecmez).
 KURBAN_SCAD = "uretec07.scad"
 
@@ -160,6 +184,23 @@ def m2_yamala(_govde):
 def m3_yamala(govde):
     """M3: kayit<->R2 anahtar caprazini sustur — `--paket-anahtar ...` bayragini dusur."""
     return govde.replace('--paket-anahtar "$PAKET_ANAHTAR"', "")
+
+
+def m4_yamala(govde):
+    """M4: OpenSCAD surum turetmenin fail-closed kolunu sustur — `exit 1` -> `exit 0`."""
+    return govde.replace("exit 1", "exit 0")
+
+
+def m5_yamala(adimlar):
+    """M5: kurulum adimini ESKI "en son snapshot" secimine dondur (IZOLE kopya)."""
+    yeni = []
+    for adim in adimlar:
+        adim = dict(adim)
+        if adim.get("name") == OPENSCAD_KUR_ADIM:
+            adim.pop("env", None)
+            adim["run"] = ESKI_KURULUM
+        yeni.append(adim)
+    return yeni
 
 
 # --------------------------------------------------------------------------- fikstur
@@ -374,16 +415,117 @@ def k10_ikiz_butunluk_tanimi_yok():
         sayilar["ortak-action"], sayilar["onizleme-imaj.yml"], kullanim)
 
 
+def _dockerfile_metni():
+    if not os.path.exists(DOCKERFILE):
+        print("OLCULEMEDI: Dockerfile YOK (%s)" % DOCKERFILE)
+        sys.exit(2)
+    with open(DOCKERFILE, encoding="utf-8") as f:
+        return f.read()
+
+
+def _turet_kos(govde, dizin, dockerfile_metni):
+    """Turetme govdesini IZOLE dizinde, sentetik/kopya Dockerfile + GITHUB_OUTPUT ile kosar.
+    Donus: (rc, cikti, GITHUB_OUTPUT anahtar->deger)."""
+    derleyici = os.path.join(dizin, "onizleme", "derleyici")
+    os.makedirs(derleyici, exist_ok=True)
+    with open(os.path.join(derleyici, "Dockerfile"), "w", encoding="utf-8") as f:
+        f.write(dockerfile_metni)
+    cikti_dosya = os.path.join(dizin, "github-output.txt")
+    open(cikti_dosya, "w").close()
+    rc, cikti = kos(govde, {"GITHUB_OUTPUT": cikti_dosya}, dizin)
+    with open(cikti_dosya, encoding="utf-8") as f:
+        ciktilar = dict(s.split("=", 1) for s in f.read().splitlines() if "=" in s)
+    return rc, cikti, ciktilar
+
+
+def k11_openscad_turet_gercek(govde, dizin):
+    """GERCEK Dockerfile -> rc==0 ve cikti, testin BAGIMSIZ okudugu ARG ile ayni."""
+    metin = _dockerfile_metni()
+    bulunan = OPENSCAD_ARG_RE.findall(metin)
+    if len(bulunan) != 1:
+        return False, ("OLCULEMEDI: gercek Dockerfile'da `ARG OPENSCAD_DOSYA` %d kez "
+                       "(1 olmali)" % len(bulunan))
+    beklenen = bulunan[0]
+    rc, cikti, ciktilar = _turet_kos(govde, dizin, metin)
+    if rc != 0:
+        return False, "rc=%d — gercek Dockerfile'la turetme KIRMIZI: %s" % (rc, cikti.strip()[-200:])
+    if ciktilar.get("dosya") != beklenen:
+        return False, ("PARITE KOPUK: turetilen dosya=%r, Dockerfile pini=%r"
+                       % (ciktilar.get("dosya"), beklenen))
+    surum = beklenen[len("OpenSCAD-"):-len("-x86_64.AppImage")]
+    if ciktilar.get("surum") != surum:
+        return False, "surum=%r, beklenen %r" % (ciktilar.get("surum"), surum)
+    return True, "rc=0 · dosya=%s · surum=%s (Dockerfile pini ile ayni)" % (beklenen, surum)
+
+
+def k12_openscad_turet_arg_yok(govde, dizin):
+    """ARG YOK -> rc!=0 + adet=0 (sessizce bos surumle indirmeye gecmez; M4 hedefi)."""
+    metin = OPENSCAD_ARG_RE.sub("", _dockerfile_metni())
+    rc, cikti, ciktilar = _turet_kos(govde, dizin, metin)
+    if rc == 0:
+        return False, "rc=0 — ARG YOKken turetme GECTI (ciktilar=%r)" % ciktilar
+    if "adet=0" not in cikti:
+        return False, "rc=%d ama 'adet=0' basilmadi" % rc
+    return True, "rc=%d · adet=0 basildi" % rc
+
+
+def k13_openscad_turet_iki_arg(govde, dizin):
+    """ARG IKI KEZ -> rc!=0 + adet=2 (hangisi pin belirsiz; ilkini/sonuncuyu SECMEZ)."""
+    metin = _dockerfile_metni() + "\nARG OPENSCAD_DOSYA=OpenSCAD-2099.01.01.ai99999-x86_64.AppImage\n"
+    rc, cikti, _ = _turet_kos(govde, dizin, metin)
+    if rc == 0:
+        return False, "rc=0 — iki pin varken turetme birini SECTI"
+    if "adet=2" not in cikti:
+        return False, "rc=%d ama 'adet=2' basilmadi" % rc
+    return True, "rc=%d · adet=2 basildi" % rc
+
+
+def k14_openscad_kurulum_pinli(adimlar):
+    """Kurulum adimi turetilen pini kullanir; isin hicbir govdesi snapshot LISTELEMEZ."""
+    turet = [a for a in adimlar if a.get("name") == OPENSCAD_TURET_ADIM]
+    kur = [a for a in adimlar if a.get("name") == OPENSCAD_KUR_ADIM]
+    if len(turet) != 1 or len(kur) != 1:
+        return False, "OLCULEMEDI: turetme=%d · kurulum=%d adim (1/1 olmali)" % (len(turet), len(kur))
+    if turet[0].get("id") != OPENSCAD_TURET_ID:
+        return False, "turetme adiminin id'si %r (beklenen %r)" % (turet[0].get("id"), OPENSCAD_TURET_ID)
+    env = kur[0].get("env") or {}
+    beklenen_env = {"OPENSCAD_DOSYA": "${{ steps.%s.outputs.dosya }}" % OPENSCAD_TURET_ID,
+                    "OPENSCAD_SURUM": "${{ steps.%s.outputs.surum }}" % OPENSCAD_TURET_ID}
+    kopuk = [k for k, v in beklenen_env.items() if env.get(k) != v]
+    if kopuk:
+        return False, "KOPUK KABLO: kurulum adimi env %s turetilen ciktiya bagli DEGIL" % ", ".join(kopuk)
+    govde = kur[0].get("run") or ""
+    if "OpenSCAD version $OPENSCAD_SURUM" not in govde:
+        return False, "kurulan ikilinin `--version`'i pine karsi DOGRULANMIYOR"
+    urller = []
+    for adim in adimlar:
+        urller += SNAPSHOT_URL_RE.findall(adim.get("run") or "")
+    sapan = [u for u in urller if not u.startswith("$OPENSCAD_DOSYA")]
+    if not urller:
+        return False, "OLU KOL: isin hicbir govdesinde snapshot indirmesi YOK"
+    if sapan:
+        return False, ("PINSIZ SECIM: snapshot URL'si pin disi -> %s (dizin listeleniyor "
+                       "ya da baska degisken)" % ", ".join(repr(u) for u in sapan))
+    return True, "env 2/2 bagli · --version dogrulamasi var · snapshot URL %d/%d pinli" % (
+        len(urller), len(urller))
+
+
 # --------------------------------------------------------------------------- surucu
 def kollari_kos(mutant):
     onkosul = adim_govdesi(ACTION, None, ACTION_ONKOSUL_ADIM)
     butunluk = adim_govdesi(ACTION, None, BUTUNLUK_ADIM)
+    turet = adim_govdesi(NOBET, IS_ADI, OPENSCAD_TURET_ADIM)
+    hacim_adimlari = yaml_yukle(NOBET).get("jobs", {}).get(IS_ADI, {}).get("steps", []) or []
     if mutant == "m1":
         onkosul = m1_yamala(onkosul)
     elif mutant == "m2":
         butunluk = m2_yamala(butunluk)
     elif mutant == "m3":
         butunluk = m3_yamala(butunluk)
+    elif mutant == "m4":
+        turet = m4_yamala(turet)
+    elif mutant == "m5":
+        hacim_adimlari = m5_yamala(hacim_adimlari)
 
     sonuc = {}
     with tempfile.TemporaryDirectory(prefix="pruvo-onkosul-") as d:
@@ -400,6 +542,12 @@ def kollari_kos(mutant):
     sonuc["K8 emekli secret atfi = 0"] = k8_emekli_secret_atfi()
     sonuc["K9 ikiz cekme tanimi YOK"] = k9_ikiz_cekme_tanimi_yok()
     sonuc["K10 ikiz butunluk tanimi YOK"] = k10_ikiz_butunluk_tanimi_yok()
+    for ad, kol in (("K11 openscad turet/GERCEK Dockerfile -> YESIL", k11_openscad_turet_gercek),
+                    ("K12 openscad turet/ARG YOK -> KIRMIZI", k12_openscad_turet_arg_yok),
+                    ("K13 openscad turet/ARG x2 -> KIRMIZI", k13_openscad_turet_iki_arg)):
+        with tempfile.TemporaryDirectory(prefix="pruvo-openscad-") as d:
+            sonuc[ad] = kol(turet, d)
+    sonuc["K14 openscad kurulum PINLI"] = k14_openscad_kurulum_pinli(hacim_adimlari)
     return sonuc
 
 
@@ -418,6 +566,9 @@ MUTANT_HEDEF = {
     "m2": ("K4 butunluk/1 .scad EKSIK -> KIRMIZI",
            ("K5 butunluk/1 dosya BOZUK -> KIRMIZI",)),
     "m3": ("K7 butunluk/anahtar CAPRAZI -> KIRMIZI", ()),
+    "m4": ("K12 openscad turet/ARG YOK -> KIRMIZI",
+           ("K13 openscad turet/ARG x2 -> KIRMIZI",)),
+    "m5": ("K14 openscad kurulum PINLI", ()),
 }
 
 
