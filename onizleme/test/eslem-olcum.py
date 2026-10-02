@@ -132,6 +132,65 @@ def rastgele_set(sema, rnd, kisit):
     return s
 
 
+# ---- MUSTERI EVRENI: SEMA KAPISI HAKEMI (K427, 2 Eki 2026) -------------------
+# OLCULDU (kosum 36980285193, tohum 833703): BOSL2 kurulunca 9 uretim ailesinden
+# 8'i yesil, rulman set2 {ic 14.5, dis 90, genislik 13, makara} "top level object
+# is empty" ile KIRMIZI kaldi. O nokta MUSTERIYE HIC SATILAMAZ: semanin `kisitlar`
+# alani makara icin genislik >= 0,3167*(dis-ic) = 23,9 mm ister (motor sinirindan
+# OLCULEREK turetildi, bkz. jenerator/test/rulman-uretilebilirlik-olcum.py) ve
+# jenerator/konfigurator.js KONF.dogrula onu REDDEDER. rastgele_set() yalniz
+# parametre basina min/max/adim/secim'i uyguluyor, capraz `kisitlar`'i GORMUYORDU
+# -> tohum her kosumda rastgele oldugu icin is OLASILIKSAL kirmizi yaniyordu.
+# Kural: olculen her rastgele nokta musteri sema kapisinin KABUL ettigi noktadir.
+# Hakem GERCEK KONF.dogrula'dir (kisit mantigi Python'da YENIDEN YAZILMAZ). Hakem
+# yalniz semada `kisitlar` VARSA sorulur: parametre basina kurallar rastgele_set'te
+# yapisal olarak saglanir; kisitsiz ailelerin tohum akisi BAYT BAYT ayni kalir.
+# Reddedilen nokta YENISIYLE degistirilir ve SAYISI basilir (sessiz eleme yok);
+# tavan asilirsa olcum OLCULEMEDI'dir (yesil sayilmaz).
+MUSTERI_SET_DENEME_TAVANI = 200
+
+_SEMA_HAKEM_JS = (
+    "const KONF=require(process.argv[1]);let g='';"
+    "process.stdin.on('data',d=>{g+=d;});"
+    "process.stdin.on('end',()=>{const i=JSON.parse(g);"
+    "process.stdout.write(JSON.stringify(i.setler.map("
+    "s=>KONF.dogrula(i.sema,s).gecerli?1:0)));});")
+
+
+def sema_hakemi(sema, setler):
+    """[0/1] — her set icin GERCEK KONF.dogrula hukmu. Kosulamazsa OLCULEMEDI (exit)."""
+    istek = json.dumps({"sema": sema, "setler": setler}, ensure_ascii=False)
+    proc = subprocess.run(
+        ["node", "-e", _SEMA_HAKEM_JS, os.path.join(REPO, "jenerator", "konfigurator.js")],
+        input=istek.encode("utf-8"), capture_output=True, timeout=60)
+    if proc.returncode != 0:
+        sys.exit("OLCULEMEDI: sema kapisi (KONF.dogrula) kosulamadi: %s"
+                 % proc.stderr.decode("utf-8", "replace")[:300])
+    hukum = json.loads(proc.stdout.decode("utf-8"))
+    if not isinstance(hukum, list) or len(hukum) != len(setler):
+        sys.exit("OLCULEMEDI: sema kapisi %d set icin %r dondu" % (len(setler), hukum))
+    return hukum
+
+
+def musteri_setleri(sema, rnd, kisit, adet, hakem, tavan=MUSTERI_SET_DENEME_TAVANI):
+    """(setler, elenen) — `adet` rastgele set; semada `kisitlar` varsa hakemin
+    REDDETTIGI her set yenisiyle degistirilir. Kabul edilen setler eski akisla AYNI
+    kalir. Tavan asilirsa (None, elenen) -> cagiran OLCULEMEDI sayar."""
+    setler = [rastgele_set(sema, rnd, kisit) for _ in range(adet)]
+    if not sema.get("kisitlar") or not setler:
+        return setler, 0
+    hukum = list(hakem(setler))
+    elenen = 0
+    for i in range(adet):
+        while not hukum[i]:
+            if elenen >= tavan:
+                return None, elenen
+            elenen += 1
+            setler[i] = rastgele_set(sema, rnd, kisit)
+            hukum[i] = hakem([setler[i]])[0]
+    return setler, elenen
+
+
 def varsayilan_set(sema, kisit):
     s = dict((p["ad"], p["varsayilan"]) for p in sema["parametreler"])
     for ad, izinli in (kisit or {}).items():
@@ -168,8 +227,18 @@ def aile_olc(aile, eslem, paket, openscad, set_sayisi, tohumlar, kisit):
     setler = [varsayilan_set(sema, kisit)]
     for tohum in tohumlar:
         rnd = random.Random(tohum)
-        for _ in range(set_sayisi):
-            setler.append(rastgele_set(sema, rnd, kisit))
+        secilen, elenen = musteri_setleri(sema, rnd, kisit, set_sayisi,
+                                          lambda ss: sema_hakemi(sema, ss))
+        if elenen:
+            print("  [SEMA] %-10s tohum %d: %d rastgele nokta musteri sema kapisinda "
+                  "(KONF.dogrula `kisitlar`) REDDEDILDI, yerine yenisi cekildi"
+                  % (aile, tohum, elenen))
+        if secilen is None:
+            print("  [HATA] %-10s tohum %d: %d denemede musteri-gecerli set bulunamadi "
+                  "— OLCULEMEDI (yesil sayilmaz)" % (aile, tohum, elenen))
+            return {"aile": aile, "set": 0, "enKotu": 0.0, "kirmizi": 0,
+                    "hata": 1, "ret": 0, "satirlar": []}
+        setler.extend(secilen)
     js = js_hacimler(sema["hacimFormulu"], setler)
     sonuc = {"aile": aile, "set": len(setler), "enKotu": 0.0,
              "kirmizi": 0, "hata": 0, "ret": 0, "satirlar": []}
@@ -313,6 +382,42 @@ def kendini_test():
           t == "Current top level object is empty.", t)
     bekle("D3 NEGATIF: iki akis da bos -> 'cikti YOK'",
           derleme_tanisi("", "") == "cikti YOK", derleme_tanisi("", ""))
+
+    # K427: MUSTERI EVRENI — rastgele nokta sema kapisinin REDDETTIGI bolgeden gelmez
+    sahte_sema = {"parametreler": [{"ad": "a", "tip": "sayi", "min": 0, "max": 9, "adim": 1},
+                                   {"ad": "b", "tip": "sayi", "min": 0, "max": 9, "adim": 1}],
+                  "kisitlar": [{"parametre": "b", "min": {"terimler": {"a": 1}}}]}
+    bge = lambda ss: [1 if s["b"] >= s["a"] else 0 for s in ss]   # noqa: E731
+    ss, el = musteri_setleri(sahte_sema, random.Random(7), None, 40, bge)
+    bekle("S1 POZITIF: hakemin reddettigi nokta OLCULMEZ, yenisi cekilir (sayi basilir)",
+          ss is not None and len(ss) == 40 and all(bge(ss)) and el > 0,
+          "el=%s gecersiz=%s" % (el, None if ss is None else bge(ss).count(0)))
+    rnd_a, rnd_b = random.Random(7), random.Random(7)
+    ham = [rastgele_set(sahte_sema, rnd_a, None) for _ in range(40)]
+    ss, el = musteri_setleri(sahte_sema, rnd_b, None, 40, lambda x: [1] * len(x))
+    bekle("S2 NEGATIF: hakem hepsini kabul ederse tohum akisi AYNEN (eleme 0)",
+          ss == ham and el == 0, "el=%s" % el)
+    kisitsiz = dict(sahte_sema, kisitlar=[])
+    ss, el = musteri_setleri(kisitsiz, random.Random(7), None, 40, lambda x: [0] * len(x))
+    bekle("S3 NEGATIF: semada kisit YOKSA hakem sorulmaz, akis AYNEN",
+          ss == ham and el == 0, "el=%s" % el)
+    ss, el = musteri_setleri(sahte_sema, random.Random(7), None, 3, lambda x: [0] * len(x),
+                             tavan=25)
+    bekle("S4 POZITIF (fail-closed): hicbir nokta kabul edilmezse None (OLCULEMEDI)",
+          ss is None and el == 25, "ss=%r el=%s" % (ss, el))
+    rulman = sema_yukle("olcuye-ozel-rulman")
+    kotu = {"ic_cap": 14.5, "dis_cap": 90.0, "genislik": 13.0, "eleman": "makara",
+            "bosluk": 0.1, "flans": "yok"}
+    iyi = dict(kotu, genislik=24.0)
+    h = sema_hakemi(rulman, [kotu, iyi])
+    bekle("S5 GERCEK KAPI: CI'da kirmizi yanan rulman noktasi RET, genislik 24 KABUL",
+          h == [0, 1], "hukum=%r" % h)
+    for aile in ("olcuye-ozel-rulman", "olcuye-ozel-vida-civata-somun-pul"):
+        sm = sema_yukle(aile)
+        ss, el = musteri_setleri(sm, random.Random(833703), None, 20,
+                                 lambda x, sm=sm: sema_hakemi(sm, x))
+        bekle("S6 GERCEK KAPI: %s 20 set musteri-gecerli bulunur" % aile.split("-")[2],
+              ss is not None and all(sema_hakemi(sm, ss)), "el=%s" % el)
 
     kirmizi = [x for x in vakalar if not x[1]]
     print("ESLEM-OLCUM HUKUM NOBETCISI — %d/%d YESIL"
