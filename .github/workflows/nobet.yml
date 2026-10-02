@@ -1225,7 +1225,7 @@ jobs:
       # Artefakt birakmaz: her iki kol da yazdigi gecici dosyayi (jenerator/*-gecici.js,
       # urun/_pruvo-kendini-test, __pycache__ .pyc) kendi temizler — olculdu, kosum sonrasi
       # `git status --porcelain` degismedi. Toplam ~0,5 s.
-      - name: "OpenSCAD yasak nobetcisi — kendini test (26 iddia; PATH/symlink/maskeli shim + kutuphane tanisi)"
+      - name: "OpenSCAD yasak nobetcisi — kendini test (PATH/symlink/maskeli shim + kutuphane tanisi + CI [ATLA] hukmu; iddia sayisini betik basar)"
         if: ${{ !cancelled() }}
         run: python3 jenerator/test/dogrula.py --kendini-test
 
