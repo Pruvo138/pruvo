@@ -99,5 +99,15 @@
     "tur": "surekli",
     "azami_bayt": 16384,
     "gerekce": "Mimar karari 8 Eyl 2026 (KraL, K382). OLCULDU (beyan degil): Faralya acik-kalemler.md 51762 -> 12700 B dustu ve AYNI dizinde acik-kalemler-arsiv.md 39779 B duruyor (12700+39779 = 52479 > 51762) -> kapanan kalemler ARSIVE TASINDI, silinmedi. MENZIL SAYIYLA: 6 canli acik-kalemler.md olculdu, azami_bayt=16384 bunlarin 4'unu kapsar (Faralya 12700 · 3872 · 1714 · 1241); pruvo-bot 42488 ve KraL 221895 tavanin USTUNDE, orada koruma TAM GUCTE. Kabul: yedek-dusus.log'da ARDISIK 4 -> 0 ve pre-push ciktisinda ATLANAN 2 -> 0."
+  },
+  "pruvo-hasat/olcum/hasat_ford_printables_oncesi_idler.json": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": 426008,
+    "gerekce": "Mimar karari 3 Eki 2026 (KraL, K425; MaCiT 7 gun sessiz, Okan kapisi degil). OLCULDU: kanonik yedek 1203251 B (26 Agu 02:36) -> canli 426008 B (3 Eyl), pruvo-hasat git'inde en buyuk surum 426008. 1,2 MB'lik icerik YALNIZ Drive'daydi -> beyandan ONCE backup-v2/ek/evler/pruvo-hasat/olcum/hasat_ford_printables_oncesi_idler.26agu.json adiyla eklemeli kopyalandi (cmp BAYT-ESIT 1203251 B); ayrica KIRLI-IZLENEN/olcum/ altindaki kopya da cmp ile esit. Canli 426008 B'lik icerik Drive'da .20260826-005251.json adiyla zaten var (cmp kaynakla esit). Kabul: yedek-dusus.log son satiri rc=0, pre-push ciktisinda YEDEK=YARIM yok."
+  },
+  "pruvo-hasat/olcum/hasat_data_panasonic_thingiverse.py": {
+    "tur": "tek-seferlik",
+    "kaynak_bayt": 7178,
+    "gerekce": "Mimar karari 3 Eki 2026 (KraL, K425). OLCULDU: kanonik yedek 32239 B -> canli 7178 B; kuculme commit'li (pruvo-hasat b8a00cd5, 21 Eyl), buyuk surum git'te (0945a80f:olcum/hasat_data_panasonic_thingiverse.py = 32239 B, cat-file ile olculdu) ve Drive KIRLI-IZLENEN/olcum/ altinda 32239 B -> kabul KAYIPSIZ."
   }
 }

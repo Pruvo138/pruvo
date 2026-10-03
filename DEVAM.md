@@ -2,6 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔵 3 EKİ 23:3x KraL ana-oturum (Okan "devam") — **K425 mimar kararı uygulandı**
+**K425 (yedek karantinası, 7 gün MaCiT sessiz):** Drive ford kanonik 1.203.251 B → `backup-v2/ek/evler/pruvo-hasat/olcum/hasat_ford_printables_oncesi_idler.26agu.json` eklemeli kopya (`cmp` bayt-eşit; KIRLI-IZLENEN kopyası da eşit) → `.yedek-dusus-izin.json`'a iki yol-son-eki beyanı (`tek-seferlik`, ford 426008 · panasonic 7178; panasonic 32239 B git `0945a80f`'te). `yedek-koruma-test` rc=0. Kabul: bu push'ta `YEDEK=YARIM` yok + `yedek-dusus.log` son satır rc=0 (sonuç aşağıda/kutuda).
+
 ## 🔵 2 EKİ KraL ana-oturum (Okan "devam boş durma") — **merge kuyruğu: K428 + K429 main'de · K424 dalda SERIT B bekliyor · BAĞLAM KOTASI DOLDU (500K)**
 **✅ K424 MERGE `763e3ffe` (SERIT B `36929560645`: sahipsiz kırmızısı gitti, kalan cron-nabzi + hacim dalın ilk koşumunda da vardı; uzak dal silindi). ESKİ SATIR:** K424 dalı `claude/laughing-wing-b3c9e1` @`bbccb940` → SERIT B `36929560645` sonucunu oku (`gh -R Pruvo138/pruvo run view 36929560645 --json jobs`); dalın getirdiği yeni kırmızı 0 ise (bilinen: `hacim-tam-takim` K427) merge-kapisi ile al + uzak dalı sil. Dal ağacında yerel ölçüm (2 Eki): test 17 vaka/69 iddia/0 · mutasyon 12/0 · sahipsiz-kapi 5=taban (dalın ilk hali 6>5 KIRMIZIydı → `bbccb940` VAKA 17 `main()` modülden sürülür) · ci-kapsam/kisisel-veri/recete/sabit-yol/durum-test/is-akisi rc=0.
 **MERGE `67eeb093` K428** (cron nabız bayat ilk sayfa; kendini-test 280/0, mutasyon 48+8 kusur 0, SERIT B dal `36681508771` yalnız hacim) · **MERGE `f90ef9e6` K429** (yayın-gecikme bayat dilim; test 89/89, mutasyon 40+7 beyana uydu, SERIT B `36883111293` @`e3a0898c` yalnız hacim; uç `e8a95b75` farkı yalnız CI'da koşmayan mutasyon dosyası). İki dal uzakta silindi.
