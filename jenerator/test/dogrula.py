@@ -610,6 +610,43 @@ def kendini_test():
         import shutil as _sh2
         _sh2.rmtree(tmp2, ignore_errors=True)
 
+    # --- K427 artigi: CI'da [ATLA] > 0 -> OLCULEMEDI rc=1; yerel AYNEN ---
+    import contextlib as _cl
+
+    def hukum(ortam, atlanan, kirmizi=(), olculemedi=()):
+        cikti = io.StringIO()
+        with _cl.redirect_stdout(cikti):
+            kod = ozet_hukmu(3, list(kirmizi), list(atlanan), list(olculemedi), ortam)
+        return kod, cikti.getvalue()
+
+    for ad, ortam in (("A1 POZITIF: CI=true + [ATLA]=1 -> OLCULEMEDI rc=1", {"CI": "true"}),
+                      ("A2 POZITIF: yalniz GITHUB_ACTIONS=true -> OLCULEMEDI rc=1",
+                       {"GITHUB_ACTIONS": "true"})):
+        kod, metin = hukum(ortam, ["yay"])
+        bekle(ad, kod == 1 and "OLCULEMEDI" in metin and "yay" in metin
+              and "YEREL YESIL" not in metin, "kod=%s cikti=%r" % (kod, metin[-160:]))
+    kod, metin = hukum({}, ["yay"])
+    bekle("A3 NEGATIF: yerel + [ATLA]=1 -> rc=0, eski 'CI'da kosulacak' satiri AYNEN",
+          kod == 0 and "OLCULEMEDI" not in metin
+          and "YEREL DOGRULANAMAYAN aileler (CI'da kosulacak): yay" in metin
+          and "YEREL YESIL: 2, CI'YA KALAN: 1" in metin, "kod=%s cikti=%r" % (kod, metin))
+    kod, metin = hukum({"CI": "true", "GITHUB_ACTIONS": "true"}, [])
+    bekle("A4 NEGATIF: CI + [ATLA]=0 -> rc=0 (CI'da yesil yol kapanmadi)",
+          kod == 0 and "OLCULEMEDI" not in metin, "kod=%s cikti=%r" % (kod, metin))
+    kod, metin = hukum({"CI": "false", "GITHUB_ACTIONS": ""}, ["yay"])
+    bekle("A5 NEGATIF: CI=false/bos beyan CI SAYILMAZ -> yerel davranis",
+          kod == 0 and "OLCULEMEDI" not in metin, "kod=%s cikti=%r" % (kod, metin))
+    kod, metin = hukum({}, [], kirmizi=["kase"])
+    bekle("A6 TABAN: yerel KIRMIZI aile -> rc=1 (eski hukum korunur)",
+          kod == 1 and "KIRMIZI aileler: kase" in metin, "kod=%s" % kod)
+    # KABLO: main() hukmu ozet_hukmu'nden ALIR (govde metni olculur; cagri dusurulup
+    # eski satirlar geri yazilirsa A1/A2 fonksiyon duzeyinde yesil kalir, bu vaka yanar).
+    import inspect
+    main_govde = inspect.getsource(main)
+    bekle("A7 KABLO: main() cikis kodunu ozet_hukmu()'nden alir",
+          "ozet_hukmu(" in main_govde and "CI'da kosulacak" not in main_govde,
+          "main govdesinde ozet_hukmu cagrisi YOK ya da eski satir geri geldi")
+
     kirmizi = [v for v in vakalar if not v[1]]
     print("OPENSCAD YASAK NOBETCISI — %d/%d YESIL" % (len(vakalar) - len(kirmizi),
                                                       len(vakalar)))
@@ -674,7 +711,38 @@ def main():
             olculemedi.append(aile)
         elif not sonuc:
             kirmizi.append(aile)
-    if atlanan:
+    rc = ozet_hukmu(len(aileler), kirmizi, atlanan, olculemedi)
+    if rc:
+        sys.exit(rc)
+
+
+# ---- CI'DA [ATLA] FAIL-OPEN DEGILDIR (K427 artigi, 3 Eki 2026) -------------------
+# `[ATLA]` YEREL SIGABRT icin tasarlandi (mimar karari 2026-07-16): "burada olculemedi,
+# CI'da kosulur". CI'da "CI'ya birakildi" diyecek bir sonraki kat YOKTUR — orada
+# `[ATLA]` sayisi >0 ise o aile HIC OLCULMEMISTIR ve rc=0 sessiz-yesildir. Olculen
+# risk: scad_hacim() gercek hatayi YALNIZ stderr'deki `ERROR:` ile taniyor; xvfb-run
+# sarmalayicisi akislari birlestirirse gercek hata "cokme" sanilip 3 denemeden sonra
+# `[ATLA]`ya duser (K427'de BOSL2 eksikligi tam bu yoldan 3 aileyi gizledi).
+# KURAL: CI ortaminda (CI / GITHUB_ACTIONS beyanli) `[ATLA]` > 0 -> OLCULEMEDI, rc=1.
+# Yerel davranis BIREBIR eskisi gibidir.
+CI_ORTAM_DEGISKENLERI = ("CI", "GITHUB_ACTIONS")
+_CI_YANLIS = ("", "0", "false", "no")
+
+
+def ci_ortami(ortam=None):
+    ortam = os.environ if ortam is None else ortam
+    return any((ortam.get(ad) or "").strip().lower() not in _CI_YANLIS
+               for ad in CI_ORTAM_DEGISKENLERI)
+
+
+def ozet_hukmu(aile_sayisi, kirmizi, atlanan, olculemedi, ortam=None):
+    """Kosum sonu hukmu: ozet satirlarini basar, cikis kodunu DONDURUR (0 = yesil)."""
+    atla_olculemedi = bool(atlanan) and ci_ortami(ortam)
+    if atla_olculemedi:
+        print("OLCULEMEDI: CI ortaminda %d aile [ATLA] ile gecildi — CI'da 'CI'ya "
+              "birakildi' diyecek kat YOK, YESIL SAYILMAZ: %s"
+              % (len(atlanan), ", ".join(atlanan)))
+    elif atlanan:
         print("YEREL DOGRULANAMAYAN aileler (CI'da kosulacak): %s" % ", ".join(atlanan))
     # OLCULEMEDI, "kirmizi yok" ile AYNI SEY DEGILDIR: motor beyani eksikse ya da
     # gizli uretim paketi yoksa hicbir sey olculmemistir. Sessiz-yesil burada dogar.
@@ -683,9 +751,10 @@ def main():
               % ", ".join(olculemedi))
     if kirmizi:
         print("KIRMIZI aileler: %s" % ", ".join(kirmizi))
-    if kirmizi or olculemedi:
-        sys.exit(1)
-    print("YEREL YESIL: %d, CI'YA KALAN: %d" % (len(aileler) - len(atlanan), len(atlanan)))
+    if kirmizi or olculemedi or atla_olculemedi:
+        return 1
+    print("YEREL YESIL: %d, CI'YA KALAN: %d" % (aile_sayisi - len(atlanan), len(atlanan)))
+    return 0
 
 
 if __name__ == "__main__":
