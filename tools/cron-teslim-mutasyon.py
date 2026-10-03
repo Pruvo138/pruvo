@@ -472,12 +472,84 @@ K8 = ("K8", "ANLAM TASIMAYAN SIRALAMA: `_pencere_gozlemi` sonuc sozlugundeki iki
         '    sonuc = {"yol": yol, "hata_sayisi": len(hatalar), "bos": bos, "deneme": yapilan}\n')],
       False, set())
 
+# ── W KOLU — KIRMIZI TEYIDI (K431, 3 Eki 2026) ───────────────────────────────
+# OLGU: kosum 37028777028 — bayat ilk sayfanin en yenisi 45,2 sa (W=48 sa ICINDE) oldugu
+# icin K428 tetigi atesmedi; A0 · A5 · A3 sahte 🔴. Her mutantin OLDURUCU vakasi
+# ONCEDEN civilidir (parantez icinde): kanarya T-BIS-ONCE eski yolun olguyu urettigini,
+# pozitif kontroller (T-BIS-SESSIZ / T-BIS-A0-SESSIZ) gercek sessizligin yandigini olcer.
+W1 = ("W1", "🔴 TEYIT GECISI KALKTI: kirmizi aday ilk sayfa tek gozlemle KESIN 🔴 olur "
+             "(T-BIS-TAZE · T-BIS-A0 · T-BIS-A3 · T-BIS-A5 · T-BIS-TUTARLI-BAYAT)", KAPI,
+      [("    if not kaynak:\n        return rc, satirlar\n",
+        "    if True:\n        return rc, satirlar\n")], True, None)
+
+W2 = ("W2", "🔴 TAZELIK KANITI HIC KABUL EDILMEZ: ikinci gozlem taze kesit getirse de "
+             "'dogrulandi' -> olgu yine 🔴 (T-BIS-TAZE)", KAPI,
+      [('    if not taze_kanit:\n        t["sinif"] = "dogrulandi"\n',
+        '    if True:\n        t["sinif"] = "dogrulandi"\n')], True, None)
+
+W3 = ("W3", "🔴 HER IKINCI GOZLEM 'TAZE' SAYILIR: gercek sessizlikte de 'ILK SAYFA BAYATTI' "
+             "notu basilir, TEYITLI notu kaybolur (T-BIS-SESSIZ)", KAPI,
+      [("    taze_kanit = ((p_yeni is not None",
+        "    taze_kanit = True or ((p_yeni is not None")], True, None)
+
+W4 = ("W4", "🔴 TUTARSIZ KESIT SAYILIR: total_count > donen olan taze kesitle hukum verilir "
+             "(T-BIS-TUTARSIZ)", KAPI,
+      [('    elif pg.get("tutarli") and pg.get("damgalar"):\n',
+        '    elif pg.get("damgalar"):\n')], True, None)
+
+W5 = ("W5", "🔴 HATA = TEYIT: ikinci gozlem 502 verince kirmizi 'teyitli' sayilir "
+             "(T-BIS-HATA)", KAPI,
+      [('        t.update({"sinif": "hata", "sebep": pg.get("sebep") or "sebep bildirilmedi"})\n',
+        '        t.update({"sinif": "dogrulandi", "sebep": pg.get("sebep")})\n')], True, None)
+
+W6 = ("W6", "🔴 TEYITSIZ HAL OLCULEMEDI'YE GITMEZ: sayfa_tutarsizligi teyit sonucunu okumaz "
+             "-> HATA/TUTARSIZ halde KESIN 🔴 (T-BIS-HATA · T-BIS-TUTARSIZ)", KAPI,
+      [("    if teyitsiz:\n        return teyitsiz\n", "")], True, None)
+
+W7 = ("W7", "🔴 A0/A4 KIRMIZISI TEYIDE GITMEZ: damga 'elle' hukmu bayat kimlik kumesinden "
+             "(T-BIS-A0)", KAPI,
+      [("        if yandi and kirmizi_kaynak is not None:\n            kirmizi_kaynak.add(capa)\n",
+        "")], True, None)
+
+W8 = ("W8", "🔴 ZORLA YOK SAYILIR: ilk sayfa pencerede kayit gosterince ikinci gozlem HIC "
+             "cekilmez (T-BIS-TAZE — olgunun ta kendisi)", KAPI,
+      [("    if max(tum) > pencere_basi and not zorla:\n",
+        "    if max(tum) > pencere_basi:\n")], True, None)
+
+W9 = ("W9", "🔴 A3 KIRMIZISI TEYIDE GITMEZ (T-BIS-A3)", KAPI,
+      [("            alarm = True\n            if kirmizi_kaynak is not None:\n"
+        "                kirmizi_kaynak.add(g[\"dosya\"])\n",
+        "            alarm = True\n")], True, None)
+
+W10 = ("W10", "🔴 A5 KIRMIZISI TEYIDE GITMEZ (T-BIS-A5)", KAPI,
+       [("        if yandi5 and kirmizi_kaynak is not None:\n"
+         "            kirmizi_kaynak.add(g[\"dosya\"])\n", "")], True, None)
+
+W11 = ("W11", "🔴 MALIYET: kirmizi YOKKEN de her is akisi teyide gider (saglikli kosumda ek "
+              "cagri) (T-BIS-MALIYET saglikli)", KAPI,
+       [("    if not kaynak:\n        return rc, satirlar\n",
+         "    kaynak = set(x[\"dosya\"] for x in gozlemler)\n")], True, None)
+
+W12 = ("W12", "🔴 DUZELTME GEREKCESI SUSAR: kesit kirmizi teyidinden geldi ama satir 'pencere "
+              "DISI' der (T-BIS-TAZE A5 notu)", KAPI,
+       [('            g["duzeltme"]["tetik"] = "teyit"\n', "            pass\n")], True, None)
+
+W13 = ("W13", "🔴 TEYITLI NOTU SUSAR: kirmizi iki gozlemle teyit edildi ama satir bunu "
+              "SOYLEMEZ (T-BIS-SESSIZ · T-BIS-A0-SESSIZ)", KAPI,
+       [('    if t.get("sinif") == "dogrulandi":\n', "    if False:\n")], True, None)
+
+K9 = ("K9", "ilgisiz: KIRMIZI TEYIDI blogunun MALIYET yorumuna kesim notu eklendi", KAPI,
+      [("# MALIYET: yalniz kirmizi aday is akisinda (saglikli kosumda EK CAGRI SIFIR).",
+        "# MALIYET: yalniz kirmizi aday is akisinda (saglikli kosumda EK CAGRI SIFIR). (K431)")],
+      False, set())
+
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12,
              X4, X5, X6, X7, X8, X9, X10, X11, X12, X13,
              Y1, Y2, Y3, Y4, Y5, Y6, Y7,
              K1, K2, K3, K4, K5, K6,
              Z1, Z2, Z3, Z4, Z5, Z6, Z7, Z8, Z9, Z10, Z11, Z12, Z13, Z14, Z15, Z16,
-             Z17, Z18, Z19, K7, K8)
+             Z17, Z18, Z19, K7, K8,
+             W1, W2, W3, W4, W5, W6, W7, W8, W9, W10, W11, W12, W13, K9)
 
 # 🔴 ALAN SAYISI NOBETI: 6 alani olmayan bir mutant sessizce "beyansiz" moda kayardi.
 _bozuk = [m[0] for m in MUTANTLAR if len(m) != 6]
