@@ -1048,6 +1048,15 @@ jobs:
       - name: "Jev kapisi — serbest sekiller bes evde + negatifler (7 mutant)"
         run: python3 tools/jev-kapi-test.py
 
+      # 🔴 4 EKI 2026 (K424 TUKETICI KOLU) — BaBa'nin 09:00 olcumu `kutu-oksuz-nobeti.py`i
+      # KraL'in mutlak yoluyla cagirir; BaBa evinden bakinca yol repo DISI -> R2 RED ve
+      # `KUTU_OKSUZ_GOVDE` OLCULEMEDI. `serbest_cagrilar.SEKILLER`de ADLI `kutu-oksuz`
+      # sekli (repo_disi, yorumlayici kisitli, bayraksiz). Adim alti evde gercek
+      # PreToolUse yukuyle pozitif ALLOW + negatif DENY (komsu YAZAR `kutu-arsivle.py`
+      # kardes evlerde KAPALI) olcer ve 5 izole mutant tasir (SURVIVOR=0).
+      - name: "Kutu-oksuz kapisi — serbest sekil alti evde + negatifler (5 mutant)"
+        run: python3 tools/kutu-oksuz-kapi-test.py
+
       # SERIT DERINLIK OLCUMU (K314①) — gerekce `build` isindeki uzun blokta.
       # Olculen kanit tam da BU SERITTE: kosum 32995765098'de adim 19 `failure`,
       # adim 20-28 `skipped` — dokuz kapinin hukmu o kosumdan HIC okunamadi.

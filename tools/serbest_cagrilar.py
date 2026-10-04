@@ -224,6 +224,7 @@ KUTU_ARSIVLE_YOL = REPO_ONEKI + "tools/kutu-arsivle.py"
 HAFIZA_ARSIVLE_YOL = REPO_ONEKI + "tools/hafiza-indeks-arsivle.py"
 CIP_BEKCI_YOL = CRON_ONEKI + "cip_dogum_bekcisi.py"
 ONARIM_DURUM_YOL = REPO_ONEKI + "tools/onarim-durum.py"
+KUTU_OKSUZ_YOL = REPO_ONEKI + "tools/kutu-oksuz-nobeti.py"
 
 # Defter bakimi bayraklari — arac ADINA degil, SEKLE baglidir.
 # 🔴 HER BAYRAK ADI TEK BIR YERDE YAZILIR. Ilk surumde '--tavan-kaynaktan' HEM
@@ -378,6 +379,19 @@ SEKILLER = (
     # aga cikmaz, LLM/agent turu acmaz — bu yuzden mimar katinda serbest birakilmasi
     # SAKINCALI degil.
     Sekil("onarim-durum", ONARIM_DURUM_YOL),
+
+    # 🔴 4 EKI 2026 (K424 TUKETICI KOLU): `kutu-oksuz-nobeti.py` — ortak kutudaki
+    # basliksiz (oksuz) govdeyi sayan SALT-OKUR arac. OLCULEN ARIZA: BaBa'nin 09:00
+    # gunluk olcumu (`gunluk-mimar-ihtar/SKILL.md` L85) araci KraL'in MUTLAK yoluyla
+    # cagirir; BaBa evinin kokunden bakinca o yol repo DISIDIR -> R2 RED, ilk kosumda
+    # `KUTU_OKSUZ_GOVDE` OLCULEMEDI. `repo_disi=True`: SABIT MUTLAK yol, kardes eve
+    # koklendirilmez (BaBa'da `pruvo-advisor/tools/kutu-oksuz-nobeti.py` YANLIS/olmayan
+    # dosya olurdu). Yorumlayici kisitli (sahte `/private/tmp/python3` kapali). Kova DAR:
+    # yalniz bayraksiz hal; `--kutu <yol>` DISARIDA (asagida). Komsu `kutu-arsivle.py`
+    # (YAZAR) kardes evlerde AYNEN kapali kalir — acilan tek dosya bu salt-okur arac
+    # (kabul: `tools/kutu-oksuz-kapi-test.py`).
+    Sekil("kutu-oksuz", KUTU_OKSUZ_YOL, repo_disi=True,
+          yorumlayicilar=JEV_YORUMLAYICILAR),
 ) + _jev_sekilleri()
 
 SEKIL_ETIKETLERI = {s.etiket: s for s in SEKILLER}
@@ -510,6 +524,13 @@ DISARIDA = {
     # isci kosturur. Mimarin serbest cagrisi BAYRAKSIZ haldir.
     ONARIM_DURUM_YOL: {
         "--kendini-test": "kabul kosumu — mimar elinde degil, isci kosturur",
+    },
+
+    # `kutu-oksuz-nobeti.py` SALT-OKUR: tek bayragi `--kutu <yol>` DEGER YOL alir —
+    # fikstur/test kolu (olculecek kutuyu ELLE verir); repo-disi yol tasima anahtari
+    # olurdu. Mimarin serbest cagrisi BAYRAKSIZ haldir (gercek kutuyu olcer).
+    KUTU_OKSUZ_YOL: {
+        "--kutu": "deger YOL alir — olculecek kutuyu ELLE verir (fikstur/test kolu)",
     },
 }
 
