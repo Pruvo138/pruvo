@@ -31,6 +31,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import contextlib
 
 BURASI = os.path.dirname(os.path.abspath(__file__))
@@ -203,8 +204,11 @@ def kabul_kos(kaynak, kanca_metni, gecici, sessiz=False):
         and os.path.isfile(mod.DUSUS_KAYIT_LOG))
 
     # --- A3: ARDISIK sayac ARTAR, tavanda ESKALASYON ---------------------
-    rc2, c2 = hukum_kos(mod, backup, adet=1)
-    rc3, c3 = hukum_kos(mod, backup, adet=1)
+    # 🔴 4 Eki 2026: c2/c3 FARKLI imzayla — ESKALASYON artik PENCERE yolundan da basar
+    # (ayni imza 7 gunde >=3); ayni imzayla A4 iki yolu karistirir ve ARDISIK mutantini
+    # (M2) oldurmez. Pencere yolu ayri vakada (A6-A8) olculur.
+    rc2, c2 = hukum_kos(mod, backup, adet=1, eski=38046)
+    rc3, c3 = hukum_kos(mod, backup, adet=1, eski=38047)
     sonuc["A3-ardisik-sayac"] = ("ARDISIK=2" in c2 and "ARDISIK=3" in c3
                                  and kalp_oku(mod).get("ardisik") == 3)
     sonuc["A4-eskalasyon"] = ("ESKALASYON=YEDEK_ZINCIRI_KIRIK" not in c2
@@ -237,6 +241,40 @@ def kabul_kos(kaynak, kanca_metni, gecici, sessiz=False):
                         sinif="kayit-dususu")
     sonuc["B4-kova-ayrimi"] = ("BAYT_FARKI=OLCULEMEDI" in c5
                                and "SINIF=kayit-dususu" in c5)
+
+    # --- A6: PENCERE — araya SAGLIKLI kosum girse de AYNI imza 3. kez -> ESKALASYON
+    # K425 vakasi (BaBa hukmu 4 Eki): imza 10 gunde 50 kez dustu, sayac sifirlandi.
+    # ARDISIK her turda 1'e doner; eskalasyonu YALNIZ pencere basabilir.
+    temiz_kos(mod, backup)          # B2/B4'ten kalan ARDISIK sifirlanir (A6 yalniz pencereyi olcer)
+    pc = []
+    for _ in range(3):
+        _r, c = hukum_kos(mod, backup, adet=1, eski=50000, yeni=1000)
+        pc.append(c)
+        temiz_kos(mod, backup)
+    sonuc["A6-pencere-eskalasyonu"] = (
+        "ESKALASYON=YEDEK_ZINCIRI_KIRIK" not in pc[0]
+        and "ESKALASYON=YEDEK_ZINCIRI_KIRIK" not in pc[1]
+        and "ESKALASYON=YEDEK_ZINCIRI_KIRIK" in pc[2]
+        and "ARDISIK=1" in pc[2] and "PENCERE=3" in pc[2])
+
+    # --- A7: PENCERE DISI kayitlar SAYILMAZ (9 ve 8 gun once + simdi) ---------
+    simdi = time.time()
+    for gun in (9, 8):
+        dusus_uret(mod, backup, adet=1, eski=60000, yeni=2000)
+        mod.dusus_kaydi_guncelle(backup, list(mod._KORUMA_AYRINTI), 1,
+                                 zaman=simdi - gun * 86400)
+        mod.dusus_kaydi_guncelle(backup, [], 0, zaman=simdi - gun * 86400 + 3600)
+    _r7, c7 = hukum_kos(mod, backup, adet=1, eski=60000, yeni=2000)
+    sonuc["A7-pencere-disi"] = ("PENCERE=1" in c7
+                                and "ESKALASYON=YEDEK_ZINCIRI_KIRIK" not in c7)
+
+    # --- A8: FARKLI imza pencereye SAYILMAZ (ayni sinif, her seferinde baska bayt) ---
+    c8 = ""
+    for yeni in (1100, 1200, 1300):
+        _r8, c8 = hukum_kos(mod, backup, adet=1, eski=70000, yeni=yeni)
+        temiz_kos(mod, backup)
+    sonuc["A8-farkli-imza"] = ("PENCERE=1" in c8
+                               and "ESKALASYON=YEDEK_ZINCIRI_KIRIK" not in c8)
 
     if not sessiz:
         for ad in sorted(sonuc):
@@ -271,6 +309,24 @@ MUTANTLAR = [
      None,
      "      | tail -3",
      ["B3-kanca-suzgeci"]),
+    # 4 Eki 2026 (K425 dersi): PENCERE kolu — her biri kendi hedef vakasiyla yargilanir.
+    ("M7-pencere-kolu-kaldirildi", "yedekle",
+     '            or kayit.get("pencere", 0) >= DUSUS_ESKALASYON_TAVANI)',
+     '            or False)',
+     ["A6-pencere-eskalasyonu"]),
+    ("M8-saglikli-kosum-gecmisi-siliyor", "yedekle",
+     '        kayit["son_basari_iso"] = iso',
+     '        kayit["son_basari_iso"] = iso\n        kayit["gecmis"] = []',
+     ["A6-pencere-eskalasyonu"]),
+    ("M9-pencere-sinirsiz", "yedekle",
+     '    esik = simdi - DUSUS_PENCERE_GUN * 86400',
+     '    esik = 0',
+     ["A7-pencere-disi"]),
+    ("M10-imza-gevsek", "yedekle",
+     '        if _dusus_imzasi(g.get("atlanan"), g.get("bayt_farki"),\n'
+     '                         g.get("siniflar")) == imza:',
+     '        if True:',
+     ["A8-farkli-imza"]),
 ]
 
 KONTROL = ("KONTROL-zararsiz", "yedekle",

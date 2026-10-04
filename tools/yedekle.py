@@ -126,6 +126,7 @@ Kullanim:
 Cikis kodlari (kopyalama/--gerekliyse yolu): 0 = tamam · 1 = Drive cozulemedi / karantina
                3 = yedek ALINDI ama HEDEFTE SIR ARTIGI DURUYOR (ARTIK_CIKIS_KODU)
 """
+import calendar
 import errno
 import fcntl
 import filecmp
@@ -259,6 +260,17 @@ DUSUS_GECMIS_TAVANI = 20
 # Bu sayida ARDISIK dususte cikti ESKALASYON banneri basar. 🔴 PUSH DURMAZ —
 # gerekce `_dusus_eskalasyon_notu()` docstring'inde yazili.
 DUSUS_ESKALASYON_TAVANI = 3
+# 🔴 4 EKI 2026 (K425 DERSI, BaBa hukmu 4 Eki 02:5x): eskalasyon YALNIZ ARDISIKLIGA
+# baglanirsa aradaki bir "saglikli gorunur" kosum sayaci SIFIRLAR ve kronik arizayi
+# gizler. OLCULDU: K425 imzasi (ATLANAN=2 BAYT_FARKI=-802304) 10 gunde 50 kez dustu,
+# sayac 15:20Z'de 3'ten 1'e sifirlandi ([[saglikli-kosum-sayaci-sifirlar-kronik-ariza-birikmez]]).
+# Cozum: ESKALASYON ardisikliga **VEYA** PENCEREYE baglanir — ayni imza son
+# DUSUS_PENCERE_GUN gunde >= DUSUS_ESKALASYON_TAVANI kez goruldu ise basar; aradaki
+# saglikli kosum `gecmis`'i SILMEZ, bu yuzden sayaci sifirlayamaz. Imza =
+# (atlanan, bayt_farki, siniflar) — `gecmis` satirlarinin ve yedek-dusus.log'un
+# ZATEN tasidigi alanlar; yeni alan/dosya/kapi YOK. Pencere sayisi `gecmis`
+# derinligiyle (DUSUS_GECMIS_TAVANI) sinirlidir: tavanin kendisi (3) bunun cok altinda.
+DUSUS_PENCERE_GUN = 7
 _BEYAN_UYARISI = []
 
 # "tasima" korunum orani — hedefin, kaynagin kaybinin EN AZ bu kadarini karsilamasi
@@ -2343,6 +2355,49 @@ def _dusus_kaydi_oku(backup=None):
     return veri if isinstance(veri, dict) else {}
 
 
+def _dusus_imzasi(atlanan, bayt_farki, siniflar):
+    """Bir dususun IMZASI — pencere sayacinin esleme anahtari.
+
+    `gecmis` satirlari ve `yedek-dusus.log` ayni uc alani tasir (atlanan adet,
+    bayt farki, sinif kumesi); imza onlardan TURETILIR, ikinci bir alan tutulmaz."""
+    return (atlanan, bayt_farki, tuple(siniflar or ()))
+
+
+def _iso_saniye(iso):
+    """`YYYY-MM-DDTHH:MM:SSZ` (UTC) -> epoch saniye; bozuksa None. ASLA patlamaz."""
+    try:
+        return calendar.timegm(time.strptime(iso, "%Y-%m-%dT%H:%M:%SZ"))
+    except (TypeError, ValueError):
+        return None
+
+
+def _dusus_pencere_say(gecmis, imza, simdi):
+    """AYNI imzali dususun son DUSUS_PENCERE_GUN gunde kac kez goruldugu.
+
+    `gecmis` bu dususun kendi satirini ICERIR (cagiran once ekler). Zamani
+    cozulemeyen satir SAYILMAZ (fail-safe: sayac sisemez, ama hicbir satir da
+    sessizce sayac tavanini asirtmaz). Pencere disindaki ve gelecekteki damgalar
+    sayilmaz."""
+    esik = simdi - DUSUS_PENCERE_GUN * 86400
+    say = 0
+    for g in gecmis or []:
+        if not isinstance(g, dict):
+            continue
+        t = _iso_saniye(g.get("iso"))
+        if t is None or t < esik or t > simdi:
+            continue
+        if _dusus_imzasi(g.get("atlanan"), g.get("bayt_farki"),
+                         g.get("siniflar")) == imza:
+            say += 1
+    return say
+
+
+def _dusus_eskalasyon_gerekli(kayit):
+    """ESKALASYON karari: ARDISIK tavan ya da PENCERE tavan (hangisi once)."""
+    return (kayit.get("ardisik", 0) >= DUSUS_ESKALASYON_TAVANI
+            or kayit.get("pencere", 0) >= DUSUS_ESKALASYON_TAVANI)
+
+
 def _dusus_log_yaz(satir):
     """Yedek duzlem (append). Drive cozulemedigi zaman TEK kayit budur.
 
@@ -2435,6 +2490,11 @@ def dusus_kaydi_guncelle(backup, ayrintilar, rc, zaman=None):
         gecmis.append({"iso": iso, "rc": rc, "atlanan": atlanan,
                        "bayt_farki": bayt_farki, "siniflar": siniflar})
         kayit["gecmis"] = gecmis[-DUSUS_GECMIS_TAVANI:]
+        # 🔴 PENCERE: `gecmis` saglikli kosumda SILINMEZ (yukaridaki erken donus +
+        # `dict(onceki)`), bu yuzden pencere sayaci ardisik sifirlamasindan ETKILENMEZ.
+        kayit["pencere"] = _dusus_pencere_say(
+            kayit["gecmis"], _dusus_imzasi(atlanan, bayt_farki, siniflar), zaman)
+        kayit["pencere_gun"] = DUSUS_PENCERE_GUN
 
     # 1) YEREL KALP — sayacin tek kaynagi; ONCE bu yazilir.
     yerel_yolu = None
@@ -2474,8 +2534,8 @@ def dusus_kaydi_guncelle(backup, ayrintilar, rc, zaman=None):
         # Kalp yazilabildiyse de yazilamadiysa da log satiri DUSER: kalp tek
         # dosyadir ve uzerine yazilir, log ise gecmisi tasir.
         log_yolu = _dusus_log_yaz(
-            "%s rc=%s ARDISIK=%s ATLANAN=%s BAYT_FARKI=%s SINIF=%s KALP=%s AYNA=%s" % (
-                iso, rc, kayit["ardisik"], atlanan,
+            "%s rc=%s ARDISIK=%s PENCERE=%s ATLANAN=%s BAYT_FARKI=%s SINIF=%s KALP=%s AYNA=%s" % (
+                iso, rc, kayit["ardisik"], kayit.get("pencere", 0), atlanan,
                 bayt_farki if bayt_farki is not None else "OLCULEMEDI",
                 ",".join(siniflar) or "yok", yerel_yolu or "YAZILAMADI",
                 kayit_yolu or "YAZILAMADI"))
@@ -2513,19 +2573,20 @@ def karantina_hukmu_bas(backup):
                       % (karantina_etiketi(yol, backup), sebep))
             atlanan = len(_KORUMA_KARANTINA)
         kayit = dusus_kaydi_guncelle(backup, _KORUMA_AYRINTI, 1)
-        if kayit.get("ardisik", 0) >= DUSUS_ESKALASYON_TAVANI:
-            print(_dusus_eskalasyon_notu(kayit["ardisik"]))
+        if _dusus_eskalasyon_gerekli(kayit):
+            print(_dusus_eskalasyon_notu(kayit["ardisik"], kayit.get("pencere", 0)))
         print("bitti (karantinali) ->", backup)
         # 🔴 SON SATIR MAKINE-OKUNUR olmak ZORUNDA: kanca ciktiyi kirparsa (bugune
         # kadar `tail -3` yapiyordu) once BASLIK satiri dusuyordu ve "kac dosya
         # atlandi" kayboluyordu. Bu satir tek basina TUM hukmu tasir; en SONDA
         # oldugu icin hicbir kirpma onu dusuremez.
         print("YEDEK=YARIM OLCULEMEDI=YEDEK_KARANTINA ATLANAN=%d BAYT_FARKI=%s "
-              "SINIF=%s ARDISIK=%s KALP=%s LOG=%s"
+              "SINIF=%s ARDISIK=%s PENCERE=%s KALP=%s LOG=%s"
               % (atlanan,
                  bayt_farki if bayt_farki is not None else "OLCULEMEDI",
                  ",".join(siniflar) or "bilinmeyen",
                  kayit.get("ardisik", "OLCULEMEDI"),
+                 kayit.get("pencere", "OLCULEMEDI"),
                  kayit.get("kayit_yolu") or "YAZILAMADI",
                  kayit.get("log_yolu") or "YAZILMADI"))
         return 1
@@ -2537,7 +2598,7 @@ def karantina_hukmu_bas(backup):
     return 0
 
 
-def _dusus_eskalasyon_notu(ardisik):
+def _dusus_eskalasyon_notu(ardisik, pencere=None):
     """ESKALASYON banneri — ve NEDEN PUSH DURMUYOR.
 
     🔴 SECIM VE GEREKCESI (27 Agu 2026, K308 · bu tur): mimar iki yol birakti —
@@ -2555,10 +2616,21 @@ def _dusus_eskalasyon_notu(ardisik):
     Kapatilan sey "dusmek" degil **SESSIZ dusmek**: her dusus artik kalici kayda
     duser, ardisik sayilir ve tavan asilinca cikti BAGIRIR. Durdurma kolu bir
     satirlik degisikliktir ve MIMAR KARARIDIR — chip kendi basina almaz."""
-    return ("ESKALASYON=YEDEK_ZINCIRI_KIRIK ARDISIK=%d TAVAN=%d — yedek zinciri "
-            "ust uste dusuyor; push DURDURULMADI (gerekce: kanca-bloklari "
+    # 4 Eki 2026: ESKALASYON iki yoldan basar — ARDISIK tavan (ust uste) ya da PENCERE
+    # tavan (ayni imza son DUSUS_PENCERE_GUN gunde; aradaki saglikli kosum sifirlamaz).
+    if ardisik >= DUSUS_ESKALASYON_TAVANI:
+        return ("ESKALASYON=YEDEK_ZINCIRI_KIRIK ARDISIK=%d TAVAN=%d PENCERE=%s/%dGUN — "
+                "yedek zinciri ust uste dusuyor; push DURDURULMADI (gerekce: "
+                "kanca-bloklari `--no-verify` kacisi uretiyor), ama bu hal ARTIK "
+                "KRONIKTIR." % (ardisik, DUSUS_ESKALASYON_TAVANI,
+                                pencere if pencere is not None else "OLCULEMEDI",
+                                DUSUS_PENCERE_GUN))
+    return ("ESKALASYON=YEDEK_ZINCIRI_KIRIK ARDISIK=%d TAVAN=%d PENCERE=%s/%dGUN — "
+            "AYNI dusus imzasi %d gunde %s kez goruldu (araya saglikli kosum girse de "
+            "sayac SIFIRLANMAZ); push DURDURULMADI (gerekce: kanca-bloklari "
             "`--no-verify` kacisi uretiyor), ama bu hal ARTIK KRONIKTIR."
-            % (ardisik, DUSUS_ESKALASYON_TAVANI))
+            % (ardisik, DUSUS_ESKALASYON_TAVANI, pencere, DUSUS_PENCERE_GUN,
+               DUSUS_PENCERE_GUN, pencere))
 
 
 def _kopyala_gerekliyse(kaynak, varis):
@@ -3436,11 +3508,12 @@ def main():
             "eski": None, "yeni": None,
             "sebep": "Drive yolu cozulemedi (mount yok / hesap adi degismis)",
         }], 1)
-        if kayit.get("ardisik", 0) >= DUSUS_ESKALASYON_TAVANI:
-            print(_dusus_eskalasyon_notu(kayit["ardisik"]))
+        if _dusus_eskalasyon_gerekli(kayit):
+            print(_dusus_eskalasyon_notu(kayit["ardisik"], kayit.get("pencere", 0)))
         print("YEDEK=YOK OLCULEMEDI=DRIVE_COZULEMEDI ATLANAN=1 BAYT_FARKI=OLCULEMEDI "
-              "SINIF=drive-cozulemedi ARDISIK=%s KALP=%s LOG=%s"
+              "SINIF=drive-cozulemedi ARDISIK=%s PENCERE=%s KALP=%s LOG=%s"
               % (kayit.get("ardisik", "OLCULEMEDI"),
+                 kayit.get("pencere", "OLCULEMEDI"),
                  kayit.get("kayit_yolu") or "YAZILAMADI",
                  kayit.get("log_yolu") or "YAZILMADI"))
         return 1
