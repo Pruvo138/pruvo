@@ -109,6 +109,24 @@ def _muafiyet_jetonu():
 
 MUAFIYET_JETONU = _muafiyet_jetonu()
 
+# 🔴 ISCI OTURUMU CIP DEGILDIR (5 Eki 2026, OLCULDU — MaCiT-Sony-d-5Eki kapanisi):
+# `isci.sh` m3 iscisini CIP worktree'sinde (ev=cip agaci) kosturunca, bu kanca
+# PROJE `.claude/settings.json`undan iscinin oturumuna da yuklenir ve isci "cip
+# henuz kapanmadi, AGAC_KIRLI/KAPANIS_YOK" mesajini KENDINE yonelik sanir: 22 betigi
+# "rezidu" diye SILDI ve ortak kutuya cip adina SAHTE `SAYILI KAPANIS` yazdi.
+# Kapanis cipin isidir; isci kapanis yazamaz/yazmamali — mesaj yanlis muhataba gider.
+# `isci.sh` ANAHTARLI MOTOR yolundaki (m3) isci oturumuna iki ISARET miras verir:
+# PRUVO_ISCI_KOSUMU=<motor> + PRUVO_ISCI_ETIKET=<etiket> (isci.sh ~l.586/590).
+# KAPSAM SINIRI (olculdu): dogal Claude yolunda (`motor=claude`) isci.sh
+# PRUVO_ISCI_KOSUMU'nu `$PRUVO_ISCI_KOSUMU_DOGAL`dan kurar ve o degisken isci.sh
+# icinde TANIMLANMAZ -> BOS gelir, ETIKET hic kurulmaz -> bu yol MUAF DEGILDIR
+# (olcen vaka: V10d). Kanca BU ortam degiskenlerini okur, cunku hook stdin'inde
+# isci/cip ayrimi YOKTUR (sozlesme alanlari yukarida).
+# Sessiz bypass yuzeyi DEGIL: isaret cipin KENDI Bash'inden kancaya ULASMAZ (hook
+# ortami harness surecinindir), yalniz `isci.sh`in kurdugu surecte dolu gelir.
+# BOS DEGER isaret SAYILMAZ — yalniz dolu deger muaf tutar.
+ISCI_ISARETLERI = ("PRUVO_ISCI_KOSUMU", "PRUVO_ISCI_ETIKET")
+
 RC_YESIL = 0
 RC_KIRMIZI = 1
 RC_OLCULEMEDI = 2
@@ -167,6 +185,11 @@ def ana_checkout_mu(cwd):
     return ortak == kendi        # esitse ANA checkout, farkliysa worktree = CIP
 
 
+def isci_oturumu_mu():
+    """`isci.sh` ile acilmis isci oturumu mu? (dolu `PRUVO_ISCI_*` isareti)"""
+    return any((os.environ.get(k) or "").strip() for k in ISCI_ISARETLERI)
+
+
 def main():
     try:
         veri = json.loads(sys.stdin.read() or "{}")
@@ -174,6 +197,9 @@ def main():
         return _gecti("stdin JSON degil")
     if not isinstance(veri, dict):
         return _gecti("stdin sozluk degil")
+
+    if isci_oturumu_mu():
+        return _gecti("isci.sh isci oturumu — cip degil, kapanis cipin isidir")
 
     if veri.get("stop_hook_active"):
         return _gecti("stop_hook_active — dongu emniyeti")
