@@ -125,7 +125,7 @@ def main():
 
     # ═══ SEQ SANDVIC ONARIMI (30 Tem, olculdu canli D1'de: anka-kusu-serit-dekoratif-
     #     figur / yarasa-serit-dekoratif-figur, parite-test.js SIRA farki 26/1199 +
-    #     parite-ege.js 13/845) ═══════════════════════════════════════════════════════
+    #     Ege paritesi 13/845) ═══════════════════════════════════════════════════════
     # ESKI HATA: bir urunun id'si AYNI dizi pozisyonunda degistirilince (rename; "X = Y
     # yeniden markalandi") eski id SILINIR, yeni id BRAND-NEW sanilip katalogun TEPESINE
     # (mseq+1) atanirdi — dizideki GERCEK (mid-array) konumu ne olursa olsun. Bu, ORDER BY

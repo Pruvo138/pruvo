@@ -55,7 +55,7 @@ const PENCERE = require("./parite-marka-ekseni.js").PENCERE;
 
 function kopya(o) { return JSON.parse(JSON.stringify(o)); }
 
-/** Uc cevabi kaliplayici. `karistir`: Ege gibi skorla siralanmis (kume ayni, sira ayri). */
+/** Uc cevabi kaliplayici. `karistir`: skorla siralanmis (kume ayni, sira ayri). */
 function ucCevap(idler, karistir) {
   const l = idler.slice();
   if (karistir) l.reverse();
@@ -64,9 +64,9 @@ function ucCevap(idler, karistir) {
 
 /** F_SONRASI — GECIS SONRASI dunya: uc, kolonu okuyor. Taban YESIL olmali. */
 function fSonrasi() {
-  const site = {}, ege = {};
-  for (const m of EVREN) { site[m] = ucCevap(KUME[m], false); ege[m] = ucCevap(KUME[m], true); }
-  return { evren: EVREN, d1: kopya(KUME), capraz: kopya(KUME), uc: { site, ege } };
+  const site = {};
+  for (const m of EVREN) site[m] = ucCevap(KUME[m], false);
+  return { evren: EVREN, d1: kopya(KUME), capraz: kopya(KUME), uc: { site } };
 }
 
 /** F_ONCESI — BUGUNKU uc: serbest-metin ALT-DIZE. Taban KIRMIZI olmali. */
@@ -78,12 +78,11 @@ function fOncesi() {
   f.uc.site.MAN = { toplam: 9, urunler: ["mn-1", "mn-2", "mn-3", "mn-4", "mandal-1", "mandal-2", "manuel-1", "manuel-2", "manuel-3"] };
   f.uc.site.Opel = { toplam: 6, urunler: ["op-1", "op-2", "op-3", "op-4", "op-5", "opel-anahtarlik"] };
   f.uc.site.Vauxhall = { toplam: 0, urunler: [] };
-  for (const m of EVREN) f.uc.ege[m] = kopya(f.uc.site[m]);
   return f;
 }
 
 /** F_BOS — evren BOS. "0 ayrisma" YESIL SAYILMAMALI (fail-closed). */
-function fBos() { return { evren: [], d1: {}, capraz: {}, uc: { site: {}, ege: {} } }; }
+function fBos() { return { evren: [], d1: {}, capraz: {}, uc: { site: {} } }; }
 
 /** F_KAYMA — kolon (D1) ile deponun kanonik govdesi AYRISMIS (senkron/yayin penceresi).
  *  Uc kolonla BIREBIR: capraz kapisi kalkarsa YESIL yanar, tabanda OLCULEMEDI olmali. */
@@ -92,8 +91,7 @@ function fKayma() {
     evren: ["Opel"],
     d1: { Opel: ["op-1", "op-2", "op-3"] },
     capraz: { Opel: ["op-1", "op-2"] },
-    uc: { site: { Opel: ucCevap(["op-1", "op-2", "op-3"]) },
-          ege: { Opel: ucCevap(["op-1", "op-2", "op-3"], true) } },
+    uc: { site: { Opel: ucCevap(["op-1", "op-2", "op-3"]) } },
   };
 }
 
@@ -102,18 +100,16 @@ function fPencere() {
   const idler = Array.from({ length: PENCERE + 7 }, (_, i) => "fd-" + String(i).padStart(5, "0"));
   return {
     evren: ["Ford"], d1: { Ford: idler }, capraz: { Ford: idler },
-    uc: { site: { Ford: { toplam: idler.length, urunler: idler.slice() } },
-          ege: { Ford: { toplam: idler.length, urunler: idler.slice() } } },
+    uc: { site: { Ford: { toplam: idler.length, urunler: idler.slice() } } },
   };
 }
 
-/** F_SIRA — kume DOGRU, SIRA yanlis. site yuzeyinde KIRMIZI, ege yuzeyinde YESIL. */
+/** F_SIRA — kume DOGRU, SIRA yanlis. site yuzeyinde KIRMIZI. */
 function fSira() {
   const ids = ["op-1", "op-2", "op-3"];
   return {
     evren: ["Opel"], d1: { Opel: ids }, capraz: { Opel: ids },
-    uc: { site: { Opel: { toplam: 3, urunler: ["op-3", "op-1", "op-2"] } },
-          ege: { Opel: { toplam: 3, urunler: ["op-3", "op-1", "op-2"] } } },
+    uc: { site: { Opel: { toplam: 3, urunler: ["op-3", "op-1", "op-2"] } } },
   };
 }
 
@@ -165,20 +161,15 @@ const MUTANTLAR = [
     kere: 1, fikstur: "F_KAYMA", yuzey: "site", tur: "OLDURUCU",
   },
   // ── OLDURUCU: pencere (kabul araligi ≠ kiyas araligi) ───────────────────────────
-  {
-    ad: "OLDURUCU O6a KIYAS ARALIGINI DARALT (pencereKirp PENCERE-1)",
-    kanit: "kabul araligi genis, kiyas araligi dar olursa pencerenin son satirindaki " +
-      "ayrisma sessizce yesil gecer ([[kabul-araligi-karsilastirma-araligi]]).",
-    eski: "function pencereKirp(ids) { return ids.slice(0, PENCERE); }",
-    yeni: "function pencereKirp(ids) { return ids.slice(0, PENCERE - 1); }",
-    kere: 1, fikstur: "F_PENCERE", yuzey: "ege", tur: "OLDURUCU",
-  },
+  // O6a (KIYAS ARALIGINI DARALT, pencereKirp PENCERE-1) 6 Eki 2026 KALDIRILDI: yalniz Ege
+  // yuzeyinin KUME dali olduruyordu; site (sirali) yuzeyinde OLCULDU -> HAYATTA. Site
+  // dalinda kiyas araligi daraltmasi bugun KOR NOKTADIR (mimara raporlandi).
   {
     ad: "OLDURUCU O6b KABUL ARALIGINI DARALT (uca giden limit PENCERE-1)",
     kanit: "ayni ayrismanin TERS yonu: uca dar pencere sorulup genis referansla " +
       "kiyaslanirsa eksen kendi kendini yaniltir.",
     eski: "  const limit = PENCERE;", yeni: "  const limit = PENCERE - 1;",
-    kere: 1, fikstur: "F_PENCERE", yuzey: "ege", tur: "OLDURUCU",
+    kere: 1, fikstur: "F_PENCERE", yuzey: "site", tur: "OLDURUCU",
   },
   // ── OLDURUCU: sira iddiasi ──────────────────────────────────────────────────────
   {
@@ -290,22 +281,15 @@ function main() {
   const tabanIddialar = [
     ["F_SONRASI", "site", "GECIS SONRASI FIKSTUR YESIL YANMALI (tek yonlu eksen tuzagi)",
       (r) => yesilMi(r)],
-    ["F_SONRASI", "ege", "GECIS SONRASI FIKSTUR YESIL YANMALI (ege yuzeyi, kume iddiasi)",
-      (r) => yesilMi(r)],
     ["F_ONCESI", "site", "OLDURUCU O1: UC ESKI DAVRANISTA -> KIRMIZI (ayrisan=4)",
-      (r) => !!r.imza && r.kod === 1 && r.imza.ayrisan === 4],
-    ["F_ONCESI", "ege", "OLDURUCU O1: UC ESKI DAVRANISTA -> KIRMIZI (ege yuzeyi)",
       (r) => !!r.imza && r.kod === 1 && r.imza.ayrisan === 4],
     ["F_BOS", "site", "BOS EVREN -> OLCULEMEDI (fail-closed; ASLA yesil)",
       (r) => !!r.imza && r.kod === 3 && r.imza.olculen === 0],
     ["F_KAYMA", "site", "KOLON≠DEPO -> OLCULEMEDI (kirmizi DEGIL, yesil DEGIL)",
       (r) => !!r.imza && r.kod === 3 && r.imza.olculen === 0 && r.imza.olculemedi === 1],
-    ["F_PENCERE", "ege", "PENCERE ASAN MARKA -> YESIL (dogru pencere + dogru toplam)",
-      (r) => yesilMi(r)],
     ["F_PENCERE", "site", "PENCERE ASAN MARKA -> YESIL (sirali dal)", (r) => yesilMi(r)],
     ["F_SIRA", "site", "SIRA BOZUK -> site yuzeyi KIRMIZI",
       (r) => !!r.imza && r.kod === 1 && r.imza.ayrisan === 1],
-    ["F_SIRA", "ege", "SIRA BOZUK -> ege yuzeyi YESIL (sira iddiasi YOK)", (r) => yesilMi(r)],
   ];
   for (const [fik, yuzey, iddia, kosul] of tabanIddialar) {
     const r = kostur({ aynaTools, fiksturYolu: fikYol[fik], yuzey });

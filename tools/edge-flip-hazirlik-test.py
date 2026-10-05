@@ -77,7 +77,7 @@ ONA(M.deg_komut(False, None)[0] == M.BLOKLU, "komut dosya yok -> BLOKLU")
 ONA(M.deg_komut(True, 0)[0] == M.PASS, "komut exit 0 -> PASS")
 ONA(M.deg_komut(True, 1)[0] == M.FAIL, "komut exit 1 -> FAIL")
 ONA(M.deg_komut(True, None)[0] == M.FAIL, "komut zaman asimi -> FAIL")
-# exit 2 = OLCULEMEDI (faz3-gecikme.js: uc kapali/alan yok; parite-ege.js: kaynak yok).
+# exit 2 = OLCULEMEDI (faz3-gecikme.js: uc kapali/alan yok).
 # Gerileme DEGIL -> FAIL yazmak yanlis suclama. BLOKLU(HocA) olmali.
 d, kim, detay = M.deg_komut(True, 2)
 ONA(d == M.BLOKLU and kim == "HocA", "komut exit 2 (olculemedi) -> BLOKLU(HocA)")
@@ -128,7 +128,6 @@ hepsi_pass = [
     ("3a. faz3s", M.PASS, None, ""),
     ("3b. faz3g", M.PASS, None, ""),
     ("4a. parite-site", M.PASS, None, ""),
-    ("4b. parite-ege", M.PASS, None, ""),
     ("5. d1", M.PASS, None, ""),
     ("6. bayrak", M.PASS, None, ""),
 ]
@@ -151,14 +150,14 @@ ONA(M.genel_karar(bugun) == "NO-GO", "bugun (11657 + worker 403) -> NO-GO")
 bl = M.blokajlar(bir_blok)
 ONA(any(k == "HocA" for _, _, k in bl), "blokajlar HocA'yi listeler")
 
-# ── ege_origin_turet: default literal + ARA_UC env override + path kirpma ────────
+# ── origin_turet: default literal + ARA_UC env override + path kirpma ────────
 sahte_kaynak = 'const UC = process.env.ARA_UC || "https://pruvo-whatsapp-bot.gmlmz.workers.dev/ara";'
-ONA(M.ege_origin_turet(sahte_kaynak) == "https://pruvo-whatsapp-bot.gmlmz.workers.dev",
+ONA(M.origin_turet(sahte_kaynak) == "https://pruvo-whatsapp-bot.gmlmz.workers.dev",
     "origin default literal'den (path kirpildi)")
-ONA(M.ege_origin_turet(sahte_kaynak, "https://baska.workers.dev/ara") == "https://baska.workers.dev",
+ONA(M.origin_turet(sahte_kaynak, "https://baska.workers.dev/ara") == "https://baska.workers.dev",
     "origin ARA_UC override")
-ONA(M.ege_origin_turet("kaynak yok burada") is None, "origin bulunamazsa None")
-ONA(M.ege_origin_turet("") is None, "bos kaynak -> None")
+ONA(M.origin_turet("kaynak yok burada") is None, "origin bulunamazsa None")
+ONA(M.origin_turet("") is None, "bos kaynak -> None")
 
 # ── bayrak_deger_ayikla: true/false/yok ─────────────────────────────────────────
 ONA(M.bayrak_deger_ayikla("  var EDGE_KATALOG = false;") is False, "ayikla false")

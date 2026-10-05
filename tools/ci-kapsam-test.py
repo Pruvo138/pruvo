@@ -3338,20 +3338,12 @@ IZIN_LISTESI = {
     # notunun kendisi zaten "sonraki turda eklenmeli, onerilen sira ..." diyordu ve o sira
     # bu turda uygulandi. Ucuncusu (mutasyon harness'i) SURE ile duruyor:
     # --- marka katlama sinifi kapsam kapisi (10 Agu 2026) ---
-    # 🔴 GEREKCE SURECSEL DEGIL, OLCULDU: kapi iki korpusu da URETIR; ege korpus ureteci
-    # bot'un `nrm` fonksiyonunu ister ve bot AYRI bir checkout'tur
-    # (/Users/okan/dev/pruvo-bot/worker/src/index.js). CI fresh checkout'unda o depo
-    # YOKTUR -> kapi fail-closed olarak rc=3 (OLCULEMEDI) verir; bloklayici adim olarak
-    # baglanirsa serit-a3 YAPISAL olarak kirmizi yanar ve TUM yayini durdurur
-    # (mimar-kapi-6ev-test.py / kaynak-referans-uret.js ile AYNI sinif).
-    # NOT (mimara): site ekseni bot ISTEMEZ. Kapi ege eksenini ayirip yalniz site
-    # ekseniyle CI'ya baglanabilir; bu KAPSAM DARALTMA karari MIMARINDIR, burada
-    # tek tarafli alinmadi.
+    # 6 Eki 2026: Ege (bot deposuna bagli) ekseni kaldirildi; kapi artik yalniz site
+    # korpusunu olcer. CI'ya baglanmasi ayri bir mimar karari (bu turda gerekce daraltildi,
+    # baglama yapilmadi — kapsam degisikligi bu dilimin isi degil).
     "tools/parite-kapsam-test.js": (
-        R_YOL + " Somut: kapi tools/parite-ege.js korpusunu uretir, o da bot deposunun "
-        "(~/dev/pruvo-bot, AYRI checkout) `nrm` fonksiyonunu ister; CI'da o dizin YOK -> "
-        "fail-closed rc=3 (OLCULEMEDI). Site ekseni bot istemez; ayrilirsa CI'ya "
-        "baglanabilir (mimar karari)."),
+        R_YOL + " Somut: kapi uretim katalogunun (urunler.json, mutlak kok) site korpusunu "
+        "uretir; Ege ekseni 6 Eki 2026'da kaldirildi. CI'ya baglanmasi mimar karari."),
     "tools/parite-kapsam-mutasyon.js": (
         R_YAVAS + " Somut: 15 mutant x kapi kosumu; her mutant icin AYRI gecici agac "
         "kurulur. Ayrica kapinin KENDISI CI'da rc=3 verdigi icin (bkz. "
@@ -3404,7 +3396,7 @@ IZIN_LISTESI = {
     # R_TASARIM blogunda gerekce. Kapi nobet.yml::serit-b'de iki BAGIMSIZ adim olarak kosar.
     "tools/gitignore-kapisi.py": R_YEREL_HIJYEN,
     "tools/regresyon-kapisi.py": (
-        R_YOL + " Ek olarak varsayilan suite'i node tools/parite-test.js + parite-ege.js icerir; "
+        R_YOL + " Ek olarak varsayilan suite'i node tools/parite-test.js icerir; "
         "bunlar CANLI CDN/D1'e 1200 istek atar -> CI'da deterministik degil (R_AG). "
         "🔴 DUZELTME (30 Tem): bu gerekce eskiden 'CI'da node YOK' da diyordu — OLCUMLE "
         "YANLIS (deploy.yml'de setup-node bloklayici on-kosul); engel AG ekseni ve mutlak "

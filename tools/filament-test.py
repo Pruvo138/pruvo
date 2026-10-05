@@ -19,7 +19,7 @@ Once tools/build.py'yi CALISTIRIR (uretilen sayfalar taze olsun), sonra sirayla:
      kategori haritasina gore dogru tavsiye (parametrik urunde OZEL KILIF YOK — F kalemi)
   3. hicbir uretilen sayfada "3d bask" / "her renk" yok
   4. /malzeme-rehberi/ uretildi, footer linki var, sitemap'te
-  5. node tools/parite-test.js 300 + node tools/parite-ege.js 200 YESIL (aciklama degismedi)
+  5. node tools/parite-test.js 300 YESIL (aciklama degismedi)
   6. override: tavsiyeFilament alanli sahte urunle render -> harita degil override basiliyor
   7. mobil tooltip: DOM/CSS duzeyinde dogrulama (balon + .acik toggle JS + aria-expanded)
   8. O SAYFADA SUNULMAYAN malzeme (Karbon Katkili her yerde; ABS haric kategorilerde)
@@ -595,22 +595,17 @@ def main():
         else:
             p1 = subprocess.run(["node", os.path.join(TOOLS, "parite-test.js"), "300"],
                                 capture_output=True, text=True, cwd=ROOT)
-            p2 = subprocess.run(["node", os.path.join(TOOLS, "parite-ege.js"), "200"],
-                                capture_output=True, text=True, cwd=ROOT)
             ok1, et1, sb1 = parite_exit_yorumla(p1.returncode, p1.stdout + p1.stderr)
-            ok2, et2, sb2 = parite_exit_yorumla(p2.returncode, p2.stdout + p2.stderr)
-            ok = ok1 and ok2
-            det = "site:%s ege:%s" % (et1, et2)
+            ok = ok1
+            det = "site:%s" % et1
             # ⚪ ATLANDI'nin SEBEBI DAIMA GORUNUR olsun: yoksa "yesil sanip gecmek" riski dogar.
             if sb1:
                 det += " | site: " + sb1
-            if sb2:
-                det += " | ege: " + sb2
             if not ok:
-                det += " | " + (p1.stdout + p1.stderr + p2.stdout + p2.stderr).strip()[-300:]
-            kayit(5, "parite (site + ege) — aciklama degismedi kaniti", ok, det)
+                det += " | " + (p1.stdout + p1.stderr).strip()[-300:]
+            kayit(5, "parite (site) — aciklama degismedi kaniti", ok, det)
             # A15 NOBETI: ATLANDI sessizce "yesil" gorunmesin — STDERR'e de dusur.
-            if PARITE_ATLANDI in (et1, et2):
+            if et1 == PARITE_ATLANDI:
                 print("⚪ PARITE ATLANDI (parite BELGELENMEDI, cikis 3): %s" % det,
                       file=sys.stderr, flush=True)
 

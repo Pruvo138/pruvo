@@ -14,7 +14,7 @@ sorusunu adim-adim OLCEREK cevaplar ve genel GO / NO-GO verir.
 Flip provasi (edge-katalog-tetik.md §"Flip provasi" sirasi):
   1. [HocA/Okan kapisi] Worker /katalog ucu CANLI mi (anlamli JSON)
   2. node faz3-sayfalama.js + faz3-gecikme.js yesil mi
-  3. node parite-test.js + parite-ege.js yesil mi (CDN onbellek: nonce ile)
+  3. node parite-test.js yesil mi (CDN onbellek: nonce ile)
   4. python3 d1-sync.py --durum exit 0 mi (fail-loud drift teyidi)
   5. index.html EDGE_KATALOG guncel degeri (OKUNUR, degistirilmez)
 
@@ -41,7 +41,6 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 URUNLER = os.path.join(KOK, "urunler.json")
 INDEX = os.path.join(KOK, "index.html")
 D1_SYNC = os.path.join(KOK, "tools", "d1-sync.py")
-PARITE_EGE = os.path.join(KOK, "tools", "parite-ege.js")
 PARITE_SITE = os.path.join(KOK, "tools", "parite-test.js")
 FAZ3_SAYFALAMA = os.path.join(KOK, "tools", "faz3-sayfalama.js")
 FAZ3_GECIKME = os.path.join(KOK, "tools", "faz3-gecikme.js")
@@ -141,7 +140,6 @@ def deg_komut(dosya_var, exit_kodu, cikti=""):
     "1 > 3 > 0" siralamasinin ortasidir: FAIL > BLOKLU > PASS.
     exit 2 = "OLCULEMEDI/KOSULAMADI" bu depoda YERLESIK sozlesme:
       - faz3-gecikme.js : uc cevap vermiyor VEYA yanitta worker-ici sure alani yok
-      - parite-ege.js   : bot kaynagi yok / fonksiyon yeniden adlandirilmis
     Eslemenin dordu birden tools/parite-sozlesme-test.py ile TEK TEK olculur.
     """
     if not dosya_var:
@@ -230,13 +228,15 @@ def blokajlar(adimlar):
     return out
 
 
-def ege_origin_turet(parite_ege_kaynak, env_ara_uc=None):
-    """Ege Worker origin'ini parite-ege.js kaynagindan TURET (o test zaten Ege worker'ina
-    vuruyor). parite-ege.js cozumunu birebir taklit eder: process.env.ARA_UC || <default>.
+def origin_turet(parite_kaynak, env_ara_uc=None):
+    """/ara Worker origin'ini parite-test.js kaynagindan TURET (site paritesi zaten o
+    worker'in /ara ucuna vuruyor; ikinci kopya YOK). parite-test.js cozumunu birebir taklit
+    eder: process.env.ARA_UC || <default>. (6 Eki 2026'ya kadar kaynak Ege paritesiydi;
+    Ege emekli, dosya silindi.)
     Doner: 'https://host' (path/query kirpilmis) veya None. SAF."""
     base = env_ara_uc or None
     if not base:
-        m = re.search(r'ARA_UC\s*\|\|\s*"([^"]+)"', parite_ege_kaynak or "")
+        m = re.search(r'ARA_UC\s*\|\|\s*"([^"]+)"', parite_kaynak or "")
         if not m:
             return None
         base = m.group(1)
@@ -387,11 +387,11 @@ def main():
 
     adimlar = []  # (ad, durum, kim, detay)
 
-    # ── Origin turet (parite-ege.js icinden) ──────────────────────────────────
-    ege_kaynak = oku_kaynak(PARITE_EGE) or ""
-    origin = ege_origin_turet(ege_kaynak, os.environ.get("ARA_UC"))
+    # ── Origin turet (parite-test.js icinden) ─────────────────────────────────
+    site_kaynak = oku_kaynak(PARITE_SITE) or ""
+    origin = origin_turet(site_kaynak, os.environ.get("ARA_UC"))
     ara_uc = (origin + "/ara") if origin else None
-    print("\nEge worker origin (parite-ege.js'ten turetildi): %s" % (origin or "TURETILEMEDI"))
+    print("\n/ara worker origin (parite-test.js'ten turetildi): %s" % (origin or "TURETILEMEDI"))
 
     # ── Ornek (isteğe bagli hizlandirma) — default: tam/kanonik kosum ──────────
     ornek = os.environ.get("EDGE_FLIP_ORNEK")
@@ -427,15 +427,12 @@ def main():
         detay += " (worker /katalog canli degilse bu beklenir — bkz. adim 2)"
     adimlar.append(("3b. faz3-gecikme.js", durum, kim, detay + " | " + son_satir(cikti)))
 
-    # ── Adim 4: parite-test (site) + parite-ege (Ege) ─────────────────────────
+    # ── Adim 4: parite-test (site) ────────────────────────────────────────────
     parite_env = {"ARA_UC": ara_uc} if ara_uc else {}
     var, ex, cikti = kost_node(PARITE_SITE, env_ek=parite_env, ek_argv=parite_argv)
     durum, kim, detay = deg_komut(var, ex, cikti)
     adimlar.append(("4a. parite-test.js (site)", durum, kim, detay + " | " + son_satir(cikti)))
 
-    var, ex, cikti = kost_node(PARITE_EGE, env_ek=parite_env, ek_argv=parite_argv)
-    durum, kim, detay = deg_komut(var, ex, cikti)
-    adimlar.append(("4b. parite-ege.js (Ege)", durum, kim, detay + " | " + son_satir(cikti)))
 
     # ── Adim 5 (bilgi): d1-sync --durum ───────────────────────────────────────
     durum, kim, detay = deg_d1(d1_exit, d1_cikti)

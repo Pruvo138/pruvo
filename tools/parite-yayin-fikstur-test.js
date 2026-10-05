@@ -32,11 +32,8 @@ const { spawn } = require("child_process");
 
 const TOOLS = __dirname;
 const REF = require("./parite-test.js");     // filtered() — GERCEK site referansi
-const EGE_MOD = require("./parite-ege.js");  // egeKodu()  — GERCEK bot kodu
-const SINIF = require("./parite-marka-sinifi.js"); // `marka=` yuklemi (index.html govdesi)
 const ORTAK = require("./parite-ortak.js");
 const PARITE_SITE = path.join(TOOLS, "parite-test.js");
-const PARITE_EGE = path.join(TOOLS, "parite-ege.js");
 
 const TUMU = "Tümü";
 const IDS_TAVANI = 100;
@@ -76,12 +73,8 @@ function urunUret(n, onek) {
 // GIZLI kume = TASLAK satirin canli davranisi: satir D1'de DURUR ama `yayinda = 1`
 // sarti yuzunden /ara'da DA /katalog?ids='de DA /katalog sayiminda DA GORUNMEZ.
 // (Gercek uc bunu WHERE ile yapar; fikstur ayni GORUNUR sonucu uretir.)
-function sunucuKur({ yerel, gizli, EGE }) {
+function sunucuKur({ yerel, gizli }) {
   const gorunur = yerel.filter((p) => !gizli.has(p.id));
-  // EGE null olabilir: bot deposu (AYRI checkout) CI'da YOKTUR. O halde Ege senaryolari
-  // ATLANIR; site senaryolari tam olculur. Testi komple 2 ile dusurmek, site eksenini de
-  // olculmez kilardi (kapinin CI'da OLU kalmasi = onarilmamis kapi).
-  const idx = EGE ? EGE.katalogIndeksle(gorunur) : null;
   const harita = new Map(gorunur.map((p) => [p.id, p]));
   // OLCUM ORTAMI IZI: her /ara isteginde `marka_kanon`un HANGI katalogtan turedigi
   // (cagri anindaki PARITE_URUNLER) + isleyici suresi. senaryoKos() bunu iddia eder.
@@ -112,18 +105,6 @@ function sunucuKur({ yerel, gizli, EGE }) {
     }
     if (u.pathname === "/ara") {
       const q = u.searchParams.get("q") || "";
-      if (u.searchParams.get("mod") === "ege") {
-        if (!q.trim()) return gonder({ hata: "q gerekli", toplam: 0, urunler: [] }, 400);
-        // `marka=` FILTRE EKSENI (10 Agu) — kardes fiksturle AYNI gerekce: uc bu
-        // parametreyi mod=ege'de de tasir; sahte uc yok saysaydi korpusa yeni giren
-        // eksen SAHTE KIRMIZI yakardi ([[kardes-fikstur-yeni-kanca-adiminda-kirilir]]).
-        const markaF = u.searchParams.get("marka") || "";
-        let hepsi = EGE.urunAra(idx, q, Infinity);
-        if (markaF) {
-          hepsi = hepsi.filter((p) => SINIF.markaSinifi(gorunur).uyeMi(p, markaF));
-        }
-        return gonder({ toplam: hepsi.length, urunler: hepsi.slice(0, limit).map((p) => ({ id: p.id })) });
-      }
       const kat = u.searchParams.get("kategori") || "";
       const marka = u.searchParams.get("marka") || "";
       if (!q.trim() && !kat && !marka) {
@@ -344,7 +325,6 @@ async function senaryoKos(s) {
 
 async function main() {
   const yalniz = parseInt(process.argv[2] || "", 10);
-  const EGE = fs.existsSync(EGE_MOD.BOT) ? await EGE_MOD.egeKodu() : null;
 
   const TABAN = urunUret(150, "fx");
   // TASLAK ADAYLARI: katalogun BASINDAN (yeni urun katalogun BASINA eklenir) — gercek
@@ -595,48 +575,14 @@ async function main() {
     },
   });
 
-  // ── 9) EGE tarafi: AYNI kural, AYNI iki yon ────────────────────────────────
-  senaryolar.push({
-    ad: "Y15 (ege) YAYIN GECIKMESI -> KIRMIZI DEGIL, sorgular KOSAR",
-    dosya: PARITE_EGE, yerel: TABAN, gizli: GIZLI,
-    spec: { taslak: TASLAKLAR, sayfa: 404, artefaktYas: TAZE },
-    dogrula: (r) => {
-      ONA(r.kod !== 1, "cikis 1 DEGIL", r.cikti.slice(-800));
-      ONA(/YAYIN GECIKMESI/.test(r.cikti), "sinif ADIYLA basildi");
-      ONA(kosanSorgu(r.cikti) > 0, "SORGULAR KOSTU", r.cikti.slice(-500));
-      ONA(sayiOku(r.cikti, "ACIKLANAMAYAN") === 0, "hicbir sorgu ayrismadi", r.cikti.slice(-900));
-    },
-  });
-  senaryolar.push({
-    ad: "Y16 (ege) FAIL-CLOSED (GERCEK KAYIP) -> cikis 1 KIRMIZI",
-    dosya: PARITE_EGE, yerel: TABAN, gizli: GIZLI,
-    spec: { yok: TASLAKLAR, artefaktYas: TAZE },
-    dogrula: (r) => {
-      ONA(r.kod === 1, "cikis 1 KIRMIZI", r.cikti.slice(-800));
-      ONA(/GERCEK KAYIP/.test(r.cikti), "sinif ADIYLA basildi");
-    },
-  });
-  senaryolar.push({
-    ad: "Y17 (ege) FAIL-CLOSED (OKUNAMADI) -> cikis 1 KIRMIZI",
-    dosya: PARITE_EGE, yerel: TABAN, gizli: GIZLI, spec: { patla: true },
-    dogrula: (r) => {
-      ONA(r.kod === 1, "cikis 1 KIRMIZI", r.cikti.slice(-800));
-      ONA(/YAYIN HALI OKUNAMADI/.test(r.cikti), "sebep: hal okunamadi");
-    },
-  });
-
-  const atlanan = EGE ? 0 : senaryolar.filter((s) => s.dosya === PARITE_EGE).length;
-  console.log("YAYIN PENCERESI FIKSTURU — %d senaryo (ag YOK, canli D1'e 0 sorgu)%s",
-    senaryolar.length - atlanan,
-    atlanan ? "  [" + atlanan + " Ege senaryosu ATLANDI: bot deposu yok — " +
-      EGE_MOD.BOT + "]" : "");
+  console.log("YAYIN PENCERESI FIKSTURU — %d senaryo (ag YOK, canli D1'e 0 sorgu)",
+    senaryolar.length);
   console.log("═".repeat(78));
   if (!Number.isFinite(yalniz)) birimOlc();
 
   for (let i = 0; i < senaryolar.length; i++) {
     if (Number.isFinite(yalniz) && yalniz !== i) continue;
-    if (!EGE && senaryolar[i].dosya === PARITE_EGE) continue;
-    await senaryoKos(Object.assign({ EGE }, senaryolar[i]));
+    await senaryoKos(Object.assign({}, senaryolar[i]));
   }
 
   console.log("\n" + "═".repeat(78));

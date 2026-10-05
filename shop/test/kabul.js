@@ -2485,11 +2485,9 @@ function test7Parite() {
   // Arama koduna dokunulmadi ama D1'e sema eklendi -> canli /ara pariteleri yesil kalmali.
   const s1 = spawnSync("node", [path.join(KOK, "tools", "parite-test.js"), "300"],
     { cwd: KOK, encoding: "utf8" });
-  const s2 = spawnSync("node", [path.join(KOK, "tools", "parite-ege.js")],
-    { cwd: KOK, encoding: "utf8" });
-  const ok = s1.status === 0 && s2.status === 0;
+  const ok = s1.status === 0;
   const kuyruk = (c) => ((c.stdout || "") + (c.stderr || "")).trim().split("\n").slice(-2).join(" | ");
-  rapor("7 parite regresyonlari", ok, "site: " + kuyruk(s1) + " || ege: " + kuyruk(s2));
+  rapor("7 parite regresyonlari", ok, "site: " + kuyruk(s1));
 }
 
 // ---------------------------------------------------------------- TEST 4 (gercek sandbox)

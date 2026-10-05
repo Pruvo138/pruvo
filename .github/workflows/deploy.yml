@@ -1455,7 +1455,7 @@ jobs:
       # /katalog|/ara icin sunucusuz TASIMA taklidi kullanilir. Ag/sunucu/openscad YOK.
       # FAIL-CLOSED: bayrak/damga/artefakt dogrulanamazsa test PATLAR (mutasyonla kanitlandi) —
       # bayat ozet.json'la ya da kazara TAM BUILD ile sessizce yesil yanamaz.
-      # Arama SEMANTIGI burada iddia EDILMEZ (o parite-test.js/parite-ege.js isi).
+      # Arama SEMANTIGI burada iddia EDILMEZ (o parite-test.js isi).
       # Node 20.20.2 ve 25.x'te 9/0 olculdu. build.py'nin yalniz erken-donus kollari cagrilir
       # (--sadece-ozet / --sadece-taban) -> 14k sayfa uretimi ve yasal sayfa damgasi TETIKLENMEZ.
       - name: "Vitrin kabul kapisi (gizli Jeneratör kategorisi + sari kart fiyati + banner + edge sozlesmesi)"

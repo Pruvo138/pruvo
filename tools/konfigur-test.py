@@ -65,7 +65,7 @@ Kapsam (tools/build.py "konfigur" alanı + /konfigur.js + secenekler.js konfigur
 Offline (ağ yok), gerçek urunler.json OKUNMAZ (sentetik fikstürler), repo dosyasına YAZMAZ.
 node ZORUNLU (deploy.yml setup-node kurar); yoksa FAIL-CLOSED kırmızı.
 
-ÇIKIŞ KODLARI (repo sözleşmesi — parite-ege.js / faz3-gecikme.js ile aynı):
+ÇIKIŞ KODLARI (repo sözleşmesi — parite-ortak.js / faz3-gecikme.js ile aynı):
   0 = YEŞİL       — bütün KALICI iddialar ölçüldü ve geçti.
   1 = KIRMIZI     — en az bir KALICI iddia (a/b/c1/c2/c3/d/e) ihlal edildi.
   2 = ÖLÇÜLEMEDİ  — kalıcı iddialar yeşil ama c4'ün referansı alınamadı/totoloji

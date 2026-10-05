@@ -13,7 +13,6 @@
  *     SIRASINA bagliydi: bir urun partisi diziyi yeniden siralayinca alarm hicbir sey
  *     duzelmeden yesile donebiliyordu ([[pencere-goreli-alarm-kendini-sonduruyor]] ile
  *     ayni sinif: olculen yuzey tabana gore turuyordu).
- *   · tools/parite-ege.js korpusunda `marka=` FILTRE ekseni HIC YOKTU.
  *
  * 🔴 UYELIK ELLE LISTE DEGILDIR. Sinif `index.html`in GERCEK `markaKatla`sindan
  * (tools/index-arama-referansi.js uzerinden AYIKLANIP KOSTURULAN govde) TURETILIR ve
@@ -185,20 +184,15 @@ function markaSinifi(urunler) {
  *   {q:"",         marka:V}  SAF `marka=` ekseni — en temiz olcum
  *   {q:katla(V),   marka:V}  kanonik ad + sinif uyesi filtre (iki dal birlikte)
  *   {q:V,          marka:"Tümü"}  serbest metin (spec 1A: "hem marka= hem q")
- * EGE ekseni: `/ara?mod=ege` BOS q'yu 400 ile reddeder -> q DAIMA katla(V).
  */
 function cekirdekSorgular(urunler, yuzey) {
   const S = markaSinifi(urunler);
   const cikti = [];
   const degerler = S.uyeler.concat(S.kontrolDegerleri);
   for (const v of degerler) {
-    if (yuzey === "ege") {
-      cikti.push({ q: S.katla(v), marka: v });
-    } else {
-      cikti.push({ q: "", kat: "Tümü", marka: v });
-      cikti.push({ q: S.katla(v), kat: "Tümü", marka: v });
-      cikti.push({ q: v, kat: "Tümü", marka: "Tümü" });
-    }
+    cikti.push({ q: "", kat: "Tümü", marka: v });
+    cikti.push({ q: S.katla(v), kat: "Tümü", marka: v });
+    cikti.push({ q: v, kat: "Tümü", marka: "Tümü" });
   }
   return { S, sorgular: cikti };
 }

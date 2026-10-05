@@ -13,7 +13,7 @@
  * tools/parite-fikstur-test.js'in KIRMIZI yanmasini SART kosar; ayrica MUTANTI HANGI
  * SENARYONUN yakaladigini ADIYLA raporlar.
  *
- * NASIL (ana checkout'a DOKUNMADAN): dort dosya (parite-ortak / parite-test / parite-ege /
+ * NASIL (ana checkout'a DOKUNMADAN): dosyalar (parite-ortak / parite-test /
  * parite-fikstur-test) gecici bir dizine KOPYALANIR, kopya uzerinde metin mutasyonu
  * uygulanir, fikstur oradan kosturulur. Gercek repo dosyalari HIC degismez — mutasyon
  * yarida kesilse bile calisma agaci kirlenemez.
@@ -222,69 +222,18 @@ const MUTANTLAR = [
       "      tabani: \"yerel HEAD ani OKUNAMADI -> artefakt yasi (KATI/fail-closed)\" };",
   },
 
-  // ══ MARKA EKSENI (06 Agu) — referans KANONIK URETICIDEN mi turuyor? ═══════════════
-  // Kapatilan kusur: `?q=<marka>` ucta `marka_arama` UYELIGINE baglandi, referans serbest
-  // metinde kaldi -> test KENDI bayatligini "gerileme" diye raporladi (37/847). Asagidaki
-  // mutantlar referansi eski/ikiz yukleme dondurur; SM1 (ve SM3) KIRMIZI yakmali.
-  {
-    ad: "M26 referans ham `marka[]` esitligine dondu (kanonik uretec BYPASS)",
-    dosya: "ege-marka-referansi.js",
-    ara: "  const { harita } = haritaUret(kok, urunlerYolu);",
-    yaz: "  const harita = {};\n" +
-      "  for (const u of urunler) { if (u && u.id && (u.marka || []).length) harita[u.id] = u.marka; }",
-  },
-  {
-    ad: "M27 ALIAS COZUMU DUSTU (kolon degeri ham marka evrenine suzuldu -> Vauxhall 0)",
-    dosya: "ege-marka-referansi.js",
-    ara: "  const satirlar = [...yayinda.keys()].sort().map((m) => ({ m }));",
-    yaz: "  const hamEvren = new Set();\n" +
-      "  for (const u of urunler) for (const m of (u && u.marka) || []) hamEvren.add(m);\n" +
-      "  for (const m of [...yayinda.keys()]) if (!hamEvren.has(m)) yayinda.delete(m);\n" +
-      "  const satirlar = [...yayinda.keys()].sort().map((m) => ({ m }));",
-  },
-  {
-    ad: "M28 referans KENDI marka yuklemini yazdi (hicbir sorgu marka sayilmiyor)",
-    dosya: "ege-marka-referansi.js",
-    ara: "  const kanon = (q) => EGE.markaSorguKanonu(env, q);",
-    yaz: "  const kanon = async () => null;",
-  },
-  {
-    ad: "M29 FAIL-CLOSED KALKTI: uretec yokken SESSIZCE eski serbest-metin referansi kosar",
-    dosya: "parite-ege.js",
-    ara: "  } catch (e) {\n" +
-      "    OLCULEMEDI.push(ortak.olcumNotu(e, \"ege\"));\n" +
-      "    OLCULEMEDI.push(\"marka referansi KURULAMADI -> 0/\" + sorgular.length + \" sorgu olculdu\");",
-    yaz: "  } catch (e) {\n" +
-      "    MARKA = { kanon: async () => null, kume: () => [] };\n" +
-      "  }\n" +
-      "  if (false) {\n" +
-      "    OLCULEMEDI.push(\"olu dal\");",
-  },
-
   // ══ KONTROL MUTANTLARI — YESIL KALMALI ═══════════════════════════════════════════
   // 🔴 NEDEN SART ([[beyan-edilmis-survivor]]): kontrol yoksa DAIMA KIRMIZI bir fikstur
-  // butun oldurucuLERI "yakalar" ve ayirt edilemez. Bunlar davranisi DEGISTIRMEYEN
-  // degisikliklerdir; fikstur YESIL kalmazsa nobet asiri-hassastir (yanlis-pozitif).
+  // butun oldurucuLERI "yakalar" ve ayirt edilemez. Davranisi DEGISTIRMEYEN degisiklik;
+  // fikstur YESIL kalmazsa nobet asiri-hassastir (yanlis-pozitif).
+  // (6 Eki 2026: Ege referansini hedefleyen M26-M29 + K1-K3 Ege ile birlikte kaldirildi;
+  // kontrol sinifi bos kalmasin diye K1 ayni capayla SITE referansina tasindi.)
   {
     ad: "K1 KONTROL: sorgu havuzunun SIRASI degisti (kume ayni) -> YESIL kalmali",
     kontrol: true,
-    dosya: "parite-ege.js",
+    dosya: "parite-test.js",
     ara: "    const j = (i * 2654435761) % (i + 1);",
     yaz: "    const j = (i * 2246822519) % (i + 1);",
-  },
-  {
-    ad: "K2 KONTROL: davranis degistirmeyen yeniden adlandirma -> YESIL kalmali",
-    kontrol: true,
-    dosya: "ege-marka-referansi.js",
-    ara: "    kume: (deger) => yayinda.get(deger) || [],",
-    yaz: "    kume: (markaAdi) => yayinda.get(markaAdi) || [],",
-  },
-  {
-    ad: "K3 KONTROL: ILGISIZ alan eklendi (kimse okumuyor) -> YESIL kalmali",
-    kontrol: true,
-    dosya: "ege-marka-referansi.js",
-    ara: "    evrenBoyu: satirlar.length,",
-    yaz: "    evrenBoyu: satirlar.length,\n    olculmeyenIlgisizAlan: 0,",
   },
 ];
 

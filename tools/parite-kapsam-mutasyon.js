@@ -70,13 +70,6 @@ const MUTANTLAR = [
       ".sorgular.slice(3);",
   },
   {
-    ad: "M2 EGE korpusundan bir SINIF UYESI dusuruldu",
-    dosya: "parite-ege.js",
-    ara: '  const cekirdek = sinifsiz ? [] : SINIF.cekirdekSorgular(PRODUCTS, "ege").sorgular;',
-    yaz: '  const cekirdek = sinifsiz ? [] : SINIF.cekirdekSorgular(PRODUCTS, "ege")' +
-      ".sorgular.slice(1);",
-  },
-  {
     ad: "M3 GERILEME: sinif cekirdegi komple kalkti (eski orneklemeye donuldu)",
     dosya: "parite-test.js",
     ara: '  const cekirdek = sinifsiz ? [] : SINIF.cekirdekSorgular(PRODUCTS, "site").sorgular;',
@@ -99,14 +92,8 @@ const MUTANTLAR = [
   {
     ad: "M6 SERBEST METIN ekseni dusuruldu (yalniz `marka=` kaldi)",
     dosya: "parite-marka-sinifi.js",
-    ara: '      cikti.push({ q: v, kat: "Tümü", marka: "Tümü" });',
-    yaz: "      /* serbest metin ekseni dusuruldu */",
-  },
-  {
-    ad: "M7 EGE `marka=` sorgusunun q'su BOSALDI (uc 400 doner, eksen olculmez)",
-    dosya: "parite-marka-sinifi.js",
-    ara: "      cikti.push({ q: S.katla(v), marka: v });",
-    yaz: '      cikti.push({ q: "", marka: v });',
+    ara: '    cikti.push({ q: v, kat: "Tümü", marka: "Tümü" });',
+    yaz: "    /* serbest metin ekseni dusuruldu */",
   },
   {
     ad: "M8 KONTROL TABANI 10'dan 1'e cekildi (kapi kendi esigini gevsetiyor)",
@@ -158,13 +145,6 @@ const MUTANTLAR = [
     dosya: "parite-marka-sinifi.js",
     ara: "    evren: evren.length,",
     yaz: "    evren: evren.length,\n    olculmeyenIlgisizAlan: 0,",
-  },
-  {
-    ad: "K4 KONTROL: ege korpusunun serbest-metin adimindaki ornek sayisi degisti",
-    kontrol: true,
-    dosya: "parite-ege.js",
-    ara: "  for (const w of kelimeler.slice(0, 300)) ekle(w);",
-    yaz: "  for (const w of kelimeler.slice(0, 280)) ekle(w);",
   },
 ];
 

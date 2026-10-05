@@ -68,7 +68,7 @@ if (!SCRIPT) {
 //     test kendi kopyasini hesaplamaz). Bkz. test 8: uretilen kart sekli ile testin
 //     edge kart projeksiyonu BIREBIR karsilastirilir -> build.py degisirse KIRMIZI.
 //   - /katalog + /ara icin TASIMA (transport) taklidi: urunler.json'dan mekanik filtre.
-//     ⚠️ ARAMA SEMANTIGI BURADA SINANMAZ (o `tools/parite-test.js` + `tools/parite-ege.js`
+//     ⚠️ ARAMA SEMANTIGI BURADA SINANMAZ (o `tools/parite-test.js`
 //     isi). Buradaki iddia: vitrin DOGRU UCA DOGRU PARAMETREYLE gidiyor ve donen karti
 //     dogru ciziyor mu. Taklit gercekten daha musamahali degil: yanlis kategori
 //     istenirse yanlis kumeyi doner ve test KIRMIZI yanar (test 3/9).
@@ -314,7 +314,7 @@ function ucKatalog(p) {
 }
 
 /** /ara: TASIMA taklidi — basit baslik icerme. Arama SEMANTIGI burada iddia EDILMEZ
- *  (tek kaynak: tools/parite-test.js + tools/parite-ege.js). */
+ *  (tek kaynak: tools/parite-test.js). */
 function ucAra(p) {
   const q = (p.get("q") || "").toLocaleLowerCase("tr");
   const limit = Math.max(1, Number(p.get("limit") || PAGE_SIZE));

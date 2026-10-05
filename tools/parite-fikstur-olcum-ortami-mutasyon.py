@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 """MUTASYON SURUCUSU — parite fiksturu KENDI OLCUM ORTAMINI dogru kuruyor mu?
 
-  Kapi: tools/parite-fikstur-test.js  (senaryolar S8 ve SM1)
+  Kapi: tools/parite-fikstur-test.js  (senaryo S8)
+
+  6 Eki 2026: Ege (emekli bot) senaryolari S17-S21/S26-S28/SM1-SM3 fiksturden
+  kaldirildi; SM1'e capali mutantlar S8'e yeniden capalandi (S8'i oldurmeyen
+  mutant Ege-yalniz sayilip kaldirildi). Senaryo kumesi artik ORTAMA BAGLI DEGIL.
 
 NEDEN VAR (6 Eyl 2026, OLCULDU — iki senaryo 3 turdur kirmiziydi ve KOKU AYNIYDI):
 `tools/parite-marka-sinifi.js` katalog yolunu (`PARITE_URUNLER` ya da agacin
@@ -60,15 +64,11 @@ FIKSTUR = "parite-fikstur-test.js"
 # ONARIM iki bacakli: (1) fikstur menzil disi indekse cikis 3 (OLCULEMEDI) verir,
 # (2) batarya senaryoyu ADIN ILK JETONUYLA (TAM ESITLIK, onek DEGIL) cozer ve senaryo
 # kayitli degilse UC KOVAYA ayirir — asagidaki `capa_coz`.
-SM1 = "SM1"  # SM1 MARKA EKSENI
 S8 = "S8"    # S8 (K2) KIRMIZI + uc SUSUYOR
 
-# 🔴 CAPA BASINA ON-KOSUL — TEK KAYNAK. "senaryo kayitli degil"i TOPTAN mazur gormek
-# ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]) S8 gibi HER ORTAMDA kaydolan bir capa
-# silindiginde de bataryayi susturur. Bu yuzden mazeret CAPA BASINA beyan edilir:
-#   "EGE" -> senaryo YALNIZCA kardes bot deposu varken kaydolur; deposu yoksa ATLANDI.
-#   None  -> senaryo her ortamda kaydolur; yoksa CAPA DUSMUSTUR -> KIRMIZI.
-CAPA_ONKOSULU = {SM1: "EGE", S8: None}
+# 🔴 ORTAM MAZERETI YOK: ortama bagli senaryo kalmadi (Ege, 6 Eki 2026). "senaryo kayitli
+# degil" hali TOPTAN mazur gorulmez ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]):
+# kayit defterinde olmayan capa DUSMUSTUR -> KIRMIZI.
 
 # Bunun altina dusen kosum "yesil/kirmizi" degil COKME'dir: tek senaryo 7-9 iddia olcer.
 TABAN_IDDIA = 5
@@ -77,7 +77,7 @@ TABAN_IDDIA = 5
 # `eksen`: mutant KIRMIZI yanmakla kalmayip O SENARYOYU dusurmeli. Yoksa "kirmizi yandi"
 # hukmu baska bir kolun artigi olabilir ([[beyan-edilmis-survivor]]).
 MUTANTLAR = [
-    # ── SM1 KOLU: kanon haritasi HANGI katalogtan turuyor? ──────────────────────
+    # ── KANON KOLU: kanon haritasi HANGI katalogtan turuyor? (S8 uzerinden) ─────
     ("OLDURUCU M1 YOLU MODUL YUKLENIRKEN COZ (bayat hal: harness uretim katalogunu olcer)",
      "parite-marka-sinifi.js",
      "function urunlerYoluCoz() {\n"
@@ -86,30 +86,32 @@ MUTANTLAR = [
      "const _YUKLEME_ANI_YOL = process.env.PARITE_URUNLER ||"
      " path.join(__dirname, \"..\", \"urunler.json\");\n"
      "function urunlerYoluCoz() { return _YUKLEME_ANI_YOL; }",
-     SM1, "KIRMIZI", "SM1"),
-    # ── BEYAN EDILMIS KOR NOKTA (kapatilmadi — GIZLENMEDI de) ───────────────────
-    # SM1 bir ANLASMA iddiasidir: yerel model ile sahte uc AYNI kumeyi vermeli. Bu yuzden
-    # IKI TARAFI AYNI SEKILDE korlestiren bir degisiklik SM1'i KIRMIZI YAKMAZ — ornegin
-    # `PARITE_URUNLER`i tumden yok saymak hem ebeveyni hem cocugu uretim kataloguna
-    # baglar, ikisi de AYNI yanlis cevabi verir ve ayrisma DOGMAZ (olculdu: 6 gecti / 0
-    # KALDI). Bu kayit ciftt yonlu nobettir: (a) kor noktayi yazili tutar, (b) birisi
-    # buradaki beklentiyi "KIRMIZI"ya cevirirse mutantin FIILEN oldurdugunu kanitlamak
-    # zorunda kalir. Asimetrik kollar M1/M3/M4 ile kapalidir: ucu de TEK tarafi bozar.
-    ("KONTROL K0 KOR NOKTA: ENV'I IKI TARAFTA DA YOK SAY (simetrik korluk ayrisma URETMEZ)",
+     S8, "KIRMIZI", "S8"),
+    # ── ESKI KOR NOKTA K0 -> OLDURUCU M2 (6 Eki 2026, OLCULDU) ────────────────────
+    # SM1 bir ANLASMA iddiasiydi: `PARITE_URUNLER`i IKI tarafta da yok saymak ebeveyni ve
+    # cocugu AYNI uretim kataloguna baglar, ayrisma DOGMAZDI -> SM1'de KONTROL (YESIL)
+    # olarak beyan edilmis kor noktaydi. SM1 Ege ile kaldirildi; ayni mutant S8'de
+    # OLDURUR: uretim katalogu kanon uretimini ~22 sn'ye cikarir, S8 zaman asimi asilir
+    # (olculdu: senaryo=8 gecti=5 KALDI=2, M1/M4/M5 ile ayni imza). Kor nokta bu capada
+    # KAPALIDIR; beklenti KIRMIZI + eksen S8 (yalniz "kirmizi yandi" yetmez).
+    ("OLDURUCU M2 ENV'I IKI TARAFTA DA YOK SAY (uretim katalogu S8 istek yoluna girer)",
      "parite-marka-sinifi.js",
      "  return process.env.PARITE_URUNLER || path.join(__dirname, \"..\", \"urunler.json\");",
      "  return path.join(__dirname, \"..\", \"urunler.json\");",
-     SM1, "YESIL", None),
+     S8, "KIRMIZI", "S8"),
     ("OLDURUCU M3 FIKSTUR ENV'I HIC KURMASIN (sahte uc kendi D1'ini modellemez)",
      FIKSTUR,
      "  process.env.PARITE_URUNLER = kanonKatalog;",
-     "  process.env.PARITE_URUNLER = oncekiUrunlerEnv;",
-     SM1, "KIRMIZI", "SM1"),
+     # Atama SATIRI dusurulur (env hic kurulmaz). Eski yazim `= oncekiUrunlerEnv` env
+     # yokken process.env'e "undefined" DIZGESINI yaziyordu -> yol "undefined" olur,
+     # cocuk COKER (olculdu 6 Eki: COKME, IDDIA satiri YOK); mutantin niyeti bu degildi.
+     "  /* M3: PARITE_URUNLER kurulmadi */",
+     S8, "KIRMIZI", "S8"),
     ("OLDURUCU M4 ENV'I COCUK KOSMADAN GERI AL (kurulum var, KOSUM aninda yok)",
      FIKSTUR,
      "  const sunucu = http.createServer((req, res) => {",
      "  envGeriAl();\n  const sunucu = http.createServer((req, res) => {",
-     SM1, "KIRMIZI", "SM1"),
+     S8, "KIRMIZI", "S8"),
     # ── S8 KOLU: soguk baslangic ISTEK YOLUNDA mi? ──────────────────────────────
     # Kanon katalogu URETIM katalogu yapilirsa `marka-kanon-uret.py` yine 20 bin urun
     # uzerinde kosar (~22 sn, SENKRON) ve bedel ilk istegin isleyicisinde odenir.
@@ -123,12 +125,12 @@ MUTANTLAR = [
      "parite-marka-sinifi.js",
      "  const yol = urunlerYoluCoz();",
      "  const yol = String(urunlerYoluCoz());",
-     SM1, "YESIL", None),
+     S8, "YESIL", None),
     ("KONTROL K2 iddia edilmeyen eksen (fikstur yorum metni)",
      FIKSTUR,
      "// 🔴 SAHTE UC KENDI D1'INI MODELLER:",
      "// 🔴 SAHTE UC KENDI D1'INI MODELLER :",
-     SM1, "YESIL", None),
+     S8, "YESIL", None),
     ("KONTROL K3 davranissiz yazim (gecici dizin oneki)",
      FIKSTUR,
      "\"parite-fikstur-kanon-\"",
@@ -181,48 +183,26 @@ def kayit_defteri(kok=None):
     for m in re.finditer(r"^SENARYO: (\d+)\t(\S+)", cikti, re.M):
         defter[m.group(2)] = m.group(1)
     ortam = re.search(r"^OLCUM-ORTAMI: .*$", cikti, re.M)
-    bot = re.search(r"\bbot=(\S+)", ortam.group(0)) if ortam else None
-    return defter, (ortam.group(0) if ortam else "(OLCUM-ORTAMI satiri YOK)"), \
-        (bot.group(1) if bot else None)
+    return defter, (ortam.group(0) if ortam else "(OLCUM-ORTAMI satiri YOK)")
 
 
-def capa_coz(jeton, defter, bot_yolu):
-    """UC KOVA — capa cozulur / ORTAM yuzunden olculemez / KAYIP (kirmizi).
-
-    🔴 IKI KOVA YETMEZ ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]): "senaryo kayitli
-    degil" halini kosulsuz ATLA'ya yazmak, birisi SM1'i SILDIGINDE ya da YENIDEN
-    ADLANDIRDIGINDA bataryanin sessizce yesil yanmasi demektir — capa yok olur, kapi
-    "hersey yolunda" der. Bu yuzden ucuncu hal KIRMIZI'dir:
-      (a) jeton defterde  -> ("VAR", indeks)
-      (b) jeton YOK + bot kaynagi da YOK -> ("ATLANDI", sebep)  [menzil daraltmasi]
-      (c) jeton YOK ama bot kaynagi VAR -> ("KAYIP", sebep)     [capa dustu -> KIRMIZI]
-    """
+def capa_coz(jeton, defter):
+    """IKI HAL — capa cozulur ya da KAYIP (kirmizi). Ortam mazereti (eski ATLANDI kovasi,
+    Ege bot deposuna bagliydi) kalmadi: kayit defterinde olmayan capa DUSMUSTUR."""
     if jeton in defter:
         return "VAR", defter[jeton]
-    if (CAPA_ONKOSULU.get(jeton) == "EGE" and bot_yolu
-            and not os.path.exists(bot_yolu)):
-        return "ATLANDI", ("ORTAM: '%s' bu ortamda KAYITLI DEGIL — kardes bot deposu yok "
-                           "(%s)" % (jeton, bot_yolu))
-    return "KAYIP", ("CAPA DUSTU: '%s' senaryosu kayit defterinde YOK ve ORTAM bunu mazur "
-                     "GOSTERMIYOR (on-kosul=%s bot=%s kayit=%d)"
-                     % (jeton, CAPA_ONKOSULU.get(jeton), bot_yolu, len(defter)))
+    return "KAYIP", ("CAPA DUSTU: '%s' senaryosu kayit defterinde YOK (kayit=%d)"
+                     % (jeton, len(defter)))
 
 
 def main():
-    defter, ortam_satiri, bot_yolu = kayit_defteri()
+    defter, ortam_satiri = kayit_defteri()
     print("\n" + ortam_satiri)
     tmp = tempfile.mkdtemp(prefix="parite-fikstur-olcum-ortami-")
     sonuc = []
-    atlanan = 0
     try:
         for ad, dosya, eski, yeni, jeton, beklenen, eksen in MUTANTLAR:
-            hal, senaryo = capa_coz(jeton, defter, bot_yolu)
-            if hal == "ATLANDI":
-                # OLCULEMEDI: bu mutant BU ORTAMDA olculemez. YESIL SAYILMAZ — ayri
-                # kovada, ADIYLA ve SAYIYLA raporlanir; exit kodunu tek basina 0 yapmaz.
-                sonuc.append((ad, beklenen, "ATLANDI — " + senaryo))
-                atlanan += 1
-                continue
+            hal, senaryo = capa_coz(jeton, defter)
             if hal == "KAYIP":
                 sonuc.append((ad, beklenen, "CAPA-DUSTU — " + senaryo))
                 continue
@@ -265,21 +245,14 @@ def main():
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
-    print("\nMUTASYON SONUCU (kapi: tools/%s — senaryolar S8 + SM1)" % FIKSTUR)
+    print("\nMUTASYON SONUCU (kapi: tools/%s — senaryo S8)" % FIKSTUR)
     kalan = 0
     for ad, beklenen, gozlem in sonuc:
-        if gozlem.startswith("ATLANDI"):
-            # OLCULEMEDI kovasi: ne OK ne KALDI. Kendi damgasiyla, ADIYLA gorunur.
-            print("  ATLA   %-84s beklenen=%s  gozlenen=%s" % (ad, beklenen, gozlem))
-            continue
         tamam = gozlem.startswith(beklenen)
         kalan += 0 if tamam else 1
         print("  %s  %-84s beklenen=%s  gozlenen=%s"
               % ("OK  " if tamam else "KALDI", ad, beklenen, gozlem))
-    olculen = len(sonuc) - atlanan
-    if atlanan:
-        print("\n⚪ %d/%d mutant BU ORTAMDA OLCULEMEDI (kardes bot deposu yok) — "
-              "olculen: %d" % (atlanan, len(sonuc), olculen))
+    olculen = len(sonuc)
     if kalan:
         print("\nSONUC: KIRMIZI ❌  (%d mutant beklenen sonucu vermedi)" % kalan)
         return 1
@@ -289,8 +262,8 @@ def main():
         # gecti" ayni cikis kodunu ASLA veremez.
         print("\nSONUC: OLCULEMEDI ⚪  (0 mutant kosuldu — batarya bu ortamda KOR)")
         return 3
-    print("\nSONUC: YESIL ✅  (%d mutant olculdu: her OLDURUCU kirmizi, her KONTROL yesil"
-          "%s)" % (olculen, "; %d ATLANDI" % atlanan if atlanan else ""))
+    print("\nSONUC: YESIL ✅  (%d mutant olculdu: her OLDURUCU kirmizi, her KONTROL yesil)"
+          % olculen)
     return 0
 
 

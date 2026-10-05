@@ -212,7 +212,7 @@ async function araSor({ q, kat, marka }) {
   // edge'i ISTEK'teki "cache-control: no-cache"i YOK SAYAR (asagidaki header tek basina
   // ISE YARAMIYOR). Bu olmadan test Worker'i degil CDN'i olcer — bozuk bir surum, 60 sn
   // once onbellege girmis DOGRU cevapla YESIL yanabilir. FAZ 2'de yasandi (15 Tem),
-  // ayni hata bu dosyada da vardi; parite-ege.js ile ayni cozum.
+  // ayni hata bu dosyada da vardi; ayni cozum.
   u.searchParams.set("_nonce", NONCE);
   // UA: Cloudflare WAF varsayilan urllib/requests UA'sina 403 verir; 403/429 "ayrisma"
   // DEGIL "olculemedi" olarak yukari atilir (ortak.WafHatasi).
