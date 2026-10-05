@@ -829,6 +829,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/sabah-teslim/sabah-kabul.py --vaka A8 --arac tools/sabah-teslim/kral-sabah.py
 
+      # 🔴 5 Eki 2026 (`kind-wilbur-865479`, BaBa 4 Eki madde 2) — A10: kutu
+      # rotasyonu spec'ten ONCE. A8 kumu + enjekte sahte arac/kum kutu; gercek
+      # kutuya dokunmaz (A10d fikstur korumasini ADIYLA olcer). Mutant: A10h.
+      - name: K-SabahRotasyon kutu rotasyonu spec oncesi kabul (A10, 8 vaka + mutant)
+        if: ${{ !cancelled() }}
+        run: python3 tools/sabah-teslim/sabah-kabul.py --vaka A10 --arac tools/sabah-teslim/kral-sabah.py
+
       # 🔴 18 Eyl 2026 — kesif genislemesinin (`-kabul` eki) getirdigi, CI aynasinda
       # (bos HOME) HERMETIK olculen iki batarya: K324 (tasima birimi + kutu kolu,
       # rc=0 0.9 sn) ve K399 thing-icerik portu (rc=0; `--mutasyon` alt kumesini

@@ -1089,7 +1089,8 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
                kutu_blok: str, devam_blok: str, kirmizi_n, dal_n: int, kutu_n: int,
                okunabilir: dict, ci_hukum: str = "OK", gh_kaynak: str = "-",
                dallar: list = None, sinir_kalem: int = None, sinir_dal: int = None,
-               sinir_devam_kar: int = None, ek_yolu: str = None) -> str:
+               sinir_devam_kar: int = None, ek_yolu: str = None,
+               rotasyon_satiri: str = None) -> str:
     """Spec gövdesini kurar. ZORUNLU bölümler: KIRMIZI · MERGE · KALEMLER · KUTUDA YENİ · DİSİPLİN.
 
     🔴 KRA-L-TamirciTavan-10Eyl: yeni parametreler (`dallar`, `sinir_kalem`,
@@ -1103,6 +1104,10 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
     if ci_hukum != "OK":
         kalemler = [ci_olculemedi_kalemi(kirmizi_blok)] + list(kalemler)
     baslik = "# KraL-Tamirci-{} — sabah spec'i\n".format(tarih.isoformat())
+    # 🔴 K-SabahRotasyon-5Eki: rotasyon satırı başlığın HEMEN altına, TEK satır.
+    # Verilmezse (A9 doğrudan çağrısı) çıktı eskisiyle BİREBİR aynı kalır.
+    if rotasyon_satiri:
+        baslik += "`{}`\n".format(rotasyon_satiri)
     meta = (
         "Ev: KraL · Etiket: `kabul-sabah-rutini` · Üretici: `/Users/okan/.claude/cron/kral-sabah.py`\n"
         "Üretim anı: {} (yerel TR) · MANDATE: o günün Tamirci çipinin TEK spec'idir.\n".format(
@@ -1217,6 +1222,83 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
     ])
 
 
+# ============================================================================
+# 🔴 5 EKİ 2026 — `KraL-SabahRotasyon-5Eki` (BaBa 4 Eki 02:5x madde 2, EMİR):
+# KUTU ROTASYONU SPEC ÜRETİMİNDEN ÖNCE KOŞAR.
+# ----------------------------------------------------------------------------
+# ARIZA (aynı sınıf 2. tur): kutu 2 Eki 460 → 3 Eki 514 satır; tavan 500
+# aşılınca `defter-kota-kapisi` KraL'ın TÜM commit'lerini kilitledi. Rotasyon
+# yalnız elle/kanca ile koşuyordu; sabah rutini kutuyu OKUYOR ama İNDİRMİYORDU.
+#
+# ÇARE: spec girdileri okunmadan önce `tools/kutu-arsivle.py --tavan 300` alt
+# süreç olarak koşar (0 jeton). KORUMALI + çift koruması aracın KENDİSİNDE durur,
+# burada TEKRAR EDİLMEZ (ikinci kopya yok). Sonuç TEK satırdır; hem log'a
+# (stdout → cron `>> kral-sabah.log`) hem spec başlığının altına yazılır.
+#
+# 🔴 SESSİZ YUTMA YOK: araç düşerse (rc≠0 / HUKUM satırı yok / zaman aşımı)
+# spec üretimi DURMAZ ama satır `ROTASYON=OLCULEMEDI rc=<n>` olur ve koşumun
+# rc'si en az 1'e çıkar (K333 fail-loud ailesi).
+#
+# 🔴 FİKSTÜR KORUMASI ([[test-gercek-home-yazarsa-komsu-bataryanin-onculunu-kirletir]]):
+# `--kuru`/`--kendini-test` → rotasyon da `--kuru`. `--spec-dizin` (fikstür
+# bayrağı) verilip kutu yolu ENJEKTE EDİLMEDİYSE → rotasyon yine `--kuru`
+# (gerçek kutuya yazmaz). Yazan tek kip: bayraksız üretim koşumu (cron 06:20).
+# Enjeksiyonlar YOL enjeksiyonudur (gh_yolu ile aynı ilke): NEREYE bakıldığını
+# değiştirir, NE hükmedildiğini değil; kullanılan yol satırda basılır.
+#   `_KRAL_SABAH_ROTASYON_KUTU` → rotasyonun kutusu (kum)
+#   `_KRAL_SABAH_ROTASYON_ARAC` → rotasyon aracı (sahte araç fikstürü)
+# ============================================================================
+ROTASYON_ARACI = REPO / "tools" / "kutu-arsivle.py"
+ROTASYON_TAVANI = 300
+ROTASYON_ZAMAN_ASIMI = 300
+
+
+def kutu_rotasyonu(kuru: bool, fikstur: bool) -> tuple[str, bool]:
+    """Kutu rotasyonunu alt süreç olarak koşar. Döner: (tek_satir, olculemedi_mi)."""
+    kutu_ov = os.environ.get("_KRAL_SABAH_ROTASYON_KUTU")
+    arac_ov = os.environ.get("_KRAL_SABAH_ROTASYON_ARAC")
+    kutu = kutu_ov if kutu_ov else str(KUTU)
+    arac = arac_ov if arac_ov else str(ROTASYON_ARACI)
+    if kuru:
+        kip = "KURU"
+    elif fikstur and not kutu_ov:
+        kip = "KURU_FIKSTUR"
+    else:
+        kip = "YAZ"
+    argv = [sys.executable, arac, "--kutu", kutu, "--tavan", str(ROTASYON_TAVANI)]
+    if kip != "YAZ":
+        argv.append("--kuru")
+    kaynak = "kutu=%s arac=%s" % (
+        ("OVERRIDE:" + kutu) if kutu_ov else "VARSAYILAN",
+        ("OVERRIDE:" + arac) if arac_ov else "VARSAYILAN")
+    try:
+        r = subprocess.run(argv, capture_output=True, text=True,
+                           timeout=ROTASYON_ZAMAN_ASIMI)
+        rc, cikti = r.returncode, (r.stdout or "") + (r.stderr or "")
+    except subprocess.TimeoutExpired:
+        rc, cikti = 124, ""
+    except Exception as e:
+        rc, cikti = 125, "%s: %s" % (type(e).__name__, str(e)[:80])
+    hukum = once = sonra = None
+    for satir in cikti.splitlines():
+        m = re.match(r"HUKUM=(\S+)", satir)
+        if m:
+            hukum = m.group(1)
+        m = re.match(r"once_satir=(\d+)", satir)
+        if m:
+            once = m.group(1)
+        m = re.search(r"\bsonra_satir=(\d+)", satir)
+        if m:
+            sonra = m.group(1)
+    if rc != 0 or hukum is None:
+        sebep = ("HUKUM_SATIRI_YOK" if rc == 0 else
+                 {124: "ZAMAN_ASIMI", 125: "BASLATILAMADI"}.get(rc, "ARAC_RC"))
+        return ("ROTASYON=OLCULEMEDI rc=%d sebep=%s tavan=%d kip=%s %s" % (
+            rc, sebep, ROTASYON_TAVANI, kip, kaynak)), True
+    return ("ROTASYON=OK rc=0 HUKUM=%s once_satir=%s sonra_satir=%s tavan=%d kip=%s %s" % (
+        hukum, once or "-", sonra or "-", ROTASYON_TAVANI, kip, kaynak)), False
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="KraL sabah spec'i")
     ap.add_argument("--kuru", action="store_true", help="dosya yazma, yalnız özet bas")
@@ -1266,6 +1348,11 @@ def main() -> int:
         print("ORTAM_TESTI=OK")
         return 0
 
+    # --- 🔴 KUTU ROTASYONU: spec girdileri okunmadan ÖNCE (BaBa 4 Eki, madde 2) ---
+    rotasyon_satiri, rotasyon_olculemedi = kutu_rotasyonu(
+        kuru=bool(args.kuru or args.kendini_test), fikstur=args.spec_dizin is not None)
+    print(rotasyon_satiri)
+
     # --- girdi okuma (fail-loud) ---
     kutu_txt = oku_yol(KUTU)
     kalem_txt = oku_yol(KALEMLER)
@@ -1298,7 +1385,7 @@ def main() -> int:
     spec = build_spec(bugun, kalemler, kirmizi_blok, dal_blok, kutu_blok, devam_blok,
                       kirmizi_n, dal_n, kutu_n, okunabilir,
                       ci_hukum=ci_hukum, gh_kaynak=gh_kaynak,
-                      dallar=dallar)
+                      dallar=dallar, rotasyon_satiri=rotasyon_satiri)
 
     # ============================================================================
     # 🔴 TAVAN FRENİ (KRA-L-TamirciTavan-10Eyl): tavanı aşan spec KAYIPSIZ kırpılır.
@@ -1323,7 +1410,8 @@ def main() -> int:
                               devam_blok, kirmizi_n, dal_n, kutu_n, okunabilir,
                               ci_hukum=ci_hukum, gh_kaynak=gh_kaynak,
                               dallar=dallar, sinir_kalem=sk, sinir_dal=sd,
-                              sinir_devam_kar=skr, ek_yolu=ek_yolu)
+                              sinir_devam_kar=skr, ek_yolu=ek_yolu,
+                              rotasyon_satiri=rotasyon_satiri)
 
         yeni_spec, ek_metin, tavan_olcum = tavana_indir(_uret, spec, ek_yolu)
         # İşaretçi bloğu `tavana_indir` İÇİNDE yerleştirildi (kapının menzili);
@@ -1354,6 +1442,10 @@ def main() -> int:
     # bir "temiz" hâli DEĞİLDİR ([[olculemedi-bypass-degil-menzil-daraltmasi]]);
     # cron log'unda rc=0 görmek tam da bugünkü arızanın gizlenme biçimiydi.
     if ci_hukum != "OK":
+        rc = max(rc, 1)
+
+    # 🔴 Rotasyon düştüyse spec YİNE yazılır, ama koşum sessiz yeşil dönemez.
+    if rotasyon_olculemedi:
         rc = max(rc, 1)
 
     # --- yazma ---
