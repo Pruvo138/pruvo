@@ -44,7 +44,9 @@ KOPYA_HARIC = shutil.ignore_patterns(".*", "node_modules", "__pycache__")
 # semalar.js` de `../../jenerator/urunler/*.json` semalarini import ediyor. Eksik birakmak
 # testi COKERTIR ve cokme "kirmizi" ile karisir -> asgari kume TAM tutulur.
 AYNA_DIZIN = ["shop", "jenerator"]
-AYNA_DOSYA = ["secenekler.js", "konfigur.js"]
+# foto-uretim-veri.js: shop/src/foto.js `../../foto-uretim-veri.js`'i import eder (5 Eki 2026,
+# fotograftan ozel uretim); eksikse worker aynada YUKLENMEZ ve taban sessizce kirmizi olur.
+AYNA_DOSYA = ["secenekler.js", "konfigur.js", "foto-uretim-veri.js"]
 
 
 def sha256(yol):

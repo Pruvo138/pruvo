@@ -101,11 +101,12 @@ simple = { limit = 10, period = 60 }
 # sayac kolo basina bolunur, garantili sinir DEGIL — bkz. FIYAT blogu). Bu uc KREDI HARCAR:
 # kod FAIL-CLOSED (binding yoksa 429, onizleme uretilmez). Asil sinir D1'deki ziyaretci
 # basi 24 saat sayaci + bot dogrulamasidir. AYRI namespace: odeme/fiyat/beacon kotasini
-# tuketmez. SIR YOK.
+# tuketmez. namespace_id HESAP GENELINDE benzersiz: 1001-1003 shop · 1004 onizleme ·
+# 1005-1006 pruvo-bot -> foto 1007 (5 Eki: 1004 cakisti, derleme-hiz-siniri V7 yakaladi). SIR YOK.
 [[unsafe.bindings]]
 name = "FOTO_RATE_LIMIT"
 type = "ratelimit"
-namespace_id = "1004"
+namespace_id = "1007"
 simple = { limit = 6, period = 60 }
 
 # Uretim dosyalari (STL/3MF) OZEL R2 kovasinda (pruvo-media DEGIL — ticari dosya public'e

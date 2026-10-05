@@ -27,7 +27,7 @@ DERLEYICI_AD = "derleyici-2"
 # 18 Eyl 2026 public uc taramasi: eski izolat-ici Map sayaci fiilen fren degildi (shop /fiyat
 # 29 Tem olcumu: yeni baglantili istemciye 40/40 200). Her iska TEK paylasilan derleyici
 # konteynerine OpenSCAD isi yukler. EN IYI CABA (sayac kolo basina bolunur, bkz.
-# shop/wrangler.toml FIYAT blogu). namespace_id hesap genelinde benzersiz: shop 1001-1003
+# shop/wrangler.toml FIYAT blogu). namespace_id hesap genelinde benzersiz: shop 1001-1003 + 1007
 # kullanir. period yalniz 10 veya 60. Kod: binding yoksa izolat sayacina duser (fail-open
 # DEGIL). Blogun varligini onizleme/test/derleme-hiz-siniri.mjs olcer. SIR YOK.
 [[unsafe.bindings]]
