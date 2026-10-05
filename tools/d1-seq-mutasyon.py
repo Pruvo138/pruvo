@@ -16,6 +16,7 @@ uc kolu da TEK TEK GERI GETIRIR:
   * M2 — `adim < 1` fail-loud'u kaldirildi             (V2 yakar)
   * M3 — `atanan` monotonlugu bozuldu (blok_i ters)     (V1 yakar)
   * M4 — `_seq_fail_loud` NO-OP kolu eski metne dondu   (V5 yakar)
+  * M5 — tepe kolu `mseq+1` ardisik (K434 oncesi)       (V6 yakar)
 KONTROL mutantlari iddia edilmeyen eksende YESIL kalmali; yoksa kapi "her degisiklige
 kirmizi yanan" bir gurultu kaynagidir, nobetci degil.
 
@@ -42,7 +43,7 @@ KAPI_ADI = "d1-seq-test.py"
 # Bunun altina dusen kosum "yesil/kirmizi" degil COKME'dir. Saglam kosum 10 GECTI basar
 # (5 on-kontrol + 5 vaka). Esik, M1'in V1'i mid-crash etmesini KIRMIZI olarak
 # sayabilmek icindir — V1 crash'i 5 on-kontrol GECTI'sini yazdirip ardindan SystemExit
-# eder; yeterli GECTI sayisi "test kosuldu, bir vaka krildi" anlamina gelir.
+# eder (12 GECTI = 5 on-kontrol + V1-V5 + V6 iki iddia, K434); yeterli GECTI sayisi "test kosuldu, bir vaka krildi" anlamina gelir.
 TABAN_GECTI = 5
 
 # (ad, dosya [TOOLS'a gore], eski, yeni, beklenen)
@@ -110,6 +111,15 @@ MUTANTLAR = [
      "    sys.exit(\"!! SEQ TAM SAYI ARALIGI TUKENDI: %s (alt=%s ust=%s k=%s). \"\n"
      "             \"Kesirli seq yazilmaz; once python3 tools/d1-sync.py \"\n"
      "             \"--seq-normalize kos.\" % (uid, alt, ust, k))",
+     "KIRMIZI"),
+
+    # ── OLDURUCU: tepe kolu ardisik tam sayiya dondu (K434 oncesi) ──────────────
+    ("OLDURUCU M5 tepe kolu mseq+1 ardisik (K434 oncesi davranis)",
+     "d1-sync.py",
+     "                sonraki += SEQ_ADIM\n"
+     "                atanan = sonraki",
+     "                sonraki += 1\n"
+     "                atanan = sonraki",
      "KIRMIZI"),
 
     # ── KONTROL: davranissiz yazim ──────────────────────────────────────────────
