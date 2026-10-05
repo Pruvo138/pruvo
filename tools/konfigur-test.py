@@ -945,7 +945,7 @@ def test_konfigur_malzeme_sayfasi(seri):
 def ne_olculmedi():
     """SESSİZ YEŞİL YASAĞININ İKİNCİ YARISI: bir kapı, YEŞİL çıktısında ne ölçmediğini
     ve hangi meşru düzenlemede kendi kendine kırmızı yanacağını İLAN ETMEK zorundadır
-    (repo sözleşmesi; emsal tools/ege-kabiliyet-kapisi.py ne_olculmedi()).
+    (repo sözleşmesi).
 
     Buradaki iki kalem BEYAN EDİLMİŞ BORÇtur — kusur değil, ölçülmüş ve mimar onaylı
     bedel. Fikstürleri tools/konfigur-nobet-mutasyon.py bölüm C'de 🟠 olarak KOŞAR:

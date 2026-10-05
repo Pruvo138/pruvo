@@ -84,8 +84,6 @@ durum	tools/durum.py	KraL	hijyen	python3 tools/durum-test.py
 duzelt	tools/duzelt.py	MaCiT	hijyen	YOK
 e2-birim-ikiz-kanit	tools/e2-birim-ikiz-kanit.py	KraL	hijyen	YOK
 edge-kart-kapisi	tools/edge-kart-kapisi.py	KraL	yayin	YOK
-ege-kabiliyet-kapisi	tools/ege-kabiliyet-kapisi.py	HocA	yayin	YOK
-ege-tavan-pay-simulasyon	tools/ege-tavan-pay-simulasyon.py	HocA	hijyen	YOK
 ev-sahip-kapisi	tools/ev-sahip-kapisi.py	KraL	nobet	python3 tools/ev-sahip-kapisi.py --kendini-test
 feed-id-cozucu	tools/feed-id-cozucu.py	ArTisT	hijyen	python3 tools/feed-id-cozucu-test.py
 feed-politika-kapisi	tools/feed-politika-kapisi.py	ArTisT	yayin	YOK
