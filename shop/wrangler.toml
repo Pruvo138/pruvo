@@ -97,6 +97,17 @@ type = "ratelimit"
 namespace_id = "1003"
 simple = { limit = 10, period = 60 }
 
+# FOTOGRAFTAN OZEL URETIM — POST /api/shop/foto/onizleme icin EN IYI CABA fren (src/foto.js;
+# sayac kolo basina bolunur, garantili sinir DEGIL — bkz. FIYAT blogu). Bu uc KREDI HARCAR:
+# kod FAIL-CLOSED (binding yoksa 429, onizleme uretilmez). Asil sinir D1'deki ziyaretci
+# basi 24 saat sayaci + bot dogrulamasidir. AYRI namespace: odeme/fiyat/beacon kotasini
+# tuketmez. SIR YOK.
+[[unsafe.bindings]]
+name = "FOTO_RATE_LIMIT"
+type = "ratelimit"
+namespace_id = "1004"
+simple = { limit = 6, period = 60 }
+
 # Uretim dosyalari (STL/3MF) OZEL R2 kovasinda (pruvo-media DEGIL — ticari dosya public'e
 # sizmaz). Yonetim /stl ucu SALT-OKUMA ile stream eder; toplu yukleme tools/stl-r2-yukle.py.
 # T2 (30 Agu 2026): /stl-yukle ve /stl-cikar uclari da BU binding'i kullanir — yukleme
@@ -123,8 +134,11 @@ bucket_name = "pruvo-media"
 # kotasindan harcar. Saatlik = gunde 24 tur; dakikalik bir cron kotayi bosuna yakardi.
 # Esik SABITI koda gomulu DEGIL, tek yerde: src/index.js TERK_ESIK_SAAT.
 # ⚠️ Bu blok deploy EDILENE KADAR cron kosmaz (kod merge olur, canliyi bozmaz) — DEPLOY = OKAN.
+# FOTOGRAFTAN OZEL URETIM (5 Eki 2026) — ikinci cron "*/5 * * * *" (src/index.js FOTO_CRON
+# ile AYNI dize): odenmis foto kalemlerinin model -> analiz -> 4 renk -> depo zincirini
+# yurutur. Saglayici yapilandirmasi (secret'lar) yokken HICBIR D1 sorgusu atmaz.
 [triggers]
-crons = ["17 * * * *"]
+crons = ["17 * * * *", "*/5 * * * *"]
 
 [observability]
 enabled = true
@@ -143,6 +157,11 @@ enabled = true
 #   npx wrangler secret put IC_DERLE_ANAHTAR    # onizleme worker'iyla AYNI deger (parametrik STL)
 #   npx wrangler secret put META_CAPI_TOKEN     # Meta Events Manager > Conversions API > token (reklam ROI)
 #   npx wrangler secret put GA4_API_SECRET      # GA4 Admin > Data Streams > Measurement Protocol API secret
+#   FOTOGRAFTAN OZEL URETIM (src/foto.js) — saglayici ADI/ADRESI repoya YAZILMAZ (repo public):
+#   npx wrangler secret put URETIM_API_ANAHTAR  # OKAN KAPISI: ucretli plan API anahtari
+#   npx wrangler secret put URETIM_API_TABAN    # uc tabani (https://.../openapi) — degeri defterde DEGIL
+#   npx wrangler secret put URETIM_TUR_ONEK     # tur yolu oneki (tek kelime) — degeri defterde DEGIL
+#   Ucu de tanimli degilse bolum KAPALI kalir (fail-closed); /yonet "Fotoğraf üretim" sekmesi eksigi yazar.
 # Opsiyonel canli-kabul (dogrulama bitince SILINIR — normalde TANIMLI DEGIL):
 #   npx wrangler secret put META_TEST_EVENT_CODE  # Meta Test Events sekmesindeki kod (TESTxxxxx)
 #   npx wrangler secret put GA4_DEBUG             # "1" -> GA4 DebugView + /debug/mp/collect dogrulama

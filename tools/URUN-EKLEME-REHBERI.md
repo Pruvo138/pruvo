@@ -264,7 +264,7 @@ Emin değilsen benzer mevcut ürünlere bak, mantıklı bir değer seç; Okan'a 
   KALDIRILDI** — $300 trial kredisi Gemini API'ye uygulanamıyor (Mart 2026 kuralı). Mevcut 18 sarı seri
   render'ı (`-ai*.jpg`) R2'de KALIR. Yeni parametrik ürün kapağı için **emekli motor yalnız Okan'ın o ürün için
   açık kredi onayıyla** (eski "ürün başına bedava" varsayımı 19 Tem ölçümüyle geçersiz).
-- **Yol:** varsayılan manuel render/fotoğraf → yedek manuel AI (Grok / Gemini web / Meshy=gerçek 3B / Canva)
+- **Yol:** varsayılan manuel render/fotoğraf → yedek manuel AI (Grok / Gemini web / görselden-3B servisi=gerçek 3B, hesap Okan'da / Canva)
   → Downloads → `sips` ile kırp → `r2-upload` **YENİ dosya adıyla** → `gorseller[0]` güncelle
   (`.urunler.lock` **flock** altında). Nihai hedef: sarı filamentle basıp stüdyoda fotoğrafla.
 - **Çoklu-şekil prompt kalıbı** (manuel AI aracına; ailenin birden çok şekli bir arada):

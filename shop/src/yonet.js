@@ -36,6 +36,9 @@ import { SEMALAR } from "./semalar.js";
 import { yeniSiparisNo } from "./siparis-no.js";
 import { KONFIGURLAR } from "./konfigurlar.js";
 import { golgeRaporu } from "./konfigur-golge.js";
+// Fotograftan ozel uretim: kalem uretim durumu + dosya indirme + ozet/fiyat tablosu.
+import { panelUretimHaritasi, panelFotoKaydi, panelFotoDosya, panelFotoOzet,
+         panelFotoFiyat } from "./foto.js";
 import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
 } from "./eposta.js";
@@ -691,6 +694,11 @@ async function liste(env, url) {
     for (const x of (pr.results || [])) { kaynakMap.set(x.id, x.link); }
   }
 
+  // FOTOGRAFTAN OZEL URETIM — foto kalemi tasiyan siparislerin uretim durumu TEK sorguda.
+  const fotoHarita = await panelUretimHaritasi(env, cozulmus
+    .filter(({ urunler }) => urunler.some((k) => k && k.foto_is))
+    .map(({ satir }) => satir.siparis_no));
+
   const cikti = cozulmus.map(({ satir: s, urunler }) => {
     const kalemler = urunler.map((k, i) => {
       const ur = baskiMap.get(k.id) || {};
@@ -725,6 +733,15 @@ async function liste(env, url) {
         kaynak_link: kaynakLinkSuz(kaynakMap.get(k.id)),
       };
       kayit.uretim_kaynaklari = driveKaynaklari(kayit.baski_oneri);
+      // FOTO KALEMI: katalog sayfasi/kaynak/Drive yok; dosya bizim ozel kovamizdan gelir.
+      if (k.foto_is) {
+        kayit.urun_url = "";
+        kayit.baski_oneri = "PLA · 4 renk (AMS) — 3MF'deki renk ayrımıyla bas; ölçü " +
+          (k.olcu_mm || "?") + " mm.";
+        kayit.uretim_kaynaklari = [];
+        kayit.foto = panelFotoKaydi(s.siparis_no, i, k, fotoHarita);
+        return kayit;
+      }
       // Yerel yazdir.py + tarayici indirme uclari (anahtar sayfa URL'inden eklenir).
       if (parametrik) {
         // Sari: siparisteki parametrelerle derleyiciden uretim.
@@ -2370,6 +2387,10 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/stl-cikar" && m === "POST") { return stlCikar(request, env); }
   if (altYol === "/urun-kaynak" && m === "GET") { return urunKaynak(env, url); }
   if (altYol === "/kaynak-yaz" && m === "POST") { return kaynakYaz(request, env); }
+  // FOTOGRAFTAN OZEL URETIM (5 Eki 2026, Okan karari) — ayni yonetim anahtarinin ARKASINDA.
+  if (altYol === "/foto-dosya" && m === "GET") { return panelFotoDosya(env, url); }
+  if (altYol === "/foto-ozet" && m === "GET") { return panelFotoOzet(env, Date.now()); }
+  if (altYol === "/foto-fiyat" && m === "POST") { return panelFotoFiyat(request, env, Date.now()); }
   return yon404();
 }
 
@@ -2495,6 +2516,7 @@ a.indir{display:inline-block;padding:6px 10px;background:#374151;color:#fff;bord
  <nav class="sekmeler">
   <button id="sekmeSiparis" class="sekme aktif">Siparişler</button>
   <button id="sekmeUrun" class="sekme">Ürünler</button>
+  <button id="sekmeFoto" class="sekme">Fotoğraf üretim</button>
  </nav>
  <div class="araclar" id="siparisAraclar">
   <select id="durumSuzgec">
@@ -2527,6 +2549,7 @@ a.indir{display:inline-block;padding:6px 10px;background:#374151;color:#fff;bord
  <section id="urunListe"></section>
  <section id="kuyrukKutu"></section>
 </main>
+<main id="fotoPanel" hidden><p>Yükleniyor…</p></main>
 <script>
 var PANEL_TUM_DURUMLAR=${JSON.stringify([...TUM_DURUMLAR])};
 var PANEL_GRUP_SIRASI=${JSON.stringify(PANEL_GRUP_SIRASI)};
@@ -2578,9 +2601,28 @@ function kaynakLinkHtml(k){
  return '<a class="indir" href="'+esc(u)+'" title="'+esc(u)+
   '" target="_blank" rel="noopener">kaynak sayfası</a>';
 }
+// FOTOGRAFTAN OZEL URETIM kalemi: asama + sebep + dosyalar. 🔴 SESSIZ BOSLUK YASAK:
+// dosya yoksa asamasi ACIKCA yazilir; 'elle' sebebi kirmizi basilir.
+var FOTO_ASAMA={"kuyrukta-degil":"üretim kuyruğunda değil (ödeme doğrulanınca 5 dk içinde girer)",
+ "build-baslat":"model sırada","build":"model üretiliyor","analiz":"basılabilirlik analizi",
+ "renk":"4 renk ayrımı","hazir":"HAZIR","elle":"ELLE BAKILACAK"};
+function fotoSatirHtml(f){
+ var d=f.dosyalar?
+  '<a class="indir" href="'+esc(f.dosyalar["3mf"])+'">3MF (4 renk) indir</a> '+
+  '<a class="indir" href="'+esc(f.dosyalar.glb)+'">GLB indir</a>':
+  '<span class="yok">üretim dosyası henüz yok</span>';
+ return '<div class="kaynak">📸 Fotoğraftan üretim · '+esc(f.tur)+' · '+esc(f.olcu_mm)+' mm · '+
+  '<b>'+esc(FOTO_ASAMA[f.asama]||f.asama)+'</b>'+
+  (f.sebep?' — <span class="hata">'+esc(f.sebep)+'</span>':'')+'</div>'+
+  (f.analiz?'<div class="kucuk">Analiz: '+esc(f.analiz)+'</div>':'')+
+  '<div class="kaynak"><a href="'+esc(f.onizleme)+'" target="_blank" rel="noopener">önizleme görseli</a>'+
+  ' · üretim kredisi: '+esc(f.kredi_uretim)+'</div>'+d;
+}
 function satirHtml(no,k){
  var indir;
- if(k.parametrik){
+ if(k.foto){
+  indir=fotoSatirHtml(k.foto);
+ }else if(k.parametrik){
   // Anahtar URL'e GOMULMEZ: gezinme de cerezi tasir (SameSite=Strict, Path=/).
   indir='<a class="indir" href="/api/shop/yonet/stl?siparis_no='+encodeURIComponent(no)+
    '&kalem='+k.kalem+'">STL üret + indir</a>';
@@ -2606,8 +2648,8 @@ function satirHtml(no,k){
   '<div>'+baslikLink+(k.parametre_detay?' <span class="kucuk">['+esc(k.parametre_detay)+']</span>':'')+'</div>'+
   '<div class="kucuk">Ürün kodu: '+esc(k.id)+'</div>'+
   '<div class="baski">🖨️ '+esc(k.baski_oneri)+'</div>'+
-  '<div class="kaynak">📁 Üretim dosyası (Drive): '+kaynakHtml(k)+'</div>'+
-  '<div class="kaynak">🔗 Üretici kaynağı: '+kaynakLinkHtml(k)+'</div>'+
+  (k.foto?'':'<div class="kaynak">📁 Üretim dosyası (Drive): '+kaynakHtml(k)+'</div>'+
+  '<div class="kaynak">🔗 Üretici kaynağı: '+kaynakLinkHtml(k)+'</div>')+
   indir+
   '</div>';
 }
@@ -2833,10 +2875,68 @@ var urunVeri={};
 function sekmeSec(u){
  document.getElementById("liste").hidden=u;
  document.getElementById("urunler").hidden=!u;
+ document.getElementById("fotoPanel").hidden=true;
+ document.getElementById("sekmeFoto").className="sekme";
  document.getElementById("sekmeSiparis").className="sekme"+(u?"":" aktif");
  document.getElementById("sekmeUrun").className="sekme"+(u?" aktif":"");
  document.getElementById("siparisAraclar").style.display=u?"none":"flex";
  if(u){urunYukle();}
+}
+// ---- FOTOGRAF URETIM SEKMESI — "hata cok mu" sayisi + kredi + fiyat tablosu ----------
+// Fiyat tablosu = OKAN KAPISI (tur x olcu). Satir yoksa o olcu musteriye SUNULMAZ;
+// fiyat 0 yazmak satiri siler. Tutar TL yazilir, kurusa burada cevrilir.
+function fotoSekme(){
+ document.getElementById("liste").hidden=true;
+ document.getElementById("urunler").hidden=true;
+ document.getElementById("fotoPanel").hidden=false;
+ document.getElementById("sekmeSiparis").className="sekme";
+ document.getElementById("sekmeUrun").className="sekme";
+ document.getElementById("sekmeFoto").className="sekme aktif";
+ document.getElementById("siparisAraclar").style.display="none";
+ fotoYukle();
+}
+async function fotoYukle(){
+ var kutu=document.getElementById("fotoPanel");
+ var r=await api("/foto-ozet");
+ if(r.kod!==200||!r.govde){kutu.innerHTML='<p class="hata">özet alınamadı ('+r.kod+')</p>';return;}
+ var o=r.govde,h=[];
+ var y=o.yapilandirma||{eksik:[]};
+ h.push('<div class="kart"><b>Durum:</b> '+(y.hazir?'açık (müşteri sipariş verebilir)':
+  '<span class="hata">KAPALI — eksik: '+esc((y.eksik||[]).join(", "))+'</span>')+
+  (o.sema?'':' <span class="hata">veritabanı tabloları kurulu değil</span>')+
+  '<div class="kucuk">Onay metni: '+(o.onay_onayli?'onaylı':'<b>onay bekliyor</b>')+' ('+esc(o.onay_surum)+')'+
+  ' · gerçek örnek: '+esc((o.ornek||[]).map(function(x){return x.tur+" "+x.sayi;}).join(", "))+'</div></div>');
+ h.push('<div class="kart"><b>Tür başına</b> (sipariş kalemi ↔ elle bakılacak)<table class="kucuk">'+
+  '<tr><th>Tür</th><th>Kalem</th><th>Hazır</th><th>Elle</th><th>Sürüyor</th></tr>'+
+  (o.turler||[]).map(function(t){return '<tr><td>'+esc(t.ad)+'</td><td>'+esc(t.kalem)+'</td><td>'+
+   esc(t.hazir)+'</td><td>'+esc(t.elle)+'</td><td>'+esc(t.suruyor)+'</td></tr>';}).join("")+'</table>'+
+  '<div class="kucuk">Kredi: bu ay '+esc(o.kredi&&o.kredi.bu_ay)+' · geçen ay '+esc(o.kredi&&o.kredi.gecen_ay)+
+  ' · havuz: '+(o.bakiye?esc(o.bakiye.kredi):'okunmadı')+'</div></div>');
+ if((o.elle||[]).length){
+  h.push('<div class="kart"><b>Elle bakılacak</b>'+o.elle.map(function(e){return '<div class="kucuk">'+
+   esc(e.siparis_no)+' · kalem '+esc(e.kalem)+' · '+esc(e.tur)+' — <span class="hata">'+esc(e.sebep)+'</span></div>';}).join("")+'</div>');
+ }
+ h.push('<div class="kart"><b>Fiyat tablosu</b> (tür × ölçü; ürün fiyatı KDV dahil, kargo ayrı)'+
+  '<table class="kucuk"><tr><th>Tür</th><th>Ölçü (mm)</th><th>Fiyat</th></tr>'+
+  (o.fiyatlar||[]).map(function(f){return '<tr><td>'+esc(f.tur)+'</td><td>'+esc(f.olcu_mm)+'</td><td>'+
+   tl(f.fiyat_kurus)+'</td></tr>';}).join("")+'</table>'+
+  '<div class="ust"><select id="fotoTur"><option value="anahtarlik">anahtarlık</option>'+
+  '<option value="magnet">magnet</option></select>'+
+  '<input id="fotoOlcu" type="number" placeholder="ölçü mm" style="width:90px">'+
+  '<input id="fotoFiyat" type="number" placeholder="fiyat TL (0 = kaldır)" style="width:150px">'+
+  '<button id="fotoFiyatKaydet">Kaydet</button></div></div>');
+ kutu.innerHTML=h.join("");
+ document.getElementById("fotoFiyatKaydet").onclick=fotoFiyatKaydet;
+}
+async function fotoFiyatKaydet(){
+ var tur=document.getElementById("fotoTur").value;
+ var olcu=parseInt(document.getElementById("fotoOlcu").value,10);
+ var tlDeger=parseFloat(String(document.getElementById("fotoFiyat").value).replace(",","."));
+ if(!(olcu>0)||!(tlDeger>=0)){alert("Ölçü ve fiyat gir.");return;}
+ var r=await api("/foto-fiyat",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({tur:tur,olcu_mm:olcu,fiyat_kurus:Math.round(tlDeger*100)})});
+ if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));return;}
+ fotoYukle();
 }
 async function urunYukle(){
  var q=document.getElementById("urunAra").value.trim();
@@ -3144,6 +3244,7 @@ document.getElementById("yenile").onclick=yukle;
 document.getElementById("durumSuzgec").onchange=yukle;
 document.getElementById("sekmeSiparis").onclick=function(){sekmeSec(false);};
 document.getElementById("sekmeUrun").onclick=function(){sekmeSec(true);};
+document.getElementById("sekmeFoto").onclick=fotoSekme;
 document.getElementById("urunAraBtn").onclick=urunYukle;
 document.getElementById("urunAra").onkeydown=function(e){if(e.key==="Enter"){urunYukle();}};
 yukle();

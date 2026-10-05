@@ -2223,7 +2223,8 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
       return { hata: "capa kayip/coklu: " + capa };
     }
     fs.writeFileSync(path.join(kokDizin, "secenekler.js"), hamSecenek.replace(capa, yerine));
-    for (const ad of ["konfigur.js", "jenerator"]) {
+    // foto-uretim-veri.js: shop/src/foto.js'in TEK KAYNAK veri dosyasi (`../../` ile cagrilir).
+    for (const ad of ["konfigur.js", "jenerator", "foto-uretim-veri.js"]) {
       fs.symlinkSync(path.join(KOK, ad), path.join(kokDizin, ad));
     }
     for (const [ad, kaynak] of Object.entries(KAYNAKLAR)) {

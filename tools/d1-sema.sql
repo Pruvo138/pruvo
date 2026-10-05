@@ -592,3 +592,68 @@ CREATE TABLE IF NOT EXISTS reklam_oci_kuyruk (
   yuklenme_zamani INTEGER,                      -- basarili gonderim ani (ms); yoksa NULL
   olusturuldu     INTEGER NOT NULL        -- kuyruga girdigi an (ms)
 );
+
+-- ---------------------------------------------------------------------------------------
+-- FOTOGRAFTAN OZEL URETIM (5 Eki 2026, Okan karari; kod shop/src/foto.js). Bes tablo:
+--   foto_isler  : her ONIZLEME denemesi (reddedilen dahil) — ziyaretci siniri BUNU sayar.
+--   foto_uretim : odenmis siparis kalemi basina uretim zinciri (model -> analiz -> renk).
+--   foto_kredi  : harcanan kredi defteri; UNIQUE(gorev, adim) -> yoklama tekrari cift yazmaz.
+--   foto_fiyat  : OKAN KAPISI fiyat tablosu (tur x olcu); satiri olmayan olcu SUNULMAZ.
+--   foto_ayar   : bakiye onbellegi + havuz durumu (tek bildirim icin gecis kaydi).
+-- 🔒 PII: musteri FOTOGRAFI hicbir tabloya yazilmaz; ham IP yazilmaz (ziyaretci = tuzlu
+--    sha256 ozetinin ilk 16 hex'i). Musteri kimligi yalniz `siparisler`de durur.
+-- Tablolar yoksa (bu dosya canliya henuz uygulanmadi) bolum KAPALI davranir (fail-closed).
+CREATE TABLE IF NOT EXISTS foto_isler (
+  is_no        TEXT PRIMARY KEY,           -- 32 hex, tahmin edilemez (musterinin onizleme anahtari)
+  tur          TEXT NOT NULL,              -- 'anahtarlik' | 'magnet'
+  olcu_mm      INTEGER NOT NULL DEFAULT 0, -- onizleme istenirken secilen olcu
+  ziyaretci    TEXT NOT NULL,              -- tuzlu sha256(ip) ilk 16 hex
+  tarih        TEXT NOT NULL,              -- ISO 8601 UTC (deneme ani)
+  asama        TEXT NOT NULL,              -- 'onizleme' | 'hazir' | 'basarisiz' | 'silindi'
+  gorev        TEXT NOT NULL DEFAULT '',   -- saglayici onizleme gorev kimligi
+  hazir_tarih  TEXT NOT NULL DEFAULT '',   -- onizleme hazir oldugu an (gecerlilik buradan)
+  son_kontrol  INTEGER NOT NULL DEFAULT 0, -- son yoklama (ms) — yoklama CAS kilidi
+  kredi        INTEGER NOT NULL DEFAULT 0, -- onizlemenin harcadigi kredi
+  hata         TEXT NOT NULL DEFAULT ''    -- basarisizlik sebebi (bizim sabit kodumuz)
+);
+CREATE INDEX IF NOT EXISTS idx_foto_isler_ziyaretci ON foto_isler (ziyaretci, tarih);
+CREATE INDEX IF NOT EXISTS idx_foto_isler_tarih ON foto_isler (tarih);
+CREATE TABLE IF NOT EXISTS foto_uretim (
+  siparis_no   TEXT NOT NULL,              -- siparisler.siparis_no
+  kalem        INTEGER NOT NULL,           -- siparisler.urunler JSON dizisindeki sira
+  is_no        TEXT NOT NULL,              -- foto_isler.is_no
+  tur          TEXT NOT NULL,
+  olcu_mm      INTEGER NOT NULL,
+  asama        TEXT NOT NULL,              -- 'build-baslat'|'build'|'analiz'|'renk'|'hazir'|'elle'
+  build_gorev  TEXT NOT NULL DEFAULT '',
+  analiz_gorev TEXT NOT NULL DEFAULT '',
+  renk_gorev   TEXT NOT NULL DEFAULT '',
+  analiz       TEXT NOT NULL DEFAULT '',   -- basilabilirlik ozeti (JSON, kisaltilmis)
+  sebep        TEXT NOT NULL DEFAULT '',   -- 'elle' sebebi (sabit kod)
+  deneme       INTEGER NOT NULL DEFAULT 0, -- gecici hata sayaci (tavanda 'elle')
+  tarih        TEXT NOT NULL,
+  guncel       TEXT NOT NULL,
+  PRIMARY KEY (siparis_no, kalem)
+);
+CREATE TABLE IF NOT EXISTS foto_kredi (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  tarih        TEXT NOT NULL,
+  adim         TEXT NOT NULL,              -- 'onizleme' | 'build' | 'analiz' | 'renk'
+  is_no        TEXT NOT NULL,
+  siparis_no   TEXT NOT NULL DEFAULT '',   -- onizlemede bos
+  gorev        TEXT NOT NULL,
+  kredi        INTEGER NOT NULL,
+  UNIQUE (gorev, adim)
+);
+CREATE TABLE IF NOT EXISTS foto_fiyat (
+  tur          TEXT NOT NULL,
+  olcu_mm      INTEGER NOT NULL,
+  fiyat_kurus  INTEGER NOT NULL,           -- KDV dahil urun fiyati (kargo ayri, secenekler.js)
+  guncel       TEXT NOT NULL,
+  PRIMARY KEY (tur, olcu_mm)
+);
+CREATE TABLE IF NOT EXISTS foto_ayar (
+  anahtar      TEXT PRIMARY KEY,           -- 'bakiye' | 'havuz_durum'
+  deger        TEXT NOT NULL,
+  guncel       INTEGER NOT NULL            -- ms
+);
