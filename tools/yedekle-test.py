@@ -1888,22 +1888,30 @@ def main():
 
     # 14c) IKI DUZELTME DE GEREKLI MI? (birini kapatip ayni fiksturu olc)
     print("\n14c) HER IKI DUZELTME DE GEREKLI — birini kapatinca yanlis uyari donuyor mu?")
-    for etiket, capa, yerine in (
+    # 🔴 5 Eki: F2 capasi eskiden TEK SATIRLIK sabit dizeydi (`kilitsiz=kilitsiz)`);
+    # 0a74ebd1 cagriya `artik=artik` argumanini ikinci satira ekleyince capa olu kaldi ve
+    # bayraksiz tam kosum RuntimeError ile coktu (CI yalniz --hermetik kostugu icin
+    # gorunmedi). Capa artik cagri IFADESININ KENDISINDEN turer: arguman listesi ne olursa
+    # olsun `tazelendi = damga_tazele(...)` deyiminin TAMAMI (cok satir dahil) degisir;
+    # TEKIL olmak ZORUNDA (0 ya da 2+ eslesme = acik duruş).
+    import re
+    for etiket, desen, yerine in (
             ("F1 kapali (kilit izi bosaltiliyor)",
-             '                os.write(fd, imza.encode("utf-8"))',
+             re.escape('                os.write(fd, imza.encode("utf-8"))'),
              "                pass  # MUTANT: iz birakma"),
             ("F2 kapali (GUNCEL yolu damga yazmiyor)",
-             "            tazelendi = damga_tazele(backup, baslangic, imza=bas_imza, "
-             "kilitsiz=kilitsiz)",
-             "            tazelendi = False  # MUTANT")):
+             r"(?m)^( *)tazelendi = damga_tazele\([^()]*\)",
+             r"\1tazelendi = False  # MUTANT")):
         with tempfile.TemporaryDirectory() as td:
             o = izole_ortam(td, yedekle)
             with open(o["betik"], encoding="utf-8") as f:
                 gov = f.read()
-            if capa not in gov:
-                raise RuntimeError("MUTASYON CAPASI BULUNAMADI: %r" % capa)
+            _n = len(re.findall(desen, gov))
+            if _n != 1:
+                raise RuntimeError("MUTASYON CAPASI %s (%d eslesme): %r"
+                                   % ("BULUNAMADI" if _n == 0 else "TEKIL DEGIL", _n, desen))
             with open(o["betik"], "w", encoding="utf-8") as f:
-                f.write(gov.replace(capa, yerine, 1))
+                f.write(re.sub(desen, yerine, gov, count=1))
             izole_kos(o)
             m_yanlis, m_okunamadi, _h, m_ornek = paralel_gerekliyse(o, 10)
             kontrol("MUTANT [%s] -> yanlis uyari GERI GELDI" % etiket,
@@ -1923,8 +1931,21 @@ def main():
             and isinstance(imza_simdi.get("bayt"), int)
             and isinstance(imza_simdi.get("mtime"), float),
             str(imza_simdi))
+    # 🔴 5 Eki: iki ayri CANLI gezinme arasinda komsu oturum kaynak agacina yazarsa mtime
+    # kayar (bayraksiz kosumda 1/2 kirmizi olculdu, kod degismeden). Kiyas yalniz SESSIZ
+    # pencerede anlamli: imza taramasinin ONCESI ve SONRASI en-yeni mtime esitse o pencerede
+    # yazim olmamistir -> imza ona esit OLMAK ZORUNDA. 3 denemede sessiz pencere yoksa KIRMIZI.
+    _pencere = None
+    for _ in range(3):
+        _once = yedekle.en_yeni_kaynak_mtime()
+        _imza = yedekle.kaynak_imzasi()
+        _sonra = yedekle.en_yeni_kaynak_mtime()
+        if _once == _sonra:
+            _pencere = (_imza["mtime"], _once)
+            break
     kontrol("kaynak_imzasi mtime'i en_yeni_kaynak_mtime ile AYNI (tek gezinme kodu)",
-            imza_simdi["mtime"] == yedekle.en_yeni_kaynak_mtime())
+            _pencere is not None and _pencere[0] == _pencere[1],
+            "sessiz pencere=%s" % (_pencere,))
     kontrol("imza_esit_mi ayni imzada True", yedekle.imza_esit_mi(
         {"adet": 3, "bayt": 9, "mtime": 1.5}, {"adet": 3, "bayt": 9, "mtime": 1.5}) is True)
     for alan in ("adet", "bayt", "mtime"):

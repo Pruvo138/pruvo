@@ -130,6 +130,83 @@ def fikstur_sec(urunler, sart, ad):
         "iddialari yalniz baski urun sayfasi icin anlamli." % ad)
 
 
+# ── SUNULAN FILAMENT (SAF — kabul iddialari `--konfigur-testi`, main'de build ONCESI) ────
+# 🔴 5 Eki 2026 (SERIT B run 37229683799 kirmizisi): beklenti eskiden HER urunde kategoriden
+# turerdi. Ama build.py KONFIGUR-malzemeli urunde cipleri _konfigur_malzeme_html ile YALNIZ
+# `konfigur.malzemeler` listesinden basar (filament_html o sayfada kartlar_gizli=True ->
+# kategori cipi BASMAZ). Skan Art kategorisi 4 malzeme sunar, konfigur listesi 3 -> "3 != 4"
+# SAHTE kirmizisi; 16 konfigur urunu rastgele 20'lik orneklemde ara sira yakalandigi icin
+# kirmizi yazi-tura yaniyordu.
+def konfigur_malzemeleri(p):
+    """Urunun `konfigur.malzemeler` listesi (yoksa/bossa None). build.py ile AYNI kosul:
+    `kartlar_gizli=bool(... konfigur and konfigur.get("malzemeler"))`."""
+    k = p.get("konfigur")
+    if not isinstance(k, dict):
+        return None
+    return k.get("malzemeler") or None
+
+
+def sunulan_filamentler(p, filamentler, uygun_mu):
+    """Bu urun sayfasinda FIILEN cip olarak basilan filament kayitlari (build.py aynasi).
+    (a) konfigur.malzemeler DOLU: liste sirasiyla, filamentler.json'da tanimsiz ad atlanir
+        (_konfigur_malzeme_html savunmaci `continue`); kategori suzgeci UYGULANMAZ.
+    (b) digerleri — konfigur'u malzemesiz olan DAHIL (kartlar_gizli=False, filament_html
+        kategori ciplerini basar): site=True ∧ malzeme kategoriye uygun."""
+    malz = konfigur_malzemeleri(p)
+    if malz:
+        fmap = {f["ad"]: f for f in filamentler}
+        return [fmap[m["ad"]] for m in malz
+                if isinstance(m, dict) and m.get("ad") in fmap]
+    return [f for f in filamentler
+            if f.get("site") and uygun_mu(f["ad"], p.get("kategori"))]
+
+
+def beklenen_rozetler(tavsiye_adlari, sunulan):
+    """Rozet YALNIZ basilan cipte durabilir (build iki dalda da `tavs.get(ad)`'i cip
+    dongusunun ICINDE okur) -> beklenti = tavsiye ∩ sunulan."""
+    adlar = {f["ad"] for f in sunulan}
+    return [a for a in tavsiye_adlari if a in adlar]
+
+
+def konfigur_testi():
+    """`python3 tools/filament-test.py --konfigur-testi` — agsiz, build'siz, katalogsuz.
+    Sentetik filament listesi + sahte kategori kapisi; gercek build cagrilmaz."""
+    fil = [{"ad": "PLA", "site": True}, {"ad": "PETG", "site": True},
+           {"ad": "ASA", "site": True}, {"ad": "TPU", "site": True},
+           {"ad": "ABS", "site": True}, {"ad": "Karbon", "site": False}]
+
+    def uygun(ad, kat):  # sahte FILAMENT_KATEGORI_HARIC: Dekor'da ABS yok
+        return not (ad == "ABS" and kat == "Dekor")
+
+    gecen = toplam = 0
+
+    def ona(kosul, ad):
+        nonlocal gecen, toplam
+        toplam += 1
+        gecen += bool(kosul)
+        print("  %s KONFIGUR-%s" % ("✅" if kosul else "❌", ad), flush=True)
+
+    duz = {"id": "d", "kategori": "Dekor"}
+    kon = {"id": "k", "kategori": "Dekor", "konfigur": {"malzemeler": [
+        {"ad": "PLA", "katsayi": 1.0}, {"ad": "PETG", "katsayi": 1.3},
+        {"ad": "ASA", "katsayi": 1.6}]}}
+    kon_tanimsiz = {"id": "t", "kategori": "Dekor", "konfigur": {"malzemeler": [
+        {"ad": "PLA", "katsayi": 1.0}, {"ad": "YOK-BOYLE", "katsayi": 2.0}]}}
+    kon_malzsiz = {"id": "m", "kategori": "Dekor", "konfigur": {"renkler": ["Siyah"]}}
+    ad = lambda L: [f["ad"] for f in L]
+    ona(ad(sunulan_filamentler(duz, fil, uygun)) == ["PLA", "PETG", "ASA", "TPU"],
+        "K1: duz urun KATEGORIDEN (site ∧ uygun; ABS haric, Karbon satis disi)")
+    ona(ad(sunulan_filamentler(kon, fil, uygun)) == ["PLA", "PETG", "ASA"],
+        "K2: konfigur.malzemeler DOLU -> YALNIZ liste (3, kategori 4 DEGIL)")
+    ona(ad(sunulan_filamentler(kon_tanimsiz, fil, uygun)) == ["PLA"],
+        "K3: filamentler.json'da tanimsiz malzeme atlanir")
+    ona(ad(sunulan_filamentler(kon_malzsiz, fil, uygun)) == ["PLA", "PETG", "ASA", "TPU"],
+        "K4: konfigur VAR malzemeler YOK -> filament_html kategori cipleri (build aynasi)")
+    ona(beklenen_rozetler(["TPU", "PLA"], sunulan_filamentler(kon, fil, uygun)) == ["PLA"],
+        "K5: rozet beklentisi sunulan kumeyle KESISIR (TPU listede yok -> dusulur)")
+    return (gecen, toplam)
+
+
 # ── PARITE CIKIS KODU ESLEMESI (SAF — kabul testi asagida, `--parite-eslem-testi`) ──────
 # 🔴 CIKIS KODU SOZLESMESI TEK KAYNAKTADIR: tools/parite-ortak.js dosya basindaki
 #    "CIKIS KODU SOZLESMESI" blogu. Burada tablo TEKRARLANMAZ (dort tuketicide dort ayri
@@ -345,6 +422,12 @@ def main():
                   "(%d/%d gecti) — orneklem kirmizi yanar, build durur" %
                   (_gecen, _toplam), flush=True)
             sys.exit(1)
+        # ---- 28 KONFIGUR NOBETI (saf, build ONCESI): TEST 2'nin beklenti fonksiyonu
+        # konfigur-malzemeli dali build.py'deki gibi ayiriyor mu. Kategori dalina geri
+        # cevrilirse (5 Eki oncesi hal) burasi kirmizi yanar.
+        _gecen, _toplam = konfigur_testi()
+        kayit(28, "KONFIGUR NOBETI: sunulan_filamentler build aynasi (%d/%d)"
+              % (_gecen, _toplam), _gecen == _toplam)
 
         print("0) tools/build.py calisiyor (uretim taze olsun)...", flush=True)
         r = subprocess.run([sys.executable, os.path.join(TOOLS, "build.py")],
@@ -385,10 +468,12 @@ def main():
         # okur). Beklenti bu yuzden SABIT bir sayi degil, urunun kategorisinden TURER —
         # elle sayi yazsaydik fikstur haric bir kategoriye dustugu gun SAHTE kirmizi
         # yanardi ve gercek bir eksik cip'ten ayirt edilemezdi.
+        # 🔴 5 Eki: konfigur-malzemeli urunde kategori DEGIL konfigur listesi (bkz.
+        # sunulan_filamentler — saf, build'siz kabulu `--konfigur-testi`).
         def sunulan_fil(p):
             """Bu urun sayfasinda FIILEN cip olarak basilan filament kayitlari."""
-            return [f for f in site_fil
-                    if build.malzeme_kategori_uygun_mu(f["ad"], p.get("kategori"))]
+            return sunulan_filamentler(p, ref["filamentler"],
+                                       build.malzeme_kategori_uygun_mu)
 
         def sunulmayan_fil(p):
             """Bu sayfada basilMAYAcak kayitlar: satisa kapali olanlar + kategori disi olanlar."""
@@ -427,6 +512,13 @@ def main():
         ornek = random.sample(havuz, 20)
         if par_hepsi and not any(u.get("parametrik") for u in ornek):
             ornek[random.randrange(len(ornek))] = random.choice(par_hepsi)
+        # 🔴 5 Eki: KONFIGUR-malzemeli dal da ayni sebeple ZORLA orneklenir (16/~8000 kayit;
+        # zorlanmazsa konfigur dalinin duzeltmesi cogu kosumda OLCULMEZ). Parametrik slotu
+        # EZILMEZ (konfigur ile parametrik birlikte olamaz -> ayri slot secilir).
+        kon_hepsi = [u for u in havuz if konfigur_malzemeleri(u)]
+        if kon_hepsi and not any(konfigur_malzemeleri(u) for u in ornek):
+            _bos = [i for i, u in enumerate(ornek) if not u.get("parametrik")]
+            ornek[random.choice(_bos)] = random.choice(kon_hepsi)
         hatalar = []
         for p in ornek:
             s = sayfa(p["id"])
@@ -455,16 +547,18 @@ def main():
             # Bugun "Jeneratör" kategoriTavsiye haritasinda olmadigi icin sonuc bos liste cikiyor
             # (ayni bosluk TEST 25 kapisinda BILINCLI olarak kayitli); harita doldurulunca bu
             # test rozeti gormek isteyecek.
-            beklenen = [t["ad"] for t in filament_ortak.tavsiyeler(
-                p.get("kategori"), p.get("tavsiyeFilament"))]
+            beklenen = beklenen_rozetler([t["ad"] for t in filament_ortak.tavsiyeler(
+                p.get("kategori"), p.get("tavsiyeFilament"))], beklenen_cip)
             rozetli = [m.group(1) for m in re.finditer(
                 r'fil-cip tavsiyeli[^>]*>.*?<span class="fil-ad">([^<]+)</span>', s)]
             if sorted(rozetli) != sorted(beklenen):
                 hatalar.append("%s (%s): rozet %s != beklenen %s"
                                % (p["id"], p.get("kategori"), rozetli, beklenen))
-        kayit(2, "20 rastgele sayfa (+en az 1 parametrik): cip sayisi KATEGORIDEN turer "
-              "(en cok %d; Karbon HARIC, ABS haric kategoride DUSER) + rozet + balon birebir + "
-              "dogru tavsiye" % len(site_fil), not hatalar, "; ".join(hatalar[:4]))
+        kayit(2, "20 rastgele sayfa (+en az 1 parametrik, +en az 1 konfigur [%d havuzda]): "
+              "cip sayisi KATEGORIDEN turer (en cok %d; Karbon HARIC, ABS haric kategoride "
+              "DUSER), konfigur-malzemeli urunde konfigur LISTESINDEN + rozet (∩ sunulan) + "
+              "balon birebir + dogru tavsiye" % (len(kon_hepsi), len(site_fil)),
+              not hatalar, "; ".join(hatalar[:4]))
 
         # ---- 3) yasak ifadeler: uretilen HICBIR sayfada "3d bask" / "her renk" yok
         yasak = []
@@ -1013,6 +1107,13 @@ if __name__ == "__main__":
             sys.exit(0)
         print("SONUC: EHIL KIRMIZI")
         sys.exit(1)
+    # Agsiz + build'siz + katalogsuz alt-kapi: TEST 2 beklentisinin konfigur dali (K1-K5).
+    if "--konfigur-testi" in sys.argv[1:]:
+        _gecen, _toplam = konfigur_testi()
+        print("-" * 70)
+        print("SONUC: KONFIGUR %d/%d %s" % (_gecen, _toplam,
+                                            "YESIL" if _gecen == _toplam else "KIRMIZI"))
+        sys.exit(0 if _gecen == _toplam else 1)
     try:
         main()
     finally:

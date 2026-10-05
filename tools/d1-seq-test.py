@@ -146,5 +146,75 @@ dogrula("V5 plan bos sandvic yeni mesaj (normalize onerisi yok, k= var)",
         "--seq-normalize" not in v5_msg,
         v5_msg)
 
+# V6 (K434, 4 Eki gecesi olculen olay): ESZAMANLI 3 TEPE PARTISI, dosya sirasi != D1 yazim
+# sirasi. Sahte D1 = `_kt_baglan()` (bellek-ici sqlite, gercek sema; CANLI D1'e DOKUNMAZ).
+# Her senkron push yolunun okudugu uc degeri (mevcut, mevcut_seq, MAX(seq)) sqlite'tan
+# okur, GERCEK `diff_plan`i cagirir ve INSERT'leri uygular. Taban: 20 urun normalize +
+# ustunde 5 ESKI (K434 oncesi) yogun +1 tepe urunu — canli D1 5 Eki'deki seklin kucugu.
+# Partiler A, B, C (3'er urun) dosyaya sirayla BASA eklenir: nihai dosya [C, B, A, ...].
+# 6 yazim sirasinin her birinde senkron yalniz o ana dek yazilmis partileri + kendisini
+# gorur. Eski kol (`mseq+1`) ustteki parti once yazildiginda alttakini iki ARDISIK komsu
+# arasina sikistirir -> TUKENDI; seyrek tepe kolunda durma 0 olmali.
+import itertools
+
+def _v6_oku(conn):
+    satirlar = [dict(r) for r in conn.execute("SELECT id, hash, baski, seq FROM urunler")]
+    mevcut = {s["id"]: (s["hash"], s.get("baski") or "") for s in satirlar}
+    mseq = conn.execute("SELECT COALESCE(MAX(seq), 0) FROM urunler").fetchone()[0]
+    return mevcut, {s["id"]: s["seq"] for s in satirlar}, int(mseq)
+
+
+def _v6_senkron(conn, katalog):
+    mevcut, mevcut_seq, mseq = _v6_oku(conn)
+    try:
+        yeni_sql, degisen_sql, _, _, _ = m.diff_plan(
+            katalog, mevcut, {}, False, mseq, mevcut_seq)
+    except SystemExit as e:
+        return "TUKENDI" if "SEQ TAM SAYI ARALIGI TUKENDI" in str(e.code) else str(e.code)
+    for s in yeni_sql + degisen_sql:
+        conn.executescript(s)
+    return "OK"
+
+
+v6_taban = [urun("v6-o%02d" % i) for i in range(20)]
+v6_eski_tepe = [urun("v6-e%d" % i) for i in range(5)]
+v6_parti = {p: [urun("v6-%s%d" % (p, i)) for i in range(3)] for p in "ABC"}
+v6_nihai = v6_parti["C"] + v6_parti["B"] + v6_parti["A"] + v6_eski_tepe + v6_taban
+v6_durma, v6_bozuk, v6_sira_sayisi, v6_ornek = 0, [], 0, ""
+for sira in itertools.permutations("ABC"):
+    v6_sira_sayisi += 1
+    conn = m._kt_baglan()
+    _v6_senkron(conn, v6_taban)
+    for s in (m.seq_normalize_plan(v6_taban, _v6_oku(conn)[1])[0] or []):
+        conn.executescript(s)
+    # ESKI yogun tepe: normalize tepesinin ustune +1, +2, ... (K434 oncesi canli sekil).
+    v6_top = conn.execute("SELECT MAX(seq) FROM urunler").fetchone()[0]
+    for i, u in enumerate(reversed(v6_eski_tepe)):
+        conn.executescript(m.satir_sql(u, v6_top + i + 1, m.arama.haystack(u),
+                                       m.arama.urun_hash(u)))
+    yazilan = set()
+    for p in sira:
+        yazilan.add(p)
+        gorunen = [u for u in v6_nihai
+                   if not u["id"].startswith("v6-") or u["id"][3] not in "ABC"
+                   or u["id"][3] in yazilan]
+        sonuc = _v6_senkron(conn, gorunen)
+        if sonuc != "OK":
+            v6_durma += 1
+            v6_ornek = v6_ornek or "%s:%s" % ("".join(sira), sonuc)
+    son_seq = _v6_oku(conn)[1]
+    kesirli, sapan, _ = m.seq_sira_hali(v6_nihai, son_seq)
+    dizi = [son_seq.get(u["id"]) for u in v6_nihai]
+    if (kesirli or sapan or None in dizi or
+            any(not isinstance(x, int) for x in dizi if x is not None) or
+            any(a <= b for a, b in zip(dizi, dizi[1:]) if a is not None and b is not None)):
+        v6_bozuk.append("".join(sira))
+    conn.close()
+dogrula("V6 eszamanli 3 tepe partisi (6 yazim sirasi): TUKENDI ile durma 0",
+        v6_sira_sayisi == 6 and v6_durma == 0,
+        "sira=%d durma=%d ornek=%s" % (v6_sira_sayisi, v6_durma, v6_ornek))
+dogrula("V6 nihai seq tam sayi + kati monoton + kanonik sirayla uyumlu (6/6 sira)",
+        v6_sira_sayisi == 6 and not v6_bozuk, "bozuk=%s" % v6_bozuk)
+
 print("SONUC: %d gecti, %d kaldi" % (gecen, kalan))
 sys.exit(0 if kalan == 0 else 1)

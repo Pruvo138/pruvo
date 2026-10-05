@@ -43,14 +43,28 @@ def _ak():
     return mod
 
 
-def kancayi_kos(veri, kanca=KANCA, kutu=None):
+# isci.sh'in isci oturumuna koydugu isaretler (kanca `ISCI_ISARETLERI`). Bu bataryayi
+# bir isci kosturursa (`kabul` etiketli tur) isaretler alt sureclere MIRAS KALIR ve
+# V1 "kirmizi cip -> BLOKLADI" kancanin isci muafiyetiyle sahte kirmizi yanardi —
+# yesili/kirmiziyi KOSUCUNUN ortami uretirdi. Her kosum isaretleri TEMIZLER; vaka
+# isareti ACIKCA verir (`ek_ortam`).
+ISCI_ISARET_ADLARI = ("PRUVO_ISCI_KOSUMU", "PRUVO_ISCI_ETIKET")
+
+
+def _temiz_ortam(**ek):
+    ortam = {k: v for k, v in os.environ.items() if k not in ISCI_ISARET_ADLARI}
+    ortam.update(ek)
+    return ortam
+
+
+def kancayi_kos(veri, kanca=KANCA, kutu=None, ek_ortam=None):
     argv = [sys.executable, kanca]
     if kutu:
         argv += ["--kutu", kutu]
     # Kanca KOPYASI gecici dizinde kosarken yaninda `arsiv-kapisi.py` YOKTUR;
     # kanonik `tools/` ortamla soylenir, yoksa kopya fail-open gecer ve mutasyon
     # turu tabaniyla birlikte coker (5 Eyl'de olculdu).
-    ortam = dict(os.environ, PRUVO_KANONIK_TOOLS=KOK, HOME=SAHTE_HOME)
+    ortam = _temiz_ortam(PRUVO_KANONIK_TOOLS=KOK, HOME=SAHTE_HOME, **(ek_ortam or {}))
     s = subprocess.run(argv, input=json.dumps(veri),
                        capture_output=True, text=True, timeout=180, env=ortam)
     blokladi = False
@@ -158,6 +172,30 @@ def kos(kanca=KANCA, sessiz=False):
             kanca=kanca)
         check("V7 cwd yok -> GECIRDI", not blok)
 
+        # V10 ISCI OTURUMU (5 Eki 2026, MaCiT-Sony-d-5Eki): isci.sh isci oturumu CIP
+        # DEGILDIR — kancanin "cip kapanmadi" mesaji iscinin kendisine yonelik
+        # sanilip 22 betik SILDIRDI + kutuya SAHTE kapanis yazdirdi. IKI YON birden:
+        # (a/b) dolu isaret -> GECIR (muafiyet calisiyor); (c) isaretsiz ayni kirmizi
+        # agac -> hala BLOKLA (muafiyet sizdirmiyor); (d) BOS isaret = dogal-Claude
+        # yolu (isci.sh `PRUVO_ISCI_KOSUMU="$PRUVO_ISCI_KOSUMU_DOGAL"` bos kurar) ->
+        # hala BLOKLA: kapsam siniri SESSIZ degil, olculur ve adiyla beyan edilir.
+        for ad_v10, ek_v10, beklenen_blok, aciklama in (
+                ("V10a", {"PRUVO_ISCI_ETIKET": "tamir"}, False,
+                 "isci ETIKET dolu -> GECIRDI"),
+                ("V10b", {"PRUVO_ISCI_KOSUMU": "minimax-m3"}, False,
+                 "isci KOSUMU dolu -> GECIRDI"),
+                ("V10c", {}, True,
+                 "isaretsiz kirmizi cip -> hala BLOKLADI (muafiyet sizdirmiyor)"),
+                ("V10d", {"PRUVO_ISCI_KOSUMU": "", "PRUVO_ISCI_ETIKET": ""}, True,
+                 "BOS isaret (dogal-Claude yolu) -> hala BLOKLADI (kapsam siniri olculur)")):
+            sid = "test-" + ad_v10.lower()
+            _sayaci_temizle(sid)
+            _rc, blok, _s, _o, _e = kancayi_kos(
+                {"session_id": sid, "cwd": hedef_k, "stop_hook_active": False},
+                kanca=kanca, kutu=kutu_k, ek_ortam=ek_v10)
+            check("%s %s" % (ad_v10, aciklama), blok == beklenen_blok)
+            _sayaci_temizle(sid)
+
         # --- V8 K396: KANCANIN ONERDIGI CARE, KAPININ FIILEN OKUDUGU CARE MI? ---
         # 🔴 BU NOBETCININ SEBEBI OLCULMUS BIR VAKADIR (10 Eyl 2026): kanca cipe
         # "'BEKLIYOR' olarak kutuya yaz" diyordu, `arsiv-kapisi.py` govdesinde o
@@ -248,7 +286,7 @@ def kos(kanca=KANCA, sessiz=False):
 def kancayi_kos_ham(ham, kanca=KANCA):
     s = subprocess.run([sys.executable, kanca], input=ham,
                        capture_output=True, text=True, timeout=120,
-                       env=dict(os.environ, HOME=SAHTE_HOME))
+                       env=_temiz_ortam(HOME=SAHTE_HOME))
     blokladi = '"block"' in s.stdout
     return s.returncode, blokladi, "", s.stdout, s.stderr
 
@@ -284,6 +322,17 @@ MUTANTLAR = (
     ("M6 harness-eksenini-kaldir", "V8e",
      '    adaylar = ((os.environ.get(KANONIK_ENV) or "", "harness ortami"),\n',
      '    adaylar = ((\"\", \"harness ortami\"),\n'),
+    # 🔴 5 EKI NOBETCISI: isci muafiyeti. M7 muafiyeti tamamen kaldirir (V10a/b
+    # KIRMIZI yanmali — isci yine "cip kapanmadi" mesajini alir); M8 isareti
+    # "VAR=dolu" yerine "ortamda ADI VAR" yapar: BOS isaretli dogal-Claude yolu da
+    # muaf olur, V10d KIRMIZI yanmali. Ikisi de olmezse muafiyet ya OLU ya da
+    # SIZDIRIYOR demektir ve ayni sahte kapanis/silme bir tur sonra geri gelir.
+    ("M7 isci-muafiyetini-kaldir", "V10a/b",
+     '    if isci_oturumu_mu():\n        return _gecti(',
+     '    if False:\n        return _gecti('),
+    ("M8 bos-isareti-de-muaf-say", "V10d",
+     'any((os.environ.get(k) or "").strip() for k in ISCI_ISARETLERI)',
+     'any((k in os.environ) for k in ISCI_ISARETLERI)'),
     # KONTROL: hedefsiz, davranis DEGISTIRMEYEN degisiklik. Bu "mutant" OLMEMELI.
     # Olurse batarya battaniye-kirmizidir (her degisiklige kirmizi yanar) ve
     # yukaridaki alti kill'in HICBIRI hedefine atfedilemez.

@@ -29,14 +29,19 @@ konusuz: kacirilacak taban DOSYASI yok, ve TABAN SAYILARI her kosumda BASILIR.
 
   A8  UCUNCU KOVA (K356): suren kosum yesil sayilmaz (enjekte `gh` fiksturu).
   A9  TAVAN FRENI: panel sinirina KAYIPSIZ kirpma (A9-1 canli defteri okur).
+
+5 Eki 2026, `kind-wilbur-865479` (BaBa 4 Eki madde 2):
+
+  A10 KUTU ROTASYONU spec'ten ONCE (`kutu-arsivle.py --tavan 300`); rc!=0'da
+      spec YINE uretilir + `ROTASYON=OLCULEMEDI rc=<n>`; mutant cagriyi siler.
   A7d2/A7f-h  `kur.py` KAYNAK GERIDE kolu: canli hedef yamanin ilerletilmis
       halini tasiyorsa kurulum DURUR (eski blok ikinci kez EKLENMEZ).
   A8/A9 10 Eyl'den beri yalniz `~/.claude/cron/sabah-kabul.py`de yasiyordu.
 
 Fazlar:
-  --faz on   : A1 + A6 + A7 + A8 + A9 (yazim YAPMAZ — canli spec'e dokunmaz)
+  --faz on   : A1 + A6 + A7 + A8 + A9 + A10 (yazim YAPMAZ — canli spec'e dokunmaz)
   --faz tam  : hepsi (A2 canli spec'i URETIR)
-  --vaka A7|A8|A9 : yalniz o vaka (A7/A8 hermetik — CI serit-b bunlari kosar)
+  --vaka A7|A8|A9|A10 : yalniz o vaka (A7/A8 hermetik — CI serit-b bunlari kosar)
 """
 
 import argparse
@@ -1017,8 +1022,11 @@ def _a8_kumla(kaynak, td):
         "REPO": repo,
         "MOTOR_RAPORU_DOSYA": os.path.join(kum, "gunluk-motor-raporu-YOK.py"),
     }
+    # 🔴 5 Eki (`kind-wilbur-865479`): kum kutusu GECERLI bir blokla baslar. Arac
+    # artik spec'ten once `kutu-arsivle.py --kuru` kosuyor; basliksiz govde
+    # (`# A8 kum kutusu`) D11 OKSUZ GOVDE ile rc=1 verir -> A8a rc=0 sarti duserdi.
     with open(yollar["KUTU"], "w", encoding="utf-8") as f:
-        f.write("# A8 kum kutusu\n")
+        f.write("## 2026-01-01 — A8 kum kutusu\nkum\n")
     with open(yollar["KALEMLER"], "w", encoding="utf-8") as f:
         f.write("# A8 kum defteri\n\n| ID | Tarih | Kimden | Is | Durum | Kanit |\n"
                 "|---|---|---|---|---|---|\n")
@@ -1404,6 +1412,213 @@ def a9_tavan_freni():
               % frensiz_asan)
 
 
+# --------------------------------------------------------------------- A10
+# A10 — KUTU ROTASYONU SPEC'TEN ONCE (5 Eki 2026, `kind-wilbur-865479`,
+# BaBa 4 Eki 02:5x madde 2). Kutu 2 Eki 460 -> 3 Eki 514 (tavan 500 asildi,
+# `defter-kota-kapisi` KraL commit'lerini kilitledi). `kral-sabah.py` artik spec
+# girdilerini okumadan ONCE `kutu-arsivle.py --tavan 300` kosar.
+#
+# HERMETIK: A8 kumu (KUTU/KALEMLER/DEVAM/REPO/MOTOR sabitleri gecici dizine) +
+# enjekte `gh` + YOL enjeksiyonlari (`_KRAL_SABAH_ROTASYON_ARAC/_KUTU`). Gercek
+# kutuya TEK BAYT yazilmaz: A10d bunu ADIYLA olcer (fikstur bayragi + enjekte
+# kutu YOK -> rotasyon `--kuru`).
+# 🔴 KUM KUTU ADI `mimar-posta-kutusu.md` OLAMAZ: `kutu-arsivle.py` yazma kipinde
+# ana repodaki `.yedek-dusus-izin.json` beyanini kutu ADINA gore tazeler; kum
+# kutusu ayni adi tasirsa gercek beyan yazilirdi.
+A10_CAGRI_CAPA = ("    rotasyon_satiri, rotasyon_olculemedi = kutu_rotasyonu(\n"
+                  "        kuru=bool(args.kuru or args.kendini_test), "
+                  "fikstur=args.spec_dizin is not None)\n")
+A10_CAGRI_YAMA = ("    rotasyon_satiri, rotasyon_olculemedi = None, False"
+                  "  # MUTANT: rotasyon CAGRISI KALDIRILDI\n")
+A10_KOLLARI = ("A10a SIRA: rotasyon spec'ten ONCE + satir log'da ve spec basinda",
+               "A10b RC!=0: spec YINE uretilir + ROTASYON=OLCULEMEDI rc=3",
+               "A10c ARAC YOK: spec YINE uretilir + ROTASYON=OLCULEMEDI",
+               "A10d FIKSTUR KORUMASI: --spec-dizin + enjekte kutu YOK -> --kuru",
+               "A10e --kuru bayragi rotasyona --kuru gecer",
+               "A10f GERCEK ARAC kum kutusunu --tavan 300 ile indirir",
+               "A10g MUTANT capasi TEK",
+               "A10h MUTANT cagri kaldirilinca A10a KIRMIZI (mutant oldu)")
+
+_A10_SAHTE_ARAC = r'''import json, os, sys
+with open(os.environ["_A10_KAYIT"], "a", encoding="utf-8") as f:
+    f.write(json.dumps({"argv": sys.argv[1:],
+                        "spec_var": os.path.exists(os.environ["_A10_SPEC"])}) + "\n")
+rc = int(os.environ.get("_A10_RC", "0"))
+if rc == 0:
+    print("once_satir=7 blok=1")
+    print("tasinacak_blok=0 sonra_satir=7")
+    print("HUKUM=TAVAN_ALTINDA rc=0 once_satir=7 tavan=300")
+sys.exit(rc)
+'''
+
+
+def _a10_kayitlar(yol):
+    import json as _json
+    if not os.path.isfile(yol):
+        return []
+    with open(yol, encoding="utf-8") as f:
+        return [_json.loads(s) for s in f if s.strip()]
+
+
+def _a10_kos(arac, gh, spec_dizin, ortam, ek_arg=()):
+    o = {"_KRAL_SABAH_GH_YOL": gh, "PYTHONDONTWRITEBYTECODE": "1"}
+    # A2/A5 icin main()'de kurulan genel kum enjeksiyonu A10'u KIRLETMESIN:
+    # her vaka kendi kutu enjeksiyonunu ACIKCA verir ya da BOS birakir.
+    o["_KRAL_SABAH_ROTASYON_KUTU"] = ""
+    o["_KRAL_SABAH_ROTASYON_ARAC"] = ""
+    o.update(ortam)
+    rc, cikti = kos([PY, arac, "--spec-dizin", spec_dizin] + list(ek_arg), 240, ortam=o)
+    return rc, cikti
+
+
+def _a10_spec(spec_dizin):
+    yol = os.path.join(spec_dizin, os.path.basename(bugunun_spec_yolu()))
+    if not os.path.isfile(yol):
+        return yol, None
+    with open(yol, encoding="utf-8") as f:
+        return yol, f.read()
+
+
+def _a10_sira_hukmu(rc, cikti, kayitlar, govde):
+    """A10a yuklemi — taban VE mutant AYNI yuklemle olculur."""
+    satirlar = (cikti or "").splitlines()
+    i_rot = next((i for i, s in enumerate(satirlar) if s.startswith("ROTASYON=OK")), -1)
+    i_spec = next((i for i, s in enumerate(satirlar) if s.startswith("SABAH_SPEC=")), -1)
+    ikinci = govde.splitlines()[1] if govde and len(govde.splitlines()) > 1 else ""
+    gecti = (rc == 0 and len(kayitlar) == 1 and kayitlar[0]["spec_var"] is False
+             and govde is not None and 0 <= i_rot < i_spec
+             and ikinci.startswith("`ROTASYON=OK rc=0"))
+    return gecti, ("rc=%d cagri=%d cagri_aninda_spec_var=%s spec_sonra_var=%d "
+                   "log_sira(rot<spec)=%d/%d spec_2.satir=%r" % (
+                       rc, len(kayitlar),
+                       kayitlar[0]["spec_var"] if kayitlar else "-",
+                       int(govde is not None), i_rot, i_spec, ikinci[:60]))
+
+
+def a10_rotasyon():
+    baslik("A10 — KUTU ROTASYONU SPEC'TEN ONCE (BaBa 4 Eki madde 2) + MUTANT")
+    with tempfile.TemporaryDirectory(prefix="sabah-a10-") as td:
+        gh = _a8_gh_yaz(td, "gh-saglikli", [
+            ("Build & deploy to GitHub Pages", "completed", "success", "02:24:45"),
+        ])
+        with open(ARAC, encoding="utf-8") as f:
+            kaynak, kum_sorun = _a8_kumla(f.read(), td)
+        if kum_sorun:
+            for ad in A10_KOLLARI:
+                kayit(ad, None, "KUM KURULAMADI: %s" % kum_sorun)
+            return
+        if "def kutu_rotasyonu(" not in kaynak:
+            for ad in A10_KOLLARI:
+                kayit(ad, False, "arac `kutu_rotasyonu` TASIMIYOR (rotasyon kurulmamis)")
+            return
+        taban = os.path.join(td, "kral-sabah-kum.py")
+        with open(taban, "w", encoding="utf-8") as f:
+            f.write(kaynak)
+        sahte = os.path.join(td, "sahte-kutu-arsivle.py")
+        with open(sahte, "w", encoding="utf-8") as f:
+            f.write(_A10_SAHTE_ARAC)
+        kum_kutu = os.path.join(td, "a10-kum-kutu.md")
+        with open(kum_kutu, "w", encoding="utf-8") as f:
+            f.write("## 2026-01-01 — A10 kum\nkum\n")
+
+        def vaka(ad, rc_sahte="0", arac_ov=None, kutu_ov=kum_kutu, ek_arg=(), kaynak_yol=taban):
+            sd = os.path.join(td, "spec-" + ad)
+            os.makedirs(sd, exist_ok=True)
+            kayit_yol = os.path.join(td, "kayit-" + ad + ".jsonl")
+            spec_yol, _ = _a10_spec(sd)
+            ortam = {"_A10_KAYIT": kayit_yol, "_A10_SPEC": spec_yol, "_A10_RC": rc_sahte,
+                     "_KRAL_SABAH_ROTASYON_ARAC": sahte if arac_ov is None else arac_ov,
+                     "_KRAL_SABAH_ROTASYON_KUTU": kutu_ov or ""}
+            rc, cikti = _a10_kos(kaynak_yol, gh, sd, ortam, ek_arg)
+            _, govde = _a10_spec(sd)
+            return rc, cikti, _a10_kayitlar(kayit_yol), govde
+
+        # --- A10a SIRA
+        rcA, cA, kA, gA = vaka("a")
+        gecA, ayrA = _a10_sira_hukmu(rcA, cA, kA, gA)
+        kayit(A10_KOLLARI[0], gecA, ayrA)
+
+        # --- A10b sahte arac rc=3
+        rcB, cB, kB, gB = vaka("b", rc_sahte="3")
+        sB = jeton(cB, "ROTASYON=")
+        kayit(A10_KOLLARI[1],
+              rcB >= 1 and sB.startswith("ROTASYON=OLCULEMEDI rc=3")
+              and jeton(cB, "SONUC_KOLU=").startswith("SONUC_KOLU=SPEC_VAR")
+              and gB is not None and "ROTASYON=OLCULEMEDI rc=3" in gB,
+              "rc=%d | %s | spec_var=%d" % (rcB, sB[:70], int(gB is not None)))
+
+        # --- A10c arac YOK (var olmayan yol)
+        rcC, cC, _, gC = vaka("c", arac_ov=os.path.join(td, "YOK-kutu-arsivle.py"))
+        sC = jeton(cC, "ROTASYON=")
+        kayit(A10_KOLLARI[2],
+              rcC >= 1 and sC.startswith("ROTASYON=OLCULEMEDI")
+              and gC is not None and "ROTASYON=OLCULEMEDI" in gC,
+              "rc=%d | %s | spec_var=%d" % (rcC, sC[:70], int(gC is not None)))
+
+        # --- A10d fikstur korumasi: enjekte kutu YOK -> --kuru
+        _, cD, kD, _ = vaka("d", kutu_ov="")
+        argvD = kD[0]["argv"] if kD else []
+        kayit(A10_KOLLARI[3],
+              len(kD) == 1 and "--kuru" in argvD and "kip=KURU_FIKSTUR" in cD,
+              "cagri=%d argv=%s" % (len(kD), " ".join(argvD)[-90:]))
+
+        # --- A10e --kuru bayragi
+        _, cE, kE, _ = vaka("e", ek_arg=("--kuru",))
+        argvE = kE[0]["argv"] if kE else []
+        kayit(A10_KOLLARI[4], len(kE) == 1 and "--kuru" in argvE and "kip=KURU " in cE,
+              "cagri=%d argv=%s" % (len(kE), " ".join(argvE)[-90:]))
+
+        # --- A10f GERCEK arac, kum kutusu (404 satir) -> tavan 300 ile iner
+        buyuk = os.path.join(td, "a10-kum-buyuk.md")
+        with open(buyuk, "w", encoding="utf-8") as f:
+            f.write("\n".join(
+                "## 2026-08-%02d 10:0x — A10 kum notu %d\na\nb\nc\nd\ne\nf\ng\n" % (
+                    1 + i % 28, i) for i in range(45)))
+        with open(buyuk, encoding="utf-8") as f:
+            once = sum(1 for _ in f)
+        sdF = os.path.join(td, "spec-f")
+        os.makedirs(sdF, exist_ok=True)
+        rcF, cF = _a10_kos(taban, gh, sdF, {"_KRAL_SABAH_ROTASYON_KUTU": buyuk})
+        with open(buyuk, encoding="utf-8") as f:
+            sonra = sum(1 for _ in f)
+        sF = jeton(cF, "ROTASYON=")
+        kayit(A10_KOLLARI[5],
+              rcF == 0 and sF.startswith("ROTASYON=OK") and "tavan=300" in sF
+              and "kip=YAZ" in sF and sonra < once and sonra <= 300
+              and os.path.isfile(os.path.join(td, "a10-kum-buyuk-arsiv.md")),
+              "rc=%d kum_kutu %d -> %d satir | %s" % (rcF, once, sonra, sF[:90]))
+
+        # --- A10g/h MUTANT (izole kopya; taban ile TEK fark cagri satiri)
+        adet = kaynak.count(A10_CAGRI_CAPA)
+        kayit(A10_KOLLARI[6], adet == 1, "capa_adedi=%d" % adet)
+        if adet != 1:
+            kayit(A10_KOLLARI[7], None, "capa yok -> mutant KOSTURULAMADI")
+            return
+        mutant = os.path.join(td, "kral-sabah-mutant-a10.py")
+        with open(mutant, "w", encoding="utf-8") as f:
+            f.write(kaynak.replace(A10_CAGRI_CAPA, A10_CAGRI_YAMA, 1))
+        rcM, cM, kM, gM = vaka("m", kaynak_yol=mutant)
+        gecM, ayrM = _a10_sira_hukmu(rcM, cM, kM, gM)
+        kayit(A10_KOLLARI[7], gecA and not gecM,
+              "taban_yuklem=%s | mutant_yuklem=%s (%s)" % (gecA, gecM, ayrM))
+
+
+def _genel_rotasyon_kumu():
+    """A2/A3/A5 kurulu araci CIPLAK kosar: rotasyon kutusu kuma yonlenir.
+
+    Gercek kutuya yazan TEK kip bayraksiz uretim kosumudur; batarya o kipi
+    (A2/A5) kosarken gercek kutuyu ROTASYONA SOKMAZ. Kum, sureç cikisinda silinir.
+    """
+    import atexit
+    td = tempfile.mkdtemp(prefix="sabah-kabul-rotkum-")
+    atexit.register(shutil.rmtree, td, True)
+    kutu = os.path.join(td, "sabah-kabul-kum-kutu.md")
+    with open(kutu, "w", encoding="utf-8") as f:
+        f.write("## 2026-01-01 — sabah-kabul kum kutusu\nkum\n")
+    os.environ["_KRAL_SABAH_ROTASYON_KUTU"] = kutu
+    print("ROTASYON_KUMU=%s" % kutu)
+
+
 def main(argv=None):
     # 🔴 CAKISMA COZUMU (27 Agu 2026, KraL-DogrulaMerge-27Agu) — BIRLESIM, taraf
     # secimi DEGIL. Iki dal main()'e AYRI birer bayrak ekledi ve bayraklar AYRI
@@ -1437,10 +1652,11 @@ def main(argv=None):
     # (hicbir git nesnesinde yoktu) -> CI onlari HIC kosmuyordu ve `kur.py`
     # KOPYA_AYRISIK ile duruyordu. A8 hermetiktir (enjekte `gh` + gecici spec
     # dizini); A9'un A9-1 kolu CANLI defteri okur, o yuzden A9 CI'ya baglanmaz.
-    ap.add_argument("--vaka", choices=("A7", "A8", "A9"), default=None,
+    ap.add_argument("--vaka", choices=("A7", "A8", "A9", "A10"), default=None,
                     help="YALNIZ bu vakayi kos (A7: kurucu idempotensi, hermetik "
                          "sahte CRON dizini · A8: ucuncu kova, enjekte gh · A9: "
-                         "tavan freni; A1/A6/A2 KOSULMAZ)")
+                         "tavan freni · A10: kutu rotasyonu spec'ten once, "
+                         "hermetik; A1/A6/A2 KOSULMAZ)")
     ap.add_argument("--arac", default=None, metavar="YOL",
                     help="olculecek kral-sabah.py (varsayilan: kurulu kopya "
                          "~/.claude/cron/kral-sabah.py). Dalin KENDI dosyasini "
@@ -1457,6 +1673,8 @@ def main(argv=None):
     print("OLCULEN_ARAC=%s (%s)" % (
         ARAC, "BAYRAKLA" if args.arac else "VARSAYILAN/kurulu"))
     print("SPEC_DIZINI=%s" % SPEC_DIZINI)
+    # 🔴 5 Eki: bataryanin HICBIR kosumu gercek kutuyu rotasyona sokmaz.
+    _genel_rotasyon_kumu()
 
     # 🔴 ARAC SARTI VAKAYA BAGLI (16 Eyl 2026). A7 kurucuyu (`kur.py`) olcer ve
     # sentetik tabanda kosar; A8 `kral-sabah.py` KAYNAGINI `--arac` ile alir.
@@ -1474,6 +1692,8 @@ def main(argv=None):
         a8_ucuncu_kova()
     elif args.vaka == "A9":
         a9_tavan_freni()
+    elif args.vaka == "A10":
+        a10_rotasyon()
     else:
         a1_ortam()
         # A6/A7 CANLI DUZLEME YAZMAZ (yalniz gecici dizin + salt-okuma) -> her fazda.
@@ -1484,6 +1704,8 @@ def main(argv=None):
         # A9 CANLI DUZLEME YAZMAZ (build_spec/tavana_indir DOGRUDAN cagrilir, ek
         # dosya gecici dizine yazilir) -> her fazda.
         a9_tavan_freni()
+        # A10 hermetik (A8 kumu + enjekte araç/kutu) -> her fazda.
+        a10_rotasyon()
         if args.faz == "tam":
             a2_gercek_kosum()
             a3_a4_sonuc_kolu()
