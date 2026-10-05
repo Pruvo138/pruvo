@@ -13,7 +13,7 @@
 NEDEN VAR — OLCULEN PENCERE (iddia degil; ham sayilar muhendis raporunda)
 ════════════════════════════════════════════════════════════════════════════════════
 Katalog iki ayri yerde yayinlanir ve bu ikisi AYNI ANDA olmaz:
-  * D1 (Ege'nin okudugu yer): `.git/hooks/pre-push` d1-sync'i push'tan ONCE kosar.
+  * D1 (site aramasinin (/ara) okudugu yer): `.git/hooks/pre-push` d1-sync'i push'tan ONCE kosar.
   * /urun/<id>/ (musterinin tikladigi sayfa): GitHub Actions'in SONUNDA yayinlanir.
 OLCUM (31 Tem, gh api, son 8 basarili kosum): push -> canli MEDYAN 593 sn (9,9 dk),
 min 395 sn, max 740 sn. CI KIRMIZI olursa pencere kirmizi kaldigi surece SURER:

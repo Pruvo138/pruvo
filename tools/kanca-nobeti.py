@@ -7,7 +7,7 @@
 kancasi kosmadi —
   * pre-commit urun GUARD'i + mukerrer kontrolu + mimar kod-kilidi,
   * pre-push YEDEK blogu + posta kutusu ARSIVLEYICISI,
-  * ve en pahalisi pre-push D1 SENKRONU (Ege urunleri D1'DEN okur; senkron kosmazsa
+  * ve en pahalisi pre-push D1 SENKRONU (site aramasi (/ara) urunleri D1'DEN okur; senkron kosmazsa
     site yeni urunu gosterir, EGE GOREMEZ = sessiz satis kaybi; bu sinifta 367
     urunluk kayip zaten olculdu).
 Olay SESSIZDI: hicbir kapi kirmizi yakmadi, tek belirti "posta kutusu budanmamis"
