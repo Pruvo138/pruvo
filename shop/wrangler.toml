@@ -161,6 +161,7 @@ enabled = true
 #   npx wrangler secret put URETIM_API_ANAHTAR  # OKAN KAPISI: ucretli plan API anahtari
 #   npx wrangler secret put URETIM_API_TABAN    # uc tabani (https://.../openapi) — degeri defterde DEGIL
 #   npx wrangler secret put URETIM_TUR_ONEK     # tur yolu oneki (tek kelime) — degeri defterde DEGIL
+#   npx wrangler secret put URETIM_TUR_PLAKET   # plaket = saglayicinin duz tabanli kabartma turunun yol parcasi — degeri defterde DEGIL
 #   Ucu de tanimli degilse bolum KAPALI kalir (fail-closed); /yonet "Fotoğraf üretim" sekmesi eksigi yazar.
 # Opsiyonel canli-kabul (dogrulama bitince SILINIR — normalde TANIMLI DEGIL):
 #   npx wrangler secret put META_TEST_EVENT_CODE  # Meta Test Events sekmesindeki kod (TESTxxxxx)

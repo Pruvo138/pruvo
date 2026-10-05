@@ -1589,9 +1589,14 @@ jobs:
       # bildirim, /baslat foto kalemi sunucu fiyati, odeme DOGRULANMADAN uretim yok, analiz
       # kirmiziysa renk adimi yok, saglayici adi calisma agacinda 0. D1 = GERCEK SQLite
       # (sema tools/d1-sema.sql'den; kopru shop/test/ortak/sqlite-koprusu.py -> python3).
-      # Mutantlar (M1 sinir · M2 bot · M3 analiz · K0 kontrol) ayni dosyada kosar.
+      # Mutantlar (M1 sinir · M2 bot · M3 analiz · M4 tur · M5 ayak · K0 kontrol) ayni
+      # dosyada kosar. PLAKET (21:4x(b)): sunulan tur 1, anahtarlik/magnet RED, tek turde tur
+      # adimi gorunmez (bolum dosyasi sahte DOM'da kosar). Ana sayfa bolum SOZLESMESI (yer,
+      # beyaz liste, durustluk, tur listesi) ikinci satirda.
       - name: Fotograftan ozel uretim kabul testi (onizleme + odeme + uretim zinciri)
-        run: node shop/test/foto-uretim.mjs
+        run: |
+          node shop/test/foto-uretim.mjs
+          python3 tools/foto-uretim-bolum-test.py
 
       # REKLAM ATIF HALKASI (K99, 25 Agu 2026) — "bu siparis hangi reklamdan geldi"
       # sorusunun D1'den cevaplanabilir kaldigini olcer. SESSIZ-HATA SINIFI, PARA:

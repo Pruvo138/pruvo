@@ -736,10 +736,12 @@ async function liste(env, url) {
       // FOTO KALEMI: katalog sayfasi/kaynak/Drive yok; dosya bizim ozel kovamizdan gelir.
       if (k.foto_is) {
         kayit.urun_url = "";
-        kayit.baski_oneri = "PLA · 4 renk (AMS) — 3MF'deki renk ayrımıyla bas; ölçü " +
-          (k.olcu_mm || "?") + " mm.";
         kayit.uretim_kaynaklari = [];
         kayit.foto = panelFotoKaydi(s.siparis_no, i, k, fotoHarita);
+        // AYAK UNUTULMASIN: plaket basina ayak, plaketle AYNI plakada basilir (ayri parca).
+        kayit.baski_oneri = "PLA · 4 renk (AMS) — 3MF'deki renk ayrımıyla bas; ölçü " +
+          (k.olcu_mm || "?") + " mm. + AYAK: " + kayit.foto.ayak * (k.adet || 1) +
+          " adet (plaket başına " + kayit.foto.ayak + ", aynı plakada).";
         return kayit;
       }
       // Yerel yazdir.py + tarayici indirme uclari (anahtar sayfa URL'inden eklenir).
@@ -2612,6 +2614,7 @@ function fotoSatirHtml(f){
   '<a class="indir" href="'+esc(f.dosyalar.glb)+'">GLB indir</a>':
   '<span class="yok">üretim dosyası henüz yok</span>';
  return '<div class="kaynak">📸 Fotoğraftan üretim · '+esc(f.tur)+' · '+esc(f.olcu_mm)+' mm · '+
+  '<b>ayak: '+esc(f.ayak)+'</b> · '+
   '<b>'+esc(FOTO_ASAMA[f.asama]||f.asama)+'</b>'+
   (f.sebep?' — <span class="hata">'+esc(f.sebep)+'</span>':'')+'</div>'+
   (f.analiz?'<div class="kucuk">Analiz: '+esc(f.analiz)+'</div>':'')+
@@ -2920,9 +2923,10 @@ async function fotoYukle(){
   '<table class="kucuk"><tr><th>Tür</th><th>Ölçü (mm)</th><th>Fiyat</th></tr>'+
   (o.fiyatlar||[]).map(function(f){return '<tr><td>'+esc(f.tur)+'</td><td>'+esc(f.olcu_mm)+'</td><td>'+
    tl(f.fiyat_kurus)+'</td></tr>';}).join("")+'</table>'+
-  '<div class="ust"><select id="fotoTur"><option value="anahtarlik">anahtarlık</option>'+
-  '<option value="magnet">magnet</option></select>'+
-  '<input id="fotoOlcu" type="number" placeholder="ölçü mm" style="width:90px">'+
+  // Tür seçenekleri SUNUCUDAN (sunulan türler); elle yazılmış tür listesi YOK.
+  '<div class="ust"><select id="fotoTur">'+(o.sunulan_turler||[]).map(function(t){
+   return '<option value="'+esc(t.kod)+'">'+esc(t.ad)+'</option>';}).join("")+'</select>'+
+  '<input id="fotoOlcu" type="number" placeholder="ölçü mm ('+esc(o.olcu_en_az)+'–'+esc(o.olcu_en_cok)+')" style="width:140px">'+
   '<input id="fotoFiyat" type="number" placeholder="fiyat TL (0 = kaldır)" style="width:150px">'+
   '<button id="fotoFiyatKaydet">Kaydet</button></div></div>');
  kutu.innerHTML=h.join("");

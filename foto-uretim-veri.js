@@ -50,19 +50,17 @@
       ]
     },
 
-    // TÜRLER — ilk dilim anahtarlık + magnet (ölçü mm ile verilir). Figür ikinci dilimdir.
+    // TÜRLER — açılışta TEK tür: kabartma PLAKET (Okan, 5 Eki 21:4x: "plaket yapalım";
+    // yalnız plastik üretiyoruz — metal halka/mıknatıs gerektiren tür SUNULMAZ). Ölçü = uzun
+    // kenar (mm). Ayak ayrı parça, plaketle birlikte basılıp gönderilir. Figür ikinci dilimdir.
+    // Tek tür varken bölümde tür seçimi adımı GÖRÜNMEZ (fotoğraf → ölçü → önizleme → ödeme).
     // Ölçü SEÇENEKLERİ ve fiyatı burada DEĞİL: sipariş panelindeki fiyat tablosundan gelir
     // (tür × ölçü). Tabloda satırı olmayan ölçü sunulmaz.
     turler: [
       {
-        kod: "anahtarlik",
-        ad: "Anahtarlık",
-        aciklama: "Fotoğrafındaki konunun kabartmalı, halkalı anahtarlığı."
-      },
-      {
-        kod: "magnet",
-        ad: "Buzdolabı magneti",
-        aciklama: "Fotoğrafındaki konunun kabartmalı magneti; arkasında mıknatıs."
+        kod: "plaket",
+        ad: "Kabartma plaket",
+        aciklama: "Fotoğrafındaki konunun kabartmalı plaketi; ayağıyla masada durur."
       }
     ],
 

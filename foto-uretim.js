@@ -437,7 +437,8 @@
     }
     adim(1, "Fotoğraf yükle");
     cubuk.appendChild(el("span", "foto-uretim-adim-ok", "→"));
-    adim(2, "Tür ve ölçü");
+    // Tek tür sunuluyorsa tür seçimi YOK: adım yalnız ölçüdür.
+    adim(2, F.turler.length > 1 ? "Tür ve ölçü" : "Ölçü");
     cubuk.appendChild(el("span", "foto-uretim-adim-ok", "→"));
     adim(3, "Önizleme");
     cubuk.appendChild(el("span", "foto-uretim-adim-ok", "→"));
@@ -525,6 +526,13 @@
 
   function doldurS1Tur() {
     while (S.alanTur.firstChild) S.alanTur.removeChild(S.alanTur.firstChild);
+    // TEK TÜR: seçim adımı çizilmez (radyo düğmesi 0), tür kendiliğinden seçilir.
+    if (S.acikVeri.turler.length === 1) {
+      S.tur = S.acikVeri.turler[0].kod;
+      S.alanTur.hidden = true;
+      return;
+    }
+    S.alanTur.hidden = false;
     S.alanTur.appendChild(el("label", "foto-uretim-form-etiket", "Tür"));
     for (var i = 0; i < S.acikVeri.turler.length; i++) {
       var t = S.acikVeri.turler[i];
@@ -556,8 +564,13 @@
 
   function doldurS1Olcu() {
     while (S.alanOlcu.firstChild) S.alanOlcu.removeChild(S.alanOlcu.firstChild);
-    S.alanOlcu.appendChild(el("label", "foto-uretim-form-etiket", "Ölçü"));
     var nt = seciliTurBul();
+    var tekTur = S.acikVeri.turler.length === 1;
+    S.alanOlcu.appendChild(el("label", "foto-uretim-form-etiket",
+      tekTur && nt ? nt.ad + " — ölçü (uzun kenar)" : "Ölçü"));
+    if (tekTur && nt && nt.aciklama) {
+      S.alanOlcu.appendChild(el("p", "foto-uretim-ayrinti", nt.aciklama));
+    }
     if (!nt || !nt.olculer || !nt.olculer.length) {
       S.alanOlcu.appendChild(el("p", "foto-uretim-ayrinti",
         "Bu tür için ölçü seçeneği yok."));
@@ -578,7 +591,8 @@
           guncelleS1Buton();
         });
       })(o.mm);
-      ek(lbl, " ");
+      // Radyo düğmesi etikete EKLENİR (eksikti: ölçü seçilemiyor, hep ilk ölçü gidiyordu).
+      ek(lbl, inp, " ");
       ek(lbl, o.mm + " mm — " + tlMetni(o.fiyat_kurus));
       S.alanOlcu.appendChild(lbl);
     }
@@ -724,7 +738,7 @@
             cizS3();
           });
         })(o.mm);
-        ek(lbl, " ");
+        ek(lbl, inp, " ");
         ek(lbl, o.mm + " mm — " + tlMetni(o.fiyat_kurus));
         olcuG.appendChild(lbl);
       }

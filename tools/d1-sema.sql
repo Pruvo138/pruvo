@@ -605,7 +605,7 @@ CREATE TABLE IF NOT EXISTS reklam_oci_kuyruk (
 -- Tablolar yoksa (bu dosya canliya henuz uygulanmadi) bolum KAPALI davranir (fail-closed).
 CREATE TABLE IF NOT EXISTS foto_isler (
   is_no        TEXT PRIMARY KEY,           -- 32 hex, tahmin edilemez (musterinin onizleme anahtari)
-  tur          TEXT NOT NULL,              -- 'anahtarlik' | 'magnet'
+  tur          TEXT NOT NULL,              -- 'plaket' (sunulan turler: shop/src/foto.js TUR_ORTAM)
   olcu_mm      INTEGER NOT NULL DEFAULT 0, -- onizleme istenirken secilen olcu
   ziyaretci    TEXT NOT NULL,              -- tuzlu sha256(ip) ilk 16 hex
   tarih        TEXT NOT NULL,              -- ISO 8601 UTC (deneme ani)
