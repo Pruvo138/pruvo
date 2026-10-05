@@ -2272,7 +2272,7 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
     ONUNE koymasi gerekirken TERSINE cevirdi.
     COZUM: mevcut_seq verilmisse, her "yeni" id icin dizide ondan ONCE (HEAD tarafinda)
     duran, D1'de HALA BILINEN (mevcut_seq'te olan) bir komsu var mi diye PASS A ile
-    bakilir. Yoksa (gercekten tepede) eski davranis (sonraki=mseq+1, ...) AYNEN kalir.
+    bakilir. Yoksa (gercekten tepede) tepe kolu (K434: sonraki=mseq+SEQ_ADIM, ...) kosar.
     Varsa, bu "yeni" id GERCEKTE mid-array'dir -> iki komsu arasindaki TAM SAYI orta
     nokta kullanilir. Tam sayi araligi kalmadiysa kesir uretmek YASAKTIR; arac fail-loud
     durur ve `--seq-normalize` ister.
@@ -2351,9 +2351,20 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
         if eski_h is None:
             ust = ust_sinir.get(uid)
             if ust is None:
-                # Gercekten tepede (D1'de bilinen hicbir HEAD-tarafi komsu yok) -> eski
-                # davranis: katalogun ustune bas (sonraki=mseq+1, +2, ...).
-                sonraki += 1
+                # Gercekten tepede (D1'de bilinen hicbir HEAD-tarafi komsu yok) -> katalogun
+                # ustune bas, ama SEYREK: sonraki = mseq + SEQ_ADIM, +2*SEQ_ADIM, ...
+                # 🔴 K434 (4 Eki gecesi, olculdu): eski kol `sonraki += 1` idi -> tepe
+                # partileri ARDISIK tam sayi aliyordu (canli D1 5 Eki: tepe 50 urun
+                # 39152000001..050, aralarinda bosluk 1). Dosya sirasi != D1 yazim sirasi
+                # oldugunda (eszamanli >=3 parti: ustteki parti ONCE senkronlanir) alttaki
+                # parti iki ardisik komsu arasinda mid-array'e duser -> `SEQ TAM SAYI
+                # ARALIGI TUKENDI` -> push ~40 dk kilitlendi. Kilit-ici `--seq-normalize`
+                # SECILMEDI: her olayda tum katalogu (~39K satir = gunluk 100K D1 yazma
+                # kotasinin ~%39'u, PARCA=400 ile ~99 wrangler cagrisi) push kancasi ICINDE
+                # yeniden yazardi. Seyrek tepe 0 ek yazim ister, kilit duzlemine dokunmaz;
+                # tepe tukenmesi normalize'in urettigi bosluk (SEQ_ADIM) kadar genistir.
+                # Tavan: JS guvenli tam sayi 2**53 ~ 9e15 -> ~9e9 tepe eklemesi (pratikte sinirsiz).
+                sonraki += SEQ_ADIM
                 atanan = sonraki
             else:
                 # MID-ARRAY yeni id (rename / araya sikisma): yalniz TAM SAYI.
@@ -3465,7 +3476,10 @@ def _kt_seyrelt(conn):
     Canli katalog normalize edilmis, yani SEYREKTIR (en dusuk seq = 1.000.000); bu yuzden
     kuyruk eklemesini FIILEN olcen fiksturler once seyreltilir. Seyreltme iddialari
     GEVSETMEZ — aksine olculmek istenen ekseni (bayatlik kapisi) seq kolunun golgesinden
-    cikarir; yogun tabloda kapi HIC olculmeden once cikilir."""
+    cikarir; yogun tabloda kapi HIC olculmeden once cikilir.
+    K434 (5 Eki): tepe kolu artik `mseq+SEQ_ADIM` verdigi icin bootstrap zaten seyrek
+    dogar; seyreltme zararsizdir (olcek x SEQ_ADIM, tam sayi + sira korunur) ve fiksturlerin
+    anlamini degistirmemek icin YERINDE birakildi."""
     conn.execute("UPDATE urunler SET seq = seq * %d" % SEQ_ADIM)
     conn.commit()
 

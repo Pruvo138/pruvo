@@ -161,8 +161,8 @@ def main():
     dogrula("RENAME: 2 yeni satir (head-new GERCEK tepede + anka-kusu mid-array rename)",
             len(yr) == 2, "yeni=%d" % len(yr))
     seqler = seq_haritasi(yr)
-    dogrula("RENAME: gercekten tepedeki urun (head-new) seq eski davranisla AYNI (mseq+1=101)",
-            seqler.get("head-new") == 101, str(seqler))
+    dogrula("RENAME: gercekten tepedeki urun (head-new) seq tepe kolundan (K434: mseq+SEQ_ADIM)",
+            seqler.get("head-new") == 100 + d1.SEQ_ADIM, str(seqler))
     dogrula("RENAME: mid-array (anka-kusu) seq katalogun TEPESINE SICRAMAZ — gercek "
             "komsulari (tail-old=90, yarasa=100) ARASINDA kalir",
             90 < seqler.get("anka-kusu", -1) < 100, str(seqler))
@@ -179,8 +179,9 @@ def main():
     yr_legacy, _, _, _, _ = d1.diff_plan(urunler_r, mevcut_r, {}, False, 100)  # mevcut_seq YOK
     seqler_legacy = seq_haritasi(yr_legacy)
     dogrula("mevcut_seq verilmezse eski (hatali) davranis KORUNUR (geriye-donuk uyum + "
-            "regresyon kaniti: anka-kusu=101 yarasa'nin=100 USTUNE cikar -> TAM olculen hata)",
-            seqler_legacy.get("anka-kusu") == 101 and seqler_legacy.get("head-new") == 102,
+            "regresyon kaniti: anka-kusu=mseq+SEQ_ADIM yarasa'nin=100 USTUNE cikar -> TAM olculen hata)",
+            seqler_legacy.get("anka-kusu") == 100 + d1.SEQ_ADIM and
+            seqler_legacy.get("head-new") == 100 + 2 * d1.SEQ_ADIM,
             str(seqler_legacy))
 
     # --- satir_sql: baski INSERT VALUES'ta AMA ON CONFLICT SET'te DEGIL (CI ezemesin) ---
