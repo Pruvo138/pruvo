@@ -91,7 +91,9 @@ function jsonGom(kaynak, etiket) {
 }
 
 const KOK_DOSYALAR = ["secenekler.js", "konfigur.js",
-                      "jenerator/konfigurator.js", "jenerator/hacim.js"];
+                      "jenerator/konfigurator.js", "jenerator/hacim.js",
+                      // shop/src/foto.js'in tek kaynak veri dosyasi (`../../` ile cagrilir).
+                      "foto-uretim-veri.js"];
 // 🔴 `.mjs` DE ALINIR (31 Agu 2026): ayna shop/src'in TAMAMINI temsil etmeli;
 // `.js` suzgeci shop/src/kanal-sinif.mjs'i disarida birakip yonet.js'i dusuruyordu.
 const SRC_DOSYALAR = fs.readdirSync(SRC).filter((a) => /\.m?js$/.test(a));

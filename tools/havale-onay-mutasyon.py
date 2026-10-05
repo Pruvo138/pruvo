@@ -99,7 +99,7 @@ MUTANTLAR = [
 #    (shop/src/konfigur.js kok konfigur.js'i `../../konfigur.js` diye import eder).
 #  * tools/d1-sema.sql + tools/d1-sync.py: (h) SEMA PARITESI iddiasi bu iki dosyayi OKUR;
 #    eksikse test exit 3 (OLCULEMEDI) verir ve taban ayna kirmizi olur.
-AYNA_AGACI = ("shop", "jenerator", "secenekler.js", "konfigur.js", "package.json",
+AYNA_AGACI = ("shop", "jenerator", "secenekler.js", "konfigur.js", "foto-uretim-veri.js", "package.json",
               os.path.join("tools", "d1-sema.sql"), os.path.join("tools", "d1-sync.py"))
 
 

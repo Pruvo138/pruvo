@@ -29,10 +29,15 @@
  *         — ayni yonetim anahtarinin arkasinda, SILMEZ: yalniz hal='hata' -> 'kapandi'
  *         damgasi (deger/sebep/ts dokunulmaz). Kurallari shop/test/urunler-panel.mjs
  *         O bolumunde olculur; burada YALNIZ kol sayilir.
+ *   26  — 5 Eki 2026 (Okan karari, fotograftan ozel uretim): GET /foto-dosya (3MF/GLB/
+ *         onizleme indirme), GET /foto-ozet (tur basina sayim + kredi), POST /foto-fiyat
+ *         (fiyat tablosu) — ucu de ayni yonetim anahtarinin ARKASINDA, EGE_ANAHTAR acamaz.
+ *         ⚠️ /foto-dosya'nin Content-Disposition'i shop/src/foto.js'te durur; CD_TABANI
+ *         yalniz yonet.js'i saydigi icin DEGISMEDI (sayacin menzili yonet.js'tir).
  */
 
 /** `altYol === "` yonlendirici kolu sayisi — yetki yuzeyi genisledi mi? */
-export const KOL_TABANI = 23;
+export const KOL_TABANI = 26;
 
 /** `Content-Disposition` gecisi — yeni indirme/proxy/zip akisi acildi mi? */
 export const CD_TABANI = 2;
