@@ -1126,6 +1126,13 @@ jobs:
       - name: Veri koku mutant bataryasi
         run: python3 tools/veri-kok-test.py --mutasyon
 
+      # TEST YUKU KACAGI (6 Eki): denetim-kapisi --kendini-test onay bataryasi miras
+      # PRUVO_VERI_KOK ile GERCEK kataloga yazdi (mutant M1 ~1.192 kayit sildi). Kabul:
+      # miras sahte kok / kok yok -> sahte kok sha DEGISMEZ · test kumu sigortasi (kum disi
+      # hedef ve olu ebeveyn) duzelt.py'yi durdurur · 4 mutant (KACAK/PIN/SIGORTA/EBEVEYN).
+      - name: Test yuku kacak sigortasi kabul + mutant
+        run: python3 tools/denetim-kapisi-kacak-test.py
+
       # MUKERRER PRECOMMIT KAPSAMI: mukerrer-kontrol.py --pre-commit'in calisma agacini
       # DEGIL commit icerigini (index/HEAD) yargiladigini ve okunamazsa fail-closed eski
       # davranisa dustugunu kanitlar (5 iddia). Bloklayici: kapsam calisma agacina kayarsa
