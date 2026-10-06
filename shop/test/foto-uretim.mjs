@@ -238,8 +238,17 @@ const env = envKur(d1, r2);
 console.log("A) KAPALI-VARSAYILAN (bugunku veri dosyasi)");
 {
   const y = foto.yapilandirma(env);
-  ol("A1 onay metni onaysiz + gercek ornek 0 -> yapilandirma HAZIR DEGIL",
-     !y.hazir && y.eksik.includes("onay-metni-onayi") && y.eksik.includes("gercek-ornek"), JSON.stringify(y));
+  // Onay metni Okan'ca onaylandi (6 Eki); eksik listesi onay kolunu veri dosyasina gore yazar.
+  ol("A1 gercek ornek 0 -> yapilandirma HAZIR DEGIL (onay eksigi yalniz onaysizken listelenir)",
+     !y.hazir && y.eksik.includes("gercek-ornek") &&
+       y.eksik.includes("onay-metni-onayi") === (VERI.onay_onayli !== true), JSON.stringify(y));
+  // A1b: onay kapisi veri dosyasinin bugunku halinden BAGIMSIZ olculur (onaysiz -> eksik).
+  const onayOnce = VERI.onay_onayli;
+  VERI.onay_onayli = false;
+  const yb = foto.yapilandirma(env);
+  VERI.onay_onayli = onayOnce;
+  ol("A1b onay bayragi kapali -> eksik listesinde onay-metni-onayi VAR, hazir DEGIL",
+     !yb.hazir && yb.eksik.includes("onay-metni-onayi"), JSON.stringify(yb));
   const a = await istek(env, "/foto/acik");
   ol("A2 /foto/acik -> acik:false", a.kod === 200 && a.v && a.v.acik === false, JSON.stringify(a.v));
   const o = await istek(env, "/foto/onizleme", { govde: onizlemeGovde() });

@@ -27,7 +27,7 @@
     // önizleme/sipariş almaz. Metin değişirse `onay_surum` da değişir: sunucu, müşterinin
     // gördüğü sürümle buradaki sürüm aynı değilse isteği reddeder (eski sayfadan gelen onay
     // yeni metne sayılmaz).
-    onay_onayli: false,
+    onay_onayli: true, // Okan onayladı 6 Eki 2026 (metin taslak-1 ile birebir; değişirse sürüm de değişir)
     onay_surum: "2026-10-05-taslak-1",
     onay: {
       hak: "Yüklediğim fotoğrafın bana ait olduğunu ya da kullanma hakkım olduğunu beyan ederim.",
