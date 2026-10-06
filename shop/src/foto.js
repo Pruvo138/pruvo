@@ -47,7 +47,7 @@ if (!VERI) { throw new Error("foto-uretim-veri.js yuklenemedi — tur/ornek tek 
 export const TUR_ORTAM = { plaket: "URETIM_TUR_PLAKET" };
 /** Build adiminda olcu sinirlari (mm; plaketin uzun kenari) — fiyat satiri bu aralik disinda YAZILAMAZ. */
 export const OLCU_MM_EN_AZ = 50;
-export const OLCU_MM_EN_COK = 200;
+export const OLCU_MM_EN_COK = 300; // Okan 6 Eki: fiyat tablosu 60–300 mm (saglayici sinir 400)
 /**
  * PLAKET GEOMETRISI (herkese AYNI; ayak bu taban kalinligina gore yuvali uretilir — TeKiN).
  * Duz arka (kapali sirt), alt kenari duz sekil: masada ayakla durur. Model uzerinde DELME YOK.
