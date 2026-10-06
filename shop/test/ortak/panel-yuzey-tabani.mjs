@@ -34,10 +34,17 @@
  *         (fiyat tablosu) — ucu de ayni yonetim anahtarinin ARKASINDA, EGE_ANAHTAR acamaz.
  *         ⚠️ /foto-dosya'nin Content-Disposition'i shop/src/foto.js'te durur; CD_TABANI
  *         yalniz yonet.js'i saydigi icin DEGISMEDI (sayacin menzili yonet.js'tir).
+ *   31  — 6 Eki 2026 (BaBa, panel "Örnek üret" — Okan'in kendi fotografindan odemesiz
+ *         vitrin ornegi): POST /foto/ornek-onizleme, GET /foto/ornek-durum, GET
+ *         /foto/ornek-gorsel, POST /foto/ornek-uret, GET /foto/ornekler — besi de ayni
+ *         yonetim anahtarinin ARKASINDA (anahtarsiz 404), EGE_ANAHTAR acamaz. Ayrim ve
+ *         yetki kurallari shop/test/foto-uretim.mjs O bolumu + OM1..OM6 mutantlarinda
+ *         olculur; burada YALNIZ kol sayilir. Yeni indirme akisi YOK: ornek 3MF/GLB mevcut
+ *         /foto-dosya ucundan iner -> CD_TABANI DEGISMEDI.
  */
 
 /** `altYol === "` yonlendirici kolu sayisi — yetki yuzeyi genisledi mi? */
-export const KOL_TABANI = 26;
+export const KOL_TABANI = 31;
 
 /** `Content-Disposition` gecisi — yeni indirme/proxy/zip akisi acildi mi? */
 export const CD_TABANI = 2;
