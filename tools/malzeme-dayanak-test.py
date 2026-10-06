@@ -15,7 +15,8 @@ edemedigimiz bir sinifi metinde vaat etmek ticari beyan riskidir.
 
 TARANAN GOVDE KAYNAKLARI
   A) landing         : sayfalar.CONTENT_PAGES — govde + baslik + meta
-  B) ege-bilgi.md    : WhatsApp botu Ege'nin bilgi dosyasi (bot bu metni musteriye aktarir)
+  B) (EMEKLI, 6 Eki 2026) WhatsApp botunun bilgi dosyasi — bot emekli edilince dosya ve
+     onu ureten arac kaldirildi; kaynak harfi tarihsel atiflar bozulmasin diye bos kalir.
   C) statik-gorunur  : sss / gizlilik / hakkimizda / iletisim — GORUNUR metin
   D) statik-jsonld   : ayni 4 sayfanin JSON-LD bloklari (Google'in makineyle okudugu
                        acceptedAnswer metinleri). OLCULDU: sss/index.html'de
@@ -25,7 +26,7 @@ Rapor "kaynak: <ad>" kirilimiyla basar; hangi govdeden geldigi gorunur.
 
 ⚠️ DUZELTME (KraL tur-4): "JSON-LD main'de UYARI'ydi, burada KIRMIZI'ya katilastirildi"
   iddiasi YANLISTI. OLCULDU (main 16d24a67 gercek repo verisiyle kosuldu, cikti aynen):
-      "Taranan sayfa: 80 (+ ege-bilgi.md ek kaynak)"
+      "Taranan sayfa: 80 (+ <bot bilgi dosyasi> ek kaynak)"
   main JSON-LD'ye HIC bakmiyordu (ne UYARI ne KIRMIZI) ve 4 statik sayfayi hic taramiyordu.
   Yani C+D YENI yayin yuzeyleridir, var olan bir uyarinin katilastirilmasi DEGIL.
 
@@ -69,8 +70,8 @@ Nasil calisir
   Mutasyon: filamentler.json'dan YALNIZ {"ad":"PETG"} kaydini silmek kapiyi YESIL birakir.
   Sebep: taban jetonu bilesik addan da turer ("Karbon katkili (PETG-CF/PA-CF)" -> PETG).
   Neden kapatilmadi (OLCULDU): "taban yalniz kaydin kendi ciplak adindan turesin" kurali
-  ciplak PA'yi dayanaksiz yapar; ciplak PA bugun 3 govdede geciyor (sss gorunur + ayni
-  sayfanin JSON-LD'si + ege-bilgi.md; yazim "naylon"/"PA") -> kapi ANINDA KIRMIZI yanar ve
+  ciplak PA'yi dayanaksiz yapar; ciplak PA 21 Tem'de 3 govdede geciyordu (sss gorunur + ayni
+  sayfanin JSON-LD'si + o gunku bot bilgi dosyasi; yazim "naylon"/"PA") -> kapi ANINDA KIRMIZI yanar ve
   TUM EKIBIN yayini durur. "PA (naylon) satiyor muyuz?" sorusu Okan kapisidir, kodun
   turetebilecegi bir sey degil. Bu kor nokta ancak envanterde acik bir "ciplak ad" alani
   (or. {"ad":"PETG","ciplakSatilir":true}) veya Okan'in PA karari ile kapanir.
@@ -86,8 +87,8 @@ Nasil calisir
   Onceki turda "ayni satirda olumsuzlama varsa eslesmeyi ele" diye bir eleyici
   denenmisti; curutucu OLCTU: "- PC ile üretim yok; ama isterse müşteriye PEEK ile
   üretip gönderiyoruz." satiri eleyiciyle YESIL yaniyordu — duz bir ticari vaat
-  KACIYORDU. Eleyici GELMEDI. Olculdu (21 Tem, main HEAD 16d24a67): bugunku
-  ege-bilgi.md'nin yasak listesi (NBR / FKM-Viton / EPDM / silikon / metal / cam)
+  KACIYORDU. Eleyici GELMEDI. Olculdu (21 Tem, main HEAD 16d24a67): o gunku
+  bot bilgi dosyasinin yasak listesi (NBR / FKM-Viton / EPDM / silikon / metal / cam)
   LEKSIK sozlukte GECMIYOR -> haksiz kirmizi YOK, eleyiciye ihtiyac YOK.
   Fikstur F4 bu karari kalici olarak kilitler (eleyici geri gelirse KIRMIZI).
 
@@ -101,35 +102,34 @@ Nasil calisir
     (kaynagi koddan SILEN mutasyonun nobeti; icerik BOYUTU kapinin isi degil).
   - BEKLENEN_JSONLD sayfasinin blogu kaybolursa UYARI (bloklamaz).
   - SIZINTI kapsami AD BAZLI (tur-6): kod tarafindan URETILEN iki DEGISMEZ cikti
-    (public /filament-veri.js govdesi + ege-malzeme.py blogu) ZORUNLU; landing
+    (public /filament-veri.js govdesi; bot blogu 6 Eki'de emekli) ZORUNLU; landing
     /malzeme-rehberi/ ciktisi kaybolursa UYARI. Bkz. ZORUNLU_SIZINTI_CIKTILARI,
     sizinti_kapsam(), fiksturler F12c + F20a-F20d; varlik davranisi D4 ile uctan uca.
 
-DRIFT NOBETI: tools/ege-malzeme.py'nin BELLEKTE urettigi blok, ege-bilgi.md'deki
-isaretciler arasindaki blokla BIREBIR ayni olmali. filamentler.json degisip
-ege-bilgi.md guncellenmezse bot sessizce bayatlar -> KIRMIZI. (Dosyaya YAZILMAZ.)
-Fikstur F18 bu nobeti UCTAN UCA kilitler (gecici dizinde sahte ege-malzeme.py + sahte
-ege-bilgi.md): taze blok YESIL, bayat blok KIRMIZI, dosya/modul yoksa fail-closed.
+DRIFT NOBETI EMEKLI (6 Eki 2026): bot bilgi dosyasi ile onu filamentler.json'dan ureten
+arac WhatsApp botuyla birlikte kaldirildi; karsilastirilacak ikinci kopya kalmadi.
+Nobetin fiksturleri (F11, F18, D7) ve kablosu (K10) ayni turda kalkti.
 
 SIZINTI KAPISI: "_dayanakMalzemeler" kayitlari satis kalemi DEGILDIR ->
 "satista": false zorunlu, "tedarik" zorunlu, fiyat/katsayi/site alani YASAK
 (Okan'in kilitli katsayi listesi disina cikilmaz). "_" onekli anahtar oldugu icin
 build.py'nin urettigi public /filament-veri.js'e TASINMAZ ve ref["filamentler"]
-uzerinde donen tum ureticiler (urun sayfasi cipleri, /malzeme-rehberi/,
-tools/ege-malzeme.py) bu kayitlari GORMEZ -> ege-bilgi.md byte-ozdes kalir.
+uzerinde donen tum ureticiler (urun sayfasi cipleri, /malzeme-rehberi/) bu
+kayitlari GORMEZ.
 
 IC NOBETCI (--ic-nobetci ile tek basina da kosar; normal kosumda da HER SEFER calisir):
 Bu kapinin KENDI davranislarini bellekte-fikstur ile kilitler (BEKLENEN_KONTROL_SAYISI
 kontrol). Sebep: gercek veri zaten temiz oldugu icin, kapinin kodundan bir yetenegi
 (kara liste / JSON-LD taramasi + hata mesajindaki SLUG / dayanak TAM-AD kapsami / dayanak
-alan dogrulamasi / negatif-eleyici YOKLUGU / kaynak kapsami / DRIFT nobeti) SILEN bir
+alan dogrulamasi / negatif-eleyici YOKLUGU / kaynak kapsami) SILEN bir
 mutasyon gercek veride YESIL kalirdi. Fikstur nobetcileri o mutasyonlari oldurur.
 OLCULDU (tur-4, mutasyon KOPYAYA uygulandi — canli dosyaya DEGIL): 9 mutasyonun 9'u
 olduruldu; V6 (yukarida adiyla yazili kor nokta) beklendigi gibi hayatta kaldi.
 OLCULDU (tur-6, KOPYADA): 11 mutasyonun 10'u olduruldu + 1 mesru degisim (landing slug'i)
 dogru sekilde YESIL+UYARI verdi.
 
-🔌 KABLO NOBETI — DAVRANIS FIKSTURLERI D1-D9 (tur-7 acti, tur-8 tekil kablolara indi)
+🔌 KABLO NOBETI — DAVRANIS FIKSTURLERI D1-D12 (tur-7 acti, tur-8 tekil kablolara indi;
+  D7 drift fiksturu 6 Eki 2026'da drift nobetiyle birlikte emekli — numara bos kalir)
   Ic nobetci fonksiyonlari TEK TEK kilitler ama onlari EXIT KODUNA/RAPORA baglayan
   kablolar nobetsizdi — OLCULDU: "kapsam_hata.extend(s_hata)" -> "extend([])" TEK JETON
   mutasyonu 49/49 fiksturu YESIL birakiyordu; tur-8'de curutucu 3 kablo daha olctu
@@ -138,13 +138,13 @@ dogru sekilde YESIL+UYARI verdi.
   (stdout + exit kodu yakalar; gercek dosyalara DOKUNMAZ):
   D1 temiz=YESIL (sss JSON-LD'siz + kaynaklar URL'sinde 'pc') · D2 dayanaksiz vaat ·
   D3 zorunlu sizinti ciktisi eksik (extend kablosu) · D4 landing bos (varlik kontrolu) ·
-  D5 kara liste envanter kaydi+sayfa (iki agiz) · D6 YALNIZ sizinti · D7 YALNIZ drift ·
+  D5 kara liste envanter kaydi+sayfa (iki agiz) · D6 YALNIZ sizinti ·
   D8 YALNIZ envanter-kara · D9 ic_hata-yalniz nobetci kablosu (or->and mutasyonu) ·
-  D10 SAYFA-ONLY kara ihlali (kayit yok) · D11 filament fail-closed · D12 govde fail-closed.
+  D10 SAYFA-ONLY kara ihlali (kayit yok) · D11 filament fail-closed · D12 govde fail-closed (eksik statik sayfa).
 
 🗺️ KABLO ENVANTERI (tur-10) — main()'in EXIT kodunu etkileyen HER yol + SOLO nobetcisi.
   (Satir numarasi degil BLOK ADI — satirlar oynar; programatik sayim kaniti:
-   main govdesinde tam 8 "kirmizi = True" atamasi + 4 "return 1" yolu + 1 "return 0".)
+   main govdesinde tam 7 "kirmizi = True" atamasi + 4 "return 1" yolu + 1 "return 0".)
     K1  filament fail-closed (except -> return 1) .............. D11
     K2  govde-kaynagi fail-closed (except -> return 1) ......... D12
     K3  nobetci blogu (if ic_hata or dav_hata -> kirmizi) ...... D9 (ic-terim-sil D9 ile
@@ -157,7 +157,7 @@ dogru sekilde YESIL+UYARI verdi.
     K7  dayanaksiz (if dayanaksiz -> kirmizi) .................. D2
     K8  kapsam (if kapsam_hata -> kirmizi) ..................... D4 (sizinti-kapsam kolu D3)
     K9  sizinti (if sizinti -> kirmizi) ........................ D6
-    K10 drift (if not drift_tamam -> kirmizi) .................. D7
+    K10 (EMEKLI 6 Eki 2026: drift kablosu drift nobetiyle birlikte kalkti)
     K11 terminal (if kirmizi -> return 1) ...................... KALAN SINIF-2 (asagida)
     K12 --ic-nobetci olcum-modu (varsayilan + kosul + donus) ... UC jeton da savunmali:
         (a) donus "return 1 if (ic_hata or dav_hata) else 0" (tur-11) — "if True:"
@@ -198,16 +198,15 @@ dogru sekilde YESIL+UYARI verdi.
   (once sayi yalnizca bu docstring'de yaziyordu -> F16'yi silen mutasyon 29 kontrolle
   YESIL kaliyordu).
 
-Fail-closed: filamentler.json / ege-bilgi.md / statik sayfa okunamaz-bozuksa,
+Fail-closed: filamentler.json / statik sayfa okunamaz-bozuksa,
 JSON-LD ayristirilamazsa, beklenen bir kaynak bos gelirse KIRMIZI.
 Bayraklar (mutasyon testi GERCEK dosyalari BOZMASIN diye tempfile kopyada kossun):
-  --filament YOL  --ege YOL  --statik-kok DIZIN  --ege-malzeme YOL  --landing-kapali
-Cikis: 0 = temiz, 1 = dayanaksiz ad / kara liste ihlali / kapsam / drift / okuma hatasi.
+  --filament YOL  --statik-kok DIZIN  --landing-kapali
+Cikis: 0 = temiz, 1 = dayanaksiz ad / kara liste ihlali / kapsam / sizinti / okuma hatasi.
 """
 import argparse
 import collections
 import contextlib
-import importlib.util
 import io
 import json
 import os
@@ -220,8 +219,6 @@ ROOT = os.path.dirname(KOK)
 sys.path.insert(0, KOK)
 
 FILAMENT_JSON = os.path.join(KOK, "filamentler.json")
-EGE_MD = os.path.join(ROOT, "ege-bilgi.md")
-EGE_MALZEME_PY = os.path.join(KOK, "ege-malzeme.py")
 STATIK_SAYFALAR = ["sss", "gizlilik", "hakkimizda", "iletisim"]
 DAYANAK_ANAHTARI = "_dayanakMalzemeler"
 DAYANAK_YASAK_ALAN = ["fiyat", "fiyatTL", "katsayi", "fiyatKatsayisi", "site",
@@ -281,7 +278,7 @@ TR_HARF = "0-9A-Za-zÇĞİÖŞÜçğıöşüÂÎÛâîû"
 # 1 govde uretti mi? Bir kaynagi koddan SILEN mutasyon burada olur (gercek veri temiz
 # oldugu icin kaynak silinince kapi aksi halde sessizce YESIL kalirdi); icerik BOYUTU
 # kapinin isi DEGILDIR. Kablo davranisi D4 fiksturuyle uctan uca kilitli.
-ZORUNLU_KAYNAKLAR = ("landing", "ege-bilgi.md", "statik-gorunur")
+ZORUNLU_KAYNAKLAR = ("landing", "statik-gorunur")
 
 # JSON-LD blogu bugun OLAN sayfalar (olculdu: sss + iletisim; gizlilik/hakkimizda'da YOK).
 # Blok kaybolursa UYARI — KIRMIZI DEGIL (KraL tur-7): FAQPage rich result'i emekli edip
@@ -296,18 +293,17 @@ BEKLENEN_JSONLD = ("sss", "iletisim")
 # yayinini durduruyordu). Ucuncu cikti /malzeme-rehberi/ bir LANDING sayfasidir: ArTisT/KraL
 # o slug'i yeniden adlandirdiginda ya da sayfayi birlestirdiginde sayi 3'ten 2'ye duser ve
 # kapi, hicbir sizinti olmadigi halde KIRMIZI yanardi. Yeni kural:
-#   ZORUNLU_SIZINTI_CIKTILARI  -> kaybolursa KIRMIZI (bu iki cikti DEGISMEZ: biri build.py'nin
-#       public /filament-veri.js govdesi, digeri ege-malzeme.py'nin urettigi blok; ikisi de
-#       kod tarafindan URETILIR, icerik kararlarindan bagimsizdir)
+#   ZORUNLU_SIZINTI_CIKTILARI  -> kaybolursa KIRMIZI (DEGISMEZ cikti: build.py'nin public
+#       /filament-veri.js govdesi; kod tarafindan URETILIR, icerik kararlarindan bagimsizdir.
+#       Ikinci zorunlu cikti olan bot bilgi blogu 6 Eki 2026'da botla birlikte emekli)
 #   BEKLENEN_SIZINTI_CIKTILARI -> zorunlu olmayan cikti (landing /malzeme-rehberi/) kaybolursa
 #       UYARI, bloklamaz.
 # Bu ikili, "uretimler listesini kirp -> kapi kanit uretmeden YESIL kalsin" mutasyonunu
-# oldurmeye yeter: iki DEGISMEZ ciktinin biri dusunce KIRMIZI yanar (fikstur F20).
+# oldurmeye yeter: DEGISMEZ cikti dusunce KIRMIZI yanar (fikstur F20).
 SIZINTI_CIKTI_FILAMENT_JS = "public /filament-veri.js govdesi"
-SIZINTI_CIKTI_EGE_BLOK = "ege-malzeme.py uretilen blok"
 SIZINTI_CIKTI_MALZEME_REHBERI = "/malzeme-rehberi/ sayfasi"
 MALZEME_REHBERI_SLUG = "malzeme-rehberi"
-ZORUNLU_SIZINTI_CIKTILARI = (SIZINTI_CIKTI_FILAMENT_JS, SIZINTI_CIKTI_EGE_BLOK)
+ZORUNLU_SIZINTI_CIKTILARI = (SIZINTI_CIKTI_FILAMENT_JS,)
 BEKLENEN_SIZINTI_CIKTILARI = ZORUNLU_SIZINTI_CIKTILARI + (SIZINTI_CIKTI_MALZEME_REHBERI,)
 
 # 🔴 ENVANTER BEYAZ LISTESI (KraL tur-6 — "aciklama metninden besleme" mutasyon SINIFI).
@@ -479,15 +475,6 @@ def govdeler_landing():
         yield ("landing", slug, _html_soy(fn()) + " . " + baslik + " . " + meta)
 
 
-def govdeler_ege(yol):
-    """kaynak B: ege-bilgi.md (WhatsApp botunun bilgi dosyasi). Fail-closed: bos -> hata."""
-    with io.open(yol, encoding="utf-8") as f:
-        icerik = f.read()
-    if not icerik.strip():
-        raise ValueError("ege-bilgi.md bos")
-    yield ("ege-bilgi.md", os.path.basename(yol), _html_soy(icerik))
-
-
 def jsonld_metinleri(ham, kaynak_adi=None):
     """HTML'deki JSON-LD bloklarindaki TUM string degerler (acceptedAnswer dahil).
     -> (blok listesi, metin listesi). Fail-closed: blok ayristirilamazsa ValueError.
@@ -538,44 +525,6 @@ def govdeler_statik(kok):
             yield ("statik-jsonld", slug, " . ".join(metinler))
 
 
-# ------------------------------------------------------------------- drift nobeti
-def _modul_yukle(yol):
-    spec = importlib.util.spec_from_file_location("ege_malzeme_modul", yol)
-    modul = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(modul)
-    return modul
-
-
-def blok_karsilastir(uretilen, icerik, basla, bitir):
-    """(tamam_mi, mesaj) — isaretciler arasi blok uretilenle BIREBIR mi?"""
-    if basla not in icerik or bitir not in icerik:
-        return False, "ege-bilgi.md'de FILAMENT-REF isaretcileri YOK"
-    mevcut = icerik[icerik.index(basla):icerik.index(bitir) + len(bitir)]
-    if mevcut == uretilen:
-        return True, ("ege-bilgi.md FILAMENT-REF blogu ege-malzeme.py ciktisiyla "
-                      "BIREBIR (%d karakter)" % len(mevcut))
-    fark = next((i for i in range(min(len(mevcut), len(uretilen)))
-                 if mevcut[i] != uretilen[i]), min(len(mevcut), len(uretilen)))
-    return False, ("blok BAYAT: ilk fark %d. karakterde | dosya=%r | uretilen=%r"
-                   % (fark, mevcut[fark:fark + 60], uretilen[fark:fark + 60]))
-
-
-def drift_kontrolu(ege_yol, ege_malzeme_yol):
-    """ege-malzeme.py'nin BELLEKTE urettigi blok == ege-bilgi.md'deki blok mu?
-    Dosyaya YAZMAZ. -> (tamam_mi, mesaj, uretilen_blok)
-    Fail-closed: modul yuklenemez / dosya okunamazsa (False, sebep, None).
-    (main() bu fonksiyonu CAGIRIR — mantik satir-ici tekrarlanmaz.)"""
-    try:
-        modul = _modul_yukle(ege_malzeme_yol)
-        uretilen = modul.bolum_uret()
-        with io.open(ege_yol, encoding="utf-8") as f:
-            icerik = f.read()
-    except Exception as hata:
-        return False, "drift kontrolu kosulamadi -> %s" % hata, None
-    tamam, mesaj = blok_karsilastir(uretilen, icerik, modul.BASLA, modul.BITIR)
-    return tamam, mesaj, uretilen
-
-
 # ------------------------------------------------------------------ degerlendirme
 def degerlendir(kaynaklar, env):
     """kaynaklar: [(kaynak, slug, metin), ...] · env: Envanter
@@ -618,8 +567,7 @@ def dayanak_taban_jetonlari(dayanak_adlar):
 def dayanak_sizintisi(dayanak_adlar, uretimler):
     """SIZINTI KONTROLU (calistirilabilir kanit): "_dayanakMalzemeler" kayitlari
     SATIS/URETIM duzlemine SIZMAMALI. uretimler = [(uretim adi, uretilen metin), ...]
-    (public /filament-veri.js govdesi, ege-malzeme.py'nin urettigi blok,
-    /malzeme-rehberi/ sayfasi). Bir dayanak adi bu ciktilarin BIRINDE gorunurse
+    (public /filament-veri.js govdesi, /malzeme-rehberi/ sayfasi). Bir dayanak adi bu ciktilarin BIRINDE gorunurse
     -> sizinti. -> {uretim adi: [jeton, ...]}"""
     hedef = dayanak_taban_jetonlari(dayanak_adlar)
     sizinti = {}
@@ -710,13 +658,13 @@ def kara_liste_envanterde(veri):
 BEKLENEN_FIKSTUR_ADLARI = frozenset({
     "F0-kapsam", "F1", "F2", "F3", "F4",
     "F5a", "F5b", "F6", "F7", "F8", "F8-pozitif", "F9",
-    "F10a", "F10b", "F10c", "F11a", "F11b", "F11c", "F12a", "F12b", "F12c",
+    "F10a", "F10b", "F10c", "F12a", "F12b", "F12c",
     "F13a", "F13b", "F14", "F15",
     "F16a", "F16b", "F16c", "F16d", "F16e", "F17",
-    "F18a", "F18b", "F18c",
-    "F19a", "F19b", "F20a", "F20b", "F20c", "F20d", "F21a", "F21b",
+    "F19a", "F19b", "F20a", "F20b", "F20c", "F21a", "F21b",
 })
-BEKLENEN_KONTROL_SAYISI = 49  # F8 7 kez, F9 2 kez kosar -> ad sayisindan buyuk
+BEKLENEN_KONTROL_SAYISI = 42  # F8 7 kez, F9 2 kez kosar -> ad sayisindan buyuk
+# (6 Eki 2026: 49 -> 42 — drift nobeti emekli: F11a-c + F18a-c; bot blogu emekli: F20d)
 
 
 # 🔴 FIKSTUR SIMETRISI — SINIF olarak kapali (KraL tur-6). Onceki turda yalniz "uzunAd"
@@ -956,14 +904,6 @@ def ic_nobetci():
             "SART-2: PA-GF uyarisi SESSIZLESTI (dayanaksiz=%s uyari=%s)"
             % (sorted(d17), sorted(e17)))
 
-    # F11 — drift karsilastirmasi (ozdes / farkli / isaretcisiz)
-    kontrol("F11a", blok_karsilastir("<A>x<B>", "once <A>x<B> sonra", "<A>", "<B>")[0],
-            "ozdes blok DRIFT sayildi")
-    kontrol("F11b", not blok_karsilastir("<A>y<B>", "once <A>x<B> sonra", "<A>", "<B>")[0],
-            "farkli blok drift SAYILMADI")
-    kontrol("F11c", not blok_karsilastir("<A>x<B>", "isaretcisiz metin", "<A>", "<B>")[0],
-            "isaretci yoklugu drift SAYILMADI")
-
     # F13 — SIZINTI dedektoru gercekten atesliyor (ve temizde yanlis-pozitif yok)
     adlar13 = ["PA6-GF", "PA12-GF", "POM"]
     kontrol("F13a", dayanak_taban_jetonlari(adlar13) == {"PA6", "PA12", "POM"},
@@ -990,7 +930,7 @@ def ic_nobetci():
 
     # F12 — kapsam nobeti VARLIK KONTROLU olarak kilitli (tur-7): sayi/karakter tabani
     # geri getiren ya da zorunlu kaynak listesini kirpan mutasyon burada olur.
-    kontrol("F12a", ZORUNLU_KAYNAKLAR == ("landing", "ege-bilgi.md", "statik-gorunur"),
+    kontrol("F12a", ZORUNLU_KAYNAKLAR == ("landing", "statik-gorunur"),
             "ZORUNLU_KAYNAKLAR kirpilmis/degismis: %r" % (ZORUNLU_KAYNAKLAR,))
     # F12b — JSON-LD kaybi UYARI kalmali (KIRMIZI degil): FAQPage blogunu kaldirmak
     # mesru SEO karari. BEKLENEN listesi de sessizce bosaltilamaz (uyari susardi).
@@ -1000,54 +940,17 @@ def ic_nobetci():
             "zorunlu yapilmis): BEKLENEN_JSONLD=%r ZORUNLU_KAYNAKLAR=%r"
             % (BEKLENEN_JSONLD, ZORUNLU_KAYNAKLAR))
     # F12c — SIZINTI kapsami da SAYI DEGIL AD BAZLI kalmali (KraL tur-6). Zorunlu kume
-    # yalniz KOD TARAFINDAN URETILEN iki degismez ciktidir; landing kaynakli
+    # yalniz KOD TARAFINDAN URETILEN degismez ciktidir; landing kaynakli
     # /malzeme-rehberi/ ZORUNLU YAPILAMAZ (mesru slug degisimi tum ekibin yayinini
     # durdururdu) ama BEKLENEN kumeden de CIKARILAMAZ (uyari susardi).
     kontrol("F12c",
-            tuple(ZORUNLU_SIZINTI_CIKTILARI) == (SIZINTI_CIKTI_FILAMENT_JS,
-                                                 SIZINTI_CIKTI_EGE_BLOK)
+            tuple(ZORUNLU_SIZINTI_CIKTILARI) == (SIZINTI_CIKTI_FILAMENT_JS,)
             and SIZINTI_CIKTI_MALZEME_REHBERI not in ZORUNLU_SIZINTI_CIKTILARI
             and SIZINTI_CIKTI_MALZEME_REHBERI in BEKLENEN_SIZINTI_CIKTILARI
             and set(ZORUNLU_SIZINTI_CIKTILARI) <= set(BEKLENEN_SIZINTI_CIKTILARI),
             "sizinti kapsam kumesi bozuk (zorunlu gevsemis / landing ciktisi zorunlu "
             "yapilmis / beklenen kumeden dusmus): ZORUNLU=%r BEKLENEN=%r"
             % (ZORUNLU_SIZINTI_CIKTILARI, BEKLENEN_SIZINTI_CIKTILARI))
-
-    # F18 — DRIFT nobeti UCTAN UCA (KraL tur-5 eki).
-    # Bugune kadar YALNIZ karsilastirici (blok_karsilastir, F11) fikstureleniyordu;
-    # drift_kontrolu'nun KENDISI — modul yukleme + bolum_uret() cagrisi + dosya okuma —
-    # hicbir nobetciyle kilitli DEGILDI. Tek satirlik bir mutasyon (or. "uretilen = icerik"
-    # ya da "return True, ...") bayat ege-bilgi.md'yi YESIL yakar -> Ege SESSIZCE bayatlar
-    # (site gosterir, bot eski malzeme listesini anlatir).
-    # Gecici dizinde SAHTE ege-malzeme.py + SAHTE ege-bilgi.md; GERCEK dosyalara DOKUNMAZ.
-    sahte_modul = ("BASLA = '<!-- A -->'\n"
-                   "BITIR = '<!-- B -->'\n"
-                   "def bolum_uret():\n"
-                   "    return BASLA + '\\nPLA / PETG\\n' + BITIR\n")
-    with tempfile.TemporaryDirectory() as gecici:
-        py_yol = os.path.join(gecici, "sahte-ege-malzeme.py")
-        md_taze = os.path.join(gecici, "taze-ege-bilgi.md")
-        md_bayat = os.path.join(gecici, "bayat-ege-bilgi.md")
-        with io.open(py_yol, "w", encoding="utf-8") as f:
-            f.write(sahte_modul)
-        with io.open(md_taze, "w", encoding="utf-8") as f:
-            f.write("giris\n<!-- A -->\nPLA / PETG\n<!-- B -->\nson\n")
-        with io.open(md_bayat, "w", encoding="utf-8") as f:
-            f.write("giris\n<!-- A -->\nPLA / ABS\n<!-- B -->\nson\n")
-        t_taze, m_taze, blok_taze = drift_kontrolu(md_taze, py_yol)
-        t_bayat, m_bayat, _b = drift_kontrolu(md_bayat, py_yol)
-        t_dosyasiz, m_dosyasiz, _b = drift_kontrolu(
-            os.path.join(gecici, "olmayan.md"), py_yol)
-        t_modulsuz, m_modulsuz, _b = drift_kontrolu(
-            md_taze, os.path.join(gecici, "olmayan.py"))
-    kontrol("F18a", t_taze and blok_taze == "<!-- A -->\nPLA / PETG\n<!-- B -->",
-            "uctan uca drift: TAZE blok drift sayildi ya da uretilen blok dondurulmedi "
-            "(%s | blok=%r)" % (m_taze, blok_taze))
-    kontrol("F18b", not t_bayat and "BAYAT" in m_bayat,
-            "uctan uca drift: BAYAT ege-bilgi.md YESIL yandi (%s)" % m_bayat)
-    kontrol("F18c", not t_dosyasiz and not t_modulsuz,
-            "uctan uca drift FAIL-CLOSED degil (md yok -> %s · ege-malzeme.py yok -> %s)"
-            % (m_dosyasiz, m_modulsuz))
 
     # F19 — 🔴 ENVANTER BEYAZ LISTESI (KraL tur-6; "aciklama metninden besleme" SINIFI).
     # F19a sabiti, F19b DAVRANISI kilitler: beyaz listeyi delen bir mutasyon (or.
@@ -1080,12 +983,9 @@ def ic_nobetci():
             "landing ciktisi (/malzeme-rehberi/) yoklugu BLOKLADI ya da SESSIZ kaldi — "
             "reddedilen SAYI TABANI deseni geri gelmis olabilir (hata=%s uyari=%s)"
             % (h20b, u20b))
-    h20c, _u = sizinti_kapsam([SIZINTI_CIKTI_EGE_BLOK, SIZINTI_CIKTI_MALZEME_REHBERI])
-    h20d, _u = sizinti_kapsam([SIZINTI_CIKTI_FILAMENT_JS, SIZINTI_CIKTI_MALZEME_REHBERI])
+    h20c, _u = sizinti_kapsam([SIZINTI_CIKTI_MALZEME_REHBERI])
     kontrol("F20c", len(h20c) == 1 and SIZINTI_CIKTI_FILAMENT_JS in h20c[0],
             "filament-veri.js govdesi taranmadigi halde KIRMIZI yanmadi: %s" % h20c)
-    kontrol("F20d", len(h20d) == 1 and SIZINTI_CIKTI_EGE_BLOK in h20d[0],
-            "ege-malzeme blogu taranmadigi halde KIRMIZI yanmadi: %s" % h20d)
 
     # F21 — 🔴 SART-2 UYARISININ RAPORU (KraL tur-6). Iddia edilen "F17 bunu KIRMIZI
     # yakar" korumasi OLCULEREK YANLISLANDI: raporu susturan mutasyon 40/40 geciyordu.
@@ -1124,17 +1024,11 @@ def ic_nobetci():
 # main()'i gecici dizinde sahte veri setiyle UCTAN UCA kosturur (stdout + exit kodu
 # yakalar); GERCEK dosyalara DOKUNMAZ. Ozyineleme main(..., davranis=False) ile kesilir.
 BEKLENEN_DAVRANIS_ADLARI = frozenset(
-    {"D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12"})
+    {"D1", "D2", "D3", "D4", "D5", "D6", "D8", "D9", "D10", "D11", "D12"})
+# D7 (drift kablosu) 6 Eki 2026'da drift nobetiyle birlikte emekli; numara bos kalir.
 
-_D_MODUL_TEMIZ = ("BASLA = '<!-- FILAMENT-REF -->'\n"
-                  "BITIR = '<!-- /FILAMENT-REF -->'\n"
-                  "def bolum_uret():\n"
-                  "    return BASLA + '\\nPLA / PETG\\n' + BITIR\n")
-# D3: bolum_uret() patlar -> drift KIRMIZI + ege_blok None -> ZORUNLU sizinti ciktisi
-# 'ege-malzeme.py uretilen blok' taranamaz -> sizinti_kapsam hata dondurmek ZORUNDA.
-_D_MODUL_BOZUK = _D_MODUL_TEMIZ.replace(
-    "    return BASLA + '\\nPLA / PETG\\n' + BITIR",
-    "    raise RuntimeError('blok uretilemedi')")
+# D3 sahte zorunlu cikti adi: gercek main hicbir zaman uretmez -> kapsam hatasi ZORUNLU.
+_D3_SAHTE_CIKTI = "D3 sahte zorunlu cikti"
 
 
 def _d_yaz(yol, icerik):
@@ -1142,7 +1036,7 @@ def _d_yaz(yol, icerik):
         f.write(icerik)
 
 
-def _d_kurulum(gecici, filament=None, sss_govde="", modul=_D_MODUL_TEMIZ):
+def _d_kurulum(gecici, filament=None, sss_govde=""):
     """Gecici dizinde sahte veri seti kurar -> main() argv listesi (landing KAPALI;
     landing'i acmak isteyen fikstur son elemani atar). sss'te JSON-LD BILEREK YOK
     (FAQPage'i kaldirmak mesru — D1 bunun YESIL kaldigini kanitlar)."""
@@ -1153,17 +1047,12 @@ def _d_kurulum(gecici, filament=None, sss_govde="", modul=_D_MODUL_TEMIZ):
     }
     _d_yaz(os.path.join(gecici, "filamentler.json"),
            json.dumps(filament, ensure_ascii=False))
-    _d_yaz(os.path.join(gecici, "ege-malzeme.py"), modul)
-    _d_yaz(os.path.join(gecici, "ege-bilgi.md"),
-           "giris\n<!-- FILAMENT-REF -->\nPLA / PETG\n<!-- /FILAMENT-REF -->\nson\n")
     for slug in STATIK_SAYFALAR:
         os.makedirs(os.path.join(gecici, slug))
         govde = sss_govde if slug == "sss" else ""
         _d_yaz(os.path.join(gecici, slug, "index.html"),
                "<html><body><p>PLA ve PETG ile uretim. %s</p></body></html>" % govde)
     return ["--filament", os.path.join(gecici, "filamentler.json"),
-            "--ege", os.path.join(gecici, "ege-bilgi.md"),
-            "--ege-malzeme", os.path.join(gecici, "ege-malzeme.py"),
             "--statik-kok", gecici, "--landing-kapali"]
 
 
@@ -1207,17 +1096,25 @@ def davranis_nobetci():
 
         # D3 — 🔴 M1 KABLOSU: ZORUNLU sizinti ciktisi eksikken kapsam hatasi RAPORA/EXIT'e
         # ULASMALI. "extend([])" mutasyonu tam bu satiri yutar; iddia SPESIFIK KAPSAM
-        # satirindadir (drift ayrica KIRMIZI olur, exit tek basina ayirt etmez).
+        # satirindadir (ic nobetci F12c ayrica KIRMIZI olur, exit tek basina ayirt etmez).
+        # 6 Eki 2026: tek zorunlu cikti (filament-veri.js) main'de KOSULSUZ uretildigi
+        # icin eksiklik dogal yoldan kurulamaz -> zorunlu kumeye gecici SAHTE ad eklenir
+        # (D9 deseni; finally geri koyar).
         d3 = os.path.join(gecici, "d3")
         os.makedirs(d3)
-        kod, cikti = _d_kostur(_d_kurulum(
-            d3, modul=_D_MODUL_BOZUK,
-            filament={"filamentler": [{"ad": "PLA"}, {"ad": "PETG"}],
-                      DAYANAK_ANAHTARI: [{"ad": "POM", "satista": False,
-                                          "tedarik": "siparis uzerine"}]}))
+        argv3 = _d_kurulum(
+            d3, filament={"filamentler": [{"ad": "PLA"}, {"ad": "PETG"}],
+                          DAYANAK_ANAHTARI: [{"ad": "POM", "satista": False,
+                                              "tedarik": "siparis uzerine"}]})
+        eski_zs = ZORUNLU_SIZINTI_CIKTILARI
+        globals()["ZORUNLU_SIZINTI_CIKTILARI"] = eski_zs + (_D3_SAHTE_CIKTI,)
+        try:
+            kod, cikti = _d_kostur(argv3)
+        finally:
+            globals()["ZORUNLU_SIZINTI_CIKTILARI"] = eski_zs
         kontrol("D3", kod == 1 and "ZORUNLU sizinti ciktisi" in cikti
                 and ("KIRMIZI: KAPSAM - ZORUNLU sizinti ciktisi '%s'"
-                     % SIZINTI_CIKTI_EGE_BLOK) in cikti,
+                     % _D3_SAHTE_CIKTI) in cikti,
                 "ZORUNLU sizinti ciktisi eksikken KAPSAM hatasi rapora ULASMADI (kod=%d) "
                 "— 'kapsam_hata.extend(s_hata)' kablosu kopmus olabilir" % kod)
 
@@ -1252,7 +1149,7 @@ def davranis_nobetci():
 
         # D6-D9 — 🔴 TEKIL EXIT KABLOLARI (KraL tur-8). Curutucu olctu: D5 iki agzi
         # BIRLIKTE test ettigi icin "kirmizi = True" satirini TEK bloktan silen jeton
-        # mutasyonlari (sizinti/drift/envanter-kara/nobetci) ihlal mesajini BASIP
+        # mutasyonlari (sizinti/envanter-kara/nobetci) ihlal mesajini BASIP
         # EXIT=0 donuyordu. Her kablo artik TEK ihlalli fiksturle ayri kilitli.
 
         # D6 — YALNIZ sizinti ihlali -> EXIT=1. Dayanak POM, public govdeye
@@ -1268,19 +1165,6 @@ def davranis_nobetci():
         kontrol("D6", kod == 1 and "KIRMIZI: SIZINTI" in cikti,
                 "TEK sizinti ihlali EXIT=1 vermedi (kod=%d) — sizinti->exit kablosu "
                 "('kirmizi = True') kopmus olabilir" % kod)
-
-        # D7 — YALNIZ drift ihlali -> EXIT=1. Bayat blok AYNI malzeme adlarini tasir
-        # ('PLA / PETG eski') ki dayanaksiz-ad KIRMIZI'si karisip kabloyu maskelemesin.
-        d7 = os.path.join(gecici, "d7")
-        os.makedirs(d7)
-        argv7 = _d_kurulum(d7)
-        _d_yaz(os.path.join(d7, "ege-bilgi.md"),
-               "giris\n<!-- FILAMENT-REF -->\nPLA / PETG eski\n"
-               "<!-- /FILAMENT-REF -->\nson\n")
-        kod, cikti = _d_kostur(argv7)
-        kontrol("D7", kod == 1 and "blogu filamentler.json'dan bayat" in cikti,
-                "TEK drift ihlali EXIT=1 vermedi (kod=%d) — drift->exit kablosu "
-                "kopmus olabilir" % kod)
 
         # D8 — YALNIZ envanter-kara ihlali -> EXIT=1. Susturma ataginin kendisi
         # ({"ad":"PC"} dayanak kaydi) sayfa vaadi OLMADAN da tek basina KIRMIZI;
@@ -1338,16 +1222,16 @@ def davranis_nobetci():
         kontrol("D11", kod == 1 and "filamentler.json okunamadi" in cikti,
                 "bozuk filamentler.json fail-closed EXIT=1 vermedi (kod=%d)" % kod)
 
-        # D12 — K2 KABLOSU: govde kaynagi fail-closed. ege-bilgi.md YOK ->
+        # D12 — K2 KABLOSU: govde kaynagi fail-closed. sss/index.html YOK ->
         # "govde kaynagi okunamadi" + EXIT=1; ikinci except "return 1" jetonunun
         # solo nobetcisi.
         d12 = os.path.join(gecici, "d12")
         os.makedirs(d12)
         argv12 = _d_kurulum(d12)
-        os.remove(os.path.join(d12, "ege-bilgi.md"))
+        os.remove(os.path.join(d12, "sss", "index.html"))
         kod, cikti = _d_kostur(argv12)
         kontrol("D12", kod == 1 and "govde kaynagi okunamadi" in cikti,
-                "eksik ege-bilgi.md fail-closed EXIT=1 vermedi (kod=%d)" % kod)
+                "eksik statik sayfa fail-closed EXIT=1 vermedi (kod=%d)" % kod)
 
     eksik = sorted(BEKLENEN_DAVRANIS_ADLARI - set(kosulan))
     fazla = sorted(set(kosulan) - BEKLENEN_DAVRANIS_ADLARI)
@@ -1362,9 +1246,7 @@ def davranis_nobetci():
 def main(argv=None, davranis=True):
     ap = argparse.ArgumentParser(description="PRUVO malzeme dayanak kapisi")
     ap.add_argument("--filament", default=FILAMENT_JSON)
-    ap.add_argument("--ege", default=EGE_MD)
     ap.add_argument("--statik-kok", default=ROOT)
-    ap.add_argument("--ege-malzeme", default=EGE_MALZEME_PY)
     ap.add_argument("--landing-kapali", action="store_true",
                     help="yalniz olcum/hizli kosum icin; CI'da KULLANILMAZ")
     ap.add_argument("--ic-nobetci", action="store_true",
@@ -1417,7 +1299,6 @@ def main(argv=None, davranis=True):
     try:
         if not args.landing_kapali:
             kaynaklar.extend(govdeler_landing())
-        kaynaklar.extend(govdeler_ege(args.ege))
         kaynaklar.extend(govdeler_statik(args.statik_kok))
     except Exception as hata:  # fail-closed
         print("KIRMIZI: govde kaynagi okunamadi -> %s" % hata)
@@ -1457,10 +1338,6 @@ def main(argv=None, davranis=True):
     for satir in ek_uyari_satirlari(ek_uyarisi):
         print(satir)
 
-    drift_tamam, drift_mesaj, ege_blok = drift_kontrolu(args.ege, args.ege_malzeme)
-    print("DRIFT (ege-malzeme.py <-> ege-bilgi.md): %s - %s"
-          % ("TAMAM" if drift_tamam else "KIRMIZI", drift_mesaj))
-
     # --- SIZINTI KONTROLU: dayanak kaydi URETIM duzlemine gecmis mi? ---
     # (Talimat sarti: dayanak kayitlari filamentler.json'i tuketen HICBIR ciktiyi
     #  degistirmemeli. Burada calistirilabilir kanit uretilir.)
@@ -1472,8 +1349,6 @@ def main(argv=None, davranis=True):
              if not k.startswith("_") and k != "kaynaklar"},
             ensure_ascii=False)
         uretimler = [(SIZINTI_CIKTI_FILAMENT_JS, public_govde)]
-        if ege_blok is not None:
-            uretimler.append((SIZINTI_CIKTI_EGE_BLOK, ege_blok))
         for kaynak, slug, metin in kaynaklar:
             if kaynak == "landing" and slug == MALZEME_REHBERI_SLUG:
                 uretimler.append((SIZINTI_CIKTI_MALZEME_REHBERI, metin))
@@ -1551,23 +1426,16 @@ def main(argv=None, davranis=True):
               "girmez (fiyat katsayisi Okan'da kilitli).")
         kirmizi = True
 
-    if not drift_tamam:
-        print("")
-        print("KIRMIZI: ege-bilgi.md MALZEME blogu filamentler.json'dan bayat "
-              "(cozum: ISCIYE: python3 tools/ege-malzeme.py)")
-        kirmizi = True
-
     if kirmizi:
         print("")
         print("SONUC: KIRMIZI ❌ (dayanaksiz=%d · kara-liste govde=%d · envanter-kara=%d "
-              "· kapsam=%d · sizinti=%d · drift=%s · nobetci=%d+%d)"
+              "· kapsam=%d · sizinti=%d · nobetci=%d+%d)"
               % (len(dayanaksiz), len(kara_ihlal), len(envanter_kara), len(kapsam_hata),
-                 len(sizinti), "KIRMIZI" if not drift_tamam else "tamam",
-                 len(ic_hata), len(dav_hata)))
+                 len(sizinti), len(ic_hata), len(dav_hata)))
         return 1
 
-    print("SONUC: YESIL ✅ - dayanaksiz malzeme 0 / %d govde, kara liste ihlali yok, "
-          "drift yok" % sum(v["govde"] for v in ozet.values()))
+    print("SONUC: YESIL ✅ - dayanaksiz malzeme 0 / %d govde, kara liste ihlali yok"
+          % sum(v["govde"] for v in ozet.values()))
     return 0
 
 
