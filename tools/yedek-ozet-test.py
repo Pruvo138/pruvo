@@ -206,7 +206,40 @@ def vaka_e(y):
                 "karantina=%s hedef_degismedi=%s" % (karantina, degismedi))
 
 
-VAKALAR = {"a": vaka_a, "b": vaka_b, "c": vaka_c, "d": vaka_d, "e": vaka_e}
+def _git(dizin, *arg):
+    import subprocess
+    temiz = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    subprocess.run(["git", "-C", dizin] + list(arg), check=True, capture_output=True, env=temiz)
+
+
+def vaka_f(y):
+    """(f) kanca WORKTREE'den kosarken ortamda BASKA deponun GIT_DIR'i var: baska evin
+    izlenen/kirli listesi yine O EVIN deposundan gelir (6 Eki: hasat listesi pruvo'dan
+    donuyordu -> izlenen 8,5 bin dosya ek plana girip her push'ta Drive'dan iniyordu)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        ev, yabanci = os.path.join(tmp, "ev"), os.path.join(tmp, "yabanci")
+        for d, ad in ((ev, "ev_dosyasi.txt"), (yabanci, "yabanci_dosyasi.txt")):
+            os.makedirs(d)
+            _git(d, "init", "-q")
+            yaz(os.path.join(d, ad), b"1")
+            _git(d, "add", ad)
+            _git(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "t")
+        yaz(os.path.join(ev, "ev_dosyasi.txt"), b"22")   # izlenen + kirli
+        eski = os.environ.get("GIT_DIR")
+        os.environ["GIT_DIR"] = os.path.join(yabanci, ".git")
+        try:
+            izlenen = y._git_izlenenler(ev)
+            kirli = y._git_kirliler(ev)
+        finally:
+            if eski is None:
+                os.environ.pop("GIT_DIR", None)
+            else:
+                os.environ["GIT_DIR"] = eski
+        ok = izlenen == {"ev_dosyasi.txt"} and kirli == ["ev_dosyasi.txt"]
+        return ok, "izlenen=%s kirli=%s" % (sorted(izlenen), kirli)
+
+
+VAKALAR = {"a": vaka_a, "b": vaka_b, "c": vaka_c, "d": vaka_d, "e": vaka_e, "f": vaka_f}
 
 # (vaka, ad, aranan, yerine) — izole kopyada TEK yerde uygulanir.
 MUTANTLAR = [
@@ -225,6 +258,9 @@ MUTANTLAR = [
     ("e", "ozetli-koruma-yok",
      "_yedek_korumasi(kaynak, varis, yedek_kayit=kayit[3])",
      "pass"),
+    ("f", "git-ortami-sizar",
+     "if k not in _GIT_YEREL_DEGISKENLER}",
+     "if True}"),
 ]
 
 

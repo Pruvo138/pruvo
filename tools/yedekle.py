@@ -2066,11 +2066,28 @@ def ek_etkin_mi():
     return bool(ev_yollari())
 
 
+def _ev_git_ortami():
+    """Baska bir evde `git -C <ev>` koşarken kullanilacak ortam.
+
+    🔴 OLCULDU (6 Eki 2026): pre-push kancasi bir WORKTREE'den kosunca git ortama
+    `GIT_DIR=<pruvo>/.git/worktrees/<ad>` (ve kardeslerini) koyar. `-C <ev>` bu degiskeni
+    EZMEZ -> pruvo-hasat icin PRUVO'nun izlenen listesi donuyor, hasat'in izlenen ~8,5 bin
+    dosyasi "izlenmeyen" sayilip ek plana giriyor ve her push'ta evict edilmis Drive hedefi
+    yeniden indiriliyordu. Yerel depo degiskenleri atilir; geri kalan ortam aynen gecer."""
+    return {k: v for k, v in os.environ.items() if k not in _GIT_YEREL_DEGISKENLER}
+
+
+_GIT_YEREL_DEGISKENLER = frozenset((
+    "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_PREFIX",
+    "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_NAMESPACE",
+))
+
+
 def _git_izlenenler(ev):
     """Evin git'te IZLENEN dosyalari (gorece yol kumesi). Git yoksa bos kume."""
     try:
         p = subprocess.run(["git", "-C", ev, "ls-files", "-z"],
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, env=_ev_git_ortami())
     except OSError:
         return set()
     if p.returncode != 0:
@@ -2083,7 +2100,7 @@ def _git_kirliler(ev):
     Bu icerik henuz hicbir depoda YOK -> ayri klasore yedeklenir."""
     try:
         p = subprocess.run(["git", "-C", ev, "status", "--porcelain", "-uno", "-z"],
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, env=_ev_git_ortami())
     except OSError:
         return []
     if p.returncode != 0:
