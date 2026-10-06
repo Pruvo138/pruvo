@@ -52,6 +52,7 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 DURUM = os.path.join(TOOLS, "durum.py")
 DRIVE_YOLU = os.path.join(TOOLS, "drive_yolu.py")
 YEDEKLE = os.path.join(TOOLS, "yedekle.py")
+GIT_ORTAMI_PY = os.path.join(TOOLS, "git_ortami.py")  # yedekle.py ek-ev yolunda import eder
 
 # Alt kosum bayragi (K4 nobetcisi kendini `ps`siz PATH ile yeniden cagirir).
 ALT_KOSUM = "--ps-yok-alt-kosum"
@@ -428,6 +429,9 @@ def _yedekle_izole_ortam(td, yb, memory_adet=8, skills_adet=4):
     kok = os.path.join(td, "repo")
     os.makedirs(os.path.join(kok, "tools"))
     shutil.copy2(YEDEKLE, os.path.join(kok, "tools", "yedekle.py"))
+    # 69fbfbdb: _ev_git_ortami() ek-ev git cagrisinda kardes `git_ortami`yi import
+    # eder (scrub TEK KAYNAK); tasinmazsa (11) senaryosu ModuleNotFoundError ile coker.
+    shutil.copy2(GIT_ORTAMI_PY, os.path.join(kok, "tools", "git_ortami.py"))
     pruvo = os.path.join(td, "drive", "Pruvo")
     os.makedirs(pruvo)
     with open(os.path.join(kok, "tools", "drive_yolu.py"), "w") as f:
