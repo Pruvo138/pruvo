@@ -28,6 +28,12 @@
  *    YOKTUR. Harcanan her kredi `foto_kredi` defterine gorev kimligiyle (idempotent) yazilir.
  * 🔴 SESSIZ GECIS YOK (2. madde): analiz kirmiziysa renk adimi KOSMAZ; uretim satiri
  *    'elle' asamasina sebebiyle duser, panelde gorunur ve Telegram'a bir kez gider.
+ * ONARIM (6 Eki, ilk gercek ornek sizdirmaz cikmadi): ILK kirmizi analizde satir BIR KEZ
+ *    onarima gider: 'onarim' (sizdirmazlik onarimi; dokuyu siler) -> 'doku' (onarilan modele
+ *    onizleme gorseliyle yeniden doku; renk adimi dokusuz modeli reddeder) -> 'analiz' YENIDEN.
+ *    Onarim sonrasi analiz hala kirmiziysa 'elle' (ikinci onarim YOK, renk KOSMAZ).
+ *    Zincir D1 semasi degismeden build_gorev'de tutulur: "<model>" | "<model>~<onarim>" |
+ *    "<model>~<onarim>~<doku>"; son ogedeki model renk adimina ve depoya giden modeldir.
  */
 
 import "../../foto-uretim-veri.js";
@@ -751,8 +757,9 @@ const ELLE_METNI = {
   "onizleme-suresi-doldu": "önizleme 3 günlük saklama sınırını geçti",
   "model-reddedildi": "model adımı isteği reddetti",
   "model-basarisiz": "model üretilemedi",
-  "analiz-kirmizi": "basılabilirlik analizi KIRMIZI (renk adımı koşmadı)",
+  "analiz-kirmizi": "basılabilirlik analizi onarımdan sonra da KIRMIZI (renk adımı koşmadı)",
   "analiz-basarisiz": "basılabilirlik analizi tamamlanamadı",
+  "onarim-basarisiz": "sızdırmazlık onarımı ya da yeniden doku üretilemedi",
   "renk-basarisiz": "4 renk ayrımı üretilemedi",
   "indirme-basarisiz": "dosyalar depoya indirilemedi",
   "kredi-yetersiz": "kredi yetmedi (otomatik alım yok)",
@@ -786,8 +793,50 @@ function hataKolu(kod) {
   return "gecici";   // 0 (ag), 429, 5xx
 }
 
+/** build_gorev zinciri: [model, onarim?, doku?] (bkz. dosya basi ONARIM). */
+function zincir(u) { return String(u.build_gorev || "").split("~"); }
+
+/** Renk adimina ve depoya giden model: onarilip dokulandiysa doku gorevi, degilse model gorevi. */
 async function modelGorevi(env, u) {
-  return saglayici(env, "GET", turYolu(env, u.tur) + "/v1/build/" + u.build_gorev, null);
+  const z = zincir(u);
+  if (z.length >= 3) { return saglayici(env, "GET", "/v1/retexture/" + z[2], null); }
+  return saglayici(env, "GET", turYolu(env, u.tur) + "/v1/build/" + z[0], null);
+}
+
+/** Verilen modelin analizini baslatir; baslatilamazsa satir asamasinda KALIR (yeniden dener). */
+async function analizBaslat(env, u, glb, simdi, telegram) {
+  const a = await saglayici(env, "POST", "/v1/print/analyze", { model_url: glb });
+  const ag = gorevKimligi(a.govde);
+  if (a.kod >= 200 && a.kod < 300 && ag) { return asamaYaz(env, u, "analiz", { analiz_gorev: ag }, simdi); }
+  return hataKolu(a.kod) === "gecici" ? gecici(env, u, simdi, telegram)
+    : elleDusur(env, u, "analiz-basarisiz", "", simdi, telegram);
+}
+
+/** YALNIZ yesil analizden cagrilir: analiz edilen modelin 4 renk ayrimini baslatir. */
+async function renkBaslat(env, u, ozet, simdi, telegram) {
+  const m = await modelGorevi(env, u);
+  const glb = m.kod === 200 && m.govde && m.govde.model_urls && m.govde.model_urls.glb;
+  if (!glb) { return gecici(env, u, simdi, telegram); }
+  const r = await saglayici(env, "POST", "/v1/print/multi-color",
+                            { model_url: glb, max_colors: 4, printer_brand: "bambu" });
+  const rg = gorevKimligi(r.govde);
+  if (r.kod >= 200 && r.kod < 300 && rg) {
+    return asamaYaz(env, u, "renk", { renk_gorev: rg, analiz: ozet }, simdi);
+  }
+  const kol = hataKolu(r.kod);
+  if (kol === "kredi") { return elleDusur(env, u, "kredi-yetersiz", ozet, simdi, telegram); }
+  if (kol === "red") { return elleDusur(env, u, "renk-basarisiz", ozet, simdi, telegram); }
+  return gecici(env, u, simdi, telegram);
+}
+
+/** Saglayici baslatma yanitini asamaya cevirir (onarim/doku): 402 kredi, red elle, gerisi gecici. */
+async function baslatildi(env, u, c, yeni, alanlar, ozet, simdi, telegram) {
+  const id = gorevKimligi(c.govde);
+  if (c.kod >= 200 && c.kod < 300 && id) { return asamaYaz(env, u, yeni, alanlar(id), simdi); }
+  const kol = hataKolu(c.kod);
+  if (kol === "kredi") { return elleDusur(env, u, "kredi-yetersiz", ozet, simdi, telegram); }
+  if (kol === "red") { return elleDusur(env, u, "onarim-basarisiz", ozet, simdi, telegram); }
+  return gecici(env, u, simdi, telegram);
 }
 
 /** Tek uretim satirini BIR adim ilerletir. */
@@ -825,12 +874,8 @@ async function uretimAdimi(env, u, simdi, telegram) {
     if (d !== "bitti") { return elleDusur(env, u, "model-basarisiz", "", simdi, telegram); }
     await krediYaz(env, simdi, "build", u.is_no, u.siparis_no, u.build_gorev, krediSayisi(c.govde));
     const glb = c.govde.model_urls && c.govde.model_urls.glb;
-    const a = await saglayici(env, "POST", "/v1/print/analyze", { model_url: glb });
-    const ag = gorevKimligi(a.govde);
-    if (a.kod >= 200 && a.kod < 300 && ag) { return asamaYaz(env, u, "analiz", { analiz_gorev: ag }, simdi); }
     // Analiz baslatilamadiysa satir 'build'de KALIR (bir sonraki tur yeniden dener).
-    return hataKolu(a.kod) === "gecici" ? gecici(env, u, simdi, telegram)
-      : elleDusur(env, u, "analiz-basarisiz", "", simdi, telegram);
+    return analizBaslat(env, u, glb, simdi, telegram);
   }
 
   if (u.asama === "analiz") {
@@ -845,21 +890,57 @@ async function uretimAdimi(env, u, simdi, telegram) {
                                   uyari: p.warning_count || 0, olcum: p.metrics || {} }).slice(0, 600);
     // KIRMIZI = 'error' ya da durum hic gelmedi: renk adimi KOSMAZ (sessiz gecis yok).
     if (p.status !== "healthy" && p.status !== "warning") {
-      return elleDusur(env, u, "analiz-kirmizi", ozet, simdi, telegram);
+      // Deneme tavani: satir basina TEK onarim. Onarilmis modelin analizi de kirmiziysa elle.
+      if (zincir(u).length >= 2) {
+        return elleDusur(env, u, "analiz-kirmizi", ozet, simdi, telegram);
+      }
+      const m = await modelGorevi(env, u);
+      const glb = m.kod === 200 && m.govde && m.govde.model_urls && m.govde.model_urls.glb;
+      if (!glb) { return gecici(env, u, simdi, telegram); }
+      const o = await saglayici(env, "POST", "/v1/print/repair", { model_url: glb });
+      return baslatildi(env, u, o, "onarim",
+                        (id) => ({ build_gorev: zincir(u)[0] + "~" + id, analiz: ozet }), ozet, simdi, telegram);
     }
-    const m = await modelGorevi(env, u);
-    const glb = m.kod === 200 && m.govde && m.govde.model_urls && m.govde.model_urls.glb;
-    if (!glb) { return gecici(env, u, simdi, telegram); }
-    const r = await saglayici(env, "POST", "/v1/print/multi-color",
-                              { model_url: glb, max_colors: 4, printer_brand: "bambu" });
-    const rg = gorevKimligi(r.govde);
-    if (r.kod >= 200 && r.kod < 300 && rg) {
-      return asamaYaz(env, u, "renk", { renk_gorev: rg, analiz: ozet }, simdi);
+    return renkBaslat(env, u, ozet, simdi, telegram);
+  }
+
+  if (u.asama === "onarim") {
+    const z = zincir(u);
+    const c = await saglayici(env, "GET", "/v1/print/repair/" + z[1], null);
+    if (c.kod !== 200 || !c.govde) { return gecici(env, u, simdi, telegram); }
+    const d = gorevDurumu(c.govde);
+    if (d === "surdu") { return false; }
+    if (d !== "bitti") { return elleDusur(env, u, "onarim-basarisiz", "", simdi, telegram); }
+    await krediYaz(env, simdi, "onarim", u.is_no, u.siparis_no, z[1], krediSayisi(c.govde));
+    const glb = c.govde.model_urls && c.govde.model_urls.glb;
+    if (!glb) { return elleDusur(env, u, "onarim-basarisiz", "", simdi, telegram); }
+    // Onarim dokuyu siler; renk adimi dokusuz modeli reddeder -> musterinin onizleme
+    // gorseliyle yeniden doku (gorsel adresi sureli: her seferinde tazesi alinir).
+    const is = await isGetir(env, u.is_no);
+    if (!is || !is.gorev) { return elleDusur(env, u, "onizleme-yok", "", simdi, telegram); }
+    const p = await saglayici(env, "GET", turYolu(env, u.tur) + "/v1/prototype/" + is.gorev, null);
+    const gorsel = p.kod === 200 && p.govde && Array.isArray(p.govde.image_urls) && p.govde.image_urls[0];
+    if (!gorsel) {
+      return hataKolu(p.kod) === "gecici" ? gecici(env, u, simdi, telegram)
+        : elleDusur(env, u, "onarim-basarisiz", "", simdi, telegram);
     }
-    const kol = hataKolu(r.kod);
-    if (kol === "kredi") { return elleDusur(env, u, "kredi-yetersiz", ozet, simdi, telegram); }
-    if (kol === "red") { return elleDusur(env, u, "renk-basarisiz", ozet, simdi, telegram); }
-    return gecici(env, u, simdi, telegram);
+    const t = await saglayici(env, "POST", "/v1/retexture", { model_url: glb, image_style_url: gorsel });
+    return baslatildi(env, u, t, "doku",
+                      (id) => ({ build_gorev: z[0] + "~" + z[1] + "~" + id }), "", simdi, telegram);
+  }
+
+  if (u.asama === "doku") {
+    const z = zincir(u);
+    const c = await saglayici(env, "GET", "/v1/retexture/" + z[2], null);
+    if (c.kod !== 200 || !c.govde) { return gecici(env, u, simdi, telegram); }
+    const d = gorevDurumu(c.govde);
+    if (d === "surdu") { return false; }
+    if (d !== "bitti") { return elleDusur(env, u, "onarim-basarisiz", "", simdi, telegram); }
+    await krediYaz(env, simdi, "doku", u.is_no, u.siparis_no, z[2], krediSayisi(c.govde));
+    const dokuGlb = c.govde.model_urls && c.govde.model_urls.glb;
+    if (!dokuGlb) { return elleDusur(env, u, "onarim-basarisiz", "", simdi, telegram); }
+    // Onarilmis + dokulu model YENIDEN analiz edilir; yesil degilse renk KOSMAZ.
+    return analizBaslat(env, u, dokuGlb, simdi, telegram);
   }
 
   if (u.asama === "renk") {

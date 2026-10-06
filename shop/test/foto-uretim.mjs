@@ -127,9 +127,12 @@ const TABAN = "https://saglayici.test/openapi";
 const PNG = Uint8Array.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, ...new Array(64).fill(7)]);
 const UCMF = new TextEncoder().encode("PK-sahte-3mf-govdesi-4-renk");
 const GLB = new TextEncoder().encode("glTF-sahte-govde");
+const GLB_DOKULU = new TextEncoder().encode("glTF-sahte-onarilmis-dokulu-govde");
 const P = {
   cagri: [], bakiye: 1000, analiz: "healthy", turnstile: "ok", telegram: [], iyzico: [],
   protoDurum: new Map(),
+  // ONARIM: analiz sonucu modele gore (onarilmis+dokulu model ayri sonuc verebilir).
+  analizOnarim: null, analizModel: new Map(), onarimKod: 0,
 };
 let sayac = 0;
 const yeniId = () => "gorev-" + String(++sayac).padStart(4, "0") + "-aaaa";
@@ -160,11 +163,27 @@ globalThis.fetch = async function sahteFetch(hedef, init) {
     if (/\/v1\/build\/.+$/.test(yol)) {
       return yanit({ status: "SUCCEEDED", consumed_credits: 30, model_urls: { glb: "https://dosya.test/model.glb?Expires=1" } });
     }
-    if (yontem === "POST" && yol === "/v1/print/analyze") { return yanit({ result: yeniId() }); }
-    if (/^\/v1\/print\/analyze\/.+$/.test(yol)) {
+    if (yontem === "POST" && yol === "/v1/print/analyze") {
+      const id = yeniId(); P.analizModel.set(id, JSON.parse(init.body).model_url); return yanit({ result: id });
+    }
+    if ((m = /^\/v1\/print\/analyze\/(.+)$/.exec(yol))) {
+      const dokulu = /model-dokulu\.glb/.test(P.analizModel.get(m[1]) || "");
+      const d = dokulu && P.analizOnarim ? P.analizOnarim : P.analiz;
       return yanit({ status: "SUCCEEDED", consumed_credits: 0,
-        printability: { status: P.analiz, error_count: P.analiz === "error" ? 1 : 0, warning_count: 0,
-                        metrics: { is_watertight: P.analiz !== "error", non_manifold_edges: P.analiz === "error" ? 12 : 0 } } });
+        printability: { status: d, error_count: d === "error" ? 1 : 0, warning_count: 0,
+                        metrics: { is_watertight: d !== "error", non_manifold_edges: d === "error" ? 12 : 0 } } });
+    }
+    if (yontem === "POST" && yol === "/v1/print/repair") {
+      if (P.onarimKod) { return yanit({ message: "x" }, P.onarimKod); }
+      P.sonOnarim = JSON.parse(init.body); return yanit({ result: yeniId() });
+    }
+    if (/^\/v1\/print\/repair\/.+$/.test(yol)) {
+      return yanit({ status: "SUCCEEDED", consumed_credits: 10, texture_urls: [],
+                     model_urls: { glb: "https://dosya.test/onarilmis.glb?Expires=1", stl: "" } });
+    }
+    if (yontem === "POST" && yol === "/v1/retexture") { P.sonDoku = JSON.parse(init.body); return yanit({ result: yeniId() }); }
+    if (/^\/v1\/retexture\/.+$/.test(yol)) {
+      return yanit({ status: "SUCCEEDED", consumed_credits: 10, model_urls: { glb: "https://dosya.test/model-dokulu.glb?Expires=1" } });
     }
     if (yontem === "POST" && yol === "/v1/print/multi-color") { P.sonRenk = JSON.parse(init.body); return yanit({ result: yeniId() }); }
     if (/^\/v1\/print\/multi-color\/.+$/.test(yol)) {
@@ -174,6 +193,7 @@ globalThis.fetch = async function sahteFetch(hedef, init) {
   }
   if (u.startsWith("https://dosya.test/onizleme.png")) { return new Response(PNG, { headers: { "Content-Type": "image/png", "Content-Length": String(PNG.length) } }); }
   if (u.startsWith("https://dosya.test/model.3mf")) { return new Response(UCMF, { headers: { "Content-Type": "application/octet-stream" } }); }
+  if (u.startsWith("https://dosya.test/model-dokulu.glb")) { return new Response(GLB_DOKULU, { headers: { "Content-Type": "model/gltf-binary" } }); }
   if (u.startsWith("https://dosya.test/model.glb")) { return new Response(GLB, { headers: { "Content-Type": "model/gltf-binary" } }); }
   if (u.includes("challenges.cloudflare.com/turnstile")) {
     P.cagri.push("TURNSTILE");
@@ -474,11 +494,13 @@ let siparis2;
   await d1.prepare("UPDATE siparisler SET durum = 'odendi' WHERE siparis_no = ?").bind(siparis2).run();
   P.analiz = "error";
   const renkOnce = P.cagri.filter((c) => c === "POST /v1/print/multi-color").length;
-  for (let i = 0; i < 4; i++) { await cron(); }
+  const onarimOnce = P.cagri.filter((c) => c === "POST /v1/print/repair").length;
+  for (let i = 0; i < 8; i++) { await cron(); }
   const u = await d1.prepare("SELECT asama, sebep, analiz FROM foto_uretim WHERE siparis_no = ?").bind(siparis2).first();
   ol("J1 analiz kirmizi -> 'elle' + sebep", u && u.asama === "elle" && u.sebep === "analiz-kirmizi", JSON.stringify(u));
   ol("J2 renk adimi KOSMADI", P.cagri.filter((c) => c === "POST /v1/print/multi-color").length === renkOnce, "");
   ol("J3 ELLE bildirimi Telegram'a bir kez", P.telegram.filter((t) => t.includes("ELLE") && t.includes(siparis2)).length === 1, "");
+  ol("J5 kirmizida satir basina TEK onarim denendi (tavan)", P.cagri.filter((c) => c === "POST /v1/print/repair").length === onarimOnce + 1, "");
   P.analiz = "healthy";
   const l = await istek(env, "/yonet/liste", { basliklar: YONET });
   const sip = l.v && l.v.siparisler.find((x) => x.siparis_no === siparis2);
@@ -816,6 +838,78 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit) {
            turGrubuGizli: !!turGrubu && turGrubu.hidden === true };
 }
 
+console.log("R) ONARIM — kirmizi analiz -> onarim -> yeniden doku -> YENIDEN analiz (6 Eki)");
+{
+  const odenmis = async (ip) => {
+    const ok = await istek(env, "/foto/onizleme", { ip, govde: onizlemeGovde() });
+    for (let i = 0; i < 2; i++) {
+      await d1.prepare("UPDATE foto_isler SET son_kontrol = 0 WHERE is_no = ?").bind(ok.v.is).run();
+      await istek(env, "/foto/durum?is=" + ok.v.is);
+    }
+    const b = await istek(env, "/baslat", { govde: { sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+      sepet: [{ foto_is: ok.v.is, olcu_mm: 100, adet: 1 }] } });
+    await d1.prepare("UPDATE siparisler SET durum = 'odendi' WHERE siparis_no = ?").bind(b.v.no).run();
+    return { no: b.v.no, is: ok.v.is };
+  };
+  const say = (c) => P.cagri.filter((x) => x === c).length;
+  const satir = (no) => d1.prepare("SELECT asama, sebep, build_gorev, analiz FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
+  const kredi = (no, adim) => d1.prepare("SELECT COUNT(*) AS n, COALESCE(SUM(kredi),0) AS t FROM foto_kredi WHERE siparis_no = ?" +
+    (adim ? " AND adim = ?" : "")).bind(...(adim ? [no, adim] : [no])).first();
+  const sur = async (no, n, dur) => { for (let i = 0; i < n; i++) { await cron(); const u = await satir(no); if (u && dur(u)) { return u; } } return satir(no); };
+
+  // R1: ilk model kirmizi, onarilmis+dokulu model yesil -> renk -> hazir.
+  P.analiz = "error"; P.analizOnarim = "healthy";
+  const s1 = await odenmis("198.51.100.121");
+  const a0 = say("POST /v1/print/analyze"), r0 = say("POST /v1/print/multi-color");
+  const u1 = await sur(s1.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
+  ol("R1 kirmizi -> onarim -> doku -> yesil analiz -> renk -> HAZIR",
+     u1 && u1.asama === "hazir" && u1.build_gorev.split("~").length === 3, JSON.stringify(u1));
+  ol("R1b onarim ilk modelden, doku onarilmis modele + ONIZLEME gorseliyle",
+     P.sonOnarim && /model\.glb/.test(P.sonOnarim.model_url) && P.sonDoku && /onarilmis\.glb/.test(P.sonDoku.model_url) &&
+     /onizleme\.png/.test(P.sonDoku.image_style_url || ""), JSON.stringify([P.sonOnarim, P.sonDoku]));
+  ol("R1c analiz IKI kez kostu, renk dokulu modelle BIR kez",
+     say("POST /v1/print/analyze") === a0 + 2 && say("POST /v1/print/multi-color") === r0 + 1 &&
+     /model-dokulu\.glb/.test(P.sonRenk.model_url), JSON.stringify(P.sonRenk));
+  const g1 = r2.m.get("foto/" + s1.no + "/0/model.glb");
+  ol("R1d depoya giden GLB onarilmis+dokulu model", g1 && g1.bayt.length === GLB_DOKULU.length, g1 && g1.bayt.length);
+  const k1 = await kredi(s1.no);
+  ol("R1e uretim kredisi 60 (30 model + 10 onarim + 10 doku + 0+0 analiz + 10 renk) -> is basina EK 20",
+     k1.t === 60, JSON.stringify(k1));
+
+  // R2: onarim sonrasi hala kirmizi -> elle, renk KOSMAZ, ikinci onarim YOK.
+  P.analiz = "error"; P.analizOnarim = "error";
+  const s2 = await odenmis("198.51.100.122");
+  const o2 = say("POST /v1/print/repair"), rr2 = say("POST /v1/print/multi-color");
+  const u2 = await sur(s2.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
+  ol("R2 onarim sonrasi hala kirmizi -> 'elle' analiz-kirmizi, renk KOSMADI, tek onarim",
+     u2 && u2.asama === "elle" && u2.sebep === "analiz-kirmizi" && say("POST /v1/print/multi-color") === rr2 &&
+     say("POST /v1/print/repair") === o2 + 1, JSON.stringify(u2));
+
+  // R3: onarim ucu 402 -> kredi-yetersiz (doku/renk KOSMAZ).
+  P.analiz = "error"; P.analizOnarim = null; P.onarimKod = 402;
+  const s3 = await odenmis("198.51.100.123");
+  const d3 = say("POST /v1/retexture"), rr3 = say("POST /v1/print/multi-color");
+  const u3 = await sur(s3.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
+  ol("R3 onarim 402 -> 'elle' kredi-yetersiz, doku+renk KOSMADI",
+     u3 && u3.asama === "elle" && u3.sebep === "kredi-yetersiz" && say("POST /v1/retexture") === d3 &&
+     say("POST /v1/print/multi-color") === rr3, JSON.stringify(u3));
+  P.onarimKod = 0;
+
+  // R4: onarim satiri kredi defterine idempotent (ayni onarim gorevi ikinci kez islense de tek satir).
+  P.analiz = "error"; P.analizOnarim = "healthy";
+  const s4 = await odenmis("198.51.100.124");
+  const u4 = await sur(s4.no, 12, (u) => u.asama === "doku" || u.asama === "elle" || u.asama === "hazir");
+  const z4 = (u4 && u4.build_gorev || "").split("~");
+  await d1.prepare("UPDATE foto_uretim SET asama = 'onarim', build_gorev = ?, guncel = '2000-01-01T00:00:00.000Z' WHERE siparis_no = ?")
+    .bind(z4[0] + "~" + z4[1], s4.no).run();
+  await cron();
+  const k4 = await kredi(s4.no, "onarim");
+  ol("R4 kredi defteri onarim satiri idempotent (2 isleme -> 1 satir, 10 kredi)",
+     u4 && u4.asama === "doku" && k4.n === 1 && k4.t === 10, JSON.stringify([u4 && u4.asama, k4]));
+  await sur(s4.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
+  P.analiz = "healthy"; P.analizOnarim = null;
+}
+
 console.log("S) EKRAN — tek turde tur secimi adimi gorunmez (sahte DOM'da gercek kosum)");
 const EKRAN_KAYNAK = fs.readFileSync(path.join(KOK, "foto-uretim.js"), "utf8");
 const acikTek = { acik: true, turler: [{ kod: "plaket", ad: "Kabartma plaket", aciklama: "x", ornek_sayisi: 1,
@@ -902,7 +996,7 @@ async function darSenaryolar(fm) {
   await k.d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES ('PR-TEST-MUT', ?, 'odendi', 1, ?)")
     .bind(new Date().toISOString(), JSON.stringify([{ id: "ozel-foto-plaket", foto_is: is, foto_tur: "plaket", olcu_mm: 100 }])).run();
   P.analiz = "error";
-  for (let i = 0; i < 4; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
+  for (let i = 0; i < 8; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
   P.analiz = "healthy";
   const u = await k.d1.prepare("SELECT asama FROM foto_uretim WHERE siparis_no = 'PR-TEST-MUT'").first();
   sonuc.J = !!u && u.asama === "elle";
@@ -937,6 +1031,56 @@ for (const [ad, capa, yerine, olmeli] of MUTANTLAR) {
        s[olmeli] === false && Object.keys(s).filter((x) => x !== olmeli).every((x) => s[x] === true), JSON.stringify(s));
   } else {
     ol(ad + " -> hicbir senaryo kirmizi yanmaz", Object.values(s).length === 5 && Object.values(s).every((x) => x === true), JSON.stringify(s));
+  }
+}
+
+/** Mutanta karsi iki dar onarim senaryosu (temiz SQLite). YESIL: kirmizi->onarim->yesil->hazir.
+ *  KIRMIZI: onarim sonrasi da kirmizi -> elle + renk KOSMADI + analiz iki kez (yeniden analiz atlanmadi). */
+async function onarimSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  const is = "d".repeat(32);
+  await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'plaket', 100, 'z', ?, 'hazir', 'gorev-proto-8888', ?)")
+    .bind(is, new Date().toISOString(), new Date().toISOString()).run();
+  P.protoDurum.set("gorev-proto-8888", 5);
+  const sonuc = {};
+  const kos = async (no, a, ao) => {
+    await k.d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES (?, ?, 'odendi', 1, ?)")
+      .bind(no, new Date().toISOString(), JSON.stringify([{ id: "ozel-foto-plaket", foto_is: is, foto_tur: "plaket", olcu_mm: 100 }])).run();
+    P.analiz = a; P.analizOnarim = ao;
+    const an = P.cagri.filter((c) => c === "POST /v1/print/analyze").length;
+    const rn = P.cagri.filter((c) => c === "POST /v1/print/multi-color").length;
+    for (let i = 0; i < 10; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
+    P.analiz = "healthy"; P.analizOnarim = null;
+    const u = await k.d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
+    return { u, analiz: P.cagri.filter((c) => c === "POST /v1/print/analyze").length - an,
+             renk: P.cagri.filter((c) => c === "POST /v1/print/multi-color").length - rn };
+  };
+  const y = await kos("PR-TEST-ONR-Y", "error", "healthy");
+  sonuc.YESIL = !!y.u && y.u.asama === "hazir" && y.renk === 1;
+  const r = await kos("PR-TEST-ONR-K", "error", "error");
+  sonuc.KIRMIZI = !!r.u && r.u.asama === "elle" && r.u.sebep === "analiz-kirmizi" && r.renk === 0 && r.analiz === 2;
+  k.kapat();
+  return sonuc;
+}
+
+const ONARIM_MUTANTLAR = [
+  ["N1 ONARIM SONRASI YENIDEN ANALIZ ATLANDI", "return analizBaslat(env, u, dokuGlb, simdi, telegram);",
+   "return renkBaslat(env, u, \"\", simdi, telegram);", "KIRMIZI"],
+  ["N2 ONARIM SONRASI KIRMIZIDA RENK KOSTU", "return elleDusur(env, u, \"analiz-kirmizi\", ozet, simdi, telegram);",
+   "return renkBaslat(env, u, ozet, simdi, telegram);", "KIRMIZI"],
+  ["N3 ONARIM YERINE DOGRUDAN RENK", "if (zincir(u).length >= 2) {", "if (true) { return renkBaslat(env, u, ozet, simdi, telegram); } if (false) {", "KIRMIZI"],
+  ["N0 KONTROL", "console.log(\"FOTO_URETIM kuyruga=\"", "console.log(\"FOTO_URETIM  kuyruga=\"", null],
+];
+for (const [ad, capa, yerine, olmeli] of ONARIM_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const s = await onarimSenaryolar(fm);
+  if (olmeli) {
+    ol(ad + " -> " + olmeli + " KIRMIZI yanar (digerleri yesil)",
+       s[olmeli] === false && Object.keys(s).filter((x) => x !== olmeli).every((x) => s[x] === true), JSON.stringify(s));
+  } else {
+    ol(ad + " -> hicbir onarim senaryosu kirmizi yanmaz", Object.values(s).length === 2 && Object.values(s).every((x) => x === true), JSON.stringify(s));
   }
 }
 
