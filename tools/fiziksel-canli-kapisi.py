@@ -128,6 +128,16 @@ def _anahtar(pid, malzeme, renk):
     return "%s|%s|%s" % (pid, malzeme, renk)
 
 
+def katalog_fiziksel_ihlali(urunler):
+    """OKAN 6 Eki 2026: fiziksel sinif SILINDI. Gercek katalog bacaginin iddiasi artik
+    "katalogda tur=fiziksel = 0"dir. Doner: None = temiz, metin = sinif GERI DONDU."""
+    fiz = [u.get("id") for u in urunler if u.get("tur") == TUR_FIZIKSEL]
+    if not fiz:
+        return None
+    return ("katalogda tur=fiziksel %d kayit (ornek %s) — sinif Okan 6 Eki emriyle "
+            "SILINDI, geri gelmemeli" % (len(fiz), fiz[:3]))
+
+
 def orneklem_sec(urunler, adet=ADET_VARSAYILAN):
     """(problar, urun_kayitlari) — DETERMINISTIK secim (rastgelelik YOK: ayni katalog ayni
     provayi verir, kosumlar karsilastirilabilir).
@@ -518,9 +528,11 @@ def karsilastir(problar, liste, yerel, canli):
     return ("PARITE", satirlar)
 
 
-DURUM_KOD = {"PARITE": 0, "DRIFT": 1, "OLCULEMEDI": 2}
+# SINIF-YOK (Okan 6 Eki 2026): katalogda fiziksel kayit 0 -> carpan sorusu konusuz;
+# olculen iddia "sinif geri gelmedi"dir (rc 0). Sinif geri gelirse DRIFT (SINIF-DONDU).
+DURUM_KOD = {"PARITE": 0, "DRIFT": 1, "OLCULEMEDI": 2, "SINIF-YOK": 0}
 SORUN_SINIFLARI = ("SAPMA", "TANIMIYOR", "NESIL", "REPO-KIRIK", "AYIRT-EDICI-YOK",
-                   "LISTE-SAPMASI", "ARIZA")
+                   "LISTE-SAPMASI", "ARIZA", "SINIF-DONDU")
 
 
 # ---------------------------------------------------------------- CI gorunurlugu
@@ -529,12 +541,14 @@ SORUN_SINIFLARI = ("SAPMA", "TANIMIYOR", "NESIL", "REPO-KIRIK", "AYIRT-EDICI-YOK
 # sessizligi bir sonraki olcumde KIRMIZI yakar. Bu tablonun tek "parite" degeri olmasi
 # `--kendini-test` E6 iddiasiyla KILITLIDIR: bir gun OLCULEMEDI de "parite"ye eslenirse
 # alarm SIFIR olcumu damgalardi (uzlastiricinin 20:47Z dersi, bu kez fiyat yolunda).
-DURUM_ETIKET = {"PARITE": "parite", "DRIFT": "drift", "OLCULEMEDI": "olculemedi"}
+DURUM_ETIKET = {"PARITE": "parite", "DRIFT": "drift", "OLCULEMEDI": "olculemedi",
+                "SINIF-YOK": "sinif-yok"}
 
 OZET_BASLIK = {
     "PARITE": "✅ Canli paket TAZE — hazir ticari malda tahsilat LISTE FIYATI",
     "DRIFT": "🔴 CANLI FIYAT YOLU SAPMIS — musteriden yanlis tutar ya da kalem odenemiyor",
     "OLCULEMEDI": "⚪ OLCULEMEDI — parite KANITLANMADI (sessiz yesil VERILMEZ)",
+    "SINIF-YOK": "✅ Katalogda fiziksel sinif YOK (Okan 6 Eki: silindi) — geri gelmedi",
 }
 
 OZET_NE_YAPMALI = {
@@ -865,11 +879,18 @@ def kendini_test(node=None):
         kirmizi += 1
         ham.append("    ❌ urunler.json okunamadi — " + str(e))
     if urunler is not None:
+        # OKAN 6 Eki 2026: fiziksel sinif SILINDI -> gercek katalogdan fiziksel orneklem
+        # ALINAMAZ. Bacak "katalogda fiziksel = 0" iddiasina doner; fiziksel fiyatlama
+        # (liste fiyati / carpan yok) FIKSTURLU bolumlerde (A/B/C/E) AYNEN olculur.
+        iddia("D1 gercek katalogda tur=fiziksel = 0 (Okan 6 Eki, sinif silindi)",
+              katalog_fiziksel_ihlali(urunler) is None, katalog_fiziksel_ihlali(urunler))
+        iddia("D1-N NEGATIF KONTROL: kataloga 1 fiziksel kayit donunce KIRMIZI",
+              katalog_fiziksel_ihlali(urunler + [{"id": "sinama-fiziksel-donus",
+                                                 "tur": TUR_FIZIKSEL}]) is not None)
         g_problar, g_kayitlar = orneklem_sec(urunler)
-        iddia("D1 gercek katalogtan fiziksel orneklem cikti (%d prova)" % len(g_problar),
-              len([p for p in g_problar if p["sinif"] == "FIZIKSEL"]) > 0, len(g_problar))
         iddia("D2 kontrol tabani (baski) secildi ve fiziksel URUN DEGIL",
-              any(p["sinif"] == "BASKI" for p in g_problar))
+              any(p["sinif"] == "BASKI" for p in g_problar)
+              and not any(p["sinif"] == "FIZIKSEL" for p in g_problar))
         g_liste, g_yerel = yerel_kahin(g_problar, g_kayitlar, node=node)
         if g_yerel.get("__hata__"):
             kirmizi += 1
@@ -877,26 +898,13 @@ def kendini_test(node=None):
             ham.append("       deploy.yml setup-node BLOKLAYICI on-kosuldur; node olmadan "
                        "bu kol yesil SAYILMAZ.")
         else:
-            fiz_ok = [p for p in g_problar if p["sinif"] == "FIZIKSEL"]
-            liste_esit = [p for p in fiz_ok
-                          if g_yerel.get(p["anahtar"], ("?",))[0] == "ok"
-                          and g_yerel[p["anahtar"]][1] == g_liste.get(p["id"])]
-            iddia("D3 depo HEAD'inin worker kodu fiziksel uruntte LISTE fiyati veriyor (%d/%d)"
-                  % (len(liste_esit), len(fiz_ok)), len(liste_esit) == len(fiz_ok),
-                  [(p["anahtar"], g_yerel.get(p["anahtar"]), g_liste.get(p["id"]))
-                   for p in fiz_ok if p not in liste_esit][:3])
             kon = [p for p in g_problar
                    if p["sinif"] == "BASKI" and p["kombinasyon"] == "en-pahali"]
             iddia("D4 depo kodu BASKI urununde carpani UYGULUYOR (kontrol tabani anlamli)",
-                  all(g_yerel.get(p["anahtar"], ("?",))[0] == "ok"
+                  bool(kon) and all(g_yerel.get(p["anahtar"], ("?",))[0] == "ok"
                       and g_yerel[p["anahtar"]][1] > (g_liste.get(p["id"]) or 0) for p in kon),
                   [(p["anahtar"], g_yerel.get(p["anahtar"]), g_liste.get(p["id"]))
                    for p in kon])
-            # YANLIS-POZITIF: canli, yerel kahinle BIREBIR ayni olsaydi kapi YESIL olmali
-            # (kapi "hep kirmizi" olamaz).
-            d, _s = karsilastir(g_problar, g_liste, dict(g_yerel), dict(g_yerel))
-            iddia("D5 canli == depo kodu senaryosunda kapi YESIL (hep-kirmizi degil)",
-                  d == "PARITE", d)
 
     # ---- (E) ALARM KABLOSU: CI durum etiketi + damga kosulu (ONCE-KIRMIZI)
     # 🔴 NEDEN AYRI BOLUM: canli kol BUGUN YESIL. "Alarm calisiyor" iddiasi canli kosumla
@@ -928,7 +936,8 @@ def kendini_test(node=None):
           [k for k, v in DURUM_ETIKET.items() if v == "parite"] == ["PARITE"],
           DURUM_ETIKET)
     iddia("E4b uc durumun UCU DE ayri etiket tasir (etiket carpismasi yok)",
-          len(set(DURUM_ETIKET.values())) == 3 and set(DURUM_ETIKET) == set(DURUM_KOD),
+          len(set(DURUM_ETIKET.values())) == len(DURUM_ETIKET)
+          and set(DURUM_ETIKET) == set(DURUM_KOD),
           DURUM_ETIKET)
 
     # GERCEK DOSYA YAZIMI: is akisinin okudugu `$GITHUB_OUTPUT` satiri BIREBIR olculur.
@@ -989,7 +998,11 @@ def main(argv=None):
     with open(a.urunler, encoding="utf-8") as f:
         urunler = json.load(f)
     problar, kayitlar = orneklem_sec(urunler, a.adet)
-    if not problar:
+    sinif_ihlali = katalog_fiziksel_ihlali(urunler)
+    if sinif_ihlali is None:
+        # OKAN 6 Eki 2026: sinif silindi -> olculen iddia "katalogda fiziksel = 0".
+        durum, satirlar = "SINIF-YOK", []
+    elif not problar:
         durum, satirlar = ("OLCULEMEDI",
                            [("ARIZA", "-", "ORNEKLEMDE FIZIKSEL URUN YOK — katalogda `tur` "
                              "alani dustu mu?")])
@@ -997,6 +1010,9 @@ def main(argv=None):
         liste, yerel = yerel_kahin(problar, kayitlar, node=a.node)
         canli = canli_oku(problar, a.uc, a.gecikme)
         durum, satirlar = karsilastir(problar, liste, yerel, canli)
+    if sinif_ihlali is not None:
+        durum = "DRIFT"
+        satirlar = [("SINIF-DONDU", "-", sinif_ihlali)] + list(satirlar)
     # 🔴 OZET RAPORDAN ONCE: bos orneklem yolu da damgasiz kalmali. Eskiden bu dal ERKEN
     # `return` ediyordu; ozet oraya baglanmasaydi "olculecek urun yok" hali is akisinda
     # ETIKETSIZ kalir ve damga kosulu tanimsiz bir cikti uzerinden okunurdu.

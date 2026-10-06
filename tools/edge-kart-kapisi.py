@@ -10,7 +10,7 @@ NEDEN VAR (OLCULDU, 1 Agu 2026 — bagimsiz curutucu bulgusu):
 
     Gercek vaka: `tur` alani (hazir ticari mal isareti) 31 Tem'de katalogda+D1'de dogdu,
     fiyat kuralina 1 Agu'da girdi, ama `kart_ozeti`ye EKLENMEDI. Olculen ayrisma —
-      international-micron-99-antifouling-boya-20lt (bayat sepet satiri, ASA + "Diğer"):
+      bir fiziksel urun (20 lt antifouling boya; bayat sepet satiri, ASA + "Diğer"):
       panel GOSTERIYOR 15.842.400 krs · Worker TAHSIL EDIYOR 8.610.000 krs
       fark 7.232.400 krs · 103 fiziksel urun toplaminda 53.270.280 krs
     Panel ayrica "Malzeme: ASA (+%60) · Renk: turuncu (özel, +%15)" yazip ayni sisik tutari
