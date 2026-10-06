@@ -39,6 +39,12 @@
  *                         musteri /foto/durum+/foto/gorsel ornegi gostermez · gunluk tavana sayilmaz ·
  *                         cron ORNEK-<is> satirini isler, 3MF ozel kovada, kredi 46 deftere ·
  *                         "Örnek üretimler" listesi + anahtarli indirme · havuz esigi AYNEN
+ * OLCU KAPISI (6 Eki — onarim zincirinden 1094 mm 3MF cikti, siparis 120 mm):
+ *   OL                  : 3MF R2'ye yazilmadan once olculur; XY uzun kenar %3 disindaysa build
+ *                         item'a duze olcek, yeniden olcum; tutmazsa 'elle' olcu-tutmadi + R2 0.
+ *                         Onarimli ve onarimsiz yolda AYNI kapi. Fiksturler sentetik (kucuk).
+ *   OM-A..OM-C          : kapi atlandi / olcek ters yone / tutmayan olcu yazildi -> KIRMIZI;
+ *                         OM-K (yalniz yorum) -> hicbiri
  *
  * NASIL: GERCEK worker (shop/src/index.js) import edilir. D1 = GERCEK SQLite: sema
  * tools/d1-sema.sql'den kurulur (shop/test/ortak/sqlite-koprusu.py) — elle yazilmis
@@ -75,6 +81,7 @@ import path from "node:path";
 import url from "node:url";
 import readline from "node:readline";
 import vm from "node:vm";
+import zlib from "node:zlib";
 
 const BURASI = path.dirname(url.fileURLToPath(import.meta.url));
 const KOK = path.join(BURASI, "..", "..");
@@ -125,7 +132,86 @@ function r2Kur() {
 
 const TABAN = "https://saglayici.test/openapi";
 const PNG = Uint8Array.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, ...new Array(64).fill(7)]);
-const UCMF = new TextEncoder().encode("PK-sahte-3mf-govdesi-4-renk");
+// ---- SENTETIK 3MF FIKSTURLERI (kucuk; gercek 8 MB dosya depoya GIRMEZ). Yapi gercek ornekle
+// ayni: ana model tek bilesen + tek build item (plaka ortasi), tepeler 3D/Objects altinda.
+function zipYaz(girdiler) {
+  const yerel = [], merkez = [];
+  let p = 0;
+  for (const [ad, metin, sakla] of girdiler) {
+    const ham = Buffer.from(metin), adB = Buffer.from(ad);
+    const veri = sakla ? ham : zlib.deflateRawSync(ham);
+    const crc = zlib.crc32(ham);
+    const h = Buffer.alloc(30); h.writeUInt32LE(0x04034b50, 0); h.writeUInt16LE(20, 4);
+    h.writeUInt16LE(sakla ? 0 : 8, 8); h.writeUInt32LE(crc, 14); h.writeUInt32LE(veri.length, 18);
+    h.writeUInt32LE(ham.length, 22); h.writeUInt16LE(adB.length, 26);
+    const m = Buffer.alloc(46); m.writeUInt32LE(0x02014b50, 0); m.writeUInt16LE(20, 4); m.writeUInt16LE(20, 6);
+    m.writeUInt16LE(sakla ? 0 : 8, 10); m.writeUInt32LE(crc, 16); m.writeUInt32LE(veri.length, 20);
+    m.writeUInt32LE(ham.length, 24); m.writeUInt16LE(adB.length, 28); m.writeUInt32LE(p, 42);
+    yerel.push(h, adB, veri); merkez.push(m, adB); p += 30 + adB.length + veri.length;
+  }
+  const mb = Buffer.concat(merkez), e = Buffer.alloc(22);
+  e.writeUInt32LE(0x06054b50, 0); e.writeUInt16LE(girdiler.length, 8); e.writeUInt16LE(girdiler.length, 10);
+  e.writeUInt32LE(mb.length, 12); e.writeUInt32LE(p, 16);
+  return new Uint8Array(Buffer.concat([...yerel, mb, e]));
+}
+/** XY yari kenar (ax, ay), yukseklik h (model birimi = mm) kutu; ikiOge -> build'de iki item. */
+function ucmfKur(ax, ay, h, ikiOge) {
+  const t = [];
+  for (let i = 0; i < 8; i++) { t.push('     <vertex x="' + (i & 1 ? ax : -ax) + '" y="' + (i & 2 ? ay : -ay) + '" z="' + (i & 4 ? h : 0) + '"/>'); }
+  const ucgen = [[0,2,1],[1,2,3],[4,5,6],[5,7,6],[0,1,4],[1,5,4],[2,6,3],[3,6,7],[0,4,2],[2,4,6],[1,3,5],[3,7,5]]
+    .map((u) => '     <triangle v1="' + u[0] + '" v2="' + u[1] + '" v3="' + u[2] + '"/>');
+  const kafa = '<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06" requiredextensions="p">\n';
+  const nesne = kafa + ' <resources>\n  <object id="1" type="model">\n   <mesh>\n    <vertices>\n' + t.join("\n") +
+    '\n    </vertices>\n    <triangles>\n' + ucgen.join("\n") + '\n    </triangles>\n   </mesh>\n  </object>\n </resources>\n <build/>\n</model>\n';
+  const oge = '  <item objectid="2" p:UUID="00000002-0000-0000-0000-000000000000" transform="1 0 0 0 1 0 0 0 1 125 125 0" printable="1"/>\n';
+  const ana = kafa + ' <resources>\n  <object id="2" type="model">\n   <components>\n' +
+    '    <component p:path="/3D/Objects/object_1.model" objectid="1" transform="1 0 0 0 1 0 0 0 1 0 0 0"/>\n' +
+    '   </components>\n  </object>\n </resources>\n <build>\n' + oge + (ikiOge ? oge : "") + ' </build>\n</model>\n';
+  return zipYaz([
+    ["[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>\n'],
+    ["_rels/.rels", '<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>\n'],
+    ["3D/3dmodel.model", ana],
+    ["3D/Objects/object_1.model", nesne],
+    ["Metadata/model_settings.config", '<?xml version="1.0" encoding="UTF-8"?>\n<config><object id="2"><metadata key="name" value="Object_1"/></object></config>\n', true],
+  ]);
+}
+/** BAGIMSIZ olcer (foto.js'e DAYANMAZ): zip -> {L (XY uzun kenar), z, item transform, girdiler: ad -> ham sikistirilmis bayt}. */
+function testOlc(bayt) {
+  const b = Buffer.from(bayt);
+  const e = b.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+  if (e < 0) { return null; }
+  const girdiler = new Map(), acik = new Map();
+  let p = b.readUInt32LE(e + 16);
+  for (let i = 0; i < b.readUInt16LE(e + 10); i++) {
+    const ad = b.toString("utf8", p + 46, p + 46 + b.readUInt16LE(p + 28));
+    const yontem = b.readUInt16LE(p + 10), cs = b.readUInt32LE(p + 20), yr = b.readUInt32LE(p + 42);
+    const v = yr + 30 + b.readUInt16LE(yr + 26) + b.readUInt16LE(yr + 28);
+    const ham = b.subarray(v, v + cs);
+    girdiler.set(ad, Buffer.from(ham));
+    acik.set(ad, (yontem === 8 ? zlib.inflateRawSync(ham) : ham).toString("utf8"));
+    p += 46 + b.readUInt16LE(p + 28) + b.readUInt16LE(p + 30) + b.readUInt16LE(p + 32);
+  }
+  const ana = acik.get("3D/3dmodel.model") || "";
+  const M = (/<item\b[^>]*\btransform="([^"]*)"/.exec(ana) || [, "1 0 0 0 1 0 0 0 1 0 0 0"])[1].trim().split(/\s+/).map(Number);
+  const en = [Infinity, Infinity, Infinity], ust = [-Infinity, -Infinity, -Infinity];
+  for (const [ad, metin] of acik) {
+    if (!/^3D\/.*\.model$/.test(ad)) { continue; }
+    for (const m of metin.matchAll(/<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"/g)) {
+      const q = [+m[1], +m[2], +m[3]];
+      for (let k = 0; k < 3; k++) {
+        const d = q[0] * M[k] + q[1] * M[3 + k] + q[2] * M[6 + k] + M[9 + k];
+        en[k] = Math.min(en[k], d); ust[k] = Math.max(ust[k], d);
+      }
+    }
+  }
+  return { L: Math.max(ust[0] - en[0], ust[1] - en[1]), z: ust[2] - en[2], zTaban: en[2], M, girdiler };
+}
+// Varsayilan fikstur 100 mm (testlerdeki siparis olcusu) -> olcu kapisi dokunmaz (bayt-esit).
+const UCMF = ucmfKur(50, 49, 7);
+const UCMF_1094 = ucmfKur(547, 548.4, 75);     // 6 Eki gercek ornegin sinir kutusu
+const UCMF_120 = ucmfKur(60, 58, 8);
+const UCMF_BOZUK = new TextEncoder().encode("PK-sahte-3mf-govdesi-4-renk");
+const UCMF_IKI_OGE = ucmfKur(547, 548.4, 75, true);
 const GLB = new TextEncoder().encode("glTF-sahte-govde");
 const GLB_DOKULU = new TextEncoder().encode("glTF-sahte-onarilmis-dokulu-govde");
 const P = {
@@ -192,7 +278,7 @@ globalThis.fetch = async function sahteFetch(hedef, init) {
     return yanit({ message: "bilinmeyen" }, 404);
   }
   if (u.startsWith("https://dosya.test/onizleme.png")) { return new Response(PNG, { headers: { "Content-Type": "image/png", "Content-Length": String(PNG.length) } }); }
-  if (u.startsWith("https://dosya.test/model.3mf")) { return new Response(UCMF, { headers: { "Content-Type": "application/octet-stream" } }); }
+  if (u.startsWith("https://dosya.test/model.3mf")) { return new Response(P.ucmf || UCMF, { headers: { "Content-Type": "application/octet-stream" } }); }
   if (u.startsWith("https://dosya.test/model-dokulu.glb")) { return new Response(GLB_DOKULU, { headers: { "Content-Type": "model/gltf-binary" } }); }
   if (u.startsWith("https://dosya.test/model.glb")) { return new Response(GLB, { headers: { "Content-Type": "model/gltf-binary" } }); }
   if (u.includes("challenges.cloudflare.com/turnstile")) {
@@ -956,6 +1042,83 @@ let ekranTek, ekranIki;
   ol("S-M4 mutant (S3 olcu radyosu eklenmez) -> S4 KIRMIZI", !!m3 && m3.olcuS3 === 0, JSON.stringify(m3));
 }
 
+// ================================================================ OL — 3MF OLCU KAPISI
+
+/**
+ * Temiz SQLite'ta olcu senaryolari (siparis olcusu 120 mm). Donus: her senaryo tuttu mu.
+ *   BUYUK   : 1096,8 mm 3MF -> olceklenir, R2'deki 3MF BAGIMSIZ olcumde 120 ±%3, Z orantili,
+ *             Z tabani 0, diger girdiler bayt-esit, analiz ozetinde olcek/L_once/L_sonra/z_mm
+ *   DOGRU   : zaten 120 mm -> dokunulmaz (R2'deki 3MF bayt-esit), olcek 1
+ *   BOZUK   : okunamaz 3MF -> 'elle' olcu-tutmadi, R2'ye 3MF YAZILMAZ
+ *   IKIOGE  : iki build item (olceklenemez) -> 'elle' olcu-tutmadi, R2'ye 3MF YAZILMAZ
+ *   ONARIMLI: kirmizi -> onarim -> doku -> yesil yolunda da AYNI kapi (1096,8 -> 120)
+ */
+async function olcekSenaryolar(fm, ayrinti) {
+  const k = koprukur(); await k.hazir;
+  const r2b = r2Kur();
+  const e2 = envKur(k.d1, r2b);
+  const is = "e".repeat(32);
+  await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'plaket', 120, 'z', ?, 'hazir', 'gorev-proto-7777', ?)")
+    .bind(is, new Date().toISOString(), new Date().toISOString()).run();
+  P.protoDurum.set("gorev-proto-7777", 5);
+  const kos = async (no, ucmf, a, ao) => {
+    await k.d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES (?, ?, 'odendi', 1, ?)")
+      .bind(no, new Date().toISOString(), JSON.stringify([{ id: "ozel-foto-plaket", foto_is: is, foto_tur: "plaket", olcu_mm: 120 }])).run();
+    P.ucmf = ucmf; P.analiz = a || "healthy"; P.analizOnarim = ao || null;
+    for (let i = 0; i < 10; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
+    P.ucmf = null; P.analiz = "healthy"; P.analizOnarim = null;
+    const u = await k.d1.prepare("SELECT asama, sebep, analiz FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
+    const d = r2b.m.get("foto/" + no + "/0/model.3mf");
+    let an = {};
+    try { an = JSON.parse((u && u.analiz) || "{}"); } catch (e) { an = {}; }
+    return { u, d: d ? d.bayt : null, an };
+  };
+  const yakin = (x, h) => Math.abs(x - h) / h <= 0.03;
+  const once = testOlc(UCMF_1094);
+  const ayniGirdiler = (o) => [...once.girdiler].every(([ad, ham]) =>
+    ad === "3D/3dmodel.model" || (o.girdiler.has(ad) && Buffer.compare(o.girdiler.get(ad), ham) === 0));
+  const sonuc = {};
+
+  const b = await kos("PR-TEST-OLC-B", UCMF_1094);
+  const bo = b.d && testOlc(b.d);
+  sonuc.BUYUK = !!b.u && b.u.asama === "hazir" && !!bo && yakin(bo.L, 120) &&
+    Math.abs(bo.z - 75 * 120 / 1096.8) < 0.05 && Math.abs(bo.zTaban) < 1e-6 && ayniGirdiler(bo) &&
+    b.an.olcek > 0 && b.an.olcek < 1 && yakin(b.an.L_once, 1096.8) && yakin(b.an.L_sonra, 120) &&
+    Math.abs(b.an.z_mm - bo.z) < 0.01 && b.an.durum === "healthy";
+  const d = await kos("PR-TEST-OLC-D", UCMF_120);
+  sonuc.DOGRU = !!d.u && d.u.asama === "hazir" && !!d.d && Buffer.compare(Buffer.from(d.d), Buffer.from(UCMF_120)) === 0 &&
+    d.an.olcek === 1 && d.an.L_once === 120 && d.an.L_sonra === 120;
+  const z = await kos("PR-TEST-OLC-Z", UCMF_BOZUK);
+  sonuc.BOZUK = !!z.u && z.u.asama === "elle" && z.u.sebep === "olcu-tutmadi" && z.d === null && !!z.an.olcu_hata;
+  const i2 = await kos("PR-TEST-OLC-I", UCMF_IKI_OGE);
+  sonuc.IKIOGE = !!i2.u && i2.u.asama === "elle" && i2.u.sebep === "olcu-tutmadi" && i2.d === null;
+  const o = await kos("PR-TEST-OLC-O", UCMF_1094, "error", "healthy");
+  const oo = o.d && testOlc(o.d);
+  sonuc.ONARIMLI = !!o.u && o.u.asama === "hazir" && !!oo && yakin(oo.L, 120) && yakin(o.an.L_sonra, 120);
+  if (ayrinti) { ayrinti.b = { u: b.u, L: bo && bo.L, z: bo && bo.z, M: bo && bo.M }; ayrinti.z = z.u; ayrinti.i2 = i2.u; ayrinti.o = o.u; }
+  k.kapat();
+  return sonuc;
+}
+
+console.log("OL — 3MF OLCU KAPISI");
+{
+  const ay = {};
+  const s = await olcekSenaryolar(foto, ay);
+  ol("OL1 1096,8 mm 3MF -> 120 mm (bagimsiz olcum ±%3, Z orantili, taban 0, diger girdiler bayt-esit, ozet olcek/L_once/L_sonra/z_mm)",
+     s.BUYUK, JSON.stringify(ay.b));
+  ol("OL2 zaten 120 mm -> dokunulmaz (R2'deki 3MF bayt-esit, olcek 1)", s.DOGRU, "");
+  ol("OL3 okunamaz 3MF -> 'elle' olcu-tutmadi, R2'ye 3MF YAZILMADI", s.BOZUK, JSON.stringify(ay.z));
+  ol("OL4 olceklenemez (iki build item) -> 'elle' olcu-tutmadi, R2'ye 3MF YAZILMADI", s.IKIOGE, JSON.stringify(ay.i2));
+  ol("OL5 onarim yolunda da ayni kapi (1096,8 -> 120)", s.ONARIMLI, JSON.stringify(ay.o));
+  const r = await foto.ucmfOlcekle(UCMF_1094.slice().buffer, 120);
+  ol("OL6 ucmfOlcekle dogrudan: olcek = 120 / 1096,8, L_sonra 120 ±%3",
+     !!r.tampon && Math.abs(r.olcek - 120 / 1096.8) < 1e-6 && Math.abs(r.L_sonra - 120) / 120 <= 0.03, JSON.stringify({ ...r, tampon: !!r.tampon }));
+  const t = await foto.ucmfOlcekle(UCMF_120.slice().buffer, 120);
+  ol("OL7 tolerans icinde -> ayni tampon geri doner", !!t.tampon && Buffer.compare(Buffer.from(t.tampon), Buffer.from(UCMF_120)) === 0 && t.olcek === 1, "");
+  ol("OL8 panel metni: olcu-tutmadi ELLE_METNI'nde (panel/Telegram sebebi)",
+     /olcu-tutmadi/.test(fs.readFileSync(path.join(SHOP, "src", "foto.js"), "utf8").split("const ELLE_METNI")[1].split("};")[0]), "");
+}
+
 // ================================================================ MUTANTLAR
 
 console.log("MUTANTLAR (gecici kopya; calisma agacina yazilmaz)");
@@ -1159,6 +1322,23 @@ for (const [ad, capa, yerine, olmeli] of ORNEK_MUTANTLAR) {
   } else {
     ol(ad + " -> hicbir ornek senaryosu kirmizi yanmaz", Object.values(s).length === 6 && Object.values(s).every((x) => x === true), JSON.stringify(s));
   }
+}
+
+const OLCEK_MUTANTLAR = [
+  ["OM-A OLCU KAPISI ATLANDI", "const olc = await ucmfOlcekle(ucmf.tampon, u.olcu_mm);",
+   "const olc = { tampon: ucmf.tampon, olcek: 1, L_once: u.olcu_mm, L_sonra: u.olcu_mm, z_mm: 0 };", ["BUYUK", "BOZUK", "IKIOGE", "ONARIMLI"]],
+  ["OM-B OLCEK YANLIS YONE (L/olcu)", "const s = hedefMm / o.L;", "const s = o.L / hedefMm;", ["BUYUK", "ONARIMLI"]],
+  ["OM-C TUTMAYAN OLCU R2'YE YAZILDI", "if (!olc.tampon) { return elleDusur(env, u, \"olcu-tutmadi\", ozet, simdi, telegram); }",
+   "if (!olc.tampon) { olc.tampon = ucmf.tampon; }", ["BOZUK", "IKIOGE"]],
+  ["OM-K KONTROL", "// Duze olcek item kokunun etrafinda;", "// Duze  olcek item kokunun etrafinda;", []],
+];
+for (const [ad, capa, yerine, olmeli] of OLCEK_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const s = await olcekSenaryolar(fm);
+  const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 5 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
 }
 
 kopru.kapat();

@@ -40,6 +40,8 @@
  *    Onarim sonrasi analiz hala kirmiziysa 'elle' (ikinci onarim YOK, renk KOSMAZ).
  *    Zincir D1 semasi degismeden build_gorev'de tutulur: "<model>" | "<model>~<onarim>" |
  *    "<model>~<onarim>~<doku>"; son ogedeki model renk adimina ve depoya giden modeldir.
+ * OLCU KAPISI (6 Eki, onarimli ornekte 3MF 1094 mm geldi): 3MF R2'ye yazilmadan ONCE olculur
+ *    ve siparis olcusune duze olceklenir (bkz. ucmfOlcekle); tutmazsa 'elle' olcu-tutmadi.
  */
 
 import "../../foto-uretim-veri.js";
@@ -326,6 +328,272 @@ async function dosyaIndir(adres) {
   } catch (e) {
     return null;
   }
+}
+
+// ---------------------------------------------------------------- 3MF olcu kapisi
+//
+// 6 Eki olcumu: onarim zincirinden cikan 3MF 1094 mm geldi (120 mm siparis). 3MF R2'ye
+// yazilmadan ONCE tepe sinir kutusu olculur; XY uzun kenar siparis olcusunden %3'ten fazla
+// saparsa ana modeldeki build item transform'una duze olcek uygulanir (tepe verisi ve diger
+// zip girdileri bayt-esit kalir), sonuc YENIDEN olculur; tutmazsa satir 'elle' olcu-tutmadi.
+
+/** XY uzun kenarin siparis olcusunden izin verilen goreli sapmasi. */
+export const OLCU_TOLERANS = 0.03;
+const ANA_MODEL = "3D/3dmodel.model";
+const BIRIM_MM = { micron: 0.001, millimeter: 1, centimeter: 10, inch: 25.4, foot: 304.8, meter: 1000 };
+
+let CRC_TABLO = null;
+function crc32(b) {
+  if (!CRC_TABLO) {
+    CRC_TABLO = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) { c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; }
+      CRC_TABLO[n] = c >>> 0;
+    }
+  }
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < b.length; i++) { c = CRC_TABLO[(c ^ b[i]) & 0xFF] ^ (c >>> 8); }
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+/** Zip merkez dizini: [{ad, yontem, csize, usize, yerel, merkez(bas, son)}]; okunamazsa null. Zip64 RED. */
+function zipDizini(b) {
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength);
+  let e = -1;
+  for (let i = b.length - 22; i >= Math.max(0, b.length - 22 - 65535); i--) {
+    if (v.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  }
+  if (e < 0) { return null; }
+  const adet = v.getUint16(e + 10, true);
+  let p = v.getUint32(e + 16, true);
+  if (adet === 0xFFFF || p === 0xFFFFFFFF || p >= e) { return null; }
+  const cozucu = new TextDecoder();
+  const g = [];
+  for (let i = 0; i < adet; i++) {
+    if (p + 46 > e || v.getUint32(p, true) !== 0x02014b50) { return null; }
+    const ad = v.getUint16(p + 28, true), ek = v.getUint16(p + 30, true), yorum = v.getUint16(p + 32, true);
+    const x = { ad: cozucu.decode(b.subarray(p + 46, p + 46 + ad)), bayrak: v.getUint16(p + 8, true),
+                yontem: v.getUint16(p + 10, true), csize: v.getUint32(p + 20, true),
+                usize: v.getUint32(p + 24, true), yerel: v.getUint32(p + 42, true),
+                merkez: [p, p + 46 + ad + ek + yorum] };
+    if (x.csize === 0xFFFFFFFF || x.usize === 0xFFFFFFFF || x.yerel === 0xFFFFFFFF || x.yerel + 30 > e) { return null; }
+    if (v.getUint32(x.yerel, true) !== 0x04034b50) { return null; }
+    x.veri = x.yerel + 30 + v.getUint16(x.yerel + 26, true) + v.getUint16(x.yerel + 28, true);
+    if (x.veri + x.csize > e) { return null; }
+    g.push(x);
+    p = x.merkez[1];
+  }
+  return { girdiler: g, merkezBas: v.getUint32(e + 16, true), son: e };
+}
+
+/** Girdinin acik govdesini akis olarak verir (0 = saklanmis, 8 = deflate). */
+function girdiAkisi(b, x) {
+  const ham = b.subarray(x.veri, x.veri + x.csize);
+  const akis = new Blob([ham]).stream();
+  if (x.yontem === 0) { return akis; }
+  if (x.yontem === 8) { return akis.pipeThrough(new DecompressionStream("deflate-raw")); }
+  return null;
+}
+
+async function girdiMetni(b, x) {
+  const a = girdiAkisi(b, x);
+  return a ? new Response(a).text() : null;
+}
+
+/**
+ * Bir .model girdisinin tepe sinir kutusu; bellek dostu (akisli, parca sinirinda kuyruk tutar).
+ * Her `<vertex` x/y/z ile okunamazsa null (sayim tutmazsa olcum YOK; fail-closed).
+ */
+async function tepeKutusu(b, x) {
+  const a = girdiAkisi(b, x);
+  if (!a) { return null; }
+  const kalip = /<vertex\s[^>]*?\bx="([^"]+)"[^>]*?\by="([^"]+)"[^>]*?\bz="([^"]+)"[^>]*>/g;
+  const en = [Infinity, Infinity, Infinity], ust = [-Infinity, -Infinity, -Infinity];
+  let n = 0, etiket = 0, kuyruk = "";
+  const isle = (s) => {
+    kalip.lastIndex = 0;
+    let m;
+    while ((m = kalip.exec(s)) !== null) {
+      for (let k = 0; k < 3; k++) {
+        const d = +m[k + 1];
+        if (d < en[k]) { en[k] = d; }
+        if (d > ust[k]) { ust[k] = d; }
+      }
+      n++;
+    }
+    for (let i = s.indexOf("<vertex"); i >= 0; i = s.indexOf("<vertex", i + 7)) {
+      const c = s.charCodeAt(i + 7);
+      if (c === 32 || c === 9 || c === 10 || c === 13) { etiket++; }
+    }
+  };
+  const okuyucu = a.pipeThrough(new TextDecoderStream()).getReader();
+  for (;;) {
+    const { value, done } = await okuyucu.read();
+    if (done) { break; }
+    const s = kuyruk + value;
+    const kes = s.lastIndexOf(">") + 1;
+    isle(s.slice(0, kes));
+    kuyruk = s.slice(kes);
+    if (kuyruk.length > 4096) { return null; }
+  }
+  isle(kuyruk);
+  if (n !== etiket || [...en, ...ust].some((d) => !Number.isFinite(d))) { return null; }
+  return { en, ust, n };
+}
+
+const BIRIM_DONUSUM = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
+function donusumOku(s) {
+  if (s == null) { return BIRIM_DONUSUM.slice(); }
+  const d = String(s).trim().split(/\s+/).map(Number);
+  return d.length === 12 && d.every(Number.isFinite) ? d : null;
+}
+/** 3MF satir-vektor kurali: p' = [x y z 1] * M. */
+function noktaDonustur(p, m) {
+  return [0, 1, 2].map((k) => p[0] * m[k] + p[1] * m[3 + k] + p[2] * m[6 + k] + m[9 + k]);
+}
+function kutuDonustur(k, m) {
+  const en = [Infinity, Infinity, Infinity], ust = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < 8; i++) {
+    const q = noktaDonustur([i & 1 ? k.ust[0] : k.en[0], i & 2 ? k.ust[1] : k.en[1], i & 4 ? k.ust[2] : k.en[2]], m);
+    for (let j = 0; j < 3; j++) { en[j] = Math.min(en[j], q[j]); ust[j] = Math.max(ust[j], q[j]); }
+  }
+  return { en, ust };
+}
+const oznitelik = (etiket, ad) => {
+  const m = new RegExp("(?:^|\\s)" + ad + "=\"([^\"]*)\"").exec(etiket);
+  return m ? m[1] : null;
+};
+
+/**
+ * 3MF'in yapi plakasindaki sinir kutusu (mm). Tek build item sart; nesne ya ana modelde tepe
+ * tasir ya da bilesenleri (p:path dosyasi + transform) uzerinden kurulur.
+ * Donus {en, ust, L (XY uzun kenar), z, item: {bas, son, M}, metin} ya da {hata}.
+ */
+async function ucmfOlc(b) {
+  const z = zipDizini(b);
+  if (!z) { return { hata: "zip-okunamadi" }; }
+  const ana = z.girdiler.find((x) => x.ad === ANA_MODEL);
+  if (!ana) { return { hata: "ana-model-yok" }; }
+  const metin = await girdiMetni(b, ana);
+  if (metin == null) { return { hata: "ana-model-acilamadi" }; }
+  const birim = BIRIM_MM[oznitelik((/<model\b[^>]*>/.exec(metin) || [""])[0], "unit") || "millimeter"];
+  if (!birim) { return { hata: "birim-bilinmiyor" }; }
+  const ogeler = [...metin.matchAll(/<item\b[^>]*>/g)];
+  if (ogeler.length !== 1) { return { hata: "build-item-sayisi-" + ogeler.length }; }
+  const ie = ogeler[0];
+  const M = donusumOku(oznitelik(ie[0], "transform"));
+  if (!M) { return { hata: "item-transform-okunamadi" }; }
+  const kutular = new Map();
+  const dosyaKutusu = async (ad) => {
+    if (!kutular.has(ad)) {
+      const x = z.girdiler.find((g) => g.ad === ad);
+      kutular.set(ad, x ? await tepeKutusu(b, x) : null);
+    }
+    return kutular.get(ad);
+  };
+  const parcalar = [];
+  const bilesenler = [...metin.matchAll(/<component\b[^>]*>/g)];
+  if (bilesenler.length) {
+    for (const c of bilesenler) {
+      const yol = (oznitelik(c[0], "p:path") || "/" + ANA_MODEL).replace(/^\//, "");
+      const C = donusumOku(oznitelik(c[0], "transform"));
+      const k = await dosyaKutusu(yol);
+      if (!C || !k) { return { hata: "bilesen-olculemedi" }; }
+      parcalar.push(kutuDonustur(kutuDonustur(k, C), M));
+    }
+  } else {
+    const k = await dosyaKutusu(ANA_MODEL);
+    if (!k) { return { hata: "tepe-yok" }; }
+    parcalar.push(kutuDonustur(k, M));
+  }
+  const en = [0, 1, 2].map((j) => Math.min(...parcalar.map((p) => p.en[j])) * birim);
+  const ust = [0, 1, 2].map((j) => Math.max(...parcalar.map((p) => p.ust[j])) * birim);
+  const L = Math.max(ust[0] - en[0], ust[1] - en[1]);
+  if (!(L > 0)) { return { hata: "olcu-sifir" }; }
+  return { en, ust, L, z: ust[2] - en[2], birim, metin,
+           item: { bas: ie.index, son: ie.index + ie[0].length, etiket: ie[0], M } };
+}
+
+const sayiYaz = (d) => String(Math.abs(d) < 1e-12 ? 0 : +d.toPrecision(10));
+
+/** Ana model girdisini `yeni` metinle degistirip zip'i yeniden kurar; diger girdiler bayt-esit. */
+function zipGirdiDegistir(b, z, ad, yeniMetin) {
+  const yeni = new TextEncoder().encode(yeniMetin);
+  const crc = crc32(yeni);
+  const sira = z.girdiler.slice().sort((p, q) => p.yerel - q.yerel);
+  const parca = [], yeniYerel = new Map();
+  let p = 0;
+  sira.forEach((x, i) => {
+    const son = i + 1 < sira.length ? sira[i + 1].yerel : z.merkezBas;
+    yeniYerel.set(x, p);
+    if (x.ad !== ad) { parca.push(b.subarray(x.yerel, son)); p += son - x.yerel; return; }
+    const adB = new TextEncoder().encode(x.ad);
+    const h = new Uint8Array(30 + adB.length), v = new DataView(h.buffer);
+    v.setUint32(0, 0x04034b50, true); v.setUint16(4, 20, true); v.setUint16(6, x.bayrak & 0x0800, true);
+    v.setUint16(8, 0, true);
+    v.setUint32(10, new DataView(b.buffer, b.byteOffset).getUint32(x.merkez[0] + 12, true), true);
+    v.setUint32(14, crc, true); v.setUint32(18, yeni.length, true); v.setUint32(22, yeni.length, true);
+    v.setUint16(26, adB.length, true); v.setUint16(28, 0, true); h.set(adB, 30);
+    parca.push(h, yeni); p += h.length + yeni.length;
+  });
+  const merkezBas = p;
+  for (const x of z.girdiler) {
+    const r = b.slice(x.merkez[0], x.merkez[1]), v = new DataView(r.buffer);
+    v.setUint32(42, yeniYerel.get(x), true);
+    if (x.ad === ad) {
+      v.setUint16(8, x.bayrak & 0x0800, true); v.setUint16(10, 0, true);
+      v.setUint32(16, crc, true); v.setUint32(20, yeni.length, true); v.setUint32(24, yeni.length, true);
+    }
+    parca.push(r); p += r.length;
+  }
+  const e = new Uint8Array(22), v = new DataView(e.buffer);
+  v.setUint32(0, 0x06054b50, true);
+  v.setUint16(8, z.girdiler.length, true); v.setUint16(10, z.girdiler.length, true);
+  v.setUint32(12, p - merkezBas, true); v.setUint32(16, merkezBas, true);
+  parca.push(e); p += 22;
+  const c = new Uint8Array(p);
+  let o = 0;
+  for (const x of parca) { c.set(x, o); o += x.length; }
+  return c;
+}
+
+/**
+ * OLCU KAPISI: 3MF'i siparis olcusune getirir. Donus:
+ *   {tampon, olcek, L_once, L_sonra, z_mm}  (tolerans icindeyse tampon = girdi, olcek 1)
+ *   {hata, L_once?}                          -> cagiran 'elle' olcu-tutmadi, R2'ye YAZMAZ
+ */
+export async function ucmfOlcekle(tampon, hedefMm) {
+  const b = new Uint8Array(tampon);
+  if (!(hedefMm > 0)) { return { hata: "hedef-olcu-yok" }; }
+  const o = await ucmfOlc(b);
+  if (o.hata) { return { hata: o.hata }; }
+  const L_once = +o.L.toFixed(3);
+  if (Math.abs(o.L - hedefMm) / hedefMm <= OLCU_TOLERANS) {
+    return { tampon, olcek: 1, L_once, L_sonra: L_once, z_mm: +o.z.toFixed(3) };
+  }
+  const s = hedefMm / o.L;
+  const M = o.item.M.slice();
+  for (let i = 0; i < 9; i++) { M[i] *= s; }
+  // Duze olcek item kokunun etrafinda; XY merkezi ve Z tabani yerinde kalsin (birim -> mm donusumu).
+  const merkez = [(o.en[0] + o.ust[0]) / 2, (o.en[1] + o.ust[1]) / 2, o.en[2]].map((d) => d / o.birim);
+  for (let k = 0; k < 3; k++) { M[9 + k] = merkez[k] - s * (merkez[k] - o.item.M[9 + k]); }
+  const yeniDeger = M.map(sayiYaz).join(" ");
+  const etiket = /(?:^|\s)transform="[^"]*"/.test(o.item.etiket)
+    ? o.item.etiket.replace(/((?:^|\s)transform=")[^"]*"/, "$1" + yeniDeger + "\"")
+    : o.item.etiket.replace(/^<item\b/, "<item transform=\"" + yeniDeger + "\"");
+  const yeniMetin = o.metin.slice(0, o.item.bas) + etiket + o.metin.slice(o.item.son);
+  let cikti;
+  try {
+    cikti = zipGirdiDegistir(b, zipDizini(b), ANA_MODEL, yeniMetin);
+  } catch (e) {
+    return { hata: "zip-yazilamadi", L_once };
+  }
+  const y = await ucmfOlc(cikti);
+  if (y.hata) { return { hata: "olcek-sonrasi-" + y.hata, L_once }; }
+  const L_sonra = +y.L.toFixed(3);
+  if (Math.abs(y.L - hedefMm) / hedefMm > OLCU_TOLERANS) { return { hata: "olcek-tutmadi", L_once, L_sonra }; }
+  return { tampon: cikti.buffer, olcek: +s.toPrecision(8), L_once, L_sonra, z_mm: +y.z.toFixed(3) };
 }
 
 // ---------------------------------------------------------------- kredi defteri + havuz
@@ -969,11 +1237,24 @@ const ELLE_METNI = {
   "analiz-basarisiz": "basılabilirlik analizi tamamlanamadı",
   "onarim-basarisiz": "sızdırmazlık onarımı ya da yeniden doku üretilemedi",
   "renk-basarisiz": "4 renk ayrımı üretilemedi",
+  "olcu-tutmadi": "3MF ölçüsü sipariş ölçüsüne getirilemedi (dosya depoya yazılmadı)",
   "indirme-basarisiz": "dosyalar depoya indirilemedi",
   "kredi-yetersiz": "kredi yetmedi (otomatik alım yok)",
   "saglayici-erisilemiyor": "sağlayıcıya tekrar tekrar ulaşılamadı",
   "tur-kapali": "bu tür artık sunulmuyor (elle bakılacak)",
 };
+
+/** Analiz ozetine olcu kapisi sonucunu ekler (panel + kapanis okur). */
+function analizOlcekli(analiz, olc) {
+  let o = {};
+  try { o = JSON.parse(analiz || "{}") || {}; } catch (e) { o = { ham: String(analiz).slice(0, 200) }; }
+  o.olcek = olc.tampon ? olc.olcek : 0;
+  o.L_once = olc.L_once == null ? null : olc.L_once;
+  o.L_sonra = olc.L_sonra == null ? null : olc.L_sonra;
+  o.z_mm = olc.z_mm == null ? null : olc.z_mm;
+  if (olc.hata) { o.olcu_hata = olc.hata; }
+  return JSON.stringify(o);
+}
 
 async function elleDusur(env, u, sebep, ek, simdi, telegram) {
   const tasindi = await asamaYaz(env, u, "elle", { sebep: sebep, analiz: ek || u.analiz || "" }, simdi);
@@ -1164,11 +1445,15 @@ async function uretimAdimi(env, u, simdi, telegram) {
     const ucmf = await dosyaIndir(c.govde.model_urls && c.govde.model_urls["3mf"]);
     const glb = await dosyaIndir(glbAdres);
     if (!ucmf || !glb) { return gecici(env, u, simdi, telegram); }
-    await env.OZEL_DOSYA.put(uretimAnahtari(u.siparis_no, u.kalem, "3mf"), ucmf.tampon,
+    // OLCU KAPISI (onarimli + onarimsiz HER yol buradan gecer): olcu tutmazsa R2'ye YAZILMAZ.
+    const olc = await ucmfOlcekle(ucmf.tampon, u.olcu_mm);
+    const ozet = analizOlcekli(u.analiz, olc);
+    if (!olc.tampon) { return elleDusur(env, u, "olcu-tutmadi", ozet, simdi, telegram); }
+    await env.OZEL_DOSYA.put(uretimAnahtari(u.siparis_no, u.kalem, "3mf"), olc.tampon,
                              { httpMetadata: { contentType: "model/3mf" } });
     await env.OZEL_DOSYA.put(uretimAnahtari(u.siparis_no, u.kalem, "glb"), glb.tampon,
                              { httpMetadata: { contentType: "model/gltf-binary" } });
-    const tasindi = await asamaYaz(env, u, "hazir", {}, simdi);
+    const tasindi = await asamaYaz(env, u, "hazir", { analiz: ozet }, simdi);
     if (tasindi && typeof telegram === "function") {
       await telegram(env, "📸 Fotoğraftan üretim — 4 renkli dosya HAZIR: " + u.siparis_no +
         " kalem " + u.kalem + " (" + u.tur + ", " + u.olcu_mm + " mm). Panelde siparişin yanında.");
