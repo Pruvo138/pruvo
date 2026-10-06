@@ -56,11 +56,40 @@
     // Tek tür varken bölümde tür seçimi adımı GÖRÜNMEZ (fotoğraf → ölçü → önizleme → ödeme).
     // Ölçü SEÇENEKLERİ ve fiyatı burada DEĞİL: sipariş panelindeki fiyat tablosundan gelir
     // (tür × ölçü). Tabloda satırı olmayan ölçü sunulmaz.
+    //
+    // KATEGORİ KAYDI (6 Eki 2026) — her türün akışı bu alanlardan okunur, kodda ikinci liste YOK:
+    //   girdi          : "foto-1" = müşteriden tek fotoğraf
+    //   kol            : "saglayici" = önizleme+üretim dış hizmetle (kredi harcar);
+    //                    "deterministik" = önizleme tarayıcıda çizilir, üretim dosyasını bizim
+    //                    üretecimiz çıkarır (sağlayıcı çağrısı 0, kredi 0)
+    //   olcu_mm        : {en_az, en_cok} — fiyat satırı bu aralık dışında YAZILAMAZ
+    //   renk_bolgeleri : müşterinin renk seçtiği bölgeler; [] = seçim yok (plaket: önizlemenin 4 renkli yorumu)
+    //   malzemeler     : bölge -> izinli filament listesi; {} = satır "PLA" (plaket)
+    // Litofan, gerçek örneği ve fiyat satırı olmadıkça AÇILMAZ (fail-closed, plaketle aynı kural).
     turler: [
       {
         kod: "plaket",
         ad: "Kabartma plaket",
-        aciklama: "Fotoğrafındaki konunun kabartmalı plaketi; ayağıyla masada durur."
+        aciklama: "Fotoğrafındaki konunun kabartmalı plaketi; ayağıyla masada durur.",
+        girdi: "foto-1",
+        kol: "saglayici",
+        olcu_mm: { en_az: 50, en_cok: 300 },
+        renk_bolgeleri: [],
+        malzemeler: {}
+      },
+      {
+        kod: "litofan",
+        ad: "Işıklı fotoğraf paneli (litofan)",
+        aciklama: "Fotoğrafın ince bir panele kalınlık farkıyla işlenir; arkadan ışık gelince görünür. Ayağıyla masada durur.",
+        girdi: "foto-1",
+        kol: "deterministik",
+        olcu_mm: { en_az: 80, en_cok: 200 },
+        renk_bolgeleri: [
+          { kod: "panel", ad: "Işık geçen panel", renkler: ["Beyaz"] },
+          { kod: "ayak", ad: "Ayak", renkler: ["Beyaz", "Siyah", "Gri"] }
+        ],
+        // ABS YOK: litofan Dekorasyon sınıfıdır (secenekler.js FILAMENT_KATEGORI_HARIC).
+        malzemeler: { panel: ["PLA", "PETG"], ayak: ["PLA", "PETG", "ASA"] }
       }
     ],
 
@@ -88,6 +117,18 @@
       if (VERI.turler[i].kod === kod) { return VERI.turler[i]; }
     }
     return null;
+  };
+
+  // Türün akış kolu ("saglayici" | "deterministik"); bilinmeyen tür -> "" (hiçbir kola girmez).
+  VERI.kolu = function (kod) {
+    var t = VERI.turBul(kod);
+    return t && (t.kol === "saglayici" || t.kol === "deterministik") ? t.kol : "";
+  };
+  // Türün ölçü aralığı (mm, uzun kenar); bilinmeyen tür -> null. Bölüm ve sunucu AYNI fonksiyon.
+  VERI.olcuAraligi = function (kod) {
+    var t = VERI.turBul(kod);
+    if (!t || !t.olcu_mm || !(t.olcu_mm.en_az > 0) || !(t.olcu_mm.en_cok >= t.olcu_mm.en_az)) { return null; }
+    return { en_az: t.olcu_mm.en_az, en_cok: t.olcu_mm.en_cok };
   };
 
   kok.PRUVO_FOTO = VERI;

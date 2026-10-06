@@ -605,7 +605,7 @@ CREATE TABLE IF NOT EXISTS reklam_oci_kuyruk (
 -- Tablolar yoksa (bu dosya canliya henuz uygulanmadi) bolum KAPALI davranir (fail-closed).
 CREATE TABLE IF NOT EXISTS foto_isler (
   is_no        TEXT PRIMARY KEY,           -- 32 hex, tahmin edilemez (musterinin onizleme anahtari)
-  tur          TEXT NOT NULL,              -- 'plaket' (sunulan turler: shop/src/foto.js TUR_ORTAM)
+  tur          TEXT NOT NULL,              -- 'plaket' | 'litofan' (tur kaydi: foto-uretim-veri.js turler[])
   olcu_mm      INTEGER NOT NULL DEFAULT 0, -- onizleme istenirken secilen olcu
   ziyaretci    TEXT NOT NULL,              -- tuzlu sha256(ip) ilk 16 hex
   tarih        TEXT NOT NULL,              -- ISO 8601 UTC (deneme ani)
@@ -624,7 +624,7 @@ CREATE TABLE IF NOT EXISTS foto_uretim (
   is_no        TEXT NOT NULL,              -- foto_isler.is_no
   tur          TEXT NOT NULL,
   olcu_mm      INTEGER NOT NULL,
-  asama        TEXT NOT NULL,              -- 'build-baslat'|'build'|'analiz'|'renk'|'hazir'|'elle'
+  asama        TEXT NOT NULL,              -- 'build-baslat'|'build'|'analiz'|'renk'|'hazir'|'elle'|'uretec-bekliyor' (deterministik kol: panelden 3MF yuklenince 'hazir')
   build_gorev  TEXT NOT NULL DEFAULT '',
   analiz_gorev TEXT NOT NULL DEFAULT '',
   renk_gorev   TEXT NOT NULL DEFAULT '',

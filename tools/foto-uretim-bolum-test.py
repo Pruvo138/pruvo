@@ -18,7 +18,7 @@ SÖZLEŞMESİNİ ölçer:
   Y5 SEPET    : ödeme dönüşünde sepeti koruyan oturum anahtarı iki dosyada AYNI dize
   Y6 GÜVENLİK : bölüm DOM'a innerHTML ile veri basmaz; yalnız aynı köken /api/shop uçları
   Y7 SÖZDİZİMİ: node --check (node yoksa OLCULEMEDI, yeşil sayılmaz)
-  Y8 PLAKET   : veri dosyasında sunulan tür TEK (plaket); anahtarlık/magnet ekranda 0
+  Y8 PLAKET   : veri dosyasında plaket VAR, anahtarlık/magnet/figür türü 0; anahtarlık/magnet ekranda 0
                 (BaBa 5 Eki 21:4x(b) — "yalnız plastik üretiyoruz")
   Y9 TEK TÜR  : tek türde tür grubu gizlenir, adım çubuğu "Ölçü" der (DAVRANIŞ ölçümü sahte
                 DOM'da: shop/test/foto-uretim.mjs S bölümü; bu dosya sözleşmeyi tutar)
@@ -101,7 +101,9 @@ def kontroller(index, bolum, veri, build):
     # Y8 PLAKET (BaBa 5 Eki 21:4x(b)): veri dosyasinin `turler` dizisinde TEK tur = plaket.
     tb = re.search(r"\bturler:\s*\[(.*?)\n\s*\],", veri, re.S)
     kodlar = re.findall(r'\bkod:\s*"([^"]+)"', tb.group(1)) if tb else []
-    s.append(("Y8 sunulan tur sayisi 1 ve kodu plaket", kodlar == ["plaket"], str(kodlar)))
+    # 6 Eki (kategori kaydi): tek-tur yerine "plaket VAR + metal gerektiren tur 0".
+    s.append(("Y8 plaket VAR ve anahtarlik/magnet/figur turu 0",
+              "plaket" in kodlar and not any(k in kodlar for k in ("anahtarlik", "magnet", "figur")), str(kodlar)))
     eski = [k for k in ("anahtarl", "magnet", "mıknatıs", "miknatis")
             if k in bolum.lower() or k in (tb.group(1).lower() if tb else "")]
     s.append(("Y8 anahtarlik/magnet secenegi ekranda + tur listesinde 0", not eski, ",".join(eski)))

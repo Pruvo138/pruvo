@@ -44,10 +44,16 @@
  *   30  — 6 Eki 2026 (Okan karari "Ege ve HocA yok" + "temizle"): WhatsApp botunun
  *         POST siparis kolu yonet.js'ten SILINDI (yuzey DARALDI, genislemedi). O yol
  *         artik her anahtarla 404 + D1'e yazmaz — shop/test/urunler-panel.mjs A6.
+ *   32  — 6 Eki 2026 (litofan deterministik kolu, KraL tasarimi): GET /foto/uretec-girdi
+ *         (uretecin girdisi = musterinin gri kalinlik haritasi PNG) + POST /foto/uretec-yukle
+ *         (bizim uretecin 3MF'i; yalniz 'uretec-bekliyor' satirina, CAS ile 'hazir') — ikisi de
+ *         ayni yonetim anahtarinin ARKASINDA (anahtarsiz 404). Yetki/imza/asama kurallari
+ *         shop/test/foto-litofan.mjs L6 + M4 (uc kapinin onune alininca L6 KIRMIZI) olcer.
+ *         Content-Disposition shop/src/foto.js'te -> CD_TABANI DEGISMEDI.
  */
 
 /** `altYol === "` yonlendirici kolu sayisi — yetki yuzeyi genisledi mi? */
-export const KOL_TABANI = 30;
+export const KOL_TABANI = 32;
 
 /** `Content-Disposition` gecisi — yeni indirme/proxy/zip akisi acildi mi? */
 export const CD_TABANI = 2;
