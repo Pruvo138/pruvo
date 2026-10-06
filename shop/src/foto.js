@@ -1195,7 +1195,8 @@ async function onizlemeTemizle(env, simdi) {
 }
 
 /**
- * CRON KOLU — uretim zincirini yurutur. Yapilandirma eksikse HICBIR SEY yapmaz.
+ * CRON KOLU — uretim zincirini yurutur. Yapilandirma eksikse saglayici zinciri KOSMAZ;
+ * yalniz deterministik kuyruk + onizleme temizligi (saklama kurali) koşar.
  * Donus olcum ozeti (log + test): {kuyruga, ilerleyen, silinen}.
  */
 export async function fotoUretimTuru(env, simdi, telegram) {
@@ -1205,8 +1206,12 @@ export async function fotoUretimTuru(env, simdi, telegram) {
     ozet.atlandi = "yapilandirma";
     // Deterministik kol saglayicisizdir: odenen kalemleri yine kuyruga alir (zincir KOSMAZ,
     // ozet saglayici kolu icin bugunkuyle ayni kalir).
-    if (env && env.KATALOG && env.OZEL_DOSYA && DETERMINISTIK_TURLER.length) {
-      try { await odenenleriKuyrugaAl(env, simdi, true); } catch (e) { if (!tabloYok(e)) { throw e; } }
+    if (env && env.KATALOG && env.OZEL_DOSYA) {
+      if (DETERMINISTIK_TURLER.length) {
+        try { await odenenleriKuyrugaAl(env, simdi, true); } catch (e) { if (!tabloYok(e)) { throw e; } }
+      }
+      // Saklama kurali saglayicidan bagimsizdir (onay metni: en gec 3 gun) — litofan haritasi da silinir.
+      try { ozet.silinen = await onizlemeTemizle(env, simdi); } catch (e) { if (!tabloYok(e)) { throw e; } }
     }
     return ozet;
   }

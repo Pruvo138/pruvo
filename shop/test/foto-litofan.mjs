@@ -16,9 +16,11 @@
  *   L6 PANEL        : yetkisiz yukleme reddedilir (yonet kapisi: 401/403/404) · bozuk imza 400 ·
  *                     gecerli 3MF -> 'hazir' + R2 · ikinci yukleme 409 · girdi indir = harita
  *   L7 PLAKET       : ayni sahte ortamda onizleme -> /baslat -> kuyruk 'build-baslat' (bugunku gibi)
+ *   L8 SAKLAMA      : saglayici env'siz cron: 73 sa onceki siparise girmemis litofan haritasi R2'den
+ *                     silinir + satir 'silindi', saglayici cagrisi 0; siparise girmis harita KALIR
  *
  * MUTANTLAR: os.tmpdir()'de shop/src + foto-uretim-veri.js + secenekler.js IZOLE kopyasi
- * (calisma agacina yazim YOK; kopya cikista silinir). M1..M4 hedef grubu KIRMIZIYA cevirmeli,
+ * (calisma agacina yazim YOK; kopya cikista silinir). M1..M5 hedef grubu KIRMIZIYA cevirmeli,
  * M0 (yorum) hicbir grubu cevirmemeli. Son satir `SURVIVOR=<n>`; n>0 ya da kirmizi -> rc=1.
  * CIKIS KODU: 0 yesil · 1 kirmizi · 3 OLCULEMEDI (modul/kopru kurulamadi).
  */
@@ -179,7 +181,7 @@ const litofanGovde = (ek) => ({ tur: "litofan", olcu_mm: 120, gorsel: uri(HARITA
 /** Gruplu sonuc: {L2: [{ad, ok, ek}], ...}. Her kosum TEMIZ SQLite + temiz R2 ile. */
 async function senaryo(ms) {
   const { modul, foto, VERI } = ms;
-  const g = { L2: [], L3: [], L4: [], L5: [], L6: [], L7: [] };
+  const g = { L2: [], L3: [], L4: [], L5: [], L6: [], L7: [], L8: [] };
   const iddia = (grup, ad, ok, ek) => g[grup].push({ ad, ok: !!ok, ek: ek || "" });
   const k = koprukur(); await k.hazir;
   const d1 = k.d1; const r2 = r2Kur();
@@ -332,6 +334,27 @@ async function senaryo(ms) {
     await foto.fotoUretimTuru(env, Date.now(), null);
     const u7 = b7.v && b7.v.no ? await d1.prepare("SELECT asama FROM foto_uretim WHERE siparis_no = ?").bind(b7.v.no).first() : null;
     iddia("L7", "odenen plaket kuyrukta 'build-baslat'", !!u7 && u7.asama === "build-baslat", JSON.stringify(u7));
+
+    // ---- L8: saglayici env'siz ortamda saklama kurali (72 sa) yine koşar
+    const eski = new Date(Date.now() - 73 * 3600 * 1000).toISOString();
+    const is8 = "c".repeat(32); const is8s = "d".repeat(32);
+    for (const n of [is8, is8s]) {
+      await d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih) VALUES (?, 'litofan', 120, 'z', ?, 'hazir', ?)")
+        .bind(n, eski, eski).run();
+      await r2.put("foto-onizleme/" + n + ".png", HARITA, { httpMetadata: { contentType: "image/png" } });
+    }
+    await d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel) VALUES ('PR-LIT-SAKLAMA', 0, ?, 'litofan', 120, 'uretec-bekliyor', ?, ?)")
+      .bind(is8s, eski, eski).run();
+    const sg8 = P.saglayici;
+    const oz8 = await foto.fotoUretimTuru(envKur(d1, r2, { URETIM_API_ANAHTAR: "", URETIM_API_TABAN: "" }), Date.now(), null);
+    const f8 = await d1.prepare("SELECT asama FROM foto_isler WHERE is_no = ?").bind(is8).first();
+    iddia("L8", "siparise girmemis 73 sa'lik litofan haritasi: R2'de nesne 0 + satir 'silindi'",
+          !r2.m.has("foto-onizleme/" + is8 + ".png") && !!f8 && f8.asama === "silindi", JSON.stringify(f8));
+    iddia("L8", "ozet atlandi 'yapilandirma' + silinen >= 1, saglayici fetch 0",
+          oz8.atlandi === "yapilandirma" && oz8.silinen >= 1 && P.saglayici === sg8, JSON.stringify(oz8) + " fetch=" + (P.saglayici - sg8));
+    const f8s = await d1.prepare("SELECT asama FROM foto_isler WHERE is_no = ?").bind(is8s).first();
+    iddia("L8", "siparise girmis (foto_uretim'de) litofan haritasi SILINMEZ",
+          r2.m.has("foto-onizleme/" + is8s + ".png") && !!f8s && f8s.asama === "hazir", JSON.stringify(f8s));
   } catch (e) {
     iddia("L2", "senaryo hatasiz kostu", false, (e && e.stack) || String(e));
   } finally {
@@ -397,6 +420,7 @@ console.log("L1) KATEGORI KAYDI");
 const ADLAR = {
   L2: "L2 FIYAT YOK -> SATIN ALMA RED", L3: "L3 /foto/litofan SAGLAYICISIZ", L4: "L4 /baslat TUTAR + SECIM",
   L5: "L5 KUYRUK uretec-bekliyor", L6: "L6 PANEL YUKLEME", L7: "L7 PLAKET REGRESYONU",
+  L8: "L8 SAKLAMA saglayicisiz",
 };
 const sonuc = await senaryo(canli);
 for (const grup of Object.keys(ADLAR)) {
@@ -438,6 +462,9 @@ const MUTANTLAR = [
     capa: "  if (!anahtarGecerli(request, url, env)) {",
     yerine: '  if (altYol === "/foto/uretec-yukle" && m === "POST") { return panelUretecYukle(request, env, url, Date.now()); }\n' +
             "  if (!anahtarGecerli(request, url, env)) {" },
+  { ad: "M5 saglayici env'siz dalda onizleme temizligi kaldirildi", dosya: "shop/src/foto.js", hedef: "L8",
+    capa: "      try { ozet.silinen = await onizlemeTemizle(env, simdi); } catch (e) { if (!tabloYok(e)) { throw e; } }\n",
+    yerine: "" },
 ];
 
 let survivor = 0;
