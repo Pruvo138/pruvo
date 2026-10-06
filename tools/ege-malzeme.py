@@ -76,7 +76,8 @@ def bolum_uret():
         # pruvo-bot/worker/src/index.js icinde .slice(0, 6000) ile UTF-16 birimi uzerinden
         # KESILIR (sessizce, log yok) -> tekrar hem her mesajin butcesini hem tavan payini
         # yiyor. Olculdu: bu tekillestirme dosyayi 5761 -> 5592 u16'ya indirdi, tavan payi
-        # 239 -> 408 (nobetci tools/ege-bilgi-tavan-test.py, GUVENLIK_MARJI=400 esigi asildi).
+        # 239 -> 408 (GUVENLIK_MARJI=400 esigi asildi; eski tavan nobetcisi Ege ile emekli —
+        # NOBETCI YOK (acik kalem): bu dosya Ege temizliginin 2b diliminde kaldirilir).
         # ⚠️ "+ [DEVRET]" HER KALEMDE KALIR (grup basligina TASINMADI): jeton sayisi
         # bilerek 7'de sabit tutuldu ve devret refleksi kalem duzeyinde gorunur kaldi.
         ozel_satirlar.append(
