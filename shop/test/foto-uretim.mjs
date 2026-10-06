@@ -45,6 +45,20 @@
  *                         Onarimli ve onarimsiz yolda AYNI kapi. Fiksturler sentetik (kucuk).
  *   OM-A..OM-C          : kapi atlandi / olcek ters yone / tutmayan olcu yazildi -> KIRMIZI;
  *                         OM-K (yalniz yorum) -> hicbiri
+ * PLAKET ACILISI (Okan 7 Eki: "baskı yapmayacağım böyle tamam" — gercek baski beklenmez):
+ *   RO                  : veri dosyasindaki `kanit:"render"` kaydi plaketi acar (/foto/acik
+ *                         plaket hazir) · `ornek_kanit_izni` disi kanit (litofana render,
+ *                         bilinmeyen kanit) ACMAZ · izin alani yoksa hicbiri sayilmaz · render
+ *                         gorseli eksik kayit sayilmaz · litofan baski kaydiyla AYNEN acilir
+ *   RO-M1..RO-M3        : izin kontrolu silindi / izin varsayilani acik / render gorsel sarti
+ *                         silindi -> ilgili RO senaryosu KIRMIZI; RO-MK (yalniz yorum) -> hicbiri
+ *                         (mutant veri dosyasinin BELLEKTEKI kopyasina uygulanir)
+ *   ES                  : bolumde render kaydi "önizleme/render" etiketi + abarti cumlesiyle
+ *                         cizilir, "gerçek fotoğraf" metni 0, ozgun foto gorseli 0; baski kaydi
+ *                         eski etiketle (ES-M1/ES-M2 ekran mutantlari KIRMIZI)
+ *   AK                  : olceklenmis 3MF'in ALT KENAR kalinligi (Y en kucuk 10 mm serit, Z
+ *                         yayilimi) analiz ozetine + panel kaydina `alt_kenar_mm`; sentetik
+ *                         6,5 mm serit -> 6,5 ±0,1 (olceksiz ve 10x olcekli). AK-M1..AK-M4 KIRMIZI
  *
  * NASIL: GERCEK worker (shop/src/index.js) import edilir. D1 = GERCEK SQLite: sema
  * tools/d1-sema.sql'den kurulur (shop/test/ortak/sqlite-koprusu.py) — elle yazilmis
@@ -206,6 +220,45 @@ function testOlc(bayt) {
   }
   return { L: Math.max(ust[0] - en[0], ust[1] - en[1]), z: ust[2] - en[2], zTaban: en[2], M, girdiler };
 }
+/**
+ * Alt kenar seritli PLAKET fiksturu (k = model olcegi; k=1 -> 120 mm): govde 120x120x3, Y en
+ * kucuk kenarda 10 mm x 6,5 mm cerceve seridi, ortada 8,2 mm kabartma (seritten 15 mm sonra; X'te
+ * kenardan 5 mm iceride -> yanlis eksende olcum kabartmayi yakalar).
+ * Beklenen alt kenar: 6,5 mm (olcekten bagimsiz, olceklenmis dosyada).
+ */
+function plaketUcmf(k) {
+  const kutular = [[-60, 60, -60, 60, 0, 3], [-60, 60, -60, -50, 0, 6.5], [-55, 55, -35, 50, 0, 8.2]];
+  const t = [], u = [];
+  kutular.forEach(([x0, x1, y0, y1, z0, z1], b) => {
+    for (let i = 0; i < 8; i++) {
+      t.push('     <vertex x="' + (i & 1 ? x1 : x0) * k + '" y="' + (i & 2 ? y1 : y0) * k + '" z="' + (i & 4 ? z1 : z0) * k + '"/>');
+    }
+    for (const g of [[0,2,1],[1,2,3],[4,5,6],[5,7,6],[0,1,4],[1,5,4],[2,6,3],[3,6,7],[0,4,2],[2,4,6],[1,3,5],[3,7,5]]) {
+      u.push('     <triangle v1="' + (g[0] + 8 * b) + '" v2="' + (g[1] + 8 * b) + '" v3="' + (g[2] + 8 * b) + '"/>');
+    }
+  });
+  const sablon = testOlcAcik(ucmfKur(1, 1, 1));
+  const nesne = sablon.get("3D/Objects/object_1.model")
+    .replace(/<vertices>[\s\S]*<\/vertices>/, "<vertices>\n" + t.join("\n") + "\n    </vertices>")
+    .replace(/<triangles>[\s\S]*<\/triangles>/, "<triangles>\n" + u.join("\n") + "\n    </triangles>");
+  return zipYaz([...sablon].map(([ad, metin]) => [ad, ad === "3D/Objects/object_1.model" ? nesne : metin,
+    ad === "Metadata/model_settings.config"]));
+}
+/** Zip -> ad -> acik metin (fikstur sablonu icin). */
+function testOlcAcik(bayt) {
+  const b = Buffer.from(bayt), acik = new Map();
+  const e = b.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+  let p = b.readUInt32LE(e + 16);
+  for (let i = 0; i < b.readUInt16LE(e + 10); i++) {
+    const ad = b.toString("utf8", p + 46, p + 46 + b.readUInt16LE(p + 28));
+    const yontem = b.readUInt16LE(p + 10), cs = b.readUInt32LE(p + 20), yr = b.readUInt32LE(p + 42);
+    const v = yr + 30 + b.readUInt16LE(yr + 26) + b.readUInt16LE(yr + 28);
+    const ham = b.subarray(v, v + cs);
+    acik.set(ad, (yontem === 8 ? zlib.inflateRawSync(ham) : ham).toString("utf8"));
+    p += 46 + b.readUInt16LE(p + 28) + b.readUInt16LE(p + 30) + b.readUInt16LE(p + 32);
+  }
+  return acik;
+}
 // Varsayilan fikstur 100 mm (testlerdeki siparis olcusu) -> olcu kapisi dokunmaz (bayt-esit).
 const UCMF = ucmfKur(50, 49, 7);
 const UCMF_1094 = ucmfKur(547, 548.4, 75);     // 6 Eki gercek ornegin sinir kutusu
@@ -349,7 +402,10 @@ const d1 = kopru.d1;
 const r2 = r2Kur();
 const env = envKur(d1, r2);
 
-console.log("A) KAPALI-VARSAYILAN (bugunku veri dosyasi)");
+// A/B kapali-varsayilani ORNEK 0 iken olcer; veri dosyasindaki kayitlar (7 Eki render ornegi)
+// RO bolumunde dosyanin TEMIZ kopyasindan olculur.
+const VERI_ORNEKLERI = VERI.ornekler.splice(0);
+console.log("A) KAPALI-VARSAYILAN (ornek 0)");
 {
   const y = foto.yapilandirma(env);
   // Onay metni Okan'ca onaylandi (6 Eki); eksik listesi onay kolunu veri dosyasina gore yazar.
@@ -923,8 +979,12 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit) {
   const adim2 = dugum.filter((n) => n.classList.contains("foto-uretim-adim") && n.getAttribute("data-no") === "2")
     .map((n) => n.textContent)[0] || "";
   const turGrubu = dugum.filter((n) => n.classList.contains("foto-uretim-form-grup"))[0] || null;
+  const ornekler = dugum.filter((n) => n.classList.contains("foto-uretim-ornek-grup")).map((g) => ({
+    kanit: g.getAttribute("data-kanit"), metin: g.textContent,
+    img: [...g.agac()].filter((n) => n.tagName === "IMG").map((n) => n.src) }));
+  const ornekBaslik = dugum.filter((n) => n.classList.contains("foto-uretim-blok-baslik")).map((n) => n.textContent)[0] || "";
   return { gorunur: !bolum.hidden, tur: radyo("foto-tur"), olcu: radyo("foto-olcu"), olcuS3: radyo("foto-olcu-s3"), adim2,
-           turGrubuGizli: !!turGrubu && turGrubu.hidden === true };
+           turGrubuGizli: !!turGrubu && turGrubu.hidden === true, ornekler, ornekBaslik };
 }
 
 console.log("R) ONARIM — kirmizi analiz -> onarim -> yeniden doku -> YENIDEN analiz (6 Eki)");
@@ -1117,6 +1177,171 @@ console.log("OL — 3MF OLCU KAPISI");
   ol("OL7 tolerans icinde -> ayni tampon geri doner", !!t.tampon && Buffer.compare(Buffer.from(t.tampon), Buffer.from(UCMF_120)) === 0 && t.olcek === 1, "");
   ol("OL8 panel metni: olcu-tutmadi ELLE_METNI'nde (panel/Telegram sebebi)",
      /olcu-tutmadi/.test(fs.readFileSync(path.join(SHOP, "src", "foto.js"), "utf8").split("const ELLE_METNI")[1].split("};")[0]), "");
+}
+
+// ================================================================ RO/ES — PLAKET ACILISI (Okan 7 Eki)
+
+const VERI_KAYNAK = fs.readFileSync(path.join(KOK, "foto-uretim-veri.js"), "utf8");
+/** Veri dosyasinin (ya da mutantinin) TEMIZ kopyasi: ayri vm baglaminda yuklenir. */
+function veriYukle(kaynak) {
+  const k = {};
+  vm.runInNewContext(kaynak, k, { filename: "foto-uretim-veri.js" });
+  return k.PRUVO_FOTO;
+}
+/**
+ * Veri nesnesi V (dosya ya da mutant) ile sunucu kapisi: foto.js ornek sayisini V'den okur.
+ * Temiz SQLite'ta plaket + litofan 120 mm fiyat satiri VAR. Donus: her senaryo tuttu mu.
+ */
+async function renderSenaryolar(V) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  await k.d1.prepare("INSERT INTO foto_fiyat (tur, olcu_mm, fiyat_kurus, guncel) VALUES ('plaket', 120, 44900, 'x'), ('litofan', 120, 44900, 'x')").run();
+  const asil = V.ornekler.slice();
+  const yedek = VERI.ornekSayisi;
+  VERI.ornekSayisi = (t) => V.ornekSayisi(t);
+  const acik = async () => {
+    const a = await istek(e2, "/foto/acik", { ip: "198.51.100.71" });
+    return a.v && a.v.acik === true ? a.v.turler.map((t) => t.kod).sort().join(",") : "";
+  };
+  const s = {};
+  try {
+    const r = asil.find((o) => o && o.kanit === "render") || {};
+    s.ACAR = r.tur === "plaket" && V.ornekSayisi("plaket") >= 1 && (await acik()) === "plaket" &&
+      foto.turHazir(e2, "plaket").hazir === true;
+    V.ornekler.splice(0, V.ornekler.length, { ...r, tur: "litofan" }, { ...r, kanit: "uydurma" });
+    s.IZINSIZ = V.ornekSayisi("litofan") === 0 && V.ornekSayisi("plaket") === 0 && (await acik()) === "";
+    V.ornekler.splice(0, V.ornekler.length, ...asil);
+    const t = V.turBul("plaket"), iz = t.ornek_kanit_izni;
+    delete t.ornek_kanit_izni;
+    s.IZINYOK = V.ornekSayisi("plaket") === 0 && (await acik()) === "";
+    t.ornek_kanit_izni = iz;
+    V.ornekler.splice(0, V.ornekler.length, { ...r, render: "" });
+    s.EKSIK = V.ornekSayisi("plaket") === 0 && (await acik()) === "";
+    // Litofan kurali AYNEN: basilmis urun fotografi (foto+onizleme+baski) litofani acar.
+    V.ornekler.splice(0, V.ornekler.length, { tur: "litofan", olcu_mm: 120, foto: "https://media.pruvo3d.com/t-f.webp",
+      onizleme: "https://media.pruvo3d.com/t-o.webp", baski: "https://media.pruvo3d.com/t-b.webp", not: "t" });
+    s.LITOFAN_BASKI = V.ornekSayisi("litofan") === 1 && (await acik()) === "litofan";
+  } finally {
+    V.ornekler.splice(0, V.ornekler.length, ...asil);
+    VERI.ornekSayisi = yedek;
+    k.kapat();
+  }
+  return s;
+}
+
+console.log("RO) RENDER ORNEGI — plaket gercek baski beklemeden acilir (Okan 7 Eki); kanit izni fail-closed");
+{
+  const V = veriYukle(VERI_KAYNAK);
+  const r = V.ornekler.filter((o) => o.tur === "plaket" && o.kanit === "render");
+  ol("RO0 veri dosyasinda 1 plaket render kaydi: onizleme + render media adresi, 120 mm, ozgun foto YOK",
+     r.length === 1 && r[0].olcu_mm === 120 && !r[0].foto &&
+       /^https:\/\/media\.pruvo3d\.com\/foto\/ornek\/plaket-1-onizleme\.webp$/.test(r[0].onizleme) &&
+       /^https:\/\/media\.pruvo3d\.com\/foto\/ornek\/plaket-1-render\.webp$/.test(r[0].render), JSON.stringify(r));
+  ol("RO0b kanit izni: plaket [baski,render] · litofan [baski] (litofan kurali degismedi)",
+     JSON.stringify(V.turBul("plaket").ornek_kanit_izni) === '["baski","render"]' &&
+       JSON.stringify(V.turBul("litofan").ornek_kanit_izni) === '["baski"]', "");
+  const s = await renderSenaryolar(V);
+  ol("RO1 render kaydi plaketi ACAR: /foto/acik -> plaket, turHazir hazir", s.ACAR, JSON.stringify(s));
+  ol("RO2 izin disi kanit ACMAZ: litofana render 0 · bilinmeyen kanit 0 · /foto/acik kapali", s.IZINSIZ, JSON.stringify(s));
+  ol("RO3 turde ornek_kanit_izni yoksa render kaydi SAYILMAZ (fail-closed)", s.IZINYOK, JSON.stringify(s));
+  ol("RO4 render gorseli bos render kaydi SAYILMAZ", s.EKSIK, JSON.stringify(s));
+  ol("RO5 litofan basilmis urun fotografiyla AYNEN acilir (RO2'nin bos gecmedigi pozitif kontrol)", s.LITOFAN_BASKI, JSON.stringify(s));
+  const RO_MUTANTLAR = [
+    ["RO-M1 IZIN KONTROLU SILINDI", "if (!k || izin.indexOf(k) < 0) { return false; }", "if (!k) { return false; }", ["IZINSIZ", "IZINYOK"]],
+    ["RO-M2 IZIN VARSAYILANI ACIK", "t.ornek_kanit_izni : [];", "t.ornek_kanit_izni : [\"baski\", \"render\"];", ["IZINYOK"]],
+    ["RO-M3 RENDER GORSEL SARTI SILINDI", "return !!(o.onizleme && o.render);", "return !!o.onizleme;", ["EKSIK"]],
+    ["RO-MK KONTROL", "// Bir türün sayılan örnek sayısı", "// Bir turun sayilan ornek sayisi", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of RO_MUTANTLAR) {
+    if (VERI_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+    const m = await renderSenaryolar(veriYukle(VERI_KAYNAK.replace(capa, yerine)));
+    const kirmizilar = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+       Object.keys(m).length === 5 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(m));
+  }
+}
+
+console.log("ES) EKRAN — render ornegi 'önizleme/render' etiketiyle, gercek foto iddiasi YOK");
+{
+  const CUMLE = "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, birebir aynısı değildir.";
+  const acikPlaket = { acik: true, turler: [{ kod: "plaket", ad: "Kabartma plaket", aciklama: "x", ornek_sayisi: 1,
+    olculer: [{ mm: 120, fiyat_kurus: 44900 }] }] };
+  const renderTuttu = (e) => !!e && e.gorunur && e.ornekler.length === 1 && e.ornekler[0].kanit === "render" &&
+    e.ornekler[0].metin.includes("önizleme/render") && e.ornekler[0].metin.includes(CUMLE) &&
+    !/gerçek fotoğraf/i.test(e.ornekler[0].metin) && !/Gerçek örnek/.test(e.ornekBaslik) &&
+    e.ornekler[0].img.length === 2 && e.ornekler[0].img.every((u) => /plaket-1-(onizleme|render)\.webp$/.test(u));
+  const e1 = await ekranKos(EKRAN_KAYNAK, veriYukle(VERI_KAYNAK), acikPlaket);
+  ol("ES1 veri dosyasiyla bolum GORUNUR; render kaydi: etiket 'önizleme/render' + abarti cumlesi AYNEN, 'gerçek fotoğraf' 0, gorsel 2 (onizleme+render)",
+     renderTuttu(e1), JSON.stringify(e1 && { g: e1.gorunur, b: e1.ornekBaslik, o: e1.ornekler }));
+  const Vb = veriYukle(VERI_KAYNAK);
+  Vb.ornekler.splice(0, Vb.ornekler.length, { tur: "plaket", kanit: "baski", olcu_mm: 100, foto: "https://media.pruvo3d.com/b-f.webp",
+    onizleme: "https://media.pruvo3d.com/b-o.webp", baski: "https://media.pruvo3d.com/b-b.webp", not: "t" });
+  const e2 = await ekranKos(EKRAN_KAYNAK, Vb, acikPlaket);
+  ol("ES2 baski kaydi eski etiketle: 'Gerçek örnekler' + 'Basılmış ürün (gerçek fotoğraf)' + 3 gorsel, abarti cumlesi YOK",
+     e2.ornekler.length === 1 && e2.ornekler[0].kanit === "baski" && e2.ornekBaslik === "Gerçek örnekler" &&
+       e2.ornekler[0].metin.includes("Basılmış ürün (gerçek fotoğraf)") && !e2.ornekler[0].metin.includes(CUMLE) &&
+       e2.ornekler[0].img.length === 3, JSON.stringify(e2.ornekler));
+  const ES_MUT = [
+    ["ES-M1 render etiketi 'gerçek fotoğraf' oldu", "grup.appendChild(el(\"div\", \"foto-uretim-ornek-etiket\", \"önizleme/render\"));",
+     "grup.appendChild(el(\"div\", \"foto-uretim-ornek-etiket\", \"Fotoğraf → Önizleme → Basılmış ürün (gerçek fotoğraf)\"));"],
+    ["ES-M2 abarti cumlesi dustu", "grup.appendChild(el(\"p\", \"foto-uretim-ornek-not\", RENDER_DURUSTLUK));", ""],
+  ];
+  for (const [ad, capa, yerine] of ES_MUT) {
+    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const em = await ekranKos(EKRAN_KAYNAK.replace(capa, yerine), veriYukle(VERI_KAYNAK), acikPlaket);
+    ol(ad + " -> ES1 KIRMIZI", !renderTuttu(em), JSON.stringify(em && em.ornekler));
+  }
+}
+
+// ================================================================ AK — PLAKET ALT KENAR KALINLIGI
+
+/**
+ * Alt kenar senaryolari (fm = foto modulu ya da mutanti). Donus: her biri tuttu mu.
+ *   DOGRUDAN: 120 mm plaket (olceksiz) -> alt_kenar_mm 6,5 ±0,1
+ *   OLCEKLI : 1200 mm plaket -> 120 mm'ye olceklenir, alt kenar OLCEKLENMIS dosyada 6,5 ±0,1
+ *   AKIS    : cron zinciri -> analiz ozetinde alt_kenar_mm 6,5 ±0,1
+ *   PANEL   : panel kalem kaydi + "Örnek üretimler" listesi alt_kenar_mm tasir
+ */
+async function altKenarSenaryolar(fm) {
+  const yakin = (x) => typeof x === "number" && Math.abs(x - 6.5) <= 0.1;
+  const s = {};
+  const d = await fm.ucmfOlcekle(plaketUcmf(1).slice().buffer, 120);
+  s.DOGRUDAN = !!d.tampon && d.olcek === 1 && yakin(d.alt_kenar_mm);
+  const o = await fm.ucmfOlcekle(plaketUcmf(10).slice().buffer, 120);
+  s.OLCEKLI = !!o.tampon && o.olcek > 0 && o.olcek < 1 && yakin(o.alt_kenar_mm);
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  const is = "a".repeat(31) + "b";
+  await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'plaket', 120, ?, ?, 'hazir', 'gorev-proto-6666', ?)")
+    .bind(is, fm.ORNEK_ZIYARETCI, new Date().toISOString(), new Date().toISOString()).run();
+  P.protoDurum.set("gorev-proto-6666", 5);
+  const no = fm.ORNEK_SIPARIS_ONEK + is.slice(0, 12);
+  await k.d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel) VALUES (?, 0, ?, 'plaket', 120, 'build-baslat', ?, '2000-01-01T00:00:00.000Z')")
+    .bind(no, is, new Date().toISOString()).run();
+  P.ucmf = plaketUcmf(10); P.analiz = "healthy";
+  for (let i = 0; i < 10; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
+  P.ucmf = null;
+  const u = await k.d1.prepare("SELECT asama, analiz FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
+  let an = {};
+  try { an = JSON.parse((u && u.analiz) || "{}"); } catch (e) { an = {}; }
+  s.AKIS = !!u && u.asama === "hazir" && yakin(an.alt_kenar_mm);
+  const kayit = fm.panelFotoKaydi("PR-AK", 0, { foto_is: is, foto_tur: "plaket", olcu_mm: 120 },
+    new Map([["PR-AK|0", { asama: "hazir", analiz: u ? u.analiz : "" }]]));
+  const liste = await (await fm.panelOrnekListe(e2)).json();
+  const lk = (liste.ornekler || []).find((x) => x.siparis_no === no);
+  s.PANEL = yakin(kayit.alt_kenar_mm) && !!lk && yakin(lk.alt_kenar_mm);
+  k.kapat();
+  return s;
+}
+
+console.log("AK) PLAKET ALT KENAR KALINLIGI — ayak ureteci girdisi alt_kenar_mm (TeKiN bulgusu 6 Eki)");
+{
+  const s = await altKenarSenaryolar(foto);
+  ol("AK1 120 mm plaket (olceksiz) -> alt_kenar_mm 6,5 ±0,1", s.DOGRUDAN, JSON.stringify(s));
+  ol("AK2 1200 mm plaket -> 120 mm'ye olcekli dosyada alt_kenar_mm 6,5 ±0,1", s.OLCEKLI, JSON.stringify(s));
+  ol("AK3 cron zinciri -> analiz ozetinde alt_kenar_mm 6,5 ±0,1 (asama hazir)", s.AKIS, JSON.stringify(s));
+  ol("AK4 panel kalem kaydi + ornek listesi alt_kenar_mm tasir", s.PANEL, JSON.stringify(s));
+  ol("AK5 serit eni sabiti 10 mm (ayak ureteci tanimi: alttaki ~10 mm serit)", foto.ALT_KENAR_SERIT_MM === 10, String(foto.ALT_KENAR_SERIT_MM));
 }
 
 // ================================================================ MUTANTLAR
@@ -1339,6 +1564,24 @@ for (const [ad, capa, yerine, olmeli] of OLCEK_MUTANTLAR) {
   const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
   ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
      Object.keys(s).length === 5 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
+}
+
+const AK_MUTANTLAR = [
+  ["AK-M1 SERIT FILTRESI SILINDI (tum Z)", "if (y <= sinir) { if (z < zEn) { zEn = z; } if (z > zUst) { zUst = z; } }",
+   "{ if (z < zEn) { zEn = z; } if (z > zUst) { zUst = z; } }", ["AKIS", "DOGRUDAN", "OLCEKLI", "PANEL"]],
+  ["AK-M2 YANLIS EKSEN (Y yerine X kenari)", "fn(q[1] * o.birim, q[2] * o.birim);", "fn(q[0] * o.birim, q[2] * o.birim);",
+   ["AKIS", "DOGRUDAN", "OLCEKLI", "PANEL"]],
+  ["AK-M3 OLCEKTEN ONCEKI DOSYADA OLCULDU", "alt_kenar_mm: await altKenarOlc(cikti, y) };", "alt_kenar_mm: await altKenarOlc(b, o) };", ["AKIS", "OLCEKLI", "PANEL"]],
+  ["AK-M4 OZETE YAZILMADI", "o.alt_kenar_mm = olc.alt_kenar_mm == null ? null : olc.alt_kenar_mm;", "", ["AKIS", "PANEL"]],
+  ["AK-MK KONTROL", "// Alt kenar OLCEKLENMIS dosyada olculur", "// Alt kenar  OLCEKLENMIS dosyada olculur", []],
+];
+for (const [ad, capa, yerine, olmeli] of AK_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const s = await altKenarSenaryolar(fm);
+  const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 4 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
 }
 
 kopru.kapat();

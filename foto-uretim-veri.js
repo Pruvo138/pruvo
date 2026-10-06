@@ -3,19 +3,32 @@
  * Bu dosyayı İKİ taraf okur, ikinci kopya YOKTUR:
  *   - ana sayfa bölümü (/foto-uretim.js) örnekleri, türleri ve onay metnini buradan çizer;
  *   - sipariş sunucusu (shop worker) aynı dosyayı import eder: bir türün sipariş/önizleme
- *     alabilmesi için burada en az BİR gerçek örneği olmalı ve onay metni onaylı olmalı.
+ *     alabilmesi için burada en az BİR sayılan örneği olmalı ve onay metni onaylı olmalı.
  *
  * DÜRÜST BEKLENTİ KURALI (Okan, 5 Eki 2026: "müşteri abartılı hayallere kapılmasın"):
- *   - `ornekler` yalnız GERÇEK işlerdir: müşteri fotoğrafı → önizleme → BASILMIŞ ürünün
- *     gerçek fotoğrafı. Render ya da üretilmiş "baskı" görseli bu listeye GİRMEZ.
- *   - Gerçek örneği olmayan tür AÇILMAZ (bölümde sipariş formu o tür için çıkmaz, sunucu da
+ *   - `ornekler` yalnız GERÇEK işlerdir. Her kaydın KANITI açıkça yazılır ve müşteriye
+ *     kanıtıyla birlikte gösterilir (render "gerçek fotoğraf" diye SUNULMAZ).
+ *   - 5 Eki kuralı: "render ya da üretilmiş baskı görseli bu listeye GİRMEZ". 7 Eki 2026'da
+ *     PLAKET için Okan kararıyla değişti ("bu dosya ok · baskı yapmayacağım böyle tamam":
+ *     ilk örnek plaketin üretim dosyası hatasız dilimlendi, fiziksel baskı istenmedi) →
+ *     plakette `kanit: "render"` kaydı da sayılır; bölüm onu "önizleme/render" etiketiyle ve
+ *     abartı cümlesiyle gösterir. Diğer türlerde kural AYNEN durur (yalnız basılmış ürün).
+ *   - Sayılan örneği olmayan tür AÇILMAZ (bölümde sipariş formu o tür için çıkmaz, sunucu da
  *     o türe önizleme üretmez). Görseller R2 medya kovasında durur; buraya yalnız adres yazılır.
+ *   - Render kaydında müşterinin / Okan'ın ÖZGÜN fotoğrafı YAYINLANMAZ: `foto` boş ya da yok
+ *     olabilir (örnek, özgün fotoğraf yayına çıkmadan önizleme + render ile gösterilir).
  *
- * Örnek kaydı: { tur, olcu_mm, foto, onizleme, baski, not }
+ * Örnek kaydı: { tur, kanit, olcu_mm, foto, onizleme, baski, render, not }
  *   tur      : turler[].kod
+ *   kanit    : "baski"  = basılmış ürünün gerçek fotoğrafı (5 Eki anlamı; alan yoksa bu sayılır)
+ *              "render" = önizleme + üretim dosyasının render'ı (Okan kararı 7 Eki; yalnız
+ *                         `ornek_kanit_izni` "render" içeren türde sayılır)
+ *              başka değer -> hiçbir türde SAYILMAZ (fail-closed)
  *   foto     : müşteri fotoğrafı (izinli/kendi fotoğrafımız) — https://media.pruvo3d.com/...
- *   onizleme : o fotoğraftan üretilen önizleme görseli
- *   baski    : aynı işin BASILMIŞ hâlinin gerçek fotoğrafı
+ *              (baski kanıtında ŞART; render kanıtında boş olabilir)
+ *   onizleme : o fotoğraftan üretilen önizleme görseli (her kanıtta ŞART)
+ *   baski    : aynı işin BASILMIŞ hâlinin gerçek fotoğrafı (baski kanıtında ŞART)
+ *   render   : üretim dosyasının (3MF, ayağıyla) render görseli (render kanıtında ŞART)
  *   not      : kısa açıklama (ör. "40 mm, 4 renk")
  */
 (function (kok) {
@@ -65,6 +78,8 @@
     //   olcu_mm        : {en_az, en_cok} — fiyat satırı bu aralık dışında YAZILAMAZ
     //   renk_bolgeleri : müşterinin renk seçtiği bölgeler; [] = seçim yok (plaket: önizlemenin 4 renkli yorumu)
     //   malzemeler     : bölge -> izinli filament listesi; {} = satır "PLA" (plaket)
+    //   ornek_kanit_izni: türü AÇAN örnek kanıtları; listede olmayan kanıt o türde SAYILMAZ
+    //                    (alan yoksa/boşsa hiçbir örnek sayılmaz — fail-closed)
     // Litofan, gerçek örneği ve fiyat satırı olmadıkça AÇILMAZ (fail-closed, plaketle aynı kural).
     turler: [
       {
@@ -75,7 +90,9 @@
         kol: "saglayici",
         olcu_mm: { en_az: 50, en_cok: 300 },
         renk_bolgeleri: [],
-        malzemeler: {}
+        malzemeler: {},
+        // Okan kararı 7 Eki 2026: plaket gerçek baskı beklemeden önizleme + render ile açılır.
+        ornek_kanit_izni: ["baski", "render"]
       },
       {
         kod: "litofan",
@@ -89,12 +106,23 @@
           { kod: "ayak", ad: "Ayak", renkler: ["Beyaz", "Siyah", "Gri"] }
         ],
         // ABS YOK: litofan Dekorasyon sınıfıdır (secenekler.js FILAMENT_KATEGORI_HARIC).
-        malzemeler: { panel: ["PLA", "PETG"], ayak: ["PLA", "PETG", "ASA"] }
+        malzemeler: { panel: ["PLA", "PETG"], ayak: ["PLA", "PETG", "ASA"] },
+        // Litofan kuralı DEĞİŞMEDİ: yalnız basılmış ürünün gerçek fotoğrafı açar.
+        ornek_kanit_izni: ["baski"]
       }
     ],
 
-    // GERÇEK ÖRNEKLER — boşsa bölüm görünmez. Kaynak: TeKiN'in basılmış işleri.
-    ornekler: [],
+    // ÖRNEKLER — boşsa bölüm görünmez. Kaynak: TeKiN'in işleri (kanıtı kayıtta yazılı).
+    ornekler: [
+      {
+        tur: "plaket",
+        kanit: "render",
+        olcu_mm: 120,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/plaket-1-onizleme.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/plaket-1-render.webp",
+        not: "120 mm, 4 renk, ayağıyla"
+      }
+    ],
 
     // Ziyaretçi başına 24 saatte en çok kaç önizleme (sunucu da AYNI sayıyı uygular).
     sinir_ziyaretci_24s: 3,
@@ -103,12 +131,28 @@
     gecerlilik_saat: 48
   };
 
-  // Bir türün gerçek örnek sayısı — bölüm ve sunucu AYNI fonksiyonu kullanır.
+  // Örneğin kanıtı: alan yoksa 5 Eki anlamı ("baski"); bilinmeyen değer -> "" (sayılmaz).
+  VERI.ornekKaniti = function (o) {
+    var k = o && o.kanit == null ? "baski" : (o && o.kanit);
+    return k === "baski" || k === "render" ? k : "";
+  };
+  // Kayıt TÜRÜNDE sayılır mı: kanıt türün `ornek_kanit_izni`nde VE kanıtın görselleri dolu.
+  // Bölüm (hangi örnek çizilir) ve sunucu (tür açık mı) AYNI fonksiyonu kullanır.
+  VERI.ornekGecerli = function (o) {
+    if (!o) { return false; }
+    var t = VERI.turBul(o.tur);
+    var k = VERI.ornekKaniti(o);
+    var izin = t && Array.isArray(t.ornek_kanit_izni) ? t.ornek_kanit_izni : [];
+    if (!k || izin.indexOf(k) < 0) { return false; }
+    if (k === "baski") { return !!(o.foto && o.onizleme && o.baski); }
+    return !!(o.onizleme && o.render);
+  };
+  // Bir türün sayılan örnek sayısı — bölüm ve sunucu AYNI fonksiyonu kullanır.
   VERI.ornekSayisi = function (tur) {
     var n = 0;
     for (var i = 0; i < VERI.ornekler.length; i++) {
       var o = VERI.ornekler[i];
-      if (o && o.tur === tur && o.foto && o.onizleme && o.baski) { n++; }
+      if (o && o.tur === tur && VERI.ornekGecerli(o)) { n++; }
     }
     return n;
   };

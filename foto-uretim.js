@@ -43,6 +43,9 @@
   var STIL_ID = "fotoUretimStil";
   var SS_IS = "pruvo_foto_is";
   var SS_SIPARIS = "pruvo_foto_siparis";
+  // Render orneginin altindaki cumle (Okan karari 7 Eki 2026; AYNEN, degistirme).
+  var RENDER_DURUSTLUK =
+    "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, birebir aynısı değildir.";
   /* Dürüstlük kutusu metni — görünürlük ve "en çok 4 renkli yorum" vurgusu. */
   var DURUSTLUK =
     "Önizleme, fotoğrafının stilize bir yorumudur. Ürün en çok 4 renkle kabartma olarak üretilir — " +
@@ -178,6 +181,7 @@
     "background:#eef0f3;display:block;}" +
     ".foto-uretim-ornek-baslik{font-size:13px;color:var(--navy);line-height:1.4;}" +
     ".foto-uretim-ornek-etiket{font-size:11px;color:#5b6573;margin-top:2px;}" +
+    ".foto-uretim-ornek-not{font-size:12px;color:#5b6573;line-height:1.45;margin:4px 0 0;}" +
     ".foto-uretim-adimlar{display:flex;align-items:center;gap:8px;margin:14px 0;" +
     "flex-wrap:wrap;}" +
     ".foto-uretim-adim{flex:1 1 120px;padding:8px 10px;background:rgba(255,255,255,0.12);" +
@@ -576,19 +580,31 @@
     durust.appendChild(el("p", null, DURUSTLUK));
     ic.appendChild(durust);
 
-    /* ornekler */
+    /* ornekler — kanitina gore (baski: gercek fotograf · render: onizleme + uretim dosyasi) */
     var ornekBlok = el("div", "foto-uretim-blok");
-    ornekBlok.appendChild(el("h3", "foto-uretim-blok-baslik", "Gerçek örnekler"));
     var liste = [];
     for (var i = 0; i < F.turler.length && liste.length < 4; i++) {
       var t = F.turler[i];
       if (F.ornekSayisi(t.kod) === 0) continue;
       for (var j = 0; j < F.ornekler.length && liste.length < 4; j++) {
         var o = F.ornekler[j];
-        if (o && o.tur === t.kod && o.foto && o.onizleme && o.baski) {
-          liste.push({ tur: t, ornek: o });
+        if (o && o.tur === t.kod && F.ornekGecerli(o)) {
+          liste.push({ tur: t, ornek: o, kanit: F.ornekKaniti(o) });
         }
       }
+    }
+    var renderSay = 0;
+    for (var r = 0; r < liste.length; r++) { if (liste[r].kanit === "render") renderSay++; }
+    // Baslik kanittan: hepsi basilmis urunse "Gerçek örnekler"; render varsa render oldugu yazar.
+    ornekBlok.appendChild(el("h3", "foto-uretim-blok-baslik",
+      !liste.length || renderSay === 0 ? "Gerçek örnekler"
+        : (renderSay === liste.length ? "Örnekler (önizleme/render)" : "Örnekler")));
+    function gorsel(src, alt) {
+      var img = el("img", "foto-uretim-ornek-gorsel");
+      img.src = src; img.alt = alt;
+      img.width = 300; img.height = 300;
+      img.loading = "lazy"; img.decoding = "async";
+      return img;
     }
     if (!liste.length) {
       ornekBlok.appendChild(el("p", "foto-uretim-ayrinti", "Henüz gerçek örnek yayınlanmadı."));
@@ -596,26 +612,28 @@
       for (var k = 0; k < liste.length; k++) {
         var it = liste[k];
         var grup = el("div", "foto-uretim-ornek-grup");
+        grup.setAttribute("data-kanit", it.kanit);
         var satir = el("div", "foto-uretim-ornek-gorseller");
-        var img1 = el("img", "foto-uretim-ornek-gorsel");
-        img1.src = it.ornek.foto; img1.alt = it.tur.ad + " fotoğraf";
-        img1.width = 300; img1.height = 300;
-        img1.loading = "lazy"; img1.decoding = "async";
-        var img2 = el("img", "foto-uretim-ornek-gorsel");
-        img2.src = it.ornek.onizleme; img2.alt = it.tur.ad + " önizleme";
-        img2.width = 300; img2.height = 300;
-        img2.loading = "lazy"; img2.decoding = "async";
-        var img3 = el("img", "foto-uretim-ornek-gorsel");
-        img3.src = it.ornek.baski; img3.alt = it.tur.ad + " basılmış ürün";
-        img3.width = 300; img3.height = 300;
-        img3.loading = "lazy"; img3.decoding = "async";
-        satir.appendChild(img1); satir.appendChild(img2); satir.appendChild(img3);
+        if (it.kanit === "render") {
+          // Ozgun fotograf yayinlanmaz: onizleme + uretim dosyasinin render'i.
+          satir.appendChild(gorsel(it.ornek.onizleme, it.tur.ad + " önizleme"));
+          satir.appendChild(gorsel(it.ornek.render, it.tur.ad + " üretim dosyası render"));
+        } else {
+          satir.appendChild(gorsel(it.ornek.foto, it.tur.ad + " fotoğraf"));
+          satir.appendChild(gorsel(it.ornek.onizleme, it.tur.ad + " önizleme"));
+          satir.appendChild(gorsel(it.ornek.baski, it.tur.ad + " basılmış ürün"));
+        }
         grup.appendChild(satir);
         var baslikMetni = it.tur.ad + " · " + it.ornek.olcu_mm + " mm" +
           (it.ornek.not ? " · " + it.ornek.not : "");
         grup.appendChild(el("div", "foto-uretim-ornek-baslik", baslikMetni));
-        grup.appendChild(el("div", "foto-uretim-ornek-etiket",
-          "Fotoğraf → Önizleme → Basılmış ürün (gerçek fotoğraf)"));
+        if (it.kanit === "render") {
+          grup.appendChild(el("div", "foto-uretim-ornek-etiket", "önizleme/render"));
+          grup.appendChild(el("p", "foto-uretim-ornek-not", RENDER_DURUSTLUK));
+        } else {
+          grup.appendChild(el("div", "foto-uretim-ornek-etiket",
+            "Fotoğraf → Önizleme → Basılmış ürün (gerçek fotoğraf)"));
+        }
         ornekBlok.appendChild(grup);
       }
     }

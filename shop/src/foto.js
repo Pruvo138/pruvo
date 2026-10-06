@@ -402,24 +402,20 @@ async function girdiMetni(b, x) {
 }
 
 /**
- * Bir .model girdisinin tepe sinir kutusu; bellek dostu (akisli, parca sinirinda kuyruk tutar).
- * Her `<vertex` x/y/z ile okunamazsa null (sayim tutmazsa olcum YOK; fail-closed).
+ * Bir .model girdisinin her tepesini `fn(x, y, z)` ile gezer; bellek dostu (akisli, parca
+ * sinirinda kuyruk tutar). Her `<vertex` x/y/z ile okunamazsa null (sayim tutmazsa olcum YOK;
+ * fail-closed), yoksa gezilen tepe sayisi.
  */
-async function tepeKutusu(b, x) {
+async function tepeGez(b, x, fn) {
   const a = girdiAkisi(b, x);
   if (!a) { return null; }
   const kalip = /<vertex\s[^>]*?\bx="([^"]+)"[^>]*?\by="([^"]+)"[^>]*?\bz="([^"]+)"[^>]*>/g;
-  const en = [Infinity, Infinity, Infinity], ust = [-Infinity, -Infinity, -Infinity];
   let n = 0, etiket = 0, kuyruk = "";
   const isle = (s) => {
     kalip.lastIndex = 0;
     let m;
     while ((m = kalip.exec(s)) !== null) {
-      for (let k = 0; k < 3; k++) {
-        const d = +m[k + 1];
-        if (d < en[k]) { en[k] = d; }
-        if (d > ust[k]) { ust[k] = d; }
-      }
+      fn(+m[1], +m[2], +m[3]);
       n++;
     }
     for (let i = s.indexOf("<vertex"); i >= 0; i = s.indexOf("<vertex", i + 7)) {
@@ -438,7 +434,21 @@ async function tepeKutusu(b, x) {
     if (kuyruk.length > 4096) { return null; }
   }
   isle(kuyruk);
-  if (n !== etiket || [...en, ...ust].some((d) => !Number.isFinite(d))) { return null; }
+  return n === etiket ? n : null;
+}
+
+/** Bir .model girdisinin tepe sinir kutusu (model birimi); okunamazsa null. */
+async function tepeKutusu(b, x) {
+  const en = [Infinity, Infinity, Infinity], ust = [-Infinity, -Infinity, -Infinity];
+  const n = await tepeGez(b, x, (px, py, pz) => {
+    if (px < en[0]) { en[0] = px; }
+    if (px > ust[0]) { ust[0] = px; }
+    if (py < en[1]) { en[1] = py; }
+    if (py > ust[1]) { ust[1] = py; }
+    if (pz < en[2]) { en[2] = pz; }
+    if (pz > ust[2]) { ust[2] = pz; }
+  });
+  if (n == null || [...en, ...ust].some((d) => !Number.isFinite(d))) { return null; }
   return { en, ust, n };
 }
 
@@ -492,7 +502,7 @@ async function ucmfOlc(b) {
     }
     return kutular.get(ad);
   };
-  const parcalar = [];
+  const parcalar = [], kaynaklar = [];
   const bilesenler = [...metin.matchAll(/<component\b[^>]*>/g)];
   if (bilesenler.length) {
     for (const c of bilesenler) {
@@ -501,18 +511,58 @@ async function ucmfOlc(b) {
       const k = await dosyaKutusu(yol);
       if (!C || !k) { return { hata: "bilesen-olculemedi" }; }
       parcalar.push(kutuDonustur(kutuDonustur(k, C), M));
+      kaynaklar.push({ ad: yol, C });
     }
   } else {
     const k = await dosyaKutusu(ANA_MODEL);
     if (!k) { return { hata: "tepe-yok" }; }
     parcalar.push(kutuDonustur(k, M));
+    kaynaklar.push({ ad: ANA_MODEL, C: BIRIM_DONUSUM });
   }
   const en = [0, 1, 2].map((j) => Math.min(...parcalar.map((p) => p.en[j])) * birim);
   const ust = [0, 1, 2].map((j) => Math.max(...parcalar.map((p) => p.ust[j])) * birim);
   const L = Math.max(ust[0] - en[0], ust[1] - en[1]);
   if (!(L > 0)) { return { hata: "olcu-sifir" }; }
-  return { en, ust, L, z: ust[2] - en[2], birim, metin,
+  return { en, ust, L, z: ust[2] - en[2], birim, metin, kaynaklar, zip: z,
            item: { bas: ie.index, son: ie.index + ie[0].length, etiket: ie[0], M } };
+}
+
+// ---------------------------------------------------------------- plaket alt kenar kalinligi
+//
+// TeKiN bulgusu (6 Eki): ilk ornek plaketin alt kenari nominal 3,0 mm DEGIL, olculen 6,61 mm
+// (cerceve seridi 6,2-6,6). Ayak yivi = t + bosluk oldugundan ayak ureteci nominal tabani degil
+// OLCULEN kalinligi almali. TANIM: plaket yapi plakasinda yatar, ayakta dik durur; alt kenar =
+// yapi plakasinda Y EN KUCUK kenar. Serit = [Y_min, Y_min + ALT_KENAR_SERIT_MM]; kalinlik =
+// seritteki tepelerin Z yayilimi (en ust - en alt, mm), OLCEKLENMIS dosyada (build transform +
+// bilesen transform + birim uygulanmis). Kabartma seritte basliyorsa o da sayilir (yiv onu da
+// almalidir). Okunamazsa null (fail-closed: tahmini deger YAZILMAZ).
+
+/** Alt kenar seridinin eni (mm; ayak uretecinin `taban_kalinlik` tanimi: "alttaki ~10 mm serit"). */
+export const ALT_KENAR_SERIT_MM = 10;
+
+/** Olculmus 3MF'in (ucmfOlc donusu) alt kenar kalinligi, mm (2 hane) ya da null. */
+async function altKenarOlc(b, o) {
+  const gez = async (fn) => {
+    for (const p of o.kaynaklar) {
+      const x = o.zip.girdiler.find((g) => g.ad === p.ad);
+      if (!x) { return false; }
+      const n = await tepeGez(b, x, (px, py, pz) => {
+        const q = noktaDonustur(noktaDonustur([px, py, pz], p.C), o.item.M);
+        fn(q[1] * o.birim, q[2] * o.birim);
+      });
+      if (n == null) { return false; }
+    }
+    return true;
+  };
+  let yEn = Infinity;
+  if (!(await gez((y) => { if (y < yEn) { yEn = y; } }))) { return null; }
+  const sinir = yEn + ALT_KENAR_SERIT_MM;
+  let zEn = Infinity, zUst = -Infinity;
+  if (!(await gez((y, z) => {
+    if (y <= sinir) { if (z < zEn) { zEn = z; } if (z > zUst) { zUst = z; } }
+  }))) { return null; }
+  const t = zUst - zEn;
+  return Number.isFinite(t) && t > 0 ? +t.toFixed(2) : null;
 }
 
 const sayiYaz = (d) => String(Math.abs(d) < 1e-12 ? 0 : +d.toPrecision(10));
@@ -560,7 +610,8 @@ function zipGirdiDegistir(b, z, ad, yeniMetin) {
 
 /**
  * OLCU KAPISI: 3MF'i siparis olcusune getirir. Donus:
- *   {tampon, olcek, L_once, L_sonra, z_mm}  (tolerans icindeyse tampon = girdi, olcek 1)
+ *   {tampon, olcek, L_once, L_sonra, z_mm, alt_kenar_mm}  (tolerans icindeyse tampon = girdi, olcek 1;
+ *                                            alt_kenar_mm olculemezse null — bkz. altKenarOlc)
  *   {hata, L_once?}                          -> cagiran 'elle' olcu-tutmadi, R2'ye YAZMAZ
  */
 export async function ucmfOlcekle(tampon, hedefMm) {
@@ -570,7 +621,8 @@ export async function ucmfOlcekle(tampon, hedefMm) {
   if (o.hata) { return { hata: o.hata }; }
   const L_once = +o.L.toFixed(3);
   if (Math.abs(o.L - hedefMm) / hedefMm <= OLCU_TOLERANS) {
-    return { tampon, olcek: 1, L_once, L_sonra: L_once, z_mm: +o.z.toFixed(3) };
+    return { tampon, olcek: 1, L_once, L_sonra: L_once, z_mm: +o.z.toFixed(3),
+             alt_kenar_mm: await altKenarOlc(b, o) };
   }
   const s = hedefMm / o.L;
   const M = o.item.M.slice();
@@ -593,7 +645,9 @@ export async function ucmfOlcekle(tampon, hedefMm) {
   if (y.hata) { return { hata: "olcek-sonrasi-" + y.hata, L_once }; }
   const L_sonra = +y.L.toFixed(3);
   if (Math.abs(y.L - hedefMm) / hedefMm > OLCU_TOLERANS) { return { hata: "olcek-tutmadi", L_once, L_sonra }; }
-  return { tampon: cikti.buffer, olcek: +s.toPrecision(8), L_once, L_sonra, z_mm: +y.z.toFixed(3) };
+  // Alt kenar OLCEKLENMIS dosyada olculur (ayak bu dosyadan basilan plakete takilir).
+  return { tampon: cikti.buffer, olcek: +s.toPrecision(8), L_once, L_sonra, z_mm: +y.z.toFixed(3),
+           alt_kenar_mm: await altKenarOlc(cikti, y) };
 }
 
 // ---------------------------------------------------------------- kredi defteri + havuz
@@ -1244,6 +1298,16 @@ const ELLE_METNI = {
   "tur-kapali": "bu tür artık sunulmuyor (elle bakılacak)",
 };
 
+/** Analiz ozetindeki alt kenar kalinligi (mm) ya da null (ozet yok/bozuk/olculmemis). */
+function analizAltKenar(analiz) {
+  try {
+    const v = JSON.parse(analiz || "{}");
+    return v && typeof v.alt_kenar_mm === "number" && v.alt_kenar_mm > 0 ? v.alt_kenar_mm : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 /** Analiz ozetine olcu kapisi sonucunu ekler (panel + kapanis okur). */
 function analizOlcekli(analiz, olc) {
   let o = {};
@@ -1252,6 +1316,8 @@ function analizOlcekli(analiz, olc) {
   o.L_once = olc.L_once == null ? null : olc.L_once;
   o.L_sonra = olc.L_sonra == null ? null : olc.L_sonra;
   o.z_mm = olc.z_mm == null ? null : olc.z_mm;
+  // Ayak ureteci girdisi (TeKiN: `alt_kenar_mm`); olculemediyse null — panel bunu acikca gosterir.
+  o.alt_kenar_mm = olc.alt_kenar_mm == null ? null : olc.alt_kenar_mm;
   if (olc.hata) { o.olcu_hata = olc.hata; }
   return JSON.stringify(o);
 }
@@ -1566,6 +1632,8 @@ export function panelFotoKaydi(siparisNo, i, k, harita) {
     asama: u ? u.asama : "kuyrukta-degil",
     sebep: u ? (ELLE_METNI[u.sebep] || u.sebep || "") : "",
     analiz: u ? (u.analiz || "") : "",
+    // Plaket ayak ureteci girdisi (analiz ozetinden; olculmediyse null).
+    alt_kenar_mm: u ? analizAltKenar(u.analiz) : null,
     onizleme: taban + "&bicim=onizleme",
     dosyalar: u && u.asama === "hazir"
       ? (det ? { "3mf": taban + "&bicim=3mf" } : { "3mf": taban + "&bicim=3mf", "glb": taban + "&bicim=glb" }) : null,
@@ -1868,6 +1936,7 @@ export async function panelOrnekListe(env) {
       asama: s.siparis_no ? s.asama : "uretilmedi",
       sebep: s.sebep ? (ELLE_METNI[s.sebep] || s.sebep) : "",
       analiz: s.analiz || "",
+      alt_kenar_mm: analizAltKenar(s.analiz),
       kredi: s.kredi || 0,
       dosyalar: s.asama === "hazir" && taban
         ? { "3mf": taban + "&bicim=3mf", "glb": taban + "&bicim=glb" } : null,
