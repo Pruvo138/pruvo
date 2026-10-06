@@ -72,4 +72,5 @@ Sahibi: KraL (kategori motoru). Uyan: TeKiN üreteçleri (D ve R kolu). Tek kayn
 
 ## 6. Manifest satırı (KraL tarafı — kategori eklemek = üreteç + bu satır)
 `kod · ad · aciklama · girdi[] · motor (D|M|R) · uretec (komut kimliği) · olcu_mm {en_az,en_cok} · renk_bolgeleri[] · malzemeler{} · form (parametre şeması) · ornek_kanit_izni[] · fiyat {formul:"mm_x_10tl", adim_mm:10}`.
+`form` şemasında her alan `etiket` (gösterim adı, bölümde alanın başlığı) taşır; geriye uyumlu ek — `sozlesme` sürümü AYNI kalır.
 Fiyat satırları D1 `foto_fiyat`'a manifestten üretilir (adım 10 mm, `fiyat_kurus = mm × 1000`); elle satır yazılmaz.
