@@ -102,7 +102,7 @@ BUYUMESINI kirmizi yakar.
 
 # 🧊 DONMUS KELIME MUAFIYETI — BUYUTULEMEZ (kabul testi A2 olcer). Boyut
 # ekseninden onceki donemin TEK kalintisi: "guvenlik marji" bir KARAKTER butcesi
-# sabitidir (tools/ege-bilgi-tavan-test.py GUVENLIK_MARJI=400) ve gercek defter
+# sabitidir (emekli bot bilgi tavan testi GUVENLIK_MARJI=400) ve gercek defter
 # metninde CIPLAK sayiyla gecer. YENI ornek buraya EKLENMEZ; birim yazilir.
 E2_DONMUS_ONEKLER = ("guvenlik",)
 E2_DONMUS = re.compile(r"\b(?:%s) marj\w*\b" % "|".join(E2_DONMUS_ONEKLER))

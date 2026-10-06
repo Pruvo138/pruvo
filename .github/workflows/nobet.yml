@@ -757,6 +757,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/sabah-teslim/sabah-kabul.py --vaka A10 --arac tools/sabah-teslim/kral-sabah.py
 
+      # 🔴 6 Eki 2026 — A11: sabah disk supurme adimi (headless onbellek >120 dk
+      # chrome scoped_dir + wrangler log >48 sa). kuru/fikstur kosumda HICBIR
+      # sey silmez; 9 vaka (a/b/c/d/e + kontrol) + 3 mutant A11M1-M3.
+      - name: K-DiskSupurme sabah disk supurme kabul (A11, 9 vaka + 3 mutant)
+        if: ${{ !cancelled() }}
+        run: python3 tools/sabah-teslim/sabah-kabul.py --vaka A11 --arac tools/sabah-teslim/kral-sabah.py
+
       # 🔴 18 Eyl 2026 — kesif genislemesinin (`-kabul` eki) getirdigi, CI aynasinda
       # (bos HOME) HERMETIK olculen iki batarya: K324 (tasima birimi + kutu kolu,
       # rc=0 0.9 sn) ve K399 thing-icerik portu (rc=0; `--mutasyon` alt kumesini
@@ -2531,10 +2538,6 @@ jobs:
       - name: "Vitrin kabul kapisi mutasyon bataryasi"
         if: ${{ !cancelled() }}
         run: python3 tools/vitrin-kabul-mutasyon.py
-
-      - name: "WhatsApp yetki kapisi mutasyon bataryasi"
-        if: ${{ !cancelled() }}
-        run: python3 tools/wa-yetki-mutasyon.py
 
       - name: "Yayin erisim nobetcisi mutasyon bataryasi"
         if: ${{ !cancelled() }}
@@ -4570,23 +4573,23 @@ jobs:
         run: python3 tools/kargo-pazarlama-kapisi.py --kendini-test
 
       # MALZEME DAYANAGI: DORT yayin yuzeyinde gecen her malzeme adinin filament envanterinde
-      # karsiligi var mi — (A) huni/landing sayfalari, (B) ege-bilgi.md (WhatsApp botu Ege'nin
-      # bilgi dosyasi), (C) sss/gizlilik/hakkimizda/iletisim GORUNUR metni, (D) ayni 4 sayfanin
+      # karsiligi var mi — (A) huni/landing sayfalari, (B) EMEKLI 6 Eki 2026 (WhatsApp botunun
+      # bilgi dosyasi botla kalkti), (C) sss/gizlilik/hakkimizda/iletisim GORUNUR metni, (D) ayni 4 sayfanin
       # JSON-LD bloklari (Google'in okudugu acceptedAnswer). Uretemedigimiz bir sinifi (or. PC /
       # polikarbonat -> kodda KARA LISTE) vaat etmek yanlis ticari beyandir. Ayrica: dayanak
       # kayitlari (PA6-GF/PA12-GF/POM) YALNIZ onaylanan TAM ADI mesrulastirir, satis/uretim
-      # duzlemine SIZAMAZ; ege-malzeme.py <-> ege-bilgi.md DRIFT nobeti (F18 uctan uca);
-      # 49 bellekte-fikstur ic nobetcisi + 12 davranis fiksturu (main uctan uca, gecici
+      # duzlemine SIZAMAZ (DRIFT nobeti 6 Eki 2026'da bot bilgi dosyasiyla emekli);
+      # 42 bellekte-fikstur ic nobetcisi + 11 davranis fiksturu (main uctan uca, gecici
       # dizinde; exit-kodu kablolarinin HER BIRI solo kilitli — kapi docstring'indeki
       # KABLO ENVANTERI tablosu K1-K12) kapinin kendi yetenegini kilitler. KAPSAM
       # nobeti VARLIK kontroludur (sayi/karakter tabani YASAK SINIF): zorunlu kaynaklar en
       # az 1 govde uretmeli; JSON-LD blogu kaybolursa UYARI (FAQ rich result emekliligi
       # mesru SEO karari, yayini durduramaz). SIZINTI kapsami AD BAZLI: kod tarafindan
-      # uretilen 2 degismez cikti ZORUNLU, landing /malzeme-rehberi/ kaybolursa UYARI
+      # uretilen degismez cikti (/filament-veri.js) ZORUNLU, landing /malzeme-rehberi/ kaybolursa UYARI
       # (slug degisimi tum ekibin yayinini durdurmasin). Bloklayici (landing-hukuk deseni).
       # Offline, stdlib — build.py'den ONCE commit'li kaynagi okur, GERCEK dosyaya YAZMAZ
       # (davranis fiksturleri tempfile dizininde calisir).
-      - name: Malzeme dayanak kabul testi (landing + ege-bilgi.md + statik sayfa/JSON-LD)
+      - name: Malzeme dayanak kabul testi (landing + statik sayfa/JSON-LD)
         if: ${{ !cancelled() }}
         run: python3 tools/malzeme-dayanak-test.py
 

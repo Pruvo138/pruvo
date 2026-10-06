@@ -48,7 +48,7 @@ NEDEN CI'DAKI `build` KOLU (yer secimi — GEREKCE):
   YERINE GECMEZ, ONUNDE DURUR.
 
 KAPSAM: `git ls-files` ciktisindan KOK seviyedeki (yolda '/' YOK) BELGE
-uzantili dosyalar. Bugun uc dosya: DEVAM.md · README.md · ege-bilgi.md. Kural
+uzantili dosyalar. Bugun iki dosya: DEVAM.md · README.md. Kural
 ad-BAGIMSIZDIR: yarin izlenen yeni bir kok defteri (NOTLAR.md, DEVIR.md) acilirsa
 kapsama KENDILIGINDEN girer. Muafiyet listesi YOKTUR (liste = curume).
 
@@ -208,7 +208,7 @@ def ozet_modulu(yol=None):
 
 # 🧊 DONMUS KELIME MUAFIYETI — BUYUTULEMEZ (kabul testi A2 olcer). Boyut
 # ekseninden onceki donemin TEK kalintisi: "guvenlik marji" bir KARAKTER butcesi
-# sabitidir (emekli ege-bilgi tavan kapisinin GUVENLIK_MARJI=400) ve gercek defter
+# sabitidir (emekli bot bilgi dosyasi tavan kapisinin GUVENLIK_MARJI=400) ve gercek defter
 # metninde CIPLAK sayiyla gecer. YENI ornek buraya EKLENMEZ; birim yazilir.
 E2_DONMUS_ONEKLER = ("guvenlik",)
 E2_DONMUS = re.compile(r"\b(?:%s) marj\w*\b" % "|".join(E2_DONMUS_ONEKLER))

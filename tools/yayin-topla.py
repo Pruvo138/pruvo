@@ -39,7 +39,7 @@ KOL SECIMI (deploy.yml adimi TEK SATIR: `python3 tools/yayin-topla.py`):
 hedef commitin TEMIZ bir worktree'sinde kosturur. build.py'nin URETTIGI girdilerin
 tamami .gitignore'dadir (`/urun/`, `/_yayin/`, `/varlik/`, `/index.built.html`,
 `/_yayin-icerik-dizinleri.txt`, `/ozet.json`, `/sitemap.xml`, ...) -> o agacta
-URETILEN girdi YOKTUR (izlenen `urunler.json`/`CNAME`/`ege-bilgi.md`/
+URETILEN girdi YOKTUR (izlenen `urunler.json`/`CNAME`/`llms.txt`/
 `jenerator/urunler` orada DA vardir ve hazirlik sinyali SAYILMAZ; YALNIZ izlenen kume
 elle beyan edilir, uretilenler onun TUMLEYENIDIR ve oz-test bolmenin TAM oldugunu +
 beyan edilen her izlenen girisin depoda GERCEKTEN durdugunu her kosumda dogrular).
@@ -127,7 +127,7 @@ MANIFESTO = (
     # kaynagi ArTisT'in icerik duzlemidir) -> IZLENEN_GIRDILER'de de beyan edilir.
     # Manifestodan dusurulurse dosya kokte DURSA BILE `_site`'a kopyalanmaz ve canlida
     # 404 kalir; sessiz fail-open sinifi budur (7 Eyl 2026'da taban bu haldeydi).
-    Adim("DOSYALAR", ("urunler.json", "ozet.json", "CNAME", "ege-bilgi.md",
+    Adim("DOSYALAR", ("urunler.json", "ozet.json", "CNAME",
                       "robots.txt", "sitemap.xml", "merchant-feed.xml", "llms.txt",
                       ".nojekyll"),
          SITE, "katalog + kok meta dosyalari"),
@@ -161,7 +161,8 @@ MANIFESTO = (
 # ---- GIRDI SINIFLARI: "build.py kosmus mu" sorusunun TEK KAYNAGI --------------
 # 🔴 NEDEN ELLE SINIFLANDIRMA (olculdu 19 Agu 2026): ilk yazimda "hicbir girdi yoksa
 # kaynak agacidir" denmisti ve bu YANLIS cikti — `urunler.json` · `CNAME` ·
-# `ege-bilgi.md` · `jenerator/urunler` GIT'TE IZLENIR, yani TEMIZ bir checkout'ta da
+# (o gun bot bilgi dosyasi da) · `jenerator/urunler` GIT'TE IZLENIR, yani TEMIZ bir
+# checkout'ta da
 # VARDIR. Sonuc: temiz agacta kol "yarim hazirlik" sanip `index.built.html` yok diye
 # KIRMIZI donuyordu (K80 dumani kirmizi). Ayrim IZLENEN/URETILEN ekseninde yapilir:
 #   URETILEN  -> .gitignore'da; SADECE build.py yazar. Hicbiri yoksa build.py KOSMAMIS.
@@ -175,7 +176,7 @@ MANIFESTO = (
 # hazirlik sessiz-yesile donebilirdi. Bu yonde yanilma DARALTIR: beyan edilmemis bir
 # izlenen dosya "uretilen" sayilir ve kol yalnizca daha erken KIRMIZI verir.
 IZLENEN_GIRDILER = (
-    "urunler.json", "CNAME", "ege-bilgi.md", "jenerator/urunler",
+    "urunler.json", "CNAME", "jenerator/urunler",
     # llms.txt ELLE yazilir ve commit'lidir (build.py URETMEZ). Burada beyan
     # edilmezse `_hazirlik()` onu "uretilen" sanar ve temiz bir checkout'ta
     # "build.py kosmus" yonunde YANLIS sinyal verirdi.
@@ -485,7 +486,6 @@ FIKSTUR_DOSYALAR = {
     "urunler.json": "[]",
     "ozet.json": "{}",
     "CNAME": "ornek.gecersiz\n",
-    "ege-bilgi.md": "# bilgi\n",
     "robots.txt": "User-agent: *\n",
     "sitemap.xml": "<urlset/>",
     "merchant-feed.xml": "<rss/>",
@@ -533,7 +533,7 @@ BEKLENEN_SITE_YOLLARI = (
     "index.html",
     "secenekler.js", "konfigur.js", "talep-alanlari.js",
     "filament-veri.js", "taban-fiyatlar.js",
-    "urunler.json", "ozet.json", "CNAME", "ege-bilgi.md", "robots.txt",
+    "urunler.json", "ozet.json", "CNAME", "robots.txt",
     "sitemap.xml", "merchant-feed.xml", "llms.txt", ".nojekyll",
     "urun/aaa/index.html", "urun/bbb/index.html",
     "varlik/sayfa-1.css", "varlik/urun-2.js",

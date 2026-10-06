@@ -4,10 +4,11 @@
  *
  *   node shop/test/urunler-panel.mjs
  *
- * NE OLCER (wrangler/ag/D1 YOK — wa-siparis.mjs deseni, env.KATALOG mock):
+ * NE OLCER (wrangler/ag/D1 YOK — yonet() dogrudan cagrilir, env.KATALOG mock):
  *   A. YETKI: 11 uc (T1: 4 + T2: 6 + sil: 1) yonetim anahtarinin ARKASINDA;
- *      EGE_ANAHTAR HICBIRINI acamaz (en az yetki), secret'siz kurulumda 404,
- *      cerez de acar.
+ *      emekli bot anahtari HICBIRINI acamaz (en az yetki), secret'siz kurulumda 404,
+ *      cerez de acar. A6: emekli WhatsApp siparis ucu HER anahtarla 404 + D1'e
+ *      dokunmaz (6 Eki 2026; silinen wa-siparis testinin yetki iddialari burada).
  *   B. KUYRUK YAZIMI: gecerli deger hal='beklemede' satir olur; ayni (urun, alan)
  *      bekleyen satiri YENISI degistirir (INSERT cogaltmaz); beyaz liste disi alan,
  *      bozuk fiyat bicimi, parametrik urunde fiyat, olmayan urun, bicimsiz id,
@@ -258,6 +259,83 @@ console.log("A. YETKI (T1+T2+sil+kapat 12 uc yonetim anahtari arkasinda; EGE aca
   const r5 = await cagir(mockEnv(), "/urunler",
     { baslik: { "Cookie": "pruvo_yonet=" + YONET_ANAHTAR } });
   ol("A5 HttpOnly cerezle de acilir", r5.kod === 200, "kod=" + r5.kod);
+}
+
+// A6 — EMEKLI WhatsApp siparis ucu (6 Eki 2026, Okan "Ege ve HocA yok" + "temizle").
+// Silinen shop/test/wa-siparis.mjs'in HALA GECERLI yetki iddialari buraya TASINDI:
+//   anahtarsiz -> 404 + D1'e dokunma YOK · ozellik kapali (YONET_ANAHTAR yok) -> her
+//   anahtarla 404 + yazma YOK · emekli bot anahtari (canli kurulumda secret olarak
+//   KALMIS olabilir; secret silmek bu isin disinda) hicbir ucu ve panel kokunu
+//   anonimden FAZLA acmaz. YENI NEGATIF IDDIA (A6d/A6e): POST /wa-siparis GECERLI
+//   YONETIM anahtariyla da 404 doner ve D1'e YAZMAZ — kol geri eklenirse KIRMIZI.
+// "D1'e dokunma" sayaci prepare() cagrisini sayar: SQL metnine degil DAVRANISA bagli.
+// Sayacli KATALOG her sorguya ZARARSIZ bos sonuc doner (ana mock'a DELEGE ETMEZ): kol geri
+// gelirse test COKMEZ, iddia satiri KIRMIZI basar (cokme = hangi iddianin oldugu belirsiz).
+console.log("A6. EMEKLI WhatsApp siparis ucu (her anahtarla 404, D1'e dokunmaz)");
+{
+  const WA_GOVDE = { musteri: { ad: "Test Musteri", tel: "05000000000", adres: "Test adres 1" },
+                     odeme: "havale", urunler: [{ ad: "Test parca" }],
+                     dis_no: "PR-260101-000000" };
+  const d1Sayacli = (env) => {
+    env.d1Cagri = 0;
+    env.KATALOG = {
+      prepare() {
+        env.d1Cagri++;
+        return {
+          bind() { return this; },
+          async run() { return { meta: { changes: 1 } }; },
+          async all() { return { results: [] }; },
+          async first() { return null; },
+        };
+      },
+    };
+    return env;
+  };
+  const DURUMLAR = [
+    ["A6a anahtarsiz", {}, {}],
+    ["A6b emekli bot anahtari basligi", { "X-Ege-Anahtar": EGE_ANAHTAR }, {}],
+    ["A6c ozellik kapali + bot basligi", { "X-Ege-Anahtar": EGE_ANAHTAR }, { yonetAnahtar: null }],
+    ["A6c ozellik kapali + yonetim basligi", { "X-Yonet-Anahtar": YONET_ANAHTAR },
+     { yonetAnahtar: null }],
+    ["A6d GECERLI yonetim anahtari", { "X-Yonet-Anahtar": YONET_ANAHTAR }, {}],
+    ["A6e GECERLI yonetim cerezi", { "Cookie": "pruvo_yonet=" + YONET_ANAHTAR }, {}],
+  ];
+  for (const [ad, baslik, sec] of DURUMLAR) {
+    const env = d1Sayacli(mockEnv(sec));
+    const r = await cagir(env, "/wa-siparis", { baslik, method: "POST", govde: WA_GOVDE });
+    ol(ad + ": POST /wa-siparis -> 404", r.kod === 404, "kod=" + r.kod);
+    ol(ad + ": D1'e HIC cagri yok (yazma dahil)", env.d1Cagri === 0,
+       "d1Cagri=" + env.d1Cagri);
+  }
+  // A6f — yanit bilinmeyen bir alt yolla AYNI: ucun varligi sizmaz.
+  const rBil = await cagir(mockEnv(), "/bilinmeyen-uc-x", { method: "POST", govde: WA_GOVDE });
+  const rWa = await cagir(mockEnv(), "/wa-siparis", { method: "POST", govde: WA_GOVDE });
+  ol("A6f /wa-siparis yaniti bilinmeyen alt yolla AYNI (kod + govde)",
+     rWa.kod === rBil.kod && JSON.stringify(rWa.govde) === JSON.stringify(rBil.govde),
+     "wa=" + rWa.kod + " bilinmeyen=" + rBil.kod);
+  // A6g — emekli bot basligi siparis panelinin uclarini ACMAZ.
+  for (const [yol, m] of [["/liste", "GET"], ["/durum", "POST"], ["/kargo", "POST"],
+                          ["/havale-onay", "POST"], ["/stl", "GET"], ["/stl-liste", "GET"]]) {
+    const env = d1Sayacli(mockEnv());
+    const r = await cagir(env, yol, { baslik: { "X-Ege-Anahtar": EGE_ANAHTAR }, method: m,
+                                      govde: m === "POST" ? {} : undefined });
+    ol("A6g bot basligi " + m + " " + yol + " ACMAZ -> 404, D1'e dokunmaz",
+       r.kod === 404 && env.d1Cagri === 0, "kod=" + r.kod + " d1Cagri=" + env.d1Cagri);
+  }
+  // A6h — panel KOKU: bot basligi anonimden FAZLA hicbir sey almaz (200 sifre kutusu).
+  const kokUrl = new URL("https://ornek-site.test/api/shop/yonet/");
+  const envA = d1Sayacli(mockEnv());
+  const envE = d1Sayacli(mockEnv());
+  const cA = await yonet(istek(undefined, {}, "GET"), envA, kokUrl, ctxYap(), "/", undefined);
+  const cE = await yonet(istek(undefined, { "X-Ege-Anahtar": EGE_ANAHTAR }, "GET"), envE,
+                         kokUrl, ctxYap(), "/", undefined);
+  const gA = await cA.text();
+  const gE = await cE.text();
+  ol("A6h KOK: bot basligiyla GET / yaniti ANONIMLE AYNI (200, ayni govde)",
+     cE.status === cA.status && cE.status === 200 && gE === gA,
+     "bot=" + cE.status + " anonim=" + cA.status);
+  ol("A6i KOK: yanit SIFRE KUTUSU, panel DEGIL, D1'e dokunma YOK",
+     /type="password"/.test(gE) && !/Sipariş Yönetimi/.test(gE) && envE.d1Cagri === 0);
 }
 
 // ---------------------------------------------------------------- B. KUYRUK YAZIMI

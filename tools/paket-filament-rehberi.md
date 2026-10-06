@@ -86,9 +86,7 @@ Override alanı `tavsiyeFilament` varsa harita yerine o geçer.
 - **Ekleme boru hattı:** `.urun-kaynaklari.json`'daki `baski` alanında malzeme önerisi varsa
   (örn. "PETG önerilir") ekleme scripti ürüne `tavsiyeFilament` override'ı yazar — tasarımcı adı/
   kaynak izi İÇERMEDEN (sadece malzeme adı geçer; gizlilik kuralı).
-- **Ege:** `ege-bilgi.md` "MALZEME KAPSAMI" bölümü bu referansla ÇELİŞMESİN — build.py ya da ayrı
-  küçük script `filamentler.json`'dan o bölümü üretsin/güncellesin (tek kaynak; ege-bilgi.md
-  public, sır yok). pruvo-bot reposuna DOKUNMA (ege-bilgi.md bu repoda).
+- **Ege:** EMEKLİ (6 Eki 2026) — WhatsApp botunun bilgi dosyası ve onu üreten araç kaldırıldı.
 - **Shop paketi** (`tools/paket-shop-odeme.md`): varyant seçicinin filament listesi + varsayılan
   seçim bu referanstan gelir (koordinasyon: iki paket aynı dosyaya yazacaksa filamentler.json'u
   ÖNCE bu paket koyar, shop onu okur).

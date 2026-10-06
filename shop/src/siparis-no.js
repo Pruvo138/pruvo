@@ -2,7 +2,8 @@
  * pruvo-shop — SIPARIS NUMARASI URETIMI (TEK KAYNAK).
  *
  * NEDEN AYRI DOSYA (1 Agu 2026, WhatsApp siparis ucu): numara ureteci 16 Tem'den beri
- * index.js'in ICINDE yasiyordu. WhatsApp kanali (yonet.js /wa-siparis) de AYNI aileden
+ * index.js'in ICINDE yasiyordu. WhatsApp kanali (yonet.js'teki siparis ucu; 6 Eki 2026'da
+ * botla birlikte emekli, modul TEK KAYNAK olarak kalir) de AYNI aileden
  * numara uretmek zorunda — orada ikinci bir kopya acilsaydi iki uretec zamanla AYRISIR
  * (sonek alfabesi, saat dilimi, uzunluk) ve panelde iki farkli ID semasi olusurdu.
  * index.js <-> yonet.js dogrudan import'u DAIRESEL olurdu (index.js zaten yonet.js'i
