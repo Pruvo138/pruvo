@@ -1205,12 +1205,18 @@ async function renderSenaryolar(V) {
   };
   const s = {};
   try {
-    const r = asil.find((o) => o && o.kanit === "render") || {};
+    const r = asil.find((o) => o && o.kanit === "render" && o.tur === "plaket") || {};
+    // Litofan da render'a izinli (Okan 7 Eki, G1): plaket acilisi YALNIZ plaket kaydiyla olculur.
+    V.ornekler.splice(0, V.ornekler.length, r);
     s.ACAR = r.tur === "plaket" && V.ornekSayisi("plaket") >= 1 && (await acik()) === "plaket" &&
       foto.turHazir(e2, "plaket").hazir === true;
+    // Izin disi kanit: litofanin izni gecici olarak yalniz "baski" (renderi izinsiz bir tur).
+    const lt = V.turBul("litofan"), liz = lt.ornek_kanit_izni;
+    lt.ornek_kanit_izni = ["baski"];
     V.ornekler.splice(0, V.ornekler.length, { ...r, tur: "litofan" }, { ...r, kanit: "uydurma" });
     s.IZINSIZ = V.ornekSayisi("litofan") === 0 && V.ornekSayisi("plaket") === 0 && (await acik()) === "";
-    V.ornekler.splice(0, V.ornekler.length, ...asil);
+    lt.ornek_kanit_izni = liz;
+    V.ornekler.splice(0, V.ornekler.length, r);
     const t = V.turBul("plaket"), iz = t.ornek_kanit_izni;
     delete t.ornek_kanit_izni;
     s.IZINYOK = V.ornekSayisi("plaket") === 0 && (await acik()) === "";
@@ -1237,9 +1243,13 @@ console.log("RO) RENDER ORNEGI — plaket gercek baski beklemeden acilir (Okan 7
      r.length === 1 && r[0].olcu_mm === 120 && !r[0].foto &&
        /^https:\/\/media\.pruvo3d\.com\/foto\/ornek\/plaket-1-onizleme\.webp$/.test(r[0].onizleme) &&
        /^https:\/\/media\.pruvo3d\.com\/foto\/ornek\/plaket-1-render\.webp$/.test(r[0].render), JSON.stringify(r));
-  ol("RO0b kanit izni: plaket [baski,render] · litofan [baski] (litofan kurali degismedi)",
+  ol("RO0b kanit izni: plaket [baski,render] · litofan [baski,render] (Okan 7 Eki G1: litofan render ornegiyle acilir)",
      JSON.stringify(V.turBul("plaket").ornek_kanit_izni) === '["baski","render"]' &&
-       JSON.stringify(V.turBul("litofan").ornek_kanit_izni) === '["baski"]', "");
+       JSON.stringify(V.turBul("litofan").ornek_kanit_izni) === '["baski","render"]', "");
+  const lr = V.ornekler.filter((o) => o.tur === "litofan" && o.kanit === "render");
+  ol("RO0c litofan render kaydi: 140 mm, render media adresi, ozgun foto YOK, sayilir",
+     lr.length === 1 && lr[0].olcu_mm === 140 && !lr[0].foto && V.ornekSayisi("litofan") === 1 &&
+       /^https:\/\/media\.pruvo3d\.com\/foto\/ornek\/litofan-1-render\.webp$/.test(lr[0].render), JSON.stringify(lr));
   const s = await renderSenaryolar(V);
   ol("RO1 render kaydi plaketi ACAR: /foto/acik -> plaket, turHazir hazir", s.ACAR, JSON.stringify(s));
   ol("RO2 izin disi kanit ACMAZ: litofana render 0 · bilinmeyen kanit 0 · /foto/acik kapali", s.IZINSIZ, JSON.stringify(s));
@@ -1270,7 +1280,10 @@ console.log("ES) EKRAN — render ornegi 'önizleme/render' etiketiyle, gercek f
     e.ornekler[0].metin.includes("önizleme/render") && e.ornekler[0].metin.includes(CUMLE) &&
     !/gerçek fotoğraf/i.test(e.ornekler[0].metin) && !/Gerçek örnek/.test(e.ornekBaslik) &&
     e.ornekler[0].img.length === 2 && e.ornekler[0].img.every((u) => /plaket-1-(onizleme|render)\.webp$/.test(u));
-  const e1 = await ekranKos(EKRAN_KAYNAK, veriYukle(VERI_KAYNAK), acikPlaket);
+  // Veri dosyasinin PLAKET kayitlari (litofan render kaydi ayri; acikPlaket yalniz plaket acik).
+  const Va = veriYukle(VERI_KAYNAK);
+  Va.ornekler.splice(0, Va.ornekler.length, ...Va.ornekler.filter((o) => o.tur === "plaket"));
+  const e1 = await ekranKos(EKRAN_KAYNAK, Va, acikPlaket);
   ol("ES1 veri dosyasiyla bolum GORUNUR; render kaydi: etiket 'önizleme/render' + abarti cumlesi AYNEN, 'gerçek fotoğraf' 0, gorsel 2 (onizleme+render)",
      renderTuttu(e1), JSON.stringify(e1 && { g: e1.gorunur, b: e1.ornekBaslik, o: e1.ornekler }));
   const Vb = veriYukle(VERI_KAYNAK);
@@ -1408,8 +1421,9 @@ const MUTANTLAR = [
   ["M1 SINIR", "if (sayi.kisi >= VERI.sinir_ziyaretci_24s) {", "if (false) {", "D"],
   ["M2 BOT", "if (!(await botDogrula(request, env, g.turnstile_token))) {", "if (false) {", "E"],
   ["M3 ANALIZ", "if (p.status !== \"healthy\" && p.status !== \"warning\") {", "if (false) {", "J"],
-  ["M4 ANAHTARLIK GERI ACILDI", "export const TUR_ORTAM = { plaket: \"URETIM_TUR_PLAKET\" };",
-   "export const TUR_ORTAM = { plaket: \"URETIM_TUR_PLAKET\", anahtarlik: \"URETIM_TUR_PLAKET\" };", "T"],
+  // Tur uyeligi MANIFESTTEN (motor M + ortam eslemesi); kapi silinince manifestte olmayan tur acilir.
+  ["M4 ANAHTARLIK GERI ACILDI (manifest kapisi silindi)", "VERI.kolu(kod) === \"saglayici\" &&\n    Object.prototype.hasOwnProperty.call(TUR_ORTAM, kod);",
+   "kod !== \"\";", "T"],
   ["M5 AYAK DUSTU", "      foto_ayak: AYAK_PLAKET_BASI,\n", "", "A"],
   ["K0 KONTROL", "console.log(\"FOTO_URETIM kuyruga=\"", "console.log(\"FOTO_URETIM  kuyruga=\"", null],
 ];

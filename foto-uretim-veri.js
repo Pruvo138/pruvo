@@ -46,20 +46,22 @@
       hak: "Yüklediğim fotoğrafın bana ait olduğunu ya da kullanma hakkım olduğunu beyan ederim.",
       aktarim: "Fotoğrafımın önizleme ve üretim dosyasının hazırlanması için yurt dışındaki " +
         "hizmet sağlayıcıya aktarılmasına açık rıza veriyorum.",
+      // Her madde { kol, metin }: kol "M" = yalniz saglayici (M) kolunda gosterilir (aktarim/
+      // saglayici cumleleri); "" = her kolda. METIN DEGISMEZ, yalniz gosterim kosulu (onay_surum ayni).
       aydinlatma: [
-        "Fotoğrafını yüklediğinde fotoğraf, önizleme görselinin ve üretim dosyasının hazırlanması " +
-          "için yurt dışında bulunan bir hizmet sağlayıcıya aktarılır. Bu aktarım için açık rızan " +
-          "gerekir; rıza vermezsen bu hizmeti kullanamazsın, sitenin geri kalanı etkilenmez.",
-        "Fotoğrafın PRUVO'da saklanmaz. Hizmet sağlayıcı yüklenen fotoğrafı ve ondan üretilen " +
-          "dosyaları en geç 3 gün içinde siler.",
-        "Önizleme görseli sipariş vermezsen en geç 3 gün içinde silinir; sipariş verirsen üretim " +
-          "ve teslim tamamlanana kadar saklanır.",
-        "Başkasına ait fotoğraf, marka, logo ya da telifli görsel yükleme; yüklenen görselden " +
-          "doğan sorumluluk yükleyene aittir.",
-        "Önizleme, fotoğrafının stilize bir yorumudur. Ürün bu önizlemenin en çok 4 renkli " +
-          "kabartma yorumu olarak üretilir; birebir aynısı değildir, küçük yazı ve ince " +
-          "ayrıntılar sadeleşir.",
-        "Kişisel verilerinle ilgili haklar ve başvuru yolu için Gizlilik Politikası sayfasına bakabilirsin."
+        { kol: "M", metin: "Fotoğrafını yüklediğinde fotoğraf, önizleme görselinin ve üretim dosyasının hazırlanması " +
+            "için yurt dışında bulunan bir hizmet sağlayıcıya aktarılır. Bu aktarım için açık rızan " +
+            "gerekir; rıza vermezsen bu hizmeti kullanamazsın, sitenin geri kalanı etkilenmez." },
+        { kol: "M", metin: "Fotoğrafın PRUVO'da saklanmaz. Hizmet sağlayıcı yüklenen fotoğrafı ve ondan üretilen " +
+            "dosyaları en geç 3 gün içinde siler." },
+        { kol: "", metin: "Önizleme görseli sipariş vermezsen en geç 3 gün içinde silinir; sipariş verirsen üretim " +
+            "ve teslim tamamlanana kadar saklanır." },
+        { kol: "", metin: "Başkasına ait fotoğraf, marka, logo ya da telifli görsel yükleme; yüklenen görselden " +
+            "doğan sorumluluk yükleyene aittir." },
+        { kol: "M", metin: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün bu önizlemenin en çok 4 renkli " +
+            "kabartma yorumu olarak üretilir; birebir aynısı değildir, küçük yazı ve ince " +
+            "ayrıntılar sadeleşir." },
+        { kol: "", metin: "Kişisel verilerinle ilgili haklar ve başvuru yolu için Gizlilik Politikası sayfasına bakabilirsin." }
       ]
     },
 
@@ -71,10 +73,18 @@
     // (tür × ölçü). Tabloda satırı olmayan ölçü sunulmaz.
     //
     // KATEGORİ KAYDI (6 Eki 2026) — her türün akışı bu alanlardan okunur, kodda ikinci liste YOK:
-    //   girdi          : "foto-1" = müşteriden tek fotoğraf
-    //   kol            : "saglayici" = önizleme+üretim dış hizmetle (kredi harcar);
-    //                    "deterministik" = önizleme tarayıcıda çizilir, üretim dosyasını bizim
-    //                    üretecimiz çıkarır (sağlayıcı çağrısı 0, kredi 0)
+    // ŞEMA = tools/foto-uretec-sozlesmesi.md §6 (KATEGORİ MOTORU, 7 Eki 2026: kategori eklemek =
+    // üreteç + bu satır; bölüm, sunucu, fiyat üreteci ve üreteç köprüsü YALNIZ bu satırı okur).
+    //   girdi          : [GIRDI_TURLERI anahtarı...] — "foto-1" tek fotoğraf, "foto-1-3" 1–3 fotoğraf,
+    //                    "metin", "url", "svg", "form"; "ses"/"konum"/"tarih" şemada ama YAKINDA
+    //   motor          : "M" = önizleme+üretim dış hizmetle (kredi harcar; kol "saglayici");
+    //                    "D" / "R" = deterministik / ölçüden üretim — önizleme tarayıcıda ya da
+    //                    üreteçte, üretim dosyasını bizim üretecimiz çıkarır (kol "deterministik")
+    //   uretec         : üreteç komut kimliği (D/R'de DOLU, M'de "")
+    //   form           : parametre şeması { anahtar: {tip:"sayi",min,max,adim,birim} |
+    //                    {tip:"secim",secenekler:[..]} | {tip:"metin",max} | {tip:"url"} }; {} = parametre yok
+    //   fiyat          : { formul: "mm_x_10tl", adim_mm } — foto_fiyat satırları buradan üretilir
+    //                    (tools/foto-fiyat-uret.py; fiyat_kurus = mm × 1000), elle satır YAZILMAZ
     //   olcu_mm        : {en_az, en_cok} — fiyat satırı bu aralık dışında YAZILAMAZ
     //   renk_bolgeleri : müşterinin renk seçtiği bölgeler; [] = seçim yok (plaket: önizlemenin 4 renkli yorumu)
     //   malzemeler     : bölge -> izinli filament listesi; {} = satır "PLA" (plaket)
@@ -86,11 +96,15 @@
         kod: "plaket",
         ad: "Kabartma plaket",
         aciklama: "Fotoğrafındaki konunun kabartmalı plaketi; ayağıyla masada durur.",
-        girdi: "foto-1",
-        kol: "saglayici",
-        olcu_mm: { en_az: 50, en_cok: 300 },
+        girdi: ["foto-1"],
+        motor: "M",
+        uretec: "",
+        // Okan 6 Eki 2026: "min 60 max 300" (canli fiyat tablosu 60–300, 25 satir).
+        olcu_mm: { en_az: 60, en_cok: 300 },
         renk_bolgeleri: [],
         malzemeler: {},
+        form: {},
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         // Okan kararı 7 Eki 2026: plaket gerçek baskı beklemeden önizleme + render ile açılır.
         ornek_kanit_izni: ["baski", "render"]
       },
@@ -98,8 +112,9 @@
         kod: "litofan",
         ad: "Işıklı fotoğraf paneli (litofan)",
         aciklama: "Fotoğrafın ince bir panele kalınlık farkıyla işlenir; arkadan ışık gelince görünür. Ayağıyla masada durur.",
-        girdi: "foto-1",
-        kol: "deterministik",
+        girdi: ["foto-1"],
+        motor: "D",
+        uretec: "litofan_uret",
         olcu_mm: { en_az: 80, en_cok: 200 },
         renk_bolgeleri: [
           { kod: "panel", ad: "Işık geçen panel", renkler: ["Beyaz"] },
@@ -107,8 +122,11 @@
         ],
         // ABS YOK: litofan Dekorasyon sınıfıdır (secenekler.js FILAMENT_KATEGORI_HARIC).
         malzemeler: { panel: ["PLA", "PETG"], ayak: ["PLA", "PETG", "ASA"] },
-        // Litofan kuralı DEĞİŞMEDİ: yalnız basılmış ürünün gerçek fotoğrafı açar.
-        ornek_kanit_izni: ["baski"]
+        form: {},
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        // Okan kararı 7 Eki 2026 (24 kategori 1 hafta, G1 "motor + litofan canlı"): litofan da
+        // render örneğiyle açılır (sentetik görselden üretilen 3MF'in arkadan ışıklı render'ı).
+        ornek_kanit_izni: ["baski", "render"]
       }
     ],
 
@@ -121,6 +139,16 @@
         onizleme: "https://media.pruvo3d.com/foto/ornek/plaket-1-onizleme.webp",
         render: "https://media.pruvo3d.com/foto/ornek/plaket-1-render.webp",
         not: "120 mm, 4 renk, ayağıyla"
+      },
+      {
+        tur: "litofan",
+        kanit: "render",
+        olcu_mm: 140,
+        // Sentetik çizim (deniz + güneş + yelkenli); kişi/marka/telifli görsel YOK. Önizleme =
+        // aynı render (litofanın önizlemesi tarayıcıda çizilir; örnek kartında render gösterilir).
+        onizleme: "https://media.pruvo3d.com/foto/ornek/litofan-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/litofan-1-render.webp",
+        not: "140 mm, arkadan ışıkla"
       }
     ],
 
@@ -163,10 +191,81 @@
     return null;
   };
 
-  // Türün akış kolu ("saglayici" | "deterministik"); bilinmeyen tür -> "" (hiçbir kola girmez).
+  // MOTOR -> akış kolu. Kol TÜRETİLİR (satırda ayrı `kol` alanı yazılmaz; ikinci kaynak yok).
+  VERI.MOTOR_KOLU = { M: "saglayici", D: "deterministik", R: "deterministik" };
+  // Türün akış kolu ("saglayici" | "deterministik"); bilinmeyen tür/motor -> "" (hiçbir kola girmez).
   VERI.kolu = function (kod) {
     var t = VERI.turBul(kod);
-    return t && (t.kol === "saglayici" || t.kol === "deterministik") ? t.kol : "";
+    var m = t && typeof t.motor === "string" ? t.motor : "";
+    return Object.prototype.hasOwnProperty.call(VERI.MOTOR_KOLU, m) ? VERI.MOTOR_KOLU[m] : "";
+  };
+  // Aydınlatma maddeleri türün motoruna göre: kol "M" maddesi yalnız M motorlu türde gösterilir.
+  VERI.aydinlatmaMaddeleri = function (kod) {
+    var t = VERI.turBul(kod);
+    var m = t ? t.motor : "";
+    return VERI.onay.aydinlatma.filter(function (x) { return !x.kol || x.kol === m; })
+      .map(function (x) { return x.metin; });
+  };
+  // Aktarım rızası (sağlayıcıya aktarım kutusu) yalnız M motorunda istenir/gösterilir.
+  VERI.aktarimGerekir = function (kod) { var t = VERI.turBul(kod); return !!t && t.motor === "M"; };
+
+  // GİRDİ TÜRLERİ — `acik:false` = şemada tanımlı, YAKINDA (bölüm göstermez, sunucu 400; G5'te açılır).
+  VERI.GIRDI_TURLERI = {
+    "foto-1": { acik: true }, "foto-1-3": { acik: true, en_cok: 3 },
+    metin: { acik: true }, url: { acik: true, en_cok: 512 }, svg: { acik: true, en_cok_bayt: 200 * 1024 },
+    form: { acik: true }, ses: { acik: false }, konum: { acik: false }, tarih: { acik: false }
+  };
+  VERI.FORM_TIPLERI = { sayi: true, secim: true, metin: true, url: true, ses: false, konum: false, tarih: false };
+
+  VERI.urlDogrula = function (s) {
+    return typeof s === "string" && s.length <= VERI.GIRDI_TURLERI.url.en_cok &&
+      /^https:\/\/[^\s\/?#@]+(?:[\/?#][^\s]*)?$/.test(s);
+  };
+  // SVG: <= 200 KB, kök <svg>; script / olay özniteliği / foreignObject / ENTITY / harici
+  // referans (href, url(...) içinde "#" dışı) RED. Dönüş "" = geçerli, aksi sebep kodu.
+  VERI.svgDogrula = function (s) {
+    if (typeof s !== "string" || !s.length) { return "svg-bos"; }
+    var bayt = typeof TextEncoder !== "undefined" ? new TextEncoder().encode(s).length : s.length * 3;
+    if (bayt > VERI.GIRDI_TURLERI.svg.en_cok_bayt) { return "svg-buyuk"; }
+    if (!/^\s*(<\?xml[^>]*\?>\s*)?<svg[\s>]/i.test(s)) { return "svg-degil"; }
+    if (/<\s*script/i.test(s) || /\son[a-z]+\s*=/i.test(s) || /javascript:/i.test(s)) { return "svg-script"; }
+    if (/<\s*foreignObject/i.test(s) || /<!ENTITY|<!DOCTYPE/i.test(s)) { return "svg-yasak-oge"; }
+    if (/(?:xlink:)?href\s*=\s*["']\s*[^"'#\s]/i.test(s) || /url\(\s*["']?\s*[^"'#\s)]/i.test(s) ||
+        /@import/i.test(s)) { return "svg-harici-referans"; }
+    return "";
+  };
+  // PARAMETRELER — türün `form` şemasına karşı. Şema dışı anahtar, YAKINDA tipi, aralık/adım dışı
+  // sayı, listede olmayan seçim, boş/uzun metin, geçersiz url -> {ok:false, hata}. Bölüm ve sunucu AYNI.
+  VERI.parametreDogrula = function (kod, p) {
+    var t = VERI.turBul(kod);
+    if (!t) { return { ok: false, hata: "tur-yok" }; }
+    var form = t.form && typeof t.form === "object" ? t.form : {};
+    if (p === undefined || p === null) { p = {}; }
+    if (typeof p !== "object" || Array.isArray(p)) { return { ok: false, hata: "parametre-bicimi" }; }
+    var cikti = {};
+    var anahtarlar = Object.keys(p);
+    for (var i = 0; i < anahtarlar.length; i++) {
+      if (!Object.prototype.hasOwnProperty.call(form, anahtarlar[i])) { return { ok: false, hata: "sema-disi-parametre" }; }
+    }
+    var alanlar = Object.keys(form);
+    for (var j = 0; j < alanlar.length; j++) {
+      var a = alanlar[j], sema = form[a] || {}, v = p[a];
+      if (VERI.FORM_TIPLERI[sema.tip] !== true) { return { ok: false, hata: "parametre-yakinda" }; }
+      if (sema.tip === "sayi") {
+        if (typeof v !== "number" || !isFinite(v) || v < sema.min || v > sema.max) { return { ok: false, hata: "parametre-aralik" }; }
+        var adim = sema.adim > 0 ? sema.adim : 1;
+        var k = (v - sema.min) / adim;
+        if (Math.abs(k - Math.round(k)) > 1e-9) { return { ok: false, hata: "parametre-adim" }; }
+      } else if (sema.tip === "secim") {
+        if (!Array.isArray(sema.secenekler) || sema.secenekler.indexOf(v) < 0) { return { ok: false, hata: "parametre-secim" }; }
+      } else if (sema.tip === "metin") {
+        if (typeof v !== "string" || !v.trim() || v.length > (sema.max || 0)) { return { ok: false, hata: "parametre-metin" }; }
+      } else if (sema.tip === "url") {
+        if (!VERI.urlDogrula(v)) { return { ok: false, hata: "parametre-url" }; }
+      }
+      cikti[a] = v;
+    }
+    return { ok: true, deger: cikti };
   };
   // Türün ölçü aralığı (mm, uzun kenar); bilinmeyen tür -> null. Bölüm ve sunucu AYNI fonksiyon.
   VERI.olcuAraligi = function (kod) {

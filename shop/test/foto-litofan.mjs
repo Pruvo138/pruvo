@@ -181,7 +181,7 @@ const litofanGovde = (ek) => ({ tur: "litofan", olcu_mm: 120, gorsel: uri(HARITA
 /** Gruplu sonuc: {L2: [{ad, ok, ek}], ...}. Her kosum TEMIZ SQLite + temiz R2 ile. */
 async function senaryo(ms) {
   const { modul, foto, VERI } = ms;
-  const g = { L2: [], L3: [], L4: [], L5: [], L6: [], L7: [], L8: [] };
+  const g = { L2: [], L3: [], L4: [], L5: [], L6: [], L7: [], L8: [], L9: [] };
   const iddia = (grup, ad, ok, ek) => g[grup].push({ ad, ok: !!ok, ek: ek || "" });
   const k = koprukur(); await k.hazir;
   const d1 = k.d1; const r2 = r2Kur();
@@ -192,6 +192,33 @@ async function senaryo(ms) {
   try {
     VERI.ornekler.push(ornek("litofan"));
     const simdi = new Date().toISOString();
+
+    // ---- L9: uretec olcu.json (sozlesme §3) + svg + aydinlatma kolu (saf fonksiyonlar)
+    const ko = { tur: "litofan", olcu_mm: 140 };
+    const oj = (ek) => ({ sozlesme: 1, kategori: "litofan", uzun_kenar_mm: 140.0, kutu_mm: { x: 140, y: 96, z: 3 },
+                          renk_sayisi: 2, sizdirmaz: true, ...ek });
+    iddia("L9", "gecerli olcu.json -> ''", foto.uretecOlcuDogrula(oj({}), ko) === "", foto.uretecOlcuDogrula(oj({}), ko));
+    iddia("L9", "sizdirmaz:false -> elle (sizdirmaz-degil)", foto.uretecOlcuDogrula(oj({ sizdirmaz: false }), ko) === "sizdirmaz-degil",
+          foto.uretecOlcuDogrula(oj({ sizdirmaz: false }), ko));
+    iddia("L9", "uzun kenar %1 disi (142) -> uzun-kenar-tolerans; %1 ici (141,2) gecer",
+          foto.uretecOlcuDogrula(oj({ uzun_kenar_mm: 142 }), ko) === "uzun-kenar-tolerans" &&
+          foto.uretecOlcuDogrula(oj({ uzun_kenar_mm: 141.2 }), ko) === "", "");
+    iddia("L9", "renk 5 -> renk-fazla · kategori uyusmaz · aralik disi olcu",
+          foto.uretecOlcuDogrula(oj({ renk_sayisi: 5 }), ko) === "renk-fazla" &&
+          foto.uretecOlcuDogrula(oj({ kategori: "plaket" }), ko) === "kategori-uyusmaz" &&
+          foto.uretecOlcuDogrula(oj({ uzun_kenar_mm: 250 }), { tur: "litofan", olcu_mm: 250 }) === "olcu-aralik-disi", "");
+    iddia("L9", "svg: script/olay/harici referans RED, temiz svg gecer",
+          VERI.svgDogrula("<svg><script>x()</script></svg>") === "svg-script" &&
+          VERI.svgDogrula("<svg onload=\"x()\"></svg>") === "svg-script" &&
+          VERI.svgDogrula("<svg><image href=\"https://ornek.test/a.png\"/></svg>") === "svg-harici-referans" &&
+          VERI.svgDogrula("<svg>" + "a".repeat(205 * 1024) + "</svg>") === "svg-buyuk" &&
+          VERI.svgDogrula("<svg viewBox=\"0 0 10 10\"><path d=\"M0 0L10 10\" fill=\"url(#g)\"/></svg>") === "", "");
+    const aktarimMaddeleri = VERI.onay.aydinlatma.filter((x) => x.kol === "M").map((x) => x.metin);
+    const litM = VERI.aydinlatmaMaddeleri("litofan");
+    iddia("L9", "D kategorisinde aktarim maddesi 0 + aktarim kutusu yok; plakette 6 madde",
+          aktarimMaddeleri.length > 0 && litM.filter((m) => aktarimMaddeleri.includes(m)).length === 0 &&
+          VERI.aktarimGerekir("litofan") === false && VERI.aktarimGerekir("plaket") === true &&
+          VERI.aydinlatmaMaddeleri("plaket").length === VERI.onay.aydinlatma.length, JSON.stringify(litM.length));
 
     // ---- L2: fiyat satiri YOK
     const a2 = await istek("/foto/acik");
@@ -234,6 +261,13 @@ async function senaryo(ms) {
     const jp = await istek("/foto/litofan", { ip: "10.3.0.4", govde: litofanGovde({ onay_surum: surum, gorsel: uri(jpeg, "jpeg") }) });
     iddia("L3", "PNG olmayan (orijinal foto) 400", jp.kod === 400 && jp.v.hata === "gorsel-gecersiz", JSON.stringify(jp.v));
     const onaysiz = await istek("/foto/litofan", { ip: "10.3.0.5", govde: litofanGovde({ onay_surum: surum, hak_onay: false }) });
+    // GIRDI TURLERI (manifest): litofanin `form`u {} ve girdisinde svg yok -> sema disi 400.
+    const semaDisi = await istek("/foto/litofan", { ip: "10.3.0.6", govde: litofanGovde({ onay_surum: surum, parametreler: { delik_mm: 5 } }) });
+    iddia("L3", "sema disi parametre 400 (sema-disi-parametre)", semaDisi.kod === 400 && !!semaDisi.v &&
+          semaDisi.v.hata === "sema-disi-parametre", JSON.stringify(semaDisi.v));
+    const svgli = await istek("/foto/litofan", { ip: "10.3.0.7", govde: litofanGovde({ onay_surum: surum, svg: "<svg><path d=\"M0 0\"/></svg>" }) });
+    iddia("L3", "girdisinde svg olmayan ture svg alani 400", svgli.kod === 400 && !!svgli.v &&
+          svgli.v.hata === "sema-disi-parametre", JSON.stringify(svgli.v));
     const eskiSurum = await istek("/foto/litofan", { ip: "10.3.0.6", govde: litofanGovde({ onay_surum: "eski" }) });
     iddia("L3", "hak onayi yok 400 · eski onay surumu 409", onaysiz.kod === 400 && eskiSurum.kod === 409,
           onaysiz.kod + "/" + eskiSurum.kod);
@@ -299,6 +333,21 @@ async function senaryo(ms) {
     const girdi = await istek("/yonet/foto/uretec-girdi" + q, { basliklar: YONET });
     iddia("L6", "girdi indir = musteri haritasi (PNG)", girdi.kod === 200 && /image\/png/.test(girdi.tip) &&
           !!girdi.bayt && Buffer.from(girdi.bayt).equals(Buffer.from(HARITA)), String(girdi.kod));
+    // SOZLESME §2/§4: girdi.json + olcu.json/onizleme.png ayni cagri ailesiyle.
+    const gj = await istek("/yonet/foto/uretec-girdi" + q + "&dosya=girdi.json", { basliklar: YONET });
+    iddia("L6", "girdi.json: sozlesme 1, kategori litofan, olcu_mm, renk/malzeme bolgeleri, dosyalar.gri_harita",
+          gj.kod === 200 && !!gj.v && gj.v.sozlesme === 1 && gj.v.kategori === "litofan" && Number.isInteger(gj.v.olcu_mm) &&
+          gj.v.renkler && gj.v.malzemeler && gj.v.dosyalar && gj.v.dosyalar.gri_harita === "gri_harita.png", JSON.stringify(gj.v));
+    const kucukOn = await istek("/yonet/foto/uretec-yukle" + q + "&dosya=onizleme.png", { yontem: "POST", basliklar: YONET, ham: HARITA });
+    iddia("L6", "onizleme.png < 1024 px -> 400", kucukOn.kod === 400, JSON.stringify(kucukOn.v));
+    const onz = await istek("/yonet/foto/uretec-yukle" + q + "&dosya=onizleme.png", { yontem: "POST", basliklar: YONET, ham: pngYap(1200, 800) });
+    const olcuGovde = { sozlesme: 1, kategori: "litofan", uzun_kenar_mm: (gj.v && gj.v.olcu_mm) || 0,
+                        kutu_mm: { x: (gj.v && gj.v.olcu_mm) || 0, y: 80, z: 3 }, renk_sayisi: 2, sizdirmaz: true };
+    const olc = await istek("/yonet/foto/uretec-yukle" + q + "&dosya=olcu.json", { yontem: "POST", basliklar: YONET,
+      ham: new TextEncoder().encode(JSON.stringify(olcuGovde)) });
+    const u6b = await d1.prepare("SELECT asama FROM foto_uretim WHERE siparis_no = ? AND kalem = 0").bind(siparisNo || "").first();
+    iddia("L6", "onizleme.png + olcu.json 200, asama DEGISMEZ (uretec-bekliyor)", onz.kod === 200 && olc.kod === 200 &&
+          !!u6b && u6b.asama === "uretec-bekliyor", onz.kod + "/" + olc.kod + " " + JSON.stringify(u6b));
     const iyi = await istek("/yonet/foto/uretec-yukle" + q, { yontem: "POST", basliklar: YONET, ham: UCMF });
     const u6 = await d1.prepare("SELECT asama FROM foto_uretim WHERE siparis_no = ? AND kalem = 0").bind(siparisNo || "").first();
     iddia("L6", "gecerli 3MF -> 200, satir 'hazir', R2'de 3MF", iyi.kod === 200 && !!u6 && u6.asama === "hazir" &&
@@ -386,8 +435,14 @@ console.log("L1) KATEGORI KAYDI");
   const hatali = [];
   for (const t of VERI.turler) {
     const a = t.olcu_mm || {};
-    if (t.girdi !== "foto-1") { hatali.push(t.kod + ":girdi"); }
-    if (!KOLLAR.includes(t.kol)) { hatali.push(t.kod + ":kol"); }
+    // Sozlesme §6 alanlari TAM: girdi[] · motor · uretec (D/R dolu, M bos) · form · fiyat · ornek_kanit_izni.
+    if (!Array.isArray(t.girdi) || !t.girdi.length ||
+        t.girdi.some((x) => !Object.prototype.hasOwnProperty.call(VERI.GIRDI_TURLERI, x))) { hatali.push(t.kod + ":girdi"); }
+    if (!["M", "D", "R"].includes(t.motor) || !KOLLAR.includes(VERI.kolu(t.kod))) { hatali.push(t.kod + ":kol"); }
+    if (typeof t.uretec !== "string" || (t.motor === "M" ? t.uretec !== "" : !t.uretec)) { hatali.push(t.kod + ":uretec"); }
+    if (!t.form || typeof t.form !== "object" || Array.isArray(t.form)) { hatali.push(t.kod + ":form"); }
+    if (!t.fiyat || t.fiyat.formul !== "mm_x_10tl" || !(Number.isInteger(t.fiyat.adim_mm) && t.fiyat.adim_mm > 0)) { hatali.push(t.kod + ":fiyat"); }
+    if (!Array.isArray(t.ornek_kanit_izni) || !t.kod || !t.ad || !t.aciklama) { hatali.push(t.kod + ":kimlik"); }
     if (!(Number.isInteger(a.en_az) && Number.isInteger(a.en_cok) && a.en_az > 0 && a.en_cok >= a.en_az)) { hatali.push(t.kod + ":olcu"); }
     if (!Array.isArray(t.renk_bolgeleri) || t.renk_bolgeleri.some((b) => !b || !b.kod || !b.ad ||
         !Array.isArray(b.renkler) || !b.renkler.length)) { hatali.push(t.kod + ":renk"); }
@@ -397,21 +452,22 @@ console.log("L1) KATEGORI KAYDI");
       hatali.push(t.kod + ":malzeme");
     }
   }
-  ol("L1a her tur: girdi/kol/olcu_mm/renk_bolgeleri/malzemeler gecerli (malzeme ⊆ FILAMENT_SIRA)",
+  ol("L1a her tur: §6 alanlari tam (girdi[]/motor/uretec/form/fiyat) + olcu_mm/renk_bolgeleri/malzemeler gecerli (malzeme ⊆ FILAMENT_SIRA)",
      filament.length > 0 && hatali.length === 0, hatali.join(","));
-  const sag = VERI.turler.filter((t) => t.kol === "saglayici").map((t) => t.kod).sort();
+  const sag = VERI.turler.filter((t) => VERI.kolu(t.kod) === "saglayici").map((t) => t.kod).sort();
   ol("L1b saglayici turleri = TUR_ORTAM anahtarlari", JSON.stringify(sag) === JSON.stringify(Object.keys(foto.TUR_ORTAM).sort()),
      JSON.stringify(sag));
-  const det = VERI.turler.filter((t) => t.kol === "deterministik").map((t) => t.kod);
+  const det = VERI.turler.filter((t) => VERI.kolu(t.kod) === "deterministik").map((t) => t.kod);
   ol("L1c deterministik ∩ TUR_ORTAM = ∅ ve sunucu kumesi kayittan turetilir",
      det.every((d) => !Object.prototype.hasOwnProperty.call(foto.TUR_ORTAM, d)) &&
        JSON.stringify(foto.DETERMINISTIK_TURLER) === JSON.stringify(det), JSON.stringify(foto.DETERMINISTIK_TURLER));
   const lit = VERI.turBul("litofan");
-  ol("L1d litofan: deterministik, 80–200 mm, ABS 0 (Dekorasyon sinifi)", !!lit && lit.kol === "deterministik" &&
+  ol("L1d litofan: motor D (deterministik), uretec litofan_uret, 80–200 mm, ABS 0 (Dekorasyon sinifi)", !!lit &&
+     VERI.kolu("litofan") === "deterministik" && lit.motor === "D" && lit.uretec === "litofan_uret" &&
      lit.olcu_mm.en_az === 80 && lit.olcu_mm.en_cok === 200 &&
      !Object.values(lit.malzemeler).some((l) => l.includes("ABS")), JSON.stringify(lit && lit.malzemeler));
   const pl = VERI.olcuAraligi("plaket");
-  ol("L1e plaket kaydi bugunku davranisi birebir tarif eder (50–300 mm, renk secimi yok, malzeme {})",
+  ol("L1e plaket kaydi bugunku davranisi birebir tarif eder (60–300 mm, renk secimi yok, malzeme {})",
      !!pl && pl.en_az === foto.OLCU_MM_EN_AZ && pl.en_cok === foto.OLCU_MM_EN_COK &&
        VERI.turBul("plaket").renk_bolgeleri.length === 0 && Object.keys(VERI.turBul("plaket").malzemeler).length === 0 &&
        VERI.kolu("plaket") === "saglayici" && VERI.kolu("yok") === "" && VERI.olcuAraligi("yok") === null, JSON.stringify(pl));
@@ -419,7 +475,7 @@ console.log("L1) KATEGORI KAYDI");
 
 const ADLAR = {
   L2: "L2 FIYAT YOK -> SATIN ALMA RED", L3: "L3 /foto/litofan SAGLAYICISIZ", L4: "L4 /baslat TUTAR + SECIM",
-  L5: "L5 KUYRUK uretec-bekliyor", L6: "L6 PANEL YUKLEME", L7: "L7 PLAKET REGRESYONU",
+  L5: "L5 KUYRUK uretec-bekliyor", L6: "L6 PANEL YUKLEME", L7: "L7 PLAKET REGRESYONU", L9: "L9 URETEC OLCU + SVG + AYDINLATMA KOLU",
   L8: "L8 SAKLAMA saglayicisiz",
 };
 const sonuc = await senaryo(canli);
@@ -462,6 +518,12 @@ const MUTANTLAR = [
     capa: "  if (!anahtarGecerli(request, url, env)) {",
     yerine: '  if (altYol === "/foto/uretec-yukle" && m === "POST") { return panelUretecYukle(request, env, url, Date.now()); }\n' +
             "  if (!anahtarGecerli(request, url, env)) {" },
+  { ad: "M6 olcu.json sizdirmazlik kontrolu silindi", dosya: "shop/src/foto.js", hedef: "L9",
+    capa: '  if (o.sizdirmaz !== true) { return "sizdirmaz-degil"; }\n', yerine: "" },
+  { ad: "M7 uzun kenar tolerans kontrolu silindi", dosya: "shop/src/foto.js", hedef: "L9",
+    capa: "!(Math.abs(o.uzun_kenar_mm - k.olcu_mm) <= k.olcu_mm * tol + 1e-9)", yerine: "false" },
+  { ad: "M8 parametre sema kontrolu silindi", dosya: "shop/src/foto.js", hedef: "L3",
+    capa: "  if (!p.ok) { return p.hata; }\n", yerine: "" },
   { ad: "M5 saglayici env'siz dalda onizleme temizligi kaldirildi", dosya: "shop/src/foto.js", hedef: "L8",
     capa: "      try { ozet.silinen = await onizlemeTemizle(env, simdi); } catch (e) { if (!tabloYok(e)) { throw e; } }\n",
     yerine: "" },

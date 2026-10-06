@@ -882,14 +882,17 @@
     });
     ek(aktLbl, aktInp);
     ek(aktLbl, " " + F.onay.aktarim);
-    // Litofan fotoğrafı hiçbir hizmet sağlayıcıya aktarılmaz: aktarım rızası istenmez.
-    aktLbl.hidden = litofanSecili();
+    // Aktarım kutusu yalnız M motorlu türde (manifest): D/R türünde fotoğraf hiçbir hizmet
+    // sağlayıcıya aktarılmaz, aktarım rızası istenmez.
+    aktLbl.hidden = !F.aktarimGerekir(S.tur);
     S.alanOnay.appendChild(aktLbl);
 
     var det = el("details", "foto-uretim-aydinlatma");
     det.appendChild(el("summary", null, "Aydınlatma metni"));
-    for (var p = 0; p < F.onay.aydinlatma.length; p++) {
-      det.appendChild(el("p", null, F.onay.aydinlatma[p]));
+    // Maddeler türün motoruna göre (manifest `kol` etiketi): D türünde aktarım maddesi GÖRÜNMEZ.
+    var maddeler = F.aydinlatmaMaddeleri(S.tur);
+    for (var p = 0; p < maddeler.length; p++) {
+      det.appendChild(el("p", null, maddeler[p]));
     }
     var sonP = el("p");
     sonP.appendChild(document.createTextNode("Kişisel verilerinle ilgili haklar için "));
@@ -906,7 +909,7 @@
     var btn = S.alanButon.querySelector("button");
     if (!btn) return;
     var lit = litofanSecili();
-    var tam = !!S.dosya && !!S.hakOnay && (!!S.aktarimOnay || lit) &&
+    var tam = !!S.dosya && !!S.hakOnay && (!!S.aktarimOnay || !F.aktarimGerekir(S.tur)) &&
       !!S.captchaToken1 && !!S.tur && !!S.olcu && (!lit || !!S.litofanHarita);
     btn.disabled = !tam;
     btn.textContent = lit ? "Siparişe geç" : "Önizleme oluştur";

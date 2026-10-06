@@ -60,7 +60,7 @@ if (!VERI) { throw new Error("foto-uretim-veri.js yuklenemedi — tur/ornek tek 
  */
 export const TUR_ORTAM = { plaket: "URETIM_TUR_PLAKET" };
 /** Build adiminda olcu sinirlari (mm; plaketin uzun kenari) — fiyat satiri bu aralik disinda YAZILAMAZ. */
-export const OLCU_MM_EN_AZ = 50;
+export const OLCU_MM_EN_AZ = 60; // Okan 6 Eki: "min 60 max 300" (manifest plaket olcu_mm ile AYNI)
 export const OLCU_MM_EN_COK = 300; // Okan 6 Eki: fiyat tablosu 60–300 mm (saglayici sinir 400)
 /**
  * PLAKET GEOMETRISI (herkese AYNI; ayak bu taban kalinligina gore yuvali uretilir — TeKiN).
@@ -82,7 +82,9 @@ export const DETERMINISTIK_TURLER = VERI.turler
 
 /** Tur saglayici kolunda mi (yalniz bu turler icin saglayiciya gidilir). */
 function saglayiciTuru(kod) {
-  return typeof kod === "string" && Object.prototype.hasOwnProperty.call(TUR_ORTAM, kod);
+  // Uyelik MANIFESTTEN (motor M); TUR_ORTAM yalniz ortam degiskeni eslemesi (kategori listesi DEGIL).
+  return typeof kod === "string" && VERI.kolu(kod) === "saglayici" &&
+    Object.prototype.hasOwnProperty.call(TUR_ORTAM, kod);
 }
 /** Tur deterministik kolda mi. */
 function deterministikTur(kod) { return typeof kod === "string" && DETERMINISTIK_TURLER.includes(kod); }
@@ -96,6 +98,29 @@ function olcuAralikta(kod, mm) {
   const a = olcuAraligi(kod);
   return Number.isInteger(mm) && mm >= a.en_az && mm <= a.en_cok;
 }
+/**
+ * GIRDI DOGRULAMASI (genel, manifestten): `parametreler` turun `form` semasina karsi; `svg` alani
+ * yalniz girdisinde "svg" olan turde ve VERI.svgDogrula'dan gecerse. Turun girdisinde YAKINDA
+ * (acik:false) bir tip varsa tur bu uctan gecmez. Donus "" = gecerli, aksi hata kodu (400).
+ */
+export function girdiGovdeDogrula(turKod, g) {
+  const t = VERI.turBul(turKod);
+  if (!t || !Array.isArray(t.girdi) || !t.girdi.length) { return "girdi-tanimsiz"; }
+  for (const x of t.girdi) {
+    const gt = Object.prototype.hasOwnProperty.call(VERI.GIRDI_TURLERI, x) ? VERI.GIRDI_TURLERI[x] : null;
+    if (!gt) { return "girdi-tanimsiz"; }
+    if (gt.acik !== true) { return "girdi-yakinda"; }
+  }
+  const p = VERI.parametreDogrula(turKod, g.parametreler);
+  if (!p.ok) { return p.hata; }
+  if (g.svg !== undefined) {
+    if (!t.girdi.includes("svg")) { return "sema-disi-parametre"; }
+    const sv = VERI.svgDogrula(g.svg);
+    if (sv) { return sv; }
+  }
+  return "";
+}
+
 /** Bir siparis kalemi en cok kac adet (ayni dosyadan coklu baski). */
 export const FOTO_ADET_EN_COK = 20;
 /** Yuklenen fotografin cozulmus boyut sinirlari (bayt). Bolum gondermeden once kucultur. */
@@ -834,6 +859,8 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   // Deterministik tur bu uctan GECMEZ (saglayiciya gitmez): /foto/litofan.
   const tur = acikTurler(fiyatlar).find((t) => t.kod === g.tur && saglayiciTuru(t.kod));
   if (!tur) { return fjson({ hata: "tur-kapali" }, 400); }
+  const gh = girdiGovdeDogrula(tur.kod, g);
+  if (gh) { return fjson({ hata: gh }, 400); }
   const olcu = Number.isInteger(g.olcu_mm) ? g.olcu_mm : null;
   if (!tur.olculer.some((o) => o.mm === olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
   // ONAY: iki kutu da true olmali ve musterinin gordugu metin GUNCEL surum olmali.
@@ -923,6 +950,8 @@ async function litofanUcu(request, env, simdi) {
   if (!turHazir(env, g.tur).hazir) { return fjson({ hata: "kapali" }, 503); }
   const tur = acikTurler(await fiyatTablosu(env)).find((t) => t.kod === g.tur);
   if (!tur) { return fjson({ hata: "tur-kapali" }, 400); }
+  const gh = girdiGovdeDogrula(tur.kod, g);
+  if (gh) { return fjson({ hata: gh }, 400); }
   const olcu = Number.isInteger(g.olcu_mm) ? g.olcu_mm : null;
   if (!tur.olculer.some((o) => o.mm === olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
   if (g.hak_onay !== true) { return fjson({ hata: "onay-yok" }, 400); }
@@ -1240,7 +1269,8 @@ export function siparistekiFotoKalemleri(urunlerJson) {
   s.forEach((k, i) => {
     if (k && typeof k.foto_is === "string" && IS_KALIBI.test(k.foto_is) &&
         turSunuluyor(k.foto_tur) && Number.isInteger(k.olcu_mm)) {
-      cikti.push({ kalem: i, is_no: k.foto_is, tur: k.foto_tur, olcu_mm: k.olcu_mm });
+      cikti.push({ kalem: i, is_no: k.foto_is, tur: k.foto_tur, olcu_mm: k.olcu_mm,
+                   ...(k.foto_secim && typeof k.foto_secim === "object" ? { secim: k.foto_secim } : {}) });
     }
   });
   return cikti;
@@ -1695,10 +1725,33 @@ async function uretecKalemi(env, url) {
   return { no, kalem, k };
 }
 
-/** GET /yonet/foto/uretec-girdi?siparis=&kalem= — uretecin girdisi (gri kalinlik haritasi PNG). */
+/** Uretec kopru dosyalarinin R2 anahtari (ozel kova; model.3mf ile ayni dizin). */
+export function uretecAnahtari(siparisNo, kalem, ad) { return "foto/" + siparisNo + "/" + kalem + "/" + ad; }
+
+/** Sozlesme §2 girdi.json — kalemin seciminden (renk/malzeme) + manifest bolgelerinden. */
+export function uretecGirdiJson(no, k) {
+  const t = VERI.turBul(k.tur) || {};
+  const sc = k.secim || {};
+  const renkler = {}, malzemeler = {};
+  for (const b of (t.renk_bolgeleri || [])) { if (sc[b.kod + "_renk"]) { renkler[b.kod] = sc[b.kod + "_renk"]; } }
+  for (const b of Object.keys(t.malzemeler || {})) { if (sc[b + "_malzeme"]) { malzemeler[b] = sc[b + "_malzeme"]; } }
+  return { sozlesme: 1, kategori: k.tur, siparis_no: no, kalem: k.kalem, olcu_mm: k.olcu_mm,
+           renkler, malzemeler, parametreler: k.parametreler || {}, dosyalar: { gri_harita: "gri_harita.png" } };
+}
+
+/**
+ * GET /yonet/foto/uretec-girdi?siparis=&kalem=[&dosya=girdi.json|gri_harita.png] — uretecin girdisi
+ * (sozlesme §2/§4). `dosya` yoksa gri harita PNG (panel "girdi indir" baglantisi, geriye uyumlu).
+ */
 export async function panelUretecGirdi(env, url) {
   const c = await uretecKalemi(env, url);
   if (c.yanit) { return c.yanit; }
+  const dosya = url.searchParams.get("dosya") || "gri_harita.png";
+  if (dosya === "girdi.json") {
+    return new Response(JSON.stringify(uretecGirdiJson(c.no, c.k)), { status: 200, headers: {
+      "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
+  }
+  if (dosya !== "gri_harita.png") { return fjson({ hata: "dosya-yok" }, 404); }
   const n = await env.OZEL_DOSYA.get(onizlemeAnahtari(c.k.is_no));
   if (!n) { return fjson({ hata: "dosya-yok" }, 404); }
   return new Response(n.body, {
@@ -1712,16 +1765,47 @@ export async function panelUretecGirdi(env, url) {
   });
 }
 
+/** Uzun kenar toleransi (sozlesme §3): D kolu ±%1, R kolu ±%3. */
+const UZUN_KENAR_TOLERANS = { D: 0.01, R: 0.03 };
+/** Plaka siniri (sozlesme §3: tek plaka, 250×250 mm). */
+const PLAKA_MM = 250;
+
 /**
- * POST /yonet/foto/uretec-yukle?siparis=&kalem= — govde HAM 3MF (zip imzasi `PK\x03\x04`,
- * <= DOSYA_EN_COK_BAYT). Yalniz 'uretec-bekliyor' satirina: R2'ye yazar, CAS ile 'hazir'.
- * Yanlis asama 409, bozuk imza/boyut 400. Yetki: yonet.js anahtar/cerez kapisinin ARKASINDA.
+ * olcu.json DOGRULAMASI (sozlesme §3 + manifest araligi). Donus "" = gecerli, aksi sebep kodu
+ * (siparis 'elle'ye duser). `sizdirmaz` true OLMAK ZORUNDA; uzun kenar = olcu_mm ± tolerans;
+ * renk 1..4; olcu_mm manifest araliginda; kutu plakada.
+ */
+export function uretecOlcuDogrula(o, k) {
+  const t = VERI.turBul(k.tur);
+  if (!o || typeof o !== "object" || Array.isArray(o) || o.sozlesme !== 1) { return "olcu-bozuk"; }
+  if (o.kategori !== k.tur || !t) { return "kategori-uyusmaz"; }
+  if (o.sizdirmaz !== true) { return "sizdirmaz-degil"; }
+  const a = VERI.olcuAraligi(k.tur);
+  if (!a || !(k.olcu_mm >= a.en_az && k.olcu_mm <= a.en_cok)) { return "olcu-aralik-disi"; }
+  const tol = UZUN_KENAR_TOLERANS[t.motor];
+  if (!(tol > 0) || typeof o.uzun_kenar_mm !== "number" ||
+      !(Math.abs(o.uzun_kenar_mm - k.olcu_mm) <= k.olcu_mm * tol + 1e-9)) { return "uzun-kenar-tolerans"; }
+  if (!Number.isInteger(o.renk_sayisi) || o.renk_sayisi < 1 || o.renk_sayisi > 4) { return "renk-fazla"; }
+  const kutu = o.kutu_mm || {};
+  if (!(kutu.x > 0 && kutu.y > 0 && kutu.x <= PLAKA_MM && kutu.y <= PLAKA_MM)) { return "plaka-disi"; }
+  return "";
+}
+
+/**
+ * POST /yonet/foto/uretec-yukle?siparis=&kalem=[&dosya=model.3mf|olcu.json|onizleme.png] — sozlesme §4.
+ * Yalniz 'uretec-bekliyor' satirina. olcu.json (JSON, <= 64 KB) ve onizleme.png (PNG, uzun kenar
+ * >= 1024 px) R2'ye yazilir, asama DEGISMEZ. model.3mf (zip imzasi, <= DOSYA_EN_COK_BAYT) yazilir ve
+ * karar verilir: olcu.json + onizleme.png var ve olcu §3'ten geciyor -> CAS ile 'hazir'; aksi
+ * 'elle' + sebep (olcu-yok · onizleme-yok · sizdirmaz-degil · uzun-kenar-tolerans · ...).
+ * Yanlis asama 409, bozuk dosya 400. Yetki: yonet.js anahtar/cerez kapisinin ARKASINDA.
  */
 export async function panelUretecYukle(request, env, url, simdi) {
   const c = await uretecKalemi(env, url);
   if (c.yanit) { return c.yanit; }
+  const dosya = url.searchParams.get("dosya") || "model.3mf";
+  if (!["model.3mf", "olcu.json", "onizleme.png"].includes(dosya)) { return fjson({ hata: "dosya-yok" }, 400); }
   const u = await env.KATALOG.prepare(
-    "SELECT siparis_no, kalem, asama FROM foto_uretim WHERE siparis_no = ? AND kalem = ?"
+    "SELECT siparis_no, kalem, asama, tur, olcu_mm FROM foto_uretim WHERE siparis_no = ? AND kalem = ?"
   ).bind(c.no, c.kalem).first();
   if (!u || u.asama !== "uretec-bekliyor") {
     return fjson({ hata: "asama-uygun-degil", asama: u ? u.asama : "kuyrukta-degil" }, 409);
@@ -1729,13 +1813,40 @@ export async function panelUretecYukle(request, env, url, simdi) {
   const beyan = parseInt(request.headers.get("Content-Length") || "0", 10);
   if (beyan > DOSYA_EN_COK_BAYT) { return fjson({ hata: "dosya-buyuk" }, 400); }
   let bayt;
-  try { bayt = new Uint8Array(await request.arrayBuffer()); } catch (e) { return fjson({ hata: "gecersiz-3mf" }, 400); }
+  try { bayt = new Uint8Array(await request.arrayBuffer()); } catch (e) { return fjson({ hata: "gecersiz-dosya" }, 400); }
+  if (dosya === "olcu.json") {
+    let o = null;
+    try { o = bayt.length <= 65536 ? JSON.parse(new TextDecoder().decode(bayt)) : null; } catch (e) { o = null; }
+    if (!o || typeof o !== "object") { return fjson({ hata: "olcu-bozuk" }, 400); }
+    await env.OZEL_DOSYA.put(uretecAnahtari(c.no, c.kalem, "olcu.json"), bayt,
+                             { httpMetadata: { contentType: "application/json" } });
+    return fjson({ ok: true, dosya, asama: u.asama }, 200);
+  }
+  if (dosya === "onizleme.png") {
+    const b = pngBoyut(bayt);
+    if (!b || bayt.length > DOSYA_EN_COK_BAYT || Math.max(b.en, b.boy) < 1024) { return fjson({ hata: "gecersiz-onizleme" }, 400); }
+    await env.OZEL_DOSYA.put(uretecAnahtari(c.no, c.kalem, "onizleme.png"), bayt,
+                             { httpMetadata: { contentType: "image/png" } });
+    return fjson({ ok: true, dosya, asama: u.asama }, 200);
+  }
   if (bayt.length < 22 || bayt.length > DOSYA_EN_COK_BAYT ||
       bayt[0] !== 0x50 || bayt[1] !== 0x4B || bayt[2] !== 0x03 || bayt[3] !== 0x04) {
     return fjson({ hata: "gecersiz-3mf" }, 400);
   }
   await env.OZEL_DOSYA.put(uretimAnahtari(c.no, c.kalem, "3mf"), bayt,
                            { httpMetadata: { contentType: "model/3mf" } });
+  const on = await env.OZEL_DOSYA.get(uretecAnahtari(c.no, c.kalem, "onizleme.png"));
+  const ob = await env.OZEL_DOSYA.get(uretecAnahtari(c.no, c.kalem, "olcu.json"));
+  let sebep = "";
+  if (!ob) { sebep = "olcu-yok"; } else if (!on) { sebep = "onizleme-yok"; } else {
+    let o = null;
+    try { o = JSON.parse(await new Response(ob.body).text()); } catch (e) { o = null; }
+    sebep = uretecOlcuDogrula(o, c.k);
+  }
+  if (sebep) {
+    await elleDusur(env, u, sebep, "", simdi);
+    return fjson({ ok: false, asama: "elle", sebep, bayt: bayt.length }, 422);
+  }
   if (!(await asamaYaz(env, u, "hazir", {}, simdi))) {
     return fjson({ hata: "asama-uygun-degil" }, 409);
   }

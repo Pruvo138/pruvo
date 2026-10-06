@@ -23,7 +23,7 @@ SÖZLEŞMESİNİ ölçer:
   Y9 TEK TÜR  : tek türde tür grubu gizlenir, adım çubuğu "Ölçü" der (DAVRANIŞ ölçümü sahte
                 DOM'da: shop/test/foto-uretim.mjs S bölümü; bu dosya sözleşmeyi tutar)
   Y10 RENDER  : (Okan 7 Eki: plaket gerçek baskı beklemeden açılır) türe göre `ornek_kanit_izni`
-                (plaket baski+render · litofan YALNIZ baski) + izin kontrolü veri dosyasında; render
+                (plaket baski+render · litofan baski+render — Okan 7 Eki G1) + izin kontrolü veri dosyasında; render
                 dalında "önizleme/render" etiketi + abartı cümlesi AYNEN, "gerçek fotoğraf" 0
                 (DAVRANIŞ: shop/test/foto-uretim.mjs RO/ES bölümü)
 
@@ -121,8 +121,8 @@ def kontroller(index, bolum, veri, build):
               'F.turler.length > 1 ? "Tür ve ölçü" : "Ölçü"' in bolum, ""))
     # Y10 RENDER ORNEGI (Okan 7 Eki): kanit izni tur kaydinda, izin kontrolu sayacta.
     izinler = dict(re.findall(r'kod:\s*"([a-z]+)",.*?ornek_kanit_izni:\s*(\[[^\]]*\])', veri, re.S))
-    s.append(("Y10 kanit izni: plaket [baski,render] · litofan YALNIZ [baski]",
-              izinler.get("plaket") == '["baski", "render"]' and izinler.get("litofan") == '["baski"]', str(izinler)))
+    s.append(("Y10 kanit izni: plaket [baski,render] · litofan [baski,render] (Okan 7 Eki G1)",
+              izinler.get("plaket") == '["baski", "render"]' and izinler.get("litofan") == '["baski", "render"]', str(izinler)))
     s.append(("Y10 sayac izin disi kaniti saymaz (izin kontrolu veri dosyasinda)",
               re.search(r"if \(!k \|\| izin\.indexOf\(k\) < 0\) \{ return false; \}", veri) is not None, ""))
     dal = "".join(re.findall(r'if \(it\.kanit === "render"\) \{(.*?)\} else \{', bolum, re.S))
@@ -177,8 +177,9 @@ def main():
         ("M9 abarti cumlesi degisti", (index, bolum.replace("kabartmalı hâlidir, birebir aynısı değildir.", "kabartmalı hâlidir.", 1), veri, build), True),
         ("M10 render etiketi 'gerçek fotoğraf' oldu",
          (index, bolum.replace('"foto-uretim-ornek-etiket", "önizleme/render"', '"foto-uretim-ornek-etiket", "Basılmış ürün (gerçek fotoğraf)"', 1), veri, build), True),
-        ("M11 litofana render izni verildi",
-         (index, bolum, veri.replace('ornek_kanit_izni: ["baski"]', 'ornek_kanit_izni: ["baski", "render"]', 1), build), True),
+        ("M11 litofanin render izni geri alindi",
+         (index, bolum, veri.replace('arkadan ışıklı render\'ı).\n        ornek_kanit_izni: ["baski", "render"]',
+                                     'arkadan ışıklı render\'ı).\n        ornek_kanit_izni: ["baski"]', 1), build), True),
         ("K0 kontrol: yorum eklendi", (index.replace("</body>", "<!-- k0 -->\n</body>", 1), bolum, veri, build), False),
     ]
     taban = kirmizi_sayisi(index, bolum, veri, build)
