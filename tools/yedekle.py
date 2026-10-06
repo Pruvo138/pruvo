@@ -1039,6 +1039,7 @@ ARTIK_DAMGA_TAVANI = 200
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import drive_yolu
+from git_ortami import git_ortami
 
 BAYRAKLAR = {"--kuru", "--dry-run", "--gerekliyse", "--sirlar", "--sir-temizle",
              "--kuru-prova", "--dogrula", "-h", "--help"}
@@ -2067,20 +2068,14 @@ def ek_etkin_mi():
 
 
 def _ev_git_ortami():
-    """Baska bir evde `git -C <ev>` koşarken kullanilacak ortam.
+    """Baska bir evde `git -C <ev>` koşarken kullanilacak ortam (scrub TEK KAYNAK: git_ortami).
 
     🔴 OLCULDU (6 Eki 2026): pre-push kancasi bir WORKTREE'den kosunca git ortama
-    `GIT_DIR=<pruvo>/.git/worktrees/<ad>` (ve kardeslerini) koyar. `-C <ev>` bu degiskeni
-    EZMEZ -> pruvo-hasat icin PRUVO'nun izlenen listesi donuyor, hasat'in izlenen ~8,5 bin
-    dosyasi "izlenmeyen" sayilip ek plana giriyor ve her push'ta evict edilmis Drive hedefi
-    yeniden indiriliyordu. Yerel depo degiskenleri atilir; geri kalan ortam aynen gecer."""
-    return {k: v for k, v in os.environ.items() if k not in _GIT_YEREL_DEGISKENLER}
-
-
-_GIT_YEREL_DEGISKENLER = frozenset((
-    "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_PREFIX",
-    "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_NAMESPACE",
-))
+    `GIT_DIR=<pruvo>/.git/worktrees/<ad>` koyar. `-C <ev>` bu degiskeni EZMEZ ->
+    pruvo-hasat icin PRUVO'nun izlenen listesi donuyor, hasat'in izlenen ~8,5 bin dosyasi
+    "izlenmeyen" sayilip ek plana giriyor ve her push'ta evict edilmis Drive hedefi
+    yeniden indiriliyordu."""
+    return git_ortami()
 
 
 def _git_izlenenler(ev):

@@ -207,9 +207,9 @@ def vaka_e(y):
 
 
 def _git(dizin, *arg):
-    import subprocess
-    temiz = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
-    subprocess.run(["git", "-C", dizin] + list(arg), check=True, capture_output=True, env=temiz)
+    sys.path.insert(0, os.path.dirname(KAYNAK_MODUL))
+    from git_ortami import sentetik_git
+    sentetik_git(dizin, *arg, check=True, capture_output=True)
 
 
 def vaka_f(y):
@@ -223,7 +223,7 @@ def vaka_f(y):
             _git(d, "init", "-q")
             yaz(os.path.join(d, ad), b"1")
             _git(d, "add", ad)
-            _git(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "t")
+            _git(d, "commit", "-q", "-m", "t")
         yaz(os.path.join(ev, "ev_dosyasi.txt"), b"22")   # izlenen + kirli
         eski = os.environ.get("GIT_DIR")
         os.environ["GIT_DIR"] = os.path.join(yabanci, ".git")
@@ -259,8 +259,8 @@ MUTANTLAR = [
      "_yedek_korumasi(kaynak, varis, yedek_kayit=kayit[3])",
      "pass"),
     ("f", "git-ortami-sizar",
-     "if k not in _GIT_YEREL_DEGISKENLER}",
-     "if True}"),
+     "    return git_ortami()\n",
+     "    return dict(os.environ)\n"),
 ]
 
 
