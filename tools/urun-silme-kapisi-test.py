@@ -382,7 +382,7 @@ def v13(kapi, duzelt, tmp):
     ok = (rc == RC_SIL_IZIN and once == sha(os.path.join(d, "urunler.json"))
           and not os.path.exists(os.path.join(d, ".urunler-sil-izin.json"))
           and not os.path.exists(os.path.join(d, "arsiv"))
-          and "python3 tools/duzelt.py urun-b --alan gizli --deger true" in out)
+          and "GIZLENMEZ" in out and "--alan gizli" not in out)   # Okan 6 Eki: gizle recetesi YOK
     return ok, "rc=%d" % rc
 
 
@@ -397,7 +397,7 @@ def v14(kapi, duzelt, tmp):
     ok = (rc == RC_SIL_IZIN and once == sha(os.path.join(d, "urunler.json"))
           and not os.path.exists(os.path.join(d, ".urunler-duzelt-izin.json"))
           and not os.path.exists(os.path.join(d, ".urunler-sil-izin.json"))
-          and "--alan gizli --deger true" in out)
+          and "GIZLENMEZ" in out and "--alan gizli" not in out)   # Okan 6 Eki: gizle recetesi YOK
     return ok, "rc=%d" % rc
 
 

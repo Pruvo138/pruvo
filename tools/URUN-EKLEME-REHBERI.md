@@ -23,13 +23,15 @@
 3. **HER ÜRÜNE 3-4 GÖRSEL.** Tek görselle asla bırakma (galeride gerçekten 1 varsa istisna).
 4. **STL'DEN ÖLÇÜ AL** ve açıklamaya yaz.
 5. **DOSYALARI DOĞRU YERE KAYDET** (aşağıdaki tablo). `thing-hazirla.py` STL'i otomatik doğru yere koyar.
-6. **`tur: "fiziksel"` (hazır ticari mal) kayıt KATALOĞA GİRMEZ** (Okan emri 6 Eki 2026:
-   "fiziksel ürünleri silin"; 31 Ağu "gizli doğar" kuralı KALKTI, sınıfın 940 üyesi
-   `arsiv/urunler-arsiv.json`'a taşındı). Commit kapısı (`katalog-alan-kapisi` →
-   `arama.gizli_sebebi`) fiziksel kaydı `gizli: true` taşısa BİLE REDDEDER. `gizli` alanı
-   özel üretim kayıtlar için yaşar (statik sayfa/sitemap/feed/arama'da görünmez; D1 tarafını
-   `yayin-kapisi.py --gizle` indirir). Geri açma alan değiştirmekle DEĞİL, kuralın kendisini
-   değiştiren açık Okan kararıyla olur.
+6. **🔴🔴🔴 OKAN KURALI (6 Eki 2026, TÜM KURALLARIN ÜSTÜNDE) — aynen: "eklenen ürünleri
+   gizlemeyin, gizlenecek ürünü eklemeyin, sil dediğim ürünleri tamamen silin."**
+   - Eklenen ürün **GİZLENMEZ**: `gizli` alanı YASAK — commit kapısı (`katalog-alan-kapisi` →
+     `arama.gizli_alani_sebebi`) alanı taşıyan HER kaydı reddeder; `duzelt.py --alan gizli` RED.
+   - Gizlenmesi gerekecek ürün **EKLENMEZ**: sorunlu aday (logo, ölçü belirsiz, lisans çelişkisi,
+     yasak tür, kapsam dışı) EKLEME ÖNCESİ elenir.
+   - Okan'ın "sil" dediği ürün **TAMAMEN silinir** (arşiv kopyası da kalmaz).
+   - `tur: "fiziksel"` (hazır ticari mal) kayıt KATALOĞA GİRMEZ (Okan emri 6 Eki 2026;
+     `arama.gizli_sebebi`). Geri açma ancak kuralın kendisini değiştiren açık Okan kararıyla olur.
 
 ---
 

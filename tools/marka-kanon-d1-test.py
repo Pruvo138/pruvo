@@ -126,7 +126,7 @@ INDEX = open(os.path.join(KOK, "index.html"), encoding="utf-8").read()
 # CAPALAR: kapinin (tools/marka-invaryant-kapisi.py) POZITIF CAPALARI ile AYNI urunler.
 # Her biri KATLAMA OLMADAN uye OLAMAZ: `marka` dizisi kanonik adi HAM olarak TASIMAZ.
 CAPALAR = [
-    ("sierra-hava-filtresi-18-7908", "Volvo"),
+    ("volvo-penta-2003-hizalama-pimi", "Volvo"),
     ("peugeot-citroen-2-pinli-elektrik-konnektoru", "Citroen"),
     ("black-decker-zimpara-vakum-adaptoru", "Black+Decker"),
     ("hyundai-ve-kia-g-s-paneli-klipsi", "Kia"),
@@ -292,7 +292,9 @@ def _liste_ozet(kayitlar, kirmizi, tavan=4):
 #     `marka_only`yi herkese 0 yapan bir mutant menzili bosaltip VACUOUS yesil verirdi.
 _SOZLESME_ICI = sorted(m for m, d in veri.items() if d.get("marka_only"))
 _SOZLESME_DISI = sorted(m for m in veri if m not in set(_SOZLESME_ICI))
-C3_TABAN = 121          # sozlesme ICI marka sayisi TABANI — altina duserse menzil bosaliyordur
+# 121 -> 113 (OLCULDU 6 Eki 2026, dal kral/fiziksel-sil): Okan emriyle 940 fiziksel kayit
+# TAMAMEN silindi; yalniz o kayitlarda yasayan 8 sozlesme-ICI marka katalogdan dustu.
+C3_TABAN = 113         # sozlesme ICI marka sayisi TABANI — altina duserse menzil bosaliyordur
 C3_DIS_TAVAN = 43       # sozlesme DISI (model jetonu) TAVANI — ustune cikarsa muafiyet BUYUYOR
 
 dogrula("C3a MENZIL DIRI: sozlesme ICI marka %d >= taban %d (menzil bosaltilarak yesil "

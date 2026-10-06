@@ -255,6 +255,9 @@ def t_m4_sicil_dolgusu():
         _temizle(d)
 
 
+M5_EK = "-m5-ikiz"
+
+
 def t_m5_yer_gercegi_replay():
     """M5 — ONARIM ONCESI hal: KARAR 1'in 5 kaydi gorunurken kapi TAM 5'i yakalar.
 
@@ -264,13 +267,21 @@ def t_m5_yer_gercegi_replay():
     d = _gecici_ev()
     try:
         kat = _fikstur_katalog()
+        # Okan 6 Eki 2026: gercek 5 kayit ACILDI ve sicile (OKAN_6EKI_ACILAN) girdi; sinif
+        # kolunun yer gercegini hala yeniden uretebildigi sicil-DISI IKIZLERLE olculur
+        # (asillar katalogda kalir ki sicil OLU/DOLGU kaydina dusmesin).
+        ikizler = []
         for u in kat:
             if u.get("id") in KARAR1_BESLI:
-                u.pop("gizli", None)          # onarimi GERI AL (yalniz fiksturde)
+                u.pop("gizli", None)
+                ikiz = dict(u)
+                ikiz["id"] = u["id"] + M5_EK
+                ikizler.append(ikiz)
+        kat = kat + ikizler
         _sentetik_ev(d, urunler=kat)
         rc, cikti = _kosu(d)
         _bildir("M5: onarim-oncesi hal -> rc=1", rc == 1, "rc=%d" % rc)
-        eksik = [i for i in KARAR1_BESLI if i not in cikti]
+        eksik = [i for i in KARAR1_BESLI if i + M5_EK not in cikti]
         _bildir("M5: KARAR 1'in 5 kaydinin 5'i de ADIYLA yakalandi",
                 not eksik, "eksik: %s" % (eksik or "yok"))
         _bildir("M5: tam olarak 5 YENI kayit (fazla/eksik yok)",

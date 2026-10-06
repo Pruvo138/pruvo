@@ -159,13 +159,15 @@ jobs:
       # main ucunu surekli oynatir ve D1 bayatlik kapisini tetikler — damga mekanizmasi
       # olcmesi gereken hastaligi URETEMEZ. Artifact depoya yazmaz, makine-okunurdur ve
       # saklamasi OLCULDU (24 saat > esik N=9 saat).
+      # OKAN 6 Eki 2026: fiziksel sinif SILINDI -> olcum "katalogda fiziksel = 0" iddiasini
+      # olcer (durum sinif-yok, rc 0); sinif geri gelirse DRIFT (SINIF-DONDU) -> damga DOGMAZ.
       - name: Damga — son basarili paket tazeligi olcumu
-        if: steps.olcum.outputs.durum == 'parite'
+        if: steps.olcum.outputs.durum == 'parite' || steps.olcum.outputs.durum == 'sinif-yok'
         run: |
           python3 tools/cron-nabiz-kapisi.py --damga-yaz paket-tazelik-damgasi.json --damga-adi paket-tazelik-damgasi
           cat paket-tazelik-damgasi.json
       - name: Damgayi yukle (artifact — nabiz kapisinin A4 ekseni bunu okur)
-        if: steps.olcum.outputs.durum == 'parite'
+        if: steps.olcum.outputs.durum == 'parite' || steps.olcum.outputs.durum == 'sinif-yok'
         uses: actions/upload-artifact@v4
         with:
           name: paket-tazelik-damgasi

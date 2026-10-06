@@ -439,14 +439,33 @@ def gizli_sebebi(u):
     aninda zorlanir ki hangi yazim yolu kullanilirsa kullanilsin (duzelt.py
     `--alan tur`, toplu ekleme, gelecekteki bir arac) sinif bir daha DOGMAZ — geri
     acma karari bu kuralin kendisini degistiren ACIK bir Okan karari olmak zorundadir.
-    Ad (`gizli_sebebi`) cagiran kablolar icin korunur; `gizli` alani 37 ozel-uretim
-    kaydi icin yasar ve bu kuralin konusu DEGILDIR.
+    Ad (`gizli_sebebi`) cagiran kablolar icin korunur. `gizli` ALANININ kendisi de
+    YASAKTIR (Okan kurali 6 Eki) — o kural `gizli_alani_sebebi`nde.
     Doner: None = temiz, metin = ihlal sebebi."""
     if tur_kanonik(u) != _TUR_FIZIKSEL:
         return None
     return ("tur='fiziksel' kayit KATALOGA GIRMEZ (Okan emri 6 Eki 2026: fiziksel "
             "urunler silindi; `gizli: true` bu sinifi aklamaz — geri acma alan "
             "degistirmekle degil KURAL degisikligiyle olur)")
+
+
+GIZLI_ALAN_ADI = "gizli"
+
+
+def gizli_alani_sebebi(u):
+    """🔴🔴🔴 OKAN KURALI (6 Eki 2026, TUM KURALLARIN USTUNDE — aynen: "eklenen urunleri
+    gizlemeyin, gizlenecek urunu eklemeyin, sil dedigim urunleri tamamen silin"):
+    `gizli` alanini tasiyan HER kayit RED — degeri ne olursa olsun (true/false/dize).
+    Kayit ya ACIK durur ya (Okan "sil" dediyse) TAMAMEN silinir; ucuncu hal YOK.
+    Sorunlu aday (logo, olcu belirsiz, lisans celiskisi, yasak tur) EKLEME ONCESI elenir.
+    Kural commit/yayin aninda zorlanir ki hangi yazim yolu kullanilirsa kullanilsin
+    (duzelt.py, toplu ekleme, ham JSON) gizli kayit bir daha DOGMAZ.
+    Doner: None = temiz, metin = ihlal sebebi."""
+    if GIZLI_ALAN_ADI not in u:
+        return None
+    return ("`gizli` alani YASAK (Okan kurali 6 Eki 2026: urun GIZLENMEZ, gizlenecek "
+            "urun EKLENMEZ, 'sil' denen urun TAMAMEN silinir) — alani kaldir "
+            "(`duzelt.py <id> --alan-sil gizli`) ya da adayi EKLEME ONCESI ele")
 
 
 def stokta_kanonik(u):
@@ -3462,8 +3481,8 @@ KATALOG_ALAN_TIPLERI = {
     "baslik": str,
     "boy_secenekleri": list,
     "fiyat": str,
-    # true => kayit katalogda DURUR ama hicbir kesif yuzeyinde gorunmez (statik build,
-    # ozet.json, sitemap/feed, D1 kesif kollari). Gorunur yapmak = alani kaldirmak.
+    # 🔴 Okan kurali 6 Eki 2026: alan YASAK (`gizli_alani_sebebi` her kaydi reddeder);
+    # tip girdisi yalniz eski okuyucularin (build/index filtresi) sozlesmesi icin durur.
     "gizli": bool,
     "gorseller": list,
     "id": str,

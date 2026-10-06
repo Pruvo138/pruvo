@@ -101,7 +101,7 @@ GERCEK_KATALOG = os.path.join(GERCEK_KOK, "urunler.json")
 # altina duserse hukum KIRMIZI olur ve taban AYNI commit'te gerekceyle dusurulur.
 # 12 Agu: 55 -> 62 (fiyat tipi gercek regresyonu + bos string + dort bozuk tip).
 # 6 Eki: 62 -> 69 (FIZ: fiziksel sinif kataloga girmez — 4 vaka iddiasi + 3 mutant iddiasi).
-IDDIA_TABANI = 69
+IDDIA_TABANI = 75
 
 # Git baglam scrub'inin TEK KAYNAGI tools/git_ortami.py'dir; burada IKINCI bir
 # kume TANIMLANMAZ ([[ikiz-tanim-sessiz-ayrisma]]). Surucunun kendi cocuk
@@ -681,11 +681,54 @@ def vaka_fiziksel(s, kok):
     d = depo_kur(os.path.join(kok, "mutfiz"), GERCEK_KAPI, [TEMIZ_KAYIT])
     with open(os.path.join(d, "tools", "arama.py"), "w", encoding="utf-8") as f:
         f.write(govde)
-    stage_et(d, [TEMIZ_KAYIT, FIZIKSEL_GIZLI])
+    stage_et(d, [TEMIZ_KAYIT, FIZIKSEL_ACIK])
     rcm, cm = kapiyi_kos(d)
     s.bekle("MUT-FIZ.oldurdu", rcm == 0,
             "kural kaldirilinca fiziksel kayit GECMELI (gecmiyorsa iddia kurala capali "
             "degil, mutant HAYATTA); rc=%d cikti=%s" % (rcm, cm[-400:]))
+
+
+# ---------------------------------------------------------------------------
+# GIZ — `gizli` ALANI YASAK (OKAN KURALI 6 Eki 2026, TUM KURALLARIN USTUNDE)
+# ---------------------------------------------------------------------------
+# "eklenen urunleri gizlemeyin, gizlenecek urunu eklemeyin": `gizli` alanini tasiyan HER
+# kayit (true/false fark etmez) commit kapisinda RED. MUTANT: kural govdesi (arama.py)
+# "her zaman temiz" yapilinca gizli kayit GECMELI — gecmiyorsa iddia baska kola capali.
+GIZLI_ACIK = dict(TEMIZ_KAYIT, id="sentetik-gizli-true", gizli=True)
+GIZLI_FALSE = dict(TEMIZ_KAYIT, id="sentetik-gizli-false", gizli=False)
+MUT_GIZ_CAPA = "    if GIZLI_ALAN_ADI not in u:\n        return None\n"
+MUT_GIZ_YERINE = "    if True:\n        return None\n"
+
+
+def vaka_gizli(s, kok):
+    rc1, c1 = _tek_eksen_kos(kok, "giz1", GERCEK_KAPI, GIZLI_ACIK)
+    s.bekle("GIZ1.gizli-true-kirmizi", rc1 == 1,
+            "gizli:true kayit rc=1 yakmali; rc=%d cikti=%s" % (rc1, c1[-400:]))
+    s.bekle("GIZ1.rapor-alan-ve-kural", "[gizli]" in c1 and "sentetik-gizli-true" in c1
+            and "6 Eki" in c1,
+            "rapor id + [gizli] alani + Okan 6 Eki kurali tasimali; cikti=%s" % c1[-400:])
+    rc2, c2 = _tek_eksen_kos(kok, "giz2", GERCEK_KAPI, GIZLI_FALSE)
+    s.bekle("GIZ2.gizli-false-de-kirmizi", rc2 == 1,
+            "gizli:false da alan TASIR -> rc=1 yakmali; rc=%d cikti=%s" % (rc2, c2[-400:]))
+
+    with open(GERCEK_ARAMA, encoding="utf-8") as f:
+        kaynak = f.read()
+    sayi = kaynak.count(MUT_GIZ_CAPA)
+    s.bekle("MUT-GIZ.capa-tekil", sayi == 1,
+            "mutasyon capasi arama.py'de TAM 1 kez gecmeli; gecti=%d" % sayi)
+    if sayi != 1:
+        return
+    govde = kaynak.replace(MUT_GIZ_CAPA, MUT_GIZ_YERINE)
+    s.bekle("MUT-GIZ.mutasyon-fiilen-uygulandi", govde != kaynak and MUT_GIZ_CAPA not in govde,
+            "mutant metni kaynakla AYNI kalmis ([[mutasyon-diske-yazma-tuzagi]])")
+    d = depo_kur(os.path.join(kok, "mutgiz"), GERCEK_KAPI, [TEMIZ_KAYIT])
+    with open(os.path.join(d, "tools", "arama.py"), "w", encoding="utf-8") as f:
+        f.write(govde)
+    stage_et(d, [TEMIZ_KAYIT, GIZLI_ACIK])
+    rcm, cm = kapiyi_kos(d)
+    s.bekle("MUT-GIZ.oldurdu", rcm == 0,
+            "kural kaldirilinca gizli kayit GECMELI (gecmiyorsa mutant HAYATTA); rc=%d cikti=%s"
+            % (rcm, cm[-400:]))
 
 
 # ---------------------------------------------------------------------------
@@ -859,6 +902,7 @@ def main():
         vaka(s, "A — KIRMIZI eksenleri (iki eksen AYRI vakalarda)", vaka_a, kok)
         vaka(s, "F — fiyat tipi (gercek regresyon + bos string)", vaka_fiyat, kok)
         vaka(s, "FIZ — fiziksel sinif KATALOGA GIRMEZ (Okan 6 Eki) + mutant", vaka_fiziksel, kok)
+        vaka(s, "GIZ — gizli alani YASAK (Okan kurali 6 Eki) + mutant", vaka_gizli, kok)
         vaka(s, "B — YESIL / yanlis-pozitif butcesi (GERCEK katalog)", vaka_b, kok)
         vaka(s, "K — kapsam (HEAD'deki eski ihlal kilitlemez)", vaka_kapsam, kok)
         vaka(s, "E — eksen INDEX'tir (calisma agaci degil)", vaka_eksen, kok)

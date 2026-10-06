@@ -92,10 +92,37 @@ MUAFIYET_SICILI = {
     "yamaha-aerox-devirdaim-tahrik-carki":
         "devirdaim TAHRIK carki = tahrik dislisi duzlemi, sivi tasiyan cark degil",
 }
+# --- 🔴🔴🔴 OKAN KURALI 6 Eki 2026 (TUM KURALLARIN USTUNDE): "hepsini ac, eklenen urunleri
+# gizlemeyin". 7 Eyl'de bu siniftan `gizli:true` yapilan kayitlar ACILDI; gizleme artik
+# care DEGIL. Kural bu kayitlar icin gevser (Okan sozu birebir icra); durust-sinir metni
+# (tools/sayfalar.py) ile celiski MIMAR/OKAN kararidir — ya metin guncellenir ya Okan
+# "sil" der. Bu blok YALNIZ bu 18 kayit icindir; yeni kayit icin genisletme YOK.
+OKAN_6EKI_ACILAN = {
+    "takma-deniz-motoru-su-pompasi-pervanesi-tpu-4679649": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "motor-carki-mercury-uyumlu-4189791": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "firdondu-motor-santrifuj-su-pompasi-378160": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "2mm-mil-motor-santrifuj-su-pompasi-537649": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "buyutulmus-santrifuj-su-pompasi-883212": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "volvo-penta-pompa-carki-yastigi-2001308": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "pr1078222-rs125-su-pompasi-carki": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "aprilia-aprilia-rs125-su-pompas-fan-6617828": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "yamaha-yz80-1984-1987-su-pompasi-carki": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "evinrude-johnson-1979-6hp-su-impelleri": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "british-seagull-su-pompasi-impelleri": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "trolling-motor-impelleri": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "tekne-genel-amacli-pervane": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "rov-sintine-pompasi-itici-pervanesi-2": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "rov-sintine-pompasi-itici-pervanesi": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "90mm-su-jeti-pompa-pervanesi": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "dis-motor-impeller-pompasi-rotoru": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+    "toyota-yaris-cam-suyu-pompasi-carki": "Okan kurali 6 Eki 2026: gizli urun ACILDI (hepsini ac)",
+}
+MUAFIYET_SICILI.update(OKAN_6EKI_ACILAN)
 # NON-GROWTH capasi: sicil buyuyemez, buyurse YON 2 kirmizi yanar.
 # 4 -> 13 (BaBa 7 Eyl 18:5x B maddesi: taban kuyrugundan 9 kayit adjudike edilip
 # gerekcesiyle sicile alindi; kalan 13 kayit `gizli:true` yapildi).
-SICIL_TAVANI = 13
+# 13 -> 31 (Okan kurali 6 Eki 2026: 18 gizli kayit ACILDI, OKAN_6EKI_ACILAN).
+SICIL_TAVANI = 31
 
 # --- TABAN KUYRUGU (ONCEDEN VAR OLAN, HENUZ ADJUDIKE EDILMEMIS) -------------
 # 🔴 BU KAPI KURULURKEN OLCULEN GERCEK (7 Eyl 2026): K376 sinifi BASLIK uzerinden
@@ -414,8 +441,8 @@ def calistir(ev, sessiz=False):
         # --kendini-test` M4 kolu olcer (mimar-serbest recete ISCIYE isareti TASIMAMALI).
         print("Durust-sinir beyani bu sinifi kapsam DISI ilan ediyor "
               "(kaynak: tools/sayfalar.py, ~satir %d). COZUM: ISCIYE: kaydi "
-              "`python3 tools/duzelt.py --toplu <islem.json>` ile `gizli:true` yap "
-              "(URUN SILINMEZ) ya da gercekten hava/aksesuar duzlemindeyse "
+              "adayi EKLEME ONCESI ele ya da (Okan 'sil' dediyse) `duzelt.py --sil` ile TAMAMEN sil "
+              "(GIZLEME YOK — Okan kurali 6 Eki 2026) ya da gercekten hava/aksesuar duzlemindeyse "
               "MUAFIYET_SICILI'ne gerekcesiyle ekle ve SICIL_TAVANI'ni birlikte yukselt."
               % t.kaynak_satir)
         print("Taban kuyruguna EKLEMEK bir cozum DEGILDIR: kuyruk tavani civili.")

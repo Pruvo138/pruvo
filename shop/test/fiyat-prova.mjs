@@ -961,9 +961,18 @@ async function fizikselIddialari(mod) {
 if (PARITE_KOS) {
 baslik("== 10) FIZIKSEL URUN — malzeme/renk carpani UYGULANMAZ (tutar = LISTE fiyati) ==");
 {
-  if (FIZ_GERCEK.length === 0) {
+  // OKAN 6 Eki 2026: fiziksel sinif SILINDI -> gercek katalog bacagi "katalogda fiziksel = 0"
+  // iddiasidir (fiksturlu fiyatlama bacaklari AYNEN kalir). NEGATIF KONTROL: kataloga 1
+  // fiziksel kayit donunce ayni fonksiyon KIRMIZI vermeli (aksi halde kontrol olu).
+  const fizSinifIhlali = (liste) => liste.filter((u) => u.tur === "fiziksel").length;
+  if (fizSinifIhlali(URUNLER) !== 0) {
     kirmizi += 1;
-    ham.push("    ❌ ÖLÇÜLEMEDİ: katalogda `tur:\"fiziksel\"` urun YOK — iddia OLU kalir");
+    ham.push("    ❌ katalogda tur:fiziksel " + fizSinifIhlali(URUNLER) +
+             " kayit — sinif silindi (Okan 6 Eki), geri gelmemeli");
+  } else ham.push("    ✅ katalogda tur:fiziksel = 0 (Okan 6 Eki: sinif silindi)");
+  if (fizSinifIhlali(URUNLER.concat([FIZ_URUN])) === 0) {
+    kirmizi += 1;
+    ham.push("    ❌ NEGATIF KONTROL OLU: fiziksel kayit donunce sayac KIRMIZI vermiyor");
   }
   const iddia = await fizikselIddialari(YENI);
   const kalan = iddia.filter((i) => !i.ok);
@@ -2270,13 +2279,15 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
       // ESIK 7, 9 DEGIL — DURUST SINIR: PLA/Siyah kombinasyonu (baslat+prova, 2 iddia) gard
       // olsa da olmasa da LISTE fiyati verir (carpan zaten 1,00); o iki iddia bu mutantla
       // AYIRT EDILEMEZ. Kalan 7 iddia ("Diğer" renk / ASA malzeme + 3 gercek katalog urunu)
-      // yalnizca gard sayesinde yesildir.
+      // yalnizca gard sayesinde yesildir. OKAN 6 Eki 2026: fiziksel sinif katalogdan SILINDI
+      // -> gercek katalog urunu 0; esik 4 fikstur + FIZ_GERCEK.length (bugun 4) — TURETILIR.
+      const m11Esik = 4 + FIZ_GERCEK.length;
       not("M11: gard no-op -> POZITIF(fiziksel) iddialardan " + fizKirmizi + " KIRMIZI " +
-          "(>=7 olmali; PLA/Siyah'in 2 iddiasi carpansiz oldugu icin ayirt edilemez), " +
+          "(>=" + m11Esik + " olmali; PLA/Siyah'in 2 iddiasi carpansiz oldugu icin ayirt edilemez), " +
           "diger yonlerde " + digerKirmizi + " (0 olmali — probe DAR)");
       kalan.filter((i) => i.yon === "fiziksel").slice(0, 4)
         .forEach((i) => ham.push("    · yakalandi: " + i.ad + " (olculen: " + i.olculen + ")"));
-      if (fizKirmizi < 7 || digerKirmizi !== 0) {
+      if (fizKirmizi < m11Esik || digerKirmizi !== 0) {
         kirmizi += 1;
         ham.push("    ❌ M11 KALDI — gard no-op edildi ama iddia sessiz kaldi (OLU IDDIA) " +
                  "ya da probe DAR degil");

@@ -105,7 +105,7 @@ TABAN_VARSAYILAN = os.path.join(TOOLS, "marka-invaryant-taban.json")
 # dizisi kanonik adi HAM olarak TASIMAZ -> uyelik yalnizca katlamayla dogar. Bes ayri
 # katlama mekanizmasi secildi ki tek bir mekanizmayi kapatan mutant capayi kacirmasin.
 CAPALAR = [
-    ("sierra-hava-filtresi-18-7908", "Volvo", "onek katlamasi (Volvo Penta -> Volvo)"),
+    ("volvo-penta-2003-hizalama-pimi", "Volvo", "onek katlamasi (Volvo Penta -> Volvo)"),
     ("peugeot-citroen-2-pinli-elektrik-konnektoru", "Citroen", "aksan (Citroen yazimi)"),
     ("black-decker-zimpara-vakum-adaptoru", "Black+Decker", "ayirac (and/& /+ tek bicim)"),
     ("hyundai-ve-kia-g-s-paneli-klipsi", "Kia", "buyuk/kucuk harf (KIA -> Kia)"),
