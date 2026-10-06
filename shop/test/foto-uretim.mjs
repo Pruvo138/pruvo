@@ -935,7 +935,8 @@ function sahteBelge() {
     setAttribute(k, v) { this.ozn[k] = String(v); if (k === "hidden") { this.hidden = true; } }
     getAttribute(k) { return k in this.ozn ? this.ozn[k] : null; }
     removeAttribute(k) { delete this.ozn[k]; if (k === "hidden") { this.hidden = false; } }
-    addEventListener() {}
+    addEventListener(tip, fn) { (this.dinle = this.dinle || {})[tip] = ((this.dinle || {})[tip] || []).concat([fn]); }
+    tetikle(tip) { for (const fn of ((this.dinle || {})[tip] || [])) { fn({ target: this }); } }
     set textContent(v) { this.childNodes = [new Metin(v)]; }
     get textContent() { return this.childNodes.map((c) => c.textContent).join(""); }
     *agac() { for (const c of this.childNodes) { if (c.nodeType === 1) { yield c; yield* c.agac(); } } }
@@ -983,8 +984,11 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit) {
     kanit: g.getAttribute("data-kanit"), metin: g.textContent,
     img: [...g.agac()].filter((n) => n.tagName === "IMG").map((n) => n.src) }));
   const ornekBaslik = dugum.filter((n) => n.classList.contains("foto-uretim-blok-baslik")).map((n) => n.textContent)[0] || "";
-  return { gorunur: !bolum.hidden, tur: radyo("foto-tur"), olcu: radyo("foto-olcu"), olcuS3: radyo("foto-olcu-s3"), adim2,
+  const sonuc = { gorunur: !bolum.hidden, tur: radyo("foto-tur"), olcu: radyo("foto-olcu"), olcuS3: radyo("foto-olcu-s3"), adim2,
            turGrubuGizli: !!turGrubu && turGrubu.hidden === true, ornekler, ornekBaslik };
+  // DOM koku sayilmayan alan (JSON.stringify'a girmez; FM senaryolari dugumleri dogrudan okur).
+  Object.defineProperty(sonuc, "bolum", { value: bolum, enumerable: false });
+  return sonuc;
 }
 
 console.log("R) ONARIM — kirmizi analiz -> onarim -> yeniden doku -> YENIDEN analiz (6 Eki)");
@@ -1297,12 +1301,132 @@ console.log("ES) EKRAN — render ornegi 'önizleme/render' etiketiyle, gercek f
   const ES_MUT = [
     ["ES-M1 render etiketi 'gerçek fotoğraf' oldu", "grup.appendChild(el(\"div\", \"foto-uretim-ornek-etiket\", \"önizleme/render\"));",
      "grup.appendChild(el(\"div\", \"foto-uretim-ornek-etiket\", \"Fotoğraf → Önizleme → Basılmış ürün (gerçek fotoğraf)\"));"],
-    ["ES-M2 abarti cumlesi dustu", "grup.appendChild(el(\"p\", \"foto-uretim-ornek-not\", RENDER_DURUSTLUK));", ""],
+    ["ES-M2 abarti cumlesi dustu", "grup.appendChild(el(\"p\", \"foto-uretim-ornek-not\", it.tur.ornek_notu));", ""],
   ];
   for (const [ad, capa, yerine] of ES_MUT) {
     if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
     const em = await ekranKos(EKRAN_KAYNAK.replace(capa, yerine), veriYukle(VERI_KAYNAK), acikPlaket);
     ol(ad + " -> ES1 KIRMIZI", !renderTuttu(em), JSON.stringify(em && em.ornekler));
+  }
+}
+
+
+console.log("ES2) ORNEK CUMLESI TUR BAZLI + ACIK TUR SUZGECI (mimar karari 7 Eki, manifest `ornek_notu`)");
+{
+  const CUMLE_P = "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, birebir aynısı değildir.";
+  const CUMLE_L = "Üretim dosyasının arkadan ışıkla görüntüsüdür; basılmış panel ışık geldiğinde bu görüntüyü verir, birebir aynısı değildir.";
+  const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] });
+  const acikP = { acik: true, turler: [tur("plaket", "Kabartma plaket")] };
+  const acikPL = { acik: true, turler: [tur("plaket", "Kabartma plaket"), tur("litofan", "Işıklı fotoğraf paneli (litofan)")] };
+  const V0 = veriYukle(VERI_KAYNAK);
+  ol("ES2a manifest ornek_notu AYNEN: plaket = karar cumlesi · litofan = litofan cumlesi",
+     V0.turBul("plaket").ornek_notu === CUMLE_P && V0.turBul("litofan").ornek_notu === CUMLE_L, "");
+  const senaryo = async (kaynak) => {
+    const s = {};
+    const a = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), acikP);
+    // SUZGEC: veri dosyasinda litofan render kaydi VAR ama /foto/acik yalniz plaket -> litofan ornegi 0.
+    s.SUZGEC = a.ornekler.length === 1 && a.ornekler[0].img.every((u) => /plaket-1-/.test(u)) &&
+      !a.ornekler.some((o) => /litofan/.test(o.img.join(" ")));
+    const b = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), acikPL);
+    const lit = b.ornekler.find((o) => o.img.some((u) => /litofan-1-render/.test(u)));
+    const pla = b.ornekler.find((o) => o.img.some((u) => /plaket-1-/.test(u)));
+    // TEK GORSEL + TUR CUMLESI: litofan onizleme = render -> 1 gorsel; cumle litofaninki, "kabartmalı" 0.
+    s.LITOFAN = b.ornekler.length === 2 && !!lit && lit.img.length === 1 && lit.metin.includes(CUMLE_L) &&
+      !lit.metin.includes("kabartmalı") && !!pla && pla.img.length === 2 && pla.metin.includes(CUMLE_P);
+    const Vn = veriYukle(VERI_KAYNAK); Vn.turBul("litofan").ornek_notu = "";
+    const c = await ekranKos(kaynak, Vn, acikPL);
+    // NOTSUZ: ornek_notu bos turun render ornegi CIZILMEZ (fail-closed); plaket kalir.
+    s.NOTSUZ = c.ornekler.length === 1 && c.ornekler[0].img.every((u) => /plaket-1-/.test(u));
+    return s;
+  };
+  const s0 = await senaryo(EKRAN_KAYNAK);
+  ol("ES2b /foto/acik yalniz plaket -> litofan ornegi CIZILMEZ (acik tur suzgeci)", s0.SUZGEC, JSON.stringify(s0));
+  ol("ES2c iki tur acik -> litofan: TEK gorsel + litofan cumlesi ('kabartmalı' 0); plaket: 2 gorsel + karar cumlesi", s0.LITOFAN, JSON.stringify(s0));
+  ol("ES2d ornek_notu bos turun render ornegi cizilmez (fail-closed)", s0.NOTSUZ, JSON.stringify(s0));
+  const ES2_MUT = [
+    ["ES2-M1 acik tur suzgeci silindi", "      if (acikKodlar && acikKodlar.indexOf(t.kod) < 0) continue;\n", "", ["SUZGEC"]],
+    ["ES2-M2 tek gorsel kontrolu silindi", "if (it.ornek.onizleme !== it.ornek.render) {", "if (true) {", ["LITOFAN"]],
+    ["ES2-M3 sabit (plaket) cumlesi her turde", "\"foto-uretim-ornek-not\", it.tur.ornek_notu));", "\"foto-uretim-ornek-not\", F.turler[0].ornek_notu));", ["LITOFAN"]],
+    ["ES2-M4 notsuz render ornegi cizilir", "(F.ornekKaniti(o) !== \"render\" || t.ornek_notu)", "true", ["NOTSUZ"]],
+  ];
+  for (const [ad, capa, yerine, olmeli] of ES2_MUT) {
+    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = await senaryo(EKRAN_KAYNAK.replace(capa, yerine));
+    const kirmizi = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli), JSON.stringify(m));
+  }
+}
+
+console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, vm kopyasinda)");
+{
+  const SONRA = "Önizleme, ödeme sonrası üretim dosyasıyla birlikte hazırlanır.";
+  const sentetik = (kaynakVeri) => {
+    const V = veriYukle(kaynakVeri);
+    V.turler.push({ kod: "isimlik", ad: "İsimlik", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",
+      olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {},
+      form: { yazi: { tip: "metin", max: 20 }, kalinlik: { tip: "sayi", min: 2, max: 6, adim: 1, birim: "mm" },
+              yazi_tipi: { tip: "secim", secenekler: ["Düz", "Eğik"] }, link: { tip: "url" } },
+      fiyat: { formul: "mm_x_10tl", adim_mm: 10 }, ornek_kanit_izni: ["render"], ornek_notu: "t" });
+    V.ornekler.push({ tur: "isimlik", kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/t-io.webp",
+      render: "https://media.pruvo3d.com/t-ir.webp", not: "t" });
+    const asil = V.parametreDogrula;
+    V.cagri = [];
+    V.parametreDogrula = function (kod, p) { const d = asil(kod, p); V.cagri.push({ kod, p: JSON.stringify(p), d }); return d; };
+    return V;
+  };
+  const acikI = { acik: true, turler: [{ kod: "isimlik", ad: "İsimlik", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
+  const acikP = { acik: true, turler: [{ kod: "plaket", ad: "Kabartma plaket", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] }] };
+  const senaryo = async (kaynak) => {
+    const s = {};
+    const V = sentetik(VERI_KAYNAK);
+    const e = await ekranKos(kaynak, V, acikI);
+    const d = [...e.bolum.agac()];
+    const id = (x) => d.find((n) => n.id === x) || null;
+    const y = id("foto-param-yazi"), k = id("foto-param-kalinlik"), t = id("foto-param-yazi_tipi"), u = id("foto-param-link");
+    s.ALANLAR = !!(y && k && t && u) && y.tagName === "INPUT" && y.type === "text" && y.maxLength === 20 &&
+      k.type === "number" && k.min === "2" && k.max === "6" && k.step === "1" &&
+      t.tagName === "SELECT" && t.childNodes.filter((n) => n.tagName === "OPTION").length === 2 && u.type === "url";
+    // AYNI FONKSIYON: hata metni VERI.parametreDogrula donusunden; alanlar doldurulunca hata gizlenir.
+    const hata = d.find((n) => n.classList.contains("foto-uretim-ayrinti") && n.textContent === "Metin alanını doldur (izinli uzunlukta).");
+    const ilk = V.cagri.length > 0 && V.cagri.every((c) => c.kod === "isimlik") && V.cagri[V.cagri.length - 1].d.hata === "parametre-metin";
+    let son = null;
+    if (y && u) {
+      y.value = "Ada"; y.tetikle("input");
+      u.value = "https://ornek.com"; u.tetikle("input");
+      son = V.cagri[V.cagri.length - 1];
+    }
+    s.AYNI_FONKSIYON = ilk && !!hata && !!son && son.d.ok === true &&
+      son.p === JSON.stringify({ yazi: "Ada", kalinlik: 2, yazi_tipi: "Düz", link: "https://ornek.com" }) && hata.hidden === true;
+    // ONIZLEMESIZ D: ornek render + SONRA metni; litofan tuvali yok; siparis butonu acilmaz.
+    const sonra = d.find((n) => n.tagName === "P" && n.textContent === SONRA);
+    const kap = sonra ? sonra.parentNode : null;
+    const btn = id("foto-onizle-buton");
+    s.ONIZLEMESIZ = !!kap && kap.hidden === false && [...kap.agac()].some((n) => n.tagName === "IMG" && /t-ir\.webp$/.test(n.src)) &&
+      !d.some((n) => n.tagName === "CANVAS") && !!btn && btn.disabled === true &&
+      !d.some((n) => n.tagName === "P" && /tarayıcında çizilir/.test(n.textContent) && n.parentNode && !n.parentNode.hidden);
+    // PLAKET: form {} -> alan yok, SONRA metni yok.
+    const p = await ekranKos(kaynak, sentetik(VERI_KAYNAK), acikP);
+    const dp = [...p.bolum.agac()];
+    s.PLAKET = !dp.some((n) => String(n.id || "").startsWith("foto-param-")) && !dp.some((n) => n.textContent === SONRA && n.tagName === "P");
+    return s;
+  };
+  const s0 = await senaryo(EKRAN_KAYNAK);
+  ol("FM1 form alanlari manifestten: metin(max 20) · sayi(2–6, adim 1) · secim(2) · url", s0.ALANLAR, JSON.stringify(s0));
+  ol("FM2 istemci dogrulamasi = VERI.parametreDogrula (hata metni ondan; doldurunca ok + govde semaya uygun)", s0.AYNI_FONKSIYON, JSON.stringify(s0));
+  ol("FM3 onizlemesiz D turu: ornek render + '" + SONRA + "' · tuval/litofan onizleme metni 0 · buton kapali", s0.ONIZLEMESIZ, JSON.stringify(s0));
+  ol("FM4 plaket (form {}): parametre alani 0, onizleme-sonra metni 0", s0.PLAKET, JSON.stringify(s0));
+  const FM_MUT = [
+    ["FM-M1 istemci kendi dogrulamasi (her sey gecerli)", "return F.parametreDogrula(S.tur, parametreGovde());", "return { ok: true };", ["AYNI_FONKSIYON"]],
+    ["FM-M2 onizleme-sonra metni dustu", "S.alanOnizlemeSonra.appendChild(el(\"p\", \"foto-uretim-ayrinti\", ONIZLEME_SONRA));", "", ["ONIZLEMESIZ"]],
+    ["FM-M3 tarayici onizleyici kosulu silindi (her D litofan sayilir)",
+     "F.kolu(S.tur) === \"deterministik\" && TARAYICI_ONIZLEYICI[t.uretec] === true);", "F.kolu(S.tur) === \"deterministik\");", ["ONIZLEMESIZ"]],
+    ["FM-MK kontrol (yorum)", "// FORM ALANLARI — türün", "// form alanlari — turun", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of FM_MUT) {
+    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = await senaryo(EKRAN_KAYNAK.replace(capa, yerine));
+    const kirmizi = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli), JSON.stringify(m));
   }
 }
 

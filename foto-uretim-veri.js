@@ -90,6 +90,8 @@
     //   malzemeler     : bölge -> izinli filament listesi; {} = satır "PLA" (plaket)
     //   ornek_kanit_izni: türü AÇAN örnek kanıtları; listede olmayan kanıt o türde SAYILMAZ
     //                    (alan yoksa/boşsa hiçbir örnek sayılmaz — fail-closed)
+    //   ornek_notu     : render örneğinin altındaki dürüstlük cümlesi (tür bazlı; mimar kararı 7 Eki,
+    //                    AYNEN). Boşsa bölüm o türün render örneğini ÇİZMEZ; yeni tür doldurmak ZORUNDA.
     // Litofan, gerçek örneği ve fiyat satırı olmadıkça AÇILMAZ (fail-closed, plaketle aynı kural).
     turler: [
       {
@@ -106,7 +108,8 @@
         form: {},
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         // Okan kararı 7 Eki 2026: plaket gerçek baskı beklemeden önizleme + render ile açılır.
-        ornek_kanit_izni: ["baski", "render"]
+        ornek_kanit_izni: ["baski", "render"],
+        ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, birebir aynısı değildir."
       },
       {
         kod: "litofan",
@@ -126,7 +129,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         // Okan kararı 7 Eki 2026 (24 kategori 1 hafta, G1 "motor + litofan canlı"): litofan da
         // render örneğiyle açılır (sentetik görselden üretilen 3MF'in arkadan ışıklı render'ı).
-        ornek_kanit_izni: ["baski", "render"]
+        ornek_kanit_izni: ["baski", "render"],
+        ornek_notu: "Üretim dosyasının arkadan ışıkla görüntüsüdür; basılmış panel ışık geldiğinde bu görüntüyü verir, birebir aynısı değildir."
       }
     ],
 

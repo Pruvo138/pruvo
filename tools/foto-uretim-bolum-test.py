@@ -48,6 +48,8 @@ OTURUM_ANAHTARI = "pruvo_foto_siparis"
 DURUSTLUK = "önizlemenin 4 renkli yorumu"
 RENDER_CUMLE = ("Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, "
                 "birebir aynısı değildir.")
+LITOFAN_CUMLE = ("Üretim dosyasının arkadan ışıkla görüntüsüdür; basılmış panel ışık geldiğinde bu görüntüyü verir, "
+                 "birebir aynısı değildir.")
 
 
 def soyulacak_js(build_metin):
@@ -126,8 +128,13 @@ def kontroller(index, bolum, veri, build):
     s.append(("Y10 sayac izin disi kaniti saymaz (izin kontrolu veri dosyasinda)",
               re.search(r"if \(!k \|\| izin\.indexOf\(k\) < 0\) \{ return false; \}", veri) is not None, ""))
     dal = "".join(re.findall(r'if \(it\.kanit === "render"\) \{(.*?)\} else \{', bolum, re.S))
-    s.append(("Y10 render dalinda 'önizleme/render' etiketi + abarti cumlesi AYNEN",
-              '"önizleme/render"' in dal and "RENDER_DURUSTLUK" in dal and ('"' + RENDER_CUMLE + '"') in bolum, ""))
+    # Cumle tur kaydinda (`ornek_notu`, mimar karari 7 Eki): bolum yalniz kayittan basar.
+    notlar = dict(re.findall(r'kod:\s*"([a-z]+)",.*?ornek_notu:\s*"([^"]*)"', veri, re.S))
+    s.append(("Y10 render dalinda 'önizleme/render' etiketi + tur cumlesi (ornek_notu) kayittan",
+              '"önizleme/render"' in dal and "it.tur.ornek_notu" in dal and "kabartmalı" not in bolum, ""))
+    s.append(("Y10 plaket ornek_notu = karar cumlesi AYNEN", notlar.get("plaket") == RENDER_CUMLE, str(notlar.get("plaket"))))
+    s.append(("Y11 litofan ornek_notu = litofan cumlesi AYNEN ('kabartmalı' 0)",
+              notlar.get("litofan") == LITOFAN_CUMLE, str(notlar.get("litofan"))))
     s.append(("Y10 render dalinda 'gerçek fotoğraf' metni 0", bool(dal) and "gerçek fotoğraf" not in dal.lower(), ""))
     return s
 
@@ -174,7 +181,10 @@ def main():
          (index, re.sub(r"if \(S\.acikVeri\.turler\.length === 1\) \{[^}]*\}\n", "", bolum, count=1), veri, build), True),
         ("M8 izin kontrolu silindi",
          (index, bolum, veri.replace("if (!k || izin.indexOf(k) < 0) { return false; }", "if (!k) { return false; }", 1), build), True),
-        ("M9 abarti cumlesi degisti", (index, bolum.replace("kabartmalı hâlidir, birebir aynısı değildir.", "kabartmalı hâlidir.", 1), veri, build), True),
+        ("M9 abarti cumlesi degisti", (index, bolum, veri.replace("kabartmalı hâlidir, birebir aynısı değildir.", "kabartmalı hâlidir.", 1), build), True),
+        ("M12 litofan cumlesi plaketinkiyle degisti", (index, bolum, veri.replace(LITOFAN_CUMLE, RENDER_CUMLE, 1), build), True),
+        ("M13 bolum sabit cumleye dondu",
+         (index, bolum.replace("it.tur.ornek_notu", '"' + RENDER_CUMLE + '"', 1), veri, build), True),
         ("M10 render etiketi 'gerçek fotoğraf' oldu",
          (index, bolum.replace('"foto-uretim-ornek-etiket", "önizleme/render"', '"foto-uretim-ornek-etiket", "Basılmış ürün (gerçek fotoğraf)"', 1), veri, build), True),
         ("M11 litofanin render izni geri alindi",

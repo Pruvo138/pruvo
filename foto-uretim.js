@@ -43,9 +43,18 @@
   var STIL_ID = "fotoUretimStil";
   var SS_IS = "pruvo_foto_is";
   var SS_SIPARIS = "pruvo_foto_siparis";
-  // Render orneginin altindaki cumle (Okan karari 7 Eki 2026; AYNEN, degistirme).
-  var RENDER_DURUSTLUK =
-    "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, birebir aynısı değildir.";
+  // Render orneginin altindaki cumle TUR KAYDINDA (`ornek_notu`, mimar karari 7 Eki; AYNEN).
+  // D/R turunde siparis oncesi onizleme YOKSA ornek render + bu cumle gosterilir.
+  var ONIZLEME_SONRA = "Önizleme, ödeme sonrası üretim dosyasıyla birlikte hazırlanır.";
+  // Uretec kimligi -> tarayicida siparis oncesi onizleme cizen kol (yalniz litofan bugun).
+  var TARAYICI_ONIZLEYICI = { litofan_uret: true };
+  var PARAMETRE_HATA = {
+    "parametre-aralik": "Değer izinli aralığın dışında.",
+    "parametre-adim": "Değer izinli adıma uymuyor.",
+    "parametre-secim": "Listeden bir seçenek seç.",
+    "parametre-metin": "Metin alanını doldur (izinli uzunlukta).",
+    "parametre-url": "Bağlantı https:// ile başlamalı."
+  };
   /* Dürüstlük kutusu metni — görünürlük ve "en çok 4 renkli yorum" vurgusu. */
   var DURUSTLUK =
     "Önizleme, fotoğrafının stilize bir yorumudur. Ürün en çok 4 renkle kabartma olarak üretilir — " +
@@ -86,6 +95,10 @@
     adimCubugu: null,
     alanTur: null,
     alanOlcu: null,
+    alanForm: null,
+    alanOnizlemeSonra: null,
+    ornekBlok: null,
+    parametre: {},
     alanDosya: null,
     alanOnay: null,
     alanCap1: null,
@@ -390,8 +403,15 @@
   function adim2Etiketi(F) { return F.turler.length > 1 ? "Tür ve ölçü" : "Ölçü"; }
 
   /* ============== LITOFAN (deterministik kol) ============== */
+  // Deterministik kol + tarayıcı önizleyicisi kayıtlı üreteç (bugün litofan).
   function litofanSecili() {
-    return !!(F && typeof F.kolu === "function" && S.tur && F.kolu(S.tur) === "deterministik");
+    var t = F && typeof F.turBul === "function" && S.tur ? F.turBul(S.tur) : null;
+    return !!(t && F.kolu(S.tur) === "deterministik" && TARAYICI_ONIZLEYICI[t.uretec] === true);
+  }
+  // Deterministik kol, sipariş öncesi önizleme YOK: örnek render + ONIZLEME_SONRA gösterilir.
+  function onizlemeSonraSecili() {
+    var t = F && typeof F.turBul === "function" && S.tur ? F.turBul(S.tur) : null;
+    return !!(t && F.kolu(S.tur) === "deterministik" && TARAYICI_ONIZLEYICI[t.uretec] !== true);
   }
   function litofanKaydi() { return F && typeof F.turBul === "function" ? F.turBul(S.tur) : null; }
   // Kayıttan varsayılan seçim: her malzeme bölgesinin ilk malzemesi, her renk bölgesinin ilk rengi.
@@ -433,11 +453,12 @@
   function doldurS1Litofan() {
     if (!S.alanSecim || !S.alanLitofan) return;
     while (S.alanSecim.firstChild) S.alanSecim.removeChild(S.alanSecim.firstChild);
-    var acik = litofanSecili();
-    S.alanSecim.hidden = !acik;
-    S.alanLitofan.hidden = !acik;
-    if (!acik) return;
     var t = litofanKaydi();
+    var secimVar = !!(t && t.renk_bolgeleri && t.renk_bolgeleri.length);
+    S.alanSecim.hidden = !secimVar;
+    S.alanLitofan.hidden = !litofanSecili();
+    doldurS1OnizlemeSonra();
+    if (!secimVar) { if (litofanSecili()) litofanOnizle(); else guncelleS1Buton(); return; }
     S.secim = litofanSecimKur();
     S.alanSecim.appendChild(el("label", "foto-uretim-form-etiket", "Malzeme ve renk"));
     var rb = (t && t.renk_bolgeleri) || [];
@@ -459,7 +480,111 @@
         }
       })(rb[i]);
     }
-    litofanOnizle();
+    if (litofanSecili()) litofanOnizle(); else guncelleS1Buton();
+  }
+  // D/R türünde sipariş öncesi önizleme yoksa: türün örnek render'ı + ONIZLEME_SONRA.
+  function doldurS1OnizlemeSonra() {
+    if (!S.alanOnizlemeSonra) return;
+    while (S.alanOnizlemeSonra.firstChild) S.alanOnizlemeSonra.removeChild(S.alanOnizlemeSonra.firstChild);
+    var acik = onizlemeSonraSecili();
+    S.alanOnizlemeSonra.hidden = !acik;
+    if (!acik) return;
+    var t = litofanKaydi();
+    for (var i = 0; i < F.ornekler.length; i++) {
+      var o = F.ornekler[i];
+      if (o && o.tur === S.tur && F.ornekGecerli(o) && (o.render || o.baski)) {
+        S.alanOnizlemeSonra.appendChild(el("p", "foto-uretim-form-etiket", "Örnek"));
+        var img = el("img", "foto-uretim-ornek-gorsel");
+        img.src = o.render || o.baski; img.alt = t.ad + " örnek";
+        img.width = 300; img.height = 300; img.loading = "lazy"; img.decoding = "async";
+        S.alanOnizlemeSonra.appendChild(img);
+        break;
+      }
+    }
+    S.alanOnizlemeSonra.appendChild(el("p", "foto-uretim-ayrinti", ONIZLEME_SONRA));
+  }
+
+  // FORM ALANLARI — türün `form` şemasından (sayi/secim/metin/url); doğrulama sunucuyla AYNI
+  // fonksiyon (F.parametreDogrula). Şema boşsa alan gizli, gövdeye `parametreler` girmez.
+  function formSemasi() {
+    var t = litofanKaydi();
+    return t && t.form && typeof t.form === "object" ? t.form : {};
+  }
+  function parametreGovde() {
+    var form = formSemasi(), g = {};
+    for (var a in form) {
+      if (Object.prototype.hasOwnProperty.call(form, a) && S.parametre[a] !== undefined) g[a] = S.parametre[a];
+    }
+    return g;
+  }
+  function formDogrula() {
+    if (!Object.keys(formSemasi()).length) return { ok: true };
+    return F.parametreDogrula(S.tur, parametreGovde());
+  }
+  function formHataGoster() {
+    if (!S.alanForm || !S.formHata) return;
+    var d = formDogrula();
+    S.formHata.textContent = d.ok ? "" : (PARAMETRE_HATA[d.hata] || "Bu alanları kontrol et.");
+    S.formHata.hidden = d.ok;
+  }
+  function doldurS1Form() {
+    if (!S.alanForm) return;
+    while (S.alanForm.firstChild) S.alanForm.removeChild(S.alanForm.firstChild);
+    var form = formSemasi(), alanlar = Object.keys(form);
+    S.alanForm.hidden = !alanlar.length;
+    if (!alanlar.length) return;
+    for (var i = 0; i < alanlar.length; i++) {
+      (function (a, sema) {
+        var id = "foto-param-" + a;
+        var lbl = el("label", "foto-uretim-form-etiket",
+          (sema.etiket || a) + (sema.tip === "sayi" && sema.birim ? " (" + sema.birim + ")" : ""));
+        lbl.setAttribute("for", id);
+        S.alanForm.appendChild(lbl);
+        var g;
+        if (sema.tip === "secim") {
+          g = el("select", "foto-uretim-form-secenek-girdi");
+          var ss = sema.secenekler || [];
+          for (var j = 0; j < ss.length; j++) {
+            var op = el("option", null, String(ss[j]));
+            op.value = String(ss[j]);
+            g.appendChild(op);
+          }
+          if (S.parametre[a] === undefined && ss.length) S.parametre[a] = ss[0];
+          if (S.parametre[a] !== undefined) g.value = String(S.parametre[a]);
+        } else {
+          g = el("input", "foto-uretim-form-secenek-girdi");
+          if (sema.tip === "sayi") {
+            g.type = "number"; g.min = String(sema.min); g.max = String(sema.max);
+            g.step = String(sema.adim > 0 ? sema.adim : 1);
+            if (S.parametre[a] === undefined) S.parametre[a] = sema.min;
+          } else if (sema.tip === "url") {
+            g.type = "url"; g.placeholder = "https://";
+          } else {
+            g.type = "text";
+            if (sema.max > 0) g.maxLength = sema.max;
+          }
+          if (S.parametre[a] !== undefined) g.value = String(S.parametre[a]);
+        }
+        g.id = id; g.name = id;
+        var degis = function (e) {
+          var v = e.target.value;
+          if (sema.tip === "sayi") S.parametre[a] = v === "" ? undefined : Number(v);
+          else if (sema.tip === "secim") {
+            var ss2 = sema.secenekler || [], bul;
+            for (var k = 0; k < ss2.length; k++) { if (String(ss2[k]) === v) { bul = ss2[k]; break; } }
+            S.parametre[a] = bul;
+          } else S.parametre[a] = v === "" ? undefined : v;
+          formHataGoster();
+          guncelleS1Buton();
+        };
+        g.addEventListener("input", degis);
+        g.addEventListener("change", degis);
+        S.alanForm.appendChild(g);
+      })(alanlar[i], form[alanlar[i]] || {});
+    }
+    S.formHata = el("p", "foto-uretim-ayrinti");
+    S.alanForm.appendChild(S.formHata);
+    formHataGoster();
   }
   // Seçilen fotoğraftan ANINDA önizleme (tarayıcıda; fotoğraf hiçbir yere gönderilmez).
   function litofanOnizle() {
@@ -547,6 +672,7 @@
       onay_surum: F.onay_surum,
       turnstile_token: S.captchaToken1
     };
+    if (Object.keys(formSemasi()).length) govde.parametreler = parametreGovde();
     jsonPost(LITOFAN_URL, govde, function (ok, kod, veri) {
       turnsSifirla(S.alanCap1);
       if (kod === 200 && veri && veri.is) {
@@ -580,15 +706,37 @@
     durust.appendChild(el("p", null, DURUSTLUK));
     ic.appendChild(durust);
 
-    /* ornekler — kanitina gore (baski: gercek fotograf · render: onizleme + uretim dosyasi) */
+    /* ornekler — /foto/acik gelince yalniz ACIK turlerinki yeniden cizilir (ornekCiz) */
     var ornekBlok = el("div", "foto-uretim-blok");
+    S.ornekBlok = ornekBlok;
+    ornekCiz(ornekBlok, null);
+    ic.appendChild(ornekBlok);
+
+    /* 4 adim cubugu */
+    cizAdimlar(ic);
+
+    /* siparis alani */
+    var alan = el("div", "foto-uretim-alani");
+    alan.setAttribute("aria-live", "polite");
+    S.alan = alan;
+    ic.appendChild(alan);
+
+    bolum.appendChild(ic);
+  }
+
+  /* ornekler — kanitina gore (baski: gercek fotograf · render: onizleme + uretim dosyasi).
+     acikKodlar: /foto/acik turleri; null = henuz bilinmiyor/kapali (gecerli tum ornekler). */
+  function ornekCiz(ornekBlok, acikKodlar) {
+    while (ornekBlok.firstChild) ornekBlok.removeChild(ornekBlok.firstChild);
     var liste = [];
     for (var i = 0; i < F.turler.length && liste.length < 4; i++) {
       var t = F.turler[i];
       if (F.ornekSayisi(t.kod) === 0) continue;
+      if (acikKodlar && acikKodlar.indexOf(t.kod) < 0) continue;
       for (var j = 0; j < F.ornekler.length && liste.length < 4; j++) {
         var o = F.ornekler[j];
-        if (o && o.tur === t.kod && F.ornekGecerli(o)) {
+        // Render ornegi turun dürüstlük cümlesi (ornek_notu) olmadan CIZILMEZ (fail-closed).
+        if (o && o.tur === t.kod && F.ornekGecerli(o) && (F.ornekKaniti(o) !== "render" || t.ornek_notu)) {
           liste.push({ tur: t, ornek: o, kanit: F.ornekKaniti(o) });
         }
       }
@@ -615,8 +763,10 @@
         grup.setAttribute("data-kanit", it.kanit);
         var satir = el("div", "foto-uretim-ornek-gorseller");
         if (it.kanit === "render") {
-          // Ozgun fotograf yayinlanmaz: onizleme + uretim dosyasinin render'i.
-          satir.appendChild(gorsel(it.ornek.onizleme, it.tur.ad + " önizleme"));
+          // Ozgun fotograf yayinlanmaz: onizleme + uretim dosyasinin render'i (ayni gorselse TEK kez).
+          if (it.ornek.onizleme !== it.ornek.render) {
+            satir.appendChild(gorsel(it.ornek.onizleme, it.tur.ad + " önizleme"));
+          }
           satir.appendChild(gorsel(it.ornek.render, it.tur.ad + " üretim dosyası render"));
         } else {
           satir.appendChild(gorsel(it.ornek.foto, it.tur.ad + " fotoğraf"));
@@ -629,7 +779,7 @@
         grup.appendChild(el("div", "foto-uretim-ornek-baslik", baslikMetni));
         if (it.kanit === "render") {
           grup.appendChild(el("div", "foto-uretim-ornek-etiket", "önizleme/render"));
-          grup.appendChild(el("p", "foto-uretim-ornek-not", RENDER_DURUSTLUK));
+          grup.appendChild(el("p", "foto-uretim-ornek-not", it.tur.ornek_notu));
         } else {
           grup.appendChild(el("div", "foto-uretim-ornek-etiket",
             "Fotoğraf → Önizleme → Basılmış ürün (gerçek fotoğraf)"));
@@ -637,9 +787,9 @@
         ornekBlok.appendChild(grup);
       }
     }
-    ic.appendChild(ornekBlok);
+  }
 
-    /* 4 adim cubugu */
+  function cizAdimlar(ic) {
     var cubuk = el("div", "foto-uretim-adimlar");
     function adim(no, ad) {
       var a = el("div", "foto-uretim-adim", no + ". " + ad);
@@ -657,14 +807,6 @@
     adim(4, "Ödeme");
     S.adimCubugu = cubuk;
     ic.appendChild(cubuk);
-
-    /* siparis alani */
-    var alan = el("div", "foto-uretim-alani");
-    alan.setAttribute("aria-live", "polite");
-    S.alan = alan;
-    ic.appendChild(alan);
-
-    bolum.appendChild(ic);
   }
 
   /* ============== KAPALI ============== */
@@ -698,6 +840,10 @@
     S.alan.appendChild(S.alanOlcu);
     doldurS1Olcu();
 
+    S.alanForm = el("div", "foto-uretim-form-grup");
+    S.alan.appendChild(S.alanForm);
+    doldurS1Form();
+
     S.alanDosya = el("div", "foto-uretim-form-grup");
     S.alan.appendChild(S.alanDosya);
     doldurS1Dosya();
@@ -706,6 +852,8 @@
     S.alan.appendChild(S.alanSecim);
     S.alanLitofan = el("div", "foto-uretim-form-grup");
     S.alan.appendChild(S.alanLitofan);
+    S.alanOnizlemeSonra = el("div", "foto-uretim-form-grup");
+    S.alan.appendChild(S.alanOnizlemeSonra);
     doldurS1Litofan();
 
     S.alanOnay = el("div", "foto-uretim-form-grup");
@@ -769,7 +917,9 @@
             if (S.acikVeri.turler[j].kod === kod) { nt = S.acikVeri.turler[j]; break; }
           }
           S.olcu = nt && nt.olculer && nt.olculer[0] ? nt.olculer[0].mm : null;
+          S.parametre = {};
           doldurS1Olcu();
+          doldurS1Form();
           doldurS1Onay();
           doldurS1Litofan();
           guncelleS1Buton();
@@ -909,10 +1059,13 @@
     var btn = S.alanButon.querySelector("button");
     if (!btn) return;
     var lit = litofanSecili();
+    // Önizlemesiz D/R türünün sipariş ucu henüz yok: buton açılmaz (yanlış uca gönderim YOK).
+    var sonra = onizlemeSonraSecili();
     var tam = !!S.dosya && !!S.hakOnay && (!!S.aktarimOnay || !F.aktarimGerekir(S.tur)) &&
-      !!S.captchaToken1 && !!S.tur && !!S.olcu && (!lit || !!S.litofanHarita);
+      !!S.captchaToken1 && !!S.tur && !!S.olcu && (!lit || !!S.litofanHarita) &&
+      formDogrula().ok && !sonra;
     btn.disabled = !tam;
-    btn.textContent = lit ? "Siparişe geç" : "Önizleme oluştur";
+    btn.textContent = lit || sonra ? "Siparişe geç" : "Önizleme oluştur";
   }
 
   /* ============== S2 ============== */
@@ -1239,6 +1392,8 @@
       }
       S.acikVeri = veri;
       if (S.adim2El) S.adim2El.textContent = "2. " + adim2Etiketi(veri);
+      // Açık olmayan türün örneği ÇİZİLMEZ (/foto/acik tür listesi süzer).
+      if (S.ornekBlok) ornekCiz(S.ornekBlok, veri.turler.map(function (x) { return x.kod; }));
       var kayit = ssIsOku();
       if (kayit) {
         S.is = kayit.is;
@@ -1362,6 +1517,7 @@
         onay_surum: F.onay_surum,
         turnstile_token: S.captchaToken1
       };
+      if (Object.keys(formSemasi()).length) govde.parametreler = parametreGovde();
       jsonPost(ONIZLEME_URL, govde, function (ok, kod, veri) {
         turnsSifirla(S.alanCap1);
         if (!ok || !veri) {

@@ -432,8 +432,9 @@ console.log("L1) KATEGORI KAYDI");
   const { foto, VERI, SECENEK } = canli;
   const KOLLAR = ["saglayici", "deterministik"];
   const filament = (SECENEK && SECENEK.FILAMENT_SIRA) || [];
+  const kayitDenetle = (turler) => {
   const hatali = [];
-  for (const t of VERI.turler) {
+  for (const t of turler) {
     const a = t.olcu_mm || {};
     // Sozlesme §6 alanlari TAM: girdi[] · motor · uretec (D/R dolu, M bos) · form · fiyat · ornek_kanit_izni.
     if (!Array.isArray(t.girdi) || !t.girdi.length ||
@@ -443,6 +444,8 @@ console.log("L1) KATEGORI KAYDI");
     if (!t.form || typeof t.form !== "object" || Array.isArray(t.form)) { hatali.push(t.kod + ":form"); }
     if (!t.fiyat || t.fiyat.formul !== "mm_x_10tl" || !(Number.isInteger(t.fiyat.adim_mm) && t.fiyat.adim_mm > 0)) { hatali.push(t.kod + ":fiyat"); }
     if (!Array.isArray(t.ornek_kanit_izni) || !t.kod || !t.ad || !t.aciklama) { hatali.push(t.kod + ":kimlik"); }
+    // Render orneginin durustluk cumlesi tur kaydinda ZORUNLU (mimar karari 7 Eki; bos -> KIRMIZI).
+    if (typeof t.ornek_notu !== "string" || !t.ornek_notu.trim()) { hatali.push(t.kod + ":ornek_notu"); }
     if (!(Number.isInteger(a.en_az) && Number.isInteger(a.en_cok) && a.en_az > 0 && a.en_cok >= a.en_az)) { hatali.push(t.kod + ":olcu"); }
     if (!Array.isArray(t.renk_bolgeleri) || t.renk_bolgeleri.some((b) => !b || !b.kod || !b.ad ||
         !Array.isArray(b.renkler) || !b.renkler.length)) { hatali.push(t.kod + ":renk"); }
@@ -452,8 +455,18 @@ console.log("L1) KATEGORI KAYDI");
       hatali.push(t.kod + ":malzeme");
     }
   }
+  return hatali;
+  };
+  const hatali = kayitDenetle(VERI.turler);
   ol("L1a her tur: §6 alanlari tam (girdi[]/motor/uretec/form/fiyat) + olcu_mm/renk_bolgeleri/malzemeler gecerli (malzeme ⊆ FILAMENT_SIRA)",
      filament.length > 0 && hatali.length === 0, hatali.join(","));
+  const yeni = (not) => { const t = JSON.parse(JSON.stringify(VERI.turBul("litofan"))); t.kod = "yeni"; if (not === undefined) { delete t.ornek_notu; } else { t.ornek_notu = not; } return t; };
+  // ":kol" satiri sentetik turun manifestte olmamasindan (VERI.kolu kod ile manifestten okur) -> sayilmaz.
+  const den = (t) => kayitDenetle([t]).filter((x) => x !== "yeni:kol");
+  const h1 = den(yeni("")), h2 = den(yeni(undefined)), h3 = den(yeni("x"));
+  ol("L1a2 yeni tur ornek_notu bos/yok -> KIRMIZI (yeni:ornek_notu); dolu -> temiz (pozitif kontrol)",
+     JSON.stringify(h1) === '["yeni:ornek_notu"]' && JSON.stringify(h2) === '["yeni:ornek_notu"]' && h3.length === 0,
+     JSON.stringify([h1, h2, h3]));
   const sag = VERI.turler.filter((t) => VERI.kolu(t.kod) === "saglayici").map((t) => t.kod).sort();
   ol("L1b saglayici turleri = TUR_ORTAM anahtarlari", JSON.stringify(sag) === JSON.stringify(Object.keys(foto.TUR_ORTAM).sort()),
      JSON.stringify(sag));
