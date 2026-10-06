@@ -244,8 +244,8 @@ TICARI_HAL_ALANLARI = {TUR_ALANI, GORSELSIZ_BAYRAK}
 GIZLI_ALANI = "gizli"
 # 🔴 OLCULEN TIP DELIGI (7 Eyl 2026, KraL): `gizli` de bir BEYAN alanidir (sema tipi
 # bool) ama JSON cozulen kumede DEGILDI. Sonuc: `--alan gizli --deger true` katalogda
-# `"true"` DIZESI birakiyordu; her okuyucu (`kapsam-disi-sinif-kapisi.gorunur_kayitlar`,
-# `arama.gizli_sebebi`, `build.py`) `is True` / truthiness ile baktigi icin urun
+# `"true"` DIZESI birakiyordu; her okuyucu (`arama.gizli_sebebi`,
+# `build.py`) `is True` / truthiness ile baktigi icin urun
 # GIZLENDI SANILIP GORUNUR kaliyordu ve hicbir kapi yanmiyordu — [[tip-sozlesmesi-para-
 # alaninin-bicimini-olcmez]] sinifinin ikinci yuzeyi.
 # 🔴 `gizli` TICARI_HAL_ALANLARI'na EKLENMEZ: o kume `_ticari_hal_ihlalleri`nin

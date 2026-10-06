@@ -1,5 +1,0 @@
-{
-  "_not": "KAPSAM-DISI SINIF KAPISI — TABAN KUYRUGU (7 Eyl 2026). Bu dosya, kapi kurulurken katalogta ONCEDEN VAR OLAN ve durust-sinir sinifina giren GORUNUR kayitlarin envanteridir. Sinifi (gercek celiski mi, aksesuar/hava muafiyeti mi) BaBa adjudike eder. Kuyruk MANDALDIR: BUYUYEMEZ (tools/kapsam-disi-sinif-kapisi.py::TABAN_TAVANI), yalniz kuculur. Buraya yeni id eklemek kapiyi susturmaz, YON 2 kirmizi yakar. 🔴 KAPANDI (7 Eyl 2026, BaBa 18:5x B maddesi): 22 kaydin tamami adjudike edildi — 13'u `gizli:true` yapildi, 9'u gerekcesiyle MUAFIYET_SICILI'ne alindi. Kuyruk 22 -> 0; TABAN_TAVANI de 22 -> 0'a indirildi ki bosalan kuyruga yeni celiski yazilarak kapi susturulamasin. Dosya KALIR: mandalin ve olcumun kaydidir.",
-  "olcum_tarihi": "2026-09-07",
-  "kuyruk": []
-}
