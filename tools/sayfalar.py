@@ -3455,7 +3455,7 @@ def _yedek_parca_kodu_bilinmiyorsa_ne_yapilir():
 <h2>Dürüst sınır</h2>
 <p>Her parça bu yöntemle üretilmez, bunu baştan söyleriz:</p>
 <ul>
-<li><strong>Pervane</strong> dediğimizde fan kanadı, pompa çarkı ve tekne pervanesi de kapsamdadır; ölçüyü ve kullanım koşulunu birlikte netleştiririz.</li>
+<li><strong>Pervane</strong> dediğimizde fan kanadını, pompa çarkını ve tekne pervanesini de üretiriz; ölçüyü ve kullanım koşulunu birlikte netleştiririz.</li>
 <li><strong>Profil ve taşıyıcı kiriş</strong> benzeri parçaları yalnızca hafif ve yük dışı kullanım için üretiriz; ana taşıyıcı eleman olarak öneremeyiz.</li>
 <li><strong>Conta</strong> üretimimiz esnek TPU sınıfındadır ve düşük-orta basınç içindir; yüksek basınçlı hat ve buhar hattı bizim sınırımızın dışındadır.</li>
 <li>Metal parça üretimi, talaşlı imalat, döküm veya kaplama işleri yapmayız. Parçanız gerçekten metal olmak zorundaysa bunu söyler, sizi doğru yere yönlendiririz. Mil, rulman, yaylı pim ve metal vida gibi elemanları siz temin edersiniz; biz parçayı o standart elemanın ölçüsüne göre — yuvası, geçme toleransı ve somun yatağı dahil — tasarlar ve üretiriz.</li>
@@ -13928,7 +13928,7 @@ Soğuk da bu işin bir parçasıdır. Kış budamasında makine sabahın ilk saa
 
 Kesici aksamı üretmeyiz: zincir, kılavuz palet, dişli çark, bıçak ve testere ağzı bizim işimiz değildir. Güvenlik elemanlarını da üstlenmeyiz; zincir freni kolu, el koruma siperi, gaz kilidi ve titreşim yayı gibi kalemler yalnız makine üreticisinin ve yetkili servisin alanıdır. Bunların ölçüsü tutsa bile üretmeyiz, çünkü hata doğrudan yaralanma demektir.
 
-Yakıt hattının basınç taşıyan elemanlarını, karbüratör parçalarını ve ateşleme grubunu da üretmeyiz. Deponun ağzını sızdırmaz kapatan iç kapağı ve dişli sızdırmazlık yüzeyini üretmeyiz; yakıt deposu tarafında kapsamımız yalnız kapağın dış rozeti, halkası ve kapak bağlama ipi yuvası gibi dış kalemlerdir. Kılavuz paleti ve zinciri yerinde tutan zincir kapağı somununu da üretmeyiz; o bağlantı anahtarla sıkılır ve insan güvenliğine bağlıdır. Fan ve soğutma çarkları ile pompa çarkı kapsamımızdadır; ölçüyü ve kullanım koşulunu birlikte netleştiririz. Isı sınırımız malzeme sınıfına göre sürekli 90-100 °C bandındadır; egzoz çevresindeki sıcak bölge bu sınırın dışındadır ve orayı açıkça reddederiz. Ürettiğimiz parça için makinenin çalışmasına dair garanti ya da servis taahhüdü vermeyiz. Makinenin garantisi devam ediyorsa parça değişiminin garantiye etkisini üreticiye sormanızı öneririz; bu soruyu sizin adınıza biz sormayız.
+Yakıt hattının basınç taşıyan elemanlarını, karbüratör parçalarını ve ateşleme grubunu da üretmeyiz. Deponun ağzını sızdırmaz kapatan iç kapağı ve dişli sızdırmazlık yüzeyini üretmeyiz; yakıt deposu tarafında kapsamımız yalnız kapağın dış rozeti, halkası ve kapak bağlama ipi yuvası gibi dış kalemlerdir. Kılavuz paleti ve zinciri yerinde tutan zincir kapağı somununu da üretmeyiz; o bağlantı anahtarla sıkılır ve insan güvenliğine bağlıdır. Fan ve soğutma çarklarını ve pompa çarkını da üretiriz; ölçüyü ve kullanım koşulunu birlikte netleştiririz. Isı sınırımız malzeme sınıfına göre sürekli 90-100 °C bandındadır; egzoz çevresindeki sıcak bölge bu sınırın dışındadır ve orayı açıkça reddederiz. Ürettiğimiz parça için makinenin çalışmasına dair garanti ya da servis taahhüdü vermeyiz. Makinenin garantisi devam ediyorsa parça değişiminin garantiye etkisini üreticiye sormanızı öneririz; bu soruyu sizin adınıza biz sormayız.
 
 ## Sipariş
 
