@@ -232,15 +232,16 @@ def ihlalleri_olc(arama, degisenler):
         except Exception as e:
             raise Olculemedi("arama.boy_secenekleri_sebebi cokti (id=%r, %s: %s)"
                              % (uid, type(e).__name__, e))
-        # DOGAR-GIZLI EKSENI (31 Agu): fiziksel/satin-alma sinifi urun gizli dogar ve
-        # gizli kalir — kural arama.gizli_sebebi'nde TEK kaynak, burada yalniz kosulur.
+        # FIZIKSEL SINIF EKSENI (Okan 6 Eki; 31 Agu "gizli dogar" kuralinin yerine):
+        # tur=fiziksel kayit kataloga GIRMEZ — kural arama.gizli_sebebi'nde TEK kaynak,
+        # burada yalniz kosulur.
         try:
             gizli_sebep = arama.gizli_sebebi(u)
         except Exception as e:
             raise Olculemedi("arama.gizli_sebebi cokti (id=%r, %s: %s)"
                              % (uid, type(e).__name__, e))
         if gizli_sebep:
-            ihlaller.append((uid, "gizli", u.get("gizli"), gizli_sebep))
+            ihlaller.append((uid, "tur", u.get("tur"), gizli_sebep))
     return ihlaller
 
 

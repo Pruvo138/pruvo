@@ -23,11 +23,13 @@
 3. **HER ÜRÜNE 3-4 GÖRSEL.** Tek görselle asla bırakma (galeride gerçekten 1 varsa istisna).
 4. **STL'DEN ÖLÇÜ AL** ve açıklamaya yaz.
 5. **DOSYALARI DOĞRU YERE KAYDET** (aşağıdaki tablo). `thing-hazirla.py` STL'i otomatik doğru yere koyar.
-6. **`tur: "fiziksel"` (satın-alma sınıfı) ürün GİZLİ DOĞAR** (Okan emri 31 Ağu 2026):
-   kayda `"gizli": true` YAZILIR — commit kapısı (`katalog-alan-kapisi` → `arama.gizli_sebebi`)
-   gizlisiz fiziksel kaydı REDDEDER. Gizli ürün katalogda durur ama hiçbir keşif yüzeyinde
-   (statik sayfa/sitemap/feed/arama/Ege) görünmez; D1 tarafını `yayin-kapisi.py --gizle` indirir.
-   Geri açma alan silmekle DEĞİL, kuralın kendisini değiştiren açık Okan/mimar kararıyla olur.
+6. **`tur: "fiziksel"` (hazır ticari mal) kayıt KATALOĞA GİRMEZ** (Okan emri 6 Eki 2026:
+   "fiziksel ürünleri silin"; 31 Ağu "gizli doğar" kuralı KALKTI, sınıfın 940 üyesi
+   `arsiv/urunler-arsiv.json`'a taşındı). Commit kapısı (`katalog-alan-kapisi` →
+   `arama.gizli_sebebi`) fiziksel kaydı `gizli: true` taşısa BİLE REDDEDER. `gizli` alanı
+   özel üretim kayıtlar için yaşar (statik sayfa/sitemap/feed/arama'da görünmez; D1 tarafını
+   `yayin-kapisi.py --gizle` indirir). Geri açma alan değiştirmekle DEĞİL, kuralın kendisini
+   değiştiren açık Okan kararıyla olur.
 
 ---
 
