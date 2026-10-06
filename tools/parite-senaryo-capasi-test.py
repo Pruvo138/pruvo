@@ -45,9 +45,6 @@ ROOT = os.path.dirname(TOOLS)
 FIKSTUR = "parite-fikstur-test.js"
 BATARYA = "parite-fikstur-olcum-ortami-mutasyon.py"
 
-# Ege/marka senaryolarini KAYDETTIRMEYEN ortam: var olmayan bir bot kaynagi. CI'nin
-# hali BUDUR (kardes depo checkout edilmez); yerelde de birebir ayni kumeyi uretir.
-YOK_BOT = os.path.join(tempfile.gettempdir(), "parite-capasi-yok-boyle-bir-bot.js")
 
 gecen = 0
 kalan = 0
@@ -108,13 +105,11 @@ def ayna_kur(tmp, mutasyonlar):
     return kok
 
 
-def kos(argv, mutasyonlar=(), bot_yok=True, sure=1800):
+def kos(argv, mutasyonlar=(), sure=1800):
     tmp = tempfile.mkdtemp(prefix="parite-senaryo-capasi-")
     try:
         kok = ayna_kur(tmp, list(mutasyonlar))
         env = dict(os.environ)
-        if bot_yok:
-            env["PARITE_BOT"] = YOK_BOT
         tam = [argv[0], os.path.join(kok, "tools", argv[1])] + list(argv[2:])
         r = subprocess.run(tam, capture_output=True, text=True, cwd=kok,
                            env=env, timeout=sure)
@@ -143,12 +138,14 @@ M_POZISYONEL_CAPA = (
     BATARYA,
     '    for m in re.finditer(r"^SENARYO: (\\d+)\\t(\\S+)", cikti, re.M):\n'
     "        defter[m.group(2)] = m.group(1)",
-    '    defter = {"SM1": "29", "S8": "8"}')
-M_IKI_KOVA = (
+    '    defter = {"S8": "29"}')
+M_KAYIP_YUT = (
     BATARYA,
-    '    if (CAPA_ONKOSULU.get(jeton) == "EGE" and bot_yolu\n'
-    "            and not os.path.exists(bot_yolu)):",
-    "    if True:")
+    '            if hal == "KAYIP":\n'
+    '                sonuc.append((ad, beklenen, "CAPA-DUSTU — " + senaryo))\n'
+    "                continue",
+    '            if hal == "KAYIP":\n'
+    "                continue")
 M_CAPA_SIL = (BATARYA, 'S8 = "S8"    # S8 (K2) KIRMIZI + uc SUSUYOR',
               'S8 = "S8-BOYLE-BIR-SENARYO-YOK"')
 
@@ -162,7 +159,7 @@ def main():
     rc, cikti = kos(["node", FIKSTUR, "29"])
     ortam = re.search(r"^OLCUM-ORTAMI: .*$", cikti, re.M)
     ONA(re.search(r"senaryo=21\b", ortam.group(0)) is not None if ortam else False,
-        "ORTAM birebir CI kumesini uretti (senaryo=21, ege=YOK)", ortam and ortam.group(0))
+        "ORTAM tek kumeyi uretti (senaryo=21; ortama bagli senaryo yok)", ortam and ortam.group(0))
     ONA(rc == 3, "menzil disi indeks -> cikis 3 (OLCULEMEDI), 0 DEGIL  [rc=%d]" % rc,
         cikti[-500:])
     ONA("MENZIL DISI" in cikti, "sebep ADIYLA yazili (MENZIL DISI)", cikti[-400:])
@@ -183,10 +180,10 @@ def main():
     rcb, ciktib = kos(["python3", BATARYA])
     ONA(rcb == 0, "batarya CI ortaminda cikis 0 (rc=%d)" % rcb, ciktib[-900:])
     ONA("COKME" not in ciktib, "hicbir mutant 'COKME' diye siniflanmadi", ciktib[-900:])
-    ONA(re.search(r"⚪ 6/8 mutant BU ORTAMDA OLCULEMEDI", ciktib) is not None,
-        "olculemeyen 6 mutant ADIYLA ve SAYIYLA raporlandi (yutulmadi)", ciktib[-900:])
-    ONA(re.search(r"SONUC: YESIL .*2 mutant olculdu", ciktib) is not None,
-        "olculen 2 mutant ('S8' kolu) gercekten kosuldu", ciktib[-600:])
+    ONA("OLCULEMEDI" not in ciktib.split("MUTASYON SONUCU")[-1],
+        "hicbir mutant ORTAM yuzunden olculemez kovasina dusmedi", ciktib[-900:])
+    ONA(re.search(r"SONUC: YESIL .*\b[1-9]\d* mutant olculdu", ciktib) is not None,
+        "mutantlar ('S8' kolu) gercekten kosuldu", ciktib[-600:])
 
     print("\n▶ B-MUTANT) capa POZISYONA geri alindi -> ESKI CI KIRMIZISI geri gelmeli")
     rcbm, ciktibm = kos(["python3", BATARYA], [M_POZISYONEL_CAPA])
@@ -203,10 +200,10 @@ def main():
         or "CAPA DUSTU" in ciktic,
         "kayip capa ATLANDI kovasina KACIRILMADI", ciktic[-700:])
 
-    print("\n▶ C-MUTANT) uc kova IKIYE indirildi -> KIRMIZI kaybolmali")
-    rccm, ciktim2 = kos(["python3", BATARYA], [M_CAPA_SIL, M_IKI_KOVA])
+    print("\n▶ C-MUTANT) KAYIP kovasi sessizce yutuldu -> KIRMIZI kaybolmali")
+    rccm, ciktim2 = kos(["python3", BATARYA], [M_CAPA_SIL, M_KAYIP_YUT])
     ONA(rccm != 1,
-        "iki kovaya inince KIRMIZI KAYBOLDU (rc=%d, taban rc=1) — ucuncu kova kolu TASIYOR"
+        "KAYIP yutulunca KIRMIZI KAYBOLDU (rc=%d, taban rc=1) — KAYIP kovasi kolu TASIYOR"
         % rccm, ciktim2[-700:])
     ONA("CAPA DUSTU" not in ciktim2,
         "mutantta 'CAPA DUSTU' hukmu HIC BASILMIYOR (kol fiilen sokuldu)", ciktim2[-700:])

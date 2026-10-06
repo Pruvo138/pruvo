@@ -3,16 +3,13 @@
 /**
  * MARKA ADI SORGUSU EKSENI — site kurali ↔ ucun `?q=<marka>` cevabi BIREBIR mi?
  *
- *   node tools/parite-marka-ekseni.js                # her iki yuzey (site + ege)
+ *   node tools/parite-marka-ekseni.js                # site yuzeyi (`?q=`)
  *   node tools/parite-marka-ekseni.js --yuzey=site   # yalniz site yuzeyi (`?q=`)
- *   node tools/parite-marka-ekseni.js --yuzey=ege    # yalniz Ege yuzeyi (`?q=&mod=ege`)
  *   node tools/parite-marka-ekseni.js --ornek=20     # evrenin ilk 20 markasi (hizli)
  *   node tools/parite-marka-ekseni.js --kendini-test # MUTASYON BATARYASI (ag YOK)
  *
- * Ayni eksen iki parite testinden de cagrilabilir (IKINCI GOVDE YOK — ikisi de BU dosyayi
- * require eder):
+ * Ayni eksen parite testinden de cagrilabilir (IKINCI GOVDE YOK — BU dosyayi require eder):
  *   node tools/parite-test.js --marka-ekseni   -> site yuzeyi
- *   node tools/parite-ege.js  --marka-ekseni   -> ege yuzeyi
  *
  * ╔══════════════════════════════════════════════════════════════════════════════════╗
  * ║ NEDEN VAR (kapanan acik)                                                          ║
@@ -59,13 +56,10 @@
  * ── SIRA IDDIASI YUZEYE GORE ─────────────────────────────────────────────────────────
  *   site yuzeyi: uc `ORDER BY u.seq DESC` doner -> SIRALI karsilastirma (parite-ortak.
  *                siniflandir, gecikmeModu=false). Katalog sirasi iddiasi da sinanir.
- *   ege yuzeyi : uc `ORDER BY skor DESC, seq DESC` doner (skor korpus-bagimli degil ama
- *                SIRA seq DESC DEGIL) -> KUME karsilastirmasi; sira iddiasi BU YUZEYDE
- *                YOKTUR ve olculmez. Iki dal AYNI pencereden gecer (tek govde).
  *
  * ── ZAMANLAMA: BU EKSEN BUGUN KIRMIZI YANAR, BU BEKLENEN ─────────────────────────────
  * Uc henuz gecmedigi icin eksen bugun ayrisma bulur; bu, calistiginin KANITIDIR.
- * 🔴 Bu yuzden BLOKLAYAN SERIDE DEGILDIR: ne parite-test.js'in ne parite-ege.js'in
+ * 🔴 Bu yuzden BLOKLAYAN SERIDE DEGILDIR: parite-test.js'in
  * varsayilan kosumuna girer, CI kapisina baglanmaz. Yalniz `--marka-ekseni` bayragiyla
  * ELLE kosulur. Gecis indikten sonra bagalanmasi MIMAR karariddir.
  *
@@ -220,10 +214,10 @@ function d1Kumeleri(fikstur) {
 // 🔴 TEK CAGIRICI (06 Agu 2026): ureticiyi kosturan python parcasi eskiden BURADA da
 // ayrica yaziliydi. Iki kopya = iki fail-closed kurali; biri sertlesirken oteki bayatlardi
 // ([[ikiz-tanim-sessiz-ayrisma]]). Uretim yolundaki cagri artik TEK govdeden gelir:
-// tools/ege-marka-referansi.js `haritaUret`. Fikstur tarafindaki cagri (parite-fikstur-test.js)
+// tools/marka-arama-uretec.js `haritaUret`. Fikstur tarafindaki cagri (parite-fikstur-test.js)
 // BILEREK ayri kalir — bagimsizlik kaniti; ikisi de tek noktaya baglanirsa nobet KENDINI
 // dogrular ve uretici mutantlari sessizce hayatta kalir.
-const markaRef = require("./ege-marka-referansi.js");
+const markaRef = require("./marka-arama-uretec.js");
 
 /** Map<marka, Set<id>> — deponun kanonik govdesinden. Fail-closed (EksenHatasi -> OLCULEMEDI). */
 function caprazKumeler(fikstur) {
@@ -259,7 +253,6 @@ async function ucKumesi(marka, yuzey, sayac, fikstur) {
   const u = new URL(UC);
   u.searchParams.set("q", marka);
   u.searchParams.set("limit", String(limit));
-  if (yuzey === "ege") u.searchParams.set("mod", "ege");
   // ONBELLEK KIRICI — SART: /ara "max-age=60" ile doner ve Cloudflare edge ISTEK'teki
   // no-cache'i YOK SAYAR. Bu olmadan uc degil CDN olculur (bozuk kod YESIL yanabilir).
   u.searchParams.set("_nonce", NONCE);
@@ -276,7 +269,7 @@ function pencereKirp(ids) { return ids.slice(0, PENCERE); }
 /**
  * Doner: { gecti, sebep }.
  * `sirali=true`  -> parite-ortak.siniflandir (SIRA iddiasi dahil, gecikmeModu=false).
- * `sirali=false` -> KUME esitligi; sira iddiasi YOKTUR (Ege skorla siralar).
+ * `sirali=false` -> KUME esitligi; sira iddiasi YOKTUR (yalniz mutasyon O7'nin yolu).
  * Iki dal da pencereyi PENCERE'den alir: kabul araligi = kiyas araligi.
  */
 function kiyasla({ bekIds, alinan, toplam, sirali }) {
@@ -453,7 +446,7 @@ async function calistir({ yuzeyler, ornek, fikstur }) {
 // ── FIKSTUR (ag YOK, wrangler YOK) ─────────────────────────────────────────────────
 /**
  * PARITE_MARKA_FIKSTUR=<json yolu> verilirse tum dis kaynaklar o dosyadan okunur.
- * Sekil: { evren:[m], d1:{m:[id]}, capraz:{m:[id]}, uc:{site:{m:{toplam,urunler}}, ege:{...}} }
+ * Sekil: { evren:[m], d1:{m:[id]}, capraz:{m:[id]}, uc:{site:{m:{toplam,urunler}}} }
  * 🔴 Fikstur, GERCEK kiyas/pencere/nobetci govdesini kosturur — yalniz KAYNAKLARI degistirir.
  */
 function fiksturYukle() {
@@ -479,14 +472,14 @@ function fiksturYukle() {
 function argvCoz(argv) {
   const yuzeyArg = (argv.find((a) => a.startsWith("--yuzey=")) || "").split("=")[1];
   const ornekArg = parseInt((argv.find((a) => a.startsWith("--ornek=")) || "").split("=")[1], 10);
-  const yuzeyler = yuzeyArg ? yuzeyArg.split(",").filter(Boolean) : ["site", "ege"];
+  const yuzeyler = yuzeyArg ? yuzeyArg.split(",").filter(Boolean) : ["site"];
   for (const y of yuzeyler) {
-    if (y !== "site" && y !== "ege") { console.error("bilinmeyen yuzey: " + y); process.exit(2); }
+    if (y !== "site") { console.error("bilinmeyen yuzey: " + y); process.exit(2); }
   }
   return { yuzeyler, ornek: Number.isFinite(ornekArg) && ornekArg > 0 ? ornekArg : 0 };
 }
 
-/** parite-test.js / parite-ege.js buradan cagirir (IKINCI GOVDE YOK). */
+/** parite-test.js buradan cagirir (IKINCI GOVDE YOK). */
 async function calistirCLI({ yuzey }) {
   const { ornek } = argvCoz(process.argv.slice(2));
   return calistir({ yuzeyler: [yuzey], ornek, fikstur: fiksturYukle() });

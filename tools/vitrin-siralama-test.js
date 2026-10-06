@@ -41,7 +41,7 @@
  * ve test yine yesil yanardi ([[kapi-anchor-coupling-ikilemi]]). Kural degisirse bu dosya
  * KIRMIZI yanar ve elle onay ister.
  *
- * NE IDDIA EDILMEZ: arama SEMANTIGI (tek kaynak tools/parite-test.js + parite-ege.js),
+ * NE IDDIA EDILMEZ: arama SEMANTIGI (tek kaynak tools/parite-test.js),
  * Worker/D1'in kendi sirasi (pruvo-bot duzlemi), SEO/sitemap, ozet.json BAYT BUTCESI
  * (tools/faz3-yuk.js).
  *

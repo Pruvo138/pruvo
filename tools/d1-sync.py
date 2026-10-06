@@ -2258,7 +2258,7 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
     - yeni/degisen: content upsert SQL'leri (baski INSERT VALUES'ta, CONFLICT'te DEGIL).
     - baski_guncelle: SADECE baski FIILEN degistiginde 1 UPDATE (yalniz baski_yetki=EVET).
 
-    🔴 SEQ SANDVIC ONARIMI (30 Tem, olculdu — parite-test.js/parite-ege.js SIRA farki,
+    🔴 SEQ SANDVIC ONARIMI (30 Tem, olculdu — parite-test.js + o gunku Ege paritesi SIRA farki,
     26/1199 + 13/845 sorgu, anka-kusu-serit-dekoratif-figur / yarasa-serit-dekoratif-figur):
     Eski kod "yeni" (D1'de id'si bulunamayan) urunun dizide HER ZAMAN BASTA (gercekten en
     yeni) oldugunu VARSAYIYORDU -> sonraki=mseq+1 (katalogun TEPESI) verirdi. Bu varsayim

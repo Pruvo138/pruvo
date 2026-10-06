@@ -10,7 +10,7 @@ batarya "her seye kirmizi yanan" gurultulu bir alarma donusmus demektir.
 🔴 GUVENLIK: mutasyon KOPYAYA uygulanir. Canli dosyalara DOKUNULMAZ; kosum sonunda
    sha256 esitligi ile KANITLANIR (mutant sizarsa arac KIRMIZI yanar).
 🔴 Bu arac bir CI adimi DEGILDIR (yavas, kasitli-bozuk kopyalar uretir); elde kosulan
-   KANIT aracidir — tools/ege-bilgi-tavan-mutasyon.py ile ayni desen.
+   KANIT aracidir — diger mutasyon bataryalariyla ayni desen.
 
 Kullanim: python3 tools/commit-mesaji-mutasyon.py
 Cikis 0 = her oldurucu mutant KIRMIZI + her ilgisiz mutant YESIL + canli dosyalar temiz.

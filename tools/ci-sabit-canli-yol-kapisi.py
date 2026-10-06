@@ -93,8 +93,6 @@ IZIN_LISTESI = {
                             "olculemez sayilir."},
     "tools/care-ev-ekseni-test.py": {
         "KANONIK_ONEK": _C + "Beklenen dizge; yol olarak kullanilmaz."},
-    "tools/ege-uretim-sahipligi-test.py": {
-        "BOT_INDEX": _D + "Ayni kardes-ev dosyasi; CI'da eksen OLCULEMEDI."},
     "tools/ev-haritasi-kapisi-test.py": {
         "CANLI_KONFIG": _N + "Canli cron duzlemi (`~/.claude/cron`) CI'da YOK; kapi "
                              "bunu ADIYLA olculemedi basar.",

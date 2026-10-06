@@ -65,7 +65,7 @@ Kapsam (tools/build.py "konfigur" alanı + /konfigur.js + secenekler.js konfigur
 Offline (ağ yok), gerçek urunler.json OKUNMAZ (sentetik fikstürler), repo dosyasına YAZMAZ.
 node ZORUNLU (deploy.yml setup-node kurar); yoksa FAIL-CLOSED kırmızı.
 
-ÇIKIŞ KODLARI (repo sözleşmesi — parite-ege.js / faz3-gecikme.js ile aynı):
+ÇIKIŞ KODLARI (repo sözleşmesi — parite-ortak.js / faz3-gecikme.js ile aynı):
   0 = YEŞİL       — bütün KALICI iddialar ölçüldü ve geçti.
   1 = KIRMIZI     — en az bir KALICI iddia (a/b/c1/c2/c3/d/e) ihlal edildi.
   2 = ÖLÇÜLEMEDİ  — kalıcı iddialar yeşil ama c4'ün referansı alınamadı/totoloji
@@ -945,7 +945,7 @@ def test_konfigur_malzeme_sayfasi(seri):
 def ne_olculmedi():
     """SESSİZ YEŞİL YASAĞININ İKİNCİ YARISI: bir kapı, YEŞİL çıktısında ne ölçmediğini
     ve hangi meşru düzenlemede kendi kendine kırmızı yanacağını İLAN ETMEK zorundadır
-    (repo sözleşmesi; emsal tools/ege-kabiliyet-kapisi.py ne_olculmedi()).
+    (repo sözleşmesi).
 
     Buradaki iki kalem BEYAN EDİLMİŞ BORÇtur — kusur değil, ölçülmüş ve mimar onaylı
     bedel. Fikstürleri tools/konfigur-nobet-mutasyon.py bölüm C'de 🟠 olarak KOŞAR:

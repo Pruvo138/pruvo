@@ -659,8 +659,6 @@ def vaka19_el_kitabi_spece_kabul_komutu_ekler():
     beklenen = {
         "🔧 `d1-sync.py` yazici yolunda D1 senkron drift":
             "/Users/okan/dev/pruvo/tools/d1-sync.py --durum",
-        "🔧 arama paritesi Ege tarafinda kirmizi":
-            "/Users/okan/dev/pruvo/tools/parite-ege.js",
         "🔧 kisisel veri sizinti nobetcisi":
             "/Users/okan/dev/pruvo/tools/kisisel-veri-test.py",
         "🔧 yeni kapi CI'da kosmuyor (ci kapsam)":

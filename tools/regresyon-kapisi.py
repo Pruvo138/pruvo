@@ -8,7 +8,6 @@ Default suite:
   - python3 tools/lisans-havuz-test.py
   - python3 tools/derin-cap-test.py
   - node tools/parite-test.js
-  - node tools/parite-ege.js
 
 Use --demo-fail to inject a deliberate failure at the front of the queue and prove
 that the gate blocks.
@@ -40,7 +39,6 @@ def _cmds(demo_fail):
         ("lisans-havuz", [PY, os.path.join(ROOT, "tools", "lisans-havuz-test.py")], "3/3 GECTI"),
         ("derin-cap", [PY, os.path.join(ROOT, "tools", "derin-cap-test.py")], "GECTI"),
         ("parite-test", ["node", os.path.join(ROOT, "tools", "parite-test.js")], "BIREBIR PARITE"),
-        ("parite-ege", ["node", os.path.join(ROOT, "tools", "parite-ege.js")], None),
     ])
     return cmds
 

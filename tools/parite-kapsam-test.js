@@ -8,22 +8,16 @@
  * NE OLCER (kapi, arama SEMANTIGI DEGIL):
  *   1. Sinif uye sayisi `markaKatla`dan TURETILIR ve BASILIR (elle liste YOK, sabit YOK).
  *   2. tools/parite-test.js korpusunda `marka=` ekseninde kac sinif uyesi VAR.
- *   3. tools/parite-ege.js  korpusunda `marka=` ekseninde kac sinif uyesi VAR.
- *   4. KONTROL degerleri (markaKatla(V) === V) korpusta BOZULMADAN duruyor mu
+ *   3. KONTROL degerleri (markaKatla(V) === V) korpusta BOZULMADAN duruyor mu
  *      (capalar: Astra H · Focus ST · Golf 4 · Land Rover, + asgari 10 deger).
- *   5. Kapsam KATALOG SIRASINDAN BAGIMSIZ mi: katalog dizisi yeniden siralaninca
+ *   4. Kapsam KATALOG SIRASINDAN BAGIMSIZ mi: katalog dizisi yeniden siralaninca
  *      olculen `marka=` yuzeyi DEGISMEMELI (bu, kapatilan asil kusurdur).
- *   6. `hedef` (sorgu sayisi) argumani sinif cekirdegini KIRPMAMALI.
+ *   5. `hedef` (sorgu sayisi) argumani sinif cekirdegini KIRPMAMALI.
  *
  * ⚠️ CIKIS KODLARI — hicbir ariza yolu 0 uretmez, yonetici ilke 1 > 3 > 0:
  *   0  kapsam TAM
  *   1  EKSIK (sinif uyesi / kontrol degeri korpusta yok, ya da kapsam siraya bagli)
- *   3  OLCULEMEDI (referans kurulamadi · katalog yok · bot deposu yok -> ege ekseni)
- *
- * 🔴 EGE EKSENI BOT DEPOSUNA BAGLIDIR: tools/parite-ege.js korpus ureteci bot'un `nrm`
- * fonksiyonunu kullanir; ~/dev/pruvo-bot AYRI bir checkout'tur ve CI runner'inda YOKTUR.
- * O halde ege ekseni OLCULEMEDI'dir (3) — sahte YESIL degil. Site ekseni bot ISTEMEZ ve
- * her halukarda olculur; site ekseninde eksik varsa hukum 1'dir (1 > 3).
+ *   3  OLCULEMEDI (referans kurulamadi · katalog yok)
  */
 
 const fs = require("fs");
@@ -81,16 +75,6 @@ function siteMarkaEkseni(sorgular) {
   const k = new Set();
   for (const s of sorgular) {
     if (s && s.marka && s.marka !== "Tümü") k.add(s.marka);
-  }
-  return k;
-}
-
-/** Korpustaki `marka=` ekseninde GECEN marka degerleri (ege: string | {q,marka}). */
-function egeMarkaEkseni(sorgular, ogeCoz) {
-  const k = new Set();
-  for (const s of sorgular) {
-    const o = ogeCoz(s);
-    if (o.marka) k.add(o.marka);
   }
   return k;
 }
@@ -212,44 +196,10 @@ async function main() {
   iddiaEt(!kirpikEksik.length, "hedef=10 verildiginde bile sinif uyeleri KIRPILMADI" +
     (kirpikEksik.length ? " -> DUSEN: " + kirpikEksik.length : ""));
 
-  // ── 5) EGE KORPUSU (bot deposuna bagli -> yoksa OLCULEMEDI) ──────────────────────
-  console.log("\n[5] tools/parite-ege.js korpusu — `marka=` ekseni");
-  const EGE_MOD = require("./parite-ege.js");
-  let egeBulunan = null;
-  if (!fs.existsSync(EGE_MOD.BOT)) {
-    olculemedi.push("bot kaynagi YOK (" + EGE_MOD.BOT + ") -> ege korpusu OLCULEMEDI");
-    console.log("  ⚪ OLCULEMEDI: " + olculemedi[olculemedi.length - 1]);
-  } else {
-    try {
-      const EGE = await EGE_MOD.egeKodu();
-      const egeKorpus = EGE_MOD.sorgulariUret(EGE, PRODUCTS, 0);
-      const egeEksen = egeMarkaEkseni(egeKorpus, EGE_MOD.ogeCoz);
-      const egeEksikUye = eksikListe(S.uyeler, egeEksen);
-      egeBulunan = S.uyeler.length - egeEksikUye.length;
-      console.log("  korpus: %d sorgu | `marka=` ekseninde %d ayri deger",
-        egeKorpus.length, egeEksen.size);
-      console.log("  KORPUS_EGE = %d/%d sinif uyesi", egeBulunan, S.uyeler.length);
-      iddiaEt(!egeEksikUye.length, "ege korpusunda EKSIK sinif uyesi yok" +
-        (egeEksikUye.length ? " -> EKSIK: " + JSON.stringify(egeEksikUye.slice(0, 12)) : ""));
-      const egeEksikKontrol = eksikListe(S.kontrolDegerleri, egeEksen);
-      iddiaEt(!egeEksikKontrol.length, "ege korpusunda KONTROL degerleri bozulmadan duruyor" +
-        (egeEksikKontrol.length ? " -> EKSIK: " + JSON.stringify(egeEksikKontrol) : ""));
-      // mod=ege BOS q'yu 400 ile reddeder: marka ekseninin q'su DOLU olmali.
-      const bosQ = egeKorpus.map(EGE_MOD.ogeCoz)
-        .filter((o) => o.marka && !String(o.q || "").trim()).length;
-      iddiaEt(bosQ === 0, "ege `marka=` sorgularinin hepsinde `q` DOLU (mod=ege bos q'yu " +
-        "400 ile reddeder) — bos: " + bosQ);
-    } catch (e) {
-      olculemedi.push("ege korpusu URETILEMEDI: " + (e && e.message));
-      console.log("  ⚪ OLCULEMEDI: " + olculemedi[olculemedi.length - 1]);
-    }
-  }
-
   // ── OZET (makine okunabilir) ─────────────────────────────────────────────────────
   console.log("\n" + "-".repeat(78));
   console.log("SINIF_UYE=%d", S.uyeler.length);
   console.log("KORPUS_SITE=%d", siteBulunan);
-  console.log("KORPUS_EGE=%s", egeBulunan === null ? "OLCULEMEDI" : egeBulunan);
   console.log("IDDIA=%d", iddia);
   return bitir();
 }

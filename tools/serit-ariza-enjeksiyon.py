@@ -5,7 +5,7 @@
     python3 tools/serit-ariza-enjeksiyon.py
 
 CI ADIMI DEGILDIR (bilincli: kanit araci yayin hattina yuk bindirmez; emsal
-tools/ege-bilgi-tavan-mutasyon.py). Kesif predikatina de girmez (`-test.py` /
+diger mutasyon bataryalari). Kesif predikatina de girmez (`-test.py` /
 `test-*.py` / `*-kapisi.py` degil) -> ci-kapsam-test.py muafiyet ISTEMEZ.
 
 NE KANITLAR — iki yon birden:

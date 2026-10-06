@@ -242,8 +242,8 @@ EK_VAKALAR = [
      "26Tem: codex DELEGE serbest ama cikti dosyasi bayraksiz cagri RED"),
     (26, "allow", "Write", REPO + "/tools/paket-yeni-is.md", None,
      "muhendislik paketi (spec)"),
-    (27, "allow", "Bash", "python3 " + REPO + "/tools/parite-ege.js", None,
-     "22Tem: parite-ege (python arac) = ISCI isi"),
+    (27, "allow", "Bash", "python3 " + REPO + "/tools/parite-test.js", None,
+     "22Tem: parite (arac kosumu) = ISCI isi"),
 ]
 
 # Devir mektubu §4 MERGE PROSEDURU + §7 acik isler. 22 TEM AYRIMI: GIT-ISI (fetch,
@@ -270,8 +270,8 @@ MERGE_VAKALARI = [
      "22Tem: §7.2 test kosumu = ISCI isi"),
     (41, "allow", "Bash", "python3 " + REPO + "/tools/olculmemis-siparis.py", None,
      "22Tem: §7.4 arac kosumu = ISCI isi"),
-    (42, "allow", "Bash", "node " + REPO + "/tools/parite-ege.js", None,
-     "22Tem: arama paritesi (Ege) = ISCI isi"),
+    (42, "allow", "Bash", "node " + REPO + "/tools/parite-test.js", None,
+     "22Tem: arama paritesi (site) = ISCI isi"),
     (43, "allow", "Bash", "python3 tools/durum.py", None, "§2 durum panosu (goreli yol) — SERBEST 2'den biri"),
     (44, "allow", "Bash", "git -C " + REPO + " branch -D worktree-dal", None, "§4.8 dal silme"),
 ]

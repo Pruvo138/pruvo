@@ -1,6 +1,6 @@
 "use strict";
 /**
- * PARITE ORTAK — iki parite testinin (site + Ege) PAYLASTIGI karar cekirdegi.
+ * PARITE ORTAK — site parite testinin karar cekirdegi (Ege kolu 6 Eki 2026 kaldirildi).
  *
  * ╔═══════════════════════════════════════════════════════════════════════════════════╗
  * ║ CIKIS KODU SOZLESMESI — TEK KAYNAK. Dort tuketicinin DORDU de buraya referans      ║

@@ -121,14 +121,6 @@ ONA(ok and et == FT.PARITE_ATLANDI and "BOT KAYNAGI YOK" in sb,
 ok, et, sb = FT.parite_exit_yorumla(2, "index.js'te markaSorguKanonu() bulunamadi")
 ONA((not ok) and et == FT.PARITE_KIRMIZI and "sozlesmesi KIRIK" in sb,
     "TERS YON: kaynak VAR + sozlesme KIRIK -> KIRMIZI KALIYOR (menzil daraltmasi, bypass DEGIL)")
-# URETICI TARAFI: parite-ege.js iki kolu AYRI cikis koduna baglamis mi (kaynak metinden)
-_ege = open(os.path.join(TOOLS, "parite-ege.js"), encoding="utf-8").read()
-ONA("ortak.CIKIS_OLCULEMEDI" in _ege and "BOT KAYNAGI YOK" in _ege,
-    "parite-ege.js: kaynak-yok kolu CIKIS_OLCULEMEDI'ye bagli (sabit ADIYLA, ciplak 3 degil)")
-ONA("ortak.CIKIS_KOSULAMADI" in _ege,
-    "parite-ege.js: sozlesme-kirik kolu CIKIS_KOSULAMADI'ya bagli (KIRMIZI korundu)")
-ONA("process.exit(2)" not in _ege and "process.exit(3)" not in _ege,
-    "parite-ege.js: ciplak sayiyla cikis YOK (sabitler tek kaynaktan okunur)")
 ONA("BOT KAYNAGI YOK" in ortak_metin,
     "sozlesme tablosu ucuncu sinifi ADIYLA sayiyor (tek kaynak guncel)")
 

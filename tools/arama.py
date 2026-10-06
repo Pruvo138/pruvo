@@ -298,7 +298,7 @@ def marka_sorgusu_esler(kanon_marka, uyeler, baslik_uyumlari):
 # bu yuzden ayri kolonlar; tek kolona bindirmek iki aramayi da sessizce bozardi.
 #
 # Kaynak: pruvo-bot/worker/src/index.js -> nrm(), aramaKok(), ARAMA_EKLER.
-# Ikisi ayrisirsa tools/parite-ege.js kirmizi yanar (referans = o dosyanin GERCEK kodu).
+# (Bu ikiligi olcen Ege paritesi, bot emekli oldugu icin 6 Eki 2026'da kaldirildi.)
 
 _NRM_HARF = str.maketrans({"ç": "c", "ğ": "g", "ı": "i", "ö": "o", "ş": "s", "ü": "u"})
 _NRM_TEMIZ = re.compile(r"[^a-z0-9]+")

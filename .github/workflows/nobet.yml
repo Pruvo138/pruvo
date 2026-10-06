@@ -602,85 +602,6 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/fikstur-git-sizinti-kapisi.py --kendini-test
 
-      # EGE-BILGI TAVAN — IC NOBETCI: kapinin KENDI hukmunu 30 gecici fiksturle olcer
-      # (tavan asimi · sinir 6000/6001 · astral UTF-16 ayrismasi · kesilen kuyruk onizlemesi ·
-      # dar/genis pay · dosya yok · dosya OKUNAMIYOR · UTF-8 degil · ilan sapmasi + ters yonu ·
-      # mukerrer ilan · binlik ayrac · A1-A5 masum duzenlemeler · capa satir baglami (N1) ·
-      # onek zorunlulugu (N4)). Neden ayri adim: curutucu 21 Tem 5/5 kod mutasyonunun
-      # (tavan hukmunu oldur / UTF-16'yi len(str) yap / marji oynat / fail-loud dalini
-      # return 0 yap / ilan nobetcisini oldur) SAG KALDIGINI olctu — nobetci sessizce olurse
-      # ustteki adim yesil yanmaya devam ederdi. Bugun 14/14 oldurucu mutant OLUYOR ve 3/3
-      # KONTROL mutanti YESIL KALIYOR; olcumu tekrarlamak icin:
-      #   python3 tools/ege-bilgi-tavan-mutasyon.py   (kapiyi SALT OKUR, mutasyonu KOPYAYA
-      #   uygular — CI adimi degil, elde kosulan kanit araci)
-      # 🔴 KONTROL MUTANTI NEDEN VAR (5 Agu): "14/14 kirmizi" tek yonlu bir sayidir; fikstur
-      # seti kaynaga dokunan HER degisiklige kirmizi yansaydi da ayni sayi cikardi ve o halde
-      # her mesru bakim duzenlemesi TUM EKIBIN yayinini durdururdu. C1-C3 (yorum metni · rapor
-      # sure bicimi · tempfile oneki) davranisi degistirmez ve YESIL kalmali; biri kirmizi
-      # yanarsa batarya KIRMIZI verir. Batarya ayrica kumelerden biri BOSSA da KIRMIZI verir
-      # (tek yonlu batarya "her degisiklik kirmizi" halini ayirt EDEMEZ).
-      # PAY SIMULASYONU (ayni duzlem, ayri soru — "kac filament daha sigar?"):
-      #   python3 tools/ege-tavan-pay-simulasyon.py --sablon en-uzun|en-kisa
-      # filamentler.json'a N sentetik kalem ekleyip ege-bilgi.md'yi GECICI AGAC KOPYASINDA
-      # yeniden uretir ve hukmu bu kapinin degerlendir()'inden okur (ikinci tavan mantigi
-      # YAZILMAZ). Canli uc dosyanin sha256'si bas=son dogrulanir. CI adimi DEGIL.
-      # ⚠️ ILAN duzlemi UYARI'ya indigi icin oradaki mutantlarin cogu artik EXIT KODUNU degil
-      # yalniz TESHIS METNINI bozar -> fiksturler "iceren/icermeyen" metin sartiyla yazilir;
-      # sadece exit kodu karsilastiran bir fikstur onlari GOREMEZ.
-      # Fiksturler tempfile'da; repo dosyalarina DOKUNMAZ. Offline, stdlib, ~40 ms.
-      - name: Ege-bilgi tavan kapisi ic nobetci (kapinin kendi mantigi)
-        if: ${{ !cancelled() }}
-        run: python3 tools/ege-bilgi-tavan-test.py --ic-nobetci
-
-      # TUR 4 TASARIM NOTU: (C) sinifi POZITIF SART ile calisir — [para jetonu] VE
-      # [taahhut kipi]. Onceki NEGATIF VETO ("betimleme varsa susturma") bypass'a acikti:
-      # bir fiil EKLEYEREK kural susturulabiliyordu ("... ve sepette GORUNUR" -> yesil).
-      # Ilke: kelime EKLEYEREK susturulabilen kural, kural degildir. Ayrica cumlecik
-      # bolucusu RAKAM ARASINDAKI nokta/virgulu BOLMEZ — Turkce binlik ayraci ("1.500 TL")
-      # (C) sinifini 1.000 TL ustunde TAMAMEN OLDURUYORDU ve fiksturler 3 haneli oldugu
-      # icin bunu goremiyordu (ders: fiksturler gercek dagilimi ornekleMEZse yesil bir sey
-      # ispatlamaz). (A) sinifi CUMLE penceresinde jeton arar (virgullu devrik tumce),
-      # olumsuzlamayi CUMLECIK penceresinde kontrol eder.
-      # TUR 5 DERSI (fikstur yerlesimi): TUR 4'te dort fiil BETIMLEME'den TAAHHUT'e
-      # tasindi ama hicbir yanlis-pozitif fiksturunde PARA jetonuyla birlikte gecmiyordu
-      # -> 36/36 YESIL yandi ve 17 mesru cumlenin 15'i KIRMIZIyken kimse gormedi.
-      # Fikstur, degisen davranisin TAM USTUNE oturmali; yanindan gecen test YANILTIR.
-      # Z1-Z6 (yesil) + Z7-Z12 (kirmizi) bu sinirin iki tarafini da nobetler.
-      # TUR 6: CIPLAK TURKCE KELIMEYE ASILI DESEN = YANLIS-POZITIF URETECI. Uc homograf
-      # ayiklandi: "sorun"(=problem) · "çapa"(MARIN kategorisinin CEKIRDEK URUNU) ·
-      # "çapak"(baski artigi). Ayrica jenerik 1. cogul fiiller (yaparız/veririz) URUN
-      # baglami ister — "Kargo cikisini ayni gun yaparız" bir uretim sozu DEGILDIR ve
-      # o cumle yuzunden tum sitenin yayini duramaz.
-      # TUR 7: (B) daraltmasi GERI ALINDI (asiri-duzeltmeydi). Olculdu — daraltmanin
-      # onledigi yanlis-pozitifler ERISILEBILIR DEGILDI (yaparız/veririz canli belgede x0),
-      # bedeli ise 28 cumlelik taahhut korpusunda yakalamanin 27 -> 10'a dusmesiydi;
-      # kacanlar arasinda kapinin KURULUS VAKASININ (M2) parafrazlari vardi.
-      # ILKE: yanlis-pozitif GURULTULUdur, dakikalar icinde duzeltilir; (B)/(C) kacisi
-      # SESSIZdir ve musteriye TICARI BEYAN olarak gider. Onarim bastiriciyla degil
-      # BAGLAM GENISLETEREK yapildi (G7-G13 o genislemenin bedelini olcer).
-      # TUR 8: "veririz/vereceğiz" ailesi AYRI ve DAR bir baglam listesi kullanir — ciplak
-      # zamir ("size/biz") TETIKLEYICI DEGIL. Sebep olculdu: "vermek" bilgi/link/kargo/oneri
-      # de verir; tek GENIS listeyle "2.500 TL uzerinde kargoyu SIZE ucretsiz veririz"
-      # KIRMIZI yaniyordu ve tetikleyici canli belgede MEVCUT ("size" l.14, "biz" l.13).
-      # V1-V7 bu ayrimin iki tarafini da nobetler; MUT8 (listeleri birlestir) V1-V5'i kirar.
-      # EGE KABILIYET — IC NOBETCI: kapinin KENDI hukmunu 73 fiksturle olcer. Hem YAKALAMA
-      # (eski dal metni · "ozel uretiriz" · mm/kumpas/cap olcu talebi · yaklasik/tahminen/
-      # civari/ortalama/bandinda fiyat · ortuk "yapabiliriz") hem YANLIS-POZITIF yonu olculur.
-      # 🔴 YANLIS-POZITIF NEDEN OLUMCUL: bu kapi `build` isinde kosuyor ve `deploy: needs: build`
-      # -> ege-bilgi.md'ye yapilan MESRU bir duzenleme kapiyi kirmizi yakarsa Ege degil TUM
-      # pruvo3d.com yayini durur. Bu yuzden M11-M15 + M21 kalici nobetci: "sorun" homografi
-      # (=problem ismi) · arayuz/ucret BETIMLEMESI ("yaklasik tutar GORUNUR", "250 TL EKLENIR")
-      # · belgenin KENDI l.9 kargo cumlesi · l.11 "netlestir" dili · duz kesin fiyat beyani
-      # (ILAN EDILMIS kor nokta — "duzeltmek" l.9'u kirar).
-      # Kritik fikstur M1: olumsuzlama CUMLECIK duzeyinde aranmali — satir duzeyinde arayan bir
-      # surum, ayni satirdaki "verme" jetonunu gorup "olcu/cizim iste" emrini MASKELER ve
-      # sahte-yesil yanar (olculdu). M16: baglac (cunku/ama/fakat) da ayirici olmali, yoksa
-      # "Olcuyu gonderin CUNKU tahmin yeterli DEGIL" maskelenir. Fiksturler bellekte; repo
-      # dosyalarina DOKUNMAZ. Offline, stdlib.
-      - name: Ege kabiliyet kapisi ic nobetci (kirmizi-mutasyon)
-        if: ${{ !cancelled() }}
-        run: python3 tools/ege-kabiliyet-kapisi.py --ic-nobetci
-
       # NOBETCI MUTASYON HARNESS: kapilarin KENDISINI olcer — bozulunca GERCEKTEN kirmizi
       # yaniyorlar mi. Feed politika kapisinin kirmizi CIKIS YOLU ve _kendini_dogrula()
       # hicbir testle korunmuyordu; olculdu: <title> bulucusunu olduren mutasyon eski kapida
@@ -2486,10 +2407,6 @@ jobs:
       - name: "Urun sayfasi / kart kapsam ayrimi mutasyon bataryasi"
         if: ${{ !cancelled() }}
         run: python3 tools/urun-vitrin-kapsam-mutasyon.py
-
-      - name: "Ege-bilgi tavan kapisi mutasyon bataryasi"
-        if: ${{ !cancelled() }}
-        run: python3 tools/ege-bilgi-tavan-mutasyon.py
 
       - name: "GA4 olay kapisi mutasyon bataryasi (huni olayi sokulunca kirmizi mi)"
         if: ${{ !cancelled() }}
@@ -4684,76 +4601,6 @@ jobs:
       - name: Filament paketi kabul testleri (26 vaka; urunler.json'a YAZMAZ sha256 kapisi)
         if: ${{ !cancelled() }}
         run: python3 tools/filament-test.py
-
-      # PARITE CIKIS-KODU SINIFLANDIRMASI (6 Eyl 2026) — yukaridaki adimin TEST 5 kolunu
-      # koruyan batarya. OLCULEN KOK: `parite-ege.js` "bot kaynagi YOK" (ORTAM olgusu; bot
-      # AYRI depodur, kosucunun checkout'unda ASLA bulunmaz) ile "kaynak VAR ama disa-aktarim
-      # fonksiyon DEGIL" (GERCEK GERILEME) hallerini TEK exit 2 kovasina dusuruyordu ->
-      # filament adimi CI'da SUREKLI kirmizi, Okan'in makinesinde SUREKLI yesildi; kirmizi
-      # kosuldugu yerde HIC uretilemiyordu. Onarim ucuncu sinifi ayirir (3 = OLCULEMEDI,
-      # ADIYLA gorunur sebep) ve gerileme kolunu 2 = KIRMIZI birakir.
-      # 🔴 BATARYA IKI YONLU: M2/M6 tam olarak "bu onarim bir BYPASS'a donusurse" mutantlaridir.
-      # AGSIZ + KATALOGSUZ (~1 dk): problar egeKodu() kapisinda doner, urunler.json okunmaz.
-      # Mutantlar IZOLE tmp kopyada kosar; canli agaca YAZMAZ (FILO DERSI, 4 Eyl).
-      - name: Parite cikis-kodu sinifi mutasyon bataryasi (7 oldurucu + 2 kontrol)
-        if: ${{ !cancelled() }}
-        run: python3 tools/parite-cikis-sinifi-mutasyon.py
-
-      # EGE-BILGI TAVAN: ege-bilgi.md uzunlugu bot slice(0,6000) esigini asmasin.
-      # Olcu UTF-16 kod birimi (JS String.slice birimi) — bayt sayan olcum sahte-kirmizi,
-      # Python len(str) astral karakterde sahte-yesil yakar.
-      # Bloklayici SADECE gercek zararda, IKI hal: (1) UTF-16 uzunluk >6000 (bot metni
-      # SESSIZCE kesiyor, icerik kaybi) (2) fail-loud — dosya yok / okunamiyor / UTF-8 degil
-      # (olculecek sey YOK; sessiz yesil verilmez).
-      # ILAN duzlemindeki HER hal UYARI'dir (exit 0 + gurultulu uyari), 21 Tem MIMAR KARARI:
-      # ILAN/SABIT UYUSMAZLIGI · dar pay · ILAN YOK · CELISKILI ILAN · ILAN BASTA DEGIL ·
-      # ILAN BAGLAMA OTURMADI. Gerekce: ilan kontrolu Turkce serbest metinde desen arayan bir
-      # NESIR AYRISTIRMASIDIR ve bir HUKUM kaynagi degildir ([[mimar-kapi-parser-taklidi]]);
-      # olculdu 21 Tem, BES ayri MASUM tek-satirlik duzenleme kapiyi kirmiziya cekiyordu
-      # (uslup kuralindaki baska bir sayi · "6000"->"6.000" kozmetik ayrac · ilan cumlesinin
-      # silinmesi · basa icindekiler eklenip ilanin kaymasi · ilanin YERINE "en fazla 300
-      # karaktere kadar" gibi bir USLUP kurali yazilmasi) ve continue-on-error olmadigi icin
-      # TUM EKIBIN yayinini durduruyordu. Icerik kaybi hukmunu uzunluk olcusu TEK BASINA
-      # verir; ilan kontrolu yalnizca BAYATLIK SEZGISIDIR (bagirir, insan bakar).
-      # ⚠️ BILEREK KABUL EDILEN RISK: TAVAN sabiti bot reposundakinden KUCUK yonde bayatlarsa
-      # kapi durdurmaz, yalniz uyarir. Gercek capraz-repo korumasi
-      # pruvo-bot/worker/test/ege-bilgi-nobetci.mjs'de (tavani index.js'ten CANLI okur).
-      # "KESIN ilan" = sayi TAVAN bandinda (2000..18000) VE AYNI SATIRDA ilanin oznesi
-      # (Ege'ye / bilgi dosyasi / bu dosya) aniliyor; bu ayrim artik hukumde degil TESHIS
-      # metninde yasar (fikstur N1/N4/A5* onu korur). Offline, stdlib, ~5 ms.
-      - name: Ege-bilgi tavan kabul testi (6000 karakter kesme kapisi)
-        if: ${{ !cancelled() }}
-        run: python3 tools/ege-bilgi-tavan-test.py
-
-      # EGE URETIM-SAHIPLIGI KAPISI (K285) — 🔴 BURADAN TASINDI (24 Agu, KraL hukmu).
-      # Adim artik `deploy.yml` `build` isinde kosuyor (= `deploy: needs: build`), yani
-      # BLOKLAYICI. Gerekce: kirmizisi musteriye giden TICARI BEYANI vuruyor ("bu parcayi
-      # biz uretmiyoruz / orijinaldir"), dolayisiyla serit turnusolune gore hijyen degil
-      # yayin seridine ait. Buraya KOPYA KONMADI — iki kopya zamanla sessizce ayrisir ve
-      # hangisinin hukum verdigi belirsizlesir ([[ikiz-tanim-sessiz-ayrisma]]).
-      # Kapi: tools/ege-uretim-sahipligi-test.py (mutasyon alt-kosumu her kosumda calisir).
-
-      # EGE KABILIYET-SINIRI KAPISI (26 Tem): ege-bilgi.md musteriden URETIM olcusu/cizimi
-      # ISTIYOR mu, ya da uretim/fiyat SOZU veriyor mu? Canli SISTEM_TALIMATI bunu katalog-bos
-      # dalinda uc yerde yasakliyor (pruvo-bot worker/src/index.js :41, :52, :2467; ayrica :57
-      # "yaklasik su kadar tutar' DEME"). ege-bilgi.md her konusmada o talimatin YANINA enjekte
-      # edildigi icin buradaki bir "olcu/cizim iste" ya da "ozel uretiriz" satiri AYNI prompt
-      # icinde iki zit talimat yaratir -> model rastgele birini secer, yasak SESSIZCE delinir.
-      # NEDEN AYRI KAPI: bu hata sinifini olcen test YOKTU — bot tarafindaki
-      # ege-bilgi-nobetci.mjs'in 5 ekseninde (ODEME/TESLIM/KARGO/MALZEME/FIYAT) kabiliyet-siniri
-      # ekseni yok, musteri-bacagi-nobetci.mjs ise SENTETIK fikstur okur, gercek ege-bilgi.md'ye
-      # bakmaz. 26 Tem'de tam bu sinif tum testler YESILken bir dala girdi ("foto/olcu/cizim
-      # iste"); kapi o dersin ciktisi. Kapsam BILEREK dar (3 sinif) — genisletmek l.11/l.18/l.38
-      # gibi mesru satirlari sahte-kirmizi yakar.
-      # ⚠️ (C) sinifi IKI KANATLIDIR: para + GUCLU kip ("800 TL tutar", "diyebiliriz")
-      # tek basina yanar; olur/yazar/cikar/gecerlidir gibi ZAYIF kipler ancak YAKLASIK
-      # jetonuyla BIRLIKTE yanar — cunku tek baslarina BETIMLEMEdirler ("fiyat sayfada
-      # yazar") ve belgenin KENDI l.7/l.9/l.45'i tam o sinifta. (C) ayrica DUZ KESIN
-      # FIYAT BEYANINI ("Bu parca 1.200 TL") OLCMEZ. Kapi yesil ciktisinda bu iki kor
-      # noktayi ACIKCA ilan eder. Offline, stdlib, ~5 ms.
-      - name: Ege kabiliyet-siniri kapisi (olcu/cizim istegi · uretim/fiyat sozu)
-        if: ${{ !cancelled() }}
-        run: python3 tools/ege-kabiliyet-kapisi.py
 
       # STL R2 YUKLEYICI: anahtar turetme (yol-gezinme kapisi: ../ , mutlak yol, ters bolu,
       # NUL reddedilir) + 300 MiB ustu cok-parcali (multipart) yolun parca boyutu/sayisi ve
