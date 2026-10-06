@@ -90,7 +90,10 @@ def kontroller(index, bolum, veri, build):
     js = soyulacak_js(build) or ()
     s.append(("Y3 iki dosya yayin beyaz listesinde (SOYULACAK_JS degeri)",
               "foto-uretim-veri.js" in js and "foto-uretim.js" in js, str(js)))
-    s.append(("Y4 bolum durustluk ifadesini tasir", DURUSTLUK in bolum, ""))
+    s.append(("Y4 durustluk ifadesi manifestte (plaket turu `durustluk`)", DURUSTLUK in veri, ""))
+    s.append(("Y4b bolum ust kutuyu secili turun `durustluk`undan basar, sabit metin YOK",
+              "t.durustluk" in bolum and "durustlukGuncelle();" in bolum and DURUSTLUK not in bolum
+              and "4 renkle kabartma olarak" not in bolum, ""))
     yasak = [k for k in ("3d bask", "3 boyutlu bask", "fethiye", "göcek", "gocek")
              if k in bolum.lower() or k in veri.lower()]
     s.append(("Y4 '3D baski' / sehir adi YOK", not yasak, ",".join(yasak)))
@@ -172,7 +175,9 @@ def main():
         mutantlar.append(("M1 kap kategorilerin ALTINA tasindi", (tasinmis, bolum, veri, build), True))
     mutantlar += [
         ("M2 gorunum listesinden dustu", (index.replace(', "fotoUretim"]', "]"), bolum, veri, build), True),
-        ("M3 durustluk ifadesi silindi", (index, bolum.replace(DURUSTLUK, "önizlemenin yorumu"), veri, build), True),
+        ("M3 durustluk ifadesi silindi", (index, bolum, veri.replace(DURUSTLUK, "önizlemenin yorumu"), build), True),
+        ("M14 bolum sabit durustluk metnine dondu",
+         (index, bolum.replace("t && t.durustluk ? t.durustluk : \"\"", "\"Ürün en çok 4 renkle kabartma olarak üretilir\""), veri, build), True),
         ("M4 beyaz listeden dustu", (index, bolum, veri, build.replace('"foto-uretim.js", ', "", 1).replace(', "foto-uretim.js"', "", 1)), True),
         ("M5 oturum anahtari ayristi", (index, bolum.replace(OTURUM_ANAHTARI, "pruvo_foto_sip"), veri, build), True),
         ("M6 anahtarlik tur listesine geri eklendi",

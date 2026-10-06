@@ -55,11 +55,7 @@
     "parametre-metin": "Metin alanını doldur (izinli uzunlukta).",
     "parametre-url": "Bağlantı https:// ile başlamalı."
   };
-  /* Dürüstlük kutusu metni — görünürlük ve "en çok 4 renkli yorum" vurgusu. */
-  var DURUSTLUK =
-    "Önizleme, fotoğrafının stilize bir yorumudur. Ürün en çok 4 renkle kabartma olarak üretilir — " +
-    "önizlemenin 4 renkli yorumu; birebir aynısı değildir, küçük yazı ve ince ayrıntılar sadeleşir.";
-
+  /* Dürüstlük kutusu metni TÜR BAZLI: manifest `durustluk` (seçili türünki; durustlukGuncelle). */
   /* ============== REFERANSLAR ============== */
   var kok = typeof window !== "undefined" ? window :
     (typeof globalThis !== "undefined" ? globalThis : this);
@@ -703,7 +699,9 @@
       "Fotoğrafını yükle, ölçüsünü seç, önizlemeyi gör; beğenirsen sipariş ver."));
 
     var durust = el("div", "foto-uretim-durustluk");
-    durust.appendChild(el("p", null, DURUSTLUK));
+    S.durustP = el("p", null, "");
+    durust.appendChild(S.durustP);
+    durustlukGuncelle();
     ic.appendChild(durust);
 
     /* ornekler — /foto/acik gelince yalniz ACIK turlerinki yeniden cizilir (ornekCiz) */
@@ -890,11 +888,19 @@
     return null;
   }
 
+  /* Üst dürüstlük kutusu seçili türün manifest metnini basar (tür yoksa ilk türünkini). */
+  function durustlukGuncelle() {
+    if (!S.durustP || !F) return;
+    var t = (S.tur && F.turBul(S.tur)) || (F.turler && F.turler[0]) || null;
+    S.durustP.textContent = t && t.durustluk ? t.durustluk : "";
+  }
+
   function doldurS1Tur() {
     while (S.alanTur.firstChild) S.alanTur.removeChild(S.alanTur.firstChild);
     // TEK TÜR: seçim adımı çizilmez (radyo düğmesi 0), tür kendiliğinden seçilir.
     if (S.acikVeri.turler.length === 1) {
       S.tur = S.acikVeri.turler[0].kod;
+      durustlukGuncelle();
       S.alanTur.hidden = true;
       return;
     }
@@ -912,6 +918,7 @@
         inp.addEventListener("change", function (e) {
           if (!e.target.checked) return;
           S.tur = kod;
+          durustlukGuncelle();
           var nt = null;
           for (var j = 0; j < S.acikVeri.turler.length; j++) {
             if (S.acikVeri.turler[j].kod === kod) { nt = S.acikVeri.turler[j]; break; }

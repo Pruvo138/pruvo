@@ -446,6 +446,8 @@ console.log("L1) KATEGORI KAYDI");
     if (!Array.isArray(t.ornek_kanit_izni) || !t.kod || !t.ad || !t.aciklama) { hatali.push(t.kod + ":kimlik"); }
     // Render orneginin durustluk cumlesi tur kaydinda ZORUNLU (mimar karari 7 Eki; bos -> KIRMIZI).
     if (typeof t.ornek_notu !== "string" || !t.ornek_notu.trim()) { hatali.push(t.kod + ":ornek_notu"); }
+    // Ust durustluk kutusu metni tur kaydinda ZORUNLU (7 Eki, G1 madde 12; bos -> KIRMIZI).
+    if (typeof t.durustluk !== "string" || !t.durustluk.trim()) { hatali.push(t.kod + ":durustluk"); }
     if (!(Number.isInteger(a.en_az) && Number.isInteger(a.en_cok) && a.en_az > 0 && a.en_cok >= a.en_az)) { hatali.push(t.kod + ":olcu"); }
     if (!Array.isArray(t.renk_bolgeleri) || t.renk_bolgeleri.some((b) => !b || !b.kod || !b.ad ||
         !Array.isArray(b.renkler) || !b.renkler.length)) { hatali.push(t.kod + ":renk"); }
@@ -467,6 +469,14 @@ console.log("L1) KATEGORI KAYDI");
   ol("L1a2 yeni tur ornek_notu bos/yok -> KIRMIZI (yeni:ornek_notu); dolu -> temiz (pozitif kontrol)",
      JSON.stringify(h1) === '["yeni:ornek_notu"]' && JSON.stringify(h2) === '["yeni:ornek_notu"]' && h3.length === 0,
      JSON.stringify([h1, h2, h3]));
+  const yeniD = (d) => { const t = JSON.parse(JSON.stringify(VERI.turBul("litofan"))); t.kod = "yeni"; if (d === undefined) { delete t.durustluk; } else { t.durustluk = d; } return t; };
+  const d1 = den(yeniD("")), d2 = den(yeniD(undefined)), d3 = den(yeniD("x"));
+  ol("L1a3 yeni tur durustluk bos/yok -> KIRMIZI (yeni:durustluk); dolu -> temiz",
+     JSON.stringify(d1) === '["yeni:durustluk"]' && JSON.stringify(d2) === '["yeni:durustluk"]' && d3.length === 0,
+     JSON.stringify([d1, d2, d3]));
+  ol("L1a4 durustluk metinleri AYNEN (plaket = onceki sabit metin; litofan = mimar metni)",
+     VERI.turBul("plaket").durustluk === "Önizleme, fotoğrafının stilize bir yorumudur. Ürün en çok 4 renkle kabartma olarak üretilir — önizlemenin 4 renkli yorumu; birebir aynısı değildir, küçük yazı ve ince ayrıntılar sadeleşir." && VERI.turBul("litofan").durustluk === "Litofan tek renkli ince bir paneldir; görüntü arkadan ışık geldiğinde belirir. İnce ayrıntılar ve küçük yazılar sadeleşir.",
+     JSON.stringify([VERI.turBul("plaket").durustluk, VERI.turBul("litofan").durustluk]));
   const sag = VERI.turler.filter((t) => VERI.kolu(t.kod) === "saglayici").map((t) => t.kod).sort();
   ol("L1b saglayici turleri = TUR_ORTAM anahtarlari", JSON.stringify(sag) === JSON.stringify(Object.keys(foto.TUR_ORTAM).sort()),
      JSON.stringify(sag));

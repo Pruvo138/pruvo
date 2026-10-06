@@ -1084,7 +1084,7 @@ let ekranTek, ekranIki;
   ol("S3 tek turde adim cubugu 'Olcu' der ('Tur' kelimesi yok)",
      /^2\. Ölçü$/.test(ekranTek.adim2), ekranTek.adim2);
   const mutTur = EKRAN_KAYNAK.replace(
-    "    if (S.acikVeri.turler.length === 1) {\n      S.tur = S.acikVeri.turler[0].kod;\n      S.alanTur.hidden = true;\n      return;\n    }\n", "");
+    "    if (S.acikVeri.turler.length === 1) {\n      S.tur = S.acikVeri.turler[0].kod;\n      durustlukGuncelle();\n      S.alanTur.hidden = true;\n      return;\n    }\n", "");
   const mt = mutTur === EKRAN_KAYNAK ? null : await ekranKos(mutTur, VERI, acikTek);
   ol("S-M1 mutant (tek tur dali silindi) -> S2 KIRMIZI (tur radyosu 1)", !!mt && mt.tur === 1, JSON.stringify(mt));
   const mutAdim = EKRAN_KAYNAK.replace('F.turler.length > 1 ? "Tür ve ölçü" : "Ölçü"', '"Tür ve ölçü"');
