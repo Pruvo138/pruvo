@@ -52,8 +52,10 @@ import datetime as dt
 import importlib.util
 import os
 import re
+import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 # ---- sabit yollar ----
@@ -1299,6 +1301,134 @@ def kutu_rotasyonu(kuru: bool, fikstur: bool) -> tuple[str, bool]:
         hukum, once or "-", sonra or "-", ROTASYON_TAVANI, kip, kaynak)), False
 
 
+# ============================================================================
+# 🔴 6 EKİ 2026 — `KraL-Sabah-DiskSupurme-6Eki` (BaBa 11:0x madde A b/c, EMİR):
+# DİSK SÜPÜRME adımı, kaynaktan BAĞIMSIZ.
+# ----------------------------------------------------------------------------
+# ÖLÇÜLDÜ (6 Eki, mimar): `~/Library/Caches/Google/Chrome-headless/scoped_dir*`
+# 6.557 dizin / 36 GB birikmişti (kesilen headless turlar bırakıyor; PRUVO
+# deposunda headless açan izlenen kod 0, kaynak işçi hattının playwright MCP'si +
+# kardeş evler). `~/.wrangler/logs` 29.373 dosya / 11 GB (her wrangler çağrısı
+# bir debug logu, rotasyon yok). İkisi de elle silindi; tekrar birikmesin.
+#
+# Chrome kolu: kökün DOĞRUDAN alt dizinlerinden adı `scoped_dir` ile başlayan
+# VE mtime'ı 120 dakikadan eski olanlar SİLİNİR. Başka ad (ör. profil dizini)
+# SİLİNMEZ — ad filtresi olmadan alttaki TÜM eski dizinler uçar, kazara.
+# Wrangler kolu: kök altında mtime'ı 48 saatten (2 gün) eski DÜZENLI dosyalar
+# SİLİNİR; dizinler ve yeni dosyalar kalır.
+#
+# `kuru=True` ise HİÇBİR ŞEY silinmez, yalnız SAYILIR (A11c kanıtı).
+#
+# Tek satır basar: `DISK_SUPURME chrome_dizin=<n> chrome_bayt=<b>
+# wrangler_dosya=<n> wrangler_bayt=<b> kuru=<0|1>`. Hata olursa
+# `DISK_SUPURME HATA=<sinif>` basar ve main'in rc'sini DEĞİŞTİRMEZ — sabah
+# rutini durmaz, günün spec'i yine yazılır (bilgi ekseni, kritik yol değil).
+#
+# 🔴 PARAMETRE YAPISI (testen için): gerçek yollar `Path.home()` üzerinden
+# çözülür; test ortamı kökleri parametreyle geçer ve HİÇBİR gerçek dosyaya
+# dokunmaz. `simdi` testin deterministik ölçümü içindir (mtime eşiklerini
+# ayarlar); üretimde None olur ve `time.time()` çağrılır.
+# ============================================================================
+CHROME_ESIK_DAKIKA = 120
+WRANGLER_ESIK_SAAT = 48
+
+
+def disk_supurme(kuru=False, chrome_kok=None, wrangler_kok=None, simdi=None):
+    """Chrome scoped_dir + wrangler log temizliği.
+
+    Döner: tek-satır özet metni (main'e aynen verilir). Hata durumunda
+    `DISK_SUPURME HATA=...` döner; main'in rc'sini DEĞİŞTİRMEZ.
+    """
+    try:
+        if simdi is None:
+            simdi = time.time()
+        if chrome_kok is None:
+            chrome_kok = Path.home() / "Library" / "Caches" / "Google" / "Chrome-headless"
+        if wrangler_kok is None:
+            wrangler_kok = Path.home() / ".wrangler" / "logs"
+
+        chrome_esik_sn = CHROME_ESIK_DAKIKA * 60
+        wrangler_esik_sn = WRANGLER_ESIK_SAAT * 3600
+
+        chrome_n = 0
+        chrome_bayt = 0
+        wrangler_n = 0
+        wrangler_bayt = 0
+
+        # ---- Chrome kolu ----
+        try:
+            if chrome_kok.is_dir():
+                for entry in chrome_kok.iterdir():
+                    try:
+                        if not entry.is_dir():
+                            continue
+                    except OSError:
+                        continue
+                    if not entry.name.startswith("scoped_dir"):
+                        continue
+                    try:
+                        mt = entry.stat().st_mtime
+                    except OSError:
+                        continue
+                    if (simdi - mt) < chrome_esik_sn:
+                        continue
+                    # Silinecek aday — bayt sayımı (boyut sıfırsa da sayılır).
+                    try:
+                        boyut = 0
+                        for ic in entry.rglob("*"):
+                            try:
+                                if ic.is_file():
+                                    boyut += ic.stat().st_size
+                            except OSError:
+                                continue
+                    except OSError:
+                        boyut = 0
+                    chrome_n += 1
+                    chrome_bayt += boyut
+                    if not kuru:
+                        try:
+                            shutil.rmtree(entry, ignore_errors=True)
+                        except OSError:
+                            pass
+        except OSError:
+            pass
+
+        # ---- Wrangler kolu ----
+        try:
+            if wrangler_kok.is_dir():
+                for entry in wrangler_kok.iterdir():
+                    try:
+                        if not entry.is_file():
+                            continue
+                    except OSError:
+                        continue
+                    try:
+                        mt = entry.stat().st_mtime
+                    except OSError:
+                        continue
+                    if (simdi - mt) < wrangler_esik_sn:
+                        continue
+                    try:
+                        boyut = entry.stat().st_size
+                    except OSError:
+                        boyut = 0
+                    wrangler_n += 1
+                    wrangler_bayt += boyut
+                    if not kuru:
+                        try:
+                            entry.unlink()
+                        except OSError:
+                            pass
+        except OSError:
+            pass
+
+        return "DISK_SUPURME chrome_dizin=%d chrome_bayt=%d wrangler_dosya=%d wrangler_bayt=%d kuru=%d" % (
+            chrome_n, chrome_bayt, wrangler_n, wrangler_bayt, 1 if kuru else 0)
+    except Exception as hata:
+        return "DISK_SUPURME HATA=%s:%s" % (
+            type(hata).__name__, str(hata)[:80])
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="KraL sabah spec'i")
     ap.add_argument("--kuru", action="store_true", help="dosya yazma, yalnız özet bas")
@@ -1352,6 +1482,15 @@ def main() -> int:
     rotasyon_satiri, rotasyon_olculemedi = kutu_rotasyonu(
         kuru=bool(args.kuru or args.kendini_test), fikstur=args.spec_dizin is not None)
     print(rotasyon_satiri)
+
+    # --- 🔴 DİSK SÜPÜRME: rotasyondan SONRA, kaynaktan bağımsız (BaBa 11:0x
+    #     madde A b/c). `--kuru`, `--kendini-test` ve fikstür (`--spec-dizin`)
+    #     koşumlarında sayım YAPILIR ama silme YAPILMAZ (kuru=True) — rotasyonla
+    #     AYNI kural: test koşumu gerçek HOME'da silmez. Hata `DISK_SUPURME HATA=`
+    #     ile basılır ve rc'yi değiştirmez. ---
+    disk_kuru = bool(args.kuru or args.kendini_test or args.spec_dizin is not None)
+    disk_satiri = disk_supurme(kuru=disk_kuru)
+    print(disk_satiri)
 
     # --- girdi okuma (fail-loud) ---
     kutu_txt = oku_yol(KUTU)

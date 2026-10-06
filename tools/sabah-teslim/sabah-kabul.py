@@ -39,9 +39,15 @@ konusuz: kacirilacak taban DOSYASI yok, ve TABAN SAYILARI her kosumda BASILIR.
   A8/A9 10 Eyl'den beri yalniz `~/.claude/cron/sabah-kabul.py`de yasiyordu.
 
 Fazlar:
-  --faz on   : A1 + A6 + A7 + A8 + A9 + A10 (yazim YAPMAZ — canli spec'e dokunmaz)
+  --faz on   : A1 + A6 + A7 + A8 + A9 + A10 + A11 (yazim YAPMAZ — canli spec'e dokunmaz)
   --faz tam  : hepsi (A2 canli spec'i URETIR)
-  --vaka A7|A8|A9|A10 : yalniz o vaka (A7/A8 hermetik — CI serit-b bunlari kosar)
+  --vaka A7|A8|A9|A10|A11 : yalniz o vaka (A7/A8/A11 hermetik — CI serit-b bunlari kosar)
+
+6 Eki 2026, mimar (BaBa 11:0x madde A b/c):
+
+  A11 DISK SUPURME: chrome scoped_dir + wrangler log temizligi kral-sabah
+       aracinin icinde. Kaynaktan bagimsiz, hermetik (tempfile kokleri).
+       MUTANT: yas esigi / kuru / ad filtresi tek tek sokulur.
 """
 
 import argparse
@@ -55,6 +61,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from pathlib import Path
 
 CRON = os.path.join(os.path.expanduser("~"), ".claude", "cron")
 VARSAYILAN_ARAC = os.path.join(CRON, "kral-sabah.py")
@@ -1603,6 +1610,323 @@ def a10_rotasyon():
               "taban_yuklem=%s | mutant_yuklem=%s (%s)" % (gecA, gecM, ayrM))
 
 
+# --------------------------------------------------------------------- A11
+# A11 — DİSK SÜPÜRME (chrome scoped_dir + wrangler log). 6 Eki 2026,
+# BaBa 11:0x madde A b/c. Ölçülen arıza: `~/Library/Caches/Google/Chrome-headless/
+# scoped_dir*` 6.557 dizin / 36 GB + `~/.wrangler/logs` 29.373 dosya / 11 GB.
+#
+# HERMETİK: tüm kökler `tempfile` ile kurulur, gerçek HOME'a / gerçek yollara
+# TEK BAYT yazılmaz. MUTANTLAR: kopyada yapılır (canlı dosyaya DOKUNULMAZ);
+# mutant modülü `importlib` ile ayrı sureçte çalıştırılır.
+#
+# Kabul 5 kol + 4 mutant:
+#   A11a  Chrome eski scoped_dir silinir, yeni kalır, scoped_dir olmayan eski kalır
+#   A11b  Wrangler eski log silinir, yeni kalır; eski dizin kalır
+#   A11c  kuru=True → 0 silme ama sayım doğru
+#   A11d  kök yoksa → 0 ve istisna yok
+#   A11e  Basilan satir jetonlari (chrome_dizin= / chrome_bayt= / wrangler_dosya=
+#         / wrangler_bayt= / kuru=)
+#   A11M1 yas esigi kontrolu kaldirilinca (a)/(b) KIRMIZI
+#   A11M2 kuru kontrolu kaldirilinca (c) KIRMIZI
+#   A11M3 ad filtresi kaldirilinca (a) KIRMIZI
+A11_KOLLARI = ("A11a CHROME eski scoped_dir SIL + yeni KAL + scoped_dir olmayan eski KAL",
+               "A11b WRANGLER eski log SIL + yeni KAL + eski dizin KAL",
+               "A11c KURU=True: 0 silme + sayim dogru",
+               "A11d KOK YOK: 0 + istisna yok",
+               "A11e BASILAN satir jetonlari",
+               "A11M1 YAS esigi mutant: (a)/(b) KIRMIZI",
+               "A11M2 KURU mutant: (c) KIRMIZI",
+               "A11M3 AD filtresi mutant: (a) KIRMIZI")
+
+
+def _a11_arac():
+    """kral-sabah.py'yi modul olarak yukler."""
+    spec = importlib.util.spec_from_file_location("kral_sabah_a11", ARAC)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["kral_sabah_a11"] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _a11_kur_td(td):
+    """A11 vakalarinda kullanilan sahte chrome + wrangler kokleri.
+
+    Chrome'da 3 alt dizin: scoped_dirA (ESKI), scoped_dirB (YENI),
+    profile_data (ESKI ama scoped_dir DEGIL — ad filtresi onu KORUMALI).
+    Wrangler'da 2 dosya + 1 dizin: eski.log (ESKI), yeni.log (YENI),
+    eski_dizin/ (ESKI ama DIZIN — wrangler kolunda DIZINLER KALIR).
+    """
+    chrome_kok = os.path.join(td, "chrome")
+    wrangler_kok = os.path.join(td, "wrangler")
+    os.makedirs(chrome_kok, exist_ok=True)
+    os.makedirs(wrangler_kok, exist_ok=True)
+
+    now = time.time()
+    # chrome esik = 120 dk; ESKI = 130 dk, YENI = 30 dk
+    # wrangler esik = 48 saat; ESKI = 50 saat, YENI = 12 saat
+    items = [
+        (chrome_kok, "scoped_dirA", True, 130 * 60, b"x" * 100),       # chrome ESKI scoped → SIL
+        (chrome_kok, "scoped_dirB", True, 30 * 60, b"x" * 100),        # chrome YENI scoped
+        (chrome_kok, "profile_data", True, 130 * 60, b"x" * 100),     # chrome ESKI ama ad filtresi disinda
+        (wrangler_kok, "eski.log", False, 50 * 3600, b"y" * 200),     # wrangler ESKI dosya SIL
+        (wrangler_kok, "yeni.log", False, 12 * 3600, b"y" * 200),     # wrangler YENI dosya
+        (wrangler_kok, "eski_dizin", True, 38 * 3600, None),          # wrangler ESKI DIZIN (kalmali)
+    ]
+    for kok, ad, dizin, sn, icerik in items:
+        yol = os.path.join(kok, ad)
+        if dizin:
+            os.makedirs(yol, exist_ok=True)
+            if icerik is not None:
+                with open(os.path.join(yol, "veri"), "wb") as f:
+                    f.write(icerik)
+        else:
+            with open(yol, "wb") as f:
+                f.write(icerik or b"")
+        os.utime(yol, (now - sn, now - sn))
+    return Path(chrome_kok), Path(wrangler_kok), now
+
+
+def _a11_kalan_varmi(td):
+    """Chrome: scoped_dirA SILINMIS, scoped_dirB + profile_data KALMIS.
+    Wrangler: eski.log SILINMIS, yeni.log + eski_dizin KALMIS."""
+    return {
+        "scoped_dirA_yok": not os.path.isdir(os.path.join(td, "chrome", "scoped_dirA")),
+        "scoped_dirB_var": os.path.isdir(os.path.join(td, "chrome", "scoped_dirB")),
+        "profile_data_var": os.path.isdir(os.path.join(td, "chrome", "profile_data")),
+        "eski_log_yok": not os.path.isfile(os.path.join(td, "wrangler", "eski.log")),
+        "yeni_log_var": os.path.isfile(os.path.join(td, "wrangler", "yeni.log")),
+        "eski_dizin_var": os.path.isdir(os.path.join(td, "wrangler", "eski_dizin")),
+    }
+
+
+# Mutant capa/yamalar — disk_supurme kaynaginin KENDISINDE durur (kopyada uygulanir).
+# Capalar yalniz hedef kolun IF satiriyla sinirli; ortam degiskeni tasimaz.
+# YAS esigi mutanti: chrome + wrangler ESIK KONTROLISI birlikte kaldirilir (A11M1).
+A11_YAS_CAPALAR = (
+    ("                    if (simdi - mt) < chrome_esik_sn:\n                        continue\n",
+     "                    if False:  # MUTANT A11: chrome yas esigi KALDIRILDI\n                        continue\n"),
+    ("                    if (simdi - mt) < wrangler_esik_sn:\n                        continue\n",
+     "                    if False:  # MUTANT A11: wrangler yas esigi KALDIRILDI\n                        continue\n"),
+)
+# KURU mutanti: chrome + wrangler kuru KONTROLU birlikte kaldirilir (A11M2).
+# Capa blok boyutunda — `shutil.rmtree` ve `entry.unlink` ile birlikte TEKIL oldugundan
+# replace(count=1) ile her iki konum tek tek hedeflenir.
+A11_KURU_CAPALAR = (
+    ("                    if not kuru:\n                        try:\n"
+     "                            shutil.rmtree(entry, ignore_errors=True)\n"
+     "                        except OSError:\n                            pass\n",
+     "                    if True:  # MUTANT A11: chrome kuru KONTROLU KALDIRILDI\n                        try:\n"
+     "                            shutil.rmtree(entry, ignore_errors=True)\n"
+     "                        except OSError:\n                            pass\n"),
+    ("                    if not kuru:\n                        try:\n"
+     "                            entry.unlink()\n"
+     "                        except OSError:\n                            pass\n",
+     "                    if True:  # MUTANT A11: wrangler kuru KONTROLU KALDIRILDI\n                        try:\n"
+     "                            entry.unlink()\n"
+     "                        except OSError:\n                            pass\n"),
+)
+A11_AD_CAPA = ("                    if not entry.name.startswith(\"scoped_dir\"):\n"
+               "                        continue\n")
+A11_AD_YAMA = ("                    if False:  # MUTANT A11: ad filtresi KALDIRILDI\n"
+               "                        continue\n")
+
+
+def _a11_mutant_modul(yamalar):
+    """disk_supurme kaynagini (kopyada) yamalar ve YENI modul olarak yukler.
+
+    yamalar: [(capa, yama), ...] sirayla uygulanir. Canli dosyaya DOKUNMAZ.
+    """
+    import json as _json
+    with open(ARAC, encoding="utf-8") as f:
+        kaynak = f.read()
+    for capa, yama in yamalar:
+        adet = kaynak.count(capa)
+        if adet != 1:
+            return None, "capa_adedi=%d (1 bekleniyor): %r" % (adet, capa[:60])
+        kaynak = kaynak.replace(capa, yama, 1)
+    spec = importlib.util.spec_from_file_location("kral_sabah_a11_mut", ARAC)
+    yaml = spec.loader  # type: ignore
+    # spec_from_file_location once daha kullanmak yerine exec_module YAPMAYIZ;
+    # yerine: gecici dosyaya yaz, importlib ile ORADAN yukle.
+    fd, gecici = tempfile.mkstemp(prefix="a11-mutant-", suffix=".py")
+    os.close(fd)
+    with open(gecici, "w", encoding="utf-8") as f:
+        f.write(kaynak)
+    try:
+        spec2 = importlib.util.spec_from_file_location("kral_sabah_a11_mut", gecici)
+        mod2 = importlib.util.module_from_spec(spec2)
+        sys.modules["kral_sabah_a11_mut"] = mod2
+        spec2.loader.exec_module(mod2)  # type: ignore
+        return mod2, None
+    finally:
+        try:
+            os.unlink(gecici)
+        except OSError:
+            pass
+
+
+def a11_disk_supurme():
+    baslik("A11 — DISK SUPURME: chrome scoped_dir + wrangler log (BaBa 11:0x A b/c)")
+
+    try:
+        ks = _a11_arac()
+    except Exception as hata:
+        for ad in A11_KOLLARI:
+            kayit(ad, None, "arac yuklenemedi: %s: %s" % (
+                type(hata).__name__, str(hata)[:80]))
+        return
+
+    if not hasattr(ks, "disk_supurme"):
+        for ad in A11_KOLLARI:
+            kayit(ad, False, "arac `disk_supurme` TASIMIYOR (kurulmamis)")
+        return
+
+    # --- A11-S SABIT: esik degerleri
+    kayit("A11-S SABIT: esik degerleri",
+          ks.CHROME_ESIK_DAKIKA == 120 and ks.WRANGLER_ESIK_SAAT == 48,
+          "chrome=%dk wrangler=%dsa" % (ks.CHROME_ESIK_DAKIKA, ks.WRANGLER_ESIK_SAAT))
+
+    # --- A11a/b: temel silme davranisi (TEMPFILE altinda; gercek koklere DOKUNMAZ)
+    with tempfile.TemporaryDirectory(prefix="sabah-kabul-a11-") as td:
+        chrome_kok, wrangler_kok, now = _a11_kur_td(td)
+        satir = ks.disk_supurme(kuru=False, chrome_kok=chrome_kok,
+                                wrangler_kok=wrangler_kok, simdi=now)
+        durum = _a11_kalan_varmi(td)
+        # chrome_dizin >= 1 (scoped_dirA); wrangler_dosya >= 1 (eski.log)
+        chrome_n = int(re.match(r".*chrome_dizin=(\d+)", satir).group(1))  # type: ignore
+        wrangler_n = int(re.match(r".*wrangler_dosya=(\d+)", satir).group(1))  # type: ignore
+        a11a = (durum["scoped_dirA_yok"] and durum["scoped_dirB_var"]
+                and durum["profile_data_var"] and chrome_n >= 1)
+        a11b = (durum["eski_log_yok"] and durum["yeni_log_var"]
+                and durum["eski_dizin_var"] and wrangler_n >= 1)
+        kayit(A11_KOLLARI[0], a11a,
+              "%s | chrome_dizin=%d" % (
+                  " ".join("%s=%s" % kv for kv in durum.items() if kv[0] in
+                          ("scoped_dirA_yok", "scoped_dirB_var", "profile_data_var")),
+                  chrome_n))
+        kayit(A11_KOLLARI[1], a11b,
+              "%s | wrangler_dosya=%d" % (
+                  " ".join("%s=%s" % kv for kv in durum.items() if kv[0] in
+                          ("eski_log_yok", "yeni_log_var", "eski_dizin_var")),
+                  wrangler_n))
+
+    # --- A11c: kuru=True → 0 silme ama sayim dogru
+    with tempfile.TemporaryDirectory(prefix="sabah-kabul-a11c-") as td:
+        chrome_kok, wrangler_kok, now = _a11_kur_td(td)
+        satir = ks.disk_supurme(kuru=True, chrome_kok=chrome_kok,
+                                wrangler_kok=wrangler_kok, simdi=now)
+        durum = _a11_kalan_varmi(td)
+        # kuru=1 oldugunda HICBIR SEY silinmemeli (eski + yeni HEPSI yerinde)
+        hepsi_duruyor = all([
+            not durum["scoped_dirA_yok"],
+            durum["scoped_dirB_var"],
+            durum["profile_data_var"],
+            not durum["eski_log_yok"],
+            durum["yeni_log_var"],
+            durum["eski_dizin_var"],
+        ])
+        chrome_n = int(re.match(r".*chrome_dizin=(\d+)", satir).group(1))  # type: ignore
+        wrangler_n = int(re.match(r".*wrangler_dosya=(\d+)", satir).group(1))  # type: ignore
+        kuru_ok = re.search(r"kuru=1\b", satir) is not None
+        a11c = hepsi_duruyor and chrome_n >= 1 and wrangler_n >= 1 and kuru_ok
+        kayit(A11_KOLLARI[2], a11c,
+              "hepsi_duruyor=%s chrome_n=%d wrangler_n=%d kuru_ok=%s | satir=%s" % (
+                  int(hepsi_duruyor), chrome_n, wrangler_n, int(kuru_ok), satir[:90]))
+
+    # --- A11d: kok yoksa 0 ve istisna yok
+    yok_chrome = "/tmp/a11-yok-chrome-%d" % os.getpid()
+    yok_wrangler = "/tmp/a11-yok-wrangler-%d" % os.getpid()
+    for p in (yok_chrome, yok_wrangler):
+        if os.path.exists(p):
+            try:
+                if os.path.isdir(p):
+                    shutil.rmtree(p)
+                else:
+                    os.unlink(p)
+            except OSError:
+                pass
+    try:
+        satir = ks.disk_supurme(kuru=False, chrome_kok=Path(yok_chrome),
+                                wrangler_kok=Path(yok_wrangler), simdi=time.time())
+        a11d = (satir.startswith("DISK_SUPURME chrome_dizin=0 chrome_bayt=0")
+                and "wrangler_dosya=0" in satir and "wrangler_bayt=0" in satir)
+        kayit(A11_KOLLARI[3], a11d, "satir=%s" % satir[:90])
+    except Exception as hata:
+        kayit(A11_KOLLARI[3], False,
+              "ISTISNA: %s: %s" % (type(hata).__name__, str(hata)[:80]))
+
+    # --- A11e: basilan satir jetonlari (chrome_dizin= / chrome_bayt= / wrangler_dosya= /
+    #     wrangler_bayt= / kuru=)
+    with tempfile.TemporaryDirectory(prefix="sabah-kabul-a11e-") as td:
+        chrome_kok, wrangler_kok, now = _a11_kur_td(td)
+        satir = ks.disk_supurme(kuru=False, chrome_kok=chrome_kok,
+                                wrangler_kok=wrangler_kok, simdi=now)
+    jetonlar = ("chrome_dizin=", "chrome_bayt=", "wrangler_dosya=",
+                "wrangler_bayt=", "kuru=0")
+    a11e = all(j in satir for j in jetonlar)
+    kayit(A11_KOLLARI[4], a11e, "jetonlar=%s satir=%s" % (
+        "/".join("ok" if j in satir else "YOK" for j in jetonlar), satir[:90]))
+
+    # --- MUTANTLAR (kopyada; canli dosyaya DOKUNULMAZ) ---
+    # A11M1: yas esigi kontrolu KALDIRILINCA (a)/(b) KIRMIZI
+    mut1, sorun1 = _a11_mutant_modul(list(A11_YAS_CAPALAR))
+    if mut1 is None:
+        kayit(A11_KOLLARI[5], None, "mutant kurulamadi: %s" % sorun1)
+        kayit(A11_KOLLARI[6], None, "kuru mutant KOSTURULAMADI (M1 bulunamadi)")
+    else:
+        with tempfile.TemporaryDirectory(prefix="sabah-kabul-a11m1-") as td:
+            chrome_kok, wrangler_kok, now = _a11_kur_td(td)
+            mut1.disk_supurme(kuru=False, chrome_kok=chrome_kok,
+                             wrangler_kok=wrangler_kok, simdi=now)
+            durum = _a11_kalan_varmi(td)
+            # YAS esigi yoksa scoped_dirB + yeni.log da SILINIR (sadece scoped_dirA
+            # degil; scoped_dir olmayan profile_data KALIR — ad filtresi AYNI).
+            m1_kirmizi = (not durum["scoped_dirB_var"]  # yeni scoped_dir de SILDI
+                         and not durum["yeni_log_var"])    # yeni log da SILDI
+            a11a_yine = (durum["scoped_dirA_yok"] and durum["scoped_dirB_var"]
+                        and durum["profile_data_var"])
+            a11b_yine = (durum["eski_log_yok"] and durum["yeni_log_var"]
+                        and durum["eski_dizin_var"])
+            kayit(A11_KOLLARI[5], m1_kirmizi and not a11a_yine and not a11b_yine,
+                  "mutant (a)/(b) KIRMIZI: scoped_dirB_silindi=%d yeni_log_silindi=%d | a11a_kalsaydi=%d a11b_kalsaydi=%d" % (
+                      int(not durum["scoped_dirB_var"]), int(not durum["yeni_log_var"]),
+                      int(a11a_yine), int(a11b_yine)))
+
+    # A11M2: kuru kontrolu KALDIRILINCA (c) KIRMIZI
+    mut2, sorun2 = _a11_mutant_modul(list(A11_KURU_CAPALAR))
+    if mut2 is None:
+        kayit(A11_KOLLARI[6], None, "kuru mutant kurulamadi: %s" % sorun2)
+    else:
+        with tempfile.TemporaryDirectory(prefix="sabah-kabul-a11m2-") as td:
+            chrome_kok, wrangler_kok, now = _a11_kur_td(td)
+            mut2.disk_supurme(kuru=True, chrome_kok=chrome_kok,
+                             wrangler_kok=wrangler_kok, simdi=now)
+            durum = _a11_kalan_varmi(td)
+            # KURU=True olmasina ragmen SILDI mi? eski scoped_dirA + eski.log yok
+            m2_kirmizi = durum["scoped_dirA_yok"] and durum["eski_log_yok"]
+            kayit(A11_KOLLARI[6], m2_kirmizi,
+                  "kuru=True iken scoped_dirA_silindi=%d eski.log_silindi=%d" % (
+                      int(durum["scoped_dirA_yok"]), int(durum["eski_log_yok"])))
+
+    # A11M3: ad filtresi KALDIRILINCA (a) KIRMIZI
+    mut3, sorun3 = _a11_mutant_modul([(A11_AD_CAPA, A11_AD_YAMA)])
+    if mut3 is None:
+        kayit(A11_KOLLARI[7], None, "ad filtresi mutant kurulamadi: %s" % sorun3)
+    else:
+        with tempfile.TemporaryDirectory(prefix="sabah-kabul-a11m3-") as td:
+            chrome_kok, wrangler_kok, now = _a11_kur_td(td)
+            mut3.disk_supurme(kuru=False, chrome_kok=chrome_kok,
+                             wrangler_kok=wrangler_kok, simdi=now)
+            durum = _a11_kalan_varmi(td)
+            # AD filtresi yoksa profile_data (eski + scoped_dir DEGIL) da SILINIR
+            m3_kirmizi = not durum["profile_data_var"]
+            a11a_yine = (durum["scoped_dirA_yok"] and durum["scoped_dirB_var"]
+                        and durum["profile_data_var"])
+            kayit(A11_KOLLARI[7], m3_kirmizi and not a11a_yine,
+                  "profile_data_silindi=%d (ad filtresi yok) | a11a_kalsaydi=%d" % (
+                      int(not durum["profile_data_var"]), int(a11a_yine)))
+
+
 def _genel_rotasyon_kumu():
     """A2/A3/A5 kurulu araci CIPLAK kosar: rotasyon kutusu kuma yonlenir.
 
@@ -1652,11 +1976,11 @@ def main(argv=None):
     # (hicbir git nesnesinde yoktu) -> CI onlari HIC kosmuyordu ve `kur.py`
     # KOPYA_AYRISIK ile duruyordu. A8 hermetiktir (enjekte `gh` + gecici spec
     # dizini); A9'un A9-1 kolu CANLI defteri okur, o yuzden A9 CI'ya baglanmaz.
-    ap.add_argument("--vaka", choices=("A7", "A8", "A9", "A10"), default=None,
+    ap.add_argument("--vaka", choices=("A7", "A8", "A9", "A10", "A11"), default=None,
                     help="YALNIZ bu vakayi kos (A7: kurucu idempotensi, hermetik "
                          "sahte CRON dizini · A8: ucuncu kova, enjekte gh · A9: "
-                         "tavan freni · A10: kutu rotasyonu spec'ten once, "
-                         "hermetik; A1/A6/A2 KOSULMAZ)")
+                         "tavan freni · A10: kutu rotasyonu spec'ten once · "
+                         "A11: disk supurme, hermetik; A1/A6/A2 KOSULMAZ)")
     ap.add_argument("--arac", default=None, metavar="YOL",
                     help="olculecek kral-sabah.py (varsayilan: kurulu kopya "
                          "~/.claude/cron/kral-sabah.py). Dalin KENDI dosyasini "
@@ -1694,6 +2018,9 @@ def main(argv=None):
         a9_tavan_freni()
     elif args.vaka == "A10":
         a10_rotasyon()
+    elif args.vaka == "A11":
+        # Hermetik kol: temp kokler + mutant modulleri (canli dosya degismez).
+        a11_disk_supurme()
     else:
         a1_ortam()
         # A6/A7 CANLI DUZLEME YAZMAZ (yalniz gecici dizin + salt-okuma) -> her fazda.
@@ -1706,6 +2033,8 @@ def main(argv=None):
         a9_tavan_freni()
         # A10 hermetik (A8 kumu + enjekte araç/kutu) -> her fazda.
         a10_rotasyon()
+        # A11 hermetik (tempfile + mutant kopya) -> her fazda.
+        a11_disk_supurme()
         if args.faz == "tam":
             a2_gercek_kosum()
             a3_a4_sonuc_kolu()
