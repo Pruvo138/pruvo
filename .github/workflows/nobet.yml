@@ -757,6 +757,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/sabah-teslim/sabah-kabul.py --vaka A10 --arac tools/sabah-teslim/kral-sabah.py
 
+      # 🔴 6 Eki 2026 — A11: sabah disk supurme adimi (headless onbellek >120 dk
+      # chrome scoped_dir + wrangler log >48 sa). kuru/fikstur kosumda HICBIR
+      # sey silmez; 9 vaka (a/b/c/d/e + kontrol) + 3 mutant A11M1-M3.
+      - name: K-DiskSupurme sabah disk supurme kabul (A11, 9 vaka + 3 mutant)
+        if: ${{ !cancelled() }}
+        run: python3 tools/sabah-teslim/sabah-kabul.py --vaka A11 --arac tools/sabah-teslim/kral-sabah.py
+
       # 🔴 18 Eyl 2026 — kesif genislemesinin (`-kabul` eki) getirdigi, CI aynasinda
       # (bos HOME) HERMETIK olculen iki batarya: K324 (tasima birimi + kutu kolu,
       # rc=0 0.9 sn) ve K399 thing-icerik portu (rc=0; `--mutasyon` alt kumesini
