@@ -176,9 +176,10 @@ def kos(kanca=KANCA, sessiz=False):
         # DEGILDIR — kancanin "cip kapanmadi" mesaji iscinin kendisine yonelik
         # sanilip 22 betik SILDIRDI + kutuya SAHTE kapanis yazdirdi. IKI YON birden:
         # (a/b) dolu isaret -> GECIR (muafiyet calisiyor); (c) isaretsiz ayni kirmizi
-        # agac -> hala BLOKLA (muafiyet sizdirmiyor); (d) BOS isaret = dogal-Claude
-        # yolu (isci.sh `PRUVO_ISCI_KOSUMU="$PRUVO_ISCI_KOSUMU_DOGAL"` bos kurar) ->
-        # hala BLOKLA: kapsam siniri SESSIZ degil, olculur ve adiyla beyan edilir.
+        # agac -> hala BLOKLA (muafiyet sizdirmiyor); (d) BOS isaret -> hala BLOKLA
+        # (bos deger muaf SAYILMAZ, fail-closed). 6 Eki: dogal-Claude yolu BOS gelmez:
+        # `PRUVO_ISCI_KOSUMU_DOGAL=claude` isci-sabitler.zsh'de tanimli, o yol V10b
+        # sinifindadir (dolu KOSUMU -> GECIR).
         for ad_v10, ek_v10, beklenen_blok, aciklama in (
                 ("V10a", {"PRUVO_ISCI_ETIKET": "tamir"}, False,
                  "isci ETIKET dolu -> GECIRDI"),
@@ -187,7 +188,7 @@ def kos(kanca=KANCA, sessiz=False):
                 ("V10c", {}, True,
                  "isaretsiz kirmizi cip -> hala BLOKLADI (muafiyet sizdirmiyor)"),
                 ("V10d", {"PRUVO_ISCI_KOSUMU": "", "PRUVO_ISCI_ETIKET": ""}, True,
-                 "BOS isaret (dogal-Claude yolu) -> hala BLOKLADI (kapsam siniri olculur)")):
+                 "BOS isaret -> hala BLOKLADI (bos deger muaf sayilmaz)")):
             sid = "test-" + ad_v10.lower()
             _sayaci_temizle(sid)
             _rc, blok, _s, _o, _e = kancayi_kos(
@@ -324,8 +325,8 @@ MUTANTLAR = (
      '    adaylar = ((\"\", \"harness ortami\"),\n'),
     # 🔴 5 EKI NOBETCISI: isci muafiyeti. M7 muafiyeti tamamen kaldirir (V10a/b
     # KIRMIZI yanmali — isci yine "cip kapanmadi" mesajini alir); M8 isareti
-    # "VAR=dolu" yerine "ortamda ADI VAR" yapar: BOS isaretli dogal-Claude yolu da
-    # muaf olur, V10d KIRMIZI yanmali. Ikisi de olmezse muafiyet ya OLU ya da
+    # "VAR=dolu" yerine "ortamda ADI VAR" yapar: BOS isaret de muaf olur, V10d
+    # KIRMIZI yanmali. Ikisi de olmezse muafiyet ya OLU ya da
     # SIZDIRIYOR demektir ve ayni sahte kapanis/silme bir tur sonra geri gelir.
     ("M7 isci-muafiyetini-kaldir", "V10a/b",
      '    if isci_oturumu_mu():\n        return _gecti(',

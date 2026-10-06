@@ -117,11 +117,15 @@ MUAFIYET_JETONU = _muafiyet_jetonu()
 # Kapanis cipin isidir; isci kapanis yazamaz/yazmamali — mesaj yanlis muhataba gider.
 # `isci.sh` ANAHTARLI MOTOR yolundaki (m3) isci oturumuna iki ISARET miras verir:
 # PRUVO_ISCI_KOSUMU=<motor> + PRUVO_ISCI_ETIKET=<etiket> (isci.sh ~l.586/590).
-# KAPSAM SINIRI (olculdu): dogal Claude yolunda (`motor=claude`) isci.sh
-# PRUVO_ISCI_KOSUMU'nu `$PRUVO_ISCI_KOSUMU_DOGAL`dan kurar ve o degisken isci.sh
-# icinde TANIMLANMAZ -> BOS gelir, ETIKET hic kurulmaz -> bu yol MUAF DEGILDIR
-# (olcen vaka: V10d). Kanca BU ortam degiskenlerini okur, cunku hook stdin'inde
-# isci/cip ayrimi YOKTUR (sozlesme alanlari yukarida).
+# DOGAL CLAUDE YOLU MUAFTIR (6 Eki 2026, KraL-Tamirci-6Eki OLCTU; 5 Eki'deki "kapsam
+# siniri: bos gelir, muaf degil" notu YANLIS OKUNMUSTU): `isci.sh` `motor=claude`
+# yolunda PRUVO_ISCI_KOSUMU'nu `$PRUVO_ISCI_KOSUMU_DOGAL`dan kurar; o degisken isci.sh
+# GOVDESINDE degil, basta `source` edilen `isci-sabitler.zsh`de (19 Agu'dan beri
+# `=claude`) tanimlidir -> DOLU gelir ve bu yol da muaf tutulur (canli olcum:
+# PRUVO_ISCI_KOSUMU=claude ile kanca bloklamadi). ETIKET bu yolda kurulmaz, KOSUMU
+# yeter. V10d yalniz BOS isaretin muaf SAYILMADIGINI olcer (fail-closed). Kanca BU
+# ortam degiskenlerini okur, cunku hook stdin'inde isci/cip ayrimi YOKTUR (sozlesme
+# alanlari yukarida).
 # Sessiz bypass yuzeyi DEGIL: isaret cipin KENDI Bash'inden kancaya ULASMAZ (hook
 # ortami harness surecinindir), yalniz `isci.sh`in kurdugu surecte dolu gelir.
 # BOS DEGER isaret SAYILMAZ — yalniz dolu deger muaf tutar.
