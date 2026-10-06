@@ -21,7 +21,7 @@ YAPAR (her dosya için):
   aynı ad + FARKLI içerik → hedefe '__<sha256[:8]>' SON EKİ EKLE
   hedef sha256 != kaynak sha256 → satır 'sha-esit-degil', KAYNAK SİLİNMEZ, rc=1
   sha eşit + --yerel-tut yoksa → KAYNAK SİL
-  sha eşit + evict çağrısı → Foundation `evictUbiquitousItem`
+  sha eşit + evict çağrısı → `drive_birak.evict` (tek kaynak)
   evict hatası → satıra 'evict=hata', dosya kaybolmaz, rc DEĞİŞMEZ
   --kuru → hiçbir şey yapma, ne yapacağını bas
 
@@ -35,36 +35,23 @@ ORNEKLER:
   python3 tools/drive-arsivle.py /tmp/dosya.zip --hedef tek-dosyalar --yerel-tut
 """
 import argparse
-import hashlib
 import os
 import shlex
 import shutil
 import subprocess
 import sys
 
+# TEK KAYNAK: evict + sha256 `drive_birak.py`'de yasar; burada ikinci kopya YOK.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from drive_birak import evict as drive_evict, sha256_dosya  # noqa: E402
+
 VARSAYILAN_DRIVE_KOK = (
     "/Users/okan/Library/CloudStorage/"
     "GoogleDrive-info@pruvo3d.com/Ortak Drive'lar/PRUVO/Pruvo/arsiv"
 )
-# Evict Foundation `FileManager.default.evictUbiquitousItem(at:)`. `swift -e` ile
-# tek satır; hata rc=0 döner ve stderr'e yazar — yutulmaz, dosya kaybolmaz.
-VARSAYILAN_EVICT_KOMUT = (
-    "swift -e "
-    "'import Foundation;"
-    "let p = URL(fileURLWithPath: CommandLine.arguments[1]);"
-    "try FileManager.default.evictUbiquitousItem(at: p);"
-    "print(\"ok\")'"
-)
+# Varsayilan evict = `drive_birak.evict`. `--evict-komut` / env YALNIZ test enjeksiyonu
+# icindir (sahte shell betigi); verilmezse Foundation cagrisi drive_birak'tan gelir.
 EVICT_ENV = "DRIVE_ARSIVLE_EVICT"
-
-
-def sha256_dosya(yol):
-    """Bir dosyanın sha256 özetini hesaplar."""
-    h = hashlib.sha256()
-    with open(yol, "rb") as f:
-        for parc in iter(lambda: f.read(1024 * 1024), b""):
-            h.update(parc)
-    return h.hexdigest()
 
 
 def kaynaklari_topla(kaynak_yol):
@@ -112,7 +99,9 @@ def hedef_yolu_coz(drive_kok, hedef_alt, goreeli, sha_kaynak):
 
 
 def evict_cagir(komut, yol, log):
-    """Foundation `evictUbiquitousItem(at:)` çağırır; hata loglanır, rc DEĞİŞMEZ.
+    """Evict çağırır; hata loglanır, rc DEĞİŞMEZ.
+
+    `komut` None → `drive_birak.evict` (varsayılan, tek kaynak).
 
     `komut` iki biçimden biri olabilir:
       1) '{yol}' placeholder içeren tek satır string (shlex.quote ile güvenli)
@@ -122,6 +111,12 @@ def evict_cagir(komut, yol, log):
     KORUNUR — komut string'i shell=True ile calistirildiginda kelimelere
     yanlış bölünmez.
     """
+    if komut is None:
+        if drive_evict(yol):
+            log.append("evict=ok")
+            return True
+        log.append("evict=hata kaynak=drive_birak")
+        return False
     if "{yol}" in komut:
         k = komut.format(yol=shlex.quote(yol))
     else:
@@ -157,10 +152,9 @@ def main(argv=None):
                     help="kaynak kopyalandiktan sonra SILINMESIN")
     ap.add_argument("--kuru", action="store_true",
                     help="hicbir sey yazmaz/silmez; ne yapacagini basar")
-    ap.add_argument("--evict-komut", default=os.environ.get(
-        EVICT_ENV, VARSAYILAN_EVICT_KOMUT),
-        help="evict komutu (test enjekte eder); '{yol}' placeholder'i veya "
-                         "komut + argüman bicimi")
+    ap.add_argument("--evict-komut", default=os.environ.get(EVICT_ENV),
+        help="evict komutu (YALNIZ test enjekte eder; verilmezse drive_birak.evict); "
+             "'{yol}' placeholder'i veya komut + argüman bicimi")
     a = ap.parse_args(argv)
 
     kok = a.drive_kok

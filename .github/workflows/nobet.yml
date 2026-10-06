@@ -4611,6 +4611,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/stl-r2-anahtar-test.py
 
+      # DRIVE-ARSIVLE: Drive'a yaz -> sha256 dogrula -> yerel sil -> evict (evict+sha256 tek
+      # kaynak drive_birak.py). Bloklayici: sha kontrolu/--kuru/--yerel-tut kayarsa yerel dosya
+      # Drive kopyasi dogrulanmadan SILINIR (geri gelmez). Hermetik (gecici kaynak + sahte Drive
+      # koku + sahte evict betigi; gercek Drive'a yazmaz), 43 iddia + 3 mutant.
+      - name: Drive arsivleme kabul testi
+        if: ${{ !cancelled() }}
+        run: python3 tools/drive-arsivle-test.py
+
       # 3MF SINIR KUTUSU (bbox_3mf) — 30 Tem'e kadar OLU idi: ankraj fiksturleri GERCEK urun
       # dosyalariydi (stl/pr1173083.3mf, stl/pr912419.3mf) ve stl/ gitignore'da; test her
       # ortamda 0,1 s'de FileNotFoundError ile PATLIYOR, HICBIR iddia kosmuyordu. Muafiyet
