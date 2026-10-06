@@ -33,6 +33,12 @@
  *                         panel baski notunda "AYAK: <adet> adet"
  *   S EKRAN             : foto-uretim.js SAHTE DOM'da kosar: tek turde tur radyosu 0 + adim
  *                         "Olcu"; olcu radyolari (S1 + S3) gercekten cizilir (5 Eki olculen hata)
+ * ORNEK URETIM (BaBa 6 Eki — panel "Örnek üret", Okan'in kendi fotografi, odemesiz):
+ *   O YETKI+AYRIM       : ornek uclari anahtarsiz 404 · anahtar/tur yolu yoksa 503 + saglayiciya 0 ·
+ *                         bot/onay/gercek-ornek/ziyaretci siniri ATLANIR · ornek isi sepette RED ·
+ *                         musteri /foto/durum+/foto/gorsel ornegi gostermez · gunluk tavana sayilmaz ·
+ *                         cron ORNEK-<is> satirini isler, 3MF ozel kovada, kredi 46 deftere ·
+ *                         "Örnek üretimler" listesi + anahtarli indirme · havuz esigi AYNEN
  *
  * NASIL: GERCEK worker (shop/src/index.js) import edilir. D1 = GERCEK SQLite: sema
  * tools/d1-sema.sql'den kurulur (shop/test/ortak/sqlite-koprusu.py) — elle yazilmis
@@ -47,6 +53,8 @@
  *   M4 TUR    : anahtarlik tur tablosuna geri acilir   -> T OLUR
  *   M5 AYAK   : odeme kaleminden foto_ayak duser       -> A OLUR
  *   K0 KONTROL: yalniz log metni degisir               -> HICBIRI OLMEZ
+ *   OM1..OM6  : ornek ayrim dallari (sepet/durum/gorsel/tavan/dosya/uret) tek tek silinir
+ *               -> ilgili ORNEK senaryosu OLUR; OK0 (yalniz yorum) -> HICBIRI OLMEZ
  *   (ekran mutantlari S-M1..S-M4 bellekteki kaynak metnine uygulanir)
  *
  * CIKIS KODU: 0 yesil · 1 kirmizi iddia · 3 OLCULEMEDI (modul/kopru kurulamadi).
@@ -525,6 +533,153 @@ console.log("Q) SUNULMAYAN TUR — sunucu reddi (eski/elle yazilmis kayit uzerin
      q3 && q3.asama === "elle" && q3.sebep === "tur-kapali" && yeni.length === 0, JSON.stringify(q3) + " " + yeni.join(","));
 }
 
+console.log("O) ORNEK URETIM — panel 'Örnek üret' (Okan'in fotografi, odemesiz; BaBa 6 Eki)");
+let ornekIs = "";
+{
+  const ornekGovde = (ek) => ({ gorsel: GORSEL, olcu_mm: 100, ...(ek || {}) });
+  const yol = (u) => u.replace("/api/shop", "");
+  // O1 YETKI: anahtarsiz her ornek ucu 404 (varlik sizmaz) ve saglayiciya istek YOK.
+  const p0 = protoSayisi();
+  const yetkisiz = [
+    await istek(env, "/yonet/foto/ornek-onizleme", { govde: ornekGovde() }),
+    await istek(env, "/yonet/foto/ornek-uret", { govde: { is: "a".repeat(32) } }),
+    await istek(env, "/yonet/foto/ornek-durum?is=" + "a".repeat(32)),
+    await istek(env, "/yonet/foto/ornek-gorsel?is=" + "a".repeat(32)),
+    await istek(env, "/yonet/foto/ornekler"),
+  ].map((r) => r.kod);
+  ol("O1 yetkisiz: 5 ornek ucu da 404, saglayiciya istek 0",
+     yetkisiz.every((k) => k === 404) && protoSayisi() === p0, yetkisiz.join(","));
+  // O2 FAIL-CLOSED: anahtar / tur yolu yoksa 503 ve saglayiciya istek 0.
+  const anahtarsiz = await istek(envKur(d1, r2, { URETIM_API_ANAHTAR: "" }), "/yonet/foto/ornek-onizleme",
+    { govde: ornekGovde(), basliklar: YONET });
+  const yolsuz = await istek(envKur(d1, r2, { URETIM_TUR_PLAKET: "" }), "/yonet/foto/ornek-onizleme",
+    { govde: ornekGovde(), basliklar: YONET });
+  ol("O2 anahtarsiz / tur yolsuz -> 503 (eksik listeli) + saglayiciya istek 0",
+     anahtarsiz.kod === 503 && anahtarsiz.v.eksik.includes("api-anahtari") && yolsuz.kod === 503 &&
+     yolsuz.v.eksik.includes("tur-yolu-plaket") && protoSayisi() === p0,
+     anahtarsiz.kod + "/" + yolsuz.kod + " proto=" + (protoSayisi() - p0));
+  ol("O2b fiyat tablosunda olmayan olcu -> 400 (saglayiciya istek 0)",
+     (await istek(env, "/yonet/foto/ornek-onizleme", { govde: ornekGovde({ olcu_mm: 120 }), basliklar: YONET })).kod === 400 &&
+     protoSayisi() === p0, "");
+  // O3 KAPILAR ATLANIR: bot sirri yok + bot reddediyor + onay kapali + gercek ornek 0 +
+  // hiz siniri binding'i yok; ayni IP'den sinir+1 ornek onizlemesi -> hepsi 200.
+  const yedekOrnek = VERI.ornekler.splice(0);
+  const onayYedek = VERI.onay_onayli;
+  VERI.onay_onayli = false;
+  P.turnstile = "red";
+  const tsOnce = P.cagri.filter((c) => c === "TURNSTILE").length;
+  const kapisiz = envKur(d1, r2, { TURNSTILE_SECRET: "" }); delete kapisiz.FOTO_RATE_LIMIT;
+  const kodlar = [];
+  for (let i = 0; i <= VERI.sinir_ziyaretci_24s; i++) {
+    const r = await istek(kapisiz, "/yonet/foto/ornek-onizleme", { govde: ornekGovde(), basliklar: YONET, ip: "198.51.100.150" });
+    kodlar.push(r.kod); if (r.v && r.v.is) { ornekIs = r.v.is; }
+  }
+  const musteriKapali = foto.yapilandirma(kapisiz);
+  VERI.ornekler.push(...yedekOrnek);
+  VERI.onay_onayli = onayYedek;
+  P.turnstile = "ok";
+  ol("O3 bot/onay/gercek-ornek/ziyaretci siniri ATLANIR: sinir+1 (" + (VERI.sinir_ziyaretci_24s + 1) + ") ornek onizleme hepsi 200",
+     kodlar.every((k) => k === 200) && !musteriKapali.hazir &&
+     P.cagri.filter((c) => c === "TURNSTILE").length === tsOnce && protoSayisi() === p0 + kodlar.length,
+     kodlar.join(",") + " musteri-eksik=" + musteriKapali.eksik.join("|"));
+  const satir = await d1.prepare("SELECT ziyaretci, tur, olcu_mm, asama FROM foto_isler WHERE is_no = ?").bind(ornekIs).first();
+  ol("O3b is satiri ornek isaretli (ziyaretci='ornek', plaket 100 mm)", satir && satir.ziyaretci === foto.ORNEK_ZIYARETCI &&
+     satir.tur === "plaket" && satir.olcu_mm === 100, JSON.stringify(satir));
+  // O4 SAYAC: ornek isleri musterinin gunluk tavanini yemez (tavan kadar ornek satiri + musteri 200).
+  const tarih = new Date().toISOString();
+  for (let i = 0; i < foto.GUNLUK_ONIZLEME_TAVANI; i++) {
+    await d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama) VALUES (?, 'plaket', 100, ?, ?, 'basarisiz')")
+      .bind("e" + String(i).padStart(31, "0"), foto.ORNEK_ZIYARETCI, tarih).run();
+  }
+  const m = await istek(env, "/foto/onizleme", { ip: "198.51.100.151", govde: onizlemeGovde() });
+  ol("O4 tavan (" + foto.GUNLUK_ONIZLEME_TAVANI + ") kadar ornek satiri varken musteri onizlemesi 200 (ornek sayilmaz)",
+     m.kod === 200, m.kod + " " + JSON.stringify(m.v));
+  // O5 DURUM: panel yoklamasi onizlemeyi hazirlar; musteri uclari ornek isini GOSTERMEZ.
+  for (let i = 0; i < 2; i++) {
+    await d1.prepare("UPDATE foto_isler SET son_kontrol = 0 WHERE is_no = ?").bind(ornekIs).run();
+    await istek(env, "/yonet/foto/ornek-durum?is=" + ornekIs, { basliklar: YONET });
+  }
+  const pd = await istek(env, "/yonet/foto/ornek-durum?is=" + ornekIs, { basliklar: YONET });
+  ol("O5 panel ornek-durum -> hazir + panel gorsel adresi", pd.kod === 200 && pd.v.asama === "hazir" &&
+     /\/yonet\/foto\/ornek-gorsel\?is=/.test(pd.v.gorsel || ""), JSON.stringify(pd.v));
+  const pg = await istek(env, yol(pd.v.gorsel || "/x"), { basliklar: YONET });
+  ol("O5b panel ornek gorseli anahtarli 200, anahtarsiz 404",
+     pg.kod === 200 && (await istek(env, yol(pd.v.gorsel || "/x"))).kod === 404, pg.kod);
+  const md = await istek(env, "/foto/durum?is=" + ornekIs);
+  const mg = await istek(env, "/foto/gorsel?is=" + ornekIs);
+  ol("O6 musteri /foto/durum + /foto/gorsel ornek isini GOSTERMEZ (gorsel kovada VAR iken 404)",
+     r2.m.has("foto-onizleme/" + ornekIs + ".png") && md.kod === 404 && mg.kod === 404, md.kod + "/" + mg.kod);
+  const musteriIs = m.v && m.v.is;
+  const pm = await istek(env, "/yonet/foto/ornek-durum?is=" + musteriIs, { basliklar: YONET });
+  ol("O6b panel ornek-durum musteri isini GOSTERMEZ (404)", pm.kod === 404, pm.kod);
+  // O7 SEPET: ornek isi /baslat'ta RED, odeme baslamaz.
+  const iyOnce = P.iyzico.length;
+  const sb = await istek(env, "/baslat", { govde: { sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+    sepet: [{ foto_is: ornekIs, olcu_mm: 100, adet: 1 }] } });
+  ol("O7 ornek isi sepette RED (400 foto-onizleme-yok), iyzico'ya istek YOK",
+     sb.kod === 400 && sb.v.hata === "foto-onizleme-yok" && P.iyzico.length === iyOnce, JSON.stringify(sb.v));
+  // O8 URET: musteri isi uretilemez; hazir olmayan ornek 409; hazir ornek siparissiz satir.
+  const um = await istek(env, "/yonet/foto/ornek-uret", { govde: { is: musteriIs }, basliklar: YONET });
+  const hazirDegil = await d1.prepare("SELECT is_no FROM foto_isler WHERE ziyaretci = ? AND asama = 'onizleme' AND gorev != '' LIMIT 1")
+    .bind(foto.ORNEK_ZIYARETCI).first();
+  const uh = await istek(env, "/yonet/foto/ornek-uret", { govde: { is: hazirDegil && hazirDegil.is_no }, basliklar: YONET });
+  ol("O8 musteri isi ornek-uret'te 404 · hazir olmayan ornek 409", um.kod === 404 && uh.kod === 409, um.kod + "/" + uh.kod);
+  const u1 = await istek(env, "/yonet/foto/ornek-uret", { govde: { is: ornekIs }, basliklar: YONET });
+  const u2 = await istek(env, "/yonet/foto/ornek-uret", { govde: { is: ornekIs }, basliklar: YONET });
+  const ornekNo = "ORNEK-" + ornekIs.slice(0, 12);
+  ol("O8b ornek-uret -> siparis_no ORNEK-<is ilk 12>, ikinci cagri yeni satir ACMAZ",
+     u1.kod === 200 && u1.v.siparis_no === ornekNo && u1.v.yeni === true && u2.v.yeni === false, JSON.stringify(u1.v) + JSON.stringify(u2.v));
+  const sip = await d1.prepare("SELECT COUNT(*) AS n FROM siparisler WHERE siparis_no = ?").bind(ornekNo).first();
+  ol("O8c siparis kaydi ACILMAZ (siparisler'de 0 satir)", sip.n === 0, sip.n);
+  // O9 CRON: mevcut zincir ornek satirini isler, 3MF+GLB ozel kovaya duser, kredi deftere yazilir.
+  for (let i = 0; i < 4; i++) { await cron(); }
+  const ou = await d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = ?").bind(ornekNo).first();
+  ol("O9 cron ornek satirini 'hazir'a tasir (Build -> Analiz -> 4 renk)", ou && ou.asama === "hazir", JSON.stringify(ou));
+  ol("O9b 3MF + GLB ozel kovada (foto/" + ornekNo + "/0/...)",
+     r2.m.has("foto/" + ornekNo + "/0/model.3mf") && r2.m.has("foto/" + ornekNo + "/0/model.glb"), "");
+  const okr = await d1.prepare("SELECT COALESCE(SUM(kredi),0) AS t, COUNT(*) AS n FROM foto_kredi WHERE siparis_no = ?").bind(ornekNo).first();
+  ol("O10 kredi kaydi yazilir: 46 (6 onizleme + 30 model + 0 analiz + 10 renk), 4 satir", okr.t === 46 && okr.n === 4, JSON.stringify(okr));
+  // O11 PANEL LISTESI: "Örnek üretimler" + anahtarli 3MF/GLB indirme.
+  const ol1 = await istek(env, "/yonet/foto/ornekler", { basliklar: YONET });
+  const kayit = ol1.v && ol1.v.ornekler.find((x) => x.siparis_no === ornekNo);
+  ol("O11 ornekler listesi: hazir + 3MF/GLB baglantisi + kredi 46",
+     kayit && kayit.asama === "hazir" && kayit.dosyalar && /bicim=3mf/.test(kayit.dosyalar["3mf"]) && kayit.kredi === 46,
+     JSON.stringify(kayit));
+  const ind = await istek(env, yol(kayit ? kayit.dosyalar["3mf"] : "/x"), { basliklar: YONET });
+  const indBayt = ind.kod === 200 ? new Uint8Array(await ind.r.arrayBuffer()) : new Uint8Array();
+  ol("O11b ornek 3MF anahtarli indirilir, anahtarsiz 404", ind.kod === 200 && indBayt.length === UCMF.length &&
+     (await istek(env, yol(kayit ? kayit.dosyalar["3mf"] : "/x"))).kod === 404, ind.kod);
+  await d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel) VALUES ('ORNEK-sahte0000001', 0, ?, 'plaket', 100, 'hazir', ?, ?)")
+    .bind(musteriIs, tarih, tarih).run();
+  await r2.put("foto/ORNEK-sahte0000001/0/model.3mf", UCMF, {});
+  const sahte = await istek(env, "/yonet/foto-dosya?siparis_no=ORNEK-sahte0000001&kalem=0&bicim=3mf", { basliklar: YONET });
+  ol("O11c ORNEK- onekli ama MUSTERI isine bagli satirin dosyasi verilmez (404)", sahte.kod === 404, sahte.kod);
+  await d1.prepare("DELETE FROM foto_uretim WHERE siparis_no = 'ORNEK-sahte0000001'").run();
+  const oz = await istek(env, "/yonet/foto-ozet", { basliklar: YONET });
+  const t = oz.v && oz.v.turler.find((x) => x.tur === "plaket");
+  ol("O11d panel ozetinde siparis kalemi sayisi ornekten etkilenmez (plaket kalem 2)", t && t.kalem === 2, JSON.stringify(t));
+  // O12 HAVUZ: bakiye esik altinda -> ornek onizleme + uret 503, saglayiciya istek 0.
+  P.bakiye = 100;
+  await d1.prepare("UPDATE foto_ayar SET guncel = 0 WHERE anahtar = 'bakiye'").run();
+  const p1 = protoSayisi();
+  const hv = await istek(env, "/yonet/foto/ornek-onizleme", { govde: ornekGovde(), basliklar: YONET });
+  ol("O12 havuz esigi AYNEN: ornek onizleme 503 havuz-esikte, saglayiciya istek 0",
+     hv.kod === 503 && hv.v.hata === "havuz-esikte" && protoSayisi() === p1, hv.kod + " " + JSON.stringify(hv.v));
+  P.bakiye = 1000;
+  await d1.prepare("UPDATE foto_ayar SET guncel = 0 WHERE anahtar = 'bakiye'").run();
+  await istek(env, "/foto/acik");
+  // O13 EKRAN: panel sayfasi "Örnek üret" + "Örnek üretimler" tasir ve script'i DERLENIR.
+  const sy = await istek(env, "/yonet/", { basliklar: YONET });
+  const html = sy.kod === 200 ? await sy.r.text() : "";
+  const betikler = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((x) => x[1]);
+  let derlendi = betikler.length > 0;
+  for (const b of betikler) { try { new vm.Script(b); } catch (e) { derlendi = false; } }
+  ol("O13 panel sayfasi: 'Örnek üret' + 'Önizleme al' + 'Bunu üret' + 'Örnek üretimler' VAR ve script derlenir",
+     /Örnek üret</.test(html) && html.includes("Önizleme al") && html.includes("Bunu üret") &&
+     html.includes("Örnek üretimler") && html.includes("/foto/ornek-onizleme") && derlendi,
+     "kod=" + sy.kod + " betik=" + betikler.length + " derlendi=" + derlendi);
+}
+
 console.log("K) MARKASIZ (calisma agacinda)");
 {
   // Aranan dizgeler ROT13 tutulur: bu dosyanin kendisi aramaya takilmasin (git grep 0 kalsin).
@@ -782,6 +937,80 @@ for (const [ad, capa, yerine, olmeli] of MUTANTLAR) {
        s[olmeli] === false && Object.keys(s).filter((x) => x !== olmeli).every((x) => s[x] === true), JSON.stringify(s));
   } else {
     ol(ad + " -> hicbir senaryo kirmizi yanmaz", Object.values(s).length === 5 && Object.values(s).every((x) => x === true), JSON.stringify(s));
+  }
+}
+
+/**
+ * ORNEK AYRIMLARI — mutanta karsi alti dar senaryo (temiz SQLite). Donus: her ayrim tuttu mu.
+ *   SEPET : ornek isi odeme kaleminde RED        DURUM : musteri /foto/durum ornegi gostermez
+ *   GORSEL: musteri /foto/gorsel ornegi vermez   SINIR : ornek satirlari gunluk tavani yemez
+ *   DOSYA : ORNEK- onekli musteri satiri dosya vermez   URET : musteri isi ornek-uret'te 404
+ */
+async function ornekSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const r2b = r2Kur();
+  const e2 = envKur(k.d1, r2b);
+  await k.d1.prepare("INSERT INTO foto_fiyat (tur, olcu_mm, fiyat_kurus, guncel) VALUES ('plaket', 100, 34900, 'x')").run();
+  const simdi = new Date().toISOString();
+  const orn = "d".repeat(32), mus = "b".repeat(32);
+  for (const [no, z] of [[orn, fm.ORNEK_ZIYARETCI], [mus, "z"]]) {
+    await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'plaket', 100, ?, ?, 'hazir', 'gorev-proto-8888', ?)")
+      .bind(no, z, simdi, simdi).run();
+  }
+  await r2b.put("foto-onizleme/" + orn + ".png", PNG, { httpMetadata: { contentType: "image/png" } });
+  const cag = async (yontem, yol, govde, ip) => (await fm.fotoUclari(new Request("https://pruvo3d.com/api/shop" + yol, {
+    method: yontem, headers: { "CF-Connecting-IP": ip || "10.0.9.1", "Content-Type": "application/json" },
+    body: govde ? JSON.stringify(govde) : undefined }), e2, new URL("https://pruvo3d.com/api/shop" + yol),
+    yol.split("?")[0], null)).status;
+  const s = {};
+  const fk = await fm.fotoKalemFiyatla(e2, { foto_is: orn, olcu_mm: 100, adet: 1 }, Date.now());
+  const fkm = await fm.fotoKalemFiyatla(e2, { foto_is: mus, olcu_mm: 100, adet: 1 }, Date.now());
+  s.SEPET = !fk.satir && fk.hata && fk.hata.hata === "foto-onizleme-yok" && !!fkm.satir;
+  s.DURUM = (await cag("GET", "/foto/durum?is=" + orn)) === 404 && (await cag("GET", "/foto/durum?is=" + mus)) === 200;
+  s.GORSEL = (await cag("GET", "/foto/gorsel?is=" + orn)) === 404;
+  for (let i = 0; i < GUNLUK_TAVAN; i++) {
+    await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama) VALUES (?, 'plaket', 100, ?, ?, 'basarisiz')")
+      .bind("e" + String(i).padStart(31, "0"), fm.ORNEK_ZIYARETCI, simdi).run();
+  }
+  s.SINIR = (await cag("POST", "/foto/onizleme", onizlemeGovde(), "10.0.9.2")) === 200;
+  for (const [no, is] of [["ORNEK-mutant000001", mus], ["ORNEK-mutant000002", orn]]) {
+    await k.d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel) VALUES (?, 0, ?, 'plaket', 100, 'hazir', ?, ?)")
+      .bind(no, is, simdi, simdi).run();
+    await r2b.put("foto/" + no + "/0/model.3mf", UCMF, {});
+  }
+  const dosya = async (no) => (await fm.panelFotoDosya(e2, new URL("https://pruvo3d.com/x?siparis_no=" + no + "&kalem=0&bicim=3mf"))).status;
+  s.DOSYA = (await dosya("ORNEK-mutant000001")) === 404 && (await dosya("ORNEK-mutant000002")) === 200;
+  const uret = async (is) => (await fm.panelOrnekUret(new Request("https://pruvo3d.com/x", { method: "POST",
+    headers: { "Content-Type": "application/json" }, body: JSON.stringify({ is }) }), e2, Date.now(), null)).status;
+  s.URET = (await uret(mus)) === 404 && (await uret(orn)) === 200;
+  k.kapat();
+  return s;
+}
+const GUNLUK_TAVAN = foto.GUNLUK_ONIZLEME_TAVANI;
+const ORNEK_MUTANTLAR = [
+  ["OM1 SEPET RED DALI SILINDI", "  if (ornekMi(is)) { return { hata: { hata: \"foto-onizleme-yok\" }, kod: 400 }; }\n", "", "SEPET"],
+  ["OM2 DURUM RED DALI SILINDI",
+   "  if (ornekMi(is)) { return fjson({ hata: \"bulunamadi\" }, 404); }\n  return onizlemeIlerle(",
+   "  return onizlemeIlerle(", "DURUM"],
+  ["OM3 GORSEL RED DALI SILINDI",
+   "  if (ornekMi(is)) { return fjson({ hata: \"bulunamadi\" }, 404); }\n  return onizlemeGorseli(env, isNo);",
+   "  return onizlemeGorseli(env, isNo);", "GORSEL"],
+  ["OM4 TAVAN ORNEGI SAYAR", "WHERE tarih >= ? AND ziyaretci != ?\"", "WHERE tarih >= ? AND ? IS NOT NULL\"", "SINIR"],
+  ["OM5 DOSYA ORNEK ISARETI DUSTU", "WHERE u.siparis_no = ? AND u.kalem = ? AND i.ziyaretci = ?\"",
+   "WHERE u.siparis_no = ? AND u.kalem = ? AND ? IS NOT NULL\"", "DOSYA"],
+  ["OM6 URET MUSTERI ISINI ALIR", "  return ornekMi(is) ? is : null;\n", "  return is;\n", "URET"],
+  ["OK0 KONTROL", "// Ornek isleri (panel, Okan) musterinin gunluk tavanini YEMEZ.",
+   "// Ornek isleri  (panel, Okan) musterinin gunluk tavanini YEMEZ.", null],
+];
+for (const [ad, capa, yerine, olmeli] of ORNEK_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const s = await ornekSenaryolar(fm);
+  if (olmeli) {
+    ol(ad + " -> " + olmeli + " KIRMIZI yanar (digerleri yesil)",
+       s[olmeli] === false && Object.keys(s).filter((x) => x !== olmeli).every((x) => s[x] === true), JSON.stringify(s));
+  } else {
+    ol(ad + " -> hicbir ornek senaryosu kirmizi yanmaz", Object.values(s).length === 6 && Object.values(s).every((x) => x === true), JSON.stringify(s));
   }
 }
 

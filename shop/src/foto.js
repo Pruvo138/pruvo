@@ -92,6 +92,23 @@ const SAGLAYICI_ZAMAN_ASIMI_MS = 30000;
 const IS_KALIBI = /^[a-f0-9]{32}$/;
 const SIPARIS_KALIBI = /^[A-Za-z0-9-]{6,40}$/;
 
+/**
+ * ORNEK URETIM (panel "Örnek üret"; BaBa 6 Eki): Okan'in KENDI fotografindan odemesiz
+ * onizleme + uretim — vitrin ornegi (`ornekler`) cikarmak icin. Is satiri SEMA DEGISMEDEN
+ * isaretlenir: `foto_isler.ziyaretci = ORNEK_ZIYARETCI`. Musteri ziyaretci ozeti 16 hex'tir,
+ * bu sabit hex DEGILDIR -> carpisma yok. Ayrimlar (her biri shop/test/foto-uretim.mjs O):
+ *   - ornek isi musteri sepetinde/odemede RED (fotoKalemFiyatla)
+ *   - musteri /foto/durum + /foto/gorsel ornek isini GOSTERMEZ (404)
+ *   - ziyaretci siniri / gunluk tavan ornek islerini SAYMAZ
+ *   - uretim satiri siparissizdir: siparis_no = ORNEK_SIPARIS_ONEK + is ilk 12
+ */
+export const ORNEK_ZIYARETCI = "ornek";
+export const ORNEK_SIPARIS_ONEK = "ORNEK-";
+/** Ornek kolunda ATLANAN sartlar (Okan kendi fotografi): bot, onay metni, gercek-ornek kapisi. */
+const ORNEK_ATLANAN = ["bot-dogrulama", "onay-metni-onayi", "gercek-ornek"];
+
+function ornekMi(is) { return !!is && is.ziyaretci === ORNEK_ZIYARETCI; }
+
 // ---------------------------------------------------------------- yardimcilar
 
 function fjson(veri, kod, ekBaslik) {
@@ -145,6 +162,15 @@ export function yapilandirma(env) {
   if (!env || !env.KATALOG) { eksik.push("veritabani"); }
   if (VERI.onay_onayli !== true) { eksik.push("onay-metni-onayi"); }
   if (!VERI.turler.some((t) => VERI.ornekSayisi(t.kod) > 0)) { eksik.push("gercek-ornek"); }
+  return { hazir: eksik.length === 0, eksik };
+}
+
+/**
+ * Ornek kolunun yapilandirmasi: musteri sartlarinin AYNISI eksi ORNEK_ATLANAN. Anahtar /
+ * taban / tur yolu / ozel kova / veritabani eksikse ornek kolu da KAPALI (fail-closed AYNEN).
+ */
+export function ornekYapilandirma(env) {
+  const eksik = yapilandirma(env).eksik.filter((e) => !ORNEK_ATLANAN.includes(e));
   return { hazir: eksik.length === 0, eksik };
 }
 
@@ -408,8 +434,10 @@ async function onizlemeSayisi(env, ziyaretci, simdi) {
   const k = await env.KATALOG.prepare(
     "SELECT COUNT(*) AS n FROM foto_isler WHERE ziyaretci = ? AND tarih >= ?"
   ).bind(ziyaretci, esik).first();
+  // Ornek isleri (panel, Okan) musterinin gunluk tavanini YEMEZ.
   const g = await env.KATALOG.prepare(
-    "SELECT COUNT(*) AS n FROM foto_isler WHERE tarih >= ?").bind(esik).first();
+    "SELECT COUNT(*) AS n FROM foto_isler WHERE tarih >= ? AND ziyaretci != ?"
+  ).bind(esik, ORNEK_ZIYARETCI).first();
   return { kisi: (k && k.n) || 0, genel: (g && g.n) || 0 };
 }
 
@@ -445,15 +473,25 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   const havuz = await havuzHukmu(env, simdi, telegram);
   if (!havuz.acik) { return fjson({ hata: "kapali" }, 503); }
 
+  const isNo = yeniIsNo();
+  const hata = await onizlemeGonder(env, isNo, tur.kod, olcu, ziyaretci, gorsel.uri, simdi, telegram);
+  if (hata) { return hata; }
+  return fjson({ is: isNo, kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1) }, 200);
+}
+
+/**
+ * Is satirini yazar + saglayiciya onizleme gorevini gonderir (musteri ve ornek kolu ORTAK).
+ * Basarida null; hatada musteriye/panele donulecek yanit.
+ */
+async function onizlemeGonder(env, isNo, tur, olcu, ziyaretci, uri, simdi, telegram) {
   // Is satiri SAGLAYICIDAN ONCE yazilir: reddedilen deneme de ziyaretci sinirindan duser
   // (sinir "basarili onizleme" degil "deneme" sayar -> kaba kuvvetle kredi yakilamaz).
-  const isNo = yeniIsNo();
   await env.KATALOG.prepare(
     "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama) VALUES (?, ?, ?, ?, ?, 'onizleme')"
-  ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi)).run();
+  ).bind(isNo, tur, olcu, ziyaretci, simdiIso(simdi)).run();
 
-  const c = await saglayici(env, "POST", turYolu(env, tur.kod) + "/v1/prototype", {
-    image_url: gorsel.uri,
+  const c = await saglayici(env, "POST", turYolu(env, tur) + "/v1/prototype", {
+    image_url: uri,
     name: "pruvo-" + isNo.slice(0, 12),
     // Arka plan kaldirilir: kabartma urun de arka plani atar; onizleme urune benzesin.
     remove_background: true,
@@ -470,7 +508,7 @@ async function onizlemeUcu(request, env, simdi, telegram) {
                  sebep === "gorsel-uygun-degil" ? 422 : 503);
   }
   await env.KATALOG.prepare("UPDATE foto_isler SET gorev = ? WHERE is_no = ?").bind(gorev, isNo).run();
-  return fjson({ is: isNo, kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1) }, 200);
+  return null;
 }
 
 // ---------------------------------------------------------------- uc: /foto/durum + /foto/gorsel
@@ -479,8 +517,16 @@ function onizlemeAnahtari(isNo) { return "foto-onizleme/" + isNo + ".png"; }
 
 async function isGetir(env, isNo) {
   return env.KATALOG.prepare(
-    "SELECT is_no, tur, olcu_mm, tarih, asama, gorev, hazir_tarih, son_kontrol, hata" +
+    "SELECT is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, son_kontrol, hata" +
     " FROM foto_isler WHERE is_no = ?").bind(isNo).first();
+}
+
+/** Is satirini getirir; tablo yoksa null (bolum kapali). */
+async function isGetirYoksaNull(env, isNo) {
+  try { return await isGetir(env, isNo); } catch (e) {
+    if (tabloYok(e)) { return null; }
+    throw e;
+  }
 }
 
 function durumYaniti(is) {
@@ -495,57 +541,65 @@ function durumYaniti(is) {
                    hata: is.hata === "gorsel-uygun-degil" ? "gorsel-uygun-degil" : "uretilemedi" }, 200);
   }
   if (is.asama === "silindi") { return fjson({ asama: "suresi-doldu" }, 200); }
+  if (is.ilerleme !== undefined) { return fjson({ asama: "onizleme", ilerleme: is.ilerleme }, 200); }
   return fjson({ asama: "onizleme" }, 200);
 }
 
 async function durumUcu(env, url, simdi) {
   const isNo = url.searchParams.get("is") || "";
   if (!IS_KALIBI.test(isNo)) { return fjson({ hata: "bulunamadi" }, 404); }
-  let is;
-  try { is = await isGetir(env, isNo); } catch (e) {
-    if (tabloYok(e)) { return fjson({ hata: "bulunamadi" }, 404); }
-    throw e;
-  }
+  const is = await isGetirYoksaNull(env, isNo);
   if (!is) { return fjson({ hata: "bulunamadi" }, 404); }
-  if (is.asama !== "onizleme" || !is.gorev) { return durumYaniti(is); }
-  if (simdi - (is.son_kontrol || 0) < DURUM_ARALIK_MS) { return durumYaniti(is); }
-  if (!yapilandirma(env).hazir || !turSunuluyor(is.tur)) { return durumYaniti(is); }
+  // Ornek isi (panel) musteri ucunda YOK sayilir: varligi da sizmaz.
+  if (ornekMi(is)) { return fjson({ hata: "bulunamadi" }, 404); }
+  return onizlemeIlerle(env, is, simdi, yapilandirma(env).hazir, durumYaniti);
+}
+
+/**
+ * Onizleme gorevini yoklar ve hazirsa gorseli ozel kovaya indirir (musteri + ornek ORTAK).
+ * `hazir`: ilgili kolun yapilandirmasi; `yanitla(is)`: kolun yanit bicimi.
+ */
+async function onizlemeIlerle(env, is, simdi, hazir, yanitla) {
+  const isNo = is.is_no;
+  if (is.asama !== "onizleme" || !is.gorev) { return yanitla(is); }
+  if (simdi - (is.son_kontrol || 0) < DURUM_ARALIK_MS) { return yanitla(is); }
+  if (!hazir || !turSunuluyor(is.tur)) { return yanitla(is); }
 
   // CAS: ayni anda iki yoklama saglayiciya iki kez gitmesin.
   const kilit = await env.KATALOG.prepare(
     "UPDATE foto_isler SET son_kontrol = ? WHERE is_no = ? AND son_kontrol = ? AND asama = 'onizleme'"
   ).bind(simdi, isNo, is.son_kontrol || 0).run();
-  if (!kilit || !kilit.meta || kilit.meta.changes !== 1) { return durumYaniti(is); }
+  if (!kilit || !kilit.meta || kilit.meta.changes !== 1) { return yanitla(is); }
 
   const c = await saglayici(env, "GET", turYolu(env, is.tur) + "/v1/prototype/" + is.gorev, null);
-  if (c.kod !== 200 || !c.govde) { return durumYaniti(is); }
+  if (c.kod !== 200 || !c.govde) { return yanitla(is); }
   const d = gorevDurumu(c.govde);
   if (d === "dustu") {
     await env.KATALOG.prepare(
       "UPDATE foto_isler SET asama = 'basarisiz', hata = 'uretilemedi' WHERE is_no = ? AND asama = 'onizleme'"
     ).bind(isNo).run();
-    return fjson({ asama: "basarisiz", hata: "uretilemedi" }, 200);
+    return yanitla({ ...is, asama: "basarisiz", hata: "uretilemedi" });
   }
   if (d !== "bitti") {
     const p = c.govde.progress;
-    return fjson({ asama: "onizleme", ilerleme: Number.isInteger(p) ? p : null }, 200);
+    return yanitla({ ...is, ilerleme: Number.isInteger(p) ? p : null });
   }
   const adres = Array.isArray(c.govde.image_urls) ? c.govde.image_urls[0] : "";
   const dosya = await dosyaIndir(adres);
-  if (!dosya) { return fjson({ asama: "onizleme" }, 200); }   // sonraki yoklama yeniden dener
+  if (!dosya) { return yanitla(is); }   // sonraki yoklama yeniden dener
   await env.OZEL_DOSYA.put(onizlemeAnahtari(isNo), dosya.tampon,
     { httpMetadata: { contentType: /png|jpeg|webp/.test(dosya.tip) ? dosya.tip : "image/png" } });
   const kredi = krediSayisi(c.govde);
   await env.KATALOG.prepare(
     "UPDATE foto_isler SET asama = 'hazir', hazir_tarih = ?, kredi = ? WHERE is_no = ? AND asama = 'onizleme'"
   ).bind(simdiIso(simdi), kredi, isNo).run();
-  await krediYaz(env, simdi, "onizleme", isNo, "", is.gorev, kredi);
-  return durumYaniti({ ...is, asama: "hazir", hazir_tarih: simdiIso(simdi) });
+  // Ornek onizlemesinin kredisi de deftere girer (siparis_no = uretimde kullanilacak ornek no).
+  await krediYaz(env, simdi, "onizleme", isNo, ornekMi(is) ? ornekSiparisNo(isNo) : "", is.gorev, kredi);
+  return yanitla({ ...is, asama: "hazir", hazir_tarih: simdiIso(simdi) });
 }
 
-async function gorselUcu(env, url) {
-  const isNo = url.searchParams.get("is") || "";
-  if (!IS_KALIBI.test(isNo) || !env.OZEL_DOSYA) { return fjson({ hata: "bulunamadi" }, 404); }
+/** Ozel kovadaki onizleme gorselinin yaniti (musteri + ornek ORTAK). */
+async function onizlemeGorseli(env, isNo) {
   const n = await env.OZEL_DOSYA.get(onizlemeAnahtari(isNo));
   if (!n) { return fjson({ hata: "bulunamadi" }, 404); }
   return new Response(n.body, {
@@ -556,6 +610,16 @@ async function gorselUcu(env, url) {
       "X-Robots-Tag": "noindex",
     },
   });
+}
+
+async function gorselUcu(env, url) {
+  const isNo = url.searchParams.get("is") || "";
+  if (!IS_KALIBI.test(isNo) || !env.OZEL_DOSYA) { return fjson({ hata: "bulunamadi" }, 404); }
+  const is = await isGetirYoksaNull(env, isNo);
+  if (!is) { return fjson({ hata: "bulunamadi" }, 404); }
+  // Ornek isinin gorseli musteri ucundan SUNULMAZ (panel ucu: /yonet/foto/ornek-gorsel).
+  if (ornekMi(is)) { return fjson({ hata: "bulunamadi" }, 404); }
+  return onizlemeGorseli(env, isNo);
 }
 
 /** /api/shop/foto/* yonlendiricisi. */
@@ -597,6 +661,8 @@ export async function fotoKalemFiyatla(env, k, simdi) {
     throw e;
   }
   if (!is || is.asama !== "hazir") { return { hata: { hata: "foto-onizleme-yok" }, kod: 400 }; }
+  // Ornek isi (panel, odemesiz) sepette/odemede KABUL EDILMEZ; musteriye "yok" gibi gorunur.
+  if (ornekMi(is)) { return { hata: { hata: "foto-onizleme-yok" }, kod: 400 }; }
   const yas = (simdi - Date.parse(is.hazir_tarih)) / 3600000;
   if (!(yas >= 0 && yas <= VERI.gecerlilik_saat)) {
     return { hata: { hata: "foto-onizleme-suresi-doldu",
@@ -922,9 +988,18 @@ export async function panelFotoDosya(env, url) {
       !["3mf", "glb", "onizleme"].includes(bicim) || !env.OZEL_DOSYA) {
     return fjson({ hata: "gecersiz" }, 400);
   }
-  const s = await env.KATALOG.prepare(
-    "SELECT urunler FROM siparisler WHERE siparis_no = ?").bind(no).first();
-  const k = s && siparistekiFotoKalemleri(s.urunler).find((x) => x.kalem === kalem);
+  let k;
+  if (no.startsWith(ORNEK_SIPARIS_ONEK)) {
+    // ORNEK uretimi siparissizdir: kalem uretim satirindan, yalniz ornek isaretli istan.
+    k = await env.KATALOG.prepare(
+      "SELECT u.kalem, u.is_no, u.tur, u.olcu_mm FROM foto_uretim u JOIN foto_isler i ON i.is_no = u.is_no" +
+      " WHERE u.siparis_no = ? AND u.kalem = ? AND i.ziyaretci = ?"
+    ).bind(no, kalem, ORNEK_ZIYARETCI).first();
+  } else {
+    const s = await env.KATALOG.prepare(
+      "SELECT urunler FROM siparisler WHERE siparis_no = ?").bind(no).first();
+    k = s && siparistekiFotoKalemleri(s.urunler).find((x) => x.kalem === kalem);
+  }
   if (!k) { return fjson({ hata: "kalem-yok" }, 404); }
   const anahtar = bicim === "onizleme" ? onizlemeAnahtari(k.is_no) : uretimAnahtari(no, kalem, bicim);
   const n = await env.OZEL_DOSYA.get(anahtar);
@@ -957,7 +1032,7 @@ export async function panelFotoOzet(env, simdi) {
   try {
     const t = await env.KATALOG.prepare(
       "SELECT tur, COUNT(*) AS kalem, SUM(asama = 'hazir') AS hazir, SUM(asama = 'elle') AS elle" +
-      " FROM foto_uretim GROUP BY tur").all();
+      " FROM foto_uretim WHERE siparis_no NOT LIKE '" + ORNEK_SIPARIS_ONEK + "%' GROUP BY tur").all();
     cikti.turler = VERI.turler.map((x) => {
       const s = (t.results || []).find((r) => r.tur === x.kod) || {};
       const kalem = s.kalem || 0, hazir = s.hazir || 0, elle = s.elle || 0;
@@ -1009,4 +1084,134 @@ export async function panelFotoFiyat(request, env, simdi) {
     ).bind(tur, olcu, fiyat, simdiIso(simdi)).run();
   }
   return fjson({ ok: true, tur, olcu_mm: olcu, fiyat_kurus: fiyat }, 200);
+}
+
+// ---------------------------------------------------------------- panel: ORNEK URETIM
+
+/** Ornek isinin siparissiz uretim numarasi (kalem 0). */
+export function ornekSiparisNo(isNo) { return ORNEK_SIPARIS_ONEK + String(isNo).slice(0, 12); }
+
+function ornekDurumYaniti(is) {
+  const v = { is: is.is_no, tur: is.tur, olcu_mm: is.olcu_mm, asama: is.asama };
+  if (is.asama === "hazir") { v.gorsel = "/api/shop/yonet/foto/ornek-gorsel?is=" + is.is_no; }
+  if (is.asama === "basarisiz") { v.hata = is.hata || "uretilemedi"; }
+  if (is.ilerleme !== undefined) { v.ilerleme = is.ilerleme; }
+  return fjson(v, 200);
+}
+
+/** Ornek isini getirir; musteri isi ya da yok -> null (panel ornek uclari musteri isine DOKUNMAZ). */
+async function ornekIsGetir(env, isNo) {
+  if (!IS_KALIBI.test(isNo || "")) { return null; }
+  const is = await isGetirYoksaNull(env, isNo);
+  return ornekMi(is) ? is : null;
+}
+
+/**
+ * POST /yonet/foto/ornek-onizleme {gorsel, olcu_mm, tur?} — musteri ucuyla AYNI saglayici
+ * cagrisi + `foto_isler` satiri; ziyaretci siniri / bot / onay / gercek-ornek kapisi ATLANIR.
+ * Anahtar/taban/tur yolu yoksa 503 (saglayiciya istek 0); havuz esigi AYNEN uygulanir.
+ */
+export async function panelOrnekOnizleme(request, env, simdi, telegram) {
+  const y = ornekYapilandirma(env);
+  if (!y.hazir) { return fjson({ hata: "kapali", eksik: y.eksik }, 503); }
+  let g;
+  try { g = await request.json(); } catch (e) { return fjson({ hata: "gecersiz-istek" }, 400); }
+  if (!g || typeof g !== "object") { return fjson({ hata: "gecersiz-istek" }, 400); }
+  const tur = g.tur === undefined ? Object.keys(TUR_ORTAM)[0] : (turSunuluyor(g.tur) ? g.tur : null);
+  if (!tur) { return fjson({ hata: "gecersiz-tur" }, 400); }
+  const olcu = Number.isInteger(g.olcu_mm) && g.olcu_mm >= OLCU_MM_EN_AZ && g.olcu_mm <= OLCU_MM_EN_COK
+    ? g.olcu_mm : null;
+  // Olcu fiyat tablosundaki olculerden biri olmali (ornek, satilan urunun aynisi olsun).
+  if (!olcu || !(await fiyatTablosu(env)).some((f) => f.tur === tur && f.olcu_mm === olcu)) {
+    return fjson({ hata: "gecersiz-olcu" }, 400);
+  }
+  const gorsel = gorselCoz(g.gorsel);
+  if (!gorsel) { return fjson({ hata: "gorsel-gecersiz" }, 400); }
+  const havuz = await havuzHukmu(env, simdi, telegram);
+  if (!havuz.acik) {
+    return fjson({ hata: "havuz-esikte", bakiye: havuz.bakiye, gereken: havuz.gereken }, 503);
+  }
+  const isNo = yeniIsNo();
+  const hata = await onizlemeGonder(env, isNo, tur, olcu, ORNEK_ZIYARETCI, gorsel.uri, simdi, telegram);
+  if (hata) { return hata; }
+  return fjson({ is: isNo }, 200);
+}
+
+/** GET /yonet/foto/ornek-durum?is= — onizlemeyi yoklar (musteri durum ucuyla ayni zincir). */
+export async function panelOrnekDurum(env, url, simdi) {
+  const is = await ornekIsGetir(env, url.searchParams.get("is"));
+  if (!is) { return fjson({ hata: "bulunamadi" }, 404); }
+  return onizlemeIlerle(env, is, simdi, ornekYapilandirma(env).hazir, ornekDurumYaniti);
+}
+
+/** GET /yonet/foto/ornek-gorsel?is= — ornek onizleme gorseli (yalniz ornek isi). */
+export async function panelOrnekGorsel(env, url) {
+  if (!env.OZEL_DOSYA) { return fjson({ hata: "bulunamadi" }, 404); }
+  const is = await ornekIsGetir(env, url.searchParams.get("is"));
+  if (!is) { return fjson({ hata: "bulunamadi" }, 404); }
+  return onizlemeGorseli(env, is.is_no);
+}
+
+/**
+ * POST /yonet/foto/ornek-uret {is} — 'hazir' ornek isi icin `foto_uretim`e SIPARISSIZ satir
+ * (siparis_no = ORNEK-<is ilk 12>, kalem 0). Zinciri mevcut cron AYNEN yurutur; kredi defteri
+ * cron'da bu numarayla yazilir. Musteri isi bu yoldan uretilemez (404).
+ */
+export async function panelOrnekUret(request, env, simdi, telegram) {
+  const y = ornekYapilandirma(env);
+  if (!y.hazir) { return fjson({ hata: "kapali", eksik: y.eksik }, 503); }
+  let g;
+  try { g = await request.json(); } catch (e) { return fjson({ hata: "gecersiz-istek" }, 400); }
+  const is = await ornekIsGetir(env, g && g.is);
+  if (!is) { return fjson({ hata: "bulunamadi" }, 404); }
+  if (is.asama !== "hazir" || !is.gorev) { return fjson({ hata: "onizleme-hazir-degil" }, 409); }
+  if ((simdi - Date.parse(is.hazir_tarih)) / 3600000 > ONIZLEME_KURULUM_SINIRI_SAAT) {
+    return fjson({ hata: "onizleme-suresi-doldu" }, 409);
+  }
+  if (!turSunuluyor(is.tur)) { return fjson({ hata: "gecersiz-tur" }, 400); }
+  const havuz = await havuzHukmu(env, simdi, telegram);
+  if (!havuz.acik) {
+    return fjson({ hata: "havuz-esikte", bakiye: havuz.bakiye, gereken: havuz.gereken }, 503);
+  }
+  const no = ornekSiparisNo(is.is_no);
+  const r = await env.KATALOG.prepare(
+    "INSERT OR IGNORE INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)" +
+    " VALUES (?, 0, ?, ?, ?, 'build-baslat', ?, ?)"
+  ).bind(no, is.is_no, is.tur, is.olcu_mm, simdiIso(simdi), simdiIso(simdi)).run();
+  return fjson({ ok: true, siparis_no: no, yeni: !!(r && r.meta && r.meta.changes === 1) }, 200);
+}
+
+/** GET /yonet/foto/ornekler — "Örnek üretimler": ornek onizlemeleri + uretim asamasi + dosyalar. */
+export async function panelOrnekListe(env) {
+  let satirlar = [];
+  try {
+    const r = await env.KATALOG.prepare(
+      "SELECT i.is_no, i.tur, i.olcu_mm, i.tarih, i.asama AS onizleme, i.hata," +
+      " u.siparis_no, u.asama, u.sebep, u.analiz," +
+      " (SELECT COALESCE(SUM(kredi), 0) FROM foto_kredi k WHERE k.siparis_no = u.siparis_no) AS kredi" +
+      " FROM foto_isler i LEFT JOIN foto_uretim u ON u.is_no = i.is_no AND u.siparis_no LIKE '" +
+      // Uretime girenler ONCE (basarisiz onizleme yigini uretilmis ornegi listeden itmesin).
+      ORNEK_SIPARIS_ONEK + "%' WHERE i.ziyaretci = ? ORDER BY (u.siparis_no IS NULL), i.tarih DESC LIMIT 30"
+    ).bind(ORNEK_ZIYARETCI).all();
+    satirlar = r.results || [];
+  } catch (e) {
+    if (!tabloYok(e)) { throw e; }
+  }
+  const ornekler = satirlar.map((s) => {
+    const taban = s.siparis_no ? "/api/shop/yonet/foto-dosya?siparis_no=" + encodeURIComponent(s.siparis_no) +
+      "&kalem=0" : "";
+    return {
+      is: s.is_no, tur: s.tur, olcu_mm: s.olcu_mm, tarih: s.tarih,
+      onizleme: s.onizleme, hata: s.hata || "",
+      gorsel: s.onizleme === "hazir" ? "/api/shop/yonet/foto/ornek-gorsel?is=" + s.is_no : "",
+      siparis_no: s.siparis_no || "",
+      asama: s.siparis_no ? s.asama : "uretilmedi",
+      sebep: s.sebep ? (ELLE_METNI[s.sebep] || s.sebep) : "",
+      analiz: s.analiz || "",
+      kredi: s.kredi || 0,
+      dosyalar: s.asama === "hazir" && taban
+        ? { "3mf": taban + "&bicim=3mf", "glb": taban + "&bicim=glb" } : null,
+    };
+  });
+  return fjson({ ornekler, yapilandirma: ornekYapilandirma(env) }, 200);
 }

@@ -38,7 +38,8 @@ import { KONFIGURLAR } from "./konfigurlar.js";
 import { golgeRaporu } from "./konfigur-golge.js";
 // Fotograftan ozel uretim: kalem uretim durumu + dosya indirme + ozet/fiyat tablosu.
 import { panelUretimHaritasi, panelFotoKaydi, panelFotoDosya, panelFotoOzet,
-         panelFotoFiyat } from "./foto.js";
+         panelFotoFiyat, panelOrnekOnizleme, panelOrnekDurum, panelOrnekGorsel,
+         panelOrnekUret, panelOrnekListe } from "./foto.js";
 import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
 } from "./eposta.js";
@@ -2393,6 +2394,14 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/foto-dosya" && m === "GET") { return panelFotoDosya(env, url); }
   if (altYol === "/foto-ozet" && m === "GET") { return panelFotoOzet(env, Date.now()); }
   if (altYol === "/foto-fiyat" && m === "POST") { return panelFotoFiyat(request, env, Date.now()); }
+  // ORNEK URETIM (6 Eki, BaBa) — Okan'in kendi fotografi, odemesiz; ayni anahtarin ARKASINDA.
+  if (altYol === "/foto/ornek-onizleme" && m === "POST") {
+    return panelOrnekOnizleme(request, env, Date.now(), telegram);
+  }
+  if (altYol === "/foto/ornek-durum" && m === "GET") { return panelOrnekDurum(env, url, Date.now()); }
+  if (altYol === "/foto/ornek-gorsel" && m === "GET") { return panelOrnekGorsel(env, url); }
+  if (altYol === "/foto/ornek-uret" && m === "POST") { return panelOrnekUret(request, env, Date.now(), telegram); }
+  if (altYol === "/foto/ornekler" && m === "GET") { return panelOrnekListe(env); }
   return yon404();
 }
 
@@ -2929,8 +2938,94 @@ async function fotoYukle(){
   '<input id="fotoOlcu" type="number" placeholder="ölçü mm ('+esc(o.olcu_en_az)+'–'+esc(o.olcu_en_cok)+')" style="width:140px">'+
   '<input id="fotoFiyat" type="number" placeholder="fiyat TL (0 = kaldır)" style="width:150px">'+
   '<button id="fotoFiyatKaydet">Kaydet</button></div></div>');
+ // ORNEK URETIM — Okan'in kendi fotografi (odemesiz): onizleme -> "Bunu üret" -> 4 renk 3MF.
+ // Olculer fiyat tablosundan (satilan urunun aynisi); musteri kapilari bu kolda ATLANIR.
+ var ornekOlcu=(o.fiyatlar||[]).filter(function(f){return f.fiyat_kurus>0;}).map(function(f){
+  return '<option value="'+esc(f.olcu_mm)+'">'+esc(f.olcu_mm)+' mm</option>';}).join("");
+ h.push('<div class="kart"><b>Örnek üret</b> (kendi fotoğrafın · ödemesiz önizleme → 4 renk 3MF)'+
+  '<div class="ust"><input id="ornekDosya" type="file" accept="image/jpeg,image/png,image/webp">'+
+  '<select id="ornekOlcu">'+(ornekOlcu||'<option value="">fiyat tablosunda ölçü yok</option>')+'</select>'+
+  '<button id="ornekOnizle">Önizleme al</button></div>'+
+  '<div id="ornekDurum" class="kucuk"></div><div id="ornekGorsel"></div></div>');
+ h.push('<div class="kart"><b>Örnek üretimler</b><div id="ornekListe" class="kucuk">Yükleniyor…</div></div>');
  kutu.innerHTML=h.join("");
  document.getElementById("fotoFiyatKaydet").onclick=fotoFiyatKaydet;
+ document.getElementById("ornekOnizle").onclick=ornekOnizle;
+ ornekListeYukle();
+}
+var ornekIs="",ornekSaat=null;
+// Fotograf gondermeden once tarayicida kucultulur (sunucu siniri 4 MB; bolumdeki AYNI yontem).
+function ornekKucult(dosya){
+ return new Promise(function(coz,red){
+  var img=new Image(),adres=URL.createObjectURL(dosya);
+  img.onload=function(){
+   var oran=Math.min(1,1600/Math.max(img.width,img.height));
+   var t=document.createElement("canvas");
+   t.width=Math.round(img.width*oran);t.height=Math.round(img.height*oran);
+   t.getContext("2d").drawImage(img,0,0,t.width,t.height);URL.revokeObjectURL(adres);
+   coz(t.toDataURL("image/jpeg",0.9));};
+  img.onerror=function(){URL.revokeObjectURL(adres);red(new Error("okunamadi"));};
+  img.src=adres;});
+}
+async function ornekOnizle(){
+ var d=document.getElementById("ornekDosya").files[0];
+ var olcu=parseInt(document.getElementById("ornekOlcu").value,10);
+ var durum=document.getElementById("ornekDurum");
+ if(!d||!(olcu>0)){alert("Fotoğraf ve ölçü seç.");return;}
+ durum.textContent="Görsel hazırlanıyor…";
+ var uri;try{uri=await ornekKucult(d);}catch(e){durum.textContent="Görsel okunamadı.";return;}
+ durum.textContent="Önizleme isteniyor…";
+ var r=await api("/foto/ornek-onizleme",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({gorsel:uri,olcu_mm:olcu})});
+ if(r.kod!==200||!r.govde||!r.govde.is){
+  durum.innerHTML='<span class="hata">Olmadı: '+esc((r.govde&&r.govde.hata)||r.kod)+
+   (r.govde&&r.govde.eksik?' (eksik: '+esc(r.govde.eksik.join(", "))+')':'')+'</span>';return;}
+ ornekIs=r.govde.is;document.getElementById("ornekGorsel").innerHTML="";
+ ornekYokla();
+}
+async function ornekYokla(){
+ clearTimeout(ornekSaat);
+ var durum=document.getElementById("ornekDurum");if(!durum||!ornekIs){return;}
+ var r=await api("/foto/ornek-durum?is="+encodeURIComponent(ornekIs));
+ var v=r.govde||{};
+ if(r.kod!==200){durum.innerHTML='<span class="hata">durum alınamadı ('+esc(r.kod)+')</span>';return;}
+ if(v.asama==="hazir"){
+  durum.textContent="Önizleme hazır ("+v.olcu_mm+" mm).";
+  document.getElementById("ornekGorsel").innerHTML='<img src="'+esc(v.gorsel)+
+   '" alt="önizleme" style="max-width:320px;display:block;margin:8px 0">'+
+   '<button id="ornekUret">Bunu üret</button>';
+  document.getElementById("ornekUret").onclick=ornekUret;ornekListeYukle();return;}
+ if(v.asama==="basarisiz"){durum.innerHTML='<span class="hata">Önizleme üretilemedi: '+esc(v.hata)+'</span>';return;}
+ if(v.asama==="silindi"){durum.innerHTML='<span class="hata">Önizlemenin süresi doldu.</span>';return;}
+ durum.textContent="Önizleme hazırlanıyor"+(v.ilerleme!=null?" (%"+v.ilerleme+")":"")+"…";
+ ornekSaat=setTimeout(ornekYokla,3000);
+}
+async function ornekUret(){
+ var durum=document.getElementById("ornekDurum");
+ var r=await api("/foto/ornek-uret",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({is:ornekIs})});
+ if(r.kod!==200||!r.govde){
+  durum.innerHTML='<span class="hata">Üretim başlatılamadı: '+esc((r.govde&&r.govde.hata)||r.kod)+'</span>';return;}
+ durum.textContent="Üretim sırada ("+r.govde.siparis_no+"); 5 dakikalık turlarla ilerler, aşağıdaki listeden izle.";
+ document.getElementById("ornekGorsel").innerHTML="";
+ ornekListeYukle();
+}
+// "Örnek üretimler": asama satiri + hazir olunca 3MF/GLB (anahtarli foto-dosya ucu).
+// 🔴 SESSIZ BOSLUK YASAK: uretim baslatilmadiysa bu ACIKCA yazilir.
+async function ornekListeYukle(){
+ var kutu=document.getElementById("ornekListe");if(!kutu){return;}
+ var r=await api("/foto/ornekler");
+ if(r.kod!==200||!r.govde){kutu.innerHTML='<span class="hata">liste alınamadı ('+esc(r.kod)+')</span>';return;}
+ var l=r.govde.ornekler||[];
+ if(!l.length){kutu.textContent="Henüz örnek yok.";return;}
+ kutu.innerHTML=l.map(function(x){
+  var d=x.dosyalar?' <a class="indir" href="'+esc(x.dosyalar["3mf"])+'">3MF (4 renk) indir</a> '+
+   '<a class="indir" href="'+esc(x.dosyalar.glb)+'">GLB indir</a>':'';
+  return '<div>'+esc(String(x.tarih||"").slice(0,16).replace("T"," "))+' · '+esc(x.olcu_mm)+' mm · önizleme: '+
+   esc(x.onizleme)+(x.gorsel?' (<a href="'+esc(x.gorsel)+'" target="_blank" rel="noopener">gör</a>)':'')+
+   ' · üretim: <b>'+esc(x.siparis_no?(FOTO_ASAMA[x.asama]||x.asama):"başlatılmadı")+'</b>'+
+   (x.sebep?' — <span class="hata">'+esc(x.sebep)+'</span>':'')+
+   (x.siparis_no?' · kredi: '+esc(x.kredi):'')+d+'</div>';}).join("");
 }
 async function fotoFiyatKaydet(){
  var tur=document.getElementById("fotoTur").value;
