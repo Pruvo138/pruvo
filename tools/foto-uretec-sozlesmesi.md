@@ -57,6 +57,7 @@ Sahibi: KraL (kategori motoru). Uyan: TeKiN üreteçleri (D ve R kolu). Tek kayn
 - `sizdirmaz` **true olmak ZORUNDA**; üreteç false üretirse rc ≠ 0 döner (false ile rc 0 = sözleşme ihlali).
 - `uzun_kenar_mm` = `olcu_mm` ± %1 (D kolu). R kolu ± %3.
 - `alt_kenar_mm` = ürün dik duruyorsa ayağa oturan kenarın ölçülen kalınlığı (plaket/litofan/rölyef). Ayak üreteci nominal değil BUNU kullanır (TeKiN 6 Eki bulgusu: plaket nominal 3,0 → ölçülen 6,61).
+- `girdi_sha256` = kanonik girdi parmak izi: sha256(`girdi.json`'dan `sozlesme · kategori · olcu_mm · renkler · malzemeler · parametreler` + beyan edilen her dosyanın sha256'sı); **`siparis_no` ve `kalem` HARİÇ**. Üreteç boş bırakabilir — koşucu her başarılı üretimde bu değerle DAMGALAR. Sipariş öncesi önizlemenin modeli, sipariş girdisinin parmak izi AYNIYSA yeniden üretilmeden kopyalanır (7 Eki, geriye uyumlu ek — `sozlesme` sürümü aynı). `model_sha256` = `model.3mf` dosyasının sha256'sı.
 
 ## 4. Akış (sunucu ↔ üreteç)
 Ödenen D/R siparişi `uretec-bekliyor` aşamasına girer. Üreteç koşucusu (Mac, TeKiN):
