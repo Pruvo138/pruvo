@@ -31,20 +31,23 @@
  *         O bolumunde olculur; burada YALNIZ kol sayilir.
  *   26  — 5 Eki 2026 (Okan karari, fotograftan ozel uretim): GET /foto-dosya (3MF/GLB/
  *         onizleme indirme), GET /foto-ozet (tur basina sayim + kredi), POST /foto-fiyat
- *         (fiyat tablosu) — ucu de ayni yonetim anahtarinin ARKASINDA, EGE_ANAHTAR acamaz.
+ *         (fiyat tablosu) — ucu de ayni yonetim anahtarinin ARKASINDA, bot anahtari acamaz.
  *         ⚠️ /foto-dosya'nin Content-Disposition'i shop/src/foto.js'te durur; CD_TABANI
  *         yalniz yonet.js'i saydigi icin DEGISMEDI (sayacin menzili yonet.js'tir).
  *   31  — 6 Eki 2026 (BaBa, panel "Örnek üret" — Okan'in kendi fotografindan odemesiz
  *         vitrin ornegi): POST /foto/ornek-onizleme, GET /foto/ornek-durum, GET
  *         /foto/ornek-gorsel, POST /foto/ornek-uret, GET /foto/ornekler — besi de ayni
- *         yonetim anahtarinin ARKASINDA (anahtarsiz 404), EGE_ANAHTAR acamaz. Ayrim ve
+ *         yonetim anahtarinin ARKASINDA (anahtarsiz 404), bot anahtari acamaz. Ayrim ve
  *         yetki kurallari shop/test/foto-uretim.mjs O bolumu + OM1..OM6 mutantlarinda
  *         olculur; burada YALNIZ kol sayilir. Yeni indirme akisi YOK: ornek 3MF/GLB mevcut
  *         /foto-dosya ucundan iner -> CD_TABANI DEGISMEDI.
+ *   30  — 6 Eki 2026 (Okan karari "Ege ve HocA yok" + "temizle"): WhatsApp botunun
+ *         POST siparis kolu yonet.js'ten SILINDI (yuzey DARALDI, genislemedi). O yol
+ *         artik her anahtarla 404 + D1'e yazmaz — shop/test/urunler-panel.mjs A6.
  */
 
 /** `altYol === "` yonlendirici kolu sayisi — yetki yuzeyi genisledi mi? */
-export const KOL_TABANI = 31;
+export const KOL_TABANI = 30;
 
 /** `Content-Disposition` gecisi — yeni indirme/proxy/zip akisi acildi mi? */
 export const CD_TABANI = 2;

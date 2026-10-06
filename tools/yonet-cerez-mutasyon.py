@@ -279,7 +279,7 @@ M27 = ("M27", "sabitEsit uzunluk esitsizliginde ERKEN DONER (tur sayisi girdiye 
       ["C21e"])
 
 # yonet()'in secret kapisini POST dagitiminin ARKASINA alir.
-# ⚠️ CAPA GUNCELLENDI: `/wa-siparis` blogu ozellik-kapali kapisi ile giris POST'unun
+# ⚠️ CAPA GUNCELLENDI: (o gunku) WhatsApp siparis blogu ozellik-kapali kapisi ile giris POST'unun
 # ARASINA girdi, yani eski TEK PARCALI capa (gate + `const m` + giris POST'u bitisik)
 # artik eslesmiyordu ve harness BAYAT duserek 25 mutantin hepsini olcusuz birakiyordu.
 # M3'un NIYETI aynen korundu (secret kapisi giris POST'unun ARKASINA alinir); capa iki

@@ -2532,10 +2532,6 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/vitrin-kabul-mutasyon.py
 
-      - name: "WhatsApp yetki kapisi mutasyon bataryasi"
-        if: ${{ !cancelled() }}
-        run: python3 tools/wa-yetki-mutasyon.py
-
       - name: "Yayin erisim nobetcisi mutasyon bataryasi"
         if: ${{ !cancelled() }}
         run: python3 tools/yayin-erisim-mutasyon.py

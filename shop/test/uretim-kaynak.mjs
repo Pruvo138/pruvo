@@ -236,7 +236,7 @@ ol("K39 stl-liste/stl indirme yollari DEGISMEDI",
 // 30 Agu 2026 (T1, Okan emri — manuel shop paneli): ara donemde eklenen kollarla
 // birlikte olculen taban 11'di; "Urunler" sekmesi 4 uc ekledi (GET /urunler,
 // GET /urunler-kuyruk, POST /urunler-ustyazim, POST /urunler-ustyazim-sil — hepsi
-// yonetim anahtari arkasinda, EGE_ANAHTAR acamaz; kurallari shop/test/urunler-panel.mjs)
+// yonetim anahtari arkasinda, bot anahtari acamaz; kurallari shop/test/urunler-panel.mjs)
 // -> taban BILEREK ve TARIHLI olarak 15. panel-kaynak.mjs V9d ayni sayiyi olcer.
 // 30 Agu 2026 (T2, Okan emri — gorsel/STL/kaynak link): 6 uc daha ayni kapinin
 // arkasinda -> taban 15'ten 21'e BILEREK artirildi (V9d ile es).
