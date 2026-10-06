@@ -37,6 +37,7 @@ STLDIR = os.path.join(ROOT, "stl"); os.makedirs(STLDIR, exist_ok=True)
 IMGROOT = os.path.join(ROOT, ".thing-cache"); os.makedirs(IMGROOT, exist_ok=True)
 sys.path.insert(0, TOOLS)
 import drive_yolu
+import drive_birak
 import olcu_saglik
 import olcu_parca            # bbox saglik esikleri TEK KAYNAK (K287)
 
@@ -160,7 +161,11 @@ def _stls_once(tid, uidhint):
             continue
         open(os.path.join(STLDIR, nm), "wb").write(data)
         if DRIVE:
-            try: open(os.path.join(DRIVE, nm), "wb").write(data)
+            # yaz -> sha256 dogrula -> Drive'in yerel kopyasini geri at (ana dosya Drive'da
+            # kalir). Yerel stl/ kopyasina DOKUNMAZ — onu stl-r2-yukle.py R2 dogrulamasiyla siler.
+            try:
+                dd = drive_birak.yaz_dogrula_birak(os.path.join(DRIVE, nm), data)
+                if dd != "BIRAKILDI": print("   DRIVE %s: %s" % (dd, nm))
             except Exception: pass
         d = bbox(data); cnt += 1
         ds = ("%.0f x %.0f x %.0f mm" % (d[0], d[1], d[2])) if d else "olcusuz"
