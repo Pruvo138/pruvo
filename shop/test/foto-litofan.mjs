@@ -16,6 +16,9 @@
  *   L6 PANEL        : yetkisiz yukleme reddedilir (yonet kapisi: 401/403/404) · bozuk imza 400 ·
  *                     gecerli 3MF -> 'hazir' + R2 · ikinci yukleme 409 · girdi indir = harita
  *   L7 PLAKET       : ayni sahte ortamda onizleme -> /baslat -> kuyruk 'build-baslat' (bugunku gibi)
+ *   L10 URETEC ONIZL: sentetik `isimlik` (kopya veri dosyasinda) -> /foto/onizleme 'uretec-onizleme' + R2
+ *                     girdi.json -> GERCEK koşucu (sahte wrangler/uretec, ortak SQLite dosyasi) ->
+ *                     'onizleme-hazir' -> durum/gorsel -> /baslat -> 'uretec-bekliyor' -> KOPYA KOLU 'hazir'
  *   L8 SAKLAMA      : saglayici env'siz cron: 73 sa onceki siparise girmemis litofan haritasi R2'den
  *                     silinir + satir 'silindi', saglayici cagrisi 0; siparise girmis harita KALIR
  *
@@ -34,7 +37,7 @@ register("data:text/javascript," + encodeURIComponent(
   "    return { ...r, format: 'json', importAttributes: { type: 'json' } }; }" +
   "  return r; }"));
 
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -51,9 +54,10 @@ const ol = (ad, kosul, ek) => {
 
 // ---------------------------------------------------------------- gercek SQLite koprusu
 
-function koprukur() {
+function koprukur(dbYolu) {
   const p = spawn("python3", [path.join(BURASI, "ortak", "sqlite-koprusu.py")],
-                  { stdio: ["pipe", "pipe", "inherit"] });
+                  { stdio: ["pipe", "pipe", "inherit"],
+                    env: dbYolu ? { ...process.env, SQLITE_KOPRU_DB: dbYolu } : process.env });
   const rl = readline.createInterface({ input: p.stdout });
   const bekleyen = [];
   rl.on("line", (s) => { const c = bekleyen.shift(); if (c) { c(JSON.parse(s)); } });
@@ -417,6 +421,10 @@ const grupYesil = (g, ad) => g[ad].every((x) => x.ok);
 
 // ================================================================ ANA KOSUM
 
+const GECICILER = [];
+const temizle = () => { for (const d of GECICILER) { fs.rmSync(d, { recursive: true, force: true }); } };
+process.on("exit", temizle);
+
 let canli;
 try { canli = await modulKur(KOK); } catch (e) {
   console.log("OLCULEMEDI: worker modulu yuklenemedi — " + ((e && e.stack) || e));
@@ -496,12 +504,180 @@ console.log("L1) KATEGORI KAYDI");
        VERI.kolu("plaket") === "saglayici" && VERI.kolu("yok") === "" && VERI.olcuAraligi("yok") === null, JSON.stringify(pl));
 }
 
+// ---------------------------------------------------------------- L10: URETEC ONIZLEME KUYRUGU (uctan uca)
+// Sentetik `isimlik` satiri (form girdili, tarayici onizleyicisi YOK) KOPYA kokun veri dosyasina
+// eklenir (calisma agacina yazim YOK). Sunucu ucu -> gercek koşucu (sahte wrangler + sahte uretec;
+// D1 = kopru ile AYNI gecici SQLite dosyasi, R2 = gecici dizin) -> siparis -> KOPYA KOLU.
+
+const ISIMLIK = '      { kod: "isimlik", ad: "İsimlik", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",\n' +
+  '        olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {},\n' +
+  '        form: { yazi: { tip: "metin", max: 20, etiket: "Yazı" } }, fiyat: { formul: "mm_x_10tl", adim_mm: 10 },\n' +
+  '        ornek_kanit_izni: ["render"], durustluk: "t", ornek_notu: "t" },\n';
+
+const SAHTE_WR = `import json, os, shutil, sqlite3, sys
+a = sys.argv[1:]
+if a[:2] == ["d1", "execute"]:
+    sql = a[a.index("--command") + 1]
+    c = sqlite3.connect(os.environ["FAKE_DB"]); c.row_factory = sqlite3.Row
+    cur = c.execute(sql); rows = [dict(r) for r in cur.fetchall()]; c.commit()
+    print(json.dumps([{"results": rows, "success": True, "meta": {"changes": cur.rowcount if sql.startswith("UPDATE") else 0}}]))
+    sys.exit(0)
+if a[:2] == ["r2", "object"]:
+    anahtar = a[3].split("/", 1)[1]; dosya = a[a.index("--file") + 1]
+    yol = os.path.join(os.environ["FAKE_R2"], anahtar)
+    if a[2] == "get":
+        if not os.path.isfile(yol):
+            sys.stderr.write("The specified key does not exist."); sys.exit(1)
+        shutil.copyfile(yol, dosya); sys.exit(0)
+    os.makedirs(os.path.dirname(yol), exist_ok=True); shutil.copyfile(dosya, yol); sys.exit(0)
+sys.exit(9)
+`;
+
+const SAHTE_URETEC_I = `import json, os, struct, sys
+a = sys.argv[1:]; g = json.load(open(a[a.index("--girdi") + 1])); c = a[a.index("--cikti") + 1]
+open(os.environ["FAKE_URETEC_SAYAC"], "a").write("1" + chr(10))
+os.makedirs(c)
+open(os.path.join(c, "model.3mf"), "wb").write(b"PK" + bytes([3, 4]) + json.dumps(g["parametreler"], sort_keys=True).encode())
+ihdr = struct.pack(">II", 1024, 512) + bytes([8, 2, 0, 0, 0])
+open(os.path.join(c, "onizleme.png"), "wb").write(bytes([0x89]) + b"PNG" + bytes([13, 10, 26, 10]) + struct.pack(">I", 13) + b"IHDR" + ihdr + bytes(4))
+m = g["olcu_mm"]
+json.dump({"sozlesme": 1, "kategori": g["kategori"], "uzun_kenar_mm": float(m), "kutu_mm": {"x": float(m), "y": 30.0, "z": 5.0},
+           "renk_sayisi": 1, "sizdirmaz": True, "parcalar": [{"ad": "govde", "renk": "Beyaz"}], "girdi_sha256": "", "model_sha256": ""},
+          open(os.path.join(c, "olcu.json"), "w"))
+`;
+
+/** Dizin destekli sahte R2 (koşucunun sahte wrangler'i AYNI dizini okur/yazar). */
+function r2DizinKur(dizin) {
+  const yol = (k) => path.join(dizin, k);
+  return {
+    async put(k, v) {
+      fs.mkdirSync(path.dirname(yol(k)), { recursive: true });
+      fs.writeFileSync(yol(k), typeof v === "string" ? v : Buffer.from(v));
+    },
+    async get(k) { return fs.existsSync(yol(k)) ? { body: new Uint8Array(fs.readFileSync(yol(k))), httpMetadata: {} } : null; },
+    async delete(k) { fs.rmSync(yol(k), { force: true }); },
+    async list() { return { objects: [] }; },
+  };
+}
+
+/** Kopya kok: (varsa mutant) + sentetik isimlik satiri + koşucunun kopyasi (manifesti kopyadan okur). */
+function isimlikKokKur(mu) {
+  const kok = kopyaKur();
+  if (mu) {
+    const asil = fs.readFileSync(path.join(KOK, mu.dosya), "utf8");
+    fs.writeFileSync(path.join(kok, mu.dosya), asil.replace(mu.capa, mu.yerine));
+  }
+  const vy = path.join(kok, "foto-uretim-veri.js");
+  const v = fs.readFileSync(vy, "utf8");
+  if (v.split("    turler: [\n").length !== 2) { throw new Error("isimlik capasi bulunamadi"); }
+  fs.writeFileSync(vy, v.replace("    turler: [\n", "    turler: [\n" + ISIMLIK));
+  fs.mkdirSync(path.join(kok, "tools"));
+  fs.copyFileSync(path.join(KOK, "tools", "foto-uretec-kosucu.py"), path.join(kok, "tools", "foto-uretec-kosucu.py"));
+  return kok;
+}
+
+async function senaryoIsimlik(kok) {
+  const g = { L10: [], ozet: [] };
+  const iddia = (ad, ok, ek) => g.L10.push({ ad, ok: !!ok, ek: ek || "" });
+  const { modul, foto, VERI } = await modulKur(kok);
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), "pruvo-foto-isimlik-"));
+  GECICILER.push(d);
+  const db = path.join(d, "d1.sqlite"), r2d = path.join(d, "r2"), sayac = path.join(d, "uretec.sayac");
+  fs.mkdirSync(r2d);
+  fs.writeFileSync(path.join(d, "wr.py"), SAHTE_WR);
+  fs.writeFileSync(path.join(d, "uretec.py"), SAHTE_URETEC_I);
+  fs.writeFileSync(sayac, "");
+  fs.writeFileSync(path.join(d, "tablo.json"), JSON.stringify({ isimlik_uret: { bicim: "sozlesme", komut: ["python3", path.join(d, "uretec.py")] } }));
+  const uretecSayisi = () => fs.readFileSync(sayac, "utf8").split("\n").filter(Boolean).length;
+  const kosucu = () => {
+    const p = spawnSync("python3", [path.join(kok, "tools", "foto-uretec-kosucu.py"), "--uygula"], {
+      encoding: "utf8", timeout: 120000,
+      env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1", FAKE_DB: db, FAKE_R2: r2d, FAKE_URETEC_SAYAC: sayac,
+             FOTO_KOSUCU_WRANGLER: "python3 " + path.join(d, "wr.py"), FOTO_KOSUCU_KILIT: path.join(d, "kilit"),
+             FOTO_KOSUCU_PYTHON: "python3", FOTO_KOSUCU_URETEC_TABLO: path.join(d, "tablo.json") } });
+    const cikti = (p.stdout || "") + (p.stderr || "");
+    return { son: (p.stdout || "").trim().split("\n").pop(), cikti };
+  };
+  const k = koprukur(db); await k.hazir;
+  const d1 = k.d1; const r2 = r2DizinKur(r2d);
+  const env = envKur(d1, r2);
+  const istek = istekKur(modul, env);
+  const siparis = (isNo) => ({ sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+                               sepet: [{ foto_is: isNo, olcu_mm: 100, adet: 1 }] });
+  const yedek = VERI.ornekler.splice(0);
+  try {
+    VERI.ornekler.push({ tur: "isimlik", kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/t-io.webp",
+                         render: "https://media.pruvo3d.com/t-ir.webp", not: "t" });
+    await d1.prepare("INSERT INTO foto_fiyat (tur, olcu_mm, fiyat_kurus, guncel) VALUES ('isimlik', 100, 100000, '2026-10-07T00:00:00.000Z')").run();
+    const sg = P.saglayici;
+    const o = await istek("/foto/onizleme", { ip: "198.51.100.210", govde: { tur: "isimlik", olcu_mm: 100,
+      parametreler: { yazi: "Ada" }, hak_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" } });
+    const isNo = (o.v && o.v.is) || "yok";
+    const satir = () => d1.prepare("SELECT asama, hazir_tarih, hata FROM foto_isler WHERE is_no = ?").bind(isNo).first();
+    const dz = path.join(r2d, "foto-uretec-onizleme", isNo);
+    const s1 = await satir();
+    const gj = fs.existsSync(path.join(dz, "girdi.json")) ? JSON.parse(fs.readFileSync(path.join(dz, "girdi.json"), "utf8")) : null;
+    iddia("onizleme ucu 200 -> satir 'uretec-onizleme' + R2 girdi.json (§2: siparis_no '', kalem 0, olcu 100, parametreler) · saglayici 0 · yoklama 5/180 sn",
+      o.kod === 200 && !!s1 && s1.asama === "uretec-onizleme" && !!gj && gj.sozlesme === 1 && gj.kategori === "isimlik" &&
+        gj.siparis_no === "" && gj.kalem === 0 && gj.olcu_mm === 100 && JSON.stringify(gj.parametreler) === JSON.stringify({ yazi: "Ada" }) &&
+        P.saglayici === sg && !!o.v.yoklama && o.v.yoklama.aralik_sn === 5 && o.v.yoklama.tavan_sn === 180,
+      JSON.stringify([o.kod, o.v, s1, gj]));
+    const sema = await istek("/foto/onizleme", { ip: "198.51.100.211", govde: { tur: "isimlik", olcu_mm: 100,
+      parametreler: { yazi: "Ada", fazla: 1 }, hak_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" } });
+    iddia("sema disi parametre -> 400 (VERI.parametreDogrula), satir/R2 yazimi yok", sema.kod === 400 && sema.v && sema.v.hata === "sema-disi-parametre",
+      JSON.stringify([sema.kod, sema.v]));
+    const d0 = await istek("/foto/durum?is=" + isNo);
+    const b0 = await istek("/baslat", { govde: siparis(isNo) });
+    iddia("kuyrukta: durum 'bekliyor' · siparis 400 foto-onizleme-yok (kuyruk atlanamaz)",
+      !!d0.v && d0.v.asama === "bekliyor" && b0.kod === 400 && !!b0.v && b0.v.hata === "foto-onizleme-yok", JSON.stringify([d0.v, b0.kod, b0.v]));
+    const k1 = kosucu();
+    const s2 = await satir();
+    g.ozet.push("onizleme koşucu: " + k1.son + " · asama=" + (s2 && s2.asama) + " · uretec=" + uretecSayisi());
+    iddia("koşucu (sahte uretec) -> 'onizleme-hazir', uretec 1 kez", k1.son === "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" &&
+      !!s2 && s2.asama === "onizleme-hazir" && uretecSayisi() === 1, k1.cikti.slice(-500));
+    const dy = await istek("/foto/durum?is=" + isNo);
+    const gy = await istek("/foto/gorsel?is=" + isNo);
+    const png = fs.existsSync(path.join(dz, "onizleme.png")) ? fs.readFileSync(path.join(dz, "onizleme.png")) : Buffer.alloc(0);
+    iddia("durum 'hazir' + olcu.json ozeti (uzun kenar 100) · gorsel ucu koşucunun onizleme.png'si",
+      !!dy.v && dy.v.asama === "hazir" && !!dy.v.olcu && dy.v.olcu.uzun_kenar_mm === 100 && dy.v.gorsel === "/api/shop/foto/gorsel?is=" + isNo &&
+        gy.kod === 200 && !!gy.bayt && png.length > 0 && Buffer.compare(Buffer.from(gy.bayt), png) === 0, JSON.stringify([dy.v, gy.kod]));
+    const b1 = await istek("/baslat", { govde: siparis(isNo) });
+    const no = b1.v && b1.v.no;
+    if (no) { await d1.prepare("UPDATE siparisler SET durum = 'odendi' WHERE siparis_no = ?").bind(no).run(); }
+    await foto.fotoUretimTuru(env, Date.now(), null);
+    const urt = () => d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = ?").bind(no || "-").first();
+    const u1 = await urt();
+    iddia("siparis 200 (onizleme-hazir ise baglanir) -> odeninca foto_uretim 'uretec-bekliyor'",
+      b1.kod === 200 && !!u1 && u1.asama === "uretec-bekliyor", JSON.stringify([b1.kod, b1.v, u1]));
+    const k2 = kosucu();
+    const u2 = await urt();
+    const m1 = path.join(r2d, "foto", String(no), "0", "model.3mf"), m0 = path.join(dz, "model.3mf");
+    const ayni = fs.existsSync(m1) && fs.existsSync(m0) && Buffer.compare(fs.readFileSync(m1), fs.readFileSync(m0)) === 0;
+    g.ozet.push("siparis koşucu: " + k2.son + " · " + ((k2.cikti.split("\n").find((x) => /^HAZIR siparis/.test(x))) || "-") +
+                " · foto_uretim=" + (u2 && u2.asama) + " · uretec toplam=" + uretecSayisi() + " · model onizlemeyle ayni=" + ayni);
+    iddia("KOPYA KOLU: koşucu siparisi uretec KOSMADAN 'hazir' yapar (uretec toplam 1) · model = onizleme modeli",
+      k2.son === "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" && /KOPYA/.test(k2.cikti) && !!u2 && u2.asama === "hazir" &&
+        uretecSayisi() === 1 && ayni, k2.cikti.slice(-500));
+  } catch (e) {
+    iddia("L10 senaryo hatasiz kostu", false, (e && e.stack) || String(e));
+  } finally {
+    VERI.ornekler.splice(0, VERI.ornekler.length, ...yedek);
+    k.kapat();
+  }
+  return g;
+}
+
 const ADLAR = {
   L2: "L2 FIYAT YOK -> SATIN ALMA RED", L3: "L3 /foto/litofan SAGLAYICISIZ", L4: "L4 /baslat TUTAR + SECIM",
   L5: "L5 KUYRUK uretec-bekliyor", L6: "L6 PANEL YUKLEME", L7: "L7 PLAKET REGRESYONU", L9: "L9 URETEC OLCU + SVG + AYDINLATMA KOLU",
-  L8: "L8 SAKLAMA saglayicisiz",
+  L8: "L8 SAKLAMA saglayicisiz", L10: "L10 URETEC ONIZLEME KUYRUGU -> SIPARIS -> KOPYA KOLU (sentetik isimlik, uctan uca)",
 };
 const sonuc = await senaryo(canli);
+{
+  const gi = await senaryoIsimlik(isimlikKokKur(null));
+  sonuc.L10 = gi.L10;
+  for (const x of gi.ozet) { console.log("UCTAN_UCA_ONIZLEME " + x); }
+}
 for (const grup of Object.keys(ADLAR)) {
   console.log(ADLAR[grup]);
   for (const x of sonuc[grup]) { ol(x.ad, x.ok, x.ek); }
@@ -510,9 +686,6 @@ for (const grup of Object.keys(ADLAR)) {
 // ================================================================ MUTANTLAR (izole kopya)
 
 console.log("MUTANTLAR (os.tmpdir() izole kopya; calisma agacina yazilmaz)");
-const GECICILER = [];
-const temizle = () => { for (const d of GECICILER) { fs.rmSync(d, { recursive: true, force: true }); } };
-process.on("exit", temizle);
 
 /** shop/src + veri + secenekler KOPYA; buyuk salt-okunur bagimliliklar (jenerator, konfigur.js) bag. */
 function kopyaKur() {
@@ -547,6 +720,12 @@ const MUTANTLAR = [
     capa: "!(Math.abs(o.uzun_kenar_mm - k.olcu_mm) <= k.olcu_mm * tol + 1e-9)", yerine: "false" },
   { ad: "M8 parametre sema kontrolu silindi", dosya: "shop/src/foto.js", hedef: "L3",
     capa: "  if (!p.ok) { return p.hata; }\n", yerine: "" },
+  { ad: "M9 kuyruk atlandi: uretec onizleme satiri dogrudan 'hazir'", dosya: "shop/src/foto.js", hedef: "L10",
+    capa: "\" VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '')\"", yerine: "\" VALUES (?, ?, ?, ?, ?, 'hazir', 0, '')\"" },
+  { ad: "M10 siparis ucu uretec turunde 'hazir' bekler (onizleme-hazir ise baglanmaz)", dosya: "shop/src/foto.js", hedef: "L10",
+    capa: "? \"onizleme-hazir\" : \"hazir\";", yerine: "? \"hazir\" : \"hazir\";" },
+  { ad: "M11 uretec kolu yonlendirmesi silindi (saglayici yoluna duser)", dosya: "shop/src/foto.js", hedef: "L10",
+    capa: "  if (g && typeof g === \"object\" && uretecOnizlemeTuru(g.tur)) { return uretecOnizlemeUcu(request, env, simdi, g); }\n", yerine: "" },
   { ad: "M5 saglayici env'siz dalda onizleme temizligi kaldirildi", dosya: "shop/src/foto.js", hedef: "L8",
     capa: "      try { ozet.silinen = await onizlemeTemizle(env, simdi); } catch (e) { if (!tabloYok(e)) { throw e; } }\n",
     yerine: "" },
@@ -563,7 +742,10 @@ for (const mu of MUTANTLAR) {
   const kok = kopyaKur();
   fs.writeFileSync(path.join(kok, mu.dosya), asil.replace(mu.capa, mu.yerine));
   let g;
-  try { g = await senaryo(await modulKur(kok)); } catch (e) {
+  try {
+    g = await senaryo(await modulKur(kok));
+    g.L10 = (await senaryoIsimlik(isimlikKokKur(mu))).L10;
+  } catch (e) {
     survivor++;
     ol(mu.ad + " — mutant yuklendi", false, (e && e.stack) || String(e));
     continue;

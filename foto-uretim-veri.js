@@ -206,6 +206,10 @@
     var m = t && typeof t.motor === "string" ? t.motor : "";
     return Object.prototype.hasOwnProperty.call(VERI.MOTOR_KOLU, m) ? VERI.MOTOR_KOLU[m] : "";
   };
+  // Üreteç kimliği -> tarayıcıda sipariş öncesi önizleme çizen kol (bugün yalnız litofan). Bölüm
+  // ve sunucu AYNI tablo: burada OLMAYAN D/R türünün sipariş öncesi önizlemesini üreteç koşucusu
+  // çıkarır (/foto/onizleme -> foto_isler 'uretec-onizleme' -> koşucu -> 'onizleme-hazir').
+  VERI.TARAYICI_ONIZLEYICI = { litofan_uret: true };
   // Aydınlatma maddeleri türün motoruna göre: kol "M" maddesi yalnız M motorlu türde gösterilir.
   VERI.aydinlatmaMaddeleri = function (kod) {
     var t = VERI.turBul(kod);

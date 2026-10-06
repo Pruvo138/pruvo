@@ -7,7 +7,8 @@ dizin), uretec yerine SAHTE komut. Gercek D1/R2/ev yolu YOK; her sey tempfile al
 Vakalar: T1 BOS rc=1 · T2 1 is -> ISLEDI + hazir + 3 dosya R2'de · T3 rc 2 -> elle · T4 ariza x3 -> elle ·
 T5 sizdirmaz:false -> elle, R2 yazimi 0 · T6 CAS kaybi -> yazim yok · T7 D1/R2 erisim yok ->
 OLCULEMEDI rc=4 + satir DEGISMEDI · T8 kilit -> KILITLI rc=3 · T9 KURU -> yazim 0 · T10 onizleme kuyrugu
--> onizleme-hazir · T11 log tavani.
+-> onizleme-hazir · T11 log tavani · T12 KOPYA KOLU (onizlemeye bagli siparis, ayni girdi sha -> uretec
+KOSMAZ, model onizlemeninki) · T12b sha farkli -> uretec yeniden koşar.
 Mutantlar (kosucu kopyasi gecici dizinde): M1 sizdirmaz dogrulamasi silindi -> T5 KIRMIZI ·
 M2 KURU kapisi silindi -> T9 · M3 CAS kira kontrolu silindi -> T6 · M4 deneme tavani yok -> T4 ·
 M5 erisim hatasinda jeton geri verilmez -> T7 · M0 yorum -> 0 kirmizi.
@@ -67,6 +68,7 @@ sys.exit(9)
 SAHTE_URETEC = r'''
 import json, os, struct, sys, zlib
 a = sys.argv[1:]; g = json.load(open(a[a.index("--girdi") + 1])); c = a[a.index("--cikti") + 1]
+open(os.environ["FAKE_LOG"], "a").write(json.dumps(["uretec"]) + "\n")
 mod = os.environ.get("FAKE_URETEC_MOD", "ok")
 if mod == "red":
     sys.stderr.write("RED olcu-aralik: sahte\n"); sys.exit(2)
@@ -155,6 +157,18 @@ class Ortam:
                        "renkler": {}, "malzemeler": {}, "parametreler": {}, "dosyalar": {"gri_harita": "gri_harita.png"}}, f)
         with open(os.path.join(d, "gri_harita.png"), "wb") as f:
             f.write(png_gri(200, 140))
+
+    def siparis_onizlemeden(self, secim):
+        """Siparis oncesi uretec onizlemesine (IS2) bagli odenmis kalem."""
+        kalem = {"foto_is": IS2, "foto_tur": "litofan", "olcu_mm": 120, "foto_secim": secim}
+        self.sql("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES (?,?,?,?,?)",
+                 SIP, GUNCEL0, "odendi", 120000, json.dumps([kalem]))
+        self.sql("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, deneme, tarih, guncel)"
+                 " VALUES (?,0,?,?,?,?,?,?,?)", SIP, IS2, "litofan", 120, "uretec-bekliyor", 0, GUNCEL0, GUNCEL0)
+
+    def uretec_sayisi(self):
+        with open(self.log) as f:
+            return sum(1 for s in f if json.loads(s) == ["uretec"])
 
     def kos(self, *arg, **ek):
         env = dict(self.env, **ek)
@@ -286,6 +300,31 @@ def vakalar(kosucu):
                 r["hazir_tarih"] != "" and sorted(os.listdir(d)) ==
                 ["girdi.json", "gri_harita.png", "model.3mf", "olcu.json", "onizleme.png"]), "%s %s" % (son, r)
 
+    def t12(o):
+        # KOPYA KOLU: onizleme -> onizleme-hazir (uretec 1) -> ayni girdili siparis -> uretec KOSMAZ.
+        o.onizleme_is()
+        o.kos("--uygula")
+        o.siparis_onizlemeden({})
+        rc, son, cikti = o.kos("--uygula")
+        u = o.uretim()
+        d = os.path.join(o.r2, "foto", SIP, "0")
+        m0 = os.path.join(o.r2, "foto-uretec-onizleme", IS2, "model.3mf")
+        ayni = (sorted(os.listdir(d)) == ["model.3mf", "olcu.json", "onizleme.png"] if os.path.isdir(d) else False) and \
+            open(os.path.join(d, "model.3mf"), "rb").read() == open(m0, "rb").read()
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
+                o.uretec_sayisi() == 1 and "KOPYA" in cikti and ayni), "%s %s uretec=%d ayni=%s" % (
+                    son, u, o.uretec_sayisi(), ayni)
+
+    def t12b(o):
+        # SHA FARKLI: siparis secimi onizleme girdisinden farkli -> kopya YOK, uretec yeniden koşar.
+        o.onizleme_is()
+        o.kos("--uygula")
+        o.siparis_onizlemeden({"ayak_renk": "Siyah"})
+        rc, son, cikti = o.kos("--uygula")
+        u = o.uretim()
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
+                o.uretec_sayisi() == 2 and "KOPYA" not in cikti), "%s %s uretec=%d" % (son, u, o.uretec_sayisi())
+
     def t11(o):
         log = os.path.join(o.d, "k.log")
         with open(log, "w") as f:
@@ -299,7 +338,7 @@ def vakalar(kosucu):
                 not os.path.exists(log + ".2")), "log=%d log.1=%d" % (b1, b2)
 
     for ad, fn in (("T1", t1), ("T2", t2), ("T3", t3), ("T4", t4), ("T5", t5), ("T6", t6), ("T7", t7),
-                   ("T8", t8), ("T9", t9), ("T10", t10), ("T11", t11)):
+                   ("T8", t8), ("T9", t9), ("T10", t10), ("T11", t11), ("T12", t12), ("T12b", t12b)):
         vaka(ad, fn)
     return s
 
@@ -310,6 +349,9 @@ MUTANTLAR = {
     "M3": ('    if n != 1:\n        yaz("CAS %s kiralanamadi', '    if False:\n        yaz("CAS %s kiralanamadi', {"T6"}),
     "M4": ("DENEME_TAVANI = 3\n", "DENEME_TAVANI = 99\n", {"T4"}),
     "M5": ("            d1(geri_ver_sql(i, jeton))\n", "            pass\n", {"T7"}),
+    "M6": ("    if onceki != sha:\n", "    if False:\n", {"T12b"}),
+    "M7": ('    if i["kuyruk"] != "siparis" or not i.get("onizleme_kaynakli"):\n        return None\n    os.makedirs',
+           '    if True:\n        return None\n    os.makedirs', {"T12"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 

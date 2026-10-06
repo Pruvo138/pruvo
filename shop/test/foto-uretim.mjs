@@ -962,15 +962,27 @@ function sahteBelge() {
   return { document, bolum };
 }
 
-async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit) {
+async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   const { document, bolum } = sahteBelge();
+  ek = ek || {};
+  const istekler = [], araliklar = [];
   const kok = {
-    document, PRUVO_FOTO: fotoVeri, setTimeout, clearTimeout, setInterval, clearInterval, console,
+    document, PRUVO_FOTO: fotoVeri, setTimeout, clearTimeout, console,
+    // ek.zamanlayici: yoklama araligi OLCULUR, gercek zamanlayici kurulmaz (test 5 sn beklemez).
+    setInterval: ek.zamanlayici ? (fn, ms) => { araliklar.push(ms); return 0; } : setInterval,
+    clearInterval: ek.zamanlayici ? () => {} : clearInterval,
     PRUVO_SECENEK: { kargoKurus: () => 25000, kurusMetni: (k) => (k / 100).toFixed(2) + " TL" },
-    turnstile: { render: () => 1, remove() {}, reset() {} },
+    turnstile: { render: (k, o) => { if (ek.turnstileOto && o && typeof o.callback === "function") { o.callback("t-jeton"); } return 1; },
+                 remove() {}, reset() {} },
     sessionStorage: { getItem: (k) => (k === "pruvo_foto_is" && kayit ? JSON.stringify(kayit) : null), setItem() {}, removeItem() {} },
     location: { href: "https://pruvo3d.com/" },
-    fetch: async (u) => ({ ok: true, status: 200, json: async () => (String(u).includes("/foto/durum") ? durumYanit : acikYanit) }),
+    fetch: async (u, init) => {
+      if (init && init.method === "POST") {
+        istekler.push({ u: String(u), govde: JSON.parse(init.body) });
+        return { ok: true, status: 200, json: async () => ek.postYanit || {} };
+      }
+      return { ok: true, status: 200, json: async () => (String(u).includes("/foto/durum") ? durumYanit : acikYanit) };
+    },
   };
   kok.window = kok;
   vm.runInNewContext(kaynak, kok, { filename: "foto-uretim.js" });
@@ -988,6 +1000,8 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit) {
            turGrubuGizli: !!turGrubu && turGrubu.hidden === true, ornekler, ornekBaslik };
   // DOM koku sayilmayan alan (JSON.stringify'a girmez; FM senaryolari dugumleri dogrudan okur).
   Object.defineProperty(sonuc, "bolum", { value: bolum, enumerable: false });
+  Object.defineProperty(sonuc, "istekler", { value: istekler, enumerable: false });
+  Object.defineProperty(sonuc, "araliklar", { value: araliklar, enumerable: false });
   return sonuc;
 }
 
@@ -1333,6 +1347,13 @@ console.log("ES2) ORNEK CUMLESI TUR BAZLI + ACIK TUR SUZGECI (mimar karari 7 Eki
     // TEK GORSEL + TUR CUMLESI: litofan onizleme = render -> 1 gorsel; cumle litofaninki, "kabartmalı" 0.
     s.LITOFAN = b.ornekler.length === 2 && !!lit && lit.img.length === 1 && lit.metin.includes(CUMLE_L) &&
       !lit.metin.includes("kabartmalı") && !!pla && pla.img.length === 2 && pla.metin.includes(CUMLE_P);
+    // DURUSTLUK (madde 12, DOM): ust kutu once ilk turun (plaket) metni; litofan secilince litofaninki.
+    const db = [...b.bolum.agac()];
+    const DP = V0.turBul("plaket").durustluk, DL = V0.turBul("litofan").durustluk;
+    const kutu = db.find((n) => n.tagName === "P" && n.textContent === DP);
+    const litR = db.find((n) => n.tagName === "INPUT" && n.name === "foto-tur" && n.value === "litofan");
+    if (kutu && litR) { litR.checked = true; litR.tetikle("change"); }
+    s.DURUSTLUK = !!kutu && !!litR && kutu.textContent === DL;
     const Vn = veriYukle(VERI_KAYNAK); Vn.turBul("litofan").ornek_notu = "";
     const c = await ekranKos(kaynak, Vn, acikPL);
     // NOTSUZ: ornek_notu bos turun render ornegi CIZILMEZ (fail-closed); plaket kalir.
@@ -1343,11 +1364,13 @@ console.log("ES2) ORNEK CUMLESI TUR BAZLI + ACIK TUR SUZGECI (mimar karari 7 Eki
   ol("ES2b /foto/acik yalniz plaket -> litofan ornegi CIZILMEZ (acik tur suzgeci)", s0.SUZGEC, JSON.stringify(s0));
   ol("ES2c iki tur acik -> litofan: TEK gorsel + litofan cumlesi ('kabartmalı' 0); plaket: 2 gorsel + karar cumlesi", s0.LITOFAN, JSON.stringify(s0));
   ol("ES2d ornek_notu bos turun render ornegi cizilmez (fail-closed)", s0.NOTSUZ, JSON.stringify(s0));
+  ol("ES2e DOM: litofan secilince UST durustluk kutusu litofan metnini basar (once plaketinki)", s0.DURUSTLUK, JSON.stringify(s0));
   const ES2_MUT = [
     ["ES2-M1 acik tur suzgeci silindi", "      if (acikKodlar && acikKodlar.indexOf(t.kod) < 0) continue;\n", "", ["SUZGEC"]],
     ["ES2-M2 tek gorsel kontrolu silindi", "if (it.ornek.onizleme !== it.ornek.render) {", "if (true) {", ["LITOFAN"]],
     ["ES2-M3 sabit (plaket) cumlesi her turde", "\"foto-uretim-ornek-not\", it.tur.ornek_notu));", "\"foto-uretim-ornek-not\", F.turler[0].ornek_notu));", ["LITOFAN"]],
     ["ES2-M4 notsuz render ornegi cizilir", "(F.ornekKaniti(o) !== \"render\" || t.ornek_notu)", "true", ["NOTSUZ"]],
+    ["ES2-M5 tur degisince durustluk guncellenmez", "          S.tur = kod;\n          durustlukGuncelle();\n", "          S.tur = kod;\n", ["DURUSTLUK"]],
   ];
   for (const [ad, capa, yerine, olmeli] of ES2_MUT) {
     if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
@@ -1359,7 +1382,7 @@ console.log("ES2) ORNEK CUMLESI TUR BAZLI + ACIK TUR SUZGECI (mimar karari 7 Eki
 
 console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, vm kopyasinda)");
 {
-  const SONRA = "Önizleme, ödeme sonrası üretim dosyasıyla birlikte hazırlanır.";
+  const SONRA = "Önizleme, üretim dosyasıyla birlikte hazırlanır; birkaç dakika sürebilir.";
   const sentetik = (kaynakVeri) => {
     const V = veriYukle(kaynakVeri);
     V.turler.push({ kod: "isimlik", ad: "İsimlik", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",
@@ -1404,6 +1427,26 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     s.ONIZLEMESIZ = !!kap && kap.hidden === false && [...kap.agac()].some((n) => n.tagName === "IMG" && /t-ir\.webp$/.test(n.src)) &&
       !d.some((n) => n.tagName === "CANVAS") && !!btn && btn.disabled === true &&
       !d.some((n) => n.tagName === "P" && /tarayıcında çizilir/.test(n.textContent) && n.parentNode && !n.parentNode.hidden);
+    // URETEC ONIZLEME (madde 11): onay + dogrulama sonrasi buton ACILIR; tiklaninca /foto/onizleme'ye
+    // foto'suz govde (tur + parametreler) gider, litofan ucu cagrilmaz, yoklama araligi 5 sn.
+    const V2 = sentetik(VERI_KAYNAK);
+    const e2 = await ekranKos(kaynak, V2, acikI, null, { asama: "bekliyor" },
+      { turnstileOto: true, zamanlayici: true, postYanit: { is: "a".repeat(32), kalan: 2 } });
+    const d2 = [...e2.bolum.agac()];
+    const id2 = (x) => d2.find((n) => n.id === x) || null;
+    const y2 = id2("foto-param-yazi"), u2 = id2("foto-param-link"), btn2 = id2("foto-onizle-buton");
+    if (y2 && u2) { y2.value = "Ada"; y2.tetikle("input"); u2.value = "https://ornek.com"; u2.tetikle("input"); }
+    const hak = d2.find((n) => n.tagName === "INPUT" && n.type === "checkbox");
+    if (hak) { hak.checked = true; hak.tetikle("change"); }
+    const acildi = !!btn2 && btn2.disabled === false && btn2.textContent === "Önizleme oluştur";
+    if (btn2) { btn2.tetikle("click"); }
+    for (let i = 0; i < 10; i++) { await new Promise((c) => setTimeout(c, 0)); }
+    const p0 = e2.istekler[0] || {};
+    s.KUYRUK = acildi && e2.istekler.length === 1 && p0.u === "/api/shop/foto/onizleme" &&
+      p0.govde.tur === "isimlik" && p0.govde.hak_onay === true && p0.govde.turnstile_token === "t-jeton" &&
+      p0.govde.gorsel === undefined && JSON.stringify(p0.govde.parametreler) ===
+        JSON.stringify({ yazi: "Ada", kalinlik: 2, yazi_tipi: "Düz", link: "https://ornek.com" }) &&
+      e2.araliklar.includes(5000) && !e2.araliklar.includes(3000);
     // PLAKET: form {} -> alan yok, SONRA metni yok.
     const p = await ekranKos(kaynak, sentetik(VERI_KAYNAK), acikP);
     const dp = [...p.bolum.agac()];
@@ -1415,11 +1458,15 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
   ol("FM2 istemci dogrulamasi = VERI.parametreDogrula (hata metni ondan; doldurunca ok + govde semaya uygun)", s0.AYNI_FONKSIYON, JSON.stringify(s0));
   ol("FM3 onizlemesiz D turu: ornek render + '" + SONRA + "' · tuval/litofan onizleme metni 0 · buton kapali", s0.ONIZLEMESIZ, JSON.stringify(s0));
   ol("FM4 plaket (form {}): parametre alani 0, onizleme-sonra metni 0", s0.PLAKET, JSON.stringify(s0));
+  ol("FM5 onizlemesiz D: buton onay+dogrulamayla ACILIR -> /foto/onizleme kuyrugu (foto'suz, parametreli), yoklama 5 sn", s0.KUYRUK, JSON.stringify(s0));
   const FM_MUT = [
     ["FM-M1 istemci kendi dogrulamasi (her sey gecerli)", "return F.parametreDogrula(S.tur, parametreGovde());", "return { ok: true };", ["AYNI_FONKSIYON"]],
     ["FM-M2 onizleme-sonra metni dustu", "S.alanOnizlemeSonra.appendChild(el(\"p\", \"foto-uretim-ayrinti\", ONIZLEME_SONRA));", "", ["ONIZLEMESIZ"]],
     ["FM-M3 tarayici onizleyici kosulu silindi (her D litofan sayilir)",
-     "F.kolu(S.tur) === \"deterministik\" && TARAYICI_ONIZLEYICI[t.uretec] === true);", "F.kolu(S.tur) === \"deterministik\");", ["ONIZLEMESIZ"]],
+     "F.kolu(S.tur) === \"deterministik\" && F.TARAYICI_ONIZLEYICI[t.uretec] === true);", "F.kolu(S.tur) === \"deterministik\");", ["KUYRUK", "ONIZLEMESIZ"]],
+    ["FM-M4 uretec onizleme yonlendirmesi silindi (plaket/saglayici yoluna duser)",
+     "    if (onizlemeSonraSecili()) { uretecOnizle(); return; }\n", "", ["KUYRUK"]],
+    ["FM-M5 uretec yoklama araligi plaketinki", "var aralik = uretec ? URETEC_YOKLAMA_MS : YOKLAMA_MS;", "var aralik = YOKLAMA_MS;", ["KUYRUK"]],
     ["FM-MK kontrol (yorum)", "// FORM ALANLARI — türün", "// form alanlari — turun", []],
   ];
   for (const [ad, capa, yerine, olmeli] of FM_MUT) {
@@ -1663,11 +1710,11 @@ const GUNLUK_TAVAN = foto.GUNLUK_ONIZLEME_TAVANI;
 const ORNEK_MUTANTLAR = [
   ["OM1 SEPET RED DALI SILINDI", "  if (ornekMi(is)) { return { hata: { hata: \"foto-onizleme-yok\" }, kod: 400 }; }\n", "", "SEPET"],
   ["OM2 DURUM RED DALI SILINDI",
-   "  if (ornekMi(is)) { return fjson({ hata: \"bulunamadi\" }, 404); }\n  return onizlemeIlerle(",
-   "  return onizlemeIlerle(", "DURUM"],
+   "  if (ornekMi(is)) { return fjson({ hata: \"bulunamadi\" }, 404); }\n  if (uretecOnizlemeTuru(is.tur)) { return uretecDurumYaniti",
+   "  if (uretecOnizlemeTuru(is.tur)) { return uretecDurumYaniti", "DURUM"],
   ["OM3 GORSEL RED DALI SILINDI",
-   "  if (ornekMi(is)) { return fjson({ hata: \"bulunamadi\" }, 404); }\n  return onizlemeGorseli(env, isNo);",
-   "  return onizlemeGorseli(env, isNo);", "GORSEL"],
+   "  if (ornekMi(is)) { return fjson({ hata: \"bulunamadi\" }, 404); }\n  // Uretec onizlemesi",
+   "  // Uretec onizlemesi", "GORSEL"],
   ["OM4 TAVAN ORNEGI SAYAR", "WHERE tarih >= ? AND ziyaretci != ?\"", "WHERE tarih >= ? AND ? IS NOT NULL\"", "SINIR"],
   ["OM5 DOSYA ORNEK ISARETI DUSTU", "WHERE u.siparis_no = ? AND u.kalem = ? AND i.ziyaretci = ?\"",
    "WHERE u.siparis_no = ? AND u.kalem = ? AND ? IS NOT NULL\"", "DOSYA"],

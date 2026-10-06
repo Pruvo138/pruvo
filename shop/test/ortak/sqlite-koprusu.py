@@ -10,7 +10,8 @@ Veritabani bellekte kurulur ve sema KANONIK dosyadan okunur (tools/d1-sema.sql) 
 testte elle yazilmis ikinci bir sema YOKTUR: kanondan bir kolon/tablo duserse SQL
 "no such column/table" ile patlar ve test kirmizi yanar.
 
-Stdlib disinda bagimlilik yok; ag/disk yazimi yok (yalniz :memory:).
+Stdlib disinda bagimlilik yok; ag yok. Varsayilan :memory:; `SQLITE_KOPRU_DB` verilirse o dosya
+(yalniz uctan uca prova: koşucu ayni dosyayi okur; dosya testin GECICI dizinindedir).
 """
 import json
 import os
@@ -22,7 +23,7 @@ SEMA = os.path.join(KOK, "tools", "d1-sema.sql")
 
 
 def kur():
-    db = sqlite3.connect(":memory:")
+    db = sqlite3.connect(os.environ.get("SQLITE_KOPRU_DB") or ":memory:")
     db.row_factory = sqlite3.Row
     with open(SEMA, encoding="utf-8") as f:
         db.executescript(f.read())

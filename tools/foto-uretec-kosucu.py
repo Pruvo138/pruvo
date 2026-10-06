@@ -13,6 +13,10 @@ IKI KUYRUK
              turu). Girdi: R2 `foto-uretec-onizleme/<is_no>/girdi.json` + orada beyan edilen dosyalar.
              Cikti ayni dizine {onizleme.png, olcu.json, model.3mf} -> asama 'onizleme-hazir'
              (model.3mf siparise kadar R2'de bekler). foto_isler'de 'elle' yok: red -> 'basarisiz'.
+KOPYA KOLU: siparis kalemi onizleme dizinine bagliysa (R2'de girdi.json VAR) girdi oradan kurulur
+  (renk/malzeme/olcu siparisten); olcu.json `girdi_sha256` (koşucunun kanonik girdi parmak izi,
+  siparis_no/kalem HARIC) siparis girdisiyle AYNIYSA uretec KOSMAZ, uc dosya kopyalanir (§3 yine
+  koşar); farkliysa yeniden uretilir.
 
 KARAR (her is): rc 0 + §3 dogrulamasi gecer -> R2'ye yaz -> CAS ile ilerlet · rc 2 ya da §3 dusmesi
 (sizdirmaz:false dahil) -> 'elle' + sebep · diger rc -> deneme+1, DENEME_TAVANI'nda 'elle'.
@@ -56,6 +60,7 @@ URETEC_SURE_SN = 300
 IS_SINIRI = 20
 LOG_TAVAN_BAYT = 5 * 1024 * 1024
 CIKTI_DOSYALARI = ["model.3mf", "olcu.json", "onizleme.png"]
+ONIZLEME_DIZIN = "foto-uretec-onizleme/%s/"  # siparis oncesi uretec onizlemesi (shop/src/foto.js ile ayni)
 SIPARIS_KALIBI = re.compile(r"^[A-Za-z0-9-]{6,40}$")  # shop/src/foto.js ile ayni
 IS_KALIBI = re.compile(r"^[0-9a-f]{32}$")
 # Uretec deposu SALT OKUNUR: alt surec __pycache__ yazmaz.
@@ -279,7 +284,26 @@ def girdi_hazirla(i, t, dizin):
         g = siparis_girdisi(i, t)
         if g is None:
             return "kalem-yok"
-        if not r2_al("foto-onizleme/%s.png" % i["is_no"], os.path.join(dizin, "gri_harita.png")):
+        oy = os.path.join(dizin, "girdi.json")
+        if r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):
+            # Kalem siparis oncesi uretec onizlemesine bagli: parametreler + dosyalar onizleme
+            # girdisinden, renk/malzeme/olcu SIPARISTEN (farkliysa sha da farkli -> yeniden uretilir).
+            try:
+                with open(oy, encoding="utf-8") as f:
+                    o = json.load(f)
+            except (OSError, ValueError):
+                return "girdi-bozuk"
+            if not isinstance(o, dict) or o.get("kategori") != i["tur"] or not isinstance(o.get("dosyalar"), dict):
+                return "girdi-bozuk"
+            g["parametreler"] = o.get("parametreler") if isinstance(o.get("parametreler"), dict) else {}
+            g["dosyalar"] = o["dosyalar"]
+            for ad in sorted(set(g["dosyalar"].values())):
+                if not isinstance(ad, str) or not DOSYA_ADI_KALIBI.match(ad):
+                    return "girdi-bozuk"
+                if not r2_al(ONIZLEME_DIZIN % i["is_no"] + ad, os.path.join(dizin, ad)):
+                    return "girdi-yok"
+            i["onizleme_kaynakli"] = True
+        elif not r2_al("foto-onizleme/%s.png" % i["is_no"], os.path.join(dizin, "gri_harita.png")):
             return "girdi-yok"
     else:
         yol = os.path.join(dizin, "girdi.json")
@@ -309,6 +333,56 @@ def girdi_sha(dizin):
         with open(os.path.join(dizin, ad), "rb") as f:
             h.update(f.read())
     return h.hexdigest()
+
+
+def kanonik_girdi_sha(dizin):
+    """Uretimi belirleyen girdinin parmak izi: girdi.json (siparis_no/kalem HARIC) + beyan edilen
+    dosyalarin sha256'si. Onizleme ve siparis girdisi AYNI uretimi istiyorsa esittir."""
+    with open(os.path.join(dizin, "girdi.json"), encoding="utf-8") as f:
+        g = json.load(f)
+    oz = {k: g.get(k) for k in ("sozlesme", "kategori", "olcu_mm", "renkler", "malzemeler", "parametreler")}
+    oz["dosyalar"] = {}
+    for k, ad in sorted((g.get("dosyalar") or {}).items()):
+        with open(os.path.join(dizin, ad), "rb") as f:
+            oz["dosyalar"][k] = hashlib.sha256(f.read()).hexdigest()
+    ham = json.dumps(oz, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(ham.encode("utf-8")).hexdigest()
+
+
+def girdi_sha_damgala(cikti, sha):
+    """olcu.json `girdi_sha256` = koşucunun kanonik girdi parmak izi (kopya kolu bunu karsilastirir)."""
+    yol = os.path.join(cikti, "olcu.json")
+    try:
+        with open(yol, encoding="utf-8") as f:
+            o = json.load(f)
+    except (OSError, ValueError):
+        return  # dogrulama 'olcu-bozuk' der
+    if isinstance(o, dict):
+        o["girdi_sha256"] = sha
+        with open(yol, "w", encoding="utf-8") as f:
+            json.dump(o, f, ensure_ascii=False, sort_keys=True)
+
+
+def onizleme_kopyala(i, sha, cikti):
+    """KOPYA KOLU: siparis kalemi siparis oncesi uretec onizlemesine bagliysa VE onizlemenin
+    olcu.json `girdi_sha256`'si siparis girdisiyle AYNIYSA uretec KOSMAZ; uc dosya onizleme
+    dizininden alinir (§3 dogrulamasi yine koşar). Aksi None -> uretilir."""
+    if i["kuyruk"] != "siparis" or not i.get("onizleme_kaynakli"):
+        return None
+    os.makedirs(cikti)
+    for ad in CIKTI_DOSYALARI:
+        if not r2_al(ONIZLEME_DIZIN % i["is_no"] + ad, os.path.join(cikti, ad)):
+            shutil.rmtree(cikti)
+            return None
+    try:
+        with open(os.path.join(cikti, "olcu.json"), encoding="utf-8") as f:
+            onceki = json.load(f).get("girdi_sha256")
+    except (OSError, ValueError, AttributeError):
+        onceki = None
+    if onceki != sha:
+        shutil.rmtree(cikti)
+        return None
+    return 0, "kopya"
 
 
 # ------------------------------------------------------------------ uretec cagrisi (sozlesme §1)
@@ -466,7 +540,13 @@ def is_isle(i, manifest, yaz):
         os.makedirs(girdi_dizin)
         cikti = os.path.join(gecici, "cikti")
         sebep = girdi_hazirla(i, t, girdi_dizin) if t.get("motor") in TOLERANS else "kol-uygun-degil"
-        rc, ozet = (2, "RED " + sebep) if sebep else uretec_kos(i, girdi_dizin, cikti)
+        if sebep:
+            rc, ozet = 2, "RED " + sebep
+        else:
+            sha = kanonik_girdi_sha(girdi_dizin)
+            rc, ozet = onizleme_kopyala(i, sha, cikti) or uretec_kos(i, girdi_dizin, cikti)
+            if rc == 0:
+                girdi_sha_damgala(cikti, sha)
         if rc == 0:
             sebep = cikti_dogrula(i, t, cikti)
             if not sebep:
@@ -487,7 +567,8 @@ def is_isle(i, manifest, yaz):
         if n != 1:
             yaz("CAS %s son yazim tutmadi (jeton degismis)" % is_adi(i))
             return "cas"
-        yaz("%s %s%s" % (karar.upper(), is_adi(i), (" sebep=" + sebep) if sebep else "")
+        yaz("%s %s%s%s" % (karar.upper(), is_adi(i), (" sebep=" + sebep) if sebep else "",
+                          " KOPYA (uretec kosmadi)" if ozet == "kopya" else "")
             + ("" if karar == "hazir" else " rc=%s %s" % (rc, ozet)))
         return {"hazir": "uretildi", "elle": "red" if rc == 0 or rc == 2 else "ariza", "ariza": "ariza"}[karar]
     except Erisilemedi:
