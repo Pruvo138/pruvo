@@ -2274,6 +2274,7 @@ function kaynakLinkHtml(k){
 // dosya yoksa asamasi ACIKCA yazilir; 'elle' sebebi kirmizi basilir.
 var FOTO_ASAMA={"kuyrukta-degil":"üretim kuyruğunda değil (ödeme doğrulanınca 5 dk içinde girer)",
  "build-baslat":"model sırada","build":"model üretiliyor","analiz":"basılabilirlik analizi",
+ "onarim":"sızdırmazlık onarımı","doku":"onarılan modele doku",
  "renk":"4 renk ayrımı","hazir":"HAZIR","elle":"ELLE BAKILACAK"};
 function fotoSatirHtml(f){
  var d=f.dosyalar?
