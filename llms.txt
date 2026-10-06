@@ -6,7 +6,7 @@ PRUVO'nun iki ayırt edici tarafı vardır. **Tam ölçü:** parça hazır bir k
 
 **Sipariş ve ödeme:** ürün sayfasından malzeme, renk ve (ölçüye özel/parametrik kalemlerde) ölçü seçilir, sepete eklenir; site üzerinden kartla güvenli online ödeme yapılabilir — ölçüye özel kalemler de bu akışa dahildir. Ölçü danışmanlığı, özel iş ve malzeme sınıfının site seçeneklerini aştığı durumlar için WhatsApp hattı: **+90 545 138 6526**.
 
-**Dürüst sınır (PRUVO'nun kendi beyanı):** plastiğin pratik sürekli servis tavanı çoğu iş için 90-100 °C aralığındadır. Üretilen pervane ve çark parçaları yalnızca hava taşıyan fan ve havalandırma çarkıdır; sıvı taşıyan pompa, sintine ve sirkülasyon çarkı (impeller) ile tekne itişi sağlayan pervane — basınç seviyesi ne olursa olsun — kapsam dışıdır. Contalarda sınır düşük–orta basınçtır; profil ve kiriş türü parçalarda hafif, yük dışı kullanım esastır. Belgeli gıda teması, yangın/can emniyeti ve yapısal taşıyıcı bağlantı sertifikasyonu verilmez.
+**Dürüst sınır (PRUVO'nun kendi beyanı):** plastiğin pratik sürekli servis tavanı çoğu iş için 90-100 °C aralığındadır. Pervane ve çark tarafında fan ve havalandırma çarkı, pompa, sintine ve sirkülasyon çarkı (impeller) ve tekne pervanesi üretilir; ölçü ve kullanım koşulu birlikte netleştirilir. Contalarda sınır düşük–orta basınçtır; profil ve kiriş türü parçalarda hafif, yük dışı kullanım esastır. Belgeli gıda teması, yangın/can emniyeti ve yapısal taşıyıcı bağlantı sertifikasyonu verilmez.
 
 ## Başlangıç
 
@@ -112,7 +112,7 @@ PRUVO'nun iki ayırt edici tarafı vardır. **Tam ölçü:** parça hazır bir k
 ## Ölçüye özel parça aileleri
 
 - [Ölçüye özel plastik dişli ve kramayer](https://pruvo3d.com/olcuye-ozel-plastik-disli-uretimi/): düz, helis, konik, sonsuz dişli ve kramayer; modül numuneden çıkarılır.
-- [Ölçüye özel fan çarkı ve kanat](https://pruvo3d.com/olcuye-ozel-fan-carki-uretimi/): hava taşıyan fan ve havalandırma çarkı; sıvı taşıyan pompa çarkı kapsam dışı.
+- [Ölçüye özel fan çarkı ve kanat](https://pruvo3d.com/olcuye-ozel-fan-carki-uretimi/): hava taşıyan fan ve havalandırma çarkı.
 - [Ölçüye özel conta ve O-ring](https://pruvo3d.com/olcuye-ozel-conta-uretimi/): iç çap + kesit ya da AS568 koduna göre; düşük–orta basınç.
 - [Ölçüye özel montaj braketi](https://pruvo3d.com/olcuye-ozel-montaj-braketi/) · [Bağlantı konektör](https://pruvo3d.com/olcuye-ozel-baglanti-konektor/) · [Klips ve kelepçe](https://pruvo3d.com/olcuye-ozel-klips-kelepce-uretimi/) · [Menteşe](https://pruvo3d.com/olcuye-ozel-mentese-uretimi/).
 - [Kasnak](https://pruvo3d.com/kasnak-olcuye-ozel-uretim/) · [Triger kayışı](https://pruvo3d.com/olcuye-ozel-triger-kayisi-yaptirma/) · [Mil ve rulman için plastik yuva](https://pruvo3d.com/mil-rulman-icin-olcuye-ozel-plastik-yuva/) · [Zincir dişlisi](https://pruvo3d.com/olcuye-ozel-zincir-dislisi-uretimi/).
