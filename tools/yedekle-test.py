@@ -37,6 +37,7 @@ import time
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 YEDEKLE = os.path.join(TOOLS, "yedekle.py")
 DRIVE_YOLU = os.path.join(TOOLS, "drive_yolu.py")
+GIT_ORTAMI = os.path.join(TOOLS, "git_ortami.py")  # yedekle.py import eder (scrub tek kaynak)
 
 # Skill agacinda BULUNMASI zorunlu iki dosya (26 Tem'de mutasyon kanitiyla sertlestirildi).
 ZORUNLU = ("merge-kapisi/scripts/dal-olc.py", "merge-kapisi/evals/kabul-test.py")
@@ -110,6 +111,7 @@ def mutant_yaz(dizin, degisimler, ad="mutant.py"):
         f.write(kaynak)
     # yedekle.py import aninda kardes drive_yolu'yu cagirir -> yanina kopyala.
     shutil.copy2(DRIVE_YOLU, os.path.join(dizin, "drive_yolu.py"))
+    shutil.copy2(GIT_ORTAMI, os.path.join(dizin, "git_ortami.py"))
     return hedef
 
 
@@ -514,6 +516,7 @@ def izole_ortam(td, yedekle, memory_adet=40, skills_adet=20):
     kok = os.path.join(td, "repo")
     os.makedirs(os.path.join(kok, "tools"))
     shutil.copy2(YEDEKLE, os.path.join(kok, "tools", "yedekle.py"))
+    shutil.copy2(GIT_ORTAMI, os.path.join(kok, "tools", "git_ortami.py"))
     pruvo = os.path.join(td, "drive", "Pruvo")
     os.makedirs(pruvo)
     with open(os.path.join(kok, "tools", "drive_yolu.py"), "w") as f:

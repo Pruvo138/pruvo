@@ -1039,7 +1039,6 @@ ARTIK_DAMGA_TAVANI = 200
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import drive_yolu
-from git_ortami import git_ortami
 
 BAYRAKLAR = {"--kuru", "--dry-run", "--gerekliyse", "--sirlar", "--sir-temizle",
              "--kuru-prova", "--dogrula", "-h", "--help"}
@@ -2074,7 +2073,13 @@ def _ev_git_ortami():
     `GIT_DIR=<pruvo>/.git/worktrees/<ad>` koyar. `-C <ev>` bu degiskeni EZMEZ ->
     pruvo-hasat icin PRUVO'nun izlenen listesi donuyor, hasat'in izlenen ~8,5 bin dosyasi
     "izlenmeyen" sayilip ek plana giriyor ve her push'ta evict edilmis Drive hedefi
-    yeniden indiriliyordu."""
+    yeniden indiriliyordu.
+
+    Ice aktarim BURADA (modul basinda degil): yedekle.py'yi izole kopyaya tasiyan
+    testler (yedekle-test, yedek-hook-test, durum-yedek-test, K400 ...) yalniz bu yolu
+    kosmadikca kardes modulu tasimak zorunda kalmaz; yol kosarsa eksik modul GURULTULU
+    ImportError verir (sessiz scrub'siz dusus yok)."""
+    from git_ortami import git_ortami
     return git_ortami()
 
 
