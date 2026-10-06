@@ -1566,6 +1566,7 @@ jobs:
       - name: Fotograftan ozel uretim kabul testi (onizleme + odeme + uretim zinciri)
         run: |
           node shop/test/foto-uretim.mjs
+          node shop/test/foto-litofan.mjs
           python3 tools/foto-uretim-bolum-test.py
 
       # REKLAM ATIF HALKASI (K99, 25 Agu 2026) — "bu siparis hangi reklamdan geldi"

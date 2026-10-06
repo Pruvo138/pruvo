@@ -292,8 +292,11 @@ console.log("A) KAPALI-VARSAYILAN (bugunku veri dosyasi)");
 
 console.log("P) TUR LISTESI — tek tur PLAKET (Okan 5 Eki 21:4x; anahtarlik/magnet SUNULMAZ)");
 {
-  ol("P1 veri dosyasinda sunulan tur sayisi 1 ve kodu 'plaket'",
-     VERI.turler.length === 1 && VERI.turler[0].kod === "plaket", JSON.stringify(VERI.turler.map((t) => t.kod)));
+  // 6 Eki (kategori kaydi): tek-tur sozlesmesi yerine "metal gerektiren tur 0 + plaket VAR".
+  ol("P1 veri dosyasinda anahtarlik/magnet/figur 0 ve plaket VAR",
+     VERI.turler.some((t) => t.kod === "plaket") &&
+       !VERI.turler.some((t) => ["anahtarlik", "magnet", "figur"].includes(t.kod)),
+     JSON.stringify(VERI.turler.map((t) => t.kod)));
   ol("P2 sunucu tur tablosu yalniz plaket (anahtarlik/magnet/figur 0)",
      JSON.stringify(Object.keys(foto.TUR_ORTAM)) === '["plaket"]', JSON.stringify(Object.keys(foto.TUR_ORTAM)));
   ol("P3 saglayici tur yolu kodda DEGIL, ortam degiskeninden (deger dizesi 'URETIM_' ile baslar)",
@@ -337,8 +340,8 @@ console.log("B) FIYAT KABI");
   const tablo = await d1.prepare("SELECT COUNT(*) AS n FROM foto_fiyat WHERE tur <> 'plaket'").first();
   ol("P5b fiyat tablosunda plaket disi satir 0", tablo.n === 0, tablo.n);
   const oz = await istek(env, "/yonet/foto-ozet", { basliklar: YONET });
-  ol("P6 panel ozeti sunulan turleri sunucudan verir: yalniz plaket (panel tur listesi elle yazilmaz)",
-     oz.v && JSON.stringify(oz.v.sunulan_turler.map((t) => t.kod)) === '["plaket"]' &&
+  ol("P6 panel ozeti sunulan turleri sunucudan verir: kayittaki turler (panel tur listesi elle yazilmaz)",
+     oz.v && JSON.stringify(oz.v.sunulan_turler.map((t) => t.kod)) === JSON.stringify(VERI.turler.map((t) => t.kod)) &&
      oz.v.olcu_en_az === foto.OLCU_MM_EN_AZ && oz.v.ayak_plaket_basi === 1, JSON.stringify(oz.v && oz.v.sunulan_turler));
 }
 
