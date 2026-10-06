@@ -1484,10 +1484,11 @@ def main() -> int:
     print(rotasyon_satiri)
 
     # --- 🔴 DİSK SÜPÜRME: rotasyondan SONRA, kaynaktan bağımsız (BaBa 11:0x
-    #     madde A b/c). `--kuru` ve `--kendini-test` koşumlarında sayım YAPILIR
-    #     ama silme YAPILMAZ (kuru=True) — sağlık/fikstür koşumları yan etkisiz
-    #     kalmalı. Hata `DISK_SUPURME HATA=` ile basılır ve rc'yi değiştirmez. ---
-    disk_kuru = bool(args.kuru or args.kendini_test)
+    #     madde A b/c). `--kuru`, `--kendini-test` ve fikstür (`--spec-dizin`)
+    #     koşumlarında sayım YAPILIR ama silme YAPILMAZ (kuru=True) — rotasyonla
+    #     AYNI kural: test koşumu gerçek HOME'da silmez. Hata `DISK_SUPURME HATA=`
+    #     ile basılır ve rc'yi değiştirmez. ---
+    disk_kuru = bool(args.kuru or args.kendini_test or args.spec_dizin is not None)
     disk_satiri = disk_supurme(kuru=disk_kuru)
     print(disk_satiri)
 
