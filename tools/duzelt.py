@@ -145,6 +145,9 @@ _arspec = importlib.util.spec_from_file_location(
 arama = importlib.util.module_from_spec(_arspec)
 _arspec.loader.exec_module(arama)
 URUNLER = os.path.join(ROOT, "urunler.json")
+# TEST YUKU SIGORTASI (bkz veri_kok.test_kumu_denetle): `PRUVO_TEST_KUM` tanimliyken veri
+# koku kumun disindaysa ACILISTA durur — kilit dosyasi bile acilmaz. Tanimsizsa no-op.
+_vk.test_kumu_denetle(URUNLER)
 KAYNAKLAR = os.path.join(ROOT, ".urun-kaynaklari.json")
 LOCK = os.path.join(ROOT, ".urunler.lock")
 MANIFEST = os.path.join(ROOT, ".urunler-duzelt-izin.json")
@@ -688,6 +691,7 @@ def _alan_tip_hatasi(alan, deger):
 
 
 def _atomic_write(path, obj):
+    _vk.test_kumu_denetle(path)              # test yuku sigortasi (yazim aninda, yetim dahil)
     tmp = path + ".tmp-" + str(os.getpid())
     with open(tmp, "w") as f:
         json.dump(obj, f, ensure_ascii=False, indent=2)

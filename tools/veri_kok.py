@@ -198,3 +198,65 @@ def kum_ortami(kok, taban=None):
     ortam = dict(os.environ if taban is None else taban)
     ortam[ENV_AD] = os.path.abspath(kok)
     return ortam
+
+
+# ── TEST YUKU SIGORTASI (6 Eki olayi: kendini-test mutant onayi GERCEK koku sildi) ──
+# Olculdu: `denetim-kapisi.py --kendini-test` onay bataryasi alt sureci `dict(os.environ)`
+# ile kosuyordu; miras `PRUVO_VERI_KOK` gecici depoyu EZIP veri kokunu GERCEK koke
+# cozdu, mutant M1 (onay kontrolu kaldirildi) `--tum-katalog --uygula` ile `duzelt.py
+# --sil`i GERCEK urunler.json'a uyguladi (~1.192 kayit). Batarya zaman asiminda ebeveyn
+# oldu, torun yetim kalip silmeye devam etti. Iki katman:
+#   (1) test, alt surecin veri kokunu ACIKCA kendi kumuna sabitler (`test_ortami`);
+#   (2) yazici (duzelt.py / _uygula) `PRUVO_TEST_KUM` tanimliyken hedef kumun DISINDAYSA
+#       ya da testi baslatan ebeveyn (`PRUVO_TEST_EBEVEYN`) OLMUSSE fail-closed DURUR.
+TEST_KUM_ENV = "PRUVO_TEST_KUM"
+TEST_EBEVEYN_ENV = "PRUVO_TEST_EBEVEYN"
+
+
+def test_ortami(veri, kum, taban=None):
+    """Test alt sureci ortami: `PRUVO_VERI_KOK=veri` (miras EZILIR) + `PRUVO_TEST_KUM=kum`
+    + `PRUVO_TEST_EBEVEYN=<cagiranin pid'i>` (yetim torun sigortasi)."""
+    ortam = kum_ortami(veri, taban)
+    ortam[TEST_KUM_ENV] = os.path.realpath(kum)
+    ortam[TEST_EBEVEYN_ENV] = str(os.getpid())
+    return ortam
+
+
+def _pid_canli(pid):
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def test_kumu_denetle(hedef, _ortam=None):
+    """YAZIM SIGORTASI — `PRUVO_TEST_KUM` tanimli degilse no-op (uretim akisi DEGISMEZ).
+
+    Tanimliysa: hedef yol kumun DISINDA -> SystemExit (rc!=0, yazim yok); bos kum ->
+    SystemExit; `PRUVO_TEST_EBEVEYN` pid'i olmus (yetim torun) -> SystemExit."""
+    ortam = os.environ if _ortam is None else _ortam
+    kum = ortam.get(TEST_KUM_ENV)
+    if kum is None:
+        return
+    if not kum.strip():
+        raise SystemExit("!! %s TANIMLI ama BOS — test kumu belirsiz, YAZIM REDDEDILDI "
+                         "(fail-closed)." % TEST_KUM_ENV)
+    kum_g = os.path.realpath(kum)
+    hedef_g = os.path.realpath(hedef)
+    if os.path.commonpath([kum_g, hedef_g]) != kum_g:
+        raise SystemExit("!! TEST KUMU SIGORTASI: hedef %s test kumunun (%s) DISINDA — "
+                         "test yuku gercek veri kokune YAZAMAZ, HICBIR SEY YAZILMADI."
+                         % (hedef_g, kum_g))
+    eb = ortam.get(TEST_EBEVEYN_ENV)
+    if eb is not None:
+        try:
+            pid = int(eb)
+        except ValueError:
+            raise SystemExit("!! %s=%r gecersiz — YAZIM REDDEDILDI (fail-closed)."
+                             % (TEST_EBEVEYN_ENV, eb))
+        if not _pid_canli(pid):
+            raise SystemExit("!! TEST KUMU SIGORTASI: testi baslatan ebeveyn (pid %d) OLMUS "
+                             "— yetim torun YAZMAZ, HICBIR SEY YAZILMADI." % pid)

@@ -1778,6 +1778,9 @@ def _uygula(sil_ids, gerekce_map):
     """auto_sil + dedup.sil id'lerini duzelt.py --sil ile SIRAYLA uygular (flock+guard)."""
     ok, hata = [], []
     for uid in sil_ids:
+        # TEST YUKU SIGORTASI: test baglaminda (PRUVO_TEST_KUM) veri koku kumun disindaysa
+        # ya da testi baslatan ebeveyn olmusse (yetim torun) HER silmeden ONCE durur.
+        _vk.test_kumu_denetle(URUNLER)
         gerekce = "denetim-kapisi: " + gerekce_map.get(uid, "otomatik eleme")
         p = subprocess.run(["python3", DUZELT, str(uid), "--sil", gerekce],
                            capture_output=True, text=True)
@@ -1984,7 +1987,9 @@ def _kt_onay_batarya(iddia):
         if ek_urun:
             yaz(taban + ek_urun)              # COMMIT EDILMEZ -> parti = ek_urun
         s0, n0 = sha_sayi()
-        surec_env = dict(os.environ)
+        # 🔴 VERI KOKU ACIKCA depoya SABITLENIR (miras PRUVO_VERI_KOK EZILIR) + test kumu
+        # sigortasi: 6 Eki'de miras kok bu alt sureci GERCEK kataloga yazdirdi (M1 mutanti).
+        surec_env = _vk.test_ortami(depo, tmp)
         if not izinli:
             surec_env.pop("PRUVO_URUN_SIL_IZNI", None)
         else:
@@ -2139,7 +2144,8 @@ def kendini_test():
                "--rapor", os.path.join(tmp, "rapor.json")]
         if ek:
             cmd += ek
-        p = subprocess.run(cmd, cwd=depo, capture_output=True, text=True)
+        p = subprocess.run(cmd, cwd=depo, capture_output=True, text=True,
+                           env=_vk.test_ortami(depo, tmp))    # miras PRUVO_VERI_KOK EZILIR
         return p.returncode, (p.stdout or "") + (p.stderr or "")
 
     g("init", "-q")
