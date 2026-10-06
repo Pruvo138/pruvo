@@ -253,19 +253,19 @@ ol("goc SONRASI eski SELECT hala calisiyor (panel render'i bozulmaz)",
 print("\nE. Worker INSERT'leri semanin ALT KUMESI (yazma drift kapisi)")
 sema_kolonlari = {s[1] for s in db.execute("PRAGMA table_info(siparisler)")}
 insertler = worker_insert_kolonlari()
-ol("shop/src icinde INSERT INTO siparisler bulundu", len(insertler) >= 3,
+# 6 Eki 2026: WhatsApp siparis ucu (yonet.js INSERT) botla emekli -> taban 3 -> 2 (index.js).
+ol("shop/src icinde INSERT INTO siparisler bulundu", len(insertler) >= 2,
    [(a, len(k)) for a, k in insertler])
 for dosya, kolonlar in insertler:
     fazla = [k for k in kolonlar if k not in sema_kolonlari]
     ol("%s INSERT kolonlari semada var (%d kolon)" % (dosya, len(kolonlar)), not fazla, fazla)
-# 🔴 POZITIF KANIT DOSYAYA CIVILI: kanal yazan INSERT'in sorumlusu yonet.js. Tarama
-# .mjs'e genisleyince "herhangi bir dosyada kanal gecsin" sarti buyuyen kumede anlamini
-# yitirirdi ([[kapi-kapsam-genisletme-tuzagi]]) — olculdu: yonet.js'ten kanal+dis_no
-# dusuruldugunde, kanal tasiyan bir .mjs varsa civisiz hal YESIL kaliyordu. INSERT mesru
-# olarak baska dosyaya tasinirsa bu satir KIRMIZI yanar; civi bilerek guncellenir.
-wa = [k for a, k in insertler if a == "yonet.js" and "kanal" in k]
-ol("WhatsApp INSERT'i kanal + dis_no yaziyor",
-   bool(wa) and "dis_no" in wa[0], wa)
+# 🔴 NEGATIF KANIT (6 Eki 2026): kanal yazan TEK INSERT yonet.js'teki WhatsApp siparis
+# ucuydu; uc botla birlikte EMEKLI. Artik HICBIR worker INSERT'i kanal/dis_no yazmaz ->
+# yeni satirlar kolon DEFAULT'u ('site', '') alir. Kanal yazan bir INSERT geri gelirse
+# (emekli ucun geri eklenmesi dahil) bu satir KIRMIZI yanar; mesru yeni kanal eklenirse
+# civi bilerek guncellenir. Kolonlar + 'whatsapp' sinifi GECMIS kayitlar icin KALIR.
+kanalli = [(a, k) for a, k in insertler if "kanal" in k or "dis_no" in k]
+ol("kanal/dis_no yazan worker INSERT'i YOK (WhatsApp ucu emekli)", not kanalli, kanalli)
 
 print("\nF. Dis numara tekilligi (kismi UNIQUE indeks)")
 

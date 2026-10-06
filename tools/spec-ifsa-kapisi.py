@@ -151,10 +151,9 @@ kapi SERIT A'dadir, SUPHEDE A. Bu kapi o sinifa GIRMEZ ve bu OLCULDU:
    ✅ 5 Agu 2026: kosul DAL uzerinde SAGLANDI (rc=0, 6 eksenin hepsi 0). Serit tasimasi
    MIMAR KARARIDIR ve bu turda YAPILMADI: kosul "ANA DALDA rc=0" diyor, dal main'e
    girmeden ana dal olculmus olmaz — hukmu merge sonrasi ana dalda olcup vermek gerekir.
-⚠️ BEYAN EDILMIS ISTISNA: taranan dosyalardan YALNIZ BIRI (`ege-bilgi.md`) fiilen
-   `_site`'a kopyalanir (deploy.yml:200) — o dosya icin (a) gerekcesi GECERSIZDIR.
-   Icerigi AYRICA kendi kabul testleriyle korunur (bkz. skill: ege-diyalog); serit hukmu
-   ONA GORE verilmemistir. Bilincli, olculmus sinir.
+⚠️ ESKI ISTISNA KAPANDI (6 Eki 2026): taranan dosyalardan `_site`'a kopyalanan TEK
+   dosya (WhatsApp botunun bilgi dosyasi) botla birlikte depodan kalkti; (a) gerekcesi
+   artik taranan TUM dosyalar icin gecerlidir.
 
 Kullanim:
     python3 tools/spec-ifsa-kapisi.py                        # izlenen yuzeyi tara, 0/1

@@ -30,7 +30,8 @@
 
 // ---- KANAL degerleri (siparisler.kanal) ---------------------------------------
 // 'site'     -> pruvo3d.com self-servis akisi (index.js /baslat). D1 kolonunun DEFAULT'u.
-// 'whatsapp' -> Ege'nin (WhatsApp botu) kapattigi siparis (yonet.js /wa-siparis).
+// 'whatsapp' -> WhatsApp kanalindan gelen siparis. Yazan uc 6 Eki 2026'da emekli; sinif
+//               GECMIS kayit uyumu icin KALIR (D1'deki eski satirlar okunur).
 export const KANAL_SITE = "site";
 export const WA_KANAL = "whatsapp";
 

@@ -638,8 +638,8 @@ jobs:
       # T1 (30 Agu 2026, Okan emri — manuel shop paneli): "URUNLER" SEKMESI kabulu.
       # Panel "Kaydet"i urunler.json'a DEGIL D1 `panel_ustyazim` KUYRUGUNA yazar; tabana
       # isleyen TEK kol CI uygulayicisidir (panel-uygulayici.yml). Bu kapi WORKER yuzeyini
-      # olcer: 4 yeni ucun yonetim anahtari ARKASINDA kaldigi (EGE_ANAHTAR hicbirini
-      # ACAMAZ, secret'siz kurulum 404), beyaz liste (fiyat|baslik|aciklama) + fiyat
+      # olcer: 4 yeni ucun yonetim anahtari ARKASINDA kaldigi (emekli bot anahtari hicbirini
+      # ACAMAZ, secret'siz kurulum 404; A6: emekli WhatsApp siparis ucu her anahtarla 404), beyaz liste (fiyat|baslik|aciklama) + fiyat
       # bicimi + parametrik-fiyat reddi, ayni (urun, alan) bekleyen satirin COGALMADIGI,
       # yalniz 'beklemede' satirin iptal edilebildigi, sema yokken YAZMANIN 503 ile
       # fail-closed durdugu, dispatch tetiginin token'siz DISARI CIKMADIGI. Uygulayici
@@ -687,7 +687,7 @@ jobs:
       # OLCULEN BOSLUK (K283, canli D1 + kaynak taramasi): K252'den sonra
       # 'havale-bekliyor' -> 'odendi' gecisi worker'in HICBIR ucundan yapilamiyordu
       # (/donus havale satirini token NULL oldugu icin bulamaz · /durum 400 verir ·
-      # /wa-siparis INSERT'tir · cron eli yok) -> geriye worker DISI ham SQL kaliyordu ve
+      # emekli WhatsApp siparis ucu INSERT'ti · cron eli yok) -> geriye worker DISI ham SQL kaliyordu ve
       # o yol `havaleOlcumu()`ye ugramadigi icin havale cirosu Meta/GA4'te GORUNMUYORDU.
       # OKAN KARARI (24 Agu 2026): AYRI ve DAR bir uc, DEKONT REFERANSI ZORUNLU — /kargo
       # ucunun birebir kardesi. Kapi GEVSEMEDI: /durum'dan ayni gecis HALA 400.
@@ -1546,16 +1546,13 @@ jobs:
           python3 tools/varlik-test.py
           python3 tools/varlik-mutasyon.py
       # shop birim testleri: wrangler/ag/D1 ISTEMEZ (modulu dogrudan import ederler).
-      # OLU NOBETCI DEGIL: `wa-siparis.mjs`in YETKI YUZEYI iddialari (panel koku "Ege
-      # anahtari anonimden fazlasini almiyor" + ozellik-kapali "YONET_ANAHTAR yoksa yazma
-      # yolu da kapali") icin mutasyon surucusu REPODA durur -> `python3 tools/
-      # wa-yetki-mutasyon.py` (CI'da kosmaz; gelistirici/curutucu araci). Cift yonlu:
-      # 2 ayirt edici KIRMIZI (her biri TEK-EKSEN) + 1 genis KIRMIZI + 2 kontrol YESIL.
-      - name: Shop birim kabul testleri (siparis e-postasi + reklam atif ucu + WhatsApp siparis ucu)
+      # WhatsApp siparis ucu 6 Eki 2026'da botla birlikte emekli; testinin hala gecerli
+      # yetki iddialari (anahtarsiz 404, ozellik kapali, bot anahtari anonimden fazlasini
+      # almaz) + yeni negatif iddia shop/test/urunler-panel.mjs A6'ya TASINDI.
+      - name: Shop birim kabul testleri (siparis e-postasi + reklam atif ucu)
         run: |
           node shop/test/eposta.mjs
           node shop/test/ref-route.mjs
-          node shop/test/wa-siparis.mjs
 
       # FOTOGRAFTAN OZEL URETIM (5 Eki 2026, Okan karari). KREDI + ODEME + KISISEL VERI
       # sinifi: onizleme siniri (sinir+1 RED), bot kapisi fail-closed, havuz esigi tek

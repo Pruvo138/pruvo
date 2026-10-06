@@ -36,8 +36,8 @@ import { KONFIGURLAR } from "./konfigurlar.js";
 import { konfigurBeklenirMi } from "./konfigur-beklenen.js";
 import { golgeKalem, golgeLogSatiri } from "./konfigur-golge.js";
 import { yonet, gecmiseEkle } from "./yonet.js";
-// Siparis numarasi ureteci TEK KAYNAK (yonet.js /wa-siparis de bunu kullanir; dairesel
-// import olmasin diye ortak modulde).
+// Siparis numarasi ureteci TEK KAYNAK (ortak modulde; 1 Agu 2026'da WhatsApp siparis ucu
+// icin ayrildi, uc 6 Eki 2026'da emekli — modul yine tek kaynak).
 import { yeniSiparisNo } from "./siparis-no.js";
 import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
@@ -106,8 +106,8 @@ function kurusTL(kurus) {
 }
 
 // Siparis numarasi ureteci (siparisNoUret / yeniSiparisNo) 1 Agu 2026'da ./siparis-no.js'e
-// TASINDI — govde birebir ayni, davranis DEGISMEDI. Gerekce: WhatsApp kanali (yonet.js
-// /wa-siparis) AYNI numara ailesini uretmek zorunda ve index.js <-> yonet.js dogrudan
+// TASINDI — govde birebir ayni, davranis DEGISMEDI. Gerekce (o gun): WhatsApp kanali
+// (yonet.js siparis ucu, 6 Eki 2026'da emekli) AYNI numara ailesini uretmek zorundaydi; index.js <-> yonet.js dogrudan
 // import'u DAIRESEL olurdu. Ikinci kopya YOK (iki uretec zamanla ayrisirdi).
 
 function yonlendir(env, sonuc, siparisNo, dokum) {

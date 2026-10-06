@@ -278,7 +278,6 @@ _IC_RAPOR_YESIL = [
     ("tools/taban-fiyat-tablosu.md", "mesru: fiyat tablosu"),
     ("tools/edge-katalog-tetik.md", "mesru: izlenen tools belgesi"),
     ("tools/faz3-onbellek-purge.md", "mesru: izlenen tools belgesi"),
-    ("ege-bilgi.md", "mesru: yayinlanan bot bilgi dosyasi"),
     ("jenerator/KURULUM.md", "mesru: kurulum belgesi"),
     ("jenerator/test/SOZLESME.md", "mesru: sozlesme belgesi"),
     ("shop/src/olcum.js", "OLCULDU FP: kural uzantiya acilirsa yanar"),
@@ -592,7 +591,8 @@ def ic_rapor_fikstur_hatalari():
 # unutmak tam olarak uc kez olan hatanin kendisidir -> zorlayici degil.)
 #
 # NEDEN KOK GURULTUSUZ (mimar olcumu, git ls-files + git log --diff-filter=A):
-#   * Bugun izlenen KOK belge dosyasi yalnizca README.md ve ege-bilgi.md
+#   * Bugun izlenen KOK belge dosyasi README.md + DEVAM.md (olcum anindaki ikinci
+#     dosya — WhatsApp botunun bilgi dosyasi — 6 Eki 2026'da botla birlikte kalkti)
 #     (kokte izlenen .txt/.markdown yok; kokte izlenen dosyalarin geri kalani
 #     .gitignore/.driveignore/CNAME/index.html/urunler.json ve uc .js).
 #   * Depo tarihinde kok .md EKLEME olaylarinin mesru olani yalniz bu iki dosya;
@@ -659,7 +659,6 @@ KOK_BELGE_UZANTILARI = (
 # nobetcisi izlenen dosyalarin icini tarar, DEVAM.md dahil).
 KOK_BELGE_IZIN = {
     "README.md": "depo tanitim dosyasi — GitHub'da GORUNMESI amac, ic bilgi tasimaz",
-    "ege-bilgi.md": "WhatsApp botu Ege'nin YAYINLANAN bilgi dosyasi (musteriye donen icerik)",
     "CNAME": "GitHub Pages ozel alan adi kaydi — uzantisiz, SILINIRSE yayin adresi duser",
     ".gitignore": "git yoksayma kurallari — uzantisiz (nokta-dosyasi), depo isleyisi icin sart",
     ".driveignore": "Drive yedekleme yoksayma kurallari — uzantisiz (nokta-dosyasi)",
@@ -761,7 +760,6 @@ _KOK_BELGE_KIRMIZI = [
 # IZLENEN dosyalardir (uzanti genisletilirse yanarlar), ikinci grup ALT DIZIN.
 _KOK_BELGE_YESIL = [
     ("README.md", "IZIN LISTESI: depo tanitimi"),
-    ("ege-bilgi.md", "IZIN LISTESI: yayinlanan bot bilgi dosyasi"),
     ("index.html", "OLCULDU: kokte izlenen — uzanti genisletilirse yanar"),
     ("urunler.json", "OLCULDU: kokte izlenen — TUM katalog"),
     ("CNAME", "IZIN LISTESI: kokte izlenen UZANTISIZ dosya (D2 sonrasi izin sart)"),
@@ -822,7 +820,7 @@ def kok_belge_fikstur_hatalari():
     # KAPI_YOLU listede SART: canlilik nobeti (D3) aksi halde hakli olarak durdurur;
     # bu ayni zamanda canlilik nobetinin normal listede yanlis-pozitif URETMEDIGINI
     # de uctan uca gosterir.
-    _sahte_yollar = ["README.md", "ege-bilgi.md", "tools/paket-x.md", "index.html",
+    _sahte_yollar = ["README.md", "DEVAM.md", "tools/paket-x.md", "index.html",
                      KAPI_YOLU, "TESLIM-NOTU.md", "ONARIM-RAPORU.md",
                      "CURUTME-RAPORU.md", "RAPOR-MIMARA.md"]
     _bekle_ihlal = sorted(["TESLIM-NOTU.md", "ONARIM-RAPORU.md",
@@ -1115,7 +1113,7 @@ _GECMIS_YESIL = [
      ""),
     ("MESRU 12: karisik buyuk parti (urun + kod + belge + jenerator)",
      _gc(("1b" * 20, ["urunler.json", "tools/d1-sync.py", "jenerator/KURULUM.md",
-                      "jenerator/test/SOZLESME.md", "ege-bilgi.md",
+                      "jenerator/test/SOZLESME.md", "README.md",
                       "olcuye-ozel-yeni-parca-uretimi/index.html"]))),
 ]
 
@@ -1854,7 +1852,7 @@ _WA_RE = _numara_deseni(_WA_PARCA)
 _ARAMA_RE = _numara_deseni(_ARAMA_PARCA)
 # Baglam isaretleri. DAR tutuldu: bu kapi BLOKLAYICI, bir yanlis-pozitif TUM yayini durdurur.
 # 🔴 `tel:` DEGIL `tel:<rakam|+>` — OLCULDU: cıplak "tel:" JavaScript/JSON ANAHTARINI da
-# yakaliyordu (shop/test/wa-siparis.mjs'de `tel: "0545..."` musteri alani) ve 4 MESRU
+# yakaliyordu (emekli WhatsApp siparis ucu testinde `tel: "0545..."` musteri alani) ve 4 MESRU
 # fikstur satirini kirmiziya boyuyordu. Gercek arama baglami `tel:` URI SEMASIDIR ve
 # ardindan bosluksuz `+` ya da rakam gelir (`href="tel:+90..."`).
 _ARAMA_BAGLAM_RE = re.compile(r"tel:[+0-9]|telephone|contact_?point", re.I)

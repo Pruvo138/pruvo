@@ -3,7 +3,7 @@
 
 Kullananlar: tools/build.py (urun sayfasi cipleri + /filament-veri.js), tools/sayfalar.py
 (/malzeme-rehberi/), ekleme scriptleri (urun-ekle.py / printables-ekle.py: sanitize edilmis
-tavsiyeFilament override'i) ve tools/ege-malzeme.py (ege-bilgi.md MALZEME bolumu).
+tavsiyeFilament override'i).
 
 MIMARI ILKE: filament bilgisi URUN VERISINE YAZILMAZ — kural render aninda kategoriden
 turetilir. Tek istisna, YENI urunlerde ekleme scriptinin koyabildigi opsiyonel

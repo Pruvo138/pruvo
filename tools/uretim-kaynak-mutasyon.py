@@ -8,8 +8,8 @@ NE ISE YARAR: `node shop/test/uretim-kaynak.mjs` 42 iddiayla YESIL yaniyor. "Yes
 tek basina hicbir sey kanitlamaz — kanit, davranisi BOZUNCA iddianin KIRMIZI yanmasi
 (mutant) VE ilgisiz bir degisiklikte YESIL kalmasidir (kontrol mutanti). Bu surucu
 olmasa, ileride iddialarin icini bosaltan bir degisiklik nobetciyi SESSIZCE oldururdu
-ve kimse fark etmezdi (depo konvansiyonu: tools/yonet-cerez-mutasyon.py,
-tools/wa-yetki-mutasyon.py — SURUCU REPODA DURUR).
+ve kimse fark etmezdi (depo konvansiyonu: tools/yonet-cerez-mutasyon.py —
+SURUCU REPODA DURUR).
 
 🔴 MUTASYON DAIMA GECICI AYNAYA uygulanir. Calisma agacindaki shop/src/yonet.js'i bozup
 `finally` ile geri alma deseni bu evde YASAK: tek bir kesinti (Ctrl-C, kota bitmesi)

@@ -300,7 +300,7 @@ ol("V9c durum degistirme kontrolu (secici+Uygula) + 'Yerel komut kopyala' kartta
 // bu satiri gormeden gececek olsaydi tripwire islevini yitirirdi.
 // 30 Agu 2026 (T1, Okan emri — manuel shop paneli): "Urunler" sekmesi 4 uc ekledi
 // (GET /urunler, GET /urunler-kuyruk, POST /urunler-ustyazim, POST /urunler-ustyazim-sil;
-// hepsi yonetim anahtari arkasinda, EGE_ANAHTAR acamaz) -> taban 11'den 15'e BILEREK
+// hepsi yonetim anahtari arkasinda, bot anahtari acamaz) -> taban 11'den 15'e BILEREK
 // ve TARIHLI artirildi. Uclarin kendi kurallari shop/test/urunler-panel.mjs'te olculur.
 // 30 Agu 2026 (T2, Okan emri — gorsel/STL/kaynak link): 6 uc daha (GET /urun-gorseller,
 // POST /gorsel-yukle, POST /stl-yukle, POST /stl-cikar, GET /urun-kaynak,

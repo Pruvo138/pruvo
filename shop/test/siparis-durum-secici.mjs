@@ -14,7 +14,7 @@
  *
  * NASIL: iki AYRI eksen, iki AYRI teknik — bilerek.
  *   SUNUCU ekseni : shop/src/yonet.js DOGRUDAN import edilir ve GERCEK `yonet()` router'i
- *                   sahte Request/env ile cagrilir (wa-siparis.mjs deseni). Yani olculen
+ *                   sahte Request/env ile cagrilir (urunler-panel.mjs deseni). Yani olculen
  *                   sey ucun KENDISIDIR; saf fonksiyonun kopyasi DEGIL.
  *   PANEL ekseni  : sayfa JS'i HAM KAYNAK olarak cekilip vm'de kosturulur
  *                   (panel-kaynak.mjs deseni). KOPYA YAZILMAZ.
@@ -40,7 +40,7 @@
  */
 
 // ---- JSON IMPORT KOPRUSU (test altyapisi; uretim kodunu ETKILEMEZ) -------------
-// Gerekce birebir shop/test/wa-siparis.mjs'teki gibidir: yonet.js -> semalar.js ->
+// Gerekce birebir shop/test/urunler-panel.mjs'teki gibidir: yonet.js -> semalar.js ->
 // jenerator/urunler/*.json zinciri import attribute'suz alir; ciplak node duser.
 import { register } from "node:module";
 register("data:text/javascript," + encodeURIComponent(
