@@ -173,6 +173,7 @@ AYNA_DOSYA = [
     os.path.join("shop", "config.json"),
     "secenekler.js",
     "konfigur.js",
+    "foto-uretim-veri.js",  # shop/src/foto.js ../../foto-uretim-veri.js (5 Eki 2026)
     os.path.join("tools", "yazdir.py"),
 ]
 # Aynaya girmeyen artefaktlar: yerel sir dosyalari (.dev.vars) ve turetilmis agaclar.

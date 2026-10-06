@@ -669,6 +669,7 @@ YAYIN_DIR = "_yayin"
 # build tarafından yazdığı _yayin/site-varliklari.txt manifestinden okur.
 SOYULACAK_JS = ("secenekler.js", "konfigur.js",
                 "jenerator/hacim.js", "jenerator/konfigurator.js", "jenerator/viewer.js",
+                "foto-uretim-veri.js", "foto-uretim.js",
                 "filament-veri.js", "taban-fiyatlar.js")
 
 

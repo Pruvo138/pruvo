@@ -47,6 +47,8 @@ import { refKaydet, REF_KALIBI } from "./ref.js";
 // ExportedHandler` sanip reddediyor (olculdu 12 Eyl 2026, wrangler 4.131.1). Bu sabitler
 // ayrik modulde durur; burada SADECE local binding olarak okunur, RE-EXPORT EDILMEZ.
 import { TERK_ESIK_SAAT, TERK_KAYNAK_DURUM, TERK_SEBEP } from "./terk-sabit.js";
+// Fotograftan ozel uretim (ana sayfa bolumu): onizleme uclari, sepet kalemi, uretim cron'u.
+import { fotoUclari, fotoKalemCoz, fotoKalemFiyatla, fotoUretimTuru } from "./foto.js";
 
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi — fiyat kurali tek kaynagi yok"); }
@@ -225,6 +227,14 @@ function kalemleriCoz(sepet) {
   const kalemler = [];
   for (const k of sepet) {
     if (!k || typeof k !== "object") return { hata: "gecersiz-kalem" };
+    // FOTOGRAFTAN OZEL URETIM kalemi: katalog id'si/malzeme/renk TASIMAZ; dogrulama
+    // foto.js'te (onizleme anahtari + olcu + adet). Fiyat yine sunucuda (sepetiFiyatla).
+    if (k.foto_is !== undefined) {
+      const f = fotoKalemCoz(k);
+      if (f.hata) return { hata: f.hata };
+      kalemler.push(f.kalem);
+      continue;
+    }
     const id = typeof k.id === "string" && /^[a-z0-9-]{1,120}$/.test(k.id) ? k.id : null;
     // Malzeme/renk listeleri secenekler.js'ten (tek kaynak) — worker'da ikinci kopya yok.
     const malzeme = Object.prototype.hasOwnProperty.call(SECENEK.FILAMENT_FARK, k.malzeme)
@@ -274,7 +284,8 @@ function kalemleriCoz(sepet) {
  */
 async function sepetiFiyatla(env, kalemler) {
   // FIYAT SUNUCUDA: sepetteki id'lerin guncel kaydi D1 katalogundan (SALT OKUMA).
-  const idler = [...new Set(kalemler.map((k) => k.id))];
+  // Foto kalemleri katalogda DEGIL -> SELECT'e girmez (foto.js kendi kaydindan fiyatlar).
+  const idler = [...new Set(kalemler.filter((k) => !k.foto_is).map((k) => k.id))];
   const yertut = idler.map(() => "?").join(",");
   const ALANLAR = "id, baslik, kategori, fiyat, parametrik, gorsel";
   // OPSIYONEL KOLONLAR — ZORUNLU ALANLARDAN AYRI (asagidaki merdiven): D1 semasi bunlardan
@@ -295,8 +306,9 @@ async function sepetiFiyatla(env, kalemler) {
   // en sonda ciplak ALANLAR (bugunku yedek yol). Her basamak bir onceki kadar veri getirir
   // ARTI bir kolon; yani en fazla EK_KOLONLAR.length+1 deneme olur ve normal halde (canli
   // sema, 24 kolon) ILK deneme tutar -> EK SORGU YOK.
-  let sonuc;
-  for (let n = EK_KOLONLAR.length; ; n -= 1) {
+  // Yalniz foto kalemi tasiyan sepette katalog sorgusu ATILMAZ (bos IN () SQL hatasidir).
+  let sonuc = { results: [] };
+  for (let n = EK_KOLONLAR.length; idler.length; n -= 1) {
     const ek = EK_KOLONLAR.slice(0, n);
     try {
       sonuc = await env.KATALOG.prepare(
@@ -327,6 +339,15 @@ async function sepetiFiyatla(env, kalemler) {
   const satirlar = [];
   let toplamKurus = 0;
   for (const k of kalemler) {
+    if (k.foto_is) {
+      // FOTO KALEMI: onizleme 'hazir' + gecerlilik suresi + fiyat tablosu (foto.js). Kalem
+      // satiri foto.js'te kurulur; malzeme x kategori kapisi bu kola UYGULANMAZ (PLA sabit).
+      const fs = await fotoKalemFiyatla(env, k, Date.now());
+      if (fs.hata) return { hata: fs.hata, kod: fs.kod };
+      toplamKurus += fs.satir.tutar_kurus;
+      satirlar.push(fs.satir);
+      continue;
+    }
     const u = katalog.get(k.id);
     if (!u) return { hata: { hata: "bilinmeyen-urun", id: k.id }, kod: 400 };
 
@@ -586,6 +607,13 @@ async function baslat(request, env, url, ctx) {
   if (f.hata) return json(f.hata, f.kod, env);
   const { satirlar, toplamKurus } = f;
   if (!(toplamKurus > 0)) return json({ hata: "gecersiz-tutar" }, 400, env);
+  // FOTO KALEMI YALNIZ KARTLA: havale onayi gunler surebilir; onizleme saglayicida 3 gun
+  // durur -> onay gelince model kurulamaz. Sessizce kabul edip sonra 'elle'ye dusurmek
+  // yerine kanal bastan kapali (fail-closed, gorunur 400).
+  if (odeme === "havale" && satirlar.some((s) => s.foto_is)) {
+    return json({ hata: "foto-havale-yok",
+                  mesaj: "Fotoğraftan üretim siparişi kartla ödenir." }, 400, env);
+  }
 
   // KARGO (Okan, 16 Tem — KESIN; tools/paket-shop-kargo.md): urun toplami < 2.500,00 TL ->
   // 250,00 TL; >= 2.500,00 TL (tam 2.500 dahil) -> bedava. Kural tek kaynagi secenekler.js
@@ -1399,6 +1427,9 @@ async function telegram(env, mesaj) {
 
 // ---------------------------------------------------------------- giris
 
+// wrangler.toml [triggers] crons'taki foto satiriyla AYNI dize (drift: shop/test/foto-uretim.mjs).
+const FOTO_CRON = "*/5 * * * *";
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1423,6 +1454,8 @@ export default {
       // wa.me lead attribution (OCI #1): landing beacon'i REF->click-id'yi D1'e kalici kilar.
       // Handler yalniz POST'u yazar, digerini 204 gecer; her durumda 204 (bilgi sizmaz).
       if (yol === "/ref") return await refKaydet(request, env);
+      // FOTOGRAFTAN OZEL URETIM: /foto/acik · /foto/onizleme · /foto/durum · /foto/gorsel
+      if (yol.startsWith("/foto/")) return await fotoUclari(request, env, url, yol, telegram);
       // Anahtar korumali yonetim (same-origin; anahtar yok/yanlis -> 404, telegram fallback icin
       // index.js'in telegram fonksiyonu gecirilir).
       if (yol === "/yonet" || yol.startsWith("/yonet/")) {
@@ -1445,6 +1478,17 @@ export default {
    * yarim kalan satirlar `bekliyor` kaldigi icin yeniden ele alinir (fail-closed).
    */
   async scheduled(controller, env, ctx) {
+    // IKI CRON, IKI IS: FOTO_CRON (5 dk) fotograftan uretim zincirini yurutur; diger her
+    // tetik (saatlik) terk supurmesidir. Kontrolcunun cron alani yoksa (eski cagri/test)
+    // davranis BUGUNKUYLE AYNI: terk supurmesi.
+    if (controller && controller.cron === FOTO_CRON) {
+      try {
+        await fotoUretimTuru(env, controller.scheduledTime || Date.now(), telegram);
+      } catch (e) {
+        console.error("pruvo-shop cron (foto uretim) dustu:", (e && e.stack) || e);
+      }
+      return;
+    }
     try {
       await terkSupur(env, ctx, controller && controller.scheduledTime);
     } catch (e) {

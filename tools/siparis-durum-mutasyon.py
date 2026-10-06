@@ -73,7 +73,7 @@ MUTANTLAR = [
 # Aynaya kopyalanacak agac. 🔴 KOK `konfigur.js` ZORUNLUDUR: shop/src/konfigur.js onu
 # `../../konfigur.js` diye import eder; eksikse ayna ERR_MODULE_NOT_FOUND ile kirilir ve
 # batarya "taban ayna kirmizi" deyip HICBIR mutanti kosmaz (bu turda olculdu).
-AYNA_AGACI = ("shop", "jenerator", "secenekler.js", "konfigur.js", "package.json")
+AYNA_AGACI = ("shop", "jenerator", "secenekler.js", "konfigur.js", "foto-uretim-veri.js", "package.json")
 
 
 def ayna_kur(hedef_dizin):

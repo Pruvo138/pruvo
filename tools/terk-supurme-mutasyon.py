@@ -254,7 +254,7 @@ MUTANTLAR = [(m + (HEDEF_BAGIL,)) if len(m) == 5 else m for m in MUTANTLAR]
 # kok konfigur.js'i `../../konfigur.js` diye, index.js `../../secenekler.js`'i import eder;
 # semalar.js jenerator/urunler/*.json okur). wrangler.toml `shop/` altindadir (kabul testi
 # [triggers] iddiasi icin OKUR).
-AYNA_AGACI = ("shop", "jenerator", "secenekler.js", "konfigur.js", "package.json")
+AYNA_AGACI = ("shop", "jenerator", "secenekler.js", "konfigur.js", "foto-uretim-veri.js", "package.json")
 
 
 def ayna_kur(hedef_dizin):

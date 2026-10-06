@@ -104,7 +104,8 @@ function satirTablosu(satirlar, sinif) {
     const baslikMetin = kac(s.baslik);
     // Baslik urunun kalici sayfasina link (id varsa) — mail istemcisi resmi engellese de link
     // her zaman calisir (img'ye bagimli degil). id/baslik kac() ile kacisli (XSS yok).
-    const baslikHtml = s.id
+    // Fotograftan ozel uretim kalemi katalog DISIDIR (/urun/<id>/ sayfasi yok) -> link YOK.
+    const baslikHtml = s.id && !s.foto_is
       ? "<a href='" + SITE + "/urun/" + kac(s.id) + "/' " +
         "style='color:#12294d;text-decoration:none'>" + baslikMetin + "</a>"
       : baslikMetin;
