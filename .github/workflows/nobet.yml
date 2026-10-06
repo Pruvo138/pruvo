@@ -3664,6 +3664,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/yedek-koruma-test.py
 
+      # YEDEK-EVICT (6 Eki 2026) — Drive onbellegi evict edilince pre-push yedegi her
+      # kosumda ~746 hedef dosyayi `filecmp` ile okuyup YENIDEN INDIRIYORDU (18+ dk).
+      # Ozet defteri: "ayni mi" karari hedef ICERIGI okunmadan. Hermetik (gecici dizin);
+      # 5 vaka + 5 mutant — mutant hayatta kalirsa KIRMIZI.
+      - name: "Yedek ozet defteri: hedef okumadan karar + mutasyon kabulu"
+        if: ${{ !cancelled() }}
+        run: python3 tools/yedek-ozet-test.py
+
       # K377 (7 Eyl 2026) — hacim-tam-takim'in on-kosulu EMEKLI bir secret'a
       # (ONIZLEME_PAKET_B64, 16 Tem Okan karari) capalanmisti; is aylarca on-kosulda
       # `exit 1` verip HIC kosmadi. Bu test onarilan kollari KAYNAKTAN cikarip IZOLE

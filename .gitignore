@@ -791,6 +791,9 @@ tools/URUN-EKLEME-REHBERI.md
 .parity-batch.lock
 # yedekle.py eszamanlilik kilidi (her push'ta pre-push hook cagirir; yerel, 0 bayt)
 .yedek.lock
+# yedekle.py ozet defteri (hedef okumadan "ayni mi" karari; yerel, Drive disi)
+.yedek-ozet.json
+.yedek-ozet.json.*.tmp
 # .urun-kaynaklari.json flock kilidi (yerel, 0 bayt; kardesleri yukarida)
 .urun-kaynaklari.lock
 # urunler.json guard katmani: duzeltme/silme izni manifestleri + guard log (asla commit'lenmez)

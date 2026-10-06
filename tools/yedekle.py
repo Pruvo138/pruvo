@@ -469,6 +469,9 @@ def _beyan_gecerse(kaynak, beyanlar=None, varis=None):
     return evet
 
 
+_OKU = object()   # _yedek_korumasi: 'hedef kayit sayisini hedeften OKU' isareti
+
+
 def _json_kayit_sayisi(yol):
     """Ust seviye liste/sozluk kayit sayisi; JSON degilse None (icerik BASILMAZ)."""
     if os.path.splitext(yol)[1].lower() != ".json":
@@ -485,8 +488,11 @@ def _ciddi_dusus_var(yeni, eski):
     return eski > 0 and yeni < eski * ANI_DUSUS_ESIGI
 
 
-def _yedek_korumasi(kaynak, varis):
-    """Sifir/ani dususu olcer; suphede kanonige tek bayt yazmadan once durur."""
+def _yedek_korumasi(kaynak, varis, yedek_kayit=_OKU):
+    """Sifir/ani dususu olcer; suphede kanonige tek bayt yazmadan once durur.
+
+    `yedek_kayit` verilirse (ozet defterinden) hedef JSON OKUNMAZ; hedef boyutu
+    zaten yalniz os.stat ile olculur. Verilmezse eski davranis: hedef JSON okunur."""
     kaynak_boyut = os.path.getsize(kaynak)
     # 🔴 SIFIR BAYT = ancak KARSISINDA DOLU BIR YEDEK VARSA gerilemedir (olculdu 15 Agu):
     # kural kosulsuzdu ve `mimar-posta-kutusu.md.lock` gibi MESRU olarak daima 0 bayt olan
@@ -519,7 +525,8 @@ def _yedek_korumasi(kaynak, varis):
                 kaynak=kaynak)
         return
     kaynak_kayit = _json_kayit_sayisi(kaynak)
-    yedek_kayit = _json_kayit_sayisi(varis)
+    if yedek_kayit is _OKU:
+        yedek_kayit = _json_kayit_sayisi(varis)
     if (kaynak_kayit is not None and yedek_kayit is not None and
             _ciddi_dusus_var(kaynak_kayit, yedek_kayit)):
         if _beyan_gecerse(kaynak, varis=varis):
@@ -581,10 +588,20 @@ def _ham_drive_kopyala(kaynak, varis):
 
 
 def _drive_kopyala(kaynak, varis):
-    """Tum yedek siniflari icin koruma + tarihli surum + kanonik guncelleme."""
+    """Tum yedek siniflari icin koruma + tarihli surum + kanonik guncelleme.
+
+    Ozet defteri ACIKSA (`_yedekle` kilit altinda acar) "ayni mi" karari hedef
+    ICERIGI okunmadan verilir — bkz. OZET DEFTERI. Kapaliysa eski davranis."""
+    if _OZET["kayitlar"] is not None:
+        return _drive_kopyala_ozetli(kaynak, varis)
     _yedek_korumasi(kaynak, varis)
     if os.path.isfile(varis) and filecmp.cmp(kaynak, varis, shallow=False):
         return True
+    return _surumlu_yaz(kaynak, varis)
+
+
+def _surumlu_yaz(kaynak, varis):
+    """Kanonigi kaynakla degistir; oncesinde tarihli surum al, sonra buda."""
     surum = None
     if os.path.isfile(varis):
         surum = _surum_yolu(varis)
@@ -596,6 +613,142 @@ def _drive_kopyala(kaynak, varis):
         raise
     if surum is not None:
         _surumleri_buda(varis)
+    return sonuc
+
+
+# ================= OZET DEFTERI (6 Eki 2026) =================================
+# 🔴 OLCULDU (6 Eki 2026): Ortak Drive yerel onbellegi evict edilince (5,7 GB -> 58 MB,
+# hedef dosyalar "dataless", st_blocks==0) pre-push `--gerekliyse` 18+ dk surdu ve
+# onbellek 58 -> 97 MB buyudu. Kok: memory/ + skills/ + kok dosyalari (~746 dosya)
+# HER kosumda `filecmp.cmp(shallow=False)` + hedef JSON kayit sayimi ile hedef
+# ICERIGINI okuyordu -> her okuma Drive'dan yeniden INDIRME demekti.
+# COZUM: kopyalama aninda YEREL bir defter yazilir: {gorece_yol: [boyut,
+# kaynak_mtime_ns, sha256, kayit_sayisi]}. Karar hedefi OKUMAZ:
+#   - kaynak boyut+mtime_ns defterle, hedef BOYUTU (os.stat) defterle esit -> AYNI.
+#   - mtime farkli: kaynak sha256 hesaplanir; defterle esitse yalniz defter tazelenir.
+#   - aksi halde koruma (hedef boyutu stat'tan, kayit sayisi defterden) + kopya.
+#   - defterde kayit YOK (ilk kosum / defter bozuk): eski tam karsilastirma; ANCAK hedef
+#     dataless ise (st_blocks==0) ve boyut esit + hedef mtime >= kaynak mtime ise hedef
+#     INDIRILMEDEN kaynak sha'siyla TOHUMLANIR (copy2 mtime'i korur; sonradan ayni
+#     boyutla duzenlenen kaynagin mtime'i ileri gider -> tohum olmaz, tam karsilastirma).
+# YER: ana agac kokunde `.yedek.lock`'un yaninda (gitignore'lu, git'e girmez). Drive'a
+# KONMAZ: defter, Drive'i okumamak icin var. Yalniz `_yedekle` (kilit altinda, tek
+# yazici) acar/kaydeder; dogrudan `_drive_kopyala` cagiran kod eski davranista kalir.
+OZET_ADI = ".yedek-ozet.json"
+OZET_SURUM = 1
+_OZET = {"kayitlar": None, "backup": None, "yol": None, "degisti": False,
+         "durum": "kapali"}
+
+
+def ozet_yolu():
+    return os.path.join(ROOT, OZET_ADI)
+
+
+def _ozet_ac(backup, yol=None):
+    """Defteri yukle. Yok/bozuk/baska backup -> bos defter (fail-closed: tam karsilastirma)."""
+    yol = yol or ozet_yolu()
+    kayitlar, durum = {}, "yok"
+    try:
+        with open(yol, "r", encoding="utf-8") as f:
+            veri = json.load(f)
+        if (isinstance(veri, dict) and veri.get("surum") == OZET_SURUM
+                and veri.get("backup") == backup
+                and isinstance(veri.get("kayitlar"), dict)):
+            kayitlar = {k: v for k, v in veri["kayitlar"].items()
+                        if isinstance(v, list) and len(v) == 4
+                        and isinstance(v[0], int) and isinstance(v[1], int)
+                        and isinstance(v[2], str) and len(v[2]) == 64}
+            durum = "acik"
+        else:
+            durum = "bozuk"
+    except FileNotFoundError:
+        durum = "yok"
+    except (OSError, UnicodeError, ValueError):
+        durum = "bozuk"
+    _OZET.update(kayitlar=kayitlar, backup=backup, yol=yol, degisti=False, durum=durum)
+    return durum
+
+
+def _ozet_kapat():
+    """Defteri ATOMIK yaz (tmp + os.replace) ve kapat. Degisiklik yoksa yazmaz."""
+    if _OZET["kayitlar"] is None:
+        return False
+    yazildi = False
+    try:
+        if _OZET["degisti"] or _OZET["durum"] != "acik":
+            gecici = "%s.%d.tmp" % (_OZET["yol"], os.getpid())
+            with open(gecici, "w", encoding="utf-8") as f:
+                json.dump({"surum": OZET_SURUM, "backup": _OZET["backup"],
+                           "kayitlar": _OZET["kayitlar"]}, f, separators=(",", ":"))
+            os.replace(gecici, _OZET["yol"])
+            yazildi = True
+    except OSError as e:
+        print("  ⚠️ ozet defteri yazilamadi (%s) — sonraki kosum tam karsilastirir"
+              % type(e).__name__)
+    finally:
+        _OZET.update(kayitlar=None, backup=None, yol=None, degisti=False, durum="kapali")
+    return yazildi
+
+
+def _sha256(yol):
+    import hashlib
+    h = hashlib.sha256()
+    with open(yol, "rb") as f:
+        for parca in iter(lambda: f.read(1 << 20), b""):
+            h.update(parca)
+    return h.hexdigest()
+
+
+def _ozet_anahtar(varis):
+    return os.path.relpath(varis, _OZET["backup"])
+
+
+def _ozet_yaz_kayit(anahtar, ks, sha, kayit, kaynak):
+    """Kaynak kopya/karar sirasinda degismediyse kaydi yaz; degistiyse kaydi SIL."""
+    try:
+        son = os.stat(kaynak)
+    except OSError:
+        son = None
+    if son is None or son.st_mtime_ns != ks.st_mtime_ns or son.st_size != ks.st_size:
+        _OZET["kayitlar"].pop(anahtar, None)
+    else:
+        _OZET["kayitlar"][anahtar] = [ks.st_size, ks.st_mtime_ns, sha, kayit]
+    _OZET["degisti"] = True
+
+
+def _drive_kopyala_ozetli(kaynak, varis):
+    ks = os.stat(kaynak)
+    try:
+        hs = os.stat(varis)
+    except FileNotFoundError:
+        hs = None
+    anahtar = _ozet_anahtar(varis)
+    kayit = _OZET["kayitlar"].get(anahtar)
+    hedef_tutar = (hs is not None and kayit is not None and hs.st_size == kayit[0])
+    if hedef_tutar and ks.st_size == kayit[0] and ks.st_mtime_ns == kayit[1]:
+        return True                                   # AYNI: hicbir icerik okunmadi
+    sha = _sha256(kaynak)                             # yalniz KAYNAK okunur
+    kaynak_kayit = _json_kayit_sayisi(kaynak)
+    if hedef_tutar and ks.st_size == kayit[0] and sha == kayit[2]:
+        _ozet_yaz_kayit(anahtar, ks, sha, kaynak_kayit, kaynak)   # yalniz mtime degisti
+        return True
+    if hedef_tutar:
+        # Defter hedefi taniyor: koruma hedef boyutunu stat'tan, kayit sayisini defterden alir.
+        _yedek_korumasi(kaynak, varis, yedek_kayit=kayit[3])
+        sonuc = _surumlu_yaz(kaynak, varis)
+        _ozet_yaz_kayit(anahtar, ks, sha, kaynak_kayit, kaynak)
+        return sonuc
+    # Defterde kayit YOK ya da hedef boyutu defterle uyusmuyor -> ESKI yol.
+    if (hs is not None and kayit is None and hs.st_blocks == 0 and hs.st_size > 0
+            and hs.st_size == ks.st_size and int(ks.st_mtime) <= int(hs.st_mtime)):
+        _ozet_yaz_kayit(anahtar, ks, sha, kaynak_kayit, kaynak)   # dataless TOHUM
+        return True
+    _yedek_korumasi(kaynak, varis)
+    if hs is not None and filecmp.cmp(kaynak, varis, shallow=False):
+        _ozet_yaz_kayit(anahtar, ks, sha, kaynak_kayit, kaynak)
+        return True
+    sonuc = _surumlu_yaz(kaynak, varis)
+    _ozet_yaz_kayit(anahtar, ks, sha, kaynak_kayit, kaynak)
     return sonuc
 
 
@@ -3551,6 +3704,10 @@ def main():
     # _yedekle() NORMAL donduyse ve cikis kodu 0 ise yazilir. Istisna ya da
     # sifir-olmayan kod -> `hata=` -> pano "⚠⚠ YARIM KALMIS YEDEK" der.
     basardi = False
+    # OZET DEFTERI yalniz kilit GERCEKTEN alindiysa acilir (tek yazici); kilitsiz
+    # kosum eski tam karsilastirmayla calisir.
+    if hal == "alindi":
+        _ozet_ac(backup)
     try:
         kod = _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric,
                        kilitsiz=(hal == "kurulamadi"),
@@ -3560,6 +3717,7 @@ def main():
         basardi = kod in (0, ARTIK_CIKIS_KODU)
         return kod
     finally:
+        _ozet_kapat()                      # kilit BIRAKILMADAN once (tek yazici)
         kilit_birak(kilit_fd, baslangic=kilit_bilgi if hal == "alindi" else None,
                     basardi=basardi)
 
