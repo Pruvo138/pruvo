@@ -2178,6 +2178,15 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kanca-kablolama-test.py --mutasyon
 
+      # IZIN MANIFESTI TUKETIMI (7 Eki 2026). post-commit eskiden uc izin manifestini
+      # KOSULSUZ siliyordu: komsu evin commit'lenmemis duzelt.py izni baska bir evin
+      # commit'inde gidiyor, guard o duzeltmeyi "izinsiz" sayip geri aliyordu (2 vaka,
+      # yazim kaybi). Batarya hermetik sahte depoda GERCEK `git commit` ile V1..V6'yi
+      # kosar; eski `rm -f` govdesi mutant olarak V1'i KIRMIZI yakmali.
+      - name: "Izin manifesti tuketim kabul testi (komsu izni yasar mi)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/izin-manifest-tuket-test.py
+
       # REKLAM/OLCUM ETIKET KAPSAM NOBETCISI (8 Agu 2026).
       # OLCULEN BOSLUK: Ads panelindeki "Sayfa goruntuleme = Hatali yapilandirilmis"
       # hipotezi "etiket bazi sayfalarda YOK" idi; olcum bunu CURUTTU (23.923/23.923

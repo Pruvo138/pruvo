@@ -1,9 +1,12 @@
 #!/bin/sh
-# Mesru duzeltme/silme izni manifestlerini commit SONRASI temizle.
-# Manifestler deger-bagli/id-bagli oldugundan lingering zaten zararsizdir; bu yalnizca hijyendir.
-# post-commit `--no-verify` ile ATLANMAZ, dolayisiyla guvenilir temizliktir.
+# Mesru duzeltme/silme/rename izni manifestlerinden YALNIZ yeni HEAD'de TUKETILMIS girdileri cikar.
+# 🔴 KOSULSUZ `rm -f` YOK (7 Eki 2026): komsu evin commit'lenmemis izni B'nin commit'inde
+# siliniyor, guard A'nin duzeltmesini "izinsiz" sayip geri aliyordu (yazim kaybi).
+# Mantik tools/izin-manifest-tuket.py'de; arac yoksa/hata verirse manifestlere DOKUNULMAZ
+# (fail-safe: izin yasar, guard deger-bagli okur).
+# post-commit `--no-verify` ile ATLANMAZ.
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
-rm -f "$root/.urunler-duzelt-izin.json" 2>/dev/null || true
-rm -f "$root/.urunler-sil-izin.json" 2>/dev/null || true
-rm -f "$root/.urunler-id-rename-izin.json" 2>/dev/null || true
+tuket="$root/tools/izin-manifest-tuket.py"
+[ -f "$tuket" ] || exit 0
+python3 "$tuket" --kok "$root" || true
 exit 0
