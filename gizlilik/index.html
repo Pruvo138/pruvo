@@ -129,6 +129,12 @@ setTimeout(L,5000);})();
   // riza/tik-kimligi drift kapisi (C0) iki listeyi karsilastirir.
   var ATIF_KEY = "pruvo_atif";
   var ATIF_CLICK_FIELDS = ["fbc", "fbclid", "gclid", "gbraid", "wbraid", "ttclid", "msclkid"];
+  // KAMPANYA ETIKETLERI (UTM): reklamin son adresi ana sayfa disinda bir sayfa olsa da etiket
+  // siparise ulassin diye BURADA da yakalanir. Ayni anahtar (ATIF_KEY), ayni alanlar, ayni
+  // kirpma, mevcut kayitla birlestirme; ana sayfadaki atif katmaniyla esitligi bir kapi testi
+  // olcer. UTM bir kisi/tiklama kimligi DEGIL -> rizadan bagimsizdir; click-id'ye dokunulmaz.
+  var ATIF_UTM_FIELDS = ["utm_source", "utm_medium", "utm_campaign", "utm_id"];
+  var ATIF_UTM_MAX = 200;
   var activeRef = null;
   // Ayni sayfada ikinci tik gonderimini kes (kalici idempotent = kayittaki record.logged).
   var leadSent = false;
@@ -250,6 +256,22 @@ setTimeout(L,5000);})();
       if (kalan) { localStorage.setItem(ATIF_KEY, JSON.stringify(record)); }
       else { localStorage.removeItem(ATIF_KEY); }
     } catch (error) {}
+  }
+
+  // Adresteki UTM etiketlerini atif kaydina birlestirir. Adreste etiket yoksa kayda HIC
+  // dokunulmaz (onceki kampanya etiketi silinmez).
+  function captureAtifUtm() {
+    var params, utm = {}, val, i, k, record = null, found = false;
+    try { params = new URLSearchParams(location.search); } catch (error) { return; }
+    for (i = 0; i < ATIF_UTM_FIELDS.length; i++) {
+      val = params.get(ATIF_UTM_FIELDS[i]);
+      if (val) { utm[ATIF_UTM_FIELDS[i]] = String(val).slice(0, ATIF_UTM_MAX); found = true; }
+    }
+    if (!found) { return; }
+    try { record = JSON.parse(localStorage.getItem(ATIF_KEY)); } catch (error) { record = null; }
+    if (!record || typeof record !== "object" || Array.isArray(record)) { record = {}; }
+    for (k in utm) { record[k] = utm[k]; }
+    try { localStorage.setItem(ATIF_KEY, JSON.stringify(record)); } catch (error) {}
   }
 
   function urlClickIds() {
@@ -457,6 +479,7 @@ setTimeout(L,5000);})();
     persistRef(record);
   }
 
+  captureAtifUtm();
   initialize();
   window.pruvoRef = function () { return activeRef; };
   // Riza degisince (banner Kabul/Reddet, baska sekme) cagrilabilir: kabul -> URL'deki click-id

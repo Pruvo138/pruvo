@@ -2215,6 +2215,24 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/reklam-etiket-kapisi.py --kendini-test
 
+      # LANDING UTM HALKASI (7 Eki 2026). Reklamin son adresi ana sayfa DISINDA bir sayfa
+      # oldugunda kampanya etiketi siparise ulasiyor mu: GERCEK attribution-ref.js (landing)
+      # -> GERCEK index.html PRUVO_ATIF.topla() (ana sayfa, ayni localStorage) -> GERCEK
+      # shop worker /baslat INSERT bind degeri. L1-L6: yakalama · topla · sunucu · riza=ret ·
+      # UTM'siz ziyaret kaydi silmez · ana sayfa<->landing anahtar/alan/kirpma esitligi.
+      # Olculen baslangic: canlida UTM'li siparis 0/87 (landing'de yakalayici yoktu).
+      # node ISTER (yukaridaki setup-node on-kosul); yoksa rc=3 -> KIRMIZI. Ag YOK.
+      # Yayini bloklamamasi icin deploy.yml'de DEGIL, burada.
+      - name: Landing UTM halkasi (landing -> ana sayfa topla -> /baslat)
+        if: ${{ !cancelled() }}
+        run: python3 tools/landing-utm-kapisi.py
+
+      # ... ve kapinin kendi hukmu: 4 oldurucu mutant (yakalayici silinir · iki taraftan
+      # anahtar adi degisir · kirpma sabiti ayrisir) + K0 kontrol. Gecici kopyada kosar.
+      - name: Landing UTM halkasi ic nobetci (mutantlar)
+        if: ${{ !cancelled() }}
+        run: python3 tools/landing-utm-kapisi.py --kendini-test
+
       # REKLAM TIKLAMA KIMLIGI DAVRANIS TESTI (node DOM/URL semantigi).
       # OLCULEN ARIZA: index.html'deki syncUrl() sorgu dizesini SIFIRDAN kuruyordu ve
       # kurdugu kume yalnizca kategori/altkategori/marka/model/ara idi -> `?gclid=…`
