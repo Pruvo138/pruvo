@@ -28,6 +28,11 @@ BIR ONCEKI mutantin iddiasina aittir. Bu surucu:
       ayni mutasyon onbellek temizlenip mtime bumplandiginda KIRMIZI yanar (kapatildi).
       Iki hal de OLCULUR; biri beklenmedik cikarsa surucu KIRMIZI doner.
 
+🔴 IZOLE KOPYA (7 Eki 2026): mutant ve onbellek tuzagi CANLI kaynaga YAZILMAZ. Her
+mutant (ve onbellek kaniti) `mutasyon_kopya.kopyada_kos` ile gecici kopyada kurulur,
+kapi KOPYADAN kosar (ROOT'u kendi __file__'indan turetir), kopya silinir. Eski
+`_uygula`/`_geri_al` + `finally` yolu SIGKILL'de ev dosyasini mutant birakiyordu.
+
 Kullanim:
     python3 tools/iletisim-baglam-mutasyon.py                 # tam batarya + onbellek kaniti
     python3 tools/iletisim-baglam-mutasyon.py --onbellek-kaniti   # yalniz onbellek kaniti
@@ -44,7 +49,14 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 KAPI = os.path.join(TOOLS, "kisisel-veri-test.py")
 KANONIK = os.path.join(TOOLS, "commit-mesaji-kapisi.py")
-PYCACHE = os.path.join(TOOLS, "__pycache__")
+sys.path.insert(0, TOOLS)
+
+from mutasyon_kopya import kopyada_kos, kopyada_mi  # noqa: E402
+
+
+def _kopyada(yol, kopya):
+    """Canli yolun (KAPI/KANONIK) kopya kokteki karsiligi."""
+    return os.path.join(kopya, os.path.relpath(yol, ROOT))
 
 # ---------------------------------------------------------------- IDDIA KIMLIK ESLEMESI
 # Cikti satiri -> DUSEN IDDIA KIMLIGI. Kimlikler mutantlar arasinda karsilastirilir.
@@ -146,9 +158,13 @@ MUTANTLAR = [
 
 
 # ---------------------------------------------------------------- KOSUM ALTYAPISI
-def _pycache_temizle():
-    """__pycache__ dizinlerini siler (bayat .pyc mutantı maskeleyemesin)."""
-    for d in (PYCACHE, os.path.join(ROOT, "__pycache__")):
+def _pycache_temizle(kok):
+    """`kok` altindaki __pycache__ dizinlerini siler (bayat .pyc mutantı maskeleyemesin).
+
+    Yalniz KOPYA kokunde cagrilir — canli agacin onbellegine dokunulmaz."""
+    for d in (os.path.join(kok, "tools", "__pycache__"), os.path.join(kok, "__pycache__")):
+        if os.path.islink(d):
+            continue
         shutil.rmtree(d, ignore_errors=True)
 
 
@@ -158,7 +174,8 @@ def _mtime_bump(yol, adim):
     os.utime(yol, (t, t))
 
 
-def _kos(ek_ortam=None, bayrakli=True):
+def _kos(ek_ortam=None, bayrakli=True, kopya=None):
+    """Kapiyi kosar; `kopya` verilirse KOPYADAN (cwd=kopya), verilmezse canli agactan."""
     ortam = dict(os.environ)
     ortam["PYTHONDONTWRITEBYTECODE"] = "1"
     if ek_ortam:
@@ -166,39 +183,35 @@ def _kos(ek_ortam=None, bayrakli=True):
     komut = [sys.executable]
     if bayrakli:
         komut.append("-B")
-    komut += [KAPI, "--yalniz-iletisim"]
-    p = subprocess.run(komut, capture_output=True, text=True, cwd=ROOT, env=ortam)
+    komut += [_kopyada(KAPI, kopya) if kopya else KAPI, "--yalniz-iletisim"]
+    p = subprocess.run(komut, capture_output=True, text=True, cwd=kopya or ROOT, env=ortam)
     return p.returncode, (p.stdout or "") + (p.stderr or "")
 
 
-def _uygula(duzenlemeler, adim):
-    """[(dosya, eski, yeni)] uygular. (yedekler, hata) doner."""
-    yedek = {}
+def _mutant_metinleri(duzenlemeler):
+    """[(dosya, eski, yeni)] -> ({rel: mutant metin}, hata). Canliya YAZMAZ, yalniz okur."""
+    icerik = {}
     for yol, _e, _y in duzenlemeler:
-        if yol not in yedek:
+        if yol not in icerik:
             with open(yol, encoding="utf-8") as f:
-                yedek[yol] = f.read()
-    icerik = dict(yedek)
+                icerik[yol] = f.read()
     for yol, eski, yeni in duzenlemeler:
         if icerik[yol].count(eski) != 1:
-            return yedek, ("MUTASYON UYGULANAMADI: %s icinde hedef metin %d kez geciyor "
-                           "(1 bekleniyordu) -> surucu BAYAT."
-                           % (os.path.basename(yol), icerik[yol].count(eski)))
+            return None, ("MUTASYON UYGULANAMADI: %s icinde hedef metin %d kez geciyor "
+                          "(1 bekleniyordu) -> surucu BAYAT."
+                          % (os.path.basename(yol), icerik[yol].count(eski)))
         icerik[yol] = icerik[yol].replace(eski, yeni, 1)
-    for yol, metin in icerik.items():
-        with open(yol, "w", encoding="utf-8") as f:
-            f.write(metin)
-    _pycache_temizle()
-    for i, yol in enumerate(sorted(icerik)):
-        _mtime_bump(yol, adim * 10 + i)
-    return yedek, None
+    return {os.path.relpath(y, ROOT): m for y, m in icerik.items()}, None
 
 
-def _geri_al(yedek):
-    for yol, metin in yedek.items():
-        with open(yol, "w", encoding="utf-8") as f:
-            f.write(metin)
-    _pycache_temizle()
+def _mutant_kos(metinler, adim):
+    """Mutanti gecici kopyada kurar (onbellek silinir + mtime bump) ve kapiyi KOPYADAN kosar."""
+    def kos(kopya):
+        _pycache_temizle(kopya)
+        for i, rel in enumerate(sorted(metinler)):
+            _mtime_bump(os.path.join(kopya, rel), adim * 10 + i)
+        return _kos(kopya=kopya)
+    return kopyada_kos("iletisim-mutant-", metinler, kos)
 
 
 # ---------------------------------------------------------------- ONBELLEK KANITI
@@ -209,65 +222,72 @@ _ONB_YENI = (r'_EPOSTA_RE = re.compile(r"[0-9A-Za-z._%+-]+@'
 
 
 def onbellek_kaniti():
-    """TUZAGI ONCE URETIR, SONRA KAPATIR. (gecti_mi, satirlar)."""
-    satirlar = []
+    """TUZAGI ONCE URETIR, SONRA KAPATIR. (gecti_mi, satirlar).
+
+    Tum adimlar TEK bir gecici kopyada kosar; canli KANONIK'e ve canli __pycache__'e
+    dokunulmaz, kopya `kopyada_kos` tarafindan silinir."""
     with open(KANONIK, encoding="utf-8") as f:
         asil = f.read()
     if asil.count(_ONB_ESKI) != 1 or len(_ONB_ESKI) != len(_ONB_YENI):
         return False, ["ONBELLEK KANITI KURULAMADI: hedef metin tek degil ya da "
                        "mutasyon AYNI UZUNLUKTA degil (%d vs %d)"
                        % (len(_ONB_ESKI), len(_ONB_YENI))]
+    return kopyada_kos("iletisim-onbellek-", {}, lambda kopya: _onbellek_adimlari(kopya, asil))
+
+
+def _onbellek_adimlari(kopya, asil):
+    satirlar = []
+    kanonik = _kopyada(KANONIK, kopya)
+    kapi = _kopyada(KAPI, kopya)
+    pycache = os.path.join(kopya, "tools", "__pycache__")
+    if not kopyada_mi(kanonik, kopya):
+        return False, ["ONBELLEK KANITI KURULAMADI: kanonik kaynak kopya DISINDA"]
     gecti = True
-    try:
-        # (0) Bayat .pyc URET: onbellek yazimi ACIK kosum.
-        _pycache_temizle()
-        ortam = dict(os.environ)
-        ortam.pop("PYTHONDONTWRITEBYTECODE", None)
-        p = subprocess.run([sys.executable, KAPI, "--yalniz-iletisim"],
-                           capture_output=True, text=True, cwd=ROOT, env=ortam)
-        pyc = [a for a in os.listdir(PYCACHE)] if os.path.isdir(PYCACHE) else []
-        kanonik_pyc = [a for a in pyc if a.startswith("commit-mesaji-kapisi.")]
-        satirlar.append("  (0) taban kosum rc=%d · __pycache__ dosyasi %d · kanonik .pyc %r"
-                        % (p.returncode, len(pyc), kanonik_pyc))
-        if not kanonik_pyc:
-            satirlar.append("  🔴 KANIT KURULAMADI: kanonik modul icin .pyc olusmadi -> "
-                            "tuzak bu ortamda uretilemiyor, mitigasyon da olculemez.")
-            return False, satirlar
-        st = os.stat(KANONIK)
+    # (0) Bayat .pyc URET: onbellek yazimi ACIK kosum.
+    _pycache_temizle(kopya)
+    ortam = dict(os.environ)
+    ortam.pop("PYTHONDONTWRITEBYTECODE", None)
+    p = subprocess.run([sys.executable, kapi, "--yalniz-iletisim"],
+                       capture_output=True, text=True, cwd=kopya, env=ortam)
+    pyc = [a for a in os.listdir(pycache)] if os.path.isdir(pycache) else []
+    kanonik_pyc = [a for a in pyc if a.startswith("commit-mesaji-kapisi.")]
+    satirlar.append("  (0) taban kosum rc=%d · __pycache__ dosyasi %d · kanonik .pyc %r"
+                    % (p.returncode, len(pyc), kanonik_pyc))
+    if not kanonik_pyc:
+        satirlar.append("  🔴 KANIT KURULAMADI: kanonik modul icin .pyc olusmadi -> "
+                        "tuzak bu ortamda uretilemiyor, mitigasyon da olculemez.")
+        return False, satirlar
+    st = os.stat(kanonik)
 
-        # (1) TUZAK: ayni uzunlukta mutasyon + mtime GERI ALINIR + onbellek DURUR.
-        with open(KANONIK, "w", encoding="utf-8") as f:
-            f.write(asil.replace(_ONB_ESKI, _ONB_YENI, 1))
-        os.utime(KANONIK, ns=(st.st_atime_ns, st.st_mtime_ns))
-        p1 = subprocess.run([sys.executable, KAPI, "--yalniz-iletisim"],
-                            capture_output=True, text=True, cwd=ROOT, env=ortam)
-        satirlar.append("  (1) TUZAK (mtime geri alindi, .pyc duruyor) -> rc=%d %s"
-                        % (p1.returncode, "YESIL (mutasyon UYGULANMADI)" if p1.returncode == 0
-                           else "KIRMIZI (mutasyon uygulandi)"))
-        if p1.returncode != 0:
-            satirlar.append("     NOT: bu ortamda tuzak URETILEMEDI (loader kaynagi yine "
-                            "de okudu). Mitigasyon yine de (2)'de olculuyor.")
+    # (1) TUZAK: ayni uzunlukta mutasyon + mtime GERI ALINIR + onbellek DURUR.
+    with open(kanonik, "w", encoding="utf-8") as f:
+        f.write(asil.replace(_ONB_ESKI, _ONB_YENI, 1))
+    os.utime(kanonik, ns=(st.st_atime_ns, st.st_mtime_ns))
+    p1 = subprocess.run([sys.executable, kapi, "--yalniz-iletisim"],
+                        capture_output=True, text=True, cwd=kopya, env=ortam)
+    satirlar.append("  (1) TUZAK (mtime geri alindi, .pyc duruyor) -> rc=%d %s"
+                    % (p1.returncode, "YESIL (mutasyon UYGULANMADI)" if p1.returncode == 0
+                       else "KIRMIZI (mutasyon uygulandi)"))
+    if p1.returncode != 0:
+        satirlar.append("     NOT: bu ortamda tuzak URETILEMEDI (loader kaynagi yine "
+                        "de okudu). Mitigasyon yine de (2)'de olculuyor.")
 
-        # (2) MITIGASYON: onbellek silinir + mtime bumplanir -> mutasyon UYGULANMALI.
-        _pycache_temizle()
-        _mtime_bump(KANONIK, 999)
-        p2 = subprocess.run([sys.executable, "-B", KAPI, "--yalniz-iletisim"],
-                            capture_output=True, text=True, cwd=ROOT,
-                            env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
-        satirlar.append("  (2) MITIGASYON (.pyc silindi + mtime bump + -B) -> rc=%d %s"
-                        % (p2.returncode, "KIRMIZI (mutasyon UYGULANDI)" if p2.returncode
-                           else "YESIL (mutasyon HALA uygulanmadi)"))
-        if p2.returncode == 0:
-            satirlar.append("  🔴 MITIGASYON YETERSIZ: ayni uzunluktaki mutasyon hala "
-                            "uygulanmiyor -> tum batarya hukmu SUPHELIDIR.")
-            gecti = False
-        else:
-            satirlar.append("     dusen iddia kimlikleri: %s"
-                            % ",".join(sorted(kimlikler(p2.stdout + p2.stderr))) or "-")
-    finally:
-        with open(KANONIK, "w", encoding="utf-8") as f:
-            f.write(asil)
-        _pycache_temizle()
+    # (2) MITIGASYON: onbellek silinir + mtime bumplanir -> mutasyon UYGULANMALI.
+    _pycache_temizle(kopya)
+    _mtime_bump(kanonik, 999)
+    p2 = subprocess.run([sys.executable, "-B", kapi, "--yalniz-iletisim"],
+                        capture_output=True, text=True, cwd=kopya,
+                        env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
+    satirlar.append("  (2) MITIGASYON (.pyc silindi + mtime bump + -B) -> rc=%d %s"
+                    % (p2.returncode, "KIRMIZI (mutasyon UYGULANDI)" if p2.returncode
+                       else "YESIL (mutasyon HALA uygulanmadi)"))
+    if p2.returncode == 0:
+        satirlar.append("  🔴 MITIGASYON YETERSIZ: ayni uzunluktaki mutasyon hala "
+                        "uygulanmiyor -> tum batarya hukmu SUPHELIDIR.")
+        gecti = False
+    else:
+        satirlar.append("     dusen iddia kimlikleri: %s"
+                        % ",".join(sorted(kimlikler(p2.stdout + p2.stderr))) or "-")
     return gecti, satirlar
 
 
@@ -297,16 +317,12 @@ def main():
     print()
     sonuc = []
     for adim, (ad, oldurucu, duzenlemeler, niyet) in enumerate(MUTANTLAR, start=1):
-        yedek, hata = _uygula(duzenlemeler, adim)
+        metinler, hata = _mutant_metinleri(duzenlemeler)
         if hata:
-            _geri_al(yedek)
             print("🔴 %-42s %s" % (ad, hata))
             sonuc.append((ad, oldurucu, None, set(), hata))
             continue
-        try:
-            rc, cikti = _kos()
-        finally:
-            _geri_al(yedek)
+        rc, cikti = _mutant_kos(metinler, adim)
         kim = kimlikler(cikti) if rc != 0 else set()
         beklenen = "KIRMIZI" if oldurucu else "YEŞİL"
         gercek = "KIRMIZI" if rc != 0 else "YEŞİL"

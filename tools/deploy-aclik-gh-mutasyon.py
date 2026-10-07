@@ -18,6 +18,10 @@ her mutant kapinin kendini-testini KIRMIZI yakmali, KONTROL mutanti YESIL kalmal
 
 KULLANIM
     python3 tools/deploy-aclik-gh-mutasyon.py        # rc 0 = batarya temiz
+
+IZOLE KOPYA (7 Eki 2026): mutant CANLI kapiya yazilip `finally` ile geri alinmaz; her
+mutant `mutasyon_kopya.kopyada_kos` ile gecici kopyaya yazilir, kapi KOPYADAN kosar,
+kopya silinir. SIGKILL ev dosyasini mutant halde birakamaz.
 """
 import os
 import subprocess
@@ -25,7 +29,11 @@ import sys
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
-ARAC = os.path.join(TOOLS, "deploy-aclik-kapisi.py")
+ARAC_REL = "tools/deploy-aclik-kapisi.py"
+ARAC = os.path.join(ROOT, ARAC_REL)
+sys.path.insert(0, TOOLS)
+
+from mutasyon_kopya import kopyada_kos  # noqa: E402
 
 # (ad, capa, mutant). Capa dosyada BULUNAMAZSA mutant "hicbir sey olcmedi" sayilir ve
 # batarya KIRMIZI doner — sessiz capa kaymasi yesil gecmez.
@@ -55,9 +63,11 @@ KONTROL = ("KONTROL M0 (alakasiz sabit: CANLI_PENCERE)",
            "CANLI_PENCERE = 30", "CANLI_PENCERE = 29")
 
 
-def _kendini_test():
-    p = subprocess.run([sys.executable, ARAC, "--kendini-test"],
-                       capture_output=True, text=True, cwd=ROOT)
+def _kendini_test(kopya):
+    """Kapiyi KOPYADAN kosar: kapi ROOT'u kendi __file__'indan turetir, kopyayi gorur."""
+    p = subprocess.run([sys.executable, "-B", os.path.join(kopya, ARAC_REL), "--kendini-test"],
+                       capture_output=True, text=True, cwd=kopya,
+                       env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
     ilk = ""
     for satir in p.stdout.splitlines():
         if satir.strip().startswith("GH-RETRY"):
@@ -76,13 +86,8 @@ def main():
             print("  🔴 %-46s CAPA KAYMIS — mutant HICBIR SEY olcmedi" % ad)
             dusen += 1
             continue
-        with open(ARAC, "w", encoding="utf-8") as f:
-            f.write(ozgun.replace(capa, mutant, 1))
-        try:
-            rc, ilk = _kendini_test()
-        finally:
-            with open(ARAC, "w", encoding="utf-8") as f:
-                f.write(ozgun)
+        rc, ilk = kopyada_kos("deploy-aclik-mutant-",
+                              {ARAC_REL: ozgun.replace(capa, mutant, 1)}, _kendini_test)
         if rc == 0:
             print("  🔴 %-46s YESIL KALDI — eksen bu mutanti GORMUYOR" % ad)
             dusen += 1
@@ -94,13 +99,8 @@ def main():
         print("  🔴 %-46s CAPA KAYMIS" % ad)
         dusen += 1
     else:
-        with open(ARAC, "w", encoding="utf-8") as f:
-            f.write(ozgun.replace(capa, mutant, 1))
-        try:
-            rc, _ = _kendini_test()
-        finally:
-            with open(ARAC, "w", encoding="utf-8") as f:
-                f.write(ozgun)
+        rc, _ = kopyada_kos("deploy-aclik-mutant-",
+                            {ARAC_REL: ozgun.replace(capa, mutant, 1)}, _kendini_test)
         if rc == 0:
             print("  ✅ %-46s YESIL KALDI — kapi gurultu kaynagi degil" % ad)
         else:

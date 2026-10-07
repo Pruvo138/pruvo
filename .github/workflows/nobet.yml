@@ -2434,6 +2434,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/ga4-olay-mutasyon-izole-test.py
 
+      # SINIF nobetcisi (7 Eki, mutant-izole-2): hicbir mutasyon surucusu `finally`de
+      # canli agaca yazmaz (AST). Kalip: mutasyon_kopya.kopyada_kos. Test: KIRMIZI fikstur.
+      - name: "Mutant canli yazim kapisi (finally'de EV'e yazan surucu SAYI=0)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/mutant-canli-yazim-kapisi.py
+
+      - name: "Mutant canli yazim kapisi kendi testi (KIRMIZI fikstur yakalaniyor mu)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/mutant-canli-yazim-kapisi-test.py
+
       - name: "Gramer kisaltma kapisi mutasyon bataryasi"
         if: ${{ !cancelled() }}
         run: python3 tools/gramer-kisaltma-mutasyon.py

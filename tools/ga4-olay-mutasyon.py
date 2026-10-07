@@ -32,7 +32,7 @@ ROOT = os.path.dirname(TOOLS)
 KAPI_ADI = "ga4-olay-kapisi.py"
 sys.path.insert(0, TOOLS)
 
-from mutasyon_kopya import kopya_kok  # noqa: E402
+from mutasyon_kopya import gercek_dosya, kopya_kok, kopyada_mi  # noqa: E402
 
 # IKI BICIM (9 Eyl 2026, K388):
 #   klasik  : (ad, dosya, eski, yeni, beklenen_kirmizi)
@@ -148,39 +148,6 @@ def duzenlemeler(m):
 
 def kirmizi_bekleniyor(m):
     return m[-1]
-
-
-def gercek_dosya(kopya, rel):
-    """`kopya` kokunde `rel`i SEMBOLIK BAGDAN koparir, GERCEK bir kopya yapar ve yolunu doner.
-
-    `kopya_kok` yalniz `tools/`u kopyalar; `index.html`, `shop/src/olcum.js` gibi kok
-    dosyalari CANLI agaca sembolik baglidir ve uzerine yazmak canli dosyayi bozar. Yol
-    boyunca sembolik bagli her ust dizin, cocuklari bagli GERCEK bir dizine acilir; yaprak
-    bag silinir (yalniz bag — hedefine dokunulmaz) ve yerine icerigin kopyasi konur."""
-    parcalar = rel.split("/")
-    yol = kopya
-    for p in parcalar[:-1]:
-        yol = os.path.join(yol, p)
-        if os.path.islink(yol):
-            kaynak = os.readlink(yol)
-            os.unlink(yol)
-            os.mkdir(yol)
-            for ad in sorted(os.listdir(kaynak)):
-                os.symlink(os.path.join(kaynak, ad), os.path.join(yol, ad))
-    hedef = os.path.join(yol, parcalar[-1])
-    if os.path.islink(hedef):
-        kaynak = os.readlink(hedef)
-        os.unlink(hedef)
-        shutil.copyfile(kaynak, hedef)
-    return hedef
-
-
-def kopyada_mi(yol, kopya):
-    """Yazilacak yol GERCEK bir dosya ve kopya kokunun ICINDE mi — degilse yazilmaz."""
-    if os.path.islink(yol):
-        return False
-    kok = os.path.realpath(kopya) + os.sep
-    return os.path.realpath(yol).startswith(kok)
 
 
 def kopya_kur(rel_listesi):

@@ -15,10 +15,11 @@ bu dosya yalniz MUTANTLARI kosturur):
   5) iki workflow'da gecen adim     -> her biri kendi job'una gore
   6) bilinmeyen workflow            -> fail-closed KIRMIZI
 
-🔴 YONTEM (in-place + sha256 geri donme): mutant KANONIK KAYNAGA GECICI uygulanir,
-`--kendini-test` ALT SUREÇ olarak kosar, kaynak HEMEN `finally` ile birebir geri konur.
-Kosum sonunda kaynak bayt-ozdes (sha256) dogrulanir; araya giren hata bile kaynagi
-kirli birakamaz ([[mutasyon-diske-yazma-tuzagi]] — geri konan kaynak is urunu DEGILDIR).
+🔴 YONTEM (izole kopya + sha256 kaniti, 7 Eki 2026): mutant KANONIK KAYNAGA YAZILMAZ;
+`mutasyon_kopya.kopyada_kos` ile gecici kopyaya yazilir, `--kendini-test` KOPYADAN alt
+surec olarak kosar, kopya silinir. Eski in-place + `finally` geri koyma, SIGKILL'de ev
+dosyasini mutant halde birakiyordu ([[mutant-canli-govdede-yasamaz]]). Kosum sonunda
+canli kaynak bayt-ozdes (sha256) dogrulanir — "dokunmadim" beyan degil OLCUM.
 
     python3 tools/serit-beyani-mutasyon.py   # 0 = 4/4 mutant KIRMIZI + kontrol YESIL
 """
@@ -29,7 +30,11 @@ import sys
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 HEDEF_AD = "is-akisi-kapisi.py"
+HEDEF_REL = "tools/" + HEDEF_AD
 HEDEF = os.path.join(TOOLS, HEDEF_AD)
+sys.path.insert(0, TOOLS)
+
+from mutasyon_kopya import kopyada_kos  # noqa: E402
 
 KIRMIZI_IZ = "SONUC: KIRMIZI"
 YESIL_IZ = "SONUC: YESIL"
@@ -62,12 +67,16 @@ MUTANTLAR = [
 ]
 
 
-def alt_kosum():
-    """Kanonik yoldan `--kendini-test`i ALT SUREÇ olarak kosar (taze surec, modul cache YOK)."""
+def alt_kosum(kopya=None):
+    """`--kendini-test`i ALT SUREÇ olarak kosar (taze surec, modul cache YOK).
+
+    `kopya` verilirse kapi KOPYADAN kosar (ROOT'u kendi __file__'indan turetir)."""
     env = dict(os.environ)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
-    return subprocess.run([sys.executable, HEDEF, "--kendini-test"],
-                          capture_output=True, text=True, env=env, timeout=300)
+    hedef = os.path.join(kopya, HEDEF_REL) if kopya else HEDEF
+    return subprocess.run([sys.executable, "-B", hedef, "--kendini-test"],
+                          capture_output=True, text=True, env=env, timeout=300,
+                          cwd=kopya)
 
 
 def main():
@@ -75,10 +84,6 @@ def main():
         orijinal = f.read()
     ozet = hashlib.sha256(orijinal).hexdigest()
     print("KANONIK_KAYNAK=%s sha256=%s" % (HEDEF_AD, ozet))
-
-    def geri_koy():
-        with open(HEDEF, "wb") as f:
-            f.write(orijinal)
 
     # KONTROL KOSUMU (mutasyonsuz) -> YESIL olmali; yoksa batarya "olcuyor" diye yalan soyler.
     try:
@@ -110,14 +115,10 @@ def main():
             continue
         r = None
         try:
-            with open(HEDEF, "w", encoding="utf-8") as f:
-                f.write(mut)
-            r = alt_kosum()
+            r = kopyada_kos("serit-beyani-mutant-", {HEDEF_REL: mut}, alt_kosum)
         except Exception as e:  # noqa: BLE001
             print("  FAIL  %s -> ALTKOSUM COKTU: %s: %s" % (ad, type(e).__name__, e))
             fails.append(ad)
-        finally:
-            geri_koy()
         if r is None:
             continue
         yesil, kirmizi = YESIL_IZ in r.stdout, KIRMIZI_IZ in r.stdout
@@ -140,7 +141,7 @@ def main():
                 fails.append(ad + " (kontrol mutanti kirmizi: batarya olcmuyor)")
                 print(r.stdout[-1500:])
 
-    # Kaynak birebir geri dondu mu (sha256).
+    # Canli kaynak birebir AYNI mi (sha256) — mutasyon yalniz kopyada olmali.
     with open(HEDEF, "rb") as f:
         sonra = f.read()
     sha_ok = sonra == orijinal

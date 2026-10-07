@@ -27,8 +27,13 @@ KABUL (iki yonlu):
   · KONTROL: gecerli kayit rc=0 KALMALI — yoksa batarya "her kaydi reddet" halinden
     ayirt edilemez ve kapi kullanilamaz olurdu.
 
-CANLI DOSYA: yedeklenir, her vakadan sonra ve `finally`de GERI YUKLENIR; kosum sonunda
-sha256 ile geri yuklendigi DOGRULANIR (dogrulanamazsa fail-loud).
+CANLI DOSYA: YAZILMAZ (7 Eki 2026). Her bozuk kayit `mutasyon_kopya.kopyada_kos` ile
+gecici kopyaya yazilir, kapi KOPYADAN kosar, kopya silinir. Eski yontem (canliya yaz +
+`finally` geri yukle) SIGKILL'de kaydi bozuk birakiyor ve /tmp'de yedek dosya biriktiriyordu.
+Kosum sonunda canli kaydin sha256'si bas=son DOGRULANIR (degismisse fail-loud).
+KONTROL da ayni kopya ortaminda kosar (taban ile mutant AYNI cevrede olculur). Kapi
+`varlik/` cikti dizinini silip yeniden kurar; kopyada bu dizin canliya sembolik bagdir,
+o yuzden cikti koku `PRUVO_CIKTI_KOK` ile KOPYA ICINE yonlendirilir.
 Kapi `--ornek 1` ile kosulur (hukum ornek sayisindan BAGIMSIZ, sure ~10x kisalir).
 """
 
@@ -37,11 +42,14 @@ import io
 import os
 import subprocess
 import sys
-import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
-KAPI = os.path.join(TOOLS, "varlik-test.py")
+KAPI_REL = "tools/varlik-test.py"
+KAYIT_REL = "tools/varlik-referans.json"
 KAYIT = os.path.join(TOOLS, "varlik-referans.json")
+sys.path.insert(0, TOOLS)
+
+from mutasyon_kopya import kopyada_kos  # noqa: E402
 
 GECERLI = None   # kosum basinda canli dosyadan okunur (tohum SHA'si oradan gelir)
 
@@ -61,14 +69,18 @@ def sha(yol):
         return hashlib.sha256(f.read()).hexdigest()
 
 
-def kos():
-    return subprocess.run([sys.executable, KAPI, "--ornek", "1"],
-                          capture_output=True, text=True)
+def kos(kopya):
+    """Kapiyi KOPYADAN kosar (ROOT'u kendi __file__'indan turetir); cikti koku kopya icinde."""
+    cikti_kok = os.path.join(kopya, "_cikti")
+    os.makedirs(cikti_kok)
+    return subprocess.run([sys.executable, "-B", os.path.join(kopya, KAPI_REL), "--ornek", "1"],
+                          capture_output=True, text=True, cwd=kopya,
+                          env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1",
+                                   PRUVO_CIKTI_KOK=cikti_kok))
 
 
-def yaz(metin):
-    with io.open(KAYIT, "w", encoding="utf-8") as f:
-        f.write(metin)
+def kopyada(metinler):
+    return kopyada_kos("varlik-referans-mutant-", metinler, kos)
 
 
 def main():
@@ -76,48 +88,38 @@ def main():
         print("OLCULEMEDI: kayit dosyasi yok -> %s" % KAYIT)
         return 3
     baslangic_sha = sha(KAYIT)
-    yedek = tempfile.mkstemp(prefix="varlik-referans-yedek-")[1]
-    with io.open(KAYIT, encoding="utf-8") as f:
-        ilk = f.read()
-    with io.open(yedek, "w", encoding="utf-8") as f:
-        f.write(ilk)
 
     dusen, gecti = [], 0
-    try:
-        # KONTROL once: batarya "hep kirmizi" olamaz.
-        k = kos()
-        if k.returncode != 0:
-            print("TABAN KIRMIZI: gecerli kayitla kapi rc=%d (mutasyon oncesi)"
-                  % k.returncode)
-            print(k.stdout[-1200:])
-            return 1
-        print("  ok  KONTROL gecerli kayit -> rc=0")
-        gecti += 1
+    # KONTROL once: batarya "hep kirmizi" olamaz.
+    k = kopyada({})
+    if k.returncode != 0:
+        print("TABAN KIRMIZI: gecerli kayitla kapi rc=%d (mutasyon oncesi)"
+              % k.returncode)
+        print(k.stdout[-1200:])
+        return 1
+    print("  ok  KONTROL gecerli kayit -> rc=0")
+    gecti += 1
 
-        for ad, metin, beklenen in VAKALAR:
-            yaz(metin)
-            r = kos()
-            cikti = (r.stdout or "") + (r.stderr or "")
-            cokme = "Traceback" in (r.stderr or "")
-            teshis = "kaydi GECERSIZ" in cikti
-            ok = (r.returncode == beklenen) and teshis and not cokme
-            if ok:
-                gecti += 1
-                print("  ok  %s -> rc=%d (GECERSIZ teshisi VAR)" % (ad, r.returncode))
-            else:
-                dusen.append("%s: rc=%d (beklenen %d) teshis=%s cokme=%s"
-                             % (ad, r.returncode, beklenen, teshis, cokme))
-                print("  FAIL %s -> rc=%d teshis=%s cokme=%s"
-                      % (ad, r.returncode, teshis, cokme))
-            yaz(ilk)
-    finally:
-        yaz(ilk)
+    for ad, metin, beklenen in VAKALAR:
+        r = kopyada({KAYIT_REL: metin})
+        cikti = (r.stdout or "") + (r.stderr or "")
+        cokme = "Traceback" in (r.stderr or "")
+        teshis = "kaydi GECERSIZ" in cikti
+        ok = (r.returncode == beklenen) and teshis and not cokme
+        if ok:
+            gecti += 1
+            print("  ok  %s -> rc=%d (GECERSIZ teshisi VAR)" % (ad, r.returncode))
+        else:
+            dusen.append("%s: rc=%d (beklenen %d) teshis=%s cokme=%s"
+                         % (ad, r.returncode, beklenen, teshis, cokme))
+            print("  FAIL %s -> rc=%d teshis=%s cokme=%s"
+                  % (ad, r.returncode, teshis, cokme))
 
     if sha(KAYIT) != baslangic_sha:
-        print("🔴 KAYIT GERI YUKLENEMEDI — canli dosya DEGISMIS kaldi: %s" % KAYIT)
+        print("🔴 CANLI KAYIT DEGISTI — mutant kopya disina tasti: %s" % KAYIT)
         return 1
     print("-" * 70)
-    print("  canli kayit geri yuklendi (sha256 bas=son) · yedek: %s" % yedek)
+    print("  canli kayit DOKUNULMADI (sha256 bas=son) · mutasyon yalniz gecici kopyada")
     print("MUTANT=%d/%d  KONTROL=%s" % (len(VAKALAR) - len(dusen), len(VAKALAR),
                                         "YESIL" if gecti else "KIRMIZI"))
     if dusen:
