@@ -959,7 +959,8 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
   if (gh) { return fjson({ hata: gh }, 400); }
   const olcu = Number.isInteger(g.olcu_mm) ? g.olcu_mm : null;
   if (!tur.olculer.some((o) => o.mm === olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
-  if (g.hak_onay !== true) { return fjson({ hata: "onay-yok" }, 400); }
+  // Hak beyani yalniz foto/SVG yuklenen turde (VERI.hakGerekir); form girdili turde istenmez.
+  if (VERI.hakGerekir(tur.kod) && g.hak_onay !== true) { return fjson({ hata: "onay-yok" }, 400); }
   if (g.onay_surum !== VERI.onay_surum) { return fjson({ hata: "onay-surumu-eski" }, 409); }
   const sc = secimDogrula(tur.kod, g.secim);
   if (!sc) { return fjson({ hata: "gecersiz-secim" }, 400); }
@@ -1126,6 +1127,10 @@ function durumYaniti(is) {
                      VERI.gecerlilik_saat * 3600 * 1000).toISOString() }, 200);
   }
   if (is.asama === "basarisiz") {
+    // Uretec reddi (koşucu `uretec-red:<kod>`): musteri metni manifestten (VERI.uretecRedMetni).
+    if (typeof is.hata === "string" && is.hata.startsWith("uretec-red")) {
+      return fjson({ asama: "basarisiz", hata: "uretec-red", metin: VERI.uretecRedMetni(is.hata) }, 200);
+    }
     return fjson({ asama: "basarisiz",
                    hata: is.hata === "gorsel-uygun-degil" ? "gorsel-uygun-degil" : "uretilemedi" }, 200);
   }
@@ -1884,8 +1889,9 @@ export async function panelUretecGirdi(env, url) {
 
 /** Uzun kenar toleransi (sozlesme §3): D kolu ±%1, R kolu ±%3. */
 const UZUN_KENAR_TOLERANS = { D: 0.01, R: 0.03 };
-/** Plaka siniri (sozlesme §3: tek plaka, 250×250 mm). */
-const PLAKA_MM = 250;
+/** Plaka siniri (sozlesme §3, mm) — TEK kaynak manifest `PLAKA_MM` (7 Eki: 300); yoksa yukleme durur. */
+const PLAKA_MM = VERI.PLAKA_MM;
+if (!(typeof PLAKA_MM === "number" && PLAKA_MM > 0)) { throw new Error("foto-uretim-veri.js PLAKA_MM yok/bozuk"); }
 
 /**
  * olcu.json DOGRULAMASI (sozlesme §3 + manifest araligi). Donus "" = gecerli, aksi sebep kodu
