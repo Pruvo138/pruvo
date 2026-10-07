@@ -2444,6 +2444,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/mutant-canli-yazim-kapisi-test.py
 
+      # Iletisim yuzeyi nobetcisinin (kisisel-veri-test.py --yalniz-iletisim) mutasyon
+      # bataryasi: 7 oldurucu KIRMIZI + 2 kontrol YESIL + imza ayrisimi + bayat .pyc
+      # tuzagi kaniti. 7 Eki (mutant-izole-3) M2/M5 capalari tazelendi, rc=0 olculdu.
+      - name: "Iletisim baglam mutasyon bataryasi (7 oldurucu KIRMIZI, onbellek kaniti)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/iletisim-baglam-mutasyon.py
+
       - name: "Gramer kisaltma kapisi mutasyon bataryasi"
         if: ${{ !cancelled() }}
         run: python3 tools/gramer-kisaltma-mutasyon.py

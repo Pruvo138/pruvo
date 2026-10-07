@@ -47,13 +47,7 @@ DERINLIK = 3
 
 # Beyanli muafiyet: {"dosya.py": "gerekce"}. Gerekcesiz ya da artik ihlal etmeyen giris
 # KIRMIZI'dir (bayat muafiyet sessizce yer tutmaz).
-MUAFIYET = {
-    "k3-cikti-kok-mutasyon.py":
-        "7 Eki 2026 mutant-izole-2 taramasinin buldugu 5. surucu (spec'in 4 hedefi DISINDA): "
-        "finally -> cleanup_build_outputs() WORKTREE yasal sayfalarini HEAD'den yeniden "
-        "yazar + build ciktilarini siler. Onarim ayri dilim (mutant-izole-3); onarilinca "
-        "bu kayit BAYAT olur ve kapi silinmesini ister.",
-}
+MUAFIYET = {}
 
 _OS_YAZIM = frozenset(("remove", "unlink", "rename", "replace", "renames", "utime",
                        "truncate", "rmdir", "removedirs"))

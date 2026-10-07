@@ -40,6 +40,16 @@ calisma agaci) degisip degismedigi olculur.
    Hüküm: ortak agac UC EKSENIN HERHANGI BIRINDE degisti ise "degisti" sayilir.
    `M_KOK` bu hükümden turer. Silme kolu `--ignored` ciktisina BAGLANMAZ (daraltma).
 
+🔴 IZOLE GOZLEM AGACI (7 Eki 2026, mutant-izole-3): "ortak agac" artik EV DEGIL.
+   Eski surum mutanti EV'e yazdirip `finally`de EV'in yasal sayfalarini HEAD'den
+   yeniden yaziyor + build ciktilarini EV'den siliyordu (SIGKILL'de EV kirli kalir,
+   [[mutant-canli-govdede-yasamaz]]). Simdi: build GIRDISI `kopya_kok` (tools/ kopya,
+   gerisi bagli), mutantin yazdigi "ortak agac" = EV HEAD'inin gecici git checkout'u
+   (`gozlem_agaci`, nesneler alternates ile paylasilir — EV'in .git'ine YAZILMAZ),
+   KONTROL ciktisi = `<tmp>/cikti`. Uc eksen, taban sifirlama ve yasal sayfa geri
+   yazimi YALNIZ gozlem agacinda calisir; `finally` yalniz <tmp>'yi siler. EV'in uc
+   eksen damgasi bas/son OLCULUR ve basilir (`EV_DEGISMEDI=`).
+
 Kullanim:
   python3 tools/k3-cikti-kok-mutasyon.py
       Tam M-KOK mutasyon testi (kendi gecici kok'unu olusturur, MUTANT+KONTROL kosar,
@@ -58,7 +68,7 @@ import hashlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import git_ortami  # noqa: E402
-from mutasyon_kopya import kopya_kok  # noqa: E402
+from mutasyon_kopya import gercek_dosya, kopya_kok  # noqa: E402
 
 WORKTREE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD = os.path.join(WORKTREE, "tools", "build.py")
@@ -127,7 +137,7 @@ def git_status_short(root):
     """Eksen A: izlenen dosya degisiklikleri. `git status --short` ciktisi."""
     out = subprocess.run(
         ["git", "-C", root, "status", "--short"],
-        capture_output=True, text=True, check=False)
+        capture_output=True, text=True, check=False, env=git_ortami.git_ortami())
     return out.stdout
 
 
@@ -138,7 +148,7 @@ def git_status_short_ignored(root):
     Silme kolu BU CIKTIYA BAGLANMAZ (daraltma bozulmasin)."""
     out = subprocess.run(
         ["git", "-C", root, "status", "--short", "--ignored"],
-        capture_output=True, text=True, check=False)
+        capture_output=True, text=True, check=False, env=git_ortami.git_ortami())
     return out.stdout
 
 
@@ -275,18 +285,18 @@ def write_control(src, dst):
         f.write(mutated)
 
 
-def run_build(build_path, cikti_kok):
+def run_build(build_path, cikti_kok, agac, kopya):
     env = os.environ.copy()
     env.pop("PRUVO_CIKTI_KOK", None)
-    # Mutant `_coz_cikti_kok()` bu env'den WORKTREE'yi okur; ortak agacin
-    # kirletilmesini garanti eder.
-    env["PRUVO_K3_WORKTREE"] = WORKTREE
-    # Mutant dosyasi gecici dizinde -> cwd sys.path'e eklenmez (Python 3);
-    # `from sayfalar import ...` calismasi icin PYTHONPATH=WORKTREE/tools.
-    env["PYTHONPATH"] = os.path.join(WORKTREE, "tools")
+    # Mutant `_coz_cikti_kok()` bu env'den "ortak agaci" okur — bu artik EV DEGIL,
+    # izole gozlem agaci (`gozlem_agaci`): mutant yine "ortak agaci" kirletir, ama
+    # kirlettigi agac gecicidir.
+    env["PRUVO_K3_WORKTREE"] = agac
+    # `from sayfalar import ...` icin PYTHONPATH=<kopya>/tools (EV'in tools'u DEGIL).
+    env["PYTHONPATH"] = os.path.join(kopya, "tools")
     proc = subprocess.run(
         [sys.executable, build_path, "--cikti-kok", cikti_kok],
-        capture_output=True, text=True, cwd=WORKTREE, env=env, check=False)
+        capture_output=True, text=True, cwd=kopya, env=env, check=False)
     return proc.returncode, (proc.stdout + proc.stderr)
 
 
@@ -520,12 +530,42 @@ def cleanup_paths(scope_kok, yollar, etiket):
     print("TEMIZLENDI: %s" % etiket)
 
 
-def restore_tracked_pages():
-    """4 yasal sayfayi HEAD'den yeniden yaz.
+def gozlem_agaci(tmp):
+    """Mutantin "ortak agac" diye yazdigi GOZLEM AGACI: EV HEAD'inin gecici checkout'u.
 
-    Mutant M-KOK, --cikti-kok <tmp>'a yazmasi gerekirken WORKTREE'ye yazar ve
-    o arada `build.py` statik sayfalari da (gizlilik/hakkimizda/iletisim/sss)
-    WORKTREE altinda modifiye eder. Bu kol, mutantin kendi kirletmesini
+    `git init` + `objects/info/alternates` (EV'in nesne deposu, SALT OKUNUR) +
+    `checkout --detach <HEAD>`: EV'in .git'ine tek bayt yazilmaz (worktree kaydi
+    acilmaz), shallow klonda da calisir (yalniz HEAD agacinin nesneleri gerekir).
+    Uc eksen (status/ignored/bilinen yollar), `.gitignore` ve `ls-files` EV'deki
+    ile AYNI izlenen yuzeyi gorur — olcum sadakati korunur, yazim EV'e inmez."""
+    env = git_ortami.git_ortami()
+
+    def _git(*args, cwd=WORKTREE):
+        p = subprocess.run(["git", "-C", cwd] + list(args), capture_output=True,
+                           text=True, check=False, env=env)
+        if p.returncode != 0:
+            raise SystemExit("HATA: gozlem agaci kurulamadi: git %s -> %s"
+                             % (" ".join(args), p.stderr.strip()[:300]))
+        return p.stdout.strip()
+
+    sha = _git("rev-parse", "HEAD")
+    nesne = _git("rev-parse", "--path-format=absolute", "--git-path", "objects")
+    agac = os.path.join(tmp, "agac")
+    os.makedirs(agac)
+    _git("-c", "init.defaultBranch=gozlem", "init", "-q", cwd=agac)
+    with open(os.path.join(agac, ".git", "objects", "info", "alternates"), "w",
+              encoding="utf-8") as f:
+        f.write(nesne + "\n")
+    _git("-c", "advice.detachedHead=false", "checkout", "-q", "--detach", sha, cwd=agac)
+    return agac
+
+
+def restore_tracked_pages(agac):
+    """4 yasal sayfayi HEAD'den yeniden yaz — YALNIZ gozlem agacinda.
+
+    Mutant M-KOK, --cikti-kok <tmp>'a yazmasi gerekirken "ortak agaca" (gozlem
+    agaci, `gozlem_agaci`) yazar ve o arada `build.py` statik sayfalari da
+    (gizlilik/hakkimizda/iletisim/sss) gozlem agacinda modifiye eder. Bu kol, mutantin kendi kirletmesini
     TEMIZLER: HEAD icerigini `git show` ile okuyup AYNI YOLA yazar.
 
     Bu **geri yukleme degil**, bilinen HEAD iceriginden **yeniden yazma**dir
@@ -535,19 +575,19 @@ def restore_tracked_pages():
     Yalnizca MUTANT kosumundan sonra cagrilir.
     """
     for slug in ("hakkimizda", "iletisim", "sss", "gizlilik"):
-        yol = os.path.join(WORKTREE, slug, "index.html")
+        yol = os.path.join(agac, slug, "index.html")
         if not os.path.isfile(yol):
             continue  # mutant bu sayfayi yaratmadiysa ATLA
         proc = subprocess.run(
-            ["git", "-C", WORKTREE, "show", f"HEAD:{slug}/index.html"],
-            capture_output=True, check=False)
+            ["git", "-C", agac, "show", f"HEAD:{slug}/index.html"],
+            capture_output=True, check=False, env=git_ortami.git_ortami())
         if proc.returncode != 0:
             continue  # HEAD'de yoksa (tracked degilse) sessizce gec
         with open(yol, "wb") as f:
             f.write(proc.stdout)
 
 
-def cleanup_build_outputs(cikti_kok):
+def cleanup_build_outputs(agac, cikti_kok):
     """Mutant/control kosumlarindan kalan ciktilari BILINEN yollardan sil.
 
     Spec sartlari (k3-rmtree-daraltma):
@@ -558,7 +598,7 @@ def cleanup_build_outputs(cikti_kok):
       * Menzil disi yol -> REDDEDILIR (rc!=0, yol adi basar).
 
     Iki scope temizlenir:
-      - WORKTREE: mutant --cikti-kok YOK sayarsa buraya yazdi (bilinen yollar).
+      - GOZLEM AGACI: mutant --cikti-kok YOK sayarsa buraya yazdi (bilinen yollar).
       - CIKTI_KOK: control --cikti-kok'a yazdi (bilinen yollar).
 
     + 4 yasal sayfa (HEAD'den yeniden yazma, tracked) — rmtree/remove DEGIL.
@@ -567,12 +607,12 @@ def cleanup_build_outputs(cikti_kok):
       icerikten yeniden yazma geldi (spec k3-harness-checkout).
       restore_tracked_pages()'a bkz.
     """
-    # 1) WORKTREE bilinen cikti yollari (scope: WORKTREE)
+    # 1) GOZLEM AGACI bilinen cikti yollari (scope: agac — EV DEGIL)
     # 🔴 K330: yuzey `_bilinen_yollari_topla` DEGIL `taban_artik_yollari` — eskisi
     # yalniz 12 sabit yolu biliyordu ve landing/marka/kategori dizinleri her
     # kosumda BIRIKIYORDU (olculdu: kosum basina 410 dizin).
-    worktree_yollar = taban_artik_yollari(WORKTREE)
-    cleanup_paths(WORKTREE, worktree_yollar, "WORKTREE")
+    agac_yollar = taban_artik_yollari(agac)
+    cleanup_paths(agac, agac_yollar, "GOZLEM_AGACI")
 
     # 2) CIKTI_KOK bilinen cikti yollari (scope: CIKTI_KOK)
     if cikti_kok is not None and os.path.isdir(cikti_kok):
@@ -580,7 +620,7 @@ def cleanup_build_outputs(cikti_kok):
         cleanup_paths(cikti_kok, cikti_yollar, "CIKTI_KOK")
 
     # 3) 4 yasal sayfa (HEAD'den yeniden yazma; rmtree/remove DEGIL)
-    restore_tracked_pages()
+    restore_tracked_pages(agac)
 
 
 def _oz_yaz(yol, metin):
@@ -781,61 +821,72 @@ def main():
         return 0
 
     # ── NORMAL M-KOK TEST MODU ─────────────────────────────────────────
-    os.chdir(WORKTREE)
-
-    # ── K330 KOL 1: TABAN SIFIRLAMA (fp0'DAN ONCE) ─────────────────────
-    # Olcum "agac DEGISTI mi" sorusunu sorar; taban artikliysa cevap uc eksende
-    # de kor kalir. Bu yuzden fp0 ALINMADAN once bilinen cikti yuzeyi sifirlanir.
-    print("=== TABAN SIFIRLAMA (K330) ===")
-    taban_adaylar = taban_artik_yollari(WORKTREE)
-    print("TABAN_ARTIK_ONCE=%d" % len(taban_adaylar))
-    for yol in taban_adaylar[:20]:
-        print("  %s" % yol)
-    if len(taban_adaylar) > 20:
-        print("  ... (+%d yol daha)" % (len(taban_adaylar) - 20))
-    if taban_adaylar:
-        cleanup_paths(WORKTREE, taban_adaylar, "TABAN_SIFIRLAMA")
-
-    # ── K330 KOL 2: FAIL-CLOSED ON KONTROL ─────────────────────────────
-    # Beyan kaynaklarinin UCUNU DE atlatan bir artik kaldiysa taban sifirlanmis
-    # DEGILDIR; sessizce devam etmek yanlis hukum uretir (bugun `KACTI`, yarin
-    # yanlis YESIL). `OLCULEMEDI` bir KALEMDIR, bos sonuc degil.
-    taban_kalan = yapisal_artik_yollari(WORKTREE)
-    print("TABAN_ARTIK_SONRA=%d" % len(taban_kalan))
-    for yol in taban_kalan[:20]:
-        print("  %s" % yol)
-    if taban_kalan:
-        if len(taban_kalan) > 20:
-            print("  ... (+%d yol daha)" % (len(taban_kalan) - 20))
-        print("OLCULEMEDI: taban artikli")
-        print("HUKUM=OLCULEMEDI")
-        print("RC!=0")
-        return 3
-    print("TABAN=ARTIKSIZ")
-
-    fp0 = repo_fingerprint(WORKTREE)
-    print("=== ONCE ===")
-    print("REPO_A_SHA=", fp0["A"][0])
-    print("REPO_B_SHA=", fp0["B"][0])
-    print("REPO_C_SHA=", fp0["C"][0])
-    print("REPO_A_STATUS=", repr(fp0["A"][1]))
-    print("REPO_B_STATUS=", repr(fp0["B"][1]))
-    print("REPO_C_STATUS=", repr(fp0["C"][1]))
+    # EV (bu betigin agaci) YALNIZ OKUNUR: damgasi bas/son basilir.
+    fp_ev0 = repo_fingerprint(WORKTREE)
+    print("=== EV (salt okunur) ===")
+    print("EV_A_SHA=", fp_ev0["A"][0])
+    print("EV_B_SHA=", fp_ev0["B"][0])
+    print("EV_C_SHA=", fp_ev0["C"][0])
 
     tmp = tempfile.mkdtemp(prefix="pruvo-k3-14a-")
     print("\n=== GECICI KOK ===")
     print("GECICI_KOK=", tmp)
 
     try:
-        # kopya_kok: tools/ KOPYALANMIS, geri kalanı sembolik bagli gecici bir
-        # depo koku kur. Boylece mutant + kontrol dosyalarinin `__file__` adresleri
-        # gecici kopya koke isaret eder ve tools/cip-indeks.py gibi tum alt
-        # moduller bulunur (PYTHONPATH trick'i yetmez, dosya yolu da lazim).
+        # kopya_kok: tools/ KOPYALANMIS, geri kalanı sembolik bagli build GIRDISI.
+        # Mutant + kontrol dosyalarinin `__file__` adresleri kopyaya isaret eder
+        # (ROOT=kopya) ve tools/cip-indeks.py gibi alt moduller bulunur.
         kopya = kopya_kok(tmp, WORKTREE)
+        # build.py ROOT'a yazdigi TEK yol: sitemap lastmod defteri. EV'de varsa kopyada
+        # bagdan koparilir (yazim EV'e inmez, onbellek yine kullanilir).
+        if os.path.lexists(os.path.join(kopya, "sitemap-damgalari.json")):
+            gercek_dosya(kopya, "sitemap-damgalari.json")
+        agac = gozlem_agaci(tmp)
+        cikti = os.path.join(tmp, "cikti")
+        os.makedirs(cikti)
+        print("GOZLEM_AGACI=", agac)
+        print("KONTROL_CIKTI_KOK=", cikti)
+
+        # ── K330 KOL 1: TABAN SIFIRLAMA (fp0'DAN ONCE) ─────────────────────
+        # Olcum "agac DEGISTI mi" sorusunu sorar; taban artikliysa cevap uc eksende
+        # de kor kalir. Bu yuzden fp0 ALINMADAN once bilinen cikti yuzeyi sifirlanir.
+        print("=== TABAN SIFIRLAMA (K330) ===")
+        taban_adaylar = taban_artik_yollari(agac)
+        print("TABAN_ARTIK_ONCE=%d" % len(taban_adaylar))
+        for yol in taban_adaylar[:20]:
+            print("  %s" % yol)
+        if len(taban_adaylar) > 20:
+            print("  ... (+%d yol daha)" % (len(taban_adaylar) - 20))
+        if taban_adaylar:
+            cleanup_paths(agac, taban_adaylar, "TABAN_SIFIRLAMA")
+
+        # ── K330 KOL 2: FAIL-CLOSED ON KONTROL ─────────────────────────────
+        # Beyan kaynaklarinin UCUNU DE atlatan bir artik kaldiysa taban sifirlanmis
+        # DEGILDIR; sessizce devam etmek yanlis hukum uretir (bugun `KACTI`, yarin
+        # yanlis YESIL). `OLCULEMEDI` bir KALEMDIR, bos sonuc degil.
+        taban_kalan = yapisal_artik_yollari(agac)
+        print("TABAN_ARTIK_SONRA=%d" % len(taban_kalan))
+        for yol in taban_kalan[:20]:
+            print("  %s" % yol)
+        if taban_kalan:
+            if len(taban_kalan) > 20:
+                print("  ... (+%d yol daha)" % (len(taban_kalan) - 20))
+            print("OLCULEMEDI: taban artikli")
+            print("HUKUM=OLCULEMEDI")
+            print("RC!=0")
+            return 3
+        print("TABAN=ARTIKSIZ")
+
+        fp0 = repo_fingerprint(agac)
+        print("=== ONCE ===")
+        print("REPO_A_SHA=", fp0["A"][0])
+        print("REPO_B_SHA=", fp0["B"][0])
+        print("REPO_C_SHA=", fp0["C"][0])
+        print("REPO_A_STATUS=", repr(fp0["A"][1]))
+        print("REPO_B_STATUS=", repr(fp0["B"][1]))
+        print("REPO_C_STATUS=", repr(fp0["C"][1]))
+
         mutant_src = os.path.join(kopya, "tools", "build.py")
-        # Mutant ve kontrol dosyalari KOPYA icinde olusturulur (kopya/tools/ altinda)
-        # -> __file__ = kopya/tools/build_*.py, dirname(dirname) = kopya/,
-        #    cip-indeks.py ve diger alt moduller bulunur.
         mutant_path = os.path.join(kopya, "tools", "build_mutant.py")
         control_path = os.path.join(kopya, "tools", "build_control.py")
         write_mutant(mutant_src, mutant_path)
@@ -843,8 +894,8 @@ def main():
 
         # ── M-KOK ─────────────────────────────────────────────
         print("\n=== M-KOK (parametre YOK SAYAN mutant) ===")
-        rc_m, log_m = run_build(mutant_path, tmp)
-        fp_m = repo_fingerprint(WORKTREE)
+        rc_m, log_m = run_build(mutant_path, cikti, agac, kopya)
+        fp_m = repo_fingerprint(agac)
         eksen_m = _eksen_ayni_mi(fp0, fp_m)
         degisti_m = any(v == "FARKLI" for v in eksen_m.values())
         print("M_KOK_BUILD_RC=", rc_m)
@@ -871,8 +922,8 @@ def main():
                 print("  -", s)
         if eksen_m["C"] == "FARKLI":
             print("EKSEN_C_DEGISTI:")
-            for ad, old_sha, new_sha in _eksen_c_diff(WORKTREE, WORKTREE):
-                # Not: ayni WORKTREE'yi iki kez veriyoruz cunku eksen C'nin ONCE/SONRA
+            for ad, old_sha, new_sha in _eksen_c_diff(agac, agac):
+                # Not: ayni agaci iki kez veriyoruz cunku eksen C'nin ONCE/SONRA
                 # diff'i fp0 vs fp_m uzerinden yapilmis olamazdı; yalniz degisim VAR/YOK.
                 # Anlasilir olmasi icin ham sha'larin yerine MUTANT_SONRAKI degeri basılır.
                 print("  {0}: {1} -> {2}".format(ad, old_sha[:12], new_sha[:12]))
@@ -883,8 +934,8 @@ def main():
 
         # Mutant kirli biraktigi dosyalari temizle.
         if degisti_m:
-            cleanup_build_outputs(tmp)
-            fp_k0 = repo_fingerprint(WORKTREE)
+            cleanup_build_outputs(agac, cikti)
+            fp_k0 = repo_fingerprint(agac)
             print("\n=== MUTANT SONRASI TEMIZLIK (kontrol icin temiz baseline) ===")
             print("KONTROL_BASELINE_A_SHA=", fp_k0["A"][0])
             print("KONTROL_BASELINE_B_SHA=", fp_k0["B"][0])
@@ -894,8 +945,8 @@ def main():
 
         # ── KONTROL ───────────────────────────────────────────
         print("\n=== KONTROL (kozmetik degisiklik — davranis ayni) ===")
-        rc_k, log_k = run_build(control_path, tmp)
-        fp_k = repo_fingerprint(WORKTREE)
+        rc_k, log_k = run_build(control_path, cikti, agac, kopya)
+        fp_k = repo_fingerprint(agac)
         eksen_k = _eksen_ayni_mi(fp_k0, fp_k)
         degisti_k = any(v == "FARKLI" for v in eksen_k.values())
         print("KONTROL_BUILD_RC=", rc_k)
@@ -933,14 +984,16 @@ def main():
         print("RC!=0")
         return 1
     finally:
+        # Gozlem agaci, kopya ve KONTROL ciktisi <tmp> altinda: tek silme hepsini goturur.
+        # EV'e dokunan temizlik YOK — mutant EV'e hic yazmadi.
         shutil.rmtree(tmp, ignore_errors=True)
         print("\n=== TEMIZLIK ===")
         print("GECICI_KOK_SILINDI=", tmp)
-        cleanup_build_outputs(None)
-        fp_s = repo_fingerprint(WORKTREE)
-        print("SON_REPO_A_SHA=", fp_s["A"][0])
-        print("SON_REPO_B_SHA=", fp_s["B"][0])
-        print("SON_REPO_C_SHA=", fp_s["C"][0])
+        fp_ev_s = repo_fingerprint(WORKTREE)
+        print("SON_EV_A_SHA=", fp_ev_s["A"][0])
+        print("SON_EV_B_SHA=", fp_ev_s["B"][0])
+        print("SON_EV_C_SHA=", fp_ev_s["C"][0])
+        print("EV_DEGISMEDI=", "EVET" if fp_ev_s == fp_ev0 else "HAYIR")
 
 
 if __name__ == "__main__":

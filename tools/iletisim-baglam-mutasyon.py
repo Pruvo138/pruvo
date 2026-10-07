@@ -38,7 +38,9 @@ Kullanim:
     python3 tools/iletisim-baglam-mutasyon.py --onbellek-kaniti   # yalniz onbellek kaniti
 Cikis kodu: 0 gecti · 1 kaldi/ayristiramadi.
 """
+import importlib.util
 import os
+import py_compile
 import re
 import shutil
 import subprocess
@@ -102,8 +104,16 @@ MUTANTLAR = [
      "KANONIK e-posta deseni korlestirilir (AYNI UZUNLUK — onbellek tuzagi adayi); "
      "e-posta ekseni hicbir host goremez"),
 
+    # Capa 3 satir: `for yol in sorted(dosyalar):` kapida 2 kez geciyor (7 Eki 2026 olculdu,
+    # surucu BAYAT); `taban["dosya"] += 1` izi onu iletisim_tara dongusune tekillestirir.
     ("M2 TARAMA-YUZEYINI-DARALT", True, [
-        (KAPI, "    for yol in sorted(dosyalar):", "    for yol in sorted(dosyalar)[:1]:")],
+        (KAPI,
+         "    for yol in sorted(dosyalar):\n"
+         "        metin = dosyalar[yol]\n"
+         "        taban[\"dosya\"] += 1\n",
+         "    for yol in sorted(dosyalar)[:1]:\n"
+         "        metin = dosyalar[yol]\n"
+         "        taban[\"dosya\"] += 1\n")],
      "tarama dongusu ilk dosyada durur -> yuzey daralir"),
 
     ("M3 MUAFIYET-LISTESINI-GENISLET", True, [
@@ -119,18 +129,13 @@ MUTANTLAR = [
      "defter kapisi sabitlenir VE telefon ekseni taramadan cikarilir "
      "(sayi tutar, iddia kosmaz)"),
 
-    ("M5 TELEFON-BAGLAM-AYRIMINI-TERSINE-CEVIR", True, [
-        (KAPI,
-         "    for m in _WA_RE.finditer(metin):\n"
-         "        if _ARAMA_BAGLAM_RE.search(_satir(metin, m.start())):",
-         "    for m in _WA_RE.finditer(metin):\n"
-         "        if _WA_BAGLAM_RE.search(_satir(metin, m.start())):"),
-        (KAPI,
-         "    for m in _ARAMA_RE.finditer(metin):\n"
-         "        if _WA_BAGLAM_RE.search(_satir(metin, m.start())):",
-         "    for m in _ARAMA_RE.finditer(metin):\n"
-         "        if _ARAMA_BAGLAM_RE.search(_satir(metin, m.start())):")],
-     "her numara KENDI baglaminda ihlal sayilir (capraz kural tersine doner)"),
+    # Eski M5 (WA/arama capraz baglam kuralini tersine cevir) hedefi 28 Agu TEK HAT emriyle
+    # KALKTI (capa 0 kez geciyordu). Telefon ekseninin bugunku ikinci iddiasi T2'dir.
+    ("M5 T2-PV-COZUCUSUNU-ATLA", True, [
+        (KAPI, "    if _ARAMA_RE.search(pv_birlestir(metin)):\n",
+         "    if _ARAMA_RE.search(metin):\n")],
+     "T2 pv (data-a..l) parcalarini birlestirmeden ham metne bakar -> T1'in kopyasi olur, "
+     "pv-parcali yasak numara kacar"),
 
     ("M6 DESEN-MUAFIYET-SIRASINI-BOZ", True, [
         (KAPI, "        no = cmk._host_desen_isabeti(host, kayit)",
@@ -243,19 +248,29 @@ def _onbellek_adimlari(kopya, asil):
     if not kopyada_mi(kanonik, kopya):
         return False, ["ONBELLEK KANITI KURULAMADI: kanonik kaynak kopya DISINDA"]
     gecti = True
-    # (0) Bayat .pyc URET: onbellek yazimi ACIK kosum.
+    # (0) Bayat .pyc URET. 🔴 Kapi sureci .pyc YAZMAZ: `git_ortami` import aninda
+    # `sys.dont_write_bytecode = True` kurar (7 Eki 2026 olculdu: onbellek yazimi acik
+    # kosumda bile kanonik .pyc 0). Tuzak yine GERCEKTIR — kapi .pyc OKUR ve onu baska
+    # bir tuketici (kanonigi git_ortami'dan ONCE yukleyen herhangi bir surec) yazabilir.
+    # O tuketici burada `py_compile` (TIMESTAMP gecersizlestirme = importlib varsayilani)
+    # ile temsil edilir; eksen OLCULUR: .pyc var mi + kapi sureci yazdi mi.
     _pycache_temizle(kopya)
     ortam = dict(os.environ)
     ortam.pop("PYTHONDONTWRITEBYTECODE", None)
     p = subprocess.run([sys.executable, kapi, "--yalniz-iletisim"],
                        capture_output=True, text=True, cwd=kopya, env=ortam)
-    pyc = [a for a in os.listdir(pycache)] if os.path.isdir(pycache) else []
-    kanonik_pyc = [a for a in pyc if a.startswith("commit-mesaji-kapisi.")]
-    satirlar.append("  (0) taban kosum rc=%d · __pycache__ dosyasi %d · kanonik .pyc %r"
-                    % (p.returncode, len(pyc), kanonik_pyc))
-    if not kanonik_pyc:
-        satirlar.append("  🔴 KANIT KURULAMADI: kanonik modul icin .pyc olusmadi -> "
-                        "tuzak bu ortamda uretilemiyor, mitigasyon da olculemez.")
+    kapi_yazdi = os.path.isfile(importlib.util.cache_from_source(kanonik))
+    hedef_pyc = py_compile.compile(
+        kanonik, cfile=importlib.util.cache_from_source(kanonik), doraise=True,
+        invalidation_mode=py_compile.PycInvalidationMode.TIMESTAMP)
+    satirlar.append("  (0) taban kosum rc=%d · kapi sureci kanonik .pyc yazdi=%s · "
+                    "bayat .pyc (py_compile) %s"
+                    % (p.returncode, "EVET" if kapi_yazdi else "HAYIR",
+                       os.path.basename(hedef_pyc) if hedef_pyc and os.path.isfile(hedef_pyc)
+                       else "YOK"))
+    if p.returncode != 0 or not (hedef_pyc and os.path.isfile(hedef_pyc)):
+        satirlar.append("  🔴 KANIT KURULAMADI: taban kirmizi ya da kanonik .pyc "
+                        "uretilemedi -> tuzak kurulamaz, mitigasyon olculemez.")
         return False, satirlar
     st = os.stat(kanonik)
 
