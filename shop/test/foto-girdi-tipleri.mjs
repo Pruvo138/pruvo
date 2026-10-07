@@ -288,6 +288,80 @@ mutantKos("M-BOOL1 bool true/false denetimi silindi",
   ol("M-BOOL2 FORM_TIPLERI.bool dustu -> true KIRMIZI (parametre-yakinda)", r.ok === false && r.hata === "parametre-yakinda", JSON.stringify(r));
 }
 
+// KOSUL (kopru-15 DILIM-2): koşulu sağlanmayan alan çıktıya GİRMEZ, gönderilirse sema-disi-parametre;
+// sağlanan alan ZORUNLU; adım ızgarası kayıttaki adıma göre (enlem/boylam 0.000001: 40.15-(-90) /1e-6 kayan
+// nokta hatası 1.5e-8 > 1e-9 — Uludağ örneği; KS1 bunu ölçer).
+const KOSUL_FORM = {
+  mod: { tip: "secim", secenekler: ["pul", "burc", "adaptor"] },
+  kademe_mm: { tip: "sayi", min: 6, max: 150, adim: 0.01, kosul: [{ alan: "mod", degerler: ["adaptor"] }] },
+  flans: { tip: "bool", kosul: [{ alan: "mod", degerler: ["burc", "adaptor"] }] },
+  flans_cap_mm: { tip: "sayi", min: 8, max: 150, adim: 0.01,
+    kosul: [{ alan: "mod", degerler: ["burc", "adaptor"] }, { alan: "flans", degerler: [true] }] },
+  duvar_mm: { tip: "sayi", min: 1.2, max: 4, adim: 0.01 },
+  enlem: { tip: "sayi", min: -90, max: 90, adim: 0.000001 }
+};
+const KOSUL_VAKA = [
+  ["KS1 burc, kosulsuz alan yok -> ok, cikti yalniz aktif", { mod: "burc", flans: false, duvar_mm: 1.6, enlem: 40.15 },
+    { ok: true, anahtar: "duvar_mm,enlem,flans,mod" }],
+  ["KS2 burc + kademe (kosul mod=adaptor) -> sema-disi", { mod: "burc", flans: false, kademe_mm: 14, duvar_mm: 1.6, enlem: 0 },
+    { ok: false, hata: "sema-disi-parametre" }],
+  ["KS3 adaptor, kademe EKSIK (aktif=zorunlu) -> aralik", { mod: "adaptor", flans: false, duvar_mm: 1.6, enlem: 0 },
+    { ok: false, hata: "parametre-aralik" }],
+  ["KS4 adaptor + flans=true + kademe + flans_cap -> ok", { mod: "adaptor", flans: true, kademe_mm: 14, flans_cap_mm: 30, duvar_mm: 4, enlem: -90 },
+    { ok: true, anahtar: "duvar_mm,enlem,flans,flans_cap_mm,kademe_mm,mod" }],
+  ["KS5 pul + flans (kosul mod) -> sema-disi", { mod: "pul", flans: true, duvar_mm: 1.6, enlem: 0 },
+    { ok: false, hata: "sema-disi-parametre" }],
+  ["KS6 pul (zincir: flans yok -> flans_cap yok) -> ok", { mod: "pul", duvar_mm: 1.6, enlem: 0 },
+    { ok: true, anahtar: "duvar_mm,enlem,mod" }],
+  ["KS7 adim 0.01: 1.605 izgara disi -> adim", { mod: "pul", duvar_mm: 1.605, enlem: 0 },
+    { ok: false, hata: "parametre-adim" }],
+  ["KS8 adim 0.000001: 41.0082005 izgara disi -> adim", { mod: "pul", duvar_mm: 1.6, enlem: 41.0082005 },
+    { ok: false, hata: "parametre-adim" }]
+];
+function kosulKos(v) {
+  const t = sahteTur("kosul-" + Math.random().toString(36).slice(2), KOSUL_FORM);
+  v.turler.push(t);
+  const kirmizi = [];
+  for (const [ad, p, b] of KOSUL_VAKA) {
+    const r = v.parametreDogrula(t.kod, p);
+    const uy = b.ok ? (r.ok === true && Object.keys(r.deger).sort().join(",") === b.anahtar) : (r.ok === false && r.hata === b.hata);
+    if (!uy) { kirmizi.push(ad.split(" ")[0]); }
+  }
+  return kirmizi;
+}
+console.log("KS) KOSUL + ADIM (kopru-15 DILIM-2)");
+{
+  const k = kosulKos(veriKur(KAYNAK));
+  for (const [ad] of KOSUL_VAKA) { ol(ad, !k.includes(ad.split(" ")[0])); }
+  // Gercek manifest: G4a turlerinin TeKiN varsayilanlari (duvar 1.6, gecme 0.3 ...) GECERLI, kosulsuz alan yok.
+  const G4A = {
+    kutu: { en_mm: 100, boy_mm: 60, yukseklik_mm: 40, bolme_x: 2, bolme_y: 2, duvar_mm: 1.6, taban_mm: 1.6, kose_yaricap_mm: 3, kapak: false },
+    adaptor: { mod: "burc", ic_cap_mm: 10, dis_cap_mm: 20, yukseklik_mm: 15, flans: false }
+  };
+  for (const kod of Object.keys(G4A)) {
+    const r = VERI.parametreDogrula(kod, G4A[kod]);
+    ol("KS9 manifest " + kod + " TeKiN varsayilanlari -> ok", r.ok === true, JSON.stringify(r));
+  }
+  const r2 = VERI.parametreDogrula("adaptor", Object.assign({ kademe_cap_mm: 14 }, G4A.adaptor));
+  ol("KS10 manifest adaptor burc + kademe_cap_mm -> sema-disi", r2.ok === false && r2.hata === "sema-disi-parametre", JSON.stringify(r2));
+}
+// KOSUL mutantlari: hedef KIRMIZI kumesi TAM eslesmeli (fazlasi da eksigi de KIRMIZI).
+function kosulMutant(etiket, eski, yeni, hedef) {
+  const n = KAYNAK.split(eski).length - 1;
+  if (n !== 1) { ol(etiket + " capa " + n + " kez", false); return; }
+  const k = kosulKos(veriKur(KAYNAK.replace(eski, yeni)));
+  ol(etiket + " -> KIRMIZI [" + k.join(",") + "]", k.join(",") === hedef.join(","), "hedef=" + hedef.join(","));
+}
+kosulMutant("M-KOSUL1 kosul denetimi silindi (her alan zorunlu)",
+  "      if (!VERI.alanAktif(form, a, p)) {\n        if (Object.prototype.hasOwnProperty.call(p, a)) { return { ok: false, hata: \"sema-disi-parametre\" }; }\n        continue;\n      }\n",
+  "", ["KS1", "KS2", "KS5", "KS6", "KS7", "KS8"]);
+kosulMutant("M-KOSUL2 kosul degeri bakilmaz (yalniz alan varligi)",
+  " ||\n          c.degerler.indexOf(p[c.alan]) < 0) { return false; }", ") { return false; }", ["KS1", "KS2", "KS5", "KS6", "KS7", "KS8"]);
+kosulMutant("M-KOSUL3 gonderilen kosulsuz alan sessizce yutulur",
+  "        if (Object.prototype.hasOwnProperty.call(p, a)) { return { ok: false, hata: \"sema-disi-parametre\" }; }\n", "", ["KS2", "KS5"]);
+kosulMutant("M-ADIM1 tolerans 1e-9 (enlem kayan nokta)", "Math.abs(k - Math.round(k)) > 1e-6", "Math.abs(k - Math.round(k)) > 1e-9", ["KS1"]);
+kosulMutant("M-ADIM2 tolerans 0.5 (izgara disi kabul)", "Math.abs(k - Math.round(k)) > 1e-6", "Math.abs(k - Math.round(k)) > 0.5", ["KS7", "KS8"]);
+
 // SAAT mutantı: saat format denetimi (regex test) kaldırılır.
 // Bu denetim `if (typeof satStr !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(satStr))` satırında
 // tek satırlık ifade olduğu için satirCikar yeterli.

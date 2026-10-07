@@ -441,6 +441,27 @@ def vakalar(kaynak, sadece=None):
         return (pp is None and h == "form-tipi-desteksiz:renk" and d is None and h2 == "girdi-desteksiz:olcu",
                 "%s | %s" % (h, h2))
     saf("U21", u21)
+
+    def u22(ns):
+        # kopru-15 DILIM-2: kosulu saglanmayan alan ornege GIRMEZ; gecerli varsayilan (adim 0.01) KULLANILIR,
+        # gecersiz varsayilan (izgara disi) eski formule duser; sunucu dogrulamasi (kosul dahil) ok.
+        t = {"kod": "saf-kosul", "girdi": ["form"],
+             "form": {"mod": {"tip": "secim", "secenekler": ["pul", "burc", "adaptor"], "varsayilan": "burc"},
+                      "kademe_mm": {"tip": "sayi", "min": 6, "max": 150, "adim": 0.01, "varsayilan": 14,
+                                    "kosul": [{"alan": "mod", "degerler": ["adaptor"]}]},
+                      "flans": {"tip": "bool", "varsayilan": False,
+                                "kosul": [{"alan": "mod", "degerler": ["burc", "adaptor"]}]},
+                      "flans_cap_mm": {"tip": "sayi", "min": 8, "max": 150, "adim": 0.01, "varsayilan": 30,
+                                       "kosul": [{"alan": "flans", "degerler": [True]}]},
+                      "duvar_mm": {"tip": "sayi", "min": 1.2, "max": 4, "adim": 0.01, "varsayilan": 1.6},
+                      "kaba_mm": {"tip": "sayi", "min": 2, "max": 9, "adim": 1, "varsayilan": 2.5}}}
+        pp, h = ns["ornek_parametre"](t, 120)
+        if pp is None:
+            return False, "desteksiz: %s" % h
+        dg = saf_dogrula({"saf-kosul": pp}, [t])["saf-kosul"]
+        ok = dg["ok"] and pp == {"mod": "burc", "flans": False, "duvar_mm": 1.6, "kaba_mm": 9}
+        return ok, "p=%s dogrula=%s" % (pp, dg)
+    saf("U22", u22)
     return s
 
 
@@ -490,6 +511,10 @@ MUTANTLAR = {
              {"U20"}),
     "MB14": ('            p[ad] = dict(k) if s.get("saat") is True else k["tarih"]', '            p[ad] = k["tarih"]',
              {"U20"}),
+    # kopru-15 DILIM-2: kosul atlamasi silinince kosulsuz alan ornege girer (sunucu sema-disi) -> U19+U22;
+    # gecerli varsayilan yerine formul -> U22 (duvar 1.6 yerine 4).
+    "MB15": ("        if not kosul_tamam(s, p):\n            continue\n", "", {"U19", "U22"}),
+    "MB16": ('        elif tip == "sayi" and sayi_gecerli(s, vs):', '        elif tip == "sayi" and False:', {"U22"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }

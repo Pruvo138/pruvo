@@ -1569,6 +1569,8 @@ jobs:
       # ORNEK- UCTAN UCA BETIGI (8 Eki, 24 kategori olcutu 1-6): sahte sunucu/wrangler/kopru/tarayici ile
       # hermetik; acik olmayan kategori 400 mutanti, su gecirmezlik, olcek ekseni, fiyat, onay, 375 px,
       # canliya yazim yasagi mutantlari KIRMIZI (gercek onizleme kosumu CI DISI: --hepsi --kol D).
+      # KOPRU MANIFEST URETECI (8 Eki, kopru-15 DILIM-2): TeKiN kayit -> 15 tur satiri sozlugu; hermetik
+      # fikstur + bool->boolean / kosul silme / adim dusurme mutantlari KIRMIZI (gercek kayit katmani CI DISI).
       - name: Fotograftan ozel uretim kabul testi (onizleme + odeme + uretim zinciri)
         run: |
           node shop/test/foto-uretim.mjs
@@ -1580,6 +1582,7 @@ jobs:
           node shop/test/onizleme-kapisi.mjs
           python3 tools/foto-uretec-kosucu-test.py
           python3 tools/foto-ornek-uc-uca-test.py
+          python3 tools/kopru-manifest-uret-test.py
 
       # REKLAM ATIF HALKASI (K99, 25 Agu 2026) — "bu siparis hangi reklamdan geldi"
       # sorusunun D1'den cevaplanabilir kaldigini olcer. SESSIZ-HATA SINIFI, PARA:

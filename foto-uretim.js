@@ -677,12 +677,27 @@
     var t = litofanKaydi();
     return t && t.form && typeof t.form === "object" ? t.form : {};
   }
-  function parametreGovde() {
-    var form = formSemasi(), g = {};
+  // KOŞULLU ALAN (`kosul`): form sırasıyla, yalnız AKTİF alanların değerleri üzerinden (F.alanAktif —
+  // sunucuyla aynı); koşulu sağlanmayan alan gövdeye GİRMEZ ve formda gizlenir.
+  function aktifParametreler() {
+    var form = formSemasi(), g = {}, aktif = {};
     for (var a in form) {
-      if (Object.prototype.hasOwnProperty.call(form, a) && S.parametre[a] !== undefined) g[a] = S.parametre[a];
+      if (!Object.prototype.hasOwnProperty.call(form, a)) continue;
+      aktif[a] = F.alanAktif(form, a, g);
+      if (aktif[a] && S.parametre[a] !== undefined) g[a] = S.parametre[a];
     }
-    return g;
+    return { govde: g, aktif: aktif };
+  }
+  function parametreGovde() {
+    return aktifParametreler().govde;
+  }
+  function kosulGuncelle() {
+    if (!S.alanForm) return;
+    var aktif = aktifParametreler().aktif, d = S.alanForm.childNodes;
+    for (var i = 0; i < d.length; i++) {
+      var a = d[i].nodeType === 1 ? d[i].getAttribute("data-param") : null;
+      if (a) d[i].hidden = aktif[a] === false;
+    }
   }
   function formDogrula() {
     if (!Object.keys(formSemasi()).length) return { ok: true };
@@ -726,6 +741,7 @@
   }
   function formHataGoster() {
     yapbozParcaNotu();
+    kosulGuncelle();
     if (!S.alanForm || !S.formHata) return;
     var d = formDogrula();
     S.formHata.textContent = d.ok ? "" : (PARAMETRE_HATA[d.hata] || "Bu alanları kontrol et.");
@@ -783,6 +799,7 @@
     S.alanForm.hidden = !alanlar.length;
     if (!alanlar.length) return;
     for (var i = 0; i < alanlar.length; i++) {
+      var ilkDugum = S.alanForm.childNodes.length;
       (function (a, sema) {
         var id = "foto-param-" + a;
         var lbl = el("label", "foto-uretim-form-etiket",
@@ -917,6 +934,10 @@
         g.addEventListener("change", degis);
         S.alanForm.appendChild(g);
       })(alanlar[i], form[alanlar[i]] || {});
+      // Alanın tüm düğümleri (etiket + girdi) `data-param` taşır: kosulGuncelle onları birlikte gizler.
+      for (var dn = ilkDugum; dn < S.alanForm.childNodes.length; dn++) {
+        if (S.alanForm.childNodes[dn].nodeType === 1) S.alanForm.childNodes[dn].setAttribute("data-param", alanlar[i]);
+      }
     }
     S.formHata = el("p", "foto-uretim-ayrinti");
     S.alanForm.appendChild(S.formHata);

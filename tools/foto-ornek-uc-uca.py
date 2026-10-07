@@ -271,18 +271,52 @@ def olcu_sec(t):
     return s[len(s) // 2] if s else None
 
 
+def _ayni(a, b):
+    """JS `===` esdegeri (True == 1 Python'da esit; JS'te DEGIL)."""
+    return (isinstance(a, bool) == isinstance(b, bool)) and a == b
+
+
+def kosul_tamam(s, p):
+    """VERI.alanAktif ile AYNI kural: `kosul` yoksa alan var; varsa her kosulun `alan`i p'de VE degeri
+    `degerler` icinde olmali. Koşulu saglanmayan alan ornege GIRMEZ (gonderilirse sema-disi-parametre)."""
+    k = s.get("kosul")
+    if k is None:
+        return True
+    return isinstance(k, list) and all(
+        isinstance(c, dict) and isinstance(c.get("degerler"), list) and c.get("alan") in p and
+        any(_ayni(p[c["alan"]], d) for d in c["degerler"]) for c in k)
+
+
+def sayi_gecerli(s, v):
+    """VERI.parametreDogrula sayi kurali: aralikta + adim izgarasinda (tolerans adimin milyonda biri)."""
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
+        return False
+    mn, mx, adim = s.get("min", 0), s.get("max", 0), s.get("adim") or 1
+    k = (v - mn) / adim
+    return mn <= v <= mx and abs(k - round(k)) <= 1e-6
+
+
 def ornek_parametre(t, olcu):
-    """Form semasindan GECERLI ornek parametre (dogrulamayi VERI.parametreDogrula yapar). Desteklenmeyen
-    tip -> None (olcut EKSIK, sebep adiyla)."""
+    """Form semasindan GECERLI ornek parametre (dogrulamayi VERI.parametreDogrula yapar). Alan sirasiyla:
+    koşulu saglanmayan alan atlanir; `varsayilan` gecerliyse (aralik + adim / secenek) O kullanilir, yoksa
+    eski formul. Desteklenmeyen tip -> None (olcut EKSIK, sebep adiyla)."""
     p = {}
     for ad, s in (t.get("form") or {}).items():
+        if not kosul_tamam(s, p):
+            continue
         tip = s.get("tip")
+        vs = s.get("varsayilan")
         if tip == "secim":
-            p[ad] = (s.get("secenekler") or [None])[0]
+            ss = s.get("secenekler") or [None]
+            p[ad] = vs if any(_ayni(vs, x) for x in ss) else ss[0]
+        elif tip == "sayi" and sayi_gecerli(s, vs):
+            p[ad] = vs
         elif tip == "sayi":
             mn, mx, adim = s.get("min", 0), s.get("max", 0), s.get("adim") or 1
             hedef = min(mx, max(mn, (olcu or mn) // 2))
-            p[ad] = mn + ((hedef - mn) // adim) * adim
+            p[ad] = mn + math.floor((hedef - mn) / adim + 1e-9) * adim
+            if isinstance(p[ad], float):
+                p[ad] = round(p[ad], 9)
         elif tip == "metin":
             if s.get("zorunlu") is False:
                 continue

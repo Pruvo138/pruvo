@@ -633,131 +633,15 @@ def _gorsel(g, dizin):
     return os.path.join(os.path.abspath(dizin), ad)
 
 
-def esle_kutu(g, dizin, rh):
-    p = g.get("parametreler") or {}
-    u = {
-        "en_mm": p.get("en_mm") if p.get("en_mm") is not None else 100,
-        "boy_mm": p.get("boy_mm") if p.get("boy_mm") is not None else 60,
-        "yukseklik_mm": p.get("yukseklik_mm") if p.get("yukseklik_mm") is not None else 40,
-        "bolme_x": p.get("bolme_x") if p.get("bolme_x") is not None else 2,
-        "bolme_y": p.get("bolme_y") if p.get("bolme_y") is not None else 2,
-        "duvar_mm": p.get("duvar_mm") if p.get("duvar_mm") is not None else 1.6,
-        "taban_mm": p.get("taban_mm") if p.get("taban_mm") is not None else 1.6,
-        "kose_yaricap_mm": p.get("kose_yaricap_mm") if p.get("kose_yaricap_mm") is not None else 3,
-        "kapak": bool(p.get("kapak", False))
-    }
-    return u, []
+def _esle_gelen(g, dizin, rh):
+    """G4 (ozel_uret) — YALNIZ gelen parametreler gecer (varsayilan enjeksiyonu YOK: eksik alan = uretecin
+    kendi varsayilani). Sema/kosul/aralik denetimi VERI.parametreDogrula'da (sunucu) ve tekin_kos'ta (sema
+    disi anahtar RED); koşulu saglanmayan alan buraya hic gelmez. Renk bolgesi yok."""
+    return dict(g.get("parametreler") or {}), []
 
-def esle_adaptor(g, dizin, rh):
-    p = g.get("parametreler") or {}
-    u = {
-        "mod": p.get("mod", "burc"),
-        "ic_cap_mm": p.get("ic_cap_mm") if p.get("ic_cap_mm") is not None else 10,
-        "dis_cap_mm": p.get("dis_cap_mm") if p.get("dis_cap_mm") is not None else 20,
-        "yukseklik_mm": p.get("yukseklik_mm") if p.get("yukseklik_mm") is not None else 15,
-        "kademe_cap_mm": p.get("kademe_cap_mm") if p.get("kademe_cap_mm") is not None else 14,
-        "kademe_yukseklik_mm": p.get("kademe_yukseklik_mm") if p.get("kademe_yukseklik_mm") is not None else 8,
-        "ic_cap2_mm": p.get("ic_cap2_mm") if p.get("ic_cap2_mm") is not None else 0,
-        "flans": bool(p.get("flans", False)),
-        "flans_cap_mm": p.get("flans_cap_mm") if p.get("flans_cap_mm") is not None else 30,
-        "flans_kalinlik_mm": p.get("flans_kalinlik_mm") if p.get("flans_kalinlik_mm") is not None else 2
-    }
-    return u, []
 
-def esle_disli(g, dizin, rh):
-    p = g.get("parametreler") or {}
-    u = {
-        "tip": p.get("tip", "duz_disli"),
-        "mil_capi_mm": p.get("mil_capi_mm") if p.get("mil_capi_mm") is not None else 5,
-        "mil_tipi": p.get("mil_tipi", "yuvarlak"),
-        "duz_kesim_mm": p.get("duz_kesim_mm") if p.get("duz_kesim_mm") is not None else 0.5,
-        "modul_mm": p.get("modul_mm") if p.get("modul_mm") is not None else 1.5,
-        "dis_sayisi": p.get("dis_sayisi") if p.get("dis_sayisi") is not None else 20,
-        "kalinlik_mm": p.get("kalinlik_mm") if p.get("kalinlik_mm") is not None else 8,
-        "dis_boslugu_mm": p.get("dis_boslugu_mm") if p.get("dis_boslugu_mm") is not None else 0.2,
-        "es_dis_sayisi": p.get("es_dis_sayisi") if p.get("es_dis_sayisi") is not None else 0,
-        "es_mil_capi_mm": p.get("es_mil_capi_mm") if p.get("es_mil_capi_mm") is not None else 0,
-        "kemer_genislik_mm": p.get("kemer_genislik_mm", 6),
-        "dis_cap_mm": p.get("dis_cap_mm") if p.get("dis_cap_mm") is not None else 40,
-        "v_kanal_genislik_mm": p.get("v_kanal_genislik_mm") if p.get("v_kanal_genislik_mm") is not None else 10,
-        "v_kalinlik_mm": p.get("v_kalinlik_mm") if p.get("v_kalinlik_mm") is not None else 16
-    }
-    return u, []
+esle_kutu = esle_adaptor = esle_disli = esle_kapak = esle_dugme = esle_klips = esle_saksi = _esle_gelen
 
-def esle_kapak(g, dizin, rh):
-    p = g.get("parametreler") or {}
-    u = {
-        "mod": p.get("mod", "kapak"),
-        "ic_cap_mm": p.get("ic_cap_mm") if p.get("ic_cap_mm") is not None else 20,
-        "dis_cap_mm": p.get("dis_cap_mm") if p.get("dis_cap_mm") is not None else 26,
-        "yukseklik_mm": p.get("yukseklik_mm") if p.get("yukseklik_mm") is not None else 15,
-        "tipa_boyu_mm": p.get("tipa_boyu_mm") if p.get("tipa_boyu_mm") is not None else 12,
-        "ust_kalinlik_mm": p.get("ust_kalinlik_mm") if p.get("ust_kalinlik_mm") is not None else 2,
-        "gecme_bosluk_mm": p.get("gecme_bosluk_mm") if p.get("gecme_bosluk_mm") is not None else 0.3,
-        "cekme_acisi_derece": p.get("cekme_acisi_derece") if p.get("cekme_acisi_derece") is not None else 0,
-        "topuz": bool(p.get("topuz", False)),
-        "topuz_cap_mm": p.get("topuz_cap_mm") if p.get("topuz_cap_mm") is not None else 12,
-        "topuz_yukseklik_mm": p.get("topuz_yukseklik_mm") if p.get("topuz_yukseklik_mm") is not None else 8
-    }
-    return u, []
-
-def esle_dugme(g, dizin, rh):
-    p = g.get("parametreler") or {}
-    u = {
-        "cap_mm": p.get("cap_mm") if p.get("cap_mm") is not None else 30,
-        "yukseklik_mm": p.get("yukseklik_mm") if p.get("yukseklik_mm") is not None else 18,
-        "tirtil_sayisi": p.get("tirtil_sayisi") if p.get("tirtil_sayisi") is not None else 0,
-        "tirtil_derinlik_mm": p.get("tirtil_derinlik_mm") if p.get("tirtil_derinlik_mm") is not None else 1,
-        "isaret_cizgisi": bool(p.get("isaret_cizgisi", False)),
-        "mil_tipi": p.get("mil_tipi", "d_mil"),
-        "mil_capi_mm": p.get("mil_capi_mm") if p.get("mil_capi_mm") is not None else 6,
-        "duz_kesim_mm": p.get("duz_kesim_mm") if p.get("duz_kesim_mm") is not None else 0.5,
-        "yiv_sayisi": p.get("yiv_sayisi") if p.get("yiv_sayisi") is not None else 18,
-        "set_vida": bool(p.get("set_vida", False))
-    }
-    return u, []
-
-def esle_klips(g, dizin, rh):
-    p = g.get("parametreler") or {}
-    u = {
-        "alt_tur": p.get("alt_tur", "boru_kelepcesi"),
-        "boru_cap_mm": p.get("boru_cap_mm") if p.get("boru_cap_mm") is not None else 25,
-        "agiz_payi_mm": p.get("agiz_payi_mm") if p.get("agiz_payi_mm") is not None else 3,
-        "vida": p.get("vida", "M4"),
-        "u_aralik_mm": p.get("u_aralik_mm") if p.get("u_aralik_mm") is not None else 4,
-        "kol_boyu_mm": p.get("kol_boyu_mm") if p.get("kol_boyu_mm") is not None else 20,
-        "kanca_mm": p.get("kanca_mm") if p.get("kanca_mm") is not None else 0.8,
-        "genislik_mm": p.get("genislik_mm") if p.get("genislik_mm") is not None else 12,
-        "kalinlik_mm": p.get("kalinlik_mm") if p.get("kalinlik_mm") is not None else 3,
-        "yukseklik_mm": p.get("yukseklik_mm") if p.get("yukseklik_mm") is not None else 40,
-        "kanat_genislik_mm": p.get("kanat_genislik_mm") if p.get("kanat_genislik_mm") is not None else 30,
-        "kanat_kalinlik_mm": p.get("kanat_kalinlik_mm") if p.get("kanat_kalinlik_mm") is not None else 3,
-        "pim_cap_mm": p.get("pim_cap_mm") if p.get("pim_cap_mm") is not None else 4,
-        "eklem_sayisi": p.get("eklem_sayisi", 3),
-        "bosluk_mm": p.get("bosluk_mm") if p.get("bosluk_mm") is not None else 0.3,
-        "vida_deligi": bool(p.get("vida_deligi", False))
-    }
-    return u, []
-
-def esle_saksi(g, dizin, rh):
-    p = g.get("parametreler") or {}
-    u = {
-        "tur": p.get("tur", "saksi"),
-        "cap_mm": p.get("cap_mm") if p.get("cap_mm") is not None else 100,
-        "yukseklik_mm": p.get("yukseklik_mm") if p.get("yukseklik_mm") is not None else 100,
-        "duvar_mm": p.get("duvar_mm") if p.get("duvar_mm") is not None else 2,
-        "taban_mm": p.get("taban_mm") if p.get("taban_mm") is not None else 3,
-        "profil": p.get("profil", "silindir"),
-        "alt_cap_mm": p.get("alt_cap_mm") if p.get("alt_cap_mm") is not None else 70,
-        "oval_orani": p.get("oval_orani") if p.get("oval_orani") is not None else 0.7,
-        "bombe_mm": p.get("bombe_mm") if p.get("bombe_mm") is not None else 8,
-        "kanal_sayisi": p.get("kanal_sayisi") if p.get("kanal_sayisi") is not None else 0,
-        "kanal_derinlik_mm": p.get("kanal_derinlik_mm") if p.get("kanal_derinlik_mm") is not None else 1.5,
-        "bukum_derece": p.get("bukum_derece") if p.get("bukum_derece") is not None else 0,
-        "drenaj_cap_mm": p.get("drenaj_cap_mm") if p.get("drenaj_cap_mm") is not None else 10,
-        "tabak": bool(p.get("tabak", False))
-    }
-    return u, []
 
 def esle_rolyef(g, dizin, rh):
     p = g.get("parametreler") or {}
@@ -819,62 +703,35 @@ def esle_braille(g, dizin, rh):
          "renk_yazi": _renk(g, "yazi", rh) or ""}
     return u, ["plaka", "nokta"]
 
+def _esle_gelen_renkli(g, rh, kod):
+    """G5 — YALNIZ gelen parametreler + secilen bolge renkleri `renk_<bolge>` (bolge adlari MANIFESTIN
+    renk_bolgeleri'nden; kopru-manifest-uret.py onlari kaydin `renk_<b>` parametrelerinden turetir ->
+    ad uretecle hizali). Manifestte olmayan bolgeye renk -> RED renk. Secilmeyen bolge = uretec varsayilani."""
+    bolgeler = [b.get("kod") for b in (manifest_oku().get(kod) or {}).get("renk_bolgeleri") or []]
+    if any(b not in bolgeler for b in (g.get("renkler") or {})):
+        raise KopruRed("renk")
+    u = dict(g.get("parametreler") or {})
+    for b in bolgeler:
+        h = _renk(g, b, rh)
+        if h is not None:
+            u["renk_" + b] = h
+    return u, bolgeler
+
+
 def esle_topo(g, dizin, rh):
-    p = g.get("parametreler") or {}
-    u = {"uzun_kenar_mm": float(g["olcu_mm"]),
-          "plaka_sekli": p.get("plaka_sekli", "kare"),
-          "cerceve_mm": float(p.get("cerceve_mm", 4.0)),
-          "renk_taban": _renk(g, "taban", rh) or "#D8D2C4",
-          "renk_yazi": _renk(g, "yazi", rh) or "#8A5A3C"}
-    if "enlem" in p and "boylam" in p:
-        u["enlem"] = float(p["enlem"]); u["boylam"] = float(p["boylam"])
-    if "yaricap_km" in p: u["yaricap_km"] = float(p["yaricap_km"])
-    if "tarih" in p: u["tarih"] = p["tarih"]
-    if "konum_ad" in p: u["konum_ad"] = p["konum_ad"]
-    return u, ["taban", "yazi"]
+    return _esle_gelen_renkli(g, rh, "topo")
+
 
 def esle_sehir(g, dizin, rh):
-    p = g.get("parametreler") or {}
-    u = {"uzun_kenar_mm": float(g["olcu_mm"]),
-          "plaka_sekli": p.get("plaka_sekli", "kare"),
-          "cerceve_mm": float(p.get("cerceve_mm", 4.0)),
-          "renk_taban": _renk(g, "taban", rh) or "#D8D2C4",
-          "renk_yazi": _renk(g, "yazi", rh) or "#8A5A3C"}
-    if "enlem" in p and "boylam" in p:
-        u["enlem"] = float(p["enlem"]); u["boylam"] = float(p["boylam"])
-    if "yaricap_km" in p: u["yaricap_km"] = float(p["yaricap_km"])
-    if "tarih" in p: u["tarih"] = p["tarih"]
-    if "konum_ad" in p: u["konum_ad"] = p["konum_ad"]
-    return u, ["taban", "yazi"]
+    return _esle_gelen_renkli(g, rh, "sehir")
+
 
 def esle_yildiz(g, dizin, rh):
-    p = g.get("parametreler") or {}
-    u = {"uzun_kenar_mm": float(g["olcu_mm"]),
-          "plaka_sekli": p.get("plaka_sekli", "kare"),
-          "cerceve_mm": float(p.get("cerceve_mm", 4.0)),
-          "renk_taban": _renk(g, "taban", rh) or "#D8D2C4",
-          "renk_yazi": _renk(g, "yazi", rh) or "#8A5A3C"}
-    if "enlem" in p and "boylam" in p:
-        u["enlem"] = float(p["enlem"]); u["boylam"] = float(p["boylam"])
-    if "yaricap_km" in p: u["yaricap_km"] = float(p["yaricap_km"])
-    if "tarih" in p: u["tarih"] = p["tarih"]
-    if "konum_ad" in p: u["konum_ad"] = p["konum_ad"]
-    return u, ["taban", "yazi"]
+    return _esle_gelen_renkli(g, rh, "yildiz")
+
 
 def esle_koordinat(g, dizin, rh):
-    p = g.get("parametreler") or {}
-    u = {"uzun_kenar_mm": float(g["olcu_mm"]),
-          "plaka_sekli": p.get("plaka_sekli", "kare"),
-          "cerceve_mm": float(p.get("cerceve_mm", 4.0)),
-          "renk_taban": _renk(g, "taban", rh) or "#D8D2C4",
-          "renk_yazi": _renk(g, "yazi", rh) or "#8A5A3C"}
-    if "enlem" in p and "boylam" in p:
-        u["enlem"] = float(p["enlem"]); u["boylam"] = float(p["boylam"])
-    if "yaricap_km" in p: u["yaricap_km"] = float(p["yaricap_km"])
-    if "tarih" in p: u["tarih"] = p["tarih"]
-    if "konum_ad" in p: u["konum_ad"] = p["konum_ad"]
-    return u, ["taban", "yazi"]
-
+    return _esle_gelen_renkli(g, rh, "koordinat")
 
 
 VAR_YOK = {"Var": True, "Yok": False}
