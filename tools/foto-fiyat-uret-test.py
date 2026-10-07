@@ -4,7 +4,7 @@
 (yanlis satir canliya yazilirsa siparis normal akar, fiyat yanlis tahsil edilir).
 
   F1 CANLI ESI   : canli = plaket 60..300 x1000 (25 satir) -> plaket fark 0 · litofan 13 eklenecek ·
-                   G2 6 D turu: isimlik 20 · qr 12 · logo 18 · muhur 9 · sablon 20 · yapboz 19 eklenecek
+                   G2 6 D turu: isimlik 20 · qr 12 · logo 18 · muhur 9 · sablon 20 · yapboz 10 eklenecek (G2b: 100–190)
                    (80..200, adim 10, mm x 1000) · ARALIK_DISI 0 · DELETE 0 · rc 0
   F2 ARALIK DISI : canlida plaket 50/65/310 + manifest disi tur -> plaket SILINECEK 3 (DELETE 3) ·
                    YABANCI 1 ve yabanciya DELETE YOK
@@ -84,7 +84,7 @@ def senaryolar(arac, gecici):
     beklenen_l = ["('litofan', %d, %d," % (mm, mm * 1000) for mm in range(80, 201, 10)]
     # G2 (7 Eki 2026): 6 D turu, mimar kararindaki satir sayilari (aralik / 10 mm adim).
     g2 = {"isimlik": (60, 250, 20), "qr": (40, 150, 12), "logo": (30, 200, 18), "muhur": (20, 100, 9),
-          "sablon": (60, 250, 20), "yapboz": (100, 280, 19)}
+          "sablon": (60, 250, 20), "yapboz": (100, 190, 10)}  # G2b: 280 -> 190 (tek plaka)
     g2_ok = all(alan(o, k).get("PLAN") == str(n) and alan(o, k).get("EKLENECEK") == str(n) and
                 all(any("('%s', %d, %d," % (k, mm, mm * 1000) in x for x in ins) for mm in range(a, b + 1, 10))
                 for k, (a, b, n) in g2.items())

@@ -417,6 +417,11 @@
     var t = litofanKaydi();
     return !t || !t.girdi || t.girdi.indexOf("foto-1") >= 0 || t.girdi.indexOf("foto-1-3") >= 0;
   }
+  // Türün girdisi SVG mi (logo kabartma): dosya alanı SVG alır, metni gövdede `svg` olarak gider.
+  function svgGerekir() {
+    var t = litofanKaydi();
+    return !!(t && t.girdi && t.girdi.indexOf("svg") >= 0);
+  }
   // Kayıttan varsayılan seçim: her malzeme bölgesinin ilk malzemesi, her renk bölgesinin ilk rengi.
   function litofanSecimKur() {
     var t = litofanKaydi();
@@ -524,7 +529,44 @@
     if (!Object.keys(formSemasi()).length) return { ok: true };
     return F.parametreDogrula(S.tur, parametreGovde());
   }
+  // YAPBOZ PARÇA SINIRI — üreteç her parçanın kısa kenarını ≥ 24 mm ister (geçmeli kesim sığsın);
+  // köprü 12/20/30 parçayı 3×4 / 4×5 / 5×6 ızgaraya çevirir (sütun uzun kenarda). 4:3 fotoğrafla bu
+  // ölçüde sığmayan seçenek KAPATILIR ve "bu ölçüde en çok N parça" yazılır (üreteç yine son sözdür).
+  var YAPBOZ_IZGARA = { "12": [3, 4], "20": [4, 5], "30": [5, 6] };
+  var YAPBOZ_KISA_KENAR_MM = 24;
+  function yapbozParcaSiniri(olcu) {
+    var enCok = 0;
+    for (var p in YAPBOZ_IZGARA) {
+      if (!Object.prototype.hasOwnProperty.call(YAPBOZ_IZGARA, p)) continue;
+      var g = YAPBOZ_IZGARA[p];
+      if (Math.min(olcu / g[1], olcu * 0.75 / g[0]) >= YAPBOZ_KISA_KENAR_MM && Number(p) > enCok) enCok = Number(p);
+    }
+    return enCok;
+  }
+  function yapbozParcaNotu() {
+    if (!S.alanForm || S.tur !== "yapboz") return;
+    var sec = S.alanForm.querySelector("#foto-param-parca");
+    if (!sec) return;
+    var n = S.olcu ? yapbozParcaSiniri(S.olcu) : 0;
+    var enIyi = null;
+    for (var i = 0; i < sec.options.length; i++) {
+      var op = sec.options[i];
+      op.disabled = !!S.olcu && Number(op.value) > n;
+      if (!op.disabled) enIyi = op.value;
+    }
+    if (sec.selectedOptions[0] && sec.selectedOptions[0].disabled && enIyi !== null) {
+      sec.value = enIyi; S.parametre.parca = enIyi;
+    }
+    var not = S.alanForm.querySelector(".foto-uretim-parca-notu");
+    if (!not) {
+      not = el("p", "foto-uretim-ayrinti foto-uretim-parca-notu");
+      sec.parentNode.insertBefore(not, sec.nextSibling);
+    }
+    not.textContent = S.olcu && n ? "Bu ölçüde en çok " + n + " parça." : "";
+    not.hidden = !(S.olcu && n);
+  }
   function formHataGoster() {
+    yapbozParcaNotu();
     if (!S.alanForm || !S.formHata) return;
     var d = formDogrula();
     S.formHata.textContent = d.ok ? "" : (PARAMETRE_HATA[d.hata] || "Bu alanları kontrol et.");
@@ -940,6 +982,7 @@
           S.parametre = {};
           doldurS1Olcu();
           doldurS1Form();
+          doldurS1Dosya();
           doldurS1Onay();
           doldurS1Litofan();
           guncelleS1Buton();
@@ -1009,11 +1052,16 @@
 
   function doldurS1Dosya() {
     while (S.alanDosya.firstChild) S.alanDosya.removeChild(S.alanDosya.firstChild);
-    S.alanDosya.appendChild(el("label", "foto-uretim-form-etiket",
-      "Fotoğraf (JPEG, PNG veya WEBP — en çok 15 MB)"));
+    S.dosya = null;
+    // Yalnız form girdili türde (isimlik, QR) dosya alanı YOK.
+    var svg = svgGerekir();
+    S.alanDosya.hidden = !svg && !fotoGerekir();
+    if (S.alanDosya.hidden) return;
+    S.alanDosya.appendChild(el("label", "foto-uretim-form-etiket", svg ?
+      "SVG dosyası (yazıları şekle çevrilmiş düz SVG)" : "Fotoğraf (JPEG, PNG veya WEBP — en çok 15 MB)"));
     var inp = el("input", "foto-uretim-form-secenek-girdi");
     inp.type = "file";
-    inp.accept = "image/jpeg,image/png,image/webp";
+    inp.accept = svg ? ".svg,image/svg+xml" : "image/jpeg,image/png,image/webp";
     inp.id = "foto-dosya";
     inp.addEventListener("change", function (e) {
       var f = e.target.files && e.target.files[0] ? e.target.files[0] : null;
@@ -1077,6 +1125,7 @@
   }
 
   function guncelleS1Buton() {
+    yapbozParcaNotu();
     if (!S.alanButon) return;
     var btn = S.alanButon.querySelector("button");
     if (!btn) return;
@@ -1597,6 +1646,7 @@
   /* Tarayıcı önizleyicisi olmayan D/R türü: önizlemeyi üreteç koşucusu çıkarır (aynı uç, kuyruk). */
   function uretecOnizle() {
     if (fotoGerekir() && !S.dosya) { adimKoy("S1", "Lütfen fotoğrafını seç.", true); return; }
+    if (svgGerekir() && !S.dosya) { adimKoy("S1", "Lütfen SVG dosyanı seç.", true); return; }
     if (F.hakGerekir(S.tur) && !S.hakOnay) { adimKoy("S1", "Onay kutusunu işaretlemelisin.", true); return; }
     if (!S.captchaToken1) { adimKoy("S1", "Lütfen doğrulama kutusunu işaretle.", true); return; }
     if (!S.tur || !S.olcu) { adimKoy("S1", "Tür ve ölçü seçmelisin.", true); return; }
@@ -1604,10 +1654,11 @@
     if (!fd.ok) { adimKoy("S1", PARAMETRE_HATA[fd.hata] || "Form alanlarını kontrol et.", true); return; }
     // Jeton S2'ye geçmeden alınır: adimKoy("S2") doğrulama kutusunu (ve jetonu) temizler.
     var jeton = S.captchaToken1;
-    var gonder = function (dataUrl) {
+    var gonder = function (dataUrl, svgMetin) {
       var govde = { tur: S.tur, olcu_mm: S.olcu, hak_onay: !!S.hakOnay, onay_surum: F.onay_surum,
         turnstile_token: jeton };
       if (dataUrl) govde.gorsel = dataUrl;
+      if (svgMetin) govde.svg = svgMetin;
       if (Object.keys(formSemasi()).length) govde.parametreler = parametreGovde();
       if (S.secim) govde.secim = S.secim;
       jsonPost(ONIZLEME_URL, govde, function (ok, kod, veri) {
@@ -1629,6 +1680,22 @@
         adimKoy("S1", "Şu an önizleme hazırlanamıyor, biraz sonra yeniden dene.", true);
       });
     };
+    if (svgGerekir()) {
+      adimKoy("S2", "Dosyan yükleniyor…", false);
+      var okuyucu = new FileReader();
+      okuyucu.onload = function () {
+        var m = typeof okuyucu.result === "string" ? okuyucu.result : "";
+        if (F.svgDogrula(m)) {
+          turnsSifirla(S.alanCap1);
+          adimKoy("S1", F.uretecRedMetni("uretec-red:svg"), true);
+          return;
+        }
+        gonder("", m);
+      };
+      okuyucu.onerror = function () { turnsSifirla(S.alanCap1); adimKoy("S1", "Dosya okunamadı.", true); };
+      okuyucu.readAsText(S.dosya);
+      return;
+    }
     if (!fotoGerekir()) { adimKoy("S2", "Önizleme sıraya alınıyor…", false); gonder(""); return; }
     adimKoy("S2", "Fotoğrafın yükleniyor…", false);
     kucultGorsel(S.dosya, function (err, dataUrl) {

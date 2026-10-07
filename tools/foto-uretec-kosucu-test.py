@@ -92,16 +92,19 @@ for k in ("genislik_mm", "plaket_mm", "uzun_kenar_mm", "yuz_mm"):
 n = int(os.environ.get("FAKE_TEKIN_EXTRUDER") or 0) or max(1, len([k for k in g if k.startswith("renk")]))
 os.makedirs(c)
 ms = "<config>" + "".join('<part id="%d"><metadata key="extruder" value="%d"/></part>' % (i + 1, i + 1) for i in range(n)) + "</config>"
+G = L * float(os.environ.get("FAKE_TEKIN_GEO") or 1.0)
+vx = "".join('<vertex x="%g" y="%g" z="%g"/>' % (x, y, zz) for x in (0, G) for y in (0, G * 0.5) for zz in (0, 3))
 with zipfile.ZipFile(os.path.join(c, "uretec.3mf"), "w") as z:
-    z.writestr("3D/3dmodel.model", "<model unit=\"millimeter\"/>")
+    z.writestr("3D/3dmodel.model", '<model unit="millimeter"><resources><object id="1" name="govde" type="model">'
+               '<mesh><vertices>' + vx + '</vertices></mesh></object></resources><build><item objectid="1"/></build></model>')
     z.writestr("Metadata/model_settings.config", ms)
 def ch(t, d): return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xffffffff)
 ham = b"".join(b"\0" + b"\x80" * 1100 for _ in range(4))
 open(os.path.join(c, "onizleme.png"), "wb").write(b"\x89PNG\r\n\x1a\n" + ch(b"IHDR", struct.pack(">IIBBBBB", 1100, 4, 8, 0, 0, 0, 0)) + ch(b"IDAT", zlib.compress(ham)) + ch(b"IEND", b""))
-oz = {"surum": "sahte", "sizdirmaz": True, "olcu_mm": [L, round(L * 0.5, 3), 3.0], "ucgen_sayisi": 24,
+oz = {"surum": "sahte", "sizdirmaz": True, "olcu_mm": [float(os.environ.get("FAKE_TEKIN_KUTU") or L), round(L * 0.5, 3), 3.0], "ucgen_sayisi": 24,
       "hacim_mm3": {"a": 1000.0, "toplam": 1000.0}}
 if "genislik_mm" not in g and "plaket_mm" not in g:
-    oz["uzun_kenar_mm"] = L
+    oz["uzun_kenar_mm"] = L  # NOMINAL; kosucu uzun kenari 3MF geometrisinden olcer (FAKE_TEKIN_GEO)
 json.dump(oz, open(os.path.join(c, "ozet.json"), "w"))
 '''
 
@@ -501,8 +504,47 @@ def vakalar(kosucu):
         return son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and olcu.get("renk_sayisi") == 3, \
             "%s renk_sayisi=%s" % (son, olcu.get("renk_sayisi"))
 
+    # ---- G2b mimar kararlari (7 Eki): plaka 300 (manifest PLAKA_MM) · yapboz 100-190 · uzun kenar geometriden.
+    def t19(o):
+        x = G2_VAKA["logo"]
+        sonuc = {}
+        for kutu in (290, 310):
+            no = ("%032x" % kutu)
+            o.uretec_onizleme("logo", x["olcu"], x["renkler"], x["parametreler"],
+                              {k: (ad, b() if callable(b) else b) for k, (ad, b) in x.get("dosyalar", {}).items()},
+                              is_no=no)
+            o.kos("--uygula", FAKE_TEKIN_KUTU=str(kutu))
+            r = o.sql("SELECT asama, hata FROM foto_isler WHERE is_no = ?", no)[0]
+            sonuc[kutu] = (r["asama"], r["hata"])
+        return (sonuc[290][0] == "onizleme-hazir" and sonuc[310][0] != "onizleme-hazir" and
+                "plaka-disi" in (sonuc[310][1] or "")), "%s" % sonuc
+
+    def t20(o):
+        x = G2_VAKA["logo"]
+        # ozet NOMINAL uzun kenari 80 der, 3MF geometrisi 78,4 (%2) -> kosucu geometriyi olcer, tolerans RED.
+        o.uretec_onizleme("logo", x["olcu"], x["renkler"], x["parametreler"],
+                          {k: (ad, b() if callable(b) else b) for k, (ad, b) in x.get("dosyalar", {}).items()})
+        o.kos("--uygula", FAKE_TEKIN_GEO="0.98")
+        r = o.sql("SELECT asama, hata FROM foto_isler WHERE is_no = ?", IS2)[0]
+        return (r["asama"] != "onizleme-hazir" and "uzun-kenar-tolerans" in (r["hata"] or "")), "%s" % (r,)
+
+    def t21(o):
+        sonuc = {}
+        for olcu in (190, 200):
+            no = ("%032x" % olcu)
+            o.uretec_onizleme("yapboz", olcu, {"yapboz": "Ahşap"}, {"parca": "12"}, {"foto": ("foto.png", png_gri(64, 48))},
+                              is_no=no)
+            o.kos("--uygula")
+            r = o.sql("SELECT asama, hata FROM foto_isler WHERE is_no = ?", no)[0]
+            sonuc[olcu] = (r["asama"], r["hata"])
+        return (sonuc[190][0] == "onizleme-hazir" and sonuc[200][0] != "onizleme-hazir" and
+                "olcu-aralik-disi" in (sonuc[200][1] or "")), "%s" % sonuc
+
     for kod in G2_VAKA:
         vaka("T13-" + kod, t13(kod))
+    vaka("T19", t19)
+    vaka("T20", t20)
+    vaka("T21", t21)
     vaka("T14", t14)
     vaka("T15", t_kosmaz("isimlik", 80, {"plaka": "Beyaz", "yazi": "Siyah"}, {"satirlar": "Ada", "kisa_kenar_mm": 90},
                          "uretec-red:kisa-kenar"))
@@ -536,6 +578,13 @@ MUTANTLAR = {
             '"renk_sayisi": len(bolgeler),', {"T17"}),
     "M13": ('        if any(k not in form for k in (girdi.get("parametreler") or {})):\n            raise KopruRed("parametre")\n',
             "", {"T18"}),
+    # G2b: plaka 300 tek kaynak · uzun kenar geometriden · yapboz araligi
+    "M14": ("0 < k[e] <= plaka_mm() for e in", "0 < k[e] <= 250 for e in", {"T19"}),
+    "M15": ("0 < k[e] <= plaka_mm() for e in", "0 < k[e] <= 9999 for e in", {"T19"}),
+    "M16": ('    uk = uc_mf_uzun_kenar(os.path.join(cikti, "model.3mf"), oz)\n',
+            '    uk = oz.get("uzun_kenar_mm") or max(kutu[0], kutu[1])\n', {"T20"}),
+    "M17": ('<= i["olcu_mm"] <= a.get("en_cok", 0)):\n        return "olcu-aralik-disi"',
+            '<= i["olcu_mm"] <= 99999):\n        return "olcu-aralik-disi"', {"T21"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 
@@ -627,7 +676,7 @@ G2_SATIR = {
     "sablon": ("Silüet şablon", ["foto-1"], "siluet_sablon_uret", 60, 250, ["sablon"], ["PLA", "PETG"],
                "Üretim dosyasının görüntüsüdür; açık alanlar delik, koyu alanlar plakadır.",
                "Şablon 1,2–2 mm kalınlığında bir plakadır; içteki adalar ince köprülerle tutturulur ve bu köprüler boyamada iz bırakır."),
-    "yapboz": ("Fotoğraftan kabartma yapboz", ["foto-1"], "yapboz_uret", 100, 280, ["yapboz"], ["PLA", "PETG"],
+    "yapboz": ("Fotoğraftan kabartma yapboz", ["foto-1"], "yapboz_uret", 100, 190, ["yapboz"], ["PLA", "PETG"],
                "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir.",
                "Yapboz tek renkli kabartmadır; renkli baskı değildir. Parçalar elle takılır; çocuk oyuncağı olarak belgelendirilmemiştir."),
 }
@@ -654,7 +703,8 @@ const vm=require('vm'),fs=require('fs');const k={};
 vm.runInNewContext(fs.readFileSync(process.argv[1],'utf8'),k,{filename:'foto-uretim-veri.js'});
 const F=k.PRUVO_FOTO, o={};
 o.turler=F.turler; o.renk_hex=F.RENK_HEX; o.red=F.URETEC_RED_METIN; o.tarayici=F.TARAYICI_ONIZLEYICI;
-o.onay_surum=F.onay_surum; o.ornek_turler=F.ornekler.map(x=>x.tur);
+o.onay_surum=F.onay_surum; o.ornek_turler=F.ornekler.map(x=>x.tur); o.plaka=F.PLAKA_MM;
+o.ornek_render=F.ornekler.filter(x=>x.kanit==='render').map(x=>[x.tur,x.render,x.onizleme]);
 o.hak={}; for (const t of F.turler) o.hak[t.kod]=F.hakGerekir(t.kod);
 o.kol={}; for (const t of F.turler) o.kol[t.kod]=F.kolu(t.kod);
 o.red_kontrast=F.uretecRedMetni('uretec-red:kontrast'); o.red_bilinmez=F.uretecRedMetni('uretec-red:yok-boyle');
@@ -712,8 +762,12 @@ def manifest_vakalari():
     s["V3"] = (m["renk_hex"] == RENK_HEX_KARAR and not disarida, "RENK_HEX=%s tabloda-yok=%s" % (
         m["renk_hex"] == RENK_HEX_KARAR, disarida))
     yanlis = [k for k in G2_SATIR if m["tarayici"].get(tur.get(k, {}).get("uretec")) or m["kol"].get(k) != "deterministik"]
-    ornekli = [k for k in G2_SATIR if k in m["ornek_turler"]]
-    s["V4"] = (not yanlis and not ornekli, "tarayici/kol yanlis=%s ornekli(G2b'ye kadar 0)=%s" % (yanlis, ornekli))
+    # G2b: her G2 turunun TAM BIR render ornegi var; adres foto/ornek/<kod>-1-render.webp (R2 pruvo-media).
+    ornek = {}
+    for t_, r_, o_ in m["ornek_render"]:
+        ornek.setdefault(t_, []).append((r_, o_))
+    eksik = [k for k in G2_SATIR if ornek.get(k) != [("https://media.pruvo3d.com/foto/ornek/%s-1-render.webp" % k,) * 2]]
+    s["V4"] = (not yanlis and not eksik, "tarayici/kol yanlis=%s render-ornegi-eksik/yanlis=%s" % (yanlis, eksik))
     beklenen_hak = {"isimlik": False, "qr": False, "logo": True, "muhur": True, "sablon": True, "yapboz": True,
                     "plaket": True, "litofan": True}
     s["V5"] = (m["hak"] == beklenen_hak and m["onay_surum"] == "2026-10-05-taslak-1",
@@ -775,6 +829,12 @@ def manifest_vakalari():
     finally:
         shutil.rmtree(d, ignore_errors=True)
     s["V8"] = (not hata, "esleme: %s" % (hata or "6/6 tur, her secenek"))
+    # V9 (G2b): plaka siniri TEK kaynak manifest PLAKA_MM=300; kosucu ayni degeri okur (ikinci kopya yok).
+    try:
+        km = kosucu_modulu().plaka_mm()
+    except SystemExit as e:
+        km = "DUR: %s" % e
+    s["V9"] = (m["plaka"] == 300 and km == 300, "manifest=%s kosucu=%s" % (m["plaka"], km))
     return s
 
 
@@ -830,7 +890,7 @@ def gercek_vakalar():
         v.append(("muhur", olcu, {"govde": "Mavi", "sap": "Beyaz"}, {"sap": sap}, {"foto": siluet}))
     for olcu, mod, gor in ((60, "Delikli", siluet), (155, "Dolu silüet", halka), (250, "Delikli", siluet)):
         v.append(("sablon", olcu, {"sablon": "Gri"}, {"mod": mod}, {"foto": gor}))
-    for olcu, parca in ((100, "12"), (190, "20"), (280, "30")):
+    for olcu, parca in ((100, "12"), (150, "20"), (190, "30")):
         v.append(("yapboz", olcu, {"yapboz": "Ahşap"}, {"parca": parca}, {"foto": foto}))
     return v
 

@@ -256,7 +256,7 @@
         girdi: ["foto-1"],
         motor: "D",
         uretec: "yapboz_uret",
-        olcu_mm: { en_az: 100, en_cok: 280 },
+        olcu_mm: { en_az: 100, en_cok: 190 },
         renk_bolgeleri: [
           { kod: "yapboz", ad: "Yapboz", renkler: ["Ahşap", "Beyaz", "Gri", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] }
         ],
@@ -270,6 +270,12 @@
         ornek_notu: "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir."
       }
     ],
+
+    // PLAKA SINIRI (sözleşme §3, mm): üretim dosyasının tabla kutusu x ve y bundan büyük olamaz.
+    // 7 Eki 2026 mimar kararı: 250 -> 300 (H2D paylaşılan bant X 25–325; yapboz raf düzeni 190 mm'de
+    // 284×192 ölçüldü). TEK kaynak: koşucu (tools/foto-uretec-kosucu.py) ve sunucu (shop/src/foto.js)
+    // buradan okur; ikinci kopya YOK.
+    PLAKA_MM: 300,
 
     // FİLAMENT RENKLERİ — renk ADI -> üreteçteki hex (TEK tablo; mimar kararı 7 Eki 2026). Bir türün
     // `renk_bolgeleri[].renkler` listesinde yalnız buradaki adlar olabilir; üreteç köprüsü
@@ -315,6 +321,57 @@
         onizleme: "https://media.pruvo3d.com/foto/ornek/litofan-1-render.webp",
         render: "https://media.pruvo3d.com/foto/ornek/litofan-1-render.webp",
         not: "140 mm, arkadan ışıkla"
+      },
+      {
+        tur: "isimlik",
+        kanit: "render",
+        olcu_mm: 160,
+        // G2b (7 Eki 2026): GERÇEK üreteç çıktısının (3MF) render'ı; girdiler nötr ve çizilmiş —
+        // "Ada & Deniz", pruvo3d.com QR, çember+dalga amblem, "AD" monogram, kuş silüeti, sentetik deniz.
+        // Kişi/marka/telifli görsel YOK. Önizleme = aynı render.
+        onizleme: "https://media.pruvo3d.com/foto/ornek/isimlik-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/isimlik-1-render.webp",
+        not: "160 mm, 2 renk, montaj delikli"
+      },
+      {
+        tur: "qr",
+        kanit: "render",
+        olcu_mm: 90,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/qr-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/qr-1-render.webp",
+        not: "90 mm, 2 renk, çerçeveli"
+      },
+      {
+        tur: "logo",
+        kanit: "render",
+        olcu_mm: 100,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/logo-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/logo-1-render.webp",
+        not: "100 mm, 2 renk, tabanlı"
+      },
+      {
+        tur: "muhur",
+        kanit: "render",
+        olcu_mm: 40,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/muhur-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/muhur-1-render.webp",
+        not: "40 mm yüz, 2 renk, topuz saplı"
+      },
+      {
+        tur: "sablon",
+        kanit: "render",
+        olcu_mm: 150,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/sablon-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/sablon-1-render.webp",
+        not: "150 mm, delikli şablon"
+      },
+      {
+        tur: "yapboz",
+        kanit: "render",
+        olcu_mm: 150,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/yapboz-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/yapboz-1-render.webp",
+        not: "150 mm, 20 parça"
       }
     ],
 

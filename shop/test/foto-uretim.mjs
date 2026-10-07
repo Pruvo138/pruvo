@@ -1366,7 +1366,8 @@ console.log("ES2) ORNEK CUMLESI TUR BAZLI + ACIK TUR SUZGECI (mimar karari 7 Eki
   ol("ES2d ornek_notu bos turun render ornegi cizilmez (fail-closed)", s0.NOTSUZ, JSON.stringify(s0));
   ol("ES2e DOM: litofan secilince UST durustluk kutusu litofan metnini basar (once plaketinki)", s0.DURUSTLUK, JSON.stringify(s0));
   const ES2_MUT = [
-    ["ES2-M1 acik tur suzgeci silindi", "      if (acikKodlar && acikKodlar.indexOf(t.kod) < 0) continue;\n", "", ["SUZGEC"]],
+    // G2b: G2 turlerinin de render ornegi var -> suzgec silinince iki-tur senaryolarina da yabanci ornek girer.
+    ["ES2-M1 acik tur suzgeci silindi", "      if (acikKodlar && acikKodlar.indexOf(t.kod) < 0) continue;\n", "", ["LITOFAN", "NOTSUZ", "SUZGEC"]],
     ["ES2-M2 tek gorsel kontrolu silindi", "if (it.ornek.onizleme !== it.ornek.render) {", "if (true) {", ["LITOFAN"]],
     ["ES2-M3 sabit (plaket) cumlesi her turde", "\"foto-uretim-ornek-not\", it.tur.ornek_notu));", "\"foto-uretim-ornek-not\", F.turler[0].ornek_notu));", ["LITOFAN"]],
     ["ES2-M4 notsuz render ornegi cizilir", "(F.ornekKaniti(o) !== \"render\" || t.ornek_notu)", "true", ["NOTSUZ"]],

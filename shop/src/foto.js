@@ -1889,8 +1889,9 @@ export async function panelUretecGirdi(env, url) {
 
 /** Uzun kenar toleransi (sozlesme §3): D kolu ±%1, R kolu ±%3. */
 const UZUN_KENAR_TOLERANS = { D: 0.01, R: 0.03 };
-/** Plaka siniri (sozlesme §3: tek plaka, 250×250 mm). */
-const PLAKA_MM = 250;
+/** Plaka siniri (sozlesme §3, mm) — TEK kaynak manifest `PLAKA_MM` (7 Eki: 300); yoksa yukleme durur. */
+const PLAKA_MM = VERI.PLAKA_MM;
+if (!(typeof PLAKA_MM === "number" && PLAKA_MM > 0)) { throw new Error("foto-uretim-veri.js PLAKA_MM yok/bozuk"); }
 
 /**
  * olcu.json DOGRULAMASI (sozlesme §3 + manifest araligi). Donus "" = gecerli, aksi sebep kodu

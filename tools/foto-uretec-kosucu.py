@@ -72,7 +72,6 @@ D1_AD = "pruvo-katalog"
 R2_KOVA = "pruvo-ozel"
 DENEME_TAVANI = 3
 TOLERANS = {"D": 0.01, "R": 0.03}
-PLAKA_MM = 250
 ONIZLEME_MIN_PX = 1024
 URETEC_SURE_SN = 300
 IS_SINIRI = 20
@@ -103,7 +102,8 @@ URETEC_CLI = {
 NODE_OKU = (
     "const vm=require('vm'),fs=require('fs');const k={};"
     "vm.runInNewContext(fs.readFileSync(process.argv[1],'utf8'),k,{filename:'foto-uretim-veri.js'});"
-    "process.stdout.write(JSON.stringify({turler:k.PRUVO_FOTO.turler,renk_hex:k.PRUVO_FOTO.RENK_HEX}));"
+    "process.stdout.write(JSON.stringify({turler:k.PRUVO_FOTO.turler,renk_hex:k.PRUVO_FOTO.RENK_HEX,"
+    "plaka_mm:k.PRUVO_FOTO.PLAKA_MM}));"
 )
 _MANIFEST = {}
 
@@ -138,6 +138,14 @@ def renk_tablosu():
     """Manifest `RENK_HEX` (renk ADI -> filament hex) — tek tablo."""
     r = _manifest_ham().get("renk_hex")
     return r if isinstance(r, dict) else {}
+
+
+def plaka_mm():
+    """Manifest `PLAKA_MM` (sozlesme §3 plaka siniri) — tek kaynak; yoksa/bozuksa DUR (fail-closed)."""
+    p = _manifest_ham().get("plaka_mm")
+    if isinstance(p, bool) or not isinstance(p, (int, float)) or p <= 0:
+        raise SystemExit("manifest PLAKA_MM yok/bozuk: %r" % (p,))
+    return p
 
 
 # ------------------------------------------------------------------ wrangler (D1 + R2)
@@ -699,6 +707,59 @@ def uc_mf_extruder_sayisi(yol):
     return len(set(re.findall(r'key="extruder"\s+value="(\d+)"', s)))
 
 
+def uc_mf_uzun_kenar(yol, oz):
+    """Uzun kenar 3MF GEOMETRISINDEN olculur (ozetteki nominal degil; 7 Eki mimar karari 3): dunya
+    koordinatinda (component + build donusumu) x/y kutusunun buyuk kenari. Parcalar tablada raf
+    duzenindeyse (yapboz) ozet.parcalar[].tasima_mm cikarilarak BIRLESIK urun olculur. Geometri
+    okunamazsa None (dogrulama uzun-kenar-tolerans ile duser)."""
+    import zipfile
+    try:
+        with zipfile.ZipFile(yol) as z:
+            ad = [n for n in z.namelist() if n.endswith(".model")]
+            xml = z.read(ad[0]).decode("utf-8") if ad else ""
+    except (OSError, KeyError, zipfile.BadZipFile, UnicodeDecodeError):
+        return None
+    nesne = {}
+    for m in re.finditer(r'<object\b([^>]*)>(.*?)</object>', xml, re.S):
+        oid = re.search(r'\bid="(\d+)"', m.group(1))
+        if not oid:
+            continue
+        isim = re.search(r'\bname="([^"]*)"', m.group(1))
+        vs = [tuple(float(c) for c in t) for t in re.findall(
+            r'<vertex\s+x="([-0-9.eE+]+)"\s+y="([-0-9.eE+]+)"\s+z="([-0-9.eE+]+)"', m.group(2))]
+        komp = re.findall(r'<component\b[^>]*?objectid="(\d+)"(?:[^>]*?transform="([^"]*)")?', m.group(2))
+        nesne[oid.group(1)] = (isim.group(1) if isim else oid.group(1), vs, komp)
+
+    def donustur(p, t):
+        if not t:
+            return p
+        a = [float(x) for x in t.split()]
+        return (p[0] * a[0] + p[1] * a[3] + p[2] * a[6] + a[9], p[0] * a[1] + p[1] * a[4] + p[2] * a[7] + a[10],
+                p[0] * a[2] + p[1] * a[5] + p[2] * a[8] + a[11])
+
+    def noktalar(oid, t, derinlik=0):
+        if oid not in nesne or derinlik > 8:
+            return []
+        _, vs, komp = nesne[oid]
+        out = list(vs)
+        for cid, ct in komp:
+            out += noktalar(cid, ct, derinlik + 1)
+        return [donustur(p, t) for p in out]
+
+    tasima = {p.get("ad"): p.get("tasima_mm") for p in (oz.get("parcalar") or []) if isinstance(p, dict)}
+    mn, mx = [float("inf")] * 2, [float("-inf")] * 2
+    for b in re.finditer(r'<item\b[^>]*?objectid="(\d+)"(?:[^>]*?transform="([^"]*)")?', xml):
+        ps = noktalar(b.group(1), b.group(2))
+        tas = tasima.get(nesne.get(b.group(1), ("",))[0]) or [0.0, 0.0, 0.0]
+        for p in ps:
+            for i in (0, 1):
+                mn[i] = min(mn[i], p[i] - tas[i])
+                mx[i] = max(mx[i], p[i] - tas[i])
+    if mn[0] == float("inf"):
+        return None
+    return max(mx[0] - mn[0], mx[1] - mn[1])
+
+
 def donustur_tekin(ham, cikti, girdi_yolu, kopru_yolu):
     """tekin-ortak uretec ciktisi -> sozlesme §3 (uretec python'unda kosar; Pillow YALNIZ buyutmede)."""
     with open(girdi_yolu, encoding="utf-8") as f:
@@ -719,16 +780,14 @@ def donustur_tekin(ham, cikti, girdi_yolu, kopru_yolu):
         im = im.resize((im.size[0] * k, im.size[1] * k), Image.LANCZOS)
         im.save(os.path.join(cikti, "onizleme.png"), format="PNG", optimize=False)
     kutu = oz.get("olcu_mm") or [0, 0, 0]
-    uk = oz.get("uzun_kenar_mm")
-    if isinstance(uk, bool) or not isinstance(uk, (int, float)):
-        uk = max(kutu[0], kutu[1])
+    uk = uc_mf_uzun_kenar(os.path.join(cikti, "model.3mf"), oz)
     hac = oz.get("hacim_mm3")
     if isinstance(hac, dict):
         hac = hac["toplam"] if "toplam" in hac else sum(hac.values())
     renk = girdi.get("renkler") or {}
     with open(os.path.join(cikti, "model.3mf"), "rb") as f:
         msha = hashlib.sha256(f.read()).hexdigest()
-    olcu = {"sozlesme": 1, "kategori": girdi.get("kategori"), "uzun_kenar_mm": round(uk, 3),
+    olcu = {"sozlesme": 1, "kategori": girdi.get("kategori"), "uzun_kenar_mm": round(uk, 3) if uk is not None else None,
             "kutu_mm": {"x": kutu[0], "y": kutu[1], "z": kutu[2]},
             "renk_sayisi": uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf")),
             "sizdirmaz": oz.get("sizdirmaz") is True, "ucgen": oz.get("ucgen_sayisi"),
@@ -781,7 +840,7 @@ def cikti_dogrula(i, t, cikti):
     if not isinstance(rs, int) or isinstance(rs, bool) or not 1 <= rs <= 4:
         return "renk-fazla"
     k = o.get("kutu_mm") or {}
-    if not all(isinstance(k.get(e), (int, float)) and 0 < k[e] <= PLAKA_MM for e in ("x", "y")):
+    if not all(isinstance(k.get(e), (int, float)) and 0 < k[e] <= plaka_mm() for e in ("x", "y")):
         return "plaka-disi"
     return ""
 

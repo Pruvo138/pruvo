@@ -34,7 +34,7 @@ Sahibi: KraL (kategori motoru). Uyan: TeKiN üreteçleri (D ve R kolu). Tek kayn
 ## 3. Çıktı dizini (üçü birden, başka dosya YOK)
 | dosya | şart |
 |---|---|
-| `model.3mf` | `unit="millimeter"`, en çok **4 renk** (filament slotu), tek plaka, her parça **sızdırmaz** (manifold, kendini kesmeyen), tabanı Z=0, plaka 250×250 mm içinde. Ayaklı ürünlerde ayak AYNI dosyada ayrı obje. |
+| `model.3mf` | `unit="millimeter"`, en çok **4 renk** (filament slotu), tek plaka, her parça **sızdırmaz** (manifold, kendini kesmeyen), tabanı Z=0, plaka **300×300 mm** içinde (sınır manifest `PLAKA_MM`; 7 Eki 2026: 250 → 300, H2D paylaşılan bant X 25–325 — çok parçalı ürün (yapboz) parçalarını bu banda raf düzeniyle dizer; geriye uyumlu ek, `sozlesme` sürümü aynı). Uzun kenar toleransı 3MF GEOMETRİSİNDEN ölçülür (koşucu; raf düzenindeki parçalar `ozet.parcalar[].tasima_mm` çıkarılarak birleşik ürün), özetteki nominal değerden DEĞİL. Ayaklı ürünlerde ayak AYNI dosyada ayrı obje. |
 | `onizleme.png` | ≥ 1024 px uzun kenar, nötr fon, ürünün kendisi (müşteriye gösterilir; render olduğunu bölüm söyler). |
 | `olcu.json` | aşağıdaki şema |
 
