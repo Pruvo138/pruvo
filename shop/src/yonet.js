@@ -37,7 +37,7 @@ import { golgeRaporu } from "./konfigur-golge.js";
 // Fotograftan ozel uretim: kalem uretim durumu + dosya indirme + ozet/fiyat tablosu.
 import { panelUretimHaritasi, panelFotoKaydi, panelFotoDosya, panelFotoOzet,
          panelFotoFiyat, panelOrnekOnizleme, panelOrnekDurum, panelOrnekGorsel,
-         panelOrnekUret, panelOrnekListe } from "./foto.js";
+         panelOrnekUret, panelOrnekListe, panelUretecGirdi, panelUretecYukle } from "./foto.js";
 import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
 } from "./eposta.js";
@@ -714,6 +714,12 @@ async function liste(env, url) {
         kayit.urun_url = "";
         kayit.uretim_kaynaklari = [];
         kayit.foto = panelFotoKaydi(s.siparis_no, i, k, fotoHarita);
+        // DETERMINISTIK KOL (litofan): secilen malzeme/renk; dosya bizim uretecten (panelden yuklenir).
+        if (kayit.foto.kol === "deterministik") {
+          kayit.baski_oneri = (k.parametre_detay || ((k.olcu_mm || "?") + " mm")) +
+            " — üreteç 3MF'iyle bas (girdi indir → üreteç → 3MF yükle).";
+          return kayit;
+        }
         // AYAK UNUTULMASIN: plaket basina ayak, plaketle AYNI plakada basilir (ayri parca).
         kayit.baski_oneri = "PLA · 4 renk (AMS) — 3MF'deki renk ayrımıyla bas; ölçü " +
           (k.olcu_mm || "?") + " mm. + AYAK: " + kayit.foto.ayak * (k.adet || 1) +
@@ -2060,6 +2066,9 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/foto/ornek-gorsel" && m === "GET") { return panelOrnekGorsel(env, url); }
   if (altYol === "/foto/ornek-uret" && m === "POST") { return panelOrnekUret(request, env, Date.now(), telegram); }
   if (altYol === "/foto/ornekler" && m === "GET") { return panelOrnekListe(env); }
+  // DETERMINISTIK KOL (litofan): uretec girdisi indir + uretec 3MF'i yukle — ayni kapinin ARKASINDA.
+  if (altYol === "/foto/uretec-girdi" && m === "GET") { return panelUretecGirdi(env, url); }
+  if (altYol === "/foto/uretec-yukle" && m === "POST") { return panelUretecYukle(request, env, url, Date.now()); }
   return yon404();
 }
 
@@ -2275,17 +2284,40 @@ function kaynakLinkHtml(k){
 var FOTO_ASAMA={"kuyrukta-degil":"üretim kuyruğunda değil (ödeme doğrulanınca 5 dk içinde girer)",
  "build-baslat":"model sırada","build":"model üretiliyor","analiz":"basılabilirlik analizi",
  "onarim":"sızdırmazlık onarımı","doku":"onarılan modele doku",
- "renk":"4 renk ayrımı","hazir":"HAZIR","elle":"ELLE BAKILACAK"};
+ "renk":"4 renk ayrımı","hazir":"HAZIR","elle":"ELLE BAKILACAK",
+ "uretec-bekliyor":"üreteç bekliyor (girdi indir → 3MF yükle)"};
+function fotoUretecHtml(f){
+ var sec=f.secim||{};
+ var sm=Object.keys(sec).map(function(a){return a.replace("_"," ")+": "+sec[a];}).join(" · ");
+ var h='<div class="kaynak">Seçim: <b>'+esc(sm||"—")+'</b></div>';
+ if(f.asama==="uretec-bekliyor"&&f.uretec){
+  h+='<div class="kaynak"><a class="indir" href="'+esc(f.uretec.girdi)+'">girdi indir (gri harita PNG)</a> '+
+   '<input type="file" accept=".3mf" data-uretec="'+esc(f.uretec.yukle)+'"> '+
+   '<button onclick="uretecYukle(this)">3MF yükle</button></div>';
+ }
+ return h;
+}
+async function uretecYukle(b){
+ var inp=b.parentNode.querySelector("input[type=file]");
+ var f=inp&&inp.files&&inp.files[0];
+ if(!f){alert("Önce üretecin 3MF dosyasını seç.");return;}
+ b.disabled=true;
+ var r=await apiHam(String(inp.getAttribute("data-uretec")).replace("/api/shop/yonet",""),f);
+ b.disabled=false;
+ if(r.kod===200){yukle();return;}
+ alert("Yüklenemedi ("+r.kod+"): "+((r.govde&&r.govde.hata)||"bilinmeyen"));
+}
 function fotoSatirHtml(f){
  var d=f.dosyalar?
   '<a class="indir" href="'+esc(f.dosyalar["3mf"])+'">3MF (4 renk) indir</a> '+
-  '<a class="indir" href="'+esc(f.dosyalar.glb)+'">GLB indir</a>':
+  (f.dosyalar.glb?'<a class="indir" href="'+esc(f.dosyalar.glb)+'">GLB indir</a>':''):
   '<span class="yok">üretim dosyası henüz yok</span>';
  return '<div class="kaynak">📸 Fotoğraftan üretim · '+esc(f.tur)+' · '+esc(f.olcu_mm)+' mm · '+
   '<b>ayak: '+esc(f.ayak)+'</b> · '+
   '<b>'+esc(FOTO_ASAMA[f.asama]||f.asama)+'</b>'+
   (f.sebep?' — <span class="hata">'+esc(f.sebep)+'</span>':'')+'</div>'+
   (f.analiz?'<div class="kucuk">Analiz: '+esc(f.analiz)+'</div>':'')+
+  (f.kol==="deterministik"?fotoUretecHtml(f):'')+
   '<div class="kaynak"><a href="'+esc(f.onizleme)+'" target="_blank" rel="noopener">önizleme görseli</a>'+
   ' · üretim kredisi: '+esc(f.kredi_uretim)+'</div>'+d;
 }
@@ -2593,7 +2625,7 @@ async function fotoYukle(){
    tl(f.fiyat_kurus)+'</td></tr>';}).join("")+'</table>'+
   // Tür seçenekleri SUNUCUDAN (sunulan türler); elle yazılmış tür listesi YOK.
   '<div class="ust"><select id="fotoTur">'+(o.sunulan_turler||[]).map(function(t){
-   return '<option value="'+esc(t.kod)+'">'+esc(t.ad)+'</option>';}).join("")+'</select>'+
+   return '<option value="'+esc(t.kod)+'">'+esc(t.ad)+(t.olcu_en_az?' ('+esc(t.olcu_en_az)+'–'+esc(t.olcu_en_cok)+' mm)':'')+'</option>';}).join("")+'</select>'+
   '<input id="fotoOlcu" type="number" placeholder="ölçü mm ('+esc(o.olcu_en_az)+'–'+esc(o.olcu_en_cok)+')" style="width:140px">'+
   '<input id="fotoFiyat" type="number" placeholder="fiyat TL (0 = kaldır)" style="width:150px">'+
   '<button id="fotoFiyatKaydet">Kaydet</button></div></div>');

@@ -68,6 +68,11 @@ NET hata basilir (sessiz basarisizlik YOK).
   python3 tools/stl-r2-yukle.py --paralel 1  # eski sirali davranis (tek yukleyici)
   python3 tools/stl-r2-yukle.py --kuru     # yalniz ne yapacagini soyle (yukleme/manifest yok)
   python3 tools/stl-r2-yukle.py --dizin X  # farkli kaynak klasor
+  python3 tools/stl-r2-yukle.py --yerel-tut  # yerel dosyalari SILME (varsayilan: --yerel-sil)
+
+YEREL SIL (STL-SIFIR, 6 Eki 2026; varsayilan ACIK): kosum sonunda (yukleme hatasinda da
+cikmadan once) manifest kaydi dosyanin ANLIK sha1'ine esit olan yerel dosya silinir — R2'ye
+yuklenmemis, yuklemeden sonra degismis, hatali-ad/cakisan dosya KALIR; `--kuru` ASLA silmez.
 
 Yukleme yerel wrangler oturumuyla (npx wrangler r2 object put ... --remote) — token gerekmez.
 Sonda "yuklendi / atlandi / hatali-ad" sayimi basilir. ZIP YOK (280 MB'lik dosyalar var;
@@ -351,15 +356,43 @@ def _isle(dizin, ad, anahtar, snapshot, gonderici):
     return ("yuklendi", ad, anahtar, {"sha1": ozet, "boyut": boyut})
 
 
+def yerel_sil_dogrulanmis(yerel, kayit):
+    """YEREL SIL KOLU (STL-SIFIR, 6 Eki 2026): yerel dosyayi YALNIZ manifest kaydi (= R2'ye
+    basariyla yuklenmis icerigin kaniti) dosyanin ANLIK sha1'ine esitse siler. Kayit yoksa
+    (yukleme basarisiz/yapilmadi) ya da dosya yuklemeden sonra degistiyse dosya KALIR.
+    True = silindi."""
+    if not kayit or not kayit.get("sha1"):
+        return False
+    if sha1_dosya(yerel) != kayit["sha1"]:
+        return False
+    os.remove(yerel)
+    return True
+
+
+def _yerel_temizle(dizin, hedefler, manifest, silinen):
+    """Hedef (eslenmis) dosyalardan R2-dogrulanmis olanlari siler. Hatali-ad/cakisan dosyalar
+    `hedefler`de olmadigi icin ASLA silinmez. Kanit = kosum SONU manifesti (yuklenen + onceden
+    yuklenmis/atlanan)."""
+    for ad, anahtar in hedefler:
+        yerel = os.path.join(dizin, ad)
+        if os.path.isfile(yerel) and yerel_sil_dogrulanmis(yerel, manifest.get(anahtar)):
+            silinen.append(ad)
+
+
 def kos(dizin, idler, manifest_yol, kuru=False, yukle_fn=None, kaynak_esle=None,
-        kaynak_cakisan=None, paralel=1):
+        kaynak_cakisan=None, paralel=1, yerel_sil=False, silinen=None):
     """Ana is akisi (test edilebilir): (yuklendi, atlandi, hatali_ad, cakisan_ad) dondurur.
     kuru=True: yukleme YOK, manifest'e yazma YOK — yuklenecekler sayilir/basilir.
     kaynak_esle/kaynak_cakisan: kaynak_esleme()'den gelen sozlukce/kume (bkz. siniflandir).
     paralel: eszamanli yukleyici sayisi (varsayilan 1 = sirali/eski davranis birebir; >1 ise
     N is parcacigi yukler, manifeste yalnizca ANA is parcacigi tek-yazici olarak yazar -> yaris
-    yok). kuru VEYA paralel<=1 iken sirali yol kullanilir (byte-birebir eski davranis)."""
+    yok). kuru VEYA paralel<=1 iken sirali yol kullanilir (byte-birebir eski davranis).
+    yerel_sil: True ise kosum sonunda (yukleme hatasinda da, cikmadan once) R2-dogrulanmis
+    yerel dosyalar silinir (bkz. yerel_sil_dogrulanmis); kuru kosumda ASLA silinmez.
+    silinen: verilirse silinen dosya adlari bu listeye eklenir."""
     gonderici = yukle_fn or yukle
+    silinen = [] if silinen is None else silinen
+    temizle = yerel_sil and not kuru
     dosyalar = sorted(os.listdir(dizin))
     hedefler, hatali_ad, cakisan_ad = siniflandir(dosyalar, idler, kaynak_esle, kaynak_cakisan)
     manifest = manifest_oku(manifest_yol)
@@ -380,11 +413,15 @@ def kos(dizin, idler, manifest_yol, kuru=False, yukle_fn=None, kaynak_esle=None,
                 yuklendi += 1
                 continue
             if not gonderici(yerel, anahtar):
+                if temizle:
+                    _yerel_temizle(dizin, hedefler, manifest, silinen)
                 sys.exit("R2 yuklemesi basarisiz (wrangler oturumu acik mi?): " + anahtar)
             manifest[anahtar] = {"sha1": ozet, "boyut": boyut}
             manifest_yaz(manifest_yol, manifest)  # her yuklemeden sonra — kesinti guvenli
             print("yuklendi: r2://%s/%s (%d B)" % (BUCKET, anahtar, boyut))
             yuklendi += 1
+        if temizle:
+            _yerel_temizle(dizin, hedefler, manifest, silinen)
         return yuklendi, atlandi, hatali_ad, cakisan_ad
 
     # PARALEL YOL — N yukleyici, TEK YAZICI. Yukleyiciler `snapshot`i SALT-OKUR (degismez
@@ -406,12 +443,14 @@ def kos(dizin, idler, manifest_yol, kuru=False, yukle_fn=None, kaynak_esle=None,
                 yuklendi += 1
             else:  # "hata"
                 hata_anahtar = hata_anahtar or anahtar
+    if temizle:
+        _yerel_temizle(dizin, hedefler, manifest, silinen)
     if hata_anahtar is not None:
         sys.exit("R2 yuklemesi basarisiz (wrangler oturumu acik mi?): " + hata_anahtar)
     return yuklendi, atlandi, hatali_ad, cakisan_ad
 
 
-def main():
+def arg_ayristir(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--dizin", default=os.path.join(REPO, "stl"))
     ap.add_argument("--kuru", action="store_true", help="yazmadan ne yapacagini soyle")
@@ -420,21 +459,31 @@ def main():
     ap.add_argument("--kaynaklar", default=KAYNAKLAR,
                     help="gizli kaynak-id->urun-id kaydi (varsayilan: ana repo koku; "
                          "worktree/baska makinede yoksa esleme BOS kalir)")
-    a = ap.parse_args()
+    # VARSAYILAN ACIK (STL-SIFIR): yuklenmis + manifestle dogrulanmis yerel dosya silinir.
+    ap.add_argument("--yerel-sil", dest="yerel_sil", action="store_true", default=True,
+                    help="R2-dogrulanmis yerel dosyayi sil (varsayilan)")
+    ap.add_argument("--yerel-tut", dest="yerel_sil", action="store_false",
+                    help="yerel dosyalari silme")
+    return ap.parse_args(argv)
+
+
+def main():
+    a = arg_ayristir()
 
     if not os.path.isdir(a.dizin):
         sys.exit("kaynak klasor yok: " + a.dizin)
 
     idler = urun_idleri()  # None = urunler.json okunamadi (onek kontrolu atlanir)
     kaynak_esle, kaynak_cakisan = kaynak_esleme_yukle(a.kaynaklar)
+    silinen = []
     yuklendi, atlandi, hatali_ad, cakisan_ad = kos(
         a.dizin, idler, MANIFEST, kuru=a.kuru,
         kaynak_esle=kaynak_esle, kaynak_cakisan=kaynak_cakisan,
-        paralel=max(1, a.paralel))
+        paralel=max(1, a.paralel), yerel_sil=a.yerel_sil, silinen=silinen)
 
-    print("\nOZET: yuklendi=%d atlandi=%d hatali-ad=%d cakisan=%d (kaynak: %s%s)"
-          % (yuklendi, atlandi, len(hatali_ad), len(cakisan_ad), a.dizin,
-             ", --kuru" if a.kuru else ""))
+    print("\nOZET: yuklendi=%d atlandi=%d hatali-ad=%d cakisan=%d yerel-silinen=%d (kaynak: %s%s)"
+          % (yuklendi, atlandi, len(hatali_ad), len(cakisan_ad), len(silinen), a.dizin,
+             ", --kuru" if a.kuru else ("" if a.yerel_sil else ", --yerel-tut")))
     if cakisan_ad:
         print("CAKISAN KAYNAK-ID (%d dosya; onek gizli kayitta BIRDEN FAZLA urune bagli —"
               " TAHMIN EDILMEDI, yuklenmedi, elle karar verilmeli):" % len(cakisan_ad))

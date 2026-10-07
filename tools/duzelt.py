@@ -43,8 +43,8 @@ dair koken manifesti ARANIR; yoksa/supheliyse HICBIR SEY yazilmaz (exit 4).
 Kural + manifest semasi + beyan edilen sinirlar: tools/gorsel_koken.py.
 Platform kategorileri (Otomobil/Marin/...) HIC degerlendirilmez.
 
-URUN SILINMEZ (Okan hukmu 17 Agu 2026) — yayindan dusurmek icin GIZLE:
-  python3 tools/duzelt.py <id> --alan gizli --deger true
+OKAN KURALI (6 Eki 2026, tum kurallarin ustunde): urun GIZLENMEZ — `--alan gizli` RED
+(rc 2); eski gizli kaydi acmak: `python3 tools/duzelt.py <id> --alan-sil gizli`.
 URUNU TAMAMEN SILMEK yalniz Okan'in ACIK karariyla (13 Eyl 2026'dan beri izinsiz RED, rc 8;
 izin ve yordam: tools/urun-silme-yordami.md). Izinli `--sil`, urunu urunler.json'dan kaldirir, TAM kaydi arsiv/urunler-arsiv.json'a TASIR (gerekce
 public arsive YAZILMAZ) VE id'yi .urunler-sil-izin.json'a yazar ki guard onu HEAD'den geri
@@ -145,6 +145,9 @@ _arspec = importlib.util.spec_from_file_location(
 arama = importlib.util.module_from_spec(_arspec)
 _arspec.loader.exec_module(arama)
 URUNLER = os.path.join(ROOT, "urunler.json")
+# TEST YUKU SIGORTASI (bkz veri_kok.test_kumu_denetle): `PRUVO_TEST_KUM` tanimliyken veri
+# koku kumun disindaysa ACILISTA durur — kilit dosyasi bile acilmaz. Tanimsizsa no-op.
+_vk.test_kumu_denetle(URUNLER)
 KAYNAKLAR = os.path.join(ROOT, ".urun-kaynaklari.json")
 LOCK = os.path.join(ROOT, ".urunler.lock")
 MANIFEST = os.path.join(ROOT, ".urunler-duzelt-izin.json")
@@ -196,12 +199,13 @@ URL_GUVENLI_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 # boy_secenekleri_sebebi) olmadan denetlenmemis fiyat verisi yazilabilirdi. Ikisi
 # BIRLIKTE inmek zorundadir; kabul testi (duzelt-toplu-test.test_boy_secenekleri)
 # kablonun canli oldugunu MUTANTLA kanitlar.
-# `gizli`: mevcut urunu yayin yuzeylerinden dusurmenin KURALLI tek yolu duzelt.py'dir
-# (ham JSON yazimi guard'a takilir); alan bool, kaldirilinca urun geri gorunur.
+# `gizli` BU KUMEDE YOK (Okan kurali 6 Eki 2026: urun GIZLENMEZ) — yazma girisimi
+# `_izinsiz_alan_mesaji` ile Okan kuralini ADIYLA basarak reddedilir; `--alan-sil gizli`
+# (acma) serbesttir. Bu kumeye `gizli` geri eklenirse duzelt-toplu-test e4 M-Y KIRMIZI.
 DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "eski_fiyat",
                     "gorseller", "lisans", "konfigur", "altkategori",
                     "tur", "gorselsiz", "uyum", "tavsiyeFilament",
-                    "boy_secenekleri", "gizli"}
+                    "boy_secenekleri"}
 
 UYUM_ALANI = "uyum"
 MARKA_ALANI = "marka"
@@ -240,14 +244,26 @@ TICARI_HAL_ALANLARI = {TUR_ALANI, GORSELSIZ_BAYRAK}
 GIZLI_ALANI = "gizli"
 # 🔴 OLCULEN TIP DELIGI (7 Eyl 2026, KraL): `gizli` de bir BEYAN alanidir (sema tipi
 # bool) ama JSON cozulen kumede DEGILDI. Sonuc: `--alan gizli --deger true` katalogda
-# `"true"` DIZESI birakiyordu; her okuyucu (`kapsam-disi-sinif-kapisi.gorunur_kayitlar`,
-# `arama.gizli_sebebi`, `build.py`) `is True` / truthiness ile baktigi icin urun
+# `"true"` DIZESI birakiyordu; her okuyucu (`arama.gizli_sebebi`,
+# `build.py`) `is True` / truthiness ile baktigi icin urun
 # GIZLENDI SANILIP GORUNUR kaliyordu ve hicbir kapi yanmiyordu — [[tip-sozlesmesi-para-
 # alaninin-bicimini-olcmez]] sinifinin ikinci yuzeyi.
 # 🔴 `gizli` TICARI_HAL_ALANLARI'na EKLENMEZ: o kume `_ticari_hal_ihlalleri`nin
 # (tur/gorselsiz) IS KURALINI tasir ve `gizli` o duzlemde degildir. Ikiz tanim
 # acmamak icin JSON cozulen kume o kumeden TURETILIR, yanina yazilmaz.
-JSON_COZULEN_ALANLAR = TICARI_HAL_ALANLARI | {GIZLI_ALANI}
+JSON_COZULEN_ALANLAR = TICARI_HAL_ALANLARI
+# 🔴 OKAN KURALI (6 Eki 2026, tum kurallarin ustunde): `gizli` YAZILAMAZ. Alan
+# DEGISTIRILEBILIR'de olmadigi icin red zaten gelir; bu harita mesaja SEBEBI ekler.
+YASAK_ALANLAR = {GIZLI_ALANI: "Okan kurali 6 Eki 2026: urun GIZLENMEZ, gizlenecek urun "
+                             "EKLENMEZ, 'sil' denen urun TAMAMEN silinir "
+                             "(acmak icin: --alan-sil gizli)"}
+
+
+def _izinsiz_alan_mesaji(alan):
+    m = "bilinmeyen/izinsiz alan: %s (izinli: %s)" % (alan, ", ".join(sorted(DEGISTIRILEBILIR)))
+    if alan in YASAK_ALANLAR:
+        m += " — YASAK: " + YASAK_ALANLAR[alan]
+    return m
 
 
 def _tur_gecerli_acik_deger(v):
@@ -674,20 +690,11 @@ def _alan_tip_hatasi(alan, deger):
         # `--toplu`), dolayisiyla TEK kablo iki yuzeyi birden kapatir — kabul testi
         # ikisini AYRI AYRI olcer, "kapattigini varsaymaz".
         return arama.boy_secenekleri_sebebi(deger)
-    if alan == GIZLI_ALANI:
-        # 🔴 YAYIN YUZEYI — TEK KAYNAK. `gizli` alaninin tipi BURADA YAZILMAZ:
-        # kanonik tanim `arama.KATALOG_ALAN_TIPLERI["gizli"] = bool` ve okuma yolu
-        # (`katalog-alan-kapisi.py` -> `arama.katalog_alan_tip_sebebi`) tam da o
-        # govdeden geciyor. Buraya ikinci bir "bool olmali" kontrolu yazmak
-        # [[ikiz-tanim-sessiz-ayrisma]] sinifidir: yazma yolu okuma yolundan
-        # sessizce gevser. Bu satir iki cagri yuzeyini birden kapatir
-        # (`--alan/--deger` ve `--toplu`) ama kabul testi ikisini AYRI AYRI olcer,
-        # "kapattigini varsaymaz".
-        return arama.katalog_alan_tip_sebebi(GIZLI_ALANI, deger)
     return None
 
 
 def _atomic_write(path, obj):
+    _vk.test_kumu_denetle(path)              # test yuku sigortasi (yazim aninda, yetim dahil)
     tmp = path + ".tmp-" + str(os.getpid())
     with open(tmp, "w") as f:
         json.dump(obj, f, ensure_ascii=False, indent=2)
@@ -881,18 +888,16 @@ def _sil_izni_var():
 
 
 def _sil_izin_red(idler, kip):
-    """Izinsiz silme -> hicbir sey YAZILMADAN reddet; care `gizli:true` ADIYLA basilir."""
+    """Izinsiz silme -> hicbir sey YAZILMADAN reddet (gizleme care DEGIL: Okan 6 Eki)."""
     idler = sorted(idler)
     _log("sil-RED (%s): izin yok -> %s" % (kip, ", ".join(idler)))
     print("HATA: URUN SILME REDDEDILDI (%s) — izin YOK, hicbir sey yazilmadi." % kip,
           file=sys.stderr)
-    print("  Okan hukmu (17 Agu 2026): siteden urun SILINMEZ. Silinmek istenen %d kayit:"
+    print("  Silme izni YOK. Silinmek istenen %d kayit:"
           % len(idler), file=sys.stderr)
     for uid in idler[:40]:
         print("    - %s" % uid, file=sys.stderr)
-    print("  CARE — yayindan dusur, kayit tabanda KALSIN (gizli:true):", file=sys.stderr)
-    for uid in idler[:5]:
-        print("    python3 tools/duzelt.py %s --alan gizli --deger true" % uid, file=sys.stderr)
+    print("  Gizleme care DEGILDIR (Okan kurali 6 Eki 2026: urun GIZLENMEZ).", file=sys.stderr)
     # Izin RECETESI kirmizi ciktida BASILMAZ (curutucu B1, 13 Eyl): reddedilen cagriya
     # nasil gececegini soylemek, "kapiyi yesile cevirmek icin katalog budama" refleksini
     # tek adim uzaga koyar. Yordam Okan'in belgesindedir.
@@ -1068,8 +1073,7 @@ def _toplu_cozumle(yol):
                 hatalar.append("%s: 'id' alani degistirilemez" % etiket)
                 continue
             if alan not in DEGISTIRILEBILIR:
-                hatalar.append("%s: bilinmeyen/izinsiz alan: %s (izinli: %s)"
-                               % (etiket, alan, ", ".join(sorted(DEGISTIRILEBILIR))))
+                hatalar.append("%s: %s" % (etiket, _izinsiz_alan_mesaji(alan)))
                 continue
             tip_hatasi = _alan_tip_hatasi(alan, islem["deger"])
             if tip_hatasi:
@@ -1386,8 +1390,7 @@ def main():
             print("HATA: 'id' alani degistirilemez.", file=sys.stderr)
             return 2
         if alan not in DEGISTIRILEBILIR:
-            print("HATA: bilinmeyen/izinsiz alan: %s (izinli: %s)"
-                  % (alan, ", ".join(sorted(DEGISTIRILEBILIR))), file=sys.stderr)
+            print("HATA: %s" % _izinsiz_alan_mesaji(alan), file=sys.stderr)
             return 2
         try:
             degisiklikler[alan] = _parse_deger(deger, alan)

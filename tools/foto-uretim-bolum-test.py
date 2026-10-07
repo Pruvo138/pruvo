@@ -18,10 +18,14 @@ SÖZLEŞMESİNİ ölçer:
   Y5 SEPET    : ödeme dönüşünde sepeti koruyan oturum anahtarı iki dosyada AYNI dize
   Y6 GÜVENLİK : bölüm DOM'a innerHTML ile veri basmaz; yalnız aynı köken /api/shop uçları
   Y7 SÖZDİZİMİ: node --check (node yoksa OLCULEMEDI, yeşil sayılmaz)
-  Y8 PLAKET   : veri dosyasında sunulan tür TEK (plaket); anahtarlık/magnet ekranda 0
+  Y8 PLAKET   : veri dosyasında plaket VAR, anahtarlık/magnet/figür türü 0; anahtarlık/magnet ekranda 0
                 (BaBa 5 Eki 21:4x(b) — "yalnız plastik üretiyoruz")
   Y9 TEK TÜR  : tek türde tür grubu gizlenir, adım çubuğu "Ölçü" der (DAVRANIŞ ölçümü sahte
                 DOM'da: shop/test/foto-uretim.mjs S bölümü; bu dosya sözleşmeyi tutar)
+  Y10 RENDER  : (Okan 7 Eki: plaket gerçek baskı beklemeden açılır) türe göre `ornek_kanit_izni`
+                (plaket baski+render · litofan baski+render — Okan 7 Eki G1) + izin kontrolü veri dosyasında; render
+                dalında "önizleme/render" etiketi + abartı cümlesi AYNEN, "gerçek fotoğraf" 0
+                (DAVRANIŞ: shop/test/foto-uretim.mjs RO/ES bölümü)
 
 ÖNCE-KIRMIZI: aynı kontrol fonksiyonları dosyanın sonunda BELLEKTEKİ mutant metinlere
 uygulanır (diske yazılmaz): kap kategorilerin altına taşınır · görünüm listesinden düşer ·
@@ -42,6 +46,10 @@ OKU = lambda rel: open(os.path.join(KOK, rel), encoding="utf-8").read()
 
 OTURUM_ANAHTARI = "pruvo_foto_siparis"
 DURUSTLUK = "önizlemenin 4 renkli yorumu"
+RENDER_CUMLE = ("Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, "
+                "birebir aynısı değildir.")
+LITOFAN_CUMLE = ("Üretim dosyasının arkadan ışıkla görüntüsüdür; basılmış panel ışık geldiğinde bu görüntüyü verir, "
+                 "birebir aynısı değildir.")
 
 
 def soyulacak_js(build_metin):
@@ -82,7 +90,10 @@ def kontroller(index, bolum, veri, build):
     js = soyulacak_js(build) or ()
     s.append(("Y3 iki dosya yayin beyaz listesinde (SOYULACAK_JS degeri)",
               "foto-uretim-veri.js" in js and "foto-uretim.js" in js, str(js)))
-    s.append(("Y4 bolum durustluk ifadesini tasir", DURUSTLUK in bolum, ""))
+    s.append(("Y4 durustluk ifadesi manifestte (plaket turu `durustluk`)", DURUSTLUK in veri, ""))
+    s.append(("Y4b bolum ust kutuyu secili turun `durustluk`undan basar, sabit metin YOK",
+              "t.durustluk" in bolum and "durustlukGuncelle();" in bolum and DURUSTLUK not in bolum
+              and "4 renkle kabartma olarak" not in bolum, ""))
     yasak = [k for k in ("3d bask", "3 boyutlu bask", "fethiye", "göcek", "gocek")
              if k in bolum.lower() or k in veri.lower()]
     s.append(("Y4 '3D baski' / sehir adi YOK", not yasak, ",".join(yasak)))
@@ -101,7 +112,9 @@ def kontroller(index, bolum, veri, build):
     # Y8 PLAKET (BaBa 5 Eki 21:4x(b)): veri dosyasinin `turler` dizisinde TEK tur = plaket.
     tb = re.search(r"\bturler:\s*\[(.*?)\n\s*\],", veri, re.S)
     kodlar = re.findall(r'\bkod:\s*"([^"]+)"', tb.group(1)) if tb else []
-    s.append(("Y8 sunulan tur sayisi 1 ve kodu plaket", kodlar == ["plaket"], str(kodlar)))
+    # 6 Eki (kategori kaydi): tek-tur yerine "plaket VAR + metal gerektiren tur 0".
+    s.append(("Y8 plaket VAR ve anahtarlik/magnet/figur turu 0",
+              "plaket" in kodlar and not any(k in kodlar for k in ("anahtarlik", "magnet", "figur")), str(kodlar)))
     eski = [k for k in ("anahtarl", "magnet", "mıknatıs", "miknatis")
             if k in bolum.lower() or k in (tb.group(1).lower() if tb else "")]
     s.append(("Y8 anahtarlik/magnet secenegi ekranda + tur listesinde 0", not eski, ",".join(eski)))
@@ -111,6 +124,21 @@ def kontroller(index, bolum, veri, build):
               is not None, ""))
     s.append(("Y9 adim cubugu tur sayisina gore 'Ölçü' der",
               'F.turler.length > 1 ? "Tür ve ölçü" : "Ölçü"' in bolum, ""))
+    # Y10 RENDER ORNEGI (Okan 7 Eki): kanit izni tur kaydinda, izin kontrolu sayacta.
+    izinler = dict(re.findall(r'kod:\s*"([a-z]+)",.*?ornek_kanit_izni:\s*(\[[^\]]*\])', veri, re.S))
+    s.append(("Y10 kanit izni: plaket [baski,render] · litofan [baski,render] (Okan 7 Eki G1)",
+              izinler.get("plaket") == '["baski", "render"]' and izinler.get("litofan") == '["baski", "render"]', str(izinler)))
+    s.append(("Y10 sayac izin disi kaniti saymaz (izin kontrolu veri dosyasinda)",
+              re.search(r"if \(!k \|\| izin\.indexOf\(k\) < 0\) \{ return false; \}", veri) is not None, ""))
+    dal = "".join(re.findall(r'if \(it\.kanit === "render"\) \{(.*?)\} else \{', bolum, re.S))
+    # Cumle tur kaydinda (`ornek_notu`, mimar karari 7 Eki): bolum yalniz kayittan basar.
+    notlar = dict(re.findall(r'kod:\s*"([a-z]+)",.*?ornek_notu:\s*"([^"]*)"', veri, re.S))
+    s.append(("Y10 render dalinda 'önizleme/render' etiketi + tur cumlesi (ornek_notu) kayittan",
+              '"önizleme/render"' in dal and "it.tur.ornek_notu" in dal and "kabartmalı" not in bolum, ""))
+    s.append(("Y10 plaket ornek_notu = karar cumlesi AYNEN", notlar.get("plaket") == RENDER_CUMLE, str(notlar.get("plaket"))))
+    s.append(("Y11 litofan ornek_notu = litofan cumlesi AYNEN ('kabartmalı' 0)",
+              notlar.get("litofan") == LITOFAN_CUMLE, str(notlar.get("litofan"))))
+    s.append(("Y10 render dalinda 'gerçek fotoğraf' metni 0", bool(dal) and "gerçek fotoğraf" not in dal.lower(), ""))
     return s
 
 
@@ -147,13 +175,26 @@ def main():
         mutantlar.append(("M1 kap kategorilerin ALTINA tasindi", (tasinmis, bolum, veri, build), True))
     mutantlar += [
         ("M2 gorunum listesinden dustu", (index.replace(', "fotoUretim"]', "]"), bolum, veri, build), True),
-        ("M3 durustluk ifadesi silindi", (index, bolum.replace(DURUSTLUK, "önizlemenin yorumu"), veri, build), True),
+        ("M3 durustluk ifadesi silindi", (index, bolum, veri.replace(DURUSTLUK, "önizlemenin yorumu"), build), True),
+        ("M14 bolum sabit durustluk metnine dondu",
+         (index, bolum.replace("t && t.durustluk ? t.durustluk : \"\"", "\"Ürün en çok 4 renkle kabartma olarak üretilir\""), veri, build), True),
         ("M4 beyaz listeden dustu", (index, bolum, veri, build.replace('"foto-uretim.js", ', "", 1).replace(', "foto-uretim.js"', "", 1)), True),
         ("M5 oturum anahtari ayristi", (index, bolum.replace(OTURUM_ANAHTARI, "pruvo_foto_sip"), veri, build), True),
         ("M6 anahtarlik tur listesine geri eklendi",
          (index, bolum, veri.replace('kod: "plaket",', 'kod: "plaket",\n      },\n      {\n        kod: "anahtarlik",', 1), build), True),
         ("M7 tek tur dali silindi",
          (index, re.sub(r"if \(S\.acikVeri\.turler\.length === 1\) \{[^}]*\}\n", "", bolum, count=1), veri, build), True),
+        ("M8 izin kontrolu silindi",
+         (index, bolum, veri.replace("if (!k || izin.indexOf(k) < 0) { return false; }", "if (!k) { return false; }", 1), build), True),
+        ("M9 abarti cumlesi degisti", (index, bolum, veri.replace("kabartmalı hâlidir, birebir aynısı değildir.", "kabartmalı hâlidir.", 1), build), True),
+        ("M12 litofan cumlesi plaketinkiyle degisti", (index, bolum, veri.replace(LITOFAN_CUMLE, RENDER_CUMLE, 1), build), True),
+        ("M13 bolum sabit cumleye dondu",
+         (index, bolum.replace("it.tur.ornek_notu", '"' + RENDER_CUMLE + '"', 1), veri, build), True),
+        ("M10 render etiketi 'gerçek fotoğraf' oldu",
+         (index, bolum.replace('"foto-uretim-ornek-etiket", "önizleme/render"', '"foto-uretim-ornek-etiket", "Basılmış ürün (gerçek fotoğraf)"', 1), veri, build), True),
+        ("M11 litofanin render izni geri alindi",
+         (index, bolum, veri.replace('arkadan ışıklı render\'ı).\n        ornek_kanit_izni: ["baski", "render"]',
+                                     'arkadan ışıklı render\'ı).\n        ornek_kanit_izni: ["baski"]', 1), build), True),
         ("K0 kontrol: yorum eklendi", (index.replace("</body>", "<!-- k0 -->\n</body>", 1), bolum, veri, build), False),
     ]
     taban = kirmizi_sayisi(index, bolum, veri, build)

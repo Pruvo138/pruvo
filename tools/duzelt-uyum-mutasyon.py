@@ -107,9 +107,9 @@ def sha(yol):
 M1 = ("M1", "TEKIL yolda `uyum` izinli alan kumesinden DUSURULDU (yol yariya kapanir)",
       "duzelt",
       [('        if alan not in DEGISTIRILEBILIR:\n'
-        '            print("HATA: bilinmeyen/izinsiz alan: %s (izinli: %s)"',
+        '            print("HATA: %s" % _izinsiz_alan_mesaji(alan), file=sys.stderr)',
         '        if alan not in DEGISTIRILEBILIR or alan == UYUM_ALANI:\n'
-        '            print("HATA: bilinmeyen/izinsiz alan: %s (izinli: %s)"')],
+        '            print("HATA: %s" % _izinsiz_alan_mesaji(alan), file=sys.stderr)')],
       ["D1"], "ESIT")
 
 M2 = ("M2", "TEKIL yolda MARKA TURETIM KABLOSU kesildi (marka bayat kalir)",

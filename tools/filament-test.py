@@ -346,8 +346,8 @@ def parite_eslem_testi():
 def ehil_testi(urunler):
     """`python3 tools/filament-test.py --ehil-testi` — agsiz, build'siz fikstur.
     baski_urunu_mu'nun EHLIYETI: duz kayit EHIL, gizli/tur=fiziksel EHIL DEGIL; GERCEK
-    katalogda EHIL seciminden gizli SIFIR kacar VE katalogda gizli > 0 (E6=E5'in ayirt
-    edici oldugunu ispatlar; aksi halde test kendi kendini kandirir)."""
+    katalog + sentetik gizli kayitta EHIL seciminden gizli SIFIR kacar VE gercek katalogda
+    gizli = 0 (Okan kurali 6 Eki 2026)."""
     gecen = 0
     toplam = 0
 
@@ -367,13 +367,16 @@ def ehil_testi(urunler):
         "E3: tur='fiziksel' kayit EHIL DEGIL")
     ona(baski_urunu_mu({"id": "x", "gizli": False}) is True,
         "E4: gizli=False olan duz kayit EHIL")
-    gizli_ehilde = [u for u in urunler if baski_urunu_mu(u) and u.get("gizli")]
-    ona(len(gizli_ehilde) == 0,
-        "E5: GERCEK katalogda EHIL seciminden gizli SIFIR kacar (len=%d)"
+    # OKAN 6 Eki 2026: `gizli` alani YASAK -> gercek katalogda gizli kayit 0. E5'in ayirt
+    # ediciligi artik gercek gizli kayda degil, kataloga EKLENEN sentetik gizli kayda dayanir.
+    sinama = list(urunler) + [{"id": "sinama-gizli-ehil", "gizli": True}]
+    gizli_ehilde = [u for u in sinama if baski_urunu_mu(u) and u.get("gizli")]
+    ona(len(gizli_ehilde) == 0 and len(sinama) > len(urunler),
+        "E5: GERCEK katalog + 1 sentetik gizli kayit -> EHIL seciminden gizli SIFIR kacar (len=%d)"
         % len(gizli_ehilde))
-    toplam_gizli = sum(1 for u in urunler if u.get("gizli"))
-    ona(toplam_gizli > 0,
-        "E6: GERCEK katalogda gizli kayit sayisi > 0 (count=%d) — E5 ayirt edici"
+    toplam_gizli = sum(1 for u in urunler if "gizli" in u)
+    ona(toplam_gizli == 0,
+        "E6: GERCEK katalogda `gizli` alanli kayit = 0 (Okan kurali 6 Eki; count=%d)"
         % toplam_gizli)
     return (gecen, toplam)
 

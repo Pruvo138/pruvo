@@ -4649,7 +4649,7 @@ def kart_ozeti(p):
     🔴 `tur` (31 Tem / 1 Ağu) TAM DA O ALAN OLDU ve sözleşme İHLAL EDİLMİŞTİ: satirOzeti
     fiziksel üründe malzeme/renk çarpanını 1,00'e sabitler; kartta `tur` yoksa edge modunda
     panel bayat bir sepet satırını ×1,84 gösterip Worker liste fiyatını tahsil ediyordu
-    (ölçüldü: international-micron-99-antifouling-boya-20lt → panel 15.842.400 krs, sunucu
+    (ölçüldü: international-micron-99-antifouling-boya-20lt (ürün 6 Eki 2026'da silindi) → panel 15.842.400 krs, sunucu
     8.610.000 krs, fark 7.232.400 krs; 103 fiziksel üründe toplam 53.270.280 krs) ve panel
     "Malzeme: ASA (+%60) · Renk: turuncu (özel, +%15)" yazıp aynı şişik tutarı WhatsApp
     mesajına koyuyordu. Kapı: tools/edge-kart-kapisi.py (satirOzeti'nin OKUDUĞU alanları

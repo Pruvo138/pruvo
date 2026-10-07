@@ -27,7 +27,7 @@ PY = sys.executable or "python3"
 
 # thing-hazirla.py'nin import ettigi kardes moduller (izole agaca tasinir).
 KARDESLER = ["thing-hazirla.py", "thing-meta-geridoldur.py", "veri_kok.py",
-             "baski_ipucu.py", "drive_yolu.py", "olcu_saglik.py", "olcu_parca.py"]
+             "baski_ipucu.py", "drive_yolu.py", "drive_birak.py", "olcu_saglik.py", "olcu_parca.py"]
 
 THINGIVERSE_DETAIL = {
     "id": 424242,

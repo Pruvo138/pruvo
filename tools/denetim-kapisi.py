@@ -1386,12 +1386,12 @@ def kapi_gorselsiz(urun):
 # main'e gecince Merchant feed'e vape/e-sigara tasirsa GERCEK bir red gelene kadar kimse
 # GORMEZ — sessiz satis kaybi. Bu kapi urunu EKLEME ANINDA yakalar.
 #
-# KAPSAM: gizli OLMAYAN kayit (gizli kayitlar build.load_products() ile elendigi icin
-# merchant-feed.xml'e GIRMEZ; zaten feed kapisi da gormez). Tabanda OLMAYAN (bilinen
+# KAPSAM: HER kayit (Okan kurali 6 Eki 2026: `gizli` alani YASAK, gizli kayit muafiyeti
+# KALKTI). Tabanda OLMAYAN (bilinen
 # borc olarak kabul edilmis). Baslik/aciklamada feed BLOKLAYICI jeton kumesinden en az
 # biri geciyorsa → ihlal (urun SILINMEZ; kapsamci karar). Cozum yolu mesajda:
-#   * Gizle (yayindan cek): `tools/duzelt.py <id> --alan gizli=true` — gizli urunler
-#     merchant-feed.xml'e HICBIR ZAMAN girmez, ekleme hatti temizlenir.
+#   * Metni duzelt (`tools/duzelt.py <id> --alan baslik/aciklama`) ya da aday EKLEME
+#     ONCESI elenir; Okan "sil" dediyse TAMAMEN sil. GIZLEME care DEGIL (Okan 6 Eki).
 #   * Kabul ediyorsan: tools/feed-politika-taban.json'a kayit EKLE (kok_baslangic'i da
 #     guncelle). Tabana yazilan kayit feed kapisi tarafindan YESIL sayilir.
 #
@@ -1422,13 +1422,11 @@ def _feed_taban_idleri():
 def kapi_feed_bloklayici(urun):
     """(ihlal_kapi|None, gerekce) — KAPI 11 (K390). gizli OLMAYAN + feed tabaninda OLMAYAN
     kayit, BLOKLAYICI jetonu baslik/aciklamada tasiyorsa → ihlal (SİLMEZ, bloklar).
-    Okan hukmu (K390): urun SILINMEZ; care `gizli:true` ile yayindan cekmek ya da
-    tabana borc olarak kaydetmek.
+    Care: metni duzeltmek, adayi EKLEME ONCESI elemek ya da tabana borc olarak
+    kaydetmek. Gizleme care DEGIL (Okan kurali 6 Eki 2026).
     """
     if not isinstance(urun, dict):
         return None, ""
-    if urun.get("gizli"):
-        return None, ""                          # gizli kayitlar feed'e GIRMEZ -> kapsam disi
     uid = urun.get("id")
     if uid in _feed_taban_idleri():
         return None, ""                          # bilinen borc -> kapsam disi
@@ -1437,9 +1435,9 @@ def kapi_feed_bloklayici(urun):
     if not bulunan:
         return None, ""
     return "feed-bloklayici", (
-        "feed BLOKLAYICI jetonu musteriye gorunen metinde: %s — urun SİLİNMEZ (Okan hukmu). "
-        "Cozum yolu: (a) `tools/duzelt.py %s --alan gizli=true` ile gizle (gizli kayitlar "
-        "merchant-feed.xml'e HICBIR ZAMAN girmez), veya (b) borcu kabul et: "
+        "feed BLOKLAYICI jetonu musteriye gorunen metinde: %s. "
+        "Cozum yolu: (a) metni duzelt (`tools/duzelt.py %s --alan baslik/aciklama`) ya da "
+        "adayi EKLEME ONCESI ele — GIZLEME YOK (Okan kurali 6 Eki 2026), veya (b) borcu kabul et: "
         "tools/feed-politika-taban.json'a kayit EKLE (`kok_baslangic` da +1)."
         % ("/".join(bulunan), uid))
 
@@ -1778,6 +1776,9 @@ def _uygula(sil_ids, gerekce_map):
     """auto_sil + dedup.sil id'lerini duzelt.py --sil ile SIRAYLA uygular (flock+guard)."""
     ok, hata = [], []
     for uid in sil_ids:
+        # TEST YUKU SIGORTASI: test baglaminda (PRUVO_TEST_KUM) veri koku kumun disindaysa
+        # ya da testi baslatan ebeveyn olmusse (yetim torun) HER silmeden ONCE durur.
+        _vk.test_kumu_denetle(URUNLER)
         gerekce = "denetim-kapisi: " + gerekce_map.get(uid, "otomatik eleme")
         p = subprocess.run(["python3", DUZELT, str(uid), "--sil", gerekce],
                            capture_output=True, text=True)
@@ -1984,7 +1985,9 @@ def _kt_onay_batarya(iddia):
         if ek_urun:
             yaz(taban + ek_urun)              # COMMIT EDILMEZ -> parti = ek_urun
         s0, n0 = sha_sayi()
-        surec_env = dict(os.environ)
+        # 🔴 VERI KOKU ACIKCA depoya SABITLENIR (miras PRUVO_VERI_KOK EZILIR) + test kumu
+        # sigortasi: 6 Eki'de miras kok bu alt sureci GERCEK kataloga yazdirdi (M1 mutanti).
+        surec_env = _vk.test_ortami(depo, tmp)
         if not izinli:
             surec_env.pop("PRUVO_URUN_SIL_IZNI", None)
         else:
@@ -2139,7 +2142,8 @@ def kendini_test():
                "--rapor", os.path.join(tmp, "rapor.json")]
         if ek:
             cmd += ek
-        p = subprocess.run(cmd, cwd=depo, capture_output=True, text=True)
+        p = subprocess.run(cmd, cwd=depo, capture_output=True, text=True,
+                           env=_vk.test_ortami(depo, tmp))    # miras PRUVO_VERI_KOK EZILIR
         return p.returncode, (p.stdout or "") + (p.stderr or "")
 
     g("init", "-q")
@@ -2328,7 +2332,7 @@ def kendini_test():
     yaz(p6)
     commit("K390 K11 vaka 1 geri alindi")
 
-    # Gizli + vape -> temiz (gizli kayitlar feed'e GIRMEDIGI icin kapsam disi)
+    # Gizli + vape -> KIRMIZI (Okan kurali 6 Eki 2026: gizli muafiyeti KALKTI)
     vape_gizli = _kt_urun("v2", baslik="Renault Laguna Vape Tutucu Aparati v2",
                           aciklama="Araca vape cihazini sabitlemek icin tutucu. "
                                    "Yaklasik dis olculer: 40 × 30 × 12 mm.",
@@ -2336,8 +2340,8 @@ def kendini_test():
     yaz(p6 + [vape_gizli])
     commit("K390 K11: gizli + vape tasiyor")
     rc, out = kos()
-    iddia("K11-4 gizli + vape -> rc 0 (kapsam disi; feed'e GIRMEZ)",
-          rc == 0 and "feed-bloklayici" not in out,
+    iddia("K11-4 gizli + vape -> rc 1 (gizli muafiyet DEGIL, Okan 6 Eki)",
+          rc == 1 and "feed-bloklayici" in out,
           "rc=%d out_feed_bloklayici=%s" % (rc, "feed-bloklayici" in out))
     # Geri al
     yaz(p6)
