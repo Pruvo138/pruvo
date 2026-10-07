@@ -15,12 +15,17 @@ KOL:
       AYNI AD + AYNI ICERIK → atlanir
   e)  KOPYA BOZULURSA (sahte copy) sha esit degil → yerel KALIR, rc=1
   f)  Drive koku YOK → exit 2, hicbir sey silinmez
-  g)  evict hatasi → yerel silinmis, rc=0, evict_hata=1
+  g)  evict 3x hata → 3 deneme, yerel DURUR, rc=0, evict_hata=1
+  h)  yukleme BITMEDI (tavan) → evict CAGRILMAZ, yerel DURUR, BEKLIYOR, rc=3;
+      sonraki kosum (yuklendi) ayni icerigi devralir → evict + sil
+  i)  yukleme gec biter → yoklama SONRA evict, evict SONRA yerel sil
 
 MUTANT (arac kolunda):
   sha kontrolu silinince (e) KIRMIZI
   kuru kontrolu silinince (c) KIRMIZI
   yerel-tut silinince (b) KIRMIZI
+  yukleme beklemesi kaldirilinca (h) KIRMIZI
+  sha kontrolu kaldirilinca evict/sil zinciri (e-zincir) KIRMIZI
 """
 import hashlib
 import os
@@ -69,8 +74,29 @@ def sahte_evict(komut_dosyasi):
     """Sahte evict: dosyaya 'evict=<path>' yazar ve rc=0 döner."""
     # Komut 'sh <yol>' gibi olur; bizimki sh çağıran parametre yazımı.
     yazici = open(komut_dosyasi, "w", encoding="utf-8")
-    yazici.write("#!/bin/sh\necho evict=\"$1\" >> \"$DRIVE_ARSIVLE_LOG\"\nexit 0\n")
+    # SAHTE_KAYNAK verilirse evict anindaki yerel kaynak durumu da yazilir (sira olcumu).
+    yazici.write(
+        "#!/bin/sh\necho evict=\"$1\" >> \"$DRIVE_ARSIVLE_LOG\"\n"
+        "if [ -n \"$SAHTE_KAYNAK\" ]; then\n"
+        "  if [ -e \"$SAHTE_KAYNAK\" ]; then echo kaynak_var=1 >> \"$DRIVE_ARSIVLE_LOG\";\n"
+        "  else echo kaynak_var=0 >> \"$DRIVE_ARSIVLE_LOG\"; fi\nfi\nexit 0\n")
     yazici.close()
+    os.chmod(komut_dosyasi, 0o755)
+
+
+def sahte_yukleme(komut_dosyasi):
+    """Sahte 'yukleme bitti mi': 'yokla=<yol>' yazar; SAHTE_YUKLEME_MOD:
+    evet (varsayilan) rc=0 · hayir rc=1 · gec:N ilk N yoklama rc=1, sonra rc=0."""
+    with open(komut_dosyasi, "w", encoding="utf-8") as f:
+        f.write(
+            "#!/bin/sh\necho yokla=\"$1\" >> \"$DRIVE_ARSIVLE_LOG\"\n"
+            "case \"${SAHTE_YUKLEME_MOD:-evet}\" in\n"
+            "  evet) exit 0;;\n"
+            "  hayir) exit 1;;\n"
+            "  gec:*) n=\"${SAHTE_YUKLEME_MOD#gec:}\"; s=\"$DRIVE_ARSIVLE_LOG.sayac\";\n"
+            "    c=$(cat \"$s\" 2>/dev/null || echo 0); c=$((c+1)); echo \"$c\" > \"$s\";\n"
+            "    [ \"$c\" -gt \"$n\" ] && exit 0; exit 1;;\n"
+            "esac\nexit 1\n")
     os.chmod(komut_dosyasi, 0o755)
 
 
@@ -113,9 +139,94 @@ def main():
         shutil.rmtree(gecici, ignore_errors=True)
 
 
+def _oku(yol):
+    try:
+        with open(yol, encoding="utf-8") as f:
+            return f.read()
+    except OSError:
+        return ""
+
+
+def kol_bekleme(arac, gecici, evict_sh, etiket):
+    """(h) Yukleme BITMEDI + tavan → [(iddia_adi, kosul)]. Gercek arac ve mutant ayni kolu kosar."""
+    d = tempfile.mkdtemp(prefix="h-%s-" % etiket, dir=gecici)
+    drive = os.path.join(d, "drive")
+    os.makedirs(drive)
+    yol = os.path.join(d, "h.txt")
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write("h ici")
+    log = os.path.join(d, "h.log")
+    open(log, "w").close()
+    rc, cikti = kos(
+        [arac, yol, "--hedef", "bekle/", "--drive-kok", drive, "--evict-komut", evict_sh,
+         "--yokla-aralik", "0.05", "--yukleme-tavan", "0.3"],
+        ortam={"DRIVE_ARSIVLE_LOG": log, "SAHTE_YUKLEME_MOD": "hayir"},
+    )
+    l = _oku(log)
+    return [
+        ("evict CAGRILMADI", "evict=" not in l),
+        ("yerel kaynak DURUYOR", os.path.isfile(yol)),
+        ("hedef Drive'da var", os.path.isfile(os.path.join(drive, "bekle", "h.txt"))),
+        ("durum=BEKLIYOR satiri", "durum=BEKLIYOR" in cikti),
+        ("rc=3", rc == 3),
+        ("bekliyor=1 silindi=0", "bekliyor=1" in cikti and "silindi=0" in cikti),
+        ("aralikla >=2 yoklama", l.count("yokla=") >= 2),
+    ], (yol, drive, log, rc, cikti)
+
+
+def kol_sha_zincir(modul, gecici, evict_sh, etiket):
+    """(e-zincir) Kopya bozuk → [(iddia_adi, kosul)]: yukleme yoklanmaz, evict yok, yerel durur."""
+    d = tempfile.mkdtemp(prefix="e-%s-" % etiket, dir=gecici)
+    drive = os.path.join(d, "drive")
+    os.makedirs(drive)
+    yol = os.path.join(d, "e.txt")
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write("e zincir ici")
+    log = os.path.join(d, "e.log")
+    open(log, "w").close()
+
+    def _bozuk(src, dst, *a, **kw):
+        with open(src, "rb") as f:
+            v = f.read()
+        v = v[:-1] + bytes([(v[-1] ^ 0xFF) & 0xFF])
+        with open(dst, "wb") as f:
+            f.write(v)
+    import io
+    orijinal = modul.shutil.copy2
+    eski_out, eski_log = sys.stdout, os.environ.get("DRIVE_ARSIVLE_LOG")
+    buf = io.StringIO()
+    modul.shutil.copy2 = _bozuk
+    os.environ["DRIVE_ARSIVLE_LOG"] = log
+    try:
+        sys.stdout = buf
+        rc = modul.main([yol, "--hedef", "zincir/", "--drive-kok", drive,
+                         "--evict-komut", evict_sh, "--yokla-aralik", "0.05"])
+    finally:
+        sys.stdout = eski_out
+        modul.shutil.copy2 = orijinal
+        if eski_log is None:
+            os.environ.pop("DRIVE_ARSIVLE_LOG", None)
+        else:
+            os.environ["DRIVE_ARSIVLE_LOG"] = eski_log
+    l = _oku(log)
+    return [
+        ("rc=1", rc == 1),
+        ("HATA=sha-esit-degil", "HATA=sha-esit-degil" in buf.getvalue()),
+        ("yukleme YOKLANMADI", "yokla=" not in l),
+        ("evict CAGRILMADI", "evict=" not in l),
+        ("yerel kaynak DURUYOR", os.path.isfile(yol)),
+    ]
+
+
 def _kollar(gecici):
     kaynak, drive, evict_sh, log = hazirla(gecici)
     sahte_evict(evict_sh)
+    # Yukleme sinyali TUM kollarda sahte (gercek swift/Drive YOK); varsayilan mod 'evet'.
+    yukleme_sh = os.path.join(gecici, "yukleme.sh")
+    sahte_yukleme(yukleme_sh)
+    os.environ["DRIVE_ARSIVLE_YUKLEME"] = yukleme_sh
+    os.environ.pop("SAHTE_YUKLEME_MOD", None)
+    os.environ.pop("SAHTE_KAYNAK", None)
 
     # ---- (a) temel akış + sil + evict --------
     print("A — danı°s kopyalanır, sha eşit, yerel silinir, evict çağrılır")
@@ -314,7 +425,7 @@ def _kollar(gecici):
     iddia("F3 yerel kaynak DURUYOR", os.path.isfile(f_yol))
 
     # ---- (g) evict hatası --------
-    print("G — evict HATASI → yerel silinmiş, rc=0, evict_hata=1")
+    print("G — evict 3x HATA → 3 deneme, yerel DURUR, rc=0, evict_hata=1")
     g_yol = os.path.join(kaynak, "alt", "c.txt")
     with open(g_yol, "w", encoding="utf-8") as f:
         f.write("cccc")
@@ -325,15 +436,91 @@ def _kollar(gecici):
     open(g_log, "w").close()
     rc, cikti = kos(
         [ARAC, g_yol, "--hedef", "deneme_g/", "--drive-kok", drive,
-         "--evict-komut", g_evict],
+         "--evict-komut", g_evict, "--yokla-aralik", "0.05"],
         ortam={"DRIVE_ARSIVLE_LOG": g_log},
     )
     iddia("G1 rc=0 (evict hatasi rc degistirmez)", rc == 0, "rc=%d" % rc)
     iddia("G2 evict_hata=1", "evict_hata=1" in cikti)
     iddia("G3 evict=hata satiri var", "evict=hata" in cikti)
-    iddia("G4 yerel kaynak SILINDI", not os.path.exists(g_yol))
+    iddia("G4 yerel kaynak DURUYOR (evict olmadan silinmez)", os.path.exists(g_yol))
     iddia("G5 hedef var (dosya kaybolmadi)",
           os.path.isfile(os.path.join(drive, "deneme_g", "c.txt")))
+    g_l = _oku(g_log)
+    iddia("G6 evict TAM 3 kez denendi", g_l.count("evict=") == 3,
+          "sayi=%d" % g_l.count("evict="))
+    iddia("G7 silindi=0", "silindi=0" in cikti)
+
+    # ---- (h) yukleme bitmedi + tavan → BEKLIYOR; sonraki kosum devralir --------
+    print("H — yukleme BITMEDI → evict YOK, yerel DURUR, BEKLIYOR, rc=3")
+    h_kontrol, (h_yol, h_drive, h_log, h_rc, h_cikti) = kol_bekleme(
+        ARAC, gecici, evict_sh, "gercek")
+    for ad, kosul in h_kontrol:
+        iddia("H " + ad, kosul, "rc=%d" % h_rc)
+    print("H-devam — yukleme bitti, ayni kaynak tekrar kosulur → atlandi_ayni + evict + sil")
+    open(h_log, "w").close()
+    rc, cikti = kos(
+        [ARAC, h_yol, "--hedef", "bekle/", "--drive-kok", h_drive, "--evict-komut", evict_sh,
+         "--yokla-aralik", "0.05", "--yukleme-tavan", "0.3"],
+        ortam={"DRIVE_ARSIVLE_LOG": h_log, "SAHTE_YUKLEME_MOD": "evet"},
+    )
+    iddia("H-devam rc=0", rc == 0, "rc=%d" % rc)
+    iddia("H-devam atlandi_ayni=1 evict_ok=1 silindi=1",
+          "atlandi_ayni=1" in cikti and "evict_ok=1" in cikti and "silindi=1" in cikti,
+          cikti[-200:])
+    iddia("H-devam yerel SILINDI", not os.path.exists(h_yol))
+
+    # ---- (i) yukleme gec biter: SIRA yokla → evict → sil --------
+    print("I — yukleme 2 yoklama gec biter → evict yuklemeden SONRA, sil evict'ten SONRA")
+    i_yol = os.path.join(kaynak, "alt", "i.txt")
+    with open(i_yol, "w", encoding="utf-8") as f:
+        f.write("i ici")
+    i_log = os.path.join(gecici, "i.log")
+    open(i_log, "w").close()
+    rc, cikti = kos(
+        [ARAC, i_yol, "--hedef", "deneme_i/", "--drive-kok", drive, "--evict-komut", evict_sh,
+         "--yokla-aralik", "0.05", "--yukleme-tavan", "5"],
+        ortam={"DRIVE_ARSIVLE_LOG": i_log, "SAHTE_YUKLEME_MOD": "gec:2",
+               "SAHTE_KAYNAK": i_yol},
+    )
+    i_satir = _oku(i_log).splitlines()
+    i_yokla = [n for n, s in enumerate(i_satir) if s.startswith("yokla=")]
+    i_evict = [n for n, s in enumerate(i_satir) if s.startswith("evict=")]
+    iddia("I1 rc=0", rc == 0, "rc=%d" % rc)
+    iddia("I2 3 yoklama (2 bitmedi + 1 bitti)", len(i_yokla) == 3, "yokla=%d" % len(i_yokla))
+    iddia("I3 TEK evict, son yoklamadan SONRA",
+          len(i_evict) == 1 and i_yokla and i_evict[0] > i_yokla[-1], str(i_satir))
+    iddia("I4 evict aninda yerel kaynak HALA VAR (sil evict'ten sonra)",
+          "kaynak_var=1" in i_satir, str(i_satir))
+    iddia("I5 kosum sonunda yerel SILINDI", not os.path.exists(i_yol))
+    iddia("I6 evict_ok=1 silindi=1", "evict_ok=1" in cikti and "silindi=1" in cikti)
+
+    # ---- (k) --kuru icerik OKUMAZ (Drive'da okuma = indirme; 7 Eki 666 MB olayi) --------
+    print("K — --kuru: sha256 CAGRILMAZ, hedef varsa yukleme sinyali okunur")
+    k_drive = os.path.join(gecici, "k_drive")
+    os.makedirs(os.path.join(k_drive, "kk"))
+    k_yol = os.path.join(k_drive, "kk", "k.txt")  # kaynak == hedef (Drive icinden kuru kosum)
+    with open(k_yol, "w", encoding="utf-8") as f:
+        f.write("k ici")
+    k_log = os.path.join(gecici, "k.log")
+    open(k_log, "w").close()
+    orijinal_sha = da.sha256_dosya
+    k_sha_cagri = []
+    da.sha256_dosya = lambda y: k_sha_cagri.append(y) or orijinal_sha(y)
+    os.environ["DRIVE_ARSIVLE_LOG"] = k_log
+    try:
+        rc, cikti = _calistir_is_ici(
+            [os.path.join(k_drive, "kk"), "--hedef", "kk", "--drive-kok", k_drive,
+             "--evict-komut", evict_sh, "--kuru"])
+    finally:
+        da.sha256_dosya = orijinal_sha
+        os.environ.pop("DRIVE_ARSIVLE_LOG", None)
+    iddia("K1 rc=0", rc == 0, "rc=%d" % rc)
+    iddia("K2 sha256 HIC cagrilmadi (icerik okunmadi)", k_sha_cagri == [],
+          "cagri=%d" % len(k_sha_cagri))
+    iddia("K3 yuklendi_okunan=1 yuklendi_evet=1",
+          "yuklendi_okunan=1" in cikti and "yuklendi_evet=1" in cikti, cikti[-200:])
+    iddia("K4 evict CAGRILMADI + kaynak DURUYOR",
+          "evict=" not in _oku(k_log) and os.path.isfile(k_yol))
 
     # ---- MUTANTLAR --------
     print()
@@ -404,8 +591,8 @@ def _kollar(gecici):
 
     print()
     print("M2 — kuru kontrolu silinince (c) KIRMIZI")
-    M2_CAPA = "if a.kuru:\n            continue"
-    M2_MUT = "if False:\n            continue"
+    M2_CAPA = "if a.kuru:\n            # KURU = SALT OKUMA"
+    M2_MUT = "if False:\n            # KURU = SALT OKUMA"
     iddia("M2-a CAPA TEKIL", govde.count(M2_CAPA) == 1, "isabet=%d" % govde.count(M2_CAPA))
     _mut2 = os.path.join(ayna, "tools", "drive-arsivle-m2.py")
     with open(_mut2, "w", encoding="utf-8") as f:
@@ -426,8 +613,8 @@ def _kollar(gecici):
 
     print()
     print("M3 — yerel-tut kontrolu silinince (b) KIRMIZI")
-    M3_CAPA = "if not a.yerel_tut:\n            try:\n                os.remove(tam_yol)\n                sayac[\"silindi\"] += 1"
-    M3_MUT = "if True:\n            try:\n                os.remove(tam_yol)\n                sayac[\"silindi\"] += 1"
+    M3_CAPA = "yerel_sil = not a.yerel_tut and"
+    M3_MUT = "yerel_sil = True and"
     iddia("M3-a CAPA TEKIL", govde.count(M3_CAPA) == 1,
           "isabet=%d" % govde.count(M3_CAPA))
     _mut3 = os.path.join(ayna, "tools", "drive-arsivle-m3.py")
@@ -444,6 +631,31 @@ def _kollar(gecici):
     iddia("M3-b mutant --yerel-tut YINE DE SİLDİ (kontrol yok)",
           rc_m3 == 0 and not os.path.exists(m3_yol),
           "yerel-tut'a ragmen silmis olmali (mutant)")
+
+    print()
+    print("M4 — yukleme beklemesi kaldirilinca (h) KIRMIZI")
+    M4_CAPA = "if not yukleme_bekle("
+    M4_MUT = "if False and yukleme_bekle("
+    iddia("M4-a CAPA TEKIL", govde.count(M4_CAPA) == 1, "isabet=%d" % govde.count(M4_CAPA))
+    _mut4 = os.path.join(ayna, "tools", "drive-arsivle-m4.py")
+    with open(_mut4, "w", encoding="utf-8") as f:
+        f.write(govde.replace(M4_CAPA, M4_MUT, 1))
+    m4_kontrol, _ = kol_bekleme(_mut4, gecici, evict_sh, "m4")
+    m4_dusen = [ad for ad, kosul in m4_kontrol if not kosul]
+    iddia("M4-b mutant H kolunda KIRMIZI (evict yuklemeden once)",
+          "evict CAGRILMADI" in m4_dusen and "yerel kaynak DURUYOR" in m4_dusen,
+          "dusen=%s" % m4_dusen)
+
+    print()
+    print("M5 — sha kontrolu kaldirilinca evict/sil zinciri KIRMIZI")
+    e_gercek = kol_sha_zincir(da, gecici, evict_sh, "gercek")
+    for ad, kosul in e_gercek:
+        iddia("E-zincir " + ad, kosul)
+    m5_kontrol = kol_sha_zincir(da_m1, gecici, evict_sh, "m5")
+    m5_dusen = [ad for ad, kosul in m5_kontrol if not kosul]
+    iddia("M5 mutant e-zincir KIRMIZI (bozuk kopyaya evict + yerel sil)",
+          "evict CAGRILMADI" in m5_dusen and "yerel kaynak DURUYOR" in m5_dusen,
+          "dusen=%s" % m5_dusen)
 
     print()
     print("=" * 70)
