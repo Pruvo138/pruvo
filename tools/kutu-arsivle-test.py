@@ -4831,6 +4831,84 @@ def mutasyon_turu():
     return 1 if basarisiz else 0
 
 
+# ------------------------------------------------------------ SAAT UYDURMA (7 Eki)
+# BaBa 07:5x: baslik saati kosum anindan ILERIDE olan blok `🔴 SAAT UYDURMA` satiri
+# alir. "simdi" `--simdi` ile ENJEKTE edilir — gercek saat okunmaz, vaka deterministik.
+# Bilerek VAKALAR'in DISINDA: --mutasyon turunun hedef-kol atif kumelerini (K182)
+# kaydirmaz; kendi mutantini kendisi tasir (karsilastirma ters -> KIRMIZI).
+SAAT_SIMDI = "2026-10-07 10:15"
+SAAT_MUTANT_CAPA = "        if (gun, bas_dk) > (s_gun, s_dk):\n"
+SAAT_MUTANT_YENI = "        if (gun, bas_dk) < (s_gun, s_dk):\n"
+
+
+def _saat_kos(arac, kok, kutu_metin, simdi=SAAT_SIMDI):
+    yaz(os.path.join(kok, "kutu.md"), kutu_metin)
+    komut = [sys.executable, "-B", arac, "--kutu", os.path.join(kok, "kutu.md"),
+             "--arsiv", os.path.join(kok, "kutu-arsiv.md"),
+             "--kilit", os.path.join(kok, ".kutu.lock"), "--kuru", "--simdi", simdi]
+    env = dict(os.environ)
+    env.pop("PRUVO_KUTU_ARSIVLE_ARIZA", None)
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    r = subprocess.run(komut, capture_output=True, text=True, env=env)
+    cikti = (r.stdout or "") + (r.stderr or "")
+    sayi = None
+    for satir in cikti.splitlines():
+        if satir.startswith("SAAT_UYDURMA="):
+            deger = satir.split("=", 1)[1].split()[0]
+            sayi = int(deger) if deger.isdigit() else None
+    return r.returncode, sayi, cikti
+
+
+def _saat_vakalari(arac, kok, iddia_fn):
+    """3 vaka (+ tarih ekseni). iddia_fn(ad, kosul, tani)."""
+    gecmis = ("# kutu\n\n## 2026-10-07 09:5x — gecmis A\n\ngovde\n\n"
+              "## 2026-10-06 23:10 — gecmis B\n\ngovde\n")
+    rc, n, c = _saat_kos(arac, kok, gecmis)
+    iddia_fn("S1 gecmis saatli bloklar -> SAAT_UYDURMA=0 (rc=0)", n == 0 and rc == 0,
+             "n=%s rc=%s" % (n, rc))
+    rc, n, c = _saat_kos(arac, kok, "# kutu\n\n## 2026-10-07 10:20 — ileri C\n\ngovde\n\n"
+                         + gecmis[len("# kutu\n\n"):])
+    iddia_fn("S2 kosumdan ILERI saat (10:20 > 10:15) -> SAAT_UYDURMA=1 + satir, rc DEGISMEDI",
+             n == 1 and rc == 0
+             and "🔴 SAAT UYDURMA: ## 2026-10-07 10:20 — ileri C (baslik 10:20 > kosum 10:15)" in c,
+             "n=%s rc=%s" % (n, rc))
+    sinir = "# kutu\n\n## 2026-10-07 10:1x — sinir D\n\ngovde\n"
+    _rc, n_ic, _c = _saat_kos(arac, kok, sinir, simdi="2026-10-07 10:10")
+    _rc, n_dis, c = _saat_kos(arac, kok, sinir, simdi="2026-10-07 10:09")
+    iddia_fn("S3 `x`li sinir: 10:1x @10:10 -> 0 (HH:M0 en erken), @10:09 -> 1",
+             n_ic == 0 and n_dis == 1 and "(baslik 10:1x > kosum 10:09)" in c,
+             "@10:10=%s @10:09=%s" % (n_ic, n_dis))
+    _rc, n, c = _saat_kos(arac, kok, "# kutu\n\n## 2026-10-08 — yarin E\n\ngovde\n")
+    iddia_fn("S4 tarih ILERI (saatsiz yarin) -> 1",
+             n == 1 and "(baslik 2026-10-08 saatsiz > kosum 2026-10-07 10:15)" in c,
+             "n=%s" % n)
+
+
+def saat_suiti(arac):
+    del GECTI[:]
+    del KIRMIZI[:]
+    print("\n[SAAT UYDURMA] deterministik vakalar (simdi=%s enjekte)" % SAAT_SIMDI)
+    kok = tempfile.mkdtemp(prefix="kutu-saat-test-")
+    try:
+        _saat_vakalari(arac, kok, iddia)
+        with open(arac, encoding="utf-8") as f:
+            kaynak = f.read()
+        n = kaynak.count(SAAT_MUTANT_CAPA)
+        if n != 1:
+            iddia("SM1 mutant capasi TEK kez tutmadi (OLCULEMEDI)", False, "bulunan=%d" % n)
+            return
+        mutant = os.path.join(kok, "mutant-saat-%d.py" % os.getpid())
+        yaz(mutant, kaynak.replace(SAAT_MUTANT_CAPA, SAAT_MUTANT_YENI))
+        mutant_kirmizi = []
+        _saat_vakalari(mutant, kok, lambda ad, kosul, tani="": (
+            None if kosul else mutant_kirmizi.append(ad)))
+        iddia("SM1 mutant (karsilastirma ters) -> KIRMIZI (%d vaka dustu)"
+              % len(mutant_kirmizi), len(mutant_kirmizi) > 0,
+              "mutant HICBIR vakayi dusurmedi")
+    finally:
+        shutil.rmtree(kok, ignore_errors=True)
+
+
 def main():
     ap = argparse.ArgumentParser(description="tools/kutu-arsivle.py kabul testi")
     ap.add_argument("--arac", default=ARAC, help="test edilecek arac yolu (mutant icin)")
@@ -4846,6 +4924,8 @@ def main():
     print("KUTU ARSIVLEYICI KABUL TESTI — arac: %s" % a.arac)
     print("=" * 78)
     g, k = suite(a.arac)
+    saat_suiti(a.arac)
+    g, k = g + GECTI, k + KIRMIZI
     print("\n" + "=" * 78)
     print("VAKA=%d  IDDIA=%d  GECTI=%d  KIRMIZI=%d" % (len(VAKALAR), len(g) + len(k),
                                                        len(g), len(k)))

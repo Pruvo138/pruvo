@@ -13,7 +13,8 @@ NE YAPAR (iki esik, iki ayri kol):
          istemiyorum" dedi, esik RED ile AYNI noktaya cekildi; ayrintisi ESIKLER blogunda.
   RED    (>=700 tur VEYA >=500K): YALNIZ KAPANIS-SINIFI arac gecer; gerisi RED
          "ONCE kapanis + /clear". Kapanis sinifi = defteri/kutuyu yazmak, commit/push
-         etmek ve okuma/olcme (grep/ls/git status) — yani oturumu KAPATMAYA yarayan
+         etmek, okuma/olcme (grep/ls/git status) ve oz-devir (ToolSearch ·
+         send_message · kendi oturumuna clear_session; Okan onayi 7 Eki) — yani oturumu KAPATMAYA yarayan
          her sey. Boylece kapi, kapanmasini istedigi seyi ENGELLEMEZ
          ([[koruma-kurali-korudugunu-durdurur]]).
   MEKANIK (kod/test dosyasina >=15 Write): RED "mekanik is m3'e" — hacim isi ucuz kata.
@@ -75,6 +76,21 @@ KAPANIS_BASH = (
     re.compile(r"^\s*(grep|rg|ls|cat|head|tail|wc|find|du|df|jq|sed -n|pgrep|ps)\b"),
     re.compile(r"\bkutu-arsivle\.py|defter-rotasyon\.py"),
 )
+
+# Oz-devir araclari (OKAN ONAYI 7 Eki 2026, "Evet, ekle"). Olculdu (BaBa 07:5x): TeKiN
+# 507K'da kendini temizleyemedi — `clear_session` ToolSearch ile YUKLENEMEDI,
+# `send_message` REDDEDILDI, Okan tek tikla /clear yazdi. Devir iletisi + self-clear
+# kapanisin PARCASIDIR. KAPSAM: `send_message` TUM oturumlara gider (devir iletisi
+# baska evin oturumuna yazilir; daraltilacak hedef yok).
+KAPANIS_DEVIR_ARACLARI = (
+    "ToolSearch",
+    "mcp__ccd_session_mgmt__send_message",
+)
+# `clear_session` semasi: `session_id` = "self" ya da bu oturumun baslattigi bosta bir
+# oturumun sessionId'si. Kapanis yalniz KENDI oturumunu temizler -> hedef "self"/bos
+# ise gecer; baska oturumu hedefleyen cagri RED kalir (daraltma).
+KAPANIS_TEMIZLE_ARACI = "mcp__ccd_session_mgmt__clear_session"
+KAPANIS_TEMIZLE_HEDEF = ("self", "")
 
 
 def _sayi(x):
@@ -139,6 +155,11 @@ def kapanis_sinifi_mi(arac, girdi):
     if arac == "Bash":
         komut = girdi.get("command") or ""
         return any(rx.search(komut) for rx in KAPANIS_BASH)
+    if arac == KAPANIS_TEMIZLE_ARACI:
+        hedef = str(girdi.get("session_id") or "").strip()
+        return hedef in KAPANIS_TEMIZLE_HEDEF
+    if arac in KAPANIS_DEVIR_ARACLARI:
+        return True
     # Okuma/arama araclari daima serbest — olcmek kapanisin parcasidir.
     return arac in ("Read", "Grep", "Glob", "TodoWrite", "AskUserQuestion")
 
@@ -184,6 +205,7 @@ def main():
                  "(tavan %dK). Her tur TUM baglami yeniden faturaliyor. ONCE KAPANIS "
                  "SONRA /clear: sayili kapanisi deftere+kutuya yaz, commit+push et, "
                  "oturumu kapat. Bu esikte YALNIZ kapanis-sinifi arac gecer "
+                 "(oz-devir: ToolSearch · send_message · clear_session self) "
                  "(defter/kutu Write · git commit/push · okuma-olcme)."
                  % (tur, RED_TUR, baglam // 1000, RED_JETON // 1000))
         sys.exit(0)

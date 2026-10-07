@@ -92,6 +92,20 @@ KUTU_WRITE = {"file_path": "/Users/okan/.claude/projects/-Users-okan-dev-pruvo/"
 COMMIT = {"command": "git -C /Users/okan/dev/pruvo commit -F -"}
 OLCUM = {"command": "grep -n 'x' tools/a.py"}
 AGIR = {"command": "python3 tools/agir-is.py --tum-katalog"}
+# Oz-devir araclari (Okan onayi 7 Eki 2026) — RED esiginde GECMELI
+TOOLSEARCH = {"query": "select:mcp__ccd_session_mgmt__clear_session", "max_results": 5}
+TEMIZLE_SELF = {"session_id": "self"}
+TEMIZLE_BOS = {}
+TEMIZLE_BASKA = {"session_id": "0b1c2d3e-aaaa-bbbb-cccc-000000000000"}
+ILET = {"session_id": "0b1c2d3e-aaaa-bbbb-cccc-000000000000", "message": "DEVIR yazdim"}
+DEFTER_EDIT = {"file_path": "/Users/okan/dev/pruvo/DEVAM.md",
+               "old_string": "a", "new_string": "b"}
+KOD_WRITE_X = {"file_path": "/Users/okan/dev/pruvo/tools/x.py", "content": "x"}
+KOD_EDIT_X = {"file_path": "/Users/okan/dev/pruvo/tools/x.py",
+              "old_string": "a", "new_string": "b"}
+A_TS = "ToolSearch"
+A_TEMIZLE = "mcp__ccd_session_mgmt__clear_session"
+A_ILET = "mcp__ccd_session_mgmt__send_message"
 
 # ── FIKSTURLER: her biri BIR esik iddiasini tasir ─────────────────────────────────
 F = {}
@@ -114,6 +128,8 @@ def fikstur_kur(kok):
                                           ad="eski-bant-jeton.jsonl")
     F["bant_ust_sinir"] = transkript_yaz(kok, tur=499, baglam=449_000,
                                          ad="bant-ust-sinir.jsonl")
+    # Oz-devir: TeKiN 7 Eki 507K'da kendini temizleyemedi -> sahte 510K transkript
+    F["red_510k"] = transkript_yaz(kok, tur=380, baglam=510_000, ad="red-510k.jsonl")
     # Mekanik kol
     F["mekanik"] = transkript_yaz(kok, tur=60, baglam=100_000, kod_write=16,
                                   ad="mekanik.jsonl")
@@ -167,6 +183,24 @@ def vaka3():
             karar, _s = kos(arac, girdi, F[eksen])
             iddia("3-%s @%s -> IZIN (kapanis sinifi)" % (ad, eksen), karar == "allow",
                   "karar=%s" % karar)
+
+
+def vaka3b():
+    print("\n[3b] OZ-DEVIR @510K — Okan onayi 7 Eki: ToolSearch · clear_session(self) · "
+          "send_message · DEVAM Edit GECER, kod Write/Edit RED")
+    for ad, arac, girdi in (("ToolSearch", A_TS, TOOLSEARCH),
+                            ("clear_session self", A_TEMIZLE, TEMIZLE_SELF),
+                            ("clear_session bos hedef", A_TEMIZLE, TEMIZLE_BOS),
+                            ("send_message", A_ILET, ILET),
+                            ("DEVAM.md Edit", "Edit", DEFTER_EDIT),
+                            ("git commit", "Bash", COMMIT)):
+        karar, s = kos(arac, girdi, F["red_510k"])
+        iddia("3b-%s @510K -> IZIN" % ad, karar == "allow", "karar=%s %s" % (karar, s[:80]))
+    for ad, arac, girdi in (("tools/x.py Write", "Write", KOD_WRITE_X),
+                            ("tools/x.py Edit", "Edit", KOD_EDIT_X),
+                            ("clear_session BASKA oturum (daraltma)", A_TEMIZLE, TEMIZLE_BASKA)):
+        karar, _s = kos(arac, girdi, F["red_510k"])
+        iddia("3b-%s @510K -> RED" % ad, karar == "deny", "karar=%s" % karar)
 
 
 def vaka4():
@@ -246,6 +280,24 @@ MUTANTLAR = [
     ("M7", "OLDURUCU", "\nUYARI_TUR = 700\n", "\nUYARI_TUR = 450\n",
      "4 — UYARI_TUR ayrilinca 699 turda uyari GERI GELIR (kol olu DEGIL, erisilmez)",
      [("Write", KOD_WRITE, "red_tur_alti", "allow+UYARI")]),
+    # M9-M13 (7 Eki): oz-devir uyeleri ve RED kolu — her biri 3b'deki TEK vakayi hedefler.
+    ("M9", "OLDURUCU", '    "ToolSearch",\n', "",
+     "3b — ToolSearch listeden silinince 510K'da RED",
+     [(A_TS, TOOLSEARCH, "red_510k", "deny")]),
+    ("M10", "OLDURUCU", '    "mcp__ccd_session_mgmt__send_message",\n', "",
+     "3b — send_message listeden silinince 510K'da RED",
+     [(A_ILET, ILET, "red_510k", "deny")]),
+    ("M11", "OLDURUCU", "    if arac == KAPANIS_TEMIZLE_ARACI:\n", "    if False:\n",
+     "3b — clear_session kolu silinince self-clear 510K'da RED",
+     [(A_TEMIZLE, TEMIZLE_SELF, "red_510k", "deny")]),
+    ("M12", "OLDURUCU", "        return hedef in KAPANIS_TEMIZLE_HEDEF\n",
+     "        return True\n",
+     "3b — daraltma kaldirilinca BASKA oturumu temizleme GECER",
+     [(A_TEMIZLE, TEMIZLE_BASKA, "red_510k", "allow*")]),
+    ("M13", "OLDURUCU", '            deny("BAGLAM KOTASI — RED: ',
+     '            print("BAGLAM KOTASI — RED: ',
+     "3b — RED kolunun deny'i silinince tools/x.py Write 510K'da GECER",
+     [("Write", KOD_WRITE_X, "red_510k", "allow*")]),
     ("M8", "KONTROL", '"(defter/kutu Write · git commit/push · okuma-olcme)."',
      '"(defter/kutu Write · git commit/push · okuma-olcme). [kontrol metni]"',
      "yalniz RED teshis metninin kuyrugu degisir -> HICBIR iddia degismemeli", None),
@@ -263,7 +315,12 @@ KONTROL_IZI = [("Write", KOD_WRITE, "red_jeton", "deny"),
                ("Write", KOD_WRITE, "eski_bant_jeton", "allow"),
                ("Write", KOD_WRITE, "bant_ust_sinir", "allow"),
                ("Write", KOD_WRITE, "alt", "allow"),
-               ("Write", KOD_WRITE, "mekanik", "deny")]
+               ("Write", KOD_WRITE, "mekanik", "deny"),
+               (A_TS, TOOLSEARCH, "red_510k", "allow*"),
+               (A_TEMIZLE, TEMIZLE_SELF, "red_510k", "allow*"),
+               (A_TEMIZLE, TEMIZLE_BASKA, "red_510k", "deny"),
+               (A_ILET, ILET, "red_510k", "allow*"),
+               ("Write", KOD_WRITE_X, "red_510k", "deny")]
 
 
 def _bekleneni_karsila(arac, girdi, fikstur, beklenen, betik):
@@ -337,6 +394,7 @@ def main():
         vaka1()
         vaka2()
         vaka3()
+        vaka3b()
         vaka4()
         vaka5()
         vaka6(kok)
