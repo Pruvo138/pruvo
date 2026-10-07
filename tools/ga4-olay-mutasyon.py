@@ -82,13 +82,11 @@ MUTANTLAR = [
       ("tools/marka_model_build.py",
        "window.pruvoGA4Track('generate_lead',{method:'help_cta'});",
        "/* sokuldu */"),
-      # index.html'de UC ayri temas noktasi var (help_cta | cart_order | satir_soru);
+      # index.html'de IKI ayri temas noktasi var (help_cta | satir_soru; sepetin toplu
+      # WhatsApp butonu ve onun cart_order cagrisi Okan emriyle 7 Eki'de SILINDI);
       # BIRI kalirsa "olu beyan" kolu hakli olarak YESIL kalir ve mutant EKSIK kurulur.
       ("index.html",
        "window.pruvoGA4Track('generate_lead',{method:'help_cta'});",
-       "/* sokuldu */"),
-      ("index.html",
-       "window.pruvoGA4Track('generate_lead',{method:'cart_order'});",
        "/* sokuldu */"),
       ("index.html",
        "window.pruvoGA4Track('generate_lead',{method:'satir_soru'});",

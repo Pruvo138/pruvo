@@ -12,10 +12,17 @@ icin gecici bir kok kurulur; kok, gercek agacin SEMBOLIK BAGLI aynasidir ve yaln
 mutasyona ugrayan dosyalar GERCEK KOPYADIR (861 MB'lik agac kopyalanmaz). Batarya
 sonunda canli agacin sha256 ozetleri bas=son karsilastirilir.
 
-🔴 CAPA JETONLARI AYRIK: kapinin yedi kolu `CTA-A1-ORAN`, `CTA-A2-BANT-PAYI`,
-`CTA-A3-SEPET-ALAN`, `CTA-A4-DOKUNMA-44`, `CTA-A5-KANAL-WA`, `CTA-A6-GECIS-ORAN`,
-`CTA-A7-ETIKET-SIGDI` jetonlariyla konusur; hicbiri digerinin alt dizesi DEGILDIR
-(bu depoda olculmus tuzak).
+🔴 CAPA JETONLARI AYRIK: kapinin kollari `CTA-A1-ORAN`, `CTA-A2-BANT-PAYI`,
+`CTA-A3-SEPET-ODEME`, `CTA-A4-DOKUNMA-44`, `CTA-A5-KANAL-WA`, `CTA-A7-ETIKET-SIGDI`,
+`CTA-A7-GECIS-GEOMETRI-YOK`, `CTA-A9-SEPET-WA-YOK` jetonlariyla konusur; hicbiri
+digerinin alt dizesi DEGILDIR (bu depoda olculmus tuzak).
+
+🔴 SEPET WHATSAPP BUTONU SILINDI (Okan emri, 7 Eki 2026, aynen: "whatsapp butonunu
+sepetten sil"): eski M4/M9/M11 (ikincil WhatsApp'in boyu/genisligi/etiket sarmasi)
+KONUSUZ kaldi — capalari kaynakta artik YOK, birakilsalardi `_capa_tekil` nobeti
+ARIZA sayardi. Yerlerine M16-M19 butonun GERI DONUS yollarini kovalar (eleman,
+farkli kimlikle etiket, yalniz JS kolu, yalniz olcum cagrisi); hepsini A9 oldurur.
+M6/M7 capasi `cartPay`e, M10 capasi odeme butonunun gecisine tasindi.
 
 🔴 DARALTMA VAKASI (11 Agu 2026): Okan "buton metne gore daralsin" dedi. Daraltma iki
 YENI sessiz bozulma sinifi acar ve batarya ikisini de kovalar — (a) buton WhatsApp
@@ -82,22 +89,6 @@ MUTANTLAR = [
        "'</button>'")],
      True),
 
-    ("M4 sepette WhatsApp odeme CTA'sini EZER (tam genislik + buyuk)",
-     [("index.html",
-       "padding:10px 16px;font-size:13.5px;width:fit-content;min-height:44px;"
-       "margin:8px auto 0}",
-       "padding:20px 16px;font-size:15.5px;width:100%;min-height:44px;"
-       "margin:8px auto 0}")],
-     True),
-
-    ("M9 ikincil WhatsApp `auto`ya doner (blok flex kabi satiri DOLDURUR)",
-     [("index.html",
-       "padding:10px 16px;font-size:13.5px;width:fit-content;min-height:44px;"
-       "margin:8px auto 0}",
-       "padding:10px 16px;font-size:13.5px;width:auto;min-height:44px;"
-       "margin:8px auto 0}")],
-     True),
-
     ("M5 WhatsApp dokunma hedefi 44 px'in ALTINA duser",
      [("tools/build.py",
        ".help-cta-btn{padding:11px 14px;font-size:13px;gap:6px;min-height:44px;flex:none}",
@@ -105,11 +96,11 @@ MUTANTLAR = [
      True),
 
     ("M6 olcum capasi kirilir -> OLCULEMEDI (sessiz yesil OLMAMALI)",
-     [("index.html", 'id="cartOrder"', 'id="cartSiparisBaglantisi"')],
+     [("index.html", 'id="cartPay"', 'id="cartOdemeButonu"')],
      True),
 
     ("M7 M6 + kapinin OLCULEMEDI kolu sessiz YESILE cevrilir",
-     [("index.html", 'id="cartOrder"', 'id="cartSiparisBaglantisi"'),
+     [("index.html", 'id="cartPay"', 'id="cartOdemeButonu"'),
       (KAPI_REL, "YESIL, KIRMIZI, OLCULEMEDI_RC = 0, 1, 3",
        "YESIL, KIRMIZI, OLCULEMEDI_RC = 0, 1, 0")],
      True),
@@ -123,23 +114,49 @@ MUTANTLAR = [
      True),
 
     # 🔴 M10 — CANLI VAKA (a): gecis penceresi geri acilir. `transition:.15s` kisayolu
-    # `transition-property` tasimadigi icin `all` demektir; sinif takasinin ilk karesinde
-    # odeme hala `.disabled` font-size'inde, WhatsApp hala `.ikincil` ONCESI dolgusunda
-    # render edilir ve ikincil kanal birincili GECER. Kapi bu kareyi gormezse mutant
-    # SAG KALIR — CTA-A6'nin var olma sebebi tam olarak budur.
-    ("M10 sepet CTA'larinda gecis yeniden `all` olur (ters render karesi geri gelir)",
+    # `transition-property` tasimadigi icin `all` demektir; `.disabled` takasinin ilk
+    # karesinde odeme hala eski (kucuk) geometrisinde render edilir — gorunmeyen sekmede
+    # KALICI. 7 Eki'den beri capa ODEME butonunun gecisidir (sepet WhatsApp butonu yok);
+    # mutanti CTA-A7-GECIS-GEOMETRI-YOK oldurur.
+    ("M10 sepet odeme CTA'sinda gecis yeniden `all` olur (ters render karesi geri gelir)",
      [("index.html",
-       "transition:background-color .15s,color .15s,border-color .15s;",
-       "transition:.15s;")],
+       "margin-bottom:8px;transition:background-color .15s,color .15s;",
+       "margin-bottom:8px;transition:.15s;")],
      True),
 
-    # 🔴 M11 — CANLI VAKA (b): WhatsApp etiketi 375 px'te SARACAK kadar uzar. `fit-content`
-    # kullanilabilir genislige kilitlenir, metin iki satira boluner ve buton 44 -> 63,5 px'e
-    # cikar. Kapi sarmayi modellemezse buton yine 44 px sanilir ve mutant SAG KALIR.
-    ("M11 WhatsApp etiketi 375 px'te SARAR (buton uzar, oran duser)",
+    # 🔴 M16-M19 — OKAN EMRI (7 Eki): sepetteki WhatsApp siparis butonu SILINDI. Her
+    # mutant butonun BIR geri donus yolunu acar; A9 her birini TEK BASINA oldurmeli.
+    ("M16 sepet WhatsApp butonu (#cartOrder + etiket) panele GERI konur",
      [("index.html",
-       "      WhatsApp ile Sipariş Ver\n",
-       "      WhatsApp ile Hemen Sipariş Ver ve Bilgi Al\n")],
+       '    <button id="cartClear" class="cart-clear">',
+       '    <a id="cartOrder" class="cart-order-btn" target="_blank" rel="noopener">\n'
+       '      WhatsApp ile Sipariş Ver\n'
+       '    </a>\n'
+       '    <button id="cartClear" class="cart-clear">')],
+     True),
+
+    ("M17 butonun etiketi + wa.me linki FARKLI kimlikle geri gelir (id kontrolu atlatilir)",
+     [("index.html",
+       '    <button id="cartClear" class="cart-clear">',
+       '    <a id="sepetWa" href="https://wa.me/905451386526" target="_blank">'
+       'WhatsApp ile Sipariş Ver</a>\n'
+       '    <button id="cartClear" class="cart-clear">')],
+     True),
+
+    ("M18 yalniz yoneten JS kolu geri gelir (getElementById(\"cartOrder\"))",
+     [("index.html",
+       '  function renderCartPanelGovde(){\n'
+       '    var wrap = document.getElementById("cartItems");\n',
+       '  function renderCartPanelGovde(){\n'
+       '    var wrap = document.getElementById("cartItems");\n'
+       '    var orderBtn = document.getElementById("cartOrder");\n')],
+     True),
+
+    ("M19 yalniz `cart_order` olcum cagrisi geri gelir",
+     [("index.html",
+       '    <button id="cartClear" class="cart-clear">',
+       '    <button id="cartClear" class="cart-clear" '
+       'onclick="window.pruvoGA4Track(\'generate_lead\',{method:\'cart_order\'});">')],
      True),
 
     # 🔴 M12 — DARALTMA VAKASI (a): masaustu dengeyi TUTAN sey delinir.
