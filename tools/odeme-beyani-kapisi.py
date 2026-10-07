@@ -320,7 +320,7 @@ if faq:
 
 ortusme_hatalari = []
 beklenen = {
-    "Nasıl sipariş verebilirim?": ["Sepete Ekle", "Havale/EFT veya Kartla Güvenli Öde", "WhatsApp ile Sipariş Ver", "malzeme", "renk"],
+    "Nasıl sipariş verebilirim?": ["Sepete Ekle", "Havale/EFT veya Kartla Güvenli Öde", "malzeme", "renk"],
     "Ödemeyi nasıl yapıyorum? Sitede kartla ödeme var mı?": ["kartla güvenli online ödeme", "iyzico", "WhatsApp"],
 }
 for soru, anahtarlar in beklenen.items():
@@ -334,12 +334,20 @@ kontrol(3, "SSS JSON-LD ve görünen sipariş/ödeme cevapları aynı kanal ve b
 # 4) SSS sipariş cevabındaki buton etiketleri kök index.html davranışında var.
 siparis_cevap = faq_map.get("Nasıl sipariş verebilirim?", "")
 buton_hatalari = []
-for etiket in ["Havale/EFT veya Kartla Güvenli Öde", "WhatsApp ile Sipariş Ver"]:
+for etiket in ["Havale/EFT veya Kartla Güvenli Öde"]:
     if etiket not in siparis_cevap:
         buton_hatalari.append("SSS cevabında yok: %s" % etiket)
     if etiket not in kok_html:
         buton_hatalari.append("index.html içinde yok: %s" % etiket)
-kontrol(4, "SSS sipariş cevabındaki buton etiketleri kök index.html içinde var", not buton_hatalari, ", ".join(buton_hatalari))
+# TERS İDDİA: sepetteki "WhatsApp ile Sipariş Ver" butonu (#cartOrder) KALDIRILDI.
+# Buton geri gelmeden SSS/hakkımızda metni (görünen veya JSON-LD) onu yeniden
+# anlatırsa müşteriye var olmayan butonu beyan etmiş oluruz -> KIRMIZI.
+# WhatsApp KANALI cümleleri ("WhatsApp'tan ilerletebilirsiniz") bu iddianın dışında.
+KALKAN_BUTON = "WhatsApp ile Sipariş Ver"
+for sayfa in ("sss", "hakkimizda"):
+    if KALKAN_BUTON in tum_statik[os.path.join(ROOT, sayfa, "index.html")]:
+        buton_hatalari.append("%s/index.html kaldırılan butonu anlatıyor: %s" % (sayfa, KALKAN_BUTON))
+kontrol(4, "SSS sipariş cevabındaki buton etiketleri kök index.html içinde var; kaldırılan buton anlatılmıyor", not buton_hatalari, ", ".join(buton_hatalari))
 
 # 5) Statik + landing gövdelerinde kart formu veya ödeme iframe'i yok.
 kart_input = re.compile(r"<input\b[^>]*(card|kart|cc|credit|pan|cvc|cvv|expiry|expire)", re.I)
