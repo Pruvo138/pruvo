@@ -800,6 +800,7 @@ tools/URUN-EKLEME-REHBERI.md
 .urunler-duzelt-izin.json
 .urunler-sil-izin.json
 .urunler-id-rename-izin.json
+.urunler-ekle-izin.json
 .urunler-guard.log
 # parity-backfill.py'nin Codex yargi adimi icin gecici I/O dosyalari (tools/ altina yazilir)
 tools/_yargi-out.json

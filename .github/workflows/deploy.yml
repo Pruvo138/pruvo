@@ -101,6 +101,12 @@ jobs:
       - name: "urunler-guard provenans + fail-loud kabulu"
         run: python3 tools/urunler-guard-provenans-test.py
 
+      # Ekle sahipligi (8 Eki 2026): bir evin commit'i BASKA evin stage'deki yeni
+      # kaydini tasiyamaz (.urunler-ekle-izin.json + PRUVO_EV/dal oneki). Ayni
+      # gerekceyle SERIT A: vakalar + mutant turu (SURVIVOR=0), gecici depolarda.
+      - name: "urunler-guard ekle sahipligi kabulu"
+        run: python3 tools/ekle-sahiplik-test.py --mutant
+
       # 🔴 SERIT A (BLOKLAYICI) — bu adim 2b19c28e'de nobet.yml serit-b'ye dusmustu
       # (bloklamayan) ve is-akisi-kapisi beyansiz diye KIRMIZI yakti; geri SERIT A'ya.
       # 13 Agu 2026 DAIRESEL KILIT: `diff_plan` mid-array yeni id icin tam sayi bosluk

@@ -31,6 +31,8 @@ dusmesi ayrica HUKUKI risktir (CC BY sinifi atif KALMAK ZORUNDA).
 KURAL — working-tree urunler.json'i EBEVEYN(LER)le karsilastirir:
   MERGE DISI (tek ebeveyn = HEAD):
     * HEAD'de OLMAYAN id (yeni urun)                 -> SERBEST, hic dokunma.
+      (veriye dokunulmaz; SAHIPLIGI INDEX ekseninde ayrica denetlenir — bkz.
+      EKLE SAHIPLIGI / `PRUVO_EKLE_SAHIPLIK`, varsayilan kip `rapor`.)
     * HEAD'de OLAN bir urunun alan(lar)i degismisse:
         - degisen alanlarin TAMAMI .urunler-duzelt-izin.json manifestinde o id
           icin (ayni deger ile) beyan edilmisse        -> KABUL (mesru duzeltme).
@@ -90,6 +92,7 @@ Ne yaptigini .urunler-guard.log'a VE stderr'e yazar.
 
 Cikis kodlari:  0 = temiz / mesru duzeltme / (dar) geri sarma yapildi
                 3 = REDDEDILDI — provenans kararlastirilamadi, veri DEGISMEDI
+                    (ya da PRUVO_EKLE_SAHIPLIK=red kipinde sahipsiz/yabanci ekleme)
 
 Kullanim:  python3 tools/urunler-guard.py [--tetik commit|push|manuel]
 """
@@ -108,10 +111,29 @@ LOCK = os.path.join(ROOT, ".urunler.lock")
 MANIFEST = os.path.join(ROOT, ".urunler-duzelt-izin.json")
 MANIFEST_SIL = os.path.join(ROOT, ".urunler-sil-izin.json")
 MANIFEST_ID_RENAME = os.path.join(ROOT, ".urunler-id-rename-izin.json")
+MANIFEST_EKLE = os.path.join(ROOT, ".urunler-ekle-izin.json")
 LOG = os.path.join(ROOT, ".urunler-guard.log")
+EV_SAHIP_KAPISI = os.path.join(ROOT, "tools", "ev-sahip-kapisi.py")
 
 RED = 3          # provenans kararlastirilamadi -> commit REDDEDILIR
 ZORLA_ENV = "PRUVO_GUARD_ZORLA"
+
+# EKLE SAHIPLIGI (8 Eki 2026): bir evin commit'i BASKA evin yeni urun kaydini
+# tasiyamaz. Olculdu (taban): ana checkout'ta A evinin kaydi stage'deyken B evi
+# kendi kaydini ekleyip commit edince guard rc=0 veriyordu — yeni id SERBESTti,
+# ev/sahip kavrami yoktu. Ekleyen ev commit'ten ONCE `.urunler-ekle-izin.json`
+# yazar: {"ev": "<EV>", "idler": [...]} (git'e GIRMEZ; post-commit `--ekle-tuket`
+# ile, idlerin TAMAMI HEAD'e girdiyse siler).
+#   INDEX'teki yeni id (hicbir ebeveynde yok) manifestte yoksa -> EKLE_SAHIPSIZ
+#   manifestin ev'i != commit eden ev                          -> EKLE_YABANCI
+#   manifest yok ama yeni id var                               -> EKLE_MANIFESTSIZ
+# YAPTIRIM ASAMALI: `PRUVO_EKLE_SAHIPLIK=rapor` VARSAYILAN (stderr, rc 0);
+# `=red` -> rc 3, veri DEGISMEZ. Gecis karari mimarda; tarih kodda SABIT DEGIL.
+# Commit eden ev: `PRUVO_EV` env, yoksa dal oneki (`kral/...`). Ev kumesi TEK
+# KAYNAK `tools/ev-sahip-kapisi.py::BILINEN_EVLER` — burada ikinci liste YOK.
+EKLE_KIP_ENV = "PRUVO_EKLE_SAHIPLIK"
+EV_ENV = "PRUVO_EV"
+EKLE_BASIM_TAVANI = 40
 
 # 🔴 TEK KAYNAK — bastigimiz cikis yollari BURADAN turer ([[ikiz-tanim-sessiz-ayrisma]]).
 # Kabul testi (urunler-guard-provenans-test.py :: E1-E4) her yolu FIILEN kosturur ve
@@ -315,6 +337,162 @@ def _ebeveyn_halleri(uid, ebeveynler):
     return {_canon(by_id[uid]) for by_id in ebeveynler if uid in by_id}
 
 
+# ------------------------------------------------------------ ekle sahipligi
+def _json_oku(yol):
+    try:
+        with open(yol, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+class EkleRed(Exception):
+    """`PRUVO_EKLE_SAHIPLIK=red` kipinde sahipsiz/yabanci ekleme. Veri DEGISMEZ."""
+
+
+def _bilinen_evler():
+    """ev-sahip-kapisi.py::BILINEN_EVLER (TEK KAYNAK). Okunamazsa None."""
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("_ev_sahip_kapisi", EV_SAHIP_KAPISI)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return tuple(mod.BILINEN_EVLER)
+    except Exception:
+        return None
+
+
+def _ev_coz(ad, evler):
+    """Ham adi kanonik ev adina cevir (buyuk/kucuk harf duyarsiz). Bilinmiyorsa None."""
+    if not isinstance(ad, str) or not ad.strip():
+        return None
+    if evler is None:
+        return ad.strip()
+    for ev in evler:
+        if ev.lower() == ad.strip().lower():
+            return ev
+    return None
+
+
+def _commit_eden_ev(evler):
+    """(ev|None, kaynak). Once PRUVO_EV, sonra dal oneki (`kral/is` -> KraL)."""
+    env_ev = os.environ.get(EV_ENV)
+    if env_ev:
+        return _ev_coz(env_ev, evler), "env"
+    rc, out = _git("symbolic-ref", "--quiet", "--short", "HEAD")
+    dal = out.decode("utf-8", "replace").strip() if rc == 0 else ""
+    if "/" in dal:
+        return _ev_coz(dal.split("/", 1)[0], evler), "dal"
+    return None, "yok"
+
+
+def _ekle_manifesti(evler):
+    """-> (manifest|None, bozuk_mu). manifest = {"ev": <kanonik>, "idler": set}."""
+    if not os.path.exists(MANIFEST_EKLE):
+        return None, False
+    try:
+        with open(MANIFEST_EKLE, encoding="utf-8") as f:
+            m = json.load(f)
+    except (OSError, ValueError):
+        return None, True
+    if not isinstance(m, dict) or not isinstance(m.get("idler"), list) \
+            or not all(isinstance(i, str) for i in m["idler"]):
+        return None, True
+    ev = _ev_coz(m.get("ev"), evler)
+    if ev is None:
+        return None, True
+    return {"ev": ev, "idler": set(m["idler"])}, False
+
+
+def _ekle_sahipligi(tetik, merge_mi, ebeveynler):
+    """INDEX'teki yeni id'lerin sahipligini denetler; red kipinde EkleRed atar.
+
+    Commit'e girecek olan INDEX'tir (WT degil): baska evin stage'deki kaydi da
+    index'te durur. Yeni = HICBIR ebeveynde olmayan id (merge'de iki ebeveyn).
+    Beyanli+dogrulanmis id-rename hedefi yeni ekleme SAYILMAZ.
+    """
+    kip_ham = os.environ.get(EKLE_KIP_ENV, "rapor").strip().lower()
+    red_kip = kip_ham == "red"
+    kip = "RED" if red_kip else "RAPOR"
+    if kip_ham not in ("rapor", "red"):
+        _bas("   EKLE_KIP_GECERSIZ %s=%r -> rapor" % (EKLE_KIP_ENV, kip_ham))
+
+    yeni_idler = []
+    if merge_mi or _git("diff", "--cached", "--quiet", "--", "urunler.json")[0] != 0:
+        rc, ham = _git("show", ":urunler.json")
+        if rc == 0:
+            try:
+                index_list = json.loads(ham.decode("utf-8"))
+            except (ValueError, UnicodeDecodeError) as e:
+                raise Belirsiz("INDEX urunler.json BOZUK JSON",
+                               "yeni kayitlarin sahipligi olculemedi (%r)" % e)
+            if isinstance(index_list, list):
+                ebeveyn_ids = set()
+                for by_id in ebeveynler:
+                    ebeveyn_ids |= set(by_id)
+                rename_hedef = set(_id_rename_haritasi(
+                    _json_oku(MANIFEST_ID_RENAME), index_list, ebeveynler).values())
+                gorulen = set()
+                for p in index_list:
+                    uid = p.get("id") if isinstance(p, dict) else None
+                    if (isinstance(uid, str) and uid not in ebeveyn_ids
+                            and uid not in rename_hedef and uid not in gorulen):
+                        gorulen.add(uid)
+                        yeni_idler.append(uid)
+
+    yabanci, manifestsiz = 0, 0
+    satirlar = []
+    if yeni_idler:
+        evler = _bilinen_evler()
+        manifest, bozuk = _ekle_manifesti(evler)
+        if bozuk:
+            satirlar.append("EKLE_MANIFEST_BOZUK yol=%s" % os.path.basename(MANIFEST_EKLE))
+        if manifest is None:
+            manifestsiz = len(yeni_idler)
+            satirlar.append("EKLE_MANIFESTSIZ n=%d" % manifestsiz)
+        else:
+            sahipsiz = [u for u in yeni_idler if u not in manifest["idler"]]
+            for uid in sahipsiz[:EKLE_BASIM_TAVANI]:
+                satirlar.append("EKLE_SAHIPSIZ id=%s" % uid)
+            if len(sahipsiz) > EKLE_BASIM_TAVANI:
+                satirlar.append("EKLE_SAHIPSIZ ... +%d daha"
+                                % (len(sahipsiz) - EKLE_BASIM_TAVANI))
+            yabanci = len(sahipsiz)
+            commit_ev, kaynak = _commit_eden_ev(evler)
+            if commit_ev != manifest["ev"]:
+                beyanli = len(yeni_idler) - len(sahipsiz)
+                yabanci += beyanli
+                satirlar.append("EKLE_YABANCI manifest_ev=%s commit_ev=%s(%s) n=%d"
+                                % (manifest["ev"], commit_ev or "BILINMIYOR", kaynak, beyanli))
+
+    for s in satirlar:
+        _bas("   " + s)
+    _bas("EKLE_SAHIPLIK=%s yabanci=%d manifestsiz=%d" % (kip, yabanci, manifestsiz))
+    _log("%s: EKLE_SAHIPLIK=%s yeni=%d yabanci=%d manifestsiz=%d %s"
+         % (tetik, kip, len(yeni_idler), yabanci, manifestsiz, " | ".join(satirlar)))
+    if red_kip and (yabanci or manifestsiz):
+        raise EkleRed("yabanci=%d manifestsiz=%d" % (yabanci, manifestsiz))
+
+
+def ekle_tuket():
+    """post-commit: manifestteki id'lerin TAMAMI HEAD'e girdiyse manifesti sil.
+
+    Commit'e girmemis (baska evin henuz commit etmedigi) beyan SILINMEZ.
+    """
+    if not os.path.exists(MANIFEST_EKLE):
+        return "yok"
+    manifest, bozuk = _ekle_manifesti(_bilinen_evler())
+    if bozuk:
+        return "bozuk-korundu"
+    durum, head_list = _katalog("HEAD")
+    if durum != "var":
+        return "head-okunamadi-korundu"
+    if manifest["idler"] - set(_by_id(head_list)):
+        return "bekleyen-korundu"
+    os.remove(MANIFEST_EKLE)
+    return "tuketildi"
+
+
 # ---------------------------------------------------------------------- heal
 def heal(tetik):
     lockf = open(LOCK, "w")
@@ -355,6 +533,10 @@ def _heal_kilitli(tetik):
                            "HEAD durum=%s — iki ebeveyn olmadan provenans cozulemez" % head_durum)
         merge_by_id = _by_id(m_list)
         ebeveynler.append(merge_by_id)
+
+    # --- Ekle sahipligi (INDEX ekseni; red kipinde hicbir sey YAZILMADAN durur) ---
+    if tetik != "push":
+        _ekle_sahipligi(tetik, merge_mi, ebeveynler)
 
     # --- Working tree --------------------------------------------------------
     try:
@@ -572,9 +754,26 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tetik", default="manuel",
                     help="tetikleyen baglam: commit|push|manuel")
+    ap.add_argument("--ekle-tuket", action="store_true",
+                    help="post-commit: .urunler-ekle-izin.json idleri HEAD'deyse sil")
     args = ap.parse_args()
+    if args.ekle_tuket:
+        try:
+            _log("ekle-tuket: %s" % ekle_tuket())
+        except Exception as e:
+            _log("ekle-tuket: HATA %r — manifest korundu" % (e,))
+        return 0
     try:
         heal(args.tetik)
+    except EkleRed as e:
+        _bas("!! urunler-guard (%s): EKLE_SAHIPLIK=RED — commit REDDEDILDI (%s)."
+             % (args.tetik, e))
+        _bas("   VERI DEGISTIRILMEDI. Yeni kayitlarini %s'a yaz: "
+             '{"ev": "<EV>", "idler": [...]} ve commit eden ev = manifest ev\'i '
+             "(%s env ya da <ev>/... dali); baska evin stage'deki kaydini commit'e katma."
+             % (os.path.basename(MANIFEST_EKLE), EV_ENV))
+        _log("%s: EKLE_SAHIPLIK=RED — commit REDDEDILDI (%s)" % (args.tetik, e))
+        return RED
     except Belirsiz as e:
         return _reddet(args.tetik, e.sebep, e.ayrinti)
     except Exception as e:

@@ -6,4 +6,9 @@ root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 rm -f "$root/.urunler-duzelt-izin.json" 2>/dev/null || true
 rm -f "$root/.urunler-sil-izin.json" 2>/dev/null || true
 rm -f "$root/.urunler-id-rename-izin.json" 2>/dev/null || true
+# Ekle izni KOSULLU tuketilir: idlerin TAMAMI HEAD'e girdiyse silinir; baska evin
+# henuz commit etmedigi beyan KORUNUR (tools/urunler-guard.py --ekle-tuket).
+if [ -f "$root/.urunler-ekle-izin.json" ] && [ -f "$root/tools/urunler-guard.py" ]; then
+  python3 "$root/tools/urunler-guard.py" --ekle-tuket >/dev/null 2>&1 || true
+fi
 exit 0
