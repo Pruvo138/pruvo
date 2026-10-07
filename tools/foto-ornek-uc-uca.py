@@ -38,6 +38,7 @@ import argparse
 import base64
 import hashlib
 import json
+import math
 import os
 import re
 import secrets
@@ -258,6 +259,13 @@ ORNEK_SVG = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60"><path
              'M30 20 V40 H70 V20 Z" fill="#000" fill-rule="evenodd"/></svg>')
 
 
+# Bilesen tiplerin ornek degerleri (dosya YOK): ses = 100 elemanli sinus genlik dizisi (0..1),
+# konum/tarih = semanin `ornek`/`varsayilan` degeri, yoksa sabit ornek (VERI.parametreDogrula sinirlarinda).
+ORNEK_GENLIK = [round(0.5 + 0.45 * math.sin(i * 2 * math.pi / 25), 4) for i in range(100)]
+ORNEK_KONUM = {"enlem": 41.0082, "boylam": 28.9784}
+ORNEK_TARIH = {"tarih": "2026-10-07", "saat": "21:30", "utc_ofset_saat": 3}
+
+
 def olcu_sec(t):
     s = t.get("olcu_secenekleri") or []
     return s[len(s) // 2] if s else None
@@ -281,6 +289,18 @@ def ornek_parametre(t, olcu):
             p[ad] = "https://pruvo3d.com" if s.get("bayt_max") else "PRUVO"
         elif tip == "url":
             p[ad] = "https://pruvo3d.com"
+        elif tip == "bool":
+            p[ad] = s.get("varsayilan") is True
+        elif tip == "ses":
+            p[ad] = list(ORNEK_GENLIK)
+        elif tip == "konum":
+            k = s.get("ornek") or s.get("varsayilan") or ORNEK_KONUM
+            p[ad] = {"enlem": k["enlem"], "boylam": k["boylam"]}
+        elif tip == "tarih":
+            k = s.get("ornek") or s.get("varsayilan") or ORNEK_TARIH
+            if isinstance(k, str):
+                k = dict(ORNEK_TARIH, tarih=k)
+            p[ad] = dict(k) if s.get("saat") is True else k["tarih"]
         else:
             return None, "form-tipi-desteksiz:%s" % tip
     return p, ""
@@ -305,8 +325,8 @@ def ornek_dosyalar(t):
             d["foto"] = ("foto.png", ornek_foto(), "image/png")
         elif g == "svg":
             d["svg"] = ("svg.svg", ORNEK_SVG.encode(), "image/svg+xml")
-        elif g in ("form", "metin", "url"):
-            continue
+        elif g in ("form", "metin", "url", "ses", "konum", "tarih"):
+            continue  # degeri form parametresi tasir (ses = genlik dizisi; dosya YOK)
         else:
             return None, "girdi-desteksiz:%s" % g
     return d, ""

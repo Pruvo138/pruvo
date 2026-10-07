@@ -385,7 +385,83 @@ def vakalar(kaynak, sadece=None):
         rc, son, c = tek(o, FAKE_RAF="1.2")
         return rc == 1 and olcut(c, "isimlik", "4") == "EKSIK" and "eksen=YANLIS" in c, son
     vaka("U18", u18)
+
+    # ---- ORNEK GIRDI (kopru-15 sozluk): saf vakalar — sunucu/D1 YOK; betik kaynagi bellekte yuklenir,
+    # uretilen parametre GERCEK VERI.parametreDogrula'dan gecer (node, manifest tek kaynak).
+    def saf(ad, fn):
+        if sadece is not None and ad not in sadece:
+            return
+        try:
+            ns = {"__name__": "ornek_uc_uca_saf", "__file__": BETIK}
+            exec(compile(kaynak, BETIK, "exec"), ns)
+            gecti, ac = fn(ns)
+        except Exception as e:  # cokerse KIRMIZI
+            gecti, ac = False, "istisna %s: %s" % (type(e).__name__, e)
+        s[ad] = (gecti, ac)
+
+    def u19(ns):
+        # G4a 4 tur (girdi form + bool alan): ornek parametre + dosya hazirlanir, sunucu dogrulamasi ok.
+        man = {t["kod"]: t for t in ns["manifest_oku"]()["turler"]}
+        p, sebep = {}, []
+        for kod in ("kutu", "adaptor", "disli", "kapak"):
+            t = man[kod]
+            pp, h = ns["ornek_parametre"](t, ns["olcu_sec"](t))
+            d, h2 = ns["ornek_dosyalar"](t)
+            if pp is None or d is None or not all(t["girdi_acik"]):
+                sebep.append("%s:%s%s girdi_acik=%s" % (kod, h, h2, t["girdi_acik"]))
+                continue
+            p[kod] = pp
+        dg = saf_dogrula(p, [])
+        bool_ok = p and all(isinstance(p[k][a], bool) for k, a in
+                            (("kutu", "kapak"), ("adaptor", "flans"), ("kapak", "topuz")) if k in p)
+        ok = not sebep and len(p) == 4 and all(dg[k]["ok"] for k in p) and bool_ok
+        return ok, "sebep=%s dogrula=%s" % (sebep, {k: dg[k].get("hata", "ok") for k in dg})
+    saf("U19", u19)
+
+    def u20(ns):
+        # Bilesen tipler: bool + ses (genlik dizisi, dosya YOK) + konum (sema ornegi) + tarih (saatli/saatsiz).
+        t = {"kod": "saf-bilesen", "girdi": ["ses", "konum", "tarih"],
+             "form": {"b": {"tip": "bool", "varsayilan": True}, "b2": {"tip": "bool"},
+                      "s": {"tip": "ses"}, "k": {"tip": "konum", "ornek": {"enlem": 40.15, "boylam": 29.1}},
+                      "d": {"tip": "tarih", "saat": True}, "d2": {"tip": "tarih"}}}
+        pp, h = ns["ornek_parametre"](t, 120)
+        d, h2 = ns["ornek_dosyalar"](t)
+        if pp is None or d is None:
+            return False, "desteksiz: %s %s" % (h, h2)
+        dg = saf_dogrula({"saf-bilesen": pp}, [t])["saf-bilesen"]
+        ok = (dg["ok"] and d == {} and pp["b"] is True and pp["b2"] is False and len(pp["s"]) == 100 and
+              pp["k"] == {"enlem": 40.15, "boylam": 29.1} and isinstance(pp["d"], dict) and isinstance(pp["d2"], str))
+        return ok, "dogrula=%s dosya=%s" % (dg, d)
+    saf("U20", u20)
+
+    def u21(ns):
+        # Gercekten bilinmeyen tip/girdi -> sebep adiyla desteksiz (sessiz gecis YOK).
+        pp, h = ns["ornek_parametre"]({"form": {"x": {"tip": "renk"}}}, 100)
+        d, h2 = ns["ornek_dosyalar"]({"girdi": ["olcu"]})
+        return (pp is None and h == "form-tipi-desteksiz:renk" and d is None and h2 == "girdi-desteksiz:olcu",
+                "%s | %s" % (h, h2))
+    saf("U21", u21)
     return s
+
+
+SAF_NODE = r"""
+const vm=require('vm'),fs=require('fs');const k={};
+vm.runInNewContext(fs.readFileSync(process.argv[1],'utf8'),k,{filename:'foto-uretim-veri.js'});
+const F=k.PRUVO_FOTO, g=JSON.parse(process.argv[2]), ek=JSON.parse(process.argv[3]);
+for(const t of ek){F.turler.push(Object.assign({ad:'saf',motor:'D',uretec:'saf',olcu_mm:{en_az:80,en_cok:200},
+  fiyat:{formul:'mm_x_10tl',adim_mm:10}},t));}
+const r={};for(const kod of Object.keys(g)){r[kod]=F.parametreDogrula(kod,g[kod]);}
+process.stdout.write(JSON.stringify(r));
+"""
+
+
+def saf_dogrula(params, ek_turler):
+    """GERCEK VERI.parametreDogrula (calisma agacindaki manifest); ek_turler sahte tur satirlari."""
+    r = subprocess.run(["node", "-e", SAF_NODE, os.path.join(KOK, "foto-uretim-veri.js"),
+                        json.dumps(params), json.dumps(ek_turler)], capture_output=True, text=True, timeout=60)
+    if r.returncode != 0:
+        raise RuntimeError("node: " + r.stderr[:300])
+    return json.loads(r.stdout)
 
 
 MUTANTLAR = {
@@ -405,6 +481,15 @@ MUTANTLAR = {
     "MB8": ("    if v is not None and not v.get(\"secildi\"):", "    if False:", {"U15"}),
     "MB9": ('        eksen = (m["parca_en_uzun"] <= tr.olcu * (1 + tol) + 1e-9 and', "        eksen = (True and",
             {"U18"}),
+    # kopru-15 sozluk: ornek girdi destegi silinince saf vakalar KIRMIZI.
+    "MB10": ('        elif tip == "bool":\n            p[ad] = s.get("varsayilan") is True\n', "", {"U19", "U20"}),
+    "MB11": ('elif g in ("form", "metin", "url", "ses", "konum", "tarih"):', 'elif g in ("form", "metin", "url"):',
+             {"U20"}),
+    "MB12": ('        elif tip == "ses":\n            p[ad] = list(ORNEK_GENLIK)\n', "", {"U20"}),
+    "MB13": ('            p[ad] = {"enlem": k["enlem"], "boylam": k["boylam"]}', '            p[ad] = dict(ORNEK_KONUM)',
+             {"U20"}),
+    "MB14": ('            p[ad] = dict(k) if s.get("saat") is True else k["tarih"]', '            p[ad] = k["tarih"]',
+             {"U20"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }

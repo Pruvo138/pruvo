@@ -87,7 +87,12 @@
     //                    üreteçte, üretim dosyasını bizim üretecimiz çıkarır (kol "deterministik")
     //   uretec         : üreteç komut kimliği (D/R'de DOLU, M'de "")
     //   form           : parametre şeması { anahtar: {tip:"sayi",min,max,adim,birim} |
-    //                    {tip:"secim",secenekler:[..]} | {tip:"metin",max} | {tip:"url"} }; {} = parametre yok
+    //                    {tip:"secim",secenekler:[..]} | {tip:"metin",max} | {tip:"url"} |
+    //                    {tip:"bool",etiket,varsayilan} | {tip:"ses"|"konum"|"tarih"} }; {} = parametre yok
+    //                    TeKiN köprü sözlüğü (kopru_kayitlari.json -> bu satır, eşleme YALNIZ burada):
+    //                    girdi olcu->"form" · foto->"foto-1" · diğerleri aynen; parametre tam->sayi+adim 1 ·
+    //                    renk->renk_bolgeleri (renk_<bolge> -> {kod:<bolge>}) · dosya->girdinin kendisi
+    //                    (form alanı DEĞİL) · ses girdisinin genlik dizisi -> tip "ses" · bool -> tip "bool"
     //   fiyat          : { formul: "mm_x_10tl", adim_mm } — formül adı VERI.FIYAT_FORMULLERI'nde
     //                    olmalı (bilinmeyen formül -> fiyat yok, tür sunulmaz); adim_mm = sürgü adımı
     //   olcu_mm        : {en_az, en_cok} — en uzun boyut (mm); bu aralık dışı ölçü RED
@@ -278,7 +283,7 @@
         kod: "kutu",
         ad: "Düzenleyici kutu",
         aciklama: "Düzenleyici kutu — ölçüye özel üretim.",
-        girdi: ["olcu"],
+        girdi: ["form"],
         motor: "D",
         uretec: "ozel_uret:kutu",
         olcu_mm: {
@@ -374,7 +379,7 @@
         kod: "adaptor",
         ad: "Adaptör / burç / pul",
         aciklama: "Adaptör / burç / pul — ölçüye özel üretim.",
-        girdi: ["olcu"],
+        girdi: ["form"],
         motor: "D",
         uretec: "ozel_uret:adaptor",
         olcu_mm: {
@@ -474,7 +479,7 @@
         kod: "disli",
         ad: "Dişli / kasnak",
         aciklama: "Dişli / kasnak — ölçüye özel üretim.",
-        girdi: ["olcu"],
+        girdi: ["form"],
         motor: "D",
         uretec: "ozel_uret:disli",
         olcu_mm: {
@@ -607,7 +612,7 @@
         kod: "kapak",
         ad: "Kapak / tıpa",
         aciklama: "Kapak / tıpa — ölçüye özel üretim.",
-        girdi: ["olcu"],
+        girdi: ["form"],
         motor: "D",
         uretec: "ozel_uret:kapak",
         olcu_mm: {
@@ -715,7 +720,7 @@
         kod: "dugme",
         ad: "Düğme / topuz",
         aciklama: "Düğme / topuz — ölçüye özel üretim.",
-        girdi: ["olcu"],
+        girdi: ["form"],
         motor: "D",
         uretec: "ozel_uret:dugme",
         olcu_mm: {
@@ -814,7 +819,7 @@
         kod: "klips",
         ad: "Klips / kelepçe / menteşe",
         aciklama: "Klips / kelepçe / menteşe — ölçüye özel üretim.",
-        girdi: ["olcu"],
+        girdi: ["form"],
         motor: "D",
         uretec: "ozel_uret:klips",
         olcu_mm: {
@@ -958,7 +963,7 @@
         kod: "saksi",
         ad: "Saksı / vazo",
         aciklama: "Saksı / vazo — ölçüye özel üretim.",
-        girdi: ["olcu"],
+        girdi: ["form"],
         motor: "D",
         uretec: "ozel_uret:saksi",
         olcu_mm: {
@@ -1089,14 +1094,17 @@
         kod: "rolyef",
         ad: "Yukseklik rolyefi",
         aciklama: "Yukseklik rolyefi — ölçüye özel üretim.",
-        girdi: ["foto"],
+        girdi: ["foto-1"],
         motor: "D",
         uretec: "rolyef_uret",
         olcu_mm: {
           en_az: 60,
           en_cok: 250
         },
-        renk_bolgeleri: [],
+        renk_bolgeleri: [
+          { kod: "taban", ad: "Taban", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
+          { kod: "rolyef", ad: "Rolyef", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] }
+        ],
         malzemeler: {
           govde: ["PLA", "PETG"]
         },
@@ -1147,14 +1155,6 @@
             max: 0.95,
             varsayilan: 0.5,
             birim: ""
-          },
-          renk_taban: {
-            tip: "renk",
-            etiket: "Taban rengi"
-          },
-          renk_rolyef: {
-            tip: "renk",
-            etiket: "Rolyef rengi"
           }
         },
         fiyat: {
@@ -1176,24 +1176,27 @@
           en_az: 80,
           en_cok: 300
         },
-        renk_bolgeleri: [],
+        renk_bolgeleri: [
+          { kod: "plaka", ad: "Plaka", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
+          { kod: "cubuk", ad: "Cubuk", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] },
+          { kod: "yazi", ad: "Yazi", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] }
+        ],
         malzemeler: {
           govde: ["PLA", "PETG"]
         },
         form: {
           genlik: {
-            tip: "sayi",
-            etiket: "Hazir genlik dizisi (64..4000)",
-            birim: "mm"
+            tip: "ses",
+            etiket: "Ses kaydı"
           },
           cubuk_sayisi: {
-            tip: "tam",
+            tip: "sayi",
             etiket: "Cubuk sayisi",
             min: 40,
             max: 400,
+            adim: 1,
             varsayilan: 100,
-            birim: "adet",
-            tam: true
+            birim: "adet"
           },
           uzun_kenar_mm: {
             tip: "sayi",
@@ -1265,18 +1268,6 @@
             max: 20,
             varsayilan: 6,
             birim: "mm"
-          },
-          renk_plaka: {
-            tip: "renk",
-            etiket: "Plaka rengi"
-          },
-          renk_cubuk: {
-            tip: "renk",
-            etiket: "Cubuk rengi"
-          },
-          renk_yazi: {
-            tip: "renk",
-            etiket: "Yazi rengi"
           }
         },
         fiyat: {
@@ -1298,7 +1289,11 @@
           en_az: 40,
           en_cok: 250
         },
-        renk_bolgeleri: [],
+        renk_bolgeleri: [
+          { kod: "plaka", ad: "Plaka", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
+          { kod: "yazi", ad: "Yazi", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] },
+          { kod: "nokta", ad: "Nokta", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] }
+        ],
         malzemeler: {
           govde: ["PLA", "PETG"]
         },
@@ -1358,18 +1353,6 @@
             etiket: "Buyuk harf",
             secenekler: ["kucult", "isaretle"],
             varsayilan: "kucult"
-          },
-          renk_plaka: {
-            tip: "renk",
-            etiket: "Plaka rengi"
-          },
-          renk_yazi: {
-            tip: "renk",
-            etiket: "Yazi rengi"
-          },
-          renk_nokta: {
-            tip: "renk",
-            etiket: "Nokta rengi"
           }
         },
         fiyat: {
@@ -1391,7 +1374,10 @@
           en_az: 60,
           en_cok: 250
         },
-        renk_bolgeleri: [],
+        renk_bolgeleri: [
+          { kod: "rolyef", ad: "Rolyef", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
+          { kod: "yazi", ad: "Yazi", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] }
+        ],
         malzemeler: {
           govde: ["PLA", "PETG"]
         },
@@ -1462,14 +1448,6 @@
             etiket: "Yazi tipi",
             secenekler: ["sans-kalin", "serif-kalin"],
             varsayilan: "sans-kalin"
-          },
-          renk_rolyef: {
-            tip: "renk",
-            etiket: "Rolyef rengi"
-          },
-          renk_yazi: {
-            tip: "renk",
-            etiket: "Yazi rengi"
           }
         },
         fiyat: {
@@ -1491,7 +1469,11 @@
           en_az: 60,
           en_cok: 250
         },
-        renk_bolgeleri: [],
+        renk_bolgeleri: [
+          { kod: "plaka", ad: "Plaka", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
+          { kod: "bina", ad: "Bina", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] },
+          { kod: "yol", ad: "Yol", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] }
+        ],
         malzemeler: {
           govde: ["PLA", "PETG"]
         },
@@ -1592,18 +1574,6 @@
             tip: "metin",
             etiket: "Etiket metni (ops.)",
             varsayilan: ""
-          },
-          renk_plaka: {
-            tip: "renk",
-            etiket: "Plaka rengi"
-          },
-          renk_bina: {
-            tip: "renk",
-            etiket: "Bina rengi"
-          },
-          renk_yol: {
-            tip: "renk",
-            etiket: "Yol rengi"
           }
         },
         fiyat: {
@@ -1625,7 +1595,10 @@
           en_az: 80,
           en_cok: 250
         },
-        renk_bolgeleri: [],
+        renk_bolgeleri: [
+          { kod: "plaka", ad: "Plaka", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
+          { kod: "yildiz", ad: "Yildiz", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] }
+        ],
         malzemeler: {
           govde: ["PLA", "PETG"]
         },
@@ -1721,14 +1694,6 @@
             etiket: "Yazi tipi",
             secenekler: ["sans-kalin", "serif-kalin"],
             varsayilan: "sans-kalin"
-          },
-          renk_plaka: {
-            tip: "renk",
-            etiket: "Plaka rengi"
-          },
-          renk_yildiz: {
-            tip: "renk",
-            etiket: "Yildiz rengi"
           }
         },
         fiyat: {
@@ -1750,7 +1715,10 @@
           en_az: 60,
           en_cok: 250
         },
-        renk_bolgeleri: [],
+        renk_bolgeleri: [
+          { kod: "plaka", ad: "Plaka", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
+          { kod: "yazi", ad: "Yazi", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] }
+        ],
         malzemeler: {
           govde: ["PLA", "PETG"]
         },
@@ -1776,13 +1744,13 @@
             varsayilan: "ondalik"
           },
           ondalik_hane: {
-            tip: "tam",
+            tip: "sayi",
             etiket: "Ondalik hane",
             min: 2,
             max: 6,
+            adim: 1,
             varsayilan: 4,
-            birim: "hane",
-            tam: true
+            birim: "hane"
           },
           koordinat_satiri: {
             tip: "secim",
@@ -1861,14 +1829,6 @@
             etiket: "Hizalama",
             secenekler: ["sol", "orta"],
             varsayilan: "sol"
-          },
-          renk_plaka: {
-            tip: "renk",
-            etiket: "Plaka rengi"
-          },
-          renk_yazi: {
-            tip: "renk",
-            etiket: "Yazi rengi"
           }
         },
         fiyat: {
@@ -2244,7 +2204,7 @@
     metin: { acik: true }, url: { acik: true, en_cok: 512 }, svg: { acik: true, en_cok_bayt: 200 * 1024 },
     form: { acik: true }, ses: { acik: true }, konum: { acik: true }, tarih: { acik: true }
   };
-  VERI.FORM_TIPLERI = { sayi: true, secim: true, metin: true, url: true, ses: true, konum: true, tarih: true };
+  VERI.FORM_TIPLERI = { sayi: true, secim: true, metin: true, url: true, ses: true, konum: true, tarih: true, bool: true };
 
   function utf8Bayt(s) {
     return typeof TextEncoder !== "undefined" ? new TextEncoder().encode(s).length : unescape(encodeURIComponent(s)).length;
@@ -2273,6 +2233,7 @@
   //   konum  : değer = {enlem:-90..90, boylam:-180..180}; ikisi de sonlu sayı.
   //   tarih  : değer = "YYYY-AA-GG" veya (şema.saat:true) {tarih,saat:"SS:DD",utc_ofset_saat:-12..14}.
   //            Yıl 1900..2100, takvim geçerli (2023-02-29 ✓, 2023-02-30 ✗).
+  //   bool   : değer YALNIZ true/false (JSON boolean); "true"/"1"/1/null dize-sayı biçimi RED.
   VERI.parametreDogrula = function (kod, p) {
     var t = VERI.turBul(kod);
     if (!t) { return { ok: false, hata: "tur-yok" }; }
@@ -2310,6 +2271,8 @@
         } else if (v.indexOf("\n") >= 0) { return { ok: false, hata: "parametre-metin" }; }
       } else if (sema.tip === "url") {
         if (!VERI.urlDogrula(v)) { return { ok: false, hata: "parametre-url" }; }
+      } else if (sema.tip === "bool") {
+        if (v !== true && v !== false) { return { ok: false, hata: "parametre-bool" }; }
       } else if (sema.tip === "ses") {
         if (!Array.isArray(v)) { return { ok: false, hata: "parametre-ses" }; }
         if (v.length < 64 || v.length > 4000) { return { ok: false, hata: "parametre-ses" }; }

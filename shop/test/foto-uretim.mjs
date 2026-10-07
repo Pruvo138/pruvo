@@ -1438,7 +1438,9 @@ console.log("ES2) ORNEK GALERISI: TUM turler (acik olmayan 'Yakında') + tur cum
   // Veri dosyasindaki ornek TURLERI (tur basina ilk ornek) — galeri bunlarin HEPSINI cizmeli.
   // Yer tutucular (figur, bust) kayit olmadigi icin VERI_TURLERI'ne GIRMEZ; toplam = +2.
   const VERI_TURLERI = [...new Set(V0.ornekler.map((o) => o.tur))];
-  const TOPLAM = VERI_TURLERI.length + 2;       // 8 görsel + 2 yer tutucu
+  // Gerçek örneği olan kodun yer tutucusu ÇİZİLMEZ (kopru-15: "bust" artık gerçek tür) -> YER = örneksiz olanlar.
+  const YER = ["figur", "bust"].filter((k) => !VERI_TURLERI.includes(k));
+  const TOPLAM = VERI_TURLERI.length + YER.length; // görseller + yer tutucular
   const GORSEL = VERI_TURLERI.length;            // 8 görsel
   ol("ES2a manifest ornek_notu AYNEN: plaket = karar cumlesi · litofan = litofan cumlesi · veride >= 6 tur ornegi",
      V0.turBul("plaket").ornek_notu === CUMLE_P && V0.turBul("litofan").ornek_notu === CUMLE_L && VERI_TURLERI.length >= 6,
@@ -1454,7 +1456,7 @@ console.log("ES2) ORNEK GALERISI: TUM turler (acik olmayan 'Yakında') + tur cum
     const kTur = kucuk.map((k) => k.getAttribute("data-tur"));
     // (a) GALERI: yalniz plaket acik ama TUM tur ornekleri + 2 yer tutucu cizilir; acik tur ONCE,
     // sonra veri sirasi, EN SONDA yer tutucular (figur, bust).
-    const beklenenSira = ["plaket"].concat(VERI_TURLERI.filter((t) => t !== "plaket")).concat(["figur", "bust"]);
+    const beklenenSira = ["plaket"].concat(VERI_TURLERI.filter((t) => t !== "plaket")).concat(YER);
     s.GALERI = kucuk.length === TOPLAM && grup.length === TOPLAM &&
       new Set(kTur).size === TOPLAM && kTur[0] === "plaket" &&
       JSON.stringify(kTur) === JSON.stringify(beklenenSira);
@@ -1469,7 +1471,7 @@ console.log("ES2) ORNEK GALERISI: TUM turler (acik olmayan 'Yakında') + tur cum
     // (YER_BASLIK asagida ayrica dogrulanir).
     s.NOT = grup.length === TOPLAM && grup.every((g) => {
       const kod = g.getAttribute("data-tur");
-      if (kod === "figur" || kod === "bust") { return g.textContent.includes("Bu tür yakında eklenecek."); }
+      if (YER.includes(kod)) { return g.textContent.includes("Bu tür yakında eklenecek."); }
       const t = V0.turBul(kod);
       return !!t && !!t.ornek_notu && g.textContent.includes(t.ornek_notu) && g.textContent.includes("önizleme/render") &&
         !/gerçek fotoğraf/i.test(g.textContent);
@@ -1493,7 +1495,7 @@ console.log("ES2) ORNEK GALERISI: TUM turler (acik olmayan 'Yakında') + tur cum
     // Yer tutucularda <img> yerine ikon span var (görsel değil metin); ayrı dogrulanir.
     const kImg = kucuk.slice(0, GORSEL).map((k) => [...k.agac()].find((n) => n.tagName === "IMG"));
     const kIkon = kucuk.slice(GORSEL).map((k) => [...k.agac()].find((n) => n.classList.contains("foto-uretim-galeri-yer-ikon")));
-    s.TEMBEL = kImg.length === GORSEL && kIkon.length === 2 && kIkon.every((m) => m !== undefined && m !== null) &&
+    s.TEMBEL = kImg.length === GORSEL && kIkon.length === YER.length && kIkon.every((m) => m !== undefined && m !== null) &&
       kImg.every((m, i) => !!m && m.width > 0 && m.height > 0 && (i === 0 ? m.loading !== "lazy" : m.loading === "lazy"));
     // (c) ISIK: buyuk karta tik -> tam ekran diyalog; ok -> sonraki; Esc / × / zemin kapatir; govde kilidi + odak donusu.
     const isik = () => [...govde.agac()].filter((n) => n.classList.contains("foto-uretim-isik"));
@@ -1522,7 +1524,7 @@ console.log("ES2) ORNEK GALERISI: TUM turler (acik olmayan 'Yakında') + tur cum
     // YER TUTUCU (BaBa 7 Eki 23:1x(a)): figur + büst kartları görselsiz, "Yakında" rozetli.
     // YER_BASLIK: yer tutucuya tik -> buyuk kart "<ad>" + "Bu tür yakında eklenecek." + "Yakında" rozeti;
     // buyuk kartta <img> yok (gorsel degil metin), role=button YOK (zoom acmaz).
-    const figurI = kTur.indexOf("figur"), bustI = kTur.indexOf("bust");
+    const figurI = kTur.indexOf("figur"), bustI = kTur.lastIndexOf(YER[YER.length - 1]); // son yer tutucu
     let yerBaslikOK = false, yerLightOK = false, yerGezOK = false;
     if (figurI >= 0) {
       kucuk[figurI].tetikle("click");
@@ -1560,7 +1562,7 @@ console.log("ES2) ORNEK GALERISI: TUM turler (acik olmayan 'Yakında') + tur cum
       const dY = ac();                        // lightbox aç
       if (dY) {
         try {
-          for (let yi = 0; yi < 8; yi++) {
+          for (let yi = 0; yi < GORSEL; yi++) {
             tusla(dY, "ArrowRight");
           }
         } catch (e) { yerAtladi = false; }    // mutant: navigations crash
@@ -1590,13 +1592,13 @@ console.log("ES2) ORNEK GALERISI: TUM turler (acik olmayan 'Yakında') + tur cum
     s.DURUSTLUK = !!kutu && !!litR && kutu.textContent === DL;
     const Vn = veriYukle(VERI_KAYNAK); Vn.turBul("litofan").ornek_notu = "";
     const c = await ekranKos(kaynak, Vn, acikPL);
-    // NOTSUZ: ornek_notu bos turun render ornegi CIZILMEZ (fail-closed); 2 yer tutucu her zaman VAR.
-    s.NOTSUZ = c.ornekler.length === (VERI_TURLERI.length - 1) + 2 && !c.ornekler.some((o) => /litofan/.test(o.img.join(" "))) &&
+    // NOTSUZ: ornek_notu bos turun render ornegi CIZILMEZ (fail-closed); ornegi olmayan yer tutucular her zaman VAR.
+    s.NOTSUZ = c.ornekler.length === (VERI_TURLERI.length - 1) + YER.length && !c.ornekler.some((o) => /litofan/.test(o.img.join(" "))) &&
       c.ornekler.some((o) => o.img.some((u) => /plaket-1-/.test(u)));
     return s;
   };
   const s0 = await senaryo(EKRAN_KAYNAK);
-  ol("ES2b galeri TUM tur ornekleri + 2 yer tutucu (toplam " + TOPLAM + " kucuk resim; " + GORSEL + " gorselli + 2 yer tutucu; acik tur once)",
+  ol("ES2b galeri TUM tur ornekleri + 2 yer tutucu (toplam " + TOPLAM + " kucuk resim; " + GORSEL + " gorselli + " + YER.length + " yer tutucu; acik tur once)",
      s0.GALERI, JSON.stringify(s0));
   ol("ES2c acik olmayan turde kucuk resim + buyuk kartta 'Yakında'; acik turde yok; siparis tur seciminde yok",
      s0.YAKINDA, JSON.stringify(s0));
@@ -1644,6 +1646,8 @@ console.log("ES2) ORNEK GALERISI: TUM turler (acik olmayan 'Yakında') + tur cum
     ["ES2-M16 lightbox yer tutucuyu ATLAMIYOR (←/→ figur/bust'e iner; navigations crash)",
      "    } while (S.galeriListe[n].yerTutucu && ilerleme <= L);\n    if (S.galeriListe[n].yerTutucu) return; // tüm liste yer tutucu (defansif; gerçekte olmaz)\n",
      "    } while (ilerleme <= L);\n", ["YER_GEZINTI"]],
+    // kopru-15: gercek ornegi olan kodun ("bust") yer tutucusu da cizilirse ayni tur iki kez + "yakinda" yalani.
+    ["ES2-M17 gercek turun yer tutucusu da cizilir", "      if (cizilen[yt.kod]) continue;\n", "", ["GALERI", "NOT", "NOTSUZ", "TEMBEL", "TIK"]],
   ];
   for (const [ad, capa, yerine, olmeli] of ES2_MUT) {
     if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
@@ -1662,7 +1666,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     V.turler.push({ kod: "sentetik-d", ad: "İsimlik", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",
       olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {},
       form: { yazi: { tip: "metin", max: 20 }, kalinlik: { tip: "sayi", min: 2, max: 6, adim: 1, birim: "mm" },
-              yazi_tipi: { tip: "secim", secenekler: ["Düz", "Eğik"] }, link: { tip: "url" } },
+              yazi_tipi: { tip: "secim", secenekler: ["Düz", "Eğik"] }, link: { tip: "url" },
+              kapak: { tip: "bool", etiket: "Kapak", varsayilan: true } },
       fiyat: { formul: "mm_x_10tl", adim_mm: 10 }, ornek_kanit_izni: ["render"], ornek_notu: "t" });
     V.ornekler.push({ tur: "sentetik-d", kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/t-io.webp",
       render: "https://media.pruvo3d.com/t-ir.webp", not: "t" });
@@ -1693,7 +1698,16 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
       son = V.cagri[V.cagri.length - 1];
     }
     s.AYNI_FONKSIYON = ilk && !!hata && !!son && son.d.ok === true &&
-      son.p === JSON.stringify({ yazi: "Ada", kalinlik: 2, yazi_tipi: "Düz", link: "https://ornek.com" }) && hata.hidden === true;
+      son.p === JSON.stringify({ yazi: "Ada", kalinlik: 2, yazi_tipi: "Düz", link: "https://ornek.com", kapak: true }) && hata.hidden === true;
+    // BOOL (kopru-15 sözlük): tip "bool" -> onay kutusu (label for=id, etiket manifestten), varsayılan
+    // manifestten (true -> işaretli); işareti kaldırınca gövdede JSON false (dize DEĞİL) ve doğrulama ok.
+    const kb = id("foto-param-kapak");
+    const kbEtiket = d.find((n) => n.tagName === "LABEL" && n.getAttribute("for") === "foto-param-kapak");
+    let kbSon = null;
+    if (kb) { kb.checked = false; kb.tetikle("change"); kbSon = V.cagri[V.cagri.length - 1]; }
+    s.BOOL = !!kb && kb.tagName === "INPUT" && kb.type === "checkbox" && !!kbEtiket && kbEtiket.textContent === "Kapak" &&
+      !!kbSon && kbSon.d.ok === true && JSON.parse(kbSon.p).kapak === false;
+    if (kb) { kb.checked = true; kb.tetikle("change"); }
     // ONIZLEMESIZ D: ornek render + SONRA metni; litofan tuvali yok; siparis butonu acilmaz.
     const sonra = d.find((n) => n.tagName === "P" && n.textContent === SONRA);
     const kap = sonra ? sonra.parentNode : null;
@@ -1733,7 +1747,7 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
       p0.govde.tur === "sentetik-d" && p0.govde.aydinlatma_onay === true && p0.govde.onay_surum === V2.onay_surum &&
       !("hak_onay" in p0.govde) && !("aktarim_onay" in p0.govde) && p0.govde.turnstile_token === "t-jeton" &&
       p0.govde.gorsel === undefined && JSON.stringify(p0.govde.parametreler) ===
-        JSON.stringify({ yazi: "Ada", kalinlik: 2, yazi_tipi: "Düz", link: "https://ornek.com" }) &&
+        JSON.stringify({ yazi: "Ada", kalinlik: 2, yazi_tipi: "Düz", link: "https://ornek.com", kapak: true }) &&
       e2.araliklar.includes(5000) && !e2.araliklar.includes(3000);
     // PLAKET: form {} -> alan yok, SONRA metni yok.
     const p = await ekranKos(kaynak, sentetik(VERI_KAYNAK), acikP);
@@ -1746,6 +1760,7 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
   ol("FM1 form alanlari manifestten: metin(max 20) · sayi(2–6, adim 1) · secim(2) · url", s0.ALANLAR, JSON.stringify(s0));
   ol("FM2 istemci dogrulamasi = VERI.parametreDogrula (hata metni ondan; doldurunca ok + govde semaya uygun)", s0.AYNI_FONKSIYON, JSON.stringify(s0));
   ol("FM3 onizlemesiz D turu: ornek render + '" + SONRA + "' · tuval/litofan onizleme metni 0 · buton kapali", s0.ONIZLEMESIZ, JSON.stringify(s0));
+  ol("FM1b bool alan: onay kutusu (etiketli, varsayilan isaretli) · isaret kalkinca govdede kapak:false (boolean) + dogrulama ok", s0.BOOL, JSON.stringify(s0));
   ol("FM4 plaket (form {}): parametre alani 0, onizleme-sonra metni 0", s0.PLAKET, JSON.stringify(s0));
   ol("FM5 onizlemesiz D: buton onay+dogrulamayla ACILIR -> /foto/onizleme kuyrugu (foto'suz, parametreli), yoklama 5 sn", s0.KUYRUK, JSON.stringify(s0));
   ol("FM6 TEK onay kutusu 'foto-aydinlatma-onay' aydinlatma metninin ALTINDA, form turunde ve plakette GORUNUR; eski 2 kutu 0",
@@ -1753,7 +1768,7 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
   ol("FM7 kutu isaretsizken 'Önizleme oluştur' DISABLED, isaretlenince acilir; govdede aydinlatma_onay + surum (eski alan 0)",
     s0.KUTU_SART && s0.KUYRUK, JSON.stringify(s0));
   const FM_MUT = [
-    ["FM-M1 istemci kendi dogrulamasi (her sey gecerli)", "return F.parametreDogrula(S.tur, parametreGovde());", "return { ok: true };", ["AYNI_FONKSIYON"]],
+    ["FM-M1 istemci kendi dogrulamasi (her sey gecerli)", "return F.parametreDogrula(S.tur, parametreGovde());", "return { ok: true };", ["AYNI_FONKSIYON", "BOOL"]],
     ["FM-M2 onizleme-sonra metni dustu", "S.alanOnizlemeSonra.appendChild(el(\"p\", \"foto-uretim-ayrinti\", ONIZLEME_SONRA));", "", ["ONIZLEMESIZ"]],
     ["FM-M3 tarayici onizleyici kosulu silindi (her D litofan sayilir)",
      "F.kolu(S.tur) === \"deterministik\" && F.TARAYICI_ONIZLEYICI[t.uretec] === true);", "F.kolu(S.tur) === \"deterministik\");", ["KUTU_SART", "KUYRUK", "ONIZLEMESIZ"]],
@@ -1765,6 +1780,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
      "    var tam = (!!S.dosya || !fotoGerekir()) &&", ["KUTU_SART"]],
     ["FM-M7 aydinlatma metni dustu (kutu metinsiz kalir)", "    S.alanOnay.appendChild(det);\n\n", "", ["TEK_KUTU_FORM", "TEK_KUTU_PLAKET"]],
     ["FM-M8 govdeye onay alani girmedi", "aydinlatma_onay: !!S.aydinlatmaOnay, onay_surum: F.onay_surum,", "onay_surum: F.onay_surum,", ["KUYRUK"]],
+    ["FM-M9 bool degeri dize olarak yazilir", "S.parametre[a] = e.target.checked === true;", "S.parametre[a] = String(e.target.checked);", ["BOOL"]],
+    ["FM-M10 bool dali silindi (duz metin kutusu)", "} else if (sema.tip === \"bool\") {", "} else if (false) {", ["AYNI_FONKSIYON", "BOOL", "KUTU_SART", "KUYRUK"]],
     ["FM-MK kontrol (yorum)", "// FORM ALANLARI — türün", "// form alanlari — turun", []],
   ];
   for (const [ad, capa, yerine, olmeli] of FM_MUT) {

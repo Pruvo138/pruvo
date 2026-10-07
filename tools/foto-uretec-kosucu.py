@@ -778,11 +778,16 @@ def esle_rolyef(g, dizin, rh):
 
 def esle_ses(g, dizin, rh):
     p = g.get("parametreler") or {}
-    ad = (g.get("dosyalar") or {}).get("ses")
-    if not isinstance(ad, str) or not os.path.isfile(os.path.join(dizin, ad)):
-        raise KopruRed("girdi-yok")
-    u = {"wav": os.path.join(os.path.abspath(dizin), ad),
-         "uzun_kenar_mm": float(g["olcu_mm"]),
+    # Ses girdisi = form parametresi `genlik` (tip "ses": 64..4000 eleman, VERI.parametreDogrula);
+    # yoksa eski yol (dosyalar.ses WAV).
+    if isinstance(p.get("genlik"), list) and p["genlik"]:
+        u = {"genlik": [float(x) for x in p["genlik"]]}
+    else:
+        ad = (g.get("dosyalar") or {}).get("ses")
+        if not isinstance(ad, str) or not os.path.isfile(os.path.join(dizin, ad)):
+            raise KopruRed("girdi-yok")
+        u = {"wav": os.path.join(os.path.abspath(dizin), ad)}
+    u.update({"uzun_kenar_mm": float(g["olcu_mm"]),
          "cubuk_sayisi": int(p.get("cubuk_sayisi", 100)),
          "dalga_yuksekligi_mm": float(p.get("dalga_yuksekligi_mm", 40.0)),
          "cubuk_yuksekligi_mm": float(p.get("cubuk_yuksekligi_mm", 2.0)),
@@ -795,7 +800,7 @@ def esle_ses(g, dizin, rh):
          "yazi_yuksekligi_mm": float(p.get("yazi_yuksekligi_mm", 8.0)),
          "renk_plaka": _renk(g, "plaka", rh) or "#1F2A44",
          "renk_cubuk": _renk(g, "cubuk", rh) or "#E8E4D8",
-         "renk_yazi": _renk(g, "yazi", rh) or ""}
+         "renk_yazi": _renk(g, "yazi", rh) or ""})
     return u, ["plaka", "cubuk"]
 
 def esle_braille(g, dizin, rh):

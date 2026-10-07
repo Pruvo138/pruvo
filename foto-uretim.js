@@ -77,7 +77,8 @@
     "parametre-adim": "Değer izinli adıma uymuyor.",
     "parametre-secim": "Listeden bir seçenek seç.",
     "parametre-metin": "Metin alanını doldur (izinli uzunlukta).",
-    "parametre-url": "Bağlantı https:// ile başlamalı."
+    "parametre-url": "Bağlantı https:// ile başlamalı.",
+    "parametre-bool": "Kutuyu işaretle ya da boş bırak."
   };
   /* Dürüstlük kutusu metni TÜR BAZLI: manifest `durustluk` (seçili türünki; durustlukGuncelle). */
   /* ============== REFERANSLAR ============== */
@@ -871,6 +872,19 @@
             return;
           }
           // saat yoksa alttaki ortak input dinleme çalışsın.
+        } else if (sema.tip === "bool") {
+          // Onay kutusu: değer YALNIZ true/false (F.parametreDogrula); varsayılan manifestten.
+          g = el("input", "foto-uretim-form-onay-kutusu");
+          g.type = "checkbox"; g.id = id; g.name = id;
+          if (S.parametre[a] !== true && S.parametre[a] !== false) S.parametre[a] = sema.varsayilan === true;
+          g.checked = S.parametre[a] === true;
+          g.addEventListener("change", function (e) {
+            S.parametre[a] = e.target.checked === true;
+            formHataGoster();
+            guncelleS1Buton();
+          });
+          S.alanForm.appendChild(g);
+          return;
         } else {
           g = el("input", "foto-uretim-form-secenek-girdi");
           if (sema.tip === "sayi") {
@@ -1289,8 +1303,12 @@
     // YER TUTUCU: açık olmayan türler (kayıt YOK → sunucu etkilenmez; galeri TÜM kategorileri gösterir).
     // `yerTutucu:true` küçük resimde ikon kutusu, büyük kartta ikon + "Bu tür yakında eklenecek." yazar;
     // lightbox açılmaz (görsel yok). Sıra: görsel türler → yer tutucular (lightbox gezintisi görsellerde kalır).
+    // Aynı koddaki tür gerçek örneğiyle galerideyse yer tutucusu ÇİZİLMEZ (aynı tür iki kez + "yakında" yalanı).
+    var cizilen = {};
+    for (var ci = 0; ci < liste.length; ci++) cizilen[liste[ci].tur.kod] = true;
     for (var yi = 0; yi < YER_TUTUCU.length; yi++) {
       var yt = YER_TUTUCU[yi];
+      if (cizilen[yt.kod]) continue;
       liste.push({ tur: { kod: yt.kod, ad: yt.ad }, ornek: null, kanit: "",
         yakinda: true, yerTutucu: true, ikon: yt.ikon });
     }

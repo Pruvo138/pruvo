@@ -158,6 +158,25 @@ console.log("TS) TARIH + SAAT (saat:true ise SS:DD + utc_ofset_saat -12..14)");
   ol("TS7 saat:true ise dize kabul edilmez ✗", VERI.parametreDogrula(t.kod, x4).ok === false && VERI.parametreDogrula(t.kod, x4).hata === "parametre-tarih", JSON.stringify(VERI.parametreDogrula(t.kod, x4)));
 }
 
+console.log("B) BOOL (kopru-15 sözlük: YALNIZ true/false; dize/sayı/null RED)");
+{
+  ol("B0 FORM_TIPLERI.bool === true", VERI.FORM_TIPLERI.bool === true, JSON.stringify(VERI.FORM_TIPLERI));
+  const t = sahteTur("bool-test", { alan: { tip: "bool", etiket: "Kapak", varsayilan: false } });
+  VERI.turler.push(t);
+  const d = (v) => VERI.parametreDogrula(t.kod, { alan: v });
+  ol("B1 true ✓ (deger true)", d(true).ok === true && d(true).deger.alan === true, JSON.stringify(d(true)));
+  ol("B2 false ✓ (deger false)", d(false).ok === true && d(false).deger.alan === false, JSON.stringify(d(false)));
+  for (const [ad, v] of [["B3 \"true\"", "true"], ["B4 \"1\"", "1"], ["B5 1", 1], ["B6 0", 0], ["B7 null", null], ["B8 \"false\"", "false"]]) {
+    ol(ad + " ✗ parametre-bool", d(v).ok === false && d(v).hata === "parametre-bool", JSON.stringify(d(v)));
+  }
+  ol("B9 alan yok ✗ parametre-bool", VERI.parametreDogrula(t.kod, {}).hata === "parametre-bool", JSON.stringify(VERI.parametreDogrula(t.kod, {})));
+  // Gerçek manifest: G4a türlerinin bool alanı (kutu.kapak / adaptor.flans / kapak.topuz) "parametre-yakinda" DEĞİL.
+  for (const [kod, alan] of [["kutu", "kapak"], ["adaptor", "flans"], ["kapak", "topuz"]]) {
+    const tt = VERI.turBul(kod);
+    ol("B10 " + kod + "." + alan + " tip bool", !!tt && tt.form[alan] && tt.form[alan].tip === "bool", kod);
+  }
+}
+
 // ---------------------------------------------------------------- MUTANTLAR
 console.log("MUTANTLAR (geçici bellek kopyası; çalışma ağacına YAZMAZ)");
 
@@ -249,6 +268,25 @@ mutantKos("M-SES2 eleman aralık denetimi silindi", (k) => blokCikar(k, "if (typ
 mutantKos("M-KON1 enlem denetimi silindi",      (k) => blokCikar(k, "if (typeof v.enlem !== \"number\""), "konum", KIRMIZI_SEN_KONUM_ENLEM);
 mutantKos("M-KON2 boylam denetimi silindi",     (k) => blokCikar(k, "if (typeof v.boylam !== \"number\""), "konum", KIRMIZI_SEN_KONUM_BOYLAM);
 mutantKos("M-TRH1 takvim geçersiz kabul edilmedi", (k) => blokCikar(k, "if (d.getUTCFullYear() !== y"), "tarih", KIRMIZI_SEN_TARIH_TAKVIM);
+
+const KIRMIZI_SEN_BOOL = [
+  ["B3 \"true\"", { fail: true,  v: () => "true" }],
+  ["B5 1",        { fail: true,  v: () => 1 }],
+  ["B7 null",     { fail: true,  v: () => null }],
+  ["B1 true",     { fail: false, v: () => true }],
+  ["B2 false",    { fail: false, v: () => false }]
+];
+// BOOL mutantı: true/false denetimi silinir -> dize/sayı/null kabul edilir.
+mutantKos("M-BOOL1 bool true/false denetimi silindi",
+  (k) => satirCikar(k, "if (v !== true && v !== false) { return { ok: false, hata: \"parametre-bool\" }; }"), "bool", KIRMIZI_SEN_BOOL);
+// BOOL mutantı 2: FORM_TIPLERI'nden bool düşer -> geçerli true/false da "parametre-yakinda" (geçerliler KIRMIZI).
+{
+  const v = veriKur(KAYNAK.replace(", bool: true };", " };"));
+  const t = sahteTur("mtest-bool2", { alan: { tip: "bool", etiket: "b" } });
+  v.turler.push(t);
+  const r = v.parametreDogrula(t.kod, { alan: true });
+  ol("M-BOOL2 FORM_TIPLERI.bool dustu -> true KIRMIZI (parametre-yakinda)", r.ok === false && r.hata === "parametre-yakinda", JSON.stringify(r));
+}
 
 // SAAT mutantı: saat format denetimi (regex test) kaldırılır.
 // Bu denetim `if (typeof satStr !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(satStr))` satırında
