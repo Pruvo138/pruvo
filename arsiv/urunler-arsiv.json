@@ -341,5 +341,33 @@
       },
       "altkategori": "Aydınlatma"
     }
+  },
+  {
+    "silinme_ts": "2026-10-07T08:27:14Z",
+    "yazan": "panel-uygulayici",
+    "kuyruk_id": 41,
+    "kayit": {
+      "id": "yamaha-klavye-nota-sehpas",
+      "kategori": "Elektronik",
+      "marka": [
+        "Yamaha"
+      ],
+      "baslik": "Yamaha klavye nota sehpası",
+      "aciklama": "Klavye üzerinde notaları veya kağıtları sabit tutmak için kullanılan pratik bir nota sehpasıdır.\n- Yamaha uyumlu klavyelerde kullanım için uygundur.\n- Üstteki yuvasına yerleştirilerek kolayca takılır ve çıkarılır.\n- Evde pratik, prova ve sahne kullanımında düzen sağlar.\nYaklaşık dış ölçüler: 60 × 60 × 10 mm.",
+      "fiyat": "250 TL",
+      "gorseller": [
+        "https://media.pruvo3d.com/urunler/yamaha-klavye-nota-sehpas-1.jpg"
+      ],
+      "lisans": {
+        "tasarimci": "Mechatronics",
+        "tur": "CC BY 4.0"
+      },
+      "altkategori": "Ses ve Müzik",
+      "uyum": [
+        {
+          "marka": "Yamaha"
+        }
+      ]
+    }
   }
 ]
