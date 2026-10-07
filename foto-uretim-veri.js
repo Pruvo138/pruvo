@@ -273,6 +273,1664 @@
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Yapboz tek renkli kabartmadır; renkli baskı değildir. Parçalar elle takılır; çocuk oyuncağı olarak belgelendirilmemiştir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir."
+      },
+      {
+        kod: "kutu",
+        ad: "Düzenleyici kutu",
+        aciklama: "Düzenleyici kutu — ölçüye özel üretim.",
+        girdi: ["olcu"],
+        motor: "D",
+        uretec: "ozel_uret:kutu",
+        olcu_mm: {
+          en_az: 40,
+          en_cok: 300
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG", "ASA"]
+        },
+        form: {
+          en_mm: {
+            tip: "sayi",
+            etiket: "En (dış)",
+            min: 30,
+            max: 300,
+            varsayilan: 100,
+            birim: "mm"
+          },
+          boy_mm: {
+            tip: "sayi",
+            etiket: "Boy (dış)",
+            min: 30,
+            max: 300,
+            varsayilan: 60,
+            birim: "mm"
+          },
+          yukseklik_mm: {
+            tip: "sayi",
+            etiket: "Yükseklik (dış)",
+            min: 15,
+            max: 200,
+            varsayilan: 40,
+            birim: "mm"
+          },
+          bolme_x: {
+            tip: "sayi",
+            etiket: "Bölme sayısı (en yönü)",
+            min: 1,
+            max: 8,
+            varsayilan: 2,
+            birim: "adet",
+            tam: true
+          },
+          bolme_y: {
+            tip: "sayi",
+            etiket: "Bölme sayısı (boy yönü)",
+            min: 1,
+            max: 8,
+            varsayilan: 2,
+            birim: "adet",
+            tam: true
+          },
+          duvar_mm: {
+            tip: "sayi",
+            etiket: "Duvar kalınlığı",
+            min: 1.2,
+            max: 4,
+            varsayilan: 1.6,
+            birim: "mm"
+          },
+          taban_mm: {
+            tip: "sayi",
+            etiket: "Taban kalınlığı",
+            min: 1.2,
+            max: 5,
+            varsayilan: 1.6,
+            birim: "mm"
+          },
+          kose_yaricap_mm: {
+            tip: "sayi",
+            etiket: "Köşe yarıçapı",
+            min: 0,
+            max: 30,
+            varsayilan: 3,
+            birim: "mm"
+          },
+          kapak: {
+            tip: "bool",
+            etiket: "Oturaklı kapak (ayrı gövde, boşluk 0,25 mm)",
+            varsayilan: false
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; düzenleyici kutu bu parametrelerle üretilir."
+      },
+      {
+        kod: "adaptor",
+        ad: "Adaptör / burç / pul",
+        aciklama: "Adaptör / burç / pul — ölçüye özel üretim.",
+        girdi: ["olcu"],
+        motor: "D",
+        uretec: "ozel_uret:adaptor",
+        olcu_mm: {
+          en_az: 6,
+          en_cok: 150
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG", "ASA"]
+        },
+        form: {
+          mod: {
+            tip: "secim",
+            etiket: "Parça türü",
+            secenekler: ["pul", "burc", "adaptor"],
+            varsayilan: "burc"
+          },
+          ic_cap_mm: {
+            tip: "sayi",
+            etiket: "İç çap (delik)",
+            min: 2,
+            max: 140,
+            varsayilan: 10,
+            birim: "mm"
+          },
+          dis_cap_mm: {
+            tip: "sayi",
+            etiket: "Dış çap (alt kademe)",
+            min: 6,
+            max: 150,
+            varsayilan: 20,
+            birim: "mm"
+          },
+          yukseklik_mm: {
+            tip: "sayi",
+            etiket: "Yükseklik (toplam)",
+            min: 0.8,
+            max: 150,
+            varsayilan: 15,
+            birim: "mm"
+          },
+          kademe_cap_mm: {
+            tip: "sayi",
+            etiket: "Üst kademe dış çapı",
+            min: 6,
+            max: 150,
+            varsayilan: 14,
+            birim: "mm"
+          },
+          kademe_yukseklik_mm: {
+            tip: "sayi",
+            etiket: "Üst kademe yüksekliği",
+            min: 2,
+            max: 148,
+            varsayilan: 8,
+            birim: "mm"
+          },
+          ic_cap2_mm: {
+            tip: "sayi",
+            etiket: "Üst kademe iç çapı (0 = aynı delik)",
+            min: 0,
+            max: 140,
+            varsayilan: 0,
+            birim: "mm"
+          },
+          flans: {
+            tip: "bool",
+            etiket: "Flanş (alt)",
+            varsayilan: false
+          },
+          flans_cap_mm: {
+            tip: "sayi",
+            etiket: "Flanş çapı",
+            min: 8,
+            max: 150,
+            varsayilan: 30,
+            birim: "mm"
+          },
+          flans_kalinlik_mm: {
+            tip: "sayi",
+            etiket: "Flanş kalınlığı",
+            min: 1.2,
+            max: 10,
+            varsayilan: 2,
+            birim: "mm"
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; adaptör / burç / pul bu parametrelerle üretilir."
+      },
+      {
+        kod: "disli",
+        ad: "Dişli / kasnak",
+        aciklama: "Dişli / kasnak — ölçüye özel üretim.",
+        girdi: ["olcu"],
+        motor: "D",
+        uretec: "ozel_uret:disli",
+        olcu_mm: {
+          en_az: 8,
+          en_cok: 200
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG", "ASA"]
+        },
+        form: {
+          tip: {
+            tip: "secim",
+            etiket: "Parça türü",
+            secenekler: ["duz_disli", "gt2_kasnak", "v_kasnak"],
+            varsayilan: "duz_disli"
+          },
+          mil_capi_mm: {
+            tip: "sayi",
+            etiket: "Mil deliği çapı",
+            min: 2,
+            max: 40,
+            varsayilan: 5,
+            birim: "mm"
+          },
+          mil_tipi: {
+            tip: "secim",
+            etiket: "Mil deliği tipi",
+            secenekler: ["yuvarlak", "d_mil", "kama"],
+            varsayilan: "yuvarlak"
+          },
+          duz_kesim_mm: {
+            tip: "sayi",
+            etiket: "D-mil düz kesim derinliği",
+            min: 0.3,
+            max: 3,
+            varsayilan: 0.5,
+            birim: "mm"
+          },
+          modul_mm: {
+            tip: "sayi",
+            etiket: "Modül",
+            min: 0.5,
+            max: 5,
+            varsayilan: 1.5,
+            birim: "mm"
+          },
+          dis_sayisi: {
+            tip: "sayi",
+            etiket: "Diş sayısı (dişli 8-120, GT2 kasnak 16-80)",
+            min: 8,
+            max: 120,
+            varsayilan: 20,
+            birim: "adet",
+            tam: true
+          },
+          kalinlik_mm: {
+            tip: "sayi",
+            etiket: "Dişli kalınlığı",
+            min: 3,
+            max: 40,
+            varsayilan: 8,
+            birim: "mm"
+          },
+          dis_boslugu_mm: {
+            tip: "sayi",
+            etiket: "Diş boşluğu (backlash, çift toplamı)",
+            min: 0.05,
+            max: 0.5,
+            varsayilan: 0.2,
+            birim: "mm"
+          },
+          es_dis_sayisi: {
+            tip: "sayi",
+            etiket: "Eşleşen dişli diş sayısı (0 = yalnız tek dişli)",
+            min: 0,
+            max: 120,
+            varsayilan: 0,
+            birim: "adet",
+            tam: true
+          },
+          es_mil_capi_mm: {
+            tip: "sayi",
+            etiket: "Eşleşen dişli mil çapı (0 = aynı)",
+            min: 0,
+            max: 40,
+            varsayilan: 0,
+            birim: "mm"
+          },
+          kemer_genislik_mm: {
+            tip: "secim",
+            etiket: "Kemer genişliği",
+            secenekler: [6, 9, 10],
+            varsayilan: 6
+          },
+          dis_cap_mm: {
+            tip: "sayi",
+            etiket: "V kasnak dış çapı",
+            min: 16,
+            max: 100,
+            varsayilan: 40,
+            birim: "mm"
+          },
+          v_kanal_genislik_mm: {
+            tip: "sayi",
+            etiket: "V kanal üst genişliği",
+            min: 6,
+            max: 17,
+            varsayilan: 10,
+            birim: "mm"
+          },
+          v_kalinlik_mm: {
+            tip: "sayi",
+            etiket: "V kasnak kalınlığı",
+            min: 10,
+            max: 40,
+            varsayilan: 16,
+            birim: "mm"
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; dişli / kasnak bu parametrelerle üretilir."
+      },
+      {
+        kod: "kapak",
+        ad: "Kapak / tıpa",
+        aciklama: "Kapak / tıpa — ölçüye özel üretim.",
+        girdi: ["olcu"],
+        motor: "D",
+        uretec: "ozel_uret:kapak",
+        olcu_mm: {
+          en_az: 10,
+          en_cok: 150
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG", "ASA"]
+        },
+        form: {
+          mod: {
+            tip: "secim",
+            etiket: "Parça türü",
+            secenekler: ["kapak", "tipa"],
+            varsayilan: "kapak"
+          },
+          ic_cap_mm: {
+            tip: "sayi",
+            etiket: "İç çap (kapatılan ağız / tıpanın gireceği delik)",
+            min: 6,
+            max: 140,
+            varsayilan: 20,
+            birim: "mm"
+          },
+          dis_cap_mm: {
+            tip: "sayi",
+            etiket: "Dış çap (kapak gövdesi / tıpa başlığı)",
+            min: 10,
+            max: 150,
+            varsayilan: 26,
+            birim: "mm"
+          },
+          yukseklik_mm: {
+            tip: "sayi",
+            etiket: "Kapak yüksekliği",
+            min: 4,
+            max: 100,
+            varsayilan: 15,
+            birim: "mm"
+          },
+          tipa_boyu_mm: {
+            tip: "sayi",
+            etiket: "Tıpa boyu",
+            min: 4,
+            max: 60,
+            varsayilan: 12,
+            birim: "mm"
+          },
+          ust_kalinlik_mm: {
+            tip: "sayi",
+            etiket: "Üst plaka / başlık kalınlığı",
+            min: 1.2,
+            max: 6,
+            varsayilan: 2,
+            birim: "mm"
+          },
+          gecme_bosluk_mm: {
+            tip: "sayi",
+            etiket: "Geçme boşluğu (her yüzde)",
+            min: 0.2,
+            max: 0.4,
+            varsayilan: 0.3,
+            birim: "mm"
+          },
+          cekme_acisi_derece: {
+            tip: "sayi",
+            etiket: "Tıpa çekme açısı (0 = silindirik)",
+            min: 0,
+            max: 5,
+            varsayilan: 0,
+            birim: "derece"
+          },
+          topuz: {
+            tip: "bool",
+            etiket: "Tutma topuzu",
+            varsayilan: false
+          },
+          topuz_cap_mm: {
+            tip: "sayi",
+            etiket: "Topuz çapı",
+            min: 6,
+            max: 40,
+            varsayilan: 12,
+            birim: "mm"
+          },
+          topuz_yukseklik_mm: {
+            tip: "sayi",
+            etiket: "Topuz yüksekliği",
+            min: 3,
+            max: 30,
+            varsayilan: 8,
+            birim: "mm"
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; kapak / tıpa bu parametrelerle üretilir."
+      },
+      {
+        kod: "dugme",
+        ad: "Düğme / topuz",
+        aciklama: "Düğme / topuz — ölçüye özel üretim.",
+        girdi: ["olcu"],
+        motor: "D",
+        uretec: "ozel_uret:dugme",
+        olcu_mm: {
+          en_az: 12,
+          en_cok: 80
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG", "ASA"]
+        },
+        form: {
+          cap_mm: {
+            tip: "sayi",
+            etiket: "Çap",
+            min: 12,
+            max: 80,
+            varsayilan: 30,
+            birim: "mm"
+          },
+          yukseklik_mm: {
+            tip: "sayi",
+            etiket: "Yükseklik",
+            min: 6,
+            max: 80,
+            varsayilan: 18,
+            birim: "mm"
+          },
+          tirtil_sayisi: {
+            tip: "sayi",
+            etiket: "Tırtıl (dikey kanal) sayısı",
+            min: 0,
+            max: 60,
+            varsayilan: 0,
+            birim: "adet",
+            tam: true
+          },
+          tirtil_derinlik_mm: {
+            tip: "sayi",
+            etiket: "Tırtıl derinliği",
+            min: 0.4,
+            max: 3,
+            varsayilan: 1,
+            birim: "mm"
+          },
+          isaret_cizgisi: {
+            tip: "bool",
+            etiket: "İşaret çizgisi (üst yüz)",
+            varsayilan: false
+          },
+          mil_tipi: {
+            tip: "secim",
+            etiket: "Mil tipi",
+            secenekler: ["yuvarlak", "d_mil", "yivli"],
+            varsayilan: "d_mil"
+          },
+          mil_capi_mm: {
+            tip: "sayi",
+            etiket: "Mil çapı",
+            min: 3,
+            max: 12,
+            varsayilan: 6,
+            birim: "mm"
+          },
+          duz_kesim_mm: {
+            tip: "sayi",
+            etiket: "D-mil düz kesim derinliği",
+            min: 0.2,
+            max: 2,
+            varsayilan: 0.5,
+            birim: "mm"
+          },
+          yiv_sayisi: {
+            tip: "sayi",
+            etiket: "Yiv sayısı (çift)",
+            min: 8,
+            max: 36,
+            varsayilan: 18,
+            birim: "adet",
+            tam: true
+          },
+          set_vida: {
+            tip: "bool",
+            etiket: "M3 set vidası kanalı",
+            varsayilan: false
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; düğme / topuz bu parametrelerle üretilir."
+      },
+      {
+        kod: "klips",
+        ad: "Klips / kelepçe / menteşe",
+        aciklama: "Klips / kelepçe / menteşe — ölçüye özel üretim.",
+        girdi: ["olcu"],
+        motor: "D",
+        uretec: "ozel_uret:klips",
+        olcu_mm: {
+          en_az: 10,
+          en_cok: 200
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG"]
+        },
+        form: {
+          alt_tur: {
+            tip: "secim",
+            etiket: "Parça türü",
+            secenekler: ["boru_kelepcesi", "u_klips", "mentese"],
+            varsayilan: "boru_kelepcesi"
+          },
+          boru_cap_mm: {
+            tip: "sayi",
+            etiket: "Boru dış çapı",
+            min: 6,
+            max: 120,
+            varsayilan: 25,
+            birim: "mm"
+          },
+          agiz_payi_mm: {
+            tip: "sayi",
+            etiket: "Açık ağız payı (ağız = boru çapı − pay)",
+            min: 0.5,
+            max: 60,
+            varsayilan: 3,
+            birim: "mm"
+          },
+          vida: {
+            tip: "secim",
+            etiket: "Vida deliği",
+            secenekler: ["M3", "M4", "M5"],
+            varsayilan: "M4"
+          },
+          u_aralik_mm: {
+            tip: "sayi",
+            etiket: "U iç aralığı (kavranan kalınlık)",
+            min: 1,
+            max: 60,
+            varsayilan: 4,
+            birim: "mm"
+          },
+          kol_boyu_mm: {
+            tip: "sayi",
+            etiket: "Kol boyu",
+            min: 8,
+            max: 80,
+            varsayilan: 20,
+            birim: "mm"
+          },
+          kanca_mm: {
+            tip: "sayi",
+            etiket: "Kol ucu kancası (0 = yok)",
+            min: 0,
+            max: 3,
+            varsayilan: 0.8,
+            birim: "mm"
+          },
+          genislik_mm: {
+            tip: "sayi",
+            etiket: "Genişlik (eksen boyu)",
+            min: 6,
+            max: 40,
+            varsayilan: 12,
+            birim: "mm"
+          },
+          kalinlik_mm: {
+            tip: "sayi",
+            etiket: "Duvar kalınlığı",
+            min: 1.6,
+            max: 6,
+            varsayilan: 3,
+            birim: "mm"
+          },
+          yukseklik_mm: {
+            tip: "sayi",
+            etiket: "Menteşe yüksekliği (pim ekseni)",
+            min: 12,
+            max: 120,
+            varsayilan: 40,
+            birim: "mm"
+          },
+          kanat_genislik_mm: {
+            tip: "sayi",
+            etiket: "Kanat genişliği",
+            min: 10,
+            max: 80,
+            varsayilan: 30,
+            birim: "mm"
+          },
+          kanat_kalinlik_mm: {
+            tip: "sayi",
+            etiket: "Kanat kalınlığı",
+            min: 2,
+            max: 6,
+            varsayilan: 3,
+            birim: "mm"
+          },
+          pim_cap_mm: {
+            tip: "sayi",
+            etiket: "Pim çapı",
+            min: 3,
+            max: 8,
+            varsayilan: 4,
+            birim: "mm"
+          },
+          eklem_sayisi: {
+            tip: "secim",
+            etiket: "Boğum sayısı",
+            secenekler: [3, 5, 7],
+            varsayilan: 3
+          },
+          bosluk_mm: {
+            tip: "sayi",
+            etiket: "Menteşe boşluğu (radyal ve dikey)",
+            min: 0.25,
+            max: 0.45,
+            varsayilan: 0.3,
+            birim: "mm"
+          },
+          vida_deligi: {
+            tip: "bool",
+            etiket: "Kanatlarda M3 vida delikleri",
+            varsayilan: false
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; klips / kelepçe / menteşe bu parametrelerle üretilir."
+      },
+      {
+        kod: "saksi",
+        ad: "Saksı / vazo",
+        aciklama: "Saksı / vazo — ölçüye özel üretim.",
+        girdi: ["olcu"],
+        motor: "D",
+        uretec: "ozel_uret:saksi",
+        olcu_mm: {
+          en_az: 40,
+          en_cok: 300
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG", "ASA"]
+        },
+        form: {
+          tur: {
+            tip: "secim",
+            etiket: "Parça türü",
+            secenekler: ["saksi", "vazo"],
+            varsayilan: "saksi"
+          },
+          cap_mm: {
+            tip: "sayi",
+            etiket: "Ağız dış çapı",
+            min: 40,
+            max: 300,
+            varsayilan: 100,
+            birim: "mm"
+          },
+          yukseklik_mm: {
+            tip: "sayi",
+            etiket: "Yükseklik",
+            min: 40,
+            max: 300,
+            varsayilan: 100,
+            birim: "mm"
+          },
+          duvar_mm: {
+            tip: "sayi",
+            etiket: "Duvar kalınlığı (vazo >= 1,6)",
+            min: 1.2,
+            max: 6,
+            varsayilan: 2,
+            birim: "mm"
+          },
+          taban_mm: {
+            tip: "sayi",
+            etiket: "Taban kalınlığı",
+            min: 2,
+            max: 10,
+            varsayilan: 3,
+            birim: "mm"
+          },
+          profil: {
+            tip: "secim",
+            etiket: "Profil",
+            secenekler: ["silindir", "konik", "oval", "bombeli"],
+            varsayilan: "silindir"
+          },
+          alt_cap_mm: {
+            tip: "sayi",
+            etiket: "Taban dış çapı (konik)",
+            min: 20,
+            max: 300,
+            varsayilan: 70,
+            birim: "mm"
+          },
+          oval_orani: {
+            tip: "sayi",
+            etiket: "Oval küçük/büyük eksen oranı",
+            min: 0.5,
+            max: 0.95,
+            varsayilan: 0.7,
+            birim: "oran"
+          },
+          bombe_mm: {
+            tip: "sayi",
+            etiket: "Bombe payı (bombeli)",
+            min: 2,
+            max: 40,
+            varsayilan: 8,
+            birim: "mm"
+          },
+          kanal_sayisi: {
+            tip: "sayi",
+            etiket: "Dikey kanal sayısı",
+            min: 0,
+            max: 40,
+            varsayilan: 0,
+            birim: "adet",
+            tam: true
+          },
+          kanal_derinlik_mm: {
+            tip: "sayi",
+            etiket: "Kanal derinliği",
+            min: 0.5,
+            max: 4,
+            varsayilan: 1.5,
+            birim: "mm"
+          },
+          bukum_derece: {
+            tip: "sayi",
+            etiket: "Spiral büküm (tepeye kadar)",
+            min: 0,
+            max: 120,
+            varsayilan: 0,
+            birim: "derece"
+          },
+          drenaj_cap_mm: {
+            tip: "sayi",
+            etiket: "Drenaj deliği çapı",
+            min: 5,
+            max: 40,
+            varsayilan: 10,
+            birim: "mm"
+          },
+          tabak: {
+            tip: "bool",
+            etiket: "Altlık tabağı (ayrı gövde)",
+            varsayilan: false
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; saksı / vazo bu parametrelerle üretilir."
+      },
+      {
+        kod: "rolyef",
+        ad: "Yukseklik rolyefi",
+        aciklama: "Yukseklik rolyefi — ölçüye özel üretim.",
+        girdi: ["foto"],
+        motor: "D",
+        uretec: "rolyef_uret",
+        olcu_mm: {
+          en_az: 60,
+          en_cok: 250
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG"]
+        },
+        form: {
+          uzun_kenar_mm: {
+            tip: "sayi",
+            etiket: "Uzun kenar (plaka)",
+            min: 60,
+            max: 250,
+            varsayilan: 120,
+            birim: "mm"
+          },
+          rolyef_yuksekligi_mm: {
+            tip: "sayi",
+            etiket: "Rolyef yuksekligi",
+            min: 1,
+            max: 8,
+            varsayilan: 4,
+            birim: "mm"
+          },
+          gamma: {
+            tip: "sayi",
+            etiket: "Gamma (deger^gamma)",
+            min: 0.2,
+            max: 5,
+            varsayilan: 1,
+            birim: ""
+          },
+          otomatik_seviye: {
+            tip: "bool",
+            etiket: "Otomatik seviye (%1/%99)",
+            varsayilan: true
+          },
+          ters: {
+            tip: "bool",
+            etiket: "Ters (negatif) mod",
+            varsayilan: false
+          },
+          iki_renk: {
+            tip: "bool",
+            etiket: "Iki renk kolonu",
+            varsayilan: false
+          },
+          esik: {
+            tip: "sayi",
+            etiket: "Esik (0,05..0,95)",
+            min: 0.05,
+            max: 0.95,
+            varsayilan: 0.5,
+            birim: ""
+          },
+          renk_taban: {
+            tip: "renk",
+            etiket: "Taban rengi"
+          },
+          renk_rolyef: {
+            tip: "renk",
+            etiket: "Rolyef rengi"
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; yukseklik rolyefi bu parametrelerle üretilir."
+      },
+      {
+        kod: "ses",
+        ad: "Ses dalgasi",
+        aciklama: "Ses dalgasi — ölçüye özel üretim.",
+        girdi: ["ses"],
+        motor: "D",
+        uretec: "ses_dalgasi_uret",
+        olcu_mm: {
+          en_az: 80,
+          en_cok: 300
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG"]
+        },
+        form: {
+          genlik: {
+            tip: "sayi",
+            etiket: "Hazir genlik dizisi (64..4000)",
+            birim: "mm"
+          },
+          cubuk_sayisi: {
+            tip: "tam",
+            etiket: "Cubuk sayisi",
+            min: 40,
+            max: 400,
+            varsayilan: 100,
+            birim: "adet",
+            tam: true
+          },
+          uzun_kenar_mm: {
+            tip: "sayi",
+            etiket: "Uzun kenar",
+            min: 80,
+            max: 300,
+            varsayilan: 160,
+            birim: "mm"
+          },
+          dalga_yuksekligi_mm: {
+            tip: "sayi",
+            etiket: "Dalga yuksekligi",
+            min: 15,
+            max: 150,
+            varsayilan: 40,
+            birim: "mm"
+          },
+          cubuk_yuksekligi_mm: {
+            tip: "sayi",
+            etiket: "Cubuk yuksekligi (kabartma)",
+            min: 1.5,
+            max: 2.5,
+            varsayilan: 2.0,
+            birim: "mm"
+          },
+          cubuk_genislik_mm: {
+            tip: "sayi",
+            etiket: "Cubuk genislik (0=oto)",
+            min: 0,
+            max: 10,
+            varsayilan: 0,
+            birim: "mm"
+          },
+          mod: {
+            tip: "secim",
+            etiket: "Mod",
+            secenekler: ["simetrik", "alttan"],
+            varsayilan: "simetrik"
+          },
+          normalizasyon: {
+            tip: "secim",
+            etiket: "Normalizasyon",
+            secenekler: ["tepe", "tam_olcek"],
+            varsayilan: "tepe"
+          },
+          baslik: {
+            tip: "metin",
+            etiket: "Baslik metni (ops.)",
+            varsayilan: ""
+          },
+          yazi_tipi: {
+            tip: "secim",
+            etiket: "Yazi tipi",
+            secenekler: ["sans-kalin", "serif-kalin"],
+            varsayilan: "sans-kalin"
+          },
+          yazi_yuksekligi_mm: {
+            tip: "sayi",
+            etiket: "Yazi yuksekligi",
+            min: 6,
+            max: 30,
+            varsayilan: 8,
+            birim: "mm"
+          },
+          kenar_mm: {
+            tip: "sayi",
+            etiket: "Plaka kenari",
+            min: 4,
+            max: 20,
+            varsayilan: 6,
+            birim: "mm"
+          },
+          renk_plaka: {
+            tip: "renk",
+            etiket: "Plaka rengi"
+          },
+          renk_cubuk: {
+            tip: "renk",
+            etiket: "Cubuk rengi"
+          },
+          renk_yazi: {
+            tip: "renk",
+            etiket: "Yazi rengi"
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; ses dalgasi bu parametrelerle üretilir."
+      },
+      {
+        kod: "braille",
+        ad: "Braille",
+        aciklama: "Braille — ölçüye özel üretim.",
+        girdi: ["metin"],
+        motor: "D",
+        uretec: "braille_uret",
+        olcu_mm: {
+          en_az: 40,
+          en_cok: 250
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG"]
+        },
+        form: {
+          metin: {
+            tip: "metin",
+            etiket: "Turkce metin (Grade-1)"
+          },
+          ust_yazi: {
+            tip: "metin",
+            etiket: "Ust duz yazi (ops.)",
+            varsayilan: ""
+          },
+          yazi_tipi: {
+            tip: "secim",
+            etiket: "Yazi tipi",
+            secenekler: ["sans-kalin", "serif-kalin"],
+            varsayilan: "sans-kalin"
+          },
+          yazi_yuksekligi_mm: {
+            tip: "sayi",
+            etiket: "Yazi yuksekligi",
+            min: 6,
+            max: 40,
+            varsayilan: 10,
+            birim: "mm"
+          },
+          genislik_mm: {
+            tip: "sayi",
+            etiket: "Genislik (0=oto)",
+            min: 0,
+            max: 250,
+            varsayilan: 0,
+            birim: "mm"
+          },
+          satir_kir: {
+            tip: "bool",
+            etiket: "Kelime sinirinda kir",
+            varsayilan: false
+          },
+          hizalama: {
+            tip: "secim",
+            etiket: "Hizalama",
+            secenekler: ["sol", "orta"],
+            varsayilan: "sol"
+          },
+          kenar_mm: {
+            tip: "sayi",
+            etiket: "Plaka kenari",
+            min: 6,
+            max: 20,
+            varsayilan: 6,
+            birim: "mm"
+          },
+          buyuk_harf: {
+            tip: "secim",
+            etiket: "Buyuk harf",
+            secenekler: ["kucult", "isaretle"],
+            varsayilan: "kucult"
+          },
+          renk_plaka: {
+            tip: "renk",
+            etiket: "Plaka rengi"
+          },
+          renk_yazi: {
+            tip: "renk",
+            etiket: "Yazi rengi"
+          },
+          renk_nokta: {
+            tip: "renk",
+            etiket: "Nokta rengi"
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; braille bu parametrelerle üretilir."
+      },
+      {
+        kod: "topo",
+        ad: "Topografya",
+        aciklama: "Topografya — ölçüye özel üretim.",
+        girdi: ["konum"],
+        motor: "D",
+        uretec: "topo_uret",
+        olcu_mm: {
+          en_az: 60,
+          en_cok: 250
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG"]
+        },
+        form: {
+          enlem: {
+            tip: "sayi",
+            etiket: "Enlem",
+            min: -80,
+            max: 80,
+            birim: "mm"
+          },
+          boylam: {
+            tip: "sayi",
+            etiket: "Boylam",
+            min: -180,
+            max: 180,
+            birim: "mm"
+          },
+          yaricap_km: {
+            tip: "sayi",
+            etiket: "Yaricap (km)",
+            min: 1,
+            max: 300,
+            birim: "mm"
+          },
+          plaka_sekli: {
+            tip: "secim",
+            etiket: "Plaka sekli",
+            secenekler: ["kare", "daire"],
+            varsayilan: "kare"
+          },
+          olcu_mm: {
+            tip: "sayi",
+            etiket: "Olcu (mm)",
+            min: 60,
+            max: 250,
+            varsayilan: 120,
+            birim: "mm"
+          },
+          dikey_abartma: {
+            tip: "sayi",
+            etiket: "Dikey abartma",
+            min: 1,
+            max: 5,
+            varsayilan: 2,
+            birim: "kat"
+          },
+          deniz_duz: {
+            tip: "bool",
+            etiket: "Deniz duzeyinde kirp",
+            varsayilan: false
+          },
+          cerceve_mm: {
+            tip: "sayi",
+            etiket: "Cerceve",
+            min: 2,
+            max: 10,
+            varsayilan: 3,
+            birim: "mm"
+          },
+          etiket: {
+            tip: "metin",
+            etiket: "Etiket metni (ops.)",
+            varsayilan: ""
+          },
+          yazi_tipi: {
+            tip: "secim",
+            etiket: "Yazi tipi",
+            secenekler: ["sans-kalin", "serif-kalin"],
+            varsayilan: "sans-kalin"
+          },
+          renk_rolyef: {
+            tip: "renk",
+            etiket: "Rolyef rengi"
+          },
+          renk_yazi: {
+            tip: "renk",
+            etiket: "Yazi rengi"
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; topografya bu parametrelerle üretilir."
+      },
+      {
+        kod: "sehir",
+        ad: "Sehir silueti",
+        aciklama: "Sehir silueti — ölçüye özel üretim.",
+        girdi: ["konum"],
+        motor: "D",
+        uretec: "sehir_uret",
+        olcu_mm: {
+          en_az: 60,
+          en_cok: 250
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG"]
+        },
+        form: {
+          enlem: {
+            tip: "sayi",
+            etiket: "Enlem",
+            min: -90,
+            max: 90,
+            birim: "mm"
+          },
+          boylam: {
+            tip: "sayi",
+            etiket: "Boylam",
+            min: -180,
+            max: 180,
+            birim: "mm"
+          },
+          yaricap_m: {
+            tip: "sayi",
+            etiket: "Yaricap (m)",
+            min: 200,
+            max: 3000,
+            birim: "mm"
+          },
+          mod: {
+            tip: "secim",
+            etiket: "Mod",
+            secenekler: ["harita", "siluet"],
+            varsayilan: "harita"
+          },
+          bakis: {
+            tip: "secim",
+            etiket: "Bakis yonu",
+            secenekler: ["kuzey", "guney", "dogu", "bati"],
+            varsayilan: "kuzey"
+          },
+          plaka_sekli: {
+            tip: "secim",
+            etiket: "Plaka sekli",
+            secenekler: ["kare", "daire"],
+            varsayilan: "kare"
+          },
+          olcu_mm: {
+            tip: "sayi",
+            etiket: "Olcu (mm)",
+            min: 60,
+            max: 250,
+            varsayilan: 120,
+            birim: "mm"
+          },
+          plaka_yuksekligi_mm: {
+            tip: "sayi",
+            etiket: "Plaka yuksekligi (siluet; 0=oto)",
+            min: 0,
+            max: 250,
+            varsayilan: 0,
+            birim: "mm"
+          },
+          yukseklik_abartma: {
+            tip: "sayi",
+            etiket: "Yukseklik abartma",
+            min: 1,
+            max: 10,
+            varsayilan: 3,
+            birim: "kat"
+          },
+          varsayilan_yukseklik_m: {
+            tip: "sayi",
+            etiket: "Varsayilan yukseklik (m)",
+            min: 3,
+            max: 30,
+            varsayilan: 9,
+            birim: "m"
+          },
+          yollar: {
+            tip: "bool",
+            etiket: "Yollari ciz (harita)",
+            varsayilan: false
+          },
+          yol_genislik_mm: {
+            tip: "sayi",
+            etiket: "Yol genislik",
+            min: 1,
+            max: 2,
+            varsayilan: 1.2,
+            birim: "mm"
+          },
+          cerceve_mm: {
+            tip: "sayi",
+            etiket: "Cerceve",
+            min: 2,
+            max: 8,
+            varsayilan: 3,
+            birim: "mm"
+          },
+          etiket: {
+            tip: "metin",
+            etiket: "Etiket metni (ops.)",
+            varsayilan: ""
+          },
+          renk_plaka: {
+            tip: "renk",
+            etiket: "Plaka rengi"
+          },
+          renk_bina: {
+            tip: "renk",
+            etiket: "Bina rengi"
+          },
+          renk_yol: {
+            tip: "renk",
+            etiket: "Yol rengi"
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; sehir silueti bu parametrelerle üretilir."
+      },
+      {
+        kod: "yildiz",
+        ad: "Yildiz haritasi",
+        aciklama: "Yildiz haritasi — ölçüye özel üretim.",
+        girdi: ["konum", "tarih"],
+        motor: "D",
+        uretec: "yildiz_uret",
+        olcu_mm: {
+          en_az: 80,
+          en_cok: 250
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG"]
+        },
+        form: {
+          tarih_saat: {
+            tip: "metin",
+            etiket: "Tarih/saat (yerel)"
+          },
+          utc_ofset_saat: {
+            tip: "sayi",
+            etiket: "UTC ofset (saat)",
+            min: -12,
+            max: 14,
+            birim: "mm"
+          },
+          enlem: {
+            tip: "sayi",
+            etiket: "Enlem",
+            min: -90,
+            max: 90,
+            birim: "mm"
+          },
+          boylam: {
+            tip: "sayi",
+            etiket: "Boylam",
+            min: -180,
+            max: 180,
+            birim: "mm"
+          },
+          izdusum: {
+            tip: "secim",
+            etiket: "Iz dusum",
+            secenekler: ["stereografik", "esit_alan"],
+            varsayilan: "stereografik"
+          },
+          olcu_mm: {
+            tip: "sayi",
+            etiket: "Olcu (mm, daire)",
+            min: 80,
+            max: 250,
+            varsayilan: 150,
+            birim: "mm"
+          },
+          kadir_esigi: {
+            tip: "sayi",
+            etiket: "Kadir esigi (0=oto)",
+            min: 0,
+            max: 6,
+            varsayilan: 0,
+            birim: "mm"
+          },
+          yildiz_sekli: {
+            tip: "secim",
+            etiket: "Yildiz sekli",
+            secenekler: ["silindir", "kubbe"],
+            varsayilan: "silindir"
+          },
+          ufuk_halkasi: {
+            tip: "bool",
+            etiket: "Ufuk halkasi",
+            varsayilan: true
+          },
+          ekliptik: {
+            tip: "bool",
+            etiket: "Ekliptik cizgisi",
+            varsayilan: false
+          },
+          meridyen: {
+            tip: "bool",
+            etiket: "Meridyen cizgisi",
+            varsayilan: false
+          },
+          cizgi_mm: {
+            tip: "sayi",
+            etiket: "Cizgi genislik",
+            min: 0.8,
+            max: 2.0,
+            varsayilan: 1.2,
+            birim: "mm"
+          },
+          otomatik_yazi: {
+            tip: "bool",
+            etiket: "Otomatik alt yazi",
+            varsayilan: true
+          },
+          alt_yazi: {
+            tip: "metin",
+            etiket: "Alt yazi (ops.)",
+            varsayilan: ""
+          },
+          yazi_tipi: {
+            tip: "secim",
+            etiket: "Yazi tipi",
+            secenekler: ["sans-kalin", "serif-kalin"],
+            varsayilan: "sans-kalin"
+          },
+          renk_plaka: {
+            tip: "renk",
+            etiket: "Plaka rengi"
+          },
+          renk_yildiz: {
+            tip: "renk",
+            etiket: "Yildiz rengi"
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; yildiz haritasi bu parametrelerle üretilir."
+      },
+      {
+        kod: "koordinat",
+        ad: "Koordinat / tarih",
+        aciklama: "Koordinat / tarih — ölçüye özel üretim.",
+        girdi: ["konum"],
+        motor: "D",
+        uretec: "koordinat_uret",
+        olcu_mm: {
+          en_az: 60,
+          en_cok: 250
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG"]
+        },
+        form: {
+          enlem: {
+            tip: "sayi",
+            etiket: "Enlem",
+            min: -90,
+            max: 90,
+            birim: "mm"
+          },
+          boylam: {
+            tip: "sayi",
+            etiket: "Boylam",
+            min: -180,
+            max: 180,
+            birim: "mm"
+          },
+          bicim: {
+            tip: "secim",
+            etiket: "Koordinat bicimi",
+            secenekler: ["ondalik", "dms"],
+            varsayilan: "ondalik"
+          },
+          ondalik_hane: {
+            tip: "tam",
+            etiket: "Ondalik hane",
+            min: 2,
+            max: 6,
+            varsayilan: 4,
+            birim: "hane",
+            tam: true
+          },
+          koordinat_satiri: {
+            tip: "secim",
+            etiket: "Koordinat satiri",
+            secenekler: ["cift", "tek"],
+            varsayilan: "cift"
+          },
+          tarih: {
+            tip: "metin",
+            etiket: "Tarih (YYYY-AA-GG, ops.)",
+            varsayilan: ""
+          },
+          tarih_bicimi: {
+            tip: "secim",
+            etiket: "Tarih bicimi",
+            secenekler: ["gg_aa_yyyy", "uzun"],
+            varsayilan: "gg_aa_yyyy"
+          },
+          serbest_metin: {
+            tip: "metin",
+            etiket: "Serbest satir",
+            varsayilan: ""
+          },
+          isaret: {
+            tip: "secim",
+            etiket: "Isaret",
+            secenekler: ["yok", "arti", "pusula"],
+            varsayilan: "yok"
+          },
+          plaka_sekli: {
+            tip: "secim",
+            etiket: "Plaka sekli",
+            secenekler: ["dikdortgen", "yuvarlak-kose", "oval"],
+            varsayilan: "dikdortgen"
+          },
+          genislik_mm: {
+            tip: "sayi",
+            etiket: "Genislik (zorunlu)",
+            min: 20,
+            max: 250,
+            varsayilan: 160,
+            birim: "mm"
+          },
+          yukseklik_mm: {
+            tip: "sayi",
+            etiket: "Yukseklik (zorunlu)",
+            min: 20,
+            max: 250,
+            varsayilan: 90,
+            birim: "mm"
+          },
+          kose_yaricap_mm: {
+            tip: "sayi",
+            etiket: "Kose yaricap",
+            min: 0,
+            max: 50,
+            varsayilan: 0,
+            birim: "mm"
+          },
+          kenar_payi_mm: {
+            tip: "sayi",
+            etiket: "Kenar payi",
+            min: 2,
+            max: 20,
+            varsayilan: 4,
+            birim: "mm"
+          },
+          yazi_tipi: {
+            tip: "secim",
+            etiket: "Yazi tipi",
+            secenekler: ["sans-kalin", "serif-kalin"],
+            varsayilan: "sans-kalin"
+          },
+          hizalama: {
+            tip: "secim",
+            etiket: "Hizalama",
+            secenekler: ["sol", "orta"],
+            varsayilan: "sol"
+          },
+          renk_plaka: {
+            tip: "renk",
+            etiket: "Plaka rengi"
+          },
+          renk_yazi: {
+            tip: "renk",
+            etiket: "Yazi rengi"
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; koordinat / tarih bu parametrelerle üretilir."
+      },
+      {
+        kod: "bust",
+        ad: "Bust/madalyon (rolyef)",
+        aciklama: "Fotoğraftan kabartma büst/madalyon (ters/iki renk opsiyonel).",
+        girdi: ["foto-1"],
+        motor: "D",
+        uretec: "rolyef_uret",
+        olcu_mm: {
+          en_az: 60,
+          en_cok: 250
+        },
+        renk_bolgeleri: [],
+        malzemeler: {
+          govde: ["PLA", "PETG"]
+        },
+        form: {
+          uzun_kenar_mm: {
+            tip: "sayi",
+            etiket: "Boyut",
+            min: 60,
+            max: 250,
+            adim: 10,
+            birim: "mm"
+          },
+          rolyef_yuksekligi_mm: {
+            tip: "sayi",
+            etiket: "Kabartma yüksekliği",
+            min: 1,
+            max: 8,
+            varsayilan: 4,
+            birim: "mm"
+          },
+          ters: {
+            tip: "secim",
+            etiket: "Ters (negatif)",
+            secenekler: ["Hayır", "Evet"],
+            varsayilan: "Hayır"
+          },
+          iki_renk: {
+            tip: "secim",
+            etiket: "İki renk",
+            secenekler: ["Hayır", "Evet"],
+            varsayilan: "Hayır"
+          }
+        },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10
+        },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Fotoğraf gri-ton yükseklik haritasına çevrilir; kabartma büst/madalyon olarak üretilir, ince ayrıntılar sadeleşir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; kabartma büst bu parametrelerle üretilir."
       }
     ],
 
@@ -377,6 +2035,126 @@
         onizleme: "https://media.pruvo3d.com/foto/ornek/yapboz-1-render.webp",
         render: "https://media.pruvo3d.com/foto/ornek/yapboz-1-render.webp",
         not: "150 mm, 20 parça"
+      },
+      {
+        tur: "kutu",
+        kanit: "render",
+        olcu_mm: 100,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/kutu-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/kutu-1-render.webp",
+        not: "100x60x40 mm, kapaklı"
+      },
+      {
+        tur: "adaptor",
+        kanit: "render",
+        olcu_mm: 60,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/adaptor-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/adaptor-1-render.webp",
+        not: "60 mm burç"
+      },
+      {
+        tur: "disli",
+        kanit: "render",
+        olcu_mm: 60,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/disli-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/disli-1-render.webp",
+        not: "60 mm düz dişli"
+      },
+      {
+        tur: "kapak",
+        kanit: "render",
+        olcu_mm: 60,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/kapak-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/kapak-1-render.webp",
+        not: "60 mm kapak"
+      },
+      {
+        tur: "dugme",
+        kanit: "render",
+        olcu_mm: 40,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/dugme-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/dugme-1-render.webp",
+        not: "40 mm düz düğme"
+      },
+      {
+        tur: "klips",
+        kanit: "render",
+        olcu_mm: 60,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/klips-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/klips-1-render.webp",
+        not: "60 mm boru kelepçesi"
+      },
+      {
+        tur: "saksi",
+        kanit: "render",
+        olcu_mm: 100,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/saksi-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/saksi-1-render.webp",
+        not: "100 mm saksı"
+      },
+      {
+        tur: "rolyef",
+        kanit: "render",
+        olcu_mm: 120,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/rolyef-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/rolyef-1-render.webp",
+        not: "120 mm kabartma rölyef"
+      },
+      {
+        tur: "ses",
+        kanit: "render",
+        olcu_mm: 160,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/ses-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/ses-1-render.webp",
+        not: "160 mm ses dalgası"
+      },
+      {
+        tur: "braille",
+        kanit: "render",
+        olcu_mm: 160,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/braille-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/braille-1-render.webp",
+        not: "160 mm Braille tabela"
+      },
+      {
+        tur: "topo",
+        kanit: "render",
+        olcu_mm: 120,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/topo-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/topo-1-render.webp",
+        not: "120 mm topografya"
+      },
+      {
+        tur: "sehir",
+        kanit: "render",
+        olcu_mm: 120,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/sehir-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/sehir-1-render.webp",
+        not: "120 mm şehir silueti"
+      },
+      {
+        tur: "yildiz",
+        kanit: "render",
+        olcu_mm: 160,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/yildiz-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/yildiz-1-render.webp",
+        not: "160 mm yıldız haritası"
+      },
+      {
+        tur: "koordinat",
+        kanit: "render",
+        olcu_mm: 120,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/koordinat-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/koordinat-1-render.webp",
+        not: "120 mm koordinat/tarih"
+      },
+      {
+        tur: "bust",
+        kanit: "render",
+        olcu_mm: 100,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/bust-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/bust-1-render.webp",
+        not: "100 mm büst/madalyon"
       }
     ],
 
