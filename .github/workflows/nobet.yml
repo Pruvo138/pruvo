@@ -2419,6 +2419,12 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/ga4-olay-mutasyon.py
 
+      # Surucu SIGKILL ile olunce canli agaca iz birakiyor mu (7 Eki: finally kosmadi,
+      # olcum.js'te mutant artigi kaldi). Mutant: EV'e yazan eski davranis KIRMIZI yanmali.
+      - name: "GA4 mutasyon surucusu izolasyon testi (SIGKILL sonrasi canli agac birebir mi)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/ga4-olay-mutasyon-izole-test.py
+
       - name: "Gramer kisaltma kapisi mutasyon bataryasi"
         if: ${{ !cancelled() }}
         run: python3 tools/gramer-kisaltma-mutasyon.py
