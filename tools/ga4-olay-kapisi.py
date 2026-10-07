@@ -76,7 +76,7 @@ HUNI = {
 # 🔴 Meta ikizi (Lead) BUGUN ATESLENMIYOR. Esleme UYDURULMAZ: Meta ayagi acilinca
 # kalem buradan HUNI'ye "Lead": "generate_lead" olarak TASINIR.
 HUNI_DISI = {
-    "generate_lead": "WhatsApp temas noktasi (help_cta | cart_order | satir_soru) — "
+    "generate_lead": "WhatsApp temas noktasi (help_cta | satir_soru) — "
                      "Meta ikizi (Lead) atesenmiyor, esleme uydurulmadi (K388)",
 }
 
