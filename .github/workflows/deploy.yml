@@ -1497,6 +1497,15 @@ jobs:
       # olcum BIREBIR ayni (332/332). Saf Python, agsiz, ~10 s.
       - name: "Urun denetim kapisi (uretim-sureci ifsasi + 200 TL fiyat tabani/TUM katalog — bu itmenin GETIRDIGI ihlal)"
         run: python3 tools/denetim-kapisi.py --commit-farki
+      # METIN SAGLIK (7 Eki 2026): `d2b659fd` "tahliśfe"/"kaanibölümüm" metinleriyle canliya
+      # cikti, 4 kapi gecirdi. Asil kol pre-commit'tedir (INDEX, commit ONCESI); bu adim
+      # --no-verify / kancasiz commit'e karsi TUM katalogda Turk alfabesi disi Latin harfli
+      # (izin listesi disi) urun sayisinin TABAN_A_URUN'u ASMADIGINI olcer (non-growth) +
+      # kendini-test (mutantlar + gecici git deposunda commit-oncesi kaniti). ~3 s, agsiz.
+      - name: "Urun metin saglik kapisi (yabanci harf A non-growth + kendini-test)"
+        run: |
+          python3 tools/metin-saglik-kapisi.py --kendini-test
+          python3 tools/metin-saglik-kapisi.py
       # IFSA KIP EKSENI (17 Agu 2026). Yukaridaki kapi 'basıl-' fiilini YALNIZ konjonksiyon
       # koluyla goruyordu: ayni cumlede bir SUREC JETONU (PLA/PETG/dolgu/katman/yazici) da
       # bulunmali. OLCULDU (canli katalog 29.035 kayit): `basıl-` koku 288 satir, bunun 238'i

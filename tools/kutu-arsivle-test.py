@@ -4839,6 +4839,12 @@ def mutasyon_turu():
 SAAT_SIMDI = "2026-10-07 10:15"
 SAAT_MUTANT_CAPA = "        if (gun, bas_dk) > (s_gun, s_dk):\n"
 SAAT_MUTANT_YENI = "        if (gun, bas_dk) < (s_gun, s_dk):\n"
+# SM2 (7 Eki 17:4x): saatsiz baslik kolu silinirse S5 dusmeli.
+SAAT_MUTANTLARI = [
+    ("SM1 mutant (karsilastirma ters)", SAAT_MUTANT_CAPA, SAAT_MUTANT_YENI),
+    ("SM2 mutant (saatsiz baslik kolu silindi)", "        elif aralik is None:\n",
+     "        elif False:\n"),
+]
 
 
 def _saat_kos(arac, kok, kutu_metin, simdi=SAAT_SIMDI):
@@ -4882,6 +4888,16 @@ def _saat_vakalari(arac, kok, iddia_fn):
     iddia_fn("S4 tarih ILERI (saatsiz yarin) -> 1",
              n == 1 and "(baslik 2026-10-08 saatsiz > kosum 2026-10-07 10:15)" in c,
              "n=%s" % n)
+    saatsiz = ("# kutu\n\n## 2026-10-06 akşam — saatsiz F\n\ngovde\n\n"
+               "## 2026-10-07 — yalniz tarih G\n\ngovde\n\n"
+               "## 2026-10-07 09:5x — saatli dogru H\n\ngovde\n")
+    rc, n, c = _saat_kos(arac, kok, saatsiz)
+    iddia_fn("S5 saatsiz baslik (aksam / yalniz tarih) -> SAAT_UYDURMA=2, saatli H sayilmaz, rc=0",
+             n == 2 and rc == 0
+             and "🔴 SAAT UYDURMA: ## 2026-10-06 akşam — saatsiz F (baslik saatsiz" in c
+             and "🔴 SAAT UYDURMA: ## 2026-10-07 — yalniz tarih G (baslik saatsiz" in c
+             and "saatli dogru H" not in c,
+             "n=%s rc=%s" % (n, rc))
 
 
 def saat_suiti(arac):
@@ -4893,18 +4909,18 @@ def saat_suiti(arac):
         _saat_vakalari(arac, kok, iddia)
         with open(arac, encoding="utf-8") as f:
             kaynak = f.read()
-        n = kaynak.count(SAAT_MUTANT_CAPA)
-        if n != 1:
-            iddia("SM1 mutant capasi TEK kez tutmadi (OLCULEMEDI)", False, "bulunan=%d" % n)
-            return
-        mutant = os.path.join(kok, "mutant-saat-%d.py" % os.getpid())
-        yaz(mutant, kaynak.replace(SAAT_MUTANT_CAPA, SAAT_MUTANT_YENI))
-        mutant_kirmizi = []
-        _saat_vakalari(mutant, kok, lambda ad, kosul, tani="": (
-            None if kosul else mutant_kirmizi.append(ad)))
-        iddia("SM1 mutant (karsilastirma ters) -> KIRMIZI (%d vaka dustu)"
-              % len(mutant_kirmizi), len(mutant_kirmizi) > 0,
-              "mutant HICBIR vakayi dusurmedi")
+        for ad, capa, yeni in SAAT_MUTANTLARI:
+            n = kaynak.count(capa)
+            if n != 1:
+                iddia("%s capasi TEK kez tutmadi (OLCULEMEDI)" % ad, False, "bulunan=%d" % n)
+                continue
+            mutant = os.path.join(kok, "mutant-saat-%d.py" % os.getpid())
+            yaz(mutant, kaynak.replace(capa, yeni))
+            mutant_kirmizi = []
+            _saat_vakalari(mutant, kok, lambda a, kosul, tani="": (
+                None if kosul else mutant_kirmizi.append(a)))
+            iddia("%s -> KIRMIZI (%d vaka dustu)" % (ad, len(mutant_kirmizi)),
+                  len(mutant_kirmizi) > 0, "mutant HICBIR vakayi dusurmedi")
     finally:
         shutil.rmtree(kok, ignore_errors=True)
 
