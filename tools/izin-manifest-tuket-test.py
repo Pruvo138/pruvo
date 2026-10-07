@@ -21,11 +21,13 @@ Kullanim:  python3 tools/izin-manifest-tuket-test.py
 import json
 import os
 import shutil
-import subprocess
 import sys
 import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, TOOLS)
+from git_ortami import sentetik_git  # noqa: E402  (fikstur-git-sizinti-kapisi: kanonik kurucu)
+
 KANCA = os.path.join(TOOLS, "kancalar", "post-commit")
 ARAC = os.path.join(TOOLS, "izin-manifest-tuket.py")
 
@@ -78,8 +80,8 @@ class Ortam(object):
         self.git("config", "core.hooksPath", "tools/kancalar")
 
     def git(self, *a):
-        p = subprocess.run(["git", "-C", self.depo] + list(a), env=self.env,
-                           capture_output=True, text=True, timeout=60)
+        p = sentetik_git(self.depo, *a, ek_ortam=self.env,
+                         capture_output=True, text=True, timeout=60)
         if p.returncode != 0:
             raise RuntimeError("git %s rc=%d: %s" % (" ".join(a), p.returncode, p.stderr))
         return p
