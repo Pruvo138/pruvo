@@ -134,8 +134,167 @@
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Litofan tek renkli ince bir paneldir; görüntü arkadan ışık geldiğinde belirir. İnce ayrıntılar ve küçük yazılar sadeleşir.",
         ornek_notu: "Üretim dosyasının arkadan ışıkla görüntüsüdür; basılmış panel ışık geldiğinde bu görüntüyü verir, birebir aynısı değildir."
+      },
+      // G2 (7 Eki 2026, mimar kararı) — 6 D türü; üreteçler pruvo-jenerator (G1-SEMA/G2-SEMA).
+      // Tarayıcı önizleyicisi YOK -> sipariş öncesi önizlemeyi üreteç koşucusu çıkarır. Renk adı ->
+      // filament hex'i RENK_HEX'ten (tek tablo). Malzeme TÜM ürün için tek seçimdir (ilk bölgenin
+      // anahtarıyla): yığılı gövdelerde karışık malzeme yapışmaz. Örneği olmadıkça tür AÇILMAZ.
+      {
+        kod: "isimlik",
+        ad: "İsimlik / kapı tabelası",
+        aciklama: "Yazdığın ad ya da yazı plakanın üzerinde kabartma olarak üretilir; ölçüsünü sen seçersin.",
+        girdi: ["form"],
+        motor: "D",
+        uretec: "isimlik_uret",
+        olcu_mm: { en_az: 60, en_cok: 250 },
+        renk_bolgeleri: [
+          { kod: "plaka", ad: "Plaka", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
+          { kod: "yazi", ad: "Yazı", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] }
+        ],
+        malzemeler: { plaka: ["PLA", "PETG", "ASA"] },
+        form: {
+          satirlar: { tip: "metin", etiket: "Yazı (1–3 satır)", max: 122, satir_en_cok: 3, satir_max: 40 },
+          kisa_kenar_mm: { tip: "sayi", etiket: "Kısa kenar", min: 20, max: 250, adim: 1, birim: "mm" },
+          yazi_tipi: { tip: "secim", etiket: "Yazı tipi", secenekler: ["Düz", "Tırnaklı"] },
+          plaka_sekli: { tip: "secim", etiket: "Plaka şekli", secenekler: ["Dikdörtgen", "Yuvarlak köşe", "Oval"] },
+          montaj_delikleri: { tip: "secim", etiket: "Montaj delikleri", secenekler: ["Yok", "Var"] }
+        },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Yazı plakanın üzerinde kabartmadır. Uzun metin küçülür; en küçük harf 6 mm'dir, sığmayan metin için sipariş alınmaz.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; isimlik bu yazı ve ölçüyle üretilir, renk tonu filamente göre biraz değişebilir."
+      },
+      {
+        kod: "qr",
+        ad: "QR kodlu plaka",
+        aciklama: "Verdiğin bağlantı ya da metin, plakanın üzerinde kabartma QR kod olarak üretilir.",
+        girdi: ["form"],
+        motor: "D",
+        uretec: "qr_plaket_uret",
+        olcu_mm: { en_az: 40, en_cok: 150 },
+        renk_bolgeleri: [
+          { kod: "plaka", ad: "Plaka", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
+          { kod: "kod", ad: "Kod", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] }
+        ],
+        malzemeler: { plaka: ["PLA", "PETG", "ASA"] },
+        form: {
+          metin: { tip: "metin", etiket: "Bağlantı ya da metin", max: 150, bayt_max: 150 },
+          alt_yazi: { tip: "metin", etiket: "Alt yazı (isteğe bağlı)", max: 40, zorunlu: false },
+          cerceve: { tip: "secim", etiket: "Çerçeve", secenekler: ["Yok", "Var"] }
+        },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Kodu göndermeden önce telefonla okutarak kontrol ederiz. Bağlantının çalışması verdiğin adrese bağlıdır.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; plakadaki kod bu düzende üretilir."
+      },
+      {
+        kod: "logo",
+        ad: "Logodan kabartma",
+        aciklama: "Yüklediğin SVG çiziminin dolu alanları kabartma olarak üretilir.",
+        girdi: ["svg"],
+        motor: "D",
+        uretec: "svg_ekstruzyon_uret",
+        olcu_mm: { en_az: 30, en_cok: 200 },
+        renk_bolgeleri: [
+          { kod: "taban", ad: "Taban", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
+          { kod: "logo", ad: "Logo", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] }
+        ],
+        malzemeler: { taban: ["PLA", "PETG"] },
+        form: {
+          taban: { tip: "secim", etiket: "Taban plakası", secenekler: ["Var", "Yok"] }
+        },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Yalnız düz renkli alanlar üretilir; gölge ve renk geçişi çıkmaz. 0,8 mm'den ince çizgiler siparişi durdurur.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; logonun dolu alanları kabartma olarak üretilir."
+      },
+      {
+        kod: "muhur",
+        ad: "Logo mühür / damga",
+        aciklama: "Yüklediğin siyah-beyaz görselden saplı, kabartma yüzlü bir damga üretilir.",
+        girdi: ["foto-1"],
+        motor: "D",
+        uretec: "muhur_uret",
+        olcu_mm: { en_az: 20, en_cok: 100 },
+        renk_bolgeleri: [
+          { kod: "govde", ad: "Gövde", renkler: ["Mavi", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Gri", "Beyaz", "Sarı", "Ahşap"] },
+          { kod: "sap", ad: "Sap", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] }
+        ],
+        malzemeler: { govde: ["PLA", "PETG"] },
+        form: {
+          sap: { tip: "secim", etiket: "Sap", secenekler: ["Silindir", "Topuz"] }
+        },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Plastik gövdeli bir damgadır; resmî kurum mührü yerine geçmez. 0,6 mm'den ince çizgiler kalınlaştırılır.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; damga yüzü ayna görüntüsüdür, kâğıda bastığında logonun kendisi çıkar."
+      },
+      {
+        kod: "sablon",
+        ad: "Silüet şablon",
+        aciklama: "Yüklediğin görselin silüeti ince bir plakaya delik ya da dolu biçim olarak işlenir.",
+        girdi: ["foto-1"],
+        motor: "D",
+        uretec: "siluet_sablon_uret",
+        olcu_mm: { en_az: 60, en_cok: 250 },
+        renk_bolgeleri: [
+          { kod: "sablon", ad: "Şablon", renkler: ["Gri", "Beyaz", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Sarı", "Ahşap"] }
+        ],
+        malzemeler: { sablon: ["PLA", "PETG"] },
+        form: {
+          mod: { tip: "secim", etiket: "Şablon türü", secenekler: ["Delikli", "Dolu silüet"] }
+        },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Şablon 1,2–2 mm kalınlığında bir plakadır; içteki adalar ince köprülerle tutturulur ve bu köprüler boyamada iz bırakır.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; açık alanlar delik, koyu alanlar plakadır."
+      },
+      {
+        kod: "yapboz",
+        ad: "Fotoğraftan kabartma yapboz",
+        aciklama: "Fotoğrafının açık-koyu tonları kabartmaya çevrilir ve geçmeli yapboz parçalarına bölünür.",
+        girdi: ["foto-1"],
+        motor: "D",
+        uretec: "yapboz_uret",
+        olcu_mm: { en_az: 100, en_cok: 280 },
+        renk_bolgeleri: [
+          { kod: "yapboz", ad: "Yapboz", renkler: ["Ahşap", "Beyaz", "Gri", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] }
+        ],
+        malzemeler: { yapboz: ["PLA", "PETG"] },
+        form: {
+          parca: { tip: "secim", etiket: "Parça sayısı", secenekler: ["12", "20", "30"] }
+        },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        ornek_kanit_izni: ["baski", "render"],
+        durustluk: "Yapboz tek renkli kabartmadır; renkli baskı değildir. Parçalar elle takılır; çocuk oyuncağı olarak belgelendirilmemiştir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir."
       }
     ],
+
+    // FİLAMENT RENKLERİ — renk ADI -> üreteçteki hex (TEK tablo; mimar kararı 7 Eki 2026). Bir türün
+    // `renk_bolgeleri[].renkler` listesinde yalnız buradaki adlar olabilir; üreteç köprüsü
+    // (tools/foto-uretec-kosucu.py) adı buradan hex'e çevirir. Başka renk YOK.
+    RENK_HEX: {
+      "Beyaz": "#F2F2F2", "Siyah": "#1A1A1A", "Gri": "#818184", "Lacivert": "#12294D",
+      "Kırmızı": "#B3262E", "Sarı": "#E8B923", "Yeşil": "#2E7D4F", "Mavi": "#2E5E8C", "Ahşap": "#C8B89A"
+    },
+
+    // ÜRETEÇ REDDİ -> müşteriye gösterilen metin. Koşucu reddi `uretec-red:<kod>` diye yazar
+    // (kod üretecin RET cümlesinden köprüde çıkarılır); tabloda olmayan kod -> `""` (genel metin).
+    URETEC_RED_METIN: {
+      "": "Bu girdiyle üretim dosyası hazırlanamadı; girdiyi ya da ölçüyü değiştirip tekrar deneyebilirsin.",
+      "kontrast": "Seçtiğin renkler birbirine çok yakın; daha belirgin iki renk seç.",
+      "metin-sigmadi": "Yazı bu ölçüye sığmadı; yazıyı kısalt ya da ölçüyü büyüt.",
+      "ince-cizgi": "Çizimde çok ince çizgiler var; daha kalın çizgili bir görsel dene.",
+      "karakter": "Yazıda üretemediğimiz bir karakter var (ör. emoji); onu çıkarıp tekrar dene.",
+      "kisa-kenar": "Kısa kenar uzun kenardan büyük olamaz.",
+      "qr-uzun": "QR koda girecek metin çok uzun; daha kısa bir bağlantı kullan.",
+      "svg": "SVG dosyası okunamadı ya da desteklemediğimiz öğeler içeriyor (yazı, görsel, maske); şekle çevrilmiş düz bir SVG dene.",
+      "gorsel": "Görsel okunamadı ya da içinde belirgin bir şekil bulunamadı; net, koyu bir şekil içeren PNG ya da JPEG dene.",
+      "oran": "Görselin en/boy oranı bu ürün için çok uzun; daha dengeli bir kırpım dene.",
+      "parca": "Bu ölçüde seçtiğin parça sayısı çok küçük parçalar çıkarıyor; ölçüyü büyüt ya da daha az parça seç.",
+      "kopru": "Görseldeki iç adalar şablona bağlanamadı; daha sade bir silüet dene."
+    },
 
     // ÖRNEKLER — boşsa bölüm görünmez. Kaynak: TeKiN'in işleri (kanıtı kayıtta yazılı).
     ornekler: [
@@ -219,6 +378,21 @@
   };
   // Aktarım rızası (sağlayıcıya aktarım kutusu) yalnız M motorunda istenir/gösterilir.
   VERI.aktarimGerekir = function (kod) { var t = VERI.turBul(kod); return !!t && t.motor === "M"; };
+  // Hak beyanı kutusu yalnız fotoğraf/SVG yüklenen türde (mimar kararı 7 Eki 2026): yalnız form
+  // girdili türde (isimlik, QR) yüklenen görsel yoktur, kutu GÖRÜNMEZ ve istenmez. Metin AYNI.
+  VERI.HAK_GIRDILERI = { "foto-1": true, "foto-1-3": true, svg: true };
+  VERI.hakGerekir = function (kod) {
+    var t = VERI.turBul(kod);
+    if (!t || !Array.isArray(t.girdi)) { return true; }
+    for (var i = 0; i < t.girdi.length; i++) { if (VERI.HAK_GIRDILERI[t.girdi[i]] === true) { return true; } }
+    return false;
+  };
+  // Üreteç reddinin müşteri metni: hata "uretec-red:<kod>" -> tablo; bilinmeyen kod -> genel metin.
+  VERI.uretecRedMetni = function (hata) {
+    var m = /^uretec-red:([a-z0-9-]{1,40})$/.exec(typeof hata === "string" ? hata : "");
+    var k = m && Object.prototype.hasOwnProperty.call(VERI.URETEC_RED_METIN, m[1]) ? m[1] : "";
+    return VERI.URETEC_RED_METIN[k];
+  };
 
   // GİRDİ TÜRLERİ — `acik:false` = şemada tanımlı, YAKINDA (bölüm göstermez, sunucu 400; G5'te açılır).
   VERI.GIRDI_TURLERI = {
@@ -228,6 +402,9 @@
   };
   VERI.FORM_TIPLERI = { sayi: true, secim: true, metin: true, url: true, ses: false, konum: false, tarih: false };
 
+  function utf8Bayt(s) {
+    return typeof TextEncoder !== "undefined" ? new TextEncoder().encode(s).length : unescape(encodeURIComponent(s)).length;
+  }
   VERI.urlDogrula = function (s) {
     return typeof s === "string" && s.length <= VERI.GIRDI_TURLERI.url.en_cok &&
       /^https:\/\/[^\s\/?#@]+(?:[\/?#][^\s]*)?$/.test(s);
@@ -262,6 +439,8 @@
     for (var j = 0; j < alanlar.length; j++) {
       var a = alanlar[j], sema = form[a] || {}, v = p[a];
       if (VERI.FORM_TIPLERI[sema.tip] !== true) { return { ok: false, hata: "parametre-yakinda" }; }
+      // `zorunlu: false` (yalnız metin): boş/yok -> alan çıktıya GİRMEZ (üreteç varsayılanı).
+      if (sema.zorunlu === false && sema.tip === "metin" && (v === undefined || v === "")) { continue; }
       if (sema.tip === "sayi") {
         if (typeof v !== "number" || !isFinite(v) || v < sema.min || v > sema.max) { return { ok: false, hata: "parametre-aralik" }; }
         var adim = sema.adim > 0 ? sema.adim : 1;
@@ -271,6 +450,15 @@
         if (!Array.isArray(sema.secenekler) || sema.secenekler.indexOf(v) < 0) { return { ok: false, hata: "parametre-secim" }; }
       } else if (sema.tip === "metin") {
         if (typeof v !== "string" || !v.trim() || v.length > (sema.max || 0)) { return { ok: false, hata: "parametre-metin" }; }
+        // `bayt_max`: UTF-8 bayt tavanı (QR kapasitesi); `satir_en_cok`/`satir_max`: "\n" ile satırlar.
+        if (sema.bayt_max > 0 && utf8Bayt(v) > sema.bayt_max) { return { ok: false, hata: "parametre-metin" }; }
+        if (sema.satir_en_cok > 0) {
+          var satirlar = v.split("\n");
+          if (satirlar.length > sema.satir_en_cok) { return { ok: false, hata: "parametre-metin" }; }
+          for (var s = 0; s < satirlar.length; s++) {
+            if (!satirlar[s].trim() || satirlar[s].length > (sema.satir_max || 0)) { return { ok: false, hata: "parametre-metin" }; }
+          }
+        } else if (v.indexOf("\n") >= 0) { return { ok: false, hata: "parametre-metin" }; }
       } else if (sema.tip === "url") {
         if (!VERI.urlDogrula(v)) { return { ok: false, hata: "parametre-url" }; }
       }

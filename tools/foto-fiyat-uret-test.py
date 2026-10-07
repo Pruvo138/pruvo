@@ -3,7 +3,8 @@
 """FOTO FIYAT URETECI kabul testi (tools/foto-fiyat-uret.py). PARA sinifi: hata SESSIZ olur
 (yanlis satir canliya yazilirsa siparis normal akar, fiyat yanlis tahsil edilir).
 
-  F1 CANLI ESI   : canli = plaket 60..300 x1000 (25 satir) -> plaket fark 0 · litofan 13 eklenecek
+  F1 CANLI ESI   : canli = plaket 60..300 x1000 (25 satir) -> plaket fark 0 · litofan 13 eklenecek ·
+                   G2 6 D turu: isimlik 20 · qr 12 · logo 18 · muhur 9 · sablon 20 · yapboz 19 eklenecek
                    (80..200, adim 10, mm x 1000) · ARALIK_DISI 0 · DELETE 0 · rc 0
   F2 ARALIK DISI : canlida plaket 50/65/310 + manifest disi tur -> plaket SILINECEK 3 (DELETE 3) ·
                    YABANCI 1 ve yabanciya DELETE YOK
@@ -81,10 +82,17 @@ def senaryolar(arac, gecici):
     p, l, z = alan(o, "plaket"), alan(o, "litofan"), ozet(o)
     ins = [x for x in o.splitlines() if x.startswith("INSERT")]
     beklenen_l = ["('litofan', %d, %d," % (mm, mm * 1000) for mm in range(80, 201, 10)]
+    # G2 (7 Eki 2026): 6 D turu, mimar kararindaki satir sayilari (aralik / 10 mm adim).
+    g2 = {"isimlik": (60, 250, 20), "qr": (40, 150, 12), "logo": (30, 200, 18), "muhur": (20, 100, 9),
+          "sablon": (60, 250, 20), "yapboz": (100, 280, 19)}
+    g2_ok = all(alan(o, k).get("PLAN") == str(n) and alan(o, k).get("EKLENECEK") == str(n) and
+                all(any("('%s', %d, %d," % (k, mm, mm * 1000) in x for x in ins) for mm in range(a, b + 1, 10))
+                for k, (a, b, n) in g2.items())
+    toplam = 13 + sum(n for _, _, n in g2.values())
     s["F1"] = (rc == 0 and p.get("PLAN") == "25" and p.get("CANLI") == "25" and p.get("EKLENECEK") == "0" and
                p.get("SILINECEK") == "0" and p.get("DEGISECEK") == "0" and l.get("PLAN") == "13" and
-               l.get("EKLENECEK") == "13" and z.get("ARALIK_DISI") == "0" and z.get("FARK_TOPLAM") == "13" and
-               len(ins) == 13 and all(any(b in x for x in ins) for b in beklenen_l) and
+               l.get("EKLENECEK") == "13" and z.get("ARALIK_DISI") == "0" and z.get("FARK_TOPLAM") == str(toplam) and
+               len(ins) == toplam and g2_ok and all(any(b in x for x in ins) for b in beklenen_l) and
                not any("'plaket'" in x for x in ins) and "DELETE" not in o and z.get("KIP") == "KURU")
     # F2
     canli = plaket_canli() + [{"tur": "plaket", "olcu_mm": 50, "fiyat_kurus": 50000},

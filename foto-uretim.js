@@ -554,6 +554,12 @@
           }
           if (S.parametre[a] === undefined && ss.length) S.parametre[a] = ss[0];
           if (S.parametre[a] !== undefined) g.value = String(S.parametre[a]);
+        } else if (sema.tip === "metin" && sema.satir_en_cok > 1) {
+          // Çok satırlı metin (isimlik): satırlar "\n" ile; satır sınırı F.parametreDogrula'da.
+          g = el("textarea", "foto-uretim-form-secenek-girdi");
+          g.rows = sema.satir_en_cok;
+          if (sema.max > 0) g.maxLength = sema.max;
+          if (S.parametre[a] !== undefined) g.value = String(S.parametre[a]);
         } else {
           g = el("input", "foto-uretim-form-secenek-girdi");
           if (sema.tip === "sayi") {
@@ -1033,6 +1039,8 @@
     });
     ek(hakLbl, hakInp);
     ek(hakLbl, " " + F.onay.hak);
+    // Hak kutusu yalnız fotoğraf/SVG yüklenen türde (manifest F.hakGerekir): isimlik/QR'de GÖRÜNMEZ.
+    hakLbl.hidden = !F.hakGerekir(S.tur);
     S.alanOnay.appendChild(hakLbl);
 
     var aktLbl = el("label", "foto-uretim-form-secenek-inline");
@@ -1075,7 +1083,7 @@
     var lit = litofanSecili();
     // Tarayıcı önizleyicisi olmayan D/R türü: önizlemeyi üreteç koşucusu çıkarır (/foto/onizleme
     // kuyruğu); fotoğraf yalnız türün girdisinde varsa istenir.
-    var tam = (!!S.dosya || !fotoGerekir()) && !!S.hakOnay && (!!S.aktarimOnay || !F.aktarimGerekir(S.tur)) &&
+    var tam = (!!S.dosya || !fotoGerekir()) && (!!S.hakOnay || !F.hakGerekir(S.tur)) && (!!S.aktarimOnay || !F.aktarimGerekir(S.tur)) &&
       !!S.captchaToken1 && !!S.tur && !!S.olcu && (!lit || !!S.litofanHarita) &&
       formDogrula().ok;
     btn.disabled = !tam;
@@ -1457,7 +1465,8 @@
         if (a === "basarisiz") {
           yoksDurdur();
           ssIsSil();
-          var m = onizlemeSonraSecili() ? "Önizleme hazırlanamadı, tekrar deneyebilirsin." :
+          var m = veri.hata === "uretec-red" && typeof veri.metin === "string" && veri.metin ? veri.metin :
+            onizlemeSonraSecili() ? "Önizleme hazırlanamadı, tekrar deneyebilirsin." :
             veri.hata === "gorsel-uygun-degil"
             ? "Bu fotoğraftan önizleme üretilemedi. Konusu net, tek kişi/hayvan/araç olan başka bir fotoğraf dene."
             : "Önizleme üretilemedi; başka bir fotoğrafla dene.";
@@ -1588,7 +1597,7 @@
   /* Tarayıcı önizleyicisi olmayan D/R türü: önizlemeyi üreteç koşucusu çıkarır (aynı uç, kuyruk). */
   function uretecOnizle() {
     if (fotoGerekir() && !S.dosya) { adimKoy("S1", "Lütfen fotoğrafını seç.", true); return; }
-    if (!S.hakOnay) { adimKoy("S1", "Onay kutusunu işaretlemelisin.", true); return; }
+    if (F.hakGerekir(S.tur) && !S.hakOnay) { adimKoy("S1", "Onay kutusunu işaretlemelisin.", true); return; }
     if (!S.captchaToken1) { adimKoy("S1", "Lütfen doğrulama kutusunu işaretle.", true); return; }
     if (!S.tur || !S.olcu) { adimKoy("S1", "Tür ve ölçü seçmelisin.", true); return; }
     var fd = formDogrula();
@@ -1596,7 +1605,7 @@
     // Jeton S2'ye geçmeden alınır: adimKoy("S2") doğrulama kutusunu (ve jetonu) temizler.
     var jeton = S.captchaToken1;
     var gonder = function (dataUrl) {
-      var govde = { tur: S.tur, olcu_mm: S.olcu, hak_onay: true, onay_surum: F.onay_surum,
+      var govde = { tur: S.tur, olcu_mm: S.olcu, hak_onay: !!S.hakOnay, onay_surum: F.onay_surum,
         turnstile_token: jeton };
       if (dataUrl) govde.gorsel = dataUrl;
       if (Object.keys(formSemasi()).length) govde.parametreler = parametreGovde();

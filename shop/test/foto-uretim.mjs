@@ -1383,21 +1383,22 @@ console.log("ES2) ORNEK CUMLESI TUR BAZLI + ACIK TUR SUZGECI (mimar karari 7 Eki
 console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, vm kopyasinda)");
 {
   const SONRA = "Önizleme, üretim dosyasıyla birlikte hazırlanır; birkaç dakika sürebilir.";
+  // Sentetik kod gercek manifest satirlariyla CAKISMAZ (G2'de gercek `isimlik` satiri geldi; turBul ilkini doner).
   const sentetik = (kaynakVeri) => {
     const V = veriYukle(kaynakVeri);
-    V.turler.push({ kod: "isimlik", ad: "İsimlik", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",
+    V.turler.push({ kod: "sentetik-d", ad: "İsimlik", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",
       olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {},
       form: { yazi: { tip: "metin", max: 20 }, kalinlik: { tip: "sayi", min: 2, max: 6, adim: 1, birim: "mm" },
               yazi_tipi: { tip: "secim", secenekler: ["Düz", "Eğik"] }, link: { tip: "url" } },
       fiyat: { formul: "mm_x_10tl", adim_mm: 10 }, ornek_kanit_izni: ["render"], ornek_notu: "t" });
-    V.ornekler.push({ tur: "isimlik", kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/t-io.webp",
+    V.ornekler.push({ tur: "sentetik-d", kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/t-io.webp",
       render: "https://media.pruvo3d.com/t-ir.webp", not: "t" });
     const asil = V.parametreDogrula;
     V.cagri = [];
     V.parametreDogrula = function (kod, p) { const d = asil(kod, p); V.cagri.push({ kod, p: JSON.stringify(p), d }); return d; };
     return V;
   };
-  const acikI = { acik: true, turler: [{ kod: "isimlik", ad: "İsimlik", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
+  const acikI = { acik: true, turler: [{ kod: "sentetik-d", ad: "İsimlik", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
   const acikP = { acik: true, turler: [{ kod: "plaket", ad: "Kabartma plaket", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] }] };
   const senaryo = async (kaynak) => {
     const s = {};
@@ -1411,7 +1412,7 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
       t.tagName === "SELECT" && t.childNodes.filter((n) => n.tagName === "OPTION").length === 2 && u.type === "url";
     // AYNI FONKSIYON: hata metni VERI.parametreDogrula donusunden; alanlar doldurulunca hata gizlenir.
     const hata = d.find((n) => n.classList.contains("foto-uretim-ayrinti") && n.textContent === "Metin alanını doldur (izinli uzunlukta).");
-    const ilk = V.cagri.length > 0 && V.cagri.every((c) => c.kod === "isimlik") && V.cagri[V.cagri.length - 1].d.hata === "parametre-metin";
+    const ilk = V.cagri.length > 0 && V.cagri.every((c) => c.kod === "sentetik-d") && V.cagri[V.cagri.length - 1].d.hata === "parametre-metin";
     let son = null;
     if (y && u) {
       y.value = "Ada"; y.tetikle("input");
@@ -1427,6 +1428,9 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     s.ONIZLEMESIZ = !!kap && kap.hidden === false && [...kap.agac()].some((n) => n.tagName === "IMG" && /t-ir\.webp$/.test(n.src)) &&
       !d.some((n) => n.tagName === "CANVAS") && !!btn && btn.disabled === true &&
       !d.some((n) => n.tagName === "P" && /tarayıcında çizilir/.test(n.textContent) && n.parentNode && !n.parentNode.hidden);
+    // HAK KUTUSU (G2, mimar karari 7 Eki): yalniz form girdili turde GORUNMEZ; plakette gorunur.
+    const hakE = id("foto-hak");
+    s.HAK_FORM_GIZLI = !!hakE && !!hakE.parentNode && hakE.parentNode.hidden === true;
     // URETEC ONIZLEME (madde 11): onay + dogrulama sonrasi buton ACILIR; tiklaninca /foto/onizleme'ye
     // foto'suz govde (tur + parametreler) gider, litofan ucu cagrilmaz, yoklama araligi 5 sn.
     const V2 = sentetik(VERI_KAYNAK);
@@ -1436,14 +1440,13 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     const id2 = (x) => d2.find((n) => n.id === x) || null;
     const y2 = id2("foto-param-yazi"), u2 = id2("foto-param-link"), btn2 = id2("foto-onizle-buton");
     if (y2 && u2) { y2.value = "Ada"; y2.tetikle("input"); u2.value = "https://ornek.com"; u2.tetikle("input"); }
-    const hak = d2.find((n) => n.tagName === "INPUT" && n.type === "checkbox");
-    if (hak) { hak.checked = true; hak.tetikle("change"); }
+    // Form girdili turde hak kutusu GIZLI ve ISTENMEZ: isaretlenmeden buton acilir, govdede hak_onay false.
     const acildi = !!btn2 && btn2.disabled === false && btn2.textContent === "Önizleme oluştur";
     if (btn2) { btn2.tetikle("click"); }
     for (let i = 0; i < 10; i++) { await new Promise((c) => setTimeout(c, 0)); }
     const p0 = e2.istekler[0] || {};
     s.KUYRUK = acildi && e2.istekler.length === 1 && p0.u === "/api/shop/foto/onizleme" &&
-      p0.govde.tur === "isimlik" && p0.govde.hak_onay === true && p0.govde.turnstile_token === "t-jeton" &&
+      p0.govde.tur === "sentetik-d" && p0.govde.hak_onay === false && p0.govde.turnstile_token === "t-jeton" &&
       p0.govde.gorsel === undefined && JSON.stringify(p0.govde.parametreler) ===
         JSON.stringify({ yazi: "Ada", kalinlik: 2, yazi_tipi: "Düz", link: "https://ornek.com" }) &&
       e2.araliklar.includes(5000) && !e2.araliklar.includes(3000);
@@ -1451,6 +1454,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     const p = await ekranKos(kaynak, sentetik(VERI_KAYNAK), acikP);
     const dp = [...p.bolum.agac()];
     s.PLAKET = !dp.some((n) => String(n.id || "").startsWith("foto-param-")) && !dp.some((n) => n.textContent === SONRA && n.tagName === "P");
+    const hakP = dp.find((n) => n.id === "foto-hak");
+    s.HAK_FOTO_GORUNUR = !!hakP && !!hakP.parentNode && hakP.parentNode.hidden !== true;
     return s;
   };
   const s0 = await senaryo(EKRAN_KAYNAK);
@@ -1459,6 +1464,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
   ol("FM3 onizlemesiz D turu: ornek render + '" + SONRA + "' · tuval/litofan onizleme metni 0 · buton kapali", s0.ONIZLEMESIZ, JSON.stringify(s0));
   ol("FM4 plaket (form {}): parametre alani 0, onizleme-sonra metni 0", s0.PLAKET, JSON.stringify(s0));
   ol("FM5 onizlemesiz D: buton onay+dogrulamayla ACILIR -> /foto/onizleme kuyrugu (foto'suz, parametreli), yoklama 5 sn", s0.KUYRUK, JSON.stringify(s0));
+  ol("FM6 hak beyani kutusu: form girdili turde GIZLI (istenmez, hak_onay false) · foto turunde (plaket) GORUNUR",
+    s0.HAK_FORM_GIZLI && s0.HAK_FOTO_GORUNUR, JSON.stringify(s0));
   const FM_MUT = [
     ["FM-M1 istemci kendi dogrulamasi (her sey gecerli)", "return F.parametreDogrula(S.tur, parametreGovde());", "return { ok: true };", ["AYNI_FONKSIYON"]],
     ["FM-M2 onizleme-sonra metni dustu", "S.alanOnizlemeSonra.appendChild(el(\"p\", \"foto-uretim-ayrinti\", ONIZLEME_SONRA));", "", ["ONIZLEMESIZ"]],
@@ -1467,6 +1474,10 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     ["FM-M4 uretec onizleme yonlendirmesi silindi (plaket/saglayici yoluna duser)",
      "    if (onizlemeSonraSecili()) { uretecOnizle(); return; }\n", "", ["KUYRUK"]],
     ["FM-M5 uretec yoklama araligi plaketinki", "var aralik = uretec ? URETEC_YOKLAMA_MS : YOKLAMA_MS;", "var aralik = YOKLAMA_MS;", ["KUYRUK"]],
+    ["FM-M6 hak kutusu her turde gorunur+zorunlu",
+     "    var tam = (!!S.dosya || !fotoGerekir()) && (!!S.hakOnay || !F.hakGerekir(S.tur)) && (",
+     "    var tam = (!!S.dosya || !fotoGerekir()) && !!S.hakOnay && (", ["KUYRUK"]],
+    ["FM-M7 hak kutusu gizlenmez", "    hakLbl.hidden = !F.hakGerekir(S.tur);\n", "", ["HAK_FORM_GIZLI"]],
     ["FM-MK kontrol (yorum)", "// FORM ALANLARI — türün", "// form alanlari — turun", []],
   ];
   for (const [ad, capa, yerine, olmeli] of FM_MUT) {
