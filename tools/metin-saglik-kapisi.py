@@ -58,7 +58,7 @@ KANCA_YOLU = os.path.join(KOD_KOK, "tools", "kancalar", "pre-commit")
 
 # TABAN (7 Eki 2026, 38.291 urun, izin listesi uygulanmis): A'ya takilan urun sayisi.
 # Yalniz ASAGI cekilir (temizlik sonrasi); yukari cekmek kapiyi gevsetmektir.
-TABAN_A_URUN = 31
+TABAN_A_URUN = 30
 
 ALFABE = set("abcçdefgğhıijklmnoöprsştuüvyzqwx" "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZQWX" "âîûÂÎÛ")
 METIN_ALANLARI = ("baslik", "aciklama", "kisa_aciklama", "kisa-aciklama")
