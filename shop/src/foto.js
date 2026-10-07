@@ -7,7 +7,7 @@
  * GLB bizim ozel R2 kovamiza -> siparis panelinde kalemin yaninda.
  *
  * Uclar (index.js /api/shop/foto/* -> fotoUclari):
- *   GET  /foto/acik            -> bolum durumu: acik mi, siparis alan turler + olcu/fiyat
+ *   GET  /foto/acik            -> bolum durumu: acik mi, siparis alan turler + olcu/fiyat (fiyat FORMULDEN)
  *   POST /foto/onizleme        -> fotograf (data URI) + tur + olcu + onaylar + bot jetonu
  *                                 -> {is}  (is = tahmin edilemez 32 hex onizleme anahtari)
  *   GET  /foto/durum?is=       -> onizleme hazir mi; hazirsa bizim adresimizden gorsel
@@ -56,12 +56,12 @@ if (!VERI) { throw new Error("foto-uretim-veri.js yuklenemedi — tur/ornek tek 
  * metal halka/miknatis YOK): bizim tur kodumuz -> saglayicinin urun yolu parcasini tasiyan
  * ORTAM DEGISKENININ ADI. Saglayicinin tur adi/yolu bu dosyada GECMEZ (`wrangler secret put`).
  * Bu tabloda olmayan tur (anahtarlik, magnet, figur ...) HER uclu REDDEDILIR: onizleme
- * `tur-kapali`, odeme kalemi `foto-kapali`, panel fiyat `gecersiz-tur`, kuyruk almaz.
+ * `tur-kapali`, odeme kalemi `foto-kapali`, panel acilis `gecersiz-tur`, kuyruk almaz.
  */
 export const TUR_ORTAM = { plaket: "URETIM_TUR_PLAKET" };
-/** Build adiminda olcu sinirlari (mm; plaketin uzun kenari) — fiyat satiri bu aralik disinda YAZILAMAZ. */
+/** Build adiminda olcu sinirlari (mm; plaketin en uzun boyutu) — manifest kaydi yoksa yedek aralik. */
 export const OLCU_MM_EN_AZ = 60; // Okan 6 Eki: "min 60 max 300" (manifest plaket olcu_mm ile AYNI)
-export const OLCU_MM_EN_COK = 300; // Okan 6 Eki: fiyat tablosu 60–300 mm (saglayici sinir 400)
+export const OLCU_MM_EN_COK = 300; // Okan 6 Eki: 60–300 mm (saglayici sinir 400)
 /**
  * PLAKET GEOMETRISI (herkese AYNI; ayak bu taban kalinligina gore yuvali uretilir — TeKiN).
  * Duz arka (kapali sirt), alt kenari duz sekil: masada ayakla durur. Model uzerinde DELME YOK.
@@ -103,10 +103,6 @@ function turSunuluyor(kod) { return saglayiciTuru(kod) || deterministikTur(kod);
 /** Tur basina olcu araligi (kayittan); plaket kaydi OLCU_MM_EN_AZ/EN_COK ile AYNI. */
 function olcuAraligi(kod) {
   return VERI.olcuAraligi(kod) || { en_az: OLCU_MM_EN_AZ, en_cok: OLCU_MM_EN_COK };
-}
-function olcuAralikta(kod, mm) {
-  const a = olcuAraligi(kod);
-  return Number.isInteger(mm) && mm >= a.en_az && mm <= a.en_cok;
 }
 /**
  * GIRDI DOGRULAMASI (genel, manifestten): `parametreler` turun `form` semasina karsi; `svg` alani
@@ -287,29 +283,37 @@ export function ornekYapilandirma(env) {
   return { hazir: eksik.length === 0, eksik };
 }
 
-/** Fiyat tablosu: [{tur, olcu_mm, fiyat_kurus}] (yalniz fiyati > 0 olan satirlar). */
-export async function fiyatTablosu(env) {
+/**
+ * ACILIS ANAHTARI (Okan 7 Eki 15:4x: fiyat tablosu KALKTI). Eskiden bir turun ACIK olmasi = fiyat
+ * tablosunda satiri var demekti (11:2x kapatmasi satirlar silinerek yapildi); o anahtar burada ACIK
+ * yazilir: D1 `foto_acik` (tur, acik). VARSAYILAN KAPALI — satir yok, acik != 1, tablo yok ya da
+ * okuma HERHANGI bir hatayla dusuyorsa o tur KAPALI (fail-closed). Donus: acik tur kodlari (Set).
+ */
+export async function acikAnahtari(env) {
   try {
-    const r = await env.KATALOG.prepare(
-      "SELECT tur, olcu_mm, fiyat_kurus FROM foto_fiyat WHERE fiyat_kurus > 0 ORDER BY tur, olcu_mm"
-    ).all();
-    return r.results || [];
+    const r = await env.KATALOG.prepare("SELECT tur FROM foto_acik WHERE acik = 1").all();
+    return new Set((r.results || []).map((x) => x.tur).filter((k) => typeof k === "string"));
   } catch (e) {
-    if (tabloYok(e)) { return []; }
-    throw e;
+    return new Set();
   }
 }
 
-/** Siparis alabilen turler: gercek ornegi >=1 VE fiyat tablosunda >=1 olcusu olanlar. */
-export function acikTurler(fiyatlar) {
+/**
+ * Siparis alabilen turler: acilis anahtari ACIK · gercek ornegi >=1 · fiyat formulu gecerli.
+ * Olculer + fiyat TEK FORMULDEN (VERI.fiyatKurus = en uzun boyut mm × 1000); tablo OKUNMAZ.
+ */
+export function acikTurler(acik) {
+  const kume = acik instanceof Set ? acik : new Set();
   return VERI.turler
+    .filter((t) => kume.has(t.kod))
     .filter((t) => turSunuluyor(t.kod))
     .filter((t) => VERI.ornekSayisi(t.kod) > 0)
     .map((t) => ({
       kod: t.kod, ad: t.ad, aciklama: t.aciklama,
       ornek_sayisi: VERI.ornekSayisi(t.kod),
-      olculer: fiyatlar.filter((f) => f.tur === t.kod && olcuAralikta(t.kod, f.olcu_mm))
-        .map((f) => ({ mm: f.olcu_mm, fiyat_kurus: f.fiyat_kurus })),
+      olculer: VERI.olcuSecenekleri(t.kod)
+        .map((mm) => ({ mm, fiyat_kurus: VERI.fiyatKurus(t.kod, mm) }))
+        .filter((o) => o.fiyat_kurus > 0),
     }))
     .filter((t) => t.olculer.length > 0);
 }
@@ -578,7 +582,9 @@ async function ucmfOlc(b) {
   }
   const en = [0, 1, 2].map((j) => Math.min(...parcalar.map((p) => p.en[j])) * birim);
   const ust = [0, 1, 2].map((j) => Math.max(...parcalar.map((p) => p.ust[j])) * birim);
-  const L = Math.max(ust[0] - en[0], ust[1] - en[1]);
+  // OLCU EKSENI (Okan 7 Eki 15:4x): sinir kutusunun EN UZUN boyutu — x/y/z hangisi buyukse
+  // (ayak/cerceve dahil tek nesne). Fiyat ve olcek bu degere baglidir; yalniz X/Y'ye bakmak YANLIS.
+  const L = Math.max(ust[0] - en[0], ust[1] - en[1], ust[2] - en[2]);
   if (!(L > 0)) { return { hata: "olcu-sifir" }; }
   return { en, ust, L, z: ust[2] - en[2], birim, metin, kaynaklar, zip: z,
            item: { bas: ie.index, son: ie.index + ie[0].length, etiket: ie[0], M } };
@@ -791,7 +797,7 @@ async function acikUcu(env, simdi, telegram) {
   if (!y.hazir && !DETERMINISTIK_TURLER.some((k) => turHazir(env, k).hazir)) {
     return fjson({ acik: false, turler: [], ...taban }, 200);
   }
-  let turler = acikTurler(await fiyatTablosu(env)).filter((t) => turHazir(env, t.kod).hazir);
+  let turler = acikTurler(await acikAnahtari(env)).filter((t) => turHazir(env, t.kod).hazir);
   if (!turler.length) { return fjson({ acik: false, turler: [], ...taban }, 200); }
   // Havuz (kredi) yalniz saglayici kolunu kapatir; deterministik kol kredi harcamaz.
   if (turler.some((t) => saglayiciTuru(t.kod))) {
@@ -889,9 +895,8 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   if (!y.hazir) { return fjson({ hata: "kapali" }, 503); }
   if (!g || typeof g !== "object") { return fjson({ hata: "gecersiz-istek" }, 400); }
 
-  const fiyatlar = await fiyatTablosu(env);
   // Deterministik tur bu uctan GECMEZ (saglayiciya gitmez): /foto/litofan.
-  const tur = acikTurler(fiyatlar).find((t) => t.kod === g.tur && saglayiciTuru(t.kod));
+  const tur = acikTurler(await acikAnahtari(env)).find((t) => t.kod === g.tur && saglayiciTuru(t.kod));
   if (!tur) { return fjson({ hata: "tur-kapali" }, 400); }
   const gh = girdiGovdeDogrula(tur.kod, g);
   if (gh) { return fjson({ hata: gh }, 400); }
@@ -984,7 +989,7 @@ const URETEC_DIZIN_ADLARI = ["girdi.json", "olcu.json", "model.3mf", "onizleme.p
  */
 async function uretecOnizlemeUcu(request, env, simdi, g) {
   if (!turHazir(env, g.tur).hazir) { return fjson({ hata: "kapali" }, 503); }
-  const tur = acikTurler(await fiyatTablosu(env)).find((t) => t.kod === g.tur);
+  const tur = acikTurler(await acikAnahtari(env)).find((t) => t.kod === g.tur);
   if (!tur) { return fjson({ hata: "tur-kapali" }, 400); }
   const gh = girdiGovdeDogrula(tur.kod, g);
   if (gh) { return fjson({ hata: gh }, 400); }
@@ -1098,7 +1103,7 @@ async function litofanUcu(request, env, simdi) {
   if (!g || typeof g !== "object") { return fjson({ hata: "gecersiz-istek" }, 400); }
   if (!deterministikTur(g.tur)) { return fjson({ hata: "tur-kapali" }, 400); }
   if (!turHazir(env, g.tur).hazir) { return fjson({ hata: "kapali" }, 503); }
-  const tur = acikTurler(await fiyatTablosu(env)).find((t) => t.kod === g.tur);
+  const tur = acikTurler(await acikAnahtari(env)).find((t) => t.kod === g.tur);
   if (!tur) { return fjson({ hata: "tur-kapali" }, 400); }
   const gh = girdiGovdeDogrula(tur.kod, g);
   if (gh) { return fjson({ hata: gh }, 400); }
@@ -1321,8 +1326,9 @@ export function fotoKalemCoz(k) {
 
 /**
  * FOTO KALEMINI FIYATLA — sunucu hesabi (istemcinin hicbir tutari okunmaz). Sartlar:
- * yapilandirma hazir · onizleme 'hazir' ve gecerlilik suresi icinde · tur acik · olcu fiyat
- * tablosunda. Donus {satir} ya da {hata:{...}, kod}.
+ * yapilandirma hazir · onizleme 'hazir' ve gecerlilik suresi icinde · tur acik (acilis anahtari) ·
+ * olcu manifest araliginda ve adim izgarasinda. Birim fiyat TEK FORMULDEN (VERI.fiyatKurus);
+ * istemcinin tutari OKUNMAZ. Donus {satir} ya da {hata:{...}, kod}.
  */
 export async function fotoKalemFiyatla(env, k, simdi) {
   if (!yapilandirma(env).hazir && !DETERMINISTIK_TURLER.some((d) => turHazir(env, d).hazir)) {
@@ -1345,10 +1351,11 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   }
   // Turun kendi kolu hazir olmali (deterministik tur saglayici anahtari istemez).
   if (turSunuluyor(is.tur) && !turHazir(env, is.tur).hazir) { return { hata: { hata: "foto-kapali" }, kod: 400 }; }
-  const tur = acikTurler(await fiyatTablosu(env)).find((t) => t.kod === is.tur);
+  const tur = acikTurler(await acikAnahtari(env)).find((t) => t.kod === is.tur);
   if (!tur) { return { hata: { hata: "foto-kapali" }, kod: 400 }; }
-  const olcu = tur.olculer.find((o) => o.mm === k.olcu_mm);
-  if (!olcu || !(olcu.fiyat_kurus > 0)) { return { hata: { hata: "gecersiz-olcu" }, kod: 400 }; }
+  const fk = VERI.fiyatKurus(tur.kod, k.olcu_mm);
+  const olcu = fk > 0 ? { mm: k.olcu_mm, fiyat_kurus: fk } : null;
+  if (!olcu) { return { hata: { hata: "gecersiz-olcu" }, kod: 400 }; }
   const birim = olcu.fiyat_kurus;
   if (deterministikTur(tur.kod)) { return deterministikSatir(tur, olcu, k, is); }
   return {
@@ -1935,7 +1942,8 @@ if (!(typeof PLAKA_MM === "number" && PLAKA_MM > 0)) { throw new Error("foto-ure
 
 /**
  * olcu.json DOGRULAMASI (sozlesme §3 + manifest araligi). Donus "" = gecerli, aksi sebep kodu
- * (siparis 'elle'ye duser). `sizdirmaz` true OLMAK ZORUNDA; uzun kenar = olcu_mm ± tolerans;
+ * (siparis 'elle'ye duser). `sizdirmaz` true OLMAK ZORUNDA; uzun kenar (sinir kutusunun en uzun
+ * boyutu, x/y/z) = olcu_mm ± tolerans ve kutu Z'sinden kucuk degil;
  * renk 1..4; olcu_mm manifest araliginda; kutu plakada.
  */
 export function uretecOlcuDogrula(o, k) {
@@ -1946,8 +1954,13 @@ export function uretecOlcuDogrula(o, k) {
   const a = VERI.olcuAraligi(k.tur);
   if (!a || !(k.olcu_mm >= a.en_az && k.olcu_mm <= a.en_cok)) { return "olcu-aralik-disi"; }
   const tol = UZUN_KENAR_TOLERANS[t.motor];
+  // uzun_kenar_mm = nesnenin sinir kutusunun EN UZUN boyutu (x/y/z, ayak dahil; sozlesme §3) = olcu_mm ± tol.
+  // kutu_mm PLAKA yerlesimidir (yapboz parcalari yan yana: x/y nesneden buyuk olabilir), Z ise nesnenin
+  // yuksekligidir: Z en uzun boyuttan buyukse uzun kenar yalniz X/Y'den olculmus demektir -> RED.
+  const kz = Number((o.kutu_mm || {}).z) || 0;
   if (!(tol > 0) || typeof o.uzun_kenar_mm !== "number" ||
-      !(Math.abs(o.uzun_kenar_mm - k.olcu_mm) <= k.olcu_mm * tol + 1e-9)) { return "uzun-kenar-tolerans"; }
+      !(Math.abs(o.uzun_kenar_mm - k.olcu_mm) <= k.olcu_mm * tol + 1e-9) ||
+      kz > o.uzun_kenar_mm * (1 + tol) + 1e-9) { return "uzun-kenar-tolerans"; }
   if (!Number.isInteger(o.renk_sayisi) || o.renk_sayisi < 1 || o.renk_sayisi > 4) { return "renk-fazla"; }
   const kutu = o.kutu_mm || {};
   if (!(kutu.x > 0 && kutu.y > 0 && kutu.x <= PLAKA_MM && kutu.y <= PLAKA_MM)) { return "plaka-disi"; }
@@ -2018,16 +2031,18 @@ export async function panelUretecYukle(request, env, url, simdi) {
 
 /**
  * GET /yonet/foto-ozet — "hata cok mu" sorusunun SAYISI (8. madde): tur basina siparis
- * kalemi ↔ elle bakilacak; aylik kredi; havuz; fiyat tablosu; yapilandirma eksikleri.
+ * kalemi ↔ elle bakilacak; aylik kredi; havuz; acilis anahtari; yapilandirma eksikleri.
  */
 export async function panelFotoOzet(env, simdi) {
   const y = yapilandirma(env);
   const cikti = { yapilandirma: y, turler: [], kredi: { bu_ay: 0, gecen_ay: 0 }, bakiye: null,
-                  fiyatlar: [], onay_onayli: VERI.onay_onayli === true, onay_surum: VERI.onay_surum,
+                  acik: [], fiyat_formulu: "en uzun boyut (mm) × 10 TL", onay_onayli: VERI.onay_onayli === true, onay_surum: VERI.onay_surum,
                   ornek: VERI.turler.map((t) => ({ tur: t.kod, sayi: VERI.ornekSayisi(t.kod) })),
                   sunulan_turler: VERI.turler.filter((t) => turSunuluyor(t.kod))
                     .map((t) => ({ kod: t.kod, ad: t.ad, kol: VERI.kolu(t.kod),
-                                   olcu_en_az: olcuAraligi(t.kod).en_az, olcu_en_cok: olcuAraligi(t.kod).en_cok })),
+                                   olcu_en_az: olcuAraligi(t.kod).en_az, olcu_en_cok: olcuAraligi(t.kod).en_cok,
+                                   olcu_adim: VERI.olcuAdimi(t.kod),
+                                   fiyat_en_az_kurus: VERI.fiyatKurus(t.kod, olcuAraligi(t.kod).en_az) })),
                   olcu_en_az: OLCU_MM_EN_AZ, olcu_en_cok: OLCU_MM_EN_COK,
                   ayak_plaket_basi: AYAK_PLAKET_BASI,
                   elle: [], sema: true };
@@ -2049,9 +2064,7 @@ export async function panelFotoOzet(env, simdi) {
       "SELECT COALESCE(SUM(kredi), 0) AS n FROM foto_kredi WHERE tarih >= ? AND tarih < ?"
     ).bind(gecenAy, buAy).first();
     cikti.kredi = { bu_ay: (k1 && k1.n) || 0, gecen_ay: (k2 && k2.n) || 0 };
-    const f = await env.KATALOG.prepare(
-      "SELECT tur, olcu_mm, fiyat_kurus FROM foto_fiyat ORDER BY tur, olcu_mm").all();
-    cikti.fiyatlar = f.results || [];
+    cikti.acik = [...(await acikAnahtari(env))].sort();
     const e = await env.KATALOG.prepare(
       "SELECT siparis_no, kalem, tur, sebep, guncel FROM foto_uretim WHERE asama = 'elle'" +
       " ORDER BY guncel DESC LIMIT 20").all();
@@ -2065,27 +2078,25 @@ export async function panelFotoOzet(env, simdi) {
   return fjson(cikti, 200);
 }
 
-/** POST /yonet/foto-fiyat {tur, olcu_mm, fiyat_kurus}; fiyat 0 -> satir silinir (olcu kapanir). */
-export async function panelFotoFiyat(request, env, simdi) {
+/**
+ * POST /yonet/foto-acik {tur, acik} — turun ACILIS ANAHTARI (fiyat tablosunun yerine; fiyat formulden).
+ * acik true -> satir acik=1; false -> satir SILINIR (varsayilan KAPALI). Bilinmeyen tur 400.
+ */
+export async function panelFotoAcik(request, env, simdi) {
   let g;
   try { g = await request.json(); } catch (e) { return fjson({ hata: "gecersiz-json" }, 400); }
   const tur = g && turSunuluyor(g.tur) ? g.tur : null;
-  const aralik = tur ? olcuAraligi(tur) : { en_az: OLCU_MM_EN_AZ, en_cok: OLCU_MM_EN_COK };
-  const olcu = g && olcuAralikta(tur, g.olcu_mm) ? g.olcu_mm : null;
-  const fiyat = g && Number.isInteger(g.fiyat_kurus) && g.fiyat_kurus >= 0 && g.fiyat_kurus <= 10000000
-    ? g.fiyat_kurus : null;
   if (!tur) { return fjson({ hata: "gecersiz-tur" }, 400); }
-  if (!olcu) { return fjson({ hata: "gecersiz-olcu", en_az: aralik.en_az, en_cok: aralik.en_cok }, 400); }
-  if (fiyat == null) { return fjson({ hata: "gecersiz-fiyat" }, 400); }
-  if (fiyat === 0) {
-    await env.KATALOG.prepare("DELETE FROM foto_fiyat WHERE tur = ? AND olcu_mm = ?").bind(tur, olcu).run();
-  } else {
+  if (typeof g.acik !== "boolean") { return fjson({ hata: "gecersiz-acik" }, 400); }
+  if (g.acik) {
     await env.KATALOG.prepare(
-      "INSERT INTO foto_fiyat (tur, olcu_mm, fiyat_kurus, guncel) VALUES (?, ?, ?, ?)" +
-      " ON CONFLICT(tur, olcu_mm) DO UPDATE SET fiyat_kurus = excluded.fiyat_kurus, guncel = excluded.guncel"
-    ).bind(tur, olcu, fiyat, simdiIso(simdi)).run();
+      "INSERT INTO foto_acik (tur, acik, guncel) VALUES (?, 1, ?)" +
+      " ON CONFLICT(tur) DO UPDATE SET acik = 1, guncel = excluded.guncel"
+    ).bind(tur, simdiIso(simdi)).run();
+  } else {
+    await env.KATALOG.prepare("DELETE FROM foto_acik WHERE tur = ?").bind(tur).run();
   }
-  return fjson({ ok: true, tur, olcu_mm: olcu, fiyat_kurus: fiyat }, 200);
+  return fjson({ ok: true, tur, acik: g.acik }, 200);
 }
 
 // ---------------------------------------------------------------- panel: ORNEK URETIM
@@ -2123,8 +2134,8 @@ export async function panelOrnekOnizleme(request, env, simdi, telegram) {
   if (!tur) { return fjson({ hata: "gecersiz-tur" }, 400); }
   const olcu = Number.isInteger(g.olcu_mm) && g.olcu_mm >= OLCU_MM_EN_AZ && g.olcu_mm <= OLCU_MM_EN_COK
     ? g.olcu_mm : null;
-  // Olcu fiyat tablosundaki olculerden biri olmali (ornek, satilan urunun aynisi olsun).
-  if (!olcu || !(await fiyatTablosu(env)).some((f) => f.tur === tur && f.olcu_mm === olcu)) {
+  // Olcu satilabilir olculerden biri olmali (ornek, satilan urunun aynisi olsun; formul gecerli).
+  if (!olcu || !(VERI.fiyatKurus(tur, olcu) > 0)) {
     return fjson({ hata: "gecersiz-olcu" }, 400);
   }
   const gorsel = gorselCoz(g.gorsel);

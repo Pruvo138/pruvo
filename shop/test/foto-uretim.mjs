@@ -8,7 +8,8 @@
  * OLCTUGU HUKUMLER (BaBa kutu 5 Eki 18:1x, 8 madde):
  *   A KAPALI-VARSAYILAN : bugunku veri dosyasiyla (onay metni onaysiz, gercek ornek 0) bolum
  *                         KAPALI; onizleme 503, /baslat foto kalemi 400, cron D1'e dokunmaz
- *   B FIYAT KABI        : fiyat tablosu bos -> tur sunulmaz; panelden satir yazilinca sunulur
+ *   B ACILIS ANAHTARI   : foto_acik bos -> tur sunulmaz; panelden "Aç" yazilinca sunulur; olcu+fiyat
+ *                         TEK FORMULDEN (en uzun boyut mm x 1000 kurus; fiyat tablosu YOK, Okan 7 Eki)
  *   C ONIZLEME          : saglayiciya yalniz ONIZLEME gider (odemeden once tek kredi adimi);
  *                         gorsel bizim ucumuzdan sunulur; kredi defterine BIR kez yazilir
  *   D SINIR             : ziyaretci basi 24 saatte N onizleme; N+1. istek 429 ve saglayiciya
@@ -16,7 +17,7 @@
  *   E BOT KAPISI        : jeton yok/red/ag hatasi -> 403 (fail-CLOSED), saglayiciya gitmez
  *   F ONAY + GORSEL     : iki onay kutusu + guncel onay surumu sart; sahte gorsel reddedilir
  *   G HAVUZ             : bakiye esigin altinda -> bolum kapanir + Telegram TEK bildirim
- *   H /baslat           : fiyat SUNUCUDA tablodan (+kargo kurali), havale RED, suresi dolmus
+ *   H /baslat           : fiyat SUNUCUDA formulden (+kargo kurali), havale RED, suresi dolmus
  *                         onizleme RED
  *   I URETIM ZINCIRI    : 'bekliyor' siparis uretime GIRMEZ; 'odendi' -> model -> analiz ->
  *                         4 renk -> 3MF+GLB ozel kovada -> panelde indirilebilir; kredi 46
@@ -32,7 +33,8 @@
  *   I3b/I8b/J4 AYAK     : Build'e sabit kabartma/taban + kapali sirt; kalemde foto_ayak 1,
  *                         panel baski notunda "AYAK: <adet> adet"
  *   S EKRAN             : foto-uretim.js SAHTE DOM'da kosar: tek turde tur radyosu 0 + adim
- *                         "Olcu"; olcu radyolari (S1 + S3) gercekten cizilir (5 Eki olculen hata)
+ *                         "Olcu"; olcu SURGULERI (S1 + S3) gercekten cizilir, kayarken "N mm → X TL"
+ *                         (TEK formul), fiyat listesi satiri 0 (Okan 7 Eki)
  * ORNEK URETIM (BaBa 6 Eki — panel "Örnek üret", Okan'in kendi fotografi, odemesiz):
  *   O YETKI+AYRIM       : ornek uclari anahtarsiz 404 · anahtar/tur yolu yoksa 503 + saglayiciya 0 ·
  *                         bot/onay/gercek-ornek/ziyaretci siniri ATLANIR · ornek isi sepette RED ·
@@ -45,6 +47,10 @@
  *                         Onarimli ve onarimsiz yolda AYNI kapi. Fiksturler sentetik (kucuk).
  *   OM-A..OM-C          : kapi atlandi / olcek ters yone / tutmayan olcu yazildi -> KIRMIZI;
  *                         OM-K (yalniz yorum) -> hicbiri
+ * OLCU EKSENI (Okan 7 Eki 15:4x: "en boy yükseklik fark etmez hangisi uzunsa"):
+ *   OZ                  : en uzun ekseni Z olan nesne (40x30x200) -> 120 mm'ye Z'den olceklenir, bagimsiz
+ *                         olcumde EN UZUN boyut 120 ±%3, fiyat = 120 mm formulu (120000); uretec olcu.json'da
+ *                         Z uzun kenardan buyukse RED. OZ-M1 (X/Y'ye bakan olcu) · OZ-M2 (Z sarti silindi) KIRMIZI
  * PLAKET ACILISI (Okan 7 Eki: "baskı yapmayacağım böyle tamam" — gercek baski beklenmez):
  *   RO                  : veri dosyasindaki `kanit:"render"` kaydi plaketi acar (/foto/acik
  *                         plaket hazir) · `ornek_kanit_izni` disi kanit (litofana render,
@@ -189,7 +195,7 @@ function ucmfKur(ax, ay, h, ikiOge) {
     ["Metadata/model_settings.config", '<?xml version="1.0" encoding="UTF-8"?>\n<config><object id="2"><metadata key="name" value="Object_1"/></object></config>\n', true],
   ]);
 }
-/** BAGIMSIZ olcer (foto.js'e DAYANMAZ): zip -> {L (XY uzun kenar), z, item transform, girdiler: ad -> ham sikistirilmis bayt}. */
+/** BAGIMSIZ olcer (foto.js'e DAYANMAZ): zip -> {L (XY uzun kenar), L3 (x/y/z EN UZUN boyut), z, item transform, girdiler}. */
 function testOlc(bayt) {
   const b = Buffer.from(bayt);
   const e = b.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
@@ -218,7 +224,8 @@ function testOlc(bayt) {
       }
     }
   }
-  return { L: Math.max(ust[0] - en[0], ust[1] - en[1]), z: ust[2] - en[2], zTaban: en[2], M, girdiler };
+  return { L: Math.max(ust[0] - en[0], ust[1] - en[1]), L3: Math.max(ust[0] - en[0], ust[1] - en[1], ust[2] - en[2]),
+           z: ust[2] - en[2], zTaban: en[2], M, girdiler };
 }
 /**
  * Alt kenar seritli PLAKET fiksturu (k = model olcegi; k=1 -> 120 mm): govde 120x120x3, Y en
@@ -450,41 +457,44 @@ VERI.onay_onayli = true;
 VERI.ornekler.push({ tur: "plaket", olcu_mm: 120, foto: "https://media.pruvo3d.com/y-foto.webp",
   onizleme: "https://media.pruvo3d.com/y-oniz.webp", baski: "", not: "baski fotografi YOK" });
 
-console.log("B) FIYAT KABI");
+console.log("B) ACILIS ANAHTARI + TEK FORMUL (Okan 7 Eki 15:4x: fiyat tablosu YOK)");
 {
   const a = await istek(env, "/foto/acik");
-  ol("B1 fiyat tablosu bos -> acik:false (tur sunulmaz)", a.v && a.v.acik === false, JSON.stringify(a.v));
-  const y1 = await istek(env, "/yonet/foto-fiyat", { govde: { tur: "plaket", olcu_mm: 100, fiyat_kurus: 34900 }, basliklar: YONET });
-  const y2 = await istek(env, "/yonet/foto-fiyat", { govde: { tur: "plaket", olcu_mm: 150, fiyat_kurus: 49900 }, basliklar: YONET });
-  const yetkisiz = await istek(env, "/yonet/foto-fiyat", { govde: { tur: "plaket", olcu_mm: 120, fiyat_kurus: 1 } });
-  ol("B2 panel fiyat yazar (anahtarli 200, anahtarsiz 404)", y1.kod === 200 && y2.kod === 200 && yetkisiz.kod === 404,
-     y1.kod + "/" + y2.kod + "/" + yetkisiz.kod);
+  ol("B1 acilis anahtari yok (foto_acik bos) -> acik:false (tur sunulmaz)", a.v && a.v.acik === false, JSON.stringify(a.v));
+  const y1 = await istek(env, "/yonet/foto-acik", { govde: { tur: "plaket", acik: true }, basliklar: YONET });
+  const yetkisiz = await istek(env, "/yonet/foto-acik", { govde: { tur: "litofan", acik: true } });
+  ol("B2 panel acilis anahtari yazar (anahtarli 200, anahtarsiz 404)", y1.kod === 200 && yetkisiz.kod === 404,
+     y1.kod + "/" + yetkisiz.kod);
   const a1 = await istek(env, "/foto/acik");
-  ol("B4 baski fotografi eksik ornek SAYILMAZ -> fiyat olsa da acik:false (gercek ornek 0)",
+  ol("B4 baski fotografi eksik ornek SAYILMAZ -> anahtar acik olsa da acik:false (gercek ornek 0)",
      a1.v && a1.v.acik === false, JSON.stringify(a1.v));
   VERI.ornekler.push({ tur: "plaket", olcu_mm: 100, foto: "https://media.pruvo3d.com/x-foto.webp",
     onizleme: "https://media.pruvo3d.com/x-oniz.webp", baski: "https://media.pruvo3d.com/x-baski.webp", not: "t" });
   const a2 = await istek(env, "/foto/acik");
   const turler = (a2.v && a2.v.turler) || [];
-  ol("B3 acik:true; plaket 100 mm 34900 sunulur", a2.v && a2.v.acik === true &&
-     turler.some((t) => t.kod === "plaket" && t.olculer.some((o) => o.mm === 100 && o.fiyat_kurus === 34900)), JSON.stringify(a2.v));
+  const pl = turler.find((t) => t.kod === "plaket");
+  ol("B3 acik:true; plaket olculeri FORMULDEN (100 mm = 100000 kurus, her olcu mm x 1000, 60..300 adim 10)",
+     a2.v && a2.v.acik === true && !!pl && pl.olculer.length === 25 &&
+     pl.olculer.every((o) => o.fiyat_kurus === o.mm * 1000 && o.fiyat_kurus === VERI.fiyatKurus("plaket", o.mm)) &&
+     pl.olculer.some((o) => o.mm === 100 && o.fiyat_kurus === 100000), JSON.stringify(a2.v));
   ol("P4 /foto/acik sunulan tur sayisi 1 (plaket)", turler.length === 1 && turler[0].kod === "plaket",
      JSON.stringify(turler.map((t) => t.kod)));
-  const kotu = await istek(env, "/yonet/foto-fiyat", { govde: { tur: "plaket", olcu_mm: 5, fiyat_kurus: 100 }, basliklar: YONET });
-  const kotu2 = await istek(env, "/yonet/foto-fiyat", { govde: { tur: "plaket", olcu_mm: 40, fiyat_kurus: 100 }, basliklar: YONET });
-  ol("B5 aralik disi olcu (5, 40 mm) fiyat tablosuna YAZILAMAZ", kotu.kod === 400 && kotu2.kod === 400, kotu.kod + "/" + kotu2.kod);
+  const kotu = await istek(env, "/yonet/foto-acik", { govde: { tur: "plaket", acik: "evet" }, basliklar: YONET });
+  ol("B5 acik alani boolean degilse 400 (gecersiz-acik)", kotu.kod === 400 && kotu.v.hata === "gecersiz-acik", JSON.stringify(kotu.v));
   const red = [];
   for (const t of ["anahtarlik", "magnet", "figur"]) {
-    const r = await istek(env, "/yonet/foto-fiyat", { govde: { tur: t, olcu_mm: 100, fiyat_kurus: 100 }, basliklar: YONET });
+    const r = await istek(env, "/yonet/foto-acik", { govde: { tur: t, acik: true }, basliklar: YONET });
     if (r.kod === 400 && r.v && r.v.hata === "gecersiz-tur") { red.push(t); }
   }
-  ol("P5 panel fiyat: anahtarlik/magnet/figur satiri YAZILAMAZ (3/3 gecersiz-tur)", red.length === 3, red.join(","));
-  const tablo = await d1.prepare("SELECT COUNT(*) AS n FROM foto_fiyat WHERE tur <> 'plaket'").first();
-  ol("P5b fiyat tablosunda plaket disi satir 0", tablo.n === 0, tablo.n);
+  ol("P5 panel acilis: anahtarlik/magnet/figur ACILAMAZ (3/3 gecersiz-tur)", red.length === 3, red.join(","));
+  const tablo = await d1.prepare("SELECT COUNT(*) AS n FROM foto_acik WHERE tur <> 'plaket'").first();
+  ol("P5b acilis anahtarinda plaket disi satir 0", tablo.n === 0, tablo.n);
   const oz = await istek(env, "/yonet/foto-ozet", { basliklar: YONET });
   ol("P6 panel ozeti sunulan turleri sunucudan verir: kayittaki turler (panel tur listesi elle yazilmaz)",
      oz.v && JSON.stringify(oz.v.sunulan_turler.map((t) => t.kod)) === JSON.stringify(VERI.turler.map((t) => t.kod)) &&
      oz.v.olcu_en_az === foto.OLCU_MM_EN_AZ && oz.v.ayak_plaket_basi === 1, JSON.stringify(oz.v && oz.v.sunulan_turler));
+  ol("B6 panel ozeti acilis anahtarini verir (acik = [plaket]), fiyat tablosu alani YOK",
+     oz.v && JSON.stringify(oz.v.acik) === JSON.stringify(["plaket"]) && !("fiyatlar" in oz.v), JSON.stringify(oz.v && oz.v.acik));
 }
 
 console.log("C/F) ONIZLEME + ONAY + GORSEL");
@@ -572,11 +582,11 @@ let siparisNo;
     sepet: [{ foto_is: isNo, olcu_mm: 100, adet: 1, fiyat_kurus: 1 }] } });
   siparisNo = b.v && b.v.no;
   const iy = P.iyzico[P.iyzico.length - 1] || {};
-  ol("H2 kart -> 200, iyzico tutari SUNUCU tablosundan (349,00 + 250,00 kargo)",
-     b.kod === 200 && P.iyzico.length === once + 1 && iy.price === "599.00", JSON.stringify(b.v) + " price=" + iy.price);
+  ol("H2 kart -> 200, iyzico tutari SUNUCU FORMULUNDEN (100 mm x 10 TL = 1.000,00 + 250,00 kargo); istemci fiyat_kurus OKUNMAZ",
+     b.kod === 200 && P.iyzico.length === once + 1 && iy.price === "1250.00", JSON.stringify(b.v) + " price=" + iy.price);
   const s = await d1.prepare("SELECT durum, urunler, tutar_kurus FROM siparisler WHERE siparis_no = ?").bind(siparisNo).first();
   const kalem = s && JSON.parse(s.urunler)[0];
-  ol("H3 siparis 'bekliyor', kalem foto_is/tur(plaket)/olcu + foto_ayak 1 tasir", s && s.durum === "bekliyor" && s.tutar_kurus === 34900 &&
+  ol("H3 siparis 'bekliyor', kalem foto_is/tur(plaket)/olcu + foto_ayak 1 tasir", s && s.durum === "bekliyor" && s.tutar_kurus === 100000 &&
      kalem.foto_is === isNo && kalem.foto_tur === "plaket" && kalem.olcu_mm === 100 && kalem.foto_ayak === 1, JSON.stringify(s));
   const eski = await istek(env, "/foto/onizleme", { ip: "198.51.100.77", govde: onizlemeGovde() });
   await d1.prepare("UPDATE foto_isler SET asama = 'hazir', hazir_tarih = '2020-01-01T00:00:00.000Z' WHERE is_no = ?").bind(eski.v.is).run();
@@ -725,8 +735,9 @@ let ornekIs = "";
      anahtarsiz.kod === 503 && anahtarsiz.v.eksik.includes("api-anahtari") && yolsuz.kod === 503 &&
      yolsuz.v.eksik.includes("tur-yolu-plaket") && protoSayisi() === p0,
      anahtarsiz.kod + "/" + yolsuz.kod + " proto=" + (protoSayisi() - p0));
-  ol("O2b fiyat tablosunda olmayan olcu -> 400 (saglayiciya istek 0)",
-     (await istek(env, "/yonet/foto/ornek-onizleme", { govde: ornekGovde({ olcu_mm: 120 }), basliklar: YONET })).kod === 400 &&
+  ol("O2b formulde olmayan olcu (adim disi 125, aralik disi 310) -> 400 (saglayiciya istek 0)",
+     (await istek(env, "/yonet/foto/ornek-onizleme", { govde: ornekGovde({ olcu_mm: 125 }), basliklar: YONET })).kod === 400 &&
+     (await istek(env, "/yonet/foto/ornek-onizleme", { govde: ornekGovde({ olcu_mm: 310 }), basliklar: YONET })).kod === 400 &&
      protoSayisi() === p0, "");
   // O3 KAPILAR ATLANIR: bot sirri yok + bot reddediyor + onay kapali + gercek ornek 0 +
   // hiz siniri binding'i yok; ayni IP'den sinir+1 ornek onizlemesi -> hepsi 200.
@@ -996,8 +1007,16 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
     kanit: g.getAttribute("data-kanit"), metin: g.textContent,
     img: [...g.agac()].filter((n) => n.tagName === "IMG").map((n) => n.src) }));
   const ornekBaslik = dugum.filter((n) => n.classList.contains("foto-uretim-blok-baslik")).map((n) => n.textContent)[0] || "";
+  // OLCU SURGUSU (Okan 7 Eki: fiyat listesi YOK): surgu sayisi, fiyat yazisi, kaydirinca yazi; eski liste satiri
+  // ("100 mm — 349,00 TL" bicimi) sayilir — 0 olmali.
+  const surguler = dugum.filter((n) => n.tagName === "INPUT" && n.type === "range");
+  const fiyatYazilari = () => [...bolum.agac()].filter((n) => n.classList.contains("foto-uretim-surgu-fiyat")).map((n) => n.textContent);
+  const surguFiyat = fiyatYazilari();
+  const listeSatiri = dugum.filter((n) => n.tagName === "LABEL" && /\d+ mm — /.test(n.textContent)).length;
   const sonuc = { gorunur: !bolum.hidden, tur: radyo("foto-tur"), olcu: radyo("foto-olcu"), olcuS3: radyo("foto-olcu-s3"), adim2,
-           turGrubuGizli: !!turGrubu && turGrubu.hidden === true, ornekler, ornekBaslik };
+           turGrubuGizli: !!turGrubu && turGrubu.hidden === true, ornekler, ornekBaslik,
+           surgu: surguler.length, surguFiyat, listeSatiri, kaydir: null };
+  if (surguler[0]) { surguler[0].value = surguler[0].max; surguler[0].tetikle("input"); sonuc.kaydir = fiyatYazilari()[0] || ""; }
   // DOM koku sayilmayan alan (JSON.stringify'a girmez; FM senaryolari dugumleri dogrudan okur).
   Object.defineProperty(sonuc, "bolum", { value: bolum, enumerable: false });
   Object.defineProperty(sonuc, "istekler", { value: istekler, enumerable: false });
@@ -1092,8 +1111,9 @@ let ekranTek, ekranIki;
   ekranIki = await ekranKos(EKRAN_KAYNAK, ikiTurVeri, acikIki);
   ol("S0 pozitif kontrol: iki turde tur radyo dugmesi 2 + adim 'Tur ve olcu'",
      ekranIki.gorunur && ekranIki.tur === 2 && /Tür ve ölçü/.test(ekranIki.adim2), JSON.stringify(ekranIki));
-  ol("S1 bolum cizildi ve olcu adimi var (plaket 2 olcu radyosu) — bos cizim sessiz yesil olmasin",
-     ekranTek.gorunur && ekranTek.olcu === 2, JSON.stringify(ekranTek));
+  ol("S1 bolum cizildi ve olcu SURGUSU var (1 surgu) + '100 mm → 1.000 TL'; kaydirinca '150 mm → 1.500 TL'; fiyat listesi satiri 0",
+     ekranTek.gorunur && ekranTek.olcu === 1 && ekranTek.surgu === 1 && ekranTek.surguFiyat[0] === "100 mm → 1.000 TL" &&
+     ekranTek.kaydir === "150 mm → 1.500 TL" && ekranTek.listeSatiri === 0, JSON.stringify(ekranTek));
   ol("S2 tek turde tur radyo dugmesi 0 + tur grubu gizli", ekranTek.tur === 0 && ekranTek.turGrubuGizli, JSON.stringify(ekranTek));
   ol("S3 tek turde adim cubugu 'Olcu' der ('Tur' kelimesi yok)",
      /^2\. Ölçü$/.test(ekranTek.adim2), ekranTek.adim2);
@@ -1104,20 +1124,26 @@ let ekranTek, ekranIki;
   const mutAdim = EKRAN_KAYNAK.replace('F.turler.length > 1 ? "Tür ve ölçü" : "Ölçü"', '"Tür ve ölçü"');
   const ma = mutAdim === EKRAN_KAYNAK ? null : await ekranKos(mutAdim, VERI, acikTek);
   ol("S-M2 mutant (adim etiketi sabit) -> S3 KIRMIZI", !!ma && !/^2\. Ölçü$/.test(ma.adim2), JSON.stringify(ma));
-  // 5 Eki 2026 olculen hata: olcu radyosu etikete eklenmiyordu (musteri olcu SECEMIYORDU).
-  const mutOlcu = EKRAN_KAYNAK.replace("ek(lbl, inp, \" \");", "ek(lbl, \" \");");
+  // 5 Eki 2026 olculen hata: olcu secici eklenmiyordu (musteri olcu SECEMIYORDU) — surgu icin ayni kapi.
+  const mutOlcu = EKRAN_KAYNAK.split("    kap.appendChild(surgu);\n").length === 2
+    ? EKRAN_KAYNAK.replace("    kap.appendChild(surgu);\n", "") : EKRAN_KAYNAK;
   const mo = mutOlcu === EKRAN_KAYNAK ? null : await ekranKos(mutOlcu, VERI, acikTek);
-  ol("S-M3 mutant (olcu radyosu eklenmez) -> S1 KIRMIZI (olcu radyosu 0)", !!mo && mo.olcu === 0, JSON.stringify(mo));
+  ol("S-M3 mutant (olcu surgusu eklenmez) -> S1 KIRMIZI (surgu 0)", !!mo && mo.olcu === 0, JSON.stringify(mo));
+  // Fiyat yazisi formulden degil sabit katsayidan (×100 hatasi) -> S1 KIRMIZI.
+  const mutFiyat = EKRAN_KAYNAK.replace('var yazi = el("p", "foto-uretim-surgu-fiyat", F.fiyatSatiri(nt.kod, S.olcu));',
+    'var yazi = el("p", "foto-uretim-surgu-fiyat", S.olcu + " mm → " + F.tlMetni(S.olcu * 100));');
+  const mf = mutFiyat === EKRAN_KAYNAK ? null : await ekranKos(mutFiyat, VERI, acikTek);
+  ol("S-M5 mutant (surgu fiyati mm x 1 TL) -> S1 KIRMIZI", !!mf && mf.surguFiyat[0] !== "100 mm → 1.000 TL", JSON.stringify(mf && mf.surguFiyat));
   // Onizleme hazir donusu (S3): olcu degistirme radyolari da cizilmeli (ayni hata orada da vardi).
   const kayit = { is: "b".repeat(32), tur: "plaket", olcu: 100 };
   const hazir = { asama: "hazir", tur: "plaket", olcu_mm: 100, gorsel: "/api/shop/foto/gorsel?is=" + "b".repeat(32) };
   const s3 = await ekranKos(EKRAN_KAYNAK, VERI, acikTek, kayit, hazir);
-  ol("S4 onizleme sonrasi (S3) olcu degistirme radyosu 2 (plaket 2 olcu)", s3.olcuS3 === 2, JSON.stringify(s3));
-  const son = EKRAN_KAYNAK.lastIndexOf("ek(lbl, inp, \" \");");
-  const mutS3 = son > EKRAN_KAYNAK.indexOf("ek(lbl, inp, \" \");")
-    ? EKRAN_KAYNAK.slice(0, son) + "ek(lbl, \" \");" + EKRAN_KAYNAK.slice(son + "ek(lbl, inp, \" \");".length) : null;
+  ol("S4 onizleme sonrasi (S3) olcu degistirme SURGUSU 1 + '100 mm → 1.000 TL', fiyat listesi satiri 0",
+     s3.olcuS3 === 1 && s3.surguFiyat.includes("100 mm → 1.000 TL") && s3.listeSatiri === 0, JSON.stringify(s3));
+  const mutS3 = EKRAN_KAYNAK.split("olcuG.appendChild(olcuSurgusu(").length === 2
+    ? EKRAN_KAYNAK.replace("olcuG.appendChild(olcuSurgusu(", "void ((") : null;
   const m3 = mutS3 ? await ekranKos(mutS3, VERI, acikTek, kayit, hazir) : null;
-  ol("S-M4 mutant (S3 olcu radyosu eklenmez) -> S4 KIRMIZI", !!m3 && m3.olcuS3 === 0, JSON.stringify(m3));
+  ol("S-M4 mutant (S3 olcu surgusu eklenmez) -> S4 KIRMIZI", !!m3 && m3.olcuS3 === 0, JSON.stringify(m3));
 }
 
 // ================================================================ OL — 3MF OLCU KAPISI
@@ -1197,6 +1223,37 @@ console.log("OL — 3MF OLCU KAPISI");
      /olcu-tutmadi/.test(fs.readFileSync(path.join(SHOP, "src", "foto.js"), "utf8").split("const ELLE_METNI")[1].split("};")[0]), "");
 }
 
+// ================================================================ OZ — OLCU EKSENI = EN UZUN BOYUT (x/y/z)
+/** Z'si en uzun nesne senaryolari (fm = foto modulu ya da mutanti). Donus: her biri tuttu mu. */
+async function ozSenaryolar(fm, ayrinti) {
+  const sonuc = {};
+  const kule = ucmfKur(20, 15, 200);                       // 40 x 30 x 200 mm: en uzun eksen Z
+  const r = await fm.ucmfOlcekle(kule.slice().buffer, 120);
+  const o = r && r.tampon ? testOlc(new Uint8Array(r.tampon)) : null;
+  const enUzun = o ? o.L3 : 0;
+  // OLCEK: cikti 3MF'in EN UZUN boyutu (bagimsiz olcum) 120 ±%3; L_once 200 (Z), olcek 0,6.
+  sonuc.OLCEK = !!o && Math.abs(enUzun - 120) / 120 <= 0.03 && Math.abs(r.L_once - 200) < 1e-6 &&
+    Math.abs(r.olcek - 0.6) < 1e-6;
+  // FIYAT: fiyatlanan olcu (120) ile uretilen nesnenin en uzun boyutu ayni -> 1.200 TL (X/Y'ye bakan olcek 3x'ler: 600 mm).
+  sonuc.FIYAT = !!o && VERI.fiyatKurus("plaket", 120) === 120000 &&
+    VERI.fiyatKurus("plaket", Math.round(enUzun / 10) * 10) === 120000;
+  // URETEC: olcu.json'da kutu Z'si uzun kenardan buyukse (yalniz X/Y olculmus) RED; dusuk Z gecer.
+  const oj = (z) => ({ sozlesme: 1, kategori: "logo", uzun_kenar_mm: 60, kutu_mm: { x: 60, y: 40, z }, renk_sayisi: 2, sizdirmaz: true });
+  sonuc.URETEC = fm.uretecOlcuDogrula(oj(120), { tur: "logo", olcu_mm: 60 }) === "uzun-kenar-tolerans" &&
+    fm.uretecOlcuDogrula(oj(5), { tur: "logo", olcu_mm: 60 }) === "";
+  if (ayrinti) { ayrinti.r = { L_once: r && r.L_once, olcek: r && r.olcek, L_sonra: r && r.L_sonra }; ayrinti.enUzun = enUzun; }
+  return sonuc;
+}
+console.log("OZ) OLCU EKSENI — en uzun boyut x/y/z (Okan 7 Eki 15:4x)");
+{
+  const ay = {};
+  const s = await ozSenaryolar(foto, ay);
+  ol("OZ1 en uzun ekseni Z olan nesne (40x30x200) -> 120 mm'ye olceklenir (bagimsiz olcum en uzun boyut 120 ±%3, olcek 0,6)",
+     s.OLCEK, JSON.stringify(ay));
+  ol("OZ2 fiyat = secilen en uzun boyutun formulu (120 mm -> 120000 kurus), uretilen nesneyle ayni olcu", s.FIYAT, JSON.stringify(ay));
+  ol("OZ3 uretec olcu.json: kutu Z > uzun kenar -> uzun-kenar-tolerans; Z 5 mm gecer", s.URETEC, "");
+}
+
 // ================================================================ RO/ES — PLAKET ACILISI (Okan 7 Eki)
 
 const VERI_KAYNAK = fs.readFileSync(path.join(KOK, "foto-uretim-veri.js"), "utf8");
@@ -1213,7 +1270,7 @@ function veriYukle(kaynak) {
 async function renderSenaryolar(V) {
   const k = koprukur(); await k.hazir;
   const e2 = envKur(k.d1, r2Kur());
-  await k.d1.prepare("INSERT INTO foto_fiyat (tur, olcu_mm, fiyat_kurus, guncel) VALUES ('plaket', 120, 44900, 'x'), ('litofan', 120, 44900, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x'), ('litofan', 1, 'x')").run();
   const asil = V.ornekler.slice();
   const yedek = VERI.ornekSayisi;
   VERI.ornekSayisi = (t) => V.ornekSayisi(t);
@@ -1560,7 +1617,7 @@ async function mutantModul(capa, yerine) {
 async function darSenaryolar(fm) {
   const k = koprukur(); await k.hazir;
   const e2 = envKur(k.d1, r2Kur());
-  await k.d1.prepare("INSERT INTO foto_fiyat (tur, olcu_mm, fiyat_kurus, guncel) VALUES ('plaket', 100, 34900, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x')").run();
   const cag = async (yol, govde, ip) => {
     const r = await fm.fotoUclari(new Request("https://pruvo3d.com/api/shop" + yol, { method: "POST",
       headers: { "CF-Connecting-IP": ip, "Content-Type": "application/json" }, body: JSON.stringify(govde) }),
@@ -1587,10 +1644,10 @@ async function darSenaryolar(fm) {
   P.analiz = "healthy";
   const u = await k.d1.prepare("SELECT asama FROM foto_uretim WHERE siparis_no = 'PR-TEST-MUT'").first();
   sonuc.J = !!u && u.asama === "elle";
-  // T: sunulmayan tur — panel fiyat reddi + kuyruktaki satir saglayiciya gitmeden 'elle'.
-  const pf = await fm.panelFotoFiyat(new Request("https://pruvo3d.com/x", { method: "POST",
+  // T: sunulmayan tur — panel acilis reddi + kuyruktaki satir saglayiciya gitmeden 'elle'.
+  const pf = await fm.panelFotoAcik(new Request("https://pruvo3d.com/x", { method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ tur: "anahtarlik", olcu_mm: 100, fiyat_kurus: 100 }) }), e2, Date.now());
+    body: JSON.stringify({ tur: "anahtarlik", acik: true }) }), e2, Date.now());
   await k.d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel) VALUES ('PR-TEST-T', 0, ?, 'anahtarlik', 100, 'build-baslat', ?, '2000-01-01T00:00:00.000Z')")
     .bind(is, new Date().toISOString()).run();
   await fm.fotoUretimTuru(e2, Date.now(), null);
@@ -1604,7 +1661,7 @@ async function darSenaryolar(fm) {
 async function notSenaryolar(fm) {
   const k = koprukur(); await k.hazir;
   const e2 = envKur(k.d1, r2Kur());
-  await k.d1.prepare("INSERT INTO foto_fiyat (tur, olcu_mm, fiyat_kurus, guncel) VALUES ('plaket', 100, 34900, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x')").run();
   let ipNo = 0;
   const cag = async (not) => {
     const govde = onizlemeGovde(not === undefined ? {} : { not });
@@ -1746,7 +1803,7 @@ async function ornekSenaryolar(fm) {
   const k = koprukur(); await k.hazir;
   const r2b = r2Kur();
   const e2 = envKur(k.d1, r2b);
-  await k.d1.prepare("INSERT INTO foto_fiyat (tur, olcu_mm, fiyat_kurus, guncel) VALUES ('plaket', 100, 34900, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x')").run();
   const simdi = new Date().toISOString();
   const orn = "d".repeat(32), mus = "b".repeat(32);
   for (const [no, z] of [[orn, fm.ORNEK_ZIYARETCI], [mus, "z"]]) {
@@ -1825,6 +1882,21 @@ for (const [ad, capa, yerine, olmeli] of OLCEK_MUTANTLAR) {
   const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
   ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
      Object.keys(s).length === 5 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
+}
+
+const OZ_MUTANTLAR = [
+  ["OZ-M1 OLCU YALNIZ X/Y'YE BAKIYOR", "const L = Math.max(ust[0] - en[0], ust[1] - en[1], ust[2] - en[2]);",
+   "const L = Math.max(ust[0] - en[0], ust[1] - en[1]);", ["FIYAT", "OLCEK"]],
+  ["OZ-M2 URETEC Z SARTI SILINDI", " ||\n      kz > o.uzun_kenar_mm * (1 + tol) + 1e-9)", ")", ["URETEC"]],
+  ["OZ-MK KONTROL", "// (ayak/cerceve dahil tek nesne).", "// (ayak/cerceve  dahil tek nesne).", []],
+];
+for (const [ad, capa, yerine, olmeli] of OZ_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const s = await ozSenaryolar(fm);
+  const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 3 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
 }
 
 const AK_MUTANTLAR = [

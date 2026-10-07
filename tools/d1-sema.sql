@@ -598,7 +598,9 @@ CREATE TABLE IF NOT EXISTS reklam_oci_kuyruk (
 --   foto_isler  : her ONIZLEME denemesi (reddedilen dahil) — ziyaretci siniri BUNU sayar.
 --   foto_uretim : odenmis siparis kalemi basina uretim zinciri (model -> analiz -> renk).
 --   foto_kredi  : harcanan kredi defteri; UNIQUE(gorev, adim) -> yoklama tekrari cift yazmaz.
---   foto_fiyat  : OKAN KAPISI fiyat tablosu (tur x olcu); satiri olmayan olcu SUNULMAZ.
+--   foto_acik   : turun ACILIS ANAHTARI (tur, acik=1); satir yoksa tur KAPALI (varsayilan, fail-closed).
+--                 Fiyat tablosu YOK (Okan 7 Eki): fiyat = en uzun boyut mm x 1000 kurus, TEK formul
+--                 foto-uretim-veri.js VERI.fiyatKurus. Eski foto_fiyat: tools/d1-goc/2026-10-07-foto-acik.sql
 --   foto_ayar   : bakiye onbellegi + havuz durumu (tek bildirim icin gecis kaydi).
 -- 🔒 PII: musteri FOTOGRAFI hicbir tabloya yazilmaz; ham IP yazilmaz (ziyaretci = tuzlu
 --    sha256 ozetinin ilk 16 hex'i). Musteri kimligi yalniz `siparisler`de durur.
@@ -647,12 +649,10 @@ CREATE TABLE IF NOT EXISTS foto_kredi (
   kredi        INTEGER NOT NULL,
   UNIQUE (gorev, adim)
 );
-CREATE TABLE IF NOT EXISTS foto_fiyat (
-  tur          TEXT NOT NULL,
-  olcu_mm      INTEGER NOT NULL,
-  fiyat_kurus  INTEGER NOT NULL,           -- KDV dahil urun fiyati (kargo ayri, secenekler.js)
-  guncel       TEXT NOT NULL,
-  PRIMARY KEY (tur, olcu_mm)
+CREATE TABLE IF NOT EXISTS foto_acik (
+  tur          TEXT PRIMARY KEY,           -- foto-uretim-veri.js turler[].kod
+  acik         INTEGER NOT NULL DEFAULT 0, -- 1 = satista; baska her deger KAPALI
+  guncel       TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS foto_ayar (
   anahtar      TEXT PRIMARY KEY,           -- 'bakiye' | 'havuz_durum'

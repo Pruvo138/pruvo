@@ -48,8 +48,6 @@
   // onizlemeyi siparis oncesi ureteç koşucusu cikarir (/foto/onizleme kuyrugu).
   // "Nasıl olsun?" üretim notu: sunucu sınırıyla AYNI (shop/src/foto.js URETIM_NOTU_EN_COK).
   var URETIM_NOTU_EN_COK = 300;
-  // Vitrin fiyatı: seçili türün en küçük ölçüsü (mm) × bu katsayı (TL). Sayı manifestten hesaplanır.
-  var VITRIN_TL_MM = 10;
   var NOT_HATA = {
     "not-uzun": "Not en çok " + URETIM_NOTU_EN_COK + " karakter olabilir.",
     "not-kisisel-veri": "Nota e-posta ya da telefon yazma; iletişim bilgilerini sipariş adımında alıyoruz.",
@@ -284,6 +282,8 @@
     ".foto-uretim-sag{min-width:0;display:flex;flex-direction:column;gap:10px;}" +
     ".foto-uretim-vitrin .foto-uretim-baslik{color:var(--navy);font-size:28px;margin:0;}" +
     ".foto-uretim-fiyat{font-size:24px;font-weight:700;color:#d1332e;margin:0;}" +
+    ".foto-uretim-surgu{display:block;width:100%;max-width:100%;box-sizing:border-box;margin:8px 0 0;accent-color:#12294d;}" +
+    ".foto-uretim-surgu-fiyat{font-size:18px;font-weight:700;color:#12294d;margin:6px 0 0;}" +
     ".foto-uretim-aciklama{font-size:15px;line-height:1.6;color:#5b6573;margin:0;}" +
     ".foto-uretim-yukle-kutu{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;" +
     "width:100%;min-height:150px;border:2px dashed #b9c2ce;border-radius:14px;background:#f4f6f9;" +
@@ -909,13 +909,15 @@
     return "den"; // yüz / bin
   }
 
-  /* Vitrin fiyatı + ölçü cümlesi: seçili türün olcu_mm.en_az × 10 TL (manifestten; sabit YOK). */
+  /* Vitrin fiyatı + ölçü cümlesi: seçili türün en küçük ölçüsünün fiyatı (TEK formül F.fiyatKurus; sabit YOK). */
   function vitrinGuncelle(kod) {
     if (!S.fiyatEl || !F) return;
     var t = (kod && F.turBul(kod)) || null;
     if (!t || !t.olcu_mm || !(t.olcu_mm.en_az > 0)) { S.fiyatEl.textContent = ""; return; }
+    var kurus = F.fiyatKurus(t.kod, t.olcu_mm.en_az);
+    if (!(kurus > 0)) { S.fiyatEl.textContent = ""; return; }
     S.vitrinTur = t.kod;
-    var tl = t.olcu_mm.en_az * VITRIN_TL_MM;
+    var tl = Math.round(kurus / 100);
     S.fiyatEl.textContent = "₺" + tl.toLocaleString("tr-TR") + "'" + denEki(tl) + " itibaren";
     S.fiyatEl.setAttribute("data-tl", String(tl));
     S.fiyatEl.setAttribute("data-tur", t.kod);
@@ -1207,7 +1209,7 @@
     var nt = seciliTurBul();
     var tekTur = S.acikVeri.turler.length === 1;
     S.alanOlcu.appendChild(el("label", "foto-uretim-form-etiket",
-      tekTur && nt ? nt.ad + " — ölçü (uzun kenar)" : "Ölçü"));
+      tekTur && nt ? nt.ad + " — ölçü (en uzun boyut)" : "Ölçü"));
     if (tekTur && nt && nt.aciklama) {
       S.alanOlcu.appendChild(el("p", "foto-uretim-ayrinti", nt.aciklama));
     }
@@ -1216,45 +1218,38 @@
         "Bu tür için ölçü seçeneği yok."));
       return;
     }
-    // LITOFAN: fiyatlı ölçüler üzerinde sürgü (adım = fiyat satırı).
-    if (litofanSecili()) {
-      var sira = 0;
-      for (var x = 0; x < nt.olculer.length; x++) { if (nt.olculer[x].mm === S.olcu) sira = x; }
-      S.olcu = nt.olculer[sira].mm;
-      var surgu = el("input", "foto-uretim-surgu");
-      surgu.type = "range"; surgu.id = "foto-olcu-surgu";
-      surgu.min = "0"; surgu.max = String(nt.olculer.length - 1); surgu.step = "1"; surgu.value = String(sira);
-      var yazi = el("p", "foto-uretim-ayrinti", nt.olculer[sira].mm + " mm — " + tlMetni(nt.olculer[sira].fiyat_kurus));
-      surgu.addEventListener("input", function (e) {
-        var o2 = nt.olculer[parseInt(e.target.value, 10)] || nt.olculer[0];
-        S.olcu = o2.mm;
-        yazi.textContent = o2.mm + " mm — " + tlMetni(o2.fiyat_kurus);
-        guncelleS1Buton();
-      });
-      S.alanOlcu.appendChild(surgu);
-      S.alanOlcu.appendChild(yazi);
-      return;
-    }
-    for (var j = 0; j < nt.olculer.length; j++) {
-      var o = nt.olculer[j];
-      var oid = "foto-olcu-" + o.mm;
-      var lbl = el("label", "foto-uretim-form-secenek-inline");
-      lbl.setAttribute("for", oid);
-      var inp = el("input");
-      inp.type = "radio"; inp.name = "foto-olcu"; inp.value = String(o.mm); inp.id = oid;
-      if (S.olcu === o.mm) inp.checked = true;
-      (function (mm) {
-        inp.addEventListener("change", function (e) {
-          if (!e.target.checked) return;
-          S.olcu = mm;
-          guncelleS1Buton();
-        });
-      })(o.mm);
-      // Radyo düğmesi etikete EKLENİR (eksikti: ölçü seçilemiyor, hep ilk ölçü gidiyordu).
-      ek(lbl, inp, " ");
-      ek(lbl, o.mm + " mm — " + tlMetni(o.fiyat_kurus));
-      S.alanOlcu.appendChild(lbl);
-    }
+    // Her türde SÜRGÜ (fiyat listesi YOK, Okan 7 Eki): kayarken "120 mm → 1.200 TL".
+    S.alanOlcu.appendChild(olcuSurgusu(nt, "foto-olcu", guncelleS1Buton, null));
+  }
+
+  /*
+   * ÖLÇÜ SÜRGÜSÜ — ölçü = nesnenin EN UZUN boyutu (en/boy/yükseklik hangisi uzunsa). Fiyat listesi/tablosu
+   * ÇİZİLMEZ; sürgü kayarken yalnız seçili ölçünün fiyatı yazılır (F.fiyatSatiri: TEK formül, sunucuyla
+   * AYNI fonksiyon). girdi: her kayışta · degisti: bırakınca (ör. S3 yeniden çizimi).
+   */
+  function olcuSurgusu(nt, id, girdi, degisti) {
+    var kap = el("div", "foto-uretim-form-grup");
+    var sira = 0;
+    for (var x = 0; x < nt.olculer.length; x++) { if (nt.olculer[x].mm === S.olcu) sira = x; }
+    S.olcu = nt.olculer[sira].mm;
+    var surgu = el("input", "foto-uretim-surgu");
+    surgu.type = "range"; surgu.id = id; surgu.name = id;
+    surgu.min = "0"; surgu.max = String(nt.olculer.length - 1); surgu.step = "1"; surgu.value = String(sira);
+    surgu.setAttribute("aria-label", "Ölçü — en uzun boyut (mm)");
+    var yazi = el("p", "foto-uretim-surgu-fiyat", F.fiyatSatiri(nt.kod, S.olcu));
+    yazi.setAttribute("aria-live", "polite");
+    var sec = function (e) {
+      var o2 = nt.olculer[parseInt(e.target.value, 10)] || nt.olculer[0];
+      S.olcu = o2.mm;
+      yazi.textContent = F.fiyatSatiri(nt.kod, o2.mm);
+      return o2;
+    };
+    surgu.addEventListener("input", function (e) { sec(e); if (girdi) girdi(); });
+    surgu.addEventListener("change", function (e) { sec(e); if (degisti) degisti(); });
+    kap.appendChild(surgu);
+    kap.appendChild(yazi);
+    kap.appendChild(el("p", "foto-uretim-ayrinti", "Ölçü, ürünün en uzun boyutudur (en, boy ya da yükseklik)."));
+    return kap;
   }
 
   function doldurS1Dosya() {
@@ -1452,31 +1447,11 @@
 
     var nt = seciliTurBul();
 
-    /* olcu degistirme */
+    /* olcu degistirme — sürgü; bırakınca kayıt + yeniden çizim (toplam güncellenir) */
     if (nt && nt.olculer && nt.olculer.length > 1) {
       var olcuG = el("div", "foto-uretim-form-grup");
       olcuG.appendChild(el("label", "foto-uretim-form-etiket", "Ölçü"));
-      for (var j = 0; j < nt.olculer.length; j++) {
-        var o = nt.olculer[j];
-        var oid = "foto-olcu-s3-" + o.mm;
-        var lbl = el("label", "foto-uretim-form-secenek-inline");
-        lbl.setAttribute("for", oid);
-        var inp = el("input");
-        inp.type = "radio"; inp.name = "foto-olcu-s3";
-        inp.value = String(o.mm); inp.id = oid;
-        if (S.olcu === o.mm) inp.checked = true;
-        (function (mm) {
-          inp.addEventListener("change", function (e) {
-            if (!e.target.checked) return;
-            S.olcu = mm;
-            ssIsKaydet();
-            cizS3();
-          });
-        })(o.mm);
-        ek(lbl, inp, " ");
-        ek(lbl, o.mm + " mm — " + tlMetni(o.fiyat_kurus));
-        olcuG.appendChild(lbl);
-      }
+      olcuG.appendChild(olcuSurgusu(nt, "foto-olcu-s3", null, function () { ssIsKaydet(); cizS3(); }));
       S.alan.appendChild(olcuG);
     }
 
@@ -1502,12 +1477,8 @@
     S.alan.appendChild(adetG);
 
     /* ozet */
-    var fiyat = null;
-    if (nt && nt.olculer) {
-      for (var k = 0; k < nt.olculer.length; k++) {
-        if (nt.olculer[k].mm === S.olcu) { fiyat = nt.olculer[k].fiyat_kurus; break; }
-      }
-    }
+    // Birim fiyat TEK formülden (sunucunun ödemede kullandığı AYNI F.fiyatKurus).
+    var fiyat = nt ? F.fiyatKurus(nt.kod, S.olcu) : null;
     if (fiyat != null) {
       var urunToplam = fiyat * S.adet;
       var kargo = kargoUcreti(urunToplam);

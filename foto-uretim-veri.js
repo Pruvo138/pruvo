@@ -69,8 +69,10 @@
     // yalnız plastik üretiyoruz — metal halka/mıknatıs gerektiren tür SUNULMAZ). Ölçü = uzun
     // kenar (mm). Ayak ayrı parça, plaketle birlikte basılıp gönderilir. Figür ikinci dilimdir.
     // Tek tür varken bölümde tür seçimi adımı GÖRÜNMEZ (fotoğraf → ölçü → önizleme → ödeme).
-    // Ölçü SEÇENEKLERİ ve fiyatı burada DEĞİL: sipariş panelindeki fiyat tablosundan gelir
-    // (tür × ölçü). Tabloda satırı olmayan ölçü sunulmaz.
+    // FİYAT = TEK FORMÜL (Okan 7 Eki 15:4x): fiyat_kurus = en uzun boyut (mm) × 1000 (= cm × 100 TL),
+    // kategori farkı YOK, fiyat TABLOSU YOK. Formül YALNIZ aşağıdaki VERI.fiyatKurus'ta; bölüm, sunucu
+    // ve araçlar onu çağırır. Ölçü = nesnenin sınır kutusunun EN UZUN boyutu (x/y/z hangisi büyükse,
+    // ayak/çerçeve dahil). Türün AÇIK/KAPALI hali fiyatta DEĞİL: D1 `foto_acik` anahtarı (varsayılan KAPALI).
     //
     // KATEGORİ KAYDI (6 Eki 2026) — her türün akışı bu alanlardan okunur, kodda ikinci liste YOK:
     // ŞEMA = tools/foto-uretec-sozlesmesi.md §6 (KATEGORİ MOTORU, 7 Eki 2026: kategori eklemek =
@@ -83,9 +85,9 @@
     //   uretec         : üreteç komut kimliği (D/R'de DOLU, M'de "")
     //   form           : parametre şeması { anahtar: {tip:"sayi",min,max,adim,birim} |
     //                    {tip:"secim",secenekler:[..]} | {tip:"metin",max} | {tip:"url"} }; {} = parametre yok
-    //   fiyat          : { formul: "mm_x_10tl", adim_mm } — foto_fiyat satırları buradan üretilir
-    //                    (tools/foto-fiyat-uret.py; fiyat_kurus = mm × 1000), elle satır YAZILMAZ
-    //   olcu_mm        : {en_az, en_cok} — fiyat satırı bu aralık dışında YAZILAMAZ
+    //   fiyat          : { formul: "mm_x_10tl", adim_mm } — formül adı VERI.FIYAT_FORMULLERI'nde
+    //                    olmalı (bilinmeyen formül -> fiyat yok, tür sunulmaz); adim_mm = sürgü adımı
+    //   olcu_mm        : {en_az, en_cok} — en uzun boyut (mm); bu aralık dışı ölçü RED
     //   renk_bolgeleri : müşterinin renk seçtiği bölgeler; [] = seçim yok (plaket: önizlemenin 4 renkli yorumu)
     //   malzemeler     : bölge -> izinli filament listesi; {} = satır "PLA" (plaket)
     //   ornek_kanit_izni: türü AÇAN örnek kanıtları; listede olmayan kanıt o türde SAYILMAZ
@@ -93,7 +95,7 @@
     //   durustluk      : bölümün üst dürüstlük kutusu (tür bazlı, ZORUNLU; seçili türün metni basılır)
     //   ornek_notu     : render örneğinin altındaki dürüstlük cümlesi (tür bazlı; mimar kararı 7 Eki,
     //                    AYNEN). Boşsa bölüm o türün render örneğini ÇİZMEZ; yeni tür doldurmak ZORUNDA.
-    // Litofan, gerçek örneği ve fiyat satırı olmadıkça AÇILMAZ (fail-closed, plaketle aynı kural).
+    // Litofan, gerçek örneği ve açılış anahtarı olmadıkça AÇILMAZ (fail-closed, plaketle aynı kural).
     turler: [
       {
         kod: "plaket",
@@ -102,7 +104,7 @@
         girdi: ["foto-1"],
         motor: "M",
         uretec: "",
-        // Okan 6 Eki 2026: "min 60 max 300" (canli fiyat tablosu 60–300, 25 satir).
+        // Okan 6 Eki 2026: "min 60 max 300".
         olcu_mm: { en_az: 60, en_cok: 300 },
         renk_bolgeleri: [],
         malzemeler: {},
@@ -528,6 +530,50 @@
     var t = VERI.turBul(kod);
     if (!t || !t.olcu_mm || !(t.olcu_mm.en_az > 0) || !(t.olcu_mm.en_cok >= t.olcu_mm.en_az)) { return null; }
     return { en_az: t.olcu_mm.en_az, en_cok: t.olcu_mm.en_cok };
+  };
+
+  // ---- FİYAT: TEK FORMÜL (Okan 7 Eki 15:4x) — istemci, sunucu ve araçlar YALNIZ bunu çağırır ----
+  // Formül adı -> mm başına kuruş. "mm_x_10tl" = mm × 10 TL = cm × 100 TL.
+  VERI.FIYAT_FORMULLERI = { mm_x_10tl: 1000 };
+  // Türün sürgü adımı (mm); kayıt yoksa/bozuksa null.
+  VERI.olcuAdimi = function (kod) {
+    var t = VERI.turBul(kod);
+    var adim = t && t.fiyat ? t.fiyat.adim_mm : null;
+    return Number.isInteger(adim) && adim > 0 ? adim : null;
+  };
+  // Ölçü (en uzun boyut, mm) bu türde seçilebilir mi: tam sayı, aralıkta, adım ızgarasında.
+  VERI.olcuGecerli = function (kod, mm) {
+    var a = VERI.olcuAraligi(kod), adim = VERI.olcuAdimi(kod);
+    if (!a || !adim || !Number.isInteger(mm) || mm < a.en_az || mm > a.en_cok) { return false; }
+    return (mm - a.en_az) % adim === 0 || mm === a.en_cok;
+  };
+  // fiyat_kurus = en uzun boyut (mm) × formülün mm başı kuruşu. Geçersiz ölçü / bilinmeyen formül -> null.
+  VERI.fiyatKurus = function (kod, mm) {
+    var t = VERI.turBul(kod);
+    var f = t && t.fiyat && Object.prototype.hasOwnProperty.call(VERI.FIYAT_FORMULLERI, t.fiyat.formul)
+      ? VERI.FIYAT_FORMULLERI[t.fiyat.formul] : null;
+    if (!f || !VERI.olcuGecerli(kod, mm)) { return null; }
+    return mm * f;
+  };
+  // Sürgünün seçebildiği ölçüler: en_az..en_cok, adım adım (en_cok her zaman dahil).
+  VERI.olcuSecenekleri = function (kod) {
+    var a = VERI.olcuAraligi(kod), adim = VERI.olcuAdimi(kod), c = [];
+    if (!a || !adim) { return c; }
+    for (var mm = a.en_az; mm <= a.en_cok; mm += adim) { c.push(mm); }
+    if (c[c.length - 1] !== a.en_cok) { c.push(a.en_cok); }
+    return c;
+  };
+  // Kuruş -> "1.200 TL" (TR biçim, binlik nokta; kuruş varsa ",50").
+  VERI.tlMetni = function (kurus) {
+    if (!Number.isInteger(kurus) || kurus < 0) { return ""; }
+    var tl = Math.floor(kurus / 100), k = kurus % 100;
+    var s = String(tl).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return s + (k ? "," + (k < 10 ? "0" : "") + k : "") + " TL";
+  };
+  // Sürgü yazısı: "120 mm → 1.200 TL"; geçersiz ölçüde "".
+  VERI.fiyatSatiri = function (kod, mm) {
+    var k = VERI.fiyatKurus(kod, mm);
+    return k == null ? "" : mm + " mm → " + VERI.tlMetni(k);
   };
 
   kok.PRUVO_FOTO = VERI;

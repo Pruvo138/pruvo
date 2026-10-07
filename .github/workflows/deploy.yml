@@ -1549,8 +1549,9 @@ jobs:
       # Mutantlar (M1 sinir · M2 bot · M3 analiz · M4 tur · M5 ayak · K0 kontrol) ayni
       # dosyada kosar. PLAKET (21:4x(b)): sunulan tur 1, anahtarlik/magnet RED, tek turde tur
       # adimi gorunmez (bolum dosyasi sahte DOM'da kosar). Ana sayfa bolum SOZLESMESI (yer,
-      # beyaz liste, durustluk, tur listesi) ikinci satirda. FIYAT URETECI (7 Eki, PARA):
-      # foto_fiyat satirlari manifestten (mm x 1000); KURU kol yazmaz, x100 mutanti KIRMIZI.
+      # beyaz liste, durustluk, tur listesi) ikinci satirda. FIYAT = TEK FORMUL (Okan 7 Eki 15:4x,
+      # PARA): fiyat tablosu YOK; fiyat_kurus = en uzun boyut mm x 1000 (VERI.fiyatKurus), kategori x 3
+      # olcu, sunucu = istemci, acilis anahtari fail-closed; x100 / en_az->en_cok / fail-open mutantlari KIRMIZI.
       # URETEC KOSUCUSU (7 Eki, G1): D1'den D/R isi -> uretec -> §3 dogrulama -> R2 -> CAS;
       # sahte wrangler/uretec ile hermetik; sizdirmaz/KURU/CAS/tavan/erisim mutantlari KIRMIZI.
       - name: Fotograftan ozel uretim kabul testi (onizleme + odeme + uretim zinciri)
@@ -1558,7 +1559,7 @@ jobs:
           node shop/test/foto-uretim.mjs
           node shop/test/foto-litofan.mjs
           python3 tools/foto-uretim-bolum-test.py
-          python3 tools/foto-fiyat-uret-test.py
+          node shop/test/foto-fiyat-formul.mjs
           python3 tools/foto-uretec-kosucu-test.py
 
       # REKLAM ATIF HALKASI (K99, 25 Agu 2026) — "bu siparis hangi reklamdan geldi"
