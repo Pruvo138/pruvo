@@ -276,8 +276,8 @@
     "overflow:hidden;margin:8px 0;}" +
     ".foto-uretim-ilerleme-ic{height:100%;background:#d1332e;width:0;}" +
     ".foto-uretim-s1-buton-sira{margin-top:8px;}" +
-    ".foto-uretim-serit{background:#fff;color:var(--navy);border-radius:14px;padding:22px 12px 18px;" +
-    "margin:0 0 22px;display:flex;align-items:flex-start;justify-content:center;}" +
+    ".foto-uretim-serit{list-style:none;margin:0;padding:0;background:#fff;color:var(--navy);" +
+    "border-radius:14px;display:flex;align-items:flex-start;justify-content:center;}" +
     ".foto-uretim-serit-adim{flex:0 1 200px;display:flex;flex-direction:column;align-items:center;" +
     "text-align:center;gap:6px;min-width:0;}" +
     ".foto-uretim-serit-no{width:48px;height:48px;border-radius:50%;background:var(--navy);color:#fff;" +

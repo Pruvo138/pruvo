@@ -24,7 +24,7 @@ ALIAS = "foto-onizleme"
 HESAP = "dbbe2a8620c3c3a57c586b8a98142fb9"
 # KAPALI liste: yalniz bunlar kopyalanir (sir/veri dosyasi kazara tasinamaz).
 DOSYALAR = ["index.html", "foto-uretim.js", "foto-uretim-veri.js", "secenekler.js",
-            "konfigur.js", "attribution-ref.js"]
+            "konfigur.js", "attribution-ref.js", "taban-fiyatlar.js", "filament-veri.js"]
 SAPLAMA = {"urunler.json": "[]\n", "ozet.json": "{}\n"}
 
 
@@ -36,6 +36,8 @@ def statik_kur():
         kaynak = os.path.join(KOK, ad)
         if os.path.isfile(kaynak):
             shutil.copyfile(kaynak, os.path.join(STATIK, ad))
+        else:
+            print("ATLANDI=" + ad)
     for ad, icerik in SAPLAMA.items():
         with open(os.path.join(STATIK, ad), "w") as f:
             f.write(icerik)

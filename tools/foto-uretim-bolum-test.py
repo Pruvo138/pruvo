@@ -139,6 +139,9 @@ def kontroller(index, bolum, veri, build):
     s.append(("Y11 litofan ornek_notu = litofan cumlesi AYNEN ('kabartmalı' 0)",
               notlar.get("litofan") == LITOFAN_CUMLE, str(notlar.get("litofan"))))
     s.append(("Y10 render dalinda 'gerçek fotoğraf' metni 0", bool(dal) and "gerçek fotoğraf" not in dal.lower(), ""))
+    # Y12 SERIT: ol etiketi numara basilmasin (375 px mimar olcumunde 1./2. gorunuyordu).
+    s.append(("Y12 serit kuralinda list-style: none VAR (ol numara basilmasin)",
+              re.search(r"\.foto-uretim-serit\{[^}]*list-style\s*:\s*none", bolum) is not None, ""))
     return s
 
 
@@ -196,6 +199,8 @@ def main():
          (index, bolum, veri.replace('arkadan ışıklı render\'ı).\n        ornek_kanit_izni: ["baski", "render"]',
                                      'arkadan ışıklı render\'ı).\n        ornek_kanit_izni: ["baski"]', 1), build), True),
         ("K0 kontrol: yorum eklendi", (index.replace("</body>", "<!-- k0 -->\n</body>", 1), bolum, veri, build), False),
+        ("M15 serit kuralindan list-style: none kaldirildi",
+         (index, bolum.replace(".foto-uretim-serit{list-style:none;", ".foto-uretim-serit{", 1), veri, build), True),
     ]
     taban = kirmizi_sayisi(index, bolum, veri, build)
     for ad, girdi, olmeli in mutantlar:
