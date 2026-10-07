@@ -86,7 +86,8 @@ open(os.environ["FAKE_TEKIN_LOG"], "a", encoding="utf-8").write(json.dumps(g, en
 if os.environ.get("FAKE_TEKIN_RET"):
     sys.stderr.write("RET: " + os.environ["FAKE_TEKIN_RET"] + "\n"); sys.exit(2)
 L = 0.0
-for k in ("genislik_mm", "plaket_mm", "uzun_kenar_mm", "yuz_mm"):
+# G4 (kopru-15) olcu alanlari en_mm/dis_cap_mm; onceki G2/S2 anahtarlari ONCE denenir (geriye uyumlu).
+for k in ("genislik_mm", "plaket_mm", "uzun_kenar_mm", "yuz_mm", "en_mm", "dis_cap_mm"):
     if isinstance(g.get(k), (int, float)):
         L = float(g[k]); break
 n = int(os.environ.get("FAKE_TEKIN_EXTRUDER") or 0) or max(1, len([k for k in g if k.startswith("renk")]))
@@ -109,7 +110,9 @@ json.dump(oz, open(os.path.join(c, "ozet.json"), "w"))
 '''
 
 TEKIN_ESLE = {"isimlik_uret": "isimlik", "qr_plaket_uret": "qr", "svg_ekstruzyon_uret": "logo",
-              "muhur_uret": "muhur", "siluet_sablon_uret": "sablon", "yapboz_uret": "yapboz"}
+              "muhur_uret": "muhur", "siluet_sablon_uret": "sablon", "yapboz_uret": "yapboz",
+              "ozel_uret:kutu": "kutu", "ozel_uret:adaptor": "adaptor",
+              "ozel_uret:disli": "disli", "ozel_uret:kapak": "kapak"}
 TUR_URETEC = {v: k for k, v in TEKIN_ESLE.items()}
 SVG_ORNEK = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60"><path fill-rule="evenodd" '
              'd="M0 0 H100 V60 H0 Z M15 30 A15 15 0 1 0 45 30 A15 15 0 1 0 15 30 Z M60 10 L90 30 L60 50 Z"/></svg>')
@@ -183,6 +186,29 @@ G2_VAKA = {
                "beklenen": {"gorsel": "foto.png", "uzun_kenar_mm": 150.0, "satir": 4, "sutun": 5,
                             "renkler": ["#C8B89A"]},
                "renk_sayisi": 1, "parcalar": ["yapboz"]},
+    # G4 (kopru-15) — tekin-ortak esleme; renk_bolgeleri bos; beklenen = esle_<kod>(girdi, dizin, rh) cikti.
+    "kutu": {"olcu": 100, "renkler": {}, "parametreler": {"en_mm": 100},
+             "beklenen": {"en_mm": 100.0, "boy_mm": 60.0, "yukseklik_mm": 40.0, "bolme_x": 2, "bolme_y": 2,
+                          "duvar_mm": 1.6, "taban_mm": 1.6, "kose_yaricap_mm": 3.0, "kapak": False},
+             "renk_sayisi": 1, "parcalar": []},
+    "adaptor": {"olcu": 60, "renkler": {}, "parametreler": {"mod": "burc", "dis_cap_mm": 60},
+                "beklenen": {"mod": "burc", "ic_cap_mm": 10.0, "dis_cap_mm": 60.0, "yukseklik_mm": 15.0,
+                             "kademe_cap_mm": 14.0, "kademe_yukseklik_mm": 8.0, "ic_cap2_mm": 0,
+                             "flans": False, "flans_cap_mm": 30.0, "flans_kalinlik_mm": 2.0},
+                "renk_sayisi": 1, "parcalar": []},
+    "disli": {"olcu": 60, "renkler": {}, "parametreler": {"dis_cap_mm": 60},
+              "beklenen": {"tip": "duz_disli", "mil_capi_mm": 5.0, "mil_tipi": "yuvarlak",
+                           "duz_kesim_mm": 0.5, "modul_mm": 1.5, "dis_sayisi": 20, "kalinlik_mm": 8.0,
+                           "dis_boslugu_mm": 0.2, "es_dis_sayisi": 0, "es_mil_capi_mm": 0,
+                           "kemer_genislik_mm": 6, "dis_cap_mm": 60.0, "v_kanal_genislik_mm": 10.0,
+                           "v_kalinlik_mm": 16.0},
+              "renk_sayisi": 1, "parcalar": []},
+    "kapak": {"olcu": 60, "renkler": {}, "parametreler": {"dis_cap_mm": 60},
+              "beklenen": {"mod": "kapak", "ic_cap_mm": 20.0, "dis_cap_mm": 60.0, "yukseklik_mm": 15.0,
+                           "tipa_boyu_mm": 12.0, "ust_kalinlik_mm": 2.0, "gecme_bosluk_mm": 0.3,
+                           "cekme_acisi_derece": 0, "topuz": False, "topuz_cap_mm": 12.0,
+                           "topuz_yukseklik_mm": 8.0},
+              "renk_sayisi": 1, "parcalar": []},
 }
 
 
@@ -623,13 +649,14 @@ MUTANTLAR = {
     "M7": ('    if i["kuyruk"] != "siparis" or not i.get("onizleme_kaynakli"):\n        return None\n    os.makedirs',
            '    if True:\n        return None\n    os.makedirs', {"T12", "T22"}),  # T22: ORNEK kolu da kopya koluna baglanir
     # G2 tekin-ortak koprusu
-    "M8": ("    return renk_hex[ad]\n", "    return \"#F2F2F2\"\n", {"T13-" + k for k in G2_VAKA}),
+    "M8": ("    return renk_hex[ad]\n", "    return \"#F2F2F2\"\n", {"T13-" + k for k in G2_VAKA if k in ("isimlik", "qr", "logo", "muhur", "sablon", "yapboz")}),
     "M9": ('    u = {"metin": m, "plaket_mm": float(g["olcu_mm"])}\n',
            '    u = {"metin": m, "uzun_kenar_mm": float(g["olcu_mm"])}\n', {"T13-qr"}),
     "M10": ('"yuz_mm": float(g["olcu_mm"])', '"uzun_kenar_mm": float(g["olcu_mm"])', {"T13-muhur"}),
     "M11": ('    (r"kontrast", "kontrast"),\n', "", {"T14"}),
     "M12": ('"renk_sayisi": uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf")),',
-            '"renk_sayisi": len(bolgeler),', {"T17"}),
+            '"renk_sayisi": len(bolgeler),',
+            {"T17", "T13-kutu", "T13-adaptor", "T13-disli", "T13-kapak"}),
     "M13": ('        if any(k not in form for k in (girdi.get("parametreler") or {})):\n            raise KopruRed("parametre")\n',
             "", {"T18"}),
     # G2b: plaka 300 tek kaynak · uzun kenar geometriden · yapboz araligi
@@ -641,6 +668,12 @@ MUTANTLAR = {
             '<= i["olcu_mm"] <= 99999):\n        return "olcu-aralik-disi"', {"T21"}),
     "M18": ('    if i.get("is_ziyaretci") != ORNEK_ZIYARETCI or ', "    if ", {"T23"}),
     "M19": ('    D1_AD, R2_KOVA, HEDEF = db.group(1), kova.group(1), "onizleme"', '    HEDEF = "onizleme"', {"T24"}),
+    # G4 (kopru-15) — esle_<kod> ESLEMELER'den silinince uretec-bicimi RED'lenir (TEKIN_ESLE'de uretec adina
+    # baglanan esleme kapisi kalkar); sadece o turun T13 vakasi KIRMIZI olur.
+    "M20": ('             "kutu": esle_kutu,\n', "", {"T13-kutu"}),
+    "M21": ('             "adaptor": esle_adaptor,\n', "", {"T13-adaptor"}),
+    "M22": ('             "disli": esle_disli,\n', "", {"T13-disli"}),
+    "M23": ('             "kapak": esle_kapak,\n', "", {"T13-kapak"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 
