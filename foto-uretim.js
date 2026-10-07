@@ -1116,6 +1116,16 @@
     S.alan.appendChild(kutu);
   }
 
+  // /acik cevabı gelene dek nötr yer tutucu: durum BİLİNMEDEN "alınamıyor" denmez
+  // (bölüm görünüme girmeden /acik istenmez; gizli sekmede saatlerce sürebilir).
+  function cizYukleniyor() {
+    if (!S.alan) return;
+    while (S.alan.firstChild) S.alan.removeChild(S.alan.firstChild);
+    var kutu = el("div", "foto-uretim-blok");
+    kutu.appendChild(el("p", null, "Sipariş formu yükleniyor…"));
+    S.alan.appendChild(kutu);
+  }
+
   /* ============== S1 ============== */
   function cizS1() {
     if (!S.alan) return;
@@ -2215,7 +2225,7 @@
     stilEnjeket();
     cizAna(bolum);
     bolum.removeAttribute("hidden");
-    cizKapali();
+    cizYukleniyor();
     adimGoster(1);
 
     if (typeof IntersectionObserver !== "undefined") {
