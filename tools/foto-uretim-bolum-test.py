@@ -8,19 +8,14 @@ mobil uyumlu tam sayfayı kaplasın örnek çıktılarda görünsün müşteri a
 kapılmasın". Sunucu tarafı ayrı kapıda (shop/test/foto-uretim.mjs); bu dosya ekranın
 SÖZLEŞMESİNİ ölçer:
 
-  🔴 OKAN EMRİ (7 Eki 2026, aynen): "ana sayfaya eklediğin herşeyi kaldır sistem hazır değil".
-  Y1-Y3 + Y5'in ANA SAYFA kolları ters yöne çevrildi: index.html'de bölüm kabı, iki betik,
-  renderGrid liste girdisi, ödeme dönüşü foto kolu ve atıf köprüsü YOK. Biri geri eklenirse
-  KIRMIZI (mutantlar M1/M2/M5/M15/M16). Bölüm dosyası + veri dosyası REPODA kalır.
-
-  Y1 YOK      : index.html'de `fotoUretim` kabı / `foto-uretim` adı 0
-  Y2 GÖRÜNÜM  : renderGrid görünüm listesi foto öncesiyle AYNI (fotoUretim girdisi 0)
-  Y3 YÜKLEME  : ana sayfa iki betiği ÇAĞIRMAZ; dosyalar yayın beyaz listesinde kalabilir
+  Y1 YER      : bölüm kabı iki banner'ın (#bannerRow) DIŞINDA ve ALTINDA, kategori vitrininin
+                (#katPanels) ÜSTÜNDE; varsayılan `hidden` (gerçek örnek yoksa görünmez)
+  Y2 GÖRÜNÜM  : renderGrid ana sayfa dışı görünümde bölümü gizleyen listeye kabı alır
+  Y3 YÜKLEME  : veri dosyası bölümden ÖNCE, ikisi de defer; ikisi de yayın beyaz listesinde
                 (build.py SOYULACAK_JS — değer olarak okunur, metin araması değil)
   Y4 DÜRÜSTLÜK: bölüm "önizlemenin 4 renkli yorumu" ifadesini taşır; "3D baskı" demez;
                 örnek kaydı üç görseli (foto/önizleme/BASILMIŞ) şart koşar (veri dosyası)
-  Y5 SEPET    : ana sayfa ödeme dönüşü foto kolu taşımaz (oturum anahtarı / `ozel-foto` /
-                atıf köprüsü 0) — sepet siparişi foto öncesi davranışta
+  Y5 SEPET    : ödeme dönüşünde sepeti koruyan oturum anahtarı iki dosyada AYNI dize
   Y6 GÜVENLİK : bölüm DOM'a innerHTML ile veri basmaz; yalnız aynı köken /api/shop uçları
   Y7 SÖZDİZİMİ: node --check (node yoksa OLCULEMEDI, yeşil sayılmaz)
   Y8 PLAKET   : veri dosyasında plaket VAR, anahtarlık/magnet/figür türü 0; anahtarlık/magnet ekranda 0
@@ -33,9 +28,8 @@ SÖZLEŞMESİNİ ölçer:
                 (DAVRANIŞ: shop/test/foto-uretim.mjs RO/ES bölümü)
 
 ÖNCE-KIRMIZI: aynı kontrol fonksiyonları dosyanın sonunda BELLEKTEKİ mutant metinlere
-uygulanır (diske yazılmaz): kap ana sayfaya geri eklenir · görünüm listesine geri girer ·
-betik geri çağrılır · ödeme dönüşü foto kolu geri gelir · dürüstlük ifadesi silinir ·
-beyaz listeden düşer. Her mutant en az
+uygulanır (diske yazılmaz): kap kategorilerin altına taşınır · görünüm listesinden düşer ·
+dürüstlük ifadesi silinir · beyaz listeden düşer · oturum anahtarı ayrışır. Her mutant en az
 bir kontrolü kırmızıya çevirmeli; K0 kontrol mutantı (yorum ekleme) hiçbirini çevirmemeli.
 
 Çıkış: 0 yeşil · 1 kırmızı · 3 ÖLÇÜLEMEDİ.
@@ -71,18 +65,28 @@ def soyulacak_js(build_metin):
 def kontroller(index, bolum, veri, build):
     """[(ad, gecti, ayrinti)] — metin girdileri; disk/ag yok (mutantlar da bunu kullanir)."""
     s = []
-    # Okan 7 Eki: "ana sayfaya eklediğin herşeyi kaldır" — ana sayfa kolları YOKLUĞU ölçer.
-    s.append(("Y1 ana sayfada fotoUretim kabi YOK", 'id="fotoUretim"' not in index and "fotoUretim" not in index,
-              "fotoUretim=%d" % index.count("fotoUretim")))
-    s.append(("Y1 ana sayfada 'foto-uretim' adi YOK (kap sinifi / betik)", "foto-uretim" not in index,
-              "foto-uretim=%d" % index.count("foto-uretim")))
+    kap = re.search(r'<section\b[^>]*\bid="fotoUretim"[^>]*>', index)
+    banner = index.find('id="bannerRow"')
+    kat = index.find('id="katPanels"')
+    if not kap or banner < 0 or kat < 0:
+        s.append(("Y1 kap + banner + kategori vitrini bulundu", False, "kap/banner/katPanels eksik"))
+    else:
+        # Sayim banner satirinin KENDI <div acilisindan baslar: kap disaridaysa acik == kapali.
+        ara = index[index.rfind("<div", 0, banner):kap.start()]
+        acik, kapali = len(re.findall(r"<div\b", ara)), len(re.findall(r"</div>", ara))
+        s.append(("Y1 kap iki banner'in ALTINDA ve banner satirinin DISINDA",
+                  banner < kap.start() and acik == kapali, "div ac/kapa=%d/%d" % (acik, kapali)))
+        s.append(("Y1 kap kategori vitrininin USTUNDE", kap.start() < kat, ""))
+        s.append(("Y1 kap varsayilan gizli (hidden)", re.search(r"\shidden\b", kap.group(0)) is not None, kap.group(0)))
+        s.append(("Y1 tek kap", len(re.findall(r'id="fotoUretim"', index)) == 1, ""))
     liste = re.search(r'\[\s*"katPanels"[^\]]*\]\.forEach', index)
-    s.append(("Y2 renderGrid gorunum listesi foto oncesiyle AYNI",
-              bool(liste) and re.sub(r"\s+", "", liste.group(0)) ==
-              '["katPanels","bannerRow","jenBanner","skanBanner"].forEach',
-              liste.group(0) if liste else "liste yok"))
-    s.append(("Y3 ana sayfa foto betiklerini CAGIRMAZ",
-              not re.search(r'<script[^>]*src="/foto-uretim(-veri)?\.js"', index), ""))
+    s.append(("Y2 renderGrid gorunum listesinde fotoUretim",
+              bool(liste) and '"fotoUretim"' in liste.group(0), liste.group(0) if liste else "liste yok"))
+    sv = index.find('<script src="/foto-uretim-veri.js" defer>')
+    sb = index.find('<script src="/foto-uretim.js" defer>')
+    se = index.find('<script src="/secenekler.js">')
+    s.append(("Y3 veri dosyasi bolumden ONCE, ikisi defer, secenekler.js'ten sonra",
+              0 <= se < sv < sb, "secenekler=%d veri=%d bolum=%d" % (se, sv, sb)))
     js = soyulacak_js(build) or ()
     s.append(("Y3 iki dosya yayin beyaz listesinde (SOYULACAK_JS degeri)",
               "foto-uretim-veri.js" in js and "foto-uretim.js" in js, str(js)))
@@ -95,8 +99,8 @@ def kontroller(index, bolum, veri, build):
     s.append(("Y4 '3D baski' / sehir adi YOK", not yasak, ",".join(yasak)))
     s.append(("Y4 ornek sayaci uc gorseli (foto+onizleme+baski) sart kosar",
               re.search(r"o\.foto\s*&&\s*o\.onizleme\s*&&\s*o\.baski", veri) is not None, ""))
-    kalinti = [k for k in (OTURUM_ANAHTARI, "ozel-foto", "fotoSiparisi", "pruvoAtifTopla") if k in index]
-    s.append(("Y5 ana sayfa odeme donusunde foto kolu / atif koprusu YOK", not kalinti, ",".join(kalinti)))
+    s.append(("Y5 oturum anahtari iki dosyada ayni", OTURUM_ANAHTARI in bolum and
+              ('sessionStorage.getItem("%s")' % OTURUM_ANAHTARI) in index, ""))
     s.append(("Y6 bolum innerHTML kullanmaz", "innerHTML" not in bolum, ""))
     uclar = set(re.findall(r'"(/api/[a-z/]+)', bolum))
     beklenen = {"/api/shop/foto/acik", "/api/shop/foto/onizleme", "/api/shop/foto/durum", "/api/shop/baslat"}
@@ -162,28 +166,20 @@ def main():
     # ---- mutantlar (bellekte) ----
     def kirmizi_sayisi(i, b, v, bu):
         return sum(1 for _, g, _ in kontroller(i, b, v, bu) if not g)
-    # Geri-ekleme mutantlari: kaldirilan her ana sayfa parcasi tek tek geri konur.
-    capa_kat = '<div id="katPanels" class="kat-panels"></div>'
-    capa_sec = '<script src="/secenekler.js"></script>'
-    capa_liste = '"skanBanner"].forEach'
-    capa_sepet = 'cart = []; saveCart(); updateCartFab();\n      // KDV dokumu'  # odeme donusu (tekil)
-    mutantlar = [
-        ("M1 kap ana sayfaya geri eklendi",
-         (index.replace(capa_kat, '<section id="fotoUretim" class="foto-uretim" hidden></section>\n  ' + capa_kat, 1),
-          bolum, veri, build), True),
-        ("M2 gorunum listesine geri girdi",
-         (index.replace(capa_liste, '"skanBanner", "fotoUretim"].forEach', 1), bolum, veri, build), True),
-        ("M15 betik ana sayfaya geri eklendi",
-         (index.replace(capa_sec, capa_sec + '\n<script src="/foto-uretim.js" defer></script>', 1), bolum, veri, build), True),
-        ("M5 odeme donusu foto kolu geri geldi",
-         (index.replace(capa_sepet, 'if(sessionStorage.getItem("%s") === no){} else ' % OTURUM_ANAHTARI + capa_sepet, 1),
-          bolum, veri, build), True),
-        ("M16 atif koprusu geri geldi",
-         (index.replace("</body>", "<script>window.pruvoAtifTopla = function(){};</script>\n</body>", 1), bolum, veri, build), True),
+    kap = re.search(r'\s*<!-- FOTOĞRAFINDAN ÖZEL ÜRETİM.*?</section>\n', index, re.S)
+    mutantlar = []
+    if kap:
+        tasinmis = index.replace(kap.group(0), "\n")
+        tasinmis = tasinmis.replace('<div id="katPanels" class="kat-panels"></div>',
+                                    '<div id="katPanels" class="kat-panels"></div>' + kap.group(0), 1)
+        mutantlar.append(("M1 kap kategorilerin ALTINA tasindi", (tasinmis, bolum, veri, build), True))
+    mutantlar += [
+        ("M2 gorunum listesinden dustu", (index.replace(', "fotoUretim"]', "]"), bolum, veri, build), True),
         ("M3 durustluk ifadesi silindi", (index, bolum, veri.replace(DURUSTLUK, "önizlemenin yorumu"), build), True),
         ("M14 bolum sabit durustluk metnine dondu",
          (index, bolum.replace("t && t.durustluk ? t.durustluk : \"\"", "\"Ürün en çok 4 renkle kabartma olarak üretilir\""), veri, build), True),
         ("M4 beyaz listeden dustu", (index, bolum, veri, build.replace('"foto-uretim.js", ', "", 1).replace(', "foto-uretim.js"', "", 1)), True),
+        ("M5 oturum anahtari ayristi", (index, bolum.replace(OTURUM_ANAHTARI, "pruvo_foto_sip"), veri, build), True),
         ("M6 anahtarlik tur listesine geri eklendi",
          (index, bolum, veri.replace('kod: "plaket",', 'kod: "plaket",\n      },\n      {\n        kod: "anahtarlik",', 1), build), True),
         ("M7 tek tur dali silindi",
@@ -208,10 +204,9 @@ def main():
         print(("  ✅ " if gecti else "  ❌ ") + ad + (" -> KIRMIZI yanar" if olmeli else " -> degismez") +
               ("" if gecti else " (kirmizi=%d taban=%d)" % (n, taban)))
         kirmizi += 0 if gecti else 1
-    for ad, capa in (("katPanels", capa_kat), ("secenekler", capa_sec), ("liste", capa_liste), ("sepet", capa_sepet)):
-        if index.count(capa) != 1:
-            print("  ❌ mutant capasi '%s' index.html'de tekil degil (%d) — mutant olu" % (ad, index.count(capa)))
-            kirmizi += 1
+    if not kap:
+        print("  ❌ M1 capa (kap yorumu + section) bulunamadi")
+        kirmizi += 1
     print("\nSONUC: " + ("YESIL ✅" if kirmizi == 0 else "KIRMIZI ❌ (%d)" % kirmizi))
     return 0 if kirmizi == 0 else 1
 

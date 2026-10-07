@@ -1600,6 +1600,70 @@ async function darSenaryolar(fm) {
   return sonuc;
 }
 
+/** URETIM NOTU ("Nasil olsun?"): temiz SQLite; her senaryo ayri ziyaretci. Donus: {U,E,T,G,Y,C,B} gecti mi. */
+async function notSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  await k.d1.prepare("INSERT INTO foto_fiyat (tur, olcu_mm, fiyat_kurus, guncel) VALUES ('plaket', 100, 34900, 'x')").run();
+  let ipNo = 0;
+  const cag = async (not) => {
+    const govde = onizlemeGovde(not === undefined ? {} : { not });
+    const r = await fm.fotoUclari(new Request("https://pruvo3d.com/api/shop/foto/onizleme", { method: "POST",
+      headers: { "CF-Connecting-IP": "10.9.0." + (++ipNo), "Content-Type": "application/json" }, body: JSON.stringify(govde) }),
+      e2, new URL("https://pruvo3d.com/api/shop/foto/onizleme"), "/foto/onizleme", null);
+    let v = null; try { v = await r.json(); } catch (e) { v = null; }
+    return { kod: r.status, v };
+  };
+  const satir = async (is) => (await k.d1.prepare("SELECT uretim_notu FROM foto_isler WHERE is_no = ?").bind(is || "").first());
+  const sonuc = {};
+  const once = protoSayisi();
+  const u = await cag("a".repeat(301));
+  sonuc.U = u.kod === 400 && !!u.v && u.v.hata === "not-uzun";
+  const e = await cag("şapkalı olsun, bana ada.deniz@ornek.com adresinden yazın");
+  sonuc.E = e.kod === 400 && !!e.v && e.v.hata === "not-kisisel-veri";
+  const t = await cag("çizgi film tarzı; numaram 0 545 138 65 26");
+  sonuc.T = t.kod === 400 && !!t.v && t.v.hata === "not-kisisel-veri";
+  sonuc.G = protoSayisi() === once;
+  const y = await cag("a".repeat(300));
+  const ys = y.v && y.v.is ? await satir(y.v.is) : null;
+  sonuc.Y = y.kod === 200 && !!ys && ys.uretim_notu === "a".repeat(300);
+  const c = await cag("sadece\u0007 baş​\n\tolsun");
+  const cs = c.v && c.v.is ? await satir(c.v.is) : null;
+  sonuc.C = c.kod === 200 && !!cs && cs.uretim_notu === "sadece baş olsun";
+  const b = await cag(undefined);
+  const bs = b.v && b.v.is ? await satir(b.v.is) : null;
+  sonuc.B = b.kod === 200 && !!bs && bs.uretim_notu === "";
+  k.kapat();
+  return sonuc;
+}
+{
+  const s = await notSenaryolar(foto);
+  ol("UN1 not 301 karakter -> 400 not-uzun", s.U, JSON.stringify(s));
+  ol("UN2 notta e-posta -> 400 not-kisisel-veri", s.E, JSON.stringify(s));
+  ol("UN3 notta telefon -> 400 not-kisisel-veri", s.T, JSON.stringify(s));
+  ol("UN3b reddedilen notlu isteklerin hicbiri saglayiciya GITMEDI", s.G, JSON.stringify(s));
+  ol("UN4 not tam 300 karakter -> 200 + foto_isler.uretim_notu yazildi", s.Y, JSON.stringify(s));
+  ol("UN5 kontrol/gorunmez karakter temizlenir, bosluk sadelesir", s.C, JSON.stringify(s));
+  ol("UN6 notsuz istek -> 200, uretim_notu bos", s.B, JSON.stringify(s));
+}
+const NOT_MUTANTLAR = [
+  ["NM1 KISISEL VERI DENETIMI SILINDI", "if (NOT_EPOSTA.test(d) || NOT_TELEFON.test(d)) {", "if (false) {", ["E", "G", "T"]],
+  ["NM2 UZUNLUK SINIRI SILINDI", "if (Array.from(d).length > URETIM_NOTU_EN_COK) {", "if (false) {", ["G", "U"]],
+  ["NM3 KONTROL KARAKTERI TEMIZLENMEDI", "const d = x.replace(NOT_KONTROL, \" \").replace(NOT_BOSLUK, \" \").trim();",
+   "const d = x;", ["C"]],
+  ["NM4 NOT YAZILMADI", "if (uretimNotu) {\n", "if (false) {\n", ["C", "Y"]],
+  ["NM-K KONTROL", "// 10+ rakam (araya bosluk/tire/nokta/parantez girebilir) = telefon kalibi.",
+   "// 10+ rakam  (araya bosluk/tire/nokta/parantez girebilir) = telefon kalibi.", []],
+];
+for (const [ad, capa, yerine, olmeli] of NOT_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const s = await notSenaryolar(fm);
+  const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 7 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
+}
+
 const MUTANTLAR = [
   ["M1 SINIR", "if (sayi.kisi >= VERI.sinir_ziyaretci_24s) {", "if (false) {", "D"],
   ["M2 BOT", "if (!(await botDogrula(request, env, g.turnstile_token))) {", "if (false) {", "E"],

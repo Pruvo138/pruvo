@@ -131,6 +131,28 @@ export function girdiGovdeDogrula(turKod, g) {
   return "";
 }
 
+/** Uretim notu ("Nasil olsun?") en cok kac karakter — bolumun sayaci AYNI sayi (foto-uretim.js). */
+export const URETIM_NOTU_EN_COK = 300;
+// Kontrol + gorunmez yon/sifir genislik karakterleri bosluga cevrilir (operator ekraninda gizli metin olmasin).
+const NOT_KONTROL = new RegExp("[\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u2069\\uFEFF]", "g");
+const NOT_BOSLUK = new RegExp("\\s+", "g");
+const NOT_EPOSTA = new RegExp("[^\\s@]+@[^\\s@]+\\.[^\\s@]+");
+// 10+ rakam (araya bosluk/tire/nokta/parantez girebilir) = telefon kalibi.
+const NOT_TELEFON = new RegExp("(?:\\+?\\d[\\s().-]*){10,}");
+/**
+ * "Nasil olsun?" uretim notu: yok/bos -> "" · metin degil -> not-gecersiz · temizlenmis hali
+ * 300 karakteri asarsa -> not-uzun · e-posta/telefon kalibi -> not-kisisel-veri (not, foto disinda
+ * kisisel veri TASIMAZ; 2D acilirsa saglayiciya bu temiz metin gider).
+ */
+export function uretimNotuDogrula(x) {
+  if (x === undefined || x === null) { return { ok: true, deger: "" }; }
+  if (typeof x !== "string") { return { ok: false, hata: "not-gecersiz" }; }
+  const d = x.replace(NOT_KONTROL, " ").replace(NOT_BOSLUK, " ").trim();
+  if (Array.from(d).length > URETIM_NOTU_EN_COK) { return { ok: false, hata: "not-uzun" }; }
+  if (NOT_EPOSTA.test(d) || NOT_TELEFON.test(d)) { return { ok: false, hata: "not-kisisel-veri" }; }
+  return { ok: true, deger: d };
+}
+
 /** Bir siparis kalemi en cok kac adet (ayni dosyadan coklu baski). */
 export const FOTO_ADET_EN_COK = 20;
 /** Yuklenen fotografin cozulmus boyut sinirlari (bayt). Bolum gondermeden once kucultur. */
@@ -873,6 +895,8 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   if (!tur) { return fjson({ hata: "tur-kapali" }, 400); }
   const gh = girdiGovdeDogrula(tur.kod, g);
   if (gh) { return fjson({ hata: gh }, 400); }
+  const nt = uretimNotuDogrula(g.not);
+  if (!nt.ok) { return fjson({ hata: nt.hata }, 400); }
   const olcu = Number.isInteger(g.olcu_mm) ? g.olcu_mm : null;
   if (!tur.olculer.some((o) => o.mm === olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
   // ONAY: iki kutu da true olmali ve musterinin gordugu metin GUNCEL surum olmali.
@@ -896,7 +920,7 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   if (!havuz.acik) { return fjson({ hata: "kapali" }, 503); }
 
   const isNo = yeniIsNo();
-  const hata = await onizlemeGonder(env, isNo, tur.kod, olcu, ziyaretci, gorsel.uri, simdi, telegram);
+  const hata = await onizlemeGonder(env, isNo, tur.kod, olcu, ziyaretci, gorsel.uri, simdi, telegram, nt.deger);
   if (hata) { return hata; }
   return fjson({ is: isNo, kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1) }, 200);
 }
@@ -905,12 +929,19 @@ async function onizlemeUcu(request, env, simdi, telegram) {
  * Is satirini yazar + saglayiciya onizleme gorevini gonderir (musteri ve ornek kolu ORTAK).
  * Basarida null; hatada musteriye/panele donulecek yanit.
  */
-async function onizlemeGonder(env, isNo, tur, olcu, ziyaretci, uri, simdi, telegram) {
+async function onizlemeGonder(env, isNo, tur, olcu, ziyaretci, uri, simdi, telegram, uretimNotu) {
   // Is satiri SAGLAYICIDAN ONCE yazilir: reddedilen deneme de ziyaretci sinirindan duser
   // (sinir "basarili onizleme" degil "deneme" sayar -> kaba kuvvetle kredi yakilamaz).
-  await env.KATALOG.prepare(
-    "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama) VALUES (?, ?, ?, ?, ?, 'onizleme')"
-  ).bind(isNo, tur, olcu, ziyaretci, simdiIso(simdi)).run();
+  // Uretim notu (dogrulanmis) yalniz doluysa sutuna yazilir: bos notta goc oncesi sema da calisir.
+  if (uretimNotu) {
+    await env.KATALOG.prepare(
+      "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, uretim_notu) VALUES (?, ?, ?, ?, ?, 'onizleme', ?)"
+    ).bind(isNo, tur, olcu, ziyaretci, simdiIso(simdi), uretimNotu).run();
+  } else {
+    await env.KATALOG.prepare(
+      "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama) VALUES (?, ?, ?, ?, ?, 'onizleme')"
+    ).bind(isNo, tur, olcu, ziyaretci, simdiIso(simdi)).run();
+  }
 
   const c = await saglayici(env, "POST", turYolu(env, tur) + "/v1/prototype", {
     image_url: uri,
@@ -957,6 +988,8 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
   if (!tur) { return fjson({ hata: "tur-kapali" }, 400); }
   const gh = girdiGovdeDogrula(tur.kod, g);
   if (gh) { return fjson({ hata: gh }, 400); }
+  const nt = uretimNotuDogrula(g.not);
+  if (!nt.ok) { return fjson({ hata: nt.hata }, 400); }
   const olcu = Number.isInteger(g.olcu_mm) ? g.olcu_mm : null;
   if (!tur.olculer.some((o) => o.mm === olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
   // Hak beyani yalniz foto/SVG yuklenen turde (VERI.hakGerekir); form girdili turde istenmez.
@@ -1005,10 +1038,17 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
   }
   await env.OZEL_DOSYA.put(uretecOnizlemeAnahtari(isNo, "girdi.json"), JSON.stringify(girdi),
     { httpMetadata: { contentType: "application/json" } });
-  await env.KATALOG.prepare(
-    "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, son_kontrol, hata)" +
-    " VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '')"
-  ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi)).run();
+  if (nt.deger) {
+    await env.KATALOG.prepare(
+      "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, son_kontrol, hata, uretim_notu)" +
+      " VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '', ?)"
+    ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi), nt.deger).run();
+  } else {
+    await env.KATALOG.prepare(
+      "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, son_kontrol, hata)" +
+      " VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '')"
+    ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi)).run();
+  }
   return fjson({ is: isNo, kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1),
                  yoklama: URETEC_YOKLAMA }, 200);
 }

@@ -614,7 +614,9 @@ CREATE TABLE IF NOT EXISTS foto_isler (
   hazir_tarih  TEXT NOT NULL DEFAULT '',   -- onizleme hazir oldugu an (gecerlilik buradan)
   son_kontrol  INTEGER NOT NULL DEFAULT 0, -- son yoklama (ms) — yoklama CAS kilidi
   kredi        INTEGER NOT NULL DEFAULT 0, -- onizlemenin harcadigi kredi
-  hata         TEXT NOT NULL DEFAULT ''    -- basarisizlik sebebi (bizim sabit kodumuz)
+  hata         TEXT NOT NULL DEFAULT '',   -- basarisizlik sebebi (bizim sabit kodumuz)
+  uretim_notu  TEXT NOT NULL DEFAULT ''    -- "Nasil olsun?" notu (<=300, temiz; e-posta/telefon RED). Var olan
+                                           -- tabloya: tools/d1-goc/2026-10-07-foto-isler-uretim-notu.sql
 );
 CREATE INDEX IF NOT EXISTS idx_foto_isler_ziyaretci ON foto_isler (ziyaretci, tarih);
 CREATE INDEX IF NOT EXISTS idx_foto_isler_tarih ON foto_isler (tarih);
