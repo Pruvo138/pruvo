@@ -45,6 +45,9 @@
  */
 
 import "../../foto-uretim-veri.js";
+// "../src/" bilerek: mutant bataryalari foto.js'i shop/<gecici>/ altina TEK dosya kopyalar; bu yol
+// hem shop/src/ hem kopya dizininden ayni modulu bulur.
+import { turnstileHostKabul } from "../src/onizleme.js";
 
 const VERI = globalThis.PRUVO_FOTO;
 if (!VERI) { throw new Error("foto-uretim-veri.js yuklenemedi — tur/ornek tek kaynagi yok"); }
@@ -856,7 +859,7 @@ async function hizSiniriAsildi(request, env) {
  * Bot dogrulamasi — /baslat'takinin AKSINE her belirsizlikte RED (fail-closed): bu yol
  * kredi harcar; dogrulayici dusunce onizleme durur, satis yolu (/baslat) etkilenmez.
  */
-async function botDogrula(request, env, jeton) {
+export async function botDogrula(request, env, jeton) {
   if (!env.TURNSTILE_SECRET || typeof jeton !== "string" || !jeton.trim()) { return false; }
   const form = new URLSearchParams();
   form.set("secret", env.TURNSTILE_SECRET);
@@ -869,8 +872,7 @@ async function botDogrula(request, env, jeton) {
     const c = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify",
       { method: "POST", body: form, signal: iptal.signal });
     const s = await c.json();
-    return !!(s && s.success === true &&
-              ["pruvo3d.com", "www.pruvo3d.com"].includes(String(s.hostname || "")));
+    return !!(s && s.success === true && turnstileHostKabul(env, s.hostname));
   } catch (e) {
     return false;
   } finally {

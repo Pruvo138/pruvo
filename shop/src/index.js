@@ -29,6 +29,7 @@
 import AYAR from "../config.json";
 import "../../secenekler.js";
 import { cfBaslat, cfDetay, hataKodu, hataMetni, kesinBasarisizMi } from "./iyzico.js";
+import { onizlemeOdemeKapali, turnstileHostKabul } from "./onizleme.js";
 import { parametrikHesapla } from "./parametrik.js";
 import { SEMALAR } from "./semalar.js";
 import { konfigurHesapla, d1Coz } from "./konfigur.js";
@@ -517,7 +518,6 @@ async function baslatHizSiniriAsildi(request, env) {
 }
 
 const TURNSTILE_UC = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
-const TURNSTILE_HOSTLAR = ["pruvo3d.com", "www.pruvo3d.com"];
 const TURNSTILE_ZAMAN_ASIMI_MS = 5000;
 
 /** CLOUDFLARE TURNSTILE — /baslat'ta bot dogrulamasi (17 Eyl 2026).
@@ -574,7 +574,7 @@ async function turnstileDogrula(request, env, token) {
   }
   // hostname YOKSA da RED: CF basarili dogrulamada bu alani HER ZAMAN doner; bos gelmesi
   // "bizim alan adimizda cozuldu" kanitinin YOKLUGU demektir, yesile katlanmaz.
-  if (!TURNSTILE_HOSTLAR.includes(String(sonuc.hostname || ""))) {
+  if (!turnstileHostKabul(env, sonuc.hostname)) {
     console.error("turnstile RED (yabanci hostname): " + String(sonuc.hostname || "yok"));
     return json({ hata: "bot-dogrulama" }, 403, env);
   }
@@ -1438,6 +1438,8 @@ export default {
       if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers: cors(env) });
       }
+      // ONIZLEME SURUMU (src/onizleme.js): odeme/sepet uclari ZORLA 503 — iyzico'ya istek 0.
+      if (onizlemeOdemeKapali(env, yol)) { return json({ hata: "onizleme-odeme-kapali" }, 503, env); }
       // NOT: /ayarlar ucu KALDIRILDI — front katsayi/renk listesini /secenekler.js'ten alir
       // (tek kaynak). Worker'in ayni listeyi ikinci bir ucdan yayinlamasi drift kapisi acardi.
       if (yol === "/baslat" && request.method === "POST") return await baslat(request, env, url, ctx);

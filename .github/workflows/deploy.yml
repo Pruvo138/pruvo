@@ -1564,6 +1564,7 @@ jobs:
           python3 tools/foto-uretim-bolum-test.py
           node shop/test/foto-fiyat-formul.mjs
           node shop/test/foto-konsept.mjs
+          node shop/test/onizleme-kapisi.mjs
           python3 tools/foto-uretec-kosucu-test.py
 
       # REKLAM ATIF HALKASI (K99, 25 Agu 2026) — "bu siparis hangi reklamdan geldi"
