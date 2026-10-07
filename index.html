@@ -1264,11 +1264,6 @@ setTimeout(L,5000);})();
     </div>
   </a>
   </div>
-  <!-- FOTOĞRAFINDAN ÖZEL ÜRETİM — iki banner'ın ALTI, kategori vitrininin ÜSTÜ. İçeriği
-       /foto-uretim.js çizer (veri: /foto-uretim-veri.js). Varsayılan GİZLİ (fail-closed):
-       gerçek baskı örneği olan tür yoksa bölüm hiç görünmez; renderGrid ana sayfa dışındaki
-       görünümlerde ayrıca gizler. -->
-  <section id="fotoUretim" class="foto-uretim" hidden aria-label="Fotoğrafından özel üretim"></section>
   <!-- ANA SAYFA VİTRİNİ (#katPanels) — foto-slider'ın YERİNE (onaylı tasarım, 5 Eyl).
        İçeriği renderKatPanelleri() ÜRETİR: kategori listesi CATEGORIES + GIZLI_KATEGORILER,
        markalar çip indeksinden, gruplar ALTKATEGORILER'den gelir. HTML'e hiçbir kategori/
@@ -1473,9 +1468,6 @@ setTimeout(L,5000);})();
 </footer>
 
 <script src="/secenekler.js"></script>
-<!-- Fotoğrafından özel üretim bölümü: önce tek kaynak veri, sonra bölüm (defer: ilk boyamayı bekletmez). -->
-<script src="/foto-uretim-veri.js" defer></script>
-<script src="/foto-uretim.js" defer></script>
 <!-- Sarı kart "X TL'den başlayan" haritası — sayfa üreteci üretir (kaynak: jenerator/urunler
      şemalarındaki tabanFiyatTL). Lokalde/build'siz 404 olursa kart "Ölçüye özel fiyat"
      fallback'ine düşer (aşağıdaki inline script window.PRUVO_TABAN_FIYATLAR'ı opsiyonel okur).
@@ -2020,9 +2012,6 @@ setTimeout(L,5000);})();
   })();
   /* Banner ayrı bir <script> bloğunda; PRUVO_ATIF'e oradan erişebilsin. */
   try { window.pruvoAtifRiza = function(){ PRUVO_ATIF.riza(); }; } catch(e){}
-  /* Fotoğraftan özel üretim bölümü (ayrı dosya) siparişe AYNI atıf alanlarını koysun diye
-     salt-okuma köprü: rıza kapısı topla()'nın içinde kalır, burada ikinci kural yok. */
-  try { window.pruvoAtifTopla = function(){ return PRUVO_ATIF.topla(); }; } catch(e){}
 
   function placeholder(txt){
     return '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">' +
@@ -2900,11 +2889,6 @@ setTimeout(L,5000);})();
     var s = q.get("siparis");
     if(!s){ return; }
     var no = q.get("no") || "";
-    /* Fotoğraftan özel üretim siparişi SEPETTEN AYRI ödenir: bölüm ödeme sayfasına gitmeden
-       önce sipariş numarasını oturum deposuna yazar. Dönüş o siparişinse müşterinin sepeti
-       SİLİNMEZ ve ölçüm içerik kimliği sepetten değil bölümden gelir. */
-    var fotoSiparisi = false;
-    try { fotoSiparisi = !!no && sessionStorage.getItem("pruvo_foto_siparis") === no; } catch(e){}
     if(s === "ok"){
       /* Purchase (rıza-kapılı): ödeme dönüşü BAŞARI yüzeyi. eventID = sipariş no (siparis_no) —
          sunucu CAPI Purchase'ı AYNI event_id ile atar, Meta dedup eder (çift sayım yok).
@@ -2930,7 +2914,7 @@ setTimeout(L,5000);})();
         /* content_ids SENKRON hesaplanır: aşağıda sepet temizleniyor (cart=[]; saveCart()),
            ölçüm cevabı geldiğinde localStorage ÇOKTAN boş olurdu. */
         var pSepet = PRUVO_SECENEK.sepetYukle();
-        var pIds = fotoSiparisi ? ["ozel-foto"] : pSepet.map(function(x){ return pruvoFeedId(x.id); });
+        var pIds = pSepet.map(function(x){ return pruvoFeedId(x.id); });
         var pBilet = q.get("b") || "";
         if(no && pBilet && typeof window.pruvoMetaTrack === "function"){
           fetch(SHOP_UC + "/olcum-donus", {
@@ -2954,8 +2938,7 @@ setTimeout(L,5000);})();
            kararına yol açardı. Meta'da durum farklı: orada aynı olay eventID ile tekilleşiyor.
            pruvoGA4Track'in beyaz listesi bu kararı ayrıca zorlar ('purchase' listede yoktur). */
       } catch(e){}
-      if(fotoSiparisi){ try { sessionStorage.removeItem("pruvo_foto_siparis"); } catch(e){} }
-      else { cart = []; saveCart(); updateCartFab(); }
+      cart = []; saveCart(); updateCartFab();
       // KDV dokumu (kalem 8): worker yonlendirmesindeki t (tahsilat) + kdv paramlarindan.
       // Yalniz gosterim — tahsilat coktan sunucu hesabiyla yapildi.
       var t = parseInt(q.get("t"), 10), kdv = parseInt(q.get("kdv"), 10);
@@ -4638,7 +4621,7 @@ setTimeout(L,5000);})();
     // (sarmalayıcı id kayarsa banner'lar yine gizlenir).
     // NULL-GUARD: id yazım hatası ya da HTML bloğunun kayması renderGrid'i TypeError ile
     // düşürmesin — o durumda TÜM grid çizilmezdi (banner kaybı grid kaybından ucuzdur).
-    ["katPanels", "bannerRow", "jenBanner", "skanBanner", "fotoUretim"].forEach(function(bannerId){
+    ["katPanels", "bannerRow", "jenBanner", "skanBanner"].forEach(function(bannerId){
       var bEl = document.getElementById(bannerId);
       if(bEl){ bEl.style.display = anaGorunum ? "" : "none"; }
     });
