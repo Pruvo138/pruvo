@@ -27,6 +27,9 @@ CIKTI (son satir, tek): `HAL=BOS rc=1` · `HAL=PLAN is=<n> rc=0` (KURU, is var) 
 `HAL=ISLEDI uretildi=<n> red=<n> ariza=<n> rc=0` · `HAL=KILITLI rc=3` ·
 `HAL=OLCULEMEDI sebep=<kod> rc=4` (D1/R2/wrangler erisilemedi — is KUYRUKTA kalir).
 Varsayilan KURU: plan basar, yazmaz. `--uygula` yazar (launchd kurulumu: tools/foto-kosucu-kur.py).
+`--hedef onizleme` (8 Eki 2026): D1 + kova shop/wrangler.onizleme.toml'dan (ayri kilit); varsayilan canli.
+ORNEK KOLU (8 Eki 2026): siparis_no `ORNEK-<is ilk 12>` + `foto_isler.ziyaretci='ornek'` satiri siparissiz
+uretilir; girdi ornek isinin uretec onizlemesinden (yoksa gri haritadan) — ornek_girdisi.
 
 Test kancalari (yalniz hermetik test): FOTO_KOSUCU_WRANGLER (wrangler yerine komut),
 FOTO_KOSUCU_URETEC_TABLO (CLI tablosu ek/degisiklik JSON dosyasi), FOTO_KOSUCU_KILIT (kilit yolu),
@@ -70,6 +73,14 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHOP = os.path.join(KOK, "shop")
 D1_AD = "pruvo-katalog"
 R2_KOVA = "pruvo-ozel"
+# HEDEF (8 Eki 2026, `ORNEK-` uctan uca kabulu): varsayilan CANLI (launchd; davranis AYNEN). `--hedef
+# onizleme` D1 + kovayi shop/wrangler.onizleme.toml'dan okur (ikinci kopya YOK); toml'da yoksa DUR.
+ONIZLEME_TOML = os.path.join(SHOP, "wrangler.onizleme.toml")
+HEDEF = "canli"
+# ORNEK URETIM (siparissiz; shop/src/foto.js ORNEK_ZIYARETCI / ORNEK_SIPARIS_ONEK ile AYNI): uretim satiri
+# siparis_no = ORNEK-<is ilk 12>, siparisler satiri YOK; girdi ornek isinin onizleme girdisinden kurulur.
+ORNEK_ZIYARETCI = "ornek"
+ORNEK_SIPARIS_ONEK = "ORNEK-"
 DENEME_TAVANI = 3
 TOLERANS = {"D": 0.01, "R": 0.03}
 ONIZLEME_MIN_PX = 1024
@@ -149,6 +160,23 @@ def plaka_mm():
 
 
 # ------------------------------------------------------------------ wrangler (D1 + R2)
+def hedef_kur(hedef):
+    """D1_AD / R2_KOVA'yi hedefe gore kurar. onizleme: toml'dan `database_name` + OZEL_DOSYA kovasi."""
+    global D1_AD, R2_KOVA, HEDEF
+    if hedef == "canli":
+        return
+    try:
+        with open(ONIZLEME_TOML, encoding="utf-8") as f:
+            toml = f.read()
+    except OSError:
+        raise SystemExit("onizleme toml okunamadi: " + ONIZLEME_TOML)
+    db = re.search(r'(?m)^database_name\s*=\s*"([a-z0-9-]+)"', toml)
+    kova = re.search(r'binding\s*=\s*"OZEL_DOSYA"\s*\n\s*bucket_name\s*=\s*"([a-z0-9-]+)"', toml)
+    if not db or not kova or db.group(1) == D1_AD or kova.group(1) == R2_KOVA:
+        raise SystemExit("onizleme toml'da ayri D1/kova yok (canliya dusmez): DUR")
+    D1_AD, R2_KOVA, HEDEF = db.group(1), kova.group(1), "onizleme"
+
+
 def wrangler_komutu():
     k = os.environ.get("FOTO_KOSUCU_WRANGLER", "")
     return shlex.split(k) if k else ["npx", "--prefix", SHOP, "wrangler"]
@@ -196,14 +224,16 @@ def r2_koy(anahtar, kaynak, tur):
 # ------------------------------------------------------------------ is listesi
 def isleri_cek(manifest):
     isler = []
-    sat, _ = d1("SELECT u.siparis_no, u.kalem, u.is_no, u.tur, u.olcu_mm, u.deneme, u.guncel, s.urunler"
+    sat, _ = d1("SELECT u.siparis_no, u.kalem, u.is_no, u.tur, u.olcu_mm, u.deneme, u.guncel, s.urunler,"
+                " i.ziyaretci AS is_ziyaretci"
                 " FROM foto_uretim u LEFT JOIN siparisler s ON s.siparis_no = u.siparis_no"
+                " LEFT JOIN foto_isler i ON i.is_no = u.is_no"
                 " WHERE u.asama = 'uretec-bekliyor' ORDER BY u.tarih LIMIT " + str(IS_SINIRI))
     for r in sat:
         isler.append({"kuyruk": "siparis", "siparis_no": r.get("siparis_no"), "kalem": r.get("kalem"),
                       "is_no": r.get("is_no"), "tur": r.get("tur"), "olcu_mm": r.get("olcu_mm"),
                       "deneme": int(r.get("deneme") or 0), "gorulen": r.get("guncel") or "",
-                      "urunler": r.get("urunler") or ""})
+                      "urunler": r.get("urunler") or "", "is_ziyaretci": r.get("is_ziyaretci") or ""})
     sat, _ = d1("SELECT is_no, tur, olcu_mm, son_kontrol, hata FROM foto_isler"
                 " WHERE asama = 'uretec-onizleme' ORDER BY tarih LIMIT " + str(IS_SINIRI))
     for r in sat:
@@ -325,8 +355,44 @@ def siparis_girdisi(i, t):
             "dosyalar": {"gri_harita": "gri_harita.png"}}
 
 
+def ornek_girdisi(i, dizin):
+    """ORNEK kolu (siparissiz): satir YALNIZ ornek isine baglanir (`foto_isler.ziyaretci = 'ornek'` ve
+    siparis_no = ORNEK-<is ilk 12>; musteri isi bu yoldan URETILEMEZ). Girdi: uretec onizlemesi varsa
+    onun girdi.json'u (renk/malzeme/parametre/dosya AYNEN -> kopya kolu calisir), yoksa (tarayici
+    onizleyicili tur) R2 `foto-onizleme/<is>.png` gri harita. Donus "" = hazir, aksi red sebebi."""
+    if i.get("is_ziyaretci") != ORNEK_ZIYARETCI or i["siparis_no"] != ORNEK_SIPARIS_ONEK + str(i["is_no"])[:12]:
+        return "ornek-gecersiz"
+    oy = os.path.join(dizin, "girdi.json")
+    if r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):
+        try:
+            with open(oy, encoding="utf-8") as f:
+                g = json.load(f)
+        except (OSError, ValueError):
+            return "girdi-bozuk"
+        if (not isinstance(g, dict) or g.get("kategori") != i["tur"] or g.get("olcu_mm") != i["olcu_mm"] or
+                not isinstance(g.get("dosyalar"), dict)):
+            return "girdi-bozuk"
+        for ad in sorted(set(g["dosyalar"].values())):
+            if not isinstance(ad, str) or not DOSYA_ADI_KALIBI.match(ad):
+                return "girdi-bozuk"
+            if not r2_al(ONIZLEME_DIZIN % i["is_no"] + ad, os.path.join(dizin, ad)):
+                return "girdi-yok"
+        i["onizleme_kaynakli"] = True
+    else:
+        if not r2_al("foto-onizleme/%s.png" % i["is_no"], os.path.join(dizin, "gri_harita.png")):
+            return "girdi-yok"
+        g = {"sozlesme": 1, "kategori": i["tur"], "olcu_mm": i["olcu_mm"], "renkler": {}, "malzemeler": {},
+             "parametreler": {}, "dosyalar": {"gri_harita": "gri_harita.png"}}
+    g["siparis_no"], g["kalem"] = i["siparis_no"], i["kalem"]
+    with open(oy, "w", encoding="utf-8") as f:
+        json.dump(g, f, ensure_ascii=False, sort_keys=True)
+    return ""
+
+
 def girdi_hazirla(i, t, dizin):
     """Girdi dizinini kurar. Donus "" = hazir, aksi red sebebi. Erisim hatasi Erisilemedi."""
+    if i["kuyruk"] == "siparis" and str(i.get("siparis_no") or "").startswith(ORNEK_SIPARIS_ONEK):
+        return ornek_girdisi(i, dizin)
     if i["kuyruk"] == "siparis":
         g = siparis_girdisi(i, t)
         if g is None:
@@ -920,7 +986,8 @@ def is_isle(i, manifest, yaz):
 
 # ------------------------------------------------------------------ kilit + log
 def kilit_al():
-    yol = os.environ.get("FOTO_KOSUCU_KILIT") or os.path.join(tempfile.gettempdir(), "pruvo-foto-kosucu.kilit")
+    ad = "pruvo-foto-kosucu.kilit" if HEDEF == "canli" else "pruvo-foto-kosucu-%s.kilit" % HEDEF
+    yol = os.environ.get("FOTO_KOSUCU_KILIT") or os.path.join(tempfile.gettempdir(), ad)
     fd = os.open(yol, os.O_RDWR | os.O_CREAT, 0o600)
     try:
         fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -975,6 +1042,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="Foto uretec kosucusu (varsayilan KURU)")
     ap.add_argument("--uygula", action="store_true", help="D1/R2'ye YAZ (yalniz launchd / mimar)")
     ap.add_argument("--log", help="ciktiyi bu dosyaya ekle (5 MB tavan, eskisi silinir)")
+    ap.add_argument("--hedef", choices=["canli", "onizleme"], default="canli",
+                    help="D1/R2 hedefi (onizleme: shop/wrangler.onizleme.toml; varsayilan canli)")
     ap.add_argument("--donustur-litofan", nargs=3, metavar=("HAM", "CIKTI", "GIRDI"), help=argparse.SUPPRESS)
     ap.add_argument("--donustur-tekin", nargs=4, metavar=("HAM", "CIKTI", "GIRDI", "KOPRU"), help=argparse.SUPPRESS)
     a = ap.parse_args(argv)
@@ -982,6 +1051,7 @@ def main(argv=None):
         return donustur_litofan(*a.donustur_litofan)
     if a.donustur_tekin:
         return donustur_tekin(*a.donustur_tekin)
+    hedef_kur(a.hedef)
     tampon = io.StringIO()
 
     def yaz(s):

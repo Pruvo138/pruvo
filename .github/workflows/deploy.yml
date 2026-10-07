@@ -1566,6 +1566,9 @@ jobs:
       # 2D KONSEPT (Okan 7 Eki 14:5x, PARA + KISISEL VERI): foto + not -> konsept -> 3D girdisi; is basi 3
       # deneme · bot jetonu · acilis anahtari · ziyaretci 24 s · gunluk kredi tavani · ornek ayrimi · notta
       # e-posta saglayiciya GITMEZ · 3 gun saklama; sahte saglayici, gercek ag 0, 10 mutant KIRMIZI.
+      # ORNEK- UCTAN UCA BETIGI (8 Eki, 24 kategori olcutu 1-6): sahte sunucu/wrangler/kopru/tarayici ile
+      # hermetik; acik olmayan kategori 400 mutanti, su gecirmezlik, olcek ekseni, fiyat, onay, 375 px,
+      # canliya yazim yasagi mutantlari KIRMIZI (gercek onizleme kosumu CI DISI: --hepsi --kol D).
       - name: Fotograftan ozel uretim kabul testi (onizleme + odeme + uretim zinciri)
         run: |
           node shop/test/foto-uretim.mjs
@@ -1575,6 +1578,7 @@ jobs:
           node shop/test/foto-konsept.mjs
           node shop/test/onizleme-kapisi.mjs
           python3 tools/foto-uretec-kosucu-test.py
+          python3 tools/foto-ornek-uc-uca-test.py
 
       # REKLAM ATIF HALKASI (K99, 25 Agu 2026) — "bu siparis hangi reklamdan geldi"
       # sorusunun D1'den cevaplanabilir kaldigini olcer. SESSIZ-HATA SINIFI, PARA:

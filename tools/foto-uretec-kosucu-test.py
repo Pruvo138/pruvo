@@ -553,6 +553,60 @@ def vakalar(kosucu):
     vaka("T17", t17)
     vaka("T18", t_kosmaz("qr", 80, {"plaka": "Beyaz", "kod": "Siyah"}, {"metin": "https://pruvo3d.com", "renk": "x"},
                          "uretec-red:parametre"))
+    # ---- ORNEK kolu + hedef (8 Eki 2026; tools/foto-ornek-uc-uca.py zinciri).
+    ornek_no = "ORNEK-" + IS2[:12]
+
+    def ornek_uretim(o, tur, olcu):
+        o.sql("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, deneme, tarih, guncel)"
+              " VALUES (?,0,?,?,?,?,?,?,?)", ornek_no, IS2, tur, olcu, "uretec-bekliyor", 0, GUNCEL0, GUNCEL0)
+
+    def t22(o):
+        x = G2_VAKA["isimlik"]
+        o.uretec_onizleme("isimlik", x["olcu"], x["renkler"], x["parametreler"])
+        o.sql("UPDATE foto_isler SET ziyaretci = 'ornek' WHERE is_no = ?", IS2)
+        o.kos("--uygula")
+        ornek_uretim(o, "isimlik", x["olcu"])
+        rc, son, cikti = o.kos("--uygula")
+        u = o.uretim()
+        d = os.path.join(o.r2, "foto", ornek_no, "0")
+        dosya = sorted(os.listdir(d)) if os.path.isdir(d) else []
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
+                dosya == ["model.3mf", "olcu.json", "onizleme.png"] and "KOPYA" in cikti and
+                len(o.tekin_girdileri()) == 1), "%s %s dosya=%s tekin=%d" % (son, u, dosya, len(o.tekin_girdileri()))
+
+    def t23(o):
+        # Musteri isi (ziyaretci ozeti) ORNEK numarasiyla URETILEMEZ.
+        x = G2_VAKA["isimlik"]
+        o.uretec_onizleme("isimlik", x["olcu"], x["renkler"], x["parametreler"])
+        o.kos("--uygula")
+        ornek_uretim(o, "isimlik", x["olcu"])
+        put0 = o.r2_put()
+        rc, son, _ = o.kos("--uygula")
+        u = o.uretim()
+        return (u["asama"] == "elle" and u["sebep"] == "ornek-gecersiz" and o.r2_put() == put0), "%s %s" % (son, u)
+
+    def t24(o):
+        o.kos("--hedef", "onizleme")
+        o.kos()
+        adlar = [a[2] for a in (json.loads(s) for s in open(o.log)) if a[:2] == ["d1", "execute"]]
+        return (set(adlar[:2]) == {"pruvo-katalog-onizleme"} and set(adlar[2:]) == {"pruvo-katalog"}), "%s" % adlar
+
+    def t25(o):
+        # Tarayici onizleyicili tur (litofan): ornek isi 'hazir' + gri harita -> ORNEK siparis uretilir.
+        o.sql("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, son_kontrol)"
+              " VALUES (?,?,?,?,?,?,?)", IS2, "litofan", 140, "ornek", GUNCEL0, "hazir", 0)
+        os.makedirs(os.path.join(o.r2, "foto-onizleme"), exist_ok=True)
+        with open(os.path.join(o.r2, "foto-onizleme", IS2 + ".png"), "wb") as f:
+            f.write(png_gri(200, 140))
+        ornek_uretim(o, "litofan", 140)
+        rc, son, _ = o.kos("--uygula")
+        u = o.uretim()
+        return son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir", "%s %s" % (son, u)
+
+    vaka("T22", t22)
+    vaka("T23", t23)
+    vaka("T24", t24)
+    vaka("T25", t25)
     for ad, fn in (("T1", t1), ("T2", t2), ("T3", t3), ("T4", t4), ("T5", t5), ("T6", t6), ("T7", t7),
                    ("T8", t8), ("T9", t9), ("T10", t10), ("T11", t11), ("T12", t12), ("T12b", t12b)):
         vaka(ad, fn)
@@ -585,6 +639,8 @@ MUTANTLAR = {
             '    uk = oz.get("uzun_kenar_mm") or max(kutu[0], kutu[1])\n', {"T20"}),
     "M17": ('<= i["olcu_mm"] <= a.get("en_cok", 0)):\n        return "olcu-aralik-disi"',
             '<= i["olcu_mm"] <= 99999):\n        return "olcu-aralik-disi"', {"T21"}),
+    "M18": ('    if i.get("is_ziyaretci") != ORNEK_ZIYARETCI or ', "    if ", {"T23"}),
+    "M19": ('    D1_AD, R2_KOVA, HEDEF = db.group(1), kova.group(1), "onizleme"', '    HEDEF = "onizleme"', {"T24"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 
@@ -600,6 +656,7 @@ def mutant_kos(ad):
         os.makedirs(os.path.join(d, "tools"))
         os.makedirs(os.path.join(d, "shop"))
         shutil.copyfile(os.path.join(KOK, "foto-uretim-veri.js"), os.path.join(d, "foto-uretim-veri.js"))
+        shutil.copyfile(os.path.join(KOK, "shop", "wrangler.onizleme.toml"), os.path.join(d, "shop", "wrangler.onizleme.toml"))
         yol = os.path.join(d, "tools", "foto-uretec-kosucu.py")
         with open(yol, "w", encoding="utf-8") as f:
             f.write(kaynak.replace(eski, yeni))
