@@ -36,10 +36,17 @@ yolunda (kurulursa), digeri COMMIT yolunda; ikisi de AYNI tavan sahibinden okur.
 kullanir). Kapi o sayiyi SAHIPTEN okur. Kapi ile arac ayni sayidan beslenmezse
 kapi "asildi" derken arac "is yok" derdi = sessiz ayrisma.
 
-🔴 KAPI KUTUYU OKUR, ASLA YAZMAZ/KIRPMAZ: kutu bir HAFIZA dosyasidir. Otomatik
+🔴 KAPI KUTUYU KENDI ELIYLE YAZMAZ/KIRPMAZ (8 Eki'den beri tavan asiminda SAHIP ARACI
+kosar — kilitli, lossless dogrulamali; yazan HALA o aractir): kutu bir HAFIZA dosyasidir. Otomatik
 silme YASAK; kapi yalnizca CARE satiri basar, LOSSLESS tasimayi insan ya da
 rotasyon araci (`tools/kutu-arsivle.py`) yapar — hicbir sey silinmez, en eski
 bloklar `*-arsiv.md`'ye TASINIR.
+
+🔴🔴 KUTU KILIDI KALKTI (BaBa 8 Eki 00:5x): asagidaki kovalarin rc'si TARIHSEL kayittir;
+bugun KUTU kolunun rc'ye katkisi HER KOVADA 0'dir. Tavan asiminda kapi sahip aracin
+lossless rotasyonunu KENDISI kosar; hala tavan ustundeyse `🟠 KUTU_TEFTIS satir= tavan=
+korumali=` RAPOR basar, arac cokerse/kilit alinamazsa `KUTU_TEFTIS=OLCULEMEDI`. DEVAM ve
+HAFIZA eksenleri AYNEN durur. Kabul + mutant: `python3 tools/kutu-kilidi-test.py`.
 
 KUTU HUKUM KOVALARI (BES KOVA — ucuncu kovanin yutulmamasi icin AYRI jetonlar,
 [[iki-kovali-siniflama-ucuncu-sinifi-yutar]]):
@@ -179,15 +186,34 @@ KUTU_YESIL = "KUTU_YESIL"
 KUTU_KORUMA_USTU = "KUTU_TAVAN_USTU_KORUMA_NEDENIYLE"
 KUTU_HUKUM_ALINAMADI = "KUTU_HUKUM_ALINAMADI"
 
+# --- KUTU KILIDI KALKTI (BaBa 8 Eki 00:5x — tikayici sinifi / Okan 11 Eyl) ----
+# 🔴 OLCULEN VAKA (8 Eki): kutu 544 > 500 -> KUTU_ASILDI rc=1 -> KraL'in ILGISIZ dal
+# commit'i DURDU; filonun her evi AYNI kilide acikti (kutu ORTAK, commit EVIN).
+# HUKUM: KUTU ekseni commit/push'u REDDETMEZ. Tavan asilinca kapi ONCE sahip aracin
+# bayt-esit rotasyonunu KENDISI kosar (kilitli, lossless dogrulamali — aracin mevcut
+# yolu); hala tavan ustundeyse `🟠 KUTU_TEFTIS` RAPOR basar. Arac cokerse / kilit
+# alinamazsa da commit gecer, rapor `KUTU_TEFTIS=OLCULEMEDI` basar. KUTU kolunun
+# rc'ye katkisi HER KOVADA 0'dir; DEVAM/HAFIZA eksenleri AYNEN kalir.
+# Kabul + mutant: tools/kutu-kilidi-test.py (M1 bu tabloyu 1'e geri ceker -> KIRMIZI).
+KUTU_TEFTIS = "KUTU_TEFTIS"
+KUTU_ROTASYON = "KUTU_ROTASYON"
+
 KUTU_RC = {
     KUTU_SAHIPSIZ: 0,
     KUTU_MAKINEDE_YOK: 0,
-    KUTU_OLCULEMEDI: 1,
-    KUTU_ASILDI: 1,
+    KUTU_OLCULEMEDI: 0,
+    KUTU_ASILDI: 0,
     KUTU_YESIL: 0,
     KUTU_KORUMA_USTU: 0,
-    KUTU_HUKUM_ALINAMADI: 1,
+    KUTU_HUKUM_ALINAMADI: 0,
+    KUTU_TEFTIS: 0,
 }
+
+# Kapinin rotasyonuna verilecek kosum ani (`--simdi`, yalniz deterministik test);
+# None = sahip arac kendi yerel saatini kullanir.
+_KUTU_SIMDI = None
+_TURUNCU = "\U0001f7e0"
+
 
 # --- HAFIZA INDEKSI EKSENI JETONLARI (K366, 5 Eyl 2026) --------------------
 # 🔴 UCUNCU EKSEN, IKINCI KAPI DEGIL. Kutu ekseninin (K253) BIREBIR emsali:
@@ -527,8 +553,52 @@ def _kutu_olc(yol):
     return len(ham.splitlines()), len(ham)
 
 
+def _kutu_olculemedi_rapor():
+    """KUTU OLCULEMEDI kovasi: hal ADIYLA basilir, commit GECER (BaBa 8 Eki)."""
+    print("%s %s=OLCULEMEDI (KUTU ekseni commit'i REDDETMEZ — BaBa 8 Eki; hal "
+          "yukarida ADIYLA basildi)" % (_TURUNCU, KUTU_TEFTIS), file=sys.stderr)
+    return KUTU_RC[KUTU_OLCULEMEDI]
+
+
+def kutu_rotasyonu_kos(sahip_yolu, kutu_yolu, calistir=None):
+    """(rc, ham, hata) — sahip aracin YAZAR kipini kosar (kilit + lossless ICINDE).
+
+    hata dolu = arac kosmadi / sifir-disi rc (KILIT=3, KIRMIZI=1) -> cagiran
+    `KUTU_TEFTIS=OLCULEMEDI` basar ve commit'i GECIRIR (BaBa 8 Eki).
+    """
+    if calistir is None:
+        def calistir(komut):
+            return subprocess.run(komut, capture_output=True, text=True, timeout=180)
+    komut = [sys.executable, sahip_yolu, "--kutu", kutu_yolu]
+    if _KUTU_SIMDI:
+        komut += ["--simdi", _KUTU_SIMDI]
+    try:
+        r = calistir(komut)
+    except Exception as e:                                    # noqa: BLE001
+        return None, "", "rotasyon araci KOSTURULAMADI: %s" % e
+    ham = (r.stdout or "") + (r.stderr or "")
+    if r.returncode != 0:
+        return r.returncode, ham, ("rotasyon araci rc=%d dondu (3=KILIT ALINAMADI, "
+                                   "1=KIRMIZI/lossless gecmedi) — kutu DEGISMEDI"
+                                   % r.returncode)
+    return r.returncode, ham, None
+
+
+def _kutu_teftis_bas(sahip_yolu, kutu_yolu):
+    """`kutu-arsivle.py --teftis` UZUN_BLOK raporunu aynen basar (RAPOR; rc'ye etkisiz)."""
+    try:
+        r = subprocess.run([sys.executable, sahip_yolu, "--kutu", kutu_yolu, "--teftis"],
+                           capture_output=True, text=True, timeout=60)
+        ham = (r.stdout or "") + (r.stderr or "")
+    except Exception as e:                                    # noqa: BLE001
+        ham = "UZUN_BLOK=OLCULEMEDI sebep=%s" % e
+    for satir in ham.splitlines():
+        if "UZUN_BLOK" in satir or satir.startswith("TEFTIS "):
+            print("   " + satir, file=sys.stderr)
+
+
 def kutu_kontrol(kok, kol_no_op=False):
-    """KUTU ekseni — OKUR, hukum basar, rc dondurur. ASLA YAZMAZ/KIRPMAZ.
+    """KUTU ekseni — olcer; tavan asiminda SAHIP ARACIN rotasyonunu kosar; rc katkisi 0.
 
     kol_no_op=True: M1 mutanti (kutu kolu KALDIRILMIS gibi davran). Hedef kol
     olmeli, defter ekseni (yan eksen) YASAMALI.
@@ -541,7 +611,7 @@ def kutu_kontrol(kok, kol_no_op=False):
         print("!! %s — tavan tabani (defter-kota-taban.py) kutu sahibini cozemiyor "
               "(kutu_sahibi YOK: bayat/eksik kopya). Kutu OLCULMEDI; olculemeyen "
               "sey yesil sayilmaz." % KUTU_OLCULEMEDI, file=sys.stderr)
-        return KUTU_RC[KUTU_OLCULEMEDI]
+        return _kutu_olculemedi_rapor()
 
     mod, sahip_yolu, hata = sahip_coz(kok)
     if mod is None and hata is None:
@@ -553,7 +623,7 @@ def kutu_kontrol(kok, kol_no_op=False):
         print("!! %s — kutu tavan sahibi (%s) VAR ama YUKLENEMEDI. SEBEP: %s. "
               "Kutu OLCULMEDI; olculemeyen sey yesil sayilmaz."
               % (KUTU_OLCULEMEDI, sahip_yolu, hata), file=sys.stderr)
-        return KUTU_RC[KUTU_OLCULEMEDI]
+        return _kutu_olculemedi_rapor()
 
     tavan = _mod.kutu_tavan_satir(mod)
     kutu_yolu = os.environ.get("PRUVO_KUTU_YOLU") or _mod.kutu_dosya_yolu(mod)
@@ -562,7 +632,7 @@ def kutu_kontrol(kok, kol_no_op=False):
         print("!! %s — sahip modulunde tavan (VARSAYILAN_TAVAN) ya da kutu yolu "
               "(KUTU_VARSAYILAN) cozulemedi: %s. Kutu OLCULMEDI."
               % (KUTU_OLCULEMEDI, sahip_yolu), file=sys.stderr)
-        return KUTU_RC[KUTU_OLCULEMEDI]
+        return _kutu_olculemedi_rapor()
 
     dizin = os.path.dirname(kutu_yolu)
     dizin_var = os.path.isdir(dizin)
@@ -582,48 +652,48 @@ def kutu_kontrol(kok, kol_no_op=False):
               "Kutu OLCULMEDI; olculemeyen sey YESIL SAYILMAZ (fail-closed). "
               "Kutu silinmis/yeniden adlandirilmis olabilir."
               % (KUTU_OLCULEMEDI, dizin, kutu_yolu), file=sys.stderr)
-        return KUTU_RC[KUTU_OLCULEMEDI]
+        return _kutu_olculemedi_rapor()
 
     if hal == KUTU_ASILDI:
-        # 🔴 K318 KOL-3 — SATIR SAYISI TEK BASINA HUKUM DEGILDIR: rotasyon aracinin
-        # KENDI hukmu TUKETILIR. Hukum alinamazsa BLOKLANIR (fail-open YASAK).
-        hukum, tasinabilir, korumali, ham, hhata = kutu_hukmu_al(sahip_yolu, kutu_yolu)
-        if hhata is not None:
-            print("!! %s — kutu tavanin USTUNDE (%d satir > %d) ve sahip aracin "
-                  "(%s) HUKMU ALINAMADI: %s. Fail-closed: hal belirsizken commit "
-                  "GECIRILMEZ; 'olcemedim' YESIL DEGILDIR."
-                  % (KUTU_HUKUM_ALINAMADI, satir, tavan, sahip_yolu, hhata),
-                  file=sys.stderr)
-            if ham.strip():
-                print("!!   arac ciktisi (son 5 satir): %s"
-                      % " | ".join(ham.strip().splitlines()[-5:]), file=sys.stderr)
-            return KUTU_RC[KUTU_HUKUM_ALINAMADI]
-        if koruma_gecirir_mi(hukum, tasinabilir):
-            # HAL GIZLENMEZ, SAYILARIYLA BASILIR — gorunurluk kota kirmizisina
-            # tercih edilir (Okan kurali ⑤), ama tercih HER KOSUMDA yeniden soylenir.
-            print("%s once_satir=%d tavan=%d korumali_bekleyen=%s tasinabilir=%d "
-                  "HUKUM=%s kutu=%s"
-                  % (KUTU_KORUMA_USTU, satir, tavan,
-                     "OLCULEMEDI" if korumali is None else korumali,
-                     tasinabilir, hukum, kutu_yolu))
-            print("   (Kutu tavanin USTUNDE ama rotasyon araci ISI KASITLI OLARAK "
-                  "yapmiyor: bekleyen kapanis blogu rotasyona GIRMEZ. Commit "
-                  "BLOKLANMADI — kilidi acan sey Okan'in o cip(ler)i arsivlemesi ve "
-                  "jetonun cevrilmesidir; ARA komut: python3 %s)" % sahip_yolu)
-            return KUTU_RC[KUTU_KORUMA_USTU]
-        print("!! %s — ORTAK POSTA KUTUSU KOTASI ASILDI: %s %d satir / %d bayt "
-              "(tavan satir=%d, TAVAN SAHIBI=%s::VARSAYILAN_TAVAN)."
-              % (KUTU_ASILDI, kutu_yolu, satir, bayt, tavan, sahip_yolu),
-              file=sys.stderr)
-        print("!! CARE: " + _SC.cagri_ornegi("kutu-arsivle"), file=sys.stderr)
-        print("!!   (LOSSLESS: hicbir sey SILINMEZ — en eski bloklar %s dosyasina "
-              "TASINIR. Kapi kutuyu YALNIZ OKUR; tasimayi insan ya da rotasyon "
-              "araci yapar. Once KURU kosum. K258, 20 Agu: iki bicim de "
-              "mimarin elinde SERBEST — kapinin DEFTER BAKIMI kovasi yalnizca su "
-              "bayraklari gecirir: %s; baska bayrak RED.)"
-              % (arsiv_yolu or "<kutu>-arsiv.md",
-                 " ".join(sorted(_SC.bayrak_kumesi("kutu-arsivle")))), file=sys.stderr)
-        return KUTU_RC[KUTU_ASILDI]
+        # 🔴 BaBa 8 Eki — KAPI ONCE ROTASYONU KENDISI KOSAR (sahip aracin YAZAR kipi:
+        # flock + lossless dogrulama aracin ICINDE). Sonuc ne olursa olsun KUTU kolu
+        # commit'i REDDETMEZ; hal RAPOR edilir, GIZLENMEZ.
+        rot_rc, rot_ham, rot_hata = kutu_rotasyonu_kos(sahip_yolu, kutu_yolu)
+        if rot_hata is not None:
+            print("%s %s=OLCULEMEDI satir=%d tavan=%d sebep=%s (commit GECER; "
+                  "KUTU ekseni reddetmez — BaBa 8 Eki)"
+                  % (_TURUNCU, KUTU_TEFTIS, satir, tavan, rot_hata), file=sys.stderr)
+            if rot_ham.strip():
+                print("   arac ciktisi (son 5 satir): %s"
+                      % " | ".join(rot_ham.strip().splitlines()[-5:]), file=sys.stderr)
+            return KUTU_RC[KUTU_TEFTIS]
+        sonra_satir, sonra_bayt = _kutu_olc(kutu_yolu)
+        hukum_ = "YOK"
+        for h_satir in rot_ham.splitlines():
+            if h_satir.startswith("HUKUM="):
+                parca = h_satir[len("HUKUM="):].split()
+                hukum_ = parca[0] if parca else ""
+                break
+        print("%s rc=%d once_satir=%d sonra_satir=%s tavan=%d HUKUM=%s kutu=%s"
+              % (KUTU_ROTASYON, rot_rc, satir, sonra_satir, tavan, hukum_, kutu_yolu))
+        if sonra_satir is None:
+            print("%s %s=OLCULEMEDI sebep=rotasyon sonrasi kutu OKUNAMADI (%s); "
+                  "commit GECER" % (_TURUNCU, KUTU_TEFTIS, kutu_yolu), file=sys.stderr)
+            return KUTU_RC[KUTU_TEFTIS]
+        if sonra_satir > tavan:
+            korumali = _jeton_degeri(rot_ham, "korunan=")
+            print("%s %s satir=%d tavan=%d korumali=%s"
+                  % (_TURUNCU, KUTU_TEFTIS, sonra_satir, tavan,
+                     "OLCULEMEDI" if korumali is None else korumali), file=sys.stderr)
+            print("   (Rotasyon kostu ama korunan bloklar yuzunden kutu tavanin USTUNDE. "
+                  "Commit BLOKLANMADI — KUTU ekseni RAPOR eder. Koruma %d saatte ya da "
+                  "`Kapatan` satirindaki `\u2714\ufe0e KAPANDI` ile duser.)"
+                  % getattr(mod, "KORUMA_OMRU_SAAT", 48), file=sys.stderr)
+            _kutu_teftis_bas(sahip_yolu, kutu_yolu)
+            return KUTU_RC[KUTU_TEFTIS]
+        print("%s satir=%d bayt=%d tavan=%d kutu=%s (rotasyon sonrasi)"
+              % (KUTU_YESIL, sonra_satir, sonra_bayt, tavan, kutu_yolu))
+        return KUTU_RC[KUTU_YESIL]
 
     print("%s satir=%d bayt=%d tavan=%d kutu=%s" % (KUTU_YESIL, satir, bayt,
                                                     tavan, kutu_yolu))
@@ -958,6 +1028,26 @@ def main(argv=None):
     if "--bypass-kontrol" in argv:
         argv = [a for a in argv if a != "--bypass-kontrol"]
         return bypass_kontrol(argv[1] if len(argv) > 1 else ROOT)
+    global _KUTU_SIMDI
+    if "--kutu" in argv:
+        # Kutu yolunu CLI'dan ver (PRUVO_KUTU_YOLU ile ayni etki; test/teftis icin).
+        i = argv.index("--kutu")
+        if i + 1 >= len(argv):
+            print("KIRMIZI: --kutu <yol> eksik", file=sys.stderr)
+            return 2
+        os.environ["PRUVO_KUTU_YOLU"] = os.path.abspath(argv[i + 1])
+        argv = argv[:i] + argv[i + 2:]
+    if "--simdi" in argv:
+        i = argv.index("--simdi")
+        if i + 1 >= len(argv):
+            print("KIRMIZI: --simdi <YYYY-MM-DD HH:MM> eksik", file=sys.stderr)
+            return 2
+        _KUTU_SIMDI = argv[i + 1]
+        argv = argv[:i] + argv[i + 2:]
+    if "--kutu-kontrol" in argv:
+        # YALNIZ KUTU ekseni (kabul bataryasinin cagri yeri; --hafiza-kontrol emsali).
+        argv = [a for a in argv if a != "--kutu-kontrol"]
+        return kutu_kontrol(argv[1] if len(argv) > 1 else ROOT)
     if "--hafiza-kontrol" in argv:
         # YALNIZ ucuncu eksen (kabul bataryasinin cagri yeri). rc EKSENIN KENDI
         # rc'sidir — silahlandirma anahtari BU KOLU ETKILEMEZ, cunku burada olculen

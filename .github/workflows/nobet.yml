@@ -1821,6 +1821,15 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kutu-arsivle-test.py --mutasyon
 
+      # KUTU KILIDI KALKTI (BaBa 8 Eki) — KUTU ekseni commit/push'u REDDETMEZ: kapi tavan
+      # asiminda rotasyonu KENDISI kosar, kalan hal `KUTU_TEFTIS` RAPORudur. Koruma
+      # 48 saatte ya da `Kapatan ... ✔︎ KAPANDI` ile duser; UZUN_BLOK raporu (`--teftis`).
+      # 36 iddia + 3 mutant (KUTU rc geri · 48s sil · KAPANDI sil) izole tempfile
+      # kopyasinda; GERCEK kutuya DOKUNMAZ, ~10 s. SERIT B: mimar yazisma hijyeni.
+      - name: "Kutu kilidi kabul + mutant bataryasi (SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kutu-kilidi-test.py
+
       # KUTU OKSUZ GOVDE OLCUM KOLU (K424, 1 Eki 2026) — kutunun DIBINE basliksiz eklenen
       # gövde rotasyonu D11'de DURDURUR; kutu 500 satira varinca kota kapisi evin HER
       # commit'ini kilitler ve kilidi acan arac calismaz. Olcumun kendisi (`tools/

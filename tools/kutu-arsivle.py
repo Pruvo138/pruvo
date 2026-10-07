@@ -173,6 +173,7 @@ Kullanim:
     python3 tools/kutu-arsivle.py --kapanislari-isle          # sonra UYGULA
 """
 import argparse
+import datetime
 import fcntl
 import hashlib
 import json
@@ -2028,6 +2029,96 @@ def korumali_etiketli_bloklar(satirlar, baslar):
     return bulgu, govde_anmasi, dustu, olumsuz
 
 
+# ── KORUMA OMRU (BaBa 8 Eki 00:5x — kutu kilidi, tikayici sinifi / Okan 11 Eyl) ────────
+# 🔴 OLCULEN VAKA (8 Eki): kutu 544 > 500 -> rotasyon 5 blok tasidi, 524'te KALDI; kalan
+#   bloklar KORUMALI/genc oldugu icin elle sikistirma gerekti. Koruma SURESIZDI: bir kez
+#   KORUMALI sayilan blok sahibi donene dek kutuda kaliyor, tavan ise HER commit'i bekliyordu.
+# CARE: koruma bir OMUR tasir. Uc sinifin (KAPANIS jetonu · ACIK cip · KORUMALI etiketi)
+#   UCU de su iki halde DUSER ve blok rotasyona ACILIR:
+#     * YAS   — baslik tarihi (## YYYY-AA-GG SS:Dx) `simdi`den KORUMA_OMRU_SAAT'ten ESKI;
+#     * KAPANDI — blogun `Kapatan` satirinda `✔︎ KAPANDI` isareti var.
+#   Tarih OKUNAMAYAN blok KORUMALI KALIR (fail-safe = TASIMA). `simdi` None ise kural
+#   UYGULANMAZ (kutuphane cagiranlarinin eski davranisi); CLI daima `simdi` verir.
+#   ICRA (`planla`) ve DENETIM (`dogrula` D14/D17) AYNI fonksiyonu cagirir — ikinci tanim
+#   yazilmaz ([[ikiz-tanim-sessiz-ayrisma]]).
+KORUMA_OMRU_SAAT = 48
+KAPATAN_JETON = "Kapatan"
+KAPANDI_ISARETI_RE = re.compile("✔[︎️]?\\s*KAPANDI")
+
+
+def _dakika_damgasi(gun, dakika):
+    """`YYYYMMDD` + gun-ici dakika -> mutlak dakika; gecersiz tarih ValueError."""
+    tarih = datetime.date(gun // 10000, gun // 100 % 100, gun % 100)
+    return tarih.toordinal() * 1440 + dakika
+
+
+def koruma_dustu(satirlar, bas, son, simdi):
+    """None | "KAPANDI" | "YAS" — blogun KORUMASI dustu mu? (saf, IO yok)
+
+    `simdi` = (gun YYYYMMDD, gun-ici dakika) ya da None (kural kapali).
+    Yas, basligin EN GEC olasi aniyla olculur (`10:2x` -> 10:29, saatsiz -> 23:59):
+    belirsizlik daima KORUMA yonune duser.
+    """
+    if simdi is None:
+        return None
+    x = bas
+    while x < son:
+        if KAPATAN_JETON in satirlar[x] and KAPANDI_ISARETI_RE.search(satirlar[x]):
+            return "KAPANDI"
+        x += 1
+    gun, aralik = blok_araligi(satirlar[bas] if bas < len(satirlar) else "")
+    if gun is None:
+        return None
+    try:
+        blok_dk = _dakika_damgasi(gun, (aralik or TUM_GUN)[1])
+        simdi_dk = _dakika_damgasi(simdi[0], simdi[1])
+    except ValueError:
+        return None
+    if simdi_dk - blok_dk > KORUMA_OMRU_SAAT * 60:
+        return "YAS"
+    return None
+
+
+def koruma_dusen_bloklar(satirlar, baslar, simdi, adaylar):
+    """{blok_idx: sebep} — `adaylar` icinden korumasi DUSEN bloklar (TEK KAYNAK)."""
+    araliklar = blok_araliklari(satirlar, baslar)
+    dusen = {}
+    for i in sorted(set(adaylar)):
+        if 0 <= i < len(araliklar):
+            sebep = koruma_dustu(satirlar, araliklar[i][0], araliklar[i][1], simdi)
+            if sebep is not None:
+                dusen[i] = sebep
+    return dusen
+
+
+# ── UZUN BLOK RAPORU (`--teftis`, BaBa 8 Eki) — RAPOR'dur, reddetmez ──────────────────
+UZUN_BLOK_MIMAR = 6
+UZUN_BLOK_BABA = 10
+BABA_BLOK_ISARETI = "⚖"
+
+
+def blok_govde_uzunlugu(satirlar, bas, son):
+    """Baslik dahil satir sayisi; sondaki bos/ayrac satirlari SAYILMAZ."""
+    while son > bas and (not satirlar[son - 1].strip() or AYRAC_RE.match(satirlar[son - 1])):
+        son -= 1
+    return son - bas
+
+
+def uzun_bloklar(kutu_metin):
+    """[(baslik_ilk_60, satir, esik)] — mimar blogu > 6, BaBa ⚖️ blogu > 10 satir."""
+    satirlar = kutu_metin.splitlines(keepends=True)
+    fm_son, hata = frontmatter_sonu(satirlar)
+    baslar = blok_baslari(satirlar, 0 if hata else fm_son)
+    bulgu = []
+    for bas, son in blok_araliklari(satirlar, baslar):
+        baslik = satirlar[bas].rstrip("\n")
+        esik = UZUN_BLOK_BABA if BABA_BLOK_ISARETI in baslik else UZUN_BLOK_MIMAR
+        n = blok_govde_uzunlugu(satirlar, bas, son)
+        if n > esik:
+            bulgu.append((baslik.strip()[:60], n, esik))
+    return bulgu
+
+
 def sabit_indeksler(blok_sayisi_, koru, korumali_indeksler, acik_indeksler=(),
                    etiket_indeksler=()):
     """ROTASYONA GIRMEYECEK blok indeksleri kumesi — TEK KAYNAK.
@@ -2093,9 +2184,12 @@ class Plan(object):
         self.adsiz_serbest = {}            # {hedef_idx: (kapatici_idx, kimlik, zaman)}
         # CIFT BUTUNLUGU (K359-B) — K329'dan AYRI KOVA, AYRI SAYI
         self.cift_korumasi = []            # [(blok_idx, ad, sebep)] — pinlenen KAPANIS
+        # KORUMA OMRU (BaBa 8 Eki) — korumasi YAS/KAPANDI ile DUSEN bloklar AYRI SAYI
+        self.simdi = None                  # (gun, dakika) — denetim kolu (D14/D17) AYNISINI okur
+        self.koruma_dusen = {}             # {blok_idx: "YAS"|"KAPANDI"}
 
 
-def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None):
+def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None, simdi=None):
     """Kutuyu tavana indirmek icin SONDAN kac blok tasinacagini hesapla.
 
     O1 (16 Agu 2026): eski davranis kutu tam tavanda (300) duruyor ve bir
@@ -2150,6 +2244,19 @@ def planla(kutu_metin, tavan, koru, arsiv_kayitlari=None):
      p.korumali_etiket_dustu,
      p.korumali_etiket_olumsuz) = korumali_etiketli_bloklar(satirlar, baslar)
     etiket_idx = [b for b, _s, _o in p.korumali_etiket]
+    p.etiket_kilitledi = len([b for b in etiket_idx if b >= koru])
+
+    # 🔴 KORUMA OMRU (BaBa 8 Eki) — YAS > KORUMA_OMRU_SAAT ya da `✔︎ KAPANDI` olan blok
+    # uc koruma sinifindan da DUSER. Sayilar ADIYLA kalir (p.korumali vb. RAPOR eder),
+    # yalniz SABIT kumeye akmaz. `koru` tabani (en ustteki n blok) omurden ETKILENMEZ.
+    p.simdi = simdi
+    p.koruma_dusen = koruma_dusen_bloklar(satirlar, baslar, simdi,
+                                          korumali_idx + acik_idx + etiket_idx)
+    korumali_idx = [b for b in korumali_idx if b not in p.koruma_dusen]
+    acik_idx = [b for b in acik_idx if b not in p.koruma_dusen]
+    etiket_idx = [b for b in etiket_idx if b not in p.koruma_dusen]
+    p.korumali_kilitledi = len([b for b in korumali_idx if b >= koru])
+    p.acik_kilitledi = len([b for b in acik_idx if b >= koru])
     p.etiket_kilitledi = len([b for b in etiket_idx if b >= koru])
 
     p.sabit = sabit_indeksler(len(baslar), koru, korumali_idx, acik_idx, etiket_idx)
@@ -2549,8 +2656,16 @@ def dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv, plan, t
     #    fonksiyonu cagirir: tasinan metin BLOKLARINA ayrilir ve KAPANIS KONUMU
     #    olcutu ORADA yeniden uygulanir ([[ikiz-tanim-sessiz-ayrisma]]).
     ek_satir_ke = ek.splitlines(keepends=True)
-    ek_korumali, ek_govde = korumali_bloklar(ek_satir_ke, blok_baslari(ek_satir_ke))
+    ek_baslar_ke = blok_baslari(ek_satir_ke)
+    ek_korumali, ek_govde = korumali_bloklar(ek_satir_ke, ek_baslar_ke)
+    # 🔴 KORUMA OMRU: icra ile AYNI fonksiyon + AYNI `simdi` (plan.simdi) — denetim
+    # icradan ayrisirsa omru dolmus mesru tasima kalici kirmiziya donerdi.
+    ek_dusen = koruma_dusen_bloklar(
+        ek_satir_ke, ek_baslar_ke, getattr(plan, "simdi", None),
+        [b for b, _s, _o, _k in ek_korumali])
     for _bi, satir_no, ozet, sinif in ek_korumali:
+        if _bi in ek_dusen:
+            continue
         h.append("D14 KORUMA IHLALI (%s): tasinan metnin %d. satirinda ISLENMEMIS "
                  "kapanis jetonu (%s) KAPANIS KONUMUNDA -> blok Okan'in bakacagi "
                  "yuzeyden GORUNMEZ olurdu. Fail-closed: hicbir sey yazilmadi. "
@@ -2569,9 +2684,14 @@ def dogrula(kutu_metin, arsiv_metin, yeni_kutu, tasinan, ek, yeni_arsiv, plan, t
     # arsivde kapanisi bulunan mesru bir tasimayi kalici kirmiziya cevirirdi — tam
     # olarak `kapanan` kumesinin disaridan verilme gerekcesi ([[ikiz-tanim-sessiz-ayrisma]]).
     ek_acik, _ek_kapanmis, _ek_govde, _ek_adlar = acik_cip_bloklari(
-        ek_satir_ke, blok_baslari(ek_satir_ke), kapanan=plan.kapanan_adlar,
+        ek_satir_ke, ek_baslar_ke, kapanan=plan.kapanan_adlar,
         arsiv_kayitlari=plan.arsiv_kayitlari)
+    ek_dusen_acik = koruma_dusen_bloklar(
+        ek_satir_ke, ek_baslar_ke, getattr(plan, "simdi", None),
+        [b for b, _a, _o, _k in ek_acik])
     for _bi, ad, ozet, sinif in ek_acik:
+        if _bi in ek_dusen_acik:
+            continue
         h.append("D17 ACIK CIP IHLALI (%s): tasinan metinde ESLESEN KAPANISI OLMAYAN "
                  "bir `%s` blogu var (cip `%s`) -> cip HALA KOSUYOR olabilir ve "
                  "'su an kim kosuyor' sorusunun cevabi Okan'in bakacagi yuzeyden "
@@ -2997,9 +3117,19 @@ def main(argv=None):
                          "0 = kapali). RAPOR eksenidir, cikis kodunu BELIRLEMEZ — bkz. "
                          "K310 kapsam notu")
     ap.add_argument("--simdi", default=None, metavar="YYYY-MM-DD HH:MM",
-                    help="SAAT UYDURMA raporunun kosum ani (verilmezse yerel saat); "
-                         "deterministik test icin")
+                    help="SAAT UYDURMA raporunun VE KORUMA OMRU kuralinin (%d saat) "
+                         "kosum ani (verilmezse yerel saat); deterministik test icin"
+                         % KORUMA_OMRU_SAAT)
+    ap.add_argument("--teftis", action="store_true",
+                    help="SALT OKUMA rapor: satir/tavan + UZUN_BLOK (mimar > %d, BaBa "
+                         "> %d satir). Kilit almaz, yazmaz, rc daima 0 (okunamazsa 2)."
+                         % (UZUN_BLOK_MIMAR, UZUN_BLOK_BABA))
     a = ap.parse_args(argv)
+    try:
+        simdi_t = simdi_coz(a.simdi)
+    except ValueError as hata:
+        print("KIRMIZI: %s" % hata)
+        return RC_KIRMIZI
 
     if a.tavan < 1:
         print("KIRMIZI: --tavan >= 1 olmali")
@@ -3030,6 +3160,20 @@ def main(argv=None):
     # yeniden cagrilir; ikinci bir rotasyon govdesi ACILMAZ.
     if a.yaz_sonrasi is not None:
         return _yaz_sonrasi_kolu(argv, a.yaz_sonrasi, kutu_yolu, a.tavan)
+
+    if a.teftis:
+        # 🔴 RAPOR KOLU (BaBa 8 Eki madde 3): reddetmez, yazmaz, kilit ALMAZ.
+        t_metin, t_hata = oku(kutu_yolu)
+        if t_hata:
+            print("KUTU_TEFTIS=OLCULEMEDI sebep=%s" % t_hata)
+            return 2
+        bulgu = uzun_bloklar(t_metin)
+        for baslik, n, _esik in bulgu:
+            print("\U0001f7e0 UZUN_BLOK %s satir=%d" % (baslik, n))
+        print("TEFTIS satir=%d tavan=%d UZUN_BLOK=%d esik_mimar=%d esik_baba=%d"
+              % (len(t_metin.splitlines()), a.tavan, len(bulgu),
+                 UZUN_BLOK_MIMAR, UZUN_BLOK_BABA))
+        return RC_OK
 
     print("KUTU  : %s" % kutu_yolu)
     print("ARSIV : %s" % arsiv_yolu)
@@ -3130,7 +3274,8 @@ def main(argv=None):
         # kapandi mi" sorusu IKI DUZLEMDEN de cevaplanir. FAIL-CLOSED: okunamazsa
         # kayit URETILMEZ (hicbir blok serbest kalmaz) ve sebep ADIYLA basilir.
         ars_kayit, ars_hata = arsiv_kapanis_kayitlari(arsiv_metin)
-        p = planla(kutu_metin, a.tavan, a.koru, arsiv_kayitlari=ars_kayit)
+        p = planla(kutu_metin, a.tavan, a.koru, arsiv_kayitlari=ars_kayit,
+                   simdi=simdi_t)
         p.arsiv_hatasi = ars_hata
         p.su_seviye = int(a.tavan * a.su_seviye_orani)
         if p.su_seviye < 1:
@@ -3143,6 +3288,17 @@ def main(argv=None):
         print("once_satir=%d blok=%d korunan=%d tasinabilir=%d su_seviye=%d"
               % (p.once_satir, p.blok_toplam, p.korunan, p.tasinabilir,
                  getattr(p, "su_seviye", int(a.tavan * a.su_seviye_orani))))
+        # 🔴 KORUMA OMRU (BaBa 8 Eki) — HER kosumda basilir; dusen blok ADIYLA gecer.
+        print("KORUMA_DUSTU=%d yas=%d kapandi=%d omur_saat=%d  [KAPI]"
+              % (len(p.koruma_dusen),
+                 len([1 for v in p.koruma_dusen.values() if v == "YAS"]),
+                 len([1 for v in p.koruma_dusen.values() if v == "KAPANDI"]),
+                 KORUMA_OMRU_SAAT))
+        for b_idx in sorted(p.koruma_dusen):
+            bas_ = p.araliklar[b_idx][0]
+            print("  ~ KORUMA DUSTU blok %d (%s) -> rotasyona ACIK | %s"
+                  % (b_idx + 1, p.koruma_dusen[b_idx],
+                     kutu_metin.splitlines()[bas_].strip()[:70]))
 
         # 🔴 K313g + K318 KORUMA KOLU — HER kosumda basilir, is olsa da olmasa da.
         # "0" ile "n" ayni satirdan okunur; sayi ADIYLA gecer. `govde_anmasi` de
