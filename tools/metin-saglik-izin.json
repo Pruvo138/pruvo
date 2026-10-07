@@ -1,0 +1,78 @@
+{
+ "_aciklama": "tools/metin-saglik-kapisi.py --izin-turet --yaz ile TURETILIR; elle satir ekleme. Kanit: >=2 farkli urun ya da marka alani.",
+ "katalog_urun": 38291,
+ "tokenlar": {
+  "arrière": {
+   "kanit": "frekans>=2",
+   "urun": 2
+  },
+  "café": {
+   "kanit": "frekans>=2",
+   "urun": 2
+  },
+  "citroën": {
+   "kanit": "marka+frekans>=2",
+   "urun": 371
+  },
+  "coupé": {
+   "kanit": "frekans>=2",
+   "urun": 8
+  },
+  "käfer": {
+   "kanit": "marka+frekans>=2",
+   "urun": 4
+  },
+  "kärcher": {
+   "kanit": "marka",
+   "urun": 1
+  },
+  "león": {
+   "kanit": "frekans>=2",
+   "urun": 2
+  },
+  "mégane": {
+   "kanit": "frekans>=2",
+   "urun": 4
+  },
+  "méhari": {
+   "kanit": "frekans>=2",
+   "urun": 3
+  },
+  "scénic": {
+   "kanit": "marka+frekans>=2",
+   "urun": 4
+  },
+  "skådis": {
+   "kanit": "frekans>=2",
+   "urun": 2
+  },
+  "tomášek": {
+   "kanit": "frekans>=2",
+   "urun": 2
+  },
+  "ténéré": {
+   "kanit": "marka+frekans>=2",
+   "urun": 39
+  },
+  "voigtländer": {
+   "kanit": "frekans>=2",
+   "urun": 3
+  },
+  "zoé": {
+   "kanit": "marka",
+   "urun": 1
+  },
+  "étagère": {
+   "kanit": "frekans>=2",
+   "urun": 2
+  },
+  "ø": {
+   "kanit": "frekans>=2",
+   "urun": 34
+  },
+  "škoda": {
+   "kanit": "frekans>=2",
+   "urun": 224
+  }
+ }
+}

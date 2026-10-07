@@ -37,6 +37,8 @@ KURALLAR (hepsi kabul testiyle kilitli — tools/kutu-arsivle-test.py):
   * `--kuru`: hicbir sey yazmaz, ne yapacagini SAYIYLA basar (dogrulamayi yine kosar).
   * SAAT UYDURMA (RAPOR, her kipte): baslik saati KOSUM ANINDAN ileride olan blok
     `🔴 SAAT UYDURMA:` satiriyla + `SAAT_UYDURMA=<n>` sayisiyla basilir; rc DEGISMEZ.
+    Basliginda `HH:MM`/`HH:Mx` OLMAYAN (saatsiz: "aksam", yalniz tarih) blok da ayni
+    sayaca girer (`(baslik saatsiz — HH:MM/HH:Mx yok)`).
     `--simdi "YYYY-MM-DD HH:MM"` kosum anini enjekte eder (deterministik test).
   * BUTUNLUK (K310, 27 Agu): HER kosumda OKSUZ GOVDE (basliksiz dolu bolut) SAYILIR ve
     ADIYLA BASILIR; sifir degilse `lossless_dogrulama` GECEMEZ ve hicbir sey yazilmaz —
@@ -1594,6 +1596,10 @@ def saat_uydurma_bulgulari(kutu_metin, simdi):
                 k_saat = "%04d-%02d-%02d %s" % (s_gun // 10000, s_gun // 100 % 100,
                                                 s_gun % 100, k_saat)
             bulgular.append((baslik.rstrip()[:80], b_saat, k_saat))
+        elif aralik is None:
+            # SAATSIZ BASLIK (BaBa 7 Eki 17:4x): `HH:MM`/`HH:Mx` yok ("aksam", yalniz tarih)
+            # -> saat iddiasi DOGRULANAMAZ; ayni sayaca girer. k_saat=None = saatsiz kol.
+            bulgular.append((baslik.rstrip()[:80], "saatsiz", None))
     return bulgular
 
 
@@ -1618,6 +1624,9 @@ def saat_uydurma_bas(kutu_metin, simdi_degeri):
         return
     bulgular = saat_uydurma_bulgulari(kutu_metin, simdi)
     for baslik, b_saat, k_saat in bulgular:
+        if k_saat is None:
+            print("🔴 SAAT UYDURMA: %s (baslik saatsiz — HH:MM/HH:Mx yok)" % baslik)
+            continue
         print("🔴 SAAT UYDURMA: %s (baslik %s > kosum %s)" % (baslik, b_saat, k_saat))
     print("SAAT_UYDURMA=%d  [RAPOR]" % len(bulgular))
 
