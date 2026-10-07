@@ -17,7 +17,7 @@ U15 tarayicida tur secilemiyor (baska tur secili) -> (3)(5)(6) EKSIK · U16 cok 
 (parcalar <= olcu, olcu.json montaj == olcu) -> (4) HAZIR `eksen=montaj` · U17 ayni duzen, olcu.json montaj
 %10 sapma -> (4) EKSIK · U18 bir parca urun olcusunu %20 asiyor -> (4) EKSIK.
 Mutantlar (betik kopyasinda capa degisir): MB1 mutant kapisi silindi -> U2 KIRMIZI · MB2 sizdirmazlik
-olcumu yok -> U3 · MB3 eksen toleransi yok -> U4 · MB4 sunucu onay kontrolu yok -> U5 · MB5 fiyat
+olcumu yok -> U3 · MB3 eksen toleransi yok -> U4+U16+U18 · MB4 sunucu onay kontrolu yok -> U5 · MB5 fiyat
 carpimi yok -> U6 · MB6 tarayici yokken gecer -> U10 · MB7 canli ayrilik kapisi yok -> U12 ·
 MB8 secili tur kontrolu yok -> U15 · MB9 tabla duzeninde parca siniri yok -> U18 · MB0 yorum -> 0 kirmizi.
 """
@@ -244,10 +244,13 @@ def hazir_ortam(o, kod="isimlik"):
     o.tarayici = {kod: tarayici_iyi(kod)}
 
 
-def vakalar(kaynak):
+def vakalar(kaynak, sadece=None):
+    """sadece: yalniz bu vakalar (mutant kosumu; sure). None = hepsi."""
     s = {}
 
     def vaka(ad, fn):
+        if sadece is not None and ad not in sadece:
+            return
         o = Ortam(kaynak)
         try:
             gecti, ac = fn(o)
@@ -281,7 +284,8 @@ def vakalar(kaynak):
     vaka("U3", u3)
 
     def u4(o):
-        rc, son, c = tek(o, FAKE_GEO="1.1")
+        # Geometri %10 buyuk, olcu.json "dogru" (olcu) der -> YALNIZ bagimsiz eksen olcumu yakalar.
+        rc, son, c = tek(o, FAKE_GEO="1.1", FAKE_UK=str(1 / 1.1))
         return rc == 1 and olcut(c, "isimlik", "4") == "EKSIK", son
     vaka("U4", u4)
 
@@ -388,7 +392,8 @@ MUTANTLAR = {
     "MB1": ("        if not mg:\n            print(\"HAZIR=0/%d rc=2\" % len(kodlar))",
             "        if False:\n            print(\"HAZIR=0/%d rc=2\" % len(kodlar))", {"U2"}),
     "MB2": ('sizd = bool(m) and m["sizdirmaz_nesne"] == m["nesne"]', 'sizd = bool(m)', {"U3"}),
-    "MB3": ("eksen = bool(m) and abs(m[\"uzun\"] - tr.olcu) <= tr.olcu * tol + 1e-9", "eksen = bool(m)", {"U4"}),
+    "MB3": ("eksen = bool(m) and abs(m[\"uzun\"] - tr.olcu) <= tr.olcu * tol + 1e-9", "eksen = bool(m)",
+            {"U4", "U16", "U18"}),
     "MB4": ('sunucu_ok = k0 == 400 and j0.get("hata") == "onay-yok" and',
             'sunucu_ok = k0 in (400, 403) and', {"U5"}),
     "MB5": ('all(o.get("fiyat_kurus") == o.get("mm") * 1000 for o in a.get("olculer") or []) and',
@@ -409,7 +414,9 @@ def mutant_kos(ad, kaynak):
     eski, yeni, hedef = MUTANTLAR[ad]
     if kaynak.count(eski) != 1:
         return False, "capa %d kez bulundu" % kaynak.count(eski)
-    s = vakalar(kaynak.replace(eski, yeni))
+    # SURE (CI adimi <= 300 sn): mutant yalniz hedef vakalari + iki bekci vakada (U1 mutlu yol, U2 mutant
+    # kapisi) kosar; hedef disi kirmizi bu kumede aranir. Tam kume her kosumda yukarida (vakalar) olculur.
+    s = vakalar(kaynak.replace(eski, yeni), sadece=set(hedef) | {"U1", "U2"})
     kirmizi = {k for k, (g, _) in s.items() if not g}
     return kirmizi == hedef, "kirmizi=%s hedef=%s" % (sorted(kirmizi), sorted(hedef))
 

@@ -621,7 +621,7 @@ MUTANTLAR = {
     "M5": ("            d1(geri_ver_sql(i, jeton))\n", "            pass\n", {"T7"}),
     "M6": ("    if onceki != sha:\n", "    if False:\n", {"T12b"}),
     "M7": ('    if i["kuyruk"] != "siparis" or not i.get("onizleme_kaynakli"):\n        return None\n    os.makedirs',
-           '    if True:\n        return None\n    os.makedirs', {"T12"}),
+           '    if True:\n        return None\n    os.makedirs', {"T12", "T22"}),  # T22: ORNEK kolu da kopya koluna baglanir
     # G2 tekin-ortak koprusu
     "M8": ("    return renk_hex[ad]\n", "    return \"#F2F2F2\"\n", {"T13-" + k for k in G2_VAKA}),
     "M9": ('    u = {"metin": m, "plaket_mm": float(g["olcu_mm"])}\n',
@@ -1077,8 +1077,12 @@ def main():
         print("%s %s — %s" % ("✅" if g else "❌", ad, ac[:300]))
         kirmizi += 0 if g else 1
     survivor = 0
-    for ad in MUTANTLAR:
-        g, ac = mutant_kos(ad)
+    # SURE (8 Eki 2026: seri 273 sn, pre-push ayna tavani 300 sn): mutantlar PARALEL kosar. Her mutant kendi
+    # tempfile agacinda + her vaka kendi Ortam'inda (ayri SQLite/R2/kilit) -> paylasilan durum yok; anlam AYNI.
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=min(8, os.cpu_count() or 4)) as h:
+        sonuclar = list(h.map(mutant_kos, list(MUTANTLAR)))
+    for ad, (g, ac) in zip(MUTANTLAR, sonuclar):
         print("%s %s — %s" % ("✅" if g else "❌ SURVIVOR", ad, ac))
         survivor += 0 if g else 1
     print("VAKA_KIRMIZI=%d SURVIVOR=%d" % (kirmizi, survivor))
