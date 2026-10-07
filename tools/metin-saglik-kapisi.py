@@ -49,6 +49,9 @@ import sys
 import tempfile
 import unicodedata
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from git_ortami import git_ortami, sentetik_git  # noqa: E402  (kanonik git ortami — fikstur-git-sizinti-kapisi)
+
 KOD_KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 IZIN_YOLU = os.path.join(KOD_KOK, "tools", "metin-saglik-izin.json")
 KANCA_YOLU = os.path.join(KOD_KOK, "tools", "kancalar", "pre-commit")
@@ -198,7 +201,7 @@ def taban_denetle(urunler, izin):
 def _git(args, cwd=None):
     env = None
     if cwd is not None:  # gecici depo: kancadan miras GIT_DIR/GIT_INDEX_FILE baska depoyu olcturur
-        env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+        env = git_ortami()
     return subprocess.run(["git"] + args, capture_output=True, cwd=cwd, env=env)
 
 
@@ -364,11 +367,9 @@ def _git_deposunda_kanit(gecici):
     os.makedirs(gecici)
 
     def g(*a):
-        if _git(list(a), gecici).returncode != 0:
+        if sentetik_git(gecici, *a, capture_output=True).returncode != 0:
             raise RuntimeError("git %s basarisiz" % " ".join(a))
     g("init", "-q")
-    g("config", "user.email", "t@t")
-    g("config", "user.name", "t")
     yol = os.path.join(gecici, "urunler.json")
     with open(yol, "w", encoding="utf-8") as f:
         json.dump(_HEAD, f, ensure_ascii=False)
