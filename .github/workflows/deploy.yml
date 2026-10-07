@@ -1571,6 +1571,7 @@ jobs:
           node shop/test/foto-uretim.mjs
           node shop/test/foto-litofan.mjs
           python3 tools/foto-uretim-bolum-test.py
+          node shop/test/foto-girdi-tipleri.mjs
           node shop/test/foto-fiyat-formul.mjs
           node shop/test/foto-konsept.mjs
           node shop/test/onizleme-kapisi.mjs
