@@ -160,7 +160,9 @@
     galeriListe: [],
     galeriSecili: 0,
     galeriKutu: null,
-    buyukKart: null
+    galeriSeciliKod: null,
+    buyukKart: null,
+    isik: null
   };
 
   /* ============== DOM YARDIMCILAR ============== */
@@ -294,13 +296,31 @@
     ".foto-uretim-vitrin{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;" +
     "background:#fff;color:var(--navy);border-radius:14px;padding:18px;margin:0 0 22px;}" +
     ".foto-uretim-galeri{display:flex;gap:12px;min-width:0;}" +
-    ".foto-uretim-galeri-kucukler{display:flex;flex-direction:column;gap:8px;flex:0 0 64px;}" +
-    ".foto-uretim-galeri-kucuk{display:block;width:64px;height:64px;padding:0;border:2px solid transparent;" +
-    "border-radius:10px;background:#eef0f3;cursor:pointer;overflow:hidden;}" +
+    ".foto-uretim-galeri-kucukler{display:flex;flex-direction:column;gap:8px;flex:0 0 68px;" +
+    "max-height:560px;overflow-y:auto;scroll-snap-type:y proximity;}" +
+    ".foto-uretim-galeri-kucuk{position:relative;display:block;flex:0 0 auto;width:64px;height:64px;padding:0;" +
+    "border:2px solid transparent;border-radius:10px;background:#eef0f3;cursor:pointer;overflow:hidden;scroll-snap-align:start;}" +
+    ".foto-uretim-yakinda{position:absolute;left:2px;top:2px;background:var(--navy);color:#fff;font-size:9px;" +
+    "font-weight:700;line-height:1;padding:3px 4px;border-radius:4px;pointer-events:none;}" +
     ".foto-uretim-galeri-kucuk img{display:block;width:100%;height:100%;object-fit:cover;}" +
     ".foto-uretim-galeri-kucuk.secili{border-color:var(--navy);box-shadow:0 0 0 2px #fff inset;}" +
     ".foto-uretim-buyuk{flex:1 1 auto;min-width:0;}" +
-    ".foto-uretim-buyuk-kart{position:relative;background:#e6ebf1;border-radius:14px;overflow:hidden;}" +
+    ".foto-uretim-buyuk-kart{position:relative;background:#e6ebf1;border-radius:14px;overflow:hidden;cursor:zoom-in;}" +
+    ".foto-uretim-buyuk-kart:focus-visible{outline:2px solid var(--navy);outline-offset:2px;}" +
+    ".foto-uretim-buyuk-kart .foto-uretim-yakinda{left:10px;top:10px;font-size:12px;padding:5px 8px;z-index:1;}" +
+    ".foto-uretim-isik{position:fixed;top:0;right:0;bottom:0;left:0;z-index:2147483000;background:rgba(6,12,22,.94);" +
+    "display:flex;align-items:center;justify-content:center;padding:56px 12px 24px;box-sizing:border-box;outline:none;}" +
+    ".foto-uretim-isik-sahne{margin:0;max-width:min(92vw,1100px);max-height:100%;display:flex;flex-direction:column;" +
+    "align-items:center;gap:10px;}" +
+    ".foto-uretim-isik-img{display:block;max-width:100%;max-height:calc(100vh - 160px);width:auto;height:auto;" +
+    "object-fit:contain;border-radius:8px;background:#e6ebf1;}" +
+    ".foto-uretim-isik-alt{color:#e9edf3;font-size:13px;text-align:center;line-height:1.4;overflow-wrap:anywhere;}" +
+    ".foto-uretim-isik-kapat,.foto-uretim-isik-ok{position:absolute;width:44px;height:44px;border:0;border-radius:50%;" +
+    "background:rgba(255,255,255,.16);color:#fff;font-size:28px;line-height:1;cursor:pointer;padding:0;}" +
+    ".foto-uretim-isik-kapat{top:8px;right:8px;}" +
+    ".foto-uretim-isik-ok{top:50%;transform:translateY(-50%);}" +
+    ".foto-uretim-isik-ok.onceki{left:8px;}.foto-uretim-isik-ok.sonraki{right:8px;}" +
+    ".foto-uretim-isik button:focus-visible{outline:2px solid #fff;outline-offset:2px;}" +
     ".foto-uretim-buyuk-kart .foto-uretim-ornek-gorsel{border-radius:0;}" +
     ".foto-uretim-polaroid{position:absolute;right:6%;bottom:6%;width:38%;background:#fff;padding:6px 6px 18px;" +
     "border-radius:6px;transform:rotate(6deg);box-shadow:0 4px 14px rgba(0,0,0,.18);}" +
@@ -355,7 +375,8 @@
     "@media (max-width:760px){" +
     ".foto-uretim-vitrin{grid-template-columns:minmax(0,1fr);padding:12px;gap:16px;}" +
     ".foto-uretim-galeri{flex-direction:column-reverse;}" +
-    ".foto-uretim-galeri-kucukler{flex-direction:row;flex:0 0 auto;overflow-x:auto;}" +
+    ".foto-uretim-galeri-kucukler{flex-direction:row;flex:0 0 auto;max-width:100%;max-height:none;min-width:0;" +
+    "overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:2px;}" +
     ".foto-uretim-galeri-kucuk{flex:0 0 56px;width:56px;height:56px;}" +
     ".foto-uretim-vitrin .foto-uretim-baslik{font-size:22px;}" +
     "}" +
@@ -1102,23 +1123,27 @@
   }
 
   /* ornekler — kanitina gore (baski: gercek fotograf · render: onizleme + uretim dosyasi).
-     Sol dikey galeri (en cok 5, secili cerceveli) + buyuk onizleme karti.
-     acikKodlar: /foto/acik turleri; null = henuz bilinmiyor/kapali (gecerli tum ornekler). */
+     Sol galeri: TÜM türlerin ilk geçerli örneği (Okan 7 Eki: "farklı çeşitteki ürünlerden"), seçili çerçeveli,
+     + büyük önizleme kartı + tam ekran büyütme (isikAc).
+     acikKodlar: /foto/acik turleri — SÜZMEZ; açık türler önce, açık olmayanlar "Yakında" etiketli (sipariş edilemez).
+     null = henüz bilinmiyor (etiket yok, veri sırası). */
   function ornekCiz(ornekBlok, acikKodlar) {
     while (ornekBlok.firstChild) ornekBlok.removeChild(ornekBlok.firstChild);
-    var liste = [];
-    for (var i = 0; i < F.turler.length && liste.length < 5; i++) {
+    var aciklar = [], digerleri = [];
+    for (var i = 0; i < F.turler.length; i++) {
       var t = F.turler[i];
       if (F.ornekSayisi(t.kod) === 0) continue;
-      if (acikKodlar && acikKodlar.indexOf(t.kod) < 0) continue;
-      for (var j = 0; j < F.ornekler.length && liste.length < 5; j++) {
+      for (var j = 0; j < F.ornekler.length; j++) {
         var o = F.ornekler[j];
         // Render ornegi turun dürüstlük cümlesi (ornek_notu) olmadan CIZILMEZ (fail-closed).
         if (o && o.tur === t.kod && F.ornekGecerli(o) && (F.ornekKaniti(o) !== "render" || t.ornek_notu)) {
-          liste.push({ tur: t, ornek: o, kanit: F.ornekKaniti(o) });
+          var yakinda = !!acikKodlar && acikKodlar.indexOf(t.kod) < 0;
+          (yakinda ? digerleri : aciklar).push({ tur: t, ornek: o, kanit: F.ornekKaniti(o), yakinda: yakinda });
+          break; // tür başına ilk örnek
         }
       }
     }
+    var liste = aciklar.concat(digerleri);
     S.galeriListe = liste;
     var renderSay = 0;
     for (var r = 0; r < liste.length; r++) { if (liste[r].kanit === "render") renderSay++; }
@@ -1132,7 +1157,9 @@
       vitrinGuncelle(S.tur || (F.turler[0] && F.turler[0].kod));
       return;
     }
-    if (S.galeriSecili >= liste.length) S.galeriSecili = 0;
+    // Ziyaretçinin seçtiği tür yeniden çizimde (açık liste gelince sıra değişir) korunur.
+    S.galeriSecili = 0;
+    for (var s = 0; s < liste.length; s++) { if (liste[s].tur.kod === S.galeriSeciliKod) S.galeriSecili = s; }
     var galeri = el("div", "foto-uretim-galeri");
     var kucukler = el("div", "foto-uretim-galeri-kucukler");
     kucukler.setAttribute("role", "list");
@@ -1143,14 +1170,17 @@
         var d = el("button", "foto-uretim-galeri-kucuk" + (n === S.galeriSecili ? " secili" : ""));
         d.type = "button";
         d.setAttribute("role", "listitem");
-        d.setAttribute("aria-label", it.tur.ad + " örneği");
+        d.setAttribute("aria-label", it.tur.ad + " örneği" + (it.yakinda ? " (yakında)" : ""));
         d.setAttribute("data-tur", it.tur.kod);
         d.setAttribute("aria-pressed", n === S.galeriSecili ? "true" : "false");
         var im = el("img");
         im.src = it.kanit === "render" ? it.ornek.render : it.ornek.baski;
-        im.alt = ""; im.width = 64; im.height = 64; im.loading = "lazy"; im.decoding = "async";
+        im.alt = ""; im.width = 64; im.height = 64; im.decoding = "async";
+        if (n > 0) im.loading = "lazy";
         d.appendChild(im);
-        d.addEventListener("click", function () { galeriSec(n); });
+        if (it.yakinda) d.appendChild(el("span", "foto-uretim-yakinda", "Yakında"));
+        // Seçili küçük resme ikinci basış tam ekran büyütür.
+        d.addEventListener("click", function () { if (n === S.galeriSecili) isikAc(n, d); else galeriSec(n); });
         kucukler.appendChild(d);
       })(k);
     }
@@ -1163,6 +1193,7 @@
 
   function galeriSec(n) {
     S.galeriSecili = n;
+    if (S.galeriListe[n]) S.galeriSeciliKod = S.galeriListe[n].tur.kod;
     var d = S.galeriKutu ? S.galeriKutu.childNodes : [];
     for (var i = 0; i < d.length; i++) {
       if (i === n) { d[i].classList.add("secili"); d[i].setAttribute("aria-pressed", "true"); }
@@ -1171,7 +1202,8 @@
     var g = S.buyukKart ? S.buyukKart.childNodes : [];
     for (var j = 0; j < g.length; j++) { g[j].hidden = j !== n; }
     var it = S.galeriListe[n];
-    if (it) vitrinGuncelle(it.tur.kod);
+    // Fiyat/açıklama yalnız AÇIK türde güncellenir ("Yakında" türün fiyatı vitrine yazılmaz).
+    if (it && !it.yakinda) vitrinGuncelle(it.tur.kod);
   }
 
   /* Büyük önizleme kartı: her örneğin grubu çizilir, yalnız seçili olan görünür (galeri sekmesi). */
@@ -1179,11 +1211,13 @@
     var kap = S.buyukKart;
     if (!kap) return;
     while (kap.firstChild) kap.removeChild(kap.firstChild);
+    var tembel = true;
     function gorsel(src, alt, sinif) {
       var img = el("img", sinif || "foto-uretim-ornek-gorsel");
       img.src = src; img.alt = alt;
       img.width = 600; img.height = 600;
-      img.loading = "lazy"; img.decoding = "async";
+      if (tembel) img.loading = "lazy";
+      img.decoding = "async";
       return img;
     }
     function polaroid(src, alt, sol) {
@@ -1195,8 +1229,22 @@
       var it = S.galeriListe[k];
       var grup = el("div", "foto-uretim-ornek-grup");
       grup.setAttribute("data-kanit", it.kanit);
+      grup.setAttribute("data-tur", it.tur.kod);
       grup.hidden = k !== S.galeriSecili;
+      tembel = k !== S.galeriSecili; // ilk görünen büyük kart hemen yüklenir
       var satir = el("div", "foto-uretim-buyuk-kart");
+      // Büyük karta basınca tam ekran (klavye: Enter/Boşluk).
+      satir.setAttribute("role", "button");
+      satir.setAttribute("tabindex", "0");
+      satir.setAttribute("aria-haspopup", "dialog");
+      satir.setAttribute("aria-label", it.tur.ad + " örneğini büyüt");
+      (function (n, hedef) {
+        hedef.addEventListener("click", function () { isikAc(n, hedef); });
+        hedef.addEventListener("keydown", function (e) {
+          if (e && (e.key === "Enter" || e.key === " ")) { if (e.preventDefault) e.preventDefault(); isikAc(n, hedef); }
+        });
+      })(k, satir);
+      if (it.yakinda) satir.appendChild(el("span", "foto-uretim-yakinda", "Yakında"));
       if (it.kanit === "render") {
         // Ozgun fotograf yayinlanmaz: onizleme (koşede polaroid) + uretim dosyasinin render'i (ayni gorselse TEK kez).
         if (it.ornek.onizleme !== it.ornek.render) {
@@ -1221,7 +1269,101 @@
       kap.appendChild(grup);
     }
     var sec = S.galeriListe[S.galeriSecili];
-    if (sec) vitrinGuncelle(sec.tur.kod);
+    if (sec && !sec.yakinda) vitrinGuncelle(sec.tur.kod);
+  }
+
+  /* Tam ekran büyütme (Okan 7 Eki: "resimlerin üzerine basınca büyüsün"): koyu zemin · × · Esc · ←/→ ·
+     mobilde yatay kaydırma · zemine dokununca kapanır. Açıkken gövde kaydırması kilitli; kapanınca odak
+     tetikleyen öğeye döner. Saf JS, kitaplık YOK. */
+  function isikAc(n, tetikleyen) {
+    if (!S.galeriListe.length || !document.body) return;
+    if (S.isik) isikKapat();
+    var kutu = el("div", "foto-uretim-isik");
+    kutu.setAttribute("role", "dialog");
+    kutu.setAttribute("aria-modal", "true");
+    kutu.setAttribute("aria-label", "Örnek görsel");
+    kutu.setAttribute("tabindex", "-1");
+    var sahne = el("figure", "foto-uretim-isik-sahne");
+    var img = el("img", "foto-uretim-isik-img");
+    img.width = 1200; img.height = 1200; img.decoding = "async";
+    var alt = el("figcaption", "foto-uretim-isik-alt");
+    sahne.appendChild(img); sahne.appendChild(alt);
+    kutu.appendChild(sahne);
+    var dugmeler = [];
+    function dugme(sinif, metin, etiket, fn) {
+      var b = el("button", sinif, metin);
+      b.type = "button"; b.setAttribute("aria-label", etiket);
+      b.addEventListener("click", fn);
+      kutu.appendChild(b); dugmeler.push(b);
+      return b;
+    }
+    if (S.galeriListe.length > 1) {
+      dugme("foto-uretim-isik-ok onceki", "‹", "Önceki örnek", function () { isikGit(-1); });
+      dugme("foto-uretim-isik-ok sonraki", "›", "Sonraki örnek", function () { isikGit(1); });
+    }
+    var kapat = dugme("foto-uretim-isik-kapat", "×", "Kapat", function () { isikKapat(); });
+    // Zemine (görselin dışına) dokununca kapanır.
+    kutu.addEventListener("click", function (e) { if (e && (e.target === kutu || e.target === sahne)) isikKapat(); });
+    kutu.addEventListener("keydown", function (e) {
+      if (!e) return;
+      if (e.key === "Escape" || e.key === "Esc") { if (e.preventDefault) e.preventDefault(); isikKapat(); }
+      else if (e.key === "ArrowLeft") { if (e.preventDefault) e.preventDefault(); isikGit(-1); }
+      else if (e.key === "ArrowRight") { if (e.preventDefault) e.preventDefault(); isikGit(1); }
+      else if (e.key === "Tab") {
+        // Odak diyalogda kalır (düğmeler arasında döner).
+        if (e.preventDefault) e.preventDefault();
+        var i = dugmeler.indexOf(document.activeElement);
+        var y = dugmeler[(i < 0 ? 0 : i + (e.shiftKey ? dugmeler.length - 1 : 1)) % dugmeler.length];
+        if (y && y.focus) y.focus();
+      }
+    });
+    // Mobil: yatay kaydırma önceki/sonraki.
+    var x0 = null, y0 = null;
+    kutu.addEventListener("touchstart", function (e) {
+      var t = e && e.touches && e.touches[0];
+      x0 = t ? t.clientX : null; y0 = t ? t.clientY : null;
+    }, { passive: true });
+    kutu.addEventListener("touchend", function (e) {
+      var t = e && e.changedTouches && e.changedTouches[0];
+      if (!t || x0 == null) return;
+      var dx = t.clientX - x0, dy = t.clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) isikGit(dx < 0 ? 1 : -1);
+    });
+    S.isik = { kutu: kutu, img: img, alt: alt, n: 0, tetikleyen: tetikleyen || null,
+      tasma: document.body.style ? document.body.style.overflow : "" };
+    isikGoster(n);
+    if (document.body.style) document.body.style.overflow = "hidden";
+    document.body.appendChild(kutu);
+    if (kapat.focus) kapat.focus();
+  }
+
+  function isikGoster(n) {
+    var L = S.galeriListe.length;
+    if (!S.isik || !L) return;
+    n = ((n % L) + L) % L;
+    var it = S.galeriListe[n];
+    S.isik.n = n;
+    var render = it.kanit === "render";
+    S.isik.img.src = render ? it.ornek.render : it.ornek.baski;
+    S.isik.img.alt = it.tur.ad + (render ? " örnek render" : " basılmış ürün");
+    S.isik.alt.textContent = it.tur.ad + " · " + it.ornek.olcu_mm + " mm" + (it.yakinda ? " · Yakında" : "") +
+      " — " + (render ? "önizleme/render" : "gerçek fotoğraf") + " · " + (n + 1) + "/" + L;
+  }
+
+  function isikGit(d) {
+    if (!S.isik) return;
+    isikGoster(S.isik.n + d);
+    galeriSec(S.isik.n); // kapanınca büyük kart aynı örnekte
+  }
+
+  function isikKapat() {
+    var ik = S.isik;
+    if (!ik) return;
+    S.isik = null;
+    if (ik.kutu.parentNode) ik.kutu.parentNode.removeChild(ik.kutu);
+    if (document.body && document.body.style) document.body.style.overflow = ik.tasma || "";
+    if (ik.tetikleyen && ik.tetikleyen.focus) ik.tetikleyen.focus();
   }
 
   function cizAdimlar(ic) {
@@ -2026,7 +2168,7 @@
       }
       S.acikVeri = veri;
       if (S.adim2El) S.adim2El.textContent = "2. " + adim2Etiketi(veri);
-      // Açık olmayan türün örneği ÇİZİLMEZ (/foto/acik tür listesi süzer).
+      // Açık kod listesi = "Yakında" etiketi + sıra için (galeri TÜM türleri çizer; sipariş tür seçimi açıklarla kalır).
       if (S.ornekBlok) ornekCiz(S.ornekBlok, veri.turler.map(function (x) { return x.kod; }));
       var kayit = ssIsOku();
       if (kayit) {
