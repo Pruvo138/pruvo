@@ -730,6 +730,51 @@
     S.formHata.textContent = d.ok ? "" : (PARAMETRE_HATA[d.hata] || "Bu alanları kontrol et.");
     S.formHata.hidden = d.ok;
   }
+  // SES DOSYASI -> genlik dizisi (RMS zarfı, N=400, 0..1, en büyük=1'e normalize).
+  // SES DOSYASI SUNUCUYA GİTMEZ: yalnız sayı dizisi `S.parametre` içinde kalır, submit'te JSON'a yazılır.
+  function sesGenlikHesapla(audioBuffer) {
+    var kanal = audioBuffer.numberOfChannels > 0 ? audioBuffer.getChannelData(0) : null;
+    if (!kanal) { return []; }
+    if (audioBuffer.numberOfChannels > 1) {
+      var ikinci = audioBuffer.getChannelData(1);
+      for (var m = 0; m < kanal.length; m++) { kanal[m] = (kanal[m] + (ikinci[m] || 0)) / 2; }
+    }
+    var N = 400, pencere = Math.max(1, Math.floor(kanal.length / N)), zarf = new Array(N);
+    for (var i = 0; i < N; i++) {
+      var toplam = 0;
+      for (var j = 0; j < pencere; j++) {
+        var v = kanal[i * pencere + j] || 0;
+        toplam += v * v;
+      }
+      zarf[i] = Math.sqrt(toplam / pencere);
+    }
+    var enBuyuk = 0;
+    for (var k2 = 0; k2 < N; k2++) { if (zarf[k2] > enBuyuk) { enBuyuk = zarf[k2]; } }
+    if (enBuyuk > 0) {
+      for (var n = 0; n < N; n++) { zarf[n] = zarf[n] / enBuyuk; }
+    }
+    return zarf;
+  }
+  function sesAudioBaglamKur() {
+    if (sesAudioBaglamKur.baglanti) { return sesAudioBaglamKur.baglanti; }
+    var Ctor = (typeof window !== "undefined" && (window.AudioContext || window.webkitAudioContext)) || null;
+    if (!Ctor) { return null; }
+    sesAudioBaglamKur.baglanti = new Ctor();
+    return sesAudioBaglamKur.baglanti;
+  }
+  function sesDosyaOku(dosya) {
+    var baglam = sesAudioBaglamKur();
+    if (!baglam) { return Promise.reject(new Error("audio-baglam-yok")); }
+    return new Promise(function (coz, red) {
+      var okuyucu = new FileReader();
+      okuyucu.onload = function () {
+        baglam.decodeAudioData(okuyucu.result).then(function (buf) { coz(sesGenlikHesapla(buf)); },
+          function () { red(new Error("audio-cozulemedi")); });
+      };
+      okuyucu.onerror = function () { red(new Error("okuma-hatasi")); };
+      okuyucu.readAsArrayBuffer(dosya);
+    });
+  }
   function doldurS1Form() {
     if (!S.alanForm) return;
     while (S.alanForm.firstChild) S.alanForm.removeChild(S.alanForm.firstChild);
@@ -760,6 +805,72 @@
           g.rows = sema.satir_en_cok;
           if (sema.max > 0) g.maxLength = sema.max;
           if (S.parametre[a] !== undefined) g.value = String(S.parametre[a]);
+        } else if (sema.tip === "ses") {
+          g = el("input", "foto-uretim-form-secenek-girdi");
+          g.type = "file"; g.accept = "audio/*";
+          g.addEventListener("change", function (e) {
+            var dosya = e.target.files && e.target.files[0];
+            if (!dosya) { S.parametre[a] = undefined; formHataGoster(); guncelleS1Buton(); return; }
+            sesDosyaOku(dosya).then(function (dizi) {
+              S.parametre[a] = dizi; formHataGoster(); guncelleS1Buton();
+            }, function () {
+              S.parametre[a] = undefined; formHataGoster(); guncelleS1Buton();
+              if (S.formHata) { S.formHata.textContent = "Ses dosyası çözümlenemedi ya da sessiz."; S.formHata.hidden = false; }
+            });
+          });
+          if (S.parametre[a] !== undefined && Array.isArray(S.parametre[a])) { g.dataset.hazir = "1"; }
+          S.alanForm.appendChild(g);
+          return; // ses: input yeterli, alttaki `g.id/name/dinle` atlanır.
+        } else if (sema.tip === "konum") {
+          var konumSatir = el("div", "foto-uretim-form-konum");
+          var enlem = el("input", "foto-uretim-form-secenek-girdi");
+          enlem.type = "number"; enlem.step = "0.000001"; enlem.min = "-90"; enlem.max = "90";
+          enlem.placeholder = "Enlem"; enlem.id = id + "-enlem"; enlem.name = id + "-enlem";
+          var boylam = el("input", "foto-uretim-form-secenek-girdi");
+          boylam.type = "number"; boylam.step = "0.000001"; boylam.min = "-180"; boylam.max = "180";
+          boylam.placeholder = "Boylam"; boylam.id = id + "-boylam"; boylam.name = id + "-boylam";
+          var duzBtn = el("button", "foto-uretim-form-dugme", "Konumumu kullan");
+          duzBtn.type = "button";
+          konumSatir.appendChild(enlem); konumSatir.appendChild(boylam); konumSatir.appendChild(duzBtn);
+          var mevcut = S.parametre[a];
+          if (!mevcut || typeof mevcut !== "object") { S.parametre[a] = { enlem: 0, boylam: 0 }; mevcut = S.parametre[a]; }
+          enlem.value = String(mevcut.enlem); boylam.value = String(mevcut.boylam);
+          var konumDegis = function () {
+            var en = enlem.value === "" ? NaN : Number(enlem.value);
+            var bo = boylam.value === "" ? NaN : Number(boylam.value);
+            S.parametre[a] = { enlem: en, boylam: bo };
+            formHataGoster(); guncelleS1Buton();
+          };
+          enlem.addEventListener("input", konumDegis); boylam.addEventListener("input", konumDegis);
+          duzBtn.addEventListener("click", function () {
+            if (!navigator.geolocation) { return; }
+            navigator.geolocation.getCurrentPosition(function (pos) {
+              enlem.value = String(pos.coords.latitude); boylam.value = String(pos.coords.longitude);
+              konumDegis();
+            }, function () { /* reddedildi: elle girişe kalır */ });
+          });
+          S.alanForm.appendChild(konumSatir);
+          return;
+        } else if (sema.tip === "tarih") {
+          g = el("input", "foto-uretim-form-secenek-girdi");
+          g.type = "date";
+          if (S.parametre[a] !== undefined) {
+            var mevT = S.parametre[a];
+            g.value = typeof mevT === "string" ? mevT : (mevT && mevT.tarih) || "";
+          }
+          if (sema.saat === true) {
+            var saatInput = el("input", "foto-uretim-form-secenek-girdi");
+            saatInput.type = "time";
+            var mevS = S.parametre[a];
+            saatInput.value = (mevS && typeof mevS === "object") ? (mevS.saat || "") : "";
+            saatInput.id = id + "-saat"; saatInput.name = id + "-saat";
+            saatInput.addEventListener("input", function () { tarihSaatBirlestir(a, g, saatInput); });
+            g.addEventListener("input", function () { tarihSaatBirlestir(a, g, saatInput); });
+            S.alanForm.appendChild(g); S.alanForm.appendChild(saatInput);
+            // ortak input dinleme (buton/buton-hariç) — yalnız tarih için aşağıdaki blok çalışmaz
+            return;
+          }
+          // saat yoksa alttaki ortak input dinleme çalışsın.
         } else {
           g = el("input", "foto-uretim-form-secenek-girdi");
           if (sema.tip === "sayi") {
@@ -768,6 +879,8 @@
             if (S.parametre[a] === undefined) S.parametre[a] = sema.min;
           } else if (sema.tip === "url") {
             g.type = "url"; g.placeholder = "https://";
+          } else if (sema.tip === "tarih") {
+            g.type = "date";
           } else {
             g.type = "text";
             if (sema.max > 0) g.maxLength = sema.max;
@@ -794,6 +907,21 @@
     S.formHata = el("p", "foto-uretim-ayrinti");
     S.alanForm.appendChild(S.formHata);
     formHataGoster();
+  }
+  // TARIH + SAAT birleşimi -> {tarih:"YYYY-AA-GG", saat:"SS:DD", utc_ofset_saat}.
+  // utc_ofset_saat: tarih girdisinin YIL/AY/GÜN'ünde Date.getTimezoneOffset() (dakika); -12..14 sınırı.
+  function tarihSaatBirlestir(anahtar, tarihInput, saatInput) {
+    var trh = tarihInput.value, sat = saatInput ? saatInput.value : "";
+    if (!trh) { S.parametre[anahtar] = undefined; formHataGoster(); guncelleS1Buton(); return; }
+    if (!/^\d{2}:\d{2}$/.test(sat || "")) { sat = ""; }
+    var parcalar = trh.split("-");
+    var dt = new Date(Date.UTC(+parcalar[0], -parcalar[1], +parcalar[2], 12, 0, 0));
+    var off = -dt.getTimezoneOffset() / 60;
+    if (!isFinite(off)) { off = 0; }
+    if (off < -12) { off = -12; } if (off > 14) { off = 14; }
+    if (sat) { S.parametre[anahtar] = { tarih: trh, saat: sat, utc_ofset_saat: off }; }
+    else { S.parametre[anahtar] = trh; }
+    formHataGoster(); guncelleS1Buton();
   }
   // Seçilen fotoğraftan ANINDA önizleme (tarayıcıda; fotoğraf hiçbir yere gönderilmez).
   function litofanOnizle() {

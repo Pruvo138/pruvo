@@ -464,9 +464,9 @@
   VERI.GIRDI_TURLERI = {
     "foto-1": { acik: true }, "foto-1-3": { acik: true, en_cok: 3 },
     metin: { acik: true }, url: { acik: true, en_cok: 512 }, svg: { acik: true, en_cok_bayt: 200 * 1024 },
-    form: { acik: true }, ses: { acik: false }, konum: { acik: false }, tarih: { acik: false }
+    form: { acik: true }, ses: { acik: true }, konum: { acik: true }, tarih: { acik: true }
   };
-  VERI.FORM_TIPLERI = { sayi: true, secim: true, metin: true, url: true, ses: false, konum: false, tarih: false };
+  VERI.FORM_TIPLERI = { sayi: true, secim: true, metin: true, url: true, ses: true, konum: true, tarih: true };
 
   function utf8Bayt(s) {
     return typeof TextEncoder !== "undefined" ? new TextEncoder().encode(s).length : unescape(encodeURIComponent(s)).length;
@@ -490,6 +490,11 @@
   };
   // PARAMETRELER — türün `form` şemasına karşı. Şema dışı anahtar, YAKINDA tipi, aralık/adım dışı
   // sayı, listede olmayan seçim, boş/uzun metin, geçersiz url -> {ok:false, hata}. Bölüm ve sunucu AYNI.
+  // BİLEŞEN TİPLER (ses/konum/tarih — BaBa 8 Eki 00:3x hüküm 1(e)):
+  //   ses    : değer = sayı dizisi (genlik); uzunluk 64..4000, her eleman sonlu sayı 0..1.
+  //   konum  : değer = {enlem:-90..90, boylam:-180..180}; ikisi de sonlu sayı.
+  //   tarih  : değer = "YYYY-AA-GG" veya (şema.saat:true) {tarih,saat:"SS:DD",utc_ofset_saat:-12..14}.
+  //            Yıl 1900..2100, takvim geçerli (2023-02-29 ✓, 2023-02-30 ✗).
   VERI.parametreDogrula = function (kod, p) {
     var t = VERI.turBul(kod);
     if (!t) { return { ok: false, hata: "tur-yok" }; }
@@ -527,10 +532,57 @@
         } else if (v.indexOf("\n") >= 0) { return { ok: false, hata: "parametre-metin" }; }
       } else if (sema.tip === "url") {
         if (!VERI.urlDogrula(v)) { return { ok: false, hata: "parametre-url" }; }
+      } else if (sema.tip === "ses") {
+        if (!Array.isArray(v)) { return { ok: false, hata: "parametre-ses" }; }
+        if (v.length < 64 || v.length > 4000) { return { ok: false, hata: "parametre-ses" }; }
+        for (var g = 0; g < v.length; g++) {
+          if (typeof v[g] !== "number" || !isFinite(v[g]) || v[g] < 0 || v[g] > 1) { return { ok: false, hata: "parametre-ses" }; }
+        }
+      } else if (sema.tip === "konum") {
+        if (!v || typeof v !== "object" || Array.isArray(v)) { return { ok: false, hata: "parametre-konum" }; }
+        if (typeof v.enlem !== "number" || !isFinite(v.enlem) || v.enlem < -90 || v.enlem > 90) {
+          return { ok: false, hata: "parametre-konum" };
+        }
+        if (typeof v.boylam !== "number" || !isFinite(v.boylam) || v.boylam < -180 || v.boylam > 180) {
+          return { ok: false, hata: "parametre-konum" };
+        }
+      } else if (sema.tip === "tarih") {
+        var trh, satStr;
+        if (typeof v === "string") { trh = v; satStr = undefined; }
+        else if (v && typeof v === "object" && !Array.isArray(v)) { trh = v.tarih; satStr = v.saat; }
+        else { return { ok: false, hata: "parametre-tarih" }; }
+        var trhSonuc = VERI.tarihCozumle(trh);
+        if (trhSonuc.hata) { return { ok: false, hata: "parametre-tarih" }; }
+        var saatGerekli = sema.saat === true;
+        if (saatGerekli) {
+          if (typeof satStr !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(satStr)) { return { ok: false, hata: "parametre-tarih" }; }
+          if (!v || typeof v !== "object" || Array.isArray(v)) { return { ok: false, hata: "parametre-tarih" }; }
+          var utcf = v.utc_ofset_saat;
+          if (typeof utcf !== "number" || !isFinite(utcf) || utcf < -12 || utcf > 14) { return { ok: false, hata: "parametre-tarih" }; }
+          cikti[a] = { tarih: trhSonuc.iso, saat: satStr, utc_ofset_saat: utcf };
+        } else {
+          cikti[a] = trhSonuc.iso;
+        }
+        continue;
       }
       cikti[a] = v;
     }
     return { ok: true, deger: cikti };
+  };
+  // "YYYY-AA-GG" -> {iso, hata}; takvim geçerli (1900..2100). Hata varsa iso boş.
+  VERI.tarihCozumle = function (s) {
+    if (typeof s !== "string") { return { hata: "tarih-bicim" }; }
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+    if (!m) { return { hata: "tarih-bicim" }; }
+    var y = +m[1], ay = +m[2], g = +m[3];
+    if (y < 1900 || y > 2100) { return { hata: "tarih-yil" }; }
+    if (ay < 1 || ay > 12) { return { hata: "tarih-ay" }; }
+    if (g < 1 || g > 31) { return { hata: "tarih-gun" }; }
+    var d = new Date(Date.UTC(y, ay - 1, g));
+    if (d.getUTCFullYear() !== y || d.getUTCMonth() !== ay - 1 || d.getUTCDate() !== g) {
+      return { hata: "tarih-gecersiz" };
+    }
+    return { iso: s };
   };
   // Türün ölçü aralığı (mm, uzun kenar); bilinmeyen tür -> null. Bölüm ve sunucu AYNI fonksiyon.
   VERI.olcuAraligi = function (kod) {

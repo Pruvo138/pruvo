@@ -144,7 +144,9 @@ def kontroller(index, bolum, veri, build):
               re.search(r"\.foto-uretim-serit\{[^}]*list-style\s*:\s*none", bolum) is not None, ""))
     # Y13 TEK YUKLEME ALANI (Okan 7 Eki 21:5x): ustteki "Foto ekle" kutusu tek dosya girdisi; tiklama
     # ve birakma ayni yoldan (dosyaKoy); tur + 15 MB denetimi orada. Davranis: foto-uretim.mjs S5.
-    girdi = len(re.findall(r'\.type\s*=\s*"file"|type="file"|setAttribute\("type",\s*"file"\)', bolum))
+    # 8 Eki 00:3x h.1(e): ses form-parametresinin audio/* girdisi AYNI dosyada olabilir — sayaç
+    # FOTOĞRAF yükleme kutusunun TEK'liğini tutar (`inp.id = "foto-dosya"`); ses/konum/tarih HARİÇ.
+    girdi = len(re.findall(r'inp\.id\s*=\s*"foto-dosya"', bolum))
     s.append(("Y13a kaynakta dosya girdisi (type=file) TAM 1 yerde olusturulur", girdi == 1, "adet=%d" % girdi))
     s.append(("Y13a formdaki eski 'Fotoğraf (JPEG' etiketi 0", "Fotoğraf (JPEG" not in bolum, ""))
     s.append(("Y13a dosya girdisinde capture YOK (mobilde galeri kapanmaz)", "capture" not in bolum, ""))
@@ -223,7 +225,9 @@ def main():
         return bolum.replace(eski, yeni, 1) if eski in bolum else None
     y13 = [
         ("M16 ikinci dosya girdisi eklendi",
-         bm("    S.alanDosya.hidden = !svgGerekir()", '    var ikinci = el("input"); ikinci.type = "file";\n    S.alanDosya.hidden = !svgGerekir()')),
+         # 8 Eki 00:3x h.1(e): Y13a artık `inp.id = "foto-dosya"` sayısını ölçer; ikinci FOTO
+         # yükleme kutusu simülasyonu aynı sayacı 2 yapar ve kapıyı kırar.
+         bm('inp.id = "foto-dosya";', 'inp.id = "foto-dosya";\n    var ikinci = el("input"); ikinci.id = "foto-dosya";')),
         ("M17 drop isleyicisi ayri yola cekildi",
          bm("      dosyaKoy(fl && fl[0] ? fl[0] : null);", "      S.dosya = fl && fl[0] ? fl[0] : null; guncelleS1Buton();")),
         ("M18 15 MB denetimi dosyaKoy'dan cikti",
