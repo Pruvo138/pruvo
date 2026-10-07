@@ -1440,6 +1440,12 @@ def disk_supurme(kuru=False, chrome_kok=None, wrangler_kok=None, simdi=None):
 # OLCULEMEDI / çağrı hatası ise ek olarak `DRIVE_TAHLIYE HATA=<sinif>:<ayrinti>`
 # döner ve spec başlığına girer (ADIYLA görünür). main'in rc'si DEĞİŞMEZ.
 # Fikstür/kendini-test koşumunda araç ÇAĞRILMAZ (gerçek Drive'a dokunulmaz).
+# 🔴 7 Eki (devir-drive-tahliye-2): kabul bataryası (`sabah-kabul.py`) A2/A3/A5'te
+# aracı BAYRAKSIZ/`--kuru` koşar; o koşumlar `--spec-dizin` taşımaz ama HEPSİ
+# `_KRAL_SABAH_ROTASYON_KUTU` kum kutusuyla koşar (batarya `_genel_rotasyon_kumu`;
+# cron bu değişkeni ASLA kurmaz). Yeni bayrak İCAT ETMEDEN aynı işaret kullanılır:
+# kum kutusu varsa canlı Drive'a dokunulmaz → `DRIVE_TAHLIYE ATLANDI=fikstur`.
+# Aksi halde batarya canlı tahliyeyi koşuyor, A5a/A5b iki tur arasında kayıyordu.
 # ============================================================================
 DRIVE_TAHLIYE_ARAC = REPO / "tools" / "drive-tahliye.py"
 DRIVE_TAHLIYE_ZAMAN_ASIMI = 1800
@@ -1529,7 +1535,9 @@ def main() -> int:
     disk_kuru = bool(args.kuru or args.kendini_test or args.spec_dizin is not None)
     disk_satiri = disk_supurme(kuru=disk_kuru)
     print(disk_satiri)
-    if args.kendini_test or args.spec_dizin is not None:
+    drive_atla = bool(args.kendini_test or args.spec_dizin is not None
+                      or os.environ.get("_KRAL_SABAH_ROTASYON_KUTU"))
+    if drive_atla:
         drive_hata_satiri = None
         print("DRIVE_TAHLIYE ATLANDI=fikstur")
     else:
