@@ -764,6 +764,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/sabah-teslim/sabah-kabul.py --vaka A11 --arac tools/sabah-teslim/kral-sabah.py
 
+      # 🔴 7 Eki 2026 — Drive yerel tahliyesi (tek supurucu + tavan kapisi; Okan
+      # "TEKRARLAYAN KIRMIZI ... kapi yok ya da kablosuz"). Hermetik: sahte kok +
+      # enjekte yukleme/evict, gercek Drive'a dokunmaz; 7 vaka + 2 mutant (M1/M2).
+      - name: K-DriveTahliye drive tahliye kabul (Y1-Y7 + 2 mutant)
+        if: ${{ !cancelled() }}
+        run: python3 tools/drive-tahliye-test.py
+
       # 🔴 18 Eyl 2026 — kesif genislemesinin (`-kabul` eki) getirdigi, CI aynasinda
       # (bos HOME) HERMETIK olculen iki batarya: K324 (tasima birimi + kutu kolu,
       # rc=0 0.9 sn) ve K399 thing-icerik portu (rc=0; `--mutasyon` alt kumesini

@@ -1092,7 +1092,7 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
                okunabilir: dict, ci_hukum: str = "OK", gh_kaynak: str = "-",
                dallar: list = None, sinir_kalem: int = None, sinir_dal: int = None,
                sinir_devam_kar: int = None, ek_yolu: str = None,
-               rotasyon_satiri: str = None) -> str:
+               rotasyon_satiri: str = None, drive_hata_satiri: str = None) -> str:
     """Spec gövdesini kurar. ZORUNLU bölümler: KIRMIZI · MERGE · KALEMLER · KUTUDA YENİ · DİSİPLİN.
 
     🔴 KRA-L-TamirciTavan-10Eyl: yeni parametreler (`dallar`, `sinir_kalem`,
@@ -1110,6 +1110,10 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
     # Verilmezse (A9 doğrudan çağrısı) çıktı eskisiyle BİREBİR aynı kalır.
     if rotasyon_satiri:
         baslik += "`{}`\n".format(rotasyon_satiri)
+    # 🔴 7 Eki: DRIVE_TAHLIYE KIRMIZI/OLCULEMEDI ise ADIYLA, rotasyonun altında.
+    # Verilmezse (yeşil ya da doğrudan çağrı) çıktı eskisiyle BİREBİR aynı kalır.
+    if drive_hata_satiri:
+        baslik += "`{}`\n".format(drive_hata_satiri)
     meta = (
         "Ev: KraL · Etiket: `kabul-sabah-rutini` · Üretici: `/Users/okan/.claude/cron/kral-sabah.py`\n"
         "Üretim anı: {} (yerel TR) · MANDATE: o günün Tamirci çipinin TEK spec'idir.\n".format(
@@ -1429,6 +1433,40 @@ def disk_supurme(kuru=False, chrome_kok=None, wrangler_kok=None, simdi=None):
             type(hata).__name__, str(hata)[:80])
 
 
+# ============================================================================
+# 🔴 DRIVE TAHLİYE (7 Eki 2026): PRUVO Drive yerel kopyalarının tek süpürücüsü
+# `tools/drive-tahliye.py` (yalnız evict, SİLME YOK) sabah DISK_SUPURME kolunda
+# koşar. Aracın `DRIVE_TAHLIYE ...` satırı loga AYNEN basılır; KIRMIZI /
+# OLCULEMEDI / çağrı hatası ise ek olarak `DRIVE_TAHLIYE HATA=<sinif>:<ayrinti>`
+# döner ve spec başlığına girer (ADIYLA görünür). main'in rc'si DEĞİŞMEZ.
+# Fikstür/kendini-test koşumunda araç ÇAĞRILMAZ (gerçek Drive'a dokunulmaz).
+# ============================================================================
+DRIVE_TAHLIYE_ARAC = REPO / "tools" / "drive-tahliye.py"
+DRIVE_TAHLIYE_ZAMAN_ASIMI = 1800
+
+
+def drive_tahliye(kuru=False, argv=None, zaman_asimi=DRIVE_TAHLIYE_ZAMAN_ASIMI):
+    """Döner: (log_satiri, hata_satiri|None). `argv` yalnız test enjeksiyonu."""
+    try:
+        if argv is None:
+            argv = [sys.executable, str(DRIVE_TAHLIYE_ARAC)] + (["--kuru"] if kuru else [])
+        r = subprocess.run(argv, capture_output=True, text=True, timeout=zaman_asimi)
+        satirlar = [s for s in (r.stdout or "").splitlines() if s.startswith("DRIVE_TAHLIYE")]
+        if not satirlar:
+            hata = "DRIVE_TAHLIYE HATA=SATIR_YOK:rc=%d:%s" % (
+                r.returncode, (r.stderr or "").strip()[-80:])
+            return hata, hata
+        satir = satirlar[-1]
+        if r.returncode == 0 and "HUKUM=YESIL" in satir:
+            return satir, None
+        sinif = "KIRMIZI" if r.returncode == 1 else "OLCULEMEDI" if r.returncode == 2 else (
+            "RC_%d" % r.returncode)
+        return satir, "DRIVE_TAHLIYE HATA=%s:%s" % (sinif, satir[len("DRIVE_TAHLIYE "):])
+    except Exception as hata:
+        h = "DRIVE_TAHLIYE HATA=%s:%s" % (type(hata).__name__, str(hata)[:80])
+        return h, h
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="KraL sabah spec'i")
     ap.add_argument("--kuru", action="store_true", help="dosya yazma, yalnız özet bas")
@@ -1491,6 +1529,14 @@ def main() -> int:
     disk_kuru = bool(args.kuru or args.kendini_test or args.spec_dizin is not None)
     disk_satiri = disk_supurme(kuru=disk_kuru)
     print(disk_satiri)
+    if args.kendini_test or args.spec_dizin is not None:
+        drive_hata_satiri = None
+        print("DRIVE_TAHLIYE ATLANDI=fikstur")
+    else:
+        drive_satiri, drive_hata_satiri = drive_tahliye(kuru=bool(args.kuru))
+        print(drive_satiri)
+        if drive_hata_satiri and drive_hata_satiri != drive_satiri:
+            print(drive_hata_satiri)
 
     # --- girdi okuma (fail-loud) ---
     kutu_txt = oku_yol(KUTU)
@@ -1524,7 +1570,8 @@ def main() -> int:
     spec = build_spec(bugun, kalemler, kirmizi_blok, dal_blok, kutu_blok, devam_blok,
                       kirmizi_n, dal_n, kutu_n, okunabilir,
                       ci_hukum=ci_hukum, gh_kaynak=gh_kaynak,
-                      dallar=dallar, rotasyon_satiri=rotasyon_satiri)
+                      dallar=dallar, rotasyon_satiri=rotasyon_satiri,
+                      drive_hata_satiri=drive_hata_satiri)
 
     # ============================================================================
     # 🔴 TAVAN FRENİ (KRA-L-TamirciTavan-10Eyl): tavanı aşan spec KAYIPSIZ kırpılır.
@@ -1550,7 +1597,8 @@ def main() -> int:
                               ci_hukum=ci_hukum, gh_kaynak=gh_kaynak,
                               dallar=dallar, sinir_kalem=sk, sinir_dal=sd,
                               sinir_devam_kar=skr, ek_yolu=ek_yolu,
-                              rotasyon_satiri=rotasyon_satiri)
+                              rotasyon_satiri=rotasyon_satiri,
+                              drive_hata_satiri=drive_hata_satiri)
 
         yeni_spec, ek_metin, tavan_olcum = tavana_indir(_uret, spec, ek_yolu)
         # İşaretçi bloğu `tavana_indir` İÇİNDE yerleştirildi (kapının menzili);
