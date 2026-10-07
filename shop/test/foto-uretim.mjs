@@ -1144,6 +1144,47 @@ let ekranTek, ekranIki;
     ? EKRAN_KAYNAK.replace("olcuG.appendChild(olcuSurgusu(", "void ((") : null;
   const m3 = mutS3 ? await ekranKos(mutS3, VERI, acikTek, kayit, hazir) : null;
   ol("S-M4 mutant (S3 olcu surgusu eklenmez) -> S4 KIRMIZI", !!m3 && m3.olcuS3 === 0, JSON.stringify(m3));
+
+  // S5 TEK YUKLEME ALANI (Okan 7 Eki 21:5x): sayfada tek dosya girdisi ustteki kutuda; tiklayip secmek
+  // (change) ve kutuya birakmak (drop) AYNI sonucu verir: kutuda dosya adi + not alani acilir (S.dosya dolu).
+  // Yanlis tur / >15 MB kutuda tek hata satiri, S.dosya bos kalir (not alani gizli).
+  const yukle = async (kaynak, yol, f) => {
+    const e = await ekranKos(kaynak, VERI, acikTek);
+    const dugum = () => [...e.bolum.agac()];
+    const girdiler = dugum().filter((n) => n.tagName === "INPUT" && n.type === "file");
+    const kutu = dugum().find((n) => n.id === "foto-yukle-kutu");
+    const eskiEtiket = dugum().filter((n) => n.tagName === "LABEL" && /^Fotoğraf \(JPEG/.test(n.textContent)).length;
+    if (!kutu || !girdiler[0]) { return { girdi: girdiler.length, kutu: !!kutu, eskiEtiket }; }
+    if (yol === "change") { girdiler[0].files = [f]; girdiler[0].tetikle("change"); }
+    else { for (const fn of (kutu.dinle || {}).drop || []) { fn({ preventDefault() {}, dataTransfer: { files: [f] } }); } }
+    const sinif = (c) => dugum().find((n) => n.classList.contains(c));
+    const not = dugum().find((n) => n.id === "foto-not-alani");
+    const hata = sinif("foto-uretim-yukle-hata");
+    return { girdi: girdiler.length, kutu: true, eskiEtiket, disabled: !!girdiler[0].disabled, capture: girdiler[0].getAttribute("capture"),
+      ad: (sinif("foto-uretim-yukle-ad") || { textContent: "" }).textContent, notAcik: !!not && not.hidden === false,
+      hata: hata && !hata.hidden ? hata.textContent : "", kabul: (sinif("foto-uretim-yukle-kabul") || { textContent: "" }).textContent };
+  };
+  const jpg = { name: "kedi.jpg", type: "image/jpeg", size: 2048 };
+  const yc = await yukle(EKRAN_KAYNAK, "change", jpg);
+  const yd = await yukle(EKRAN_KAYNAK, "drop", jpg);
+  ol("S5a sayfada dosya girdisi TAM 1 (ustteki kutuda), acik, capture YOK; formda 'Fotoğraf (JPEG' etiketi 0; kabul yazisi kutunun altinda",
+     yc.girdi === 1 && yc.kutu && yc.disabled === false && yc.capture === null && yc.eskiEtiket === 0 &&
+     yc.kabul === "JPEG, PNG veya WEBP — en çok 15 MB", JSON.stringify(yc));
+  ol("S5b tiklayip secmek (change) ve birakmak (drop) AYNI dosya adini kutuda gosterir + not alani acilir (S.dosya dolu)",
+     yc.ad === "kedi.jpg" && yd.ad === "kedi.jpg" && yc.notAcik && yd.notAcik && !yc.hata && !yd.hata, JSON.stringify([yc, yd]));
+  const ytur = await yukle(EKRAN_KAYNAK, "drop", { name: "not.txt", type: "text/plain", size: 10 });
+  const ybuyuk = await yukle(EKRAN_KAYNAK, "change", { name: "dev.jpg", type: "image/jpeg", size: 15 * 1024 * 1024 + 1 });
+  ol("S5c yanlis tur (drop) ve >15 MB (change) kutuda hata satiri, dosya adi YOK, not alani gizli (S.dosya bos)",
+     /JPEG, PNG ya da WEBP/.test(ytur.hata) && !ytur.ad && !ytur.notAcik &&
+     /15 MB/.test(ybuyuk.hata) && !ybuyuk.ad && !ybuyuk.notAcik, JSON.stringify([ytur, ybuyuk]));
+  const mutDrop = EKRAN_KAYNAK.split("      dosyaKoy(fl && fl[0] ? fl[0] : null);\n").length === 2
+    ? EKRAN_KAYNAK.replace("      dosyaKoy(fl && fl[0] ? fl[0] : null);\n", "      S.dosya = fl && fl[0] ? fl[0] : null; guncelleS1Buton();\n") : null;
+  const mdr = mutDrop ? await yukle(mutDrop, "drop", jpg) : null;
+  ol("S-M6 mutant (drop isleyicisi ayri yola cekildi) -> S5b KIRMIZI (kutuda ad yok)", !!mdr && mdr.ad !== "kedi.jpg", JSON.stringify(mdr));
+  const mutBoyut = EKRAN_KAYNAK.split("      else if (f.size > MAKS_DOSYA_BAYT) hata = ").length === 2
+    ? EKRAN_KAYNAK.replace("      else if (f.size > MAKS_DOSYA_BAYT) hata = ", "      else if (false) hata = ") : null;
+  const mbo = mutBoyut ? await yukle(mutBoyut, "change", { name: "dev.jpg", type: "image/jpeg", size: 15 * 1024 * 1024 + 1 }) : null;
+  ol("S-M7 mutant (15 MB denetimi silindi) -> S5c KIRMIZI (buyuk dosya kabul edildi)", !!mbo && mbo.ad === "dev.jpg", JSON.stringify(mbo));
 }
 
 // ================================================================ OL — 3MF OLCU KAPISI

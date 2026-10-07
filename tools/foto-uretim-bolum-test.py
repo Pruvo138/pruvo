@@ -142,6 +142,22 @@ def kontroller(index, bolum, veri, build):
     # Y12 SERIT: ol etiketi numara basilmasin (375 px mimar olcumunde 1./2. gorunuyordu).
     s.append(("Y12 serit kuralinda list-style: none VAR (ol numara basilmasin)",
               re.search(r"\.foto-uretim-serit\{[^}]*list-style\s*:\s*none", bolum) is not None, ""))
+    # Y13 TEK YUKLEME ALANI (Okan 7 Eki 21:5x): ustteki "Foto ekle" kutusu tek dosya girdisi; tiklama
+    # ve birakma ayni yoldan (dosyaKoy); tur + 15 MB denetimi orada. Davranis: foto-uretim.mjs S5.
+    girdi = len(re.findall(r'\.type\s*=\s*"file"|type="file"|setAttribute\("type",\s*"file"\)', bolum))
+    s.append(("Y13a kaynakta dosya girdisi (type=file) TAM 1 yerde olusturulur", girdi == 1, "adet=%d" % girdi))
+    s.append(("Y13a formdaki eski 'Fotoğraf (JPEG' etiketi 0", "Fotoğraf (JPEG" not in bolum, ""))
+    s.append(("Y13a dosya girdisinde capture YOK (mobilde galeri kapanmaz)", "capture" not in bolum, ""))
+    ch = re.search(r'inp\.id = "foto-dosya";\s*inp\.addEventListener\("change", function \(e\) \{(.*?)\n    \}\);', bolum, re.S)
+    dr = re.search(r'kutu\.addEventListener\("drop", function \(e\) \{(.*?)\n    \}\);', bolum, re.S)
+    govde = (ch.group(1) if ch else "") + (dr.group(1) if dr else "")
+    s.append(("Y13b change ve drop isleyicisi AYNI fonksiyonu (dosyaKoy) cagirir, S.dosya'ya kendi yazmaz",
+              bool(ch and dr) and "dosyaKoy(" in ch.group(1) and "dosyaKoy(" in dr.group(1) and "S.dosya" not in govde,
+              "change=%s drop=%s" % (bool(ch), bool(dr))))
+    dk = re.search(r"function dosyaKoy\(f\) \{(.*?)\n  \}\n", bolum, re.S)
+    g = dk.group(1) if dk else ""
+    s.append(("Y13c 15 MB ve tur denetimi dosyaKoy icinde",
+              "f.size > MAKS_DOSYA_BAYT" in g and r"/^image\/(jpeg|png|webp)$/" in g and '"image/svg+xml"' in g, ""))
     return s
 
 
@@ -202,6 +218,28 @@ def main():
         ("M15 serit kuralindan list-style: none kaldirildi",
          (index, bolum.replace(".foto-uretim-serit{list-style:none;", ".foto-uretim-serit{", 1), veri, build), True),
     ]
+    # Y13 mutantlari: capa tutmazsa (metin degismezse) mutant KIRMIZI sayilir — sessizce gecmez.
+    def bm(eski, yeni):
+        return bolum.replace(eski, yeni, 1) if eski in bolum else None
+    y13 = [
+        ("M16 ikinci dosya girdisi eklendi",
+         bm("    S.alanDosya.hidden = !svgGerekir()", '    var ikinci = el("input"); ikinci.type = "file";\n    S.alanDosya.hidden = !svgGerekir()')),
+        ("M17 drop isleyicisi ayri yola cekildi",
+         bm("      dosyaKoy(fl && fl[0] ? fl[0] : null);", "      S.dosya = fl && fl[0] ? fl[0] : null; guncelleS1Buton();")),
+        ("M18 15 MB denetimi dosyaKoy'dan cikti",
+         bm("      else if (f.size > MAKS_DOSYA_BAYT) hata = ", "      else if (false) hata = ")),
+        ("M19 tur denetimi gevsedi (her image/*)", bm(r"/^image\/(jpeg|png|webp)$/.test(tip)", r"/^image\//.test(tip)")),
+        ("M20 girdiye capture eklendi",
+         bm('    inp.id = "foto-dosya";', '    inp.id = "foto-dosya";\n    inp.setAttribute("capture", "environment");')),
+        ("M21 formdaki eski etiket geri geldi",
+         bm("    cizUretimNotu();\n  }", '    S.alanDosya.appendChild(el("label", null, "Fotoğraf (JPEG, PNG veya WEBP — en çok 15 MB)"));\n    cizUretimNotu();\n  }')),
+    ]
+    for ad, mb in y13:
+        if mb is None:
+            print("  ❌ " + ad + " — capa bulunamadi (mutant kurulamadi)")
+            kirmizi += 1
+        else:
+            mutantlar.append((ad, (index, mb, veri, build), True))
     taban = kirmizi_sayisi(index, bolum, veri, build)
     for ad, girdi, olmeli in mutantlar:
         n = kirmizi_sayisi(*girdi)
