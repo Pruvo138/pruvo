@@ -18,6 +18,10 @@ bir KAPIYLA kilitlenir, "bakildi iyi gorunuyor" ile DEGIL.
 
 🔴 KANAL KALDIRILMAZ: bu kapi WhatsApp'in VARLIGINI da olcer (A5). Dengeyi "WhatsApp'i
 silerek" saglamak bu kapida KIRMIZI yanar.
+🔴 TEK ISTISNA — SEPET BUTONU (Okan emri, 7 Eki 2026, aynen: "whatsapp butonunu sepetten
+sil"): sepet panelindeki toplu "WhatsApp ile Siparis Ver" butonu (#cartOrder) SILINDI.
+Kapi artik onun YOKLUGUNU olcer (A9); genel kanal (bant, urun sayfasi, satira ozel
+konfigur linki) A5 ile aynen korunur.
 
 NE OLCER (bes bagimsiz eksen + kanal nobeti)
 ---------------------------------------------
@@ -26,11 +30,14 @@ NE OLCER (bes bagimsiz eksen + kanal nobeti)
   CTA-A2-BANT-PAYI   : sticky WhatsApp bandinin 812 px'lik mobil ekrandaki payi < %10.
                        Hem urun sayfasi (tools/build.py::PAGE_CSS) hem ana/sepet
                        sayfasi (index.html) icin ayri olculur.
-  CTA-A3-SEPET-ALAN  : sepet panelinde birincil odeme CTA'si WhatsApp CTA'sindan
-                       BELGE SIRASINDA once ve ALAN olarak buyuk (>= ORAN_TABANI).
+  CTA-A3-SEPET-ODEME : sepetin TEK toplu CTA'si odeme butonu, olculebilir + tam genislik.
   CTA-A4-DOKUNMA-44  : olculen her CTA'nin yuksekligi >= 44 px (WhatsApp kuculurken de).
-  CTA-A5-KANAL-WA    : `wa.me` baglantilari + numara YERINDE, sepet butonu ETIKETLI.
-  CTA-A6-GECIS-ORAN  : A3 orani GECIS PENCERESINDE de saglaniyor mu? (asagi)
+  CTA-A5-KANAL-WA    : `wa.me` baglantilari + numara YERINDE, bant butonu ETIKETLI.
+  CTA-A6-GECIS-ORAN  : (urun sayfasi icin TARIHCE) sepetteki odeme/WhatsApp gecis orani —
+                       7 Eki'de sepet WhatsApp butonu silinince eksen KONUSUZ kaldi ve
+                       KALKTI; gecis nobetini A7 (geometri anime edilmez) surdurur.
+  CTA-A9-SEPET-WA-YOK: sepet panelinde WhatsApp siparis butonu YOK (eleman, etiket, statik
+                       wa.me, `getElementById("cartOrder")`, `cart_order` olcumu).
 
 🔴 CTA-A6 NEDEN VAR — "SETTLED YESIL" YANLIS YESILDI (olculdu, 11 Agu 2026, canli)
 --------------------------------------------------------------------------------
@@ -110,11 +117,7 @@ MASAUSTU_EN = 1100
 BANT_PAY_TAVANI = 0.10          # A2: sticky bandin ekran payi bunun ALTINDA olmali
 ORAN_TABANI = 1.0               # A1: sepete-ekle / whatsapp
 DOKUNMA_TABANI = 44.0           # A4: mobil dokunma hedefi alt siniri (px)
-# A8: ikincil (WhatsApp) CTA'nin OLCULEN genisligi, birincil (odeme) CTA'nin en fazla
-# bu kadari olabilir. Sozlesmeden gelir (belirgin ikincillik), bugunku olcumden DEGIL:
-# gercek deger 242/317 = 0,76 — tabanla arada rahat pay var. 1,00 yazmak ekseni
-# olusuz birakirdi (esitlik = ayni genislik = ikincillik BITMIS demektir).
-IKINCIL_EN_PAYI = 0.90
+# (A8 ikincil-genislik payi 7 Eki'de sepet WhatsApp butonuyla birlikte KALKTI.)
 
 # Metin genisligi modeli — ORAN iddiasinda iki tarafa da ayni uygulanir.
 KARAKTER_ORANI = 0.55
@@ -779,9 +782,17 @@ def sepet_ic_genisligi(kurallar, viewport=MOBIL_EN):
     return ic if ic > 0 else None
 
 
+def sepet_paneli_html(metin):
+    """index.html'deki sepet panelinin (`<aside id="cartPanel" ...>`) STATIK HTML'i.
+    Capa yoksa None (OLCULEMEDI)."""
+    m = re.search(r'<aside\b[^>]*\bid="cartPanel"[^>]*>(.*?)</aside>', metin, re.S)
+    return m.group(1) if m else None
+
+
 def bolum_sepet(kok, wa_no):
-    """A2 (ana/sepet sayfasi bandi) + A3 — sepet panelinde sira ve boyut."""
-    print("\n(2) ANA/SEPET SAYFASI — bant payi + odeme/WhatsApp sirasi")
+    """A2 (ana/sepet sayfasi bandi) + A3/A9 — sepet panelinde odeme CTA'si ve WhatsApp
+    butonunun YOKLUGU (Okan emri, 7 Eki 2026)."""
+    print("\n(2) ANA/SEPET SAYFASI — bant payi + sepet odeme CTA'si + sepette WhatsApp YOK")
     yol = os.path.join(kok, "index.html")
     if not os.path.exists(yol):
         olculemedi("index.html yok: %s" % yol)
@@ -796,8 +807,7 @@ def bolum_sepet(kok, wa_no):
     if kurallar is None:
         olculemedi("index.html CSS'i ayristirilamadi (ic ice @media?)")
         return None
-    for gerek in (".help-cta-inner", ".help-cta-btn", ".help-cta-text",
-                  ".cart-pay-btn", ".cart-order-btn", ".cart-order-btn.ikincil"):
+    for gerek in (".help-cta-inner", ".help-cta-btn", ".help-cta-text", ".cart-pay-btn"):
         if not kural_var(kurallar, gerek):
             olculemedi("index.html CSS capasi yok: %s" % gerek)
             return None
@@ -815,10 +825,12 @@ def bolum_sepet(kok, wa_no):
     pay = bant_h / MOBIL_BOY
     print("     mobil bant: %.1f px = %%%.1f" % (bant_h, 100 * pay))
 
-    i_pay = metin.find('id="cartPay"')
-    i_wa = metin.find('id="cartOrder"')
-    if i_pay == -1 or i_wa == -1:
-        olculemedi("sepet panelinde cartPay/cartOrder capasi yok")
+    panel = sepet_paneli_html(metin)
+    if panel is None:
+        olculemedi('sepet paneli capasi yok (<aside id="cartPanel">)')
+        return None
+    if 'id="cartPay"' not in panel:
+        olculemedi("sepet panelinde cartPay capasi yok")
         return None
     # KULLANILABILIR GENISLIK — elle sabit YOK, sepet panelinin KENDI CSS'inden turer.
     ic_en = sepet_ic_genisligi(kurallar)
@@ -829,115 +841,76 @@ def bolum_sepet(kok, wa_no):
         return None
     print("     sepet paneli ic genisligi: %.1f px (375 px ekranda)" % ic_en)
 
-    # Sinif kumeleri: (yerlesmis hal, takas ONCESI hal). JS panelde ikisini AYNI ANDA
-    # takar — odeme `.disabled`den cikar, WhatsApp `.ikincil`e girer.
+    # ---- A9: SEPETTE WHATSAPP BUTONU YOK (Okan emri, 7 Eki 2026) ---------------
+    # 🔴 NEDEN (aynen): "whatsapp butonunu sepetten sil". Sepetin toplu WhatsApp
+    # siparis butonu (#cartOrder) eleman + onu yoneten JS + yalniz ona ait CSS ile
+    # SILINDI; gizleme (display:none) YOK. Bu eksen geri donusu KIRMIZI yakar: statik
+    # panelde eleman/etiket/`wa.me` baglantisi, script'te eleman erisimi ya da
+    # `cart_order` olcum cagrisi gorulurse. Sitenin genel WhatsApp kanali (bant,
+    # satira ozel konfigur linki) bu eksenin KONUSU DEGIL — A5 onu ayrica olcer.
+    gorunur_panel = gorunur_metin(kurallar, panel, MOBIL_EN)
+    izler = []
+    if re.search(r'\bid\s*=\s*["\']cartOrder["\']', metin):
+        izler.append('id="cartOrder" elemani')
+    if re.search(r'getElementById\(\s*["\']cartOrder["\']\s*\)', metin):
+        izler.append('getElementById("cartOrder") kolu')
+    if re.search(r"method\s*:\s*['\"]cart_order['\"]", metin):
+        izler.append("generate_lead cart_order olcum cagrisi")
+    if re.search(r"whatsapp\s+ile\s+sipari", gorunur_panel, re.I):
+        izler.append("panelde 'WhatsApp ile Siparis' etiketi")
+    if "wa.me/" in panel:
+        izler.append("panelde statik wa.me baglantisi")
+    if re.search(r'class="[^"]*\bcart-order-btn\b', panel):
+        izler.append("panelde .cart-order-btn elemani")
+    kontrol("CTA-A9-SEPET-WA-YOK", not izler,
+            "sepet panelinde WhatsApp siparis butonu YOK (Okan emri 7 Eki) — %s"
+            % ("eleman/etiket/JS kolu/olcum cagrisi yok" if not izler
+               else "GERI GELDI: " + ", ".join(izler)))
+
+    # ---- A3: sepetin TEK toplu CTA'si odeme butonu — olculebilir ve tam genislik
     d_pay = stil(kurallar, {".cart-pay-btn"}, MOBIL_EN)
     d_pay0 = stil(kurallar, {".cart-pay-btn", ".cart-pay-btn.disabled"}, MOBIL_EN)
-    d_wa = stil(kurallar, {".cart-order-btn", ".cart-order-btn.ikincil"}, MOBIL_EN)
-    d_wa0 = stil(kurallar, {".cart-order-btn"}, MOBIL_EN)
-    m = re.search(r'id="cartPay"[^>]*>\s*([^<]*)', metin)
+    m = re.search(r'id="cartPay"[^>]*>\s*([^<]*)', panel)
     pay_metni = " ".join((m.group(1) if m else "").split())
-    m = re.search(r'id="cartOrder"[^>]*>(.*?)</a>', metin, re.S)
-    wa_metni = gorunur_metin(kurallar, m.group(1) if m else "", MOBIL_EN)
-    wa_ikon = ikon_olcusu(kurallar, [".cart-order-btn"], MOBIL_EN)
-
-    def _olc(d_p, d_w):
-        # odeme = <button> (UA line-height:normal) · WhatsApp = <a> (body'den 1,5 miras)
-        kp = olc_kutu(d_p, pay_metni, 0.0, BUTON_SATIR_YUKSEKLIGI, ic_en)
-        kw = olc_kutu(d_w, wa_metni, wa_ikon, VARSAYILAN_SATIR_YUKSEKLIGI, ic_en)
-        return kp, kw
-
-    k_pay, k_wa = _olc(d_pay, d_wa)
-    if k_pay is None or k_wa is None:
-        olculemedi("sepet paneli butonlari olculemedi")
+    k_pay = olc_kutu(d_pay, pay_metni, 0.0, BUTON_SATIR_YUKSEKLIGI, ic_en)
+    if k_pay is None or not pay_metni:
+        olculemedi("sepet paneli odeme butonu olculemedi")
         return None
     tam_genislik_pay = (d_pay.get("width") or "").strip() in ("100%", "auto") or \
                        (d_pay.get("display") or "").strip() in ("block", "flex")
-    # 🔴 `auto` DARALTMAZ: blok seviyesindeki bir flex kabi `width:auto` ile satiri
-    # DOLDURUR (tarayicida olculdu — ikincil WhatsApp yine tam genislikteydi). Kapinin
-    # kabul ettigi tek daraltici deger kumesi icerige gore buzusen degerlerdir.
-    wa_dar = (d_wa.get("width") or "").strip() in DARALTAN_GENISLIK
-    alan_pay, alan_wa = k_pay[0] * k_pay[1], k_wa[0] * k_wa[1]
-    oran_sepet = (alan_pay / alan_wa) if alan_wa else 0.0
-    print("     yerlesmis: odeme %.0fx%.0f = %.0f px² (%r) · WhatsApp %.0fx%.0f = "
-          "%.0f px² (%r) · oran %.2f · WhatsApp dar mi: %s"
-          % (k_pay[0], k_pay[1], alan_pay, pay_metni,
-             k_wa[0], k_wa[1], alan_wa, wa_metni, oran_sepet, wa_dar))
-    # 🔴 A3 artik ALAN kiyasliyor. Yukseklik tek basina yaniltir: canlida WhatsApp
-    # butonu odemeden KISA ama gecis penceresinde cok daha GENISTI ve oran 1,02'ye
-    # dusuyordu — "daha yuksek" iddiasi o vakada YESIL kaliyordu.
-    kontrol("CTA-A3-SEPET-ALAN",
-            i_pay < i_wa and oran_sepet >= ORAN_TABANI and tam_genislik_pay and wa_dar,
-            "birincil odeme CTA'si WhatsApp'tan ONCE (%d < %d) ve ALAN orani %.2f "
-            ">= %.2f; odeme tam genislikte, WhatsApp ikincil/dar"
-            % (i_pay, i_wa, oran_sepet, ORAN_TABANI))
-
-    # ---- A6: GECIS PENCERESI (sinif takasinin ilk karesi GERCEK bir render halidir)
-    gecisli = gecis_ozellikleri(d_pay) | gecis_ozellikleri(d_wa)
-    geometrik = sorted(gecisli & GEOMETRI_OZELLIKLERI)
-    if not geometrik:
-        print("     gecis penceresi YOK — sepet CTA'larinin `transition` bildirimi "
-              "geometriye dokunmuyor (anime edilen: %s)"
-              % (", ".join(sorted(gecisli)) or "hicbir sey"))
-        oran_gecis = oran_sepet
-        k_pay_g, k_wa_g = k_pay, k_wa
-    else:
-        g_pay = gecis_stili(d_pay0, d_pay, gecis_ozellikleri(d_pay))
-        g_wa = gecis_stili(d_wa0, d_wa, gecis_ozellikleri(d_wa))
-        k_pay_g, k_wa_g = _olc(g_pay, g_wa)
-        if k_pay_g is None or k_wa_g is None:
-            olculemedi("gecis penceresi butonlari olculemedi")
-            return None
-        a_p, a_w = k_pay_g[0] * k_pay_g[1], k_wa_g[0] * k_wa_g[1]
-        oran_gecis = (a_p / a_w) if a_w else 0.0
-        print("     GECIS: odeme %.0fx%.0f = %.0f px² · WhatsApp %.0fx%.0f = %.0f px² "
-              "· oran %.2f  (anime edilen geometri: %s)"
-              % (k_pay_g[0], k_pay_g[1], a_p, k_wa_g[0], k_wa_g[1], a_w, oran_gecis,
-                 ", ".join(geometrik)))
-    kontrol("CTA-A6-GECIS-ORAN", oran_gecis >= ORAN_TABANI,
-            "sinif takasinin ILK karesinde de odeme/WhatsApp alan orani %.2f >= %.2f "
-            "(%s) — gorunmeyen sekmede bu kare KALICIDIR"
-            % (oran_gecis, ORAN_TABANI,
-               "gecis penceresi yok" if not geometrik
-               else "anime edilen geometri: " + ", ".join(geometrik)))
+    print("     yerlesmis: odeme %.0fx%.0f = %.0f px² (%r) · tam genislik: %s"
+          % (k_pay[0], k_pay[1], k_pay[0] * k_pay[1], pay_metni, tam_genislik_pay))
+    kontrol("CTA-A3-SEPET-ODEME", tam_genislik_pay,
+            "sepetin toplu CTA'si odeme butonu tam genislikte (%r)" % pay_metni)
 
     # ---- A7: GECIS GEOMETRIYE HIC DOKUNMAMALI (deponun KENDI beyani) ----------
-    # 🔴 NEDEN AYRI EKSEN (19 Agu 2026, SERIT B onarimi — OLCULEN kapi zaafi): A6
-    # yalnizca MUTLAK tabani (oran >= 1,00) sinar. `transition:.15s` (= `all`) geri
-    # konunca oran 1,94 -> 1,27'ye DUSUYOR ama taban ustunde kaldigi icin A6 YESIL
-    # kaliyordu; mutant SAG KALIYORDU. Oysa index.html'in kendi yorumu (.cart-pay-btn
-    # ustu) "GECIS YALNIZ RENK — GEOMETRI ANIME EDILMEZ" diye BEYAN eder. Bu eksen o
-    # beyani OLCER: sepet CTA'larinin `transition` bildirimi hicbir geometri ozelligi
-    # tasimamali. A6'nin yerine GECMEZ (oran olcumu aynen surer); beyan ile davranisin
-    # ayrismasini kapatir ([[bayat-beyan-kapisi]] sinifi). Kapinin gucu DUSMEDI, ARTTI:
-    # oran tesadufen taban ustunde kalsa da geometri animasyonu artik KIRMIZI yanar.
+    # index.html'in kendi yorumu (.cart-pay-btn ustu) "GECIS YALNIZ RENK — GEOMETRI
+    # ANIME EDILMEZ" diye BEYAN eder. `transition` kisayolu (`all`) geri gelirse
+    # `.disabled` takasinin ilk karesi eski (kucuk) geometriyle render edilir ve
+    # gorunmeyen sekmede o kare KALICIDIR. Eksen o beyani OLCER.
+    gecisli = gecis_ozellikleri(d_pay)
+    geometrik = sorted(gecisli & GEOMETRI_OZELLIKLERI)
+    if geometrik:
+        g_pay = gecis_stili(d_pay0, d_pay, gecisli)
+        k_pay_g = olc_kutu(g_pay, pay_metni, 0.0, BUTON_SATIR_YUKSEKLIGI, ic_en)
+        if k_pay_g is None:
+            olculemedi("gecis penceresi odeme butonu olculemedi")
+            return None
+        print("     GECIS: odeme %.0fx%.0f (anime edilen geometri: %s)"
+              % (k_pay_g[0], k_pay_g[1], ", ".join(geometrik)))
+    else:
+        k_pay_g = k_pay
+        print("     gecis penceresi YOK — odeme CTA'sinin `transition` bildirimi "
+              "geometriye dokunmuyor (anime edilen: %s)"
+              % (", ".join(sorted(gecisli)) or "hicbir sey"))
     kontrol("CTA-A7-GECIS-GEOMETRI-YOK", not geometrik,
-            "sepet CTA'larinin `transition` bildirimi GEOMETRIYE dokunmuyor (anime "
+            "sepet odeme CTA'sinin `transition` bildirimi GEOMETRIYE dokunmuyor (anime "
             "edilen: %s) — deponun beyani 'gecis YALNIZ renk'; geometri animasyonu "
             "gorunmeyen sekmede KALICI ters render karesi dogurur"
             % (", ".join(sorted(gecisli)) or "hicbir sey"))
 
-    # ---- A8: IKINCIL CTA FIILEN DAR MI (beyan degil OLCULEN genislik) ---------
-    # 🔴 NEDEN AYRI EKSEN (19 Agu 2026, ayni onarim): `wa_dar` yalnizca BILDIRIMI
-    # (`width:fit-content`) okur. Etiket uzayinca `fit-content` kullanilabilir
-    # genislige KILITLENIR: WhatsApp butonu 242 -> 317 px'e cikip odemeyle AYNI
-    # genislige ulasiyor, iki satira sariyor, ama bildirim hala `fit-content` oldugu
-    # icin kapi "ikincil/dar" diyordu (M11 boyle SAG KALDI). Bu eksen OLCULEN
-    # genisligi kiyaslar: ikincil kanal birincilin en fazla IKINCIL_EN_PAYI kadari
-    # olmali. Taban bugunku olcumden DEGIL sozlesmeden gelir (belirgin ikincillik);
-    # bugunku gercek deger 242/317 = 0,76 — pay rahat.
-    ikincil_en_orani = (k_wa[0] / k_pay[0]) if k_pay[0] else 1.0
-    kontrol("CTA-A8-IKINCIL-FIILEN-DAR", ikincil_en_orani <= IKINCIL_EN_PAYI,
-            "ikincil WhatsApp CTA'si OLCULEN genislikte de dar: %.0f/%.0f px = %.2f "
-            "<= %.2f (bildirim %r) — `fit-content` uzun etikette kullanilabilir "
-            "genislige kilitlenir ve 'dar' beyani FIILEN yalan olur"
-            % (k_wa[0], k_pay[0], ikincil_en_orani, IKINCIL_EN_PAYI,
-               (d_wa.get("width") or "").strip() or "-"))
-
     kucuk = [(a, h) for a, h in (("sepet odeme", k_pay[1]),
-                                 ("sepet WhatsApp", k_wa[1]),
                                  ("sepet odeme (gecis)", k_pay_g[1]),
-                                 ("sepet WhatsApp (gecis)", k_wa_g[1]),
                                  ("ana sayfa bant WhatsApp", k_bant[1]))
              if h < DOKUNMA_TABANI]
     kontrol("CTA-A4-DOKUNMA-44", not kucuk,
@@ -945,9 +918,11 @@ def bolum_sepet(kok, wa_no):
             % (DOKUNMA_TABANI,
                "hepsi" if not kucuk else "ihlal: " + ", ".join(
                    "%s=%.1f" % (a, h) for a, h in kucuk)))
-    kanal = (wa_no in metin) and ("wa.me/" in metin) and bool(wa_metni.strip())
+    # Genel WhatsApp kanali (bant + satira ozel konfigur linki) ana sayfada YASAR.
+    kanal = (wa_no in metin) and ("wa.me/" in metin) and bool(bant_btn_metni.strip())
     kontrol("CTA-A5-KANAL-WA", kanal,
-            "sepet panelinde WhatsApp CTA'si ve numara YERINDE (%r)" % wa_metni)
+            "ana sayfada genel WhatsApp kanali ve numara YERINDE (bant %r)"
+            % bant_btn_metni)
     return pay
 
 

@@ -17,7 +17,10 @@
  * Beklenen davranis (mimar karari):
  *  1 kayip satir panelde GORUNUR ("Urun bilgisi yuklenemedi" + secim ozeti + fiyat "—"
  *    + kaldirma carpisi), odeme butonu DISABLED, tek satirlik aciklama gorunur.
- *  2 gercek bos sepette "Sepetiniz bos" + odeme/WhatsApp butonlari pasif.
+ *  2 gercek bos sepette "Sepetiniz bos" + odeme butonu pasif.
+ *  (7 Eki 2026, Okan emri "whatsapp butonunu sepetten sil": sepetin toplu WhatsApp
+ *   siparis butonu #cartOrder SILINDI. Eskiden onun pasif/aktif halini soran her iddia
+ *   artik "eleman YOK" iddiasidir — sepetWaYok() + test 17.)
  *  3 rozet = panel satir sayisi (kayip dahil) — celiski yok.
  *  4 panel acilisinda katalog-disi id varsa urunler.json BIR KEZ tazelenir (firsat
  *    duzeltmesi); urun gelirse satir normallesir.
@@ -185,7 +188,7 @@ function kartOzeti(p) {
  *                       fonksiyon(kalem) -> {ok, govde} | {ag:true} | {cop:true} | {sessiz:true}
  */
 async function sayfaKur(ayar) {
-  const { belge } = belgeKur();
+  const { belge, kimlikler } = belgeKur();
   const fetchIzi = [];
   const konsolHatalari = [];
 
@@ -290,6 +293,9 @@ async function sayfaKur(ayar) {
   }
   return {
     el: (id) => belge.getElementById(id),
+    // Sahte getElementById istenen her kimligi YARATIR; "eleman yok" iddiasi bu yuzden
+    // s.el() ile DEGIL, script'in o kimligi HIC istemedigiyle olculur.
+    kimlikVar: (id) => kimlikler.has(id),
     satirlar: () => belge.getElementById("cartItems").children,
     metin: (id) => govdeMetni(belge.getElementById(id)),
     baslik: () => belge.getElementById("sectionTitle").textContent,
@@ -308,6 +314,14 @@ const GERCEK = {
 };
 const KATALOG = [GERCEK];
 const KAYIP_SATIR = { id: "hayalet-urun", malzeme: "PETG", renk: "Siyah", adet: 1 };
+
+/** Okan emri (7 Eki): sepette toplu WhatsApp siparis butonu YOK. Script #cartOrder'i
+ *  hic istememeli (eleman + yoneten kod silindi); statik HTML'de de bulunmamali. */
+function sepetWaYok(s, hatalar, baglam) {
+  if (s.kimlikVar("cartOrder")) {
+    hatalar.push(baglam + ": script #cartOrder elemanini ariyor (sepet WhatsApp butonu geri geldi)");
+  }
+}
 
 let gecen = 0, kalan = 0;
 function rapor(ad, hatalar, detay) {
@@ -349,11 +363,9 @@ async function test1KayipSatir() {
   if (String(rozet) !== String(satirlar.length) || String(rozet) !== "1") {
     hatalar.push("rozet=" + rozet + " panel=" + satirlar.length + " (ikisi de 1 olmali)");
   }
-  // Kayip satir toplamlara girmez: parasal satirlar gizli, WhatsApp pasif (gecerli satir yok)
+  // Kayip satir toplamlara girmez: parasal satirlar gizli; sepette WhatsApp butonu YOK
   if (s.el("cartAraRow").style.display === "flex") { hatalar.push("kayip satir ara toplami acti"); }
-  if (s.el("cartOrder").className.indexOf("disabled") === -1) {
-    hatalar.push("tum satirlar kayipken WhatsApp butonu aktif");
-  }
+  sepetWaYok(s, hatalar, "tum satirlar kayip");
   // Carpiyla kaldirilabilir -> gercek bos sepet durumuna doner
   const carpi = (satirlar[0] && satirlar[0].children || [])
     .filter((c) => c.tagName === "BUTTON").pop();
@@ -383,9 +395,7 @@ async function test2BosSepet() {
   const pay = s.el("cartPay");
   if (pay.disabled !== true) { hatalar.push("bos sepette odeme butonu disabled DEGIL"); }
   if (pay.className.indexOf("disabled") === -1) { hatalar.push("bos sepette .disabled sinifi yok"); }
-  if (s.el("cartOrder").className.indexOf("disabled") === -1) {
-    hatalar.push("bos sepette WhatsApp butonu pasif degil");
-  }
+  sepetWaYok(s, hatalar, "bos sepet");
   if (String(s.el("cartCount").textContent) !== "0") {
     hatalar.push("rozet " + s.el("cartCount").textContent + " (0 olmali)");
   }
@@ -393,7 +403,7 @@ async function test2BosSepet() {
   const varsayilan = /<button id="cartPay"[^>]*\bdisabled\b/.test(INDEX);
   if (!varsayilan) { hatalar.push("HTML'de cartPay varsayilan olarak disabled degil"); }
   rapor("2 bos sepet butonlari pasif", hatalar,
-    "Sepetiniz bos + odeme/WhatsApp pasif + HTML varsayilani disabled");
+    "Sepetiniz bos + odeme pasif + sepette WhatsApp butonu yok + HTML varsayilani disabled");
 }
 
 /** 3 — firsat duzeltmesi: panel acilisinda katalog tazelenir, urun gelirse satir normallesir */
@@ -448,12 +458,9 @@ async function test4KarisikSepet() {
   }
   if (s.el("cartPay").disabled !== true) { hatalar.push("kayip satir varken odeme acik"); }
   if (s.el("cartKayipNot").style.display !== "block") { hatalar.push("aciklama satiri yok"); }
-  // WhatsApp yasar ama metne yalniz gercek urun girer
-  const wa = decodeURIComponent(s.el("cartOrder").href || "");
-  if (wa.indexOf("Test Gercek Urun") === -1) { hatalar.push("WhatsApp metninde gercek urun yok"); }
-  if (wa.indexOf("hayalet") !== -1) { hatalar.push("WhatsApp metnine kayip satir sizdi"); }
+  sepetWaYok(s, hatalar, "karisik sepet");
   rapor("4 karisik sepet (gercek + kayip)", hatalar,
-    "2 satir, toplam yalniz gercekten, odeme kilitli, WhatsApp'a kayip sizmadi");
+    "2 satir, toplam yalniz gercekten, odeme kilitli, sepette WhatsApp butonu yok");
 }
 
 /** 5 — regresyon: katalogda olan id'lerle normal akis DEGISMEMIS */
@@ -485,7 +492,7 @@ async function test5NormalAkis() {
   if (s.el("cartKayipNot").style.display === "block") {
     hatalar.push("normal sepette kayip aciklamasi gorunuyor");
   }
-  if (!s.el("cartOrder").href) { hatalar.push("WhatsApp href'i yok"); }
+  sepetWaYok(s, hatalar, "normal sepet");
   const tazeleme = s.fetchIzi.filter((f) => f.url.indexOf("ids=") !== -1);
   if (tazeleme.length !== 0) {
     hatalar.push("normal sepette gereksiz katalog tazelemesi (" + tazeleme.length + " fetch)");
@@ -502,9 +509,10 @@ async function test5NormalAkis() {
 /** 6 — KOK NEDEN (17 Tem canli): bozuk unicode (essiz surrogate) sepetten ANA fetch
  *  zincirine ulasip katalog basligini "Urunler yuklenemedi"ye ceviriyordu. Essiz surrogate
  *  hem katalog basligina (bayat/CDN kopyasi) hem localStorage renk_ozel'ine (kullanici
- *  girdisi) konur; cartWaHref -> encodeURIComponent URIError atardi. KIRMIZI (fix'siz):
- *  title flips + panel bos. YESIL (fix): title "Tum Urunler" kalir, satir NORMAL render'lanir,
- *  WhatsApp linki uretilir (waKodla essiz surrogate'i U+FFFD yapip encode eder). */
+ *  girdisi) konur; WhatsApp linki -> encodeURIComponent URIError atardi. KIRMIZI (fix'siz):
+ *  title flips + panel bos. YESIL (fix): title "Tum Urunler" kalir, satir NORMAL render'lanir.
+ *  (Toplu sepet WhatsApp linki 7 Eki'de butonla birlikte SILINDI; waKodla satira ozel
+ *  konfigur linkinde yasar.) */
 async function test6BozukUnicode() {
   const hatalar = [];
   const LONE = "\uD83D";                                   // essiz yuksek surrogate
@@ -528,14 +536,12 @@ async function test6BozukUnicode() {
   if (s.metin("cartItems").indexOf("Sepet görüntülenemedi") !== -1) {
     hatalar.push("kok neden giderilmemis: normal render yerine kacis durumu gosteriliyor");
   }
-  // WhatsApp linki gercekten uretilebilmis olmali (encode patlamadi)
-  const wa = s.el("cartOrder").href || "";
-  if (wa.indexOf("https://wa.me/") !== 0) { hatalar.push("WhatsApp linki uretilemedi (encode patladi)"); }
+  sepetWaYok(s, hatalar, "bozuk unicode");
   // Odeme normal acik (urun bulundu + fiyatli); rozet 1
   if (s.el("cartPay").disabled !== false) { hatalar.push("bozuk unicode odeme butonunu kilitledi"); }
   if (String(s.el("cartCount").textContent) !== "1") { hatalar.push("rozet 1 degil"); }
   rapor("6 bozuk unicode kok neden", hatalar,
-    "title korundu, satir NORMAL render'landi, WhatsApp linki uretildi, URIError yok");
+    "title korundu, satir NORMAL render'landi, URIError yok");
 }
 
 /** 7 — SAVUNMA: sepet render'i BASKA (ongorulmeyen) bir nedenle patlasa bile ANA fetch
@@ -562,9 +568,7 @@ async function test7SavunmaKacis() {
     hatalar.push("kacis durumu ('Sepet görüntülenemedi') gosterilmiyor");
   }
   if (s.el("cartPay").disabled !== true) { hatalar.push("kacis durumunda odeme kilitli DEGIL"); }
-  if (s.el("cartOrder").className.indexOf("disabled") === -1) {
-    hatalar.push("kacis durumunda WhatsApp butonu pasif degil");
-  }
+  sepetWaYok(s, hatalar, "kacis durumu");
   // "Sepeti temizle" butonu HER durumda calismali (musterinin cikis yolu)
   const box = s.satirlar()[0];
   const btn = (box && box.children || []).filter((c) => c.tagName === "BUTTON").pop();
@@ -623,11 +627,9 @@ async function test8KatalogDustu() {
   if (s.el("edgeDurum").style.display !== "flex") {
     hatalar.push("uyari elemani gizli (edgeDurum display '" + s.el("edgeDurum").style.display + "')");
   }
-  // Katalog yok -> gecerli satir yok -> odeme + WhatsApp kilitli, gereksiz 2. fetch atilmadi
+  // Katalog yok -> gecerli satir yok -> odeme kilitli, gereksiz 2. fetch atilmadi
   if (s.el("cartPay").disabled !== true) { hatalar.push("katalog yokken odeme acik"); }
-  if (s.el("cartOrder").className.indexOf("disabled") === -1) {
-    hatalar.push("katalog yokken WhatsApp butonu aktif");
-  }
+  sepetWaYok(s, hatalar, "katalog yok");
   const acilis = s.fetchIzi.filter((f) => f.url.indexOf("ozet.json") !== -1);
   const tazeleme = s.fetchIzi.filter((f) => f.url.indexOf("ids=") !== -1);
   if (acilis.length !== 1) {
@@ -748,10 +750,9 @@ async function test10KonfigurKapali() {
   if (s.el("odemeForm").style.display === "block") {
     hatalar.push("kart yolu kapaliyken odeme formu ACILDI (musteri formu dolduruyor)");
   }
-  // WhatsApp kanali yasiyor + hangi urun oldugu ADIYLA sepette yaziyor
-  if (s.el("cartOrder").className.indexOf("disabled") !== -1) {
-    hatalar.push("WhatsApp butonu pasif (tek kanal kapandi)");
-  }
+  // Sepette toplu WhatsApp butonu YOK (7 Eki); kanal satira ozel linkte yasar (asagida)
+  // + hangi urun oldugu ADIYLA sepette yaziyor
+  sepetWaYok(s, hatalar, "konfigur kapali");
   const not = s.el("cartKonfigurNot");
   if (not.style.display !== "block") { hatalar.push("sepette konfigur uyarisi gorunmuyor"); }
   if (String(not.textContent).indexOf(KONFIGUR_URUN.baslik) === -1) {
@@ -843,8 +844,10 @@ async function test12FailClosed() {
     if (s.el("odemeForm").style.display === "block") {
       hatalar.push(ad + ": odeme formu acildi");
     }
-    if (s.el("cartOrder").className.indexOf("disabled") !== -1) {
-      hatalar.push(ad + ": WhatsApp kanali da kapandi (musterinin cikisi yok)");
+    // Toplu sepet WhatsApp butonu YOK (7 Eki); musterinin cikisi satira ozel link
+    sepetWaYok(s, hatalar, ad);
+    if (s.metin("cartItems").indexOf("WhatsApp'tan sor") === -1) {
+      hatalar.push(ad + ": satira ozel WhatsApp linki yok (musterinin cikisi yok)");
     }
   }
   /* CEVAP GELMEDEN (bekliyor) — en sinsi hal: prova ucusta iken varsayilan "odenebilir"
@@ -1040,6 +1043,34 @@ async function test15SinifBeyani() {
 }
 
 /** 16 — MUSTERI NOTU istemci kablosu: konum + maxlength + /baslat govdesi. */
+/** 17 — OKAN EMRI (7 Eki 2026, aynen: "whatsapp butonunu sepetten sil"): sepet
+ *  panelindeki toplu "WhatsApp ile Siparis Ver" butonu (#cartOrder) TAMAMEN kalkti —
+ *  gizleme degil SILME: eleman, onu yoneten JS ve generate_lead cart_order olcumu yok.
+ *  Odeme (cartPay) ve "Sepeti temizle" (cartClear) yerinde. */
+function test17SepetWaButonuYok() {
+  const hatalar = [];
+  const p = INDEX.match(/<aside\b[^>]*\bid="cartPanel"[^>]*>([\s\S]*?)<\/aside>/);
+  if (!p) {
+    hatalar.push("sepet paneli (<aside id=\"cartPanel\">) bulunamadi");
+  } else {
+    const panel = p[1];
+    if (/\bid\s*=\s*["']cartOrder["']/.test(INDEX)) { hatalar.push("index.html'de id=\"cartOrder\" var"); }
+    if (/WhatsApp ile Sipari/i.test(panel)) { hatalar.push("panelde 'WhatsApp ile Sipariş' etiketi var"); }
+    if (panel.indexOf("wa.me/") !== -1) { hatalar.push("panelde statik wa.me linki var"); }
+    if (panel.indexOf('id="cartPay"') === -1) { hatalar.push("odeme butonu (cartPay) panelde YOK"); }
+    if (panel.indexOf('id="cartClear"') === -1) { hatalar.push("Sepeti temizle (cartClear) panelde YOK"); }
+  }
+  if (/getElementById\(\s*["']cartOrder["']\s*\)/.test(SCRIPT)) {
+    hatalar.push("script getElementById(\"cartOrder\") kullaniyor");
+  }
+  if (/method\s*:\s*['"]cart_order['"]/.test(INDEX)) {
+    hatalar.push("generate_lead cart_order olcum cagrisi duruyor");
+  }
+  if (/\bcartWaHref\b/.test(SCRIPT)) { hatalar.push("olu cartWaHref kodu duruyor"); }
+  rapor("17 sepette WhatsApp butonu YOK (Okan 7 Eki)", hatalar,
+    "#cartOrder eleman/JS/olcum yok; cartPay + cartClear yerinde");
+}
+
 function test16MusteriNotuKablosu() {
   const hatalar = [];
   const adres = INDEX.indexOf('id="oAdres"');
@@ -1078,6 +1109,7 @@ async function main() {
   await test14IstekSayisi();
   await test15SinifBeyani();
   test16MusteriNotuKablosu();
+  test17SepetWaButonuYok();
   console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" +
     (kalan ? "" : " — HEPSI YESIL ✅"));
   process.exit(kalan ? 1 : 0);

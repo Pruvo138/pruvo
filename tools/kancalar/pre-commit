@@ -185,6 +185,30 @@ if [ "$pruvo_alan_rc" -ne 0 ]; then
   exit 1
 fi
 
+# --- 5b) URUN METIN SAGLIK KAPISI — INDEX (COMMIT ANI) kolu (FAIL-CLOSED) ---
+# 🔴 7 EKI 2026 — "BOZUK KELIME CANLIYA CIKTI" SINIFI (olculdu): `d2b659fd` partisi
+#   "tahliśfe" / "kaanibölümüm" metinleriyle main'e girdi; parti-kontrol.py hicbir
+#   kancaya bagli degildi ve commit SONRASI elle kosulunca "parti yok" dedi. Bu adim
+#   YENI partideki (HEAD'de olmayan id) Turk alfabesi disi Latin harfli kelimeyi
+#   (izin listesi: tools/metin-saglik-izin.json, TURETILIR) COMMIT ANINDA durdurur.
+#   Uzun+tekil kelime ve i/I karisimi UYARI'dir, commit'i durdurmaz.
+# EKSEN INDEX'TIR (`:urunler.json` vs `HEAD:urunler.json`); on-eleme kapinin icinde.
+# rc=2 (OLCULEMEDI) YESIL SAYILMAZ -> commit DURUR.
+pruvo_metin="$pruvo_kok/tools/metin-saglik-kapisi.py"
+if [ ! -f "$pruvo_metin" ]; then
+  echo "!! COMMIT DURDURULDU — tools/metin-saglik-kapisi.py YOK." >&2
+  echo "!! Urun metin sagligi OLCULEMEDI; olculemeyen sey yesil sayilmaz." >&2
+  exit 1
+fi
+python3 "$pruvo_metin" --pre-commit
+pruvo_metin_rc=$?
+if [ "$pruvo_metin_rc" -ne 0 ]; then
+  echo "!! COMMIT DURDURULDU — metin saglik kapisi rc=$pruvo_metin_rc (0=YESIL 1=KIRMIZI 2=OLCULEMEDI)." >&2
+  echo "!! Gerekce yukarida (SORUN A satirlari). Metni duzelt; marka ise izin listesini turet:" >&2
+  echo "!!   python3 tools/metin-saglik-kapisi.py --izin-turet" >&2
+  exit 1
+fi
+
 # --- 6) DEVAM SINIF KAPISI — INDEX (COMMIT ANI) kolu (FAIL-CLOSED) ----------
 # 🔴 9 AGU 2026 ONARIMI — "DEFTER IHLALI YAYINI DURDURUYOR" SINIFI (olculdu):
 #   `bdddaee0` izlenen kok defterine bir E5 (kapi-bypass) satiri soktu. Kapi
