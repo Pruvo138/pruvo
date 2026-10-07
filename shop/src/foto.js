@@ -805,7 +805,11 @@ async function acikUcu(env, simdi, telegram) {
     if (!havuz.acik) { turler = turler.filter((t) => !saglayiciTuru(t.kod)); }
   }
   if (!turler.length) { return fjson({ acik: false, turler: [], ...taban }, 200); }
-  return fjson({ acik: true, turler, ...taban }, 200);
+  // 2D konsept yalniz saglayici kolundaki ACIK turlerde (manifest kaydi gecerliyse) sunulur.
+  const konsept = konseptAyarGecerli()
+    ? { turler: turler.filter((t) => saglayiciTuru(t.kod)).map((t) => t.kod), deneme: KONSEPT.deneme_is_basi }
+    : { turler: [], deneme: 0 };
+  return fjson({ acik: true, turler, konsept, ...taban }, 200);
 }
 
 // ---------------------------------------------------------------- uc: /foto/onizleme
@@ -907,8 +911,9 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   // ONAY: iki kutu da true olmali ve musterinin gordugu metin GUNCEL surum olmali.
   if (g.hak_onay !== true || g.aktarim_onay !== true) { return fjson({ hata: "onay-yok" }, 400); }
   if (g.onay_surum !== VERI.onay_surum) { return fjson({ hata: "onay-surumu-eski" }, 409); }
-  const gorsel = gorselCoz(g.gorsel);
-  if (!gorsel) { return fjson({ hata: "gorsel-gecersiz" }, 400); }
+  // KONSEPT ONAYLANDIYSA 3D onizlemenin girdisi konsept gorselidir (foto ikinci kez gelmez).
+  const gorsel = g.konsept !== undefined ? await konseptGirdisi(env, g.konsept, tur.kod, false) : gorselCoz(g.gorsel);
+  if (!gorsel) { return fjson({ hata: g.konsept !== undefined ? "konsept-gecersiz" : "gorsel-gecersiz" }, 400); }
 
   if (await hizSiniriAsildi(request, env)) { return fjson({ hata: "cok-istek" }, 429); }
   const ip = request.headers.get("CF-Connecting-IP") || "yok";
@@ -927,6 +932,7 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   const isNo = yeniIsNo();
   const hata = await onizlemeGonder(env, isNo, tur.kod, olcu, ziyaretci, gorsel.uri, simdi, telegram, nt.deger);
   if (hata) { return hata; }
+  if (gorsel.konsept) { await konseptBagla(env, gorsel.konsept, isNo); }
   return fjson({ is: isNo, kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1) }, 200);
 }
 
@@ -967,6 +973,264 @@ async function onizlemeGonder(env, isNo, tur, olcu, ziyaretci, uri, simdi, teleg
   }
   await env.KATALOG.prepare("UPDATE foto_isler SET gorev = ? WHERE is_no = ?").bind(gorev, isNo).run();
   return null;
+}
+
+// ---------------------------------------------------------------- uc: /foto/konsept (2D KONSEPT)
+//
+// Okan 7 Eki 14:5x: "görsel eklendikten sonra müşteri ... not yazabilmeli ve 2d sonuç buna göre çıkmalı".
+// AKIS: foto + "Nasil olsun?" notu -> saglayicinin gorsel+metin -> gorsel ucu -> konsept gorseli (ozel
+// kova) -> musteri "Bunu kullan" -> /foto/onizleme {konsept} -> 3D onizlemenin GIRDISI konsept gorselidir.
+// Sinirlar (hepsi burada, testli: shop/test/foto-konsept.mjs): is (oturum) basi deneme · bot jetonu
+// (fail-closed) · ziyaretci 24 s siniri · gunluk kredi tavani (asilinca 429) · acilis anahtari (tur
+// kapaliysa saglayiciya 0 cagri) · havuz esigi. ORNEK kolu (panel) ziyaretci/bot/tavan sinirsiz.
+// Saglayiciya giden: foto (data URI) + sabit cerceve + DOGRULANMIS not (e-posta/telefon RED). IP, ad,
+// siparis bilgisi GITMEZ.
+
+/** Konsept ayarlari TEK KAYNAK: manifest (foto-uretim-veri.js VERI.konsept). */
+const KONSEPT = VERI.konsept;
+/** Saglayicinin gorsel+metin -> gorsel ucu (taban URETIM_API_TABAN; ad/host kodda YOK). */
+const KONSEPT_YOLU = "/v1/image-to-image";
+/** Konsept gorseli ozel kovada; yalniz konsept anahtariyla sunulur, 3 gun sonra silinir. */
+export function konseptAnahtari(no) { return "foto-konsept/" + no + ".png"; }
+
+/** Manifest kaydi eksik/bozuksa konsept KAPALI (fail-closed: harcama yolu). */
+export function konseptAyarGecerli() {
+  const k = KONSEPT;
+  const tam = (n) => Number.isInteger(n) && n > 0;
+  return !!k && typeof k.model === "string" && /^[a-z0-9.-]{2,40}$/.test(k.model) &&
+    tam(k.kredi_tahmini) && tam(k.deneme_is_basi) && tam(k.sinir_ziyaretci_24s) && tam(k.gunluk_kredi_tavani);
+}
+
+/**
+ * SABIT CERCEVE (Ingilizce: model talimati). Musteri notu (dogrulanmis, temiz) yalniz SONUNA eklenir;
+ * not bossa cerceve tek basina gider (foto -> stil konsepti).
+ */
+export const KONSEPT_CERCEVE =
+  "Redraw the main subject of the reference photo as a clean, bold, flat-colour illustration for a " +
+  "raised relief plaque: at most 4 solid colours, clear outlines, simple plain light background, " +
+  "no text, no letters, no logos, no watermark. Keep the subject recognisable and centred.";
+export function konseptPromptu(not) {
+  return not ? KONSEPT_CERCEVE + " Customer request (may be in Turkish): \"" + String(not).replace(/"/g, "'") + "\""
+    : KONSEPT_CERCEVE;
+}
+
+/** Bayt -> base64 (Worker'da Buffer yok; parcali btoa). */
+function b64(bayt) {
+  const u = new Uint8Array(bayt);
+  let s = "";
+  for (let i = 0; i < u.length; i += 0x8000) { s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); }
+  return btoa(s);
+}
+
+/** Konsept sayilari: oturumdaki deneme · ziyaretcinin 24 s denemesi · tum musterilerin 24 s denemesi. */
+async function konseptSayilari(env, oturum, ziyaretci, simdi) {
+  const esik = saatOnce(simdi, 24);
+  const o = oturum ? await env.KATALOG.prepare(
+    "SELECT COUNT(*) AS n, COALESCE(SUM(ziyaretci = ?), 0) AS ornek FROM foto_konsept WHERE oturum = ?"
+  ).bind(ORNEK_ZIYARETCI, oturum).first() : null;
+  const k = await env.KATALOG.prepare(
+    "SELECT COUNT(*) AS n FROM foto_konsept WHERE ziyaretci = ? AND tarih >= ?").bind(ziyaretci, esik).first();
+  // Ornek konseptleri (panel) musterinin gunluk kredi tavanini YEMEZ.
+  const g = await env.KATALOG.prepare(
+    "SELECT COUNT(*) AS n FROM foto_konsept WHERE ziyaretci != ? AND tarih >= ?").bind(ORNEK_ZIYARETCI, esik).first();
+  return { oturum: (o && o.n) || 0, oturumOrnek: (o && o.ornek) || 0, kisi: (k && k.n) || 0, genel: (g && g.n) || 0 };
+}
+
+/**
+ * POST /foto/konsept {tur, gorsel, not?, oturum?, hak_onay, aktarim_onay, onay_surum, turnstile_token}
+ * -> {konsept, oturum, kalan}. `ornek` = panel kolu (bot/onay/ziyaretci/tavan ATLANIR, havuz AYNEN).
+ */
+async function konseptUret(request, env, simdi, telegram, ornek) {
+  const y = ornek ? ornekYapilandirma(env) : yapilandirma(env);
+  if (!y.hazir || !konseptAyarGecerli()) { return fjson({ hata: "kapali" }, 503); }
+  let g;
+  try { g = await request.json(); } catch (e) { g = null; }
+  if (!g || typeof g !== "object") { return fjson({ hata: "gecersiz-istek" }, 400); }
+  // Konsept yalniz SAGLAYICI kolunda (3D onizlemeye girer). Musteride acilis anahtari ZORUNLU.
+  let tur = null;
+  if (ornek) {
+    const k = g.tur === undefined ? Object.keys(TUR_ORTAM)[0] : g.tur;
+    tur = saglayiciTuru(k) ? k : null;
+  } else {
+    const t = acikTurler(await acikAnahtari(env)).find((x) => x.kod === g.tur && saglayiciTuru(x.kod));
+    tur = t ? t.kod : null;
+  }
+  if (!tur) { return fjson({ hata: "tur-kapali" }, 400); }
+  if (!ornek && (typeof g.turnstile_token !== "string" || !g.turnstile_token.trim())) {
+    return fjson({ hata: "bot-jetonu-yok" }, 400);
+  }
+  const nt = uretimNotuDogrula(g.not);
+  if (!nt.ok) { return fjson({ hata: nt.hata }, 400); }
+  if (!ornek) {
+    if (g.hak_onay !== true || g.aktarim_onay !== true) { return fjson({ hata: "onay-yok" }, 400); }
+    if (g.onay_surum !== VERI.onay_surum) { return fjson({ hata: "onay-surumu-eski" }, 409); }
+  }
+  const gorsel = gorselCoz(g.gorsel);
+  if (!gorsel) { return fjson({ hata: "gorsel-gecersiz" }, 400); }
+  const oturum = g.oturum === undefined || g.oturum === null || g.oturum === "" ? null : g.oturum;
+  if (oturum !== null && !IS_KALIBI.test(String(oturum))) { return fjson({ hata: "gecersiz-oturum" }, 400); }
+
+  const ziyaretci = ornek ? ORNEK_ZIYARETCI :
+    await ziyaretciOzeti(env, request.headers.get("CF-Connecting-IP") || "yok");
+  let sayi;
+  try { sayi = await konseptSayilari(env, oturum, ziyaretci, simdi); } catch (e) {
+    // Sayilamayan sinir = KAPALI (tablo yok dahil): saglayiciya istek 0.
+    return fjson({ hata: "kapali" }, 503);
+  }
+  // Musteri oturumu ornek kolunda (ya da tersi) kullanilamaz.
+  if (oturum && (ornek ? sayi.oturum !== sayi.oturumOrnek : sayi.oturumOrnek > 0)) {
+    return fjson({ hata: "bulunamadi" }, 404);
+  }
+  if (sayi.oturum >= KONSEPT.deneme_is_basi) {
+    return fjson({ hata: "konsept-hakki-bitti", deneme: KONSEPT.deneme_is_basi }, 429);
+  }
+  if (!ornek) {
+    if (await hizSiniriAsildi(request, env)) { return fjson({ hata: "cok-istek" }, 429); }
+    if (sayi.kisi >= KONSEPT.sinir_ziyaretci_24s) {
+      return fjson({ hata: "konsept-siniri", sinir: KONSEPT.sinir_ziyaretci_24s }, 429);
+    }
+    if ((sayi.genel + 1) * KONSEPT.kredi_tahmini > KONSEPT.gunluk_kredi_tavani) {
+      return fjson({ hata: "konsept-gunluk-tavan" }, 429);
+    }
+    const botGecti = await botDogrula(request, env, g.turnstile_token);
+    if (!botGecti) { return fjson({ hata: "bot-dogrulama" }, 403); }
+  }
+  const havuz = await havuzHukmu(env, simdi, telegram);
+  if (!havuz.acik) { return fjson({ hata: ornek ? "havuz-esikte" : "kapali" }, 503); }
+
+  // Satir saglayicidan ONCE yazilir: reddedilen deneme de sinirlardan duser (kaba kuvvetle kredi yakilamaz).
+  const no = yeniIsNo();
+  const ot = oturum || yeniIsNo();
+  await env.KATALOG.prepare(
+    "INSERT INTO foto_konsept (konsept_no, oturum, tur, ziyaretci, tarih, asama) VALUES (?, ?, ?, ?, ?, 'uretiliyor')"
+  ).bind(no, ot, tur, ziyaretci, simdiIso(simdi)).run();
+  const c = await saglayici(env, "POST", KONSEPT_YOLU, {
+    ai_model: KONSEPT.model,
+    prompt: konseptPromptu(nt.deger),
+    reference_image_urls: [gorsel.uri],
+  });
+  const gorev = gorevKimligi(c.govde);
+  if (c.kod < 200 || c.kod >= 300 || !gorev) {
+    const sebep = c.kod === 400 ? "gorsel-uygun-degil" : (c.kod === 402 ? "kredi" : "saglayici");
+    await env.KATALOG.prepare(
+      "UPDATE foto_konsept SET asama = 'basarisiz', hata = ? WHERE konsept_no = ?").bind(sebep, no).run();
+    if (c.kod === 402 && typeof telegram === "function") {
+      await telegram(env, "📸 Fotoğraftan üretim: konsept kredisi YETMEDİ (sağlayıcı 402).");
+    }
+    return fjson({ hata: sebep === "gorsel-uygun-degil" ? "gorsel-uygun-degil" : "gecici-hata" },
+                 sebep === "gorsel-uygun-degil" ? 422 : 503);
+  }
+  await env.KATALOG.prepare("UPDATE foto_konsept SET gorev = ? WHERE konsept_no = ?").bind(gorev, no).run();
+  return fjson({ konsept: no, oturum: ot, kalan: Math.max(0, KONSEPT.deneme_is_basi - sayi.oturum - 1) }, 200);
+}
+
+async function konseptGetir(env, no) {
+  if (!IS_KALIBI.test(String(no || ""))) { return null; }
+  try {
+    return await env.KATALOG.prepare(
+      "SELECT konsept_no, oturum, tur, ziyaretci, tarih, asama, gorev, son_kontrol, hazir_tarih, hata, is_no" +
+      " FROM foto_konsept WHERE konsept_no = ?").bind(no).first();
+  } catch (e) {
+    if (tabloYok(e)) { return null; }
+    throw e;
+  }
+}
+
+function konseptYaniti(k, ornek) {
+  const v = { konsept: k.konsept_no, oturum: k.oturum, asama: k.asama };
+  if (k.asama === "hazir") {
+    v.gorsel = (ornek ? "/api/shop/yonet/foto/ornek-konsept-gorsel" : "/api/shop/foto/konsept-gorsel") +
+      "?konsept=" + k.konsept_no;
+  }
+  if (k.asama === "basarisiz") { v.hata = k.hata === "gorsel-uygun-degil" ? "gorsel-uygun-degil" : "uretilemedi"; }
+  if (k.asama === "silindi") { v.asama = "suresi-doldu"; }
+  if (k.ilerleme !== undefined) { v.ilerleme = k.ilerleme; }
+  return fjson(v, 200);
+}
+
+/** GET /foto/konsept-durum?konsept= — gorevi yoklar; hazirsa gorseli ozel kovaya indirir (CAS'li). */
+async function konseptDurum(env, url, simdi, ornek) {
+  const k = await konseptGetir(env, url.searchParams.get("konsept"));
+  // Ornek konsepti musteri ucunda (ve tersi) YOK sayilir: varligi da sizmaz.
+  if (!k || ornekMi(k) !== !!ornek) { return fjson({ hata: "bulunamadi" }, 404); }
+  const hazir = (ornek ? ornekYapilandirma(env) : yapilandirma(env)).hazir;
+  if (k.asama !== "uretiliyor" || !k.gorev || !hazir) { return konseptYaniti(k, ornek); }
+  if (simdi - (k.son_kontrol || 0) < DURUM_ARALIK_MS) { return konseptYaniti(k, ornek); }
+  const kilit = await env.KATALOG.prepare(
+    "UPDATE foto_konsept SET son_kontrol = ? WHERE konsept_no = ? AND son_kontrol = ? AND asama = 'uretiliyor'"
+  ).bind(simdi, k.konsept_no, k.son_kontrol || 0).run();
+  if (!kilit || !kilit.meta || kilit.meta.changes !== 1) { return konseptYaniti(k, ornek); }
+  const c = await saglayici(env, "GET", KONSEPT_YOLU + "/" + k.gorev, null);
+  if (c.kod !== 200 || !c.govde) { return konseptYaniti(k, ornek); }
+  const d = gorevDurumu(c.govde);
+  if (d === "dustu") {
+    await env.KATALOG.prepare("UPDATE foto_konsept SET asama = 'basarisiz', hata = 'uretilemedi'" +
+      " WHERE konsept_no = ? AND asama = 'uretiliyor'").bind(k.konsept_no).run();
+    return konseptYaniti({ ...k, asama: "basarisiz", hata: "uretilemedi" }, ornek);
+  }
+  if (d !== "bitti") {
+    const p = c.govde.progress;
+    return konseptYaniti({ ...k, ilerleme: Number.isInteger(p) ? p : null }, ornek);
+  }
+  const adres = Array.isArray(c.govde.image_urls) ? c.govde.image_urls[0] : "";
+  const dosya = await dosyaIndir(adres);
+  if (!dosya) { return konseptYaniti(k, ornek); }   // sonraki yoklama yeniden dener
+  await env.OZEL_DOSYA.put(konseptAnahtari(k.konsept_no), dosya.tampon,
+    { httpMetadata: { contentType: /png|jpeg|webp/.test(dosya.tip) ? dosya.tip.split(";")[0] : "image/png" } });
+  const kredi = krediSayisi(c.govde);
+  await env.KATALOG.prepare("UPDATE foto_konsept SET asama = 'hazir', hazir_tarih = ?, kredi = ?" +
+    " WHERE konsept_no = ? AND asama = 'uretiliyor'").bind(simdiIso(simdi), kredi, k.konsept_no).run();
+  await krediYaz(env, simdi, "konsept", k.konsept_no, "", k.gorev, kredi);
+  return konseptYaniti({ ...k, asama: "hazir" }, ornek);
+}
+
+/** GET /foto/konsept-gorsel?konsept= — yalniz konsept anahtariyla, ozel kovadan. */
+async function konseptGorsel(env, url, ornek) {
+  if (!env.OZEL_DOSYA) { return fjson({ hata: "bulunamadi" }, 404); }
+  const k = await konseptGetir(env, url.searchParams.get("konsept"));
+  if (!k || ornekMi(k) !== !!ornek || k.asama !== "hazir") { return fjson({ hata: "bulunamadi" }, 404); }
+  return onizlemeGorseli(env, k.konsept_no, konseptAnahtari(k.konsept_no));
+}
+
+/**
+ * Onaylanan konseptin gorseli -> 3D onizlemenin girdisi (data URI). Konsept 'hazir', ayni tur ve ayni
+ * kol (musteri/ornek) olmali; gorsel gorselCoz'dan gecmeli. Gecersizse null (400 konsept-gecersiz).
+ */
+async function konseptGirdisi(env, no, tur, ornek) {
+  const k = await konseptGetir(env, no);
+  if (!k || ornekMi(k) !== !!ornek || k.asama !== "hazir" || k.tur !== tur || !env.OZEL_DOSYA) { return null; }
+  const n = await env.OZEL_DOSYA.get(konseptAnahtari(k.konsept_no));
+  if (!n) { return null; }
+  const tip = (n.httpMetadata && n.httpMetadata.contentType) || "image/png";
+  const bayt = new Uint8Array(await new Response(n.body).arrayBuffer());
+  const g = gorselCoz("data:" + tip + ";base64," + b64(bayt));
+  return g ? { ...g, konsept: k.konsept_no } : null;
+}
+
+/** 3D onizleme isi konsepte baglanir (temizlik siparise donen konsepti SILMEZ). */
+async function konseptBagla(env, konsept, isNo) {
+  await env.KATALOG.prepare("UPDATE foto_konsept SET is_no = ? WHERE konsept_no = ?").bind(isNo, konsept).run();
+}
+
+/** 3 gun kurali (ONIZLEME_SAKLAMA_SAAT): siparise donmeyen konsept gorseli silinir. Tablo yoksa 0. */
+async function konseptTemizle(env, simdi) {
+  let r;
+  try {
+    r = await env.KATALOG.prepare(
+      "SELECT konsept_no FROM foto_konsept WHERE asama != 'silindi' AND tarih < ?" +
+      " AND (is_no = '' OR is_no NOT IN (SELECT is_no FROM foto_uretim)) LIMIT 50"
+    ).bind(saatOnce(simdi, ONIZLEME_SAKLAMA_SAAT)).all();
+  } catch (e) {
+    if (tabloYok(e)) { return 0; }
+    throw e;
+  }
+  let silinen = 0;
+  for (const s of (r.results || [])) {
+    await env.OZEL_DOSYA.delete(konseptAnahtari(s.konsept_no));
+    await env.KATALOG.prepare("UPDATE foto_konsept SET asama = 'silindi' WHERE konsept_no = ?").bind(s.konsept_no).run();
+    silinen++;
+  }
+  return silinen;
 }
 
 // ---------------------------------------------------------------- uc: /foto/onizleme URETEC KOLU
@@ -1272,6 +1536,9 @@ export async function fotoUclari(request, env, url, yol, telegram) {
   if (yol === "/foto/litofan" && m === "POST") { return litofanUcu(request, env, simdi); }
   if (yol === "/foto/durum" && m === "GET") { return durumUcu(env, url, simdi); }
   if (yol === "/foto/gorsel" && m === "GET") { return gorselUcu(env, url); }
+  if (yol === "/foto/konsept" && m === "POST") { return konseptUret(request, env, simdi, telegram, false); }
+  if (yol === "/foto/konsept-durum" && m === "GET") { return konseptDurum(env, url, simdi, false); }
+  if (yol === "/foto/konsept-gorsel" && m === "GET") { return konseptGorsel(env, url, false); }
   return fjson({ hata: "bulunamadi" }, 404);
 }
 
@@ -1741,7 +2008,8 @@ async function onizlemeTemizle(env, simdi) {
       "UPDATE foto_isler SET asama = 'silindi' WHERE is_no = ?").bind(s.is_no).run();
     silinen++;
   }
-  return silinen;
+  // 2D konsept gorselleri AYNI 3 gun kuralina bagli (tablo yoksa 0; onizleme temizligini DURDURMAZ).
+  return silinen + await konseptTemizle(env, simdi);
 }
 
 /**
@@ -2138,8 +2406,8 @@ export async function panelOrnekOnizleme(request, env, simdi, telegram) {
   if (!olcu || !(VERI.fiyatKurus(tur, olcu) > 0)) {
     return fjson({ hata: "gecersiz-olcu" }, 400);
   }
-  const gorsel = gorselCoz(g.gorsel);
-  if (!gorsel) { return fjson({ hata: "gorsel-gecersiz" }, 400); }
+  const gorsel = g.konsept !== undefined ? await konseptGirdisi(env, g.konsept, tur, true) : gorselCoz(g.gorsel);
+  if (!gorsel) { return fjson({ hata: g.konsept !== undefined ? "konsept-gecersiz" : "gorsel-gecersiz" }, 400); }
   const havuz = await havuzHukmu(env, simdi, telegram);
   if (!havuz.acik) {
     return fjson({ hata: "havuz-esikte", bakiye: havuz.bakiye, gereken: havuz.gereken }, 503);
@@ -2147,6 +2415,7 @@ export async function panelOrnekOnizleme(request, env, simdi, telegram) {
   const isNo = yeniIsNo();
   const hata = await onizlemeGonder(env, isNo, tur, olcu, ORNEK_ZIYARETCI, gorsel.uri, simdi, telegram);
   if (hata) { return hata; }
+  if (gorsel.konsept) { await konseptBagla(env, gorsel.konsept, isNo); }
   return fjson({ is: isNo }, 200);
 }
 
@@ -2229,3 +2498,14 @@ export async function panelOrnekListe(env) {
   });
   return fjson({ ornekler, yapilandirma: ornekYapilandirma(env) }, 200);
 }
+
+// ---------------------------------------------------------------- panel: ORNEK KONSEPT (2D)
+
+/** POST /yonet/foto/ornek-konsept — musteri ucuyla AYNI cagri; bot/onay/ziyaretci/gunluk tavan ATLANIR. */
+export async function panelOrnekKonsept(request, env, simdi, telegram) {
+  return konseptUret(request, env, simdi, telegram, true);
+}
+/** GET /yonet/foto/ornek-konsept-durum?konsept= — yalniz ornek konsepti. */
+export async function panelOrnekKonseptDurum(env, url, simdi) { return konseptDurum(env, url, simdi, true); }
+/** GET /yonet/foto/ornek-konsept-gorsel?konsept= — yalniz ornek konsepti. */
+export async function panelOrnekKonseptGorsel(env, url) { return konseptGorsel(env, url, true); }

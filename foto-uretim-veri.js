@@ -381,7 +381,22 @@
     sinir_ziyaretci_24s: 3,
 
     // Önizleme kaç saat içinde siparişe dönüşebilir (sunucu sınırı; bölüm müşteriye söyler).
-    gecerlilik_saat: 48
+    gecerlilik_saat: 48,
+
+    // 2D KONSEPT (Okan 7 Eki 14:5x: "Nasıl olsun?" notu → 2D sonuç nota göre). TEK KAYNAK: sunucu
+    // (shop/src/foto.js) model/sınır/tavanı YALNIZ buradan okur, bölüm deneme sayısını buradan yazar.
+    //   model              : görsel+metin → görsel modeli (en ucuzu; değişirse kredi_tahmini de değişir)
+    //   kredi_tahmini      : model başına bir konseptin kredisi (günlük tavan bu sayıyla sayar)
+    //   deneme_is_basi     : bir önizleme işinde en çok kaç konsept (Okan: ≤3)
+    //   sinir_ziyaretci_24s: ziyaretçi başına 24 saatte en çok konsept (3 iş × 3 deneme)
+    //   gunluk_kredi_tavani: tüm ziyaretçilerin 24 saatteki konsept kredisi tavanı (aşılınca 429)
+    konsept: {
+      model: "nano-banana",
+      kredi_tahmini: 3,
+      deneme_is_basi: 3,
+      sinir_ziyaretci_24s: 9,
+      gunluk_kredi_tavani: 120
+    }
   };
 
   // Örneğin kanıtı: alan yoksa 5 Eki anlamı ("baski"); bilinmeyen değer -> "" (sayılmaz).

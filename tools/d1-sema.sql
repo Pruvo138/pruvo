@@ -654,6 +654,27 @@ CREATE TABLE IF NOT EXISTS foto_acik (
   acik         INTEGER NOT NULL DEFAULT 0, -- 1 = satista; baska her deger KAPALI
   guncel       TEXT NOT NULL
 );
+-- 2D KONSEPT (Okan 7 Eki 14:5x: "Nasil olsun?" notu -> 2D sonuc nota gore). Foto + not -> konsept
+-- gorseli; onaylanan konsept 3D onizlemenin GIRDISI olur (foto_isler satirina is_no ile baglanir).
+-- `oturum` = bir onizleme isinin konsept denemeleri (en cok VERI.konsept.deneme_is_basi). Gorsel ozel
+-- kovada `foto-konsept/<konsept_no>.png`, 3 gun sonra silinir (onizleme temizligiyle AYNI kural).
+-- Var olan veritabanina: tools/d1-goc/2026-10-07-foto-konsept.sql
+CREATE TABLE IF NOT EXISTS foto_konsept (
+  konsept_no   TEXT PRIMARY KEY,           -- 32 hex, tahmin edilemez (gorselin tek anahtari)
+  oturum       TEXT NOT NULL,              -- 32 hex; ayni onizleme isinin denemeleri
+  tur          TEXT NOT NULL,
+  ziyaretci    TEXT NOT NULL,              -- tuzlu sha256(ip) ilk 16 hex | 'ornek' (panel)
+  tarih        TEXT NOT NULL,              -- ISO 8601 UTC (deneme ani; sinirlar buradan sayar)
+  asama        TEXT NOT NULL,              -- 'uretiliyor' | 'hazir' | 'basarisiz' | 'silindi'
+  gorev        TEXT NOT NULL DEFAULT '',   -- saglayici gorev kimligi
+  son_kontrol  INTEGER NOT NULL DEFAULT 0, -- son yoklama (ms) — yoklama CAS kilidi
+  hazir_tarih  TEXT NOT NULL DEFAULT '',
+  kredi        INTEGER NOT NULL DEFAULT 0, -- gercek harcanan kredi (gorev bitince)
+  hata         TEXT NOT NULL DEFAULT '',
+  is_no        TEXT NOT NULL DEFAULT ''    -- konsept 3D onizlemeye girdi olduysa o foto_isler.is_no
+);
+CREATE INDEX IF NOT EXISTS idx_foto_konsept_oturum ON foto_konsept (oturum);
+CREATE INDEX IF NOT EXISTS idx_foto_konsept_tarih ON foto_konsept (tarih);
 CREATE TABLE IF NOT EXISTS foto_ayar (
   anahtar      TEXT PRIMARY KEY,           -- 'bakiye' | 'havuz_durum'
   deger        TEXT NOT NULL,

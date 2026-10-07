@@ -37,7 +37,8 @@ import { golgeRaporu } from "./konfigur-golge.js";
 // Fotograftan ozel uretim: kalem uretim durumu + dosya indirme + ozet/fiyat tablosu.
 import { panelUretimHaritasi, panelFotoKaydi, panelFotoDosya, panelFotoOzet,
          panelFotoAcik, panelOrnekOnizleme, panelOrnekDurum, panelOrnekGorsel,
-         panelOrnekUret, panelOrnekListe, panelUretecGirdi, panelUretecYukle } from "./foto.js";
+         panelOrnekUret, panelOrnekListe, panelUretecGirdi, panelUretecYukle,
+         panelOrnekKonsept, panelOrnekKonseptDurum, panelOrnekKonseptGorsel } from "./foto.js";
 import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
 } from "./eposta.js";
@@ -2066,6 +2067,10 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/foto/ornek-gorsel" && m === "GET") { return panelOrnekGorsel(env, url); }
   if (altYol === "/foto/ornek-uret" && m === "POST") { return panelOrnekUret(request, env, Date.now(), telegram); }
   if (altYol === "/foto/ornekler" && m === "GET") { return panelOrnekListe(env); }
+  // 2D KONSEPT ornek kolu (musteri ucuyla ayni cagri; ziyaretci/bot/tavan siniri yok, havuz AYNEN).
+  if (altYol === "/foto/ornek-konsept" && m === "POST") { return panelOrnekKonsept(request, env, Date.now(), telegram); }
+  if (altYol === "/foto/ornek-konsept-durum" && m === "GET") { return panelOrnekKonseptDurum(env, url, Date.now()); }
+  if (altYol === "/foto/ornek-konsept-gorsel" && m === "GET") { return panelOrnekKonseptGorsel(env, url); }
   // DETERMINISTIK KOL (litofan): uretec girdisi indir + uretec 3MF'i yukle — ayni kapinin ARKASINDA.
   if (altYol === "/foto/uretec-girdi" && m === "GET") { return panelUretecGirdi(env, url); }
   if (altYol === "/foto/uretec-yukle" && m === "POST") { return panelUretecYukle(request, env, url, Date.now()); }

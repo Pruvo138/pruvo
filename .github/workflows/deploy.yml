@@ -1554,12 +1554,16 @@ jobs:
       # olcu, sunucu = istemci, acilis anahtari fail-closed; x100 / en_az->en_cok / fail-open mutantlari KIRMIZI.
       # URETEC KOSUCUSU (7 Eki, G1): D1'den D/R isi -> uretec -> §3 dogrulama -> R2 -> CAS;
       # sahte wrangler/uretec ile hermetik; sizdirmaz/KURU/CAS/tavan/erisim mutantlari KIRMIZI.
+      # 2D KONSEPT (Okan 7 Eki 14:5x, PARA + KISISEL VERI): foto + not -> konsept -> 3D girdisi; is basi 3
+      # deneme · bot jetonu · acilis anahtari · ziyaretci 24 s · gunluk kredi tavani · ornek ayrimi · notta
+      # e-posta saglayiciya GITMEZ · 3 gun saklama; sahte saglayici, gercek ag 0, 10 mutant KIRMIZI.
       - name: Fotograftan ozel uretim kabul testi (onizleme + odeme + uretim zinciri)
         run: |
           node shop/test/foto-uretim.mjs
           node shop/test/foto-litofan.mjs
           python3 tools/foto-uretim-bolum-test.py
           node shop/test/foto-fiyat-formul.mjs
+          node shop/test/foto-konsept.mjs
           python3 tools/foto-uretec-kosucu-test.py
 
       # REKLAM ATIF HALKASI (K99, 25 Agu 2026) — "bu siparis hangi reklamdan geldi"
