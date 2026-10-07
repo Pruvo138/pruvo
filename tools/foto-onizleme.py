@@ -23,8 +23,10 @@ TOML = os.path.join(SHOP, "wrangler.onizleme.toml")
 ALIAS = "foto-onizleme"
 HESAP = "dbbe2a8620c3c3a57c586b8a98142fb9"
 # KAPALI liste: yalniz bunlar kopyalanir (sir/veri dosyasi kazara tasinamaz).
+# 2 dosya (taban-fiyatlar.js + filament-veri.js) ana checkout'tan (bu branch'te yoklar); sayfa 404 aliyordu.
 DOSYALAR = ["index.html", "foto-uretim.js", "foto-uretim-veri.js", "secenekler.js",
             "konfigur.js", "attribution-ref.js", "taban-fiyatlar.js", "filament-veri.js"]
+ANA = "/Users/okan/dev/pruvo"  # ana checkout kokue: 2 dosya oradan alinir (bu branch'te yok)
 SAPLAMA = {"urunler.json": "[]\n", "ozet.json": "{}\n"}
 
 
@@ -33,7 +35,7 @@ def statik_kur():
         shutil.rmtree(STATIK)
     os.mkdir(STATIK)
     for ad in DOSYALAR:
-        kaynak = os.path.join(KOK, ad)
+        kaynak = os.path.join(ANA, ad) if ad in ("taban-fiyatlar.js", "filament-veri.js") else os.path.join(KOK, ad)
         if os.path.isfile(kaynak):
             shutil.copyfile(kaynak, os.path.join(STATIK, ad))
         else:
