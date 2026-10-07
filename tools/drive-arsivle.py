@@ -20,14 +20,23 @@ YAPAR (her dosya için):
   aynı ad + aynı içerik → KOPYALAMA ATLA (sha karşılaştırma)
   aynı ad + FARKLI içerik → hedefe '__<sha256[:8]>' SON EKİ EKLE
   hedef sha256 != kaynak sha256 → satır 'sha-esit-degil', KAYNAK SİLİNMEZ, rc=1
-  sha eşit + --yerel-tut yoksa → KAYNAK SİL
-  sha eşit + evict çağrısı → `drive_birak.evict` (tek kaynak)
-  evict hatası → satıra 'evict=hata', dosya kaybolmaz, rc DEĞİŞMEZ
-  --kuru → hiçbir şey yapma, ne yapacağını bas
+
+SIRA ZORUNLU (7 Eki 2026 — evict yükleme bitmeden çağrılınca 6/6 `evict_hata`):
+  1) kopyala  2) sha256 eşit  3) YÜKLEME BİTTİ Mİ yokla (`drive_birak.yuklendi_mi`,
+  --yokla-aralik sn arayla, koşum başına --yukleme-tavan sn; tavan tüm kopyalar
+  bittikten SONRA başlar, yüklemeler paralel ilerler)  4) evict (3 deneme)  5) yerel sil
+  yükleme tavana kadar bitmezse → satır 'BEKLIYOR', evict YOK, KAYNAK SİLİNMEZ, rc=3
+                                   (sonraki koşum aynı içeriği 'atlandi_ayni' ile devralır)
+  evict 3 denemede olmazsa      → 'evict=hata', KAYNAK SİLİNMEZ, rc DEĞİŞMEZ
+  kaynak == hedef (aynı dosya)  → KAYNAK ASLA SİLİNMEZ
+  --kuru → hiçbir şey yazmaz/silmez/evict etmez ve dosya İÇERİĞİ OKUMAZ (Drive'da okuma
+           = indirme); hedef varsa yalnız yükleme sinyalini (metadata) OKUR
 
 CIKTI:
   DRIVE_ARSIVLE dosya=<n> kopyalandi=<n> atlandi_ayni=<n> silindi=<n>
               evict_ok=<n> evict_hata=<n> hata=<n> bayt=<b> kuru=<0|1>
+              bekliyor=<n> yuklendi_okunan=<n> yuklendi_evet=<n>
+RC: 0 tamam · 1 hata (sha/kopya/silme) · 2 argüman/kök · 3 BEKLIYOR (yükleme bitmedi)
 
 ORNEKLER:
   python3 tools/drive-arsivle.py /Users/aha/arac/STL --hedef STL-arsiv/stl-yerel-6eki/
@@ -43,7 +52,9 @@ import sys
 
 # TEK KAYNAK: evict + sha256 `drive_birak.py`'de yasar; burada ikinci kopya YOK.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from drive_birak import evict as drive_evict, sha256_dosya  # noqa: E402
+from drive_birak import (  # noqa: E402
+    evict as drive_evict, sha256_dosya, yuklendi_mi as drive_yuklendi_mi, yukleme_bekle)
+import time  # noqa: E402
 
 VARSAYILAN_DRIVE_KOK = (
     "/Users/okan/Library/CloudStorage/"
@@ -52,6 +63,10 @@ VARSAYILAN_DRIVE_KOK = (
 # Varsayilan evict = `drive_birak.evict`. `--evict-komut` / env YALNIZ test enjeksiyonu
 # icindir (sahte shell betigi); verilmezse Foundation cagrisi drive_birak'tan gelir.
 EVICT_ENV = "DRIVE_ARSIVLE_EVICT"
+# Ayni kural yukleme sinyali icin: `--yukleme-komut` / env YALNIZ test (rc=0 = yuklendi).
+YUKLEME_ENV = "DRIVE_ARSIVLE_YUKLEME"
+EVICT_DENEME = 3
+RC_BEKLIYOR = 3
 
 
 def kaynaklari_topla(kaynak_yol):
@@ -82,8 +97,8 @@ def hedef_yolu_coz(drive_kok, hedef_alt, goreeli, sha_kaynak):
       3) muhtemel VAR ve FARKLI içerikte → suffix'li döndür, atla=False
       4) muhtemel yok → muhtemel'i döndür, atla=False
 
-    Çağıran: atla=True ise kopyalama/silme ATLANIR; evict yine de çağrılır
-    (yerel önbellek şişmesini engellemek için).
+    Çağıran: atla=True ise kopyalama ATLANIR; yükleme bekle → evict → yerel sil
+    sırası yine işler (önceki koşumun BEKLIYOR satırını böyle devralır).
     """
     muhtemel = os.path.join(drive_kok, hedef_alt, goreeli)
     ad, uzanti = os.path.splitext(muhtemel)
@@ -139,9 +154,70 @@ def evict_cagir(komut, yol, log):
         return False
 
 
+def yuklendi_cagir(komut, yol):
+    """Yukleme bitti mi? True | False | None (okunamadi).
+
+    `komut` None → `drive_birak.yuklendi_mi` (varsayilan, tek kaynak). Test enjeksiyonu:
+    komut rc=0 → yuklendi, rc!=0 → bitmedi (evict_cagir ile ayni '{yol}' bicimleri).
+    """
+    if komut is None:
+        return drive_yuklendi_mi(yol)
+    if "{yol}" in komut:
+        k = komut.format(yol=shlex.quote(yol))
+    else:
+        k = komut + " " + shlex.quote(yol)
+    try:
+        proc = subprocess.run(k, shell=True, capture_output=True, text=True, timeout=60)
+    except (subprocess.TimeoutExpired, OSError):
+        return None
+    return proc.returncode == 0
+
+
+def _ayni_dosya(a, b):
+    try:
+        return os.path.samefile(a, b)
+    except OSError:
+        return False
+
+
+def birak_ve_sil(a, is_, sayac, son_an):
+    """SIRA: yukleme bitti mi → evict (EVICT_DENEME) → yerel sil. Doner: hata var mi."""
+    gore, tam_yol, hedef, yerel_sil = is_
+    if not yukleme_bekle(hedef, son_an, a.yokla_aralik,
+                         yokla_fn=lambda y: yuklendi_cagir(a.yukleme_komut, y)):
+        sayac["bekliyor"] += 1
+        print("dosya=%s durum=BEKLIYOR (yukleme bitmedi; evict YOK, yerel SILINMEDI)" % gore)
+        return False
+    log = []
+    tamam = False
+    for deneme in range(1, EVICT_DENEME + 1):
+        if evict_cagir(a.evict_komut, hedef, log):
+            tamam = True
+            break
+        if deneme < EVICT_DENEME:
+            time.sleep(a.yokla_aralik)
+    for l in log:
+        print("dosya=%s %s" % (gore, l))
+    if not tamam:
+        sayac["evict_hata"] += 1
+        print("dosya=%s durum=evict-%dx-hata (yerel SILINMEDI)" % (gore, EVICT_DENEME))
+        return False
+    sayac["evict_ok"] += 1
+    if yerel_sil:
+        try:
+            os.remove(tam_yol)
+            sayac["silindi"] += 1
+        except OSError as e:
+            print("dosya=%s durum=silme-hata tip=%s"
+                  % (gore, type(e).__name__), file=sys.stderr)
+            sayac["hata"] += 1
+            return True
+    return False
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        description="DRIVE-ARSIVLE: yaz -> sha256 -> yerel sil -> evict"
+        description="DRIVE-ARSIVLE: yaz -> sha256 -> yukleme bekle -> evict -> yerel sil"
     )
     ap.add_argument("kaynak", help="dosya veya dizin")
     ap.add_argument("--hedef", required=True,
@@ -155,6 +231,13 @@ def main(argv=None):
     ap.add_argument("--evict-komut", default=os.environ.get(EVICT_ENV),
         help="evict komutu (YALNIZ test enjekte eder; verilmezse drive_birak.evict); "
              "'{yol}' placeholder'i veya komut + argüman bicimi")
+    ap.add_argument("--yukleme-komut", default=os.environ.get(YUKLEME_ENV),
+        help="yukleme-bitti-mi komutu (YALNIZ test; rc=0 = yuklendi); "
+             "verilmezse drive_birak.yuklendi_mi")
+    ap.add_argument("--yokla-aralik", type=float, default=10.0,
+                    help="yukleme yoklama araligi sn (varsayilan 10)")
+    ap.add_argument("--yukleme-tavan", type=float, default=600.0,
+                    help="kosum basina yukleme bekleme tavani sn (varsayilan 600)")
     a = ap.parse_args(argv)
 
     kok = a.drive_kok
@@ -175,98 +258,91 @@ def main(argv=None):
     sayac = {
         "dosya": 0, "kopyalandi": 0, "atlandi_ayni": 0, "silindi": 0,
         "evict_ok": 0, "evict_hata": 0, "hata": 0, "bayt": 0,
+        "bekliyor": 0, "yuklendi_okunan": 0, "yuklendi_evet": 0,
     }
     hata_var = False
+    bekleyen = []  # [(gore, tam_yol, hedef, yerel_sil)] — sha esit, yukleme+evict sirasi bekler
 
     print("# drive-arsivle kok=%s hedef=%s kaynak=%s kuru=%d yerel_tut=%d" % (
         kok, a.hedef, a.kaynak, int(bool(a.kuru)), int(bool(a.yerel_tut))))
     print("# dosya_sayisi=%d" % len(liste))
 
+    # ---- ASAMA 1: kopyala + sha256 dogrula (evict/silme YOK) ----
     for tam_yol, gore in liste:
         sayac["dosya"] += 1
+        if a.kuru:
+            # KURU = SALT OKUMA: dosya ICERIGI OKUNMAZ. Drive'da sha256 okumak indirilmemis
+            # dosyayi INDIRIR (7 Eki olculdu: 225 dosya / 666 MB). Yalniz stat + yukleme
+            # sinyali (metadata) okunur; atla/kopyala karari sha'siz verilemez → 'hedef-var'.
+            hedef = os.path.join(kok, a.hedef, gore)
+            if os.path.exists(hedef):
+                y = yuklendi_cagir(a.yukleme_komut, hedef)
+                if y is not None:
+                    sayac["yuklendi_okunan"] += 1
+                    sayac["yuklendi_evet"] += int(y)
+                print("dosya=%s hedef=%s durum=hedef-var yuklendi=%s" % (
+                    gore, os.path.relpath(hedef, kok), "?" if y is None else int(y)))
+            else:
+                print("dosya=%s hedef=%s durum=kopyala bayt=%d" % (
+                    gore, os.path.relpath(hedef, kok), os.path.getsize(tam_yol)))
+            continue
         sha_k = sha256_dosya(tam_yol)
         hedef, atla = hedef_yolu_coz(kok, a.hedef, gore, sha_k)
         boyut = os.path.getsize(tam_yol)
         rel = os.path.relpath(hedef, kok)
 
-        # AYNI içerik (muhtemel/suffix aynı içerikte) → ATLA
+        # AYNI içerik (muhtemel/suffix aynı içerikte) → kopya ATLA; yukleme+evict+sil sirasi yine
         if atla:
             sayac["atlandi_ayni"] += 1
             print("dosya=%s sha=%s hedef=%s durum=atlandi_ayni" % (
                 gore, sha_k[:8], rel))
-            if not a.yerel_tut and not a.kuru:
-                try:
-                    os.remove(tam_yol)
-                    sayac["silindi"] += 1
-                except OSError as e:
-                    print("dosya=%s durum=silme-hata tip=%s"
-                          % (gore, type(e).__name__), file=sys.stderr)
-                    sayac["hata"] += 1
-                    hata_var = True
-                    continue
-            log = []
-            if not a.kuru:
-                if evict_cagir(a.evict_komut, hedef, log):
-                    sayac["evict_ok"] += 1
-                else:
-                    sayac["evict_hata"] += 1
-            for l in log:
-                print("dosya=%s %s" % (gore, l))
-            continue
+        else:
+            # Yeni yazma (adı, ÇAKıŞMADA farklı içerikse kıyara eklenmiş)
+            print("dosya=%s sha=%s hedef=%s durum=kopyala bayt=%d" % (
+                gore, sha_k[:8], rel, boyut))
 
-        # Yeni yazma (adı, ÇAKıŞMADA farklı içerikse kıyara eklenmiş)
-        print("dosya=%s sha=%s hedef=%s durum=kopyala bayt=%d" % (
-            gore, sha_k[:8], rel, boyut))
-        if a.kuru:
-            continue
-
-        os.makedirs(os.path.dirname(hedef), exist_ok=True)
-        try:
-            shutil.copy2(tam_yol, hedef)
-        except OSError as e:
-            print("dosya=%s durum=kopyala-hata tip=%s"
-                  % (gore, type(e).__name__), file=sys.stderr)
-            sayac["hata"] += 1
-            hata_var = True
-            continue
-
-        sha_h = sha256_dosya(hedef)
-        if sha_h != sha_k:
-            print("dosya=%s HATA=sha-esit-degil kaynak=%s hedef=%s" % (
-                gore, sha_k[:8], sha_h[:8]))
-            # Kaynak SİLİNMEZ (veri kaybı).
-            sayac["hata"] += 1
-            hata_var = True
-            continue
-
-        sayac["kopyalandi"] += 1
-        sayac["bayt"] += boyut
-
-        if not a.yerel_tut:
+            os.makedirs(os.path.dirname(hedef), exist_ok=True)
             try:
-                os.remove(tam_yol)
-                sayac["silindi"] += 1
+                shutil.copy2(tam_yol, hedef)
             except OSError as e:
-                print("dosya=%s durum=silme-hata tip=%s"
+                print("dosya=%s durum=kopyala-hata tip=%s"
                       % (gore, type(e).__name__), file=sys.stderr)
                 sayac["hata"] += 1
                 hata_var = True
                 continue
 
-        log = []
-        if evict_cagir(a.evict_komut, hedef, log):
-            sayac["evict_ok"] += 1
-        else:
-            sayac["evict_hata"] += 1
-        for l in log:
-            print("dosya=%s %s" % (gore, l))
+            sha_h = sha256_dosya(hedef)
+            if sha_h != sha_k:
+                print("dosya=%s HATA=sha-esit-degil kaynak=%s hedef=%s" % (
+                    gore, sha_k[:8], sha_h[:8]))
+                # Kaynak SİLİNMEZ (veri kaybı), evict YOK.
+                sayac["hata"] += 1
+                hata_var = True
+                continue
+
+            sayac["kopyalandi"] += 1
+            sayac["bayt"] += boyut
+
+        # Kaynak hedefin KENDISIYSE (Drive icinden kosum) asla silinmez.
+        yerel_sil = not a.yerel_tut and not _ayni_dosya(tam_yol, hedef)
+        bekleyen.append((gore, tam_yol, hedef, yerel_sil))
+
+    # ---- ASAMA 2: yukleme bitti mi → evict → yerel sil (tavan simdi baslar) ----
+    son_an = time.monotonic() + a.yukleme_tavan
+    for is_ in bekleyen:
+        if birak_ve_sil(a, is_, sayac, son_an):
+            hata_var = True
 
     print("DRIVE_ARSIVLE dosya=%d kopyalandi=%d atlandi_ayni=%d silindi=%d "
-          "evict_ok=%d evict_hata=%d hata=%d bayt=%d kuru=%d" % (
+          "evict_ok=%d evict_hata=%d hata=%d bayt=%d kuru=%d "
+          "bekliyor=%d yuklendi_okunan=%d yuklendi_evet=%d" % (
               sayac["dosya"], sayac["kopyalandi"], sayac["atlandi_ayni"],
               sayac["silindi"], sayac["evict_ok"], sayac["evict_hata"],
-              sayac["hata"], sayac["bayt"], int(bool(a.kuru))))
-    return 1 if hata_var else 0
+              sayac["hata"], sayac["bayt"], int(bool(a.kuru)),
+              sayac["bekliyor"], sayac["yuklendi_okunan"], sayac["yuklendi_evet"]))
+    if hata_var:
+        return 1
+    return RC_BEKLIYOR if sayac["bekliyor"] else 0
 
 
 if __name__ == "__main__":

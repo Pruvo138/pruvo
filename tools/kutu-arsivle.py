@@ -35,6 +35,9 @@ KURALLAR (hepsi kabul testiyle kilitli — tools/kutu-arsivle-test.py):
   * flock: kilit ALINDIKTAN SONRA okunur (bayat kopyayla yazmamak icin), atomik yazilir
     (gecici dosya + os.replace). Kilit alinamiyorsa exit 3, hicbir sey yazilmaz.
   * `--kuru`: hicbir sey yazmaz, ne yapacagini SAYIYLA basar (dogrulamayi yine kosar).
+  * SAAT UYDURMA (RAPOR, her kipte): baslik saati KOSUM ANINDAN ileride olan blok
+    `🔴 SAAT UYDURMA:` satiriyla + `SAAT_UYDURMA=<n>` sayisiyla basilir; rc DEGISMEZ.
+    `--simdi "YYYY-MM-DD HH:MM"` kosum anini enjekte eder (deterministik test).
   * BUTUNLUK (K310, 27 Agu): HER kosumda OKSUZ GOVDE (basliksiz dolu bolut) SAYILIR ve
     ADIYLA BASILIR; sifir degilse `lossless_dogrulama` GECEMEZ ve hicbir sey yazilmaz —
     tasinacak is olmasa bile. Ayrac (`---`) tasimayan bir kutuda bu eksen KORDUR ve
@@ -1565,6 +1568,60 @@ def blok_zamani(baslik):
     return gun, aralik[0]
 
 
+# ── SAAT UYDURMA RAPORU (BaBa 7 Eki 07:5x — saat etiketi 3. tekrar sinifi) ─────────
+# Basligin saati kosum anindan ILERIDEYSE o saat YAZILAMAZDI: blok tahmini/uydurma
+# saatle damgalanmistir. `x`li dakika EN ERKEN deger (HH:M0) sayilir -> `10:1x`
+# 10:10'da yazilmis olabilir, 10:09'da olamaz. Saatsiz baslik yalniz TARIH ekseninde
+# olculur. RAPOR'dur: bloklamaz, cikis kodunu degistirmez.
+def saat_uydurma_bulgulari(kutu_metin, simdi):
+    """[(baslik, baslik_damga, kosum_damga)] — `simdi` = (gun YYYYMMDD, gun-ici dakika)."""
+    satirlar = kutu_metin.split("\n")
+    s_gun, s_dk = simdi
+    bulgular = []
+    for i in blok_baslari(satirlar):
+        baslik = satirlar[i]
+        gun, aralik = blok_araligi(baslik)
+        if gun is None:
+            continue
+        bas_dk = aralik[0] if aralik is not None else -1
+        if (gun, bas_dk) > (s_gun, s_dk):
+            s = SAAT_BASLIK_RE.match(baslik) if aralik is not None else None
+            b_saat = ("%s:%s" % (s.group(1), s.group(2))) if s else "saatsiz"
+            k_saat = "%02d:%02d" % (s_dk // 60, s_dk % 60)
+            if gun != s_gun:
+                b_saat = "%04d-%02d-%02d %s" % (gun // 10000, gun // 100 % 100, gun % 100,
+                                                b_saat)
+                k_saat = "%04d-%02d-%02d %s" % (s_gun // 10000, s_gun // 100 % 100,
+                                                s_gun % 100, k_saat)
+            bulgular.append((baslik.rstrip()[:80], b_saat, k_saat))
+    return bulgular
+
+
+def simdi_coz(deger):
+    """`YYYY-MM-DD HH:MM` -> (gun, dakika); None -> yerel saat. Bozuksa ValueError."""
+    if deger is None:
+        t = time.localtime()
+        return t.tm_year * 10000 + t.tm_mon * 100 + t.tm_mday, t.tm_hour * 60 + t.tm_min
+    m = re.match(r"^\s*(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})\s*$", deger)
+    if not m or int(m.group(4)) > 23 or int(m.group(5)) > 59:
+        raise ValueError("--simdi bicimi `YYYY-MM-DD HH:MM` olmali: %r" % deger)
+    return (int(m.group(1)) * 10000 + int(m.group(2)) * 100 + int(m.group(3)),
+            int(m.group(4)) * 60 + int(m.group(5)))
+
+
+def saat_uydurma_bas(kutu_metin, simdi_degeri):
+    """Satirlari + `SAAT_UYDURMA=<n>` basar. Olculemezse ADIYLA basar; rc'ye dokunmaz."""
+    try:
+        simdi = simdi_coz(simdi_degeri)
+    except ValueError as e:
+        print("SAAT_UYDURMA=OLCULEMEDI sebep=%s" % e)
+        return
+    bulgular = saat_uydurma_bulgulari(kutu_metin, simdi)
+    for baslik, b_saat, k_saat in bulgular:
+        print("🔴 SAAT UYDURMA: %s (baslik %s > kosum %s)" % (baslik, b_saat, k_saat))
+    print("SAAT_UYDURMA=%d  [RAPOR]" % len(bulgular))
+
+
 def _saat_araligi(deger):
     """None -> None (saatsiz) · tam dakika -> (dk, dk) · (bas, son) -> aynen."""
     if deger is None or isinstance(deger, tuple):
@@ -2930,6 +2987,9 @@ def main(argv=None):
                     help="arsivin son kac satirinda oksuz govde RAPORLANSIN (blok hizali; "
                          "0 = kapali). RAPOR eksenidir, cikis kodunu BELIRLEMEZ — bkz. "
                          "K310 kapsam notu")
+    ap.add_argument("--simdi", default=None, metavar="YYYY-MM-DD HH:MM",
+                    help="SAAT UYDURMA raporunun kosum ani (verilmezse yerel saat); "
+                         "deterministik test icin")
     a = ap.parse_args(argv)
 
     if a.tavan < 1:
@@ -2987,6 +3047,9 @@ def main(argv=None):
             arsiv_var = True
         else:
             arsiv_metin, arsiv_var = None, False
+
+        # SAAT UYDURMA — her kipte (kuru dahil) RAPOR; rc'ye dokunmaz.
+        saat_uydurma_bas(kutu_metin, a.simdi)
 
         # 🔴 KALEM ① — SALT-OKUR SHA KOLU. Rotasyondan ONCE ve ONUN YERINE calisir:
         # sorusu "bu turda ne tasiyacagim" degil, "kutudaki bloklar arsivde BIREBIR

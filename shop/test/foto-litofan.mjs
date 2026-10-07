@@ -211,6 +211,18 @@ async function senaryo(ms) {
           foto.uretecOlcuDogrula(oj({ renk_sayisi: 5 }), ko) === "renk-fazla" &&
           foto.uretecOlcuDogrula(oj({ kategori: "plaket" }), ko) === "kategori-uyusmaz" &&
           foto.uretecOlcuDogrula(oj({ uzun_kenar_mm: 250 }), { tur: "litofan", olcu_mm: 250 }) === "olcu-aralik-disi", "");
+    // G2b mimar karari (7 Eki): plaka 300 (manifest PLAKA_MM, tek kaynak) · yapboz 100-190.
+    const yk = { tur: "yapboz", olcu_mm: 190 };
+    const yj = (ek) => ({ sozlesme: 1, kategori: "yapboz", uzun_kenar_mm: 190.0, kutu_mm: { x: 284.5, y: 192, z: 6.3 },
+                          renk_sayisi: 1, sizdirmaz: true, ...ek });
+    iddia("L9", "plaka 300: kutu 290 gecer, 310 plaka-disi; PLAKA_MM manifestten 300",
+          VERI.PLAKA_MM === 300 && foto.uretecOlcuDogrula(yj({ kutu_mm: { x: 290, y: 192, z: 6 } }), yk) === "" &&
+          foto.uretecOlcuDogrula(yj({ kutu_mm: { x: 310, y: 192, z: 6 } }), yk) === "plaka-disi",
+          foto.uretecOlcuDogrula(yj({ kutu_mm: { x: 310, y: 192, z: 6 } }), yk));
+    iddia("L9", "yapboz 190 gecer (raf duzeni 284×192), 200 olcu-aralik-disi",
+          foto.uretecOlcuDogrula(yj({}), yk) === "" &&
+          foto.uretecOlcuDogrula(yj({ uzun_kenar_mm: 200 }), { tur: "yapboz", olcu_mm: 200 }) === "olcu-aralik-disi",
+          foto.uretecOlcuDogrula(yj({ uzun_kenar_mm: 200 }), { tur: "yapboz", olcu_mm: 200 }));
     iddia("L9", "svg: script/olay/harici referans RED, temiz svg gecer",
           VERI.svgDogrula("<svg><script>x()</script></svg>") === "svg-script" &&
           VERI.svgDogrula("<svg onload=\"x()\"></svg>") === "svg-script" &&
@@ -716,6 +728,12 @@ const MUTANTLAR = [
             "  if (!anahtarGecerli(request, url, env)) {" },
   { ad: "M6 olcu.json sizdirmazlik kontrolu silindi", dosya: "shop/src/foto.js", hedef: "L9",
     capa: '  if (o.sizdirmaz !== true) { return "sizdirmaz-degil"; }\n', yerine: "" },
+  { ad: "M7a plaka siniri eski sabit 250", dosya: "shop/src/foto.js", hedef: "L9",
+    capa: "const PLAKA_MM = VERI.PLAKA_MM;", yerine: "const PLAKA_MM = 250;" },
+  { ad: "M7b plaka siniri kontrolu yok", dosya: "shop/src/foto.js", hedef: "L9",
+    capa: "kutu.x <= PLAKA_MM && kutu.y <= PLAKA_MM", yerine: "true" },
+  { ad: "M7c manifest yapboz ust siniri 280", dosya: "foto-uretim-veri.js", hedef: "L9",
+    capa: "        olcu_mm: { en_az: 100, en_cok: 190 },", yerine: "        olcu_mm: { en_az: 100, en_cok: 280 }," },
   { ad: "M7 uzun kenar tolerans kontrolu silindi", dosya: "shop/src/foto.js", hedef: "L9",
     capa: "!(Math.abs(o.uzun_kenar_mm - k.olcu_mm) <= k.olcu_mm * tol + 1e-9)", yerine: "false" },
   { ad: "M8 parametre sema kontrolu silindi", dosya: "shop/src/foto.js", hedef: "L3",
