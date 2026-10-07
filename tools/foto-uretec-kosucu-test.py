@@ -705,7 +705,7 @@ const F=k.PRUVO_FOTO, o={};
 o.turler=F.turler; o.renk_hex=F.RENK_HEX; o.red=F.URETEC_RED_METIN; o.tarayici=F.TARAYICI_ONIZLEYICI;
 o.onay_surum=F.onay_surum; o.ornek_turler=F.ornekler.map(x=>x.tur); o.plaka=F.PLAKA_MM;
 o.ornek_render=F.ornekler.filter(x=>x.kanit==='render').map(x=>[x.tur,x.render,x.onizleme]);
-o.hak={}; for (const t of F.turler) o.hak[t.kod]=F.hakGerekir(t.kod);
+o.onay_anahtar=Object.keys(F.onay).sort(); o.hak_fn=typeof F.hakGerekir+'/'+typeof F.aktarimGerekir;
 o.kol={}; for (const t of F.turler) o.kol[t.kod]=F.kolu(t.kod);
 o.red_kontrast=F.uretecRedMetni('uretec-red:kontrast'); o.red_bilinmez=F.uretecRedMetni('uretec-red:yok-boyle');
 o.red_genel=F.uretecRedMetni('uretec-red');
@@ -768,10 +768,10 @@ def manifest_vakalari():
         ornek.setdefault(t_, []).append((r_, o_))
     eksik = [k for k in G2_SATIR if ornek.get(k) != [("https://media.pruvo3d.com/foto/ornek/%s-1-render.webp" % k,) * 2]]
     s["V4"] = (not yanlis and not eksik, "tarayici/kol yanlis=%s render-ornegi-eksik/yanlis=%s" % (yanlis, eksik))
-    beklenen_hak = {"isimlik": False, "qr": False, "logo": True, "muhur": True, "sablon": True, "yapboz": True,
-                    "plaket": True, "litofan": True}
-    s["V5"] = (m["hak"] == beklenen_hak and m["onay_surum"] == "2026-10-05-taslak-1",
-               "hak=%s onay_surum=%s" % (m["hak"], m["onay_surum"]))
+    # Tek onay kutusu (taslak-2, 7 Eki 20:5x): ayri hak/aktarim metni ve kutu kurali YOK; onay = aydinlatma listesi.
+    s["V5"] = (m["onay_anahtar"] == ["aydinlatma"] and m["hak_fn"] == "undefined/undefined"
+               and m["onay_surum"] == "2026-10-07-taslak-2",
+               "onay_anahtar=%s hak_fn=%s onay_surum=%s" % (m["onay_anahtar"], m["hak_fn"], m["onay_surum"]))
     mod = kosucu_modulu()
     eksik = [kod for _, kod in mod.RET_KALIPLARI if kod not in m["red"]]
     kopru_kod = ["kisa-kenar", "qr-uzun"]

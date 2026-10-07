@@ -617,8 +617,11 @@ CREATE TABLE IF NOT EXISTS foto_isler (
   son_kontrol  INTEGER NOT NULL DEFAULT 0, -- son yoklama (ms) — yoklama CAS kilidi
   kredi        INTEGER NOT NULL DEFAULT 0, -- onizlemenin harcadigi kredi
   hata         TEXT NOT NULL DEFAULT '',   -- basarisizlik sebebi (bizim sabit kodumuz)
-  uretim_notu  TEXT NOT NULL DEFAULT ''    -- "Nasil olsun?" notu (<=300, temiz; e-posta/telefon RED). Var olan
+  uretim_notu  TEXT NOT NULL DEFAULT '',   -- "Nasil olsun?" notu (<=300, temiz; e-posta/telefon RED). Var olan
                                            -- tabloya: tools/d1-goc/2026-10-07-foto-isler-uretim-notu.sql
+  onay_tarih   TEXT NOT NULL DEFAULT '',   -- aydinlatma onayi ani (ISO 8601 UTC); ornek (panel) kolunda bos
+  onay_surum   TEXT NOT NULL DEFAULT ''    -- musterinin onayladigi metin surumu (VERI.onay_surum). Var olan
+                                           -- tabloya: tools/d1-goc/2026-10-07-foto-onay-kaydi.sql
 );
 CREATE INDEX IF NOT EXISTS idx_foto_isler_ziyaretci ON foto_isler (ziyaretci, tarih);
 CREATE INDEX IF NOT EXISTS idx_foto_isler_tarih ON foto_isler (tarih);
@@ -637,6 +640,8 @@ CREATE TABLE IF NOT EXISTS foto_uretim (
   deneme       INTEGER NOT NULL DEFAULT 0, -- gecici hata sayaci (tavanda 'elle')
   tarih        TEXT NOT NULL,
   guncel       TEXT NOT NULL,
+  onay_tarih   TEXT NOT NULL DEFAULT '',   -- foto_isler.onay_tarih kopyasi (siparisle kalan onay kaydi)
+  onay_surum   TEXT NOT NULL DEFAULT '',   -- foto_isler.onay_surum kopyasi
   PRIMARY KEY (siparis_no, kalem)
 );
 CREATE TABLE IF NOT EXISTS foto_kredi (

@@ -178,8 +178,7 @@ async function cagir(fm, env, yol, o) {
   if ((r.headers.get("Content-Type") || "").includes("json")) { try { v = await r.json(); } catch (e) { v = null; } }
   return { kod: r.status, v, r };
 }
-const konseptGovde = (ek) => ({ tur: "plaket", gorsel: GORSEL, not: "şapkalı olsun", hak_onay: true,
-  aktarim_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton", ...(ek || {}) });
+const konseptGovde = (ek) => ({ tur: "plaket", gorsel: GORSEL, not: "şapkalı olsun", aydinlatma_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton", ...(ek || {}) });
 const konseptCagri = () => P.cagri.filter((c) => c === "POST /v1/image-to-image").length;
 
 /** Temiz ortam: yeni SQLite + R2, plaket acilis anahtari ACIK. */
@@ -223,7 +222,7 @@ async function senaryolar(fm) {
     // K6: "Bunu kullan" -> 3D onizleme isteginin girdisi konsept (istemci fotoyu da gondermis olsa bile)
     const protoOnce = P.protoGovde.length;
     const o = await cagir(fm, env, "/foto/onizleme", { govde: { tur: "plaket", olcu_mm: 100, konsept: k.v && k.v.konsept,
-      gorsel: GORSEL, hak_onay: true, aktarim_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" } });
+      gorsel: GORSEL, aydinlatma_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" } });
     const pg = P.protoGovde[P.protoGovde.length - 1] || {};
     const bag = o.v && o.v.is ? await env.KATALOG.prepare("SELECT is_no FROM foto_konsept WHERE konsept_no = ?").bind(k.v.konsept).first() : null;
     s.K6 = o.kod === 200 && P.protoGovde.length === protoOnce + 1 && pg.image_url === KONSEPT_URI &&
@@ -232,7 +231,7 @@ async function senaryolar(fm) {
     // K6b: hazir olmayan / bilinmeyen konsept -> 400, saglayiciya 0
     const p2 = P.protoGovde.length;
     const x = await cagir(fm, env, "/foto/onizleme", { govde: { tur: "plaket", olcu_mm: 100, konsept: "f".repeat(32),
-      hak_onay: true, aktarim_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" } });
+      aydinlatma_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" } });
     s.K6b = x.kod === 400 && x.v && x.v.hata === "konsept-gecersiz" && P.protoGovde.length === p2;
   }
   // K2 DENEME: ayni oturumda 3 -> 4. istek 429, saglayiciya gitmez
@@ -248,6 +247,18 @@ async function senaryolar(fm) {
     s.K2 = ilk.kod === 200 && iki.kod === 200 && uc.kod === 200 && ilk.v.kalan === 2 && uc.v.kalan === 0 &&
       ara === once + 3 && dort.kod === 429 && dort.v && dort.v.hata === "konsept-hakki-bitti" && konseptCagri() === ara;
     s.K2_ayrinti = JSON.stringify([ilk.kod, iki.kod, uc.kod, dort.kod, dort.v]);
+  }
+  // K10 AYDINLATMA ONAYI (tek kutu, taslak-2): kutusuz / eski alanla / eski surumle 400, saglayiciya 0 cagri.
+  {
+    const env = await ortam();
+    const once = konseptCagri();
+    const kutusuz = await cagir(fm, env, "/foto/konsept", { govde: konseptGovde({ aydinlatma_onay: undefined }), ip: "10.6.0.1" });
+    const eskiAlan = await cagir(fm, env, "/foto/konsept", { govde: konseptGovde({ aydinlatma_onay: undefined, hak_onay: true,
+      aktarim_onay: true }), ip: "10.6.0.2" });
+    const eski = await cagir(fm, env, "/foto/konsept", { govde: konseptGovde({ onay_surum: "2026-10-05-taslak-1" }), ip: "10.6.0.3" });
+    s.K10 = kutusuz.kod === 400 && kutusuz.v.hata === "onay-yok" && eskiAlan.kod === 400 && eskiAlan.v.hata === "onay-yok" &&
+      eski.kod === 400 && eski.v.hata === "onay-surumu-eski" && konseptCagri() === once;
+    s.K10_ayrinti = JSON.stringify([kutusuz.kod, kutusuz.v, eskiAlan.kod, eskiAlan.v, eski.kod, eski.v, konseptCagri() - once]);
   }
   // K3 BOT
   {
@@ -338,7 +349,7 @@ async function senaryolar(fm) {
     await env.KATALOG.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x')").run();
     const p0 = P.protoGovde.length;
     const mo = await cagir(fm, env, "/foto/onizleme", { govde: { tur: "plaket", olcu_mm: 100, konsept: no,
-      hak_onay: true, aktarim_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" }, ip: "10.5.0.9" });
+      aydinlatma_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" }, ip: "10.5.0.9" });
     const po = await cagir(fm, env, "", { panel: "onizleme", govde: { olcu_mm: 100, konsept: no } });
     const ppg = P.protoGovde[P.protoGovde.length - 1] || {};
     s.K7 = md.kod === 404 && mg.kod === 404 && pd && pd.v.asama === "hazir" && pg.kod === 200;
@@ -400,6 +411,7 @@ ol("K7 musteri onizlemesi ornek konseptini girdi alamaz (400); panel ornek onizl
 ol("K7 panel ornek kolu ziyaretci sinirsiz (sinir+2 istek 200)", S.K7_sinirsiz, S.K7_ayrinti);
 ol("K8 notta e-posta/telefon -> 400 not-kisisel-veri, saglayiciya GITMEDI", S.K8, S.K8_ayrinti);
 ol("K9 3 gunden eski konsept gorseli silinir, siparise donen korunur", S.K9, S.K9_ayrinti);
+ol("K10 aydinlatma onayi: kutusuz / eski alanlarla -> 400 onay-yok · eski surum -> 400 onay-surumu-eski · saglayici 0", S.K10, S.K10_ayrinti);
 ol("KT tek kaynak: model + sinirlar manifestte; foto.js'te model adi / sayi sabiti YOK",
    (() => {
      const kaynak = fs.readFileSync(path.join(SHOP, "src", "foto.js"), "utf8");
@@ -421,7 +433,7 @@ async function mutantModul(capa, yerine) {
   fs.writeFileSync(dosya, ASIL.replace(capa, yerine));
   return import(url.pathToFileURL(dosya).href);
 }
-const ANA = ["K1", "K2", "K3", "K4", "K4b", "K4c", "K5", "K5_sinirda", "K5b", "K6", "K6b", "K7", "K7_musteri_onizleme", "K7_sinirsiz", "K8", "K9"];
+const ANA = ["K1", "K2", "K3", "K4", "K4b", "K4c", "K5", "K5_sinirda", "K5b", "K6", "K6b", "K7", "K7_musteri_onizleme", "K7_sinirsiz", "K8", "K9", "K10"];
 const MUTANTLAR = [
   ["KM1 is basi deneme siniri silindi", "if (sayi.oturum >= KONSEPT.deneme_is_basi) {", "if (false) {", ["K2"]],
   ["KM2 bot jetonu varlik kontrolu silindi", "if (!ornek && (typeof g.turnstile_token !== \"string\" || !g.turnstile_token.trim())) {", "if (false) {", ["K3"]],
@@ -438,6 +450,8 @@ const MUTANTLAR = [
   ["KM9 konsept temizligi baglanmadi", "return silinen + await konseptTemizle(env, simdi);", "return silinen;", ["K9"]],
   ["KM10 tablo okunamazsa fail-open", "    // Sayilamayan sinir = KAPALI (tablo yok dahil): saglayiciya istek 0.\n    return fjson({ hata: \"kapali\" }, 503);",
     "    sayi = { oturum: 0, oturumOrnek: 0, kisi: 0, genel: 0 };", ["K4b"]],
+  ["KM11 aydinlatma onay kontrolu silindi", "if (!g || g.aydinlatma_onay !== true) { return \"onay-yok\"; }", "", ["K10"]],
+  ["KM12 onay surum kontrolu silindi", "if (g.onay_surum !== VERI.onay_surum) { return \"onay-surumu-eski\"; }", "", ["K10"]],
   ["KM0 KONTROL (yalniz yorum)", "// Ornek konseptleri (panel) musterinin gunluk kredi tavanini YEMEZ.", "// (yorum degisti)", []],
 ];
 let survivor = 0;

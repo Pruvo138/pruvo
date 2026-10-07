@@ -40,12 +40,13 @@
     // önizleme/sipariş almaz. Metin değişirse `onay_surum` da değişir: sunucu, müşterinin
     // gördüğü sürümle buradaki sürüm aynı değilse isteği reddeder (eski sayfadan gelen onay
     // yeni metne sayılmaz).
-    onay_onayli: true, // Okan onayladı 6 Eki 2026 (metin taslak-1 ile birebir; değişirse sürüm de değişir)
-    onay_surum: "2026-10-05-taslak-1",
+    // Metin onayı 6 Eki 2026 (taslak-1). 7 Eki 2026 20:5x kararı: iki onay cümlesi aydınlatma
+    // metnine, tek onay kutusu (taslak-2; metin bununla birebir, değişirse sürüm de değişir).
+    onay_onayli: true,
+    onay_surum: "2026-10-07-taslak-2",
     onay: {
-      hak: "Yüklediğim fotoğrafın bana ait olduğunu ya da kullanma hakkım olduğunu beyan ederim.",
-      aktarim: "Fotoğrafımın önizleme ve üretim dosyasının hazırlanması için yurt dışındaki " +
-        "hizmet sağlayıcıya aktarılmasına açık rıza veriyorum.",
+      // TEK ONAY KUTUSU: müşteri aşağıdaki aydınlatma metnini (gördüğü maddelerin tamamı, hak
+      // beyanı ve aktarım rızası cümleleri dahil) tek kutuyla onaylar; ayrı onay metni YOK.
       // Her madde { kol, metin }: kol "M" = yalniz saglayici (M) kolunda gosterilir (aktarim/
       // saglayici cumleleri); "" = her kolda. METIN DEGISMEZ, yalniz gosterim kosulu (onay_surum ayni).
       aydinlatma: [
@@ -61,6 +62,8 @@
         { kol: "M", metin: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün bu önizlemenin en çok 4 renkli " +
             "kabartma yorumu olarak üretilir; birebir aynısı değildir, küçük yazı ve ince " +
             "ayrıntılar sadeleşir." },
+        { kol: "", metin: "Yüklediğim fotoğrafın bana ait olduğunu ya da kullanma hakkım olduğunu beyan ederim." },
+        { kol: "M", metin: "Fotoğrafımın önizleme ve üretim dosyasının hazırlanması için yurt dışındaki hizmet sağlayıcıya aktarılmasına açık rıza veriyorum." },
         { kol: "", metin: "Kişisel verilerinle ilgili haklar ve başvuru yolu için Gizlilik Politikası sayfasına bakabilirsin." }
       ]
     },
@@ -449,17 +452,6 @@
     var m = t ? t.motor : "";
     return VERI.onay.aydinlatma.filter(function (x) { return !x.kol || x.kol === m; })
       .map(function (x) { return x.metin; });
-  };
-  // Aktarım rızası (sağlayıcıya aktarım kutusu) yalnız M motorunda istenir/gösterilir.
-  VERI.aktarimGerekir = function (kod) { var t = VERI.turBul(kod); return !!t && t.motor === "M"; };
-  // Hak beyanı kutusu yalnız fotoğraf/SVG yüklenen türde (mimar kararı 7 Eki 2026): yalnız form
-  // girdili türde (isimlik, QR) yüklenen görsel yoktur, kutu GÖRÜNMEZ ve istenmez. Metin AYNI.
-  VERI.HAK_GIRDILERI = { "foto-1": true, "foto-1-3": true, svg: true };
-  VERI.hakGerekir = function (kod) {
-    var t = VERI.turBul(kod);
-    if (!t || !Array.isArray(t.girdi)) { return true; }
-    for (var i = 0; i < t.girdi.length; i++) { if (VERI.HAK_GIRDILERI[t.girdi[i]] === true) { return true; } }
-    return false;
   };
   // Üreteç reddinin müşteri metni: hata "uretec-red:<kod>" -> tablo; bilinmeyen kod -> genel metin.
   VERI.uretecRedMetni = function (hata) {

@@ -49,7 +49,7 @@ import { refKaydet, REF_KALIBI } from "./ref.js";
 // ayrik modulde durur; burada SADECE local binding olarak okunur, RE-EXPORT EDILMEZ.
 import { TERK_ESIK_SAAT, TERK_KAYNAK_DURUM, TERK_SEBEP } from "./terk-sabit.js";
 // Fotograftan ozel uretim (ana sayfa bolumu): onizleme uclari, sepet kalemi, uretim cron'u.
-import { fotoUclari, fotoKalemCoz, fotoKalemFiyatla, fotoUretimTuru } from "./foto.js";
+import { fotoUclari, fotoKalemCoz, fotoKalemFiyatla, fotoUretimTuru, aydinlatmaOnayHatasi } from "./foto.js";
 
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi — fiyat kurali tek kaynagi yok"); }
@@ -213,6 +213,12 @@ function istekCoz(govde) {
 
   const kc = kalemleriCoz(govde.sepet);
   if (kc.hata) return kc;
+  // FOTO KALEMI: aydinlatma onayi (tek kutu + guncel metin surumu) odemede de sart; kontrol
+  // foto.js'te TEK kaynak (onizleme/konsept uclariyla ayni). Foto kalemsiz sepet etkilenmez.
+  if (kc.kalemler.some((k) => k.foto_is !== undefined)) {
+    const oh = aydinlatmaOnayHatasi(govde);
+    if (oh) return { hata: oh };
+  }
   return { musteri: { ad, tel, eposta, adres, sehir, tckn }, kalemler: kc.kalemler, odeme,
            atif: atifTemizle(govde), musteri_notu };
 }

@@ -177,7 +177,7 @@ function istekKur(modul, env) {
 
 const ornek = (tur) => ({ tur, olcu_mm: 120, foto: "https://media.pruvo3d.com/t-foto.webp",
   onizleme: "https://media.pruvo3d.com/t-onizleme.webp", baski: "https://media.pruvo3d.com/t-baski.webp", not: "test" });
-const litofanGovde = (ek) => ({ tur: "litofan", olcu_mm: 120, gorsel: uri(HARITA), hak_onay: true,
+const litofanGovde = (ek) => ({ tur: "litofan", olcu_mm: 120, gorsel: uri(HARITA), aydinlatma_onay: true,
   turnstile_token: "jeton", ...(ek || {}) });
 
 // ---------------------------------------------------------------- SENARYO (canli + her mutant)
@@ -231,9 +231,8 @@ async function senaryo(ms) {
           VERI.svgDogrula("<svg viewBox=\"0 0 10 10\"><path d=\"M0 0L10 10\" fill=\"url(#g)\"/></svg>") === "", "");
     const aktarimMaddeleri = VERI.onay.aydinlatma.filter((x) => x.kol === "M").map((x) => x.metin);
     const litM = VERI.aydinlatmaMaddeleri("litofan");
-    iddia("L9", "D kategorisinde aktarim maddesi 0 + aktarim kutusu yok; plakette 6 madde",
+    iddia("L9", "D kategorisinde aktarim maddesi 0 (aktarim rizasi cumlesi dahil); plakette tum maddeler",
           aktarimMaddeleri.length > 0 && litM.filter((m) => aktarimMaddeleri.includes(m)).length === 0 &&
-          VERI.aktarimGerekir("litofan") === false && VERI.aktarimGerekir("plaket") === true &&
           VERI.aydinlatmaMaddeleri("plaket").length === VERI.onay.aydinlatma.length, JSON.stringify(litM.length));
 
     // ---- L2: acilis anahtari YOK (fiyat tablosu kalkti; Okan 7 Eki)
@@ -253,7 +252,7 @@ async function senaryo(ms) {
     await d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih) VALUES (?, 'litofan', 120, 'z', ?, 'hazir', ?)")
       .bind(isEl, simdi, simdi).run();
     const iyOnce = P.iyzico;
-    const b2 = await istek("/baslat", { govde: { sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+    const b2 = await istek("/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
       sepet: [{ foto_is: isEl, olcu_mm: 120, adet: 1, secim: { panel_malzeme: "PLA", ayak_malzeme: "PLA", ayak_renk: "Beyaz" } }] } });
     iddia("L2", "anahtar yokken /baslat litofan kalemi 400 (odeme baslamaz)", b2.kod === 400 && P.iyzico === iyOnce, JSON.stringify(b2.v));
 
@@ -285,7 +284,7 @@ async function senaryo(ms) {
     const jpeg = Uint8Array.from([0xFF, 0xD8, 0xFF, 0xE0, ...new Array(3000).fill(1)]);
     const jp = await istek("/foto/litofan", { ip: "10.3.0.4", govde: litofanGovde({ onay_surum: surum, gorsel: uri(jpeg, "jpeg") }) });
     iddia("L3", "PNG olmayan (orijinal foto) 400", jp.kod === 400 && jp.v.hata === "gorsel-gecersiz", JSON.stringify(jp.v));
-    const onaysiz = await istek("/foto/litofan", { ip: "10.3.0.5", govde: litofanGovde({ onay_surum: surum, hak_onay: false }) });
+    const onaysiz = await istek("/foto/litofan", { ip: "10.3.0.5", govde: litofanGovde({ onay_surum: surum, aydinlatma_onay: false }) });
     // GIRDI TURLERI (manifest): litofanin `form`u {} ve girdisinde svg yok -> sema disi 400.
     const semaDisi = await istek("/foto/litofan", { ip: "10.3.0.6", govde: litofanGovde({ onay_surum: surum, parametreler: { delik_mm: 5 } }) });
     iddia("L3", "sema disi parametre 400 (sema-disi-parametre)", semaDisi.kod === 400 && !!semaDisi.v &&
@@ -294,18 +293,19 @@ async function senaryo(ms) {
     iddia("L3", "girdisinde svg olmayan ture svg alani 400", svgli.kod === 400 && !!svgli.v &&
           svgli.v.hata === "sema-disi-parametre", JSON.stringify(svgli.v));
     const eskiSurum = await istek("/foto/litofan", { ip: "10.3.0.6", govde: litofanGovde({ onay_surum: "eski" }) });
-    iddia("L3", "hak onayi yok 400 · eski onay surumu 409", onaysiz.kod === 400 && eskiSurum.kod === 409,
+    iddia("L3", "aydinlatma onayi yok 400 onay-yok · eski onay surumu 400 onay-surumu-eski", onaysiz.kod === 400 &&
+          onaysiz.v.hata === "onay-yok" && eskiSurum.kod === 400 && eskiSurum.v.hata === "onay-surumu-eski",
           onaysiz.kod + "/" + eskiSurum.kod);
     const olcuYok = await istek("/foto/litofan", { ip: "10.3.0.7", govde: litofanGovde({ onay_surum: surum, olcu_mm: 125 }) });
     iddia("L3", "formulde olmayan olcu (adim disi 125) 400 gecersiz-olcu", olcuYok.kod === 400 && olcuYok.v.hata === "gecersiz-olcu", JSON.stringify(olcuYok.v));
     const sgOnce2 = P.saglayici;
     const yanlisUc = await istek("/foto/onizleme", { ip: "10.3.0.8", govde: { tur: "litofan", olcu_mm: 120, gorsel: uri(HARITA),
-      hak_onay: true, aktarim_onay: true, onay_surum: surum, turnstile_token: "j" } });
+      aydinlatma_onay: true, onay_surum: surum, turnstile_token: "j" } });
     iddia("L3", "/foto/onizleme litofani saglayiciya GOTURMEZ (400 tur-kapali, cagri 0)",
           yanlisUc.kod === 400 && yanlisUc.v.hata === "tur-kapali" && P.saglayici === sgOnce2, JSON.stringify(yanlisUc.v));
 
     // ---- L4: /baslat
-    const sepet = (secim, adet) => ({ sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+    const sepet = (secim, adet) => ({ sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
       sepet: [{ foto_is: isNo, olcu_mm: 120, adet: adet || 1, ...(secim ? { secim } : {}) }] });
     const iyOnce4 = P.iyzico;
     const b4 = await istek("/baslat", { govde: sepet({ panel_malzeme: "PETG", ayak_malzeme: "ASA", ayak_renk: "Siyah" }, 2) });
@@ -392,12 +392,12 @@ async function senaryo(ms) {
     VERI.ornekler.push(ornek("plaket"));
     await d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x')").run();
     const p7 = await istek("/foto/onizleme", { ip: "10.7.0.1", govde: { tur: "plaket", olcu_mm: 100, gorsel: uri(HARITA),
-      hak_onay: true, aktarim_onay: true, onay_surum: surum, turnstile_token: "j" } });
+      aydinlatma_onay: true, onay_surum: surum, turnstile_token: "j" } });
     const pis = p7.v && p7.v.is;
     const dur = pis ? await istek("/foto/durum?is=" + pis) : { v: null };
     iddia("L7", "plaket onizleme saglayici kolundan 'hazir'", p7.kod === 200 && !!dur.v && dur.v.asama === "hazir",
           JSON.stringify(p7.v) + " " + JSON.stringify(dur.v));
-    const b7 = await istek("/baslat", { govde: { sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+    const b7 = await istek("/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
       sepet: [{ foto_is: pis, olcu_mm: 100, adet: 1, secim: { ayak_renk: "Mor" } }] } });
     const s7 = b7.v && b7.v.no ? await d1.prepare("SELECT urunler, tutar_kurus FROM siparisler WHERE siparis_no = ?").bind(b7.v.no).first() : null;
     const k7 = s7 && JSON.parse(s7.urunler)[0];
@@ -623,7 +623,7 @@ async function senaryoIsimlik(kok) {
   const d1 = k.d1; const r2 = r2DizinKur(r2d);
   const env = envKur(d1, r2);
   const istek = istekKur(modul, env);
-  const siparis = (isNo) => ({ sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+  const siparis = (isNo) => ({ sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
                                sepet: [{ foto_is: isNo, olcu_mm: 100, adet: 1 }] });
   const yedek = VERI.ornekler.splice(0);
   try {
@@ -632,7 +632,7 @@ async function senaryoIsimlik(kok) {
     await d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('isimlik', 1, '2026-10-07T00:00:00.000Z')").run();
     const sg = P.saglayici;
     const o = await istek("/foto/onizleme", { ip: "198.51.100.210", govde: { tur: "isimlik", olcu_mm: 100,
-      parametreler: { yazi: "Ada" }, hak_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" } });
+      parametreler: { yazi: "Ada" }, aydinlatma_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" } });
     const isNo = (o.v && o.v.is) || "yok";
     const satir = () => d1.prepare("SELECT asama, hazir_tarih, hata FROM foto_isler WHERE is_no = ?").bind(isNo).first();
     const dz = path.join(r2d, "foto-uretec-onizleme", isNo);
@@ -644,9 +644,20 @@ async function senaryoIsimlik(kok) {
         P.saglayici === sg && !!o.v.yoklama && o.v.yoklama.aralik_sn === 5 && o.v.yoklama.tavan_sn === 180,
       JSON.stringify([o.kod, o.v, s1, gj]));
     const sema = await istek("/foto/onizleme", { ip: "198.51.100.211", govde: { tur: "isimlik", olcu_mm: 100,
-      parametreler: { yazi: "Ada", fazla: 1 }, hak_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" } });
+      parametreler: { yazi: "Ada", fazla: 1 }, aydinlatma_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" } });
     iddia("sema disi parametre -> 400 (VERI.parametreDogrula), satir/R2 yazimi yok", sema.kod === 400 && sema.v && sema.v.hata === "sema-disi-parametre",
       JSON.stringify([sema.kod, sema.v]));
+    // AYDINLATMA ONAYI (tek kutu, taslak-2): uretec onizleme ucu da kutusuz / eski surumle 400; dogru istekte damga+surum satirda.
+    const uGovde = (ek) => ({ tur: "isimlik", olcu_mm: 100, parametreler: { yazi: "Ada" }, turnstile_token: "jeton", ...ek });
+    const uKutusuz = await istek("/foto/onizleme", { ip: "198.51.100.212", govde: uGovde({ onay_surum: VERI.onay_surum }) });
+    const uEskiAlan = await istek("/foto/onizleme", { ip: "198.51.100.213", govde: uGovde({ hak_onay: true, onay_surum: VERI.onay_surum }) });
+    const uEski = await istek("/foto/onizleme", { ip: "198.51.100.214", govde: uGovde({ aydinlatma_onay: true, onay_surum: "2026-10-05-taslak-1" }) });
+    const uKayit = await d1.prepare("SELECT onay_tarih, onay_surum FROM foto_isler WHERE is_no = ?").bind(isNo).first();
+    iddia("uretec onizleme: kutusuz / eski alanla 400 onay-yok · eski surum 400 onay-surumu-eski · dogru istekte onay_tarih+onay_surum satirda",
+      uKutusuz.kod === 400 && uKutusuz.v.hata === "onay-yok" && uEskiAlan.kod === 400 && uEskiAlan.v.hata === "onay-yok" &&
+        uEski.kod === 400 && uEski.v.hata === "onay-surumu-eski" && !!uKayit && uKayit.onay_surum === VERI.onay_surum &&
+        !Number.isNaN(Date.parse(uKayit.onay_tarih)),
+      JSON.stringify([uKutusuz.kod, uKutusuz.v, uEskiAlan.kod, uEski.kod, uEski.v, uKayit]));
     const d0 = await istek("/foto/durum?is=" + isNo);
     const b0 = await istek("/baslat", { govde: siparis(isNo) });
     iddia("kuyrukta: durum 'bekliyor' · siparis 400 foto-onizleme-yok (kuyruk atlanamaz)",
@@ -751,7 +762,7 @@ const MUTANTLAR = [
   { ad: "M8 parametre sema kontrolu silindi", dosya: "shop/src/foto.js", hedef: "L3",
     capa: "  if (!p.ok) { return p.hata; }\n", yerine: "" },
   { ad: "M9 kuyruk atlandi: uretec onizleme satiri dogrudan 'hazir'", dosya: "shop/src/foto.js", hedef: "L10",
-    capa: "\" VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '')\"", yerine: "\" VALUES (?, ?, ?, ?, ?, 'hazir', 0, '')\"" },
+    capa: "\" VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '', ?, ?)\"", yerine: "\" VALUES (?, ?, ?, ?, ?, 'hazir', 0, '', ?, ?)\"" },
   { ad: "M10 siparis ucu uretec turunde 'hazir' bekler (onizleme-hazir ise baglanmaz)", dosya: "shop/src/foto.js", hedef: "L10",
     capa: "? \"onizleme-hazir\" : \"hazir\";", yerine: "? \"hazir\" : \"hazir\";" },
   { ad: "M11 uretec kolu yonlendirmesi silindi (saglayici yoluna duser)", dosya: "shop/src/foto.js", hedef: "L10",

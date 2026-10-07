@@ -396,8 +396,8 @@ async function istek(env, yol, o) {
   return { kod: r.status, v, r };
 }
 const YONET = { "X-Yonet-Anahtar": "yonet-test-anahtari" };
-const onizlemeGovde = (ek) => ({ tur: "plaket", olcu_mm: 100, gorsel: GORSEL, hak_onay: true,
-  aktarim_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton", ...(ek || {}) });
+const onizlemeGovde = (ek) => ({ tur: "plaket", olcu_mm: 100, gorsel: GORSEL, aydinlatma_onay: true,
+  onay_surum: VERI.onay_surum, turnstile_token: "jeton", ...(ek || {}) });
 const protoSayisi = () => P.cagri.filter((c) => /^POST .*\/v1\/prototype$/.test(c)).length;
 
 // ================================================================ ANA KOSUM
@@ -501,14 +501,14 @@ console.log("C/F) ONIZLEME + ONAY + GORSEL");
 let isNo;
 {
   const once = protoSayisi();
-  const r1 = await istek(env, "/foto/onizleme", { govde: onizlemeGovde({ aktarim_onay: false }) });
+  const r1 = await istek(env, "/foto/onizleme", { govde: onizlemeGovde({ aydinlatma_onay: false }) });
   const r2_ = await istek(env, "/foto/onizleme", { govde: onizlemeGovde({ onay_surum: "eski" }) });
   const r3 = await istek(env, "/foto/onizleme", { govde: onizlemeGovde({ gorsel: SAHTE_GORSEL }) });
   const r4 = await istek(env, "/foto/onizleme", { govde: onizlemeGovde({ olcu_mm: 55 }) });
   const r5 = await istek(env, "/foto/onizleme", { govde: onizlemeGovde({ tur: "magnet", olcu_mm: 100 }) });
   const r6 = await istek(env, "/foto/onizleme", { govde: onizlemeGovde({ tur: "anahtarlik", olcu_mm: 100 }) });
-  ol("F1 aktarim onayi yok -> 400 onay-yok", r1.kod === 400 && r1.v.hata === "onay-yok", JSON.stringify(r1.v));
-  ol("F2 eski onay surumu -> 409", r2_.kod === 409, r2_.kod);
+  ol("F1 aydinlatma onayi yok -> 400 onay-yok", r1.kod === 400 && r1.v.hata === "onay-yok", JSON.stringify(r1.v));
+  ol("F2 eski onay surumu -> 400 onay-surumu-eski", r2_.kod === 400 && r2_.v.hata === "onay-surumu-eski", JSON.stringify(r2_.v));
   ol("F3 sihirli bayti tutmayan gorsel -> 400 gorsel-gecersiz", r3.kod === 400 && r3.v.hata === "gorsel-gecersiz", JSON.stringify(r3.v));
   ol("F4 tabloda olmayan olcu -> 400", r4.kod === 400 && r4.v.hata === "gecersiz-olcu", JSON.stringify(r4.v));
   ol("F5 sunulmayan tur magnet -> 400 tur-kapali", r5.kod === 400 && r5.v.hata === "tur-kapali", JSON.stringify(r5.v));
@@ -575,10 +575,10 @@ const musteri = { ad: "Deneme Musteri", tel: "05000000000", eposta: "deneme@orne
 let siparisNo;
 {
   const once = P.iyzico.length;
-  const h = await istek(env, "/baslat", { govde: { sozlesme_onay: true, odeme: "havale", musteri, turnstile_token: "j",
+  const h = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "havale", musteri, turnstile_token: "j",
     sepet: [{ foto_is: isNo, olcu_mm: 100, adet: 1 }] } });
   ol("H1 havale -> 400 foto-havale-yok", h.kod === 400 && h.v.hata === "foto-havale-yok", JSON.stringify(h.v));
-  const b = await istek(env, "/baslat", { govde: { sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+  const b = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
     sepet: [{ foto_is: isNo, olcu_mm: 100, adet: 1, fiyat_kurus: 1 }] } });
   siparisNo = b.v && b.v.no;
   const iy = P.iyzico[P.iyzico.length - 1] || {};
@@ -590,10 +590,10 @@ let siparisNo;
      kalem.foto_is === isNo && kalem.foto_tur === "plaket" && kalem.olcu_mm === 100 && kalem.foto_ayak === 1, JSON.stringify(s));
   const eski = await istek(env, "/foto/onizleme", { ip: "198.51.100.77", govde: onizlemeGovde() });
   await d1.prepare("UPDATE foto_isler SET asama = 'hazir', hazir_tarih = '2020-01-01T00:00:00.000Z' WHERE is_no = ?").bind(eski.v.is).run();
-  const e = await istek(env, "/baslat", { govde: { sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+  const e = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
     sepet: [{ foto_is: eski.v.is, olcu_mm: 100, adet: 1 }] } });
   ol("H4 suresi dolmus onizleme -> 400", e.kod === 400 && e.v.hata === "foto-onizleme-suresi-doldu", JSON.stringify(e.v));
-  const yok = await istek(env, "/baslat", { govde: { sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+  const yok = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
     sepet: [{ foto_is: "f".repeat(32), olcu_mm: 100, adet: 1 }] } });
   ol("H5 olmayan onizleme -> 400", yok.kod === 400 && yok.v.hata === "foto-onizleme-yok", JSON.stringify(yok.v));
 }
@@ -643,7 +643,7 @@ let siparis2;
   await istek(env, "/foto/durum?is=" + ok.v.is);
   await d1.prepare("UPDATE foto_isler SET son_kontrol = 0 WHERE is_no = ?").bind(ok.v.is).run();
   await istek(env, "/foto/durum?is=" + ok.v.is);
-  const b = await istek(env, "/baslat", { govde: { sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+  const b = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
     sepet: [{ foto_is: ok.v.is, olcu_mm: 100, adet: 2 }] } });
   siparis2 = b.v && b.v.no;
   await d1.prepare("UPDATE siparisler SET durum = 'odendi' WHERE siparis_no = ?").bind(siparis2).run();
@@ -693,7 +693,7 @@ console.log("Q) SUNULMAYAN TUR — sunucu reddi (eski/elle yazilmis kayit uzerin
   const isA = "a".repeat(32);
   await d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'anahtarlik', 100, 'z', ?, 'hazir', 'gorev-eski-0001', ?)")
     .bind(isA, simdiIso, simdiIso).run();
-  const b = await istek(env, "/baslat", { govde: { sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+  const b = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
     sepet: [{ foto_is: isA, olcu_mm: 100, adet: 1 }] } });
   ol("Q1 anahtarlik onizlemesinden /baslat -> 400 foto-kapali (odeme baslamaz)", b.kod === 400 && b.v.hata === "foto-kapali", JSON.stringify(b.v));
   await d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES ('PR-TEST-MAGNET', ?, 'odendi', 1, ?)")
@@ -792,7 +792,7 @@ let ornekIs = "";
   ol("O6b panel ornek-durum musteri isini GOSTERMEZ (404)", pm.kod === 404, pm.kod);
   // O7 SEPET: ornek isi /baslat'ta RED, odeme baslamaz.
   const iyOnce = P.iyzico.length;
-  const sb = await istek(env, "/baslat", { govde: { sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+  const sb = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
     sepet: [{ foto_is: ornekIs, olcu_mm: 100, adet: 1 }] } });
   ol("O7 ornek isi sepette RED (400 foto-onizleme-yok), iyzico'ya istek YOK",
      sb.kod === 400 && sb.v.hata === "foto-onizleme-yok" && P.iyzico.length === iyOnce, JSON.stringify(sb.v));
@@ -1032,7 +1032,7 @@ console.log("R) ONARIM — kirmizi analiz -> onarim -> yeniden doku -> YENIDEN a
       await d1.prepare("UPDATE foto_isler SET son_kontrol = 0 WHERE is_no = ?").bind(ok.v.is).run();
       await istek(env, "/foto/durum?is=" + ok.v.is);
     }
-    const b = await istek(env, "/baslat", { govde: { sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+    const b = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
       sepet: [{ foto_is: ok.v.is, olcu_mm: 100, adet: 1 }] } });
     await d1.prepare("UPDATE siparisler SET durum = 'odendi' WHERE siparis_no = ?").bind(b.v.no).run();
     return { no: b.v.no, is: ok.v.is };
@@ -1486,9 +1486,16 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     s.ONIZLEMESIZ = !!kap && kap.hidden === false && [...kap.agac()].some((n) => n.tagName === "IMG" && /t-ir\.webp$/.test(n.src)) &&
       !d.some((n) => n.tagName === "CANVAS") && !!btn && btn.disabled === true &&
       !d.some((n) => n.tagName === "P" && /tarayıcında çizilir/.test(n.textContent) && n.parentNode && !n.parentNode.hidden);
-    // HAK KUTUSU (G2, mimar karari 7 Eki): yalniz form girdili turde GORUNMEZ; plakette gorunur.
-    const hakE = id("foto-hak");
-    s.HAK_FORM_GIZLI = !!hakE && !!hakE.parentNode && hakE.parentNode.hidden === true;
+    // TEK ONAY KUTUSU (taslak-2, 7 Eki 20:5x): form girdili turde de GORUNUR; eski iki kutu 0.
+    const tekKutu = (dd) => {
+      const k_ = dd.find((n) => n.id === "foto-aydinlatma-onay");
+      const det = dd.find((n) => n.tagName === "DETAILS" && n.classList.contains("foto-uretim-aydinlatma"));
+      const sira = det && k_ ? dd.indexOf(k_) > dd.indexOf(det) : false;   // kutu metnin ALTINDA
+      return !!k_ && k_.type === "checkbox" && !!k_.parentNode && k_.parentNode.hidden !== true && sira &&
+        k_.parentNode.textContent.trim() === "Aydınlatma metnini okudum, onaylıyorum." &&
+        !dd.some((n) => n.id === "foto-hak" || n.id === "foto-aktarim");
+    };
+    s.TEK_KUTU_FORM = tekKutu(d);
     // URETEC ONIZLEME (madde 11): onay + dogrulama sonrasi buton ACILIR; tiklaninca /foto/onizleme'ye
     // foto'suz govde (tur + parametreler) gider, litofan ucu cagrilmaz, yoklama araligi 5 sn.
     const V2 = sentetik(VERI_KAYNAK);
@@ -1498,13 +1505,18 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     const id2 = (x) => d2.find((n) => n.id === x) || null;
     const y2 = id2("foto-param-yazi"), u2 = id2("foto-param-link"), btn2 = id2("foto-onizle-buton");
     if (y2 && u2) { y2.value = "Ada"; y2.tetikle("input"); u2.value = "https://ornek.com"; u2.tetikle("input"); }
-    // Form girdili turde hak kutusu GIZLI ve ISTENMEZ: isaretlenmeden buton acilir, govdede hak_onay false.
+    // Kutu isaretlenmeden buton KAPALI (form + dogrulama tam olsa da); isaretlenince ACILIR.
+    const kapali = !!btn2 && btn2.disabled === true;
+    const on2 = id2("foto-aydinlatma-onay");
+    if (on2) { on2.checked = true; on2.tetikle("change"); }
+    s.KUTU_SART = kapali && !!btn2 && btn2.disabled === false;
     const acildi = !!btn2 && btn2.disabled === false && btn2.textContent === "Önizleme oluştur";
     if (btn2) { btn2.tetikle("click"); }
     for (let i = 0; i < 10; i++) { await new Promise((c) => setTimeout(c, 0)); }
     const p0 = e2.istekler[0] || {};
     s.KUYRUK = acildi && e2.istekler.length === 1 && p0.u === "/api/shop/foto/onizleme" &&
-      p0.govde.tur === "sentetik-d" && p0.govde.hak_onay === false && p0.govde.turnstile_token === "t-jeton" &&
+      p0.govde.tur === "sentetik-d" && p0.govde.aydinlatma_onay === true && p0.govde.onay_surum === V2.onay_surum &&
+      !("hak_onay" in p0.govde) && !("aktarim_onay" in p0.govde) && p0.govde.turnstile_token === "t-jeton" &&
       p0.govde.gorsel === undefined && JSON.stringify(p0.govde.parametreler) ===
         JSON.stringify({ yazi: "Ada", kalinlik: 2, yazi_tipi: "Düz", link: "https://ornek.com" }) &&
       e2.araliklar.includes(5000) && !e2.araliklar.includes(3000);
@@ -1512,8 +1524,7 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     const p = await ekranKos(kaynak, sentetik(VERI_KAYNAK), acikP);
     const dp = [...p.bolum.agac()];
     s.PLAKET = !dp.some((n) => String(n.id || "").startsWith("foto-param-")) && !dp.some((n) => n.textContent === SONRA && n.tagName === "P");
-    const hakP = dp.find((n) => n.id === "foto-hak");
-    s.HAK_FOTO_GORUNUR = !!hakP && !!hakP.parentNode && hakP.parentNode.hidden !== true;
+    s.TEK_KUTU_PLAKET = tekKutu(dp);
     return s;
   };
   const s0 = await senaryo(EKRAN_KAYNAK);
@@ -1522,20 +1533,23 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
   ol("FM3 onizlemesiz D turu: ornek render + '" + SONRA + "' · tuval/litofan onizleme metni 0 · buton kapali", s0.ONIZLEMESIZ, JSON.stringify(s0));
   ol("FM4 plaket (form {}): parametre alani 0, onizleme-sonra metni 0", s0.PLAKET, JSON.stringify(s0));
   ol("FM5 onizlemesiz D: buton onay+dogrulamayla ACILIR -> /foto/onizleme kuyrugu (foto'suz, parametreli), yoklama 5 sn", s0.KUYRUK, JSON.stringify(s0));
-  ol("FM6 hak beyani kutusu: form girdili turde GIZLI (istenmez, hak_onay false) · foto turunde (plaket) GORUNUR",
-    s0.HAK_FORM_GIZLI && s0.HAK_FOTO_GORUNUR, JSON.stringify(s0));
+  ol("FM6 TEK onay kutusu 'foto-aydinlatma-onay' aydinlatma metninin ALTINDA, form turunde ve plakette GORUNUR; eski 2 kutu 0",
+    s0.TEK_KUTU_FORM && s0.TEK_KUTU_PLAKET, JSON.stringify(s0));
+  ol("FM7 kutu isaretsizken 'Önizleme oluştur' DISABLED, isaretlenince acilir; govdede aydinlatma_onay + surum (eski alan 0)",
+    s0.KUTU_SART && s0.KUYRUK, JSON.stringify(s0));
   const FM_MUT = [
     ["FM-M1 istemci kendi dogrulamasi (her sey gecerli)", "return F.parametreDogrula(S.tur, parametreGovde());", "return { ok: true };", ["AYNI_FONKSIYON"]],
     ["FM-M2 onizleme-sonra metni dustu", "S.alanOnizlemeSonra.appendChild(el(\"p\", \"foto-uretim-ayrinti\", ONIZLEME_SONRA));", "", ["ONIZLEMESIZ"]],
     ["FM-M3 tarayici onizleyici kosulu silindi (her D litofan sayilir)",
-     "F.kolu(S.tur) === \"deterministik\" && F.TARAYICI_ONIZLEYICI[t.uretec] === true);", "F.kolu(S.tur) === \"deterministik\");", ["KUYRUK", "ONIZLEMESIZ"]],
+     "F.kolu(S.tur) === \"deterministik\" && F.TARAYICI_ONIZLEYICI[t.uretec] === true);", "F.kolu(S.tur) === \"deterministik\");", ["KUTU_SART", "KUYRUK", "ONIZLEMESIZ"]],
     ["FM-M4 uretec onizleme yonlendirmesi silindi (plaket/saglayici yoluna duser)",
      "    if (onizlemeSonraSecili()) { uretecOnizle(); return; }\n", "", ["KUYRUK"]],
     ["FM-M5 uretec yoklama araligi plaketinki", "var aralik = uretec ? URETEC_YOKLAMA_MS : YOKLAMA_MS;", "var aralik = YOKLAMA_MS;", ["KUYRUK"]],
-    ["FM-M6 hak kutusu her turde gorunur+zorunlu",
-     "    var tam = (!!S.dosya || !fotoGerekir()) && (!!S.hakOnay || !F.hakGerekir(S.tur)) && (",
-     "    var tam = (!!S.dosya || !fotoGerekir()) && !!S.hakOnay && (", ["KUYRUK"]],
-    ["FM-M7 hak kutusu gizlenmez", "    hakLbl.hidden = !F.hakGerekir(S.tur);\n", "", ["HAK_FORM_GIZLI"]],
+    ["FM-M6 buton kutusuz acilir (S1 kapisi silindi)",
+     "    var tam = (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&",
+     "    var tam = (!!S.dosya || !fotoGerekir()) &&", ["KUTU_SART"]],
+    ["FM-M7 aydinlatma metni dustu (kutu metinsiz kalir)", "    S.alanOnay.appendChild(det);\n\n", "", ["TEK_KUTU_FORM", "TEK_KUTU_PLAKET"]],
+    ["FM-M8 govdeye onay alani girmedi", "aydinlatma_onay: !!S.aydinlatmaOnay, onay_surum: F.onay_surum,", "onay_surum: F.onay_surum,", ["KUYRUK"]],
     ["FM-MK kontrol (yorum)", "// FORM ALANLARI — türün", "// form alanlari — turun", []],
   ];
   for (const [ad, capa, yerine, olmeli] of FM_MUT) {
@@ -1915,6 +1929,139 @@ for (const [ad, capa, yerine, olmeli] of AK_MUTANTLAR) {
   const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
   ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
      Object.keys(s).length === 4 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
+}
+
+// ================================================================ AO — AYDINLATMA ONAYI (tek kutu, taslak-2)
+
+console.log("AO) AYDINLATMA ONAYI — tek kutu + guncel surum; kutusuz/eski surum 400; damga+surum kayitta (7 Eki 20:5x)");
+const ESKI_SURUM = "2026-10-05-taslak-1";
+/** shop/src kopyasi (src ile AYNI derinlik: "../../" ve "../config.json" importlari aynen cozulur). */
+let aoKopyaNo = 0;
+async function aoKopya(degisiklik) {
+  const dizin = path.join(SHOP, "foto-test-tmp-" + process.pid + "-ao" + (++aoKopyaNo));
+  process.on("exit", () => { fs.rmSync(dizin, { recursive: true, force: true }); });
+  fs.mkdirSync(dizin, { recursive: true });
+  for (const ad of fs.readdirSync(path.join(SHOP, "src"))) {
+    if (!/\.m?js$/.test(ad)) { continue; }
+    let k = fs.readFileSync(path.join(SHOP, "src", ad), "utf8");
+    for (const [dosya, capa, yerine] of degisiklik || []) {
+      if (dosya !== ad) { continue; }
+      if (k.split(capa).length - 1 !== 1) { return null; }
+      k = k.replace(capa, yerine);
+    }
+    fs.writeFileSync(path.join(dizin, ad), k);
+  }
+  return { modul: (await import(url.pathToFileURL(path.join(dizin, "index.js")).href)).default,
+           foto: await import(url.pathToFileURL(path.join(dizin, "foto.js")).href) };
+}
+/** Temiz SQLite. Donus: her iddia gecti mi. K/S/D onizleme ucu, BK/BS/BD /baslat foto kalemi, U uretim satiri. */
+async function aoSenaryolar(m) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x')").run();
+  let ipNo = 0;
+  const cag = async (yol, govde) => {
+    const r = await m.modul.fetch(new Request("https://pruvo3d.com/api/shop" + yol, { method: "POST",
+      headers: { "CF-Connecting-IP": "10.20.0." + (++ipNo), "Content-Type": "application/json" }, body: JSON.stringify(govde) }), e2, ctx);
+    let v = null; try { v = await r.json(); } catch (e) { v = null; }
+    return { kod: r.status, v };
+  };
+  const yeniGovde = (ek) => {
+    const g = { tur: "plaket", olcu_mm: 100, gorsel: GORSEL, turnstile_token: "jeton", ...(ek || {}) };
+    for (const a of Object.keys(g)) { if (g[a] === undefined) { delete g[a]; } }
+    return g;
+  };
+  const s = {};
+  const once = protoSayisi();
+  const kutusuz = await cag("/foto/onizleme", yeniGovde({ onay_surum: VERI.onay_surum }));
+  const eskiAlan = await cag("/foto/onizleme", yeniGovde({ hak_onay: true, aktarim_onay: true, onay_surum: VERI.onay_surum }));
+  const eskiAlanEskiSurum = await cag("/foto/onizleme", yeniGovde({ hak_onay: true, aktarim_onay: true, onay_surum: ESKI_SURUM }));
+  s.K = kutusuz.kod === 400 && !!kutusuz.v && kutusuz.v.hata === "onay-yok" &&
+        eskiAlan.kod === 400 && !!eskiAlan.v && eskiAlan.v.hata === "onay-yok" && eskiAlanEskiSurum.kod === 400;
+  const eski = await cag("/foto/onizleme", yeniGovde({ aydinlatma_onay: true, onay_surum: ESKI_SURUM }));
+  const surumsuz = await cag("/foto/onizleme", yeniGovde({ aydinlatma_onay: true }));
+  s.S = eski.kod === 400 && !!eski.v && eski.v.hata === "onay-surumu-eski" && surumsuz.kod === 400;
+  s.G = protoSayisi() === once;   // reddedilen istek saglayiciya GITMEZ
+  const t0 = Date.now();
+  const dogru = await cag("/foto/onizleme", yeniGovde({ aydinlatma_onay: true, onay_surum: VERI.onay_surum }));
+  const satir = dogru.v && dogru.v.is
+    ? await k.d1.prepare("SELECT onay_tarih, onay_surum FROM foto_isler WHERE is_no = ?").bind(dogru.v.is).first() : null;
+  const dt = satir ? Date.parse(satir.onay_tarih) : NaN;
+  s.D = dogru.kod === 200 && !!satir && satir.onay_surum === VERI.onay_surum &&
+        /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(satir.onay_tarih) && dt >= t0 - 1000 && dt <= Date.now() + 1000;
+  // /baslat: onizleme hazir sayilir (saglayici yoklamasi bu senaryonun konusu degil).
+  const is = dogru.v && dogru.v.is;
+  if (is) {
+    await k.d1.prepare("UPDATE foto_isler SET asama = 'hazir', gorev = 'gorev-ao', hazir_tarih = ? WHERE is_no = ?")
+      .bind(new Date().toISOString(), is).run();
+  }
+  const sip = (ek) => ({ sozlesme_onay: true, odeme: "kart", musteri, turnstile_token: "j",
+    sepet: [{ foto_is: is || "0".repeat(32), olcu_mm: 100, adet: 1 }], ...(ek || {}) });
+  const iyOnce = P.iyzico.length;
+  const bk = await cag("/baslat", sip({ onay_surum: VERI.onay_surum }));
+  const bkEski = await cag("/baslat", sip({ hak_onay: true, aktarim_onay: true, onay_surum: VERI.onay_surum }));
+  s.BK = bk.kod === 400 && !!bk.v && bk.v.hata === "onay-yok" && bkEski.kod === 400 && P.iyzico.length === iyOnce;
+  const bs = await cag("/baslat", sip({ aydinlatma_onay: true, onay_surum: ESKI_SURUM }));
+  s.BS = bs.kod === 400 && !!bs.v && bs.v.hata === "onay-surumu-eski" && P.iyzico.length === iyOnce;
+  const bd = await cag("/baslat", sip({ aydinlatma_onay: true, onay_surum: VERI.onay_surum }));
+  s.BD = bd.kod === 200 && !!bd.v && !!bd.v.no && P.iyzico.length === iyOnce + 1;
+  // Foto kalemsiz sepet bu kontrolden ETKILENMEZ (katalog yolu ayni) — istekCoz katalog dalina dusmeden once karar verir.
+  // U: odenen siparisin uretim satiri onayi is satirindan TASIR (damga + surum birebir).
+  if (bd.v && bd.v.no) {
+    await k.d1.prepare("UPDATE siparisler SET durum = 'odendi' WHERE siparis_no = ?").bind(bd.v.no).run();
+    await m.foto.fotoUretimTuru(e2, Date.now(), null);
+  }
+  const u = bd.v && bd.v.no
+    ? await k.d1.prepare("SELECT onay_tarih, onay_surum FROM foto_uretim WHERE siparis_no = ?").bind(bd.v.no).first() : null;
+  s.U = !!u && !!satir && u.onay_surum === VERI.onay_surum && u.onay_tarih === satir.onay_tarih && u.onay_tarih !== "";
+  k.kapat();
+  return s;
+}
+{
+  const s = await aoSenaryolar({ modul, foto });
+  ol("AO1 onizleme: kutusuz -> 400 onay-yok · ESKI alanlarla (hak_onay+aktarim_onay) -> 400", s.K, JSON.stringify(s));
+  ol("AO2 onizleme: eski onay surumu / surumsuz -> 400 onay-surumu-eski", s.S, JSON.stringify(s));
+  ol("AO3 reddedilen onay isteklerinin hicbiri saglayiciya GITMEDI", s.G, JSON.stringify(s));
+  ol("AO4 dogru istek -> 200 + foto_isler.onay_tarih (ISO, istek ani) + onay_surum = " + VERI.onay_surum, s.D, JSON.stringify(s));
+  ol("AO5 /baslat foto kalemi: kutusuz / eski alanlarla -> 400 onay-yok, iyzico 0", s.BK, JSON.stringify(s));
+  ol("AO6 /baslat foto kalemi: eski surum -> 400 onay-surumu-eski, iyzico 0", s.BS, JSON.stringify(s));
+  ol("AO7 /baslat foto kalemi: dogru onay -> 200 + iyzico 1", s.BD, JSON.stringify(s));
+  ol("AO8 odenen siparisin foto_uretim satiri onay damgasi + surumu is satirindan birebir tasir", s.U, JSON.stringify(s));
+}
+{
+  // Iki onay cumlesi aydinlatma metnine HARF HARF girdi (hak: her kol, aktarim: yalniz saglayici kolu);
+  // ayri onay metni (onay.hak / onay.aktarim) YOK; veri dosyasinda her cumle TEK satirda (grep -F birebir bulur).
+  const HAK = "Yüklediğim fotoğrafın bana ait olduğunu ya da kullanma hakkım olduğunu beyan ederim.";
+  const AKT = "Fotoğrafımın önizleme ve üretim dosyasının hazırlanması için yurt dışındaki hizmet sağlayıcıya aktarılmasına açık rıza veriyorum.";
+  const L = VERI.onay.aydinlatma;
+  const ham = fs.readFileSync(path.join(KOK, "foto-uretim-veri.js"), "utf8");
+  const tek = (c) => ham.split(c).length - 1 === 1;
+  ol("AO9 iki onay cumlesi aydinlatma listesinde AYNEN (hak kol '' · aktarim kol 'M'), ayri onay metni 0, kaynakta birebir 1'er kez",
+     L.filter((x) => x.metin === HAK && x.kol === "").length === 1 && L.filter((x) => x.metin === AKT && x.kol === "M").length === 1 &&
+     JSON.stringify(Object.keys(VERI.onay)) === JSON.stringify(["aydinlatma"]) && tek(HAK) && tek(AKT) &&
+     VERI.aydinlatmaMaddeleri("plaket").includes(AKT) && VERI.aydinlatmaMaddeleri("plaket").includes(HAK),
+     JSON.stringify(Object.keys(VERI.onay)));
+}
+const AO_MUTANTLAR = [
+  ["AOM1 SUNUCU ONAY KONTROLU SILINDI", [["foto.js", "if (!g || g.aydinlatma_onay !== true) { return \"onay-yok\"; }", ""]],
+   // kutusuz istek saglayiciya gider (G) ve iyzico acilir -> sonraki /baslat sayaclari da kayar (BS, BD)
+   ["BD", "BK", "BS", "G", "K"]],
+  ["AOM2 SURUM KONTROLU SILINDI", [["foto.js", "if (g.onay_surum !== VERI.onay_surum) { return \"onay-surumu-eski\"; }", ""]],
+   ["BD", "BS", "G", "S"]],
+  ["AOM3 /baslat FOTO KALEMI ONAY KONTROLU SILINDI", [["index.js", "    const oh = aydinlatmaOnayHatasi(govde);\n    if (oh) return { hata: oh };\n", ""]], ["BD", "BK", "BS"]],
+  ["AOM4 ONAY KAYDI YAZILMADI", [["foto.js", "return onaySurum ? { tarih: simdiIso(simdi), surum: onaySurum } : { tarih: \"\", surum: \"\" };",
+    "return { tarih: \"\", surum: \"\" };"]], ["D", "U"]],
+  ["AOM5 URETIM SATIRINA SURUM TASINMADI", [["foto.js", "COALESCE((SELECT onay_surum FROM foto_isler WHERE is_no = ?), '')",
+    "COALESCE((SELECT '' FROM foto_isler WHERE is_no = ?), '')"]], ["U"]],
+  ["AOM-K KONTROL", [["foto.js", "// Aydinlatma onayi (damga + surum) musteri kolunda her satira", "// aydinlatma onayi (damga + surum) musteri kolunda her satira"]], []],
+];
+for (const [ad, degisiklik, olmeli] of AO_MUTANTLAR) {
+  const m = await aoKopya(degisiklik);
+  if (!m) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + JSON.stringify(degisiklik)); continue; }
+  const s = await aoSenaryolar(m);
+  const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 8 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
 }
 
 kopru.kapat();

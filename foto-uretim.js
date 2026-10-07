@@ -92,8 +92,7 @@
     olcu: null,
     adet: 1,
     dosya: null,
-    hakOnay: false,
-    aktarimOnay: false,
+    aydinlatmaOnay: false,
     captchaToken1: "",
     captchaToken2: "",
     is: null,
@@ -449,6 +448,7 @@
     if (!S.is) return;
     var kayit = { is: S.is, tur: S.tur, olcu: S.olcu };
     if (litofanSecili() && S.secim) kayit.secim = S.secim;
+    if (S.aydinlatmaOnay) kayit.onay = F.onay_surum;
     try { sessionStorage.setItem(SS_IS, JSON.stringify(kayit)); }
     catch (e) { }
   }
@@ -810,7 +810,7 @@
   // "Siparişe geç": gri haritayı gönder, dönen iş numarasıyla ödeme adımına geç.
   function litofanGonder() {
     if (!S.litofanHarita) { adimKoy("S1", "Önce fotoğrafını seç; önizleme çizilsin.", true); return; }
-    if (!S.hakOnay) { adimKoy("S1", "Fotoğraf hakkı onayını işaretlemelisin.", true); return; }
+    if (!S.aydinlatmaOnay) { adimKoy("S1", "Aydınlatma metnini onaylamalısın.", true); return; }
     if (!S.captchaToken1) { adimKoy("S1", "Lütfen doğrulama kutusunu işaretle.", true); return; }
     if (!S.tur || !S.olcu) { adimKoy("S1", "Ölçü seçmelisin.", true); return; }
     var onizleme = S.litofanOnizleme;
@@ -818,7 +818,7 @@
       tur: S.tur,
       olcu_mm: S.olcu,
       gorsel: S.litofanHarita,
-      hak_onay: true,
+      aydinlatma_onay: true,
       onay_surum: F.onay_surum,
       turnstile_token: S.captchaToken1
     };
@@ -1367,7 +1367,7 @@
     cizKonsept();
   }
   function konseptHazirMi() {
-    return !!S.dosya && !!S.hakOnay && !!S.aktarimOnay && !!S.captchaToken1 && !!S.tur;
+    return !!S.dosya && !!S.aydinlatmaOnay && !!S.captchaToken1 && !!S.tur;
   }
   function konseptButonGuncelle() {
     var b = S.konseptGonderBtn || [];
@@ -1446,7 +1446,7 @@
   function konseptOlustur() {
     if (!konseptAcik()) return;
     if (!S.dosya) { konseptHataKoy("Lütfen fotoğrafını seç."); return; }
-    if (!S.hakOnay || !S.aktarimOnay) { konseptHataKoy("Önce aşağıdaki iki onayı işaretlemelisin."); return; }
+    if (!S.aydinlatmaOnay) { konseptHataKoy("Önce aşağıdaki aydınlatma metnini onaylamalısın."); return; }
     if (!S.captchaToken1) { konseptHataKoy("Lütfen doğrulama kutusunu işaretle."); return; }
     var jeton = S.captchaToken1;
     S.captchaToken1 = "";
@@ -1456,7 +1456,7 @@
     guncelleS1Buton();
     kucultGorsel(S.dosya, function (err, dataUrl) {
       if (err || !dataUrl) { turnsSifirla(S.alanCap1); konseptHataKoy("Fotoğraf okunamadı (JPEG, PNG ya da WEBP)."); return; }
-      var govde = { tur: S.tur, gorsel: dataUrl, hak_onay: true, aktarim_onay: true,
+      var govde = { tur: S.tur, gorsel: dataUrl, aydinlatma_onay: true,
         onay_surum: F.onay_surum, turnstile_token: jeton };
       notGovdeyeKoy(govde);
       if (S.konseptOturum) govde.oturum = S.konseptOturum;
@@ -1476,7 +1476,7 @@
         if (kod === 403) { konseptHataKoy("Doğrulama tamamlanamadı, kutucuğu yeniden işaretleyip dene."); return; }
         if (kod === 422) { konseptHataKoy("Bu fotoğraftan konsept çizilemedi; başka bir fotoğraf dene."); return; }
         if (kod === 400 && h && NOT_HATA[h]) { konseptHataKoy(NOT_HATA[h]); return; }
-        if (kod === 409) { konseptHataKoy("Metin güncellendi, sayfayı yenile."); return; }
+        if (kod === 400 && h === "onay-surumu-eski") { konseptHataKoy("Metin güncellendi, sayfayı yenile."); return; }
         konseptHataKoy("Şu an konsept oluşturulamıyor; doğrudan 3D önizleme oluşturabilirsin.");
       });
     });
@@ -1525,37 +1525,6 @@
   function doldurS1Onay() {
     while (S.alanOnay.firstChild) S.alanOnay.removeChild(S.alanOnay.firstChild);
     S.alanOnay.appendChild(el("label", "foto-uretim-form-etiket", "Onaylar"));
-
-    var hakLbl = el("label", "foto-uretim-form-secenek-inline");
-    hakLbl.setAttribute("for", "foto-hak");
-    var hakInp = el("input");
-    hakInp.type = "checkbox"; hakInp.id = "foto-hak";
-    hakInp.checked = !!S.hakOnay;
-    hakInp.addEventListener("change", function (e) {
-      S.hakOnay = !!e.target.checked;
-      guncelleS1Buton();
-    });
-    ek(hakLbl, hakInp);
-    ek(hakLbl, " " + F.onay.hak);
-    // Hak kutusu yalnız fotoğraf/SVG yüklenen türde (manifest F.hakGerekir): isimlik/QR'de GÖRÜNMEZ.
-    hakLbl.hidden = !F.hakGerekir(S.tur);
-    S.alanOnay.appendChild(hakLbl);
-
-    var aktLbl = el("label", "foto-uretim-form-secenek-inline");
-    aktLbl.setAttribute("for", "foto-aktarim");
-    var aktInp = el("input");
-    aktInp.type = "checkbox"; aktInp.id = "foto-aktarim";
-    aktInp.checked = !!S.aktarimOnay;
-    aktInp.addEventListener("change", function (e) {
-      S.aktarimOnay = !!e.target.checked;
-      guncelleS1Buton();
-    });
-    ek(aktLbl, aktInp);
-    ek(aktLbl, " " + F.onay.aktarim);
-    // Aktarım kutusu yalnız M motorlu türde (manifest): D/R türünde fotoğraf hiçbir hizmet
-    // sağlayıcıya aktarılmaz, aktarım rızası istenmez.
-    aktLbl.hidden = !F.aktarimGerekir(S.tur);
-    S.alanOnay.appendChild(aktLbl);
     // "Nasıl olsun?" notu: 2D açıldığında da geçerli kalan cümle (onay sürümüne bağlı metin DEĞİŞMEZ).
     S.alanOnay.appendChild(el("p", "foto-uretim-ayrinti",
       "Not yazarsanız notunuz görsel üretimine iletilir; nota iletişim bilgisi yazmayın."));
@@ -1575,6 +1544,21 @@
     sonP.appendChild(document.createTextNode(" sayfasına bakabilirsin."));
     det.appendChild(sonP);
     S.alanOnay.appendChild(det);
+
+    // TEK ONAY KUTUSU (metin sürümü taslak-2): metnin ALTINDA; hak beyanı ve aktarım rızası
+    // cümleleri metnin içinde. İşaretlenmeden konsept, önizleme ve sipariş düğmeleri açılmaz.
+    var onLbl = el("label", "foto-uretim-form-secenek-inline");
+    onLbl.setAttribute("for", "foto-aydinlatma-onay");
+    var onInp = el("input");
+    onInp.type = "checkbox"; onInp.id = "foto-aydinlatma-onay";
+    onInp.checked = !!S.aydinlatmaOnay;
+    onInp.addEventListener("change", function (e) {
+      S.aydinlatmaOnay = !!e.target.checked;
+      guncelleS1Buton();
+    });
+    ek(onLbl, onInp);
+    ek(onLbl, " Aydınlatma metnini okudum, onaylıyorum.");
+    S.alanOnay.appendChild(onLbl);
   }
 
   function guncelleS1Buton() {
@@ -1585,7 +1569,7 @@
     var lit = litofanSecili();
     // Tarayıcı önizleyicisi olmayan D/R türü: önizlemeyi üreteç koşucusu çıkarır (/foto/onizleme
     // kuyruğu); fotoğraf yalnız türün girdisinde varsa istenir.
-    var tam = (!!S.dosya || !fotoGerekir()) && (!!S.hakOnay || !F.hakGerekir(S.tur)) && (!!S.aktarimOnay || !F.aktarimGerekir(S.tur)) &&
+    var tam = (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&
       !!S.captchaToken1 && !!S.tur && !!S.olcu && (!lit || !!S.litofanHarita) &&
       formDogrula().ok;
     btn.disabled = !tam;
@@ -1710,7 +1694,12 @@
       S.captchaToken2 = "";
       adimKoy("S4");
     });
+    // Aydınlatma onayı olmadan sipariş düğmesi açılmaz (eski sürüm onayıyla geri gelen iş dahil).
+    sipBtn.disabled = !S.aydinlatmaOnay;
     butonG.appendChild(sipBtn);
+    if (!S.aydinlatmaOnay) {
+      butonG.appendChild(el("p", "foto-uretim-ayrinti", "Aydınlatma metni güncellendi; sipariş için yeni önizleme oluştur."));
+    }
     var baskaBtn = el("button", "foto-uretim-buton-ikincil", "Başka fotoğraf dene");
     baskaBtn.type = "button";
     baskaBtn.style.marginTop = "0";
@@ -1718,8 +1707,7 @@
       yoksDurdur();
       ssIsSil();
       S.dosya = null;
-      S.hakOnay = false;
-      S.aktarimOnay = false;
+      S.aydinlatmaOnay = false;
       S.gorsel = null;
       S.gecerlilik = null;
       S.adet = 1;
@@ -1858,7 +1846,7 @@
     var sehir = S.sehir || "";
     var tam = ad.length >= 3 && tel.length >= 10 &&
       epostaKalibi.test(eposta) && adres.length >= 10 &&
-      sehir.length >= 2 && !!S.sozlesme && !!S.captchaToken2;
+      sehir.length >= 2 && !!S.sozlesme && !!S.aydinlatmaOnay && !!S.captchaToken2;
     btn.disabled = !tam;
   }
 
@@ -1904,6 +1892,8 @@
         S.tur = kayit.tur || S.tur || (veri.turler[0] ? veri.turler[0].kod : null);
         S.olcu = kayit.olcu || null;
         if (kayit.secim && typeof kayit.secim === "object") S.secim = kayit.secim;
+        // Onay yalnız AYNI metin sürümüne verildiyse geri gelir (eski sürüm onayı sayılmaz).
+        S.aydinlatmaOnay = kayit.onay === F.onay_surum;
         durumSorgula(kayit.is, true);
         return;
       }
@@ -2001,8 +1991,8 @@
       adimKoy("S1", "Fotoğraf 15 MB'dan büyük olamaz.", true);
       return;
     }
-    if (!S.hakOnay || !S.aktarimOnay) {
-      adimKoy("S1", "Her iki onayı da işaretlemelisin.", true);
+    if (!S.aydinlatmaOnay) {
+      adimKoy("S1", "Aydınlatma metnini onaylamalısın.", true);
       return;
     }
     if (!S.captchaToken1) {
@@ -2028,8 +2018,7 @@
       var govde = {
         tur: S.tur,
         olcu_mm: S.olcu,
-        hak_onay: true,
-        aktarim_onay: true,
+        aydinlatma_onay: true,
         onay_surum: F.onay_surum,
         turnstile_token: jeton
       };
@@ -2072,7 +2061,7 @@
           return;
         }
         if (kod === 400 && NOT_HATA[veri.hata]) { turnsSifirla(S.alanCap1); adimKoy("S1", NOT_HATA[veri.hata], true); return; }
-        if (kod === 409) {
+        if (kod === 400 && veri.hata === "onay-surumu-eski") {
           adimKoy("S1", "Metin güncellendi, sayfayı yenile.", true);
           return;
         }
@@ -2085,7 +2074,7 @@
   function uretecOnizle() {
     if (fotoGerekir() && !S.dosya) { adimKoy("S1", "Lütfen fotoğrafını seç.", true); return; }
     if (svgGerekir() && !S.dosya) { adimKoy("S1", "Lütfen SVG dosyanı seç.", true); return; }
-    if (F.hakGerekir(S.tur) && !S.hakOnay) { adimKoy("S1", "Onay kutusunu işaretlemelisin.", true); return; }
+    if (!S.aydinlatmaOnay) { adimKoy("S1", "Aydınlatma metnini onaylamalısın.", true); return; }
     if (!S.captchaToken1) { adimKoy("S1", "Lütfen doğrulama kutusunu işaretle.", true); return; }
     if (!S.tur || !S.olcu) { adimKoy("S1", "Tür ve ölçü seçmelisin.", true); return; }
     var fd = formDogrula();
@@ -2093,7 +2082,7 @@
     // Jeton S2'ye geçmeden alınır: adimKoy("S2") doğrulama kutusunu (ve jetonu) temizler.
     var jeton = S.captchaToken1;
     var gonder = function (dataUrl, svgMetin) {
-      var govde = { tur: S.tur, olcu_mm: S.olcu, hak_onay: !!S.hakOnay, onay_surum: F.onay_surum,
+      var govde = { tur: S.tur, olcu_mm: S.olcu, aydinlatma_onay: !!S.aydinlatmaOnay, onay_surum: F.onay_surum,
         turnstile_token: jeton };
       if (dataUrl) govde.gorsel = dataUrl;
       if (svgMetin) govde.svg = svgMetin;
@@ -2115,7 +2104,7 @@
           return;
         }
         if (kod === 403) { adimKoy("S1", "Doğrulama tamamlanamadı, kutucuğu yeniden işaretleyip dene.", true); return; }
-        if (kod === 409) { adimKoy("S1", "Metin güncellendi, sayfayı yenile.", true); return; }
+        if (kod === 400 && veri && veri.hata === "onay-surumu-eski") { adimKoy("S1", "Metin güncellendi, sayfayı yenile.", true); return; }
         if (kod === 400 && veri && NOT_HATA[veri.hata]) { turnsSifirla(S.alanCap1); adimKoy("S1", NOT_HATA[veri.hata], true); return; }
         adimKoy("S1", "Şu an önizleme hazırlanamıyor, biraz sonra yeniden dene.", true);
       });
@@ -2176,6 +2165,8 @@
       musteri: { ad: ad, tel: tel, eposta: eposta, adres: adres, sehir: sehir },
       musteri_notu: notu,
       sozlesme_onay: true,
+      aydinlatma_onay: !!S.aydinlatmaOnay,
+      onay_surum: F.onay_surum,
       odeme: "kart",
       turnstile_token: S.captchaToken2,
       atif: atif
@@ -2200,6 +2191,10 @@
         if (h === "musteri-eposta") { adimKoy("S4", "E-posta adresini yaz.", true); return; }
         if (h === "musteri-adres") { adimKoy("S4", "Açık adresini yaz.", true); return; }
         if (h === "musteri-sehir") { adimKoy("S4", "Şehir yaz.", true); return; }
+        if (h === "onay-yok" || h === "onay-surumu-eski") {
+          adimKoy("S4", "Onay metni güncellendi; sayfayı yenileyip yeniden dene.", true);
+          return;
+        }
       }
       adimKoy("S4", "Ödeme başlatılamadı; biraz sonra dene ya da WhatsApp'tan yaz.", true);
     });
