@@ -976,11 +976,12 @@ function sahteBelge() {
 async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   const { document, bolum } = sahteBelge();
   ek = ek || {};
-  const istekler = [], araliklar = [];
+  const istekler = [], araliklar = [], yoklamalar = [];
   const kok = {
     document, PRUVO_FOTO: fotoVeri, setTimeout, clearTimeout, console,
     // ek.zamanlayici: yoklama araligi OLCULUR, gercek zamanlayici kurulmaz (test 5 sn beklemez).
-    setInterval: ek.zamanlayici ? (fn, ms) => { araliklar.push(ms); return 0; } : setInterval,
+    // Yoklama islevi saklanir: DOM vakasi yoklamayi ELLE tetikler (durum yaniti adim adim degisir).
+    setInterval: ek.zamanlayici ? (fn, ms) => { araliklar.push(ms); yoklamalar.push(fn); return 0; } : setInterval,
     clearInterval: ek.zamanlayici ? () => {} : clearInterval,
     PRUVO_SECENEK: { kargoKurus: () => 25000, kurusMetni: (k) => (k / 100).toFixed(2) + " TL" },
     turnstile: { render: (k, o) => { if (ek.turnstileOto && o && typeof o.callback === "function") { o.callback("t-jeton"); } return 1; },
@@ -1021,6 +1022,7 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   Object.defineProperty(sonuc, "bolum", { value: bolum, enumerable: false });
   Object.defineProperty(sonuc, "istekler", { value: istekler, enumerable: false });
   Object.defineProperty(sonuc, "araliklar", { value: araliklar, enumerable: false });
+  Object.defineProperty(sonuc, "yoklamalar", { value: yoklamalar, enumerable: false });
   return sonuc;
 }
 
@@ -1789,6 +1791,96 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     const m = await senaryo(EKRAN_KAYNAK.replace(capa, yerine));
     const kirmizi = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli), JSON.stringify(m));
+  }
+}
+
+// ================================================================ TD — TURETILMIS EKSEN: PARAMETRE DEGISIR -> 2. ONIZLEME -> FIYAT GUNCEL
+// (kopru-15 DOM vakasi, RAPOR-DILIM3 §2 (1)). Gercek "kutu" kaydi (olcu_ekseni turetilmis) sahte DOM'da:
+// 1. durum yaniti en uzun 100 mm -> "100 mm → 1.000 TL" · en_mm 140 yapilip YENI onizleme istenir -> o anda
+// fiyat satiri "hesaplaniyor" (eski fiyat GORUNMEZ), siparis dugmesi YOK/KAPALI · 2. durum yaniti 140 mm ->
+// "140 mm → 1.400 TL". Olculmus fiyati olmayan hazir yanitta siparis dugmesi KAPALI (fiyatsiz siparis yok).
+{
+  const tdAcik = { acik: true, turler: [{ kod: "kutu", ad: "Düzenleyici kutu", aciklama: "x", ornek_sayisi: 1,
+    olculer: [{ mm: 40, fiyat_kurus: 40000 }] }] };
+  const bekle = async () => { for (let i = 0; i < 10; i++) { await new Promise((c) => setTimeout(c, 0)); } };
+  const tdSenaryo = async (kaynak) => {
+    const s = { FIYAT1: false, HESAPLANIYOR: false, DUGME: false, FIYAT2: false };
+    const durum = { asama: "bekliyor" };
+    const durumKoy = (v) => { for (const k of Object.keys(durum)) { delete durum[k]; } Object.assign(durum, v); };
+    const e = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), tdAcik, null, durum,
+      { turnstileOto: true, zamanlayici: true, postYanit: { is: "b".repeat(32), kalan: 2 } });
+    const dd = () => [...e.bolum.agac()];
+    const id = (x) => dd().find((n) => n.id === x) || null;
+    const fiyatSatiri = () => (dd().find((n) => n.classList.contains("foto-uretim-olculen-fiyat")) || { textContent: null }).textContent;
+    const sipAcik = () => dd().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sipariş ver" && n.disabled !== true).length;
+    const sipVar = () => dd().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sipariş ver").length;
+    const onizle = async (enMm) => {
+      const en = id("foto-param-en_mm");
+      if (en && enMm != null) { en.value = String(enMm); en.tetikle("input"); }
+      const on = id("foto-aydinlatma-onay");
+      if (on) { on.checked = true; on.tetikle("change"); }
+      const b = id("foto-onizle-buton");
+      if (b) { b.tetikle("click"); }
+      await bekle();
+    };
+    const yokla = async () => { const fn = e.yoklamalar[e.yoklamalar.length - 1]; if (fn) { fn(); } await bekle(); };
+    // 1. onizleme -> durum: en uzun 100 mm, sunucu fiyati 100000 kurus.
+    await onizle(null);
+    durumKoy({ asama: "hazir", tur: "kutu", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" });
+    await yokla();
+    const f1 = fiyatSatiri();
+    s.FIYAT1 = e.istekler.length === 1 && f1 === "100 mm → 1.000 TL" && sipAcik() === 1;
+    // Parametre degisir (en 100 -> 140): S3'ten forma don, yeni onizleme iste; durum henuz "bekliyor".
+    durumKoy({ asama: "bekliyor" });
+    const baska = dd().find((n) => n.tagName === "BUTTON" && n.textContent === "Başka fotoğraf dene");
+    if (baska) { baska.tetikle("click"); await bekle(); }
+    await onizle(140);
+    const p2 = e.istekler[1] || { govde: {} };
+    const f2a = fiyatSatiri();
+    const metin2 = e.bolum.textContent;
+    s.HESAPLANIYOR = e.istekler.length === 2 && !!p2.govde.parametreler && p2.govde.parametreler.en_mm === 140 &&
+      typeof f2a === "string" && /^Fiyat hesaplanıyor/.test(f2a) && !metin2.includes("1.000 TL") && !metin2.includes("100 mm →");
+    const s2Kapali = sipAcik() === 0;
+    // 2. durum yaniti: en uzun 140 mm -> "140 mm → 1.400 TL", siparis acilir.
+    durumKoy({ asama: "hazir", tur: "kutu", olcu_mm: 140, fiyat_kurus: 140000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" });
+    await yokla();
+    const f2 = fiyatSatiri();
+    s.FIYAT2 = f2 === "140 mm → 1.400 TL" && sipAcik() === 1 && !e.bolum.textContent.includes("1.000 TL");
+    // Olculmus fiyati olmayan hazir yanit: siparis dugmesi CIZILIR ama KAPALI.
+    const e3 = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), tdAcik, null, durum,
+      { turnstileOto: true, zamanlayici: true, postYanit: { is: "c".repeat(32), kalan: 2 } });
+    durumKoy({ asama: "bekliyor" });
+    const d3 = () => [...e3.bolum.agac()];
+    const on3 = d3().find((n) => n.id === "foto-aydinlatma-onay");
+    if (on3) { on3.checked = true; on3.tetikle("change"); }
+    const b3 = d3().find((n) => n.id === "foto-onizle-buton");
+    if (b3) { b3.tetikle("click"); }
+    await bekle();
+    durumKoy({ asama: "hazir", tur: "kutu", olcu_mm: 100, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" });
+    const fn3 = e3.yoklamalar[e3.yoklamalar.length - 1];
+    if (fn3) { fn3(); }
+    await bekle();
+    const sip3 = d3().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sipariş ver");
+    s.DUGME = s2Kapali && sipVar() === 1 && sip3.length === 1 && sip3[0].disabled === true;
+    Object.defineProperty(s, "iz", { value: { f1, f2a, f2, s2Kapali, sip3: sip3.map((n) => n.disabled), istek: e.istekler.length }, enumerable: false });
+    return s;
+  };
+  const t0 = await tdSenaryo(EKRAN_KAYNAK);
+  ol("TD1 turetilmis tur (kutu) 1. durum yaniti en uzun 100 mm -> '100 mm → 1.000 TL', siparis acik", t0.FIYAT1, JSON.stringify([t0, t0.iz]));
+  ol("TD2 parametre degisti (en_mm 140) -> yeni onizleme isteginde fiyat satiri 'hesaplanıyor', eski '1.000 TL' GORUNMEZ",
+     t0.HESAPLANIYOR, JSON.stringify([t0, t0.iz]));
+  ol("TD3 2. yanittan once siparis dugmesi acik DEGIL; olculmus fiyatsiz hazir yanitta siparis KAPALI", t0.DUGME, JSON.stringify([t0, t0.iz]));
+  ol("TD4 2. durum yaniti en uzun 140 mm -> '140 mm → 1.400 TL', siparis acik", t0.FIYAT2, JSON.stringify([t0, t0.iz]));
+  const TD_MUT = [
+    ["TD-M1 yeni onizleme isteginde fiyat sifirlama silindi", "    S.fiyatKurus = null;\n    var fd = formDogrula();", "    var fd = formDogrula();", ["HESAPLANIYOR"]],
+    ["TD-M2 olculmus fiyatsiz siparis dugmesi kapatma silindi", " || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);", ";", ["DUGME"]],
+    ["TD-MK kontrol (yorum)", "/* Türetilmiş eksen fiyat satırı:", "/* turetilmis eksen fiyat satiri:", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of TD_MUT) {
+    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = await tdSenaryo(EKRAN_KAYNAK.replace(capa, yerine));
+    const kirmizi = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli), JSON.stringify([m, m.iz]));
   }
 }
 

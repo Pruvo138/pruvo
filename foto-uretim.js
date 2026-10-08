@@ -2087,6 +2087,15 @@
   }
 
   /* ============== S2 ============== */
+  /* Türetilmiş eksen fiyat satırı: fiyat yalnız durum yanıtından (S.fiyatKurus); yeni önizleme isteğinde
+     sıfırlanır, o yüzden önizleme beklenirken eski fiyat GÖSTERİLMEZ ("hesaplanıyor" yazar). */
+  function olculenFiyatEl(bekliyor) {
+    return el("p", "foto-uretim-surgu-fiyat foto-uretim-olculen-fiyat", S.fiyatKurus != null
+      ? S.olcu + " mm → " + F.tlMetni(S.fiyatKurus)
+      : bekliyor ? "Fiyat hesaplanıyor — önizlemede ölçülen en uzun boyuttan."
+      : "Fiyat hesaplanamadı; yeni önizleme oluştur.");
+  }
+
   function cizS2() {
     if (!S.alan) return;
     konseptDurdur();
@@ -2096,6 +2105,8 @@
     S.alan.appendChild(el("p", null, onizlemeSonraSecili() ?
       "Önizlemen sırada; üretim dosyasıyla birlikte hazırlanıyor…" :
       "Önizlemen hazırlanıyor… (genelde 1 dakika)"));
+    var t2 = seciliTurBul();
+    if (t2 && F.olcuTuretilmis(t2.kod)) S.alan.appendChild(olculenFiyatEl(true));
     if (typeof S.ilerleme === "number") {
       var dis = el("div", "foto-uretim-ilerleme-dis");
       var ic = el("div", "foto-uretim-ilerleme-ic");
@@ -2149,8 +2160,7 @@
     if (nt && F.olcuTuretilmis(nt.kod)) {
       var olcG = el("div", "foto-uretim-form-grup");
       olcG.appendChild(el("label", "foto-uretim-form-etiket", "Ölçü"));
-      olcG.appendChild(el("p", "foto-uretim-surgu-fiyat foto-uretim-olculen-fiyat", S.fiyatKurus != null
-        ? S.olcu + " mm → " + F.tlMetni(S.fiyatKurus) : "Fiyat hesaplanamadı; yeni önizleme oluştur."));
+      olcG.appendChild(olculenFiyatEl(false));
       olcG.appendChild(el("p", "foto-uretim-ayrinti", F.OLCULEN_FIYAT_NOTU));
       S.alan.appendChild(olcG);
     } else if (nt && nt.olculer && nt.olculer.length > 1) {
@@ -2210,8 +2220,9 @@
       S.captchaToken2 = "";
       adimKoy("S4");
     });
-    // Aydınlatma onayı olmadan sipariş düğmesi açılmaz (eski sürüm onayıyla geri gelen iş dahil).
-    sipBtn.disabled = !S.aydinlatmaOnay;
+    // Aydınlatma onayı olmadan sipariş düğmesi açılmaz (eski sürüm onayıyla geri gelen iş dahil);
+    // türetilmiş eksende bu önizlemenin ölçülmüş fiyatı yoksa da açılmaz (fiyatsız sipariş yok).
+    sipBtn.disabled = !S.aydinlatmaOnay || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);
     butonG.appendChild(sipBtn);
     if (!S.aydinlatmaOnay) {
       butonG.appendChild(el("p", "foto-uretim-ayrinti", "Aydınlatma metni güncellendi; sipariş için yeni önizleme oluştur."));
