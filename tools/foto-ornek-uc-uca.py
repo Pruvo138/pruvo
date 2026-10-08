@@ -685,16 +685,18 @@ TARAYICI_JS = r"""
   const b = document.getElementById('fotoUretim');
   if (!b) return {hata: 'bolum-yok'};
   b.scrollIntoView();
-  let radyo = null, tek = false;
+  // sayfa-3adim (Okan 19:1x): tur secimi = ① izgaradaki kart (button.foto-uretim-galeri-kucuk[data-tur]);
+  // radyo listesi ve vitrin fiyati YOK. Kart tiki isik kutusunu da acar -> olcumden once kapatilir.
+  let kart = null;
   for (let i = 0; i < 60; i++) {
-    radyo = document.getElementById('foto-tur-' + kod);
-    tek = (!!document.getElementById('foto-olcu') || !!document.querySelector('#fotoUretim .foto-uretim-olculen-not')) &&
-      !document.querySelector('input[name="foto-tur"]');
-    if (radyo || tek) break;
+    kart = document.querySelector('#fotoUretim button.foto-uretim-galeri-kucuk[data-tur="' + kod + '"]');
+    if (kart) break;
     await bekle(250);
   }
-  if (!radyo && !tek) return {hata: 'tur-secilemiyor'};
-  if (radyo) { radyo.click(); await bekle(300); }
+  if (!kart) return {hata: 'tur-secilemiyor'};
+  kart.click(); await bekle(300);
+  const kapat = document.querySelector('.foto-uretim-isik-kapat');
+  if (kapat) { kapat.click(); await bekle(150); }
   const surgu = document.getElementById('foto-olcu');
   let fiyat = '';
   if (surgu) {
@@ -712,10 +714,11 @@ TARAYICI_JS = r"""
   const dp = document.querySelector('#fotoUretim .foto-uretim-durustluk p');
   await bekle(500);
   const d = document.documentElement;
-  const fe = document.querySelector('#fotoUretim .foto-uretim-fiyat');
+  const sk = document.querySelector('#fotoUretim button.foto-uretim-galeri-kucuk.secili');
+  const a2 = document.getElementById('foto-adim2');
   const olculen_not = !!document.querySelector('#fotoUretim .foto-uretim-olculen-not');
-  const secili = fe ? (fe.getAttribute('data-tur') || '') : '';
-  return {secildi: (!!radyo || tek) && secili === kod, secili_tur: secili, surgu: !!surgu, fiyat: fiyat, onay_kutusu: kutu,
+  const secili = sk ? (sk.getAttribute('data-tur') || '') : '';
+  return {secildi: secili === kod && !!a2 && !a2.hidden, secili_tur: secili, surgu: !!surgu, fiyat: fiyat, onay_kutusu: kutu,
           olculen_not: olculen_not,
           onaysiz_dugme_kapali: !!btn && btn.disabled === true, durustluk: dp ? dp.textContent : '',
           tasma: Math.max(d.scrollWidth - d.clientWidth, document.body.scrollWidth - d.clientWidth),
