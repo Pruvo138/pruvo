@@ -23,7 +23,10 @@
  *   MO3 onizleme.js ONIZLEME_HOST'u yok sayar       -> T3 KIRMIZI
  *   O5  ONIZLEME=1 + anahtar: POST /yonet/foto/uretim-tik -> 200 tur ozeti (kopru-15, cron'suz onizleme)
  *   O6  canli + anahtar: ayni uc 404 · O7 yanlis anahtar: calismaz
+ *   O8  ONIZLEME=1 + X-Onizleme-Makine: uretim-tik 200 · O9 canlida makine anahtari 404 · O10 kapsam disi uc 404
  *   MO4 yonet.js uretim-tik onizleme kosulu silinir   -> O6 KIRMIZI
+ *   MO5 makine anahtarinin onizleme kosulu silinir    -> O9 KIRMIZI
+ *   MO6 makine anahtarinin uc kapsami silinir         -> O10 KIRMIZI
  *   MO0 kontrol (yalniz yorum eklenir)              -> hicbiri KIRMIZI degil
  *
  * Calistir: node shop/test/onizleme-kapisi.mjs  -> rc=0 ve "SONUC: YESIL"
@@ -219,6 +222,19 @@ async function batarya(mod) {
   r = await istek(mod, YE, "/yonet/foto/uretim-tik", "POST", {}, undefined, { "X-Yonet-Anahtar": "yanlis" });
   s.O7 = r.kod !== 200 && !(r.govde && "atlandi" in r.govde);
   s._O7 = JSON.stringify(r);
+  // MAKINE ANAHTARI: yalniz ONIZLEME=1 + yalniz ornek/tik uclari; panel sifresi gerekmez.
+  const MK = { "X-Onizleme-Makine": "makine-test" };
+  const ME = Object.assign({ ONIZLEME_MAKINE_ANAHTARI: "makine-test" }, YE);
+  r = await istek(mod, ME, "/yonet/foto/uretim-tik", "POST", {}, undefined, MK);
+  s.O8 = r.kod === 200 && !!r.govde && r.govde.atlandi === "yapilandirma";
+  s._O8 = JSON.stringify(r);
+  r = await istek(mod, { YONET_ANAHTAR: "yonet-test-anahtar", ONIZLEME_MAKINE_ANAHTARI: "makine-test" },
+    "/yonet/foto/ornek-uret", "POST", {}, undefined, MK);
+  s.O9 = r.kod === 404;
+  s._O9 = JSON.stringify(r);
+  r = await istek(mod, ME, "/yonet/liste", "GET", undefined, undefined, MK);
+  s.O10 = r.kod === 404;
+  s._O10 = JSON.stringify(r);
   r = await istek(mod, {}, "/baslat", "POST", SEPET, "www.pruvo3d.com");
   s.T5 = (await fotoBot(mod, {}, "pruvo3d.com")) === true &&
          (await fotoBot(mod, ONZ, "www.pruvo3d.com")) === true && r.kod !== 403 && r.iyzico > 0;
@@ -238,6 +254,9 @@ const AD = {
   O5: "O5 ONIZLEME=1 + anahtar: POST /yonet/foto/uretim-tik -> 200 tur ozeti (yapilandirma yok -> atlandi)",
   O6: "O6 canli + anahtar: /yonet/foto/uretim-tik -> 404 (uc yalniz onizlemede)",
   O7: "O7 ONIZLEME=1 + yanlis anahtar: uretim-tik calismaz",
+  O8: "O8 ONIZLEME=1 + makine anahtari: uretim-tik 200 (panel sifresi gerekmez)",
+  O9: "O9 canli + makine anahtari: ornek-uret 404 (canlida makine anahtari OKUNMAZ)",
+  O10: "O10 ONIZLEME=1 + makine anahtari: /liste 404 (yalniz ornek/tik uclari)",
   T1: "T1 canli: onizleme alaninda cozulmus jeton /baslat'ta 403",
   T2: "T2 ONIZLEME_HOST tek basina listeyi GENISLETMEZ (/baslat + foto)",
   T3: "T3 ONIZLEME=1 + ONIZLEME_HOST: foto bot dogrulamasi onizleme alanini KABUL eder",
@@ -262,6 +281,10 @@ const MUTANT = [
     "", null, ["O1", "O2"]],
   ["MO4", "yonet.js", '  if (altYol === "/foto/uretim-tik" && m === "POST" && onizlemeMi(env)) {\n',
     '  if (altYol === "/foto/uretim-tik" && m === "POST") {\n', null, ["O6"]],
+  ["MO5", "yonet.js", "  return onizlemeMi(env) && !!env.ONIZLEME_MAKINE_ANAHTARI && MAKINE_UCLARI.includes(altYol) &&\n",
+    "  return !!env.ONIZLEME_MAKINE_ANAHTARI && MAKINE_UCLARI.includes(altYol) &&\n", null, ["O9"]],
+  ["MO6", "yonet.js", "  return onizlemeMi(env) && !!env.ONIZLEME_MAKINE_ANAHTARI && MAKINE_UCLARI.includes(altYol) &&\n",
+    "  return onizlemeMi(env) && !!env.ONIZLEME_MAKINE_ANAHTARI &&\n", null, ["O10"]],
   ["MO2", "onizleme.js", "  const ek = onizlemeMi(env) ? String(env.ONIZLEME_HOST || \"\").trim() : \"\";\n",
     "  const ek = String(env.ONIZLEME_HOST || \"\").trim();\n", null, ["T2"]],
   ["MO3", "onizleme.js", "  return ek !== \"\" && h === ek;\n", "  return false;\n", null, ["T3"]],

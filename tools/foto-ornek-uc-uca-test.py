@@ -26,7 +26,7 @@ S1 tavan 0 -> ②④ OLCULMEZ, panel istegi 0 · S2 tavan 10 -> ② HAZIR, build
 HAZIR, KREDI_HARCANAN=46/100 · S4 tavan 5 -> onizleme istegi 0 · S5 kuyrukta yabanci yarim satir -> DUR, tik 0 ·
 S6 saglayici 3MF %10 buyuk -> ④ eksen YANLIS · S7 sunucu tahminden pahali yazar -> D1 farkiyla renk oncesi DUR.
 MB21 kredi kontrolu yok -> S2+S4 · MB22 yabanci kuyruk kontrolu yok -> S5 · MB23 tavan-0 kolu yok -> S1 ·
-MB24 D1 farki okunmuyor -> S7 · MB3 ayrica S6.
+MB24 D1 farki okunmuyor -> S7 · MB3 ayrica S6 · S8 makine anahtari yok -> OLCULEMEDI, panel sifresine DUSMEZ.
 """
 import json
 import os
@@ -167,7 +167,7 @@ class Sunucu:
         def panel(h, yontem, g):
             """Sahte saglayici zinciri (shop/src/foto.js panel ornek uclari + cron uretimAdimi sozlesmesi):
             her ucretli adim foto_kredi'ye SUNUCU yazar. Sayac: ayar['yonet'][uc]."""
-            if h.headers.get("X-Yonet-Anahtar") != "test-yonet":
+            if h.headers.get("X-Onizleme-Makine") != "test-makine" or h.headers.get("X-Yonet-Anahtar"):
                 return h.yanit(404, {"hata": "bulunamadi"})
             uc = h.path.split("?", 1)[0][len("/api/shop/yonet"):]
             ayar["yonet"][uc] = ayar["yonet"].get(uc, 0) + 1
@@ -315,7 +315,7 @@ class Ortam:
                         FOTO_UU_WRANGLER="%s %s" % (sys.executable, os.path.join(self.d, "wr.py")),
                         FOTO_UU_KOSUCU=os.path.join(self.d, "kopru.py"), FOTO_UU_BEKLE_SN="0",
                         FOTO_UU_TARAYICI_SAHTE=os.path.join(self.d, "tarayici.json"),
-                        YONET_ANAHTAR="test-yonet", FOTO_UU_YOKLA_SN="0", PYTHONDONTWRITEBYTECODE="1")
+                        ONIZLEME_MAKINE_ANAHTARI="test-makine", FOTO_UU_YOKLA_SN="0", PYTHONDONTWRITEBYTECODE="1")
         for k in ("FAKE_GEO", "FAKE_DELIK", "FOTO_UU_CHROME"):
             self.env.pop(k, None)
 
@@ -468,6 +468,12 @@ def vakalar(kaynak, sadece=None):
         ok = olcut(c, "plaket", "4") == "EKSIK" and "kredi-tavani 56+10>60" in c
         return ok, "yonet=%s %s" % (y, c[-600:])
     vaka("S7", s7)
+
+    def s8(o):
+        # Makine anahtari yok: panel SIFRESINE dusmez (X-Yonet-Anahtar gonderilmez), kosum OLCULEMEDI.
+        rc, son, c, y = sag(o, 100, ONIZLEME_MAKINE_ANAHTARI="", YONET_ANAHTAR="test-yonet")
+        return rc == 2 and "OLCULEMEDI ONIZLEME_MAKINE_ANAHTARI yok" in c and sum(y.values()) == 0, "yonet=%s %s" % (y, son)
+    vaka("S8", s8)
 
     def u7(o):
         hazir_ortam(o)

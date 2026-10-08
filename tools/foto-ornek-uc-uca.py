@@ -236,32 +236,14 @@ def json_coz(b):
         return {}
 
 
-def yonet_anahtari():
-    """Panel anahtari — tools/yazdir.py ile AYNI cozum: YONET_ANAHTAR env > .yonet-anahtar (worktree'de yoksa ana
-    repo koku). HICBIR YERE BASILMAZ; yalniz X-Yonet-Anahtar basliginda gider. Yoksa None."""
-    v = os.environ.get("YONET_ANAHTAR", "").strip()
-    if v:
-        return v
-    adaylar = [os.path.join(KOK, ".yonet-anahtar")]
-    p = subprocess.run(["git", "-C", KOK, "rev-parse", "--git-common-dir"], capture_output=True, text=True)
-    d = (p.stdout or "").strip()
-    if p.returncode == 0 and os.path.isabs(d) and os.path.basename(d) == ".git":
-        adaylar.append(os.path.join(os.path.dirname(d), ".yonet-anahtar"))
-    for yol in adaylar:
-        if os.path.isfile(yol):
-            with open(yol, encoding="utf-8") as f:
-                v = f.read().strip()
-            if v:
-                return v
-    return None
-
-
 def yonet(yontem, yol, govde=None):
-    """Onizleme surumunun panel ucu (/api/shop/yonet<yol>)."""
-    a = yonet_anahtari()
+    """Onizleme surumunun ORNEK/tik ucu (/api/shop/yonet<yol>). Panel SIFRESI KULLANILMAZ: yalniz onizlemede ve yalniz
+    bu uclarda gecerli makine anahtari (env ONIZLEME_MAKINE_ANAHTARI; shop/src/yonet.js makineAnahtariGecerli).
+    Deger hicbir yere BASILMAZ; yoksa Ayar -> kosum OLCULEMEDI (kredi harcanmadan)."""
+    a = os.environ.get("ONIZLEME_MAKINE_ANAHTARI", "").strip()
     if not a:
-        raise Ayar("yonet-anahtari-yok")
-    return http(yontem, taban() + "/api/shop/yonet" + yol, govde, zaman=120, baslik={"X-Yonet-Anahtar": a})
+        raise Ayar("ONIZLEME_MAKINE_ANAHTARI yok")
+    return http(yontem, taban() + "/api/shop/yonet" + yol, govde, zaman=120, baslik={"X-Onizleme-Makine": a})
 
 
 class Kredi:

@@ -2024,11 +2024,21 @@ async function kaynakYaz(request, env) {
  *
  * telegram: index.js'in telegram fonksiyonu.
  */
+// ONIZLEME MAKINE ANAHTARI (kopru-15, 8 Eki 2026): olcum betigi (tools/foto-ornek-uc-uca.py --kredi-tavani)
+// onizleme surumunun ORNEK saglayici zincirini panel SIFRESINI kullanmadan kosar. YALNIZ ONIZLEME=1 + YALNIZ bu
+// uclar; canlida (ONIZLEME yok) hic okunmaz. Ayri baslik: sifre tasiyicisiyla karismaz.
+const MAKINE_UCLARI = ["/foto/ornek-onizleme", "/foto/ornek-durum", "/foto/ornek-gorsel", "/foto/ornek-uret",
+                       "/foto/uretim-tik"];
+function makineAnahtariGecerli(request, env, altYol) {
+  return onizlemeMi(env) && !!env.ONIZLEME_MAKINE_ANAHTARI && MAKINE_UCLARI.includes(altYol) &&
+    sabitEsit(request.headers.get("X-Onizleme-Makine") || "", env.ONIZLEME_MAKINE_ANAHTARI);
+}
+
 export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (!env.YONET_ANAHTAR) { return yon404(); }
   const m = request.method;
   if (altYol === "/" && m === "POST") { return girisYap(request, url, env); }
-  if (!anahtarGecerli(request, url, env)) {
+  if (!anahtarGecerli(request, url, env) && !makineAnahtariGecerli(request, env, altYol)) {
     return (altYol === "/" && m === "GET") ? girisEkrani(url) : yon404();
   }
   if (altYol === "/" && m === "GET") { return sayfa(); }
