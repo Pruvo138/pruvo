@@ -86,8 +86,11 @@ open(os.environ["FAKE_TEKIN_LOG"], "a", encoding="utf-8").write(json.dumps(g, en
 if os.environ.get("FAKE_TEKIN_RET"):
     sys.stderr.write("RET: " + os.environ["FAKE_TEKIN_RET"] + "\n"); sys.exit(2)
 L = 0.0
-# G4 (kopru-15) olcu alanlari en_mm/dis_cap_mm; onceki G2/S2 anahtarlari ONCE denenir (geriye uyumlu).
-for k in ("genislik_mm", "plaket_mm", "uzun_kenar_mm", "yuz_mm", "en_mm", "dis_cap_mm"):
+# G4 (kopru-15) olcu alanlari en_mm/dis_cap_mm/cap_mm/boru_cap_mm/u_aralik_mm/yukseklik_mm;
+# onceki G2/S2 anahtarlari ONCE denenir (geriye uyumlu). dugme+saksi cap_mm; klips alt_ture gore
+# boru_cap_mm / u_aralik_mm / yukseklik_mm.
+for k in ("genislik_mm", "plaket_mm", "uzun_kenar_mm", "yuz_mm", "en_mm", "dis_cap_mm",
+          "cap_mm", "boru_cap_mm", "u_aralik_mm", "yukseklik_mm"):
     if isinstance(g.get(k), (int, float)):
         L = float(g[k]); break
 n = int(os.environ.get("FAKE_TEKIN_EXTRUDER") or 0) or max(1, len([k for k in g if k.startswith("renk")]))
@@ -112,7 +115,9 @@ json.dump(oz, open(os.path.join(c, "ozet.json"), "w"))
 TEKIN_ESLE = {"isimlik_uret": "isimlik", "qr_plaket_uret": "qr", "svg_ekstruzyon_uret": "logo",
               "muhur_uret": "muhur", "siluet_sablon_uret": "sablon", "yapboz_uret": "yapboz",
               "ozel_uret:kutu": "kutu", "ozel_uret:adaptor": "adaptor",
-              "ozel_uret:disli": "disli", "ozel_uret:kapak": "kapak", "koordinat_uret": "koordinat"}
+              "ozel_uret:disli": "disli", "ozel_uret:kapak": "kapak",
+              "ozel_uret:dugme": "dugme", "ozel_uret:klips": "klips", "ozel_uret:saksi": "saksi",
+              "koordinat_uret": "koordinat"}
 TUR_URETEC = {v: k for k, v in TEKIN_ESLE.items()}
 SVG_ORNEK = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60"><path fill-rule="evenodd" '
              'd="M0 0 H100 V60 H0 Z M15 30 A15 15 0 1 0 45 30 A15 15 0 1 0 15 30 Z M60 10 L90 30 L60 50 Z"/></svg>')
@@ -199,6 +204,16 @@ G2_VAKA = {
               "renk_sayisi": 1, "parcalar": []},
     "kapak": {"olcu": 60, "renkler": {}, "parametreler": {"mod": "kapak", "dis_cap_mm": 60},
               "beklenen": {"mod": "kapak", "dis_cap_mm": 60},
+              "renk_sayisi": 1, "parcalar": []},
+    # G4b (kopru-15) — dugme / klips / saksi: cap_mm (dugme+saksi) ve boru_cap_mm (klips boru_kelepcesi) olcu alanlari.
+    "dugme": {"olcu": 30, "renkler": {}, "parametreler": {"cap_mm": 30, "mil_tipi": "d_mil", "mil_capi_mm": 6},
+              "beklenen": {"cap_mm": 30, "mil_tipi": "d_mil", "mil_capi_mm": 6},
+              "renk_sayisi": 1, "parcalar": []},
+    "klips": {"olcu": 25, "renkler": {}, "parametreler": {"alt_tur": "boru_kelepcesi", "boru_cap_mm": 25, "vida": "M4"},
+              "beklenen": {"alt_tur": "boru_kelepcesi", "boru_cap_mm": 25, "vida": "M4"},
+              "renk_sayisi": 1, "parcalar": []},
+    "saksi": {"olcu": 100, "renkler": {}, "parametreler": {"tur": "saksi", "cap_mm": 100, "profil": "silindir"},
+              "beklenen": {"tur": "saksi", "cap_mm": 100, "profil": "silindir"},
               "renk_sayisi": 1, "parcalar": []},
     # G5 (kopru-15 DILIM-2) — gelen parametreler + bolge renkleri `renk_<bolge>`; bolge adlari MANIFESTTEN
     # (koordinat: plaka/yazi — kaydin renk_plaka/renk_yazi parametreleri), eski taban/yazi DEGIL.
@@ -671,7 +686,8 @@ MUTANTLAR = {
     "M11": ('    (r"kontrast", "kontrast"),\n', "", {"T14"}),
     "M12": ('"renk_sayisi": uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf")),',
             '"renk_sayisi": len(bolgeler),',
-            {"T17", "T13-kutu", "T13-adaptor", "T13-disli", "T13-kapak", "T26"}),
+            {"T17", "T13-kutu", "T13-adaptor", "T13-disli", "T13-kapak", "T26",
+             "T13-dugme", "T13-klips", "T13-saksi"}),
     "M13": ('        if any(k not in form for k in (girdi.get("parametreler") or {})):\n            raise KopruRed("parametre")\n',
             "", {"T18"}),
     # G2b: plaka 300 tek kaynak · uzun kenar geometriden · yapboz araligi
@@ -693,13 +709,18 @@ MUTANTLAR = {
     # manifestten degil sabit `taban`dan okunursa koordinat renkleri dusur -> T13-koordinat KIRMIZI.
     "M24": ('    return dict(g.get("parametreler") or {}), []\n',
             '    return dict({"yukseklik_mm": 40}, **(g.get("parametreler") or {})), []\n',
-            {"T13-kutu", "T13-adaptor", "T13-disli", "T13-kapak"}),
+            {"T13-kutu", "T13-adaptor", "T13-disli", "T13-kapak",
+             "T13-dugme", "T13-klips", "T13-saksi"}),
     "M25": ('            u["renk_" + b] = h\n', '            u["renk_taban"] = h\n', {"T13-koordinat"}),
     # kopru-15 DILIM-3: tolerans dali TURETILMIS turde hedefe (olcu 0) donerse / olculen olcu satira
     # yazilmazsa / aralik kontrolu kalkarsa T26 KIRMIZI.
     "M26": ('(not tu and abs(uk - i["olcu_mm"])', '(abs(uk - i["olcu_mm"])', {"T26"}),
     "M27": ('                st += ", olcu_mm = %d" % int(olcu)\n', '                pass\n', {"T26"}),
     "M28": ('a.get("en_az", 1) <= olculen_mm(uk) <= a.get("en_cok", 0)):', 'True):', {"T26"}),
+    # G4b (kopru-15) — dugme/klips/saksi ESLEMELER'den silinince uretec-bicimi RED.
+    "M29": ('             "dugme": esle_dugme,\n', "", {"T13-dugme"}),
+    "M30": ('             "klips": esle_klips,\n', "", {"T13-klips"}),
+    "M31": ('             "saksi": esle_saksi,\n', "", {"T13-saksi"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 
