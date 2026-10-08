@@ -10,7 +10,10 @@ Bir kategoride (foto turu) zinciri ONIZLEMEDE olcer; her olcut HAZIR/EKSIK + say
                      /foto/litofan kurallarina uyan gri harita + (4)'te uretecin onizleme.png'si.
   (3) surgu+fiyat  : /acik olculeri == VERI.olcuSecenekleri ve her olcude fiyat == mm x 1000 kurus
                      (formul `mm_x_10tl`, VERI.fiyatKurus ile ayni) + tarayicida #foto-olcu surgusu en uc
-                     olcude "<mm> mm → <TL> TL" yaziyor
+                     olcude "<mm> mm → <TL> TL" yaziyor.
+                     TURETILMIS eksen (manifest olcu_ekseni): surgu YOK (S1 not var) ve
+                     onizleme olcusu (olcu.json uzun kenar, yarim yukari) == D1 olcu_mm · x 1000 == sunucu
+                     /foto/durum fiyat_kurus == bolumun gosterdigi "<mm> mm → <TL> TL" (S3, prova isiyle)
   (4) ORNEK siparis: odemesiz `ORNEK-<is ilk 12>` uretim satiri (kalem 0) -> kopru -> uretec -> 3MF ->
                      asama 'hazir' + panel listesi (panelOrnekListe sorgusu) kaydi; 3MF BAGIMSIZ olculur:
                      her nesne su gecirmez (her yonlu kenar tam 1 kez + tersi var) + dunya kutusunun en uzun
@@ -84,7 +87,8 @@ if(mod==='dok'){
    gorseller:[o.foto,o.onizleme,o.baski,o.render].filter(Boolean)})),
   renk_bolgeleri:t.renk_bolgeleri||[],malzemeler:t.malzemeler||{},durustluk:t.durustluk||'',
   ornek_notu:t.ornek_notu||'',aydinlatma:F.aydinlatmaMaddeleri(t.kod),
-  tarayici_onizleyici:!!(F.TARAYICI_ONIZLEYICI&&F.TARAYICI_ONIZLEYICI[t.uretec]===true)}))};
+  tarayici_onizleyici:!!(F.TARAYICI_ONIZLEYICI&&F.TARAYICI_ONIZLEYICI[t.uretec]===true),
+  turetilmis:F.olcuTuretilmis(t.kod)}))};
  process.stdout.write(JSON.stringify(out));
 } else {
  const g=JSON.parse(process.argv[3]);const r={};
@@ -182,6 +186,9 @@ class Bulut:
                      "--content-type", tur])
         if p.returncode != 0:
             raise Ayar("r2-put: " + (p.stderr or p.stdout).strip()[-200:])
+
+    def sil(self, anahtar):
+        self.wr(["r2", "object", "delete", self.kova + "/" + anahtar, "--remote"])
 
     def al(self, anahtar, hedef):
         p = self.wr(["r2", "object", "get", self.kova + "/" + anahtar, "--remote", "--file", hedef])
@@ -533,7 +540,8 @@ TARAYICI_JS = r"""
   let radyo = null, tek = false;
   for (let i = 0; i < 60; i++) {
     radyo = document.getElementById('foto-tur-' + kod);
-    tek = !!document.getElementById('foto-olcu') && !document.querySelector('input[name="foto-tur"]');
+    tek = (!!document.getElementById('foto-olcu') || !!document.querySelector('#fotoUretim .foto-uretim-olculen-not')) &&
+      !document.querySelector('input[name="foto-tur"]');
     if (radyo || tek) break;
     await bekle(250);
   }
@@ -557,8 +565,10 @@ TARAYICI_JS = r"""
   await bekle(500);
   const d = document.documentElement;
   const fe = document.querySelector('#fotoUretim .foto-uretim-fiyat');
+  const olculen_not = !!document.querySelector('#fotoUretim .foto-uretim-olculen-not');
   const secili = fe ? (fe.getAttribute('data-tur') || '') : '';
   return {secildi: (!!radyo || tek) && secili === kod, secili_tur: secili, surgu: !!surgu, fiyat: fiyat, onay_kutusu: kutu,
+          olculen_not: olculen_not,
           onaysiz_dugme_kapali: !!btn && btn.disabled === true, durustluk: dp ? dp.textContent : '',
           tasma: Math.max(d.scrollWidth - d.clientWidth, document.body.scrollWidth - d.clientWidth),
           genislik: d.clientWidth};
@@ -566,8 +576,26 @@ TARAYICI_JS = r"""
 """
 
 
-def tarayici_olc(kodlar):
-    """{kod: sonuc dict | {'hata': ...}}. Chrome yoksa {} (olcutler OLCULEMEDI)."""
+# TURETILMIS ③ (S3): prova isi oturum deposuna yazilir, sayfa yenilenir -> bolum durumu sorar ve S3'te
+# onizleme olcusunun fiyatini yazar (surgu YOK).
+TARAYICI_S3_JS = r"""
+(async () => {
+  const bekle = (ms) => new Promise((r) => setTimeout(r, ms));
+  let y = null;
+  for (let i = 0; i < 80; i++) {
+    y = document.querySelector('#fotoUretim .foto-uretim-olculen-fiyat');
+    if (y) break;
+    await bekle(250);
+  }
+  return {olculen_fiyat: y ? y.textContent : '', s3_surgu: !!document.getElementById('foto-olcu-s3')};
+})()
+"""
+
+
+def tarayici_olc(kodlar, prova=None):
+    """{kod: sonuc dict | {'hata': ...}}. Chrome yoksa {} (olcutler OLCULEMEDI). prova: {kod: ss kaydi}
+    (TURETILMIS ③: S3 olcusu + fiyat yazisi ayni sekmede okunur)."""
+    prova = prova or {}
     sahte = os.environ.get("FOTO_UU_TARAYICI_SAHTE", "")
     if sahte:  # yalniz hermetik test: tarayici sonucu dosyadan
         with open(sahte, encoding="utf-8") as f:
@@ -606,6 +634,15 @@ def tarayici_olc(kodlar):
                         break
                     time.sleep(0.25)
                 v = c.js(TARAYICI_JS % {"kod": json.dumps(kod)}) or {"hata": "js-sonuc-yok"}
+                if kod in prova:
+                    c.js("sessionStorage.setItem('pruvo_foto_is', %s); 1" % json.dumps(json.dumps(prova[kod])))
+                    c.gonder("Page.reload")
+                    time.sleep(0.5)
+                    for _ in range(80):
+                        if c.js("document.readyState") == "complete":
+                            break
+                        time.sleep(0.25)
+                    v.update(c.js(TARAYICI_S3_JS) or {"s3_hata": "js-sonuc-yok"})
                 time.sleep(0.5)
                 c.js("1")  # bekleyen olaylari topla
                 v["konsol"] = c.hatalar()
@@ -722,7 +759,9 @@ def onizleme_isi_yaz(tr, bulut, gecici):
             f.write(bayt)
         bulut.koy("foto-uretec-onizleme/%s/%s" % (tr.is_no, ad), yol, tip)
         beyan[anahtar] = ad
-    girdi = {"sozlesme": 1, "kategori": tr.kod, "siparis_no": "", "kalem": 0, "olcu_mm": tr.olcu,
+    # TURETILMIS eksen: musteri ucu gibi olcu 0 yazilir (surgu yok); koşucu OLCULEN degeri satira yazar.
+    ist = 0 if t.get("turetilmis") else tr.olcu
+    girdi = {"sozlesme": 1, "kategori": tr.kod, "siparis_no": "", "kalem": 0, "olcu_mm": ist,
              "renkler": renk, "malzemeler": malz, "parametreler": tr.parametre, "dosyalar": beyan}
     yol = os.path.join(gecici, tr.is_no + "-girdi.json")
     with open(yol, "w", encoding="utf-8") as f:
@@ -730,13 +769,13 @@ def onizleme_isi_yaz(tr, bulut, gecici):
     bulut.koy("foto-uretec-onizleme/%s/girdi.json" % tr.is_no, yol, "application/json")
     bulut.sql("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, son_kontrol, hata, %s)"
               " VALUES (%s, %s, %d, %s, %s, 'uretec-onizleme', 0, '', %s)" % (
-                  onay[0], sql_metin(tr.is_no), sql_metin(tr.kod), tr.olcu, sql_metin(ORNEK_ZIYARETCI),
+                  onay[0], sql_metin(tr.is_no), sql_metin(tr.kod), ist, sql_metin(ORNEK_ZIYARETCI),
                   sql_metin(simdi), onay[1]))
 
 
 def olc_2(tr, bulut, gecici):
     t = tr.t
-    r = bulut.sql("SELECT asama, hata FROM foto_isler WHERE is_no = %s" % sql_metin(tr.is_no))
+    r = bulut.sql("SELECT asama, hata, olcu_mm FROM foto_isler WHERE is_no = %s" % sql_metin(tr.is_no))
     asama = r[0]["asama"] if r else "yok"
     if t.get("tarayici_onizleyici"):
         b = png_boyut(os.path.join(gecici, tr.is_no + ".png"))
@@ -755,17 +794,52 @@ def olc_2(tr, bulut, gecici):
         except ValueError:
             olcu = {}
     ok = bool(b) and max(b) >= ONIZLEME_MIN_PX and olcu.get("kategori") == tr.kod and olcu.get("sozlesme") == 1
-    tr.koy("2", ok, "asama=%s hata=%s onizleme_px=%s olcu.json=%d" % (
-        asama, (r[0].get("hata") if r else "") or "-", "%dx%d" % b if b else "yok", 1 if olcu else 0))
+    ek = ""
+    if t.get("turetilmis") and r:
+        # Olcu = koşucunun D1'e yazdigi KAYIT (siparis/ORNEK bunu kullanir); uk = olcu.json (③ karsilastirir).
+        tr.olcu, tr.uk, tr.dosya_png, tr.dosya_olcu = r[0].get("olcu_mm"), olcu.get("uzun_kenar_mm"), oy, jy
+        ek = " olcu_mm(D1)=%s uk=%s" % (tr.olcu, tr.uk)
+    tr.koy("2", ok, "asama=%s hata=%s onizleme_px=%s olcu.json=%d%s" % (
+        asama, (r[0].get("hata") if r else "") or "-", "%dx%d" % b if b else "yok", 1 if olcu else 0, ek))
 
 
 def ornek_siparis_yaz(tr, bulut):
     simdi = simdi_iso()
     no = ORNEK_SIPARIS_ONEK + tr.is_no[:12]
+    # Olcu ISTEMCIDEN (betikten) DEGIL: onizleme isinin KAYITLI olcusu (sunucu siparis kolu ile ayni ilke).
     bulut.sql("INSERT OR IGNORE INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel,"
-              " onay_tarih, onay_surum) VALUES (%s, 0, %s, %s, %d, 'uretec-bekliyor', %s, %s, %s, %s)" % (
-                  sql_metin(no), sql_metin(tr.is_no), sql_metin(tr.kod), tr.olcu, sql_metin(simdi),
-                  sql_metin(simdi), sql_metin(simdi), sql_metin(MAN["onay_surum"])))
+              " onay_tarih, onay_surum) SELECT %s, 0, is_no, tur, olcu_mm, 'uretec-bekliyor', %s, %s, %s, %s"
+              " FROM foto_isler WHERE is_no = %s" % (
+                  sql_metin(no), sql_metin(simdi), sql_metin(simdi), sql_metin(simdi), sql_metin(MAN["onay_surum"]),
+                  sql_metin(tr.is_no)))
+
+
+PROVA_ZIYARETCI = "uu-prova"
+
+
+def prova_kur(tr, bulut):
+    """TURETILMIS ③: ORNEK isi musteri ucunda gorunmez (durum 404) -> onizlemenin MUSTERI kopyasi (ayni
+    onizleme.png + olcu.json, olcu_mm KAYITTAN) acilir; sunucu fiyati /foto/durum'dan okunur. prova_sil siler."""
+    tr.prova = secrets.token_hex(16)
+    for ad, yol, tip in (("onizleme.png", tr.dosya_png, "image/png"), ("olcu.json", tr.dosya_olcu, "application/json")):
+        bulut.koy("foto-uretec-onizleme/%s/%s" % (tr.prova, ad), yol, tip)
+    simdi = simdi_iso()
+    bulut.sql("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, son_kontrol, hata,"
+              " onay_tarih, onay_surum) SELECT %s, tur, olcu_mm, %s, %s, 'onizleme-hazir', %s, 0, '', %s, %s"
+              " FROM foto_isler WHERE is_no = %s" % (
+                  sql_metin(tr.prova), sql_metin(PROVA_ZIYARETCI), sql_metin(simdi), sql_metin(simdi),
+                  sql_metin(simdi), sql_metin(MAN["onay_surum"]), sql_metin(tr.is_no)))
+    k, _, b = http("GET", taban() + "/api/shop/foto/durum?is=" + tr.prova)
+    tr.durum = json_coz(b) if k == 200 else {"kod": k}
+
+
+def prova_sil(tr, bulut):
+    if not getattr(tr, "prova", ""):
+        return
+    bulut.sql("DELETE FROM foto_isler WHERE is_no = %s AND ziyaretci = %s" % (sql_metin(tr.prova),
+                                                                           sql_metin(PROVA_ZIYARETCI)))
+    for ad in ("onizleme.png", "olcu.json"):
+        bulut.sil("foto-uretec-onizleme/%s/%s" % (tr.prova, ad))
 
 
 def olc_4(tr, bulut, gecici):
@@ -840,6 +914,29 @@ def istek_govdesi(tr, onay):
     return "/api/shop/foto/onizleme", g
 
 
+def olc_3_turetilmis(tr, a, v):
+    """TURETILMIS eksen: onizleme olcusu x 10 TL == sunucu fiyati (durum) == bolumun S3 yazisi; surgu YOK."""
+    t = tr.t
+    uk = getattr(tr, "uk", None)
+    olculen = int(math.floor(uk + 0.5)) if isinstance(uk, (int, float)) and not isinstance(uk, bool) and uk > 0 else None
+    bek = olculen * 1000 if olculen else None
+    sunucu = (getattr(tr, "durum", None) or {}).get("fiyat_kurus")
+    kaynak = (getattr(tr, "durum", None) or {}).get("olcu_kaynagi")
+    yazi = "%d mm → %s TL" % (olculen, "{:,}".format(olculen * 10).replace(",", ".")) if olculen else None
+    api_ok = a is not None and t.get("formul") == "mm_x_10tl" and t.get("formul_kurus_mm") == 1000
+    gos = (v or {}).get("olculen_fiyat")
+    esit = bek is not None and tr.olcu == olculen and sunucu == bek and gos == yazi
+    if not v:
+        tr.koy("3", False, "api=%d onizleme_olcu=%s sunucu=%s tarayici=OLCULEMEDI" % (1 if api_ok else 0, olculen, sunucu))
+        return
+    surgusuz = not v.get("surgu") and v.get("olculen_not") is True and v.get("s3_surgu") is False
+    tr.koy("3", api_ok and esit and surgusuz and kaynak == "turetilmis",
+           "api=%d uk=%s onizleme_olcu=%s D1=%s beklenen_kurus=%s sunucu_kurus=%s kaynak=%s gosterilen=%r beklenen=%r "
+           "surgu=%d not=%d s3_surgu=%s" % (
+               1 if api_ok else 0, uk, olculen, tr.olcu, bek, sunucu, kaynak, gos, yazi, 1 if v.get("surgu") else 0,
+               1 if v.get("olculen_not") else 0, v.get("s3_surgu")))
+
+
 def olc_3_5_6(tr, acik, tar):
     t = tr.t
     # (3) API: /acik olculeri == olcuSecenekleri ve fiyat == mm x formul (bagimsiz carpim).
@@ -855,7 +952,9 @@ def olc_3_5_6(tr, acik, tar):
         v = dict(v, surgu=False, onay_kutusu=0, hata=v.get("hata") or "secili_tur=%r" % v.get("secili_tur"))
     uc = beklenen[-1] if beklenen else 0
     beklenen_yazi = "%d mm → %s TL" % (uc, "{:,}".format(uc * 10).replace(",", "."))
-    if not v:
+    if t.get("turetilmis"):
+        olc_3_turetilmis(tr, a, v)
+    elif not v:
         tr.koy("3", False, "api=%d tarayici=OLCULEMEDI" % (1 if api_ok else 0))
     else:
         sok = bool(v.get("surgu")) and v.get("fiyat") == beklenen_yazi
@@ -955,6 +1054,9 @@ def main(argv=None):
             olc_2(tr, bulut, gecici)
             if tr.s["2"][0]:
                 ornek_siparis_yaz(tr, bulut)
+        provalar = [tr for tr in det if tr.s["2"][0] and tr.t.get("turetilmis")]
+        for tr in provalar:
+            prova_kur(tr, bulut)
         sip = [tr for tr in det if tr.s["2"][0]]
         if sip:
             son, _ = kosucu_kos()
@@ -964,9 +1066,14 @@ def main(argv=None):
                 olc_4(tr, bulut, gecici)
             else:
                 tr.koy("4", False, "onizleme yok -> ORNEK siparis acilmadi")
-        tar = tarayici_olc([tr.kod for tr in calisan])
-        for tr in calisan:
-            olc_3_5_6(tr, acik, tar)
+        try:
+            tar = tarayici_olc([tr.kod for tr in calisan],
+                               {tr.kod: {"is": tr.prova, "tur": tr.kod, "olcu": tr.olcu} for tr in provalar})
+            for tr in calisan:
+                olc_3_5_6(tr, acik, tar)
+        finally:
+            for tr in provalar:
+                prova_sil(tr, bulut)
         n = 0
         for tr in turler:
             satir = " ".join("%s%s" % (ETIKET[o], "HAZIR" if tr.s[o][0] else "EKSIK") for o in OLCUTLER)

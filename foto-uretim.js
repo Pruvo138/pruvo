@@ -1765,6 +1765,11 @@
         "Bu tür için ölçü seçeneği yok."));
       return;
     }
+    // TÜRETİLMİŞ ölçü ekseni: sürgü YOK — fiyat önizlemede ölçülen en uzun boyuttan (sunucu kaydı).
+    if (F.olcuTuretilmis(nt.kod)) {
+      S.alanOlcu.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-olculen-not", F.OLCULEN_FIYAT_NOTU));
+      return;
+    }
     // Her türde SÜRGÜ (fiyat listesi YOK, Okan 7 Eki): kayarken "120 mm → 1.200 TL".
     S.alanOlcu.appendChild(olcuSurgusu(nt, "foto-olcu", guncelleS1Buton, null));
   }
@@ -2141,7 +2146,14 @@
     var nt = seciliTurBul();
 
     /* olcu degistirme — sürgü; bırakınca kayıt + yeniden çizim (toplam güncellenir) */
-    if (nt && nt.olculer && nt.olculer.length > 1) {
+    if (nt && F.olcuTuretilmis(nt.kod)) {
+      var olcG = el("div", "foto-uretim-form-grup");
+      olcG.appendChild(el("label", "foto-uretim-form-etiket", "Ölçü"));
+      olcG.appendChild(el("p", "foto-uretim-surgu-fiyat foto-uretim-olculen-fiyat", S.fiyatKurus != null
+        ? S.olcu + " mm → " + F.tlMetni(S.fiyatKurus) : "Fiyat hesaplanamadı; yeni önizleme oluştur."));
+      olcG.appendChild(el("p", "foto-uretim-ayrinti", F.OLCULEN_FIYAT_NOTU));
+      S.alan.appendChild(olcG);
+    } else if (nt && nt.olculer && nt.olculer.length > 1) {
       var olcuG = el("div", "foto-uretim-form-grup");
       olcuG.appendChild(el("label", "foto-uretim-form-etiket", "Ölçü"));
       olcuG.appendChild(olcuSurgusu(nt, "foto-olcu-s3", null, function () { ssIsKaydet(); cizS3(); }));
@@ -2171,7 +2183,7 @@
 
     /* ozet */
     // Birim fiyat TEK formülden (sunucunun ödemede kullandığı AYNI F.fiyatKurus).
-    var fiyat = nt ? F.fiyatKurus(nt.kod, S.olcu) : null;
+    var fiyat = nt ? (F.olcuTuretilmis(nt.kod) ? S.fiyatKurus : F.fiyatKurus(nt.kod, S.olcu)) : null;
     if (fiyat != null) {
       var urunToplam = fiyat * S.adet;
       var kargo = kargoUcreti(urunToplam);
@@ -2429,6 +2441,8 @@
           S.is = isNo;
           S.gorsel = veri.gorsel || S.gorsel;
           if (typeof veri.olcu_mm === "number") S.olcu = veri.olcu_mm;
+          // Türetilmiş eksen: fiyat SUNUCUNUN (önizlemede ölçülen ölçüden); bölüm kendisi hesaplamaz.
+          S.fiyatKurus = typeof veri.fiyat_kurus === "number" ? veri.fiyat_kurus : null;
           if (veri.tur) S.tur = veri.tur;
           S.gecerlilik = veri.gecerlilik_bitis || S.gecerlilik;
           S.adet = 1;
@@ -2582,6 +2596,8 @@
     if (!S.aydinlatmaOnay) { adimKoy("S1", "Aydınlatma metnini onaylamalısın.", true); return; }
     if (!S.captchaToken1) { adimKoy("S1", "Lütfen doğrulama kutusunu işaretle.", true); return; }
     if (!S.tur || !S.olcu) { adimKoy("S1", "Tür ve ölçü seçmelisin.", true); return; }
+    // Yeni önizleme = yeni ölçü: eski önizlemenin fiyatı yeni parametreyle GÖSTERİLMEZ (durum yanıtı yazar).
+    S.fiyatKurus = null;
     var fd = formDogrula();
     if (!fd.ok) { adimKoy("S1", PARAMETRE_HATA[fd.hata] || "Form alanlarını kontrol et.", true); return; }
     // Jeton S2'ye geçmeden alınır: adimKoy("S2") doğrulama kutusunu (ve jetonu) temizler.

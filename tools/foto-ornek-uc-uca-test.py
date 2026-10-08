@@ -50,12 +50,17 @@ if a[:2] == ["d1", "execute"]:
     cur = c.execute(sql); rows = [dict(r) for r in cur.fetchall()]; c.commit()
     print(json.dumps([{"results": rows, "success": True, "meta": {"changes": cur.rowcount}}])); sys.exit(0)
 if a[:2] == ["r2", "object"]:
-    anahtar = a[3].split("/", 1)[1]; dosya = a[a.index("--file") + 1]
+    anahtar = a[3].split("/", 1)[1]
     yol = os.path.join(os.environ["FAKE_R2"], anahtar)
     if a[2] == "get":
+        dosya = a[a.index("--file") + 1]
         if not os.path.isfile(yol):
             sys.stderr.write("The specified key does not exist.\n"); sys.exit(1)
         shutil.copyfile(yol, dosya); sys.exit(0)
+    if a[2] == "delete":
+        if os.path.isfile(yol): os.remove(yol)
+        sys.exit(0)
+    dosya = a[a.index("--file") + 1]
     os.makedirs(os.path.dirname(yol), exist_ok=True); shutil.copyfile(dosya, yol); sys.exit(0)
 sys.exit(9)
 '''
@@ -94,8 +99,13 @@ def yaz(d, tur, olcu):
                "model_sha256": hashlib.sha256(open(m, "rb").read()).hexdigest()}, open(os.path.join(d, "olcu.json"), "w"))
 n = 0
 for r in db.execute("SELECT * FROM foto_isler WHERE asama = 'uretec-onizleme'").fetchall():
-    yaz(os.path.join(R, "foto-uretec-onizleme", r["is_no"]), r["tur"], r["olcu_mm"])
-    db.execute("UPDATE foto_isler SET asama='onizleme-hazir' WHERE is_no=?", (r["is_no"],)); n += 1
+    # TURETILMIS eksen (olcu 0): uretec olcuyu parametreden turetir (sahte: FAKE_TURETIK_MM) -> gercek koşucu
+    # gibi OLCULEN uzun kenari (yarim yukari) satira yazar.
+    olcu = r["olcu_mm"] or float(os.environ.get("FAKE_TURETIK_MM") or 123.4)
+    yaz(os.path.join(R, "foto-uretec-onizleme", r["is_no"]), r["tur"], olcu)
+    uk = json.load(open(os.path.join(R, "foto-uretec-onizleme", r["is_no"], "olcu.json")))["uzun_kenar_mm"]
+    db.execute("UPDATE foto_isler SET asama='onizleme-hazir', olcu_mm=? WHERE is_no=?",
+               (r["olcu_mm"] or int(uk + 0.5), r["is_no"])); n += 1
 for r in db.execute("SELECT u.*, i.ziyaretci FROM foto_uretim u LEFT JOIN foto_isler i ON i.is_no=u.is_no"
                     " WHERE u.asama='uretec-bekliyor'").fetchall():
     if r["ziyaretci"] != "ornek" or r["siparis_no"] != "ORNEK-" + r["is_no"][:12]: continue
@@ -123,7 +133,8 @@ class Sunucu:
     onaysiz_kod (mutant: onaysiz istege donen kod)."""
 
     def __init__(self):
-        self.ayar = {"acik": [], "carpan": 1000, "kapali_kod": 400, "onaysiz_kod": 400}
+        self.ayar = {"acik": [], "carpan": 1000, "kapali_kod": 400, "onaysiz_kod": 400, "db": "",
+                     "durum_carpan": 1000}
         ayar = self.ayar
 
         class H(BaseHTTPRequestHandler):
@@ -143,6 +154,16 @@ class Sunucu:
                     tl = [{"kod": k, "olculer": [{"mm": mm, "fiyat_kurus": mm * ayar["carpan"]}
                                                  for mm in TUR[k]["olcu_secenekleri"]]} for k in ayar["acik"]]
                     return self.yanit(200, {"acik": bool(tl), "turler": tl, "onay_surum": MAN["onay_surum"]})
+                if self.path.startswith("/api/shop/foto/durum?is="):
+                    # Sunucu fiyati: satirin KAYITLI olcusu x formul (shop/src/foto.js uretecDurumYaniti).
+                    c = sqlite3.connect(ayar["db"])
+                    r = c.execute("SELECT tur, olcu_mm, ziyaretci FROM foto_isler WHERE is_no = ?",
+                                  (self.path.split("=", 1)[1],)).fetchone()
+                    c.close()
+                    if not r or r[2] == "ornek":
+                        return self.yanit(404, {"hata": "bulunamadi"})
+                    return self.yanit(200, {"asama": "hazir", "tur": r[0], "olcu_mm": r[1], "olcu_kaynagi": "turetilmis",
+                                            "fiyat_kurus": r[1] * ayar["durum_carpan"]})
                 if self.path.startswith("/medya/"):
                     return self.yanit(200, b"RIFF0000WEBP", "image/webp")
                 self.yanit(404, {"hata": "yok"})
@@ -167,13 +188,18 @@ class Sunucu:
         self.h.server_close()
 
 
-def tarayici_iyi(kod):
+def tarayici_iyi(kod, olculen=123):
     t = TUR[kod]
     uc = t["olcu_secenekleri"][-1]
-    return {"secildi": True, "secili_tur": kod, "surgu": True,
-            "fiyat": "%d mm → %s TL" % (uc, "{:,}".format(uc * 10).replace(",", ".")),
-            "onay_kutusu": 1, "onaysiz_dugme_kapali": True, "durustluk": t["durustluk"], "tasma": 0,
-            "genislik": 375, "konsol": []}
+    v = {"secildi": True, "secili_tur": kod, "surgu": True,
+         "fiyat": "%d mm → %s TL" % (uc, "{:,}".format(uc * 10).replace(",", ".")),
+         "onay_kutusu": 1, "onaysiz_dugme_kapali": True, "durustluk": t["durustluk"], "tasma": 0,
+         "genislik": 375, "konsol": [], "olculen_not": False}
+    if t.get("turetilmis"):
+        # Surgu YOK (S1 not var); S3 onizleme olcusu (sahte kopru 123.4 -> 123) ile fiyat yazisi.
+        v.update(surgu=False, fiyat="", olculen_not=True, s3_surgu=False,
+                 olculen_fiyat="%d mm → %s TL" % (olculen, "{:,}".format(olculen * 10).replace(",", ".")))
+    return v
 
 
 class Ortam:
@@ -199,6 +225,7 @@ class Ortam:
         c.commit()
         c.close()
         self.sunucu = Sunucu()
+        self.sunucu.ayar["db"] = self.db
         self.tarayici = {}
         self.env = dict(os.environ, FAKE_DB=self.db, FAKE_R2=self.r2, FAKE_LOG=self.log,
                         FOTO_UU_TABAN=self.sunucu.taban,
@@ -363,6 +390,33 @@ def vakalar(kaynak, sadece=None):
         return rc == 0 and kosulan == d and son == "HAZIR=%d/%d rc=0" % (len(d), len(d)), "%s %s" % (son, kosulan)
     vaka("U14", u14)
 
+    def u23(o):
+        # kopru-15 DILIM-3 TURETILMIS (kutu): onizleme olcusu 123,4 -> D1 123 -> sunucu 123.000 kurus == S3
+        # "123 mm → 1.230 TL" -> ③ HAZIR; ORNEK siparis olcusu KAYITTAN (123); prova isi (D1 + R2) silinir.
+        rc, son, c = tek(o, "kutu")
+        k = sqlite3.connect(o.db)
+        prova = k.execute("SELECT COUNT(*) FROM foto_isler WHERE ziyaretci = 'uu-prova'").fetchone()[0]
+        u = k.execute("SELECT olcu_mm FROM foto_uretim").fetchall()
+        k.close()
+        kok = os.path.join(o.r2, "foto-uretec-onizleme")
+        r2_prova = sum(1 for d in os.listdir(kok) if os.listdir(os.path.join(kok, d)))  # dolu is dizini (ORNEK=1)
+        ok = (olcut(c, "kutu", "3") == "HAZIR" and "sunucu_kurus=123000" in c and "D1=123" in c and prova == 0 and
+              u == [(123,)] and r2_prova == 1 and olcut(c, "kutu", "4") == "HAZIR")
+        return ok, "%s prova_satir=%d siparis_olcu=%s r2_dosya=%d %s" % (
+            son, prova, u, r2_prova, [s for s in c.splitlines() if s.strip().startswith(("③", "②", "④"))])
+    vaka("U23", u23)
+
+    def u24(o):
+        # Esitlik kolu: sunucu fiyati olcuden sapar (x 1001) YA DA bolum baska fiyat yazar -> ③ EKSIK.
+        o.sunucu.ayar["durum_carpan"] = 1001
+        rc1, _, c1 = tek(o, "kutu")
+        o.sunucu.ayar["durum_carpan"] = 1000
+        o.tarayici = {"kutu": dict(tarayici_iyi("kutu"), olculen_fiyat="120 mm → 1.200 TL")}
+        rc2, _, c2 = o.kos("--tur", "kutu")
+        return (olcut(c1, "kutu", "3") == "EKSIK" and olcut(c2, "kutu", "3") == "EKSIK" and rc1 == 1 and rc2 == 1,
+                "sunucu_sapar=%s bolum_sapar=%s" % (olcut(c1, "kutu", "3"), olcut(c2, "kutu", "3")))
+    vaka("U24", u24)
+
     def u15(o):
         hazir_ortam(o)
         o.tarayici["isimlik"].update(secildi=False, secili_tur="plaket")
@@ -515,6 +569,10 @@ MUTANTLAR = {
     # gecerli varsayilan yerine formul -> U22 (duvar 1.6 yerine 4).
     "MB15": ("        if not kosul_tamam(s, p):\n            continue\n", "", {"U19", "U22"}),
     "MB16": ('        elif tip == "sayi" and sayi_gecerli(s, vs):', '        elif tip == "sayi" and False:', {"U22"}),
+    # kopru-15 DILIM-3: ③ TURETILMIS esitlik kolu atlanirsa sapan fiyat HAZIR gecer -> U24 KIRMIZI.
+    "MB17": ("    esit = bek is not None and tr.olcu == olculen and sunucu == bek and gos == yazi\n",
+             "    esit = bek is not None\n", {"U24"}),
+    "MB18": ("    olc_3_turetilmis(tr, a, v)\n    elif not v:", "    pass\n    if not v:", {"U23"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }

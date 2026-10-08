@@ -16,6 +16,8 @@ SOZLUK (eşleme YALNIZ burada; manifest yorumu bu dosyayi isaret eder):
             baska tip -> KIRMIZI
   kosul   : form alaninda `kosul: [{alan, degerler}]` AYNEN (alan formda olmali, yoksa KIRMIZI)
   olcu_mm : olcek.min_mm/max_mm · fiyat.adim_mm : olcek.adim_mm · malzemeler : {govde: izinli_malzeme}
+  olcu_ekseni : olcek.belirleyen_parametre DOLU -> "sabit" (surgu = hedef) · bos/null -> "turetilmis"
+            (kopru-15 dilim-3: surgu YOK, fiyat onizlemede OLCULEN uzun kenardan; sunucu kaydindan)
   bust    : rolyef `tur_tanimi_teklifi` (alanlar rolyef parametresinin ustune yazilir, sonra ayni sozluk)
 Editoryal alanlar (ad, aciklama, motor, fiyat.formul, ornek_kanit_izni, durustluk, ornek_notu) manifestte
 elle kalir; arac yalniz TURETILEN alanlari yazar/denetler.
@@ -46,7 +48,7 @@ VARSAYILAN_ADIM = 0.01
 RENK_ACIK_ONCE = ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"]
 RENK_KOYU_ONCE = ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"]
 TEKLIF_KOD = {"rolyef": "bust"}  # tur_tanimi_teklifi -> manifest tur kodu
-TURETILEN = ("girdi", "uretec", "olcu_mm", "renk_bolgeleri", "malzemeler", "form")
+TURETILEN = ("girdi", "uretec", "olcu_mm", "renk_bolgeleri", "malzemeler", "form", "olcu_ekseni")
 
 NODE_OKU = (
     "const vm=require('vm'),fs=require('fs');const k={};"
@@ -123,6 +125,7 @@ def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None):
              "renk_bolgeleri": bolgeler,
              "malzemeler": {"govde": list(kayit.get("izinli_malzeme") or [])},
              "form": form,
+             "olcu_ekseni": "sabit" if o.get("belirleyen_parametre") else "turetilmis",
              "fiyat_adim_mm": o.get("adim_mm")}
     return satir, hatalar
 

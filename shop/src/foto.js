@@ -1284,8 +1284,11 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
   if (gh) { return fjson({ hata: gh }, 400); }
   const nt = uretimNotuDogrula(g.not);
   if (!nt.ok) { return fjson({ hata: nt.hata }, 400); }
-  const olcu = Number.isInteger(g.olcu_mm) ? g.olcu_mm : null;
-  if (!tur.olculer.some((o) => o.mm === olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
+  // TURETILMIS olcu ekseni: olcu musteriden ALINMAZ (surgu yok) -> 0; koşucu onizlemede OLCULEN uzun
+  // kenari (VERI.olculenMm) satirin olcu_mm'sine yazar, fiyat ORADAN (uretecDurumYaniti/fotoKalemFiyatla).
+  const turetilmis = VERI.olcuTuretilmis(tur.kod);
+  const olcu = turetilmis ? 0 : Number.isInteger(g.olcu_mm) ? g.olcu_mm : null;
+  if (!turetilmis && !tur.olculer.some((o) => o.mm === olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
   const oh = aydinlatmaOnayHatasi(g);
   if (oh) { return fjson({ hata: oh }, 400); }
   const sc = secimDogrula(tur.kod, g.secim);
@@ -1347,6 +1350,9 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
                  yoklama: URETEC_YOKLAMA }, 200);
 }
 
+/** Olcunun kaynagi (is/siparis kaydi alani): "turetilmis" (onizlemede olculdu) | "surgu" (musteri secti). */
+export function olcuKaynagi(tur) { return VERI.olcuTuretilmis(tur) ? "turetilmis" : "surgu"; }
+
 /** Uretec onizlemesinin durum yaniti: hazir -> gorsel + olcu.json ozeti; kuyrukta -> bekliyor. */
 async function uretecDurumYaniti(env, is) {
   if (is.asama === "uretec-onizleme") { return fjson({ asama: "bekliyor" }, 200); }
@@ -1359,10 +1365,14 @@ async function uretecDurumYaniti(env, is) {
       olcu = { uzun_kenar_mm: o.uzun_kenar_mm, kutu_mm: o.kutu_mm, renk_sayisi: o.renk_sayisi };
     }
   } catch (e) { olcu = null; }
-  return fjson({ asama: "hazir", tur: is.tur, olcu_mm: is.olcu_mm, olcu,
-                 gorsel: "/api/shop/foto/gorsel?is=" + is.is_no,
-                 gecerlilik_bitis: new Date(Date.parse(is.hazir_tarih) +
-                   VERI.gecerlilik_saat * 3600 * 1000).toISOString() }, 200);
+  const v = { asama: "hazir", tur: is.tur, olcu_mm: is.olcu_mm, olcu,
+              gorsel: "/api/shop/foto/gorsel?is=" + is.is_no,
+              gecerlilik_bitis: new Date(Date.parse(is.hazir_tarih) +
+                VERI.gecerlilik_saat * 3600 * 1000).toISOString() };
+  // TURETILMIS eksen: fiyat onizlemeyle BIRLIKTE, koşucunun KAYITLI olcusunden (D1 olcu_mm; istemci degil).
+  v.olcu_kaynagi = olcuKaynagi(is.tur);
+  if (v.olcu_kaynagi === "turetilmis") { v.fiyat_kurus = VERI.fiyatKurus(is.tur, is.olcu_mm); }
+  return fjson(v, 200);
 }
 
 // ---------------------------------------------------------------- uc: /foto/litofan (deterministik)
@@ -1646,8 +1656,10 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   if (turSunuluyor(is.tur) && !turHazir(env, is.tur).hazir) { return { hata: { hata: "foto-kapali" }, kod: 400 }; }
   const tur = acikTurler(await acikAnahtari(env)).find((t) => t.kod === is.tur);
   if (!tur) { return { hata: { hata: "foto-kapali" }, kod: 400 }; }
-  const fk = VERI.fiyatKurus(tur.kod, k.olcu_mm);
-  const olcu = fk > 0 ? { mm: k.olcu_mm, fiyat_kurus: fk } : null;
+  // TURETILMIS eksen: olcu = onizleme isinin KAYITLI (koşucunun olctugu) olcusu; istemcinin olcu_mm'si OKUNMAZ.
+  const mm = VERI.olcuTuretilmis(tur.kod) ? is.olcu_mm : k.olcu_mm;
+  const fk = VERI.fiyatKurus(tur.kod, mm);
+  const olcu = fk > 0 ? { mm, fiyat_kurus: fk } : null;
   if (!olcu) { return { hata: { hata: "gecersiz-olcu" }, kod: 400 }; }
   const birim = olcu.fiyat_kurus;
   if (deterministikTur(tur.kod)) { return deterministikSatir(tur, olcu, k, is); }
@@ -1668,6 +1680,7 @@ export async function fotoKalemFiyatla(env, k, simdi) {
       foto_is: is.is_no,
       foto_tur: tur.kod,
       olcu_mm: olcu.mm,
+      olcu_kaynagi: olcuKaynagi(tur.kod),
       // URETIMDE UNUTULMASIN: plaket basina ayak (ayri parca, ayni plakada basilir).
       foto_ayak: AYAK_PLAKET_BASI,
     },
@@ -1706,6 +1719,7 @@ function deterministikSatir(tur, olcu, k, is) {
       foto_is: is.is_no,
       foto_tur: tur.kod,
       olcu_mm: olcu.mm,
+      olcu_kaynagi: olcuKaynagi(tur.kod),
       foto_kol: "deterministik",
       foto_secim: secim,
     },
@@ -2251,12 +2265,16 @@ export function uretecOlcuDogrula(o, k) {
   const a = VERI.olcuAraligi(k.tur);
   if (!a || !(k.olcu_mm >= a.en_az && k.olcu_mm <= a.en_cok)) { return "olcu-aralik-disi"; }
   const tol = UZUN_KENAR_TOLERANS[t.motor];
+  // TURETILMIS eksen: hedef yok -> olculen uzun kenar KAYITLI araliga duser mi (koşucu cikti_dogrula ile ayni).
+  const turetilmis = VERI.olcuTuretilmis(k.tur);
+  const olculen = VERI.olculenMm(o.uzun_kenar_mm);
   // uzun_kenar_mm = nesnenin sinir kutusunun EN UZUN boyutu (x/y/z, ayak dahil; sozlesme §3) = olcu_mm ± tol.
   // kutu_mm PLAKA yerlesimidir (yapboz parcalari yan yana: x/y nesneden buyuk olabilir), Z ise nesnenin
   // yuksekligidir: Z en uzun boyuttan buyukse uzun kenar yalniz X/Y'den olculmus demektir -> RED.
   const kz = Number((o.kutu_mm || {}).z) || 0;
   if (!(tol > 0) || typeof o.uzun_kenar_mm !== "number" ||
-      !(Math.abs(o.uzun_kenar_mm - k.olcu_mm) <= k.olcu_mm * tol + 1e-9) ||
+      (turetilmis ? !(olculen >= a.en_az && olculen <= a.en_cok)
+        : !(Math.abs(o.uzun_kenar_mm - k.olcu_mm) <= k.olcu_mm * tol + 1e-9)) ||
       kz > o.uzun_kenar_mm * (1 + tol) + 1e-9) { return "uzun-kenar-tolerans"; }
   if (!Number.isInteger(o.renk_sayisi) || o.renk_sayisi < 1 || o.renk_sayisi > 4) { return "renk-fazla"; }
   const kutu = o.kutu_mm || {};

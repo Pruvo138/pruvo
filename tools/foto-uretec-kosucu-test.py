@@ -627,8 +627,25 @@ def vakalar(kosucu):
         u = o.uretim()
         return son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir", "%s %s" % (son, u)
 
+    def t26(o):
+        # kopru-15 DILIM-3 TURETILMIS eksen (kutu): onizleme olcu 0 (surgu yok) -> koşucu 3MF'ten OLCULEN uzun
+        # kenari (yarim yukari) satirin olcu_mm'sine yazar; aralik (40..300) disi -> uretec reddi, olcu yazilmaz.
+        x = G2_VAKA["kutu"]
+        o.uretec_onizleme("kutu", 0, x["renkler"], dict(x["parametreler"], en_mm=123))
+        rc, son, cikti = o.kos("--uygula", FAKE_TEKIN_GEO="1.004")
+        r = o.sql("SELECT asama, hata, olcu_mm FROM foto_isler WHERE is_no = ?", IS2)[0]
+        ok1 = son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and r["asama"] == "onizleme-hazir" and r["olcu_mm"] == 123
+        o.sql("DELETE FROM foto_isler WHERE is_no = ?", IS2)
+        shutil.rmtree(os.path.join(o.r2, "foto-uretec-onizleme", IS2))
+        o.uretec_onizleme("kutu", 0, x["renkler"], dict(x["parametreler"], en_mm=290))
+        rc2, son2, _ = o.kos("--uygula", FAKE_TEKIN_GEO="1.1")
+        r2 = o.sql("SELECT asama, hata, olcu_mm FROM foto_isler WHERE is_no = ?", IS2)[0]
+        ok2 = r2["asama"] == "basarisiz" and r2["hata"] == "uretec-red:olcu-aralik-disi" and r2["olcu_mm"] == 0
+        return ok1 and ok2, "olculen=%s %s | aralik_disi=%s %s" % (son, dict(r), son2, dict(r2))
+
     vaka("T22", t22)
     vaka("T23", t23)
+    vaka("T26", t26)
     vaka("T24", t24)
     vaka("T25", t25)
     for ad, fn in (("T1", t1), ("T2", t2), ("T3", t3), ("T4", t4), ("T5", t5), ("T6", t6), ("T7", t7),
@@ -654,21 +671,21 @@ MUTANTLAR = {
     "M11": ('    (r"kontrast", "kontrast"),\n', "", {"T14"}),
     "M12": ('"renk_sayisi": uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf")),',
             '"renk_sayisi": len(bolgeler),',
-            {"T17", "T13-kutu", "T13-adaptor", "T13-disli", "T13-kapak"}),
+            {"T17", "T13-kutu", "T13-adaptor", "T13-disli", "T13-kapak", "T26"}),
     "M13": ('        if any(k not in form for k in (girdi.get("parametreler") or {})):\n            raise KopruRed("parametre")\n',
             "", {"T18"}),
     # G2b: plaka 300 tek kaynak · uzun kenar geometriden · yapboz araligi
     "M14": ("0 < k[e] <= plaka_mm() for e in", "0 < k[e] <= 250 for e in", {"T19"}),
     "M15": ("0 < k[e] <= plaka_mm() for e in", "0 < k[e] <= 9999 for e in", {"T19"}),
     "M16": ('    uk = uc_mf_uzun_kenar(os.path.join(cikti, "model.3mf"), oz)\n',
-            '    uk = oz.get("uzun_kenar_mm") or max(kutu[0], kutu[1])\n', {"T20"}),
+            '    uk = oz.get("uzun_kenar_mm") or max(kutu[0], kutu[1])\n', {"T20", "T26"}),
     "M17": ('<= i["olcu_mm"] <= a.get("en_cok", 0)):\n        return "olcu-aralik-disi"',
             '<= i["olcu_mm"] <= 99999):\n        return "olcu-aralik-disi"', {"T21"}),
     "M18": ('    if i.get("is_ziyaretci") != ORNEK_ZIYARETCI or ', "    if ", {"T23"}),
     "M19": ('    D1_AD, R2_KOVA, HEDEF = db.group(1), kova.group(1), "onizleme"', '    HEDEF = "onizleme"', {"T24"}),
     # G4 (kopru-15) — esle_<kod> ESLEMELER'den silinince uretec-bicimi RED'lenir (TEKIN_ESLE'de uretec adina
     # baglanan esleme kapisi kalkar); sadece o turun T13 vakasi KIRMIZI olur.
-    "M20": ('             "kutu": esle_kutu,\n', "", {"T13-kutu"}),
+    "M20": ('             "kutu": esle_kutu,\n', "", {"T13-kutu", "T26"}),  # T26 = kutu turetilmis olcusu
     "M21": ('             "adaptor": esle_adaptor,\n', "", {"T13-adaptor"}),
     "M22": ('             "disli": esle_disli,\n', "", {"T13-disli"}),
     "M23": ('             "kapak": esle_kapak,\n', "", {"T13-kapak"}),
@@ -678,6 +695,11 @@ MUTANTLAR = {
             '    return dict({"yukseklik_mm": 40}, **(g.get("parametreler") or {})), []\n',
             {"T13-kutu", "T13-adaptor", "T13-disli", "T13-kapak"}),
     "M25": ('            u["renk_" + b] = h\n', '            u["renk_taban"] = h\n', {"T13-koordinat"}),
+    # kopru-15 DILIM-3: tolerans dali TURETILMIS turde hedefe (olcu 0) donerse / olculen olcu satira
+    # yazilmazsa / aralik kontrolu kalkarsa T26 KIRMIZI.
+    "M26": ('(not tu and abs(uk - i["olcu_mm"])', '(abs(uk - i["olcu_mm"])', {"T26"}),
+    "M27": ('                st += ", olcu_mm = %d" % int(olcu)\n', '                pass\n', {"T26"}),
+    "M28": ('a.get("en_az", 1) <= olculen_mm(uk) <= a.get("en_cok", 0)):', 'True):', {"T26"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 

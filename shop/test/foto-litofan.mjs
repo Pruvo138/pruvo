@@ -19,6 +19,10 @@
  *   L10 URETEC ONIZL: sentetik `isimlik` (kopya veri dosyasinda) -> /foto/onizleme 'uretec-onizleme' + R2
  *                     girdi.json -> GERCEK koşucu (sahte wrangler/uretec, ortak SQLite dosyasi) ->
  *                     'onizleme-hazir' -> durum/gorsel -> /baslat -> 'uretec-bekliyor' -> KOPYA KOLU 'hazir'
+ *   L11 TURETILMIS  : kopru-15 dilim-3 — sentetik `turetik` (olcu_ekseni turetilmis): onizleme istemcinin olcu_mm'sini
+ *                     OKUMAZ (satir/girdi 0) · onizlemesiz siparis 400 · GERCEK koşucu olculen uzun kenari (123,4 ->
+ *                     123) satira yazar · durum fiyat_kurus = 123 x 1000 + olcu_kaynagi · istemci sahte olcu/fiyatla
+ *                     siparis -> satir sunucunun olcusu (fark 0) · aralik disi (250,5) -> uretec reddi metni
  *   L8 SAKLAMA      : saglayici env'siz cron: 73 sa onceki siparise girmemis litofan haritasi R2'den
  *                     silinir + satir 'silindi', saglayici cagrisi 0; siparise girmis harita KALIR
  *
@@ -535,6 +539,13 @@ const ISIMLIK = '      { kod: "isimlik", ad: "İsimlik", aciklama: "x", girdi: [
   '        form: { yazi: { tip: "metin", max: 20, etiket: "Yazı" } }, fiyat: { formul: "mm_x_10tl", adim_mm: 10 },\n' +
   '        ornek_kanit_izni: ["render"], durustluk: "t", ornek_notu: "t" },\n';
 
+// L11: TURETILMIS eksenli sentetik tur (surgu yok; olcu onizlemede OLCULUR). Sahte uretec uzun kenari `uk`
+// parametresinden yazar (gercek uretecte geometriden dogar).
+const TURETIK = '      { kod: "turetik", ad: "Türetik", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",\n' +
+  '        olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {}, olcu_ekseni: "turetilmis",\n' +
+  '        form: { uk: { tip: "sayi", min: 1, max: 999, adim: 0.01, etiket: "Uk" } }, fiyat: { formul: "mm_x_10tl", adim_mm: 10 },\n' +
+  '        ornek_kanit_izni: ["render"], durustluk: "t", ornek_notu: "t" },\n';
+
 const SAHTE_WR = `import json, os, shutil, sqlite3, sys
 a = sys.argv[1:]
 if a[:2] == ["d1", "execute"]:
@@ -561,7 +572,7 @@ os.makedirs(c)
 open(os.path.join(c, "model.3mf"), "wb").write(b"PK" + bytes([3, 4]) + json.dumps(g["parametreler"], sort_keys=True).encode())
 ihdr = struct.pack(">II", 1024, 512) + bytes([8, 2, 0, 0, 0])
 open(os.path.join(c, "onizleme.png"), "wb").write(bytes([0x89]) + b"PNG" + bytes([13, 10, 26, 10]) + struct.pack(">I", 13) + b"IHDR" + ihdr + bytes(4))
-m = g["olcu_mm"]
+m = g["parametreler"].get("uk") or g["olcu_mm"]
 json.dump({"sozlesme": 1, "kategori": g["kategori"], "uzun_kenar_mm": float(m), "kutu_mm": {"x": float(m), "y": 30.0, "z": 5.0},
            "renk_sayisi": 1, "sizdirmaz": True, "parcalar": [{"ad": "govde", "renk": "Beyaz"}], "girdi_sha256": "", "model_sha256": ""},
           open(os.path.join(c, "olcu.json"), "w"))
@@ -591,7 +602,7 @@ function isimlikKokKur(mu) {
   const vy = path.join(kok, "foto-uretim-veri.js");
   const v = fs.readFileSync(vy, "utf8");
   if (v.split("    turler: [\n").length !== 2) { throw new Error("isimlik capasi bulunamadi"); }
-  fs.writeFileSync(vy, v.replace("    turler: [\n", "    turler: [\n" + ISIMLIK));
+  fs.writeFileSync(vy, v.replace("    turler: [\n", "    turler: [\n" + ISIMLIK + TURETIK));
   fs.mkdirSync(path.join(kok, "tools"));
   fs.copyFileSync(path.join(KOK, "tools", "foto-uretec-kosucu.py"), path.join(kok, "tools", "foto-uretec-kosucu.py"));
   return kok;
@@ -699,16 +710,108 @@ async function senaryoIsimlik(kok) {
   return g;
 }
 
+async function senaryoTuretik(kok) {
+  const g = { L11: [], ozet: [] };
+  const iddia = (ad, ok, ek) => g.L11.push({ ad, ok: !!ok, ek: ek || "" });
+  const { modul, foto, VERI } = await modulKur(kok);
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), "pruvo-foto-turetik-"));
+  GECICILER.push(d);
+  const db = path.join(d, "d1.sqlite"), r2d = path.join(d, "r2"), sayac = path.join(d, "uretec.sayac");
+  fs.mkdirSync(r2d);
+  fs.writeFileSync(path.join(d, "wr.py"), SAHTE_WR);
+  fs.writeFileSync(path.join(d, "uretec.py"), SAHTE_URETEC_I);
+  fs.writeFileSync(sayac, "");
+  fs.writeFileSync(path.join(d, "tablo.json"), JSON.stringify({ isimlik_uret: { bicim: "sozlesme", komut: ["python3", path.join(d, "uretec.py")] } }));
+  const kosucu = () => {
+    const p = spawnSync("python3", [path.join(kok, "tools", "foto-uretec-kosucu.py"), "--uygula"], {
+      encoding: "utf8", timeout: 120000,
+      env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1", FAKE_DB: db, FAKE_R2: r2d, FAKE_URETEC_SAYAC: sayac,
+             FOTO_KOSUCU_WRANGLER: "python3 " + path.join(d, "wr.py"), FOTO_KOSUCU_KILIT: path.join(d, "kilit"),
+             FOTO_KOSUCU_PYTHON: "python3", FOTO_KOSUCU_URETEC_TABLO: path.join(d, "tablo.json") } });
+    return { son: (p.stdout || "").trim().split("\n").pop(), cikti: (p.stdout || "") + (p.stderr || "") };
+  };
+  const k = koprukur(db); await k.hazir;
+  const d1 = k.d1;
+  const env = envKur(d1, r2DizinKur(r2d));
+  const istek = istekKur(modul, env);
+  // Istemci SAHTE olcu (200 = 2.000 TL) ve sahte tutarlar gonderir; sunucu hicbirini okumamali.
+  const siparis = (isNo) => ({ sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri,
+    turnstile_token: "j", sepet: [{ foto_is: isNo, olcu_mm: 200, adet: 1, birim_kurus: 1, tutar_kurus: 1, fiyat_kurus: 1 }] });
+  const onizle = (ip, uk) => istek("/foto/onizleme", { ip, govde: { tur: "turetik", olcu_mm: 200, parametreler: { uk },
+    aydinlatma_onay: true, onay_surum: VERI.onay_surum, turnstile_token: "jeton" } });
+  const satir = (n) => d1.prepare("SELECT asama, hata, olcu_mm FROM foto_isler WHERE is_no = ?").bind(n).first();
+  const yedek = VERI.ornekler.splice(0);
+  try {
+    VERI.ornekler.push({ tur: "turetik", kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/t-to.webp",
+                         render: "https://media.pruvo3d.com/t-tr.webp", not: "t" });
+    await d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('turetik', 1, '2026-10-07T00:00:00.000Z')").run();
+    const o = await onizle("198.51.100.220", 123.4);
+    const isNo = (o.v && o.v.is) || "yok";
+    const gy = path.join(r2d, "foto-uretec-onizleme", isNo, "girdi.json");
+    const gj = fs.existsSync(gy) ? JSON.parse(fs.readFileSync(gy, "utf8")) : null;
+    const s1 = await satir(isNo);
+    iddia("onizleme 200: istemcinin olcu_mm'si (200) OKUNMAZ -> satir olcu 0 + girdi.json olcu 0 (surgu yok)",
+      o.kod === 200 && !!s1 && s1.asama === "uretec-onizleme" && s1.olcu_mm === 0 && !!gj && gj.olcu_mm === 0,
+      JSON.stringify([o.kod, o.v, s1, gj && gj.olcu_mm]));
+    const b0 = await istek("/baslat", { govde: siparis(isNo) });
+    const bYok = await istek("/baslat", { govde: siparis("0123456789abcdef0123456789abcdef") });
+    iddia("onizlemesiz siparis 400 foto-onizleme-yok (kuyruktaki is + olmayan is)",
+      b0.kod === 400 && !!b0.v && b0.v.hata === "foto-onizleme-yok" && bYok.kod === 400 && !!bYok.v && bYok.v.hata === "foto-onizleme-yok",
+      JSON.stringify([b0.kod, b0.v, bYok.kod, bYok.v]));
+    const k1 = kosucu();
+    const s2 = await satir(isNo);
+    g.ozet.push("turetilmis koşucu: " + k1.son + " · satir=" + JSON.stringify(s2));
+    iddia("GERCEK koşucu onizlemeyi OLCER: uk 123,4 -> satir olcu_mm 123 (yarim yukari) + 'onizleme-hazir'",
+      k1.son === "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" && !!s2 && s2.asama === "onizleme-hazir" && s2.olcu_mm === 123,
+      JSON.stringify(s2) + " " + k1.cikti.slice(-400));
+    const dy = await istek("/foto/durum?is=" + isNo);
+    iddia("durum: fiyat onizlemeyle BIRLIKTE = 123 mm x 1000 = 123000 kurus · olcu_kaynagi turetilmis · olcu.json uk 123,4",
+      !!dy.v && dy.v.asama === "hazir" && dy.v.olcu_mm === 123 && dy.v.fiyat_kurus === 123000 && dy.v.olcu_kaynagi === "turetilmis" &&
+        !!dy.v.olcu && dy.v.olcu.uzun_kenar_mm === 123.4, JSON.stringify(dy.v));
+    const b1 = await istek("/baslat", { govde: siparis(isNo) });
+    const no = b1.v && b1.v.no;
+    const sr = no ? await d1.prepare("SELECT urunler FROM siparisler WHERE siparis_no = ?").bind(no).first() : null;
+    const kalem = sr ? (JSON.parse(sr.urunler) || []).find((x) => x && x.foto_is === isNo) : null;
+    const fark = kalem && dy.v ? kalem.birim_kurus - dy.v.fiyat_kurus : null;
+    g.ozet.push("turetilmis siparis: istemci olcu=200 birim=1 -> satir olcu=" + (kalem && kalem.olcu_mm) + " birim=" +
+                (kalem && kalem.birim_kurus) + " fark=" + fark);
+    iddia("istemci sahte olcu/fiyat (200 mm, 1 kurus) -> satir SUNUCUNUN olcusu: olcu 123, birim 123000, fark 0, olcu_kaynagi turetilmis",
+      b1.kod === 200 && !!kalem && kalem.olcu_mm === 123 && kalem.birim_kurus === 123000 && kalem.tutar_kurus === 123000 &&
+        fark === 0 && kalem.olcu_kaynagi === "turetilmis" && foto.olcuKaynagi("isimlik") === "surgu",
+      JSON.stringify([b1.kod, b1.v, kalem]));
+    const o2 = await onizle("198.51.100.221", 250.5);
+    const is2 = (o2.v && o2.v.is) || "yok";
+    const k2 = kosucu();
+    const s3 = await satir(is2);
+    const d2 = await istek("/foto/durum?is=" + is2);
+    const b2 = await istek("/baslat", { govde: siparis(is2) });
+    iddia("aralik disi olcu (250,5 > 200) -> koşucu RED uretec-red:olcu-aralik-disi, olcu yazilmaz · durum uretec reddi metni · siparis 400",
+      o2.kod === 200 && !!s3 && s3.asama === "basarisiz" && s3.hata === "uretec-red:olcu-aralik-disi" && s3.olcu_mm === 0 &&
+        !!d2.v && d2.v.asama === "basarisiz" && d2.v.hata === "uretec-red" && d2.v.metin === VERI.URETEC_RED_METIN["olcu-aralik-disi"] &&
+        b2.kod === 400, JSON.stringify([s3, d2.v, b2.kod]) + " " + k2.son);
+  } catch (e) {
+    iddia("L11 senaryo hatasiz kostu", false, (e && e.stack) || String(e));
+  } finally {
+    VERI.ornekler.splice(0, VERI.ornekler.length, ...yedek);
+    k.kapat();
+  }
+  return g;
+}
+
 const ADLAR = {
   L2: "L2 FIYAT YOK -> SATIN ALMA RED", L3: "L3 /foto/litofan SAGLAYICISIZ", L4: "L4 /baslat TUTAR + SECIM",
   L5: "L5 KUYRUK uretec-bekliyor", L6: "L6 PANEL YUKLEME", L7: "L7 PLAKET REGRESYONU", L9: "L9 URETEC OLCU + SVG + AYDINLATMA KOLU",
-  L8: "L8 SAKLAMA saglayicisiz", L10: "L10 URETEC ONIZLEME KUYRUGU -> SIPARIS -> KOPYA KOLU (sentetik isimlik, uctan uca)",
+  L8: "L8 SAKLAMA saglayicisiz",
+  L11: "L11 TURETILMIS OLCU EKSENI: olcu onizlemede olculur, fiyat sunucu kaydindan (sentetik turetik, uctan uca)", L10: "L10 URETEC ONIZLEME KUYRUGU -> SIPARIS -> KOPYA KOLU (sentetik isimlik, uctan uca)",
 };
 const sonuc = await senaryo(canli);
 {
   const gi = await senaryoIsimlik(isimlikKokKur(null));
   sonuc.L10 = gi.L10;
   for (const x of gi.ozet) { console.log("UCTAN_UCA_ONIZLEME " + x); }
+  const gt = await senaryoTuretik(isimlikKokKur(null));
+  sonuc.L11 = gt.L11;
+  for (const x of gt.ozet) { console.log("UCTAN_UCA_TURETILMIS " + x); }
 }
 for (const grup of Object.keys(ADLAR)) {
   console.log(ADLAR[grup]);
@@ -767,6 +870,14 @@ const MUTANTLAR = [
     capa: "? \"onizleme-hazir\" : \"hazir\";", yerine: "? \"hazir\" : \"hazir\";" },
   { ad: "M11 uretec kolu yonlendirmesi silindi (saglayici yoluna duser)", dosya: "shop/src/foto.js", hedef: "L10",
     capa: "  if (g && typeof g === \"object\" && uretecOnizlemeTuru(g.tur)) { return uretecOnizlemeUcu(request, env, simdi, g); }\n", yerine: "" },
+  // kopru-15 dilim-3 (TURETILMIS eksen): sunucu istemcinin olcusunu/fiyatini kullanirsa L11 KIRMIZI.
+  { ad: "M12 siparis fiyati istemcinin olcu_mm'sinden (kayitli onizleme olcusu yerine)", dosya: "shop/src/foto.js", hedef: "L11",
+    capa: "  const mm = VERI.olcuTuretilmis(tur.kod) ? is.olcu_mm : k.olcu_mm;\n", yerine: "  const mm = k.olcu_mm;\n" },
+  { ad: "M13 onizleme ucu istemcinin olcu_mm'sini yazar", dosya: "shop/src/foto.js", hedef: "L11",
+    capa: "  const olcu = turetilmis ? 0 : Number.isInteger(g.olcu_mm) ? g.olcu_mm : null;\n",
+    yerine: "  const olcu = Number.isInteger(g.olcu_mm) ? g.olcu_mm : null;\n" },
+  { ad: "M14 durum fiyati kayitli olcu yerine aralik ucundan", dosya: "shop/src/foto.js", hedef: "L11",
+    capa: "v.fiyat_kurus = VERI.fiyatKurus(is.tur, is.olcu_mm);", yerine: "v.fiyat_kurus = VERI.fiyatKurus(is.tur, VERI.olcuAraligi(is.tur).en_cok);" },
   { ad: "M5 saglayici env'siz dalda onizleme temizligi kaldirildi", dosya: "shop/src/foto.js", hedef: "L8",
     capa: "      try { ozet.silinen = await onizlemeTemizle(env, simdi); } catch (e) { if (!tabloYok(e)) { throw e; } }\n",
     yerine: "" },
@@ -786,6 +897,7 @@ for (const mu of MUTANTLAR) {
   try {
     g = await senaryo(await modulKur(kok));
     g.L10 = (await senaryoIsimlik(isimlikKokKur(mu))).L10;
+    g.L11 = (await senaryoTuretik(isimlikKokKur(mu))).L11;
   } catch (e) {
     survivor++;
     ol(mu.ad + " — mutant yuklendi", false, (e && e.stack) || String(e));

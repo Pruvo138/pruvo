@@ -97,6 +97,10 @@
     //   fiyat          : { formul: "mm_x_10tl", adim_mm } — formül adı VERI.FIYAT_FORMULLERI'nde
     //                    olmalı (bilinmeyen formül -> fiyat yok, tür sunulmaz); adim_mm = sürgü adımı
     //   olcu_mm        : {en_az, en_cok} — en uzun boyut (mm); bu aralık dışı ölçü RED
+    //   olcu_ekseni    : "sabit" (sürgü = hedef ölçü) | "turetilmis" (köprü kaydında belirleyen parametre YOK:
+    //                    sürgü YOK, ölçü form parametrelerinden doğar; fiyat = önizlemede ÖLÇÜLEN uzun kenar ×
+    //                    formül — köprü ölçüyü D1 foto_isler.olcu_mm'ye yazar, sunucu ORADAN hesaplar; alan
+    //                    yoksa "sabit"). TeKiN köprü türlerinde kopru-manifest-uret.py ÜRETİR.
     //   renk_bolgeleri : müşterinin renk seçtiği bölgeler; [] = seçim yok (plaket: önizlemenin 4 renkli yorumu)
     //   malzemeler     : bölge -> izinli filament listesi; {} = satır "PLA" (plaket)
     //   ornek_kanit_izni: türü AÇAN örnek kanıtları; listede olmayan kanıt o türde SAYILMAZ
@@ -372,7 +376,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; düzenleyici kutu bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; düzenleyici kutu bu parametrelerle üretilir.",
+        olcu_ekseni: "turetilmis"
       },
       {
         kod: "adaptor",
@@ -484,7 +489,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; adaptör / burç / pul bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; adaptör / burç / pul bu parametrelerle üretilir.",
+        olcu_ekseni: "turetilmis"
       },
       {
         kod: "disli",
@@ -630,7 +636,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; dişli / kasnak bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; dişli / kasnak bu parametrelerle üretilir.",
+        olcu_ekseni: "turetilmis"
       },
       {
         kod: "kapak",
@@ -744,7 +751,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; kapak / tıpa bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; kapak / tıpa bu parametrelerle üretilir.",
+        olcu_ekseni: "turetilmis"
       },
       {
         kod: "dugme",
@@ -842,7 +850,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; düğme / topuz bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; düğme / topuz bu parametrelerle üretilir.",
+        olcu_ekseni: "turetilmis"
       },
       {
         kod: "klips",
@@ -1006,7 +1015,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; klips / kelepçe / menteşe bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; klips / kelepçe / menteşe bu parametrelerle üretilir.",
+        olcu_ekseni: "turetilmis"
       },
       {
         kod: "saksi",
@@ -1143,7 +1153,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; saksı / vazo bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; saksı / vazo bu parametrelerle üretilir.",
+        olcu_ekseni: "turetilmis"
       },
       {
         kod: "rolyef",
@@ -1222,7 +1233,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; yukseklik rolyefi bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; yukseklik rolyefi bu parametrelerle üretilir.",
+        olcu_ekseni: "sabit"
       },
       {
         kod: "ses",
@@ -1345,7 +1357,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; ses dalgasi bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; ses dalgasi bu parametrelerle üretilir.",
+        olcu_ekseni: "sabit"
       },
       {
         kod: "braille",
@@ -1438,7 +1451,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; braille bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; braille bu parametrelerle üretilir.",
+        olcu_ekseni: "sabit"
       },
       {
         kod: "topo",
@@ -1539,7 +1553,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; topografya bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; topografya bu parametrelerle üretilir.",
+        olcu_ekseni: "sabit"
       },
       {
         kod: "sehir",
@@ -1678,7 +1693,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; sehir silueti bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; sehir silueti bu parametrelerle üretilir.",
+        olcu_ekseni: "sabit"
       },
       {
         kod: "yildiz",
@@ -1804,7 +1820,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; yildiz haritasi bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; yildiz haritasi bu parametrelerle üretilir.",
+        olcu_ekseni: "sabit"
       },
       {
         kod: "koordinat",
@@ -1945,7 +1962,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; koordinat / tarih bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; koordinat / tarih bu parametrelerle üretilir.",
+        olcu_ekseni: "sabit"
       },
       {
         kod: "bust",
@@ -1990,7 +2008,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Fotoğraf gri-ton yükseklik haritasına çevrilir; kabartma büst/madalyon olarak üretilir, ince ayrıntılar sadeleşir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; kabartma büst bu parametrelerle üretilir."
+        ornek_notu: "Üretim dosyasının görüntüsüdür; kabartma büst bu parametrelerle üretilir.",
+        olcu_ekseni: "sabit"
       }
     ],
 
@@ -2017,6 +2036,7 @@
       "ince-cizgi": "Çizimde çok ince çizgiler var; daha kalın çizgili bir görsel dene.",
       "karakter": "Yazıda üretemediğimiz bir karakter var (ör. emoji); onu çıkarıp tekrar dene.",
       "kisa-kenar": "Kısa kenar uzun kenardan büyük olamaz.",
+      "olcu-aralik-disi": "Bu değerlerle ürünün en uzun boyutu bu türün ölçü aralığının dışında kalıyor; değerleri değiştirip tekrar dene.",
       "qr-uzun": "QR koda girecek metin çok uzun; daha kısa bir bağlantı kullan.",
       "svg": "SVG dosyası okunamadı ya da desteklemediğimiz öğeler içeriyor (yazı, görsel, maske); şekle çevrilmiş düz bir SVG dene.",
       "gorsel": "Görsel okunamadı ya da içinde belirgin bir şekil bulunamadı; net, koyu bir şekil içeren PNG ya da JPEG dene.",
@@ -2461,11 +2481,24 @@
     var adim = t && t.fiyat ? t.fiyat.adim_mm : null;
     return Number.isInteger(adim) && adim > 0 ? adim : null;
   };
-  // Ölçü (en uzun boyut, mm) bu türde seçilebilir mi: tam sayı, aralıkta, adım ızgarasında.
+  // TÜRETİLMİŞ ölçü ekseni (kopru-15 dilim-3): sürgü yok, ölçü önizlemede ÖLÇÜLÜR (kayıt alanı olcu_ekseni).
+  VERI.olcuTuretilmis = function (kod) {
+    var t = VERI.turBul(kod);
+    return !!t && t.olcu_ekseni === "turetilmis";
+  };
+  // Ölçülen uzun kenar (mm, ondalıklı) -> fiyatlanan ölçü (tam mm, yarım yukarı). Köprü D1'e BUNU yazar.
+  VERI.olculenMm = function (uk) {
+    return typeof uk === "number" && isFinite(uk) && uk > 0 ? Math.floor(uk + 0.5) : null;
+  };
+  // Bölüm metni: türetilmiş türde fiyatın kaynağı (dürüstlük; sürgünün yerinde ve önizlemeyle birlikte).
+  VERI.OLCULEN_FIYAT_NOTU = "Bu türde ölçüyü sen seçmezsin: girdiğin değerlerden önizleme üretilir, fiyat " +
+    "önizlemede ölçülen en uzun boyuttan (mm × 10 TL) hesaplanır ve önizlemeyle birlikte gösterilir.";
+  // Ölçü (en uzun boyut, mm) bu türde seçilebilir mi: tam sayı, aralıkta, adım ızgarasında
+  // (türetilmiş eksende ölçü ölçülür, seçilmez -> ızgara aranmaz; aralık yine şart).
   VERI.olcuGecerli = function (kod, mm) {
     var a = VERI.olcuAraligi(kod), adim = VERI.olcuAdimi(kod);
     if (!a || !adim || !Number.isInteger(mm) || mm < a.en_az || mm > a.en_cok) { return false; }
-    return (mm - a.en_az) % adim === 0 || mm === a.en_cok;
+    return VERI.olcuTuretilmis(kod) || (mm - a.en_az) % adim === 0 || mm === a.en_cok;
   };
   // fiyat_kurus = en uzun boyut (mm) × formülün mm başı kuruşu. Geçersiz ölçü / bilinmeyen formül -> null.
   VERI.fiyatKurus = function (kod, mm) {

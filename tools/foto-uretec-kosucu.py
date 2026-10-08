@@ -58,6 +58,7 @@ import fcntl
 import hashlib
 import io
 import json
+import math
 import os
 import re
 import shlex
@@ -304,8 +305,10 @@ def yeni_jeton(i):
     return max(int(time.time() * 1000), int(i["gorulen"]) + 1)
 
 
-def sonuc_sql(i, jeton, karar, sebep=""):
-    """karar: hazir | elle | ariza. Son yazim jetona bagli (CAS)."""
+def sonuc_sql(i, jeton, karar, sebep="", olcu=None):
+    """karar: hazir | elle | ariza. Son yazim jetona bagli (CAS). `olcu` (yalniz onizleme + hazir):
+    TURETILMIS eksenli turde onizlemede OLCULEN uzun kenar (tam mm) satirin olcu_mm'sine yazilir —
+    sunucu fiyati ORADAN hesaplar (shop/src/foto.js uretecDurumYaniti / fotoKalemFiyatla)."""
     tablo, kosul = nerede(i)
     kosul += " AND " + jeton_kosulu(i, jeton)
     simdi = simdi_iso()
@@ -320,6 +323,8 @@ def sonuc_sql(i, jeton, karar, sebep=""):
         ms = int(time.time() * 1000)
         if karar == "hazir":
             st = "asama = 'onizleme-hazir', hazir_tarih = %s, hata = '', son_kontrol = %d" % (sql_metin(simdi), ms)
+            if olcu is not None:
+                st += ", olcu_mm = %d" % int(olcu)
         elif karar == "elle":
             st = "asama = 'basarisiz', hata = %s, son_kontrol = %d" % (sql_metin(sebep), ms)
         else:
@@ -364,12 +369,13 @@ def siparis_girdisi(i, t):
         if sc.get(b + "_malzeme"):
             malzemeler[b] = sc[b + "_malzeme"]
     return {"sozlesme": 1, "kategori": i["tur"], "siparis_no": i["siparis_no"], "kalem": i["kalem"],
-            "olcu_mm": i["olcu_mm"], "renkler": renkler, "malzemeler": malzemeler,
+            # TURETILMIS eksen: onizleme girdisiyle AYNI (olcu 0; uretec olcuyu parametreden turetir) -> kopya kolu.
+            "olcu_mm": 0 if turetilmis(t) else i["olcu_mm"], "renkler": renkler, "malzemeler": malzemeler,
             "parametreler": k.get("parametreler") if isinstance(k.get("parametreler"), dict) else {},
             "dosyalar": {"gri_harita": "gri_harita.png"}}
 
 
-def ornek_girdisi(i, dizin):
+def ornek_girdisi(i, dizin, t):
     """ORNEK kolu (siparissiz): satir YALNIZ ornek isine baglanir (`foto_isler.ziyaretci = 'ornek'` ve
     siparis_no = ORNEK-<is ilk 12>; musteri isi bu yoldan URETILEMEZ). Girdi: uretec onizlemesi varsa
     onun girdi.json'u (renk/malzeme/parametre/dosya AYNEN -> kopya kolu calisir), yoksa (tarayici
@@ -383,7 +389,9 @@ def ornek_girdisi(i, dizin):
                 g = json.load(f)
         except (OSError, ValueError):
             return "girdi-bozuk"
-        if (not isinstance(g, dict) or g.get("kategori") != i["tur"] or g.get("olcu_mm") != i["olcu_mm"] or
+        # TURETILMIS eksen: onizleme girdisi olcu 0 ile yazilir (surgu yok); siparisin olcu_mm'si OLCULEN deger.
+        beklenen = 0 if turetilmis(t) else i["olcu_mm"]
+        if (not isinstance(g, dict) or g.get("kategori") != i["tur"] or g.get("olcu_mm") != beklenen or
                 not isinstance(g.get("dosyalar"), dict)):
             return "girdi-bozuk"
         for ad in sorted(set(g["dosyalar"].values())):
@@ -406,7 +414,7 @@ def ornek_girdisi(i, dizin):
 def girdi_hazirla(i, t, dizin):
     """Girdi dizinini kurar. Donus "" = hazir, aksi red sebebi. Erisim hatasi Erisilemedi."""
     if i["kuyruk"] == "siparis" and str(i.get("siparis_no") or "").startswith(ORNEK_SIPARIS_ONEK):
-        return ornek_girdisi(i, dizin)
+        return ornek_girdisi(i, dizin, t)
     if i["kuyruk"] == "siparis":
         g = siparis_girdisi(i, t)
         if g is None:
@@ -1014,6 +1022,18 @@ def donustur_tekin(ham, cikti, girdi_yolu, kopru_yolu):
 
 
 # ------------------------------------------------------------------ dogrulama (sozlesme §3)
+def turetilmis(t):
+    """Manifest `olcu_ekseni` (kopru-manifest-uret.py uretir): turetilmis -> surgu/hedef YOK, olcu OLCULUR."""
+    return (t or {}).get("olcu_ekseni") == "turetilmis"
+
+
+def olculen_mm(uk):
+    """Olculen uzun kenar -> fiyatlanan tam mm (yarim yukari; foto-uretim-veri.js VERI.olculenMm ile AYNI)."""
+    if isinstance(uk, bool) or not isinstance(uk, (int, float)) or not uk > 0:
+        return None
+    return int(math.floor(uk + 0.5))
+
+
 def png_boyut(yol):
     with open(yol, "rb") as f:
         b = f.read(24)
@@ -1044,11 +1064,16 @@ def cikti_dogrula(i, t, cikti):
     if o.get("sizdirmaz") is not True:
         return "sizdirmaz-degil"
     a = t.get("olcu_mm") or {}
-    if not (isinstance(i["olcu_mm"], int) and a.get("en_az", 1) <= i["olcu_mm"] <= a.get("en_cok", 0)):
+    tu = turetilmis(t)
+    uk = o.get("uzun_kenar_mm")
+    # TURETILMIS eksen (kopru-15 dilim-3): hedef olcu YOK — olculen uzun kenar KAYITLI araliga duser mi;
+    # aralik disi -> uretec reddi (musteri metni VERI.URETEC_RED_METIN["olcu-aralik-disi"]).
+    if tu and not (olculen_mm(uk) is not None and a.get("en_az", 1) <= olculen_mm(uk) <= a.get("en_cok", 0)):
+        return "uretec-red:olcu-aralik-disi"
+    if not tu and not (isinstance(i["olcu_mm"], int) and a.get("en_az", 1) <= i["olcu_mm"] <= a.get("en_cok", 0)):
         return "olcu-aralik-disi"
     tol = TOLERANS.get(t.get("motor"))
-    uk = o.get("uzun_kenar_mm")
-    if not tol or not isinstance(uk, (int, float)) or abs(uk - i["olcu_mm"]) > i["olcu_mm"] * tol + 1e-9:
+    if not tol or not isinstance(uk, (int, float)) or (not tu and abs(uk - i["olcu_mm"]) > i["olcu_mm"] * tol + 1e-9):
         return "uzun-kenar-tolerans"
     rs = o.get("renk_sayisi")
     if not isinstance(rs, int) or isinstance(rs, bool) or not 1 <= rs <= 4:
@@ -1090,6 +1115,7 @@ def is_isle(i, manifest, yaz):
         girdi_dizin = os.path.join(gecici, "girdi")
         os.makedirs(girdi_dizin)
         cikti = os.path.join(gecici, "cikti")
+        olcu_yaz = None
         sebep = girdi_hazirla(i, t, girdi_dizin) if t.get("motor") in TOLERANS else "kol-uygun-degil"
         if sebep:
             rc, ozet = 2, "RED " + sebep
@@ -1106,6 +1132,9 @@ def is_isle(i, manifest, yaz):
                 for ad in CIKTI_DOSYALARI:
                     r2_koy(a[ad], os.path.join(cikti, ad), tur[ad])
                 karar = "hazir"
+                if turetilmis(t) and i["kuyruk"] != "siparis":
+                    with open(os.path.join(cikti, "olcu.json"), encoding="utf-8") as f:
+                        olcu_yaz = olculen_mm(json.load(f).get("uzun_kenar_mm"))
             else:
                 karar = "elle"
         elif rc == 2:
@@ -1114,7 +1143,7 @@ def is_isle(i, manifest, yaz):
         else:
             karar = "elle" if i["deneme"] + 1 >= DENEME_TAVANI else "ariza"
             sebep = "uretec-ariza"
-        _, n = d1(sonuc_sql(i, jeton, karar, sebep))
+        _, n = d1(sonuc_sql(i, jeton, karar, sebep, olcu_yaz if karar == "hazir" else None))
         if n != 1:
             yaz("CAS %s son yazim tutmadi (jeton degismis)" % is_adi(i))
             return "cas"

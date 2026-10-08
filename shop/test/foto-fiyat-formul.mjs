@@ -62,8 +62,14 @@ function formulSenaryolar(V) {
     }
     s.tablo.push(satir);
     const adim = (t.fiyat || {}).adim_mm;
-    const disarida = [a.en_az - adim, a.en_cok + adim, a.en_az + 0.5].concat(adim > 1 ? [a.en_az + 1] : []);
+    // TURETILMIS eksen (kopru-15 dilim-3): olcu OLCULUR, secilmez -> izgara aranmaz (en_az + 1 GECERLI,
+    // ayni formul); aralik disi ve kesirli olcu her turde RED.
+    const tu = t.olcu_ekseni === "turetilmis";
+    const disarida = [a.en_az - adim, a.en_cok + adim, a.en_az + 0.5].concat(adim > 1 && !tu ? [a.en_az + 1] : []);
     if (disarida.some((mm) => V.fiyatKurus(t.kod, mm) !== null)) { s.F2 = false; }
+    const ar = V.olcuAraligi(t.kod);
+    if (tu && ar && ar.en_cok > ar.en_az + 1 && V.fiyatKurus(t.kod, ar.en_az + 1) === null) { s.F2 = false; }
+    if (!tu && adim > 1 && V.olcuTuretilmis(t.kod)) { s.F2 = false; }
     // Baslangic fiyati: sürgünün ilk duragi en_az, fiyati en_az × 1000.
     if (sec[0] !== a.en_az || V.fiyatKurus(t.kod, sec[0]) !== a.en_az * 1000) { s.F3 = false; }
   }
@@ -109,7 +115,10 @@ ol("F4a sunucu acikTurler: " + ss.ayni + "/" + ss.n + " olcu fiyati VERI.fiyatKu
 const ISTEMCI = fs.readFileSync(path.join(KOK, "foto-uretim.js"), "utf8");
 ol("F4b istemci fiyati TEK formulden: F.fiyatSatiri (sürgü) + F.fiyatKurus (toplam, vitrin); kendi katsayisi yok",
    /F\.fiyatSatiri\(nt\.kod/.test(ISTEMCI) && /F\.fiyatKurus\(nt\.kod, S\.olcu\)/.test(ISTEMCI) &&
-   /F\.fiyatKurus\(t\.kod, t\.olcu_mm\.en_az\)/.test(ISTEMCI) && !/VITRIN_TL_MM|fiyat_kurus/.test(ISTEMCI), "");
+   /F\.fiyatKurus\(t\.kod, t\.olcu_mm\.en_az\)/.test(ISTEMCI) && !/VITRIN_TL_MM/.test(ISTEMCI) &&
+   // TURETILMIS eksen: bolum fiyati HESAPLAMAZ, yalniz sunucunun durum yanitindaki fiyat_kurus'u okur (tek satir).
+   (ISTEMCI.match(/fiyat_kurus/g) || []).length === 2 &&
+   /S\.fiyatKurus = typeof veri\.fiyat_kurus === "number" \? veri\.fiyat_kurus : null;/.test(ISTEMCI), "");
 const tabloAtfi = [...fs.readdirSync(path.join(SHOP, "src")).filter((d) => d.endsWith(".js")).map((d) => path.join(SHOP, "src", d)),
   path.join(KOK, "foto-uretim.js"), VERI_YOL].map((y) => ({ y: path.relative(KOK, y), n: (fs.readFileSync(y, "utf8").match(/foto_fiyat/g) || []).length }))
   .filter((x) => x.n > 0);
@@ -125,7 +134,10 @@ const VERI_MUTANTLAR = [
   ["FM1 FORMUL ×100", "VERI.FIYAT_FORMULLERI = { mm_x_10tl: 1000 };", "VERI.FIYAT_FORMULLERI = { mm_x_10tl: 100000 };", ["F1", "F3"]],
   ["FM2 EN_AZ YERINE EN_COK", "return { en_az: t.olcu_mm.en_az, en_cok: t.olcu_mm.en_cok };",
    "return { en_az: t.olcu_mm.en_cok, en_cok: t.olcu_mm.en_cok };", ["F1", "F3"]],
-  ["FM3 ADIM IZGARASI SILINDI", "return (mm - a.en_az) % adim === 0 || mm === a.en_cok;", "return true;", ["F2"]],
+  ["FM3 ADIM IZGARASI SILINDI", "return VERI.olcuTuretilmis(kod) || (mm - a.en_az) % adim === 0 || mm === a.en_cok;",
+   "return true;", ["F2"]],
+  ["FM5 TURETILMIS DE IZGARAYA BAGLI", "return VERI.olcuTuretilmis(kod) || (mm - a.en_az) % adim === 0 || mm === a.en_cok;",
+   "return (mm - a.en_az) % adim === 0 || mm === a.en_cok;", ["F2"]],
 ];
 for (const [ad, capa, yerine, olmeli] of VERI_MUTANTLAR) {
   if (VERI_KAYNAK.split(capa).length !== 2) { ol(ad + " capa bulundu (tek)", false, capa); continue; }
