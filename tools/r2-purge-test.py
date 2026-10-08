@@ -416,7 +416,44 @@ def main():
         except Exception:
             dusen += 1
 
-    print("TEST=VAKA=34 DUSEN=%d" % dusen)
+        def origin_vakasi(m):
+            ac = mock.Mock(return_value=SahteYanit())
+            u = "https://media.pruvo3d.com/foto/ornek/ses-1-render.webp"
+            o = "https://onizleme.example.dev"
+            rc, stdout, _ = kos(m, [u, "--origin", o], ac, sahte_token)
+            govde = json.loads(ac.call_args.args[0].data.decode("utf-8"))
+            return (rc == 0 and govde["files"] == [u, {"url": u, "headers": {"Origin": o}}]
+                    and "PURGE_TOPLAM=2 " in stdout)
+
+        try:
+            dogrula(origin_vakasi(modul), "T35 Origin varyanti govdeye girmedi")
+        except Exception:
+            dusen += 1
+
+        try:
+            ac = mock.Mock(return_value=SahteYanit())
+            hatali = ("http://x.dev", "https://x.dev/yol", "x.dev", "https://", "https://x.dev?a=1")
+            sonuc = [kos(modul, ["https://media.pruvo3d.com/a.jpg", "--origin", h], ac, sahte_token)
+                     for h in hatali]
+            dogrula(all(rc == 2 and "ORIGIN GECERSIZ" in out for rc, out, _ in sonuc)
+                    and ac.call_count == 0, "T36 gecersiz Origin reddedilmedi")
+        except Exception:
+            dusen += 1
+
+        try:
+            kaynak = BETIK.read_text(encoding="utf-8")
+            hedef = '    girdiler += [{"url": u, "headers": {"Origin": o}} for o in originler for u in urls]\n'
+            mutant_kaynak = kaynak.replace(hedef, "", 1)
+            dogrula(mutant_kaynak != kaynak, "T37 mutant uygulanamadi")
+            try:
+                mutant_gecti = origin_vakasi(modulu_yukle(mutant_kaynak))
+            except Exception:
+                mutant_gecti = False
+            dogrula(not mutant_gecti, "T37 mutant (Origin varyanti dusuruldu) T35'i kirmadi")
+        except Exception:
+            dusen += 1
+
+    print("TEST=VAKA=37 DUSEN=%d" % dusen)
     print("RED_EDILEN=%d/14" % reddedilen)
     print("YANLIS_POZITIF=%d" % yanlis_pozitif)
     return 1 if dusen else 0
