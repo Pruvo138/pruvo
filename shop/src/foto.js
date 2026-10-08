@@ -134,7 +134,7 @@ export function girdiGovdeDogrula(turKod, g) {
   return "";
 }
 
-/** Uretim notu ("Nasil olsun?") en cok kac karakter — bolumun sayaci AYNI sayi (foto-uretim.js). */
+/** Uretim notunun ("Nasil olsun?") karakter uzunlugu siniri — bolumdeki gosterge AYNI sayiyi kullanir (foto-uretim.js). */
 export const URETIM_NOTU_EN_COK = 300;
 // Kontrol + gorunmez yon/sifir genislik karakterleri bosluga cevrilir (operator ekraninda gizli metin olmasin).
 const NOT_KONTROL = new RegExp("[\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u2069\\uFEFF]", "g");
