@@ -1558,17 +1558,40 @@ jobs:
       # Mutantlar (M1 sinir · M2 bot · M3 analiz · M4 tur · M5 ayak · K0 kontrol) ayni
       # dosyada kosar. PLAKET (21:4x(b)): sunulan tur 1, anahtarlik/magnet RED, tek turde tur
       # adimi gorunmez (bolum dosyasi sahte DOM'da kosar). Ana sayfa bolum SOZLESMESI (yer,
-      # beyaz liste, durustluk, tur listesi) ikinci satirda. FIYAT URETECI (7 Eki, PARA):
-      # foto_fiyat satirlari manifestten (mm x 1000); KURU kol yazmaz, x100 mutanti KIRMIZI.
+      # beyaz liste, durustluk, tur listesi) ikinci satirda. FIYAT = TEK FORMUL (Okan 7 Eki 15:4x,
+      # PARA): fiyat tablosu YOK; fiyat_kurus = en uzun boyut mm x 1000 (VERI.fiyatKurus), kategori x 3
+      # olcu, sunucu = istemci, acilis anahtari fail-closed; x100 / en_az->en_cok / fail-open mutantlari KIRMIZI.
       # URETEC KOSUCUSU (7 Eki, G1): D1'den D/R isi -> uretec -> §3 dogrulama -> R2 -> CAS;
       # sahte wrangler/uretec ile hermetik; sizdirmaz/KURU/CAS/tavan/erisim mutantlari KIRMIZI.
+      # 2D KONSEPT (Okan 7 Eki 14:5x, PARA + KISISEL VERI): foto + not -> konsept -> 3D girdisi; is basi 3
+      # deneme · bot jetonu · acilis anahtari · ziyaretci 24 s · gunluk kredi tavani · ornek ayrimi · notta
+      # e-posta saglayiciya GITMEZ · 3 gun saklama; sahte saglayici, gercek ag 0, 10 mutant KIRMIZI.
+      # ORNEK- UCTAN UCA BETIGI (8 Eki, 24 kategori olcutu 1-6): sahte sunucu/wrangler/kopru/tarayici ile
+      # hermetik; acik olmayan kategori 400 mutanti, su gecirmezlik, olcek ekseni, fiyat, onay, 375 px,
+      # canliya yazim yasagi mutantlari KIRMIZI (gercek onizleme kosumu CI DISI: --hepsi --kol D).
+      # KOPRU MANIFEST URETECI (8 Eki, kopru-15 DILIM-2): TeKiN kayit -> 15 tur satiri sozlugu; hermetik
+      # fikstur + bool->boolean / kosul silme / adim dusurme mutantlari KIRMIZI (gercek kayit katmani CI DISI).
+      # KOPRU GRUP KOSUCUSU (8 Eki, kopru-15): render->R2->onizleme D1->olcum tek koşucu; sahte komut
+      # koşucusuyla hermetik; D1 canliya / R2 200 denetimi silme / gecici dizin silme kaldirma mutantlari KIRMIZI.
+      # RENK ESLEME KAPISI (8 Eki, BaBa 15:5x, PARA): ucret alinan her ek renk uretime bagli — fiyata giren renk
+      # (VERI.renkBolgesiAktif) == uretece giden renk (esle_<kod>); bust palet eslemesi / renk_qr / ses yazisi /
+      # manifest koşulu silme mutantlari KIRMIZI. Kabul satiri `RENK_ESLEME 15/15 tur`.
       - name: Fotograftan ozel uretim kabul testi (onizleme + odeme + uretim zinciri)
         run: |
           node shop/test/foto-uretim.mjs
           node shop/test/foto-litofan.mjs
           python3 tools/foto-uretim-bolum-test.py
-          python3 tools/foto-fiyat-uret-test.py
+          node shop/test/foto-girdi-tipleri.mjs
+          node shop/test/foto-fiyat-formul.mjs
+          node shop/test/foto-konsept.mjs
+          node shop/test/onizleme-kapisi.mjs
           python3 tools/foto-uretec-kosucu-test.py
+          python3 tools/foto-ornek-uc-uca-test.py
+          python3 tools/foto-yeniden-asama-test.py
+          python3 tools/kopru-manifest-uret-test.py
+          python3 tools/kopru-grup-kos-test.py
+          python3 tools/kopru-esle-kapisi-test.py
+          python3 tools/renk-esleme-test.py
 
       # REKLAM ATIF HALKASI (K99, 25 Agu 2026) — "bu siparis hangi reklamdan geldi"
       # sorusunun D1'den cevaplanabilir kaldigini olcer. SESSIZ-HATA SINIFI, PARA:
