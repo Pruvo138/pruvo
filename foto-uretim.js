@@ -55,6 +55,33 @@
     { kod: "bust", ad: "Büst", ikon: "\u{1F464}" }
   ];
   var SS_IS = "pruvo_foto_is";
+  // A METNİ (BaBa hükmü — foto-yedek-parca-ekrani-metni.md): parça fotoğrafı yükleyince ② içinde
+  // gösterilen tek mesaj. "[kalan türlere bağlantı]" = ① ızgarasına dönen düğme (metin AYNEN).
+  var A_METIN_BIREBIR = "Fotoğraftan parça ya da yedek parça üretmiyoruz. Programımız tasarım ürünleri içindir:";
+  // UYUM KAPISI (BaBa 17:5x + 18:0x — parça/yedek parça foto programından ÇIKTI): 2D önizleme isteği
+  // PARA harcıyor; tarayıcıdaki önizleyici görsel sınıflayıcı (ücretli API) bu turda YOK → foto türleri
+  // için tek kapalı soru (Evet/Hayır). Girdi türlerinde yalnız anahtar kelime denetimi.
+  var UYUM_SORU = "Bu bir yedek ya da mekanik parça mı?";
+  // Anahtar kelime KÖKLERİ (küçük harfe + Türkçe ı/İ normalize edilmiş metinde aranır). Liste BaBa
+  // hükmünün örneklerini + Türkçe eş biçimleri kapsar: "parçası", "yedeği", "kırıldı", "dişlisi" vb.
+  var UYUM_KOKLER = [
+    "parca", "parcas", "parcasi", "parcay", "parcayi", "parcam", "parcan", "parcalar", "parcalari", "parcalarin", "parcasin", "parcasini",
+    "yedek", "yedegi", "yedekle", "yedekleri", "yedeklerin", "yedekten",
+    "kirik", "kirigi", "kirdi", "kirildi", "kirilmis", "kirilir", "kiriklar", "kiriklari", "kirildi",
+    "kayip", "kaybi", "kaybol", "kayboldu", "kaybolan", "kayipoldu", "kayipolmus",
+    "mekanizma", "mekanizmasi", "mekanizmayi", "mekanizmalar", "mekanizmalari", "mekanizmada", "mekanizmadan",
+    "disli", "dislisi", "disliyi", "disliler", "dislileri", "dislilerin", "dislide", "disliden",
+    "kilit", "kilidi", "kilide", "kilitler", "kilitleri", "kilitlerin", "kilitten",
+    "klips", "klipsi", "klipsler", "klipsleri", "klipslerin", "klipsten",
+    "yuva", "yuvasi", "yuvayi", "yuvalar", "yuvalari", "yuvalarin", "yuvada", "yuvadan",
+    "orijinal", "orijinali", "orijinale", "orijinalden", "orijinalinde",
+    "aynisi", "ayni", "aynisini", "aynilar", "aynilari", "aynisindan"
+  ];
+  // Tek bir regex'e derlenir; Türkçe karakterlere özel kelime sınırı (JS \b Türkçe'de tutarsız).
+  var UYUM_HARF = "[a-zçğıöşü0-9]";
+  var UYUM_DESEN = new RegExp("(?:^|[^a-zçğıöşü0-9])(?:" + UYUM_KOKLER.join("|") + ")(?:[^a-zçğıöşü0-9]|$)");
+  // Görsel sınıflayıcı kancası (null iken (c) kolu çalışır): sağlayıcı/URL/anahtar bu turda YOK.
+  var uyumGorselSinif = null;
   // Render orneginin altindaki cumle TUR KAYDINDA (`ornek_notu`, mimar karari 7 Eki; AYNEN).
   // D/R turunde TARAYICI onizleyicisi YOKSA (manifest F.TARAYICI_ONIZLEYICI) ornek render + bu cumle;
   // onizlemeyi siparis oncesi ureteç koşucusu cikarir (/foto/onizleme kuyrugu).
@@ -157,7 +184,9 @@
     galeriSeciliKod: null,
     buyukKart: null,
     isik: null,
-    b2Onay: false
+    b2Onay: false,
+    uyumSonuc: null,
+    belirsizCevap: null
   };
 
   /* ============== DOM YARDIMCILAR ============== */
@@ -199,6 +228,36 @@
     if (saat.length < 2) saat = "0" + saat;
     if (dak.length < 2) dak = "0" + dak;
     return gun + "." + ay + "." + d.getFullYear() + " " + saat + ":" + dak;
+  }
+
+  /* ============== UYUM KAPISI ==============
+     Deterministik kol: görsel sınıflayıcı YOK → (c) kolu foto türlerinde tek kapalı soruya düşer.
+     Kapalı küme: "uygun" | "uygun_degil" | "belirsiz" (başka değer yok). Kredi harcayan 2D/3D
+     önizleme çağrıları bu fonksiyonu ÖNCE çağırır; sonuç "uygun_degil" ise A ekranı + 0 istek. */
+  function trNorm(metin) {
+    var s = String(metin == null ? "" : metin).toLowerCase();
+    s = s.replace(/ı/g, "i").replace(/i̇/g, "i").replace(/i/g, "i");
+    s = s.replace(/ş/g, "s").replace(/ğ/g, "g").replace(/ü/g, "u")
+         .replace(/ö/g, "o").replace(/ç/g, "c");
+    s = s.replace(/[^a-zçğıöşü0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+    return s;
+  }
+  function uyumKontrol(kod, tarif, cevap) {
+    // (b) anahtar kelime denetimi (her türde; foto + girdi).
+    if (tarif && typeof tarif === "string" && trNorm(tarif).length) {
+      if (UYUM_DESEN.test(trNorm(tarif))) return "uygun_degil";
+    }
+    // (c) görsel sınıflayıcı kancası boş; foto türlerinde kapalı soru ÇIKAR.
+    var nt = (typeof seciliTurBul === "function" ? seciliTurBul() : null);
+    if (!nt && F && typeof F.turBul === "function" && kod) nt = F.turBul(kod);
+    var foto = nt && nt.girdi && nt.girdi.length &&
+      (nt.girdi[0] === "foto-1" || nt.girdi[0] === "foto-1-3");
+    if (foto) {
+      if (cevap === true) return "uygun_degil";   // Evet
+      if (cevap === false) return "uygun";        // Hayır
+      return "belirsiz";                          // cevapsız → fail-closed: soru ÇIKAR
+    }
+    return "uygun";                               // girdi türü: soru yok, anahtar kelime yoksa OK
   }
 
   /* ============== STIL ENJEKSIYONU ============== */
@@ -564,10 +623,8 @@
   }
 
   /* ============== ANA YAPISI ============== */
-  // Adım 2 etiketi tür SAYISINA göre: F = veri dosyası ya da /acik yanıtı (ikisi de .turler taşır).
+  // Adım 2 etiketi (geriye uyumluluk): kullanılmıyor; ② başlığı adim2EtiketiK2 ile türe göre yazılır.
   function adim2Etiketi(F) { return F.turler.length > 1 ? "Tür ve ölçü" : "Ölçü"; }
-// 13:5x: tür adımı kalmadı (galeri seçer); adım çubuğu yalnız ölçüyü gösterir.
-function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
 
   /* ============== LITOFAN (deterministik kol) ============== */
   // Deterministik kol + tarayıcı önizleyicisi kayıtlı üreteç (bugün litofan).
@@ -1123,6 +1180,9 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
   }
   // "Siparişe geç": gri haritayı gönder, dönen iş numarasıyla ödeme adımına geç.
   function litofanGonder() {
+    // K2b: UYUM KAPISI — litofan türü de foto türü (girdi "foto-1"); kapı önce koşar.
+    var uyum = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);
+    if (uyum !== "uygun") { cizUyum(); guncelleS1Buton(); return; }
     if (!S.litofanHarita) { adimKoy("S1", "Önce fotoğrafını seç; önizleme çizilsin.", true); return; }
     if (!S.aydinlatmaOnay) { adimKoy("S1", "Aydınlatma metnini onaylamalısın.", true); return; }
     if (!S.captchaToken1) { adimKoy("S1", "Lütfen doğrulama kutusunu işaretle.", true); return; }
@@ -1194,9 +1254,8 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     alan.setAttribute("aria-live", "polite");
     S.alan = alan;
     adim2.appendChild(alan);
-    /* 13:5x: iç 4 adım çubuğu (K1 testlerinin beklediği yapı: data-no="2" = "Ölçü ve tasarım");
-       K2 yeni 3 adım şeridini ÜSTTE ekledi; iç çubuk geriye uyumluluk için duruyor. */
-    cizAdimlar(adim2);
+    /* K2b: 4 adım iç çubuğu TAMAMEN SİLİNDİ — sayfada tek şerit = 3 adım (üstte cizSerit). İç çubuk
+       çağrısı kaldırıldı (K1 testlerinin beklediği data-no="2" "Ölçü ve tasarım" satırı artık DOM'DA YOK). */
     ic.appendChild(adim2);
 
     bolum.appendChild(ic);
@@ -1732,25 +1791,8 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     if (ik.tetikleyen && ik.tetikleyen.focus) ik.tetikleyen.focus();
   }
 
-  function cizAdimlar(ic) {
-    var cubuk = el("div", "foto-uretim-adimlar");
-    function adim(no, ad) {
-      var a = el("div", "foto-uretim-adim", no + ". " + ad);
-      a.setAttribute("data-no", String(no));
-      cubuk.appendChild(a);
-    }
-    adim(1, "Fotoğraf yükle");
-    cubuk.appendChild(el("span", "foto-uretim-adim-ok", "→"));
-    // Tek tür sunuluyorsa tür seçimi YOK: adım yalnız ölçüdür (açık tür listesi gelince yeniden yazılır).
-    adim(2, adim2EtiketiArayuz3());
-    S.adim2El = cubuk.childNodes[cubuk.childNodes.length - 1];
-    cubuk.appendChild(el("span", "foto-uretim-adim-ok", "→"));
-    adim(3, "Önizleme");
-    cubuk.appendChild(el("span", "foto-uretim-adim-ok", "→"));
-    adim(4, "Ödeme");
-    S.adimCubugu = cubuk;
-    ic.appendChild(cubuk);
-  }
+  // K2b: cizAdimlar (iç 4 adım çubuğu, "Ölçü ve tasarım" 2. satır) TAMAMEN KALDIRILDI. Sayfada tek
+  // şerit = üstteki 3 adım (cizSerit); ② başlığı türe göre (adim2EtiketiK2) değişir.
 
   /* ============== KAPALI ============== */
   function cizKapali() {
@@ -1800,6 +1842,13 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     S.alanDosya = el("div", "foto-uretim-form-grup");
     S.alan.appendChild(S.alanDosya);
     doldurS1Dosya();
+
+    // K2b: UYUM KAPISI paneli — dosya/not girdilerinden sonra, aydinlatma onayindan once.
+    // uyumSonuc: null | "uygun" | "uygun_degil" | "belirsiz". uygun_degil'de A ekranı; belirsiz'de soru.
+    S.alanUyum = el("div", "foto-uretim-form-grup foto-uretim-uyum");
+    S.alanUyum.id = "foto-uyum";
+    S.alan.appendChild(S.alanUyum);
+    cizUyum();
 
     S.alanSecim = el("div", "foto-uretim-form-grup");
     S.alan.appendChild(S.alanSecim);
@@ -1951,6 +2000,9 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
       if (dizi.length > URETIM_NOTU_EN_COK) { ta.value = dizi.slice(0, URETIM_NOTU_EN_COK).join(""); }
       S.uretimNotu = ta.value;
       sayac.textContent = Array.from(ta.value).length + "/" + URETIM_NOTU_EN_COK;
+      // K2b: uretimNotu değişti → uyum kontrolü yeniden koşar (b) kolu için.
+      cizUyum();
+      guncelleS1Buton();
     }
     ta.addEventListener("input", say);
     say();
@@ -1985,6 +2037,60 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     }
     S.fotoUrl = null;
     cizKonsept();
+  }
+
+  /* ============== UYUM PANELİ ==============
+     "Nasıl olsun?" notu (S.uretimNotu) değiştikçe + belirsiz soruya tıklandıkça yeniden çizilir.
+     - "uygun": panel boş (form görünür, önizleme açılır).
+     - "belirsiz": foto türünde kapalı soru (Evet/Hayır). Cevap → uyumSonuc güncellenir.
+     - "uygun_degil": A metni (birebir) + ① ızgarasına dönen düğme; önizleme düğmesi pasif. */
+  function cizUyum() {
+    if (!S.alanUyum) return;
+    while (S.alanUyum.firstChild) S.alanUyum.removeChild(S.alanUyum.firstChild);
+    if (!S.tur) return;
+    var sonuc = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);
+    S.uyumSonuc = sonuc;
+    if (sonuc === "uygun") return;  // görünmez — önizleme düğmesi açılır
+    if (sonuc === "uygun_degil") {
+      // A ekranı: metin (birebir) + ① ızgarasına dönen düğme
+      var baslik = el("h3", "foto-uretim-uyum-baslik", "Parça / yedek parça isteği");
+      S.alanUyum.appendChild(baslik);
+      var p = el("p", "foto-uretim-uyum-metin", A_METIN_BIREBIR);
+      S.alanUyum.appendChild(p);
+      var donBtn = el("button", "foto-uretim-buton-birincil", "Tasarım ürünlerine dön");
+      donBtn.type = "button";
+      donBtn.id = "foto-uyum-don";
+      donBtn.addEventListener("click", function () {
+        S.belirsizCevap = null;
+        S.uyumSonuc = null;
+        adimKoy("secim");
+      });
+      S.alanUyum.appendChild(donBtn);
+      return;
+    }
+    // sonuc === "belirsiz" → foto türünde kapalı soru (Evet/Hayır)
+    S.alanUyum.appendChild(el("h3", "foto-uretim-uyum-baslik", "Tasarım mı, parça mı?"));
+    S.alanUyum.appendChild(el("p", "foto-uretim-uyum-soru", UYUM_SORU));
+    var evet = el("button", "foto-uretim-buton-ikincil", "Evet");
+    evet.type = "button";
+    evet.id = "foto-uyum-evet";
+    evet.addEventListener("click", function () {
+      S.belirsizCevap = true;
+      cizUyum();
+      guncelleS1Buton();
+    });
+    var hayir = el("button", "foto-uretim-buton-birincil", "Hayır");
+    hayir.type = "button";
+    hayir.id = "foto-uyum-hayir";
+    hayir.addEventListener("click", function () {
+      S.belirsizCevap = false;
+      cizUyum();
+      guncelleS1Buton();
+    });
+    var dugumG = el("div", "foto-uretim-uyum-butonlar");
+    dugumG.appendChild(evet);
+    dugumG.appendChild(hayir);
+    S.alanUyum.appendChild(dugumG);
   }
   function konseptHazirMi() {
     return !!S.dosya && !!S.aydinlatmaOnay && !!S.captchaToken1 && !!S.tur;
@@ -2065,6 +2171,9 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
   }
   function konseptOlustur() {
     if (!konseptAcik()) return;
+    // K2b: UYUM KAPISI — 2D konsept (ücretli çağrı) isteğinden ÖNCE. "uygun_degil"/"belirsiz" → 0 istek.
+    var uyumK = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);
+    if (uyumK !== "uygun") { konseptHataKoy(""); cizUyum(); guncelleS1Buton(); return; }
     if (!S.dosya) { konseptHataKoy("Lütfen fotoğrafını seç."); return; }
     if (!S.aydinlatmaOnay) { konseptHataKoy("Önce aşağıdaki aydınlatma metnini onaylamalısın."); return; }
     if (!S.captchaToken1) { konseptHataKoy("Lütfen doğrulama kutusunu işaretle."); return; }
@@ -2179,20 +2288,8 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     ek(onLbl, onInp);
     ek(onLbl, " Aydınlatma metnini okudum, onaylıyorum.");
     S.alanOnay.appendChild(onLbl);
-    // B2 satırı (BaBa 8 Eki 18:4x — K2): aydınlatma onayının yanına 2. onay; ③'te "Sepete ekle" bunu da ister.
-    var b2Lbl = el("label", "foto-uretim-form-secenek-inline");
-    b2Lbl.setAttribute("for", "foto-b2-onay-s1");
-    var b2Inp = el("input");
-    b2Inp.type = "checkbox"; b2Inp.id = "foto-b2-onay-s1";
-    b2Inp.checked = !!S.b2Onay;
-    b2Inp.addEventListener("change", function (e) {
-      S.b2Onay = !!e.target.checked;
-      if (S.b2Inp) S.b2Inp.checked = S.b2Onay;
-      guncelleS1Buton();
-    });
-    ek(b2Lbl, b2Inp);
-    ek(b2Lbl, " Fotoğraftan üretilen ürünler tasarım ürünüdür; mekanik uyum ve ölçü uygunluğu taahhüt edilmez.");
-    S.alanOnay.appendChild(b2Lbl);
+    // K2b: B2 satırı (foto-b2-onay-s1) buradan ÇIKARILDI — TEK B2 yalnız ③'te ("Sepete ekle" yanında).
+    // "Sepete ekle" tik kapısı ③'te zaten aydınlatma + B2 + (türetilmiş eksen fiyatsız) ile çalışır.
   }
 
   function guncelleS1Buton() {
@@ -2203,7 +2300,9 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     var lit = litofanSecili();
     // Tarayıcı önizleyicisi olmayan D/R türü: önizlemeyi üreteç koşucusu çıkarır (/foto/onizleme
     // kuyruğu); fotoğraf yalnız türün girdisinde varsa istenir.
-    var tam = (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&
+    // K2b: uyum kontrolü geçmeden önizleme/konsept düğmesi AÇILMAZ ("uygun_degil" veya "belirsiz" ise).
+    var uyumOK = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap) === "uygun";
+    var tam = uyumOK && (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&
       !!S.captchaToken1 && !!S.tur && !!S.olcu && (!lit || !!S.litofanHarita) &&
       formDogrula().ok;
     btn.disabled = !tam;
@@ -2353,6 +2452,8 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     }
     // İPTAL: ③ → ① Tasarım seç (K2). Oturum/önizleme SİLİNMEZ (sayfa yenilenince geri gelir; aydinlatmaOnay/b2Onay
     // da olduğu gibi kalır — kullanıcı tür değiştirip aynı onaylarla ilerleyebilir).
+    // K2b: ② çocukları SİLİNMEZ — adimKoy("secim") yalnız adim2.hidden=true yapar (Kabul: İptal→yeni tür
+    // seç→② başlığı + yükleme kutusu + form alanı DOM'da kalır).
     var iptalBtn = el("button", "foto-uretim-buton-ikincil", "İptal");
     iptalBtn.type = "button";
     iptalBtn.id = "foto-iptal-btn";
@@ -2372,6 +2473,8 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
       S.renkler = [];
       S.galeriSecili = -1;
       S.galeriSeciliKod = null;
+      S.belirsizCevap = null;
+      S.uyumSonuc = null;
       turSecimiKayitTemizle();
       // galeri'yi yeniden çiz (seçim sıfırlansın) ve ① görünür kalsın
       if (S.ornekBlok) ornekCiz(S.ornekBlok, S.acikVeri ? S.acikVeri.turler.map(function (x) { return x.kod; }) : null);
@@ -2472,9 +2575,11 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     var adim2 = document.getElementById("foto-adim2");
     if (adim2) adim2.hidden = !(S.tur && (adim === "S1" || adim === "S2" || adim === "S3"));
     // ① Tasarım seç her zaman görünür; yalnız "secim" durumunda tüm ②/③ kapalı.
+    // K2b: adim2.firstChild SİLİNMEZ (İptal → yeni tür seç → ② DOLU kalmalı; baslik2 + yukleKutu +
+    // alan hâlâ DOM'da — cizS1 alan'ı temizleyip yeniden doldurur, baslik2 etiketini türe göre yazar).
     if (adim === "secim") {
       if (S.ornekBlok && S.ornekBlok.parentNode) S.ornekBlok.parentNode.style.display = "";
-      if (adim2) { adim2.hidden = true; while (adim2.firstChild) adim2.removeChild(adim2.firstChild); }
+      if (adim2) adim2.hidden = true;
     }
 
     if (adim === "kapali") cizKapali();
@@ -2494,7 +2599,7 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
         return;
       }
       S.acikVeri = veri;
-      if (S.adim2El) S.adim2El.textContent = "2. " + adim2EtiketiArayuz3();
+      // K2b: iç 4 adım çubuğu SİLİNDİ — S.adim2El güncellemesi kalktı.
       // Açık kod listesi = "Yakında" etiketi + sıra için (galeri TÜM türleri çizer; sipariş tür seçimi açıklarla kalır).
       if (S.ornekBlok) ornekCiz(S.ornekBlok, veri.turler.map(function (x) { return x.kod; }));
       var kayit = ssIsOku();
@@ -2592,6 +2697,14 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
   function onizleOlustur() {
     if (litofanSecili()) { litofanGonder(); return; }
     if (onizlemeSonraSecili()) { uretecOnizle(); return; }
+    // K2b: UYUM KAPISI — kredi harcayan 3D önizleme isteğinden ÖNCE koşar. "uygun_degil" veya "belirsiz"
+    // ise 2D önizleme = 0 istek (cizUyum A ekranını veya soruyu zaten gösterdi). Burada yalnız UI tutarlılığı.
+    var uyum = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);
+    if (uyum !== "uygun") {
+      cizUyum();
+      guncelleS1Buton();
+      return;
+    }
     if (!S.dosya) { adimKoy("S1", "Lütfen fotoğrafını seç.", true); return; }
     if (S.dosya.size > MAKS_DOSYA_BAYT) {
       adimKoy("S1", "Fotoğraf 15 MB'dan büyük olamaz.", true);
@@ -2678,6 +2791,9 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
 
   /* Tarayıcı önizleyicisi olmayan D/R türü: önizlemeyi üreteç koşucusu çıkarır (aynı uç, kuyruk). */
   function uretecOnizle() {
+    // K2b: UYUM KAPISI — üreteç önizlemesi (ücretli) isteğinden ÖNCE.
+    var uyum = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);
+    if (uyum !== "uygun") { cizUyum(); guncelleS1Buton(); return; }
     if (fotoGerekir() && !S.dosya) { adimKoy("S1", "Lütfen fotoğrafını seç.", true); return; }
     if (svgGerekir() && !S.dosya) { adimKoy("S1", "Lütfen SVG dosyanı seç.", true); return; }
     if (!S.aydinlatmaOnay) { adimKoy("S1", "Aydınlatma metnini onaylamalısın.", true); return; }

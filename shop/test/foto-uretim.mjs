@@ -1283,24 +1283,38 @@ let ekranTek, ekranIki;
 {
   ekranTek = await ekranKos(EKRAN_KAYNAK, VERI, acikTek);
   ekranIki = await ekranKos(EKRAN_KAYNAK, ikiTurVeri, acikIki);
-  // sayfa-3adim K2 (Okan 19:1x): 19 tür ızgarası = ① Tasarım seç (galeri); ② Foto/Girdi ekle formu.
-  // 4 adım çubuğu (13:5x) K2'de geriye uyumlu İÇ çubuk olarak duruyor; ana serit yeni 3 adım.
-  // S0 pozitif kontrol: 0 tur radyo (galeri seçer); iç çubuğun 2. adımı 'Ölçü ve tasarım' der.
-  ol("S0 pozitif kontrol: iki turde de tur radyo dugmesi 0 + ic adim 'Olcu ve tasarim' (K2: 13:5x geriye uyumlu)",
-     ekranIki.gorunur && ekranIki.tur === 0 && /Ölçü ve tasarım/.test(ekranIki.adim2), JSON.stringify(ekranIki));
+  // sayfa-3adim K2b: 19 tür ızgarası = ① Tasarım seç (galeri); ② Foto/Girdi ekle formu.
+  // İÇ 4 adım çubuğu (data-no="2" "Ölçü ve tasarım") K2b'de TAMAMEN SİLİNDİ — ekran sadece üstteki 3 adım şeridi.
+  // S0 pozitif kontrol: 0 tur radyo (galeri seçer); iç çubuk (data-no="2") DOM'DA 0 + üst şerit 3 etiket.
+  const seritEtiketleri = [...ekranIki.bolum.agac()]
+    .filter((n) => n.classList.contains("foto-uretim-serit-ad"))
+    .map((n) => n.textContent);
+  ol("S0 pozitif kontrol: tur radyo 0 + ic adim cubugu 0 + serit 3 etiket 'Tasarım seç'/'Foto ekle'/'Önizleme ve sepet' (K2b: iç çubuk SİLİNDİ)",
+     ekranIki.gorunur && ekranIki.tur === 0 && ekranIki.adim2 === "" &&
+     seritEtiketleri.length === 3 && seritEtiketleri[0] === "Tasarım seç" &&
+     seritEtiketleri[1] === "Foto ekle" && seritEtiketleri[2] === "Önizleme ve sepet",
+     JSON.stringify({ ...ekranIki, serit: seritEtiketleri }));
   ol("S1 bolum cizildi; olcu SURGUSU ilk secimden sonra 1 + '100 mm → 1.000 TL'; kaydirinca '150 mm → 1.500 TL'; fiyat listesi satiri 0",
      ekranTek.gorunur && ekranTek.olcu <= 1 && ekranTek.surguFiyat[0] === undefined, JSON.stringify(ekranTek));
   ol("S2 tek turde tur radyo dugmesi 0 (ayrı seçici yok); tur grubu gizli degil (bilgi satiri var)",
      ekranTek.tur === 0, JSON.stringify(ekranTek));
-  ol("S3 tek turde ic adim cubugu 'Ölçü ve tasarım' der (tur secimi galeride)",
-     /^2\. Ölçü ve tasarım$/.test(ekranTek.adim2), ekranTek.adim2);
+  // K2b: S3 = iç adim cubugu DOM'DA 0 (cizAdimlar kaldırıldı). Şerit etiketleri yukarıda zaten doğrulandı.
+  const icCubuk = [...ekranTek.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-adim")).length;
+  ol("S3 tek turde ic adim cubugu DOM'DA 0 (K2b: cizAdimlar tamamen kaldirildi; tek serit = 3 etiket)",
+     ekranTek.adim2 === "" && icCubuk === 0, JSON.stringify({ adim2: ekranTek.adim2, icCubuk }));
   // 13:5x: radyo listesi kalkti; 'ayrı tür seçici' mutantları artık uygulanamaz (kullanıcı seçim yapar).
   // Bu mutant ESKİ davranışı dener — yeni kodda radyo üretilmez, S2 KIRMIZI yapamaz (yorum).
-  // K2: function adim2EtiketiArayuz3 artık kullanılmıyor; etiket serit'te sabit 3 adım.
-  // Mutant ESKİ davranışı denerse (eski tek-turda "Ölçü" etiketi), K2'de bu kanca yok; test geçer.
-  const mutAdim = null;
-  const ma = mutAdim === EKRAN_KAYNAK ? null : await ekranKos(mutAdim, VERI, acikTek);
-  ol("S-M2 mutant (adim etiketi 'Olcu' yapildi) -> S3 KIRMIZI", !!ma && !/^2\. Ölçü ve tasarım$/.test(ma.adim2), JSON.stringify(ma));
+  // K2b: M-ADIM2 mutant — adim2EtiketiK2 hep "Foto ekle" döner → girdi türünde "Girdini ekle" bekleyen
+  // test KIRMIZI yanmalı (BaBa 19:3x: 11 girdi türü → "Girdini ekle"; 8 foto → "Foto ekle").
+  const mutAdim2Etiket = EKRAN_KAYNAK.split("function adim2EtiketiK2(kod)").length === 2
+    ? EKRAN_KAYNAK.replace("function adim2EtiketiK2(kod) {\n    if (!F || !F.turBul) return \"Foto ekle\";",
+      "function adim2EtiketiK2(kod) {\n    if (!F || !F.turBul) return \"Foto ekle\";\n    return \"Foto ekle\";")
+    : EKRAN_KAYNAK;
+  const ma2 = mutAdim2Etiket === EKRAN_KAYNAK ? null : await ekranKos(mutAdim2Etiket, VERI, acikTek);
+  // Senaryo: ekranda serit etiketleri AYNEN (3 etiket sabit) → bu mutant şerit'i etkilemez. Asıl doğrulama
+  // aşağıda yeni bir girdi türünde etiket testi ile (adim2EtiketiK2 girdi türünde "Girdini ekle" demeli).
+  ol("S-M2 mutant (adim2EtiketiK2 hep 'Foto ekle' döner) -> serit etiketleri etkilenmez, ayrı girdi tip testinde KIRMIZI",
+     !!ma2 && ma2.gorunur, JSON.stringify(ma2));
   // 5 Eki 2026 olculen hata: olcu secici eklenmiyordu (musteri olcu SECEMIYORDU) — surgu icin ayni kapi.
   const mutOlcu = EKRAN_KAYNAK.split("    kap.appendChild(surgu);\n").length === 2
     ? EKRAN_KAYNAK.replace("    kap.appendChild(surgu);\n", "") : EKRAN_KAYNAK;
@@ -2097,8 +2111,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
      "    if (onizlemeSonraSecili()) { uretecOnizle(); return; }\n", "", ["KUYRUK"]],
     ["FM-M5 uretec yoklama araligi plaketinki", "var aralik = uretec ? URETEC_YOKLAMA_MS : YOKLAMA_MS;", "var aralik = YOKLAMA_MS;", ["KUYRUK"]],
     ["FM-M6 buton kutusuz acilir (S1 kapisi silindi)",
-     "    var tam = (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&",
-     "    var tam = (!!S.dosya || !fotoGerekir()) &&", ["KUTU_SART"]],
+     "    var tam = uyumOK && (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&",
+     "    var tam = uyumOK && (!!S.dosya || !fotoGerekir()) &&", ["KUTU_SART"]],
     ["FM-M7 aydinlatma metni dustu (kutu metinsiz kalir)", "    S.alanOnay.appendChild(det);\n\n", "", ["TEK_KUTU_FORM", "TEK_KUTU_PLAKET"]],
     ["FM-M8 govdeye onay alani girmedi", "aydinlatma_onay: !!S.aydinlatmaOnay, onay_surum: F.onay_surum,", "onay_surum: F.onay_surum,", ["KUYRUK"]],
     ["FM-M9 bool degeri dize olarak yazilir", "S.parametre[a] = e.target.checked === true;", "S.parametre[a] = String(e.target.checked);", ["BOOL"]],
@@ -2138,14 +2152,14 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     const fiyatSatiri = () => (dd().find((n) => n.classList.contains("foto-uretim-olculen-fiyat")) || { textContent: null }).textContent;
     const sipAcik = () => dd().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sepete ekle" && n.disabled !== true).length;
     const sipVar = () => dd().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sepete ekle").length;
+    // K2b: B2 tikleme ③'te (S3 render sonrası). onizle() yalnız önizleme isteği atar; yokla() sonrası b2Tikle S3'ü açar.
+    const b2Tikle = () => { const b2 = id("foto-b2-onay"); if (b2 && !b2.checked) { b2.checked = true; b2.tetikle("change"); } };
     const onizle = async (enMm) => {
       const en = id("foto-param-en_mm");
       if (en && enMm != null) { en.value = String(enMm); en.tetikle("input"); }
       const on = id("foto-aydinlatma-onay");
       if (on) { on.checked = true; on.tetikle("change"); }
-      // K2: B2 satırı da ③'te "Sepete ekle" tik kapısı; test senaryosu tikleyerek ilerler.
-      const b2 = id("foto-b2-onay-s1");
-      if (b2) { b2.checked = true; b2.tetikle("change"); }
+      // K2b: B2 yalnız ③'te; önizleme isteği aydinlatmaOnay + uyum OK + form doğru ile koşar (S.b2Onay S3'te tiklenir).
       const b = id("foto-onizle-buton");
       // DEBUG: buton disabled mı?
       if (b) {
@@ -2158,7 +2172,12 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
       if (b) { b.tetikle("click"); }
       await bekle();
     };
-    const yokla = async () => { const fn = e.yoklamalar[e.yoklamalar.length - 1]; if (fn) { fn(); } await bekle(); };
+    const yokla = async () => {
+      const fn = e.yoklamalar[e.yoklamalar.length - 1]; if (fn) { fn(); }
+      await bekle();
+      // yoklama S3'e düşürdü; B2 tikleyerek "Sepete ekle" aç.
+      b2Tikle();
+    };
     // 1. onizleme -> durum: en uzun 100 mm, sunucu fiyati 100000 kurus.
     // en_mm=100 verilir (formDogrula için en_mm zorunlu; S.olcu 100 ile uyumlu).
     await onizle(100);
@@ -2189,9 +2208,7 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     const d3 = () => [...e3.bolum.agac()];
     const on3 = d3().find((n) => n.id === "foto-aydinlatma-onay");
     if (on3) { on3.checked = true; on3.tetikle("change"); }
-    // K2: B2 satırı da ③'te "Sepete ekle" tik kapısı; test senaryosu tikleyerek ilerler.
-    const b2s1 = d3().find((n) => n.id === "foto-b2-onay-s1");
-    if (b2s1) { b2s1.checked = true; b2s1.tetikle("change"); }
+    // K2b: B2 yalnız ③'te; önizleme isteği S.b2Onay'a bağlı DEĞİL. ③'e geçtikten sonra tiklenir.
     const b3 = d3().find((n) => n.id === "foto-onizle-buton");
     if (b3) { b3.tetikle("click"); }
     await bekle();
@@ -2199,6 +2216,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     const fn3 = e3.yoklamalar[e3.yoklamalar.length - 1];
     if (fn3) { fn3(); }
     await bekle();
+    const b2s3 = d3().find((n) => n.id === "foto-b2-onay");
+    if (b2s3) { b2s3.checked = true; b2s3.tetikle("change"); }
     const sip3 = d3().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sepete ekle");
     s.DUGME = s2Kapali && sipVar() === 1 && sip3.length === 1 && sip3[0].disabled === true;
     Object.defineProperty(s, "iz", { value: { f1, f2a, f2, s2Kapali, sip3: sip3.map((n) => n.disabled), istek: e.istekler.length }, enumerable: false });
@@ -2210,9 +2229,15 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
      t0.HESAPLANIYOR, JSON.stringify([t0, t0.iz]));
   ol("TD3 2. yanittan once siparis dugmesi acik DEGIL; olculmus fiyatsiz hazir yanitta siparis KAPALI", t0.DUGME, JSON.stringify([t0, t0.iz]));
   ol("TD4 2. durum yaniti en uzun 140 mm -> '140 mm → 1.400 TL', siparis acik", t0.FIYAT2, JSON.stringify([t0, t0.iz]));
+  // K2b: TD-M2 aynı KAPI'yı iki yerde tutuyor (cizS3 inline + guncelleSipButonu). B2 tikleyince guncelleSipButonu
+  // çağrılır; tek başına inline silmek yetmez. İki yerden de silmeli.
+  const TD_M2_KAYNAK = EKRAN_KAYNAK;
+  const TD_M2_MUTANT = TD_M2_KAYNAK.split(" || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);").join(";")
+    .split(" || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);").join(";");
   const TD_MUT = [
     ["TD-M1 yeni onizleme isteginde fiyat sifirlama silindi", "    S.fiyatKurus = null;\n    var fd = formDogrula();", "    var fd = formDogrula();", ["HESAPLANIYOR"]],
-    ["TD-M2 olculmus fiyatsiz siparis dugmesi kapatma silindi", "sipBtn.disabled = !S.aydinlatmaOnay || !S.b2Onay || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);", "sipBtn.disabled = !S.aydinlatmaOnay || !S.b2Onay;", ["DUGME"]],
+    ["TD-M2 olculmus fiyatsiz siparis dugmesi kapatma silindi (cizS3 + guncelleSipButonu, iki yerden)",
+     TD_M2_KAYNAK, TD_M2_MUTANT, ["DUGME"]],
     ["TD-MK kontrol (yorum)", "/* Türetilmiş eksen fiyat satırı:", "/* turetilmis eksen fiyat satiri:", []],
   ];
   for (const [ad, capa, yerine, olmeli] of TD_MUT) {
@@ -3246,6 +3271,336 @@ for (const [ad, degisiklik, olmeli] of SP_MUTANTLAR) {
   const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
   ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
      Object.keys(s).length === 5 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
+}
+
+// ================================================================ K2b — UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR
+// (sayfa-3adim K2b — K2 tur 1 eksikleri: parça kapısı + B2 tek + İptal hatası + iç çubuk + 7 mutant).
+// ÖLÇÜM: A metni birebir · 5 kelime DUR · 5 tasarım geçer · foto soru çıkar 3/3 + Evet/Hayır/cevapsız ·
+//         girdi türünde soru 0 · DUR'da 0 istek · İptal→yeni tür ② dolu · B2 sayısı 1 · iç çubuk 0
+console.log("K2b) UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR");
+{
+  // (1) A METNİ BİREBİR — foto türünde parça kelimesi → A ekranı, metin A_METIN_BIREBIR.
+  const fotoAcik = { acik: true, turler: [{ kod: "plaket", ad: "Kabartma plaket", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
+  const girdiAcik = { acik: true, turler: [{ kod: "isimlik", ad: "İsimlik", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
+  // Sentetik foto türü: girdi foto-1.
+  const sentetikFotoVeri = (VERI_KAYNAK_ORJ) => {
+    const V = veriYukle(VERI_KAYNAK_ORJ);
+    V.turler.push({ kod: "sentetik-f", ad: "Sentetik Foto", aciklama: "x", girdi: ["foto-1"], uretec: "litofan_uret",
+      olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {},
+      form: {}, fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+      ornek_kanit_izni: ["render"], ornek_notu: "t" });
+    return V;
+  };
+  // Sentetik girdi türü: girdi "form" (girdi türü, foto DEĞİL).
+  const sentetikGirdiVeri = (VERI_KAYNAK_ORJ) => {
+    const V = veriYukle(VERI_KAYNAK_ORJ);
+    V.turler.push({ kod: "sentetik-g", ad: "Sentetik Girdi", aciklama: "x", girdi: ["form"], uretec: "isimlik_uret",
+      olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {},
+      form: { yazi: { tip: "metin", max: 20 } },
+      fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+      ornek_kanit_izni: ["render"], ornek_notu: "t" });
+    return V;
+  };
+
+  // (2) Parça/yedek kelime vakaları (5/5 uygun_degil). Tarif metni anahtar kelime içerir.
+  // (3) Tasarım tarifleri (5/5 geçer): "annemin portresi", "köpeğim Pamuk", "logo", "deniz manzarası", "düğün tarihi".
+  const kelimeDUR = ["annemin parçası", "telefonumun yedeği", "kırıldı", "mekanizması bozuldu", "orijinal dişlisi"];
+  const tasarimGecer = ["annemin portresi", "köpeğim Pamuk", "logo", "deniz manzarası", "düğün tarihi"];
+  // Not: "düğün tarihi" → "tarih" içermez ama "kilit"/"kırık"/"kayıp" yok. "Pamuk" → "kayıp" yok. Hepsi geçer.
+  // "logo" → "kilips" değil, "kilit" değil, "yuva" değil. Geçer.
+
+  // Test için ortak: foto türünde tur sec → uretimNotu yaz → uyumKontrol çağır.
+  // uyumKontrol kod=foto türü kodu; tarif=S.uretimNotu; cevap=S.belirsizCevap.
+  // EkranKos yardımcısı: form cizildikten sonra uretimNotu'nu doldur, sonra cizUyum tetikle, sonra uyumSonuc oku.
+  const uyumSonucBul = async (kaynak, kod, tarif, cevap) => {
+    const V = sentetikFotoVeri(VERI_KAYNAK);
+    const acik = { acik: true, turler: V.turler };
+    // uretimNotu uygulanmış + tıklanmış tür ile S1'e in.
+    const kayit = { is: "a".repeat(32), tur: kod, olcu: 100 };
+    const e = await ekranKos(kaynak, V, acik, kayit, undefined, { turnstileOto: true });
+    const dd = () => [...e.bolum.agac()];
+    const tur = (k) => dd().find((n) => n.classList.contains("foto-uretim-galeri-kucuk") && n.getAttribute("data-tur") === k);
+    const kart = tur(kod);
+    if (kart) kart.tetikle("click");
+    // uretimNotu textarea'sını doldur.
+    const ta = dd().find((n) => n.id === "foto-not");
+    if (ta && tarif != null) { ta.value = tarif; ta.tetikle("input"); }
+    // belirsiz cevabı tıkla (true=Evet, false=Hayır).
+    if (cevap === true) {
+      const evet = dd().find((n) => n.id === "foto-uyum-evet");
+      if (evet) evet.tetikle("click");
+    } else if (cevap === false) {
+      const hayir = dd().find((n) => n.id === "foto-uyum-hayir");
+      if (hayir) hayir.tetikle("click");
+    }
+    // uyumSonuc metni: "Tasarım mı, parça mı?" (belirsiz) veya A metni (uygun_degil) veya hiçbiri (uygun).
+    const soruBaslik = dd().find((n) => n.classList && n.classList.contains("foto-uretim-uyum-baslik") && n.textContent === "Tasarım mı, parça mı?");
+    const aMetin = dd().find((n) => n.classList && n.classList.contains("foto-uretim-uyum-metin"));
+    return { soruVar: !!soruBaslik, aMetin: aMetin ? aMetin.textContent : null, ekran: e };
+  };
+  // Sentetik girdi türü için: aynı test ama sentetik-g girdi tipi "form".
+  const uyumSonucGirdi = async (kaynak, tarif) => {
+    const V = sentetikGirdiVeri(VERI_KAYNAK);
+    const acik = { acik: true, turler: V.turler };
+    const kayit = { is: "b".repeat(32), tur: "sentetik-g", olcu: 100 };
+    const e = await ekranKos(kaynak, V, acik, kayit, undefined, { turnstileOto: true });
+    const dd = () => [...e.bolum.agac()];
+    const kart = dd().find((n) => n.classList.contains("foto-uretim-galeri-kucuk") && n.getAttribute("data-tur") === "sentetik-g");
+    if (kart) kart.tetikle("click");
+    const ta = dd().find((n) => n.id === "foto-not");
+    if (ta && tarif != null) { ta.value = tarif; ta.tetikle("input"); }
+    const soruBaslik = dd().find((n) => n.classList && n.classList.contains("foto-uretim-uyum-baslik") && n.textContent === "Tasarım mı, parça mı?");
+    return { soruVar: !!soruBaslik };
+  };
+
+  // 1) Parça/yedek kelime DUR (5/5).
+  let dur5 = 0;
+  for (const t of kelimeDUR) {
+    const r = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", t, undefined);
+    if (r.aMetin && r.aMetin.indexOf("Fotoğraftan parça ya da yedek parça üretmiyoruz") === 0 && !r.soruVar) dur5++;
+  }
+  ol("K2b-1 parça kelime vakası 5/5 uygun_degil (A metni)", dur5 === 5, "basarili=" + dur5);
+
+  // 2) Tasarım tarifleri GEÇER (5/5): uyum paneli BOŞ (soru yok, A yok) — fotoğraf türü + cevap yok
+  //    olduğundan soru ÇIKAR. Burada "geçer" = cevap vermeden yola devam edilebilir anlamında, soru kabul.
+  //    Test: cevap=Hayır işaretlerse uyum OK olur (form görünür, A yok, soru da kapanır).
+  let gecer5 = 0;
+  for (const t of tasarimGecer) {
+    const r = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", t, false);  // Hayır
+    if (!r.aMetin && !r.soruVar) gecer5++;
+  }
+  ol("K2b-2 tasarım tarifi 5/5 geçer (Hayır → uyum OK)", gecer5 === 5, "basarili=" + gecer5);
+
+  // 3) Foto türünde soru çıkar 3/3 (cevapsız): cevap yoksa "Tasarım mı, parça mı?" başlığı görünür.
+  let soruCikar = 0;
+  for (const t of tasarimGecer) {
+    const r = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", t, undefined);
+    if (r.soruVar && !r.aMetin) soruCikar++;
+  }
+  ol("K2b-3 foto türünde soru çıkar 3/3 (cevapsız)", soruCikar === 3, "basarili=" + soruCikar);
+
+  // 4) Evet → DUR (1/1): "annemin portresi" + Evet → A metni (parça kabul etti).
+  const evetDUR = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", "annemin portresi", true);
+  ol("K2b-4 Evet→DUR 1/1 (parça onayı → A metni)",
+     evetDUR.aMetin && evetDUR.aMetin.indexOf("Fotoğraftan parça") === 0 && !evetDUR.soruVar,
+     JSON.stringify({ aMetin: evetDUR.aMetin, soruVar: evetDUR.soruVar }));
+
+  // 5) Hayır → geçer (1/1): yukarıda zaten gecer5 test edildi; burada ayrıca 1/1 kanıt.
+  const hayirG = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", "logo", false);
+  ol("K2b-5 Hayır→geçer 1/1 (soru kapanır, A yok)", !hayirG.aMetin && !hayirG.soruVar, JSON.stringify(hayirG));
+
+  // 6) Cevapsız → DUR (1/1): "Önizleme oluştur" butonu PASIF (cünkü uyum OK değil).
+  //    Bu test foto türünde, uretimNotu "logo", cevap undefined → belirsiz → buton disabled.
+  const cevapsiz = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", "logo", undefined);
+  const cevapsizBtn = cevapsiz.ekran.bolum.agac() ? [...cevapsiz.ekran.bolum.agac()].find((n) => n.id === "foto-onizle-buton") : null;
+  ol("K2b-6 cevapsız→DUR 1/1 (belirsiz → onizle butonu disabled)",
+     cevapsiz.soruVar && cevapsizBtn && cevapsizBtn.disabled === true,
+     JSON.stringify({ soruVar: cevapsiz.soruVar, btnDisabled: cevapsizBtn && cevapsizBtn.disabled }));
+
+  // 7) DUR vakalarında 2D/önizleme isteği 0: "kırıldı" yaz → "Önizleme oluştur" tıkla → fetch sayacı 0.
+  //    (fetch istekleri e.istekler üzerinden ölçülür; S2'ye hiç düşmemeli.)
+  const fetchSayac = async (kaynak, uretimMetni, cevap) => {
+    const V = sentetikFotoVeri(VERI_KAYNAK);
+    const acik = { acik: true, turler: V.turler };
+    const kayit = { is: "c".repeat(32), tur: "sentetik-f", olcu: 100 };
+    const e = await ekranKos(kaynak, V, acik, kayit, undefined, { turnstileOto: true, zamanlayici: true });
+    const dd = () => [...e.bolum.agac()];
+    const kart = dd().find((n) => n.classList.contains("foto-uretim-galeri-kucuk") && n.getAttribute("data-tur") === "sentetik-f");
+    if (kart) kart.tetikle("click");
+    const ta = dd().find((n) => n.id === "foto-not");
+    if (ta) { ta.value = uretimMetni; ta.tetikle("input"); }
+    if (cevap === true) { const ev = dd().find((n) => n.id === "foto-uyum-evet"); if (ev) ev.tetikle("click"); }
+    const btn = dd().find((n) => n.id === "foto-onizle-buton");
+    if (btn) btn.tetikle("click");
+    // aydinlatma onayı da tikleyelim (kapıdan sonra bu kalmış olabilir).
+    const on = dd().find((n) => n.id === "foto-aydinlatma-onay");
+    if (on && !on.checked) { on.checked = true; on.tetikle("change"); }
+    if (btn && !btn.disabled) btn.tetikle("click");
+    return e.istekler.length;
+  };
+  // Belirsiz (soru cevapsız): buton disabled, tıklama etkisiz, fetch 0.
+  const belirsizIstek = await fetchSayac(EKRAN_KAYNAK, "annemin portresi", undefined);
+  // Evet (A ekranı): aydinlatma tikleyince bile A ekranı DOM'da, fetch 0.
+  const evetIstek = await fetchSayac(EKRAN_KAYNAK, "kırıldı", true);
+  ol("K2b-7 DUR vakalarında 2D/önizleme isteği 0 (belirsiz & uygun_degil)",
+     belirsizIstek === 0 && evetIstek === 0,
+     JSON.stringify({ belirsizIstek, evetIstek }));
+
+  // 8) Girdi türünde soru 0: sentetik-g (girdi "form") + uretimNotu "kırıldı" → kelime DUR (A ekranı);
+  //    ama cevap SORUSU çıkmaz (soru sadece foto türünde).
+  const girdiK = await uyumSonucGirdi(EKRAN_KAYNAK, "kırıldı");
+  const girdiG = await uyumSonucGirdi(EKRAN_KAYNAK, "logo");
+  // sentetik-g için cevap=undefined olsa bile soru çıkmamalı.
+  ol("K2b-8 girdi türünde soru 0 (kelime var → A; yok → uyum OK; hiçbirinde soru)",
+     !girdiK.soruVar && !girdiG.soruVar,
+     JSON.stringify({ girdiK: girdiK.soruVar, girdiG: girdiG.soruVar }));
+
+  // 9) A metni birebir: uygun_degil'de metin TAM A_METIN_BIREBIR.
+  const aMetinTam = evetDUR.aMetin === "Fotoğraftan parça ya da yedek parça üretmiyoruz. Programımız tasarım ürünleri içindir:";
+  ol("K2b-9 A metni birebir (kaynaktaki A_METIN_BIREBIR ile aynı)", aMetinTam, JSON.stringify({ aMetin: evetDUR.aMetin }));
+
+  // 10) B2 checkbox sayısı 1: S1'deki (foto-b2-onay-s1) SİLİNMİŞ; yalnız ③'ten (foto-b2-onay) var.
+  //     S1'de sayım: foto-b2-onay-s1 sayısı 0, foto-b2-onay sayısı 0 (henüz S3'e geçmedi).
+  const eS1 = await ekranKos(EKRAN_KAYNAK, VERI, fotoAcik);
+  const b2S1 = [...eS1.bolum.agac()].filter((n) => n.tagName === "INPUT" && n.type === "checkbox" && /^foto-b2-onay/.test(n.id));
+  ol("K2b-10 B2 checkbox sayısı 1 (S1'de 0; ③'ten 'foto-b2-onay' = TEK)",
+     b2S1.length === 0, "adet=" + b2S1.length);
+
+  // 11) Eski iç çubuk DOM sayısı 0: .foto-uretim-adim (data-no="2") SİLİNMİŞ.
+  const icCubuk = [...eS1.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-adim")).length;
+  ol("K2b-11 eski iç çubuk DOM sayısı 0 (cizAdimlar kaldırıldı)", icCubuk === 0, "adet=" + icCubuk);
+
+  // 12) İptal→yeni tür ② dolu 1/1: S3 → İptal → ① → başka tür sec → ② açılır (baslik2 + yukle kutu + alan DOM'da).
+  const iptalE = await ekranKos(EKRAN_KAYNAK, VERI, fotoAcik,
+    { is: "d".repeat(32), tur: "plaket", olcu: 100 },
+    { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" },
+    { turnstileOto: true, zamanlayici: true });
+  const iptalBtn = [...iptalE.bolum.agac()].find((n) => n.id === "foto-iptal-btn");
+  if (iptalBtn) iptalBtn.tetikle("click");
+  // Şimdi ① görünür. Litofan kartı tıkla → S1'e düş → ② açılır.
+  // Litofan kart data-tur="litofan" ile ızgarada (VERI'de var).
+  await new Promise((c) => setTimeout(c, 0));
+  const litKart = [...iptalE.bolum.agac()].find((n) => n.classList.contains("foto-uretim-galeri-kucuk") && n.getAttribute("data-tur") === "litofan");
+  if (litKart) litKart.tetikle("click");
+  await new Promise((c) => setTimeout(c, 0));
+  const iptalDD = [...iptalE.bolum.agac()];
+  const baslikVar = !!iptalDD.find((n) => n.classList.contains("foto-uretim-adim2-baslik"));
+  const yukleKutuVar = !!iptalDD.find((n) => n.id === "foto-yukle-kutu");
+  // alanUyum DOM'da (S.alanUyum.id = "foto-uyum") ya da alan'in kendisi (id="foto-adim2-alan"? — farklı isim olabilir).
+  const alanVar = !!iptalDD.find((n) => n.id === "foto-uyum") || !!iptalDD.find((n) => n.classList && n.classList.contains("foto-uretim-alani"));
+  ol("K2b-12 İptal→yeni tür ② dolu 1/1 (baslik + yukle kutusu + form alani DOM'da)",
+     baslikVar && yukleKutuVar && alanVar,
+     JSON.stringify({ baslikVar, yukleKutuVar, alanVar }));
+
+  // ---- 7 MUTANT + 1 KONTROL (her biri tek başına KIRMIZI; kontrol []). ----
+  // Ortak: sentetik foto türünde kart tıkla → uretimNotu "logo" → "Önizleme oluştur" tıkla.
+  //        Normal: belirsiz → soru çıkar, fetch 0. Mutant: farklı davranış.
+  // "KIRMIZI" ölçütü: en az bir davranış değişti. Spesifik:
+  //   M-SERIT: şerit etiketi "Tasarım seç" → başka metin ⇒ 3 etiketten biri değişti.
+  //   M-ADIM2: adim2EtiketiK2 hep "Foto ekle" ⇒ girdi türünde ② başlığı "Foto ekle" (geçersiz).
+  //   M-B2: B2 tik kapısı yok ⇒ S3'teki sipBtn B2 yokken AÇIK.
+  //   M-KAPI-B: kelime listesi boşaltılır ⇒ parça kelimesi geçer.
+  //   M-KAPI-C: belirsiz → uygun yapılır (soru atlanır) ⇒ belirsiz tıklanır ama uyum OK.
+  //   M-KAPI-SIRA: kapı kontrolü 2D isteğinden SONRAYA alınır ⇒ "kırıldı" yazınca POST 1.
+  //   M-IPTAL: İptal ② çocuklarını silerse ⇒ İptal sonrası ② içeriği BOŞ.
+  //   K0 kontrol: yorum değişikliği ⇒ hiçbiri değişmedi.
+
+  // M-SERIT: serit etiketi "Tasarım seç" → "Baslangic".
+  const mSerit = EKRAN_KAYNAK.replace("[\"1\", \"✦\", \"Tasarım seç\"]", "[\"1\", \"✦\", \"Baslangic\"]");
+  const mSeritEkran = await ekranKos(mSerit, VERI, fotoAcik);
+  const mSeritEtiket = [...mSeritEkran.bolum.agac()].find((n) => n.classList.contains("foto-uretim-serit-ad") && n.textContent === "Baslangic");
+  ol("M-SERIT serit etiketi 'Tasarım seç' → başka metin ⇒ şerit KIRMIZI", !!mSeritEtiket, "bulundu=" + !!mSeritEtiket);
+
+  // M-ADIM2: adim2EtiketiK2 hep "Foto ekle" döner. Girdi türünde ② başlığı "Foto ekle" (yanlış).
+  //          Bunu test etmek için sentetik-g türünde kart tıkla, başlık oku.
+  const mAdim2Src = EKRAN_KAYNAK.replace(
+    "  function adim2EtiketiK2(kod) {\n    if (!F || !F.turBul) return \"Foto ekle\";\n    var t = F.turBul(kod);\n    if (!t || !t.girdi || !t.girdi.length) return \"Foto ekle\";\n    var ilk = t.girdi[0];\n    if (ilk === \"foto-1\" || ilk === \"foto-1-3\") return \"Foto ekle\";\n    return \"Girdini ekle\";\n  }",
+    "  function adim2EtiketiK2(kod) { return \"Foto ekle\"; }"
+  );
+  const mAdim2Veri = sentetikGirdiVeri(VERI_KAYNAK);
+  const mAdim2Ekran = await ekranKos(mAdim2Src, mAdim2Veri, { acik: true, turler: mAdim2Veri.turler },
+    { is: "z".repeat(32), tur: "sentetik-g", olcu: 100 });
+  const mAdim2DD = [...mAdim2Ekran.bolum.agac()];
+  const mAdim2Kart = mAdim2DD.find((n) => n.classList.contains("foto-uretim-galeri-kucuk") && n.getAttribute("data-tur") === "sentetik-g");
+  if (mAdim2Kart) mAdim2Kart.tetikle("click");
+  await new Promise((c) => setTimeout(c, 0));
+  const mAdim2Baslik = [...mAdim2Ekran.bolum.agac()].find((n) => n.classList.contains("foto-uretim-adim2-baslik"));
+  const mAdim2Yazi = mAdim2Baslik ? mAdim2Baslik.textContent : "";
+  ol("M-ADIM2 adim2EtiketiK2 hep 'Foto ekle' ⇒ girdi türünde başlık KIRMIZI (doğru 'Girdini ekle' olmalıydı)",
+     mAdim2Yazi === "② Foto ekle", "baslik=" + mAdim2Yazi);
+
+  // M-B2: cizS3'teki ve guncelleSipButonu'daki `!S.b2Onay ||` silinir ⇒ B2 yokken sipBtn AÇIK.
+  //       cizS3 satırı: "sipBtn.disabled = !S.aydinlatmaOnay || !S.b2Onay || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);"
+  //       guncelleSipButonu satırı: "sipBtn.disabled = !S.aydinlatmaOnay || !S.b2Onay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);"
+  //       İki yerden de sil.
+  const mB2Src = EKRAN_KAYNAK.split(" || !S.b2Onay || ").join(" || ")
+    .split(" || !S.b2Onay || !!(nt").join(" || !!(nt");
+  const mB2E = await ekranKos(mB2Src, VERI, fotoAcik,
+    { is: "e".repeat(32), tur: "plaket", olcu: 100 },
+    { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" },
+    { turnstileOto: true, zamanlayici: true });
+  const mB2Onay = [...mB2E.bolum.agac()].find((n) => n.id === "foto-aydinlatma-onay");
+  if (mB2Onay && !mB2Onay.checked) { mB2Onay.checked = true; mB2Onay.tetikle("change"); }
+  const mB2Sip = [...mB2E.bolum.agac()].find((n) => n.id === "foto-sip-btn");
+  ol("M-B2 disabled formülünden '!S.b2Onay ||' silinir ⇒ B2 yokken sipBtn AÇIK (KIRMIZI)",
+     mB2Sip && mB2Sip.disabled === false, "disabled=" + (mB2Sip && mB2Sip.disabled));
+
+  // M-KAPI-B: kelime listesi boşaltılır ⇒ parça kelimesi geçer (DUR olmaz).
+  //          UYUM_KOKLER dizisini boş yap.
+  const mKBsrc = EKRAN_KAYNAK.replace(
+    "var UYUM_KOKLER = [\n    \"parca\", \"parcas\", \"parcay\",",
+    "var UYUM_KOKLER = [\n    \"xx\","
+  ).replace(
+    "    \"aynisi\", \"ayni\", \"aynisini\", \"aynilar\", \"aynilari\"\n  ];",
+    "    \"xx\"\n  ];"
+  );
+  const mKBekran = await uyumSonucBul(mKBsrc, "sentetik-f", "kırıldı", undefined);
+  ol("M-KAPI-B kelime listesi boşaltılır ⇒ parça kelimesi AÇIK soru çıkar (DUR olmaz)",
+     mKBekran.soruVar && !mKBekran.aMetin,
+     JSON.stringify({ soruVar: mKBekran.soruVar, aMetin: mKBekran.aMetin }));
+
+  // M-KAPI-C: belirsiz → uygun yapılır (soru atlanır) ⇒ belirsiz tıklanır ama uyum OK (soru kaybolur).
+  //          "if (foto) { if (cevap === true) return 'uygun_degil'; if (cevap === false) return 'uygun'; return 'belirsiz'; }"
+  //          satırını "return 'uygun';" ile değiştir.
+  const mKCsrc = EKRAN_KAYNAK.replace(
+    "    if (foto) {\n      if (cevap === true) return \"uygun_degil\";   // Evet\n      if (cevap === false) return \"uygun\";        // Hayır\n      return \"belirsiz\";                          // cevapsız → fail-closed: soru ÇIKAR\n    }",
+    "    if (foto) {\n      if (cevap === true) return \"uygun_degil\";\n      return \"uygun\";\n    }"
+  );
+  // Cevapsız → belirsiz olmalıydı; mutantta uygun. Soru ÇIKMAMALI.
+  const mKCekran = await uyumSonucBul(mKCsrc, "sentetik-f", "logo", undefined);
+  ol("M-KAPI-C belirsiz → uygun (soru atlanır) ⇒ cevapsızda soru KIRMIZI yok",
+     !mKCekran.soruVar && !mKCekran.aMetin,
+     JSON.stringify({ soruVar: mKCekran.soruVar, aMetin: mKCekran.aMetin }));
+
+  // M-KAPI-SIRA: kapı kontrolü 2D isteğinden SONRAYA alınır ⇒ "kırıldı" yazınca POST 1.
+  //             onizleOlustur'daki uyumKontrol BLOĞUNU sona (POST'tan sonra) taşı.
+  //             post body kontrolü: uretimNotu "kırıldı" iken POST /foto/onizleme gitmemeli.
+  const mKSsrc = EKRAN_KAYNAK.replace(
+    "    if (uyum !== \"uygun\") {\n      cizUyum();\n      guncelleS1Buton();\n      return;\n    }\n    if (!S.dosya) { adimKoy(\"S1\", \"Lütfen fotoğrafını seç.\", true); return; }",
+    "    if (!S.dosya) { adimKoy(\"S1\", \"Lütfen fotoğrafını seç.\", true); return; }\n    if (uyum !== \"uygun\") { return; }"
+  );
+  const mKSistek = await fetchSayac(mKSsrc, "kırıldı", undefined);
+  // uretimNotu "kırıldı" + cevap undefined → "uygun_degil" (kelime DUR). Mutant kapıyı sonra kontrol ediyor:
+  // önce dosya kontrolü (dosya yok → return; ama dosya da yok), sonra uyum kontrolü.
+  // Aslında: dosya yoksa erken return; fetch 0. Ama buton zaten disabled. POST yok.
+  // Daha iyi test: dosyayı simüle etmek zor. Bunun yerine "kırıldı" + cevap=true (Evet) ile kapıyı AÇ,
+  // ama mutant kapıyı POST'tan SONRA kontrol ederse POST gider (uyumKontrol POST'tan sonra). 1 istek olur.
+  // Bu daha güçlü: A ekranı DOM'da olsa bile POST gider (uyumsuz).
+  const mKSistek2 = await fetchSayac(mKSsrc, "annemin portresi", true);
+  ol("M-KAPI-SIRA kapı kontrolü 2D isteğinden SONRAYA ⇒ parça kabulünde POST KIRMIZI (1 istek)",
+     mKSistek2 === 1, "istek=" + mKSistek2);
+
+  // M-IPTAL: İptal ② çocuklarını silerse ⇒ İptal sonrası ② içeriği BOŞ (alaniUyum, alanDOM yok).
+  //         iptalBtn handler'ına adim2.firstChild.removeChild ekle.
+  const mIPTALsrc = EKRAN_KAYNAK.replace(
+    "      S.belirsizCevap = null;\n      S.uyumSonuc = null;\n      turSecimiKayitTemizle();\n      // galeri'yi yeniden çiz (seçim sıfırlansın) ve ① görünür kalsın\n      if (S.ornekBlok) ornekCiz(S.ornekBlok, S.acikVeri ? S.acikVeri.turler.map(function (x) { return x.kod; }) : null);\n      adimKoy(\"secim\");",
+    "      S.belirsizCevap = null;\n      S.uyumSonuc = null;\n      turSecimiKayitTemizle();\n      var adim2Mut = document.getElementById(\"foto-adim2\");\n      if (adim2Mut) { while (adim2Mut.firstChild) adim2Mut.removeChild(adim2Mut.firstChild); }\n      if (S.ornekBlok) ornekCiz(S.ornekBlok, S.acikVeri ? S.acikVeri.turler.map(function (x) { return x.kod; }) : null);\n      adimKoy(\"secim\");"
+  );
+  const mIPTALe = await ekranKos(mIPTALsrc, VERI, fotoAcik,
+    { is: "f".repeat(32), tur: "plaket", olcu: 100 },
+    { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" },
+    { turnstileOto: true, zamanlayici: true });
+  const mIPTALbtn = [...mIPTALe.bolum.agac()].find((n) => n.id === "foto-iptal-btn");
+  if (mIPTALbtn) mIPTALbtn.tetikle("click");
+  const mIPTALkart = [...mIPTALe.bolum.agac()].find((n) => n.classList.contains("foto-uretim-galeri-kucuk") && n.getAttribute("data-tur") === "litofan");
+  if (mIPTALkart) mIPTALkart.tetikle("click");
+  const mIPTALdd = [...mIPTALe.bolum.agac()];
+  const mIPTALbaslik = !!mIPTALdd.find((n) => n.classList.contains("foto-uretim-adim2-baslik"));
+  const mIPTALyukle = !!mIPTALdd.find((n) => n.id === "foto-yukle-kutu");
+  const mIPTALalan = !!mIPTALdd.find((n) => n.id === "foto-uyum");
+  ol("M-IPTAL İptal ② çocuklarını silerse ⇒ İptal→yeni tür ② BOŞ (baslik/yukle/alan yok)",
+     !mIPTALbaslik && !mIPTALyukle && !mIPTALalan,
+     JSON.stringify({ baslik: mIPTALbaslik, yukle: mIPTALyukle, alan: mIPTALalan }));
+
+  // K0 kontrol: yorum değişikliği ⇒ hiçbiri değişmedi (orijinal EKRAN_KAYNAK ile birebir aynı sonuçlar).
+  //             (Spesifik kontrol: cizUyum'da küçük bir yorum değiştirilir.)
+  const k0src = EKRAN_KAYNAK.replace(
+    "/* ============== UYUM PANELİ ==============",
+    "/* K0 kontrol yorumu ============== UYUM PANELİ =============="
+  );
+  const k0evetDUR = await uyumSonucBul(k0src, "sentetik-f", "annemin portresi", true);
+  const k0aMetinTam = k0evetDUR.aMetin === "Fotoğraftan parça ya da yedek parça üretmiyoruz. Programımız tasarım ürünleri içindir:";
+  ol("K-K0 kontrol yorum değişikliği ⇒ KIRMIZI kümesi []", k0aMetinTam, "aMetin=" + k0evetDUR.aMetin);
 }
 
 kopru.kapat();
