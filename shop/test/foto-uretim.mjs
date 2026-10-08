@@ -364,7 +364,9 @@ function envKur(d1, r2, ek) {
     TELEGRAM_TOKEN: "t", TELEGRAM_API: "https://telegram.test", TELEGRAM_CHAT: "1",
     TURNSTILE_SECRET: "ts", YONET_ANAHTAR: "yonet-test-anahtari",
     BASLAT_RATE_LIMIT: limiter(), FIYAT_RATE_LIMIT: limiter(), FOTO_RATE_LIMIT: limiter(),
-    URETIM_API_TABAN: TABAN, URETIM_TUR_ONEK: "tur-onek", URETIM_TUR_PLAKET: "tur-plaket", URETIM_API_ANAHTAR: "sahte-anahtar",
+    URETIM_API_TABAN: TABAN, URETIM_TUR_ONEK: "tur-onek",
+    URETIM_TUR_PLAKET: "tur-plaket", URETIM_TUR_FIGUR: "tur-figur",
+    URETIM_API_ANAHTAR: "sahte-anahtar",
     ...(ek || {}),
   };
 }
@@ -432,8 +434,11 @@ console.log("A) KAPALI-VARSAYILAN (ornek 0)");
   ol("A3 /foto/onizleme -> 503 kapali, saglayiciya istek YOK", o.kod === 503 && protoSayisi() === 0, o.kod);
   const c = await foto.fotoUretimTuru(envKur(d1, r2, { URETIM_API_ANAHTAR: "" }), Date.now(), null);
   ol("A4 anahtarsiz cron D1'e dokunmadan ATLAR", c.atlandi === "yapilandirma", JSON.stringify(c));
-  const yolsuz = envKur(d1, r2, { URETIM_TUR_PLAKET: "" });
-  ol("A5 plaket tur yolu ortam degiskeni yoksa yapilandirma eksik 'tur-yolu-plaket' + cron ATLAR",
+  // 8 Eki: tek turun yolu eksikse YALNIZ o tur kapanir (turHazir); hicbir yol yoksa bolum + cron kapali.
+  const plaketYolsuz = envKur(d1, r2, { URETIM_TUR_PLAKET: "" });
+  const yolsuz = envKur(d1, r2, { URETIM_TUR_PLAKET: "", URETIM_TUR_FIGUR: "" });
+  ol("A5 plaket yolu yoksa turHazir(plaket) 'tur-yolu-plaket'; hicbir yol yoksa yapilandirma eksik + cron ATLAR",
+     foto.turHazir(plaketYolsuz, "plaket").eksik.includes("tur-yolu-plaket") &&
      foto.yapilandirma(yolsuz).eksik.includes("tur-yolu-plaket") &&
      (await foto.fotoUretimTuru(yolsuz, Date.now(), null)).atlandi === "yapilandirma",
      JSON.stringify(foto.yapilandirma(yolsuz).eksik));
@@ -442,14 +447,30 @@ console.log("A) KAPALI-VARSAYILAN (ornek 0)");
 console.log("P) TUR LISTESI — tek tur PLAKET (Okan 5 Eki 21:4x; anahtarlik/magnet SUNULMAZ)");
 {
   // 6 Eki (kategori kaydi): tek-tur sozlesmesi yerine "metal gerektiren tur 0 + plaket VAR".
-  ol("P1 veri dosyasinda anahtarlik/magnet/figur 0 ve plaket VAR",
-     VERI.turler.some((t) => t.kod === "plaket") &&
-       !VERI.turler.some((t) => ["anahtarlik", "magnet", "figur"].includes(t.kod)),
+  // 8 Eki (saglayici kopru-15): FIGÜR saglayici kolunda IKINCI tur olarak eklendi; metal gerektiren
+  // turler (anahtarlik/magnet) yok, figür VAR (ornek yoksa Acilis anahtari olmadan SUNULMAZ).
+  ol("P1 veri dosyasinda anahtarlik/magnet 0 ve plaket + figur VAR",
+     VERI.turler.some((t) => t.kod === "plaket") && VERI.turler.some((t) => t.kod === "figur") &&
+       !VERI.turler.some((t) => ["anahtarlik", "magnet"].includes(t.kod)),
      JSON.stringify(VERI.turler.map((t) => t.kod)));
-  ol("P2 sunucu tur tablosu yalniz plaket (anahtarlik/magnet/figur 0)",
-     JSON.stringify(Object.keys(foto.TUR_ORTAM)) === '["plaket"]', JSON.stringify(Object.keys(foto.TUR_ORTAM)));
+  // P2: figur ornegi YOK (varsayilan), bu testte /foto/acik henuz figur'u acmadi; SUNUCU tur tablosu
+  //     yine de figur'u BILIR (TUR_ORTAM'da) — yalniz acilis anahtari ile gorunur.
+  ol("P2 sunucu tur tablosu plaket + figur (anahtarlik/magnet 0)",
+     JSON.stringify(Object.keys(foto.TUR_ORTAM)) === '["plaket","figur"]', JSON.stringify(Object.keys(foto.TUR_ORTAM)));
   ol("P3 saglayici tur yolu kodda DEGIL, ortam degiskeninden (deger dizesi 'URETIM_' ile baslar)",
      Object.values(foto.TUR_ORTAM).every((v) => /^URETIM_TUR_[A-Z]+$/.test(v)), JSON.stringify(foto.TUR_ORTAM));
+  // P8/P9 (8 Eki): yeni turun sirri henuz konmadiysa YALNIZ o tur kapanir; global sart "en az bir yol".
+  const yolsuzFigur = envKur(null, null, { URETIM_TUR_FIGUR: "" });
+  const gEksik = foto.yapilandirma(yolsuzFigur).eksik.filter((e) => e.startsWith("tur-yolu"));
+  const fEksik = foto.turHazir(yolsuzFigur, "figur").eksik;
+  const pEksik = foto.turHazir(yolsuzFigur, "plaket").eksik.filter((e) => e.startsWith("tur-yolu"));
+  ol("P8 figur yolu yokken global tur-yolu eksigi 0, plaket tur-yolu eksigi 0, figur 'tur-yolu-figur'",
+     gEksik.length === 0 && pEksik.length === 0 && fEksik.includes("tur-yolu-figur"),
+     JSON.stringify({ gEksik, pEksik, fEksik }));
+  const yolsuz = envKur(null, null, { URETIM_TUR_FIGUR: "", URETIM_TUR_PLAKET: "" });
+  ol("P9 hicbir tur yolu yoksa global eksik tur-yolu-plaket + tur-yolu-figur (bolum KAPALI)",
+     ["tur-yolu-plaket", "tur-yolu-figur"].every((e) => foto.yapilandirma(yolsuz).eksik.includes(e)),
+     JSON.stringify(foto.yapilandirma(yolsuz).eksik));
 }
 
 // Bolumu ac: onay onayli + ONCE baski fotografi EKSIK bir ornek (gercek ornek SAYILMAZ).
@@ -481,12 +502,13 @@ console.log("B) ACILIS ANAHTARI + TEK FORMUL (Okan 7 Eki 15:4x: fiyat tablosu YO
      JSON.stringify(turler.map((t) => t.kod)));
   const kotu = await istek(env, "/yonet/foto-acik", { govde: { tur: "plaket", acik: "evet" }, basliklar: YONET });
   ol("B5 acik alani boolean degilse 400 (gecersiz-acik)", kotu.kod === 400 && kotu.v.hata === "gecersiz-acik", JSON.stringify(kotu.v));
+  // 8 Eki: figur artik gecerli bir tur (acilis anahtari ile); metal gerektiren turler ACILAMAZ.
   const red = [];
-  for (const t of ["anahtarlik", "magnet", "figur"]) {
+  for (const t of ["anahtarlik", "magnet"]) {
     const r = await istek(env, "/yonet/foto-acik", { govde: { tur: t, acik: true }, basliklar: YONET });
     if (r.kod === 400 && r.v && r.v.hata === "gecersiz-tur") { red.push(t); }
   }
-  ol("P5 panel acilis: anahtarlik/magnet/figur ACILAMAZ (3/3 gecersiz-tur)", red.length === 3, red.join(","));
+  ol("P5 panel acilis: anahtarlik/magnet ACILAMAZ (figur gecerli tur)", red.length === 2, red.join(","));
   const tablo = await d1.prepare("SELECT COUNT(*) AS n FROM foto_acik WHERE tur <> 'plaket'").first();
   ol("P5b acilis anahtarinda plaket disi satir 0", tablo.n === 0, tablo.n);
   const oz = await istek(env, "/yonet/foto-ozet", { basliklar: YONET });

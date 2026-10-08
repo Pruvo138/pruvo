@@ -141,7 +141,7 @@ function envKur(d1, r2, ek) {
   return {
     KATALOG: d1, OZEL_DOSYA: r2, TURNSTILE_SECRET: "ts", YONET_ANAHTAR: "yonet-test-anahtari",
     FOTO_RATE_LIMIT: limiter(),
-    URETIM_API_TABAN: TABAN, URETIM_TUR_ONEK: "tur-onek", URETIM_TUR_PLAKET: "tur-plaket", URETIM_API_ANAHTAR: "sahte-anahtar",
+    URETIM_API_TABAN: TABAN, URETIM_TUR_ONEK: "tur-onek", URETIM_TUR_PLAKET: "tur-plaket", URETIM_TUR_FIGUR: "tur-figur", URETIM_API_ANAHTAR: "sahte-anahtar",
     ...(ek || {}),
   };
 }

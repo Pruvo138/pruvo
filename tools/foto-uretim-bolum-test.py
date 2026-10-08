@@ -109,12 +109,14 @@ def kontroller(index, bolum, veri, build):
     harici = sorted(set(re.findall(r"https?://[A-Za-z0-9.-]+", bolum)))
     izinli = {"https://challenges.cloudflare.com", "https://wa.me"}
     s.append(("Y6 harici adres yalniz bot dogrulayici + WhatsApp", set(harici) <= izinli, str(harici)))
-    # Y8 PLAKET (BaBa 5 Eki 21:4x(b)): veri dosyasinin `turler` dizisinde TEK tur = plaket.
+    # Y8 PLAKET (BaBa 5 Eki 21:4x(b)): veri dosyasinin `turler` dizisinde plaket + figur VAR (saglayici
+    # kolunda IKINCI tur, 24 kategori programi #8); metal gerektiren turler (anahtarlik/magnet) YOK.
     tb = re.search(r"\bturler:\s*\[(.*?)\n\s*\],", veri, re.S)
     kodlar = re.findall(r'\bkod:\s*"([^"]+)"', tb.group(1)) if tb else []
-    # 6 Eki (kategori kaydi): tek-tur yerine "plaket VAR + metal gerektiren tur 0".
-    s.append(("Y8 plaket VAR ve anahtarlik/magnet/figur turu 0",
-              "plaket" in kodlar and not any(k in kodlar for k in ("anahtarlik", "magnet", "figur")), str(kodlar)))
+    # 8 Eki: figur saglayici kolunda; metal gerektiren turler SUNULMAZ.
+    s.append(("Y8 plaket + figur VAR ve anahtarlik/magnet turu 0",
+              "plaket" in kodlar and "figur" in kodlar and
+              not any(k in kodlar for k in ("anahtarlik", "magnet")), str(kodlar)))
     eski = [k for k in ("anahtarl", "magnet", "mıknatıs", "miknatis")
             if k in bolum.lower() or k in (tb.group(1).lower() if tb else "")]
     s.append(("Y8 anahtarlik/magnet secenegi ekranda + tur listesinde 0", not eski, ",".join(eski)))

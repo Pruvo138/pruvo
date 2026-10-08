@@ -128,6 +128,30 @@
         durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün en çok 4 renkle kabartma olarak üretilir — önizlemenin 4 renkli yorumu; birebir aynısı değildir, küçük yazı ve ince ayrıntılar sadeleşir.",
         ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, birebir aynısı değildir."
       },
+      // FIGÜR — sağlayıcı kolunda İKİNCİ tür (24 kategori programı, kategori listesi #8; plaketle aynı
+      // motor/zincir; 1–3 fotoğraf). Örnek görseli henüz yoksa AÇILMAZ (fail-closed: VERI.ornekSayisi 0
+      // -> tür sunulmaz). Fiyat tüm türlerle aynı formül (mm × 10 TL); yeni fiyat kararı değildir.
+      {
+        kod: "figur",
+        ad: "Figür",
+        aciklama: "Fotoğrafından üretilen, en çok 4 renkle sadeleştirilmiş üç boyutlu figür; stilize bir yorum.",
+        // Girdi 1–3 fotoğraf: VERI.GIRDI_TURLERI["foto-1-3"].en_cok = 3; ikincisi/üçüncüsü isteğe bağlı
+        // (sunucu bu girdi tipini foto-1 ile aynı doğrulamadan geçirir; foto-uretim-veri.js GIRDI_TURLERI).
+        girdi: ["foto-1-3"],
+        motor: "M",
+        uretec: "",
+        // 60–200 mm (figür en uzun boyutu; plaketin 300 üst sınırı figürde destek/süre yüzünden dar tutuldu).
+        olcu_mm: { en_az: 60, en_cok: 200 },
+        renk_bolgeleri: [],
+        malzemeler: {},
+        form: {},
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        // Plaketle AYNI izin (render gerçek baskı olmadan açılır; Okan 7 Eki kararı).
+        ornek_kanit_izni: ["baski", "render"],
+        // Dürüstlük: figür metni — stilize yorum, en çok 4 renk, birebir değil, insan yüzünde benzerlik zayıf.
+        durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün bu önizlemenin en çok 4 renkli, sadeleştirilmiş figür yorumu olarak üretilir; birebir aynısı değildir, küçük ayrıntılar sadeleşir, insan yüzünde benzerlik zayıf olabilir.",
+        ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun sadeleştirilmiş hâlidir, birebir aynısı değildir."
+      },
       {
         kod: "litofan",
         ad: "Işıklı fotoğraf paneli (litofan)",

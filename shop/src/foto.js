@@ -58,10 +58,10 @@ if (!VERI) { throw new Error("foto-uretim-veri.js yuklenemedi — tur/ornek tek 
  * SUNULAN TURLER (Okan karari 5 Eki 21:4x: "plaket yapalim" — yalniz plastik uretiyoruz,
  * metal halka/miknatis YOK): bizim tur kodumuz -> saglayicinin urun yolu parcasini tasiyan
  * ORTAM DEGISKENININ ADI. Saglayicinin tur adi/yolu bu dosyada GECMEZ (`wrangler secret put`).
- * Bu tabloda olmayan tur (anahtarlik, magnet, figur ...) HER uclu REDDEDILIR: onizleme
+ * Bu tabloda olmayan tur (anahtarlik, magnet ...) HER uclu REDDEDILIR: onizleme
  * `tur-kapali`, odeme kalemi `foto-kapali`, panel acilis `gecersiz-tur`, kuyruk almaz.
  */
-export const TUR_ORTAM = { plaket: "URETIM_TUR_PLAKET" };
+export const TUR_ORTAM = { plaket: "URETIM_TUR_PLAKET", figur: "URETIM_TUR_FIGUR" };
 /** Build adiminda olcu sinirlari (mm; plaketin en uzun boyutu) — manifest kaydi yoksa yedek aralik. */
 export const OLCU_MM_EN_AZ = 60; // Okan 6 Eki: "min 60 max 300" (manifest plaket olcu_mm ile AYNI)
 export const OLCU_MM_EN_COK = 300; // Okan 6 Eki: 60–300 mm (saglayici sinir 400)
@@ -239,12 +239,23 @@ function tabloYok(e) { return /no such table/i.test(String((e && e.message) || e
  * Bolumun siparis/onizleme alabilmesi icin gereken HER sart. Biri eksikse bolum KAPALI
  * (fail-closed): eksik listesi panelde gorunur, musteriye yalniz "su an alinamiyor" denir.
  */
+/** Saglayici kolunda en az bir turun yolu (ortam degiskeni) dolu mu. */
+function saglayiciYoluVar(env) {
+  return !!env && Object.keys(TUR_ORTAM).some((k) => !!env[TUR_ORTAM[k]]);
+}
+/** Bu saglayici turunun yolu dolu mu (giris uclari: yoksa 503 kapali, saglayiciya istek 0). */
+function turYoluVar(env, kod) {
+  return !!env && Object.prototype.hasOwnProperty.call(TUR_ORTAM, kod) && !!env[TUR_ORTAM[kod]];
+}
+
 export function yapilandirma(env) {
   const eksik = [];
   if (!env || !env.URETIM_API_TABAN) { eksik.push("uc-tabani"); }
   if (!env || !env.URETIM_TUR_ONEK) { eksik.push("tur-oneki"); }
-  for (const kod of Object.keys(TUR_ORTAM)) {
-    if (!env || !env[TUR_ORTAM[kod]]) { eksik.push("tur-yolu-" + kod); }
+  // Global sart: EN AZ BIR saglayici tur yolu. Tek turun yolu eksikse yalniz O tur kapanir
+  // (turHazir); "hepsi" sarti yeni bir tur eklenip sirri henuz konmadiginda plaketi de kapatirdi.
+  if (!saglayiciYoluVar(env)) {
+    for (const kod of Object.keys(TUR_ORTAM)) { eksik.push("tur-yolu-" + kod); }
   }
   if (!env || !env.URETIM_API_ANAHTAR) { eksik.push("api-anahtari"); }
   if (!env || !env.TURNSTILE_SECRET) { eksik.push("bot-dogrulama"); }
@@ -917,6 +928,7 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   // Deterministik tur bu uctan GECMEZ (saglayiciya gitmez): /foto/litofan.
   const tur = acikTurler(await acikAnahtari(env)).find((t) => t.kod === g.tur && saglayiciTuru(t.kod));
   if (!tur) { return fjson({ hata: "tur-kapali" }, 400); }
+  if (!turYoluVar(env, tur.kod)) { return fjson({ hata: "kapali" }, 503); }
   const gh = girdiGovdeDogrula(tur.kod, g);
   if (gh) { return fjson({ hata: gh }, 400); }
   const nt = uretimNotuDogrula(g.not);
@@ -1081,6 +1093,7 @@ async function konseptUret(request, env, simdi, telegram, ornek) {
     tur = t ? t.kod : null;
   }
   if (!tur) { return fjson({ hata: "tur-kapali" }, 400); }
+  if (!turYoluVar(env, tur)) { return fjson({ hata: "kapali" }, 503); }
   if (!ornek && (typeof g.turnstile_token !== "string" || !g.turnstile_token.trim())) {
     return fjson({ hata: "bot-jetonu-yok" }, 400);
   }
@@ -2063,7 +2076,7 @@ async function onizlemeTemizle(env, simdi) {
 export async function fotoUretimTuru(env, simdi, telegram) {
   const ozet = { kuyruga: 0, ilerleyen: 0, silinen: 0, atlandi: "" };
   if (!env || !env.KATALOG || !env.OZEL_DOSYA || !env.URETIM_API_ANAHTAR || !env.URETIM_API_TABAN ||
-      !env.URETIM_TUR_ONEK || Object.keys(TUR_ORTAM).some((k) => !env[TUR_ORTAM[k]])) {
+      !env.URETIM_TUR_ONEK || !saglayiciYoluVar(env)) {
     ozet.atlandi = "yapilandirma";
     // Deterministik kol saglayicisizdir: odenen kalemleri yine kuyruga alir (zincir KOSMAZ,
     // ozet saglayici kolu icin bugunkuyle ayni kalir).
@@ -2447,6 +2460,7 @@ export async function panelOrnekOnizleme(request, env, simdi, telegram) {
   if (!g || typeof g !== "object") { return fjson({ hata: "gecersiz-istek" }, 400); }
   const tur = g.tur === undefined ? Object.keys(TUR_ORTAM)[0] : (saglayiciTuru(g.tur) ? g.tur : null);
   if (!tur) { return fjson({ hata: "gecersiz-tur" }, 400); }
+  if (!turYoluVar(env, tur)) { return fjson({ hata: "kapali", eksik: ["tur-yolu-" + tur] }, 503); }
   const olcu = Number.isInteger(g.olcu_mm) && g.olcu_mm >= OLCU_MM_EN_AZ && g.olcu_mm <= OLCU_MM_EN_COK
     ? g.olcu_mm : null;
   // Olcu satilabilir olculerden biri olmali (ornek, satilan urunun aynisi olsun; formul gecerli).
