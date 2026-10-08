@@ -7,7 +7,10 @@ kopru (kosucu yerine: kuyruktaki ornek islerine 3MF + olcu.json + onizleme.png y
 sonucu (FOTO_UU_TARAYICI_SAHTE). Gercek D1/R2/onizleme/ev yolu YOK; her sey tempfile, bitince silinir.
 
 Vakalar: U1 isimlik mutlu yol -> HAZIR=1/1 rc=0 (6 olcut HAZIR) · U2 SUNUCU MUTANTI: acik olmayan
-kategori 200 -> betik GECERSIZ rc=2 HAZIR=0 · U3 3MF delik (ucgen eksik) -> (4) EKSIK · U4 olcek ekseni
+kategori 200 -> betik GECERSIZ rc=2 HAZIR=0 · U2b tumu ACIK + yabanciya `gorsel-gecersiz` 400
+-> GECERSIZ (bekci `hata` metnine de bakiyor; yalniz kod yetmez) · U2c tumu ACIK + yabanciya
+`tur-kapali` 400 -> HAZIR (mutlu yol; bilinmeyen_tur manifestte DEGIL, sunucu tip kapisindan reddeder)
+· U3 3MF delik (ucgen eksik) -> (4) EKSIK · U4 olcek ekseni
 %10 sapma -> (4) EKSIK · U5 sunucu onaysiz istegi kabul (403) -> (5) EKSIK · U6 /acik fiyati mm x 900 ->
 (3) EKSIK · U7 tur /acik'ta yok -> (1) EKSIK · U8 375 px tasma 6 -> (6) EKSIK · U9 konsol hatasi 1 ->
 (6) EKSIK · U10 tarayici yok -> (3)(5)(6) EKSIK, rc 1 (yesil SAYILMAZ) · U11 litofan (tarayici
@@ -30,7 +33,8 @@ devam -> ④ HAZIR, ornek-onizleme 0, KREDI_HARCANAN=20/30 (yalniz yeni adimlar)
 -> erken HATA rc 2, panel istegi 0 · S11 --devam-is bilinmeyen is -> ② EKSIK, ornek-onizleme 0.
 MB21 kredi kontrolu yok -> S2+S4 · MB22 yabanci kuyruk kontrolu yok -> S5 · MB23 tavan-0 kolu yok -> S1 ·
 MB24 D1 farki okunmuyor -> S7 · MB3 ayrica S6 · MB25 devam yolunda ornek-onizleme yine cagirilirsa S9 KIRMIZI ·
-MB26 tavan-0 korumasi kaldirilirsa S10 KIRMIZI.
+MB26 tavan-0 korumasi kaldirilirsa S10 KIRMIZI · MB29 `mutant_on_kosul` `hata == hata_bek` kontrolu
+silinirse U2b KIRMIZI (bekci yalniz 400'a bakarsa figur gorsel-gecersiz 400'unu gecmis sayar).
 """
 import json
 import os
@@ -48,8 +52,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BETIK = os.path.join(KOK, "tools", "foto-ornek-uc-uca.py")
 SEMA = os.path.join(KOK, "tools", "d1-sema.sql")
+# foto.js: hermetik kopru-15 ONKOSUL bekcisi `shop/src/foto.js` /foto/onizleme icinde TURE RED metnini
+# okur; test ortaminda `_red_metni_onizleme()` acabilsin diye KOPYA'ya eklenir.
 KOPYA_DOSYALAR = ["foto-uretim-veri.js", "shop/wrangler.toml", "shop/wrangler.onizleme.toml",
-                  "tools/foto-onizleme.py"]
+                  "shop/src/foto.js", "tools/foto-onizleme.py"]
 
 SAHTE_WRANGLER = r'''
 import json, os, shutil, sqlite3, sys
@@ -174,7 +180,7 @@ class Sunucu:
 
     def __init__(self):
         self.ayar = {"acik": [], "carpan": 1000, "kapali_kod": 400, "onaysiz_kod": 400, "db": "",
-                     "durum_carpan": 1000, "r2": "", "yonet": {}}
+                     "durum_carpan": 1000, "r2": "", "yonet": {}, "gorsel_400_yabanci": False}
         ayar = self.ayar
 
         def panel(h, yontem, g):
@@ -277,7 +283,12 @@ class Sunucu:
                 if self.path.startswith("/api/shop/yonet/"):
                     return panel(self, "POST", g)
                 if g.get("tur") not in ayar["acik"]:
+                    # Kopru-15: mutant on-kosulunun "tip kapisi KAPALI" olcumunu test etmek icin:
+                    # kapali_kod=400 + gorsel_400_yabanci=True -> 400 `gorsel-gecersiz` (kapidan GECMIS,
+                    # gercek figur senaryosu); aksi normal — kapali_kod=400 `tur-kapali`, 200/200 ise gec.
                     k = ayar["kapali_kod"]
+                    if k == 400 and ayar.get("gorsel_400_yabanci"):
+                        return self.yanit(400, {"hata": "gorsel-gecersiz"})
                     return self.yanit(k, {"hata": "tur-kapali"} if k == 400 else {"is": "x"})
                 if g.get("aydinlatma_onay") is not True:
                     k = ayar["onaysiz_kod"]
@@ -410,6 +421,25 @@ def vakalar(kaynak, sadece=None):
         return rc == 2 and son == "HAZIR=0/1 rc=2" and "GECERSIZ" in c, son
 
     vaka("U2", u2)
+
+    def u2b(o):
+        # Kopru-15: tumu ACIK + sahte sunucu bilinmeyen koda "gorsel-gecersiz" 400 -> bekci YANLIS gecmis
+        # 400'u MUTLU yol sanmamali (`hata` tur-kapali olmadigi icin GECERSIZ).
+        o.sunucu.ayar["gorsel_400_yabanci"] = True
+        rc, son, c = tek(o)
+        ok = rc == 2 and son == "HAZIR=0/1 rc=2" and "GECERSIZ" in c
+        return ok, son if not ok else c[-900:]
+
+    vaka("U2b", u2b)
+
+    def u2c(o):
+        # Kopru-15: tumu ACIK + sahte sunucu bilinmeyen koda "tur-kapali" 400 -> bekci GECERLI (mutlu yol).
+        rc, son, c = tek(o)
+        ok = rc == 0 and son == "HAZIR=1/1 rc=0" and all(olcut(c, "isimlik", x) == "HAZIR" for x in "123456") and \
+            "GECERSIZ" not in c
+        return ok, son if ok else c[-900:]
+
+    vaka("U2c", u2c)
 
     def u3(o):
         rc, son, c = tek(o, FAKE_DELIK="1")
@@ -900,6 +930,10 @@ MUTANTLAR = {
              "        if True:", {"P1", "S3"}),
     "MB28": ("        for p in noktalar(anahtar, b.group(2)):",
              "        for p in noktalar(anahtar, \"\"):", {"P1"}),
+    # kopru-15: mutant_on_kosul `hata == hata_bek` kontrolu atlanirsa 400 `gorsel-gecersiz` GEÇERLI
+    # sayilir (figur gercek tur 400'a duserse) -> U2b KIRMIZI.
+    "MB29": ("    return k == 400 and j.get(\"hata\") == hata_bek, (",
+             "    return k == 400, (", {"U2b"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }

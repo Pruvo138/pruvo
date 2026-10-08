@@ -23,8 +23,11 @@ Bir kategoride (foto turu) zinciri ONIZLEMEDE olcer; her olcut HAZIR/EKSIK + say
                      tarayicida aydinlatma kutusunda TEK onay kutusu + onaysiz dugme KAPALI + durustluk metni
   (6) 375 px       : mobil emulasyonda (375x812, mobile) tur secili iken yatay tasma 0 + konsol hatasi 0
 
-MUTANT (her kosumda, olcutun on kosulu): acik OLMAYAN bir kategoriye (manifest - /acik; hepsi aciksa galeri
-yer tutucusu `figur`) onizleme istegi -> sunucu 400 DEMELI. Demezse betik GECERSIZ (rc 2, HAZIR=0).
+MUTANT (her kosumda, olcutun on kosulu): acik OLMAYAN bir kategoriye (manifest - /acik; hepsi aciksa
+manifestte OLMAYAN sabit `BILINMEYEN_TUR`) onizleme istegi -> sunucu 400 + `hata="tur-kapali"` DEMELI.
+Daha gevsek esik (yalniz `kod==400`) bugun figur gercek ve ACIK ture dusup gorsel-gecersiz 400'e
+kacinca KOR gecer; bekci metni KAYNAKTAN okur (`shop/src/foto.js` /foto/onizleme) — farkli 400 ya
+kod 200/4xx/5xx GECERSIZ sayilir (rc 2, HAZIR=0).
 
 Son satir: `HAZIR=<n>/<kosulan> rc=<k>` — rc 0 hepsi HAZIR · 1 EKSIK var · 2 gecersiz/yapilandirma.
 Tur listesi MANIFESTTEN okunur (`--hepsi` / `--kol D`); sabit liste YOK — TeKiN'in yeni kopru kayitlari
@@ -67,7 +70,11 @@ CANLI_TOML = os.path.join(SHOP, "wrangler.toml")
 VARSAYILAN_TABAN = "https://foto-onizleme-pruvo-shop.gmlmz.workers.dev"
 ORNEK_ZIYARETCI = "ornek"          # shop/src/foto.js ORNEK_ZIYARETCI
 ORNEK_SIPARIS_ONEK = "ORNEK-"      # shop/src/foto.js ORNEK_SIPARIS_ONEK
-YER_TUTUCU_TUR = "figur"           # galeride tur tanimi olmayan yer tutucu (foto-uretim.js)
+# Manifestte OLMAYAN sabit kod — tumu ACIK oldugunda mutant on-kosulu bu kodu gonderir; sunucu bunu
+# tip kapisindan (`shop/src/foto.js` /foto/onizleme `if (!tur) { return fjson({ hata: ... }, 400) }`)
+# 400 ile reddetmeli. Manifeste biri yanlislikla girerse bekci kendi kendini yaralar (rc 2). Sabit
+# deger `"uu-yok-tur"` (yok_tur ile biten) kasten secildi: manifest kodlari tek hece/kisa isimler.
+BILINMEYEN_TUR = "uu-yok-tur"
 ONIZLEME_MIN_PX = 1024
 TOLERANS = {"D": 0.01, "R": 0.03, "M": 0.01}
 # SAGLAYICI KOLU KREDI KAPISI (kopru-15, 8 Eki 2026). Bedeller UST SINIRDIR (shop/src/foto.js krediYaz cagri
@@ -1208,13 +1215,46 @@ def olc_3_5_6(tr, acik, tar):
                                                   (" ilk=" + konsol[0]) if konsol else ""))
 
 
+def _red_metni_onizleme():
+    """shop/src/foto.js `onizlemeUcu` fonksiyonu icindeki `if (!tur) { return fjson({ hata: "X" }, 400) }`
+    — X. Kaynaktan okunur; ikinci bir sabit sozluk UYDURULMAZ. Bulunamazsa Ayar (kapali yol)."""
+    import re as _re
+    src = open(os.path.join(SHOP, "src", "foto.js"), encoding="utf-8").read()
+    m = _re.search(r'async\s+function\s+onizlemeUcu\s*\([^)]*\)\s*\{', src)
+    if not m:
+        raise Ayar("shop/src/foto.js: onizlemeUcu fonksiyonu bulunamadi (bekci yazisi kaynaktan okunamadi)")
+    sonraki = _re.search(r'(?:export\s+)?async\s+function\s+\w+\s*\([^)]*\)\s*\{', src[m.end():])
+    govde = src[m.end(): m.end() + sonraki.start()] if sonraki else src[m.end():]
+    rm = _re.search(r'if\s*\(\s*!\s*tur\s*\)\s*\{\s*return\s+fjson\(\s*\{\s*hata:\s*"([^"]+)"\s*\}\s*,\s*400\s*\)',
+                    govde)
+    if not rm:
+        raise Ayar("shop/src/foto.js: onizlemeUcu /foto/onizleme tur-red metni bulunamadi")
+    return rm.group(1)
+
+
 def mutant_on_kosul(acik_kodlar):
-    """Acik olmayan kategori -> sunucu 400. Donus (gecti, aciklama)."""
+    """Acik olmayan kategori -> sunucu 400 + TURE-RED metni. Donus (gecti, aciklama).
+
+    Kapali tur varsa onu deneriz; yoksa manifestte OLMAYAN sabit `BILINMEYEN_TUR` ile deneriz (URETEC
+    her durumda sunucudan `shop/src/foto.js` /foto/onizleme tip kapisinin reddini bekler). Yalniz
+    `kod == 400` yetmez — reddin `hata` metni `tur-kapali` (kaynaktan okunan) OLMALI; aksi (ornek
+    bugun figur acilip gorsel-gecersiz 400'e dusmesi) sunucu KAPI KAPALI degil demektir, GECERSIZ."""
+    hata_bek = _red_metni_onizleme()
     kapali = [t["kod"] for t in MAN["turler"] if t["kod"] not in acik_kodlar]
-    kod = kapali[0] if kapali else YER_TUTUCU_TUR
+    if kapali:
+        kod = kapali[0]
+        kaynak = "kapali"
+    else:
+        if any(t["kod"] == BILINMEYEN_TUR for t in MAN["turler"]):
+            return False, ("BILINMEYEN_TUR=%s manifestte BULUNDU — bekciyi devre disi birakma; "
+                           "kaldir yeni sabit sec (beklenen kod=%s, hata=%s)" %
+                           (BILINMEYEN_TUR, 400, hata_bek))
+        kod = BILINMEYEN_TUR
+        kaynak = "yok_tur"
     k, j = post_429("/api/shop/foto/onizleme", {"tur": kod, "olcu_mm": 100, "aydinlatma_onay": True,
                                                 "onay_surum": MAN["onay_surum"]})
-    return k == 400, "kapali_tur=%s kod=%s hata=%s" % (kod, k, j.get("hata"))
+    return k == 400 and j.get("hata") == hata_bek, (
+        "%s=%s kod=%s hata=%s bek_kod=%s bek_hata=%s" % (kaynak, kod, k, j.get("hata"), 400, hata_bek))
 
 
 MAN = {}
