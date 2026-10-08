@@ -1729,6 +1729,16 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   const fk = VERI.fiyatKurus(tur.kod, mm);
   const olcu = fk > 0 ? { mm, fiyat_kurus: fk } : null;
   if (!olcu) { return { hata: { hata: "gecersiz-olcu" }, kod: 400 }; }
+  // DINAMIK MIN (BaBa 14:3x): icerige bagli turde (ses/braille/koordinat) alt sinir onizlemede kopru min-hesapla ile
+  // olculur (olcu.json min_mm); altindaki olcu URETILEMEZ -> 400. Olcum yoksa (eski onizleme) fail-closed.
+  if (VERI.turBul(tur.kod).olcu_min_dinamik === true) {
+    const enAz = await onizlemeMinMm(env, is.is_no);
+    if (enAz === null) { return { hata: { hata: "foto-onizleme-yok", mesaj: "Yeni önizleme gerekiyor." }, kod: 400 }; }
+    if (mm < enAz) {
+      const n = Math.ceil(enAz / (VERI.turBul(tur.kod).fiyat.adim_mm || 1) - 1e-9) * (VERI.turBul(tur.kod).fiyat.adim_mm || 1);
+      return { hata: { hata: "olcu-min", min_mm: n, mesaj: "Bu içerik için en az " + n + " mm gerekiyor." }, kod: 400 };
+    }
+  }
   if (deterministikTur(tur.kod)) { return deterministikSatir(env, tur, olcu, k, is); }
   // Renk sayisi kalemden (palet); birim = TEK formul, renk sayisiyla (ilk renk dahil, her ek renk +ek_renk).
   const rs = renkSayimi(tur.kod, k, null);
@@ -1758,6 +1768,16 @@ export async function fotoKalemFiyatla(env, k, simdi) {
       foto_ayak: AYAK_PLAKET_BASI,
     },
   };
+}
+
+/** Onizlemenin olcu.json min_mm'si (koşucu kopru min-hesapla sonucunu yazar); yok/bozuk -> null. */
+async function onizlemeMinMm(env, isNo) {
+  try {
+    const n = await env.OZEL_DOSYA.get(uretecOnizlemeAnahtari(isNo, "olcu.json"));
+    const o = n ? JSON.parse(await new Response(n.body).text()) : null;
+    const m = o ? o.min_mm : null;
+    return typeof m === "number" && Number.isFinite(m) && m > 0 ? m : null;
+  } catch (e) { return null; }
 }
 
 /**

@@ -170,8 +170,8 @@ console.log("B) BOOL (kopru-15 sözlük: YALNIZ true/false; dize/sayı/null RED)
     ol(ad + " ✗ parametre-bool", d(v).ok === false && d(v).hata === "parametre-bool", JSON.stringify(d(v)));
   }
   ol("B9 alan yok ✗ parametre-bool", VERI.parametreDogrula(t.kod, {}).hata === "parametre-bool", JSON.stringify(VERI.parametreDogrula(t.kod, {})));
-  // Gerçek manifest: G4a türlerinin bool alanı (kutu.kapak / adaptor.flans / kapak.topuz) "parametre-yakinda" DEĞİL.
-  for (const [kod, alan] of [["kutu", "kapak"], ["adaptor", "flans"], ["kapak", "topuz"]]) {
+  // Gerçek manifest: G4a türlerinin bool alanı (kutu.kapak) "parametre-yakinda" DEĞİL.
+  for (const [kod, alan] of [["kutu", "kapak"]]) {
     const tt = VERI.turBul(kod);
     ol("B10 " + kod + "." + alan + " tip bool", !!tt && tt.form[alan] && tt.form[alan].tip === "bool", kod);
   }
@@ -333,17 +333,15 @@ console.log("KS) KOSUL + ADIM (kopru-15 DILIM-2)");
 {
   const k = kosulKos(veriKur(KAYNAK));
   for (const [ad] of KOSUL_VAKA) { ol(ad, !k.includes(ad.split(" ")[0])); }
-  // Gercek manifest: G4a turlerinin TeKiN varsayilanlari (duvar 1.6, gecme 0.3 ...) GECERLI, kosulsuz alan yok.
+  // Gercek manifest: G4a turlerinin (kutu) TeKiN varsayilanlari (duvar 1.6 ...) GECERLI, kosulsuz alan yok.
+  // 5 olcu-kritik tur (adaptor/disli/kapak/dugme/klips) silindi (8 Eki 2026) — kutu kalan tek G4a.
   const G4A = {
-    kutu: { en_mm: 100, boy_mm: 60, yukseklik_mm: 40, bolme_x: 2, bolme_y: 2, duvar_mm: 1.6, taban_mm: 1.6, kose_yaricap_mm: 3, kapak: false },
-    adaptor: { mod: "burc", ic_cap_mm: 10, dis_cap_mm: 20, yukseklik_mm: 15, flans: false }
+    kutu: { en_mm: 100, boy_mm: 60, yukseklik_mm: 40, bolme_x: 2, bolme_y: 2, duvar_mm: 1.6, taban_mm: 1.6, kose_yaricap_mm: 3, kapak: false }
   };
   for (const kod of Object.keys(G4A)) {
     const r = VERI.parametreDogrula(kod, G4A[kod]);
     ol("KS9 manifest " + kod + " TeKiN varsayilanlari -> ok", r.ok === true, JSON.stringify(r));
   }
-  const r2 = VERI.parametreDogrula("adaptor", Object.assign({ kademe_cap_mm: 14 }, G4A.adaptor));
-  ol("KS10 manifest adaptor burc + kademe_cap_mm -> sema-disi", r2.ok === false && r2.hata === "sema-disi-parametre", JSON.stringify(r2));
 }
 // KOSUL mutantlari: hedef KIRMIZI kumesi TAM eslesmeli (fazlasi da eksigi de KIRMIZI).
 function kosulMutant(etiket, eski, yeni, hedef) {

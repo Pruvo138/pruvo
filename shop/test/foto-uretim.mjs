@@ -1736,7 +1736,7 @@ console.log("ES2) ORNEK GALERISI: 24 KUCUK RESIM + buyutme (13:4x Okan karari; 1
     // tüm görsel + yer tutucu kartları küçük resim ızgarasında.
     s.G1_BUYUK = sinifli(a.bolum, "foto-uretim-ornek-grup").length === 0 &&
       sinifli(a.bolum, "foto-uretim-buyuk-kart").length === 0;
-    s.G1_KUCUK = kucuk.length === TOPLAM && kucuk.length === 24;
+    s.G1_KUCUK = kucuk.length === TOPLAM && kucuk.length === VERI_TURLERI.length + YER.length;
     // GALERI: yalniz plaket acik ama TUM tur ornekleri + YER cizilir; acik tur ONCE, sonra veri sirasi, EN SONDA yer tutucular.
     const beklenenSira = ["plaket"].concat(VERI_TURLERI.filter((t) => t !== "plaket")).concat(YER);
     s.GALERI = kucuk.length === TOPLAM &&
@@ -1864,8 +1864,8 @@ console.log("ES2) ORNEK GALERISI: 24 KUCUK RESIM + buyutme (13:4x Okan karari; 1
     return s;
   };
   const s0 = await senaryo(EKRAN_KAYNAK);
-  // G1: büyük görsel 0 + küçük resim 24/24
-  ol("G1 buyuk ornek gorsel 0 (ornek-grup + buyuk-kart sifif) + kucuk resim 24/24 (galeri tek blok; 13:4x)",
+  // G1: büyük görsel 0 + küçük resim TÜM ornekler+YER (5 olcu-kritik tur silindi, 24->19)
+  ol("G1 buyuk ornek gorsel 0 (ornek-grup + buyuk-kart sifif) + kucuk resim TUM ornek (galeri tek blok; 13:4x)",
      s0.G1_BUYUK && s0.G1_KUCUK, JSON.stringify(s0));
   // G2: 3 türde büyütme + Esc/×/dış tık 3/3
   ol("G2 buyutme 3 turde (plaket/litofan/yapboz) + Esc/x/dis-tik kapatma 3/3",
@@ -2861,6 +2861,10 @@ async function renkKosulSenaryolar(fm) {
         await r2k.put(fm.uretecOnizlemeAnahtari(is, "girdi.json"),
           new TextEncoder().encode(JSON.stringify({ sozlesme: 1, kategori: tur, parametreler })), {});
       }
+      // Dinamik min turu (ses): onizleme olcu.json min_mm'si (koşucu yazar) — 100 mm siparise engel olmayan sinir.
+      if (VERI.turBul(tur).olcu_min_dinamik === true) {
+        await r2k.put(fm.uretecOnizlemeAnahtari(is, "olcu.json"), new TextEncoder().encode(JSON.stringify({ min_mm: 10 })), {});
+      }
       return is;
     };
     const malzeme = (tur) => {
@@ -2926,6 +2930,85 @@ for (const [ad, capa, yerine, olmeli] of RKK_MUTANTLAR) {
   const fm = await mutantModul(capa, yerine);
   if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
   const s = await renkKosulSenaryolar(fm);
+  const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 4 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
+}
+
+// ================================================================ DMIN — DINAMIK ALT SINIR (BaBa 14:3x)
+
+/**
+ * Icerige bagli turde (koordinat) alt sinir onizlemede olculur (olcu.json min_mm, koşucu kopru min-hesapla):
+ * altindaki olcu 400 olcu-min (adima yuvarli N) · ustu fiyatlanir · olcum yoksa fail-closed 400 · sabit turde
+ * (rolyef, taban 60) 10 mm 400. Donus {ALT, UST, YOK, SABIT}.
+ */
+async function dinamikMinSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const r2k = r2Kur();
+  const e2 = envKur(k.d1, r2k);
+  const yedek = VERI.ornekler.splice(0);
+  const s = {};
+  try {
+    for (const t of ["koordinat", "rolyef"]) {
+      VERI.ornekler.push({ tur: t, kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/dm-o.webp",
+                           render: "https://media.pruvo3d.com/dm-r.webp", not: "t" });
+      await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES (?, 1, 'x')").bind(t).run();
+    }
+    let no = 0;
+    const isKur = async (tur, olcuJson) => {
+      const is = (++no).toString(16).padStart(32, "d");
+      await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, ?, 160, 'z', ?, 'onizleme-hazir', 'gorev-dm', ?)")
+        .bind(is, tur, new Date().toISOString(), new Date().toISOString()).run();
+      await r2k.put(fm.uretecOnizlemeAnahtari(is, "girdi.json"),
+        new TextEncoder().encode(JSON.stringify({ sozlesme: 1, kategori: tur, parametreler: {} })), {});
+      if (olcuJson) { await r2k.put(fm.uretecOnizlemeAnahtari(is, "olcu.json"), new TextEncoder().encode(JSON.stringify(olcuJson)), {}); }
+      return is;
+    };
+    const secim = (tur) => {
+      const t = VERI.turBul(tur), sc = {};
+      for (const b of Object.keys(t.malzemeler || {})) { sc[b + "_malzeme"] = t.malzemeler[b][0]; }
+      for (const b of (t.renk_bolgeleri || [])) { sc[b.kod + "_renk"] = b.renkler[0]; }
+      return sc;
+    };
+    const fiyatla = async (is, tur, mm) => fm.fotoKalemFiyatla(e2, { foto_is: is, olcu_mm: mm, adet: 1, secim: secim(tur) }, Date.now());
+    const isK = await isKur("koordinat", { min_mm: 152.4 });
+    const alt = await fiyatla(isK, "koordinat", 150);
+    s.ALT = alt.kod === 400 && alt.hata.hata === "olcu-min" && alt.hata.min_mm === 160 && /en az 160 mm/.test(alt.hata.mesaj);
+    const ust = await fiyatla(isK, "koordinat", 160);
+    s.UST = !!ust.satir && ust.satir.birim_kurus === VERI.fiyatKurus("koordinat", 160, ust.satir.foto_renkler.length) &&
+            ust.satir.birim_kurus >= 160000;
+    const yok = await fiyatla(await isKur("koordinat", null), "koordinat", 160);
+    s.YOK = yok.kod === 400 && yok.hata.hata === "foto-onizleme-yok";
+    const sab = await fiyatla(await isKur("rolyef", {}), "rolyef", 10);
+    s.SABIT = sab.kod === 400 && sab.hata.hata === "gecersiz-olcu" && VERI.olcuAraligi("rolyef").en_az === 60;
+  } finally {
+    VERI.ornekler.splice(0, VERI.ornekler.length, ...yedek);
+    k.kapat();
+  }
+  return s;
+}
+
+console.log("DMIN) DINAMIK ALT SINIR — icerige bagli turde onizlemenin olctugu min'in alti 400; sabit turde taban (BaBa 14:3x)");
+{
+  const s = await dinamikMinSenaryolar(foto);
+  ol("DMIN1 koordinat min 152,4 mm -> 150 mm siparis 400 olcu-min 'en az 160 mm' (adima yuvarli)", s.ALT === true, JSON.stringify(s));
+  ol("DMIN2 koordinat 160 mm -> fiyatlanir (160 mm x 10 TL + ek renk)", s.UST === true, JSON.stringify(s));
+  ol("DMIN3 onizlemede min olcumu yok -> 400 foto-onizleme-yok (fail-closed)", s.YOK === true, JSON.stringify(s));
+  ol("DMIN4 sabit tur rolyef (taban 60) 10 mm -> 400 gecersiz-olcu", s.SABIT === true, JSON.stringify(s));
+  // Musteri metni: koşucu reddi `uretec-red:olcu-min-<N>` -> "bu icerik icin en az N mm".
+  ol("DMIN5 uretec-red:olcu-min-160 -> 'Bu içerik için en az 160 mm gerekiyor' metni",
+     /^Bu içerik için en az 160 mm gerekiyor;/.test(VERI.uretecRedMetni("uretec-red:olcu-min-160")), VERI.uretecRedMetni("uretec-red:olcu-min-160"));
+}
+const DMIN_MUTANTLAR = [
+  ["DMIN-M1 ALT SINIR KONTROLU SILINDI", "    if (mm < enAz) {", "    if (false) {", ["ALT"]],
+  ["DMIN-M2 OLCUM YOKKEN GECIYOR (fail-open)", "    if (enAz === null) { return { hata: { hata: \"foto-onizleme-yok\", mesaj: \"Yeni önizleme gerekiyor.\" }, kod: 400 }; }",
+   "    if (enAz === null) { }", ["YOK"]],
+  ["DMIN-MK KONTROL", "// DINAMIK MIN (BaBa 14:3x): icerige", "// DINAMIK  MIN (BaBa 14:3x): icerige", []],
+];
+for (const [ad, capa, yerine, olmeli] of DMIN_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const s = await dinamikMinSenaryolar(fm);
   const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
   ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
      Object.keys(s).length === 4 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));

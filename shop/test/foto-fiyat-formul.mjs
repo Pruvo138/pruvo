@@ -225,7 +225,9 @@ const VERI_MUTANTLAR = [
   ["FM6 TABAN KALKTI", "return Math.max(mm * f, taban) + (n - 1) * ek;", "return mm * f + (n - 1) * ek;", ["F1", "F3", "F6", "F8", "F9"]],
   // Tabansiz tur fail-open (taban yoksa 0 sayilir) -> F7 KIRMIZI.
   // Okan 14:0x: surgu alti 60'a geri cekilirse F8 KIRMIZI.
-  ["FM8 PLAKET SURGU ALTI 60", "        olcu_mm: { en_az: 10, en_cok: 300 },", "        olcu_mm: { en_az: 60, en_cok: 300 },", ["F8", "F9"]],
+  // Capa plaketin kendi yorum satirini tasir: ayni olcu_mm satiri dinamik-min ile ses turunde de gecer (tek capa sarti).
+  ["FM8 PLAKET SURGU ALTI 60", "        // Okan 6 Eki 2026: \"min 60 max 300\".\n        olcu_mm: { en_az: 10, en_cok: 300 },",
+   "        // Okan 6 Eki 2026: \"min 60 max 300\".\n        olcu_mm: { en_az: 60, en_cok: 300 },", ["F8", "F9"]],
   ["FM7 TABANSIZ TUR FAIL-OPEN","if (!f || taban === null || ek === null || tavan === null || !VERI.olcuGecerli(kod, mm)) { return null; }",
    "if (!f || ek === null || tavan === null || !VERI.olcuGecerli(kod, mm)) { return null; }", ["F7"]],
   // Okan 13:3x ek renk: ek renk 0'a duserse (ucretsiz ek renk) F9 KIRMIZI.

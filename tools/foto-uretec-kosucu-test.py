@@ -92,6 +92,17 @@ if mod == "girdi":
 shutil.copyfile(a[0], a[1]); open(a[1], "ab").write(b"ONARILDI"); sys.exit(0)
 '''
 HAM_3MF = b"PK\x03\x04HAM"
+# Sahte kopru `kopru_uret.py min-hesapla --kategori <kod> --girdi-mh <yol>` (TeKiN sozlesmesi): FAKE_MIN (vars. 10)
+# -> {"min_mm", "neden"}; FAKE_MIN=yok -> rc 2 (yanit yok). Cagriyi FAKE_LOG'a yazar.
+SAHTE_MIN = r'''
+import json, os, sys
+a = sys.argv[1:]
+open(os.environ["FAKE_LOG"], "a").write(json.dumps(["min-hesapla", a[a.index("--kategori") + 1]]) + "\n")
+m = os.environ.get("FAKE_MIN", "10")
+if m == "yok":
+    sys.exit(2)
+print(json.dumps({"min_mm": float(m), "neden": "sahte"}))
+'''
 
 # Sahte tekin-ortak ureteci (G1/G2 CLI: --girdi <uretec json> --cikti <dizin> -> uretec.3mf + onizleme.png
 # + ozet.json). Aldigi JSON'u FAKE_TEKIN_LOG'a yazar; extruder sayisi = girdideki renk alani sayisi
@@ -103,9 +114,8 @@ open(os.environ["FAKE_TEKIN_LOG"], "a", encoding="utf-8").write(json.dumps(g, en
 if os.environ.get("FAKE_TEKIN_RET"):
     sys.stderr.write("RET: " + os.environ["FAKE_TEKIN_RET"] + "\n"); sys.exit(2)
 L = 0.0
-# G4 (kopru-15) olcu alanlari en_mm/dis_cap_mm/cap_mm/boru_cap_mm/u_aralik_mm/yukseklik_mm;
-# onceki G2/S2 anahtarlari ONCE denenir (geriye uyumlu). dugme+saksi cap_mm; klips alt_ture gore
-# boru_cap_mm / u_aralik_mm / yukseklik_mm.
+# G4 (kopru-15) olcu alanlari en_mm/dis_cap_mm/cap_mm/yukseklik_mm; onceki G2/S2 anahtarlari
+# ONCE denenir (geriye uyumlu). saksi cap_mm.
 for k in ("genislik_mm", "plaket_mm", "uzun_kenar_mm", "yuz_mm", "en_mm", "dis_cap_mm",
           "cap_mm", "boru_cap_mm", "u_aralik_mm", "yukseklik_mm"):
     if isinstance(g.get(k), (int, float)):
@@ -131,9 +141,7 @@ json.dump(oz, open(os.path.join(c, "ozet.json"), "w"))
 
 TEKIN_ESLE = {"isimlik_uret": "isimlik", "qr_plaket_uret": "qr", "svg_ekstruzyon_uret": "logo",
               "muhur_uret": "muhur", "siluet_sablon_uret": "sablon", "yapboz_uret": "yapboz",
-              "ozel_uret:kutu": "kutu", "ozel_uret:adaptor": "adaptor",
-              "ozel_uret:disli": "disli", "ozel_uret:kapak": "kapak",
-              "ozel_uret:dugme": "dugme", "ozel_uret:klips": "klips", "ozel_uret:saksi": "saksi",
+              "ozel_uret:kutu": "kutu", "ozel_uret:saksi": "saksi",
               "koordinat_uret": "koordinat"}
 TUR_URETEC = {v: k for k, v in TEKIN_ESLE.items()}
 SVG_ORNEK = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60"><path fill-rule="evenodd" '
@@ -213,22 +221,6 @@ G2_VAKA = {
     "kutu": {"olcu": 100, "renkler": {}, "parametreler": {"en_mm": 100, "duvar_mm": 1.6, "kapak": True},
              "beklenen": {"en_mm": 100, "duvar_mm": 1.6, "kapak": True},
              "renk_sayisi": 1, "parcalar": []},
-    "adaptor": {"olcu": 60, "renkler": {}, "parametreler": {"mod": "burc", "dis_cap_mm": 60, "flans": False},
-                "beklenen": {"mod": "burc", "dis_cap_mm": 60, "flans": False},
-                "renk_sayisi": 1, "parcalar": []},
-    "disli": {"olcu": 60, "renkler": {}, "parametreler": {"dis_cap_mm": 60},
-              "beklenen": {"dis_cap_mm": 60},
-              "renk_sayisi": 1, "parcalar": []},
-    "kapak": {"olcu": 60, "renkler": {}, "parametreler": {"mod": "kapak", "dis_cap_mm": 60},
-              "beklenen": {"mod": "kapak", "dis_cap_mm": 60},
-              "renk_sayisi": 1, "parcalar": []},
-    # G4b (kopru-15) — dugme / klips / saksi: cap_mm (dugme+saksi) ve boru_cap_mm (klips boru_kelepcesi) olcu alanlari.
-    "dugme": {"olcu": 30, "renkler": {}, "parametreler": {"cap_mm": 30, "mil_tipi": "d_mil", "mil_capi_mm": 6},
-              "beklenen": {"cap_mm": 30, "mil_tipi": "d_mil", "mil_capi_mm": 6},
-              "renk_sayisi": 1, "parcalar": []},
-    "klips": {"olcu": 25, "renkler": {}, "parametreler": {"alt_tur": "boru_kelepcesi", "boru_cap_mm": 25, "vida": "M4"},
-              "beklenen": {"alt_tur": "boru_kelepcesi", "boru_cap_mm": 25, "vida": "M4"},
-              "renk_sayisi": 1, "parcalar": []},
     "saksi": {"olcu": 100, "renkler": {}, "parametreler": {"tur": "saksi", "cap_mm": 100, "profil": "silindir"},
               "beklenen": {"tur": "saksi", "cap_mm": 100, "profil": "silindir"},
               "renk_sayisi": 1, "parcalar": []},
@@ -238,7 +230,8 @@ G2_VAKA = {
                   "parametreler": {"enlem": 41.0082, "boylam": 28.9784, "genislik_mm": 160},
                   "beklenen": {"enlem": 41.0082, "boylam": 28.9784, "genislik_mm": 160,
                                "renk_plaka": "#F2F2F2", "renk_yazi": "#12294D"},
-                  "renk_sayisi": 2, "parcalar": ["plaka", "yazi"]},
+                  # TeKiN 6f40f62: isaret ayri govde; renk_isaret bos -> renk_yazi (renk sayisi 2 kalir, parca 3).
+                  "renk_sayisi": 2, "parcalar": ["plaka", "yazi", "isaret"]},
 }
 
 
@@ -386,6 +379,9 @@ class Ortam:
         if kopru:
             with open(os.path.join(d, "jeneratorler", "foto", "uc_mf_onar.py"), "w") as f:
                 f.write(SAHTE_KOPRU)
+        os.makedirs(os.path.join(d, "jeneratorler", "kopru"), exist_ok=True)
+        with open(os.path.join(d, "jeneratorler", "kopru", "kopru_uret.py"), "w") as f:
+            f.write(SAHTE_MIN)
         return d
 
     def model(self):
@@ -620,6 +616,27 @@ def vakalar(kosucu):
         return (sonuc[190][0] == "onizleme-hazir" and sonuc[200][0] != "onizleme-hazir" and
                 "olcu-aralik-disi" in (sonuc[200][1] or "")), "%s" % sonuc
 
+    # DINAMIK MIN (BaBa 14:3x; TeKiN 6320f2a): olcu_min_dinamik turde (koordinat) uretec KOSMADAN once kopru
+    # min-hesapla; olcu altinda -> uretec-red:olcu-min-<adima yuvarli N>, uretec 0 · ustunde -> olcu.json min_mm ·
+    # yanit yok -> uretec-red:min-hesapla (fail-closed), uretec 0.
+    def tdm(fake_min, beklenen):
+        def fn(o):
+            x = G2_VAKA["koordinat"]
+            d = o.uretec_onizleme("koordinat", x["olcu"], x["renkler"], x["parametreler"])
+            rc, son, _ = o.kos("--uygula", FAKE_MIN=fake_min)
+            r = o.sql("SELECT asama, hata FROM foto_isler WHERE is_no = ?", IS2)[0]
+            olcu = json.load(open(os.path.join(d, "olcu.json"))) if os.path.isfile(os.path.join(d, "olcu.json")) else {}
+            n = len(o.tekin_girdileri())
+            if beklenen.startswith("uretec-red"):
+                ok = r["asama"] == "basarisiz" and r["hata"] == beklenen and n == 0
+            else:
+                ok = r["asama"] == "onizleme-hazir" and olcu.get("min_mm") == float(beklenen) and n == 1
+            return ok, "%s %s tekin=%d min_mm=%s" % (son, r, n, olcu.get("min_mm"))
+        return fn
+
+    vaka("TDM1", tdm("195", "uretec-red:olcu-min-200"))
+    vaka("TDM2", tdm("152.5", "152.5"))
+    vaka("TDM3", tdm("yok", "uretec-red:min-hesapla"))
     for kod in G2_VAKA:
         vaka("T13-" + kod, t13(kod))
     vaka("T19", t19)
@@ -797,8 +814,8 @@ MUTANTLAR = {
     "M11": ('    (r"kontrast", "kontrast"),\n', "", {"T14"}),
     "M12": ('"renk_sayisi": uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf")),',
             '"renk_sayisi": len(bolgeler),',
-            {"T17", "T13-kutu", "T13-adaptor", "T13-disli", "T13-kapak", "T26",
-             "T13-dugme", "T13-klips", "T13-saksi"}),
+            # T13-koordinat: 3 bolge (plaka/yazi/isaret) ama 2 renk -> bolge sayisi renk sayisi DEGIL.
+            {"T17", "T13-kutu", "T26", "T13-saksi", "T13-koordinat"}),
     "M13": ('        if any(k not in form for k in (girdi.get("parametreler") or {})):\n            raise KopruRed("parametre")\n',
             "", {"T18"}),
     # G2b: plaka 300 tek kaynak · uzun kenar geometriden · yapboz araligi
@@ -813,24 +830,18 @@ MUTANTLAR = {
     # G4 (kopru-15) — esle_<kod> ESLEMELER'den silinince uretec-bicimi RED'lenir (TEKIN_ESLE'de uretec adina
     # baglanan esleme kapisi kalkar); sadece o turun T13 vakasi KIRMIZI olur.
     "M20": ('             "kutu": esle_kutu,\n', "", {"T13-kutu", "T26"}),  # T26 = kutu turetilmis olcusu
-    "M21": ('             "adaptor": esle_adaptor,\n', "", {"T13-adaptor"}),
-    "M22": ('             "disli": esle_disli,\n', "", {"T13-disli"}),
-    "M23": ('             "kapak": esle_kapak,\n', "", {"T13-kapak"}),
     # kopru-15 DILIM-2: G4 esle varsayilan enjekte ederse (eski davranis) G4 T13'leri KIRMIZI; G5 bolge adi
     # manifestten degil sabit `taban`dan okunursa koordinat renkleri dusur -> T13-koordinat KIRMIZI.
     "M24": ('    return dict(g.get("parametreler") or {}), []\n',
             '    return dict({"yukseklik_mm": 40}, **(g.get("parametreler") or {})), []\n',
-            {"T13-kutu", "T13-adaptor", "T13-disli", "T13-kapak",
-             "T13-dugme", "T13-klips", "T13-saksi"}),
+            {"T13-kutu", "T13-saksi"}),
     "M25": ('            u["renk_" + b] = h\n', '            u["renk_taban"] = h\n', {"T13-koordinat"}),
     # kopru-15 DILIM-3: tolerans dali TURETILMIS turde hedefe (olcu 0) donerse / olculen olcu satira
     # yazilmazsa / aralik kontrolu kalkarsa T26 KIRMIZI.
     "M26": ('(not tu and abs(uk - i["olcu_mm"])', '(abs(uk - i["olcu_mm"])', {"T26"}),
     "M27": ('                st += ", olcu_mm = %d" % int(olcu)\n', '                pass\n', {"T26"}),
     "M28": ('a.get("en_az", 1) <= olculen_mm(uk) <= a.get("en_cok", 0)):', 'True):', {"T26"}),
-    # G4b (kopru-15) — dugme/klips/saksi ESLEMELER'den silinince uretec-bicimi RED.
-    "M29": ('             "dugme": esle_dugme,\n', "", {"T13-dugme"}),
-    "M30": ('             "klips": esle_klips,\n', "", {"T13-klips"}),
+    # G4b (kopru-15) — saksi ESLEMELER'den silinince uretec-bicimi RED.
     "M31": ('             "saksi": esle_saksi,\n', "", {"T13-saksi"}),
     # ONARIM KUYRUGU (8 Eki): olcum atlanirsa kirmizi kopru ciktisi 'hazir' olur.
     "M32": ('        rc, hata, cik = kos(["--olc", ham, cikti])\n', '        rc, hata, cik = 0, "", "{}"\n', {"T28", "T33"}),
@@ -847,6 +858,12 @@ MUTANTLAR = {
             "            sebep = cikti_dogrula(i, t, cikti)\n", {"T32", "T33", "T34"}),
     # onarilmis modelde olcu.json sha tazelenmezse ④ alanlar=0 olur.
     "M37": ('        olcu["model_sha256"] = hashlib.sha256(f.read()).hexdigest()\n', "        pass\n", {"T32"}),
+    # DINAMIK MIN: on kontrol silinirse olcu altinda uretec kosar (TDM1); min ozete yazilmazsa sunucu siparisi
+    # sinirlayamaz (TDM2); yanit yokken devam ederse fail-open (TDM3).
+    "M40": ("        if isinstance(olcu, (int, float)) and not isinstance(olcu, bool) and 0 < olcu < mh:\n",
+            "        if False:\n", {"TDM1"}),
+    "M41": ('        olcu["min_mm"] = kv["min_mm"]\n', "        pass\n", {"TDM2"}),
+    "M42": ('            return 2, "RED min-hesapla: kopru min-hesapla yaniti yok"\n', "            mh = 0.0\n", {"TDM3"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 

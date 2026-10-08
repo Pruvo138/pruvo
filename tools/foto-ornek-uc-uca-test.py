@@ -794,10 +794,11 @@ def vakalar(kaynak, sadece=None):
         s[ad] = (gecti, ac)
 
     def u19(ns):
-        # G4a 4 tur (girdi form + bool alan): ornek parametre + dosya hazirlanir, sunucu dogrulamasi ok.
+        # G4a kutu (girdi form + bool alan): ornek parametre + dosya hazirlanir, sunucu dogrulamasi ok.
+        # 5 olcu-kritik tur (adaptor/disli/kapak/dugme/klips) silindi (8 Eki 2026) — kutu kalan tek G4a.
         man = {t["kod"]: t for t in ns["manifest_oku"]()["turler"]}
         p, sebep = {}, []
-        for kod in ("kutu", "adaptor", "disli", "kapak"):
+        for kod in ("kutu",):
             t = man[kod]
             pp, h = ns["ornek_parametre"](t, ns["olcu_sec"](t))
             d, h2 = ns["ornek_dosyalar"](t)
@@ -807,8 +808,8 @@ def vakalar(kaynak, sadece=None):
             p[kod] = pp
         dg = saf_dogrula(p, [])
         bool_ok = p and all(isinstance(p[k][a], bool) for k, a in
-                            (("kutu", "kapak"), ("adaptor", "flans"), ("kapak", "topuz")) if k in p)
-        ok = not sebep and len(p) == 4 and all(dg[k]["ok"] for k in p) and bool_ok
+                            (("kutu", "kapak"),) if k in p)
+        ok = not sebep and len(p) == 1 and all(dg[k]["ok"] for k in p) and bool_ok
         return ok, "sebep=%s dogrula=%s" % (sebep, {k: dg[k].get("hata", "ok") for k in dg})
     saf("U19", u19)
 
@@ -988,9 +989,10 @@ MUTANTLAR = {
              {"U20"}),
     "MB14": ('            p[ad] = dict(k) if s.get("saat") is True else k["tarih"]', '            p[ad] = k["tarih"]',
              {"U20"}),
-    # kopru-15 DILIM-2: kosul atlamasi silinince kosulsuz alan ornege girer (sunucu sema-disi) -> U19+U22;
-    # gecerli varsayilan yerine formul -> U22 (duvar 1.6 yerine 4).
-    "MB15": ("        if not kosul_tamam(s, p):\n            continue\n", "", {"U19", "U22"}),
+    # kopru-15 DILIM-2: kosul atlamasi silinince kosulsuz alan ornege girer (sunucu sema-disi) -> U22;
+    # gecerli varsayilan yerine formul -> U22 (duvar 1.6 yerine 4). U19 adaptor/disli/kapak silindi (8 Eki)
+    # sonrasi YALNIZ kutu test ediyor; kutu formunda kosul kosulu olmadigindan mutant U19'a etki etmiyor.
+    "MB15": ("        if not kosul_tamam(s, p):\n            continue\n", "", {"U22"}),
     "MB16": ('        elif tip == "sayi" and sayi_gecerli(s, vs):', '        elif tip == "sayi" and False:', {"U22"}),
     # kopru-15 DILIM-3: ③ TURETILMIS esitlik kolu atlanirsa sapan fiyat HAZIR gecer -> U24 KIRMIZI.
     "MB17": ("    esit = bek is not None and tr.olcu == olculen and sunucu == bek and gos == yazi\n",

@@ -436,710 +436,6 @@
         olcu_ekseni: "turetilmis"
       },
       {
-        kod: "adaptor",
-        ad: "Adaptör / burç / pul",
-        aciklama: "Adaptör / burç / pul — ölçüye özel üretim.",
-        girdi: ["form"],
-        motor: "D",
-        uretec: "ozel_uret:adaptor",
-        olcu_mm: { en_az: 6, en_cok: 150 },
-        renk_bolgeleri: [],
-        malzemeler: { govde: ["PLA", "PETG", "ASA"] },
-        form: {
-          mod: {
-            tip: "secim",
-            etiket: "Parça türü",
-            secenekler: ["pul", "burc", "adaptor"],
-            varsayilan: "burc",
-            ornek: "burc"
-          },
-          ic_cap_mm: {
-            tip: "sayi",
-            etiket: "İç çap (delik)",
-            min: 2,
-            max: 140,
-            adim: 0.01,
-            varsayilan: 10,
-            birim: "mm",
-            ornek: 10
-          },
-          dis_cap_mm: {
-            tip: "sayi",
-            etiket: "Dış çap (alt kademe)",
-            min: 6,
-            max: 150,
-            adim: 0.01,
-            varsayilan: 20,
-            birim: "mm",
-            ornek: 20
-          },
-          yukseklik_mm: {
-            tip: "sayi",
-            etiket: "Yükseklik (toplam)",
-            min: 0.8,
-            max: 150,
-            adim: 0.01,
-            varsayilan: 15,
-            birim: "mm",
-            ornek: 15
-          },
-          kademe_cap_mm: {
-            tip: "sayi",
-            etiket: "Üst kademe dış çapı",
-            min: 6,
-            max: 150,
-            adim: 0.01,
-            varsayilan: 14,
-            birim: "mm",
-            kosul: [{ alan: "mod", degerler: ["adaptor"] }]
-          },
-          kademe_yukseklik_mm: {
-            tip: "sayi",
-            etiket: "Üst kademe yüksekliği",
-            min: 2,
-            max: 148,
-            adim: 0.01,
-            varsayilan: 8,
-            birim: "mm",
-            kosul: [{ alan: "mod", degerler: ["adaptor"] }]
-          },
-          ic_cap2_mm: {
-            tip: "sayi",
-            etiket: "Üst kademe iç çapı (0 = aynı delik)",
-            min: 0,
-            max: 140,
-            adim: 0.01,
-            varsayilan: 0,
-            birim: "mm",
-            kosul: [{ alan: "mod", degerler: ["adaptor"] }]
-          },
-          flans: {
-            tip: "bool",
-            etiket: "Flanş (alt)",
-            varsayilan: false,
-            kosul: [{ alan: "mod", degerler: ["burc", "adaptor"] }]
-          },
-          flans_cap_mm: {
-            tip: "sayi",
-            etiket: "Flanş çapı",
-            min: 8,
-            max: 150,
-            adim: 0.01,
-            varsayilan: 30,
-            birim: "mm",
-            kosul: [
-              { alan: "mod", degerler: ["burc", "adaptor"] },
-              { alan: "flans", degerler: [true] }
-            ]
-          },
-          flans_kalinlik_mm: {
-            tip: "sayi",
-            etiket: "Flanş kalınlığı",
-            min: 1.2,
-            max: 10,
-            adim: 0.01,
-            varsayilan: 2,
-            birim: "mm",
-            kosul: [
-              { alan: "mod", degerler: ["burc", "adaptor"] },
-              { alan: "flans", degerler: [true] }
-            ]
-          }
-        },
-        fiyat: {
-          formul: "mm_x_10tl",
-          adim_mm: 10,
-          taban_tl: 600,
-          ek_renk_tl: 100,
-          renk_tavani: 1
-        },
-        ornek_kanit_izni: ["baski", "render"],
-        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; adaptör / burç / pul bu parametrelerle üretilir.",
-        olcu_ekseni: "turetilmis"
-      },
-      {
-        kod: "disli",
-        ad: "Dişli / kasnak",
-        aciklama: "Dişli / kasnak — ölçüye özel üretim.",
-        girdi: ["form"],
-        motor: "D",
-        uretec: "ozel_uret:disli",
-        olcu_mm: { en_az: 8, en_cok: 200 },
-        renk_bolgeleri: [],
-        malzemeler: { govde: ["PLA", "PETG", "ASA"] },
-        form: {
-          tip: {
-            tip: "secim",
-            etiket: "Parça türü",
-            secenekler: ["duz_disli", "gt2_kasnak", "v_kasnak"],
-            varsayilan: "duz_disli",
-            ornek: "duz_disli"
-          },
-          mil_capi_mm: {
-            tip: "sayi",
-            etiket: "Mil deliği çapı",
-            min: 2,
-            max: 40,
-            adim: 0.01,
-            varsayilan: 5,
-            birim: "mm",
-            ornek: 5
-          },
-          mil_tipi: {
-            tip: "secim",
-            etiket: "Mil deliği tipi",
-            secenekler: ["yuvarlak", "d_mil", "kama"],
-            varsayilan: "yuvarlak",
-            ornek: "yuvarlak"
-          },
-          duz_kesim_mm: {
-            tip: "sayi",
-            etiket: "D-mil düz kesim derinliği",
-            min: 0.3,
-            max: 3,
-            adim: 0.01,
-            varsayilan: 0.5,
-            birim: "mm",
-            kosul: [{ alan: "mil_tipi", degerler: ["d_mil"] }]
-          },
-          modul_mm: {
-            tip: "sayi",
-            etiket: "Modül",
-            min: 0.5,
-            max: 5,
-            adim: 0.01,
-            varsayilan: 1.5,
-            birim: "mm",
-            kosul: [{ alan: "tip", degerler: ["duz_disli"] }],
-            ornek: 1.5
-          },
-          dis_sayisi: {
-            tip: "sayi",
-            etiket: "Diş sayısı (dişli 8-120, GT2 kasnak 16-80)",
-            min: 8,
-            max: 120,
-            adim: 1,
-            varsayilan: 20,
-            birim: "adet",
-            kosul: [{ alan: "tip", degerler: ["duz_disli", "gt2_kasnak"] }],
-            ornek: 20
-          },
-          kalinlik_mm: {
-            tip: "sayi",
-            etiket: "Dişli kalınlığı",
-            min: 3,
-            max: 40,
-            adim: 0.01,
-            varsayilan: 8,
-            birim: "mm",
-            kosul: [{ alan: "tip", degerler: ["duz_disli"] }],
-            ornek: 8
-          },
-          dis_boslugu_mm: {
-            tip: "sayi",
-            etiket: "Diş boşluğu (backlash, çift toplamı)",
-            min: 0.05,
-            max: 0.5,
-            adim: 0.01,
-            varsayilan: 0.2,
-            birim: "mm",
-            kosul: [{ alan: "tip", degerler: ["duz_disli"] }],
-            ornek: 0.2
-          },
-          es_dis_sayisi: {
-            tip: "sayi",
-            etiket: "Eşleşen dişli diş sayısı (0 = yalnız tek dişli)",
-            min: 0,
-            max: 120,
-            adim: 1,
-            varsayilan: 0,
-            birim: "adet",
-            kosul: [{ alan: "tip", degerler: ["duz_disli"] }],
-            ornek: 0
-          },
-          es_mil_capi_mm: {
-            tip: "sayi",
-            etiket: "Eşleşen dişli mil çapı (0 = aynı)",
-            min: 0,
-            max: 40,
-            adim: 0.01,
-            varsayilan: 0,
-            birim: "mm",
-            kosul: [{ alan: "tip", degerler: ["duz_disli"] }],
-            ornek: 0
-          },
-          kemer_genislik_mm: {
-            tip: "secim",
-            etiket: "Kemer genişliği",
-            secenekler: [6, 9, 10],
-            varsayilan: 6,
-            birim: "mm",
-            kosul: [{ alan: "tip", degerler: ["gt2_kasnak"] }]
-          },
-          dis_cap_mm: {
-            tip: "sayi",
-            etiket: "V kasnak dış çapı",
-            min: 16,
-            max: 100,
-            adim: 0.01,
-            varsayilan: 40,
-            birim: "mm",
-            kosul: [{ alan: "tip", degerler: ["v_kasnak"] }]
-          },
-          v_kanal_genislik_mm: {
-            tip: "sayi",
-            etiket: "V kanal üst genişliği",
-            min: 6,
-            max: 17,
-            adim: 0.01,
-            varsayilan: 10,
-            birim: "mm",
-            kosul: [{ alan: "tip", degerler: ["v_kasnak"] }]
-          },
-          v_kalinlik_mm: {
-            tip: "sayi",
-            etiket: "V kasnak kalınlığı",
-            min: 10,
-            max: 40,
-            adim: 0.01,
-            varsayilan: 16,
-            birim: "mm",
-            kosul: [{ alan: "tip", degerler: ["v_kasnak"] }]
-          }
-        },
-        fiyat: {
-          formul: "mm_x_10tl",
-          adim_mm: 10,
-          taban_tl: 600,
-          ek_renk_tl: 100,
-          renk_tavani: 1
-        },
-        ornek_kanit_izni: ["baski", "render"],
-        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; dişli / kasnak bu parametrelerle üretilir.",
-        olcu_ekseni: "turetilmis"
-      },
-      {
-        kod: "kapak",
-        ad: "Kapak / tıpa",
-        aciklama: "Kapak / tıpa — ölçüye özel üretim.",
-        girdi: ["form"],
-        motor: "D",
-        uretec: "ozel_uret:kapak",
-        olcu_mm: { en_az: 10, en_cok: 150 },
-        renk_bolgeleri: [],
-        malzemeler: { govde: ["PLA", "PETG", "ASA"] },
-        form: {
-          mod: {
-            tip: "secim",
-            etiket: "Parça türü",
-            secenekler: ["kapak", "tipa"],
-            varsayilan: "kapak",
-            ornek: "kapak"
-          },
-          ic_cap_mm: {
-            tip: "sayi",
-            etiket: "İç çap (kapatılan ağız / tıpanın gireceği delik)",
-            min: 6,
-            max: 140,
-            adim: 0.01,
-            varsayilan: 20,
-            birim: "mm",
-            ornek: 20
-          },
-          dis_cap_mm: {
-            tip: "sayi",
-            etiket: "Dış çap (kapak gövdesi / tıpa başlığı)",
-            min: 10,
-            max: 150,
-            adim: 0.01,
-            varsayilan: 26,
-            birim: "mm",
-            ornek: 26
-          },
-          yukseklik_mm: {
-            tip: "sayi",
-            etiket: "Kapak yüksekliği",
-            min: 4,
-            max: 100,
-            adim: 0.01,
-            varsayilan: 15,
-            birim: "mm",
-            kosul: [{ alan: "mod", degerler: ["kapak"] }],
-            ornek: 15
-          },
-          tipa_boyu_mm: {
-            tip: "sayi",
-            etiket: "Tıpa boyu",
-            min: 4,
-            max: 60,
-            adim: 0.01,
-            varsayilan: 12,
-            birim: "mm",
-            kosul: [{ alan: "mod", degerler: ["tipa"] }]
-          },
-          ust_kalinlik_mm: {
-            tip: "sayi",
-            etiket: "Üst plaka / başlık kalınlığı",
-            min: 1.2,
-            max: 6,
-            adim: 0.01,
-            varsayilan: 2,
-            birim: "mm",
-            ornek: 2
-          },
-          gecme_bosluk_mm: {
-            tip: "sayi",
-            etiket: "Geçme boşluğu (her yüzde)",
-            min: 0.2,
-            max: 0.4,
-            adim: 0.01,
-            varsayilan: 0.3,
-            birim: "mm",
-            ornek: 0.3
-          },
-          cekme_acisi_derece: {
-            tip: "sayi",
-            etiket: "Tıpa çekme açısı (0 = silindirik)",
-            min: 0,
-            max: 5,
-            adim: 0.01,
-            varsayilan: 0,
-            birim: "derece",
-            kosul: [{ alan: "mod", degerler: ["tipa"] }]
-          },
-          topuz: {
-            tip: "bool",
-            etiket: "Tutma topuzu",
-            varsayilan: false,
-            ornek: false
-          },
-          topuz_cap_mm: {
-            tip: "sayi",
-            etiket: "Topuz çapı",
-            min: 6,
-            max: 40,
-            adim: 0.01,
-            varsayilan: 12,
-            birim: "mm",
-            kosul: [{ alan: "topuz", degerler: [true] }]
-          },
-          topuz_yukseklik_mm: {
-            tip: "sayi",
-            etiket: "Topuz yüksekliği",
-            min: 3,
-            max: 30,
-            adim: 0.01,
-            varsayilan: 8,
-            birim: "mm",
-            kosul: [{ alan: "topuz", degerler: [true] }]
-          }
-        },
-        fiyat: {
-          formul: "mm_x_10tl",
-          adim_mm: 10,
-          taban_tl: 600,
-          ek_renk_tl: 100,
-          renk_tavani: 1
-        },
-        ornek_kanit_izni: ["baski", "render"],
-        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; kapak / tıpa bu parametrelerle üretilir.",
-        olcu_ekseni: "turetilmis"
-      },
-      {
-        kod: "dugme",
-        ad: "Düğme / topuz",
-        aciklama: "Düğme / topuz — ölçüye özel üretim.",
-        girdi: ["form"],
-        motor: "D",
-        uretec: "ozel_uret:dugme",
-        olcu_mm: { en_az: 12, en_cok: 80 },
-        renk_bolgeleri: [],
-        malzemeler: { govde: ["PLA", "PETG", "ASA"] },
-        form: {
-          cap_mm: {
-            tip: "sayi",
-            etiket: "Çap",
-            min: 12,
-            max: 80,
-            adim: 0.01,
-            varsayilan: 30,
-            birim: "mm",
-            ornek: 30
-          },
-          yukseklik_mm: {
-            tip: "sayi",
-            etiket: "Yükseklik",
-            min: 6,
-            max: 80,
-            adim: 0.01,
-            varsayilan: 18,
-            birim: "mm",
-            ornek: 18
-          },
-          tirtil_sayisi: {
-            tip: "sayi",
-            etiket: "Tırtıl (dikey kanal) sayısı",
-            min: 0,
-            max: 60,
-            adim: 1,
-            varsayilan: 0,
-            birim: "adet",
-            ornek: 0
-          },
-          tirtil_derinlik_mm: {
-            tip: "sayi",
-            etiket: "Tırtıl derinliği",
-            min: 0.4,
-            max: 3,
-            adim: 0.01,
-            varsayilan: 1,
-            birim: "mm",
-            ornek: 1
-          },
-          isaret_cizgisi: {
-            tip: "bool",
-            etiket: "İşaret çizgisi (üst yüz)",
-            varsayilan: false,
-            ornek: false
-          },
-          mil_tipi: {
-            tip: "secim",
-            etiket: "Mil tipi",
-            secenekler: ["yuvarlak", "d_mil", "yivli"],
-            varsayilan: "d_mil",
-            ornek: "d_mil"
-          },
-          mil_capi_mm: {
-            tip: "sayi",
-            etiket: "Mil çapı",
-            min: 3,
-            max: 12,
-            adim: 0.01,
-            varsayilan: 6,
-            birim: "mm",
-            ornek: 6
-          },
-          duz_kesim_mm: {
-            tip: "sayi",
-            etiket: "D-mil düz kesim derinliği",
-            min: 0.2,
-            max: 2,
-            adim: 0.01,
-            varsayilan: 0.5,
-            birim: "mm",
-            kosul: [{ alan: "mil_tipi", degerler: ["d_mil"] }],
-            ornek: 0.5
-          },
-          yiv_sayisi: {
-            tip: "sayi",
-            etiket: "Yiv sayısı (çift)",
-            min: 8,
-            max: 36,
-            adim: 1,
-            varsayilan: 18,
-            birim: "adet",
-            kosul: [{ alan: "mil_tipi", degerler: ["yivli"] }]
-          },
-          set_vida: {
-            tip: "bool",
-            etiket: "M3 set vidası kanalı",
-            varsayilan: false,
-            ornek: false
-          }
-        },
-        fiyat: {
-          formul: "mm_x_10tl",
-          adim_mm: 10,
-          taban_tl: 600,
-          ek_renk_tl: 100,
-          renk_tavani: 1
-        },
-        ornek_kanit_izni: ["baski", "render"],
-        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; düğme / topuz bu parametrelerle üretilir.",
-        olcu_ekseni: "turetilmis"
-      },
-      {
-        kod: "klips",
-        ad: "Klips / kelepçe / menteşe",
-        aciklama: "Klips / kelepçe / menteşe — ölçüye özel üretim.",
-        girdi: ["form"],
-        motor: "D",
-        uretec: "ozel_uret:klips",
-        olcu_mm: { en_az: 10, en_cok: 200 },
-        renk_bolgeleri: [],
-        malzemeler: { govde: ["PLA", "PETG"] },
-        form: {
-          alt_tur: {
-            tip: "secim",
-            etiket: "Parça türü",
-            secenekler: ["boru_kelepcesi", "u_klips", "mentese"],
-            varsayilan: "boru_kelepcesi",
-            ornek: "boru_kelepcesi"
-          },
-          boru_cap_mm: {
-            tip: "sayi",
-            etiket: "Boru dış çapı",
-            min: 6,
-            max: 120,
-            adim: 0.01,
-            varsayilan: 25,
-            birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi"] }],
-            ornek: 25
-          },
-          agiz_payi_mm: {
-            tip: "sayi",
-            etiket: "Açık ağız payı (ağız = boru çapı − pay)",
-            min: 0.5,
-            max: 60,
-            adim: 0.01,
-            varsayilan: 3,
-            birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi"] }],
-            ornek: 3
-          },
-          vida: {
-            tip: "secim",
-            etiket: "Vida deliği",
-            secenekler: ["M3", "M4", "M5"],
-            varsayilan: "M4",
-            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi"] }],
-            ornek: "M4"
-          },
-          u_aralik_mm: {
-            tip: "sayi",
-            etiket: "U iç aralığı (kavranan kalınlık)",
-            min: 1,
-            max: 60,
-            adim: 0.01,
-            varsayilan: 4,
-            birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["u_klips"] }]
-          },
-          kol_boyu_mm: {
-            tip: "sayi",
-            etiket: "Kol boyu",
-            min: 8,
-            max: 80,
-            adim: 0.01,
-            varsayilan: 20,
-            birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["u_klips"] }]
-          },
-          kanca_mm: {
-            tip: "sayi",
-            etiket: "Kol ucu kancası (0 = yok)",
-            min: 0,
-            max: 3,
-            adim: 0.01,
-            varsayilan: 0.8,
-            birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["u_klips"] }]
-          },
-          genislik_mm: {
-            tip: "sayi",
-            etiket: "Genişlik (eksen boyu)",
-            min: 6,
-            max: 40,
-            adim: 0.01,
-            varsayilan: 12,
-            birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi", "u_klips"] }],
-            ornek: 12
-          },
-          kalinlik_mm: {
-            tip: "sayi",
-            etiket: "Duvar kalınlığı",
-            min: 1.6,
-            max: 6,
-            adim: 0.01,
-            varsayilan: 3,
-            birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi", "u_klips"] }],
-            ornek: 3
-          },
-          yukseklik_mm: {
-            tip: "sayi",
-            etiket: "Menteşe yüksekliği (pim ekseni)",
-            min: 12,
-            max: 120,
-            adim: 0.01,
-            varsayilan: 40,
-            birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["mentese"] }]
-          },
-          kanat_genislik_mm: {
-            tip: "sayi",
-            etiket: "Kanat genişliği",
-            min: 10,
-            max: 80,
-            adim: 0.01,
-            varsayilan: 30,
-            birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["mentese"] }]
-          },
-          kanat_kalinlik_mm: {
-            tip: "sayi",
-            etiket: "Kanat kalınlığı",
-            min: 2,
-            max: 6,
-            adim: 0.01,
-            varsayilan: 3,
-            birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["mentese"] }]
-          },
-          pim_cap_mm: {
-            tip: "sayi",
-            etiket: "Pim çapı",
-            min: 3,
-            max: 8,
-            adim: 0.01,
-            varsayilan: 4,
-            birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["mentese"] }]
-          },
-          eklem_sayisi: {
-            tip: "secim",
-            etiket: "Boğum sayısı",
-            secenekler: [3, 5, 7],
-            varsayilan: 3,
-            birim: "adet",
-            kosul: [{ alan: "alt_tur", degerler: ["mentese"] }]
-          },
-          bosluk_mm: {
-            tip: "sayi",
-            etiket: "Menteşe boşluğu (radyal ve dikey)",
-            min: 0.25,
-            max: 0.45,
-            adim: 0.01,
-            varsayilan: 0.3,
-            birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["mentese"] }]
-          },
-          vida_deligi: {
-            tip: "bool",
-            etiket: "Kanatlarda M3 vida delikleri",
-            varsayilan: false,
-            kosul: [{ alan: "alt_tur", degerler: ["mentese"] }]
-          }
-        },
-        fiyat: {
-          formul: "mm_x_10tl",
-          adim_mm: 10,
-          taban_tl: 600,
-          ek_renk_tl: 100,
-          renk_tavani: 1
-        },
-        ornek_kanit_izni: ["baski", "render"],
-        durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; klips / kelepçe / menteşe bu parametrelerle üretilir.",
-        olcu_ekseni: "turetilmis"
-      },
-      {
         kod: "saksi",
         ad: "Saksı / vazo",
         aciklama: "Saksı / vazo — ölçüye özel üretim.",
@@ -1396,7 +692,7 @@
         girdi: ["ses"],
         motor: "D",
         uretec: "ses_dalgasi_uret",
-        olcu_mm: { en_az: 80, en_cok: 300 },
+        olcu_mm: { en_az: 10, en_cok: 300 },
         renk_bolgeleri: [
           {
             kod: "plaka",
@@ -1428,17 +724,17 @@
             adim: 1,
             varsayilan: 100,
             birim: "adet",
-            ornek: 100
+            ornek: 50
           },
           uzun_kenar_mm: {
             tip: "sayi",
             etiket: "Uzun kenar",
-            min: 80,
+            min: 10,
             max: 300,
             adim: 0.01,
             varsayilan: 160,
             birim: "mm",
-            ornek: 160
+            ornek: 100
           },
           dalga_yuksekligi_mm: {
             tip: "sayi",
@@ -1448,7 +744,7 @@
             adim: 0.01,
             varsayilan: 40,
             birim: "mm",
-            ornek: 40
+            ornek: 30
           },
           cubuk_yuksekligi_mm: {
             tip: "sayi",
@@ -1514,7 +810,7 @@
             adim: 0.01,
             varsayilan: 6,
             birim: "mm",
-            ornek: 6
+            ornek: 4
           }
         },
         fiyat: {
@@ -1530,7 +826,8 @@
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; ses dalgasi bu parametrelerle üretilir.",
-        olcu_ekseni: "sabit"
+        olcu_ekseni: "sabit",
+        olcu_min_dinamik: true
       },
       {
         kod: "braille",
@@ -1539,7 +836,7 @@
         girdi: ["metin"],
         motor: "D",
         uretec: "braille_uret",
-        olcu_mm: { en_az: 40, en_cok: 250 },
+        olcu_mm: { en_az: 10, en_cok: 250 },
         renk_bolgeleri: [
           {
             kod: "plaka",
@@ -1564,7 +861,7 @@
             etiket: "Turkce metin (Grade-1)",
             zorunlu: true,
             max: 400,
-            ornek: "Pruvo test 2026"
+            ornek: "Pruvo"
           },
           ust_yazi: {
             tip: "metin",
@@ -1593,7 +890,7 @@
           genislik_mm: {
             tip: "sayi",
             etiket: "Genislik (0=oto)",
-            min: 0,
+            min: 10,
             max: 250,
             adim: 0.01,
             varsayilan: 0,
@@ -1643,7 +940,8 @@
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; braille bu parametrelerle üretilir.",
-        olcu_ekseni: "sabit"
+        olcu_ekseni: "sabit",
+        olcu_min_dinamik: true
       },
       {
         kod: "topo",
@@ -1941,6 +1239,16 @@
             kod: "yildiz",
             ad: "Yildiz",
             renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"]
+          },
+          {
+            kod: "cizgi",
+            ad: "Çizgi",
+            renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"]
+          },
+          {
+            kod: "yazi",
+            ad: "Yazı",
+            renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"]
           }
         ],
         malzemeler: { govde: ["PLA", "PETG"] },
@@ -2065,7 +1373,7 @@
           adim_mm: 10,
           taban_tl: 600,
           ek_renk_tl: 100,
-          renk_tavani: 2
+          renk_tavani: 4
         },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
@@ -2079,7 +1387,7 @@
         girdi: ["konum"],
         motor: "D",
         uretec: "koordinat_uret",
-        olcu_mm: { en_az: 60, en_cok: 250 },
+        olcu_mm: { en_az: 10, en_cok: 250 },
         renk_bolgeleri: [
           {
             kod: "plaka",
@@ -2090,6 +1398,11 @@
             kod: "yazi",
             ad: "Yazi",
             renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"]
+          },
+          {
+            kod: "isaret",
+            ad: "İşaret",
+            renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"]
           }
         ],
         malzemeler: { govde: ["PLA", "PETG"] },
@@ -2176,7 +1489,7 @@
           genislik_mm: {
             tip: "sayi",
             etiket: "Genislik (zorunlu)",
-            min: 20,
+            min: 10,
             max: 400,
             adim: 0.01,
             varsayilan: 160,
@@ -2229,12 +1542,13 @@
           adim_mm: 10,
           taban_tl: 600,
           ek_renk_tl: 100,
-          renk_tavani: 2
+          renk_tavani: 3
         },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; koordinat / tarih bu parametrelerle üretilir.",
-        olcu_ekseni: "sabit"
+        olcu_ekseni: "sabit",
+        olcu_min_dinamik: true
       },
       {
         kod: "bust",
@@ -2408,46 +1722,6 @@
         not: "100x60x40 mm, kapaklı"
       },
       {
-        tur: "adaptor",
-        kanit: "render",
-        olcu_mm: 60,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/adaptor-1-render.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/adaptor-1-render.webp",
-        not: "60 mm burç"
-      },
-      {
-        tur: "disli",
-        kanit: "render",
-        olcu_mm: 60,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/disli-1-render.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/disli-1-render.webp",
-        not: "60 mm düz dişli"
-      },
-      {
-        tur: "kapak",
-        kanit: "render",
-        olcu_mm: 60,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/kapak-1-render.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/kapak-1-render.webp",
-        not: "60 mm kapak"
-      },
-      {
-        tur: "dugme",
-        kanit: "render",
-        olcu_mm: 40,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/dugme-1-render.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/dugme-1-render.webp",
-        not: "40 mm düz düğme"
-      },
-      {
-        tur: "klips",
-        kanit: "render",
-        olcu_mm: 60,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/klips-1-render.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/klips-1-render.webp",
-        not: "60 mm boru kelepçesi"
-      },
-      {
         tur: "saksi",
         kanit: "render",
         olcu_mm: 100,
@@ -2606,6 +1880,9 @@
   };
   // Üreteç reddinin müşteri metni: hata "uretec-red:<kod>" -> tablo; bilinmeyen kod -> genel metin.
   VERI.uretecRedMetni = function (hata) {
+    // DİNAMİK MİN (BaBa 14:3x): koşucu köprü min-hesapla'dan `uretec-red:olcu-min-<N>` yazar (ses/braille/koordinat).
+    var d = /^uretec-red:olcu-min-([1-9][0-9]{0,3})$/.exec(typeof hata === "string" ? hata : "");
+    if (d) { return "Bu içerik için en az " + d[1] + " mm gerekiyor; ölçüyü " + d[1] + " mm ya da üstüne çıkarıp tekrar dene."; }
     var m = /^uretec-red:([a-z0-9-]{1,40})$/.exec(typeof hata === "string" ? hata : "");
     var k = m && Object.prototype.hasOwnProperty.call(VERI.URETEC_RED_METIN, m[1]) ? m[1] : "";
     return VERI.URETEC_RED_METIN[k];

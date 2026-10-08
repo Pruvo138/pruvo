@@ -117,11 +117,6 @@ URETEC_CLI = {
                            "esle": "sablon"},
     "yapboz_uret": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/yapboz_uret.py", "esle": "yapboz"},
     "ozel_uret:kutu": {"bicim": "tekin-ortak", "betik": "jeneratorler/ozel_g4/ozel_uret.py", "esle": "kutu", "bayraklar": ["--tur", "kutu"]},
-    "ozel_uret:adaptor": {"bicim": "tekin-ortak", "betik": "jeneratorler/ozel_g4/ozel_uret.py", "esle": "adaptor", "bayraklar": ["--tur", "adaptor"]},
-    "ozel_uret:disli": {"bicim": "tekin-ortak", "betik": "jeneratorler/ozel_g4/ozel_uret.py", "esle": "disli", "bayraklar": ["--tur", "disli"]},
-    "ozel_uret:kapak": {"bicim": "tekin-ortak", "betik": "jeneratorler/ozel_g4/ozel_uret.py", "esle": "kapak", "bayraklar": ["--tur", "kapak"]},
-    "ozel_uret:dugme": {"bicim": "tekin-ortak", "betik": "jeneratorler/ozel_g4/ozel_uret.py", "esle": "dugme", "bayraklar": ["--tur", "dugme"]},
-    "ozel_uret:klips": {"bicim": "tekin-ortak", "betik": "jeneratorler/ozel_g4/ozel_uret.py", "esle": "klips", "bayraklar": ["--tur", "klips"]},
     "ozel_uret:saksi": {"bicim": "tekin-ortak", "betik": "jeneratorler/ozel_g4/ozel_uret.py", "esle": "saksi", "bayraklar": ["--tur", "saksi"]},
     "rolyef_uret": {"bicim": "tekin-ortak", "betik": "jeneratorler/ozel_g3/rolyef_uret.py", "esle": "rolyef", "bayraklar": []},
     "ses_dalgasi_uret": {"bicim": "tekin-ortak", "betik": "jeneratorler/ozel_g3/ses_dalgasi_uret.py", "esle": "ses", "bayraklar": []},
@@ -672,7 +667,7 @@ def _esle_gelen(g, dizin, rh):
     return dict(g.get("parametreler") or {}), []
 
 
-esle_kutu = esle_adaptor = esle_disli = esle_kapak = esle_dugme = esle_klips = esle_saksi = _esle_gelen
+esle_kutu = esle_saksi = _esle_gelen
 
 
 def esle_rolyef(g, dizin, rh):
@@ -876,11 +871,6 @@ def esle_yapboz(g, dizin, rh):
 ESLEMELER = {"isimlik": esle_isimlik, "qr": esle_qr, "logo": esle_logo, "muhur": esle_muhur,
              "sablon": esle_sablon, "yapboz": esle_yapboz,
              "kutu": esle_kutu,
-             "adaptor": esle_adaptor,
-             "disli": esle_disli,
-             "kapak": esle_kapak,
-             "dugme": esle_dugme,
-             "klips": esle_klips,
              "saksi": esle_saksi,
              "rolyef": esle_rolyef,
              "ses": esle_ses,
@@ -914,6 +904,26 @@ def ret_kodu(metin):
     return "genel"
 
 
+def min_hesapla(py, jen, kod, uretec_girdisi):
+    """Kopru `min-hesapla` (TeKiN sozlesmesi): {"min_mm": <float>, "neden": ...} -> min_mm; yanit yok/bozuk -> None
+    (fail-closed: cagiran onizlemeyi reddeder)."""
+    try:
+        p = subprocess.run([py, os.path.join(jen, "jeneratorler", "kopru", "kopru_uret.py"), "min-hesapla",
+                            "--kategori", kod, "--girdi-mh", uretec_girdisi], capture_output=True, text=True,
+                           timeout=120, env=SALT_OKUMA_ENV, cwd=jen if os.path.isdir(jen) else None)
+        v = json.loads((p.stdout or "").strip().splitlines()[-1]) if p.returncode == 0 and p.stdout.strip() else None
+    except (OSError, subprocess.TimeoutExpired, ValueError, IndexError):
+        return None
+    m = v.get("min_mm") if isinstance(v, dict) else None
+    return float(m) if isinstance(m, (int, float)) and not isinstance(m, bool) and m > 0 else None
+
+
+def min_adim(t, mm):
+    """Hesaplanan min'in surgu adimina yukari yuvarlanmisi (musteriye soylenen + sunucunun reddettigi sinir)."""
+    a = (t.get("fiyat") or {}).get("adim_mm") or 1
+    return int(math.ceil(mm / a - 1e-9) * a)
+
+
 def esle_fonksiyonu(t, g):
     """Uretim yolunun esleme fonksiyonu — TEK secim noktasi (kopru-esle-kapisi-test + renk-esleme-test AYNISINI
     cagirir). Turun KENDI eslemesi once (bust rolyef_uret'i kosar ama palet renklerini esle_bust baglar; 8 Eki
@@ -938,8 +948,20 @@ def tekin_kos(g, t, girdi_dizin, cikti, py, jen):
     ham, ugirdi, kopru = cikti + ".ham", cikti + ".uretec-girdi.json", cikti + ".kopru.json"
     with open(ugirdi, "w", encoding="utf-8") as f:
         json.dump(u, f, ensure_ascii=False, sort_keys=True)
+    kopru_veri = {"bolgeler": bolgeler}
+    # DINAMIK MIN (BaBa 14:3x; TeKiN 6320f2a KOPRU-SEMA "Dinamik min_mm"): icerige bagli turde uretec KOSMADAN once
+    # kopru `min-hesapla` sorulur; olcu altindaysa dürüst red `olcu-min-<N>` (musteri "bu icerik icin en az N mm"
+    # gorur), ustundeyse min olcu.json'a yazilir (sunucu siparisi bu sinirin altinda 400 ile reddeder).
+    if t.get("olcu_min_dinamik") is True:
+        mh = min_hesapla(py, jen, t.get("kod"), ugirdi)
+        if mh is None:
+            return 2, "RED min-hesapla: kopru min-hesapla yaniti yok"
+        kopru_veri["min_mm"] = mh
+        olcu = girdi.get("olcu_mm")
+        if isinstance(olcu, (int, float)) and not isinstance(olcu, bool) and 0 < olcu < mh:
+            return 2, "RED olcu-min-%d: bu icerik icin en az %d mm" % (min_adim(t, mh), min_adim(t, mh))
     with open(kopru, "w", encoding="utf-8") as f:
-        json.dump({"bolgeler": bolgeler}, f)
+        json.dump(kopru_veri, f)
     komut = [py, os.path.join(jen, g["betik"])] + list(g.get("bayraklar", []))
     # 8 Eki 2026: G5 topo/sehir iki asamali (veri_cek.py --tur ... --girdi ... --cikti <veri.json>; ag:true)
     if g.get("on_adim"):
@@ -1047,7 +1069,8 @@ def donustur_tekin(ham, cikti, girdi_yolu, kopru_yolu):
     with open(girdi_yolu, encoding="utf-8") as f:
         girdi = json.load(f)
     with open(kopru_yolu, encoding="utf-8") as f:
-        bolgeler = json.load(f).get("bolgeler") or []
+        kv = json.load(f)
+    bolgeler = kv.get("bolgeler") or []
     with open(os.path.join(ham, "ozet.json"), encoding="utf-8") as f:
         oz = json.load(f)
     os.makedirs(cikti)
@@ -1076,6 +1099,9 @@ def donustur_tekin(ham, cikti, girdi_yolu, kopru_yolu):
             "hacim_cm3": round((hac or 0) / 1000.0, 3), "alt_kenar_mm": kutu[2],
             "parcalar": [{"ad": b, "renk": renk.get(b, "")} for b in bolgeler],
             "girdi_sha256": "", "model_sha256": msha}
+    # Dinamik min (kopru min-hesapla) onizlemede olculduyse ozete: sunucu siparisi bu sinirin altinda reddeder.
+    if isinstance(kv.get("min_mm"), (int, float)):
+        olcu["min_mm"] = kv["min_mm"]
     with open(os.path.join(cikti, "olcu.json"), "w", encoding="utf-8") as f:
         json.dump(olcu, f, ensure_ascii=False, sort_keys=True)
     return 0

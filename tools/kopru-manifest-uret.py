@@ -202,6 +202,9 @@ def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None, sema=None):
              # RENK TAVANI (BaBa 8 Eki 15:4x) = uretecin BOYANABILIR renk_* parametre sayisi (en az 1); YAZILMAZ,
              # --denetle manifest fiyat.renk_tavani'yi buna karsi olcer.
              "renk_tavani": max(1, len(bolgeler)),
+             # DINAMIK MIN (BaBa 14:3x / TeKiN 6320f2a): olcek.min_mm_dinamik -> manifest olcu_min_dinamik: true
+             # (yalniz true iken yazilir); koşucu onizlemede `kopru_uret.py min-hesapla` sorar.
+             "olcu_min_dinamik": o.get("min_mm_dinamik") is True,
              "kopru_bolgeleri": list(kayit.get("renk_bolgeleri") or []),
              "renk_sonekleri": [b["kod"] for b in bolgeler]}
     return satir, hatalar
@@ -322,11 +325,15 @@ def satir_birlestir(mevcut, uretilen):
             s[k] = uretilen[k]
         elif k == "fiyat" and isinstance(v, dict):
             s[k] = dict(v, adim_mm=uretilen["fiyat_adim_mm"])
+        elif k == "olcu_min_dinamik":
+            continue
         else:
             s[k] = v
     for k in TURETILEN:
         if k not in s:
             s[k] = uretilen[k]
+    if uretilen.get("olcu_min_dinamik"):
+        s["olcu_min_dinamik"] = True
     return s
 
 
@@ -389,6 +396,9 @@ def denetle(manifest_yol, uretilen, hatalar, bilgi=None):
                 kirmizi.append("sapma:%s.%s%s" % (kod, k, _ilk_fark(t.get(k), u[k])))
         if (t.get("fiyat") or {}).get("adim_mm") != u["fiyat_adim_mm"]:
             kirmizi.append("sapma:%s.fiyat.adim_mm" % kod)
+        if (t.get("olcu_min_dinamik") is True) != (u.get("olcu_min_dinamik") is True):
+            kirmizi.append("sapma:%s.olcu_min_dinamik manifest=%s kopru=%s" % (
+                kod, t.get("olcu_min_dinamik") is True, u.get("olcu_min_dinamik") is True))
         if (t.get("fiyat") or {}).get("renk_tavani") != u["renk_tavani"]:
             kirmizi.append("sapma:%s.fiyat.renk_tavani manifest=%s kopru=%s" % (
                 kod, (t.get("fiyat") or {}).get("renk_tavani"), u["renk_tavani"]))
