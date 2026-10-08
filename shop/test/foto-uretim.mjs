@@ -3283,15 +3283,23 @@ console.log("K2b) UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR");
   const fotoAcik = { acik: true, turler: [{ kod: "plaket", ad: "Kabartma plaket", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
   const girdiAcik = { acik: true, turler: [{ kod: "isimlik", ad: "İsimlik", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
   // Sentetik foto türü: girdi foto-1.
+  // K2b-fin: sentetik-f için sentetik bir ornek de eklendi (K2b-* testleri kart tıklaması yapmıyor
+  // ama uyumSonucBul içindeki kart araması artık başarılı — ileride kart-tabanlı testlerde boşluk bırakmaz).
   const sentetikFotoVeri = (VERI_KAYNAK_ORJ) => {
     const V = veriYukle(VERI_KAYNAK_ORJ);
     V.turler.push({ kod: "sentetik-f", ad: "Sentetik Foto", aciklama: "x", girdi: ["foto-1"], uretec: "litofan_uret",
       olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {},
       form: {}, fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
       ornek_kanit_izni: ["render"], ornek_notu: "t" });
+    V.ornekler.push({ tur: "sentetik-f", kanit: "render", olcu_mm: 100,
+      onizleme: "https://media.pruvo3d.com/foto/ornek/sentetik-f-1-render.webp",
+      render: "https://media.pruvo3d.com/foto/ornek/sentetik-f-1-render.webp",
+      not: "sentetik foto 100 mm" });
     return V;
   };
   // Sentetik girdi türü: girdi "form" (girdi türü, foto DEĞİL).
+  // K2b-fin: sentetik-g için sentetik bir ornek de eklendi (M-ADIM2 mutant testi kart tıklamasıyla
+  // ② başlığını günceller; orneksiz tür galeride kart oluşturmaz → baslik boş kalırdı).
   const sentetikGirdiVeri = (VERI_KAYNAK_ORJ) => {
     const V = veriYukle(VERI_KAYNAK_ORJ);
     V.turler.push({ kod: "sentetik-g", ad: "Sentetik Girdi", aciklama: "x", girdi: ["form"], uretec: "isimlik_uret",
@@ -3299,6 +3307,10 @@ console.log("K2b) UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR");
       form: { yazi: { tip: "metin", max: 20 } },
       fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
       ornek_kanit_izni: ["render"], ornek_notu: "t" });
+    V.ornekler.push({ tur: "sentetik-g", kanit: "render", olcu_mm: 100,
+      onizleme: "https://media.pruvo3d.com/foto/ornek/sentetik-g-1-render.webp",
+      render: "https://media.pruvo3d.com/foto/ornek/sentetik-g-1-render.webp",
+      not: "sentetik girdi 100 mm" });
     return V;
   };
 
@@ -3372,8 +3384,11 @@ console.log("K2b) UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR");
   ol("K2b-2 tasarım tarifi 5/5 geçer (Hayır → uyum OK)", gecer5 === 5, "basarili=" + gecer5);
 
   // 3) Foto türünde soru çıkar 3/3 (cevapsız): cevap yoksa "Tasarım mı, parça mı?" başlığı görünür.
+  //    K2b-fin: SPEC ile sayaç eşleşsin diye TAM 3 vaka (önce 5 vakaydı; sayım 5/5 olunca 3/3 beklentisi
+  //    ile çelişiyordu). Seçilen 3 vaka: "annemin portresi" (insan/kategori), "logo" (marka), "deniz manzarası" (mekan).
+  const soruVakalari = ["annemin portresi", "logo", "deniz manzarası"];
   let soruCikar = 0;
-  for (const t of tasarimGecer) {
+  for (const t of soruVakalari) {
     const r = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", t, undefined);
     if (r.soruVar && !r.aMetin) soruCikar++;
   }
@@ -3493,10 +3508,14 @@ console.log("K2b) UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR");
 
   // M-ADIM2: adim2EtiketiK2 hep "Foto ekle" döner. Girdi türünde ② başlığı "Foto ekle" (yanlış).
   //          Bunu test etmek için sentetik-g türünde kart tıkla, başlık oku.
-  const mAdim2Src = EKRAN_KAYNAK.replace(
-    "  function adim2EtiketiK2(kod) {\n    if (!F || !F.turBul) return \"Foto ekle\";\n    var t = F.turBul(kod);\n    if (!t || !t.girdi || !t.girdi.length) return \"Foto ekle\";\n    var ilk = t.girdi[0];\n    if (ilk === \"foto-1\" || ilk === \"foto-1-3\") return \"Foto ekle\";\n    return \"Girdini ekle\";\n  }",
-    "  function adim2EtiketiK2(kod) { return \"Foto ekle\"; }"
-  );
+  // K2b-fin: TEK satırlı .split().join() capa (kaynaktaki TEK "Girdini ekle" döndüren satırı hedefler;
+  // çok satırlı .replace() güvenilir değildi — bkz. K2b-fin spec). Eğer capa kaynakta yoksa
+  // mutant UYGULANMAMIŞ demektir → KIRMIZI "MUTANT_UYGULANMADI" (sessiz geçmesin).
+  const mAdim2Capa = 'return "Girdini ekle";';
+  const mAdim2Yerine = 'return "Foto ekle";';
+  const mAdim2SplitCount = EKRAN_KAYNAK.split(mAdim2Capa).length - 1;
+  const mAdim2MutantUygulandi = mAdim2SplitCount === 1;
+  const mAdim2Src = mAdim2MutantUygulandi ? EKRAN_KAYNAK.split(mAdim2Capa).join(mAdim2Yerine) : EKRAN_KAYNAK;
   const mAdim2Veri = sentetikGirdiVeri(VERI_KAYNAK);
   const mAdim2Ekran = await ekranKos(mAdim2Src, mAdim2Veri, { acik: true, turler: mAdim2Veri.turler },
     { is: "z".repeat(32), tur: "sentetik-g", olcu: 100 });
@@ -3506,38 +3525,53 @@ console.log("K2b) UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR");
   await new Promise((c) => setTimeout(c, 0));
   const mAdim2Baslik = [...mAdim2Ekran.bolum.agac()].find((n) => n.classList.contains("foto-uretim-adim2-baslik"));
   const mAdim2Yazi = mAdim2Baslik ? mAdim2Baslik.textContent : "";
+  // K2b-fin: mutant uygulanmadıysa KIRMIZI "MUTANT_UYGULANMADI" yansın (sessiz geçmesin).
+  const mAdim2Hata = !mAdim2MutantUygulandi ? "MUTANT_UYGULANMADI capa_sayisi=" + mAdim2SplitCount
+    : "baslik=" + mAdim2Yazi;
   ol("M-ADIM2 adim2EtiketiK2 hep 'Foto ekle' ⇒ girdi türünde başlık KIRMIZI (doğru 'Girdini ekle' olmalıydı)",
-     mAdim2Yazi === "② Foto ekle", "baslik=" + mAdim2Yazi);
+     mAdim2Yazi === "② Foto ekle", mAdim2Hata);
 
-  // M-B2: cizS3'teki ve guncelleSipButonu'daki `!S.b2Onay ||` silinir ⇒ B2 yokken sipBtn AÇIK.
-  //       cizS3 satırı: "sipBtn.disabled = !S.aydinlatmaOnay || !S.b2Onay || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);"
-  //       guncelleSipButonu satırı: "sipBtn.disabled = !S.aydinlatmaOnay || !S.b2Onay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);"
-  //       İki yerden de sil.
-  const mB2Src = EKRAN_KAYNAK.split(" || !S.b2Onay || ").join(" || ")
-    .split(" || !S.b2Onay || !!(nt").join(" || !!(nt");
+  // M-B2: cizS3 + guncelleSipButonu formülünden `!S.b2Onay ||` silinir ⇒ B2 yokken sipBtn AÇIK.
+  //       K2b-fin: formül TEK yere toplandı (sipBtnKapaliMi). Mutant bu TEK satırı hedefler.
+  //       cizS3 S.alan'ı temizlediği için aydinlatma kutusu DOM'da değil — S.aydinlatmaOnay'ı init'te
+  //       kayit.onay === F.onay_surum şartıyla true kuruyoruz (sonradan tıklanamaz). Sonra B2'yi tetikleyip
+  //       guncelleSipButonu'nun yeniden hesaplamasını sağlıyoruz.
+  //       Uygulanmadı assert: capa "function sipBtnKapaliMi(nt) {" kaynakta tam 1 kez geçmeli.
+  const mB2Capa = "function sipBtnKapaliMi(nt) {\n    return !S.aydinlatmaOnay || !S.b2Onay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);\n  }";
+  const mB2Yerine = "function sipBtnKapaliMi(nt) {\n    return !S.aydinlatmaOnay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);\n  }";
+  const mB2SplitCount = EKRAN_KAYNAK.split(mB2Capa).length - 1;
+  const mB2MutantUygulandi = mB2SplitCount === 1;
+  const mB2Src = mB2MutantUygulandi ? EKRAN_KAYNAK.split(mB2Capa).join(mB2Yerine) : EKRAN_KAYNAK;
+  // onay_surum değerini veri'den çek (kayit.onay === F.onay_surum şartı için).
+  const _onaySurum = (function () { const k = {}; vm.runInNewContext(VERI_KAYNAK, k, { filename: "v.js" }); return k.PRUVO_FOTO.onay_surum; })();
   const mB2E = await ekranKos(mB2Src, VERI, fotoAcik,
-    { is: "e".repeat(32), tur: "plaket", olcu: 100 },
+    { is: "e".repeat(32), tur: "plaket", olcu: 100, onay: _onaySurum },
     { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" },
     { turnstileOto: true, zamanlayici: true });
-  const mB2Onay = [...mB2E.bolum.agac()].find((n) => n.id === "foto-aydinlatma-onay");
-  if (mB2Onay && !mB2Onay.checked) { mB2Onay.checked = true; mB2Onay.tetikle("change"); }
+  // B2'yi tetikle → guncelleSipButonu() yeniden hesaplar (init'te B2=false, aydinlatma=true; mutantlı
+  // formül: !true || (nt && ... && S.fiyatKurus==null) = false; kapı AÇIK).
+  const mB2Inp = [...mB2E.bolum.agac()].find((n) => n.id === "foto-b2-onay");
+  if (mB2Inp) { mB2Inp.checked = false; mB2Inp.tetikle("change"); }
   const mB2Sip = [...mB2E.bolum.agac()].find((n) => n.id === "foto-sip-btn");
+  const mB2Hata = !mB2MutantUygulandi ? "MUTANT_UYGULANMADI capa_sayisi=" + mB2SplitCount
+    : "disabled=" + (mB2Sip && mB2Sip.disabled);
   ol("M-B2 disabled formülünden '!S.b2Onay ||' silinir ⇒ B2 yokken sipBtn AÇIK (KIRMIZI)",
-     mB2Sip && mB2Sip.disabled === false, "disabled=" + (mB2Sip && mB2Sip.disabled));
+     mB2Sip && mB2Sip.disabled === false, mB2Hata);
 
   // M-KAPI-B: kelime listesi boşaltılır ⇒ parça kelimesi geçer (DUR olmaz).
   //          UYUM_KOKLER dizisini boş yap.
-  const mKBsrc = EKRAN_KAYNAK.replace(
-    "var UYUM_KOKLER = [\n    \"parca\", \"parcas\", \"parcay\",",
-    "var UYUM_KOKLER = [\n    \"xx\","
-  ).replace(
-    "    \"aynisi\", \"ayni\", \"aynisini\", \"aynilar\", \"aynilari\"\n  ];",
-    "    \"xx\"\n  ];"
-  );
+  // K2b-fin: kaynaktaki UYUM_KOKLER artık TEK satırda; mutant onun TAMAMINI "var UYUM_KOKLER = [];" ile
+  // değiştirir. Çok satırlı replace güvenilir değildi (aradaki satırlarda gizli karakter / escape farkı).
+  const mKBCapa = 'var UYUM_KOKLER = ["parca", "parcas", "parcasi", "parcay", "parcayi", "parcam", "parcan", "parcalar", "parcalari", "parcalarin", "parcasin", "parcasini", "yedek", "yedegi", "yedekle", "yedekleri", "yedeklerin", "yedekten", "kirik", "kirigi", "kirdi", "kirildi", "kirilmis", "kirilir", "kiriklar", "kiriklari", "kayip", "kaybi", "kaybol", "kayboldu", "kaybolan", "kayipoldu", "kayipolmus", "mekanizma", "mekanizmasi", "mekanizmayi", "mekanizmalar", "mekanizmalari", "mekanizmada", "mekanizmadan", "disli", "dislisi", "disliyi", "disliler", "dislileri", "dislilerin", "dislide", "disliden", "kilit", "kilidi", "kilide", "kilitler", "kilitleri", "kilitlerin", "kilitten", "klips", "klipsi", "klipsler", "klipsleri", "klipslerin", "klipsten", "yuva", "yuvasi", "yuvayi", "yuvalar", "yuvalari", "yuvalarin", "yuvada", "yuvadan", "orijinal", "orijinali", "orijinale", "orijinalden", "orijinalinde", "aynisi", "ayni", "aynisini", "aynilar", "aynilari", "aynisindan"];';
+  const mKBYerine = "var UYUM_KOKLER = [];";
+  const mKBSplitCount = EKRAN_KAYNAK.split(mKBCapa).length - 1;
+  const mKBMutantUygulandi = mKBSplitCount === 1;
+  const mKBsrc = mKBMutantUygulandi ? EKRAN_KAYNAK.split(mKBCapa).join(mKBYerine) : EKRAN_KAYNAK;
   const mKBekran = await uyumSonucBul(mKBsrc, "sentetik-f", "kırıldı", undefined);
+  const mKBHata = !mKBMutantUygulandi ? "MUTANT_UYGULANMADI capa_sayisi=" + mKBSplitCount
+    : JSON.stringify({ soruVar: mKBekran.soruVar, aMetin: mKBekran.aMetin });
   ol("M-KAPI-B kelime listesi boşaltılır ⇒ parça kelimesi AÇIK soru çıkar (DUR olmaz)",
-     mKBekran.soruVar && !mKBekran.aMetin,
-     JSON.stringify({ soruVar: mKBekran.soruVar, aMetin: mKBekran.aMetin }));
+     mKBekran.soruVar && !mKBekran.aMetin, mKBHata);
 
   // M-KAPI-C: belirsiz → uygun yapılır (soru atlanır) ⇒ belirsiz tıklanır ama uyum OK (soru kaybolur).
   //          "if (foto) { if (cevap === true) return 'uygun_degil'; if (cevap === false) return 'uygun'; return 'belirsiz'; }"
@@ -3554,21 +3588,51 @@ console.log("K2b) UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR");
 
   // M-KAPI-SIRA: kapı kontrolü 2D isteğinden SONRAYA alınır ⇒ "kırıldı" yazınca POST 1.
   //             onizleOlustur'daki uyumKontrol BLOĞUNU sona (POST'tan sonra) taşı.
-  //             post body kontrolü: uretimNotu "kırıldı" iken POST /foto/onizleme gitmemeli.
-  const mKSsrc = EKRAN_KAYNAK.replace(
-    "    if (uyum !== \"uygun\") {\n      cizUyum();\n      guncelleS1Buton();\n      return;\n    }\n    if (!S.dosya) { adimKoy(\"S1\", \"Lütfen fotoğrafını seç.\", true); return; }",
-    "    if (!S.dosya) { adimKoy(\"S1\", \"Lütfen fotoğrafını seç.\", true); return; }\n    if (uyum !== \"uygun\") { return; }"
-  );
-  const mKSistek = await fetchSayac(mKSsrc, "kırıldı", undefined);
-  // uretimNotu "kırıldı" + cevap undefined → "uygun_degil" (kelime DUR). Mutant kapıyı sonra kontrol ediyor:
-  // önce dosya kontrolü (dosya yok → return; ama dosya da yok), sonra uyum kontrolü.
-  // Aslında: dosya yoksa erken return; fetch 0. Ama buton zaten disabled. POST yok.
-  // Daha iyi test: dosyayı simüle etmek zor. Bunun yerine "kırıldı" + cevap=true (Evet) ile kapıyı AÇ,
-  // ama mutant kapıyı POST'tan SONRA kontrol ederse POST gider (uyumKontrol POST'tan sonra). 1 istek olur.
-  // Bu daha güçlü: A ekranı DOM'da olsa bile POST gider (uyumsuz).
-  const mKSistek2 = await fetchSayac(mKSsrc, "annemin portresi", true);
+  // K2b-fin: mutant iki şeyi birden yapar — (1) gate bloğunu kaldırır (POST'a giden yolu açar),
+  // (2) hazirla fonksiyonunu kucultGorsel yerine senkron cb'ye çevirir (vm context'te FileReader/
+  // Image/canvas YOK; kucultGorsel hata verir, POST gönderilmez — mutant gözlemlenemez).
+  // Kontrol vakasında (mutantsız) uyum !== "uygun" → kapı erken return → 0 istek. Mutantlı vakada
+  // kapı yok + hazirla senkron → POST 1 istek (S.dosya + kayit.onay + captchaToken1 önkoşulları test'te kurulur).
+  const mKSCapa = "    var uyum = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);\n    if (uyum !== \"uygun\") {\n      cizUyum();\n      guncelleS1Buton();\n      return;\n    }";
+  const mKSGateYerine = "    // M-KAPI-SIRA mutant: gate kaldırıldı (POST'tan sonra)";
+  const mKSHazirlaCapa = "    var hazirla = konsept ? function (cb) { cb(null, \"\"); } : function (cb) { kucultGorsel(S.dosya, cb); };";
+  const mKSHazirlaYerine = "    var hazirla = function (cb) { cb(null, \"data:image/jpeg;base64,xxx\"); }; // M-KAPI-SIRA mutant: dosya işleme atlandı";
+  const mKSSplitCount = EKRAN_KAYNAK.split(mKSCapa).length - 1;
+  const mKSHazirlaSplitCount = EKRAN_KAYNAK.split(mKSHazirlaCapa).length - 1;
+  const mKSMutantUygulandi = mKSSplitCount === 1 && mKSHazirlaSplitCount === 1;
+  const mKSsrc = mKSMutantUygulandi
+    ? EKRAN_KAYNAK.split(mKSCapa).join(mKSGateYerine).split(mKSHazirlaCapa).join(mKSHazirlaYerine)
+    : EKRAN_KAYNAK;
+  // Önkoşulları kuran helper: sentetik-f + uretimNotu + dosya mock + onay + captcha.
+  const mKSHazirla = async (kaynak, uretimMetni, cevap) => {
+    const V = sentetikFotoVeri(VERI_KAYNAK);
+    const acik = { acik: true, turler: V.turler };
+    const _onaySur = (function () { const k = {}; vm.runInNewContext(VERI_KAYNAK, k, { filename: "v.js" }); return k.PRUVO_FOTO.onay_surum; })();
+    const kayit = { is: "g".repeat(32), tur: "sentetik-f", olcu: 100, onay: _onaySur };
+    const e = await ekranKos(kaynak, V, acik, kayit, undefined, { turnstileOto: true, zamanlayici: true });
+    const dd = () => [...e.bolum.agac()];
+    // Dosya mock'la (file input change ile S.dosya dolar).
+    const dosyaInp = dd().find((n) => n.id === "foto-dosya");
+    if (dosyaInp) { dosyaInp.files = [{ name: "x.jpg", type: "image/jpeg", size: 1024 }]; dosyaInp.tetikle("change"); }
+    // uretimNotu yaz → cizUyum çağrılsın.
+    const ta = dd().find((n) => n.id === "foto-not");
+    if (ta) { ta.value = uretimMetni; ta.tetikle("input"); }
+    if (cevap === true) { const ev = dd().find((n) => n.id === "foto-uyum-evet"); if (ev) ev.tetikle("click"); }
+    // Butonu zorla aç (guncelleS1Buton uyumOK'a baktığı için kapalı olur; mutant kapı kalkınca POST'a
+    // gidebilmesi için tetikleme öncesi enabled yapıyoruz).
+    const btn = dd().find((n) => n.id === "foto-onizle-buton");
+    if (btn) { btn.disabled = false; btn.tetikle("click"); }
+    const dosyaInp2 = dd().find((n) => n.id === "foto-dosya");
+    const dosyaInpVal = dosyaInp2 && dosyaInp2.files ? dosyaInp2.files[0] : null;
+    console.log("DEBUG mKS: dosyaInp found=", !!dosyaInp2, "files=", dosyaInpVal && dosyaInpVal.name, "istekler=", e.istekler.length, "uyum=" + "?" + " ta=" + (dosyaInp2 && dosyaInp2.value));
+    return e.istekler.length;
+  };
+  // Kontrol vakası (mutantsız): uyum !== "uygun" → kapı erken return → 0 istek.
+  const mKSKontrol = await mKSHazirla(EKRAN_KAYNAK, "kırıldı", true);
+  // Mutant vakası: kapı kalkmış → dosya + diğer önkoşullar → POST 1.
+  const mKSistek = await mKSHazirla(mKSsrc, "kırıldı", true);
   ol("M-KAPI-SIRA kapı kontrolü 2D isteğinden SONRAYA ⇒ parça kabulünde POST KIRMIZI (1 istek)",
-     mKSistek2 === 1, "istek=" + mKSistek2);
+     mKSKontrol === 0 && mKSistek === 1, "kontrol=" + mKSKontrol + " mutant=" + mKSistek);
 
   // M-IPTAL: İptal ② çocuklarını silerse ⇒ İptal sonrası ② içeriği BOŞ (alaniUyum, alanDOM yok).
   //         iptalBtn handler'ına adim2.firstChild.removeChild ekle.

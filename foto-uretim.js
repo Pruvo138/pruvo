@@ -64,19 +64,9 @@
   var UYUM_SORU = "Bu bir yedek ya da mekanik parça mı?";
   // Anahtar kelime KÖKLERİ (küçük harfe + Türkçe ı/İ normalize edilmiş metinde aranır). Liste BaBa
   // hükmünün örneklerini + Türkçe eş biçimleri kapsar: "parçası", "yedeği", "kırıldı", "dişlisi" vb.
-  var UYUM_KOKLER = [
-    "parca", "parcas", "parcasi", "parcay", "parcayi", "parcam", "parcan", "parcalar", "parcalari", "parcalarin", "parcasin", "parcasini",
-    "yedek", "yedegi", "yedekle", "yedekleri", "yedeklerin", "yedekten",
-    "kirik", "kirigi", "kirdi", "kirildi", "kirilmis", "kirilir", "kiriklar", "kiriklari", "kirildi",
-    "kayip", "kaybi", "kaybol", "kayboldu", "kaybolan", "kayipoldu", "kayipolmus",
-    "mekanizma", "mekanizmasi", "mekanizmayi", "mekanizmalar", "mekanizmalari", "mekanizmada", "mekanizmadan",
-    "disli", "dislisi", "disliyi", "disliler", "dislileri", "dislilerin", "dislide", "disliden",
-    "kilit", "kilidi", "kilide", "kilitler", "kilitleri", "kilitlerin", "kilitten",
-    "klips", "klipsi", "klipsler", "klipsleri", "klipslerin", "klipsten",
-    "yuva", "yuvasi", "yuvayi", "yuvalar", "yuvalari", "yuvalarin", "yuvada", "yuvadan",
-    "orijinal", "orijinali", "orijinale", "orijinalden", "orijinalinde",
-    "aynisi", "ayni", "aynisini", "aynilar", "aynilari", "aynisindan"
-  ];
+  // K2b-fin: TEK satır — mutantın `.split("var UYUM_KOKLER = [").join(...)` ile TEK hamlede
+  // boşaltabilmesi için (çok satırlı replace güvenilir değil; bkz. M-KAPI-B kapama testi).
+  var UYUM_KOKLER = ["parca", "parcas", "parcasi", "parcay", "parcayi", "parcam", "parcan", "parcalar", "parcalari", "parcalarin", "parcasin", "parcasini", "yedek", "yedegi", "yedekle", "yedekleri", "yedeklerin", "yedekten", "kirik", "kirigi", "kirdi", "kirildi", "kirilmis", "kirilir", "kiriklar", "kiriklari", "kayip", "kaybi", "kaybol", "kayboldu", "kaybolan", "kayipoldu", "kayipolmus", "mekanizma", "mekanizmasi", "mekanizmayi", "mekanizmalar", "mekanizmalari", "mekanizmada", "mekanizmadan", "disli", "dislisi", "disliyi", "disliler", "dislileri", "dislilerin", "dislide", "disliden", "kilit", "kilidi", "kilide", "kilitler", "kilitleri", "kilitlerin", "kilitten", "klips", "klipsi", "klipsler", "klipsleri", "klipslerin", "klipsten", "yuva", "yuvasi", "yuvayi", "yuvalar", "yuvalari", "yuvalarin", "yuvada", "yuvadan", "orijinal", "orijinali", "orijinale", "orijinalden", "orijinalinde", "aynisi", "ayni", "aynisini", "aynilar", "aynilari", "aynisindan"];
   // Tek bir regex'e derlenir; Türkçe karakterlere özel kelime sınırı (JS \b Türkçe'de tutarsız).
   var UYUM_HARF = "[a-zçğıöşü0-9]";
   var UYUM_DESEN = new RegExp("(?:^|[^a-zçğıöşü0-9])(?:" + UYUM_KOKLER.join("|") + ")(?:[^a-zçğıöşü0-9]|$)");
@@ -2445,7 +2435,9 @@
     sipBtn.addEventListener("click", function () { sepeteEkle(nt, fiyat, rs); });
     // Aydınlatma onayı + B2 sorumluluk satırı olmadan sipariş düğmesi açılmaz (K2: B2 tik kapısı);
     // türetilmiş eksende bu önizlemenin ölçülmüş fiyatı yoksa da açılmaz (fiyatsız sipariş yok).
-    sipBtn.disabled = !S.aydinlatmaOnay || !S.b2Onay || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);
+    // K2b-fin: formül TEK fonksiyona toplandı (cizS3 + guncelleSipButonu aynı yerden okur; mutant testi
+    // birebir çalışır — bkz. M-B2 kapama testi).
+    sipBtn.disabled = sipBtnKapaliMi(nt);
     butonG.appendChild(sipBtn);
     if (!S.aydinlatmaOnay) {
       butonG.appendChild(el("p", "foto-uretim-ayrinti", "Aydınlatma metni güncellendi; sipariş için yeni önizleme oluştur."));
@@ -2500,12 +2492,16 @@
   }
   // Tik kapısı: aydınlatma onayı ve B2 satırı değiştikçe "Sepete ekle" disabled güncellenir.
   // NOT: aynı formül cizS3'te zaten yazılı; burada B2 değişiminde yeniden hesaplanır (tek kapı).
+  // K2b-fin: B2/aydinlatma/fiyat kapı formülü TEK yerde (cizS3 + guncelleSipButonu çağırır).
+  function sipBtnKapaliMi(nt) {
+    return !S.aydinlatmaOnay || !S.b2Onay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);
+  }
   function guncelleSipButonu() {
     if (!S.alan) return;
     var sipBtn = document.getElementById("foto-sip-btn");
     if (!sipBtn) return;
     var nt = seciliTurBul();
-    sipBtn.disabled = !S.aydinlatmaOnay || !S.b2Onay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);
+    sipBtn.disabled = sipBtnKapaliMi(nt);
   }
   // ③ → ① dönüşünde sessionStorage'daki tür seçimi temizlenir.
   function turSecimiKayitTemizle() {
