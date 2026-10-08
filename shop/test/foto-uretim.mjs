@@ -2264,6 +2264,48 @@ console.log("AK) PLAKET ALT KENAR KALINLIGI — ayak ureteci girdisi alt_kenar_m
 
 // ================================================================ MUTANTLAR
 
+console.log("RKU) KOSULLU RENK BOLGESI EKRANDA — pasif bolgenin seçicisi GIZLI, koşul açılınca görünür (BaBa 8 Eki 16:0x)");
+{
+  // Sentetik D satiri: logo deseni (taban Var/Yok + taban rengi yalniz "Var"da) + ses deseni (baslik dolu -> yazi).
+  const sentetikR = (kaynakVeri) => {
+    const V = veriYukle(kaynakVeri);
+    V.turler.push({ kod: "sentetik-r", ad: "Logo", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",
+      olcu_mm: { en_az: 80, en_cok: 200 },
+      renk_bolgeleri: [{ kod: "taban", ad: "Taban", renkler: ["Beyaz", "Siyah"] },
+                       { kod: "logo", ad: "Logo", renkler: ["Siyah", "Beyaz"] },
+                       { kod: "yazi", ad: "Yazı", renkler: ["Kırmızı", "Beyaz"] }],
+      renk_kosul: { taban: [{ alan: "taban", degerler: ["Var"] }], yazi: [{ alan: "baslik", dolu: true }] },
+      malzemeler: {},
+      form: { taban: { tip: "secim", etiket: "Taban", secenekler: ["Yok", "Var"] }, baslik: { tip: "metin", max: 20, zorunlu: false, varsayilan: "" } },
+      fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 3 }, ornek_kanit_izni: ["render"], ornek_notu: "t" });
+    V.ornekler.push({ tur: "sentetik-r", kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/t-io.webp",
+      render: "https://media.pruvo3d.com/t-ir.webp", not: "t" });
+    return V;
+  };
+  const acikR = { acik: true, turler: [{ kod: "sentetik-r", ad: "Logo", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
+  const rku = async (kaynak) => {
+    const s = {};
+    const e = await ekranKos(kaynak, sentetikR(VERI_KAYNAK), acikR, { tur: "sentetik-r", olcu: 100 });
+    const d = () => [...e.bolum.agac()];
+    const grup = (b) => d().find((n) => n.getAttribute && n.getAttribute("data-renk-bolge") === b) || null;
+    const gorunur = (b) => { const g = grup(b); return !!g && g.hidden !== true; };
+    const sec = d().find((n) => n.id === "foto-param-taban"), bas = d().find((n) => n.id === "foto-param-baslik");
+    // Başlangıç: taban "Yok" (ilk seçenek), başlık boş -> taban + yazı seçicisi GİZLİ, logo görünür.
+    s.ILK = !!sec && !!bas && !gorunur("taban") && !gorunur("yazi") && gorunur("logo");
+    if (sec) { sec.value = "Var"; sec.tetikle("change"); }
+    if (bas) { bas.value = "Ada"; bas.tetikle("input"); }
+    s.ACIK = gorunur("taban") && gorunur("yazi") && gorunur("logo");
+    if (sec) { sec.value = "Yok"; sec.tetikle("change"); }
+    s.GERI = !gorunur("taban") && gorunur("yazi");
+    return s;
+  };
+  const s = await rku(EKRAN_KAYNAK);
+  ol("RKU1 taban 'Yok' + başlık boş -> taban/yazı renk seçicisi GİZLİ, logo görünür", s.ILK === true, JSON.stringify(s));
+  ol("RKU2 taban 'Var' + başlık dolu -> iki seçici görünür; taban 'Yok'a dönünce yeniden gizli", s.ACIK === true && s.GERI === true, JSON.stringify(s));
+  const m = await rku(EKRAN_KAYNAK.replace("      if (b) d[i].hidden = !F.renkBolgesiAktif(S.tur, b, p);\n", ""));
+  ol("RKU-M1 gizleme satırı silindi -> RKU KIRMIZI", m.ILK === false, JSON.stringify(m));
+}
+
 console.log("MUTANTLAR (gecici kopya; calisma agacina yazilmaz)");
 const GECICI = path.join(SHOP, "foto-test-tmp-" + process.pid);
 process.on("exit", () => { fs.rmSync(GECICI, { recursive: true, force: true }); });
@@ -2787,6 +2829,106 @@ for (const [ad, capa, yerine, olmeli] of RK_MUTANTLAR) {
   const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
   ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
      Object.keys(s).length === 6 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
+}
+
+// ================================================================ RKK — RENK TAVANI + KOSULLU BOLGE + PALET ESLEMESI
+
+/**
+ * BaBa 8 Eki 15:3x-15:5x: tavan = uretecin boyanabilir renk_* sayisi (plaket/figur 4, bust 2); "ucret alinan her ek
+ * renk uretime BAGLI" — renk_kosul'u saglanmayan bolgenin (logo tabani "Yok", ses basligi bos) rengi sayilmaz ve
+ * satira/uretim secimine GIRMEZ; bust palet renkleri uretec girdisinde bolgelere sirayla gider (taban, rolyef).
+ * Donus {TAVAN, LOGO, SES, BUST} gecti mi; temiz SQLite + R2 ile.
+ */
+async function renkKosulSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const r2k = r2Kur();
+  const e2 = envKur(k.d1, r2k);
+  const yedek = VERI.ornekler.splice(0);
+  const s = {};
+  try {
+    for (const t of ["plaket", "figur", "bust", "logo", "ses"]) {
+      VERI.ornekler.push({ tur: t, kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/rk-o.webp",
+                           render: "https://media.pruvo3d.com/rk-r.webp", not: "t" });
+      await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES (?, 1, 'x')").bind(t).run();
+    }
+    let no = 0;
+    const isKur = async (tur, parametreler) => {
+      const is = (++no).toString(16).padStart(32, "a");
+      const asama = fm.uretecOnizlemeTuru(tur) ? "onizleme-hazir" : "hazir";
+      await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, ?, 100, 'z', ?, ?, 'gorev-rkk', ?)")
+        .bind(is, tur, new Date().toISOString(), asama, new Date().toISOString()).run();
+      if (parametreler) {
+        await r2k.put(fm.uretecOnizlemeAnahtari(is, "girdi.json"),
+          new TextEncoder().encode(JSON.stringify({ sozlesme: 1, kategori: tur, parametreler })), {});
+      }
+      return is;
+    };
+    const malzeme = (tur) => {
+      const m = {}, mb = VERI.turBul(tur).malzemeler || {};
+      for (const b of Object.keys(mb)) { m[b + "_malzeme"] = mb[b][0]; }
+      return m;
+    };
+    const fiyatla = async (is, ek) => fm.fotoKalemFiyatla(e2, { foto_is: is, olcu_mm: 100, adet: 1, ...ek }, Date.now());
+    const red = (r) => r.kod === 400 && !!r.hata && r.hata.hata === "gecersiz-renk";
+    // TAVAN: plaket 5 / figur 5 / bust 3 renk -> 400 · tavan icinde (4 / 4 / 2) fiyatlanir.
+    const P5 = ["Beyaz", "Siyah", "Gri", "Mavi", "Sarı"];
+    const isP = await isKur("plaket"), isF = await isKur("figur"), isB = await isKur("bust", {});
+    s.TAVAN = red(await fiyatla(isP, { renkler: P5 })) && red(await fiyatla(isF, { renkler: P5 })) &&
+              red(await fiyatla(isB, { renkler: P5.slice(0, 3), secim: malzeme("bust") })) &&
+              (await fiyatla(isP, { renkler: P5.slice(0, 4) })).satir?.birim_kurus === 130000 &&
+              (await fiyatla(isB, { renkler: P5.slice(0, 2), secim: malzeme("bust") })).satir?.birim_kurus === 110000;
+    // LOGO: taban "Yok" iken farkli taban rengi +0 ve satir/uretim seciminde YOK; taban "Var" iken +100.
+    const lsec = { ...malzeme("logo"), taban_renk: "Beyaz", logo_renk: "Siyah" };
+    const lYok = await fiyatla(await isKur("logo", { taban: "Yok" }), { secim: lsec });
+    const lVar = await fiyatla(await isKur("logo", { taban: "Var" }), { secim: lsec });
+    s.LOGO = !!lYok.satir && lYok.satir.birim_kurus === 100000 && !("taban_renk" in lYok.satir.foto_secim) &&
+             !/Taban: .*Beyaz/.test(lYok.satir.renk) && !!lVar.satir && lVar.satir.birim_kurus === 110000 &&
+             lVar.satir.foto_secim.taban_renk === "Beyaz";
+    // SES: baslik bos -> yazi rengi sayilmaz (2 renk); baslik dolu -> 3 renk. Girdi okunamazsa koşullu bolge PASIF.
+    const ssec = { ...malzeme("ses"), plaka_renk: "Beyaz", cubuk_renk: "Siyah", yazi_renk: "Kırmızı" };
+    const sBos = await fiyatla(await isKur("ses", { baslik: "" }), { secim: ssec });
+    const sDolu = await fiyatla(await isKur("ses", { baslik: "Ada" }), { secim: ssec });
+    const sYok = await fiyatla(await isKur("ses", null), { secim: ssec });
+    s.SES = !!sBos.satir && sBos.satir.birim_kurus === 110000 && !!sDolu.satir && sDolu.satir.birim_kurus === 120000 &&
+            sDolu.satir.foto_secim.yazi_renk === "Kırmızı" && !!sYok.satir && sYok.satir.birim_kurus === 110000;
+    // BUST: odenen 2 palet rengi uretec girdisinde taban/rolyef bolgelerine sirayla.
+    const g2 = fm.uretecGirdiJson("PR-RKK", { kalem: 0, tur: "bust", olcu_mm: 100, secim: {}, renkler: ["Lacivert", "Kırmızı"] });
+    const g1 = fm.uretecGirdiJson("PR-RKK", { kalem: 0, tur: "bust", olcu_mm: 100, secim: {}, renkler: ["Gri"] });
+    s.BUST = JSON.stringify(g2.renkler) === '{"taban":"Lacivert","rolyef":"Kırmızı"}' &&
+             JSON.stringify(g1.renkler) === '{"taban":"Gri"}';
+  } finally {
+    VERI.ornekler.splice(0, VERI.ornekler.length, ...yedek);
+    k.kapat();
+  }
+  return s;
+}
+
+console.log("RKK) RENK TAVANI + KOSULLU BOLGE + PALET ESLEMESI — odenen her renk uretime bagli (BaBa 8 Eki 15:5x)");
+{
+  const s = await renkKosulSenaryolar(foto);
+  ol("RKK1 plaket 5 / figur 5 / bust 3 renk -> 400 gecersiz-renk · tavan icinde plaket 4 = 1.300 TL, bust 2 = 1.100 TL",
+     s.TAVAN === true, JSON.stringify(s));
+  ol("RKK2 logo taban 'Yok' -> taban rengi +0 TL ve secimde YOK · 'Var' -> +100 TL", s.LOGO === true, JSON.stringify(s));
+  ol("RKK3 ses baslik bos -> yazi rengi +0 · dolu -> +100 · girdi okunamazsa koşullu bolge pasif (fail-closed)",
+     s.SES === true, JSON.stringify(s));
+  ol("RKK4 bust palet renkleri uretec girdisinde taban/rolyef'e sirayla (2 renk -> 2 bolge, 1 renk -> taban)",
+     s.BUST === true, JSON.stringify(s));
+}
+const RKK_MUTANTLAR = [
+  ["RKK-M1 PASIF BOLGE RENGI SAYILDI", "VERI.aktifBolgeRenkleri(turKod, (sc && sc.renk) || {}, p)", "((sc && sc.renk) || {})", ["LOGO", "SES"]],
+  ["RKK-M2 PARAMETRE OKUNMADI (hep bos)", "const p = kayit.renk_kosul ? await onizlemeParametreleri(env, is.is_no) : {};",
+   "const p = {};", ["LOGO", "SES"]],
+  ["RKK-M3 BUST PALET ESLEMESI DUSTU", "const renkler = VERI.paletBolgeRenkleri(k.tur, k.renkler), malzemeler = {};",
+   "const renkler = {}, malzemeler = {};", ["BUST"]],
+  ["RKK-MK KONTROL", "// Koşullu bolge (renk_kosul) varsa", "// Koşullu  bolge (renk_kosul) varsa", []],
+];
+for (const [ad, capa, yerine, olmeli] of RKK_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const s = await renkKosulSenaryolar(fm);
+  const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 4 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
 }
 
 // ================================================================ AO — AYDINLATMA ONAYI (tek kutu, taslak-2)

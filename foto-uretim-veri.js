@@ -103,6 +103,13 @@
     //   renk_secimi    : "palet" = müşteri VERI.PLA_RENKLERI'nden 1..renk_tavani renk seçer (Okan 8 Eki 14:2x:
     //                    plaket/figür/büst "Müşteri 1–4 renk seçsin"); alan yoksa renk sayısı = renk_bolgeleri'nde
     //                    seçilen FARKLI renk sayısı (bölge yoksa 1)
+    //                    RENK TAVANI (BaBa 8 Eki 15:4x): renk_tavani = üretecin BOYANABİLİR renk_* parametre sayısı
+    //                    (köprü türlerinde kopru-manifest-uret.py --denetle ölçer); palet türünde sağlayıcı kolu 4.
+    //   renk_kosul     : {bölge: [{alan, degerler} | {alan, dolu: true}]} — bölge YALNIZ koşul sağlanınca üretilir;
+    //                    pasif bölgenin rengi seçicide GİZLİ ve renk sayısına (para) GİRMEZ (VERI.renkBolgesiAktif).
+    //                    Ücret alınan her renk üretime bağlı: tools/renk-esleme-test.py esle_<kod> dönüşüyle ölçer.
+    //   palet_bolgeleri: palet türü deterministik üreteçle basılıyorsa renkler[i] -> palet_bolgeleri[i] (büst:
+    //                    taban, rolyef); 2. renk seçilince üreteç iki renkli basar (ödenen renk basılır).
     //   olcu_mm        : {en_az, en_cok} — en uzun boyut (mm); bu aralık dışı ölçü RED
     //   olcu_ekseni    : "sabit" (sürgü = hedef ölçü) | "turetilmis" (köprü kaydında belirleyen parametre YOK:
     //                    sürgü YOK, ölçü form parametrelerinden doğar; fiyat = önizlemede ÖLÇÜLEN uzun kenar ×
@@ -176,7 +183,7 @@
         // ABS YOK: litofan Dekorasyon sınıfıdır (secenekler.js FILAMENT_KATEGORI_HARIC).
         malzemeler: { panel: ["PLA", "PETG"], ayak: ["PLA", "PETG", "ASA"] },
         form: {},
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 2 },
         // Okan kararı 7 Eki 2026 (24 kategori 1 hafta, G1 "motor + litofan canlı"): litofan da
         // render örneğiyle açılır (sentetik görselden üretilen 3MF'in arkadan ışıklı render'ı).
         ornek_kanit_izni: ["baski", "render"],
@@ -207,7 +214,7 @@
           plaka_sekli: { tip: "secim", etiket: "Plaka şekli", secenekler: ["Dikdörtgen", "Yuvarlak köşe", "Oval"] },
           montaj_delikleri: { tip: "secim", etiket: "Montaj delikleri", secenekler: ["Yok", "Var"] }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 2 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Yazı plakanın üzerinde kabartmadır. Uzun metin küçülür; en küçük harf 6 mm'dir, sığmayan metin için sipariş alınmaz.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; isimlik bu yazı ve ölçüyle üretilir, renk tonu filamente göre biraz değişebilir."
@@ -230,7 +237,7 @@
           alt_yazi: { tip: "metin", etiket: "Alt yazı (isteğe bağlı)", max: 40, zorunlu: false },
           cerceve: { tip: "secim", etiket: "Çerçeve", secenekler: ["Yok", "Var"] }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 2 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Kodu göndermeden önce telefonla okutarak kontrol ederiz. Bağlantının çalışması verdiğin adrese bağlıdır.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; plakadaki kod bu düzende üretilir."
@@ -251,7 +258,8 @@
         form: {
           taban: { tip: "secim", etiket: "Taban plakası", secenekler: ["Var", "Yok"] }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 2 },
+        renk_kosul: { taban: [{ alan: "taban", degerler: ["Var"] }] },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Yalnız düz renkli alanlar üretilir; gölge ve renk geçişi çıkmaz. 0,8 mm'den ince çizgiler siparişi durdurur.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; logonun dolu alanları kabartma olarak üretilir."
@@ -272,7 +280,7 @@
         form: {
           sap: { tip: "secim", etiket: "Sap", secenekler: ["Silindir", "Topuz"] }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 2 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Plastik gövdeli bir damgadır; resmî kurum mührü yerine geçmez. 0,6 mm'den ince çizgiler kalınlaştırılır.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; damga yüzü ayna görüntüsüdür, kâğıda bastığında logonun kendisi çıkar."
@@ -292,7 +300,7 @@
         form: {
           mod: { tip: "secim", etiket: "Şablon türü", secenekler: ["Delikli", "Dolu silüet"] }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 1 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Şablon 1,2–2 mm kalınlığında bir plakadır; içteki adalar ince köprülerle tutturulur ve bu köprüler boyamada iz bırakır.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; açık alanlar delik, koyu alanlar plakadır."
@@ -312,7 +320,7 @@
         form: {
           parca: { tip: "secim", etiket: "Parça sayısı", secenekler: ["12", "20", "30"] }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 1 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Yapboz tek renkli kabartmadır; renkli baskı değildir. Parçalar elle takılır; çocuk oyuncağı olarak belgelendirilmemiştir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir."
@@ -415,7 +423,13 @@
             ornek: true
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 1 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 1
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; düzenleyici kutu bu parametrelerle üretilir.",
@@ -532,7 +546,13 @@
             ]
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 1 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 1
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; adaptör / burç / pul bu parametrelerle üretilir.",
@@ -688,7 +708,13 @@
             kosul: [{ alan: "tip", degerler: ["v_kasnak"] }]
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 1 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 1
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; dişli / kasnak bu parametrelerle üretilir.",
@@ -810,7 +836,13 @@
             kosul: [{ alan: "topuz", degerler: [true] }]
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 1 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 1
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; kapak / tıpa bu parametrelerle üretilir.",
@@ -918,7 +950,13 @@
             ornek: false
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 1 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 1
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; düğme / topuz bu parametrelerle üretilir.",
@@ -1089,7 +1127,13 @@
             kosul: [{ alan: "alt_tur", degerler: ["mentese"] }]
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 1 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 1
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; klips / kelepçe / menteşe bu parametrelerle üretilir.",
@@ -1238,7 +1282,13 @@
             ornek: false
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 1 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 1
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; saksı / vazo bu parametrelerle üretilir.",
@@ -1324,7 +1374,16 @@
             birim: ""
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 2
+        },
+        renk_kosul: {
+          rolyef: [{ alan: "iki_renk", degerler: [true] }]
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; yukseklik rolyefi bu parametrelerle üretilir.",
@@ -1458,7 +1517,16 @@
             ornek: 6
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 3
+        },
+        renk_kosul: {
+          yazi: [{ alan: "baslik", dolu: true }]
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; ses dalgasi bu parametrelerle üretilir.",
@@ -1562,7 +1630,16 @@
             varsayilan: "kucult"
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 3
+        },
+        renk_kosul: {
+          yazi: [{ alan: "ust_yazi", dolu: true }]
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; braille bu parametrelerle üretilir.",
@@ -1675,7 +1752,13 @@
             varsayilan: "sans-kalin"
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 2
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; topografya bu parametrelerle üretilir.",
@@ -1828,7 +1911,13 @@
             zorunlu: false
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 3
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; sehir silueti bu parametrelerle üretilir.",
@@ -1971,7 +2060,13 @@
             varsayilan: "sans-kalin"
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 2
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; yildiz haritasi bu parametrelerle üretilir.",
@@ -2129,7 +2224,13 @@
             varsayilan: "sol"
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 2
+        },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; koordinat / tarih bu parametrelerle üretilir.",
@@ -2180,7 +2281,14 @@
             ornek: false
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: {
+          formul: "mm_x_10tl",
+          adim_mm: 10,
+          taban_tl: 600,
+          ek_renk_tl: 100,
+          renk_tavani: 2
+        },
+        palet_bolgeleri: ["taban", "rolyef"],
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Fotoğraf gri-ton yükseklik haritasına çevrilir; kabartma büst/madalyon olarak üretilir, ince ayrıntılar sadeleşir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; kabartma büst bu parametrelerle üretilir.",
@@ -2710,6 +2818,41 @@
   VERI.renkPaleti = function (kod) {
     var t = VERI.turBul(kod);
     return !!t && t.renk_secimi === "palet";
+  };
+  // KOŞULLU RENK BÖLGESİ (BaBa 8 Eki 15:5x: "ücret alınan her ek renk üretime BAĞLI"): bölge YALNIZ türün
+  // renk_kosul'u sağlanınca üretilir (logo tabanı "Var", rölyef iki renk, ses başlığı / braille üst yazısı dolu).
+  // p = parametreler (sunucuda önizleme girdi.json'u, istemcide formun AKTİF değerleri). Koşul biçimi bozuksa
+  // bölge PASİF (fail-closed: üretileceği kanıtlanmayan renk ücretlenmez).
+  VERI.renkBolgesiAktif = function (kod, bolge, p) {
+    var t = VERI.turBul(kod);
+    var k = t && t.renk_kosul && typeof t.renk_kosul === "object" ? t.renk_kosul[bolge] : undefined;
+    if (k === undefined) { return true; }
+    if (!Array.isArray(k) || !p || typeof p !== "object") { return false; }
+    for (var i = 0; i < k.length; i++) {
+      var c = k[i] || {};
+      if (typeof c.alan !== "string" || !Object.prototype.hasOwnProperty.call(p, c.alan)) { return false; }
+      var v = p[c.alan];
+      if (c.dolu === true) {
+        if (typeof v !== "string" || !v.trim()) { return false; }
+      } else if (!Array.isArray(c.degerler) || c.degerler.indexOf(v) < 0) { return false; }
+    }
+    return true;
+  };
+  // Seçimdeki bölge renklerinden YALNIZ aktif bölgelerinki ({bölge: renk}); renk sayısı ve üretim buradan.
+  VERI.aktifBolgeRenkleri = function (kod, renk, p) {
+    var c = {};
+    for (var b in (renk || {})) {
+      if (Object.prototype.hasOwnProperty.call(renk, b) && VERI.renkBolgesiAktif(kod, b, p)) { c[b] = renk[b]; }
+    }
+    return c;
+  };
+  // Palet türünü deterministik üreteç basıyorsa renkler[i] -> palet_bolgeleri[i] ({bölge: renk}); yoksa {}.
+  VERI.paletBolgeRenkleri = function (kod, renkler) {
+    var t = VERI.turBul(kod);
+    var pb = t && Array.isArray(t.palet_bolgeleri) ? t.palet_bolgeleri : [];
+    var c = {};
+    for (var i = 0; i < pb.length && Array.isArray(renkler) && i < renkler.length; i++) { c[pb[i]] = renkler[i]; }
+    return c;
   };
   // Palet = manifestteki bölge renk listelerinin birleşimi (mevcut PLA paleti; ikinci liste değil, aynı 9 renk).
   VERI.PLA_RENKLERI = ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"];

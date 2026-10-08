@@ -634,16 +634,17 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
   function renkSayisi(nt) {
     if (!nt) return 1;
     if (F.renkPaleti(nt.kod)) return paletRenkleri(nt.kod).length;
-    var fark = [];
-    for (var a in (S.secim || {})) {
-      if (Object.prototype.hasOwnProperty.call(S.secim, a) && /_renk$/.test(a) && fark.indexOf(S.secim[a]) < 0) fark.push(S.secim[a]);
+    var fark = [], sec = aktifRenkSecimi();
+    for (var a in sec) {
+      if (Object.prototype.hasOwnProperty.call(sec, a) && /_renk$/.test(a) && fark.indexOf(sec[a]) < 0) fark.push(sec[a]);
     }
     return Math.max(1, fark.length);
   }
-  // Ödeme kalemi: deterministik türde bölge seçimi, palet türünde renkler (sunucu ikisini de kayda karşı doğrular).
+  // Ödeme kalemi: deterministik türde bölge seçimi (yalnız AKTİF bölgelerin rengi), palet türünde renkler
+  // (sunucu ikisini de kayda karşı doğrular).
   function sepetKalemi() {
     var k = { foto_is: S.is, olcu_mm: S.olcu, adet: S.adet };
-    if (F.kolu(S.tur) === "deterministik" && S.secim) k.secim = S.secim;
+    if (F.kolu(S.tur) === "deterministik" && S.secim) k.secim = aktifRenkSecimi();
     if (F.renkPaleti(S.tur)) k.renkler = paletRenkleri(S.tur);
     return k;
   }
@@ -709,6 +710,7 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     var rb = (t && t.renk_bolgeleri) || [];
     var mb = (t && t.malzemeler) || {};
     for (var i = 0; i < rb.length; i++) {
+      var ilkDugum = S.alanSecim.childNodes.length;
       (function (bolge) {
         var ml = mb[bolge.kod] || [];
         if (ml.length > 1) {
@@ -724,7 +726,12 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
             (ml.length === 1 ? " · " + ml[0] : "")));
         }
       })(rb[i]);
+      // Bölgenin tüm düğümleri `data-renk-bolge` taşır: renkKosulGuncelle pasif bölgeyi birlikte gizler.
+      for (var dn = ilkDugum; dn < S.alanSecim.childNodes.length; dn++) {
+        if (S.alanSecim.childNodes[dn].nodeType === 1) S.alanSecim.childNodes[dn].setAttribute("data-renk-bolge", rb[i].kod);
+      }
     }
+    renkKosulGuncelle();
     if (litofanSecili()) litofanOnizle(); else guncelleS1Buton();
   }
   // D/R türünde sipariş öncesi önizleme yoksa: türün örnek render'ı + ONIZLEME_SONRA.
@@ -770,12 +777,32 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     return aktifParametreler().govde;
   }
   function kosulGuncelle() {
+    renkKosulGuncelle();
     if (!S.alanForm) return;
     var aktif = aktifParametreler().aktif, d = S.alanForm.childNodes;
     for (var i = 0; i < d.length; i++) {
       var a = d[i].nodeType === 1 ? d[i].getAttribute("data-param") : null;
       if (a) d[i].hidden = aktif[a] === false;
     }
+  }
+  // KOŞULLU RENK BÖLGESİ (BaBa 8 Eki 15:5x): bölge üretilmiyorsa (logo tabanı "Yok", rölyef tek renk, ses başlığı /
+  // braille üst yazısı boş) seçicisi GİZLİ ve rengi renk sayısına girmez — müşteri seçemediği renge ödemez.
+  // Sunucu AYNI fonksiyonla (F.renkBolgesiAktif) önizleme parametrelerinden sayar.
+  function renkKosulGuncelle() {
+    if (!S.alanSecim) return;
+    var p = aktifParametreler().govde, d = S.alanSecim.childNodes;
+    for (var i = 0; i < d.length; i++) {
+      var b = d[i].nodeType === 1 ? d[i].getAttribute("data-renk-bolge") : null;
+      if (b) d[i].hidden = !F.renkBolgesiAktif(S.tur, b, p);
+    }
+  }
+  function aktifRenkSecimi() {
+    var p = aktifParametreler().govde, c = {};
+    for (var a in (S.secim || {})) {
+      if (!Object.prototype.hasOwnProperty.call(S.secim, a)) continue;
+      if (!/_renk$/.test(a) || F.renkBolgesiAktif(S.tur, a.replace(/_renk$/, ""), p)) c[a] = S.secim[a];
+    }
+    return c;
   }
   function formDogrula() {
     if (!Object.keys(formSemasi()).length) return { ok: true };

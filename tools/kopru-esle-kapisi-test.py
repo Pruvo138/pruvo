@@ -21,7 +21,7 @@ IKI KATMAN
      E2 TIP   her deger uretecin `SEMA[alan]` kuralina uyar (uretec dosyasindan ast; uretec_ortak._deger_dogrula
               aynasi; SEMA'da olmayan alan = uretec `bilinmeyen alan` RET'i)
      E3 EKSEN `olcek.belirleyen_parametre` dolu -> cikti[belirleyen] == zarfin olcu_mm'i (surgu = hedef olcu)
-     E4 RENK  donen bolgeler ⊆ manifest renk_bolgeleri
+     E4 RENK  donen bolgeler ⊆ manifest renk_bolgeleri ∪ palet_bolgeleri (bust)
 MUTANTLAR (gecici kopyada; calisma agacina YAZMAZ):
   MA1 esle_braille'e uzun_kenar_mm geri -> E1 ALAN-DISI braille.uzun_kenar_mm
   MA2 braille buyuk_harf bool -> E2 TIP braille.buyuk_harf
@@ -219,7 +219,8 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
             g = {"tur": kod, "olcu_mm": olcu, "parametreler": p, "dosyalar": _dosyalar(d),
                  "renkler": {b["kod"]: b["renkler"][0] for b in t.get("renk_bolgeleri") or []}}
             try:
-                u, bolgeler = kosucu.ESLEMELER[kod](g, d, rh)
+                # Uretim yolunun secimi (tekin_kos ile ayni nokta; bust -> esle_bust).
+                u, bolgeler = kosucu.esle_fonksiyonu(t, kosucu.cli_tablosu().get(t.get("uretec")))(g, d, rh)
             except kosucu.KopruRed as e:
                 kirmizi.append("KOPRU-RED %s=%s" % (kod, e.kod))
                 continue
@@ -238,7 +239,9 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
                     kirmizi.append("TIP %s.%s %s" % (kod, a, r))
         if bel and u.get(bel) != float(olcu):
             kirmizi.append("EKSEN %s.%s beklenen=%s gelen=%s" % (kod, bel, float(olcu), u.get(bel)))
-        disi = [b for b in bolgeler if b not in {r["kod"] for r in t.get("renk_bolgeleri") or []}]
+        # Palet turu (bust) bolgeleri manifest palet_bolgeleri'nden (renkler[i] -> palet_bolgeleri[i]).
+        izinli = {r["kod"] for r in t.get("renk_bolgeleri") or []} | set(t.get("palet_bolgeleri") or [])
+        disi = [b for b in bolgeler if b not in izinli]
         if disi:
             kirmizi.append("RENK %s=%s" % (kod, ",".join(disi)))
     return kirmizi, n, atlanan

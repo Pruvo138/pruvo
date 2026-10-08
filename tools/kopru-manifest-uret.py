@@ -198,7 +198,12 @@ def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None, sema=None):
              "malzemeler": {"govde": list(kayit.get("izinli_malzeme") or [])},
              "form": form,
              "olcu_ekseni": "sabit" if o.get("belirleyen_parametre") else "turetilmis",
-             "fiyat_adim_mm": o.get("adim_mm")}
+             "fiyat_adim_mm": o.get("adim_mm"),
+             # RENK TAVANI (BaBa 8 Eki 15:4x) = uretecin BOYANABILIR renk_* parametre sayisi (en az 1); YAZILMAZ,
+             # --denetle manifest fiyat.renk_tavani'yi buna karsi olcer.
+             "renk_tavani": max(1, len(bolgeler)),
+             "kopru_bolgeleri": list(kayit.get("renk_bolgeleri") or []),
+             "renk_sonekleri": [b["kod"] for b in bolgeler]}
     return satir, hatalar
 
 
@@ -241,6 +246,8 @@ def hepsini_uret(kayitlar, jen=None):
             s2, h2 = satir_uret(k, parametreler=teklif_parametreleri(k, hatalar), kod=tk,
                                 girdi_tipi=[tf.get("girdi")] if isinstance(tf.get("girdi"), str) else tf.get("girdi"),
                                 sema=sema)
+            # Teklif turu (bust) ana kaydin uretecini kosar: boyanabilir renk sayisi ANA kayittan (rolyef kolu).
+            s2["renk_tavani"], s2["kopru_bolgeleri"], s2["renk_sonekleri"] = s["renk_tavani"], [], []
             satirlar[tk] = s2
             hatalar += h2
     return satirlar, hatalar
@@ -361,7 +368,10 @@ def yaz(manifest_yol, uretilen):
     return degisen, eksik
 
 
-def denetle(manifest_yol, uretilen, hatalar):
+def denetle(manifest_yol, uretilen, hatalar, bilgi=None):
+    """KIRMIZI listesi. RENK EKSENI (BaBa 8 Eki 15:4x): fiyat.renk_tavani == boyanabilir renk_* sayisi; renk_<sonek>
+    soneki kopru `renk_bolgeleri`nde olmali (ad sapmasi KIRMIZI); parametresiz kopru bolgesi KIRMIZI DEGIL, `bilgi`ye
+    (TeKiN renk_<b> ekleyince tavan aractan yukselir)."""
     m = manifest_oku(manifest_yol)
     turler = {t.get("kod"): t for t in m.get("turler") or []}
     renk_hex = m.get("renk_hex") or {}
@@ -379,6 +389,17 @@ def denetle(manifest_yol, uretilen, hatalar):
                 kirmizi.append("sapma:%s.%s%s" % (kod, k, _ilk_fark(t.get(k), u[k])))
         if (t.get("fiyat") or {}).get("adim_mm") != u["fiyat_adim_mm"]:
             kirmizi.append("sapma:%s.fiyat.adim_mm" % kod)
+        if (t.get("fiyat") or {}).get("renk_tavani") != u["renk_tavani"]:
+            kirmizi.append("sapma:%s.fiyat.renk_tavani manifest=%s kopru=%s" % (
+                kod, (t.get("fiyat") or {}).get("renk_tavani"), u["renk_tavani"]))
+        kb = u.get("kopru_bolgeleri") or []
+        if kb:
+            for s in u.get("renk_sonekleri") or []:
+                if s not in kb:
+                    kirmizi.append("renk-bolge-adi:%s.renk_%s kopru_bolgeleri=%s" % (kod, s, ",".join(kb)))
+            for b in kb:
+                if b not in (u.get("renk_sonekleri") or []) and bilgi is not None:
+                    bilgi.append("boyanamaz-bolge:%s.%s (renk_%s parametresi yok)" % (kod, b, b))
     return kirmizi
 
 
@@ -419,7 +440,10 @@ def main():
     try:
         uretilen, hatalar = hepsini_uret(kayitlar, jenerator_kok(a.kayit))
         if a.denetle:
-            kirmizi = denetle(a.manifest, uretilen, hatalar)
+            bilgi = []
+            kirmizi = denetle(a.manifest, uretilen, hatalar, bilgi)
+            for k in bilgi:
+                print("BILGI " + k)
             for k in kirmizi:
                 print("KIRMIZI " + k)
             print("DENETLE=%s tur=%d kirmizi=%d rc=%d" % ("YESIL" if not kirmizi else "KIRMIZI", len(uretilen),

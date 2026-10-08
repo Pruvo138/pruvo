@@ -1674,10 +1674,11 @@ export function fotoKalemCoz(k) {
 /**
  * Kalemin RENK SAYISI ve renkleri (Okan 8 Eki: ilk renk dahil, her ek renk +100 TL, en cok 4):
  * palet turunde (renk_secimi "palet") kalemin `renkler`i ZORUNLU — 1..tavan oge, hepsi VERI.PLA_RENKLERI'nde,
- * tekrarsiz; bolge turunde bolgelerde secilen FARKLI renkler; bolgesiz turde 1 (renk listesi bos).
+ * tekrarsiz; bolge turunde AKTIF bolgelerde secilen FARKLI renkler (renk_kosul'u saglanmayan bolge uretilmez ->
+ * rengi sayilmaz, BaBa 8 Eki 15:5x); bolgesiz turde 1 (renk listesi bos). `p` = onizleme girdisinin parametreleri.
  * Tavan asilirsa / palet kurali bozuksa null (fiyatlama 400 doner, fail-closed).
  */
-function renkSayimi(turKod, k, sc) {
+function renkSayimi(turKod, k, sc, p) {
   const tavan = VERI.renkTavani(turKod);
   if (tavan === null) { return null; }
   let renkler;
@@ -1686,7 +1687,7 @@ function renkSayimi(turKod, k, sc) {
     if (!r.length || new Set(r).size !== r.length || !r.every((x) => VERI.PLA_RENKLERI.includes(x))) { return null; }
     renkler = r.slice();
   } else {
-    renkler = [...new Set(Object.values((sc && sc.renk) || {}))];
+    renkler = [...new Set(Object.values(VERI.aktifBolgeRenkleri(turKod, (sc && sc.renk) || {}, p)))];
   }
   const n = Math.max(1, renkler.length);
   return n <= tavan ? { n, renkler } : null;
@@ -1728,7 +1729,7 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   const fk = VERI.fiyatKurus(tur.kod, mm);
   const olcu = fk > 0 ? { mm, fiyat_kurus: fk } : null;
   if (!olcu) { return { hata: { hata: "gecersiz-olcu" }, kod: 400 }; }
-  if (deterministikTur(tur.kod)) { return deterministikSatir(tur, olcu, k, is); }
+  if (deterministikTur(tur.kod)) { return deterministikSatir(env, tur, olcu, k, is); }
   // Renk sayisi kalemden (palet); birim = TEK formul, renk sayisiyla (ilk renk dahil, her ek renk +ek_renk).
   const rs = renkSayimi(tur.kod, k, null);
   const birim = rs ? VERI.fiyatKurus(tur.kod, mm, rs.n) : null;
@@ -1759,26 +1760,41 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   };
 }
 
+/**
+ * Onizleme girdisinin parametreleri (uretim AYNI girdi.json'dan basar -> koşullu renk bolgesi buradan olculur).
+ * Okunamazsa null: koşullu bolge PASIF sayilir (ucreti alinmaz; fail-closed).
+ */
+async function onizlemeParametreleri(env, isNo) {
+  try {
+    const n = await env.OZEL_DOSYA.get(uretecOnizlemeAnahtari(isNo, "girdi.json"));
+    const o = n ? JSON.parse(await new Response(n.body).text()) : null;
+    return o && o.parametreler && typeof o.parametreler === "object" ? o.parametreler : null;
+  } catch (e) { return null; }
+}
+
 /** Deterministik tur odeme satiri: renk/malzeme kalemin seciminden, kayittaki listelere karsi. */
-function deterministikSatir(tur, olcu, k, is) {
+async function deterministikSatir(env, tur, olcu, k, is) {
   const sc = secimDogrula(tur.kod, k.secim);
   if (!sc) {
     return { hata: { hata: "gecersiz-secim", mesaj: "Renk ya da malzeme seçimi geçersiz." }, kod: 400 };
   }
-  const bolgeler = [...new Set([...Object.keys(sc.malzeme), ...Object.keys(sc.renk)])];
   const kayit = VERI.turBul(tur.kod);
+  // Koşullu bolge (renk_kosul) varsa onizleme parametreleri okunur; pasif bolgenin rengi satira/uretime/sayima GIRMEZ.
+  const p = kayit.renk_kosul ? await onizlemeParametreleri(env, is.is_no) : {};
+  const renk = VERI.aktifBolgeRenkleri(tur.kod, sc.renk, p);
+  const bolgeler = [...new Set([...Object.keys(sc.malzeme), ...Object.keys(renk)])];
   const bolgeAdi = (b) => ((kayit.renk_bolgeleri || []).find((x) => x.kod === b) || {}).ad || b;
   const secim = {};
   for (const b of bolgeler) {
     if (sc.malzeme[b]) { secim[b + "_malzeme"] = sc.malzeme[b]; }
-    if (sc.renk[b]) { secim[b + "_renk"] = sc.renk[b]; }
+    if (renk[b]) { secim[b + "_renk"] = renk[b]; }
   }
-  // Renk sayisi: palet turunde kalemin renkleri, bolge turunde bolgelerin FARKLI renkleri (ilk renk dahil).
-  const rs = renkSayimi(tur.kod, k, sc);
+  // Renk sayisi: palet turunde kalemin renkleri, bolge turunde AKTIF bolgelerin FARKLI renkleri (ilk renk dahil).
+  const rs = renkSayimi(tur.kod, k, sc, p);
   const birim = rs ? VERI.fiyatKurus(tur.kod, olcu.mm, rs.n) : null;
   if (!(birim > 0)) { return RENK_HATASI; }
   const paletMi = VERI.renkPaleti(tur.kod);
-  const bolgeRenk = bolgeler.filter((b) => sc.renk[b]).map((b) => bolgeAdi(b) + ": " + sc.renk[b]).join(" · ");
+  const bolgeRenk = bolgeler.filter((b) => renk[b]).map((b) => bolgeAdi(b) + ": " + renk[b]).join(" · ");
   return {
     satir: {
       id: "ozel-foto-" + tur.kod,
@@ -1792,7 +1808,7 @@ function deterministikSatir(tur, olcu, k, is) {
       birim_kurus: birim,
       tutar_kurus: birim * k.adet,
       parametre_detay: olcu.mm + " mm · " + bolgeler.map((b) => bolgeAdi(b) + ": " +
-        [sc.malzeme[b], sc.renk[b]].filter(Boolean).join(", ")).join(" · ") +
+        [sc.malzeme[b], renk[b]].filter(Boolean).join(", ")).join(" · ") +
         (paletMi ? (bolgeler.length ? " · " : "") + "renkler: " + rs.renkler.join(", ") : "") +
         ekRenkDetay(tur.kod, rs.n),
       foto_is: is.is_no,
@@ -2353,7 +2369,9 @@ export function uretecAnahtari(siparisNo, kalem, ad) { return "foto/" + siparisN
 export function uretecGirdiJson(no, k) {
   const t = VERI.turBul(k.tur) || {};
   const sc = k.secim || {};
-  const renkler = {}, malzemeler = {};
+  // Palet turunu deterministik uretec basiyorsa (bust) odenen renkler bolgelere sirayla eslenir (renkler[i] ->
+  // palet_bolgeleri[i]); tools/foto-uretec-kosucu.py siparis_girdisi AYNASI.
+  const renkler = VERI.paletBolgeRenkleri(k.tur, k.renkler), malzemeler = {};
   for (const b of (t.renk_bolgeleri || [])) { if (sc[b.kod + "_renk"]) { renkler[b.kod] = sc[b.kod + "_renk"]; } }
   for (const b of Object.keys(t.malzemeler || {})) { if (sc[b + "_malzeme"]) { malzemeler[b] = sc[b + "_malzeme"]; } }
   return { sozlesme: 1, kategori: k.tur, siparis_no: no, kalem: k.kalem, olcu_mm: k.olcu_mm,

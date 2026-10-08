@@ -381,6 +381,11 @@ def siparis_girdisi(i, t):
         return None
     sc = k.get("foto_secim") if isinstance(k.get("foto_secim"), dict) else {}
     renkler, malzemeler = {}, {}
+    # Palet turunu deterministik uretec basiyorsa (bust) odenen renkler bolgelere sirayla: renkler[i] -> palet_bolgeleri[i]
+    # (shop/src/foto.js VERI.paletBolgeRenkleri AYNASI).
+    pr = k.get("foto_renkler") if isinstance(k.get("foto_renkler"), list) else []
+    for b, r in zip(t.get("palet_bolgeleri") or [], pr):
+        renkler[b] = r
     for b in t.get("renk_bolgeleri") or []:
         if sc.get(b.get("kod", "") + "_renk"):
             renkler[b["kod"]] = sc[b["kod"] + "_renk"]
@@ -712,7 +717,8 @@ def esle_ses(g, dizin, rh):
          "renk_plaka": _renk(g, "plaka", rh) or "#1F2A44",
          "renk_cubuk": _renk(g, "cubuk", rh) or "#E8E4D8",
          "renk_yazi": _renk(g, "yazi", rh) or ""})
-    return u, ["plaka", "cubuk"]
+    # Baslik doluysa uretec ayri "yazi" govdesini renk_yazi ile basar (ses_dalgasi_uret) -> odenen yazi rengi parcada.
+    return u, ["plaka", "cubuk"] + (["yazi"] if str(u.get("baslik") or "").strip() else [])
 
 def esle_braille(g, dizin, rh):
     """kopru-15 ESLE: gelen parametreler (sunucu dogruladi; adlar kayitla AYNI) + olcu ekseni. Kayitta
@@ -727,7 +733,8 @@ def esle_braille(g, dizin, rh):
     u["renk_plaka"] = _renk(g, "plaka", rh) or "#1A1A1A"
     u["renk_nokta"] = _renk(g, "nokta", rh) or "#E8E4D8"
     u["renk_yazi"] = _renk(g, "yazi", rh) or ""
-    return u, ["plaka", "nokta"]
+    # Ust yazi doluysa uretec ayri "yazi" govdesini renk_yazi ile basar (braille_uret) -> odenen yazi rengi parcada.
+    return u, ["plaka", "nokta"] + (["yazi"] if str(u.get("ust_yazi") or "").strip() else [])
 
 # G5 sabit olcu ekseni: kaydin `olcek.belirleyen_parametre`si (kopru-esle-kapisi-test E3 kayittan olcer).
 G5_OLCU_ALANI = {"topo": "olcu_mm", "sehir": "olcu_mm", "yildiz": "olcu_mm", "koordinat": "genislik_mm"}
@@ -777,10 +784,14 @@ def esle_koordinat(g, dizin, rh):
 
 
 def esle_bust(g, dizin, rh):
-    """bust = rolyef ureteci + teklif alanlari. Teklif renk alani TASIMAZ -> manifestte renk bolgesi yok:
-    uretec varsayilan renkleri, bolge listesi bos (olcu.json parcalar manifest disi ad tasimaz)."""
+    """bust = rolyef ureteci + teklif alanlari; renk PALETTEN (manifest palet_bolgeleri: taban, rolyef). Odenen renkler
+    sirayla bolgelere gelir (siparis_girdisi); 2 renk odendiyse uretec IKI RENKLI basar (iki_renk zorlanir — odenen
+    renk basilir, BaBa 8 Eki 15:5x), tek renkte iki_renk KAPALI (odenmeyen ikinci renk basilmaz). Renk secilmemis
+    (eski siparis) -> uretec varsayilani, bolge listesi bos."""
     u, _ = esle_rolyef(g, dizin, rh)
-    return u, []
+    secilen = [b for b in ("taban", "rolyef") if (g.get("renkler") or {}).get(b)]
+    u["iki_renk"] = "rolyef" in secilen
+    return u, (["taban", "rolyef"] if u["iki_renk"] else secilen)
 
 
 VAR_YOK = {"Var": True, "Yok": False}
@@ -903,11 +914,18 @@ def ret_kodu(metin):
     return "genel"
 
 
+def esle_fonksiyonu(t, g):
+    """Uretim yolunun esleme fonksiyonu — TEK secim noktasi (kopru-esle-kapisi-test + renk-esleme-test AYNISINI
+    cagirir). Turun KENDI eslemesi once (bust rolyef_uret'i kosar ama palet renklerini esle_bust baglar; 8 Eki
+    yerel 3MF olcumu: uretecin `esle`i secilince bust 2 renk odenip TEK extruder basiliyordu), yoksa uretecinki."""
+    return ESLEMELER.get((t or {}).get("kod")) or ESLEMELER.get((g or {}).get("esle"))
+
+
 def tekin_kos(g, t, girdi_dizin, cikti, py, jen):
     """§2 zarfi -> uretecin kendi JSON'u -> uretec -> §3 donusumu. Donus (rc, ozet)."""
     with open(os.path.join(girdi_dizin, "girdi.json"), encoding="utf-8") as f:
         girdi = json.load(f)
-    fn = ESLEMELER.get(g.get("esle"))
+    fn = esle_fonksiyonu(t, g)
     if not fn:
         return 2, "RED uretec-bicimi"
     try:

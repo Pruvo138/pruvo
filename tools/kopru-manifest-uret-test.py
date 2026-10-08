@@ -11,7 +11,9 @@ IKI KATMAN
 MUTANTLAR (gecici kopyalarda; calisma agacina YAZMAZ):
   MK1 kayitta bool->boolean · MK2 manifestte tek alanin kosul'u silindi · MK3 adim dusuruldu (0.01->0.001)
   MK4 kayitta bilinmeyen girdi · MK5 kosul var olmayan alana bakiyor · MK0 kontrol: editoryal metin degisti
-  MK6 manifestte form `ornek` silindi -> YESIL kalmali. R katmani: MR1/MR2/MR3 = MK1/MK2/MK3 gercek kopyada;
+  MK6 manifestte form `ornek` silindi · RENK EKSENI (8 Eki): MK7 manifest renk_tavani > boyanabilir sayi · MK8 kopru
+  govde adi parametre sonekinden sapti · MK9 renk_ parametresi silindi (tavan iner); F15 parametresiz govde = BILGI.
+  R katmani: MR1/MR2/MR3 = MK1/MK2/MK3 gercek kopyada;
   MR4/MR5 sehir enlem / yildiz tarih_saat `ornek`i silindi (kopru-15 SON3).
 Cikti son satiri: VAKA_KIRMIZI=<n> SURVIVOR=<n>   (rc 0 yalniz ikisi de 0)
 """
@@ -67,7 +69,9 @@ SAHTE_KAYIT = {"surum": "test", "kayitlar": [
          {"ad": "renk_plaka", "etiket": "Plaka rengi", "tip": "renk", "varsayilan": "#000000"},
          {"ad": "renk_yazi", "etiket": "Yazi rengi", "tip": "renk"}],
      "olcek": {"min_mm": 60, "max_mm": 250, "adim_mm": 5}, "izinli_malzeme": ["PLA", "PETG"],
-     "ornek": {"girdi": {"enlem": 41.0256, "hane": "<yer tutucu>", "renk_plaka": "#FFFFFF"}}},
+     "ornek": {"girdi": {"enlem": 41.0256, "hane": "<yer tutucu>", "renk_plaka": "#FFFFFF"}},
+     # Kopru govde listesi: "cerceve"nin renk_ parametresi YOK -> BILGI boyanamaz-bolge (KIRMIZI degil).
+     "renk_bolgeleri": ["plaka", "yazi", "cerceve"]},
     {"kod": "rolyef", "uretec": "rolyef_uret", "girdi_tipi": ["foto"],
      "parametreler": [
          {"ad": "uzun_kenar_mm", "etiket": "Uzun kenar", "tip": "sayi", "min": 60, "max": 250, "varsayilan": 120,
@@ -82,12 +86,16 @@ RENK = ('"Beyaz": "#F2F2F2", "Siyah": "#1A1A1A", "Gri": "#818184", "Lacivert": "
         '"Sarı": "#E8B923", "Yeşil": "#2E7D4F", "Mavi": "#2E5E8C", "Ahşap": "#C8B89A"')
 
 
+# Renk tavani = boyanabilir renk_* sayisi (en az 1): harita 2 (plaka, yazi); bust ANA kayittan (rolyef 1).
+SAHTE_TAVAN = {"parca": 1, "harita": 2, "rolyef": 1, "bust": 1}
+
+
 def sahte_manifest():
     satir = []
     for kod in ("parca", "harita", "rolyef", "bust"):
         satir.append('      {\n        kod: "%s",\n        ad: "Sahte %s",\n        motor: "D",\n'
-                     '        fiyat: { formul: "mm_x_10tl", adim_mm: 1 },\n'
-                     '        durustluk: "Sahte metin."\n      }' % (kod, kod))
+                     '        fiyat: { formul: "mm_x_10tl", adim_mm: 1, renk_tavani: %d },\n'
+                     '        durustluk: "Sahte metin."\n      }' % (kod, kod, SAHTE_TAVAN[kod]))
     return ("(function (kok) {\n  var VERI = {\n    turler: [\n" + ",\n".join(satir) + "\n    ],\n"
             "    RENK_HEX: { " + RENK + " }\n  };\n  kok.PRUVO_FOTO = VERI;\n"
             "})(typeof globalThis !== \"undefined\" ? globalThis : this);\n")
@@ -209,6 +217,8 @@ def hermetik():
              "%s | %s" % (out1.strip(), out2.strip()))
         rc3, out3 = kos("--denetle", "--kayit", k, "--manifest", m)
         vaka("F12 --denetle YESIL", rc3 == 0 and "DENETLE=YESIL" in out3, out3.strip())
+        vaka("F15 parametresiz kopru govdesi -> BILGI boyanamaz-bolge (KIRMIZI degil)",
+             rc3 == 0 and "BILGI boyanamaz-bolge:harita.cerceve" in out3, out3.strip())
         rc4, out4 = kos("--denetle", "--kayit", os.path.join(d, "yok.json"), "--manifest", m)
         vaka("F13 kayit yok -> HAL=KAYIT-YOK rc 3 (sessiz YESIL degil)", rc4 == 3 and "HAL=KAYIT-YOK" in out4, out4)
 
@@ -225,6 +235,15 @@ def hermetik():
                lambda kk, mm: degistir(kk, '"alan": "mod"', '"alan": "yok"'))
         mutant("MK6 manifestte ornek silindi -> KIRMIZI", k, m, r"sapma:harita\.form\.enlem\.ornek",
                lambda kk, mm: degistir(mm, r"^\s+ornek: 41\.0256,?\n", "", regex=True))
+        mutant("MK7 manifest renk_tavani boyanabilir sayidan buyuk -> KIRMIZI", k, m,
+               r"sapma:harita\.fiyat\.renk_tavani manifest=3 kopru=2",
+               lambda kk, mm: degistir(mm, r'(kod: "harita",[\s\S]*?renk_tavani: )2', r"\g<1>3", regex=True))
+        mutant("MK8 kopru govde adi parametre sonekinden sapti -> KIRMIZI", k, m,
+               r"renk-bolge-adi:harita\.renk_yazi",
+               lambda kk, mm: degistir(kk, '["plaka", "yazi", "cerceve"]', '["plaka", "metin", "cerceve"]'))
+        mutant("MK9 kayitta renk_yazi silindi (tavan 1'e iner) -> KIRMIZI", k, m,
+               r"sapma:harita\.fiyat\.renk_tavani manifest=2 kopru=1",
+               lambda kk, mm: degistir(kk, r',\s*\{"ad": "renk_yazi"[^}]*\}', "", regex=True))
         mutant("MK0 kontrol: editoryal metin degisti -> YESIL kalir", k, m, None,
                lambda kk, mm: degistir(mm, "Sahte metin.", "Baska metin."))
     finally:
