@@ -3562,7 +3562,9 @@ console.log("K2b) UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR");
   //          UYUM_KOKLER dizisini boş yap.
   // K2b-fin: kaynaktaki UYUM_KOKLER artık TEK satırda; mutant onun TAMAMINI "var UYUM_KOKLER = [];" ile
   // değiştirir. Çok satırlı replace güvenilir değildi (aradaki satırlarda gizli karakter / escape farkı).
-  const mKBCapa = 'var UYUM_KOKLER = ["parca", "parcas", "parcasi", "parcay", "parcayi", "parcam", "parcan", "parcalar", "parcalari", "parcalarin", "parcasin", "parcasini", "yedek", "yedegi", "yedekle", "yedekleri", "yedeklerin", "yedekten", "kirik", "kirigi", "kirdi", "kirildi", "kirilmis", "kirilir", "kiriklar", "kiriklari", "kayip", "kaybi", "kaybol", "kayboldu", "kaybolan", "kayipoldu", "kayipolmus", "mekanizma", "mekanizmasi", "mekanizmayi", "mekanizmalar", "mekanizmalari", "mekanizmada", "mekanizmadan", "disli", "dislisi", "disliyi", "disliler", "dislileri", "dislilerin", "dislide", "disliden", "kilit", "kilidi", "kilide", "kilitler", "kilitleri", "kilitlerin", "kilitten", "klips", "klipsi", "klipsler", "klipsleri", "klipslerin", "klipsten", "yuva", "yuvasi", "yuvayi", "yuvalar", "yuvalari", "yuvalarin", "yuvada", "yuvadan", "orijinal", "orijinali", "orijinale", "orijinalden", "orijinalinde", "aynisi", "ayni", "aynisini", "aynilar", "aynilari", "aynisindan"];';
+  // K2b-fin2: düz "ayni" kökü çıkarıldı (BaBa listesi: "aynısı", "aynisini", "aynisindan", "aynıları";
+  // düz "aynı" = sıradan eşitlik sıfatı, parça eşleştirmesi DEĞİL). Capa bu yüzden "ayni" İÇERMEZ.
+  const mKBCapa = 'var UYUM_KOKLER = ["parca", "parcas", "parcasi", "parcay", "parcayi", "parcam", "parcan", "parcalar", "parcalari", "parcalarin", "parcasin", "parcasini", "yedek", "yedegi", "yedekle", "yedekleri", "yedeklerin", "yedekten", "kirik", "kirigi", "kirdi", "kirildi", "kirilmis", "kirilir", "kiriklar", "kiriklari", "kayip", "kaybi", "kaybol", "kayboldu", "kaybolan", "kayipoldu", "kayipolmus", "mekanizma", "mekanizmasi", "mekanizmayi", "mekanizmalar", "mekanizmalari", "mekanizmada", "mekanizmadan", "disli", "dislisi", "disliyi", "disliler", "dislileri", "dislilerin", "dislide", "disliden", "kilit", "kilidi", "kilide", "kilitler", "kilitleri", "kilitlerin", "kilitten", "klips", "klipsi", "klipsler", "klipsleri", "klipslerin", "klipsten", "yuva", "yuvasi", "yuvayi", "yuvalar", "yuvalari", "yuvalarin", "yuvada", "yuvadan", "orijinal", "orijinali", "orijinale", "orijinalden", "orijinalinde", "aynisi", "aynisini", "aynilar", "aynilari", "aynisindan"];';
   const mKBYerine = "var UYUM_KOKLER = [];";
   const mKBSplitCount = EKRAN_KAYNAK.split(mKBCapa).length - 1;
   const mKBMutantUygulandi = mKBSplitCount === 1;
@@ -3608,7 +3610,9 @@ console.log("K2b) UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR");
     const V = sentetikFotoVeri(VERI_KAYNAK);
     const acik = { acik: true, turler: V.turler };
     const _onaySur = (function () { const k = {}; vm.runInNewContext(VERI_KAYNAK, k, { filename: "v.js" }); return k.PRUVO_FOTO.onay_surum; })();
-    const kayit = { is: "g".repeat(32), tur: "sentetik-f", olcu: 100, onay: _onaySur };
+    // K2b-fin2: isKalabi = /^[a-f0-9]{32}$/ — "g" geçersizdi (g hex değil) → ssIsOku() null → S.tur/olcu
+    // hiç kurulmadan POST bile denemeden düşüyordu (kontrol=0 doğru, mutant=0 da yanlıştı). 32 hex'e çevrildi.
+    const kayit = { is: "1".repeat(32), tur: "sentetik-f", olcu: 100, onay: _onaySur };
     const e = await ekranKos(kaynak, V, acik, kayit, undefined, { turnstileOto: true, zamanlayici: true });
     const dd = () => [...e.bolum.agac()];
     // Dosya mock'la (file input change ile S.dosya dolar).
@@ -3655,6 +3659,28 @@ console.log("K2b) UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR");
   ol("M-IPTAL İptal ② çocuklarını silerse ⇒ İptal→yeni tür ② BOŞ (baslik/yukle/alan yok)",
      !mIPTALbaslik && !mIPTALyukle && !mIPTALalan,
      JSON.stringify({ baslik: mIPTALbaslik, yukle: mIPTALyukle, alan: mIPTALalan }));
+
+  // K2b-fin2: düz "ayni" kökü UYUM_KOKLER'den çıkarıldı. "aynı" sıradan eşitlik sıfatı olarak tarifte
+  // geçer (BaBa'nın parça eşleştirmesi listesi "aynısı/aynisini/aynisindan/aynıları" — düz "aynı" değil).
+  // foto türünde cevapsız → "belirsiz" + soru çıkar; düz-aynı tarafından DUR üretilmediğini göstermek
+  // için tasarım onayı (Hayır) veriliyor (cevap=false → uyumKontrol "uygun"). İyelikli vakada zaten
+  // UYUM_DESEN ilk sırada yakaladığı için cevap verilmeden de "uygun_degil" çıkar; yine de Hayır
+  // verilerek evet yolundaki (parça onayı) davranışla aynı UI sonucuna düşüyor — net ölçüm için TEK form.
+  const ayniDuzGecer = ["annemle aynı gün doğduk", "ayni gun batimi resmine benzer", "aynı boyutta bir tasarım istiyorum"];
+  let ayniDuzGecti = 0;
+  for (const tarif of ayniDuzGecer) {
+    const r = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", tarif, false);
+    if (!r.soruVar && !r.aMetin) ayniDuzGecti++;
+  }
+  const aynisiDUR = ["bunun aynısı", "aynisini istiyorum", "aynisindan alabilir miyim"];
+  let aynisiKaldi = 0;
+  for (const tarif of aynisiDUR) {
+    const r = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", tarif, false);
+    if (r.aMetin) aynisiKaldi++;
+  }
+  ol("K2b-fin2 düz 'aynı' → uygun (3/3), 'aynısı/aynisini/aynisindan' → uygun_degil (3/3) KIRMIZI",
+     ayniDuzGecti === ayniDuzGecer.length && aynisiKaldi === aynisiDUR.length,
+     "duz=" + ayniDuzGecti + "/" + ayniDuzGecer.length + " aynisi=" + aynisiKaldi + "/" + aynisiDUR.length);
 
   // K0 kontrol: yorum değişikliği ⇒ hiçbiri değişmedi (orijinal EKRAN_KAYNAK ile birebir aynı sonuçlar).
   //             (Spesifik kontrol: cizUyum'da küçük bir yorum değiştirilir.)
