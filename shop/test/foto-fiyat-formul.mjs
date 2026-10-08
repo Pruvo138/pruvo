@@ -18,9 +18,10 @@
  *   F5 ANAHTAR     : acilis anahtari okunamaz / bos -> acik tur 0 (fail-closed)
  *   F6 TABAN       : (Okan 8 Eki) HER tur, sürgünün HER duragi >= 600 TL; taban gercekten basan tur >= 1
  *   F7 TABANSIZ    : tur kaydinda fiyat.taban_tl yoksa fiyat null (tur sunulmaz, fail-closed)
+ *   F9 EK RENK     : (Okan 8 Eki) + (renk − 1) × 100 TL, renk 1..tavan (≤4); ek_renk_tl yoksa fiyat null
  * MUTANTLAR (veri dosyasinin BELLEKTEKI kopyasi / foto.js'in GECICI kopyasi; agaca yazim YOK):
  *   FM1 formul ×100 · FM2 en_az yerine en_cok · FM3 adim izgarasi silindi · FM4 anahtar fail-open ·
- *   FM6 taban kalkti (F1/F3/F6) · FM7 tabansiz tur fail-open (F7)
+ *   FM6 taban kalkti (F1/F3/F6) · FM7 tabansiz tur fail-open (F7) · FM9 ek renk 0 · FM10 renk tavani silindi (F9)
  *   -> hedef grup KIRMIZI; FM0 (yalniz yorum) -> hicbiri. Olcu EKSENI (X/Y'ye bakan olcum) mutanti
  *   shop/test/foto-uretim.mjs OZ-M1'de (sentetik 3MF orada).
  * CIKIS: 0 yesil · 1 kirmizi. Son satir `SURVIVOR=<n>`.
@@ -39,7 +40,7 @@ const VERI_KAYNAK = fs.readFileSync(VERI_YOL, "utf8");
 // TABAN (Okan 8 Eki 13:2x): fiyat = max(600 TL, mm × 10 TL). Bagimsiz carpim — VERI'den OKUNMAZ.
 const TABAN_KURUS = 60000;
 const beklenenKurus = (mm) => Math.max(mm * 1000, TABAN_KURUS);
-const PLAKET_FIYAT = 'fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },\n        // Okan kararı 7 Eki 2026: plaket';
+const PLAKET_FIYAT = 'fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },\n        // Okan kararı 7 Eki 2026: plaket';
 
 let kirmizi = 0;
 const ol = (ad, kosul, ek) => {
@@ -112,6 +113,34 @@ function surguSenaryo(V) {
   return { F8: alt.length === ELLE_SURGU.length && on.length === ELLE_SURGU.length && sinir, alt, on, tu: tu && tu.kod, sinir };
 }
 
+// F9 (Okan 8 Eki 13:3x "4 renk secimi olmali, ilk renk ucretsiz, her + renk icin +100 TL"; 14:2x plaket/figur/bust
+// "Musteri 1-4 renk secsin"): fiyat = max(600, mm × 10) + (renk − 1) × 100 TL; renk 1..tavan (≤4), digeri null.
+// Bagimsiz carpim — VERI'den OKUNMAZ. Ek renk alani olmayan tur fiyatsiz (fail-closed).
+const EK_RENK_KURUS = 10000;
+const PALET_TURLERI = ["plaket", "figur", "bust"];
+function renkSenaryo(V, kaynak) {
+  const tumAlan = V.turler.every((t) => t.fiyat && t.fiyat.ek_renk_tl === 100 &&
+    Number.isInteger(t.fiyat.renk_tavani) && t.fiyat.renk_tavani >= 1 && t.fiyat.renk_tavani <= 4);
+  const p = (r) => V.fiyatKurus("plaket", 120, r);
+  const kademe = p(undefined) === 120000 && p(1) === 120000 && p(2) === 120000 + EK_RENK_KURUS &&
+    p(4) === 120000 + 3 * EK_RENK_KURUS && p(1) === beklenenKurus(120);
+  const tabanUstu = V.fiyatKurus("plaket", 10, 3) === TABAN_KURUS + 2 * EK_RENK_KURUS;
+  const redler = [5, 0, -1, 1.5, "2", null].every((r) => p(r) === null);
+  // Tavani 1 olan tur (bolgesiz fonksiyonel parca): 2. renk RED.
+  const tek = V.turler.find((t) => t.fiyat && t.fiyat.renk_tavani === 1);
+  const tekOlcu = tek ? V.olcuSecenekleri(tek.kod)[0] : null;
+  const tavanBir = !!tek && V.fiyatKurus(tek.kod, tekOlcu, 1) !== null && V.fiyatKurus(tek.kod, tekOlcu, 2) === null;
+  const palet = PALET_TURLERI.every((k) => V.renkPaleti(k)) && V.turler.filter((t) => V.renkPaleti(t.kod)).length === PALET_TURLERI.length &&
+    V.PLA_RENKLERI.length === 9;
+  let eksik = false;
+  if (kaynak.split(PLAKET_FIYAT).length === 2) {
+    const E = veriYukle(kaynak.replace(PLAKET_FIYAT, PLAKET_FIYAT.replace(", ek_renk_tl: 100", "")));
+    eksik = E.fiyatKurus("plaket", 120) === null && E.fiyatKurus("litofan", 120) === 120000;
+  }
+  return { F9: tumAlan && kademe && tabanUstu && redler && tavanBir && palet && eksik,
+           tumAlan, kademe, tabanUstu, redler, tavanBir, palet, eksik, tek: tek && tek.kod };
+}
+
 console.log("F1-F3) TEK FORMUL — fiyat_kurus = max(600 TL, en uzun boyut (mm) × 10 TL), kategori farki YOK");
 const VERI = veriYukle(VERI_KAYNAK);
 const fs1 = formulSenaryolar(VERI);
@@ -133,6 +162,13 @@ ol("F7 taban_tl'siz tur -> fiyat null (sunulmaz), diger turler etkilenmez", taba
   ol("F8 surgu alt siniri 10 mm: " + sg.alt.length + "/" + ELLE_SURGU.length + " elle tur · 10 mm = 600 TL " + sg.on.length + "/" +
      ELLE_SURGU.length + " · turetilmis " + sg.tu + " 59 mm = 600 TL, 61 mm = 610 TL", sg.F8, JSON.stringify(sg));
   console.log("     bilgi: kopru (TeKiN kaydi) sabit turlerin alt siniri: " + kopruAlt.join(" "));
+}
+console.log("F9) EK RENK — max(600, mm × 10) + (renk − 1) × 100 TL, renk 1..tavan (≤4)");
+{
+  const rs = renkSenaryo(VERI, VERI_KAYNAK);
+  ol("F9 ek renk: " + VERI.turler.length + "/" + VERI.turler.length + " turde ek_renk_tl=100 + tavan 1..4 · plaket 120 mm 1/2/4 renk = " +
+     [1, 2, 4].map((r) => VERI.tlMetni(VERI.fiyatKurus("plaket", 120, r))).join(" / ") + " · 5/0/1.5/\"2\" null · tavan-1 tur (" + rs.tek +
+     ") 2. renk null · palet turleri " + PALET_TURLERI.join(",") + " · ek_renk_tl'siz tur fiyatsiz", rs.F9, JSON.stringify(rs));
 }
 {
   if (VERI_KAYNAK.split(PLAKET_FIYAT).length !== 2) { ol("F2b capa bulundu (tek)", false, PLAKET_FIYAT); }
@@ -161,7 +197,7 @@ const ss = await sunucuSenaryo(foto);
 ol("F4a sunucu acikTurler: " + ss.ayni + "/" + ss.n + " olcu fiyati VERI.fiyatKurus ile AYNI (" + ss.turSayisi + " tur)", ss.SUNUCU, JSON.stringify(ss));
 const ISTEMCI = fs.readFileSync(path.join(KOK, "foto-uretim.js"), "utf8");
 ol("F4b istemci fiyati TEK formulden: F.fiyatSatiri (sürgü) + F.fiyatKurus (toplam, vitrin); kendi katsayisi yok",
-   /F\.fiyatSatiri\(nt\.kod/.test(ISTEMCI) && /F\.fiyatKurus\(nt\.kod, S\.olcu\)/.test(ISTEMCI) &&
+   /F\.fiyatSatiri\(nt\.kod/.test(ISTEMCI) && /F\.fiyatKurus\(nt\.kod, S\.olcu, renkSayisi\(nt\)\)/.test(ISTEMCI) &&
    /F\.fiyatKurus\(t\.kod, t\.olcu_mm\.en_az\)/.test(ISTEMCI) && !/VITRIN_TL_MM/.test(ISTEMCI) &&
    // TURETILMIS eksen: bolum fiyati HESAPLAMAZ, yalniz sunucunun durum yanitindaki fiyat_kurus'u okur (tek satir).
    (ISTEMCI.match(/fiyat_kurus/g) || []).length === 2 &&
@@ -178,20 +214,24 @@ console.log("MUTANTLAR (bellekteki veri kopyasi / gecici foto.js kopyasi; calism
 let survivor = 0;
 const VERI_MUTANTLAR = [
   ["FM0 KONTROL (yorum)", "// Formül adı -> mm başına kuruş.", "// Formül  adı -> mm başına kuruş.", []],
-  ["FM1 FORMUL ×100", "VERI.FIYAT_FORMULLERI = { mm_x_10tl: 1000 };", "VERI.FIYAT_FORMULLERI = { mm_x_10tl: 100000 };", ["F1", "F3", "F6", "F7", "F8"]],
+  ["FM1 FORMUL ×100", "VERI.FIYAT_FORMULLERI = { mm_x_10tl: 1000 };", "VERI.FIYAT_FORMULLERI = { mm_x_10tl: 100000 };", ["F1", "F3", "F6", "F7", "F8", "F9"]],
   ["FM2 EN_AZ YERINE EN_COK", "return { en_az: t.olcu_mm.en_az, en_cok: t.olcu_mm.en_cok };",
-   "return { en_az: t.olcu_mm.en_cok, en_cok: t.olcu_mm.en_cok };", ["F1", "F3", "F6", "F7", "F8"]],
+   "return { en_az: t.olcu_mm.en_cok, en_cok: t.olcu_mm.en_cok };", ["F1", "F3", "F6", "F7", "F8", "F9"]],
   ["FM3 ADIM IZGARASI SILINDI", "return VERI.olcuTuretilmis(kod) || (mm - a.en_az) % adim === 0 || mm === a.en_cok;",
    "return true;", ["F2"]],
   ["FM5 TURETILMIS DE IZGARAYA BAGLI", "return VERI.olcuTuretilmis(kod) || (mm - a.en_az) % adim === 0 || mm === a.en_cok;",
    "return (mm - a.en_az) % adim === 0 || mm === a.en_cok;", ["F2", "F8"]],
   // Okan 8 Eki tabani: taban kalkinca 60 mm alti turler 600 TL'nin altina iner -> F1/F3/F6 KIRMIZI.
-  ["FM6 TABAN KALKTI", "return Math.max(mm * f, taban);", "return mm * f;", ["F1", "F3", "F6", "F8"]],
+  ["FM6 TABAN KALKTI", "return Math.max(mm * f, taban) + (n - 1) * ek;", "return mm * f + (n - 1) * ek;", ["F1", "F3", "F6", "F8", "F9"]],
   // Tabansiz tur fail-open (taban yoksa 0 sayilir) -> F7 KIRMIZI.
   // Okan 14:0x: surgu alti 60'a geri cekilirse F8 KIRMIZI.
-  ["FM8 PLAKET SURGU ALTI 60", "        olcu_mm: { en_az: 10, en_cok: 300 },", "        olcu_mm: { en_az: 60, en_cok: 300 },", ["F8"]],
-  ["FM7 TABANSIZ TUR FAIL-OPEN","if (!f || taban === null || !VERI.olcuGecerli(kod, mm)) { return null; }",
-   "if (!f || !VERI.olcuGecerli(kod, mm)) { return null; }", ["F7"]],
+  ["FM8 PLAKET SURGU ALTI 60", "        olcu_mm: { en_az: 10, en_cok: 300 },", "        olcu_mm: { en_az: 60, en_cok: 300 },", ["F8", "F9"]],
+  ["FM7 TABANSIZ TUR FAIL-OPEN","if (!f || taban === null || ek === null || tavan === null || !VERI.olcuGecerli(kod, mm)) { return null; }",
+   "if (!f || ek === null || tavan === null || !VERI.olcuGecerli(kod, mm)) { return null; }", ["F7"]],
+  // Okan 13:3x ek renk: ek renk 0'a duserse (ucretsiz ek renk) F9 KIRMIZI.
+  ["FM9 EK RENK 0", "return Number.isInteger(tl) && tl >= 0 ? tl * 100 : null;", "return 0;", ["F9"]],
+  // Tavan denetimi silinirse 5. renk fiyatlanir -> F9 KIRMIZI.
+  ["FM10 RENK TAVANI SILINDI", "if (!Number.isInteger(n) || n < 1 || n > tavan) { return null; }", "", ["F9"]],
 ];
 for (const [ad, capa, yerine, olmeli] of VERI_MUTANTLAR) {
   if (VERI_KAYNAK.split(capa).length !== 2) { ol(ad + " capa bulundu (tek)", false, capa); continue; }
@@ -199,7 +239,8 @@ for (const [ad, capa, yerine, olmeli] of VERI_MUTANTLAR) {
   const s = formulSenaryolar(veriYukle(mutant));
   s.F7 = tabansizSenaryo(mutant);
   s.F8 = surguSenaryo(veriYukle(mutant)).F8;
-  const kir = ["F1", "F2", "F3", "F6", "F7", "F8"].filter((x) => s[x] !== true);
+  s.F9 = renkSenaryo(veriYukle(mutant), mutant).F9;
+  const kir = ["F1", "F2", "F3", "F6", "F7", "F8", "F9"].filter((x) => s[x] !== true);
   const tam = JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort());
   if (olmeli.length && !kir.length) { survivor++; }
   ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", tam, JSON.stringify(kir));

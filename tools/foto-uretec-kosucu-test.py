@@ -1003,7 +1003,7 @@ def manifest_vakalari():
     for kod, (ad, girdi, uretec, az, cok, bolgeler, malz, notu, durust) in G2_SATIR.items():
         t = tur.get(kod) or {}
         bekle = {"ad": ad, "girdi": girdi, "motor": "D", "uretec": uretec, "olcu_mm": {"en_az": az, "en_cok": cok},
-                 "fiyat": {"formul": "mm_x_10tl", "adim_mm": 10, "taban_tl": 600}, "ornek_kanit_izni": ["baski", "render"]}
+                 "fiyat": {"formul": "mm_x_10tl", "adim_mm": 10, "taban_tl": 600, "ek_renk_tl": 100, "renk_tavani": 4}, "ornek_kanit_izni": ["baski", "render"]}
         for k, v in bekle.items():
             if t.get(k) != v:
                 hata.append("%s.%s=%r" % (kod, k, t.get(k)))

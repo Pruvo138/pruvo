@@ -642,6 +642,10 @@ CREATE TABLE IF NOT EXISTS foto_uretim (
   guncel       TEXT NOT NULL,
   onay_tarih   TEXT NOT NULL DEFAULT '',   -- foto_isler.onay_tarih kopyasi (siparisle kalan onay kaydi)
   onay_surum   TEXT NOT NULL DEFAULT '',   -- foto_isler.onay_surum kopyasi
+  renk_sayisi  INTEGER NOT NULL DEFAULT 0, -- siparisin renk sayisi 1..4 (ek renk fiyatlandi); saglayici renk
+                                           -- adimi max_colors = bu deger; 0/aralik disi -> 'elle' (renk-sayisi-yok).
+                                           -- Var olan tabloya: tools/d1-goc/2026-10-08-foto-renk.sql
+  renkler      TEXT NOT NULL DEFAULT '',   -- secilen renkler JSON dizisi (operator AMS yuva eslemesi)
   PRIMARY KEY (siparis_no, kalem)
 );
 CREATE TABLE IF NOT EXISTS foto_kredi (

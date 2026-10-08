@@ -316,9 +316,17 @@ async function senaryo(ms) {
     const siparisNo = b4.v && b4.v.no;
     const s4 = siparisNo ? await d1.prepare("SELECT durum, urunler, tutar_kurus FROM siparisler WHERE siparis_no = ?").bind(siparisNo).first() : null;
     const k4 = s4 && JSON.parse(s4.urunler)[0];
-    iddia("L4", "/baslat 200, tutar = formul x adet (120 mm x 1000 = 120000 x 2), istemci tutari okunmaz",
-          b4.kod === 200 && P.iyzico === iyOnce4 + 1 && !!s4 && s4.tutar_kurus === 240000 && k4.birim_kurus === 120000 &&
-          k4.tutar_kurus === 240000, JSON.stringify(b4.v) + " " + (s4 && s4.tutar_kurus));
+    // Ek renk (Okan 8 Eki): panel Beyaz + ayak Siyah = 2 FARKLI renk -> +100 TL (ilk renk dahil).
+    iddia("L4", "/baslat 200, tutar = (formul + 1 ek renk) x adet ((120 mm x 1000 + 10000) = 130000 x 2), istemci tutari okunmaz",
+          b4.kod === 200 && P.iyzico === iyOnce4 + 1 && !!s4 && s4.tutar_kurus === 260000 && k4.birim_kurus === 130000 &&
+          k4.tutar_kurus === 260000 && JSON.stringify(k4.foto_renkler) === '["Beyaz","Siyah"]',
+          JSON.stringify(b4.v) + " " + (s4 && s4.tutar_kurus));
+    const ayni = await istek("/baslat", { govde: sepet({ panel_malzeme: "PLA", ayak_malzeme: "PLA", ayak_renk: "Beyaz" }) });
+    const sAyni = ayni.v && ayni.v.no ? await d1.prepare("SELECT urunler FROM siparisler WHERE siparis_no = ?").bind(ayni.v.no).first() : null;
+    const kAyni = sAyni && JSON.parse(sAyni.urunler)[0];
+    iddia("L4", "iki bolge AYNI renk (Beyaz/Beyaz) -> tek renk, ek renk 0 (birim 120000)",
+          ayni.kod === 200 && !!kAyni && kAyni.birim_kurus === 120000 && JSON.stringify(kAyni.foto_renkler) === '["Beyaz"]',
+          JSON.stringify(kAyni));
     iddia("L4", "satir secimi tasir (panel PETG, ayak ASA Siyah) + foto_kol deterministik",
           !!k4 && k4.foto_kol === "deterministik" && k4.foto_tur === "litofan" && k4.foto_secim &&
           k4.foto_secim.panel_malzeme === "PETG" && k4.foto_secim.ayak_malzeme === "ASA" &&
@@ -401,17 +409,22 @@ async function senaryo(ms) {
     const dur = pis ? await istek("/foto/durum?is=" + pis) : { v: null };
     iddia("L7", "plaket onizleme saglayici kolundan 'hazir'", p7.kod === 200 && !!dur.v && dur.v.asama === "hazir",
           JSON.stringify(p7.v) + " " + JSON.stringify(dur.v));
-    const b7 = await istek("/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
-      sepet: [{ foto_is: pis, olcu_mm: 100, adet: 1, secim: { ayak_renk: "Mor" } }] } });
+    const plaketSepet = (ek) => ({ sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
+      sepet: [{ foto_is: pis, olcu_mm: 100, adet: 1, secim: { ayak_renk: "Mor" }, ...ek }] });
+    const renksiz7 = await istek("/baslat", { govde: plaketSepet({}) });
+    iddia("L7", "palet turu (plaket) renksiz kalem 400 gecersiz-renk (Okan 8 Eki: musteri 1-4 renk secer)",
+          renksiz7.kod === 400 && !!renksiz7.v && renksiz7.v.hata === "gecersiz-renk", JSON.stringify(renksiz7.v));
+    const b7 = await istek("/baslat", { govde: plaketSepet({ renkler: ["Beyaz"] }) });
     const s7 = b7.v && b7.v.no ? await d1.prepare("SELECT urunler, tutar_kurus FROM siparisler WHERE siparis_no = ?").bind(b7.v.no).first() : null;
     const k7 = s7 && JSON.parse(s7.urunler)[0];
-    iddia("L7", "plaket satiri bugunku gibi (PLA, 4 renk, ayak 1, secim YOK SAYILIR)", b7.kod === 200 && !!k7 &&
-          s7.tutar_kurus === 100000 && k7.malzeme === "PLA" && k7.renk === "4 renk" && k7.foto_ayak === 1 &&
-          k7.foto_secim === undefined && k7.foto_kol === undefined, JSON.stringify(k7));
+    iddia("L7", "plaket satiri (PLA, 1 renk = taban fiyat, ayak 1, secim YOK SAYILIR, foto_renkler kayitta)", b7.kod === 200 && !!k7 &&
+          s7.tutar_kurus === 100000 && k7.malzeme === "PLA" && k7.renk === "Beyaz" && k7.foto_ayak === 1 &&
+          JSON.stringify(k7.foto_renkler) === '["Beyaz"]' && k7.foto_secim === undefined && k7.foto_kol === undefined, JSON.stringify(k7));
     if (b7.v && b7.v.no) { await d1.prepare("UPDATE siparisler SET durum = 'odendi' WHERE siparis_no = ?").bind(b7.v.no).run(); }
     await foto.fotoUretimTuru(env, Date.now(), null);
-    const u7 = b7.v && b7.v.no ? await d1.prepare("SELECT asama FROM foto_uretim WHERE siparis_no = ?").bind(b7.v.no).first() : null;
-    iddia("L7", "odenen plaket kuyrukta 'build-baslat'", !!u7 && u7.asama === "build-baslat", JSON.stringify(u7));
+    const u7 = b7.v && b7.v.no ? await d1.prepare("SELECT asama, renk_sayisi, renkler FROM foto_uretim WHERE siparis_no = ?").bind(b7.v.no).first() : null;
+    iddia("L7", "odenen plaket kuyrukta 'build-baslat' + renk_sayisi 1 + renkler kayitta", !!u7 && u7.asama === "build-baslat" &&
+          u7.renk_sayisi === 1 && u7.renkler === '["Beyaz"]', JSON.stringify(u7));
 
     // ---- L8: saglayici env'siz ortamda saklama kurali (72 sa) yine koşar
     const eski = new Date(Date.now() - 73 * 3600 * 1000).toISOString();
@@ -536,14 +549,14 @@ console.log("L1) KATEGORI KAYDI");
 
 const ISIMLIK = '      { kod: "isimlik", ad: "İsimlik", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",\n' +
   '        olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {},\n' +
-  '        form: { yazi: { tip: "metin", max: 20, etiket: "Yazı" } }, fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },\n' +
+  '        form: { yazi: { tip: "metin", max: 20, etiket: "Yazı" } }, fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },\n' +
   '        ornek_kanit_izni: ["render"], durustluk: "t", ornek_notu: "t" },\n';
 
 // L11: TURETILMIS eksenli sentetik tur (surgu yok; olcu onizlemede OLCULUR). Sahte uretec uzun kenari `uk`
 // parametresinden yazar (gercek uretecte geometriden dogar).
 const TURETIK = '      { kod: "turetik", ad: "Türetik", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",\n' +
   '        olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {}, olcu_ekseni: "turetilmis",\n' +
-  '        form: { uk: { tip: "sayi", min: 1, max: 999, adim: 0.01, etiket: "Uk" } }, fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },\n' +
+  '        form: { uk: { tip: "sayi", min: 1, max: 999, adim: 0.01, etiket: "Uk" } }, fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },\n' +
   '        ornek_kanit_izni: ["render"], durustluk: "t", ornek_notu: "t" },\n';
 
 const SAHTE_WR = `import json, os, shutil, sqlite3, sys

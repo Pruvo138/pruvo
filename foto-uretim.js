@@ -508,6 +508,7 @@
     if (!S.is) return;
     var kayit = { is: S.is, tur: S.tur, olcu: S.olcu };
     if (litofanSecili() && S.secim) kayit.secim = S.secim;
+    if (S.renkler && S.renkler.length) kayit.renkler = S.renkler;
     if (S.aydinlatmaOnay) kayit.onay = F.onay_surum;
     try { sessionStorage.setItem(SS_IS, JSON.stringify(kayit)); }
     catch (e) { }
@@ -599,6 +600,61 @@
       sec[rb[i].kod + "_renk"] = S.secim && r.indexOf(S.secim[rb[i].kod + "_renk"]) >= 0 ? S.secim[rb[i].kod + "_renk"] : r[0];
     }
     return sec;
+  }
+  // EK RENK (Okan 8 Eki: "ilk renk ücretsiz, her + renk için +100 TL", en çok 4): palet türünde (plaket/figür/büst)
+  // müşterinin seçtiği renkler; bölge türünde bölgelerde seçilen FARKLI renkler; bölgesiz türde 1. Sunucu AYNI sayımı yapar.
+  function paletRenkleri(kod) {
+    var tavan = F.renkTavani(kod) || 1;
+    var r = (S.renkler || []).filter(function (x, i, d) { return F.PLA_RENKLERI.indexOf(x) >= 0 && d.indexOf(x) === i; });
+    if (!r.length) r = [F.PLA_RENKLERI[0]];
+    return r.slice(0, tavan);
+  }
+  function renkSayisi(nt) {
+    if (!nt) return 1;
+    if (F.renkPaleti(nt.kod)) return paletRenkleri(nt.kod).length;
+    var fark = [];
+    for (var a in (S.secim || {})) {
+      if (Object.prototype.hasOwnProperty.call(S.secim, a) && /_renk$/.test(a) && fark.indexOf(S.secim[a]) < 0) fark.push(S.secim[a]);
+    }
+    return Math.max(1, fark.length);
+  }
+  // Ödeme kalemi: deterministik türde bölge seçimi, palet türünde renkler (sunucu ikisini de kayda karşı doğrular).
+  function sepetKalemi() {
+    var k = { foto_is: S.is, olcu_mm: S.olcu, adet: S.adet };
+    if (F.kolu(S.tur) === "deterministik" && S.secim) k.secim = S.secim;
+    if (F.renkPaleti(S.tur)) k.renkler = paletRenkleri(S.tur);
+    return k;
+  }
+  // Palet seçici: 9 PLA rengi, en az 1, en çok tavan (dolunca kalanlar kapalı); değişince özet yeniden çizilir.
+  function paletSecici(nt, degisti) {
+    var tavan = F.renkTavani(nt.kod) || 1;
+    S.renkler = paletRenkleri(nt.kod);
+    var g = el("div", "foto-uretim-form-grup");
+    var fs_ = el("fieldset", "foto-uretim-litofan-secim");
+    fs_.appendChild(el("legend", "foto-uretim-form-etiket", "Renkler (1–" + tavan + "; ilk renk dahil, her ek renk +" +
+      F.tlMetni(F.ekRenkKurus(nt.kod) || 0) + ")"));
+    for (var i = 0; i < F.PLA_RENKLERI.length; i++) {
+      (function (renk) {
+        var lbl = el("label", "foto-uretim-form-secenek-inline");
+        var inp = el("input");
+        inp.type = "checkbox"; inp.name = "foto-renk"; inp.value = renk;
+        var secili = S.renkler.indexOf(renk) >= 0;
+        inp.checked = secili;
+        // Tavan doluysa seçilmemiş kutular kapalı; tek seçili kutu kaldırılamaz (en az 1 renk).
+        inp.disabled = (!secili && S.renkler.length >= tavan) || (secili && S.renkler.length === 1);
+        inp.addEventListener("change", function (e) {
+          var d = S.renkler.slice();
+          if (e.target.checked) { if (d.indexOf(renk) < 0 && d.length < tavan) d.push(renk); }
+          else if (d.length > 1) { d = d.filter(function (x) { return x !== renk; }); }
+          S.renkler = d;
+          degisti();
+        });
+        ek(lbl, inp, " " + renk);
+        fs_.appendChild(lbl);
+      })(F.PLA_RENKLERI[i]);
+    }
+    g.appendChild(fs_);
+    return g;
   }
   function radyoGrubu(kutu, etiket, ad, liste, secili, cb) {
     var g = el("div", "foto-uretim-litofan-secim");
@@ -2137,7 +2193,7 @@
 
     S.alan.appendChild(el("p", "foto-uretim-ayrinti", litofanSecili() ? LITOFAN_DURUSTLUK :
       onizlemeSonraSecili() ? ((litofanKaydi() || {}).durustluk || "") :
-      "Önizleme — ürün bunun en çok 4 renkli kabartma yorumu olur; birebir aynısı değildir."));
+      "Önizleme — ürün bunun seçtiğin renk sayısında (1–4) kabartma yorumu olur; birebir aynısı değildir."));
     if (litofanSecili() && S.secim) {
       var secMetin = [];
       for (var sa in S.secim) {
@@ -2170,6 +2226,11 @@
       S.alan.appendChild(olcuG);
     }
 
+    /* renk (palet türü): 1..tavan renk, değişince kayıt + yeniden çizim (ek renk satırı güncellenir) */
+    if (nt && F.renkPaleti(nt.kod)) {
+      S.alan.appendChild(paletSecici(nt, function () { ssIsKaydet(); cizS3(); }));
+    }
+
     /* adet */
     var adetG = el("div", "foto-uretim-form-grup");
     adetG.appendChild(el("label", "foto-uretim-form-etiket", "Adet (1-5)"));
@@ -2192,13 +2253,17 @@
     S.alan.appendChild(adetG);
 
     /* ozet */
-    // Birim fiyat TEK formülden (sunucunun ödemede kullandığı AYNI F.fiyatKurus).
-    var fiyat = nt ? (F.olcuTuretilmis(nt.kod) ? S.fiyatKurus : F.fiyatKurus(nt.kod, S.olcu)) : null;
+    // Birim fiyat TEK formülden (sunucunun ödemede kullandığı AYNI F.fiyatKurus), renk sayısıyla (ek renk dahil).
+    var rs = renkSayisi(nt);
+    var ekRenk = nt && rs > 1 ? (rs - 1) * (F.ekRenkKurus(nt.kod) || 0) : 0;
+    var fiyat = nt ? (F.olcuTuretilmis(nt.kod) ? (S.fiyatKurus != null ? S.fiyatKurus + ekRenk : null)
+      : F.fiyatKurus(nt.kod, S.olcu, renkSayisi(nt))) : null;
     if (fiyat != null) {
       var urunToplam = fiyat * S.adet;
       var kargo = kargoUcreti(urunToplam);
       var genel = urunToplam + kargo;
       var ozet = el("div", "foto-uretim-ozet");
+      if (ekRenk > 0) ozet.appendChild(el("div", null, "Ek renk ×" + (rs - 1) + ": " + tlMetni(ekRenk) + (S.adet > 1 ? " (adet başı)" : "")));
       ozet.appendChild(el("div", null, "Ürün: " + tlMetni(urunToplam)));
       ozet.appendChild(el("div", null, "Gönderim: " + tlMetni(kargo)));
       ozet.appendChild(el("div", null, "Toplam: " + tlMetni(genel)));
@@ -2420,6 +2485,7 @@
         S.tur = kayit.tur || S.tur || (veri.turler[0] ? veri.turler[0].kod : null);
         S.olcu = kayit.olcu || null;
         if (kayit.secim && typeof kayit.secim === "object") S.secim = kayit.secim;
+        if (Array.isArray(kayit.renkler)) S.renkler = kayit.renkler;
         // Onay yalnız AYNI metin sürümüne verildiyse geri gelir (eski sürüm onayı sayılmaz).
         S.aydinlatmaOnay = kayit.onay === F.onay_surum;
         durumSorgula(kayit.is, true);
@@ -2691,9 +2757,7 @@
     if (!S.sozlesme) { adimKoy("S4", "Sözleşmeyi onaylamalısın.", true); return; }
     var atif = (typeof kok.pruvoAtifTopla === "function") ? kok.pruvoAtifTopla() : {};
     var govde = {
-      sepet: [F.kolu(S.tur) === "deterministik" && S.secim
-        ? { foto_is: S.is, olcu_mm: S.olcu, adet: S.adet, secim: S.secim }
-        : { foto_is: S.is, olcu_mm: S.olcu, adet: S.adet }],
+      sepet: [sepetKalemi()],
       musteri: { ad: ad, tel: tel, eposta: eposta, adres: adres, sehir: sehir },
       musteri_notu: notu,
       sozlesme_onay: true,

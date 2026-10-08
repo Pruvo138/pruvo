@@ -65,7 +65,7 @@ function veriKur(kaynakMetni) {
 const sahteTur = (kod, form) => ({
   kod, ad: "sahte " + kod, motor: "D", uretec: "test",
   olcu_mm: { en_az: 80, en_cok: 200 },
-  fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
+  fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
   form, girdi: []
 });
 
