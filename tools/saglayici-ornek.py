@@ -43,7 +43,9 @@ def rgb_png(w, h, piksel):
 
 def kedi_cizimi(n=640):
     """Oyuncak kedi: turuncu govde+bas, krem karin+agiz, koyu goz/burun, ucgen kulak. Zemin acik desenli."""
-    turuncu, krem, koyu = (232, 128, 46), (250, 232, 200), (40, 34, 30)
+    # 8 Eki olcumu: krem (250,232,200) acik gri zeminle karisti, saglayici karni DELIK yorumladi -> karin koyu bej,
+    # zemin ayrisan acik mavi.
+    turuncu, krem, koyu = (232, 128, 46), (238, 196, 140), (40, 34, 30)
     s = n / 640.0
 
     def elips(x, y, cx, cy, rx, ry):
@@ -77,8 +79,8 @@ def kedi_cizimi(n=640):
                 return krem
         if elips(x, y, 455, 470, 22, 70):                       # kuyruk
             return turuncu
-        g = 236 + (x * 7919 + y * 104729) % 11                  # desenli zemin (GORSEL_EN_AZ_BAYT ustu)
-        return (g, g, g)
+        g = (x * 7919 + y * 104729) % 11                        # desenli zemin (GORSEL_EN_AZ_BAYT ustu)
+        return (200 + g, 222 + g, 242 + g // 2)
     return rgb_png(n, n, piksel)
 
 

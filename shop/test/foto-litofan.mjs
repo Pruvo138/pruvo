@@ -849,9 +849,10 @@ const MUTANTLAR = [
   { ad: "M3 litofan kuyruga 'build-baslat' ile girer", dosya: "shop/src/foto.js", hedef: "L5",
     capa: 'det ? "uretec-bekliyor" : "build-baslat"', yerine: '"build-baslat"' },
   { ad: "M4 yukleme ucu yetki kapisinin ONUNE alindi", dosya: "shop/src/yonet.js", hedef: "L6",
-    capa: "  if (!anahtarGecerli(request, url, env)) {",
+    // kopru-15 (8 Eki): yetki satiri makine anahtari koluyla genisledi; capa yeni satir.
+    capa: "  if (!anahtarGecerli(request, url, env) && !makineAnahtariGecerli(request, env, altYol)) {",
     yerine: '  if (altYol === "/foto/uretec-yukle" && m === "POST") { return panelUretecYukle(request, env, url, Date.now()); }\n' +
-            "  if (!anahtarGecerli(request, url, env)) {" },
+            "  if (!anahtarGecerli(request, url, env) && !makineAnahtariGecerli(request, env, altYol)) {" },
   { ad: "M6 olcu.json sizdirmazlik kontrolu silindi", dosya: "shop/src/foto.js", hedef: "L9",
     capa: '  if (o.sizdirmaz !== true) { return "sizdirmaz-degil"; }\n', yerine: "" },
   { ad: "M7a plaka siniri eski sabit 250", dosya: "shop/src/foto.js", hedef: "L9",

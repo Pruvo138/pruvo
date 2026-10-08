@@ -2400,6 +2400,16 @@
         onizleme: "https://media.pruvo3d.com/foto/ornek/bust-1-render.webp",
         render: "https://media.pruvo3d.com/foto/ornek/bust-1-render.webp",
         not: "100 mm büst/madalyon"
+      },
+      {
+        tur: "figur",
+        kanit: "render",
+        olcu_mm: 130,
+        // kopru-15 (8 Eki 2026): GERÇEK sağlayıcı önizlemesi (tools/saglayici-ornek.py); girdi SENTETİK çizim
+        // (oyuncak kedi silueti) — kişi/marka/telifli görsel YOK. Önizleme = aynı render.
+        onizleme: "https://media.pruvo3d.com/foto/ornek/figur-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/figur-1-render.webp",
+        not: "130 mm, kaideli figür"
       }
     ],
 

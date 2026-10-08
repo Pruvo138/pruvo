@@ -1467,7 +1467,24 @@ console.log("ES2) ORNEK GALERISI: TUM turler (acik olmayan 'Yakında') + tur cum
   const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] });
   const acikP = { acik: true, turler: [tur("plaket", "Kabartma plaket")] };
   const acikPL = { acik: true, turler: [tur("plaket", "Kabartma plaket"), tur("litofan", "Işıklı fotoğraf paneli (litofan)")] };
-  const V0 = veriYukle(VERI_KAYNAK);
+  // kopru-15 (8 Eki): figur artik GERCEK ornekli -> canli veride yer tutucu kalmadi. Yer tutucu kolunu (ES2l/m +
+  // mutantlari) olcmeye devam etmek icin bu senaryo figur ornegini FIKSTURDEN cikarir (figur yer tutucu kalir);
+  // gercek veride figurun GORSELLI cizildigi ES2n'de ayrica olculur.
+  const VERI_YT = VERI_KAYNAK.replace(/\n      \{\n        tur: "figur",[\s\S]*?\n      \}(?=\n    \])/, "");
+  ol("ES2y fikstur: figur ornegi veri dosyasinda VAR ve fiksturden tam 1 kayit cikti",
+     VERI_YT !== VERI_KAYNAK && veriYukle(VERI_KAYNAK).ornekler.length - veriYukle(VERI_YT).ornekler.length === 1, "");
+  {
+    const g = await ekranKos(EKRAN_KAYNAK, veriYukle(VERI_KAYNAK), acikP);
+    const k = [...g.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-galeri-kucuk") &&
+      n.getAttribute("data-tur") === "figur");
+    const alt = k.length === 1 ? [...k[0].agac()] : [];
+    const resimli = alt.some((n) => String(n.tagName || "").toUpperCase() === "IMG" &&
+      /figur-1-render\.webp/.test(String(n.src || ""))) &&
+      !alt.some((n) => n.classList && n.classList.contains("foto-uretim-galeri-yer-ikon"));
+    ol("ES2r gercek veride figur kucuk resmi TEK ve GORSELLI (figur-1-render.webp); yer tutucu ikonu YOK", resimli,
+       "figur_kucuk=" + k.length + " alt=" + alt.map((n) => String(n.tagName || "") + ":" + String(n.src || "")).join(","));
+  }
+  const V0 = veriYukle(VERI_YT);
   // Veri dosyasindaki ornek TURLERI (tur basina ilk ornek) — galeri bunlarin HEPSINI cizmeli.
   // Yer tutucular (figur, bust) kayit olmadigi icin VERI_TURLERI'ne GIRMEZ; toplam = +2.
   const VERI_TURLERI = [...new Set(V0.ornekler.map((o) => o.tur))];
@@ -1482,7 +1499,7 @@ console.log("ES2) ORNEK GALERISI: TUM turler (acik olmayan 'Yakında') + tur cum
   const tusla = (n, key) => { for (const fn of ((n.dinle || {}).keydown || [])) { fn({ key, target: n, preventDefault() {} }); } };
   const senaryo = async (kaynak) => {
     const s = {};
-    const a = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), acikP);
+    const a = await ekranKos(kaynak, veriYukle(VERI_YT), acikP);
     const govde = a.bolum.parentNode;
     const kucuk = sinifli(a.bolum, "foto-uretim-galeri-kucuk");
     const grup = sinifli(a.bolum, "foto-uretim-ornek-grup");
@@ -1610,7 +1627,7 @@ console.log("ES2) ORNEK GALERISI: TUM turler (acik olmayan 'Yakında') + tur cum
     s.YER_BASLIK = yerBaslikOK;
     s.YER_LIGHTBOX = yerLightOK;
     s.YER_GEZINTI = yerGezOK;
-    const b = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), acikPL);
+    const b = await ekranKos(kaynak, veriYukle(VERI_YT), acikPL);
     const lit = b.ornekler.find((o) => o.img.some((u) => /litofan-1-render/.test(u)));
     const pla = b.ornekler.find((o) => o.img.some((u) => /plaket-1-/.test(u)));
     // TEK GORSEL + TUR CUMLESI: litofan onizleme = render -> 1 gorsel; cumle litofaninki, "kabartmalı" 0; acik -> "Yakında" 0.
@@ -1623,7 +1640,7 @@ console.log("ES2) ORNEK GALERISI: TUM turler (acik olmayan 'Yakında') + tur cum
     const litR = db.find((n) => n.tagName === "INPUT" && n.name === "foto-tur" && n.value === "litofan");
     if (kutu && litR) { litR.checked = true; litR.tetikle("change"); }
     s.DURUSTLUK = !!kutu && !!litR && kutu.textContent === DL;
-    const Vn = veriYukle(VERI_KAYNAK); Vn.turBul("litofan").ornek_notu = "";
+    const Vn = veriYukle(VERI_YT); Vn.turBul("litofan").ornek_notu = "";
     const c = await ekranKos(kaynak, Vn, acikPL);
     // NOTSUZ: ornek_notu bos turun render ornegi CIZILMEZ (fail-closed); ornegi olmayan yer tutucular her zaman VAR.
     s.NOTSUZ = c.ornekler.length === (VERI_TURLERI.length - 1) + YER.length && !c.ornekler.some((o) => /litofan/.test(o.img.join(" "))) &&
