@@ -2084,6 +2084,27 @@ async function uretimAdimi(env, u, simdi, telegram) {
   return false;
 }
 
+/**
+ * ONARIM NOBETI (8 Eki 2026, BaBa sarti 4): 'onarim-bekliyor' satiri ONARIM_BAYAT_SAAT'ten eskiyse yerel
+ * kosucu (Mac, launchd) calismiyor demektir. Nobet bu yuzden MAC'TE DEGIL Worker cron'unda (deterministik,
+ * LLM yok): Okan'a tek bildirim, sonra en erken ONARIM_BAYAT_SAAT sonra tekrar. Donus: bayat satir sayisi.
+ */
+export const ONARIM_BAYAT_SAAT = 6;
+async function onarimBayatNobeti(env, simdi, telegram) {
+  const r = await env.KATALOG.prepare(
+    "SELECT COUNT(*) AS n, MIN(guncel) AS en_eski FROM foto_uretim WHERE asama = 'onarim-bekliyor' AND guncel < ?"
+  ).bind(saatOnce(simdi, ONARIM_BAYAT_SAAT)).first();
+  const n = (r && r.n) || 0;
+  if (!n || typeof telegram !== "function") { return n; }
+  const son = await ayarOku(env, "onarim_bayat_bildirim");
+  if (!son || simdi - son.guncel >= ONARIM_BAYAT_SAAT * 3600000) {
+    await telegram(env, "🔴 Fotoğraftan üretim — yerel onarım kapısı " + ONARIM_BAYAT_SAAT + " saati aştı: " + n +
+      " kalem 'onarim-bekliyor' (en eski " + r.en_eski + "). Mac'teki foto koşucusu çalışmıyor olabilir.");
+    await ayarYaz(env, "onarim_bayat_bildirim", n, simdi);
+  }
+  return n;
+}
+
 /** Siparise donusmeyen onizlemeleri siler (onay metni: en gec 3 gun). */
 async function onizlemeTemizle(env, simdi) {
   const r = await env.KATALOG.prepare(
@@ -2111,7 +2132,7 @@ async function onizlemeTemizle(env, simdi) {
  * Donus olcum ozeti (log + test): {kuyruga, ilerleyen, silinen}.
  */
 export async function fotoUretimTuru(env, simdi, telegram) {
-  const ozet = { kuyruga: 0, ilerleyen: 0, silinen: 0, atlandi: "" };
+  const ozet = { kuyruga: 0, ilerleyen: 0, silinen: 0, onarim_bayat: 0, atlandi: "" };
   if (!env || !env.KATALOG || !env.OZEL_DOSYA || !env.URETIM_API_ANAHTAR || !env.URETIM_API_TABAN ||
       !env.URETIM_TUR_ONEK || !saglayiciYoluVar(env)) {
     ozet.atlandi = "yapilandirma";
@@ -2140,6 +2161,7 @@ export async function fotoUretimTuru(env, simdi, telegram) {
         console.error("foto uretim adimi dustu " + u.siparis_no + "/" + u.kalem + ": " + ((e && e.message) || e));
       }
     }
+    ozet.onarim_bayat = await onarimBayatNobeti(env, simdi, telegram);
     ozet.silinen = await onizlemeTemizle(env, simdi);
   } catch (e) {
     if (tabloYok(e)) { ozet.atlandi = "sema"; return ozet; }

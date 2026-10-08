@@ -2313,6 +2313,50 @@ for (const [ad, capa, yerine, olmeli] of ONARIM_MUTANTLAR) {
      Object.keys(s).length === 3 && JSON.stringify(kirmizi) === JSON.stringify([...olmeli].sort()), JSON.stringify(s));
 }
 
+/** ONARIM NOBETI (8 Eki, BaBa sarti 4): 'onarim-bekliyor' > ONARIM_BAYAT_SAAT -> Worker cron'u Okan'a TEK bildirim.
+ *  TAZE: 1 sa'lik satir bildirim uretmez · BAYAT: 7 sa'lik satir tek bildirim · TEKRAR: hemen sonraki tur yeni
+ *  bildirim atmaz. */
+async function bayatSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  const msj = [];
+  const tg = async (_e, m) => { msj.push(m); };
+  const say = () => msj.filter((m) => m.includes("onarım kapısı")).length;
+  const ekle = (no, saat) => {
+    const t = new Date(Date.now() - saat * 3600000).toISOString();
+    return k.d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, deneme, tarih, guncel)" +
+      " VALUES (?, 0, ?, 'plaket', 100, 'onarim-bekliyor', 0, ?, ?)").bind(no, "a".repeat(32), t, t).run();
+  };
+  const sonuc = {};
+  await ekle("PR-TEST-NB-T", 1);
+  await fm.fotoUretimTuru(e2, Date.now(), tg);
+  sonuc.TAZE = say() === 0;
+  await ekle("PR-TEST-NB-B", 7);
+  await fm.fotoUretimTuru(e2, Date.now(), tg);
+  sonuc.BAYAT = say() === 1 && /1 kalem/.test(msj.find((m) => m.includes("onarım kapısı")) || "");
+  await fm.fotoUretimTuru(e2, Date.now(), tg);
+  sonuc.TEKRAR = say() === 1;
+  k.kapat();
+  return sonuc;
+}
+
+const BAYAT_MUTANTLAR = [
+  ["NB1 YAS KOSULU SILINDI (taze satir da alarm)", "WHERE asama = 'onarim-bekliyor' AND guncel < ?\"",
+   "WHERE asama = 'onarim-bekliyor' AND ? IS NOT NULL\"", ["TAZE"]],
+  ["NB2 TEKRAR KAPISI SILINDI (her tur alarm)", "if (!son || simdi - son.guncel >= ONARIM_BAYAT_SAAT * 3600000) {",
+   "if (true) {", ["TEKRAR"]],
+  ["NB3 NOBET CAGRILMADI", "    ozet.onarim_bayat = await onarimBayatNobeti(env, simdi, telegram);\n", "", ["BAYAT", "TEKRAR"]],
+  ["NB0 KONTROL", "console.log(\"FOTO_URETIM kuyruga=\"", "console.log(\"FOTO_URETIM  kuyruga=\"", []],
+];
+for (const [ad, capa, yerine, olmeli] of BAYAT_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const s = await bayatSenaryolar(fm);
+  const kirmizi = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 3 && JSON.stringify(kirmizi) === JSON.stringify([...olmeli].sort()), JSON.stringify(s));
+}
+
 /** Mutanta karsi bes dar onarim-kapisi senaryosu (temiz SQLite). A1-A5: onarimGerekli(p) karari.
  *  A1 warning+deg_faces 316227 → onarim en az 1 kez (tavan sonrasi 'elle'; sonsuz onarim YOK).
  *  A2 warning + tum metrikler 0/true → renk (repair 0; bugunku davranis).
