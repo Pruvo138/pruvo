@@ -67,8 +67,8 @@ if (!VERI) { throw new Error("foto-uretim-veri.js yuklenemedi — tur/ornek tek 
  */
 export const TUR_ORTAM = { plaket: "URETIM_TUR_PLAKET", figur: "URETIM_TUR_FIGUR" };
 /** Build adiminda olcu sinirlari (mm; plaketin en uzun boyutu) — manifest kaydi yoksa yedek aralik. */
-export const OLCU_MM_EN_AZ = 60; // Okan 6 Eki: "min 60 max 300" (manifest plaket olcu_mm ile AYNI)
-export const OLCU_MM_EN_COK = 300; // Okan 6 Eki: 60–300 mm (saglayici sinir 400)
+export const OLCU_MM_EN_AZ = 10; // Okan 8 Eki 14:0x: "slider 10 mm.den baslasin" (manifest plaket olcu_mm ile AYNI; fiyat tabani 600 TL)
+export const OLCU_MM_EN_COK = 300; // Okan 6 Eki ust sinir 300 mm (saglayici sinir 400)
 /**
  * PLAKET GEOMETRISI (herkese AYNI; ayak bu taban kalinligina gore yuvali uretilir — TeKiN).
  * Duz arka (kapali sirt), alt kenari duz sekil: masada ayakla durur. Model uzerinde DELME YOK.

@@ -100,6 +100,18 @@ function tabansizSenaryo(kaynak) {
   return V.fiyatKurus("plaket", 120) === null && V.fiyatKurus("litofan", 120) === 120000;
 }
 
+// F8 (Okan 8 Eki 14:0x "slider 10 mm'den baslasin ama min fiyat 600 TL kalsin"): KraL'in elle tuttugu
+// (kopru-disi) sabit eksenli turlerde surgu alt siniri 10 mm ve 10 mm = 600 TL; turetilmis eksende
+// 59 mm = 600 TL, 61 mm = 610 TL. Kopru turlerinin alt siniri TeKiN kaydindan turer (ayri kalem).
+const ELLE_SURGU = ["plaket", "figur", "litofan", "isimlik", "qr", "logo", "muhur", "sablon", "yapboz"];
+function surguSenaryo(V) {
+  const alt = ELLE_SURGU.filter((k) => { const a = V.olcuAraligi(k); return a && a.en_az === 10 && V.olcuSecenekleri(k)[0] === 10; });
+  const on = ELLE_SURGU.filter((k) => V.fiyatKurus(k, 10) === TABAN_KURUS);
+  const tu = V.turler.find((t) => t.olcu_ekseni === "turetilmis" && V.olcuGecerli(t.kod, 59) && V.olcuGecerli(t.kod, 61));
+  const sinir = !!tu && V.fiyatKurus(tu.kod, 59) === 60000 && V.fiyatKurus(tu.kod, 61) === 61000;
+  return { F8: alt.length === ELLE_SURGU.length && on.length === ELLE_SURGU.length && sinir, alt, on, tu: tu && tu.kod, sinir };
+}
+
 console.log("F1-F3) TEK FORMUL — fiyat_kurus = max(600 TL, en uzun boyut (mm) × 10 TL), kategori farki YOK");
 const VERI = veriYukle(VERI_KAYNAK);
 const fs1 = formulSenaryolar(VERI);
@@ -114,6 +126,14 @@ console.log("F6-F7) TABAN 600 TL — her tur, her surgu duragi");
 ol("F6 taban: " + fs1.enDusuk.filter((k) => k >= TABAN_KURUS).length + "/" + kategori + " tur en dusuk fiyat >= 600 TL (" +
    fs1.tabanli.length + " turde taban basiyor: " + fs1.tabanli.join(",") + ")", fs1.F6 && fs1.enDusuk.length === kategori, "");
 ol("F7 taban_tl'siz tur -> fiyat null (sunulmaz), diger turler etkilenmez", tabansizSenaryo(VERI_KAYNAK), "");
+{
+  const sg = surguSenaryo(VERI);
+  const kopruAlt = VERI.turler.filter((t) => !ELLE_SURGU.includes(t.kod) && t.olcu_ekseni === "sabit")
+    .map((t) => t.kod + ":" + t.olcu_mm.en_az);
+  ol("F8 surgu alt siniri 10 mm: " + sg.alt.length + "/" + ELLE_SURGU.length + " elle tur · 10 mm = 600 TL " + sg.on.length + "/" +
+     ELLE_SURGU.length + " · turetilmis " + sg.tu + " 59 mm = 600 TL, 61 mm = 610 TL", sg.F8, JSON.stringify(sg));
+  console.log("     bilgi: kopru (TeKiN kaydi) sabit turlerin alt siniri: " + kopruAlt.join(" "));
+}
 {
   if (VERI_KAYNAK.split(PLAKET_FIYAT).length !== 2) { ol("F2b capa bulundu (tek)", false, PLAKET_FIYAT); }
   const bilinmeyen = veriYukle(VERI_KAYNAK.replace(PLAKET_FIYAT, PLAKET_FIYAT.replace("mm_x_10tl", "mm_x_99tl")));
@@ -158,17 +178,19 @@ console.log("MUTANTLAR (bellekteki veri kopyasi / gecici foto.js kopyasi; calism
 let survivor = 0;
 const VERI_MUTANTLAR = [
   ["FM0 KONTROL (yorum)", "// Formül adı -> mm başına kuruş.", "// Formül  adı -> mm başına kuruş.", []],
-  ["FM1 FORMUL ×100", "VERI.FIYAT_FORMULLERI = { mm_x_10tl: 1000 };", "VERI.FIYAT_FORMULLERI = { mm_x_10tl: 100000 };", ["F1", "F3", "F6", "F7"]],
+  ["FM1 FORMUL ×100", "VERI.FIYAT_FORMULLERI = { mm_x_10tl: 1000 };", "VERI.FIYAT_FORMULLERI = { mm_x_10tl: 100000 };", ["F1", "F3", "F6", "F7", "F8"]],
   ["FM2 EN_AZ YERINE EN_COK", "return { en_az: t.olcu_mm.en_az, en_cok: t.olcu_mm.en_cok };",
-   "return { en_az: t.olcu_mm.en_cok, en_cok: t.olcu_mm.en_cok };", ["F1", "F3", "F6", "F7"]],
+   "return { en_az: t.olcu_mm.en_cok, en_cok: t.olcu_mm.en_cok };", ["F1", "F3", "F6", "F7", "F8"]],
   ["FM3 ADIM IZGARASI SILINDI", "return VERI.olcuTuretilmis(kod) || (mm - a.en_az) % adim === 0 || mm === a.en_cok;",
    "return true;", ["F2"]],
   ["FM5 TURETILMIS DE IZGARAYA BAGLI", "return VERI.olcuTuretilmis(kod) || (mm - a.en_az) % adim === 0 || mm === a.en_cok;",
-   "return (mm - a.en_az) % adim === 0 || mm === a.en_cok;", ["F2"]],
+   "return (mm - a.en_az) % adim === 0 || mm === a.en_cok;", ["F2", "F8"]],
   // Okan 8 Eki tabani: taban kalkinca 60 mm alti turler 600 TL'nin altina iner -> F1/F3/F6 KIRMIZI.
-  ["FM6 TABAN KALKTI", "return Math.max(mm * f, taban);", "return mm * f;", ["F1", "F3", "F6"]],
+  ["FM6 TABAN KALKTI", "return Math.max(mm * f, taban);", "return mm * f;", ["F1", "F3", "F6", "F8"]],
   // Tabansiz tur fail-open (taban yoksa 0 sayilir) -> F7 KIRMIZI.
-  ["FM7 TABANSIZ TUR FAIL-OPEN", "if (!f || taban === null || !VERI.olcuGecerli(kod, mm)) { return null; }",
+  // Okan 14:0x: surgu alti 60'a geri cekilirse F8 KIRMIZI.
+  ["FM8 PLAKET SURGU ALTI 60", "        olcu_mm: { en_az: 10, en_cok: 300 },", "        olcu_mm: { en_az: 60, en_cok: 300 },", ["F8"]],
+  ["FM7 TABANSIZ TUR FAIL-OPEN","if (!f || taban === null || !VERI.olcuGecerli(kod, mm)) { return null; }",
    "if (!f || !VERI.olcuGecerli(kod, mm)) { return null; }", ["F7"]],
 ];
 for (const [ad, capa, yerine, olmeli] of VERI_MUTANTLAR) {
@@ -176,7 +198,8 @@ for (const [ad, capa, yerine, olmeli] of VERI_MUTANTLAR) {
   const mutant = VERI_KAYNAK.replace(capa, yerine);
   const s = formulSenaryolar(veriYukle(mutant));
   s.F7 = tabansizSenaryo(mutant);
-  const kir = ["F1", "F2", "F3", "F6", "F7"].filter((x) => s[x] !== true);
+  s.F8 = surguSenaryo(veriYukle(mutant)).F8;
+  const kir = ["F1", "F2", "F3", "F6", "F7", "F8"].filter((x) => s[x] !== true);
   const tam = JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort());
   if (olmeli.length && !kir.length) { survivor++; }
   ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", tam, JSON.stringify(kir));

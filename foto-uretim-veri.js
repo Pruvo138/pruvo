@@ -120,7 +120,7 @@
         motor: "M",
         uretec: "",
         // Okan 6 Eki 2026: "min 60 max 300".
-        olcu_mm: { en_az: 60, en_cok: 300 },
+        olcu_mm: { en_az: 10, en_cok: 300 },
         renk_bolgeleri: [],
         malzemeler: {},
         form: {},
@@ -143,7 +143,7 @@
         motor: "M",
         uretec: "",
         // 60–200 mm (figür en uzun boyutu; plaketin 300 üst sınırı figürde destek/süre yüzünden dar tutuldu).
-        olcu_mm: { en_az: 60, en_cok: 200 },
+        olcu_mm: { en_az: 10, en_cok: 200 },
         renk_bolgeleri: [],
         malzemeler: {},
         form: {},
@@ -161,7 +161,7 @@
         girdi: ["foto-1"],
         motor: "D",
         uretec: "litofan_uret",
-        olcu_mm: { en_az: 80, en_cok: 200 },
+        olcu_mm: { en_az: 10, en_cok: 200 },
         renk_bolgeleri: [
           { kod: "panel", ad: "Işık geçen panel", renkler: ["Beyaz"] },
           { kod: "ayak", ad: "Ayak", renkler: ["Beyaz", "Siyah", "Gri"] }
@@ -187,7 +187,7 @@
         girdi: ["form"],
         motor: "D",
         uretec: "isimlik_uret",
-        olcu_mm: { en_az: 60, en_cok: 250 },
+        olcu_mm: { en_az: 10, en_cok: 250 },
         renk_bolgeleri: [
           { kod: "plaka", ad: "Plaka", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
           { kod: "yazi", ad: "Yazı", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] }
@@ -212,7 +212,7 @@
         girdi: ["form"],
         motor: "D",
         uretec: "qr_plaket_uret",
-        olcu_mm: { en_az: 40, en_cok: 150 },
+        olcu_mm: { en_az: 10, en_cok: 150 },
         renk_bolgeleri: [
           { kod: "plaka", ad: "Plaka", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
           { kod: "kod", ad: "Kod", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] }
@@ -235,7 +235,7 @@
         girdi: ["svg"],
         motor: "D",
         uretec: "svg_ekstruzyon_uret",
-        olcu_mm: { en_az: 30, en_cok: 200 },
+        olcu_mm: { en_az: 10, en_cok: 200 },
         renk_bolgeleri: [
           { kod: "taban", ad: "Taban", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] },
           { kod: "logo", ad: "Logo", renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"] }
@@ -256,7 +256,7 @@
         girdi: ["foto-1"],
         motor: "D",
         uretec: "muhur_uret",
-        olcu_mm: { en_az: 20, en_cok: 100 },
+        olcu_mm: { en_az: 10, en_cok: 100 },
         renk_bolgeleri: [
           { kod: "govde", ad: "Gövde", renkler: ["Mavi", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Gri", "Beyaz", "Sarı", "Ahşap"] },
           { kod: "sap", ad: "Sap", renkler: ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] }
@@ -277,7 +277,7 @@
         girdi: ["foto-1"],
         motor: "D",
         uretec: "siluet_sablon_uret",
-        olcu_mm: { en_az: 60, en_cok: 250 },
+        olcu_mm: { en_az: 10, en_cok: 250 },
         renk_bolgeleri: [
           { kod: "sablon", ad: "Şablon", renkler: ["Gri", "Beyaz", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Sarı", "Ahşap"] }
         ],
@@ -297,7 +297,7 @@
         girdi: ["foto-1"],
         motor: "D",
         uretec: "yapboz_uret",
-        olcu_mm: { en_az: 100, en_cok: 190 },
+        olcu_mm: { en_az: 10, en_cok: 190 },
         renk_bolgeleri: [
           { kod: "yapboz", ad: "Yapboz", renkler: ["Ahşap", "Beyaz", "Gri", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"] }
         ],

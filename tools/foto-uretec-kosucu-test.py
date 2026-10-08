@@ -924,22 +924,22 @@ def kosucu_modulu():
 
 # Mimar karari 7 Eki 2026 — AYNEN (manifest bunlarla birebir esit olmali).
 G2_SATIR = {
-    "isimlik": ("İsimlik / kapı tabelası", ["form"], "isimlik_uret", 60, 250, ["plaka", "yazi"], ["PLA", "PETG", "ASA"],
+    "isimlik": ("İsimlik / kapı tabelası", ["form"], "isimlik_uret", 10, 250, ["plaka", "yazi"], ["PLA", "PETG", "ASA"],
                 "Üretim dosyasının görüntüsüdür; isimlik bu yazı ve ölçüyle üretilir, renk tonu filamente göre biraz değişebilir.",
                 "Yazı plakanın üzerinde kabartmadır. Uzun metin küçülür; en küçük harf 6 mm'dir, sığmayan metin için sipariş alınmaz."),
-    "qr": ("QR kodlu plaka", ["form"], "qr_plaket_uret", 40, 150, ["plaka", "kod"], ["PLA", "PETG", "ASA"],
+    "qr": ("QR kodlu plaka", ["form"], "qr_plaket_uret", 10, 150, ["plaka", "kod"], ["PLA", "PETG", "ASA"],
            "Üretim dosyasının görüntüsüdür; plakadaki kod bu düzende üretilir.",
            "Kodu göndermeden önce telefonla okutarak kontrol ederiz. Bağlantının çalışması verdiğin adrese bağlıdır."),
-    "logo": ("Logodan kabartma", ["svg"], "svg_ekstruzyon_uret", 30, 200, ["taban", "logo"], ["PLA", "PETG"],
+    "logo": ("Logodan kabartma", ["svg"], "svg_ekstruzyon_uret", 10, 200, ["taban", "logo"], ["PLA", "PETG"],
              "Üretim dosyasının görüntüsüdür; logonun dolu alanları kabartma olarak üretilir.",
              "Yalnız düz renkli alanlar üretilir; gölge ve renk geçişi çıkmaz. 0,8 mm'den ince çizgiler siparişi durdurur."),
-    "muhur": ("Logo mühür / damga", ["foto-1"], "muhur_uret", 20, 100, ["govde", "sap"], ["PLA", "PETG"],
+    "muhur": ("Logo mühür / damga", ["foto-1"], "muhur_uret", 10, 100, ["govde", "sap"], ["PLA", "PETG"],
               "Üretim dosyasının görüntüsüdür; damga yüzü ayna görüntüsüdür, kâğıda bastığında logonun kendisi çıkar.",
               "Plastik gövdeli bir damgadır; resmî kurum mührü yerine geçmez. 0,6 mm'den ince çizgiler kalınlaştırılır."),
-    "sablon": ("Silüet şablon", ["foto-1"], "siluet_sablon_uret", 60, 250, ["sablon"], ["PLA", "PETG"],
+    "sablon": ("Silüet şablon", ["foto-1"], "siluet_sablon_uret", 10, 250, ["sablon"], ["PLA", "PETG"],
                "Üretim dosyasının görüntüsüdür; açık alanlar delik, koyu alanlar plakadır.",
                "Şablon 1,2–2 mm kalınlığında bir plakadır; içteki adalar ince köprülerle tutturulur ve bu köprüler boyamada iz bırakır."),
-    "yapboz": ("Fotoğraftan kabartma yapboz", ["foto-1"], "yapboz_uret", 100, 190, ["yapboz"], ["PLA", "PETG"],
+    "yapboz": ("Fotoğraftan kabartma yapboz", ["foto-1"], "yapboz_uret", 10, 190, ["yapboz"], ["PLA", "PETG"],
                "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir.",
                "Yapboz tek renkli kabartmadır; renkli baskı değildir. Parçalar elle takılır; çocuk oyuncağı olarak belgelendirilmemiştir."),
 }

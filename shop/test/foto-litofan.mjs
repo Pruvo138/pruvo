@@ -265,8 +265,8 @@ async function senaryo(ms) {
     const sgOnce = P.saglayici;
     const a3 = await istek("/foto/acik");
     const lt = a3.v && (a3.v.turler || []).find((t) => t.kod === "litofan");
-    iddia("L3", "anahtarla /foto/acik litofan 80..200 mm (13 olcu) FORMULDEN sunar (120 mm = 120000)", !!lt && lt.olculer.length === 13 &&
-          lt.olculer.every((o) => o.fiyat_kurus === o.mm * 1000) && lt.olculer.some((o) => o.mm === 120 && o.fiyat_kurus === 120000),
+    iddia("L3", "anahtarla /foto/acik litofan 10..200 mm (20 olcu) FORMULDEN sunar (120 mm = 120000, 10 mm = taban 60000)", !!lt && lt.olculer.length === 20 &&
+          lt.olculer.every((o) => o.fiyat_kurus === Math.max(o.mm * 1000, 60000)) && lt.olculer.some((o) => o.mm === 120 && o.fiyat_kurus === 120000) && lt.olculer.some((o) => o.mm === 10 && o.fiyat_kurus === 60000),
           JSON.stringify(a3.v));
     const r2Once = r2.m.size;
     const l3 = await istek("/foto/litofan", { ip: "10.3.0.1", govde: litofanGovde({ onay_surum: surum }) });
@@ -518,12 +518,12 @@ console.log("L1) KATEGORI KAYDI");
      det.every((d) => !Object.prototype.hasOwnProperty.call(foto.TUR_ORTAM, d)) &&
        JSON.stringify(foto.DETERMINISTIK_TURLER) === JSON.stringify(det), JSON.stringify(foto.DETERMINISTIK_TURLER));
   const lit = VERI.turBul("litofan");
-  ol("L1d litofan: motor D (deterministik), uretec litofan_uret, 80–200 mm, ABS 0 (Dekorasyon sinifi)", !!lit &&
+  ol("L1d litofan: motor D (deterministik), uretec litofan_uret, 10–200 mm, ABS 0 (Dekorasyon sinifi)", !!lit &&
      VERI.kolu("litofan") === "deterministik" && lit.motor === "D" && lit.uretec === "litofan_uret" &&
-     lit.olcu_mm.en_az === 80 && lit.olcu_mm.en_cok === 200 &&
+     lit.olcu_mm.en_az === 10 && lit.olcu_mm.en_cok === 200 &&
      !Object.values(lit.malzemeler).some((l) => l.includes("ABS")), JSON.stringify(lit && lit.malzemeler));
   const pl = VERI.olcuAraligi("plaket");
-  ol("L1e plaket kaydi bugunku davranisi birebir tarif eder (60–300 mm, renk secimi yok, malzeme {})",
+  ol("L1e plaket kaydi bugunku davranisi birebir tarif eder (10–300 mm, renk secimi yok, malzeme {})",
      !!pl && pl.en_az === foto.OLCU_MM_EN_AZ && pl.en_cok === foto.OLCU_MM_EN_COK &&
        VERI.turBul("plaket").renk_bolgeleri.length === 0 && Object.keys(VERI.turBul("plaket").malzemeler).length === 0 &&
        VERI.kolu("plaket") === "saglayici" && VERI.kolu("yok") === "" && VERI.olcuAraligi("yok") === null, JSON.stringify(pl));
@@ -876,7 +876,7 @@ const MUTANTLAR = [
   { ad: "M7b plaka siniri kontrolu yok", dosya: "shop/src/foto.js", hedef: "L9",
     capa: "kutu.x <= PLAKA_MM && kutu.y <= PLAKA_MM", yerine: "true" },
   { ad: "M7c manifest yapboz ust siniri 280", dosya: "foto-uretim-veri.js", hedef: "L9",
-    capa: "        olcu_mm: { en_az: 100, en_cok: 190 },", yerine: "        olcu_mm: { en_az: 100, en_cok: 280 }," },
+    capa: "        olcu_mm: { en_az: 10, en_cok: 190 },", yerine: "        olcu_mm: { en_az: 10, en_cok: 280 }," },
   { ad: "M7 uzun kenar tolerans kontrolu silindi", dosya: "shop/src/foto.js", hedef: "L9",
     capa: "!(Math.abs(o.uzun_kenar_mm - k.olcu_mm) <= k.olcu_mm * tol + 1e-9)", yerine: "false" },
   { ad: "M8 parametre sema kontrolu silindi", dosya: "shop/src/foto.js", hedef: "L3",

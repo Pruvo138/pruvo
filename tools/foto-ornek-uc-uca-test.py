@@ -547,14 +547,14 @@ def vakalar(kaynak, sadece=None):
     def s9(o):
         # Pre-seed foto_isler (ziyaretci 'ornek', asama 'hazir') + foto_uretim ('doku' satir). zengin harita ile
         # uretim-tik doku->renk->hazir; /foto/ornek-onizleme 0; yalniz yeni adim kredisi (doku 10 + renk 10 = 20).
-        # plaket olcu_secenekleri ortanca = 180 (betigin tr.olcu'su) — 100 yazarsak eksen YANLIS olur.
+        # plaket olcu_secenekleri ortanca = 160 (10..300 = 30 olcu, s[len//2], 8 Eki) (betigin tr.olcu'su) — 100 yazarsak eksen YANLIS olur.
         is_no = "f" * 32
         no = "ORNEK-" + is_no[:12]
         c0 = sqlite3.connect(o.db)
         c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
-                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+                   " VALUES (?, 'plaket', 160, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
         c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
-                   " VALUES (?, 0, ?, 'plaket', 180, 'doku', 't', 't')", (no, is_no))
+                   " VALUES (?, 0, ?, 'plaket', 160, 'doku', 't', 't')", (no, is_no))
         c0.commit()
         c0.close()
         o.sunucu.ayar["zengin_harita"] = True
@@ -600,9 +600,9 @@ def vakalar(kaynak, sadece=None):
         no = "ORNEK-" + is_no[:12]
         c0 = sqlite3.connect(o.db)
         c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
-                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+                   " VALUES (?, 'plaket', 160, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
         c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
-                   " VALUES (?, 0, ?, 'plaket', 180, 'analiz', 't', 't')", (no, is_no))
+                   " VALUES (?, 0, ?, 'plaket', 160, 'analiz', 't', 't')", (no, is_no))
         c0.commit()
         c0.close()
         o.sunucu.ayar["zengin_harita"] = True
@@ -621,9 +621,9 @@ def vakalar(kaynak, sadece=None):
         no = "ORNEK-" + is_no[:12]
         c0 = sqlite3.connect(o.db)
         c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
-                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+                   " VALUES (?, 'plaket', 160, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
         c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
-                   " VALUES (?, 0, ?, 'plaket', 180, 'analiz', 't', 't')", (no, is_no))
+                   " VALUES (?, 0, ?, 'plaket', 160, 'analiz', 't', 't')", (no, is_no))
         c0.commit()
         c0.close()
         o.sunucu.ayar["zengin_harita"] = True
@@ -640,13 +640,13 @@ def vakalar(kaynak, sadece=None):
         no = "ORNEK-" + is_no[:12]
         c0 = sqlite3.connect(o.db)
         c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
-                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+                   " VALUES (?, 'plaket', 160, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
         c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
-                   " VALUES (?, 0, ?, 'plaket', 180, 'onarim-bekliyor', 't', 't')", (no, is_no))
+                   " VALUES (?, 0, ?, 'plaket', 160, 'onarim-bekliyor', 't', 't')", (no, is_no))
         c0.commit()
         c0.close()
         d = os.path.join(o.sunucu.ayar["r2"], "foto", no, "0")
-        kutu_3mf(d, 180)
+        kutu_3mf(d, 160)
         os.replace(os.path.join(d, "model.3mf"), os.path.join(d, "model.ham.3mf"))
         with open(os.path.join(d, "model.glb"), "wb") as f:
             f.write(b"glTF\x02\x00\x00\x00\x0c\x00\x00\x00")
@@ -1033,7 +1033,7 @@ MUTANTLAR = {
     # ilerletmez) -> S14 ④ EKSIK, S15 dogru sebebi basmaz.
     "MB31": ("        if asama == \"onarim-bekliyor\":\n", "        if False:\n", {"S14", "S15"}),
     # Okan 8 Eki tabani: olcum betigi tabani unutursa 60 mm alti sabit turler (qr/logo/muhur/braille) KIRMIZI.
-    "MB32": ("    return max(mm * 1000, TABAN_KURUS)\n", "    return mm * 1000\n", {"U14"}),
+    "MB32": ("    return max(mm * 1000, TABAN_KURUS)\n", "    return mm * 1000\n", {"U1", "U14"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }

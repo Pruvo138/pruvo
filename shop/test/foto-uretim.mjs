@@ -520,9 +520,9 @@ console.log("B) ACILIS ANAHTARI + TEK FORMUL (Okan 7 Eki 15:4x: fiyat tablosu YO
   const a2 = await istek(env, "/foto/acik");
   const turler = (a2.v && a2.v.turler) || [];
   const pl = turler.find((t) => t.kod === "plaket");
-  ol("B3 acik:true; plaket olculeri FORMULDEN (100 mm = 100000 kurus, her olcu mm x 1000, 60..300 adim 10)",
-     a2.v && a2.v.acik === true && !!pl && pl.olculer.length === 25 &&
-     pl.olculer.every((o) => o.fiyat_kurus === o.mm * 1000 && o.fiyat_kurus === VERI.fiyatKurus("plaket", o.mm)) &&
+  ol("B3 acik:true; plaket olculeri FORMULDEN (100 mm = 100000 kurus, her olcu max(60000, mm x 1000), 10..300 adim 10)",
+     a2.v && a2.v.acik === true && !!pl && pl.olculer.length === 30 &&
+     pl.olculer.every((o) => o.fiyat_kurus === Math.max(o.mm * 1000, 60000) && o.fiyat_kurus === VERI.fiyatKurus("plaket", o.mm)) &&
      pl.olculer.some((o) => o.mm === 100 && o.fiyat_kurus === 100000), JSON.stringify(a2.v));
   ol("P4 /foto/acik sunulan tur sayisi 1 (plaket)", turler.length === 1 && turler[0].kod === "plaket",
      JSON.stringify(turler.map((t) => t.kod)));
