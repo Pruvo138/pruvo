@@ -660,7 +660,11 @@ class Cdp:
         for o in self.olaylar:
             m, p = o.get("method"), o.get("params") or {}
             if m == "Runtime.exceptionThrown":
-                n.append("istisna: " + str((p.get("exceptionDetails") or {}).get("text", ""))[:120])
+                # text yalniz "Uncaught" der; teshis icin istisnanin aciklamasi + kaynak satiri da basilir.
+                d = p.get("exceptionDetails") or {}
+                ac = str((d.get("exception") or {}).get("description") or "").split("\n")[0]
+                n.append("istisna: %s %s @%s:%s" % (d.get("text", ""), ac, str(d.get("url") or "").rsplit("/", 1)[-1],
+                                                   d.get("lineNumber")))
             elif m == "Runtime.consoleAPICalled" and p.get("type") == "error":
                 n.append("console.error: " + str([a.get("value") for a in p.get("args") or []])[:120])
             elif m == "Log.entryAdded" and (p.get("entry") or {}).get("level") == "error":
