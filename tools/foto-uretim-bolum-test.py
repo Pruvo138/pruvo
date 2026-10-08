@@ -62,6 +62,49 @@ def soyulacak_js(build_metin):
         return None
 
 
+def yorumsuz(metin):
+    """JS yorumlarini (// satir, /* */ blok) temizle; string literal'lara DOKUNMA.
+
+    Y10 'gerçek fotoğraf' 0 ölçümü bunu kullanır: yasaklı ifade yalnız yorumlarda geçer;
+    string'lere veya koda girerse 'kullanici gorecek' sayilir ve kapı kırar.
+    """
+    out, i, n = [], 0, len(metin)
+    while i < n:
+        c = metin[i]
+        if c == '"' or c == "'":
+            quote = c
+            out.append(c)
+            i += 1
+            while i < n and metin[i] != quote:
+                if metin[i] == '\\' and i + 1 < n:
+                    out.append(metin[i])
+                    out.append(metin[i+1])
+                    i += 2
+                else:
+                    out.append(metin[i])
+                    i += 1
+            if i < n:
+                out.append(metin[i])
+                i += 1
+            continue
+        if c == '/' and i + 1 < n and metin[i+1] == '*':
+            i += 2
+            while i + 1 < n and not (metin[i] == '*' and metin[i+1] == '/'):
+                i += 1
+            if i + 1 < n:
+                i += 2
+            else:
+                i = n
+            continue
+        if c == '/' and i + 1 < n and metin[i+1] == '/':
+            while i < n and metin[i] != '\n':
+                i += 1
+            continue
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
 def kontroller(index, bolum, veri, build):
     """[(ad, gecti, ayrinti)] — metin girdileri; disk/ag yok (mutantlar da bunu kullanir)."""
     s = []
@@ -120,10 +163,11 @@ def kontroller(index, bolum, veri, build):
     eski = [k for k in ("anahtarl", "magnet", "mıknatıs", "miknatis")
             if k in bolum.lower() or k in (tb.group(1).lower() if tb else "")]
     s.append(("Y8 anahtarlik/magnet secenegi ekranda + tur listesinde 0", not eski, ",".join(eski)))
-    # Y9 TEK TUR: tur secimi cizilmez + adim cubugu "Olcu" der (davranis: foto-uretim.mjs S).
-    s.append(("Y9 tek turde tur grubu gizlenir ve radyo cizilmeden donulur",
-              re.search(r"if \(S\.acikVeri\.turler\.length === 1\) \{[^}]*S\.alanTur\.hidden = true;\s*return;", bolum)
-              is not None, ""))
+    # Y9 13:5x (Okan 13:5x: tek tur dali kaldirildi — tur secimi GALERIDEN, 24 kucuk resim izgarasi).
+    # Ayri radyo grubu yok; tiklanan kart = secim (function galeriSec).
+    s.append(("Y9 13:5x tur secimi galeriden (tek tur dali kaldirildi, Okan 13:5x)",
+              re.search(r"function galeriSec\(n\)\s*\{", bolum) is not None
+              and "galeriSec(n)" in bolum, ""))
     s.append(("Y9 adim cubugu tur sayisina gore 'Ölçü' der",
               'F.turler.length > 1 ? "Tür ve ölçü" : "Ölçü"' in bolum, ""))
     # Y10 RENDER ORNEGI (Okan 7 Eki): kanit izni tur kaydinda, izin kontrolu sayacta.
@@ -132,15 +176,20 @@ def kontroller(index, bolum, veri, build):
               izinler.get("plaket") == '["baski", "render"]' and izinler.get("litofan") == '["baski", "render"]', str(izinler)))
     s.append(("Y10 sayac izin disi kaniti saymaz (izin kontrolu veri dosyasinda)",
               re.search(r"if \(!k \|\| izin\.indexOf\(k\) < 0\) \{ return false; \}", veri) is not None, ""))
-    dal = "".join(re.findall(r'if \(it\.kanit === "render"\) \{(.*?)\} else \{', bolum, re.S))
-    # Cumle tur kaydinda (`ornek_notu`, mimar karari 7 Eki): bolum yalniz kayittan basar.
+    # Y10 RENDER ORNEGI — 50cb58fe sonrasi: `if (it.kanit === "render") { ... } else {` ESKI dali YOK.
+    # Render kartta "önizleme/render" etiketi, lightbox'ta tur kaydinin ornek_notu'su basiliyor;
+    # "gerçek fotoğraf" ifadesi (yasakli, hukuk kapisi 13:4x) yorum/string ikisinde de 0.
+    bolum_cleaned = yorumsuz(bolum)
     notlar = dict(re.findall(r'kod:\s*"([a-z]+)",.*?ornek_notu:\s*"([^"]*)"', veri, re.S))
-    s.append(("Y10 render dalinda 'önizleme/render' etiketi + tur cumlesi (ornek_notu) kayittan",
-              '"önizleme/render"' in dal and "it.tur.ornek_notu" in dal and "kabartmalı" not in bolum, ""))
+    s.append(("Y10 render kartinda 'önizleme/render' etiketi VAR (galeri)",
+              '"önizleme/render"' in bolum_cleaned, ""))
+    s.append(("Y10 lightbox ornek_notu tur kaydindan (it.tur.ornek_notu) · bolumde sabit 'kabartmalı' cumlesi 0",
+              "it.tur.ornek_notu" in bolum_cleaned and "kabartmalı" not in bolum, ""))
     s.append(("Y10 plaket ornek_notu = karar cumlesi AYNEN", notlar.get("plaket") == RENDER_CUMLE, str(notlar.get("plaket"))))
     s.append(("Y11 litofan ornek_notu = litofan cumlesi AYNEN ('kabartmalı' 0)",
               notlar.get("litofan") == LITOFAN_CUMLE, str(notlar.get("litofan"))))
-    s.append(("Y10 render dalinda 'gerçek fotoğraf' metni 0", bool(dal) and "gerçek fotoğraf" not in dal.lower(), ""))
+    s.append(("Y10 'gerçek fotoğraf' metni 0 (yorum haric, kodda yok)",
+              "gerçek fotoğraf" not in bolum_cleaned, ""))
     # Y12 SERIT: ol etiketi numara basilmasin (375 px mimar olcumunde 1./2. gorunuyordu).
     s.append(("Y12 serit kuralinda list-style: none VAR (ol numara basilmasin)",
               re.search(r"\.foto-uretim-serit\{[^}]*list-style\s*:\s*none", bolum) is not None, ""))
@@ -205,8 +254,8 @@ def main():
         ("M5 oturum anahtari ayristi", (index, bolum.replace(OTURUM_ANAHTARI, "pruvo_foto_sip"), veri, build), True),
         ("M6 anahtarlik tur listesine geri eklendi",
          (index, bolum, veri.replace('kod: "plaket",', 'kod: "plaket",\n      },\n      {\n        kod: "anahtarlik",', 1), build), True),
-        ("M7 tek tur dali silindi",
-         (index, re.sub(r"if \(S\.acikVeri\.turler\.length === 1\) \{[^}]*\}\n", "", bolum, count=1), veri, build), True),
+        ("M7 galeri tur secici kaldirildi (tek tur dali yerine)",
+         (index, re.sub(r"\bgaleriSec\b", "galeriSecYOK", bolum), veri, build), True),
         ("M8 izin kontrolu silindi",
          (index, bolum, veri.replace("if (!k || izin.indexOf(k) < 0) { return false; }", "if (!k) { return false; }", 1), build), True),
         ("M9 abarti cumlesi degisti", (index, bolum, veri.replace("kabartmalı hâlidir, birebir aynısı değildir.", "kabartmalı hâlidir.", 1), build), True),
@@ -214,7 +263,7 @@ def main():
         ("M13 bolum sabit cumleye dondu",
          (index, bolum.replace("it.tur.ornek_notu", '"' + RENDER_CUMLE + '"', 1), veri, build), True),
         ("M10 render etiketi 'gerçek fotoğraf' oldu",
-         (index, bolum.replace('"foto-uretim-ornek-etiket", "önizleme/render"', '"foto-uretim-ornek-etiket", "Basılmış ürün (gerçek fotoğraf)"', 1), veri, build), True),
+         (index, bolum.replace('"önizleme/render"', '"gerçek fotoğraf"'), veri, build), True),
         ("M11 litofanin render izni geri alindi",
          (index, bolum, veri.replace('arkadan ışıklı render\'ı).\n        ornek_kanit_izni: ["baski", "render"]',
                                      'arkadan ışıklı render\'ı).\n        ornek_kanit_izni: ["baski"]', 1), build), True),
