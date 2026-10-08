@@ -11,7 +11,12 @@ SOZLUK (eşleme YALNIZ burada; manifest yorumu bu dosyayi isaret eder):
   tip     : sayi -> sayi + adim (kayittaki `adim`, yoksa 0.01; enlem/boylam 0.000001)
             tam (ya da sayi + `tam:true`) -> sayi + adim 1
             renk -> form DEGIL, renk_bolgeleri (`renk_<b>` -> {kod:<b>, ad:<etiket - " rengi">, renkler})
-            dosya -> form DISI (girdinin kendisi) · bool/secim/metin aynen
+            dosya -> form DISI (girdinin kendisi) · bool/secim aynen
+            metin -> aynen + `max` (kayitta yoksa URETECIN `SEMA[ad]` uzunluk tavani: str->uzunluk_max,
+            yoksa uretec varsayilani 1000; liste->oge.uzunluk_max; ast ile okunur, uretec KOSMAZ; uretec
+            dosyasi/alani yok -> KIRMIZI) + `zorunlu:true` degilse `zorunlu:false` (bos/yok = uretec
+            varsayilani). NEDEN (kopru-15 ESLE): max'siz metin alanini VERI.parametreDogrula her degerde
+            `parametre-metin` ile reddediyordu (braille ⑤ 400).
             ses girdili kaydin min/max'siz `sayi` alani (genlik dizisi) -> tip "ses"
             baska tip -> KIRMIZI
   kosul   : form alaninda `kosul: [{alan, degerler}]` AYNEN (alan formda olmali, yoksa KIRMIZI)
@@ -30,6 +35,7 @@ KULLANIM
   --manifest <yol> (varsayilan <repo>/foto-uretim-veri.js)
 """
 import argparse
+import ast
 import json
 import os
 import re
@@ -61,8 +67,46 @@ class KayitHatasi(Exception):
     pass
 
 
-def _alan_uret(kayit_kod, girdiler, p, hatalar):
-    """Tek kayit parametresi -> (form_alani | None, renk_bolgesi | None)."""
+def uretec_semasi(jen, betik):
+    """Uretec dosyasindaki ust duzey `SEMA = {...}` -> {alan: {anahtar: deger}} (ast; YALNIZ literal degerler,
+    `float(ARALIK_MAX_MM)` gibi literal olmayanlar atlanir). Dosya/SEMA yok -> None. Uretec import EDILMEZ."""
+    yol = os.path.join(jen, betik) if jen and betik else ""
+    if not yol or not os.path.isfile(yol):
+        return None
+    with open(yol, encoding="utf-8") as f:
+        agac = ast.parse(f.read(), yol)
+    for d in agac.body:
+        if (isinstance(d, ast.Assign) and isinstance(d.value, ast.Dict)
+                and any(isinstance(t, ast.Name) and t.id == "SEMA" for t in d.targets)):
+            sema = {}
+            for k, v in zip(d.value.keys, d.value.values):
+                if not (isinstance(k, ast.Constant) and isinstance(v, ast.Dict)):
+                    continue
+                alan = {}
+                for kk, vv in zip(v.keys, v.values):
+                    try:
+                        alan[ast.literal_eval(kk)] = ast.literal_eval(vv)
+                    except (ValueError, TypeError, SyntaxError):
+                        continue
+                sema[k.value] = alan
+            return sema
+    return None
+
+
+def metin_tavani(sema_alani):
+    """Uretec alan semasi -> metin uzunluk tavani (uretec_ortak._deger_dogrula ile ayni kural) ya da None."""
+    if not isinstance(sema_alani, dict):
+        return None
+    if sema_alani.get("tip") == "str":
+        return sema_alani.get("uzunluk_max", 1000)
+    oge = sema_alani.get("oge")
+    if sema_alani.get("tip") == "liste" and isinstance(oge, dict) and oge.get("tip") == "str":
+        return oge.get("uzunluk_max", 1000)
+    return None
+
+
+def _alan_uret(kayit_kod, girdiler, p, hatalar, sema=None):
+    """Tek kayit parametresi -> (form_alani | None, renk_bolgesi | None). `sema` = uretec SEMA (metin tavani)."""
     ad, tip = p.get("ad"), p.get("tip")
     if tip not in BILINEN_TIP:
         hatalar.append("bilinmeyen-tip:%s.%s=%s" % (kayit_kod, ad, tip))
@@ -93,10 +137,19 @@ def _alan_uret(kayit_kod, girdiler, p, hatalar):
             alan["adim"] = adim
     if adim is not None and "adim" not in alan:
         alan["adim"] = adim
+    if tip == "metin":
+        if "max" not in alan:
+            tavan = alan.pop("uzunluk_max", None) or metin_tavani((sema or {}).get(ad))
+            if tavan is None:
+                hatalar.append("metin-tavani-yok:%s.%s" % (kayit_kod, ad))
+            else:
+                alan["max"] = tavan
+        if p.get("zorunlu") is not True:
+            alan["zorunlu"] = False
     return alan, None
 
 
-def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None):
+def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None, sema=None):
     """TEK fonksiyon: kayit -> manifest satirinin TURETILEN alanlari. Hata listesi ikinci donus."""
     hatalar = []
     kod = kod or kayit.get("kod")
@@ -109,7 +162,7 @@ def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None):
             girdi.append(GIRDI_ESLE[g])
     form, bolgeler = {}, []
     for p in (parametreler if parametreler is not None else (kayit.get("parametreler") or [])):
-        alan, bolge = _alan_uret(kod, girdi_tipi, p, hatalar)
+        alan, bolge = _alan_uret(kod, girdi_tipi, p, hatalar, sema)
         if alan is not None:
             form[p["ad"]] = alan
         if bolge is not None:
@@ -144,13 +197,20 @@ def teklif_parametreleri(kayit, hatalar):
     return cikti
 
 
-def hepsini_uret(kayitlar):
-    """{tur_kodu: turetilen_satir} (kayit sirasi; teklif turu ana kaydin hemen ardinda) + hatalar."""
+def jenerator_kok(kayit_yolu):
+    """`<jen>/jeneratorler/kopru/kopru_kayitlari.json` -> `<jen>` (cagri.betik bu koke goreli)."""
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(kayit_yolu))))
+
+
+def hepsini_uret(kayitlar, jen=None):
+    """{tur_kodu: turetilen_satir} (kayit sirasi; teklif turu ana kaydin hemen ardinda) + hatalar.
+    `jen` = uretec deposu koku (metin tavani uretec SEMA'sindan); None -> yalniz kayittaki `max`."""
     satirlar, hatalar = {}, []
     if not isinstance(kayitlar, dict) or not isinstance(kayitlar.get("kayitlar"), list):
         raise KayitHatasi("kayit bicimi: {'kayitlar': [...]} degil")
     for k in kayitlar["kayitlar"]:
-        s, h = satir_uret(k)
+        sema = uretec_semasi(jen, (k.get("cagri") or {}).get("betik"))
+        s, h = satir_uret(k, sema=sema)
         satirlar[k.get("kod")] = s
         hatalar += h
         if k.get("tur_tanimi_teklifi"):
@@ -160,7 +220,8 @@ def hepsini_uret(kayitlar):
                 continue
             tf = k["tur_tanimi_teklifi"]
             s2, h2 = satir_uret(k, parametreler=teklif_parametreleri(k, hatalar), kod=tk,
-                                girdi_tipi=[tf.get("girdi")] if isinstance(tf.get("girdi"), str) else tf.get("girdi"))
+                                girdi_tipi=[tf.get("girdi")] if isinstance(tf.get("girdi"), str) else tf.get("girdi"),
+                                sema=sema)
             satirlar[tk] = s2
             hatalar += h2
     return satirlar, hatalar
@@ -337,7 +398,7 @@ def main():
         print("HAL=KAYIT-YOK yol=%s sebep=%s rc=3" % (a.kayit, e.__class__.__name__))
         return 3
     try:
-        uretilen, hatalar = hepsini_uret(kayitlar)
+        uretilen, hatalar = hepsini_uret(kayitlar, jenerator_kok(a.kayit))
         if a.denetle:
             kirmizi = denetle(a.manifest, uretilen, hatalar)
             for k in kirmizi:

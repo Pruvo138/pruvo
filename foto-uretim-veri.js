@@ -1327,7 +1327,9 @@
           baslik: {
             tip: "metin",
             etiket: "Baslik metni (ops.)",
-            varsayilan: ""
+            varsayilan: "",
+            max: 40,
+            zorunlu: false
           },
           yazi_tipi: {
             tip: "secim",
@@ -1390,12 +1392,15 @@
           metin: {
             tip: "metin",
             etiket: "Turkce metin (Grade-1)",
-            zorunlu: true
+            zorunlu: true,
+            max: 400
           },
           ust_yazi: {
             tip: "metin",
             etiket: "Ust duz yazi (ops.)",
-            varsayilan: ""
+            varsayilan: "",
+            max: 40,
+            zorunlu: false
           },
           yazi_tipi: {
             tip: "secim",
@@ -1541,7 +1546,9 @@
           etiket: {
             tip: "metin",
             etiket: "Etiket metni (ops.)",
-            varsayilan: ""
+            varsayilan: "",
+            max: 40,
+            zorunlu: false
           },
           yazi_tipi: {
             tip: "secim",
@@ -1687,7 +1694,9 @@
           etiket: {
             tip: "metin",
             etiket: "Etiket metni (ops.)",
-            varsayilan: ""
+            varsayilan: "",
+            max: 40,
+            zorunlu: false
           }
         },
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
@@ -1721,7 +1730,8 @@
           tarih_saat: {
             tip: "metin",
             etiket: "Tarih/saat (yerel)",
-            zorunlu: true
+            zorunlu: true,
+            max: 20
           },
           utc_ofset_saat: {
             tip: "sayi",
@@ -1808,7 +1818,9 @@
           alt_yazi: {
             tip: "metin",
             etiket: "Alt yazi (ops.)",
-            varsayilan: ""
+            varsayilan: "",
+            max: 40,
+            zorunlu: false
           },
           yazi_tipi: {
             tip: "secim",
@@ -1885,7 +1897,9 @@
           tarih: {
             tip: "metin",
             etiket: "Tarih (YYYY-AA-GG, ops.)",
-            varsayilan: ""
+            varsayilan: "",
+            max: 10,
+            zorunlu: false
           },
           tarih_bicimi: {
             tip: "secim",
@@ -1896,7 +1910,9 @@
           serbest_metin: {
             tip: "metin",
             etiket: "Serbest satir",
-            varsayilan: ""
+            varsayilan: "",
+            max: 40,
+            zorunlu: false
           },
           isaret: {
             tip: "secim",

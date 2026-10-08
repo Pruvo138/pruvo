@@ -154,6 +154,38 @@ def hermetik():
                                                                "varsayilan": False}, json.dumps(b))
     vaka("F9 deterministik: iki uretim BIREBIR", json.dumps(u.hepsini_uret(SAHTE_KAYIT), sort_keys=True) ==
          json.dumps(u.hepsini_uret(json.loads(json.dumps(SAHTE_KAYIT))), sort_keys=True))
+    # kopru-15 ESLE: metin -> max (kayit > uretec SEMA) + zorunlu:false (zorunlu:true degilse). max'siz metin
+    # VERI.parametreDogrula'da HER degerde `parametre-metin` (braille ⑤ 400).
+    hm = []
+    sema = {"ad": {"tip": "str", "uzunluk_max": 40}, "notlar": {"tip": "liste", "oge": {"tip": "str", "uzunluk_max": 12}},
+            "uzun": {"tip": "str"}}
+    a1, _ = u._alan_uret("t", [], {"ad": "ad", "tip": "metin", "varsayilan": ""}, hm, sema)
+    a2, _ = u._alan_uret("t", [], {"ad": "notlar", "tip": "metin", "zorunlu": True}, hm, sema)
+    a3, _ = u._alan_uret("t", [], {"ad": "uzun", "tip": "metin", "max": 7}, hm, sema)
+    a4, _ = u._alan_uret("t", [], {"ad": "uzun", "tip": "metin", "zorunlu": True}, hm, sema)
+    vaka("F14 metin max uretec SEMA'sindan (str uzunluk_max · liste oge · yoksa 1000) · kayit max ONCELIKLI · "
+         "zorunlu:true degilse zorunlu:false",
+         a1 == {"tip": "metin", "varsayilan": "", "max": 40, "zorunlu": False} and
+         a2 == {"tip": "metin", "zorunlu": True, "max": 12} and
+         a3 == {"tip": "metin", "max": 7, "zorunlu": False} and a4["max"] == 1000 and not hm,
+         json.dumps([a1, a2, a3, a4, hm]))
+    hm = []
+    u._alan_uret("t", [], {"ad": "yok", "tip": "metin"}, hm, sema)
+    u._alan_uret("t", [], {"ad": "ad", "tip": "metin"}, hm, None)
+    vaka("F15 metin tavani turetilemiyor (uretec alani/SEMA yok) -> KIRMIZI metin-tavani-yok",
+         hm == ["metin-tavani-yok:t.yok", "metin-tavani-yok:t.ad"], json.dumps(hm))
+    dj = tempfile.mkdtemp(prefix="kopru-uret-sema-")
+    try:
+        os.makedirs(os.path.join(dj, "g"))
+        with open(os.path.join(dj, "g", "x_uret.py"), "w", encoding="utf-8") as f:
+            f.write('MAX = 9\nSEMA = {\n    "a": {"tip": "str", "uzunluk_max": 12},\n'
+                    '    "b": {"tip": "float", "min": 0.0, "max": float(MAX)},\n}\n')
+        sm = u.uretec_semasi(dj, "g/x_uret.py")
+        vaka("F16 uretec_semasi: ast ile literal alanlar (literal olmayan max atlanir) · dosya yok -> None",
+             sm == {"a": {"tip": "str", "uzunluk_max": 12}, "b": {"tip": "float", "min": 0.0}} and
+             u.uretec_semasi(dj, "g/yok.py") is None, json.dumps(sm))
+    finally:
+        shutil.rmtree(dj, ignore_errors=True)
 
     d = tempfile.mkdtemp(prefix="kopru-uret-test-")
     try:

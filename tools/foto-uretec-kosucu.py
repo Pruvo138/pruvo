@@ -696,29 +696,40 @@ def esle_ses(g, dizin, rh):
     return u, ["plaka", "cubuk"]
 
 def esle_braille(g, dizin, rh):
+    """kopru-15 ESLE: gelen parametreler (sunucu dogruladi; adlar kayitla AYNI) + olcu ekseni. Kayitta
+    `olcek.belirleyen_parametre` = genislik_mm (0=oto) -> surgu (olcu_mm) hedef genislik. (Eski esleme
+    `uzun_kenar_mm` gonderiyordu -> uretec `RET: bilinmeyen alan`; buyuk_harf bool -> enum disi.)"""
     p = g.get("parametreler") or {}
     m = p.get("metin", "")
     if not isinstance(m, str) or not m.strip():
         raise KopruRed("parametre")
-    u = {"metin": m, "uzun_kenar_mm": float(g["olcu_mm"]),
-         "kenar_mm": float(p.get("kenar_mm", 6.0)),
-         "buyuk_harf": bool(p.get("buyuk_harf", False)),
-         "hizalama": p.get("hizalama", "sol"),
-         "yazi_tipi": p.get("yazi_tipi", "sans-kalin"),
-         "ust_yazi": p.get("ust_yazi", ""),
-         "renk_plaka": _renk(g, "plaka", rh) or "#1A1A1A",
-         "renk_nokta": _renk(g, "nokta", rh) or "#E8E4D8",
-         "renk_yazi": _renk(g, "yazi", rh) or ""}
+    u = dict(p)  # braille
+    u["genislik_mm"] = float(g["olcu_mm"])
+    u["renk_plaka"] = _renk(g, "plaka", rh) or "#1A1A1A"
+    u["renk_nokta"] = _renk(g, "nokta", rh) or "#E8E4D8"
+    u["renk_yazi"] = _renk(g, "yazi", rh) or ""
     return u, ["plaka", "nokta"]
+
+# G5 sabit olcu ekseni: kaydin `olcek.belirleyen_parametre`si (kopru-esle-kapisi-test E3 kayittan olcer).
+G5_OLCU_ALANI = {"topo": "olcu_mm", "sehir": "olcu_mm", "yildiz": "olcu_mm", "koordinat": "genislik_mm"}
+# Kayitta min 0 / varsayilan 0 (= "oto"/uretec varsayilani) ama uretec SEMA'si 0'i REDDEDER (kadir_esigi min 2,
+# 0 YALNIZ varsayilan; kose_yaricap_mm min 1) -> 0 gelirse alan GONDERILMEZ (uretec kendi varsayilanini koyar).
+G5_SIFIR_VARSAYILAN = {"yildiz": ("kadir_esigi",), "koordinat": ("kose_yaricap_mm",)}
+
 
 def _esle_gelen_renkli(g, rh, kod):
     """G5 — YALNIZ gelen parametreler + secilen bolge renkleri `renk_<bolge>` (bolge adlari MANIFESTIN
     renk_bolgeleri'nden; kopru-manifest-uret.py onlari kaydin `renk_<b>` parametrelerinden turetir ->
-    ad uretecle hizali). Manifestte olmayan bolgeye renk -> RED renk. Secilmeyen bolge = uretec varsayilani."""
+    ad uretecle hizali). Manifestte olmayan bolgeye renk -> RED renk. Secilmeyen bolge = uretec varsayilani.
+    Surgu olcusu (zarf olcu_mm) belirleyen alana YAZILIR (sabit eksen: fiyat surguden; uretec varsayilani DEGIL)."""
     bolgeler = [b.get("kod") for b in (manifest_oku().get(kod) or {}).get("renk_bolgeleri") or []]
     if any(b not in bolgeler for b in (g.get("renkler") or {})):
         raise KopruRed("renk")
     u = dict(g.get("parametreler") or {})
+    u[G5_OLCU_ALANI[kod]] = float(g["olcu_mm"])
+    for a in G5_SIFIR_VARSAYILAN.get(kod, ()):
+        if u.get(a) == 0:
+            del u[a]
     for b in bolgeler:
         h = _renk(g, b, rh)
         if h is not None:
@@ -735,11 +746,22 @@ def esle_sehir(g, dizin, rh):
 
 
 def esle_yildiz(g, dizin, rh):
-    return _esle_gelen_renkli(g, rh, "yildiz")
+    u, bolgeler = _esle_gelen_renkli(g, rh, "yildiz")
+    # Uretec SEMA'sinda alt_yazi = liste (<= 2 satir); form alani tek satir metin -> tek ogeli liste.
+    if isinstance(u.get("alt_yazi"), str):
+        u["alt_yazi"] = [u["alt_yazi"]] if u["alt_yazi"].strip() else []
+    return u, bolgeler
 
 
 def esle_koordinat(g, dizin, rh):
     return _esle_gelen_renkli(g, rh, "koordinat")
+
+
+def esle_bust(g, dizin, rh):
+    """bust = rolyef ureteci + teklif alanlari. Teklif renk alani TASIMAZ -> manifestte renk bolgesi yok:
+    uretec varsayilan renkleri, bolge listesi bos (olcu.json parcalar manifest disi ad tasimaz)."""
+    u, _ = esle_rolyef(g, dizin, rh)
+    return u, []
 
 
 VAR_YOK = {"Var": True, "Yok": False}
@@ -837,7 +859,7 @@ ESLEMELER = {"isimlik": esle_isimlik, "qr": esle_qr, "logo": esle_logo, "muhur":
              "sehir": esle_sehir,
              "yildiz": esle_yildiz,
              "koordinat": esle_koordinat,
-             "bust": esle_rolyef}
+             "bust": esle_bust}
 
 # Uretec RET cumlesi -> red kodu (ilk eslesen; manifest URETEC_RED_METIN anahtari). Yok -> "genel".
 RET_KALIPLARI = [

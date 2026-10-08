@@ -1586,6 +1586,7 @@ jobs:
           python3 tools/foto-ornek-uc-uca-test.py
           python3 tools/kopru-manifest-uret-test.py
           python3 tools/kopru-grup-kos-test.py
+          python3 tools/kopru-esle-kapisi-test.py
 
       # REKLAM ATIF HALKASI (K99, 25 Agu 2026) — "bu siparis hangi reklamdan geldi"
       # sorusunun D1'den cevaplanabilir kaldigini olcer. SESSIZ-HATA SINIFI, PARA:
