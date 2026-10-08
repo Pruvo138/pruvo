@@ -92,6 +92,17 @@ if mod == "girdi":
 shutil.copyfile(a[0], a[1]); open(a[1], "ab").write(b"ONARILDI"); sys.exit(0)
 '''
 HAM_3MF = b"PK\x03\x04HAM"
+# Sahte kopru `kopru_uret.py min-hesapla --kategori <kod> --girdi-mh <yol>` (TeKiN sozlesmesi): FAKE_MIN (vars. 10)
+# -> {"min_mm", "neden"}; FAKE_MIN=yok -> rc 2 (yanit yok). Cagriyi FAKE_LOG'a yazar.
+SAHTE_MIN = r'''
+import json, os, sys
+a = sys.argv[1:]
+open(os.environ["FAKE_LOG"], "a").write(json.dumps(["min-hesapla", a[a.index("--kategori") + 1]]) + "\n")
+m = os.environ.get("FAKE_MIN", "10")
+if m == "yok":
+    sys.exit(2)
+print(json.dumps({"min_mm": float(m), "neden": "sahte"}))
+'''
 
 # Sahte tekin-ortak ureteci (G1/G2 CLI: --girdi <uretec json> --cikti <dizin> -> uretec.3mf + onizleme.png
 # + ozet.json). Aldigi JSON'u FAKE_TEKIN_LOG'a yazar; extruder sayisi = girdideki renk alani sayisi
@@ -386,6 +397,9 @@ class Ortam:
         if kopru:
             with open(os.path.join(d, "jeneratorler", "foto", "uc_mf_onar.py"), "w") as f:
                 f.write(SAHTE_KOPRU)
+        os.makedirs(os.path.join(d, "jeneratorler", "kopru"), exist_ok=True)
+        with open(os.path.join(d, "jeneratorler", "kopru", "kopru_uret.py"), "w") as f:
+            f.write(SAHTE_MIN)
         return d
 
     def model(self):
@@ -620,6 +634,27 @@ def vakalar(kosucu):
         return (sonuc[190][0] == "onizleme-hazir" and sonuc[200][0] != "onizleme-hazir" and
                 "olcu-aralik-disi" in (sonuc[200][1] or "")), "%s" % sonuc
 
+    # DINAMIK MIN (BaBa 14:3x; TeKiN 6320f2a): olcu_min_dinamik turde (koordinat) uretec KOSMADAN once kopru
+    # min-hesapla; olcu altinda -> uretec-red:olcu-min-<adima yuvarli N>, uretec 0 · ustunde -> olcu.json min_mm ·
+    # yanit yok -> uretec-red:min-hesapla (fail-closed), uretec 0.
+    def tdm(fake_min, beklenen):
+        def fn(o):
+            x = G2_VAKA["koordinat"]
+            d = o.uretec_onizleme("koordinat", x["olcu"], x["renkler"], x["parametreler"])
+            rc, son, _ = o.kos("--uygula", FAKE_MIN=fake_min)
+            r = o.sql("SELECT asama, hata FROM foto_isler WHERE is_no = ?", IS2)[0]
+            olcu = json.load(open(os.path.join(d, "olcu.json"))) if os.path.isfile(os.path.join(d, "olcu.json")) else {}
+            n = len(o.tekin_girdileri())
+            if beklenen.startswith("uretec-red"):
+                ok = r["asama"] == "basarisiz" and r["hata"] == beklenen and n == 0
+            else:
+                ok = r["asama"] == "onizleme-hazir" and olcu.get("min_mm") == float(beklenen) and n == 1
+            return ok, "%s %s tekin=%d min_mm=%s" % (son, r, n, olcu.get("min_mm"))
+        return fn
+
+    vaka("TDM1", tdm("195", "uretec-red:olcu-min-200"))
+    vaka("TDM2", tdm("152.5", "152.5"))
+    vaka("TDM3", tdm("yok", "uretec-red:min-hesapla"))
     for kod in G2_VAKA:
         vaka("T13-" + kod, t13(kod))
     vaka("T19", t19)
@@ -847,6 +882,12 @@ MUTANTLAR = {
             "            sebep = cikti_dogrula(i, t, cikti)\n", {"T32", "T33", "T34"}),
     # onarilmis modelde olcu.json sha tazelenmezse ④ alanlar=0 olur.
     "M37": ('        olcu["model_sha256"] = hashlib.sha256(f.read()).hexdigest()\n', "        pass\n", {"T32"}),
+    # DINAMIK MIN: on kontrol silinirse olcu altinda uretec kosar (TDM1); min ozete yazilmazsa sunucu siparisi
+    # sinirlayamaz (TDM2); yanit yokken devam ederse fail-open (TDM3).
+    "M40": ("        if isinstance(olcu, (int, float)) and not isinstance(olcu, bool) and 0 < olcu < mh:\n",
+            "        if False:\n", {"TDM1"}),
+    "M41": ('        olcu["min_mm"] = kv["min_mm"]\n', "        pass\n", {"TDM2"}),
+    "M42": ('            return 2, "RED min-hesapla: kopru min-hesapla yaniti yok"\n', "            mh = 0.0\n", {"TDM3"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 

@@ -1396,7 +1396,7 @@
         girdi: ["ses"],
         motor: "D",
         uretec: "ses_dalgasi_uret",
-        olcu_mm: { en_az: 80, en_cok: 300 },
+        olcu_mm: { en_az: 10, en_cok: 300 },
         renk_bolgeleri: [
           {
             kod: "plaka",
@@ -1428,17 +1428,17 @@
             adim: 1,
             varsayilan: 100,
             birim: "adet",
-            ornek: 100
+            ornek: 50
           },
           uzun_kenar_mm: {
             tip: "sayi",
             etiket: "Uzun kenar",
-            min: 80,
+            min: 10,
             max: 300,
             adim: 0.01,
             varsayilan: 160,
             birim: "mm",
-            ornek: 160
+            ornek: 100
           },
           dalga_yuksekligi_mm: {
             tip: "sayi",
@@ -1448,7 +1448,7 @@
             adim: 0.01,
             varsayilan: 40,
             birim: "mm",
-            ornek: 40
+            ornek: 30
           },
           cubuk_yuksekligi_mm: {
             tip: "sayi",
@@ -1514,7 +1514,7 @@
             adim: 0.01,
             varsayilan: 6,
             birim: "mm",
-            ornek: 6
+            ornek: 4
           }
         },
         fiyat: {
@@ -1530,7 +1530,8 @@
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; ses dalgasi bu parametrelerle üretilir.",
-        olcu_ekseni: "sabit"
+        olcu_ekseni: "sabit",
+        olcu_min_dinamik: true
       },
       {
         kod: "braille",
@@ -1539,7 +1540,7 @@
         girdi: ["metin"],
         motor: "D",
         uretec: "braille_uret",
-        olcu_mm: { en_az: 40, en_cok: 250 },
+        olcu_mm: { en_az: 10, en_cok: 250 },
         renk_bolgeleri: [
           {
             kod: "plaka",
@@ -1564,7 +1565,7 @@
             etiket: "Turkce metin (Grade-1)",
             zorunlu: true,
             max: 400,
-            ornek: "Pruvo test 2026"
+            ornek: "Pruvo"
           },
           ust_yazi: {
             tip: "metin",
@@ -1593,7 +1594,7 @@
           genislik_mm: {
             tip: "sayi",
             etiket: "Genislik (0=oto)",
-            min: 0,
+            min: 10,
             max: 250,
             adim: 0.01,
             varsayilan: 0,
@@ -1643,7 +1644,8 @@
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; braille bu parametrelerle üretilir.",
-        olcu_ekseni: "sabit"
+        olcu_ekseni: "sabit",
+        olcu_min_dinamik: true
       },
       {
         kod: "topo",
@@ -2079,7 +2081,7 @@
         girdi: ["konum"],
         motor: "D",
         uretec: "koordinat_uret",
-        olcu_mm: { en_az: 60, en_cok: 250 },
+        olcu_mm: { en_az: 10, en_cok: 250 },
         renk_bolgeleri: [
           {
             kod: "plaka",
@@ -2176,7 +2178,7 @@
           genislik_mm: {
             tip: "sayi",
             etiket: "Genislik (zorunlu)",
-            min: 20,
+            min: 10,
             max: 400,
             adim: 0.01,
             varsayilan: 160,
@@ -2234,7 +2236,8 @@
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; koordinat / tarih bu parametrelerle üretilir.",
-        olcu_ekseni: "sabit"
+        olcu_ekseni: "sabit",
+        olcu_min_dinamik: true
       },
       {
         kod: "bust",
@@ -2606,6 +2609,9 @@
   };
   // Üreteç reddinin müşteri metni: hata "uretec-red:<kod>" -> tablo; bilinmeyen kod -> genel metin.
   VERI.uretecRedMetni = function (hata) {
+    // DİNAMİK MİN (BaBa 14:3x): koşucu köprü min-hesapla'dan `uretec-red:olcu-min-<N>` yazar (ses/braille/koordinat).
+    var d = /^uretec-red:olcu-min-([1-9][0-9]{0,3})$/.exec(typeof hata === "string" ? hata : "");
+    if (d) { return "Bu içerik için en az " + d[1] + " mm gerekiyor; ölçüyü " + d[1] + " mm ya da üstüne çıkarıp tekrar dene."; }
     var m = /^uretec-red:([a-z0-9-]{1,40})$/.exec(typeof hata === "string" ? hata : "");
     var k = m && Object.prototype.hasOwnProperty.call(VERI.URETEC_RED_METIN, m[1]) ? m[1] : "";
     return VERI.URETEC_RED_METIN[k];
