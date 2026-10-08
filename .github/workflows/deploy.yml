@@ -1584,6 +1584,7 @@ jobs:
           node shop/test/onizleme-kapisi.mjs
           python3 tools/foto-uretec-kosucu-test.py
           python3 tools/foto-ornek-uc-uca-test.py
+          python3 tools/foto-yeniden-asama-test.py
           python3 tools/kopru-manifest-uret-test.py
           python3 tools/kopru-grup-kos-test.py
           python3 tools/kopru-esle-kapisi-test.py
