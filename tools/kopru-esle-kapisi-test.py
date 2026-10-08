@@ -28,8 +28,9 @@ MUTANTLAR (gecici kopyada; calisma agacina YAZMAZ):
   MA3 G5 surgu olcusu belirleyen alana yazilmiyor -> E3 EKSEN topo
   MA4 G5 renk on eki bozuk -> E1 ALAN-DISI topo.renk-
   MA5 yildiz alt_yazi liste donusumu silindi -> E2 TIP yildiz.alt_yazi
-  MA6 G5 "0 = uretec varsayilani" alani gonderiliyor -> E2 TIP koordinat.kose_yaricap_mm (kopru-15 SON3: yildiz
-      ornegi artik kayit `ornek`inden, kadir_esigi=2 -> 0 tasiyan G5 alani koordinat.kose_yaricap_mm)
+  MA6 G5 "0 = uretec varsayilani" alani gonderiliyor -> Z SIFIR-GECTI koordinat.kose_yaricap_mm / yildiz.kadir_esigi
+      (8 Eki: manifest 2492ac66 iki alanin formunu min>=1 yapti, dogrulanmis girdi 0 tasimaz; savunma Z katmaninda
+      dogrulanmamis zarfla dogrudan olculur)
   MS1 manifestte braille metin `max` silindi -> S1 SUNUCU-RED braille=parametre-metin
   MS2 manifestte braille ust_yazi `zorunlu:false` silindi -> S2 SUNUCU-RED braille-bos.ust_yazi
   MA7 on adima §2 zarfi (girdi.json) veriliyor -> O1 ON-ADIM topo
@@ -112,6 +113,28 @@ def s_katmani(manifest, kodlar):
         if r.get("ok") and a.endswith("-dolu"):
             deger[a[:-len("-dolu")]] = r.get("deger")
     return kirmizi, deger, turler
+
+
+def sifir_katmani(kos, deger):
+    """Z: G5 "0 = uretec varsayilani" savunmasi (G5_SIFIR_VARSAYILAN) uretece 0 GECIRMEZ. 8 Eki: manifest
+    yenilemesi (2492ac66) iki alanin formunu min >= 1 yapti -> dogrulanmis girdiyle 0 gelemiyor, MA6 S/E
+    katmaninda esdeger kaldi; savunma kosucu girisinde (dogrulanmamis zarf) DOGRUDAN olculur."""
+    kirmizi = []
+    rh = kos.renk_tablosu()
+    for kod, alanlar in sorted(getattr(kos, "G5_SIFIR_VARSAYILAN", {}).items()):
+        if kod not in deger or kod not in kos.ESLEMELER:
+            continue
+        d = tempfile.mkdtemp(prefix="esle-sifir-")
+        try:
+            g = {"tur": kod, "olcu_mm": 100, "parametreler": dict(deger[kod], **{a: 0 for a in alanlar}),
+                 "dosyalar": _dosyalar(d), "renkler": {}}
+            u, _ = kos.ESLEMELER[kod](g, d, rh)
+            kirmizi += ["SIFIR-GECTI %s.%s" % (kod, a) for a in alanlar if a in u]
+        except kos.KopruRed as e:
+            kirmizi.append("SIFIR-RED %s=%s" % (kod, e.kod))
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+    return kirmizi
 
 
 # ------------------------------------------------------------------ E: esleme -> uretec kabulu
@@ -270,6 +293,7 @@ def kapi(kosucu_yolu, manifest, kayitlar):
     kos = modul("foto_uretec_kosucu_esle_%d" % abs(hash(kosucu_yolu)), kosucu_yolu)
     kirmizi, deger, turler = s_katmani(manifest, set(kos.ESLEMELER))
     kirmizi += on_adim_katmani(kos, turler, deger)
+    kirmizi += sifir_katmani(kos, deger)
     if kayitlar is None:
         return kirmizi, None, []
     e, n, atlanan = e_katmani(kos, kayitlar, URET.jenerator_kok(GERCEK_KAYIT), turler, deger)
@@ -296,7 +320,7 @@ MUTANT_KOSUCU = {
         '        u["alt_yazi"] = [u["alt_yazi"]] if u["alt_yazi"].strip() else []\n', "        pass\n",
         r"TIP yildiz\.alt_yazi"),
     "MA6 G5 0=varsayilan alani gonderiliyor": (
-        "        if u.get(a) == 0:\n            del u[a]\n", "        pass\n", r"TIP koordinat\.kose_yaricap_mm"),
+        "        if u.get(a) == 0:\n            del u[a]\n", "        pass\n", r"SIFIR-GECTI (koordinat\.kose_yaricap_mm|yildiz\.kadir_esigi)"),
     "MA7 on adima zarf veriliyor": (
         'oa_komut += [oa["girdi_bayragi"], ugirdi,', 'oa_komut += [oa["girdi_bayragi"], os.path.join(girdi_dizin, "girdi.json"),',
         r"ON-ADIM topo"),
