@@ -252,12 +252,15 @@ def kendini_test():
     izlenen = [os.path.join(ROOT, "index.html"), os.path.join(ROOT, "tools", "sayfalar.py")]
     once = {yol: sha256(yol) for yol in izlenen}
     index_html = dosya_oku(izlenen[0])
-    capa = 'lines.push("Ara toplam: " + PRUVO_SECENEK.kurusMetni(toplam));'
+    # Capa: sepet ozetinin ARA TOPLAM satiri (cartToplamTazele). Eski capa WhatsApp mesaj
+    # kurucusundaydi; 433eb4ac (sepet WA butonu kaldirildi) onu sildi ve mutant sessizce
+    # YAKMADI'ya dustu. Capa tam 1 kez gecmezse CAPA_YOK (ayri jeton) + KIRMIZI.
+    capa = 'document.getElementById("cartAra").textContent = PRUVO_SECENEK.kurusMetni(ara);'
+    mutant_capa = index_html.count(capa) == 1
     geri_mutant = index_html.replace(
-        capa, capa + '\n      lines.push("2.500 TL üzeri kargo bedava");', 1)
-    mutant_capa = geri_mutant != index_html
-    kirmizi, _yasal = olc(index_override=geri_mutant, ayrintili=False)
-    mutant_kargo = mutant_capa and bool(kirmizi)
+        capa, capa + '\n    document.getElementById("cartAra").title = "2.500 TL üzeri kargo bedava";', 1)
+    kirmizi, _yasal = olc(index_override=geri_mutant, ayrintili=False) if mutant_capa else ([], [])
+    mutant_kargo = mutant_capa and geri_mutant != index_html and bool(kirmizi)
 
     teslimat = next(
         build.render_content_page(slug, title, meta, fn())
@@ -304,6 +307,7 @@ def kendini_test():
     sonra = {yol: sha256(yol) for yol in izlenen}
     sha_esit = once == sonra
     print("MUTANT_KARGO_GERI=%s" % (
+        "CAPA_YOK" if not mutant_capa else
         "KIRMIZI_YAKTI" if mutant_kargo else "YAKMADI"))
     print("MUTANT_YANLIS_POZITIF_YASAL=%s" % (
         "YAKMADI" if mutant_yasal else "YAKTI"))

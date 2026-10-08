@@ -3550,11 +3550,6 @@ IZIN_LISTESI = {
         "40 s esiginin ~4 kati (mutant basina ~23 s: her mutant tam bir d1-sync "
         "kaynak turetimi kosar). Olctugu kapinin CI kolu `serit-b`de "
         "`tools/d1-sync-tani-test.py` ile duruyor."),
-    "tools/iletisim-baglam-mutasyon.py": (
-        "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 80,1 s, `SONUC: GECTI`. "
-        "40 s esiginin 2 kati. Sinifi SAGLAM (rc=0) — muafiyet YALNIZ suredendir; "
-        "esik degisirse ya da surucu hizlandirilirsa BURADAN CIKARILIP nobet.yml "
-        "`serit-b`ye kendi adimiyla baglanmalidir."),
     "tools/ilan-tutari-mutasyon.py": (
         "SURE. OLCULDU (12 Agu 2026, dal calisma agaci): rc=0, 259,9 s, `OK: mutantlarin "
         "hepsi beklenen rengi VE izini verdi; canli agac EL DEGMEMIS` (7 OLDURUCU + 1 "

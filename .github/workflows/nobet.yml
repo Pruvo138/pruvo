@@ -2187,6 +2187,15 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kanca-kablolama-test.py --mutasyon
 
+      # IZIN MANIFESTI TUKETIMI (7 Eki 2026). post-commit eskiden uc izin manifestini
+      # KOSULSUZ siliyordu: komsu evin commit'lenmemis duzelt.py izni baska bir evin
+      # commit'inde gidiyor, guard o duzeltmeyi "izinsiz" sayip geri aliyordu (2 vaka,
+      # yazim kaybi). Batarya hermetik sahte depoda GERCEK `git commit` ile V1..V6'yi
+      # kosar; eski `rm -f` govdesi mutant olarak V1'i KIRMIZI yakmali.
+      - name: "Izin manifesti tuketim kabul testi (komsu izni yasar mi)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/izin-manifest-tuket-test.py
+
       # REKLAM/OLCUM ETIKET KAPSAM NOBETCISI (8 Agu 2026).
       # OLCULEN BOSLUK: Ads panelindeki "Sayfa goruntuleme = Hatali yapilandirilmis"
       # hipotezi "etiket bazi sayfalarda YOK" idi; olcum bunu CURUTTU (23.923/23.923
@@ -2427,6 +2436,29 @@ jobs:
       - name: "GA4 olay kapisi mutasyon bataryasi (huni olayi sokulunca kirmizi mi)"
         if: ${{ !cancelled() }}
         run: python3 tools/ga4-olay-mutasyon.py
+
+      # Surucu SIGKILL ile olunce canli agaca iz birakiyor mu (7 Eki: finally kosmadi,
+      # olcum.js'te mutant artigi kaldi). Mutant: EV'e yazan eski davranis KIRMIZI yanmali.
+      - name: "GA4 mutasyon surucusu izolasyon testi (SIGKILL sonrasi canli agac birebir mi)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/ga4-olay-mutasyon-izole-test.py
+
+      # SINIF nobetcisi (7 Eki, mutant-izole-2): hicbir mutasyon surucusu `finally`de
+      # canli agaca yazmaz (AST). Kalip: mutasyon_kopya.kopyada_kos. Test: KIRMIZI fikstur.
+      - name: "Mutant canli yazim kapisi (finally'de EV'e yazan surucu SAYI=0)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/mutant-canli-yazim-kapisi.py
+
+      - name: "Mutant canli yazim kapisi kendi testi (KIRMIZI fikstur yakalaniyor mu)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/mutant-canli-yazim-kapisi-test.py
+
+      # Iletisim yuzeyi nobetcisinin (kisisel-veri-test.py --yalniz-iletisim) mutasyon
+      # bataryasi: 7 oldurucu KIRMIZI + 2 kontrol YESIL + imza ayrisimi + bayat .pyc
+      # tuzagi kaniti. 7 Eki (mutant-izole-3) M2/M5 capalari tazelendi, rc=0 olculdu.
+      - name: "Iletisim baglam mutasyon bataryasi (7 oldurucu KIRMIZI, onbellek kaniti)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/iletisim-baglam-mutasyon.py
 
       - name: "Gramer kisaltma kapisi mutasyon bataryasi"
         if: ${{ !cancelled() }}

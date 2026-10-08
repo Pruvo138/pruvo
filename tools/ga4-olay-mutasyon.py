@@ -8,9 +8,15 @@ metni) YESIL beklenir — batarya "her seye kirmizi yanan" bir alarm degil.
 🔴 Kabul: her oldurucu mutant TEK BASINA kirmizi + kontrol mutanti YESIL. Cikis kodu
 tek basina yeterli DEGIL; basilan MUTANT=n/n sayisi da okunur ([[beyan-edilmis-survivor]]).
 
-Yazdigi her seyi finally ile GERI ALIR; __pycache__ her kosumda silinir ve alt surec
--B ile kosar (ayni saniyede ayni boyutta mutasyon bayat bytecode ile kosmasin
-[[mutasyon-bytecode-onbellegi]]).
+🔴 IZOLE KOPYA (7 Eki 2026): eskiden mutant CANLI `tools/build.py`, `index.html`,
+`shop/src/olcum.js`'e yazilir, geri alma finally'ye birakilirdi. Surec SIGKILL / oturum
+olumuyle dusunce finally KOSMADI ve canli agacta `olcum.js` icinde
+`purchase→satin_alma` mutant artigi kaldi. Artik her mutant `tempfile.mkdtemp()`
+altinda KENDI kopya kokunde kurulur (`kopya_kok` + hedeflerin GERCEK kopyasi), kapi
+KOPYADAN kosar (ROOT'u kendi __file__'indan turetir) ve kopya silinir. Canli agaca
+tek bayt yazilmaz; olum aninda geride yalniz gecici dizin kalir. Olcen kol:
+tools/ga4-olay-mutasyon-izole-test.py (SIGKILL sonrasi canli ozet esitligi).
+Alt surec -B ile kosar, kopya `__pycache__` tasimaz [[mutasyon-bytecode-onbellegi]].
 
 KOSUM: python3 tools/ga4-olay-mutasyon.py
 """
@@ -19,10 +25,14 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
-KAPI = os.path.join(TOOLS, "ga4-olay-kapisi.py")
+KAPI_ADI = "ga4-olay-kapisi.py"
+sys.path.insert(0, TOOLS)
+
+from mutasyon_kopya import gercek_dosya, kopya_kok, kopyada_mi  # noqa: E402
 
 # IKI BICIM (9 Eyl 2026, K388):
 #   klasik  : (ad, dosya, eski, yeni, beklenen_kirmizi)
@@ -140,32 +150,48 @@ def kirmizi_bekleniyor(m):
     return m[-1]
 
 
-def kapi_kos():
-    kok_cache = os.path.join(TOOLS, "__pycache__")
-    shutil.rmtree(kok_cache, ignore_errors=True)
+def kopya_kur(rel_listesi):
+    """Gecici bir depo koku kurar: `tools/` kopya, mutasyon hedefleri GERCEK kopya.
+
+    Donus: (tmp, kopya). `tmp` cagiran tarafindan finally ile silinir; surec SIGKILL ile
+    duserse geride yalniz gecici dizin kalir — CANLI agacta tek bayt degismis olmaz."""
+    tmp = tempfile.mkdtemp(prefix="ga4-mutant-")
+    kopya = kopya_kok(tmp)
+    for rel in rel_listesi:
+        gercek_dosya(kopya, rel)
+    return tmp, kopya
+
+
+def kapi_kos(kopya):
+    """Kapiyi KOPYADAN kosar: kapi ROOT'u kendi __file__'indan turetir, yani kopyayi gorur."""
     ortam = dict(os.environ)
     ortam["PYTHONDONTWRITEBYTECODE"] = "1"
-    r = subprocess.run([sys.executable, "-B", KAPI], cwd=ROOT, env=ortam,
-                       capture_output=True, text=True, timeout=1800)
+    r = subprocess.run([sys.executable, "-B", os.path.join(kopya, "tools", KAPI_ADI)],
+                       cwd=kopya, env=ortam, capture_output=True, text=True, timeout=1800)
     return r.returncode, (r.stdout or "") + (r.stderr or "")
+
+
+def ozet(yol):
+    with open(yol, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
 
 
 def main():
     print("=" * 70)
-    print("GA4 OLAY KAPISI — MUTASYON BATARYASI")
+    print("GA4 OLAY KAPISI — MUTASYON BATARYASI (izole kopya)")
     print("=" * 70)
 
-    # Dokunulacak her dosyanin ONCEKI ozeti: batarya bitince BIREBIR geri gelmis mi
-    # AYRICA olculur. "finally ile geri aliyorum" bir BEYANDIR; kanit ozet esitligidir
-    # ([["olculdu" diyen hukum kaniti]]). Geri gelmediyse batarya KIRMIZI biter.
-    ozetler = {}
-    for m in MUTANTLAR:
-        for rel, _, _ in duzenlemeler(m):
-            yol = os.path.join(ROOT, rel)
-            with open(yol, "rb") as f:
-                ozetler[rel] = hashlib.sha256(f.read()).hexdigest()
+    # Canli agacin dokunulacak her dosyasinin ozeti: mutasyon yalniz kopyaya yazilsa da
+    # "canliya dokunmadim" bir BEYANDIR; kanit bas/son ozet esitligidir
+    # ([["olculdu" diyen hukum kaniti]]). Esit degilse batarya KIRMIZI biter.
+    hedefler = sorted({rel for m in MUTANTLAR for rel, _, _ in duzenlemeler(m)})
+    ozetler = {rel: ozet(os.path.join(ROOT, rel)) for rel in hedefler}
 
-    rc, cikti = kapi_kos()
+    tmp, kopya = kopya_kur(hedefler)
+    try:
+        rc, cikti = kapi_kos(kopya)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
     if rc != 0:
         print("TABAN KIRMIZI/OLCULEMEDI (rc=%d) — mutasyon anlamsiz. Son satirlar:" % rc)
         print("\n".join(cikti.strip().splitlines()[-12:]))
@@ -177,20 +203,27 @@ def main():
     for m in MUTANTLAR:
         ad, kirmizi_bekle = m[0], kirmizi_bekleniyor(m)
         duzen = duzenlemeler(m)
-        asillar, eksik = {}, []
-        for rel, eski, _ in duzen:
-            yol = os.path.join(ROOT, rel)
-            with open(yol, encoding="utf-8") as f:
-                asillar[rel] = f.read()
-            if asillar[rel].count(eski) < 1:
-                eksik.append(rel)
-        # 🔴 Cok-yerli mutantta TEK bir capa bile dusmusse mutant EKSIK kurulur ve
-        # "sag kaldi" gibi degil, CAPA YOK olarak raporlanir — sessiz kacis YOK.
-        if eksik:
-            hatali.append("%s — capa bulunamadi (%s)" % (ad, ", ".join(eksik)))
-            print("  ⚠️  %s -> CAPA YOK (%s)" % (ad, ", ".join(eksik)))
-            continue
+        tmp, kopya = kopya_kur(sorted({rel for rel, _, _ in duzen}))
         try:
+            yollar = {rel: gercek_dosya(kopya, rel) for rel, _, _ in duzen}
+            asillar, eksik = {}, []
+            for rel, eski, _ in duzen:
+                with open(yollar[rel], encoding="utf-8") as f:
+                    asillar[rel] = f.read()
+                if asillar[rel].count(eski) < 1:
+                    eksik.append(rel)
+            # 🔴 Cok-yerli mutantta TEK bir capa bile dusmusse mutant EKSIK kurulur ve
+            # "sag kaldi" gibi degil, CAPA YOK olarak raporlanir — sessiz kacis YOK.
+            if eksik:
+                hatali.append("%s — capa bulunamadi (%s)" % (ad, ", ".join(eksik)))
+                print("  ⚠️  %s -> CAPA YOK (%s)" % (ad, ", ".join(eksik)))
+                continue
+            # 🔴 Yazma oncesi FAIL-CLOSED: hedef bag ya da kopya disi ise yazilmaz.
+            disarida = [rel for rel, y in yollar.items() if not kopyada_mi(y, kopya)]
+            if disarida:
+                hatali.append("%s — hedef kopya DISINDA (%s), yazilmadi" % (ad, ", ".join(disarida)))
+                print("  ❌  %s -> HEDEF KOPYA DISI (%s)" % (ad, ", ".join(disarida)))
+                continue
             # 🔴 AYNI DOSYAYA BIRDEN COK duzenleme birikerek uygulanir. Her duzenlemeyi
             # asil govde uzerinden yazmak, ayni dosyanin ikinci duzenlemesi birinciyi
             # GERI ALDIGI icin mutanti EKSIK kurar ve "sag kaldi" gibi gorunur.
@@ -198,13 +231,11 @@ def main():
             for rel, eski, yeni in duzen:
                 yeni_govde[rel] = yeni_govde[rel].replace(eski, yeni, 1)
             for rel, govde in yeni_govde.items():
-                with open(os.path.join(ROOT, rel), "w", encoding="utf-8") as f:
+                with open(yollar[rel], "w", encoding="utf-8") as f:
                     f.write(govde)
-            rc, _ = kapi_kos()
+            rc, _ = kapi_kos(kopya)
         finally:
-            for rel in asillar:
-                with open(os.path.join(ROOT, rel), "w", encoding="utf-8") as f:
-                    f.write(asillar[rel])
+            shutil.rmtree(tmp, ignore_errors=True)
         if kirmizi_bekle:
             if rc != 0:
                 dusen += 1
@@ -219,14 +250,12 @@ def main():
                 hatali.append("%s — KONTROL mutanti kirmizi yandi (kapi asiri hassas)" % ad)
                 print("  ❌  %s -> KONTROL KIRMIZI (rc=%d)" % (ad, rc))
 
-    shutil.rmtree(os.path.join(TOOLS, "__pycache__"), ignore_errors=True)
     for rel, beklenen in sorted(ozetler.items()):
-        with open(os.path.join(ROOT, rel), "rb") as f:
-            simdi = hashlib.sha256(f.read()).hexdigest()
-        if simdi != beklenen:
-            hatali.append("%s BIREBIR geri gelmedi (mutant diskte KALDI)" % rel)
-            print("  ❌  GERI ALMA: %s ozet degisti" % rel)
-    print("  ok  geri alma: %d dosya bayt-birebir eski haline dondu" % len(ozetler))
+        if ozet(os.path.join(ROOT, rel)) != beklenen:
+            hatali.append("%s CANLI agacta DEGISTI (mutant kopya disina tasti)" % rel)
+            print("  ❌  CANLI AGAC: %s ozet degisti" % rel)
+    print("  ok  canli agac: %d hedef dosya bayt-birebir AYNI (mutasyon yalniz kopyada)"
+          % len(ozetler))
     print("-" * 70)
     print("MUTANT=%d/%d  KONTROL_MUTANT=%s"
           % (dusen, len(oldurucu),

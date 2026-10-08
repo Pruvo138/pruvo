@@ -34,6 +34,7 @@ import linecache
 import os
 import re
 import shutil
+import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -60,6 +61,60 @@ def kopya_kok(tmp, kok=None):
         else:
             os.symlink(kaynak, os.path.join(hedef, ad))
     return hedef
+
+
+def gercek_dosya(kopya, rel):
+    """`kopya` kokunde `rel`i SEMBOLIK BAGDAN koparir, GERCEK bir kopya yapar ve yolunu doner.
+
+    `kopya_kok` yalniz `tools/`u kopyalar; `index.html`, `shop/src/olcum.js` gibi kok
+    dosyalari CANLI agaca sembolik baglidir ve uzerine yazmak canli dosyayi bozar. Yol
+    boyunca sembolik bagli her ust dizin, cocuklari bagli GERCEK bir dizine acilir; yaprak
+    bag silinir (yalniz bag — hedefine dokunulmaz) ve yerine icerigin kopyasi konur."""
+    parcalar = rel.split("/")
+    yol = kopya
+    for p in parcalar[:-1]:
+        yol = os.path.join(yol, p)
+        if os.path.islink(yol):
+            kaynak = os.readlink(yol)
+            os.unlink(yol)
+            os.mkdir(yol)
+            for ad in sorted(os.listdir(kaynak)):
+                os.symlink(os.path.join(kaynak, ad), os.path.join(yol, ad))
+    hedef = os.path.join(yol, parcalar[-1])
+    if os.path.islink(hedef):
+        kaynak = os.readlink(hedef)
+        os.unlink(hedef)
+        shutil.copyfile(kaynak, hedef)
+    return hedef
+
+
+def kopyada_mi(yol, kopya):
+    """Yazilacak yol GERCEK bir dosya ve kopya kokunun ICINDE mi — degilse yazilmaz."""
+    if os.path.islink(yol):
+        return False
+    kok = os.path.realpath(kopya) + os.sep
+    return os.path.realpath(yol).startswith(kok)
+
+
+def kopyada_kos(onek, yazilacak, kos):
+    """Mutanti YALNIZ gecici kopyaya yazar, `kos(kopya)`yu kosar, kopyayi siler.
+
+    `yazilacak` = {rel: metin}; her `rel` once `gercek_dosya` ile bagdan koparilir,
+    `kopyada_mi` tutmazsa YAZILMAZ (fail-closed RuntimeError). CANLI agaca tek bayt
+    yazilmaz: `finally` yalniz gecici koku siler — surec SIGKILL ile duserse geride
+    yalniz `tmp` kalir, ev dosyasi mutant halde KALMAZ (7 Eki 2026, mutant-izole-2)."""
+    tmp = tempfile.mkdtemp(prefix=onek)
+    try:
+        kopya = kopya_kok(tmp)
+        for rel, metin in sorted(yazilacak.items()):
+            hedef = gercek_dosya(kopya, rel)
+            if not kopyada_mi(hedef, kopya):
+                raise RuntimeError("hedef kopya DISINDA, yazilmadi: %s" % rel)
+            with open(hedef, "w", encoding="utf-8") as f:
+                f.write(metin)
+        return kos(kopya)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def artik_yedekler(dizin=None):
