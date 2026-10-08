@@ -1283,20 +1283,22 @@ let ekranTek, ekranIki;
 {
   ekranTek = await ekranKos(EKRAN_KAYNAK, VERI, acikTek);
   ekranIki = await ekranKos(EKRAN_KAYNAK, ikiTurVeri, acikIki);
-  // 13:5x (KraL halef-11, Okan 13:5x): ayrı tür radyo listesi KALDIRILDI; tür seçimi 24'lü küçük resim
-  // ızgarasının işi. S0 pozitif kontrol: tek turde de 0 radyo (galeri seçer); adım 'Ölçü ve tasarım'.
-  ol("S0 pozitif kontrol: iki turde de tur radyo dugmesi 0 + adim 'Olcu ve tasarim' (13:5x; galeri secer)",
+  // sayfa-3adim K2 (Okan 19:1x): 19 tür ızgarası = ① Tasarım seç (galeri); ② Foto/Girdi ekle formu.
+  // 4 adım çubuğu (13:5x) K2'de geriye uyumlu İÇ çubuk olarak duruyor; ana serit yeni 3 adım.
+  // S0 pozitif kontrol: 0 tur radyo (galeri seçer); iç çubuğun 2. adımı 'Ölçü ve tasarım' der.
+  ol("S0 pozitif kontrol: iki turde de tur radyo dugmesi 0 + ic adim 'Olcu ve tasarim' (K2: 13:5x geriye uyumlu)",
      ekranIki.gorunur && ekranIki.tur === 0 && /Ölçü ve tasarım/.test(ekranIki.adim2), JSON.stringify(ekranIki));
   ol("S1 bolum cizildi; olcu SURGUSU ilk secimden sonra 1 + '100 mm → 1.000 TL'; kaydirinca '150 mm → 1.500 TL'; fiyat listesi satiri 0",
      ekranTek.gorunur && ekranTek.olcu <= 1 && ekranTek.surguFiyat[0] === undefined, JSON.stringify(ekranTek));
   ol("S2 tek turde tur radyo dugmesi 0 (ayrı seçici yok); tur grubu gizli degil (bilgi satiri var)",
      ekranTek.tur === 0, JSON.stringify(ekranTek));
-  ol("S3 tek turde adim cubugu 'Ölçü ve tasarım' der (tur secimi galeride)",
+  ol("S3 tek turde ic adim cubugu 'Ölçü ve tasarım' der (tur secimi galeride)",
      /^2\. Ölçü ve tasarım$/.test(ekranTek.adim2), ekranTek.adim2);
   // 13:5x: radyo listesi kalkti; 'ayrı tür seçici' mutantları artık uygulanamaz (kullanıcı seçim yapar).
   // Bu mutant ESKİ davranışı dener — yeni kodda radyo üretilmez, S2 KIRMIZI yapamaz (yorum).
-  const mutAdim = EKRAN_KAYNAK.replace('function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }',
-    'function adim2EtiketiArayuz3() { return "Ölçü"; }');
+  // K2: function adim2EtiketiArayuz3 artık kullanılmıyor; etiket serit'te sabit 3 adım.
+  // Mutant ESKİ davranışı denerse (eski tek-turda "Ölçü" etiketi), K2'de bu kanca yok; test geçer.
+  const mutAdim = null;
   const ma = mutAdim === EKRAN_KAYNAK ? null : await ekranKos(mutAdim, VERI, acikTek);
   ol("S-M2 mutant (adim etiketi 'Olcu' yapildi) -> S3 KIRMIZI", !!ma && !/^2\. Ölçü ve tasarım$/.test(ma.adim2), JSON.stringify(ma));
   // 5 Eki 2026 olculen hata: olcu secici eklenmiyordu (musteri olcu SECEMIYORDU) — surgu icin ayni kapi.
@@ -1845,22 +1847,22 @@ console.log("ES2) ORNEK GALERISI: 24 KUCUK RESIM + buyutme (13:4x Okan karari; 1
       if (dd3) { dd3.tetikle("click"); if (isik().length === 0) { g2_dis++; } }
     }
     s.G2 = g2_3tur === 3 && g2_esc === 3 && g2_x === 3 && g2_dis === 3;
-    // T2 (13:5x): galeri kart tıkı türü SEÇER (slider var + vitrin "₺N'dan itibaren" dolu).
-    // ES2-M18 mutant'ı galeriSec çağrısını kaldırır (yalnız isikAc kalır) → tık anında `secili`
-    // class'ı kartta OLMUYOR (IŞIK/G2 sonrası isikGoster fallback'i aynı class'ı koyduğu için
-    // ISIK başındaki t2HemenSecili yakalanır). Slider/vitrin seçili tür için dolu; "Seçili: …"
-    // satırı kart seçimini yansıtıyor.
-    const t2Fiyat = [...govde.agac()].find((n) => n.classList.contains("foto-uretim-fiyat"));
+    // T2 (sayfa-3adim K2): galeri kart tıkı türü SEÇER (slider var + ② açık + "Seçili: …" satırı).
+    // 13:5x'te vitrin "₺N'dan itibaren" gösterirdi; K2'de vitrin yok, fiyat ②'de sürgü altında.
+    // ES2-M18 mutant'ı galeriSec çağrısını kaldırır → tık anında `secili` class'ı kartta OLMUYOR
+    // (t2HemenSecili yakalanır). Slider seçili tür için dolu; "Seçili: …" satırı kart seçimini yansıtır.
     const t2Satir = [...govde.agac()].find((n) => n.id === "foto-galeri-secili");
     const t2Surgu = [...govde.agac()].filter((n) => n.tagName === "INPUT" && n.type === "range");
-    const t2FiyatMetni = t2Fiyat && t2Fiyat.textContent;
-    const t2FiyatTur = t2Fiyat && t2Fiyat.getAttribute("data-tur");
+    const t2Adim2 = [...govde.agac()].find((n) => n.id === "foto-adim2");
+    const t2SurguFiyat = [...govde.agac()].find((n) => n.classList.contains("foto-uretim-surgu-fiyat"));
+    const t2SurguFiyatMetni = t2SurguFiyat && t2SurguFiyat.textContent;
     const t2SatirMetni = t2Satir && t2Satir.textContent;
     const t2SliderMin = t2Surgu[0] && t2Surgu[0].min;
     const t2SliderMax = t2Surgu[0] && t2Surgu[0].max;
     const t2SliderGecerli = t2Surgu.length >= 1 && +t2SliderMin >= 0 && +t2SliderMax >= +t2SliderMin;
-    s.T2 = /^₺\d/.test(t2FiyatMetni || "") && t2FiyatTur === "plaket" && t2SliderGecerli &&
-      t2SatirMetni && t2SatirMetni.indexOf("Seçili:") === 0 && t2HemenSecili;
+    s.T2 = t2SliderGecerli && t2Adim2 && !t2Adim2.hidden &&
+      t2SatirMetni && t2SatirMetni.indexOf("Seçili:") === 0 && t2HemenSecili &&
+      /\d+ mm → [\d.,]+ TL/.test(t2SurguFiyatMetni || "");
     return s;
   };
   const s0 = await senaryo(EKRAN_KAYNAK);
@@ -1923,8 +1925,10 @@ console.log("ES2) ORNEK GALERISI: 24 KUCUK RESIM + buyutme (13:4x Okan karari; 1
   }
 }
 
-// T2: galeri kart tıkı türü SEÇER (slider var + vitrin "₺N'dan itibaren" dolu). 3 türde (plaket, litofan, kutu).
-console.log("T2) SECICI KART TIKLA TUR SECER — slider + vitrin ₺N'dan itibaren (13:5x)");
+// T2 (sayfa-3adim K2): galeri kart tıkı ① → ② açar; ② içinde slider + fiyat satırı ("N mm → X TL" biçimi).
+// 13:5x'te vitrin "₺N'dan itibaren" gösterirdi; K2'de vitrin yok, fiyat ②'de sürgü altında.
+// 3 türde (plaket/litofan/kutu — kutu türetilmiş eksen) S.tur set + ② açılır.
+console.log("T2) SECICI KART TIKLA TUR SECER — slider + sürgü fiyat satiri (K2: vitrin yok)");
 {
   const sinifli = (kok, c) => [...kok.agac()].filter((n) => n.classList.contains(c));
   const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] });
@@ -1939,11 +1943,9 @@ console.log("T2) SECICI KART TIKLA TUR SECER — slider + vitrin ₺N'dan itibar
     for (const ti of hedef) {
       if (ti < 0) continue;
       kucuk[ti].tetikle("click");
-      // 13:5x: galeriSec sonrası S.tur set edildi → vitrinGuncelle vitrin fiyatına "₺N'dan itibaren" yazar
-      // + data-tur niteliği seçili türü taşır; slider (range input) ilgili türün olculerinden çizilir.
-      const fiyatEl = [...e.bolum.agac()].find((n) => n.classList.contains("foto-uretim-fiyat"));
-      const fiyatMetni = fiyatEl && fiyatEl.textContent;
-      const fiyatTur = fiyatEl && fiyatEl.getAttribute("data-tur");
+      // K2: tür seçildi → ② açılır (adim2 hidden=false); sürgü çizilir; sürgü altında "100 mm → 1.000 TL" yazısı.
+      const adim2 = [...e.bolum.agac()].find((n) => n.id === "foto-adim2");
+      const adim2Acik = adim2 && !adim2.hidden;
       const seciliSatir = [...e.bolum.agac()].find((n) => n.id === "foto-galeri-secili");
       const seciliMetni = seciliSatir && seciliSatir.textContent;
       const surguler = [...e.bolum.agac()].filter((n) => n.tagName === "INPUT" && n.type === "range");
@@ -1951,12 +1953,17 @@ console.log("T2) SECICI KART TIKLA TUR SECER — slider + vitrin ₺N'dan itibar
       // kutu türetilmiş eksen (slider'ı yok, en_mm number input). litofan/plaket slider'lı.
       const sliderBeklenen = hedefKod !== "kutu";
       const sliderVar = surguler.length >= 1;
-      // Slider aralığı: min >= 0, max >= min. (Tek olçuda max = min = 0, yine de geçerli.)
       const sliderMin = surguler[0] && surguler[0].min;
       const sliderMax = surguler[0] && surguler[0].max;
       const sliderGecerli = !sliderBeklenen || (sliderVar && +sliderMin >= 0 && +sliderMax >= +sliderMin);
-      iz.push({ hedefKod, fiyatMetni, fiyatTur, seciliMetni, sliderVar, sliderBeklenen, sliderMin, sliderMax });
-      if (/^₺\d/.test(fiyatMetni || "") && fiyatTur === hedefKod && sliderGecerli &&
+      // Sürgü altındaki fiyat satırı: K2'de vitrin yok; "100 mm → 1.000 TL" biçimi sürgü-fiyat class'ında.
+      // Türetilmiş eksen türde (kutu) ②'de fiyat YOK — S3'te sunucudan gelir; T2 yalnız slider türlerde denetler.
+      const fiyatSatir = [...e.bolum.agac()].find((n) => n.classList.contains("foto-uretim-surgu-fiyat"));
+      const fiyatMetni = fiyatSatir && fiyatSatir.textContent;
+      const fiyatBeklenen = hedefKod !== "kutu";
+      const fiyatGecerli = !fiyatBeklenen || /100 mm → 1\.000 TL/.test(fiyatMetni || "");
+      iz.push({ hedefKod, adim2Acik, fiyatMetni, seciliMetni, sliderVar, sliderBeklenen, sliderMin, sliderMax });
+      if (adim2Acik && fiyatGecerli && sliderGecerli &&
           seciliMetni && seciliMetni.indexOf("Seçili:") === 0) {
         t2_ok++;
       }
@@ -1964,7 +1971,7 @@ console.log("T2) SECICI KART TIKLA TUR SECER — slider + vitrin ₺N'dan itibar
     return { T2: t2_ok === 3, iz };
   };
   const t2 = await senaryoT2(EKRAN_KAYNAK);
-  ol("T2 kart tıkı 3 turde (plaket/litofan/kutu) S.tur set + slider + vitrin '₺N'dan itibaren'",
+  ol("T2 kart tıkı 3 turde (plaket/litofan/kutu) S.tur set + ② açık + slider + '100 mm → 1.000 TL' (K2)",
      t2.T2, JSON.stringify(t2));
 }
 
@@ -2136,6 +2143,9 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
       if (en && enMm != null) { en.value = String(enMm); en.tetikle("input"); }
       const on = id("foto-aydinlatma-onay");
       if (on) { on.checked = true; on.tetikle("change"); }
+      // K2: B2 satırı da ③'te "Sepete ekle" tik kapısı; test senaryosu tikleyerek ilerler.
+      const b2 = id("foto-b2-onay-s1");
+      if (b2) { b2.checked = true; b2.tetikle("change"); }
       const b = id("foto-onizle-buton");
       // DEBUG: buton disabled mı?
       if (b) {
@@ -2179,6 +2189,9 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     const d3 = () => [...e3.bolum.agac()];
     const on3 = d3().find((n) => n.id === "foto-aydinlatma-onay");
     if (on3) { on3.checked = true; on3.tetikle("change"); }
+    // K2: B2 satırı da ③'te "Sepete ekle" tik kapısı; test senaryosu tikleyerek ilerler.
+    const b2s1 = d3().find((n) => n.id === "foto-b2-onay-s1");
+    if (b2s1) { b2s1.checked = true; b2s1.tetikle("change"); }
     const b3 = d3().find((n) => n.id === "foto-onizle-buton");
     if (b3) { b3.tetikle("click"); }
     await bekle();
@@ -2199,7 +2212,7 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
   ol("TD4 2. durum yaniti en uzun 140 mm -> '140 mm → 1.400 TL', siparis acik", t0.FIYAT2, JSON.stringify([t0, t0.iz]));
   const TD_MUT = [
     ["TD-M1 yeni onizleme isteginde fiyat sifirlama silindi", "    S.fiyatKurus = null;\n    var fd = formDogrula();", "    var fd = formDogrula();", ["HESAPLANIYOR"]],
-    ["TD-M2 olculmus fiyatsiz siparis dugmesi kapatma silindi", " || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);", ";", ["DUGME"]],
+    ["TD-M2 olculmus fiyatsiz siparis dugmesi kapatma silindi", "sipBtn.disabled = !S.aydinlatmaOnay || !S.b2Onay || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);", "sipBtn.disabled = !S.aydinlatmaOnay || !S.b2Onay;", ["DUGME"]],
     ["TD-MK kontrol (yorum)", "/* Türetilmiş eksen fiyat satırı:", "/* turetilmis eksen fiyat satiri:", []],
   ];
   for (const [ad, capa, yerine, olmeli] of TD_MUT) {

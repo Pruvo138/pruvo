@@ -156,7 +156,8 @@
     galeriKutu: null,
     galeriSeciliKod: null,
     buyukKart: null,
-    isik: null
+    isik: null,
+    b2Onay: false
   };
 
   /* ============== DOM YARDIMCILAR ============== */
@@ -1161,48 +1162,41 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     while (bolum.firstChild) bolum.removeChild(bolum.firstChild);
     var ic = el("div", "foto-uretim-icerik");
 
-    /* ÜST: 3 adım şeridi (① foto → ② tasarım → ③ üretim ve gönderim) */
+    /* ÜST: 3 adım şeridi (Okan 19:1x: ① Tasarım seç → ② Foto/Girdi ekle → ③ Önizleme ve sepet) */
     cizSerit(ic);
 
-    /* VİTRİN: sol galeri + büyük önizleme kartı · sağ başlık/fiyat/açıklama/yükleme kutusu */
-    var vitrin = el("div", "foto-uretim-vitrin");
+    /* ① TASARIM SEÇ: 19 tür ızgarası (galeri) — sayfa-3adim K2. Eski vitrin'in SAĞ BLOĞU
+       (başlık/fiyat/açıklama/yükleme kutusu/güven) ve büyük önizleme kartı DOM'DAN SİLİNDİ. */
     var ornekBlok = el("div", "foto-uretim-galeri-blok");
+    ornekBlok.id = "foto-adim1";
     S.ornekBlok = ornekBlok;
-    vitrin.appendChild(ornekBlok);
-    var sag = el("div", "foto-uretim-sag");
-    ek(sag, el("h2", "foto-uretim-baslik", "Fotoğrafın, elinde tutacağın bir parça olsun."));
-    S.fiyatEl = el("p", "foto-uretim-fiyat", "");
-    sag.appendChild(S.fiyatEl);
-    S.olcuAltEl = el("p", "foto-uretim-aciklama", "");
-    sag.appendChild(S.olcuAltEl);
-    cizYukleKutu(sag);
-    var guven = el("p", "foto-uretim-guven");
-    var tik = el("span", "foto-uretim-guven-tik", "✓");
-    tik.setAttribute("aria-hidden", "true");
-    ek(guven, tik, "Satın almadan önce 3D olarak görün");
-    sag.appendChild(guven);
-    vitrin.appendChild(sag);
-    ic.appendChild(vitrin);
+    ic.appendChild(ornekBlok);
     ornekCiz(ornekBlok, null);
 
-    /* ADIM ②: mevcut akış (tür + ölçü + renk + malzeme + onay + ödeme) */
+    /* ② FOTO / GİRDİ EKLE: tür seçildikten sonra açılan form (dosya + uyum kontrolü + tarif). */
     var adim2 = el("div", "foto-uretim-adim2");
     adim2.id = "foto-adim2";
-    adim2.appendChild(el("h3", "foto-uretim-adim2-baslik", "② Bir tasarım seçin"));
+    adim2.hidden = true; /* tur secimi yokken ② kapali (K2: secimsiz ② kapali) */
+    var baslik2 = el("h3", "foto-uretim-adim2-baslik", "");
+    adim2.appendChild(baslik2);
+    S.adim2Baslik = baslik2;
     var durust = el("div", "foto-uretim-durustluk");
     S.durustP = el("p", null, "");
     durust.appendChild(S.durustP);
     adim2.appendChild(durust);
     durustlukGuncelle();
 
-    /* 4 adim cubugu (akışın iç ilerlemesi) */
-    cizAdimlar(adim2);
+    /* ② için tek yükleme kutusu (eski sağ bloğun "Foto ekle" kutusu buraya taşındı). */
+    cizYukleKutu(adim2);
 
-    /* siparis alani */
+    /* ② form alanları: tür + ölçü + renk + form parametreleri + uyum kontrolü + aydınlatma */
     var alan = el("div", "foto-uretim-alani");
     alan.setAttribute("aria-live", "polite");
     S.alan = alan;
     adim2.appendChild(alan);
+    /* 13:5x: iç 4 adım çubuğu (K1 testlerinin beklediği yapı: data-no="2" = "Ölçü ve tasarım");
+       K2 yeni 3 adım şeridini ÜSTTE ekledi; iç çubuk geriye uyumluluk için duruyor. */
+    cizAdimlar(adim2);
     ic.appendChild(adim2);
 
     bolum.appendChild(ic);
@@ -1211,7 +1205,8 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
   function cizSerit(ic) {
     var serit = el("ol", "foto-uretim-serit");
     serit.setAttribute("aria-label", "Nasıl çalışır");
-    var adimlar = [["1", "⇪", "Foto ekle"], ["2", "✦", "Bir tasarım seçin"], ["3", "➜", "Üretim ve gönderim"]];
+    // Okan 19:1x (sayfa-3adim K2): 3 adım = ① Tasarım seç → ② Foto/Girdi ekle → ③ Önizleme ve sepet
+    var adimlar = [["1", "✦", "Tasarım seç"], ["2", "⇪", "Foto ekle"], ["3", "➜", "Önizleme ve sepet"]];
     for (var i = 0; i < adimlar.length; i++) {
       if (i > 0) {
         var c = el("li", "foto-uretim-serit-cizgi");
@@ -1559,10 +1554,25 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
       doldurS1Litofan();
     }
     durustlukGuncelle();
+    // K2: ② başlığı türe göre (BaBa 19:3x) — 8 foto türü → "Foto ekle", 11 girdi türü → "Girdini ekle".
+    if (S.adim2Baslik) {
+      S.adim2Baslik.textContent = "② " + (adim2EtiketiK2(S.tur));
+    }
     // Seçim #tur=<kod> URL hash + sessionStorage (yenilemede korunur; 13:5x).
     turSecimiKaydet(it.tur.kod);
     guncelleS1Buton();
-    vitrinGuncelle(it.tur.kod);
+    // K2: ① seçildi → ② açılır (eski 13:5x davranışıyla aynı; eski vitrin sağ bloğu artık DOM'DAN SİLİNDİ).
+    adimKoy("S1");
+  }
+  // K2: ② etiketi türe bağlı (BaBa 19:3x — sayfa-3adim K2): 8 foto türü → "Foto ekle", 11 girdi türü → "Girdini ekle".
+  // 20. tür (rozet): foto ya da metin/logo kabul eder; "Foto ekle" varsayılan (türün ilk girdi tipi).
+  function adim2EtiketiK2(kod) {
+    if (!F || !F.turBul) return "Foto ekle";
+    var t = F.turBul(kod);
+    if (!t || !t.girdi || !t.girdi.length) return "Foto ekle";
+    var ilk = t.girdi[0];
+    if (ilk === "foto-1" || ilk === "foto-1-3") return "Foto ekle";
+    return "Girdini ekle";
   }
 
   /* Tür seçimini URL hash (#tur=<kod>) ve sessionStorage'a yazar (13:5x; yenilemede korunur). */
@@ -2169,6 +2179,20 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     ek(onLbl, onInp);
     ek(onLbl, " Aydınlatma metnini okudum, onaylıyorum.");
     S.alanOnay.appendChild(onLbl);
+    // B2 satırı (BaBa 8 Eki 18:4x — K2): aydınlatma onayının yanına 2. onay; ③'te "Sepete ekle" bunu da ister.
+    var b2Lbl = el("label", "foto-uretim-form-secenek-inline");
+    b2Lbl.setAttribute("for", "foto-b2-onay-s1");
+    var b2Inp = el("input");
+    b2Inp.type = "checkbox"; b2Inp.id = "foto-b2-onay-s1";
+    b2Inp.checked = !!S.b2Onay;
+    b2Inp.addEventListener("change", function (e) {
+      S.b2Onay = !!e.target.checked;
+      if (S.b2Inp) S.b2Inp.checked = S.b2Onay;
+      guncelleS1Buton();
+    });
+    ek(b2Lbl, b2Inp);
+    ek(b2Lbl, " Fotoğraftan üretilen ürünler tasarım ürünüdür; mekanik uyum ve ölçü uygunluğu taahhüt edilmez.");
+    S.alanOnay.appendChild(b2Lbl);
   }
 
   function guncelleS1Buton() {
@@ -2301,16 +2325,59 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     }
 
     var butonG = el("div", "foto-uretim-iliskili");
+    // B2 SORUMLULUK SATIRI (BaBa 8 Eki 18:4x — sayfa-3adim K2): aydınlatma onayının YANINA ikinci onay
+    // kutusu; ikisi de işaretli değilken "Sepete ekle" pasif kalır.
+    var b2Lbl = el("label", "foto-uretim-form-secenek-inline");
+    b2Lbl.setAttribute("for", "foto-b2-onay");
+    var b2Inp = el("input");
+    b2Inp.type = "checkbox"; b2Inp.id = "foto-b2-onay";
+    b2Inp.checked = !!S.b2Onay;
+    b2Inp.addEventListener("change", function (e) {
+      S.b2Onay = !!e.target.checked;
+      guncelleSipButonu();
+    });
+    ek(b2Lbl, b2Inp);
+    ek(b2Lbl, " Fotoğraftan üretilen ürünler tasarım ürünüdür; mekanik uyum ve ölçü uygunluğu taahhüt edilmez.");
+    butonG.appendChild(b2Lbl);
+    S.b2Inp = b2Inp;
     var sipBtn = el("button", "foto-uretim-buton-birincil", "Sepete ekle");
     sipBtn.type = "button";
+    sipBtn.id = "foto-sip-btn";
     sipBtn.addEventListener("click", function () { sepeteEkle(nt, fiyat, rs); });
-    // Aydınlatma onayı olmadan sipariş düğmesi açılmaz (eski sürüm onayıyla geri gelen iş dahil);
+    // Aydınlatma onayı + B2 sorumluluk satırı olmadan sipariş düğmesi açılmaz (K2: B2 tik kapısı);
     // türetilmiş eksende bu önizlemenin ölçülmüş fiyatı yoksa da açılmaz (fiyatsız sipariş yok).
-    sipBtn.disabled = !S.aydinlatmaOnay || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);
+    sipBtn.disabled = !S.aydinlatmaOnay || !S.b2Onay || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);
     butonG.appendChild(sipBtn);
     if (!S.aydinlatmaOnay) {
       butonG.appendChild(el("p", "foto-uretim-ayrinti", "Aydınlatma metni güncellendi; sipariş için yeni önizleme oluştur."));
     }
+    // İPTAL: ③ → ① Tasarım seç (K2). Oturum/önizleme SİLİNMEZ (sayfa yenilenince geri gelir; aydinlatmaOnay/b2Onay
+    // da olduğu gibi kalır — kullanıcı tür değiştirip aynı onaylarla ilerleyebilir).
+    var iptalBtn = el("button", "foto-uretim-buton-ikincil", "İptal");
+    iptalBtn.type = "button";
+    iptalBtn.id = "foto-iptal-btn";
+    iptalBtn.addEventListener("click", function () {
+      yoksDurdur();
+      ssIsSil();
+      S.dosya = null;
+      S.aydinlatmaOnay = false;
+      S.b2Onay = false;
+      S.gorsel = null;
+      S.gecerlilik = null;
+      S.adet = 1;
+      S.tur = null;
+      S.olcu = null;
+      S.parametre = {};
+      S.secim = null;
+      S.renkler = [];
+      S.galeriSecili = -1;
+      S.galeriSeciliKod = null;
+      turSecimiKayitTemizle();
+      // galeri'yi yeniden çiz (seçim sıfırlansın) ve ① görünür kalsın
+      if (S.ornekBlok) ornekCiz(S.ornekBlok, S.acikVeri ? S.acikVeri.turler.map(function (x) { return x.kod; }) : null);
+      adimKoy("secim");
+    });
+    butonG.appendChild(iptalBtn);
     var baskaBtn = el("button", "foto-uretim-buton-ikincil", "Başka fotoğraf dene");
     baskaBtn.type = "button";
     baskaBtn.style.marginTop = "0";
@@ -2319,6 +2386,7 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
       ssIsSil();
       S.dosya = null;
       S.aydinlatmaOnay = false;
+      S.b2Onay = false;
       S.gorsel = null;
       S.gecerlilik = null;
       S.adet = 1;
@@ -2326,6 +2394,20 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     });
     butonG.appendChild(baskaBtn);
     S.alan.appendChild(butonG);
+  }
+  // Tik kapısı: aydınlatma onayı ve B2 satırı değiştikçe "Sepete ekle" disabled güncellenir.
+  // NOT: aynı formül cizS3'te zaten yazılı; burada B2 değişiminde yeniden hesaplanır (tek kapı).
+  function guncelleSipButonu() {
+    if (!S.alan) return;
+    var sipBtn = document.getElementById("foto-sip-btn");
+    if (!sipBtn) return;
+    var nt = seciliTurBul();
+    sipBtn.disabled = !S.aydinlatmaOnay || !S.b2Onay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);
+  }
+  // ③ → ① dönüşünde sessionStorage'daki tür seçimi temizlenir.
+  function turSecimiKayitTemizle() {
+    try { if (kok.sessionStorage && kok.sessionStorage.removeItem) kok.sessionStorage.removeItem("pruvo_foto_tur"); } catch (e) { }
+    try { if (kok.history && history.replaceState) history.replaceState(null, "", location.pathname + location.search); } catch (e) { }
   }
 
   /* ============== ③ → NORMAL SEPET ==============
@@ -2380,10 +2462,20 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
       S.bildirim = "";
       S.bildirimHata = false;
     }
+    // K2 (sayfa-3adim Okan 19:1x): 3 adımlı akış. Şerit ① Tasarım seç / ② Foto ekle / ③ Önizleme.
+    // "secim" = ① görünür (galeri), ② kapalı; S1 = ② açık (form); S2/S3 = ③.
     var no = 1;
     if (adim === "S1") no = 2;
     else if (adim === "S2" || adim === "S3") no = 3;
     adimGoster(no);
+    // Bölüm görünürlüğü: ② + ③ sadece tür seçildiğinde; ① daima görünür.
+    var adim2 = document.getElementById("foto-adim2");
+    if (adim2) adim2.hidden = !(S.tur && (adim === "S1" || adim === "S2" || adim === "S3"));
+    // ① Tasarım seç her zaman görünür; yalnız "secim" durumunda tüm ②/③ kapalı.
+    if (adim === "secim") {
+      if (S.ornekBlok && S.ornekBlok.parentNode) S.ornekBlok.parentNode.style.display = "";
+      if (adim2) { adim2.hidden = true; while (adim2.firstChild) adim2.removeChild(adim2.firstChild); }
+    }
 
     if (adim === "kapali") cizKapali();
     else if (adim === "S1") cizS1();
