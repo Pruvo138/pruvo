@@ -23,6 +23,7 @@ import shutil
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HAM, MODEL = "model.ham.3mf", "model.3mf"
+HESAP = "dbbe2a8620c3c3a57c586b8a98142fb9"  # tools/foto-onizleme.py ile ayni
 
 
 def kosucu():
@@ -48,6 +49,8 @@ def main(argv=None):
 
     if not k.SIPARIS_KALIBI.match(a.siparis):
         return bitir("RED", "siparis-kalibi", 2)
+    # launchd kosucusu hesabi plist env'inden alir; elle kosumda ayni hesap (tools/foto-onizleme.py HESAP).
+    os.environ.setdefault("CLOUDFLARE_ACCOUNT_ID", HESAP)
     k.hedef_kur("onizleme")
     try:
         sat, _ = k.d1("SELECT asama, sebep, guncel FROM foto_uretim WHERE siparis_no = %s AND kalem = %d"
