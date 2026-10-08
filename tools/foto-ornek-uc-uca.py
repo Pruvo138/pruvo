@@ -303,10 +303,20 @@ def sayi_gecerli(s, v):
     return mn <= v <= mx and abs(k - round(k)) <= 1e-6
 
 
+def metin_gecerli(s, v):
+    """Bos olmayan metin + `max` (karakter) ve `bayt_max` (UTF-8) tavanlari icinde."""
+    if not isinstance(v, str) or not v.strip():
+        return False
+    return (s.get("max") is None or len(v) <= s["max"]) and \
+        (s.get("bayt_max") is None or len(v.encode("utf-8")) <= s["bayt_max"])
+
+
 def ornek_parametre(t, olcu):
     """Form semasindan GECERLI ornek parametre (dogrulamayi VERI.parametreDogrula yapar). Alan sirasiyla:
-    koşulu saglanmayan alan atlanir; `varsayilan` gecerliyse (aralik + adim / secenek) O kullanilir, yoksa
-    eski formul. Desteklenmeyen tip -> None (olcut EKSIK, sebep adiyla)."""
+    koşulu saglanmayan alan atlanir; sayi/metin alaninda kaydin `ornek`i (kopru-manifest-uret tasir) gecerliyse
+    ONCE o, sonra `varsayilan` gecerliyse (aralik + adim / secenek) o, yoksa eski formul. NEDEN (kopru-15 SON3):
+    min tabanli formul sehir'i bos alana (30,30), "PRUVO" yildiz tarih_saat'ini bicim disina dusuruyordu.
+    Desteklenmeyen tip -> None (olcut EKSIK, sebep adiyla)."""
     p = {}
     for ad, s in (t.get("form") or {}).items():
         if not kosul_tamam(s, p):
@@ -316,6 +326,8 @@ def ornek_parametre(t, olcu):
         if tip == "secim":
             ss = s.get("secenekler") or [None]
             p[ad] = vs if any(_ayni(vs, x) for x in ss) else ss[0]
+        elif tip == "sayi" and sayi_gecerli(s, s.get("ornek")):
+            p[ad] = s["ornek"]
         elif tip == "sayi" and sayi_gecerli(s, vs):
             p[ad] = vs
         elif tip == "sayi":
@@ -324,6 +336,8 @@ def ornek_parametre(t, olcu):
             p[ad] = mn + math.floor((hedef - mn) / adim + 1e-9) * adim
             if isinstance(p[ad], float):
                 p[ad] = round(p[ad], 9)
+        elif tip == "metin" and metin_gecerli(s, s.get("ornek")):
+            p[ad] = s["ornek"]
         elif tip == "metin":
             if s.get("zorunlu") is False:
                 continue

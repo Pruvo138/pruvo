@@ -19,6 +19,10 @@ SOZLUK (eşleme YALNIZ burada; manifest yorumu bu dosyayi isaret eder):
             `parametre-metin` ile reddediyordu (braille ⑤ 400).
             ses girdili kaydin min/max'siz `sayi` alani (genlik dizisi) -> tip "ses"
             baska tip -> KIRMIZI
+  ornek   : kaydin `ornek.girdi.<ad>` degeri form alanina `ornek` olarak AYNEN (yer tutucu `<...>` metni
+            tasinmaz). foto-ornek-uc-uca.ornek_parametre sayi/metin icin ONCE bunu kullanir. NEDEN (kopru-15
+            SON3): min tabanli ornek sehir'i bos alana (30,30 -> OSM bina yok), zorunlu metin "PRUVO" yildiz'in
+            tarih_saat'ini bicim disina dusuruyordu.
   kosul   : form alaninda `kosul: [{alan, degerler}]` AYNEN (alan formda olmali, yoksa KIRMIZI)
   olcu_mm : olcek.min_mm/max_mm · fiyat.adim_mm : olcek.adim_mm · malzemeler : {govde: izinli_malzeme}
   olcu_ekseni : olcek.belirleyen_parametre DOLU -> "sabit" (surgu = hedef) · bos/null -> "turetilmis"
@@ -105,8 +109,19 @@ def metin_tavani(sema_alani):
     return None
 
 
-def _alan_uret(kayit_kod, girdiler, p, hatalar, sema=None):
-    """Tek kayit parametresi -> (form_alani | None, renk_bolgesi | None). `sema` = uretec SEMA (metin tavani)."""
+def ornek_degeri(ornek_girdi, ad):
+    """Kayit `ornek.girdi[ad]` -> (var_mi, deger). Yer tutucu metin (`<100 elemanli dizi, sinus>`) ornek DEGIL."""
+    if not isinstance(ornek_girdi, dict) or ad not in ornek_girdi:
+        return False, None
+    v = ornek_girdi[ad]
+    if isinstance(v, str) and v.startswith("<"):
+        return False, None
+    return True, v
+
+
+def _alan_uret(kayit_kod, girdiler, p, hatalar, sema=None, ornek_girdi=None):
+    """Tek kayit parametresi -> (form_alani | None, renk_bolgesi | None). `sema` = uretec SEMA (metin tavani),
+    `ornek_girdi` = kaydin `ornek.girdi` sozlugu (form alanina `ornek`)."""
     ad, tip = p.get("ad"), p.get("tip")
     if tip not in BILINEN_TIP:
         hatalar.append("bilinmeyen-tip:%s.%s=%s" % (kayit_kod, ad, tip))
@@ -146,6 +161,9 @@ def _alan_uret(kayit_kod, girdiler, p, hatalar, sema=None):
                 alan["max"] = tavan
         if p.get("zorunlu") is not True:
             alan["zorunlu"] = False
+    var, v = ornek_degeri(ornek_girdi, ad)
+    if var:
+        alan["ornek"] = v
     return alan, None
 
 
@@ -161,8 +179,9 @@ def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None, sema=None):
         else:
             girdi.append(GIRDI_ESLE[g])
     form, bolgeler = {}, []
+    ornek_girdi = (kayit.get("ornek") or {}).get("girdi") if isinstance(kayit.get("ornek"), dict) else None
     for p in (parametreler if parametreler is not None else (kayit.get("parametreler") or [])):
-        alan, bolge = _alan_uret(kod, girdi_tipi, p, hatalar, sema)
+        alan, bolge = _alan_uret(kod, girdi_tipi, p, hatalar, sema, ornek_girdi)
         if alan is not None:
             form[p["ad"]] = alan
         if bolge is not None:

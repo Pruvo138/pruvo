@@ -11,7 +11,8 @@ IKI KATMAN
 MUTANTLAR (gecici kopyalarda; calisma agacina YAZMAZ):
   MK1 kayitta bool->boolean · MK2 manifestte tek alanin kosul'u silindi · MK3 adim dusuruldu (0.01->0.001)
   MK4 kayitta bilinmeyen girdi · MK5 kosul var olmayan alana bakiyor · MK0 kontrol: editoryal metin degisti
-  -> YESIL kalmali. R katmani: MR1/MR2/MR3 = MK1/MK2/MK3 gercek kopyada.
+  MK6 manifestte form `ornek` silindi -> YESIL kalmali. R katmani: MR1/MR2/MR3 = MK1/MK2/MK3 gercek kopyada;
+  MR4/MR5 sehir enlem / yildiz tarih_saat `ornek`i silindi (kopru-15 SON3).
 Cikti son satiri: VAKA_KIRMIZI=<n> SURVIVOR=<n>   (rc 0 yalniz ikisi de 0)
 """
 import importlib.util
@@ -65,7 +66,8 @@ SAHTE_KAYIT = {"surum": "test", "kayitlar": [
          {"ad": "gorsel", "etiket": "Gorsel", "tip": "dosya", "zorunlu": True},
          {"ad": "renk_plaka", "etiket": "Plaka rengi", "tip": "renk", "varsayilan": "#000000"},
          {"ad": "renk_yazi", "etiket": "Yazi rengi", "tip": "renk"}],
-     "olcek": {"min_mm": 60, "max_mm": 250, "adim_mm": 5}, "izinli_malzeme": ["PLA", "PETG"]},
+     "olcek": {"min_mm": 60, "max_mm": 250, "adim_mm": 5}, "izinli_malzeme": ["PLA", "PETG"],
+     "ornek": {"girdi": {"enlem": 41.0256, "hane": "<yer tutucu>", "renk_plaka": "#FFFFFF"}}},
     {"kod": "rolyef", "uretec": "rolyef_uret", "girdi_tipi": ["foto"],
      "parametreler": [
          {"ad": "uzun_kenar_mm", "etiket": "Uzun kenar", "tip": "sayi", "min": 60, "max": 250, "varsayilan": 120,
@@ -152,6 +154,11 @@ def hermetik():
          b["uzun_kenar_mm"]["etiket"] == "Boyut" and b["uzun_kenar_mm"]["max"] == 200 and
          b["uzun_kenar_mm"]["adim"] == 0.01 and b["ters"] == {"tip": "bool", "etiket": "Ters (negatif)",
                                                                "varsayilan": False}, json.dumps(b))
+    # kopru-15 SON3: kayit `ornek.girdi` -> form alani `ornek` (yer tutucu `<...>` tasinmaz, renk form disi,
+    # ornegi olmayan kaydin alaninda `ornek` anahtari YOK).
+    vaka("F17 ornek.girdi -> form ornek (yer tutucu/renk tasinmaz; orneksiz kayit etkilenmez)",
+         h["form"]["enlem"].get("ornek") == 41.0256 and "ornek" not in h["form"]["hane"] and
+         not any("ornek" in a for a in p["form"].values()), json.dumps(h["form"]))
     vaka("F9 deterministik: iki uretim BIREBIR", json.dumps(u.hepsini_uret(SAHTE_KAYIT), sort_keys=True) ==
          json.dumps(u.hepsini_uret(json.loads(json.dumps(SAHTE_KAYIT))), sort_keys=True))
     # kopru-15 ESLE: metin -> max (kayit > uretec SEMA) + zorunlu:false (zorunlu:true degilse). max'siz metin
@@ -216,6 +223,8 @@ def hermetik():
                lambda kk, mm: degistir(kk, '"olcu"]', '"olcuu"]'))
         mutant("MK5 kosul olmayan alana bakiyor -> KIRMIZI", k, m, r"kosul-alan:parca\.kapak->yok",
                lambda kk, mm: degistir(kk, '"alan": "mod"', '"alan": "yok"'))
+        mutant("MK6 manifestte ornek silindi -> KIRMIZI", k, m, r"sapma:harita\.form\.enlem\.ornek",
+               lambda kk, mm: degistir(mm, r"^\s+ornek: 41\.0256,?\n", "", regex=True))
         mutant("MK0 kontrol: editoryal metin degisti -> YESIL kalir", k, m, None,
                lambda kk, mm: degistir(mm, "Sahte metin.", "Baska metin."))
     finally:
@@ -246,6 +255,12 @@ def gercek():
            lambda kk, mm: degistir(mm, r"^\s+kosul: .*\n", "", regex=True))
     mutant("MR3 gercek manifestte adim dusuruldu -> KIRMIZI", GERCEK_KAYIT, man, r"sapma:\w+\.form\.\w+\.adim",
            lambda kk, mm: degistir(mm, "adim: 0.01,", "adim: 0.001,"))
+    # kopru-15 SON3: sehir/yildiz ornegi manifestteki `ornek`ten; silinirse --denetle adiyla KIRMIZI.
+    mutant("MR4 gercek manifestte sehir enlem ornegi silindi -> KIRMIZI", GERCEK_KAYIT, man,
+           r"sapma:sehir\.form\.enlem\.ornek", lambda kk, mm: degistir(mm, r"^\s+ornek: 41\.0256,?\n", "", regex=True))
+    mutant("MR5 gercek manifestte yildiz tarih_saat ornegi silindi -> KIRMIZI", GERCEK_KAYIT, man,
+           r"sapma:yildiz\.form\.tarih_saat\.ornek",
+           lambda kk, mm: degistir(mm, r'^\s+ornek: "2026-10-07 21:30",?\n', "", regex=True))
 
 
 def main():

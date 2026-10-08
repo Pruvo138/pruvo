@@ -19,7 +19,8 @@ U15 tarayicida tur secilemiyor (baska tur secili) -> (3)(5)(6) EKSIK · U16 cok 
 Mutantlar (betik kopyasinda capa degisir): MB1 mutant kapisi silindi -> U2 KIRMIZI · MB2 sizdirmazlik
 olcumu yok -> U3 · MB3 eksen toleransi yok -> U4+U16+U18 · MB4 sunucu onay kontrolu yok -> U5 · MB5 fiyat
 carpimi yok -> U6 · MB6 tarayici yokken gecer -> U10 · MB7 canli ayrilik kapisi yok -> U12 ·
-MB8 secili tur kontrolu yok -> U15 · MB9 tabla duzeninde parca siniri yok -> U18 · MB0 yorum -> 0 kirmizi.
+MB8 secili tur kontrolu yok -> U15 · MB9 tabla duzeninde parca siniri yok -> U18 · MB19/MB20 kayit `ornek`i
+(sayi/metin) okunmuyor -> U25 (sehir/yildiz ornegi gercek manifestten) · MB0 yorum -> 0 kirmizi.
 """
 import json
 import os
@@ -516,6 +517,25 @@ def vakalar(kaynak, sadece=None):
         ok = dg["ok"] and pp == {"mod": "burc", "flans": False, "duvar_mm": 1.6, "kaba_mm": 9}
         return ok, "p=%s dogrula=%s" % (pp, dg)
     saf("U22", u22)
+
+    def u25(ns):
+        # kopru-15 SON3: GERCEK manifestin sehir/yildiz satiri -> ornek parametre kaydin `ornek`inden (Galata
+        # koordinati, gecerli tarih_saat); `ornek` okunmazsa eski formul (30,30 / "PRUVO") -> KIRMIZI.
+        man = {t["kod"]: t for t in ns["manifest_oku"]()["turler"]}
+        p = {}
+        for kod in ("sehir", "yildiz"):
+            pp, h = ns["ornek_parametre"](man[kod], ns["olcu_sec"](man[kod]))
+            if pp is None:
+                return False, "%s desteksiz: %s" % (kod, h)
+            p[kod] = pp
+        dg = saf_dogrula(p, [])
+        sh, yz = p["sehir"], p["yildiz"]
+        ok = (all(dg[k]["ok"] for k in p) and (sh["enlem"], sh["boylam"], sh["yaricap_m"]) == (41.0256, 28.9742, 400)
+              and yz["tarih_saat"] == "2026-10-07 21:30" and (yz["enlem"], yz["utc_ofset_saat"]) == (41.0082, 3))
+        return ok, "sehir=%s yildiz.tarih_saat=%r dogrula=%s" % (
+            {k: sh.get(k) for k in ("enlem", "boylam", "yaricap_m")}, yz.get("tarih_saat"),
+            {k: dg[k].get("hata", "ok") for k in dg})
+    saf("U25", u25)
     return s
 
 
@@ -573,6 +593,11 @@ MUTANTLAR = {
     "MB17": ("    esit = bek is not None and tr.olcu == olculen and sunucu == bek and gos == yazi\n",
              "    esit = bek is not None\n", {"U24"}),
     "MB18": ("    olc_3_turetilmis(tr, a, v)\n    elif not v:", "    pass\n    if not v:", {"U23"}),
+    # kopru-15 SON3: kayit `ornek`i okunmazsa sehir (30,30) / yildiz ("PRUVO") eski degere duser -> U25.
+    "MB19": ('        elif tip == "sayi" and sayi_gecerli(s, s.get("ornek")):',
+             '        elif tip == "sayi" and False:', {"U25"}),
+    "MB20": ('        elif tip == "metin" and metin_gecerli(s, s.get("ornek")):',
+             '        elif tip == "metin" and False:', {"U25"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }

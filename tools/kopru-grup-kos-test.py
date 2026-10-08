@@ -13,7 +13,7 @@ VAKALAR
   V5 D1 rc 1 -> D1=rc1:..., rc 1
   V6 yer tutucu: dosya -> gecerli PNG, dizi -> N elemanli sinus; bust -> rolyef kaydi/betigi
 MUTANTLAR (KIRMIZI yakmali): MD1 D1 adi canliya · MD2 d1 komutu canli adla kurulur (koruma) ·
-  MR2 R2 200 denetimi silindi · MTMP gecici dizin silme kaldirildi
+  MR2 R2 200 denetimi silindi · MTMP gecici dizin silme kaldirildi · MG1 genlik [-1,1] sinus -> V7 (kopru-15 SON3)
 Cikti son satiri: VAKA_KIRMIZI=<n> SURVIVOR=<n>   (rc 0 yalniz ikisi de 0)
 """
 import importlib.util
@@ -26,6 +26,7 @@ import tempfile
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARAC = os.path.join(KOK, "tools", "kopru-grup-kos.py")
+OLCUM = os.path.join(KOK, "tools", "foto-ornek-uc-uca.py")
 
 SAHTE = r'''
 import json, os, sys
@@ -181,13 +182,37 @@ def yer_tutucu_vakasi(o):
     u = m.ornek_girdisi(KAYIT["kayitlar"][0], d)
     png = open(u["gorsel"], "rb").read() if os.path.isfile(u.get("gorsel", "")) else b""
     vaka("V6 dosya yer tutucusu -> gecerli PNG", png.startswith(b"\x89PNG\r\n\x1a\n") and b"IEND" in png[-12:])
-    g = m.ornek_girdisi(KAYIT["kayitlar"][1], d)["genlik"]
-    vaka("V6 dizi yer tutucusu -> 100 elemanli sinus", isinstance(g, list) and len(g) == 100
-         and max(g) <= 1 and min(g) >= -1 and abs(g[0]) < 1e-9)
+    for ad, v in genlik_vakasi(m.ornek_girdisi, d).items():
+        vaka(ad, v)
     p = m.plan_kur(["bust"])[0]
     vaka("V6 bust -> rolyef kaydi + rolyef_uret.py", p.get("kayit", {}).get("kod") == "rolyef"
          and p.get("g", {}).get("betik", "").endswith("rolyef_uret.py"), str(p.get("hata")))
     shutil.rmtree(d, ignore_errors=True)
+
+
+def genlik_vakasi(ornek_girdisi, d):
+    """V7 (kopru-15 SON3): dizi yer tutucusu = foto-ornek-uc-uca.ORNEK_GENLIK BIREBIR (tek kaynak) ve 0..1
+    (uretec/VERI `ses` tipi min 0.0; [-1,1] sinus `RET: genlik[17] < min 0.0` aliyordu)."""
+    s = importlib.util.spec_from_file_location("foto_ornek_uc_uca", OLCUM)
+    m = importlib.util.module_from_spec(s)
+    s.loader.exec_module(m)
+    try:
+        g = ornek_girdisi(KAYIT["kayitlar"][1], d)["genlik"]
+    except Exception:  # cokerse KIRMIZI
+        g = None
+    return {"V7 dizi yer tutucusu -> ORNEK_GENLIK (100 eleman, 0..1, tek kaynak)":
+            isinstance(g, list) and len(g) == 100 and min(g) >= 0 and max(g) <= 1 and g == m.ORNEK_GENLIK}
+
+
+def genlik_kaynakta(kaynak, o):
+    """Mutant kaynagi bellekte yukle -> V7 (mutant dongusu `vakalar`a ek olarak bunu da olcer)."""
+    g = {"__file__": ARAC, "__name__": "kopru_grup_kos_mutant"}
+    exec(compile(kaynak, ARAC, "exec"), g)
+    d = tempfile.mkdtemp(dir=o.tmp, prefix="yt-")
+    try:
+        return genlik_vakasi(g["ornek_girdisi"], d)
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
 
 
 MUTANTLAR = [
@@ -195,6 +220,9 @@ MUTANTLAR = [
     ("MD2 d1 komutu canli adla", '"d1", "execute", D1_ONIZLEME', '"d1", "execute", D1_CANLI'),
     ("MR2 R2 200 denetimi silindi", 'return "200" if durum == "200" else durum', 'return "200"'),
     ("MTMP gecici dizin silme kaldirildi", "shutil.rmtree(dizin, ignore_errors=True)", "pass"),
+    # kopru-15 SON3: ikinci formul ([-1,1] sinus) geri gelirse V7 KIRMIZI.
+    ("MG1 genlik [-1,1] sinus (ikinci formul)", "                v = ornek_genlik()\n",
+     "                v = [round(__import__('math').sin(2 * __import__('math').pi * 3 * i / n), 6) for i in range(n)]\n"),
 ]
 
 
@@ -215,6 +243,7 @@ def main():
                 sv += 1
                 continue
             r = vakalar(o, kaynak.replace(eski, yeni), sus=True)
+            r.update(genlik_kaynakta(kaynak.replace(eski, yeni), o))
             kirmizi = [k for k, v in r.items() if not v]
             if o.artik():
                 for d in o.artik():

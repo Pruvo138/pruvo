@@ -18,13 +18,13 @@ Her tur icin SIRAYLA (paralel YOK, Blender YOK):
               son satir `KOPRU_GRUP turler=<n> hazir=<h>/<n> rc=<0|1>` (rc 0 = her adim ok VE her tur HAZIR).
               Bir turun hatasi digerlerini DURDURMAZ.
 Yer tutucu ornek degerleri (`"<PNG YOLU>, gri gradyan"`, `"<100 elemanli dizi, sinus>"`) gecici dizinde
-deterministik uretilir (gri gradyan PNG / sinus dizisi).
+deterministik uretilir (gri gradyan PNG / genlik dizisi = foto-ornek-uc-uca.ORNEK_GENLIK, 0..1; ikinci formul YOK —
+kopru-15 SON3: [-1,1] sinus uretec/VERI `ses` tipinin 0..1 sinirinda `RET: genlik[17] < min 0.0` aliyordu).
 TEST KANCASI: KOPRU_GRUP_SAHTE=<betik> -> her dis komut `python3 <betik> <komut...>` ile kosar (izole test).
 """
 import argparse
 import importlib.util
 import json
-import math
 import os
 import re
 import shutil
@@ -149,6 +149,14 @@ def _png_gri_gradyan(yol, w=256, h=192):
                 + parca(b"IDAT", zlib.compress(satirlar, 9)) + parca(b"IEND", b""))
 
 
+def ornek_genlik():
+    """Ses genlik ornegi TEK kaynaktan: tools/foto-ornek-uc-uca.py `ORNEK_GENLIK` (0..1)."""
+    s = importlib.util.spec_from_file_location("foto_ornek_uc_uca", OLCUM)
+    m = importlib.util.module_from_spec(s)
+    s.loader.exec_module(m)
+    return list(m.ORNEK_GENLIK)
+
+
 def ornek_girdisi(kayit, dizin):
     """`ornek.girdi` -> uretec JSON; yer tutucu (`<...>`) degerler deterministik uretilir."""
     tipler = {p.get("ad"): p.get("tip") for p in kayit.get("parametreler") or []}
@@ -160,7 +168,9 @@ def ornek_girdisi(kayit, dizin):
                 _png_gri_gradyan(v)
             elif "dizi" in v:
                 n = int((re.search(r"<(\d+)", v) or re.search(r"(\d+)", "100")).group(1))
-                v = [round(math.sin(2 * math.pi * 3 * i / n), 6) for i in range(n)]
+                v = ornek_genlik()
+                if len(v) != n:
+                    raise Red("yer-tutucu-boyu:%s=%d ORNEK_GENLIK=%d" % (ad, n, len(v)))
             else:
                 raise Red("yer-tutucu-cozulemedi:%s" % ad)
         u[ad] = v

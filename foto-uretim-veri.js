@@ -302,7 +302,8 @@
             max: 300,
             adim: 0.01,
             varsayilan: 100,
-            birim: "mm"
+            birim: "mm",
+            ornek: 100
           },
           boy_mm: {
             tip: "sayi",
@@ -311,7 +312,8 @@
             max: 300,
             adim: 0.01,
             varsayilan: 60,
-            birim: "mm"
+            birim: "mm",
+            ornek: 60
           },
           yukseklik_mm: {
             tip: "sayi",
@@ -320,7 +322,8 @@
             max: 200,
             adim: 0.01,
             varsayilan: 40,
-            birim: "mm"
+            birim: "mm",
+            ornek: 40
           },
           bolme_x: {
             tip: "sayi",
@@ -329,7 +332,8 @@
             max: 8,
             adim: 1,
             varsayilan: 2,
-            birim: "adet"
+            birim: "adet",
+            ornek: 2
           },
           bolme_y: {
             tip: "sayi",
@@ -338,7 +342,8 @@
             max: 8,
             adim: 1,
             varsayilan: 2,
-            birim: "adet"
+            birim: "adet",
+            ornek: 2
           },
           duvar_mm: {
             tip: "sayi",
@@ -347,7 +352,8 @@
             max: 4,
             adim: 0.01,
             varsayilan: 1.6,
-            birim: "mm"
+            birim: "mm",
+            ornek: 1.6
           },
           taban_mm: {
             tip: "sayi",
@@ -356,7 +362,8 @@
             max: 5,
             adim: 0.01,
             varsayilan: 1.6,
-            birim: "mm"
+            birim: "mm",
+            ornek: 1.6
           },
           kose_yaricap_mm: {
             tip: "sayi",
@@ -365,12 +372,14 @@
             max: 30,
             adim: 0.01,
             varsayilan: 3,
-            birim: "mm"
+            birim: "mm",
+            ornek: 3
           },
           kapak: {
             tip: "bool",
             etiket: "Oturaklı kapak (ayrı gövde, boşluk 0,25 mm)",
-            varsayilan: false
+            varsayilan: false,
+            ornek: true
           }
         },
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
@@ -394,7 +403,8 @@
             tip: "secim",
             etiket: "Parça türü",
             secenekler: ["pul", "burc", "adaptor"],
-            varsayilan: "burc"
+            varsayilan: "burc",
+            ornek: "burc"
           },
           ic_cap_mm: {
             tip: "sayi",
@@ -403,7 +413,8 @@
             max: 140,
             adim: 0.01,
             varsayilan: 10,
-            birim: "mm"
+            birim: "mm",
+            ornek: 10
           },
           dis_cap_mm: {
             tip: "sayi",
@@ -412,7 +423,8 @@
             max: 150,
             adim: 0.01,
             varsayilan: 20,
-            birim: "mm"
+            birim: "mm",
+            ornek: 20
           },
           yukseklik_mm: {
             tip: "sayi",
@@ -421,7 +433,8 @@
             max: 150,
             adim: 0.01,
             varsayilan: 15,
-            birim: "mm"
+            birim: "mm",
+            ornek: 15
           },
           kademe_cap_mm: {
             tip: "sayi",
@@ -507,7 +520,8 @@
             tip: "secim",
             etiket: "Parça türü",
             secenekler: ["duz_disli", "gt2_kasnak", "v_kasnak"],
-            varsayilan: "duz_disli"
+            varsayilan: "duz_disli",
+            ornek: "duz_disli"
           },
           mil_capi_mm: {
             tip: "sayi",
@@ -516,13 +530,15 @@
             max: 40,
             adim: 0.01,
             varsayilan: 5,
-            birim: "mm"
+            birim: "mm",
+            ornek: 5
           },
           mil_tipi: {
             tip: "secim",
             etiket: "Mil deliği tipi",
             secenekler: ["yuvarlak", "d_mil", "kama"],
-            varsayilan: "yuvarlak"
+            varsayilan: "yuvarlak",
+            ornek: "yuvarlak"
           },
           duz_kesim_mm: {
             tip: "sayi",
@@ -542,7 +558,8 @@
             adim: 0.01,
             varsayilan: 1.5,
             birim: "mm",
-            kosul: [{ alan: "tip", degerler: ["duz_disli"] }]
+            kosul: [{ alan: "tip", degerler: ["duz_disli"] }],
+            ornek: 1.5
           },
           dis_sayisi: {
             tip: "sayi",
@@ -552,7 +569,8 @@
             adim: 1,
             varsayilan: 20,
             birim: "adet",
-            kosul: [{ alan: "tip", degerler: ["duz_disli", "gt2_kasnak"] }]
+            kosul: [{ alan: "tip", degerler: ["duz_disli", "gt2_kasnak"] }],
+            ornek: 20
           },
           kalinlik_mm: {
             tip: "sayi",
@@ -562,7 +580,8 @@
             adim: 0.01,
             varsayilan: 8,
             birim: "mm",
-            kosul: [{ alan: "tip", degerler: ["duz_disli"] }]
+            kosul: [{ alan: "tip", degerler: ["duz_disli"] }],
+            ornek: 8
           },
           dis_boslugu_mm: {
             tip: "sayi",
@@ -572,7 +591,8 @@
             adim: 0.01,
             varsayilan: 0.2,
             birim: "mm",
-            kosul: [{ alan: "tip", degerler: ["duz_disli"] }]
+            kosul: [{ alan: "tip", degerler: ["duz_disli"] }],
+            ornek: 0.2
           },
           es_dis_sayisi: {
             tip: "sayi",
@@ -582,7 +602,8 @@
             adim: 1,
             varsayilan: 0,
             birim: "adet",
-            kosul: [{ alan: "tip", degerler: ["duz_disli"] }]
+            kosul: [{ alan: "tip", degerler: ["duz_disli"] }],
+            ornek: 0
           },
           es_mil_capi_mm: {
             tip: "sayi",
@@ -592,7 +613,8 @@
             adim: 0.01,
             varsayilan: 0,
             birim: "mm",
-            kosul: [{ alan: "tip", degerler: ["duz_disli"] }]
+            kosul: [{ alan: "tip", degerler: ["duz_disli"] }],
+            ornek: 0
           },
           kemer_genislik_mm: {
             tip: "secim",
@@ -654,7 +676,8 @@
             tip: "secim",
             etiket: "Parça türü",
             secenekler: ["kapak", "tipa"],
-            varsayilan: "kapak"
+            varsayilan: "kapak",
+            ornek: "kapak"
           },
           ic_cap_mm: {
             tip: "sayi",
@@ -663,7 +686,8 @@
             max: 140,
             adim: 0.01,
             varsayilan: 20,
-            birim: "mm"
+            birim: "mm",
+            ornek: 20
           },
           dis_cap_mm: {
             tip: "sayi",
@@ -672,7 +696,8 @@
             max: 150,
             adim: 0.01,
             varsayilan: 26,
-            birim: "mm"
+            birim: "mm",
+            ornek: 26
           },
           yukseklik_mm: {
             tip: "sayi",
@@ -682,7 +707,8 @@
             adim: 0.01,
             varsayilan: 15,
             birim: "mm",
-            kosul: [{ alan: "mod", degerler: ["kapak"] }]
+            kosul: [{ alan: "mod", degerler: ["kapak"] }],
+            ornek: 15
           },
           tipa_boyu_mm: {
             tip: "sayi",
@@ -701,7 +727,8 @@
             max: 6,
             adim: 0.01,
             varsayilan: 2,
-            birim: "mm"
+            birim: "mm",
+            ornek: 2
           },
           gecme_bosluk_mm: {
             tip: "sayi",
@@ -710,7 +737,8 @@
             max: 0.4,
             adim: 0.01,
             varsayilan: 0.3,
-            birim: "mm"
+            birim: "mm",
+            ornek: 0.3
           },
           cekme_acisi_derece: {
             tip: "sayi",
@@ -725,7 +753,8 @@
           topuz: {
             tip: "bool",
             etiket: "Tutma topuzu",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           },
           topuz_cap_mm: {
             tip: "sayi",
@@ -772,7 +801,8 @@
             max: 80,
             adim: 0.01,
             varsayilan: 30,
-            birim: "mm"
+            birim: "mm",
+            ornek: 30
           },
           yukseklik_mm: {
             tip: "sayi",
@@ -781,7 +811,8 @@
             max: 80,
             adim: 0.01,
             varsayilan: 18,
-            birim: "mm"
+            birim: "mm",
+            ornek: 18
           },
           tirtil_sayisi: {
             tip: "sayi",
@@ -790,7 +821,8 @@
             max: 60,
             adim: 1,
             varsayilan: 0,
-            birim: "adet"
+            birim: "adet",
+            ornek: 0
           },
           tirtil_derinlik_mm: {
             tip: "sayi",
@@ -799,18 +831,21 @@
             max: 3,
             adim: 0.01,
             varsayilan: 1,
-            birim: "mm"
+            birim: "mm",
+            ornek: 1
           },
           isaret_cizgisi: {
             tip: "bool",
             etiket: "İşaret çizgisi (üst yüz)",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           },
           mil_tipi: {
             tip: "secim",
             etiket: "Mil tipi",
             secenekler: ["yuvarlak", "d_mil", "yivli"],
-            varsayilan: "d_mil"
+            varsayilan: "d_mil",
+            ornek: "d_mil"
           },
           mil_capi_mm: {
             tip: "sayi",
@@ -819,7 +854,8 @@
             max: 12,
             adim: 0.01,
             varsayilan: 6,
-            birim: "mm"
+            birim: "mm",
+            ornek: 6
           },
           duz_kesim_mm: {
             tip: "sayi",
@@ -829,7 +865,8 @@
             adim: 0.01,
             varsayilan: 0.5,
             birim: "mm",
-            kosul: [{ alan: "mil_tipi", degerler: ["d_mil"] }]
+            kosul: [{ alan: "mil_tipi", degerler: ["d_mil"] }],
+            ornek: 0.5
           },
           yiv_sayisi: {
             tip: "sayi",
@@ -844,7 +881,8 @@
           set_vida: {
             tip: "bool",
             etiket: "M3 set vidası kanalı",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           }
         },
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
@@ -868,7 +906,8 @@
             tip: "secim",
             etiket: "Parça türü",
             secenekler: ["boru_kelepcesi", "u_klips", "mentese"],
-            varsayilan: "boru_kelepcesi"
+            varsayilan: "boru_kelepcesi",
+            ornek: "boru_kelepcesi"
           },
           boru_cap_mm: {
             tip: "sayi",
@@ -878,7 +917,8 @@
             adim: 0.01,
             varsayilan: 25,
             birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi"] }]
+            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi"] }],
+            ornek: 25
           },
           agiz_payi_mm: {
             tip: "sayi",
@@ -888,14 +928,16 @@
             adim: 0.01,
             varsayilan: 3,
             birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi"] }]
+            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi"] }],
+            ornek: 3
           },
           vida: {
             tip: "secim",
             etiket: "Vida deliği",
             secenekler: ["M3", "M4", "M5"],
             varsayilan: "M4",
-            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi"] }]
+            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi"] }],
+            ornek: "M4"
           },
           u_aralik_mm: {
             tip: "sayi",
@@ -935,7 +977,8 @@
             adim: 0.01,
             varsayilan: 12,
             birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi", "u_klips"] }]
+            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi", "u_klips"] }],
+            ornek: 12
           },
           kalinlik_mm: {
             tip: "sayi",
@@ -945,7 +988,8 @@
             adim: 0.01,
             varsayilan: 3,
             birim: "mm",
-            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi", "u_klips"] }]
+            kosul: [{ alan: "alt_tur", degerler: ["boru_kelepcesi", "u_klips"] }],
+            ornek: 3
           },
           yukseklik_mm: {
             tip: "sayi",
@@ -1033,7 +1077,8 @@
             tip: "secim",
             etiket: "Parça türü",
             secenekler: ["saksi", "vazo"],
-            varsayilan: "saksi"
+            varsayilan: "saksi",
+            ornek: "saksi"
           },
           cap_mm: {
             tip: "sayi",
@@ -1042,7 +1087,8 @@
             max: 300,
             adim: 0.01,
             varsayilan: 100,
-            birim: "mm"
+            birim: "mm",
+            ornek: 100
           },
           yukseklik_mm: {
             tip: "sayi",
@@ -1051,7 +1097,8 @@
             max: 300,
             adim: 0.01,
             varsayilan: 100,
-            birim: "mm"
+            birim: "mm",
+            ornek: 100
           },
           duvar_mm: {
             tip: "sayi",
@@ -1060,7 +1107,8 @@
             max: 6,
             adim: 0.01,
             varsayilan: 2,
-            birim: "mm"
+            birim: "mm",
+            ornek: 2
           },
           taban_mm: {
             tip: "sayi",
@@ -1069,13 +1117,15 @@
             max: 10,
             adim: 0.01,
             varsayilan: 3,
-            birim: "mm"
+            birim: "mm",
+            ornek: 3
           },
           profil: {
             tip: "secim",
             etiket: "Profil",
             secenekler: ["silindir", "konik", "oval", "bombeli"],
-            varsayilan: "silindir"
+            varsayilan: "silindir",
+            ornek: "silindir"
           },
           alt_cap_mm: {
             tip: "sayi",
@@ -1114,7 +1164,8 @@
             max: 40,
             adim: 1,
             varsayilan: 0,
-            birim: "adet"
+            birim: "adet",
+            ornek: 0
           },
           kanal_derinlik_mm: {
             tip: "sayi",
@@ -1123,7 +1174,8 @@
             max: 4,
             adim: 0.01,
             varsayilan: 1.5,
-            birim: "mm"
+            birim: "mm",
+            ornek: 1.5
           },
           bukum_derece: {
             tip: "sayi",
@@ -1132,7 +1184,8 @@
             max: 120,
             adim: 0.01,
             varsayilan: 0,
-            birim: "derece"
+            birim: "derece",
+            ornek: 0
           },
           drenaj_cap_mm: {
             tip: "sayi",
@@ -1142,12 +1195,14 @@
             adim: 0.01,
             varsayilan: 10,
             birim: "mm",
-            kosul: [{ alan: "tur", degerler: ["saksi"] }]
+            kosul: [{ alan: "tur", degerler: ["saksi"] }],
+            ornek: 10
           },
           tabak: {
             tip: "bool",
             etiket: "Altlık tabağı (ayrı gövde)",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           }
         },
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
@@ -1185,7 +1240,8 @@
             max: 250,
             adim: 0.01,
             varsayilan: 120,
-            birim: "mm"
+            birim: "mm",
+            ornek: 120
           },
           rolyef_yuksekligi_mm: {
             tip: "sayi",
@@ -1194,7 +1250,8 @@
             max: 8,
             adim: 0.01,
             varsayilan: 4,
-            birim: "mm"
+            birim: "mm",
+            ornek: 4
           },
           gamma: {
             tip: "sayi",
@@ -1203,22 +1260,26 @@
             max: 5,
             adim: 0.01,
             varsayilan: 1,
-            birim: ""
+            birim: "",
+            ornek: 1
           },
           otomatik_seviye: {
             tip: "bool",
             etiket: "Otomatik seviye (%1/%99)",
-            varsayilan: true
+            varsayilan: true,
+            ornek: true
           },
           ters: {
             tip: "bool",
             etiket: "Ters (negatif) mod",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           },
           iki_renk: {
             tip: "bool",
             etiket: "Iki renk kolonu",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           },
           esik: {
             tip: "sayi",
@@ -1274,7 +1335,8 @@
             max: 400,
             adim: 1,
             varsayilan: 100,
-            birim: "adet"
+            birim: "adet",
+            ornek: 100
           },
           uzun_kenar_mm: {
             tip: "sayi",
@@ -1283,7 +1345,8 @@
             max: 300,
             adim: 0.01,
             varsayilan: 160,
-            birim: "mm"
+            birim: "mm",
+            ornek: 160
           },
           dalga_yuksekligi_mm: {
             tip: "sayi",
@@ -1292,7 +1355,8 @@
             max: 150,
             adim: 0.01,
             varsayilan: 40,
-            birim: "mm"
+            birim: "mm",
+            ornek: 40
           },
           cubuk_yuksekligi_mm: {
             tip: "sayi",
@@ -1301,7 +1365,8 @@
             max: 2.5,
             adim: 0.01,
             varsayilan: 2,
-            birim: "mm"
+            birim: "mm",
+            ornek: 2
           },
           cubuk_genislik_mm: {
             tip: "sayi",
@@ -1310,19 +1375,22 @@
             max: 10,
             adim: 0.01,
             varsayilan: 0,
-            birim: "mm"
+            birim: "mm",
+            ornek: 0
           },
           mod: {
             tip: "secim",
             etiket: "Mod",
             secenekler: ["simetrik", "alttan"],
-            varsayilan: "simetrik"
+            varsayilan: "simetrik",
+            ornek: "simetrik"
           },
           normalizasyon: {
             tip: "secim",
             etiket: "Normalizasyon",
             secenekler: ["tepe", "tam_olcek"],
-            varsayilan: "tepe"
+            varsayilan: "tepe",
+            ornek: "tepe"
           },
           baslik: {
             tip: "metin",
@@ -1353,7 +1421,8 @@
             max: 20,
             adim: 0.01,
             varsayilan: 6,
-            birim: "mm"
+            birim: "mm",
+            ornek: 6
           }
         },
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
@@ -1393,7 +1462,8 @@
             tip: "metin",
             etiket: "Turkce metin (Grade-1)",
             zorunlu: true,
-            max: 400
+            max: 400,
+            ornek: "Pruvo test 2026"
           },
           ust_yazi: {
             tip: "metin",
@@ -1406,7 +1476,8 @@
             tip: "secim",
             etiket: "Yazi tipi",
             secenekler: ["sans-kalin", "serif-kalin"],
-            varsayilan: "sans-kalin"
+            varsayilan: "sans-kalin",
+            ornek: "sans-kalin"
           },
           yazi_yuksekligi_mm: {
             tip: "sayi",
@@ -1415,7 +1486,8 @@
             max: 40,
             adim: 0.01,
             varsayilan: 10,
-            birim: "mm"
+            birim: "mm",
+            ornek: 10
           },
           genislik_mm: {
             tip: "sayi",
@@ -1424,18 +1496,21 @@
             max: 250,
             adim: 0.01,
             varsayilan: 0,
-            birim: "mm"
+            birim: "mm",
+            ornek: 0
           },
           satir_kir: {
             tip: "bool",
             etiket: "Kelime sinirinda kir",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           },
           hizalama: {
             tip: "secim",
             etiket: "Hizalama",
             secenekler: ["sol", "orta"],
-            varsayilan: "sol"
+            varsayilan: "sol",
+            ornek: "sol"
           },
           kenar_mm: {
             tip: "sayi",
@@ -1444,7 +1519,8 @@
             max: 20,
             adim: 0.01,
             varsayilan: 6,
-            birim: "mm"
+            birim: "mm",
+            ornek: 6
           },
           buyuk_harf: {
             tip: "secim",
@@ -1487,7 +1563,8 @@
             min: -80,
             max: 80,
             adim: 0.000001,
-            zorunlu: true
+            zorunlu: true,
+            ornek: 40.15
           },
           boylam: {
             tip: "sayi",
@@ -1495,7 +1572,8 @@
             min: -180,
             max: 180,
             adim: 0.000001,
-            zorunlu: true
+            zorunlu: true,
+            ornek: 29.1
           },
           yaricap_km: {
             tip: "sayi",
@@ -1503,13 +1581,15 @@
             min: 1,
             max: 300,
             adim: 0.01,
-            zorunlu: true
+            zorunlu: true,
+            ornek: 25
           },
           plaka_sekli: {
             tip: "secim",
             etiket: "Plaka sekli",
             secenekler: ["kare", "daire"],
-            varsayilan: "kare"
+            varsayilan: "kare",
+            ornek: "kare"
           },
           olcu_mm: {
             tip: "sayi",
@@ -1518,7 +1598,8 @@
             max: 250,
             adim: 0.01,
             varsayilan: 120,
-            birim: "mm"
+            birim: "mm",
+            ornek: 120
           },
           dikey_abartma: {
             tip: "sayi",
@@ -1527,12 +1608,14 @@
             max: 5,
             adim: 0.01,
             varsayilan: 2,
-            birim: "kat"
+            birim: "kat",
+            ornek: 3
           },
           deniz_duz: {
             tip: "bool",
             etiket: "Deniz duzeyinde kirp",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           },
           cerceve_mm: {
             tip: "sayi",
@@ -1541,14 +1624,16 @@
             max: 10,
             adim: 0.01,
             varsayilan: 3,
-            birim: "mm"
+            birim: "mm",
+            ornek: 3
           },
           etiket: {
             tip: "metin",
             etiket: "Etiket metni (ops.)",
             varsayilan: "",
             max: 40,
-            zorunlu: false
+            zorunlu: false,
+            ornek: ""
           },
           yazi_tipi: {
             tip: "secim",
@@ -1596,7 +1681,8 @@
             min: -90,
             max: 90,
             adim: 0.000001,
-            zorunlu: true
+            zorunlu: true,
+            ornek: 41.0256
           },
           boylam: {
             tip: "sayi",
@@ -1604,7 +1690,8 @@
             min: -180,
             max: 180,
             adim: 0.000001,
-            zorunlu: true
+            zorunlu: true,
+            ornek: 28.9742
           },
           yaricap_m: {
             tip: "sayi",
@@ -1612,25 +1699,29 @@
             min: 200,
             max: 3000,
             adim: 0.01,
-            zorunlu: true
+            zorunlu: true,
+            ornek: 400
           },
           mod: {
             tip: "secim",
             etiket: "Mod",
             secenekler: ["harita", "siluet"],
-            varsayilan: "harita"
+            varsayilan: "harita",
+            ornek: "harita"
           },
           bakis: {
             tip: "secim",
             etiket: "Bakis yonu",
             secenekler: ["kuzey", "guney", "dogu", "bati"],
-            varsayilan: "kuzey"
+            varsayilan: "kuzey",
+            ornek: "kuzey"
           },
           plaka_sekli: {
             tip: "secim",
             etiket: "Plaka sekli",
             secenekler: ["kare", "daire"],
-            varsayilan: "kare"
+            varsayilan: "kare",
+            ornek: "kare"
           },
           olcu_mm: {
             tip: "sayi",
@@ -1639,7 +1730,8 @@
             max: 250,
             adim: 0.01,
             varsayilan: 120,
-            birim: "mm"
+            birim: "mm",
+            ornek: 120
           },
           plaka_yuksekligi_mm: {
             tip: "sayi",
@@ -1657,7 +1749,8 @@
             max: 10,
             adim: 0.01,
             varsayilan: 3,
-            birim: "kat"
+            birim: "kat",
+            ornek: 3
           },
           varsayilan_yukseklik_m: {
             tip: "sayi",
@@ -1666,12 +1759,14 @@
             max: 30,
             adim: 0.01,
             varsayilan: 9,
-            birim: "m"
+            birim: "m",
+            ornek: 9
           },
           yollar: {
             tip: "bool",
             etiket: "Yollari ciz (harita)",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           },
           yol_genislik_mm: {
             tip: "sayi",
@@ -1689,7 +1784,8 @@
             max: 8,
             adim: 0.01,
             varsayilan: 3,
-            birim: "mm"
+            birim: "mm",
+            ornek: 3
           },
           etiket: {
             tip: "metin",
@@ -1731,7 +1827,8 @@
             tip: "metin",
             etiket: "Tarih/saat (yerel)",
             zorunlu: true,
-            max: 20
+            max: 20,
+            ornek: "2026-10-07 21:30"
           },
           utc_ofset_saat: {
             tip: "sayi",
@@ -1739,7 +1836,8 @@
             min: -12,
             max: 14,
             adim: 0.01,
-            zorunlu: true
+            zorunlu: true,
+            ornek: 3
           },
           enlem: {
             tip: "sayi",
@@ -1747,7 +1845,8 @@
             min: -90,
             max: 90,
             adim: 0.000001,
-            zorunlu: true
+            zorunlu: true,
+            ornek: 41.0082
           },
           boylam: {
             tip: "sayi",
@@ -1755,13 +1854,15 @@
             min: -180,
             max: 180,
             adim: 0.000001,
-            zorunlu: true
+            zorunlu: true,
+            ornek: 28.9784
           },
           izdusum: {
             tip: "secim",
             etiket: "Iz dusum",
             secenekler: ["stereografik", "esit_alan"],
-            varsayilan: "stereografik"
+            varsayilan: "stereografik",
+            ornek: "stereografik"
           },
           olcu_mm: {
             tip: "sayi",
@@ -1770,7 +1871,8 @@
             max: 250,
             adim: 0.01,
             varsayilan: 150,
-            birim: "mm"
+            birim: "mm",
+            ornek: 150
           },
           kadir_esigi: {
             tip: "sayi",
@@ -1778,28 +1880,33 @@
             min: 0,
             max: 6,
             adim: 0.01,
-            varsayilan: 0
+            varsayilan: 0,
+            ornek: 2
           },
           yildiz_sekli: {
             tip: "secim",
             etiket: "Yildiz sekli",
             secenekler: ["silindir", "kubbe"],
-            varsayilan: "silindir"
+            varsayilan: "silindir",
+            ornek: "silindir"
           },
           ufuk_halkasi: {
             tip: "bool",
             etiket: "Ufuk halkasi",
-            varsayilan: true
+            varsayilan: true,
+            ornek: true
           },
           ekliptik: {
             tip: "bool",
             etiket: "Ekliptik cizgisi",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           },
           meridyen: {
             tip: "bool",
             etiket: "Meridyen cizgisi",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           },
           cizgi_mm: {
             tip: "sayi",
@@ -1808,12 +1915,14 @@
             max: 2,
             adim: 0.01,
             varsayilan: 1.2,
-            birim: "mm"
+            birim: "mm",
+            ornek: 1.2
           },
           otomatik_yazi: {
             tip: "bool",
             etiket: "Otomatik alt yazi",
-            varsayilan: true
+            varsayilan: true,
+            ornek: true
           },
           alt_yazi: {
             tip: "metin",
@@ -1863,7 +1972,8 @@
             min: -90,
             max: 90,
             adim: 0.000001,
-            zorunlu: true
+            zorunlu: true,
+            ornek: 41.0082
           },
           boylam: {
             tip: "sayi",
@@ -1871,13 +1981,15 @@
             min: -180,
             max: 180,
             adim: 0.000001,
-            zorunlu: true
+            zorunlu: true,
+            ornek: 28.9784
           },
           bicim: {
             tip: "secim",
             etiket: "Koordinat bicimi",
             secenekler: ["ondalik", "dms"],
-            varsayilan: "ondalik"
+            varsayilan: "ondalik",
+            ornek: "ondalik"
           },
           ondalik_hane: {
             tip: "sayi",
@@ -1886,45 +1998,52 @@
             max: 6,
             adim: 1,
             varsayilan: 4,
-            birim: "hane"
+            birim: "hane",
+            ornek: 4
           },
           koordinat_satiri: {
             tip: "secim",
             etiket: "Koordinat satiri",
             secenekler: ["cift", "tek"],
-            varsayilan: "cift"
+            varsayilan: "cift",
+            ornek: "cift"
           },
           tarih: {
             tip: "metin",
             etiket: "Tarih (YYYY-AA-GG, ops.)",
             varsayilan: "",
             max: 10,
-            zorunlu: false
+            zorunlu: false,
+            ornek: "2026-10-07"
           },
           tarih_bicimi: {
             tip: "secim",
             etiket: "Tarih bicimi",
             secenekler: ["gg_aa_yyyy", "uzun"],
-            varsayilan: "gg_aa_yyyy"
+            varsayilan: "gg_aa_yyyy",
+            ornek: "gg_aa_yyyy"
           },
           serbest_metin: {
             tip: "metin",
             etiket: "Serbest satir",
             varsayilan: "",
             max: 40,
-            zorunlu: false
+            zorunlu: false,
+            ornek: ""
           },
           isaret: {
             tip: "secim",
             etiket: "Isaret",
             secenekler: ["yok", "arti", "pusula"],
-            varsayilan: "yok"
+            varsayilan: "yok",
+            ornek: "yok"
           },
           plaka_sekli: {
             tip: "secim",
             etiket: "Plaka sekli",
             secenekler: ["dikdortgen", "yuvarlak-kose", "oval"],
-            varsayilan: "dikdortgen"
+            varsayilan: "dikdortgen",
+            ornek: "dikdortgen"
           },
           genislik_mm: {
             tip: "sayi",
@@ -1933,7 +2052,8 @@
             max: 250,
             adim: 0.01,
             varsayilan: 160,
-            birim: "mm"
+            birim: "mm",
+            ornek: 160
           },
           yukseklik_mm: {
             tip: "sayi",
@@ -1942,7 +2062,8 @@
             max: 250,
             adim: 0.01,
             varsayilan: 90,
-            birim: "mm"
+            birim: "mm",
+            ornek: 90
           },
           kose_yaricap_mm: {
             tip: "sayi",
@@ -1999,7 +2120,8 @@
             max: 250,
             adim: 0.01,
             varsayilan: 120,
-            birim: "mm"
+            birim: "mm",
+            ornek: 120
           },
           rolyef_yuksekligi_mm: {
             tip: "sayi",
@@ -2008,17 +2130,20 @@
             max: 8,
             adim: 0.01,
             varsayilan: 4,
-            birim: "mm"
+            birim: "mm",
+            ornek: 4
           },
           ters: {
             tip: "bool",
             etiket: "Ters (negatif)",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           },
           iki_renk: {
             tip: "bool",
             etiket: "Iki renk",
-            varsayilan: false
+            varsayilan: false,
+            ornek: false
           }
         },
         fiyat: { formul: "mm_x_10tl", adim_mm: 10 },

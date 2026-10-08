@@ -28,7 +28,8 @@ MUTANTLAR (gecici kopyada; calisma agacina YAZMAZ):
   MA3 G5 surgu olcusu belirleyen alana yazilmiyor -> E3 EKSEN topo
   MA4 G5 renk on eki bozuk -> E1 ALAN-DISI topo.renk-
   MA5 yildiz alt_yazi liste donusumu silindi -> E2 TIP yildiz.alt_yazi
-  MA6 G5 "0 = uretec varsayilani" alani gonderiliyor -> E2 TIP yildiz.kadir_esigi
+  MA6 G5 "0 = uretec varsayilani" alani gonderiliyor -> E2 TIP koordinat.kose_yaricap_mm (kopru-15 SON3: yildiz
+      ornegi artik kayit `ornek`inden, kadir_esigi=2 -> 0 tasiyan G5 alani koordinat.kose_yaricap_mm)
   MS1 manifestte braille metin `max` silindi -> S1 SUNUCU-RED braille=parametre-metin
   MS2 manifestte braille ust_yazi `zorunlu:false` silindi -> S2 SUNUCU-RED braille-bos.ust_yazi
   MA7 on adima §2 zarfi (girdi.json) veriliyor -> O1 ON-ADIM topo
@@ -295,7 +296,7 @@ MUTANT_KOSUCU = {
         '        u["alt_yazi"] = [u["alt_yazi"]] if u["alt_yazi"].strip() else []\n', "        pass\n",
         r"TIP yildiz\.alt_yazi"),
     "MA6 G5 0=varsayilan alani gonderiliyor": (
-        "        if u.get(a) == 0:\n            del u[a]\n", "        pass\n", r"TIP yildiz\.kadir_esigi"),
+        "        if u.get(a) == 0:\n            del u[a]\n", "        pass\n", r"TIP koordinat\.kose_yaricap_mm"),
     "MA7 on adima zarf veriliyor": (
         'oa_komut += [oa["girdi_bayragi"], ugirdi,', 'oa_komut += [oa["girdi_bayragi"], os.path.join(girdi_dizin, "girdi.json"),',
         r"ON-ADIM topo"),
@@ -303,8 +304,8 @@ MUTANT_KOSUCU = {
 }
 MUTANT_MANIFEST = {
     "MS1 manifestte braille metin max silindi": (
-        'etiket: "Turkce metin (Grade-1)",\n            zorunlu: true,\n            max: 400\n',
-        'etiket: "Turkce metin (Grade-1)",\n            zorunlu: true\n',
+        'etiket: "Turkce metin (Grade-1)",\n            zorunlu: true,\n            max: 400,\n',
+        'etiket: "Turkce metin (Grade-1)",\n            zorunlu: true,\n',
         r"SUNUCU-RED braille=parametre-metin"),
     "MS2 manifestte braille ust_yazi zorunlu:false silindi": (
         'etiket: "Ust duz yazi (ops.)",\n            varsayilan: "",\n            max: 40,\n            zorunlu: false\n',
