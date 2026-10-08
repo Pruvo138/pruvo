@@ -1655,7 +1655,12 @@ function renklerSuz(r) {
   return r.every((x) => typeof x === "string" && x.length >= 1 && x.length <= 20) ? r.slice() : null;
 }
 
-/** Sepet kalemi bicimi: {foto_is, olcu_mm, adet[, secim][, renkler]}. Gecersizse {hata}. */
+/**
+ * Sepet kalemi bicimi: {foto_is, olcu_mm, adet[, tur][, renkler][, renk_sayisi][, onizleme_ref][, atif][, secim]}.
+ * Normal sepetten gelen foto kalemi (sayfa-3adim) tur/renk_sayisi/onizleme_ref/atif tasir; bunlar YALNIZ dogrulama
+ * icindir (tur + renk_sayisi kayda/sunucu sayimina karsi fiyatlamada denetlenir). Istemcinin tutar alanlari
+ * (gosterim_kurus, fiyat_kurus, tutar_kurus, ...) kaleme HIC KOPYALANMAZ. Gecersizse {hata}.
+ */
 export function fotoKalemCoz(k) {
   const isNo = typeof k.foto_is === "string" && IS_KALIBI.test(k.foto_is) ? k.foto_is : null;
   if (!isNo) { return { hata: "gecersiz-kalem" }; }
@@ -1667,8 +1672,17 @@ export function fotoKalemCoz(k) {
   const secim = secimSuz(k.secim);
   const renkler = renklerSuz(k.renkler);
   if (renkler === null) { return { hata: "gecersiz-renk" }; }
+  const tur = k.tur === undefined ? undefined : (typeof k.tur === "string" && /^[a-z0-9-]{1,40}$/.test(k.tur) ? k.tur : null);
+  if (tur === null) { return { hata: "gecersiz-kalem" }; }
+  const rsay = k.renk_sayisi === undefined ? undefined
+    : (Number.isInteger(k.renk_sayisi) && k.renk_sayisi >= 1 && k.renk_sayisi <= 8 ? k.renk_sayisi : null);
+  if (rsay === null) { return { hata: "gecersiz-renk" }; }
+  if (k.onizleme_ref !== undefined && !(typeof k.onizleme_ref === "string" && k.onizleme_ref.length <= 300)) {
+    return { hata: "gecersiz-kalem" };
+  }
   return { kalem: { foto_is: isNo, olcu_mm: olcu, adet, ...(secim ? { secim } : {}),
-                    ...(renkler ? { renkler } : {}) } };
+                    ...(renkler ? { renkler } : {}), ...(tur ? { tur } : {}),
+                    ...(rsay !== undefined ? { renk_sayisi: rsay } : {}) } };
 }
 
 /**
@@ -1696,6 +1710,15 @@ function renkSayimi(turKod, k, sc, p) {
 const RENK_HATASI = { hata: { hata: "gecersiz-renk", mesaj: "Renk seçimi geçersiz (1–4 renk, paletten)." }, kod: 400 };
 
 /**
+ * Sepetin gosterdigi renk sayisi sunucu sayimiyla AYNI degilse 400 (fail-closed): musteri sepette N renkli fiyat
+ * gordu, sunucu baska bir sayiyla tahsil etmesin. Alan yoksa (eski kalem) denetim yok; fiyat yine sunucu sayimindan.
+ */
+function renkSayisiUyusmaz(k, rs) {
+  if (k.renk_sayisi === undefined || k.renk_sayisi === rs.n) { return null; }
+  return { hata: { hata: "renk-sayisi-uyusmaz", mesaj: "Renk seçimi değişmiş; önizlemeden yeniden sepete ekle." }, kod: 400 };
+}
+
+/**
  * FOTO KALEMINI FIYATLA — sunucu hesabi (istemcinin hicbir tutari okunmaz). Sartlar:
  * yapilandirma hazir · onizleme 'hazir' ve gecerlilik suresi icinde · tur acik (acilis anahtari) ·
  * olcu manifest araliginda ve adim izgarasinda. Birim fiyat TEK FORMULDEN (VERI.fiyatKurus);
@@ -1715,6 +1738,10 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   if (!is || is.asama !== hazirAsama) { return { hata: { hata: "foto-onizleme-yok" }, kod: 400 }; }
   // Ornek isi (panel, odemesiz) sepette/odemede KABUL EDILMEZ; musteriye "yok" gibi gorunur.
   if (ornekMi(is)) { return { hata: { hata: "foto-onizleme-yok" }, kod: 400 }; }
+  // Sepet kalemi turu tasiyorsa kayittaki turle AYNI olmali (baska turun onizlemesi baska fiyata baglanamaz).
+  if (k.tur !== undefined && k.tur !== is.tur) {
+    return { hata: { hata: "foto-tur-uyusmaz", mesaj: "Sepetteki tasarım önizlemeyle eşleşmiyor; yeniden ekle." }, kod: 400 };
+  }
   const yas = (simdi - Date.parse(is.hazir_tarih)) / 3600000;
   if (!(yas >= 0 && yas <= VERI.gecerlilik_saat)) {
     return { hata: { hata: "foto-onizleme-suresi-doldu",
@@ -1744,6 +1771,8 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   const rs = renkSayimi(tur.kod, k, null);
   const birim = rs ? VERI.fiyatKurus(tur.kod, mm, rs.n) : null;
   if (!(birim > 0)) { return RENK_HATASI; }
+  const ru = renkSayisiUyusmaz(k, rs);
+  if (ru) { return ru; }
   return {
     satir: {
       // id kalici urun sayfasi DEGIL (katalog disi kalem); id kalibi /^[a-z0-9-]+$/ korunur.
@@ -1813,6 +1842,8 @@ async function deterministikSatir(env, tur, olcu, k, is) {
   const rs = renkSayimi(tur.kod, k, sc, p);
   const birim = rs ? VERI.fiyatKurus(tur.kod, olcu.mm, rs.n) : null;
   if (!(birim > 0)) { return RENK_HATASI; }
+  const ru = renkSayisiUyusmaz(k, rs);
+  if (ru) { return ru; }
   const paletMi = VERI.renkPaleti(tur.kod);
   const bolgeRenk = bolgeler.filter((b) => renk[b]).map((b) => bolgeAdi(b) + ": " + renk[b]).join(" · ");
   return {

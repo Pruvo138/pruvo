@@ -2158,6 +2158,10 @@ setTimeout(L,5000);})();
   }
   function cartLines(){
     return cart.map(function(satir){
+      // Foto kalemi katalogda DEĞİL: başlık/görsel satırın kendisinden (kayıp sayılmaz, ödeme kilitlenmez).
+      if(PRUVO_SECENEK.fotoSatirMi(satir)){
+        return {satir:satir, urun:{ id: satir.id, baslik: satir.baslik, kategori: "Özel Üretim", foto: true }};
+      }
       var u = urunBul(satir.id);
       return u ? {satir:satir, urun:u} : {satir:satir, urun:null, kayip:true};
     });
@@ -2480,7 +2484,10 @@ setTimeout(L,5000);})();
 
       var img = document.createElement("img");
       img.loading = "lazy";
-      if(p){
+      if(p && p.foto){
+        img.src = satir.onizleme_ref || phData(p.kategori); img.alt = p.baslik;
+        img.onerror = function(){ this.src = phData(p.kategori); };
+      }else if(p){
         img.src = coverOf(p); img.alt = p.baslik;
         img.onerror = function(){ this.src = phData(p.kategori); };
       }else{
@@ -2506,7 +2513,8 @@ setTimeout(L,5000);})();
 
       // Adet +/- (işletme kararı, 16 Tem): satır tutarı = kuruşlu birim × adet. Sadece fiyatı hesaplanan
       // satırda gösterilir; parametrik/fiyatsız ürün zaten WhatsApp kanalından gider.
-      if(p && ozet.kurus != null){
+      // Foto kalemi adet SABİT 1 (önizleme işi başına tek üretim) -> adet kutusu çizilmez.
+      if(p && ozet.kurus != null && !p.foto){
         var adetKutu = document.createElement("div");
         adetKutu.className = "cart-adet";
         var eksi = document.createElement("button");
@@ -2738,6 +2746,16 @@ setTimeout(L,5000);})();
     "taban-fiyat-yok": "Bu ölçüye özel ürün şu an kartla ödenemiyor; WhatsApp'tan teklif alın.",
     "havale-hazir-degil": "Havale/EFT şu an kullanılamıyor; kartla ödeyebilir veya WhatsApp'tan yazabilirsiniz.",
     "sozlesme-onay-yok": "Devam etmek için sözleşme onay kutusunu işaretleyin.",
+    // Fotoğraftan özel üretim kalemi (normal sepet): Worker foto.js hataları.
+    "foto-havale-yok": "Fotoğraftan özel üretim kalemi havale ile alınamıyor; kartla ödeyebilirsiniz.",
+    "foto-onizleme-yok": "Sepetteki özel üretim önizlemesi bulunamadı; önizlemeyi yeniden oluşturup sepete ekleyin.",
+    "foto-onizleme-suresi-doldu": "Sepetteki özel üretim önizlemesinin süresi doldu; yeni önizleme oluşturup sepete ekleyin.",
+    "foto-kapali": "Fotoğraftan özel üretim şu an alınamıyor; o kalemi sepetten çıkarıp devam edebilirsiniz.",
+    "foto-tur-uyusmaz": "Sepetteki özel üretim kalemi önizlemeyle eşleşmiyor; çıkarıp yeniden ekleyin.",
+    "renk-sayisi-uyusmaz": "Özel üretim kaleminin renk seçimi değişmiş; önizlemeden yeniden sepete ekleyin.",
+    "onay-yok": "Özel üretim kalemi için aydınlatma onayı eksik; önizleme adımında onaylayıp yeniden ekleyin.",
+    "onay-surumu-eski": "Aydınlatma metni güncellendi; özel üretim kalemini önizleme adımında yeniden onaylayıp ekleyin.",
+    "olcu-min": "Özel üretim kaleminin ölçüsü bu içerik için küçük; önizlemeden ölçüyü büyütüp yeniden ekleyin.",
     // Worker bot kapısının 403'ü (Turnstile): jeton yok/geçersiz/tekrar kullanılmış.
     // Bu kod olmadan müşteri jenerik "Ödeme başlatılamadı" görür ve doğrulamayı yenilemez.
     "bot-dogrulama": "Güvenlik doğrulaması tamamlanamadı. Lütfen doğrulamayı yenileyip tekrar deneyin."
@@ -2787,6 +2805,8 @@ setTimeout(L,5000);})();
       // şema+hacim ile bunlardan hesaplar (17 Tem canlı dersi: gönderilmeyince 400
       // parametre-yok, ödeme hiç başlamıyordu). hacim/fiyat alanları yine gönderilmez.
       var sepet = lines.map(function(L){
+        // Foto kalemi: yalnız seçimler gider (gösterim fiyatı GİTMEZ; Worker foto.js'te yeniden hesaplar).
+        if(PRUVO_SECENEK.fotoSatirMi(L.satir)){ return PRUVO_SECENEK.fotoKalemi(L.satir); }
         var kalem = { id: L.satir.id, malzeme: L.satir.malzeme, renk: L.satir.renk,
                       renk_ozel: L.satir.renk_ozel || "", adet: PRUVO_SECENEK.adetDuzelt(L.satir.adet) };
         if(L.satir.parametreler){ kalem.parametreler = L.satir.parametreler; }
@@ -2796,10 +2816,21 @@ setTimeout(L,5000);})();
         if(L.satir.yazi_renk){ kalem.yazi_renk = L.satir.yazi_renk; }
         return kalem;
       });
+      // Foto kalemi varsa aydınlatma onayı gövdede gider: TÜM foto satırları onaylı ve AYNI metin sürümünde
+      // olmalı (aksi halde onay false gider, Worker 400 verir — sessizce onaylı sayılmaz).
+      var fotoSatirlar = lines.filter(function(L){ return PRUVO_SECENEK.fotoSatirMi(L.satir); });
+      var fotoOnay = {};
+      if(fotoSatirlar.length){
+        var surum = fotoSatirlar[0].satir.onay_surum || "";
+        fotoOnay.aydinlatma_onay = fotoSatirlar.every(function(L){
+          return L.satir.aydinlatma_onay === true && L.satir.onay_surum === surum; }) && !!surum;
+        fotoOnay.onay_surum = surum;
+      }
       var cevap = await fetch(SHOP_UC + "/baslat", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ sepet: sepet, odeme: havale ? "havale" : "kart",
+          aydinlatma_onay: fotoOnay.aydinlatma_onay, onay_surum: fotoOnay.onay_surum,
           sozlesme_onay: document.getElementById("oOnay").checked === true,
           // Bot kapısı jetonu (Turnstile). Widget çizilmediyse "" gider — hükmü sunucu verir.
           turnstile_token: turnstileJeton(),
@@ -2819,6 +2850,11 @@ setTimeout(L,5000);})();
       // yönlendiriliyoruz, kalan her yolda müşteri ikinci kez deneyebilsin).
       turnstileSifirla();
       var veri = await cevap.json();
+      // Foto kalemli sipariş: dönüş ekranının foto cümlesi için sipariş no oturuma yazılır (eskiden ayrı foto
+      // ödeme yolu yazardı; artık tek yol bu).
+      if(cevap.ok && veri && veri.no && fotoSatirlar.length){
+        try { sessionStorage.setItem("pruvo_foto_siparis", veri.no); } catch(e){}
+      }
       if(!cevap.ok || (havale ? !veri.havale : !veri.url)){
         odemeHata(HATA_METNI[veri.hata] || "Ödeme başlatılamadı. WhatsApp'tan sipariş verebilirsiniz.");
         btn.disabled = false; btn.textContent = odemeButonMetni();
@@ -2920,6 +2956,19 @@ setTimeout(L,5000);})();
 
   var katalogTazelendi = false;   // sayfa başına BİR deneme — istek/döngü seli olmasın
   var katalogYuklendi = false;    // ANA katalog fetch'i çözüldü mü (success kolu set eder)
+  /* FOTO KALEMİ SEPETE (sayfa-3adim): foto bölümünün ③ "Sepete ekle"si bu tek kapıdan geçer — ayrı foto
+     ödeme yolu YOK. Satır secenekler.js süzgecinden geçer (adet 1, gösterim fiyatı yalnız gösterim); aynı
+     önizleme ikinci kez eklenirse satır yenilenir. Dönüş: eklendiyse true. */
+  function sepeteFotoEkle(ham){
+    var s = PRUVO_SECENEK.fotoSatirSuz(ham);
+    if(!s){ return false; }
+    var anahtar = PRUVO_SECENEK.satirAnahtari(s);
+    cart = cart.filter(function(x){ return PRUVO_SECENEK.satirAnahtari(x) !== anahtar; });
+    cart.push(s);
+    saveCart(); updateCartFab(); openCart();
+    return true;
+  }
+  try{ window.pruvoSepeteFotoEkle = sepeteFotoEkle; }catch(e){}
   function openCart(){
     document.getElementById("cartOverlay").classList.add("open");
     document.getElementById("cartPanel").classList.add("open");

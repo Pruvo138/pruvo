@@ -1576,9 +1576,13 @@ jobs:
       # RENK ESLEME KAPISI (8 Eki, BaBa 15:5x, PARA): ucret alinan her ek renk uretime bagli — fiyata giren renk
       # (VERI.renkBolgesiAktif) == uretece giden renk (esle_<kod>); bust palet eslemesi / renk_qr / ses yazisi /
       # manifest koşulu silme mutantlari KIRMIZI. Kabul satiri `RENK_ESLEME 15/15 tur`.
+      # FOTO KALEMI NORMAL SEPETTE (8 Eki, sayfa-3adim K1): ayri foto odeme yolu YOK; istemci kalemi 7/7 alan,
+      # yeniden yukleme, adet 1, onaysiz odenemez; gosterim fiyati sizma / satir dusme mutantlari KIRMIZI
+      # (sunucu kolu foto-uretim.mjs SP: istemci fiyati yok sayilir, karma sepet tek odeme, kuyruk).
       - name: Fotograftan ozel uretim kabul testi (onizleme + odeme + uretim zinciri)
         run: |
           node shop/test/foto-uretim.mjs
+          node shop/test/foto-sepet.mjs
           node shop/test/foto-litofan.mjs
           python3 tools/foto-uretim-bolum-test.py
           node shop/test/foto-girdi-tipleri.mjs

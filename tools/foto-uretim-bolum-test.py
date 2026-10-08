@@ -142,13 +142,17 @@ def kontroller(index, bolum, veri, build):
     s.append(("Y4 '3D baski' / sehir adi YOK", not yasak, ",".join(yasak)))
     s.append(("Y4 ornek sayaci uc gorseli (foto+onizleme+baski) sart kosar",
               re.search(r"o\.foto\s*&&\s*o\.onizleme\s*&&\s*o\.baski", veri) is not None, ""))
-    s.append(("Y5 oturum anahtari iki dosyada ayni", OTURUM_ANAHTARI in bolum and
+    # sayfa-3adim K1: ayri foto odeme yolu KALKTI; foto kalemli siparisin no'sunu normal checkout (index.html)
+    # oturuma yazar, donus ekrani ayni anahtardan okur.
+    s.append(("Y5 oturum anahtari normal checkout'ta yazilir ve okunur",
+              ('sessionStorage.setItem("%s"' % OTURUM_ANAHTARI) in index and
               ('sessionStorage.getItem("%s")' % OTURUM_ANAHTARI) in index, ""))
     s.append(("Y6 bolum innerHTML kullanmaz", "innerHTML" not in bolum, ""))
     uclar = set(re.findall(r'"(/api/[a-z/]+)', bolum))
-    beklenen = {"/api/shop/foto/acik", "/api/shop/foto/onizleme", "/api/shop/foto/durum", "/api/shop/baslat"}
-    s.append(("Y6 bolum uclari = foto uclari + baslat (aynı köken)",
-              beklenen <= uclar and all(u.startswith("/api/shop/") for u in uclar), str(sorted(uclar))))
+    beklenen = {"/api/shop/foto/acik", "/api/shop/foto/onizleme", "/api/shop/foto/durum"}
+    s.append(("Y6 bolum uclari = foto uclari, ayri /baslat YOK (odeme normal sepette; aynı köken)",
+              beklenen <= uclar and "/api/shop/baslat" not in uclar
+              and all(u.startswith("/api/shop/") for u in uclar), str(sorted(uclar))))
     harici = sorted(set(re.findall(r"https?://[A-Za-z0-9.-]+", bolum)))
     izinli = {"https://challenges.cloudflare.com", "https://wa.me"}
     s.append(("Y6 harici adres yalniz bot dogrulayici + WhatsApp", set(harici) <= izinli, str(harici)))
@@ -251,7 +255,8 @@ def main():
         ("M14 bolum sabit durustluk metnine dondu",
          (index, bolum.replace("t && t.durustluk ? t.durustluk : \"\"", "\"Ürün en çok 4 renkle kabartma olarak üretilir\""), veri, build), True),
         ("M4 beyaz listeden dustu", (index, bolum, veri, build.replace('"foto-uretim.js", ', "", 1).replace(', "foto-uretim.js"', "", 1)), True),
-        ("M5 oturum anahtari ayristi", (index, bolum.replace(OTURUM_ANAHTARI, "pruvo_foto_sip"), veri, build), True),
+        ("M5 oturum anahtari ayristi", (index.replace('setItem("%s"' % OTURUM_ANAHTARI, 'setItem("pruvo_foto_sip"'),
+                                        bolum, veri, build), True),
         ("M6 anahtarlik tur listesine geri eklendi",
          (index, bolum, veri.replace('kod: "plaket",', 'kod: "plaket",\n      },\n      {\n        kod: "anahtarlik",', 1), build), True),
         ("M7 galeri tur secici kaldirildi (tek tur dali yerine)",

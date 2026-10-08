@@ -2129,8 +2129,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     const dd = () => [...e.bolum.agac()];
     const id = (x) => dd().find((n) => n.id === x) || null;
     const fiyatSatiri = () => (dd().find((n) => n.classList.contains("foto-uretim-olculen-fiyat")) || { textContent: null }).textContent;
-    const sipAcik = () => dd().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sipariş ver" && n.disabled !== true).length;
-    const sipVar = () => dd().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sipariş ver").length;
+    const sipAcik = () => dd().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sepete ekle" && n.disabled !== true).length;
+    const sipVar = () => dd().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sepete ekle").length;
     const onizle = async (enMm) => {
       const en = id("foto-param-en_mm");
       if (en && enMm != null) { en.value = String(enMm); en.tetikle("input"); }
@@ -2186,7 +2186,7 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     const fn3 = e3.yoklamalar[e3.yoklamalar.length - 1];
     if (fn3) { fn3(); }
     await bekle();
-    const sip3 = d3().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sipariş ver");
+    const sip3 = d3().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sepete ekle");
     s.DUGME = s2Kapali && sipVar() === 1 && sip3.length === 1 && sip3[0].disabled === true;
     Object.defineProperty(s, "iz", { value: { f1, f2a, f2, s2Kapali, sip3: sip3.map((n) => n.disabled), istek: e.istekler.length }, enumerable: false });
     return s;
@@ -3145,6 +3145,94 @@ for (const [ad, degisiklik, olmeli] of AO_MUTANTLAR) {
   const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
   ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
      Object.keys(s).length === 8 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
+}
+
+// ---------------------------------------------------------------------------------------------
+// SP) NORMAL SEPET FOTO KALEMI (sayfa-3adim K1): foto kalemi sitenin normal sepetinden /baslat'a gelir
+// {foto_is, tur, olcu_mm, renkler[], renk_sayisi, onizleme_ref, atif}; ayri foto odeme yolu YOK.
+//   F istemci fiyat alanlari (gosterim/fiyat/tutar/birim_kurus = 1 kurus) YOK SAYILIR, tutar sunucu formulunden
+//   T kalemin turu onizleme kaydiyla uyusmazsa 400 · R renk_sayisi sunucu sayimiyla uyusmazsa 400
+//   K karma sepet (katalog + foto) TEK odeme · Q odeme onayinda foto_uretim kuyrugu (bugunku kuyruk aynen)
+// Temiz SQLite; mutantlar aoKopya ile (her mutant TAM OLARAK beklenen iddiayi kirmizi yakar).
+async function spSenaryolar(m) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x')").run();
+  await k.d1.prepare("INSERT INTO urunler (id, hash, seq, baslik, kategori, fiyat, gorsel, hs, yayinda)" +
+    " VALUES ('sp-karma-urun', 'h', 1, 'Karma test urunu', 'Ev', '200 TL', '', 'karma', 1)").run();
+  let ipNo = 0;
+  const cag = async (yol, govde) => {
+    const r = await m.modul.fetch(new Request("https://pruvo3d.com/api/shop" + yol, { method: "POST",
+      headers: { "CF-Connecting-IP": "10.30.0." + (++ipNo), "Content-Type": "application/json" }, body: JSON.stringify(govde) }), e2, ctx);
+    let v = null; try { v = await r.json(); } catch (e) { v = null; }
+    return { kod: r.status, v };
+  };
+  const on = await cag("/foto/onizleme", { tur: "plaket", olcu_mm: 100, gorsel: GORSEL, turnstile_token: "jeton",
+    aydinlatma_onay: true, onay_surum: VERI.onay_surum });
+  const is = on.v && on.v.is;
+  if (is) {
+    await k.d1.prepare("UPDATE foto_isler SET asama = 'hazir', gorev = 'gorev-sp', hazir_tarih = ? WHERE is_no = ?")
+      .bind(new Date().toISOString(), is).run();
+  }
+  const kalem = (ek) => ({ foto_is: is || "0".repeat(32), tur: "plaket", olcu_mm: 100, renkler: ["Beyaz", "Siyah"],
+    renk_sayisi: 2, onizleme_ref: "/api/shop/foto/gorsel?is=" + is, atif: { utm_source: "test" }, adet: 1, ...(ek || {}) });
+  const sip = (sepet) => ({ sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart",
+    musteri, turnstile_token: "j", sepet });
+  const siparis = async (no) => no
+    ? await k.d1.prepare("SELECT tutar_kurus, urunler FROM siparisler WHERE siparis_no = ?").bind(no).first() : null;
+  const s = {};
+  const iyF = P.iyzico.length;
+  const f = await cag("/baslat", sip([kalem({ gosterim_kurus: 1, fiyat_kurus: 1, tutar_kurus: 1, birim_kurus: 1 })]));
+  const fs1 = await siparis(f.v && f.v.no);
+  const fk = fs1 ? JSON.parse(fs1.urunler)[0] : null;
+  s.F = f.kod === 200 && P.iyzico.length === iyF + 1 && !!fs1 && fs1.tutar_kurus === 110000 && fk.birim_kurus === 110000 &&
+        (P.iyzico[P.iyzico.length - 1] || {}).price === "1350.00";
+  const t = await cag("/baslat", sip([kalem({ tur: "figur" })]));
+  s.T = t.kod === 400 && !!t.v && t.v.hata === "foto-tur-uyusmaz";
+  const r = await cag("/baslat", sip([kalem({ renk_sayisi: 1 })]));
+  s.R = r.kod === 400 && !!r.v && r.v.hata === "renk-sayisi-uyusmaz";
+  const iyK = P.iyzico.length;
+  const kr = await cag("/baslat", sip([{ id: "sp-karma-urun", malzeme: "PLA", renk: "Siyah", adet: 1 }, kalem()]));
+  const ks = await siparis(kr.v && kr.v.no);
+  const kal = ks ? JSON.parse(ks.urunler) : [];
+  const fotoK = kal.find((x) => x.foto_is === is), katK = kal.find((x) => x.id === "sp-karma-urun");
+  s.K = kr.kod === 200 && P.iyzico.length === iyK + 1 && kal.length === 2 && !!fotoK && !!katK && katK.tutar_kurus > 0 &&
+        fotoK.tutar_kurus === 110000 && fotoK.adet === 1 && ks.tutar_kurus === fotoK.tutar_kurus + katK.tutar_kurus;
+  if (kr.v && kr.v.no) {
+    await k.d1.prepare("UPDATE siparisler SET durum = 'odendi' WHERE siparis_no = ?").bind(kr.v.no).run();
+    await m.foto.fotoUretimTuru(e2, Date.now(), null);
+  }
+  const q = kr.v && kr.v.no ? await k.d1.prepare("SELECT is_no, tur, olcu_mm, renk_sayisi FROM foto_uretim WHERE siparis_no = ?")
+    .bind(kr.v.no).first() : null;
+  s.Q = !!q && q.is_no === is && q.tur === "plaket" && q.olcu_mm === 100 && q.renk_sayisi === 2;
+  k.kapat();
+  return s;
+}
+console.log("SP) NORMAL SEPET FOTO KALEMI (sayfa-3adim K1)");
+{
+  const s = await spSenaryolar({ modul, foto });
+  ol("SP1 istemci fiyat alanlari (1 kurus) YOK SAYILIR -> tutar 1.100,00 (100 mm + 1 ek renk), iyzico 1350.00", s.F, JSON.stringify(s));
+  ol("SP2 kalem turu onizleme kaydiyla uyusmaz -> 400 foto-tur-uyusmaz", s.T, JSON.stringify(s));
+  ol("SP3 renk_sayisi sunucu sayimiyla uyusmaz -> 400 renk-sayisi-uyusmaz", s.R, JSON.stringify(s));
+  ol("SP4 karma sepet (katalog + foto) TEK odeme, foto adet 1, toplam = kalemler", s.K, JSON.stringify(s));
+  ol("SP5 odeme onayinda foto_uretim kuyrugu (is/tur/olcu/renk_sayisi kalemden)", s.Q, JSON.stringify(s));
+}
+const SP_MUTANTLAR = [
+  ["SPM1 ISTEMCI FIYATI OKUNUR", [
+    ["foto.js", "  return { kalem: { foto_is: isNo, olcu_mm: olcu, adet,", "  return { kalem: { ...k, foto_is: isNo, olcu_mm: olcu, adet,"],
+    ["foto.js", "  const rs = renkSayimi(tur.kod, k, null);\n  const birim = rs ? VERI.fiyatKurus(tur.kod, mm, rs.n) : null;",
+                "  const rs = renkSayimi(tur.kod, k, null);\n  const birim = k.gosterim_kurus || (rs ? VERI.fiyatKurus(tur.kod, mm, rs.n) : null);"]], ["F"]],
+  ["SPM2 TUR DENETIMI SILINDI", [["foto.js", "  if (k.tur !== undefined && k.tur !== is.tur) {", "  if (false) {"]], ["T"]],
+  ["SPM3 RENK SAYISI DENETIMI SILINDI", [["foto.js", "  if (k.renk_sayisi === undefined || k.renk_sayisi === rs.n) { return null; }", "  return null;"]], ["R"]],
+  ["SPM-K KONTROL", [["foto.js", "// Sepet kalemi turu tasiyorsa kayittaki turle AYNI olmali", "// sepet kalemi turu tasiyorsa kayittaki turle AYNI olmali"]], []],
+];
+for (const [ad, degisiklik, olmeli] of SP_MUTANTLAR) {
+  const m = await aoKopya(degisiklik);
+  if (!m) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + JSON.stringify(degisiklik)); continue; }
+  const s = await spSenaryolar(m);
+  const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 5 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
 }
 
 kopru.kapat();

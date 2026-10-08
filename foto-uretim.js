@@ -3,11 +3,12 @@
  *
  * - Veri: window.PRUVO_FOTO (foto-uretim-veri.js) — turler, ornekler, onay.
  * - API'ler: GET /api/shop/foto/acik, POST /api/shop/foto/onizleme,
- *   GET /api/shop/foto/durum, POST /api/shop/baslat,
+ *   GET /api/shop/foto/durum. Odeme AYRI YOL DEGIL: ③ "Sepete ekle" kalemi sitenin normal sepetine koyar
+ *   (window.pruvoSepeteFotoEkle, index.html); odeme + musteri bilgisi normal checkout'ta.
  *   2D KONSEPT: POST /api/shop/foto/konsept, GET /api/shop/foto/konsept-durum.
  * - Bot: Cloudflare Turnstile (sitekey, script URL).
  * - Durum makinesi: kapali (bolum kapali) · S1 (form) · S2 (onizleme bekleniyor)
- *   · S3 (onizleme hazir) · S4 (siparis formu).
+ *   · S3 (onizleme hazir → sepete ekle).
  * - ES5 IIFE; template literal yok, regex literal yok (yayin minifier uyumu);
  *   dis kutuphane yok. DOM yalniz createElement + textContent ile.
  */
@@ -34,13 +35,10 @@
   var LITOFAN_ONIZLEME_PX = 320;
   var LITOFAN_DURUSTLUK =
     "Önizleme, ışığa tutulduğunda görünecek görüntünün yaklaşık benzetimidir; birebir aynısı değildir.";
-  var BASLAT_URL = "/api/shop/baslat";
   var TURNS_SITEKEY = "0x4AAAAAAE6AA20ln7MIOR9k";
   var TURNS_KAYNAK = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
   var MAKS_DOSYA_BAYT = 15 * 1024 * 1024;
   var MAKS_KENAR = 1600;
-  var MIN_ADET = 1;
-  var MAKS_ADET = 5;
   var YOKLAMA_MS = 3000;
   var YOKLAMA_TAVAN = 80;
   var WA = "https://wa.me/905451386526";
@@ -57,7 +55,6 @@
     { kod: "bust", ad: "Büst", ikon: "\u{1F464}" }
   ];
   var SS_IS = "pruvo_foto_is";
-  var SS_SIPARIS = "pruvo_foto_siparis";
   // Render orneginin altindaki cumle TUR KAYDINDA (`ornek_notu`, mimar karari 7 Eki; AYNEN).
   // D/R turunde TARAYICI onizleyicisi YOKSA (manifest F.TARAYICI_ONIZLEYICI) ornek render + bu cumle;
   // onizlemeyi siparis oncesi ureteç koşucusu cikarir (/foto/onizleme kuyrugu).
@@ -89,8 +86,6 @@
 
   /* ============== DOGRULAMA KALIPLARI (RegExp literal YOK) ============== */
   var isKalibi = new RegExp("^[a-f0-9]{32}$");
-  var rakDisi = new RegExp("[^0-9]", "g");
-  var epostaKalibi = new RegExp("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 
   /* ============== DURUM ============== */
   var S = {
@@ -102,7 +97,6 @@
     dosya: null,
     aydinlatmaOnay: false,
     captchaToken1: "",
-    captchaToken2: "",
     is: null,
     gorsel: null,
     gecerlilik: null,
@@ -138,15 +132,7 @@
     alanSehir: null,
     alanNotM: null,
     alanSoz: null,
-    alanCap2: null,
     alanOde: null,
-    sozlesme: false,
-    ad: "",
-    tel: "",
-    eposta: "",
-    adres: "",
-    sehir: "",
-    musteriNotu: "",
     uretimNotu: "",
     alanUretimNotu: null,
     alanKonsept: null,
@@ -2290,27 +2276,6 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
       S.alan.appendChild(paletSecici(nt, function () { ssIsKaydet(); cizS3(); }));
     }
 
-    /* adet */
-    var adetG = el("div", "foto-uretim-form-grup");
-    adetG.appendChild(el("label", "foto-uretim-form-etiket", "Adet (1-5)"));
-    var adetInp = el("input", "foto-uretim-form-secenek-girdi");
-    adetInp.type = "number";
-    adetInp.min = String(MIN_ADET);
-    adetInp.max = String(MAKS_ADET);
-    adetInp.step = "1";
-    adetInp.value = String(S.adet);
-    adetInp.id = "foto-adet";
-    adetInp.addEventListener("change", function (e) {
-      var n = parseInt(e.target.value, 10);
-      if (!isFinite(n) || n < MIN_ADET || n > MAKS_ADET) {
-        e.target.value = String(S.adet); return;
-      }
-      S.adet = n;
-      cizS3();
-    });
-    adetG.appendChild(adetInp);
-    S.alan.appendChild(adetG);
-
     /* ozet */
     // Birim fiyat TEK formülden (sunucunun ödemede kullandığı AYNI F.fiyatKurus), renk sayısıyla (ek renk dahil).
     var rs = renkSayisi(nt);
@@ -2336,14 +2301,9 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     }
 
     var butonG = el("div", "foto-uretim-iliskili");
-    var sipBtn = el("button", "foto-uretim-buton-birincil", "Sipariş ver");
+    var sipBtn = el("button", "foto-uretim-buton-birincil", "Sepete ekle");
     sipBtn.type = "button";
-    sipBtn.addEventListener("click", function () {
-      S.ad = ""; S.tel = ""; S.eposta = ""; S.adres = "";
-      S.sehir = ""; S.musteriNotu = ""; S.sozlesme = false;
-      S.captchaToken2 = "";
-      adimKoy("S4");
-    });
+    sipBtn.addEventListener("click", function () { sepeteEkle(nt, fiyat, rs); });
     // Aydınlatma onayı olmadan sipariş düğmesi açılmaz (eski sürüm onayıyla geri gelen iş dahil);
     // türetilmiş eksende bu önizlemenin ölçülmüş fiyatı yoksa da açılmaz (fiyatsız sipariş yok).
     sipBtn.disabled = !S.aydinlatmaOnay || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);
@@ -2368,137 +2328,46 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     S.alan.appendChild(butonG);
   }
 
-  /* ============== S4 ============== */
-  function cizS4() {
-    if (!S.alan) return;
-    turnsTemizle(S.alanCap1);
-    S.captchaToken1 = "";
-    while (S.alan.firstChild) S.alan.removeChild(S.alan.firstChild);
-
-    S.alanAd = el("div", "foto-uretim-form-grup");
-    S.alanAd.appendChild(el("label", "foto-uretim-form-etiket", "Ad soyad"));
-    var adInp = el("input", "foto-uretim-form-secenek-girdi");
-    adInp.type = "text"; adInp.id = "foto-ad";
-    adInp.value = S.ad || "";
-    adInp.maxLength = 120;
-    adInp.addEventListener("input", function (e) { S.ad = e.target.value; guncelleS4Buton(); });
-    S.alanAd.appendChild(adInp);
-    S.alan.appendChild(S.alanAd);
-
-    S.alanTel = el("div", "foto-uretim-form-grup");
-    S.alanTel.appendChild(el("label", "foto-uretim-form-etiket", "Telefon"));
-    var telInp = el("input", "foto-uretim-form-secenek-girdi");
-    telInp.type = "tel"; telInp.id = "foto-tel";
-    telInp.value = S.tel || "";
-    telInp.maxLength = 13;
-    telInp.inputMode = "tel";
-    telInp.addEventListener("input", function (e) { S.tel = e.target.value; guncelleS4Buton(); });
-    S.alanTel.appendChild(telInp);
-    S.alan.appendChild(S.alanTel);
-
-    S.alanEposta = el("div", "foto-uretim-form-grup");
-    S.alanEposta.appendChild(el("label", "foto-uretim-form-etiket", "E-posta"));
-    var epInp = el("input", "foto-uretim-form-secenek-girdi");
-    epInp.type = "email"; epInp.id = "foto-eposta";
-    epInp.value = S.eposta || "";
-    epInp.maxLength = 200;
-    epInp.inputMode = "email";
-    epInp.addEventListener("input", function (e) { S.eposta = e.target.value; guncelleS4Buton(); });
-    S.alanEposta.appendChild(epInp);
-    S.alan.appendChild(S.alanEposta);
-
-    S.alanAdres = el("div", "foto-uretim-form-grup");
-    S.alanAdres.appendChild(el("label", "foto-uretim-form-etiket", "Açık adres"));
-    var adrInp = el("textarea", "foto-uretim-form-secenek-girdi");
-    adrInp.id = "foto-adres";
-    adrInp.value = S.adres || "";
-    adrInp.maxLength = 500;
-    adrInp.rows = 3;
-    adrInp.addEventListener("input", function (e) { S.adres = e.target.value; guncelleS4Buton(); });
-    S.alanAdres.appendChild(adrInp);
-    S.alan.appendChild(S.alanAdres);
-
-    S.alanSehir = el("div", "foto-uretim-form-grup");
-    S.alanSehir.appendChild(el("label", "foto-uretim-form-etiket", "Şehir"));
-    var sehInp = el("input", "foto-uretim-form-secenek-girdi");
-    sehInp.type = "text"; sehInp.id = "foto-sehir";
-    sehInp.value = S.sehir || "";
-    sehInp.maxLength = 60;
-    sehInp.addEventListener("input", function (e) { S.sehir = e.target.value; guncelleS4Buton(); });
-    S.alanSehir.appendChild(sehInp);
-    S.alan.appendChild(S.alanSehir);
-
-    S.alanNotM = el("div", "foto-uretim-form-grup");
-    S.alanNotM.appendChild(el("label", "foto-uretim-form-etiket",
-      "Not (en çok 500 karakter)"));
-    var notInp = el("textarea", "foto-uretim-form-secenek-girdi");
-    notInp.id = "foto-not";
-    notInp.value = S.musteriNotu || "";
-    notInp.maxLength = 500;
-    notInp.rows = 3;
-    notInp.addEventListener("input", function (e) {
-      if (e.target.value.length > 500) e.target.value = e.target.value.slice(0, 500);
-      S.musteriNotu = e.target.value;
-    });
-    S.alanNotM.appendChild(notInp);
-    S.alan.appendChild(S.alanNotM);
-
-    var sozG = el("div", "foto-uretim-form-grup");
-    var sozLbl = el("label", "foto-uretim-form-secenek-inline");
-    sozLbl.setAttribute("for", "foto-sozlesme");
-    var sozInp = el("input");
-    sozInp.type = "checkbox"; sozInp.id = "foto-sozlesme";
-    sozInp.checked = !!S.sozlesme;
-    sozInp.addEventListener("change", function (e) {
-      S.sozlesme = !!e.target.checked;
-      guncelleS4Buton();
-    });
-    ek(sozLbl, sozInp);
-    ek(sozLbl, " ");
-    var a1 = el("a", null, "Ön Bilgilendirme Formu");
-    a1.href = TESLIMAT_URL; a1.target = "_blank"; a1.rel = "noopener";
-    var a2 = el("a", null, "Mesafeli Satış Sözleşmesi");
-    a2.href = MESAFELI_URL; a2.target = "_blank"; a2.rel = "noopener";
-    ek(sozLbl, a1);
-    ek(sozLbl, "'nu ve ");
-    ek(sozLbl, a2);
-    ek(sozLbl, "'ni okudum, onaylıyorum.");
-    sozG.appendChild(sozLbl);
-    S.alan.appendChild(sozG);
-
-    S.alanCap2 = el("div", "foto-uretim-captcha");
-    S.alan.appendChild(S.alanCap2);
-    turnsRender(S.alanCap2, function (t) {
-      S.captchaToken2 = t;
-      guncelleS4Buton();
-    });
-
-    var odeG = el("div", "foto-uretim-s1-buton-sira");
-    var btn = el("button", "foto-uretim-buton-birincil", "Kartla öde");
-    btn.type = "button";
-    btn.id = "foto-kartla-ode";
-    btn.disabled = true;
-    btn.addEventListener("click", siparisVer);
-    odeG.appendChild(btn);
-    S.alan.appendChild(odeG);
-
-    S.alan.appendChild(el("p", "foto-uretim-ayrinti",
-      "Kart bilgilerin iyzico'nun güvenli sayfasında alınır."));
-    guncelleS4Buton();
+  /* ============== ③ → NORMAL SEPET ==============
+     Ayrı foto ödeme yolu YOK (sayfa-3adim K1): kalem sitenin sepetine girer, ödeme + müşteri bilgisi normal
+     checkout'ta (karma sepet tek ödeme). Kalem {foto_is, tur, olcu_mm, renkler[], renk_sayisi, onizleme_ref, atif};
+     gosterim_kurus YALNIZ sepette gösterim içindir — /baslat'a gitmez, Worker fiyatı yeniden hesaplar. */
+  function onizlemeRef() {
+    var g = S.gorsel;
+    return typeof g === "string" && g.length <= 300 && g.indexOf("/api/shop/foto/") === 0 ? g : "";
   }
-
-  function guncelleS4Buton() {
-    var btn = document.getElementById("foto-kartla-ode");
-    if (!btn) return;
-    var ad = S.ad || "";
-    var tel = (S.tel || "").replace(rakDisi, "");
-    var eposta = S.eposta || "";
-    var adres = S.adres || "";
-    var sehir = S.sehir || "";
-    var tam = ad.length >= 3 && tel.length >= 10 &&
-      epostaKalibi.test(eposta) && adres.length >= 10 &&
-      sehir.length >= 2 && !!S.sozlesme && !!S.aydinlatmaOnay && !!S.captchaToken2;
-    btn.disabled = !tam;
+  function fotoSepetSatiri(nt, fiyat, rs) {
+    var k = sepetKalemi();
+    var renkler = k.renkler || [];
+    if (!k.renkler && k.secim) {
+      for (var a in k.secim) {
+        if (Object.prototype.hasOwnProperty.call(k.secim, a) && a.slice(-5) === "_renk" && renkler.indexOf(k.secim[a]) < 0) {
+          renkler.push(k.secim[a]);
+        }
+      }
+    }
+    var satir = {
+      foto_is: S.is, tur: nt.kod, olcu_mm: S.olcu, renkler: renkler, renk_sayisi: rs,
+      onizleme_ref: onizlemeRef(),
+      atif: (typeof kok.pruvoAtifTopla === "function") ? kok.pruvoAtifTopla() : {},
+      adet: 1,
+      baslik: "Fotoğrafından özel üretim — " + nt.ad + " (" + S.olcu + " mm)",
+      gosterim_kurus: fiyat,
+      aydinlatma_onay: !!S.aydinlatmaOnay, onay_surum: F.onay_surum
+    };
+    if (k.secim) satir.secim = k.secim;
+    if (S.gecerlilik) satir.gecerlilik = S.gecerlilik;
+    return satir;
+  }
+  function sepeteEkle(nt, fiyat, rs) {
+    if (!S.is || !S.olcu || !nt || fiyat == null || !S.aydinlatmaOnay) {
+      adimKoy("S3", "Sepete eklemek için önizleme ve onay gerekli.", true); return;
+    }
+    var ekle = kok.pruvoSepeteFotoEkle;
+    if (typeof ekle !== "function" || !ekle(fotoSepetSatiri(nt, fiyat, rs))) {
+      adimKoy("S3", "Sepete eklenemedi; sayfayı yenileyip yeniden dene.", true); return;
+    }
+    adimKoy("S3", "Sepete eklendi. Ödemeyi sepetten tamamlayabilirsin.");
   }
 
   /* ============== ADIM GECISI ============== */
@@ -2514,14 +2383,12 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
     var no = 1;
     if (adim === "S1") no = 2;
     else if (adim === "S2" || adim === "S3") no = 3;
-    else if (adim === "S4") no = 4;
     adimGoster(no);
 
     if (adim === "kapali") cizKapali();
     else if (adim === "S1") cizS1();
     else if (adim === "S2") cizS2();
     else if (adim === "S3") cizS3();
-    else if (adim === "S4") cizS4();
     yukleKutuGuncelle("");
     durumCubuguGoster();
   }
@@ -2787,66 +2654,6 @@ function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
   }
 
   /* ============== /baslat ============== */
-  function siparisVer() {
-    if (!S.is || !S.olcu || S.adet < MIN_ADET || S.adet > MAKS_ADET) {
-      adimKoy("S3", "Adet 1-5 arasında olmalı.", true); return;
-    }
-    if (!S.captchaToken2) {
-      adimKoy("S4", "Lütfen doğrulama kutusunu işaretle.", true); return;
-    }
-    var ad = (S.ad || "").trim();
-    var tel = (S.tel || "").replace(rakDisi, "");
-    var eposta = (S.eposta || "").trim();
-    var adres = (S.adres || "").trim();
-    var sehir = (S.sehir || "").trim();
-    var notu = (S.musteriNotu || "").trim();
-    if (ad.length < 3) { adimKoy("S4", "Adını yaz.", true); return; }
-    if (tel.length < 10 || tel.length > 13) { adimKoy("S4", "Telefon numaranı yaz.", true); return; }
-    if (!epostaKalibi.test(eposta)) { adimKoy("S4", "E-posta adresini yaz.", true); return; }
-    if (adres.length < 10) { adimKoy("S4", "Açık adresini yaz.", true); return; }
-    if (sehir.length < 2) { adimKoy("S4", "Şehir yaz.", true); return; }
-    if (!S.sozlesme) { adimKoy("S4", "Sözleşmeyi onaylamalısın.", true); return; }
-    var atif = (typeof kok.pruvoAtifTopla === "function") ? kok.pruvoAtifTopla() : {};
-    var govde = {
-      sepet: [sepetKalemi()],
-      musteri: { ad: ad, tel: tel, eposta: eposta, adres: adres, sehir: sehir },
-      musteri_notu: notu,
-      sozlesme_onay: true,
-      aydinlatma_onay: !!S.aydinlatmaOnay,
-      onay_surum: F.onay_surum,
-      odeme: "kart",
-      turnstile_token: S.captchaToken2,
-      atif: atif
-    };
-    jsonPost(BASLAT_URL, govde, function (ok, kod, veri) {
-      turnsSifirla(S.alanCap2);
-      if (kod === 200 && veri && veri.url) {
-        try { sessionStorage.setItem(SS_SIPARIS, veri.no || ""); } catch (e) { }
-        ssIsSil();
-        kok.location.href = veri.url;
-        return;
-      }
-      if (kod === 400 && veri && veri.hata === "foto-onizleme-suresi-doldu") {
-        ssIsSil();
-        adimKoy("S1", "Önizlemenin süresi doldu; yeni önizleme oluştur.", true);
-        return;
-      }
-      if (kod === 400 && veri) {
-        var h = veri.hata || "";
-        if (h === "musteri-ad") { adimKoy("S4", "Adını yaz.", true); return; }
-        if (h === "musteri-tel") { adimKoy("S4", "Telefon numaranı yaz.", true); return; }
-        if (h === "musteri-eposta") { adimKoy("S4", "E-posta adresini yaz.", true); return; }
-        if (h === "musteri-adres") { adimKoy("S4", "Açık adresini yaz.", true); return; }
-        if (h === "musteri-sehir") { adimKoy("S4", "Şehir yaz.", true); return; }
-        if (h === "onay-yok" || h === "onay-surumu-eski") {
-          adimKoy("S4", "Onay metni güncellendi; sayfayı yenileyip yeniden dene.", true);
-          return;
-        }
-      }
-      adimKoy("S4", "Ödeme başlatılamadı; biraz sonra dene ya da WhatsApp'tan yaz.", true);
-    });
-  }
-
   /* ============== BASLANGIC ============== */
   function basla() {
     if (!F || !F.turler || !F.turler.length) return;
