@@ -43,6 +43,6 @@ ziyaretçiler, 24 sa önizleme) · `HAVUZ_ESIK_KREDI` / `URETIM_PAYI_KREDI` (bak
 - [ ] Kabul: tavan aşımında yeni önizleme 503 / konsept 429 (fail-closed), ödenmiş siparişler etkilenmez.
 
 ## 6. Açılış
-- [ ] Panelden tür tür "Aç" (`POST /yonet/foto-acik`) → `foto_acik` satırı `acik=1`.
+- [ ] Panelden tür tür "Aç" (yönetim panelindeki açma düğmesi) → `foto_acik` satırı `acik=1`.
 - [ ] Canlı `GET /api/shop/foto/acik` → yalnız açılan türler; 375 px ekranda bölüm çiziliyor, konsol hatası 0.
 - [ ] Kapatma yolu denendi: "Kapat" → bölüm "şu an sipariş alınamıyor" der.
