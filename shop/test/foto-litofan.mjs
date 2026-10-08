@@ -565,6 +565,22 @@ if a[:2] == ["r2", "object"]:
 sys.exit(9)
 `;
 
+// 8 Eki 2026: kosucu her D/R ciktisini onarim kapisindan (TeKiN koprusu `--olc`) gecirir. Bu test litofan/
+// turetik mantigini olcer, kopruyu degil -> sahte kopru (her olcum gecer). Kapinin kendisi
+// tools/foto-uretec-kosucu-test.py T32-T34'te olculur.
+const SAHTE_KOPRU = `import shutil, sys
+a = sys.argv[1:]
+if a and a[0] == "--olc":
+    print('{"kabul_kusurlari": []}'); sys.exit(0)
+shutil.copyfile(a[0], a[1]); sys.exit(0)
+`;
+function sahteJen(d) {
+  const j = path.join(d, "jen");
+  fs.mkdirSync(path.join(j, "jeneratorler", "foto"), { recursive: true });
+  fs.writeFileSync(path.join(j, "jeneratorler", "foto", "uc_mf_onar.py"), SAHTE_KOPRU);
+  return j;
+}
+
 const SAHTE_URETEC_I = `import json, os, struct, sys
 a = sys.argv[1:]; g = json.load(open(a[a.index("--girdi") + 1])); c = a[a.index("--cikti") + 1]
 open(os.environ["FAKE_URETEC_SAYAC"], "a").write("1" + chr(10))
@@ -626,7 +642,7 @@ async function senaryoIsimlik(kok) {
       encoding: "utf8", timeout: 120000,
       env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1", FAKE_DB: db, FAKE_R2: r2d, FAKE_URETEC_SAYAC: sayac,
              FOTO_KOSUCU_WRANGLER: "python3 " + path.join(d, "wr.py"), FOTO_KOSUCU_KILIT: path.join(d, "kilit"),
-             FOTO_KOSUCU_PYTHON: "python3", FOTO_KOSUCU_URETEC_TABLO: path.join(d, "tablo.json") } });
+             FOTO_KOSUCU_PYTHON: "python3", FOTO_KOSUCU_URETEC_TABLO: path.join(d, "tablo.json"), FOTO_KOSUCU_JENERATOR: sahteJen(d) } });
     const cikti = (p.stdout || "") + (p.stderr || "");
     return { son: (p.stdout || "").trim().split("\n").pop(), cikti };
   };
@@ -727,7 +743,7 @@ async function senaryoTuretik(kok) {
       encoding: "utf8", timeout: 120000,
       env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1", FAKE_DB: db, FAKE_R2: r2d, FAKE_URETEC_SAYAC: sayac,
              FOTO_KOSUCU_WRANGLER: "python3 " + path.join(d, "wr.py"), FOTO_KOSUCU_KILIT: path.join(d, "kilit"),
-             FOTO_KOSUCU_PYTHON: "python3", FOTO_KOSUCU_URETEC_TABLO: path.join(d, "tablo.json") } });
+             FOTO_KOSUCU_PYTHON: "python3", FOTO_KOSUCU_URETEC_TABLO: path.join(d, "tablo.json"), FOTO_KOSUCU_JENERATOR: sahteJen(d) } });
     return { son: (p.stdout || "").trim().split("\n").pop(), cikti: (p.stdout || "") + (p.stderr || "") };
   };
   const k = koprukur(db); await k.hazir;
