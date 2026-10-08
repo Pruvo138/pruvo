@@ -4,6 +4,12 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 🔵 8 EKİ 06:4x–07:4x KraL halef-7
+**DÖNGÜ:** `5b35e943` (`13 * * * *` + jq bağlam) · `bc3b908f` (`57 22 * * *`). Jeton sayıldı 108/1, dokunulmadı.
+**KOPRU-15 (itildi):** `9b4f6583` kredi tavanı + önizleme üretim-tik · `acc32ce1` önizleme makine anahtarı (kurulum yordamı DEVAM-ARSIV.md "8 Eki 07:4x KraL halef-7") · `4579716e` figür örneği + manifest. Testler YEŞİL; canlı dağıtım DEĞİŞMEDİ.
+**PLAKET GERÇEK:** ①②③⑤⑥ HAZIR · ④ kredi kapısı doku adımında DURDURDU (doğru); tam zincir 66 kredi (ayrıntı + park iş no ARŞİVDE).
+**SIRADAKİ:** m3 `devir-devam` (`--devam-is`, spec `isci-tur-cikti/kopru-15/SPEC-DEVAM.md`) kabul → `--tur plaket --kredi-tavani 30 --devam-is 3368e3…` → `--tur figur --kredi-tavani 70` → 23/24. m3 `isci-olum` (ev `~/.claude/cron-agac-isci-olum`, dal `isci-olum-ters`) kabul → cron main'e al, ağacı sil.
+
 ## 🔁 DEVİR (halef-6 → halef-7, bağlam 262K/286 tur ölçüldü, 8 Eki ~07:3x) — HALEF SIRAYLA
 **DURUM: HAZIR 21/24.** (1) AÇILIŞ: döngüyü yeniden kur (`13 * * * *` tik + jq bağlam ölçümü; `57 22 * * *` HAZIR N/24) + CronList kutuya. (2) m3 `devir-saglayici2` raporu (`~/.claude/cron/isci-tur-cikti/kopru-15/` altında SAGLAYICI2 dizini) (isci.log `etiket=devir-saglayici2` BITIS) → kabul (`foto-ornek-uc-uca-test.py` VAKA_KIRMIZI=0 SURVIVOR=0 + mutant) → dalı it (uç `53bf7ba7` origin'de; işçi üstüne ekler) → önizleme `yukle` → `--tur plaket --kredi-tavani 60` (22/24 beklenir). (3) figür: önizleme D1 `pruvo-katalog-onizleme` `foto_acik` figur=1 → ORNEK koşumu (tavan 60) → render R2 `foto/ornek/figur-1-render.webp` + manifest `ornekler` satırı → `--tur figur --kredi-tavani 60`. (4) sehir: TeKiN işçisi `tekin-sehir-manifold` → `--tur sehir`. Kredi havuzu 2.010 (yeter). Program sonu merge `kral/kopru-15` (MERGE-BEKLIYOR).
 
