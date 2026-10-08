@@ -82,9 +82,12 @@ KAPANIS_BASH = (
 # `send_message` REDDEDILDI, Okan tek tikla /clear yazdi. Devir iletisi + self-clear
 # kapanisin PARCASIDIR. KAPSAM: `send_message` TUM oturumlara gider (devir iletisi
 # baska evin oturumuna yazilir; daraltilacak hedef yok).
+# CronDelete/CronList (7 Eki BaBa): RED'de CronDelete yapilamayinca cron tiki self-clear'i dusurdu -> zombi dongu; CronCreate RED kalir.
 KAPANIS_DEVIR_ARACLARI = (
     "ToolSearch",
     "mcp__ccd_session_mgmt__send_message",
+    "CronDelete",
+    "CronList",
 )
 # `clear_session` semasi: `session_id` = "self" ya da bu oturumun baslattigi bosta bir
 # oturumun sessionId'si. Kapanis yalniz KENDI oturumunu temizler -> hedef "self"/bos

@@ -106,6 +106,10 @@ KOD_EDIT_X = {"file_path": "/Users/okan/dev/pruvo/tools/x.py",
 A_TS = "ToolSearch"
 A_TEMIZLE = "mcp__ccd_session_mgmt__clear_session"
 A_ILET = "mcp__ccd_session_mgmt__send_message"
+# Cron oz-devir (7 Eki BaBa, zombi dongu): CronDelete/CronList GECER, CronCreate RED
+CRON_SIL = {"id": "abc12345"}
+CRON_LISTE = {}
+CRON_KUR = {"cron": "*/30 * * * *", "prompt": "devam"}
 
 # ── FIKSTURLER: her biri BIR esik iddiasini tasir ─────────────────────────────────
 F = {}
@@ -193,12 +197,15 @@ def vaka3b():
                             ("clear_session bos hedef", A_TEMIZLE, TEMIZLE_BOS),
                             ("send_message", A_ILET, ILET),
                             ("DEVAM.md Edit", "Edit", DEFTER_EDIT),
-                            ("git commit", "Bash", COMMIT)):
+                            ("git commit", "Bash", COMMIT),
+                            ("CronDelete", "CronDelete", CRON_SIL),
+                            ("CronList", "CronList", CRON_LISTE)):
         karar, s = kos(arac, girdi, F["red_510k"])
         iddia("3b-%s @510K -> IZIN" % ad, karar == "allow", "karar=%s %s" % (karar, s[:80]))
     for ad, arac, girdi in (("tools/x.py Write", "Write", KOD_WRITE_X),
                             ("tools/x.py Edit", "Edit", KOD_EDIT_X),
-                            ("clear_session BASKA oturum (daraltma)", A_TEMIZLE, TEMIZLE_BASKA)):
+                            ("clear_session BASKA oturum (daraltma)", A_TEMIZLE, TEMIZLE_BASKA),
+                            ("CronCreate", "CronCreate", CRON_KUR)):
         karar, _s = kos(arac, girdi, F["red_510k"])
         iddia("3b-%s @510K -> RED" % ad, karar == "deny", "karar=%s" % karar)
 
@@ -298,6 +305,13 @@ MUTANTLAR = [
      '            print("BAGLAM KOTASI — RED: ',
      "3b — RED kolunun deny'i silinince tools/x.py Write 510K'da GECER",
      [("Write", KOD_WRITE_X, "red_510k", "allow*")]),
+    # M14/M15 (7 Eki BaBa, zombi dongu): cron oz-devir uyeleri.
+    ("M14", "OLDURUCU", '    "CronDelete",\n', "",
+     "3b — CronDelete listeden silinince 510K'da RED",
+     [("CronDelete", CRON_SIL, "red_510k", "deny")]),
+    ("M15", "OLDURUCU", '    "CronList",\n', "",
+     "3b — CronList listeden silinince 510K'da RED",
+     [("CronList", CRON_LISTE, "red_510k", "deny")]),
     ("M8", "KONTROL", '"(defter/kutu Write · git commit/push · okuma-olcme)."',
      '"(defter/kutu Write · git commit/push · okuma-olcme). [kontrol metni]"',
      "yalniz RED teshis metninin kuyrugu degisir -> HICBIR iddia degismemeli", None),
@@ -320,7 +334,10 @@ KONTROL_IZI = [("Write", KOD_WRITE, "red_jeton", "deny"),
                (A_TEMIZLE, TEMIZLE_SELF, "red_510k", "allow*"),
                (A_TEMIZLE, TEMIZLE_BASKA, "red_510k", "deny"),
                (A_ILET, ILET, "red_510k", "allow*"),
-               ("Write", KOD_WRITE_X, "red_510k", "deny")]
+               ("Write", KOD_WRITE_X, "red_510k", "deny"),
+               ("CronDelete", CRON_SIL, "red_510k", "allow*"),
+               ("CronList", CRON_LISTE, "red_510k", "allow*"),
+               ("CronCreate", CRON_KUR, "red_510k", "deny")]
 
 
 def _bekleneni_karsila(arac, girdi, fikstur, beklenen, betik):

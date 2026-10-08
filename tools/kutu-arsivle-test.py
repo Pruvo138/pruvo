@@ -308,11 +308,20 @@ def oracle_kesim(metin, tavan, koru, su_seviye_orani=0.8):
 
 
 # --------------------------------------------------------------------- kosucu
+KOS_SIMDI = "2026-07-01 00:00"
+
+
 def kos(arac, kutu, arsiv, kilit, tavan=300, koru=3, kuru=False, ortam=None,
         su_seviye_orani=0.8, kapanislari_isle=False):
     komut = [sys.executable, arac, "--kutu", kutu, "--arsiv", arsiv, "--kilit", kilit,
              "--tavan", str(tavan), "--koru", str(koru),
-             "--su-seviye-orani", str(su_seviye_orani)]
+             "--su-seviye-orani", str(su_seviye_orani),
+             # 🔴 KORUMA OMRU (8 Eki): fikstur basliklari 2026-07..08 tarihli; gercek saatle
+             # hepsi 48 saati asar ve koruma vakalari OMURDEN dolayi (olcmek istedikleri
+             # koldan degil) tasinirdi. Saat fiksturlerin ONCESINE CIVILENIR -> bu
+             # vakalar omursuz eski semantigi olcmeye devam eder; omur ekseni AYRI
+             # dosyada (tools/kutu-kilidi-test.py) olculur.
+             "--simdi", KOS_SIMDI]
     if kuru:
         komut.append("--kuru")
     if kapanislari_isle:
