@@ -579,6 +579,49 @@ def vakalar(kaynak, sadece=None):
         return ok, "yonet=%s %s" % (y, c[-600:])
     vaka("S11", s11)
 
+    # kopru-15 KREDI-DOKU: KREDI_TIK["doku"]=0 (doku Tikin BASLAYABILECEK ucretli adim yok; re-analiz
+    # ucretsiz — gercek zincir analiz->onarim->doku->analiz->renk). S12: tam zincir analiz'den --devam-is,
+    # KREDI_ONIZLEME ayrilmaz, zengin harita uretim-tik analiz->onarim->doku->renk->hazir yapar;
+    # BETIK rezervasyon = analiz 10 + onarim 10 = 20, D1 fark = onarim+doku+renk = 30, cikti 30/30.
+    # ayrilan=20 ile MB30 (doku=10) ayrilan=30 — S12 KIRMIZI.
+    def s12(o):
+        is_no = "f" * 32
+        no = "ORNEK-" + is_no[:12]
+        c0 = sqlite3.connect(o.db)
+        c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
+                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+        c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
+                   " VALUES (?, 0, ?, 'plaket', 180, 'analiz', 't', 't')", (no, is_no))
+        c0.commit()
+        c0.close()
+        o.sunucu.ayar["zengin_harita"] = True
+        rc, son, c, y = sag(o, 30, devam_is=is_no)
+        ok = (olcut(c, "plaket", "2") == "HAZIR" and olcut(c, "plaket", "4") == "HAZIR" and
+              y.get("/foto/ornek-onizleme", 0) == 0 and y.get("/foto/uretim-tik", 0) == 4 and
+              "KREDI_HARCANAN=30/30" in c and "ayrilan=20" in c)
+        return ok, "yonet=%s %s" % (y, c[-600:])
+    vaka("S12", s12)
+
+    # S13: ayni zincir, tavan 29: BETIK `ayir` (Tik basinda) sonraki adimi gordugu icin onceden yakalayamiyor
+    # (max cum = 20 < 29). POST-sonrasi D1 kontrolu yakalar: Iter 4 (renk) POST'unda D1 fark 30 > 29 DUR;
+    # hata "kredi-tavani D1 30>29 (POST sonrasi, renk oncesi DUR)" — kabul.
+    def s13(o):
+        is_no = "f" * 32
+        no = "ORNEK-" + is_no[:12]
+        c0 = sqlite3.connect(o.db)
+        c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
+                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+        c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
+                   " VALUES (?, 0, ?, 'plaket', 180, 'analiz', 't', 't')", (no, is_no))
+        c0.commit()
+        c0.close()
+        o.sunucu.ayar["zengin_harita"] = True
+        rc, son, c, y = sag(o, 29, devam_is=is_no)
+        ok = (olcut(c, "plaket", "4") == "EKSIK" and
+              "kredi-tavani D1 30>29 (POST sonrasi, renk oncesi DUR)" in c)
+        return ok, "yonet=%s %s" % (y, c[-600:])
+    vaka("S13", s13)
+
     def u7(o):
         hazir_ortam(o)
         o.sunucu.ayar["acik"] = ["qr", "logo"]
@@ -934,6 +977,12 @@ MUTANTLAR = {
     # sayilir (figur gercek tur 400'a duserse) -> U2b KIRMIZI.
     "MB29": ("    return k == 400 and j.get(\"hata\") == hata_bek, (",
              "    return k == 400, (", {"U2b"}),
+    # kopru-15 KREDI-DOKU: KREDI_TIK["doku"]=0 fix MB30'la geri gelirse S12 ayrilan 20->30 KIRMIZI; S13'te
+    # BETIK `ayir` ile once yakalandigi icin POST-sonrasi mesaji degil, "kredi-tavani 20+10>29" gelir —
+    # S13 KIRMIZI.
+    "MB30": ("KREDI_TIK = {\"build-baslat\": 30, \"analiz\": 10, \"onarim\": 10, \"doku\": 0}",
+             "KREDI_TIK = {\"build-baslat\": 30, \"analiz\": 10, \"onarim\": 10, \"doku\": 10}",
+             {"S12", "S13"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }

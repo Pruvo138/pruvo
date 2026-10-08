@@ -82,8 +82,22 @@ TOLERANS = {"D": 0.01, "R": 0.03, "M": 0.01}
 # Onizleme sürümünde cron YOK: zincir `/yonet/foto/uretim-tik` ile tur tur ilerler; her tikten ONCE o tikte
 # BASLAYABILECEK ucretli adimin bedeli kapidan gecer (build-baslat -> build; analiz -> onarim|doku|renk;
 # onarim/doku -> sonraki adim). Yoklama asamalari 0: bedel adim baslarken ayrildi.
+# GERCEK ZINCIR (shop/src/foto.js uretimAdimi; sira analiz->onarim->doku->analiz->renk->hazir): her
+# KREDI_TIK anahtari o ASAMANIN TIKINDE BASLAYABILECEK ucretli adimin ust siniri; yoklama 0:
+#   build-baslat -> build          30  (krediYaz satir 1976; uretimAdimi `build-baslat` blogu)
+#   build         -> analiz          0  (1979: analizBaslat — uretimAdimi `build` blogu)
+#   analiz        -> onarim|renk    10  (2006 renkBaslat VEYA 2016 onarim krediYaz; uretimAdimi `analiz`)
+#   onarim        -> doku           10  (krediYaz satir 2016, doku baslatma 2030; uretimAdimi `onarim`)
+#   doku          -> analiz          0  (uretim-doku bitince YenIDEN analizBaslat: 2045 — ucretsiz re-analiz)
+#   renk          -> hazir           0  (krediYaz satir 2054; uretimAdimi `renk`)
+# `doku` 0 cunku doku adiminin kendi ucreti zincirin oncesinde `onarim` Tikte (10) zaten ayrilmis; uretim-doku
+# bittikten sonra analizBaslat yalniz bir sonraki (ucretsiz re-)analiz->renk kapisini acar.
 KREDI_ONIZLEME = 6
-KREDI_TIK = {"build-baslat": 30, "analiz": 10, "onarim": 10, "doku": 10}
+KREDI_TIK = {"build-baslat": 30, "analiz": 10, "onarim": 10, "doku": 0}
+# KREDI_TIK_POST: her POST'tan sonra D1 farki tavan asimi KONTROLU (BETIK `ayir` sadece BIR SONRAKI adimi
+# gorur; cum D1 ancak POST sonrasi yakalanir). Renk adiminin kendisi 10 ama KREDI_TIK['renk']=0; zincir
+# sonunda D1 fark ile yakalanir.
+KREDI_TIK_POST_TAVAN_KONTROLU = True
 YOKLAMA_SAYI = 120
 OLCUTLER = ["1", "2", "3", "4", "5", "6"]
 ETIKET = {"1": "①", "2": "②", "3": "③", "4": "④", "5": "⑤", "6": "⑥"}
@@ -1022,6 +1036,14 @@ def saglayici_4(tr, kredi):
         if k != 200:
             tr.koy("4", False, "uretim-tik kod=%s" % k)
             return False
+        # POST sonrasi D1 fark tavan kontrolu: BETIK `ayir` (Tik basinda) yalniz BIR SONRAKI adimi gorur;
+        # cum D1 (ornek doku->renk gecisi) yalniz POST sonrasi yakalanir. Renk gibi KREDI_TIK=0 adimlar
+        # icin gec yakalama olmadan kullanici tasarini gormezden gelir.
+        if KREDI_TIK_POST_TAVAN_KONTROLU:
+            h = kredi.toplam() - kredi.taban
+            if h > kredi.tavan:
+                tr.koy("4", False, "kredi-tavani D1 %d>%d (POST sonrasi, renk oncesi DUR)" % (h, kredi.tavan))
+                return False
         yokla_bekle()
     tr.koy("4", False, "siparis=%s zaman-asimi asama=%s" % (no, onceki))
     return False
@@ -1368,7 +1390,8 @@ def main(argv=None):
             n += 1 if tr.hazir() else 0
         rc = 0 if n == len(turler) else 1
         if kredi:
-            print("KREDI_HARCANAN=%d/%d taban=%d" % (kredi.harcanan(), kredi.tavan, kredi.taban))
+            print("KREDI_HARCANAN=%d/%d taban=%d ayrilan=%d D1_fark=%d" % (
+                kredi.harcanan(), kredi.tavan, kredi.taban, kredi.ayrilan, kredi.toplam() - kredi.taban))
         print("HAZIR=%d/%d rc=%d" % (n, len(turler), rc))
         return rc
     except Ayar as e:
