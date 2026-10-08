@@ -1,6 +1,6 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-**AÇILIŞTA: Skill loop 45m devam kur, CronList kanıtı kutuya** (BaBa 01:0x; döngü oturum-içi, öz-devir/yeniden başlatma/7 günde ÖLÜR) · kota öz-devri ≥300K ya da ≥350 tur → DEVİR + BaBa'ya "DEVİR yazdım, temizleniyorum" + `clear_session("self")` (BaBa 00:5x(b)).
+**AÇILIŞTA: Skill loop 45m devam kur, CronList kanıtı kutuya** (BaBa 01:0x; döngü oturum-içi, öz-devir/yeniden başlatma/7 günde ÖLÜR) · kota öz-devri ≥500K (tur sayısı tetik DEĞİL; BITIS'siz işçi varken öz-devir YOK) → DEVİR + BaBa'ya "DEVİR yazdım, temizleniyorum" + `clear_session("self")` (OKAN KARARI, BaBa 15:2x).
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
