@@ -34,10 +34,14 @@
  *    YOKTUR. Harcanan her kredi `foto_kredi` defterine gorev kimligiyle (idempotent) yazilir.
  * 🔴 SESSIZ GECIS YOK (2. madde): analiz kirmiziysa renk adimi KOSMAZ; uretim satiri
  *    'elle' asamasina sebebiyle duser, panelde gorunur ve Telegram'a bir kez gider.
- * ONARIM (6 Eki, ilk gercek ornek sizdirmaz cikmadi): ILK kirmizi analizde satir BIR KEZ
- *    onarima gider: 'onarim' (sizdirmazlik onarimi; dokuyu siler) -> 'doku' (onarilan modele
- *    onizleme gorseliyle yeniden doku; renk adimi dokusuz modeli reddeder) -> 'analiz' YENIDEN.
- *    Onarim sonrasi analiz hala kirmiziysa 'elle' (ikinci onarim YOK, renk KOSMAZ).
+ * ONARIM (6 Eki ilk gercek ornek sizdirmaz cikmadi; 8 Eki figur warning+metrik kusur):
+ *    onarimGerekli(p) = status 'error'/bilinmiyor VEYA status 'warning' + metrik kusurlu
+ *      (degenerate_faces > 0, non_manifold_edges > 0, holes > 0, is_watertight === false).
+ *      Metrik alani yok/sayi degilse warning bugunku gibi renk (figur ozeti).
+ *    ILK kirmizi analizde satir BIR KEZ onarima gider: 'onarim' (sizdirmazlik onarimi; dokuyu
+ *      siler) -> 'doku' (onarilan modele onizleme gorseliyle yeniden doku; renk adimi dokusuz
+ *      modeli reddeder) -> 'analiz' YENIDEN. Onarim sonrasi analiz hala kirmiziysa 'elle'
+ *      (ikinci onarim YOK, renk KOSMAZ; tavan zincir(u).length >= 2).
  *    Zincir D1 semasi degismeden build_gorev'de tutulur: "<model>" | "<model>~<onarim>" |
  *    "<model>~<onarim>~<doku>"; son ogedeki model renk adimina ve depoya giden modeldir.
  * OLCU KAPISI (6 Eki, onarimli ornekte 3MF 1094 mm geldi): 3MF R2'ye yazilmadan ONCE olculur
@@ -1883,6 +1887,21 @@ function hataKolu(kod) {
 /** build_gorev zinciri: [model, onarim?, doku?] (bkz. dosya basi ONARIM). */
 function zincir(u) { return String(u.build_gorev || "").split("~"); }
 
+/** Onarim gerekli mi? status 'error'/bilinmiyor VEYA status 'warning' + metrik kusurlu.
+ *  Metrik alani yok/sayi degilse warning bugunku gibi renk (figur ozeti 8 Eki). */
+function onarimGerekli(p) {
+  if (!p || typeof p !== "object") { return true; }
+  if (p.status === "healthy") { return false; }
+  if (p.status !== "warning") { return true; }
+  const m = (typeof p.metrics === "object" && p.metrics !== null) ? p.metrics : null;
+  if (!m) { return false; }
+  if (m.is_watertight === false) { return true; }
+  if (typeof m.degenerate_faces === "number" && m.degenerate_faces > 0) { return true; }
+  if (typeof m.non_manifold_edges === "number" && m.non_manifold_edges > 0) { return true; }
+  if (typeof m.holes === "number" && m.holes > 0) { return true; }
+  return false;
+}
+
 /** Renk adimina ve depoya giden model: onarilip dokulandiysa doku gorevi, degilse model gorevi. */
 async function modelGorevi(env, u) {
   const z = zincir(u);
@@ -1970,8 +1989,9 @@ async function uretimAdimi(env, u, simdi, telegram) {
     const p = c.govde.printability || {};
     const ozet = JSON.stringify({ durum: p.status || "unknown", hata: p.error_count || 0,
                                   uyari: p.warning_count || 0, olcum: p.metrics || {} }).slice(0, 600);
-    // KIRMIZI = 'error' ya da durum hic gelmedi: renk adimi KOSMAZ (sessiz gecis yok).
-    if (p.status !== "healthy" && p.status !== "warning") {
+    // KIRMIZI = status 'error'/bilinmiyor VEYA status 'warning' + metrik kusurlu (bkz. onarimGerekli).
+    // Sessiz gecis yok: renk adimi KOSMAZ, onarim ya da elle.
+    if (onarimGerekli(p)) {
       // Deneme tavani: satir basina TEK onarim. Onarilmis modelin analizi de kirmiziysa elle.
       if (zincir(u).length >= 2) {
         return elleDusur(env, u, "analiz-kirmizi", ozet, simdi, telegram);

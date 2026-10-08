@@ -279,6 +279,10 @@ const P = {
   protoDurum: new Map(),
   // ONARIM: analiz sonucu modele gore (onarilmis+dokulu model ayri sonuc verebilir).
   analizOnarim: null, analizModel: new Map(), onarimKod: 0,
+  // A) WARNING+METRIK KUSUR: warning durumunda override metrik (figur ornegi).
+  //    { degenerate_faces: 316227 } → status 'warning' + metrik kusurlu.
+  //    { noMetrics: true } → status 'warning' + metrics alani YOK.
+  analizMetrik: null,
 };
 let sayac = 0;
 const yeniId = () => "gorev-" + String(++sayac).padStart(4, "0") + "-aaaa";
@@ -315,9 +319,22 @@ globalThis.fetch = async function sahteFetch(hedef, init) {
     if ((m = /^\/v1\/print\/analyze\/(.+)$/.exec(yol))) {
       const dokulu = /model-dokulu\.glb/.test(P.analizModel.get(m[1]) || "");
       const d = dokulu && P.analizOnarim ? P.analizOnarim : P.analiz;
-      return yanit({ status: "SUCCEEDED", consumed_credits: 0,
-        printability: { status: d, error_count: d === "error" ? 1 : 0, warning_count: 0,
-                        metrics: { is_watertight: d !== "error", non_manifold_edges: d === "error" ? 12 : 0 } } });
+      const pr = { status: d, error_count: d === "error" ? 1 : 0, warning_count: 0 };
+      if (P.analizMetrik && d === "warning") {
+        // A) WARNING+METRIK: override metrik (figur ornegi 8 Eki); noMetrics → alan YOK.
+        if (!P.analizMetrik.noMetrics) {
+          pr.metrics = {
+            is_watertight: P.analizMetrik.is_watertight !== undefined ? P.analizMetrik.is_watertight : true,
+            non_manifold_edges: P.analizMetrik.non_manifold_edges || 0,
+            degenerate_faces: P.analizMetrik.degenerate_faces || 0,
+            holes: P.analizMetrik.holes || 0,
+          };
+        }
+      } else {
+        pr.metrics = { is_watertight: d !== "error", non_manifold_edges: d === "error" ? 12 : 0,
+                       degenerate_faces: 0, holes: 0 };
+      }
+      return yanit({ status: "SUCCEEDED", consumed_credits: 0, printability: pr });
     }
     if (yontem === "POST" && yol === "/v1/print/repair") {
       if (P.onarimKod) { return yanit({ message: "x" }, P.onarimKod); }
@@ -1055,6 +1072,77 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   Object.defineProperty(sonuc, "araliklar", { value: araliklar, enumerable: false });
   Object.defineProperty(sonuc, "yoklamalar", { value: yoklamalar, enumerable: false });
   return sonuc;
+}
+
+console.log("A) ONARIM KAPISI — status 'warning' + metrik kusurlu (8 Eki figur ornegi; onarimGerekli)");
+{
+  const odenmis = async (ip) => {
+    const ok = await istek(env, "/foto/onizleme", { ip, govde: onizlemeGovde() });
+    for (let i = 0; i < 2; i++) {
+      await d1.prepare("UPDATE foto_isler SET son_kontrol = 0 WHERE is_no = ?").bind(ok.v.is).run();
+      await istek(env, "/foto/durum?is=" + ok.v.is);
+    }
+    const b = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
+      sepet: [{ foto_is: ok.v.is, olcu_mm: 100, adet: 1 }] } });
+    await d1.prepare("UPDATE siparisler SET durum = 'odendi' WHERE siparis_no = ?").bind(b.v.no).run();
+    return { no: b.v.no, is: ok.v.is };
+  };
+  const say = (c) => P.cagri.filter((x) => x === c).length;
+  const satir = (no) => d1.prepare("SELECT asama, sebep, build_gorev, analiz FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
+  const sur = async (no, n, dur) => { for (let i = 0; i < n; i++) { await cron(); const u = await satir(no); if (u && dur(u)) { return u; } } return satir(no); };
+
+  // A1: warning + degenerate_faces 316227 → repair, asama 'onarim'.
+  P.analiz = "warning"; P.analizMetrik = { degenerate_faces: 316227 }; P.analizOnarim = null;
+  const s1 = await odenmis("198.51.100.131");
+  const o1 = say("POST /v1/print/repair"), r1 = say("POST /v1/print/multi-color");
+  const u1 = await sur(s1.no, 12, (u) => u.asama === "onarim" || u.asama === "doku" || u.asama === "hazir" || u.asama === "elle");
+  ol("A1 warning+deg_faces 316227 → repair çağrıldı, asama 'onarim' (degisecek: onarim/doku/hazir/elle)",
+     u1 && (u1.asama === "onarim" || u1.asama === "doku" || u1.asama === "hazir" || u1.asama === "elle") &&
+     say("POST /v1/print/repair") === o1 + 1,
+     "asama=" + (u1 && u1.asama) + " repairDelta=" + (say("POST /v1/print/repair") - o1) + " renkDelta=" + (r1 - say("POST /v1/print/multi-color")));
+  P.analizMetrik = null;
+
+  // A2: warning + tum metrikler 0/true → renk (bugunku davranis).
+  P.analiz = "warning";
+  const s2 = await odenmis("198.51.100.132");
+  const o2 = say("POST /v1/print/repair");
+  const u2 = await sur(s2.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
+  ol("A2 warning+tum-metrikler-0/true → renk (repair KOSMADI, hazir)",
+     u2 && u2.asama === "hazir" && say("POST /v1/print/repair") === o2,
+     "asama=" + (u2 && u2.asama) + " repairDelta=" + (say("POST /v1/print/repair") - o2));
+  P.analiz = "healthy";
+
+  // A3: healthy → renk (en temiz; repair KOSMAZ).
+  const s3 = await odenmis("198.51.100.133");
+  const o3 = say("POST /v1/print/repair");
+  const u3 = await sur(s3.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
+  ol("A3 healthy → renk (repair KOSMADI, hazir)",
+     u3 && u3.asama === "hazir" && say("POST /v1/print/repair") === o3,
+     "asama=" + (u3 && u3.asama) + " repairDelta=" + (say("POST /v1/print/repair") - o3));
+
+  // A4: onarilmis zincirde warning + kusur (holes) → elle (tek onarim tavan, sonsuz onarim YOK).
+  P.analiz = "warning"; P.analizMetrik = { holes: 1 }; P.analizOnarim = "warning";
+  const s4 = await odenmis("198.51.100.134");
+  const o4 = say("POST /v1/print/repair"), r4 = say("POST /v1/print/multi-color");
+  const u4 = await sur(s4.no, 14, (u) => u.asama === "hazir" || u.asama === "elle");
+  ol("A4 zincir(~)+warning+kusur → 'elle' analiz-kirmizi (tek onarim tavan, sonsuz onarim YOK)",
+     u4 && u4.asama === "elle" && u4.sebep === "analiz-kirmizi" &&
+     say("POST /v1/print/repair") === o4 + 1 && say("POST /v1/print/multi-color") === r4,
+     "asama=" + (u4 && u4.asama) + " sebep=" + (u4 && u4.sebep) +
+     " repairDelta=" + (say("POST /v1/print/repair") - o4) +
+     " renkDelta=" + (say("POST /v1/print/multi-color") - r4) +
+     " zincir=" + (u4 && u4.build_gorev));
+  P.analizMetrik = null; P.analizOnarim = null; P.analiz = "healthy";
+
+  // A5: warning + metrik alani YOK → renk (figur ozeti: metrik gelmedigi durumda bugunku gibi).
+  P.analiz = "warning"; P.analizMetrik = { noMetrics: true };
+  const s5 = await odenmis("198.51.100.135");
+  const o5 = say("POST /v1/print/repair");
+  const u5 = await sur(s5.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
+  ol("A5 warning+metrik-yok → renk (repair KOSMADI, hazir; figur ozeti)",
+     u5 && u5.asama === "hazir" && say("POST /v1/print/repair") === o5,
+     "asama=" + (u5 && u5.asama) + " repairDelta=" + (say("POST /v1/print/repair") - o5));
+  P.analizMetrik = null; P.analiz = "healthy";
 }
 
 console.log("R) ONARIM — kirmizi analiz -> onarim -> yeniden doku -> YENIDEN analiz (6 Eki)");
@@ -2110,7 +2198,7 @@ for (const [ad, capa, yerine, olmeli] of NOT_MUTANTLAR) {
 const MUTANTLAR = [
   ["M1 SINIR", "if (sayi.kisi >= VERI.sinir_ziyaretci_24s) {", "if (false) {", "D"],
   ["M2 BOT", "if (!(await botDogrula(request, env, g.turnstile_token))) {", "if (false) {", "E"],
-  ["M3 ANALIZ", "if (p.status !== \"healthy\" && p.status !== \"warning\") {", "if (false) {", "J"],
+  ["M3 ANALIZ", "if (onarimGerekli(p)) {", "if (false) {", "J"],
   // Tur uyeligi MANIFESTTEN (motor M + ortam eslemesi); kapi silinince manifestte olmayan tur acilir.
   ["M4 ANAHTARLIK GERI ACILDI (manifest kapisi silindi)", "VERI.kolu(kod) === \"saglayici\" &&\n    Object.prototype.hasOwnProperty.call(TUR_ORTAM, kod);",
    "kod !== \"\";", "T"],
@@ -2176,6 +2264,76 @@ for (const [ad, capa, yerine, olmeli] of ONARIM_MUTANTLAR) {
        s[olmeli] === false && Object.keys(s).filter((x) => x !== olmeli).every((x) => s[x] === true), JSON.stringify(s));
   } else {
     ol(ad + " -> hicbir onarim senaryosu kirmizi yanmaz", Object.values(s).length === 2 && Object.values(s).every((x) => x === true), JSON.stringify(s));
+  }
+}
+
+/** Mutanta karsi bes dar onarim-kapisi senaryosu (temiz SQLite). A1-A5: onarimGerekli(p) karari.
+ *  A1 warning+deg_faces 316227 → onarim en az 1 kez (tavan sonrasi 'elle'; sonsuz onarim YOK).
+ *  A2 warning + tum metrikler 0/true → renk (repair 0; bugunku davranis).
+ *  A3 healthy → renk (repair 0; en temiz yol).
+ *  A4 zincir(~) + warning + kusur → 'elle' analiz-kirmizi (tek onarim tavan).
+ *  A5 warning + metrik alani YOK → renk (repair 0; figur ozeti 8 Eki).
+ *  Her anahtar SENARYONUN GECTIGI (`true`) ya da KIRMIZI YANDIGI (`false`) durumunu tasir. */
+async function metrikSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  const is = "d".repeat(32);
+  await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'plaket', 100, 'z', ?, 'hazir', 'gorev-proto-8888', ?)")
+    .bind(is, new Date().toISOString(), new Date().toISOString()).run();
+  P.protoDurum.set("gorev-proto-8888", 5);
+  const sonuc = {};
+  const kos = async (no, a, ao, am) => {
+    await k.d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES (?, ?, 'odendi', 1, ?)")
+      .bind(no, new Date().toISOString(), JSON.stringify([{ id: "ozel-foto-plaket", foto_is: is, foto_tur: "plaket", olcu_mm: 100 }])).run();
+    P.analiz = a; P.analizOnarim = ao; P.analizMetrik = am;
+    const on = P.cagri.filter((c) => c === "POST /v1/print/repair").length;
+    const rn = P.cagri.filter((c) => c === "POST /v1/print/multi-color").length;
+    const an = P.cagri.filter((c) => c === "POST /v1/print/analyze").length;
+    for (let i = 0; i < 14; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
+    P.analiz = "healthy"; P.analizOnarim = null; P.analizMetrik = null;
+    const u = await k.d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
+    return { u, onarim: P.cagri.filter((c) => c === "POST /v1/print/repair").length - on,
+             renk: P.cagri.filter((c) => c === "POST /v1/print/multi-color").length - rn,
+             analiz: P.cagri.filter((c) => c === "POST /v1/print/analyze").length - an };
+  };
+  // A1: warning + degenerate_faces 316227 → onarim en az 1 kez (tavan sonrasi elle; renk 0).
+  const a1 = await kos("PR-TEST-MA1", "warning", null, { degenerate_faces: 316227 });
+  sonuc.A1 = !!a1.u && a1.onarim >= 1 && a1.renk === 0;
+  // A2: warning + metrik 0/true → renk, repair 0 (bugunku davranis korunur).
+  const a2 = await kos("PR-TEST-MA2", "warning", null, null);
+  sonuc.A2 = !!a2.u && a2.u.asama === "hazir" && a2.onarim === 0;
+  // A3: healthy → renk, repair 0.
+  const a3 = await kos("PR-TEST-MA3", "healthy", null, null);
+  sonuc.A3 = !!a3.u && a3.u.asama === "hazir" && a3.onarim === 0;
+  // A4: zincir(~) + warning + kusur (holes) → 'elle' analiz-kirmizi, tek onarim (tavan).
+  const a4 = await kos("PR-TEST-MA4", "warning", "warning", { holes: 1 });
+  sonuc.A4 = !!a4.u && a4.u.asama === "elle" && a4.u.sebep === "analiz-kirmizi" && a4.onarim === 1;
+  // A5: warning + metrik alani YOK → renk, repair 0 (figur ozeti).
+  const a5 = await kos("PR-TEST-MA5", "warning", null, { noMetrics: true });
+  sonuc.A5 = !!a5.u && a5.u.asama === "hazir" && a5.onarim === 0;
+  k.kapat();
+  return sonuc;
+}
+
+const METRIK_MUTANTLAR = [
+  // A1: degenerate_faces kontrolu silinirse warning+deg_faces 316227 → renk (repair KOSMAZ).
+  ["N4 KUSUR KOSULU SILINDI (deg_faces)", "if (typeof m.degenerate_faces === \"number\" && m.degenerate_faces > 0) { return true; }",
+   "if (false) { return true; }", "A1"],
+  // A4: tavan kontrolu silinirse zincir(~)+kusur → ikinci onarim (sonsuz).
+  ["N5 TAVAN KONTROLU SILINDI (zincir.length>=2)",
+   "if (zincir(u).length >= 2) {\n        return elleDusur(env, u, \"analiz-kirmizi\", ozet, simdi, telegram);\n      }",
+   "if (false) {\n      }", "A4"],
+  ["N6 KONTROL", "console.log(\"FOTO_URETIM kuyruga=\"", "console.log(\"FOTO_URETIM  kuyruga=\"", null],
+];
+for (const [ad, capa, yerine, olmeli] of METRIK_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const s = await metrikSenaryolar(fm);
+  if (olmeli) {
+    ol(ad + " -> " + olmeli + " KIRMIZI yanar (digerleri yesil)",
+       s[olmeli] === false && Object.keys(s).filter((x) => x !== olmeli).every((x) => s[x] === true), JSON.stringify(s));
+  } else {
+    ol(ad + " -> hicbir metrik senaryosu kirmizi yanmaz", Object.values(s).length === 5 && Object.values(s).every((x) => x === true), JSON.stringify(s));
   }
 }
 
