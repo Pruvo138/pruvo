@@ -303,15 +303,31 @@
     ".foto-uretim-serit-cizgi{flex:1 1 40px;height:1px;background:#c9d0da;margin-top:24px;min-width:12px;}" +
     ".foto-uretim-vitrin{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;" +
     "background:#fff;color:var(--navy);border-radius:14px;padding:18px;margin:0 0 22px;}" +
-    ".foto-uretim-galeri{display:flex;gap:12px;min-width:0;}" +
-    ".foto-uretim-galeri-kucukler{display:flex;flex-direction:column;gap:8px;flex:0 0 68px;" +
-    "max-height:560px;overflow-y:auto;scroll-snap-type:y proximity;}" +
-    ".foto-uretim-galeri-kucuk{position:relative;display:block;flex:0 0 auto;width:64px;height:64px;padding:0;" +
-    "border:2px solid transparent;border-radius:10px;background:#eef0f3;cursor:pointer;overflow:hidden;scroll-snap-align:start;}" +
-    ".foto-uretim-yakinda{position:absolute;left:2px;top:2px;background:var(--navy);color:#fff;font-size:9px;" +
-    "font-weight:700;line-height:1;padding:3px 4px;border-radius:4px;pointer-events:none;}" +
-    ".foto-uretim-galeri-kucuk img{display:block;width:100%;height:100%;object-fit:cover;}" +
-    ".foto-uretim-galeri-kucuk.secili{border-color:var(--navy);box-shadow:0 0 0 2px #fff inset;}" +
+    // 13:4x: 24 küçük resim ızgarası — masaüstü 6 sütun, ≤480 px'te 4 sütun. Her kartta görsel +
+    // kategori adı + "önizleme/render" etiketi; tık/Enter → büyütme (mevcut isikAc).
+    ".foto-uretim-galeri{display:flex;flex-direction:column;gap:10px;min-width:0;}" +
+    ".foto-uretim-galeri-kucukler{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;" +
+    "max-height:560px;overflow-y:auto;}" +
+    ".foto-uretim-galeri-kucuk{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:4px;" +
+    "padding:6px;border:2px solid transparent;border-radius:10px;background:#eef0f3;cursor:pointer;" +
+    "overflow:hidden;text-align:left;color:inherit;font:inherit;}" +
+    ".foto-uretim-yakinda{position:absolute;left:4px;top:4px;background:var(--navy);color:#fff;font-size:9px;" +
+    "font-weight:700;line-height:1;padding:3px 4px;border-radius:4px;pointer-events:none;z-index:1;}" +
+    ".foto-uretim-galeri-kucuk img{display:block;width:100%;aspect-ratio:1/1;height:auto;object-fit:cover;" +
+    "border-radius:6px;background:#fff;}" +
+    ".foto-uretim-galeri-kucuk-ad{display:block;font-size:12px;font-weight:700;color:var(--navy);" +
+    "  line-height:1.25;min-height:30px;overflow:hidden;text-overflow:ellipsis;}" +
+    ".foto-uretim-galeri-kucuk-etiket{display:block;font-size:10px;color:#5b6573;line-height:1;}" +
+    ".foto-uretim-galeri-kucuk.secili{border-color:var(--navy);background:#fff;box-shadow:0 0 0 2px #fff inset;}" +
+    ".foto-uretim-galeri-kucuk.secili .foto-uretim-galeri-kucuk-etiket{color:var(--navy);font-weight:700;}" +
+    ".foto-uretim-galeri-kucuk:focus-visible{outline:2px solid var(--navy);outline-offset:2px;}" +
+    // 13:5x: "Seçili: <ad>" satırı (galeri altında, küçük resim vurgulu).
+    ".foto-uretim-galeri-secili{margin:0;font-size:14px;font-weight:700;color:var(--navy);min-height:18px;}" +
+    // ≤480 px: 4 sütun, daha küçük kart.
+    "@media (max-width:480px){" +
+    ".foto-uretim-galeri-kucukler{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}" +
+    ".foto-uretim-galeri-kucuk-ad{font-size:11px;min-height:26px;}" +
+    "}" +
     ".foto-uretim-buyuk{flex:1 1 auto;min-width:0;}" +
     ".foto-uretim-buyuk-kart{position:relative;background:#e6ebf1;border-radius:14px;overflow:hidden;cursor:zoom-in;}" +
     ".foto-uretim-buyuk-kart:focus-visible{outline:2px solid var(--navy);outline-offset:2px;}" +
@@ -323,6 +339,9 @@
     ".foto-uretim-isik-img{display:block;max-width:100%;max-height:calc(100vh - 160px);width:auto;height:auto;" +
     "object-fit:contain;border-radius:8px;background:#e6ebf1;}" +
     ".foto-uretim-isik-alt{color:#e9edf3;font-size:13px;text-align:center;line-height:1.4;overflow-wrap:anywhere;}" +
+    // 13:4x mimar bulgusu: ornek_notu (dürüstlük cümlesi) lightbox'ta görünür; ornek_notu bos turun gizlenir.
+    ".foto-uretim-isik-not{color:#d6dce4;font-size:12px;text-align:center;line-height:1.45;max-width:680px;margin:8px auto 0;}" +
+    ".foto-uretim-isik-not:empty{display:none;}" +
     ".foto-uretim-isik-kapat,.foto-uretim-isik-ok{position:absolute;width:44px;height:44px;border:0;border-radius:50%;" +
     "background:rgba(255,255,255,.16);color:#fff;font-size:28px;line-height:1;cursor:pointer;padding:0;}" +
     ".foto-uretim-isik-kapat{top:8px;right:8px;}" +
@@ -387,13 +406,14 @@
     ".foto-uretim-konsept-hata{color:#b3261e;}" +
     "img,input,button,textarea,select{max-width:100%;}" +
     ".foto-uretim *{overflow-wrap:anywhere;}" +
+    // 13:4x: 760px ≤ 4 sütun, ≤480px daha küçük kart. Daha küçük ekranda 2 sütun.
     "@media (max-width:760px){" +
     ".foto-uretim-vitrin{grid-template-columns:minmax(0,1fr);padding:12px;gap:16px;}" +
-    ".foto-uretim-galeri{flex-direction:column-reverse;}" +
-    ".foto-uretim-galeri-kucukler{flex-direction:row;flex:0 0 auto;max-width:100%;max-height:none;min-width:0;" +
-    "overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:2px;}" +
-    ".foto-uretim-galeri-kucuk{flex:0 0 56px;width:56px;height:56px;}" +
+    ".foto-uretim-galeri-kucukler{grid-template-columns:repeat(4,minmax(0,1fr));}" +
     ".foto-uretim-vitrin .foto-uretim-baslik{font-size:22px;}" +
+    "}" +
+    "@media (max-width:380px){" +
+    ".foto-uretim-galeri-kucukler{grid-template-columns:repeat(2,minmax(0,1fr));}" +
     "}" +
     "@media (max-width:640px){" +
     ".foto-uretim-ornek-gorseller{flex-direction:column;}" +
@@ -559,6 +579,8 @@
   /* ============== ANA YAPISI ============== */
   // Adım 2 etiketi tür SAYISINA göre: F = veri dosyası ya da /acik yanıtı (ikisi de .turler taşır).
   function adim2Etiketi(F) { return F.turler.length > 1 ? "Tür ve ölçü" : "Ölçü"; }
+// 13:5x: tür adımı kalmadı (galeri seçer); adım çubuğu yalnız ölçüyü gösterir.
+function adim2EtiketiArayuz3() { return "Ölçü ve tasarım"; }
 
   /* ============== LITOFAN (deterministik kol) ============== */
   // Deterministik kol + tarayıcı önizleyicisi kayıtlı üreteç (bugün litofan).
@@ -1356,9 +1378,11 @@
   }
 
   /* ornekler — kanitina gore (baski: gercek fotograf · render: onizleme + uretim dosyasi).
-     Sol galeri: TÜM türlerin ilk geçerli örneği (Okan 7 Eki: "farklı çeşitteki ürünlerden"), seçili çerçeveli,
-     + büyük önizleme kartı + tam ekran büyütme (isikAc).
-     acikKodlar: /foto/acik turleri — SÜZMEZ; açık türler önce, açık olmayanlar "Yakında" etiketli (sipariş edilemez).
+     Izgara: TÜM türlerin ilk geçerli örneği (Okan 7 Eki: "farklı çeşitteki ürünlerden") + 24 küçük
+     resim (13:4x). Her kartta görsel + kategori adı + "önizleme/render" etiketi; tık/Enter →
+     büyütme (mevcut isikAc lightbox: ✕ · Esc · dış tık kapatır, odak tıklanan karta döner).
+     Tek tık = seç (13:5x) + büyüt. "Yakında" kartı seçilemez ama büyütülebilir (isikAc yer tutucuda no-op).
+     acikKodlar: /foto/acik turleri — SÜZMEZ; açık türler önce, açık olmayanlar "Yakında" etiketli.
      null = henüz bilinmiyor (etiket yok, veri sırası). */
   function ornekCiz(ornekBlok, acikKodlar) {
     while (ornekBlok.firstChild) ornekBlok.removeChild(ornekBlok.firstChild);
@@ -1378,9 +1402,8 @@
     }
     var liste = aciklar.concat(digerleri);
     // YER TUTUCU: açık olmayan türler (kayıt YOK → sunucu etkilenmez; galeri TÜM kategorileri gösterir).
-    // `yerTutucu:true` küçük resimde ikon kutusu, büyük kartta ikon + "Bu tür yakında eklenecek." yazar;
-    // lightbox açılmaz (görsel yok). Sıra: görsel türler → yer tutucular (lightbox gezintisi görsellerde kalır).
-    // Aynı koddaki tür gerçek örneğiyle galerideyse yer tutucusu ÇİZİLMEZ (aynı tür iki kez + "yakında" yalanı).
+    // `yerTutucu:true` küçük resimde ikon kutusu; lightbox açılmaz (görsel yok). Sıra: görsel türler →
+    // yer tutucular. Aynı koddaki tür gerçek örneğiyle galerideyse yer tutucusu ÇİZİLMEZ.
     var cizilen = {};
     for (var ci = 0; ci < liste.length; ci++) cizilen[liste[ci].tur.kod] = true;
     for (var yi = 0; yi < YER_TUTUCU.length; yi++) {
@@ -1392,23 +1415,28 @@
     S.galeriListe = liste;
     var renderSay = 0;
     for (var r = 0; r < liste.length; r++) { if (liste[r].kanit === "render") renderSay++; }
-    // Baslik kanittan: hepsi basilmis urunse "Gerçek örnekler"; render varsa render oldugu yazar.
+    // Baslik kanittan: hepsi basilmis urunse "Örnekler (basılmış ürün)"; hepsi render'sa "Örnekler (önizleme/render)"; karisiksa "Örnekler".
+    // "Gerçek örnekler" ve "gerçek fotoğraf" ifadeleri YASAK (hukuk kapisi 13:4x mimar karari).
     var baslik = el("h3", "foto-uretim-blok-baslik",
-      !liste.length || renderSay === 0 ? "Gerçek örnekler"
+      !liste.length || renderSay === 0 ? "Örnekler (basılmış ürün)"
         : (renderSay === liste.length ? "Örnekler (önizleme/render)" : "Örnekler"));
     ornekBlok.appendChild(baslik);
     if (!liste.length) {
       ornekBlok.appendChild(el("p", "foto-uretim-ayrinti", "Henüz gerçek örnek yayınlanmadı."));
-      vitrinGuncelle(S.tur || (F.turler[0] && F.turler[0].kod));
       return;
     }
     // Ziyaretçinin seçtiği tür yeniden çizimde (açık liste gelince sıra değişir) korunur.
-    S.galeriSecili = 0;
+    S.galeriSecili = -1;
     for (var s = 0; s < liste.length; s++) { if (liste[s].tur.kod === S.galeriSeciliKod) S.galeriSecili = s; }
     var galeri = el("div", "foto-uretim-galeri");
     var kucukler = el("div", "foto-uretim-galeri-kucukler");
     kucukler.setAttribute("role", "list");
     S.galeriKutu = kucukler;
+    // Seçili kart satırı (13:5x): görsel kart seçilince "Seçili: <ad>" yazılır.
+    var seciliSatir = el("p", "foto-uretim-galeri-secili");
+    seciliSatir.id = "foto-galeri-secili";
+    seciliSatir.setAttribute("aria-live", "polite");
+    S.galeriSeciliSatir = seciliSatir;
     for (var k = 0; k < liste.length; k++) {
       (function (n) {
         var it = liste[n];
@@ -1418,6 +1446,8 @@
         d.setAttribute("aria-label", it.tur.ad + " örneği" + (it.yakinda ? " (yakında)" : ""));
         d.setAttribute("data-tur", it.tur.kod);
         d.setAttribute("aria-pressed", n === S.galeriSecili ? "true" : "false");
+        // 13:5x: Yakında/yer tutucu kart seçilemez (aria-selected = false); görsel kart seçilebilir.
+        d.setAttribute("aria-selected", (!it.yerTutucu && !it.yakinda && n === S.galeriSecili) ? "true" : "false");
         if (it.yerTutucu) {
           // YER TUTUCU: <img> yerine ikon kutusu (görsel değil metin; kaynak/kredi 0).
           var ikSpan = el("span", "foto-uretim-galeri-yer-ikon", it.ikon);
@@ -1430,114 +1460,144 @@
           if (n > 0) im.loading = "lazy";
           d.appendChild(im);
         }
+        // 13:4x: kartta kategori adı + "önizleme/render" etiketi (görsel kart).
+        if (!it.yerTutucu) {
+          d.appendChild(el("span", "foto-uretim-galeri-kucuk-ad", it.tur.ad));
+          d.appendChild(el("span", "foto-uretim-galeri-kucuk-etiket",
+            it.kanit === "render" ? "önizleme/render" : "basılmış ürün"));
+        }
         if (it.yakinda) d.appendChild(el("span", "foto-uretim-yakinda", "Yakında"));
-        // Seçili küçük resme ikinci basış tam ekran büyütür (yer tutucuda isikAc engeli no-op; görsel yok).
+        // 13:4x + 13:5x: tek tık = seç + büyüt. Yakında/yer tutucu: seçim yok, sadece büyüt denemesi
+        // (yer tutucuda isikAc zaten no-op; görsel Yakında'da lightbox açılır).
         d.addEventListener("click", function () {
-          if (n === S.galeriSecili) isikAc(n, d); else galeriSec(n);
+          if (!it.yerTutucu && !it.yakinda) galeriSec(n);
+          isikAc(n, d);
+        });
+        d.addEventListener("keydown", function (e) {
+          if (e && (e.key === "Enter" || e.key === " ")) {
+            if (e.preventDefault) e.preventDefault();
+            if (!it.yerTutucu && !it.yakinda) galeriSec(n);
+            isikAc(n, d);
+          }
         });
         kucukler.appendChild(d);
       })(k);
     }
     galeri.appendChild(kucukler);
-    S.buyukKart = el("div", "foto-uretim-buyuk");
-    galeri.appendChild(S.buyukKart);
+    galeri.appendChild(seciliSatir);
     ornekBlok.appendChild(galeri);
-    buyukCiz();
+    // 13:5x: yenilemede seçim korunsun (URL #tur + sessionStorage).
+    turSecimiYukle();
+    if (S.galeriSecili >= 0) {
+      var sd = S.galeriKutu.childNodes[S.galeriSecili];
+      if (sd) { sd.classList.add("secili"); sd.setAttribute("aria-pressed", "true"); sd.setAttribute("aria-selected", "true"); }
+    }
+    seciliSatirGuncelle();
+  }
+
+  /* "Seçili: <ad>" satırı (13:5x) — Yakında/yer tutucu seçilemez. */
+  function seciliSatirGuncelle() {
+    var s = S.galeriSeciliSatir;
+    if (!s) return;
+    if (S.galeriSecili < 0 || !S.galeriListe || !S.galeriListe[S.galeriSecili]) {
+      s.textContent = "";
+      return;
+    }
+    var it = S.galeriListe[S.galeriSecili];
+    if (it.yerTutucu || it.yakinda) {
+      s.textContent = "";
+      return;
+    }
+    s.textContent = "Seçili: " + it.tur.ad;
   }
 
   function galeriSec(n) {
+    var it = S.galeriListe[n];
+    if (!it) return;
+    // Yakında/yer tutucu kartlar SEÇİLEMEZ (13:5x): sadece büyütme denenir.
+    if (it.yerTutucu || it.yakinda) return;
     S.galeriSecili = n;
-    if (S.galeriListe[n]) S.galeriSeciliKod = S.galeriListe[n].tur.kod;
+    S.galeriSeciliKod = it.tur.kod;
     var d = S.galeriKutu ? S.galeriKutu.childNodes : [];
     for (var i = 0; i < d.length; i++) {
-      if (i === n) { d[i].classList.add("secili"); d[i].setAttribute("aria-pressed", "true"); }
-      else { d[i].classList.remove("secili"); d[i].setAttribute("aria-pressed", "false"); }
+      if (i === n) {
+        d[i].classList.add("secili");
+        d[i].setAttribute("aria-pressed", "true");
+        d[i].setAttribute("aria-selected", "true");
+      } else {
+        d[i].classList.remove("secili");
+        d[i].setAttribute("aria-pressed", "false");
+        d[i].setAttribute("aria-selected", "false");
+      }
     }
-    var g = S.buyukKart ? S.buyukKart.childNodes : [];
-    for (var j = 0; j < g.length; j++) { g[j].hidden = j !== n; }
-    var it = S.galeriListe[n];
-    // Fiyat/açıklama yalnız AÇIK türde güncellenir ("Yakında" türün fiyatı vitrine yazılmaz).
-    if (it && !it.yakinda) vitrinGuncelle(it.tur.kod);
+    seciliSatirGuncelle();
+    // 13:5x: galeri kartı türü SEÇER — sürgü, ₺N'dan itibaren, renk seçici, foto yükleme güncellenir.
+    // Aynı tür yeniden seçildiğinde form iki kez çizilmesin; sadece fiyat/durustluk tazelenir.
+    var eski = S.tur;
+    S.tur = it.tur.kod;
+    if (eski !== S.tur) {
+      var nt = seciliTurBul();
+      S.olcu = nt && nt.olculer && nt.olculer[0] ? nt.olculer[0].mm : null;
+      S.parametre = {};
+      doldurS1Olcu();
+      doldurS1Form();
+      doldurS1Dosya();
+      doldurS1Onay();
+      doldurS1Litofan();
+    }
+    durustlukGuncelle();
+    // Seçim #tur=<kod> URL hash + sessionStorage (yenilemede korunur; 13:5x).
+    turSecimiKaydet(it.tur.kod);
+    guncelleS1Buton();
+    vitrinGuncelle(it.tur.kod);
   }
 
-  /* Büyük önizleme kartı: her örneğin grubu çizilir, yalnız seçili olan görünür (galeri sekmesi). */
-  function buyukCiz() {
-    var kap = S.buyukKart;
-    if (!kap) return;
-    while (kap.firstChild) kap.removeChild(kap.firstChild);
-    var tembel = true;
-    function gorsel(src, alt, sinif) {
-      var img = el("img", sinif || "foto-uretim-ornek-gorsel");
-      img.src = src; img.alt = alt;
-      img.width = 600; img.height = 600;
-      if (tembel) img.loading = "lazy";
-      img.decoding = "async";
-      return img;
-    }
-    function polaroid(src, alt, sol) {
-      var pol = el("div", "foto-uretim-polaroid" + (sol ? " sol" : ""));
-      pol.appendChild(gorsel(src, alt, "foto-uretim-polaroid-img"));
-      return pol;
-    }
-    for (var k = 0; k < S.galeriListe.length; k++) {
-      var it = S.galeriListe[k];
-      var grup = el("div", "foto-uretim-ornek-grup");
-      grup.setAttribute("data-kanit", it.kanit);
-      grup.setAttribute("data-tur", it.tur.kod);
-      grup.hidden = k !== S.galeriSecili;
-      tembel = k !== S.galeriSecili; // ilk görünen büyük kart hemen yüklenir
-      var satir = el("div", "foto-uretim-buyuk-kart");
-      if (it.yerTutucu) {
-        // YER TUTUCU: büyük kartta ikon + başlık + "Bu tür yakında eklenecek." + Yakında rozeti.
-        // Tam ekran büyütme YOK (görsel yok; isikAc zaten yer tutucuya açmaz).
-        satir.classList.add("yer-tutucu");
-        satir.appendChild(el("span", "foto-uretim-yakinda", "Yakında"));
-        var ikBuyuk = el("div", "foto-uretim-yer-ikon-buyuk", it.ikon);
-        ikBuyuk.setAttribute("aria-hidden", "true");
-        satir.appendChild(ikBuyuk);
-        grup.appendChild(satir);
-        grup.appendChild(el("div", "foto-uretim-ornek-baslik", it.tur.ad));
-        grup.appendChild(el("p", "foto-uretim-ornek-not", "Bu tür yakında eklenecek."));
-      } else {
-        // Büyük karta basınca tam ekran (klavye: Enter/Boşluk).
-        satir.setAttribute("role", "button");
-        satir.setAttribute("tabindex", "0");
-        satir.setAttribute("aria-haspopup", "dialog");
-        satir.setAttribute("aria-label", it.tur.ad + " örneğini büyüt");
-        (function (n, hedef) {
-          hedef.addEventListener("click", function () { isikAc(n, hedef); });
-          hedef.addEventListener("keydown", function (e) {
-            if (e && (e.key === "Enter" || e.key === " ")) { if (e.preventDefault) e.preventDefault(); isikAc(n, hedef); }
-          });
-        })(k, satir);
-        if (it.yakinda) satir.appendChild(el("span", "foto-uretim-yakinda", "Yakında"));
-        if (it.kanit === "render") {
-          // Ozgun fotograf yayinlanmaz: onizleme (koşede polaroid) + uretim dosyasinin render'i (ayni gorselse TEK kez).
-          if (it.ornek.onizleme !== it.ornek.render) {
-            satir.appendChild(polaroid(it.ornek.onizleme, it.tur.ad + " önizleme"));
-          }
-          satir.appendChild(gorsel(it.ornek.render, it.tur.ad + " üretim dosyası render"));
-          grup.appendChild(satir);
-          grup.appendChild(el("div", "foto-uretim-ornek-etiket", "önizleme/render"));
-          grup.appendChild(el("p", "foto-uretim-ornek-not", it.tur.ornek_notu));
-        } else {
-          // Orijinal fotograf koşede polaroid, onizleme sol koşede, basilmis urun buyuk kartta.
-          satir.appendChild(polaroid(it.ornek.foto, it.tur.ad + " fotoğraf"));
-          satir.appendChild(polaroid(it.ornek.onizleme, it.tur.ad + " önizleme", true));
-          satir.appendChild(gorsel(it.ornek.baski, it.tur.ad + " basılmış ürün"));
-          grup.appendChild(satir);
-          grup.appendChild(el("div", "foto-uretim-ornek-etiket",
-            "Fotoğraf → Önizleme → Basılmış ürün (gerçek fotoğraf)"));
-        }
-        var baslikMetni = it.tur.ad + " · " + it.ornek.olcu_mm + " mm" +
-          (it.ornek.not ? " · " + it.ornek.not : "");
-        grup.appendChild(el("div", "foto-uretim-ornek-baslik", baslikMetni));
+  /* Tür seçimini URL hash (#tur=<kod>) ve sessionStorage'a yazar (13:5x; yenilemede korunur). */
+  function turSecimiKaydet(kod) {
+    try {
+      if (kok.sessionStorage && kok.sessionStorage.setItem) {
+        kok.sessionStorage.setItem("pruvo_foto_tur", kod);
       }
-      kap.appendChild(grup);
-    }
-    var sec = S.galeriListe[S.galeriSecili];
-    if (sec && !sec.yakinda) vitrinGuncelle(sec.tur.kod);
+    } catch (e) { /* sessionStorage yoksa sessizce geç */ }
+    try {
+      if (kok.location && kok.location.hash !== undefined) {
+        var yeni = "#tur=" + encodeURIComponent(kod);
+        if (history && history.replaceState) {
+          history.replaceState(null, "", yeni);
+        } else if (kok.location.replace) {
+          kok.location.replace(yeni);
+        }
+      }
+    } catch (e) { /* hash yazılamıyorsa sessizce geç */ }
   }
+
+  /* Sayfa yüklendiğinde / S1 yeniden çizildiğinde URL hash + sessionStorage'dan tür seçimini dene
+     (13:5x; yenilemede korunur). Yalnız AÇIK + Yakında OLMAYAN türler seçilebilir. */
+  function turSecimiYukle() {
+    var kod = null;
+    try {
+      if (kok.sessionStorage && kok.sessionStorage.getItem) {
+        kod = kok.sessionStorage.getItem("pruvo_foto_tur");
+      }
+    } catch (e) { /* yoksay */ }
+    if (!kod && kok.location && typeof kok.location.hash === "string") {
+      var m = kok.location.hash.match(/tur=([^&]+)/);
+      if (m) { try { kod = decodeURIComponent(m[1]); } catch (e) { kod = null; } }
+    }
+    if (!kod || !S.galeriListe) return;
+    for (var i = 0; i < S.galeriListe.length; i++) {
+      var it = S.galeriListe[i];
+      if (it.tur.kod === kod && !it.yerTutucu && !it.yakinda) {
+        S.galeriSecili = i;
+        S.galeriSeciliKod = kod;
+        S.tur = kod;
+        return;
+      }
+    }
+  }
+
+  /* (13:4x) Büyük önizleme kartı KALDIRILDI: her kart zaten kendi ızgarasında + lightbox'ta büyütülüyor. */
+  function buyukCiz() { /* no-op: geriye uyumluluk */ }
 
   /* Tam ekran büyütme (Okan 7 Eki: "resimlerin üzerine basınca büyüsün"): koyu zemin · × · Esc · ←/→ ·
      mobilde yatay kaydırma · zemine dokununca kapanır. Açıkken gövde kaydırması kilitli; kapanınca odak
@@ -1557,7 +1617,9 @@
     var img = el("img", "foto-uretim-isik-img");
     img.width = 1200; img.height = 1200; img.decoding = "async";
     var alt = el("figcaption", "foto-uretim-isik-alt");
-    sahne.appendChild(img); sahne.appendChild(alt);
+    // 13:4x mimar bulgusu: ornek_notu (dürüstlük cümlesi) büyütme penceresinde AYNEN görünür (kart yetersiz).
+    var not = el("p", "foto-uretim-isik-not");
+    sahne.appendChild(img); sahne.appendChild(alt); sahne.appendChild(not);
     kutu.appendChild(sahne);
     var dugmeler = [];
     function dugme(sinif, metin, etiket, fn) {
@@ -1600,7 +1662,7 @@
       x0 = null;
       if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) isikGit(dx < 0 ? 1 : -1);
     });
-    S.isik = { kutu: kutu, img: img, alt: alt, n: 0, tetikleyen: tetikleyen || null,
+    S.isik = { kutu: kutu, img: img, alt: alt, not: not, n: 0, tetikleyen: tetikleyen || null,
       tasma: document.body.style ? document.body.style.overflow : "" };
     isikGoster(n);
     if (document.body.style) document.body.style.overflow = "hidden";
@@ -1613,12 +1675,16 @@
     if (!S.isik || !L) return;
     n = ((n % L) + L) % L;
     var it = S.galeriListe[n];
+    if (!it || it.yerTutucu || !it.ornek) return; // görsel yok; no-op (büyütme açılmaz)
     S.isik.n = n;
     var render = it.kanit === "render";
     S.isik.img.src = render ? it.ornek.render : it.ornek.baski;
     S.isik.img.alt = it.tur.ad + (render ? " örnek render" : " basılmış ürün");
+    // 13:4x mimar bulgusu: "gerçek fotoğraf" YASAK; baski etiketi de "basılmış ürün" (kart ile tutarli).
     S.isik.alt.textContent = it.tur.ad + " · " + it.ornek.olcu_mm + " mm" + (it.yakinda ? " · Yakında" : "") +
-      " — " + (render ? "önizleme/render" : "gerçek fotoğraf") + " · " + (n + 1) + "/" + L;
+      " — " + (render ? "önizleme/render" : "basılmış ürün") + " · " + (n + 1) + "/" + L;
+    // 13:4x mimar bulgusu: türün dürüstlük cümlesi (ornek_notu) büyütme penceresinde AYNEN görünür.
+    S.isik.not.textContent = it.tur.ornek_notu || "";
   }
 
   function isikGit(d) {
@@ -1653,7 +1719,7 @@
     adim(1, "Fotoğraf yükle");
     cubuk.appendChild(el("span", "foto-uretim-adim-ok", "→"));
     // Tek tür sunuluyorsa tür seçimi YOK: adım yalnız ölçüdür (açık tür listesi gelince yeniden yazılır).
-    adim(2, adim2Etiketi(S.acikVeri || F));
+    adim(2, adim2EtiketiArayuz3());
     S.adim2El = cubuk.childNodes[cubuk.childNodes.length - 1];
     cubuk.appendChild(el("span", "foto-uretim-adim-ok", "→"));
     adim(3, "Önizleme");
@@ -1764,47 +1830,13 @@
 
   function doldurS1Tur() {
     while (S.alanTur.firstChild) S.alanTur.removeChild(S.alanTur.firstChild);
-    // TEK TÜR: seçim adımı çizilmez (radyo düğmesi 0), tür kendiliğinden seçilir.
-    if (S.acikVeri.turler.length === 1) {
-      S.tur = S.acikVeri.turler[0].kod;
-      durustlukGuncelle();
-      S.alanTur.hidden = true;
-      return;
-    }
+    // 13:5x: ayrı tür seçici KALDIRILDI — tür seçimi 24'lü küçük resim ızgarasının işidir (kart = seçim).
+    // Burada yalnız bilgilendirme satırı yazılır; S.tur = null iken tüm form kapalı (guncelleS1Buton).
+    if (!S.acikVeri || !S.acikVeri.turler || !S.acikVeri.turler.length) { return; }
     S.alanTur.hidden = false;
-    S.alanTur.appendChild(el("label", "foto-uretim-form-etiket", "Tür"));
-    for (var i = 0; i < S.acikVeri.turler.length; i++) {
-      var t = S.acikVeri.turler[i];
-      var rid = "foto-tur-" + t.kod;
-      var lbl = el("label", "foto-uretim-form-secenek-inline");
-      lbl.setAttribute("for", rid);
-      var inp = el("input");
-      inp.type = "radio"; inp.name = "foto-tur"; inp.value = t.kod; inp.id = rid;
-      if (S.tur === t.kod) inp.checked = true;
-      (function (kod) {
-        inp.addEventListener("change", function (e) {
-          if (!e.target.checked) return;
-          S.tur = kod;
-          durustlukGuncelle();
-          var nt = null;
-          for (var j = 0; j < S.acikVeri.turler.length; j++) {
-            if (S.acikVeri.turler[j].kod === kod) { nt = S.acikVeri.turler[j]; break; }
-          }
-          S.olcu = nt && nt.olculer && nt.olculer[0] ? nt.olculer[0].mm : null;
-          S.parametre = {};
-          doldurS1Olcu();
-          doldurS1Form();
-          doldurS1Dosya();
-          doldurS1Onay();
-          doldurS1Litofan();
-          guncelleS1Buton();
-        });
-      })(t.kod);
-      ek(lbl, inp);
-      ek(lbl, " " + t.ad);
-      if (t.aciklama) ek(lbl, " — " + t.aciklama);
-      S.alanTur.appendChild(lbl);
-    }
+    var bilgi = el("p", "foto-uretim-form-uyari",
+      "Yukarıdaki örneklerden birini seçin; seçtiğiniz tür için ölçü ve renk seçenekleri açılır.");
+    S.alanTur.appendChild(bilgi);
   }
 
   function doldurS1Olcu() {
@@ -2476,13 +2508,14 @@
         return;
       }
       S.acikVeri = veri;
-      if (S.adim2El) S.adim2El.textContent = "2. " + adim2Etiketi(veri);
+      if (S.adim2El) S.adim2El.textContent = "2. " + adim2EtiketiArayuz3();
       // Açık kod listesi = "Yakında" etiketi + sıra için (galeri TÜM türleri çizer; sipariş tür seçimi açıklarla kalır).
       if (S.ornekBlok) ornekCiz(S.ornekBlok, veri.turler.map(function (x) { return x.kod; }));
       var kayit = ssIsOku();
       if (kayit) {
         S.is = kayit.is;
-        S.tur = kayit.tur || S.tur || (veri.turler[0] ? veri.turler[0].kod : null);
+        // 13:5x: tür seçimi artık kullanıcı TIKINDAN (galeri); otomatik ilk-açık KALMAZ.
+        S.tur = kayit.tur || S.tur || null;
         S.olcu = kayit.olcu || null;
         if (kayit.secim && typeof kayit.secim === "object") S.secim = kayit.secim;
         if (Array.isArray(kayit.renkler)) S.renkler = kayit.renkler;
@@ -2491,16 +2524,7 @@
         durumSorgula(kayit.is, true);
         return;
       }
-      if (!S.tur && veri.turler[0]) S.tur = veri.turler[0].kod;
-      if (S.tur) {
-        var nt = null;
-        for (var i = 0; i < veri.turler.length; i++) {
-          if (veri.turler[i].kod === S.tur) { nt = veri.turler[i]; break; }
-        }
-        if (!S.olcu && nt && nt.olculer && nt.olculer[0]) {
-          S.olcu = nt.olculer[0].mm;
-        }
-      }
+      // 13:5x: ilk-açık otomatik seçim yok — kullanıcı galeri kartına basmalı.
       adimKoy("S1");
     });
   }
