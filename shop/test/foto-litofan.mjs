@@ -840,7 +840,7 @@ const MUTANTLAR = [
   { ad: "M0 KONTROL (yorum eklendi)", dosya: "shop/src/foto.js", hedef: null,
     capa: 'import "../../foto-uretim-veri.js";', yerine: '// M0 kontrol yorumu\nimport "../../foto-uretim-veri.js";' },
   { ad: "M1 zincir secimi uretec-bekliyor'u HARIC TUTMAZ", dosya: "shop/src/foto.js", hedef: "L5",
-    capa: "WHERE asama NOT IN ('hazir', 'elle', 'uretec-bekliyor')", yerine: "WHERE asama NOT IN ('hazir', 'elle')" },
+    capa: "WHERE asama NOT IN ('hazir', 'elle', 'uretec-bekliyor', 'onarim-bekliyor')", yerine: "WHERE asama NOT IN ('hazir', 'elle', 'onarim-bekliyor')" },
   // ACILIS ANAHTARI mutanti: anahtar suzgeci silinirse anahtarsiz tur acilir -> L2 KIRMIZI.
   { ad: "M2 acikTurler acilis anahtari suzgeci kalkti", dosya: "shop/src/foto.js", hedef: "L2",
     capa: "    .filter((t) => kume.has(t.kod))\n", yerine: "" },

@@ -1760,6 +1760,8 @@ function deterministikSatir(tur, olcu, k, is) {
 // ---------------------------------------------------------------- cron: uretim zinciri
 
 /** Uretim dosyalarinin R2 anahtari (ozel kova). */
+export const ONARIM_HAM_BICIM = "ham.3mf";  // tools/foto-uretec-kosucu.py onarim kuyrugu ile AYNI
+
 export function uretimAnahtari(siparisNo, kalem, bicim) {
   return "foto/" + siparisNo + "/" + kalem + "/model." + bicim;
 }
@@ -1828,6 +1830,9 @@ const ELLE_METNI = {
   "onarim-basarisiz": "sızdırmazlık onarımı ya da yeniden doku üretilemedi",
   "renk-basarisiz": "4 renk ayrımı üretilemedi",
   "olcu-tutmadi": "3MF ölçüsü sipariş ölçüsüne getirilemedi (dosya depoya yazılmadı)",
+  "onarim-kirmizi": "yerel 3MF onarımı/ölçümü KIRMIZI (sızdırmazlık kapısı geçmedi, dosya teslim edilmedi)",
+  "onarim-girdi-hatasi": "yerel 3MF onarım köprüsü dosyayı okuyamadı",
+  "onarim-ham-yok": "onarım bekleyen ham 3MF depoda bulunamadı",
   "indirme-basarisiz": "dosyalar depoya indirilemedi",
   "kredi-yetersiz": "kredi yetmedi (otomatik alım yok)",
   "saglayici-erisilemiyor": "sağlayıcıya tekrar tekrar ulaşılamadı",
@@ -1990,11 +1995,12 @@ async function uretimAdimi(env, u, simdi, telegram) {
     const ozet = JSON.stringify({ durum: p.status || "unknown", hata: p.error_count || 0,
                                   uyari: p.warning_count || 0, olcum: p.metrics || {} }).slice(0, 600);
     // KIRMIZI = status 'error'/bilinmiyor VEYA status 'warning' + metrik kusurlu (bkz. onarimGerekli).
-    // Sessiz gecis yok: renk adimi KOSMAZ, onarim ya da elle.
+    // Sessiz gecis yok: ilk kirmizida saglayici onarimi (satir basina TEK).
     if (onarimGerekli(p)) {
-      // Deneme tavani: satir basina TEK onarim. Onarilmis modelin analizi de kirmiziysa elle.
+      // Onarilmis modelin analizi de kirmiziysa (8 Eki 2026, BaBa hukmu) renk KOSAR ama dosya teslim
+      // EDILMEZ: renk kolu ham 3MF'i 'onarim-bekliyor'a birakir, yerel kopru onarip olcmeden 'hazir' YOK.
       if (zincir(u).length >= 2) {
-        return elleDusur(env, u, "analiz-kirmizi", ozet, simdi, telegram);
+        return renkBaslat(env, u, ozet, simdi, telegram);
       }
       const m = await modelGorevi(env, u);
       const glb = m.kod === 200 && m.govde && m.govde.model_urls && m.govde.model_urls.glb;
@@ -2061,14 +2067,17 @@ async function uretimAdimi(env, u, simdi, telegram) {
     const olc = await ucmfOlcekle(ucmf.tampon, u.olcu_mm);
     const ozet = analizOlcekli(u.analiz, olc);
     if (!olc.tampon) { return elleDusur(env, u, "olcu-tutmadi", ozet, simdi, telegram); }
-    await env.OZEL_DOSYA.put(uretimAnahtari(u.siparis_no, u.kalem, "3mf"), olc.tampon,
+    // ONARIM KAPISI (8 Eki 2026, BaBa hukmu): saglayici 3MF'i ASLA model.3mf olmaz. Ham dosya
+    // model.ham.3mf'e yazilir; yerel kosucu (tools/foto-uretec-kosucu.py, onarim kuyrugu) TeKiN koprusuyle
+    // onarir + olcer, gecerse model.3mf + 'hazir'. Dosya sunumu yalniz 'hazir'da (fotoKalemDurumu).
+    await env.OZEL_DOSYA.put(uretimAnahtari(u.siparis_no, u.kalem, ONARIM_HAM_BICIM), olc.tampon,
                              { httpMetadata: { contentType: "model/3mf" } });
     await env.OZEL_DOSYA.put(uretimAnahtari(u.siparis_no, u.kalem, "glb"), glb.tampon,
                              { httpMetadata: { contentType: "model/gltf-binary" } });
-    const tasindi = await asamaYaz(env, u, "hazir", { analiz: ozet }, simdi);
+    const tasindi = await asamaYaz(env, u, "onarim-bekliyor", { analiz: ozet }, simdi);
     if (tasindi && typeof telegram === "function") {
-      await telegram(env, "📸 Fotoğraftan üretim — 4 renkli dosya HAZIR: " + u.siparis_no +
-        " kalem " + u.kalem + " (" + u.tur + ", " + u.olcu_mm + " mm). Panelde siparişin yanında.");
+      await telegram(env, "📸 Fotoğraftan üretim — 4 renkli dosya üretildi, yerel onarım kapısında: " +
+        u.siparis_no + " kalem " + u.kalem + " (" + u.tur + ", " + u.olcu_mm + " mm).");
     }
     return tasindi;
   }
@@ -2121,7 +2130,7 @@ export async function fotoUretimTuru(env, simdi, telegram) {
     ozet.kuyruga = await odenenleriKuyrugaAl(env, simdi);
     const r = await env.KATALOG.prepare(
       "SELECT siparis_no, kalem, is_no, tur, olcu_mm, asama, build_gorev, analiz_gorev, renk_gorev," +
-      " analiz, deneme FROM foto_uretim WHERE asama NOT IN ('hazir', 'elle', 'uretec-bekliyor')" +
+      " analiz, deneme FROM foto_uretim WHERE asama NOT IN ('hazir', 'elle', 'uretec-bekliyor', 'onarim-bekliyor')" +
       " ORDER BY guncel LIMIT ?"
     ).bind(URETIM_TUR_LIMITI).all();
     for (const u of (r.results || [])) {

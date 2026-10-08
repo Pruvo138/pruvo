@@ -655,18 +655,39 @@ const cron = async () => modul.scheduled({ cron: "*/5 * * * *", scheduledTime: D
   await d1.prepare("UPDATE siparisler SET durum = 'odendi' WHERE siparis_no = ?").bind(siparisNo).run();
   for (let i = 0; i < 4; i++) { await cron(); }
   const u = await d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = ?").bind(siparisNo).first();
-  ol("I2 dort turda zincir 'hazir'", u && u.asama === "hazir", JSON.stringify(u));
+  // ONARIM KAPISI (8 Eki 2026): saglayici zinciri 'hazir' DEGIL 'onarim-bekliyor'da biter; ham 3MF
+  // model.ham.3mf'te, model.3mf YOK. 'hazir'i yalniz yerel kosucu (onarim kuyrugu) yazar — asagida taklit.
+  ol("I2 dort turda zincir 'onarim-bekliyor' (saglayici 3MF'i dogrudan teslim EDILMEZ)",
+     u && u.asama === "onarim-bekliyor", JSON.stringify(u));
   const op = (P.sonBuild && P.sonBuild.options) || {};
   ol("I3 model adimina olcu mm ile gidildi", op.size_mm === 100, JSON.stringify(P.sonBuild));
   ol("I3b plaket geometrisi: kabartma + taban kalinligi sabit, kapali duz sirt (delme yok)",
      op.relief_height_mm === foto.PLAKET_KABARTMA_MM && op.base_thickness_mm === foto.PLAKET_TABAN_MM &&
      op.has_closed_back === true && op.badge_shape === foto.PLAKET_SEKIL, JSON.stringify(op));
   ol("I4 renk adimi 4 renk + bambu", P.sonRenk && P.sonRenk.max_colors === 4 && P.sonRenk.printer_brand === "bambu", JSON.stringify(P.sonRenk));
-  const k3 = r2.m.get("foto/" + siparisNo + "/0/model.3mf");
-  ol("I5 3MF + GLB BIZIM ozel kovada", k3 && k3.bayt.length === UCMF.length && r2.m.has("foto/" + siparisNo + "/0/model.glb"), [...r2.m.keys()].join(","));
+  const k3 = r2.m.get("foto/" + siparisNo + "/0/model.ham.3mf");
+  ol("I5 ham 3MF + GLB BIZIM ozel kovada, model.3mf YAZILMADI",
+     k3 && k3.bayt.length === UCMF.length && r2.m.has("foto/" + siparisNo + "/0/model.glb") &&
+     !r2.m.has("foto/" + siparisNo + "/0/model.3mf"), [...r2.m.keys()].join(","));
   const kr = await d1.prepare("SELECT COALESCE(SUM(kredi),0) AS t FROM foto_kredi WHERE siparis_no = ? OR (adim = 'onizleme' AND is_no = ?)").bind(siparisNo, isNo).first();
   ol("I6 siparisin kredi kaydi 46 (6 onizleme + 30 model + 0 analiz + 10 renk)", kr.t === 46, kr.t);
-  ol("I7 HAZIR bildirimi Telegram'a bir kez", P.telegram.filter((t) => t.includes("HAZIR") && t.includes(siparisNo)).length === 1, P.telegram.length);
+  ol("I7 'onarim kapisinda' bildirimi Telegram'a bir kez, HAZIR denmez",
+     P.telegram.filter((t) => t.includes("onarım kapısında") && t.includes(siparisNo)).length === 1 &&
+     P.telegram.filter((t) => t.includes("HAZIR") && t.includes(siparisNo)).length === 0, P.telegram.join(" | "));
+  const l0 = await istek(env, "/yonet/liste", { basliklar: YONET });
+  const f0 = l0.v && l0.v.siparisler.find((x) => x.siparis_no === siparisNo).kalemler[0].foto;
+  ol("I7b onarim-bekliyor kalemde panel dosya baglantisi VERMEZ (fail-closed)",
+     f0 && f0.asama === "onarim-bekliyor" && f0.dosyalar === null, JSON.stringify(f0));
+  const once0 = P.cagri.length;
+  await cron();
+  ol("I7c onarim-bekliyor satir Worker'da islenmez (saglayiciya istek yok, asama ayni)",
+     P.cagri.length === once0 &&
+     (await d1.prepare("SELECT asama FROM foto_uretim WHERE siparis_no = ?").bind(siparisNo).first()).asama ===
+       "onarim-bekliyor", P.cagri.slice(once0).join(","));
+  // Yerel kosucu taklidi (tools/foto-uretec-kosucu.py onarim kuyrugu: kopru + olcum gecti).
+  r2.m.set("foto/" + siparisNo + "/0/model.3mf", k3);
+  await d1.prepare("UPDATE foto_uretim SET asama = 'hazir' WHERE siparis_no = ? AND asama = 'onarim-bekliyor'")
+    .bind(siparisNo).run();
   const l = await istek(env, "/yonet/liste", { basliklar: YONET });
   const sip = l.v && l.v.siparisler.find((x) => x.siparis_no === siparisNo);
   const f = sip && sip.kalemler[0].foto;
@@ -700,10 +721,19 @@ let siparis2;
   const onarimOnce = P.cagri.filter((c) => c === "POST /v1/print/repair").length;
   for (let i = 0; i < 8; i++) { await cron(); }
   const u = await d1.prepare("SELECT asama, sebep, analiz FROM foto_uretim WHERE siparis_no = ?").bind(siparis2).first();
-  ol("J1 analiz kirmizi -> 'elle' + sebep", u && u.asama === "elle" && u.sebep === "analiz-kirmizi", JSON.stringify(u));
-  ol("J2 renk adimi KOSMADI", P.cagri.filter((c) => c === "POST /v1/print/multi-color").length === renkOnce, "");
-  ol("J3 ELLE bildirimi Telegram'a bir kez", P.telegram.filter((t) => t.includes("ELLE") && t.includes(siparis2)).length === 1, "");
+  // 8 Eki 2026 (BaBa hukmu, yerel onarim koprusu): onarim SONRASI da kirmizi -> eskiden 'elle analiz-kirmizi'
+  // (renk KOSMAZDI). Artik renk KOSAR, ham 3MF 'onarim-bekliyor'a duser; teslim kararini yerel kopru+olcum verir.
+  ol("J1 onarim sonrasi da kirmizi -> 'onarim-bekliyor' (elle DEGIL; dosya teslim edilmedi)",
+     u && u.asama === "onarim-bekliyor" && !r2.m.has("foto/" + siparis2 + "/0/model.3mf") &&
+     r2.m.has("foto/" + siparis2 + "/0/model.ham.3mf"), JSON.stringify(u));
+  ol("J2 renk adimi KOSTU (tek kez)", P.cagri.filter((c) => c === "POST /v1/print/multi-color").length === renkOnce + 1, "");
+  ol("J3 Worker ELLE/HAZIR bildirimi YOK, 'onarim kapisinda' bir kez",
+     P.telegram.filter((t) => (t.includes("ELLE") || t.includes("HAZIR")) && t.includes(siparis2)).length === 0 &&
+     P.telegram.filter((t) => t.includes("onarım kapısında") && t.includes(siparis2)).length === 1, "");
   ol("J5 kirmizida satir basina TEK onarim denendi (tavan)", P.cagri.filter((c) => c === "POST /v1/print/repair").length === onarimOnce + 1, "");
+  // Yerel kosucu taklidi: kopru/olcum KIRMIZI -> 'elle onarim-kirmizi' (M1 ozetinin elle kalemi).
+  await d1.prepare("UPDATE foto_uretim SET asama = 'elle', sebep = 'onarim-kirmizi' WHERE siparis_no = ?")
+    .bind(siparis2).run();
   P.analiz = "healthy";
   const l = await istek(env, "/yonet/liste", { basliklar: YONET });
   const sip = l.v && l.v.siparisler.find((x) => x.siparis_no === siparis2);
@@ -860,9 +890,15 @@ let ornekIs = "";
   // O9 CRON: mevcut zincir ornek satirini isler, 3MF+GLB ozel kovaya duser, kredi deftere yazilir.
   for (let i = 0; i < 4; i++) { await cron(); }
   const ou = await d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = ?").bind(ornekNo).first();
-  ol("O9 cron ornek satirini 'hazir'a tasir (Build -> Analiz -> 4 renk)", ou && ou.asama === "hazir", JSON.stringify(ou));
-  ol("O9b 3MF + GLB ozel kovada (foto/" + ornekNo + "/0/...)",
-     r2.m.has("foto/" + ornekNo + "/0/model.3mf") && r2.m.has("foto/" + ornekNo + "/0/model.glb"), "");
+  ol("O9 cron ornek satirini 'onarim-bekliyor'a tasir (Build -> Analiz -> 4 renk -> yerel onarim kapisi)",
+     ou && ou.asama === "onarim-bekliyor", JSON.stringify(ou));
+  ol("O9b ham 3MF + GLB ozel kovada, model.3mf YOK (foto/" + ornekNo + "/0/...)",
+     r2.m.has("foto/" + ornekNo + "/0/model.ham.3mf") && r2.m.has("foto/" + ornekNo + "/0/model.glb") &&
+     !r2.m.has("foto/" + ornekNo + "/0/model.3mf"), "");
+  // Yerel kosucu taklidi (onarim kuyrugu gecti): model.3mf + 'hazir'.
+  r2.m.set("foto/" + ornekNo + "/0/model.3mf", r2.m.get("foto/" + ornekNo + "/0/model.ham.3mf"));
+  await d1.prepare("UPDATE foto_uretim SET asama = 'hazir' WHERE siparis_no = ? AND asama = 'onarim-bekliyor'")
+    .bind(ornekNo).run();
   const okr = await d1.prepare("SELECT COALESCE(SUM(kredi),0) AS t, COUNT(*) AS n FROM foto_kredi WHERE siparis_no = ?").bind(ornekNo).first();
   ol("O10 kredi kaydi yazilir: 46 (6 onizleme + 30 model + 0 analiz + 10 renk), 4 satir", okr.t === 46 && okr.n === 4, JSON.stringify(okr));
   // O11 PANEL LISTESI: "Örnek üretimler" + anahtarli 3MF/GLB indirme.
@@ -1095,9 +1131,9 @@ console.log("A) ONARIM KAPISI — status 'warning' + metrik kusurlu (8 Eki figur
   P.analiz = "warning"; P.analizMetrik = { degenerate_faces: 316227 }; P.analizOnarim = null;
   const s1 = await odenmis("198.51.100.131");
   const o1 = say("POST /v1/print/repair"), r1 = say("POST /v1/print/multi-color");
-  const u1 = await sur(s1.no, 12, (u) => u.asama === "onarim" || u.asama === "doku" || u.asama === "hazir" || u.asama === "elle");
+  const u1 = await sur(s1.no, 12, (u) => u.asama === "onarim" || u.asama === "doku" || u.asama === "onarim-bekliyor" || u.asama === "elle");
   ol("A1 warning+deg_faces 316227 → repair çağrıldı, asama 'onarim' (degisecek: onarim/doku/hazir/elle)",
-     u1 && (u1.asama === "onarim" || u1.asama === "doku" || u1.asama === "hazir" || u1.asama === "elle") &&
+     u1 && (u1.asama === "onarim" || u1.asama === "doku" || u1.asama === "onarim-bekliyor" || u1.asama === "elle") &&
      say("POST /v1/print/repair") === o1 + 1,
      "asama=" + (u1 && u1.asama) + " repairDelta=" + (say("POST /v1/print/repair") - o1) + " renkDelta=" + (r1 - say("POST /v1/print/multi-color")));
   P.analizMetrik = null;
@@ -1106,28 +1142,28 @@ console.log("A) ONARIM KAPISI — status 'warning' + metrik kusurlu (8 Eki figur
   P.analiz = "warning";
   const s2 = await odenmis("198.51.100.132");
   const o2 = say("POST /v1/print/repair");
-  const u2 = await sur(s2.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
+  const u2 = await sur(s2.no, 12, (u) => u.asama === "onarim-bekliyor" || u.asama === "elle");
   ol("A2 warning+tum-metrikler-0/true → renk (repair KOSMADI, hazir)",
-     u2 && u2.asama === "hazir" && say("POST /v1/print/repair") === o2,
+     u2 && u2.asama === "onarim-bekliyor" && say("POST /v1/print/repair") === o2,
      "asama=" + (u2 && u2.asama) + " repairDelta=" + (say("POST /v1/print/repair") - o2));
   P.analiz = "healthy";
 
   // A3: healthy → renk (en temiz; repair KOSMAZ).
   const s3 = await odenmis("198.51.100.133");
   const o3 = say("POST /v1/print/repair");
-  const u3 = await sur(s3.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
+  const u3 = await sur(s3.no, 12, (u) => u.asama === "onarim-bekliyor" || u.asama === "elle");
   ol("A3 healthy → renk (repair KOSMADI, hazir)",
-     u3 && u3.asama === "hazir" && say("POST /v1/print/repair") === o3,
+     u3 && u3.asama === "onarim-bekliyor" && say("POST /v1/print/repair") === o3,
      "asama=" + (u3 && u3.asama) + " repairDelta=" + (say("POST /v1/print/repair") - o3));
 
   // A4: onarilmis zincirde warning + kusur (holes) → elle (tek onarim tavan, sonsuz onarim YOK).
   P.analiz = "warning"; P.analizMetrik = { holes: 1 }; P.analizOnarim = "warning";
   const s4 = await odenmis("198.51.100.134");
   const o4 = say("POST /v1/print/repair"), r4 = say("POST /v1/print/multi-color");
-  const u4 = await sur(s4.no, 14, (u) => u.asama === "hazir" || u.asama === "elle");
-  ol("A4 zincir(~)+warning+kusur → 'elle' analiz-kirmizi (tek onarim tavan, sonsuz onarim YOK)",
-     u4 && u4.asama === "elle" && u4.sebep === "analiz-kirmizi" &&
-     say("POST /v1/print/repair") === o4 + 1 && say("POST /v1/print/multi-color") === r4,
+  const u4 = await sur(s4.no, 14, (u) => u.asama === "onarim-bekliyor" || u.asama === "elle");
+  ol("A4 zincir(~)+warning+kusur → renk + 'onarim-bekliyor' (tek onarim tavan, sonsuz onarim YOK; yerel kopru karar verir)",
+     u4 && u4.asama === "onarim-bekliyor" &&
+     say("POST /v1/print/repair") === o4 + 1 && say("POST /v1/print/multi-color") === r4 + 1,
      "asama=" + (u4 && u4.asama) + " sebep=" + (u4 && u4.sebep) +
      " repairDelta=" + (say("POST /v1/print/repair") - o4) +
      " renkDelta=" + (say("POST /v1/print/multi-color") - r4) +
@@ -1138,9 +1174,9 @@ console.log("A) ONARIM KAPISI — status 'warning' + metrik kusurlu (8 Eki figur
   P.analiz = "warning"; P.analizMetrik = { noMetrics: true };
   const s5 = await odenmis("198.51.100.135");
   const o5 = say("POST /v1/print/repair");
-  const u5 = await sur(s5.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
+  const u5 = await sur(s5.no, 12, (u) => u.asama === "onarim-bekliyor" || u.asama === "elle");
   ol("A5 warning+metrik-yok → renk (repair KOSMADI, hazir; figur ozeti)",
-     u5 && u5.asama === "hazir" && say("POST /v1/print/repair") === o5,
+     u5 && u5.asama === "onarim-bekliyor" && say("POST /v1/print/repair") === o5,
      "asama=" + (u5 && u5.asama) + " repairDelta=" + (say("POST /v1/print/repair") - o5));
   P.analizMetrik = null; P.analiz = "healthy";
 }
@@ -1168,9 +1204,9 @@ console.log("R) ONARIM — kirmizi analiz -> onarim -> yeniden doku -> YENIDEN a
   P.analiz = "error"; P.analizOnarim = "healthy";
   const s1 = await odenmis("198.51.100.121");
   const a0 = say("POST /v1/print/analyze"), r0 = say("POST /v1/print/multi-color");
-  const u1 = await sur(s1.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
-  ol("R1 kirmizi -> onarim -> doku -> yesil analiz -> renk -> HAZIR",
-     u1 && u1.asama === "hazir" && u1.build_gorev.split("~").length === 3, JSON.stringify(u1));
+  const u1 = await sur(s1.no, 12, (u) => u.asama === "onarim-bekliyor" || u.asama === "elle");
+  ol("R1 kirmizi -> onarim -> doku -> yesil analiz -> renk -> onarim-bekliyor",
+     u1 && u1.asama === "onarim-bekliyor" && u1.build_gorev.split("~").length === 3, JSON.stringify(u1));
   ol("R1b onarim ilk modelden, doku onarilmis modele + ONIZLEME gorseliyle",
      P.sonOnarim && /model\.glb/.test(P.sonOnarim.model_url) && P.sonDoku && /onarilmis\.glb/.test(P.sonDoku.model_url) &&
      /onizleme\.png/.test(P.sonDoku.image_style_url || ""), JSON.stringify([P.sonOnarim, P.sonDoku]));
@@ -1183,20 +1219,21 @@ console.log("R) ONARIM — kirmizi analiz -> onarim -> yeniden doku -> YENIDEN a
   ol("R1e uretim kredisi 60 (30 model + 10 onarim + 10 doku + 0+0 analiz + 10 renk) -> is basina EK 20",
      k1.t === 60, JSON.stringify(k1));
 
-  // R2: onarim sonrasi hala kirmizi -> elle, renk KOSMAZ, ikinci onarim YOK.
+  // R2: onarim sonrasi hala kirmizi -> renk KOSAR, satir 'onarim-bekliyor' (8 Eki: yerel kopru karar verir),
+  // ikinci saglayici onarimi YOK.
   P.analiz = "error"; P.analizOnarim = "error";
   const s2 = await odenmis("198.51.100.122");
   const o2 = say("POST /v1/print/repair"), rr2 = say("POST /v1/print/multi-color");
-  const u2 = await sur(s2.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
-  ol("R2 onarim sonrasi hala kirmizi -> 'elle' analiz-kirmizi, renk KOSMADI, tek onarim",
-     u2 && u2.asama === "elle" && u2.sebep === "analiz-kirmizi" && say("POST /v1/print/multi-color") === rr2 &&
+  const u2 = await sur(s2.no, 12, (u) => u.asama === "onarim-bekliyor" || u.asama === "elle");
+  ol("R2 onarim sonrasi hala kirmizi -> renk + 'onarim-bekliyor', tek onarim",
+     u2 && u2.asama === "onarim-bekliyor" && say("POST /v1/print/multi-color") === rr2 + 1 &&
      say("POST /v1/print/repair") === o2 + 1, JSON.stringify(u2));
 
   // R3: onarim ucu 402 -> kredi-yetersiz (doku/renk KOSMAZ).
   P.analiz = "error"; P.analizOnarim = null; P.onarimKod = 402;
   const s3 = await odenmis("198.51.100.123");
   const d3 = say("POST /v1/retexture"), rr3 = say("POST /v1/print/multi-color");
-  const u3 = await sur(s3.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
+  const u3 = await sur(s3.no, 12, (u) => u.asama === "onarim-bekliyor" || u.asama === "elle");
   ol("R3 onarim 402 -> 'elle' kredi-yetersiz, doku+renk KOSMADI",
      u3 && u3.asama === "elle" && u3.sebep === "kredi-yetersiz" && say("POST /v1/retexture") === d3 &&
      say("POST /v1/print/multi-color") === rr3, JSON.stringify(u3));
@@ -1205,7 +1242,7 @@ console.log("R) ONARIM — kirmizi analiz -> onarim -> yeniden doku -> YENIDEN a
   // R4: onarim satiri kredi defterine idempotent (ayni onarim gorevi ikinci kez islense de tek satir).
   P.analiz = "error"; P.analizOnarim = "healthy";
   const s4 = await odenmis("198.51.100.124");
-  const u4 = await sur(s4.no, 12, (u) => u.asama === "doku" || u.asama === "elle" || u.asama === "hazir");
+  const u4 = await sur(s4.no, 12, (u) => u.asama === "doku" || u.asama === "elle" || u.asama === "onarim-bekliyor");
   const z4 = (u4 && u4.build_gorev || "").split("~");
   await d1.prepare("UPDATE foto_uretim SET asama = 'onarim', build_gorev = ?, guncel = '2000-01-01T00:00:00.000Z' WHERE siparis_no = ?")
     .bind(z4[0] + "~" + z4[1], s4.no).run();
@@ -1213,7 +1250,7 @@ console.log("R) ONARIM — kirmizi analiz -> onarim -> yeniden doku -> YENIDEN a
   const k4 = await kredi(s4.no, "onarim");
   ol("R4 kredi defteri onarim satiri idempotent (2 isleme -> 1 satir, 10 kredi)",
      u4 && u4.asama === "doku" && k4.n === 1 && k4.t === 10, JSON.stringify([u4 && u4.asama, k4]));
-  await sur(s4.no, 12, (u) => u.asama === "hazir" || u.asama === "elle");
+  await sur(s4.no, 12, (u) => u.asama === "onarim-bekliyor" || u.asama === "elle");
   P.analiz = "healthy"; P.analizOnarim = null;
 }
 
@@ -1334,7 +1371,7 @@ async function olcekSenaryolar(fm, ayrinti) {
     for (let i = 0; i < 10; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
     P.ucmf = null; P.analiz = "healthy"; P.analizOnarim = null;
     const u = await k.d1.prepare("SELECT asama, sebep, analiz FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
-    const d = r2b.m.get("foto/" + no + "/0/model.3mf");
+    const d = r2b.m.get("foto/" + no + "/0/model.ham.3mf");
     let an = {};
     try { an = JSON.parse((u && u.analiz) || "{}"); } catch (e) { an = {}; }
     return { u, d: d ? d.bayt : null, an };
@@ -1347,12 +1384,12 @@ async function olcekSenaryolar(fm, ayrinti) {
 
   const b = await kos("PR-TEST-OLC-B", UCMF_1094);
   const bo = b.d && testOlc(b.d);
-  sonuc.BUYUK = !!b.u && b.u.asama === "hazir" && !!bo && yakin(bo.L, 120) &&
+  sonuc.BUYUK = !!b.u && b.u.asama === "onarim-bekliyor" && !!bo && yakin(bo.L, 120) &&
     Math.abs(bo.z - 75 * 120 / 1096.8) < 0.05 && Math.abs(bo.zTaban) < 1e-6 && ayniGirdiler(bo) &&
     b.an.olcek > 0 && b.an.olcek < 1 && yakin(b.an.L_once, 1096.8) && yakin(b.an.L_sonra, 120) &&
     Math.abs(b.an.z_mm - bo.z) < 0.01 && b.an.durum === "healthy";
   const d = await kos("PR-TEST-OLC-D", UCMF_120);
-  sonuc.DOGRU = !!d.u && d.u.asama === "hazir" && !!d.d && Buffer.compare(Buffer.from(d.d), Buffer.from(UCMF_120)) === 0 &&
+  sonuc.DOGRU = !!d.u && d.u.asama === "onarim-bekliyor" && !!d.d && Buffer.compare(Buffer.from(d.d), Buffer.from(UCMF_120)) === 0 &&
     d.an.olcek === 1 && d.an.L_once === 120 && d.an.L_sonra === 120;
   const z = await kos("PR-TEST-OLC-Z", UCMF_BOZUK);
   sonuc.BOZUK = !!z.u && z.u.asama === "elle" && z.u.sebep === "olcu-tutmadi" && z.d === null && !!z.an.olcu_hata;
@@ -1360,7 +1397,7 @@ async function olcekSenaryolar(fm, ayrinti) {
   sonuc.IKIOGE = !!i2.u && i2.u.asama === "elle" && i2.u.sebep === "olcu-tutmadi" && i2.d === null;
   const o = await kos("PR-TEST-OLC-O", UCMF_1094, "error", "healthy");
   const oo = o.d && testOlc(o.d);
-  sonuc.ONARIMLI = !!o.u && o.u.asama === "hazir" && !!oo && yakin(oo.L, 120) && yakin(o.an.L_sonra, 120);
+  sonuc.ONARIMLI = !!o.u && o.u.asama === "onarim-bekliyor" && !!oo && yakin(oo.L, 120) && yakin(o.an.L_sonra, 120);
   if (ayrinti) { ayrinti.b = { u: b.u, L: bo && bo.L, z: bo && bo.z, M: bo && bo.M }; ayrinti.z = z.u; ayrinti.i2 = i2.u; ayrinti.o = o.u; }
   k.kapat();
   return sonuc;
@@ -2051,7 +2088,7 @@ async function altKenarSenaryolar(fm) {
   const u = await k.d1.prepare("SELECT asama, analiz FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
   let an = {};
   try { an = JSON.parse((u && u.analiz) || "{}"); } catch (e) { an = {}; }
-  s.AKIS = !!u && u.asama === "hazir" && yakin(an.alt_kenar_mm);
+  s.AKIS = !!u && u.asama === "onarim-bekliyor" && yakin(an.alt_kenar_mm);
   const kayit = fm.panelFotoKaydi("PR-AK", 0, { foto_is: is, foto_tur: "plaket", olcu_mm: 120 },
     new Map([["PR-AK|0", { asama: "hazir", analiz: u ? u.analiz : "" }]]));
   const liste = await (await fm.panelOrnekListe(e2)).json();
@@ -2116,8 +2153,9 @@ async function darSenaryolar(fm) {
   P.analiz = "error";
   for (let i = 0; i < 8; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
   P.analiz = "healthy";
-  const u = await k.d1.prepare("SELECT asama FROM foto_uretim WHERE siparis_no = 'PR-TEST-MUT'").first();
-  sonuc.J = !!u && u.asama === "elle";
+  const u = await k.d1.prepare("SELECT asama, build_gorev FROM foto_uretim WHERE siparis_no = 'PR-TEST-MUT'").first();
+  // 8 Eki: kirmizi analiz -> saglayici onarimi (zincir 3 halka) -> 'onarim-bekliyor' (elle DEGIL).
+  sonuc.J = !!u && u.asama === "onarim-bekliyor" && String(u.build_gorev || "").split("~").length === 3;
   // T: sunulmayan tur — panel acilis reddi + kuyruktaki satir saglayiciya gitmeden 'elle'.
   const pf = await fm.panelFotoAcik(new Request("https://pruvo3d.com/x", { method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -2221,7 +2259,8 @@ for (const [ad, capa, yerine, olmeli] of MUTANTLAR) {
  *  KIRMIZI: onarim sonrasi da kirmizi -> elle + renk KOSMADI + analiz iki kez (yeniden analiz atlanmadi). */
 async function onarimSenaryolar(fm) {
   const k = koprukur(); await k.hazir;
-  const e2 = envKur(k.d1, r2Kur());
+  const r2x = r2Kur();
+  const e2 = envKur(k.d1, r2x);
   const is = "d".repeat(32);
   await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'plaket', 100, 'z', ?, 'hazir', 'gorev-proto-8888', ?)")
     .bind(is, new Date().toISOString(), new Date().toISOString()).run();
@@ -2236,35 +2275,42 @@ async function onarimSenaryolar(fm) {
     for (let i = 0; i < 10; i++) { await fm.fotoUretimTuru(e2, Date.now(), null); }
     P.analiz = "healthy"; P.analizOnarim = null;
     const u = await k.d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
-    return { u, analiz: P.cagri.filter((c) => c === "POST /v1/print/analyze").length - an,
+    return { no, u, analiz: P.cagri.filter((c) => c === "POST /v1/print/analyze").length - an,
              renk: P.cagri.filter((c) => c === "POST /v1/print/multi-color").length - rn };
   };
+  // 8 Eki 2026 (yerel onarim koprusu): onarim sonrasi da kirmizi -> renk KOSAR (eskiden elle), iki yol da
+  // 'onarim-bekliyor'da biter; saglayici 3MF'i ASLA model.3mf olmaz (TESLIM).
   const y = await kos("PR-TEST-ONR-Y", "error", "healthy");
-  sonuc.YESIL = !!y.u && y.u.asama === "hazir" && y.renk === 1;
+  sonuc.YESIL = !!y.u && y.u.asama !== "elle" && y.renk === 1 && y.analiz === 2;
   const r = await kos("PR-TEST-ONR-K", "error", "error");
-  sonuc.KIRMIZI = !!r.u && r.u.asama === "elle" && r.u.sebep === "analiz-kirmizi" && r.renk === 0 && r.analiz === 2;
+  sonuc.KIRMIZI = !!r.u && r.u.asama !== "elle" && r.renk === 1 && r.analiz === 2;
+  const teslim = [y, r].filter((x) => x.u && x.u.asama !== "elle");
+  sonuc.TESLIM = teslim.length >= 1 && teslim.every((x) => x.u.asama === "onarim-bekliyor" &&
+    !r2x.m.has("foto/" + x.no + "/0/model.3mf") && r2x.m.has("foto/" + x.no + "/0/model.ham.3mf"));
   k.kapat();
   return sonuc;
 }
 
 const ONARIM_MUTANTLAR = [
   ["N1 ONARIM SONRASI YENIDEN ANALIZ ATLANDI", "return analizBaslat(env, u, dokuGlb, simdi, telegram);",
-   "return renkBaslat(env, u, \"\", simdi, telegram);", "KIRMIZI"],
-  ["N2 ONARIM SONRASI KIRMIZIDA RENK KOSTU", "return elleDusur(env, u, \"analiz-kirmizi\", ozet, simdi, telegram);",
-   "return renkBaslat(env, u, ozet, simdi, telegram);", "KIRMIZI"],
-  ["N3 ONARIM YERINE DOGRUDAN RENK", "if (zincir(u).length >= 2) {", "if (true) { return renkBaslat(env, u, ozet, simdi, telegram); } if (false) {", "KIRMIZI"],
-  ["N0 KONTROL", "console.log(\"FOTO_URETIM kuyruga=\"", "console.log(\"FOTO_URETIM  kuyruga=\"", null],
+   "return renkBaslat(env, u, \"\", simdi, telegram);", ["YESIL", "KIRMIZI"]],
+  ["N2 ONARIM SONRASI KIRMIZIDA ELLE (eski davranis, kopru devre disi)",
+   "if (zincir(u).length >= 2) {\n        return renkBaslat(env, u, ozet, simdi, telegram);",
+   "if (zincir(u).length >= 2) {\n        return elleDusur(env, u, \"analiz-kirmizi\", ozet, simdi, telegram);", ["KIRMIZI"]],
+  ["N3 ONARIM YERINE DOGRUDAN RENK", "if (zincir(u).length >= 2) {", "if (true) { return renkBaslat(env, u, ozet, simdi, telegram); } if (false) {", ["YESIL", "KIRMIZI"]],
+  ["NK1 HAM SAGLAYICI 3MF'I model.3mf'E YAZILDI", "uretimAnahtari(u.siparis_no, u.kalem, ONARIM_HAM_BICIM)",
+   "uretimAnahtari(u.siparis_no, u.kalem, \"3mf\")", ["TESLIM"]],
+  ["NK2 RENK SONRASI 'hazir' YAZILDI (onarim kapisi atlandi)", "asamaYaz(env, u, \"onarim-bekliyor\", { analiz: ozet }, simdi)",
+   "asamaYaz(env, u, \"hazir\", { analiz: ozet }, simdi)", ["TESLIM"]],
+  ["N0 KONTROL", "console.log(\"FOTO_URETIM kuyruga=\"", "console.log(\"FOTO_URETIM  kuyruga=\"", []],
 ];
 for (const [ad, capa, yerine, olmeli] of ONARIM_MUTANTLAR) {
   const fm = await mutantModul(capa, yerine);
   if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
   const s = await onarimSenaryolar(fm);
-  if (olmeli) {
-    ol(ad + " -> " + olmeli + " KIRMIZI yanar (digerleri yesil)",
-       s[olmeli] === false && Object.keys(s).filter((x) => x !== olmeli).every((x) => s[x] === true), JSON.stringify(s));
-  } else {
-    ol(ad + " -> hicbir onarim senaryosu kirmizi yanmaz", Object.values(s).length === 2 && Object.values(s).every((x) => x === true), JSON.stringify(s));
-  }
+  const kirmizi = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 3 && JSON.stringify(kirmizi) === JSON.stringify([...olmeli].sort()), JSON.stringify(s));
 }
 
 /** Mutanta karsi bes dar onarim-kapisi senaryosu (temiz SQLite). A1-A5: onarimGerekli(p) karari.
@@ -2296,21 +2342,21 @@ async function metrikSenaryolar(fm) {
              renk: P.cagri.filter((c) => c === "POST /v1/print/multi-color").length - rn,
              analiz: P.cagri.filter((c) => c === "POST /v1/print/analyze").length - an };
   };
-  // A1: warning + degenerate_faces 316227 → onarim en az 1 kez (tavan sonrasi elle; renk 0).
+  // A1: warning + degenerate_faces 316227 → onarim en az 1 kez (8 Eki: tavan sonrasi renk + 'onarim-bekliyor').
   const a1 = await kos("PR-TEST-MA1", "warning", null, { degenerate_faces: 316227 });
-  sonuc.A1 = !!a1.u && a1.onarim >= 1 && a1.renk === 0;
+  sonuc.A1 = !!a1.u && a1.onarim >= 1;
   // A2: warning + metrik 0/true → renk, repair 0 (bugunku davranis korunur).
   const a2 = await kos("PR-TEST-MA2", "warning", null, null);
-  sonuc.A2 = !!a2.u && a2.u.asama === "hazir" && a2.onarim === 0;
+  sonuc.A2 = !!a2.u && a2.u.asama === "onarim-bekliyor" && a2.onarim === 0;
   // A3: healthy → renk, repair 0.
   const a3 = await kos("PR-TEST-MA3", "healthy", null, null);
-  sonuc.A3 = !!a3.u && a3.u.asama === "hazir" && a3.onarim === 0;
-  // A4: zincir(~) + warning + kusur (holes) → 'elle' analiz-kirmizi, tek onarim (tavan).
+  sonuc.A3 = !!a3.u && a3.u.asama === "onarim-bekliyor" && a3.onarim === 0;
+  // A4: zincir(~) + warning + kusur (holes) → tek onarim (tavan), sonra renk + 'onarim-bekliyor' (8 Eki).
   const a4 = await kos("PR-TEST-MA4", "warning", "warning", { holes: 1 });
-  sonuc.A4 = !!a4.u && a4.u.asama === "elle" && a4.u.sebep === "analiz-kirmizi" && a4.onarim === 1;
+  sonuc.A4 = !!a4.u && a4.u.asama === "onarim-bekliyor" && a4.onarim === 1;
   // A5: warning + metrik alani YOK → renk, repair 0 (figur ozeti).
   const a5 = await kos("PR-TEST-MA5", "warning", null, { noMetrics: true });
-  sonuc.A5 = !!a5.u && a5.u.asama === "hazir" && a5.onarim === 0;
+  sonuc.A5 = !!a5.u && a5.u.asama === "onarim-bekliyor" && a5.onarim === 0;
   k.kapat();
   return sonuc;
 }
@@ -2321,7 +2367,7 @@ const METRIK_MUTANTLAR = [
    "if (false) { return true; }", "A1"],
   // A4: tavan kontrolu silinirse zincir(~)+kusur → ikinci onarim (sonsuz).
   ["N5 TAVAN KONTROLU SILINDI (zincir.length>=2)",
-   "if (zincir(u).length >= 2) {\n        return elleDusur(env, u, \"analiz-kirmizi\", ozet, simdi, telegram);\n      }",
+   "if (zincir(u).length >= 2) {\n        return renkBaslat(env, u, ozet, simdi, telegram);\n      }",
    "if (false) {\n      }", "A4"],
   ["N6 KONTROL", "console.log(\"FOTO_URETIM kuyruga=\"", "console.log(\"FOTO_URETIM  kuyruga=\"", null],
 ];
