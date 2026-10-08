@@ -1702,8 +1702,8 @@
           enlem: {
             tip: "sayi",
             etiket: "Enlem",
-            min: -90,
-            max: 90,
+            min: -80,
+            max: 80,
             adim: 0.000001,
             zorunlu: true,
             ornek: 41.0256
@@ -1900,11 +1900,11 @@
           },
           kadir_esigi: {
             tip: "sayi",
-            etiket: "Kadir esigi (0=oto)",
-            min: 0,
+            etiket: "Kadir esigi",
+            min: 2,
             max: 6,
             adim: 0.01,
-            varsayilan: 0,
+            varsayilan: 4,
             ornek: 2
           },
           yildiz_sekli: {
@@ -2073,7 +2073,7 @@
             tip: "sayi",
             etiket: "Genislik (zorunlu)",
             min: 20,
-            max: 250,
+            max: 400,
             adim: 0.01,
             varsayilan: 160,
             birim: "mm",
@@ -2082,8 +2082,8 @@
           yukseklik_mm: {
             tip: "sayi",
             etiket: "Yukseklik (zorunlu)",
-            min: 20,
-            max: 250,
+            min: 10,
+            max: 400,
             adim: 0.01,
             varsayilan: 90,
             birim: "mm",
@@ -2092,10 +2092,10 @@
           kose_yaricap_mm: {
             tip: "sayi",
             etiket: "Kose yaricap",
-            min: 0,
-            max: 50,
+            min: 1,
+            max: 30,
             adim: 0.01,
-            varsayilan: 0,
+            varsayilan: 5,
             birim: "mm"
           },
           kenar_payi_mm: {
