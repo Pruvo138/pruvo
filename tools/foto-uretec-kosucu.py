@@ -95,6 +95,13 @@ IS_KALIBI = re.compile(r"^[0-9a-f]{32}$")
 # Uretec deposu SALT OKUNUR: alt surec __pycache__ yazmaz.
 SALT_OKUMA_ENV = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
 DOSYA_ADI_KALIBI = re.compile(r"^[a-z_]{1,24}\.(png|jpg|jpeg|svg|wav)$")
+# ONARIM KAPISI (8 Eki 2026, BaBa hukmu): saglayici renk 3MF'i Worker'da `model.ham.3mf`e yazilir, satir
+# 'onarim-bekliyor'a gecer; Worker ham dosyayi ASLA model.3mf yapmaz. Bu kosucu TeKiN koprusunu
+# (`uc_mf_onar.py <ham> <cikti>`) kosar, `--olc <ham> <cikti>` rc 0 (acik/tekrarli/oz kenar 0 + manifold3d
+# NoError + renk korunumu + olcek/hacim) gecerse cikti `model.3mf` olur ve satir 'hazir'; gecmezse 'elle'.
+# Kopru yoksa is KUYRUKTA kalir (fail-closed: hazir yazilmaz). ④ bunu pruvo `uc_mf_olc` ile AYRICA olcer.
+KOPRU_BETIK = "jeneratorler/foto/uc_mf_onar.py"
+ONARIM_SURE_SN = 600
 
 # KOMUT ESLEMESI — TEK YER: manifest `uretec` kimligi -> CLI. bicim "sozlesme" = §1 dogal cagri
 # (`<komut> --girdi girdi.json --cikti <dizin>`); "litofan" = litofan_uret.py'nin kendi CLI'i
@@ -256,6 +263,12 @@ def isleri_cek(manifest):
         isler.append({"kuyruk": "onizleme", "is_no": r.get("is_no"), "tur": r.get("tur"),
                       "olcu_mm": r.get("olcu_mm"), "deneme": int(m.group(1)) if m else 0,
                       "gorulen": int(r.get("son_kontrol") or 0)})
+    sat, _ = d1("SELECT siparis_no, kalem, is_no, tur, olcu_mm, deneme, guncel FROM foto_uretim"
+                " WHERE asama = 'onarim-bekliyor' ORDER BY tarih LIMIT " + str(IS_SINIRI))
+    for r in sat:
+        isler.append({"kuyruk": "onarim", "siparis_no": r.get("siparis_no"), "kalem": r.get("kalem"),
+                      "is_no": r.get("is_no"), "tur": r.get("tur"), "olcu_mm": r.get("olcu_mm"),
+                      "deneme": int(r.get("deneme") or 0), "gorulen": r.get("guncel") or ""})
     for i in isler:
         t = manifest.get(i["tur"]) or {}
         i["motor"] = t.get("motor", "")
@@ -263,14 +276,19 @@ def isleri_cek(manifest):
     return isler
 
 
+def satirli(i):
+    """foto_uretim satiri (siparis + onarim kuyrugu): kimlik siparis_no+kalem, CAS jetonu `guncel`."""
+    return i["kuyruk"] in ("siparis", "onarim")
+
+
 def is_adi(i):
-    if i["kuyruk"] == "siparis":
-        return "siparis %s#%s" % (i["siparis_no"], i["kalem"])
+    if satirli(i):
+        return "%s %s#%s" % (i["kuyruk"], i["siparis_no"], i["kalem"])
     return "onizleme %s" % i["is_no"]
 
 
 def cikti_anahtarlari(i):
-    if i["kuyruk"] == "siparis":
+    if satirli(i):
         d = "foto/%s/%s/" % (i["siparis_no"], i["kalem"])
     else:
         d = "foto-uretec-onizleme/%s/" % i["is_no"]
@@ -280,26 +298,27 @@ def cikti_anahtarlari(i):
 def kimlik_gecerli(i):
     if not IS_KALIBI.match(str(i.get("is_no") or "")):
         return False
-    if i["kuyruk"] == "siparis":
+    if satirli(i):
         return bool(SIPARIS_KALIBI.match(str(i.get("siparis_no") or ""))) and isinstance(i.get("kalem"), int)
     return True
 
 
 def nerede(i):
-    if i["kuyruk"] == "siparis":
-        return ("foto_uretim", "siparis_no = %s AND kalem = %d AND asama = 'uretec-bekliyor'"
-                % (sql_metin(i["siparis_no"]), i["kalem"]))
+    if satirli(i):
+        asama = "onarim-bekliyor" if i["kuyruk"] == "onarim" else "uretec-bekliyor"
+        return ("foto_uretim", "siparis_no = %s AND kalem = %d AND asama = '%s'"
+                % (sql_metin(i["siparis_no"]), i["kalem"], asama))
     return ("foto_isler", "is_no = %s AND asama = 'uretec-onizleme'" % sql_metin(i["is_no"]))
 
 
 def jeton_kosulu(i, jeton):
-    if i["kuyruk"] == "siparis":
+    if satirli(i):
         return "guncel = %s" % sql_metin(jeton)
     return "son_kontrol = %d" % int(jeton)
 
 
 def yeni_jeton(i):
-    if i["kuyruk"] == "siparis":
+    if satirli(i):
         j = simdi_iso()
         return j if j != i["gorulen"] else j + "~"
     return max(int(time.time() * 1000), int(i["gorulen"]) + 1)
@@ -312,7 +331,7 @@ def sonuc_sql(i, jeton, karar, sebep="", olcu=None):
     tablo, kosul = nerede(i)
     kosul += " AND " + jeton_kosulu(i, jeton)
     simdi = simdi_iso()
-    if i["kuyruk"] == "siparis":
+    if satirli(i):
         if karar == "hazir":
             st = "asama = 'hazir', sebep = '', deneme = 0, guncel = %s" % sql_metin(simdi)
         elif karar == "elle":
@@ -334,13 +353,13 @@ def sonuc_sql(i, jeton, karar, sebep="", olcu=None):
 
 def kirala_sql(i, jeton):
     tablo, kosul = nerede(i)
-    alan = "guncel = %s" % sql_metin(jeton) if i["kuyruk"] == "siparis" else "son_kontrol = %d" % int(jeton)
+    alan = "guncel = %s" % sql_metin(jeton) if satirli(i) else "son_kontrol = %d" % int(jeton)
     return "UPDATE %s SET %s WHERE %s AND %s" % (tablo, alan, kosul, jeton_kosulu(i, i["gorulen"]))
 
 
 def geri_ver_sql(i, jeton):
     tablo, kosul = nerede(i)
-    alan = ("guncel = %s" % sql_metin(i["gorulen"]) if i["kuyruk"] == "siparis"
+    alan = ("guncel = %s" % sql_metin(i["gorulen"]) if satirli(i)
             else "son_kontrol = %d" % int(i["gorulen"]))
     return "UPDATE %s SET %s WHERE %s AND %s" % (tablo, alan, kosul, jeton_kosulu(i, jeton))
 
@@ -1113,13 +1132,81 @@ def red_sebebi(stderr):
     return "uretec-red:" + m.group(1) if m else "uretec-red"
 
 
+def onarim_kapisi(ham, cikti):
+    """Kopru + kabul olcumu. Donus (karar, sebep, ozet); karar hazir | elle | ariza.
+    Kopru betigi yoksa Erisilemedi -> is KUYRUKTA kalir (hazir yazilmaz)."""
+    py = os.environ.get("FOTO_KOSUCU_PYTHON") or sys.executable
+    jen = os.environ.get("FOTO_KOSUCU_JENERATOR") or os.path.expanduser("~/dev/pruvo-jenerator")
+    kopru = os.path.join(jen, KOPRU_BETIK)
+    if not os.path.isfile(kopru):
+        raise Erisilemedi("kopru-yok")
+
+    def kos(arg):
+        p = subprocess.run([py, kopru] + arg, capture_output=True, text=True, timeout=ONARIM_SURE_SN,
+                           env=SALT_OKUMA_ENV)
+        return p.returncode, ((p.stderr or "").strip().splitlines() or [""])[-1][:200], p.stdout
+
+    try:
+        rc, hata, _ = kos([ham, cikti])
+        if rc == 2:
+            return "elle", "onarim-girdi-hatasi", hata
+        if rc != 0 or not os.path.isfile(cikti):
+            return "elle", "onarim-kirmizi", "kopru rc=%d %s" % (rc, hata)
+        rc, hata, cik = kos(["--olc", ham, cikti])
+    except subprocess.TimeoutExpired:
+        return "ariza", "onarim-sure", "sure-asimi"
+    except OSError as e:
+        return "ariza", "onarim-baslatilamadi", str(e)[:200]
+    if rc != 0:
+        try:
+            kusur = json.loads(cik).get("kabul_kusurlari") or []
+        except ValueError:
+            kusur = [hata or "olcum-okunamadi"]
+        return "elle", "onarim-kirmizi", "olc rc=%d %s" % (rc, ",".join(kusur)[:200])
+    return "hazir", "", "olc rc=0"
+
+
+def onarim_isle(i, jeton, yaz):
+    """'onarim-bekliyor' satiri: R2 model.ham.3mf -> kopru -> olcum -> model.3mf + 'hazir' (ya da 'elle')."""
+    d = "foto/%s/%s/" % (i["siparis_no"], i["kalem"])
+    gecici = tempfile.mkdtemp(prefix="foto-onarim-")
+    try:
+        ham, cikti = os.path.join(gecici, "ham.3mf"), os.path.join(gecici, "model.3mf")
+        if not r2_al(d + "model.ham.3mf", ham):
+            karar, sebep, ozet = "elle", "onarim-ham-yok", ""
+        else:
+            karar, sebep, ozet = onarim_kapisi(ham, cikti)
+        if karar == "ariza" and i["deneme"] + 1 >= DENEME_TAVANI:
+            karar = "elle"
+        if karar == "hazir":
+            r2_koy(d + "model.3mf", cikti, "model/3mf")
+        _, n = d1(sonuc_sql(i, jeton, karar, sebep))
+        if n != 1:
+            yaz("CAS %s son yazim tutmadi (jeton degismis)" % is_adi(i))
+            return "cas"
+        yaz("%s %s%s %s" % (karar.upper(), is_adi(i), (" sebep=" + sebep) if sebep else "", ozet))
+        return {"hazir": "uretildi", "elle": "red", "ariza": "ariza"}[karar]
+    except Erisilemedi:
+        try:
+            d1(geri_ver_sql(i, jeton))  # onarim kuyrugu: kira geri (kopru/R2/D1 yok -> is kuyrukta)
+        except Erisilemedi:
+            pass
+        raise
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
+
+
 def plan_bas(i, yaz):
     a = cikti_anahtarlari(i)
     yaz("IS %s tur=%s olcu=%s motor=%s uretec=%s deneme=%d"
         % (is_adi(i), i["tur"], i["olcu_mm"], i["motor"] or "-", i["uretec"] or "-", i["deneme"]))
+    if i["kuyruk"] == "onarim":
+        yaz("  PLAN KOPRU %s -> %s" % (a["model.3mf"].replace("model.3mf", "model.ham.3mf"), a["model.3mf"]))
+        yaz("  PLAN D1 %s" % sonuc_sql(i, "<jeton>", "hazir"))
+        return
     for ad in CIKTI_DOSYALARI:
         yaz("  PLAN R2 PUT %s/%s" % (R2_KOVA, a[ad]))
-    yaz("  PLAN D1 %s" % sonuc_sql(i, "<jeton>" if i["kuyruk"] == "siparis" else 0, "hazir"))
+    yaz("  PLAN D1 %s" % sonuc_sql(i, "<jeton>" if satirli(i) else 0, "hazir"))
 
 
 def is_isle(i, manifest, yaz):
@@ -1133,6 +1220,8 @@ def is_isle(i, manifest, yaz):
     if n != 1:
         yaz("CAS %s kiralanamadi (baska kosucu ilerletmis) — yazim yok" % is_adi(i))
         return "cas"
+    if i["kuyruk"] == "onarim":
+        return onarim_isle(i, jeton, yaz)
     gecici = tempfile.mkdtemp(prefix="foto-kosucu-")
     try:
         girdi_dizin = os.path.join(gecici, "girdi")

@@ -76,6 +76,21 @@ if a[:2] == ["r2", "object"]:
 sys.exit(9)
 '''
 
+# Sahte 3MF onarim koprusu (TeKiN uc_mf_onar.py CLI: `<girdi> <cikti>` · `--olc <girdi> <cikti>`).
+# FAKE_KOPRU: ok (varsayilan) | olc-kirmizi (--olc rc 1 + kusur) | girdi (onarim rc 2).
+SAHTE_KOPRU = r'''
+import json, os, shutil, sys
+a = sys.argv[1:]; mod = os.environ.get("FAKE_KOPRU", "ok")
+open(os.environ["FAKE_LOG"], "a").write(json.dumps(["kopru"] + a[:1]) + "\n")
+if a and a[0] == "--olc":
+    k = ["acik_kenar=3"] if mod == "olc-kirmizi" else []
+    print(json.dumps({"kabul_kusurlari": k})); sys.exit(1 if k else 0)
+if mod == "girdi":
+    sys.stderr.write("GIRDI HATASI: sahte\n"); sys.exit(2)
+shutil.copyfile(a[0], a[1]); open(a[1], "ab").write(b"ONARILDI"); sys.exit(0)
+'''
+HAM_3MF = b"PK\x03\x04HAM"
+
 # Sahte tekin-ortak ureteci (G1/G2 CLI: --girdi <uretec json> --cikti <dizin> -> uretec.3mf + onizleme.png
 # + ozet.json). Aldigi JSON'u FAKE_TEKIN_LOG'a yazar; extruder sayisi = girdideki renk alani sayisi
 # (FAKE_TEKIN_EXTRUDER zorlar). FAKE_TEKIN_RET dolu -> stderr "RET: <metin>" rc 2.
@@ -350,6 +365,28 @@ class Ortam:
     def uretim(self):
         r = self.sql("SELECT asama, sebep, deneme, guncel FROM foto_uretim")
         return r[0] if r else None
+
+    def onarim_is(self, ham=True):
+        """Saglayici zinciri bitti: foto_uretim 'onarim-bekliyor' + R2 model.ham.3mf (8 Eki onarim kuyrugu)."""
+        self.sql("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, deneme, tarih, guncel)"
+                 " VALUES (?,0,?,?,?,?,?,?,?)", SIP, IS, "figur", 130, "onarim-bekliyor", 0, GUNCEL0, GUNCEL0)
+        if ham:
+            os.makedirs(os.path.join(self.r2, "foto", SIP, "0"), exist_ok=True)
+            with open(os.path.join(self.r2, "foto", SIP, "0", "model.ham.3mf"), "wb") as f:
+                f.write(HAM_3MF)
+
+    def jen(self, kopru=True):
+        """Sahte uretec deposu; kopru=False -> uc_mf_onar.py YOK."""
+        d = os.path.join(self.d, "jen" if kopru else "jen-bos")
+        os.makedirs(os.path.join(d, "jeneratorler", "foto"), exist_ok=True)
+        if kopru:
+            with open(os.path.join(d, "jeneratorler", "foto", "uc_mf_onar.py"), "w") as f:
+                f.write(SAHTE_KOPRU)
+        return d
+
+    def model(self):
+        y = os.path.join(self.r2, "foto", SIP, "0", "model.3mf")
+        return open(y, "rb").read() if os.path.isfile(y) else None
 
     def kapat(self):
         shutil.rmtree(self.d, ignore_errors=True)
@@ -627,8 +664,10 @@ def vakalar(kosucu):
     def t24(o):
         o.kos("--hedef", "onizleme")
         o.kos()
+        # Bos kuyrukta her kosum 3 SELECT (siparis + onizleme + onarim kuyrugu, 8 Eki).
         adlar = [a[2] for a in (json.loads(s) for s in open(o.log)) if a[:2] == ["d1", "execute"]]
-        return (set(adlar[:2]) == {"pruvo-katalog-onizleme"} and set(adlar[2:]) == {"pruvo-katalog"}), "%s" % adlar
+        return (len(adlar) == 6 and set(adlar[:3]) == {"pruvo-katalog-onizleme"} and
+                set(adlar[3:]) == {"pruvo-katalog"}), "%s" % adlar
 
     def t25(o):
         # Tarayici onizleyicili tur (litofan): ornek isi 'hazir' + gri harita -> ORNEK siparis uretilir.
@@ -661,8 +700,47 @@ def vakalar(kosucu):
     vaka("T22", t22)
     vaka("T23", t23)
     vaka("T26", t26)
+    # ONARIM KUYRUGU (8 Eki 2026): 'onarim-bekliyor' -> kopru -> --olc -> model.3mf + 'hazir' ya da 'elle'.
+    def t27(o):
+        o.onarim_is()
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen())
+        u = o.uretim()
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
+                o.model() == HAM_3MF + b"ONARILDI"), "%s %s" % (son, u)
+
+    def t28(o):
+        o.onarim_is()
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen(), FAKE_KOPRU="olc-kirmizi")
+        u = o.uretim()
+        return (son == "HAL=ISLEDI uretildi=0 red=1 ariza=0 rc=0" and u["asama"] == "elle" and
+                u["sebep"] == "onarim-kirmizi" and o.model() is None), "%s %s" % (son, u)
+
+    def t29(o):
+        o.onarim_is()
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen(kopru=False))
+        u = o.uretim()
+        return (son == "HAL=OLCULEMEDI sebep=kopru-yok rc=4" and u["asama"] == "onarim-bekliyor" and
+                u["guncel"] == GUNCEL0 and o.model() is None), "%s %s" % (son, u)
+
+    def t30(o):
+        o.onarim_is(ham=False)
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen())
+        u = o.uretim()
+        return (u["asama"] == "elle" and u["sebep"] == "onarim-ham-yok" and o.model() is None), "%s %s" % (son, u)
+
+    def t31(o):
+        o.onarim_is()
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen(), FAKE_KOPRU="girdi")
+        u = o.uretim()
+        return (u["asama"] == "elle" and u["sebep"] == "onarim-girdi-hatasi" and o.model() is None), "%s %s" % (son, u)
+
     vaka("T24", t24)
     vaka("T25", t25)
+    vaka("T27", t27)
+    vaka("T28", t28)
+    vaka("T29", t29)
+    vaka("T30", t30)
+    vaka("T31", t31)
     for ad, fn in (("T1", t1), ("T2", t2), ("T3", t3), ("T4", t4), ("T5", t5), ("T6", t6), ("T7", t7),
                    ("T8", t8), ("T9", t9), ("T10", t10), ("T11", t11), ("T12", t12), ("T12b", t12b)):
         vaka(ad, fn)
@@ -721,6 +799,16 @@ MUTANTLAR = {
     "M29": ('             "dugme": esle_dugme,\n', "", {"T13-dugme"}),
     "M30": ('             "klips": esle_klips,\n', "", {"T13-klips"}),
     "M31": ('             "saksi": esle_saksi,\n', "", {"T13-saksi"}),
+    # ONARIM KUYRUGU (8 Eki): olcum atlanirsa kirmizi kopru ciktisi 'hazir' olur.
+    "M32": ('        rc, hata, cik = kos(["--olc", ham, cikti])\n', '        rc, hata, cik = 0, "", "{}"\n', {"T28"}),
+    # kopru-yok fail-closed silinirse is kuyrukta kalmaz (python dosya bulamaz -> elle).
+    "M33": ('        raise Erisilemedi("kopru-yok")\n', "        pass\n", {"T29"}),
+    # erisim yokken kira geri verilmezse satirin jetonu kayar.
+    "M34": ("            d1(geri_ver_sql(i, jeton))  # onarim kuyrugu: kira geri (kopru/R2/D1 yok -> is kuyrukta)\n",
+            "            pass\n", {"T29"}),
+    # ham dosya yoksa kopru yine kosarsa sebep yanlis kovaya duser.
+    "M35": ('            karar, sebep, ozet = "elle", "onarim-ham-yok", ""\n',
+            "            karar, sebep, ozet = onarim_kapisi(ham, cikti)\n", {"T30"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 
