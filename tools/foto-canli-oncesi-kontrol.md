@@ -33,6 +33,9 @@ Turnstile sırrı önizleme turunda bir işçi transkriptine basıldı → canl�
       → açılacak her tür için ①–⑥ HAZIR (kredi harcaması ≤ N).
 - [ ] Canlı D1 şeması: `foto_acik`, `foto_konsept` tabloları + `foto_isler.uretim_notu/onay_tarih/onay_surum`
       + `foto_uretim.onay_tarih/onay_surum` var (`PRAGMA table_info`).
+- [ ] Ek renk göçü (8 Eki): `tools/d1-goc/2026-10-08-foto-renk.sql` shop worker deploy'undan ÖNCE canlı D1'e
+      uygulandı → `PRAGMA table_info(foto_uretim)` içinde `renk_sayisi` (INTEGER, varsayılan 0) + `renkler`
+      (TEXT, varsayılan '') VAR. Yoksa ödenen sipariş üretim kuyruğuna YAZILAMAZ (fail-closed 500).
 - [ ] Canlı shop worker sürümü = main'deki `shop/` (ödeme nabzı şeridi son push'ta `success`).
 
 ## 5. O günün kredi tavanı — PARA: Okan kapısı
