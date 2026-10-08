@@ -467,6 +467,15 @@ console.log("P) TUR LISTESI — tek tur PLAKET (Okan 5 Eki 21:4x; anahtarlik/mag
   ol("P8 figur yolu yokken global tur-yolu eksigi 0, plaket tur-yolu eksigi 0, figur 'tur-yolu-figur'",
      gEksik.length === 0 && pEksik.length === 0 && fEksik.includes("tur-yolu-figur"),
      JSON.stringify({ gEksik, pEksik, fEksik }));
+  // P10 (8 Eki, saglayici figur belgesi): figur build govdesi YALNIZ input_task_id + name (options yok);
+  // plaket govdesi kabartma/taban/sekil secenekleriyle AYNEN.
+  const bf = foto.buildGovdesi({ tur: "figur", siparis_no: "S1", olcu_mm: 120 }, "g1");
+  const bp = foto.buildGovdesi({ tur: "plaket", siparis_no: "S2", olcu_mm: 150 }, "g2");
+  ol("P10 build govdesi ture gore: figur options YOK, plaket size_mm+kabartma+sekil VAR",
+     JSON.stringify(Object.keys(bf).sort()) === '["input_task_id","name"]' &&
+       bp.options && bp.options.size_mm === 150 && bp.options.has_closed_back === true &&
+       bp.input_task_id === "g2",
+     JSON.stringify({ bf, bp }));
   const yolsuz = envKur(null, null, { URETIM_TUR_FIGUR: "", URETIM_TUR_PLAKET: "" });
   ol("P9 hicbir tur yolu yoksa global eksik tur-yolu-plaket + tur-yolu-figur (bolum KAPALI)",
      ["tur-yolu-plaket", "tur-yolu-figur"].every((e) => foto.yapilandirma(yolsuz).eksik.includes(e)),

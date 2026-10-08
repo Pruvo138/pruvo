@@ -363,6 +363,20 @@ async function saglayici(env, yontem, yol, govde) {
   }
 }
 
+/**
+ * Build govdesi TURE gore. Plaket: duz kapali sirt + sabit kabartma/taban (ayak yuvasi bu tabana
+ * gore) — delme yok. Figur: saglayici build adimi `options` ALMAZ (olcu parametresi yok); olcu
+ * renk/3MF sonrasinda ucmfOlcekle ile en uzun kenara duze olceklenir.
+ */
+export function buildGovdesi(u, gorev) {
+  const g = { input_task_id: gorev, name: "pruvo-" + u.siparis_no };
+  if (u.tur === "plaket") {
+    g.options = { size_mm: u.olcu_mm, relief_height_mm: PLAKET_KABARTMA_MM,
+                  base_thickness_mm: PLAKET_TABAN_MM, has_closed_back: true, badge_shape: PLAKET_SEKIL };
+  }
+  return g;
+}
+
 function turYolu(env, tur) {
   const parca = saglayiciTuru(tur) ? String(env[TUR_ORTAM[tur]] || "") : "";
   if (!parca) { throw new Error("foto: sunulmayan tur ya da tur yolu eksik"); }
@@ -1923,13 +1937,7 @@ async function uretimAdimi(env, u, simdi, telegram) {
     if ((simdi - Date.parse(is.hazir_tarih)) / 3600000 > ONIZLEME_KURULUM_SINIRI_SAAT) {
       return elleDusur(env, u, "onizleme-suresi-doldu", "", simdi, telegram);
     }
-    const c = await saglayici(env, "POST", turYolu(env, u.tur) + "/v1/build", {
-      input_task_id: is.gorev,
-      name: "pruvo-" + u.siparis_no,
-      // Plaket: duz kapali sirt + sabit kabartma/taban (ayak yuvasi bu tabana gore) — delme yok.
-      options: { size_mm: u.olcu_mm, relief_height_mm: PLAKET_KABARTMA_MM,
-                 base_thickness_mm: PLAKET_TABAN_MM, has_closed_back: true, badge_shape: PLAKET_SEKIL },
-    });
+    const c = await saglayici(env, "POST", turYolu(env, u.tur) + "/v1/build", buildGovdesi(u, is.gorev));
     const gorev = gorevKimligi(c.govde);
     if (c.kod >= 200 && c.kod < 300 && gorev) {
       return asamaYaz(env, u, "build", { build_gorev: gorev }, simdi);
