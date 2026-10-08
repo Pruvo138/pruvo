@@ -146,17 +146,26 @@ def png(w, h):
 
 
 def kutu_3mf(d, L):
-    """Saglayici zincirinin olcekli 3MF'i (sahte): L x L/2 x 3 su gecirmez kutu."""
+    """Saglayici zincirinin olcekli 3MF'i (sahte, PRODUCTION): L x L/2 x 3 su gecirmez kutu.
+    Tek bileşen: object_1.model (mesh), root = object id="2" + build <item objectid="2"/> (item transformu yok,
+    hedef olcu bu). BambuStudio Production bicimi (gercek akis)."""
     os.makedirs(d, exist_ok=True)
     v = [(x, y, z) for x in (0, L) for y in (0, L / 2) for z in (0, 3.0)]
     t = [(0, 2, 6), (0, 6, 4), (1, 5, 7), (1, 7, 3), (0, 4, 5), (0, 5, 1), (2, 3, 7), (2, 7, 6), (0, 1, 3), (0, 3, 2),
          (4, 6, 7), (4, 7, 5)]
-    xml = ('<model unit="millimeter"><resources><object id="1" type="model"><mesh><vertices>' +
-           "".join('<vertex x="%g" y="%g" z="%g"/>' % p for p in v) + '</vertices><triangles>' +
-           "".join('<triangle v1="%d" v2="%d" v3="%d"/>' % q for q in t) +
-           '</triangles></mesh></object></resources><build><item objectid="1"/></build></model>')
+    obj_xml = ('<object id="1" type="model"><mesh><vertices>' +
+               "".join('<vertex x="%g" y="%g" z="%g"/>' % p for p in v) + '</vertices><triangles>' +
+               "".join('<triangle v1="%d" v2="%d" v3="%d"/>' % q for q in t) +
+               '</triangles></mesh></object>')
+    kok_xml = ('<model unit="millimeter" xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06" '
+               'requiredextensions="p"><resources>'
+               '<object id="2" type="model"><components>'
+               '<component p:path="/3D/Objects/object_1.model" objectid="1"/>'
+               '</components></object>'
+               '</resources><build><item objectid="2"/></build></model>')
     with zipfile.ZipFile(os.path.join(d, "model.3mf"), "w") as z:
-        z.writestr("3D/3dmodel.model", xml)
+        z.writestr("3D/3dmodel.model", kok_xml)
+        z.writestr("3D/Objects/object_1.model", obj_xml)
 
 
 class Sunucu:
@@ -747,6 +756,70 @@ def vakalar(kaynak, sadece=None):
             {k: sh.get(k) for k in ("enlem", "boylam", "yaricap_m")}, yz.get("tarih_saat"),
             {k: dg[k].get("hata", "ok") for k in dg})
     saf("U25", u25)
+
+    # ---- 3MF cok-dosya (p:path, BambuStudio Production): saf vakalar P1/P2/P3. Sentetik 3MF yazici (yalniz
+    # test, disk izi YOK): kok = object id="2" + build item <item objectid="2" scale=olcek>, alt =
+    # 12-ucgenli kapali kutu alt_L x alt_W x alt_H. P3: alt dosya zip'e yazilmaz (p:path hedefi YOK).
+    def saf_3mf_uretim(olcek=0.5, alt_L=200, alt_W=100, alt_H=6, eksik_ucgen=False, alt_var=True):
+        v = [(x, y, z) for x in (0, alt_L) for y in (0, alt_W) for z in (0, alt_H)]
+        t = [(0, 2, 6), (0, 6, 4), (1, 5, 7), (1, 7, 3), (0, 4, 5), (0, 5, 1), (2, 3, 7), (2, 7, 6), (0, 1, 3),
+             (0, 3, 2), (4, 6, 7), (4, 7, 5)]
+        if eksik_ucgen:
+            t = t[:-1]
+        obj_xml = ('<object id="1" type="model"><mesh><vertices>' +
+                   "".join('<vertex x="%g" y="%g" z="%g"/>' % p for p in v) + '</vertices><triangles>' +
+                   "".join('<triangle v1="%d" v2="%d" v3="%d"/>' % q for q in t) +
+                   '</triangles></mesh></object>')
+        kok_xml = ('<model unit="millimeter" xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06" '
+                   'requiredextensions="p"><resources>'
+                   '<object id="2" type="model"><components>'
+                   '<component p:path="/3D/Objects/object_1.model" objectid="1"/>'
+                   '</components></object>'
+                   '</resources><build>'
+                   '<item objectid="2" transform="%g 0 0 0 %g 0 0 0 %g 0 0 0"/>' % (olcek, olcek, olcek) +
+                   '</build></model>')
+        d = tempfile.mkdtemp(prefix="p3mf-")
+        yol = os.path.join(d, "model.3mf")
+        with zipfile.ZipFile(yol, "w") as z:
+            z.writestr("3D/3dmodel.model", kok_xml)
+            if alt_var:
+                z.writestr("3D/Objects/object_1.model", obj_xml)
+        return yol, d
+
+    def p1(ns):
+        # iki girdili sentetik 3MF: kok = bileşen p:path + item ölçek 0.5, alt = 12 üçgenli kapalı kutu
+        # 200×100×6 → nesne 1, sızdırmaz 1, kutu (100, 50, 3).
+        yol, d = saf_3mf_uretim()
+        try:
+            m = ns["uc_mf_olc"](yol)
+            ok = (m is not None and m["nesne"] == 1 and m["sizdirmaz_nesne"] == 1 and
+                  tuple(round(x, 3) for x in m["kutu"]) == (100.0, 50.0, 3.0))
+            return ok, "m=%s" % m
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+    saf("P1", p1)
+
+    def p2(ns):
+        # P1 ile aynı ama alt dosyada 1 üçgen eksik → sızdırmaz 0.
+        yol, d = saf_3mf_uretim(eksik_ucgen=True)
+        try:
+            m = ns["uc_mf_olc"](yol)
+            ok = m is not None and m["nesne"] == 1 and m["sizdirmaz_nesne"] == 0
+            return ok, "m=%s" % m
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+    saf("P2", p2)
+
+    def p3(ns):
+        # p:path hedefi zip'te YOK → None (fail-closed).
+        yol, d = saf_3mf_uretim(alt_var=False)
+        try:
+            m = ns["uc_mf_olc"](yol)
+            return m is None, "m=%s" % m
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+    saf("P3", p3)
+
     return s
 
 
@@ -821,6 +894,12 @@ MUTANTLAR = {
              "    if False:\n        tr.is_no = devam_is_no\n    else:", {"S9"}),
     "MB26": ("    if a.devam_is and (a.kredi_tavani <= 0 or len(a.tur) != 1 or a.hepsi):",
              "    if a.devam_is and (len(a.tur) != 1 or a.hepsi):", {"S10"}),
+    # kopru-15 3MF-PPATH: p:path cozumu kaldirilirsa uretim-dosya 3MF (S3) ve sentetik P1 okunMAZ -> KIRMIZI;
+    # item transformu uygulanmazsa P1 kutu (200, 100, 6) kalir, beklenen (100,50,3) sapar -> KIRMIZI.
+    "MB27": ("        if not yol_ifade:",
+             "        if True:", {"P1", "S3"}),
+    "MB28": ("        for p in noktalar(anahtar, b.group(2)):",
+             "        for p in noktalar(anahtar, \"\"):", {"P1"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }

@@ -456,24 +456,59 @@ def ornek_dosyalar(t):
 
 # ------------------------------------------------------------------ 3MF bagimsiz olcum
 def uc_mf_olc(yol):
-    """Donus {nesne, sizdirmaz_nesne, kutu:(x,y,z), uzun} — kosucudan BAGIMSIZ. Okunamazsa None."""
+    """Donus {nesne, sizdirmaz_nesne, kutu:(x,y,z), uzun, parca, parca_en_uzun} — kosucudan BAGIMSIZ.
+    p:path'li cok-dosyali 3MF destekler (BambuStudio Production); okunamazsa None.
+
+    Kok model = `_rels/.rels`'in gosterdigi (yoksa `3D/3dmodel.model`). Tum `.model` girdileri (yol, id)
+    anahtariyla okunur; `<component p:path=... objectid=...>` o dosyanin nesnesine cozulur (p:path yoksa ayni
+    dosya). Donusum zinciri (bilesen transform × item transform) AYNEN uygulanir; `build`/`item` YALNIZ
+    kok modelden okunur. Tek-dosya 3MF'lerde sonuc bayt bayt AYNI."""
     try:
         with zipfile.ZipFile(yol) as z:
-            ad = [n for n in z.namelist() if n.endswith(".model")]
-            xml = z.read(ad[0]).decode("utf-8") if ad else ""
+            adlar = z.namelist()
+            kok_yol = "3D/3dmodel.model"
+            if "_rels/.rels" in adlar:
+                rels = z.read("_rels/.rels").decode("utf-8")
+                mt = re.search(r'Target="([^"]+)"\s+Id="[^"]+"\s+Type="[^"]*3dmodel"', rels)
+                if mt:
+                    t = mt.group(1)
+                    kok_yol = t[1:] if t.startswith("/") else t
+            nesne = {}
+            for ad in adlar:
+                if not ad.endswith(".model"):
+                    continue
+                try:
+                    xml = z.read(ad).decode("utf-8")
+                except UnicodeDecodeError:
+                    continue
+                for m in re.finditer(r"<object\b([^>]*)>(.*?)</object>", xml, re.S):
+                    attrs, body = m.group(1), m.group(2)
+                    oid_m = re.search(r'\bid="(\d+)"', attrs)
+                    if not oid_m:
+                        continue
+                    oid = oid_m.group(1)
+                    vs = [tuple(round(float(c), 4) for c in v) for v in re.findall(
+                        r'<vertex\s+x="([-0-9.eE+]+)"\s+y="([-0-9.eE+]+)"\s+z="([-0-9.eE+]+)"', body)]
+                    ts = [tuple(int(c) for c in t) for t in re.findall(
+                        r'<triangle\s+v1="(\d+)"\s+v2="(\d+)"\s+v3="(\d+)"', body)]
+                    komp = []
+                    for cm in re.finditer(r'<component\b([^>]*?)(?:/>|>\s*</component>)', body):
+                        c_attrs = cm.group(1)
+                        oid2 = re.search(r'objectid="(\d+)"', c_attrs)
+                        if not oid2:
+                            continue
+                        pyol_m = re.search(r'p:path="([^"]+)"', c_attrs)
+                        tr_m = re.search(r'transform="([^"]+)"', c_attrs)
+                        komp.append((oid2.group(1),
+                                     (pyol_m.group(1) if pyol_m else ""),
+                                     (tr_m.group(1) if tr_m else "")))
+                    nesne[(ad, oid)] = (vs, ts, komp)
+            try:
+                kok_xml = z.read(kok_yol).decode("utf-8")
+            except KeyError:
+                return None
     except (OSError, KeyError, IndexError, zipfile.BadZipFile, UnicodeDecodeError):
         return None
-    nesne = {}
-    for m in re.finditer(r"<object\b([^>]*)>(.*?)</object>", xml, re.S):
-        oid = re.search(r'\bid="(\d+)"', m.group(1))
-        if not oid:
-            continue
-        vs = [tuple(round(float(c), 4) for c in v) for v in re.findall(
-            r'<vertex\s+x="([-0-9.eE+]+)"\s+y="([-0-9.eE+]+)"\s+z="([-0-9.eE+]+)"', m.group(2))]
-        ts = [tuple(int(c) for c in t) for t in re.findall(
-            r'<triangle\s+v1="(\d+)"\s+v2="(\d+)"\s+v3="(\d+)"', m.group(2))]
-        komp = re.findall(r'<component\b[^>]*?objectid="(\d+)"(?:[^>]*?transform="([^"]*)")?', m.group(2))
-        nesne[oid.group(1)] = (vs, ts, komp)
 
     def sizdirmaz(vs, ts):
         kenar = {}
@@ -493,21 +528,32 @@ def uc_mf_olc(yol):
         return (p[0] * a[0] + p[1] * a[3] + p[2] * a[6] + a[9], p[0] * a[1] + p[1] * a[4] + p[2] * a[7] + a[10],
                 p[0] * a[2] + p[1] * a[5] + p[2] * a[8] + a[11])
 
-    def noktalar(oid, t, d=0):
-        if oid not in nesne or d > 8:
+    def yol_coz(ana_yol, yol_ifade):
+        """p:path yoksa -> ana_dosya; varsa -> p:path (basinda "/" varsa kaldirilir)."""
+        if not yol_ifade:
+            return ana_yol
+        return yol_ifade[1:] if yol_ifade.startswith("/") else yol_ifade
+
+    def noktalar(anahtar, t, d=0):
+        if anahtar not in nesne or d > 8:
             return []
-        vs, _, komp = nesne[oid]
+        vs, _, komp = nesne[anahtar]
+        ana_dosya = anahtar[0]
         out = list(vs)
-        for cid, ct in komp:
-            out += noktalar(cid, ct, d + 1)
+        for cid, pyol, ct in komp:
+            hedef = yol_coz(ana_dosya, pyol)
+            out += noktalar((hedef, cid), ct, d + 1)
         return [donustur(p, t) for p in out]
 
     agli = [k for k, (vs, ts, _) in nesne.items() if ts]
     mn, mx = [float("inf")] * 3, [float("-inf")] * 3
     parca = []  # her build ogesinin kendi dunya kutusu (tabla duzeninde parca = urunun bir parcasi)
-    for b in re.finditer(r'<item\b[^>]*?objectid="(\d+)"(?:[^>]*?transform="([^"]*)")?', xml):
+    for b in re.finditer(r'<item\b[^>]*?objectid="(\d+)"(?:[^>]*?transform="([^"]*)")?', kok_xml):
+        anahtar = (kok_yol, b.group(1))
+        if anahtar not in nesne:
+            continue
         pm, px = [float("inf")] * 3, [float("-inf")] * 3
-        for p in noktalar(b.group(1), b.group(2)):
+        for p in noktalar(anahtar, b.group(2)):
             for i in range(3):
                 mn[i], mx[i] = min(mn[i], p[i]), max(mx[i], p[i])
                 pm[i], px[i] = min(pm[i], p[i]), max(px[i], p[i])
