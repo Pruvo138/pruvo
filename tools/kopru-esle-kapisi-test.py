@@ -11,6 +11,8 @@ IKI KATMAN
   S (HERMETIK, CI'da kosar; node + bu agacin manifesti): ESLEMELER'deki her manifest turu icin
      S1 `foto-ornek-uc-uca.ornek_parametre` (⑤'in gonderdigi AYNI parametre) -> parametreDogrula ok=true
      S2 `varsayilan:""` metin alani GONDERILMEYINCE ok=true (istege bagli metin; bos = uretec varsayilani)
+     O1 on adimli uretec (G5 topo: veri_cek.py) on adima URETEC JSON'unu verir, §2 zarfini DEGIL (sahte on adim +
+        sahte uretec gecici dizinde; zarf anahtari gorurse RET -> `RED on-adim`)
      S3 istege bagli metin alanlari DOLU ("PRUVO") gonderilince ok=true (E bu parametreyle kosar -> alan donusumu
         da olculur)
   E (TeKiN kaydi diskte varsa; CI'da depo YOK -> `ESLE=ATLANDI kayit-yok` basilir, sessiz gecis DEGIL):
@@ -29,6 +31,7 @@ MUTANTLAR (gecici kopyada; calisma agacina YAZMAZ):
   MA6 G5 "0 = uretec varsayilani" alani gonderiliyor -> E2 TIP yildiz.kadir_esigi
   MS1 manifestte braille metin `max` silindi -> S1 SUNUCU-RED braille=parametre-metin
   MS2 manifestte braille ust_yazi `zorunlu:false` silindi -> S2 SUNUCU-RED braille-bos.ust_yazi
+  MA7 on adima §2 zarfi (girdi.json) veriliyor -> O1 ON-ADIM topo
   MA0 kontrol: yorum eklendi -> 0 kirmizi
 Cikti son satiri: VAKA_KIRMIZI=<n> SURVIVOR=<n>   (rc 0 yalniz ikisi de 0)
 """
@@ -217,6 +220,42 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
     return kirmizi, n, atlanan
 
 
+SAHTE_ON_ADIM = (
+    "import json,sys\na=sys.argv\ng=json.load(open(a[a.index('--girdi')+1]))\n"
+    "z=sorted(set(g)&{'kategori','parametreler','dosyalar','renkler'})\n"
+    "if z:\n    sys.stderr.write('RET: bilinmeyen alan: %s\\n' % ', '.join(z)); sys.exit(2)\n"
+    "json.dump({}, open(a[a.index('--cikti')+1], 'w'))\n")
+SAHTE_URETEC = "import sys\nsys.stderr.write('RET: sahte-uretec-son\\n'); sys.exit(2)\n"
+
+
+def on_adim_katmani(kosucu, turler, deger):
+    """O1: on adimli CLI satiri (manifest uretec -> cli_tablosu) sahte betiklerle; on adim RET'i -> KIRMIZI."""
+    kirmizi = []
+    for kod in sorted(deger):
+        t = turler.get(kod) or {}
+        cli = kosucu.cli_tablosu().get(t.get("uretec"))
+        if not cli or not cli.get("on_adim"):
+            continue
+        d = tempfile.mkdtemp(prefix="esle-onadim-")
+        try:
+            jen = os.path.join(d, "jen")
+            for yol, metin in ((cli["on_adim"]["betik"], SAHTE_ON_ADIM), (cli["betik"], SAHTE_URETEC)):
+                os.makedirs(os.path.dirname(os.path.join(jen, yol)), exist_ok=True)
+                with open(os.path.join(jen, yol), "w", encoding="utf-8") as f:
+                    f.write(metin)
+            gd = os.path.join(d, "girdi")
+            os.makedirs(gd)
+            with open(os.path.join(gd, "girdi.json"), "w", encoding="utf-8") as f:
+                json.dump({"kategori": kod, "olcu_mm": (t.get("olcu_mm") or {}).get("en_az"), "parametreler": deger[kod],
+                           "renkler": {}, "dosyalar": {}}, f)
+            rc, oz = kosucu.tekin_kos(cli, t, gd, os.path.join(d, "cikti"), sys.executable, jen)
+            if "on-adim" in oz or "sahte-uretec-son" not in oz:
+                kirmizi.append("ON-ADIM %s rc=%s %s" % (kod, rc, oz[:120]))
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+    return kirmizi
+
+
 def kayit_oku():
     try:
         with open(GERCEK_KAYIT, encoding="utf-8") as f:
@@ -229,6 +268,7 @@ def kapi(kosucu_yolu, manifest, kayitlar):
     """Tum kapi: -> (kirmizi listesi, e_denetlenen | None, E2 atlanan turler)."""
     kos = modul("foto_uretec_kosucu_esle_%d" % abs(hash(kosucu_yolu)), kosucu_yolu)
     kirmizi, deger, turler = s_katmani(manifest, set(kos.ESLEMELER))
+    kirmizi += on_adim_katmani(kos, turler, deger)
     if kayitlar is None:
         return kirmizi, None, []
     e, n, atlanan = e_katmani(kos, kayitlar, URET.jenerator_kok(GERCEK_KAYIT), turler, deger)
@@ -256,6 +296,9 @@ MUTANT_KOSUCU = {
         r"TIP yildiz\.alt_yazi"),
     "MA6 G5 0=varsayilan alani gonderiliyor": (
         "        if u.get(a) == 0:\n            del u[a]\n", "        pass\n", r"TIP yildiz\.kadir_esigi"),
+    "MA7 on adima zarf veriliyor": (
+        'oa_komut += [oa["girdi_bayragi"], ugirdi,', 'oa_komut += [oa["girdi_bayragi"], os.path.join(girdi_dizin, "girdi.json"),',
+        r"ON-ADIM topo"),
     "MA0 kontrol: yorum eklendi -> 0 kirmizi": ("def esle_braille(", "# kontrol\ndef esle_braille(", None),
 }
 MUTANT_MANIFEST = {
@@ -292,7 +335,7 @@ def mutant(ad, kayitlar):
             f.write(ks)
         with open(man, "w", encoding="utf-8") as f:
             f.write(ms)
-        if ad in MUTANT_KOSUCU and kayitlar is None:
+        if ad in MUTANT_KOSUCU and kayitlar is None and not ad.startswith("MA7"):
             return True, "ATLANDI kayit-yok (E katmani mutanti)"
         kirmizi, _, _ = kapi(kos, man, kayitlar)
         if kalip is None:

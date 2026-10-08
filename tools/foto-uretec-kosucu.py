@@ -909,8 +909,9 @@ def tekin_kos(g, t, girdi_dizin, cikti, py, jen):
         oa = g["on_adim"]
         veri_yol = cikti + ".veri.json"
         oa_komut = [py, os.path.join(jen, oa["betik"])] + list(oa.get("bayraklar", []))
-        oa_komut += [oa["girdi_bayragi"], os.path.join(girdi_dizin, "girdi.json"),
-                     oa["cikti_bayragi"], veri_yol]
+        # On adim (veri_cek.py) uretecin SEMA'siyla dogrular -> girdisi URETEC JSON'u (§2 zarfi DEGIL; zarf
+        # verilince `RET: bilinmeyen alan: dosyalar, kategori, ...` -> topo/sehir ② uretec-red:on-adim).
+        oa_komut += [oa["girdi_bayragi"], ugirdi, oa["cikti_bayragi"], veri_yol]
         try:
             p_oa = subprocess.run(oa_komut, capture_output=True, text=True, timeout=URETEC_SURE_SN, env=SALT_OKUMA_ENV,
                                   cwd=jen if os.path.isdir(jen) else None)
