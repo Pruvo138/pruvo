@@ -12,6 +12,7 @@ rc 0 HAZIR · 1 KIRMIZI · 2 girdi/ortam hatasi.
 """
 import argparse
 import importlib.util
+import json
 import os
 import shutil
 import subprocess
@@ -31,13 +32,56 @@ def uu_modul():
     return m
 
 
+def tarama(uu):
+    """Onizlemedeki TUM 'hazir' ORNEK satirlarinin model.3mf'ine koprunun TEK DOSYA `--olc`'unu kosar —
+    plaket/sehir/D kollarina ayni kapiyi baglamadan ONCE: bugun HAZIR olan hangi tur kapidan gecemez?
+    Son satir `TARAMA toplam=<n> gecti=<g> kirmizi=<k> hata=<h>`; rc 0 hepsi gecti · 1 kirmizi var · 2 ortam."""
+    kopru = os.path.join(JEN, KOPRU_YOL)
+    if not os.path.isfile(kopru):
+        print("HATA kopru yok: %s" % kopru)
+        return 2
+    bulut = uu.Bulut(*uu.hedef_adlari())
+    satir = bulut.sql("SELECT siparis_no, kalem, tur FROM foto_uretim WHERE asama = 'hazir' AND siparis_no LIKE "
+                      "'ORNEK-%' ORDER BY tur, guncel DESC")
+    gorulen, say = set(), {"gecti": 0, "kirmizi": 0, "hata": 0}
+    gecici = tempfile.mkdtemp(prefix="foto-tarama-")
+    try:
+        for r in satir:
+            if r["tur"] in gorulen:
+                continue  # tur basina en yeni ornek
+            gorulen.add(r["tur"])
+            yol = os.path.join(gecici, "%s.3mf" % r["tur"])
+            if not bulut.al("foto/%s/%s/model.3mf" % (r["siparis_no"], r["kalem"]), yol):
+                say["hata"] += 1
+                print("TUR %-10s %s HATA r2-get" % (r["tur"], r["siparis_no"]))
+                continue
+            p = subprocess.run([sys.executable, kopru, "--olc", yol], capture_output=True, text=True, timeout=900)
+            try:
+                kusur = ",".join(json.loads(p.stdout).get("kabul_kusurlari") or [])
+            except ValueError:
+                kusur = ((p.stderr or "").strip().splitlines() or ["?"])[-1][:120]
+            kova = "gecti" if p.returncode == 0 else ("kirmizi" if p.returncode == 1 else "hata")
+            say[kova] += 1
+            print("TUR %-10s %s %s rc=%d %s" % (r["tur"], r["siparis_no"], kova.upper(), p.returncode, kusur))
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
+    print("TARAMA toplam=%d gecti=%d kirmizi=%d hata=%d" % (len(gorulen), say["gecti"], say["kirmizi"], say["hata"]))
+    return 0 if say["kirmizi"] == say["hata"] == 0 else (2 if say["hata"] else 1)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--ornek", required=True, help="ORNEK-<is12> (onizleme R2 foto/<ornek>/0/model.3mf)")
-    ap.add_argument("--tur", required=True, help="manifest tur kodu (hedef olcu + tolerans)")
+    ap.add_argument("--tarama", action="store_true", help="tum hazir ORNEK'lerde kopru --olc (salt okur)")
+    ap.add_argument("--ornek", help="ORNEK-<is12> (onizleme R2 foto/<ornek>/0/model.3mf)")
+    ap.add_argument("--tur", help="manifest tur kodu (hedef olcu + tolerans)")
     ap.add_argument("--kopru-ref", default="", help="kopru git ref'i (bos = jenerator calisma agaci)")
     a = ap.parse_args(argv)
     uu = uu_modul()
+    if a.tarama:
+        return tarama(uu)
+    if not a.ornek or not a.tur:
+        print("HATA --ornek ve --tur gerekli (ya da --tarama)")
+        return 2
     man = uu.manifest_oku()
     tur = {t["kod"]: t for t in man["turler"]}.get(a.tur)
     if not tur:

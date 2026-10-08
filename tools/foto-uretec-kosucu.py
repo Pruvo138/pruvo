@@ -1132,14 +1132,50 @@ def red_sebebi(stderr):
     return "uretec-red:" + m.group(1) if m else "uretec-red"
 
 
-def onarim_kapisi(ham, cikti):
-    """Kopru + kabul olcumu. Donus (karar, sebep, ozet); karar hazir | elle | ariza.
-    Kopru betigi yoksa Erisilemedi -> is KUYRUKTA kalir (hazir yazilmaz)."""
+def kopru_bul():
+    """(python, kopru yolu). Kopru betigi yoksa Erisilemedi -> is KUYRUKTA kalir (hazir yazilmaz)."""
     py = os.environ.get("FOTO_KOSUCU_PYTHON") or sys.executable
     jen = os.environ.get("FOTO_KOSUCU_JENERATOR") or os.path.expanduser("~/dev/pruvo-jenerator")
     kopru = os.path.join(jen, KOPRU_BETIK)
     if not os.path.isfile(kopru):
         raise Erisilemedi("kopru-yok")
+    return py, kopru
+
+
+def d_kapisi(cikti):
+    """Uretec (D/R) ciktisina AYNI onarim kapisi (BaBa 8 Eki: plaket/sehir dahil). Tek dosya `--olc` gecerse
+    dokunulmaz; kirmiziysa kopru + cift `--olc` -> gecerse model.3mf onarilmisla degisir, olcu.json
+    model_sha256 tazelenir. Donus sebep ("" = gecti). 8 Eki taramasi: 23/23 HAZIR ornek tek-dosya olcumden gecti."""
+    py, kopru = kopru_bul()
+    model = os.path.join(cikti, "model.3mf")
+    try:
+        p = subprocess.run([py, kopru, "--olc", model], capture_output=True, text=True, timeout=ONARIM_SURE_SN,
+                           env=SALT_OKUMA_ENV)
+    except (subprocess.TimeoutExpired, OSError):
+        return "onarim-sure"
+    if p.returncode == 0:
+        return ""
+    if p.returncode == 2:
+        return "onarim-girdi-hatasi"
+    ham = os.path.join(os.path.dirname(cikti), "model.ham.3mf")
+    os.replace(model, ham)
+    karar, sebep, _ = onarim_kapisi(ham, model)
+    if karar != "hazir":
+        return sebep or "onarim-kirmizi"
+    olcu_yolu = os.path.join(cikti, "olcu.json")
+    with open(olcu_yolu, encoding="utf-8") as f:
+        olcu = json.load(f)
+    with open(model, "rb") as f:
+        olcu["model_sha256"] = hashlib.sha256(f.read()).hexdigest()
+    with open(olcu_yolu, "w", encoding="utf-8") as f:
+        json.dump(olcu, f, ensure_ascii=False, sort_keys=True)
+    return ""
+
+
+def onarim_kapisi(ham, cikti):
+    """Kopru + kabul olcumu. Donus (karar, sebep, ozet); karar hazir | elle | ariza.
+    Kopru betigi yoksa Erisilemedi -> is KUYRUKTA kalir (hazir yazilmaz)."""
+    py, kopru = kopru_bul()
 
     def kos(arg):
         p = subprocess.run([py, kopru] + arg, capture_output=True, text=True, timeout=ONARIM_SURE_SN,
@@ -1237,7 +1273,7 @@ def is_isle(i, manifest, yaz):
             if rc == 0:
                 girdi_sha_damgala(cikti, sha)
         if rc == 0:
-            sebep = cikti_dogrula(i, t, cikti)
+            sebep = cikti_dogrula(i, t, cikti) or d_kapisi(cikti)
             if not sebep:
                 a = cikti_anahtarlari(i)
                 tur = {"model.3mf": "model/3mf", "olcu.json": "application/json", "onizleme.png": "image/png"}

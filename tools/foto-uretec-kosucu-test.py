@@ -28,6 +28,7 @@ form alanlari uretec semasina eslenir, hak kutusu, red metni, parametre dogrulam
 salt okunur) kosulur; 3MF sizdirmaz + uzun kenar ±%1 + asama 'hazir' olculur.
 """
 import fcntl
+import hashlib
 import json
 import os
 import shutil
@@ -77,13 +78,14 @@ sys.exit(9)
 '''
 
 # Sahte 3MF onarim koprusu (TeKiN uc_mf_onar.py CLI: `<girdi> <cikti>` · `--olc <girdi> <cikti>`).
-# FAKE_KOPRU: ok (varsayilan) | olc-kirmizi (--olc rc 1 + kusur) | girdi (onarim rc 2).
+# FAKE_KOPRU: ok (varsayilan) | olc-kirmizi (her --olc rc 1 + kusur) | tek-kirmizi (yalniz TEK dosya --olc
+# kirmizi; onarim sonrasi cift olcum gecer) | girdi (onarim rc 2).
 SAHTE_KOPRU = r'''
 import json, os, shutil, sys
 a = sys.argv[1:]; mod = os.environ.get("FAKE_KOPRU", "ok")
 open(os.environ["FAKE_LOG"], "a").write(json.dumps(["kopru"] + a[:1]) + "\n")
 if a and a[0] == "--olc":
-    k = ["acik_kenar=3"] if mod == "olc-kirmizi" else []
+    k = ["acik_kenar=3"] if mod == "olc-kirmizi" or (mod == "tek-kirmizi" and len(a) == 2) else []
     print(json.dumps({"kabul_kusurlari": k})); sys.exit(1 if k else 0)
 if mod == "girdi":
     sys.stderr.write("GIRDI HATASI: sahte\n"); sys.exit(2)
@@ -263,8 +265,10 @@ class Ortam:
                         FOTO_KOSUCU_WRANGLER="%s %s" % (sys.executable, os.path.join(self.d, "wr.py")),
                         FOTO_KOSUCU_KILIT=os.path.join(self.d, "kilit"),
                         FOTO_KOSUCU_PYTHON=sys.executable)
+        # Her D/R ciktisi onarim kapisindan gecer (8 Eki) -> varsayilan sahte kopru (FAKE_KOPRU=ok).
+        self.env["FOTO_KOSUCU_JENERATOR"] = self.jen()
         for k in ("FAKE_D1_KAPALI", "FAKE_R2_KAPALI", "FAKE_CAS_KAYBI", "FAKE_URETEC_MOD", "FOTO_KOSUCU_URETEC_TABLO",
-                  "FAKE_TEKIN_RET", "FAKE_TEKIN_EXTRUDER"):
+                  "FAKE_TEKIN_RET", "FAKE_TEKIN_EXTRUDER", "FAKE_KOPRU"):
             self.env.pop(k, None)
         if tablo:
             t = os.path.join(self.d, "tablo.json")
@@ -734,8 +738,37 @@ def vakalar(kosucu):
         u = o.uretim()
         return (u["asama"] == "elle" and u["sebep"] == "onarim-girdi-hatasi" and o.model() is None), "%s %s" % (son, u)
 
+    # D/R CIKTISINA AYNI KAPI (8 Eki): tek dosya --olc kirmizi -> kopru -> gecerse onarilmis model + yeni sha.
+    def t32(o):
+        o.siparis_is()
+        rc, son, _ = o.kos("--uygula", FAKE_KOPRU="tek-kirmizi")
+        u = o.uretim()
+        d = os.path.join(o.r2, "foto", SIP, "0")
+        model = open(os.path.join(d, "model.3mf"), "rb").read() if os.path.isfile(os.path.join(d, "model.3mf")) else b""
+        olcu = json.load(open(os.path.join(d, "olcu.json"))) if os.path.isfile(os.path.join(d, "olcu.json")) else {}
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
+                model.endswith(b"ONARILDI") and olcu.get("model_sha256") == hashlib.sha256(model).hexdigest() and
+                sorted(os.listdir(d)) == ["model.3mf", "olcu.json", "onizleme.png"]), "%s %s" % (son, u)
+
+    def t33(o):
+        o.siparis_is()
+        rc, son, _ = o.kos("--uygula", FAKE_KOPRU="olc-kirmizi")
+        u = o.uretim()
+        return (u["asama"] == "elle" and u["sebep"] == "onarim-kirmizi" and
+                not os.path.isdir(os.path.join(o.r2, "foto", SIP))), "%s %s" % (son, u)
+
+    def t34(o):
+        o.siparis_is()
+        rc, son, _ = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen(kopru=False))
+        u = o.uretim()
+        return (son == "HAL=OLCULEMEDI sebep=kopru-yok rc=4" and u["asama"] == "uretec-bekliyor" and
+                u["guncel"] == GUNCEL0), "%s %s" % (son, u)
+
     vaka("T24", t24)
     vaka("T25", t25)
+    vaka("T32", t32)
+    vaka("T33", t33)
+    vaka("T34", t34)
     vaka("T27", t27)
     vaka("T28", t28)
     vaka("T29", t29)
@@ -752,7 +785,7 @@ MUTANTLAR = {
     "M2": ("        if not uygula:\n", "        if False:\n", {"T9"}),
     "M3": ('    if n != 1:\n        yaz("CAS %s kiralanamadi', '    if False:\n        yaz("CAS %s kiralanamadi', {"T6"}),
     "M4": ("DENEME_TAVANI = 3\n", "DENEME_TAVANI = 99\n", {"T4"}),
-    "M5": ("            d1(geri_ver_sql(i, jeton))\n", "            pass\n", {"T7"}),
+    "M5": ("            d1(geri_ver_sql(i, jeton))\n", "            pass\n", {"T7", "T34"}),
     "M6": ("    if onceki != sha:\n", "    if False:\n", {"T12b"}),
     "M7": ('    if i["kuyruk"] != "siparis" or not i.get("onizleme_kaynakli"):\n        return None\n    os.makedirs',
            '    if True:\n        return None\n    os.makedirs', {"T12", "T22"}),  # T22: ORNEK kolu da kopya koluna baglanir
@@ -800,15 +833,20 @@ MUTANTLAR = {
     "M30": ('             "klips": esle_klips,\n', "", {"T13-klips"}),
     "M31": ('             "saksi": esle_saksi,\n', "", {"T13-saksi"}),
     # ONARIM KUYRUGU (8 Eki): olcum atlanirsa kirmizi kopru ciktisi 'hazir' olur.
-    "M32": ('        rc, hata, cik = kos(["--olc", ham, cikti])\n', '        rc, hata, cik = 0, "", "{}"\n', {"T28"}),
+    "M32": ('        rc, hata, cik = kos(["--olc", ham, cikti])\n', '        rc, hata, cik = 0, "", "{}"\n', {"T28", "T33"}),
     # kopru-yok fail-closed silinirse is kuyrukta kalmaz (python dosya bulamaz -> elle).
-    "M33": ('        raise Erisilemedi("kopru-yok")\n', "        pass\n", {"T29"}),
+    "M33": ('        raise Erisilemedi("kopru-yok")\n', "        pass\n", {"T29", "T34"}),
     # erisim yokken kira geri verilmezse satirin jetonu kayar.
     "M34": ("            d1(geri_ver_sql(i, jeton))  # onarim kuyrugu: kira geri (kopru/R2/D1 yok -> is kuyrukta)\n",
             "            pass\n", {"T29"}),
     # ham dosya yoksa kopru yine kosarsa sebep yanlis kovaya duser.
     "M35": ('            karar, sebep, ozet = "elle", "onarim-ham-yok", ""\n',
             "            karar, sebep, ozet = onarim_kapisi(ham, cikti)\n", {"T30"}),
+    # D/R ciktisina kapi baglanmazsa kirmizi model teslim edilir (T33) ve kopru yokken is ilerler (T34).
+    "M36": ("            sebep = cikti_dogrula(i, t, cikti) or d_kapisi(cikti)\n",
+            "            sebep = cikti_dogrula(i, t, cikti)\n", {"T32", "T33", "T34"}),
+    # onarilmis modelde olcu.json sha tazelenmezse ④ alanlar=0 olur.
+    "M37": ('        olcu["model_sha256"] = hashlib.sha256(f.read()).hexdigest()\n', "        pass\n", {"T32"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 
