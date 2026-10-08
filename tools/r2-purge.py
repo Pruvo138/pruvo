@@ -16,6 +16,7 @@ PURGE_URL = "https://api.cloudflare.com/client/v4/zones/%s/purge_cache" % ZONE_I
 MEDIA_BASE = "https://media.pruvo3d.com/"
 GRUP_BOYUTU = 30
 ANAHTAR_DESENI = re.compile(r"[A-Za-z0-9._/-]+\Z")
+ORIGIN_DESENI = re.compile(r"https://[A-Za-z0-9.-]+(:[0-9]{1,5})?\Z")
 
 
 def argumanlari_oku(argv):
@@ -30,7 +31,27 @@ def argumanlari_oku(argv):
         metavar="R2_ANAHTARI",
         help="R2 anahtarini media.pruvo3d.com URL'sine cevirir; tekrarlanabilir.",
     )
+    # CORS cevabi (Origin basligi tasiyan istek) CF'de AYRI onbellek varyantidir; duz URL
+    # purge'u o varyanti temizlemez (8 Eki 2026: ses-1-render.webp 404'u 1 yil TTL ile kaldi).
+    parser.add_argument(
+        "--origin",
+        action="append",
+        default=[],
+        metavar="https://ALAN",
+        help="Her URL icin bu Origin basligiyla onbellege alinmis varyanti da temizler; tekrarlanabilir.",
+    )
     return parser.parse_args(argv)
+
+
+def origin_gecerli_mi(origin):
+    return ORIGIN_DESENI.fullmatch(origin) is not None
+
+
+def girdileri_kur(urls, originler):
+    """Purge govdesinin `files` girdileri: duz URL'ler + her Origin icin baslikli varyant."""
+    girdiler = list(urls)
+    girdiler += [{"url": u, "headers": {"Origin": o}} for o in originler for u in urls]
+    return girdiler
 
 
 def jeton_oku():
@@ -96,12 +117,17 @@ def main(argv=None):
         print("URL YOK")
         return 2
 
+    if not all(origin_gecerli_mi(o) for o in args.origin):
+        print("ORIGIN GECERSIZ")
+        return 2
+
     jeton = jeton_oku()
     if jeton is None:
         print("JETON YOK")
         return 2
 
-    gruplar = [urls[i:i + GRUP_BOYUTU] for i in range(0, len(urls), GRUP_BOYUTU)]
+    girdiler = girdileri_kur(urls, args.origin)
+    gruplar = [girdiler[i:i + GRUP_BOYUTU] for i in range(0, len(girdiler), GRUP_BOYUTU)]
     basarili = 0
     for sira, grup in enumerate(gruplar, start=1):
         sonuc = grup_purge(grup, jeton)
@@ -109,7 +135,7 @@ def main(argv=None):
         print("GRUP=%d SUCCESS=%s" % (sira, str(sonuc).lower()))
 
     hata = len(gruplar) - basarili
-    print("PURGE_TOPLAM=%d BASARILI=%d HATA=%d" % (len(urls), basarili, hata))
+    print("PURGE_TOPLAM=%d BASARILI=%d HATA=%d" % (len(girdiler), basarili, hata))
     return 1 if hata else 0
 
 

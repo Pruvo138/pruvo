@@ -8,19 +8,14 @@ mobil uyumlu tam sayfayı kaplasın örnek çıktılarda görünsün müşteri a
 kapılmasın". Sunucu tarafı ayrı kapıda (shop/test/foto-uretim.mjs); bu dosya ekranın
 SÖZLEŞMESİNİ ölçer:
 
-  🔴 OKAN EMRİ (7 Eki 2026, aynen): "ana sayfaya eklediğin herşeyi kaldır sistem hazır değil".
-  Y1-Y3 + Y5'in ANA SAYFA kolları ters yöne çevrildi: index.html'de bölüm kabı, iki betik,
-  renderGrid liste girdisi, ödeme dönüşü foto kolu ve atıf köprüsü YOK. Biri geri eklenirse
-  KIRMIZI (mutantlar M1/M2/M5/M15/M16). Bölüm dosyası + veri dosyası REPODA kalır.
-
-  Y1 YOK      : index.html'de `fotoUretim` kabı / `foto-uretim` adı 0
-  Y2 GÖRÜNÜM  : renderGrid görünüm listesi foto öncesiyle AYNI (fotoUretim girdisi 0)
-  Y3 YÜKLEME  : ana sayfa iki betiği ÇAĞIRMAZ; dosyalar yayın beyaz listesinde kalabilir
+  Y1 YER      : bölüm kabı iki banner'ın (#bannerRow) DIŞINDA ve ALTINDA, kategori vitrininin
+                (#katPanels) ÜSTÜNDE; varsayılan `hidden` (gerçek örnek yoksa görünmez)
+  Y2 GÖRÜNÜM  : renderGrid ana sayfa dışı görünümde bölümü gizleyen listeye kabı alır
+  Y3 YÜKLEME  : veri dosyası bölümden ÖNCE, ikisi de defer; ikisi de yayın beyaz listesinde
                 (build.py SOYULACAK_JS — değer olarak okunur, metin araması değil)
   Y4 DÜRÜSTLÜK: bölüm "önizlemenin 4 renkli yorumu" ifadesini taşır; "3D baskı" demez;
                 örnek kaydı üç görseli (foto/önizleme/BASILMIŞ) şart koşar (veri dosyası)
-  Y5 SEPET    : ana sayfa ödeme dönüşü foto kolu taşımaz (oturum anahtarı / `ozel-foto` /
-                atıf köprüsü 0) — sepet siparişi foto öncesi davranışta
+  Y5 SEPET    : ödeme dönüşünde sepeti koruyan oturum anahtarı iki dosyada AYNI dize
   Y6 GÜVENLİK : bölüm DOM'a innerHTML ile veri basmaz; yalnız aynı köken /api/shop uçları
   Y7 SÖZDİZİMİ: node --check (node yoksa OLCULEMEDI, yeşil sayılmaz)
   Y8 PLAKET   : veri dosyasında plaket VAR, anahtarlık/magnet/figür türü 0; anahtarlık/magnet ekranda 0
@@ -33,9 +28,8 @@ SÖZLEŞMESİNİ ölçer:
                 (DAVRANIŞ: shop/test/foto-uretim.mjs RO/ES bölümü)
 
 ÖNCE-KIRMIZI: aynı kontrol fonksiyonları dosyanın sonunda BELLEKTEKİ mutant metinlere
-uygulanır (diske yazılmaz): kap ana sayfaya geri eklenir · görünüm listesine geri girer ·
-betik geri çağrılır · ödeme dönüşü foto kolu geri gelir · dürüstlük ifadesi silinir ·
-beyaz listeden düşer. Her mutant en az
+uygulanır (diske yazılmaz): kap kategorilerin altına taşınır · görünüm listesinden düşer ·
+dürüstlük ifadesi silinir · beyaz listeden düşer · oturum anahtarı ayrışır. Her mutant en az
 bir kontrolü kırmızıya çevirmeli; K0 kontrol mutantı (yorum ekleme) hiçbirini çevirmemeli.
 
 Çıkış: 0 yeşil · 1 kırmızı · 3 ÖLÇÜLEMEDİ.
@@ -68,21 +62,74 @@ def soyulacak_js(build_metin):
         return None
 
 
+def yorumsuz(metin):
+    """JS yorumlarini (// satir, /* */ blok) temizle; string literal'lara DOKUNMA.
+
+    Y10 'gerçek fotoğraf' 0 ölçümü bunu kullanır: yasaklı ifade yalnız yorumlarda geçer;
+    string'lere veya koda girerse 'kullanici gorecek' sayilir ve kapı kırar.
+    """
+    out, i, n = [], 0, len(metin)
+    while i < n:
+        c = metin[i]
+        if c == '"' or c == "'":
+            quote = c
+            out.append(c)
+            i += 1
+            while i < n and metin[i] != quote:
+                if metin[i] == '\\' and i + 1 < n:
+                    out.append(metin[i])
+                    out.append(metin[i+1])
+                    i += 2
+                else:
+                    out.append(metin[i])
+                    i += 1
+            if i < n:
+                out.append(metin[i])
+                i += 1
+            continue
+        if c == '/' and i + 1 < n and metin[i+1] == '*':
+            i += 2
+            while i + 1 < n and not (metin[i] == '*' and metin[i+1] == '/'):
+                i += 1
+            if i + 1 < n:
+                i += 2
+            else:
+                i = n
+            continue
+        if c == '/' and i + 1 < n and metin[i+1] == '/':
+            while i < n and metin[i] != '\n':
+                i += 1
+            continue
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
 def kontroller(index, bolum, veri, build):
     """[(ad, gecti, ayrinti)] — metin girdileri; disk/ag yok (mutantlar da bunu kullanir)."""
     s = []
-    # Okan 7 Eki: "ana sayfaya eklediğin herşeyi kaldır" — ana sayfa kolları YOKLUĞU ölçer.
-    s.append(("Y1 ana sayfada fotoUretim kabi YOK", 'id="fotoUretim"' not in index and "fotoUretim" not in index,
-              "fotoUretim=%d" % index.count("fotoUretim")))
-    s.append(("Y1 ana sayfada 'foto-uretim' adi YOK (kap sinifi / betik)", "foto-uretim" not in index,
-              "foto-uretim=%d" % index.count("foto-uretim")))
+    kap = re.search(r'<section\b[^>]*\bid="fotoUretim"[^>]*>', index)
+    banner = index.find('id="bannerRow"')
+    kat = index.find('id="katPanels"')
+    if not kap or banner < 0 or kat < 0:
+        s.append(("Y1 kap + banner + kategori vitrini bulundu", False, "kap/banner/katPanels eksik"))
+    else:
+        # Sayim banner satirinin KENDI <div acilisindan baslar: kap disaridaysa acik == kapali.
+        ara = index[index.rfind("<div", 0, banner):kap.start()]
+        acik, kapali = len(re.findall(r"<div\b", ara)), len(re.findall(r"</div>", ara))
+        s.append(("Y1 kap iki banner'in ALTINDA ve banner satirinin DISINDA",
+                  banner < kap.start() and acik == kapali, "div ac/kapa=%d/%d" % (acik, kapali)))
+        s.append(("Y1 kap kategori vitrininin USTUNDE", kap.start() < kat, ""))
+        s.append(("Y1 kap varsayilan gizli (hidden)", re.search(r"\shidden\b", kap.group(0)) is not None, kap.group(0)))
+        s.append(("Y1 tek kap", len(re.findall(r'id="fotoUretim"', index)) == 1, ""))
     liste = re.search(r'\[\s*"katPanels"[^\]]*\]\.forEach', index)
-    s.append(("Y2 renderGrid gorunum listesi foto oncesiyle AYNI",
-              bool(liste) and re.sub(r"\s+", "", liste.group(0)) ==
-              '["katPanels","bannerRow","jenBanner","skanBanner"].forEach',
-              liste.group(0) if liste else "liste yok"))
-    s.append(("Y3 ana sayfa foto betiklerini CAGIRMAZ",
-              not re.search(r'<script[^>]*src="/foto-uretim(-veri)?\.js"', index), ""))
+    s.append(("Y2 renderGrid gorunum listesinde fotoUretim",
+              bool(liste) and '"fotoUretim"' in liste.group(0), liste.group(0) if liste else "liste yok"))
+    sv = index.find('<script src="/foto-uretim-veri.js" defer>')
+    sb = index.find('<script src="/foto-uretim.js" defer>')
+    se = index.find('<script src="/secenekler.js">')
+    s.append(("Y3 veri dosyasi bolumden ONCE, ikisi defer, secenekler.js'ten sonra",
+              0 <= se < sv < sb, "secenekler=%d veri=%d bolum=%d" % (se, sv, sb)))
     js = soyulacak_js(build) or ()
     s.append(("Y3 iki dosya yayin beyaz listesinde (SOYULACAK_JS degeri)",
               "foto-uretim-veri.js" in js and "foto-uretim.js" in js, str(js)))
@@ -95,8 +142,8 @@ def kontroller(index, bolum, veri, build):
     s.append(("Y4 '3D baski' / sehir adi YOK", not yasak, ",".join(yasak)))
     s.append(("Y4 ornek sayaci uc gorseli (foto+onizleme+baski) sart kosar",
               re.search(r"o\.foto\s*&&\s*o\.onizleme\s*&&\s*o\.baski", veri) is not None, ""))
-    kalinti = [k for k in (OTURUM_ANAHTARI, "ozel-foto", "fotoSiparisi", "pruvoAtifTopla") if k in index]
-    s.append(("Y5 ana sayfa odeme donusunde foto kolu / atif koprusu YOK", not kalinti, ",".join(kalinti)))
+    s.append(("Y5 oturum anahtari iki dosyada ayni", OTURUM_ANAHTARI in bolum and
+              ('sessionStorage.getItem("%s")' % OTURUM_ANAHTARI) in index, ""))
     s.append(("Y6 bolum innerHTML kullanmaz", "innerHTML" not in bolum, ""))
     uclar = set(re.findall(r'"(/api/[a-z/]+)', bolum))
     beklenen = {"/api/shop/foto/acik", "/api/shop/foto/onizleme", "/api/shop/foto/durum", "/api/shop/baslat"}
@@ -105,19 +152,22 @@ def kontroller(index, bolum, veri, build):
     harici = sorted(set(re.findall(r"https?://[A-Za-z0-9.-]+", bolum)))
     izinli = {"https://challenges.cloudflare.com", "https://wa.me"}
     s.append(("Y6 harici adres yalniz bot dogrulayici + WhatsApp", set(harici) <= izinli, str(harici)))
-    # Y8 PLAKET (BaBa 5 Eki 21:4x(b)): veri dosyasinin `turler` dizisinde TEK tur = plaket.
+    # Y8 PLAKET (BaBa 5 Eki 21:4x(b)): veri dosyasinin `turler` dizisinde plaket + figur VAR (saglayici
+    # kolunda IKINCI tur, 24 kategori programi #8); metal gerektiren turler (anahtarlik/magnet) YOK.
     tb = re.search(r"\bturler:\s*\[(.*?)\n\s*\],", veri, re.S)
     kodlar = re.findall(r'\bkod:\s*"([^"]+)"', tb.group(1)) if tb else []
-    # 6 Eki (kategori kaydi): tek-tur yerine "plaket VAR + metal gerektiren tur 0".
-    s.append(("Y8 plaket VAR ve anahtarlik/magnet/figur turu 0",
-              "plaket" in kodlar and not any(k in kodlar for k in ("anahtarlik", "magnet", "figur")), str(kodlar)))
+    # 8 Eki: figur saglayici kolunda; metal gerektiren turler SUNULMAZ.
+    s.append(("Y8 plaket + figur VAR ve anahtarlik/magnet turu 0",
+              "plaket" in kodlar and "figur" in kodlar and
+              not any(k in kodlar for k in ("anahtarlik", "magnet")), str(kodlar)))
     eski = [k for k in ("anahtarl", "magnet", "mıknatıs", "miknatis")
             if k in bolum.lower() or k in (tb.group(1).lower() if tb else "")]
     s.append(("Y8 anahtarlik/magnet secenegi ekranda + tur listesinde 0", not eski, ",".join(eski)))
-    # Y9 TEK TUR: tur secimi cizilmez + adim cubugu "Olcu" der (davranis: foto-uretim.mjs S).
-    s.append(("Y9 tek turde tur grubu gizlenir ve radyo cizilmeden donulur",
-              re.search(r"if \(S\.acikVeri\.turler\.length === 1\) \{[^}]*S\.alanTur\.hidden = true;\s*return;", bolum)
-              is not None, ""))
+    # Y9 13:5x (Okan 13:5x: tek tur dali kaldirildi — tur secimi GALERIDEN, 24 kucuk resim izgarasi).
+    # Ayri radyo grubu yok; tiklanan kart = secim (function galeriSec).
+    s.append(("Y9 13:5x tur secimi galeriden (tek tur dali kaldirildi, Okan 13:5x)",
+              re.search(r"function galeriSec\(n\)\s*\{", bolum) is not None
+              and "galeriSec(n)" in bolum, ""))
     s.append(("Y9 adim cubugu tur sayisina gore 'Ölçü' der",
               'F.turler.length > 1 ? "Tür ve ölçü" : "Ölçü"' in bolum, ""))
     # Y10 RENDER ORNEGI (Okan 7 Eki): kanit izni tur kaydinda, izin kontrolu sayacta.
@@ -126,15 +176,41 @@ def kontroller(index, bolum, veri, build):
               izinler.get("plaket") == '["baski", "render"]' and izinler.get("litofan") == '["baski", "render"]', str(izinler)))
     s.append(("Y10 sayac izin disi kaniti saymaz (izin kontrolu veri dosyasinda)",
               re.search(r"if \(!k \|\| izin\.indexOf\(k\) < 0\) \{ return false; \}", veri) is not None, ""))
-    dal = "".join(re.findall(r'if \(it\.kanit === "render"\) \{(.*?)\} else \{', bolum, re.S))
-    # Cumle tur kaydinda (`ornek_notu`, mimar karari 7 Eki): bolum yalniz kayittan basar.
+    # Y10 RENDER ORNEGI — 50cb58fe sonrasi: `if (it.kanit === "render") { ... } else {` ESKI dali YOK.
+    # Render kartta "önizleme/render" etiketi, lightbox'ta tur kaydinin ornek_notu'su basiliyor;
+    # "gerçek fotoğraf" ifadesi (yasakli, hukuk kapisi 13:4x) yorum/string ikisinde de 0.
+    bolum_cleaned = yorumsuz(bolum)
     notlar = dict(re.findall(r'kod:\s*"([a-z]+)",.*?ornek_notu:\s*"([^"]*)"', veri, re.S))
-    s.append(("Y10 render dalinda 'önizleme/render' etiketi + tur cumlesi (ornek_notu) kayittan",
-              '"önizleme/render"' in dal and "it.tur.ornek_notu" in dal and "kabartmalı" not in bolum, ""))
+    s.append(("Y10 render kartinda 'önizleme/render' etiketi VAR (galeri)",
+              '"önizleme/render"' in bolum_cleaned, ""))
+    s.append(("Y10 lightbox ornek_notu tur kaydindan (it.tur.ornek_notu) · bolumde sabit 'kabartmalı' cumlesi 0",
+              "it.tur.ornek_notu" in bolum_cleaned and "kabartmalı" not in bolum, ""))
     s.append(("Y10 plaket ornek_notu = karar cumlesi AYNEN", notlar.get("plaket") == RENDER_CUMLE, str(notlar.get("plaket"))))
     s.append(("Y11 litofan ornek_notu = litofan cumlesi AYNEN ('kabartmalı' 0)",
               notlar.get("litofan") == LITOFAN_CUMLE, str(notlar.get("litofan"))))
-    s.append(("Y10 render dalinda 'gerçek fotoğraf' metni 0", bool(dal) and "gerçek fotoğraf" not in dal.lower(), ""))
+    s.append(("Y10 'gerçek fotoğraf' metni 0 (yorum haric, kodda yok)",
+              "gerçek fotoğraf" not in bolum_cleaned, ""))
+    # Y12 SERIT: ol etiketi numara basilmasin (375 px mimar olcumunde 1./2. gorunuyordu).
+    s.append(("Y12 serit kuralinda list-style: none VAR (ol numara basilmasin)",
+              re.search(r"\.foto-uretim-serit\{[^}]*list-style\s*:\s*none", bolum) is not None, ""))
+    # Y13 TEK YUKLEME ALANI (Okan 7 Eki 21:5x): ustteki "Foto ekle" kutusu tek dosya girdisi; tiklama
+    # ve birakma ayni yoldan (dosyaKoy); tur + 15 MB denetimi orada. Davranis: foto-uretim.mjs S5.
+    # 8 Eki 00:3x h.1(e): ses form-parametresinin audio/* girdisi AYNI dosyada olabilir — sayaç
+    # FOTOĞRAF yükleme kutusunun TEK'liğini tutar (`inp.id = "foto-dosya"`); ses/konum/tarih HARİÇ.
+    girdi = len(re.findall(r'inp\.id\s*=\s*"foto-dosya"', bolum))
+    s.append(("Y13a kaynakta dosya girdisi (type=file) TAM 1 yerde olusturulur", girdi == 1, "adet=%d" % girdi))
+    s.append(("Y13a formdaki eski 'Fotoğraf (JPEG' etiketi 0", "Fotoğraf (JPEG" not in bolum, ""))
+    s.append(("Y13a dosya girdisinde capture YOK (mobilde galeri kapanmaz)", "capture" not in bolum, ""))
+    ch = re.search(r'inp\.id = "foto-dosya";\s*inp\.addEventListener\("change", function \(e\) \{(.*?)\n    \}\);', bolum, re.S)
+    dr = re.search(r'kutu\.addEventListener\("drop", function \(e\) \{(.*?)\n    \}\);', bolum, re.S)
+    govde = (ch.group(1) if ch else "") + (dr.group(1) if dr else "")
+    s.append(("Y13b change ve drop isleyicisi AYNI fonksiyonu (dosyaKoy) cagirir, S.dosya'ya kendi yazmaz",
+              bool(ch and dr) and "dosyaKoy(" in ch.group(1) and "dosyaKoy(" in dr.group(1) and "S.dosya" not in govde,
+              "change=%s drop=%s" % (bool(ch), bool(dr))))
+    dk = re.search(r"function dosyaKoy\(f\) \{(.*?)\n  \}\n", bolum, re.S)
+    g = dk.group(1) if dk else ""
+    s.append(("Y13c 15 MB ve tur denetimi dosyaKoy icinde",
+              "f.size > MAKS_DOSYA_BAYT" in g and r"/^image\/(jpeg|png|webp)$/" in g and '"image/svg+xml"' in g, ""))
     return s
 
 
@@ -162,32 +238,24 @@ def main():
     # ---- mutantlar (bellekte) ----
     def kirmizi_sayisi(i, b, v, bu):
         return sum(1 for _, g, _ in kontroller(i, b, v, bu) if not g)
-    # Geri-ekleme mutantlari: kaldirilan her ana sayfa parcasi tek tek geri konur.
-    capa_kat = '<div id="katPanels" class="kat-panels"></div>'
-    capa_sec = '<script src="/secenekler.js"></script>'
-    capa_liste = '"skanBanner"].forEach'
-    capa_sepet = 'cart = []; saveCart(); updateCartFab();\n      // KDV dokumu'  # odeme donusu (tekil)
-    mutantlar = [
-        ("M1 kap ana sayfaya geri eklendi",
-         (index.replace(capa_kat, '<section id="fotoUretim" class="foto-uretim" hidden></section>\n  ' + capa_kat, 1),
-          bolum, veri, build), True),
-        ("M2 gorunum listesine geri girdi",
-         (index.replace(capa_liste, '"skanBanner", "fotoUretim"].forEach', 1), bolum, veri, build), True),
-        ("M15 betik ana sayfaya geri eklendi",
-         (index.replace(capa_sec, capa_sec + '\n<script src="/foto-uretim.js" defer></script>', 1), bolum, veri, build), True),
-        ("M5 odeme donusu foto kolu geri geldi",
-         (index.replace(capa_sepet, 'if(sessionStorage.getItem("%s") === no){} else ' % OTURUM_ANAHTARI + capa_sepet, 1),
-          bolum, veri, build), True),
-        ("M16 atif koprusu geri geldi",
-         (index.replace("</body>", "<script>window.pruvoAtifTopla = function(){};</script>\n</body>", 1), bolum, veri, build), True),
+    kap = re.search(r'\s*<!-- FOTOĞRAFINDAN ÖZEL ÜRETİM.*?</section>\n', index, re.S)
+    mutantlar = []
+    if kap:
+        tasinmis = index.replace(kap.group(0), "\n")
+        tasinmis = tasinmis.replace('<div id="katPanels" class="kat-panels"></div>',
+                                    '<div id="katPanels" class="kat-panels"></div>' + kap.group(0), 1)
+        mutantlar.append(("M1 kap kategorilerin ALTINA tasindi", (tasinmis, bolum, veri, build), True))
+    mutantlar += [
+        ("M2 gorunum listesinden dustu", (index.replace(', "fotoUretim"]', "]"), bolum, veri, build), True),
         ("M3 durustluk ifadesi silindi", (index, bolum, veri.replace(DURUSTLUK, "önizlemenin yorumu"), build), True),
         ("M14 bolum sabit durustluk metnine dondu",
          (index, bolum.replace("t && t.durustluk ? t.durustluk : \"\"", "\"Ürün en çok 4 renkle kabartma olarak üretilir\""), veri, build), True),
         ("M4 beyaz listeden dustu", (index, bolum, veri, build.replace('"foto-uretim.js", ', "", 1).replace(', "foto-uretim.js"', "", 1)), True),
+        ("M5 oturum anahtari ayristi", (index, bolum.replace(OTURUM_ANAHTARI, "pruvo_foto_sip"), veri, build), True),
         ("M6 anahtarlik tur listesine geri eklendi",
          (index, bolum, veri.replace('kod: "plaket",', 'kod: "plaket",\n      },\n      {\n        kod: "anahtarlik",', 1), build), True),
-        ("M7 tek tur dali silindi",
-         (index, re.sub(r"if \(S\.acikVeri\.turler\.length === 1\) \{[^}]*\}\n", "", bolum, count=1), veri, build), True),
+        ("M7 galeri tur secici kaldirildi (tek tur dali yerine)",
+         (index, re.sub(r"\bgaleriSec\b", "galeriSecYOK", bolum), veri, build), True),
         ("M8 izin kontrolu silindi",
          (index, bolum, veri.replace("if (!k || izin.indexOf(k) < 0) { return false; }", "if (!k) { return false; }", 1), build), True),
         ("M9 abarti cumlesi degisti", (index, bolum, veri.replace("kabartmalı hâlidir, birebir aynısı değildir.", "kabartmalı hâlidir.", 1), build), True),
@@ -195,12 +263,38 @@ def main():
         ("M13 bolum sabit cumleye dondu",
          (index, bolum.replace("it.tur.ornek_notu", '"' + RENDER_CUMLE + '"', 1), veri, build), True),
         ("M10 render etiketi 'gerçek fotoğraf' oldu",
-         (index, bolum.replace('"foto-uretim-ornek-etiket", "önizleme/render"', '"foto-uretim-ornek-etiket", "Basılmış ürün (gerçek fotoğraf)"', 1), veri, build), True),
+         (index, bolum.replace('"önizleme/render"', '"gerçek fotoğraf"'), veri, build), True),
         ("M11 litofanin render izni geri alindi",
          (index, bolum, veri.replace('arkadan ışıklı render\'ı).\n        ornek_kanit_izni: ["baski", "render"]',
                                      'arkadan ışıklı render\'ı).\n        ornek_kanit_izni: ["baski"]', 1), build), True),
         ("K0 kontrol: yorum eklendi", (index.replace("</body>", "<!-- k0 -->\n</body>", 1), bolum, veri, build), False),
+        ("M15 serit kuralindan list-style: none kaldirildi",
+         (index, bolum.replace(".foto-uretim-serit{list-style:none;", ".foto-uretim-serit{", 1), veri, build), True),
     ]
+    # Y13 mutantlari: capa tutmazsa (metin degismezse) mutant KIRMIZI sayilir — sessizce gecmez.
+    def bm(eski, yeni):
+        return bolum.replace(eski, yeni, 1) if eski in bolum else None
+    y13 = [
+        ("M16 ikinci dosya girdisi eklendi",
+         # 8 Eki 00:3x h.1(e): Y13a artık `inp.id = "foto-dosya"` sayısını ölçer; ikinci FOTO
+         # yükleme kutusu simülasyonu aynı sayacı 2 yapar ve kapıyı kırar.
+         bm('inp.id = "foto-dosya";', 'inp.id = "foto-dosya";\n    var ikinci = el("input"); ikinci.id = "foto-dosya";')),
+        ("M17 drop isleyicisi ayri yola cekildi",
+         bm("      dosyaKoy(fl && fl[0] ? fl[0] : null);", "      S.dosya = fl && fl[0] ? fl[0] : null; guncelleS1Buton();")),
+        ("M18 15 MB denetimi dosyaKoy'dan cikti",
+         bm("      else if (f.size > MAKS_DOSYA_BAYT) hata = ", "      else if (false) hata = ")),
+        ("M19 tur denetimi gevsedi (her image/*)", bm(r"/^image\/(jpeg|png|webp)$/.test(tip)", r"/^image\//.test(tip)")),
+        ("M20 girdiye capture eklendi",
+         bm('    inp.id = "foto-dosya";', '    inp.id = "foto-dosya";\n    inp.setAttribute("capture", "environment");')),
+        ("M21 formdaki eski etiket geri geldi",
+         bm("    cizUretimNotu();\n  }", '    S.alanDosya.appendChild(el("label", null, "Fotoğraf (JPEG, PNG veya WEBP — en çok 15 MB)"));\n    cizUretimNotu();\n  }')),
+    ]
+    for ad, mb in y13:
+        if mb is None:
+            print("  ❌ " + ad + " — capa bulunamadi (mutant kurulamadi)")
+            kirmizi += 1
+        else:
+            mutantlar.append((ad, (index, mb, veri, build), True))
     taban = kirmizi_sayisi(index, bolum, veri, build)
     for ad, girdi, olmeli in mutantlar:
         n = kirmizi_sayisi(*girdi)
@@ -208,10 +302,9 @@ def main():
         print(("  ✅ " if gecti else "  ❌ ") + ad + (" -> KIRMIZI yanar" if olmeli else " -> degismez") +
               ("" if gecti else " (kirmizi=%d taban=%d)" % (n, taban)))
         kirmizi += 0 if gecti else 1
-    for ad, capa in (("katPanels", capa_kat), ("secenekler", capa_sec), ("liste", capa_liste), ("sepet", capa_sepet)):
-        if index.count(capa) != 1:
-            print("  ❌ mutant capasi '%s' index.html'de tekil degil (%d) — mutant olu" % (ad, index.count(capa)))
-            kirmizi += 1
+    if not kap:
+        print("  ❌ M1 capa (kap yorumu + section) bulunamadi")
+        kirmizi += 1
     print("\nSONUC: " + ("YESIL ✅" if kirmizi == 0 else "KIRMIZI ❌ (%d)" % kirmizi))
     return 0 if kirmizi == 0 else 1
 

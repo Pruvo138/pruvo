@@ -103,7 +103,10 @@ kontrol('D0b tarama DERINLIK ekseninde: (a) fiksturde nested `ic1` ust duzeyle A
         { fikstur: d0b, icBanner: icBanner });
 
 kontrol('D1 #bannerRow <main>in ILK cocugu (index 0)', cocuk[0] === 'bannerRow', cocuk[0]);
-kontrol('D2 #katPanels hemen ARDINDAN geliyor (index 1)', cocuk[1] === 'katPanels', cocuk[1]);
+// Okan 5 Eki 2026: "fotoğrafından özel üretim" bölümü iki banner'ın ALTINA, kategorilerin
+// ÜSTÜNE (#fotoUretim, varsayılan gizli). Sıra: bannerRow -> fotoUretim -> katPanels.
+kontrol('D2 #bannerRow ARDINDAN #fotoUretim, sonra #katPanels (index 1, 2)',
+        cocuk[1] === 'fotoUretim' && cocuk[2] === 'katPanels', cocuk.slice(1, 3).join(' -> '));
 
 console.log('\n[E] BANNER GOVDESI — tasima SIRA degisikligiydi, ICERIK degil');
 const banBas = html.indexOf('<div id="bannerRow"');
@@ -150,7 +153,7 @@ if (mutant) {
   const mc = mainCocuklari(mutant);
   bildir('M1-r mutant sirasi', mc.slice(0, 3).join(' -> '));
   kontrol('M1 mutantta D1 KIRMIZI: #bannerRow artik ILK cocuk DEGIL — D1 sirayi FIILEN olcuyor',
-          mc[0] !== 'bannerRow' && mc[0] === 'katPanels', mc[0]);
+          mc[0] !== 'bannerRow' && mc.indexOf('bannerRow') > mc.indexOf('katPanels'), mc.slice(0, 3).join(' -> '));
 }
 
 console.log('\n' + (FAILS.length ? 'SONUC: KIRMIZI — kalan ' + FAILS.length : 'SONUC: YESIL'));

@@ -598,7 +598,9 @@ CREATE TABLE IF NOT EXISTS reklam_oci_kuyruk (
 --   foto_isler  : her ONIZLEME denemesi (reddedilen dahil) — ziyaretci siniri BUNU sayar.
 --   foto_uretim : odenmis siparis kalemi basina uretim zinciri (model -> analiz -> renk).
 --   foto_kredi  : harcanan kredi defteri; UNIQUE(gorev, adim) -> yoklama tekrari cift yazmaz.
---   foto_fiyat  : OKAN KAPISI fiyat tablosu (tur x olcu); satiri olmayan olcu SUNULMAZ.
+--   foto_acik   : turun ACILIS ANAHTARI (tur, acik=1); satir yoksa tur KAPALI (varsayilan, fail-closed).
+--                 Fiyat tablosu YOK (Okan 7 Eki): fiyat = en uzun boyut mm x 1000 kurus, TEK formul
+--                 foto-uretim-veri.js VERI.fiyatKurus. Eski foto_fiyat: tools/d1-goc/2026-10-07-foto-acik.sql
 --   foto_ayar   : bakiye onbellegi + havuz durumu (tek bildirim icin gecis kaydi).
 -- 🔒 PII: musteri FOTOGRAFI hicbir tabloya yazilmaz; ham IP yazilmaz (ziyaretci = tuzlu
 --    sha256 ozetinin ilk 16 hex'i). Musteri kimligi yalniz `siparisler`de durur.
@@ -614,7 +616,12 @@ CREATE TABLE IF NOT EXISTS foto_isler (
   hazir_tarih  TEXT NOT NULL DEFAULT '',   -- onizleme hazir oldugu an (gecerlilik buradan)
   son_kontrol  INTEGER NOT NULL DEFAULT 0, -- son yoklama (ms) — yoklama CAS kilidi
   kredi        INTEGER NOT NULL DEFAULT 0, -- onizlemenin harcadigi kredi
-  hata         TEXT NOT NULL DEFAULT ''    -- basarisizlik sebebi (bizim sabit kodumuz)
+  hata         TEXT NOT NULL DEFAULT '',   -- basarisizlik sebebi (bizim sabit kodumuz)
+  uretim_notu  TEXT NOT NULL DEFAULT '',   -- "Nasil olsun?" notu (<=300, temiz; e-posta/telefon RED). Var olan
+                                           -- tabloya: tools/d1-goc/2026-10-07-foto-isler-uretim-notu.sql
+  onay_tarih   TEXT NOT NULL DEFAULT '',   -- aydinlatma onayi ani (ISO 8601 UTC); ornek (panel) kolunda bos
+  onay_surum   TEXT NOT NULL DEFAULT ''    -- musterinin onayladigi metin surumu (VERI.onay_surum). Var olan
+                                           -- tabloya: tools/d1-goc/2026-10-07-foto-onay-kaydi.sql
 );
 CREATE INDEX IF NOT EXISTS idx_foto_isler_ziyaretci ON foto_isler (ziyaretci, tarih);
 CREATE INDEX IF NOT EXISTS idx_foto_isler_tarih ON foto_isler (tarih);
@@ -633,6 +640,12 @@ CREATE TABLE IF NOT EXISTS foto_uretim (
   deneme       INTEGER NOT NULL DEFAULT 0, -- gecici hata sayaci (tavanda 'elle')
   tarih        TEXT NOT NULL,
   guncel       TEXT NOT NULL,
+  onay_tarih   TEXT NOT NULL DEFAULT '',   -- foto_isler.onay_tarih kopyasi (siparisle kalan onay kaydi)
+  onay_surum   TEXT NOT NULL DEFAULT '',   -- foto_isler.onay_surum kopyasi
+  renk_sayisi  INTEGER NOT NULL DEFAULT 0, -- siparisin renk sayisi 1..4 (ek renk fiyatlandi); saglayici renk
+                                           -- adimi max_colors = bu deger; 0/aralik disi -> 'elle' (renk-sayisi-yok).
+                                           -- Var olan tabloya: tools/d1-goc/2026-10-08-foto-renk.sql
+  renkler      TEXT NOT NULL DEFAULT '',   -- secilen renkler JSON dizisi (operator AMS yuva eslemesi)
   PRIMARY KEY (siparis_no, kalem)
 );
 CREATE TABLE IF NOT EXISTS foto_kredi (
@@ -645,13 +658,32 @@ CREATE TABLE IF NOT EXISTS foto_kredi (
   kredi        INTEGER NOT NULL,
   UNIQUE (gorev, adim)
 );
-CREATE TABLE IF NOT EXISTS foto_fiyat (
-  tur          TEXT NOT NULL,
-  olcu_mm      INTEGER NOT NULL,
-  fiyat_kurus  INTEGER NOT NULL,           -- KDV dahil urun fiyati (kargo ayri, secenekler.js)
-  guncel       TEXT NOT NULL,
-  PRIMARY KEY (tur, olcu_mm)
+CREATE TABLE IF NOT EXISTS foto_acik (
+  tur          TEXT PRIMARY KEY,           -- foto-uretim-veri.js turler[].kod
+  acik         INTEGER NOT NULL DEFAULT 0, -- 1 = satista; baska her deger KAPALI
+  guncel       TEXT NOT NULL
 );
+-- 2D KONSEPT (Okan 7 Eki 14:5x: "Nasil olsun?" notu -> 2D sonuc nota gore). Foto + not -> konsept
+-- gorseli; onaylanan konsept 3D onizlemenin GIRDISI olur (foto_isler satirina is_no ile baglanir).
+-- `oturum` = bir onizleme isinin konsept denemeleri (en cok VERI.konsept.deneme_is_basi). Gorsel ozel
+-- kovada `foto-konsept/<konsept_no>.png`, 3 gun sonra silinir (onizleme temizligiyle AYNI kural).
+-- Var olan veritabanina: tools/d1-goc/2026-10-07-foto-konsept.sql
+CREATE TABLE IF NOT EXISTS foto_konsept (
+  konsept_no   TEXT PRIMARY KEY,           -- 32 hex, tahmin edilemez (gorselin tek anahtari)
+  oturum       TEXT NOT NULL,              -- 32 hex; ayni onizleme isinin denemeleri
+  tur          TEXT NOT NULL,
+  ziyaretci    TEXT NOT NULL,              -- tuzlu sha256(ip) ilk 16 hex | 'ornek' (panel)
+  tarih        TEXT NOT NULL,              -- ISO 8601 UTC (deneme ani; sinirlar buradan sayar)
+  asama        TEXT NOT NULL,              -- 'uretiliyor' | 'hazir' | 'basarisiz' | 'silindi'
+  gorev        TEXT NOT NULL DEFAULT '',   -- saglayici gorev kimligi
+  son_kontrol  INTEGER NOT NULL DEFAULT 0, -- son yoklama (ms) — yoklama CAS kilidi
+  hazir_tarih  TEXT NOT NULL DEFAULT '',
+  kredi        INTEGER NOT NULL DEFAULT 0, -- gercek harcanan kredi (gorev bitince)
+  hata         TEXT NOT NULL DEFAULT '',
+  is_no        TEXT NOT NULL DEFAULT ''    -- konsept 3D onizlemeye girdi olduysa o foto_isler.is_no
+);
+CREATE INDEX IF NOT EXISTS idx_foto_konsept_oturum ON foto_konsept (oturum);
+CREATE INDEX IF NOT EXISTS idx_foto_konsept_tarih ON foto_konsept (tarih);
 CREATE TABLE IF NOT EXISTS foto_ayar (
   anahtar      TEXT PRIMARY KEY,           -- 'bakiye' | 'havuz_durum'
   deger        TEXT NOT NULL,

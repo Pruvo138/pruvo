@@ -26,7 +26,7 @@ Sahibi: KraL (kategori motoru). Uyan: TeKiN üreteçleri (D ve R kolu). Tek kayn
   "dosyalar":  { "foto": "foto.png" }
 }
 ```
-- `olcu_mm` = ürünün **EN UZUN KENARI** (mm, tam sayı). Fiyatın ekseni de budur (`olcu_mm × 10 TL`).
+- `olcu_mm` = ürünün **EN UZUN KENARI** (mm, tam sayı). Fiyatın ekseni de budur (`max(600 TL, olcu_mm × 10 TL)`, taban tür kaydında `fiyat.taban_tl`; ek renk `+ (renk − 1) × 100 TL`, renk 1..`fiyat.renk_tavani` — Okan 8 Eki; bölge türünde renk sayısı = bölgelerde seçilen FARKLI renk).
 - `renkler` / `malzemeler` anahtarları = manifestteki `renk_bolgeleri[].kod`; değerler manifestteki izinli listeden. Liste dışı → rc 2.
 - `parametreler` = manifest satırındaki `form` şemasının doldurulmuş hâli (dalga 2 parametrik: iç çap, diş sayısı…; metin kategorileri: `metin`, `url`; veri: `enlem`, `boylam`, `tarih`). Şema dışı anahtar → rc 2.
 - `dosyalar` = girdi dizinine göre göreli yollar: `foto` (PNG/JPEG), `gri_harita` (PNG, litofan/rölyef — tarayıcıda çıkarılır), `svg`, `ses` (WAV ≤ 60 sn). Kategori yalnız manifestte beyan ettiği girdileri alır.
@@ -55,7 +55,7 @@ Sahibi: KraL (kategori motoru). Uyan: TeKiN üreteçleri (D ve R kolu). Tek kayn
 }
 ```
 - `sizdirmaz` **true olmak ZORUNDA**; üreteç false üretirse rc ≠ 0 döner (false ile rc 0 = sözleşme ihlali).
-- `uzun_kenar_mm` = `olcu_mm` ± %1 (D kolu). R kolu ± %3.
+- `uzun_kenar_mm` = `olcu_mm` ± %1 (D kolu). R kolu ± %3. **Tanım (Okan 7 Eki 15:4x):** nesnenin sınır kutusunun EN UZUN boyutu (x/y/z hangisi büyükse, ayak/çerçeve dahil tek nesne) — yalnız X/Y değil. Sunucu `kutu_mm.z` > `uzun_kenar_mm` (+tol) ise RED eder (`uzun-kenar-tolerans`); sağlayıcı kolunda 3MF geometrisi x/y/z'den ölçülür. Üreteç tarafındaki `ozet.json` netleştirmesi (`sozlesme: 2` notu) TeKiN işidir.
 - `alt_kenar_mm` = ürün dik duruyorsa ayağa oturan kenarın ölçülen kalınlığı (plaket/litofan/rölyef). Ayak üreteci nominal değil BUNU kullanır (TeKiN 6 Eki bulgusu: plaket nominal 3,0 → ölçülen 6,61).
 - `girdi_sha256` = kanonik girdi parmak izi: sha256(`girdi.json`'dan `sozlesme · kategori · olcu_mm · renkler · malzemeler · parametreler` + beyan edilen her dosyanın sha256'sı); **`siparis_no` ve `kalem` HARİÇ**. Üreteç boş bırakabilir — koşucu her başarılı üretimde bu değerle DAMGALAR. Sipariş öncesi önizlemenin modeli, sipariş girdisinin parmak izi AYNIYSA yeniden üretilmeden kopyalanır (7 Eki, geriye uyumlu ek — `sozlesme` sürümü aynı). `model_sha256` = `model.3mf` dosyasının sha256'sı.
 
@@ -74,4 +74,4 @@ Sahibi: KraL (kategori motoru). Uyan: TeKiN üreteçleri (D ve R kolu). Tek kayn
 ## 6. Manifest satırı (KraL tarafı — kategori eklemek = üreteç + bu satır)
 `kod · ad · aciklama · girdi[] · motor (D|M|R) · uretec (komut kimliği) · olcu_mm {en_az,en_cok} · renk_bolgeleri[] · malzemeler{} · form (parametre şeması) · ornek_kanit_izni[] · fiyat {formul:"mm_x_10tl", adim_mm:10}`.
 `form` şemasında her alan `etiket` (gösterim adı, bölümde alanın başlığı) taşır; geriye uyumlu ek — `sozlesme` sürümü AYNI kalır.
-Fiyat satırları D1 `foto_fiyat`'a manifestten üretilir (adım 10 mm, `fiyat_kurus = mm × 1000`); elle satır yazılmaz.
+Fiyat tablosu YOK (Okan 7 Eki 15:4x): `fiyat_kurus = olcu_mm × 1000` (cm × 100 TL), tek formül `foto-uretim-veri.js` `VERI.fiyatKurus`; sürgü adımı `fiyat.adim_mm`. `olcu_mm` = nesnenin sınır kutusunun EN UZUN boyutu (x/y/z hangisi büyükse, ayak/çerçeve dahil) — `uzun_kenar_mm` bu değerdir. Türün satışa açılması D1 `foto_acik` anahtarıyla (varsayılan KAPALI).
