@@ -69,7 +69,15 @@ ORNEK_ZIYARETCI = "ornek"          # shop/src/foto.js ORNEK_ZIYARETCI
 ORNEK_SIPARIS_ONEK = "ORNEK-"      # shop/src/foto.js ORNEK_SIPARIS_ONEK
 YER_TUTUCU_TUR = "figur"           # galeride tur tanimi olmayan yer tutucu (foto-uretim.js)
 ONIZLEME_MIN_PX = 1024
-TOLERANS = {"D": 0.01, "R": 0.03}
+TOLERANS = {"D": 0.01, "R": 0.03, "M": 0.01}
+# SAGLAYICI KOLU KREDI KAPISI (kopru-15, 8 Eki 2026). Bedeller UST SINIRDIR (shop/src/foto.js krediYaz cagri
+# yerleri); gercek dusumu SUNUCU saglayici yanitindan D1 `foto_kredi`ye yazar — betik YAZMAZ, FARKI olcer.
+# Onizleme sürümünde cron YOK: zincir `/yonet/foto/uretim-tik` ile tur tur ilerler; her tikten ONCE o tikte
+# BASLAYABILECEK ucretli adimin bedeli kapidan gecer (build-baslat -> build; analiz -> onarim|doku|renk;
+# onarim/doku -> sonraki adim). Yoklama asamalari 0: bedel adim baslarken ayrildi.
+KREDI_ONIZLEME = 6
+KREDI_TIK = {"build-baslat": 30, "analiz": 10, "onarim": 10, "doku": 10}
+YOKLAMA_SAYI = 120
 OLCUTLER = ["1", "2", "3", "4", "5", "6"]
 ETIKET = {"1": "①", "2": "②", "3": "③", "4": "④", "5": "⑤", "6": "⑥"}
 
@@ -196,7 +204,7 @@ class Bulut:
 
 
 # ------------------------------------------------------------------ HTTP
-def http(yontem, url, govde=None, zaman=30):
+def http(yontem, url, govde=None, zaman=30, baslik=None):
     """Donus (kod, baslik_tur, govde_bayt). Ag hatasi -> (0, '', b'')."""
     esle = os.environ.get("FOTO_UU_MEDYA_ESLE", "")
     if "=" in esle:
@@ -204,9 +212,9 @@ def http(yontem, url, govde=None, zaman=30):
         if url.startswith(a):
             url = b + url[len(a):]
     veri = json.dumps(govde).encode() if govde is not None else None
-    r = urllib.request.Request(url, data=veri, method=yontem,
-                               headers={"User-Agent": "pruvo-ornek-uc-uca/1", "Content-Type": "application/json",
-                                        "Origin": taban()})
+    bas = {"User-Agent": "pruvo-ornek-uc-uca/1", "Content-Type": "application/json", "Origin": taban()}
+    bas.update(baslik or {})
+    r = urllib.request.Request(url, data=veri, method=yontem, headers=bas)
     try:
         with urllib.request.urlopen(r, timeout=zaman) as y:
             return y.status, y.headers.get("Content-Type", ""), y.read()
@@ -226,6 +234,83 @@ def json_coz(b):
         return v if isinstance(v, dict) else {}
     except (ValueError, UnicodeDecodeError):
         return {}
+
+
+def yonet_anahtari():
+    """Panel anahtari — tools/yazdir.py ile AYNI cozum: YONET_ANAHTAR env > .yonet-anahtar (worktree'de yoksa ana
+    repo koku). HICBIR YERE BASILMAZ; yalniz X-Yonet-Anahtar basliginda gider. Yoksa None."""
+    v = os.environ.get("YONET_ANAHTAR", "").strip()
+    if v:
+        return v
+    adaylar = [os.path.join(KOK, ".yonet-anahtar")]
+    p = subprocess.run(["git", "-C", KOK, "rev-parse", "--git-common-dir"], capture_output=True, text=True)
+    d = (p.stdout or "").strip()
+    if p.returncode == 0 and os.path.isabs(d) and os.path.basename(d) == ".git":
+        adaylar.append(os.path.join(os.path.dirname(d), ".yonet-anahtar"))
+    for yol in adaylar:
+        if os.path.isfile(yol):
+            with open(yol, encoding="utf-8") as f:
+                v = f.read().strip()
+            if v:
+                return v
+    return None
+
+
+def yonet(yontem, yol, govde=None):
+    """Onizleme surumunun panel ucu (/api/shop/yonet<yol>)."""
+    a = yonet_anahtari()
+    if not a:
+        raise Ayar("yonet-anahtari-yok")
+    return http(yontem, taban() + "/api/shop/yonet" + yol, govde, zaman=120, baslik={"X-Yonet-Anahtar": a})
+
+
+class Kredi:
+    """FAIL-CLOSED kredi kapisi (saglayici kolu). taban = kosum basi D1 `foto_kredi` toplami; harcanan =
+    max(D1 farki, bu kosumda ayrilan ust sinir) — sunucu kaydi gecikse de ayrilan bedel sayilir. D1 okunamazsa
+    Ayar -> kosum OLCULEMEDI (kredi harcanmadan)."""
+
+    def __init__(self, bulut, tavan):
+        self.bulut, self.tavan, self.ayrilan = bulut, tavan, 0
+        self.taban = self.toplam()
+
+    def toplam(self):
+        r = self.bulut.sql("SELECT COALESCE(SUM(kredi), 0) AS n FROM foto_kredi")
+        return int(r[0]["n"]) if r else 0
+
+    def harcanan(self):
+        return max(self.toplam() - self.taban, self.ayrilan)
+
+    def ayir(self, n):
+        h = self.harcanan()
+        if h + n > self.tavan:
+            return False, "kredi-tavani %d+%d>%d (DUR, saglayiciya istek YOK)" % (h, n, self.tavan)
+        self.ayrilan = h + n
+        return True, ""
+
+
+def gorsel_boyut(b):
+    """PNG/JPEG/WEBP baytindan (w, h); taninmazsa None (saglayici onizlemesi PNG olmayabilir)."""
+    if b[:8] == b"\x89PNG\r\n\x1a\n" and len(b) >= 24:
+        return struct.unpack(">II", b[16:24])
+    if b[:2] == b"\xff\xd8":
+        i = 2
+        while i + 9 < len(b) and b[i] == 0xFF:
+            if b[i + 1] in (0xC0, 0xC1, 0xC2):
+                h, w = struct.unpack(">HH", b[i + 5:i + 9])
+                return (w, h)
+            i += 2 + struct.unpack(">H", b[i + 2:i + 4])[0]
+        return None
+    if b[:4] == b"RIFF" and b[8:12] == b"WEBP" and len(b) >= 30:
+        c = b[12:16]
+        if c == b"VP8X":
+            return (1 + int.from_bytes(b[24:27], "little"), 1 + int.from_bytes(b[27:30], "little"))
+        if c == b"VP8 ":
+            w, h = struct.unpack("<HH", b[26:30])
+            return (w & 0x3FFF, h & 0x3FFF)
+        if c == b"VP8L":
+            v = int.from_bytes(b[21:25], "little")
+            return ((v & 0x3FFF) + 1, ((v >> 14) & 0x3FFF) + 1)
+    return None
 
 
 def post_429(yol, govde):
@@ -828,6 +913,87 @@ def ornek_siparis_yaz(tr, bulut):
                   sql_metin(tr.is_no)))
 
 
+def yokla_bekle():
+    time.sleep(float(os.environ.get("FOTO_UU_YOKLA_SN", "5")))
+
+
+def saglayici_2(tr, kredi):
+    """② SAGLAYICI: panel ornek ucu (musteri ucuyla AYNI saglayici cagrisi, shop/src/foto.js panelOrnekOnizleme)
+    -> ornek-durum yoklamasi (sunucu saglayiciyi bu yoklamayla ilerletir) -> onizleme gorseli px."""
+    ok, sebep = kredi.ayir(KREDI_ONIZLEME)
+    if not ok:
+        tr.koy("2", False, sebep)
+        tr.koy("4", False, sebep)
+        return
+    _, bayt, tip = tr.dosyalar["foto"]
+    k, _, b = yonet("POST", "/foto/ornek-onizleme", {"tur": tr.kod, "olcu_mm": tr.olcu, "gorsel": "data:%s;base64,%s" % (
+        tip, base64.b64encode(bayt).decode())})
+    j = json_coz(b)
+    if k != 200 or not isinstance(j.get("is"), str):
+        tr.koy("2", False, "ornek-onizleme kod=%s hata=%s" % (k, j.get("hata")))
+        return
+    tr.is_no, d = j["is"], {}
+    for _ in range(YOKLAMA_SAYI):
+        k, _, b = yonet("GET", "/foto/ornek-durum?is=" + tr.is_no)
+        d = json_coz(b) if k == 200 else {}
+        if d.get("asama") in ("hazir", "basarisiz"):
+            break
+        yokla_bekle()
+    boyut = None
+    if d.get("asama") == "hazir":
+        k, tip, b = yonet("GET", "/foto/ornek-gorsel?is=" + tr.is_no)
+        boyut = gorsel_boyut(b) if k == 200 and tip.startswith("image/") else None
+    tr.koy("2", bool(boyut) and max(boyut) >= ONIZLEME_MIN_PX, "kol=saglayici asama=%s hata=%s onizleme_px=%s" % (
+        d.get("asama", "yok"), d.get("hata") or "-", "%dx%d" % boyut if boyut else "yok"))
+
+
+def saglayici_4(tr, kredi):
+    """④ SAGLAYICI uretim: panel ornek-uret -> foto_uretim ORNEK satiri ('build-baslat') -> onizleme surumunde cron
+    YOK: /yonet/foto/uretim-tik zinciri tur tur ilerletir. Her ASAMA ilk goruldugunde o tikte baslayabilecek ucretli
+    adimin bedeli kredi kapisindan gecer. Tik kuyruktaki HER satiri ilerletir -> baska yarim satir varsa DUR (kendi
+    satirimiz disinda kredi yakilmaz). Donus: True = zincir bitti (olc_4 olcer)."""
+    k, _, b = yonet("POST", "/foto/ornek-uret", {"is": tr.is_no})
+    j = json_coz(b)
+    if k != 200 or not j.get("siparis_no"):
+        tr.koy("4", False, "ornek-uret kod=%s hata=%s" % (k, j.get("hata")))
+        return False
+    no, onceki = j["siparis_no"], None
+    for _ in range(YOKLAMA_SAYI):
+        r = kredi.bulut.sql("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = %s AND kalem = 0" % sql_metin(no))
+        asama = r[0]["asama"] if r else "yok"
+        if asama in ("hazir", "elle", "yok"):
+            if asama != "hazir":
+                tr.koy("4", False, "siparis=%s asama=%s sebep=%s" % (no, asama, (r[0]["sebep"] if r else "") or "-"))
+            return asama == "hazir"
+        y = kredi.bulut.sql("SELECT COUNT(*) AS n FROM foto_uretim WHERE asama NOT IN ('hazir', 'elle', "
+                            "'uretec-bekliyor') AND siparis_no != %s" % sql_metin(no))
+        if y and y[0]["n"]:
+            tr.koy("4", False, "yabanci-kuyruk=%d (tik onlari da ilerletir; kredi yakilmaz, DUR)" % y[0]["n"])
+            return False
+        if asama != onceki:
+            ok, sebep = kredi.ayir(KREDI_TIK.get(asama, 0))
+            if not ok:
+                tr.koy("4", False, "siparis=%s asama=%s %s" % (no, asama, sebep))
+                return False
+            onceki = asama
+        k, _, _ = yonet("POST", "/foto/uretim-tik", {})
+        if k != 200:
+            tr.koy("4", False, "uretim-tik kod=%s" % k)
+            return False
+        yokla_bekle()
+    tr.koy("4", False, "siparis=%s zaman-asimi asama=%s" % (no, onceki))
+    return False
+
+
+def glb_gecerli(yol):
+    try:
+        with open(yol, "rb") as f:
+            b = f.read(12)
+    except OSError:
+        return False
+    return len(b) == 12 and b[:4] == b"glTF"
+
+
 PROVA_ZIYARETCI = "uu-prova"
 
 
@@ -868,7 +1034,11 @@ def olc_4(tr, bulut, gecici):
              k.get("olcu_mm") == tr.olcu and all(k.get(a) for a in ("tarih", "u_tarih", "guncel")))
     d = os.path.join(gecici, "siparis-" + tr.is_no)
     os.makedirs(d, exist_ok=True)
-    dosya = {ad: os.path.join(d, ad) for ad in ("model.3mf", "olcu.json", "onizleme.png")}
+    # SAGLAYICI zinciri (renk asamasi) model.3mf + model.glb yazar; olcu.json/onizleme.png YOK (olcek kapisi
+    # sunucuda ucmfOlcekle). Geometri olcumu ikisinde de AYNI (bagimsiz 3MF olcumu, asagida).
+    sag = tr.t.get("kol") == "saglayici"
+    adlar = ("model.3mf", "model.glb") if sag else ("model.3mf", "olcu.json", "onizleme.png")
+    dosya = {ad: os.path.join(d, ad) for ad in adlar}
     var = k.get("asama") == "hazir" and all(bulut.al("foto/%s/0/%s" % (no, ad), y) for ad, y in dosya.items())
     if not var:
         tr.koy("4", False, "siparis=%s asama=%s sebep=%s dosya=yok" % (no, k.get("asama"), k.get("sebep") or "-"))
@@ -876,7 +1046,7 @@ def olc_4(tr, bulut, gecici):
             tr.koy("2", False, tr.s["2"][1] + " · uretec onizlemesi YOK")
         return
     try:
-        olcu = json.load(open(dosya["olcu.json"], encoding="utf-8"))
+        olcu = {} if sag else json.load(open(dosya["olcu.json"], encoding="utf-8"))
     except ValueError:
         olcu = {}
     m = uc_mf_olc(dosya["model.3mf"])
@@ -898,8 +1068,13 @@ def olc_4(tr, bulut, gecici):
                abs(uk - tr.olcu) <= tr.olcu * tol + 1e-9 and olcu.get("sizdirmaz") is True and
                isinstance(olcu.get("renk_sayisi"), int) and 1 <= olcu["renk_sayisi"] <= 4 and
                all((olcu.get("kutu_mm") or {}).get(e, 0) > 0 for e in "xyz") and olcu.get("model_sha256") == msha)
-    b = png_boyut(dosya["onizleme.png"])
-    pv = bool(b) and max(b) >= ONIZLEME_MIN_PX
+    if sag:
+        # olcu.json sozlesmesi saglayici kolunda yok: alan = GLB gecerli; onizleme = ②'nin saglayici gorseli.
+        alanlar, b = glb_gecerli(dosya["model.glb"]), None
+        pv = tr.s["2"][0]
+    else:
+        b = png_boyut(dosya["onizleme.png"])
+        pv = bool(b) and max(b) >= ONIZLEME_MIN_PX
     tr.koy("4", kayit and sizd and eksen and alanlar and pv,
            "siparis=%s kayit=%d sizdirmaz=%s/%s kutu=%s uzun=%s eksen=%s parca=%s parca_en_uzun=%s hedef=%d±%g%% "
            "olcu.json_uzun=%s alanlar=%d onizleme=%s" % (
@@ -1015,6 +1190,8 @@ def main(argv=None):
     ap.add_argument("--tur", action="append", default=[], help="tur kodu (tekrarlanabilir)")
     ap.add_argument("--hepsi", action="store_true", help="manifestteki tum turler")
     ap.add_argument("--kol", choices=["D", "M", "R"], help="--hepsi ile: yalniz bu motor")
+    ap.add_argument("--kredi-tavani", type=int, default=0,
+                    help="saglayici kolu: bu kosumda harcanabilecek kredi (0 = saglayiciya istek YOK, ②④ OLCULMEZ)")
     a = ap.parse_args(argv)
     gecici = tempfile.mkdtemp(prefix="foto-uu-")
     try:
@@ -1041,7 +1218,7 @@ def main(argv=None):
             print("HAZIR=0/%d rc=2" % len(kodlar))
             return 2
         turler = [Tur(kod, harita.get(kod) or {}) for kod in kodlar]
-        calisan = []
+        calisan, sag = [], []
         for tr in turler:
             if not tr.t:
                 for o in OLCUTLER:
@@ -1054,8 +1231,11 @@ def main(argv=None):
                     tr.koy(o, False, "ornek-girdi: " + tr.hazirlik)
                 continue
             if tr.t.get("kol") != "deterministik":
-                tr.koy("2", False, "kol=%s (saglayici kolu bu betikte OLCULMEZ — kredi)" % tr.t.get("kol"))
-                tr.koy("4", False, "kol=%s OLCULEMEDI" % tr.t.get("kol"))
+                if a.kredi_tavani > 0 and tr.t.get("kol") == "saglayici":
+                    sag.append(tr)
+                else:
+                    tr.koy("2", False, "kol=%s (saglayici kolu bu betikte OLCULMEZ — kredi)" % tr.t.get("kol"))
+                    tr.koy("4", False, "kol=%s OLCULEMEDI" % tr.t.get("kol"))
                 calisan.append(tr)
                 continue
             onizleme_isi_yaz(tr, bulut, gecici)
@@ -1080,6 +1260,13 @@ def main(argv=None):
                 olc_4(tr, bulut, gecici)
             else:
                 tr.koy("4", False, "onizleme yok -> ORNEK siparis acilmadi")
+        kredi = Kredi(bulut, a.kredi_tavani) if sag else None
+        for tr in sag:
+            saglayici_2(tr, kredi)
+            if tr.s["2"][0] and saglayici_4(tr, kredi):
+                olc_4(tr, bulut, gecici)
+            elif tr.s["4"][1] == "OLCULEMEDI":
+                tr.koy("4", False, "onizleme yok -> ORNEK uretim acilmadi")
         try:
             tar = tarayici_olc([tr.kod for tr in calisan],
                                {tr.kod: {"is": tr.prova, "tur": tr.kod, "olcu": tr.olcu} for tr in provalar})
@@ -1097,6 +1284,8 @@ def main(argv=None):
                 print("  %s %s %s" % (ETIKET[o], "HAZIR" if tr.s[o][0] else "EKSIK", tr.s[o][1]))
             n += 1 if tr.hazir() else 0
         rc = 0 if n == len(turler) else 1
+        if kredi:
+            print("KREDI_HARCANAN=%d/%d taban=%d" % (kredi.harcanan(), kredi.tavan, kredi.taban))
         print("HAZIR=%d/%d rc=%d" % (n, len(turler), rc))
         return rc
     except Ayar as e:

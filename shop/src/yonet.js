@@ -38,7 +38,8 @@ import { golgeRaporu } from "./konfigur-golge.js";
 import { panelUretimHaritasi, panelFotoKaydi, panelFotoDosya, panelFotoOzet,
          panelFotoAcik, panelOrnekOnizleme, panelOrnekDurum, panelOrnekGorsel,
          panelOrnekUret, panelOrnekListe, panelUretecGirdi, panelUretecYukle,
-         panelOrnekKonsept, panelOrnekKonseptDurum, panelOrnekKonseptGorsel } from "./foto.js";
+         panelOrnekKonsept, panelOrnekKonseptDurum, panelOrnekKonseptGorsel, fotoUretimTuru } from "./foto.js";
+import { onizlemeMi } from "./onizleme.js";
 import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
 } from "./eposta.js";
@@ -2067,6 +2068,11 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/foto/ornek-gorsel" && m === "GET") { return panelOrnekGorsel(env, url); }
   if (altYol === "/foto/ornek-uret" && m === "POST") { return panelOrnekUret(request, env, Date.now(), telegram); }
   if (altYol === "/foto/ornekler" && m === "GET") { return panelOrnekListe(env); }
+  // ONIZLEME SURUMU cron'suzdur (versions upload cron tasimaz): uretim zincirini cron'un AYNI fonksiyonuyla
+  // TEK TUR ilerletir (tools/foto-ornek-uc-uca.py --kredi-tavani). Canli surumde YOK (404) — orada cron kosar.
+  if (altYol === "/foto/uretim-tik" && m === "POST" && onizlemeMi(env)) {
+    return yjson(await fotoUretimTuru(env, Date.now(), telegram), 200);
+  }
   // 2D KONSEPT ornek kolu (musteri ucuyla ayni cagri; ziyaretci/bot/tavan siniri yok, havuz AYNEN).
   if (altYol === "/foto/ornek-konsept" && m === "POST") { return panelOrnekKonsept(request, env, Date.now(), telegram); }
   if (altYol === "/foto/ornek-konsept-durum" && m === "GET") { return panelOrnekKonseptDurum(env, url, Date.now()); }

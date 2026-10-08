@@ -21,6 +21,9 @@
  *   MO1 index.js'teki onizleme odeme kolu silinir   -> O1 KIRMIZI
  *   MO2 onizleme.js ONIZLEME kosulunu atlar         -> T2 KIRMIZI
  *   MO3 onizleme.js ONIZLEME_HOST'u yok sayar       -> T3 KIRMIZI
+ *   O5  ONIZLEME=1 + anahtar: POST /yonet/foto/uretim-tik -> 200 tur ozeti (kopru-15, cron'suz onizleme)
+ *   O6  canli + anahtar: ayni uc 404 · O7 yanlis anahtar: calismaz
+ *   MO4 yonet.js uretim-tik onizleme kosulu silinir   -> O6 KIRMIZI
  *   MO0 kontrol (yalniz yorum eklenir)              -> hicbiri KIRMIZI degil
  *
  * Calistir: node shop/test/onizleme-kapisi.mjs  -> rc=0 ve "SONUC: YESIL"
@@ -145,18 +148,19 @@ function ortam(ek) {
   return { env, yazimlar };
 }
 
-async function istek(mod, ek, yol, yontem, govde, svHost) {
+async function istek(mod, ek, yol, yontem, govde, svHost, baslik) {
   siteverifyPlani = { gonder: { success: true, hostname: svHost || "pruvo3d.com" } };
   const { env, yazimlar } = ortam(ek);
   const iy0 = iyzicoCagri;
   const sv0 = siteverifyCagri;
-  const ayar = { method: yontem, headers: { "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.9" } };
+  const ayar = { method: yontem, headers: Object.assign({ "Content-Type": "application/json",
+    "CF-Connecting-IP": "203.0.113.9" }, baslik || {}) };
   if (govde !== undefined) { ayar.body = JSON.stringify(govde); }
   const c = await mod.index.default.fetch(new Request("https://pruvo3d.com/api/shop" + yol, ayar),
     env, { waitUntil() {} });
   let v = null;
   try { v = await c.clone().json(); } catch (e) { /* metin */ }
-  return { kod: c.status, hata: v && v.hata, iyzico: iyzicoCagri - iy0, siteverify: siteverifyCagri - sv0,
+  return { kod: c.status, hata: v && v.hata, govde: v, iyzico: iyzicoCagri - iy0, siteverify: siteverifyCagri - sv0,
            d1Yazim: yazimlar.filter((s) => /INSERT|UPDATE|DELETE/i.test(s)).length };
 }
 
@@ -203,6 +207,18 @@ async function batarya(mod) {
   s.T3 = (await fotoBot(mod, ONZ, ONIZLEME_ALANI)) === true;
   s.T4 = (await fotoBot(mod, ONZ, "kotu.example")) === false &&
          (await fotoBot(mod, { ONIZLEME: "1", ONIZLEME_HOST: "" }, "")) === false;
+  // URETIM TIKI (kopru-15, 8 Eki): onizleme cron'suz -> panel anahtariyla tek tur; canlida uc YOK.
+  const YA = { "X-Yonet-Anahtar": "yonet-test-anahtar" };
+  const YE = Object.assign({ YONET_ANAHTAR: "yonet-test-anahtar" }, ONZ);
+  r = await istek(mod, YE, "/yonet/foto/uretim-tik", "POST", {}, undefined, YA);
+  s.O5 = r.kod === 200 && !!r.govde && r.govde.atlandi === "yapilandirma" && r.iyzico === 0;
+  s._O5 = JSON.stringify(r);
+  r = await istek(mod, { YONET_ANAHTAR: "yonet-test-anahtar" }, "/yonet/foto/uretim-tik", "POST", {}, undefined, YA);
+  s.O6 = r.kod === 404;
+  s._O6 = JSON.stringify(r);
+  r = await istek(mod, YE, "/yonet/foto/uretim-tik", "POST", {}, undefined, { "X-Yonet-Anahtar": "yanlis" });
+  s.O7 = r.kod !== 200 && !(r.govde && "atlandi" in r.govde);
+  s._O7 = JSON.stringify(r);
   r = await istek(mod, {}, "/baslat", "POST", SEPET, "www.pruvo3d.com");
   s.T5 = (await fotoBot(mod, {}, "pruvo3d.com")) === true &&
          (await fotoBot(mod, ONZ, "www.pruvo3d.com")) === true && r.kod !== 403 && r.iyzico > 0;
@@ -219,6 +235,9 @@ const AD = {
   O2: "O2 ONIZLEME=1 /donus GET+POST, /olcum-donus, /fiyat -> 503, iyzico 0",
   O3: "O3 canli (ONIZLEME yok) /baslat iyzico'yu ACAR (kontrol)",
   O4: "O4 ONIZLEME=1 /foto/acik odeme koluna takilmaz",
+  O5: "O5 ONIZLEME=1 + anahtar: POST /yonet/foto/uretim-tik -> 200 tur ozeti (yapilandirma yok -> atlandi)",
+  O6: "O6 canli + anahtar: /yonet/foto/uretim-tik -> 404 (uc yalniz onizlemede)",
+  O7: "O7 ONIZLEME=1 + yanlis anahtar: uretim-tik calismaz",
   T1: "T1 canli: onizleme alaninda cozulmus jeton /baslat'ta 403",
   T2: "T2 ONIZLEME_HOST tek basina listeyi GENISLETMEZ (/baslat + foto)",
   T3: "T3 ONIZLEME=1 + ONIZLEME_HOST: foto bot dogrulamasi onizleme alanini KABUL eder",
@@ -230,6 +249,7 @@ for (const k of Object.keys(AD)) { iddia(AD[k], asil[k], asil["_" + k] || ""); }
 const IDX = fs.readFileSync(path.join(SRC, "index.js"), "utf8");
 const FOTO = fs.readFileSync(path.join(SRC, "foto.js"), "utf8");
 const ONZK = fs.readFileSync(path.join(SRC, "onizleme.js"), "utf8");
+const YON = fs.readFileSync(path.join(SRC, "yonet.js"), "utf8");
 iddia("T6 index.js + foto.js'te elle yazilmis Turnstile alan listesi YOK",
   !/\[\s*"pruvo3d\.com",\s*"www\.pruvo3d\.com"\s*\]/.test(IDX) &&
   !/\[\s*"pruvo3d\.com",\s*"www\.pruvo3d\.com"\s*\]/.test(FOTO), "");
@@ -240,6 +260,8 @@ const MUTANT = [
   ["MO1", "index.js",
     '      if (onizlemeOdemeKapali(env, yol)) { return json({ hata: "onizleme-odeme-kapali" }, 503, env); }\n',
     "", null, ["O1", "O2"]],
+  ["MO4", "yonet.js", '  if (altYol === "/foto/uretim-tik" && m === "POST" && onizlemeMi(env)) {\n',
+    '  if (altYol === "/foto/uretim-tik" && m === "POST") {\n', null, ["O6"]],
   ["MO2", "onizleme.js", "  const ek = onizlemeMi(env) ? String(env.ONIZLEME_HOST || \"\").trim() : \"\";\n",
     "  const ek = String(env.ONIZLEME_HOST || \"\").trim();\n", null, ["T2"]],
   ["MO3", "onizleme.js", "  return ek !== \"\" && h === ek;\n", "  return false;\n", null, ["T3"]],
@@ -249,7 +271,7 @@ for (const [ad, dosya, capa, yeni, , beklenen] of MUTANT) {
   if (ad === "MO0") {
     degisiklik = { "index.js": "/* FOTO-DUZEN-d kontrol mutanti */\n" + IDX };
   } else {
-    const kaynak = { "index.js": IDX, "onizleme.js": ONZK }[dosya];
+    const kaynak = { "index.js": IDX, "onizleme.js": ONZK, "yonet.js": YON }[dosya];
     const adet = kaynak.split(capa).length - 1;
     iddia(ad + " capa kaynakta TEK", adet === 1, "adet=" + adet);
     if (adet !== 1) { continue; }

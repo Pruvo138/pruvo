@@ -21,6 +21,12 @@ olcumu yok -> U3 · MB3 eksen toleransi yok -> U4+U16+U18 · MB4 sunucu onay kon
 carpimi yok -> U6 · MB6 tarayici yokken gecer -> U10 · MB7 canli ayrilik kapisi yok -> U12 ·
 MB8 secili tur kontrolu yok -> U15 · MB9 tabla duzeninde parca siniri yok -> U18 · MB19/MB20 kayit `ornek`i
 (sayi/metin) okunmuyor -> U25 (sehir/yildiz ornegi gercek manifestten) · MB0 yorum -> 0 kirmizi.
+SAGLAYICI KOLU (--kredi-tavani, kopru-15 SAGLAYICI-2; sahte panel uclari + sahte uretim-tik, kredi SUNUCUDA yazilir):
+S1 tavan 0 -> ②④ OLCULMEZ, panel istegi 0 · S2 tavan 10 -> ② HAZIR, build oncesi DUR, tik 0 · S3 tavan 100 -> ④
+HAZIR, KREDI_HARCANAN=46/100 · S4 tavan 5 -> onizleme istegi 0 · S5 kuyrukta yabanci yarim satir -> DUR, tik 0 ·
+S6 saglayici 3MF %10 buyuk -> ④ eksen YANLIS · S7 sunucu tahminden pahali yazar -> D1 farkiyla renk oncesi DUR.
+MB21 kredi kontrolu yok -> S2+S4 · MB22 yabanci kuyruk kontrolu yok -> S5 · MB23 tavan-0 kolu yok -> S1 ·
+MB24 D1 farki okunmuyor -> S7 · MB3 ayrica S6.
 """
 import json
 import os
@@ -129,14 +135,84 @@ MAN = manifest()
 TUR = {t["kod"]: t for t in MAN["turler"]}
 
 
+def png(w, h):
+    ch = lambda t, d: struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xffffffff)
+    return (b"\x89PNG\r\n\x1a\n" + ch(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 0, 0, 0, 0)) +
+            ch(b"IDAT", zlib.compress(b"".join(b"\x00" + b"\x80" * w for _ in range(h)))) + ch(b"IEND", b""))
+
+
+def kutu_3mf(d, L):
+    """Saglayici zincirinin olcekli 3MF'i (sahte): L x L/2 x 3 su gecirmez kutu."""
+    os.makedirs(d, exist_ok=True)
+    v = [(x, y, z) for x in (0, L) for y in (0, L / 2) for z in (0, 3.0)]
+    t = [(0, 2, 6), (0, 6, 4), (1, 5, 7), (1, 7, 3), (0, 4, 5), (0, 5, 1), (2, 3, 7), (2, 7, 6), (0, 1, 3), (0, 3, 2),
+         (4, 6, 7), (4, 7, 5)]
+    xml = ('<model unit="millimeter"><resources><object id="1" type="model"><mesh><vertices>' +
+           "".join('<vertex x="%g" y="%g" z="%g"/>' % p for p in v) + '</vertices><triangles>' +
+           "".join('<triangle v1="%d" v2="%d" v3="%d"/>' % q for q in t) +
+           '</triangles></mesh></object></resources><build><item objectid="1"/></build></model>')
+    with zipfile.ZipFile(os.path.join(d, "model.3mf"), "w") as z:
+        z.writestr("3D/3dmodel.model", xml)
+
+
 class Sunucu:
     """Sahte onizleme worker'i. ayar: acik (kod listesi), carpan, kapali_kod (mutant: kapali tur kodu),
     onaysiz_kod (mutant: onaysiz istege donen kod)."""
 
     def __init__(self):
         self.ayar = {"acik": [], "carpan": 1000, "kapali_kod": 400, "onaysiz_kod": 400, "db": "",
-                     "durum_carpan": 1000}
+                     "durum_carpan": 1000, "r2": "", "yonet": {}}
         ayar = self.ayar
+
+        def panel(h, yontem, g):
+            """Sahte saglayici zinciri (shop/src/foto.js panel ornek uclari + cron uretimAdimi sozlesmesi):
+            her ucretli adim foto_kredi'ye SUNUCU yazar. Sayac: ayar['yonet'][uc]."""
+            if h.headers.get("X-Yonet-Anahtar") != "test-yonet":
+                return h.yanit(404, {"hata": "bulunamadi"})
+            uc = h.path.split("?", 1)[0][len("/api/shop/yonet"):]
+            ayar["yonet"][uc] = ayar["yonet"].get(uc, 0) + 1
+            c = sqlite3.connect(ayar["db"])
+            simdi = "2026-10-08T00:00:00Z"
+            try:
+                if uc == "/foto/ornek-onizleme":
+                    no = "%032x" % (ayar["yonet"][uc] + 0xabc)
+                    c.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev)"
+                              " VALUES (?, ?, ?, 'ornek', ?, 'onizleme', ?)", (no, g["tur"], g["olcu_mm"], simdi, "g-" + no))
+                    c.execute("INSERT INTO foto_kredi (tarih, adim, is_no, gorev, kredi) VALUES (?, 'onizleme', ?, ?, 6)",
+                              (simdi, no, "g-" + no))
+                    return h.yanit(200, {"is": no})
+                if uc == "/foto/ornek-durum":
+                    no = h.path.split("=", 1)[1]
+                    c.execute("UPDATE foto_isler SET asama = 'hazir', hazir_tarih = ? WHERE is_no = ?", (simdi, no))
+                    return h.yanit(200, {"is": no, "asama": "hazir"})
+                if uc == "/foto/ornek-gorsel":
+                    return h.yanit(200, png(1024, 1024), "image/png")
+                if uc == "/foto/ornek-uret":
+                    r = c.execute("SELECT tur, olcu_mm FROM foto_isler WHERE is_no = ?", (g["is"],)).fetchone()
+                    no = "ORNEK-" + g["is"][:12]
+                    c.execute("INSERT OR IGNORE INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih,"
+                              " guncel) VALUES (?, 0, ?, ?, ?, 'build-baslat', ?, ?)", (no, g["is"], r[0], r[1], simdi, simdi))
+                    return h.yanit(200, {"ok": True, "siparis_no": no})
+                if uc == "/foto/uretim-tik":
+                    sonraki = {"build-baslat": "build", "build": "analiz", "analiz": "renk", "renk": "hazir"}
+                    bedel = {"build": ayar.get("bedel_build", 30), "renk": 10}
+                    for no, ino, tur, olcu, asama in c.execute(
+                            "SELECT siparis_no, is_no, tur, olcu_mm, asama FROM foto_uretim WHERE asama NOT IN"
+                            " ('hazir', 'elle', 'uretec-bekliyor')").fetchall():
+                        if asama in bedel:
+                            c.execute("INSERT OR IGNORE INTO foto_kredi (tarih, adim, is_no, siparis_no, gorev, kredi)"
+                                      " VALUES (?, ?, ?, ?, ?, ?)", (simdi, asama, ino, no, asama + no, bedel[asama]))
+                        if sonraki[asama] == "hazir":
+                            d = os.path.join(ayar["r2"], "foto", no, "0")
+                            kutu_3mf(d, olcu * ayar.get("sag_geo", 1.0))
+                            with open(os.path.join(d, "model.glb"), "wb") as f:
+                                f.write(b"glTF\x02\x00\x00\x00\x0c\x00\x00\x00")
+                        c.execute("UPDATE foto_uretim SET asama = ? WHERE siparis_no = ?", (sonraki[asama], no))
+                    return h.yanit(200, {"kuyruga": 0, "ilerleyen": 1})
+                return h.yanit(404, {"hata": "bulunamadi"})
+            finally:
+                c.commit()
+                c.close()
 
         class H(BaseHTTPRequestHandler):
             def log_message(self, *a):
@@ -151,6 +227,8 @@ class Sunucu:
                 self.wfile.write(b)
 
             def do_GET(self):
+                if self.path.startswith("/api/shop/yonet/"):
+                    return panel(self, "GET", {})
                 if self.path == "/api/shop/foto/acik":
                     tl = [{"kod": k, "olculer": [{"mm": mm, "fiyat_kurus": mm * ayar["carpan"]}
                                                  for mm in TUR[k]["olcu_secenekleri"]]} for k in ayar["acik"]]
@@ -172,6 +250,8 @@ class Sunucu:
             def do_POST(self):
                 n = int(self.headers.get("Content-Length") or 0)
                 g = json.loads(self.rfile.read(n) or b"{}")
+                if self.path.startswith("/api/shop/yonet/"):
+                    return panel(self, "POST", g)
                 if g.get("tur") not in ayar["acik"]:
                     k = ayar["kapali_kod"]
                     return self.yanit(k, {"hata": "tur-kapali"} if k == 400 else {"is": "x"})
@@ -227,6 +307,7 @@ class Ortam:
         c.close()
         self.sunucu = Sunucu()
         self.sunucu.ayar["db"] = self.db
+        self.sunucu.ayar["r2"] = self.r2
         self.tarayici = {}
         self.env = dict(os.environ, FAKE_DB=self.db, FAKE_R2=self.r2, FAKE_LOG=self.log,
                         FOTO_UU_TABAN=self.sunucu.taban,
@@ -234,7 +315,7 @@ class Ortam:
                         FOTO_UU_WRANGLER="%s %s" % (sys.executable, os.path.join(self.d, "wr.py")),
                         FOTO_UU_KOSUCU=os.path.join(self.d, "kopru.py"), FOTO_UU_BEKLE_SN="0",
                         FOTO_UU_TARAYICI_SAHTE=os.path.join(self.d, "tarayici.json"),
-                        PYTHONDONTWRITEBYTECODE="1")
+                        YONET_ANAHTAR="test-yonet", FOTO_UU_YOKLA_SN="0", PYTHONDONTWRITEBYTECODE="1")
         for k in ("FAKE_GEO", "FAKE_DELIK", "FOTO_UU_CHROME"):
             self.env.pop(k, None)
 
@@ -328,6 +409,65 @@ def vakalar(kaynak, sadece=None):
         rc, son, c = tek(o)
         return rc == 1 and olcut(c, "isimlik", "3") == "EKSIK", son
     vaka("U6", u6)
+
+    # SAGLAYICI KOLU (kopru-15 SAGLAYICI-2): --kredi-tavani. Kapali tur = isimlik (mutant on kosulu icin).
+    def sag(o, tavan, **ek):
+        hazir_ortam(o, "plaket")
+        o.sunucu.ayar["acik"] = [k for k in o.sunucu.ayar["acik"] if k != "isimlik"]
+        rc, son, c = o.kos("--tur", "plaket", "--kredi-tavani", str(tavan), **ek)
+        return rc, son, c, o.sunucu.ayar["yonet"]
+
+    def s1(o):
+        rc, son, c, y = sag(o, 0)
+        ok = (olcut(c, "plaket", "2") == "EKSIK" and olcut(c, "plaket", "4") == "EKSIK" and "OLCULMEZ" in c and
+              sum(y.values()) == 0 and "KREDI_HARCANAN" not in c)
+        return ok, "yonet=%s %s" % (y, son)
+    vaka("S1", s1)
+
+    def s2(o):
+        rc, son, c, y = sag(o, 10)
+        ok = (olcut(c, "plaket", "2") == "HAZIR" and olcut(c, "plaket", "4") == "EKSIK" and "kredi-tavani" in c and
+              y.get("/foto/uretim-tik", 0) == 0 and "KREDI_HARCANAN=6/10" in c)
+        return ok, "yonet=%s %s" % (y, c[-600:])
+    vaka("S2", s2)
+
+    def s3(o):
+        rc, son, c, y = sag(o, 100)
+        ok = olcut(c, "plaket", "2") == "HAZIR" and olcut(c, "plaket", "4") == "HAZIR" and "KREDI_HARCANAN=46/100" in c
+        return ok, "yonet=%s %s" % (y, c[-900:])
+    vaka("S3", s3)
+
+    def s4(o):
+        rc, son, c, y = sag(o, 5)
+        ok = (olcut(c, "plaket", "2") == "EKSIK" and "kredi-tavani" in c and y.get("/foto/ornek-onizleme", 0) == 0)
+        return ok, "yonet=%s %s" % (y, son)
+    vaka("S4", s4)
+
+    def s5(o):
+        # Kuyrukta yabanci yarim satir: tik onu da ilerletir -> DUR, tik 0.
+        c0 = sqlite3.connect(o.db)
+        c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
+                   " VALUES ('PRV-1', 0, ?, 'plaket', 100, 'build', 't', 't')", ("f" * 32,))
+        c0.commit()
+        c0.close()
+        rc, son, c, y = sag(o, 100)
+        ok = olcut(c, "plaket", "4") == "EKSIK" and "yabanci-kuyruk=1" in c and y.get("/foto/uretim-tik", 0) == 0
+        return ok, "yonet=%s %s" % (y, c[-600:])
+    vaka("S5", s5)
+
+    def s6(o):
+        o.sunucu.ayar["sag_geo"] = 1.1   # saglayici 3MF'i %10 buyuk (olcek kapisi kacirdi)
+        rc, son, c, y = sag(o, 100)
+        return olcut(c, "plaket", "4") == "EKSIK" and "eksen=YANLIS" in c, c[-600:]
+    vaka("S6", s6)
+
+    def s7(o):
+        # Sunucu build'i tahminden pahali yazar (50): kapi D1 FARKINI da okur -> renk oncesi DUR.
+        o.sunucu.ayar["bedel_build"] = 50
+        rc, son, c, y = sag(o, 60)
+        ok = olcut(c, "plaket", "4") == "EKSIK" and "kredi-tavani 56+10>60" in c
+        return ok, "yonet=%s %s" % (y, c[-600:])
+    vaka("S7", s7)
 
     def u7(o):
         hazir_ortam(o)
@@ -564,7 +704,7 @@ MUTANTLAR = {
             "        if False:\n            print(\"HAZIR=0/%d rc=2\" % len(kodlar))", {"U2"}),
     "MB2": ('sizd = bool(m) and m["sizdirmaz_nesne"] == m["nesne"]', 'sizd = bool(m)', {"U3"}),
     "MB3": ("eksen = bool(m) and abs(m[\"uzun\"] - tr.olcu) <= tr.olcu * tol + 1e-9", "eksen = bool(m)",
-            {"U4", "U16", "U18"}),
+            {"U4", "U16", "U18", "S6"}),
     "MB4": ('sunucu_ok = k0 == 400 and j0.get("hata") == "onay-yok" and',
             'sunucu_ok = k0 in (400, 403) and', {"U5"}),
     "MB5": ('all(o.get("fiyat_kurus") == o.get("mm") * 1000 for o in a.get("olculer") or []) and',
@@ -598,6 +738,12 @@ MUTANTLAR = {
              '        elif tip == "sayi" and False:', {"U25"}),
     "MB20": ('        elif tip == "metin" and metin_gecerli(s, s.get("ornek")):',
              '        elif tip == "metin" and False:', {"U25"}),
+    # kopru-15 SAGLAYICI-2: kredi kapisi / yabanci kuyruk / tavan-0 kolu / D1 farki silinince -> KIRMIZI.
+    "MB21": ("        if h + n > self.tavan:", "        if False:", {"S2", "S4"}),
+    "MB22": ('        if y and y[0]["n"]:', "        if False:", {"S5"}),
+    "MB23": ('                if a.kredi_tavani > 0 and tr.t.get("kol") == "saglayici":',
+             '                if tr.t.get("kol") == "saglayici":', {"S1"}),
+    "MB24": ("        return max(self.toplam() - self.taban, self.ayrilan)", "        return self.ayrilan", {"S7"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }
