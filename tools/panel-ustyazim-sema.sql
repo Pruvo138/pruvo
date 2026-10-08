@@ -11,7 +11,8 @@
 --   'beklemede' : panel yazdi, uygulayici henuz islemedi.
 --   'islendi'   : tabana islendi (islendi_commit = urunler.json commit'i) ya da
 --                 taban zaten esitti (sebep='TABAN_ZATEN_ESIT') ya da sil satirinin
---                 urunu zaten arsivdeydi (sebep='ZATEN_ARSIVDE', K430 1 Eki 2026).
+--                 urunu zaten silinmisti (sebep='ZATEN_SILINDI'; K437 8 Eki 2026 oncesi
+--                 yazilan satirlarda eski adi 'ZATEN_ARSIVDE', K430 1 Eki 2026).
 --   'hata'      : islenemedi; sebep kolonu NEDENI adiyla tasir (or.
 --                 ALAN_BEYAZ_LISTE_DISI, FIYAT_BICIMI, PARAMETRIK_FIYAT, URUN_YOK,
 --                 YERINE_YENISI:<id>, DUZELT_RED:<rc>, URUN_SILINECEK). Sessiz dusme YOK.
@@ -28,7 +29,8 @@
 --
 -- TEKIL SILME (2 Eyl 2026): alan='sil' satiri (deger=GEREKCE) ayni kuyruktan akar;
 -- worker onu YALNIZ /urun-sil cift-onay ucundan yazar, uygulayici duzelt --toplu
--- {"id","sil"} + arsiv/urunler-arsiv.json ile isler. Sema DEGISMEDI (alan TEXT
+-- {"id","sil"} + urun-silme-defteri.json (yalniz id/silinme_ts/yazan; Okan kurali 6 Eki:
+-- sil = TAMAMEN sil, arsiv YOK) ile isler. Sema DEGISMEDI (alan TEXT
 -- serbesttir) — migration gerekmez. Yordam: tools/urun-silme-yordami.md.
 --
 -- Uygulama: npx wrangler d1 execute pruvo-katalog --remote --file tools/panel-ustyazim-sema.sql

@@ -2,30 +2,48 @@
 # -*- coding: utf-8 -*-
 """urun-silme-kapisi.py — URUN SILME SINIF KAPISI: izinsiz id kumesi KUCULMESI = KIRMIZI.
 
-🔴 DOKTRIN (Okan hukmu, 17 Agu 2026): "SAKIN siteden bir urun SILME." Yayindan dusurmenin
-TEK mesru yolu `gizli:true`dir (kayit tabanda KALIR):
-    python3 tools/duzelt.py <id> --alan gizli --deger true
+🔴 DOKTRIN — OKAN KURALI (6 Eki 2026, tum kurallarin ustunde; 17 Agu "urun silinmez" ve
+"gizli:true ile yayindan dusur" hukumleri bununla GECERSIZ):
+    (1) eklenen urun GIZLENMEZ (`gizli` alani yok)   (2) gizlenecek urun EKLENMEZ
+    (3) Okan'in "sil" dedigi urun TAMAMEN silinir — gizleme / taslak / ARSIV YOK
+    (4) Okan'in sozu birebir icra edilir; ajan kural uydurmaz.
+Silme yalniz Okan'in acik "sil" kararidir; o karar verilince kayit urunler.json'dan
+cikar ve ICERIGI repoda HICBIR dosyada tutulmaz.
 
-NEDEN VAR (13 Eyl 2026, olculdu — 3. tekrarin OTESI, tekil yama YASAK):
-  14 Agu -> 13 Eyl arasinda `urunler.json` id kumesini KUCULTEN 31 commit'in 22'si (54 kayit)
-  izinsizdi ve HICBIR kapi yanmadi: 8759f3e2 (`duzelt.py --sil`, onarilabilir fiyat/ifsa
-  ihlali icin 3 kayit) · db33e358 (otosil kolu) · aea5ccac (2 kayit, yol `gizli:true` idi).
-  Mekanizma: `tools/urunler-guard.py` izinsiz silmeyi geri ekler AMA izin manifesti
-  (`.urunler-sil-izin.json`) `duzelt.py --sil GEREKCE` ile SARTSIZ yaziliyordu.
+NEDEN VAR (13 Eyl 2026, olculdu): 14 Agu -> 13 Eyl arasinda `urunler.json` id kumesini
+KUCULTEN 31 commit'in 22'si (54 kayit) izinsizdi ve HICBIR kapi yanmadi: 8759f3e2
+(`duzelt.py --sil`) · db33e358 (otosil kolu) · aea5ccac (2 kayit). Mekanizma:
+`tools/urunler-guard.py` izinsiz silmeyi geri ekler AMA izin manifesti
+(`.urunler-sil-izin.json`) SARTSIZ yaziliyordu. Kapi KAZAYI ve REFLEKSI (kapiyi yesile
+cevirmek icin katalog budamak) durdurur: Okan "sil" demeden dusen kayit KIRMIZIDIR.
+
+SILME DEFTERI (`urun-silme-defteri.json`, K437 8 Eki 2026): izinli silmenin GORUNUR izi.
+Giris YALNIZ {"id", "silinme_ts", "yazan"} tasir — urun adi/aciklama/gorsel/fiyat/kaynak
+HICBIR alan YOK. Yazanlar: `duzelt.py --sil` (izinli) ve `panel-uygulayici` (panel "Sil").
+Defter ayni zamanda panel D1 gizleme kumesinin (b) bacagidir. Diriltme korumasi defterden
+DEGIL git gecmisinden (id ekseni) beslenir: tools/diriltme-kapisi.py.
+Eski tam-kayit arsivi `arsiv/urunler-arsiv.json` EMEKLI (Okan kurali (3)): o dosyayi
+YAZMAK ya da defter girisine izinli uc alan DISINDA alan / bicim disi deger koymak
+KIRMIZIDIR (ICERIK_TASIYAN_SILME_KAYDI). Gecmis commit'lerin hukmunde eski arsivden
+YALNIZ ID okunur (CI penceresi o commit'leri sahte IZINSIZ saymasin diye).
 
 IDDIA: <taban> -> <yeni> arasinda katalogdan DUSEN her id su izinlerden BIRINI tasir:
   (1) ID-RENAME — dusen kayit, yeni eklenen bir kaydin `id` DISINDA birebir aynisidir
       (`duzelt.py --yeni-id` ve guard'in `_id_rename_haritasi` ile AYNI olcut).
-  (2) ARSIV — `arsiv/urunler-arsiv.json`da, dusen kaydin TAM iceriginin BIREBIR aynisini
-      tasiyan giris SAYISI yenide tabandakinden BUYUKTUR (kayit ayni aralikta arsive
-      TASINDI). Yalniz id tasiyan / icerigi farkli giris izin SAYILMAZ: kaydin kendisi
-      kaybolmamali (curutucu B2, 13 Eyl). Kaynak: Okan'in 2 Eyl panel yolu
-      (`tools/urun-silme-yordami.md`, "Sil (arsive)") ve izinli `duzelt.py --sil`.
+  (2) DEFTER — o id'nin silme defterindeki giris SAYISI yenide tabandakinden BUYUKTUR
+      (izinli silme ayni aralikta deftere islendi). ESKI giris YETMEZ: geri konmus bir
+      urunun ikinci silmesi YENI giris ister.
   (3) MERGE GETIRISI (yalniz --index + MERGE_HEAD): id ORTAK ATADA vardi ve ebeveynlerden
       BIRI onu silmisti. Bir tarafin YENI EKLEDIGI (atada olmayan) id'nin sonucta yoklugu
       KAYIPTIR -> KIRMIZI (curutucu B3: `checkout --theirs` cozumu yeni kaydi yutuyordu).
-  Aksi -> IZINSIZ_SILME -> KIRMIZI (rc 1). Yeni id eklemek, alan degistirmek, `gizli:true`
-  yapmak kapiyi HIC tetiklemez. ESKI arsiv girisi YETMEZ (sayac artmali).
+  Aksi -> IZINSIZ_SILME -> KIRMIZI (rc 1). Yeni id eklemek, alan degistirmek kapiyi HIC
+  tetiklemez.
+
+ICERIK EKSENI (K437): uc durumda (CI/--taban: <yeni>; --index: INDEX) silinen urunun
+icerigi repoda tutuluyor mu? CI/--taban kipinde MUTLAK olculur (eski arsiv VAR = KIRMIZI);
+--index kipinde YALNIZ bu commit'in GETIRDIGI ihlal sayilir (HEAD'de zaten duran eski
+arsiv, eski tabanda calisan komsu agaclarin her commit'ini kilitlemesin diye); arsive
+YAZMAK (blob degisimi) ya da deftere bicim disi YENI giris eklemek yine KIRMIZIDIR.
 
 KIPLER (hepsi SALT OKUR):
   (varsayilan) CI KOLU  — yeni = `GITHUB_SHA` (yoksa HEAD). Taban = son PENCERE (20)
@@ -33,7 +51,7 @@ KIPLER (hepsi SALT OKUR):
                           ESKIYSE o. `PRUVO_CI_ONCEKI_SHA` verilirse AYNEN kullanilir.
                           Araliktaki (dal commit'leri dahil) katalog degistiren HER commit
                           KENDI ebeveynine gore hukum alir (merge: ortak ataya gore); uc
-                          nokta karsilastirmasi rename/arsiv sonrasi duzenlemeyi sahte
+                          nokta karsilastirmasi rename/silme sonrasi duzenlemeyi sahte
                           KIRMIZI yakiyordu (curutucu N1, gercekte 3 olay / 9 konum).
                           NEDEN PENCERE (curutucu SUPHE, 13 Eyl): deploy.yml kuyrugunda
                           bekleyen koşum iptal edilince bir sonraki koşumun `before`i
@@ -47,23 +65,25 @@ KIPLER (hepsi SALT OKUR):
 📌 BEYAN EDILEN SINIRLAR (curutucu raporu 13 Eyl; hepsi olculdu, gizlenmez):
   * IZIN YEREL OLARAK SAHTELENEBILIR (B1): `duzelt.py` silme iznini ortamdan okur; bir ajan
     onu kendine verebilir. Bu kapi KAZAYI ve REFLEKSI (kapiyi yesile cevirmek icin katalog
-    budamak) durdurur; kotu niyeti degil. Izinli silme GORUNUR iz birakir: arsiv girisi
-    (`yazan`) + CI ciktisinda ARSIVLI_SILME satiri + yerel guard logu. Kirmizi cikti izin
-    reçetesini BASMAZ; care yalniz `gizli:true`dir.
+    budamak) durdurur; kotu niyeti degil. Izinli silme GORUNUR iz birakir: defter girisi
+    (`yazan`) + CI ciktisinda DEFTERLI_SILME satiri + yerel guard logu. Kirmizi cikti izin
+    reçetesini BASMAZ; care izinsiz dusen kaydi GERI KOYMAKTIR.
+  * Defter girisinin `id`'si gercek bir silme olmadan da yazilabilir (sahte iz): kapi
+    yalniz DUSEN id icin sayaci okur; dusmeyen id'nin girisi hicbir seye izin vermez.
   * `git cherry-pick` / catismasiz `git merge` pre-commit KOSTURMAZ (B4) -> o yollarda
     yalniz CI penceresi kalir.
   * `git commit --amend` ile ayni commit'te eklenip cikarilan kayit SAHTE KIRMIZI olabilir
     (B5; taban amend edilen commit). Care: `git reset --soft HEAD^` + yeniden commit.
   * Ayni id'li mukerrer kayit / id'siz kayit silmesi olculmez (B6; HEAD'de 0 vaka).
-  * AYNI commit'te duzenlenip arsivle silinen kayit SAHTE KIRMIZI olur (N3; arsiv icerigi
-    HEAD'deki eski halle eslesmez). Care: duzenlemeyi once ayri commit'le.
 
 Cikis: 0 YESIL · 1 KIRMIZI (izinsiz silme) · 2 OLCULEMEDI (bozuk JSON, cozulemeyen ref).
 Kabul + mutantlar: tools/urun-silme-kapisi-test.py
 """
 import argparse
+import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -81,8 +101,15 @@ for _aday in (os.environ.get("PRUVO_KANONIK_TOOLS") or "", TOOLS_DIZINI):
 from git_ortami import git_ortami  # noqa: E402
 
 KATALOG_YOLU = "urunler.json"
-# TEK KAYNAK ile ayni yol: tools/panel-uygulayici.py::ARSIV_DOSYASI (test IKIZ-TANIM vakasi olcer)
-ARSIV_YOLU = "arsiv/urunler-arsiv.json"
+# TEK KAYNAK ile ayni yol: tools/panel-uygulayici.py::DEFTER_DOSYASI ve
+# tools/duzelt.py::DEFTER (test IKIZ-TANIM vakasi olcer)
+DEFTER_YOLU = "urun-silme-defteri.json"
+DEFTER_ALANLARI = ("id", "silinme_ts", "yazan")
+DEFTER_ID_KALIBI = re.compile(r"^[a-z0-9][a-z0-9-]{0,199}$")
+DEFTER_TS_KALIBI = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+DEFTER_YAZAN_KALIBI = re.compile(r"^[a-z0-9][a-z0-9.-]{0,39}$")
+# EMEKLI tam-kayit arsivi (Okan kurali 6 Eki (3)): yazmak KIRMIZI; gecmis commit'te yalniz id.
+ESKI_ARSIV_YOLU = "arsiv/urunler-arsiv.json"
 # TEK KAYNAK ile ayni ad/deger: tools/duzelt.py::SIL_IZIN_ENV / SIL_IZIN_DEGERI (test olcer)
 SIL_IZIN_ENV = "PRUVO_URUN_SIL_IZNI"
 SIL_IZIN_DEGERI = "OKAN"
@@ -150,27 +177,66 @@ def _kanon_idsiz(kayit):
     return json.dumps(k, sort_keys=True, ensure_ascii=False)
 
 
-def _arsiv_anahtari(kayit):
-    """Arsiv girisi silinen kaydin TAM icerigini tasimali (id dahil)."""
-    return json.dumps(kayit, sort_keys=True, ensure_ascii=False)
-
-
-def arsiv_sayaci(depo, ref, index_kipi=False):
-    """{id: {tam_icerik_anahtari: [yazan, ...]}} ; arsiv dosyasi YOKSA {}."""
-    bayt = _dosya_oku(depo, ref, ARSIV_YOLU, index_kipi)
+def _dizi_oku(depo, ref, yol, index_kipi=False):
+    """ref:yol JSON dizisi ; dosya YOKSA None. Kok dizi degilse OLCULEMEDI."""
+    bayt = _dosya_oku(depo, ref, yol, index_kipi)
     if bayt is None:
-        return {}
-    veri = _json(bayt, "%s:%s" % (ref or "INDEX", ARSIV_YOLU))
+        return None
+    veri = _json(bayt, "%s:%s" % (ref or "INDEX", yol))
     if not isinstance(veri, list):
-        raise Olculemedi("%s:%s kok DIZI DEGIL" % (ref or "INDEX", ARSIV_YOLU))
+        raise Olculemedi("%s:%s kok DIZI DEGIL" % (ref or "INDEX", yol))
+    return veri
+
+
+def silme_sayaci(depo, ref, index_kipi=False):
+    """{id: [yazan, ...]} — defter girisleri + (GECMIS commit'ler icin) emekli arsivin
+    YALNIZ id'leri. Icerik KARSILASTIRILMAZ: silinen kaydin icerigi hicbir yerde tutulmaz."""
     sayac = {}
-    for giris in veri:
+    for giris in _dizi_oku(depo, ref, DEFTER_YOLU, index_kipi) or []:
+        if isinstance(giris, dict) and isinstance(giris.get("id"), str):
+            yazan = giris.get("yazan") if isinstance(giris.get("yazan"), str) else "?"
+            sayac.setdefault(giris["id"], []).append(yazan)
+    for giris in _dizi_oku(depo, ref, ESKI_ARSIV_YOLU, index_kipi) or []:
         kayit = giris.get("kayit") if isinstance(giris, dict) else None
         uid = kayit.get("id") if isinstance(kayit, dict) else None
         if isinstance(uid, str):
             yazan = giris.get("yazan") if isinstance(giris.get("yazan"), str) else "?"
-            sayac.setdefault(uid, {}).setdefault(_arsiv_anahtari(kayit), []).append(yazan)
+            sayac.setdefault(uid, []).append(yazan)
     return sayac
+
+
+def _giris_ihlali(giris):
+    """Defter girisi izinli bicimde mi? None = temiz, metin = ihlal sebebi."""
+    if not isinstance(giris, dict):
+        return "nesne degil"
+    fazla = sorted(set(giris) - set(DEFTER_ALANLARI))
+    if fazla:
+        return "izinsiz alan %s" % ",".join(fazla)
+    eksik = [a for a in DEFTER_ALANLARI if a not in giris]
+    if eksik:
+        return "eksik alan %s" % ",".join(eksik)
+    for alan, kalip in (("id", DEFTER_ID_KALIBI), ("silinme_ts", DEFTER_TS_KALIBI),
+                        ("yazan", DEFTER_YAZAN_KALIBI)):
+        if not isinstance(giris[alan], str) or not kalip.match(giris[alan]):
+            return "%s bicim disi" % alan
+    return None
+
+
+def icerik_ihlalleri(depo, ref, index_kipi=False):
+    """{ihlal anahtari: aciklama} — ref durumunda silinen urun icerigi tutuluyor mu.
+    Anahtar icerige baglidir (arsiv blob'u / giris metni): --index kipi HEAD'dekinden
+    YENI olanlari sayar."""
+    ihlal = {}
+    eski = _dosya_oku(depo, ref, ESKI_ARSIV_YOLU, index_kipi)
+    if eski is not None:
+        ihlal["arsiv:" + hashlib.sha256(eski).hexdigest()] = (
+            "%s VAR (emekli tam-kayit arsivi; Okan kurali 6 Eki: arsiv YOK)" % ESKI_ARSIV_YOLU)
+    for i, giris in enumerate(_dizi_oku(depo, ref, DEFTER_YOLU, index_kipi) or []):
+        sebep = _giris_ihlali(giris)
+        if sebep:
+            anahtar = "defter:" + json.dumps(giris, sort_keys=True, ensure_ascii=False)
+            ihlal[anahtar] = "%s giris #%d: %s" % (DEFTER_YOLU, i, sebep)
+    return ihlal
 
 
 def _id_haritasi(liste):
@@ -181,9 +247,10 @@ def _id_haritasi(liste):
     return h
 
 
-def degerlendir(taban, yeni, taban_arsiv, yeni_arsiv, ek_ebeveynler=(), ortak_ata=None):
+def degerlendir(taban, yeni, taban_defter, yeni_defter, ek_ebeveynler=(), ortak_ata=None):
     """SAF hukum (git'e dokunmaz). taban = ilk ebeveyn; ek_ebeveynler = MERGE_HEAD;
-    ortak_ata = merge-base katalogu. Doner: dict(dusen, rename, arsivli, merge, izinsiz)."""
+    ortak_ata = merge-base katalogu; *_defter = silme_sayaci ciktisi.
+    Doner: dict(dusen, rename, defterli, merge, izinsiz)."""
     ebeveynler = [_id_haritasi(taban)] + [_id_haritasi(e) for e in ek_ebeveynler]
     yeni_h = _id_haritasi(yeni)
     kayit_h = {}
@@ -202,32 +269,31 @@ def degerlendir(taban, yeni, taban_arsiv, yeni_arsiv, ek_ebeveynler=(), ortak_at
     for uid in sorted(set(yeni_h) - set(kayit_h)):
         eklenen_anahtar.setdefault(_kanon_idsiz(yeni_h[uid]), []).append(uid)
 
-    rename, arsivli, izinsiz = [], [], []
+    rename, defterli, izinsiz = [], [], []
     for uid in dusen:
         adaylar = eklenen_anahtar.get(_kanon_idsiz(kayit_h[uid]))
         if adaylar:
             rename.append((uid, adaylar.pop(0)))
             continue
-        anahtar = _arsiv_anahtari(kayit_h[uid])
-        yeni_g = yeni_arsiv.get(uid, {}).get(anahtar, [])
-        if len(yeni_g) > len(taban_arsiv.get(uid, {}).get(anahtar, [])):
-            arsivli.append((uid, yeni_g[-1]))
+        yeni_g = yeni_defter.get(uid, [])
+        if len(yeni_g) > len(taban_defter.get(uid, [])):
+            defterli.append((uid, yeni_g[-1]))
             continue
         izinsiz.append(uid)
-    return {"dusen": dusen, "rename": rename, "arsivli": arsivli,
+    return {"dusen": dusen, "rename": rename, "defterli": defterli,
             "merge": merge_getirisi, "izinsiz": izinsiz}
 
 
 def uc_nokta_hukmu(depo, taban, yeni):
     """Iki uc noktayi karsilastir (acik --taban/--yeni kipi)."""
     return degerlendir(katalog_oku(depo, taban), katalog_oku(depo, yeni),
-                       arsiv_sayaci(depo, taban), arsiv_sayaci(depo, yeni))
+                       silme_sayaci(depo, taban), silme_sayaci(depo, yeni))
 
 
 def pencere_hukmu(depo, taban, yeni):
     """CI kolu: taban..yeni icindeki (dal commit'leri DAHIL) urunler.json'a dokunan HER
     commit KENDI ebeveynine gore hukum alir; merge commit'i ortak ataya gore.
-    NEDEN (curutucu N1, 13 Eyl): uc nokta karsilastirmasi rename/arsiv kanitini ara
+    NEDEN (curutucu N1, 13 Eyl): uc nokta karsilastirmasi rename/silme kanitini ara
     commit'te birakip sonradan duzenlenen kaydi IZINSIZ sayiyordu (gercek gecmiste 3 olay /
     9 pencere konumu SAHTE KIRMIZI). Izinsiz silinen id pencere sonunda katalogda VARSA
     (geri konulmus) AFFEDILIR -> kirmizi ONARILABILIR kalir."""
@@ -240,10 +306,10 @@ def pencere_hukmu(depo, taban, yeni):
         if sha not in onbellek:
             if len(onbellek) >= 4:
                 onbellek.pop(next(iter(onbellek)))
-            onbellek[sha] = (katalog_oku(depo, sha), arsiv_sayaci(depo, sha))
+            onbellek[sha] = (katalog_oku(depo, sha), silme_sayaci(depo, sha))
         return onbellek[sha]
 
-    toplam = {"dusen": [], "rename": [], "arsivli": [], "merge": [], "izinsiz": [], "kaynak": {}}
+    toplam = {"dusen": [], "rename": [], "defterli": [], "merge": [], "izinsiz": [], "kaynak": {}}
     incelenen = 0
     for satir in out.decode("utf-8", "replace").splitlines():
         parcalar = satir.split()
@@ -270,7 +336,7 @@ def pencere_hukmu(depo, taban, yeni):
             s = degerlendir(p_kat, c_kat, p_ars, c_ars,
                             [katalog_oku(depo, p) for p in ebeveynler[1:]],
                             katalog_oku(depo, ata.decode().strip()))
-        for anahtar in ("dusen", "rename", "arsivli", "merge"):
+        for anahtar in ("dusen", "rename", "defterli", "merge"):
             toplam[anahtar].extend(s[anahtar])
         for uid in s["izinsiz"]:
             if uid not in toplam["kaynak"]:
@@ -336,15 +402,17 @@ def _depo_bul(verilen):
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def _rapor(eksen, taban_ad, yeni_ad, sonuc):
-    print("URUN_SILME_KAPISI: eksen=%s taban=%s yeni=%s DUSEN=%d RENAME=%d ARSIVLI=%d "
-          "MERGE_GETIRISI=%d IZINSIZ=%d"
+def _rapor(eksen, taban_ad, yeni_ad, sonuc, icerik):
+    """icerik = {anahtar: aciklama} — uc durumda silinen urun icerigi tasiyan kayitlar."""
+    print("URUN_SILME_KAPISI: eksen=%s taban=%s yeni=%s DUSEN=%d RENAME=%d DEFTERLI=%d "
+          "MERGE_GETIRISI=%d IZINSIZ=%d ICERIK_IHLALI=%d"
           % (eksen, taban_ad, yeni_ad, len(sonuc["dusen"]), len(sonuc["rename"]),
-             len(sonuc["arsivli"]), len(sonuc["merge"]), len(sonuc["izinsiz"])))
+             len(sonuc["defterli"]), len(sonuc["merge"]), len(sonuc["izinsiz"]),
+             len(icerik)))
     for eski, yeni in sonuc["rename"][:ORNEK_TAVAN]:
         print("  RENAME %s -> %s" % (eski, yeni))
-    for uid, yazan in sonuc["arsivli"][:ORNEK_TAVAN]:
-        print("  ARSIVLI_SILME %s (yazan=%s)" % (uid, yazan))
+    for uid, yazan in sonuc["defterli"][:ORNEK_TAVAN]:
+        print("  DEFTERLI_SILME %s (yazan=%s)" % (uid, yazan))
     for uid in sonuc["merge"][:ORNEK_TAVAN]:
         print("  MERGE_GETIRISI %s" % uid)
     if "incelenen" in sonuc:
@@ -355,12 +423,22 @@ def _rapor(eksen, taban_ad, yeni_ad, sonuc):
         print("  IZINSIZ_SILME %s%s" % (uid, (" (commit %s)" % kaynak) if kaynak else ""))
     if len(sonuc["izinsiz"]) > ORNEK_TAVAN:
         print("  ... +%d izinsiz silme daha" % (len(sonuc["izinsiz"]) - ORNEK_TAVAN))
+    for aciklama in sorted(icerik.values())[:ORNEK_TAVAN]:
+        print("  ICERIK_TASIYAN_SILME_KAYDI %s" % aciklama)
+    kirmizi = False
     if sonuc["izinsiz"]:
-        print("HUKUM: KIRMIZI — katalogdan izinsiz %d urun SILINDI (Okan hukmu 17 Agu: "
-              "urun SILINMEZ)." % len(sonuc["izinsiz"]))
-        print("CARE: kaydi GERI KOY ve gizle -> "
-              "python3 tools/duzelt.py <id> --alan gizli --deger true")
-        print("Silme yalniz Okan'in acik karariyla yapilir (yordam: tools/urun-silme-yordami.md).")
+        print("HUKUM: KIRMIZI — katalogdan izinsiz %d urun DUSTU (Okan \"sil\" demedi)."
+              % len(sonuc["izinsiz"]))
+        print("CARE: izinsiz dusen kaydi GERI KOY.")
+        print("Silme yalniz Okan'in acik \"sil\" karariyla yapilir (yordam: "
+              "tools/urun-silme-yordami.md).")
+        kirmizi = True
+    if icerik:
+        print("HUKUM: KIRMIZI — silinen urunun ICERIGI repoda tutuluyor (Okan kurali 6 Eki: "
+              "sil = TAMAMEN sil, arsiv YOK). Defter girisi yalniz %s tasir."
+              % "/".join(DEFTER_ALANLARI))
+        kirmizi = True
+    if kirmizi:
         return KIRMIZI
     print("HUKUM: YESIL")
     return YESIL
@@ -383,12 +461,21 @@ def main(argv=None):
             if rc != 0:
                 print("URUN_SILME_KAPISI: ATLANDI — HEAD YOK (ilk commit), karsilastirilacak taban yok.")
                 return YESIL
+            # ICERIK EKSENI on-elemeden ONCE olculur: yalniz defteri/eski arsivi degistiren
+            # commit de (katalog ayni olsa bile) icerik yazamaz. Yalniz bu commit'in GETIRDIGI
+            # ihlal sayilir (HEAD'de duran eski arsiv komsu agaclari kilitlemesin).
+            icerik_head = icerik_ihlalleri(depo, "HEAD", True)
+            icerik = {k: v for k, v in icerik_ihlalleri(depo, "", True).items()
+                      if k not in icerik_head}
             rc, out, _ = _git(depo, ["rev-parse", "--verify", "--quiet", "MERGE_HEAD"], True)
             merge_var = bool(rc == 0 and out.strip())
             # MERGE'DE ON-ELEME YOK (curutucu N2): `checkout --ours` cozumu index'i HEAD'e
             # esitler ama dalin YENI ekledigi kaydi yutar; HEAD'e gore on-eleme onu gormezdi.
             rc, _, _ = _git(depo, ["diff", "--cached", "--quiet", "HEAD", "--", KATALOG_YOLU], True)
             if rc == 0 and not merge_var:
+                if icerik:
+                    bos = {"dusen": [], "rename": [], "defterli": [], "merge": [], "izinsiz": []}
+                    return _rapor("INDEX", "HEAD", "INDEX", bos, icerik)
                 print("URUN_SILME_KAPISI: ATLANDI — %s index'te HEAD'e gore DEGISMEDI (on-eleme)."
                       % KATALOG_YOLU)
                 return YESIL
@@ -403,9 +490,10 @@ def main(argv=None):
                                      % err.decode("utf-8", "replace").strip())
                 ata = katalog_oku(depo, taban_sha.decode().strip(), True)
             sonuc = degerlendir(katalog_oku(depo, "HEAD", True), katalog_oku(depo, "", True),
-                                arsiv_sayaci(depo, "HEAD", True), arsiv_sayaci(depo, "", True),
+                                silme_sayaci(depo, "HEAD", True), silme_sayaci(depo, "", True),
                                 ek, ata)
-            return _rapor("INDEX" + ("+MERGE_HEAD" if ek else ""), "HEAD", "INDEX", sonuc)
+            return _rapor("INDEX" + ("+MERGE_HEAD" if ek else ""), "HEAD", "INDEX", sonuc,
+                          icerik)
         if args.yeni and not args.taban:
             print("URUN_SILME_KAPISI: HATA --yeni tek basina verilmez (--taban gerekli)")
             return OLCULEMEDI
@@ -414,13 +502,14 @@ def main(argv=None):
             for ref in (taban, yeni):
                 if not _commit_var(depo, ref):
                     raise Olculemedi("revizyon cozulemedi: %s" % ref)
-            return _rapor("ARALIK", taban, yeni, uc_nokta_hukmu(depo, taban, yeni))
+            return _rapor("ARALIK", taban, yeni, uc_nokta_hukmu(depo, taban, yeni),
+                          icerik_ihlalleri(depo, yeni))
         taban, yeni, eksen = ci_araligi(depo)
         for ref in (taban, yeni):
             if not _commit_var(depo, ref):
                 raise Olculemedi("revizyon cozulemedi: %s" % ref)
         sonuc = pencere_hukmu(depo, taban, yeni)
-        return _rapor(eksen, taban, yeni, sonuc)
+        return _rapor(eksen, taban, yeni, sonuc, icerik_ihlalleri(depo, yeni))
     except Olculemedi as e:
         print("URUN_SILME_KAPISI: OLCULEMEDI — %s" % e)
         print("HUKUM: OLCULEMEDI (rc 2) — olculemeyen sey YESIL sayilmaz.")

@@ -1486,7 +1486,7 @@ function gorselListesiSebebi(deger) {
   let liste;
   try { liste = JSON.parse(deger); } catch (e) { return "gorseller JSON dizi olmali"; }
   if (!Array.isArray(liste) || !liste.length) {
-    return "gorsel listesi bos olamaz (en az 1 gorsel kalir; urun silme ayri uctan: Sil (arsive))";
+    return "gorsel listesi bos olamaz (en az 1 gorsel kalir; urun silme ayri uctan: Sil)";
   }
   if (liste.length > GORSEL_SAYI_TAVANI) {
     return "gorsel sayisi tavani " + GORSEL_SAYI_TAVANI;
@@ -1632,13 +1632,14 @@ async function kuyrugaYaz(env, uid, alan, deger) {
   return null;
 }
 
-// TEKIL URUN SILME — "Sil (arsive)" (Okan emri 2 Eyl 2026 + BaBa cercevesi (1)-(5)).
+// TEKIL URUN SILME — "Sil" (Okan emri 2 Eyl 2026 + BaBa cercevesi (1)-(5); Okan kurali
+// 6 Eki: sil = TAMAMEN sil, arsiv YOK — K437).
 // T2'nin "urun silme yolu YOK" kisitini Okan'in bu emri TEKIL manuel silme olarak
 // kaldirdi; TOPLU silme ucu BILEREK ACILMADI (tek istek = tek urun; okan-hukmu-
 // urun-silinmez toplu duzlemde gecerli kalir).
 //  · Silme de fiyat/gorsel gibi KUYRUKTAN akar: alan='sil', deger=GEREKCE. Tabana
 //    isleyen tek kol yine CI uygulayicisidir (duzelt.py --toplu {"id","sil"} yolu +
-//    arsiv/urunler-arsiv.json kaydi) — ikinci yazim yolu YOK.
+//    urun-silme-defteri.json'a yalniz id) — ikinci yazim yolu YOK.
 //  · CIFT ONAYIN SUNUCU AYAGI: `onay` alani urun id'sini BIREBIR tekrarlamak zorunda
 //    (UI zaten yazdirtir; sunucu istemciye guvenmez). Yanlis tik tek basina bir
 //    musteri-gorunur urunu dusuremez.
@@ -1646,9 +1647,8 @@ async function kuyrugaYaz(env, uid, alan, deger) {
 //    stlCikar'in arsiv-teyitli tasima desenine BIREBIR uyarak arsiv/stl/'e tasinir;
 //    teyit dusmezse silme kuyruga YAZILMAZ (fail-closed, veri kaybi yolu yok).
 //  · GEREKCE yalniz D1 kuyruk satirinda + yerel guard logunda yasar; PUBLIC repoya
-//    (arsiv dosyasi, commit mesaji) ISLENMEZ — tedarikci/kisi adi sizamasin.
-//  · `gizli` alanindan AYRI kavram: gizle = yayindan dusur (kayit tabanda kalir),
-//    sil = kaydi tabandan arsive tasi (geri yukleme: tools/urun-geri-yukle.py).
+//    (silme defteri, commit mesaji) ISLENMEZ — tedarikci/kisi adi sizamasin.
+//  · sil = kaydi tabandan TAMAMEN sil; geri yukleme yolu YOK (`gizli` kavrami da yok).
 const SIL_GEREKCE_TAVANI = 200;
 
 async function panelUrunSil(request, env, ctx) {
@@ -2221,8 +2221,8 @@ a.indir{display:inline-block;padding:6px 10px;background:#374151;color:#fff;bord
   yayınlanınca canlıya çıkar (dakikalar). Parametrik (sarı) üründe fiyat değiştirilemez.
   <b>Fiyat tam TL yazılır</b> — kuruş girilirse YUKARI yuvarlanır (200,1 TL → 201 TL) ve
   kaydedilen değer kartta öyle görünür; noktalı fiyat kataloğa girmez.
-  Ürün silme TEKİLDİR: karttaki "Sil (arşive)" kuyruğa yazar; taban kaydı arşive taşınır
-  (geri getirilebilir), R2 görselleri silinmez. Gizle ile karışmaz: gizli ürün tabanda kalır.</p>
+  Ürün silme TEKİLDİR: karttaki "Sil" kuyruğa yazar; uygulayıcı işleyince ürün kataloğdan
+  TAMAMEN silinir (arşiv yok, geri getirilemez); R2 görselleri silinmez.</p>
  </div>
  <section id="urunListe"></section>
  <section id="kuyrukKutu"></section>
@@ -2761,7 +2761,7 @@ async function urunYukle(){
    '<label>Başlık <input id="ub-'+esc(x.id)+'" value="'+esc(x.baslik||"")+'"></label>'+
    '<label>Açıklama <textarea id="ua-'+esc(x.id)+'" rows="5">'+esc(x.aciklama||"")+'</textarea></label>'+
    '<div class="eylemler"><button onclick="urunKaydet(\\''+esc(x.id)+'\\')">Kaydet (kuyruğa)</button>'+
-   '<button class="sil" onclick="urunSil(\\''+esc(x.id)+'\\')">Sil (arşive)</button></div>'+
+   '<button class="sil" onclick="urunSil(\\''+esc(x.id)+'\\')">Sil</button></div>'+
    '</div>'+
    '<div class="t2bolum" id="ug-'+esc(x.id)+'"><span class="kucuk">Görseller yükleniyor…</span></div>'+
    '<div class="t2bolum" id="us-'+esc(x.id)+'"></div>'+
@@ -2797,11 +2797,11 @@ async function urunKaydet(id){
  urunYukle();
 }
 // TEKIL SILME — cift onay: urun id'si AYNEN yazdirilir (yanlis tik bir musteri-gorunur
-// urunu dusurmesin), gerekce zorunlu. Kuyruga alan='sil' yazilir; taban kaydi arsive
-// tasinir (yok edilmez), R2 gorselleri silinmez, STL'ler arsiv/stl/'e tasinir.
-// "gizli"den AYRI kavramdir (gizle=yayindan dusur, sil=tabandan arsive tasi).
+// urunu dusurmesin), gerekce zorunlu. Kuyruga alan='sil' yazilir; uygulayici kaydi
+// tabandan TAMAMEN siler (Okan kurali 6 Eki: arsiv YOK; deftere yalniz id dusar, K437),
+// R2 gorselleri silinmez, STL'ler arsiv/stl/'e tasinir.
 async function urunSil(id){
- var onay=prompt("ÜRÜN SİLME (arşive taşıma) — canlıdan düşer, arşivden geri getirilebilir.\\n"+
+ var onay=prompt("ÜRÜN SİLME — ürün kataloğdan TAMAMEN silinir, geri getirilemez.\\n"+
   "Onay için ürün id'sini AYNEN yazın:\\n"+id);
  if(onay===null)return;
  if(onay.trim()!==id){alert("Onay, id ile birebir aynı değil — silme kuyruğa YAZILMADI.");return;}
@@ -2814,7 +2814,7 @@ async function urunSil(id){
  if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));return;}
  alert("Silme kuyruğa yazıldı"+(r.govde&&r.govde.stl_arsivlenen?
   " (arşive taşınan STL: "+r.govde.stl_arsivlenen+")":"")+
-  ". Uygulayıcı işleyince taban kaydı arşive taşınır; site yayınlanınca canlıdan düşer.");
+  ". Uygulayıcı işleyince ürün kataloğdan tamamen silinir; site yayınlanınca canlıdan düşer.");
  urunYukle();
 }
 // KUYRUK UC YUZEY (Okan, 6 Eyl — "hatalari da disari al"): hal UC DEGERLIDIR
@@ -2936,7 +2936,7 @@ function gorselCiz(id){
 }
 function gorselCikarUI(id,i){
  var d=urunGorselDurum[id];if(!d)return;
- if(d.liste.length<=1){alert("En az 1 görsel kalmalı (ürün silme ayrı: Sil (arşive)).");return;}
+ if(d.liste.length<=1){alert("En az 1 görsel kalmalı (ürün silme ayrı: Sil).");return;}
  d.liste.splice(i,1);gorselCiz(id);
 }
 async function gorselYukleUI(id){

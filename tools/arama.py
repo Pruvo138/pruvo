@@ -434,7 +434,7 @@ def gizli_sebebi(u):
     """Katalog SINIF KURALI (tip kontrolu degil — o KATALOG_ALAN_TIPLERI'nde):
     tur='fiziksel' (hazir ticari mal) kayit KATALOGA GIRMEZ (Okan emri 6 Eki 2026:
     "fiziksel urunleri silin"; 31 Agu "gizli dogar, katalogda durur" kurali bununla
-    KALKTI — sinifin 940 uyesi arsiv/urunler-arsiv.json'a tasindi). `gizli` bayragi
+    KALKTI — sinifin uyeleri katalogdan TAMAMEN silindi; arsiv YOK). `gizli` bayragi
     bu sinifi ARTIK aklamaz: gizli olsun olmasin fiziksel kayit RED. Kural commit
     aninda zorlanir ki hangi yazim yolu kullanilirsa kullanilsin (duzelt.py
     `--alan tur`, toplu ekleme, gelecekteki bir arac) sinif bir daha DOGMAZ — geri

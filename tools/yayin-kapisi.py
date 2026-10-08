@@ -632,10 +632,10 @@ def gizle_sql(idler, alinti):
       1. `--gizle`: yerel urunler.json'da `gizli: true` tasiyan id'ler.
       2. PANEL SILME (K430, Okan emri 1 Eki 2026 — panel-uygulayici.d1_gizle): push'u
          BASARILI olmus sil commit'inin EBEVEYNINDE urunler.json'da olup commit'te
-         OLMAYAN VE ayni commit'te arsiv/urunler-arsiv.json'a YENI giris olarak eklenen
-         id'ler (kume commit'in kendisinden turer; push dusmusse cagrilmaz). Satir
-         SILINMEZ (sonraki deploy'un d1-sync'i siler); geri yuklenen urun --yayinla ile
-         doner.
+         OLMAYAN VE ayni commit'te urun-silme-defteri.json'a YENI giris olarak eklenen
+         id'ler (kume commit'in kendisinden turer; push dusmusse cagrilmaz). Satiri
+         sonraki deploy'un d1-sync'i siler (Okan kurali 6 Eki: sil = TAMAMEN sil; geri
+         yukleme yolu YOK, K437).
     Ucuncu bir kaynak eklemek bu docstring'i ve tools/urun-silme-yordami.md'yi
     guncellemeden yapilmaz. `WHERE yayinda=1` gereksiz yazmayi onler; `release_id`
     KORUNUR (son yayinin denetim izi silinmez — geri acilista tazelenir)."""

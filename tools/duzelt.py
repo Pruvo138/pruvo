@@ -45,12 +45,14 @@ Platform kategorileri (Otomobil/Marin/...) HIC degerlendirilmez.
 
 OKAN KURALI (6 Eki 2026, tum kurallarin ustunde): urun GIZLENMEZ — `--alan gizli` RED
 (rc 2); eski gizli kaydi acmak: `python3 tools/duzelt.py <id> --alan-sil gizli`.
-URUNU TAMAMEN SILMEK yalniz Okan'in ACIK karariyla (13 Eyl 2026'dan beri izinsiz RED, rc 8;
-izin ve yordam: tools/urun-silme-yordami.md). Izinli `--sil`, urunu urunler.json'dan kaldirir, TAM kaydi arsiv/urunler-arsiv.json'a TASIR (gerekce
-public arsive YAZILMAZ) VE id'yi .urunler-sil-izin.json'a yazar ki guard onu HEAD'den geri
-eklemesin. Commit'e urunler.json + arsiv/urunler-arsiv.json BIRLIKTE girer; arsiv kaydi
+URUNU SILMEK yalniz Okan'in ACIK "sil" karariyla (13 Eyl 2026'dan beri izinsiz RED, rc 8;
+izin ve yordam: tools/urun-silme-yordami.md). Okan kurali 6 Eki (3): sil = TAMAMEN sil,
+arsiv YOK. Izinli `--sil`, urunu urunler.json'dan kaldirir, urun-silme-defteri.json'a YALNIZ
+{"id","silinme_ts","yazan"} yazar (urun icerigi HICBIR dosyada tutulmaz; gerekce public
+repoya YAZILMAZ) VE id'yi .urunler-sil-izin.json'a yazar ki guard onu HEAD'den geri
+eklemesin. Commit'e urunler.json + urun-silme-defteri.json BIRLIKTE girer; defter girisi
 olmayan silme tools/urun-silme-kapisi.py (pre-commit adim 9 + CI serit-a3) ile KIRMIZI.
-`--toplu` "sil" islemi de ayni izni ister; arsivi CAGIRAN yazar (panel-uygulayici emsali).
+`--toplu` "sil" islemi de ayni izni ister; defteri CAGIRAN yazar (panel-uygulayici emsali).
 --sil, --alan/--deger ile BIRLIKTE kullanilmaz.
 
 TICARI HAL ALANLARI (`tur` + `gorselsiz`) — GERI ALINABILIR AMA SAVRULAMAZ:
@@ -224,18 +226,20 @@ RC_TICARI_HAL = 6
 # betikleri yanlis kapiyi onarmaya calisirdi.
 RC_UYUM = 7
 
-# 🔴 URUN SILME IZNI (13 Eyl 2026) — Okan hukmu 17 Agu: "SAKIN siteden bir urun SILME."
-# `--sil GEREKCE` eskiden yalniz bir LOG METNI istiyordu; 14 Agu -> 13 Eyl arasinda
-# urunler.json id kumesini kucülten 31 commit / 128 kayit HICBIR kapi yakmadan main'e girdi.
-# Artik silme (tek-urun `--sil` ve `--toplu` `"sil"`) ancak ACIK izinle kosar; izinsiz cagri
-# HICBIR SEY yazmaz, RC_SIL_IZIN doner ve `gizli:true` yolunu ADIYLA basar. Izin kalibi
-# emsali: PRUVO_CLAUDE_ISCI_IZNI=OKAN. Panel "Sil (arsive)" yolu (Okan emri 2 Eyl) izni
+# 🔴 URUN SILME IZNI (13 Eyl 2026; Okan kurali 6 Eki: yalniz Okan'in "sil" dedigi urun
+# silinir, o da TAMAMEN). `--sil GEREKCE` eskiden yalniz bir LOG METNI istiyordu; 14 Agu ->
+# 13 Eyl arasinda urunler.json id kumesini kucülten 31 commit / 128 kayit HICBIR kapi
+# yakmadan main'e girdi. Artik silme (tek-urun `--sil` ve `--toplu` `"sil"`) ancak ACIK
+# izinle kosar; izinsiz cagri HICBIR SEY yazmaz, RC_SIL_IZIN doner. Izin kalibi emsali:
+# PRUVO_CLAUDE_ISCI_IZNI=OKAN. Panel "Sil" yolu (Okan emri 2 Eyl) izni
 # tools/panel-uygulayici.py::duzelt_kos'ta verir. Commit + CI tarafi:
-# tools/urun-silme-kapisi.py (dusen id ya ID-RENAME ya YENI arsiv kaydi tasimali).
+# tools/urun-silme-kapisi.py (dusen id ya ID-RENAME ya YENI defter girisi tasimali).
 SIL_IZIN_ENV = "PRUVO_URUN_SIL_IZNI"
 SIL_IZIN_DEGERI = "OKAN"
 RC_SIL_IZIN = 8
-ARSIV = os.path.join(ROOT, "arsiv", "urunler-arsiv.json")
+# SILME DEFTERI (K437): giris YALNIZ id + silinme_ts + yazan; urun icerigi YAZILMAZ.
+# TEK KAYNAK ile ayni yol: tools/urun-silme-kapisi.py::DEFTER_YOLU (test IKIZ-TANIM olcer).
+DEFTER = os.path.join(ROOT, "urun-silme-defteri.json")
 
 GORSELSIZ_BAYRAK = "gorselsiz"
 TUR_ALANI = "tur"
@@ -917,22 +921,23 @@ def _sil(args):
         if idx is None:
             print("HATA: '%s' id'li urun urunler.json'da yok." % args.id, file=sys.stderr)
             return 1
-        # ARSIV DUZLEMI (13 Eyl 2026): kayit YOK EDILMEZ, TASINIR. Arsiv yazimdan ONCE
-        # okunur; bozuksa HICBIR SEY yazilmaz (sessiz sifirlama yok, veri ezilmez).
-        arsiv = []
-        if os.path.exists(ARSIV):
+        # SILME DEFTERI (K437, Okan kurali 6 Eki: sil = TAMAMEN sil, arsiv YOK): kayit
+        # tamamen cikar; defter yalniz id+zaman+yazan tutar. Defter yazimdan ONCE okunur;
+        # bozuksa HICBIR SEY yazilmaz (sessiz sifirlama yok, iz ezilmez).
+        defter = []
+        if os.path.exists(DEFTER):
             try:
-                with open(ARSIV, encoding="utf-8") as f:
-                    arsiv = json.load(f)
+                with open(DEFTER, encoding="utf-8") as f:
+                    defter = json.load(f)
             except ValueError as e:
                 print("HATA: %s BOZUK JSON (%s) — silme geri cekildi, hicbir sey yazilmadi."
-                      % (ARSIV, e), file=sys.stderr)
+                      % (DEFTER, e), file=sys.stderr)
                 return 1
-            if not isinstance(arsiv, list):
+            if not isinstance(defter, list):
                 print("HATA: %s kok DIZI DEGIL — silme geri cekildi, hicbir sey yazilmadi."
-                      % ARSIV, file=sys.stderr)
+                      % DEFTER, file=sys.stderr)
                 return 1
-        kayit = urunler.pop(idx)
+        urunler.pop(idx)
 
         # KAYNAK TEMIZLEME (--kaynak-temizle): urunler.json'a yazmadan ONCE ayni
         # flock icinde kaynak duzlemini de hazirla. _kaynak_temizle_uygula
@@ -949,13 +954,13 @@ def _sil(args):
                 return 1
 
         _atomic_write(URUNLER, urunler)
-        # Arsiv girisi panel-uygulayici::arsiv_ekle ile AYNI sekil; GEREKCE public repoya
-        # YAZILMAZ (yalniz yerel guard logunda yasar). kuyruk_id yok: panel disi yol.
-        arsiv.append({"silinme_ts": datetime.datetime.now(datetime.timezone.utc)
-                      .strftime("%Y-%m-%dT%H:%M:%SZ"),
-                      "yazan": "duzelt.py", "kuyruk_id": None, "kayit": kayit})
-        os.makedirs(os.path.dirname(ARSIV), exist_ok=True)
-        _atomic_write(ARSIV, arsiv)
+        # Defter girisi panel-uygulayici::defter_ekle ile AYNI sekil (yalniz uc alan);
+        # GEREKCE public repoya YAZILMAZ (yalniz yerel guard logunda yasar).
+        defter.append({"id": args.id,
+                       "silinme_ts": datetime.datetime.now(datetime.timezone.utc)
+                       .strftime("%Y-%m-%dT%H:%M:%SZ"),
+                       "yazan": "duzelt.py"})
+        _atomic_write(DEFTER, defter)
 
         sil_izin = []
         if os.path.exists(MANIFEST_SIL):
@@ -980,11 +985,11 @@ def _sil(args):
         fcntl.flock(lockf, fcntl.LOCK_UN)
         lockf.close()
 
-    _log("sil: %s -> kaldirildi (%s) (izin=%s; arsive tasindi; silme manifestine yazildi)"
-         % (args.id, args.sil, SIL_IZIN_DEGERI))
+    _log("sil: %s -> TAMAMEN kaldirildi (%s) (izin=%s; deftere id yazildi; silme "
+         "manifestine yazildi)" % (args.id, args.sil, SIL_IZIN_DEGERI))
     print("Silindi: %s  (gerekce: %s)" % (args.id, args.sil))
-    print("ARSIV: TAM kayit arsiv/urunler-arsiv.json'a TASINDI — commit'e BIRLIKTE ekle: "
-          "git add urunler.json arsiv/urunler-arsiv.json")
+    print("DEFTER: yalniz id+zaman+yazan urun-silme-defteri.json'a yazildi (icerik YOK) — "
+          "commit'e BIRLIKTE ekle: git add urunler.json urun-silme-defteri.json")
     if kaynak_sonuc is not None:
         print("KAYNAK_SILINEN=%d ZATEN_YOK=%d KAYNAK_KALAN=%d"
               % (kaynak_sonuc[0], kaynak_sonuc[1], kaynak_sonuc[2]))

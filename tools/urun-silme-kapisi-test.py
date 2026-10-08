@@ -4,10 +4,14 @@
 
 Olcer (hepsi IZOLE gecici depolarda; gercek ev yolunda yazim YOK, gercek repo yalniz
 `git show` ile OKUNUR — V12 aea5ccac fiksturu):
-  tools/urun-silme-kapisi.py  — id kumesi kuculmesi: RENAME / ARSIVLI / IZINSIZ hukmu,
-                                 --index (pre-commit adim 9), CI araligi, merge ebeveyni
-  tools/duzelt.py             — `--sil` ve `--toplu` "sil" izinsiz RC_SIL_IZIN + care
-                                 `gizli:true`; izinli silme arsive TASIR ve kapidan gecer
+  tools/urun-silme-kapisi.py  — id kumesi kuculmesi: RENAME / DEFTERLI / IZINSIZ hukmu,
+                                 --index (pre-commit adim 9), CI araligi, merge ebeveyni;
+                                 ICERIK ekseni (K437, Okan kurali 6 Eki: sil = TAMAMEN sil,
+                                 arsiv YOK): defter girisi yalniz id/silinme_ts/yazan,
+                                 emekli arsiv `arsiv/urunler-arsiv.json` yazilamaz
+  tools/duzelt.py             — `--sil` ve `--toplu` "sil" izinsiz RC_SIL_IZIN (gizleme
+                                 recetesi YOK); izinli silme deftere YALNIZ id yazar ve
+                                 kapidan gecer; tam kaydi geri yazan mutant kapida KIRMIZI
   kablolar                    — pre-commit adim 9 + deploy.yml serit-a3 + panel izni
 
 KABUL SORUSU ("bu satiri silsem hangi iddia kirmizi yanar?") mutantlarla CEVAPLANIR:
@@ -85,13 +89,20 @@ def git(depo, *a):
     return p.stdout.strip()
 
 
-def yaz(depo, katalog=None, arsiv=None, ham=None):
+DEFTER_ADI = "urun-silme-defteri.json"
+ESKI_ARSIV_ADI = os.path.join("arsiv", "urunler-arsiv.json")
+
+
+def yaz(depo, katalog=None, defter=None, ham=None, eski_arsiv=None):
     with open(os.path.join(depo, "urunler.json"), "w", encoding="utf-8") as f:
         f.write(ham if ham is not None else json.dumps(katalog, ensure_ascii=False, indent=2))
-    if arsiv is not None:
+    if defter is not None:
+        with open(os.path.join(depo, DEFTER_ADI), "w", encoding="utf-8") as f:
+            json.dump(defter, f, ensure_ascii=False, indent=2)
+    if eski_arsiv is not None:
         os.makedirs(os.path.join(depo, "arsiv"), exist_ok=True)
-        with open(os.path.join(depo, "arsiv", "urunler-arsiv.json"), "w", encoding="utf-8") as f:
-            json.dump(arsiv, f, ensure_ascii=False, indent=2)
+        with open(os.path.join(depo, ESKI_ARSIV_ADI), "w", encoding="utf-8") as f:
+            json.dump(eski_arsiv, f, ensure_ascii=False, indent=2)
 
 
 def commit(depo, mesaj="t"):
@@ -100,14 +111,19 @@ def commit(depo, mesaj="t"):
     return git(depo, "rev-parse", "HEAD")
 
 
-def yeni_depo(tmp, katalog, arsiv=None):
+def yeni_depo(tmp, katalog, defter=None, eski_arsiv=None):
     d = tempfile.mkdtemp(dir=tmp, prefix="depo-")
     git(d, "init", "-q", "-b", "main")
-    yaz(d, katalog, arsiv)
+    yaz(d, katalog, defter, eski_arsiv=eski_arsiv)
     return d, commit(d, "taban")
 
 
-def arsiv_girisi(kayit):
+def defter_girisi(uid, ts="2026-10-08T00:00:00Z"):
+    return {"id": uid, "silinme_ts": ts, "yazan": "test"}
+
+
+def eski_arsiv_girisi(kayit):
+    """EMEKLI tam-kayit arsivinin girisi (yalniz gecmis-uyum / yazim-yasagi vakalari)."""
     return {"silinme_ts": "2026-09-13T00:00:00Z", "yazan": "test", "kuyruk_id": None,
             "kayit": kayit}
 
@@ -166,16 +182,18 @@ def v3(kapi, duzelt, tmp):
 
 
 def v4(kapi, duzelt, tmp):
+    # IZINLI SILME YESIL: dusen id ayni aralikta deftere (yalniz id/ts/yazan) islendi.
     d, a = yeni_depo(tmp, [K1, K2, K3])
-    yaz(d, [K1, K3], arsiv=[arsiv_girisi(K2)])
+    yaz(d, [K1, K3], defter=[defter_girisi("urun-b")])
     b = commit(d)
     rc, out = kapi_kos(kapi, d, ["--taban", a, "--yeni", b])
-    return rc == 0 and "ARSIVLI_SILME urun-b" in out, "rc=%d" % rc
+    return (rc == 0 and "DEFTERLI_SILME urun-b" in out
+            and "ICERIK_IHLALI=0" in out), "rc=%d" % rc
 
 
 def v5(kapi, duzelt, tmp):
-    # Geri yuklenmis kayit: arsivde ESKI giris durur; ikinci silme YENI giris ister.
-    d, a = yeni_depo(tmp, [K1, K2, K3], arsiv=[arsiv_girisi(K2)])
+    # Geri konmus kayit: defterde ESKI giris durur; ikinci silme YENI giris ister.
+    d, a = yeni_depo(tmp, [K1, K2, K3], defter=[defter_girisi("urun-b")])
     yaz(d, [K1, K3])
     b = commit(d)
     rc, out = kapi_kos(kapi, d, ["--taban", a, "--yeni", b])
@@ -254,13 +272,70 @@ def v11(kapi, duzelt, tmp):
 
 
 def v18(kapi, duzelt, tmp):
-    # Curutucu B2: yalniz id tasiyan ya da icerigi farkli arsiv girisi izin SAYILMAZ.
+    # K437: defter girisi urun ICERIGI tasirsa (tam kayit / ad / fiyat) silme izinli olsa
+    # bile KIRMIZI — hem ARALIK hem INDEX kipinde. Bicim disi deger (ts) de KIRMIZI.
     d, a = yeni_depo(tmp, [K1, K2, K3])
-    yaz(d, [K1, K3], arsiv=[{"kayit": {"id": "urun-b"}},
-                            arsiv_girisi(dict(K2, fiyat="1 TL"))])
+    yaz(d, [K1, K3], defter=[dict(defter_girisi("urun-b"), kayit=K2)])
     b = commit(d)
-    rc, out = kapi_kos(kapi, d, ["--taban", a, "--yeni", b])
-    return rc == 1 and "IZINSIZ_SILME urun-b" in out, "rc=%d" % rc
+    rc1, out1 = kapi_kos(kapi, d, ["--taban", a, "--yeni", b])
+    d2, _ = yeni_depo(tmp, [K1, K2, K3])
+    yaz(d2, [K1, K3], defter=[dict(defter_girisi("urun-b"), fiyat="200 TL")])
+    git(d2, "add", "-A")
+    rc2, out2 = kapi_kos(kapi, d2, ["--index"])
+    d3, a3 = yeni_depo(tmp, [K1, K2, K3])
+    yaz(d3, [K1, K3], defter=[defter_girisi("urun-b", ts="B urunu 200 TL")])
+    b3 = commit(d3)
+    rc3, out3 = kapi_kos(kapi, d3, ["--taban", a3, "--yeni", b3])
+    ok = (rc1 == 1 and "ICERIK_TASIYAN_SILME_KAYDI" in out1 and "izinsiz alan kayit" in out1
+          and rc2 == 1 and "izinsiz alan fiyat" in out2
+          and rc3 == 1 and "silinme_ts bicim disi" in out3)
+    return ok, "aralik=%d index=%d ts=%d" % (rc1, rc2, rc3)
+
+
+def v25(kapi, duzelt, tmp):
+    # K437: EMEKLI tam-kayit arsivini YAZMAK KIRMIZI — ARALIK (uc durumda VAR) ve INDEX
+    # (bu commit arsivi getiriyor) kipinde; defter girisi dogru olsa bile.
+    d, a = yeni_depo(tmp, [K1, K2, K3])
+    yaz(d, [K1, K3], defter=[defter_girisi("urun-b")], eski_arsiv=[eski_arsiv_girisi(K2)])
+    b = commit(d)
+    rc1, out1 = kapi_kos(kapi, d, ["--taban", a, "--yeni", b])
+    d2, _ = yeni_depo(tmp, [K1, K2, K3])
+    yaz(d2, [K1, K3], defter=[defter_girisi("urun-b")], eski_arsiv=[eski_arsiv_girisi(K2)])
+    git(d2, "add", "-A")
+    rc2, out2 = kapi_kos(kapi, d2, ["--index"])
+    ok = (rc1 == 1 and "arsiv/urunler-arsiv.json VAR" in out1
+          and rc2 == 1 and "arsiv/urunler-arsiv.json VAR" in out2)
+    return ok, "aralik=%d index=%d" % (rc1, rc2)
+
+
+def v26(kapi, duzelt, tmp):
+    # KOMSU AGAC KORUMASI: HEAD'de DEGISMEDEN duran eski arsiv (merge oncesi tabanda
+    # calisan agac) INDEX kipinde commit'i KILITLEMEZ; ama ona YAZMAK KIRMIZI.
+    d, _ = yeni_depo(tmp, [K1, K2, K3], eski_arsiv=[eski_arsiv_girisi(K5)])
+    yaz(d, [K4, K1, K2, K3])
+    git(d, "add", "urunler.json")
+    rc1, out1 = kapi_kos(kapi, d, ["--index"])
+    yaz(d, [K4, K1, K2, K3], eski_arsiv=[eski_arsiv_girisi(K5), eski_arsiv_girisi(K4)])
+    git(d, "add", "-A")
+    rc2, out2 = kapi_kos(kapi, d, ["--index"])
+    ok = (rc1 == 0 and "ICERIK_IHLALI=0" in out1
+          and rc2 == 1 and "arsiv/urunler-arsiv.json VAR" in out2)
+    return ok, "degismeyen=%d yazilan=%d" % (rc1, rc2)
+
+
+def v27(kapi, duzelt, tmp):
+    # GECMIS UYUMU: pencere icindeki ESKI (arsivle yapilmis) izinli silme CI'da DEFTERLI
+    # sayilir (arsivden yalniz id okunur); arsivi kaldirip deftere ceviren commit ve uc
+    # durum YESIL. Sahte IZINSIZ yakmaz.
+    d, _ = yeni_depo(tmp, [K1, K2, K3])
+    yaz(d, [K1, K3], eski_arsiv=[eski_arsiv_girisi(K2)])
+    commit(d, "eski yolla izinli silme")
+    os.remove(os.path.join(d, ESKI_ARSIV_ADI))
+    yaz(d, [K1, K3], defter=[defter_girisi("urun-b")])
+    c = commit(d, "K437 gecisi")
+    rc, out = kapi_kos(kapi, d, [], env=temiz_env(GITHUB_SHA=c))
+    return (rc == 0 and "DEFTERLI_SILME urun-b" in out and "IZINSIZ=0" in out
+            and "ICERIK_IHLALI=0" in out), "rc=%d" % rc
 
 
 def v19(kapi, duzelt, tmp):
@@ -381,6 +456,7 @@ def v13(kapi, duzelt, tmp):
     rc, out = duzelt_kos(d, ["urun-b", "--sil", "test"])
     ok = (rc == RC_SIL_IZIN and once == sha(os.path.join(d, "urunler.json"))
           and not os.path.exists(os.path.join(d, ".urunler-sil-izin.json"))
+          and not os.path.exists(os.path.join(d, DEFTER_ADI))
           and not os.path.exists(os.path.join(d, "arsiv"))
           and "GIZLENMEZ" in out and "--alan gizli" not in out)   # Okan 6 Eki: gizle recetesi YOK
     return ok, "rc=%d" % rc
@@ -411,17 +487,24 @@ def v15(kapi, duzelt, tmp):
         return False, "izinli duzelt rc=%d %s" % (rc, out.strip()[-160:])
     with open(os.path.join(d, "urunler.json"), encoding="utf-8") as f:
         kalan = [k["id"] for k in json.load(f)]
-    ayol = os.path.join(d, "arsiv", "urunler-arsiv.json")
-    if not os.path.exists(ayol):
-        return False, "arsiv dosyasi YOK"
-    with open(ayol, encoding="utf-8") as f:
+    dyol = os.path.join(d, DEFTER_ADI)
+    if not os.path.exists(dyol):
+        return False, "defter dosyasi YOK"
+    with open(dyol, encoding="utf-8") as f:
         ham = f.read()
-    arsiv = json.loads(ham)
-    git(d, "add", "urunler.json", "arsiv/urunler-arsiv.json")
+    defter = json.loads(ham)
+    git(d, "add", "urunler.json", DEFTER_ADI)
     rck, outk = kapi_kos(kapi, d, ["--index"])
-    ok = ("urun-b" not in kalan and len(arsiv) == 1 and arsiv[0]["kayit"] == K2
-          and gerekce not in ham and rck == 0 and "ARSIVLI_SILME urun-b" in outk)
-    return ok, "duzelt rc=%d kapi rc=%d arsiv=%d" % (rc, rck, len(arsiv))
+    # Okan kurali 6 Eki: urunun HICBIR alani (baslik/fiyat) deftere ve arsive dusmez.
+    ok = ("urun-b" not in kalan and len(defter) == 1
+          and sorted(defter[0]) == ["id", "silinme_ts", "yazan"]
+          and defter[0]["id"] == "urun-b" and defter[0]["yazan"] == "duzelt.py"
+          and K2["fiyat"] not in ham and gerekce not in ham
+          and not os.path.exists(os.path.join(d, "arsiv"))
+          and rck == 0 and "DEFTERLI_SILME urun-b" in outk)
+    return ok, "duzelt rc=%d kapi rc=%d defter=%d %s" % (
+        rc, rck, len(defter), " | ".join(l for l in outk.splitlines()
+                                         if "ICERIK" in l or "HUKUM" in l)[:200])
 
 
 def v16(kapi, duzelt, tmp):
@@ -447,26 +530,28 @@ def v17(kapi, duzelt, tmp):
         pn = f.read()
     env_ad = re.search(r'^SIL_IZIN_ENV = "([^"]+)"', dz, re.M)
     env_deger = re.search(r'^SIL_IZIN_DEGERI = "([^"]+)"', dz, re.M)
-    panel_arsiv = re.search(r'^ARSIV_DOSYASI = os\.path\.join\("([^"]+)", "([^"]+)"\)', pn, re.M)
-    ok = (env_ad and env_deger and panel_arsiv
+    panel_defter = re.search(r'^DEFTER_DOSYASI = "([^"]+)"', pn, re.M)
+    duzelt_defter = re.search(r'^DEFTER = os\.path\.join\(ROOT, "([^"]+)"\)', dz, re.M)
+    ok = (env_ad and env_deger and panel_defter and duzelt_defter
           and env_ad.group(1) == m.SIL_IZIN_ENV and env_deger.group(1) == m.SIL_IZIN_DEGERI
-          and "/".join(panel_arsiv.groups()) == m.ARSIV_YOLU
+          and panel_defter.group(1) == m.DEFTER_YOLU == duzelt_defter.group(1)
           and ('%s="%s"' % (m.SIL_IZIN_ENV, m.SIL_IZIN_DEGERI)) in pn)
     return bool(ok), "duzelt/panel/kapi ikiz tanim"
 
 
 VAKALAR = [
     ("V1_IZINSIZ_SILME", v1), ("V2_GIZLI_TRUE_KONTROL", v2), ("V3_BASA_EKLEME_KONTROL", v3),
-    ("V4_ARSIVLI_SILME", v4), ("V5_ESKI_ARSIV_YETMEZ", v5), ("V6_ID_RENAME", v6),
+    ("V4_DEFTERLI_IZINLI_SILME", v4), ("V5_ESKI_DEFTER_GIRISI_YETMEZ", v5), ("V6_ID_RENAME", v6),
     ("V7_RENAME_ICERIK_DEGISTI", v7), ("V8_INDEX_STAGE_SILME", v8),
     ("V8b_INDEX_STAGESIZ_ATLANDI", v8b), ("V9_MERGE_GETIRISI", v9), ("V10_BOZUK_JSON", v10),
     ("V11_CI_ARALIGI", v11), ("V12_AEA5CCAC_FIKSTURU", v12), ("V13_DUZELT_SIL_IZINSIZ", v13),
     ("V14_DUZELT_TOPLU_SIL_IZINSIZ", v14), ("V15_DUZELT_SIL_IZINLI_UCTAN_UCA", v15),
     ("V16_KANCA_VE_CI_KABLOSU", v16), ("V17_IKIZ_TANIM", v17),
-    ("V18_SAHTE_ARSIV_GIRISI", v18), ("V19_MERGE_THEIRS_YENI_KAYIT_KAYBI", v19),
+    ("V18_DEFTERDE_ICERIK_KIRMIZI", v18), ("V19_MERGE_THEIRS_YENI_KAYIT_KAYBI", v19),
     ("V20_CI_PENCERE_IPTAL_BOSLUGU", v20), ("V21_PENCERE_ONARIM_KONTROL", v21),
     ("V22_MERGE_OURS_DAL_EKLEMESI_KAYBI", v22), ("V23_CI_RENAME_SONRASI_DUZENLEME", v23),
-    ("V24_CI_DAL_COMMITI_KENDI_HUKMU", v24),
+    ("V24_CI_DAL_COMMITI_KENDI_HUKMU", v24), ("V25_ESKI_ARSIV_YAZIMI_KIRMIZI", v25),
+    ("V26_KOMSU_AGAC_ESKI_ARSIV_KILITLEMEZ", v26), ("V27_GECMIS_ARSIVLI_SILME_PENCEREDE", v27),
 ]
 VAKA = dict(VAKALAR)
 
@@ -481,20 +566,20 @@ MUTANTLAR = [
     ("M3_ID_KUCULME_OLCUSU_SOKULDU", "kapi",
      "        dusen.append(uid)\n", "        pass\n",
      "V12_AEA5CCAC_FIKSTURU"),
-    ("M4_ARSIV_SAYACI_VARLIGA_GEVSEDI", "kapi",
-     "        if len(yeni_g) > len(taban_arsiv.get(uid, {}).get(anahtar, [])):\n",
-     "        if len(yeni_arsiv.get(uid, {})) > 0:\n", "V5_ESKI_ARSIV_YETMEZ"),
+    ("M4_DEFTER_SAYACI_VARLIGA_GEVSEDI", "kapi",
+     "        if len(yeni_g) > len(taban_defter.get(uid, [])):\n",
+     "        if len(yeni_g) > 0:\n", "V5_ESKI_DEFTER_GIRISI_YETMEZ"),
     ("M5_RENAME_ICERIGE_BAKMIYOR", "kapi",
      "    return json.dumps(k, sort_keys=True, ensure_ascii=False)\n", '    return ""\n',
      "V7_RENAME_ICERIK_DEGISTI"),
     ("M6_MERGE_ORTAK_ATA_SARTI_SOKULDU", "kapi",
      "        if (len(ebeveynler) > 1 and uid in ata_idleri\n",
      "        if (len(ebeveynler) > 1\n", "V19_MERGE_THEIRS_YENI_KAYIT_KAYBI"),
-    ("M7_DUZELT_ARSIV_YAZIMI_SOKULDU", "duzelt",
-     "        _atomic_write(ARSIV, arsiv)\n", "        pass\n", "V15_DUZELT_SIL_IZINLI_UCTAN_UCA"),
-    ("M8_ARSIV_ICERIK_ESLESMESI_SOKULDU", "kapi",
-     "    return json.dumps(kayit, sort_keys=True, ensure_ascii=False)\n", '    return ""\n',
-     "V18_SAHTE_ARSIV_GIRISI"),
+    ("M7_DUZELT_DEFTER_YAZIMI_SOKULDU", "duzelt",
+     "        _atomic_write(DEFTER, defter)\n", "        pass\n", "V15_DUZELT_SIL_IZINLI_UCTAN_UCA"),
+    ("M8_DEFTER_ALAN_SINIRI_SOKULDU", "kapi",
+     '        return "izinsiz alan %s" % ",".join(fazla)\n', "        pass\n",
+     "V18_DEFTERDE_ICERIK_KIRMIZI"),
     ("M9_CI_PENCERESI_SOKULDU", "kapi",
      "            and _ata_mi(depo, before, hedef) and _ata_mi(depo, before, pencere)):\n",
      "            and _ata_mi(depo, before, hedef)):\n", "V20_CI_PENCERE_IPTAL_BOSLUGU"),
@@ -511,6 +596,21 @@ MUTANTLAR = [
      '    rc, out, err = _git(depo, ["rev-list", "--reverse", "--parents", "%s..%s" % (taban, yeni)])\n',
      '    rc, out, err = _git(depo, ["rev-list", "--first-parent", "--reverse", "--parents", "%s..%s" % (taban, yeni)])\n',
      "V24_CI_DAL_COMMITI_KENDI_HUKMU"),
+    # K437 — KABUL'UN ISTEDIGI MUTANT: duzelt.py silinen urunun TAM kaydini yeniden deftere
+    # yazar (eski arsiv davranisi) -> kapi --index KIRMIZI, V15 duser.
+    ("M14_DUZELT_TAM_KAYDI_GERI_YAZAR", "duzelt",
+     "        urunler.pop(idx)\n",
+     '        defter.append({"id": args.id, "silinme_ts": "2026-10-08T00:00:00Z", '
+     '"yazan": "duzelt.py", "kayit": urunler.pop(idx)})\n',
+     "V15_DUZELT_SIL_IZINLI_UCTAN_UCA"),
+    ("M15_ESKI_ARSIV_YASAGI_SOKULDU", "kapi",
+     "    if eski is not None:\n", "    if False:\n", "V25_ESKI_ARSIV_YAZIMI_KIRMIZI"),
+    ("M16_INDEX_HEAD_FARKI_SOKULDU", "kapi",
+     "                      if k not in icerik_head}\n", "                      if True}\n",
+     "V26_KOMSU_AGAC_ESKI_ARSIV_KILITLEMEZ"),
+    ("M17_GECMIS_ARSIV_ID_OKUMASI_SOKULDU", "kapi",
+     "    for giris in _dizi_oku(depo, ref, ESKI_ARSIV_YOLU, index_kipi) or []:\n",
+     "    for giris in []:\n", "V27_GECMIS_ARSIVLI_SILME_PENCEREDE"),
 ]
 KONTROL_MUTANT = ("K0_ZARARSIZ_YORUM", "kapi", "import argparse\n",
                   "import argparse  # kontrol mutanti: davranis DEGISMEZ\n")

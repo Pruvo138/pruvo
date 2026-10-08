@@ -19,12 +19,13 @@ ALAN BEYAZ LISTESI UYGULAYICININ ICINDEDIR (ayri bir kapida degil — hakem hukm
   STL yeri) bu kuyruktan tabana HICBIR yoldan inmez. Parametrik (sari seri) urunun
   fiyati BOS kalir (taban fiyat semadan gelir) -> fiyat ustyazimi REDDEDILIR.
 
-TEKIL SILME (Okan emri 2 Eyl 2026 + BaBa cercevesi): alan='sil' satiri (deger =
-GEREKCE; worker yalniz /urun-sil cift-onay ucundan yazar) duzelt --toplu'nun
-{"id","sil"} sekliyle tabandan DUSURULUR ve TAM taban kaydi arsiv/urunler-arsiv.json
-duzlemine eklenir (ayni commit; kayit YOK EDILMEZ — geri yukleme:
-tools/urun-geri-yukle.py + tools/urun-silme-yordami.md). GEREKCE PUBLIC repoya
-YAZILMAZ (D1 satirinda + yerel guard logunda kalir). Ayni urunun bekleyen alan
+TEKIL SILME (Okan emri 2 Eyl 2026; Okan kurali 6 Eki: sil = TAMAMEN sil, arsiv YOK):
+alan='sil' satiri (deger = GEREKCE; worker yalniz /urun-sil cift-onay ucundan yazar)
+duzelt --toplu'nun {"id","sil"} sekliyle tabandan TAMAMEN cikar; ayni commit'te
+urun-silme-defteri.json'a YALNIZ {"id","silinme_ts","yazan"} eklenir (urun icerigi
+HICBIR dosyada tutulmaz; geri yukleme yolu YOKTUR — K437). Yordam:
+tools/urun-silme-yordami.md. GEREKCE PUBLIC repoya YAZILMAZ (D1 satirinda + yerel
+guard logunda kalir). Ayni urunun bekleyen alan
 duzenlemesi sil kazananinin golgesinde URUN_SILINECEK sebebiyle hata kovasina duser
 (duzelt ayni id'de sil+alan karisimini reddeder; sessiz sira belirsizligi yerine
 ACIK sebep). R2 gorselleri SILINMEZ; toplu silme YOKTUR (satir basina tek urun).
@@ -37,17 +38,16 @@ saatlerce kisilir). Bu yuzden sil commit'i PUSH'LANDIKTAN SONRA (once DEGIL — 
 duserse D1'e hic dokunulmaz) silinen id'ler D1'de yayinda=0'a indirilir
 (`d1_gizle`). Kume ALAN-BAGLIDIR, kuyruktan/hafizadan gelmez: push'lanan commit'in
 EBEVEYNINDE urunler.json'da olup commit'te OLMAYAN (a) VE ayni commit'te
-arsiv/urunler-arsiv.json'a YENI giris olarak eklenen (b) id'ler. SQL tek kaynaktan
-gelir (yayin-kapisi.gizle_sql), istemci d1-sync; satir SILINMEZ (silmeyi sonraki
-deploy'un d1-sync'i yapar), yayinda=0 geri alinabilir: urun-geri-yukle sonrasi
-deploy'un `yayin-kapisi --yayinla` adimi canli 200 gorunce yeniden yayinlar.
-Indirme dusse bile commit main'de KALIR (geri alma yok), satirlar islendi
+urun-silme-defteri.json'a YENI giris olarak eklenen (b) id'ler. SQL tek kaynaktan
+gelir (yayin-kapisi.gizle_sql), istemci d1-sync; satiri sonraki deploy'un d1-sync'i
+siler. Indirme dusse bile commit main'de KALIR (geri alma yok), satirlar islendi
 damgalanir, cikti `D1_GIZLE=HATA:<..>` basar ve kosum rc=1 ile KIRMIZI olur.
 
-IDEMPOTENT SILME (K430): alan='sil' satirinin urunu tabanda YOK ama arsivde VARSA
-(ikinci "Sil" tiklamasi, ya da push sonrasi damgasi yarim kalmis kosumun tekrari)
-hata DEGILDIR: islendi + sebep ZATEN_ARSIVDE (TABAN_ZATEN_ESIT deseni). Arsivde de
-yoksa URUN_YOK aynen kalir. ZATEN_ARSIVDE D1'e DOKUNMAZ (kume (b) sartini tasimaz).
+IDEMPOTENT SILME (K430): alan='sil' satirinin urunu tabanda YOK ama silme defterinde
+VARSA (ikinci "Sil" tiklamasi, ya da push sonrasi damgasi yarim kalmis kosumun
+tekrari) hata DEGILDIR: islendi + sebep ZATEN_SILINDI (TABAN_ZATEN_ESIT deseni).
+Defterde de yoksa URUN_YOK aynen kalir. ZATEN_SILINDI D1'e DOKUNMAZ (kume (b)
+sartini tasimaz).
 
 HAL UC DEGERLIDIR: beklemede -> islendi | hata(sebep). Islenemeyen satir SESSIZCE
 dusmez; sebep adiyla satira yazilir ve panel kuyruk gorunumunde gorunur.
@@ -57,7 +57,7 @@ SIRA (crash-guvenli, en-az-bir-kez + idempotent):
   [sil varsa] D1 yayinda=0 -> islendi damgala. Push'tan ONCE hicbir satir islendi
   OLMAZ; push sonrasi damga yarim kalirsa satirlar beklemede kalir, bir sonraki
   kosum ayni degeri yeniden uygular (diff bos -> commit yok; sil satiri
-  ZATEN_ARSIVDE olur) ve damgayi tamamlar.
+  ZATEN_SILINDI olur) ve damgayi tamamlar.
 
 KIPLER:
   --uygula        CI kosum kipi. Secret yoksa (K80 is-akisi probu dahil) exit 0,
@@ -321,8 +321,8 @@ def taban_esit(kayit, alan, deger):
     edilmis degerle yapilir (bicimsel bosluk farki sahte 'degisti' uretmesin)."""
     if alan == "sil":
         # Silme "taban zaten esit" OLAMAZ: kayit varsa silinmesi bir degisikliktir
-        # (kayit yoksa satir_sebebi URUN_YOK verir; sinifla onu arsivdeyse
-        # ZATEN_ARSIVDE'ye, degilse hata kovasina ayirir).
+        # (kayit yoksa satir_sebebi URUN_YOK verir; sinifla onu defterdeyse
+        # ZATEN_SILINDI'ye, degilse hata kovasina ayirir).
         return False
     if alan == "gorseller":
         try:
@@ -332,11 +332,12 @@ def taban_esit(kayit, alan, deger):
     return kayit.get(alan) == deger
 
 
-def sinifla(satirlar, katalog, arsiv_idler=frozenset()):
+def sinifla(satirlar, katalog, silinmis_idler=frozenset()):
     """(uygulanacak[satir], hata[(satir, sebep)], zaten[(satir, sebep)]) doner.
     `zaten` = islem gerekmeden islendi sayilanlar: TABAN_ZATEN_ESIT ya da
-    ZATEN_ARSIVDE (sil satiri, urun tabanda yok AMA `arsiv_idler`de var — ikinci
-    "Sil" tiklamasi hata degildir; arsivde de yoksa URUN_YOK hata kalir).
+    ZATEN_SILINDI (sil satiri, urun tabanda yok AMA `silinmis_idler`de (silme
+    defteri) var — ikinci "Sil" tiklamasi hata degildir; defterde de yoksa URUN_YOK
+    hata kalir).
     Ayni (urun_id, alan) icin EN YENI satir kazanir; eskisi hata kovasina
     YERINE_YENISI:<id> ile duser (uygulanmadigi halde 'islendi' DENMEZ).
     GECERLI bir 'sil' kazanani olan urunun DIGER kazanan satirlari URUN_SILINECEK
@@ -363,8 +364,8 @@ def sinifla(satirlar, katalog, arsiv_idler=frozenset()):
             continue
         sebep = satir_sebebi(s, katalog)
         if (sebep == "URUN_YOK" and s.get("alan") == "sil"
-                and s.get("urun_id") in arsiv_idler):
-            zaten.append((s, "ZATEN_ARSIVDE"))
+                and s.get("urun_id") in silinmis_idler):
+            zaten.append((s, "ZATEN_SILINDI"))
         elif sebep:
             hata.append((s, sebep))
         elif taban_esit(katalog[s["urun_id"]], s["alan"], s["deger"]):
@@ -384,8 +385,8 @@ def duzelt_kos(kok, islemler):
         yol = f.name
     try:
         # URUN SILME IZNI (13 Eyl 2026): duzelt `"sil"` islemini ancak PRUVO_URUN_SIL_IZNI=OKAN
-        # ile kosar. Panel "Sil (arsive)" satiri Okan'in cift-onayli yonetim ucundan gelir
-        # (Okan emri 2 Eyl) -> izin BURADA verilir; arsiv kaydini arsiv_ekle yazar ve commit
+        # ile kosar. Panel "Sil" satiri Okan'in cift-onayli yonetim ucundan gelir
+        # (Okan emri 2 Eyl) -> izin BURADA verilir; defter girisini defter_ekle yazar ve commit
         # kapisi (tools/urun-silme-kapisi.py) onu olcer. Izin dusurulurse panel silmeleri
         # DUZELT_RED ile hata kovasina duser (urun-silme-kapisi-test V17 olcer).
         env = dict(os.environ, PRUVO_URUN_SIL_IZNI="OKAN")
@@ -437,46 +438,45 @@ def tabana_isle(kok, uygulanacak, hata):
     return uygulanan
 
 
-# ── arsiv duzlemi (tekil silme) ──────────────────────────────────────────────────
+# ── silme defteri (tekil silme) ──────────────────────────────────────────────────
 
-ARSIV_DOSYASI = os.path.join("arsiv", "urunler-arsiv.json")
+# TEK KAYNAK ile ayni yol: tools/urun-silme-kapisi.py::DEFTER_YOLU (test IKIZ-TANIM olcer)
+DEFTER_DOSYASI = "urun-silme-defteri.json"
 
 
-def arsiv_ekle(kok, kayitlar):
-    """Silinen urunlerin TAM taban kaydini arsiv duzlemine ekler (BaBa cercevesi:
-    kayit YOK EDILMEZ, tasinir; geri yukleme tools/urun-geri-yukle.py). GEREKCE
-    BILEREK YAZILMAZ: repo PUBLIC — gerekce D1 kuyruk satirinda (kuyruk_id ile
-    bulunur) + yerel guard logunda yasar. kayitlar: [(urun_kaydi, kuyruk_id)].
-    Bozuk arsiv dosyasi SESSIZCE sifirlanmaz: json.load coker, kosum kirmizi olur,
-    satirlar beklemede kalir (crash-guvenli sira korunur, veri ezilmez)."""
-    yol = os.path.join(kok, ARSIV_DOSYASI)
+def defter_ekle(kok, idler):
+    """Silinen urunlerin YALNIZ id'sini silme defterine yazar (K437, Okan kurali 6 Eki:
+    sil = TAMAMEN sil, arsiv YOK). Giris = {"id","silinme_ts","yazan"}; urun icerigi,
+    GEREKCE ve kuyruk no YAZILMAZ (repo PUBLIC — gerekce D1 kuyruk satirinda + yerel
+    guard logunda yasar). Bozuk defter SESSIZCE sifirlanmaz: json.load coker, kosum
+    kirmizi olur, satirlar beklemede kalir (crash-guvenli sira korunur, iz ezilmez)."""
+    yol = os.path.join(kok, DEFTER_DOSYASI)
     mevcut = []
     if os.path.exists(yol):
         with open(yol, encoding="utf-8") as f:
             mevcut = json.load(f)
-    for kayit, kuyruk_id in kayitlar:
-        mevcut.append({"silinme_ts": simdi_utc(), "yazan": "panel-uygulayici",
-                       "kuyruk_id": int(kuyruk_id), "kayit": kayit})
-    os.makedirs(os.path.dirname(yol), exist_ok=True)
+    for uid in idler:
+        mevcut.append({"id": uid, "silinme_ts": simdi_utc(), "yazan": "panel-uygulayici"})
     gecici = yol + ".tmp"
     with open(gecici, "w", encoding="utf-8") as f:
         json.dump(mevcut, f, ensure_ascii=False, indent=2)
+        f.write("\n")
     os.replace(gecici, yol)
 
 
-def _arsiv_kayit_idleri(girisler):
-    return {e["kayit"].get("id") for e in girisler
-            if isinstance(e, dict) and isinstance(e.get("kayit"), dict)}
+def _defter_girisi_idleri(girisler):
+    return {e.get("id") for e in girisler
+            if isinstance(e, dict) and isinstance(e.get("id"), str)}
 
 
-def arsiv_idleri(kok):
-    """Arsiv duzlemindeki urun id'leri (ZATEN_ARSIVDE siniflamasi). Dosya yoksa bos
-    kume; BOZUKSA coker (arsiv_ekle ile ayni: bozuk arsiv sessizce bos sayilmaz)."""
-    yol = os.path.join(kok, ARSIV_DOSYASI)
+def defter_idleri(kok):
+    """Silme defterindeki urun id'leri (ZATEN_SILINDI siniflamasi). Dosya yoksa bos
+    kume; BOZUKSA coker (defter_ekle ile ayni: bozuk defter sessizce bos sayilmaz)."""
+    yol = os.path.join(kok, DEFTER_DOSYASI)
     if not os.path.exists(yol):
         return set()
     with open(yol, encoding="utf-8") as f:
-        return _arsiv_kayit_idleri(json.load(f))
+        return _defter_girisi_idleri(json.load(f))
 
 
 def _commit_json(kok, rev, yol, yoksa=None):
@@ -486,19 +486,19 @@ def _commit_json(kok, rev, yol, yoksa=None):
     return json.loads(p.stdout)
 
 
-def silinen_arsivli_idler(kok, commit):
+def silinen_defterli_idler(kok, commit):
     """D1 GIZLEME KUMESI (K430) — ALAN-BAGLI, keyfi id listesi DEGIL. Kume push'lanan
     commit'in KENDISINDEN turer (kuyruk satiri/bellek kopyasi degil):
       (a) commit'in EBEVEYNINDE urunler.json'da olup commit'te OLMAYAN id'ler, VE
-      (b) ayni commit'te arsiv/urunler-arsiv.json'a YENI giris olarak eklenen id'ler.
-    Yalniz biri tutan id (arsivsiz dusus / tabanda duran arsiv girisi) kumeye GIRMEZ."""
+      (b) ayni commit'te urun-silme-defteri.json'a YENI giris olarak eklenen id'ler.
+    Yalniz biri tutan id (deftersiz dusus / tabanda duran defter girisi) kumeye GIRMEZ."""
     once = {u.get("id") for u in _commit_json(kok, commit + "^", "urunler.json")}
     sonra = {u.get("id") for u in _commit_json(kok, commit, "urunler.json")}
     dusen = once - sonra
     eski = {json.dumps(e, sort_keys=True, ensure_ascii=False)
-            for e in _commit_json(kok, commit + "^", ARSIV_DOSYASI, yoksa=[])}
-    eklenen = _arsiv_kayit_idleri(
-        e for e in _commit_json(kok, commit, ARSIV_DOSYASI, yoksa=[])
+            for e in _commit_json(kok, commit + "^", DEFTER_DOSYASI, yoksa=[])}
+    eklenen = _defter_girisi_idleri(
+        e for e in _commit_json(kok, commit, DEFTER_DOSYASI, yoksa=[])
         if json.dumps(e, sort_keys=True, ensure_ascii=False) not in eski)
     return sorted(i for i in dusen & eklenen if i)
 
@@ -510,7 +510,7 @@ def d1_gizle(kok, kuyruk, commit):
     SQL TEK KAYNAK: yayin-kapisi.gizle_sql (+ parcala, yayin_hali_harita geri-okumasi);
     istemci d1-sync (canli) / sqlite ikizi (test)."""
     try:
-        idler = silinen_arsivli_idler(kok, commit)
+        idler = silinen_defterli_idler(kok, commit)
         if not idler:
             # Sil satiri uygulandi ama commit'te (a)+(b) tutan id yok: turetim
             # bozulmus demektir — sessiz 0 degil, KIRMIZI.
@@ -589,7 +589,7 @@ def uygula():
     with open(os.path.join(kok, "urunler.json"), encoding="utf-8") as f:
         katalog = {u.get("id"): u for u in json.load(f)}
 
-    uygulanacak, hata, zaten = sinifla(satirlar, katalog, arsiv_idleri(kok))
+    uygulanacak, hata, zaten = sinifla(satirlar, katalog, defter_idleri(kok))
     # Hata damgasi push'a BAGLI DEGIL — once yazilir ki bozuk satir kuyrugu tikamasin.
     kuyruk.damgala([(s["id"], "hata", sebep, None) for s, sebep in hata])
 
@@ -602,7 +602,7 @@ def uygula():
                 with open(os.path.join(kok, "urunler.json"), encoding="utf-8") as f:
                     katalog = {u.get("id"): u for u in json.load(f)}
                 uygulanacak, ek_hata, ek_zaten = sinifla(uygulanacak, katalog,
-                                                         arsiv_idleri(kok))
+                                                         defter_idleri(kok))
                 kuyruk.damgala([(s["id"], "hata", sebep, None) for s, sebep in ek_hata])
                 zaten.extend(ek_zaten)
             uygulanan = tabana_isle(kok, uygulanacak, hata)
@@ -610,15 +610,12 @@ def uygula():
             if not uygulanan:
                 push_ok = True  # yazacak bir sey kalmadi; push gereksiz
                 break
-            # ARSIV DUZLEMI: duzelt sil'i uyguladi; TAM taban kaydi `katalog`
-            # kopyasindan (yazim ONCESI durum — duzelt dosyayi degistirir, bu
-            # sozlugu DEGIL) arsive eklenir ve AYNI commit'e girer. Push dusup
-            # tekrar denenirse uca_tazele agaci sifirlar, arsiv yeniden yazilir
-            # (cift kayit birikmez).
-            sil_kayitlari = [(katalog[s["urun_id"]], s["id"])
-                             for s in uygulanan if s["alan"] == "sil"]
-            if sil_kayitlari:
-                arsiv_ekle(kok, sil_kayitlari)
+            # SILME DEFTERI (K437): duzelt sil'i uyguladi; urun TAMAMEN cikti, deftere
+            # YALNIZ id yazilir ve AYNI commit'e girer. Push dusup tekrar denenirse
+            # uca_tazele agaci sifirlar, defter yeniden yazilir (cift giris birikmez).
+            sil_idleri = [s["urun_id"] for s in uygulanan if s["alan"] == "sil"]
+            if sil_idleri:
+                defter_ekle(kok, sil_idleri)
             fark = git(kok, ["diff", "--quiet", "--", "urunler.json"], kontrol=False)
             if fark.returncode == 0:
                 push_ok = True
@@ -628,7 +625,7 @@ def uygula():
                 sayim[s["alan"]] = sayim.get(s["alan"], 0) + 1
             ozet = " ".join("%s=%d" % (a, n) for a, n in sorted(sayim.items()))
             git(kok, ["add", "urunler.json"]
-                + ([ARSIV_DOSYASI] if sil_kayitlari else []))
+                + ([DEFTER_DOSYASI] if sil_idleri else []))
             # Kimlik bayragi: CI runner'inda global git kimligi yok; -c yereli asmaz.
             git(kok, ["-c", "user.email=panel@pruvo3d.com",
                       "-c", "user.name=panel-uygulayici", "commit", "-q", "-m",
@@ -729,12 +726,12 @@ def _fg(dizin, *args, **run_kw):
                         kimlik_eposta="test@pruvo.test", **run_kw)
 
 
-def _fikstur_kur(tmp, katalog_ek=None, arsiv=None, d1_ek=()):
+def _fikstur_kur(tmp, katalog_ek=None, defter=None, d1_ek=()):
     """Sentetik repo (duzelt-toplu-test.sahte_repo TEK KAYNAK) + gercek git +
     yerel bare uzak + sqlite kuyruk. (repo, bare, db_yolu) doner.
     sqlite'ta D1 `urunler` tablosunun yayin yuzeyi (id, yayinda) de kurulur: her
-    katalog id'si + `d1_ek` (yalniz D1'de duran, or. arsivdeki urunun bayat satiri)
-    yayinda=1 dogar. `arsiv`: verilirse arsiv/urunler-arsiv.json taban commit'e girer.
+    katalog id'si + `d1_ek` (yalniz D1'de duran, or. silinmis urunun bayat satiri)
+    yayinda=1 dogar. `defter`: verilirse urun-silme-defteri.json taban commit'e girer.
     yayin-kapisi.py fikstur agacinin tools/'una kopyalanir (canli: kok/tools)."""
     dt = _modul_yukle(os.path.join(VARSAYILAN_KOK, "tools", "duzelt-toplu-test.py"),
                       "pruvo_duzelt_toplu_test")
@@ -747,10 +744,9 @@ def _fikstur_kur(tmp, katalog_ek=None, arsiv=None, d1_ek=()):
     repo = os.path.realpath(dt.sahte_repo(katalog))  # realpath: sentetik git fiksturu sarti
     shutil.copy(os.path.join(VARSAYILAN_KOK, "tools", "yayin-kapisi.py"),
                 os.path.join(repo, "tools", "yayin-kapisi.py"))
-    if arsiv is not None:
-        os.makedirs(os.path.join(repo, "arsiv"), exist_ok=True)
-        with open(os.path.join(repo, ARSIV_DOSYASI), "w", encoding="utf-8") as f:
-            json.dump(arsiv, f, ensure_ascii=False, indent=2)
+    if defter is not None:
+        with open(os.path.join(repo, DEFTER_DOSYASI), "w", encoding="utf-8") as f:
+            json.dump(defter, f, ensure_ascii=False, indent=2)
     bare = os.path.realpath(tempfile.mkdtemp(prefix="panel-uyg-bare-", dir=tmp))
     _fg(os.path.dirname(bare), "init", "-q", "--bare", bare, check=True)
     for k in (["init", "-q"], ["config", "user.email", "test@pruvo.test"],
@@ -1010,36 +1006,39 @@ def kendini_test():
            rc == 0 and once11 == sonra11 and dok[0]["hal"] == "islendi"
            and dok[0]["sebep"] == "TABAN_ZATEN_ESIT", cikti + str(dok))
 
-        # ── V13 (TEKIL SILME — Okan emri 2 Eyl): alan='sil' satiri tabani N->N-1
-        #    yapar; TAM taban kaydi arsiv dosyasina GEREKCESIZ duser (public repo),
-        #    iki dosya AYNI commit'te push'lanir, satir islendi+commit damgali.
+        # ── V13 (TEKIL SILME — Okan emri 2 Eyl; Okan kurali 6 Eki: TAMAMEN sil, arsiv
+        #    YOK): alan='sil' satiri tabani N->N-1 yapar; deftere YALNIZ id+ts+yazan
+        #    duser (urun icerigi ve gerekce YOK), iki dosya AYNI commit'te push'lanir,
+        #    satir islendi+commit damgali.
         repo12, bare12, db12 = _fikstur_kur(tmp)
         kat_once = _katalog_oku(repo12)
         s13 = _satir_ekle(db12, "test-urun-1", "sil", "kobay: tekil silme provasi")
         rc, cikti = _uygulayici_kos(ARAC_YOLU, repo12, db12)
         kat = _katalog_oku(repo12)
         dok = {s["id"]: s for s in _kuyruk_dok(db12)}
-        arsiv_yolu = os.path.join(repo12, "arsiv", "urunler-arsiv.json")
-        arsiv = []
-        if os.path.exists(arsiv_yolu):
-            with open(arsiv_yolu, encoding="utf-8") as f:
-                arsiv = json.load(f)
+        defter_yolu = os.path.join(repo12, DEFTER_DOSYASI)
+        defter = []
+        if os.path.exists(defter_yolu):
+            with open(defter_yolu, encoding="utf-8") as f:
+                defter = json.load(f)
         uzak12 = _fg(bare12, "rev-parse", "main").stdout.strip()
         yerel12 = _fg(repo12, "rev-parse", "HEAD").stdout.strip()
         fark12 = _fg(repo12, "diff", "--name-only", "HEAD~1", "HEAD").stdout.split()
         ol("V13a sil: rc=0 + urun tabandan dustu (N->N-1)",
            rc == 0 and "test-urun-1" not in kat and len(kat) == len(kat_once) - 1,
            cikti)
-        ol("V13b arsiv kaydi TAM taban kaydi + gerekce arsive SIZMADI (public repo)",
-           len(arsiv) == 1 and arsiv[0].get("kayit") == kat_once["test-urun-1"]
-           and arsiv[0].get("kuyruk_id") == s13
-           and "kobay" not in json.dumps(arsiv[0], ensure_ascii=False),
-           json.dumps(arsiv, ensure_ascii=False)[:300])
+        ol("V13b defter girisi YALNIZ id+silinme_ts+yazan (icerik/gerekce/kuyruk YOK)",
+           len(defter) == 1 and sorted(defter[0]) == ["id", "silinme_ts", "yazan"]
+           and defter[0]["id"] == "test-urun-1" and defter[0]["yazan"] == "panel-uygulayici"
+           and kat_once["test-urun-1"]["baslik"] not in json.dumps(defter, ensure_ascii=False)
+           and "kobay" not in json.dumps(defter, ensure_ascii=False),
+           json.dumps(defter, ensure_ascii=False)[:300])
         ol("V13c satir islendi + commit damgali + push uzakta",
            dok[s13]["hal"] == "islendi" and dok[s13]["islendi_commit"] == yerel12
            and uzak12 == yerel12, str(dok))
-        ol("V13d commit iki dosyayi BIRLIKTE tasir (urunler.json + arsiv)",
-           sorted(fark12) == ["arsiv/urunler-arsiv.json", "urunler.json"], str(fark12))
+        ol("V13d commit iki dosyayi BIRLIKTE tasir (urunler.json + defter), arsiv YOK",
+           sorted(fark12) == [DEFTER_DOSYASI, "urunler.json"]
+           and not os.path.exists(os.path.join(repo12, "arsiv")), str(fark12))
         ol("V13e komsu urunler ayni",
            kat["test-urun-2"] == kat_once["test-urun-2"]
            and kat["test-urun-3"]["fiyat"] == "300 TL")
@@ -1077,12 +1076,9 @@ def kendini_test():
            and once15 == sonra15 and "test-urun-1" in _katalog_oku(repo14), str(dok))
 
         # ══ K430 (1 Eki 2026): silinen urun aramadan HEMEN duser + idempotent silme ══
-        # Arsivde duran (tabanda olmayan) urunun bayat D1 satiri — keyfi id sinavi.
-        ARSIVLI = {"silinme_ts": "2026-10-01T13:57:00Z", "yazan": "panel-uygulayici",
-                   "kuyruk_id": 900, "kayit": {"id": "test-arsivli", "kategori": "Ofis",
-                                               "marka": [], "baslik": "Test Arsivli",
-                                               "aciklama": "a", "fiyat": "50 TL",
-                                               "gorseller": []}}
+        # Defterde duran (tabanda olmayan) urunun bayat D1 satiri — keyfi id sinavi.
+        SILINMIS = {"id": "test-silinmis", "silinme_ts": "2026-10-01T13:57:00Z",
+                    "yazan": "panel-uygulayici"}
 
         # ── V16: sil push'lanir -> AYNI kosumda D1 yayinda=0 (yalniz silinen id),
         #    cikti izi D1_GIZLE=1, rc=0; komsu satirlar yayinda=1 KALIR.
@@ -1109,23 +1105,23 @@ def kendini_test():
            and "D1_GIZLE" not in cikti17 and _kuyruk_dok(db17)[0]["hal"] == "beklemede",
            "rc=%d %s" % (rc, cikti17))
 
-        # ── V18: IDEMPOTENT SILME — urun tabanda yok, arsivde var -> islendi
-        #    ZATEN_ARSIVDE, commit YOK, D1'e DOKUNULMAZ (bayat satir yayinda=1 kalir:
-        #    keyfi id gizlenmez); arsivde de olmayan -> URUN_YOK hata AYNEN.
-        repo18, bare18, db18 = _fikstur_kur(tmp, arsiv=[ARSIVLI], d1_ek=("test-arsivli",))
+        # ── V18: IDEMPOTENT SILME — urun tabanda yok, defterde var -> islendi
+        #    ZATEN_SILINDI, commit YOK, D1'e DOKUNULMAZ (bayat satir yayinda=1 kalir:
+        #    keyfi id gizlenmez); defterde de olmayan -> URUN_YOK hata AYNEN.
+        repo18, bare18, db18 = _fikstur_kur(tmp, defter=[SILINMIS], d1_ek=("test-silinmis",))
         once18 = _fg(bare18, "rev-parse", "main").stdout.strip()
-        a18 = _satir_ekle(db18, "test-arsivli", "sil", "ikinci tiklama")
+        a18 = _satir_ekle(db18, "test-silinmis", "sil", "ikinci tiklama")
         y18 = _satir_ekle(db18, "olmayan-urun", "sil", "gerekce var")
         rc, cikti18 = _uygulayici_kos(ARAC_YOLU, repo18, db18)
         dok = {s["id"]: s for s in _kuyruk_dok(db18)}
-        ol("V18a arsivdeki urunun sil satiri islendi ZATEN_ARSIVDE (hata DEGIL)",
-           rc == 0 and dok[a18]["hal"] == "islendi" and dok[a18]["sebep"] == "ZATEN_ARSIVDE",
+        ol("V18a defterdeki urunun sil satiri islendi ZATEN_SILINDI (hata DEGIL)",
+           rc == 0 and dok[a18]["hal"] == "islendi" and dok[a18]["sebep"] == "ZATEN_SILINDI",
            "rc=%d %s | %s" % (rc, dok, cikti18))
-        ol("V18b arsivde de olmayan -> hata URUN_YOK",
+        ol("V18b defterde de olmayan -> hata URUN_YOK",
            dok[y18]["hal"] == "hata" and dok[y18]["sebep"] == "URUN_YOK", str(dok))
-        ol("V18c commit YOK + keyfi (bu commit'te arsive girmeyen) id GIZLENMEDI",
+        ol("V18c commit YOK + keyfi (bu commit'te deftere girmeyen) id GIZLENMEDI",
            once18 == _fg(bare18, "rev-parse", "main").stdout.strip()
-           and _yayinda(db18).get("test-arsivli") == 1 and "D1_GIZLE" not in cikti18,
+           and _yayinda(db18).get("test-silinmis") == 1 and "D1_GIZLE" not in cikti18,
            cikti18)
 
         # ── V19: D1 indirmesi DUSERSE: commit main'de KALIR, satir islendi, iz
@@ -1165,51 +1161,42 @@ def kendini_test():
            and "D1_GIZLE=1\n" in cikti20b, "y=%r %s" % (y20b, cikti20b))
 
         # ── V21: kume ALAN-BAGLI — elle kurulmus commit: A ve B tabandan duser,
-        #    arsive yalniz A ve C (C tabanda DURUYOR) girer -> kume yalniz [A].
+        #    deftere yalniz A ve C (C tabanda DURUYOR) girer -> kume yalniz [A].
         def _v21_repo():
             d = os.path.realpath(tempfile.mkdtemp(prefix="panel-uyg-v21-", dir=tmp))
             for k in (["init", "-q"], ["config", "user.email", "test@pruvo.test"],
                       ["config", "user.name", "panel-uyg-test"]):
                 _fg(d, *k, check=True)
-            os.makedirs(os.path.join(d, "arsiv"))
 
-            def yaz(urunler, arsiv_):
+            def yaz(urunler, defter_):
                 with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
                     json.dump(urunler, f)
-                with open(os.path.join(d, ARSIV_DOSYASI), "w", encoding="utf-8") as f:
-                    json.dump(arsiv_, f)
+                with open(os.path.join(d, DEFTER_DOSYASI), "w", encoding="utf-8") as f:
+                    json.dump(defter_, f)
                 _fg(d, "add", "-A", check=True)
                 _fg(d, "commit", "-q", "-m", "v21", check=True)
-            eski_giris = {"kuyruk_id": 1, "kayit": {"id": "Z"}}
+
+            def giris(uid, ts):
+                return {"id": uid, "silinme_ts": ts, "yazan": "panel-uygulayici"}
+            eski_giris = giris("Z", "2026-10-01T00:00:01Z")
             yaz([{"id": i} for i in ("A", "B", "C", "D")], [eski_giris])
             yaz([{"id": i} for i in ("C", "D")],
-                [eski_giris, {"kuyruk_id": 2, "kayit": {"id": "A"}},
-                 {"kuyruk_id": 3, "kayit": {"id": "C"}}])
+                [eski_giris, giris("A", "2026-10-01T00:00:02Z"),
+                 giris("C", "2026-10-01T00:00:03Z")])
             return d, _fg(d, "rev-parse", "HEAD").stdout.strip()
         repo21, sha21 = _v21_repo()
-        kume21 = silinen_arsivli_idler(repo21, sha21)
-        ol("V21 kume = (dusen) ∩ (bu commit'te arsive eklenen) = [A]",
+        kume21 = silinen_defterli_idler(repo21, sha21)
+        ol("V21 kume = (dusen) ∩ (bu commit'te deftere eklenen) = [A]",
            kume21 == ["A"], repr(kume21))
 
-        # ── V22: GERI YUKLEME yolu bozulmadi — V16'da silinip yayinda=0'a inen urun
-        #    urun-geri-yukle ile tabana doner; D1 satiri durur (yayinda=0) ve
-        #    yayin-kapisi'nin yayina-alma karari onu ADAY secer, yayin_sql 1'e cevirir.
-        ort = dict(os.environ, URUN_GERI_KOK=repo16)
-        p = subprocess.run([sys.executable, os.path.join(VARSAYILAN_KOK, "tools",
-                                                         "urun-geri-yukle.py"),
-                            "test-urun-1", "--gerekce", "v22"],
-                           env=ort, capture_output=True, text=True)
-        yk = _modul_yukle(os.path.join(repo16, "tools", "yayin-kapisi.py"), "pruvo_yk_v22")
-        yerel22 = list(_katalog_oku(repo16))
-        adaylar22, _atl = yk.adaylari_sec(["test-urun-1"], yerel22, ["test-urun-1"])
-        b = sqlite3.connect(db16)
-        b.executescript(yk.yayin_sql(adaylar22, "r-v22", yk.SahteD1.q))
-        b.commit()
-        b.close()
-        ol("V22 geri-yukle rc=0 + tabanda + yayina-alma adayi + yayin_sql -> yayinda=1",
-           p.returncode == 0 and "test-urun-1" in yerel22
-           and adaylar22 == ["test-urun-1"] and _yayinda(db16).get("test-urun-1") == 1,
-           "rc=%d aday=%r %s" % (p.returncode, adaylar22, p.stdout + p.stderr))
+        # ── V22 (K437): silinen urunun ICERIGI repoda HICBIR izlenen dosyada kalmadi —
+        #    V16'da silinen urunun basligi uc commit'in VERI agacinda (tools/ fikstur
+        #    kodu haric) aranir (geri yukleme yolu YOK: Okan kurali 6 Eki, arsiv YOK).
+        baslik22 = kat_once["test-urun-1"]["baslik"]
+        izli22 = _fg(repo16, "grep", "-l", "-F", baslik22, "HEAD", "--", ".",
+                     ":(exclude)tools").stdout.split()
+        ol("V22 silinen urunun basligi uc agacta 0 dosyada (icerik tutulmadi)",
+           izli22 == [], repr(izli22))
 
         # ── MUTANTLAR: canli govdeye DOKUNULMAZ; gecici KOPYA mutasyonlanir.
         #    Once kopyanin KONTROL kosumu (mutasyonsuz, ayni argumanlar) yesil olmali.
@@ -1283,9 +1270,9 @@ def kendini_test():
         mutant_sonuc.append(("M3-gorsel-dogrulama-kalkar", m3_oldu, "GORSEL_ONEK_DISI"))
         ol("M3 mutant V12e iddiasini dusurdu (gorsel dogrulama kolu canli)", m3_oldu, cikti3)
 
-        # M4-arsiv-yazimi-kalkar: hedef kol = V13b (silinen kaydin arsiv duzlemine
-        # dusmesi). Capa PARCALI (M1 gerekcesi ayni: tek literal bu dosyada da gecer).
-        capa4 = "arsiv_ekle(kok, " + "sil_kayitlari)"
+        # M4-defter-yazimi-kalkar: hedef kol = V13b (silinen id'nin deftere dusmesi).
+        # Capa PARCALI (M1 gerekcesi ayni: tek literal bu dosyada da gecer).
+        capa4 = "defter_ekle(kok, " + "sil_idleri)"
         ol("M4 capasi canli govdede tekil", govde.count(capa4) == 1)
         m4 = os.path.join(tmp, "mutant-m4.py")
         with open(m4, "w", encoding="utf-8") as f:
@@ -1293,16 +1280,34 @@ def kendini_test():
         repoM4, bareM4, dbM4 = _fikstur_kur(tmp)
         _satir_ekle(dbM4, "test-urun-1", "sil", "m4 kobay")
         rc4, cikti4 = _uygulayici_kos(m4, repoM4, dbM4)
-        a4 = os.path.join(repoM4, "arsiv", "urunler-arsiv.json")
+        a4 = os.path.join(repoM4, DEFTER_DOSYASI)
         if os.path.exists(a4):
             with open(a4, encoding="utf-8") as f:
                 a4_icerik = json.load(f)
         else:
             a4_icerik = None
-        # Mutant altinda urun tabandan duser ama arsiv kaydi OLUSMAZ — V13b duser.
+        # Mutant altinda urun tabandan duser ama defter girisi OLUSMAZ — V13b duser.
         m4_oldu = not a4_icerik
-        mutant_sonuc.append(("M4-arsiv-yazimi-kalkar", m4_oldu, "V13b-arsiv-kaydi"))
-        ol("M4 mutant V13b iddiasini dusurdu (arsiv kolu canli)", m4_oldu, cikti4)
+        mutant_sonuc.append(("M4-defter-yazimi-kalkar", m4_oldu, "V13b-defter-girisi"))
+        ol("M4 mutant V13b iddiasini dusurdu (defter kolu canli)", m4_oldu, cikti4)
+
+        # M13-defter-tam-kayit-yazar (K437): hedef = V13b (defter icerik TASIMAZ). Mutant
+        # eski davranisi geri getirir: giris tam taban kaydini da tasir.
+        capa13 = ('mevcut.append({"id": uid, "silinme_ts": simdi_utc(), '
+                  '"yazan": "panel-' + 'uygulayici"})')
+        m13 = os.path.join(tmp, "mutant-m13.py")
+        ol("M13 capasi canli govdede tekil", govde.count(capa13) == 1)
+        with open(m13, "w", encoding="utf-8") as f:
+            f.write(govde.replace(capa13, capa13[:-2] + ', "kayit": {"id": uid, '
+                                  '"baslik": "Test Urun 1"}})'))
+        repoM13, bareM13, dbM13 = _fikstur_kur(tmp)
+        _satir_ekle(dbM13, "test-urun-1", "sil", "m13 kobay")
+        rc13, cikti13 = _uygulayici_kos(m13, repoM13, dbM13)
+        with open(os.path.join(repoM13, DEFTER_DOSYASI), encoding="utf-8") as f:
+            d13 = json.load(f)
+        m13_oldu = any(sorted(g) != ["id", "silinme_ts", "yazan"] for g in d13)
+        mutant_sonuc.append(("M13-defter-tam-kayit-yazar", m13_oldu, "V13b-icerik-yok"))
+        ol("M13 mutant V13b iddiasini dusurdu (icerik kolu canli)", m13_oldu, cikti13)
 
         # M5-sil-onceligi-kalkar: hedef kol = V14b (URUN_SILINECEK). Capa PARCALI.
         capa5 = 'if s.get("alan") != "sil" and ' + 's.get("urun_id") in silinecek:'
@@ -1346,16 +1351,16 @@ def kendini_test():
 
         # M7/M10/M11 ayni capa (kume formulu), uc FARKLI izole sapma.
         capa7 = "return sorted(i for i in " + "dusen & eklenen if i)"
-        # M7-arsiv-sarti-duser: hedef = V21 (arsivsiz dusus kumeye GIRMEZ).
+        # M7-defter-sarti-duser: hedef = V21 (deftersiz dusus kumeye GIRMEZ).
         m7 = mutant_yaz("M7", capa7, "return sorted(i for i in dusen if i)")
-        k7 = _modul_yukle(m7, "panel_uyg_m7").silinen_arsivli_idler(repo21, sha21)
+        k7 = _modul_yukle(m7, "panel_uyg_m7").silinen_defterli_idler(repo21, sha21)
         m7_oldu = k7 != ["A"]
-        mutant_sonuc.append(("M7-arsiv-sarti-duser", m7_oldu, "V21-kume-(b)"))
-        ol("M7 mutant V21 iddiasini dusurdu (arsiv sarti canli) kume=%r" % k7, m7_oldu)
+        mutant_sonuc.append(("M7-defter-sarti-duser", m7_oldu, "V21-kume-(b)"))
+        ol("M7 mutant V21 iddiasini dusurdu (defter sarti canli) kume=%r" % k7, m7_oldu)
 
-        # M11-dusme-sarti-duser: hedef = V21 (tabanda duran arsiv girisi GIZLENMEZ).
+        # M11-dusme-sarti-duser: hedef = V21 (tabanda duran defter girisi GIZLENMEZ).
         m11 = mutant_yaz("M11", capa7, "return sorted(i for i in eklenen if i)")
-        k11 = _modul_yukle(m11, "panel_uyg_m11").silinen_arsivli_idler(repo21, sha21)
+        k11 = _modul_yukle(m11, "panel_uyg_m11").silinen_defterli_idler(repo21, sha21)
         m11_oldu = k11 != ["A"]
         mutant_sonuc.append(("M11-dusme-sarti-duser", m11_oldu, "V21-kume-(a)"))
         ol("M11 mutant V21 iddiasini dusurdu (dusus sarti canli) kume=%r" % k11, m11_oldu)
@@ -1370,16 +1375,16 @@ def kendini_test():
         mutant_sonuc.append(("M10-gizle-tum-silinmeyenlere", m10_oldu, "V20b-yalniz-silinen"))
         ol("M10 mutant V20b iddiasini dusurdu (kume daralmasi canli)", m10_oldu, cikti10)
 
-        # M8-zaten-arsivde-hata-kovasina: hedef = V18a.
-        capa8 = 'zaten.append((s, "ZATEN_' + 'ARSIVDE"))'
-        m8 = mutant_yaz("M8", capa8, 'hata.append((s, "ZATEN_ARSIVDE"))')
-        repoM8, bareM8, dbM8 = _fikstur_kur(tmp, arsiv=[ARSIVLI], d1_ek=("test-arsivli",))
-        aM8 = _satir_ekle(dbM8, "test-arsivli", "sil", "m8 kobay")
+        # M8-zaten-silindi-hata-kovasina: hedef = V18a.
+        capa8 = 'zaten.append((s, "ZATEN_' + 'SILINDI"))'
+        m8 = mutant_yaz("M8", capa8, 'hata.append((s, "ZATEN_SILINDI"))')
+        repoM8, bareM8, dbM8 = _fikstur_kur(tmp, defter=[SILINMIS], d1_ek=("test-silinmis",))
+        aM8 = _satir_ekle(dbM8, "test-silinmis", "sil", "m8 kobay")
         rc8, cikti8 = _uygulayici_kos(m8, repoM8, dbM8)
         dM8 = {s["id"]: s for s in _kuyruk_dok(dbM8)}[aM8]
         # Olum = satir FIILEN hata kovasina indi (cokusle beklemede kalmasi sayilmaz).
-        m8_oldu = dM8["hal"] == "hata" and dM8["sebep"] == "ZATEN_ARSIVDE"
-        mutant_sonuc.append(("M8-zaten-arsivde-hata-kovasina", m8_oldu, "V18a-ZATEN_ARSIVDE"))
+        m8_oldu = dM8["hal"] == "hata" and dM8["sebep"] == "ZATEN_SILINDI"
+        mutant_sonuc.append(("M8-zaten-silindi-hata-kovasina", m8_oldu, "V18a-ZATEN_SILINDI"))
         ol("M8 mutant V18a iddiasini dusurdu (idempotent silme kolu canli)", m8_oldu, cikti8)
 
         # M9-gizle-rc-yutulur: hedef = V19a (gizle hatasi rc!=0).
