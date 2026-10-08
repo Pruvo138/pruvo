@@ -25,8 +25,12 @@ SAGLAYICI KOLU (--kredi-tavani, kopru-15 SAGLAYICI-2; sahte panel uclari + sahte
 S1 tavan 0 -> ②④ OLCULMEZ, panel istegi 0 · S2 tavan 10 -> ② HAZIR, build oncesi DUR, tik 0 · S3 tavan 100 -> ④
 HAZIR, KREDI_HARCANAN=46/100 · S4 tavan 5 -> onizleme istegi 0 · S5 kuyrukta yabanci yarim satir -> DUR, tik 0 ·
 S6 saglayici 3MF %10 buyuk -> ④ eksen YANLIS · S7 sunucu tahminden pahali yazar -> D1 farkiyla renk oncesi DUR.
+S8 makine anahtari yok -> OLCULEMEDI, panel sifresine DUSMEZ · S9 tohumlanmis 'doku' satirindan --devam-is ile
+devam -> ④ HAZIR, ornek-onizleme 0, KREDI_HARCANAN=20/30 (yalniz yeni adimlar) · S10 --devam-is ama tavan 0
+-> erken HATA rc 2, panel istegi 0 · S11 --devam-is bilinmeyen is -> ② EKSIK, ornek-onizleme 0.
 MB21 kredi kontrolu yok -> S2+S4 · MB22 yabanci kuyruk kontrolu yok -> S5 · MB23 tavan-0 kolu yok -> S1 ·
-MB24 D1 farki okunmuyor -> S7 · MB3 ayrica S6 · S8 makine anahtari yok -> OLCULEMEDI, panel sifresine DUSMEZ.
+MB24 D1 farki okunmuyor -> S7 · MB3 ayrica S6 · MB25 devam yolunda ornek-onizleme yine cagirilirsa S9 KIRMIZI ·
+MB26 tavan-0 korumasi kaldirilirsa S10 KIRMIZI.
 """
 import json
 import os
@@ -183,6 +187,10 @@ class Sunucu:
                     return h.yanit(200, {"is": no})
                 if uc == "/foto/ornek-durum":
                     no = h.path.split("=", 1)[1]
+                    # SAGLAYICI-2 devam yolu: bilinmeyen is_no -> 200 asama='yok' (saglayici_2 erken cikar).
+                    r = c.execute("SELECT 1 FROM foto_isler WHERE is_no = ?", (no,)).fetchone()
+                    if not r:
+                        return h.yanit(200, {"is": no, "asama": "yok"})
                     c.execute("UPDATE foto_isler SET asama = 'hazir', hazir_tarih = ? WHERE is_no = ?", (simdi, no))
                     return h.yanit(200, {"is": no, "asama": "hazir"})
                 if uc == "/foto/ornek-gorsel":
@@ -194,8 +202,15 @@ class Sunucu:
                               " guncel) VALUES (?, 0, ?, ?, ?, 'build-baslat', ?, ?)", (no, g["is"], r[0], r[1], simdi, simdi))
                     return h.yanit(200, {"ok": True, "siparis_no": no})
                 if uc == "/foto/uretim-tik":
-                    sonraki = {"build-baslat": "build", "build": "analiz", "analiz": "renk", "renk": "hazir"}
-                    bedel = {"build": ayar.get("bedel_build", 30), "renk": 10}
+                    # zengin_harita=True: analiz->onarim->doku->renk (kopru-11 SAGLAYICI-2 haritasi).
+                    # Default (S1-S8): analiz->renk, bedel build 30 + renk 10 (degismez).
+                    if ayar.get("zengin_harita"):
+                        sonraki = {"build-baslat": "build", "build": "analiz", "analiz": "onarim",
+                                   "onarim": "doku", "doku": "renk", "renk": "hazir"}
+                        bedel = {"build": ayar.get("bedel_build", 30), "onarim": 10, "doku": 10, "renk": 10}
+                    else:
+                        sonraki = {"build-baslat": "build", "build": "analiz", "analiz": "renk", "renk": "hazir"}
+                        bedel = {"build": ayar.get("bedel_build", 30), "renk": 10}
                     for no, ino, tur, olcu, asama in c.execute(
                             "SELECT siparis_no, is_no, tur, olcu_mm, asama FROM foto_uretim WHERE asama NOT IN"
                             " ('hazir', 'elle', 'uretec-bekliyor')").fetchall():
@@ -411,10 +426,13 @@ def vakalar(kaynak, sadece=None):
     vaka("U6", u6)
 
     # SAGLAYICI KOLU (kopru-15 SAGLAYICI-2): --kredi-tavani. Kapali tur = isimlik (mutant on kosulu icin).
-    def sag(o, tavan, **ek):
+    def sag(o, tavan, devam_is="", **ek):
         hazir_ortam(o, "plaket")
         o.sunucu.ayar["acik"] = [k for k in o.sunucu.ayar["acik"] if k != "isimlik"]
-        rc, son, c = o.kos("--tur", "plaket", "--kredi-tavani", str(tavan), **ek)
+        args = ["--tur", "plaket", "--kredi-tavani", str(tavan)]
+        if devam_is:
+            args += ["--devam-is", devam_is]
+        rc, son, c = o.kos(*args, **ek)
         return rc, son, c, o.sunucu.ayar["yonet"]
 
     def s1(o):
@@ -474,6 +492,53 @@ def vakalar(kaynak, sadece=None):
         rc, son, c, y = sag(o, 100, ONIZLEME_MAKINE_ANAHTARI="", YONET_ANAHTAR="test-yonet")
         return rc == 2 and "OLCULEMEDI ONIZLEME_MAKINE_ANAHTARI yok" in c and sum(y.values()) == 0, "yonet=%s %s" % (y, son)
     vaka("S8", s8)
+
+    # kopru-15 SAGLAYICI-2 devam yolu (--devam-is): park etmis saglayici zincirini YENI onizleme acmadan surdur.
+    def s9(o):
+        # Pre-seed foto_isler (ziyaretci 'ornek', asama 'hazir') + foto_uretim ('doku' satir). zengin harita ile
+        # uretim-tik doku->renk->hazir; /foto/ornek-onizleme 0; yalniz yeni adim kredisi (doku 10 + renk 10 = 20).
+        # plaket olcu_secenekleri ortanca = 180 (betigin tr.olcu'su) — 100 yazarsak eksen YANLIS olur.
+        is_no = "f" * 32
+        no = "ORNEK-" + is_no[:12]
+        c0 = sqlite3.connect(o.db)
+        c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
+                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+        c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
+                   " VALUES (?, 0, ?, 'plaket', 180, 'doku', 't', 't')", (no, is_no))
+        c0.commit()
+        c0.close()
+        o.sunucu.ayar["zengin_harita"] = True
+        rc, son, c, y = sag(o, 30, devam_is=is_no)
+        ok = (olcut(c, "plaket", "2") == "HAZIR" and olcut(c, "plaket", "4") == "HAZIR" and
+              y.get("/foto/ornek-onizleme", 0) == 0 and y.get("/foto/ornek-uret", 0) == 1 and
+              y.get("/foto/uretim-tik", 0) == 2 and "KREDI_HARCANAN=20/30" in c)
+        return ok, "yonet=%s %s" % (y, c[-600:])
+    vaka("S9", s9)
+
+    def s10(o):
+        # --devam-is ile tavan 0: erken HATA + rc 2, panel istegi 0.
+        is_no = "f" * 32
+        c0 = sqlite3.connect(o.db)
+        c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
+                   " VALUES (?, 'plaket', 100, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+        c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
+                   " VALUES ('ORNEK-' || substr(?, 1, 12), 0, ?, 'plaket', 100, 'doku', 't', 't')",
+                   (is_no, is_no))
+        c0.commit()
+        c0.close()
+        rc, son, c, y = sag(o, 0, devam_is=is_no)
+        ok = rc == 2 and "HATA --devam-is" in c and sum(y.values()) == 0
+        return ok, "yonet=%s %s" % (y, son)
+    vaka("S10", s10)
+
+    def s11(o):
+        # --devam-is bilinmeyen is: ornek-onizleme 0, ornek-durum 'yok' erken cikar -> ② EKSIK.
+        is_no = "f" * 32  # tohumlanmamis
+        rc, son, c, y = sag(o, 100, devam_is=is_no)
+        ok = (olcut(c, "plaket", "2") == "EKSIK" and y.get("/foto/ornek-onizleme", 0) == 0 and
+              y.get("/foto/ornek-durum", 0) == 1 and olcut(c, "plaket", "4") == "EKSIK")
+        return ok, "yonet=%s %s" % (y, c[-600:])
+    vaka("S11", s11)
 
     def u7(o):
         hazir_ortam(o)
@@ -750,6 +815,12 @@ MUTANTLAR = {
     "MB23": ('                if a.kredi_tavani > 0 and tr.t.get("kol") == "saglayici":',
              '                if tr.t.get("kol") == "saglayici":', {"S1"}),
     "MB24": ("        return max(self.toplam() - self.taban, self.ayrilan)", "        return self.ayrilan", {"S7"}),
+    # kopru-15 SAGLAYICI-2 devam yolu: --devam-is gecersiz olursa ornek-onizleme yeniden acilir / tavan-0 kolu
+    # devre disi kalirsa erken HATA atlanir -> KIRMIZI.
+    "MB25": ("    if devam_is_no:\n        tr.is_no = devam_is_no\n    else:",
+             "    if False:\n        tr.is_no = devam_is_no\n    else:", {"S9"}),
+    "MB26": ("    if a.devam_is and (a.kredi_tavani <= 0 or len(a.tur) != 1 or a.hepsi):",
+             "    if a.devam_is and (len(a.tur) != 1 or a.hepsi):", {"S10"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }

@@ -899,26 +899,33 @@ def yokla_bekle():
     time.sleep(float(os.environ.get("FOTO_UU_YOKLA_SN", "5")))
 
 
-def saglayici_2(tr, kredi):
+def saglayici_2(tr, kredi, devam_is_no=""):
     """② SAGLAYICI: panel ornek ucu (musteri ucuyla AYNI saglayici cagrisi, shop/src/foto.js panelOrnekOnizleme)
-    -> ornek-durum yoklamasi (sunucu saglayiciyi bu yoklamayla ilerletir) -> onizleme gorseli px."""
-    ok, sebep = kredi.ayir(KREDI_ONIZLEME)
-    if not ok:
-        tr.koy("2", False, sebep)
-        tr.koy("4", False, sebep)
-        return
-    _, bayt, tip = tr.dosyalar["foto"]
-    k, _, b = yonet("POST", "/foto/ornek-onizleme", {"tur": tr.kod, "olcu_mm": tr.olcu, "gorsel": "data:%s;base64,%s" % (
-        tip, base64.b64encode(bayt).decode())})
-    j = json_coz(b)
-    if k != 200 or not isinstance(j.get("is"), str):
-        tr.koy("2", False, "ornek-onizleme kod=%s hata=%s" % (k, j.get("hata")))
-        return
-    tr.is_no, d = j["is"], {}
+    -> ornek-durum yoklamasi (sunucu saglayiciyi bu yoklamayla ilerletir) -> onizleme gorseli px.
+    --devam-is: onizleme islemi POSPUUNA YENIDEN acilmaz (bedel onceki kosumda odendi); sadece
+    tr.is_no = <is_no> ile ornek-durum + ornek-gorsel aynen (ornek-onizleme POST'U YAPMAZ, KREDI_ONIZLEME
+    AYIRMAZ)."""
+    if devam_is_no:
+        tr.is_no = devam_is_no
+    else:
+        ok, sebep = kredi.ayir(KREDI_ONIZLEME)
+        if not ok:
+            tr.koy("2", False, sebep)
+            tr.koy("4", False, sebep)
+            return
+        _, bayt, tip = tr.dosyalar["foto"]
+        k, _, b = yonet("POST", "/foto/ornek-onizleme", {"tur": tr.kod, "olcu_mm": tr.olcu, "gorsel": "data:%s;base64,%s" % (
+            tip, base64.b64encode(bayt).decode())})
+        j = json_coz(b)
+        if k != 200 or not isinstance(j.get("is"), str):
+            tr.koy("2", False, "ornek-onizleme kod=%s hata=%s" % (k, j.get("hata")))
+            return
+        tr.is_no = j["is"]
+    d = {}
     for _ in range(YOKLAMA_SAYI):
         k, _, b = yonet("GET", "/foto/ornek-durum?is=" + tr.is_no)
         d = json_coz(b) if k == 200 else {}
-        if d.get("asama") in ("hazir", "basarisiz"):
+        if d.get("asama") in ("hazir", "basarisiz", "yok"):
             break
         yokla_bekle()
     boyut = None
@@ -1174,7 +1181,15 @@ def main(argv=None):
     ap.add_argument("--kol", choices=["D", "M", "R"], help="--hepsi ile: yalniz bu motor")
     ap.add_argument("--kredi-tavani", type=int, default=0,
                     help="saglayici kolu: bu kosumda harcanabilecek kredi (0 = saglayiciya istek YOK, ②④ OLCULMEZ)")
+    ap.add_argument("--devam-is", default="",
+                    help="saglayici kolu: onceki kosumda park etmis is_no'dan zinciri surdurur "
+                         "(ornek-onizleme POST'U YAPMAZ, KREDI_ONIZLEME ayirmaz). Yalniz --kredi-tavani > 0 "
+                         "ve TEK --tur ile gecerli; --hepsi ile birlikte kullanilamaz.")
     a = ap.parse_args(argv)
+    if a.devam_is and (a.kredi_tavani <= 0 or len(a.tur) != 1 or a.hepsi):
+        print("HATA --devam-is yalniz --kredi-tavani > 0 ve TEK --tur ile gecerli")
+        print("HAZIR=0/0 rc=2")
+        return 2
     gecici = tempfile.mkdtemp(prefix="foto-uu-")
     try:
         MAN.clear()
@@ -1244,7 +1259,7 @@ def main(argv=None):
                 tr.koy("4", False, "onizleme yok -> ORNEK siparis acilmadi")
         kredi = Kredi(bulut, a.kredi_tavani) if sag else None
         for tr in sag:
-            saglayici_2(tr, kredi)
+            saglayici_2(tr, kredi, devam_is_no=a.devam_is)
             if tr.s["2"][0] and saglayici_4(tr, kredi):
                 olc_4(tr, bulut, gecici)
             elif tr.s["4"][1] == "OLCULEMEDI":
