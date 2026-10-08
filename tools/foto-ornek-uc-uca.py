@@ -1177,15 +1177,27 @@ def istek_govdesi(tr, onay):
     return "/api/shop/foto/onizleme", g
 
 
+# Fiyat beklentisi BAGIMSIZ carpim (VERI'den okunmaz): max(600 TL, mm × 10 TL) — Okan 8 Eki tabani.
+TABAN_KURUS = 60000
+
+
+def beklenen_kurus(mm):
+    return max(mm * 1000, TABAN_KURUS)
+
+
+def fiyat_yazisi(mm):
+    return "%d mm → %s TL" % (mm, "{:,}".format(beklenen_kurus(mm) // 100).replace(",", "."))
+
+
 def olc_3_turetilmis(tr, a, v):
-    """TURETILMIS eksen: onizleme olcusu x 10 TL == sunucu fiyati (durum) == bolumun S3 yazisi; surgu YOK."""
+    """TURETILMIS eksen: max(600 TL, onizleme olcusu x 10 TL) == sunucu fiyati (durum) == bolumun S3 yazisi; surgu YOK."""
     t = tr.t
     uk = getattr(tr, "uk", None)
     olculen = int(math.floor(uk + 0.5)) if isinstance(uk, (int, float)) and not isinstance(uk, bool) and uk > 0 else None
-    bek = olculen * 1000 if olculen else None
+    bek = beklenen_kurus(olculen) if olculen else None
     sunucu = (getattr(tr, "durum", None) or {}).get("fiyat_kurus")
     kaynak = (getattr(tr, "durum", None) or {}).get("olcu_kaynagi")
-    yazi = "%d mm → %s TL" % (olculen, "{:,}".format(olculen * 10).replace(",", ".")) if olculen else None
+    yazi = fiyat_yazisi(olculen) if olculen else None
     api_ok = a is not None and t.get("formul") == "mm_x_10tl" and t.get("formul_kurus_mm") == 1000
     gos = (v or {}).get("olculen_fiyat")
     esit = bek is not None and tr.olcu == olculen and sunucu == bek and gos == yazi
@@ -1202,19 +1214,19 @@ def olc_3_turetilmis(tr, a, v):
 
 def olc_3_5_6(tr, acik, tar):
     t = tr.t
-    # (3) API: /acik olculeri == olcuSecenekleri ve fiyat == mm x formul (bagimsiz carpim).
+    # (3) API: /acik olculeri == olcuSecenekleri ve fiyat == max(taban, mm x formul) (bagimsiz carpim).
     a = next((x for x in (acik.get("turler") or []) if x.get("kod") == tr.kod), None)
     beklenen = t.get("olcu_secenekleri") or []
     api_ok = (a is not None and t.get("formul") == "mm_x_10tl" and t.get("formul_kurus_mm") == 1000 and
               [o.get("mm") for o in a.get("olculer") or []] == beklenen and beklenen and
-              all(o.get("fiyat_kurus") == o.get("mm") * 1000 for o in a.get("olculer") or []) and
-              all(k == mm * 1000 for mm, k, _ in t.get("fiyatlar") or []))
+              all(o.get("fiyat_kurus") == beklenen_kurus(o.get("mm")) for o in a.get("olculer") or []) and
+              all(k == beklenen_kurus(mm) for mm, k, _ in t.get("fiyatlar") or []))
     v = tar.get(tr.kod) if tar else None
     if v is not None and not v.get("secildi"):
         # Tur tarayicida SECILEMIYORSA (3)(5)(6) baska turun sayfasini olcerdi -> hepsi EKSIK, sebep adiyla.
         v = dict(v, surgu=False, onay_kutusu=0, hata=v.get("hata") or "secili_tur=%r" % v.get("secili_tur"))
     uc = beklenen[-1] if beklenen else 0
-    beklenen_yazi = "%d mm → %s TL" % (uc, "{:,}".format(uc * 10).replace(",", "."))
+    beklenen_yazi = fiyat_yazisi(uc)
     if t.get("turetilmis"):
         olc_3_turetilmis(tr, a, v)
     elif not v:

@@ -2423,7 +2423,7 @@ export async function panelUretecYukle(request, env, url, simdi) {
 export async function panelFotoOzet(env, simdi) {
   const y = yapilandirma(env);
   const cikti = { yapilandirma: y, turler: [], kredi: { bu_ay: 0, gecen_ay: 0 }, bakiye: null,
-                  acik: [], fiyat_formulu: "en uzun boyut (mm) × 10 TL", onay_onayli: VERI.onay_onayli === true, onay_surum: VERI.onay_surum,
+                  acik: [], fiyat_formulu: "en uzun boyut (mm) × 10 TL, en az 600 TL", onay_onayli: VERI.onay_onayli === true, onay_surum: VERI.onay_surum,
                   ornek: VERI.turler.map((t) => ({ tur: t.kod, sayi: VERI.ornekSayisi(t.kod) })),
                   sunulan_turler: VERI.turler.filter((t) => turSunuluyor(t.kod))
                     .map((t) => ({ kod: t.kod, ad: t.ad, kol: VERI.kolu(t.kod),

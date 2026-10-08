@@ -1843,7 +1843,7 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
       form: { yazi: { tip: "metin", max: 20 }, kalinlik: { tip: "sayi", min: 2, max: 6, adim: 1, birim: "mm" },
               yazi_tipi: { tip: "secim", secenekler: ["Düz", "Eğik"] }, link: { tip: "url" },
               kapak: { tip: "bool", etiket: "Kapak", varsayilan: true } },
-      fiyat: { formul: "mm_x_10tl", adim_mm: 10 }, ornek_kanit_izni: ["render"], ornek_notu: "t" });
+      fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 }, ornek_kanit_izni: ["render"], ornek_notu: "t" });
     V.ornekler.push({ tur: "sentetik-d", kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/t-io.webp",
       render: "https://media.pruvo3d.com/t-ir.webp", not: "t" });
     const asil = V.parametreDogrula;

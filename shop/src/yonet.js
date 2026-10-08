@@ -2640,7 +2640,7 @@ async function fotoYukle(){
   h.push('<div class="kart"><b>Elle bakılacak</b>'+o.elle.map(function(e){return '<div class="kucuk">'+
    esc(e.siparis_no)+' · kalem '+esc(e.kalem)+' · '+esc(e.tur)+' — <span class="hata">'+esc(e.sebep)+'</span></div>';}).join("")+'</div>');
  }
- // ACILIS ANAHTARI — fiyat tablosu YOK (Okan 7 Eki): fiyat = en uzun boyut (mm) × 10 TL, tek formül.
+ // ACILIS ANAHTARI — fiyat tablosu YOK (Okan 7 Eki): fiyat = max(600 TL, en uzun boyut (mm) × 10 TL), tek formül.
  // Tür yalnız anahtarı AÇIK + gerçek örneği varsa satılır; varsayılan KAPALI.
  var acikK={};(o.acik||[]).forEach(function(k){acikK[k]=true;});
  h.push('<div class="kart"><b>Satışa açık türler</b> (fiyat: '+esc(o.fiyat_formulu||"")+'; KDV dahil, kargo ayrı)'+

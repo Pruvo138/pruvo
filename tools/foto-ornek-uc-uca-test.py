@@ -267,7 +267,7 @@ class Sunucu:
                 if self.path.startswith("/api/shop/yonet/"):
                     return panel(self, "GET", {})
                 if self.path == "/api/shop/foto/acik":
-                    tl = [{"kod": k, "olculer": [{"mm": mm, "fiyat_kurus": mm * ayar["carpan"]}
+                    tl = [{"kod": k, "olculer": [{"mm": mm, "fiyat_kurus": max(mm * ayar["carpan"], TABAN_KURUS)}
                                                  for mm in TUR[k]["olcu_secenekleri"]]} for k in ayar["acik"]]
                     return self.yanit(200, {"acik": bool(tl), "turler": tl, "onay_surum": MAN["onay_surum"]})
                 if self.path.startswith("/api/shop/foto/durum?is="):
@@ -279,7 +279,7 @@ class Sunucu:
                     if not r or r[2] == "ornek":
                         return self.yanit(404, {"hata": "bulunamadi"})
                     return self.yanit(200, {"asama": "hazir", "tur": r[0], "olcu_mm": r[1], "olcu_kaynagi": "turetilmis",
-                                            "fiyat_kurus": r[1] * ayar["durum_carpan"]})
+                                            "fiyat_kurus": max(r[1] * ayar["durum_carpan"], TABAN_KURUS)})
                 if self.path.startswith("/medya/"):
                     return self.yanit(200, b"RIFF0000WEBP", "image/webp")
                 self.yanit(404, {"hata": "yok"})
@@ -311,17 +311,21 @@ class Sunucu:
         self.h.server_close()
 
 
+# Sahte sunucu/tarayici gercek formulu taklit eder: max(600 TL, mm × 10 TL) (Okan 8 Eki tabani).
+TABAN_KURUS = 60000
+
+
 def tarayici_iyi(kod, olculen=123):
     t = TUR[kod]
     uc = t["olcu_secenekleri"][-1]
     v = {"secildi": True, "secili_tur": kod, "surgu": True,
-         "fiyat": "%d mm → %s TL" % (uc, "{:,}".format(uc * 10).replace(",", ".")),
+         "fiyat": "%d mm → %s TL" % (uc, "{:,}".format(max(uc * 1000, TABAN_KURUS) // 100).replace(",", ".")),
          "onay_kutusu": 1, "onaysiz_dugme_kapali": True, "durustluk": t["durustluk"], "tasma": 0,
          "genislik": 375, "konsol": [], "olculen_not": False}
     if t.get("turetilmis"):
         # Surgu YOK (S1 not var); S3 onizleme olcusu (sahte kopru 123.4 -> 123) ile fiyat yazisi.
         v.update(surgu=False, fiyat="", olculen_not=True, s3_surgu=False,
-                 olculen_fiyat="%d mm → %s TL" % (olculen, "{:,}".format(olculen * 10).replace(",", ".")))
+                 olculen_fiyat="%d mm → %s TL" % (olculen, "{:,}".format(max(olculen * 1000, TABAN_KURUS) // 100).replace(",", ".")))
     return v
 
 
@@ -966,7 +970,7 @@ MUTANTLAR = {
             {"U4", "U16", "U18", "S6"}),
     "MB4": ('sunucu_ok = k0 == 400 and j0.get("hata") == "onay-yok" and',
             'sunucu_ok = k0 in (400, 403) and', {"U5"}),
-    "MB5": ('all(o.get("fiyat_kurus") == o.get("mm") * 1000 for o in a.get("olculer") or []) and',
+    "MB5": ('all(o.get("fiyat_kurus") == beklenen_kurus(o.get("mm")) for o in a.get("olculer") or []) and',
             'True and', {"U6"}),
     "MB6": ('        tr.koy("6", False, "tarayici=OLCULEMEDI")\n        return',
             '        tr.koy("6", True, "tarayici=OLCULEMEDI")\n        tr.koy("5", True, "")\n'
@@ -1028,6 +1032,8 @@ MUTANTLAR = {
     # ONARIM KAPISI (8 Eki): betik 'onarim-bekliyor'da kosucuyu kosmazsa satir uretim-tik'e duser (tik onu
     # ilerletmez) -> S14 ④ EKSIK, S15 dogru sebebi basmaz.
     "MB31": ("        if asama == \"onarim-bekliyor\":\n", "        if False:\n", {"S14", "S15"}),
+    # Okan 8 Eki tabani: olcum betigi tabani unutursa 60 mm alti sabit turler (qr/logo/muhur/braille) KIRMIZI.
+    "MB32": ("    return max(mm * 1000, TABAN_KURUS)\n", "    return mm * 1000\n", {"U14"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }

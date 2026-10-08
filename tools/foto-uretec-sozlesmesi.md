@@ -26,7 +26,7 @@ Sahibi: KraL (kategori motoru). Uyan: TeKiN üreteçleri (D ve R kolu). Tek kayn
   "dosyalar":  { "foto": "foto.png" }
 }
 ```
-- `olcu_mm` = ürünün **EN UZUN KENARI** (mm, tam sayı). Fiyatın ekseni de budur (`olcu_mm × 10 TL`).
+- `olcu_mm` = ürünün **EN UZUN KENARI** (mm, tam sayı). Fiyatın ekseni de budur (`max(600 TL, olcu_mm × 10 TL)`, taban tür kaydında `fiyat.taban_tl`).
 - `renkler` / `malzemeler` anahtarları = manifestteki `renk_bolgeleri[].kod`; değerler manifestteki izinli listeden. Liste dışı → rc 2.
 - `parametreler` = manifest satırındaki `form` şemasının doldurulmuş hâli (dalga 2 parametrik: iç çap, diş sayısı…; metin kategorileri: `metin`, `url`; veri: `enlem`, `boylam`, `tarih`). Şema dışı anahtar → rc 2.
 - `dosyalar` = girdi dizinine göre göreli yollar: `foto` (PNG/JPEG), `gri_harita` (PNG, litofan/rölyef — tarayıcıda çıkarılır), `svg`, `ses` (WAV ≤ 60 sn). Kategori yalnız manifestte beyan ettiği girdileri alır.

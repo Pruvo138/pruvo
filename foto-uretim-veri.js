@@ -73,6 +73,7 @@
     // kenar (mm). Ayak ayrı parça, plaketle birlikte basılıp gönderilir. Figür ikinci dilimdir.
     // Tek tür varken bölümde tür seçimi adımı GÖRÜNMEZ (fotoğraf → ölçü → önizleme → ödeme).
     // FİYAT = TEK FORMÜL (Okan 7 Eki 15:4x): fiyat_kurus = en uzun boyut (mm) × 1000 (= cm × 100 TL),
+    // TABAN 600 TL (Okan 8 Eki: fiyat = max(600 TL, mm × 10 TL), tür kaydında fiyat.taban_tl).
     // kategori farkı YOK, fiyat TABLOSU YOK. Formül YALNIZ aşağıdaki VERI.fiyatKurus'ta; bölüm, sunucu
     // ve araçlar onu çağırır. Ölçü = nesnenin sınır kutusunun EN UZUN boyutu (x/y/z hangisi büyükse,
     // ayak/çerçeve dahil). Türün AÇIK/KAPALI hali fiyatta DEĞİL: D1 `foto_acik` anahtarı (varsayılan KAPALI).
@@ -94,8 +95,9 @@
     //                    tools/kopru-manifest-uret.py --yaz ile üretilir, --denetle sapmayı KIRMIZI yakar;
     //                    sözlük (olcu->form, tam->adim 1, sayi->adim 0.01, renk->bölge, kosul aynen) orada.
     //                    kosul: [{alan, degerler}] — alan YALNIZ her koşul sağlanınca vardır (VERI.alanAktif)
-    //   fiyat          : { formul: "mm_x_10tl", adim_mm } — formül adı VERI.FIYAT_FORMULLERI'nde
-    //                    olmalı (bilinmeyen formül -> fiyat yok, tür sunulmaz); adim_mm = sürgü adımı
+    //   fiyat          : { formul: "mm_x_10tl", adim_mm, taban_tl } — formül adı VERI.FIYAT_FORMULLERI'nde
+    //                    olmalı (bilinmeyen formül -> fiyat yok, tür sunulmaz); adim_mm = sürgü adımı;
+    //                    taban_tl = en düşük fiyat (Okan 8 Eki: 600), yoksa fiyat yok, tür sunulmaz
     //   olcu_mm        : {en_az, en_cok} — en uzun boyut (mm); bu aralık dışı ölçü RED
     //   olcu_ekseni    : "sabit" (sürgü = hedef ölçü) | "turetilmis" (köprü kaydında belirleyen parametre YOK:
     //                    sürgü YOK, ölçü form parametrelerinden doğar; fiyat = önizlemede ÖLÇÜLEN uzun kenar ×
@@ -122,7 +124,7 @@
         renk_bolgeleri: [],
         malzemeler: {},
         form: {},
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         // Okan kararı 7 Eki 2026: plaket gerçek baskı beklemeden önizleme + render ile açılır.
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün en çok 4 renkle kabartma olarak üretilir — önizlemenin 4 renkli yorumu; birebir aynısı değildir, küçük yazı ve ince ayrıntılar sadeleşir.",
@@ -145,7 +147,7 @@
         renk_bolgeleri: [],
         malzemeler: {},
         form: {},
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         // Plaketle AYNI izin (render gerçek baskı olmadan açılır; Okan 7 Eki kararı).
         ornek_kanit_izni: ["baski", "render"],
         // Dürüstlük: figür metni — stilize yorum, en çok 4 renk, birebir değil, insan yüzünde benzerlik zayıf.
@@ -167,7 +169,7 @@
         // ABS YOK: litofan Dekorasyon sınıfıdır (secenekler.js FILAMENT_KATEGORI_HARIC).
         malzemeler: { panel: ["PLA", "PETG"], ayak: ["PLA", "PETG", "ASA"] },
         form: {},
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         // Okan kararı 7 Eki 2026 (24 kategori 1 hafta, G1 "motor + litofan canlı"): litofan da
         // render örneğiyle açılır (sentetik görselden üretilen 3MF'in arkadan ışıklı render'ı).
         ornek_kanit_izni: ["baski", "render"],
@@ -198,7 +200,7 @@
           plaka_sekli: { tip: "secim", etiket: "Plaka şekli", secenekler: ["Dikdörtgen", "Yuvarlak köşe", "Oval"] },
           montaj_delikleri: { tip: "secim", etiket: "Montaj delikleri", secenekler: ["Yok", "Var"] }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Yazı plakanın üzerinde kabartmadır. Uzun metin küçülür; en küçük harf 6 mm'dir, sığmayan metin için sipariş alınmaz.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; isimlik bu yazı ve ölçüyle üretilir, renk tonu filamente göre biraz değişebilir."
@@ -221,7 +223,7 @@
           alt_yazi: { tip: "metin", etiket: "Alt yazı (isteğe bağlı)", max: 40, zorunlu: false },
           cerceve: { tip: "secim", etiket: "Çerçeve", secenekler: ["Yok", "Var"] }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Kodu göndermeden önce telefonla okutarak kontrol ederiz. Bağlantının çalışması verdiğin adrese bağlıdır.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; plakadaki kod bu düzende üretilir."
@@ -242,7 +244,7 @@
         form: {
           taban: { tip: "secim", etiket: "Taban plakası", secenekler: ["Var", "Yok"] }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Yalnız düz renkli alanlar üretilir; gölge ve renk geçişi çıkmaz. 0,8 mm'den ince çizgiler siparişi durdurur.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; logonun dolu alanları kabartma olarak üretilir."
@@ -263,7 +265,7 @@
         form: {
           sap: { tip: "secim", etiket: "Sap", secenekler: ["Silindir", "Topuz"] }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Plastik gövdeli bir damgadır; resmî kurum mührü yerine geçmez. 0,6 mm'den ince çizgiler kalınlaştırılır.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; damga yüzü ayna görüntüsüdür, kâğıda bastığında logonun kendisi çıkar."
@@ -283,7 +285,7 @@
         form: {
           mod: { tip: "secim", etiket: "Şablon türü", secenekler: ["Delikli", "Dolu silüet"] }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Şablon 1,2–2 mm kalınlığında bir plakadır; içteki adalar ince köprülerle tutturulur ve bu köprüler boyamada iz bırakır.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; açık alanlar delik, koyu alanlar plakadır."
@@ -303,7 +305,7 @@
         form: {
           parca: { tip: "secim", etiket: "Parça sayısı", secenekler: ["12", "20", "30"] }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Yapboz tek renkli kabartmadır; renkli baskı değildir. Parçalar elle takılır; çocuk oyuncağı olarak belgelendirilmemiştir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir."
@@ -406,7 +408,7 @@
             ornek: true
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; düzenleyici kutu bu parametrelerle üretilir.",
@@ -523,7 +525,7 @@
             ]
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; adaptör / burç / pul bu parametrelerle üretilir.",
@@ -679,7 +681,7 @@
             kosul: [{ alan: "tip", degerler: ["v_kasnak"] }]
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; dişli / kasnak bu parametrelerle üretilir.",
@@ -801,7 +803,7 @@
             kosul: [{ alan: "topuz", degerler: [true] }]
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; kapak / tıpa bu parametrelerle üretilir.",
@@ -909,7 +911,7 @@
             ornek: false
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; düğme / topuz bu parametrelerle üretilir.",
@@ -1080,7 +1082,7 @@
             kosul: [{ alan: "alt_tur", degerler: ["mentese"] }]
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; klips / kelepçe / menteşe bu parametrelerle üretilir.",
@@ -1229,7 +1231,7 @@
             ornek: false
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; saksı / vazo bu parametrelerle üretilir.",
@@ -1315,7 +1317,7 @@
             birim: ""
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; yukseklik rolyefi bu parametrelerle üretilir.",
@@ -1449,7 +1451,7 @@
             ornek: 6
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; ses dalgasi bu parametrelerle üretilir.",
@@ -1553,7 +1555,7 @@
             varsayilan: "kucult"
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; braille bu parametrelerle üretilir.",
@@ -1666,7 +1668,7 @@
             varsayilan: "sans-kalin"
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; topografya bu parametrelerle üretilir.",
@@ -1819,7 +1821,7 @@
             zorunlu: false
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; sehir silueti bu parametrelerle üretilir.",
@@ -1962,7 +1964,7 @@
             varsayilan: "sans-kalin"
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; yildiz haritasi bu parametrelerle üretilir.",
@@ -2120,7 +2122,7 @@
             varsayilan: "sol"
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Ölçüye özel üretilir; üretim dosyasının görüntüsüdür, basılmış ürün bu yorumun kabartmalı hâlidir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; koordinat / tarih bu parametrelerle üretilir.",
@@ -2170,7 +2172,7 @@
             ornek: false
           }
         },
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Fotoğraf gri-ton yükseklik haritasına çevrilir; kabartma büst/madalyon olarak üretilir, ince ayrıntılar sadeleşir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; kabartma büst bu parametrelerle üretilir.",
@@ -2667,7 +2669,7 @@
   };
   // Bölüm metni: türetilmiş türde fiyatın kaynağı (dürüstlük; sürgünün yerinde ve önizlemeyle birlikte).
   VERI.OLCULEN_FIYAT_NOTU = "Bu türde ölçüyü sen seçmezsin: girdiğin değerlerden önizleme üretilir, fiyat " +
-    "önizlemede ölçülen en uzun boyuttan (mm × 10 TL) hesaplanır ve önizlemeyle birlikte gösterilir.";
+    "önizlemede ölçülen en uzun boyuttan (mm × 10 TL, en az 600 TL) hesaplanır ve önizlemeyle birlikte gösterilir.";
   // Ölçü (en uzun boyut, mm) bu türde seçilebilir mi: tam sayı, aralıkta, adım ızgarasında
   // (türetilmiş eksende ölçü ölçülür, seçilmez -> ızgara aranmaz; aralık yine şart).
   VERI.olcuGecerli = function (kod, mm) {
@@ -2675,13 +2677,23 @@
     if (!a || !adim || !Number.isInteger(mm) || mm < a.en_az || mm > a.en_cok) { return false; }
     return VERI.olcuTuretilmis(kod) || (mm - a.en_az) % adim === 0 || mm === a.en_cok;
   };
-  // fiyat_kurus = en uzun boyut (mm) × formülün mm başı kuruşu. Geçersiz ölçü / bilinmeyen formül -> null.
+  // TABAN (Okan 8 Eki 13:2x: "tüm ürünlerde min fiyat 600 olmalı" — kapsam foto programı, Okan teyidi):
+  // türün fiyat.taban_tl'si kuruşa; yoksa/bozuksa null -> tür FİYATSIZ kalır, sunulmaz (fail-closed: tabansız
+  // satış yok).
+  VERI.fiyatTabanKurus = function (kod) {
+    var t = VERI.turBul(kod);
+    var tl = t && t.fiyat ? t.fiyat.taban_tl : null;
+    return Number.isInteger(tl) && tl > 0 ? tl * 100 : null;
+  };
+  // fiyat_kurus = max(taban, en uzun boyut (mm) × formülün mm başı kuruşu).
+  // Geçersiz ölçü / bilinmeyen formül / taban yok -> null.
   VERI.fiyatKurus = function (kod, mm) {
     var t = VERI.turBul(kod);
     var f = t && t.fiyat && Object.prototype.hasOwnProperty.call(VERI.FIYAT_FORMULLERI, t.fiyat.formul)
       ? VERI.FIYAT_FORMULLERI[t.fiyat.formul] : null;
-    if (!f || !VERI.olcuGecerli(kod, mm)) { return null; }
-    return mm * f;
+    var taban = VERI.fiyatTabanKurus(kod);
+    if (!f || taban === null || !VERI.olcuGecerli(kod, mm)) { return null; }
+    return Math.max(mm * f, taban);
   };
   // Sürgünün seçebildiği ölçüler: en_az..en_cok, adım adım (en_cok her zaman dahil).
   VERI.olcuSecenekleri = function (kod) {

@@ -536,14 +536,14 @@ console.log("L1) KATEGORI KAYDI");
 
 const ISIMLIK = '      { kod: "isimlik", ad: "İsimlik", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",\n' +
   '        olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {},\n' +
-  '        form: { yazi: { tip: "metin", max: 20, etiket: "Yazı" } }, fiyat: { formul: "mm_x_10tl", adim_mm: 10 },\n' +
+  '        form: { yazi: { tip: "metin", max: 20, etiket: "Yazı" } }, fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },\n' +
   '        ornek_kanit_izni: ["render"], durustluk: "t", ornek_notu: "t" },\n';
 
 // L11: TURETILMIS eksenli sentetik tur (surgu yok; olcu onizlemede OLCULUR). Sahte uretec uzun kenari `uk`
 // parametresinden yazar (gercek uretecte geometriden dogar).
 const TURETIK = '      { kod: "turetik", ad: "Türetik", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",\n' +
   '        olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {}, olcu_ekseni: "turetilmis",\n' +
-  '        form: { uk: { tip: "sayi", min: 1, max: 999, adim: 0.01, etiket: "Uk" } }, fiyat: { formul: "mm_x_10tl", adim_mm: 10 },\n' +
+  '        form: { uk: { tip: "sayi", min: 1, max: 999, adim: 0.01, etiket: "Uk" } }, fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600 },\n' +
   '        ornek_kanit_izni: ["render"], durustluk: "t", ornek_notu: "t" },\n';
 
 const SAHTE_WR = `import json, os, shutil, sqlite3, sys
