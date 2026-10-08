@@ -1013,7 +1013,7 @@ def saglayici_4(tr, kredi):
     if k != 200 or not j.get("siparis_no"):
         tr.koy("4", False, "ornek-uret kod=%s hata=%s" % (k, j.get("hata")))
         return False
-    no, onceki = j["siparis_no"], None
+    no, onceki, onarim_kosu = j["siparis_no"], None, 0
     for _ in range(YOKLAMA_SAYI):
         r = kredi.bulut.sql("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = %s AND kalem = 0" % sql_metin(no))
         asama = r[0]["asama"] if r else "yok"
@@ -1021,8 +1021,18 @@ def saglayici_4(tr, kredi):
             if asama != "hazir":
                 tr.koy("4", False, "siparis=%s asama=%s sebep=%s" % (no, asama, (r[0]["sebep"] if r else "") or "-"))
             return asama == "hazir"
+        # ONARIM KAPISI (8 Eki): saglayici zinciri 'onarim-bekliyor'da biter; 'hazir'i yalniz yerel kosucunun
+        # onarim kuyrugu yazar (TeKiN koprusu + --olc). Onizlemede launchd yok -> kosucu burada BIR kez kosar
+        # (kredi 0, saglayiciya istek yok). Kosum sonrasi hala bekliyorsa (kopru yok / erisim) DUR.
+        if asama == "onarim-bekliyor":
+            if onarim_kosu:
+                tr.koy("4", False, "siparis=%s onarim-bekliyor kosucu sonrasi da (%s)" % (no, onarim_son))
+                return False
+            onarim_kosu, (onarim_son, _) = 1, kosucu_kos()
+            print("KOPRU onarim: %s" % onarim_son)
+            continue
         y = kredi.bulut.sql("SELECT COUNT(*) AS n FROM foto_uretim WHERE asama NOT IN ('hazir', 'elle', "
-                            "'uretec-bekliyor') AND siparis_no != %s" % sql_metin(no))
+                            "'uretec-bekliyor', 'onarim-bekliyor') AND siparis_no != %s" % sql_metin(no))
         if y and y[0]["n"]:
             tr.koy("4", False, "yabanci-kuyruk=%d (tik onlari da ilerletir; kredi yakilmaz, DUR)" % y[0]["n"])
             return False

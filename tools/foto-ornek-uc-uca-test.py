@@ -128,6 +128,13 @@ for r in db.execute("SELECT u.*, i.ziyaretci FROM foto_uretim u LEFT JOIN foto_i
     if r["ziyaretci"] != "ornek" or r["siparis_no"] != "ORNEK-" + r["is_no"][:12]: continue
     yaz(os.path.join(R, "foto", r["siparis_no"], "0"), r["tur"], r["olcu_mm"])
     db.execute("UPDATE foto_uretim SET asama='hazir' WHERE siparis_no=?", (r["siparis_no"],)); n += 1
+# ONARIM KUYRUGU (8 Eki): model.ham.3mf -> (kopru) -> model.3mf + 'hazir'. FAKE_ONARIM_YOK: kopru yok, is kuyrukta.
+for r in db.execute("SELECT siparis_no, kalem FROM foto_uretim WHERE asama='onarim-bekliyor'").fetchall():
+    d = os.path.join(R, "foto", r["siparis_no"], str(r["kalem"]))
+    if os.environ.get("FAKE_ONARIM_YOK") or not os.path.isfile(os.path.join(d, "model.ham.3mf")):
+        db.commit(); print("HAL=OLCULEMEDI sebep=kopru-yok rc=4"); sys.exit(4)
+    os.replace(os.path.join(d, "model.ham.3mf"), os.path.join(d, "model.3mf"))
+    db.execute("UPDATE foto_uretim SET asama='hazir' WHERE siparis_no=?", (r["siparis_no"],)); n += 1
 db.commit()
 print("HAL=ISLEDI uretildi=%d red=0 ariza=0 rc=0" % n if n else "HAL=BOS rc=1")
 '''
@@ -622,6 +629,41 @@ def vakalar(kaynak, sadece=None):
         return ok, "yonet=%s %s" % (y, c[-600:])
     vaka("S13", s13)
 
+    # S14/S15 ONARIM KAPISI (8 Eki): satir 'onarim-bekliyor' (saglayici ham 3MF R2'de) -> betik kosucuyu BIR kez
+    # kosar (kredi 0, uretim-tik 0) -> 'hazir' -> ④ olculur. S15: kopru yok -> satir bekler -> ④ EKSIK + sebep.
+    def onarim_tohum(o):
+        is_no = "e" * 32
+        no = "ORNEK-" + is_no[:12]
+        c0 = sqlite3.connect(o.db)
+        c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
+                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+        c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
+                   " VALUES (?, 0, ?, 'plaket', 180, 'onarim-bekliyor', 't', 't')", (no, is_no))
+        c0.commit()
+        c0.close()
+        d = os.path.join(o.sunucu.ayar["r2"], "foto", no, "0")
+        kutu_3mf(d, 180)
+        os.replace(os.path.join(d, "model.3mf"), os.path.join(d, "model.ham.3mf"))
+        with open(os.path.join(d, "model.glb"), "wb") as f:
+            f.write(b"glTF\x02\x00\x00\x00\x0c\x00\x00\x00")
+        return is_no
+
+    def s14(o):
+        is_no = onarim_tohum(o)
+        rc, son, c, y = sag(o, 1, devam_is=is_no)
+        ok = (olcut(c, "plaket", "4") == "HAZIR" and y.get("/foto/uretim-tik", 0) == 0 and
+              "KOPRU onarim: HAL=ISLEDI" in c and "KREDI_HARCANAN=0/1" in c)
+        return ok, "yonet=%s %s" % (y, c[-600:])
+    vaka("S14", s14)
+
+    def s15(o):
+        is_no = onarim_tohum(o)
+        rc, son, c, y = sag(o, 1, devam_is=is_no, FAKE_ONARIM_YOK="1")
+        ok = (olcut(c, "plaket", "4") == "EKSIK" and "onarim-bekliyor kosucu sonrasi da" in c and
+              y.get("/foto/uretim-tik", 0) == 0)
+        return ok, "yonet=%s %s" % (y, c[-600:])
+    vaka("S15", s15)
+
     def u7(o):
         hazir_ortam(o)
         o.sunucu.ayar["acik"] = ["qr", "logo"]
@@ -983,6 +1025,9 @@ MUTANTLAR = {
     "MB30": ("KREDI_TIK = {\"build-baslat\": 30, \"analiz\": 10, \"onarim\": 10, \"doku\": 0}",
              "KREDI_TIK = {\"build-baslat\": 30, \"analiz\": 10, \"onarim\": 10, \"doku\": 10}",
              {"S12", "S13"}),
+    # ONARIM KAPISI (8 Eki): betik 'onarim-bekliyor'da kosucuyu kosmazsa satir uretim-tik'e duser (tik onu
+    # ilerletmez) -> S14 ④ EKSIK, S15 dogru sebebi basmaz.
+    "MB31": ("        if asama == \"onarim-bekliyor\":\n", "        if False:\n", {"S14", "S15"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }
