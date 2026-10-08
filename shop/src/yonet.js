@@ -36,8 +36,10 @@ import { KONFIGURLAR } from "./konfigurlar.js";
 import { golgeRaporu } from "./konfigur-golge.js";
 // Fotograftan ozel uretim: kalem uretim durumu + dosya indirme + ozet/fiyat tablosu.
 import { panelUretimHaritasi, panelFotoKaydi, panelFotoDosya, panelFotoOzet,
-         panelFotoFiyat, panelOrnekOnizleme, panelOrnekDurum, panelOrnekGorsel,
-         panelOrnekUret, panelOrnekListe, panelUretecGirdi, panelUretecYukle } from "./foto.js";
+         panelFotoAcik, panelOrnekOnizleme, panelOrnekDurum, panelOrnekGorsel,
+         panelOrnekUret, panelOrnekListe, panelUretecGirdi, panelUretecYukle,
+         panelOrnekKonsept, panelOrnekKonseptDurum, panelOrnekKonseptGorsel, fotoUretimTuru } from "./foto.js";
+import { onizlemeMi } from "./onizleme.js";
 import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
 } from "./eposta.js";
@@ -2022,11 +2024,21 @@ async function kaynakYaz(request, env) {
  *
  * telegram: index.js'in telegram fonksiyonu.
  */
+// ONIZLEME MAKINE ANAHTARI (kopru-15, 8 Eki 2026): olcum betigi (tools/foto-ornek-uc-uca.py --kredi-tavani)
+// onizleme surumunun ORNEK saglayici zincirini panel SIFRESINI kullanmadan kosar. YALNIZ ONIZLEME=1 + YALNIZ bu
+// uclar; canlida (ONIZLEME yok) hic okunmaz. Ayri baslik: sifre tasiyicisiyla karismaz.
+const MAKINE_UCLARI = ["/foto/ornek-onizleme", "/foto/ornek-durum", "/foto/ornek-gorsel", "/foto/ornek-uret",
+                       "/foto/uretim-tik"];
+function makineAnahtariGecerli(request, env, altYol) {
+  return onizlemeMi(env) && !!env.ONIZLEME_MAKINE_ANAHTARI && MAKINE_UCLARI.includes(altYol) &&
+    sabitEsit(request.headers.get("X-Onizleme-Makine") || "", env.ONIZLEME_MAKINE_ANAHTARI);
+}
+
 export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (!env.YONET_ANAHTAR) { return yon404(); }
   const m = request.method;
   if (altYol === "/" && m === "POST") { return girisYap(request, url, env); }
-  if (!anahtarGecerli(request, url, env)) {
+  if (!anahtarGecerli(request, url, env) && !makineAnahtariGecerli(request, env, altYol)) {
     return (altYol === "/" && m === "GET") ? girisEkrani(url) : yon404();
   }
   if (altYol === "/" && m === "GET") { return sayfa(); }
@@ -2057,7 +2069,7 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   // FOTOGRAFTAN OZEL URETIM (5 Eki 2026, Okan karari) — ayni yonetim anahtarinin ARKASINDA.
   if (altYol === "/foto-dosya" && m === "GET") { return panelFotoDosya(env, url); }
   if (altYol === "/foto-ozet" && m === "GET") { return panelFotoOzet(env, Date.now()); }
-  if (altYol === "/foto-fiyat" && m === "POST") { return panelFotoFiyat(request, env, Date.now()); }
+  if (altYol === "/foto-acik" && m === "POST") { return panelFotoAcik(request, env, Date.now()); }
   // ORNEK URETIM (6 Eki, BaBa) — Okan'in kendi fotografi, odemesiz; ayni anahtarin ARKASINDA.
   if (altYol === "/foto/ornek-onizleme" && m === "POST") {
     return panelOrnekOnizleme(request, env, Date.now(), telegram);
@@ -2066,6 +2078,15 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/foto/ornek-gorsel" && m === "GET") { return panelOrnekGorsel(env, url); }
   if (altYol === "/foto/ornek-uret" && m === "POST") { return panelOrnekUret(request, env, Date.now(), telegram); }
   if (altYol === "/foto/ornekler" && m === "GET") { return panelOrnekListe(env); }
+  // ONIZLEME SURUMU cron'suzdur (versions upload cron tasimaz): uretim zincirini cron'un AYNI fonksiyonuyla
+  // TEK TUR ilerletir (tools/foto-ornek-uc-uca.py --kredi-tavani). Canli surumde YOK (404) — orada cron kosar.
+  if (altYol === "/foto/uretim-tik" && m === "POST" && onizlemeMi(env)) {
+    return yjson(await fotoUretimTuru(env, Date.now(), telegram), 200);
+  }
+  // 2D KONSEPT ornek kolu (musteri ucuyla ayni cagri; ziyaretci/bot/tavan siniri yok, havuz AYNEN).
+  if (altYol === "/foto/ornek-konsept" && m === "POST") { return panelOrnekKonsept(request, env, Date.now(), telegram); }
+  if (altYol === "/foto/ornek-konsept-durum" && m === "GET") { return panelOrnekKonseptDurum(env, url, Date.now()); }
+  if (altYol === "/foto/ornek-konsept-gorsel" && m === "GET") { return panelOrnekKonseptGorsel(env, url); }
   // DETERMINISTIK KOL (litofan): uretec girdisi indir + uretec 3MF'i yukle — ayni kapinin ARKASINDA.
   if (altYol === "/foto/uretec-girdi" && m === "GET") { return panelUretecGirdi(env, url); }
   if (altYol === "/foto/uretec-yukle" && m === "POST") { return panelUretecYukle(request, env, url, Date.now()); }
@@ -2619,28 +2640,29 @@ async function fotoYukle(){
   h.push('<div class="kart"><b>Elle bakılacak</b>'+o.elle.map(function(e){return '<div class="kucuk">'+
    esc(e.siparis_no)+' · kalem '+esc(e.kalem)+' · '+esc(e.tur)+' — <span class="hata">'+esc(e.sebep)+'</span></div>';}).join("")+'</div>');
  }
- h.push('<div class="kart"><b>Fiyat tablosu</b> (tür × ölçü; ürün fiyatı KDV dahil, kargo ayrı)'+
-  '<table class="kucuk"><tr><th>Tür</th><th>Ölçü (mm)</th><th>Fiyat</th></tr>'+
-  (o.fiyatlar||[]).map(function(f){return '<tr><td>'+esc(f.tur)+'</td><td>'+esc(f.olcu_mm)+'</td><td>'+
-   tl(f.fiyat_kurus)+'</td></tr>';}).join("")+'</table>'+
-  // Tür seçenekleri SUNUCUDAN (sunulan türler); elle yazılmış tür listesi YOK.
-  '<div class="ust"><select id="fotoTur">'+(o.sunulan_turler||[]).map(function(t){
-   return '<option value="'+esc(t.kod)+'">'+esc(t.ad)+(t.olcu_en_az?' ('+esc(t.olcu_en_az)+'–'+esc(t.olcu_en_cok)+' mm)':'')+'</option>';}).join("")+'</select>'+
-  '<input id="fotoOlcu" type="number" placeholder="ölçü mm ('+esc(o.olcu_en_az)+'–'+esc(o.olcu_en_cok)+')" style="width:140px">'+
-  '<input id="fotoFiyat" type="number" placeholder="fiyat TL (0 = kaldır)" style="width:150px">'+
-  '<button id="fotoFiyatKaydet">Kaydet</button></div></div>');
+ // ACILIS ANAHTARI — fiyat tablosu YOK (Okan 7 Eki): fiyat = max(600 TL, en uzun boyut (mm) × 10 TL), tek formül.
+ // Tür yalnız anahtarı AÇIK + gerçek örneği varsa satılır; varsayılan KAPALI.
+ var acikK={};(o.acik||[]).forEach(function(k){acikK[k]=true;});
+ h.push('<div class="kart"><b>Satışa açık türler</b> (fiyat: '+esc(o.fiyat_formulu||"")+'; KDV dahil, kargo ayrı)'+
+  '<table class="kucuk"><tr><th>Tür</th><th>Ölçü (mm)</th><th>En düşük</th><th>Durum</th><th></th></tr>'+
+  (o.sunulan_turler||[]).map(function(t){var a=!!acikK[t.kod];return '<tr><td>'+esc(t.ad)+'</td><td>'+
+   esc(t.olcu_en_az)+'–'+esc(t.olcu_en_cok)+'</td><td>'+tl(t.fiyat_en_az_kurus)+'</td><td>'+(a?'<b>açık</b>':'kapalı')+
+   '</td><td><button class="fotoAcik" data-tur="'+esc(t.kod)+'" data-acik="'+(a?'0':'1')+'">'+(a?'Kapat':'Aç')+
+   '</button></td></tr>';}).join("")+'</table></div>');
  // ORNEK URETIM — Okan'in kendi fotografi (odemesiz): onizleme -> "Bunu üret" -> 4 renk 3MF.
- // Olculer fiyat tablosundan (satilan urunun aynisi); musteri kapilari bu kolda ATLANIR.
- var ornekOlcu=(o.fiyatlar||[]).filter(function(f){return f.fiyat_kurus>0;}).map(function(f){
-  return '<option value="'+esc(f.olcu_mm)+'">'+esc(f.olcu_mm)+' mm</option>';}).join("");
+ // Olculer saglayici turunun araligindan (satilan urunun aynisi); musteri kapilari bu kolda ATLANIR.
+ var ornekTur=(o.sunulan_turler||[]).filter(function(t){return t.kol==="saglayici";})[0];
+ var ornekOlcu="";
+ if(ornekTur&&ornekTur.olcu_adim>0){for(var om=ornekTur.olcu_en_az;om<=ornekTur.olcu_en_cok;om+=ornekTur.olcu_adim){
+  ornekOlcu+='<option value="'+esc(om)+'">'+esc(om)+' mm</option>';}}
  h.push('<div class="kart"><b>Örnek üret</b> (kendi fotoğrafın · ödemesiz önizleme → 4 renk 3MF)'+
   '<div class="ust"><input id="ornekDosya" type="file" accept="image/jpeg,image/png,image/webp">'+
-  '<select id="ornekOlcu">'+(ornekOlcu||'<option value="">fiyat tablosunda ölçü yok</option>')+'</select>'+
+  '<select id="ornekOlcu">'+(ornekOlcu||'<option value="">ölçü yok</option>')+'</select>'+
   '<button id="ornekOnizle">Önizleme al</button></div>'+
   '<div id="ornekDurum" class="kucuk"></div><div id="ornekGorsel"></div></div>');
  h.push('<div class="kart"><b>Örnek üretimler</b><div id="ornekListe" class="kucuk">Yükleniyor…</div></div>');
  kutu.innerHTML=h.join("");
- document.getElementById("fotoFiyatKaydet").onclick=fotoFiyatKaydet;
+ Array.prototype.forEach.call(kutu.querySelectorAll(".fotoAcik"),function(b){b.onclick=fotoAcikKaydet;});
  document.getElementById("ornekOnizle").onclick=ornekOnizle;
  ornekListeYukle();
 }
@@ -2718,13 +2740,11 @@ async function ornekListeYukle(){
    (x.sebep?' — <span class="hata">'+esc(x.sebep)+'</span>':'')+
    (x.siparis_no?' · kredi: '+esc(x.kredi):'')+d+'</div>';}).join("");
 }
-async function fotoFiyatKaydet(){
- var tur=document.getElementById("fotoTur").value;
- var olcu=parseInt(document.getElementById("fotoOlcu").value,10);
- var tlDeger=parseFloat(String(document.getElementById("fotoFiyat").value).replace(",","."));
- if(!(olcu>0)||!(tlDeger>=0)){alert("Ölçü ve fiyat gir.");return;}
- var r=await api("/foto-fiyat",{method:"POST",headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({tur:tur,olcu_mm:olcu,fiyat_kurus:Math.round(tlDeger*100)})});
+async function fotoAcikKaydet(e){
+ var b=e.currentTarget,tur=b.getAttribute("data-tur"),acik=b.getAttribute("data-acik")==="1";
+ if(!confirm((acik?"Satışa AÇ: ":"Satışı KAPAT: ")+tur+" ?"))return;
+ var r=await api("/foto-acik",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({tur:tur,acik:acik})});
  if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));return;}
  fotoYukle();
 }

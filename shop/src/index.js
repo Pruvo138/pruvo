@@ -29,6 +29,7 @@
 import AYAR from "../config.json";
 import "../../secenekler.js";
 import { cfBaslat, cfDetay, hataKodu, hataMetni, kesinBasarisizMi } from "./iyzico.js";
+import { onizlemeOdemeKapali, turnstileHostKabul } from "./onizleme.js";
 import { parametrikHesapla } from "./parametrik.js";
 import { SEMALAR } from "./semalar.js";
 import { konfigurHesapla, d1Coz } from "./konfigur.js";
@@ -48,7 +49,7 @@ import { refKaydet, REF_KALIBI } from "./ref.js";
 // ayrik modulde durur; burada SADECE local binding olarak okunur, RE-EXPORT EDILMEZ.
 import { TERK_ESIK_SAAT, TERK_KAYNAK_DURUM, TERK_SEBEP } from "./terk-sabit.js";
 // Fotograftan ozel uretim (ana sayfa bolumu): onizleme uclari, sepet kalemi, uretim cron'u.
-import { fotoUclari, fotoKalemCoz, fotoKalemFiyatla, fotoUretimTuru } from "./foto.js";
+import { fotoUclari, fotoKalemCoz, fotoKalemFiyatla, fotoUretimTuru, aydinlatmaOnayHatasi } from "./foto.js";
 
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi — fiyat kurali tek kaynagi yok"); }
@@ -212,6 +213,12 @@ function istekCoz(govde) {
 
   const kc = kalemleriCoz(govde.sepet);
   if (kc.hata) return kc;
+  // FOTO KALEMI: aydinlatma onayi (tek kutu + guncel metin surumu) odemede de sart; kontrol
+  // foto.js'te TEK kaynak (onizleme/konsept uclariyla ayni). Foto kalemsiz sepet etkilenmez.
+  if (kc.kalemler.some((k) => k.foto_is !== undefined)) {
+    const oh = aydinlatmaOnayHatasi(govde);
+    if (oh) return { hata: oh };
+  }
   return { musteri: { ad, tel, eposta, adres, sehir, tckn }, kalemler: kc.kalemler, odeme,
            atif: atifTemizle(govde), musteri_notu };
 }
@@ -517,7 +524,6 @@ async function baslatHizSiniriAsildi(request, env) {
 }
 
 const TURNSTILE_UC = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
-const TURNSTILE_HOSTLAR = ["pruvo3d.com", "www.pruvo3d.com"];
 const TURNSTILE_ZAMAN_ASIMI_MS = 5000;
 
 /** CLOUDFLARE TURNSTILE — /baslat'ta bot dogrulamasi (17 Eyl 2026).
@@ -574,7 +580,7 @@ async function turnstileDogrula(request, env, token) {
   }
   // hostname YOKSA da RED: CF basarili dogrulamada bu alani HER ZAMAN doner; bos gelmesi
   // "bizim alan adimizda cozuldu" kanitinin YOKLUGU demektir, yesile katlanmaz.
-  if (!TURNSTILE_HOSTLAR.includes(String(sonuc.hostname || ""))) {
+  if (!turnstileHostKabul(env, sonuc.hostname)) {
     console.error("turnstile RED (yabanci hostname): " + String(sonuc.hostname || "yok"));
     return json({ hata: "bot-dogrulama" }, 403, env);
   }
@@ -1438,6 +1444,8 @@ export default {
       if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers: cors(env) });
       }
+      // ONIZLEME SURUMU (src/onizleme.js): odeme/sepet uclari ZORLA 503 — iyzico'ya istek 0.
+      if (onizlemeOdemeKapali(env, yol)) { return json({ hata: "onizleme-odeme-kapali" }, 503, env); }
       // NOT: /ayarlar ucu KALDIRILDI — front katsayi/renk listesini /secenekler.js'ten alir
       // (tek kaynak). Worker'in ayni listeyi ikinci bir ucdan yayinlamasi drift kapisi acardi.
       if (yol === "/baslat" && request.method === "POST") return await baslat(request, env, url, ctx);

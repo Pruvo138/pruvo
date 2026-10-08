@@ -50,10 +50,18 @@
  *         ayni yonetim anahtarinin ARKASINDA (anahtarsiz 404). Yetki/imza/asama kurallari
  *         shop/test/foto-litofan.mjs L6 + M4 (uc kapinin onune alininca L6 KIRMIZI) olcer.
  *         Content-Disposition shop/src/foto.js'te -> CD_TABANI DEGISMEDI.
+ *   36  — 8 Eki 2026 (kral/kopru-15; foto fiyat TEK formul + 2D konsept + onizleme olcumu):
+ *         -1 POST /foto-fiyat (fiyat tablosu kalkti, `b23f26d3`) · +1 POST /foto-acik (acilis
+ *         anahtari, fail-closed) · +3 /foto/ornek-konsept, -konsept-durum, -konsept-gorsel
+ *         ("Nasil olsun?" -> 2D konsept, `b74e776e`) · +1 POST /foto/uretim-tik — YALNIZ
+ *         onizlemeMi(env) ise (canlida 404; `9b4f6583`). Besi de yonetim anahtari kapisinin
+ *         ARKASINDA (anahtarsiz 404). Onizleme makine anahtari (`acc32ce1`) yalniz ONIZLEME=1 +
+ *         sabit MAKINE_UCLARI listesinde gecer — canli yuzeyi genisletmez. Yeni indirme akisi
+ *         YOK -> CD_TABANI DEGISMEDI.
  */
 
 /** `altYol === "` yonlendirici kolu sayisi — yetki yuzeyi genisledi mi? */
-export const KOL_TABANI = 32;
+export const KOL_TABANI = 36;
 
 /** `Content-Disposition` gecisi — yeni indirme/proxy/zip akisi acildi mi? */
 export const CD_TABANI = 2;

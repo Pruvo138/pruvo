@@ -1,0 +1,65 @@
+# pruvo-shop ONIZLEME SURUMU (FOTO-DUZEN-d, 7 Eki 2026) — CANLIYI ETKILEMEZ.
+# Yalniz `versions upload --preview-alias` ile yuklenir; `wrangler deploy` / `versions deploy`
+# bu dosyayla KOSULMAZ (aktif dagitim degismez). Kurulum/yukleme/sokum: tools/foto-onizleme.py
+#   python3 tools/foto-onizleme.py yukle   # statik dizini kurar -> versions upload -> dizini siler
+#   python3 tools/foto-onizleme.py sokum   # Okan "gordum" deyince sokum komutlarini basar
+# Ayni worker adi -> secret'lar DEGERSIZ devralinir. Odeme ZORLA kapali (src/onizleme.js,
+# shop/test/onizleme-kapisi.mjs). Rota YOK, cron YOK (cron yalniz aktif dagitimda kosar).
+name = "pruvo-shop"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+
+# Sayfa ve API AYNI koken: statik dosya varsa o sunulur, yoksa (/api/shop/*) worker.
+# Dizin tools/foto-onizleme.py tarafindan yukleme ANINDA kurulur ve hemen silinir (git'e girmez).
+[assets]
+directory = ".onizleme-statik"
+
+[vars]
+ONIZLEME = "1"
+# Bot dogrulamasinin kabul ettigi onizleme alani (<alias>-<worker>.<alt-alan>.workers.dev).
+ONIZLEME_HOST = "foto-onizleme-pruvo-shop.gmlmz.workers.dev"
+SITE_URL = "https://foto-onizleme-pruvo-shop.gmlmz.workers.dev"
+ONIZLEME_TABAN = "https://pruvo3d.com"
+# Bildirimler onizlemeden Okan'a GITMEZ: cozulemeyen adres (hata yakalanir, istek 0).
+TELEGRAM_API = "https://telegram.onizleme.invalid"
+TELEGRAM_CHAT = ""
+
+# YALNIZ onizleme veritabani (d1-sema.sql ile kurulu). Canli `pruvo-katalog`a baglanti YOK.
+[[d1_databases]]
+binding = "KATALOG"
+database_name = "pruvo-katalog-onizleme"
+database_id = "7631e1d0-5fe4-4b8f-a8a5-9c7af9fdf470"
+
+# YALNIZ onizleme kovasi. Canli `pruvo-ozel`/`pruvo-media` baglanmaz (MEDYA yok -> panel gorsel
+# yukleme 503, fail-closed).
+[[r2_buckets]]
+binding = "OZEL_DOSYA"
+bucket_name = "pruvo-ozel-onizleme"
+
+# Hiz sinirlari canliyla AYNI ad-alani (hesap genelinde benzersiz kimlik; yeni kimlik acilmaz).
+[[unsafe.bindings]]
+name = "REF_RATE_LIMIT"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 20, period = 60 }
+
+[[unsafe.bindings]]
+name = "FIYAT_RATE_LIMIT"
+type = "ratelimit"
+namespace_id = "1002"
+simple = { limit = 60, period = 60 }
+
+[[unsafe.bindings]]
+name = "BASLAT_RATE_LIMIT"
+type = "ratelimit"
+namespace_id = "1003"
+simple = { limit = 10, period = 60 }
+
+[[unsafe.bindings]]
+name = "FOTO_RATE_LIMIT"
+type = "ratelimit"
+namespace_id = "1007"
+simple = { limit = 6, period = 60 }
+
+[observability]
+enabled = true
