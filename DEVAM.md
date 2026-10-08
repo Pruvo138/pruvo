@@ -4,8 +4,12 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ▶️ 9 Eki 00:5x — KraL halef-14
-**SIRADAKİ TEK İŞ:** K2b (m3 `devir-sayfa3-k2b`, SPEC `~/.claude/cron/isci-tur-cikti/sayfa-3adim/SPEC-K2b.md`) BITIS → bağımsız kabul (testler + 7 mutant + İptal + tek B2 + parça kapısı (b)/(c)) → `foto-ornek-uc-uca.py` ③⑤⑥ yeni DOM'a (tür seçimi galeri kartından, vitrin `.foto-uretim-fiyat` YOK) → HAZIR N/19 → önizleme → "önizleme güncel".
+## ▶️ 9 Eki 01:5x — KraL halef-14 — K3 "tek ekran 4 pencere" (Okan 01:0x + 01:4x)
+**SIRADAKİ TEK İŞ:** K3a (m3 `devir-sayfa3-k3a`, SPEC-K3a: madde 0 ilk-kart-tık TypeError düzeltmesi + 15 tür sil → evren 4) BITIS → bağımsız kabul → K3b SPEC (tek kutu 4 pencere; ① **6 KART**: İnsan figürü · Hayvan ve model figürü · Kabartma plaket · Büst · Anahtarlık · Yapboz — iki figür kartı aynı `figur` türü, alt tür istemcide `insan|hayvan_model`, insan kartında büste yönlendirme cümlesi; alt türe göre tarif istemi = sunucu, ayrı Claude dilimi; ArTisT metni KABUL) → K3c anahtarlık (TeKiN köprü merge sonrası) → önizleme + HAZIR N/6 → "önizleme güncel". ETA 9 Eki 08:00–10:00.
+**Ölçüm:** HAZIR D (K2 kodu) 0/17 ama ③ 17/17 (araç `cfac7127` çapası tuttu); ⑤⑥ = sayfa hatası `foto-uretim.js:1907` (araç istisna metni `615a5300`). Dal origin `615a5300`.
+
+## ▶️ 9 Eki 00:5x — KraL halef-14 (K2 KABUL `6e6aee0d` ile kapandı)
+**ESKİ SIRADAKİ (bitti):** K2b (m3 `devir-sayfa3-k2b`, SPEC `~/.claude/cron/isci-tur-cikti/sayfa-3adim/SPEC-K2b.md`) BITIS → bağımsız kabul (testler + 7 mutant + İptal + tek B2 + parça kapısı (b)/(c)) → `foto-ornek-uc-uca.py` ③⑤⑥ yeni DOM'a (tür seçimi galeri kartından, vitrin `.foto-uretim-fiyat` YOK) → HAZIR N/19 → önizleme → "önizleme güncel".
 **Durum:** K2 tur 1 RED (stub uyum + `S-M2` null mutant + İptal ②'yi boşaltıyor) → WIP `c403e014`, origin `kral/sayfa-3adim` (yedek). BaBa 00:4x: önizleme (b) koluyla çıkar (foto türünde "Bu bir yedek ya da mekanik parça mı?" Evet/Hayır, cevapsız/Evet = DUR + tarif kelime listesi).
 **SONRA — (a) dilimi (BaBa 00:5x KABUL, önizleme + K2b SONRASI):** Workers AI `@cf/meta/llama-3.2-11b-vision-instruct` (binding), kapalı küme tasarim|parca|belirsiz, tavan 300/gün D1 sayaç, tavan/hata/zaman aşımı ≤3 s → fail-closed (b). Kabul: gerçek 10 parça 10/10 DUR · 10 tasarım 10/10 GEÇER · belirsiz 3/3 soru · ilk çağrının gerçek nöron sayısı kutuya (varsayım ≈29) · mutant (bozuk yanıt → fail-closed). scout/moondream yalnız doğruluk <9/10 ise.
 **Zamanlanmış:** `26b3a588` `13 *` · `272f174f` `57 22` · `4ef93b82` `28,58` → oturumla ölür. **Okan'da bekleyen:** yok.
