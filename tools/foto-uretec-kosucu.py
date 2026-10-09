@@ -49,9 +49,9 @@ kurulur — kategori basina TEK esleme fonksiyonu (ESLEMELER, URETEC_CLI'da `esl
   yapboz   yapboz_uret             uzun_kenar_mm     form AYNEN (satir/sutun/tohum/kabartma_yon) palet renk1..4->renkler[0..3]
   anahtarlik isimlik_uret          genislik_mm       form AYNEN (satirlar listesi) +            plaka->renk_plaka
                                                      anahtarlik=true (kopru cagri.sabit)        yazi->renk_yazi
-  anahtarlik_foto plaket_kulak     (saglayici plaketi) dosyalar.plaket (3MF) -> --girdi DOSYA;  (tek govde, renk YOK)
-                                                     anahtarlik_kulak_konum -> konum -> kopru
-                                                     `cagri.parametre_bayraklari` (--konum); yoksa sol-ust
+  anahtarlik_foto figur_kulak      (saglayici figuru) dosyalar.figur (3MF/STL) -> --girdi DOSYA; (tek govde, renk YOK)
+                                                     figur_kulak_konum (tepe|sirt) -> konum -> kopru
+                                                     `cagri.parametre_bayraklari` (--konum); yoksa tepe
 Renk ADI -> hex manifestteki TEK tablo `RENK_HEX`ten; tabloda olmayan ad, eslenemeyen secim, sema disi
 parametre -> rc 2 (uretec KOSMAZ). Cikti: `uretec.3mf`->`model.3mf`, `ozet.json`->`olcu.json` (§3;
 renk_sayisi 3MF'teki extruder sayisi OLCULUR), onizleme >= 1024 px tam sayi kat buyutulur. Uretec
@@ -99,7 +99,7 @@ SIPARIS_KALIBI = re.compile(r"^[A-Za-z0-9-]{6,40}$")  # shop/src/foto.js ile ayn
 IS_KALIBI = re.compile(r"^[0-9a-f]{32}$")
 # Uretec deposu SALT OKUNUR: alt surec __pycache__ yazmaz.
 SALT_OKUMA_ENV = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
-DOSYA_ADI_KALIBI = re.compile(r"^[a-z_]{1,24}\.(png|jpg|jpeg|svg|wav|3mf)$")
+DOSYA_ADI_KALIBI = re.compile(r"^[a-z_]{1,24}\.(png|jpg|jpeg|svg|wav|3mf|stl)$")
 # ONARIM KAPISI (8 Eki 2026, BaBa hukmu): saglayici renk 3MF'i Worker'da `model.ham.3mf`e yazilir, satir
 # 'onarim-bekliyor'a gecer; Worker ham dosyayi ASLA model.3mf yapmaz. Bu kosucu TeKiN koprusunu
 # (`uc_mf_onar.py <ham> <cikti>`) kosar, `--olc <ham> <cikti>` rc 0 (acik/tekrarli/oz kenar 0 + manifold3d
@@ -114,10 +114,11 @@ ONARIM_SURE_SN = 600
 URETEC_CLI = {
     "litofan_uret": {"bicim": "litofan", "betik": "jeneratorler/foto/litofan_uret.py"},
     "isimlik_uret": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/isimlik_uret.py", "esle": "isimlik"},
-    # FOTO KOLU (anahtarlik-foto, 9 Eki): manifest `foto_kolu.uretec`; `--girdi` JSON DEGIL plaket DOSYASI, parametreler
-    # kopru `cagri.parametre_bayraklari` ile CLI bayragi (dosya_girdisi = uretec girdisindeki dosya alani).
-    "plaket_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/plaket_kulak.py", "esle": "anahtarlik_foto",
-                     "kol": "foto", "dosya_girdisi": "plaket"},
+    # FOTO KOLU (anahtarlik-foto; 10 Eki figur_kulak, eski plaket_kulak eslemesi KALKTI): manifest `foto_kolu.uretec`;
+    # `--girdi` JSON DEGIL figur DOSYASI, parametreler kopru `cagri.parametre_bayraklari` ile CLI bayragi
+    # (dosya_girdisi = uretec girdisindeki dosya alani).
+    "figur_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/figur_kulak.py", "esle": "anahtarlik_foto",
+                    "kol": "foto", "dosya_girdisi": "figur"},
     "qr_plaket_uret": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/qr_plaket_uret.py", "esle": "qr"},
     "svg_ekstruzyon_uret": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/svg_ekstruzyon_uret.py",
                             "esle": "logo"},
@@ -899,22 +900,24 @@ def esle_anahtarlik(g, dizin, rh):
     return u, bolgeler
 
 
-KONUM_VARSAYILAN = "sol-ust"
-KONUM_SECENEK = ("sol-ust", "sag-ust", "ust-orta")
+# figur_kulak kulakcik konumu (kopru FIGUR_KULAK_SEMA.konum); yazi kolunun `anahtarlik_kulak_konum`undan AYRI.
+KONUM_VARSAYILAN = "tepe"
+KONUM_SECENEK = ("tepe", "sirt")
 
 
 def esle_anahtarlik_foto(g, dizin, rh):
-    """anahtarlik FOTO kolu (TeKiN kopru kaydi `anahtarlik-foto`, plaket_kulak): girdi saglayicinin plaket 3MF'i
-    (`dosyalar.plaket`), kulak konumu turun ortak `anahtarlik_kulak_konum` alanindan (yoksa sol-ust). Renk bolgesi
-    YOK (tek govde). Plaket uzun kenari >50 mm ise uretec rc 2 -> `anahtarlik-boyut` (RET_KALIPLARI)."""
-    ad = (g.get("dosyalar") or {}).get("plaket")
-    if not isinstance(ad, str) or not DOSYA_ADI_KALIBI.match(ad) or not ad.endswith(".3mf") or \
+    """anahtarlik FOTO kolu (TeKiN kopru kaydi `anahtarlik-foto`, figur_kulak; ② "Figur olarak"): girdi saglayicinin
+    FIGUR turu ciktisi (`dosyalar.figur`, 3MF ya da STL), kulakcik konumu `figur_kulak_konum` (tepe|sirt; yoksa
+    tepe). Renk bolgesi YOK (tek govde). Figur uzun kenari >50 mm ise uretec rc 2 -> `anahtarlik-boyut`
+    (RET_KALIPLARI)."""
+    ad = (g.get("dosyalar") or {}).get("figur")
+    if not isinstance(ad, str) or not DOSYA_ADI_KALIBI.match(ad) or not ad.endswith((".3mf", ".stl")) or \
             not os.path.isfile(os.path.join(dizin, ad)):
         raise KopruRed("gorsel")
-    konum = (g.get("parametreler") or {}).get("anahtarlik_kulak_konum", KONUM_VARSAYILAN)
+    konum = (g.get("parametreler") or {}).get("figur_kulak_konum", KONUM_VARSAYILAN)
     if konum not in KONUM_SECENEK:
         raise KopruRed("parametre")
-    return {"plaket": os.path.join(dizin, ad), "konum": konum}, []
+    return {"figur": os.path.join(dizin, ad), "konum": konum}, []
 
 
 def kopru_cagri(uretec):
@@ -929,7 +932,7 @@ def kopru_cagri(uretec):
 
 
 def dosya_girdili_komut(g, u, py, jen, ham):
-    """Dosya girdili uretec (plaket_kulak): [betik] + bayraklar + parametre_bayraklari (kopru) + --girdi <dosya>.
+    """Dosya girdili uretec (figur_kulak): [betik] + bayraklar + parametre_bayraklari (kopru) + --girdi <dosya>.
     Kopru kaydi yoksa ya da parametre bayragi tanimsizsa None (fail-closed: uretec KOSMAZ)."""
     c = kopru_cagri(os.path.splitext(os.path.basename(g["betik"]))[0])
     pb = c.get("parametre_bayraklari")
@@ -961,8 +964,8 @@ ESLEMELER = {"isimlik": esle_isimlik, "qr": esle_qr, "logo": esle_logo, "muhur":
 
 # Uretec RET cumlesi -> red kodu (ilk eslesen; manifest URETEC_RED_METIN anahtari). Yok -> "genel".
 RET_KALIPLARI = [
-    # plaket_kulak (anahtarlik foto kolu): plaket >50 mm / kulak sigmadi -> TEK musteri cumlesi (Okan/BaBa birebir).
-    (r"plaket uzun kenar|kulak dahil uzun kenar|kulak yerlestirilemedi|gecerli kulak adayi", "anahtarlik-boyut"),
+    # figur_kulak (anahtarlik foto kolu): figur >50 mm / kulak sigmadi -> TEK musteri cumlesi (Okan/BaBa birebir).
+    (r"figur uzun kenar|kulak dahil uzun kenar|kulak yerlesmez", "anahtarlik-boyut"),
     (r"kontrast", "kontrast"),
     (r"parca kisa kenari|satir\*sutun|parca tabladan", "parca"),
     (r"metin cok uzun|modul boyutu", "qr-uzun"),

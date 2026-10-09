@@ -189,6 +189,8 @@
       
       
       
+      // yapboz `alan_aciklamalari` (③ ortak alan açıklamaları) — ArTisT 10 Eki 2026 AYNEN; yalnız yapbozda
+      // (büstün cümleleri değişmez). Satır içinde yorum tutulmaz: kopru-manifest-uret --yaz satırı bütün yeniden yazar.
       {
         kod: "yapboz",
         ad: "Fotoğraftan kabartma yapboz",
@@ -258,7 +260,6 @@
           renk_tavani: 4
         },
         ornek_kanit_izni: ["baski", "render"],
-        // ③ ortak alan açıklamaları — ArTisT 10 Eki 2026 AYNEN; yalnız yapbozda (büstün cümleleri değişmez).
         alan_aciklamalari: {
           renk: "Siyah, Beyaz ya da Gri seçersen tüm parçalar o renk olur; Renkli seçersen parça renkleri fotoğrafından otomatik belirlenir (en çok 4 renk).",
           olcu: "Yapbozun en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.",
@@ -360,7 +361,7 @@
         durustluk: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
         ornek_notu: "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçiminize göre üretilir.",
         olcu_ekseni: "sabit",
-        foto_kolu: { girdi: ["foto-1"], uretec: "plaket_kulak" }
+        foto_kolu: { girdi: ["foto-1"], uretec: "figur_kulak" }
       },
       
       

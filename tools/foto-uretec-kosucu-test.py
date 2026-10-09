@@ -744,10 +744,26 @@ def vakalar(kosucu):
     return s
 
 
-# ANAHTARLIK FOTO KOLU (anahtarlik-foto 9 Eki; plaket_kulak, TeKiN kopru kaydi): hermetik — uretec KOSMAZ;
-# esleme / komut / red kodu / yazi kolu ayrimi kosucu fonksiyonlarindan, kopru kaydi agactaki SABIT kopyadan.
+# ANAHTARLIK FOTO KOLU (anahtarlik-foto; 10 Eki figur_kulak, TeKiN kopru kaydi): hermetik — esleme / komut / red kodu /
+# yazi kolu ayrimi kosucu fonksiyonlarindan, kopru kaydi agactaki SABIT kopyadan. T44 (V7) GERCEK figur_kulak.py'yi
+# 60 mm kup STL ile kosar (uretec deposu ya da trimesh yoksa OLCULEMEDI -> KIRMIZI sayilir, yesil denmez).
 ANAHTARLIK_BOYUT_CUMLE = ("Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı; daha sade bir fotoğraf ya da "
                           "kısa bir yazı deneyin.")
+
+
+def _kup_stl(yol, kenar):
+    """Kenar mm'lik eksen hizali kup (ikili STL, 12 ucgen, watertight, pozitif koordinat)."""
+    k = float(kenar)
+    v = [(x, y, z) for x in (0, k) for y in (0, k) for z in (0, k)]
+    yuz = [(0, 2, 3, 1), (4, 5, 7, 6), (0, 1, 5, 4), (2, 6, 7, 3), (0, 4, 6, 2), (1, 3, 7, 5)]
+    ucgen = [u for a, b, c, d in yuz for u in ((a, b, c), (a, c, d))]
+    with open(yol, "wb") as f:
+        f.write(b"\0" * 80 + struct.pack("<I", len(ucgen)))
+        for u in ucgen:
+            f.write(struct.pack("<3f", 0, 0, 0))
+            for i in u:
+                f.write(struct.pack("<3f", *v[i]))
+            f.write(b"\0\0")
 
 
 def foto_kolu_vakalari(kosucu, s):
@@ -767,40 +783,69 @@ def foto_kolu_vakalari(kosucu, s):
     cli = m.cli_tablosu()
     d = tempfile.mkdtemp(prefix="foto-kolu-vaka-")
     try:
-        with open(os.path.join(d, "plaket.3mf"), "wb") as f:
+        with open(os.path.join(d, "figur.3mf"), "wb") as f:
             f.write(b"PK\x03\x04")
-        zarf = {"dosyalar": {"plaket": "plaket.3mf"}, "parametreler": {}}
+        with open(os.path.join(d, "figur.stl"), "w", encoding="ascii") as f:
+            f.write("solid x\nendsolid x\n")
+        zarf = {"dosyalar": {"figur": "figur.3mf"}, "parametreler": {}}
 
         def t40():
-            fn = m.esle_fonksiyonu(t, cli.get("plaket_kulak"))
+            fn = m.esle_fonksiyonu(t, cli.get("figur_kulak"))
             u, b = fn(zarf, d, {}) if fn else ({}, None)
-            return (fn is m.esle_anahtarlik_foto and u == {"plaket": os.path.join(d, "plaket.3mf"), "konum": "sol-ust"}
-                    and b == [], "fn=%s u=%s" % (getattr(fn, "__name__", fn), u))
+            us, _ = m.esle_anahtarlik_foto(dict(zarf, dosyalar={"figur": "figur.stl"}), d, {})
+            eski = [k for k in cli if "plaket_kulak" in k]
+            return (fn is m.esle_anahtarlik_foto and u == {"figur": os.path.join(d, "figur.3mf"), "konum": "tepe"}
+                    and b == [] and us["figur"] == os.path.join(d, "figur.stl") and not eski,
+                    "fn=%s u=%s us=%s eski=%s" % (getattr(fn, "__name__", fn), u, us, eski))
 
         def t41():
-            g = cli.get("plaket_kulak") or {}
-            u, _ = m.esle_anahtarlik_foto(dict(zarf, parametreler={"anahtarlik_kulak_konum": "sag-ust"}), d, {})
+            g = cli.get("figur_kulak") or {}
+            u, _ = m.esle_anahtarlik_foto(dict(zarf, parametreler={"figur_kulak_konum": "sirt"}), d, {})
             k1 = m.dosya_girdili_komut(g, u, "PY", "/JEN", "/HAM")
             k0 = m.dosya_girdili_komut(g, m.esle_anahtarlik_foto(zarf, d, {})[0], "PY", "/JEN", "/HAM")
-            b = ["PY", "/JEN/jeneratorler/foto/plaket_kulak.py"]
-            p = os.path.join(d, "plaket.3mf")
-            return (k1 == b + ["--konum", "sag-ust", "--girdi", p, "--cikti", "/HAM"] and
-                    k0 == b + ["--konum", "sol-ust", "--girdi", p, "--cikti", "/HAM"], "k1=%s k0=%s" % (k1, k0))
+            b = ["PY", "/JEN/jeneratorler/foto/figur_kulak.py"]
+            p = os.path.join(d, "figur.3mf")
+            try:  # yazi kolunun konumu (sol-ust) figure GECMEZ
+                m.esle_anahtarlik_foto(dict(zarf, parametreler={"figur_kulak_konum": "sol-ust"}), d, {})
+                red = None
+            except m.KopruRed as e:
+                red = str(e)
+            return (k1 == b + ["--konum", "sirt", "--girdi", p, "--cikti", "/HAM"] and
+                    k0 == b + ["--konum", "tepe", "--girdi", p, "--cikti", "/HAM"] and red == "parametre",
+                    "k1=%s k0=%s red=%s" % (k1, k0, red))
 
         def t42():
-            kod = m.ret_kodu("RET: plaket uzun kenar 55.00 mm > 50 mm (kucuk plaket; max 50 mm uzun kenar)")
-            kod2 = m.ret_kodu("RET: kulak dahil uzun kenar 61.00 mm > 60 mm (konum=sol-ust, kulak=(1.00,2.00))")
+            kod = m.ret_kodu("RET: figur uzun kenar 55.00 mm > 50 mm (max 50 mm uzun kenar)")
+            kod2 = m.ret_kodu("RET: kulak dahil uzun kenar 61.00 mm > 60 mm (konum=tepe, kulak=(1.00,2.00,3.00))")
+            kod3 = m.ret_kodu("RET: kulak yerlesmez (tepe): 12 aday tarandi, hicbiri delik >= 3.5 mm govde disi")
             with open(os.path.join(kok, "foto-uretim-veri.js"), encoding="utf-8") as f:
                 veri = f.read()
             metin = _re.findall(r'"anahtarlik-boyut": "([^"]*)"', veri)
-            return (kod == kod2 == "anahtarlik-boyut" and metin == [ANAHTARLIK_BOYUT_CUMLE],
-                    "kod=%s kod2=%s metin=%s" % (kod, kod2, metin))
+            return (kod == kod2 == kod3 == "anahtarlik-boyut" and metin == [ANAHTARLIK_BOYUT_CUMLE],
+                    "kod=%s kod2=%s kod3=%s metin=%s" % (kod, kod2, kod3, metin))
+
+        def t44():
+            jen = os.environ.get("FOTO_KOSUCU_JENERATOR") or os.path.expanduser("~/dev/pruvo-jenerator")
+            g = cli.get("figur_kulak") or {}
+            if not os.path.isfile(os.path.join(jen, g.get("betik") or "-")):
+                return False, "OLCULEMEDI uretec-deposu-yok %s" % jen
+            _kup_stl(os.path.join(d, "buyuk.stl"), 60)
+            u, _ = m.esle_anahtarlik_foto(dict(zarf, dosyalar={"figur": "buyuk.stl"}), d, {})
+            ham = os.path.join(d, "ham")
+            komut = m.dosya_girdili_komut(g, u, sys.executable, jen, ham)
+            p = subprocess.run(komut, capture_output=True, text=True, timeout=300, cwd=jen)
+            satir = (p.stderr.strip().splitlines() or [""])[-1]
+            kod = m.ret_kodu(satir)
+            with open(os.path.join(kok, "foto-uretim-veri.js"), encoding="utf-8") as f:
+                metin = _re.findall(r'"anahtarlik-boyut": "([^"]*)"', f.read())
+            return (p.returncode == 2 and kod == "anahtarlik-boyut" and metin == [ANAHTARLIK_BOYUT_CUMLE],
+                    "rc=%s kod=%s satir=%s" % (p.returncode, kod, satir[:160]))
 
         def t43():
             fn = m.esle_fonksiyonu(t, cli.get("isimlik_uret"))
             return (fn is m.esle_anahtarlik and not (cli.get("isimlik_uret") or {}).get("dosya_girdisi"),
                     "fn=%s" % getattr(fn, "__name__", fn))
-        for ad, fn in (("T40", t40), ("T41", t41), ("T42", t42), ("T43", t43)):
+        for ad, fn in (("T40", t40), ("T41", t41), ("T42", t42), ("T43", t43), ("T44", t44)):
             dene(ad, fn)
     finally:
         shutil.rmtree(d, ignore_errors=True)
@@ -868,10 +913,16 @@ MUTANTLAR = {
     # ANAHTARLIK FOTO KOLU: foto dali / parametre_bayraklari / >50 mm cumlesi / yazi kolu ayrimi.
     "M45": ('    if (g or {}).get("kol") == "foto":\n        return ESLEMELER.get(g.get("esle"))\n', "", {"T40"}),
     "M46": ("        komut += [pb[ad], str(u[ad])]\n", "        pass\n", {"T41"}),
-    "M47": ('    (r"plaket uzun kenar|kulak dahil uzun kenar|kulak yerlestirilemedi|gecerli kulak adayi", "anahtarlik-boyut"),\n',
-            "", {"T42"}),
+    "M47": ('    (r"figur uzun kenar|kulak dahil uzun kenar|kulak yerlesmez", "anahtarlik-boyut"),\n',
+            "", {"T42", "T44"}),
+    # 10 Eki figur_kulak: varsayilan konum tepe; STL girdisi de kabul; eski plaket eslemesi geri gelirse KIRMIZI.
+    "M50": ('KONUM_VARSAYILAN = "tepe"\n', 'KONUM_VARSAYILAN = "sirt"\n', {"T40", "T41"}),
+    "M51": ('not ad.endswith((".3mf", ".stl"))', 'not ad.endswith(".3mf")', {"T40", "T44"}),
+    "M52": ('    "figur_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/figur_kulak.py",',
+            '    "plaket_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/plaket_kulak.py",',
+            {"T40", "T41", "T44"}),
     "M48": ('"anahtarlik-boyut": "Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı;',
-            '"anahtarlik-boyut": "Bu fotoğraftan parça çıkmadı;', {"T42"}, "foto-uretim-veri.js"),
+            '"anahtarlik-boyut": "Bu fotoğraftan parça çıkmadı;', {"T42", "T44"}, "foto-uretim-veri.js"),
     # Yazi kolu gerilemesi: foto dali her ureteci yakalar -> anahtarlik yazi isi esle_isimlik'e duser (T13/T14/...).
     "M49": ('    if (g or {}).get("kol") == "foto":\n', '    if True:\n',
             {"T13-anahtarlik", "T14", "T16", "T17", "T22", "T43"}),
@@ -938,7 +989,9 @@ G2_SATIR = {
         "form": {"uzun_kenar_mm": "sayi", "satir": "sayi", "sutun": "sayi", "tohum": "sayi", "kabartma_yon": "secim"},
         "ornek_render": 1,
         "notu": "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir.",
-        "durust": "Her yapboz parçası tek renktir; renkler seçtiğin seçeneğe göre belirlenir.",
+        # TUR-A (10 Eki): ArTisT birebir durustluk cumlesi.
+        "durust": ("Her yapboz parçası tek renktir. Siyah, Beyaz ya da Gri seçersen tüm parçalar o renk olur; Renkli "
+                   "seçersen parça renkleri fotoğrafından otomatik belirlenir (en çok 4 renk)."),
     },
     "anahtarlik": {
         "alan": {"ad": "Anahtarlık", "girdi": ["metin"], "motor": "D", "uretec": "isimlik_uret",
