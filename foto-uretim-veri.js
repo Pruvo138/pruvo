@@ -81,7 +81,9 @@
     // KATEGORİ KAYDI (6 Eki 2026) — her türün akışı bu alanlardan okunur, kodda ikinci liste YOK:
     // ŞEMA = tools/foto-uretec-sozlesmesi.md §6 (KATEGORİ MOTORU, 7 Eki 2026: kategori eklemek =
     // üreteç + bu satır; bölüm, sunucu, fiyat üreteci ve üreteç köprüsü YALNIZ bu satırı okur).
-    //   girdi          : [GIRDI_TURLERI anahtarı...] — "foto-1" tek fotoğraf, "foto-1-3" 1–3 fotoğraf.
+    //   girdi          : [GIRDI_TURLERI anahtarı...] — "foto-1" tek fotoğraf, "foto-1-3" 1–3 fotoğraf, "metin"
+    //                    form'un metin alanları. Liste "EN AZ BİRİ" demektir (anahtarlık 9 Eki: foto VEYA yazı,
+    //                    ikisi birden de olur): ② "İleri" ve sunucu girdi kapısı AYNI VERI.girdiYeterli'yi çağırır.
     //   motor          : "M" = önizleme+üretim dış hizmetle (kredi harcar; kol "saglayici");
     //                    "D" / "R" = deterministik / ölçüden üretim — önizleme tarayıcıda ya da
     //                    üreteçte, üretim dosyasını bizim üretecimiz çıkarır (kol "deterministik")
@@ -334,7 +336,7 @@
         },
         ornek_kanit_izni: ["render"],
         durustluk: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
-        ornek_notu: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçiminize göre üretilir.",
         olcu_ekseni: "sabit"
       },
       
@@ -370,7 +372,7 @@
           },
           rolyef_yuksekligi_mm: {
             tip: "sayi",
-            etiket: "Kabartma yuksekligi",
+            etiket: "Kabartma yüksekliği",
             min: 1,
             max: 8,
             adim: 0.01,
@@ -386,7 +388,7 @@
           },
           iki_renk: {
             tip: "bool",
-            etiket: "Iki renk",
+            etiket: "İki renk",
             varsayilan: false,
             ornek: false
           }
@@ -583,12 +585,26 @@
     "foto-1": { acik: true }, "foto-1-3": { acik: true, en_cok: 3 }, metin: { acik: true }
   };
   VERI.FORM_TIPLERI = { sayi: true, secim: true, metin: true, bool: true };
+  var FOTO_GIRDILERI = { "foto-1": true, "foto-1-3": true };
   // Metinde yasak: C0/C1 kontrol karakterleri (satır sonu dahil), satır/paragraf ayırıcı, yön geçersiz kılıcıları.
   var METIN_KONTROL = /[\u0000-\u001f\u007f-\u009f\u2028\u2029\u202a-\u202e\u2066-\u2069]/;
   function metinOgeGecerli(x, max) {
     return typeof x === "string" && x.trim().length > 0 && x.length <= max && !METIN_KONTROL.test(x);
   }
   function pozitifTam(n) { return typeof n === "number" && Number.isInteger(n) && n >= 1; }
+  // Tek metin alanının değeri şemaya uyuyor mu (parametreDogrula ve girdiYeterli AYNI kural).
+  function metinDegerGecerli(sema, v) {
+    if (!pozitifTam(sema.max)) { return false; }
+    if (sema.liste === true) {
+      if (!pozitifTam(sema.satir_max) || !Array.isArray(v)) { return false; }
+      if (v.length < 1 || v.length > sema.satir_max) { return false; }
+      for (var m = 0; m < v.length; m++) {
+        if (!metinOgeGecerli(v[m], sema.max)) { return false; }
+      }
+      return true;
+    }
+    return sema.liste === undefined && metinOgeGecerli(v, sema.max);
+  }
 
   function utf8Bayt(s) {
     return typeof TextEncoder !== "undefined" ? new TextEncoder().encode(s).length : unescape(encodeURIComponent(s)).length;
@@ -659,21 +675,37 @@
       } else if (sema.tip === "secim") {
         if (!Array.isArray(sema.secenekler) || sema.secenekler.indexOf(v) < 0) { return { ok: false, hata: "parametre-secim" }; }
       } else if (sema.tip === "metin") {
-        if (!pozitifTam(sema.max)) { return { ok: false, hata: "parametre-metin" }; }
-        if (sema.liste === true) {
-          if (!pozitifTam(sema.satir_max) || !Array.isArray(v)) { return { ok: false, hata: "parametre-metin" }; }
-          if (v.length < 1 || v.length > sema.satir_max) { return { ok: false, hata: "parametre-metin" }; }
-          for (var m = 0; m < v.length; m++) {
-            if (!metinOgeGecerli(v[m], sema.max)) { return { ok: false, hata: "parametre-metin" }; }
-          }
-          v = v.slice();
-        } else if (sema.liste !== undefined || !metinOgeGecerli(v, sema.max)) { return { ok: false, hata: "parametre-metin" }; }
+        if (!metinDegerGecerli(sema, v)) { return { ok: false, hata: "parametre-metin" }; }
+        if (sema.liste === true) { v = v.slice(); }
       } else if (sema.tip === "bool") {
         if (v !== true && v !== false) { return { ok: false, hata: "parametre-bool" }; }
       }
       cikti[a] = v;
     }
     return { ok: true, deger: cikti };
+  };
+  // GİRDİ YETERLİ Mİ (anahtarlık 9 Eki; ② "İleri" ve sunucu girdi kapısı AYNI fonksiyon): türün `girdi`
+  // listesinden EN AZ BİRİ dolu olmalı. g = {foto: bool (fotoğraf/konsept verildi mi), parametreler}.
+  // "foto-*" -> g.foto === true; "metin" -> formdaki AKTİF metin alanlarından biri dolu VE şemaya uygun.
+  // Dönüş "" = yeterli, "girdi-eksik" = hiçbiri yok (fail-closed: liste boş/bilinmeyen girdi -> eksik).
+  VERI.girdiYeterli = function (kod, g) {
+    var t = VERI.turBul(kod);
+    if (!t || !Array.isArray(t.girdi) || !t.girdi.length) { return "girdi-eksik"; }
+    g = g && typeof g === "object" ? g : {};
+    var p = g.parametreler && typeof g.parametreler === "object" && !Array.isArray(g.parametreler) ? g.parametreler : {};
+    var form = t.form && typeof t.form === "object" ? t.form : {};
+    for (var i = 0; i < t.girdi.length; i++) {
+      var x = t.girdi[i];
+      if (FOTO_GIRDILERI[x] === true && g.foto === true) { return ""; }
+      if (x === "metin") {
+        for (var a in form) {
+          if (!Object.prototype.hasOwnProperty.call(form, a) || !form[a] || form[a].tip !== "metin") { continue; }
+          if (VERI.alanAktif(form, a, p) && Object.prototype.hasOwnProperty.call(p, a) &&
+              metinDegerGecerli(form[a], p[a])) { return ""; }
+        }
+      }
+    }
+    return "girdi-eksik";
   };
   // Türün ölçü aralığı (mm, uzun kenar); bilinmeyen tür -> null. Bölüm ve sunucu AYNI fonksiyon.
   VERI.olcuAraligi = function (kod) {

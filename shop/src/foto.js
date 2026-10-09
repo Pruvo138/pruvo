@@ -126,6 +126,9 @@ export function girdiGovdeDogrula(turKod, g) {
   }
   const p = VERI.parametreDogrula(turKod, g.parametreler);
   if (!p.ok) { return p.hata; }
+  // EN AZ BIR GIRDI (anahtarlik 9 Eki: foto VEYA yazi) — bolumun ② "Ileri" kapisiyla AYNI fonksiyon.
+  const gy = VERI.girdiYeterli(turKod, { foto: g.gorsel !== undefined || g.konsept !== undefined, parametreler: p.deger });
+  if (gy) { return gy; }
   if (g.svg !== undefined) {
     if (!t.girdi.includes("svg")) { return "sema-disi-parametre"; }
     const sv = VERI.svgDogrula(g.svg);

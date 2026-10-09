@@ -56,8 +56,7 @@
     { kod: "bust", tur: "bust", alt: null, ad: "Büst",
       ret: "Büst için yüzü net görünen bir portre fotoğrafı gerekir." },
     { kod: "anahtarlik", tur: "anahtarlik", alt: null, ad: "Anahtarlık",
-      ret: "Anahtarlık için net bir fotoğraf ya da metin/logo gerekir.",
-      yakinda: "Anahtarlık — yakında" },
+      ret: "Anahtarlık için net bir fotoğraf ya da kısa bir yazı gerekir." },
     { kod: "yapboz", tur: "yapboz", alt: null, ad: "Yapboz",
       ret: "Yapboz için açık-koyu tonları belirgin, yüksek çözünürlüklü fotoğraf gerekir." }
   ];
@@ -67,7 +66,7 @@
   var PENCERELER = [
     { no: "①", ad: "Tür seç", aciklama: "6 seçenekten birini seç: insan figürü, hayvan ve model figürü, kabartma plaket, büst, anahtarlık ya da yapboz." },
     { no: "②", ad: "Resim yükle", aciklama: "Resmi yükle; \"Nasıl olsun?\" kısmında ne istediğini kısaca yaz. Uyumsuz resimde tek kısa mesaj gösterilir." },
-    { no: "③", ad: "Renk, boyut ve malzeme", aciklama: "Renk adedi 1–4 (ek renk ₺100), boyut sürgüden ayarlanır; malzemeyi listeden seç. Fiyat ölçüye göre canlı görünür; en uzun boyut mm × 10 TL, en az ₺600." },
+    { no: "③", ad: "Renk, boyut ve malzeme", aciklama: "Renk adedi seçtiğin türe göre değişir (ek renk ₺100), boyut sürgüden ayarlanır; malzemeyi listeden seç. Fiyat ölçüye göre canlı görünür; en uzun boyut mm × 10 TL, en az ₺600." },
     { no: "④", ad: "Önizleme ve onay", aciklama: "Önizlemeyi gör, onayları ver; Sepete ekle açılır." }
   ];
   var SS_IS = "pruvo_foto_is";
@@ -143,6 +142,8 @@
     adimCubugu: null,
     alanOlcu: null,
     alanForm: null,
+    alanYazi: null,
+    yaziHata: null,
     alanOnizlemeSonra: null,
     ornekBlok: null,
     parametre: {},
@@ -567,11 +568,12 @@
     if (n === 4 && S.adim === "S3") cizS3();
     gezintiGuncelle();
   }
-  // İleri şartı: ① tür seçili · ② dosya (gerekiyorsa) + parça kapısı "uygun" · ③ ölçü + form geçerli.
+  // İleri şartı: ① tür seçili · ② girdilerden EN AZ BİRİ (foto ya da yazı; F.girdiYeterli — sunucuyla AYNI)
+  // + parça kapısı "uygun" · ③ ölçü + form geçerli.
   function ileriAcikMi() {
     if (S.pencere === 1) return !!S.tur;
     if (S.pencere === 2) {
-      return !!S.tur && (!!S.dosya || !fotoGerekir()) &&
+      return !!S.tur && F.girdiYeterli(S.tur, { foto: !!S.dosya, parametreler: parametreGovde() }) === "" &&
         uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap) === "uygun";
     }
     if (S.pencere === 3) return !!S.tur && !!S.olcu && formDogrula().ok;
@@ -607,6 +609,11 @@
   function fotoGerekir() {
     var t = litofanKaydi();
     return !t || !t.girdi || t.girdi.indexOf("foto-1") >= 0 || t.girdi.indexOf("foto-1-3") >= 0;
+  }
+  // Türün girdisinde yazı (form metin alanı) var mı — varsa metin alanları ② ekranında çizilir.
+  function metinGirdisi() {
+    var t = litofanKaydi();
+    return !!t && !!t.girdi && t.girdi.indexOf("metin") >= 0;
   }
   // Kayıttan varsayılan seçim: her malzeme bölgesinin ilk malzemesi, her renk bölgesinin ilk rengi.
     // EK RENK (Okan 8 Eki: "ilk renk ücretsiz, her + renk için +100 TL", en çok 4): palet türünde (plaket/figür/büst)
@@ -727,10 +734,13 @@
   function kosulGuncelle() {
     renkKosulGuncelle();
     if (!S.alanForm) return;
-    var aktif = aktifParametreler().aktif, d = S.alanForm.childNodes;
-    for (var i = 0; i < d.length; i++) {
-      var a = d[i].nodeType === 1 ? d[i].getAttribute("data-param") : null;
-      if (a) d[i].hidden = aktif[a] === false;
+    var aktif = aktifParametreler().aktif, kaplar = [S.alanForm, S.alanYazi];
+    for (var k = 0; k < kaplar.length; k++) {
+      var d = kaplar[k] ? kaplar[k].childNodes : [];
+      for (var i = 0; i < d.length; i++) {
+        var a = d[i].nodeType === 1 ? d[i].getAttribute("data-param") : null;
+        if (a) d[i].hidden = aktif[a] === false;
+      }
     }
   }
   // KOŞULLU RENK BÖLGESİ (BaBa 8 Eki 15:5x): bölge üretilmiyorsa (logo tabanı "Yok", rölyef tek renk, ses başlığı /
@@ -795,6 +805,13 @@
   function formHataGoster() {
     yapbozParcaNotu();
     kosulGuncelle();
+    if (S.yaziHata) {
+      // ② yazı alanı: değer girilmiş ama şemaya uymuyorsa (ör. satır > 40 karakter) ③'teki ortak hata metni.
+      var yd = formDogrula(), yaziDolu = false, fs = formSemasi(), pg = parametreGovde();
+      for (var ya in fs) if (fs[ya] && fs[ya].tip === "metin" && pg[ya] !== undefined) yaziDolu = true;
+      S.yaziHata.hidden = !(yaziDolu && !yd.ok && yd.hata === "parametre-metin");
+      S.yaziHata.textContent = S.yaziHata.hidden ? "" : "Bu alanları kontrol et.";
+    }
     if (!S.alanForm || !S.formHata) return;
     var d = formDogrula();
     S.formHata.textContent = d.ok ? "" : (PARAMETRE_HATA[d.hata] || "Bu alanları kontrol et.");
@@ -805,17 +822,24 @@
         function doldurS1Form() {
     if (!S.alanForm) return;
     while (S.alanForm.firstChild) S.alanForm.removeChild(S.alanForm.firstChild);
+    if (S.alanYazi) while (S.alanYazi.firstChild) S.alanYazi.removeChild(S.alanYazi.firstChild);
     var form = formSemasi(), alanlar = Object.keys(form);
+    // ② YAZI (anahtarlık 9 Eki): girdisi "metin" olan türün metin alanları ② ekranında, foto kutusunun
+    // altında; kalan alanlar ③'te. ② "İleri" F.girdiYeterli ile bu alanlara bakar.
+    var yaziVar = false;
+    for (var y = 0; y < alanlar.length; y++) if ((form[alanlar[y]] || {}).tip === "metin") yaziVar = true;
+    if (S.alanYazi) S.alanYazi.hidden = !(yaziVar && metinGirdisi());
     S.alanForm.hidden = !alanlar.length;
     if (!alanlar.length) return;
     for (var i = 0; i < alanlar.length; i++) {
-      var ilkDugum = S.alanForm.childNodes.length;
+      var hedefKap = S.alanYazi && metinGirdisi() && (form[alanlar[i]] || {}).tip === "metin" ? S.alanYazi : S.alanForm;
+      var ilkDugum = hedefKap.childNodes.length;
       (function (a, sema) {
         var id = "foto-param-" + a;
         var lbl = el("label", "foto-uretim-form-etiket",
           (sema.etiket || a) + (sema.tip === "sayi" && sema.birim ? " (" + sema.birim + ")" : ""));
         lbl.setAttribute("for", id);
-        S.alanForm.appendChild(lbl);
+        hedefKap.appendChild(lbl);
         var g;
         if (sema.tip === "secim") {
           g = el("select", "foto-uretim-form-secenek-girdi");
@@ -842,7 +866,7 @@
             formHataGoster();
             guncelleS1Buton();
           });
-          S.alanForm.appendChild(g);
+          hedefKap.appendChild(g);
           return;
         } else if (sema.tip === "sayi") {
           g = el("input", "foto-uretim-form-secenek-girdi");
@@ -875,7 +899,7 @@
               formHataGoster();
               guncelleS1Buton();
             });
-            S.alanForm.appendChild(g);
+            hedefKap.appendChild(g);
             return;
           }
           g = el("input", "foto-uretim-form-secenek-girdi");
@@ -895,7 +919,7 @@
             formHataGoster();
             guncelleS1Buton();
           });
-          S.alanForm.appendChild(g);
+          hedefKap.appendChild(g);
           return;
         }
         if (!g) return;
@@ -913,11 +937,11 @@
         };
         g.addEventListener("input", degis);
         g.addEventListener("change", degis);
-        S.alanForm.appendChild(g);
+        hedefKap.appendChild(g);
       })(alanlar[i], form[alanlar[i]] || {});
       // Alanın tüm düğümleri (etiket + girdi) `data-param` taşır: kosulGuncelle onları birlikte gizler.
-      for (var dn = ilkDugum; dn < S.alanForm.childNodes.length; dn++) {
-        if (S.alanForm.childNodes[dn].nodeType === 1) S.alanForm.childNodes[dn].setAttribute("data-param", alanlar[i]);
+      for (var dn = ilkDugum; dn < hedefKap.childNodes.length; dn++) {
+        if (hedefKap.childNodes[dn].nodeType === 1) hedefKap.childNodes[dn].setAttribute("data-param", alanlar[i]);
       }
     }
     S.formHata = el("p", "foto-uretim-ayrinti");
@@ -1078,6 +1102,8 @@
     var inp = S.yukleGirdi;
     inp.accept = svg ? ".svg,image/svg+xml" : "image/jpeg,image/png,image/webp";
     inp.disabled = !acik;
+    // Fotoğraf almayan türde (bugün yalnız yazılı anahtarlık) kutu ÇİZİLMEZ: ölü "Foto ekle" gösterilmez.
+    S.yukleKutu.hidden = !fotoGerekir();
     if (acik) { S.yukleEtiket.removeAttribute("tabindex"); S.yukleEtiket.removeAttribute("role"); }
     else { S.yukleEtiket.setAttribute("tabindex", "0"); S.yukleEtiket.setAttribute("role", "button"); }
     S.yukleKabul.textContent = svg ? "Yazıları şekle çevrilmiş düz SVG — en çok 15 MB" : "JPEG, PNG veya WEBP — en çok 15 MB";
@@ -1352,6 +1378,14 @@
     cizYukleKutu(p2);
     S.alanDosya = el("div", "foto-uretim-form-grup");
     p2.appendChild(S.alanDosya);
+    // ② YAZI (anahtarlık 9 Eki): metin girdili türün yazı alanı foto kutusuyla AYNI ekranda (doldurS1Form doldurur).
+    S.alanYazi = el("div", "foto-uretim-form-grup");
+    S.alanYazi.id = "foto-yazi";
+    S.alanYazi.hidden = true;
+    p2.appendChild(S.alanYazi);
+    S.yaziHata = el("p", "foto-uretim-ayrinti");
+    S.yaziHata.hidden = true;
+    p2.appendChild(S.yaziHata);
     doldurS1Dosya();
     // K2b: UYUM KAPISI paneli — dosya/not girdilerinden sonra (arka planda; yalnız soru/RED'de görünür).
     // uyumSonuc: null | "uygun" | "uygun_degil" | "belirsiz". uygun_degil'de ret cümlesi; belirsiz'de soru.

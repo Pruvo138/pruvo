@@ -850,8 +850,8 @@ G2_SATIR = {
         "form": {"satirlar": "metin", "yazi_tipi": "secim", "hizalama": "secim", "genislik_mm": "sayi",
                  "anahtarlik_kulak_konum": "secim", "kontur_tasma_mm": "sayi"},
         "ornek_render": 1,  # 9 Eki: TeKiN ornegi (anahtarlik-kart-9eki) — K3c'de 0 idi
-        "notu": "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde "
-                "(delik Ø 3,5–4 mm).",
+        # 9 Eki (anahtarlik-foto-kolu): dürüstlük cümlesi ②'de 2× basılıyordu -> render notu AYRI cümle.
+        "notu": "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçiminize göre üretilir.",
         "durust": "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde "
                   "(delik Ø 3,5–4 mm).",
     },

@@ -1872,6 +1872,64 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
   }
 }
 
+// ================================================================ AN — ANAHTARLIK ② YAZI (9 Eki)
+// Okan ekranı 9 Eki ("foto ekle çalışmıyor"): ② ölü "Foto ekle" + yazı alanı YOK + "İleri" girdisiz AÇIK + dürüstlük
+// cümlesi 2×. Yeni kural: ② girdilerden EN AZ BİRİ (VERI.girdiYeterli, sunucuyla aynı); metin girdili türün yazı alanı
+// ②'de; fotoğraf almayan türde foto kutusu çizilmez; ② dürüstlük cümlesi 1×.
+{
+  console.log("AN) ANAHTARLIK ② — yazı alanı ②'de, İleri girdisiz KAPALI, foto kutusu ölü çizilmez, dürüstlük 1×");
+  const senaryo = async (kaynak) => {
+    const s = {};
+    const V = veriYukle(VERI_KAYNAK);
+    const an = V.turBul("anahtarlik");
+    const acikA = { acik: true, turler: [{ kod: "anahtarlik", ad: an.ad, aciklama: "x", ornek_sayisi: 1,
+      olculer: V.olcuSecenekleri("anahtarlik").map((mm) => ({ mm, fiyat_kurus: V.fiyatKurus("anahtarlik", mm) })) }] };
+    const e = await ekranKos(kaynak, V, acikA, null, null, { kart: "anahtarlik" });
+    const d = () => [...e.bolum.agac()];
+    const id = (x) => d().find((n) => n.id === x) || null;
+    const p2 = id("foto-pencere-2"), ta = id("foto-param-satirlar"), ileri = id("foto-ileri"), yazi = id("foto-yazi");
+    const kutu = id("foto-yukle-kutu");
+    s.YAZI_IKIDE = !!(p2 && ta && yazi) && ta.tagName === "TEXTAREA" && [...p2.agac()].includes(ta) && yazi.hidden === false;
+    s.FOTO_KUTU_GIZLI = !!kutu && kutu.hidden === true;
+    s.ILERI_BOS_KAPALI = !!ileri && ileri.hidden === false && ileri.disabled === true;
+    const yaz = (v) => { if (ta) { ta.value = v; ta.tetikle("input"); } };
+    yaz("Ayşe");
+    s.ILERI_YAZI_ACIK = !!ileri && ileri.disabled === false;
+    yaz("");
+    s.ILERI_SILINCE_KAPALI = !!ileri && ileri.disabled === true;
+    yaz("x".repeat(41));
+    const hata = d().find((n) => n.tagName === "P" && n.classList.contains("foto-uretim-ayrinti") && !n.hidden &&
+      n.textContent === "Bu alanları kontrol et." && p2 && [...p2.agac()].includes(n));
+    s.YAZI_HATA = !!ileri && ileri.disabled === true && !!hata;
+    const durust = p2 ? [...p2.agac()].filter((n) => n.tagName === "P" && n.textContent === an.durustluk).length : -1;
+    s.DURUST_TEK = durust === 1 && an.ornek_notu !== an.durustluk;
+    Object.defineProperty(s, "iz", { value: { durust, istisna: e.istisnaMetni }, enumerable: false });
+    return s;
+  };
+  const s0 = await senaryo(EKRAN_KAYNAK);
+  ol("AN1 anahtarlık yazı alanı (textarea satirlar) ② ekranında, #foto-yazi görünür", s0.YAZI_IKIDE, JSON.stringify(s0));
+  ol("AN2 fotoğraf almayan türde ② foto kutusu çizilmez (ölü 'Foto ekle' 0)", s0.FOTO_KUTU_GIZLI, JSON.stringify(s0));
+  ol("AN3 ② yazı boşken 'İleri' KAPALI", s0.ILERI_BOS_KAPALI, JSON.stringify(s0));
+  ol("AN4 ② yazı 'Ayşe' girilince 'İleri' AÇIK", s0.ILERI_YAZI_ACIK, JSON.stringify(s0));
+  ol("AN5 ② yazı silinince 'İleri' yeniden KAPALI", s0.ILERI_SILINCE_KAPALI, JSON.stringify(s0));
+  ol("AN6 ② 41 karakter: 'İleri' KAPALI + ② hata satırı 'Bu alanları kontrol et.'", s0.YAZI_HATA, JSON.stringify(s0));
+  ol("AN7 ② dürüstlük cümlesi TAM 1× (ornek_notu ayrı cümle)", s0.DURUST_TEK, JSON.stringify([s0, s0.iz]));
+  const AN_MUT = [
+    ["AN-M1 ② İleri girdisiz açık kalır (girdiYeterli kapısı silindi)",
+     'F.girdiYeterli(S.tur, { foto: !!S.dosya, parametreler: parametreGovde() }) === ""', "true",
+     ["ILERI_BOS_KAPALI", "ILERI_SILINCE_KAPALI", "YAZI_HATA"]],
+    ["AN-M2 metin alanı ②'ye çizilmez (③'te kalır)", "var hedefKap = S.alanYazi && metinGirdisi() &&", "var hedefKap = false &&",
+     ["YAZI_IKIDE"]],
+    ["AN-MK kontrol (yorum)", "// ② YAZI (anahtarlık 9 Eki): metin girdili", "// ② yazi (anahtarlik 9 Eki): metin girdili", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of AN_MUT) {
+    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = await senaryo(EKRAN_KAYNAK.replace(capa, yerine));
+    const kirmizi = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(m));
+  }
+}
+
 // ================================================================ AK — PLAKET ALT KENAR KALINLIGI
 
 /**
