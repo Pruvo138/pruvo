@@ -799,13 +799,24 @@ def npm_cache_isinmis():
         return False
 
 
+# 🔴 WRANGLER DISK LOGU KAPALI (9 Eki 2026, KraL-WranglerLog). OLCULEN: `~/.wrangler/logs`
+# 2,5 gunde 3,1 GB / 11.427 dosya; baytin %99'u (2015 dosya, 3,28 GB) bu aracin tam-katalog
+# SELECT'inin (`d1 execute --command --json --remote`, cwd=repo koku) `log` seviyesinde
+# diske yazilan JSON cevabiydi — dosya basi 13,7 MB. Wrangler 4.149.0 kaynagi
+# (`wrangler-dist/cli.js::shouldLogToDisk`): `WRANGLER_WRITE_LOGS` "false"/"0" ise
+# `appendToDebugLogFile` HIC cagrilmaz; kendi temizligi yalniz 30 gunden eski dosyayi siler.
+# stdout/stderr ETKILENMEZ (konsol kolu ayri). Kalan cagiranlarin birikimini
+# `tools/wrangler-log-nobetcisi.py --budama` (crontab) sinirlar.
+WRANGLER_LOG_KAPALI = {"WRANGLER_WRITE_LOGS": "false"}
+
+
 def wrangler_ortami():
-    """Alt surece verilecek ortam — npm cache'i OZEL dizine cevirir."""
+    """Alt surece verilecek ortam — npm cache'i OZEL dizine cevirir, disk logunu kapatir."""
     try:
         os.makedirs(NPM_CACHE_DIZINI, exist_ok=True)
     except OSError:
-        return dict(os.environ)          # yazilamiyorsa EPERM kolu devralir
-    return dict(os.environ, npm_config_cache=NPM_CACHE_DIZINI)
+        return dict(os.environ, **WRANGLER_LOG_KAPALI)  # yazilamiyorsa EPERM kolu devralir
+    return dict(os.environ, npm_config_cache=NPM_CACHE_DIZINI, **WRANGLER_LOG_KAPALI)
 
 
 # 🔴 TAVAN IKI KOLLUDUR — CUNKU OLCULEN IKI AYRI POPULASYON VAR:
