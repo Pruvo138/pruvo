@@ -256,12 +256,9 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
         disi = [b for b in bolgeler if b not in izinli]
         if disi:
             kirmizi.append("RENK %s=%s" % (kod, ",".join(disi)))
-        # PALET (K3c): fiyatlanan her renk (renk_tavani) bir palet bolgesine baglanmali ve renklendirilen her palet
-        # bolgesi uretece gitmeli — yoksa odenen renk sessizce duser.
+        # RENK-DUSTU (K3c): renklendirilen her palet bolgesi uretece gitmeli — yoksa odenen renk sessizce duser.
+        # (PALET-EKSIK manifest-yalniz -> palet_katmani; kayitsiz CI'da da kosar.)
         palet = list(t.get("palet_bolgeleri") or [])
-        tavan = (t.get("fiyat") or {}).get("renk_tavani") or 1
-        if t.get("renk_secimi") == "palet" and t.get("uretec") and len(palet) < tavan:
-            kirmizi.append("PALET-EKSIK %s palet_bolgeleri=%d renk_tavani=%s" % (kod, len(palet), tavan))
         dusen = [b for b in palet if b not in bolgeler]
         if dusen:
             kirmizi.append("RENK-DUSTU %s=%s" % (kod, ",".join(dusen)))
@@ -304,6 +301,21 @@ def on_adim_katmani(kosucu, turler, deger):
     return kirmizi
 
 
+def palet_katmani(turler, kodlar):
+    """P: PALET-EKSIK (K3c) — fiyatlanan her renk (renk_tavani) bir palet bolgesine baglanmali. Yalniz manifesti
+    okur, TeKiN kaydina bagli DEGIL -> kayitsiz CI'da da kosar (9 Eki: E katmaninda durunca SERIT B'de MS3 SURVIVOR)."""
+    kirmizi = []
+    for kod in sorted(kodlar):
+        t = turler.get(kod)
+        if not t or t.get("renk_secimi") != "palet" or not t.get("uretec"):
+            continue
+        palet = list(t.get("palet_bolgeleri") or [])
+        tavan = (t.get("fiyat") or {}).get("renk_tavani") or 1
+        if len(palet) < tavan:
+            kirmizi.append("PALET-EKSIK %s palet_bolgeleri=%d renk_tavani=%s" % (kod, len(palet), tavan))
+    return kirmizi
+
+
 def kayit_oku():
     try:
         with open(GERCEK_KAYIT, encoding="utf-8") as f:
@@ -318,6 +330,7 @@ def kapi(kosucu_yolu, manifest, kayitlar):
     kirmizi, deger, turler = s_katmani(manifest, set(kos.ESLEMELER))
     kirmizi += on_adim_katmani(kos, turler, deger)
     kirmizi += sifir_katmani(kos, deger)
+    kirmizi += palet_katmani(turler, set(kos.ESLEMELER))
     if kayitlar is None:
         return kirmizi, None, []
     e, n, atlanan = e_katmani(kos, kayitlar, URET.jenerator_kok(GERCEK_KAYIT), turler, deger)
@@ -357,6 +370,9 @@ MUTANT_MANIFEST = {
     "MS3 manifestte yapboz palet_bolgeleri silindi": (
         '        palet_bolgeleri: ["renk1", "renk2", "renk3", "renk4"]\n', "", r"PALET-EKSIK yapboz"),
 }
+# Manifest mutantlarindan kalibi YALNIZ E katmaninda yakalananlar (9 Eki olcum: kayitsiz kosumda S `liste:true`
+# silinince REDDETMIYOR -> kalip TIP'ten gelir). Kayit yoksa MA'lar gibi ATLANDI basilir, SURVIVOR sayilmaz.
+E_GEREKEN_MS = {"MS2 manifestte anahtarlik satirlar liste:true silindi"}
 
 
 def mutant(ad, kayitlar):
@@ -381,7 +397,7 @@ def mutant(ad, kayitlar):
             f.write(ks)
         with open(man, "w", encoding="utf-8") as f:
             f.write(ms)
-        if ad in MUTANT_KOSUCU and kayitlar is None:
+        if (ad in MUTANT_KOSUCU or ad in E_GEREKEN_MS) and kayitlar is None:
             return True, "ATLANDI kayit-yok (E katmani mutanti)"
         kirmizi, _, _ = kapi(kos, man, kayitlar)
         if kalip is None:
