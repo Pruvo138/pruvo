@@ -602,6 +602,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/fikstur-git-sizinti-kapisi.py --kendini-test
 
+      # PRE-PUSH KANARYASI (9 Eki 2026): sentetik "gercek depo" + worktree kurup miras
+      # GIT_DIR'li fiksturu ona karsi kosar -> kanarya KIRMIZI bare/origin_ref, statik
+      # kapi SIZDIRIYOR; kontrol fiksturu yesil; gercek depo once==sonra.
+      - name: Git kanaryasi + sizinti kapisi mutant kabul testi
+        if: ${{ !cancelled() }}
+        run: python3 tools/git-kanarya-test.py
+
       # NOBETCI MUTASYON HARNESS: kapilarin KENDISINI olcer — bozulunca GERCEKTEN kirmizi
       # yaniyorlar mi. Feed politika kapisinin kirmizi CIKIS YOLU ve _kendini_dogrula()
       # hicbir testle korunmuyordu; olculdu: <title> bulucusunu olduren mutasyon eski kapida
@@ -763,6 +770,13 @@ jobs:
       - name: K-DiskSupurme sabah disk supurme kabul (A11, 9 vaka + 3 mutant)
         if: ${{ !cancelled() }}
         run: python3 tools/sabah-teslim/sabah-kabul.py --vaka A11 --arac tools/sabah-teslim/kral-sabah.py
+
+      # 🔴 7 Eki 2026 — Drive yerel tahliyesi (tek supurucu + tavan kapisi; Okan
+      # "TEKRARLAYAN KIRMIZI ... kapi yok ya da kablosuz"). Hermetik: sahte kok +
+      # enjekte yukleme/evict, gercek Drive'a dokunmaz; 7 vaka + 2 mutant (M1/M2).
+      - name: K-DriveTahliye drive tahliye kabul (Y1-Y7 + 2 mutant)
+        if: ${{ !cancelled() }}
+        run: python3 tools/drive-tahliye-test.py
 
       # 🔴 18 Eyl 2026 — kesif genislemesinin (`-kabul` eki) getirdigi, CI aynasinda
       # (bos HOME) HERMETIK olculen iki batarya: K324 (tasima birimi + kutu kolu,

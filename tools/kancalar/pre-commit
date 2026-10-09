@@ -50,6 +50,26 @@ if [ -f "$pruvo_kur" ]; then
   fi
 fi
 
+# --- 0a) SENTETIK GIT SIZINTI KAPISI — INDEX kolu (FAIL-CLOSED, 9 Eki 2026) ---
+# Stage'de eklenen/degisen `tools/*.py` varsa statik kapi (AST, hizli) kosar:
+# miras GIT_DIR ile gercek depoya `git init`/`config`/`update-ref` yazan fikstur
+# COMMIT ANINDA durur (9 Eki olayinda kirmizi ancak SERIT B'de, push'tan SONRA geldi).
+# SIZDIRIYOR da OLCULEMEDI de RED; arac yoksa da RED.
+if git diff --cached --name-only --diff-filter=ACMR 2>/dev/null | grep -q '^tools/[^/]*\.py$'; then
+  pruvo_sizinti="$pruvo_kok/tools/fikstur-git-sizinti-kapisi.py"
+  if [ ! -f "$pruvo_sizinti" ]; then
+    echo "!! COMMIT DURDURULDU — SENTETIK GIT SIZINTI KAPISI KOSULAMADI (arac yok)." >&2
+    exit 1
+  fi
+  pruvo_sizinti_cikti=$(python3 "$pruvo_sizinti" 2>&1)
+  pruvo_sizinti_rc=$?
+  if [ "$pruvo_sizinti_rc" -ne 0 ]; then
+    echo "$pruvo_sizinti_cikti" >&2
+    echo "!! COMMIT DURDURULDU — SENTETIK GIT SIZINTI KAPISI KIRMIZI/OLCULEMEDI (rc=$pruvo_sizinti_rc)." >&2
+    exit 1
+  fi
+fi
+
 # --- 1) urunler.json PROVENANS GUARD'i (FAIL-CLOSED) ------------------------
 # Sifir-disi cikis = guard REDDETTI (bozuk JSON, cozulemeyen provenans, izinsiz
 # degisim...). Cikti YUTULMAZ: mimar "neden durdu"yu ekrandan okur.

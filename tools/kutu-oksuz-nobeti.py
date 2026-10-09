@@ -27,11 +27,16 @@ CIKIS KODU (yayin-kapisi ile ayni uc-jeton politikasi):
                      CI / kardes makine — `defter-kota-kapisi` KUTU_MAKINEDE_YOK emsali)
     1  KIRMIZI       (n>0: BASLIKSIZ dolu bolut var)
     2  OLCULEMEDI    (dosya yok/okunamadi/UTF-8 degil, yarim frontmatter, sahip arac
-                     yuklenemedi YA DA kutuda ayrac (`---`) yok ve 2+ blok var)
+                     yuklenemedi)
 
-KORLUK (bilerek 0 basilmayan hal): ayracsiz kutuda dusen baslik govdeleri BIRLESTIRIR ve
-yapisal iz birakmaz; `kutu-arsivle.py` bunu `EKSEN_KOR=oksuz_govde_kutu` diye beyan eder.
-Burada ayni hal `OLCULEMEDI` olur — "0 = temiz" DEGIL "olculemedi".
+🟡 AYRACSIZ KUTU DESTEGI (K424 takip, 9 Eki 2026): gercek kutu `## ` headers ile
+bolunuyor (102 blok, 0 `---`). `kutu-arsivle.bolutler` YALNIZ `---` ile boldugu icin
+ayracsiz kutuyu TEK bolut sayiyordu ve oksuz govde YAPISAL OLARAK gorunmezdi (EKSEN_KOR
+rc=2 — olculmedi diye). Nobetci `## ` basligini da sinir olarak kabul eder: bolut siniri
+`## ` VEYA `---` (hangisi varsa). Bir bolut `## ` basliksiz ama ICINDE dolu satir
+iceriyorsa OKSUZ sayilir (`n=1, rc=1`). Ayricsiz temiz kutu `n=0 rc=0`. Yani eski
+EKSEN_KOR kaldirildi, yerine `## `-based bolut taramasi GEÇTI. Cit ici `---`/`## `
+zaten FENCE_RE ile eleniyor (eski VAKA 5 davranisi korunur).
 """
 import importlib.util
 import os
@@ -73,6 +78,73 @@ def _arsivle_modulu():
     return m, None
 
 
+def _yerel_ayracsiz_oksuz(m, satirlar, fm_bas):
+    """AYRACSIZ KUTU icin `## ` baslikli bolut taramasi (K424 takip).
+
+    `kutu-arsivle.bolutler` YALNIZ `---` ayracina boler; ayracsiz kutuda butun dosya
+    tek bolut sayilir ve icindeki 100+ `## ` header tek bir `baslik > 0` kuyruguna
+    doldugu icin OKSUZ GOVDE YAPISAL OLARAK gorunmez. Bu kol, bolut sinirini
+    `## ` VEYA `---` (hangisi varsa) kabul ederek yerel tarama yapar. Doldurulmus ama
+    `## ` basligi OLMAYAN bolut OKSUZ sayilir; bilgi gelmezse 0 doner (temiz).
+
+    Returns: [(1-indeksli bas satiri, ilk dolu satirin ozeti)].
+    """
+    bulgu = []
+    ic = False
+    ilk_idx = fm_bas
+    baslik = 0
+    dolu = False
+    i = fm_bas
+    while i < len(satirlar):
+        s = satirlar[i]
+        if m.FENCE_RE.match(s):
+            ic = not ic
+            if s.strip():
+                dolu = True
+        elif ic:
+            if s.strip():
+                dolu = True
+        elif m.BLOK_RE.match(s):
+            if dolu and not baslik:
+                ornek = ""
+                j = ilk_idx
+                while j < i:
+                    if satirlar[j].strip():
+                        ornek = satirlar[j].strip()[:70]
+                        break
+                    j += 1
+                bulgu.append((ilk_idx + 1, ornek))
+            ilk_idx = i
+            baslik = 1
+            dolu = True
+        elif m.AYRAC_RE.match(s):
+            if dolu and not baslik:
+                ornek = ""
+                j = ilk_idx
+                while j < i:
+                    if satirlar[j].strip():
+                        ornek = satirlar[j].strip()[:70]
+                        break
+                    j += 1
+                bulgu.append((ilk_idx + 1, ornek))
+            ilk_idx = i + 1
+            baslik = 0
+            dolu = False
+        elif s.strip():
+            dolu = True
+        i += 1
+    if dolu and not baslik:
+        ornek = ""
+        j = ilk_idx
+        while j < len(satirlar):
+            if satirlar[j].strip():
+                ornek = satirlar[j].strip()[:70]
+                break
+            j += 1
+        bulgu.append((ilk_idx + 1, ornek))
+    return bulgu
+
+
 def olc(kutu_yolu=None):
     """Olcum sonucu: {hal, n, ornekler, ayrac, blok, yol, hata}. ASLA firlatmaz."""
     sonuc = {"hal": HAL_OLCULEMEDI, "n": None, "ornekler": [], "ayrac": None,
@@ -94,7 +166,8 @@ def olc(kutu_yolu=None):
     if metin is None:
         sonuc["hata"] = hata
         return sonuc
-    _, fm_hata = m.frontmatter_sonu(metin.splitlines(keepends=True))
+    satirlar = metin.splitlines(keepends=True)
+    fm_son, fm_hata = m.frontmatter_sonu(satirlar)
     if fm_hata:
         sonuc["hata"] = fm_hata
         return sonuc
@@ -105,10 +178,14 @@ def olc(kutu_yolu=None):
     if oksuz:
         sonuc["hal"] = HAL_OKSUZ
     elif ayrac == 0 and blok > 1:
-        # Ayracsiz kutuda dusen baslik YAPISAL iz birakmaz -> 0 "temiz" degil "kor".
-        sonuc["n"] = None
-        sonuc["hata"] = ("kutuda ayrac (`---`) YOK ve %d blok var -> dusen baslik bu "
-                         "eksende YAPISAL OLARAK gorunmez (EKSEN_KOR)" % blok)
+        # Ayracsiz kutu: ## headers'la bolut sinirini turet, basliksiz bolut varsa OKSUZ.
+        yerel = _yerel_ayracsiz_oksuz(m, satirlar, fm_son)
+        if yerel:
+            sonuc.update(n=len(yerel), ornekler=yerel)
+            sonuc["hal"] = HAL_OKSUZ
+        else:
+            sonuc["n"] = 0
+            sonuc["hal"] = HAL_TEMIZ
     else:
         sonuc["hal"] = HAL_TEMIZ
     return sonuc

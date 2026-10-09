@@ -79,6 +79,58 @@ def evict(yol):
     return r.returncode == 0
 
 
+# TOPLU SURUMLER (7 Eki 2026, drive-tahliye): tek dosyalik cagri her seferinde `swift`
+# yorumlayicisini baslatir (~0,2-1 sn); ~9 bin dosyalik suprume saatler surerdi. Ayni
+# Foundation cagrilari TEK surecte arguman listesi uzerinde dongulenir; cikti girdiyle
+# AYNI SIRADA, satir basina bir sonuc. Satir sayisi tutmazsa parcanin TAMAMI okunamadi
+# sayilir (fail-closed: yuklendi -> None, evict -> False).
+_SWIFT_YUKLENDI_TOPLU = (
+    "import Foundation\n"
+    "for a in CommandLine.arguments.dropFirst() {\n"
+    "  let u = URL(fileURLWithPath: a)\n"
+    "  if let v = try? u.resourceValues(forKeys: [.isUbiquitousItemKey, "
+    ".ubiquitousItemIsUploadedKey]), v.isUbiquitousItem == true, "
+    "let up = v.ubiquitousItemIsUploaded { print(up ? \"1\" : \"0\") } else { print(\"nil\") }\n"
+    "}\n"
+)
+_SWIFT_EVICT_TOPLU = (
+    "import Foundation\n"
+    "for a in CommandLine.arguments.dropFirst() {\n"
+    "  do { try FileManager.default.evictUbiquitousItem(at: URL(fileURLWithPath: a)); print(\"1\") }\n"
+    "  catch { print(\"0\") }\n"
+    "}\n"
+)
+TOPLU_PARCA = 200
+
+
+def _swift_toplu(betik, yollar, parca):
+    """Her parca icin tek `swift` sureci; [satir|None] (girdi sirasiyla)."""
+    sonuc = []
+    for i in range(0, len(yollar), parca):
+        dilim = list(yollar[i:i + parca])
+        try:
+            r = subprocess.run(["swift", "-"] + dilim, input=betik, capture_output=True,
+                               text=True, timeout=600)
+            satirlar = (r.stdout or "").splitlines()
+        except (OSError, subprocess.SubprocessError):
+            satirlar = []
+        if len(satirlar) != len(dilim):
+            satirlar = [None] * len(dilim)
+        sonuc.extend(satirlar)
+    return sonuc
+
+
+def yuklendi_toplu(yollar, parca=TOPLU_PARCA):
+    """`yuklendi_mi`nin toplu hali: [True | False | None] (girdi sirasiyla). SALT OKUMA."""
+    harita = {"1": True, "0": False}
+    return [harita.get(s) for s in _swift_toplu(_SWIFT_YUKLENDI_TOPLU, yollar, parca)]
+
+
+def evict_toplu(yollar, parca=TOPLU_PARCA):
+    """`evict`in toplu hali: [bool] (girdi sirasiyla). Hicbir seyi SILMEZ."""
+    return [s == "1" for s in _swift_toplu(_SWIFT_EVICT_TOPLU, yollar, parca)]
+
+
 def sha256_dosya(yol):
     h = hashlib.sha256()
     with open(yol, "rb") as f:

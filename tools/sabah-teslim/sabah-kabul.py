@@ -1927,6 +1927,82 @@ def a11_disk_supurme():
                       int(not durum["profile_data_var"]), int(a11a_yine)))
 
 
+# --------------------------------------------------------------------- A12
+# DRIVE TAHLIYE KUM KORUMASI (7 Eki 2026, devir-drive-tahliye-2).
+#
+# Vaka: batarya A2/A3/A5'te araci BAYRAKSIZ / `--kuru` kosar; arac bu kiplerde
+# `drive_tahliye()`yi GERCEK Drive'a karsi cagiriyordu (canli evict iki tur
+# arasinda ilerledi -> A5a/A5b dustu). Onarim yeni bayrak ICAT ETMEZ: bataryanin
+# her kosumunu zaten isaretleyen `_KRAL_SABAH_ROTASYON_KUTU` kum kutusu varsa
+# arac drive-tahliye alt surecini BASLATMAZ (`DRIVE_TAHLIYE ATLANDI=fikstur`).
+# Olcum CAGRI SAYACIYLA: aracin izole kopyasinda `DRIVE_TAHLIYE_ARAC` bir CASUS
+# betige yonlenir; casus her cagrida sayac dosyasina bir satir ekler.
+# KONTROL (kum YOK) casusun GERCEKTEN ulasildigini kanitlar — o olmadan 0 bos yesildir.
+
+A12_CAPA = 'DRIVE_TAHLIYE_ARAC = REPO / "tools" / "drive-tahliye.py"\n'
+A12_KOSUL = ' or os.environ.get("_KRAL_SABAH_ROTASYON_KUTU")'
+A12_KOLLARI = ("A12a kum kosumunda drive-tahliye alt sureci BASLATILMADI (sayac=0)",
+               "A12b KONTROL kum YOKKEN casus cagrildi (sayac=1)",
+               "A12c MUTANT kum kosulu silinince A12a KIRMIZI (sayac>=1)")
+
+
+def _a12_sayac(yol):
+    try:
+        with open(yol, encoding="utf-8") as f:
+            return sum(1 for _ in f)
+    except FileNotFoundError:
+        return 0
+
+
+def a12_drive_kum_korumasi():
+    baslik("A12 — DRIVE TAHLIYE: kum kosumunda alt surec BASLATILMAZ + MUTANT")
+    kum = os.environ.get("_KRAL_SABAH_ROTASYON_KUTU")
+    with open(ARAC, encoding="utf-8") as f:
+        kaynak = f.read()
+    # Kosul YOKSA olculemedi DEGIL: A12a kosar ve KIRMIZI yanar (korumasiz arac).
+    if kaynak.count(A12_CAPA) != 1 or kaynak.count(A12_KOSUL) > 1 or not kum:
+        for ad in A12_KOLLARI:
+            kayit(ad, None, "capa=%d kosul=%d kum=%d -> KOSTURULAMADI" % (
+                kaynak.count(A12_CAPA), kaynak.count(A12_KOSUL), int(bool(kum))))
+        return
+    with tempfile.TemporaryDirectory(prefix="sabah-kabul-a12-") as td:
+        casus = os.path.join(td, "casus-drive-tahliye.py")
+        with open(casus, "w", encoding="utf-8") as f:
+            f.write("import sys\n"
+                    "open(sys.argv[0] + '.sayac', 'a').write('cagri\\n')\n"
+                    "print('DRIVE_TAHLIYE HUKUM=YESIL casus=1')\n")
+        sayac = casus + ".sayac"
+        yonlu = kaynak.replace(A12_CAPA, "DRIVE_TAHLIYE_ARAC = Path(%r)\n" % casus)
+
+        def kos_kopya(ad, govde, ortam):
+            yol = os.path.join(td, ad)
+            with open(yol, "w", encoding="utf-8") as f:
+                f.write(govde)
+            if os.path.exists(sayac):
+                os.remove(sayac)
+            r = subprocess.run([PY, yol, "--kuru"], capture_output=True, text=True,
+                               timeout=240, env=ortam)
+            return r.returncode, (r.stdout or "") + (r.stderr or ""), _a12_sayac(sayac)
+
+        kumlu = dict(os.environ)
+        kumsuz = dict(os.environ)
+        kumsuz.pop("_KRAL_SABAH_ROTASYON_KUTU", None)
+
+        rcA, cA, nA = kos_kopya("kral-sabah-a12.py", yonlu, kumlu)
+        kayit(A12_KOLLARI[0], nA == 0 and "DRIVE_TAHLIYE ATLANDI=fikstur" in cA,
+              "rc=%d sayac=%d | %s" % (rcA, nA, jeton(cA, "DRIVE_TAHLIYE")))
+        rcB, cB, nB = kos_kopya("kral-sabah-a12.py", yonlu, kumsuz)
+        kayit(A12_KOLLARI[1], nB == 1 and "casus=1" in cB,
+              "rc=%d sayac=%d | %s" % (rcB, nB, jeton(cB, "DRIVE_TAHLIYE")))
+        if kaynak.count(A12_KOSUL) != 1:
+            kayit(A12_KOLLARI[2], None, "kum kosulu aracta YOK -> mutant anlamsiz (A12a olcer)")
+            return
+        rcC, cC, nC = kos_kopya("kral-sabah-a12-mutant.py",
+                                yonlu.replace(A12_KOSUL, ""), kumlu)
+        kayit(A12_KOLLARI[2], nC >= 1 and "DRIVE_TAHLIYE ATLANDI=fikstur" not in cC,
+              "mutant rc=%d sayac=%d (A12a bu kopyada sayac=0 sartini KAYBEDER)" % (rcC, nC))
+
+
 def _genel_rotasyon_kumu():
     """A2/A3/A5 kurulu araci CIPLAK kosar: rotasyon kutusu kuma yonlenir.
 
@@ -1976,11 +2052,12 @@ def main(argv=None):
     # (hicbir git nesnesinde yoktu) -> CI onlari HIC kosmuyordu ve `kur.py`
     # KOPYA_AYRISIK ile duruyordu. A8 hermetiktir (enjekte `gh` + gecici spec
     # dizini); A9'un A9-1 kolu CANLI defteri okur, o yuzden A9 CI'ya baglanmaz.
-    ap.add_argument("--vaka", choices=("A7", "A8", "A9", "A10", "A11"), default=None,
+    ap.add_argument("--vaka", choices=("A7", "A8", "A9", "A10", "A11", "A12"), default=None,
                     help="YALNIZ bu vakayi kos (A7: kurucu idempotensi, hermetik "
                          "sahte CRON dizini · A8: ucuncu kova, enjekte gh · A9: "
                          "tavan freni · A10: kutu rotasyonu spec'ten once · "
-                         "A11: disk supurme, hermetik; A1/A6/A2 KOSULMAZ)")
+                         "A11: disk supurme, hermetik · A12: drive-tahliye kum "
+                         "korumasi, casus kopya; A1/A6/A2 KOSULMAZ)")
     ap.add_argument("--arac", default=None, metavar="YOL",
                     help="olculecek kral-sabah.py (varsayilan: kurulu kopya "
                          "~/.claude/cron/kral-sabah.py). Dalin KENDI dosyasini "
@@ -2021,6 +2098,9 @@ def main(argv=None):
     elif args.vaka == "A11":
         # Hermetik kol: temp kokler + mutant modulleri (canli dosya degismez).
         a11_disk_supurme()
+    elif args.vaka == "A12":
+        # Izole kopya + casus drive-tahliye; `--kuru` (canli duzleme yazmaz).
+        a12_drive_kum_korumasi()
     else:
         a1_ortam()
         # A6/A7 CANLI DUZLEME YAZMAZ (yalniz gecici dizin + salt-okuma) -> her fazda.
@@ -2035,6 +2115,8 @@ def main(argv=None):
         a10_rotasyon()
         # A11 hermetik (tempfile + mutant kopya) -> her fazda.
         a11_disk_supurme()
+        # A12 izole kopya + casus, `--kuru` -> her fazda.
+        a12_drive_kum_korumasi()
         if args.faz == "tam":
             a2_gercek_kosum()
             a3_a4_sonuc_kolu()

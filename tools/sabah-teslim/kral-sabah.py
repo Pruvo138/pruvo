@@ -542,18 +542,62 @@ def _run_zamani(run):
         return None
 
 
-def ardil_hukum(data, run):
+ANA_DAL = "main"
+
+
+def ata_mi_git(ata_sha, torun_sha):
+    """`ata_sha` commit'i `torun_sha`'nın ATASI mı? True/False; ölçülemezse None.
+
+    gh `run list` verisi commit ata ilişkisini TAŞIMAZ (K435) → yerel git sorulur.
+    rc 0 = ata · rc 1 = ata DEĞİL · başka her şey (sha yerelde yok, git yok, zaman
+    aşımı) None: çağıran None'ı "ata" saymaz, kırmızı CANLI görünür kalır.
+    """
+    try:
+        r = subprocess.run(["git", "-C", str(REPO), "merge-base", "--is-ancestor",
+                            ata_sha, torun_sha],
+                           capture_output=True, text=True, timeout=15)
+    except Exception:
+        return None
+    if r.returncode == 0:
+        return True
+    if r.returncode == 1:
+        return False
+    return None
+
+
+def _ana_dalda_ardil(run, d, ata_mi):
+    """DAL kırmızısı `run`ın, ana daldaki `d` koşumu ardılı sayılabilir mi? (K435)
+
+    Dal main'e MERGE edilip silinince o dalda ardıl hiç doğmaz; kırmızıyı kapatan
+    şey main'deki aynı iş akışının koşumudur. Yalnız kırmızının commit'i `d`'nin
+    commit'inin ATASIYSA (kod `d`'ye girdi) sayılır; `ata_mi` yoksa / ölçemezse /
+    False dönerse SAYILMAZ (kırmızı CANLI kalır — görünür yön).
+    """
+    if ata_mi is None or d.get("headBranch") != ANA_DAL:
+        return False
+    a, b = run.get("headSha"), d.get("headSha")
+    if not a or not b:
+        return False
+    return ata_mi(a, b) is True
+
+
+def ardil_hukum(data, run, ata_mi=None):
     """`run` ile AYNI iş akışı + dalda, ondan SONRA açılmış EN YENİ hükümlü koşum.
 
     Yoksa None. Bir kırmızının kapanıp kapanmadığı kırmızının kendisinden değil,
     iş akışının SEVİYESİNDEN okunur (K326 ekseni: "ardılı olmayan kırmızı").
+
+    K435 (8 Eki 2026): `run` ana dal DEĞİLSE ve `ata_mi` verilmişse, kırmızının
+    commit'ini ATA olarak taşıyan ana dal koşumları da (aynı iş akışı) ardıl adayıdır.
     """
     t0 = _run_zamani(run)
     if t0 is None:
         return None
     en_yeni, en_yeni_t = None, None
     for d in data:
-        if d.get("name") != run.get("name") or d.get("headBranch") != run.get("headBranch"):
+        if d.get("name") != run.get("name"):
+            continue
+        if d.get("headBranch") != run.get("headBranch") and not _ana_dalda_ardil(run, d, ata_mi):
             continue
         t = _run_zamani(d)
         if t is None or t <= t0:
@@ -567,8 +611,12 @@ def ardil_hukum(data, run):
     return en_yeni
 
 
-def kirmizi_siniflandir(data, bugun):
+def kirmizi_siniflandir(data, bugun, ata_mi=None):
     """Bugünün koşumlarını kovalara ayırır (saf fonksiyon — gh/ağ YOK, testlenir).
+
+    `ata_mi(ata_sha, torun_sha)` (isteğe bağlı, K435): dal kırmızısı main'e katılıp
+    dal silinince ardıl main'de aranır — bkz. `ardil_hukum`. Verilmezse davranış
+    18 Eyl sözleşmesiyle BİREBİR aynıdır (yalnız aynı iş akışı + aynı dal).
 
     Döner: (kirmizi_satirlari, hukumsuz_satirlari, canli_n, ardili_yesil_n)
 
@@ -613,11 +661,15 @@ def kirmizi_siniflandir(data, bugun):
         elif conc in KIRMIZI_KUME:
             sha = (run.get("headSha") or "?")[:8]
             rid = run.get("databaseId", "?")
-            ardil = ardil_hukum(data, run)
+            ardil = ardil_hukum(data, run, ata_mi)
             if ardil is not None and (ardil.get("conclusion") or "").lower() == "success":
                 kapanan_n += 1
-                seviye = "KAPANDI: ardılı `{}` success (run {})".format(
-                    (ardil.get("headSha") or "?")[:8], ardil.get("databaseId", "?"))
+                if ardil.get("headBranch") != run.get("headBranch"):
+                    seviye = "KAPANDI: dal main'e katıldı, main ardılı `{}` success (run {})".format(
+                        (ardil.get("headSha") or "?")[:8], ardil.get("databaseId", "?"))
+                else:
+                    seviye = "KAPANDI: ardılı `{}` success (run {})".format(
+                        (ardil.get("headSha") or "?")[:8], ardil.get("databaseId", "?"))
             else:
                 canli_n += 1
                 seviye = ("CANLI: ardıl hüküm YOK" if ardil is None else
@@ -725,7 +777,7 @@ def bugunun_kirmizilari() -> tuple[str, str, int | None, str]:
         import json
         data = json.loads(r.stdout or "[]")
         bugun = dt.datetime.now(dt.timezone.utc).date()
-        kirmizi, hukumsuz, canli_n, kapanan_n = kirmizi_siniflandir(data, bugun)
+        kirmizi, hukumsuz, canli_n, kapanan_n = kirmizi_siniflandir(data, bugun, ata_mi_git)
         devreden = _devreden_blogu(data, bugun)
         if kirmizi:
             blok = ("> SEVİYE (iş akışı+dal başına EN YENİ hükümlü koşum; `cancelled` hüküm "
@@ -1092,7 +1144,7 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
                okunabilir: dict, ci_hukum: str = "OK", gh_kaynak: str = "-",
                dallar: list = None, sinir_kalem: int = None, sinir_dal: int = None,
                sinir_devam_kar: int = None, ek_yolu: str = None,
-               rotasyon_satiri: str = None) -> str:
+               rotasyon_satiri: str = None, drive_hata_satiri: str = None) -> str:
     """Spec gövdesini kurar. ZORUNLU bölümler: KIRMIZI · MERGE · KALEMLER · KUTUDA YENİ · DİSİPLİN.
 
     🔴 KRA-L-TamirciTavan-10Eyl: yeni parametreler (`dallar`, `sinir_kalem`,
@@ -1110,6 +1162,10 @@ def build_spec(tarih: dt.date, kalemler: list[dict], kirmizi_blok: str, dal_blok
     # Verilmezse (A9 doğrudan çağrısı) çıktı eskisiyle BİREBİR aynı kalır.
     if rotasyon_satiri:
         baslik += "`{}`\n".format(rotasyon_satiri)
+    # 🔴 7 Eki: DRIVE_TAHLIYE KIRMIZI/OLCULEMEDI ise ADIYLA, rotasyonun altında.
+    # Verilmezse (yeşil ya da doğrudan çağrı) çıktı eskisiyle BİREBİR aynı kalır.
+    if drive_hata_satiri:
+        baslik += "`{}`\n".format(drive_hata_satiri)
     meta = (
         "Ev: KraL · Etiket: `kabul-sabah-rutini` · Üretici: `/Users/okan/.claude/cron/kral-sabah.py`\n"
         "Üretim anı: {} (yerel TR) · MANDATE: o günün Tamirci çipinin TEK spec'idir.\n".format(
@@ -1429,6 +1485,46 @@ def disk_supurme(kuru=False, chrome_kok=None, wrangler_kok=None, simdi=None):
             type(hata).__name__, str(hata)[:80])
 
 
+# ============================================================================
+# 🔴 DRIVE TAHLİYE (7 Eki 2026): PRUVO Drive yerel kopyalarının tek süpürücüsü
+# `tools/drive-tahliye.py` (yalnız evict, SİLME YOK) sabah DISK_SUPURME kolunda
+# koşar. Aracın `DRIVE_TAHLIYE ...` satırı loga AYNEN basılır; KIRMIZI /
+# OLCULEMEDI / çağrı hatası ise ek olarak `DRIVE_TAHLIYE HATA=<sinif>:<ayrinti>`
+# döner ve spec başlığına girer (ADIYLA görünür). main'in rc'si DEĞİŞMEZ.
+# Fikstür/kendini-test koşumunda araç ÇAĞRILMAZ (gerçek Drive'a dokunulmaz).
+# 🔴 7 Eki (devir-drive-tahliye-2): kabul bataryası (`sabah-kabul.py`) A2/A3/A5'te
+# aracı BAYRAKSIZ/`--kuru` koşar; o koşumlar `--spec-dizin` taşımaz ama HEPSİ
+# `_KRAL_SABAH_ROTASYON_KUTU` kum kutusuyla koşar (batarya `_genel_rotasyon_kumu`;
+# cron bu değişkeni ASLA kurmaz). Yeni bayrak İCAT ETMEDEN aynı işaret kullanılır:
+# kum kutusu varsa canlı Drive'a dokunulmaz → `DRIVE_TAHLIYE ATLANDI=fikstur`.
+# Aksi halde batarya canlı tahliyeyi koşuyor, A5a/A5b iki tur arasında kayıyordu.
+# ============================================================================
+DRIVE_TAHLIYE_ARAC = REPO / "tools" / "drive-tahliye.py"
+DRIVE_TAHLIYE_ZAMAN_ASIMI = 1800
+
+
+def drive_tahliye(kuru=False, argv=None, zaman_asimi=DRIVE_TAHLIYE_ZAMAN_ASIMI):
+    """Döner: (log_satiri, hata_satiri|None). `argv` yalnız test enjeksiyonu."""
+    try:
+        if argv is None:
+            argv = [sys.executable, str(DRIVE_TAHLIYE_ARAC)] + (["--kuru"] if kuru else [])
+        r = subprocess.run(argv, capture_output=True, text=True, timeout=zaman_asimi)
+        satirlar = [s for s in (r.stdout or "").splitlines() if s.startswith("DRIVE_TAHLIYE")]
+        if not satirlar:
+            hata = "DRIVE_TAHLIYE HATA=SATIR_YOK:rc=%d:%s" % (
+                r.returncode, (r.stderr or "").strip()[-80:])
+            return hata, hata
+        satir = satirlar[-1]
+        if r.returncode == 0 and "HUKUM=YESIL" in satir:
+            return satir, None
+        sinif = "KIRMIZI" if r.returncode == 1 else "OLCULEMEDI" if r.returncode == 2 else (
+            "RC_%d" % r.returncode)
+        return satir, "DRIVE_TAHLIYE HATA=%s:%s" % (sinif, satir[len("DRIVE_TAHLIYE "):])
+    except Exception as hata:
+        h = "DRIVE_TAHLIYE HATA=%s:%s" % (type(hata).__name__, str(hata)[:80])
+        return h, h
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="KraL sabah spec'i")
     ap.add_argument("--kuru", action="store_true", help="dosya yazma, yalnız özet bas")
@@ -1491,6 +1587,16 @@ def main() -> int:
     disk_kuru = bool(args.kuru or args.kendini_test or args.spec_dizin is not None)
     disk_satiri = disk_supurme(kuru=disk_kuru)
     print(disk_satiri)
+    drive_atla = bool(args.kendini_test or args.spec_dizin is not None
+                      or os.environ.get("_KRAL_SABAH_ROTASYON_KUTU"))
+    if drive_atla:
+        drive_hata_satiri = None
+        print("DRIVE_TAHLIYE ATLANDI=fikstur")
+    else:
+        drive_satiri, drive_hata_satiri = drive_tahliye(kuru=bool(args.kuru))
+        print(drive_satiri)
+        if drive_hata_satiri and drive_hata_satiri != drive_satiri:
+            print(drive_hata_satiri)
 
     # --- girdi okuma (fail-loud) ---
     kutu_txt = oku_yol(KUTU)
@@ -1524,7 +1630,8 @@ def main() -> int:
     spec = build_spec(bugun, kalemler, kirmizi_blok, dal_blok, kutu_blok, devam_blok,
                       kirmizi_n, dal_n, kutu_n, okunabilir,
                       ci_hukum=ci_hukum, gh_kaynak=gh_kaynak,
-                      dallar=dallar, rotasyon_satiri=rotasyon_satiri)
+                      dallar=dallar, rotasyon_satiri=rotasyon_satiri,
+                      drive_hata_satiri=drive_hata_satiri)
 
     # ============================================================================
     # 🔴 TAVAN FRENİ (KRA-L-TamirciTavan-10Eyl): tavanı aşan spec KAYIPSIZ kırpılır.
@@ -1550,7 +1657,8 @@ def main() -> int:
                               ci_hukum=ci_hukum, gh_kaynak=gh_kaynak,
                               dallar=dallar, sinir_kalem=sk, sinir_dal=sd,
                               sinir_devam_kar=skr, ek_yolu=ek_yolu,
-                              rotasyon_satiri=rotasyon_satiri)
+                              rotasyon_satiri=rotasyon_satiri,
+                              drive_hata_satiri=drive_hata_satiri)
 
         yeni_spec, ek_metin, tavan_olcum = tavana_indir(_uret, spec, ek_yolu)
         # İşaretçi bloğu `tavana_indir` İÇİNDE yerleştirildi (kapının menzili);
