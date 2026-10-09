@@ -1014,10 +1014,23 @@ def esle_fonksiyonu(t, g):
     return ESLEMELER.get((t or {}).get("kod")) or ESLEMELER.get((g or {}).get("esle"))
 
 
+# ⑧ (10 Eki): eski bust/yapboz isinin form alani `uzun_kenar_mm` / `iki_renk` YOK SAYILIR (hata vermez). Olcu TEK
+# kaynak zarfin olcu_mm'si (esle_rolyef/esle_yapboz yazar); bust iki_renk'i odenen renklerden kurar (esle_bust).
+ESKI_ALANLAR = {"bust": ("uzun_kenar_mm", "iki_renk"), "yapboz": ("uzun_kenar_mm", "iki_renk")}
+
+
+def eski_alanlari_at(kod, girdi):
+    p = girdi.get("parametreler")
+    if isinstance(p, dict) and ESKI_ALANLAR.get(kod):
+        girdi["parametreler"] = {k: v for k, v in p.items() if k not in ESKI_ALANLAR[kod]}
+    return girdi
+
+
 def tekin_kos(g, t, girdi_dizin, cikti, py, jen):
     """§2 zarfi -> uretecin kendi JSON'u -> uretec -> §3 donusumu. Donus (rc, ozet)."""
     with open(os.path.join(girdi_dizin, "girdi.json"), encoding="utf-8") as f:
         girdi = json.load(f)
+    eski_alanlari_at(t.get("kod"), girdi)
     fn = esle_fonksiyonu(t, g)
     if not fn:
         return 2, "RED uretec-bicimi"

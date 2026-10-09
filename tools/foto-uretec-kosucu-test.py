@@ -587,6 +587,20 @@ def vakalar(kosucu):
 
     for kod in G2_VAKA:
         vaka("T13-" + kod, t13(kod))
+    # V5 (TUR-B ⑧): eski yapboz isi `uzun_kenar_mm` (999, olcu DISI) + `iki_renk` tasir -> rc 0, uretece giden JSON
+    # yeni isle BIREBIR (uzun_kenar_mm = olcu_mm, iki_renk YOK).
+    def v5(o):
+        x = G2_VAKA["yapboz"]
+        par = dict(x["parametreler"], uzun_kenar_mm=999, iki_renk=True)
+        o.uretec_onizleme("yapboz", x["olcu"], x["renkler"], par, {"foto": ("foto.png", _foto())})
+        rc, son, _ = o.kos("--uygula")
+        gelen = o.tekin_girdileri()
+        g = dict(gelen[0]) if len(gelen) == 1 else {}
+        if "gorsel" in g:
+            g["gorsel"] = os.path.basename(g["gorsel"])
+        return rc == 0 and son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and g == x["beklenen"], \
+            "rc=%s %s uretec=%s" % (rc, son, g)
+    vaka("V5-ESKI", v5)
     vaka("T19", t19)
     vaka("T20", t20)
     vaka("T21", t21)
@@ -802,12 +816,12 @@ MUTANTLAR = {
     "M7": ('    if i["kuyruk"] != "siparis" or not i.get("onizleme_kaynakli"):\n        return None\n    os.makedirs',
            '    if True:\n        return None\n    os.makedirs', {"T12", "T22"}),  # T22: ORNEK kolu da kopya koluna baglanir
     # tekin-ortak koprusu (yapboz + anahtarlik)
-    "M8": ("    return renk_hex[ad]\n", "    return \"#F2F2F2\"\n", {"T13-yapboz", "T13-anahtarlik"}),
+    "M8": ("    return renk_hex[ad]\n", "    return \"#F2F2F2\"\n", {"T13-yapboz", "T13-anahtarlik", "V5-ESKI"}),
     # (eski M9 qr olcu alani -> anahtarlik sabiti) kopru `cagri.sabit` anahtarlik:true dusurse uretec PLAKA modunda kosar.
     "M9": ('    u["anahtarlik"] = True\n', "    pass\n", {"T13-anahtarlik"}),
     # (eski M10 muhur olcu alani -> yapboz olcu alani) surgu olcusu yanlis alana yazilirsa uretec varsayilani (150) basar.
     "M10": ('    u["uzun_kenar_mm"] = float(g["olcu_mm"])\n', '    u["genislik_mm"] = float(g["olcu_mm"])\n',
-            {"T13-yapboz"}),
+            {"T13-yapboz", "V5-ESKI"}),
     "M11": ('    (r"kontrast", "kontrast"),\n', "", {"T14"}),
     "M12": ('"renk_sayisi": uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf")),',
             '"renk_sayisi": len(bolgeler),', {"T17"}),
@@ -830,7 +844,7 @@ MUTANTLAR = {
             # T43 (9 Eki foto kolu): yazi kolunun eslemesi esle_anahtarlik degil -> o da KIRMIZI (iddia eklendi).
             {"T13-anahtarlik", "T14", "T16", "T17", "T22", "T43"}),
     "M31": ('"sablon": esle_sablon, "yapboz": esle_yapboz, ', '"sablon": esle_sablon, ',
-            {"T13-yapboz", "T19", "T20", "T21", "T35", "T36"}),
+            {"T13-yapboz", "T19", "T20", "T21", "T35", "T36", "V5-ESKI"}),
     # bolge adi manifestten degil sabit `taban`dan okunursa anahtarlik renkleri duser.
     "M25": ('            u["renk_" + b] = h\n', '            u["renk_taban"] = h\n', {"T13-anahtarlik"}),
     # ONARIM KUYRUGU (8 Eki): olcum atlanirsa kirmizi kopru ciktisi 'hazir' olur.
@@ -861,6 +875,8 @@ MUTANTLAR = {
     # Yazi kolu gerilemesi: foto dali her ureteci yakalar -> anahtarlik yazi isi esle_isimlik'e duser (T13/T14/...).
     "M49": ('    if (g or {}).get("kol") == "foto":\n', '    if True:\n',
             {"T13-anahtarlik", "T14", "T16", "T17", "T22", "T43"}),
+    # TUR-B ⑧: eski alan atilmazsa eski yapboz isi `RED parametre` ile duser.
+    "M4-ESKI": ("    eski_alanlari_at(t.get(\"kod\"), girdi)\n", "", {"V5-ESKI"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 

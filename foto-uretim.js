@@ -121,6 +121,10 @@
     dosya: null,
     aydinlatmaOnay: false,
     captchaToken1: "",
+    // ① (10 Eki): kalan günlük önizleme hakkı — YALNIZ sunucu yanıtından (200 `kalan` · 429 onizleme-siniri -> 0);
+    // null = henüz bilinmiyor. programKapali: /foto/onizleme 503 "kapali" döndü.
+    kalanHak: null,
+    programKapali: false,
     is: null,
     gorsel: null,
     gecerlilik: null,
@@ -1579,8 +1583,8 @@
       guncelleS1Buton();
     });
 
-    S.alanNotu = el("p", "foto-uretim-ayrinti",
-      "Günde en çok " + F.sinir_ziyaretci_24s + " önizleme hakkın var.");
+    S.alanNotu = el("p", "foto-uretim-ayrinti", "");
+    S.alanNotu.id = "foto-onizle-hak";
     S.alan.appendChild(S.alanNotu);
 
     S.alanButon = el("div", "foto-uretim-s1-buton-sira");
@@ -1590,6 +1594,11 @@
     btn.disabled = true;
     btn.addEventListener("click", onizleOlustur);
     S.alanButon.appendChild(btn);
+    // ① Düğme KAPALIYKEN altında TEK cümle: ilk eksik koşul (s1Sebep); hepsi tamken GİZLİ.
+    S.alanSebep = el("p", "foto-uretim-ayrinti", "");
+    S.alanSebep.id = "foto-onizle-sebep";
+    S.alanSebep.hidden = true;
+    S.alanButon.appendChild(S.alanSebep);
     S.alan.appendChild(S.alanButon);
     guncelleS1Buton();
   }
@@ -1794,6 +1803,28 @@
     // "Sepete ekle" tik kapısı ③'te zaten aydınlatma + B2 + (türetilmiş eksen fiyatsız) ile çalışır.
   }
 
+  // ① "Önizleme oluştur" kapalıyken gösterilen sebep — SIRA sabit: ilk eksik koşul yazılır, diğerleri yazılmaz.
+  var S1_SEBEP = {
+    not: "Önce \"Nasıl olsun?\" kısmına kısa bir not yaz.",
+    foto: "Önce fotoğrafını yükle.",
+    onay: "Aydınlatma metnini okuyup onay kutusunu işaretle.",
+    dogrulama: "Güvenlik doğrulaması bekleniyor.",
+    hak: "Bugünkü önizleme hakkın doldu; yarın yenilenir.",
+    program: "Önizleme şu an kapalı; biraz sonra yeniden dene."
+  };
+  function s1Sebep() {
+    var sira = [
+      [!((S.uretimNotu || "").trim()), S1_SEBEP.not],
+      [fotoGerekir() && !S.dosya, S1_SEBEP.foto],
+      [!S.aydinlatmaOnay, S1_SEBEP.onay],
+      [!S.captchaToken1, S1_SEBEP.dogrulama],
+      [S.kalanHak === 0, S1_SEBEP.hak],
+      [!!S.programKapali, S1_SEBEP.program]
+    ];
+    for (var i = 0; i < sira.length; i++) { if (sira[i][0]) return sira[i][1]; }
+    return "";
+  }
+
   function guncelleS1Buton() {
     yapbozParcaNotu();
     canliFiyatGuncelle();
@@ -1807,11 +1838,21 @@
     // K2b: uyum kontrolü geçmeden önizleme düğmesi AÇILMAZ ("uygun_degil" ise).
     var uyumOK = uyumKontrol(S.tur, S.uretimNotu) === "uygun";
     // Madde 1 (Okan 8 Eki 14:1x): "Nasıl olsun?" üretim notu ZORUNLU; boşken "Önizleme oluştur" KAPALI.
-    var notZorunlu = !!((S.uretimNotu || "").trim());
-    var tam = uyumOK && notZorunlu && (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&
-      !!S.captchaToken1 && !!S.tur && !!S.olcu && (!lit || !!null) &&
+    // ① not · fotoğraf · onay · doğrulama · günlük hak · program — s1Sebep TEK kaynak (cümle ile kapı aynı).
+    var sebep = s1Sebep();
+    var tam = uyumOK && !sebep && !!S.tur && !!S.olcu && (!lit || !!null) &&
       formDogrula().ok;
     btn.disabled = !tam;
+    if (S.alanSebep) {
+      S.alanSebep.textContent = tam ? "" : sebep;
+      S.alanSebep.hidden = tam || !sebep;
+    }
+    // "Bugün N/<sınır>": N yalnız sunucu yanıtından; bilinmiyorsa günlük sınır cümlesi (sayı uydurulmaz).
+    if (S.alanNotu) {
+      S.alanNotu.textContent = typeof S.kalanHak === "number" ?
+        "Bugün " + S.kalanHak + "/" + F.sinir_ziyaretci_24s + " önizleme hakkın kaldı." :
+        "Günde en çok " + F.sinir_ziyaretci_24s + " önizleme hakkın var.";
+    }
     btn.textContent = lit ? "Siparişe geç" : "Önizleme oluştur";
   }
 
@@ -2182,6 +2223,14 @@
   }
 
   /* ============== /onizleme ============== */
+  /* ① Kalan hak + program durumu YALNIZ sunucu yanıtından: 200 `kalan` · 429 onizleme-siniri -> 0 · 503 kapali. */
+  function hakYanitiIsle(kod, veri) {
+    if (!veri) return;
+    if (kod === 200 && typeof veri.kalan === "number") S.kalanHak = veri.kalan;
+    else if (kod === 429 && veri.hata === "onizleme-siniri") S.kalanHak = 0;
+    else if (kod === 503 && veri.hata === "kapali") S.programKapali = true;
+  }
+
   function onizleOlustur() {
     
     if (!!(F && F.kolu && F.kolu(S.tur) === "deterministik")) { uretecOnizle(); return; }
@@ -2231,7 +2280,9 @@
       if (Object.keys(formSemasi()).length) govde.parametreler = parametreGovde();
       jsonPost(ONIZLEME_URL, govde, function (ok, kod, veri) {
         turnsSifirla(S.alanCap1);
-        if (!ok || !veri) {
+        hakYanitiIsle(kod, veri);
+        // 429/503 gövdeli yanıt aşağıdaki dallara iner (eski `!ok` kapısı onizleme-siniri dalını ölü bırakıyordu).
+        if (!veri) {
           adimKoy("S1", "Şu an önizleme üretilemiyor, biraz sonra yeniden dene.", true);
           return;
         }
@@ -2300,6 +2351,7 @@
       notGovdeyeKoy(govde);
       jsonPost(ONIZLEME_URL, govde, function (ok, kod, veri) {
         turnsSifirla(S.alanCap1);
+        hakYanitiIsle(kod, veri);
         if (ok && kod === 200 && veri && veri.is) {
           S.is = veri.is;
           ssIsKaydet();

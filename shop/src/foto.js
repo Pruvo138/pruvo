@@ -205,6 +205,15 @@ export const ORNEK_SIPARIS_ONEK = "ORNEK-";
 const ORNEK_ATLANAN = ["bot-dogrulama", "onay-metni-onayi", "gercek-ornek"];
 
 function ornekMi(is) { return !!is && is.ziyaretci === ORNEK_ZIYARETCI; }
+/** ② Gecerli X-Onizleme-Makine istegi bu ziyaretci adina yazilir: IP ozetinin gunluk sayacini YEMEZ (16 hex degil). */
+export const MAKINE_ZIYARETCI = "makine";
+/** ② GECERLI makine anahtari mi — karsilastirma yonet.js kapisinda (onizlemeMakinesiMi, TEK kaynak). Baslik yoksa
+ *  yonet.js YUKLENMEZ (yonet.js foto.js'i import eder: statik import dongu + test kopyalarini kirar). */
+async function makineIstegi(request, env) {
+  if (!request.headers.get("X-Onizleme-Makine")) { return false; }
+  const { onizlemeMakinesiMi } = await import("../src/yonet.js");
+  return onizlemeMakinesiMi(request, env);
+}
 
 // ---------------------------------------------------------------- yardimcilar
 
@@ -960,9 +969,10 @@ async function onizlemeUcu(request, env, simdi, telegram) {
 
   if (await hizSiniriAsildi(request, env)) { return fjson({ hata: "cok-istek" }, 429); }
   const ip = request.headers.get("CF-Connecting-IP") || "yok";
-  const ziyaretci = await ziyaretciOzeti(env, ip);
+  const makine = await makineIstegi(request, env);
+  const ziyaretci = makine ? MAKINE_ZIYARETCI : await ziyaretciOzeti(env, ip);
   const sayi = await onizlemeSayisi(env, ziyaretci, simdi);
-  if (sayi.kisi >= VERI.sinir_ziyaretci_24s) {
+  if (!makine && sayi.kisi >= VERI.sinir_ziyaretci_24s) {
     return fjson({ hata: "onizleme-siniri", sinir: VERI.sinir_ziyaretci_24s }, 429);
   }
   if (sayi.genel >= GUNLUK_ONIZLEME_TAVANI) { return fjson({ hata: "kapali" }, 503); }
@@ -1086,10 +1096,11 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
 
   if (await hizSiniriAsildi(request, env)) { return fjson({ hata: "cok-istek" }, 429); }
   const ip = request.headers.get("CF-Connecting-IP") || "yok";
-  const ziyaretci = await ziyaretciOzeti(env, ip);
+  const makine = await makineIstegi(request, env);
+  const ziyaretci = makine ? MAKINE_ZIYARETCI : await ziyaretciOzeti(env, ip);
   const sayi = await onizlemeSayisi(env, ziyaretci, simdi);
   const sinir = VERI.sinir_ziyaretci_24s;
-  if (sayi.kisi >= sinir) { return fjson({ hata: "onizleme-siniri", sinir }, 429); }
+  if (!makine && sayi.kisi >= sinir) { return fjson({ hata: "onizleme-siniri", sinir }, 429); }
   if (sayi.genel >= GUNLUK_ONIZLEME_TAVANI) { return fjson({ hata: "kapali" }, 503); }
   const bot = await botDogrula(request, env, g.turnstile_token);
   if (!bot) { return fjson({ hata: "bot-dogrulama" }, 403); }
@@ -1194,10 +1205,11 @@ async function litofanUcu(request, env, simdi) {
 
   if (await hizSiniriAsildi(request, env)) { return fjson({ hata: "cok-istek" }, 429); }
   const ip = request.headers.get("CF-Connecting-IP") || "yok";
-  const ziyaretci = await ziyaretciOzeti(env, ip);
+  const makine = await makineIstegi(request, env);
+  const ziyaretci = makine ? MAKINE_ZIYARETCI : await ziyaretciOzeti(env, ip);
   const sayi = await onizlemeSayisi(env, ziyaretci, simdi);
   // Plaketle AYNI sayac (foto_isler): litofan haritasi da ziyaretcinin gunluk hakkindan duser.
-  if (VERI.sinir_ziyaretci_24s <= sayi.kisi) {
+  if (!makine && VERI.sinir_ziyaretci_24s <= sayi.kisi) {
     return fjson({ hata: "onizleme-siniri", sinir: VERI.sinir_ziyaretci_24s }, 429);
   }
   if (sayi.genel >= GUNLUK_ONIZLEME_TAVANI) { return fjson({ hata: "kapali" }, 503); }
