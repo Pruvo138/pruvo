@@ -2,10 +2,12 @@
 """onizleme damga + tek-yukleyici kilidi — hermetik kabul + mutasyon testi (BaBa 17:0x, 9 Eki 2026).
 
 Hafif izole: gercek wrangler YOK, gercek ag YOK, gercek urunler.json/STATIK dizinine DOKUNULMAZ.
-  - `foto-onizleme.py` ve `onizleme-makine-kos.py` modulleri import edilir.
+  - `foto-onizleme.py` ve `onizleme-makine-kos.py` modulleri BELLEKTE import edilir.
   - `_git` ve `subprocess.run` modulleri icinde monkeypatch'lenir (sagirlestirme).
   - `STATIK` gecici bir dizine yonlendirilir (test bitince silinir).
   - `ONIZLEME_KOS_HTTP_READER` env kancasi ile sagte HTTP okuyucu kullanilir.
+  - Mutantlar: kaynak metin BELLEKTE okunur, replace edilir, `types.ModuleType + compile/exec` ile
+    yeni modul nesnesine derlenir; sys.modules'a KONMAZ; gercek tools/*.py yazilmaz.
 
 Vakalar (5):
   V1 damga dosyasi icerigi dogru (sha + dal + kirli)
@@ -15,12 +17,14 @@ Vakalar (5):
   V5 damga uyusur -> rc 0 (MAKINE_KOS damga=... rc=0)
 
 Mutantlar (4): biri oyle dezenanmis kaynakla yeniden calistirilir; vakalarin en az biri KIRMIZI olmalidir.
-  M1 damga yazimi silinmis (_damga_yazi cagirisi kaldirilmis) -> V1 ve V5 KIRMIZI
+  M1 damga yazimi silinmis (_damga_yazi cagirisi kaldirilmis) -> V1 KIRMIZI
   M2 kirli denetimi silinmis (kirli>0 -> rc 2 yok) -> V2 KIRMIZI
-  M3 flock silinmis (LK_EX yerine LK_UN) -> V3 KIRMIZI
+  M3 flock silinmis (LK_EX|LK_NB yerine pass # MUTANT, AYNI GIRINTI, derlenebilir) -> V3 KIRMIZI
   M4 damga karsilastirmasi silinmis (okunan != beklenen -> rc 0) -> V4 KIRMIZI
 
-Cikti: "VAKA_KIRMIZI=0 SURVIVOR=0" (hepsi yesil) veya "VAKA_KIRMIZI=<n> SURVIVOR=<mutant_listesi>"
+Mutantlarin hedef satiri BIREDEN fazla / hic bulunmazsa veya compile basarisiz olursa o mutant SURVIVOR.
+
+Cikti: "VAKA_KIRMIZI=0 SURVIVOR=0" (hepsi yesil) veya "VAKA_KIRMIZI=<n> SURVIVOR=<n>".
 """
 import importlib.util
 import io
@@ -32,6 +36,7 @@ import sys
 import tempfile
 import threading
 import time
+import types
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FOTO_PY = os.path.join(ROOT, "tools", "foto-onizleme.py")
@@ -41,20 +46,42 @@ TEST_SHA8 = TEST_SHA[:8]
 TEST_DAL = "dal/onizleme-test"
 
 
+# ---------- Mutant kaynak durumu (None ise diskten oku) ----------
+
+class _Kaynaklar:
+    foto_metin = None
+    mak_metin = None
+
+
 # ---------- Modul yukleme + monkeypatch yardimcilari ----------
 
-def _yukle_foto():
-    spec = importlib.util.spec_from_file_location("foto_onizleme_xyz", FOTO_PY)
-    m = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(m)
+def _modul_kur(yol, metin, ad):
+    """Verilen metin ile bellekte modul nesnesi kur; sys.modules'a koyma."""
+    co = compile(metin, yol, "exec")
+    m = types.ModuleType(ad)
+    m.__file__ = yol
+    exec(co, m.__dict__)
     return m
+
+
+def _yukle_foto():
+    """Orijinal (veya mutant kaynak durumundaki) foto modulunu bellekte kur."""
+    if _Kaynaklar.foto_metin is not None:
+        metin = _Kaynaklar.foto_metin
+    else:
+        with open(FOTO_PY) as f:
+            metin = f.read()
+    return _modul_kur(FOTO_PY, metin, "foto_onizleme_xyz")
 
 
 def _yukle_mak():
-    spec = importlib.util.spec_from_file_location("onizleme_makine_kos_xyz", MAK_PY)
-    m = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(m)
-    return m
+    """Orijinal (veya mutant kaynak durumundaki) mak modulunu bellekte kur."""
+    if _Kaynaklar.mak_metin is not None:
+        metin = _Kaynaklar.mak_metin
+    else:
+        with open(MAK_PY) as f:
+            metin = f.read()
+    return _modul_kur(MAK_PY, metin, "onizleme_makine_kos_xyz")
 
 
 def _sahte_git(kirli_sayisi=0, sha=TEST_SHA, dal=TEST_DAL, git_common_dir=None):
@@ -85,7 +112,6 @@ def _sahte_subproc(rc=0, stdout="", stderr=""):
 def _kur(foto_mod, tmpdir, kirli=0, subproc_rc=0, git_common_dir=None):
     """Test icin monkeypatch'lenmis ortami kur; geri donen (foto, lock_yol)."""
     foto_mod.STATIK = tmpdir
-    # _kilitle icin kilit yolu: gecici bir tmp dizinine yonlendir (worktree'de .git dosya)
     gecici_kok = git_common_dir if git_common_dir is not None else tempfile.mkdtemp(prefix="onizleme-damga-test-")
     os.makedirs(gecici_kok, exist_ok=True)
     foto_mod._git = _sahte_git(kirli_sayisi=kirli, git_common_dir=gecici_kok)
@@ -139,26 +165,53 @@ def vaka2_kirli_red():
 def vaka3_kilit_sirali():
     """V3: iki eszamanli yukleme SIRALI calisir (ikincisi birincinin bitisinden SONRA baslar).
 
-    Her iki cagri farkli tmp dizini kullanir (cunku tek tmp'yi paylasmak zaten dogal bir kilit noktasi
-    olurdu; bizim amacimiz PAYLASILAN git-common-dir kilit dosyasinin sirayi zorlamasidir).
+    Her iki cagri farkli tmp dizini kullanir (paylasilan git-common-dir kilit dosyasinin
+    sirayi zorlamasidir). Sahte wrangler upload 0,3 sn uyur; baslangic ve bitis zamanlari
+    kaydedilir; iki cagrinin araliklari CAKISMAMALI (B.basla >= A.bitis ya da A.basla >= B.bitis).
     """
     tmp_a = tempfile.mkdtemp()
     tmp_b = tempfile.mkdtemp()
     try:
         foto_a = _yukle_foto()
         kur_a = _kur(foto_a, tmp_a, kirli=0)
-        # AYNI kilit yolu icin AYNI gecici_kok — kilit paylasilan olmali
         paylasilan_kok = kur_a._TEST_GIT_COMMON_DIR
-        # Ikinci "foto" ornegi AYNI gecici_kok'a yazsin
         foto_b = _yukle_foto()
         _kur(foto_b, tmp_b, kirli=0, git_common_dir=paylasilan_kok)
+        # V3 ozel: subprocess.run yerine zaman kaydeden sahte kullan (her modul kendi etiketi).
+        zaman_kayit = []
+        zaman_kilit = threading.Lock()
+
+        class _ZamanliSubprocess:
+            def __init__(self, etiket):
+                self._etiket = etiket
+            def run(self, *args, **kwargs):
+                basla = time.time()
+                time.sleep(0.3)  # wrangler upload suresi
+                bitis = time.time()
+                with zaman_kilit:
+                    zaman_kayit.append((self._etiket, basla, bitis))
+                return subprocess.CompletedProcess(
+                    args=args if args else kwargs.get("args", []),
+                    returncode=0, stdout="", stderr="")
+            def __getattr__(self, ad):
+                # Diger subprocess ozellikleri (Popen, ...) icin gercek modul
+                return getattr(subprocess, ad)
+
+        foto_a.subprocess = _ZamanliSubprocess("A")
+        foto_b.subprocess = _ZamanliSubprocess("B")
         baslangic_lock = threading.Lock()
         tamam = []
 
         def yukle_thread(foto, etiket):
-            rc = foto.yukle()
+            # Surec ici istisnalar (ornek M2 mutant: kirli tanimsiz) ana akisa yine
+            # vaka3'un tamam/basit kontroluyle yansir; threading'in otomatik
+            # stack trace basmasini baskilamak icin try/except ici.
+            try:
+                rc = foto.yukle()
+            except BaseException as e:
+                rc = ("EXC", type(e).__name__)
             with baslangic_lock:
-                tamam.append((etiket, rc, time.time()))
+                tamam.append((etiket, rc))
 
         t1 = threading.Thread(target=yukle_thread, args=(foto_a, "A"))
         t2 = threading.Thread(target=yukle_thread, args=(foto_b, "B"))
@@ -168,12 +221,18 @@ def vaka3_kilit_sirali():
         t1.join()
         t2.join()
         assert len(tamam) == 2, "iki yukleme tamamlanmadi: %r" % tamam
-        for etiket, rc, _ts in tamam:
+        for etiket, rc in tamam:
             assert rc == 0, "%s rc=%d beklenen 0" % (etiket, rc)
-        a_rc = next(t for e, t, _ in tamam if e == "A")
-        b_rc = next(t for e, t, _ in tamam if e == "B")
-        assert b_rc >= a_rc, "B A'dan once bitti: a=%r b=%r" % (a_rc, b_rc)
-        print("V3 sonuc=OK A_rc=0 B_rc=0 sirali=True a_rc=%.3f b_rc=%.3f" % (a_rc, b_rc))
+        assert len(zaman_kayit) == 2, "subprocess zamanlari tamamlanmadi: %r" % zaman_kayit
+        a_basla, a_bitis = next(b for tag, b, _ in zaman_kayit if tag == "A"), next(e for tag, _, e in zaman_kayit if tag == "A")
+        b_basla, b_bitis = next(b for tag, b, _ in zaman_kayit if tag == "B"), next(e for tag, _, e in zaman_kayit if tag == "B")
+        # Cakisma kontrolu: iki aralik cakismamali.
+        cakisma_var = not (b_basla >= a_bitis or a_basla >= b_bitis)
+        assert not cakisma_var, (
+            "A ve B araliklari cakisiyor: A=[%.3f,%.3f] B=[%.3f,%.3f]" %
+            (a_basla, a_bitis, b_basla, b_bitis))
+        print("V3 sonuc=OK A_rc=0 B_rc=0 sirali=True A_aralik=[%.3f,%.3f] B_aralik=[%.3f,%.3f]" %
+              (a_basla, a_bitis, b_basla, b_bitis))
         return True
     finally:
         shutil.rmtree(tmp_a, ignore_errors=True)
@@ -185,12 +244,9 @@ def vaka3_kilit_sirali():
 def vaka4_damga_uyusmaz():
     """V4: HTTP okuyucu farkli sha dondururse damga_dogrula rc=2 doner."""
     mak = _yukle_mak()
-    # Sahte okuyucu: farkli sha
     farkli_sha = "cafebabe" + "0" * 32
     os.environ["ONIZLEME_KOS_HTTP_READER"] = "sagte"
-    # Monkeypatch _http_oku (env kancasina ek olarak)
     mak._http_oku = lambda url: json.dumps({"sha": farkli_sha, "dal": TEST_DAL, "kirli": 0})
-    # damga_dogrula icindeki 30 sn'lik beklemeyi kisa tutmak icin sabitler override
     mak.DAMGA_BEKLEME = 0.0
     okunan, rc = mak.damga_dogrula(TEST_SHA)
     assert rc == 2, "uyusmazda rc=2 bekleniyordu, geldi=%d okunan=%r" % (rc, okunan)
@@ -213,96 +269,78 @@ def vaka5_damga_uyusur():
 
 # ---------- Mutant motoru ----------
 
-def _metni_kaynakla_sil(foto_mod=None, mak_mod=None):
-    """Verilen modulun kaynak metnini oku."""
-    if foto_mod is not None:
-        with open(FOTO_PY) as f:
-            return f.read(), "foto-onizleme.py"
-    with open(MAK_PY) as f:
-        return f.read(), "onizleme-makine-kos.py"
+def _mutant_uygula(etiket, kaynak, hedef, yenisi, hedef_dosya, vakalar, beklenen_kirmizi):
+    """Mutant metnini uygula; derle (SyntaxError -> SURVIVOR); vakalari mutantli kaynakla kos.
+
+    Dondurur: (etiket, durum, sebep, beklenen_kirmizi, gerceklesen_kirmizi).
+    """
+    sayi = kaynak.count(hedef)
+    if sayi != 1:
+        return (etiket, "SURVIVOR", "hedef-%d-bulundu" % sayi, beklenen_kirmizi, set())
+    silinen = kaynak.replace(hedef, yenisi, 1)
+    try:
+        compile(silinen, hedef_dosya, "exec")
+    except SyntaxError as e:
+        return (etiket, "SURVIVOR", "compile-hatasi: %s" % str(e)[:80],
+                beklenen_kirmizi, set())
+    if hedef_dosya == FOTO_PY:
+        _Kaynaklar.foto_metin = silinen
+    else:
+        _Kaynaklar.mak_metin = silinen
+    try:
+        kirmizi = set()
+        for ad, fn in vakalar:
+            try:
+                if not fn():
+                    kirmizi.add(ad)
+            except Exception:
+                kirmizi.add(ad)
+        if not beklenen_kirmizi.issubset(kirmizi):
+            return (etiket, "SURVIVOR", "beklenen-kirmizi-gerceklesmedi",
+                    beklenen_kirmizi, kirmizi)
+        return (etiket, "OK", "", beklenen_kirmizi, kirmizi)
+    finally:
+        if hedef_dosya == FOTO_PY:
+            _Kaynaklar.foto_metin = None
+        else:
+            _Kaynaklar.mak_metin = None
 
 
-def _dosyaya_yaz_ic(yol, metin):
-    """Bir dosyaya gecici olarak mutant metnini yaz; sonra geri yukle."""
-    _YEDEK_DOSYA[yol] = open(yol).read()
-    with open(yol, "w") as f:
-        f.write(metin)
+def mutant1_damga_silindi(vakalar):
+    """M1: statik_kur icinden _damga_yazi cagirisi kaldirildi. V1 KIRMIZI olmali."""
+    with open(FOTO_PY) as f:
+        kaynak = f.read()
+    return _mutant_uygula("M1", kaynak, "    _damga_yazi()\n", "", FOTO_PY, vakalar, {"V1"})
 
 
-def _geri_yukle(yol):
-    if yol in _YEDEK_DOSYA:
-        with open(yol, "w") as f:
-            f.write(_YEDEK_DOSYA[yol])
-        del _YEDEK_DOSYA[yol]
-
-
-_YEDEK_DOSYA = {}
-
-
-def mutant1_damga_silindi(foto_uretec, mak_uretec, vakalar):
-    """M1: statik_kur icinden _damga_yazi cagirisi kaldirildi. V1 KIRMIZI olmali
-    (onizleme-surum.json dosyasi olusmaz)."""
-    kaynak = open(FOTO_PY).read()
-    # _damga_yazi() cagri satiri: "    _damga_yazi()" — sadece bu tek satiri sil
-    silinen = kaynak.replace("    _damga_yazi()\n", "")
-    assert silinen != kaynak, "M1: hedef satir bulunamadi (foto-onizleme.py'de _damga_yazi() yok)"
-    _dosyaya_yaz_ic(FOTO_PY, silinen)
-    return _mutant_kos("M1", vakalar, beklenen_kirmizi={"V1"})
-
-
-def mutant2_kirli_silindi(foto_uretec, mak_uretec, vakalar):
+def mutant2_kirli_silindi(vakalar):
     """M2: kirli denetimi silindi (kirli>0 RED yok). V2 KIRMIZI olmali."""
-    kaynak = open(FOTO_PY).read()
-    # kirli>0 ise YUKLE RED kirli-agac donduren 3 satiri sil
+    with open(FOTO_PY) as f:
+        kaynak = f.read()
     hedef = ('        kirli = _kirli_sayisi()\n'
              '        if kirli > 0:\n'
              '            print("YUKLE RED kirli-agac kirli=" + str(kirli))\n'
              '            return 2\n')
-    silinen = kaynak.replace(hedef, "")
-    assert silinen != kaynak, "M2: hedef blok bulunamadi"
-    _dosyaya_yaz_ic(FOTO_PY, silinen)
-    return _mutant_kos("M2", vakalar, beklenen_kirmizi={"V2"})
+    return _mutant_uygula("M2", kaynak, hedef, "", FOTO_PY, vakalar, {"V2"})
 
 
-def mutant3_flock_silindi(foto_uretec, mak_uretec, vakalar):
-    """M3: flock cagirisi silindi (LK_EX yerine LK_UN gibi). V3 KIRMIZI olmali."""
-    kaynak = open(FOTO_PY).read()
-    # _kilitle icindeki fcntl.flock satirini LK_UN yap (kilitleme yok)
+def mutant3_flock_silindi(vakalar):
+    """M3: flock cagirisi silindi (AYNI GIRINTIYLE pass # MUTANT; derlenebilir kalmali). V3 KIRMIZI olmali."""
+    with open(FOTO_PY) as f:
+        kaynak = f.read()
     hedef = "            fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)"
-    silinen = kaynak.replace(hedef, "fcntl.flock(f.fileno(), fcntl.LOCK_UN)  # MUTANT")
-    assert silinen != kaynak, "M3: hedef satir bulunamadi"
-    _dosyaya_yaz_ic(FOTO_PY, silinen)
-    return _mutant_kos("M3", vakalar, beklenen_kirmizi={"V3"})
+    yenisi = "            pass  # MUTANT"
+    return _mutant_uygula("M3", kaynak, hedef, yenisi, FOTO_PY, vakalar, {"V3"})
 
 
-def mutant4_karsilastirma_silindi(foto_uretec, mak_uretec, vakalar):
-    """M4: damga_dogrula uyusmazda rc 2 donmuyor (son print + return 2 silindi). V4 KIRMIZI olmali."""
-    kaynak = open(MAK_PY).read()
-    # dongu bittikten sonraki: uyusmaz uyari baski + return (okunan, 2)
+def mutant4_karsilastirma_silindi(vakalar):
+    """M4: damga_dogrula uyusmazda rc 0 donuyor. V4 KIRMIZI olmali."""
+    with open(MAK_PY) as f:
+        kaynak = f.read()
     hedef = ('    print("MAKINE_KOS HATA damga-uyusmaz beklenen=%s okunan=%s" % (beklenen8, okunan[:8]))\n'
              '    return (okunan, 2)\n')
-    silinen = kaynak.replace(hedef, "    return (okunan, 0)  # MUTANT: karsilastirma silindi\n")
-    assert silinen != kaynak, "M4: hedef blok bulunamadi"
-    _dosyaya_yaz_ic(MAK_PY, silinen)
-    return _mutant_kos("M4", vakalar, beklenen_kirmizi={"V4"})
-
-
-def _mutant_kos(etiket, vakalar, beklenen_kirmizi):
-    """Mutantli metin diskte; vakalari yeniden calistir; beklenen KIRMIZI set gerceklesmeli.
-
-    Dondurur: (etiket, kirmizi_set). Gerceklesmemisse SURVIVOR olarak sayilir.
-    """
-    kirmizi = set()
-    for ad, fn in vakalar:
-        try:
-            if not fn():
-                kirmizi.add(ad)
-        except Exception:
-            kirmizi.add(ad)
-    _geri_yukle(FOTO_PY if etiket in ("M1", "M2", "M3") else MAK_PY)
-    if not beklenen_kirmizi.issubset(kirmizi):
-        return (etiket, "SURVIVOR", beklenen_kirmizi, kirmizi)
-    return (etiket, "OK", beklenen_kirmizi, kirmizi)
+    yenisi = "    return (okunan, 0)  # MUTANT: karsilastirma silindi\n"
+    return _mutant_uygula("M4", kaynak, hedef, yenisi, MAK_PY, vakalar, {"V4"})
 
 
 # ---------- Ana akis ----------
@@ -328,14 +366,16 @@ def main():
                  mutant3_flock_silindi, mutant4_karsilastirma_silindi]
     mutant_sonuc = []
     for mn in mutantlar:
-        etiket, durum, beklenen, gercek_set = mn(None, None, vakalar)
-        print("MUTANT " + etiket + " " + durum +
-              (" beklenen_kirmizi=" + ",".join(sorted(beklenen)) +
-               " gerceklesen=" + ",".join(sorted(gercek_set & beklenen)) if durum == "OK" else
-               " beklenen_kirmizi=" + ",".join(sorted(beklenen)) +
-               " gerceklesen=" + ",".join(sorted(gercek_set))))
+        etiket, durum, sebep, beklenen, gercek_set = mn(vakalar)
+        if durum == "OK":
+            print("MUTANT " + etiket + " OK beklenen_kirmizi=" + ",".join(sorted(beklenen)) +
+                  " gerceklesen=" + ",".join(sorted(gercek_set & beklenen)))
+        else:
+            ek = " sebep=" + sebep if sebep else ""
+            print("MUTANT " + etiket + " SURVIVOR beklenen_kirmizi=" + ",".join(sorted(beklenen)) +
+                  " gerceklesen=" + ",".join(sorted(gercek_set)) + ek)
         if durum == "SURVIVOR":
-            mutant_sonuc.append((etiket, beklenen, gercek_set))
+            mutant_sonuc.append((etiket, beklenen, gercek_set, sebep))
     # Sonuc
     print("VAKA_KIRMIZI=" + str(len(kirmizi)) + " SURVIVOR=" + str(len(mutant_sonuc)))
     if kirmizi or mutant_sonuc:
