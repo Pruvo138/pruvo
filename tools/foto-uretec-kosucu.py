@@ -46,7 +46,9 @@ kurulur — kategori basina TEK esleme fonksiyonu (ESLEMELER, URETEC_CLI'da `esl
   logo     svg_ekstruzyon_uret     uzun_kenar_mm     taban (+ dosyalar.svg -> svg metni)      taban->renk_taban · logo->renk_logo
   muhur    muhur_uret              yuz_mm            sap (sap_renk=ayri sabit)                govde->renk_govde · sap->renk_sap
   sablon   siluet_sablon_uret      uzun_kenar_mm     mod                                      sablon->renk
-  yapboz   yapboz_uret             uzun_kenar_mm     parca -> satir x sutun                   yapboz->renkler[0]
+  yapboz   yapboz_uret             uzun_kenar_mm     form AYNEN (satir/sutun/tohum/kabartma_yon) palet renk1..4->renkler[0..3]
+  anahtarlik isimlik_uret          genislik_mm       form AYNEN (satirlar listesi) +            plaka->renk_plaka
+                                                     anahtarlik=true (kopru cagri.sabit)        yazi->renk_yazi
 Renk ADI -> hex manifestteki TEK tablo `RENK_HEX`ten; tabloda olmayan ad, eslenemeyen secim, sema disi
 parametre -> rc 2 (uretec KOSMAZ). Cikti: `uretec.3mf`->`model.3mf`, `ozet.json`->`olcu.json` (§3;
 renk_sayisi 3MF'teki extruder sayisi OLCULUR), onizleme >= 1024 px tam sayi kat buyutulur. Uretec
@@ -732,7 +734,8 @@ def esle_braille(g, dizin, rh):
     return u, ["plaka", "nokta"] + (["yazi"] if str(u.get("ust_yazi") or "").strip() else [])
 
 # G5 sabit olcu ekseni: kaydin `olcek.belirleyen_parametre`si (kopru-esle-kapisi-test E3 kayittan olcer).
-G5_OLCU_ALANI = {"topo": "olcu_mm", "sehir": "olcu_mm", "yildiz": "olcu_mm", "koordinat": "genislik_mm"}
+G5_OLCU_ALANI = {"topo": "olcu_mm", "sehir": "olcu_mm", "yildiz": "olcu_mm", "koordinat": "genislik_mm",
+                 "anahtarlik": "genislik_mm"}
 # Kayitta min 0 / varsayilan 0 (= "oto"/uretec varsayilani) ama uretec SEMA'si 0'i REDDEDER (kadir_esigi min 2,
 # 0 YALNIZ varsayilan; kose_yaricap_mm min 1) -> 0 gelirse alan GONDERILMEZ (uretec kendi varsayilanini koyar).
 G5_SIFIR_VARSAYILAN = {"yildiz": ("kadir_esigi",), "koordinat": ("kose_yaricap_mm",)}
@@ -856,20 +859,42 @@ def esle_sablon(g, dizin, rh):
 
 
 def esle_yapboz(g, dizin, rh):
-    p = g.get("parametreler") or {}
-    u = {"gorsel": _gorsel(g, dizin), "uzun_kenar_mm": float(g["olcu_mm"])}
-    sc = _secim(p, "parca", {"12": (3, 4), "20": (4, 5), "30": (5, 6)})
-    if sc:
-        u["satir"], u["sutun"] = sc
-    r = _renk(g, "yapboz", rh)
-    if r:
-        u["renkler"] = [r]
-    return u, ["yapboz"]
+    """yapboz (TeKiN kopru kaydi, K3c): form alanlari AYNEN + surgu olcusu uzun_kenar_mm'ye; renk PALETTEN: odenen
+    renkler sirayla palet_bolgeleri'ne gelir (siparis_girdisi / VERI.paletBolgeRenkleri) ve uretecin `renkler`
+    LISTESINE AYNI sirayla gecer (parca renkleri). Palet disi bolge ya da sira boslugu (renk2 var, renk1 yok) -> RED
+    renk (odenen renk sessizce dusmez); renk yok -> uretec varsayilani."""
+    pb = (manifest_oku().get("yapboz") or {}).get("palet_bolgeleri") or []
+    if any(b not in pb for b in (g.get("renkler") or {})):
+        raise KopruRed("renk")
+    u = dict(g.get("parametreler") or {})
+    u["gorsel"] = _gorsel(g, dizin)
+    u["uzun_kenar_mm"] = float(g["olcu_mm"])
+    secilen, renkler = [], []
+    for b in pb:
+        h = _renk(g, b, rh)
+        if h is None:
+            continue
+        if len(secilen) != pb.index(b):
+            raise KopruRed("renk")
+        secilen.append(b)
+        renkler.append(h)
+    if renkler:
+        u["renkler"] = renkler
+    return u, secilen
+
+
+def esle_anahtarlik(g, dizin, rh):
+    """anahtarlik (TeKiN kopru kaydi, K3c) = isimlik_uret + kopru `cagri.sabit` {anahtarlik: true} (kulakli taban;
+    plaka modunun yasak alanlari formda YOK). Form AYNEN (satirlar listesi VERI.parametreDogrula'dan), surgu olcusu
+    genislik_mm'ye, secilen bolge renkleri renk_plaka / renk_yazi."""
+    u, bolgeler = _esle_gelen_renkli(g, rh, "anahtarlik")
+    u["anahtarlik"] = True
+    return u, bolgeler
 
 
 # KATEGORI BASINA TEK esleme fonksiyonu (URETEC_CLI `esle` buradan secer).
 ESLEMELER = {"isimlik": esle_isimlik, "qr": esle_qr, "logo": esle_logo, "muhur": esle_muhur,
-             "sablon": esle_sablon, "yapboz": esle_yapboz,
+             "sablon": esle_sablon, "yapboz": esle_yapboz, "anahtarlik": esle_anahtarlik,
              "kutu": esle_kutu,
              "saksi": esle_saksi,
              "rolyef": esle_rolyef,

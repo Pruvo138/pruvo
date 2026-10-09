@@ -392,7 +392,11 @@ def sayi_gecerli(s, v):
 
 
 def metin_gecerli(s, v):
-    """Bos olmayan metin + `max` (karakter) ve `bayt_max` (UTF-8) tavanlari icinde."""
+    """Bos olmayan metin + `max` (karakter) ve `bayt_max` (UTF-8) tavanlari icinde. `liste:true` (K3c): 1..satir_max
+    ogeli dizi, her oge ayni kurala (VERI.parametreDogrula metin dali aynasi)."""
+    if s.get("liste") is True:
+        return isinstance(v, list) and 1 <= len(v) <= (s.get("satir_max") or 0) and \
+            all(metin_gecerli(dict(s, liste=False), x) for x in v)
     if not isinstance(v, str) or not v.strip():
         return False
     return (s.get("max") is None or len(v) <= s["max"]) and \
@@ -430,6 +434,8 @@ def ornek_parametre(t, olcu):
             if s.get("zorunlu") is False:
                 continue
             p[ad] = "https://pruvo3d.com" if s.get("bayt_max") else "PRUVO"
+            if s.get("liste") is True:
+                p[ad] = [p[ad]]
         elif tip == "url":
             p[ad] = "https://pruvo3d.com"
         elif tip == "bool":
@@ -689,18 +695,16 @@ TARAYICI_JS = r"""
   const b = document.getElementById('fotoUretim');
   if (!b) return {hata: 'bolum-yok'};
   b.scrollIntoView();
-  // sayfa-3adim (Okan 19:1x): tur secimi = ① izgaradaki kart (button.foto-uretim-galeri-kucuk[data-tur]);
-  // radyo listesi ve vitrin fiyati YOK. Kart tiki isik kutusunu da acar -> olcumden once kapatilir.
+  // sayfa-3adim K3 (Okan 9 Eki 01:0x/01:4x): tek kutu 4 pencere; tur secimi = ① KARTLAR'daki kart
+  // (button.foto-uretim-kart[data-tur]; figur iki kartta — insan/hayvan_model — ilki secilir). Lightbox YOK.
   let kart = null;
   for (let i = 0; i < 60; i++) {
-    kart = document.querySelector('#fotoUretim button.foto-uretim-galeri-kucuk[data-tur="' + kod + '"]');
+    kart = document.querySelector('#fotoUretim button.foto-uretim-kart[data-tur="' + kod + '"]');
     if (kart) break;
     await bekle(250);
   }
   if (!kart) return {hata: 'tur-secilemiyor'};
   kart.click(); await bekle(300);
-  const kapat = document.querySelector('.foto-uretim-isik-kapat');
-  if (kapat) { kapat.click(); await bekle(150); }
   const surgu = document.getElementById('foto-olcu');
   let fiyat = '';
   if (surgu) {
@@ -718,8 +722,8 @@ TARAYICI_JS = r"""
   const dp = document.querySelector('#fotoUretim .foto-uretim-durustluk p');
   await bekle(500);
   const d = document.documentElement;
-  const sk = document.querySelector('#fotoUretim button.foto-uretim-galeri-kucuk.secili');
-  const a2 = document.getElementById('foto-adim2');
+  const sk = document.querySelector('#fotoUretim button.foto-uretim-kart.secili');
+  const a2 = document.getElementById('foto-pencere-2');
   const olculen_not = !!document.querySelector('#fotoUretim .foto-uretim-olculen-not');
   const secili = sk ? (sk.getAttribute('data-tur') || '') : '';
   return {secildi: secili === kod && !!a2 && !a2.hidden, secili_tur: secili, surgu: !!surgu, fiyat: fiyat, onay_kutusu: kutu,
@@ -1291,7 +1295,10 @@ def mutant_on_kosul(acik_kodlar):
     `kod == 400` yetmez — reddin `hata` metni `tur-kapali` (kaynaktan okunan) OLMALI; aksi (ornek
     bugun figur acilip gorsel-gecersiz 400'e dusmesi) sunucu KAPI KAPALI degil demektir, GECERSIZ."""
     hata_bek = _red_metni_onizleme()
-    kapali = [t["kod"] for t in MAN["turler"] if t["kod"] not in acik_kodlar]
+    # Yalniz SAGLAYICI kolu (motor M) kapali turu: D/R kolundaki kapali tur /foto/onizleme'de once
+    # turHazir'a takilir ve 503 `kapali` doner (9 Eki 2026 olcumu: anahtarlik kaydi geldi, ornegi yok) —
+    # o da fail-closed ama bu bekcinin olctugu `tur-kapali` dali DEGIL; o kod BILINMEYEN_TUR'a duser.
+    kapali = [t["kod"] for t in MAN["turler"] if t["kod"] not in acik_kodlar and t.get("motor") == "M"]
     if kapali:
         kod = kapali[0]
         kaynak = "kapali"

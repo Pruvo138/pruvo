@@ -1,50 +1,46 @@
 #!/usr/bin/env node
 /**
- * PRUVO shop — ses/konum/tarih PARAMETRE/GİRDİ TİPLERİ kabul kapısı
- * (BaBa 8 Eki 2026 00:3x hüküm 1(e), kraL `kral/foto-duzen`).
+ * PRUVO shop — PARAMETRE/GİRDİ TİPLERİ kabul kapısı (VERI.parametreDogrula — istemci foto-uretim.js ve
+ * sunucu shop/src/foto.js girdiGovdeDogrula AYNI FONKSİYONU çağırır).
  *
  *   node shop/test/foto-girdi-tipleri.mjs
  *
- * KAPSAM: VERI.GIRDI_TURLERI ses/konum/tarih `acik:true`, VERI.FORM_TIPLERI true, ve
- * VERI.parametreDogrula'nın her tip için doğru çalışması — istemci (foto-uretim.js) ve
- * sunucu (shop/src/foto.js → VERI.parametreDogrula) AYNI FONKSİYONU çağırır.
+ * K3c (sayfa-3adim, 9 Eki 2026): K3a ses/konum/tarih türlerini ve parametreDogrula dallarını sildi → bu
+ * kapının S/K/T/TS vakaları ve M-SES/M-KON/M-TRH/M-SAAT mutantları ölü koda bakıyordu (dosya TypeError ile
+ * düşüyordu); SİLİNDİ. Yerine METİN dalı (anahtarlık `satirlar`: liste, 1..satir_max satır, ≤ max karakter).
  *
- * Test fikstürü: KENDİ sahte türlerini tanımlar (manifest DEĞİŞMEZ); her türde tek form
- * alanı vardır, böylece "bu alan için bu parametre" izole doğrulanır.
+ * Test fikstürü: KENDİ sahte türlerini tanımlar (manifest DEĞİŞMEZ); her türde tek form alanı vardır,
+ * böylece "bu alan için bu parametre" izole doğrulanır. Gerçek manifest satırları ayrıca ölçülür.
  *
  * OLCULEN KURALLAR:
- *   S  ses genlik dizisi: uzunluk 64..4000, her eleman sonlu sayı 0..1
- *      ✓ 64 / 4000 / 1 eleman
- *      ✗ 63 / 4001 / eleman -0.001 / 1.000001 / NaN / dizi-değil
- *   K  konum: enlem -90..90, boylam -180..180; ikisi sonlu sayı
- *      ✓ 0/0 (deniz) / 90/-180 (kutup) / -90/180
- *      ✗ 90.000001 / -90.000001 / -180.000001 / enlem olmayan / boylam Infinity
- *   T  tarih: "YYYY-AA-GG" takvim geçerli, yıl 1900..2100
- *      ✓ 2024-02-29 (artık yıl) / 1900-01-01 / 2100-12-31
- *      ✗ 2023-02-29 (artık yıl DEĞİL) / 2024-02-30 / 2024-13-01 / 2101-01-01 / 2024/02/29
- *   TS tarih + saat: SS:DD + utc_ofset_saat -12..14
- *      ✓ 12:30 +3 / 00:00 +0 / 23:59 -12
- *      ✗ saat 25:00 / utc 15 / utc -13 / saat:true ise dize
- *   G  GIRDI_TURLERI ses/konum/tarih `acik:true` (3/3); FORM_TIPLERI true (3/3)
- *      grep: `ses: { acik: true }` 1 kez (konum/tarih aynı)
- *   FS foto-uretim.js: ses yolunda FormData yok (ses dosyası sunucuya GİTMEZ; yalnız dizi)
+ *   G  GIRDI_TURLERI.metin `acik:true` · FORM_TIPLERI.metin true · anahtarlık girdisi ["metin"]
+ *   MT metin (liste:true, satir_max 3, max 40, zorunlu):
+ *      ✓ 1 / 2 / 3 satır · 40 karakter
+ *      ✗ 4 satır · 41 karakter · boş dizi · boşluk öğe · alan yok · kontrol karakteri (BEL, \n, U+202E)
+ *        · dizi değil ("Ay") · öğe sayı
+ *      zorunlu:false → [] / yok kabul (çıktıya GİRMEZ) · liste değil → tek dize aynı kurallar
+ *      şema bozuk (max yok · satir_max yok · liste dize) → HER değer RED
+ *      bilinmeyen tip → parametre-yakinda · şema dışı anahtar → sema-disi-parametre
+ *   B  bool: YALNIZ true/false
+ *   KS koşullu alan + adım ızgarası
  *
- * MUTANTLAR (geçici bellek kopyasına uygulanır, çalışma ağacına YAZMAZ):
- *   M-SES1 : ses dizi uzunluk denetimi silindi
- *   M-SES2 : ses eleman aralık denetimi silindi
- *   M-KON1 : konum enlem denetimi silindi
- *   M-KON2 : konum boylam denetimi silindi
- *   M-TRH1 : tarih takvim geçersiz kabul edilmedi
- *   M-SAAT1: saat format denetimi silindi
- *   M0     : yalnızca yorum → HİÇBİRİ OLMAZ (kontrol)
+ * MUTANTLAR (geçici bellek kopyasına uygulanır, çalışma ağacına YAZMAZ; her biri "uygulandı mı" denetimli,
+ * hedef KIRMIZI kümesi TAM eşleşmeli — fazlası da eksiği de KIRMIZI):
+ *   M-MET1 satir_max denetimi silindi · M-MET2 FORM_TIPLERI denetimi gevşetildi (bilinmeyen tip kabul)
+ *   M-MET3 kontrol karakteri denetimi silindi · M-MET4 trim denetimi silindi · M-MET5 max denetimi silindi
+ *   M-MET6 dizi denetimi silindi · M-MET7 FORM_TIPLERI'nden metin düştü · M-SOZ1 köprü sözlüğünde bilinmeyen
+ *   tip --denetle'den geçer (tools/kopru-manifest-uret.py kopyası) · M-BOOL1/2 · M-KOSUL1-3 · M-ADIM1/2
+ *   M0 kontrol: yalnız yorum → KIRMIZI []
  *
- * CIKIS: 0 yeşil · 1 kırmızı · 3 OLCULEMEDİ.
+ * CIKIS: 0 yeşil · 1 kırmızı.
  */
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import url from "node:url";
 import vm from "node:vm";
+import { spawnSync } from "node:child_process";
 
 const BURASI = path.dirname(url.fileURLToPath(import.meta.url));
 const KOK = path.join(BURASI, "..", "..");
@@ -68,226 +64,107 @@ const sahteTur = (kod, form) => ({
   fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
   form, girdi: []
 });
+let sayac = 0;
+const turEkle = (v, form) => { const t = sahteTur("t" + (sayac++), form); v.turler.push(t); return t.kod; };
 
-// 64 / 4000 / 1 / 63 / 4001 elemanlı örnek diziler (0..1).
-function dizi(n) { const a = new Array(n); for (let i = 0; i < n; i++) { a[i] = i / (n || 1); } return a; }
-
-// ------------------------------------------------------------- ana kosum
-console.log("G) GIRDI_TURLERI ses/konum/tarih `acik:true` + FORM_TIPLERI true");
 const KAYNAK = fs.readFileSync(path.join(KOK, "foto-uretim-veri.js"), "utf8");
-let VERI = veriKur(KAYNAK);
-ol("G1 GIRDI_TURLERI.ses.acik === true",     VERI.GIRDI_TURLERI.ses.acik === true, JSON.stringify(VERI.GIRDI_TURLERI.ses));
-ol("G1b GIRDI_TURLERI.konum.acik === true",  VERI.GIRDI_TURLERI.konum.acik === true, JSON.stringify(VERI.GIRDI_TURLERI.konum));
-ol("G1c GIRDI_TURLERI.tarih.acik === true",  VERI.GIRDI_TURLERI.tarih.acik === true, JSON.stringify(VERI.GIRDI_TURLERI.tarih));
-ol("G2 FORM_TIPLERI ses/konum/tarih = true", VERI.FORM_TIPLERI.ses === true && VERI.FORM_TIPLERI.konum === true && VERI.FORM_TIPLERI.tarih === true,
-   JSON.stringify(VERI.FORM_TIPLERI));
-const eslesme = (KAYNAK.match(/ses:\s*\{\s*acik:\s*true\s*\}/g) || []).length;
-const konumEs = (KAYNAK.match(/konum:\s*\{\s*acik:\s*true\s*\}/g) || []).length;
-const tarihEs = (KAYNAK.match(/tarih:\s*\{\s*acik:\s*true\s*\}/g) || []).length;
-ol("G3 `ses: { acik: true }` 1 kez",  eslesme === 1,  eslesme + " kez");
-ol("G3b `konum: { acik: true }` 1 kez", konumEs === 1, konumEs + " kez");
-ol("G3c `tarih: { acik: true }` 1 kez", tarihEs === 1, tarihEs + " kez");
+const VERI = veriKur(KAYNAK);
 
-const fotoKaynak = fs.readFileSync(path.join(KOK, "foto-uretim.js"), "utf8");
-const formDataSatirlari = fotoKaynak.split("\n").filter((s) => /FormData/.test(s));
-ol("FS foto-uretim.js'de FormData yok (ses dosyası sunucuya GİTMEZ)", formDataSatirlari.length === 0,
-   formDataSatirlari.length + " satır: " + formDataSatirlari.map((x) => x.trim()).join(" | "));
+// ------------------------------------------------------------- G: girdi/form tipleri
+console.log("G) GIRDI_TURLERI.metin + FORM_TIPLERI.metin");
+ol("G1 GIRDI_TURLERI.metin.acik === true", !!VERI.GIRDI_TURLERI.metin && VERI.GIRDI_TURLERI.metin.acik === true,
+   JSON.stringify(VERI.GIRDI_TURLERI));
+ol("G2 FORM_TIPLERI.metin === true", VERI.FORM_TIPLERI.metin === true, JSON.stringify(VERI.FORM_TIPLERI));
+const an = VERI.turBul("anahtarlik");
+ol("G3 manifest anahtarlik girdi [\"metin\"] + satirlar {metin, liste, satir_max 3, max 40, zorunlu}",
+   !!an && JSON.stringify(an.girdi) === '["metin"]' && an.form.satirlar.tip === "metin" && an.form.satirlar.liste === true &&
+   an.form.satirlar.satir_max === 3 && an.form.satirlar.max === 40 && an.form.satirlar.zorunlu === true,
+   JSON.stringify(an && an.form.satirlar));
 
-console.log("S) SES (genlik dizisi: 64..4000 eleman, her biri sonlu 0..1)");
+// ------------------------------------------------------------- MT: metin vakaları
+// Her vaka: [kimlik, form-alanı-şeması, gönderilen parametreler (alan anahtarı "a"), beklenen]
+// beklenen: { ok:true, deger:<a'nın çıktısı | undefined = çıktıda yok> } | { ok:false, hata }
+const LISTE = { tip: "metin", etiket: "Yazı", liste: true, satir_max: 3, max: 40, zorunlu: true };
+const TEK = { tip: "metin", etiket: "Yazı", max: 10, zorunlu: true };
+const SECIK = { tip: "metin", etiket: "Yazı", liste: true, satir_max: 3, max: 40, zorunlu: false };
+const RED = { ok: false, hata: "parametre-metin" };
+const MT_VAKA = [
+  ["MT1", "1 satır ✓", LISTE, { a: ["Ayşe"] }, { ok: true, deger: ["Ayşe"] }],
+  ["MT2", "2 satır ✓", LISTE, { a: ["Ayşe", "Ali"] }, { ok: true, deger: ["Ayşe", "Ali"] }],
+  ["MT3", "3 satır ✓", LISTE, { a: ["a", "b", "c"] }, { ok: true, deger: ["a", "b", "c"] }],
+  ["MT3b", "40 karakter ✓", LISTE, { a: ["x".repeat(40)] }, { ok: true, deger: ["x".repeat(40)] }],
+  ["MT4", "4 satır ✗", LISTE, { a: ["a", "b", "c", "d"] }, RED],
+  ["MT5", "41 karakter ✗", LISTE, { a: ["x".repeat(41)] }, RED],
+  ["MT6", "boş dizi ✗", LISTE, { a: [] }, RED],
+  ["MT6b", "boşluk öğe ✗", LISTE, { a: ["Ayşe", "   "] }, RED],
+  ["MT6c", "alan yok (zorunlu) ✗", LISTE, {}, RED],
+  ["MT7", "kontrol BEL ✗", LISTE, { a: ["a\u0007b"] }, RED],
+  ["MT7b", "satır sonu öğede ✗", LISTE, { a: ["a\nb"] }, RED],
+  ["MT7c", "yön geçersiz kılma U+202E ✗", LISTE, { a: ["a‮b"] }, RED],
+  ["MT8", "dizi değil (\"Ay\") ✗", LISTE, { a: "Ay" }, RED],
+  ["MT8b", "öğe sayı ✗", LISTE, { a: [5] }, RED],
+  ["MT9", "zorunlu:false [] → kabul, çıktıda yok", SECIK, { a: [] }, { ok: true, deger: undefined }],
+  ["MT9b", "zorunlu:false alan yok → kabul", SECIK, {}, { ok: true, deger: undefined }],
+  ["MT9c", "zorunlu:false dolu → kurallar", SECIK, { a: ["x".repeat(41)] }, RED],
+  ["MT10", "liste değil: tek dize ✓", TEK, { a: "PRUVO" }, { ok: true, deger: "PRUVO" }],
+  ["MT10b", "liste değil: dizi ✗", TEK, { a: ["PRUVO"] }, RED],
+  ["MT10c", "liste değil: 11 karakter ✗", TEK, { a: "x".repeat(11) }, RED],
+  ["MT10d", "liste değil: satır sonu ✗", TEK, { a: "a\nb" }, RED],
+  ["MT11", "şema max yok → RED", { tip: "metin", liste: true, satir_max: 3, zorunlu: true }, { a: ["a"] }, RED],
+  ["MT11b", "şema satir_max yok → RED", { tip: "metin", liste: true, max: 40, zorunlu: true }, { a: ["a"] }, RED],
+  ["MT11c", "şema liste dize → RED", { tip: "metin", liste: "evet", satir_max: 3, max: 40, zorunlu: true }, { a: ["a"] }, RED],
+  ["MT12", "bilinmeyen tip → parametre-yakinda", { tip: "renk_liste", uzunluk_max: 4 }, { a: ["#FFFFFF"] },
+    { ok: false, hata: "parametre-yakinda" }],
+  ["MT13", "şema dışı anahtar → sema-disi-parametre", LISTE, { a: ["a"], b: 1 }, { ok: false, hata: "sema-disi-parametre" }]
+];
+function metinKos(v) {
+  const kotu = [];
+  for (const [id, , sema, p, b] of MT_VAKA) {
+    const kod = turEkle(v, { a: sema });
+    let r;
+    try { r = v.parametreDogrula(kod, p); } catch (e) { kotu.push(id); continue; }  // istisna = fail-closed DEĞİL
+    const uy = b.ok
+      ? r.ok === true && JSON.stringify(r.deger.a) === JSON.stringify(b.deger) && (b.deger !== undefined || !("a" in r.deger))
+      : r.ok === false && r.hata === b.hata;
+    if (!uy) { kotu.push(id); }
+  }
+  return kotu;
+}
+console.log("MT) METİN (liste: 1..satir_max satır, ≤ max karakter, kontrol karakteri yok — FAIL-CLOSED)");
 {
-  const t = sahteTur("ses-test", { alan: { tip: "ses", etiket: "Ses" } });
-  VERI.turler.push(t);
-  ol("S1 64 eleman ✓",  VERI.parametreDogrula(t.kod, { alan: dizi(64) }).ok === true,  JSON.stringify(VERI.parametreDogrula(t.kod, { alan: dizi(64) })));
-  ol("S2 4000 eleman ✓", VERI.parametreDogrula(t.kod, { alan: dizi(4000) }).ok === true, JSON.stringify(VERI.parametreDogrula(t.kod, { alan: dizi(4000) })));
-  const s63 = dizi(63);  ol("S3 63 eleman ✗",  VERI.parametreDogrula(t.kod, { alan: s63 }).ok === false && VERI.parametreDogrula(t.kod, { alan: s63 }).hata === "parametre-ses", JSON.stringify(VERI.parametreDogrula(t.kod, { alan: s63 })));
-  const s4001 = dizi(4001); ol("S4 4001 eleman ✗", VERI.parametreDogrula(t.kod, { alan: s4001 }).ok === false && VERI.parametreDogrula(t.kod, { alan: s4001 }).hata === "parametre-ses", JSON.stringify(VERI.parametreDogrula(t.kod, { alan: s4001 })));
-  const neg = dizi(64); neg[10] = -0.001;
-  ol("S5 eleman -0.001 ✗", VERI.parametreDogrula(t.kod, { alan: neg }).ok === false && VERI.parametreDogrula(t.kod, { alan: neg }).hata === "parametre-ses", JSON.stringify(VERI.parametreDogrula(t.kod, { alan: neg })));
-  const ust = dizi(64); ust[10] = 1.000001;
-  ol("S6 eleman 1.000001 ✗", VERI.parametreDogrula(t.kod, { alan: ust }).ok === false && VERI.parametreDogrula(t.kod, { alan: ust }).hata === "parametre-ses", JSON.stringify(VERI.parametreDogrula(t.kod, { alan: ust })));
-  const nan = dizi(64); nan[10] = NaN;
-  ol("S7 eleman NaN ✗", VERI.parametreDogrula(t.kod, { alan: nan }).ok === false && VERI.parametreDogrula(t.kod, { alan: nan }).hata === "parametre-ses", JSON.stringify(VERI.parametreDogrula(t.kod, { alan: nan })));
-  ol("S8 dizi-değil ✗", VERI.parametreDogrula(t.kod, { alan: "ses" }).ok === false && VERI.parametreDogrula(t.kod, { alan: "ses" }).hata === "parametre-ses", JSON.stringify(VERI.parametreDogrula(t.kod, { alan: "ses" })));
+  const kotu = metinKos(VERI);
+  for (const [id, ad] of MT_VAKA) { ol(id + " " + ad, !kotu.includes(id)); }
+  // Çıktı girdinin KOPYASI (sonradan değiştirilen girdi doğrulanmış değeri bozmaz).
+  const kod = turEkle(VERI, { a: LISTE });
+  const g = ["Ayşe"], r = VERI.parametreDogrula(kod, { a: g });
+  g.push("x", "y", "z");
+  ol("MT14 çıktı dizisi girdinin kopyası", r.ok && r.deger.a.length === 1, JSON.stringify(r));
+  // Gerçek manifest: anahtarlık örnek girdisi (köprü kaydı ornek.girdi) sunucudan geçer.
+  const ornek = {};
+  for (const [a, s] of Object.entries(an.form)) { ornek[a] = s.ornek !== undefined ? s.ornek : s.varsayilan; }
+  const ro = VERI.parametreDogrula("anahtarlik", ornek);
+  ol("MT15 manifest anahtarlik örnek parametreleri → ok", ro.ok === true, JSON.stringify(ro));
+  const r4 = VERI.parametreDogrula("anahtarlik", { ...ornek, satirlar: ["a", "b", "c", "d"] });
+  ol("MT16 manifest anahtarlik 4 satır → parametre-metin", r4.ok === false && r4.hata === "parametre-metin", JSON.stringify(r4));
 }
 
-console.log("K) KONUM (enlem -90..90, boylam -180..180)");
-{
-  const t = sahteTur("konum-test", { alan: { tip: "konum", etiket: "Konum" } });
-  VERI.turler.push(t);
-  ol("K1 0/0 (deniz) ✓", VERI.parametreDogrula(t.kod, { alan: { enlem: 0, boylam: 0 } }).ok === true, JSON.stringify(VERI.parametreDogrula(t.kod, { alan: { enlem: 0, boylam: 0 } })));
-  ol("K2 90/-180 (kutup) ✓", VERI.parametreDogrula(t.kod, { alan: { enlem: 90, boylam: -180 } }).ok === true, JSON.stringify(VERI.parametreDogrula(t.kod, { alan: { enlem: 90, boylam: -180 } })));
-  ol("K3 -90/180 ✓", VERI.parametreDogrula(t.kod, { alan: { enlem: -90, boylam: 180 } }).ok === true, JSON.stringify(VERI.parametreDogrula(t.kod, { alan: { enlem: -90, boylam: 180 } })));
-  const e1 = { alan: { enlem: 90.000001, boylam: 0 } }; ol("K4 90.000001 ✗", VERI.parametreDogrula(t.kod, e1).ok === false && VERI.parametreDogrula(t.kod, e1).hata === "parametre-konum", JSON.stringify(VERI.parametreDogrula(t.kod, e1)));
-  const e2 = { alan: { enlem: -90.000001, boylam: 0 } }; ol("K5 -90.000001 ✗", VERI.parametreDogrula(t.kod, e2).ok === false && VERI.parametreDogrula(t.kod, e2).hata === "parametre-konum", JSON.stringify(VERI.parametreDogrula(t.kod, e2)));
-  const e3 = { alan: { enlem: 0, boylam: -180.000001 } }; ol("K6 -180.000001 ✗", VERI.parametreDogrula(t.kod, e3).ok === false && VERI.parametreDogrula(t.kod, e3).hata === "parametre-konum", JSON.stringify(VERI.parametreDogrula(t.kod, e3)));
-  const e4 = { alan: { enlem: "x", boylam: 0 } }; ol("K7 enlem olmayan ✗", VERI.parametreDogrula(t.kod, e4).ok === false && VERI.parametreDogrula(t.kod, e4).hata === "parametre-konum", JSON.stringify(VERI.parametreDogrula(t.kod, e4)));
-  const e5 = { alan: { enlem: 0, boylam: Infinity } }; ol("K8 boylam Infinity ✗", VERI.parametreDogrula(t.kod, e5).ok === false && VERI.parametreDogrula(t.kod, e5).hata === "parametre-konum", JSON.stringify(VERI.parametreDogrula(t.kod, e5)));
-}
-
-console.log("T) TARIH (YYYY-AA-GG, 1900..2100, takvim geçerli)");
-{
-  const t = sahteTur("tarih-test", { alan: { tip: "tarih", etiket: "Tarih" } });
-  VERI.turler.push(t);
-  const g1 = { alan: "2024-02-29" }; ol("T1 2024-02-29 (artık yıl) ✓", VERI.parametreDogrula(t.kod, g1).ok === true, JSON.stringify(VERI.parametreDogrula(t.kod, g1)));
-  const g2 = { alan: "1900-01-01" }; ol("T2 1900-01-01 ✓", VERI.parametreDogrula(t.kod, g2).ok === true, JSON.stringify(VERI.parametreDogrula(t.kod, g2)));
-  const g3 = { alan: "2100-12-31" }; ol("T3 2100-12-31 ✓", VERI.parametreDogrula(t.kod, g3).ok === true, JSON.stringify(VERI.parametreDogrula(t.kod, g3)));
-  const x1 = { alan: "2023-02-29" }; ol("T4 2023-02-29 (artık yıl DEĞİL) ✗", VERI.parametreDogrula(t.kod, x1).ok === false && VERI.parametreDogrula(t.kod, x1).hata === "parametre-tarih", JSON.stringify(VERI.parametreDogrula(t.kod, x1)));
-  const x2 = { alan: "2024-02-30" }; ol("T5 2024-02-30 ✗", VERI.parametreDogrula(t.kod, x2).ok === false && VERI.parametreDogrula(t.kod, x2).hata === "parametre-tarih", JSON.stringify(VERI.parametreDogrula(t.kod, x2)));
-  const x3 = { alan: "2024-13-01" }; ol("T6 2024-13-01 ✗", VERI.parametreDogrula(t.kod, x3).ok === false && VERI.parametreDogrula(t.kod, x3).hata === "parametre-tarih", JSON.stringify(VERI.parametreDogrula(t.kod, x3)));
-  const x4 = { alan: "2101-01-01" }; ol("T7 2101-01-01 ✗", VERI.parametreDogrula(t.kod, x4).ok === false && VERI.parametreDogrula(t.kod, x4).hata === "parametre-tarih", JSON.stringify(VERI.parametreDogrula(t.kod, x4)));
-  const x5 = { alan: "2024/02/29" }; ol("T8 bicim bozuk ✗", VERI.parametreDogrula(t.kod, x5).ok === false && VERI.parametreDogrula(t.kod, x5).hata === "parametre-tarih", JSON.stringify(VERI.parametreDogrula(t.kod, x5)));
-}
-
-console.log("TS) TARIH + SAAT (saat:true ise SS:DD + utc_ofset_saat -12..14)");
-{
-  const t = sahteTur("ts-test", { alan: { tip: "tarih", etiket: "Tarih saat", saat: true } });
-  VERI.turler.push(t);
-  const g1 = { alan: { tarih: "2026-10-08", saat: "12:30", utc_ofset_saat: 3 } };
-  ol("TS1 12:30 +3 ✓", VERI.parametreDogrula(t.kod, g1).ok === true, JSON.stringify(VERI.parametreDogrula(t.kod, g1)));
-  const g2 = { alan: { tarih: "2026-10-08", saat: "00:00", utc_ofset_saat: 0 } };
-  ol("TS2 00:00 +0 ✓", VERI.parametreDogrula(t.kod, g2).ok === true, JSON.stringify(VERI.parametreDogrula(t.kod, g2)));
-  const g3 = { alan: { tarih: "2026-10-08", saat: "23:59", utc_ofset_saat: -12 } };
-  ol("TS3 23:59 -12 ✓", VERI.parametreDogrula(t.kod, g3).ok === true, JSON.stringify(VERI.parametreDogrula(t.kod, g3)));
-  const x1 = { alan: { tarih: "2026-10-08", saat: "25:00", utc_ofset_saat: 3 } };
-  ol("TS4 25:00 ✗", VERI.parametreDogrula(t.kod, x1).ok === false && VERI.parametreDogrula(t.kod, x1).hata === "parametre-tarih", JSON.stringify(VERI.parametreDogrula(t.kod, x1)));
-  const x2 = { alan: { tarih: "2026-10-08", saat: "12:00", utc_ofset_saat: 15 } };
-  ol("TS5 utc_ofset_saat 15 ✗", VERI.parametreDogrula(t.kod, x2).ok === false && VERI.parametreDogrula(t.kod, x2).hata === "parametre-tarih", JSON.stringify(VERI.parametreDogrula(t.kod, x2)));
-  const x3 = { alan: { tarih: "2026-10-08", saat: "12:00", utc_ofset_saat: -13 } };
-  ol("TS6 utc_ofset_saat -13 ✗", VERI.parametreDogrula(t.kod, x3).ok === false && VERI.parametreDogrula(t.kod, x3).hata === "parametre-tarih", JSON.stringify(VERI.parametreDogrula(t.kod, x3)));
-  const x4 = { alan: "2026-10-08" };
-  ol("TS7 saat:true ise dize kabul edilmez ✗", VERI.parametreDogrula(t.kod, x4).ok === false && VERI.parametreDogrula(t.kod, x4).hata === "parametre-tarih", JSON.stringify(VERI.parametreDogrula(t.kod, x4)));
-}
-
+// ------------------------------------------------------------- B: bool
 console.log("B) BOOL (kopru-15 sözlük: YALNIZ true/false; dize/sayı/null RED)");
 {
   ol("B0 FORM_TIPLERI.bool === true", VERI.FORM_TIPLERI.bool === true, JSON.stringify(VERI.FORM_TIPLERI));
-  const t = sahteTur("bool-test", { alan: { tip: "bool", etiket: "Kapak", varsayilan: false } });
-  VERI.turler.push(t);
-  const d = (v) => VERI.parametreDogrula(t.kod, { alan: v });
+  const kod = turEkle(VERI, { alan: { tip: "bool", etiket: "Kapak", varsayilan: false } });
+  const d = (v) => VERI.parametreDogrula(kod, { alan: v });
   ol("B1 true ✓ (deger true)", d(true).ok === true && d(true).deger.alan === true, JSON.stringify(d(true)));
   ol("B2 false ✓ (deger false)", d(false).ok === true && d(false).deger.alan === false, JSON.stringify(d(false)));
   for (const [ad, v] of [["B3 \"true\"", "true"], ["B4 \"1\"", "1"], ["B5 1", 1], ["B6 0", 0], ["B7 null", null], ["B8 \"false\"", "false"]]) {
     ol(ad + " ✗ parametre-bool", d(v).ok === false && d(v).hata === "parametre-bool", JSON.stringify(d(v)));
   }
-  ol("B9 alan yok ✗ parametre-bool", VERI.parametreDogrula(t.kod, {}).hata === "parametre-bool", JSON.stringify(VERI.parametreDogrula(t.kod, {})));
-  // Gerçek manifest: G4a türlerinin bool alanı (kutu.kapak) "parametre-yakinda" DEĞİL.
-  for (const [kod, alan] of [["kutu", "kapak"]]) {
-    const tt = VERI.turBul(kod);
-    ol("B10 " + kod + "." + alan + " tip bool", !!tt && tt.form[alan] && tt.form[alan].tip === "bool", kod);
-  }
+  ol("B9 alan yok ✗ parametre-bool", VERI.parametreDogrula(kod, {}).hata === "parametre-bool", JSON.stringify(VERI.parametreDogrula(kod, {})));
+  const bt = VERI.turBul("bust");
+  ol("B10 bust.ters tip bool", !!bt && bt.form.ters && bt.form.ters.tip === "bool", JSON.stringify(bt && bt.form.ters));
 }
 
-// ---------------------------------------------------------------- MUTANTLAR
-console.log("MUTANTLAR (geçici bellek kopyası; çalışma ağacına YAZMAZ)");
-
-// BLOK-bazlı mutasyon: belirli bir başlangıç satırıyla eşleşen if/for/while bloğunu kaldırır.
-// Başlangıçtan sonraki satırlar küme parantezi sayımıyla kapanana dek kaldırılır.
-// Eğer `tekSatir` true ise başlangıç satırıyla birlikte TEK satırda biten `return ...;` formundaysa
-// `return ...;` satırını da kaldırır.
-function blokCikar(kaynak, baslangicDeseni) {
-  const satirlar = kaynak.split("\n");
-  const sonuc = [];
-  let iceride = false, sayac = 0;
-  for (const s of satirlar) {
-    if (!iceride) {
-      if (s.indexOf(baslangicDeseni) >= 0) {
-        iceride = true;
-        // Başlangıç satırı kendisi bir kapanış içeriyorsa (örn. `if (...) { return ... }`)
-        // tek satırlık ifade — yine de küme parantezi sayımı yapılır.
-        for (const c of s) { if (c === "{") { sayac++; } else if (c === "}") { sayac--; } }
-        if (sayac <= 0) { iceride = false; sayac = 0; }
-        continue;
-      }
-      sonuc.push(s);
-    } else {
-      for (const c of s) { if (c === "{") { sayac++; } else if (c === "}") { sayac--; } }
-      if (sayac <= 0) { iceride = false; sayac = 0; }
-    }
-  }
-  return sonuc.join("\n");
-}
-// Tek satırlık ifadeyi kaldır (regex test içeren if'ler için).
-function satirCikar(kaynak, hedef) {
-  const satirlar = kaynak.split("\n");
-  return satirlar.filter((s) => s.indexOf(hedef) < 0).join("\n");
-}
-
-const KIRMIZI_SEN_SES_UZUNLUK = [
-  ["S3 63 eleman",   { fail: true,  v: () => dizi(63) }],
-  ["S4 4001 eleman", { fail: true,  v: () => dizi(4001) }],
-  ["S1 64 eleman",   { fail: false, v: () => dizi(64) }]
-];
-const KIRMIZI_SEN_SES_ELEMAN = [
-  ["S5 -0.001",  { fail: true,  v: () => { const a = dizi(64); a[10] = -0.001; return a; } }],
-  ["S6 1.000001",{ fail: true,  v: () => { const a = dizi(64); a[10] = 1.000001; return a; } }],
-  ["S1 64 eleman",{ fail: false, v: () => dizi(64) }]
-];
-const KIRMIZI_SEN_KONUM_ENLEM = [
-  ["K4 90.000001", { fail: true,  v: () => ({ enlem: 90.000001, boylam: 0 }) }],
-  ["K1 0/0",       { fail: false, v: () => ({ enlem: 0, boylam: 0 }) }]
-];
-const KIRMIZI_SEN_KONUM_BOYLAM = [
-  ["K6 -180.000001", { fail: true,  v: () => ({ enlem: 0, boylam: -180.000001 }) }],
-  ["K2 90/-180",     { fail: false, v: () => ({ enlem: 90, boylam: -180 }) }]
-];
-const KIRMIZI_SEN_TARIH_TAKVIM = [
-  ["T4 2023-02-29", { fail: true,  v: () => "2023-02-29" }],
-  ["T5 2024-02-30", { fail: true,  v: () => "2024-02-30" }],
-  ["T1 2024-02-29", { fail: false, v: () => "2024-02-29" }]
-];
-const KIRMIZI_SEN_SAAT = [
-  ["TS4 25:00",  { fail: true,  v: () => ({ tarih: "2026-10-08", saat: "25:00", utc_ofset_saat: 3 }) }],
-  ["TS1 12:30",  { fail: false, v: () => ({ tarih: "2026-10-08", saat: "12:30", utc_ofset_saat: 3 }) }]
-];
-
-function mutantKos(etiket, kaynakMutasyonu, tip, senaryolar) {
-  const yeniKaynak = kaynakMutasyonu(KAYNAK);
-  const v = veriKur(yeniKaynak);
-  const t = sahteTur("mtest-" + etiket.replace(/[^a-z0-9]/gi, ""), { alan: { tip: tip, etiket: tip, ...(tip === "tarih" ? { saat: false } : {}) } });
-  v.turler.push(t);
-  // Beklenti: mutasyon, "fail:true" senaryolarını YANLIŞLIKLA kabul eder hale getirir
-  // (yani gerçekKirmizi = mutantın bozduğu fail:true senaryoları).
-  // "fail:false" (geçerli) senaryoları mutasyondan etkilenmemeli — mutant bunları da bozarsa
-  // beklenenden fazla kırmızı çıkar (o da KIRMIZI sayılır).
-  const gercekKirmizi = [];
-  for (const [ad, sen] of senaryolar) {
-    const sonuc = v.parametreDogrula(t.kod, { alan: sen.v() });
-    const isFail = sen.fail ? sonuc.ok === false : sonuc.ok === true;
-    if (!isFail) { gercekKirmizi.push(ad); }
-  }
-  const failTrular = senaryolar.filter(([, sen]) => sen.fail).map(([ad]) => ad);
-  // Test geçerli: TÜM fail:true senaryolar mutantla bozuldu VE fail:false senaryolar BOZULMADI.
-  const tumFailTrularBozuldu = failTrular.every((ad) => gercekKirmizi.includes(ad));
-  const baskaKirildi = gercekKirmizi.some((ad) => !failTrular.includes(ad));
-  ol(etiket + " -> mutant KIRMIZI [" + gercekKirmizi.join(",") + "] (fail:true=" + failTrular.length + ", ek=" + (baskaKirildi ? "1" : "0") + ")",
-     tumFailTrularBozuldu && !baskaKirildi, JSON.stringify(gercekKirmizi));
-}
-
-mutantKos("M-SES1 uzunluk denetimi silindi",   (k) => blokCikar(k, "if (v.length < 64 || v.length > 4000)"), "ses",   KIRMIZI_SEN_SES_UZUNLUK);
-mutantKos("M-SES2 eleman aralık denetimi silindi", (k) => blokCikar(k, "if (typeof v[g] !== \"number\""), "ses",   KIRMIZI_SEN_SES_ELEMAN);
-mutantKos("M-KON1 enlem denetimi silindi",      (k) => blokCikar(k, "if (typeof v.enlem !== \"number\""), "konum", KIRMIZI_SEN_KONUM_ENLEM);
-mutantKos("M-KON2 boylam denetimi silindi",     (k) => blokCikar(k, "if (typeof v.boylam !== \"number\""), "konum", KIRMIZI_SEN_KONUM_BOYLAM);
-mutantKos("M-TRH1 takvim geçersiz kabul edilmedi", (k) => blokCikar(k, "if (d.getUTCFullYear() !== y"), "tarih", KIRMIZI_SEN_TARIH_TAKVIM);
-
-const KIRMIZI_SEN_BOOL = [
-  ["B3 \"true\"", { fail: true,  v: () => "true" }],
-  ["B5 1",        { fail: true,  v: () => 1 }],
-  ["B7 null",     { fail: true,  v: () => null }],
-  ["B1 true",     { fail: false, v: () => true }],
-  ["B2 false",    { fail: false, v: () => false }]
-];
-// BOOL mutantı: true/false denetimi silinir -> dize/sayı/null kabul edilir.
-mutantKos("M-BOOL1 bool true/false denetimi silindi",
-  (k) => satirCikar(k, "if (v !== true && v !== false) { return { ok: false, hata: \"parametre-bool\" }; }"), "bool", KIRMIZI_SEN_BOOL);
-// BOOL mutantı 2: FORM_TIPLERI'nden bool düşer -> geçerli true/false da "parametre-yakinda" (geçerliler KIRMIZI).
-{
-  const v = veriKur(KAYNAK.replace(", bool: true };", " };"));
-  const t = sahteTur("mtest-bool2", { alan: { tip: "bool", etiket: "b" } });
-  v.turler.push(t);
-  const r = v.parametreDogrula(t.kod, { alan: true });
-  ol("M-BOOL2 FORM_TIPLERI.bool dustu -> true KIRMIZI (parametre-yakinda)", r.ok === false && r.hata === "parametre-yakinda", JSON.stringify(r));
-}
-
+// ------------------------------------------------------------- KS: koşul + adım
 // KOSUL (kopru-15 DILIM-2): koşulu sağlanmayan alan çıktıya GİRMEZ, gönderilirse sema-disi-parametre;
 // sağlanan alan ZORUNLU; adım ızgarası kayıttaki adıma göre (enlem/boylam 0.000001: 40.15-(-90) /1e-6 kayan
 // nokta hatası 1.5e-8 > 1e-9 — Uludağ örneği; KS1 bunu ölçer).
@@ -319,85 +196,100 @@ const KOSUL_VAKA = [
     { ok: false, hata: "parametre-adim" }]
 ];
 function kosulKos(v) {
-  const t = sahteTur("kosul-" + Math.random().toString(36).slice(2), KOSUL_FORM);
-  v.turler.push(t);
-  const kirmizi = [];
+  const kod = turEkle(v, KOSUL_FORM);
+  const k = [];
   for (const [ad, p, b] of KOSUL_VAKA) {
-    const r = v.parametreDogrula(t.kod, p);
+    const r = v.parametreDogrula(kod, p);
     const uy = b.ok ? (r.ok === true && Object.keys(r.deger).sort().join(",") === b.anahtar) : (r.ok === false && r.hata === b.hata);
-    if (!uy) { kirmizi.push(ad.split(" ")[0]); }
+    if (!uy) { k.push(ad.split(" ")[0]); }
   }
-  return kirmizi;
+  return k;
 }
 console.log("KS) KOSUL + ADIM (kopru-15 DILIM-2)");
 {
-  const k = kosulKos(veriKur(KAYNAK));
+  const k = kosulKos(VERI);
   for (const [ad] of KOSUL_VAKA) { ol(ad, !k.includes(ad.split(" ")[0])); }
-  // Gercek manifest: G4a turlerinin (kutu) TeKiN varsayilanlari (duvar 1.6 ...) GECERLI, kosulsuz alan yok.
-  // 5 olcu-kritik tur (adaptor/disli/kapak/dugme/klips) silindi (8 Eki 2026) — kutu kalan tek G4a.
-  const G4A = {
-    kutu: { en_mm: 100, boy_mm: 60, yukseklik_mm: 40, bolme_x: 2, bolme_y: 2, duvar_mm: 1.6, taban_mm: 1.6, kose_yaricap_mm: 3, kapak: false }
-  };
-  for (const kod of Object.keys(G4A)) {
-    const r = VERI.parametreDogrula(kod, G4A[kod]);
-    ol("KS9 manifest " + kod + " TeKiN varsayilanlari -> ok", r.ok === true, JSON.stringify(r));
-  }
+  // Gerçek manifest: köprü yapboz örnek parametreleri (kayıt ornek.girdi) GEÇERLİ.
+  const yp = { uzun_kenar_mm: 150, satir: 3, sutun: 4, tohum: 1, kabartma_yon: "acik_yuksek" };
+  const r = VERI.parametreDogrula("yapboz", yp);
+  ol("KS9 manifest yapboz köprü örneği -> ok", r.ok === true, JSON.stringify(r));
 }
-// KOSUL mutantlari: hedef KIRMIZI kumesi TAM eslesmeli (fazlasi da eksigi de KIRMIZI).
-function kosulMutant(etiket, eski, yeni, hedef) {
+
+// ---------------------------------------------------------------- MUTANTLAR
+console.log("MUTANTLAR (geçici bellek kopyası; çalışma ağacına YAZMAZ)");
+// Mutant: çapa kaynakta TAM 1 kez olmalı (uygulandı mı), sonra koşucunun KIRMIZI kümesi hedefe TAM eşit olmalı.
+function mutant(etiket, eski, yeni, kos, hedef) {
   const n = KAYNAK.split(eski).length - 1;
-  if (n !== 1) { ol(etiket + " capa " + n + " kez", false); return; }
-  const k = kosulKos(veriKur(KAYNAK.replace(eski, yeni)));
+  if (n !== 1) { ol(etiket + " MUTANT_UYGULANMADI capa " + n + " kez", false); return; }
+  const k = kos(veriKur(KAYNAK.replace(eski, yeni)));
   ol(etiket + " -> KIRMIZI [" + k.join(",") + "]", k.join(",") === hedef.join(","), "hedef=" + hedef.join(","));
 }
-kosulMutant("M-KOSUL1 kosul denetimi silindi (her alan zorunlu)",
+mutant("M-MET1 satir_max denetimi silindi", "if (v.length < 1 || v.length > sema.satir_max)", "if (v.length < 1)",
+  metinKos, ["MT4"]);
+mutant("M-MET2 FORM_TIPLERI denetimi gevşetildi (bilinmeyen tip kabul)",
+  "      if (VERI.FORM_TIPLERI[sema.tip] !== true) { return { ok: false, hata: \"parametre-yakinda\" }; }\n", "",
+  metinKos, ["MT12"]);
+mutant("M-MET3 kontrol karakteri denetimi silindi", " && !METIN_KONTROL.test(x)", "", metinKos, ["MT7", "MT7b", "MT7c", "MT10d"]);
+mutant("M-MET4 trim denetimi silindi", "x.trim().length > 0", "x.length > 0", metinKos, ["MT6b"]);
+mutant("M-MET5 max denetimi silindi", " && x.length <= max", "", metinKos, ["MT5", "MT9c", "MT10c"]);
+mutant("M-MET6 dizi denetimi silindi", " || !Array.isArray(v)) { return", ") { return", metinKos, ["MT6c", "MT8"]);
+mutant("M-MET7 FORM_TIPLERI'nden metin düştü", "secim: true, metin: true, bool: true", "secim: true, bool: true",
+  // metin tipi hiç tanınmaz -> HER metin vakası parametre-yakinda (RED vakaları da beklenen hata kodunu kaybeder);
+  // yalnız bilinmeyen tip (MT12) ve şema dışı anahtar (MT13, tip denetiminden ÖNCE) etkilenmez.
+  metinKos, MT_VAKA.map((x) => x[0]).filter((id) => id !== "MT12" && id !== "MT13"));
+mutant("M-BOOL1 bool true/false denetimi silindi",
+  "        if (v !== true && v !== false) { return { ok: false, hata: \"parametre-bool\" }; }\n", "",
+  (v) => {
+    const kod = turEkle(v, { alan: { tip: "bool" } });
+    return [["B3", "true"], ["B5", 1], ["B7", null], ["B1", true], ["B2", false]]
+      .filter(([, x]) => (v.parametreDogrula(kod, { alan: x }).ok === true) !== (x === true || x === false)).map(([id]) => id);
+  }, ["B3", "B5", "B7"]);
+mutant("M-BOOL2 FORM_TIPLERI'nden bool düştü", "metin: true, bool: true };", "metin: true };",
+  (v) => { const kod = turEkle(v, { alan: { tip: "bool" } }); return v.parametreDogrula(kod, { alan: true }).ok ? [] : ["B1"]; }, ["B1"]);
+mutant("M-KOSUL1 kosul denetimi silindi (her alan zorunlu)",
   "      if (!VERI.alanAktif(form, a, p)) {\n        if (Object.prototype.hasOwnProperty.call(p, a)) { return { ok: false, hata: \"sema-disi-parametre\" }; }\n        continue;\n      }\n",
-  "", ["KS1", "KS2", "KS5", "KS6", "KS7", "KS8"]);
-kosulMutant("M-KOSUL2 kosul degeri bakilmaz (yalniz alan varligi)",
-  " ||\n          c.degerler.indexOf(p[c.alan]) < 0) { return false; }", ") { return false; }", ["KS1", "KS2", "KS5", "KS6", "KS7", "KS8"]);
-kosulMutant("M-KOSUL3 gonderilen kosulsuz alan sessizce yutulur",
-  "        if (Object.prototype.hasOwnProperty.call(p, a)) { return { ok: false, hata: \"sema-disi-parametre\" }; }\n", "", ["KS2", "KS5"]);
-kosulMutant("M-ADIM1 tolerans 1e-9 (enlem kayan nokta)", "Math.abs(k - Math.round(k)) > 1e-6", "Math.abs(k - Math.round(k)) > 1e-9", ["KS1"]);
-kosulMutant("M-ADIM2 tolerans 0.5 (izgara disi kabul)", "Math.abs(k - Math.round(k)) > 1e-6", "Math.abs(k - Math.round(k)) > 0.5", ["KS7", "KS8"]);
+  "", kosulKos, ["KS1", "KS2", "KS5", "KS6", "KS7", "KS8"]);
+mutant("M-KOSUL2 kosul degeri bakilmaz (yalniz alan varligi)",
+  " ||\n          c.degerler.indexOf(p[c.alan]) < 0) { return false; }", ") { return false; }", kosulKos, ["KS1", "KS2", "KS5", "KS6", "KS7", "KS8"]);
+mutant("M-KOSUL3 gonderilen kosulsuz alan sessizce yutulur",
+  "        if (Object.prototype.hasOwnProperty.call(p, a)) { return { ok: false, hata: \"sema-disi-parametre\" }; }\n", "", kosulKos, ["KS2", "KS5"]);
+mutant("M-ADIM1 tolerans 1e-9 (enlem kayan nokta)", "Math.abs(k - Math.round(k)) > 1e-6", "Math.abs(k - Math.round(k)) > 1e-9", kosulKos, ["KS1"]);
+mutant("M-ADIM2 tolerans 0.5 (izgara disi kabul)", "Math.abs(k - Math.round(k)) > 1e-6", "Math.abs(k - Math.round(k)) > 0.5", kosulKos, ["KS7", "KS8"]);
+mutant("M0 KONTROL (yalnız yorum)", "  VERI.parametreDogrula = function (kod, p) {", "  // kontrol\n  VERI.parametreDogrula = function (kod, p) {",
+  (v) => metinKos(v).concat(kosulKos(v)), []);
 
-// SAAT mutantı: saat format denetimi (regex test) kaldırılır.
-// Bu denetim `if (typeof satStr !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(satStr))` satırında
-// tek satırlık ifade olduğu için satirCikar yeterli.
-mutantKos("M-SAAT1 saat format denetimi silindi",
-  (k) => satirCikar(k, "if (typeof satStr !== \"string\" || !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(satStr))"),
-  "tarih",
-  [
-    ["TS4 25:00", { fail: true,  v: () => ({ tarih: "2026-10-08", saat: "25:00", utc_ofset_saat: 3 }) }],
-    ["TS1 12:30", { fail: false, v: () => ({ tarih: "2026-10-08", saat: "12:30", utc_ofset_saat: 3 }) }]
-  ]
-);
-
-// M0 kontrol: kaynak mutasyonsuz → tüm senaryolar gerçek sonuçlarına uyuyor (hiçbiri KIRMIZI olmaz).
-console.log("M0 KONTROL (yalnız yorum) — kaynak mutasyonsuz, senaryolar beklenen sonuçlarıyla eşleşmeli");
+// M-SOZ1: köprü sözlüğü (tools/kopru-manifest-uret.py) bilinmeyen tipi --denetle'de adıyla KIRMIZI yakar; araç
+// kopyasında tip denetimi silinirse bu satır kaybolmalı (geçici dizin; finally'de silinir).
 {
-  let v = VERI; // orijinal VERI zaten yüklü
-  // `saat` senaryoları için ayrı tür (saat:true).
-  const kontrolSenaryolari = [
-    ["S3 63 eleman", "ses",   { saat: false }, () => dizi(63), true],
-    ["S5 -0.001", "ses",      { saat: false }, () => { const a = dizi(64); a[10] = -0.001; return a; }, true],
-    ["K4 90.000001", "konum", { saat: false }, () => ({ enlem: 90.000001, boylam: 0 }), true],
-    ["T4 2023-02-29", "tarih", { saat: false }, () => "2023-02-29", true],
-    ["T5 2024-02-30", "tarih", { saat: false }, () => "2024-02-30", true],
-    ["TS4 25:00", "tarih", { saat: true }, () => ({ tarih: "2026-10-08", saat: "25:00", utc_ofset_saat: 3 }), true]
-  ];
-  const uymayanlar = [];
-  for (const [ad, tip, semaEk, vFn, fail] of kontrolSenaryolari) {
-    const t = sahteTur("m0-" + ad.replace(/[^a-z0-9]/gi, ""), { alan: { tip: tip, etiket: tip, ...semaEk } });
-    v.turler.push(t);
-    const sonuc = v.parametreDogrula(t.kod, { alan: vFn() });
-    const isFail = fail ? sonuc.ok === false : sonuc.ok === true;
-    if (!isFail) { uymayanlar.push(ad); }
+  const ARAC = path.join(KOK, "tools", "kopru-manifest-uret.py");
+  const CAPA = "    if tip not in BILINEN_TIP:\n";
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), "girdi-tipleri-soz-"));
+  try {
+    const kayit = path.join(d, "kayit.json");
+    fs.writeFileSync(kayit, JSON.stringify({ kayitlar: [{ kod: "x", uretec: "x_uret", girdi_tipi: ["foto"],
+      parametreler: [{ ad: "a", tip: "renk_dizi" }], olcek: { min_mm: 10, max_mm: 100, adim_mm: 10 } }] }));
+    const kos = (arac) => {
+      const p = spawnSync("python3", [arac, "--denetle", "--kayit", kayit, "--manifest", path.join(KOK, "foto-uretim-veri.js")],
+        { encoding: "utf8" });
+      return { rc: p.status, yakti: /^KIRMIZI bilinmeyen-tip:x\.a=renk_dizi$/m.test(p.stdout || "") };
+    };
+    const asil = kos(ARAC);
+    ol("SOZ0 sözlükte olmayan tip --denetle'de KIRMIZI (bilinmeyen-tip:x.a=renk_dizi, rc 1)", asil.rc === 1 && asil.yakti, JSON.stringify(asil));
+    const kaynak = fs.readFileSync(ARAC, "utf8");
+    const n = kaynak.split(CAPA).length - 1;
+    if (n !== 1) {
+      ol("M-SOZ1 MUTANT_UYGULANMADI capa " + n + " kez", false);
+    } else {
+      const mut = path.join(d, "arac.py");
+      fs.writeFileSync(mut, kaynak.replace(CAPA, "    if False:\n"));
+      const m = kos(mut);
+      ol("M-SOZ1 sözlük tip denetimi silindi -> bilinmeyen-tip satırı KAYBOLUR (SOZ0 KIRMIZI)", m.yakti === false, JSON.stringify(m));
+    }
+  } finally {
+    fs.rmSync(d, { recursive: true, force: true });
   }
-  ol("M0 KONTROL (yalnız yorum) -> KIRMIZI []",
-     uymayanlar.length === 0, JSON.stringify(uymayanlar));
 }
 
-// ---------------------------------------------------------------- SURVIVOR
-const survivor = kirmizi === 0 ? 0 : 1;
-console.log("\n" + (kirmizi === 0 ? "✅ HEPSI GECTI · SURVIVOR=0" : "❌ KIRMIZI=" + kirmizi + " · SURVIVOR=" + survivor));
+// ---------------------------------------------------------------- SONUC
+console.log("\n" + (kirmizi === 0 ? "✅ HEPSI GECTI · SURVIVOR=0" : "❌ KIRMIZI=" + kirmizi));
 process.exit(kirmizi === 0 ? 0 : 1);

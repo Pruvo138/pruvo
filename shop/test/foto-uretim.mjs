@@ -461,15 +461,34 @@ console.log("A) KAPALI-VARSAYILAN (ornek 0)");
      JSON.stringify(foto.yapilandirma(yolsuz).eksik));
 }
 
-console.log("P) TUR LISTESI — tek tur PLAKET (Okan 5 Eki 21:4x; anahtarlik/magnet SUNULMAZ)");
+/**
+ * K3d ORNEK SARTI MUTANTI: anahtarligin sayilan ornegi VARMIS gibi (VERI.ornekSayisi bellekte yamalanir;
+ * sunucu ve test AYNI VERI nesnesini okur). fn yamali dunyada kosar, yama finally'de geri alinir.
+ * Donus { uygulandi: yama tuttu mu (ornekSayisi("anahtarlik") > 0), sonuc: fn'in donusu }.
+ */
+async function ornekSartiKalkti(fn) {
+  const asil = VERI.ornekSayisi;
+  VERI.ornekSayisi = (kod) => (kod === "anahtarlik" ? 1 : asil(kod));
+  try {
+    return { uygulandi: VERI.ornekSayisi("anahtarlik") > 0, sonuc: await fn() };
+  } finally {
+    VERI.ornekSayisi = asil;
+  }
+}
+
+console.log("P) TUR LISTESI — plaket + figur; magnet SUNULMAZ; anahtarlik KAYITLI ama ORNEKSIZ (sunulmaz)");
 {
   // 6 Eki (kategori kaydi): tek-tur sozlesmesi yerine "metal gerektiren tur 0 + plaket VAR".
-  // 8 Eki (saglayici kopru-15): FIGÜR saglayici kolunda IKINCI tur olarak eklendi; metal gerektiren
-  // turler (anahtarlik/magnet) yok, figür VAR (ornek yoksa Acilis anahtari olmadan SUNULMAZ).
-  ol("P1 veri dosyasinda anahtarlik/magnet 0 ve plaket + figur VAR",
-     VERI.turler.some((t) => t.kod === "plaket") && VERI.turler.some((t) => t.kod === "figur") &&
-       !VERI.turler.some((t) => ["anahtarlik", "magnet"].includes(t.kod)),
-     JSON.stringify(VERI.turler.map((t) => t.kod)));
+  // 8 Eki (saglayici kopru-15): FIGÜR saglayici kolunda IKINCI tur olarak eklendi.
+  // K3d (Okan 8 Eki 22:5x + 9 Eki 01:4x): anahtarlik programin 5. turu -> KAYDI VAR; sayilan ornegi
+  // YOK -> /acik'te YOK, kart cizilmez, onizleme/siparis RED. Magnet icin 5 Eki kurali AYNEN (kayit 0).
+  const p1 = () => VERI.turler.some((t) => t.kod === "plaket") && VERI.turler.some((t) => t.kod === "figur") &&
+    VERI.turler.some((t) => t.kod === "anahtarlik") && VERI.ornekSayisi("anahtarlik") === 0 &&
+    !VERI.turler.some((t) => t.kod === "magnet");
+  ol("P1 veri dosyasinda plaket + figur + anahtarlik kaydi VAR, anahtarligin sayilan ornegi 0, magnet kaydi 0",
+     p1(), JSON.stringify({ kodlar: VERI.turler.map((t) => t.kod), anahtarlik_ornek: VERI.ornekSayisi("anahtarlik") }));
+  const m = await ornekSartiKalkti(async () => p1());
+  ol("P1-M ornek sarti kalkti (anahtarlik ornegi sayilir) -> P1 KIRMIZI", m.uygulandi && m.sonuc === false, JSON.stringify(m));
   // P2: figur ornegi YOK (varsayilan), bu testte /foto/acik henuz figur'u acmadi; SUNUCU tur tablosu
   //     yine de figur'u BILIR (TUR_ORTAM'da) — yalniz acilis anahtari ile gorunur.
   ol("P2 sunucu tur tablosu plaket + figur (anahtarlik/magnet 0)",
@@ -528,13 +547,24 @@ console.log("B) ACILIS ANAHTARI + TEK FORMUL (Okan 7 Eki 15:4x: fiyat tablosu YO
      JSON.stringify(turler.map((t) => t.kod)));
   const kotu = await istek(env, "/yonet/foto-acik", { govde: { tur: "plaket", acik: "evet" }, basliklar: YONET });
   ol("B5 acik alani boolean degilse 400 (gecersiz-acik)", kotu.kod === 400 && kotu.v.hata === "gecersiz-acik", JSON.stringify(kotu.v));
-  // 8 Eki: figur artik gecerli bir tur (acilis anahtari ile); metal gerektiren turler ACILAMAZ.
-  const red = [];
-  for (const t of ["anahtarlik", "magnet"]) {
-    const r = await istek(env, "/yonet/foto-acik", { govde: { tur: t, acik: true }, basliklar: YONET });
-    if (r.kod === 400 && r.v && r.v.hata === "gecersiz-tur") { red.push(t); }
-  }
-  ol("P5 panel acilis: anahtarlik/magnet ACILAMAZ (figur gecerli tur)", red.length === 2, red.join(","));
+  // 8 Eki: figur artik gecerli bir tur (acilis anahtari ile); magnet kaydi YOK -> panel 400 gecersiz-tur.
+  // K3d: anahtarlik KAYITLI (panel anahtari yazilabilir) ama ORNEKSIZ -> anahtar acik olsa da /acik'te YOK.
+  const mg = await istek(env, "/yonet/foto-acik", { govde: { tur: "magnet", acik: true }, basliklar: YONET });
+  const anahtarlikAcik = async () => {
+    const y = await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik", acik: true }, basliklar: YONET });
+    const a = await istek(env, "/foto/acik");
+    const kodlar = ((a.v && a.v.turler) || []).map((t) => t.kod);
+    const k = await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik", acik: false }, basliklar: YONET });
+    return { yaz: y.kod, kapat: k.kod, kodlar, gorunur: kodlar.includes("anahtarlik") };
+  };
+  const p5 = await anahtarlikAcik();
+  ol("P5 panel acilis: magnet 400 gecersiz-tur; anahtarlik anahtari yazilsa da ORNEKSIZ -> /acik'te YOK (plaket acik kalir)",
+     mg.kod === 400 && mg.v && mg.v.hata === "gecersiz-tur" && p5.yaz === 200 && p5.kapat === 200 &&
+       !p5.gorunur && p5.kodlar.includes("plaket"),
+     JSON.stringify({ magnet: mg.v, p5 }));
+  const p5m = await ornekSartiKalkti(anahtarlikAcik);
+  ol("P5-M ornek sarti kalkti -> ORNEKSIZ anahtarlik /acik'te gorunur (P5 KIRMIZI)",
+     p5m.uygulandi && p5m.sonuc.gorunur === true, JSON.stringify(p5m));
   const tablo = await d1.prepare("SELECT COUNT(*) AS n FROM foto_acik WHERE tur <> 'plaket'").first();
   ol("P5b acilis anahtarinda plaket disi satir 0", tablo.n === 0, tablo.n);
   const oz = await istek(env, "/yonet/foto-ozet", { basliklar: YONET });
@@ -560,7 +590,16 @@ let isNo;
   ol("F3 sihirli bayti tutmayan gorsel -> 400 gorsel-gecersiz", r3.kod === 400 && r3.v.hata === "gorsel-gecersiz", JSON.stringify(r3.v));
   ol("F4 tabloda olmayan olcu -> 400", r4.kod === 400 && r4.v.hata === "gecersiz-olcu", JSON.stringify(r4.v));
   ol("F5 sunulmayan tur magnet -> 400 tur-kapali", r5.kod === 400 && r5.v.hata === "tur-kapali", JSON.stringify(r5.v));
-  ol("P7 sunulmayan tur anahtarlik -> 400 tur-kapali", r6.kod === 400 && r6.v.hata === "tur-kapali", JSON.stringify(r6.v));
+  // K3d: iddia DALA GORE. Anahtarlik D kolu (uretec onizlemeli): /foto/onizleme uretec ucunda turHazir ONCE
+  // -> orneksiz tur 503 `kapali` (fail-closed). Saglayici (M) kolunda kapali/olmayan tur 400 `tur-kapali`
+  // (F5 magnet = olmayan tur; P7b figur = kayitli ama acilis anahtari YOK).
+  const r7b = await istek(env, "/foto/onizleme", { govde: onizlemeGovde({ tur: "figur", olcu_mm: 100 }) });
+  ol("P7 D kolu orneksiz tur anahtarlik -> 503 kapali (uretec ucunda turHazir once)",
+     r6.kod === 503 && r6.v.hata === "kapali", JSON.stringify(r6));
+  ol("P7b M kolu kapali tur figur (acilis anahtari yok) -> 400 tur-kapali", r7b.kod === 400 && r7b.v.hata === "tur-kapali", JSON.stringify(r7b));
+  const p7m = await ornekSartiKalkti(() => istek(env, "/foto/onizleme", { govde: onizlemeGovde({ tur: "anahtarlik", olcu_mm: 100 }) }));
+  ol("P7-M ornek sarti kalkti -> anahtarlik turHazir'i gecer, 503 kapali DEGIL (P7 KIRMIZI)",
+     p7m.uygulandi && !(p7m.sonuc.kod === 503 && p7m.sonuc.v.hata === "kapali"), JSON.stringify(p7m));
   ol("F6 reddedilen isteklerin hicbiri saglayiciya GITMEDI", protoSayisi() === once, protoSayisi() - once);
 
   const ok = await istek(env, "/foto/onizleme", { govde: onizlemeGovde() });
@@ -775,7 +814,27 @@ console.log("Q) SUNULMAYAN TUR — sunucu reddi (eski/elle yazilmis kayit uzerin
     .bind(isA, simdiIso, simdiIso).run();
   const b = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
     sepet: [{ foto_is: isA, olcu_mm: 100, adet: 1, renkler: ["Beyaz"] }] } });
-  ol("Q1 anahtarlik onizlemesinden /baslat -> 400 foto-kapali (odeme baslamaz)", b.kod === 400 && b.v.hata === "foto-kapali", JSON.stringify(b.v));
+  // K3d: anahtarlik artik uretec onizlemeli D turu -> /baslat YALNIZ koşucunun 'onizleme-hazir' isine baglanir;
+  // eski ('hazir') onizleme 400 foto-onizleme-yok (RED, odeme baslamaz).
+  ol("Q1 orneksiz anahtarligin eski ('hazir') onizlemesinden /baslat -> 400 foto-onizleme-yok (odeme baslamaz)",
+     b.kod === 400 && b.v.hata === "foto-onizleme-yok", JSON.stringify(b.v));
+  // Q1b: koşucunun 'onizleme-hazir' yaptigi anahtarlik isi + panel anahtari ACIK -> ornek 0 oldugu icin
+  // turHazir tutmaz -> 400 foto-kapali. Mutant (ornek sarti kalkti) bu reddi kaldirir.
+  const isB = "b".repeat(32);
+  await d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'anahtarlik', 100, 'z', ?, 'onizleme-hazir', 'gorev-eski-0002', ?)")
+    .bind(isB, simdiIso, simdiIso).run();
+  const q1b = async () => {
+    await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik", acik: true }, basliklar: YONET });
+    const r = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
+      sepet: [{ foto_is: isB, olcu_mm: 100, adet: 1, renkler: ["Beyaz"] }] } });
+    await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik", acik: false }, basliklar: YONET });
+    return { kod: r.kod, hata: r.v && r.v.hata };
+  };
+  const b2 = await q1b();
+  ol("Q1b orneksiz anahtarligin 'onizleme-hazir' isinden /baslat (anahtar acik) -> 400 foto-kapali", b2.kod === 400 && b2.hata === "foto-kapali", JSON.stringify(b2));
+  const q1m = await ornekSartiKalkti(q1b);
+  ol("Q1-M ornek sarti kalkti -> foto-kapali reddi kalkar (Q1b KIRMIZI)",
+     q1m.uygulandi && q1m.sonuc.hata !== "foto-kapali", JSON.stringify(q1m));
   await d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES ('PR-TEST-MAGNET', ?, 'odendi', 1, ?)")
     .bind(simdiIso, JSON.stringify([{ id: "ozel-foto-magnet", foto_is: isA, foto_tur: "magnet", olcu_mm: 100 }])).run();
   await d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel) VALUES ('PR-TEST-ANAHT', 0, ?, 'anahtarlik', 100, 'build-baslat', ?, '2000-01-01T00:00:00.000Z')")
@@ -1059,9 +1118,30 @@ function sahteBelge() {
   return { document, bolum };
 }
 
+// Bolum kodunun fetch geri cagrisinda firlayan istisna (yakalanmamis Promise reddi) testi COKERTMEZ, SAYILIR:
+// her kayit hangi kaynakla kosuldugunu tasir; temiz kaynakta (EKRAN_KAYNAK) asenkron istisna 0 olmali (dosya sonu).
+const ASENKRON_ISTISNA = [];
+let SON_EKRAN_TEMIZ = false;
+process.on("unhandledRejection", (e) => { ASENKRON_ISTISNA.push({ temiz: SON_EKRAN_TEMIZ, e: String((e && e.stack) || e).slice(0, 300) }); });
+
 async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   const { document, bolum } = sahteBelge();
   ek = ek || {};
+  SON_EKRAN_TEMIZ = typeof EKRAN_KAYNAK === "string" && kaynak === EKRAN_KAYNAK;
+  // ek.gorselSahte: tarayicinin FileReader/Image/canvas zinciri (kucultGorsel) sahte DOM'da yok; saplama
+  // dosyayi 100x100 gorsel sayar ve sabit bir JPEG data URL'i dondurur (istek govdesi olculebilsin).
+  const gorselSahte = ek.gorselSahte ? {
+    FileReader: class { readAsDataURL() { this.onload({ target: { result: "data:image/png;base64,AAAA" } }); } },
+    Image: class { set src(v) { this.width = 100; this.height = 100; this.onload(); } },
+  } : {};
+  if (ek.gorselSahte) {
+    const yarat = document.createElement;
+    document.createElement = (e) => {
+      const n = yarat(e);
+      if (String(e).toLowerCase() === "canvas") { n.getContext = () => ({ drawImage() {} }); n.toDataURL = () => "data:image/jpeg;base64,SAHTE"; }
+      return n;
+    };
+  }
   // 13:5x: kayit.tur gelirse sessionStorage'da TÜR SEÇIMI olarak da yaz (galeri otomatik seçer).
   const ssTur = kayit && kayit.tur ? kayit.tur : null;
   const istekler = [], araliklar = [], yoklamalar = [];
@@ -1070,7 +1150,7 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   // gerçek durumu okur.
   let ilkDurumAtlandi = false;
   const kok = {
-    document, PRUVO_FOTO: fotoVeri, setTimeout, clearTimeout, console,
+    document, PRUVO_FOTO: fotoVeri, setTimeout, clearTimeout, console, ...gorselSahte,
     // ek.zamanlayici: yoklama araligi OLCULUR, gercek zamanlayici kurulmaz (test 5 sn beklemez).
     // Yoklama islevi saklanir: DOM vakasi yoklamayi ELLE tetikler (durum yaniti adim adim degisir).
     setInterval: ek.zamanlayici ? (fn, ms) => { araliklar.push(ms); yoklamalar.push(fn); return 0; } : setInterval,
@@ -1078,11 +1158,14 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
     PRUVO_SECENEK: { kargoKurus: () => 25000, kurusMetni: (k) => (k / 100).toFixed(2) + " TL" },
     turnstile: { render: (k, o) => { if (ek.turnstileOto && o && typeof o.callback === "function") { o.callback("t-jeton"); } return 1; },
                  remove() {}, reset() {} },
-    sessionStorage: { getItem: (k) => {
-        if (k === "pruvo_foto_is" && kayit) { return JSON.stringify(kayit); }
-        if (k === "pruvo_foto_tur" && ssTur) { return ssTur; }
-        return null;
-      }, setItem() {}, removeItem() {} },
+    // Durumlu sessionStorage (K3b2): kayit + tur seçimiyle başlar; setItem/removeItem gerçekten yazar/siler
+    // (İptal'in seçim temizliği ölçülebilsin).
+    sessionStorage: (() => {
+      const m = new Map();
+      if (kayit) { m.set("pruvo_foto_is", JSON.stringify(kayit)); }
+      if (ssTur) { m.set("pruvo_foto_tur", ssTur); }
+      return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { m.set(k, String(v)); }, removeItem: (k) => { m.delete(k); } };
+    })(),
     location: { href: "https://pruvo3d.com/" },
     fetch: async (u, init) => {
       if (init && init.method === "POST") {
@@ -1099,6 +1182,13 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   kok.window = kok;
   vm.runInNewContext(kaynak, kok, { filename: "foto-uretim.js" });
   for (let i = 0; i < 10; i++) { await new Promise((c) => setTimeout(c, 0)); }
+  // ek.kart: ① kartina (data-kart) tik — K3b'de ②/③ formu kart seciminden sonra cizilir. Tikta firlayan
+  // istisna SAYILIR (sonuc.istisna), testi cokertmez.
+  let istisna = 0, istisnaMetni = "";
+  if (ek.kart) {
+    const kart = [...bolum.agac()].find((n) => n.classList.contains("foto-uretim-kart") && n.getAttribute("data-kart") === ek.kart);
+    if (kart) { try { kart.tetikle("click"); } catch (e) { istisna++; istisnaMetni = String(e && e.message); } }
+  }
   const dugum = [...bolum.agac()];
   const radyo = (ad) => dugum.filter((n) => n.tagName === "INPUT" && n.name === ad).length;
   const adim2 = dugum.filter((n) => n.classList.contains("foto-uretim-adim") && n.getAttribute("data-no") === "2")
@@ -1123,6 +1213,8 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   Object.defineProperty(sonuc, "istekler", { value: istekler, enumerable: false });
   Object.defineProperty(sonuc, "araliklar", { value: araliklar, enumerable: false });
   Object.defineProperty(sonuc, "yoklamalar", { value: yoklamalar, enumerable: false });
+  Object.defineProperty(sonuc, "istisna", { value: istisna, enumerable: false });
+  Object.defineProperty(sonuc, "istisnaMetni", { value: istisnaMetni, enumerable: false });
   return sonuc;
 }
 
@@ -1270,77 +1362,55 @@ console.log("R) ONARIM — kirmizi analiz -> onarim -> yeniden doku -> YENIDEN a
   P.analiz = "healthy"; P.analizOnarim = null;
 }
 
-console.log("S) EKRAN — tek turde tur secimi adimi gorunmez (sahte DOM'da gercek kosum)");
+console.log("S) EKRAN — ③ olcu surgusu + tek yukleme alani (sahte DOM'da gercek kosum; K3b: kart tiki ile)");
 const EKRAN_KAYNAK = fs.readFileSync(path.join(KOK, "foto-uretim.js"), "utf8");
 const acikTek = { acik: true, turler: [{ kod: "plaket", ad: "Kabartma plaket", aciklama: "x", ornek_sayisi: 1,
   olculer: [{ mm: 100, fiyat_kurus: 34900 }, { mm: 150, fiyat_kurus: 49900 }] }] };
-const ikiTurVeri = { ...VERI, turler: [...VERI.turler, { kod: "ikinci", ad: "Ikinci", aciklama: "y" }],
-  ornekler: [...VERI.ornekler, { tur: "ikinci", olcu_mm: 100, foto: "f", onizleme: "o", baski: "b" }] };
-ikiTurVeri.ornekSayisi = (t) => ikiTurVeri.ornekler.filter((o) => o.tur === t && o.foto && o.onizleme && o.baski).length;
-const acikIki = { acik: true, turler: [...acikTek.turler, { kod: "ikinci", ad: "Ikinci", aciklama: "y", ornek_sayisi: 1,
-  olculer: [{ mm: 100, fiyat_kurus: 1000 }] }] };
-let ekranTek, ekranIki;
+let ekranTek;
 {
-  ekranTek = await ekranKos(EKRAN_KAYNAK, VERI, acikTek);
-  ekranIki = await ekranKos(EKRAN_KAYNAK, ikiTurVeri, acikIki);
-  // sayfa-3adim K2b: 19 tür ızgarası = ① Tasarım seç (galeri); ② Foto/Girdi ekle formu.
-  // İÇ 4 adım çubuğu (data-no="2" "Ölçü ve tasarım") K2b'de TAMAMEN SİLİNDİ — ekran sadece üstteki 3 adım şeridi.
-  // S0 pozitif kontrol: 0 tur radyo (galeri seçer); iç çubuk (data-no="2") DOM'DA 0 + üst şerit 3 etiket.
-  const seritEtiketleri = [...ekranIki.bolum.agac()]
-    .filter((n) => n.classList.contains("foto-uretim-serit-ad"))
-    .map((n) => n.textContent);
-  ol("S0 pozitif kontrol: tur radyo 0 + ic adim cubugu 0 + serit 3 etiket 'Tasarım seç'/'Foto ekle'/'Önizleme ve sepet' (K2b: iç çubuk SİLİNDİ)",
-     ekranIki.gorunur && ekranIki.tur === 0 && ekranIki.adim2 === "" &&
-     seritEtiketleri.length === 3 && seritEtiketleri[0] === "Tasarım seç" &&
-     seritEtiketleri[1] === "Foto ekle" && seritEtiketleri[2] === "Önizleme ve sepet",
-     JSON.stringify({ ...ekranIki, serit: seritEtiketleri }));
-  ol("S1 bolum cizildi; olcu SURGUSU ilk secimden sonra 1 + '100 mm → 1.000 TL'; kaydirinca '150 mm → 1.500 TL'; fiyat listesi satiri 0",
-     ekranTek.gorunur && ekranTek.olcu <= 1 && ekranTek.surguFiyat[0] === undefined, JSON.stringify(ekranTek));
-  ol("S2 tek turde tur radyo dugmesi 0 (ayrı seçici yok); tur grubu gizli degil (bilgi satiri var)",
-     ekranTek.tur === 0, JSON.stringify(ekranTek));
-  // K2b: S3 = iç adim cubugu DOM'DA 0 (cizAdimlar kaldırıldı). Şerit etiketleri yukarıda zaten doğrulandı.
+  // K3b (Okan 9 Eki 01:0x/01:4x): tek kutu, 4 pencere. Kart tiki ① → ② ; ölçü sürgüsü ③'te, tek yükleme alanı ②'de.
+  // S0 pozitif kontrol: tur radyo 0 + iç çubuk (data-no="2") 0 + kutu başlığında 4 pencere adı (gösterge).
+  ekranTek = await ekranKos(EKRAN_KAYNAK, VERI, acikTek, null, null, { kart: "plaket" });
+  const gostergeEtiketleri = [...ekranTek.bolum.agac()]
+    .filter((n) => n.classList.contains("foto-uretim-gosterge-ad")).map((n) => n.textContent);
+  ol("S0 pozitif kontrol: tur radyo 0 + ic adim cubugu 0 + gosterge 4 etiket 'Tür seç'/'Resim yükle'/'Renk, boyut ve malzeme'/'Önizleme ve onay' (K3b: tek kutu 4 pencere)",
+     ekranTek.gorunur && ekranTek.tur === 0 && ekranTek.adim2 === "" &&
+     JSON.stringify(gostergeEtiketleri) === JSON.stringify(["Tür seç", "Resim yükle", "Renk, boyut ve malzeme", "Önizleme ve onay"]),
+     JSON.stringify({ ...ekranTek, gosterge: gostergeEtiketleri }));
+  ol("S1 kart tiki sonrasi ③ olcu SURGUSU 1 + '100 mm → 1.000 TL'; kaydirinca '150 mm → 1.500 TL'; fiyat listesi satiri 0",
+     ekranTek.surgu === 1 && ekranTek.olcu === 1 && ekranTek.surguFiyat[0] === "100 mm → 1.000 TL" &&
+     ekranTek.kaydir === "150 mm → 1.500 TL" && ekranTek.listeSatiri === 0, JSON.stringify(ekranTek));
+  ol("S2 tur radyo dugmesi 0 (ayrı seçici yok; tür seçimi ① kartından)", ekranTek.tur === 0, JSON.stringify(ekranTek));
   const icCubuk = [...ekranTek.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-adim")).length;
-  ol("S3 tek turde ic adim cubugu DOM'DA 0 (K2b: cizAdimlar tamamen kaldirildi; tek serit = 3 etiket)",
+  ol("S3 ic adim cubugu DOM'DA 0 (K2b: cizAdimlar kaldirildi; adim gostergesi kutu basliginda)",
      ekranTek.adim2 === "" && icCubuk === 0, JSON.stringify({ adim2: ekranTek.adim2, icCubuk }));
-  // 13:5x: radyo listesi kalkti; 'ayrı tür seçici' mutantları artık uygulanamaz (kullanıcı seçim yapar).
-  // Bu mutant ESKİ davranışı dener — yeni kodda radyo üretilmez, S2 KIRMIZI yapamaz (yorum).
-  // K2b: M-ADIM2 mutant — adim2EtiketiK2 hep "Foto ekle" döner → girdi türünde "Girdini ekle" bekleyen
-  // test KIRMIZI yanmalı (BaBa 19:3x: 11 girdi türü → "Girdini ekle"; 8 foto → "Foto ekle").
-  const mutAdim2Etiket = EKRAN_KAYNAK.split("function adim2EtiketiK2(kod)").length === 2
-    ? EKRAN_KAYNAK.replace("function adim2EtiketiK2(kod) {\n    if (!F || !F.turBul) return \"Foto ekle\";",
-      "function adim2EtiketiK2(kod) {\n    if (!F || !F.turBul) return \"Foto ekle\";\n    return \"Foto ekle\";")
-    : EKRAN_KAYNAK;
-  const ma2 = mutAdim2Etiket === EKRAN_KAYNAK ? null : await ekranKos(mutAdim2Etiket, VERI, acikTek);
-  // Senaryo: ekranda serit etiketleri AYNEN (3 etiket sabit) → bu mutant şerit'i etkilemez. Asıl doğrulama
-  // aşağıda yeni bir girdi türünde etiket testi ile (adim2EtiketiK2 girdi türünde "Girdini ekle" demeli).
-  ol("S-M2 mutant (adim2EtiketiK2 hep 'Foto ekle' döner) -> serit etiketleri etkilenmez, ayrı girdi tip testinde KIRMIZI",
-     !!ma2 && ma2.gorunur, JSON.stringify(ma2));
   // 5 Eki 2026 olculen hata: olcu secici eklenmiyordu (musteri olcu SECEMIYORDU) — surgu icin ayni kapi.
   const mutOlcu = EKRAN_KAYNAK.split("    kap.appendChild(surgu);\n").length === 2
     ? EKRAN_KAYNAK.replace("    kap.appendChild(surgu);\n", "") : EKRAN_KAYNAK;
-  const mo = mutOlcu === EKRAN_KAYNAK ? null : await ekranKos(mutOlcu, VERI, acikTek);
-  ol("S-M3 mutant (olcu surgusu eklenmez) -> S1 KIRMIZI (surgu 0)", !!mo && mo.olcu === 0, JSON.stringify(mo));
+  const mo = mutOlcu === EKRAN_KAYNAK ? null : await ekranKos(mutOlcu, VERI, acikTek, null, null, { kart: "plaket" });
+  ol("S-M3 mutant (olcu surgusu eklenmez) -> S1 KIRMIZI (surgu 0)", !!mo && mo.olcu === 0 && mo.surgu === 0, JSON.stringify(mo));
   // Fiyat yazisi formulden degil sabit katsayidan (×100 hatasi) -> S1 KIRMIZI.
   const mutFiyat = EKRAN_KAYNAK.replace('var yazi = el("p", "foto-uretim-surgu-fiyat", F.fiyatSatiri(nt.kod, S.olcu));',
     'var yazi = el("p", "foto-uretim-surgu-fiyat", S.olcu + " mm → " + F.tlMetni(S.olcu * 100));');
-  const mf = mutFiyat === EKRAN_KAYNAK ? null : await ekranKos(mutFiyat, VERI, acikTek);
+  const mf = mutFiyat === EKRAN_KAYNAK ? null : await ekranKos(mutFiyat, VERI, acikTek, null, null, { kart: "plaket" });
   ol("S-M5 mutant (surgu fiyati mm x 1 TL) -> S1 KIRMIZI", !!mf && mf.surguFiyat[0] !== "100 mm → 1.000 TL", JSON.stringify(mf && mf.surguFiyat));
-  // Onizleme hazir donusu (S3): olcu degistirme radyolari da cizilmeli (ayni hata orada da vardi).
+  // Onizleme hazir donusu (S3, oturumdan): ④ acik; ③ olcu SURGUSU da cizilmis olmali (geri donulunce secilebilir).
   const kayit = { is: "b".repeat(32), tur: "plaket", olcu: 100 };
   const hazir = { asama: "hazir", tur: "plaket", olcu_mm: 100, gorsel: "/api/shop/foto/gorsel?is=" + "b".repeat(32) };
   const s3 = await ekranKos(EKRAN_KAYNAK, VERI, acikTek, kayit, hazir);
-  ol("S4 onizleme sonrasi (S3) olcu degistirme SURGUSU 1 + '100 mm → 1.000 TL', fiyat listesi satiri 0",
-     s3.olcuS3 === 1 && s3.surguFiyat.includes("100 mm → 1.000 TL") && s3.listeSatiri === 0, JSON.stringify(s3));
-  const mutS3 = EKRAN_KAYNAK.split("olcuG.appendChild(olcuSurgusu(").length === 2
-    ? EKRAN_KAYNAK.replace("olcuG.appendChild(olcuSurgusu(", "void ((") : null;
+  const p4 = [...s3.bolum.agac()].find((n) => n.id === "foto-pencere-4");
+  ol("S4 onizleme sonrasi (S3, oturumdan) ④ gorunur + ③ olcu SURGUSU 1 + '100 mm → 1.000 TL', fiyat listesi satiri 0",
+     !!p4 && p4.hidden === false && s3.olcu === 1 && s3.surguFiyat.includes("100 mm → 1.000 TL") && s3.listeSatiri === 0, JSON.stringify(s3));
+  const mutS3Capa = "        if (S.tur && seciliTurBul()) cizForm();\n        durumSorgula(kayit.is, true);";
+  const mutS3 = EKRAN_KAYNAK.split(mutS3Capa).length === 2 ? EKRAN_KAYNAK.replace(mutS3Capa, "        durumSorgula(kayit.is, true);") : null;
   const m3 = mutS3 ? await ekranKos(mutS3, VERI, acikTek, kayit, hazir) : null;
-  ol("S-M4 mutant (S3 olcu surgusu eklenmez) -> S4 KIRMIZI", !!m3 && m3.olcuS3 === 0, JSON.stringify(m3));
+  ol("S-M4 mutant (oturumdan donuste ②/③ formu cizilmez) -> S4 KIRMIZI (surgu 0)", !!m3 && m3.olcu === 0, JSON.stringify(m3));
 
-  // S5 TEK YUKLEME ALANI (Okan 7 Eki 21:5x): sayfada tek dosya girdisi ustteki kutuda; tiklayip secmek
+  // S5 TEK YUKLEME ALANI (Okan 7 Eki 21:5x): sayfada tek dosya girdisi ② kutusunda; tiklayip secmek
   // (change) ve kutuya birakmak (drop) AYNI sonucu verir: kutuda dosya adi + not alani acilir (S.dosya dolu).
   // Yanlis tur / >15 MB kutuda tek hata satiri, S.dosya bos kalir (not alani gizli).
   const yukle = async (kaynak, yol, f) => {
-    const e = await ekranKos(kaynak, VERI, acikTek);
+    const e = await ekranKos(kaynak, VERI, acikTek, null, null, { kart: "plaket" });
     const dugum = () => [...e.bolum.agac()];
     const girdiler = dugum().filter((n) => n.tagName === "INPUT" && n.type === "file");
     const kutu = dugum().find((n) => n.id === "foto-yukle-kutu");
@@ -1358,7 +1428,7 @@ let ekranTek, ekranIki;
   const jpg = { name: "kedi.jpg", type: "image/jpeg", size: 2048 };
   const yc = await yukle(EKRAN_KAYNAK, "change", jpg);
   const yd = await yukle(EKRAN_KAYNAK, "drop", jpg);
-  ol("S5a sayfada dosya girdisi TAM 1 (ustteki kutuda), acik, capture YOK; formda 'Fotoğraf (JPEG' etiketi 0; kabul yazisi kutunun altinda",
+  ol("S5a sayfada dosya girdisi TAM 1 (② kutusunda), acik, capture YOK; formda 'Fotoğraf (JPEG' etiketi 0; kabul yazisi kutunun altinda",
      yc.girdi === 1 && yc.kutu && yc.disabled === false && yc.capture === null && yc.eskiEtiket === 0 &&
      yc.kabul === "JPEG, PNG veya WEBP — en çok 15 MB", JSON.stringify(yc));
   ol("S5b tiklayip secmek (change) ve birakmak (drop) AYNI dosya adini kutuda gosterir + not alani acilir (S.dosya dolu)",
@@ -1470,9 +1540,12 @@ async function ozSenaryolar(fm, ayrinti) {
   sonuc.FIYAT = !!o && VERI.fiyatKurus("plaket", 120) === 120000 &&
     VERI.fiyatKurus("plaket", Math.round(enUzun / 10) * 10) === 120000;
   // URETEC: olcu.json'da kutu Z'si uzun kenardan buyukse (yalniz X/Y olculmus) RED; dusuk Z gecer.
-  const oj = (z) => ({ sozlesme: 1, kategori: "logo", uzun_kenar_mm: 60, kutu_mm: { x: 60, y: 40, z }, renk_sayisi: 2, sizdirmaz: true });
-  sonuc.URETEC = fm.uretecOlcuDogrula(oj(120), { tur: "logo", olcu_mm: 60 }) === "uzun-kenar-tolerans" &&
-    fm.uretecOlcuDogrula(oj(5), { tur: "logo", olcu_mm: 60 }) === "";
+  // K3b2: silinen 'logo' turu yerine kalan D turu yapboz (ayni uretec olcu sozlesmesi).
+  // K3d: olcu yapbozun KAYITLI alt sinirindan (manifest) — sabit 60 mm yapboz araliginin disina dustu.
+  const L = VERI.olcuAraligi("yapboz").en_az;
+  const oj = (z) => ({ sozlesme: 1, kategori: "yapboz", uzun_kenar_mm: L, kutu_mm: { x: L, y: Math.round(L * 2 / 3), z }, renk_sayisi: 1, sizdirmaz: true });
+  sonuc.URETEC = fm.uretecOlcuDogrula(oj(2 * L), { tur: "yapboz", olcu_mm: L }) === "uzun-kenar-tolerans" &&
+    fm.uretecOlcuDogrula(oj(5), { tur: "yapboz", olcu_mm: L }) === "";
   if (ayrinti) { ayrinti.r = { L_once: r && r.L_once, olcek: r && r.olcek, L_sonra: r && r.L_sonra }; ayrinti.enUzun = enUzun; }
   return sonuc;
 }
@@ -1502,7 +1575,8 @@ function veriYukle(kaynak) {
 async function renderSenaryolar(V) {
   const k = koprukur(); await k.hazir;
   const e2 = envKur(k.d1, r2Kur());
-  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x'), ('litofan', 1, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('figur', 1, 'x')").run();
   const asil = V.ornekler.slice();
   const yedek = VERI.ornekSayisi;
   VERI.ornekSayisi = (t) => V.ornekSayisi(t);
@@ -1517,12 +1591,14 @@ async function renderSenaryolar(V) {
     V.ornekler.splice(0, V.ornekler.length, r);
     s.ACAR = r.tur === "plaket" && V.ornekSayisi("plaket") >= 1 && (await acik()) === "plaket" &&
       foto.turHazir(e2, "plaket").hazir === true;
-    // Izin disi kanit: litofanin izni gecici olarak yalniz "baski" (renderi izinsiz bir tur).
-    const lt = V.turBul("litofan"), liz = lt.ornek_kanit_izni;
-    lt.ornek_kanit_izni = ["baski"];
-    V.ornekler.splice(0, V.ornekler.length, { ...r, tur: "litofan" }, { ...r, kanit: "uydurma" });
-    s.IZINSIZ = V.ornekSayisi("litofan") === 0 && V.ornekSayisi("plaket") === 0 && (await acik()) === "";
-    lt.ornek_kanit_izni = liz;
+    // IZINSIZ (K3b2, litofansiz): figur'un izni yalniz "baski"ya daraltilir; figur'un RENDER kaydi SAYILMAZ ->
+    // acilis anahtari figur icin acik olsa da /foto/acik yalniz plaket (izin disi kanit turu ACMAZ).
+    const f = asil.find((o) => o && o.kanit === "render" && o.tur === "figur") || {};
+    const tf = V.turBul("figur"), izf = tf.ornek_kanit_izni;
+    tf.ornek_kanit_izni = ["baski"];
+    V.ornekler.splice(0, V.ornekler.length, r, f);
+    s.IZINSIZ = f.tur === "figur" && V.ornekSayisi("figur") === 0 && (await acik()) === "plaket";
+    tf.ornek_kanit_izni = izf;
     V.ornekler.splice(0, V.ornekler.length, r);
     const t = V.turBul("plaket"), iz = t.ornek_kanit_izni;
     delete t.ornek_kanit_izni;
@@ -1530,10 +1606,6 @@ async function renderSenaryolar(V) {
     t.ornek_kanit_izni = iz;
     V.ornekler.splice(0, V.ornekler.length, { ...r, render: "" });
     s.EKSIK = V.ornekSayisi("plaket") === 0 && (await acik()) === "";
-    // Litofan kurali AYNEN: basilmis urun fotografi (foto+onizleme+baski) litofani acar.
-    V.ornekler.splice(0, V.ornekler.length, { tur: "litofan", olcu_mm: 120, foto: "https://media.pruvo3d.com/t-f.webp",
-      onizleme: "https://media.pruvo3d.com/t-o.webp", baski: "https://media.pruvo3d.com/t-b.webp", not: "t" });
-    s.LITOFAN_BASKI = V.ornekSayisi("litofan") === 1 && (await acik()) === "litofan";
   } finally {
     V.ornekler.splice(0, V.ornekler.length, ...asil);
     VERI.ornekSayisi = yedek;
@@ -1550,19 +1622,15 @@ console.log("RO) RENDER ORNEGI — plaket gercek baski beklemeden acilir (Okan 7
      r.length === 1 && r[0].olcu_mm === 120 && !r[0].foto &&
        /^https:\/\/media\.pruvo3d\.com\/foto\/ornek\/plaket-1-onizleme\.webp$/.test(r[0].onizleme) &&
        /^https:\/\/media\.pruvo3d\.com\/foto\/ornek\/plaket-1-render\.webp$/.test(r[0].render), JSON.stringify(r));
-  ol("RO0b kanit izni: plaket [baski,render] · litofan [baski,render] (Okan 7 Eki G1: litofan render ornegiyle acilir)",
+  ol("RO0b kanit izni: plaket [baski,render] · litofan kalkti (K3a: 15 tur silindi)",
      JSON.stringify(V.turBul("plaket").ornek_kanit_izni) === '["baski","render"]' &&
-       JSON.stringify(V.turBul("litofan").ornek_kanit_izni) === '["baski","render"]', "");
-  const lr = V.ornekler.filter((o) => o.tur === "litofan" && o.kanit === "render");
-  ol("RO0c litofan render kaydi: 140 mm, render media adresi, ozgun foto YOK, sayilir",
-     lr.length === 1 && lr[0].olcu_mm === 140 && !lr[0].foto && V.ornekSayisi("litofan") === 1 &&
-       /^https:\/\/media\.pruvo3d\.com\/foto\/ornek\/litofan-1-render\.webp$/.test(lr[0].render), JSON.stringify(lr));
+       V.turBul("litofan") === null, "");
+  const lr = [];
   const s = await renderSenaryolar(V);
   ol("RO1 render kaydi plaketi ACAR: /foto/acik -> plaket, turHazir hazir", s.ACAR, JSON.stringify(s));
-  ol("RO2 izin disi kanit ACMAZ: litofana render 0 · bilinmeyen kanit 0 · /foto/acik kapali", s.IZINSIZ, JSON.stringify(s));
+  ol("RO2 izin disi kanit ACMAZ: izni yalniz 'baski' olan figur'un render kaydi 0 sayilir · /foto/acik yalniz plaket", s.IZINSIZ, JSON.stringify(s));
   ol("RO3 turde ornek_kanit_izni yoksa render kaydi SAYILMAZ (fail-closed)", s.IZINYOK, JSON.stringify(s));
   ol("RO4 render gorseli bos render kaydi SAYILMAZ", s.EKSIK, JSON.stringify(s));
-  ol("RO5 litofan basilmis urun fotografiyla AYNEN acilir (RO2'nin bos gecmedigi pozitif kontrol)", s.LITOFAN_BASKI, JSON.stringify(s));
   const RO_MUTANTLAR = [
     ["RO-M1 IZIN KONTROLU SILINDI", "if (!k || izin.indexOf(k) < 0) { return false; }", "if (!k) { return false; }", ["IZINSIZ", "IZINYOK"]],
     ["RO-M2 IZIN VARSAYILANI ACIK", "t.ornek_kanit_izni : [];", "t.ornek_kanit_izni : [\"baski\", \"render\"];", ["IZINYOK"]],
@@ -1574,483 +1642,135 @@ console.log("RO) RENDER ORNEGI — plaket gercek baski beklemeden acilir (Okan 7
     const m = await renderSenaryolar(veriYukle(VERI_KAYNAK.replace(capa, yerine)));
     const kirmizilar = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
-       Object.keys(m).length === 5 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(m));
+       Object.keys(m).length === 4 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(m));
   }
 }
 
-// 13:4x (kopru-15) MİMAR BULGUSU: dürüstlük testleri "bilgi:" satırına çevrilip ETKİSİZLEŞTİRİLMİŞTİ.
-// Bunlar GERÇEK iddia olarak geri gelir: her render kartında "önizleme/render" etiketi VAR ve
-// "gerçek fotoğraf"/"Gerçek örnekler" iddiası 0 · baskı kaydı kartı "Basılmış ürün" der · türün
-// ornek_notu (dürüstlük cümlesi) büyütme penceresinde AYNEN görünür.
-console.log("ES) EKRAN — 24 kucuk resim: render 'önizleme/render', baski 'basılmış ürün', 'gerçek fotoğraf'/Gerçek örnekler' 0, lightbox ornek_notu AYNEN");
+// 13:4x (kopru-15) MİMAR BULGUSU: dürüstlük testleri GERÇEK iddia: her render kartında "önizleme/render"
+// etiketi VAR ve "gerçek fotoğraf"/"Gerçek örnekler" iddiası 0 · baskı kaydı kartı "basılmış ürün" der ·
+// türün ornek_notu (render dürüstlük cümlesi) AYNEN görünür. K3b: ızgara + büyütme penceresi KALKTI (Okan
+// 01:0x) → kart ① penceresinde, ornek_notu ② dürüstlük kutusunda (kart seçilince).
+console.log("ES) EKRAN — ① kart: render 'önizleme/render', baski 'basılmış ürün', 'gerçek fotoğraf'/'Gerçek örnekler' 0; ② ornek_notu AYNEN");
 {
-  // ES1: render kaydı küçük resim kartında "önizleme/render" etiketi VAR; "gerçek fotoğraf" YOK.
-  // ES2: baskı kaydı küçük resim kartında "basılmış ürün" etiketi VAR; "Basılmış ürün (gerçek fotoğraf)" YOK.
-  // Ayrıca lightbox'ta ornek_notu AYNEN, "gerçek fotoğraf" YOK, başlık "Gerçek örnekler" YOK.
   const sinifli = (kok, c) => [...kok.agac()].filter((n) => n.classList.contains(c));
   const CUMLE_P = "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, birebir aynısı değildir.";
-  const CUMLE_L = "Üretim dosyasının arkadan ışıkla görüntüsüdür; basılmış panel ışık geldiğinde bu görüntüyü verir, birebir aynısı değildir.";
   const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] });
-  // ES1 yardımcı: hem render hem baski yollarını dener; mutant uygulanmış kaynakla çağrılınca
-  // hangi alt iddianın kırmızıya düştüğünü "kirmizi" dizisinde döner.
-  const es1Dene = async (kaynak) => {
-    // RENDER yolu (plaket'in render ornegi).
+  const yol = async (kaynak, V) => {
+    const e = await ekranKos(kaynak, V, { acik: true, turler: [tur("plaket", "Kabartma plaket")] });
+    const kart = sinifli(e.bolum, "foto-uretim-kart").find((k) => k.getAttribute("data-tur") === "plaket");
+    const etiket = kart && (sinifli(kart, "foto-uretim-kart-etiket")[0] || { textContent: null }).textContent;
+    const once = e.bolum.textContent;
+    if (kart) { kart.tetikle("click"); }
+    const d = sinifli(e.bolum, "foto-uretim-durustluk")[0];
+    const not = d && d.childNodes[1] ? d.childNodes[1].textContent : null;
+    const eski = ["foto-uretim-buyuk-kart", "foto-uretim-isik", "foto-uretim-galeri-kucuk", "foto-uretim-ornek-grup"]
+      .some((c) => sinifli(e.bolum.parentNode, c).length > 0);
+    return { kart: !!kart, etiket, not, metin: once + " " + e.bolum.textContent, eski };
+  };
+  const esDene = async (kaynak) => {
     const Va = veriYukle(VERI_KAYNAK);
     Va.ornekler.splice(0, Va.ornekler.length, ...Va.ornekler.filter((o) => o.tur === "plaket"));
-    const eR = await ekranKos(kaynak, Va, { acik: true, turler: [tur("plaket", "Kabartma plaket")] });
-    const kucukR = sinifli(eR.bolum, "foto-uretim-galeri-kucuk");
-    const plaketKartR = kucukR.find((k) => k.getAttribute("data-tur") === "plaket");
-    const etiketR = plaketKartR && sinifli(plaketKartR, "foto-uretim-galeri-kucuk-etiket")[0];
-    const etiketMetniR = etiketR && etiketR.textContent;
-    const buyukKartYok = sinifli(eR.bolum, "foto-uretim-buyuk-kart").length === 0;
-    const baslikR = sinifli(eR.bolum, "foto-uretim-blok-baslik").map((n) => n.textContent)[0] || "";
-    const gercekOrnekYok = !/Gerçek örnek/.test(baslikR);
-    const tumMetinR = eR.bolum.textContent;
-    const gercekFotografKucukYokR = !/gerçek fotoğraf/i.test(tumMetinR);
-    if (plaketKartR) { plaketKartR.tetikle("click"); }
-    const isikR = [...eR.bolum.parentNode.agac()].find((n) => n.classList.contains("foto-uretim-isik"));
-    const isikNotR = isikR && sinifli(isikR, "foto-uretim-isik-not")[0];
-    const isikNotMetniR = isikNotR && isikNotR.textContent;
-    const isikAltR = isikR && sinifli(isikR, "foto-uretim-isik-alt")[0];
-    const isikAltMetniR = isikAltR && isikAltR.textContent;
-    const gercekFotografIsikYokR = !/gerçek fotoğraf/i.test(isikAltMetniR || "");
-    // BASKI yolu (plaket'in baski ornegi; ES-M1 mutant'ı burayı bozar).
+    const R = await yol(kaynak, Va);
     const Vb = veriYukle(VERI_KAYNAK);
     Vb.ornekler.splice(0, Vb.ornekler.length, { tur: "plaket", kanit: "baski", olcu_mm: 100, foto: "https://media.pruvo3d.com/b-f.webp",
       onizleme: "https://media.pruvo3d.com/b-o.webp", baski: "https://media.pruvo3d.com/b-b.webp", not: "t" });
-    const eB = await ekranKos(kaynak, Vb, { acik: true, turler: [tur("plaket", "Kabartma plaket")] });
-    const kucukB = sinifli(eB.bolum, "foto-uretim-galeri-kucuk");
-    const plaketKartB = kucukB.find((k) => k.getAttribute("data-tur") === "plaket");
-    const etiketB = plaketKartB && sinifli(plaketKartB, "foto-uretim-galeri-kucuk-etiket")[0];
-    const etiketMetniB = etiketB && etiketB.textContent;
-    const tumMetinB = eB.bolum.textContent;
-    const gercekFotografKucukYokB = !/gerçek fotoğraf/i.test(tumMetinB);
-    if (plaketKartB) { plaketKartB.tetikle("click"); }
-    const isikB = [...eB.bolum.parentNode.agac()].find((n) => n.classList.contains("foto-uretim-isik"));
-    const isikAltB = isikB && sinifli(isikB, "foto-uretim-isik-alt")[0];
-    const isikAltMetniB = isikAltB && isikAltB.textContent;
-    const gercekFotografIsikYokB = !/gerçek fotoğraf/i.test(isikAltMetniB || "");
+    const B = await yol(kaynak, Vb);
     const kirmizi = [];
-    if (etiketMetniR !== "önizleme/render") kirmizi.push("ETIKET_RENDER");
-    if (etiketMetniB !== "basılmış ürün") kirmizi.push("ETIKET_BASKI");
-    if (!gercekOrnekYok) kirmizi.push("BASLIK_GERCEK_ORNEK");
-    if (!gercekFotografKucukYokR) kirmizi.push("KUCUK_RENDER_GERCEK_FOTOGRAF");
-    if (!gercekFotografKucukYokB) kirmizi.push("KUCUK_BASKI_GERCEK_FOTOGRAF");
-    if (!gercekFotografIsikYokR) kirmizi.push("ISIK_RENDER_GERCEK_FOTOGRAF");
-    if (!gercekFotografIsikYokB) kirmizi.push("ISIK_BASKI_GERCEK_FOTOGRAF");
-    if (isikNotMetniR !== CUMLE_P) kirmizi.push("ORNEK_NOTU");
-    if (!buyukKartYok) kirmizi.push("BUYUK_KART");
-    return { kirmizi, etiketMetniR, etiketMetniB, baslikR, isikNotMetniR, isikAltMetniR, isikAltMetniB };
+    if (R.etiket !== "önizleme/render") kirmizi.push("ETIKET_RENDER");
+    if (B.etiket !== "basılmış ürün") kirmizi.push("ETIKET_BASKI");
+    if (/Gerçek örnek/.test(R.metin + B.metin)) kirmizi.push("BASLIK_GERCEK_ORNEK");
+    if (/gerçek fotoğraf/i.test(R.metin)) kirmizi.push("RENDER_GERCEK_FOTOGRAF");
+    if (/gerçek fotoğraf/i.test(B.metin) || /Basılmış ürün \(gerçek fotoğraf\)/.test(B.metin)) kirmizi.push("BASKI_GERCEK_FOTOGRAF");
+    if (R.not !== CUMLE_P) kirmizi.push("ORNEK_NOTU");
+    // Render dürüstlük cümlesi baskı kaydına (basılmış ürünün kendisi) YAZILMAZ.
+    if (B.not !== "") kirmizi.push("BASKI_NOTU");
+    if (R.eski || B.eski) kirmizi.push("BUYUK_KART");
+    return { kirmizi, R, B };
   };
-  // ES2 yardımcı: baski kaydı.
-  const es2BaskiDene = async (kaynak) => {
-    const acikPlaket = { acik: true, turler: [tur("plaket", "Kabartma plaket")] };
-    const Vb = veriYukle(VERI_KAYNAK);
-    Vb.ornekler.splice(0, Vb.ornekler.length, { tur: "plaket", kanit: "baski", olcu_mm: 100, foto: "https://media.pruvo3d.com/b-f.webp",
-      onizleme: "https://media.pruvo3d.com/b-o.webp", baski: "https://media.pruvo3d.com/b-b.webp", not: "t" });
-    const e = await ekranKos(kaynak, Vb, acikPlaket);
-    const kucuk = sinifli(e.bolum, "foto-uretim-galeri-kucuk");
-    const plaketKart = kucuk.find((k) => k.getAttribute("data-tur") === "plaket");
-    const etiket = plaketKart && sinifli(plaketKart, "foto-uretim-galeri-kucuk-etiket")[0];
-    const etiketMetni = etiket && etiket.textContent;
-    const tumMetin = e.bolum.textContent;
-    const eskiEtiketYok = !/Basılmış ürün \(gerçek fotoğraf\)/.test(tumMetin);
-    const gercekFotografYok = !/gerçek fotoğraf/i.test(tumMetin);
-    if (plaketKart) { plaketKart.tetikle("click"); }
-    const isik = [...e.bolum.parentNode.agac()].find((n) => n.classList.contains("foto-uretim-isik"));
-    const isikNot = isik && sinifli(isik, "foto-uretim-isik-not")[0];
-    const isikNotMetni = isikNot && isikNot.textContent;
-    const kirmizi = [];
-    if (etiketMetni !== "basılmış ürün") kirmizi.push("ETIKET_BASKI");
-    if (!eskiEtiketYok) kirmizi.push("ESKI_ETIKET");
-    if (!gercekFotografYok) kirmizi.push("GERCEK_FOTOGRAF");
-    if (isikNotMetni !== CUMLE_P) kirmizi.push("ORNEK_NOTU");
-    return { kirmizi, etiketMetni, eskiEtiketYok, gercekFotografYok, isikNotMetni };
-  };
-  // ES1 temiz.
-  {
-    const s = await es1Dene(EKRAN_KAYNAK);
-    ol("ES1 render kaydi: kucuk resimde etiket 'önizleme/render' VAR, 'gerçek fotoğraf' 0, 'Gerçek örnekler' 0; lightbox ornek_notu AYNEN, 'gerçek fotoğraf' 0",
-       s.kirmizi.length === 0, JSON.stringify(s));
-  }
-  // ES2 temiz.
-  {
-    const s = await es2BaskiDene(EKRAN_KAYNAK);
-    ol("ES2 baski kaydi: kucuk resimde etiket 'basılmış ürün' VAR; 'Basılmış ürün (gerçek fotoğraf)' 0; lightbox ornek_notu AYNEN",
-       s.kirmizi.length === 0, JSON.stringify(s));
-  }
-  // ES-M1 mutant: lightbox alt metninde "gerçek fotoğraf" geri gelirse ES1 KIRMIZI.
-  {
-    const capa = "\" — \" + (render ? \"önizleme/render\" : \"basılmış ürün\") + \" · \" + (n + 1) + \"/\" + L;";
-    const yerine = "\" — \" + (render ? \"önizleme/render\" : \"gerçek fotoğraf\") + \" · \" + (n + 1) + \"/\" + L;";
-    const mut = EKRAN_KAYNAK.replace(capa, yerine);
-    if (mut === EKRAN_KAYNAK) { ol("ES-M1 lightbox alt metni 'gerçek fotoğraf' yapildi -> capa bulundu", false, capa); }
-    else {
-      const s = await es1Dene(mut);
-      const beklenen = ["ISIK_BASKI_GERCEK_FOTOGRAF"].sort();
-      ol("ES-M1 lightbox alt metni 'gerçek fotoğraf' yapildi -> ES1 KIRMIZI tam olarak [" + beklenen.join(",") + "]",
-         JSON.stringify(s.kirmizi.sort()) === JSON.stringify(beklenen), JSON.stringify(s));
-    }
-  }
-  // ES-M2 mutant: ornek_notu lightbox'a yazılmazsa ES1 KIRMIZI (ORNEK_NOTU).
-  {
-    const capa = "    S.isik.not.textContent = it.tur.ornek_notu || \"\";\n";
-    const yerine = "";
-    const mut = EKRAN_KAYNAK.replace(capa, yerine);
-    if (mut === EKRAN_KAYNAK) { ol("ES-M2 ornek_notu lightbox'a yazılmadı -> capa bulundu", false, capa); }
-    else {
-      const s = await es1Dene(mut);
-      const beklenen = ["ORNEK_NOTU"].sort();
-      ol("ES-M2 ornek_notu lightbox'a yazılmadı -> ES1 KIRMIZI tam olarak [" + beklenen.join(",") + "]",
-         JSON.stringify(s.kirmizi.sort()) === JSON.stringify(beklenen), JSON.stringify(s));
-    }
-  }
-}
-
-
-console.log("ES2) ORNEK GALERISI: 24 KUCUK RESIM + buyutme (13:4x Okan karari; 13:5x galeri = secici)");
-{
-  const CUMLE_P = "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, birebir aynısı değildir.";
-  const CUMLE_L = "Üretim dosyasının arkadan ışıkla görüntüsüdür; basılmış panel ışık geldiğinde bu görüntüyü verir, birebir aynısı değildir.";
-  const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] });
-  const acikP = { acik: true, turler: [tur("plaket", "Kabartma plaket")] };
-  const acikPL = { acik: true, turler: [tur("plaket", "Kabartma plaket"), tur("litofan", "Işıklı fotoğraf paneli (litofan)")] };
-  // 13:4x (kopru-15, Okan): büyük örnek görsel KALKAR; 24 küçük resim ızgarası. figur/büst ayrı yer tutucu
-  // kart olarak kalır (figur kaydı VERI'den çıkarıldı → yer tutucu; bust kayıtlı → görsel kart).
-  const VERI_YT = VERI_KAYNAK.replace(/\n      \{\n        tur: "figur",[\s\S]*?\n      \}(?=\n    \])/, "");
-  ol("ES2y fikstur: figur ornegi veri dosyasinda VAR ve fiksturden tam 1 kayit cikti",
-     VERI_YT !== VERI_KAYNAK && veriYukle(VERI_KAYNAK).ornekler.length - veriYukle(VERI_YT).ornekler.length === 1, "");
-  {
-    const g = await ekranKos(EKRAN_KAYNAK, veriYukle(VERI_KAYNAK), acikP);
-    const k = [...g.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-galeri-kucuk") &&
-      n.getAttribute("data-tur") === "figur");
-    const alt = k.length === 1 ? [...k[0].agac()] : [];
-    const resimli = alt.some((n) => String(n.tagName || "").toUpperCase() === "IMG" &&
-      /figur-1-render\.webp/.test(String(n.src || ""))) &&
-      !alt.some((n) => n.classList && n.classList.contains("foto-uretim-galeri-yer-ikon"));
-    ol("ES2r gercek veride figur kucuk resmi TEK ve GORSELLI (figur-1-render.webp); yer tutucu ikonu YOK", resimli,
-       "figur_kucuk=" + k.length + " alt=" + alt.map((n) => String(n.tagName || "") + ":" + String(n.src || "")).join(","));
-  }
-  const V0 = veriYukle(VERI_YT);
-  const VERI_TURLERI = [...new Set(V0.ornekler.map((o) => o.tur))];
-  // YER_TUTUCU: orneksiz türler (figur) → ikonlu kart. bust artık gerçek tür, yer tutucusu ÇİZİLMEZ.
-  const YER = ["figur", "bust"].filter((k) => !VERI_TURLERI.includes(k));
-  const TOPLAM = VERI_TURLERI.length + YER.length; // görseller + yer tutucular
-  const GORSEL = VERI_TURLERI.length;
-  ol("ES2a manifest ornek_notu AYNEN: plaket = karar cumlesi · litofan = litofan cumlesi · veride >= 6 tur ornegi",
-     V0.turBul("plaket").ornek_notu === CUMLE_P && V0.turBul("litofan").ornek_notu === CUMLE_L && VERI_TURLERI.length >= 6,
-     JSON.stringify(VERI_TURLERI));
-  const sinifli = (kok, c) => [...kok.agac()].filter((n) => n.classList.contains(c));
-  const tusla = (n, key) => { for (const fn of ((n.dinle || {}).keydown || [])) { fn({ key, target: n, preventDefault() {} }); } };
-  const senaryo = async (kaynak) => {
-    const s = {};
-    const a = await ekranKos(kaynak, veriYukle(VERI_YT), acikP);
-    const govde = a.bolum.parentNode;
-    const kucuk = sinifli(a.bolum, "foto-uretim-galeri-kucuk");
-    const kTur = kucuk.map((k) => k.getAttribute("data-tur"));
-    // G1 büyük görsel 0 + küçük resim 24/24: yeni yapıda büyük kart YOK (ornek-grup sınıfı 0);
-    // tüm görsel + yer tutucu kartları küçük resim ızgarasında.
-    s.G1_BUYUK = sinifli(a.bolum, "foto-uretim-ornek-grup").length === 0 &&
-      sinifli(a.bolum, "foto-uretim-buyuk-kart").length === 0;
-    s.G1_KUCUK = kucuk.length === TOPLAM && kucuk.length === VERI_TURLERI.length + YER.length;
-    // GALERI: yalniz plaket acik ama TUM tur ornekleri + YER cizilir; acik tur ONCE, sonra veri sirasi, EN SONDA yer tutucular.
-    const beklenenSira = ["plaket"].concat(VERI_TURLERI.filter((t) => t !== "plaket")).concat(YER);
-    s.GALERI = kucuk.length === TOPLAM &&
-      new Set(kTur).size === TOPLAM && kTur[0] === "plaket" &&
-      JSON.stringify(kTur) === JSON.stringify(beklenenSira);
-    // YAKINDA: acik olmayan tur kartında "Yakında" rozeti; acik turde YOK; ayrı tür seçici (radio) YOK.
-    const yakindaVar = (n) => sinifli(n, "foto-uretim-yakinda").some((x) => x.textContent === "Yakında");
-    s.YAKINDA = kucuk.length > 1 &&
-      kucuk.every((k, i) => yakindaVar(k) === (kTur[i] !== "plaket")) &&
-      [...a.bolum.agac()].filter((n) => n.tagName === "INPUT" && n.name === "foto-tur").length === 0;
-    // NOT_KART: görsel kartta kategori adı + "önizleme/render" etiketi (13:4x). Yer tutucuda ikon VAR
-    // (Yakında rozeti YAKINDA testinde ayrıca denenir; burada YER kartı sadece ikona bakılır).
-    s.NOT_KART = kucuk.every((k) => {
-      const kod = k.getAttribute("data-tur");
-      if (YER.includes(kod)) { return !!k.querySelector(".foto-uretim-galeri-yer-ikon"); }
-      const ad = k.querySelector(".foto-uretim-galeri-kucuk-ad");
-      const et = k.querySelector(".foto-uretim-galeri-kucuk-etiket");
-      return !!ad && !!et && et.textContent === "önizleme/render" &&
-        [...k.agac()].some((n) => n.tagName === "IMG");
-    });
-    // TEMBEL: ilk gorsel kucuk resim hemen, digerleri loading=lazy; width/height dolu. Yer tutucuda <img> yok.
-    const kImg = kucuk.slice(0, GORSEL).map((k) => [...k.agac()].find((n) => n.tagName === "IMG"));
-    const kIkon = kucuk.slice(GORSEL).map((k) => [...k.agac()].find((n) => n.classList.contains("foto-uretim-galeri-yer-ikon")));
-    s.TEMBEL = kImg.length === GORSEL && kIkon.length === YER.length && kIkon.every((m) => m !== undefined && m !== null) &&
-      kImg.every((m, i) => !!m && m.width > 0 && m.height > 0 && (i === 0 ? m.loading !== "lazy" : m.loading === "lazy"));
-    // ISIK: kucuk resme tik -> tam ekran diyalog; ok -> sonraki; Esc/×/zemin kapatir; govde kilidi + odak donusu.
-    // (mevcut isikAc davranisi; kucuk resimden tek tik ile acilir - 13:4x)
-    const isik = () => [...govde.agac()].filter((n) => n.classList.contains("foto-uretim-isik"));
-    let odak = null;
-    const ac = (idx) => {
-      if (typeof idx === "number") {
-        // tetikleyen odagini sakla (mevcut isikAc davranisi: kapandiginda geri doner)
-        kucuk[idx].focus = () => { odak = kucuk[idx]; };
-        kucuk[idx].tetikle("click");
-      }
-      return isik()[0] || null;
-    };
-    const d1 = ac(0);
-    // 13:5x: tek tık = SEÇ + büyüt. galeriSec çağrısı kucuk[idx].tetikle("click") içinde; ışık
-    // kapatmadan HEMEN SONRA "secili" class'ı kartta OLMALI (ES2-M18 mutant'ı galeriSec'i kaldırır;
-    // kapatma sonrası isikGoster→galeriSec fallback'i aynı class'ı yeniden koyar — bu yüzden kontrol
-    // tık ANINDA yapılır, ISIK sonunda değil).
-    const t2HemenSecili = !!kucuk[0] && kucuk[0].classList.contains("secili");
-    const im1 = d1 && [...d1.agac()].find((n) => n.tagName === "IMG");
-    const alt1 = im1 && im1.alt;
-    const kilit = govde.style.overflow === "hidden";
-    if (d1) { tusla(d1, "ArrowRight"); }
-    const alt2 = im1 && im1.alt;
-    if (d1) { tusla(d1, "Escape"); }
-    const escKapandi = isik().length === 0 && govde.style.overflow !== "hidden" && odak !== null;
-    const d2 = ac(0);
-    const x = d2 && [...d2.agac()].find((n) => n.tagName === "BUTTON" && n.getAttribute("aria-label") === "Kapat" && n.textContent === "×");
-    if (x) { x.tetikle("click"); }
-    const xKapandi = !!x && isik().length === 0;
-    const d3 = ac(0);
-    if (d3) { d3.tetikle("click"); }
-    const zeminKapandi = !!d3 && isik().length === 0;
-    s.ISIK = !!d1 && d1.getAttribute("role") === "dialog" && d1.getAttribute("aria-modal") === "true" &&
-      alt1 === "Kabartma plaket örnek render" && kilit && !!alt2 && alt2 !== alt1 && / örnek render$/.test(alt2) &&
-      escKapandi && xKapandi && zeminKapandi;
-    // YER_LIGHTBOX: yer tutucuya tik -> lightbox acilMAZ (gorsel yok; isikAc engeli no-op). M15 mutant
-    // (isikAc engeli kalkti) ornekGoster placeholder'a dusup TypeError firlatir.
-    const figurI = kTur.indexOf("figur");
-    let lightYok = true;
-    if (figurI >= 0) {
-      try {
-        kucuk[figurI].tetikle("click"); kucuk[figurI].tetikle("click"); kucuk[figurI].tetikle("click");
-      } catch (e) { lightYok = false; }
-      lightYok = lightYok && isik().length === 0;
-    }
-    s.YER_LIGHTBOX = lightYok;
-    // YER_GEZINTI: lightbox ←/→ yer tutucuyu ATLAR. Plaket'ten GORSEL kez ileri -> tum gorselleri dolasip plaket'e geri donmeli.
-    let yerAtladi = true;
-    if (figurI >= 0) {
-      const dY = ac(0);
-      if (dY) {
-        try {
-          for (let yi = 0; yi < GORSEL; yi++) { tusla(dY, "ArrowRight"); }
-        } catch (e) { yerAtladi = false; }
-        const imSon = dY && [...dY.agac()].find((n) => n.tagName === "IMG");
-        const altSon = imSon && imSon.alt || "";
-        yerAtladi = yerAtladi && /plaket/i.test(altSon);
-        try { tusla(dY, "Escape"); } catch (e) { /* sorun degil */ }
-      }
-    }
-    s.YER_GEZINTI = yerAtladi;
-    // G2 BUYUTME 3 TURDE + ESC/×/DIS TIK 3/3: ornek, litofan, yapboz (veri sırasıyla). HER kapatma yolu
-    // AYRI sayaçta 3 türde de çalışmalı (Esc silindi mutant'ı sadece Esc sayacını düşürür, × veya dış tık
-    // çalışıyor diye G2'Yİ FALSE'a düşürmesin diye; bu yüzden sayaclar ayrı).
-    let g2_3tur = 0, g2_esc = 0, g2_x = 0, g2_dis = 0;
-    const t3 = ["plaket", "litofan", "yapboz"].map((kod) => kTur.indexOf(kod));
-    for (const ti of t3) {
-      if (ti < 0) continue;
-      // 1. Esc ile kapatma (her seferde yeni lightbox aç).
-      const dd = ac(ti);
-      if (dd && dd.getAttribute("role") === "dialog" && dd.getAttribute("aria-modal") === "true") { g2_3tur++; }
-      if (dd) { tusla(dd, "Escape"); if (isik().length === 0) { g2_esc++; } }
-      // 2. × ile kapatma (lightbox hâlâ açıksa yeniden aç).
-      const dd2 = ac(ti);
-      if (dd2) {
-        const xx = [...dd2.agac()].find((n) => n.tagName === "BUTTON" && n.getAttribute("aria-label") === "Kapat" && n.textContent === "×");
-        if (xx) { xx.tetikle("click"); if (isik().length === 0) { g2_x++; } }
-      }
-      // 3. zemine (dialog'a) tıklama ile kapatma.
-      const dd3 = ac(ti);
-      if (dd3) { dd3.tetikle("click"); if (isik().length === 0) { g2_dis++; } }
-    }
-    s.G2 = g2_3tur === 3 && g2_esc === 3 && g2_x === 3 && g2_dis === 3;
-    // T2 (sayfa-3adim K2): galeri kart tıkı türü SEÇER (slider var + ② açık + "Seçili: …" satırı).
-    // 13:5x'te vitrin "₺N'dan itibaren" gösterirdi; K2'de vitrin yok, fiyat ②'de sürgü altında.
-    // ES2-M18 mutant'ı galeriSec çağrısını kaldırır → tık anında `secili` class'ı kartta OLMUYOR
-    // (t2HemenSecili yakalanır). Slider seçili tür için dolu; "Seçili: …" satırı kart seçimini yansıtır.
-    const t2Satir = [...govde.agac()].find((n) => n.id === "foto-galeri-secili");
-    const t2Surgu = [...govde.agac()].filter((n) => n.tagName === "INPUT" && n.type === "range");
-    const t2Adim2 = [...govde.agac()].find((n) => n.id === "foto-adim2");
-    const t2SurguFiyat = [...govde.agac()].find((n) => n.classList.contains("foto-uretim-surgu-fiyat"));
-    const t2SurguFiyatMetni = t2SurguFiyat && t2SurguFiyat.textContent;
-    const t2SatirMetni = t2Satir && t2Satir.textContent;
-    const t2SliderMin = t2Surgu[0] && t2Surgu[0].min;
-    const t2SliderMax = t2Surgu[0] && t2Surgu[0].max;
-    const t2SliderGecerli = t2Surgu.length >= 1 && +t2SliderMin >= 0 && +t2SliderMax >= +t2SliderMin;
-    s.T2 = t2SliderGecerli && t2Adim2 && !t2Adim2.hidden &&
-      t2SatirMetni && t2SatirMetni.indexOf("Seçili:") === 0 && t2HemenSecili &&
-      /\d+ mm → [\d.,]+ TL/.test(t2SurguFiyatMetni || "");
-    return s;
-  };
-  const s0 = await senaryo(EKRAN_KAYNAK);
-  // G1: büyük görsel 0 + küçük resim TÜM ornekler+YER (5 olcu-kritik tur silindi, 24->19)
-  ol("G1 buyuk ornek gorsel 0 (ornek-grup + buyuk-kart sifif) + kucuk resim TUM ornek (galeri tek blok; 13:4x)",
-     s0.G1_BUYUK && s0.G1_KUCUK, JSON.stringify(s0));
-  // G2: 3 türde büyütme + Esc/×/dış tık 3/3
-  ol("G2 buyutme 3 turde (plaket/litofan/yapboz) + Esc/x/dis-tik kapatma 3/3",
-     s0.G2, JSON.stringify(s0));
-  ol("ES2b galeri TUM tur ornekleri + yer tutucu (toplam " + TOPLAM + " kucuk resim; " + GORSEL + " gorselli + " + YER.length + " yer tutucu; acik tur once)",
-     s0.GALERI, JSON.stringify(s0));
-  ol("ES2c acik olmayan tur kartinda 'Yakında' rozeti; acik turde yok; ayrı tur secici (radio name='foto-tur') YOK",
-     s0.YAKINDA, JSON.stringify(s0));
-  ol("ES2g kucuk resimler: ilk gorsel hemen, digerleri loading=lazy; width/height dolu; yer tutucuda ikon span",
-     s0.TEMBEL, JSON.stringify(s0));
-  ol("ES2d kucuk resimde kategori adi + 'önizleme/render' etiketi (13:4x); yer tutucuda ikon + Yakinda rozeti",
-     s0.NOT_KART, JSON.stringify(s0));
-  ol("ES2m yer tutucuda lightbox acilMAZ (gorsel yok); birden fazla tekrar tıklamada da acilMAZ",
-     s0.YER_LIGHTBOX, JSON.stringify(s0));
-  ol("ES2n lightbox gezintisi yer tutucuyu ATLAR (←/→ GORSEL kez ileri -> Figur alt gorunmez)",
-     s0.YER_GEZINTI, JSON.stringify(s0));
-  ol("ES2h tam ekran: role=dialog aria-modal · alt '<tur> örnek render' · govde kilidi · ok ile sonraki · Esc/×/zemin kapatir · odak doner", s0.ISIK, JSON.stringify(s0));
-  const ES2_MUT = [
-    ["ES2-MK KONTROL (yorum eklendi)", "  function isikGoster(n) {\n", "  // kontrol\n  function isikGoster(n) {\n", []],
-    // 13:5x: ayrı tür radyo listesi kalktı → M1'in hedefi (radyo üret) artık yok; mutant uygulanamaz.
-    // Kalan mutantlar yeni davranışı dener (galeri = seçici).
-    ["ES2-M3 kucuk resimde 'Yakında' etiketi dustu", "        if (it.yakinda) d.appendChild(el(\"span\", \"foto-uretim-yakinda\", \"Yakında\"));\n", "", ["YAKINDA"]],
-    ["ES2-M5 Esc isleyicisi silindi", "if (e.key === \"Escape\" || e.key === \"Esc\") {", "if (false) {", ["G2", "ISIK"]],
-    ["ES2-M6 × kapatmiyor", "\"×\", \"Kapat\", function () { isikKapat(); });", "\"×\", \"Kapat\", function () {});", ["G2", "ISIK"]],
-    ["ES2-M7 aria-modal dustu", "    kutu.setAttribute(\"aria-modal\", \"true\");\n", "", ["G2", "ISIK"]],
-    ["ES2-M8 govde kilidi kalkmiyor", "document.body.style.overflow = ik.tasma || \"\";", "document.body.style.overflow = \"hidden\";", ["ISIK"]],
-    ["ES2-M9 tum kucuk resimler lazy", "        if (n > 0) im.loading = \"lazy\";\n", "        im.loading = \"lazy\";\n", ["TEMBEL"]],
-    // 13:5x: Yakında tur vitrin fiyatini guncellemez — galeriSec kontrolu (Yakında/yer tutucu guard kalkarsa
-    // galeriSec Yakında'da varm türü degistirip form'u acar + fiyat satirini gunceller; beklenen hüküm:
-    // galeriSec tüm ID'lerinde geri dondurmeli).
-    ["ES2-M4 'Yakında' tur vitrin fiyatini gunceller",
-     "    if (it.yerTutucu || it.yakinda) return;\n",
-     "    if (false) return;\n", []],
-    // 13:5x: seçici kart tıkı türü değiştirmiyor → galeriSec cagrisi kalkarsa (sadece isikAc) form/slider/
-    // vitrin/uretici notu hep bos kalir (galeriSec zorunlu). T2 davranisi test edilir.
-    ["ES2-M18 seçici kart tıkı türü değiştirmiyor (13:5x) -> T2 KIRMIZI",
-     "          if (!it.yerTutucu && !it.yakinda) galeriSec(n);\n          isikAc(n, d);",
-     "          isikAc(n, d);", ["T2"]],
-    // 13:5x: Yakında kart seçilebilir hale geldi → galeriSec no-op guard kalkarsa TIK_test KIRMIZI
-    ["ES2-M19 Yakında kart seçilebilir hale geldi (13:5x guard kalkti)",
-     "    if (it.yerTutucu || it.yakinda) return;\n",
-     "", []],
-    // YER TUTUCU lightbox/atlama mutantlari (mevcut davranis AYNI).
-    ["ES2-M15 yer tutucuda lightbox engeli kalkti (gorsel olmadan acilir)",
-     "    if (!acIt || acIt.yerTutucu) return;\n", "", ["YER_LIGHTBOX"]],
-    ["ES2-M16 lightbox yer tutucuyu ATLAMIYOR (←/→ figur/bust'e iner; navigations crash)",
-     "    } while (S.galeriListe[n].yerTutucu && ilerleme <= L);\n    if (S.galeriListe[n].yerTutucu) return; // tüm liste yer tutucu (defansif; gerçekte olmaz)\n",
-     "    } while (ilerleme <= L);\n", ["YER_GEZINTI"]],
+  const s = await esDene(EKRAN_KAYNAK);
+  ol("ES1 render kaydi: kartta etiket 'önizleme/render', 'gerçek fotoğraf' 0, 'Gerçek örnekler' 0; ②'de ornek_notu AYNEN; buyuk kart/isik/izgara 0",
+     s.kirmizi.length === 0, JSON.stringify(s));
+  ol("ES2 baski kaydi: kartta etiket 'basılmış ürün'; 'Basılmış ürün (gerçek fotoğraf)' 0; render cumlesi baskiya yazilmaz",
+     s.kirmizi.length === 0, JSON.stringify(s));
+  const ES_MUT = [
+    ["ES-M1 baski kart etiketi 'gerçek fotoğraf' yapildi", 'it.kanit === "render" ? "önizleme/render" : "basılmış ürün"',
+     'it.kanit === "render" ? "önizleme/render" : "gerçek fotoğraf"', ["BASKI_GERCEK_FOTOGRAF", "ETIKET_BASKI"]],
+    ["ES-M2 ornek_notu ②'ye yazilmadi", 'S.ornekNotP.textContent = it && it.kanit === "render" ? it.tur.ornek_notu || "" : "";',
+     'S.ornekNotP.textContent = "";', ["ORNEK_NOTU"]],
+    ["ES-M3 render sarti kalkti (render cumlesi baskiya yazilir)", 'S.ornekNotP.textContent = it && it.kanit === "render" ? it.tur.ornek_notu || "" : "";',
+     'S.ornekNotP.textContent = it ? it.tur.ornek_notu || "" : "";', ["BASKI_NOTU"]],
+    ["ES-MK KONTROL (yorum)", "  function kartOrnegi(t) {", "  // kontrol\n  function kartOrnegi(t) {", []],
   ];
-  for (const [ad, capa, yerine, olmeli] of ES2_MUT) {
+  for (const [ad, capa, yerine, olmeli] of ES_MUT) {
     if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
-    const m = await senaryo(EKRAN_KAYNAK.replace(capa, yerine));
-    const kirmizi = Object.keys(m).filter((x) => m[x] !== true).sort();
-    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli), JSON.stringify(m));
+    const m = await esDene(EKRAN_KAYNAK.replace(capa, yerine));
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+       JSON.stringify(m.kirmizi.slice().sort()) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(m.kirmizi));
   }
 }
 
-// T2 (sayfa-3adim K2): galeri kart tıkı ① → ② açar; ② içinde slider + fiyat satırı ("N mm → X TL" biçimi).
-// 13:5x'te vitrin "₺N'dan itibaren" gösterirdi; K2'de vitrin yok, fiyat ②'de sürgü altında.
-// 3 türde (plaket/litofan/kutu — kutu türetilmiş eksen) S.tur set + ② açılır.
-console.log("T2) SECICI KART TIKLA TUR SECER — slider + sürgü fiyat satiri (K2: vitrin yok)");
-{
-  const sinifli = (kok, c) => [...kok.agac()].filter((n) => n.classList.contains(c));
-  const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] });
-  const acik3 = { acik: true, turler: [tur("plaket", "Kabartma plaket"), tur("litofan", "Işıklı fotoğraf paneli (litofan)"), tur("kutu", "Düzenleyici kutu")] };
-  const senaryoT2 = async (kaynak) => {
-    const e = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), acik3);
-    const kucuk = sinifli(e.bolum, "foto-uretim-galeri-kucuk");
-    const kTur = kucuk.map((k) => k.getAttribute("data-tur"));
-    const hedef = ["plaket", "litofan", "kutu"].map((kod) => kTur.indexOf(kod));
-    let t2_ok = 0;
-    const iz = [];
-    for (const ti of hedef) {
-      if (ti < 0) continue;
-      kucuk[ti].tetikle("click");
-      // K2: tür seçildi → ② açılır (adim2 hidden=false); sürgü çizilir; sürgü altında "100 mm → 1.000 TL" yazısı.
-      const adim2 = [...e.bolum.agac()].find((n) => n.id === "foto-adim2");
-      const adim2Acik = adim2 && !adim2.hidden;
-      const seciliSatir = [...e.bolum.agac()].find((n) => n.id === "foto-galeri-secili");
-      const seciliMetni = seciliSatir && seciliSatir.textContent;
-      const surguler = [...e.bolum.agac()].filter((n) => n.tagName === "INPUT" && n.type === "range");
-      const hedefKod = kTur[ti];
-      // kutu türetilmiş eksen (slider'ı yok, en_mm number input). litofan/plaket slider'lı.
-      const sliderBeklenen = hedefKod !== "kutu";
-      const sliderVar = surguler.length >= 1;
-      const sliderMin = surguler[0] && surguler[0].min;
-      const sliderMax = surguler[0] && surguler[0].max;
-      const sliderGecerli = !sliderBeklenen || (sliderVar && +sliderMin >= 0 && +sliderMax >= +sliderMin);
-      // Sürgü altındaki fiyat satırı: K2'de vitrin yok; "100 mm → 1.000 TL" biçimi sürgü-fiyat class'ında.
-      // Türetilmiş eksen türde (kutu) ②'de fiyat YOK — S3'te sunucudan gelir; T2 yalnız slider türlerde denetler.
-      const fiyatSatir = [...e.bolum.agac()].find((n) => n.classList.contains("foto-uretim-surgu-fiyat"));
-      const fiyatMetni = fiyatSatir && fiyatSatir.textContent;
-      const fiyatBeklenen = hedefKod !== "kutu";
-      const fiyatGecerli = !fiyatBeklenen || /100 mm → 1\.000 TL/.test(fiyatMetni || "");
-      iz.push({ hedefKod, adim2Acik, fiyatMetni, seciliMetni, sliderVar, sliderBeklenen, sliderMin, sliderMax });
-      if (adim2Acik && fiyatGecerli && sliderGecerli &&
-          seciliMetni && seciliMetni.indexOf("Seçili:") === 0) {
-        t2_ok++;
-      }
-    }
-    return { T2: t2_ok === 3, iz };
-  };
-  const t2 = await senaryoT2(EKRAN_KAYNAK);
-  ol("T2 kart tıkı 3 turde (plaket/litofan/kutu) S.tur set + ② açık + slider + '100 mm → 1.000 TL' (K2)",
-     t2.T2, JSON.stringify(t2));
-}
-
-console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, vm kopyasinda)");
+console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + bool alanlari; ureteç kuyrugu)");
 {
   const SONRA = "Önizleme, üretim dosyasıyla birlikte hazırlanır; birkaç dakika sürebilir.";
-  // Sentetik kod gercek manifest satirlariyla CAKISMAZ (G2'de gercek `isimlik` satiri geldi; turBul ilkini doner).
+  // K3b2: sentetik girdi türü (isimlik, foto'suz) silinen tür evreniydi → GERÇEK bust kaydı (D/R kolu, foto-1,
+  // form: uzun_kenar_mm/rolyef_yuksekligi_mm sayi + ters/iki_renk bool). parametreDogrula çağrıları sayılır.
   const sentetik = (kaynakVeri) => {
     const V = veriYukle(kaynakVeri);
-    V.turler.push({ kod: "sentetik-d", ad: "İsimlik", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",
-      olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {},
-      form: { yazi: { tip: "metin", max: 20 }, kalinlik: { tip: "sayi", min: 2, max: 6, adim: 1, birim: "mm" },
-              yazi_tipi: { tip: "secim", secenekler: ["Düz", "Eğik"] }, link: { tip: "url" },
-              kapak: { tip: "bool", etiket: "Kapak", varsayilan: true } },
-      fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 }, ornek_kanit_izni: ["render"], ornek_notu: "t" });
-    V.ornekler.push({ tur: "sentetik-d", kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/t-io.webp",
-      render: "https://media.pruvo3d.com/t-ir.webp", not: "t" });
     const asil = V.parametreDogrula;
     V.cagri = [];
     V.parametreDogrula = function (kod, p) { const d = asil(kod, p); V.cagri.push({ kod, p: JSON.stringify(p), d }); return d; };
     return V;
   };
-  const acikI = { acik: true, turler: [{ kod: "sentetik-d", ad: "İsimlik", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
-  const acikP = { acik: true, turler: [{ kod: "plaket", ad: "Kabartma plaket", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] }] };
-  // 13:5x: tur secimi galeriden; form alanlari sadece tur secildikten sonra cizilir. sentetik-d kayit
-  // (sentetik-d ornegi) ile sentetik-d listede VAR; sessionStorage ile onceden sec. `is` YOK → S1 paneli.
-  const sentetikKayit = { tur: "sentetik-d", olcu: 100 };
+  const acikTur = (V, kod) => ({ kod, ad: V.turBul(kod).ad, aciklama: "x", ornek_sayisi: 1,
+    olculer: V.olcuSecenekleri(kod).map((mm) => ({ mm, fiyat_kurus: V.fiyatKurus(kod, mm) })) });
+  const VARSAYILAN = JSON.stringify({ uzun_kenar_mm: 120, rolyef_yuksekligi_mm: 1, ters: false, iki_renk: false });
   const senaryo = async (kaynak) => {
     const s = {};
     const V = sentetik(VERI_KAYNAK);
-    const e = await ekranKos(kaynak, V, acikI, sentetikKayit);
-    const d = [...e.bolum.agac()];
-    const id = (x) => d.find((n) => n.id === x) || null;
-    const y = id("foto-param-yazi"), k = id("foto-param-kalinlik"), t = id("foto-param-yazi_tipi"), u = id("foto-param-link");
-    s.ALANLAR = !!(y && k && t && u) && y.tagName === "INPUT" && y.type === "text" && y.maxLength === 20 &&
-      k.type === "number" && k.min === "2" && k.max === "6" && k.step === "1" &&
-      t.tagName === "SELECT" && t.childNodes.filter((n) => n.tagName === "OPTION").length === 2 && u.type === "url";
-    // AYNI FONKSIYON: hata metni VERI.parametreDogrula donusunden; alanlar doldurulunca hata gizlenir.
-    const hata = d.find((n) => n.classList.contains("foto-uretim-ayrinti") && n.textContent === "Metin alanını doldur (izinli uzunlukta).");
-    const ilk = V.cagri.length > 0 && V.cagri.every((c) => c.kod === "sentetik-d") && V.cagri[V.cagri.length - 1].d.hata === "parametre-metin";
-    let son = null;
-    if (y && u) {
-      y.value = "Ada"; y.tetikle("input");
-      u.value = "https://ornek.com"; u.tetikle("input");
-      son = V.cagri[V.cagri.length - 1];
-    }
-    s.AYNI_FONKSIYON = ilk && !!hata && !!son && son.d.ok === true &&
-      son.p === JSON.stringify({ yazi: "Ada", kalinlik: 2, yazi_tipi: "Düz", link: "https://ornek.com", kapak: true }) && hata.hidden === true;
-    // BOOL (kopru-15 sözlük): tip "bool" -> onay kutusu (label for=id, etiket manifestten), varsayılan
-    // manifestten (true -> işaretli); işareti kaldırınca gövdede JSON false (dize DEĞİL) ve doğrulama ok.
-    const kb = id("foto-param-kapak");
-    const kbEtiket = d.find((n) => n.tagName === "LABEL" && n.getAttribute("for") === "foto-param-kapak");
-    let kbSon = null;
-    if (kb) { kb.checked = false; kb.tetikle("change"); kbSon = V.cagri[V.cagri.length - 1]; }
-    s.BOOL = !!kb && kb.tagName === "INPUT" && kb.type === "checkbox" && !!kbEtiket && kbEtiket.textContent === "Kapak" &&
-      !!kbSon && kbSon.d.ok === true && JSON.parse(kbSon.p).kapak === false;
-    if (kb) { kb.checked = true; kb.tetikle("change"); }
-    // ONIZLEMESIZ D: ornek render + SONRA metni; litofan tuvali yok; siparis butonu acilmaz.
-    const sonra = d.find((n) => n.tagName === "P" && n.textContent === SONRA);
+    const acikB = { acik: true, turler: [acikTur(V, "bust")] };
+    const e = await ekranKos(kaynak, V, acikB, null, null, { kart: "bust" });
+    const d = () => [...e.bolum.agac()];
+    const id = (x) => d().find((n) => n.id === x) || null;
+    const p3 = id("foto-pencere-3");
+    const uk = id("foto-param-uzun_kenar_mm"), ry = id("foto-param-rolyef_yuksekligi_mm"), te = id("foto-param-ters"), ir = id("foto-param-iki_renk");
+    s.ALANLAR = !!(uk && ry && te && ir && p3) && [uk, ry, te, ir].every((n) => [...p3.agac()].includes(n)) &&
+      uk.type === "number" && uk.min === "60" && uk.max === "250" && uk.step === "0.01" &&
+      ry.type === "number" && ry.min === "1" && ry.max === "8" && te.type === "checkbox" && ir.type === "checkbox";
+    // AYNI FONKSIYON: hata metni VERI.parametreDogrula dönüşünden (aralık dışı 300 → "Değer izinli aralığın dışında.");
+    // 120'ye çekilince ok + gövde şemaya uygun + hata gizli. ③'te geçersiz form varken "İleri" PASİF.
+    const hataP = () => d().find((n) => n.classList.contains("foto-uretim-ayrinti") && n.textContent === "Değer izinli aralığın dışında.");
+    let ara = null, son = null, ileriPasif = false;
+    if (uk) {
+      // ③'e geç: ② dosya + parça kapısı "Hayır" → İleri.
+      const ileri = id("foto-ileri"), dosya = id("foto-dosya");
+      if (dosya) { dosya.files = [{ name: "yuz.jpg", type: "image/jpeg", size: 4096 }]; dosya.tetikle("change"); }
+      const hy0 = id("foto-uyum-hayir"); if (hy0) { hy0.tetikle("click"); }
+      if (ileri) { ileri.tetikle("click"); }
+      const ucuncude = (d().find((n) => n.classList.contains("foto-uretim-gosterge-adim") && n.classList.contains("aktif")) || { getAttribute: () => "" }).getAttribute("data-no") === "3";
+      uk.value = "300"; uk.tetikle("input"); ara = V.cagri[V.cagri.length - 1];
+      const pasif300 = !!ileri && ileri.disabled === true;
+      const gorundu = !!hataP() && hataP().hidden === false;
+      uk.value = "120"; uk.tetikle("input"); son = V.cagri[V.cagri.length - 1];
+      ileriPasif = ucuncude && pasif300 && !!ileri && ileri.disabled === false;
+      s.AYNI_FONKSIYON = V.cagri.length > 0 && V.cagri.every((c) => c.kod === "bust") && !!ara && ara.d.hata === "parametre-aralik" &&
+        gorundu && !!son && son.d.ok === true && son.p === VARSAYILAN && !hataP();
+    } else { s.AYNI_FONKSIYON = false; }
+    s.ILERI_FORM = ileriPasif;
+    // BOOL: tip "bool" -> onay kutusu (label for=id, etiket manifestten), varsayılan manifestten (false);
+    // işaretlenince gövdede JSON true (dize DEĞİL) ve doğrulama ok.
+    const teEtiket = d().find((n) => n.tagName === "LABEL" && n.getAttribute("for") === "foto-param-ters");
+    let teSon = null;
+    if (te) { te.checked = true; te.tetikle("change"); teSon = V.cagri[V.cagri.length - 1]; }
+    s.BOOL = !!te && te.checked === true && !!teEtiket && teEtiket.textContent === "Ters (negatif)" &&
+      !!teSon && teSon.d.ok === true && JSON.parse(teSon.p).ters === true;
+    if (te) { te.checked = false; te.tetikle("change"); }
+    // ONIZLEMESIZ D (④): örnek render + SONRA metni; tuval yok; önizleme düğmesi kapalı.
+    const sonra = d().find((n) => n.tagName === "P" && n.textContent === SONRA);
     const kap = sonra ? sonra.parentNode : null;
     const btn = id("foto-onizle-buton");
-    s.ONIZLEMESIZ = !!kap && kap.hidden === false && [...kap.agac()].some((n) => n.tagName === "IMG" && /t-ir\.webp$/.test(n.src)) &&
-      !d.some((n) => n.tagName === "CANVAS") && !!btn && btn.disabled === true &&
-      !d.some((n) => n.tagName === "P" && /tarayıcında çizilir/.test(n.textContent) && n.parentNode && !n.parentNode.hidden);
-    // TEK ONAY KUTUSU (taslak-2, 7 Eki 20:5x): form girdili turde de GORUNUR; eski iki kutu 0.
+    s.ONIZLEMESIZ = !!kap && kap.hidden === false && [...kap.agac()].some((n) => n.tagName === "IMG" && /bust-1-render\.webp$/.test(n.src)) &&
+      !d().some((n) => n.tagName === "CANVAS") && !!btn && btn.disabled === true;
+    // TEK ONAY KUTUSU (taslak-2, 7 Eki 20:5x): ④'te GORUNUR; eski iki kutu 0.
     const tekKutu = (dd) => {
       const k_ = dd.find((n) => n.id === "foto-aydinlatma-onay");
       const det = dd.find((n) => n.tagName === "DETAILS" && n.classList.contains("foto-uretim-aydinlatma"));
@@ -2059,17 +1779,19 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
         k_.parentNode.textContent.trim() === "Aydınlatma metnini okudum, onaylıyorum." &&
         !dd.some((n) => n.id === "foto-hak" || n.id === "foto-aktarim");
     };
-    s.TEK_KUTU_FORM = tekKutu(d);
-    // URETEC ONIZLEME (madde 11): onay + dogrulama sonrasi buton ACILIR; tiklaninca /foto/onizleme'ye
-    // foto'suz govde (tur + parametreler) gider, litofan ucu cagrilmaz, yoklama araligi 5 sn.
+    s.TEK_KUTU_FORM = tekKutu(d());
+    // URETEC ONIZLEME: foto + parça kapısı "Hayır" + doğrulama → düğme kutu işaretlenince ACILIR; tıklanınca
+    // /foto/onizleme'ye gövde (tur + gorsel + parametreler + secim) gider, yoklama aralığı 5 sn.
     const V2 = sentetik(VERI_KAYNAK);
-    const e2 = await ekranKos(kaynak, V2, acikI, sentetikKayit, { asama: "bekliyor" },
-      { turnstileOto: true, zamanlayici: true, postYanit: { is: "a".repeat(32), kalan: 2 } });
-    const d2 = [...e2.bolum.agac()];
-    const id2 = (x) => d2.find((n) => n.id === x) || null;
-    const y2 = id2("foto-param-yazi"), u2 = id2("foto-param-link"), btn2 = id2("foto-onizle-buton");
-    if (y2 && u2) { y2.value = "Ada"; y2.tetikle("input"); u2.value = "https://ornek.com"; u2.tetikle("input"); }
-    // Kutu isaretlenmeden buton KAPALI (form + dogrulama tam olsa da); isaretlenince ACILIR.
+    const e2 = await ekranKos(kaynak, V2, { acik: true, turler: [acikTur(V2, "bust")] }, null, { asama: "bekliyor" },
+      { kart: "bust", turnstileOto: true, zamanlayici: true, gorselSahte: true, postYanit: { is: "a".repeat(32), kalan: 2 } });
+    const d2 = () => [...e2.bolum.agac()];
+    const id2 = (x) => d2().find((n) => n.id === x) || null;
+    const dos = id2("foto-dosya");
+    if (dos) { dos.files = [{ name: "yuz.jpg", type: "image/jpeg", size: 4096 }]; dos.tetikle("change"); }
+    const hy = id2("foto-uyum-hayir");
+    if (hy) { hy.tetikle("click"); }
+    const btn2 = id2("foto-onizle-buton");
     const kapali = !!btn2 && btn2.disabled === true;
     const on2 = id2("foto-aydinlatma-onay");
     if (on2) { on2.checked = true; on2.tetikle("change"); }
@@ -2077,38 +1799,40 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     const acildi = !!btn2 && btn2.disabled === false && btn2.textContent === "Önizleme oluştur";
     if (btn2) { btn2.tetikle("click"); }
     for (let i = 0; i < 10; i++) { await new Promise((c) => setTimeout(c, 0)); }
-    const p0 = e2.istekler[0] || {};
+    const p0 = e2.istekler[0] || { govde: {} };
     s.KUYRUK = acildi && e2.istekler.length === 1 && p0.u === "/api/shop/foto/onizleme" &&
-      p0.govde.tur === "sentetik-d" && p0.govde.aydinlatma_onay === true && p0.govde.onay_surum === V2.onay_surum &&
+      p0.govde.tur === "bust" && p0.govde.aydinlatma_onay === true && p0.govde.onay_surum === V2.onay_surum &&
       !("hak_onay" in p0.govde) && !("aktarim_onay" in p0.govde) && p0.govde.turnstile_token === "t-jeton" &&
-      p0.govde.gorsel === undefined && JSON.stringify(p0.govde.parametreler) ===
-        JSON.stringify({ yazi: "Ada", kalinlik: 2, yazi_tipi: "Düz", link: "https://ornek.com", kapak: true }) &&
+      p0.govde.gorsel === "data:image/jpeg;base64,SAHTE" &&
+      JSON.stringify(p0.govde.parametreler) === JSON.stringify({ uzun_kenar_mm: 60, rolyef_yuksekligi_mm: 1, ters: false, iki_renk: false }) &&
+      JSON.stringify(p0.govde.secim) === JSON.stringify({ govde_malzeme: "PLA" }) &&
       e2.araliklar.includes(5000) && !e2.araliklar.includes(3000);
     // PLAKET: form {} -> alan yok, SONRA metni yok.
-    const p = await ekranKos(kaynak, sentetik(VERI_KAYNAK), acikP, { is: "b".repeat(32), tur: "plaket", olcu: 120 });
+    const p = await ekranKos(kaynak, sentetik(VERI_KAYNAK), { acik: true, turler: [acikTur(V, "plaket")] }, null, null, { kart: "plaket" });
     const dp = [...p.bolum.agac()];
     s.PLAKET = !dp.some((n) => String(n.id || "").startsWith("foto-param-")) && !dp.some((n) => n.textContent === SONRA && n.tagName === "P");
     s.TEK_KUTU_PLAKET = tekKutu(dp);
+    Object.defineProperty(s, "iz", { value: { govde: p0.govde, istek: e2.istekler.length, araliklar: e2.araliklar, istisna: e.istisnaMetni }, enumerable: false });
     return s;
   };
   const s0 = await senaryo(EKRAN_KAYNAK);
-  ol("FM1 form alanlari manifestten: metin(max 20) · sayi(2–6, adim 1) · secim(2) · url", s0.ALANLAR, JSON.stringify(s0));
-  ol("FM2 istemci dogrulamasi = VERI.parametreDogrula (hata metni ondan; doldurunca ok + govde semaya uygun)", s0.AYNI_FONKSIYON, JSON.stringify(s0));
-  ol("FM3 onizlemesiz D turu: ornek render + '" + SONRA + "' · tuval/litofan onizleme metni 0 · buton kapali", s0.ONIZLEMESIZ, JSON.stringify(s0));
-  ol("FM1b bool alan: onay kutusu (etiketli, varsayilan isaretli) · isaret kalkinca govdede kapak:false (boolean) + dogrulama ok", s0.BOOL, JSON.stringify(s0));
+  ol("FM1 form alanlari manifestten (③): sayi(60–250, adim 0,01) · sayi(1–8) · bool(2)", s0.ALANLAR, JSON.stringify(s0));
+  ol("FM2 istemci dogrulamasi = VERI.parametreDogrula (aralik disi hata metni ondan; 120'de ok + govde semaya uygun)", s0.AYNI_FONKSIYON, JSON.stringify(s0));
+  ol("FM2b ③'te gecersiz form varken 'İleri' PASIF, gecerli olunca acik", s0.ILERI_FORM, JSON.stringify(s0));
+  ol("FM3 onizlemesiz D turu (④): ornek render + '" + SONRA + "' · tuval 0 · buton kapali", s0.ONIZLEMESIZ, JSON.stringify(s0));
+  ol("FM1b bool alan: onay kutusu (etiketli, varsayilan isaretsiz) · isaretlenince govdede ters:true (boolean) + dogrulama ok", s0.BOOL, JSON.stringify(s0));
   ol("FM4 plaket (form {}): parametre alani 0, onizleme-sonra metni 0", s0.PLAKET, JSON.stringify(s0));
-  ol("FM5 onizlemesiz D: buton onay+dogrulamayla ACILIR -> /foto/onizleme kuyrugu (foto'suz, parametreli), yoklama 5 sn", s0.KUYRUK, JSON.stringify(s0));
-  ol("FM6 TEK onay kutusu 'foto-aydinlatma-onay' aydinlatma metninin ALTINDA, form turunde ve plakette GORUNUR; eski 2 kutu 0",
+  ol("FM5 onizlemesiz D: buton onay+dogrulamayla ACILIR -> /foto/onizleme kuyrugu (gorsel + parametre + secim), yoklama 5 sn",
+     s0.KUYRUK, JSON.stringify([s0, s0.iz]));
+  ol("FM6 TEK onay kutusu 'foto-aydinlatma-onay' aydinlatma metninin ALTINDA, D turunde ve plakette GORUNUR; eski 2 kutu 0",
     s0.TEK_KUTU_FORM && s0.TEK_KUTU_PLAKET, JSON.stringify(s0));
   ol("FM7 kutu isaretsizken 'Önizleme oluştur' DISABLED, isaretlenince acilir; govdede aydinlatma_onay + surum (eski alan 0)",
     s0.KUTU_SART && s0.KUYRUK, JSON.stringify(s0));
   const FM_MUT = [
-    ["FM-M1 istemci kendi dogrulamasi (her sey gecerli)", "return F.parametreDogrula(S.tur, parametreGovde());", "return { ok: true };", ["AYNI_FONKSIYON", "BOOL"]],
+    ["FM-M1 istemci kendi dogrulamasi (her sey gecerli)", "return F.parametreDogrula(S.tur, parametreGovde());", "return { ok: true };", ["AYNI_FONKSIYON", "BOOL", "ILERI_FORM"]],
     ["FM-M2 onizleme-sonra metni dustu", "S.alanOnizlemeSonra.appendChild(el(\"p\", \"foto-uretim-ayrinti\", ONIZLEME_SONRA));", "", ["ONIZLEMESIZ"]],
-    ["FM-M3 tarayici onizleyici kosulu silindi (her D litofan sayilir)",
-     "F.kolu(S.tur) === \"deterministik\" && F.TARAYICI_ONIZLEYICI[t.uretec] === true);", "F.kolu(S.tur) === \"deterministik\");", ["KUTU_SART", "KUYRUK", "ONIZLEMESIZ"]],
-    ["FM-M4 uretec onizleme yonlendirmesi silindi (plaket/saglayici yoluna duser)",
-     "    if (onizlemeSonraSecili()) { uretecOnizle(); return; }\n", "", ["KUYRUK"]],
+    ["FM-M4 uretec onizleme yonlendirmesi silindi (saglayici yoluna duser)",
+     "    if (!!(F && F.kolu && F.kolu(S.tur) === \"deterministik\")) { uretecOnizle(); return; }\n", "", ["KUYRUK"]],
     ["FM-M5 uretec yoklama araligi plaketinki", "var aralik = uretec ? URETEC_YOKLAMA_MS : YOKLAMA_MS;", "var aralik = YOKLAMA_MS;", ["KUYRUK"]],
     ["FM-M6 buton kutusuz acilir (S1 kapisi silindi)",
      "    var tam = uyumOK && (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&",
@@ -2116,136 +1840,14 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (sentetik manifest satiri, v
     ["FM-M7 aydinlatma metni dustu (kutu metinsiz kalir)", "    S.alanOnay.appendChild(det);\n\n", "", ["TEK_KUTU_FORM", "TEK_KUTU_PLAKET"]],
     ["FM-M8 govdeye onay alani girmedi", "aydinlatma_onay: !!S.aydinlatmaOnay, onay_surum: F.onay_surum,", "onay_surum: F.onay_surum,", ["KUYRUK"]],
     ["FM-M9 bool degeri dize olarak yazilir", "S.parametre[a] = e.target.checked === true;", "S.parametre[a] = String(e.target.checked);", ["BOOL"]],
-    ["FM-M10 bool dali silindi (duz metin kutusu)", "} else if (sema.tip === \"bool\") {", "} else if (false) {", ["AYNI_FONKSIYON", "BOOL", "KUTU_SART", "KUYRUK"]],
+    ["FM-M11 malzeme secimi govdeye girmez", "      if (S.secim) govde.secim = S.secim;\n", "", ["KUYRUK"]],
     ["FM-MK kontrol (yorum)", "// FORM ALANLARI — türün", "// form alanlari — turun", []],
   ];
   for (const [ad, capa, yerine, olmeli] of FM_MUT) {
     if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
     const m = await senaryo(EKRAN_KAYNAK.replace(capa, yerine));
     const kirmizi = Object.keys(m).filter((x) => m[x] !== true).sort();
-    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli), JSON.stringify(m));
-  }
-}
-
-// ================================================================ TD — TURETILMIS EKSEN: PARAMETRE DEGISIR -> 2. ONIZLEME -> FIYAT GUNCEL
-// (kopru-15 DOM vakasi, RAPOR-DILIM3 §2 (1)). Gercek "kutu" kaydi (olcu_ekseni turetilmis) sahte DOM'da:
-// 1. durum yaniti en uzun 100 mm -> "100 mm → 1.000 TL" · en_mm 140 yapilip YENI onizleme istenir -> o anda
-// fiyat satiri "hesaplaniyor" (eski fiyat GORUNMEZ), siparis dugmesi YOK/KAPALI · 2. durum yaniti 140 mm ->
-// "140 mm → 1.400 TL". Olculmus fiyati olmayan hazir yanitta siparis dugmesi KAPALI (fiyatsiz siparis yok).
-{
-  const tdAcik = { acik: true, turler: [{ kod: "kutu", ad: "Düzenleyici kutu", aciklama: "x", ornek_sayisi: 1,
-    olculer: [{ mm: 40, fiyat_kurus: 40000 }] }] };
-  const bekle = async () => { for (let i = 0; i < 10; i++) { await new Promise((c) => setTimeout(c, 0)); } };
-  const TD_ALANLAR = ["FIYAT1", "HESAPLANIYOR", "DUGME", "FIYAT2"];
-  const tdSenaryo = async (kaynak) => {
-    const s = { FIYAT1: false, HESAPLANIYOR: false, DUGME: false, FIYAT2: false };
-    const durum = { asama: "bekliyor" };
-    const durumKoy = (v) => { for (const k of Object.keys(durum)) { delete durum[k]; } Object.assign(durum, v); };
-    // 13:5x: tür seçimi galeri kartından; S.tur = "kutu" önceden seçili (sessionStorage `pruvo_foto_tur`).
-    // kayit'te `is` VAR → sayfa S.tur/S.olcu'yu yükler; `ilkDurumBos` ilk /foto/durum çağrısını "not ok"
-    // yapar → sayfa S1'de kalır (form çizilir). POST /foto/onizleme onizle butonuyla atılır.
-    const tdKayit = { tur: "kutu", olcu: 100, is: "b".repeat(32) };
-    const e = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), tdAcik, tdKayit, durum,
-      { turnstileOto: true, zamanlayici: true, ilkDurumBos: true, postYanit: { is: "b".repeat(32), kalan: 2 } });
-    const dd = () => [...e.bolum.agac()];
-    const id = (x) => dd().find((n) => n.id === x) || null;
-    const fiyatSatiri = () => (dd().find((n) => n.classList.contains("foto-uretim-olculen-fiyat")) || { textContent: null }).textContent;
-    const sipAcik = () => dd().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sepete ekle" && n.disabled !== true).length;
-    const sipVar = () => dd().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sepete ekle").length;
-    // K2b: B2 tikleme ③'te (S3 render sonrası). onizle() yalnız önizleme isteği atar; yokla() sonrası b2Tikle S3'ü açar.
-    const b2Tikle = () => { const b2 = id("foto-b2-onay"); if (b2 && !b2.checked) { b2.checked = true; b2.tetikle("change"); } };
-    const onizle = async (enMm) => {
-      const en = id("foto-param-en_mm");
-      if (en && enMm != null) { en.value = String(enMm); en.tetikle("input"); }
-      const on = id("foto-aydinlatma-onay");
-      if (on) { on.checked = true; on.tetikle("change"); }
-      // K2b: B2 yalnız ③'te; önizleme isteği aydinlatmaOnay + uyum OK + form doğru ile koşar (S.b2Onay S3'te tiklenir).
-      const b = id("foto-onizle-buton");
-      // DEBUG: buton disabled mı?
-      if (b) {
-        s.BTN_DISABLED = b.disabled;
-        s.BTN_TEXT = b.textContent;
-        // Form alanlarını say
-        s.INPUT_SAYISI = dd().filter((n) => n.tagName === "INPUT").length;
-        s.CAPTCHA_VAR = !!dd().find((n) => n.classList && n.classList.contains("cf-turnstile"));
-      }
-      if (b) { b.tetikle("click"); }
-      await bekle();
-    };
-    const yokla = async () => {
-      const fn = e.yoklamalar[e.yoklamalar.length - 1]; if (fn) { fn(); }
-      await bekle();
-      // yoklama S3'e düşürdü; B2 tikleyerek "Sepete ekle" aç.
-      b2Tikle();
-    };
-    // 1. onizleme -> durum: en uzun 100 mm, sunucu fiyati 100000 kurus.
-    // en_mm=100 verilir (formDogrula için en_mm zorunlu; S.olcu 100 ile uyumlu).
-    await onizle(100);
-    durumKoy({ asama: "hazir", tur: "kutu", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" });
-    await yokla();
-    const f1 = fiyatSatiri();
-    s.FIYAT1 = e.istekler.length === 1 && f1 === "100 mm → 1.000 TL" && sipAcik() === 1;
-    // Parametre degisir (en 100 -> 140): S3'ten forma don, yeni onizleme iste; durum henuz "bekliyor".
-    durumKoy({ asama: "bekliyor" });
-    const baska = dd().find((n) => n.tagName === "BUTTON" && n.textContent === "Başka fotoğraf dene");
-    if (baska) { baska.tetikle("click"); await bekle(); }
-    await onizle(140);
-    const p2 = e.istekler[1] || { govde: {} };
-    const f2a = fiyatSatiri();
-    const metin2 = e.bolum.textContent;
-    s.HESAPLANIYOR = e.istekler.length === 2 && !!p2.govde.parametreler && p2.govde.parametreler.en_mm === 140 &&
-      typeof f2a === "string" && /^Fiyat hesaplanıyor/.test(f2a) && !metin2.includes("1.000 TL") && !metin2.includes("100 mm →");
-    const s2Kapali = sipAcik() === 0;
-    // 2. durum yaniti: en uzun 140 mm -> "140 mm → 1.400 TL", siparis acilir.
-    durumKoy({ asama: "hazir", tur: "kutu", olcu_mm: 140, fiyat_kurus: 140000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" });
-    await yokla();
-    const f2 = fiyatSatiri();
-    s.FIYAT2 = f2 === "140 mm → 1.400 TL" && sipAcik() === 1 && !e.bolum.textContent.includes("1.000 TL");
-    // Olculmus fiyati olmayan hazir yanit: siparis dugmesi CIZILIR ama KAPALI.
-    const e3 = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), tdAcik, tdKayit, durum,
-      { turnstileOto: true, zamanlayici: true, ilkDurumBos: true, postYanit: { is: "c".repeat(32), kalan: 2 } });
-    durumKoy({ asama: "bekliyor" });
-    const d3 = () => [...e3.bolum.agac()];
-    const on3 = d3().find((n) => n.id === "foto-aydinlatma-onay");
-    if (on3) { on3.checked = true; on3.tetikle("change"); }
-    // K2b: B2 yalnız ③'te; önizleme isteği S.b2Onay'a bağlı DEĞİL. ③'e geçtikten sonra tiklenir.
-    const b3 = d3().find((n) => n.id === "foto-onizle-buton");
-    if (b3) { b3.tetikle("click"); }
-    await bekle();
-    durumKoy({ asama: "hazir", tur: "kutu", olcu_mm: 100, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" });
-    const fn3 = e3.yoklamalar[e3.yoklamalar.length - 1];
-    if (fn3) { fn3(); }
-    await bekle();
-    const b2s3 = d3().find((n) => n.id === "foto-b2-onay");
-    if (b2s3) { b2s3.checked = true; b2s3.tetikle("change"); }
-    const sip3 = d3().filter((n) => n.tagName === "BUTTON" && n.textContent === "Sepete ekle");
-    s.DUGME = s2Kapali && sipVar() === 1 && sip3.length === 1 && sip3[0].disabled === true;
-    Object.defineProperty(s, "iz", { value: { f1, f2a, f2, s2Kapali, sip3: sip3.map((n) => n.disabled), istek: e.istekler.length }, enumerable: false });
-    return s;
-  };
-  const t0 = await tdSenaryo(EKRAN_KAYNAK);
-  ol("TD1 turetilmis tur (kutu) 1. durum yaniti en uzun 100 mm -> '100 mm → 1.000 TL', siparis acik", t0.FIYAT1, JSON.stringify([t0, t0.iz]));
-  ol("TD2 parametre degisti (en_mm 140) -> yeni onizleme isteginde fiyat satiri 'hesaplanıyor', eski '1.000 TL' GORUNMEZ",
-     t0.HESAPLANIYOR, JSON.stringify([t0, t0.iz]));
-  ol("TD3 2. yanittan once siparis dugmesi acik DEGIL; olculmus fiyatsiz hazir yanitta siparis KAPALI", t0.DUGME, JSON.stringify([t0, t0.iz]));
-  ol("TD4 2. durum yaniti en uzun 140 mm -> '140 mm → 1.400 TL', siparis acik", t0.FIYAT2, JSON.stringify([t0, t0.iz]));
-  // K2b: TD-M2 aynı KAPI'yı iki yerde tutuyor (cizS3 inline + guncelleSipButonu). B2 tikleyince guncelleSipButonu
-  // çağrılır; tek başına inline silmek yetmez. İki yerden de silmeli.
-  const TD_M2_KAYNAK = EKRAN_KAYNAK;
-  const TD_M2_MUTANT = TD_M2_KAYNAK.split(" || (nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);").join(";")
-    .split(" || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);").join(";");
-  const TD_MUT = [
-    ["TD-M1 yeni onizleme isteginde fiyat sifirlama silindi", "    S.fiyatKurus = null;\n    var fd = formDogrula();", "    var fd = formDogrula();", ["HESAPLANIYOR"]],
-    ["TD-M2 olculmus fiyatsiz siparis dugmesi kapatma silindi (cizS3 + guncelleSipButonu, iki yerden)",
-     TD_M2_KAYNAK, TD_M2_MUTANT, ["DUGME"]],
-    ["TD-MK kontrol (yorum)", "/* Türetilmiş eksen fiyat satırı:", "/* turetilmis eksen fiyat satiri:", []],
-  ];
-  for (const [ad, capa, yerine, olmeli] of TD_MUT) {
-    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
-    const m = await tdSenaryo(EKRAN_KAYNAK.replace(capa, yerine));
-    // Sadece 4 test alanına bak (debug: BTN_DISABLED/BTN_TEXT/INPUT_SAYISI/CAPTCHA_VAR dışı).
-    const kirmizi = Object.keys(m).filter((x) => TD_ALANLAR.indexOf(x) >= 0 && m[x] !== true).sort();
-    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli), JSON.stringify([m, m.iz]));
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(m));
   }
 }
 
@@ -2304,26 +1906,25 @@ console.log("AK) PLAKET ALT KENAR KALINLIGI — ayak ureteci girdisi alt_kenar_m
 
 console.log("RKU) KOSULLU RENK BOLGESI EKRANDA — pasif bolgenin seçicisi GIZLI, koşul açılınca görünür (BaBa 8 Eki 16:0x)");
 {
-  // Sentetik D satiri: logo deseni (taban Var/Yok + taban rengi yalniz "Var"da) + ses deseni (baslik dolu -> yazi).
+  // K3b2: kart evreni sabit (KARTLAR) → sentetik tür seçilemez. Koşullu bölge deseni GERÇEK yapboz kaydına
+  // (bellekteki veri kopyasında) eklenir: taban Var/Yok + taban rengi yalnız "Var"da · başlık dolu -> yazı.
   const sentetikR = (kaynakVeri) => {
     const V = veriYukle(kaynakVeri);
-    V.turler.push({ kod: "sentetik-r", ad: "Logo", aciklama: "x", girdi: ["form"], motor: "D", uretec: "isimlik_uret",
-      olcu_mm: { en_az: 80, en_cok: 200 },
+    // K3d: yapboz PALET turu; koşullu bolge deseni palet alanlari SILINMIS kopyaya konur.
+    delete V.turBul("yapboz").renk_secimi; delete V.turBul("yapboz").palet_bolgeleri;
+    Object.assign(V.turBul("yapboz"), {
       renk_bolgeleri: [{ kod: "taban", ad: "Taban", renkler: ["Beyaz", "Siyah"] },
                        { kod: "logo", ad: "Logo", renkler: ["Siyah", "Beyaz"] },
                        { kod: "yazi", ad: "Yazı", renkler: ["Kırmızı", "Beyaz"] }],
       renk_kosul: { taban: [{ alan: "taban", degerler: ["Var"] }], yazi: [{ alan: "baslik", dolu: true }] },
-      malzemeler: {},
-      form: { taban: { tip: "secim", etiket: "Taban", secenekler: ["Yok", "Var"] }, baslik: { tip: "metin", max: 20, zorunlu: false, varsayilan: "" } },
-      fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 3 }, ornek_kanit_izni: ["render"], ornek_notu: "t" });
-    V.ornekler.push({ tur: "sentetik-r", kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/t-io.webp",
-      render: "https://media.pruvo3d.com/t-ir.webp", not: "t" });
+      form: { taban: { tip: "secim", etiket: "Taban", secenekler: ["Yok", "Var"] }, baslik: { tip: "secim", etiket: "Baslik", secenekler: ["", "Ada"] } },
+      fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 3 } });
     return V;
   };
-  const acikR = { acik: true, turler: [{ kod: "sentetik-r", ad: "Logo", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
+  const acikR = { acik: true, turler: [{ kod: "yapboz", ad: "Yapboz", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
   const rku = async (kaynak) => {
     const s = {};
-    const e = await ekranKos(kaynak, sentetikR(VERI_KAYNAK), acikR, { tur: "sentetik-r", olcu: 100 });
+    const e = await ekranKos(kaynak, sentetikR(VERI_KAYNAK), acikR, null, null, { kart: "yapboz" });
     const d = () => [...e.bolum.agac()];
     const grup = (b) => d().find((n) => n.getAttribute && n.getAttribute("data-renk-bolge") === b) || null;
     const gorunur = (b) => { const g = grup(b); return !!g && g.hidden !== true; };
@@ -2391,10 +1992,11 @@ async function darSenaryolar(fm) {
   // 8 Eki: kirmizi analiz -> saglayici onarimi (zincir 3 halka) -> 'onarim-bekliyor' (elle DEGIL).
   sonuc.J = !!u && u.asama === "onarim-bekliyor" && String(u.build_gorev || "").split("~").length === 3;
   // T: sunulmayan tur — panel acilis reddi + kuyruktaki satir saglayiciya gitmeden 'elle'.
+  // K3d: anahtarlik artik KAYITLI (programin 5. turu) -> kayitsiz tur nobetcisi magnet (5 Eki kurali AYNEN).
   const pf = await fm.panelFotoAcik(new Request("https://pruvo3d.com/x", { method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ tur: "anahtarlik", acik: true }) }), e2, Date.now());
-  await k.d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel) VALUES ('PR-TEST-T', 0, ?, 'anahtarlik', 100, 'build-baslat', ?, '2000-01-01T00:00:00.000Z')")
+    body: JSON.stringify({ tur: "magnet", acik: true }) }), e2, Date.now());
+  await k.d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel) VALUES ('PR-TEST-T', 0, ?, 'magnet', 100, 'build-baslat', ?, '2000-01-01T00:00:00.000Z')")
     .bind(is, new Date().toISOString()).run();
   await fm.fotoUretimTuru(e2, Date.now(), null);
   const t = await k.d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = 'PR-TEST-T'").first();
@@ -2472,7 +2074,7 @@ const MUTANTLAR = [
   ["M2 BOT", "if (!(await botDogrula(request, env, g.turnstile_token))) {", "if (false) {", "E"],
   ["M3 ANALIZ", "if (onarimGerekli(p)) {", "if (false) {", "J"],
   // Tur uyeligi MANIFESTTEN (motor M + ortam eslemesi); kapi silinince manifestte olmayan tur acilir.
-  ["M4 ANAHTARLIK GERI ACILDI (manifest kapisi silindi)", "VERI.kolu(kod) === \"saglayici\" &&\n    Object.prototype.hasOwnProperty.call(TUR_ORTAM, kod);",
+  ["M4 MAGNET ACILDI (manifest kapisi silindi)", "VERI.kolu(kod) === \"saglayici\" &&\n    Object.prototype.hasOwnProperty.call(TUR_ORTAM, kod);",
    "kod !== \"\";", "T"],
   ["M5 AYAK DUSTU", "      foto_ayak: AYAK_PLAKET_BASI,\n", "", "A"],
   ["K0 KONTROL", "console.log(\"FOTO_URETIM kuyruga=\"", "console.log(\"FOTO_URETIM  kuyruga=\"", null],
@@ -2883,8 +2485,17 @@ async function renkKosulSenaryolar(fm) {
   const e2 = envKur(k.d1, r2k);
   const yedek = VERI.ornekler.splice(0);
   const s = {};
+  const yb = VERI.turBul("yapboz");
+  // K3d: yapboz artik PALET turu (renk_secimi + palet_bolgeleri); desen yamasinda palet alanlari SILINIR
+  // (yoksa renk sayimi palet koluna gider), finally'de asil degerleriyle geri konur.
+  const YB_ALANLAR = ["renk_bolgeleri", "renk_kosul", "fiyat", "renk_secimi", "palet_bolgeleri"];
+  const ybAsil = Object.fromEntries(YB_ALANLAR.map((a) => [a, yb[a]]));
+  const desenKoy = (d) => {
+    delete yb.renk_secimi; delete yb.palet_bolgeleri;
+    Object.assign(yb, d, { fiyat: { ...ybAsil.fiyat, renk_tavani: 3 } });
+  };
   try {
-    for (const t of ["plaket", "figur", "bust", "logo", "ses"]) {
+    for (const t of ["plaket", "figur", "bust", "yapboz"]) {
       VERI.ornekler.push({ tur: t, kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/rk-o.webp",
                            render: "https://media.pruvo3d.com/rk-r.webp", not: "t" });
       await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES (?, 1, 'x')").bind(t).run();
@@ -2919,18 +2530,24 @@ async function renkKosulSenaryolar(fm) {
               red(await fiyatla(isB, { renkler: P5.slice(0, 3), secim: malzeme("bust") })) &&
               (await fiyatla(isP, { renkler: P5.slice(0, 4) })).satir?.birim_kurus === 130000 &&
               (await fiyatla(isB, { renkler: P5.slice(0, 2), secim: malzeme("bust") })).satir?.birim_kurus === 110000;
-    // LOGO: taban "Yok" iken farkli taban rengi +0 ve satir/uretim seciminde YOK; taban "Var" iken +100.
-    const lsec = { ...malzeme("logo"), taban_renk: "Beyaz", logo_renk: "Siyah" };
-    const lYok = await fiyatla(await isKur("logo", { taban: "Yok" }), { secim: lsec });
-    const lVar = await fiyatla(await isKur("logo", { taban: "Var" }), { secim: lsec });
+    // K3b2: logo/ses türleri silindi → koşullu bölge desenleri GERÇEK yapboz kaydına (global VERI, geçici; finally'de
+    // geri alınır) uygulanır — sunucunun koşullu bölge kodu AYNI.
+    // LOGO deseni: taban "Yok" iken farkli taban rengi +0 ve satir/uretim seciminde YOK; taban "Var" iken +100.
+    desenKoy({ renk_bolgeleri: [{ kod: "taban", ad: "Taban", renkler: ["Beyaz", "Siyah"] }, { kod: "logo", ad: "Logo", renkler: ["Siyah", "Beyaz"] }],
+      renk_kosul: { taban: [{ alan: "taban", degerler: ["Var"] }] } });
+    const lsec = { ...malzeme("yapboz"), taban_renk: "Beyaz", logo_renk: "Siyah" };
+    const lYok = await fiyatla(await isKur("yapboz", { taban: "Yok" }), { secim: lsec });
+    const lVar = await fiyatla(await isKur("yapboz", { taban: "Var" }), { secim: lsec });
     s.LOGO = !!lYok.satir && lYok.satir.birim_kurus === 100000 && !("taban_renk" in lYok.satir.foto_secim) &&
              !/Taban: .*Beyaz/.test(lYok.satir.renk) && !!lVar.satir && lVar.satir.birim_kurus === 110000 &&
              lVar.satir.foto_secim.taban_renk === "Beyaz";
-    // SES: baslik bos -> yazi rengi sayilmaz (2 renk); baslik dolu -> 3 renk. Girdi okunamazsa koşullu bolge PASIF.
-    const ssec = { ...malzeme("ses"), plaka_renk: "Beyaz", cubuk_renk: "Siyah", yazi_renk: "Kırmızı" };
-    const sBos = await fiyatla(await isKur("ses", { baslik: "" }), { secim: ssec });
-    const sDolu = await fiyatla(await isKur("ses", { baslik: "Ada" }), { secim: ssec });
-    const sYok = await fiyatla(await isKur("ses", null), { secim: ssec });
+    // SES deseni: baslik bos -> yazi rengi sayilmaz (2 renk); baslik dolu -> 3 renk. Girdi okunamazsa koşullu bolge PASIF.
+    desenKoy({ renk_bolgeleri: [{ kod: "plaka", ad: "Plaka", renkler: ["Beyaz", "Siyah"] }, { kod: "cubuk", ad: "Çubuk", renkler: ["Siyah", "Beyaz"] },
+      { kod: "yazi", ad: "Yazı", renkler: ["Kırmızı", "Beyaz"] }], renk_kosul: { yazi: [{ alan: "baslik", dolu: true }] } });
+    const ssec = { ...malzeme("yapboz"), plaka_renk: "Beyaz", cubuk_renk: "Siyah", yazi_renk: "Kırmızı" };
+    const sBos = await fiyatla(await isKur("yapboz", { baslik: "" }), { secim: ssec });
+    const sDolu = await fiyatla(await isKur("yapboz", { baslik: "Ada" }), { secim: ssec });
+    const sYok = await fiyatla(await isKur("yapboz", null), { secim: ssec });
     s.SES = !!sBos.satir && sBos.satir.birim_kurus === 110000 && !!sDolu.satir && sDolu.satir.birim_kurus === 120000 &&
             sDolu.satir.foto_secim.yazi_renk === "Kırmızı" && !!sYok.satir && sYok.satir.birim_kurus === 110000;
     // BUST: odenen 2 palet rengi uretec girdisinde taban/rolyef bolgelerine sirayla.
@@ -2939,6 +2556,7 @@ async function renkKosulSenaryolar(fm) {
     s.BUST = JSON.stringify(g2.renkler) === '{"taban":"Lacivert","rolyef":"Kırmızı"}' &&
              JSON.stringify(g1.renkler) === '{"taban":"Gri"}';
   } finally {
+    for (const a of YB_ALANLAR) { if (ybAsil[a] === undefined) { delete yb[a]; } else { yb[a] = ybAsil[a]; } }
     VERI.ornekler.splice(0, VERI.ornekler.length, ...yedek);
     k.kapat();
   }
@@ -2950,8 +2568,8 @@ console.log("RKK) RENK TAVANI + KOSULLU BOLGE + PALET ESLEMESI — odenen her re
   const s = await renkKosulSenaryolar(foto);
   ol("RKK1 plaket 5 / figur 5 / bust 3 renk -> 400 gecersiz-renk · tavan icinde plaket 4 = 1.300 TL, bust 2 = 1.100 TL",
      s.TAVAN === true, JSON.stringify(s));
-  ol("RKK2 logo taban 'Yok' -> taban rengi +0 TL ve secimde YOK · 'Var' -> +100 TL", s.LOGO === true, JSON.stringify(s));
-  ol("RKK3 ses baslik bos -> yazi rengi +0 · dolu -> +100 · girdi okunamazsa koşullu bolge pasif (fail-closed)",
+  ol("RKK2 kosullu taban (logo deseni, yapboz kaydinda) 'Yok' -> taban rengi +0 TL ve secimde YOK · 'Var' -> +100 TL", s.LOGO === true, JSON.stringify(s));
+  ol("RKK3 kosullu yazi (ses deseni, yapboz kaydinda) baslik bos -> +0 · dolu -> +100 · girdi okunamazsa koşullu bolge pasif (fail-closed)",
      s.SES === true, JSON.stringify(s));
   ol("RKK4 bust palet renkleri uretec girdisinde taban/rolyef'e sirayla (2 renk -> 2 bolge, 1 renk -> taban)",
      s.BUST === true, JSON.stringify(s));
@@ -2986,8 +2604,12 @@ async function dinamikMinSenaryolar(fm) {
   const e2 = envKur(k.d1, r2k);
   const yedek = VERI.ornekler.splice(0);
   const s = {};
+  // K3b2: koordinat/rolyef silindi → içeriğe bağlı alt sınır kolu GERÇEK yapboz kaydında (global VERI, geçici
+  // `olcu_min_dinamik`, finally'de geri) · sabit taban vakası GERÇEK bust (taban 60).
+  const yb = VERI.turBul("yapboz"), ybDin = yb.olcu_min_dinamik;
+  yb.olcu_min_dinamik = true;
   try {
-    for (const t of ["koordinat", "rolyef"]) {
+    for (const t of ["yapboz", "bust"]) {
       VERI.ornekler.push({ tur: t, kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/dm-o.webp",
                            render: "https://media.pruvo3d.com/dm-r.webp", not: "t" });
       await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES (?, 1, 'x')").bind(t).run();
@@ -3008,18 +2630,21 @@ async function dinamikMinSenaryolar(fm) {
       for (const b of (t.renk_bolgeleri || [])) { sc[b.kod + "_renk"] = b.renkler[0]; }
       return sc;
     };
-    const fiyatla = async (is, tur, mm) => fm.fotoKalemFiyatla(e2, { foto_is: is, olcu_mm: mm, adet: 1, secim: secim(tur) }, Date.now());
-    const isK = await isKur("koordinat", { min_mm: 152.4 });
-    const alt = await fiyatla(isK, "koordinat", 150);
+    // K3d: yapboz PALET turu -> renk sayisi `renkler`den (2 renk = taban + 1 ek renk); palet disi tur renksiz.
+    const renkler = (tur) => (VERI.renkPaleti(tur) ? { renkler: ["Beyaz", "Siyah"] } : {});
+    const fiyatla = async (is, tur, mm) => fm.fotoKalemFiyatla(e2, { foto_is: is, olcu_mm: mm, adet: 1, secim: secim(tur), ...renkler(tur) }, Date.now());
+    const isK = await isKur("yapboz", { min_mm: 152.4 });
+    const alt = await fiyatla(isK, "yapboz", 150);
     s.ALT = alt.kod === 400 && alt.hata.hata === "olcu-min" && alt.hata.min_mm === 160 && /en az 160 mm/.test(alt.hata.mesaj);
-    const ust = await fiyatla(isK, "koordinat", 160);
-    s.UST = !!ust.satir && ust.satir.birim_kurus === VERI.fiyatKurus("koordinat", 160, ust.satir.foto_renkler.length) &&
-            ust.satir.birim_kurus >= 160000;
-    const yok = await fiyatla(await isKur("koordinat", null), "koordinat", 160);
+    const ust = await fiyatla(isK, "yapboz", 160);
+    s.UST = !!ust.satir && ust.satir.birim_kurus === VERI.fiyatKurus("yapboz", 160, ust.satir.foto_renkler.length) &&
+            ust.satir.foto_renkler.length === 2 && ust.satir.birim_kurus === 160000 + VERI.ekRenkKurus("yapboz");
+    const yok = await fiyatla(await isKur("yapboz", null), "yapboz", 160);
     s.YOK = yok.kod === 400 && yok.hata.hata === "foto-onizleme-yok";
-    const sab = await fiyatla(await isKur("rolyef", {}), "rolyef", 10);
-    s.SABIT = sab.kod === 400 && sab.hata.hata === "gecersiz-olcu" && VERI.olcuAraligi("rolyef").en_az === 60;
+    const sab = await fiyatla(await isKur("bust", {}), "bust", 10);
+    s.SABIT = sab.kod === 400 && sab.hata.hata === "gecersiz-olcu" && VERI.olcuAraligi("bust").en_az === 60;
   } finally {
+    if (ybDin === undefined) { delete yb.olcu_min_dinamik; } else { yb.olcu_min_dinamik = ybDin; }
     VERI.ornekler.splice(0, VERI.ornekler.length, ...yedek);
     k.kapat();
   }
@@ -3029,10 +2654,10 @@ async function dinamikMinSenaryolar(fm) {
 console.log("DMIN) DINAMIK ALT SINIR — icerige bagli turde onizlemenin olctugu min'in alti 400; sabit turde taban (BaBa 14:3x)");
 {
   const s = await dinamikMinSenaryolar(foto);
-  ol("DMIN1 koordinat min 152,4 mm -> 150 mm siparis 400 olcu-min 'en az 160 mm' (adima yuvarli)", s.ALT === true, JSON.stringify(s));
-  ol("DMIN2 koordinat 160 mm -> fiyatlanir (160 mm x 10 TL + ek renk)", s.UST === true, JSON.stringify(s));
+  ol("DMIN1 icerige bagli tur (yapboz kaydi, dinamik min) min 152,4 mm -> 150 mm siparis 400 olcu-min 'en az 160 mm' (adima yuvarli)", s.ALT === true, JSON.stringify(s));
+  ol("DMIN2 icerige bagli tur 160 mm -> fiyatlanir (160 mm x 10 TL + ek renk)", s.UST === true, JSON.stringify(s));
   ol("DMIN3 onizlemede min olcumu yok -> 400 foto-onizleme-yok (fail-closed)", s.YOK === true, JSON.stringify(s));
-  ol("DMIN4 sabit tur rolyef (taban 60) 10 mm -> 400 gecersiz-olcu", s.SABIT === true, JSON.stringify(s));
+  ol("DMIN4 sabit tur bust (taban 60) 10 mm -> 400 gecersiz-olcu", s.SABIT === true, JSON.stringify(s));
   // Musteri metni: koşucu reddi `uretec-red:olcu-min-<N>` -> "bu icerik icin en az N mm".
   ol("DMIN5 uretec-red:olcu-min-160 -> 'Bu içerik için en az 160 mm gerekiyor' metni",
      /^Bu içerik için en az 160 mm gerekiyor;/.test(VERI.uretecRedMetni("uretec-red:olcu-min-160")), VERI.uretecRedMetni("uretec-red:olcu-min-160"));
@@ -3274,424 +2899,467 @@ for (const [ad, degisiklik, olmeli] of SP_MUTANTLAR) {
 }
 
 // ================================================================ K2b — UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR
-// (sayfa-3adim K2b — K2 tur 1 eksikleri: parça kapısı + B2 tek + İptal hatası + iç çubuk + 7 mutant).
-// ÖLÇÜM: A metni birebir · 5 kelime DUR · 5 tasarım geçer · foto soru çıkar 3/3 + Evet/Hayır/cevapsız ·
-//         girdi türünde soru 0 · DUR'da 0 istek · İptal→yeni tür ② dolu · B2 sayısı 1 · iç çubuk 0
+// (sayfa-3adim K2b — parça kapısı + B2 tek + İptal hatası + iç çubuk + mutantlar). K3b2: kart evreni sabit
+// (KARTLAR) → sentetik foto türü yerine GERÇEK plaket kartı (foto-1, sağlayıcı kolu); girdi türü (sentetik-g)
+// ve M-ADIM2 vakaları SİLİNDİ (K3a: tüm türler foto; ② başlığı türe göre değişmez).
+// ÖLÇÜM: ret cümlesi birebir · 5 kelime DUR · 5 tasarım geçer · foto soru çıkar 3/3 + Evet/Hayır/cevapsız ·
+//         DUR'da 0 istek · İptal→yeni tür ② dolu · B2 sayısı 1 · iç çubuk 0
 console.log("K2b) UYUM KAPISI + B2 TEK + İPTAL + MUTANTLAR");
+const ORTAK_RET = "Fotoğraftan parça ya da yedek parça üretmiyoruz.";
+const acikGercekTur = (V, kod) => ({ kod, ad: V.turBul(kod).ad, aciklama: "x", ornek_sayisi: 1,
+  olculer: V.olcuSecenekleri(kod).map((mm) => ({ mm, fiyat_kurus: V.fiyatKurus(kod, mm) })) });
+const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikGercekTur(V, k)) });
 {
-  // (1) A METNİ BİREBİR — foto türünde parça kelimesi → A ekranı, metin A_METIN_BIREBIR.
+  // Sayfa metni (ArTisT c35a848d) ortak ret cümlesi = kaynaktaki A_METIN_BIREBIR (TEK KAYNAK, birebir).
+  const METIN_DOSYA = path.join(KOK, "..", "pruvo-pazarlama", "icerik", "foto-ozel-uretim-sayfa-metni.md");
+  const metinRet = fs.existsSync(METIN_DOSYA)
+    ? ((fs.readFileSync(METIN_DOSYA, "utf8").split("## Ortak ret cümlesi")[1] || "").split("\n").map((x) => x.trim()).filter(Boolean)[1] || "")
+    : ORTAK_RET;
   const fotoAcik = { acik: true, turler: [{ kod: "plaket", ad: "Kabartma plaket", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
-  const girdiAcik = { acik: true, turler: [{ kod: "isimlik", ad: "İsimlik", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
-  // Sentetik foto türü: girdi foto-1.
-  // K2b-fin: sentetik-f için sentetik bir ornek de eklendi (K2b-* testleri kart tıklaması yapmıyor
-  // ama uyumSonucBul içindeki kart araması artık başarılı — ileride kart-tabanlı testlerde boşluk bırakmaz).
-  const sentetikFotoVeri = (VERI_KAYNAK_ORJ) => {
-    const V = veriYukle(VERI_KAYNAK_ORJ);
-    V.turler.push({ kod: "sentetik-f", ad: "Sentetik Foto", aciklama: "x", girdi: ["foto-1"], uretec: "litofan_uret",
-      olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {},
-      form: {}, fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
-      ornek_kanit_izni: ["render"], ornek_notu: "t" });
-    V.ornekler.push({ tur: "sentetik-f", kanit: "render", olcu_mm: 100,
-      onizleme: "https://media.pruvo3d.com/foto/ornek/sentetik-f-1-render.webp",
-      render: "https://media.pruvo3d.com/foto/ornek/sentetik-f-1-render.webp",
-      not: "sentetik foto 100 mm" });
-    return V;
-  };
-  // Sentetik girdi türü: girdi "form" (girdi türü, foto DEĞİL).
-  // K2b-fin: sentetik-g için sentetik bir ornek de eklendi (M-ADIM2 mutant testi kart tıklamasıyla
-  // ② başlığını günceller; orneksiz tür galeride kart oluşturmaz → baslik boş kalırdı).
-  const sentetikGirdiVeri = (VERI_KAYNAK_ORJ) => {
-    const V = veriYukle(VERI_KAYNAK_ORJ);
-    V.turler.push({ kod: "sentetik-g", ad: "Sentetik Girdi", aciklama: "x", girdi: ["form"], uretec: "isimlik_uret",
-      olcu_mm: { en_az: 80, en_cok: 200 }, renk_bolgeleri: [], malzemeler: {},
-      form: { yazi: { tip: "metin", max: 20 } },
-      fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
-      ornek_kanit_izni: ["render"], ornek_notu: "t" });
-    V.ornekler.push({ tur: "sentetik-g", kanit: "render", olcu_mm: 100,
-      onizleme: "https://media.pruvo3d.com/foto/ornek/sentetik-g-1-render.webp",
-      render: "https://media.pruvo3d.com/foto/ornek/sentetik-g-1-render.webp",
-      not: "sentetik girdi 100 mm" });
-    return V;
-  };
-
-  // (2) Parça/yedek kelime vakaları (5/5 uygun_degil). Tarif metni anahtar kelime içerir.
-  // (3) Tasarım tarifleri (5/5 geçer): "annemin portresi", "köpeğim Pamuk", "logo", "deniz manzarası", "düğün tarihi".
+  // K2b fikstür biçimi AYNEN: /acik türü TAM manifest kaydı (girdi dahil). K3c: uyumKontrol girdiyi MANIFESTTEN
+  // (F.turBul) okur — CANLI /acik biçimi (`fotoAcik`, girdi YOK) ile de soru çıkmalı (K2b-C vakaları + M-UYUM-CANLI).
+  const fotoAcikTam = { acik: true, turler: [{ ...veriYukle(VERI_KAYNAK).turBul("plaket"), ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
   const kelimeDUR = ["annemin parçası", "telefonumun yedeği", "kırıldı", "mekanizması bozuldu", "orijinal dişlisi"];
   const tasarimGecer = ["annemin portresi", "köpeğim Pamuk", "logo", "deniz manzarası", "düğün tarihi"];
-  // Not: "düğün tarihi" → "tarih" içermez ama "kilit"/"kırık"/"kayıp" yok. "Pamuk" → "kayıp" yok. Hepsi geçer.
-  // "logo" → "kilips" değil, "kilit" değil, "yuva" değil. Geçer.
-
-  // Test için ortak: foto türünde tur sec → uretimNotu yaz → uyumKontrol çağır.
-  // uyumKontrol kod=foto türü kodu; tarif=S.uretimNotu; cevap=S.belirsizCevap.
-  // EkranKos yardımcısı: form cizildikten sonra uretimNotu'nu doldur, sonra cizUyum tetikle, sonra uyumSonuc oku.
-  const uyumSonucBul = async (kaynak, kod, tarif, cevap) => {
-    const V = sentetikFotoVeri(VERI_KAYNAK);
-    const acik = { acik: true, turler: V.turler };
-    // uretimNotu uygulanmış + tıklanmış tür ile S1'e in.
-    const kayit = { is: "a".repeat(32), tur: kod, olcu: 100 };
-    const e = await ekranKos(kaynak, V, acik, kayit, undefined, { turnstileOto: true });
+  // Ortak: plaket kartı (oturumdan seçili) → ② "Nasıl olsun?" yaz → (Evet/Hayır) → uyum paneli oku.
+  const uyumSonucBul = async (kaynak, tarif, cevap, acik) => {
+    const V = veriYukle(VERI_KAYNAK);
+    const kayit = { is: "a".repeat(32), tur: "plaket", olcu: 100 };
+    const e = await ekranKos(kaynak, V, acik || fotoAcikTam, kayit, undefined, { turnstileOto: true, kart: "plaket" });
     const dd = () => [...e.bolum.agac()];
-    const tur = (k) => dd().find((n) => n.classList.contains("foto-uretim-galeri-kucuk") && n.getAttribute("data-tur") === k);
-    const kart = tur(kod);
-    if (kart) kart.tetikle("click");
-    // uretimNotu textarea'sını doldur.
     const ta = dd().find((n) => n.id === "foto-not");
     if (ta && tarif != null) { ta.value = tarif; ta.tetikle("input"); }
-    // belirsiz cevabı tıkla (true=Evet, false=Hayır).
-    if (cevap === true) {
-      const evet = dd().find((n) => n.id === "foto-uyum-evet");
-      if (evet) evet.tetikle("click");
-    } else if (cevap === false) {
-      const hayir = dd().find((n) => n.id === "foto-uyum-hayir");
-      if (hayir) hayir.tetikle("click");
-    }
-    // uyumSonuc metni: "Tasarım mı, parça mı?" (belirsiz) veya A metni (uygun_degil) veya hiçbiri (uygun).
+    if (cevap === true) { const evet = dd().find((n) => n.id === "foto-uyum-evet"); if (evet) evet.tetikle("click"); }
+    else if (cevap === false) { const hayir = dd().find((n) => n.id === "foto-uyum-hayir"); if (hayir) hayir.tetikle("click"); }
     const soruBaslik = dd().find((n) => n.classList && n.classList.contains("foto-uretim-uyum-baslik") && n.textContent === "Tasarım mı, parça mı?");
     const aMetin = dd().find((n) => n.classList && n.classList.contains("foto-uretim-uyum-metin"));
     return { soruVar: !!soruBaslik, aMetin: aMetin ? aMetin.textContent : null, ekran: e };
   };
-  // Sentetik girdi türü için: aynı test ama sentetik-g girdi tipi "form".
-  const uyumSonucGirdi = async (kaynak, tarif) => {
-    const V = sentetikGirdiVeri(VERI_KAYNAK);
-    const acik = { acik: true, turler: V.turler };
-    const kayit = { is: "b".repeat(32), tur: "sentetik-g", olcu: 100 };
-    const e = await ekranKos(kaynak, V, acik, kayit, undefined, { turnstileOto: true });
-    const dd = () => [...e.bolum.agac()];
-    const kart = dd().find((n) => n.classList.contains("foto-uretim-galeri-kucuk") && n.getAttribute("data-tur") === "sentetik-g");
-    if (kart) kart.tetikle("click");
-    const ta = dd().find((n) => n.id === "foto-not");
-    if (ta && tarif != null) { ta.value = tarif; ta.tetikle("input"); }
-    const soruBaslik = dd().find((n) => n.classList && n.classList.contains("foto-uretim-uyum-baslik") && n.textContent === "Tasarım mı, parça mı?");
-    return { soruVar: !!soruBaslik };
-  };
 
-  // 1) Parça/yedek kelime DUR (5/5).
   let dur5 = 0;
   for (const t of kelimeDUR) {
-    const r = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", t, undefined);
+    const r = await uyumSonucBul(EKRAN_KAYNAK, t, undefined);
     if (r.aMetin && r.aMetin.indexOf("Fotoğraftan parça ya da yedek parça üretmiyoruz") === 0 && !r.soruVar) dur5++;
   }
-  ol("K2b-1 parça kelime vakası 5/5 uygun_degil (A metni)", dur5 === 5, "basarili=" + dur5);
-
-  // 2) Tasarım tarifleri GEÇER (5/5): uyum paneli BOŞ (soru yok, A yok) — fotoğraf türü + cevap yok
-  //    olduğundan soru ÇIKAR. Burada "geçer" = cevap vermeden yola devam edilebilir anlamında, soru kabul.
-  //    Test: cevap=Hayır işaretlerse uyum OK olur (form görünür, A yok, soru da kapanır).
+  ol("K2b-1 parça kelime vakası 5/5 uygun_degil (ortak ret cümlesi)", dur5 === 5, "basarili=" + dur5);
   let gecer5 = 0;
   for (const t of tasarimGecer) {
-    const r = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", t, false);  // Hayır
+    const r = await uyumSonucBul(EKRAN_KAYNAK, t, false);  // Hayır
     if (!r.aMetin && !r.soruVar) gecer5++;
   }
   ol("K2b-2 tasarım tarifi 5/5 geçer (Hayır → uyum OK)", gecer5 === 5, "basarili=" + gecer5);
-
-  // 3) Foto türünde soru çıkar 3/3 (cevapsız): cevap yoksa "Tasarım mı, parça mı?" başlığı görünür.
-  //    K2b-fin: SPEC ile sayaç eşleşsin diye TAM 3 vaka (önce 5 vakaydı; sayım 5/5 olunca 3/3 beklentisi
-  //    ile çelişiyordu). Seçilen 3 vaka: "annemin portresi" (insan/kategori), "logo" (marka), "deniz manzarası" (mekan).
   const soruVakalari = ["annemin portresi", "logo", "deniz manzarası"];
   let soruCikar = 0;
   for (const t of soruVakalari) {
-    const r = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", t, undefined);
+    const r = await uyumSonucBul(EKRAN_KAYNAK, t, undefined);
     if (r.soruVar && !r.aMetin) soruCikar++;
   }
   ol("K2b-3 foto türünde soru çıkar 3/3 (cevapsız)", soruCikar === 3, "basarili=" + soruCikar);
-
-  // 4) Evet → DUR (1/1): "annemin portresi" + Evet → A metni (parça kabul etti).
-  const evetDUR = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", "annemin portresi", true);
-  ol("K2b-4 Evet→DUR 1/1 (parça onayı → A metni)",
-     evetDUR.aMetin && evetDUR.aMetin.indexOf("Fotoğraftan parça") === 0 && !evetDUR.soruVar,
+  const evetDUR = await uyumSonucBul(EKRAN_KAYNAK, "annemin portresi", true);
+  ol("K2b-4 Evet→DUR 1/1 (parça onayı → ret cümlesi)",
+     !!evetDUR.aMetin && evetDUR.aMetin.indexOf("Fotoğraftan parça") === 0 && !evetDUR.soruVar,
      JSON.stringify({ aMetin: evetDUR.aMetin, soruVar: evetDUR.soruVar }));
-
-  // 5) Hayır → geçer (1/1): yukarıda zaten gecer5 test edildi; burada ayrıca 1/1 kanıt.
-  const hayirG = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", "logo", false);
-  ol("K2b-5 Hayır→geçer 1/1 (soru kapanır, A yok)", !hayirG.aMetin && !hayirG.soruVar, JSON.stringify(hayirG));
-
-  // 6) Cevapsız → DUR (1/1): "Önizleme oluştur" butonu PASIF (cünkü uyum OK değil).
-  //    Bu test foto türünde, uretimNotu "logo", cevap undefined → belirsiz → buton disabled.
-  const cevapsiz = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", "logo", undefined);
-  const cevapsizBtn = cevapsiz.ekran.bolum.agac() ? [...cevapsiz.ekran.bolum.agac()].find((n) => n.id === "foto-onizle-buton") : null;
-  ol("K2b-6 cevapsız→DUR 1/1 (belirsiz → onizle butonu disabled)",
-     cevapsiz.soruVar && cevapsizBtn && cevapsizBtn.disabled === true,
-     JSON.stringify({ soruVar: cevapsiz.soruVar, btnDisabled: cevapsizBtn && cevapsizBtn.disabled }));
-
-  // 7) DUR vakalarında 2D/önizleme isteği 0: "kırıldı" yaz → "Önizleme oluştur" tıkla → fetch sayacı 0.
-  //    (fetch istekleri e.istekler üzerinden ölçülür; S2'ye hiç düşmemeli.)
+  const hayirG = await uyumSonucBul(EKRAN_KAYNAK, "logo", false);
+  ol("K2b-5 Hayır→geçer 1/1 (soru kapanır, ret yok)", !hayirG.aMetin && !hayirG.soruVar, JSON.stringify({ aMetin: hayirG.aMetin, soruVar: hayirG.soruVar }));
+  // 6) Cevapsız → DUR: ④ "Önizleme oluştur" PASİF ve ② "İleri" PASİF (uyum OK değil).
+  const cevapsiz = await uyumSonucBul(EKRAN_KAYNAK, "logo", undefined);
+  const cevapsizBtn = [...cevapsiz.ekran.bolum.agac()].find((n) => n.id === "foto-onizle-buton");
+  const cevapsizIleri = [...cevapsiz.ekran.bolum.agac()].find((n) => n.id === "foto-ileri");
+  ol("K2b-6 cevapsız→DUR 1/1 (belirsiz → onizle butonu + ② İleri disabled)",
+     cevapsiz.soruVar && !!cevapsizBtn && cevapsizBtn.disabled === true && !!cevapsizIleri && cevapsizIleri.disabled === true,
+     JSON.stringify({ soruVar: cevapsiz.soruVar, btnDisabled: cevapsizBtn && cevapsizBtn.disabled, ileri: cevapsizIleri && cevapsizIleri.disabled }));
+  // K2b-C (K3c): CANLI /acik biçimi (girdi alanı YOK) — soru çıkar 3/3 · Evet→DUR · cevapsız→DUR.
+  const canliSoru = async (kaynak) => {
+    let n = 0;
+    for (const t of soruVakalari) { const r = await uyumSonucBul(kaynak, t, undefined, fotoAcik); if (r.soruVar && !r.aMetin) n++; }
+    return n;
+  };
+  const canliN = await canliSoru(EKRAN_KAYNAK);
+  ol("K2b-C3 CANLI /acik (girdi yok) foto türünde soru çıkar 3/3", canliN === 3, "basarili=" + canliN);
+  const canliEvet = await uyumSonucBul(EKRAN_KAYNAK, "annemin portresi", true, fotoAcik);
+  ol("K2b-C4 CANLI /acik Evet→DUR 1/1", !!canliEvet.aMetin && canliEvet.aMetin.indexOf("Fotoğraftan parça") === 0 && !canliEvet.soruVar,
+     JSON.stringify({ aMetin: canliEvet.aMetin, soruVar: canliEvet.soruVar }));
+  const canliBos = await uyumSonucBul(EKRAN_KAYNAK, "logo", undefined, fotoAcik);
+  const canliBtn = [...canliBos.ekran.bolum.agac()].find((n) => n.id === "foto-onizle-buton");
+  const canliIleri = [...canliBos.ekran.bolum.agac()].find((n) => n.id === "foto-ileri");
+  ol("K2b-C6 CANLI /acik cevapsız→DUR 1/1 (soru + onizle + ② İleri disabled)",
+     canliBos.soruVar && !!canliBtn && canliBtn.disabled === true && !!canliIleri && canliIleri.disabled === true,
+     JSON.stringify({ soruVar: canliBos.soruVar, btn: canliBtn && canliBtn.disabled, ileri: canliIleri && canliIleri.disabled }));
+  // M-UYUM-CANLI: tür kaydı yeniden önce seçili /acik kaydından (seciliTurBul) alınırsa canlı biçimde soru ÇIKMAZ.
+  const mUCCapa = "    var nt = F && typeof F.turBul === \"function\" && kod ? F.turBul(kod) : null;\n";
+  const mUCUyg = EKRAN_KAYNAK.split(mUCCapa).length - 1 === 1;
+  const mUCn = mUCUyg ? await canliSoru(EKRAN_KAYNAK.replace(mUCCapa,
+    "    var nt = (typeof seciliTurBul === \"function\" ? seciliTurBul() : null);\n    if (!nt && F && typeof F.turBul === \"function\" && kod) nt = F.turBul(kod);\n")) : -1;
+  ol("M-UYUM-CANLI seciliTurBul önceliğine dönülür ⇒ CANLI /acik'te soru 0/3 (KIRMIZI)", mUCUyg && mUCn === 0,
+     mUCUyg ? "soru=" + mUCn : "MUTANT_UYGULANMADI");
+  // 7) DUR vakalarında 2D/önizleme isteği 0.
   const fetchSayac = async (kaynak, uretimMetni, cevap) => {
-    const V = sentetikFotoVeri(VERI_KAYNAK);
-    const acik = { acik: true, turler: V.turler };
-    const kayit = { is: "c".repeat(32), tur: "sentetik-f", olcu: 100 };
-    const e = await ekranKos(kaynak, V, acik, kayit, undefined, { turnstileOto: true, zamanlayici: true });
+    const V = veriYukle(VERI_KAYNAK);
+    const kayit = { is: "c".repeat(32), tur: "plaket", olcu: 100 };
+    const e = await ekranKos(kaynak, V, fotoAcikTam, kayit, undefined, { turnstileOto: true, zamanlayici: true, kart: "plaket" });
     const dd = () => [...e.bolum.agac()];
-    const kart = dd().find((n) => n.classList.contains("foto-uretim-galeri-kucuk") && n.getAttribute("data-tur") === "sentetik-f");
-    if (kart) kart.tetikle("click");
     const ta = dd().find((n) => n.id === "foto-not");
     if (ta) { ta.value = uretimMetni; ta.tetikle("input"); }
     if (cevap === true) { const ev = dd().find((n) => n.id === "foto-uyum-evet"); if (ev) ev.tetikle("click"); }
     const btn = dd().find((n) => n.id === "foto-onizle-buton");
     if (btn) btn.tetikle("click");
-    // aydinlatma onayı da tikleyelim (kapıdan sonra bu kalmış olabilir).
     const on = dd().find((n) => n.id === "foto-aydinlatma-onay");
     if (on && !on.checked) { on.checked = true; on.tetikle("change"); }
     if (btn && !btn.disabled) btn.tetikle("click");
     return e.istekler.length;
   };
-  // Belirsiz (soru cevapsız): buton disabled, tıklama etkisiz, fetch 0.
   const belirsizIstek = await fetchSayac(EKRAN_KAYNAK, "annemin portresi", undefined);
-  // Evet (A ekranı): aydinlatma tikleyince bile A ekranı DOM'da, fetch 0.
   const evetIstek = await fetchSayac(EKRAN_KAYNAK, "kırıldı", true);
   ol("K2b-7 DUR vakalarında 2D/önizleme isteği 0 (belirsiz & uygun_degil)",
-     belirsizIstek === 0 && evetIstek === 0,
-     JSON.stringify({ belirsizIstek, evetIstek }));
-
-  // 8) Girdi türünde soru 0: sentetik-g (girdi "form") + uretimNotu "kırıldı" → kelime DUR (A ekranı);
-  //    ama cevap SORUSU çıkmaz (soru sadece foto türünde).
-  const girdiK = await uyumSonucGirdi(EKRAN_KAYNAK, "kırıldı");
-  const girdiG = await uyumSonucGirdi(EKRAN_KAYNAK, "logo");
-  // sentetik-g için cevap=undefined olsa bile soru çıkmamalı.
-  ol("K2b-8 girdi türünde soru 0 (kelime var → A; yok → uyum OK; hiçbirinde soru)",
-     !girdiK.soruVar && !girdiG.soruVar,
-     JSON.stringify({ girdiK: girdiK.soruVar, girdiG: girdiG.soruVar }));
-
-  // 9) A metni birebir: uygun_degil'de metin TAM A_METIN_BIREBIR.
-  const aMetinTam = evetDUR.aMetin === "Fotoğraftan parça ya da yedek parça üretmiyoruz. Programımız tasarım ürünleri içindir:";
-  ol("K2b-9 A metni birebir (kaynaktaki A_METIN_BIREBIR ile aynı)", aMetinTam, JSON.stringify({ aMetin: evetDUR.aMetin }));
-
-  // 10) B2 checkbox sayısı 1: S1'deki (foto-b2-onay-s1) SİLİNMİŞ; yalnız ③'ten (foto-b2-onay) var.
-  //     S1'de sayım: foto-b2-onay-s1 sayısı 0, foto-b2-onay sayısı 0 (henüz S3'e geçmedi).
-  const eS1 = await ekranKos(EKRAN_KAYNAK, VERI, fotoAcik);
+     belirsizIstek === 0 && evetIstek === 0, JSON.stringify({ belirsizIstek, evetIstek }));
+  // 9) Ret cümlesi birebir: uygun_degil'de metin TAM sayfa metnindeki ortak ret cümlesi.
+  ol("K2b-9 ret cümlesi birebir (sayfa metni 'Ortak ret cümlesi' = kaynaktaki A_METIN_BIREBIR)",
+     evetDUR.aMetin === ORTAK_RET && metinRet === ORTAK_RET, JSON.stringify({ aMetin: evetDUR.aMetin, metinRet }));
+  // 10) B2 checkbox: S1'de 0 (TEK B2 yalnız ④ S3'te).
+  const eS1 = await ekranKos(EKRAN_KAYNAK, veriYukle(VERI_KAYNAK), fotoAcik, null, null, { kart: "plaket" });
   const b2S1 = [...eS1.bolum.agac()].filter((n) => n.tagName === "INPUT" && n.type === "checkbox" && /^foto-b2-onay/.test(n.id));
-  ol("K2b-10 B2 checkbox sayısı 1 (S1'de 0; ③'ten 'foto-b2-onay' = TEK)",
-     b2S1.length === 0, "adet=" + b2S1.length);
-
-  // 11) Eski iç çubuk DOM sayısı 0: .foto-uretim-adim (data-no="2") SİLİNMİŞ.
+  ol("K2b-10 B2 checkbox sayısı 1 (S1'de 0; ④ S3'te 'foto-b2-onay' = TEK)", b2S1.length === 0, "adet=" + b2S1.length);
   const icCubuk = [...eS1.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-adim")).length;
   ol("K2b-11 eski iç çubuk DOM sayısı 0 (cizAdimlar kaldırıldı)", icCubuk === 0, "adet=" + icCubuk);
+  // 12) İptal→yeni tür ② dolu 1/1: ④ S3 → İptal → ① → başka kart (büst) → ② görünür + yükleme kutusu + not + uyum.
+  const iptalAcik = acikGercek(veriYukle(VERI_KAYNAK), ["plaket", "bust"]);
+  const iptalDene = async (kaynak) => {
+    const e = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), iptalAcik,
+      { is: "d".repeat(32), tur: "plaket", olcu: 100 },
+      { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" },
+      { turnstileOto: true, zamanlayici: true });
+    const btn = [...e.bolum.agac()].find((n) => n.id === "foto-iptal-btn");
+    if (btn) btn.tetikle("click");
+    const kart = [...e.bolum.agac()].find((n) => n.classList.contains("foto-uretim-kart") && n.getAttribute("data-kart") === "bust");
+    if (kart) kart.tetikle("click");
+    const p2 = [...e.bolum.agac()].find((n) => n.id === "foto-pencere-2");
+    const ic = p2 ? [...p2.agac()] : [];
+    return { iptal: !!btn, kart: !!kart, p2Acik: !!p2 && p2.hidden === false,
+      yukle: ic.some((n) => n.id === "foto-yukle-kutu"), not: ic.some((n) => n.id === "foto-not-alani"), uyum: ic.some((n) => n.id === "foto-uyum") };
+  };
+  const ip = await iptalDene(EKRAN_KAYNAK);
+  ol("K2b-12 İptal→yeni tür ② dolu 1/1 (② görünür + yükleme kutusu + not alanı + uyum paneli DOM'da)",
+     ip.iptal && ip.kart && ip.p2Acik && ip.yukle && ip.not && ip.uyum, JSON.stringify(ip));
 
-  // 12) İptal→yeni tür ② dolu 1/1: S3 → İptal → ① → başka tür sec → ② açılır (baslik2 + yukle kutu + alan DOM'da).
-  const iptalE = await ekranKos(EKRAN_KAYNAK, VERI, fotoAcik,
-    { is: "d".repeat(32), tur: "plaket", olcu: 100 },
-    { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" },
-    { turnstileOto: true, zamanlayici: true });
-  const iptalBtn = [...iptalE.bolum.agac()].find((n) => n.id === "foto-iptal-btn");
-  if (iptalBtn) iptalBtn.tetikle("click");
-  // Şimdi ① görünür. Litofan kartı tıkla → S1'e düş → ② açılır.
-  // Litofan kart data-tur="litofan" ile ızgarada (VERI'de var).
-  await new Promise((c) => setTimeout(c, 0));
-  const litKart = [...iptalE.bolum.agac()].find((n) => n.classList.contains("foto-uretim-galeri-kucuk") && n.getAttribute("data-tur") === "litofan");
-  if (litKart) litKart.tetikle("click");
-  await new Promise((c) => setTimeout(c, 0));
-  const iptalDD = [...iptalE.bolum.agac()];
-  const baslikVar = !!iptalDD.find((n) => n.classList.contains("foto-uretim-adim2-baslik"));
-  const yukleKutuVar = !!iptalDD.find((n) => n.id === "foto-yukle-kutu");
-  // alanUyum DOM'da (S.alanUyum.id = "foto-uyum") ya da alan'in kendisi (id="foto-adim2-alan"? — farklı isim olabilir).
-  const alanVar = !!iptalDD.find((n) => n.id === "foto-uyum") || !!iptalDD.find((n) => n.classList && n.classList.contains("foto-uretim-alani"));
-  ol("K2b-12 İptal→yeni tür ② dolu 1/1 (baslik + yukle kutusu + form alani DOM'da)",
-     baslikVar && yukleKutuVar && alanVar,
-     JSON.stringify({ baslikVar, yukleKutuVar, alanVar }));
+  // ---- MUTANTLAR (her biri tek başına KIRMIZI; "uygulandı mı" denetimli) + kontrol. ----
+  // M-SERIT: gösterge etiketi "Tür seç" → başka metin ⇒ S0'ın beklediği etiket kümesi bozulur.
+  const mSeritCapa = '{ no: "①", ad: "Tür seç"';
+  const mSeritUyg = EKRAN_KAYNAK.split(mSeritCapa).length - 1 === 1;
+  const mSeritEkran = mSeritUyg ? await ekranKos(EKRAN_KAYNAK.replace(mSeritCapa, '{ no: "①", ad: "Baslangic"'), VERI, fotoAcik) : null;
+  const mSeritEtiket = mSeritEkran && [...mSeritEkran.bolum.agac()].find((n) => n.classList.contains("foto-uretim-gosterge-ad") && n.textContent === "Baslangic");
+  ol("M-SERIT gosterge etiketi 'Tür seç' → başka metin ⇒ gösterge KIRMIZI (S0 etiket kümesi tutmaz)", !!mSeritEtiket,
+     mSeritUyg ? "bulundu=" + !!mSeritEtiket : "MUTANT_UYGULANMADI");
 
-  // ---- 7 MUTANT + 1 KONTROL (her biri tek başına KIRMIZI; kontrol []). ----
-  // Ortak: sentetik foto türünde kart tıkla → uretimNotu "logo" → "Önizleme oluştur" tıkla.
-  //        Normal: belirsiz → soru çıkar, fetch 0. Mutant: farklı davranış.
-  // "KIRMIZI" ölçütü: en az bir davranış değişti. Spesifik:
-  //   M-SERIT: şerit etiketi "Tasarım seç" → başka metin ⇒ 3 etiketten biri değişti.
-  //   M-ADIM2: adim2EtiketiK2 hep "Foto ekle" ⇒ girdi türünde ② başlığı "Foto ekle" (geçersiz).
-  //   M-B2: B2 tik kapısı yok ⇒ S3'teki sipBtn B2 yokken AÇIK.
-  //   M-KAPI-B: kelime listesi boşaltılır ⇒ parça kelimesi geçer.
-  //   M-KAPI-C: belirsiz → uygun yapılır (soru atlanır) ⇒ belirsiz tıklanır ama uyum OK.
-  //   M-KAPI-SIRA: kapı kontrolü 2D isteğinden SONRAYA alınır ⇒ "kırıldı" yazınca POST 1.
-  //   M-IPTAL: İptal ② çocuklarını silerse ⇒ İptal sonrası ② içeriği BOŞ.
-  //   K0 kontrol: yorum değişikliği ⇒ hiçbiri değişmedi.
-
-  // M-SERIT: serit etiketi "Tasarım seç" → "Baslangic".
-  const mSerit = EKRAN_KAYNAK.replace("[\"1\", \"✦\", \"Tasarım seç\"]", "[\"1\", \"✦\", \"Baslangic\"]");
-  const mSeritEkran = await ekranKos(mSerit, VERI, fotoAcik);
-  const mSeritEtiket = [...mSeritEkran.bolum.agac()].find((n) => n.classList.contains("foto-uretim-serit-ad") && n.textContent === "Baslangic");
-  ol("M-SERIT serit etiketi 'Tasarım seç' → başka metin ⇒ şerit KIRMIZI", !!mSeritEtiket, "bulundu=" + !!mSeritEtiket);
-
-  // M-ADIM2: adim2EtiketiK2 hep "Foto ekle" döner. Girdi türünde ② başlığı "Foto ekle" (yanlış).
-  //          Bunu test etmek için sentetik-g türünde kart tıkla, başlık oku.
-  // K2b-fin: TEK satırlı .split().join() capa (kaynaktaki TEK "Girdini ekle" döndüren satırı hedefler;
-  // çok satırlı .replace() güvenilir değildi — bkz. K2b-fin spec). Eğer capa kaynakta yoksa
-  // mutant UYGULANMAMIŞ demektir → KIRMIZI "MUTANT_UYGULANMADI" (sessiz geçmesin).
-  const mAdim2Capa = 'return "Girdini ekle";';
-  const mAdim2Yerine = 'return "Foto ekle";';
-  const mAdim2SplitCount = EKRAN_KAYNAK.split(mAdim2Capa).length - 1;
-  const mAdim2MutantUygulandi = mAdim2SplitCount === 1;
-  const mAdim2Src = mAdim2MutantUygulandi ? EKRAN_KAYNAK.split(mAdim2Capa).join(mAdim2Yerine) : EKRAN_KAYNAK;
-  const mAdim2Veri = sentetikGirdiVeri(VERI_KAYNAK);
-  const mAdim2Ekran = await ekranKos(mAdim2Src, mAdim2Veri, { acik: true, turler: mAdim2Veri.turler },
-    { is: "z".repeat(32), tur: "sentetik-g", olcu: 100 });
-  const mAdim2DD = [...mAdim2Ekran.bolum.agac()];
-  const mAdim2Kart = mAdim2DD.find((n) => n.classList.contains("foto-uretim-galeri-kucuk") && n.getAttribute("data-tur") === "sentetik-g");
-  if (mAdim2Kart) mAdim2Kart.tetikle("click");
-  await new Promise((c) => setTimeout(c, 0));
-  const mAdim2Baslik = [...mAdim2Ekran.bolum.agac()].find((n) => n.classList.contains("foto-uretim-adim2-baslik"));
-  const mAdim2Yazi = mAdim2Baslik ? mAdim2Baslik.textContent : "";
-  // K2b-fin: mutant uygulanmadıysa KIRMIZI "MUTANT_UYGULANMADI" yansın (sessiz geçmesin).
-  const mAdim2Hata = !mAdim2MutantUygulandi ? "MUTANT_UYGULANMADI capa_sayisi=" + mAdim2SplitCount
-    : "baslik=" + mAdim2Yazi;
-  ol("M-ADIM2 adim2EtiketiK2 hep 'Foto ekle' ⇒ girdi türünde başlık KIRMIZI (doğru 'Girdini ekle' olmalıydı)",
-     mAdim2Yazi === "② Foto ekle", mAdim2Hata);
-
-  // M-B2: cizS3 + guncelleSipButonu formülünden `!S.b2Onay ||` silinir ⇒ B2 yokken sipBtn AÇIK.
-  //       K2b-fin: formül TEK yere toplandı (sipBtnKapaliMi). Mutant bu TEK satırı hedefler.
-  //       cizS3 S.alan'ı temizlediği için aydinlatma kutusu DOM'da değil — S.aydinlatmaOnay'ı init'te
-  //       kayit.onay === F.onay_surum şartıyla true kuruyoruz (sonradan tıklanamaz). Sonra B2'yi tetikleyip
-  //       guncelleSipButonu'nun yeniden hesaplamasını sağlıyoruz.
-  //       Uygulanmadı assert: capa "function sipBtnKapaliMi(nt) {" kaynakta tam 1 kez geçmeli.
+  // M-B2: sipBtnKapaliMi'den `!S.b2Onay ||` silinir ⇒ B2 yokken sipBtn AÇIK.
   const mB2Capa = "function sipBtnKapaliMi(nt) {\n    return !S.aydinlatmaOnay || !S.b2Onay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);\n  }";
   const mB2Yerine = "function sipBtnKapaliMi(nt) {\n    return !S.aydinlatmaOnay || !!(nt && F.olcuTuretilmis(nt.kod) && S.fiyatKurus == null);\n  }";
   const mB2SplitCount = EKRAN_KAYNAK.split(mB2Capa).length - 1;
-  const mB2MutantUygulandi = mB2SplitCount === 1;
-  const mB2Src = mB2MutantUygulandi ? EKRAN_KAYNAK.split(mB2Capa).join(mB2Yerine) : EKRAN_KAYNAK;
-  // onay_surum değerini veri'den çek (kayit.onay === F.onay_surum şartı için).
-  const _onaySurum = (function () { const k = {}; vm.runInNewContext(VERI_KAYNAK, k, { filename: "v.js" }); return k.PRUVO_FOTO.onay_surum; })();
-  const mB2E = await ekranKos(mB2Src, VERI, fotoAcik,
-    { is: "e".repeat(32), tur: "plaket", olcu: 100, onay: _onaySurum },
-    { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" },
-    { turnstileOto: true, zamanlayici: true });
-  // B2'yi tetikle → guncelleSipButonu() yeniden hesaplar (init'te B2=false, aydinlatma=true; mutantlı
-  // formül: !true || (nt && ... && S.fiyatKurus==null) = false; kapı AÇIK).
-  const mB2Inp = [...mB2E.bolum.agac()].find((n) => n.id === "foto-b2-onay");
-  if (mB2Inp) { mB2Inp.checked = false; mB2Inp.tetikle("change"); }
-  const mB2Sip = [...mB2E.bolum.agac()].find((n) => n.id === "foto-sip-btn");
-  const mB2Hata = !mB2MutantUygulandi ? "MUTANT_UYGULANMADI capa_sayisi=" + mB2SplitCount
-    : "disabled=" + (mB2Sip && mB2Sip.disabled);
-  ol("M-B2 disabled formülünden '!S.b2Onay ||' silinir ⇒ B2 yokken sipBtn AÇIK (KIRMIZI)",
-     mB2Sip && mB2Sip.disabled === false, mB2Hata);
+  const _onaySurum = veriYukle(VERI_KAYNAK).onay_surum;
+  const sepetDene = async (kaynak, b2) => {
+    const e = await ekranKos(kaynak, VERI, fotoAcik,
+      { is: "e".repeat(32), tur: "plaket", olcu: 100, onay: _onaySurum },
+      { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" },
+      { turnstileOto: true, zamanlayici: true });
+    const inp = [...e.bolum.agac()].find((n) => n.id === "foto-b2-onay");
+    if (inp) { inp.checked = b2; inp.tetikle("change"); }
+    const sip = [...e.bolum.agac()].find((n) => n.id === "foto-sip-btn");
+    return sip ? sip.disabled : null;
+  };
+  const mB2 = mB2SplitCount === 1 ? await sepetDene(EKRAN_KAYNAK.split(mB2Capa).join(mB2Yerine), false) : null;
+  ol("M-B2 disabled formülünden '!S.b2Onay ||' silinir ⇒ B2 yokken sipBtn AÇIK (KIRMIZI)", mB2 === false,
+     mB2SplitCount === 1 ? "disabled=" + mB2 : "MUTANT_UYGULANMADI capa_sayisi=" + mB2SplitCount);
 
-  // M-KAPI-B: kelime listesi boşaltılır ⇒ parça kelimesi geçer (DUR olmaz).
-  //          UYUM_KOKLER dizisini boş yap.
-  // K2b-fin: kaynaktaki UYUM_KOKLER artık TEK satırda; mutant onun TAMAMINI "var UYUM_KOKLER = [];" ile
-  // değiştirir. Çok satırlı replace güvenilir değildi (aradaki satırlarda gizli karakter / escape farkı).
-  // K2b-fin2: düz "ayni" kökü çıkarıldı (BaBa listesi: "aynısı", "aynisini", "aynisindan", "aynıları";
-  // düz "aynı" = sıradan eşitlik sıfatı, parça eşleştirmesi DEĞİL). Capa bu yüzden "ayni" İÇERMEZ.
+  // M-KAPI-B: kelime listesi boşaltılır ⇒ parça kelimesi geçer (DUR olmaz, soru çıkar).
   const mKBCapa = 'var UYUM_KOKLER = ["parca", "parcas", "parcasi", "parcay", "parcayi", "parcam", "parcan", "parcalar", "parcalari", "parcalarin", "parcasin", "parcasini", "yedek", "yedegi", "yedekle", "yedekleri", "yedeklerin", "yedekten", "kirik", "kirigi", "kirdi", "kirildi", "kirilmis", "kirilir", "kiriklar", "kiriklari", "kayip", "kaybi", "kaybol", "kayboldu", "kaybolan", "kayipoldu", "kayipolmus", "mekanizma", "mekanizmasi", "mekanizmayi", "mekanizmalar", "mekanizmalari", "mekanizmada", "mekanizmadan", "disli", "dislisi", "disliyi", "disliler", "dislileri", "dislilerin", "dislide", "disliden", "kilit", "kilidi", "kilide", "kilitler", "kilitleri", "kilitlerin", "kilitten", "klips", "klipsi", "klipsler", "klipsleri", "klipslerin", "klipsten", "yuva", "yuvasi", "yuvayi", "yuvalar", "yuvalari", "yuvalarin", "yuvada", "yuvadan", "orijinal", "orijinali", "orijinale", "orijinalden", "orijinalinde", "aynisi", "aynisini", "aynilar", "aynilari", "aynisindan"];';
-  const mKBYerine = "var UYUM_KOKLER = [];";
   const mKBSplitCount = EKRAN_KAYNAK.split(mKBCapa).length - 1;
-  const mKBMutantUygulandi = mKBSplitCount === 1;
-  const mKBsrc = mKBMutantUygulandi ? EKRAN_KAYNAK.split(mKBCapa).join(mKBYerine) : EKRAN_KAYNAK;
-  const mKBekran = await uyumSonucBul(mKBsrc, "sentetik-f", "kırıldı", undefined);
-  const mKBHata = !mKBMutantUygulandi ? "MUTANT_UYGULANMADI capa_sayisi=" + mKBSplitCount
-    : JSON.stringify({ soruVar: mKBekran.soruVar, aMetin: mKBekran.aMetin });
+  const mKBekran = mKBSplitCount === 1 ? await uyumSonucBul(EKRAN_KAYNAK.split(mKBCapa).join("var UYUM_KOKLER = [];"), "kırıldı", undefined) : null;
   ol("M-KAPI-B kelime listesi boşaltılır ⇒ parça kelimesi AÇIK soru çıkar (DUR olmaz)",
-     mKBekran.soruVar && !mKBekran.aMetin, mKBHata);
+     !!mKBekran && mKBekran.soruVar && !mKBekran.aMetin,
+     mKBSplitCount === 1 ? JSON.stringify({ soruVar: mKBekran.soruVar, aMetin: mKBekran.aMetin }) : "MUTANT_UYGULANMADI capa_sayisi=" + mKBSplitCount);
 
-  // M-KAPI-C: belirsiz → uygun yapılır (soru atlanır) ⇒ belirsiz tıklanır ama uyum OK (soru kaybolur).
-  //          "if (foto) { if (cevap === true) return 'uygun_degil'; if (cevap === false) return 'uygun'; return 'belirsiz'; }"
-  //          satırını "return 'uygun';" ile değiştir.
-  const mKCsrc = EKRAN_KAYNAK.replace(
-    "    if (foto) {\n      if (cevap === true) return \"uygun_degil\";   // Evet\n      if (cevap === false) return \"uygun\";        // Hayır\n      return \"belirsiz\";                          // cevapsız → fail-closed: soru ÇIKAR\n    }",
-    "    if (foto) {\n      if (cevap === true) return \"uygun_degil\";\n      return \"uygun\";\n    }"
-  );
-  // Cevapsız → belirsiz olmalıydı; mutantta uygun. Soru ÇIKMAMALI.
-  const mKCekran = await uyumSonucBul(mKCsrc, "sentetik-f", "logo", undefined);
+  // M-KAPI-C: belirsiz → uygun (soru atlanır).
+  const mKCCapa = "    if (foto) {\n      if (cevap === true) return \"uygun_degil\";   // Evet\n      if (cevap === false) return \"uygun\";        // Hayır\n      return \"belirsiz\";                          // cevapsız → fail-closed: soru ÇIKAR\n    }";
+  const mKCUyg = EKRAN_KAYNAK.split(mKCCapa).length - 1 === 1;
+  const mKCekran = mKCUyg ? await uyumSonucBul(EKRAN_KAYNAK.replace(mKCCapa, "    if (foto) {\n      if (cevap === true) return \"uygun_degil\";\n      return \"uygun\";\n    }"), "logo", undefined) : null;
   ol("M-KAPI-C belirsiz → uygun (soru atlanır) ⇒ cevapsızda soru KIRMIZI yok",
-     !mKCekran.soruVar && !mKCekran.aMetin,
-     JSON.stringify({ soruVar: mKCekran.soruVar, aMetin: mKCekran.aMetin }));
+     !!mKCekran && !mKCekran.soruVar && !mKCekran.aMetin, mKCUyg ? JSON.stringify({ soruVar: mKCekran.soruVar, aMetin: mKCekran.aMetin }) : "MUTANT_UYGULANMADI");
 
-  // M-KAPI-SIRA: kapı kontrolü 2D isteğinden SONRAYA alınır ⇒ "kırıldı" yazınca POST 1.
-  //             onizleOlustur'daki uyumKontrol BLOĞUNU sona (POST'tan sonra) taşı.
-  // K2b-fin: mutant iki şeyi birden yapar — (1) gate bloğunu kaldırır (POST'a giden yolu açar),
-  // (2) hazirla fonksiyonunu kucultGorsel yerine senkron cb'ye çevirir (vm context'te FileReader/
-  // Image/canvas YOK; kucultGorsel hata verir, POST gönderilmez — mutant gözlemlenemez).
-  // Kontrol vakasında (mutantsız) uyum !== "uygun" → kapı erken return → 0 istek. Mutantlı vakada
-  // kapı yok + hazirla senkron → POST 1 istek (S.dosya + kayit.onay + captchaToken1 önkoşulları test'te kurulur).
+  // M-KAPI-SIRA: kapı kontrolü 2D isteğinden SONRAYA ⇒ "kırıldı" + Evet'te POST 1 (kontrolde 0).
   const mKSCapa = "    var uyum = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);\n    if (uyum !== \"uygun\") {\n      cizUyum();\n      guncelleS1Buton();\n      return;\n    }";
-  const mKSGateYerine = "    // M-KAPI-SIRA mutant: gate kaldırıldı (POST'tan sonra)";
   const mKSHazirlaCapa = "    var hazirla = konsept ? function (cb) { cb(null, \"\"); } : function (cb) { kucultGorsel(S.dosya, cb); };";
-  const mKSHazirlaYerine = "    var hazirla = function (cb) { cb(null, \"data:image/jpeg;base64,xxx\"); }; // M-KAPI-SIRA mutant: dosya işleme atlandı";
-  const mKSSplitCount = EKRAN_KAYNAK.split(mKSCapa).length - 1;
-  const mKSHazirlaSplitCount = EKRAN_KAYNAK.split(mKSHazirlaCapa).length - 1;
-  const mKSMutantUygulandi = mKSSplitCount === 1 && mKSHazirlaSplitCount === 1;
+  const mKSMutantUygulandi = EKRAN_KAYNAK.split(mKSCapa).length - 1 === 1 && EKRAN_KAYNAK.split(mKSHazirlaCapa).length - 1 === 1;
   const mKSsrc = mKSMutantUygulandi
-    ? EKRAN_KAYNAK.split(mKSCapa).join(mKSGateYerine).split(mKSHazirlaCapa).join(mKSHazirlaYerine)
+    ? EKRAN_KAYNAK.split(mKSCapa).join("    // M-KAPI-SIRA mutant: gate kaldırıldı (POST'tan sonra)")
+      .split(mKSHazirlaCapa).join("    var hazirla = function (cb) { cb(null, \"data:image/jpeg;base64,xxx\"); }; // M-KAPI-SIRA mutant")
     : EKRAN_KAYNAK;
-  // Önkoşulları kuran helper: sentetik-f + uretimNotu + dosya mock + onay + captcha.
   const mKSHazirla = async (kaynak, uretimMetni, cevap) => {
-    const V = sentetikFotoVeri(VERI_KAYNAK);
-    const acik = { acik: true, turler: V.turler };
-    const _onaySur = (function () { const k = {}; vm.runInNewContext(VERI_KAYNAK, k, { filename: "v.js" }); return k.PRUVO_FOTO.onay_surum; })();
-    // K2b-fin2: isKalabi = /^[a-f0-9]{32}$/ — "g" geçersizdi (g hex değil) → ssIsOku() null → S.tur/olcu
-    // hiç kurulmadan POST bile denemeden düşüyordu (kontrol=0 doğru, mutant=0 da yanlıştı). 32 hex'e çevrildi.
-    const kayit = { is: "1".repeat(32), tur: "sentetik-f", olcu: 100, onay: _onaySur };
-    const e = await ekranKos(kaynak, V, acik, kayit, undefined, { turnstileOto: true, zamanlayici: true });
+    const V = veriYukle(VERI_KAYNAK);
+    const kayit = { is: "1".repeat(32), tur: "plaket", olcu: 100, onay: _onaySurum };
+    const e = await ekranKos(kaynak, V, fotoAcikTam, kayit, undefined, { turnstileOto: true, zamanlayici: true, kart: "plaket" });
     const dd = () => [...e.bolum.agac()];
-    // Dosya mock'la (file input change ile S.dosya dolar).
     const dosyaInp = dd().find((n) => n.id === "foto-dosya");
     if (dosyaInp) { dosyaInp.files = [{ name: "x.jpg", type: "image/jpeg", size: 1024 }]; dosyaInp.tetikle("change"); }
-    // uretimNotu yaz → cizUyum çağrılsın.
     const ta = dd().find((n) => n.id === "foto-not");
     if (ta) { ta.value = uretimMetni; ta.tetikle("input"); }
     if (cevap === true) { const ev = dd().find((n) => n.id === "foto-uyum-evet"); if (ev) ev.tetikle("click"); }
-    // Butonu zorla aç (guncelleS1Buton uyumOK'a baktığı için kapalı olur; mutant kapı kalkınca POST'a
-    // gidebilmesi için tetikleme öncesi enabled yapıyoruz).
+    // Düğme zorla açılır (guncelleS1Buton uyum OK değilken kapatır; mutantta kapı kalkınca POST'a gidebilsin).
     const btn = dd().find((n) => n.id === "foto-onizle-buton");
     if (btn) { btn.disabled = false; btn.tetikle("click"); }
-    const dosyaInp2 = dd().find((n) => n.id === "foto-dosya");
-    const dosyaInpVal = dosyaInp2 && dosyaInp2.files ? dosyaInp2.files[0] : null;
-    console.log("DEBUG mKS: dosyaInp found=", !!dosyaInp2, "files=", dosyaInpVal && dosyaInpVal.name, "istekler=", e.istekler.length, "uyum=" + "?" + " ta=" + (dosyaInp2 && dosyaInp2.value));
     return e.istekler.length;
   };
-  // Kontrol vakası (mutantsız): uyum !== "uygun" → kapı erken return → 0 istek.
   const mKSKontrol = await mKSHazirla(EKRAN_KAYNAK, "kırıldı", true);
-  // Mutant vakası: kapı kalkmış → dosya + diğer önkoşullar → POST 1.
-  const mKSistek = await mKSHazirla(mKSsrc, "kırıldı", true);
+  const mKSistek = mKSMutantUygulandi ? await mKSHazirla(mKSsrc, "kırıldı", true) : -1;
   ol("M-KAPI-SIRA kapı kontrolü 2D isteğinden SONRAYA ⇒ parça kabulünde POST KIRMIZI (1 istek)",
      mKSKontrol === 0 && mKSistek === 1, "kontrol=" + mKSKontrol + " mutant=" + mKSistek);
 
-  // M-IPTAL: İptal ② çocuklarını silerse ⇒ İptal sonrası ② içeriği BOŞ (alaniUyum, alanDOM yok).
-  //         iptalBtn handler'ına adim2.firstChild.removeChild ekle.
-  const mIPTALsrc = EKRAN_KAYNAK.replace(
-    "      S.belirsizCevap = null;\n      S.uyumSonuc = null;\n      turSecimiKayitTemizle();\n      // galeri'yi yeniden çiz (seçim sıfırlansın) ve ① görünür kalsın\n      if (S.ornekBlok) ornekCiz(S.ornekBlok, S.acikVeri ? S.acikVeri.turler.map(function (x) { return x.kod; }) : null);\n      adimKoy(\"secim\");",
-    "      S.belirsizCevap = null;\n      S.uyumSonuc = null;\n      turSecimiKayitTemizle();\n      var adim2Mut = document.getElementById(\"foto-adim2\");\n      if (adim2Mut) { while (adim2Mut.firstChild) adim2Mut.removeChild(adim2Mut.firstChild); }\n      if (S.ornekBlok) ornekCiz(S.ornekBlok, S.acikVeri ? S.acikVeri.turler.map(function (x) { return x.kod; }) : null);\n      adimKoy(\"secim\");"
-  );
-  const mIPTALe = await ekranKos(mIPTALsrc, VERI, fotoAcik,
-    { is: "f".repeat(32), tur: "plaket", olcu: 100 },
-    { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" },
-    { turnstileOto: true, zamanlayici: true });
-  const mIPTALbtn = [...mIPTALe.bolum.agac()].find((n) => n.id === "foto-iptal-btn");
-  if (mIPTALbtn) mIPTALbtn.tetikle("click");
-  const mIPTALkart = [...mIPTALe.bolum.agac()].find((n) => n.classList.contains("foto-uretim-galeri-kucuk") && n.getAttribute("data-tur") === "litofan");
-  if (mIPTALkart) mIPTALkart.tetikle("click");
-  const mIPTALdd = [...mIPTALe.bolum.agac()];
-  const mIPTALbaslik = !!mIPTALdd.find((n) => n.classList.contains("foto-uretim-adim2-baslik"));
-  const mIPTALyukle = !!mIPTALdd.find((n) => n.id === "foto-yukle-kutu");
-  const mIPTALalan = !!mIPTALdd.find((n) => n.id === "foto-uyum");
-  ol("M-IPTAL İptal ② çocuklarını silerse ⇒ İptal→yeni tür ② BOŞ (baslik/yukle/alan yok)",
-     !mIPTALbaslik && !mIPTALyukle && !mIPTALalan,
-     JSON.stringify({ baslik: mIPTALbaslik, yukle: mIPTALyukle, alan: mIPTALalan }));
+  // M-IPTAL: İptal ② çocuklarını silerse ⇒ İptal→yeni tür ② BOŞ.
+  const mIPTALCapa = "      turSecimiKayitTemizle();\n      if (S.ornekBlok) ornekCiz(";
+  const mIPTALUyg = EKRAN_KAYNAK.split(mIPTALCapa).length - 1 === 1;
+  const mIP = mIPTALUyg ? await iptalDene(EKRAN_KAYNAK.replace(mIPTALCapa,
+    "      turSecimiKayitTemizle();\n      var p2Mut = document.getElementById(\"foto-pencere-2\");\n      if (p2Mut) { while (p2Mut.firstChild) p2Mut.removeChild(p2Mut.firstChild); }\n      if (S.ornekBlok) ornekCiz(")) : null;
+  ol("M-IPTAL İptal ② çocuklarını silerse ⇒ İptal→yeni tür ② BOŞ (yükleme/not/uyum yok)",
+     !!mIP && !mIP.yukle && !mIP.not && !mIP.uyum, mIPTALUyg ? JSON.stringify(mIP) : "MUTANT_UYGULANMADI");
 
-  // K2b-fin2: düz "ayni" kökü UYUM_KOKLER'den çıkarıldı. "aynı" sıradan eşitlik sıfatı olarak tarifte
-  // geçer (BaBa'nın parça eşleştirmesi listesi "aynısı/aynisini/aynisindan/aynıları" — düz "aynı" değil).
-  // foto türünde cevapsız → "belirsiz" + soru çıkar; düz-aynı tarafından DUR üretilmediğini göstermek
-  // için tasarım onayı (Hayır) veriliyor (cevap=false → uyumKontrol "uygun"). İyelikli vakada zaten
-  // UYUM_DESEN ilk sırada yakaladığı için cevap verilmeden de "uygun_degil" çıkar; yine de Hayır
-  // verilerek evet yolundaki (parça onayı) davranışla aynı UI sonucuna düşüyor — net ölçüm için TEK form.
+  // K2b-fin2: düz "aynı" → uygun; "aynısı/aynisini/aynisindan" → uygun_degil.
   const ayniDuzGecer = ["annemle aynı gün doğduk", "ayni gun batimi resmine benzer", "aynı boyutta bir tasarım istiyorum"];
   let ayniDuzGecti = 0;
-  for (const tarif of ayniDuzGecer) {
-    const r = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", tarif, false);
-    if (!r.soruVar && !r.aMetin) ayniDuzGecti++;
-  }
+  for (const tarif of ayniDuzGecer) { const r = await uyumSonucBul(EKRAN_KAYNAK, tarif, false); if (!r.soruVar && !r.aMetin) ayniDuzGecti++; }
   const aynisiDUR = ["bunun aynısı", "aynisini istiyorum", "aynisindan alabilir miyim"];
   let aynisiKaldi = 0;
-  for (const tarif of aynisiDUR) {
-    const r = await uyumSonucBul(EKRAN_KAYNAK, "sentetik-f", tarif, false);
-    if (r.aMetin) aynisiKaldi++;
-  }
+  for (const tarif of aynisiDUR) { const r = await uyumSonucBul(EKRAN_KAYNAK, tarif, false); if (r.aMetin) aynisiKaldi++; }
   ol("K2b-fin2 düz 'aynı' → uygun (3/3), 'aynısı/aynisini/aynisindan' → uygun_degil (3/3) KIRMIZI",
      ayniDuzGecti === ayniDuzGecer.length && aynisiKaldi === aynisiDUR.length,
      "duz=" + ayniDuzGecti + "/" + ayniDuzGecer.length + " aynisi=" + aynisiKaldi + "/" + aynisiDUR.length);
-
-  // K0 kontrol: yorum değişikliği ⇒ hiçbiri değişmedi (orijinal EKRAN_KAYNAK ile birebir aynı sonuçlar).
-  //             (Spesifik kontrol: cizUyum'da küçük bir yorum değiştirilir.)
-  const k0src = EKRAN_KAYNAK.replace(
-    "/* ============== UYUM PANELİ ==============",
-    "/* K0 kontrol yorumu ============== UYUM PANELİ =============="
-  );
-  const k0evetDUR = await uyumSonucBul(k0src, "sentetik-f", "annemin portresi", true);
-  const k0aMetinTam = k0evetDUR.aMetin === "Fotoğraftan parça ya da yedek parça üretmiyoruz. Programımız tasarım ürünleri içindir:";
-  ol("K-K0 kontrol yorum değişikliği ⇒ KIRMIZI kümesi []", k0aMetinTam, "aMetin=" + k0evetDUR.aMetin);
+  // K0 kontrol: yorum değişikliği ⇒ hiçbiri değişmedi.
+  const k0src = EKRAN_KAYNAK.replace("/* ============== UYUM PANELİ ==============", "/* K0 kontrol yorumu ============== UYUM PANELİ ==============");
+  const k0evetDUR = await uyumSonucBul(k0src, "annemin portresi", true);
+  ol("K-K0 kontrol yorum değişikliği ⇒ KIRMIZI kümesi []", k0src !== EKRAN_KAYNAK && k0evetDUR.aMetin === ORTAK_RET, "aMetin=" + k0evetDUR.aMetin);
 }
+
+// ================================================================ K3b — TEK KUTU, 4 PENCERE (Okan 9 Eki 01:0x + 01:4x)
+// #fotoUretim içinde TEK kutu (kutu dışı öğe 0) · ① kartlar KARTLAR tablosundan (yalnız /acik türleri; bugün 5:
+// anahtarlık /acik'te yok) · aynı anda TEK pencere · ① seçimsiz İleri pasif · insan + hayvan_model → figur ·
+// insan'da büst yönlendirmesi · ③ fiyat 3 vaka + renk tavanı 2 + sürgü tabanı 2 + malzeme N/N · ④ tiksiz
+// "Sepete ekle" kapalı · İptal → ① · REGRESYON: taze bölümde plaket DIŞI kartın İLK tıkı → istisna 0 + ② dolu +
+// dürüstlük o türün. Mutantlar: M-TEKKUTU · M-TEKPENCERE · M-KART · M-INSAN · M-FORMKORUMA + kontrol.
+console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri · ③ fiyat/renk/sürgü/malzeme · regresyon + mutantlar");
+{
+  const DORT = ["plaket", "figur", "yapboz", "bust"];
+  const sinifli = (kok, c) => [...kok.agac()].filter((n) => n.classList.contains(c));
+  const byId = (kok, x) => (kok ? [...kok.agac()].find((n) => n.id === x) : null) || null;
+  const gorunurPencere = (b) => sinifli(b, "foto-uretim-pencere").filter((p) => p.hidden !== true).length;
+  // Aktif pencere gösterge üzerinden okunur (görünürlük TEKPENCERE'de ayrıca sayılır).
+  const aktif = (b) => sinifli(b, "foto-uretim-gosterge-adim").filter((li) => li.classList.contains("aktif")).map((li) => li.getAttribute("data-no")).join(",");
+  const durustMetni = (b) => { const d = sinifli(byId(b, "foto-pencere-2") || b, "foto-uretim-durustluk")[0]; return d && d.childNodes[0] ? d.childNodes[0].textContent : null; };
+  const yeniEkran = async (kaynak, kodlar, kayit, durum, ek) => {
+    const V = veriYukle(VERI_KAYNAK);
+    const e = await ekranKos(kaynak, V, acikGercek(V, kodlar), kayit, durum, ek);
+    e.V = V; e.ist = 0;
+    e.tik = (kod) => {
+      const k = sinifli(e.bolum, "foto-uretim-kart").find((n) => n.getAttribute("data-kart") === kod);
+      if (!k) return false;
+      try { k.tetikle("click"); } catch (er) { e.ist++; }
+      return true;
+    };
+    e.dugme = (x) => { const n = byId(e.bolum, x); if (n) { try { n.tetikle("click"); } catch (er) { e.ist++; } } return n; };
+    return e;
+  };
+
+  // A) Düzen + gezinti (gerçek veri: /acik 4 tür).
+  const duzen = async (kaynak) => {
+    const s = {};
+    const e = await yeniEkran(kaynak, DORT);
+    const b = e.bolum, V = e.V, pen = [gorunurPencere(b)];
+    const govde = b.parentNode;
+    const kutuDisi = () => (b.childNodes.length - 1) + (govde.childNodes.length - 1);
+    const tekKutu0 = b.childNodes.length === 1 && b.childNodes[0].classList.contains("foto-uretim-kutu") && kutuDisi() === 0;
+    const p1 = byId(b, "foto-pencere-1"), kartlar = sinifli(b, "foto-uretim-kart");
+    const kartIci = new Set(kartlar.flatMap((k) => [k, ...k.agac()]));
+    const p1Disi = p1 ? [...p1.agac()].filter((n) => !kartIci.has(n) && !n.classList.contains("foto-uretim-kartlar")).length : -1;
+    s.KART = JSON.stringify(kartlar.map((k) => k.getAttribute("data-kart"))) === JSON.stringify(["insan", "hayvan_model", "plaket", "bust", "yapboz"]) &&
+      p1Disi === 0 && (p1 ? [...p1.agac()] : []).filter((n) => n.tagName === "INPUT" && n.type === "file").length === 0 &&
+      kartlar.every((k) => [...k.agac()].some((n) => n.tagName === "IMG") && sinifli(k, "foto-uretim-kart-ad").length === 1);
+    const ileri = byId(b, "foto-ileri"), geri = byId(b, "foto-geri");
+    s.ILERI = aktif(b) === "1" && !!ileri && ileri.disabled === true && !!geri && geri.hidden === true;
+    e.tik("insan"); pen.push(gorunurPencere(b));
+    const insanAktif = aktif(b), insanD = durustMetni(b), insanY = !!byId(b, "foto-bust-yonlendir");
+    e.tik("plaket"); pen.push(gorunurPencere(b));
+    e.tik("hayvan_model"); pen.push(gorunurPencere(b));
+    const hayvanD = durustMetni(b), hayvanY = !!byId(b, "foto-bust-yonlendir");
+    const figurD = V.turBul("figur").durustluk;
+    s.INSAN = insanAktif === "2" && insanD === figurD && hayvanD === figurD && V.turBul("plaket").durustluk !== figurD;
+    e.tik("insan");
+    e.dugme("foto-bust-yonlendir"); pen.push(gorunurPencere(b));
+    s.YONLENDIRME = insanY && !hayvanY && aktif(b) === "1";
+    // Gezinti (canlı biçimli /acik): büst → ② (dosya yok: İleri pasif) → dosya + parça tarifi "kırıldı" (kapı
+    // uygun_degil: pasif + ret cümlesi) → tarif temiz (açık) → ③ → ④ (İleri gizli) → Geri ③.
+    e.tik("bust"); pen.push(gorunurPencere(b));
+    const pasifDosyasiz = ileri.disabled === true;
+    const dos = byId(b, "foto-dosya");
+    if (dos) { dos.files = [{ name: "a.jpg", type: "image/jpeg", size: 2048 }]; dos.tetikle("change"); }
+    const ta = byId(b, "foto-not");
+    if (ta) { ta.value = "kırıldı"; ta.tetikle("input"); }
+    const ret = sinifli(b, "foto-uretim-uyum-metin")[0];
+    const pasifSoru = ileri.disabled === true && !!ret && ret.textContent === ORTAK_RET;
+    if (ta) { ta.value = "deniz manzarası"; ta.tetikle("input"); }
+    e.dugme("foto-uyum-hayir");
+    const acik2 = ileri.disabled === false;
+    e.dugme("foto-ileri"); pen.push(gorunurPencere(b)); const a3 = aktif(b);
+    e.dugme("foto-ileri"); pen.push(gorunurPencere(b)); const a4 = aktif(b), gizli4 = ileri.hidden === true, geri4 = geri.hidden === false;
+    e.dugme("foto-geri"); pen.push(gorunurPencere(b)); const a3b = aktif(b);
+    s.GEZINTI = pasifDosyasiz && pasifSoru && acik2 && a3 === "3" && a4 === "4" && gizli4 && geri4 && a3b === "3";
+    s.TEKPENCERE = pen.length === 9 && pen.every((n) => n === 1);
+    s.TEKKUTU = tekKutu0 && kutuDisi() === 0;
+    s.ISTISNA_YOK = e.ist === 0;
+    Object.defineProperty(s, "iz", { value: { pen, insanAktif, a3, a4, a3b, kutuDisi: kutuDisi(), p1Disi, kart: kartlar.map((k) => k.getAttribute("data-kart")) }, enumerable: false });
+    return s;
+  };
+
+  // B) ③ Renk, boyut ve malzeme — canlı fiyat 3 vaka · renk tavanı 2 · sürgü tabanı 2 · malzeme N/N.
+  const ucuncu = async (kaynak) => {
+    const s = {};
+    const surgu = (b) => [...b.agac()].find((n) => n.tagName === "INPUT" && n.type === "range");
+    const kaydir = (b, i) => { const g = surgu(b); if (g) { g.value = String(i); g.tetikle("input"); } };
+    const fiyat = (b) => (byId(b, "foto-canli-fiyat") || { textContent: null }).textContent;
+    const surguYazi = (b) => (sinifli(b, "foto-uretim-surgu-fiyat")[0] || { textContent: null }).textContent;
+    const kutular = (b) => [...b.agac()].filter((n) => n.tagName === "INPUT" && n.name === "foto-renk");
+    const renkSec = (b, r) => { const k = kutular(b).find((n) => n.value === r); if (k && !k.disabled) { k.checked = true; k.tetikle("change"); } };
+    const radyolar = (b, ad) => [...b.agac()].filter((n) => n.tagName === "INPUT" && n.type === "radio" && n.name === ad).map((n) => n.value);
+    const eP = await yeniEkran(kaynak, ["plaket"], null, null, { kart: "plaket" });
+    const P = eP.bolum, mmP = eP.V.olcuSecenekleri("plaket");
+    kaydir(P, 0); const tabanP = surguYazi(P);
+    kaydir(P, mmP.indexOf(30)); const f30 = fiyat(P);
+    kaydir(P, mmP.indexOf(100)); const f100 = fiyat(P);
+    renkSec(P, "Siyah"); renkSec(P, "Kırmızı"); const f100r3 = fiyat(P);
+    s.FIYAT = f30 === "Fiyat: 600 TL" && f100 === "Fiyat: 1.000 TL" && f100r3 === "Fiyat: 1.200 TL";
+    renkSec(P, "Mavi"); renkSec(P, "Yeşil");
+    const tavanP = kutular(P).filter((n) => n.checked).length === 4 && kutular(P).filter((n) => !n.checked && n.disabled).length === 5;
+    const eB = await yeniEkran(kaynak, ["bust"], null, null, { kart: "bust" });
+    const B = eB.bolum;
+    kaydir(B, 0); const tabanB = surguYazi(B);
+    renkSec(B, "Siyah"); renkSec(B, "Kırmızı");
+    const tavanB = kutular(B).filter((n) => n.checked).length === 2 && kutular(B).filter((n) => !n.checked && n.disabled).length === 7;
+    s.TAVAN = tavanP && tavanB;
+    s.TABAN = tabanP === "10 mm → 600 TL" && tabanB === "60 mm → 600 TL" && !!surgu(P) && surgu(P).min === "0";
+    const eY = await yeniEkran(kaynak, ["yapboz"], null, null, { kart: "yapboz" });
+    const Y = eY.bolum;
+    kaydir(Y, eY.V.olcuSecenekleri("yapboz").indexOf(100));
+    const yOnce = fiyat(Y);
+    // K3d: yapboz malzeme anahtari manifestte `govde` (K3c yeniden turetme); renk secimi PALET (kutular).
+    const petg = [...Y.agac()].find((n) => n.tagName === "INPUT" && n.name === "foto-malzeme-govde" && n.value === "PETG");
+    if (petg) { petg.checked = true; petg.tetikle("change"); }
+    const yMalzeme = radyolar(Y, "foto-malzeme-govde"), bMalzeme = radyolar(B, "foto-malzeme-govde");
+    const pGrup = byId(P, "foto-malzeme");
+    s.MALZEME = JSON.stringify(yMalzeme) === '["PLA","PETG"]' && JSON.stringify(bMalzeme) === '["PLA","PETG"]' &&
+      !!pGrup && pGrup.hidden === true && [...pGrup.agac()].length === 0 && yOnce === "Fiyat: 1.000 TL" && fiyat(Y) === yOnce &&
+      kutular(Y).length === 9;
+    Object.defineProperty(s, "iz", { value: { f30, f100, f100r3, tabanP, tabanB, yMalzeme, bMalzeme, yOnce, ySon: fiyat(Y) }, enumerable: false });
+    return s;
+  };
+
+  // C) ④ sepet kapısı + İptal → ①.
+  const dorduncu = async (kaynak) => {
+    const s = {};
+    const hazir = { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" };
+    const e = await yeniEkran(kaynak, ["plaket"], { is: "f".repeat(32), tur: "plaket", olcu: 100 }, hazir, { turnstileOto: true, zamanlayici: true });
+    const b = e.bolum;
+    const sip = () => byId(b, "foto-sip-btn");
+    const tiksiz = !!sip() && sip().disabled === true && aktif(b) === "4";
+    const b2 = byId(b, "foto-b2-onay");
+    if (b2) { b2.checked = true; b2.tetikle("change"); }
+    const yalnizB2 = !!sip() && sip().disabled === true;   // aydınlatma onayı yok (oturum onayı eski/yok)
+    s.SEPET = tiksiz && yalnizB2;
+    e.dugme("foto-iptal-btn");
+    const ileri = byId(b, "foto-ileri");
+    s.IPTAL = aktif(b) === "1" && sinifli(b, "foto-uretim-kart").filter((k) => k.classList.contains("secili")).length === 0 &&
+      !!ileri && ileri.disabled === true && !sip() && gorunurPencere(b) === 1;
+    return s;
+  };
+
+  // D) REGRESYON: taze bölüm, plaket DIŞI kartın İLK tıkı → istisna 0 + ② dolu + dürüstlük o türün.
+  const regresyon = async (kaynak) => {
+    let tamam = 0;
+    const iz = [];
+    for (const kod of ["insan", "hayvan_model", "bust", "yapboz"]) {
+      const e = await yeniEkran(kaynak, DORT);
+      const bulundu = e.tik(kod);
+      const p2 = byId(e.bolum, "foto-pencere-2");
+      const dolu = !!p2 && p2.hidden !== true && !!byId(p2, "foto-yukle-kutu") && !!byId(p2, "foto-not-alani") && !!byId(p2, "foto-uyum");
+      const tur = kod === "insan" || kod === "hayvan_model" ? "figur" : kod;
+      const d = durustMetni(e.bolum);
+      if (bulundu && e.ist === 0 && dolu && d === e.V.turBul(tur).durustluk) tamam++;
+      iz.push({ kod, ist: e.ist, dolu });
+    }
+    const s = { REGRESYON: tamam === 4 };
+    Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+    return s;
+  };
+
+  // E) ① kart sayısı = /acik: anahtarlık /acik'te olsa da kaydı/örneği yokken kart ÇİZİLMEZ; yalnız plaket açıkken 1 kart.
+  const acikSayisi = async (kaynak) => {
+    const V = veriYukle(VERI_KAYNAK);
+    const ac = acikGercek(V, DORT);
+    ac.turler.push({ kod: "anahtarlik", ad: "Anahtarlık", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 60, fiyat_kurus: 60000 }] });
+    const e1 = await ekranKos(kaynak, V, ac);
+    const e2 = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), acikGercek(V, ["plaket"]));
+    const n1 = sinifli(e1.bolum, "foto-uretim-kart").length, n2 = sinifli(e2.bolum, "foto-uretim-kart").length;
+    const yakinda = /Yakında/.test(e1.bolum.textContent);
+    return { ACIK_SAYISI: n1 === 5 && n2 === 1 && !yakinda };
+  };
+
+  const hepsi = async (kaynak) => ({ ...(await duzen(kaynak)), ...(await ucuncu(kaynak)), ...(await dorduncu(kaynak)),
+    ...(await regresyon(kaynak)), ...(await acikSayisi(kaynak)) });
+  const d0 = await duzen(EKRAN_KAYNAK), u0 = await ucuncu(EKRAN_KAYNAK), c0 = await dorduncu(EKRAN_KAYNAK);
+  const r0 = await regresyon(EKRAN_KAYNAK), a0 = await acikSayisi(EKRAN_KAYNAK);
+  console.log("  ℹ K3b sayilar: kutu_disi_oge=" + d0.iz.kutuDisi + " gorunur_pencere(9 adim)=" + JSON.stringify(d0.iz.pen) +
+    " kart=" + d0.iz.kart.length + " p1_kart_disi_oge=" + d0.iz.p1Disi);
+  ol("K3b-1 #fotoUretim cocuk sayisi 1 (tek kutu) + kutu disi oge 0 (bastan sona; govdede bolum disi oge 0)", d0.TEKKUTU, JSON.stringify([d0, d0.iz]));
+  ol("K3b-2 ① kart = KARTLAR ∩ /acik: 5/5 (insan · hayvan_model · plaket · bust · yapboz); ① icinde dosya girdisi 0, kart disi oge 0", d0.KART, JSON.stringify(d0.iz));
+  ol("K3b-3 ① kart sayisi /acik'e bagli: anahtarlik kaydi/ornegi yokken cizilmez (5), yalniz plaket acikken 1; 'Yakında' 0", a0.ACIK_SAYISI, JSON.stringify(a0));
+  ol("K3b-4 ayni anda gorunen pencere 1 (9 adimin hepsinde)", d0.TEKPENCERE, JSON.stringify(d0.iz.pen));
+  ol("K3b-5 ① secimsiz 'İleri' pasif + 'Geri' gizli", d0.ILERI, JSON.stringify(d0));
+  ol("K3b-6 insan + hayvan_model ikisi de tur figur secer (② durustluk figur'un) ve ②'ye gecer", d0.INSAN, JSON.stringify(d0.iz));
+  ol("K3b-7 insan kartinda büst yönlendirmesi 1/1 (hayvan_model'de 0); tik ①'e döner", d0.YONLENDIRME, JSON.stringify(d0));
+  ol("K3b-8 gezinti: ② dosyasiz ve parca tarifinde (ret cumlesi) İleri pasif, temiz tarifle acik → ③ → ④ (İleri gizli, Geri var) → Geri ③", d0.GEZINTI, JSON.stringify(d0.iz));
+  ol("K3b-9 ③ canli fiyat 3 vaka: 30 mm → 600 TL (taban) · 100 mm → 1.000 TL · 100 mm + 3 renk → 1.200 TL", u0.FIYAT, JSON.stringify(u0.iz));
+  ol("K3b-10 ③ renk tavani 2 vaka: plaket 4 (kalan 5 kutu kapali) · bust 2 (kalan 7 kapali)", u0.TAVAN, JSON.stringify(u0));
+  ol("K3b-11 ③ surgu tabani 2 vaka: plaket ilk deger '10 mm → 600 TL' · bust '60 mm → 600 TL'", u0.TABAN, JSON.stringify(u0.iz));
+  ol("K3b-12 ③ malzeme listesi N/N: yapboz [PLA,PETG] · bust [PLA,PETG] · plaket satir 0; malzeme fiyata etki etmez", u0.MALZEME, JSON.stringify(u0.iz));
+  ol("K3b-13 ④ tiksiz 'Sepete ekle' disabled (yalniz B2 ile de kapali)", c0.SEPET, JSON.stringify(c0));
+  ol("K3b-14 İptal → ① (secili kart 0, İleri pasif, sepet paneli yok, tek pencere)", c0.IPTAL, JSON.stringify(c0));
+  ol("K3b-15 REGRESYON taze bolum, plaket DISI kartin ilk tiki → istisna 0 + ② dolu + durustluk o turun (4/4)", r0.REGRESYON, JSON.stringify(r0.iz));
+  ol("K3b-16 kart tiklarinda istisna 0", d0.ISTISNA_YOK, JSON.stringify(d0));
+  const ESKI = ["foto-uretim-serit", "foto-uretim-vitrin", "foto-uretim-isik", "foto-uretim-galeri-kucuk", "foto-uretim-buyuk",
+    "foto-uretim-fiyat", "foto-uretim-yakinda", "foto-uretim-polaroid", "vitrinGuncelle", "isikAc", "S.fiyatEl", "S.olcuAltEl", "YER_TUTUCU", "'dan itibaren"];
+  const eskiVar = ESKI.filter((x) => EKRAN_KAYNAK.includes(x));
+  ol("K3b-17 eski serit/vitrin/lightbox/izgara sinif ve kod adlari kaynakta 0", eskiVar.length === 0, JSON.stringify(eskiVar));
+  ol("K3b-18 mobil: ≤640 px kartlar 2 sutun + gosterge 2x2 kurali kaynakta (375 px tarayici olcumu mimarda)",
+     /@media \(max-width:640px\)\{"[\s\S]{0,160}?\.foto-uretim-kartlar\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)[\s\S]{0,160}?\.foto-uretim-gosterge\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/.test(EKRAN_KAYNAK), "");
+  // MUTANTLAR — her biri yalnız kendi koşucusuyla; beklenen kırmızı kümesi TAM (null/no-op YASAK: çapa tam 1 kez).
+  const K3B_MUT = [
+    ["M-TEKKUTU kutu disina oge eklendi", "    bolum.appendChild(kutu);\n    pencereGit(1);",
+     "    bolum.appendChild(kutu);\n    bolum.appendChild(el(\"p\", \"foto-uretim-ayrinti\", \"\"));\n    pencereGit(1);", duzen, ["TEKKUTU"]],
+    ["M-TEKPENCERE ① penceresi hep gorunur (iki pencere)", "S.pencereler[i].hidden = (i + 1) !== n;",
+     "S.pencereler[i].hidden = (i + 1) !== n && i !== 0;", duzen, ["TEKPENCERE"]],
+    ["M-KART KARTLAR'dan hayvan_model satiri silindi", "    { kod: \"hayvan_model\", tur: \"figur\", alt: \"hayvan_model\", ad: \"Hayvan ve model figürü\",\n      ret: \"Figür için tek hayvan, araç ya da oyuncağın net fotoğrafı gerekir.\" },\n",
+     "", duzen, ["KART", "INSAN"]],
+    ["M-INSAN insan karti figur yerine plaket secer", "{ kod: \"insan\", tur: \"figur\", alt: \"insan\"",
+     "{ kod: \"insan\", tur: \"plaket\", alt: \"insan\"", duzen, ["INSAN"]],
+    ["M-FORMKORUMA kart seciciden form-cizilmedi korumasi kalkti", "      if (S.alanOlcu) {\n        doldurS1Olcu();",
+     "      {\n        doldurS1Olcu();", regresyon, ["REGRESYON"]],
+    ["K3b-MK KONTROL (yorum)", "  function kartVurgula() {", "  // kontrol\n  function kartVurgula() {", hepsi, []],
+  ];
+  for (const [ad, capa, yerine, kosucu, olmeli] of K3B_MUT) {
+    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu (mutant uygulandi)", false, "capa kayip/coklu: " + capa.slice(0, 60)); continue; }
+    const m = await kosucu(EKRAN_KAYNAK.replace(capa, yerine));
+    const kirmizi = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kirmizi));
+  }
+}
+
+await new Promise((c) => setTimeout(c, 0));
+ol("ASENKRON temiz kaynakta (EKRAN_KAYNAK) yakalanmamis istisna 0",
+   ASENKRON_ISTISNA.filter((x) => x.temiz).length === 0, JSON.stringify(ASENKRON_ISTISNA.filter((x) => x.temiz).slice(0, 3)));
 
 kopru.kapat();
 await Promise.allSettled(ctx.bekleyen);

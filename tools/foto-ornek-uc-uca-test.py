@@ -2,39 +2,38 @@
 """FOTO `ORNEK-` UCTAN UCA BETIGI — hermetik kabul testi + mutantlar (tools/foto-ornek-uc-uca.py).
 
 HERMETIK: betik IZOLE bir kopya agacta (tempfile) kosar: sahte sunucu (127.0.0.1, /acik + /onizleme +
-/litofan + medya), sahte wrangler (D1 = gecici SQLite, sema tools/d1-sema.sql; R2 = gecici dizin), sahte
-kopru (kosucu yerine: kuyruktaki ornek islerine 3MF + olcu.json + onizleme.png yazar), sahte tarayici
-sonucu (FOTO_UU_TARAYICI_SAHTE). Gercek D1/R2/onizleme/ev yolu YOK; her sey tempfile, bitince silinir.
+panel ornek uclari + medya), sahte wrangler (D1 = gecici SQLite, sema tools/d1-sema.sql; R2 = gecici dizin),
+sahte kopru (kosucu yerine: kuyruktaki ornek islerine 3MF + olcu.json + onizleme.png yazar; onarim kuyrugu),
+sahte tarayici sonucu (FOTO_UU_TARAYICI_SAHTE). Gercek D1/R2/onizleme/ev yolu YOK; her sey tempfile, bitince silinir.
 
-Vakalar: U1 isimlik mutlu yol -> HAZIR=1/1 rc=0 (6 olcut HAZIR) · U2 SUNUCU MUTANTI: acik olmayan
-kategori 200 -> betik GECERSIZ rc=2 HAZIR=0 · U2b tumu ACIK + yabanciya `gorsel-gecersiz` 400
--> GECERSIZ (bekci `hata` metnine de bakiyor; yalniz kod yetmez) · U2c tumu ACIK + yabanciya
-`tur-kapali` 400 -> HAZIR (mutlu yol; bilinmeyen_tur manifestte DEGIL, sunucu tip kapisindan reddeder)
-· U3 3MF delik (ucgen eksik) -> (4) EKSIK · U4 olcek ekseni
-%10 sapma -> (4) EKSIK · U5 sunucu onaysiz istegi kabul (403) -> (5) EKSIK · U6 /acik fiyati mm x 900 ->
-(3) EKSIK · U7 tur /acik'ta yok -> (1) EKSIK · U8 375 px tasma 6 -> (6) EKSIK · U9 konsol hatasi 1 ->
-(6) EKSIK · U10 tarayici yok -> (3)(5)(6) EKSIK, rc 1 (yesil SAYILMAZ) · U11 litofan (tarayici
-onizleyicili) mutlu yol · U12 onizleme toml canliyla ayni -> rc 2, wrangler cagrisi 0 · U13 yazimlar
-YALNIZ onizleme D1/kovasina · U14 tur listesi MANIFESTTEN (--hepsi --kol D = manifestteki D sayisi) ·
-U15 tarayicida tur secilemiyor (baska tur secili) -> (3)(5)(6) EKSIK · U16 cok parcali TABLA duzeni
-(parcalar <= olcu, olcu.json montaj == olcu) -> (4) HAZIR `eksen=montaj` · U17 ayni duzen, olcu.json montaj
-%10 sapma -> (4) EKSIK · U18 bir parca urun olcusunu %20 asiyor -> (4) EKSIK.
-Mutantlar (betik kopyasinda capa degisir): MB1 mutant kapisi silindi -> U2 KIRMIZI · MB2 sizdirmazlik
-olcumu yok -> U3 · MB3 eksen toleransi yok -> U4+U16+U18 · MB4 sunucu onay kontrolu yok -> U5 · MB5 fiyat
-carpimi yok -> U6 · MB6 tarayici yokken gecer -> U10 · MB7 canli ayrilik kapisi yok -> U12 ·
-MB8 secili tur kontrolu yok -> U15 · MB9 tabla duzeninde parca siniri yok -> U18 · MB19/MB20 kayit `ornek`i
-(sayi/metin) okunmuyor -> U25 (sehir/yildiz ornegi gercek manifestten) · MB0 yorum -> 0 kirmizi.
-SAGLAYICI KOLU (--kredi-tavani, kopru-15 SAGLAYICI-2; sahte panel uclari + sahte uretim-tik, kredi SUNUCUDA yazilir):
-S1 tavan 0 -> ②④ OLCULMEZ, panel istegi 0 · S2 tavan 10 -> ② HAZIR, build oncesi DUR, tik 0 · S3 tavan 100 -> ④
-HAZIR, KREDI_HARCANAN=46/100 · S4 tavan 5 -> onizleme istegi 0 · S5 kuyrukta yabanci yarim satir -> DUR, tik 0 ·
-S6 saglayici 3MF %10 buyuk -> ④ eksen YANLIS · S7 sunucu tahminden pahali yazar -> D1 farkiyla renk oncesi DUR.
-S8 makine anahtari yok -> OLCULEMEDI, panel sifresine DUSMEZ · S9 tohumlanmis 'doku' satirindan --devam-is ile
-devam -> ④ HAZIR, ornek-onizleme 0, KREDI_HARCANAN=20/30 (yalniz yeni adimlar) · S10 --devam-is ama tavan 0
--> erken HATA rc 2, panel istegi 0 · S11 --devam-is bilinmeyen is -> ② EKSIK, ornek-onizleme 0.
-MB21 kredi kontrolu yok -> S2+S4 · MB22 yabanci kuyruk kontrolu yok -> S5 · MB23 tavan-0 kolu yok -> S1 ·
-MB24 D1 farki okunmuyor -> S7 · MB3 ayrica S6 · MB25 devam yolunda ornek-onizleme yine cagirilirsa S9 KIRMIZI ·
-MB26 tavan-0 korumasi kaldirilirsa S10 KIRMIZI · MB29 `mutant_on_kosul` `hata == hata_bek` kontrolu
-silinirse U2b KIRMIZI (bekci yalniz 400'a bakarsa figur gorsel-gecersiz 400'unu gecmis sayar).
+EVREN (sayfa-3adim K3, manifest foto-uretim-veri.js TEK KAYNAK): plaket · figur (motor M, saglayici) · yapboz ·
+bust · anahtarlik (motor D, kopru). Sahte /acik GERCEK sunucu gibi yalniz SAYILAN ORNEGI olan turu sunar
+(anahtarlik kayitli, ornegi yok -> /acik'te YOK). Sahte /foto/onizleme shop/src/foto.js dallarini taklit eder:
+kapali D/R turu -> 503 `kapali` (uretecOnizlemeUcu turHazir once); kapali M / bilinmeyen tur -> 400 `tur-kapali`.
+Sahte panel uretim-tik asama kumesi foto.js'ten TURETILIR (tik'in SECMEDIGI asamalar + renk sonrasi asama =
+'onarim-bekliyor'; saglayici 3MF'i model.ham.3mf olur, 'hazir'i yalniz yerel kopru yazar).
+
+Vakalar (D kolu varsayilan tur = bust; kapali M tur = plaket): U1 mutlu yol -> HAZIR=1/1 rc=0 · U2 SUNUCU
+MUTANTI: kapali tur 200 -> GECERSIZ rc=2 · U2b kapali M tura `gorsel-gecersiz` 400 -> GECERSIZ (bekci `hata`
+metnine de bakar) · U2c BUGUNKU CANLI DURUM: hicbir M tur kapali degil, yalniz D anahtarlik kapali (ornegi yok)
+-> bekci BILINMEYEN_TUR'a duser, 400 `tur-kapali` -> HAZIR (D kapali tur 503 `kapali` dalina SECILMEZ, 8b0a4a10)
+· U3 3MF delik -> (4) EKSIK · U4 olcek ekseni %10 sapma -> (4) EKSIK · U5 sunucu onaysiz istegi kabul (403) ->
+(5) EKSIK · U6 /acik fiyati mm x 900 -> (3) EKSIK · U7 tur /acik'ta yok -> (1) EKSIK · U8 375 px tasma 6 ->
+(6) EKSIK · U9 konsol hatasi -> (6) EKSIK · U10 tarayici yok -> (3)(5)(6) EKSIK, rc 1 · U12 onizleme toml
+canliyla ayni -> rc 2, wrangler cagrisi 0 · U13 yazimlar YALNIZ onizleme D1/kovasina · U14 tur listesi
+MANIFESTTEN (--hepsi --kol D = manifestteki 3 D turu; ornegi olmayan anahtarlik (1) EKSIK) · U15 tarayicida
+baska tur secili -> (3)(5)(6) EKSIK · U16 cok parcali TABLA duzeni -> (4) HAZIR `eksen=montaj` · U17 ayni duzen
+olcu.json %10 sapma -> (4) EKSIK · U18 parca urun olcusunu %20 asiyor -> (4) EKSIK.
+SAF: U19 GERCEK manifestin D turleri (yapboz/anahtarlik/bust) ornek parametresi parametreDogrula'dan gecer ·
+U20 bilesen tipler (bool/ses/konum/tarih) · U21 desteksiz tip sebep adiyla · U22 kosul + varsayilan ·
+U25 kaydin `ornek`i okunur (gercek anahtarlik satirlar + sentetik sayi alani) · P1-P3 3MF p:path.
+SAGLAYICI KOLU (--kredi-tavani; tur = plaket, kapali M tur = figur; kredi SUNUCUDA yazilir): S1 tavan 0 ->
+②④ OLCULMEZ, panel istegi 0 · S2 tavan 10 -> build oncesi DUR · S3 tavan 100 -> HAZIR=1/1, KREDI_HARCANAN=46/100,
+onarim kopru kosusu · S4 tavan 5 -> onizleme istegi 0 · S5 yabanci yarim satir -> DUR, tik 0 · S6 saglayici 3MF
+%10 buyuk -> eksen YANLIS · S7 sunucu tahminden pahali -> renk oncesi DUR · S8 makine anahtari yok -> OLCULEMEDI ·
+S9 --devam-is 'doku'dan -> ④ HAZIR, 20/30 · S10 --devam-is tavan 0 -> rc 2 · S11 --devam-is bilinmeyen is ·
+S12/S13 doku kredisi · S14/S15 onarim kapisi.
+Mutantlar (betik kopyasinda capa degisir; capa != 1 kez -> SURVIVOR): MUTANTLAR sozlugu yorumlari.
 """
 import json
 import os
@@ -150,6 +149,30 @@ def manifest():
 
 MAN = manifest()
 TUR = {t["kod"]: t for t in MAN["turler"]}
+# Sunucu /foto/acik yalniz SAYILAN ORNEGI olan turu sunar (anahtarlik: kayitli, ornegi yok -> /acik'te YOK).
+ACIK_EVREN = [t["kod"] for t in MAN["turler"] if t.get("ornekler")]
+D_TUR = "bust"      # D kolu (kopru) varsayilan vaka turu — ornegi VAR, /acik'te
+KAPALI_M = "plaket"  # tek(): kapatilan saglayici (M) turu -> mutant on kosulu bunu secer
+
+
+def _sunucu_asamalari():
+    """shop/src/foto.js'ten TURETILIR (ikinci sozluk UYDURULMAZ): (1) cron/uretim-tik SELECT'inin SECMEDIGI
+    asamalar (`WHERE asama NOT IN (...)`), (2) uretimAdimi 'renk' dalinin satiri tasidigi asama. Bulunamazsa
+    test COKER (fail-closed)."""
+    import re
+    src = open(os.path.join(KOK, "shop", "src", "foto.js"), encoding="utf-8").read()
+    m = re.search(r"renk_sayisi FROM foto_uretim WHERE asama NOT IN \(([^)]*)\)", src)
+    i = src.find('if (u.asama === "renk") {')
+    r = re.search(r'asamaYaz\(env, u, "([a-z-]+)"', src[i:]) if i >= 0 else None
+    if not m or not r:
+        raise SystemExit("foto.js: uretim-tik asama kumesi / renk sonrasi asama TURETILEMEDI")
+    disi = tuple(re.findall(r"'([a-z-]+)'", m.group(1)))
+    if r.group(1) not in disi or "hazir" not in disi:
+        raise SystemExit("foto.js: renk sonrasi asama %r tik disi kumede DEGIL %r" % (r.group(1), disi))
+    return disi, r.group(1)
+
+
+TIK_DISI, RENK_SONRASI = _sunucu_asamalari()   # bugun: (..., 'onarim-bekliyor'), 'onarim-bekliyor'
 
 
 def png(w, h):
@@ -225,23 +248,28 @@ class Sunucu:
                     return h.yanit(200, {"ok": True, "siparis_no": no})
                 if uc == "/foto/uretim-tik":
                     # zengin_harita=True: analiz->onarim->doku->renk (kopru-11 SAGLAYICI-2 haritasi).
-                    # Default (S1-S8): analiz->renk, bedel build 30 + renk 10 (degismez).
+                    # Default (S1-S8): analiz->renk, bedel build 30 + renk 10 (degismez). renk -> RENK_SONRASI.
                     if ayar.get("zengin_harita"):
                         sonraki = {"build-baslat": "build", "build": "analiz", "analiz": "onarim",
-                                   "onarim": "doku", "doku": "renk", "renk": "hazir"}
+                                   "onarim": "doku", "doku": "renk", "renk": RENK_SONRASI}
                         bedel = {"build": ayar.get("bedel_build", 30), "onarim": 10, "doku": 10, "renk": 10}
                     else:
-                        sonraki = {"build-baslat": "build", "build": "analiz", "analiz": "renk", "renk": "hazir"}
+                        sonraki = {"build-baslat": "build", "build": "analiz", "analiz": "renk", "renk": RENK_SONRASI}
                         bedel = {"build": ayar.get("bedel_build", 30), "renk": 10}
+                    # Asama kumesi foto.js'ten (TIK_DISI / RENK_SONRASI): renk -> 'onarim-bekliyor' (ham 3MF
+                    # model.ham.3mf + glb); tik o satiri SECMEZ, 'hazir'i yalniz yerel kopru (onarim kuyrugu) yazar.
                     for no, ino, tur, olcu, asama in c.execute(
                             "SELECT siparis_no, is_no, tur, olcu_mm, asama FROM foto_uretim WHERE asama NOT IN"
-                            " ('hazir', 'elle', 'uretec-bekliyor')").fetchall():
+                            " (%s)" % ", ".join("'%s'" % a for a in TIK_DISI)).fetchall():
+                        if asama not in sonraki:
+                            return h.yanit(500, {"hata": "sahte-panel-bilinmeyen-asama:" + asama})
                         if asama in bedel:
                             c.execute("INSERT OR IGNORE INTO foto_kredi (tarih, adim, is_no, siparis_no, gorev, kredi)"
                                       " VALUES (?, ?, ?, ?, ?, ?)", (simdi, asama, ino, no, asama + no, bedel[asama]))
-                        if sonraki[asama] == "hazir":
+                        if sonraki[asama] == RENK_SONRASI:
                             d = os.path.join(ayar["r2"], "foto", no, "0")
                             kutu_3mf(d, olcu * ayar.get("sag_geo", 1.0))
+                            os.replace(os.path.join(d, "model.3mf"), os.path.join(d, "model.ham.3mf"))
                             with open(os.path.join(d, "model.glb"), "wb") as f:
                                 f.write(b"glTF\x02\x00\x00\x00\x0c\x00\x00\x00")
                         c.execute("UPDATE foto_uretim SET asama = ? WHERE siparis_no = ?", (sonraki[asama], no))
@@ -289,6 +317,12 @@ class Sunucu:
                 g = json.loads(self.rfile.read(n) or b"{}")
                 if self.path.startswith("/api/shop/yonet/"):
                     return panel(self, "POST", g)
+                t = TUR.get(g.get("tur")) or {}
+                if g.get("tur") not in ayar["acik"] and t.get("motor") in ("D", "R") and \
+                        not t.get("tarayici_onizleyici"):
+                    # shop/src/foto.js onizlemeUcu: uretec (D/R) turu uretecOnizlemeUcu'na gider, orada
+                    # turHazir ONCE -> kapali D/R tur 503 `kapali` (bugun: anahtarlik, ornegi yok).
+                    return self.yanit(503, {"hata": "kapali"})
                 if g.get("tur") not in ayar["acik"]:
                     # Kopru-15: mutant on-kosulunun "tip kapisi KAPALI" olcumunu test etmek icin:
                     # kapali_kod=400 + gorsel_400_yabanci=True -> 400 `gorsel-gecersiz` (kapidan GECMIS,
@@ -394,8 +428,10 @@ def olcut(cikti, kod, o):
     return ""
 
 
-def hazir_ortam(o, kod="isimlik"):
-    o.sunucu.ayar["acik"] = [t["kod"] for t in MAN["turler"]]
+def hazir_ortam(o, kod=D_TUR):
+    # sayfa-3adim K3: sahte /acik = ORNEGI OLAN turler (gercek sunucu; anahtarlik kayitli ama ornegi yok).
+    # Varsayilan vaka turu D kolu (bust): saglayici (M) kolu kredisiz kosumda OLCULMEZ, S* vakalari olcer.
+    o.sunucu.ayar["acik"] = list(ACIK_EVREN)
     o.tarayici = {kod: tarayici_iyi(kod)}
 
 
@@ -415,14 +451,14 @@ def vakalar(kaynak, sadece=None):
             o.kapat()
         s[ad] = (gecti, ac)
 
-    def tek(o, kod="isimlik", **ek):
+    def tek(o, kod=D_TUR, **ek):
         hazir_ortam(o, kod)
-        o.sunucu.ayar["acik"] = [k for k in o.sunucu.ayar["acik"] if k != "plaket"]  # kapali tur = plaket
+        o.sunucu.ayar["acik"] = [k for k in o.sunucu.ayar["acik"] if k != KAPALI_M]  # kapali M tur = plaket
         return o.kos("--tur", kod, **ek)
 
     def u1(o):
         rc, son, c = tek(o)
-        ok = rc == 0 and son == "HAZIR=1/1 rc=0" and all(olcut(c, "isimlik", x) == "HAZIR" for x in "123456")
+        ok = rc == 0 and son == "HAZIR=1/1 rc=0" and all(olcut(c, D_TUR, x) == "HAZIR" for x in "123456")
         return ok, son if ok else c[-900:]
     vaka("U1", u1)
 
@@ -434,7 +470,7 @@ def vakalar(kaynak, sadece=None):
     vaka("U2", u2)
 
     def u2b(o):
-        # Kopru-15: tumu ACIK + sahte sunucu bilinmeyen koda "gorsel-gecersiz" 400 -> bekci YANLIS gecmis
+        # Kopru-15: kapali M tura (plaket) sahte sunucu "gorsel-gecersiz" 400 -> bekci YANLIS gecmis
         # 400'u MUTLU yol sanmamali (`hata` tur-kapali olmadigi icin GECERSIZ).
         o.sunucu.ayar["gorsel_400_yabanci"] = True
         rc, son, c = tek(o)
@@ -444,41 +480,48 @@ def vakalar(kaynak, sadece=None):
     vaka("U2b", u2b)
 
     def u2c(o):
-        # Kopru-15: tumu ACIK + sahte sunucu bilinmeyen koda "tur-kapali" 400 -> bekci GECERLI (mutlu yol).
-        rc, son, c = tek(o)
-        ok = rc == 0 and son == "HAZIR=1/1 rc=0" and all(olcut(c, "isimlik", x) == "HAZIR" for x in "123456") and \
-            "GECERSIZ" not in c
+        # 8b0a4a10 sozlesmesi (BUGUNKU CANLI DURUM): hicbir M tur kapali degil; /acik'te olmayan tek tur D
+        # anahtarlik (ornegi yok) -> sunucuda 503 `kapali`. Bekci onu SECMEZ (yalniz motor M), BILINMEYEN_TUR'a
+        # duser -> 400 `tur-kapali` -> GECERLI, HAZIR. D turu secerse 503 -> GECERSIZ rc 2 (MB33).
+        hazir_ortam(o)
+        kapali = [k for k in TUR if k not in o.sunucu.ayar["acik"]]
+        if [TUR[k]["motor"] for k in kapali] != ["D"]:
+            return False, "on kosul: kapali turler yalniz tek D tur olmali, bulunan %s" % kapali
+        rc, son, c = o.kos("--tur", D_TUR)
+        ok = rc == 0 and son == "HAZIR=1/1 rc=0" and all(olcut(c, D_TUR, x) == "HAZIR" for x in "123456") and \
+            "GECERSIZ" not in c and "yok_tur=uu-yok-tur kod=400 hata=tur-kapali" in c
         return ok, son if ok else c[-900:]
 
     vaka("U2c", u2c)
 
     def u3(o):
         rc, son, c = tek(o, FAKE_DELIK="1")
-        return rc == 1 and olcut(c, "isimlik", "4") == "EKSIK" and olcut(c, "isimlik", "2") == "HAZIR", son
+        return rc == 1 and olcut(c, D_TUR, "4") == "EKSIK" and olcut(c, D_TUR, "2") == "HAZIR", son
     vaka("U3", u3)
 
     def u4(o):
         # Geometri %10 buyuk, olcu.json "dogru" (olcu) der -> YALNIZ bagimsiz eksen olcumu yakalar.
         rc, son, c = tek(o, FAKE_GEO="1.1", FAKE_UK=str(1 / 1.1))
-        return rc == 1 and olcut(c, "isimlik", "4") == "EKSIK", son
+        return rc == 1 and olcut(c, D_TUR, "4") == "EKSIK", son
     vaka("U4", u4)
 
     def u5(o):
         o.sunucu.ayar["onaysiz_kod"] = 403
         rc, son, c = tek(o)
-        return rc == 1 and olcut(c, "isimlik", "5") == "EKSIK" and olcut(c, "isimlik", "4") == "HAZIR", son
+        return rc == 1 and olcut(c, D_TUR, "5") == "EKSIK" and olcut(c, D_TUR, "4") == "HAZIR", son
     vaka("U5", u5)
 
     def u6(o):
         o.sunucu.ayar["carpan"] = 900
         rc, son, c = tek(o)
-        return rc == 1 and olcut(c, "isimlik", "3") == "EKSIK", son
+        return rc == 1 and olcut(c, D_TUR, "3") == "EKSIK", son
     vaka("U6", u6)
 
-    # SAGLAYICI KOLU (kopru-15 SAGLAYICI-2): --kredi-tavani. Kapali tur = isimlik (mutant on kosulu icin).
+    # SAGLAYICI KOLU (kopru-15 SAGLAYICI-2): --kredi-tavani. Olculen tur plaket (ACIK); kapali M tur = figur
+    # (mutant on kosulu yalniz M kapali turu secer, 8b0a4a10).
     def sag(o, tavan, devam_is="", **ek):
         hazir_ortam(o, "plaket")
-        o.sunucu.ayar["acik"] = [k for k in o.sunucu.ayar["acik"] if k != "isimlik"]
+        o.sunucu.ayar["acik"] = [k for k in o.sunucu.ayar["acik"] if k != "figur"]
         args = ["--tur", "plaket", "--kredi-tavani", str(tavan)]
         if devam_is:
             args += ["--devam-is", devam_is]
@@ -501,7 +544,10 @@ def vakalar(kaynak, sadece=None):
 
     def s3(o):
         rc, son, c, y = sag(o, 100)
-        ok = olcut(c, "plaket", "2") == "HAZIR" and olcut(c, "plaket", "4") == "HAZIR" and "KREDI_HARCANAN=46/100" in c
+        # Tam zincir: renk -> 'onarim-bekliyor' (foto.js) -> betik kopruyu BIR kez kosar -> 'hazir' -> ④.
+        # Plaket olcu 10..300: ③ /acik fiyatlari 60 mm alti TABANLI (MB32 burada yakalanir).
+        ok = (rc == 0 and son == "HAZIR=1/1 rc=0" and all(olcut(c, "plaket", x) == "HAZIR" for x in "123456") and
+              "KREDI_HARCANAN=46/100" in c and "KOPRU onarim: HAL=ISLEDI" in c)
         return ok, "yonet=%s %s" % (y, c[-900:])
     vaka("S3", s3)
 
@@ -670,38 +716,34 @@ def vakalar(kaynak, sadece=None):
 
     def u7(o):
         hazir_ortam(o)
-        o.sunucu.ayar["acik"] = ["qr", "logo"]
-        rc, son, c = o.kos("--tur", "isimlik")
-        return rc == 1 and olcut(c, "isimlik", "1") == "EKSIK", son
+        o.sunucu.ayar["acik"] = [k for k in ACIK_EVREN if k != D_TUR]
+        rc, son, c = o.kos("--tur", D_TUR)
+        return rc == 1 and olcut(c, D_TUR, "1") == "EKSIK" and "acik=0" in c, son
     vaka("U7", u7)
 
     def u8(o):
         hazir_ortam(o)
-        o.tarayici["isimlik"]["tasma"] = 6
-        o.sunucu.ayar["acik"].remove("plaket")
-        rc, son, c = o.kos("--tur", "isimlik")
-        return rc == 1 and olcut(c, "isimlik", "6") == "EKSIK", son
+        o.tarayici[D_TUR]["tasma"] = 6
+        o.sunucu.ayar["acik"].remove(KAPALI_M)
+        rc, son, c = o.kos("--tur", D_TUR)
+        return rc == 1 and olcut(c, D_TUR, "6") == "EKSIK", son
     vaka("U8", u8)
 
     def u9(o):
         hazir_ortam(o)
-        o.tarayici["isimlik"]["konsol"] = ["console.error: x"]
-        o.sunucu.ayar["acik"].remove("plaket")
-        rc, son, c = o.kos("--tur", "isimlik")
-        return rc == 1 and olcut(c, "isimlik", "6") == "EKSIK", son
+        o.tarayici[D_TUR]["konsol"] = ["console.error: x"]
+        o.sunucu.ayar["acik"].remove(KAPALI_M)
+        rc, son, c = o.kos("--tur", D_TUR)
+        return rc == 1 and olcut(c, D_TUR, "6") == "EKSIK", son
     vaka("U9", u9)
 
     def u10(o):
         rc, son, c = tek(o, FOTO_UU_TARAYICI_SAHTE="", FOTO_UU_CHROME="0")
-        ok = rc == 1 and all(olcut(c, "isimlik", x) == "EKSIK" for x in "356") and olcut(c, "isimlik", "4") == "HAZIR"
+        ok = rc == 1 and all(olcut(c, D_TUR, x) == "EKSIK" for x in "356") and olcut(c, D_TUR, "4") == "HAZIR"
         return ok, son
     vaka("U10", u10)
 
-    def u11(o):
-        rc, son, c = tek(o, kod="litofan")
-        return rc == 0 and son == "HAZIR=1/1 rc=0" and "kol=tarayici" in c, son if rc == 0 else c[-900:]
-    vaka("U11", u11)
-
+    # K3a (8 Eki 2026): U11 (litofan tarayici onizleyici kolu) SİLİNDİ — litofan artık yok.
     def u12(o):
         yol = os.path.join(o.agac, "shop", "wrangler.onizleme.toml")
         with open(yol, encoding="utf-8") as f:
@@ -721,63 +763,46 @@ def vakalar(kaynak, sadece=None):
     vaka("U13", u13)
 
     def u14(o):
+        # Kosulan kume = manifestteki TUM D turleri (anahtarlik dahil); ornegi olmayan (anahtarlik) ① EKSIK
+        # (ornek=0, /acik'te yok), ornekli D turleri 6 olcut HAZIR. Sayilar manifestten.
         hazir_ortam(o)
         d = sorted(k for k, t in TUR.items() if t["motor"] == "D")
+        dz = [k for k in d if TUR[k].get("ornekler")]
         o.tarayici = {k: tarayici_iyi(k) for k in d}
-        o.sunucu.ayar["acik"].remove("plaket")
+        o.sunucu.ayar["acik"].remove(KAPALI_M)
         rc, son, c = o.kos("--hepsi", "--kol", "D")
         kosulan = sorted(s.split()[1] for s in c.splitlines() if s.startswith("TUR "))
-        return rc == 0 and kosulan == d and son == "HAZIR=%d/%d rc=0" % (len(d), len(d)), "%s %s" % (son, kosulan)
+        ornksiz = [k for k in d if k not in dz]
+        ok = (kosulan == d and len(d) == 3 and ornksiz == ["anahtarlik"] and
+              rc == (0 if not ornksiz else 1) and son == "HAZIR=%d/%d rc=%d" % (len(dz), len(d), rc) and
+              all(olcut(c, k, x) == "HAZIR" for k in dz for x in "123456") and
+              all(olcut(c, k, "1") == "EKSIK" for k in ornksiz) and "ornek=0 " in c)
+        return ok, "%s %s" % (son, kosulan)
     vaka("U14", u14)
 
-    def u23(o):
-        # kopru-15 DILIM-3 TURETILMIS (kutu): onizleme olcusu 123,4 -> D1 123 -> sunucu 123.000 kurus == S3
-        # "123 mm → 1.230 TL" -> ③ HAZIR; ORNEK siparis olcusu KAYITTAN (123); prova isi (D1 + R2) silinir.
-        rc, son, c = tek(o, "kutu")
-        k = sqlite3.connect(o.db)
-        prova = k.execute("SELECT COUNT(*) FROM foto_isler WHERE ziyaretci = 'uu-prova'").fetchone()[0]
-        u = k.execute("SELECT olcu_mm FROM foto_uretim").fetchall()
-        k.close()
-        kok = os.path.join(o.r2, "foto-uretec-onizleme")
-        r2_prova = sum(1 for d in os.listdir(kok) if os.listdir(os.path.join(kok, d)))  # dolu is dizini (ORNEK=1)
-        ok = (olcut(c, "kutu", "3") == "HAZIR" and "sunucu_kurus=123000" in c and "D1=123" in c and prova == 0 and
-              u == [(123,)] and r2_prova == 1 and olcut(c, "kutu", "4") == "HAZIR")
-        return ok, "%s prova_satir=%d siparis_olcu=%s r2_dosya=%d %s" % (
-            son, prova, u, r2_prova, [s for s in c.splitlines() if s.strip().startswith(("③", "②", "④"))])
-    vaka("U23", u23)
-
-    def u24(o):
-        # Esitlik kolu: sunucu fiyati olcuden sapar (x 1001) YA DA bolum baska fiyat yazar -> ③ EKSIK.
-        o.sunucu.ayar["durum_carpan"] = 1001
-        rc1, _, c1 = tek(o, "kutu")
-        o.sunucu.ayar["durum_carpan"] = 1000
-        o.tarayici = {"kutu": dict(tarayici_iyi("kutu"), olculen_fiyat="120 mm → 1.200 TL")}
-        rc2, _, c2 = o.kos("--tur", "kutu")
-        return (olcut(c1, "kutu", "3") == "EKSIK" and olcut(c2, "kutu", "3") == "EKSIK" and rc1 == 1 and rc2 == 1,
-                "sunucu_sapar=%s bolum_sapar=%s" % (olcut(c1, "kutu", "3"), olcut(c2, "kutu", "3")))
-    vaka("U24", u24)
-
+    # K3a (8 Eki 2026): U23/U24 (kutu türetilmiş eksen + esitlik kolu) SİLİNDİ — kutu türetilmiş kalkti;
+    # evrendeki 5 türün hiçbiri `turetilmis` değil (sabit eksen), türetilmiş eksen testi anlamsız.
     def u15(o):
         hazir_ortam(o)
-        o.tarayici["isimlik"].update(secildi=False, secili_tur="plaket")
-        o.sunucu.ayar["acik"].remove("plaket")
-        rc, son, c = o.kos("--tur", "isimlik")
-        return rc == 1 and all(olcut(c, "isimlik", x) == "EKSIK" for x in "356"), son
+        o.tarayici[D_TUR].update(secildi=False, secili_tur="yapboz")
+        o.sunucu.ayar["acik"].remove(KAPALI_M)
+        rc, son, c = o.kos("--tur", D_TUR)
+        return rc == 1 and all(olcut(c, D_TUR, x) == "EKSIK" for x in "356"), son
     vaka("U15", u15)
 
     def u16(o):
         rc, son, c = tek(o, FAKE_RAF="1")
-        return rc == 0 and olcut(c, "isimlik", "4") == "HAZIR" and "eksen=montaj" in c, son
+        return rc == 0 and olcut(c, D_TUR, "4") == "HAZIR" and "eksen=montaj" in c, son
     vaka("U16", u16)
 
     def u17(o):
         rc, son, c = tek(o, FAKE_RAF="1", FAKE_UK="1.1")
-        return rc == 1 and olcut(c, "isimlik", "4") == "EKSIK", son
+        return rc == 1 and olcut(c, D_TUR, "4") == "EKSIK", son
     vaka("U17", u17)
 
     def u18(o):
         rc, son, c = tek(o, FAKE_RAF="1.2")
-        return rc == 1 and olcut(c, "isimlik", "4") == "EKSIK" and "eksen=YANLIS" in c, son
+        return rc == 1 and olcut(c, D_TUR, "4") == "EKSIK" and "eksen=YANLIS" in c, son
     vaka("U18", u18)
 
     # ---- ORNEK GIRDI (kopru-15 sozluk): saf vakalar — sunucu/D1 YOK; betik kaynagi bellekte yuklenir,
@@ -794,11 +819,12 @@ def vakalar(kaynak, sadece=None):
         s[ad] = (gecti, ac)
 
     def u19(ns):
-        # G4a kutu (girdi form + bool alan): ornek parametre + dosya hazirlanir, sunucu dogrulamasi ok.
-        # 5 olcu-kritik tur (adaptor/disli/kapak/dugme/klips) silindi (8 Eki 2026) — kutu kalan tek G4a.
+        # GERCEK manifestin D kolu turleri (yapboz/anahtarlik/bust — form + bool alan): ornek parametre + dosya
+        # hazirlanir, GERCEK VERI.parametreDogrula ok; bust'in bool alanlari (ters/iki_renk) bool.
         man = {t["kod"]: t for t in ns["manifest_oku"]()["turler"]}
+        kodlar = sorted(k for k, t in man.items() if t["motor"] == "D")
         p, sebep = {}, []
-        for kod in ("kutu",):
+        for kod in kodlar:
             t = man[kod]
             pp, h = ns["ornek_parametre"](t, ns["olcu_sec"](t))
             d, h2 = ns["ornek_dosyalar"](t)
@@ -807,9 +833,9 @@ def vakalar(kaynak, sadece=None):
                 continue
             p[kod] = pp
         dg = saf_dogrula(p, [])
-        bool_ok = p and all(isinstance(p[k][a], bool) for k, a in
-                            (("kutu", "kapak"),) if k in p)
-        ok = not sebep and len(p) == 1 and all(dg[k]["ok"] for k in p) and bool_ok
+        bool_ok = "bust" in p and all(isinstance(p["bust"][a], bool) for a in ("ters", "iki_renk"))
+        ok = (not sebep and kodlar == ["anahtarlik", "bust", "yapboz"] and len(p) == 3 and
+              all(dg[k]["ok"] for k in p) and bool_ok)
         return ok, "sebep=%s dogrula=%s" % (sebep, {k: dg[k].get("hata", "ok") for k in dg})
     saf("U19", u19)
 
@@ -823,10 +849,17 @@ def vakalar(kaynak, sadece=None):
         d, h2 = ns["ornek_dosyalar"](t)
         if pp is None or d is None:
             return False, "desteksiz: %s %s" % (h, h2)
-        dg = saf_dogrula({"saf-bilesen": pp}, [t])["saf-bilesen"]
-        ok = (dg["ok"] and d == {} and pp["b"] is True and pp["b2"] is False and len(pp["s"]) == 100 and
-              pp["k"] == {"enlem": 40.15, "boylam": 29.1} and isinstance(pp["d"], dict) and isinstance(pp["d2"], str))
-        return ok, "dogrula=%s dosya=%s" % (dg, d)
+        # Sunucu dogrulamasi YALNIZ manifestin bugun tanidigi form tiplerinde (VERI.FORM_TIPLERI; K3: sayi/secim/
+        # metin/bool — ses/konum/tarih silinen turlerle kalkti, sunucu `parametre-yakinda` der). ses/konum/tarih
+        # dallari betikte DURDUGU icin uretimleri (MB11-MB14) yine olculur; dogrulama alt kumesi bos OLAMAZ.
+        tipler = saf_form_tipleri()
+        fd = {ad: sm for ad, sm in t["form"].items() if sm["tip"] in tipler}
+        td = {"kod": "saf-bilesen", "girdi": ["form"], "form": fd}
+        dg = saf_dogrula({"saf-bilesen": {ad: pp[ad] for ad in fd}}, [td])["saf-bilesen"]
+        ok = ("bool" in tipler and set(fd) == {"b", "b2"} and dg["ok"] and d == {} and pp["b"] is True and
+              pp["b2"] is False and len(pp["s"]) == 100 and pp["k"] == {"enlem": 40.15, "boylam": 29.1} and
+              isinstance(pp["d"], dict) and isinstance(pp["d2"], str))
+        return ok, "tipler=%s dogrula=%s dosya=%s" % (sorted(tipler), dg, d)
     saf("U20", u20)
 
     def u21(ns):
@@ -859,22 +892,23 @@ def vakalar(kaynak, sadece=None):
     saf("U22", u22)
 
     def u25(ns):
-        # kopru-15 SON3: GERCEK manifestin sehir/yildiz satiri -> ornek parametre kaydin `ornek`inden (Galata
-        # koordinati, gecerli tarih_saat); `ornek` okunmazsa eski formul (30,30 / "PRUVO") -> KIRMIZI.
+        # kopru-15 SON3: kaydin `ornek`i (kopru-manifest-uret tasir) ONCE okunur. Metin: GERCEK anahtarlik
+        # `satirlar` ornegi ["Ayşe"] (okunmazsa formul ["PRUVO"]). Sayi: gercek manifestte ornek == varsayilan
+        # (ayrim olcmez) -> sentetik alan ornek 7 / varsayilan 5 (okunmazsa 5). Ikisi de parametreDogrula ok.
         man = {t["kod"]: t for t in ns["manifest_oku"]()["turler"]}
-        p = {}
-        for kod in ("sehir", "yildiz"):
-            pp, h = ns["ornek_parametre"](man[kod], ns["olcu_sec"](man[kod]))
-            if pp is None:
-                return False, "%s desteksiz: %s" % (kod, h)
-            p[kod] = pp
-        dg = saf_dogrula(p, [])
-        sh, yz = p["sehir"], p["yildiz"]
-        ok = (all(dg[k]["ok"] for k in p) and (sh["enlem"], sh["boylam"], sh["yaricap_m"]) == (41.0256, 28.9742, 400)
-              and yz["tarih_saat"] == "2026-10-07 21:30" and (yz["enlem"], yz["utc_ofset_saat"]) == (41.0082, 3))
-        return ok, "sehir=%s yildiz.tarih_saat=%r dogrula=%s" % (
-            {k: sh.get(k) for k in ("enlem", "boylam", "yaricap_m")}, yz.get("tarih_saat"),
-            {k: dg[k].get("hata", "ok") for k in dg})
+        ta = man["anahtarlik"]
+        pa, h = ns["ornek_parametre"](ta, ns["olcu_sec"](ta))
+        ts = {"kod": "saf-ornek", "girdi": ["form"],
+              "form": {"adet": {"tip": "sayi", "min": 1, "max": 9, "adim": 1, "varsayilan": 5, "ornek": 7}}}
+        ps, h2 = ns["ornek_parametre"](ts, 120)
+        if pa is None or ps is None:
+            return False, "desteksiz: %s %s" % (h, h2)
+        dg = saf_dogrula({"anahtarlik": pa}, [])
+        dg.update(saf_dogrula({"saf-ornek": ps}, [ts]))
+        ok = (ta["form"]["satirlar"].get("ornek") == ["Ayşe"] and pa["satirlar"] == ["Ayşe"] and ps == {"adet": 7}
+              and all(dg[k]["ok"] for k in dg))
+        return ok, "satirlar=%r adet=%r dogrula=%s" % (pa.get("satirlar"), ps.get("adet"),
+                                                       {k: dg[k].get("hata", "ok") for k in dg})
     saf("U25", u25)
 
     # ---- 3MF cok-dosya (p:path, BambuStudio Production): saf vakalar P1/P2/P3. Sentetik 3MF yazici (yalniz
@@ -954,6 +988,18 @@ process.stdout.write(JSON.stringify(r));
 """
 
 
+def saf_form_tipleri():
+    """GERCEK manifestin tanidigi form tipleri (VERI.FORM_TIPLERI, foto-uretim-veri.js)."""
+    js = ("const vm=require('vm'),fs=require('fs');const k={};vm.runInNewContext(fs.readFileSync(process.argv[1],"
+          "'utf8'),k,{filename:'foto-uretim-veri.js'});const T=k.PRUVO_FOTO.FORM_TIPLERI||{};"
+          "process.stdout.write(JSON.stringify(Object.keys(T).filter(x=>T[x]===true)));")
+    r = subprocess.run(["node", "-e", js, os.path.join(KOK, "foto-uretim-veri.js")], capture_output=True, text=True,
+                       timeout=60)
+    if r.returncode != 0:
+        raise RuntimeError("node: " + r.stderr[:300])
+    return set(json.loads(r.stdout))
+
+
 def saf_dogrula(params, ek_turler):
     """GERCEK VERI.parametreDogrula (calisma agacindaki manifest); ek_turler sahte tur satirlari."""
     r = subprocess.run(["node", "-e", SAF_NODE, os.path.join(KOK, "foto-uretim-veri.js"),
@@ -980,8 +1026,9 @@ MUTANTLAR = {
     "MB8": ("    if v is not None and not v.get(\"secildi\"):", "    if False:", {"U15"}),
     "MB9": ('        eksen = (m["parca_en_uzun"] <= tr.olcu * (1 + tol) + 1e-9 and', "        eksen = (True and",
             {"U18"}),
-    # kopru-15 sozluk: ornek girdi destegi silinince saf vakalar KIRMIZI.
-    "MB10": ('        elif tip == "bool":\n            p[ad] = s.get("varsayilan") is True\n', "", {"U19", "U20"}),
+    # kopru-15 sozluk: ornek girdi destegi silinince saf vakalar KIRMIZI. MB10: bool dali yoksa bust'in (ters/
+    # iki_renk bool) ornek parametresi desteksiz -> U19 + U20 + bust mutlu yolu U1 KIRMIZI.
+    "MB10": ('        elif tip == "bool":\n            p[ad] = s.get("varsayilan") is True\n', "", {"U1", "U19", "U20"}),
     "MB11": ('elif g in ("form", "metin", "url", "ses", "konum", "tarih"):', 'elif g in ("form", "metin", "url"):',
              {"U20"}),
     "MB12": ('        elif tip == "ses":\n            p[ad] = list(ORNEK_GENLIK)\n', "", {"U20"}),
@@ -990,15 +1037,14 @@ MUTANTLAR = {
     "MB14": ('            p[ad] = dict(k) if s.get("saat") is True else k["tarih"]', '            p[ad] = k["tarih"]',
              {"U20"}),
     # kopru-15 DILIM-2: kosul atlamasi silinince kosulsuz alan ornege girer (sunucu sema-disi) -> U22;
-    # gecerli varsayilan yerine formul -> U22 (duvar 1.6 yerine 4). U19 adaptor/disli/kapak silindi (8 Eki)
-    # sonrasi YALNIZ kutu test ediyor; kutu formunda kosul kosulu olmadigindan mutant U19'a etki etmiyor.
+    # gecerli varsayilan yerine formul -> U22 (duvar 1.6 yerine 4). U19'un gercek D turlerinde kosullu alan
+    # yok ve `ornek` varsayilandan once okunur -> MB15/MB16 U19'a etki etmez.
     "MB15": ("        if not kosul_tamam(s, p):\n            continue\n", "", {"U22"}),
     "MB16": ('        elif tip == "sayi" and sayi_gecerli(s, vs):', '        elif tip == "sayi" and False:', {"U22"}),
     # kopru-15 DILIM-3: ③ TURETILMIS esitlik kolu atlanirsa sapan fiyat HAZIR gecer -> U24 KIRMIZI.
-    "MB17": ("    esit = bek is not None and tr.olcu == olculen and sunucu == bek and gos == yazi\n",
-             "    esit = bek is not None\n", {"U24"}),
-    "MB18": ("    olc_3_turetilmis(tr, a, v)\n    elif not v:", "    pass\n    if not v:", {"U23"}),
-    # kopru-15 SON3: kayit `ornek`i okunmazsa sehir (30,30) / yildiz ("PRUVO") eski degere duser -> U25.
+    # K3a: MB17 SİLİNDİ (U24 kalkti).
+    # K3a: MB18 SİLİNDİ (U23 kalkti). kopru-15 SON3 (K3 tasindi: sehir/yildiz -> anahtarlik + sentetik sayi):
+    # kayit `ornek`i okunmazsa anahtarlik satirlar ["PRUVO"] / sentetik adet 5 (varsayilan) -> U25.
     "MB19": ('        elif tip == "sayi" and sayi_gecerli(s, s.get("ornek")):',
              '        elif tip == "sayi" and False:', {"U25"}),
     "MB20": ('        elif tip == "metin" and metin_gecerli(s, s.get("ornek")):',
@@ -1032,10 +1078,17 @@ MUTANTLAR = {
              "KREDI_TIK = {\"build-baslat\": 30, \"analiz\": 10, \"onarim\": 10, \"doku\": 10}",
              {"S12", "S13"}),
     # ONARIM KAPISI (8 Eki): betik 'onarim-bekliyor'da kosucuyu kosmazsa satir uretim-tik'e duser (tik onu
-    # ilerletmez) -> S14 ④ EKSIK, S15 dogru sebebi basmaz.
-    "MB31": ("        if asama == \"onarim-bekliyor\":\n", "        if False:\n", {"S14", "S15"}),
-    # Okan 8 Eki tabani: olcum betigi tabani unutursa 60 mm alti sabit turler (qr/logo/muhur/braille) KIRMIZI.
-    "MB32": ("    return max(mm * 1000, TABAN_KURUS)\n", "    return mm * 1000\n", {"U1", "U14"}),
+    # SECMEZ, foto.js) -> zaman asimi: S14 ④ EKSIK, S15 dogru sebebi basmaz; tam zincir (renk -> onarim-bekliyor)
+    # kosan S3/S6/S9/S12 de 'hazir'a ulasamaz -> KIRMIZI.
+    "MB31": ("        if asama == \"onarim-bekliyor\":\n", "        if False:\n",
+             {"S3", "S6", "S9", "S12", "S14", "S15"}),
+    # Okan 8 Eki tabani: olcum betigi tabani unutursa 60 mm alti olculer (plaket 10..50 mm; D turlerinin
+    # /acik'teki olculeri >= 60) ③ EKSIK -> S3 KIRMIZI.
+    "MB32": ("    return max(mm * 1000, TABAN_KURUS)\n", "    return mm * 1000\n", {"S3"}),
+    # 8b0a4a10: mutant on kosulu YALNIZ M kapali turu secer; filtre kalkarsa ornegi olmayan D anahtarlik
+    # secilir, sunucu 503 `kapali` (uretecOnizlemeUcu) -> GECERSIZ rc 2 -> U2c KIRMIZI.
+    "MB33": (' if t["kod"] not in acik_kodlar and t.get("motor") == "M"]', ' if t["kod"] not in acik_kodlar]',
+             {"U2c"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }
@@ -1045,9 +1098,12 @@ def mutant_kos(ad, kaynak):
     eski, yeni, hedef = MUTANTLAR[ad]
     if kaynak.count(eski) != 1:
         return False, "capa %d kez bulundu" % kaynak.count(eski)
+    mutant = kaynak.replace(eski, yeni)
+    if mutant == kaynak:
+        return False, "mutant UYGULANMADI (kaynak degismedi)"
     # SURE (CI adimi <= 300 sn): mutant yalniz hedef vakalari + iki bekci vakada (U1 mutlu yol, U2 mutant
     # kapisi) kosar; hedef disi kirmizi bu kumede aranir. Tam kume her kosumda yukarida (vakalar) olculur.
-    s = vakalar(kaynak.replace(eski, yeni), sadece=set(hedef) | {"U1", "U2"})
+    s = vakalar(mutant, sadece=set(hedef) | {"U1", "U2"})
     kirmizi = {k for k, (g, _) in s.items() if not g}
     return kirmizi == hedef, "kirmizi=%s hedef=%s" % (sorted(kirmizi), sorted(hedef))
 

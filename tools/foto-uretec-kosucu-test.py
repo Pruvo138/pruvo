@@ -4,28 +4,26 @@
 HERMETIK: wrangler yerine SAHTE komut (D1 = gecici SQLite, sema tools/d1-sema.sql; R2 = gecici
 dizin), uretec yerine SAHTE komut. Gercek D1/R2/ev yolu YOK; her sey tempfile altinda, bitince silinir.
 
-Vakalar: T1 BOS rc=1 · T2 1 is -> ISLEDI + hazir + 3 dosya R2'de · T3 rc 2 -> elle · T4 ariza x3 -> elle ·
-T5 sizdirmaz:false -> elle, R2 yazimi 0 · T6 CAS kaybi -> yazim yok · T7 D1/R2 erisim yok ->
-OLCULEMEDI rc=4 + satir DEGISMEDI · T8 kilit -> KILITLI rc=3 · T9 KURU -> yazim 0 · T10 onizleme kuyrugu
--> onizleme-hazir · T11 log tavani · T12 KOPYA KOLU (onizlemeye bagli siparis, ayni girdi sha -> uretec
-KOSMAZ, model onizlemeninki) · T12b sha farkli -> uretec yeniden koşar.
-Mutantlar (kosucu kopyasi gecici dizinde): M1 sizdirmaz dogrulamasi silindi -> T5 KIRMIZI ·
-M2 KURU kapisi silindi -> T9 · M3 CAS kira kontrolu silindi -> T6 · M4 deneme tavani yok -> T4 ·
-M5 erisim hatasinda jeton geri verilmez -> T7 · M0 yorum -> 0 kirmizi.
+EVREN (K3d, 9 Eki 2026; manifest foto-uretim-veri.js TEK KAYNAK): plaket · figur (motor M, saglayici; bu
+kosucunun ISI DEGIL) · bust (D, rolyef_uret) · yapboz (D, yapboz_uret) · anahtarlik (D, isimlik_uret +
+anahtarlik:true). Silinen 15 tur (litofan, isimlik, qr, logo, ...) testte TUR olarak YOK; tarayici onizleyicisi YOK.
 
-G2 TEKIN-ORTAK KOPRUSU (7 Eki 2026): T13-<kod> (6 kategori) sahte tekin uretecine giden JSON BIREBIR
-beklenen (olcu alani + RENK_HEX + secim eslemesi) + onizleme-hazir + olcu.json (renk_sayisi 3MF'ten,
-girdi_sha256 damgali, onizleme >= 1024) · T14 RET "kontrast" -> hata `uretec-red:kontrast` ·
-T15 kisa kenar > uzun -> uretec KOSMAZ · T16 tanimsiz renk adi -> uretec KOSMAZ · T17 renk_sayisi
-3MF'ten OLCULUR (3 extruder) · T18 sema disi parametre -> uretec KOSMAZ.
-Mutantlar: M8 renk eslemesi bozuk · M9 qr olcu alani yanlis · M10 muhur olcu alani yanlis ·
-M11 kontrast kalibi yok · M12 renk_sayisi olculmez · M13 sema disi parametre kapisi yok.
-Manifest tutarliligi (V1-V9, node + kopru modulu): 6 satir, metinler AYNEN, renk adlari RENK_HEX'te,
-form alanlari uretec semasina eslenir, hak kutusu, red metni, parametre dogrulamasi.
-`--gercek [--json <yol>]`: CI DISI — 6 GERCEK uretec x min/orta/maks = 18 koşum (sahte D1/R2).
+Vakalar (CEKIRDEK tur = bust; uretec sahte §1 "sozlesme" CLI'ina yonlenir): T1 BOS rc=1 · T2 1 is -> ISLEDI +
+hazir + 3 dosya R2'de · T3 rc 2 -> elle · T4 ariza x3 -> elle · T5 sizdirmaz:false -> elle, R2 yazimi 0 ·
+T6 CAS kaybi -> yazim yok · T7 D1/R2 erisim yok -> OLCULEMEDI rc=4 + satir DEGISMEDI · T8 kilit -> KILITLI
+rc=3 · T9 KURU -> yazim 0 · T10 onizleme kuyrugu -> onizleme-hazir · T11 log tavani · T12 KOPYA KOLU
+(onizlemeye bagli siparis, ayni girdi sha -> uretec KOSMAZ) · T12b sha farkli -> uretec yeniden koşar.
+Mutantlar (kosucu kopyasi gecici dizinde): M1 sizdirmaz · M2 KURU · M3 CAS · M4 deneme tavani · M5 jeton geri ·
+M6/M7 kopya kolu · M0 yorum -> 0 kirmizi.
 
-`--uctan-uca`: CI DISI yerel prova — ayni sahte D1/R2 ile GERCEK litofan_uret.py (pruvo-jenerator,
-salt okunur) kosulur; 3MF sizdirmaz + uzun kenar ±%1 + asama 'hazir' olculur.
+TEKIN-ORTAK KOPRUSU (yapboz + anahtarlik): T13-<kod> sahte tekin uretecine giden JSON BIREBIR beklenen (form
+AYNEN + olcu alani + palet/bolge renkleri RENK_HEX + anahtarlik sabiti) + onizleme-hazir + olcu.json ·
+T14 RET "kontrast" -> `uretec-red:kontrast` · T16 tanimsiz renk adi · T18 sema disi parametre · T35 palet sira
+boslugu · T36 palet disi bolge -> uretec KOSMAZ · T17 renk_sayisi 3MF'ten OLCULUR · T19 plaka 300 · T20 uzun
+kenar geometriden · T21 yapboz araligi · T22/T23 ORNEK kolu.
+Manifest tutarliligi (V1-V9, node + kosucu modulu): 2 kopru satiri, metinler AYNEN, renk adlari RENK_HEX'te,
+tarayici onizleyicili tur 0, form alanlari uretec semasina eslenir, red metni, parametre dogrulamasi.
+`--gercek [--json <yol>]`: CI DISI — 2 GERCEK uretec (yapboz, anahtarlik) x min/orta/maks = 6 koşum (sahte D1/R2).
 """
 import fcntl
 import hashlib
@@ -120,7 +118,9 @@ for k in ("genislik_mm", "plaket_mm", "uzun_kenar_mm", "yuz_mm", "en_mm", "dis_c
           "cap_mm", "boru_cap_mm", "u_aralik_mm", "yukseklik_mm"):
     if isinstance(g.get(k), (int, float)):
         L = float(g[k]); break
-n = int(os.environ.get("FAKE_TEKIN_EXTRUDER") or 0) or max(1, len([k for k in g if k.startswith("renk")]))
+# Extruder = renk alani sayisi; liste (yapboz `renkler`) her ogesi bir extruder.
+n = int(os.environ.get("FAKE_TEKIN_EXTRUDER") or 0) or max(1, sum(len(v) if isinstance(v, list) else 1
+                                                                 for k, v in g.items() if k.startswith("renk")))
 os.makedirs(c)
 ms = "<config>" + "".join('<part id="%d"><metadata key="extruder" value="%d"/></part>' % (i + 1, i + 1) for i in range(n)) + "</config>"
 G = L * float(os.environ.get("FAKE_TEKIN_GEO") or 1.0)
@@ -139,13 +139,11 @@ if "genislik_mm" not in g and "plaket_mm" not in g:
 json.dump(oz, open(os.path.join(c, "ozet.json"), "w"))
 '''
 
-TEKIN_ESLE = {"isimlik_uret": "isimlik", "qr_plaket_uret": "qr", "svg_ekstruzyon_uret": "logo",
-              "muhur_uret": "muhur", "siluet_sablon_uret": "sablon", "yapboz_uret": "yapboz",
-              "ozel_uret:kutu": "kutu", "ozel_uret:saksi": "saksi",
-              "koordinat_uret": "koordinat"}
-TUR_URETEC = {v: k for k, v in TEKIN_ESLE.items()}
-SVG_ORNEK = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60"><path fill-rule="evenodd" '
-             'd="M0 0 H100 V60 H0 Z M15 30 A15 15 0 1 0 45 30 A15 15 0 1 0 15 30 Z M60 10 L90 30 L60 50 Z"/></svg>')
+# Manifestin kopru uretecleri -> sahte tekin (esle adi URETEC_CLI'daki gibi; kosucu turun KENDI eslemesini once secer).
+TEKIN_ESLE = {"yapboz_uret": "yapboz", "isimlik_uret": "isimlik"}
+# CEKIRDEK vakalar (T1-T12, T25, T32-T34) icin D turu: bust (rolyef_uret) sahte §1 "sozlesme" CLI'ina yonlenir.
+CEKIRDEK_TUR = "bust"
+CEKIRDEK_URETEC = "rolyef_uret"
 
 SAHTE_URETEC = r'''
 import json, os, struct, sys, zlib
@@ -183,55 +181,23 @@ def _foto():
     return png_gri(64, 48)
 
 
-# G2 hermetik vakalari: girdi (§2 zarfi) -> uretece giden BEKLENEN JSON (bagimsiz yazilmis; 9 renk de var).
+# Kopru hermetik vakalari: girdi (§2 zarfi) -> uretece giden BEKLENEN JSON (bagimsiz yazilmis).
+# yapboz: form AYNEN + surgu olcusu uzun_kenar_mm + palet renk1..N -> renkler listesi (AYNI sira).
+# anahtarlik: form AYNEN + surgu olcusu genislik_mm + anahtarlik:true sabiti + plaka/yazi -> renk_plaka/renk_yazi.
 G2_VAKA = {
-    "isimlik": {"olcu": 120, "renkler": {"plaka": "Beyaz", "yazi": "Lacivert"},
-                "parametreler": {"satirlar": "Ada\nKat 2", "kisa_kenar_mm": 50, "yazi_tipi": "Tırnaklı",
-                                 "plaka_sekli": "Yuvarlak köşe", "montaj_delikleri": "Var"},
-                "beklenen": {"satirlar": ["Ada", "Kat 2"], "genislik_mm": 120.0, "yukseklik_mm": 50.0,
-                             "yazi_tipi": "serif-kalin", "plaka_sekli": "yuvarlak-kose", "montaj_delikleri": True,
-                             "renk_plaka": "#F2F2F2", "renk_yazi": "#12294D"},
-                "renk_sayisi": 2, "parcalar": ["plaka", "yazi"]},
-    "qr": {"olcu": 90, "renkler": {"plaka": "Sarı", "kod": "Siyah"},
-           "parametreler": {"metin": "https://pruvo3d.com/foto", "alt_yazi": "MENÜ", "cerceve": "Var"},
-           "beklenen": {"metin": "https://pruvo3d.com/foto", "plaket_mm": 90.0, "alt_yazi": "MENÜ", "cerceve": True,
-                        "renk_plaka": "#E8B923", "renk_qr": "#1A1A1A"},
-           "renk_sayisi": 2, "parcalar": ["plaka", "kod"]},
-    "logo": {"olcu": 80, "renkler": {"taban": "Gri", "logo": "Kırmızı"}, "parametreler": {"taban": "Var"},
-             "dosyalar": {"svg": ("svg.svg", SVG_ORNEK.encode())},
-             "beklenen": {"svg": SVG_ORNEK, "uzun_kenar_mm": 80.0, "taban": True, "renk_taban": "#818184",
-                          "renk_logo": "#B3262E"},
-             "renk_sayisi": 2, "parcalar": ["taban", "logo"]},
-    "muhur": {"olcu": 40, "renkler": {"govde": "Yeşil", "sap": "Beyaz"}, "parametreler": {"sap": "Topuz"},
-              "dosyalar": {"foto": ("foto.png", _foto)},
-              "beklenen": {"gorsel": "foto.png", "yuz_mm": 40.0, "sap_renk": "ayri", "sap": "topuz",
-                           "renk_govde": "#2E7D4F", "renk_sap": "#F2F2F2"},
-              "renk_sayisi": 2, "parcalar": ["govde", "sap"]},
-    "sablon": {"olcu": 100, "renkler": {"sablon": "Mavi"}, "parametreler": {"mod": "Dolu silüet"},
+    "yapboz": {"olcu": 150, "renkler": {"renk1": "Ahşap", "renk2": "Lacivert"},
+               "parametreler": {"satir": 4, "sutun": 5, "tohum": 7, "kabartma_yon": "koyu_yuksek"},
                "dosyalar": {"foto": ("foto.png", _foto)},
-               "beklenen": {"gorsel": "foto.png", "uzun_kenar_mm": 100.0, "mod": "negatif", "renk": "#2E5E8C"},
-               "renk_sayisi": 1, "parcalar": ["sablon"]},
-    "yapboz": {"olcu": 150, "renkler": {"yapboz": "Ahşap"}, "parametreler": {"parca": "20"},
-               "dosyalar": {"foto": ("foto.png", _foto)},
-               "beklenen": {"gorsel": "foto.png", "uzun_kenar_mm": 150.0, "satir": 4, "sutun": 5,
-                            "renkler": ["#C8B89A"]},
-               "renk_sayisi": 1, "parcalar": ["yapboz"]},
-    # G4 (kopru-15 DILIM-2) — YALNIZ gelen parametreler uretece gider (varsayilan enjeksiyonu YOK: eksik alan
-    # uretecin kendi varsayilani; koşulu saglanmayan alan sunucuda zaten RED). renk_bolgeleri bos.
-    "kutu": {"olcu": 100, "renkler": {}, "parametreler": {"en_mm": 100, "duvar_mm": 1.6, "kapak": True},
-             "beklenen": {"en_mm": 100, "duvar_mm": 1.6, "kapak": True},
-             "renk_sayisi": 1, "parcalar": []},
-    "saksi": {"olcu": 100, "renkler": {}, "parametreler": {"tur": "saksi", "cap_mm": 100, "profil": "silindir"},
-              "beklenen": {"tur": "saksi", "cap_mm": 100, "profil": "silindir"},
-              "renk_sayisi": 1, "parcalar": []},
-    # G5 (kopru-15 DILIM-2) — gelen parametreler + bolge renkleri `renk_<bolge>`; bolge adlari MANIFESTTEN
-    # (koordinat: plaka/yazi — kaydin renk_plaka/renk_yazi parametreleri), eski taban/yazi DEGIL.
-    "koordinat": {"olcu": 160, "renkler": {"plaka": "Beyaz", "yazi": "Lacivert"},
-                  "parametreler": {"enlem": 41.0082, "boylam": 28.9784, "genislik_mm": 160},
-                  "beklenen": {"enlem": 41.0082, "boylam": 28.9784, "genislik_mm": 160,
-                               "renk_plaka": "#F2F2F2", "renk_yazi": "#12294D"},
-                  # TeKiN 6f40f62: isaret ayri govde; renk_isaret bos -> renk_yazi (renk sayisi 2 kalir, parca 3).
-                  "renk_sayisi": 2, "parcalar": ["plaka", "yazi", "isaret"]},
+               "beklenen": {"gorsel": "foto.png", "uzun_kenar_mm": 150.0, "satir": 4, "sutun": 5, "tohum": 7,
+                            "kabartma_yon": "koyu_yuksek", "renkler": ["#C8B89A", "#12294D"]},
+               "renk_sayisi": 2, "parcalar": ["renk1", "renk2"]},
+    "anahtarlik": {"olcu": 45, "renkler": {"plaka": "Beyaz", "yazi": "Lacivert"},
+                   "parametreler": {"satirlar": ["Ayşe"], "yazi_tipi": "script", "hizalama": "orta",
+                                    "anahtarlik_kulak_konum": "sag-ust", "kontur_tasma_mm": 2},
+                   "beklenen": {"satirlar": ["Ayşe"], "yazi_tipi": "script", "hizalama": "orta",
+                                "anahtarlik_kulak_konum": "sag-ust", "kontur_tasma_mm": 2, "genislik_mm": 45.0,
+                                "anahtarlik": True, "renk_plaka": "#F2F2F2", "renk_yazi": "#12294D"},
+                   "renk_sayisi": 2, "parcalar": ["plaka", "yazi"]},
 }
 
 
@@ -266,8 +232,8 @@ class Ortam:
         if tablo:
             t = os.path.join(self.d, "tablo.json")
             with open(t, "w") as f:
-                tablo_ek = {"litofan_uret": {"bicim": "sozlesme",
-                                             "komut": [sys.executable, os.path.join(self.d, "uretec.py")]}}
+                tablo_ek = {CEKIRDEK_URETEC: {"bicim": "sozlesme",
+                                              "komut": [sys.executable, os.path.join(self.d, "uretec.py")]}}
                 for u, esle in TEKIN_ESLE.items():
                     tablo_ek[u] = {"bicim": "tekin-ortak", "betik": os.path.join(self.d, "tekin.py"), "esle": esle}
                 json.dump(tablo_ek, f)
@@ -282,35 +248,34 @@ class Ortam:
         return r
 
     def siparis_is(self, olcu=150, deneme=0):
-        kalem = {"foto_is": IS, "foto_tur": "litofan", "olcu_mm": olcu,
-                 "foto_secim": {"panel_renk": "Beyaz", "ayak_renk": "Siyah", "panel_malzeme": "PLA",
-                                "ayak_malzeme": "PETG"}}
+        kalem = {"foto_is": IS, "foto_tur": CEKIRDEK_TUR, "olcu_mm": olcu, "foto_renkler": ["Beyaz", "Siyah"],
+                 "foto_secim": {"govde_malzeme": "PLA"}}
         self.sql("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES (?,?,?,?,?)",
                  SIP, GUNCEL0, "odendi", olcu * 1000, json.dumps([kalem]))
         self.sql("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, deneme, tarih, guncel)"
-                 " VALUES (?,0,?,?,?,?,?,?,?)", SIP, IS, "litofan", olcu, "uretec-bekliyor", deneme, GUNCEL0, GUNCEL0)
+                 " VALUES (?,0,?,?,?,?,?,?,?)", SIP, IS, CEKIRDEK_TUR, olcu, "uretec-bekliyor", deneme, GUNCEL0, GUNCEL0)
         os.makedirs(os.path.join(self.r2, "foto-onizleme"), exist_ok=True)
         with open(os.path.join(self.r2, "foto-onizleme", IS + ".png"), "wb") as f:
             f.write(png_gri(240, 160))
 
     def onizleme_is(self):
         self.sql("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, son_kontrol)"
-                 " VALUES (?,?,?,?,?,?,?)", IS2, "litofan", 120, "ab" * 8, GUNCEL0, "uretec-onizleme", 5)
+                 " VALUES (?,?,?,?,?,?,?)", IS2, CEKIRDEK_TUR, 120, "ab" * 8, GUNCEL0, "uretec-onizleme", 5)
         d = os.path.join(self.r2, "foto-uretec-onizleme", IS2)
         os.makedirs(d)
         with open(os.path.join(d, "girdi.json"), "w") as f:
-            json.dump({"sozlesme": 1, "kategori": "litofan", "siparis_no": "", "kalem": 0, "olcu_mm": 120,
+            json.dump({"sozlesme": 1, "kategori": CEKIRDEK_TUR, "siparis_no": "", "kalem": 0, "olcu_mm": 120,
                        "renkler": {}, "malzemeler": {}, "parametreler": {}, "dosyalar": {"gri_harita": "gri_harita.png"}}, f)
         with open(os.path.join(d, "gri_harita.png"), "wb") as f:
             f.write(png_gri(200, 140))
 
     def siparis_onizlemeden(self, secim):
         """Siparis oncesi uretec onizlemesine (IS2) bagli odenmis kalem."""
-        kalem = {"foto_is": IS2, "foto_tur": "litofan", "olcu_mm": 120, "foto_secim": secim}
+        kalem = {"foto_is": IS2, "foto_tur": CEKIRDEK_TUR, "olcu_mm": 120, "foto_secim": secim}
         self.sql("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES (?,?,?,?,?)",
                  SIP, GUNCEL0, "odendi", 120000, json.dumps([kalem]))
         self.sql("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, deneme, tarih, guncel)"
-                 " VALUES (?,0,?,?,?,?,?,?,?)", SIP, IS2, "litofan", 120, "uretec-bekliyor", 0, GUNCEL0, GUNCEL0)
+                 " VALUES (?,0,?,?,?,?,?,?,?)", SIP, IS2, CEKIRDEK_TUR, 120, "uretec-bekliyor", 0, GUNCEL0, GUNCEL0)
 
     def uretec_onizleme(self, tur, olcu, renkler, parametreler, dosyalar=None, is_no=IS2):
         """Siparis oncesi uretec onizlemesi (foto_isler 'uretec-onizleme') + R2 girdi dizini."""
@@ -511,7 +476,7 @@ def vakalar(kosucu):
         # SHA FARKLI: siparis secimi onizleme girdisinden farkli -> kopya YOK, uretec yeniden koşar.
         o.onizleme_is()
         o.kos("--uygula")
-        o.siparis_onizlemeden({"ayak_renk": "Siyah"})
+        o.siparis_onizlemeden({"govde_malzeme": "PETG"})  # bust malzeme secimi -> girdi sha farkli
         rc, son, cikti = o.kos("--uygula")
         u = o.uretim()
         return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
@@ -529,7 +494,7 @@ def vakalar(kosucu):
         return (son == "HAL=BOS rc=1" and b1 < 1024 and b2 == 6 * 1024 * 1024 and
                 not os.path.exists(log + ".2")), "log=%d log.1=%d" % (b1, b2)
 
-    # ---- G2 tekin-ortak koprusu: her kategori icin uretece giden JSON BIREBIR beklenen.
+    # ---- tekin-ortak koprusu (yapboz, anahtarlik): uretece giden JSON BIREBIR beklenen.
     def t13(kod):
         def fn(o):
             x = G2_VAKA[kod]
@@ -555,16 +520,27 @@ def vakalar(kosucu):
                                                                olcu.get("uzun_kenar_mm"))
         return fn
 
+    def anahtarlik_onizleme(o, renkler=None, parametreler=None, is_no=IS2):
+        x = G2_VAKA["anahtarlik"]
+        return o.uretec_onizleme("anahtarlik", x["olcu"], x["renkler"] if renkler is None else renkler,
+                                 x["parametreler"] if parametreler is None else parametreler, is_no=is_no)
+
+    def yapboz_onizleme(o, olcu=None, renkler=None, is_no=IS2):
+        x = G2_VAKA["yapboz"]
+        return o.uretec_onizleme("yapboz", x["olcu"] if olcu is None else olcu,
+                                 x["renkler"] if renkler is None else renkler, x["parametreler"],
+                                 {"foto": ("foto.png", _foto())}, is_no=is_no)
+
     def t14(o):
-        o.uretec_onizleme("isimlik", 120, {"plaka": "Beyaz", "yazi": "Gri"}, {"satirlar": "Ada", "kisa_kenar_mm": 40})
+        anahtarlik_onizleme(o, {"plaka": "Beyaz", "yazi": "Gri"})
         rc, son, _ = o.kos("--uygula", FAKE_TEKIN_RET="plaka/yazi renk kontrasti 2.10 < 3.0 (acik/koyu cift sec)")
         r = o.sql("SELECT asama, hata FROM foto_isler WHERE is_no = ?", IS2)[0]
         return (son == "HAL=ISLEDI uretildi=0 red=1 ariza=0 rc=0" and r["asama"] == "basarisiz" and
                 r["hata"] == "uretec-red:kontrast"), "%s %s" % (son, r)
 
-    def t_kosmaz(kod, olcu, renkler, parametreler, beklenen_hata):
+    def t_kosmaz(kurucu, beklenen_hata):
         def fn(o):
-            o.uretec_onizleme(kod, olcu, renkler, parametreler)
+            kurucu(o)
             rc, son, _ = o.kos("--uygula")
             r = o.sql("SELECT asama, hata FROM foto_isler WHERE is_no = ?", IS2)[0]
             return (son == "HAL=ISLEDI uretildi=0 red=1 ariza=0 rc=0" and r["asama"] == "basarisiz" and
@@ -573,22 +549,18 @@ def vakalar(kosucu):
         return fn
 
     def t17(o):
-        x = G2_VAKA["isimlik"]
-        d = o.uretec_onizleme("isimlik", x["olcu"], x["renkler"], x["parametreler"])
+        d = anahtarlik_onizleme(o)
         rc, son, _ = o.kos("--uygula", FAKE_TEKIN_EXTRUDER="3")
         olcu = json.load(open(os.path.join(d, "olcu.json"))) if os.path.isfile(os.path.join(d, "olcu.json")) else {}
         return son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and olcu.get("renk_sayisi") == 3, \
             "%s renk_sayisi=%s" % (son, olcu.get("renk_sayisi"))
 
-    # ---- G2b mimar kararlari (7 Eki): plaka 300 (manifest PLAKA_MM) · yapboz 100-190 · uzun kenar geometriden.
+    # ---- plaka 300 (manifest PLAKA_MM) · uzun kenar geometriden · yapboz araligi (manifest 100-280).
     def t19(o):
-        x = G2_VAKA["logo"]
         sonuc = {}
         for kutu in (290, 310):
             no = ("%032x" % kutu)
-            o.uretec_onizleme("logo", x["olcu"], x["renkler"], x["parametreler"],
-                              {k: (ad, b() if callable(b) else b) for k, (ad, b) in x.get("dosyalar", {}).items()},
-                              is_no=no)
+            yapboz_onizleme(o, is_no=no)
             o.kos("--uygula", FAKE_TEKIN_KUTU=str(kutu))
             r = o.sql("SELECT asama, hata FROM foto_isler WHERE is_no = ?", no)[0]
             sonuc[kutu] = (r["asama"], r["hata"])
@@ -596,60 +568,37 @@ def vakalar(kosucu):
                 "plaka-disi" in (sonuc[310][1] or "")), "%s" % sonuc
 
     def t20(o):
-        x = G2_VAKA["logo"]
-        # ozet NOMINAL uzun kenari 80 der, 3MF geometrisi 78,4 (%2) -> kosucu geometriyi olcer, tolerans RED.
-        o.uretec_onizleme("logo", x["olcu"], x["renkler"], x["parametreler"],
-                          {k: (ad, b() if callable(b) else b) for k, (ad, b) in x.get("dosyalar", {}).items()})
+        # ozet NOMINAL uzun kenari 150 der, 3MF geometrisi 147 (%2) -> kosucu geometriyi olcer, tolerans RED.
+        yapboz_onizleme(o)
         o.kos("--uygula", FAKE_TEKIN_GEO="0.98")
         r = o.sql("SELECT asama, hata FROM foto_isler WHERE is_no = ?", IS2)[0]
         return (r["asama"] != "onizleme-hazir" and "uzun-kenar-tolerans" in (r["hata"] or "")), "%s" % (r,)
 
     def t21(o):
         sonuc = {}
-        for olcu in (190, 200):
+        for olcu in (280, 290):
             no = ("%032x" % olcu)
-            o.uretec_onizleme("yapboz", olcu, {"yapboz": "Ahşap"}, {"parca": "12"}, {"foto": ("foto.png", png_gri(64, 48))},
-                              is_no=no)
+            yapboz_onizleme(o, olcu=olcu, is_no=no)
             o.kos("--uygula")
             r = o.sql("SELECT asama, hata FROM foto_isler WHERE is_no = ?", no)[0]
             sonuc[olcu] = (r["asama"], r["hata"])
-        return (sonuc[190][0] == "onizleme-hazir" and sonuc[200][0] != "onizleme-hazir" and
-                "olcu-aralik-disi" in (sonuc[200][1] or "")), "%s" % sonuc
+        return (sonuc[280][0] == "onizleme-hazir" and sonuc[290][0] != "onizleme-hazir" and
+                "olcu-aralik-disi" in (sonuc[290][1] or "")), "%s" % sonuc
 
-    # DINAMIK MIN (BaBa 14:3x; TeKiN 6320f2a): olcu_min_dinamik turde (koordinat) uretec KOSMADAN once kopru
-    # min-hesapla; olcu altinda -> uretec-red:olcu-min-<adima yuvarli N>, uretec 0 · ustunde -> olcu.json min_mm ·
-    # yanit yok -> uretec-red:min-hesapla (fail-closed), uretec 0.
-    def tdm(fake_min, beklenen):
-        def fn(o):
-            x = G2_VAKA["koordinat"]
-            d = o.uretec_onizleme("koordinat", x["olcu"], x["renkler"], x["parametreler"])
-            rc, son, _ = o.kos("--uygula", FAKE_MIN=fake_min)
-            r = o.sql("SELECT asama, hata FROM foto_isler WHERE is_no = ?", IS2)[0]
-            olcu = json.load(open(os.path.join(d, "olcu.json"))) if os.path.isfile(os.path.join(d, "olcu.json")) else {}
-            n = len(o.tekin_girdileri())
-            if beklenen.startswith("uretec-red"):
-                ok = r["asama"] == "basarisiz" and r["hata"] == beklenen and n == 0
-            else:
-                ok = r["asama"] == "onizleme-hazir" and olcu.get("min_mm") == float(beklenen) and n == 1
-            return ok, "%s %s tekin=%d min_mm=%s" % (son, r, n, olcu.get("min_mm"))
-        return fn
-
-    vaka("TDM1", tdm("195", "uretec-red:olcu-min-200"))
-    vaka("TDM2", tdm("152.5", "152.5"))
-    vaka("TDM3", tdm("yok", "uretec-red:min-hesapla"))
     for kod in G2_VAKA:
         vaka("T13-" + kod, t13(kod))
     vaka("T19", t19)
     vaka("T20", t20)
     vaka("T21", t21)
     vaka("T14", t14)
-    vaka("T15", t_kosmaz("isimlik", 80, {"plaka": "Beyaz", "yazi": "Siyah"}, {"satirlar": "Ada", "kisa_kenar_mm": 90},
-                         "uretec-red:kisa-kenar"))
-    vaka("T16", t_kosmaz("qr", 80, {"plaka": "Pembe", "kod": "Siyah"}, {"metin": "https://pruvo3d.com"},
-                         "uretec-red:renk"))
+    vaka("T16", t_kosmaz(lambda o: anahtarlik_onizleme(o, {"plaka": "Pembe", "yazi": "Siyah"}), "uretec-red:renk"))
     vaka("T17", t17)
-    vaka("T18", t_kosmaz("qr", 80, {"plaka": "Beyaz", "kod": "Siyah"}, {"metin": "https://pruvo3d.com", "renk": "x"},
+    vaka("T18", t_kosmaz(lambda o: anahtarlik_onizleme(o, parametreler={"satirlar": ["Ada"], "renk": "x"}),
                          "uretec-red:parametre"))
+    # yapboz paleti (K3c): renk2 secili renk1 bos (sira boslugu) / palet disi bolge -> odenen renk sessizce DUSMEZ.
+    vaka("T35", t_kosmaz(lambda o: yapboz_onizleme(o, renkler={"renk2": "Lacivert"}), "uretec-red:renk"))
+    vaka("T36", t_kosmaz(lambda o: yapboz_onizleme(o, renkler={"renk1": "Ahşap", "renk5": "Siyah"}),
+                         "uretec-red:renk"))
     # ---- ORNEK kolu + hedef (8 Eki 2026; tools/foto-ornek-uc-uca.py zinciri).
     ornek_no = "ORNEK-" + IS2[:12]
 
@@ -658,11 +607,11 @@ def vakalar(kosucu):
               " VALUES (?,0,?,?,?,?,?,?,?)", ornek_no, IS2, tur, olcu, "uretec-bekliyor", 0, GUNCEL0, GUNCEL0)
 
     def t22(o):
-        x = G2_VAKA["isimlik"]
-        o.uretec_onizleme("isimlik", x["olcu"], x["renkler"], x["parametreler"])
+        x = G2_VAKA["anahtarlik"]
+        anahtarlik_onizleme(o)
         o.sql("UPDATE foto_isler SET ziyaretci = 'ornek' WHERE is_no = ?", IS2)
         o.kos("--uygula")
-        ornek_uretim(o, "isimlik", x["olcu"])
+        ornek_uretim(o, "anahtarlik", x["olcu"])
         rc, son, cikti = o.kos("--uygula")
         u = o.uretim()
         d = os.path.join(o.r2, "foto", ornek_no, "0")
@@ -673,10 +622,10 @@ def vakalar(kosucu):
 
     def t23(o):
         # Musteri isi (ziyaretci ozeti) ORNEK numarasiyla URETILEMEZ.
-        x = G2_VAKA["isimlik"]
-        o.uretec_onizleme("isimlik", x["olcu"], x["renkler"], x["parametreler"])
+        x = G2_VAKA["anahtarlik"]
+        anahtarlik_onizleme(o)
         o.kos("--uygula")
-        ornek_uretim(o, "isimlik", x["olcu"])
+        ornek_uretim(o, "anahtarlik", x["olcu"])
         put0 = o.r2_put()
         rc, son, _ = o.kos("--uygula")
         u = o.uretim()
@@ -691,36 +640,19 @@ def vakalar(kosucu):
                 set(adlar[3:]) == {"pruvo-katalog"}), "%s" % adlar
 
     def t25(o):
-        # Tarayici onizleyicili tur (litofan): ornek isi 'hazir' + gri harita -> ORNEK siparis uretilir.
+        # Uretec onizlemesi OLMAYAN ornek isi (girdi.json yok): 'hazir' + gri harita -> ORNEK siparis uretilir.
         o.sql("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, son_kontrol)"
-              " VALUES (?,?,?,?,?,?,?)", IS2, "litofan", 140, "ornek", GUNCEL0, "hazir", 0)
+              " VALUES (?,?,?,?,?,?,?)", IS2, CEKIRDEK_TUR, 140, "ornek", GUNCEL0, "hazir", 0)
         os.makedirs(os.path.join(o.r2, "foto-onizleme"), exist_ok=True)
         with open(os.path.join(o.r2, "foto-onizleme", IS2 + ".png"), "wb") as f:
             f.write(png_gri(200, 140))
-        ornek_uretim(o, "litofan", 140)
+        ornek_uretim(o, CEKIRDEK_TUR, 140)
         rc, son, _ = o.kos("--uygula")
         u = o.uretim()
         return son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir", "%s %s" % (son, u)
 
-    def t26(o):
-        # kopru-15 DILIM-3 TURETILMIS eksen (kutu): onizleme olcu 0 (surgu yok) -> koşucu 3MF'ten OLCULEN uzun
-        # kenari (yarim yukari) satirin olcu_mm'sine yazar; aralik (40..300) disi -> uretec reddi, olcu yazilmaz.
-        x = G2_VAKA["kutu"]
-        o.uretec_onizleme("kutu", 0, x["renkler"], dict(x["parametreler"], en_mm=123))
-        rc, son, cikti = o.kos("--uygula", FAKE_TEKIN_GEO="1.004")
-        r = o.sql("SELECT asama, hata, olcu_mm FROM foto_isler WHERE is_no = ?", IS2)[0]
-        ok1 = son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and r["asama"] == "onizleme-hazir" and r["olcu_mm"] == 123
-        o.sql("DELETE FROM foto_isler WHERE is_no = ?", IS2)
-        shutil.rmtree(os.path.join(o.r2, "foto-uretec-onizleme", IS2))
-        o.uretec_onizleme("kutu", 0, x["renkler"], dict(x["parametreler"], en_mm=290))
-        rc2, son2, _ = o.kos("--uygula", FAKE_TEKIN_GEO="1.1")
-        r2 = o.sql("SELECT asama, hata, olcu_mm FROM foto_isler WHERE is_no = ?", IS2)[0]
-        ok2 = r2["asama"] == "basarisiz" and r2["hata"] == "uretec-red:olcu-aralik-disi" and r2["olcu_mm"] == 0
-        return ok1 and ok2, "olculen=%s %s | aralik_disi=%s %s" % (son, dict(r), son2, dict(r2))
-
     vaka("T22", t22)
     vaka("T23", t23)
-    vaka("T26", t26)
     # ONARIM KUYRUGU (8 Eki 2026): 'onarim-bekliyor' -> kopru -> --olc -> model.3mf + 'hazir' ya da 'elle'.
     def t27(o):
         o.onarim_is()
@@ -806,43 +738,37 @@ MUTANTLAR = {
     "M6": ("    if onceki != sha:\n", "    if False:\n", {"T12b"}),
     "M7": ('    if i["kuyruk"] != "siparis" or not i.get("onizleme_kaynakli"):\n        return None\n    os.makedirs',
            '    if True:\n        return None\n    os.makedirs', {"T12", "T22"}),  # T22: ORNEK kolu da kopya koluna baglanir
-    # G2 tekin-ortak koprusu
-    "M8": ("    return renk_hex[ad]\n", "    return \"#F2F2F2\"\n", {"T13-" + k for k in G2_VAKA if k in ("isimlik", "qr", "logo", "muhur", "sablon", "yapboz", "koordinat")}),
-    "M9": ('    u = {"metin": m, "plaket_mm": float(g["olcu_mm"])}\n',
-           '    u = {"metin": m, "uzun_kenar_mm": float(g["olcu_mm"])}\n', {"T13-qr"}),
-    "M10": ('"yuz_mm": float(g["olcu_mm"])', '"uzun_kenar_mm": float(g["olcu_mm"])', {"T13-muhur"}),
+    # tekin-ortak koprusu (yapboz + anahtarlik)
+    "M8": ("    return renk_hex[ad]\n", "    return \"#F2F2F2\"\n", {"T13-yapboz", "T13-anahtarlik"}),
+    # (eski M9 qr olcu alani -> anahtarlik sabiti) kopru `cagri.sabit` anahtarlik:true dusurse uretec PLAKA modunda kosar.
+    "M9": ('    u["anahtarlik"] = True\n', "    pass\n", {"T13-anahtarlik"}),
+    # (eski M10 muhur olcu alani -> yapboz olcu alani) surgu olcusu yanlis alana yazilirsa uretec varsayilani (150) basar.
+    "M10": ('    u["uzun_kenar_mm"] = float(g["olcu_mm"])\n', '    u["genislik_mm"] = float(g["olcu_mm"])\n',
+            {"T13-yapboz"}),
     "M11": ('    (r"kontrast", "kontrast"),\n', "", {"T14"}),
     "M12": ('"renk_sayisi": uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf")),',
-            '"renk_sayisi": len(bolgeler),',
-            # T13-koordinat: 3 bolge (plaka/yazi/isaret) ama 2 renk -> bolge sayisi renk sayisi DEGIL.
-            {"T17", "T13-kutu", "T26", "T13-saksi", "T13-koordinat"}),
+            '"renk_sayisi": len(bolgeler),', {"T17"}),
     "M13": ('        if any(k not in form for k in (girdi.get("parametreler") or {})):\n            raise KopruRed("parametre")\n',
             "", {"T18"}),
-    # G2b: plaka 300 tek kaynak · uzun kenar geometriden · yapboz araligi
-    "M14": ("0 < k[e] <= plaka_mm() for e in", "0 < k[e] <= 250 for e in", {"T19"}),
+    # plaka 300 tek kaynak · uzun kenar geometriden · yapboz araligi
+    # T21: yapboz 280 (aralik ici) kutusu 280 > 250 -> o da KIRMIZI.
+    "M14": ("0 < k[e] <= plaka_mm() for e in", "0 < k[e] <= 250 for e in", {"T19", "T21"}),
     "M15": ("0 < k[e] <= plaka_mm() for e in", "0 < k[e] <= 9999 for e in", {"T19"}),
     "M16": ('    uk = uc_mf_uzun_kenar(os.path.join(cikti, "model.3mf"), oz)\n',
-            '    uk = oz.get("uzun_kenar_mm") or max(kutu[0], kutu[1])\n', {"T20", "T26"}),
+            '    uk = oz.get("uzun_kenar_mm") or max(kutu[0], kutu[1])\n', {"T20"}),
     "M17": ('<= i["olcu_mm"] <= a.get("en_cok", 0)):\n        return "olcu-aralik-disi"',
             '<= i["olcu_mm"] <= 99999):\n        return "olcu-aralik-disi"', {"T21"}),
     "M18": ('    if i.get("is_ziyaretci") != ORNEK_ZIYARETCI or ', "    if ", {"T23"}),
     "M19": ('    D1_AD, R2_KOVA, HEDEF = db.group(1), kova.group(1), "onizleme"', '    HEDEF = "onizleme"', {"T24"}),
-    # G4 (kopru-15) — esle_<kod> ESLEMELER'den silinince uretec-bicimi RED'lenir (TEKIN_ESLE'de uretec adina
-    # baglanan esleme kapisi kalkar); sadece o turun T13 vakasi KIRMIZI olur.
-    "M20": ('             "kutu": esle_kutu,\n', "", {"T13-kutu", "T26"}),  # T26 = kutu turetilmis olcusu
-    # kopru-15 DILIM-2: G4 esle varsayilan enjekte ederse (eski davranis) G4 T13'leri KIRMIZI; G5 bolge adi
-    # manifestten degil sabit `taban`dan okunursa koordinat renkleri dusur -> T13-koordinat KIRMIZI.
-    "M24": ('    return dict(g.get("parametreler") or {}), []\n',
-            '    return dict({"yukseklik_mm": 40}, **(g.get("parametreler") or {})), []\n',
-            {"T13-kutu", "T13-saksi"}),
-    "M25": ('            u["renk_" + b] = h\n', '            u["renk_taban"] = h\n', {"T13-koordinat"}),
-    # kopru-15 DILIM-3: tolerans dali TURETILMIS turde hedefe (olcu 0) donerse / olculen olcu satira
-    # yazilmazsa / aralik kontrolu kalkarsa T26 KIRMIZI.
-    "M26": ('(not tu and abs(uk - i["olcu_mm"])', '(abs(uk - i["olcu_mm"])', {"T26"}),
-    "M27": ('                st += ", olcu_mm = %d" % int(olcu)\n', '                pass\n', {"T26"}),
-    "M28": ('a.get("en_az", 1) <= olculen_mm(uk) <= a.get("en_cok", 0)):', 'True):', {"T26"}),
-    # G4b (kopru-15) — saksi ESLEMELER'den silinince uretec-bicimi RED.
-    "M31": ('             "saksi": esle_saksi,\n', "", {"T13-saksi"}),
+    # (eski M20 kutu / M31 saksi -> kopru turleri) turun KENDI eslemesi ESLEMELER'den silinirse: anahtarlik
+    # uretecin `esle`ine (isimlik, plaka modu) duser; yapboz eslemesiz kalir (uretec-bicimi RED).
+    "M20": ('"yapboz": esle_yapboz, "anahtarlik": esle_anahtarlik,\n', '"yapboz": esle_yapboz,\n',
+            # esle_isimlik form alanlarini (anahtarlik_kulak_konum, liste satirlar) tanimaz -> T14/T16/T17 de.
+            {"T13-anahtarlik", "T14", "T16", "T17", "T22"}),
+    "M31": ('"sablon": esle_sablon, "yapboz": esle_yapboz, ', '"sablon": esle_sablon, ',
+            {"T13-yapboz", "T19", "T20", "T21", "T35", "T36"}),
+    # bolge adi manifestten degil sabit `taban`dan okunursa anahtarlik renkleri duser.
+    "M25": ('            u["renk_" + b] = h\n', '            u["renk_taban"] = h\n', {"T13-anahtarlik"}),
     # ONARIM KUYRUGU (8 Eki): olcum atlanirsa kirmizi kopru ciktisi 'hazir' olur.
     "M32": ('        rc, hata, cik = kos(["--olc", ham, cikti])\n', '        rc, hata, cik = 0, "", "{}"\n', {"T28", "T33"}),
     # kopru-yok fail-closed silinirse is kuyrukta kalmaz (python dosya bulamaz -> elle).
@@ -858,12 +784,9 @@ MUTANTLAR = {
             "            sebep = cikti_dogrula(i, t, cikti)\n", {"T32", "T33", "T34"}),
     # onarilmis modelde olcu.json sha tazelenmezse ④ alanlar=0 olur.
     "M37": ('        olcu["model_sha256"] = hashlib.sha256(f.read()).hexdigest()\n', "        pass\n", {"T32"}),
-    # DINAMIK MIN: on kontrol silinirse olcu altinda uretec kosar (TDM1); min ozete yazilmazsa sunucu siparisi
-    # sinirlayamaz (TDM2); yanit yokken devam ederse fail-open (TDM3).
-    "M40": ("        if isinstance(olcu, (int, float)) and not isinstance(olcu, bool) and 0 < olcu < mh:\n",
-            "        if False:\n", {"TDM1"}),
-    "M41": ('        olcu["min_mm"] = kv["min_mm"]\n', "        pass\n", {"TDM2"}),
-    "M42": ('            return 2, "RED min-hesapla: kopru min-hesapla yaniti yok"\n', "            mh = 0.0\n", {"TDM3"}),
+    # yapboz paleti (K3c): sira boslugu kapisi / palet disi bolge kapisi silinirse odenen renk sessizce kayar/duser.
+    "M43": ('        if len(secilen) != pb.index(b):\n            raise KopruRed("renk")\n', "", {"T35"}),
+    "M44": ('    if any(b not in pb for b in (g.get("renkler") or {})):\n        raise KopruRed("renk")\n', "", {"T36"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 
@@ -890,46 +813,6 @@ def mutant_kos(ad):
     return kirmizi == hedef, "kirmizi=%s hedef=%s" % (sorted(kirmizi), sorted(hedef))
 
 
-def uctan_uca():
-    jen = os.environ.get("FOTO_KOSUCU_JENERATOR") or os.path.expanduser("~/dev/pruvo-jenerator")
-    o = Ortam(tablo=False)
-    try:
-        o.env["FOTO_KOSUCU_JENERATOR"] = jen
-        o.siparis_is(olcu=150)
-        rc, son, cikti = o.kos("--uygula")
-        u = o.uretim()
-        d = os.path.join(o.r2, "foto", SIP, "0")
-        olcu = json.load(open(os.path.join(d, "olcu.json"))) if os.path.isfile(os.path.join(d, "olcu.json")) else {}
-        z = zipfile.ZipFile(os.path.join(d, "model.3mf"))
-        xml = z.read([n for n in z.namelist() if n.endswith(".model")][0]).decode()
-        birim = re.search(r'unit="([a-z]+)"', xml).group(1)
-        nesneler = re.findall(r"<object\b.*?</object>", xml, re.S)
-        kutular = []
-        for n in nesneler:
-            xs = [float(v) for v in re.findall(r'<vertex x="([-0-9.e]+)"', n)]
-            ys = [float(v) for v in re.findall(r'<vertex x="[-0-9.e]+" y="([-0-9.e]+)"', n)]
-            kutular.append((round(max(xs) - min(xs), 3), round(max(ys) - min(ys), 3)))
-        panel_uzun = max(kutular[0]) if kutular else 0
-        w, h = struct.unpack(">II", open(os.path.join(d, "onizleme.png"), "rb").read()[16:24])
-        print("UCTAN_UCA son=%s" % son)
-        print("asama=%s sebep=%r deneme=%s" % (u["asama"], u["sebep"], u["deneme"]))
-        print("r2=%s" % sorted(os.listdir(d)))
-        print("olcu.json sizdirmaz=%s uzun_kenar_mm=%s kutu=%s renk=%s ucgen=%s" % (
-            olcu.get("sizdirmaz"), olcu.get("uzun_kenar_mm"), olcu.get("kutu_mm"), olcu.get("renk_sayisi"),
-            olcu.get("ucgen")))
-        print("3mf unit=%s nesne=%d panel_kutu_xy=%s bagimsiz_uzun_kenar=%s sapma=%.4f%%" % (
-            birim, len(nesneler), kutular[0] if kutular else None, panel_uzun, abs(panel_uzun - 150) / 1.5))
-        print("onizleme.png %dx%d" % (w, h))
-        ok = (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
-              olcu.get("sizdirmaz") is True and abs(panel_uzun - 150) <= 1.5 and birim == "millimeter")
-        print("UCTAN_UCA_HUKUM=%s" % ("GECTI" if ok else "KIRMIZI"))
-        if not ok:
-            print(cikti)
-        return 0 if ok else 1
-    finally:
-        o.kapat()
-
-
 # ------------------------------------------------------------------ manifest tutarliligi (G2)
 def kosucu_modulu():
     import importlib.util
@@ -939,70 +822,86 @@ def kosucu_modulu():
     return m
 
 
-# Mimar karari 7 Eki 2026 — AYNEN (manifest bunlarla birebir esit olmali).
+# EVREN (K3d, 9 Eki 2026) — manifestteki turler ve motorlari AYNEN; silinen 15 tur burada YOK.
+EVREN = {"plaket": "M", "figur": "M", "yapboz": "D", "anahtarlik": "D", "bust": "D"}
+# Kopru (TeKiN kaydi) satirlari — manifest bunlarla birebir esit olmali (K3c kopru-manifest-uret ciktisi, mimar
+# karari; deger bu dosyada BAGIMSIZ yazilidir, manifestten okunmaz).
 G2_SATIR = {
-    "isimlik": ("İsimlik / kapı tabelası", ["form"], "isimlik_uret", 10, 250, ["plaka", "yazi"], ["PLA", "PETG", "ASA"],
-                "Üretim dosyasının görüntüsüdür; isimlik bu yazı ve ölçüyle üretilir, renk tonu filamente göre biraz değişebilir.",
-                "Yazı plakanın üzerinde kabartmadır. Uzun metin küçülür; en küçük harf 6 mm'dir, sığmayan metin için sipariş alınmaz."),
-    "qr": ("QR kodlu plaka", ["form"], "qr_plaket_uret", 10, 150, ["plaka", "kod"], ["PLA", "PETG", "ASA"],
-           "Üretim dosyasının görüntüsüdür; plakadaki kod bu düzende üretilir.",
-           "Kodu göndermeden önce telefonla okutarak kontrol ederiz. Bağlantının çalışması verdiğin adrese bağlıdır."),
-    "logo": ("Logodan kabartma", ["svg"], "svg_ekstruzyon_uret", 10, 200, ["taban", "logo"], ["PLA", "PETG"],
-             "Üretim dosyasının görüntüsüdür; logonun dolu alanları kabartma olarak üretilir.",
-             "Yalnız düz renkli alanlar üretilir; gölge ve renk geçişi çıkmaz. 0,8 mm'den ince çizgiler siparişi durdurur."),
-    "muhur": ("Logo mühür / damga", ["foto-1"], "muhur_uret", 10, 100, ["govde", "sap"], ["PLA", "PETG"],
-              "Üretim dosyasının görüntüsüdür; damga yüzü ayna görüntüsüdür, kâğıda bastığında logonun kendisi çıkar.",
-              "Plastik gövdeli bir damgadır; resmî kurum mührü yerine geçmez. 0,6 mm'den ince çizgiler kalınlaştırılır."),
-    "sablon": ("Silüet şablon", ["foto-1"], "siluet_sablon_uret", 10, 250, ["sablon"], ["PLA", "PETG"],
-               "Üretim dosyasının görüntüsüdür; açık alanlar delik, koyu alanlar plakadır.",
-               "Şablon 1,2–2 mm kalınlığında bir plakadır; içteki adalar ince köprülerle tutturulur ve bu köprüler boyamada iz bırakır."),
-    "yapboz": ("Fotoğraftan kabartma yapboz", ["foto-1"], "yapboz_uret", 10, 190, ["yapboz"], ["PLA", "PETG"],
-               "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir.",
-               "Yapboz tek renkli kabartmadır; renkli baskı değildir. Parçalar elle takılır; çocuk oyuncağı olarak belgelendirilmemiştir."),
+    "yapboz": {
+        "alan": {"ad": "Fotoğraftan kabartma yapboz", "girdi": ["foto-1"], "motor": "D", "uretec": "yapboz_uret",
+                 "olcu_mm": {"en_az": 100, "en_cok": 280},
+                 "fiyat": {"formul": "mm_x_10tl", "adim_mm": 10, "taban_tl": 600, "ek_renk_tl": 100, "renk_tavani": 4},
+                 "ornek_kanit_izni": ["baski", "render"], "renk_secimi": "palet",
+                 "palet_bolgeleri": ["renk1", "renk2", "renk3", "renk4"], "olcu_ekseni": "sabit",
+                 "malzemeler": {"govde": ["PLA", "PETG"]}},
+        "renk_bolgeleri": [],
+        "form": {"uzun_kenar_mm": "sayi", "satir": "sayi", "sutun": "sayi", "tohum": "sayi", "kabartma_yon": "secim"},
+        "ornek_render": 1,
+        "notu": "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir.",
+        "durust": "Yapboz tek renkli kabartmadır; renkli baskı değildir. Parçalar elle takılır; çocuk oyuncağı olarak "
+                  "belgelendirilmemiştir.",
+    },
+    "anahtarlik": {
+        "alan": {"ad": "Anahtarlık", "girdi": ["metin"], "motor": "D", "uretec": "isimlik_uret",
+                 "olcu_mm": {"en_az": 30, "en_cok": 80},
+                 "fiyat": {"formul": "mm_x_10tl", "adim_mm": 5, "taban_tl": 600, "ek_renk_tl": 100, "renk_tavani": 2},
+                 "ornek_kanit_izni": ["render"], "renk_secimi": None, "palet_bolgeleri": None, "olcu_ekseni": "sabit",
+                 "malzemeler": {"govde": ["PLA", "PETG", "ASA", "ABS"]}},
+        "renk_bolgeleri": ["plaka", "yazi"],
+        "form": {"satirlar": "metin", "yazi_tipi": "secim", "hizalama": "secim", "genislik_mm": "sayi",
+                 "anahtarlik_kulak_konum": "secim", "kontur_tasma_mm": "sayi"},
+        "ornek_render": 0,  # K3c: anahtarlik eklendi, ornek YOK
+        "notu": "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde "
+                "(delik Ø 3,5–4 mm).",
+        "durust": "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde "
+                  "(delik Ø 3,5–4 mm).",
+    },
 }
 RENK_HEX_KARAR = {"Beyaz": "#F2F2F2", "Siyah": "#1A1A1A", "Gri": "#818184", "Lacivert": "#12294D",
                   "Kırmızı": "#B3262E", "Sarı": "#E8B923", "Yeşil": "#2E7D4F", "Mavi": "#2E5E8C", "Ahşap": "#C8B89A"}
-# Uretec girdi semalarinin alan adlari (G1-SEMA/G2-SEMA); `--gercek` kolu GERCEK uretecle dogrular.
+# Uretec girdi semalarinin alan adlari (pruvo-jenerator yapboz_uret.SEMA; isimlik_uret.SEMA eksi ANAHTARLIK_YASAK);
+# `--gercek` kolu GERCEK uretecle dogrular.
 URETEC_ALANLARI = {
-    "isimlik": {"satirlar", "yazi_tipi", "hizalama", "plaka_sekli", "genislik_mm", "yukseklik_mm", "kose_yaricap_mm",
-                "yazi_yuksekligi_mm", "kenar_payi_mm", "montaj_delikleri", "delik_cap_mm", "renk_plaka", "renk_yazi"},
-    "qr": {"metin", "hata_duzeltme", "plaket_mm", "plaka_sekli", "kose_yaricap_mm", "cerceve", "alt_yazi", "yazi_tipi",
-           "renk_plaka", "renk_qr"},
-    "logo": {"svg", "uzun_kenar_mm", "kalinlik_mm", "taban", "taban_kalinlik_mm", "taban_pay_mm", "taban_sekli",
-             "kose_yaricap_mm", "cizgi_dolgu", "min_cizgi_mm", "renk_taban", "renk_logo"},
-    "muhur": {"gorsel", "yuz_mm", "kenar_mm", "esik", "ince_cizgi", "sap", "sap_yukseklik_mm", "sap_renk", "renk_govde",
-              "renk_sap"},
-    "sablon": {"gorsel", "uzun_kenar_mm", "kalinlik_mm", "mod", "esik", "kopru_mm", "renk"},
     "yapboz": {"gorsel", "uzun_kenar_mm", "satir", "sutun", "tohum", "kabartma_yon", "renkler"},
+    "anahtarlik": {"satirlar", "yazi_tipi", "hizalama", "genislik_mm", "renk_plaka", "renk_yazi", "anahtarlik",
+                   "anahtarlik_kulak_konum", "kontur_tasma_mm", "anahtarlik_kulak_dis_cap_mm",
+                   "anahtarlik_delik_cap_mm"},
 }
-URETEC_OLCU_ALANI = {"isimlik": "genislik_mm", "qr": "plaket_mm", "logo": "uzun_kenar_mm", "muhur": "yuz_mm",
-                     "sablon": "uzun_kenar_mm", "yapboz": "uzun_kenar_mm"}
+URETEC_OLCU_ALANI = {"yapboz": "uzun_kenar_mm", "anahtarlik": "genislik_mm"}
+URETEC_SABIT = {"yapboz": {}, "anahtarlik": {"anahtarlik": True}}
 
 NODE_MANIFEST = r"""
 const vm=require('vm'),fs=require('fs');const k={};
 vm.runInNewContext(fs.readFileSync(process.argv[1],'utf8'),k,{filename:'foto-uretim-veri.js'});
 const F=k.PRUVO_FOTO, o={};
-o.turler=F.turler; o.renk_hex=F.RENK_HEX; o.red=F.URETEC_RED_METIN; o.tarayici=F.TARAYICI_ONIZLEYICI;
+o.turler=F.turler; o.renk_hex=F.RENK_HEX; o.red=F.URETEC_RED_METIN;
+o.tarayici_var=Object.prototype.hasOwnProperty.call(F,'TARAYICI_ONIZLEYICI'); o.tarayici=F.TARAYICI_ONIZLEYICI||null;
 o.onay_surum=F.onay_surum; o.ornek_turler=F.ornekler.map(x=>x.tur); o.plaka=F.PLAKA_MM;
 o.ornek_render=F.ornekler.filter(x=>x.kanit==='render').map(x=>[x.tur,x.render,x.onizleme]);
 o.onay_anahtar=Object.keys(F.onay).sort(); o.hak_fn=typeof F.hakGerekir+'/'+typeof F.aktarimGerekir;
 o.kol={}; for (const t of F.turler) o.kol[t.kod]=F.kolu(t.kod);
 o.red_kontrast=F.uretecRedMetni('uretec-red:kontrast'); o.red_bilinmez=F.uretecRedMetni('uretec-red:yok-boyle');
 o.red_genel=F.uretecRedMetni('uretec-red');
-const P=(kod,p)=>F.parametreDogrula(kod,p);
-const isim={satirlar:'Ada\nKat 2',kisa_kenar_mm:40,yazi_tipi:'Düz',plaka_sekli:'Oval',montaj_delikleri:'Yok'};
+const P=(kod,p)=>F.parametreDogrula(kod,p), E=(a,b)=>Object.assign({},a,b);
+const an={satirlar:['Ayşe'],yazi_tipi:'script',hizalama:'orta',genislik_mm:45,anahtarlik_kulak_konum:'sol-ust',
+          kontur_tasma_mm:1.5};
+const yb={uzun_kenar_mm:150,satir:4,sutun:5,tohum:7,kabartma_yon:'koyu_yuksek'};
+const ok=P('anahtarlik',an);
 o.p={
-  isim_ok:P('isimlik',isim).ok,
-  isim_4satir:P('isimlik',Object.assign({},isim,{satirlar:'a\nb\nc\nd'})).ok,
-  isim_41:P('isimlik',Object.assign({},isim,{satirlar:'x'.repeat(41)})).ok,
-  isim_bos_satir:P('isimlik',Object.assign({},isim,{satirlar:'Ada\n\nKat'})).ok,
-  isim_secim:P('isimlik',Object.assign({},isim,{yazi_tipi:'Kalın'})).ok,
-  qr_altsiz:P('qr',{metin:'https://pruvo3d.com',cerceve:'Yok'}),
-  qr_alt:P('qr',{metin:'https://pruvo3d.com',cerceve:'Var',alt_yazi:'MENÜ'}).ok,
-  qr_bayt:P('qr',{metin:'ş'.repeat(76),cerceve:'Yok'}).ok,
-  qr_satirli:P('qr',{metin:'a\nb',cerceve:'Yok'}).ok,
-  yapboz_ok:P('yapboz',{parca:'30'}).ok,
-  yapboz_kotu:P('yapboz',{parca:'31'}).ok
+  an_ok:ok.ok, an_deger:ok.deger?ok.deger.satirlar:null,
+  an_3satir:P('anahtarlik',E(an,{satirlar:['a','b','c']})).ok,
+  an_4satir:P('anahtarlik',E(an,{satirlar:['a','b','c','d']})).ok,
+  an_41:P('anahtarlik',E(an,{satirlar:['x'.repeat(41)]})).ok,
+  an_bos_satir:P('anahtarlik',E(an,{satirlar:['Ada','','Kat']})).ok,
+  an_kontrol:P('anahtarlik',E(an,{satirlar:['A\u0007']})).ok,
+  an_dizgi:P('anahtarlik',E(an,{satirlar:'Ayşe'})).ok,
+  an_secim:P('anahtarlik',E(an,{yazi_tipi:'Kalın'})).ok,
+  an_plaka_alani:P('anahtarlik',E(an,{plaka_sekli:'oval'})).ok,
+  yb_ok:P('yapboz',yb).ok,
+  yb_satir9:P('yapboz',E(yb,{satir:9})).ok,
+  yb_eski_parca:P('yapboz',E(yb,{parca:'30'})).ok,
+  yb_yon:P('yapboz',E(yb,{kabartma_yon:'yan'})).ok,
+  silinen_tur:P('isimlik',{}).hata
 };
 process.stdout.write(JSON.stringify(o));
 """
@@ -1017,39 +916,47 @@ def manifest_vakalari():
     m = json.loads(p.stdout)
     tur = {t["kod"]: t for t in m["turler"]}
     hata = []
-    for kod, (ad, girdi, uretec, az, cok, bolgeler, malz, notu, durust) in G2_SATIR.items():
+    evren = {t["kod"]: t.get("motor") for t in m["turler"]}
+    if evren != EVREN:
+        hata.append("evren=%s" % evren)
+    for kod, x in G2_SATIR.items():
         t = tur.get(kod) or {}
-        # Renk tavani = boyanabilir bolge sayisi (BaBa 8 Eki 15:4x; G2 turlerinde renk_* = renk_bolgeleri).
-        bekle = {"ad": ad, "girdi": girdi, "motor": "D", "uretec": uretec, "olcu_mm": {"en_az": az, "en_cok": cok},
-                 "fiyat": {"formul": "mm_x_10tl", "adim_mm": 10, "taban_tl": 600, "ek_renk_tl": 100,
-                           "renk_tavani": max(1, len(bolgeler))}, "ornek_kanit_izni": ["baski", "render"]}
-        for k, v in bekle.items():
+        for k, v in x["alan"].items():
             if t.get(k) != v:
                 hata.append("%s.%s=%r" % (kod, k, t.get(k)))
-        if [b.get("kod") for b in t.get("renk_bolgeleri") or []] != bolgeler:
+        if [b.get("kod") for b in t.get("renk_bolgeleri") or []] != x["renk_bolgeleri"]:
             hata.append("%s.renk_bolgeleri" % kod)
-        if list((t.get("malzemeler") or {}).values()) != [malz]:
-            hata.append("%s.malzemeler" % kod)
+        # Renk tavani = boyanabilir bolge sayisi (palet turunde palet_bolgeleri, aksi renk_bolgeleri).
+        if (t.get("fiyat") or {}).get("renk_tavani") != len(t.get("palet_bolgeleri") or t.get("renk_bolgeleri") or [0]):
+            hata.append("%s.renk_tavani-bolge" % kod)
+        if {a: (sema or {}).get("tip") for a, sema in (t.get("form") or {}).items()} != x["form"]:
+            hata.append("%s.form-tipleri" % kod)
         if not all(isinstance(a.get("etiket"), str) and a["etiket"] for a in (t.get("form") or {}).values()):
             hata.append("%s.form.etiket" % kod)
-        if not t.get("form"):
-            hata.append("%s.form-bos" % kod)
-    s["V1"] = (not hata, "satir: %s" % (hata or "6/6"))
-    hata = [k for k, x in G2_SATIR.items() if (tur.get(k) or {}).get("ornek_notu") != x[7] or
-            (tur.get(k) or {}).get("durustluk") != x[8]]
+    sat = ((tur.get("anahtarlik") or {}).get("form") or {}).get("satirlar") or {}
+    if not (sat.get("liste") is True and sat.get("satir_max") == 3 and sat.get("max") == 40 and sat.get("zorunlu") is True):
+        hata.append("anahtarlik.satirlar-liste=%r" % sat)
+    s["V1"] = (not hata, "satir: %s" % (hata or "evren 5 tur + 2/2 kopru satiri"))
+    hata = [k for k, x in G2_SATIR.items() if (tur.get(k) or {}).get("ornek_notu") != x["notu"] or
+            (tur.get(k) or {}).get("durustluk") != x["durust"]]
     bos = [t["kod"] for t in m["turler"] if not t.get("ornek_notu") or not t.get("durustluk")]
     s["V2"] = (not hata and not bos, "metin farki=%s bos=%s" % (hata, bos))
     adlar = sorted({r for t in m["turler"] for b in t.get("renk_bolgeleri") or [] for r in b.get("renkler") or []})
     disarida = [a for a in adlar if a not in m["renk_hex"]]
     s["V3"] = (m["renk_hex"] == RENK_HEX_KARAR and not disarida, "RENK_HEX=%s tabloda-yok=%s" % (
         m["renk_hex"] == RENK_HEX_KARAR, disarida))
-    yanlis = [k for k in G2_SATIR if m["tarayici"].get(tur.get(k, {}).get("uretec")) or m["kol"].get(k) != "deterministik"]
-    # G2b: her G2 turunun TAM BIR render ornegi var; adres foto/ornek/<kod>-1-render.webp (R2 pruvo-media).
+    # Tarayici onizleyicisi YOK (litofan silindi): onizleyicili tur 0; D turleri deterministik, M turleri saglayici.
+    tarayici = m.get("tarayici") or {}
+    tarayicili = [t["kod"] for t in m["turler"] if tarayici.get(t.get("uretec"))]
+    kol_yanlis = [k for k, mt in EVREN.items() if m["kol"].get(k) != {"D": "deterministik", "M": "saglayici"}[mt]]
     ornek = {}
     for t_, r_, o_ in m["ornek_render"]:
         ornek.setdefault(t_, []).append((r_, o_))
-    eksik = [k for k in G2_SATIR if ornek.get(k) != [("https://media.pruvo3d.com/foto/ornek/%s-1-render.webp" % k,) * 2]]
-    s["V4"] = (not yanlis and not eksik, "tarayici/kol yanlis=%s render-ornegi-eksik/yanlis=%s" % (yanlis, eksik))
+    eksik = [k for k, x in G2_SATIR.items() if ornek.get(k, []) !=
+             [("https://media.pruvo3d.com/foto/ornek/%s-1-render.webp" % k,) * 2] * x["ornek_render"]]
+    s["V4"] = (not tarayici and not tarayicili and not kol_yanlis and not eksik,
+               "tarayici_onizleyici=%s onizleyicili_tur=%d kol_yanlis=%s render-ornegi-eksik/yanlis=%s" % (
+                   "var" if m.get("tarayici_var") else "yok", len(tarayicili), kol_yanlis, eksik))
     # Tek onay kutusu (taslak-2, 7 Eki 20:5x): ayri hak/aktarim metni ve kutu kurali YOK; onay = aydinlatma listesi.
     s["V5"] = (m["onay_anahtar"] == ["aydinlatma"] and m["hak_fn"] == "undefined/undefined"
                and m["onay_surum"] == "2026-10-07-taslak-2",
@@ -1067,38 +974,41 @@ def manifest_vakalari():
                m["red_genel"] == m["red"][""] and not eksik and ret_ok,
                "kontrast=%r eksik=%s ret_kodu=%s" % (m["red_kontrast"][:50], eksik, ret_ok))
     pp = m["p"]
-    s["V7"] = (pp["isim_ok"] and not pp["isim_4satir"] and not pp["isim_41"] and not pp["isim_bos_satir"] and
-               not pp["isim_secim"] and pp["qr_altsiz"]["ok"] and "alt_yazi" not in pp["qr_altsiz"]["deger"] and
-               pp["qr_alt"] and not pp["qr_bayt"] and not pp["qr_satirli"] and pp["yapboz_ok"] and
-               not pp["yapboz_kotu"], "parametreDogrula=%s" % json.dumps(pp, ensure_ascii=False))
-    # V8: her form alaninin HER secenegi uretec semasina eslenir (KopruRed yok, alanlar semada, olcu alani dogru).
+    s["V7"] = (pp["an_ok"] and pp["an_deger"] == ["Ayşe"] and pp["an_3satir"] and not pp["an_4satir"] and
+               not pp["an_41"] and not pp["an_bos_satir"] and not pp["an_kontrol"] and not pp["an_dizgi"] and
+               not pp["an_secim"] and not pp["an_plaka_alani"] and pp["yb_ok"] and not pp["yb_satir9"] and
+               not pp["yb_eski_parca"] and not pp["yb_yon"] and pp["silinen_tur"] == "tur-yok",
+               "parametreDogrula=%s" % json.dumps(pp, ensure_ascii=False))
+    # V8: her form alaninin HER secenegi uretec semasina eslenir (KopruRed yok, alanlar semada, olcu alani dogru,
+    # kopru sabiti var). Esleme = URETIM YOLUNUN secimi (esle_fonksiyonu: turun kendi eslemesi once).
     hata = []
     d = tempfile.mkdtemp(prefix="foto-kosucu-v8-")
     try:
         with open(os.path.join(d, "foto.png"), "wb") as f:
             f.write(png_gri(8, 8))
-        with open(os.path.join(d, "svg.svg"), "w", encoding="utf-8") as f:
-            f.write(SVG_ORNEK)
         tablo = mod.cli_tablosu()
+        renk_adlari = list(RENK_HEX_KARAR)
         for kod in G2_SATIR:
             t = tur[kod]
             gtab = tablo.get(t["uretec"]) or {}
-            fn = mod.ESLEMELER.get(gtab.get("esle"))
-            if gtab.get("bicim") != "tekin-ortak" or not fn:
+            fn = mod.esle_fonksiyonu(t, gtab)
+            if gtab.get("bicim") != "tekin-ortak" or fn is not mod.ESLEMELER.get(kod):
                 hata.append("%s:tablo" % kod)
                 continue
             taban = {}
             for a, sema in t["form"].items():
                 taban[a] = {"sayi": sema.get("min"), "secim": (sema.get("secenekler") or [None])[0],
-                            "metin": "Ada", "url": "https://pruvo3d.com"}[sema["tip"]]
+                            "metin": ["Ada"] if sema.get("liste") else "Ada", "bool": False}[sema["tip"]]
             denemeler = [dict(taban)]
             for a, sema in t["form"].items():
                 for sec in sema.get("secenekler") or []:
                     denemeler.append(dict(taban, **{a: sec}))
+            renkler = {b["kod"]: b["renkler"][0] for b in t["renk_bolgeleri"]}
+            renkler.update({b: renk_adlari[i] for i, b in enumerate(t.get("palet_bolgeleri") or [])})
+            bolge_kume = {b["kod"] for b in t["renk_bolgeleri"]} | set(t.get("palet_bolgeleri") or [])
             for p_ in denemeler:
-                girdi = {"sozlesme": 1, "kategori": kod, "olcu_mm": t["olcu_mm"]["en_cok"],
-                         "renkler": {b["kod"]: b["renkler"][0] for b in t["renk_bolgeleri"]},
-                         "parametreler": p_, "dosyalar": {"foto": "foto.png", "svg": "svg.svg"}}
+                girdi = {"sozlesme": 1, "kategori": kod, "olcu_mm": t["olcu_mm"]["en_cok"], "renkler": renkler,
+                         "parametreler": p_, "dosyalar": {"foto": "foto.png"}}
                 try:
                     u, bolgeler = fn(girdi, d, m["renk_hex"])
                 except mod.KopruRed as e:
@@ -1106,11 +1016,13 @@ def manifest_vakalari():
                     continue
                 if not set(u) <= URETEC_ALANLARI[kod] or u.get(URETEC_OLCU_ALANI[kod]) != float(t["olcu_mm"]["en_cok"]):
                     hata.append("%s:alan %s" % (kod, sorted(set(u) - URETEC_ALANLARI[kod])))
-                if not set(bolgeler) <= {b["kod"] for b in t["renk_bolgeleri"]}:
-                    hata.append("%s:bolge" % kod)
+                if any(u.get(k) != v for k, v in URETEC_SABIT[kod].items()):
+                    hata.append("%s:sabit" % kod)
+                if not bolgeler or not set(bolgeler) <= bolge_kume:
+                    hata.append("%s:bolge %s" % (kod, bolgeler))
     finally:
         shutil.rmtree(d, ignore_errors=True)
-    s["V8"] = (not hata, "esleme: %s" % (hata or "6/6 tur, her secenek"))
+    s["V8"] = (not hata, "esleme: %s" % (hata or "2/2 tur, her secenek"))
     # V9 (G2b): plaka siniri TEK kaynak manifest PLAKA_MM=300; kosucu ayni degeri okur (ikinci kopya yok).
     try:
         km = kosucu_modulu().plaka_mm()
@@ -1121,27 +1033,6 @@ def manifest_vakalari():
 
 
 # ------------------------------------------------------------------ GERCEK uretec (CI DISI, G2)
-def _png_sekil(w, h, siyah):
-    def ch(t, d):
-        return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xffffffff)
-    ham = b"".join(b"\0" + bytes(0 if siyah(x, y) else 255 for x in range(w)) for y in range(h))
-    return (b"\x89PNG\r\n\x1a\n" + ch(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 0, 0, 0, 0)) +
-            ch(b"IDAT", zlib.compress(ham)) + ch(b"IEND", b""))
-
-
-def _halka_ucgen(x, y):
-    """Geometrik silüet (logo/marka DEGIL): halka + ucgen."""
-    r2 = (x - 200) ** 2 + (y - 200) ** 2
-    halka = 60 ** 2 <= r2 <= 140 ** 2
-    ucgen = 400 <= x <= 580 and abs(y - 200) <= (x - 400) * 0.75
-    return halka or ucgen
-
-
-def _halka(x, y):
-    r2 = (x - 200) ** 2 + (y - 150) ** 2
-    return 50 ** 2 <= r2 <= 130 ** 2
-
-
 def _foto_ton(w, h):
     """Sentetik ton fotografi (gradyan + acik daire): kisi/marka YOK."""
     def ch(t, d):
@@ -1155,25 +1046,20 @@ def _foto_ton(w, h):
 
 
 def gercek_vakalar():
-    siluet = ("foto.png", _png_sekil(600, 400, _halka_ucgen))
-    halka = ("foto.png", _png_sekil(400, 300, _halka))
+    """Kopru turleri x min/orta/maks (manifest araliklari: yapboz 100-280, anahtarlik 30-80)."""
     foto = ("foto.png", _foto_ton(640, 480))
-    svg = ("svg.svg", SVG_ORNEK.encode())
     v = []
-    for olcu, kisa, sat in ((60, 20, "Ada"), (155, 60, "Deniz Yılmaz\nDaire 4"), (250, 100, "Deniz Yılmaz\nDaire 4\nKat 2")):
-        v.append(("isimlik", olcu, {"plaka": "Beyaz", "yazi": "Lacivert"},
-                  {"satirlar": sat, "kisa_kenar_mm": kisa, "yazi_tipi": "Düz", "plaka_sekli": "Yuvarlak köşe",
-                   "montaj_delikleri": "Var" if olcu > 60 else "Yok"}, {}))
-    for olcu, ek in ((40, {"cerceve": "Yok"}), (95, {"cerceve": "Var"}), (150, {"cerceve": "Var", "alt_yazi": "MENÜ"})):
-        v.append(("qr", olcu, {"plaka": "Beyaz", "kod": "Siyah"}, dict({"metin": "https://pruvo3d.com"}, **ek), {}))
-    for olcu, taban in ((30, "Yok"), (115, "Var"), (200, "Var")):
-        v.append(("logo", olcu, {"taban": "Beyaz", "logo": "Kırmızı"}, {"taban": taban}, {"svg": svg}))
-    for olcu, sap in ((20, "Silindir"), (60, "Topuz"), (100, "Silindir")):
-        v.append(("muhur", olcu, {"govde": "Mavi", "sap": "Beyaz"}, {"sap": sap}, {"foto": siluet}))
-    for olcu, mod, gor in ((60, "Delikli", siluet), (155, "Dolu silüet", halka), (250, "Delikli", siluet)):
-        v.append(("sablon", olcu, {"sablon": "Gri"}, {"mod": mod}, {"foto": gor}))
-    for olcu, parca in ((100, "12"), (150, "20"), (190, "30")):
-        v.append(("yapboz", olcu, {"yapboz": "Ahşap"}, {"parca": parca}, {"foto": foto}))
+    for olcu, renk, sat, sut in ((100, {"renk1": "Ahşap"}, 3, 4),
+                                 (190, {"renk1": "Ahşap", "renk2": "Lacivert"}, 4, 5),
+                                 (280, {"renk1": "Beyaz", "renk2": "Kırmızı", "renk3": "Mavi", "renk4": "Siyah"}, 5, 6)):
+        v.append(("yapboz", olcu, renk, {"satir": sat, "sutun": sut, "tohum": 1, "kabartma_yon": "acik_yuksek"},
+                  {"foto": foto}))
+    for olcu, satir, yazi_tipi, kulak, tasma in ((30, ["Ali"], "sans-kalin", "sol-ust", 1.5),
+                                                  (45, ["Ayşe"], "script", "sag-ust", 2),
+                                                  (80, ["Deniz", "Daire 4"], "sans-kalin", "ust-orta", 3)):
+        v.append(("anahtarlik", olcu, {"plaka": "Siyah", "yazi": "Beyaz"},
+                  {"satirlar": satir, "yazi_tipi": yazi_tipi, "hizalama": "orta", "anahtarlik_kulak_konum": kulak,
+                   "kontur_tasma_mm": tasma}, {}))
     return v
 
 
@@ -1218,6 +1104,10 @@ def gercek(json_yolu=None):
     import time
     jen = os.environ.get("FOTO_KOSUCU_JENERATOR") or os.path.expanduser("~/dev/pruvo-jenerator")
     py = os.environ.get("FOTO_KOSUCU_PYTHON") or sys.executable
+    if not all(os.path.isfile(os.path.join(jen, "jeneratorler", "foto", b)) for b in ("yapboz_uret.py", "isimlik_uret.py")):
+        # Gercek uretec deposu yok -> olculemedi (KIRMIZI/YESIL hukmu verilmez; CI bu kolu KOSMAZ).
+        print("GERCEK_KOSUM=OLCULEMEDI sebep=jenerator-yok (%s)" % jen)
+        return 4
     mod = kosucu_modulu()
     satirlar, gecen = [], 0
     for kod, olcu, renkler, par, dosyalar in gercek_vakalar():
@@ -1276,7 +1166,7 @@ def gercek(json_yolu=None):
                              "kutu_mm": olcu_j.get("kutu_mm"), "renk_sayisi": olcu_j.get("renk_sayisi"),
                              "onizleme_px": list(px), "sure_sn": round(sure, 1), "ucgen": olcu_j.get("ucgen"),
                              "parametreler": par, "uretec_rc_ozet": "" if ok else cikti.strip()[-300:]})
-            print("%s %-7s %3d asama=%s hata=%s sizdirmaz=%s uk=%s bagimsiz=%s renk=%s px=%s %.1fs" % (
+            print("%s %-10s %3d asama=%s hata=%s sizdirmaz=%s uk=%s bagimsiz=%s renk=%s px=%s %.1fs" % (
                 "✅" if ok else "❌", kod, olcu, r["asama"], r["hata"] or "-", olcu_j.get("sizdirmaz"), uk,
                 round(bag, 3) if bag is not None else None, olcu_j.get("renk_sayisi"), px, sure))
         finally:
@@ -1289,8 +1179,6 @@ def gercek(json_yolu=None):
 
 
 def main():
-    if "--uctan-uca" in sys.argv:
-        return uctan_uca()
     if "--gercek" in sys.argv:
         a = sys.argv
         return gercek(a[a.index("--json") + 1] if "--json" in a else None)
