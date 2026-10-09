@@ -2319,6 +2319,19 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/ata-lisans-mutasyon.py
 
+      # LISANS-IFSA (9 Eki 2026): ozgun (bizim tasarimimiz) urunde public `lisans` / ic etiket
+      # ("kendi-tasarim") / build atifi = KIRMIZI. Vaka: 14 ozgun urun "kendi-tasarim" lisans
+      # blogu ile girdi, attribution_html() sayfaya basacakti; yayindan ONCE elle yakalandi.
+      # Ayirici yalniz gizli kayitta (CI'da YOK) -> burada BEYANLI dar menzil `--kaynaksiz`
+      # (yalniz ic-etiket kolu, son satir `ozgun=OLCULEMEDI ... kapsam=kaynaksiz`); tam kollar
+      # yerelde pre-push'ta. SERIT B: deploy.yml'e EKLENMEDI (yanlis pozitif yayini durdurmasin).
+      - name: "Lisans-ifsa kapisi: kabul testi (19 vaka + 10 bellek-ici mutant)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/lisans-ifsa-kapisi-test.py
+      - name: "Lisans-ifsa kapisi: katalog ic-etiket kolu (kaynaksiz, BEYANLI dar menzil)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/lisans-ifsa-kapisi.py --kaynaksiz
+
       # KESME GORUNURLUGU (uyum-kapisi rapor yuzeyi): kapi 6 ihlal sayip ekrana 5 basiyor
       # ve 400 karakterlik detay kesmesi kestigini SOYLEMIYORDU (olculen zarar: eksik
       # onarim). Kol SENTETIK katalogla kosar (M00'a / canli veriye bagli DEGIL), mutant

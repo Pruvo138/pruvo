@@ -372,6 +372,30 @@ else
   fi
 fi
 
+# --- LISANS-IFSA KAPISI (FAIL-CLOSED, 9 Eki 2026) ---
+# Ozgun (bizim tasarimimiz) urunde public `lisans` / ic etiket ("kendi-tasarim") / build
+# atifi main'e GIRMESIN (vaka: 14 ozgun urun "kendi-tasarim" lisans blogu ile girdi,
+# yayindan once elle yakalandi). PUSH EDILEN commit'in urunler.json'u olculur (calisma
+# agaci DEGIL). Ayirici gizli kayitta -> tam kollar yerelde. rc 1 = ihlal,
+# rc 2 = OLCULEMEDI -> ikisi de PUSH'u DURDURUR. Kabul: tools/lisans-ifsa-kapisi-test.py
+if [ -f "$root/tools/lisans-ifsa-kapisi.py" ]; then
+  pruvo_li_gecici=$(mktemp 2>/dev/null || echo /tmp/pruvo-lisans-ifsa-$$.json)
+  if git show "$push_sha:urunler.json" > "$pruvo_li_gecici" 2>/dev/null; then
+    python3 "$root/tools/lisans-ifsa-kapisi.py" --urunler "$pruvo_li_gecici" </dev/null
+    pruvo_li_rc=$?
+  else
+    echo "!! LISANS-IFSA: push edilen commit'ten ($push_sha) urunler.json cikarilamadi (OLCULEMEDI)."
+    pruvo_li_rc=2
+  fi
+  rm -f "$pruvo_li_gecici"
+  if [ "$pruvo_li_rc" != "0" ]; then
+    echo "!! PUSH DURDURULDU — LISANS-IFSA KAPISI rc=$pruvo_li_rc (1=ozgun urunde lisans/atif, 2=OLCULEMEDI)."
+    echo "!! Veri onarimi: tools/duzelt.py. Olcum: python3 $root/tools/lisans-ifsa-kapisi.py"
+    [ -n "$kaynak_gecici" ] && rm -f "$kaynak_gecici"
+    exit 1
+  fi
+fi
+
 echo "→ urunler.json degisti: D1 senkronlaniyor (Ege urunleri D1'den okuyor)..."
 # 🔴 K261 (20 Agu 2026, KraL CANLI olctu) — rc=4 "BASARISIZ" DEGIL "ATLANDI"dir.
 # `d1-sync.py` cikis kodlari (kendi docstring'i, d1-sync.py::main):
