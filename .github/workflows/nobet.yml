@@ -3036,6 +3036,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kanca-nobeti.py
 
+      # ONIZLEME DAMGA + TEK-YUKLEYICI KILIDI KABUL TESTI (BaBa 17:0x, 9 Eki 2026).
+      # 5 vaka + 4 mutant; tamamen hermetik (ağ YOK, wrangler YOK, gerçek STATIK dizinine
+      # DOKUNMAZ). damga yazımı · kirli ağaç RED · flock SIRALI · damga uyuşmaz → rc 2 ·
+      # damga uyuşur → rc 0; mutantlar damga/kirli/flock/karşılaştırma silinince KIRMIZI.
+      - name: "Onizleme damga + tek-yukleyici kilidi kabul testi (5 vaka + 4 mutant; hermetik)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/onizleme-damga-test.py
+
       # ⚠️ DORT AGIR MUTASYON BATARYASI BU JOB'DAN CIKARILDI (10 Agu 2026) — bkz.
       # asagidaki `marka-bolum-bataryasi` · `marka-sayfa-bataryasi` ·
       # `model-uyelik-bataryasi` · `model-baslik-bataryasi` joblari. SILINMEDILER,
