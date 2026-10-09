@@ -49,7 +49,7 @@ OKU = lambda rel: open(os.path.join(KOK, rel), encoding="utf-8").read()
 OTURUM_ANAHTARI = "pruvo_foto_siparis"
 DURUSTLUK = "önizlemenin 4 renkli yorumu"
 RENDER_CUMLE = ("Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, "
-                "birebir aynısı değildir.")
+                "tam kopyası değildir.")
 # K3a (8 Eki 2026): 15 tür silindi (litofan dahil). 4 kalan türün tamamı foto, litofan yok; LITOFAN_CUMLE
 # eski plaket metninin eşitiydi — yeni evrende bu test artık anlamsız, mutant + kontrol SİLİNDİ.
 
@@ -291,7 +291,7 @@ def main():
          (index, re.sub(r"\bgaleriSec\b", "galeriSecYOK", bolum), veri, build), True),
         ("M8 izin kontrolu silindi",
          (index, bolum, veri.replace("if (!k || izin.indexOf(k) < 0) { return false; }", "if (!k) { return false; }", 1), build), True),
-        ("M9 abarti cumlesi degisti", (index, bolum, veri.replace("kabartmalı hâlidir, birebir aynısı değildir.", "kabartmalı hâlidir.", 1), build), True),
+        ("M9 abarti cumlesi degisti", (index, bolum, veri.replace("kabartmalı hâlidir, tam kopyası değildir.", "kabartmalı hâlidir.", 1), build), True),
         # K3a (8 Eki 2026): M12/M11 litofan referansliydi, litofan silindi — mutant + kontrol SİLİNDİ
         # (null/no-op mutant YASAK; çapa artık veri dosyasında yok).
         ("M13 bolum sabit cumleye dondu",
