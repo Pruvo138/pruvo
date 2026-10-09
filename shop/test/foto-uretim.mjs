@@ -3027,50 +3027,30 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
     if (!r.aMetin && !r.soruVar) gecer5++;
   }
   ol("K2b-2 tasarım tarifi 5/5 geçer (Hayır → uyum OK)", gecer5 === 5, "basarili=" + gecer5);
+  // Okan 9 Eki "bunu sil": foto türlerindeki "Tasarım mı, parça mı?" kapalı sorusu KALDIRILDI.
+  // Soru HİÇBİR durumda çıkmaz (tam manifest + CANLI /acik biçimi); tasarım tarifi cevapsız GEÇER,
+  // parça kelimesi yine DUR (ret cümlesi). Soru geri eklenirse K2b-3/C3 KIRMIZI.
   const soruVakalari = ["annemin portresi", "logo", "deniz manzarası"];
-  let soruCikar = 0;
+  let soruYok = 0;
   for (const t of soruVakalari) {
     const r = await uyumSonucBul(EKRAN_KAYNAK, t, undefined);
-    if (r.soruVar && !r.aMetin) soruCikar++;
+    if (!r.soruVar && !r.aMetin) soruYok++;
   }
-  ol("K2b-3 foto türünde soru çıkar 3/3 (cevapsız)", soruCikar === 3, "basarili=" + soruCikar);
-  const evetDUR = await uyumSonucBul(EKRAN_KAYNAK, "annemin portresi", true);
-  ol("K2b-4 Evet→DUR 1/1 (parça onayı → ret cümlesi)",
-     !!evetDUR.aMetin && evetDUR.aMetin.indexOf("Fotoğraftan parça") === 0 && !evetDUR.soruVar,
-     JSON.stringify({ aMetin: evetDUR.aMetin, soruVar: evetDUR.soruVar }));
-  const hayirG = await uyumSonucBul(EKRAN_KAYNAK, "logo", false);
-  ol("K2b-5 Hayır→geçer 1/1 (soru kapanır, ret yok)", !hayirG.aMetin && !hayirG.soruVar, JSON.stringify({ aMetin: hayirG.aMetin, soruVar: hayirG.soruVar }));
-  // 6) Cevapsız → DUR: ④ "Önizleme oluştur" PASİF ve ② "İleri" PASİF (uyum OK değil).
-  const cevapsiz = await uyumSonucBul(EKRAN_KAYNAK, "logo", undefined);
-  const cevapsizBtn = [...cevapsiz.ekran.bolum.agac()].find((n) => n.id === "foto-onizle-buton");
-  const cevapsizIleri = [...cevapsiz.ekran.bolum.agac()].find((n) => n.id === "foto-ileri");
-  ol("K2b-6 cevapsız→DUR 1/1 (belirsiz → onizle butonu + ② İleri disabled)",
-     cevapsiz.soruVar && !!cevapsizBtn && cevapsizBtn.disabled === true && !!cevapsizIleri && cevapsizIleri.disabled === true,
-     JSON.stringify({ soruVar: cevapsiz.soruVar, btnDisabled: cevapsizBtn && cevapsizBtn.disabled, ileri: cevapsizIleri && cevapsizIleri.disabled }));
-  // K2b-C (K3c): CANLI /acik biçimi (girdi alanı YOK) — soru çıkar 3/3 · Evet→DUR · cevapsız→DUR.
-  const canliSoru = async (kaynak) => {
-    let n = 0;
-    for (const t of soruVakalari) { const r = await uyumSonucBul(kaynak, t, undefined, fotoAcik); if (r.soruVar && !r.aMetin) n++; }
-    return n;
-  };
-  const canliN = await canliSoru(EKRAN_KAYNAK);
-  ol("K2b-C3 CANLI /acik (girdi yok) foto türünde soru çıkar 3/3", canliN === 3, "basarili=" + canliN);
-  const canliEvet = await uyumSonucBul(EKRAN_KAYNAK, "annemin portresi", true, fotoAcik);
-  ol("K2b-C4 CANLI /acik Evet→DUR 1/1", !!canliEvet.aMetin && canliEvet.aMetin.indexOf("Fotoğraftan parça") === 0 && !canliEvet.soruVar,
-     JSON.stringify({ aMetin: canliEvet.aMetin, soruVar: canliEvet.soruVar }));
-  const canliBos = await uyumSonucBul(EKRAN_KAYNAK, "logo", undefined, fotoAcik);
-  const canliBtn = [...canliBos.ekran.bolum.agac()].find((n) => n.id === "foto-onizle-buton");
-  const canliIleri = [...canliBos.ekran.bolum.agac()].find((n) => n.id === "foto-ileri");
-  ol("K2b-C6 CANLI /acik cevapsız→DUR 1/1 (soru + onizle + ② İleri disabled)",
-     canliBos.soruVar && !!canliBtn && canliBtn.disabled === true && !!canliIleri && canliIleri.disabled === true,
-     JSON.stringify({ soruVar: canliBos.soruVar, btn: canliBtn && canliBtn.disabled, ileri: canliIleri && canliIleri.disabled }));
-  // M-UYUM-CANLI: tür kaydı yeniden önce seçili /acik kaydından (seciliTurBul) alınırsa canlı biçimde soru ÇIKMAZ.
-  const mUCCapa = "    var nt = F && typeof F.turBul === \"function\" && kod ? F.turBul(kod) : null;\n";
-  const mUCUyg = EKRAN_KAYNAK.split(mUCCapa).length - 1 === 1;
-  const mUCn = mUCUyg ? await canliSoru(EKRAN_KAYNAK.replace(mUCCapa,
-    "    var nt = (typeof seciliTurBul === \"function\" ? seciliTurBul() : null);\n    if (!nt && F && typeof F.turBul === \"function\" && kod) nt = F.turBul(kod);\n")) : -1;
-  ol("M-UYUM-CANLI seciliTurBul önceliğine dönülür ⇒ CANLI /acik'te soru 0/3 (KIRMIZI)", mUCUyg && mUCn === 0,
-     mUCUyg ? "soru=" + mUCn : "MUTANT_UYGULANMADI");
+  ol("K2b-3 foto türünde soru ÇIKMAZ 3/3 (cevapsız tasarım tarifi geçer, Okan 9 Eki)", soruYok === 3, "basarili=" + soruYok);
+  const kelimeRet = await uyumSonucBul(EKRAN_KAYNAK, "kırıldı", undefined);
+  ol("K2b-4 parça kelimesi→DUR 1/1 (soru yok, ret cümlesi)",
+     !!kelimeRet.aMetin && kelimeRet.aMetin.indexOf("Fotoğraftan parça") === 0 && !kelimeRet.soruVar,
+     JSON.stringify({ aMetin: kelimeRet.aMetin, soruVar: kelimeRet.soruVar }));
+  const soruDugme = [...(await uyumSonucBul(EKRAN_KAYNAK, "logo", undefined)).ekran.bolum.agac()]
+    .filter((n) => n.id === "foto-uyum-evet" || n.id === "foto-uyum-hayir").length;
+  ol("K2b-6 Evet/Hayır düğmesi DOM'da 0", soruDugme === 0, "adet=" + soruDugme);
+  // K2b-C (K3c): CANLI /acik biçimi (girdi alanı YOK) — soru yine 0/3 · parça kelimesi DUR.
+  let canliN = 0;
+  for (const t of soruVakalari) { const r = await uyumSonucBul(EKRAN_KAYNAK, t, undefined, fotoAcik); if (!r.soruVar && !r.aMetin) canliN++; }
+  ol("K2b-C3 CANLI /acik (girdi yok) foto türünde soru ÇIKMAZ 3/3", canliN === 3, "basarili=" + canliN);
+  const canliRet = await uyumSonucBul(EKRAN_KAYNAK, "kırıldı", undefined, fotoAcik);
+  ol("K2b-C4 CANLI /acik parça kelimesi→DUR 1/1", !!canliRet.aMetin && canliRet.aMetin.indexOf("Fotoğraftan parça") === 0 && !canliRet.soruVar,
+     JSON.stringify({ aMetin: canliRet.aMetin, soruVar: canliRet.soruVar }));
   // 7) DUR vakalarında 2D/önizleme isteği 0.
   const fetchSayac = async (kaynak, uretimMetni, cevap) => {
     const V = veriYukle(VERI_KAYNAK);
@@ -3087,13 +3067,12 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
     if (btn && !btn.disabled) btn.tetikle("click");
     return e.istekler.length;
   };
-  const belirsizIstek = await fetchSayac(EKRAN_KAYNAK, "annemin portresi", undefined);
-  const evetIstek = await fetchSayac(EKRAN_KAYNAK, "kırıldı", true);
-  ol("K2b-7 DUR vakalarında 2D/önizleme isteği 0 (belirsiz & uygun_degil)",
-     belirsizIstek === 0 && evetIstek === 0, JSON.stringify({ belirsizIstek, evetIstek }));
+  const kelimeIstek = await fetchSayac(EKRAN_KAYNAK, "kırıldı", undefined);
+  ol("K2b-7 DUR vakasında (uygun_degil) 2D/önizleme isteği 0",
+     kelimeIstek === 0, JSON.stringify({ kelimeIstek }));
   // 9) Ret cümlesi birebir: uygun_degil'de metin TAM sayfa metnindeki ortak ret cümlesi.
   ol("K2b-9 ret cümlesi birebir (sayfa metni 'Ortak ret cümlesi' = kaynaktaki A_METIN_BIREBIR)",
-     evetDUR.aMetin === ORTAK_RET && metinRet === ORTAK_RET, JSON.stringify({ aMetin: evetDUR.aMetin, metinRet }));
+     kelimeRet.aMetin === ORTAK_RET && metinRet === ORTAK_RET, JSON.stringify({ aMetin: kelimeRet.aMetin, metinRet }));
   // 10) B2 checkbox: S1'de 0 (TEK B2 yalnız ④ S3'te).
   const eS1 = await ekranKos(EKRAN_KAYNAK, veriYukle(VERI_KAYNAK), fotoAcik, null, null, { kart: "plaket" });
   const b2S1 = [...eS1.bolum.agac()].filter((n) => n.tagName === "INPUT" && n.type === "checkbox" && /^foto-b2-onay/.test(n.id));
@@ -3148,23 +3127,16 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
   ol("M-B2 disabled formülünden '!S.b2Onay ||' silinir ⇒ B2 yokken sipBtn AÇIK (KIRMIZI)", mB2 === false,
      mB2SplitCount === 1 ? "disabled=" + mB2 : "MUTANT_UYGULANMADI capa_sayisi=" + mB2SplitCount);
 
-  // M-KAPI-B: kelime listesi boşaltılır ⇒ parça kelimesi geçer (DUR olmaz, soru çıkar).
+  // M-KAPI-B: kelime listesi boşaltılır ⇒ parça kelimesi geçer (DUR olmaz).
   const mKBCapa = 'var UYUM_KOKLER = ["parca", "parcas", "parcasi", "parcay", "parcayi", "parcam", "parcan", "parcalar", "parcalari", "parcalarin", "parcasin", "parcasini", "yedek", "yedegi", "yedekle", "yedekleri", "yedeklerin", "yedekten", "kirik", "kirigi", "kirdi", "kirildi", "kirilmis", "kirilir", "kiriklar", "kiriklari", "kayip", "kaybi", "kaybol", "kayboldu", "kaybolan", "kayipoldu", "kayipolmus", "mekanizma", "mekanizmasi", "mekanizmayi", "mekanizmalar", "mekanizmalari", "mekanizmada", "mekanizmadan", "disli", "dislisi", "disliyi", "disliler", "dislileri", "dislilerin", "dislide", "disliden", "kilit", "kilidi", "kilide", "kilitler", "kilitleri", "kilitlerin", "kilitten", "klips", "klipsi", "klipsler", "klipsleri", "klipslerin", "klipsten", "yuva", "yuvasi", "yuvayi", "yuvalar", "yuvalari", "yuvalarin", "yuvada", "yuvadan", "orijinal", "orijinali", "orijinale", "orijinalden", "orijinalinde", "aynisi", "aynisini", "aynilar", "aynilari", "aynisindan"];';
   const mKBSplitCount = EKRAN_KAYNAK.split(mKBCapa).length - 1;
   const mKBekran = mKBSplitCount === 1 ? await uyumSonucBul(EKRAN_KAYNAK.split(mKBCapa).join("var UYUM_KOKLER = [];"), "kırıldı", undefined) : null;
-  ol("M-KAPI-B kelime listesi boşaltılır ⇒ parça kelimesi AÇIK soru çıkar (DUR olmaz)",
-     !!mKBekran && mKBekran.soruVar && !mKBekran.aMetin,
+  ol("M-KAPI-B kelime listesi boşaltılır ⇒ parça kelimesi GEÇER (ret cümlesi yok = KIRMIZI)",
+     !!mKBekran && !mKBekran.aMetin,
      mKBSplitCount === 1 ? JSON.stringify({ soruVar: mKBekran.soruVar, aMetin: mKBekran.aMetin }) : "MUTANT_UYGULANMADI capa_sayisi=" + mKBSplitCount);
 
-  // M-KAPI-C: belirsiz → uygun (soru atlanır).
-  const mKCCapa = "    if (foto) {\n      if (cevap === true) return \"uygun_degil\";   // Evet\n      if (cevap === false) return \"uygun\";        // Hayır\n      return \"belirsiz\";                          // cevapsız → fail-closed: soru ÇIKAR\n    }";
-  const mKCUyg = EKRAN_KAYNAK.split(mKCCapa).length - 1 === 1;
-  const mKCekran = mKCUyg ? await uyumSonucBul(EKRAN_KAYNAK.replace(mKCCapa, "    if (foto) {\n      if (cevap === true) return \"uygun_degil\";\n      return \"uygun\";\n    }"), "logo", undefined) : null;
-  ol("M-KAPI-C belirsiz → uygun (soru atlanır) ⇒ cevapsızda soru KIRMIZI yok",
-     !!mKCekran && !mKCekran.soruVar && !mKCekran.aMetin, mKCUyg ? JSON.stringify({ soruVar: mKCekran.soruVar, aMetin: mKCekran.aMetin }) : "MUTANT_UYGULANMADI");
-
   // M-KAPI-SIRA: kapı kontrolü 2D isteğinden SONRAYA ⇒ "kırıldı" + Evet'te POST 1 (kontrolde 0).
-  const mKSCapa = "    var uyum = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);\n    if (uyum !== \"uygun\") {\n      cizUyum();\n      guncelleS1Buton();\n      return;\n    }";
+  const mKSCapa = "    var uyum = uyumKontrol(S.tur, S.uretimNotu);\n    if (uyum !== \"uygun\") {\n      cizUyum();\n      guncelleS1Buton();\n      return;\n    }";
   const mKSHazirlaCapa = "    var hazirla = konsept ? function (cb) { cb(null, \"\"); } : function (cb) { kucultGorsel(S.dosya, cb); };";
   const mKSMutantUygulandi = EKRAN_KAYNAK.split(mKSCapa).length - 1 === 1 && EKRAN_KAYNAK.split(mKSHazirlaCapa).length - 1 === 1;
   const mKSsrc = mKSMutantUygulandi
@@ -3372,8 +3344,8 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
      "duz=" + ayniDuzGecti + "/" + ayniDuzGecer.length + " aynisi=" + aynisiKaldi + "/" + aynisiDUR.length);
   // K0 kontrol: yorum değişikliği ⇒ hiçbiri değişmedi.
   const k0src = EKRAN_KAYNAK.replace("/* ============== UYUM PANELİ ==============", "/* K0 kontrol yorumu ============== UYUM PANELİ ==============");
-  const k0evetDUR = await uyumSonucBul(k0src, "annemin portresi", true);
-  ol("K-K0 kontrol yorum değişikliği ⇒ KIRMIZI kümesi []", k0src !== EKRAN_KAYNAK && k0evetDUR.aMetin === ORTAK_RET, "aMetin=" + k0evetDUR.aMetin);
+  const k0DUR = await uyumSonucBul(k0src, "kırıldı", undefined);
+  ol("K-K0 kontrol yorum değişikliği ⇒ KIRMIZI kümesi []", k0src !== EKRAN_KAYNAK && k0DUR.aMetin === ORTAK_RET, "aMetin=" + k0DUR.aMetin);
 }
 
 // ================================================================ K3b — TEK KUTU, 4 PENCERE (Okan 9 Eki 01:0x + 01:4x)

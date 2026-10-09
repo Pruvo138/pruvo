@@ -75,8 +75,7 @@
   var A_METIN_BIREBIR = "Fotoğraftan parça ya da yedek parça üretmiyoruz.";
   // UYUM KAPISI (BaBa 17:5x + 18:0x — parça/yedek parça foto programından ÇIKTI): 2D önizleme isteği
   // PARA harcıyor; tarayıcıdaki önizleyici görsel sınıflayıcı (ücretli API) bu turda YOK → foto türleri
-  // için tek kapalı soru (Evet/Hayır). Girdi türlerinde yalnız anahtar kelime denetimi.
-  var UYUM_SORU = "Bu bir yedek ya da mekanik parça mı?";
+  // için tek kapalı soru (Evet/Hayır) vardı — Okan 9 Eki "bunu sil": SORU YOK, her türde yalnız anahtar kelime denetimi.
   // Anahtar kelime KÖKLERİ (küçük harfe + Türkçe ı/İ normalize edilmiş metinde aranır). Liste BaBa
   // hükmünün örneklerini + Türkçe eş biçimleri kapsar: "parçası", "yedeği", "kırıldı", "dişlisi" vb.
   // K2b-fin: TEK satır — mutantın `.split("var UYUM_KOKLER = [").join(...)` ile TEK hamlede
@@ -197,8 +196,7 @@
     secim: null,
     renkler: [],
     b2Onay: false,
-    uyumSonuc: null,
-    belirsizCevap: null
+    uyumSonuc: null
   };
 
   /* ============== DOM YARDIMCILAR ============== */
@@ -243,8 +241,8 @@
   }
 
   /* ============== UYUM KAPISI ==============
-     Deterministik kol: görsel sınıflayıcı YOK → (c) kolu foto türlerinde tek kapalı soruya düşer.
-     Kapalı küme: "uygun" | "uygun_degil" | "belirsiz" (başka değer yok). Kredi harcayan 2D/3D
+     Deterministik kol: anahtar kelime denetimi (foto türlerindeki kapalı soru Okan 9 Eki ile SİLİNDİ).
+     Kapalı küme: "uygun" | "uygun_degil" (başka değer yok). Kredi harcayan 2D/3D
      önizleme çağrıları bu fonksiyonu ÖNCE çağırır; sonuç "uygun_degil" ise A ekranı + 0 istek. */
   function trNorm(metin) {
     var s = String(metin == null ? "" : metin).toLowerCase();
@@ -254,22 +252,13 @@
     s = s.replace(/[^a-zçğıöşü0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
     return s;
   }
-  function uyumKontrol(kod, tarif, cevap) {
-    // (b) anahtar kelime denetimi (her türde; foto + girdi).
+  function uyumKontrol(kod, tarif) {
+    // Anahtar kelime denetimi (her türde; foto + girdi). Foto türlerindeki kapalı soru ("Tasarım mı,
+    // parça mı?") Okan 9 Eki "bunu sil" ile KALDIRILDI — sonuç kümesi artık "uygun" | "uygun_degil".
     if (tarif && typeof tarif === "string" && trNorm(tarif).length) {
       if (UYUM_DESEN.test(trNorm(tarif))) return "uygun_degil";
     }
-    // (c) görsel sınıflayıcı kancası boş; foto türlerinde kapalı soru ÇIKAR. Girdi bilgisi MANIFESTTEN (K3c):
-    // /acik türleri {kod, ad, aciklama, ornek_sayisi, olculer} — `girdi` taşımaz, oradan okunursa soru hiç çıkmaz.
-    var nt = F && typeof F.turBul === "function" && kod ? F.turBul(kod) : null;
-    var foto = nt && nt.girdi && nt.girdi.length &&
-      (nt.girdi[0] === "foto-1" || nt.girdi[0] === "foto-1-3");
-    if (foto) {
-      if (cevap === true) return "uygun_degil";   // Evet
-      if (cevap === false) return "uygun";        // Hayır
-      return "belirsiz";                          // cevapsız → fail-closed: soru ÇIKAR
-    }
-    return "uygun";                               // girdi türü: soru yok, anahtar kelime yoksa OK
+    return "uygun";
   }
 
   /* ============== STIL ENJEKSIYONU ============== */
@@ -396,7 +385,6 @@
     ".foto-uretim-yukle-kabul{margin:6px 0 12px;font-size:13px;color:#5b6573;}" +
     ".foto-uretim-yukle-ikon{font-size:28px;line-height:1;}" +
     ".foto-uretim-uyum-baslik{font-size:16px;font-weight:700;margin:0 0 6px;}" +
-    ".foto-uretim-uyum-butonlar{display:flex;gap:10px;flex-wrap:wrap;}" +
     ".foto-uretim-not{width:100%;min-height:72px;resize:vertical;padding:8px 10px;border:1px solid #d4dae3;" +
     "border-radius:6px;font:inherit;font-size:14px;box-sizing:border-box;}" +
     ".foto-uretim-not-sayac{font-size:12px;color:#5b6573;text-align:right;}" +
@@ -577,7 +565,7 @@
     if (S.pencere === 1) return !!S.tur;
     if (S.pencere === 2) {
       return !!S.tur && F.girdiYeterli(S.tur, { foto: !!S.dosya, parametreler: parametreGovde() }) === "" &&
-        uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap) === "uygun";
+        uyumKontrol(S.tur, S.uretimNotu) === "uygun";
     }
     if (S.pencere === 3) return !!S.tur && !!S.olcu && formDogrula().ok;
     return false;
@@ -1391,7 +1379,7 @@
     p2.appendChild(S.yaziHata);
     doldurS1Dosya();
     // K2b: UYUM KAPISI paneli — dosya/not girdilerinden sonra (arka planda; yalnız soru/RED'de görünür).
-    // uyumSonuc: null | "uygun" | "uygun_degil" | "belirsiz". uygun_degil'de ret cümlesi; belirsiz'de soru.
+    // uyumSonuc: null | "uygun" | "uygun_degil". uygun_degil'de ret cümlesi.
     S.alanUyum = el("div", "foto-uretim-form-grup foto-uretim-uyum");
     S.alanUyum.id = "foto-uyum";
     p2.appendChild(S.alanUyum);
@@ -1676,57 +1664,29 @@
   }
 
   /* ============== UYUM PANELİ ==============
-     "Nasıl olsun?" notu (S.uretimNotu) değiştikçe + belirsiz soruya tıklandıkça yeniden çizilir.
+     "Nasıl olsun?" notu (S.uretimNotu) değiştikçe yeniden çizilir.
      - "uygun": panel boş (form görünür, önizleme açılır).
-     - "belirsiz": foto türünde kapalı soru (Evet/Hayır). Cevap → uyumSonuc güncellenir.
      - "uygun_degil": A metni (birebir) + ① ızgarasına dönen düğme; önizleme düğmesi pasif. */
   function cizUyum() {
     if (!S.alanUyum) return;
     while (S.alanUyum.firstChild) S.alanUyum.removeChild(S.alanUyum.firstChild);
     if (!S.tur) return;
-    var sonuc = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);
+    var sonuc = uyumKontrol(S.tur, S.uretimNotu);
     S.uyumSonuc = sonuc;
     if (sonuc === "uygun") return;  // görünmez — önizleme düğmesi açılır
-    if (sonuc === "uygun_degil") {
-      // A ekranı: metin (birebir) + ① ızgarasına dönen düğme
-      var baslik = el("h3", "foto-uretim-uyum-baslik", "Parça / yedek parça isteği");
-      S.alanUyum.appendChild(baslik);
-      var p = el("p", "foto-uretim-uyum-metin", A_METIN_BIREBIR);
-      S.alanUyum.appendChild(p);
-      var donBtn = el("button", "foto-uretim-buton-birincil", "Tasarım ürünlerine dön");
-      donBtn.type = "button";
-      donBtn.id = "foto-uyum-don";
-      donBtn.addEventListener("click", function () {
-        S.belirsizCevap = null;
-        S.uyumSonuc = null;
-        adimKoy("secim");
-      });
-      S.alanUyum.appendChild(donBtn);
-      return;
-    }
-    // sonuc === "belirsiz" → foto türünde kapalı soru (Evet/Hayır)
-    S.alanUyum.appendChild(el("h3", "foto-uretim-uyum-baslik", "Tasarım mı, parça mı?"));
-    S.alanUyum.appendChild(el("p", "foto-uretim-uyum-soru", UYUM_SORU));
-    var evet = el("button", "foto-uretim-buton-ikincil", "Evet");
-    evet.type = "button";
-    evet.id = "foto-uyum-evet";
-    evet.addEventListener("click", function () {
-      S.belirsizCevap = true;
-      cizUyum();
-      guncelleS1Buton();
+    // "uygun_degil" — A ekranı: metin (birebir) + ① ızgarasına dönen düğme
+    var baslik = el("h3", "foto-uretim-uyum-baslik", "Parça / yedek parça isteği");
+    S.alanUyum.appendChild(baslik);
+    var p = el("p", "foto-uretim-uyum-metin", A_METIN_BIREBIR);
+    S.alanUyum.appendChild(p);
+    var donBtn = el("button", "foto-uretim-buton-birincil", "Tasarım ürünlerine dön");
+    donBtn.type = "button";
+    donBtn.id = "foto-uyum-don";
+    donBtn.addEventListener("click", function () {
+      S.uyumSonuc = null;
+      adimKoy("secim");
     });
-    var hayir = el("button", "foto-uretim-buton-birincil", "Hayır");
-    hayir.type = "button";
-    hayir.id = "foto-uyum-hayir";
-    hayir.addEventListener("click", function () {
-      S.belirsizCevap = false;
-      cizUyum();
-      guncelleS1Buton();
-    });
-    var dugumG = el("div", "foto-uretim-uyum-butonlar");
-    dugumG.appendChild(evet);
-    dugumG.appendChild(hayir);
-    S.alanUyum.appendChild(dugumG);
+    S.alanUyum.appendChild(donBtn);
   }
   function konseptHazirMi() {
     return !!S.dosya && !!S.aydinlatmaOnay && !!S.captchaToken1 && !!S.tur;
@@ -1807,8 +1767,8 @@
   }
   function konseptOlustur() {
     if (!konseptAcik()) return;
-    // K2b: UYUM KAPISI — 2D konsept (ücretli çağrı) isteğinden ÖNCE. "uygun_degil"/"belirsiz" → 0 istek.
-    var uyumK = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);
+    // K2b: UYUM KAPISI — 2D konsept (ücretli çağrı) isteğinden ÖNCE. "uygun_degil" → 0 istek.
+    var uyumK = uyumKontrol(S.tur, S.uretimNotu);
     if (uyumK !== "uygun") { konseptHataKoy(""); cizUyum(); guncelleS1Buton(); return; }
     if (!S.dosya) { konseptHataKoy("Lütfen fotoğrafını seç."); return; }
     if (!S.aydinlatmaOnay) { konseptHataKoy("Önce aşağıdaki aydınlatma metnini onaylamalısın."); return; }
@@ -1932,8 +1892,8 @@
     var lit = false;
     // Tarayıcı önizleyicisi olmayan D/R türü: önizlemeyi üreteç koşucusu çıkarır (/foto/onizleme
     // kuyruğu); fotoğraf yalnız türün girdisinde varsa istenir.
-    // K2b: uyum kontrolü geçmeden önizleme/konsept düğmesi AÇILMAZ ("uygun_degil" veya "belirsiz" ise).
-    var uyumOK = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap) === "uygun";
+    // K2b: uyum kontrolü geçmeden önizleme/konsept düğmesi AÇILMAZ ("uygun_degil" ise).
+    var uyumOK = uyumKontrol(S.tur, S.uretimNotu) === "uygun";
     // Madde 1 (Okan 8 Eki 14:1x): "Nasıl olsun?" üretim notu ZORUNLU; boşken "Önizleme oluştur" KAPALI.
     var notZorunlu = !!((S.uretimNotu || "").trim());
     var tam = uyumOK && notZorunlu && (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&
@@ -2102,7 +2062,6 @@
       S.secim = null;
       S.renkler = [];
       S.uretimNotu = "";
-      S.belirsizCevap = null;
       S.uyumSonuc = null;
       turSecimiKayitTemizle();
       if (S.ornekBlok) ornekCiz(S.ornekBlok, S.acikVeri ? S.acikVeri.turler.map(function (x) { return x.kod; }) : null);
@@ -2310,9 +2269,9 @@
   function onizleOlustur() {
     
     if (!!(F && F.kolu && F.kolu(S.tur) === "deterministik")) { uretecOnizle(); return; }
-    // K2b: UYUM KAPISI — kredi harcayan 3D önizleme isteğinden ÖNCE koşar. "uygun_degil" veya "belirsiz"
+    // K2b: UYUM KAPISI — kredi harcayan 3D önizleme isteğinden ÖNCE koşar. "uygun_degil"
     // ise 2D önizleme = 0 istek (cizUyum A ekranını veya soruyu zaten gösterdi). Burada yalnız UI tutarlılığı.
-    var uyum = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);
+    var uyum = uyumKontrol(S.tur, S.uretimNotu);
     if (uyum !== "uygun") {
       cizUyum();
       guncelleS1Buton();
@@ -2405,7 +2364,7 @@
   /* Tarayıcı önizleyicisi olmayan D/R türü: önizlemeyi üreteç koşucusu çıkarır (aynı uç, kuyruk). */
   function uretecOnizle() {
     // K2b: UYUM KAPISI — üreteç önizlemesi (ücretli) isteğinden ÖNCE.
-    var uyum = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);
+    var uyum = uyumKontrol(S.tur, S.uretimNotu);
     if (uyum !== "uygun") { cizUyum(); guncelleS1Buton(); return; }
     if (fotoGerekir() && !S.dosya) { adimKoy("S1", "Lütfen fotoğrafını seç.", true); return; }
     if (false && !S.dosya) { adimKoy("S1", "Lütfen SVG dosyanı seç.", true); return; }
