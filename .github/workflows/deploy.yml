@@ -1563,9 +1563,6 @@ jobs:
       # olcu, sunucu = istemci, acilis anahtari fail-closed; x100 / en_az->en_cok / fail-open mutantlari KIRMIZI.
       # URETEC KOSUCUSU (7 Eki, G1): D1'den D/R isi -> uretec -> §3 dogrulama -> R2 -> CAS;
       # sahte wrangler/uretec ile hermetik; sizdirmaz/KURU/CAS/tavan/erisim mutantlari KIRMIZI.
-      # 2D KONSEPT (Okan 7 Eki 14:5x, PARA + KISISEL VERI): foto + not -> konsept -> 3D girdisi; is basi 3
-      # deneme · bot jetonu · acilis anahtari · ziyaretci 24 s · gunluk kredi tavani · ornek ayrimi · notta
-      # e-posta saglayiciya GITMEZ · 3 gun saklama; sahte saglayici, gercek ag 0, 10 mutant KIRMIZI.
       # ORNEK- UCTAN UCA BETIGI (8 Eki, 24 kategori olcutu 1-6): sahte sunucu/wrangler/kopru/tarayici ile
       # hermetik; acik olmayan kategori 400 mutanti, su gecirmezlik, olcek ekseni, fiyat, onay, 375 px,
       # canliya yazim yasagi mutantlari KIRMIZI (gercek onizleme kosumu CI DISI: --hepsi --kol D).
@@ -1586,7 +1583,6 @@ jobs:
           python3 tools/foto-uretim-bolum-test.py
           node shop/test/foto-girdi-tipleri.mjs
           node shop/test/foto-fiyat-formul.mjs
-          node shop/test/foto-konsept.mjs
           node shop/test/onizleme-kapisi.mjs
           python3 tools/foto-uretec-kosucu-test.py
           python3 tools/foto-ornek-uc-uca-test.py

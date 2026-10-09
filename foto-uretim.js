@@ -5,7 +5,6 @@
  * - API'ler: GET /api/shop/foto/acik, POST /api/shop/foto/onizleme,
  *   GET /api/shop/foto/durum. Odeme AYRI YOL DEGIL: ③ "Sepete ekle" kalemi sitenin normal sepetine koyar
  *   (window.pruvoSepeteFotoEkle, index.html); odeme + musteri bilgisi normal checkout'ta.
- *   2D KONSEPT: POST /api/shop/foto/konsept, GET /api/shop/foto/konsept-durum.
  * - Bot: Cloudflare Turnstile (sitekey, script URL).
  * - EKRAN (sayfa-3adim K3b, Okan 9 Eki 01:0x/01:4x): #fotoUretim icinde TEK KUTU; kutu basliginda
  *   ①②③④ gostergesi, ayni anda TEK pencere, "Geri"/"İleri" kutu icinde. ① Tür seç (KARTLAR) ·
@@ -23,13 +22,6 @@
   var ACIK_URL = "/api/shop/foto/acik";
   var ONIZLEME_URL = "/api/shop/foto/onizleme";
   var DURUM_URL = "/api/shop/foto/durum";
-  // 2D KONSEPT (Okan 7 Eki 14:5x): foto + "Nasıl olsun?" notu -> konsept; "Bunu kullan" -> 3D önizleme
-  // girdisi. İSTEĞE BAĞLI ara adım: doğrudan "Önizleme oluştur" yolu AYNEN durur (konsept düşerse satış durmaz).
-  var KONSEPT_URL = "/api/shop/foto/konsept";
-  var KONSEPT_DURUM_URL = "/api/shop/foto/konsept-durum";
-  var KONSEPT_YOKLAMA_MS = 3000;
-  var KONSEPT_YOKLAMA_TAVAN = 60;
-  var KONSEPT_METNI = "Konsept, notunuza göre çizilen bir önizlemedir.";
   var TURNS_SITEKEY = "0x4AAAAAAE6AA20ln7MIOR9k";
   var TURNS_KAYNAK = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
   var MAKS_DOSYA_BAYT = 15 * 1024 * 1024;
@@ -168,19 +160,6 @@
     alanOde: null,
     uretimNotu: "",
     alanUretimNotu: null,
-    alanKonsept: null,
-    konsept: null,
-    konseptOturum: null,
-    konseptKalan: null,
-    konseptGorsel: null,
-    konseptAsama: "",
-    konseptHata: "",
-    konseptSecili: null,
-    konseptYoks: null,
-    konseptSayac: 0,
-    konseptGonderBtn: [],
-    konseptKullanBtn: null,
-    fotoUrl: null,
     galeriListe: [],
     galeriKutu: null,
     kartKod: null,
@@ -388,15 +367,6 @@
     ".foto-uretim-not{width:100%;min-height:72px;resize:vertical;padding:8px 10px;border:1px solid #d4dae3;" +
     "border-radius:6px;font:inherit;font-size:14px;box-sizing:border-box;}" +
     ".foto-uretim-not-sayac{font-size:12px;color:#5b6573;text-align:right;}" +
-    ".foto-uretim-konsept{margin:10px 0 0;}" +
-    ".foto-uretim-konsept-kart{border:1px solid #d4dae3;border-radius:8px;padding:10px;margin:8px 0;}" +
-    ".foto-uretim-konsept-gorseller{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;}" +
-    ".foto-uretim-konsept-img{display:block;width:220px;max-width:100%;height:auto;border-radius:6px;background:#eef0f3;}" +
-    ".foto-uretim-konsept-foto{display:block;width:72px;height:72px;object-fit:cover;border-radius:4px;" +
-    "border:2px solid #fff;box-shadow:0 1px 4px rgba(18,41,77,.3);}" +
-    ".foto-uretim-konsept-butonlar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;}" +
-    ".foto-uretim-konsept-butonlar .foto-uretim-buton-ikincil{margin-top:0;}" +
-    ".foto-uretim-konsept-hata{color:#b3261e;}" +
     "img,input,button,textarea,select{max-width:100%;}" +
     ".foto-uretim *{overflow-wrap:anywhere;}" +
     // Mobil: tek sütun akış; kartlar 2 sütun, gösterge 2×2 (375 px yatay taşma 0).
@@ -1079,7 +1049,6 @@
     if (hata && S.yukleGirdi) S.yukleGirdi.value = "";
     if (S.adim === "S3") onizlemeSifirla();
     yukleKutuGuncelle(hata);
-    konseptSifirla();
     notAlaniGoster();
     
     guncelleS1Buton();
@@ -1469,7 +1438,7 @@
 
   /* ============== ④ S1 — ÖNİZLEME İSTEĞİ ==============
      Aydınlatma tiki (tek) + doğrulama → "Önizleme oluştur" (parça kapısı ÖNCE koşar). D/R türünde örnek
-     render + ONIZLEME_SONRA; sağlayıcı türünde isteğe bağlı 2D konsept. */
+     render + ONIZLEME_SONRA. */
   function cizS1() {
     if (!S.alan) return;
     turnsTemizle(S.alanCap1);
@@ -1490,11 +1459,6 @@
       S.captchaToken1 = t;
       guncelleS1Buton();
     });
-
-    S.alanKonsept = el("div", "foto-uretim-konsept");
-    S.alanKonsept.id = "foto-konsept";
-    S.alan.appendChild(S.alanKonsept);
-    cizKonsept();
 
     S.alanNotu = el("p", "foto-uretim-ayrinti",
       "Günde en çok " + F.sinir_ziyaretci_24s + " önizleme hakkın var.");
@@ -1595,7 +1559,6 @@
   function doldurS1Dosya() {
     while (S.alanDosya.firstChild) S.alanDosya.removeChild(S.alanDosya.firstChild);
     S.dosya = null;
-    konseptSifirla();
     // Dosya girdisi üstteki "Foto ekle" kutusunda (tek alan); tür değişince kutu sıfırlanır.
     if (S.yukleGirdi) S.yukleGirdi.value = "";
     yukleKutuGuncelle("");
@@ -1641,28 +1604,6 @@
     notAlaniGoster();
   }
 
-  /* ============== 2D KONSEPT (adım ② içinde, isteğe bağlı) ============== */
-  // Konsept yalnız sunucunun /foto/acik `konsept.turler` listesindeki (sağlayıcı kollu) türde ve
-  // fotoğraf seçiliyken sunulur. Not boşsa da çalışır (foto -> stil konsepti).
-  function konseptAcik() {
-    var k = S.acikVeri && S.acikVeri.konsept;
-    return !!(k && k.turler && k.turler.indexOf(S.tur) >= 0 && fotoGerekir() &&
-      !false && !!!(F && F.kolu && F.kolu(S.tur) === "deterministik"));
-  }
-  function konseptDurdur() {
-    if (S.konseptYoks) { clearInterval(S.konseptYoks); S.konseptYoks = null; }
-  }
-  function konseptSifirla() {
-    konseptDurdur();
-    S.konsept = null; S.konseptOturum = null; S.konseptKalan = null; S.konseptGorsel = null;
-    S.konseptAsama = ""; S.konseptHata = ""; S.konseptSecili = null;
-    if (S.fotoUrl && kok.URL && typeof kok.URL.revokeObjectURL === "function") {
-      try { kok.URL.revokeObjectURL(S.fotoUrl); } catch (e) { }
-    }
-    S.fotoUrl = null;
-    cizKonsept();
-  }
-
   /* ============== UYUM PANELİ ==============
      "Nasıl olsun?" notu (S.uretimNotu) değiştikçe yeniden çizilir.
      - "uygun": panel boş (form görünür, önizleme açılır).
@@ -1688,155 +1629,6 @@
     });
     S.alanUyum.appendChild(donBtn);
   }
-  function konseptHazirMi() {
-    return !!S.dosya && !!S.aydinlatmaOnay && !!S.captchaToken1 && !!S.tur;
-  }
-  function konseptButonGuncelle() {
-    var b = S.konseptGonderBtn || [];
-    for (var i = 0; i < b.length; i++) b[i].disabled = !konseptHazirMi();
-    if (S.konseptKullanBtn) S.konseptKullanBtn.disabled = !S.captchaToken1;
-  }
-  function cizKonsept() {
-    var kutu = S.alanKonsept;
-    if (!kutu) return;
-    while (kutu.firstChild) kutu.removeChild(kutu.firstChild);
-    S.konseptGonderBtn = [];
-    S.konseptKullanBtn = null;
-    kutu.hidden = !konseptAcik() || !S.dosya;
-    if (kutu.hidden) return;
-    var deneme = (S.acikVeri.konsept && S.acikVeri.konsept.deneme) || 3;
-    var kalan = typeof S.konseptKalan === "number" ? S.konseptKalan : deneme;
-    if (S.konseptAsama === "bekliyor") {
-      kutu.appendChild(el("p", "foto-uretim-ayrinti", "Konsept çiziliyor… (genelde 1 dakika)"));
-      return;
-    }
-    if (S.konseptAsama === "hazir" && S.konseptGorsel) {
-      var kart = el("div", "foto-uretim-konsept-kart");
-      var gs = el("div", "foto-uretim-konsept-gorseller");
-      var img = el("img", "foto-uretim-konsept-img");
-      img.src = S.konseptGorsel; img.alt = "Konsept"; img.width = 220; img.height = 220;
-      img.decoding = "async";
-      gs.appendChild(img);
-      if (!S.fotoUrl && S.dosya && kok.URL && typeof kok.URL.createObjectURL === "function") {
-        try { S.fotoUrl = kok.URL.createObjectURL(S.dosya); } catch (e) { S.fotoUrl = null; }
-      }
-      if (S.fotoUrl) {
-        var fi = el("img", "foto-uretim-konsept-foto");
-        fi.src = S.fotoUrl; fi.alt = "Orijinal fotoğraf"; fi.width = 72; fi.height = 72;
-        gs.appendChild(fi);
-      }
-      kart.appendChild(gs);
-      kart.appendChild(el("p", "foto-uretim-ayrinti", KONSEPT_METNI));
-      var bs = el("div", "foto-uretim-konsept-butonlar");
-      var kul = el("button", "foto-uretim-buton-birincil", "Bunu kullan");
-      kul.type = "button"; kul.id = "foto-konsept-kullan";
-      S.konseptKullanBtn = kul;
-      kul.addEventListener("click", konseptKullan);
-      bs.appendChild(kul);
-      if (kalan > 0) {
-        var yen = el("button", "foto-uretim-buton-ikincil", "Notu değiştir, yeniden dene (" + kalan + " hak kaldı)");
-        yen.type = "button"; yen.id = "foto-konsept-yeniden";
-        S.konseptGonderBtn.push(yen);
-        yen.addEventListener("click", konseptOlustur);
-        bs.appendChild(yen);
-      } else {
-        bs.appendChild(el("span", "foto-uretim-ayrinti", "Bu fotoğraf için konsept hakkın doldu."));
-      }
-      kart.appendChild(bs);
-      kutu.appendChild(kart);
-      if (S.konseptHata) kutu.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-konsept-hata", S.konseptHata));
-      konseptButonGuncelle();
-      return;
-    }
-    kutu.appendChild(el("p", "foto-uretim-ayrinti",
-      "İstersen önce notuna göre 2D bir konsept çizelim; beğenirsen 3D önizleme onunla hazırlanır."));
-    if (S.konseptHata) kutu.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-konsept-hata", S.konseptHata));
-    if (kalan > 0) {
-      var btn = el("button", "foto-uretim-buton-ikincil", "Konsept oluştur");
-      btn.type = "button"; btn.id = "foto-konsept-buton";
-      S.konseptGonderBtn.push(btn);
-      btn.addEventListener("click", konseptOlustur);
-      kutu.appendChild(btn);
-    }
-    konseptButonGuncelle();
-  }
-  function konseptHataKoy(metin) {
-    S.konseptAsama = S.konseptGorsel ? "hazir" : "";
-    S.konseptHata = metin;
-    cizKonsept();
-  }
-  function konseptOlustur() {
-    if (!konseptAcik()) return;
-    // K2b: UYUM KAPISI — 2D konsept (ücretli çağrı) isteğinden ÖNCE. "uygun_degil" → 0 istek.
-    var uyumK = uyumKontrol(S.tur, S.uretimNotu);
-    if (uyumK !== "uygun") { konseptHataKoy(""); cizUyum(); guncelleS1Buton(); return; }
-    if (!S.dosya) { konseptHataKoy("Lütfen fotoğrafını seç."); return; }
-    if (!S.aydinlatmaOnay) { konseptHataKoy("Önce aşağıdaki aydınlatma metnini onaylamalısın."); return; }
-    if (!S.captchaToken1) { konseptHataKoy("Lütfen doğrulama kutusunu işaretle."); return; }
-    var jeton = S.captchaToken1;
-    S.captchaToken1 = "";
-    S.konseptHata = "";
-    S.konseptAsama = "bekliyor";
-    cizKonsept();
-    guncelleS1Buton();
-    kucultGorsel(S.dosya, function (err, dataUrl) {
-      if (err || !dataUrl) { turnsSifirla(S.alanCap1); konseptHataKoy("Fotoğraf okunamadı (JPEG, PNG ya da WEBP)."); return; }
-      var govde = { tur: S.tur, gorsel: dataUrl, aydinlatma_onay: true,
-        onay_surum: F.onay_surum, turnstile_token: jeton };
-      notGovdeyeKoy(govde);
-      if (S.konseptOturum) govde.oturum = S.konseptOturum;
-      jsonPost(KONSEPT_URL, govde, function (ok, kod, veri) {
-        turnsSifirla(S.alanCap1);
-        if (ok && kod === 200 && veri && veri.konsept) {
-          S.konsept = veri.konsept;
-          S.konseptOturum = veri.oturum || S.konseptOturum;
-          S.konseptKalan = typeof veri.kalan === "number" ? veri.kalan : S.konseptKalan;
-          S.konseptGorsel = null;
-          konseptYoklaBaslat();
-          return;
-        }
-        var h = veri && veri.hata;
-        if (kod === 429 && h === "konsept-hakki-bitti") { S.konseptKalan = 0; konseptHataKoy("Bu fotoğraf için konsept hakkın doldu; 3D önizlemeye geçebilirsin."); return; }
-        if (kod === 429 && h === "konsept-siniri") { konseptHataKoy("Bugünkü konsept hakkın doldu; doğrudan 3D önizleme oluşturabilirsin."); return; }
-        if (kod === 403) { konseptHataKoy("Doğrulama tamamlanamadı, kutucuğu yeniden işaretleyip dene."); return; }
-        if (kod === 422) { konseptHataKoy("Bu fotoğraftan konsept çizilemedi; başka bir fotoğraf dene."); return; }
-        if (kod === 400 && h && NOT_HATA[h]) { konseptHataKoy(NOT_HATA[h]); return; }
-        if (kod === 400 && h === "onay-surumu-eski") { konseptHataKoy("Metin güncellendi, sayfayı yenile."); return; }
-        konseptHataKoy("Şu an konsept oluşturulamıyor; doğrudan 3D önizleme oluşturabilirsin.");
-      });
-    });
-  }
-  function konseptYoklaBaslat() {
-    konseptDurdur();
-    S.konseptSayac = 0;
-    var no = S.konsept;
-    var sor = function () {
-      S.konseptSayac++;
-      if (S.konseptSayac > KONSEPT_YOKLAMA_TAVAN) { konseptDurdur(); konseptHataKoy("Konsept beklenenden uzun sürdü; yeniden deneyebilir ya da doğrudan 3D önizleme oluşturabilirsin."); return; }
-      jsonGetir(KONSEPT_DURUM_URL + "?konsept=" + encodeURIComponent(no), function (ok, kod, veri) {
-        if (no !== S.konsept || !veri) return;
-        if (veri.asama === "hazir" && veri.gorsel) {
-          konseptDurdur();
-          S.konseptGorsel = veri.gorsel; S.konseptAsama = "hazir"; S.konseptHata = "";
-          cizKonsept();
-          return;
-        }
-        if (veri.asama === "basarisiz" || veri.asama === "suresi-doldu" || kod === 404) {
-          konseptDurdur();
-          konseptHataKoy(veri.hata === "gorsel-uygun-degil" ? "Bu fotoğraftan konsept çizilemedi; başka bir fotoğraf dene." :
-            "Konsept çizilemedi; yeniden deneyebilir ya da doğrudan 3D önizleme oluşturabilirsin.");
-        }
-      });
-    };
-    S.konseptYoks = setInterval(sor, KONSEPT_YOKLAMA_MS);
-    sor();
-  }
-  function konseptKullan() {
-    if (!S.konsept || S.konseptAsama !== "hazir") return;
-    S.konseptSecili = S.konsept;
-    onizleOlustur();
-  }
-
   function notAlaniGoster() {
     if (!S.alanUretimNotu) return;
     S.alanUretimNotu.hidden = !S.dosya;
@@ -1865,7 +1657,7 @@
     S.alanOnay.appendChild(det);
 
     // TEK ONAY KUTUSU (metin sürümü taslak-2): metnin ALTINDA; hak beyanı ve aktarım rızası
-    // cümleleri metnin içinde. İşaretlenmeden konsept, önizleme ve sipariş düğmeleri açılmaz.
+    // cümleleri metnin içinde. İşaretlenmeden önizleme ve sipariş düğmeleri açılmaz.
     var onLbl = el("label", "foto-uretim-form-secenek-inline");
     onLbl.setAttribute("for", "foto-aydinlatma-onay");
     var onInp = el("input");
@@ -1892,7 +1684,7 @@
     var lit = false;
     // Tarayıcı önizleyicisi olmayan D/R türü: önizlemeyi üreteç koşucusu çıkarır (/foto/onizleme
     // kuyruğu); fotoğraf yalnız türün girdisinde varsa istenir.
-    // K2b: uyum kontrolü geçmeden önizleme/konsept düğmesi AÇILMAZ ("uygun_degil" ise).
+    // K2b: uyum kontrolü geçmeden önizleme düğmesi AÇILMAZ ("uygun_degil" ise).
     var uyumOK = uyumKontrol(S.tur, S.uretimNotu) === "uygun";
     // Madde 1 (Okan 8 Eki 14:1x): "Nasıl olsun?" üretim notu ZORUNLU; boşken "Önizleme oluştur" KAPALI.
     var notZorunlu = !!((S.uretimNotu || "").trim());
@@ -1901,7 +1693,6 @@
       formDogrula().ok;
     btn.disabled = !tam;
     btn.textContent = lit ? "Siparişe geç" : "Önizleme oluştur";
-    konseptButonGuncelle();
   }
 
   /* ============== S2 ============== */
@@ -1916,7 +1707,6 @@
 
   function cizS2() {
     if (!S.alan) return;
-    konseptDurdur();
     turnsTemizle(S.alanCap1);
     S.captchaToken1 = "";
     while (S.alan.firstChild) S.alan.removeChild(S.alan.firstChild);
@@ -2296,12 +2086,9 @@
     }
     // Jeton S2'ye geçmeden alınır: adimKoy("S2") doğrulama kutusunu (ve jetonu) temizler.
     var jeton = S.captchaToken1;
-    // KONSEPT seçildiyse ("Bunu kullan") 3D önizlemenin girdisi konsepttir: foto ikinci kez gönderilmez.
-    var konsept = S.konseptSecili;
-    adimKoy("S2", konsept ? "Konseptin 3D önizlemeye gönderiliyor…" : "Fotoğrafın yükleniyor…", false);
-    var hazirla = konsept ? function (cb) { cb(null, ""); } : function (cb) { kucultGorsel(S.dosya, cb); };
-    hazirla(function (err, dataUrl) {
-      if (err || (!konsept && !dataUrl)) {
+    adimKoy("S2", "Fotoğrafın yükleniyor…", false);
+    kucultGorsel(S.dosya, function (err, dataUrl) {
+      if (err || !dataUrl) {
         turnsSifirla(S.alanCap1);
         adimKoy("S1", "Fotoğraf okunamadı (JPEG, PNG ya da WEBP).", true);
         return;
@@ -2313,7 +2100,7 @@
         onay_surum: F.onay_surum,
         turnstile_token: jeton
       };
-      if (konsept) govde.konsept = konsept; else govde.gorsel = dataUrl;
+      govde.gorsel = dataUrl;
       notGovdeyeKoy(govde);
       if (Object.keys(formSemasi()).length) govde.parametreler = parametreGovde();
       jsonPost(ONIZLEME_URL, govde, function (ok, kod, veri) {

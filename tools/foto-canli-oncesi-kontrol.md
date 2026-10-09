@@ -31,7 +31,7 @@ Turnstile sırrı önizleme turunda bir işçi transkriptine basıldı → canl�
 ## 4. Taze zincir kabulü — o gün, o kodla
 - [ ] Önizlemede uçtan uca: `python3 tools/foto-ornek-uc-uca.py --hepsi --kol D --kredi-tavani <N>`
       → açılacak her tür için ①–⑥ HAZIR (kredi harcaması ≤ N).
-- [ ] Canlı D1 şeması: `foto_acik`, `foto_konsept` tabloları + `foto_isler.uretim_notu/onay_tarih/onay_surum`
+- [ ] Canlı D1 şeması: `foto_acik` tablosu + `foto_isler.uretim_notu/onay_tarih/onay_surum`
       + `foto_uretim.onay_tarih/onay_surum` var (`PRAGMA table_info`).
 - [ ] Ek renk göçü (8 Eki): `tools/d1-goc/2026-10-08-foto-renk.sql` shop worker deploy'undan ÖNCE canlı D1'e
       uygulandı → `PRAGMA table_info(foto_uretim)` içinde `renk_sayisi` (INTEGER, varsayılan 0) + `renkler`
@@ -40,10 +40,9 @@ Turnstile sırrı önizleme turunda bir işçi transkriptine basıldı → canl�
 
 ## 5. O günün kredi tavanı — PARA: Okan kapısı
 Tavanlar KODDA sabittir (panel ayarı değil): `shop/src/foto.js` `GUNLUK_ONIZLEME_TAVANI` (tüm
-ziyaretçiler, 24 sa önizleme) · `HAVUZ_ESIK_KREDI` / `URETIM_PAYI_KREDI` (bakiye eşiği → bölüm kapanır) ·
-`foto-uretim-veri.js` `konsept.gunluk_kredi_tavani` (2D konsept, aşılınca 429).
+ziyaretçiler, 24 sa önizleme) · `HAVUZ_ESIK_KREDI` / `URETIM_PAYI_KREDI` (bakiye eşiği → bölüm kapanır).
 - [ ] Okan o günün tavanını tek sayı olarak verir; farklıysa sabit değişir → shop testleri → deploy.
-- [ ] Kabul: tavan aşımında yeni önizleme 503 / konsept 429 (fail-closed), ödenmiş siparişler etkilenmez.
+- [ ] Kabul: tavan aşımında yeni önizleme 503 (fail-closed), ödenmiş siparişler etkilenmez.
 
 ## 6. Açılış
 - [ ] Panelden tür tür "Aç" (yönetim panelindeki açma düğmesi) → `foto_acik` satırı `acik=1`.

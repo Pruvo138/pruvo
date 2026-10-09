@@ -3137,11 +3137,11 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
 
   // M-KAPI-SIRA: kapı kontrolü 2D isteğinden SONRAYA ⇒ "kırıldı" + Evet'te POST 1 (kontrolde 0).
   const mKSCapa = "    var uyum = uyumKontrol(S.tur, S.uretimNotu);\n    if (uyum !== \"uygun\") {\n      cizUyum();\n      guncelleS1Buton();\n      return;\n    }";
-  const mKSHazirlaCapa = "    var hazirla = konsept ? function (cb) { cb(null, \"\"); } : function (cb) { kucultGorsel(S.dosya, cb); };";
+  const mKSHazirlaCapa = "    var jeton = S.captchaToken1;\n    adimKoy(\"S2\", \"Fotoğrafın yükleniyor…\", false);\n    kucultGorsel(S.dosya, function (err, dataUrl) {";
   const mKSMutantUygulandi = EKRAN_KAYNAK.split(mKSCapa).length - 1 === 1 && EKRAN_KAYNAK.split(mKSHazirlaCapa).length - 1 === 1;
   const mKSsrc = mKSMutantUygulandi
     ? EKRAN_KAYNAK.split(mKSCapa).join("    // M-KAPI-SIRA mutant: gate kaldırıldı (POST'tan sonra)")
-      .split(mKSHazirlaCapa).join("    var hazirla = function (cb) { cb(null, \"data:image/jpeg;base64,xxx\"); }; // M-KAPI-SIRA mutant")
+      .split(mKSHazirlaCapa).join("    var jeton = S.captchaToken1;\n    adimKoy(\"S2\", \"Fotoğrafın yükleniyor…\", false);\n    (function (cb) { cb(null, \"data:image/jpeg;base64,xxx\"); })(function (err, dataUrl) { // M-KAPI-SIRA mutant")
     : EKRAN_KAYNAK;
   const mKSHazirla = async (kaynak, uretimMetni, cevap) => {
     const V = veriYukle(VERI_KAYNAK);
@@ -3160,7 +3160,7 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
   };
   const mKSKontrol = await mKSHazirla(EKRAN_KAYNAK, "kırıldı", true);
   const mKSistek = mKSMutantUygulandi ? await mKSHazirla(mKSsrc, "kırıldı", true) : -1;
-  ol("M-KAPI-SIRA kapı kontrolü 2D isteğinden SONRAYA ⇒ parça kabulünde POST KIRMIZI (1 istek)",
+  ol("M-KAPI-SIRA kapı kontrolü önizleme isteğinden SONRAYA ⇒ parça kabulünde POST KIRMIZI (1 istek)",
      mKSKontrol === 0 && mKSistek === 1, "kontrol=" + mKSKontrol + " mutant=" + mKSistek);
 
   // M-IPTAL: İptal ② çocuklarını silerse ⇒ İptal→yeni tür ② BOŞ.
@@ -3267,7 +3267,7 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
     ol("M3-1 'birebir aynısı değildir' kaynakta 0 (madde 8)", birebirAynisi === 0, "birebir=" + birebirAynisi + " tam_kopyasi=" + tamKopyasi);
     ol("M3-2 'tam kopyası değildir' kaynakta ≥1 (plaket + figür aydinlatma + ana yorum)", tamKopyasi >= 1, "tam_kopyasi=" + tamKopyasi);
     // (c) "isteğe bağlı" KULLANICI METNİNDE 0 (madde 1: etiket "Nasıl olsun?", "isteğe bağlı" SİLİNDİ).
-    // DOM'dan ölçülür — kaynakta 3 yorum hâlâ "isteğe bağlı" içerir (2D konsept yorumu + 1 satır);
+    // DOM'dan ölçülür — kaynakta yorumlar "isteğe bağlı" içerebilir;
     // ölçümün amacı kullanıcının GÖRDÜĞÜ metin. plaket kart seçilir → ② "Nasıl olsun?" etiketi.
     const eI = await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, ["plaket"]), undefined, undefined, { turnstileOto: true, zamanlayici: true, kart: "plaket" });
     const agacI = [...eI.bolum.agac()];
