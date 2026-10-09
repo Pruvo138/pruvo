@@ -127,11 +127,18 @@ def plan_kur(kodlar):
     planlar = []
     for kod in kodlar:
         t = manifest.get(kod)
+        uretec = (t or {}).get("uretec")
+        if not t:
+            # FOTO KOLU kaydi (anahtarlik-foto): ayri tur satiri yok; ana turun `foto_kolu.uretec`i bu kaydin uretec'i.
+            kk = next((r for r in kayitlar if r.get("kod") == kod), None)
+            t = next((v for v in manifest.values() if kk and ((v.get("foto_kolu") or {}).get("uretec")
+                                                              == kk.get("uretec"))), None)
+            uretec = (kk or {}).get("uretec")
         if not t:
             planlar.append({"kod": kod, "hata": "manifest-tur-yok"})
             continue
-        g = cli.get(t.get("uretec"))
-        kayit = next((r for r in kayitlar if r.get("uretec") == t.get("uretec")), None)
+        g = cli.get(uretec)
+        kayit = next((r for r in kayitlar if r.get("uretec") == uretec), None)
         if not g or not kayit or not isinstance(kayit.get("ornek"), dict):
             planlar.append({"kod": kod, "hata": "uretec-ya-da-kayit-yok"})
             continue
@@ -163,7 +170,12 @@ def ornek_girdisi(kayit, dizin):
     u = {}
     for ad, v in (kayit["ornek"].get("girdi") or {}).items():
         if isinstance(v, str) and v.startswith("<"):
-            if tipler.get(ad) == "dosya":
+            if tipler.get(ad) == "dosya" and "3MF" in v:
+                # Plaket 3MF ornegi (anahtarlik-foto) URETILMEZ: saglayici ciktisi/TeKiN ornegi env ile verilir.
+                v = os.environ.get("KOPRU_ORNEK_PLAKET") or ""
+                if not os.path.isfile(v):
+                    raise Red("yer-tutucu-cozulemedi:%s (KOPRU_ORNEK_PLAKET)" % ad)
+            elif tipler.get(ad) == "dosya":
                 v = os.path.join(dizin, "ornek-%s.png" % ad)
                 _png_gri_gradyan(v)
             elif "dizi" in v:
@@ -190,7 +202,24 @@ def render_komutlari(p, dizin):
         komutlar.append(("on_adim", [p["py"], os.path.join(p["jen"], oa["betik"])] + list(oa.get("bayraklar", []))
                          + [oa["girdi_bayragi"], ugirdi, oa["cikti_bayragi"], veri]))
         uretec += [g["veri_bayragi"], veri]
-    komutlar.append(("uretec", uretec + ["--girdi", ugirdi, "--cikti", cikti]))
+    cagri = kayit.get("cagri") or {}
+    pb = cagri.get("parametre_bayraklari")
+    if isinstance(pb, dict):
+        # DOSYA GIRDILI uretec (plaket_kulak): --girdi JSON DEGIL dosya; parametreler kopru bayraklariyla (cagri.sabit
+        # yukarida girdi.json'a da girer). Bayragi tanimsiz parametre -> Red (fail-closed).
+        with open(ugirdi, encoding="utf-8") as f:
+            u = json.load(f)
+        dosya = [q.get("ad") for q in kayit.get("parametreler") or [] if q.get("tip") == "dosya"]
+        if len(dosya) != 1 or dosya[0] not in u:
+            raise Red("dosya-girdisi-yok")
+        for ad in sorted(k for k in u if k != dosya[0]):
+            if not isinstance(pb.get(ad), str):
+                raise Red("parametre-bayragi-yok:%s" % ad)
+            uretec += [pb[ad], str(u[ad])]
+        komutlar.append(("uretec", uretec + [cagri.get("girdi_bayragi") or "--girdi", u[dosya[0]],
+                                             cagri.get("cikti_bayragi") or "--cikti", cikti]))
+    else:
+        komutlar.append(("uretec", uretec + ["--girdi", ugirdi, "--cikti", cikti]))
     png = os.path.join(cikti, (kayit.get("cikti") or {}).get("onizleme_png", "onizleme.png"))
     webp = os.path.join(dizin, "%s-1-render.webp" % p["kod"])
     komutlar.append(("webp", [CWEBP, "-q", "90", png, "-o", webp]))

@@ -214,7 +214,7 @@ function istekCoz(govde) {
   const kc = kalemleriCoz(govde.sepet);
   if (kc.hata) return kc;
   // FOTO KALEMI: aydinlatma onayi (tek kutu + guncel metin surumu) odemede de sart; kontrol
-  // foto.js'te TEK kaynak (onizleme/konsept uclariyla ayni). Foto kalemsiz sepet etkilenmez.
+  // foto.js'te TEK kaynak (onizleme uclariyla ayni). Foto kalemsiz sepet etkilenmez.
   if (kc.kalemler.some((k) => k.foto_is !== undefined)) {
     const oh = aydinlatmaOnayHatasi(govde);
     if (oh) return { hata: oh };

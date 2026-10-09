@@ -247,6 +247,10 @@ def kontroller(index, bolum, veri, build):
     s.append(("Y15 her FORM_TIPLERI tipinin cizim dali VAR (sayi/secim/metin/bool esit)",
               {"sayi", "secim", "metin", "bool"} <= cizimli and form_anahtarlari <= cizimli,
               "cizim=%s form=%s" % (sorted(cizimli), sorted(form_anahtarlari))))
+    # Y16 (9 Eki, Okan "foto ekle calismiyor"): bolum icindeki `hidden` nitelikli HER eleman gizli olmali;
+    # sinif CSS'i (`.foto-uretim-yukle-kutu{display:flex}`) `[hidden]`i ezerse JS `hidden=true` der ama kutu gorunur.
+    s.append(("Y16 bolum genel [hidden] kurali VAR (.foto-uretim [hidden]{display:none!important})",
+              ".foto-uretim [hidden]{display:none!important;}" in bolum, ""))
     return s
 
 
@@ -322,6 +326,8 @@ def main():
          (index, bolum.replace('sema.tip === "metin"', 'sema.tip === "metinYOK"', 1), veri, build), True),
         ("M25 FORM_TIPLERI'ne sahte 'renk' eklendi (cizim kolu YOK)",
          (index, bolum, veri.replace('bool: true }', 'bool: true, renk: true }', 1), build), True),
+        ("M26 bolum genel [hidden] kurali silindi",
+         (index, bolum.replace('".foto-uretim [hidden]{display:none!important;}" +', "", 1), veri, build), True),
     ]
     # Y13 mutantlari: capa tutmazsa (metin degismezse) mutant KIRMIZI sayilir — sessizce gecmez.
     def bm(eski, yeni):

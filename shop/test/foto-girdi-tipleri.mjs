@@ -23,6 +23,9 @@
  *      bilinmeyen tip → parametre-yakinda · şema dışı anahtar → sema-disi-parametre
  *   B  bool: YALNIZ true/false
  *   KS koşullu alan + adım ızgarası
+ *   GY girdi yeterli mi (anahtarlık 9 Eki: foto VEYA yazı) — VERI.girdiYeterli: türün girdi listesinden EN AZ
+ *      BİRİ dolu; ② "İleri" (foto-uretim.js) ve sunucu girdiGovdeDogrula AYNI fonksiyonu çağırır.
+ *      M-GY1 metin dalı düştü · M-GY2 foto dalı düştü -> hedef vakalar KIRMIZI
  *
  * MUTANTLAR (geçici bellek kopyasına uygulanır, çalışma ağacına YAZMAZ; her biri "uygulandı mı" denetimli,
  * hedef KIRMIZI kümesi TAM eşleşmeli — fazlası da eksiği de KIRMIZI):
@@ -215,6 +218,54 @@ console.log("KS) KOSUL + ADIM (kopru-15 DILIM-2)");
   ol("KS9 manifest yapboz köprü örneği -> ok", r.ok === true, JSON.stringify(r));
 }
 
+// ------------------------------------------------------------- GY: girdi yeterli (foto VEYA yazı)
+const girdiTur = (v, girdi, form) => { const t = sahteTur("g" + (sayac++), form); t.girdi = girdi; v.turler.push(t); return t.kod; };
+const GY_VAKA = [
+  // [kimlik, ad, girdi, form, g, beklenen]
+  ["GY1", "yalnız metin türü + geçerli yazı -> yeterli", ["metin"], { a: LISTE }, { parametreler: { a: ["Ayşe"] } }, ""],
+  ["GY2", "yalnız metin türü + yazı yok -> eksik", ["metin"], { a: LISTE }, { parametreler: {} }, "girdi-eksik"],
+  ["GY3", "yalnız metin türü + foto (türde foto girdisi yok) -> eksik", ["metin"], { a: LISTE }, { foto: true, parametreler: {} }, "girdi-eksik"],
+  ["GY4", "yalnız metin türü + 41 karakter -> eksik", ["metin"], { a: LISTE }, { parametreler: { a: ["x".repeat(41)] } }, "girdi-eksik"],
+  ["GY5", "yalnız foto türü + foto -> yeterli", ["foto-1"], {}, { foto: true }, ""],
+  ["GY6", "yalnız foto türü + foto yok -> eksik", ["foto-1"], {}, { foto: false }, "girdi-eksik"],
+  ["GY7", "foto+metin türü + yalnız foto -> yeterli", ["foto-1", "metin"], { a: SECIK }, { foto: true, parametreler: {} }, ""],
+  ["GY8", "foto+metin türü + yalnız yazı -> yeterli", ["foto-1", "metin"], { a: SECIK }, { parametreler: { a: ["Ayşe"] } }, ""],
+  ["GY9", "foto+metin türü + ikisi birden -> yeterli", ["foto-1", "metin"], { a: SECIK }, { foto: true, parametreler: { a: ["Ayşe"] } }, ""],
+  ["GY10", "foto+metin türü + hiçbiri -> eksik", ["foto-1", "metin"], { a: SECIK }, { parametreler: {} }, "girdi-eksik"],
+  ["GY11", "foto-1-3 türü + foto -> yeterli", ["foto-1-3"], {}, { foto: true }, ""],
+  ["GY12", "girdi listesi boş -> eksik (fail-closed)", [], {}, { foto: true }, "girdi-eksik"],
+  ["GY13", "bilinmeyen girdi tipi -> eksik (fail-closed)", ["ses"], {}, { foto: true }, "girdi-eksik"],
+];
+function girdiKos(v) {
+  const kotu = [];
+  for (const [id, , girdi, form, g, b] of GY_VAKA) {
+    const kod = girdiTur(v, girdi, form);
+    let r;
+    try { r = v.girdiYeterli(kod, g); } catch (e) { kotu.push(id); continue; }
+    if (r !== b) { kotu.push(id); }
+  }
+  // Gerçek manifest: anahtarlık yazıyla yeterli, yazısız eksik; plaket fotoğrafla yeterli.
+  if (v.girdiYeterli("anahtarlik", { parametreler: { satirlar: ["Ayşe"] } }) !== "") { kotu.push("GY14"); }
+  if (v.girdiYeterli("anahtarlik", { parametreler: {} }) !== "girdi-eksik") { kotu.push("GY15"); }
+  if (v.girdiYeterli("plaket", { foto: true }) !== "") { kotu.push("GY16"); }
+  return kotu;
+}
+console.log("GY) GİRDİ YETERLİ (türün girdisinden EN AZ BİRİ: foto VEYA yazı)");
+{
+  const kotu = girdiKos(VERI);
+  for (const [id, ad] of GY_VAKA) { ol(id + " " + ad, !kotu.includes(id)); }
+  ol("GY14 manifest anahtarlık + satirlar [\"Ayşe\"] -> yeterli", !kotu.includes("GY14"));
+  ol("GY15 manifest anahtarlık + yazı yok -> eksik", !kotu.includes("GY15"));
+  ol("GY16 manifest plaket + foto -> yeterli", !kotu.includes("GY16"));
+  // AYNI FONKSİYON: sunucu girdi kapısı ve bölümün ② "İleri"si VERI.girdiYeterli'yi çağırır (ikinci kopya yok).
+  const sunucu = fs.readFileSync(path.join(KOK, "shop", "src", "foto.js"), "utf8");
+  const bolum = fs.readFileSync(path.join(KOK, "foto-uretim.js"), "utf8");
+  const gdg = (sunucu.split("export function girdiGovdeDogrula(")[1] || "").split("\n}\n")[0];
+  ol("GY17 sunucu girdiGovdeDogrula VERI.girdiYeterli çağırır (1×)", (gdg.match(/VERI\.girdiYeterli\(/g) || []).length === 1);
+  const ileri = (bolum.split("function ileriAcikMi()")[1] || "").split("\n  }\n")[0];
+  ol("GY18 bölüm ② İleri F.girdiYeterli çağırır", /S\.pencere === 2\)[\s\S]*F\.girdiYeterli\(S\.tur,/.test(ileri));
+}
+
 // ---------------------------------------------------------------- MUTANTLAR
 console.log("MUTANTLAR (geçici bellek kopyası; çalışma ağacına YAZMAZ)");
 // Mutant: çapa kaynakta TAM 1 kez olmalı (uygulandı mı), sonra koşucunun KIRMIZI kümesi hedefe TAM eşit olmalı.
@@ -255,6 +306,9 @@ mutant("M-KOSUL3 gonderilen kosulsuz alan sessizce yutulur",
   "        if (Object.prototype.hasOwnProperty.call(p, a)) { return { ok: false, hata: \"sema-disi-parametre\" }; }\n", "", kosulKos, ["KS2", "KS5"]);
 mutant("M-ADIM1 tolerans 1e-9 (enlem kayan nokta)", "Math.abs(k - Math.round(k)) > 1e-6", "Math.abs(k - Math.round(k)) > 1e-9", kosulKos, ["KS1"]);
 mutant("M-ADIM2 tolerans 0.5 (izgara disi kabul)", "Math.abs(k - Math.round(k)) > 1e-6", "Math.abs(k - Math.round(k)) > 0.5", kosulKos, ["KS7", "KS8"]);
+mutant("M-GY1 girdiYeterli metin dalı düştü", '      if (x === "metin") {', "      if (false) {", girdiKos, ["GY1", "GY8", "GY14"]);
+mutant("M-GY2 girdiYeterli foto dalı düştü", "FOTO_GIRDILERI[x] === true && g.foto === true", "false", girdiKos,
+  ["GY5", "GY7", "GY11", "GY16"]);
 mutant("M0 KONTROL (yalnız yorum)", "  VERI.parametreDogrula = function (kod, p) {", "  // kontrol\n  VERI.parametreDogrula = function (kod, p) {",
   (v) => metinKos(v).concat(kosulKos(v)), []);
 

@@ -38,7 +38,7 @@ import { golgeRaporu } from "./konfigur-golge.js";
 import { panelUretimHaritasi, panelFotoKaydi, panelFotoDosya, panelFotoOzet,
          panelFotoAcik, panelOrnekOnizleme, panelOrnekDurum, panelOrnekGorsel,
          panelOrnekUret, panelOrnekListe, panelUretecGirdi, panelUretecYukle,
-         panelOrnekKonsept, panelOrnekKonseptDurum, panelOrnekKonseptGorsel, fotoUretimTuru } from "./foto.js";
+         fotoUretimTuru } from "./foto.js";
 import { onizlemeMi } from "./onizleme.js";
 import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
@@ -2083,10 +2083,6 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/foto/uretim-tik" && m === "POST" && onizlemeMi(env)) {
     return yjson(await fotoUretimTuru(env, Date.now(), telegram), 200);
   }
-  // 2D KONSEPT ornek kolu (musteri ucuyla ayni cagri; ziyaretci/bot/tavan siniri yok, havuz AYNEN).
-  if (altYol === "/foto/ornek-konsept" && m === "POST") { return panelOrnekKonsept(request, env, Date.now(), telegram); }
-  if (altYol === "/foto/ornek-konsept-durum" && m === "GET") { return panelOrnekKonseptDurum(env, url, Date.now()); }
-  if (altYol === "/foto/ornek-konsept-gorsel" && m === "GET") { return panelOrnekKonseptGorsel(env, url); }
   // DETERMINISTIK KOL (litofan): uretec girdisi indir + uretec 3MF'i yukle — ayni kapinin ARKASINDA.
   if (altYol === "/foto/uretec-girdi" && m === "GET") { return panelUretecGirdi(env, url); }
   if (altYol === "/foto/uretec-yukle" && m === "POST") { return panelUretecYukle(request, env, url, Date.now()); }

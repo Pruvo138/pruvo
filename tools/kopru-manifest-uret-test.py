@@ -362,6 +362,21 @@ def gercek():
     _, h9 = u.hepsini_uret(kayit, u.jenerator_kok(GERCEK_KAYIT))
     vaka("MR9 gercek kayitta sema_adi uretec dosyasinda yok -> KIRMIZI", len(ak) == 1 and
          "sema-adi-yok:anahtarlik=YOK_SEMA" in h9, "uygulandi=%d %s" % (len(ak), h9))
+    # FOTO KOLU (anahtarlik-foto, 9 Eki): kol kaydi ayri satir URETMEZ; ana satira foto_kolu, ana girdi AYNEN.
+    gs, gh = arac_yukle().hepsini_uret(json.load(open(GERCEK_KAYIT, encoding="utf-8")))
+    vaka("R-FK1 gercek kayit: anahtarlik-foto satiri YOK + anahtarlik.foto_kolu {foto-1, plaket_kulak} + girdi [metin]",
+         "anahtarlik-foto" not in gs and gs["anahtarlik"].get("foto_kolu") == {"girdi": ["foto-1"], "uretec": "plaket_kulak"}
+         and gs["anahtarlik"]["girdi"] == ["metin"] and not gh,
+         "%s %s %s" % (sorted(gs), gs["anahtarlik"].get("foto_kolu"), gh))
+    mutant("MR10 gercek manifestte anahtarlik foto_kolu silindi -> KIRMIZI", GERCEK_KAYIT, man,
+           r"sapma:anahtarlik\.foto_kolu",
+           lambda kk, mm: degistir(mm, ',\n        foto_kolu: { girdi: ["foto-1"], uretec: "plaket_kulak" }', ""))
+    mutant("MR11 gercek kayitta plaket-3mf -> plaket-stl (sozlukte yok) -> KIRMIZI", GERCEK_KAYIT, man,
+           r"bilinmeyen-girdi:anahtarlik-foto=plaket-stl",
+           lambda kk, mm: degistir(kk, '"plaket-3mf"', '"plaket-stl"'))
+    mutant("MR12 gercek kayitta foto kolunun ana turu yok -> KIRMIZI", GERCEK_KAYIT, man,
+           r"kol-ana-yok:anahtarlik-foto->anahtarlik",
+           lambda kk, mm: degistir(kk, '"kod": "anahtarlik",', '"kod": "anahtarlikx",'))
     mutant("MR0 kontrol: anahtarlik durustluk metni degisti -> YESIL kalir", GERCEK_KAYIT, man, None,
            lambda kk, mm: degistir(mm, 'durustluk: "Metal halka ve zincir', 'durustluk: "Metal halka ya da zincir'))
 

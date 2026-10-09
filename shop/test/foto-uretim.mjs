@@ -679,17 +679,17 @@ let siparisNo;
     sepet: [{ foto_is: isNo, olcu_mm: 100, adet: 1, renkler: ["Beyaz"] }] } });
   ol("H1 havale -> 400 foto-havale-yok", h.kod === 400 && h.v.hata === "foto-havale-yok", JSON.stringify(h.v));
   const b = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
-    sepet: [{ foto_is: isNo, olcu_mm: 100, adet: 1, fiyat_kurus: 1, renkler: ["Beyaz", "Siyah"] }] } });
+    sepet: [{ foto_is: isNo, olcu_mm: 100, adet: 1, fiyat_kurus: 1, renkli: true, renkler: ["Beyaz", "Siyah"] }] } });
   siparisNo = b.v && b.v.no;
   const iy = P.iyzico[P.iyzico.length - 1] || {};
-  ol("H2 kart -> 200, iyzico tutari SUNUCU FORMULUNDEN (100 mm x 10 TL = 1.000 + 1 ek renk 100 = 1.100,00 + 250,00 kargo); istemci fiyat_kurus OKUNMAZ",
-     b.kod === 200 && P.iyzico.length === once + 1 && iy.price === "1350.00", JSON.stringify(b.v) + " price=" + iy.price);
+  ol("H2 kart -> 200, iyzico tutari SUNUCU FORMULUNDEN (100 mm x 10 TL = 1.000 × Renkli 1,15 = 1.150,00 + 250,00 kargo); istemci fiyat_kurus OKUNMAZ",
+     b.kod === 200 && P.iyzico.length === once + 1 && iy.price === "1400.00", JSON.stringify(b.v) + " price=" + iy.price);
   const s = await d1.prepare("SELECT durum, urunler, tutar_kurus FROM siparisler WHERE siparis_no = ?").bind(siparisNo).first();
   const kalem = s && JSON.parse(s.urunler)[0];
   ol("H3 siparis 'bekliyor', kalem foto_is/tur(plaket)/olcu + foto_ayak 1 + foto_renkler [Beyaz,Siyah] tasir", s && s.durum === "bekliyor" &&
-     s.tutar_kurus === 110000 && kalem.foto_is === isNo && kalem.foto_tur === "plaket" && kalem.olcu_mm === 100 && kalem.foto_ayak === 1 &&
+     s.tutar_kurus === 115000 && kalem.foto_is === isNo && kalem.foto_tur === "plaket" && kalem.olcu_mm === 100 && kalem.foto_ayak === 1 &&
      JSON.stringify(kalem.foto_renkler) === '["Beyaz","Siyah"]' && kalem.renk === "Beyaz, Siyah" &&
-     /2 renkli yorumu · ek renk ×1: 100 TL/.test(kalem.parametre_detay), JSON.stringify(s));
+     /2 renkli yorumu · Renkli \(\+%15\)/.test(kalem.parametre_detay) && kalem.malzeme === "PLA" && kalem.foto_renkli === true, JSON.stringify(s));
   const eski = await istek(env, "/foto/onizleme", { ip: "198.51.100.77", govde: onizlemeGovde() });
   await d1.prepare("UPDATE foto_isler SET asama = 'hazir', hazir_tarih = '2020-01-01T00:00:00.000Z' WHERE is_no = ?").bind(eski.v.is).run();
   const e = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
@@ -1872,6 +1872,64 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
   }
 }
 
+// ================================================================ AN — ANAHTARLIK ② YAZI (9 Eki)
+// Okan ekranı 9 Eki ("foto ekle çalışmıyor"): ② ölü "Foto ekle" + yazı alanı YOK + "İleri" girdisiz AÇIK + dürüstlük
+// cümlesi 2×. Yeni kural: ② girdilerden EN AZ BİRİ (VERI.girdiYeterli, sunucuyla aynı); metin girdili türün yazı alanı
+// ②'de; fotoğraf almayan türde foto kutusu çizilmez; ② dürüstlük cümlesi 1×.
+{
+  console.log("AN) ANAHTARLIK ② — yazı alanı ②'de, İleri girdisiz KAPALI, foto kutusu ölü çizilmez, dürüstlük 1×");
+  const senaryo = async (kaynak) => {
+    const s = {};
+    const V = veriYukle(VERI_KAYNAK);
+    const an = V.turBul("anahtarlik");
+    const acikA = { acik: true, turler: [{ kod: "anahtarlik", ad: an.ad, aciklama: "x", ornek_sayisi: 1,
+      olculer: V.olcuSecenekleri("anahtarlik").map((mm) => ({ mm, fiyat_kurus: V.fiyatKurus("anahtarlik", mm) })) }] };
+    const e = await ekranKos(kaynak, V, acikA, null, null, { kart: "anahtarlik" });
+    const d = () => [...e.bolum.agac()];
+    const id = (x) => d().find((n) => n.id === x) || null;
+    const p2 = id("foto-pencere-2"), ta = id("foto-param-satirlar"), ileri = id("foto-ileri"), yazi = id("foto-yazi");
+    const kutu = id("foto-yukle-kutu");
+    s.YAZI_IKIDE = !!(p2 && ta && yazi) && ta.tagName === "TEXTAREA" && [...p2.agac()].includes(ta) && yazi.hidden === false;
+    s.FOTO_KUTU_GIZLI = !!kutu && kutu.hidden === true;
+    s.ILERI_BOS_KAPALI = !!ileri && ileri.hidden === false && ileri.disabled === true;
+    const yaz = (v) => { if (ta) { ta.value = v; ta.tetikle("input"); } };
+    yaz("Ayşe");
+    s.ILERI_YAZI_ACIK = !!ileri && ileri.disabled === false;
+    yaz("");
+    s.ILERI_SILINCE_KAPALI = !!ileri && ileri.disabled === true;
+    yaz("x".repeat(41));
+    const hata = d().find((n) => n.tagName === "P" && n.classList.contains("foto-uretim-ayrinti") && !n.hidden &&
+      n.textContent === "Bu alanları kontrol et." && p2 && [...p2.agac()].includes(n));
+    s.YAZI_HATA = !!ileri && ileri.disabled === true && !!hata;
+    const durust = p2 ? [...p2.agac()].filter((n) => n.tagName === "P" && n.textContent === an.durustluk).length : -1;
+    s.DURUST_TEK = durust === 1 && an.ornek_notu !== an.durustluk;
+    Object.defineProperty(s, "iz", { value: { durust, istisna: e.istisnaMetni }, enumerable: false });
+    return s;
+  };
+  const s0 = await senaryo(EKRAN_KAYNAK);
+  ol("AN1 anahtarlık yazı alanı (textarea satirlar) ② ekranında, #foto-yazi görünür", s0.YAZI_IKIDE, JSON.stringify(s0));
+  ol("AN2 fotoğraf almayan türde ② foto kutusu çizilmez (ölü 'Foto ekle' 0)", s0.FOTO_KUTU_GIZLI, JSON.stringify(s0));
+  ol("AN3 ② yazı boşken 'İleri' KAPALI", s0.ILERI_BOS_KAPALI, JSON.stringify(s0));
+  ol("AN4 ② yazı 'Ayşe' girilince 'İleri' AÇIK", s0.ILERI_YAZI_ACIK, JSON.stringify(s0));
+  ol("AN5 ② yazı silinince 'İleri' yeniden KAPALI", s0.ILERI_SILINCE_KAPALI, JSON.stringify(s0));
+  ol("AN6 ② 41 karakter: 'İleri' KAPALI + ② hata satırı 'Bu alanları kontrol et.'", s0.YAZI_HATA, JSON.stringify(s0));
+  ol("AN7 ② dürüstlük cümlesi TAM 1× (ornek_notu ayrı cümle)", s0.DURUST_TEK, JSON.stringify([s0, s0.iz]));
+  const AN_MUT = [
+    ["AN-M1 ② İleri girdisiz açık kalır (girdiYeterli kapısı silindi)",
+     'F.girdiYeterli(S.tur, { foto: !!S.dosya, parametreler: parametreGovde() }) === ""', "true",
+     ["ILERI_BOS_KAPALI", "ILERI_SILINCE_KAPALI", "YAZI_HATA"]],
+    ["AN-M2 metin alanı ②'ye çizilmez (③'te kalır)", "var hedefKap = S.alanYazi && metinGirdisi() &&", "var hedefKap = false &&",
+     ["YAZI_IKIDE"]],
+    ["AN-MK kontrol (yorum)", "// ② YAZI (anahtarlık 9 Eki): metin girdili", "// ② yazi (anahtarlik 9 Eki): metin girdili", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of AN_MUT) {
+    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = await senaryo(EKRAN_KAYNAK.replace(capa, yerine));
+    const kirmizi = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(m));
+  }
+}
+
 // ================================================================ AK — PLAKET ALT KENAR KALINLIGI
 
 /**
@@ -1925,7 +1983,10 @@ console.log("AK) PLAKET ALT KENAR KALINLIGI — ayak ureteci girdisi alt_kenar_m
 
 // ================================================================ MUTANTLAR
 
-console.log("RKU) KOSULLU RENK BOLGESI EKRANDA — pasif bolgenin seçicisi GIZLI, koşul açılınca görünür (BaBa 8 Eki 16:0x)");
+// Okan 9 Eki (R1): bolge basina renk secicisi KALKTI — renk TEK secim (3 ana renk / Renkli), tum bolgeler o renk.
+// Eski RKU1/RKU2 (pasif bolgenin seçicisi gizli) bu emirle konusuz kaldi; pasif bolgenin ucretlenmemesi/uretilmemesi
+// sunucuda RKK2/RKK3'te olculmeye DEVAM eder.
+console.log("RKU) BOLGELI TUR EKRANDA — tek renk secicisi (3 ana renk), bolge basina secici YOK, form alanlari yerinde (Okan 9 Eki)");
 {
   // K3b2: kart evreni sabit (KARTLAR) → sentetik tür seçilemez. Koşullu bölge deseni GERÇEK yapboz kaydına
   // (bellekteki veri kopyasında) eklenir: taban Var/Yok + taban rengi yalnız "Var"da · başlık dolu -> yazı.
@@ -1939,7 +2000,7 @@ console.log("RKU) KOSULLU RENK BOLGESI EKRANDA — pasif bolgenin seçicisi GIZL
                        { kod: "yazi", ad: "Yazı", renkler: ["Kırmızı", "Beyaz"] }],
       renk_kosul: { taban: [{ alan: "taban", degerler: ["Var"] }], yazi: [{ alan: "baslik", dolu: true }] },
       form: { taban: { tip: "secim", etiket: "Taban", secenekler: ["Yok", "Var"] }, baslik: { tip: "secim", etiket: "Baslik", secenekler: ["", "Ada"] } },
-      fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 3 } });
+      fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, renk_tavani: 3 } });
     return V;
   };
   const acikR = { acik: true, turler: [{ kod: "yapboz", ad: "Yapboz", aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 100, fiyat_kurus: 100000 }] }] };
@@ -1947,23 +2008,16 @@ console.log("RKU) KOSULLU RENK BOLGESI EKRANDA — pasif bolgenin seçicisi GIZL
     const s = {};
     const e = await ekranKos(kaynak, sentetikR(VERI_KAYNAK), acikR, null, null, { kart: "yapboz" });
     const d = () => [...e.bolum.agac()];
-    const grup = (b) => d().find((n) => n.getAttribute && n.getAttribute("data-renk-bolge") === b) || null;
-    const gorunur = (b) => { const g = grup(b); return !!g && g.hidden !== true; };
+    const bolgeGrubu = d().filter((n) => n.getAttribute && n.getAttribute("data-renk-bolge")).length;
+    const radyo = d().filter((n) => n.tagName === "INPUT" && n.name === "foto-renk").map((n) => n.value);
     const sec = d().find((n) => n.id === "foto-param-taban"), bas = d().find((n) => n.id === "foto-param-baslik");
-    // Başlangıç: taban "Yok" (ilk seçenek), başlık boş -> taban + yazı seçicisi GİZLİ, logo görünür.
-    s.ILK = !!sec && !!bas && !gorunur("taban") && !gorunur("yazi") && gorunur("logo");
-    if (sec) { sec.value = "Var"; sec.tetikle("change"); }
-    if (bas) { bas.value = "Ada"; bas.tetikle("input"); }
-    s.ACIK = gorunur("taban") && gorunur("yazi") && gorunur("logo");
-    if (sec) { sec.value = "Yok"; sec.tetikle("change"); }
-    s.GERI = !gorunur("taban") && gorunur("yazi");
+    s.ILK = !!sec && !!bas && bolgeGrubu === 0 && JSON.stringify(radyo) === '["Siyah","Beyaz","Gri"]';
     return s;
   };
   const s = await rku(EKRAN_KAYNAK);
-  ol("RKU1 taban 'Yok' + başlık boş -> taban/yazı renk seçicisi GİZLİ, logo görünür", s.ILK === true, JSON.stringify(s));
-  ol("RKU2 taban 'Var' + başlık dolu -> iki seçici görünür; taban 'Yok'a dönünce yeniden gizli", s.ACIK === true && s.GERI === true, JSON.stringify(s));
-  const m = await rku(EKRAN_KAYNAK.replace("      if (b) d[i].hidden = !F.renkBolgesiAktif(S.tur, b, p);\n", ""));
-  ol("RKU-M1 gizleme satırı silindi -> RKU KIRMIZI", m.ILK === false, JSON.stringify(m));
+  ol("RKU1 bolgeli tur: bolge basina renk secicisi 0 · tek renk secicisi [Siyah,Beyaz,Gri] · form alanlari (taban/baslik) yerinde", s.ILK === true, JSON.stringify(s));
+  const m = await rku(EKRAN_KAYNAK.replace("    var secenek = F.ANA_RENKLER.slice();", "    var secenek = F.PLA_RENKLERI.slice();"));
+  ol("RKU-M1 ana renk yerine 9 renk listesi -> RKU KIRMIZI", m.ILK === false, JSON.stringify(m));
 }
 
 console.log("MUTANTLAR (gecici kopya; calisma agacina yazilmaz)");
@@ -2421,24 +2475,39 @@ async function renkSenaryolar(fm) {
   const is = "e".repeat(32);
   await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'plaket', 100, 'z', ?, 'hazir', 'gorev-proto-7777', ?)")
     .bind(is, new Date().toISOString(), new Date().toISOString()).run();
-  const fiyatla = (renkler) => fm.fotoKalemFiyatla(e2, { foto_is: is, olcu_mm: 100, adet: 1, ...(renkler === undefined ? {} : { renkler }) }, Date.now());
-  const birim = async (renkler) => { const r = await fiyatla(renkler); return r.satir ? r.satir.birim_kurus : null; };
-  const red = async (renkler) => { const r = await fiyatla(renkler); return r.kod === 400 && !!r.hata && r.hata.hata === "gecersiz-renk"; };
+  const fiyatla = (renkler, ek) => fm.fotoKalemFiyatla(e2, { foto_is: is, olcu_mm: 100, adet: 1, ...(renkler === undefined ? {} : { renkler }), ...(ek || {}) }, Date.now());
+  const birim = async (renkler, ek) => { const r = await fiyatla(renkler, ek); return r.satir ? r.satir.birim_kurus : null; };
+  const red = async (renkler, ek, hata) => { const r = await fiyatla(renkler, ek); return r.kod === 400 && !!r.hata && r.hata.hata === (hata || "gecersiz-renk"); };
   const s = {};
-  // FIYAT: 1 renk = taban (100 mm -> 1.000 TL) · 2 renk +100 · 4 renk +300 (kurus).
-  s.FIYAT = (await birim(["Beyaz"])) === 100000 && (await birim(["Beyaz", "Siyah"])) === 110000 &&
-            (await birim(["Beyaz", "Siyah", "Gri", "Mavi"])) === 130000;
+  const R = { renkli: true };
+  // FIYAT (Okan 9 Eki): ana renk = taban (100 mm -> 1.000 TL) · Renkli ×1,15 (renk ADEDINDEN bagimsiz) · PETG ×1,30.
+  s.FIYAT = (await birim(["Beyaz"])) === 100000 && (await birim(["Siyah"])) === 100000 && (await birim(["Gri"], { renkli: false })) === 100000 &&
+            (await birim(["Beyaz", "Siyah"], R)) === 115000 && (await birim(["Beyaz", "Siyah", "Gri", "Mavi"], R)) === 115000 &&
+            (await birim(["Mavi"], R)) === 115000 && (await birim(["Gri"], { malzeme: "PETG" })) === 130000 &&
+            (await birim(["Beyaz", "Lacivert"], { renkli: true, malzeme: "PETG" })) === 149500;
+  // ANA2: ana renkte 2. renk ne ucretlenir ne uretilir -> RED; ana renkte palet disi (Mavi) -> RED.
+  s.ANA2 = (await red(["Beyaz", "Siyah"])) && (await red(["Beyaz", "Siyah"], { renkli: false })) && (await red(["Mavi"]));
   // BES: 5. renk hem kalem cozumunde hem fiyatlamada RED.
   const bes = ["Beyaz", "Siyah", "Gri", "Mavi", "Sarı"];
-  const coz = fm.fotoKalemCoz({ foto_is: is, olcu_mm: 100, adet: 1, renkler: bes });
-  s.BES = coz.hata === "gecersiz-renk" && (await red(bes));
-  // BOZUK: renksiz / bos / paletten olmayan / tekrarli -> 400 gecersiz-renk.
-  s.BOZUK = (await red(undefined)) && (await red([])) && (await red(["Mor"])) && (await red(["Beyaz", "Beyaz"]));
-  // KAYIT: satir renkleri + ek renk kalemi tasir.
-  const r2 = await fiyatla(["Beyaz", "Lacivert", "Kırmızı"]);
-  s.KAYIT = !!r2.satir && r2.satir.birim_kurus === 120000 && r2.satir.tutar_kurus === 120000 &&
-            JSON.stringify(r2.satir.foto_renkler) === '["Beyaz","Lacivert","Kırmızı"]' &&
-            r2.satir.renk === "Beyaz, Lacivert, Kırmızı" && /3 renkli yorumu · ek renk ×2: 200 TL/.test(r2.satir.parametre_detay);
+  const coz = fm.fotoKalemCoz({ foto_is: is, olcu_mm: 100, adet: 1, renkler: bes, renkli: true });
+  s.BES = coz.hata === "gecersiz-renk" && (await red(bes, R));
+  // BOZUK: renksiz / bos / paletten olmayan / tekrarli -> 400 gecersiz-renk; bilinmeyen renkli/malzeme -> RED
+  // (kalem cozumu + fiyatlama; ASA/ABS foto programinda YOK).
+  s.BOZUK = (await red(undefined)) && (await red([])) && (await red(["Mor"], R)) && (await red(["Beyaz", "Beyaz"], R)) &&
+            fm.fotoKalemCoz({ foto_is: is, olcu_mm: 100, adet: 1, renkler: ["Beyaz"], renkli: "evet" }).hata === "gecersiz-renk" &&
+            fm.fotoKalemCoz({ foto_is: is, olcu_mm: 100, adet: 1, renkler: ["Beyaz"], malzeme: "ASA" }).hata === "gecersiz-malzeme" &&
+            fm.fotoKalemCoz({ foto_is: is, olcu_mm: 100, adet: 1, renkler: ["Beyaz"], malzeme: "ABS" }).hata === "gecersiz-malzeme" &&
+            (await red(["Beyaz"], { malzeme: "ABS" }, "gecersiz-malzeme")) && (await red(["Beyaz"], { malzeme: "pla" }, "gecersiz-malzeme"));
+  // ISTEMCI: kalemin tutar alanlari OKUNMAZ (kalem cozumu tasimaz, fiyatlama yok sayar).
+  const ic = fm.fotoKalemCoz({ foto_is: is, olcu_mm: 100, adet: 1, renkler: ["Beyaz"], fiyat_kurus: 1, birim_kurus: 1, tutar_kurus: 1, gosterim_kurus: 1 });
+  s.ISTEMCI = !!ic.kalem && !["fiyat_kurus", "birim_kurus", "tutar_kurus", "gosterim_kurus"].some((a) => a in ic.kalem) &&
+              (await birim(["Beyaz"], { fiyat_kurus: 1, birim_kurus: 1 })) === 100000;
+  // KAYIT: satir renkleri + Renkli/PETG kalemi + malzeme tasir.
+  const r2 = await fiyatla(["Beyaz", "Lacivert", "Kırmızı"], { renkli: true, malzeme: "PETG" });
+  s.KAYIT = !!r2.satir && r2.satir.birim_kurus === 149500 && r2.satir.tutar_kurus === 149500 && r2.satir.malzeme === "PETG" &&
+            JSON.stringify(r2.satir.foto_renkler) === '["Beyaz","Lacivert","Kırmızı"]' && r2.satir.foto_renkli === true &&
+            r2.satir.renk === "Beyaz, Lacivert, Kırmızı" && /3 renkli yorumu · Renkli \(\+%15\) · PETG \(\+%30\)/.test(r2.satir.parametre_detay) &&
+            !/ek renk/.test(r2.satir.parametre_detay);
   // MAXC: odenen 3 renkli siparis -> renk adimi max_colors 3.
   const yuru = async (no, kalem) => {
     await k.d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES (?, ?, 'odendi', 1, ?)")
@@ -2462,26 +2531,66 @@ async function renkSenaryolar(fm) {
   return s;
 }
 
-console.log("RK) EK RENK — 1-4 renk, ilk renk dahil, her ek renk +100 TL; renk adimi siparisin renk sayisiyla (Okan 8 Eki)");
+console.log("K1) 2D KONSEPT YOK (Okan 9 Eki: \"bunu tamamen sil\") — uclar 404, /acik konsept alani yok, kaynakta 0");
+{
+  const KONSEPT_UCLARI = [
+    ["/foto/konsept", { govde: onizlemeGovde() }],
+    ["/foto/konsept-durum?konsept=" + "a".repeat(32), {}],
+    ["/foto/konsept-gorsel?konsept=" + "a".repeat(32), {}],
+    ["/yonet/foto/ornek-konsept", { govde: onizlemeGovde(), basliklar: YONET }],
+    ["/yonet/foto/ornek-konsept-durum?konsept=" + "a".repeat(32), { basliklar: YONET }],
+    ["/yonet/foto/ornek-konsept-gorsel?konsept=" + "a".repeat(32), { basliklar: YONET }],
+  ];
+  const kodlar = [];
+  for (const [y, o] of KONSEPT_UCLARI) { kodlar.push((await istek(env, y, o)).kod); }
+  ol("K1a 6 konsept ucu (musteri 3 + panel 3, anahtarli) 404", kodlar.every((k) => k === 404), kodlar.join(","));
+  const ac = await istek(env, "/foto/acik");
+  ol("K1b /foto/acik yanitinda `konsept` alani YOK", !!ac.v && !Object.prototype.hasOwnProperty.call(ac.v, "konsept"),
+     ac.v ? Object.keys(ac.v).join(",") : "yanit-yok");
+  const say = (k) => (k.match(/konsept/gi) || []).length;
+  const veriK = fs.readFileSync(path.join(KOK, "foto-uretim-veri.js"), "utf8");
+  ol("K1c 'konsept' kaynakta 0 (foto-uretim.js · foto-uretim-veri.js · shop/src/foto.js)",
+     say(fs.readFileSync(path.join(KOK, "foto-uretim.js"), "utf8")) === 0 && say(veriK) === 0 && say(fs.readFileSync(path.join(SHOP, "src", "foto.js"), "utf8")) === 0, "");
+  // MUTANT: konsept ucu geri gelir -> K1a KIRMIZI olmali.
+  const kmCapa = '  if (yol === "/foto/acik" && m === "GET") { return acikUcu(env, simdi, telegram); }\n';
+  const km = await mutantModul(kmCapa, kmCapa + '  if (yol === "/foto/konsept" && m === "POST") { return fjson({ konsept: "x" }, 200); }\n');
+  let kmKod = -1;
+  if (km) {
+    const r = await km.fotoUclari(new Request("https://pruvo3d.com/api/shop/foto/konsept", { method: "POST",
+      headers: { "CF-Connecting-IP": "198.51.100.7", "Content-Type": "application/json" }, body: JSON.stringify(onizlemeGovde()) }),
+      env, new URL("https://pruvo3d.com/api/shop/foto/konsept"), "/foto/konsept", null);
+    kmKod = r.status;
+  }
+  ol("M-K1 konsept ucu geri gelirse 404 DEGIL (K1a KIRMIZI yanar)", km !== null && kmKod !== 404,
+     km ? "mutant_kod=" + kmKod : "MUTANT_UYGULANMADI");
+}
+
+console.log("RK) RENK + MALZEME — 3 ana renk (tek renk) ya da Renkli +%15 · PLA / PETG +%30; renk adimi siparisin renk sayisiyla (Okan 9 Eki)");
 {
   const s = await renkSenaryolar(foto);
-  ol("RK1 plaket 1/2/4 renk -> 1.000 / 1.100 / 1.300 TL (100 mm)", s.FIYAT === true, JSON.stringify(s));
+  ol("RK1 plaket 100 mm: ana renk 1.000 · Renkli (2 ya da 4 renk) 1.150 · PETG 1.300 · Renkli+PETG 1.495 TL", s.FIYAT === true, JSON.stringify(s));
+  ol("RK1b ana renkte 2. renk / palet disi renk -> 400 gecersiz-renk (ucretlenmez, uretilmez)", s.ANA2 === true, JSON.stringify(s));
+  ol("RK1c istemci tutar alanlari kalem cozumunde YOK + fiyatlamada OKUNMAZ", s.ISTEMCI === true, JSON.stringify(s));
   ol("RK2 5. renk -> kalem cozumu + fiyatlama 400 gecersiz-renk", s.BES === true, JSON.stringify(s));
-  ol("RK3 renksiz / bos / paletten olmayan / tekrarli -> 400 gecersiz-renk", s.BOZUK === true, JSON.stringify(s));
-  ol("RK4 satir foto_renkler + renk metni + 'ek renk ×2: 200 TL' tasir", s.KAYIT === true, JSON.stringify(s));
+  ol("RK3 renksiz / bos / paletten olmayan / tekrarli -> 400 gecersiz-renk · renkli \"evet\" RED · ASA/ABS/pla -> gecersiz-malzeme", s.BOZUK === true, JSON.stringify(s));
+  ol("RK4 satir foto_renkler + renk metni + 'Renkli (+%15) · PETG (+%30)' + malzeme PETG tasir (ek renk kalemi YOK)", s.KAYIT === true, JSON.stringify(s));
   ol("RK5 odenen 3 renkli siparis -> foto_uretim.renk_sayisi 3 + renk adimi max_colors 3", s.MAXC === true, JSON.stringify(s));
   ol("RK6 renk kaydi yok -> 'elle' renk-sayisi-yok, renk adimi cagrisi 0 (4'e DUSMEZ)", s.SIFIR === true, JSON.stringify(s));
 }
+// Okan 9 Eki: Renkli/PETG carpani sunucuda duserse · istemci fiyati okunursa · ana renkte 2. renk kabul edilirse KIRMIZI.
+const BIRIM_CAPA = "  const birim = VERI.fiyatKurus(tur.kod, mm, { renkli: rs.renkli, malzeme: malz });";
 const RK_MUTANTLAR = [
-  ["RK-M1 SUNUCU EK RENGI YOK SAYDI", "const birim = rs ? VERI.fiyatKurus(tur.kod, mm, rs.n) : null;",
-   "const birim = rs ? VERI.fiyatKurus(tur.kod, mm) : null;", ["FIYAT", "KAYIT"]],
+  ["RK-M1 RENKLI CARPANI SUNUCUDA DUSTU", BIRIM_CAPA, "  const birim = VERI.fiyatKurus(tur.kod, mm, { renkli: false, malzeme: malz });", ["FIYAT", "KAYIT"]],
+  ["RK-M1b PETG CARPANI SUNUCUDA DUSTU", BIRIM_CAPA, "  const birim = VERI.fiyatKurus(tur.kod, mm, { renkli: rs.renkli, malzeme: \"PLA\" });", ["FIYAT", "KAYIT"]],
+  ["RK-M5 ISTEMCI FIYATI OKUNUR", BIRIM_CAPA, BIRIM_CAPA.replace("const birim = ", "const birim = k.fiyat_kurus || "), ["ISTEMCI"]],
+  ["RK-M6 ANA RENKTE 2. RENK KABUL", "  if (!renkli && n !== 1) { return null; }\n", "", ["ANA2"]],
   ["RK-M2 RENK SAYISI YOKSA 4'E DUSER (fail-open)",
    "if (!(Number.isInteger(n) && n >= 1 && n <= 4)) { return elleDusur(env, u, \"renk-sayisi-yok\", ozet, simdi, telegram); }",
    "if (!(Number.isInteger(n) && n >= 1 && n <= 4)) { u.renk_sayisi = 4; return renkBaslat(env, u, ozet, simdi, telegram); }", ["SIFIR"]],
-  ["RK-M3 PALET DENETIMI SILINDI", "!r.every((x) => VERI.PLA_RENKLERI.includes(x))", "false", ["BOZUK"]],
+  ["RK-M3 PALET DENETIMI SILINDI", "!r.every((x) => izinli.includes(x))", "false", ["ANA2", "BOZUK"]],
   ["RK-M4 max_colors SABIT 4", "{ model_url: glb, max_colors: n, printer_brand: \"bambu\" }",
    "{ model_url: glb, max_colors: 4, printer_brand: \"bambu\" }", ["MAXC"]],
-  ["RK-MK KONTROL", "// Renk sayisi kalemden (palet)", "// Renk sayisi  kalemden (palet)", []],
+  ["RK-MK KONTROL", "// Renkler kalemden (palet); birim", "// Renkler  kalemden (palet); birim", []],
 ];
 for (const [ad, capa, yerine, olmeli] of RK_MUTANTLAR) {
   const fm = await mutantModul(capa, yerine);
@@ -2489,7 +2598,7 @@ for (const [ad, capa, yerine, olmeli] of RK_MUTANTLAR) {
   const s = await renkSenaryolar(fm);
   const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
   ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
-     Object.keys(s).length === 6 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
+     Object.keys(s).length === 8 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
 }
 
 // ================================================================ RKK — RENK TAVANI + KOSULLU BOLGE + PALET ESLEMESI
@@ -2547,30 +2656,34 @@ async function renkKosulSenaryolar(fm) {
     // TAVAN: plaket 5 / figur 5 / bust 3 renk -> 400 · tavan icinde (4 / 4 / 2) fiyatlanir.
     const P5 = ["Beyaz", "Siyah", "Gri", "Mavi", "Sarı"];
     const isP = await isKur("plaket"), isF = await isKur("figur"), isB = await isKur("bust", {});
-    s.TAVAN = red(await fiyatla(isP, { renkler: P5 })) && red(await fiyatla(isF, { renkler: P5 })) &&
-              red(await fiyatla(isB, { renkler: P5.slice(0, 3), secim: malzeme("bust") })) &&
-              (await fiyatla(isP, { renkler: P5.slice(0, 4) })).satir?.birim_kurus === 130000 &&
-              (await fiyatla(isB, { renkler: P5.slice(0, 2), secim: malzeme("bust") })).satir?.birim_kurus === 110000;
+    const R = { renkli: true };
+    s.TAVAN = red(await fiyatla(isP, { ...R, renkler: P5 })) && red(await fiyatla(isF, { ...R, renkler: P5 })) &&
+              red(await fiyatla(isB, { ...R, renkler: P5.slice(0, 3), secim: malzeme("bust") })) &&
+              (await fiyatla(isP, { ...R, renkler: P5.slice(0, 4) })).satir?.birim_kurus === 115000 &&
+              (await fiyatla(isB, { ...R, renkler: P5.slice(0, 2), secim: malzeme("bust") })).satir?.birim_kurus === 115000;
     // K3b2: logo/ses türleri silindi → koşullu bölge desenleri GERÇEK yapboz kaydına (global VERI, geçici; finally'de
     // geri alınır) uygulanır — sunucunun koşullu bölge kodu AYNI.
     // LOGO deseni: taban "Yok" iken farkli taban rengi +0 ve satir/uretim seciminde YOK; taban "Var" iken +100.
     desenKoy({ renk_bolgeleri: [{ kod: "taban", ad: "Taban", renkler: ["Beyaz", "Siyah"] }, { kod: "logo", ad: "Logo", renkler: ["Siyah", "Beyaz"] }],
       renk_kosul: { taban: [{ alan: "taban", degerler: ["Var"] }] } });
-    const lsec = { ...malzeme("yapboz"), taban_renk: "Beyaz", logo_renk: "Siyah" };
+    // Okan 9 Eki: ana renkte AKTIF bolgeler tek renk; pasif bolgenin farkli rengi ne sayilir ne uretilir.
+    const lsec = { ...malzeme("yapboz"), taban_renk: "Siyah", logo_renk: "Beyaz" };
     const lYok = await fiyatla(await isKur("yapboz", { taban: "Yok" }), { secim: lsec });
     const lVar = await fiyatla(await isKur("yapboz", { taban: "Var" }), { secim: lsec });
+    const lVarR = await fiyatla(await isKur("yapboz", { taban: "Var" }), { ...R, secim: lsec });
     s.LOGO = !!lYok.satir && lYok.satir.birim_kurus === 100000 && !("taban_renk" in lYok.satir.foto_secim) &&
-             !/Taban: .*Beyaz/.test(lYok.satir.renk) && !!lVar.satir && lVar.satir.birim_kurus === 110000 &&
-             lVar.satir.foto_secim.taban_renk === "Beyaz";
+             !/Taban: .*Siyah/.test(lYok.satir.renk) && red(lVar) && !!lVarR.satir && lVarR.satir.birim_kurus === 115000 &&
+             lVarR.satir.foto_secim.taban_renk === "Siyah";
     // SES deseni: baslik bos -> yazi rengi sayilmaz (2 renk); baslik dolu -> 3 renk. Girdi okunamazsa koşullu bolge PASIF.
     desenKoy({ renk_bolgeleri: [{ kod: "plaka", ad: "Plaka", renkler: ["Beyaz", "Siyah"] }, { kod: "cubuk", ad: "Çubuk", renkler: ["Siyah", "Beyaz"] },
       { kod: "yazi", ad: "Yazı", renkler: ["Kırmızı", "Beyaz"] }], renk_kosul: { yazi: [{ alan: "baslik", dolu: true }] } });
-    const ssec = { ...malzeme("yapboz"), plaka_renk: "Beyaz", cubuk_renk: "Siyah", yazi_renk: "Kırmızı" };
+    const ssec = { ...malzeme("yapboz"), plaka_renk: "Beyaz", cubuk_renk: "Beyaz", yazi_renk: "Kırmızı" };
     const sBos = await fiyatla(await isKur("yapboz", { baslik: "" }), { secim: ssec });
     const sDolu = await fiyatla(await isKur("yapboz", { baslik: "Ada" }), { secim: ssec });
+    const sDoluR = await fiyatla(await isKur("yapboz", { baslik: "Ada" }), { ...R, secim: ssec });
     const sYok = await fiyatla(await isKur("yapboz", null), { secim: ssec });
-    s.SES = !!sBos.satir && sBos.satir.birim_kurus === 110000 && !!sDolu.satir && sDolu.satir.birim_kurus === 120000 &&
-            sDolu.satir.foto_secim.yazi_renk === "Kırmızı" && !!sYok.satir && sYok.satir.birim_kurus === 110000;
+    s.SES = !!sBos.satir && sBos.satir.birim_kurus === 100000 && red(sDolu) && !!sDoluR.satir && sDoluR.satir.birim_kurus === 115000 &&
+            sDoluR.satir.foto_secim.yazi_renk === "Kırmızı" && !!sYok.satir && sYok.satir.birim_kurus === 100000;
     // BUST: odenen 2 palet rengi uretec girdisinde taban/rolyef bolgelerine sirayla.
     const g2 = fm.uretecGirdiJson("PR-RKK", { kalem: 0, tur: "bust", olcu_mm: 100, secim: {}, renkler: ["Lacivert", "Kırmızı"] });
     const g1 = fm.uretecGirdiJson("PR-RKK", { kalem: 0, tur: "bust", olcu_mm: 100, secim: {}, renkler: ["Gri"] });
@@ -2587,10 +2700,10 @@ async function renkKosulSenaryolar(fm) {
 console.log("RKK) RENK TAVANI + KOSULLU BOLGE + PALET ESLEMESI — odenen her renk uretime bagli (BaBa 8 Eki 15:5x)");
 {
   const s = await renkKosulSenaryolar(foto);
-  ol("RKK1 plaket 5 / figur 5 / bust 3 renk -> 400 gecersiz-renk · tavan icinde plaket 4 = 1.300 TL, bust 2 = 1.100 TL",
+  ol("RKK1 Renkli: plaket 5 / figur 5 / bust 3 renk -> 400 gecersiz-renk · tavan icinde plaket 4 = bust 2 = 1.150 TL (renk adedi fiyatsiz)",
      s.TAVAN === true, JSON.stringify(s));
-  ol("RKK2 kosullu taban (logo deseni, yapboz kaydinda) 'Yok' -> taban rengi +0 TL ve secimde YOK · 'Var' -> +100 TL", s.LOGO === true, JSON.stringify(s));
-  ol("RKK3 kosullu yazi (ses deseni, yapboz kaydinda) baslik bos -> +0 · dolu -> +100 · girdi okunamazsa koşullu bolge pasif (fail-closed)",
+  ol("RKK2 kosullu taban (logo deseni, yapboz kaydinda) 'Yok' -> farkli taban rengi sayilmaz, secimde YOK, ana renk 1.000 TL · 'Var' ana renkte 2 renk RED · Renkli 1.150 TL", s.LOGO === true, JSON.stringify(s));
+  ol("RKK3 kosullu yazi (ses deseni, yapboz kaydinda) baslik bos -> ana renk 1.000 · dolu ana renkte RED, Renkli 1.150 · girdi okunamazsa koşullu bolge pasif (fail-closed)",
      s.SES === true, JSON.stringify(s));
   ol("RKK4 bust palet renkleri uretec girdisinde taban/rolyef'e sirayla (2 renk -> 2 bolge, 1 renk -> taban)",
      s.BUST === true, JSON.stringify(s));
@@ -2651,15 +2764,15 @@ async function dinamikMinSenaryolar(fm) {
       for (const b of (t.renk_bolgeleri || [])) { sc[b.kod + "_renk"] = b.renkler[0]; }
       return sc;
     };
-    // K3d: yapboz PALET turu -> renk sayisi `renkler`den (2 renk = taban + 1 ek renk); palet disi tur renksiz.
-    const renkler = (tur) => (VERI.renkPaleti(tur) ? { renkler: ["Beyaz", "Siyah"] } : {});
+    // K3d: yapboz PALET turu -> renkler `renkler`den (Okan 9 Eki: 2 renk = Renkli, ×1,15); palet disi tur renksiz.
+    const renkler = (tur) => (VERI.renkPaleti(tur) ? { renkli: true, renkler: ["Beyaz", "Siyah"] } : {});
     const fiyatla = async (is, tur, mm) => fm.fotoKalemFiyatla(e2, { foto_is: is, olcu_mm: mm, adet: 1, secim: secim(tur), ...renkler(tur) }, Date.now());
     const isK = await isKur("yapboz", { min_mm: 152.4 });
     const alt = await fiyatla(isK, "yapboz", 150);
     s.ALT = alt.kod === 400 && alt.hata.hata === "olcu-min" && alt.hata.min_mm === 160 && /en az 160 mm/.test(alt.hata.mesaj);
     const ust = await fiyatla(isK, "yapboz", 160);
-    s.UST = !!ust.satir && ust.satir.birim_kurus === VERI.fiyatKurus("yapboz", 160, ust.satir.foto_renkler.length) &&
-            ust.satir.foto_renkler.length === 2 && ust.satir.birim_kurus === 160000 + VERI.ekRenkKurus("yapboz");
+    s.UST = !!ust.satir && ust.satir.birim_kurus === VERI.fiyatKurus("yapboz", 160, { renkli: true }) &&
+            ust.satir.foto_renkler.length === 2 && ust.satir.birim_kurus === 184000;
     const yok = await fiyatla(await isKur("yapboz", null), "yapboz", 160);
     s.YOK = yok.kod === 400 && yok.hata.hata === "foto-onizleme-yok";
     const sab = await fiyatla(await isKur("bust", {}), "bust", 10);
@@ -2676,7 +2789,7 @@ console.log("DMIN) DINAMIK ALT SINIR — icerige bagli turde onizlemenin olctugu
 {
   const s = await dinamikMinSenaryolar(foto);
   ol("DMIN1 icerige bagli tur (yapboz kaydi, dinamik min) min 152,4 mm -> 150 mm siparis 400 olcu-min 'en az 160 mm' (adima yuvarli)", s.ALT === true, JSON.stringify(s));
-  ol("DMIN2 icerige bagli tur 160 mm -> fiyatlanir (160 mm x 10 TL + ek renk)", s.UST === true, JSON.stringify(s));
+  ol("DMIN2 icerige bagli tur 160 mm -> fiyatlanir (160 mm x 10 TL × Renkli 1,15 = 1.840 TL)", s.UST === true, JSON.stringify(s));
   ol("DMIN3 onizlemede min olcumu yok -> 400 foto-onizleme-yok (fail-closed)", s.YOK === true, JSON.stringify(s));
   ol("DMIN4 sabit tur bust (taban 60) 10 mm -> 400 gecersiz-olcu", s.SABIT === true, JSON.stringify(s));
   // Musteri metni: koşucu reddi `uretec-red:olcu-min-<N>` -> "bu icerik icin en az N mm".
@@ -2859,7 +2972,7 @@ async function spSenaryolar(m) {
       .bind(new Date().toISOString(), is).run();
   }
   const kalem = (ek) => ({ foto_is: is || "0".repeat(32), tur: "plaket", olcu_mm: 100, renkler: ["Beyaz", "Siyah"],
-    renk_sayisi: 2, onizleme_ref: "/api/shop/foto/gorsel?is=" + is, atif: { utm_source: "test" }, adet: 1, ...(ek || {}) });
+    renk_sayisi: 2, renkli: true, malzeme: "PLA", onizleme_ref: "/api/shop/foto/gorsel?is=" + is, atif: { utm_source: "test" }, adet: 1, ...(ek || {}) });
   const sip = (sepet) => ({ sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart",
     musteri, turnstile_token: "j", sepet });
   const siparis = async (no) => no
@@ -2869,8 +2982,8 @@ async function spSenaryolar(m) {
   const f = await cag("/baslat", sip([kalem({ gosterim_kurus: 1, fiyat_kurus: 1, tutar_kurus: 1, birim_kurus: 1 })]));
   const fs1 = await siparis(f.v && f.v.no);
   const fk = fs1 ? JSON.parse(fs1.urunler)[0] : null;
-  s.F = f.kod === 200 && P.iyzico.length === iyF + 1 && !!fs1 && fs1.tutar_kurus === 110000 && fk.birim_kurus === 110000 &&
-        (P.iyzico[P.iyzico.length - 1] || {}).price === "1350.00";
+  s.F = f.kod === 200 && P.iyzico.length === iyF + 1 && !!fs1 && fs1.tutar_kurus === 115000 && fk.birim_kurus === 115000 &&
+        (P.iyzico[P.iyzico.length - 1] || {}).price === "1400.00";
   const t = await cag("/baslat", sip([kalem({ tur: "figur" })]));
   s.T = t.kod === 400 && !!t.v && t.v.hata === "foto-tur-uyusmaz";
   const r = await cag("/baslat", sip([kalem({ renk_sayisi: 1 })]));
@@ -2881,7 +2994,7 @@ async function spSenaryolar(m) {
   const kal = ks ? JSON.parse(ks.urunler) : [];
   const fotoK = kal.find((x) => x.foto_is === is), katK = kal.find((x) => x.id === "sp-karma-urun");
   s.K = kr.kod === 200 && P.iyzico.length === iyK + 1 && kal.length === 2 && !!fotoK && !!katK && katK.tutar_kurus > 0 &&
-        fotoK.tutar_kurus === 110000 && fotoK.adet === 1 && ks.tutar_kurus === fotoK.tutar_kurus + katK.tutar_kurus;
+        fotoK.tutar_kurus === 115000 && fotoK.adet === 1 && ks.tutar_kurus === fotoK.tutar_kurus + katK.tutar_kurus;
   if (kr.v && kr.v.no) {
     await k.d1.prepare("UPDATE siparisler SET durum = 'odendi' WHERE siparis_no = ?").bind(kr.v.no).run();
     await m.foto.fotoUretimTuru(e2, Date.now(), null);
@@ -2895,7 +3008,7 @@ async function spSenaryolar(m) {
 console.log("SP) NORMAL SEPET FOTO KALEMI (sayfa-3adim K1)");
 {
   const s = await spSenaryolar({ modul, foto });
-  ol("SP1 istemci fiyat alanlari (1 kurus) YOK SAYILIR -> tutar 1.100,00 (100 mm + 1 ek renk), iyzico 1350.00", s.F, JSON.stringify(s));
+  ol("SP1 istemci fiyat alanlari (1 kurus) YOK SAYILIR -> tutar 1.150,00 (100 mm × Renkli 1,15), iyzico 1400.00", s.F, JSON.stringify(s));
   ol("SP2 kalem turu onizleme kaydiyla uyusmaz -> 400 foto-tur-uyusmaz", s.T, JSON.stringify(s));
   ol("SP3 renk_sayisi sunucu sayimiyla uyusmaz -> 400 renk-sayisi-uyusmaz", s.R, JSON.stringify(s));
   ol("SP4 karma sepet (katalog + foto) TEK odeme, foto adet 1, toplam = kalemler", s.K, JSON.stringify(s));
@@ -2904,8 +3017,8 @@ console.log("SP) NORMAL SEPET FOTO KALEMI (sayfa-3adim K1)");
 const SP_MUTANTLAR = [
   ["SPM1 ISTEMCI FIYATI OKUNUR", [
     ["foto.js", "  return { kalem: { foto_is: isNo, olcu_mm: olcu, adet,", "  return { kalem: { ...k, foto_is: isNo, olcu_mm: olcu, adet,"],
-    ["foto.js", "  const rs = renkSayimi(tur.kod, k, null);\n  const birim = rs ? VERI.fiyatKurus(tur.kod, mm, rs.n) : null;",
-                "  const rs = renkSayimi(tur.kod, k, null);\n  const birim = k.gosterim_kurus || (rs ? VERI.fiyatKurus(tur.kod, mm, rs.n) : null);"]], ["F"]],
+    ["foto.js", "  const birim = VERI.fiyatKurus(tur.kod, mm, { renkli: rs.renkli, malzeme: malz });",
+                "  const birim = k.gosterim_kurus || VERI.fiyatKurus(tur.kod, mm, { renkli: rs.renkli, malzeme: malz });"]], ["F"]],
   ["SPM2 TUR DENETIMI SILINDI", [["foto.js", "  if (k.tur !== undefined && k.tur !== is.tur) {", "  if (false) {"]], ["T"]],
   ["SPM3 RENK SAYISI DENETIMI SILINDI", [["foto.js", "  if (k.renk_sayisi === undefined || k.renk_sayisi === rs.n) { return null; }", "  return null;"]], ["R"]],
   ["SPM-K KONTROL", [["foto.js", "// Sepet kalemi turu tasiyorsa kayittaki turle AYNI olmali", "// sepet kalemi turu tasiyorsa kayittaki turle AYNI olmali"]], []],
@@ -2969,50 +3082,30 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
     if (!r.aMetin && !r.soruVar) gecer5++;
   }
   ol("K2b-2 tasarım tarifi 5/5 geçer (Hayır → uyum OK)", gecer5 === 5, "basarili=" + gecer5);
+  // Okan 9 Eki "bunu sil": foto türlerindeki "Tasarım mı, parça mı?" kapalı sorusu KALDIRILDI.
+  // Soru HİÇBİR durumda çıkmaz (tam manifest + CANLI /acik biçimi); tasarım tarifi cevapsız GEÇER,
+  // parça kelimesi yine DUR (ret cümlesi). Soru geri eklenirse K2b-3/C3 KIRMIZI.
   const soruVakalari = ["annemin portresi", "logo", "deniz manzarası"];
-  let soruCikar = 0;
+  let soruYok = 0;
   for (const t of soruVakalari) {
     const r = await uyumSonucBul(EKRAN_KAYNAK, t, undefined);
-    if (r.soruVar && !r.aMetin) soruCikar++;
+    if (!r.soruVar && !r.aMetin) soruYok++;
   }
-  ol("K2b-3 foto türünde soru çıkar 3/3 (cevapsız)", soruCikar === 3, "basarili=" + soruCikar);
-  const evetDUR = await uyumSonucBul(EKRAN_KAYNAK, "annemin portresi", true);
-  ol("K2b-4 Evet→DUR 1/1 (parça onayı → ret cümlesi)",
-     !!evetDUR.aMetin && evetDUR.aMetin.indexOf("Fotoğraftan parça") === 0 && !evetDUR.soruVar,
-     JSON.stringify({ aMetin: evetDUR.aMetin, soruVar: evetDUR.soruVar }));
-  const hayirG = await uyumSonucBul(EKRAN_KAYNAK, "logo", false);
-  ol("K2b-5 Hayır→geçer 1/1 (soru kapanır, ret yok)", !hayirG.aMetin && !hayirG.soruVar, JSON.stringify({ aMetin: hayirG.aMetin, soruVar: hayirG.soruVar }));
-  // 6) Cevapsız → DUR: ④ "Önizleme oluştur" PASİF ve ② "İleri" PASİF (uyum OK değil).
-  const cevapsiz = await uyumSonucBul(EKRAN_KAYNAK, "logo", undefined);
-  const cevapsizBtn = [...cevapsiz.ekran.bolum.agac()].find((n) => n.id === "foto-onizle-buton");
-  const cevapsizIleri = [...cevapsiz.ekran.bolum.agac()].find((n) => n.id === "foto-ileri");
-  ol("K2b-6 cevapsız→DUR 1/1 (belirsiz → onizle butonu + ② İleri disabled)",
-     cevapsiz.soruVar && !!cevapsizBtn && cevapsizBtn.disabled === true && !!cevapsizIleri && cevapsizIleri.disabled === true,
-     JSON.stringify({ soruVar: cevapsiz.soruVar, btnDisabled: cevapsizBtn && cevapsizBtn.disabled, ileri: cevapsizIleri && cevapsizIleri.disabled }));
-  // K2b-C (K3c): CANLI /acik biçimi (girdi alanı YOK) — soru çıkar 3/3 · Evet→DUR · cevapsız→DUR.
-  const canliSoru = async (kaynak) => {
-    let n = 0;
-    for (const t of soruVakalari) { const r = await uyumSonucBul(kaynak, t, undefined, fotoAcik); if (r.soruVar && !r.aMetin) n++; }
-    return n;
-  };
-  const canliN = await canliSoru(EKRAN_KAYNAK);
-  ol("K2b-C3 CANLI /acik (girdi yok) foto türünde soru çıkar 3/3", canliN === 3, "basarili=" + canliN);
-  const canliEvet = await uyumSonucBul(EKRAN_KAYNAK, "annemin portresi", true, fotoAcik);
-  ol("K2b-C4 CANLI /acik Evet→DUR 1/1", !!canliEvet.aMetin && canliEvet.aMetin.indexOf("Fotoğraftan parça") === 0 && !canliEvet.soruVar,
-     JSON.stringify({ aMetin: canliEvet.aMetin, soruVar: canliEvet.soruVar }));
-  const canliBos = await uyumSonucBul(EKRAN_KAYNAK, "logo", undefined, fotoAcik);
-  const canliBtn = [...canliBos.ekran.bolum.agac()].find((n) => n.id === "foto-onizle-buton");
-  const canliIleri = [...canliBos.ekran.bolum.agac()].find((n) => n.id === "foto-ileri");
-  ol("K2b-C6 CANLI /acik cevapsız→DUR 1/1 (soru + onizle + ② İleri disabled)",
-     canliBos.soruVar && !!canliBtn && canliBtn.disabled === true && !!canliIleri && canliIleri.disabled === true,
-     JSON.stringify({ soruVar: canliBos.soruVar, btn: canliBtn && canliBtn.disabled, ileri: canliIleri && canliIleri.disabled }));
-  // M-UYUM-CANLI: tür kaydı yeniden önce seçili /acik kaydından (seciliTurBul) alınırsa canlı biçimde soru ÇIKMAZ.
-  const mUCCapa = "    var nt = F && typeof F.turBul === \"function\" && kod ? F.turBul(kod) : null;\n";
-  const mUCUyg = EKRAN_KAYNAK.split(mUCCapa).length - 1 === 1;
-  const mUCn = mUCUyg ? await canliSoru(EKRAN_KAYNAK.replace(mUCCapa,
-    "    var nt = (typeof seciliTurBul === \"function\" ? seciliTurBul() : null);\n    if (!nt && F && typeof F.turBul === \"function\" && kod) nt = F.turBul(kod);\n")) : -1;
-  ol("M-UYUM-CANLI seciliTurBul önceliğine dönülür ⇒ CANLI /acik'te soru 0/3 (KIRMIZI)", mUCUyg && mUCn === 0,
-     mUCUyg ? "soru=" + mUCn : "MUTANT_UYGULANMADI");
+  ol("K2b-3 foto türünde soru ÇIKMAZ 3/3 (cevapsız tasarım tarifi geçer, Okan 9 Eki)", soruYok === 3, "basarili=" + soruYok);
+  const kelimeRet = await uyumSonucBul(EKRAN_KAYNAK, "kırıldı", undefined);
+  ol("K2b-4 parça kelimesi→DUR 1/1 (soru yok, ret cümlesi)",
+     !!kelimeRet.aMetin && kelimeRet.aMetin.indexOf("Fotoğraftan parça") === 0 && !kelimeRet.soruVar,
+     JSON.stringify({ aMetin: kelimeRet.aMetin, soruVar: kelimeRet.soruVar }));
+  const soruDugme = [...(await uyumSonucBul(EKRAN_KAYNAK, "logo", undefined)).ekran.bolum.agac()]
+    .filter((n) => n.id === "foto-uyum-evet" || n.id === "foto-uyum-hayir").length;
+  ol("K2b-6 Evet/Hayır düğmesi DOM'da 0", soruDugme === 0, "adet=" + soruDugme);
+  // K2b-C (K3c): CANLI /acik biçimi (girdi alanı YOK) — soru yine 0/3 · parça kelimesi DUR.
+  let canliN = 0;
+  for (const t of soruVakalari) { const r = await uyumSonucBul(EKRAN_KAYNAK, t, undefined, fotoAcik); if (!r.soruVar && !r.aMetin) canliN++; }
+  ol("K2b-C3 CANLI /acik (girdi yok) foto türünde soru ÇIKMAZ 3/3", canliN === 3, "basarili=" + canliN);
+  const canliRet = await uyumSonucBul(EKRAN_KAYNAK, "kırıldı", undefined, fotoAcik);
+  ol("K2b-C4 CANLI /acik parça kelimesi→DUR 1/1", !!canliRet.aMetin && canliRet.aMetin.indexOf("Fotoğraftan parça") === 0 && !canliRet.soruVar,
+     JSON.stringify({ aMetin: canliRet.aMetin, soruVar: canliRet.soruVar }));
   // 7) DUR vakalarında 2D/önizleme isteği 0.
   const fetchSayac = async (kaynak, uretimMetni, cevap) => {
     const V = veriYukle(VERI_KAYNAK);
@@ -3029,13 +3122,12 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
     if (btn && !btn.disabled) btn.tetikle("click");
     return e.istekler.length;
   };
-  const belirsizIstek = await fetchSayac(EKRAN_KAYNAK, "annemin portresi", undefined);
-  const evetIstek = await fetchSayac(EKRAN_KAYNAK, "kırıldı", true);
-  ol("K2b-7 DUR vakalarında 2D/önizleme isteği 0 (belirsiz & uygun_degil)",
-     belirsizIstek === 0 && evetIstek === 0, JSON.stringify({ belirsizIstek, evetIstek }));
+  const kelimeIstek = await fetchSayac(EKRAN_KAYNAK, "kırıldı", undefined);
+  ol("K2b-7 DUR vakasında (uygun_degil) 2D/önizleme isteği 0",
+     kelimeIstek === 0, JSON.stringify({ kelimeIstek }));
   // 9) Ret cümlesi birebir: uygun_degil'de metin TAM sayfa metnindeki ortak ret cümlesi.
   ol("K2b-9 ret cümlesi birebir (sayfa metni 'Ortak ret cümlesi' = kaynaktaki A_METIN_BIREBIR)",
-     evetDUR.aMetin === ORTAK_RET && metinRet === ORTAK_RET, JSON.stringify({ aMetin: evetDUR.aMetin, metinRet }));
+     kelimeRet.aMetin === ORTAK_RET && metinRet === ORTAK_RET, JSON.stringify({ aMetin: kelimeRet.aMetin, metinRet }));
   // 10) B2 checkbox: S1'de 0 (TEK B2 yalnız ④ S3'te).
   const eS1 = await ekranKos(EKRAN_KAYNAK, veriYukle(VERI_KAYNAK), fotoAcik, null, null, { kart: "plaket" });
   const b2S1 = [...eS1.bolum.agac()].filter((n) => n.tagName === "INPUT" && n.type === "checkbox" && /^foto-b2-onay/.test(n.id));
@@ -3090,28 +3182,21 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
   ol("M-B2 disabled formülünden '!S.b2Onay ||' silinir ⇒ B2 yokken sipBtn AÇIK (KIRMIZI)", mB2 === false,
      mB2SplitCount === 1 ? "disabled=" + mB2 : "MUTANT_UYGULANMADI capa_sayisi=" + mB2SplitCount);
 
-  // M-KAPI-B: kelime listesi boşaltılır ⇒ parça kelimesi geçer (DUR olmaz, soru çıkar).
+  // M-KAPI-B: kelime listesi boşaltılır ⇒ parça kelimesi geçer (DUR olmaz).
   const mKBCapa = 'var UYUM_KOKLER = ["parca", "parcas", "parcasi", "parcay", "parcayi", "parcam", "parcan", "parcalar", "parcalari", "parcalarin", "parcasin", "parcasini", "yedek", "yedegi", "yedekle", "yedekleri", "yedeklerin", "yedekten", "kirik", "kirigi", "kirdi", "kirildi", "kirilmis", "kirilir", "kiriklar", "kiriklari", "kayip", "kaybi", "kaybol", "kayboldu", "kaybolan", "kayipoldu", "kayipolmus", "mekanizma", "mekanizmasi", "mekanizmayi", "mekanizmalar", "mekanizmalari", "mekanizmada", "mekanizmadan", "disli", "dislisi", "disliyi", "disliler", "dislileri", "dislilerin", "dislide", "disliden", "kilit", "kilidi", "kilide", "kilitler", "kilitleri", "kilitlerin", "kilitten", "klips", "klipsi", "klipsler", "klipsleri", "klipslerin", "klipsten", "yuva", "yuvasi", "yuvayi", "yuvalar", "yuvalari", "yuvalarin", "yuvada", "yuvadan", "orijinal", "orijinali", "orijinale", "orijinalden", "orijinalinde", "aynisi", "aynisini", "aynilar", "aynilari", "aynisindan"];';
   const mKBSplitCount = EKRAN_KAYNAK.split(mKBCapa).length - 1;
   const mKBekran = mKBSplitCount === 1 ? await uyumSonucBul(EKRAN_KAYNAK.split(mKBCapa).join("var UYUM_KOKLER = [];"), "kırıldı", undefined) : null;
-  ol("M-KAPI-B kelime listesi boşaltılır ⇒ parça kelimesi AÇIK soru çıkar (DUR olmaz)",
-     !!mKBekran && mKBekran.soruVar && !mKBekran.aMetin,
+  ol("M-KAPI-B kelime listesi boşaltılır ⇒ parça kelimesi GEÇER (ret cümlesi yok = KIRMIZI)",
+     !!mKBekran && !mKBekran.aMetin,
      mKBSplitCount === 1 ? JSON.stringify({ soruVar: mKBekran.soruVar, aMetin: mKBekran.aMetin }) : "MUTANT_UYGULANMADI capa_sayisi=" + mKBSplitCount);
 
-  // M-KAPI-C: belirsiz → uygun (soru atlanır).
-  const mKCCapa = "    if (foto) {\n      if (cevap === true) return \"uygun_degil\";   // Evet\n      if (cevap === false) return \"uygun\";        // Hayır\n      return \"belirsiz\";                          // cevapsız → fail-closed: soru ÇIKAR\n    }";
-  const mKCUyg = EKRAN_KAYNAK.split(mKCCapa).length - 1 === 1;
-  const mKCekran = mKCUyg ? await uyumSonucBul(EKRAN_KAYNAK.replace(mKCCapa, "    if (foto) {\n      if (cevap === true) return \"uygun_degil\";\n      return \"uygun\";\n    }"), "logo", undefined) : null;
-  ol("M-KAPI-C belirsiz → uygun (soru atlanır) ⇒ cevapsızda soru KIRMIZI yok",
-     !!mKCekran && !mKCekran.soruVar && !mKCekran.aMetin, mKCUyg ? JSON.stringify({ soruVar: mKCekran.soruVar, aMetin: mKCekran.aMetin }) : "MUTANT_UYGULANMADI");
-
   // M-KAPI-SIRA: kapı kontrolü 2D isteğinden SONRAYA ⇒ "kırıldı" + Evet'te POST 1 (kontrolde 0).
-  const mKSCapa = "    var uyum = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap);\n    if (uyum !== \"uygun\") {\n      cizUyum();\n      guncelleS1Buton();\n      return;\n    }";
-  const mKSHazirlaCapa = "    var hazirla = konsept ? function (cb) { cb(null, \"\"); } : function (cb) { kucultGorsel(S.dosya, cb); };";
+  const mKSCapa = "    var uyum = uyumKontrol(S.tur, S.uretimNotu);\n    if (uyum !== \"uygun\") {\n      cizUyum();\n      guncelleS1Buton();\n      return;\n    }";
+  const mKSHazirlaCapa = "    var jeton = S.captchaToken1;\n    adimKoy(\"S2\", \"Fotoğrafın yükleniyor…\", false);\n    kucultGorsel(S.dosya, function (err, dataUrl) {";
   const mKSMutantUygulandi = EKRAN_KAYNAK.split(mKSCapa).length - 1 === 1 && EKRAN_KAYNAK.split(mKSHazirlaCapa).length - 1 === 1;
   const mKSsrc = mKSMutantUygulandi
     ? EKRAN_KAYNAK.split(mKSCapa).join("    // M-KAPI-SIRA mutant: gate kaldırıldı (POST'tan sonra)")
-      .split(mKSHazirlaCapa).join("    var hazirla = function (cb) { cb(null, \"data:image/jpeg;base64,xxx\"); }; // M-KAPI-SIRA mutant")
+      .split(mKSHazirlaCapa).join("    var jeton = S.captchaToken1;\n    adimKoy(\"S2\", \"Fotoğrafın yükleniyor…\", false);\n    (function (cb) { cb(null, \"data:image/jpeg;base64,xxx\"); })(function (err, dataUrl) { // M-KAPI-SIRA mutant")
     : EKRAN_KAYNAK;
   const mKSHazirla = async (kaynak, uretimMetni, cevap) => {
     const V = veriYukle(VERI_KAYNAK);
@@ -3130,7 +3215,7 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
   };
   const mKSKontrol = await mKSHazirla(EKRAN_KAYNAK, "kırıldı", true);
   const mKSistek = mKSMutantUygulandi ? await mKSHazirla(mKSsrc, "kırıldı", true) : -1;
-  ol("M-KAPI-SIRA kapı kontrolü 2D isteğinden SONRAYA ⇒ parça kabulünde POST KIRMIZI (1 istek)",
+  ol("M-KAPI-SIRA kapı kontrolü önizleme isteğinden SONRAYA ⇒ parça kabulünde POST KIRMIZI (1 istek)",
      mKSKontrol === 0 && mKSistek === 1, "kontrol=" + mKSKontrol + " mutant=" + mKSistek);
 
   // M-IPTAL: İptal ② çocuklarını silerse ⇒ İptal→yeni tür ② BOŞ.
@@ -3237,7 +3322,7 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
     ol("M3-1 'birebir aynısı değildir' kaynakta 0 (madde 8)", birebirAynisi === 0, "birebir=" + birebirAynisi + " tam_kopyasi=" + tamKopyasi);
     ol("M3-2 'tam kopyası değildir' kaynakta ≥1 (plaket + figür aydinlatma + ana yorum)", tamKopyasi >= 1, "tam_kopyasi=" + tamKopyasi);
     // (c) "isteğe bağlı" KULLANICI METNİNDE 0 (madde 1: etiket "Nasıl olsun?", "isteğe bağlı" SİLİNDİ).
-    // DOM'dan ölçülür — kaynakta 3 yorum hâlâ "isteğe bağlı" içerir (2D konsept yorumu + 1 satır);
+    // DOM'dan ölçülür — kaynakta yorumlar "isteğe bağlı" içerebilir;
     // ölçümün amacı kullanıcının GÖRDÜĞÜ metin. plaket kart seçilir → ② "Nasıl olsun?" etiketi.
     const eI = await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, ["plaket"]), undefined, undefined, { turnstileOto: true, zamanlayici: true, kart: "plaket" });
     const agacI = [...eI.bolum.agac()];
@@ -3267,7 +3352,7 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
        !hamAcikYuksek && acikYuksekEtiket && koyuYuksekEtiket,
        "ham=" + hamAcikYuksek + " acik=" + acikYuksekEtiket + " koyu=" + koyuYuksekEtiket + " opts=" + JSON.stringify(optMetinleri));
     // (f) Yapboz dürüstlük cümlesi AYNEN (madde 3).
-    const yapbozCumlesi = "Her yapboz parçası tek renktir; 1–4 parça rengi seçebilirsiniz.";
+    const yapbozCumlesi = "Her yapboz parçası tek renktir; renkler seçtiğin seçeneğe göre belirlenir.";
     const yapbozVar = veriKaynak.includes(yapbozCumlesi);
     ol("M3-6 yapboz dürüstlük cümlesi '" + yapbozCumlesi + "' VERI'de aynen (madde 3)", yapbozVar, "bulundu=" + yapbozVar);
     // (g) Gizlilik cümlesi ④'te 1 (madde 7). VERI'de ONCE ve SONRA 1 kez; ekranda da 1 kez.
@@ -3314,8 +3399,8 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
      "duz=" + ayniDuzGecti + "/" + ayniDuzGecer.length + " aynisi=" + aynisiKaldi + "/" + aynisiDUR.length);
   // K0 kontrol: yorum değişikliği ⇒ hiçbiri değişmedi.
   const k0src = EKRAN_KAYNAK.replace("/* ============== UYUM PANELİ ==============", "/* K0 kontrol yorumu ============== UYUM PANELİ ==============");
-  const k0evetDUR = await uyumSonucBul(k0src, "annemin portresi", true);
-  ol("K-K0 kontrol yorum değişikliği ⇒ KIRMIZI kümesi []", k0src !== EKRAN_KAYNAK && k0evetDUR.aMetin === ORTAK_RET, "aMetin=" + k0evetDUR.aMetin);
+  const k0DUR = await uyumSonucBul(k0src, "kırıldı", undefined);
+  ol("K-K0 kontrol yorum değişikliği ⇒ KIRMIZI kümesi []", k0src !== EKRAN_KAYNAK && k0DUR.aMetin === ORTAK_RET, "aMetin=" + k0DUR.aMetin);
 }
 
 // ================================================================ K3b — TEK KUTU, 4 PENCERE (Okan 9 Eki 01:0x + 01:4x)
@@ -3404,38 +3489,53 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     const kaydir = (b, i) => { const g = surgu(b); if (g) { g.value = String(i); g.tetikle("input"); } };
     const fiyat = (b) => (byId(b, "foto-canli-fiyat") || { textContent: null }).textContent;
     const surguYazi = (b) => (sinifli(b, "foto-uretim-surgu-fiyat")[0] || { textContent: null }).textContent;
+    // Okan 9 Eki: renk TEK seçim (Siyah · Beyaz · Gri · Renkli (+%15)); Renkli yalnız fotoğraftan renk çıkınca.
     const kutular = (b) => [...b.agac()].filter((n) => n.tagName === "INPUT" && n.name === "foto-renk");
     const renkSec = (b, r) => { const k = kutular(b).find((n) => n.value === r); if (k && !k.disabled) { k.checked = true; k.tetikle("change"); } };
-    const radyolar = (b, ad) => [...b.agac()].filter((n) => n.tagName === "INPUT" && n.type === "radio" && n.name === ad).map((n) => n.value);
+    const kartlar = (b) => [...b.agac()].filter((n) => n.tagName === "BUTTON" && n.getAttribute && n.getAttribute("data-malzeme"));
+    const kartSec = (b, m) => { const k = kartlar(b).find((n) => n.getAttribute("data-malzeme") === m); if (k) { k.tetikle("click"); } };
+    const kartMetni = (n) => [...n.agac()].map((x) => x.textContent || "").filter(Boolean);
     const eP = await yeniEkran(kaynak, ["plaket"], null, null, { kart: "plaket" });
     const P = eP.bolum, mmP = eP.V.olcuSecenekleri("plaket");
     kaydir(P, 0); const tabanP = surguYazi(P);
     kaydir(P, mmP.indexOf(30)); const f30 = fiyat(P);
     kaydir(P, mmP.indexOf(100)); const f100 = fiyat(P);
-    renkSec(P, "Siyah"); renkSec(P, "Kırmızı"); const f100r3 = fiyat(P);
-    s.FIYAT = f30 === "Fiyat: 600 TL" && f100 === "Fiyat: 1.000 TL" && f100r3 === "Fiyat: 1.200 TL";
-    renkSec(P, "Mavi"); renkSec(P, "Yeşil");
-    const tavanP = kutular(P).filter((n) => n.checked).length === 4 && kutular(P).filter((n) => !n.checked && n.disabled).length === 5;
+    renkSec(P, "Siyah"); const f100r3 = fiyat(P);
+    kartSec(P, "PETG"); const f100petg = fiyat(P);
+    kartSec(P, "PLA");
+    s.FIYAT = f30 === "Fiyat: 600 TL" && f100 === "Fiyat: 1.000 TL" && f100r3 === "Fiyat: 1.000 TL" && f100petg === "Fiyat: 1.300 TL" &&
+      fiyat(P) === "Fiyat: 1.000 TL";
     const eB = await yeniEkran(kaynak, ["bust"], null, null, { kart: "bust" });
     const B = eB.bolum;
     kaydir(B, 0); const tabanB = surguYazi(B);
-    renkSec(B, "Siyah"); renkSec(B, "Kırmızı");
-    const tavanB = kutular(B).filter((n) => n.checked).length === 2 && kutular(B).filter((n) => !n.checked && n.disabled).length === 7;
-    s.TAVAN = tavanP && tavanB;
+    // RENK: fotoğrafsız ekranda tam 3 ana renk (Renkli YOK), varsayılan Beyaz, tek seçim; renk adedi kutusu/ek renk metni YOK.
+    const renkDegerleri = (b) => kutular(b).map((n) => n.value);
+    const pDeg = renkDegerleri(P), bDeg = renkDegerleri(B);
+    const varsayilanB = (kutular(B).find((n) => n.checked) || {}).value;
+    s.RENK = JSON.stringify(pDeg) === '["Siyah","Beyaz","Gri"]' && JSON.stringify(bDeg) === '["Siyah","Beyaz","Gri"]' &&
+      kutular(B).every((n) => n.type === "radio") && varsayilanB === "Beyaz" &&
+      kutular(P).filter((n) => n.checked).length === 1 && (kutular(P).find((n) => n.checked) || {}).value === "Siyah" &&
+      !/\bek renk|Renkler \(1/.test(kaynak);
     s.TABAN = tabanP === "10 mm → 600 TL" && tabanB === "60 mm → 600 TL" && !!surgu(P) && surgu(P).min === "0";
     const eY = await yeniEkran(kaynak, ["yapboz"], null, null, { kart: "yapboz" });
     const Y = eY.bolum;
     kaydir(Y, eY.V.olcuSecenekleri("yapboz").indexOf(100));
     const yOnce = fiyat(Y);
-    // K3d: yapboz malzeme anahtari manifestte `govde` (K3c yeniden turetme); renk secimi PALET (kutular).
-    const petg = [...Y.agac()].find((n) => n.tagName === "INPUT" && n.name === "foto-malzeme-govde" && n.value === "PETG");
-    if (petg) { petg.checked = true; petg.tetikle("change"); }
-    const yMalzeme = radyolar(Y, "foto-malzeme-govde"), bMalzeme = radyolar(B, "foto-malzeme-govde");
+    // MALZEME (2. resim): HER türde iki kart PLA/PETG (ASA/ABS YOK); kart = sıcaklık / ad / kullanım / o malzemeyle
+    // canlı fiyat; varsayılan PLA seçili; PETG tıkı fiyatı ×1,30 yapar.
+    const kartKod = (b) => kartlar(b).map((n) => n.getAttribute("data-malzeme"));
+    const yMalzeme = kartKod(Y), bMalzeme = kartKod(B), pMalzeme = kartKod(P);
+    const yKart = kartlar(Y).map(kartMetni);
+    const ySecili = (kartlar(Y).find((n) => n.getAttribute("aria-checked") === "true") || { getAttribute: () => null }).getAttribute("data-malzeme");
+    kartSec(Y, "PETG");
+    const yPetgSecili = (kartlar(Y).find((n) => n.getAttribute("aria-checked") === "true") || { getAttribute: () => null }).getAttribute("data-malzeme");
     const pGrup = byId(P, "foto-malzeme");
     s.MALZEME = JSON.stringify(yMalzeme) === '["PLA","PETG"]' && JSON.stringify(bMalzeme) === '["PLA","PETG"]' &&
-      !!pGrup && pGrup.hidden === true && [...pGrup.agac()].length === 0 && yOnce === "Fiyat: 1.000 TL" && fiyat(Y) === yOnce &&
-      kutular(Y).length === 9;
-    Object.defineProperty(s, "iz", { value: { f30, f100, f100r3, tabanP, tabanB, yMalzeme, bMalzeme, yOnce, ySon: fiyat(Y) }, enumerable: false });
+      JSON.stringify(pMalzeme) === '["PLA","PETG"]' && !!pGrup && pGrup.hidden === false &&
+      JSON.stringify(yKart) === JSON.stringify([["~55-60°C", "PLA", "Ev içi", "1.000 TL"], ["~70-75°C", "PETG", "Dış mekân / genel amaçlı", "1.300 TL"]]) &&
+      ySecili === "PLA" && yPetgSecili === "PETG" && yOnce === "Fiyat: 1.000 TL" && fiyat(Y) === "Fiyat: 1.300 TL" &&
+      ![...Y.agac(), ...B.agac(), ...P.agac()].some((n) => /^(ASA|ABS)$/.test(n.value || n.textContent || ""));
+    Object.defineProperty(s, "iz", { value: { f30, f100, f100r3, f100petg, tabanP, tabanB, pDeg, bDeg, varsayilanB, yMalzeme, bMalzeme, pMalzeme, yKart, ySecili, yPetgSecili, yOnce, ySon: fiyat(Y) }, enumerable: false });
     return s;
   };
 
@@ -3509,10 +3609,10 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
   ol("K3b-6 insan + hayvan_model ikisi de tur figur secer (② durustluk figur'un) ve ②'ye gecer", d0.INSAN, JSON.stringify(d0.iz));
   ol("K3b-7 insan kartinda büst yönlendirmesi 1/1 (hayvan_model'de 0); tik ①'e döner", d0.YONLENDIRME, JSON.stringify(d0));
   ol("K3b-8 gezinti: ② dosyasiz ve parca tarifinde (ret cumlesi) İleri pasif, temiz tarifle acik → ③ → ④ (İleri gizli, Geri var) → Geri ③", d0.GEZINTI, JSON.stringify(d0.iz));
-  ol("K3b-9 ③ canli fiyat 3 vaka: 30 mm → 600 TL (taban) · 100 mm → 1.000 TL · 100 mm + 3 renk → 1.200 TL", u0.FIYAT, JSON.stringify(u0.iz));
-  ol("K3b-10 ③ renk tavani 2 vaka: plaket 4 (kalan 5 kutu kapali) · bust 2 (kalan 7 kapali)", u0.TAVAN, JSON.stringify(u0));
+  ol("K3b-9 ③ canli fiyat: 30 mm → 600 TL (taban) · 100 mm → 1.000 TL · Siyah (ana renk) → 1.000 TL · PETG → 1.300 TL · PLA'ya donus 1.000 TL", u0.FIYAT, JSON.stringify(u0.iz));
+  ol("K3b-10 ③ renk: fotografsiz ekranda tam 3 ana renk radyo (Siyah,Beyaz,Gri; Renkli YOK), varsayilan Beyaz, tek secim; ek renk metni 0", u0.RENK, JSON.stringify(u0.iz));
   ol("K3b-11 ③ surgu tabani 2 vaka: plaket ilk deger '10 mm → 600 TL' · bust '60 mm → 600 TL'", u0.TABAN, JSON.stringify(u0.iz));
-  ol("K3b-12 ③ malzeme listesi N/N: yapboz [PLA,PETG] · bust [PLA,PETG] · plaket satir 0; malzeme fiyata etki etmez", u0.MALZEME, JSON.stringify(u0.iz));
+  ol("K3b-12 ③ malzeme kartlari HER turde [PLA,PETG] (yapboz · bust · plaket; ASA/ABS 0); kart metni 2. resim AYNEN + canli fiyat 1.000/1.300 TL; varsayilan PLA; PETG tiki ×1,30", u0.MALZEME, JSON.stringify(u0.iz));
   ol("K3b-13 ④ tiksiz 'Sepete ekle' disabled (yalniz B2 ile de kapali)", c0.SEPET, JSON.stringify(c0));
   ol("K3b-14 İptal → ① (secili kart 0, İleri pasif, sepet paneli yok, tek pencere)", c0.IPTAL, JSON.stringify(c0));
   ol("K3b-15 REGRESYON taze bolum, plaket DISI kartin ilk tiki → istisna 0 + ② dolu + durustluk o turun (4/4)", r0.REGRESYON, JSON.stringify(r0.iz));
@@ -3535,6 +3635,10 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
      "{ kod: \"insan\", tur: \"plaket\", alt: \"insan\"", duzen, ["INSAN"]],
     ["M-FORMKORUMA kart seciciden form-cizilmedi korumasi kalkti", "      if (S.alanOlcu) {\n        doldurS1Olcu();",
      "      {\n        doldurS1Olcu();", regresyon, ["REGRESYON"]],
+    // Okan 9 Eki: Renkli fotoğrafsız akışta görünürse RENK KIRMIZI · PETG kartı fiyatı çarpansız okursa MALZEME KIRMIZI.
+    ["M-RENKLI-FOTOSUZ Renkli fotografsiz akista gorunur", "return !!F.renkliSecilebilir(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length);",
+     "return true;", ucuncu, ["RENK"]],
+    ["M-MALZEME-KART kart fiyati malzemesiz", "var sec = { renkli: renkliMi(), malzeme: kod };", "var sec = { renkli: renkliMi() };", ucuncu, ["MALZEME"]],
     ["K3b-MK KONTROL (yorum)", "  function kartVurgula() {", "  // kontrol\n  function kartVurgula() {", hepsi, []],
   ];
   for (const [ad, capa, yerine, kosucu, olmeli] of K3B_MUT) {

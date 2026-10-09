@@ -58,10 +58,12 @@
  *         ARKASINDA (anahtarsiz 404). Onizleme makine anahtari (`acc32ce1`) yalniz ONIZLEME=1 +
  *         sabit MAKINE_UCLARI listesinde gecer — canli yuzeyi genisletmez. Yeni indirme akisi
  *         YOK -> CD_TABANI DEGISMEDI.
+ *   33  — 9 Eki 2026 (Okan "2D konsept bunu tamamen sil"): -3 /foto/ornek-konsept,
+ *         -konsept-durum, -konsept-gorsel SILINDI (yuzey DARALDI). CD_TABANI DEGISMEDI.
  */
 
 /** `altYol === "` yonlendirici kolu sayisi — yetki yuzeyi genisledi mi? */
-export const KOL_TABANI = 36;
+export const KOL_TABANI = 33;
 
 /** `Content-Disposition` gecisi — yeni indirme/proxy/zip akisi acildi mi? */
 export const CD_TABANI = 2;

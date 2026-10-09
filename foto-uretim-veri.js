@@ -81,7 +81,9 @@
     // KATEGORİ KAYDI (6 Eki 2026) — her türün akışı bu alanlardan okunur, kodda ikinci liste YOK:
     // ŞEMA = tools/foto-uretec-sozlesmesi.md §6 (KATEGORİ MOTORU, 7 Eki 2026: kategori eklemek =
     // üreteç + bu satır; bölüm, sunucu, fiyat üreteci ve üreteç köprüsü YALNIZ bu satırı okur).
-    //   girdi          : [GIRDI_TURLERI anahtarı...] — "foto-1" tek fotoğraf, "foto-1-3" 1–3 fotoğraf.
+    //   girdi          : [GIRDI_TURLERI anahtarı...] — "foto-1" tek fotoğraf, "foto-1-3" 1–3 fotoğraf, "metin"
+    //                    form'un metin alanları. Liste "EN AZ BİRİ" demektir (anahtarlık 9 Eki: foto VEYA yazı,
+    //                    ikisi birden de olur): ② "İleri" ve sunucu girdi kapısı AYNI VERI.girdiYeterli'yi çağırır.
     //   motor          : "M" = önizleme+üretim dış hizmetle (kredi harcar; kol "saglayici");
     //                    "D" / "R" = deterministik / ölçüden üretim — önizleme tarayıcıda ya da
     //                    üreteçte, üretim dosyasını bizim üretecimiz çıkarır (kol "deterministik")
@@ -93,14 +95,14 @@
     //                    tools/kopru-manifest-uret.py --yaz ile üretilir, --denetle sapmayı KIRMIZI yakar;
     //                    sözlük (olcu->form, tam->adim 1, sayi->adim 0.01, renk->bölge, kosul aynen) orada.
     //                    kosul: [{alan, degerler}] — alan YALNIZ her koşul sağlanınca vardır (VERI.alanAktif)
-    //   fiyat          : { formul: "mm_x_10tl", adim_mm, taban_tl, ek_renk_tl, renk_tavani } — formül adı
+    //   fiyat          : { formul: "mm_x_10tl", adim_mm, taban_tl, renk_tavani } — formül adı
     //                    VERI.FIYAT_FORMULLERI'nde olmalı (bilinmeyen formül -> fiyat yok, tür sunulmaz); adim_mm =
     //                    sürgü adımı; taban_tl = en düşük fiyat (Okan 8 Eki: 600), yoksa fiyat yok, tür sunulmaz;
-    //                    ek_renk_tl = ilk renkten sonraki HER renk (Okan 8 Eki 13:3x: "ilk renk ücretsiz, her + renk
-    //                    için +100 TL"); renk_tavani = 1–4 (AMS 4 yuva) — ikisi de yoksa/bozuksa fiyat yok, tür sunulmaz
-    //   renk_secimi    : "palet" = müşteri VERI.PLA_RENKLERI'nden 1..renk_tavani renk seçer (Okan 8 Eki 14:2x:
-    //                    plaket/figür/büst "Müşteri 1–4 renk seçsin"); alan yoksa renk sayısı = renk_bolgeleri'nde
-    //                    seçilen FARKLI renk sayısı (bölge yoksa 1)
+    //                    renk_tavani = 1–4 (AMS 4 yuva) = "Renkli"de fotoğraftan seçilen en çok renk — yoksa/bozuksa
+    //                    fiyat yok, tür sunulmaz. Renk ADEDİ fiyata GİRMEZ (Okan 9 Eki): renk 3 ana renkten biri
+    //                    (tek renk) ya da "Renkli" (+%15); malzeme PLA ya da PETG (+%30) — VERI.RENK_SECENEKLERI/MALZEMELER.
+    //   renk_secimi    : "palet" = renkler VERI.PLA_RENKLERI'nden 1..renk_tavani (ana renkte tek renk, Renkli'de
+    //                    fotoğraftan otomatik); alan yoksa renkler renk_bolgeleri'nde (ana renkte tüm bölgeler o renk)
     //                    RENK TAVANI (BaBa 8 Eki 15:4x): renk_tavani = üretecin BOYANABİLİR renk_* parametre sayısı
     //                    (köprü türlerinde kopru-manifest-uret.py --denetle ölçer); palet türünde sağlayıcı kolu 4.
     //   renk_kosul     : {bölge: [{alan, degerler} | {alan, dolu: true}]} — bölge YALNIZ koşul sağlanınca üretilir;
@@ -135,7 +137,7 @@
         renk_secimi: "palet",
         malzemeler: {},
         form: {},
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, renk_tavani: 4 },
         // Okan kararı 7 Eki 2026: plaket gerçek baskı beklemeden önizleme + render ile açılır.
         ornek_kanit_izni: ["baski", "render"],
         durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün en çok 4 renkle kabartma olarak üretilir — önizlemenin 4 renkli yorumu; tam kopyası değildir, küçük yazı ve ince ayrıntılar sadeleşir.",
@@ -159,7 +161,7 @@
         renk_secimi: "palet",
         malzemeler: {},
         form: {},
-        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
+        fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, renk_tavani: 4 },
         // Plaketle AYNI izin (render gerçek baskı olmadan açılır; Okan 7 Eki kararı).
         ornek_kanit_izni: ["baski", "render"],
         // Dürüstlük: figür metni — stilize yorum, en çok 4 renk, tam kopya değil (madde 5: insan/hayvan ortak, yüz benzerliği iddiası yok).
@@ -239,11 +241,10 @@
           formul: "mm_x_10tl",
           adim_mm: 10,
           taban_tl: 600,
-          ek_renk_tl: 100,
           renk_tavani: 4
         },
         ornek_kanit_izni: ["baski", "render"],
-        durustluk: "Her yapboz parçası tek renktir; 1–4 parça rengi seçebilirsiniz.",
+        durustluk: "Her yapboz parçası tek renktir; renkler seçtiğin seçeneğe göre belirlenir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir.",
         olcu_ekseni: "sabit",
         renk_secimi: "palet",
@@ -272,7 +273,7 @@
             renkler: ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"]
           }
         ],
-        malzemeler: { govde: ["PLA", "PETG", "ASA", "ABS"] },
+        malzemeler: { govde: ["PLA", "PETG"] },
         form: {
           satirlar: {
             tip: "metin",
@@ -329,13 +330,13 @@
           formul: "mm_x_10tl",
           adim_mm: 5,
           taban_tl: 600,
-          ek_renk_tl: 100,
           renk_tavani: 2
         },
         ornek_kanit_izni: ["render"],
         durustluk: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
-        ornek_notu: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
-        olcu_ekseni: "sabit"
+        ornek_notu: "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçiminize göre üretilir.",
+        olcu_ekseni: "sabit",
+        foto_kolu: { girdi: ["foto-1"], uretec: "plaket_kulak" }
       },
       
       
@@ -370,7 +371,7 @@
           },
           rolyef_yuksekligi_mm: {
             tip: "sayi",
-            etiket: "Kabartma yuksekligi",
+            etiket: "Kabartma yüksekliği",
             min: 1,
             max: 8,
             adim: 0.01,
@@ -386,7 +387,7 @@
           },
           iki_renk: {
             tip: "bool",
-            etiket: "Iki renk",
+            etiket: "İki renk",
             varsayilan: false,
             ornek: false
           }
@@ -395,7 +396,6 @@
           formul: "mm_x_10tl",
           adim_mm: 10,
           taban_tl: 600,
-          ek_renk_tl: 100,
           renk_tavani: 2
         },
         palet_bolgeleri: ["taban", "rolyef"],
@@ -435,7 +435,9 @@
       "gorsel": "Görsel okunamadı ya da içinde belirgin bir şekil bulunamadı; net, koyu bir şekil içeren PNG ya da JPEG dene.",
       "oran": "Görselin en/boy oranı bu ürün için çok uzun; daha dengeli bir kırpım dene.",
       "parca": "Bu ölçüde seçtiğin parça sayısı çok küçük parçalar çıkarıyor; ölçüyü büyüt ya da daha az parça seç.",
-      "kopru": "Görseldeki iç adalar şablona bağlanamadı; daha sade bir silüet dene."
+      "kopru": "Görseldeki iç adalar şablona bağlanamadı; daha sade bir silüet dene.",
+      // Anahtarlık FOTO kolu (plaket_kulak rc 2: plaket uzun kenarı >50 mm ya da kulak yerleşmedi) — BİREBİR.
+      "anahtarlik-boyut": "Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı; daha sade bir fotoğraf ya da kısa bir yazı deneyin."
     },
 
     // ÖRNEKLER — boşsa bölüm görünmez. Kaynak: TeKiN'in işleri (kanıtı kayıtta yazılı).
@@ -503,22 +505,7 @@
     sinir_ziyaretci_24s: 3,
 
     // Önizleme kaç saat içinde siparişe dönüşebilir (sunucu sınırı; bölüm müşteriye söyler).
-    gecerlilik_saat: 48,
-
-    // 2D KONSEPT (Okan 7 Eki 14:5x: "Nasıl olsun?" notu → 2D sonuç nota göre). TEK KAYNAK: sunucu
-    // (shop/src/foto.js) model/sınır/tavanı YALNIZ buradan okur, bölüm deneme sayısını buradan yazar.
-    //   model              : görsel+metin → görsel modeli (en ucuzu; değişirse kredi_tahmini de değişir)
-    //   kredi_tahmini      : model başına bir konseptin kredisi (günlük tavan bu sayıyla sayar)
-    //   deneme_is_basi     : bir önizleme işinde en çok kaç konsept (Okan: ≤3)
-    //   sinir_ziyaretci_24s: ziyaretçi başına 24 saatte en çok konsept (3 iş × 3 deneme)
-    //   gunluk_kredi_tavani: tüm ziyaretçilerin 24 saatteki konsept kredisi tavanı (aşılınca 429)
-    konsept: {
-      model: "nano-banana",
-      kredi_tahmini: 3,
-      deneme_is_basi: 3,
-      sinir_ziyaretci_24s: 9,
-      gunluk_kredi_tavani: 120
-    }
+    gecerlilik_saat: 48
   };
 
   // Örneğin kanıtı: alan yoksa 5 Eki anlamı ("baski"); bilinmeyen değer -> "" (sayılmaz).
@@ -583,12 +570,26 @@
     "foto-1": { acik: true }, "foto-1-3": { acik: true, en_cok: 3 }, metin: { acik: true }
   };
   VERI.FORM_TIPLERI = { sayi: true, secim: true, metin: true, bool: true };
+  var FOTO_GIRDILERI = { "foto-1": true, "foto-1-3": true };
   // Metinde yasak: C0/C1 kontrol karakterleri (satır sonu dahil), satır/paragraf ayırıcı, yön geçersiz kılıcıları.
   var METIN_KONTROL = /[\u0000-\u001f\u007f-\u009f\u2028\u2029\u202a-\u202e\u2066-\u2069]/;
   function metinOgeGecerli(x, max) {
     return typeof x === "string" && x.trim().length > 0 && x.length <= max && !METIN_KONTROL.test(x);
   }
   function pozitifTam(n) { return typeof n === "number" && Number.isInteger(n) && n >= 1; }
+  // Tek metin alanının değeri şemaya uyuyor mu (parametreDogrula ve girdiYeterli AYNI kural).
+  function metinDegerGecerli(sema, v) {
+    if (!pozitifTam(sema.max)) { return false; }
+    if (sema.liste === true) {
+      if (!pozitifTam(sema.satir_max) || !Array.isArray(v)) { return false; }
+      if (v.length < 1 || v.length > sema.satir_max) { return false; }
+      for (var m = 0; m < v.length; m++) {
+        if (!metinOgeGecerli(v[m], sema.max)) { return false; }
+      }
+      return true;
+    }
+    return sema.liste === undefined && metinOgeGecerli(v, sema.max);
+  }
 
   function utf8Bayt(s) {
     return typeof TextEncoder !== "undefined" ? new TextEncoder().encode(s).length : unescape(encodeURIComponent(s)).length;
@@ -659,21 +660,37 @@
       } else if (sema.tip === "secim") {
         if (!Array.isArray(sema.secenekler) || sema.secenekler.indexOf(v) < 0) { return { ok: false, hata: "parametre-secim" }; }
       } else if (sema.tip === "metin") {
-        if (!pozitifTam(sema.max)) { return { ok: false, hata: "parametre-metin" }; }
-        if (sema.liste === true) {
-          if (!pozitifTam(sema.satir_max) || !Array.isArray(v)) { return { ok: false, hata: "parametre-metin" }; }
-          if (v.length < 1 || v.length > sema.satir_max) { return { ok: false, hata: "parametre-metin" }; }
-          for (var m = 0; m < v.length; m++) {
-            if (!metinOgeGecerli(v[m], sema.max)) { return { ok: false, hata: "parametre-metin" }; }
-          }
-          v = v.slice();
-        } else if (sema.liste !== undefined || !metinOgeGecerli(v, sema.max)) { return { ok: false, hata: "parametre-metin" }; }
+        if (!metinDegerGecerli(sema, v)) { return { ok: false, hata: "parametre-metin" }; }
+        if (sema.liste === true) { v = v.slice(); }
       } else if (sema.tip === "bool") {
         if (v !== true && v !== false) { return { ok: false, hata: "parametre-bool" }; }
       }
       cikti[a] = v;
     }
     return { ok: true, deger: cikti };
+  };
+  // GİRDİ YETERLİ Mİ (anahtarlık 9 Eki; ② "İleri" ve sunucu girdi kapısı AYNI fonksiyon): türün `girdi`
+  // listesinden EN AZ BİRİ dolu olmalı. g = {foto: bool (fotoğraf verildi mi), parametreler}.
+  // "foto-*" -> g.foto === true; "metin" -> formdaki AKTİF metin alanlarından biri dolu VE şemaya uygun.
+  // Dönüş "" = yeterli, "girdi-eksik" = hiçbiri yok (fail-closed: liste boş/bilinmeyen girdi -> eksik).
+  VERI.girdiYeterli = function (kod, g) {
+    var t = VERI.turBul(kod);
+    if (!t || !Array.isArray(t.girdi) || !t.girdi.length) { return "girdi-eksik"; }
+    g = g && typeof g === "object" ? g : {};
+    var p = g.parametreler && typeof g.parametreler === "object" && !Array.isArray(g.parametreler) ? g.parametreler : {};
+    var form = t.form && typeof t.form === "object" ? t.form : {};
+    for (var i = 0; i < t.girdi.length; i++) {
+      var x = t.girdi[i];
+      if (FOTO_GIRDILERI[x] === true && g.foto === true) { return ""; }
+      if (x === "metin") {
+        for (var a in form) {
+          if (!Object.prototype.hasOwnProperty.call(form, a) || !form[a] || form[a].tip !== "metin") { continue; }
+          if (VERI.alanAktif(form, a, p) && Object.prototype.hasOwnProperty.call(p, a) &&
+              metinDegerGecerli(form[a], p[a])) { return ""; }
+        }
+      }
+    }
+    return "girdi-eksik";
   };
   // Türün ölçü aralığı (mm, uzun kenar); bilinmeyen tür -> null. Bölüm ve sunucu AYNI fonksiyon.
   VERI.olcuAraligi = function (kod) {
@@ -717,13 +734,6 @@
     var t = VERI.turBul(kod);
     var tl = t && t.fiyat ? t.fiyat.taban_tl : null;
     return Number.isInteger(tl) && tl > 0 ? tl * 100 : null;
-  };
-  // EK RENK (Okan 8 Eki 13:3x: "4 renk seçimi olmalı, ilk renk ücretsiz, her + renk için +100 TL"):
-  // türün fiyat.ek_renk_tl'si kuruşa; yoksa/bozuksa null -> tür FİYATSIZ (fail-closed, taban ile aynı desen).
-  VERI.ekRenkKurus = function (kod) {
-    var t = VERI.turBul(kod);
-    var tl = t && t.fiyat ? t.fiyat.ek_renk_tl : null;
-    return Number.isInteger(tl) && tl >= 0 ? tl * 100 : null;
   };
   // Türde seçilebilecek en çok renk (1–4, AMS 4 yuva); yoksa/bozuksa null -> tür FİYATSIZ.
   VERI.renkTavani = function (kod) {
@@ -773,18 +783,82 @@
   };
   // Palet = manifestteki bölge renk listelerinin birleşimi (mevcut PLA paleti; ikinci liste değil, aynı 9 renk).
   VERI.PLA_RENKLERI = ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"];
-  // fiyat_kurus = max(taban, en uzun boyut (mm) × formülün mm başı kuruşu) + (renk − 1) × ek_renk.
-  // renk verilmezse 1 (vitrin "₺N'dan itibaren" ve sürgü satırı). Geçersiz ölçü / bilinmeyen formül / taban
-  // yok / ek renk ya da tavan yok / renk tam sayı değil, 1'den küçük ya da tavandan büyük -> null.
-  VERI.fiyatKurus = function (kod, mm, renk) {
+  // RENK + MALZEME (Okan 9 Eki 17:0x, AYNEN): "renk seçimi 3 ana renkte (siyah beyaz veya gri) yapılsın veya
+  // renkli seçeneği olsun %15 farkla seçilsin. ürünün renk seçimini müşterinin eklediği resime otomatik yapılsın."
+  // · "malzeme seçiminde sadece pla ve petg … petg %30 fiyata eklensin." Ana renkte ürün TEK renk (tüm bölgeler o
+  // renk); "Renkli"de renkler fotoğraftan otomatik (VERI.fotoRenkleri), yalnız fotoğraflı akışta sunulur.
+  VERI.ANA_RENKLER = ["Siyah", "Beyaz", "Gri"];
+  VERI.VARSAYILAN_RENK = "Beyaz";
+  VERI.RENKLI_EK_YUZDE = 15;
+  VERI.RENKLI_ETIKET = "Renkli (+%15)";
+  // 2. resimdeki iki kart (metinler AYNEN); ek_yuzde fiyata çarpan olarak girer (PETG ×1,30).
+  VERI.MALZEMELER = [
+    { kod: "PLA", sicaklik: "~55-60°C", kullanim: "Ev içi", ek_yuzde: 0 },
+    { kod: "PETG", sicaklik: "~70-75°C", kullanim: "Dış mekân / genel amaçlı", ek_yuzde: 30 }
+  ];
+  VERI.VARSAYILAN_MALZEME = "PLA";
+  VERI.malzemeBul = function (kod) {
+    for (var i = 0; i < VERI.MALZEMELER.length; i++) { if (VERI.MALZEMELER[i].kod === kod) { return VERI.MALZEMELER[i]; } }
+    return null;
+  };
+  // Fiyatı etkileyen seçim {renkli, malzeme}: verilmezse ana renk + PLA; alan verilip bilinmiyorsa null (RED).
+  VERI.fiyatSecimi = function (s) {
+    if (s === undefined) { return { renkli: false, malzeme: VERI.VARSAYILAN_MALZEME }; }
+    if (!s || typeof s !== "object" || Array.isArray(s)) { return null; }
+    var r = s.renkli === undefined ? false : s.renkli;
+    var m = s.malzeme === undefined ? VERI.VARSAYILAN_MALZEME : s.malzeme;
+    if (typeof r !== "boolean" || !VERI.malzemeBul(m)) { return null; }
+    return { renkli: r, malzeme: m };
+  };
+  // Taban fiyata (kuruş) renk + malzeme çarpanları: round(k × (Renkli ? 1,15 : 1) × (PETG ? 1,30 : 1)).
+  VERI.secimliKurus = function (kurus, secim) {
+    var c = VERI.fiyatSecimi(secim);
+    if (!Number.isInteger(kurus) || kurus < 0 || !c) { return null; }
+    var ry = c.renkli ? VERI.RENKLI_EK_YUZDE : 0, my = VERI.malzemeBul(c.malzeme).ek_yuzde;
+    return Math.round(kurus * (100 + ry) * (100 + my) / 10000);
+  };
+  // "Renkli" bu türde sunulabilir mi: türün girdisi fotoğraf ise (renkler fotoğraftan çıkar). Fotoğrafsız akışta
+  // (yazılı anahtarlık, girdi "metin") Renkli GÖRÜNMEZ ve sunucu RED eder (aynı fonksiyon).
+  VERI.renkliSecilebilir = function (kod) {
+    var t = VERI.turBul(kod);
+    var g = t ? (t.girdi || []) : [];
+    for (var i = 0; i < g.length; i++) { if (FOTO_GIRDILERI[g[i]] === true) { return true; } }
+    return false;
+  };
+  // FOTOĞRAFTAN RENK (deterministik, kredi 0, harici API YOK): piksel dizisi (RGBA, Uint8 benzeri) -> filament
+  // renklerine (RENK_HEX) en yakın eşleme -> en sık `tavan` farklı renk (çok sıktan aza). Saydam piksel sayılmaz;
+  // %2'nin altındaki renk elenir (gürültü). Hiç renk çıkmazsa [] (bölüm Renkli'yi açmaz).
+  VERI.fotoRenkleri = function (piksel, tavan) {
+    var adlar = VERI.PLA_RENKLERI, hex = [], say = {}, top = 0, i, j;
+    for (i = 0; i < adlar.length; i++) {
+      var h = String(VERI.RENK_HEX[adlar[i]] || "").replace("#", "");
+      hex.push([parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]);
+    }
+    for (i = 0; piksel && i + 3 < piksel.length; i += 4) {
+      if (piksel[i + 3] < 128) { continue; }
+      var en = -1, ed = Infinity;
+      for (j = 0; j < hex.length; j++) {
+        var dr = piksel[i] - hex[j][0], dg = piksel[i + 1] - hex[j][1], db = piksel[i + 2] - hex[j][2];
+        var d = 2 * dr * dr + 4 * dg * dg + 3 * db * db;
+        if (d < ed) { ed = d; en = j; }
+      }
+      say[adlar[en]] = (say[adlar[en]] || 0) + 1; top++;
+    }
+    var n = Number.isInteger(tavan) && tavan >= 1 ? Math.min(tavan, 4) : 1;
+    return adlar.filter(function (a) { return say[a] && say[a] / top >= 0.02; })
+      .sort(function (a, b) { return say[b] - say[a] || adlar.indexOf(a) - adlar.indexOf(b); }).slice(0, n);
+  };
+  // fiyat_kurus = round( max(taban, en uzun boyut (mm) × formülün mm başı kuruşu) × (Renkli ? 1,15 : 1)
+  //               × (PETG ? 1,30 : 1) ) — TEK kaynak (bölüm, sunucu, araçlar). secim = {renkli, malzeme}; verilmezse
+  // ana renk + PLA (vitrin "₺N'dan itibaren" ve sürgü satırı). Geçersiz ölçü / bilinmeyen formül / taban ya da
+  // renk tavanı yok / bilinmeyen renk ya da malzeme -> null. Renk ADEDİ fiyata girmez.
+  VERI.fiyatKurus = function (kod, mm, secim) {
     var t = VERI.turBul(kod);
     var f = t && t.fiyat && Object.prototype.hasOwnProperty.call(VERI.FIYAT_FORMULLERI, t.fiyat.formul)
       ? VERI.FIYAT_FORMULLERI[t.fiyat.formul] : null;
-    var taban = VERI.fiyatTabanKurus(kod), ek = VERI.ekRenkKurus(kod), tavan = VERI.renkTavani(kod);
-    var n = renk === undefined ? 1 : renk;
-    if (!f || taban === null || ek === null || tavan === null || !VERI.olcuGecerli(kod, mm)) { return null; }
-    if (!Number.isInteger(n) || n < 1 || n > tavan) { return null; }
-    return Math.max(mm * f, taban) + (n - 1) * ek;
+    var taban = VERI.fiyatTabanKurus(kod), tavan = VERI.renkTavani(kod);
+    if (!f || taban === null || tavan === null || !VERI.olcuGecerli(kod, mm)) { return null; }
+    return VERI.secimliKurus(Math.max(mm * f, taban), secim);
   };
   // Sürgünün seçebildiği ölçüler: en_az..en_cok, adım adım (en_cok her zaman dahil).
   VERI.olcuSecenekleri = function (kod) {
