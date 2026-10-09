@@ -160,16 +160,16 @@ def kontroller(index, bolum, veri, build):
     s.append(("Y6 harici adres yalniz bot dogrulayici + WhatsApp", set(harici) <= izinli, str(harici)))
     # Y8 PLAKET (BaBa 5 Eki 21:4x(b)): veri dosyasinin `turler` dizisinde plaket + figur VAR (saglayici
     # kolunda IKINCI tur, 24 kategori programi #8). Magnet SUNULMAZ (5 Eki kurali AYNEN). Anahtarlik
-    # (K3d, Okan 8 Eki 22:5x + 9 Eki 01:4x: programin 5. turu) KAYDI VAR ama sayilan ornegi YOK ->
-    # /acik'te YOK, kart cizilmez (sunucu davranisi: shop/test/foto-uretim.mjs P1/P5/P7).
+    # (K3d, Okan 8 Eki 22:5x + 9 Eki 01:4x + 9 Eki TeKiN: programin 5. turu) KAYDI VAR + sayilan
+    # ornegi 1 -> /acik'te VAR, kart cizilir (sunucu davranisi: shop/test/foto-uretim.mjs P1/P5/P7).
     tb = re.search(r"\bturler:\s*\[(.*?)\n\s*\],", veri, re.S)
     kodlar = re.findall(r'\bkod:\s*"([^"]+)"', tb.group(1)) if tb else []
     s.append(("Y8 plaket + figur + anahtarlik tur kaydi VAR, magnet turu 0",
               all(k in kodlar for k in ("plaket", "figur", "anahtarlik")) and "magnet" not in kodlar, str(kodlar)))
     ob = re.search(r"\bornekler:\s*\[(.*?)\n\s*\],", veri, re.S)
     ornek_turleri = re.findall(r'\btur:\s*"([^"]+)"', ob.group(1)) if ob else None
-    s.append(("Y8 anahtarligin ornek kaydi 0 (ornekler dizisi okundu; ornegi olan tur acilir)",
-              ornek_turleri is not None and "anahtarlik" not in ornek_turleri, str(ornek_turleri)))
+    s.append(("Y8 anahtarligin ornek kaydi 1 (ornekler dizisi okundu; ornegi olan tur acilir)",
+              ornek_turleri is not None and "anahtarlik" in ornek_turleri, str(ornek_turleri)))
     eski = [k for k in ("magnet", "mıknatıs", "miknatis")
             if k in bolum.lower() or k in (tb.group(1).lower() if tb else "")]
     # K3b (Okan 9 Eki 01:4x "5-anahtarlık"): anahtarlık yalnız sayfa metni tablolarında (① KARTLAR satırı +
@@ -237,6 +237,16 @@ def kontroller(index, bolum, veri, build):
     g = dk.group(1) if dk else ""
     s.append(("Y13c 15 MB ve tur denetimi dosyaKoy icinde",
               "f.size > MAKS_DOSYA_BAYT" in g and r"/^image\/(jpeg|png|webp)$/" in g and '"image/svg+xml"' in g, ""))
+    # Y15 (K3d anahtarlik-metin-ui): VERI.FORM_TIPLERI'nin anahtar kumesi = form kurucusunun cizim
+    # kollarinin kumesi (foto-uretim.js'teki `sema.tip === "<tip>"` gecisleri). Yeni tip eklenince
+    # bolumun cizim kolu da eklenmeli; cizim kolu silinen/eksik tip VERI.parametreDogrula'nin
+    # 'parametre-yakinda' hatasina karsi aciga dusmemeli. Mevcut kapsam: sayi, secim, metin, bool.
+    cizimli = set(re.findall(r'sema\.tip === "([a-z_]+)"', bolum))
+    form_tipleri_blok = re.search(r"VERI\.FORM_TIPLERI\s*=\s*\{([^}]+)\}", veri, re.S)
+    form_anahtarlari = set(re.findall(r"\b([a-z_]+)\s*:\s*true", form_tipleri_blok.group(1) if form_tipleri_blok else ""))
+    s.append(("Y15 her FORM_TIPLERI tipinin cizim dali VAR (sayi/secim/metin/bool esit)",
+              {"sayi", "secim", "metin", "bool"} <= cizimli and form_anahtarlari <= cizimli,
+              "cizim=%s form=%s" % (sorted(cizimli), sorted(form_anahtarlari))))
     return s
 
 
@@ -279,10 +289,12 @@ def main():
         ("M4 beyaz listeden dustu", (index, bolum, veri, build.replace('"foto-uretim.js", ', "", 1).replace(', "foto-uretim.js"', "", 1)), True),
         ("M5 oturum anahtari ayristi", (index.replace('setItem("%s"' % OTURUM_ANAHTARI, 'setItem("pruvo_foto_sip"'),
                                         bolum, veri, build), True),
-        # K3d: anahtarlik kaydi artik VAR; nobetci "ornek YOK"u tutar. M6 = ornek sarti kalkar (anahtarlik
-        # ornegi eklenir) · M6b = kayit silinir (kod kaybolur) · M6c = magnet tur listesine girer.
-        ("M6 anahtarlik ornegi eklendi (ornek sarti kalkti)",
-         (index, bolum, veri.replace("    ornekler: [\n", '    ornekler: [\n      { tur: "anahtarlik", kanit: "render", onizleme: "x", render: "x" },\n', 1), build), True),
+        # K3d (9 Eki TeKiN): anahtarlik artik sayilan ornegi 1 (gercek eklenmis). M6 = ornek SARTI
+        # YINE KALKAR mutant kurali AYNI ama yonu tersine: ornek listeden CIKARILIR -> ornekSayisi 0 ->
+        # nobetcideki "ornek 0" iddiasi geri gelir ve KIRMIZI yanar. M6b = kayit silinir · M6c = magnet
+        # tur listesine girer.
+        ("M6 anahtarlik ornegi kaldirildi (ornek sarti geri gelir)",
+         (index, bolum, re.sub(r'\s*\{\s*tur:\s*"anahtarlik",\s*kanit:\s*"render",\s*olcu_mm:\s*45,.*?\}\n', "\n", veri, count=1, flags=re.S), build), True),
         ("M6b anahtarlik tur kaydi silindi",
          (index, bolum, veri.replace('kod: "anahtarlik",', 'kod: "anahtarlikYOK",', 1), build), True),
         ("M6c magnet tur listesine eklendi",
@@ -305,6 +317,11 @@ def main():
          (index, bolum.replace('{ kod: "insan", tur: "figur"', '{ kod: "insan", tur: "plaket"', 1), veri, build), True),
         ("M23 anahtarlik KARTLAR disinda ekrana yazildi",
          (index, bolum.replace('var BUST_YONLENDIRME = ', 'var ANAHTARLIK_NOTU = "Anahtarlık";\n  var BUST_YONLENDIRME = ', 1), veri, build), True),
+        # Y15 mutantlari: cizim kolu <-> FORM_TIPLERI esitlik kapisi (anahtarlik-metin-ui).
+        ("M24 metin cizim dali silindi (sema.tip === 'metin' kolu YOK)",
+         (index, bolum.replace('sema.tip === "metin"', 'sema.tip === "metinYOK"', 1), veri, build), True),
+        ("M25 FORM_TIPLERI'ne sahte 'renk' eklendi (cizim kolu YOK)",
+         (index, bolum, veri.replace('bool: true }', 'bool: true, renk: true }', 1), build), True),
     ]
     # Y13 mutantlari: capa tutmazsa (metin degismezse) mutant KIRMIZI sayilir — sessizce gecmez.
     def bm(eski, yeni):

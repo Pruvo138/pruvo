@@ -21,7 +21,8 @@ YAPAR (her dosya için):
   aynı ad + FARKLI içerik → hedefe '__<sha256[:8]>' SON EKİ EKLE
   hedef sha256 != kaynak sha256 → satır 'sha-esit-degil', KAYNAK SİLİNMEZ, rc=1
 
-SIRA ZORUNLU (7 Eki 2026 — evict yükleme bitmeden çağrılınca 6/6 `evict_hata`):
+SIRA ZORUNLU (7 Eki 2026 — evict yükleme bitmeden çağrılınca 6/6 `evict_hata`,
+  9 Eki — `--evict` bayraksız kosumda ZORUNLU; sha-teyitsiz dosya EVICT EDILMEZ):
   1) kopyala  2) sha256 eşit  3) YÜKLEME BİTTİ Mİ yokla (`drive_birak.yuklendi_mi`,
   --yokla-aralik sn arayla, koşum başına --yukleme-tavan sn; tavan tüm kopyalar
   bittikten SONRA başlar, yüklemeler paralel ilerler)  4) evict (3 deneme)  5) yerel sil
@@ -29,6 +30,8 @@ SIRA ZORUNLU (7 Eki 2026 — evict yükleme bitmeden çağrılınca 6/6 `evict_h
                                    (sonraki koşum aynı içeriği 'atlandi_ayni' ile devralır)
   evict 3 denemede olmazsa      → 'evict=hata', KAYNAK SİLİNMEZ, rc DEĞİŞMEZ
   kaynak == hedef (aynı dosya)  → KAYNAK ASLA SİLİNMEZ
+  --evict-yapma                 → evict ATLANIR (upload+sha+yukleme_bekle+yerel_sil
+                                   yine calisir); sha-teyitsiz dosya YINE EVICT EDILMEZ
   --kuru → hiçbir şey yazmaz/silmez/evict etmez ve dosya İÇERİĞİ OKUMAZ (Drive'da okuma
            = indirme); hedef varsa yalnız yükleme sinyalini (metadata) OKUR
 
@@ -181,7 +184,11 @@ def _ayni_dosya(a, b):
 
 
 def birak_ve_sil(a, is_, sayac, son_an):
-    """SIRA: yukleme bitti mi → evict (EVICT_DENEME) → yerel sil. Doner: hata var mi."""
+    """SIRA: yukleme bitti mi → evict (EVICT_DENEME) → yerel sil. Doner: hata var mi.
+
+    `--evict` bayragi False ise evict ATLANIR (yukleme_bekle + yerel_sil yine yapilir;
+    sha-esit-degil zaten ust katmanda erken cikiyor).
+    """
     gore, tam_yol, hedef, yerel_sil = is_
     if not yukleme_bekle(hedef, son_an, a.yokla_aralik,
                          yokla_fn=lambda y: yuklendi_cagir(a.yukleme_komut, y)):
@@ -189,20 +196,22 @@ def birak_ve_sil(a, is_, sayac, son_an):
         print("dosya=%s durum=BEKLIYOR (yukleme bitmedi; evict YOK, yerel SILINMEDI)" % gore)
         return False
     log = []
-    tamam = False
-    for deneme in range(1, EVICT_DENEME + 1):
-        if evict_cagir(a.evict_komut, hedef, log):
-            tamam = True
-            break
-        if deneme < EVICT_DENEME:
-            time.sleep(a.yokla_aralik)
-    for l in log:
-        print("dosya=%s %s" % (gore, l))
-    if not tamam:
-        sayac["evict_hata"] += 1
-        print("dosya=%s durum=evict-%dx-hata (yerel SILINMEDI)" % (gore, EVICT_DENEME))
-        return False
-    sayac["evict_ok"] += 1
+    tamam = True
+    if a.evict:
+        tamam = False
+        for deneme in range(1, EVICT_DENEME + 1):
+            if evict_cagir(a.evict_komut, hedef, log):
+                tamam = True
+                break
+            if deneme < EVICT_DENEME:
+                time.sleep(a.yokla_aralik)
+        for l in log:
+            print("dosya=%s %s" % (gore, l))
+        if not tamam:
+            sayac["evict_hata"] += 1
+            print("dosya=%s durum=evict-%dx-hata (yerel SILINMEDI)" % (gore, EVICT_DENEME))
+            return False
+        sayac["evict_ok"] += 1
     if yerel_sil:
         try:
             os.remove(tam_yol)
@@ -228,6 +237,14 @@ def main(argv=None):
                     help="kaynak kopyalandiktan sonra SILINMESIN")
     ap.add_argument("--kuru", action="store_true",
                     help="hicbir sey yazmaz/silmez; ne yapacagini basar")
+    # 🔴 9 Eki 2026 — evict ZORUNLU (bayraksiz kosumda da; sha teyitsiz dosya
+    # EVICT EDILMEZ): `--evict` VARSAYILAN True; `--evict-yapma` ile kapatilir
+    # (yukleme+sha+yukleme_bekle + yerel_sil YINE calisir, evict atlanir).
+    # `--kuru` ile birlikte anlamsizdir (kuru hicbir sey yapmaz).
+    ap.add_argument("--evict", action="store_true", default=True, dest="evict",
+                    help="evict adimi ZORUNLU (varsayilan=True; --evict-yapma ile atla)")
+    ap.add_argument("--evict-yapma", action="store_false", dest="evict",
+                    help="evict adimini ATLA (upload+sha+yukleme_bekle+yerel_sil yine yapilir)")
     ap.add_argument("--evict-komut", default=os.environ.get(EVICT_ENV),
         help="evict komutu (YALNIZ test enjekte eder; verilmezse drive_birak.evict); "
              "'{yol}' placeholder'i veya komut + argüman bicimi")
@@ -263,8 +280,8 @@ def main(argv=None):
     hata_var = False
     bekleyen = []  # [(gore, tam_yol, hedef, yerel_sil)] — sha esit, yukleme+evict sirasi bekler
 
-    print("# drive-arsivle kok=%s hedef=%s kaynak=%s kuru=%d yerel_tut=%d" % (
-        kok, a.hedef, a.kaynak, int(bool(a.kuru)), int(bool(a.yerel_tut))))
+    print("# drive-arsivle kok=%s hedef=%s kaynak=%s kuru=%d yerel_tut=%d evict=%d" % (
+        kok, a.hedef, a.kaynak, int(bool(a.kuru)), int(bool(a.yerel_tut)), int(bool(a.evict))))
     print("# dosya_sayisi=%d" % len(liste))
 
     # ---- ASAMA 1: kopyala + sha256 dogrula (evict/silme YOK) ----

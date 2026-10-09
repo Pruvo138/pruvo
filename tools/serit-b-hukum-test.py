@@ -324,9 +324,7 @@ def api_getir(yol, zaman_asimi=25):
         raise OlcumHatasi("GitHub API yaniti JSON degil (%s): %s" % (e, url))
 
 
-def canli_kosumlar(adet=100, getir=api_getir):
-    """SERIT B is akisinin son `adet` kosumu (EN YENI ONCE). `getir` ENJEKTE
-    EDILEBILIR: fikstur kolu GERCEK govde seklini besler."""
+def _is_akisi_kimligi(getir):
     liste = getir("repos/%s/actions/workflows?per_page=100" % DEPO)
     akislar = (liste or {}).get("workflows")
     if not isinstance(akislar, list):
@@ -334,7 +332,13 @@ def canli_kosumlar(adet=100, getir=api_getir):
     hedef = [w for w in akislar if (w or {}).get("name") == IS_AKISI_ADI]
     if not hedef:
         raise OlcumHatasi("SERIT B is akisi API listesinde YOK: %r" % (IS_AKISI_ADI,))
-    kimlik = hedef[0].get("id")
+    return hedef[0].get("id")
+
+
+def canli_kosumlar(adet=100, getir=api_getir):
+    """SERIT B is akisinin son `adet` kosumu (EN YENI ONCE). `getir` ENJEKTE
+    EDILEBILIR: fikstur kolu GERCEK govde seklini besler."""
+    kimlik = _is_akisi_kimligi(getir)
     govde = getir("repos/%s/actions/workflows/%s/runs?per_page=%d"
                   % (DEPO, kimlik, min(int(adet), 100)))
     kosumlar = (govde or {}).get("workflow_runs")
@@ -342,6 +346,104 @@ def canli_kosumlar(adet=100, getir=api_getir):
         raise OlcumHatasi("kosum listesi cozulemedi (govde sekli beklenenden farkli)")
     return [{"event": k.get("event"), "conclusion": k.get("conclusion"),
              "status": k.get("status")} for k in kosumlar]
+
+
+def head_kolu_kosumlari(getir, adet=2 * ASGARI_HEAD_KOSUM):
+    """HEAD garantili kolun (schedule) son `adet` kosumu — YALNIZ `event=schedule`
+    suzgecli cekim. 🔴 NEDEN AYRI CEKIM (9 Eki 2026, run 37885900198): karisik son
+    100 kosumda push yogun gunde pencere ~1,3 gune kisalir, schedule (gunde ~6)
+    5'in altina duser ve kapi kod kusuru olmadan OLCULEMEDI yanar. Sabit pencere /
+    degisken yogunluk sinifi: HEAD kolu kendi penceresinden olculur.
+    Fail-closed: suzgec calismamis (baska event donmus) · liste yok · tamamlanan
+    kosum ASGARI'nin altinda -> OlcumHatasi (rc 2, sessiz yesil YOK)."""
+    kimlik = _is_akisi_kimligi(getir)
+    govde = getir("repos/%s/actions/workflows/%s/runs?per_page=%d&event=%s"
+                  % (DEPO, kimlik, min(int(adet), 100), HEAD_KOLU))
+    kosumlar = (govde or {}).get("workflow_runs")
+    if not isinstance(kosumlar, list):
+        raise OlcumHatasi("HEAD kolu suzgecli kosum listesi cozulemedi (govde sekli "
+                          "beklenenden farkli)")
+    sade = []
+    for k in kosumlar:
+        ev = (k or {}).get("event")
+        if ev != HEAD_KOLU:
+            raise OlcumHatasi("`event=%s` suzgeci CALISMAMIS: suzgecli cekimde "
+                              "event=%r kaydi dondu" % (HEAD_KOLU, ev))
+        sade.append({"event": ev, "conclusion": k.get("conclusion"),
+                     "status": k.get("status")})
+    tamam = sum(1 for k in sade if (k.get("conclusion") or "").strip())
+    if tamam < ASGARI_HEAD_KOSUM:
+        raise OlcumHatasi("HEAD kolu (%s) suzgecli penceresinde de tamamlanmis kosum "
+                          "%d < %d -> oran OLCULEMEZ" % (HEAD_KOLU, tamam, ASGARI_HEAD_KOSUM))
+    return sade
+
+
+def canli_kol(getir):
+    """CANLI kolun govdesi -> (cikti satirlari, S9 hukmu True/False, S9 notu).
+    Karisik n=100 sayac + KOL satirlari BILGI olarak aynen basilir; HEAD kolu
+    karari (`head_esigi_gecti` girdisi) SUZGECLI listeden hesaplanir."""
+    cikti = []
+    kosumlar = canli_kosumlar(getir=getir)      # OlcumHatasi -> rc=2
+    ozet = hukum_ozeti(kosumlar)
+    cikti.append("  " + sayac_satiri(ozet, "CANLI n=%d" % ozet["toplam"]))
+    cikti.extend(kol_satirlari(ozet))
+    karisik_head = (ozet["kollar"].get(HEAD_KOLU) or {}).get("tamamlanan", 0)
+    head_kosumlari = head_kolu_kosumlari(getir)
+    o_head = hukum_ozeti(head_kosumlari)
+    cikti.append("  " + sayac_satiri(o_head, "CANLI %s suzgecli n=%d"
+                                     % (HEAD_KOLU, o_head["toplam"])))
+    head = o_head["kollar"].get(HEAD_KOLU) or {}
+    if (karisik_head < ASGARI_HEAD_KOSUM
+            and head.get("tamamlanan", 0) >= ASGARI_HEAD_KOSUM):
+        cikti.append("  ⚙ PENCERE SEYRELDI: karisik %d<%d, suzgecli %d"
+                     % (karisik_head, ASGARI_HEAD_KOSUM, head["tamamlanan"]))
+    hukum_var = head_esigi_gecti(o_head)
+    if hukum_var is None:
+        raise OlcumHatasi(
+            "CANLI: HEAD garantili kol (%s) suzgecli penceresinde tamamlanmis kosum "
+            "%d < %d -> oran OLCULEMEZ (sessiz yesil YOK)"
+            % (HEAD_KOLU, head.get("tamamlanan", 0), ASGARI_HEAD_KOSUM))
+    return cikti, hukum_var, "oran=%.0f%% (%d/%d, suzgecli)" % (
+        head["oran"] * 100, head["hukum"], head["tamamlanan"])
+
+
+# ── CANLI KOL FIKSTURU (S10..S12 — getir ENJEKTE, ag YOK) ────────────────────
+def _api_kaydi(event, sonuc):
+    return {"event": event, "conclusion": sonuc,
+            "status": "completed" if sonuc else "queued", "head_sha": "0" * 40}
+
+
+def _fikstur_getir(karisik, suzgecli):
+    """GERCEK govde seklini besleyen sahte `getir`: `event=` suzgeci URL'de
+    VARSA `suzgecli`, YOKSA `karisik` listeyi dondurur."""
+    def getir(yol):
+        if "/actions/workflows?" in yol:
+            return {"workflows": [{"name": IS_AKISI_ADI, "id": 1}]}
+        if "event=%s" % HEAD_KOLU in yol:
+            return {"workflow_runs": [_api_kaydi(e, s) for e, s, n in suzgecli
+                                      for _ in range(n)]}
+        return {"workflow_runs": [_api_kaydi(e, s) for e, s, n in karisik
+                                  for _ in range(n)]}
+    return getir
+
+
+# S10 — 9 Eki 2026 seyrelme vakasi: karisik 100 = 96 push + 4 schedule.
+F_SEYREK_KARISIK = (("push", "failure", 60), ("push", "cancelled", 36),
+                    ("schedule", "success", 4))
+F_SEYREK_SUZGECLI = (("schedule", "success", 8), ("schedule", "failure", 2))
+# S11 — suzgec calismamis: suzgecli cekimde bir `push` kaydi.
+F_SUZGEC_SIZDI = (("schedule", "success", 8), ("schedule", "failure", 1),
+                  ("push", "success", 1))
+# S12 — suzgecli pencere de dolu degil: 3 kayit < ASGARI.
+F_SUZGECLI_AZ = (("schedule", "success", 3),)
+
+
+def _olcum_hatasi_mi(fn):
+    try:
+        fn()
+    except OlcumHatasi as e:
+        return True, str(e)[:110]
+    return False, "OlcumHatasi YUKSELMEDI"
 
 
 # ── KAPI ─────────────────────────────────────────────────────────────────────
@@ -419,28 +521,43 @@ def kosum(yol, canli, getir=api_getir):
           "oran=%s esik=%.2f" % ((o_dusuk["kollar"].get(HEAD_KOLU) or {}).get("oran"),
                                  ESIK_HEAD_ORANI))
 
+    cikti.append("CANLI KOL FIKSTURU (getir ENJEKTE — 9 Eki 2026 pencere seyrelmesi)")
+    try:
+        f_cikti, f_hukum, f_not = canli_kol(
+            _fikstur_getir(F_SEYREK_KARISIK, F_SEYREK_SUZGECLI))
+        seyreldi = any("⚙ PENCERE SEYRELDI: karisik 4<%d, suzgecli 10" % ASGARI_HEAD_KOSUM
+                       in s for s in f_cikti)
+        cikti.extend(s for s in f_cikti if "SEYRELDI" in s)
+    except OlcumHatasi as e:
+        f_hukum, f_not, seyreldi = None, "OLCULEMEDI: %s" % str(e)[:110], False
+    iddia("S10 karisik pencerede schedule 4<%d ama suzgecli 10 -> S9 karari suzgecli "
+          "listeden GECER + `⚙ PENCERE SEYRELDI` basilir" % ASGARI_HEAD_KOSUM,
+          f_hukum is True and seyreldi,
+          "%s seyreldi_satiri=%s" % (f_not, seyreldi))
+
+    ok, not_ = _olcum_hatasi_mi(lambda: canli_kol(
+        _fikstur_getir(F_SEYREK_KARISIK, F_SUZGEC_SIZDI)))
+    iddia("S11 suzgecli cekimde `event=push` kaydi -> OLCULEMEDI (rc 2; suzgec "
+          "calismamis, sessiz yesil YOK)", ok, not_)
+
+    getir_az = _fikstur_getir(F_SEYREK_KARISIK, F_SUZGECLI_AZ)
+    ok_dogrudan, not_ = _olcum_hatasi_mi(lambda: head_kolu_kosumlari(getir_az))
+    ok_kol, _ = _olcum_hatasi_mi(lambda: canli_kol(getir_az))
+    iddia("S12 suzgecli pencere 3 kayit < %d -> OLCULEMEDI (rc 2; hem "
+          "`head_kolu_kosumlari` hem CANLI kol)" % ASGARI_HEAD_KOSUM,
+          ok_dogrudan and ok_kol,
+          "dogrudan=%s kol=%s  %s" % (ok_dogrudan, ok_kol, not_))
+
     cikti.append("CANLI KOL (gercek kosum listesi)")
     if not canli:
         # 🔴 Sessiz atlama YOK: kol ADIYLA "kosulmadi" basar.
         cikti.append("  KOSULMADI: --canli verilmedi (CI kolu: nobet.yml :: cron-nabzi "
                      "job'u, `actions: read` + GITHUB_TOKEN)")
     else:
-        kosumlar = canli_kosumlar(getir=getir)      # OlcumHatasi -> rc=2
-        ozet = hukum_ozeti(kosumlar)
-        cikti.append("  " + sayac_satiri(ozet, "CANLI n=%d" % ozet["toplam"]))
-        cikti.extend(kol_satirlari(ozet))
-        head = ozet["kollar"].get(HEAD_KOLU) or {}
-        hukum_var = head_esigi_gecti(ozet)
-        if hukum_var is None:
-            raise OlcumHatasi(
-                "CANLI: HEAD garantili kol (%s) penceresinde tamamlanmis kosum %d < %d "
-                "-> oran OLCULEMEZ (sessiz yesil YOK)"
-                % (HEAD_KOLU, head.get("tamamlanan", 0), ASGARI_HEAD_KOSUM))
+        c_cikti, hukum_var, c_not = canli_kol(getir)     # OlcumHatasi -> rc=2
+        cikti.extend(c_cikti)
         iddia("S9 CANLI: HEAD garantili kol (%s) hukum orani >= %.0f%%"
-              % (HEAD_KOLU, ESIK_HEAD_ORANI * 100),
-              hukum_var,
-              "oran=%.0f%% (%d/%d)" % (head["oran"] * 100, head["hukum"],
-                                       head["tamamlanan"]))
+              % (HEAD_KOLU, ESIK_HEAD_ORANI * 100), hukum_var, c_not)
 
     print("\n".join(cikti))
     print("\n%d iddia kosturuldu (PASS=%d FAIL=%d)" % (gecen + fail, gecen, fail))
@@ -456,9 +573,9 @@ def kosum(yol, canli, getir=api_getir):
 # DEGISMEZ. Hedef kol ADIYLA yazilir ([[hedef-kol-atfi]]).
 KENDI = os.path.basename(os.path.abspath(__file__))
 # Bunun ALTINA dusen mutant kosumu "kirmizi" degil COKME'dir: kapi erken cikip
-# birkac iddia basarak "olduruldum" gorunmesin. Saglam kosumda 13 iddia basilir
-# (P1..P5 + S1..S8; CANLI kol `--canli` olmadan iddia BASMAZ, ADIYLA "kosulmadi" der).
-TABAN_IDDIA = 13
+# birkac iddia basarak "olduruldum" gorunmesin. Saglam kosumda 16 iddia basilir
+# (P1..P5 + S1..S8 + S10..S12 fikstur; CANLI kol `--canli` olmadan iddia BASMAZ, ADIYLA "kosulmadi" der).
+TABAN_IDDIA = 16
 MUTANTLAR = [
     ("OLDURUCU M1 (P1 · K339 kok nedeni) eszamanlilik grubunu SABIT TEK KOVAYA dondur",
      "is-akisi",
@@ -497,6 +614,18 @@ MUTANTLAR = [
      "kendi",
      "ESIK_HEAD_ORANI = 0.80\n",
      "ESIK_HEAD_ORANI = 0.00\n", "KIRMIZI", "S8"),
+    ("OLDURUCU M9 (S10) suzgecli cekimi kaldir — HEAD karari karisik pencereye doner",
+     "kendi",
+     "    head_kosumlari = head_kolu_kosumlari(getir)\n",
+     "    head_kosumlari = kosumlar\n", "KIRMIZI", "S10"),
+    ("OLDURUCU M10 (S11) suzgecli cekimde `event` dogrulamasini kaldir",
+     "kendi",
+     "        if ev != HEAD_KOLU:\n",
+     "        if False:\n", "KIRMIZI", "S11"),
+    ("OLDURUCU M11 (S12) suzgecli pencerenin adet tabanini ASGARI'nin altina indir",
+     "kendi",
+     "    if tamam < ASGARI_HEAD_KOSUM:\n",
+     "    if tamam < ASGARI_HEAD_KOSUM - 2:\n", "KIRMIZI", "S12"),
     ("KONTROL K1 is akisinda davranissiz yazim (yorum bosluğu) — YESIL kalmali",
      "is-akisi",
      "concurrency:\n  group: nobet-serit-b-",
@@ -543,7 +672,7 @@ def mutasyon():
             elif gecen + fail < TABAN_IDDIA:
                 gozlem = "COKME(olculen iddia sayisi dusuk: %d)" % (gecen + fail)
             elif r.returncode == 1 and kol != "-" and not re.search(
-                    r"^ *FAIL %s" % re.escape(kol.split("/")[0]), cikti, re.M):
+                    r"^ *FAIL %s\b" % re.escape(kol.split("/")[0]), cikti, re.M):
                 # HEDEF-KOL ATFI: kirmizi DOGRU kolda mi? Baska bir kol dustuyse
                 # mutant "olduruldu" sayilmaz.
                 gozlem = "YANLIS-KOL(hedef=%s, dusen=%s)" % (

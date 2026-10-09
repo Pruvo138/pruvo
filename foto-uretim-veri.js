@@ -250,8 +250,8 @@
         palet_bolgeleri: ["renk1", "renk2", "renk3", "renk4"]
       },
       // ANAHTARLIK (K3c; Okan 22:5x/23:0x: kulakçık, metal halka YOK, taban ₺600) — TeKiN köprü kaydı
-      // (isimlik_uret, anahtarlik:true sabiti). Metinler ArTisT tür #5 + tür notu #5 BİREBİR. Örnek kaydı YOK:
-      // sayılan örnek olmadan tür /acik'e girmez, kart çizilmez (TeKiN render'ı gelince ayrı satır).
+      // (isimlik_uret, anahtarlik:true sabiti). Metinler ArTisT tür #5 + tür notu #5 BİREBİR. Örnek kaydı VAR
+      // (TeKiN 9 Eki 10:58, render): sayılan örnek 1, tür /acik'e girer, kart normal çizilir.
       {
         kod: "anahtarlik",
         ad: "Anahtarlık",
@@ -488,6 +488,14 @@
         onizleme: "https://media.pruvo3d.com/foto/ornek/figur-1-render.webp",
         render: "https://media.pruvo3d.com/foto/ornek/figur-1-render.webp",
         not: "130 mm, kaideli figür"
+      },
+      {
+        tur: "anahtarlik",
+        kanit: "render",
+        olcu_mm: 45,
+        onizleme: "https://media.pruvo3d.com/foto/ornek/anahtarlik-1-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/anahtarlik-1-render.webp",
+        not: "45 mm, kulakçıklı, metin: Ayşe"
       }
     ],
 

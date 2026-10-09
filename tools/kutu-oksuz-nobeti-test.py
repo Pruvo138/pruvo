@@ -156,6 +156,14 @@ name: kutu
 A govdesi
 """
 
+# 100+ `## `-baslikli blok, `---`'suz — gercek kutunun bugunku yapisinin fiksturu.
+# Tek satir govde: silinen bir `## ` basliginin etkisini TEK bolut ikip bir bolutta
+# yakalayabilsin diye (her bolut = 1 baslik + 1 govde satiri). Elle liste YAZMA.
+AYRACSIZ_TEMIZ = "\n".join(f"## block {i}\nbody {i}" for i in range(105))
+# 105 blok × 2 satir = 210 satir. Ilk baslik silinince `body 0` bolutsuz (ilk bolut
+# `## ` basliksiz, 1 govde satiri kaliyor) -> OKSUZ rc=1.
+AYRACSIZ_BASLIK_DUSMUS = AYRACSIZ_TEMIZ.split("\n", 1)[1]
+
 
 class Suite:
     def __init__(self):
@@ -289,14 +297,18 @@ def kos(tools, ayrintili=True):
         s.bekle(ad, rc == 0, "rc=%d" % rc)
         goster(ad)
 
-        # ---- 7 ayracsiz (kor) --------------------------------------------
+        # ---- 7 ayracsiz temiz (##-based sinir) -------------------------
+        # Eski VAKA 7 (EKSEN_KOR rc=2) K424 takiple kalkti; gercek kutu `## ` headers
+        # ile bolunuyor ve ayracsiz temiz kutu artik `n=0 rc=0` ile YESIL.
         s.vaka += 1
-        ad = "VAKA 7 ayracsiz cok bloklu kutu = KOR"
+        ad = "VAKA 7 ayracsiz temiz kutu = ##-based YESIL"
         rc, out, _ = cli(tools, "--kutu", p("v7", AYRACSIZ))
-        s.bekle(ad, ilk_satir(out) == "KUTU_OKSUZ_GOVDE=OLCULEMEDI",
-                "KOR hal 0 basilMAMALI: %r" % ilk_satir(out))
-        s.bekle(ad, rc == 2, "rc=%d" % rc)
-        s.bekle(ad, "EKSEN_KOR" in out, out[-300:])
+        s.bekle(ad, ilk_satir(out) == "KUTU_OKSUZ_GOVDE=0",
+                "ayracsiz temiz kutu 0 basmali: %r" % ilk_satir(out))
+        s.bekle(ad, rc == 0, "rc=%d" % rc)
+        s.bekle(ad, "HUKUM: YESIL (rc=0)" in out, out[-200:])
+        s.bekle(ad, "EKSEN_KOR" not in out,
+                "ayracsiz temiz kutu EKSEN_KOR BASMAMALI (yeni yol): %r" % out[-300:])
         goster(ad)
 
         # ---- 8 dosya yok, dizin var --------------------------------------
@@ -436,6 +448,52 @@ def kos(tools, ayrintili=True):
             s.bekle(ad, (rc_cli, out_cli) == (rc, out),
                     "%s: main() ile alt surec AYRISTI" % etiket)
         goster(ad)
+
+        # ---- 18 ayracsiz 100+ bloklu temiz (a) --------------------------
+        # 105 `## `-baslikli blok, `---` yok -> yeni yol `## ` sinir ile TEMIZI
+        # sayiyor (eski EKSEN_KOR rc=2 kalkti).
+        s.vaka += 1
+        ad = "VAKA 18 ayracsiz 100+ bloklu temiz = YESIL"
+        rc, out, _ = cli(tools, "--kutu", p("v18", AYRACSIZ_TEMIZ))
+        s.bekle(ad, ilk_satir(out) == "KUTU_OKSUZ_GOVDE=0",
+                "ilk satir %r" % ilk_satir(out))
+        s.bekle(ad, rc == 0, "rc=%d" % rc)
+        s.bekle(ad, "HUKUM: YESIL (rc=0)" in out, out[-200:])
+        s.bekle(ad, "EKSEN_KOR" not in out,
+                "yeni yol EKSEN_KOR BASMAMALI: %r" % out[-300:])
+        blok_repr = re.search(r"blok=(\d+)", out)
+        s.bekle(ad, blok_repr is not None and int(blok_repr.group(1)) == 105,
+                "blok sayisi 105 olmali: %r" % out[-200:])
+        goster(ad, "(105 blok)")
+
+        # ---- 19 ayracsiz 100+ bloklu, ILK baslik silinmis (b) -----------
+        # AYRACSIZ_TEMIZ'den `## block 0` satirini cikar -> ilk bolut basliksiz
+        # kaliyor; yeni yol onu OKSUZ sayar.
+        s.vaka += 1
+        ad = "VAKA 19 ayracsiz 100+ bloklu, baslik dusmus = KIRMIZI"
+        rc, out, _ = cli(tools, "--kutu", p("v19", AYRACSIZ_BASLIK_DUSMUS))
+        s.bekle(ad, ilk_satir(out) == "KUTU_OKSUZ_GOVDE=1",
+                "ilk satir %r" % ilk_satir(out))
+        s.bekle(ad, rc == 1, "rc=%d" % rc)
+        s.bekle(ad, "HUKUM: KIRMIZI (rc=1)" in out, out[-200:])
+        s.bekle(ad, ("  ! KUTU 1. satir: BASLIKSIZ dolu bolut | body 0") in out,
+                "body 0 satir 1'de BASLIKSIZ olarak basmali: %r" % out[-300:])
+        goster(ad)
+
+        # ---- 20 okunamayan dosya (c) ------------------------------------
+        # UTF-8 degil + dosya yok + dizin yok zaten VAKA 8/9/10'da; burada kapinin
+        # AYNEN korundugunu `---`suz kutu yolunda da gormek icin AYRACSIZ dosyanin
+        # UTF-8 olmayan ikizini okutuyoruz. Boylece (c) nin (a)/(b) ile ayni yolun
+        # parcasi oldugu kanitlaniyor (yoksa VAKA 10'un kapsami farkli kalmis olurdu).
+        s.vaka += 1
+        ad = "VAKA 20 ayracsiz okunamayan = OLCULEMEDI"
+        yol = yaz(os.path.join(kok, "v20", "kutu.md"),
+                  b"\xff\xfe## block 0\nbody 0\n## block 1\n", ikili=True)
+        rc, out, _ = cli(tools, "--kutu", yol)
+        s.bekle(ad, ilk_satir(out) == "KUTU_OKSUZ_GOVDE=OLCULEMEDI", ilk_satir(out))
+        s.bekle(ad, rc == 2, "rc=%d" % rc)
+        s.bekle(ad, "UTF-8" in out, "UTF-8 sebebi basmali: %r" % out[-300:])
+        goster(ad)
     finally:
         shutil.rmtree(kok, ignore_errors=True)
     return s
@@ -453,9 +511,21 @@ MUTANTLAR = (
     ("M2 n>0 halinde cikis kodu 0 (KIRMIZI yutulur)",
      "kutu-oksuz-nobeti.py",
      "    HAL_OKSUZ: RC_KIRMIZI,", "    HAL_OKSUZ: RC_TEMIZ,", True),
-    ("M3 korluk beyani kalkar (ayracsiz kutu 'temiz' sayilir)",
+    ("M3 blok-basi turevimi `---`-yalniz'a geri (ayracsiz EKSEN_KOR rc=2 doner)",
      "kutu-oksuz-nobeti.py",
-     "    elif ayrac == 0 and blok > 1:", "    elif False:", True),
+     "    elif ayrac == 0 and blok > 1:\n"
+     "        # Ayracsiz kutu: ## headers'la bolut sinirini turet, basliksiz bolut varsa OKSUZ.\n"
+     "        yerel = _yerel_ayracsiz_oksuz(m, satirlar, fm_son)\n"
+     "        if yerel:\n"
+     "            sonuc.update(n=len(yerel), ornekler=yerel)\n"
+     "            sonuc[\"hal\"] = HAL_OKSUZ\n"
+     "        else:\n"
+     "            sonuc[\"n\"] = 0\n"
+     "            sonuc[\"hal\"] = HAL_TEMIZ",
+     "    elif ayrac == 0 and blok > 1:\n"
+     "        sonuc[\"n\"] = None\n"
+     "        sonuc[\"hata\"] = (\"kutuda ayrac (`---`) YOK ve %d blok var -> dusen baslik bu eksende YAPISAL OLARAK gorunmez (EKSEN_KOR)\" % blok)",
+     True),
     ("M4 dosya YOK (dizin var) 'temiz' sayilir",
      "kutu-oksuz-nobeti.py",
      "        sonuc[\"hata\"] = \"kutu dosyasi YOK (hafiza dizini var): %s\" % yol\n"

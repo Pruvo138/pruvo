@@ -383,6 +383,41 @@ def _kollar(gecici):
             sys.stdout = eski_stdout
         return rc, buf.getvalue()
 
+    def _calistir_is_ici_l_mut(mod_mut, kaynak, drive_kok, ev_komut, gecici_kok):
+        """M7 icin: mutant modulu sha bozuk copy ile izole kos. Returns (rc, cikti)."""
+        l2_yol = kaynak
+        l2_log = os.path.join(gecici_kok, "l_mut.log")
+        open(l2_log, "w").close()
+        orijinal_copy = mod_mut.shutil.copy2
+
+        def _bad(src, dst, *a, **kw):
+            with open(src, "rb") as f_:
+                v = f_.read()
+            if v:
+                v = v[:-1] + bytes([(v[-1] ^ 0xFF) & 0xFF])
+            with open(dst, "wb") as f_:
+                f_.write(v)
+
+        mod_mut.shutil.copy2 = _bad
+        eski_out2 = sys.stdout
+        eski_log2 = os.environ.get("DRIVE_ARSIVLE_LOG")
+        buf2 = io.StringIO()
+        os.environ["DRIVE_ARSIVLE_LOG"] = l2_log
+        try:
+            sys.stdout = buf2
+            rc2 = mod_mut.main(
+                [l2_yol, "--hedef", "l_mut/", "--drive-kok", drive_kok,
+                 "--evict-komut", ev_komut],
+            )
+        finally:
+            sys.stdout = eski_out2
+            mod_mut.shutil.copy2 = orijinal_copy
+            if eski_log2 is None:
+                os.environ.pop("DRIVE_ARSIVLE_LOG", None)
+            else:
+                os.environ["DRIVE_ARSIVLE_LOG"] = eski_log2
+        return rc2, buf2.getvalue()
+
     try:
         e_hedef_dir = os.path.join(drive, "deneme3")
         os.makedirs(e_hedef_dir, exist_ok=True)
@@ -522,6 +557,95 @@ def _kollar(gecici):
     iddia("K4 evict CAGRILMADI + kaynak DURUYOR",
           "evict=" not in _oku(k_log) and os.path.isfile(k_yol))
 
+    # ---- (j) evict ZORUNLU (9 Eki 2026) — bayraksiz kosumda evict CAGRILIR (sayaç 1) ----
+    print("J — evict ZORUNLU: bayraksiz kosumda evict tam 1 kez CAGRILIR (sayaç kanit)")
+    j_yol = os.path.join(kaynak, "alt", "j.txt")
+    with open(j_yol, "w", encoding="utf-8") as f:
+        f.write("j ici")
+    j_log = os.path.join(gecici, "j.log")
+    open(j_log, "w").close()
+    rc, cikti = kos(
+        [ARAC, j_yol, "--hedef", "zorunlu/", "--drive-kok", drive,
+         "--evict-komut", evict_sh],
+        ortam={"DRIVE_ARSIVLE_LOG": j_log},
+    )
+    j_l = _oku(j_log)
+    iddia("J1 rc=0 (bayraksiz kosum, sha OK)", rc == 0, "rc=%d" % rc)
+    iddia("J2 evict TAM 1 kez cagirildi (sayaç=1)",
+          j_l.count("evict=") == 1, "evict_satiri=%d" % j_l.count("evict="))
+    iddia("J3 DRIVE_ARSIVLE evict_ok=1", "evict_ok=1" in cikti)
+
+    # ---- (l) sha uyusmazsa evict 0 + KAYNAK SILINMEZ (9 Eki 2026) ----
+    print("L — sha uyusmazsa evict CAGRILMAZ (sayaç=0) + KAYNAK SILINMEZ")
+    l_yol = os.path.join(kaynak, "alt", "l.txt")
+    with open(l_yol, "w", encoding="utf-8") as f:
+        f.write("l ici")
+    l_log = os.path.join(gecici, "l.log")
+    open(l_log, "w").close()
+    import io  # noqa: E402
+    eski_out = sys.stdout
+    eski_log = os.environ.get("DRIVE_ARSIVLE_LOG")
+    buf = io.StringIO()
+    orijinal_copy_l = da.shutil.copy2
+
+    def _bad_l(src, dst, *a, **kw):
+        with open(src, "rb") as f_:
+            v = f_.read()
+        if v:
+            v = v[:-1] + bytes([(v[-1] ^ 0xFF) & 0xFF])
+        with open(dst, "wb") as f_:
+            f_.write(v)
+
+    da.shutil.copy2 = _bad_l
+    os.environ["DRIVE_ARSIVLE_LOG"] = l_log
+    try:
+        sys.stdout = buf
+        rc_l = da.main(
+            [l_yol, "--hedef", "sha_uyusmaz/", "--drive-kok", drive,
+             "--evict-komut", evict_sh],
+        )
+    finally:
+        sys.stdout = eski_out
+        da.shutil.copy2 = orijinal_copy_l
+        if eski_log is None:
+            os.environ.pop("DRIVE_ARSIVLE_LOG", None)
+        else:
+            os.environ["DRIVE_ARSIVLE_LOG"] = eski_log
+    l_cikti = buf.getvalue()
+    l_l = _oku(l_log)
+    iddia("L1 rc=1 (sha uyusmadi)", rc_l == 1, "rc=%d" % rc_l)
+    iddia("L2 evict CAGRILMADI (sayaç=0)",
+          l_l.count("evict=") == 0, "evict_satiri=%d" % l_l.count("evict="))
+    iddia("L3 KAYNAK SILINMEDI (sha uyusmazsa yerel durur)",
+          os.path.isfile(l_yol))
+    iddia("L4 HATA=sha-esit-degil satirinda",
+          "HATA=sha-esit-degil" in l_cikti, l_cikti[:200])
+
+    # ---- (m) --evict-yapma bayragi (9 Eki 2026): evict ATLANIR ama upload+sil calisir ----
+    print("M-evict-yapma — --evict-yapma → evict ATLANIR (upload+sil yine yapilir)")
+    m_yol = os.path.join(kaynak, "alt", "m.txt")
+    with open(m_yol, "w", encoding="utf-8") as f:
+        f.write("m ici")
+    m_log = os.path.join(gecici, "m.log")
+    open(m_log, "w").close()
+    rc, cikti = kos(
+        [ARAC, m_yol, "--hedef", "evict_yapma/", "--drive-kok", drive,
+         "--evict-komut", evict_sh, "--evict-yapma"],
+        ortam={"DRIVE_ARSIVLE_LOG": m_log},
+    )
+    m_l = _oku(m_log)
+    iddia("M-ey1 rc=0 (evict atlandi ama akis tamam)", rc == 0, "rc=%d" % rc)
+    iddia("M-ey2 evict CAGRILMADI (sayaç=0, --evict-yapma)",
+          m_l.count("evict=") == 0, "evict_satiri=%d" % m_l.count("evict="))
+    iddia("M-ey3 DRIVE_ARSIVLE evict_ok=0",
+          "evict_ok=0" in cikti, cikti[-200:])
+    iddia("M-ey4 hedef VAR (upload yine yapildi)",
+          os.path.isfile(os.path.join(drive, "evict_yapma", "m.txt")))
+    iddia("M-ey5 KAYNAK SILINDI (evict atlanir ama upload+sira yine siler)",
+          not os.path.exists(m_yol))
+    iddia("M-ey6 DRIVE_ARSIVLE silindi=1",
+          "silindi=1" in cikti, cikti[-200:])
+
     # ---- MUTANTLAR --------
     print()
     print("=" * 70)
@@ -656,6 +780,47 @@ def _kollar(gecici):
     iddia("M5 mutant e-zincir KIRMIZI (bozuk kopyaya evict + yerel sil)",
           "evict CAGRILMADI" in m5_dusen and "yerel kaynak DURUYOR" in m5_dusen,
           "dusen=%s" % m5_dusen)
+
+    # ---- (9 Eki 2026) M6: evict adimi silinince J KIRMIZI ----
+    print()
+    print("M6 — evict adimi silinince (j) KIRMIZI")
+    M6_CAPA = "    if a.evict:"
+    M6_MUT = "    if False and a.evict:"
+    iddia("M6-a CAPA TEKIL", govde.count(M6_CAPA) == 1,
+          "isabet=%d" % govde.count(M6_CAPA))
+    _mut6 = os.path.join(ayna, "tools", "drive-arsivle-m6.py")
+    with open(_mut6, "w", encoding="utf-8") as f:
+        f.write(govde.replace(M6_CAPA, M6_MUT, 1))
+    # J kolu kaynagi siler; M6 icin taze kaynak olustur.
+    j_m6_yol = os.path.join(kaynak, "alt", "m6.txt")
+    with open(j_m6_yol, "w", encoding="utf-8") as f:
+        f.write("m6 ici")
+    m6_log = os.path.join(gecici, "m6.log")
+    open(m6_log, "w").close()
+    rc_m6, cikti_m6 = kos(
+        [_mut6, j_m6_yol, "--hedef", "mutant_m6/", "--drive-kok", drive,
+         "--evict-komut", evict_sh],
+        ortam={"DRIVE_ARSIVLE_LOG": m6_log},
+    )
+    m6_l = _oku(m6_log)
+    iddia("M6-b mutant J kolunda KIRMIZI (evict CAGRILMADI)",
+          m6_l.count("evict=") == 0 and "evict_ok=0" in cikti_m6,
+          "evict_satiri=%d cikti=%s" % (m6_l.count("evict="), cikti_m6[-200:]))
+
+    # ---- (9 Eki 2026) M7: sha kontrolu silinince L KIRMIZI ----
+    print()
+    print("M7 — sha kontrolu silinince (l) KIRMIZI")
+    # M1 zaten sha kontrolunu sifirliyor (if False:); ayni mutant ile L kolunu olc.
+    rc_l_mut, cikti_l_mut = _calistir_is_ici_l_mut(
+        da_m1, l_yol, drive, evict_sh, gecici,
+    )
+    # l_yol SHA tutmuyor (L1). Mutantta sha kontrolu YOK → kod sha_h != sha_k
+    # false goruyor, evict adimina giriyor. L2 evict_sayaci=0 → >0 olur, L3
+    # kaynak silinir.
+    iddia("M7 mutant L kolunda KIRMIZI (sha tutmazsa bile evict + yerel sil)",
+          "evict_ok=1" in cikti_l_mut and not os.path.isfile(l_yol),
+          "evict_ok=%s yerel=%s cikti=%s" % (
+              "evict_ok=1" in cikti_l_mut, os.path.isfile(l_yol), cikti_l_mut[-200:]))
 
     print()
     print("=" * 70)

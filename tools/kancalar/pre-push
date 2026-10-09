@@ -21,6 +21,34 @@ if [ -n "$pruvo_pp_kok" ] && [ -f "$pruvo_pp_kok/tools/kanca-kur.py" ]; then
   fi
 fi
 
+# --- 0a) SENTETIK GIT SIZINTI KAPISI + KANARYA ONCESI (FAIL-CLOSED, 9 Eki 2026) ---
+# OLCULEN OLAY: pre-push icinde kosan bir oz-test vakasi miras GIT_DIR ile GERCEK
+# depoda `git init` kostu -> ortak .git/config core.bare=true + sahte origin ref'leri.
+# Statik kapi vakayi yakaladi ama yalniz SERIT B'de kosuyordu (kirmizi push'tan SONRA).
+# (1) statik kapi (AST, hizli) bataryadan ONCE: SIZDIRIYOR/OLCULEMEDI -> PUSH DURUR.
+# (2) kanarya ONCE goruntusu; SONRASI gecmis geri-donus blogunun ardindan olculur.
+# stdin'e DOKUNMAZ (</dev/null): ref listesi asagidaki bloklarin girdisidir.
+pruvo_kanarya_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$pruvo_kanarya_kok" ] || [ ! -f "$pruvo_kanarya_kok/tools/git-kanarya.py" ] \
+   || [ ! -f "$pruvo_kanarya_kok/tools/fikstur-git-sizinti-kapisi.py" ]; then
+  echo "!! PUSH DURDURULDU — KANARYA/SIZINTI KAPISI KOSULAMADI (arac yok, fail-closed)." >&2
+  exit 1
+fi
+pruvo_sizinti_cikti=$(python3 "$pruvo_kanarya_kok/tools/fikstur-git-sizinti-kapisi.py" </dev/null 2>&1)
+pruvo_sizinti_rc=$?
+if [ "$pruvo_sizinti_rc" -ne 0 ]; then
+  echo "$pruvo_sizinti_cikti" >&2
+  echo "!! PUSH DURDURULDU — SENTETIK GIT SIZINTI KAPISI KIRMIZI/OLCULEMEDI (rc=$pruvo_sizinti_rc)." >&2
+  exit 1
+fi
+pruvo_kanarya_once=$(python3 "$pruvo_kanarya_kok/tools/git-kanarya.py" --olc --depo "$pruvo_kanarya_kok" </dev/null 2>&1)
+pruvo_kanarya_rc=$?
+if [ "$pruvo_kanarya_rc" -ne 0 ]; then
+  echo "$pruvo_kanarya_once" >&2
+  echo "!! PUSH DURDURULDU — KANARYA ONCE olcumu yapilamadi (rc=$pruvo_kanarya_rc, fail-closed)." >&2
+  exit 1
+fi
+
 # --- 0b) CI KAPSAM KAPISI (FAIL-CLOSED, 9 Agu 2026) -------------------------
 # OLCULEN KORLUK: yeni bir `tools/<x>-kapisi.py` yazip `git add` ETMEDEN kapiyi
 # kosan mimar rc=0 "SONUC: YESIL ✅" aliyordu; kirmizi ancak push'tan SONRA
@@ -195,6 +223,19 @@ fi
 exec < "$pruvo_gd_girdi"
 rm -f "$pruvo_gd_girdi"
 # <<< PRUVO GECMIS GERI-DONUS NOBETI BLOGU <<<
+
+# --- KANARYA SONRASI (FAIL-CLOSED, 9 Eki 2026) -------------------------------
+# Fail-closed batarya (0b/0c/K80 oz-testleri/geri-donus) bitti: 0a'daki ONCE goruntusu
+# ile ayni eksenler (core.bare · refs/remotes/origin sayisi · local config sha256)
+# yeniden olculur. Fark = test yuku gercek depoya DOKUNDU -> PUSH DURUR.
+pruvo_kanarya_cikti=$(python3 "$pruvo_kanarya_kok/tools/git-kanarya.py" --karsilastir "$pruvo_kanarya_once" --depo "$pruvo_kanarya_kok" </dev/null 2>&1)
+pruvo_kanarya_rc=$?
+echo "$pruvo_kanarya_cikti"
+if [ "$pruvo_kanarya_rc" -ne 0 ]; then
+  echo "!! PUSH DURDURULDU — KANARYA: pre-push bataryasi gercek depo git durumunu DEGISTIRDI (rc=$pruvo_kanarya_rc)." >&2
+  echo "!! Once/sonra yukarida. core.bare=true ise: git -C \"$pruvo_kanarya_kok\" config core.bare false" >&2
+  exit 1
+fi
 # >>> PRUVO YEDEK BLOGU (tools/yedek-hook-kur.py uretir — ELLE DUZENLEME) >>>
 # FAIL-OPEN: yedek patlasa/Drive olmasa bile push ASLA durmaz (blokta 'exit' YOK).
 # UCUZ: --gerekliyse son damgadan beri degisiklik yoksa tek dosya bile kopyalamaz.
