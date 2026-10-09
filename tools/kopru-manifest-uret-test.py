@@ -5,9 +5,11 @@ IKI KATMAN
   F (HERMETIK, CI'da kosar): sahte kayit + sahte manifest gecici dizinde. Sozluk vakalari (olcu->form,
      tam->adim 1, sayi->adim 0.01, enlem->0.000001, renk->bolge, dosya->form disi, kosul AYNEN, teklif),
      --yaz idempotent (2. kosum degisen=0, bayt ayni), --denetle YESIL; mutantlar KIRMIZI yakmali.
-  R (GERCEK, yalniz TeKiN kaydi diskte varsa): gercek kayit + bu agacin manifesti --denetle YESIL,
-     --yaz kopyada degisen=0; ayni uc mutant gercek kopyalarda KIRMIZI. CI'da TeKiN deposu YOK ->
-     `GERCEK=ATLANDI kayit-yok` satiri basilir (sessiz gecis DEGIL; F katmani yine kosar).
+  R (GERCEK, HERMETIK — sinif-r-k80 9 Eki): repodaki SABIT kayit (jenerator/kopru/, TeKiN kaydinin sha-sabit
+     kopyasi + uretec SEMA'lari + KAYNAK_SHA) + bu agacin manifesti --denetle YESIL, --yaz kopyada degisen=0;
+     mutantlar gercek kopyalarda KIRMIZI. CI'da da KOSAR: `ATLANDI` YOK — kayit yoksa R0 KIRMIZI; R0b: env
+     verilmemisken kayit yolu repo DISINA (makine yolu) donerse KIRMIZI. `KOPRU_KAYIT` env yalniz elle
+     karsilastirma. Bilgi satiri `KAYIT_BAYAT=<n>|OLCULEMEDI` (bloklamaz): sabit sha TeKiN main gerisinde mi.
 MUTANTLAR (gecici kopyalarda; calisma agacina YAZMAZ):
   MK1 kayitta bool->boolean · MK2 manifestte tek alanin kosul'u silindi · MK3 adim dusuruldu (0.01->0.001)
   MK4 kayitta bilinmeyen girdi · MK5 kosul var olmayan alana bakiyor · MK0 kontrol: editoryal metin degisti
@@ -32,8 +34,8 @@ import tempfile
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARAC = os.path.join(KOK, "tools", "kopru-manifest-uret.py")
-GERCEK_KAYIT = os.environ.get("KOPRU_KAYIT") or os.path.expanduser(
-    "~/dev/pruvo-jenerator/jeneratorler/kopru/kopru_kayitlari.json")
+SABIT_KAYIT = os.path.join(KOK, "jenerator", "kopru", "kopru_kayitlari.json")
+GERCEK_KAYIT = os.environ.get("KOPRU_KAYIT") or SABIT_KAYIT
 
 sonuc = {}
 
@@ -302,10 +304,20 @@ def hermetik():
 
 
 def gercek():
-    print("R) GERCEK KAYIT")
+    print("R) GERCEK KAYIT (sabit, repoda)")
+    env = bool(os.environ.get("KOPRU_KAYIT"))
+    vaka("R0b kayit yolu repoda (env yokken makine yolu YASAK)", env or
+         os.path.realpath(GERCEK_KAYIT).startswith(os.path.realpath(KOK) + os.sep),
+         "env=KOPRU_KAYIT" if env else GERCEK_KAYIT)
     if not os.path.isfile(GERCEK_KAYIT):
-        print("GERCEK=ATLANDI kayit-yok (%s; CI'da TeKiN deposu yok — F katmani kosuldu)" % GERCEK_KAYIT)
+        vaka("R0 sabit kayit mevcut", False, "kayit-yok %s (ATLANMAZ — hermetik kayit repoda olmali)" % GERCEK_KAYIT)
         return
+    vaka("R0 sabit kayit mevcut", True, GERCEK_KAYIT)
+    u0 = arac_yukle()
+    if not env:
+        vaka("R0c KAYNAK_SHA satiri + uretec semalari mevcut", bool(u0.sabit_sha()) and
+             isinstance(u0.jenerator_kok(GERCEK_KAYIT), dict), str(u0.sabit_sha()))
+    print(u0.bayat_raporu())
     man = os.path.join(KOK, "foto-uretim-veri.js")
     rc, out = kos("--denetle", "--kayit", GERCEK_KAYIT, "--manifest", man)
     vaka("R1 gercek kayit + manifest --denetle YESIL", rc == 0 and "DENETLE=YESIL" in out, out.strip().splitlines()[-1])

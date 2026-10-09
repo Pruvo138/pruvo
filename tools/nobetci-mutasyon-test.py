@@ -78,6 +78,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 PY = sys.executable or "python3"
 FAILS = []
+# 🔴 OLCULEMEDI != KIRMIZI (9 Eki 2026, sinif-r-k80): olculemeyen eksen YESIL sayilmaz, urun (canli
+# kapi) kirmizisi da harness KIRMIZISI sayilmaz -> ayri liste, ayri ozet satiri, cikis 2 (KIRMIZI=1 onde).
+OLCULEMEDI = []
 
 
 def check(etiket, kosul, detay=""):
@@ -85,6 +88,16 @@ def check(etiket, kosul, detay=""):
     if not kosul:
         FAILS.append(etiket)
     return kosul
+
+
+def olculemedi(etiket, detay=""):
+    print("  [OLCULEMEDI] %s%s" % (etiket, ("  -> " + detay) if detay else ""))
+    OLCULEMEDI.append(etiket)
+
+
+def sonuc_kodu():
+    """1 = en az bir KIRMIZI · 2 = kirmizi yok ama OLCULEMEDI var · 0 = YESIL."""
+    return 1 if FAILS else (2 if OLCULEMEDI else 0)
 
 
 # ---------------------------------------------------------------- ayna (mutasyon KOPYASI)
@@ -872,10 +885,24 @@ def akis_ayna_kur(hedef_kok, mutasyonlar=None):
 
 
 E_KOSUM = [0]      # kac tam kapi kosumu yapildi (sure beyani ciktida turer)
+E_SURELER = []     # (etiket, sn) — komut basina sure ozete basilir (BaBa 21:5x, SERIT B 37805053659)
+# Kapi kosumu BLOK basina zaman asimi (sn): asilirsa OLCULEMEDI (rc 2'ye esler), sessiz bekleme YOK.
+E_BLOK_ZAMAN_ASIMI = int(os.environ.get("PRUVO_E_BLOK_ZAMAN_ASIMI") or 900)
+E_KUYRUK = 30
 
 
-def _e_kos(kok, bayrak=None):
-    """Kapiyi <kok> altinda kostur. Doner: (rc, cikti, coldu, iddia|None)."""
+def _e_taban_ozeti(rc, cikti, sure):
+    """Canli taban kosumu basarisizsa ozete giden satirlar: rc + sure + canli ciktinin SON 30 SATIRI.
+    (CI'da rc=1 / yerelde ayni SHA YESIL ve CIKTI YOK vakasi: hukum ciktisiz kurulamaz.)"""
+    satirlar = (cikti or "").rstrip("\n").splitlines()
+    return (["E-TABAN canli kosum rc=%d sure=%.1f sn satir=%d" % (rc, sure, len(satirlar)),
+             "--- canli kapi ciktisi (son %d satir) ---" % E_KUYRUK]
+            + ["    | " + x for x in satirlar[-E_KUYRUK:]] + ["--- son ---"])
+
+
+def _e_kos(kok, bayrak=None, k80=True):
+    """Kapiyi <kok> altinda kostur. Doner: (rc, cikti, coldu, iddia|None). rc 2 + cikti `ZAMAN-ASIMI`
+    = blok zaman asimi. k80=False -> K80 kolu bu kosumda KOSMAZ (sahibi hijyen-a3; ayni SHA'da 1 kez)."""
     E_KOSUM[0] += 1
     cmd = [PY, os.path.join(kok, "tools", "is-akisi-kapisi.py")]
     if bayrak:
@@ -895,7 +922,16 @@ def _e_kos(kok, bayrak=None):
     if os.path.realpath(kok) != os.path.realpath(ROOT):
         for ad in ("PRUVO_CI_ONCEKI_SHA", "GITHUB_SHA", "GITHUB_EVENT_PATH"):
             ortam.pop(ad, None)
-    r = subprocess.run(cmd, capture_output=True, text=True, env=ortam)
+    if not k80:
+        ortam["PRUVO_K80_IC_KOSUM"] = "1"
+    bas = time.time()
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, env=ortam, timeout=E_BLOK_ZAMAN_ASIMI)
+    except subprocess.TimeoutExpired as e:
+        E_SURELER.append((os.path.basename(kok.rstrip(os.sep)), time.time() - bas))
+        kismi = e.stdout.decode("utf-8", "replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
+        return 2, kismi + "\nZAMAN-ASIMI %d sn (blok basina tavan)" % E_BLOK_ZAMAN_ASIMI, False, None
+    E_SURELER.append((os.path.basename(kok.rstrip(os.sep)), time.time() - bas))
     cikti = (r.stdout or "") + (r.stderr or "")
     m = E_IDDIA_RE.search(cikti)
     return (r.returncode, cikti, "Traceback" in (r.stderr or ""),
@@ -907,17 +943,42 @@ def bolum_e(tmp):
           "(canli dosyaya dokunulmaz)")
     e_baslangic = time.time()
     E_KOSUM[0] = 0
+    del E_SURELER[:]
     oldurulen = 0
     toplam = 7
+
+    # ---- E-OZET (sentetik): basarisiz canli kosumun ozeti CIKTI + SURE tasir ------------
+    _oz = _e_taban_ozeti(1, "\n".join("satir-%02d" % i for i in range(1, 41)), 12.5)
+    check("E-OZET: basarisiz canli kosumda son %d satir + sure ozete basilir" % E_KUYRUK,
+          any(x.endswith("satir-40") for x in _oz) and any(x.endswith("satir-11") for x in _oz)
+          and not any(x.endswith("satir-10") for x in _oz) and "sure=12.5 sn" in _oz[0],
+          "ozet %d satir" % len(_oz))
 
     # ---- CANLI TABAN: aynayi karsilastiracagimiz sayi CANLI depodan olculur -------
     # 🔴 Sabit (204 gibi) YAZILMAZ: ikiz sabit yine sessizce ayrisirdi. Canli kosum
     # kirmiziysa bu bolumun hukmu OLCULEMEDI'dir, "yesil" degil.
-    canli_rc, _cc, canli_coldu, canli_iddia = _e_kos(ROOT)
+    # 🔴 K80 TEK KOSUM (9 Eki, sinif-r-k80): canli taban kosumu K80'i KOSMAZ — ayni SHA'nin
+    # K80 hukmu hijyen-a3 isinde (yeni CI adimlarini GERCEKTEN kosar); burada ikinci kez kosmak
+    # hem sureyi ikiye katlar hem de ciktisiz rc=1 (37805053659) uretiyordu. Iddia sayisi
+    # (kendini-test) ve statik eksenler K80'den BAGIMSIZ kosar. Hijyen-a3 sonucu verilmisse
+    # (`PRUVO_K80_SONUC` = artifact dosyasi) satiri aynen basilir.
+    k80_sonuc = os.environ.get("PRUVO_K80_SONUC", "").strip()
+    if k80_sonuc:
+        try:
+            with open(k80_sonuc, encoding="utf-8") as f:
+                print("  E-TABAN K80 (hijyen-a3 artifact): " + (f.read().strip().splitlines() or ["BOS"])[-1])
+        except OSError as e:
+            olculemedi("E-TABAN K80 artifact okunamadi", "%s (%s)" % (k80_sonuc, e.__class__.__name__))
+    else:
+        print("  E-TABAN K80: bu kosumda KOSULMADI (sahibi hijyen-a3; ayni SHA'da K80 koşum sayisi 1)")
+    canli_rc, _cc, canli_coldu, canli_iddia = _e_kos(ROOT, k80=False)
     if canli_rc != 0 or canli_coldu or canli_iddia is None:
-        check("E-TABAN: CANLI depoda kapi YESIL ve iddia sayisi okunabilir", False,
-              "OLCULEMEDI: canli rc=%d coldu=%s iddia=%s -> ayna karsilastirmasi icin "
-              "taban YOK; bolum E hukum VERMEZ" % (canli_rc, canli_coldu, canli_iddia))
+        for x in _e_taban_ozeti(canli_rc, _cc, E_SURELER[-1][1] if E_SURELER else 0.0):
+            print("  " + x)
+        olculemedi("E-TABAN: CANLI depoda kapi YESIL ve iddia sayisi okunabilir",
+                   "canli rc=%d coldu=%s iddia=%s -> ayna karsilastirmasi icin taban YOK; bolum E "
+                   "hukum VERMEZ (urun kirmizisi harness KIRMIZISI sayilmaz, YESIL de sayilmaz)"
+                   % (canli_rc, canli_coldu, canli_iddia))
         print("  MUTASYON: oldurulen=OLCULEMEDI/%d · kontrol=OLCULEMEDI" % toplam)
         return
     check("E-TABAN: CANLI depoda kapi YESIL (iddia=%d)" % canli_iddia, True,
@@ -1064,6 +1125,7 @@ def bolum_e(tmp):
           "ayna + tam kapi kosumu)"
           % (oldurulen, toplam, "YESIL" if kontrol_yesil and kesif_yasiyor else "KIRMIZI",
              time.time() - e_baslangic, E_KOSUM[0]))
+    print("  KOMUT_SURE: " + " · ".join("%s=%.1f" % (a, t) for a, t in E_SURELER))
 
 
 def main():
@@ -1077,11 +1139,18 @@ def main():
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print("-" * 74)
+    print("KIRMIZI=%d" % len(FAILS))
+    print("OLCULEMEDI=%d" % len(OLCULEMEDI))
+    for f in OLCULEMEDI:
+        print("   ? " + f)
     if FAILS:
         print("SONUC: KIRMIZI ❌  (%d basarisiz)" % len(FAILS))
         for f in FAILS:
             print("   - " + f)
-        return 1
+        return sonuc_kodu()
+    if OLCULEMEDI:
+        print("SONUC: OLCULEMEDI ⚠️  (kirmizi yok, %d eksen olculemedi — YESIL SAYILMAZ) rc=2" % len(OLCULEMEDI))
+        return sonuc_kodu()
     print("SONUC: YESIL ✅  — nobetciler bozulunca KIRMIZI yaniyor (olculdu, tahmin degil).")
     return 0
 

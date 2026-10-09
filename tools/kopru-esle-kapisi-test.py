@@ -15,7 +15,8 @@ IKI KATMAN
         sahte uretec gecici dizinde; zarf anahtari gorurse RET -> `RED on-adim`)
      S3 istege bagli metin alanlari DOLU ("PRUVO") gonderilince ok=true (E bu parametreyle kosar -> alan donusumu
         da olculur)
-  E (TeKiN kaydi diskte varsa; CI'da depo YOK -> `ESLE=ATLANDI kayit-yok` basilir, sessiz gecis DEGIL):
+  E (sinif-r-k80 9 Eki: repodaki SABIT kayit jenerator/kopru/ + uretec_semalari.json -> CI'da da KOSAR;
+     kayit yoksa `ESLE=KIRMIZI kayit-yok` + MA/MS2 SURVIVOR — ATLANDI YOK; `KOPRU_KAYIT` env elle karsilastirma):
      her kopru kaydi (+ teklif turu bust) icin S1'in DOGRULANMIS parametresi + ornek dosya/renk -> esle_<kod>:
      E1 ALAN  cikti anahtarlari ⊆ kayit `parametreler` adlari ∪ cagri bayrak adlari ∪ cagri `sabit` anahtarlari
      E2 TIP   her deger uretecin `SEMA[alan]` kuralina uyar (uretec dosyasindan ast; kayit `sema_adi` doluysa o
@@ -57,8 +58,7 @@ import tempfile
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KOSUCU = os.path.join(KOK, "tools", "foto-uretec-kosucu.py")
 MANIFEST = os.path.join(KOK, "foto-uretim-veri.js")
-GERCEK_KAYIT = os.environ.get("KOPRU_KAYIT") or os.path.expanduser(
-    "~/dev/pruvo-jenerator/jeneratorler/kopru/kopru_kayitlari.json")
+GERCEK_KAYIT = os.environ.get("KOPRU_KAYIT") or os.path.join(KOK, "jenerator", "kopru", "kopru_kayitlari.json")
 
 NODE = (
     "const vm=require('vm'),fs=require('fs');const k={};"
@@ -211,7 +211,7 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
                   [cagri.get(x) for x in ("girdi_bayragi", "cikti_bayragi", "veri_bayragi")]
                   if isinstance(b, str) and b.startswith("--")}
         sema = URET.uretec_semasi(jen, cagri.get("betik"), k.get("sema_adi"))
-        if sema is None and not os.path.isfile(os.path.join(jen, cagri.get("betik") or "")):
+        if sema is None and not URET.uretec_var(jen, cagri.get("betik")):
             kirmizi.append("URETEC-YOK %s=%s" % (kod, cagri.get("betik")))
             continue
         if sema is None:
@@ -371,7 +371,8 @@ MUTANT_MANIFEST = {
         '        palet_bolgeleri: ["renk1", "renk2", "renk3", "renk4"]\n', "", r"PALET-EKSIK yapboz"),
 }
 # Manifest mutantlarindan kalibi YALNIZ E katmaninda yakalananlar (9 Eki olcum: kayitsiz kosumda S `liste:true`
-# silinince REDDETMIYOR -> kalip TIP'ten gelir). Kayit yoksa MA'lar gibi ATLANDI basilir, SURVIVOR sayilmaz.
+# silinince REDDETMIYOR -> kalip TIP'ten gelir). Kayit yoksa (sinif-r-k80: sabit kayit repoda, olmamasi ariza)
+# MA'lar gibi SURVIVOR sayilir — ATLANDI YOK.
 E_GEREKEN_MS = {"MS2 manifestte anahtarlik satirlar liste:true silindi"}
 
 
@@ -398,7 +399,7 @@ def mutant(ad, kayitlar):
         with open(man, "w", encoding="utf-8") as f:
             f.write(ms)
         if (ad in MUTANT_KOSUCU or ad in E_GEREKEN_MS) and kayitlar is None:
-            return True, "ATLANDI kayit-yok (E katmani mutanti)"
+            return False, "kayit-yok (E katmani mutanti olculemedi — sabit kayit repoda olmali)"
         kirmizi, _, _ = kapi(kos, man, kayitlar)
         if kalip is None:
             return not kirmizi, "kirmizi=%d %s" % (len(kirmizi), "; ".join(kirmizi)[:200])
@@ -415,7 +416,8 @@ def main():
     print("S=%s kirmizi=%d" % ("YESIL" if not [k for k in kirmizi if k.startswith(("SUNUCU", "ORNEK"))]
                                 else "KIRMIZI", len([k for k in kirmizi if k.startswith(("SUNUCU", "ORNEK"))])))
     if n is None:
-        print("ESLE=ATLANDI kayit-yok yol=%s" % GERCEK_KAYIT)
+        kirmizi.append("KAYIT-YOK %s" % GERCEK_KAYIT)
+        print("ESLE=KIRMIZI kayit-yok yol=%s" % GERCEK_KAYIT)
     else:
         print("ESLE=%s tur=%d E2_ATLANDI=%d [%s] (uretec SEMA'si ust duzey literal degil)"
               % ("YESIL" if not kirmizi else "KIRMIZI", n, len(atlanan), ",".join(atlanan)))

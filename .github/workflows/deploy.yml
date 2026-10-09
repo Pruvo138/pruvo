@@ -1570,7 +1570,7 @@ jobs:
       # hermetik; acik olmayan kategori 400 mutanti, su gecirmezlik, olcek ekseni, fiyat, onay, 375 px,
       # canliya yazim yasagi mutantlari KIRMIZI (gercek onizleme kosumu CI DISI: --hepsi --kol D).
       # KOPRU MANIFEST URETECI (8 Eki, kopru-15 DILIM-2): TeKiN kayit -> 15 tur satiri sozlugu; hermetik
-      # fikstur + bool->boolean / kosul silme / adim dusurme mutantlari KIRMIZI (gercek kayit katmani CI DISI).
+      # fikstur + bool->boolean / kosul silme / adim dusurme mutantlari KIRMIZI; gercek kayit katmani (R) repodaki SABIT kayitla (jenerator/kopru/, KAYNAK_SHA) CI'da da KOSAR.
       # KOPRU GRUP KOSUCUSU (8 Eki, kopru-15): render->R2->onizleme D1->olcum tek koşucu; sahte komut
       # koşucusuyla hermetik; D1 canliya / R2 200 denetimi silme / gecici dizin silme kaldirma mutantlari KIRMIZI.
       # RENK ESLEME KAPISI (8 Eki, BaBa 15:5x, PARA): ucret alinan her ek renk uretime bagli — fiyata giren renk
