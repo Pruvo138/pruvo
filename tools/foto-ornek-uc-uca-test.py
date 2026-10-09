@@ -822,7 +822,8 @@ def vakalar(kaynak, sadece=None):
 
     def u19(ns):
         # GERCEK manifestin D kolu turleri (yapboz/anahtarlik/bust — form + bool alan): ornek parametre + dosya
-        # hazirlanir, GERCEK VERI.parametreDogrula ok; bust'in bool alanlari (ters/iki_renk) bool.
+        # hazirlanir, GERCEK VERI.parametreDogrula ok; bust'in bool alani (ters) bool. Okan 9 Eki 20:2x: bust formunda
+        # "Boyut" (uzun_kenar_mm) ve "Iki renk" (iki_renk) YOK -> ornek parametrede de yoklar.
         man = {t["kod"]: t for t in ns["manifest_oku"]()["turler"]}
         kodlar = sorted(k for k, t in man.items() if t["motor"] == "D")
         p, sebep = {}, []
@@ -835,7 +836,8 @@ def vakalar(kaynak, sadece=None):
                 continue
             p[kod] = pp
         dg = saf_dogrula(p, [])
-        bool_ok = "bust" in p and all(isinstance(p["bust"][a], bool) for a in ("ters", "iki_renk"))
+        bool_ok = "bust" in p and isinstance(p["bust"].get("ters"), bool) and \
+            not any(a in p["bust"] for a in ("iki_renk", "uzun_kenar_mm"))
         ok = (not sebep and kodlar == ["anahtarlik", "bust", "yapboz"] and len(p) == 3 and
               all(dg[k]["ok"] for k in p) and bool_ok)
         return ok, "sebep=%s dogrula=%s" % (sebep, {k: dg[k].get("hata", "ok") for k in dg})
