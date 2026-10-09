@@ -1653,7 +1653,7 @@ console.log("RO) RENDER ORNEGI — plaket gercek baski beklemeden acilir (Okan 7
 console.log("ES) EKRAN — ① kart: render 'önizleme/render', baski 'basılmış ürün', 'gerçek fotoğraf'/'Gerçek örnekler' 0; ② ornek_notu AYNEN");
 {
   const sinifli = (kok, c) => [...kok.agac()].filter((n) => n.classList.contains(c));
-  const CUMLE_P = "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, birebir aynısı değildir.";
+  const CUMLE_P = "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, tam kopyası değildir.";
   const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] });
   const yol = async (kaynak, V) => {
     const e = await ekranKos(kaynak, V, { acik: true, turler: [tur("plaket", "Kabartma plaket")] });
@@ -3137,19 +3137,31 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
   ol("M-IPTAL-FULL kontrol İptal → ① + sepet 0 + tür boş (3/3)",
      ipKontrol.iptal && ipKontrol.adim1 && ipKontrol.seciliKart === 0,
      JSON.stringify(ipKontrol));
-  const mIFCapa = "S.tur = null;";
+  // capa: iptalBtn'daki S.tur=null + S.kartKod=null iki satırı (unique — başka yerde aynısı yok);
+  // mutant: bu iki satır SİLİNİR → ornekCiz'in kartVurgula'sı S.kartKod hâlâ plaket'i gördüğü için
+  // plaket kartına aria-pressed="true" verir → seciliKart !== 0. Sırf S.tur = null silmek yetmez
+  // (kartVurgula S.kartKod'a bakar, S.tur'a değil), o yüzden ikisini birlikte silmek şart.
+  const mIFCapa = "S.tur = null;\n      S.kartKod = null;";
   const mIFCount = EKRAN_KAYNAK.split(mIFCapa).length - 1;
-  const mIFMutant = mIFCount === 1 ? await iptalFullDene2(EKRAN_KAYNAK.split(mIFCapa).join("// S.tur = null; // MUTANT")) : null;
+  const mIFMutant = mIFCount === 1 ? await iptalFullDene2(EKRAN_KAYNAK.split(mIFCapa).join("// S.tur = null; // S.kartKod = null; // MUTANT")) : null;
   ol("M-IPTAL-FULL mutant İptal sıfırlaması silinince ⇒ tür boş KIRMIZI",
      mIFCount === 1 && !!mIFMutant && mIFMutant.seciliKart !== 0,
      mIFCount === 1 ? JSON.stringify(mIFMutant) : "MUTANT_UYGULANMADI capa_sayisi=" + mIFCount);
 
   // M-TARIF (9 Eki onizleme-duzeltme MUTANT-1)
+  // Tarif gate'ini yalnız başına test edebilmek için diğer tüm kapıları (soru=Hayır / dosya / aydinlatma /
+  // captcha / tur / olcu / form doğrula) YEŞİL yaparız. Tek değişken notZorunlu: not BOŞ bırakılır →
+  // kontrol disabled=true (notZorunlu=false); mutantta notZorunlu=true yapılınca disabled=false
+  // (gate kalktı, düğme açıldı). K2b: soru cevapsızken uyumOK=false → düğme hep kapalı; kontrol bile
+  // geçmez. "Hayır" tıklanır ki foto türünde "belirsiz" kapısı geçsin.
   const tarifDene2 = async (kaynak) => {
     const V = veriYukle(VERI_KAYNAK);
     const e3 = await ekranKos(kaynak, V, acikGercek(V, ["plaket"]),
       undefined, undefined, { turnstileOto: true, zamanlayici: true, kart: "plaket" });
     const dd3 = [...e3.bolum.agac()];
+    // Soru "belirsiz" → uyumOK=false, düğme hep kapalı. foto-uyum-hayir tıklanır.
+    const hyr = dd3.find((n) => n.id === "foto-uyum-hayir");
+    if (hyr) hyr.tetikle("click");
     const dosyaInp3 = dd3.find((n) => n.id === "foto-dosya");
     if (dosyaInp3) { dosyaInp3.files = [{ name: "x.jpg", type: "image/jpeg", size: 1024 }]; dosyaInp3.tetikle("change"); }
     const onay3 = dd3.find((n) => n.id === "foto-aydinlatma-onay");
@@ -3159,12 +3171,102 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
   };
   const tarifKontrol = await tarifDene2(EKRAN_KAYNAK);
   ol("M-TARIF kontrol not boş + onaylı ⇒ onizle disabled=true", tarifKontrol === true, "disabled=" + tarifKontrol);
+  // capa: guncelleS1Buton içindeki notZorunlu satırı (unique); mutant: değeri true yapar →
+  // not boşken bile onizle AÇIK. Sırf satırı yorum yapmak yetmez (undefined && x = undefined,
+  // yine falsy → buton yine disabled; JS sessiz hata sınıfı).
   const mTCapa = "var notZorunlu = !!((S.uretimNotu || \"\").trim());";
   const mTCount = EKRAN_KAYNAK.split(mTCapa).length - 1;
-  const mTNot = mTCount === 1 ? await tarifDene2(EKRAN_KAYNAK.split(mTCapa).join("// notZorunlu silindi")) : null;
-  ol("M-TARIF mutant notZorunlu silinince ⇒ not boşken onizle AÇIK (KIRMIZI)",
+  const mTNot = mTCount === 1 ? await tarifDene2(EKRAN_KAYNAK.split(mTCapa).join("var notZorunlu = true;")) : null;
+  ol("M-TARIF mutant notZorunlu=true ⇒ not boşken onizle AÇIK (KIRMIZI)",
      mTCount === 1 && mTNot === false,
      mTCount === 1 ? "disabled=" + mTNot : "MUTANT_UYGULANMADI capa_sayisi=" + mTCount);
+
+  // M3) METİN/UI İDDİALARI (9 Eki onizleme-duzeltme · 7 iddia) — kaynak + ekrandan TÜRETİLİR, kaynakta
+  // kalan yorum/sabitten ölçülmez (yorum "birebir" YOK sayılır: kod sözleşmesi metni). Ölçüm iki
+  // yüzeyden: (a) kaynak metni kullanıcıya İNEN kısım (render metin); (b) ekran DOM metni.
+  console.log("M3) METİN/UI — 9 Eki onizleme-duzeltme 7 metin iddiası (kaynak + DOM)");
+  {
+    const V = veriYukle(VERI_KAYNAK);
+    const veriKaynak = fs.readFileSync(path.join(KOK, "foto-uretim-veri.js"), "utf8");
+    const kaynak = EKRAN_KAYNAK;
+    // (a) Kaynak metin: tüm fonksiyon/YORUM metni — "birebir" YORUMDA serbest, metinde yasak.
+    // Sırf kullanıcıya inen cümleleri saymak için foto-uretim.js dosyasında KULLANICI METNİ şu:
+    //   - doldurS1Onay içindeki VERI.onay.aydinlatma maddeleri (foto-uretim-veri.js)
+    //   - "Nasıl olsun?" etiketi (madde 1)
+    //   - "Üretim notu zorunlu" ipucu (madde 1)
+    //   - yapboz dürüstlük cümlesi (madde 3)
+    //   - kabartma yönü etiket (madde 6)
+    //   - anahtarlık kart etiketi "Anahtarlık — yakında" (madde 4)
+    // KOLAY ÖLÇÜM: dosyada 'birebir aynısı' geçen TEK kullanıcı yüzeyi (yorum/JS-string tüm metin)
+    // 0 olmalı; "tam kopyası" en az 1 kez (plaket + figür aydinlatma + ana yorum).
+    const birebirAynisi = (kaynak.match(/birebir aynısı değildir/g) || []).length;
+    const tamKopyasi = (kaynak.match(/tam kopyası değildir/g) || []).length;
+    ol("M3-1 'birebir aynısı değildir' kaynakta 0 (madde 8)", birebirAynisi === 0, "birebir=" + birebirAynisi + " tam_kopyasi=" + tamKopyasi);
+    ol("M3-2 'tam kopyası değildir' kaynakta ≥1 (plaket + figür aydinlatma + ana yorum)", tamKopyasi >= 1, "tam_kopyasi=" + tamKopyasi);
+    // (c) "isteğe bağlı" KULLANICI METNİNDE 0 (madde 1: etiket "Nasıl olsun?", "isteğe bağlı" SİLİNDİ).
+    // DOM'dan ölçülür — kaynakta 3 yorum hâlâ "isteğe bağlı" içerir (2D konsept yorumu + 1 satır);
+    // ölçümün amacı kullanıcının GÖRDÜĞÜ metin. plaket kart seçilir → ② "Nasıl olsun?" etiketi.
+    const eI = await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, ["plaket"]), undefined, undefined, { turnstileOto: true, zamanlayici: true, kart: "plaket" });
+    const agacI = [...eI.bolum.agac()];
+    const notLbl = agacI.find((n) => n.tagName === "LABEL" && n.getAttribute("for") === "foto-not");
+    const notLblMetni = notLbl ? notLbl.textContent : "(yok)";
+    const istegeBagliDom = (eI.bolum.textContent.match(/isteğe bağlı/g) || []).length;
+    ol("M3-3 'Nasıl olsun?' etiketi 'isteğe bağlı' içermez (madde 1) — label='" + notLblMetni + "', DOM eşleşme=" + istegeBagliDom,
+       notLblMetni === "Nasıl olsun?" && istegeBagliDom === 0,
+       "label=" + notLblMetni + " dom=" + istegeBagliDom);
+    // (d) "insan yüzünde benzerlik" kaynakta 0 (madde 5: hayvan figürü açıklamasından çıkarıldı).
+    // Yorumda eski bağlam kalabilir (foto-uretim-veri.js:165'te yorum); kullanıcı metni 0 olmalı.
+    const insanYuzu = (kaynak.match(/insan yüzünde benzerlik/g) || []).length;
+    ol("M3-4 'insan yüzünde benzerlik' kaynakta 0 (madde 5 — hayvan kartında yasak)", insanYuzu === 0, "insan_yuzu=" + insanYuzu);
+    // (e) "acik_yuksek" ham değer kodu KULLANICI METNİNDE 0 (madde 6: etiket KODDAN TÜRETİLİR).
+    // KUBAR_ETIKET_MAP sözlüğünde değer kodu AYNEN kalır (köprü manifest şeması); burada ölçülen
+    // select option label DOM'da (kullanıcı görür) "Açık tonlar yüksek" olmalı, "acik_yuksek" değil.
+    // kaynakta option.value = "acik_yuksek" kalır; ölçüm select'in option.textContent'ındadır.
+    // Bu test DOM render'ı bekler; kabartma_yon'u olan bir tür (yapboz) seçilir.
+    const eY = await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, ["yapboz"]), undefined, undefined, { turnstileOto: true, zamanlayici: true, kart: "yapboz" });
+    // yapboz kart tıklanır → ②/③ formu çizilir; kabartma_yon option metni:
+    const opts = [...eY.bolum.agac()].filter((n) => n.tagName === "OPTION" && n.parentNode && n.parentNode.id && n.parentNode.id.indexOf("kabartma_yon") >= 0);
+    const optMetinleri = opts.map((o) => o.textContent);
+    const hamAcikYuksek = optMetinleri.some((m) => /acik_yuksek|koyu_yuksek/.test(m));
+    const acikYuksekEtiket = optMetinleri.some((m) => /Açık tonlar yüksek/.test(m));
+    const koyuYuksekEtiket = optMetinleri.some((m) => /Koyu tonlar yüksek/.test(m));
+    ol("M3-5 kabartma_yon option metni kullanıcıya 'Açık tonlar yüksek' / 'Koyu tonlar yüksek' (madde 6, ham kod 0)",
+       !hamAcikYuksek && acikYuksekEtiket && koyuYuksekEtiket,
+       "ham=" + hamAcikYuksek + " acik=" + acikYuksekEtiket + " koyu=" + koyuYuksekEtiket + " opts=" + JSON.stringify(optMetinleri));
+    // (f) Yapboz dürüstlük cümlesi AYNEN (madde 3).
+    const yapbozCumlesi = "Her yapboz parçası tek renktir; 1–4 parça rengi seçebilirsiniz.";
+    const yapbozVar = veriKaynak.includes(yapbozCumlesi);
+    ol("M3-6 yapboz dürüstlük cümlesi '" + yapbozCumlesi + "' VERI'de aynen (madde 3)", yapbozVar, "bulundu=" + yapbozVar);
+    // (g) Gizlilik cümlesi ④'te 1 (madde 7). VERI'de ONCE ve SONRA 1 kez; ekranda da 1 kez.
+    // (g.1) VERI'de aydinlatma içinde "Gizlilik Politikası" geçen madde sayısı 1.
+    const gizlilikMaddeSayisi = (veriKaynak.match(/Gizlilik Politikası/g) || []).length;
+    ol("M3-7 'Gizlilik Politikası' VERI'de tam 1 kez (madde 7, ④ aydinlatma TEK cümle)", gizlilikMaddeSayisi === 1, "sayi=" + gizlilikMaddeSayisi);
+    // (g.2) Ekran ④'te de aynı cümle 1 kez görünür.
+    // ④'ü göstermek için plaket kart seçili + dosya + aydinlatma onayı + soru Hayır.
+    const eG = await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, ["plaket"]), undefined, undefined, { turnstileOto: true, zamanlayici: true, kart: "plaket" });
+    const agacG = [...eG.bolum.agac()];
+    const hyrG = agacG.find((n) => n.id === "foto-uyum-hayir"); if (hyrG) hyrG.tetikle("click");
+    const dInpG = agacG.find((n) => n.id === "foto-dosya");
+    if (dInpG) { dInpG.files = [{ name: "x.jpg", type: "image/jpeg", size: 1024 }]; dInpG.tetikle("change"); }
+    const onayG = agacG.find((n) => n.id === "foto-aydinlatma-onay");
+    if (onayG) { onayG.checked = true; onayG.tetikle("change"); }
+    // ④'ü açmak için sahte önizleme → pratik değil; bunun yerine doldurS1Onay çağrısının DOM'da
+    // aydinlatma detayini açıp sayalım. Madde 7 metni: "Kişisel verilerinle ilgili haklar ve başvuru
+    // yolu için Gizlilik Politikası sayfasına bakabilirsin." Bu, aydinlatma <details> içinde TEK.
+    const aydinlatmaBlok = agacG.find((n) => n.classList && n.classList.contains("foto-uretim-aydinlatma"));
+    const aydinlatmaMetni = aydinlatmaBlok ? aydinlatmaBlok.textContent : "";
+    const gizlilikEkranda = (aydinlatmaMetni.match(/Gizlilik Politikası/g) || []).length;
+    ol("M3-8 ④ aydinlatma DOM'unda 'Gizlilik Politikası' tam 1 kez (madde 7)",
+       gizlilikEkranda === 1, "ekran=" + gizlilikEkranda);
+    // (h) Anahtarlık kartı 1 ve DEVRE DIŞI (madde 4) — 4 DORT + 1 anahtarlık orneği 0 ⇒ 1 Yakında DEVRE DIŞI.
+    const eA = await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, ["plaket", "figur", "yapboz", "bust", "anahtarlik"]), undefined, undefined, { turnstileOto: true, zamanlayici: true });
+    const kartlarA = [...eA.bolum.agac()].filter((n) => n.classList && n.classList.contains("foto-uretim-kart"));
+    const anahtarlikKart = kartlarA.find((k) => k.getAttribute("data-kart") === "anahtarlik");
+    const anahtarlikVar = !!anahtarlikKart;
+    const anahtarlikDisabled = anahtarlikKart ? (anahtarlikKart.disabled === true && anahtarlikKart.getAttribute("aria-disabled") === "true") : false;
+    ol("M3-9 anahtarlık kartı var VE disabled + aria-disabled=true (madde 4)",
+       anahtarlikVar && anahtarlikDisabled, "var=" + anahtarlikVar + " disabled=" + anahtarlikDisabled);
+  }
 
   // K2b-fin2: düz "aynı" → uygun; "aynısı/aynisini/aynisindan" → uygun_degil.
   const ayniDuzGecer = ["annemle aynı gün doğduk", "ayni gun batimi resmine benzer", "aynı boyutta bir tasarım istiyorum"];
@@ -3341,7 +3443,8 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     return s;
   };
 
-  // E) ① kart sayısı = /acik: anahtarlık /acik'te olsa da kaydı/örneği yokken kart ÇİZİLMEZ; yalnız plaket açıkken 1 kart.
+  // E) ① kart sayısı = /acik: anahtarlık /acik'te olsa da VERI'deki örnek 0 ise kart "Yakında" olarak
+  // ÇİZİLİR ama DEVRE DIŞI (madde 4: TeKiN örneği gelince normal kart olur); yalnız plaket açıkken 1 kart.
   const acikSayisi = async (kaynak) => {
     const V = veriYukle(VERI_KAYNAK);
     const ac = acikGercek(V, DORT);
@@ -3349,8 +3452,14 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     const e1 = await ekranKos(kaynak, V, ac);
     const e2 = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), acikGercek(V, ["plaket"]));
     const n1 = sinifli(e1.bolum, "foto-uretim-kart").length, n2 = sinifli(e2.bolum, "foto-uretim-kart").length;
-    const yakinda = /Yakında/.test(e1.bolum.textContent);
-    return { ACIK_SAYISI: n1 === 5 && n2 === 1 && !yakinda };
+    // /acik'te 4 DORT + 1 anahtarlık = 5 tür; KARTLAR'ın 6 satırı (5 + anahtarlık) 5 türle eşleşir →
+    // e1'de 6 kart (5 normal + 1 "Yakında" DEVRE DIŞI). e2'de yalnız plaket → 1 kart, devre dışı 0.
+    // "yakında" 2 kez çıkar: kart adı "Anahtarlık — yakında" + kart etiket "yakında" (her ikisi de DEVRE DIŞI
+    // kart için gösterilir). Doğru iddia: devre dışı kart sayısı 1.
+    const devreDisiSayisi = sinifli(e1.bolum, "foto-uretim-kart").filter((k) => k.getAttribute("aria-disabled") === "true").length;
+    const s = { ACIK_SAYISI: n1 === 6 && n2 === 1 && devreDisiSayisi === 1 };
+    Object.defineProperty(s, "iz", { value: { n1, n2, devreDisiSayisi }, enumerable: false });
+    return s;
   };
 
   const hepsi = async (kaynak) => ({ ...(await duzen(kaynak)), ...(await ucuncu(kaynak)), ...(await dorduncu(kaynak)),
@@ -3361,7 +3470,7 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     " kart=" + d0.iz.kart.length + " p1_kart_disi_oge=" + d0.iz.p1Disi);
   ol("K3b-1 #fotoUretim cocuk sayisi 1 (tek kutu) + kutu disi oge 0 (bastan sona; govdede bolum disi oge 0)", d0.TEKKUTU, JSON.stringify([d0, d0.iz]));
   ol("K3b-2 ① kart = KARTLAR ∩ /acik: 5/5 (insan · hayvan_model · plaket · bust · yapboz); ① icinde dosya girdisi 0, kart disi oge 0", d0.KART, JSON.stringify(d0.iz));
-  ol("K3b-3 ① kart sayisi /acik'e bagli: anahtarlik kaydi/ornegi yokken cizilmez (5), yalniz plaket acikken 1; 'Yakında' 0", a0.ACIK_SAYISI, JSON.stringify(a0));
+  ol("K3b-3 ① kart sayisi /acik'e bagli: 4 DORT + anahtarlık orneği 0 ⇒ 'Yakında' kart 1 (DEVRE DIŞI) → 6 kart; yalnız plaket açıkken 1 kart, 'Yakında' 0", a0.ACIK_SAYISI, JSON.stringify(a0));
   ol("K3b-4 ayni anda gorunen pencere 1 (9 adimin hepsinde)", d0.TEKPENCERE, JSON.stringify(d0.iz.pen));
   ol("K3b-5 ① secimsiz 'İleri' pasif + 'Geri' gizli", d0.ILERI, JSON.stringify(d0));
   ol("K3b-6 insan + hayvan_model ikisi de tur figur secer (② durustluk figur'un) ve ②'ye gecer", d0.INSAN, JSON.stringify(d0.iz));

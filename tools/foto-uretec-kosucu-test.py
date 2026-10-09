@@ -838,8 +838,7 @@ G2_SATIR = {
         "form": {"uzun_kenar_mm": "sayi", "satir": "sayi", "sutun": "sayi", "tohum": "sayi", "kabartma_yon": "secim"},
         "ornek_render": 1,
         "notu": "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir.",
-        "durust": "Yapboz tek renkli kabartmadır; renkli baskı değildir. Parçalar elle takılır; çocuk oyuncağı olarak "
-                  "belgelendirilmemiştir.",
+        "durust": "Her yapboz parçası tek renktir; 1–4 parça rengi seçebilirsiniz.",
     },
     "anahtarlik": {
         "alan": {"ad": "Anahtarlık", "girdi": ["metin"], "motor": "D", "uretec": "isimlik_uret",
