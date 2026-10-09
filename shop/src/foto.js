@@ -1391,7 +1391,8 @@ function renklerSuz(r) {
 }
 
 /**
- * Sepet kalemi bicimi: {foto_is, olcu_mm, adet[, tur][, renkler][, renk_sayisi][, onizleme_ref][, atif][, secim]}.
+ * Sepet kalemi bicimi: {foto_is, olcu_mm, adet[, tur][, renkler][, renk_sayisi][, renkli][, malzeme][, onizleme_ref]
+ * [, atif][, secim]}. renkli (bool) + malzeme (VERI.MALZEMELER) fiyati belirler (Okan 9 Eki); bilinmeyen deger RED.
  * Normal sepetten gelen foto kalemi (sayfa-3adim) tur/renk_sayisi/onizleme_ref/atif tasir; bunlar YALNIZ dogrulama
  * icindir (tur + renk_sayisi kayda/sunucu sayimina karsi fiyatlamada denetlenir). Istemcinin tutar alanlari
  * (gosterim_kurus, fiyat_kurus, tutar_kurus, ...) kaleme HIC KOPYALANMAZ. Gecersizse {hata}.
@@ -1412,37 +1413,70 @@ export function fotoKalemCoz(k) {
   const rsay = k.renk_sayisi === undefined ? undefined
     : (Number.isInteger(k.renk_sayisi) && k.renk_sayisi >= 1 && k.renk_sayisi <= 8 ? k.renk_sayisi : null);
   if (rsay === null) { return { hata: "gecersiz-renk" }; }
+  if (k.renkli !== undefined && typeof k.renkli !== "boolean") { return { hata: "gecersiz-renk" }; }
+  if (k.malzeme !== undefined && !VERI.malzemeBul(k.malzeme)) { return { hata: "gecersiz-malzeme" }; }
   if (k.onizleme_ref !== undefined && !(typeof k.onizleme_ref === "string" && k.onizleme_ref.length <= 300)) {
     return { hata: "gecersiz-kalem" };
   }
   return { kalem: { foto_is: isNo, olcu_mm: olcu, adet, ...(secim ? { secim } : {}),
                     ...(renkler ? { renkler } : {}), ...(tur ? { tur } : {}),
-                    ...(rsay !== undefined ? { renk_sayisi: rsay } : {}) } };
+                    ...(rsay !== undefined ? { renk_sayisi: rsay } : {}),
+                    ...(k.renkli !== undefined ? { renkli: k.renkli } : {}),
+                    ...(k.malzeme !== undefined ? { malzeme: k.malzeme } : {}) } };
 }
 
 /**
- * Kalemin RENK SAYISI ve renkleri (Okan 8 Eki: ilk renk dahil, her ek renk +100 TL, en cok 4):
- * palet turunde (renk_secimi "palet") kalemin `renkler`i ZORUNLU — 1..tavan oge, hepsi VERI.PLA_RENKLERI'nde,
- * tekrarsiz; bolge turunde AKTIF bolgelerde secilen FARKLI renkler (renk_kosul'u saglanmayan bolge uretilmez ->
- * rengi sayilmaz, BaBa 8 Eki 15:5x); bolgesiz turde 1 (renk listesi bos). `p` = onizleme girdisinin parametreleri.
- * Tavan asilirsa / palet kurali bozuksa null (fiyatlama 400 doner, fail-closed).
+ * Kalemin RENKLERI (Okan 9 Eki: 3 ana renk ya da Renkli): ANA RENKTE (renkli false) urun TEK renk — palet turunde
+ * `renkler` tam 1 oge, bolge turunde AKTIF bolgelerin hepsi ayni renk; renk VERI.ANA_RENKLER'de. RENKLI'de renkler
+ * fotograftan (istemci VERI.fotoRenkleri) — palet turunde 1..tavan, VERI.PLA_RENKLERI'nde, tekrarsiz; bolge turunde
+ * AKTIF bolgelerde FARKLI renk sayisi <= tavan (renk_kosul'u saglanmayan bolge uretilmez -> sayilmaz, BaBa 8 Eki 15:5x).
+ * Renkli yalniz fotografli turde (VERI.renkliSecilebilir). Renk ADEDI fiyata GIRMEZ. Kural bozuksa null (400, fail-closed).
  */
 function renkSayimi(turKod, k, sc, p) {
   const tavan = VERI.renkTavani(turKod);
   if (tavan === null) { return null; }
+  const renkli = k.renkli === true;
+  if (renkli && !VERI.renkliSecilebilir(turKod)) { return null; }
+  const izinli = renkli ? VERI.PLA_RENKLERI : VERI.ANA_RENKLER;
   let renkler;
   if (VERI.renkPaleti(turKod)) {
     const r = Array.isArray(k.renkler) ? k.renkler : [];
-    if (!r.length || new Set(r).size !== r.length || !r.every((x) => VERI.PLA_RENKLERI.includes(x))) { return null; }
+    if (!r.length || new Set(r).size !== r.length || !r.every((x) => izinli.includes(x))) { return null; }
     renkler = r.slice();
   } else {
     renkler = [...new Set(Object.values(VERI.aktifBolgeRenkleri(turKod, (sc && sc.renk) || {}, p)))];
+    if (!renkler.every((x) => izinli.includes(x))) { return null; }
   }
   const n = Math.max(1, renkler.length);
-  return n <= tavan ? { n, renkler } : null;
+  if (!renkli && n !== 1) { return null; }
+  return n <= tavan ? { n, renkler, renkli } : null;
 }
 
-const RENK_HATASI = { hata: { hata: "gecersiz-renk", mesaj: "Renk seçimi geçersiz (1–4 renk, paletten)." }, kod: 400 };
+/**
+ * Kalemin MALZEMESI (Okan 9 Eki: yalniz PLA ya da PETG): kalemin `malzeme`si; yoksa deterministik secimin
+ * `<bolge>_malzeme`si; o da yoksa PLA. Ikisi birden varsa AYNI olmali; deger VERI.MALZEMELER'de ve turun bolge
+ * listelerinde olmali. Gecersizse null.
+ */
+function kalemMalzemesi(turKod, k) {
+  const t = VERI.turBul(turKod) || {};
+  const sc = k.secim || {};
+  const bolgeler = Object.keys(t.malzemeler || {});
+  const secimde = [...new Set(bolgeler.map((b) => sc[b + "_malzeme"]).filter((x) => x !== undefined))];
+  if (secimde.length > 1) { return null; }
+  const m = k.malzeme !== undefined ? k.malzeme : (secimde[0] !== undefined ? secimde[0] : VERI.VARSAYILAN_MALZEME);
+  if (secimde.length && secimde[0] !== m) { return null; }
+  if (!VERI.malzemeBul(m) || !bolgeler.every((b) => (t.malzemeler[b] || []).includes(m))) { return null; }
+  return m;
+}
+
+/** Satir detayindaki fiyat secimi: " · Renkli (+%15)" / " · PETG (+%30)" (ana renk + PLA'da bos). */
+function secimDetay(renkli, malzeme) {
+  const m = VERI.malzemeBul(malzeme);
+  return (renkli ? " · " + VERI.RENKLI_ETIKET : "") + (m && m.ek_yuzde ? " · " + m.kod + " (+%" + m.ek_yuzde + ")" : "");
+}
+
+const RENK_HATASI = { hata: { hata: "gecersiz-renk", mesaj: "Renk seçimi geçersiz (Siyah, Beyaz, Gri ya da Renkli)." }, kod: 400 };
+const MALZEME_HATASI = { hata: { hata: "gecersiz-malzeme", mesaj: "Malzeme seçimi geçersiz (PLA ya da PETG)." }, kod: 400 };
 
 /**
  * Sepetin gosterdigi renk sayisi sunucu sayimiyla AYNI degilse 400 (fail-closed): musteri sepette N renkli fiyat
@@ -1502,9 +1536,12 @@ export async function fotoKalemFiyatla(env, k, simdi) {
     }
   }
   if (deterministikTur(tur.kod)) { return deterministikSatir(env, tur, olcu, k, is); }
-  // Renk sayisi kalemden (palet); birim = TEK formul, renk sayisiyla (ilk renk dahil, her ek renk +ek_renk).
+  // Renkler kalemden (palet); birim = TEK formul, renkli + malzeme carpaniyla (istemci tutari OKUNMAZ).
   const rs = renkSayimi(tur.kod, k, null);
-  const birim = rs ? VERI.fiyatKurus(tur.kod, mm, rs.n) : null;
+  if (!rs) { return RENK_HATASI; }
+  const malz = kalemMalzemesi(tur.kod, k);
+  if (!malz) { return MALZEME_HATASI; }
+  const birim = VERI.fiyatKurus(tur.kod, mm, { renkli: rs.renkli, malzeme: malz });
   if (!(birim > 0)) { return RENK_HATASI; }
   const ru = renkSayisiUyusmaz(k, rs);
   if (ru) { return ru; }
@@ -1515,19 +1552,21 @@ export async function fotoKalemFiyatla(env, k, simdi) {
       baslik: "Fotoğrafından özel üretim — " + tur.ad + " (" + olcu.mm + " mm, ayaklı)",
       kategori: "Özel Üretim",
       gorsel: "",
-      malzeme: "PLA",
+      malzeme: malz,
       renk: rs.renkler.join(", "),
       renk_ozel: "",
       adet: k.adet,
       birim_kurus: birim,
       tutar_kurus: birim * k.adet,
-      parametre_detay: olcu.mm + " mm · önizlemenin " + rs.n + " renkli yorumu" + ekRenkDetay(tur.kod, rs.n) +
+      parametre_detay: olcu.mm + " mm · " + (rs.renkli ? "önizlemenin " + rs.n + " renkli yorumu" : "tek renk") +
+        secimDetay(rs.renkli, malz) +
         " · ayak: " + AYAK_PLAKET_BASI,
       foto_is: is.is_no,
       foto_tur: tur.kod,
       olcu_mm: olcu.mm,
       olcu_kaynagi: olcuKaynagi(tur.kod),
       foto_renkler: rs.renkler,
+      foto_renkli: rs.renkli,
       // URETIMDE UNUTULMASIN: plaket basina ayak (ayri parca, ayni plakada basilir).
       foto_ayak: AYAK_PLAKET_BASI,
     },
@@ -1558,7 +1597,12 @@ async function onizlemeParametreleri(env, isNo) {
 
 /** Deterministik tur odeme satiri: renk/malzeme kalemin seciminden, kayittaki listelere karsi. */
 async function deterministikSatir(env, tur, olcu, k, is) {
-  const sc = secimDogrula(tur.kod, k.secim);
+  // Malzeme TEK kaynak: kalemin malzemesi (yoksa secimin); bolge secimine yazilir, secimDogrula listeye karsi olcer.
+  const malz = kalemMalzemesi(tur.kod, k);
+  if (!malz) { return MALZEME_HATASI; }
+  const ks = { ...(k.secim || {}) };
+  for (const b of Object.keys(VERI.turBul(tur.kod).malzemeler || {})) { ks[b + "_malzeme"] = malz; }
+  const sc = secimDogrula(tur.kod, ks);
   if (!sc) {
     return { hata: { hata: "gecersiz-secim", mesaj: "Renk ya da malzeme seçimi geçersiz." }, kod: 400 };
   }
@@ -1573,9 +1617,9 @@ async function deterministikSatir(env, tur, olcu, k, is) {
     if (sc.malzeme[b]) { secim[b + "_malzeme"] = sc.malzeme[b]; }
     if (renk[b]) { secim[b + "_renk"] = renk[b]; }
   }
-  // Renk sayisi: palet turunde kalemin renkleri, bolge turunde AKTIF bolgelerin FARKLI renkleri (ilk renk dahil).
+  // Renkler: palet turunde kalemin renkleri, bolge turunde AKTIF bolgelerin renkleri (ana renkte hepsi ayni).
   const rs = renkSayimi(tur.kod, k, sc, p);
-  const birim = rs ? VERI.fiyatKurus(tur.kod, olcu.mm, rs.n) : null;
+  const birim = rs ? VERI.fiyatKurus(tur.kod, olcu.mm, { renkli: rs.renkli, malzeme: malz }) : null;
   if (!(birim > 0)) { return RENK_HATASI; }
   const ru = renkSayisiUyusmaz(k, rs);
   if (ru) { return ru; }
@@ -1587,7 +1631,7 @@ async function deterministikSatir(env, tur, olcu, k, is) {
       baslik: "Fotoğrafından özel üretim — " + tur.ad + " (" + olcu.mm + " mm)",
       kategori: "Özel Üretim",
       gorsel: "",
-      malzeme: sc.malzeme[bolgeler[0]] || "PLA",
+      malzeme: malz,
       renk: paletMi ? rs.renkler.join(", ") : bolgeRenk,
       renk_ozel: "",
       adet: k.adet,
@@ -1596,7 +1640,7 @@ async function deterministikSatir(env, tur, olcu, k, is) {
       parametre_detay: olcu.mm + " mm · " + bolgeler.map((b) => bolgeAdi(b) + ": " +
         [sc.malzeme[b], renk[b]].filter(Boolean).join(", ")).join(" · ") +
         (paletMi ? (bolgeler.length ? " · " : "") + "renkler: " + rs.renkler.join(", ") : "") +
-        ekRenkDetay(tur.kod, rs.n),
+        secimDetay(rs.renkli, malz),
       foto_is: is.is_no,
       foto_tur: tur.kod,
       olcu_mm: olcu.mm,
@@ -1604,14 +1648,9 @@ async function deterministikSatir(env, tur, olcu, k, is) {
       foto_kol: "deterministik",
       foto_secim: secim,
       foto_renkler: rs.renkler,
+      foto_renkli: rs.renkli,
     },
   };
-}
-
-/** Satir detayindaki ek renk kalemi: " · ek renk ×N: 200 TL" (N = renk − 1; 0 ise bos). */
-function ekRenkDetay(turKod, n) {
-  const ek = VERI.ekRenkKurus(turKod);
-  return n > 1 && ek !== null ? " · ek renk ×" + (n - 1) + ": " + VERI.tlMetni((n - 1) * ek) : "";
 }
 
 // ---------------------------------------------------------------- cron: uretim zinciri

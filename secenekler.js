@@ -1404,7 +1404,7 @@
   }
 
   // ---- FOTOĞRAFTAN ÖZEL ÜRETİM kalemi (normal sepet; ayrı foto ödeme yolu YOK) ----
-  // Kalem: {foto_is, tur, olcu_mm, renkler[], renk_sayisi, onizleme_ref, atif}. Adet SABİT 1.
+  // Kalem: {foto_is, tur, olcu_mm, renkler[], renk_sayisi, renkli, malzeme, onizleme_ref, atif}. Adet SABİT 1.
   // gosterim_kurus YALNIZ gösterimdir: /baslat'a GÖNDERİLMEZ, Worker (foto.js) fiyatı kendi hesaplar.
   var FOTO_IS_KALIBI = /^[a-f0-9]{32}$/;   // Worker iş numarası kalıbıyla aynı
   var FOTO_TUR_KALIBI = /^[a-z0-9-]{1,40}$/;
@@ -1433,6 +1433,9 @@
       onay_surum: typeof x.onay_surum === "string" ? x.onay_surum.slice(0, 40) : ""
     };
     if (x.secim && typeof x.secim === "object" && !Array.isArray(x.secim)) { s.secim = x.secim; }
+    // Renk/malzeme seçimi Worker'a AYNEN gider (Worker doğrular, bilinmeyeni RED eder); burada yalnız tip süzülür.
+    if (typeof x.renkli === "boolean") { s.renkli = x.renkli; }
+    if (typeof x.malzeme === "string" && x.malzeme.length <= 10) { s.malzeme = x.malzeme; }
     if (typeof x.gecerlilik === "string" && x.gecerlilik.length <= 40) { s.gecerlilik = x.gecerlilik; }
     return s;
   }
@@ -1441,11 +1444,14 @@
     var k = { foto_is: satir.foto_is, tur: satir.tur, olcu_mm: satir.olcu_mm, renkler: fotoRenkler(satir.renkler),
               renk_sayisi: satir.renk_sayisi, onizleme_ref: satir.onizleme_ref || "", atif: satir.atif || {}, adet: 1 };
     if (satir.secim) { k.secim = satir.secim; }
+    if (satir.renkli !== undefined) { k.renkli = satir.renkli; }
+    if (satir.malzeme !== undefined) { k.malzeme = satir.malzeme; }
     return k;
   }
   function fotoSatirOzeti(satir) {
-    var parcalar = [satir.olcu_mm + " mm", satir.renk_sayisi + " renk" +
+    var parcalar = [satir.olcu_mm + " mm", (satir.renkli ? "Renkli" : satir.renk_sayisi + " renk") +
       (satir.renkler && satir.renkler.length ? " (" + satir.renkler.join(", ") + ")" : "")];
+    if (satir.malzeme) { parcalar.push(satir.malzeme); }
     var k = satir.gosterim_kurus == null ? null : satir.gosterim_kurus;
     return {
       detay: parcalar.join(" · "), adet: 1, birimKurus: k, kurus: k,

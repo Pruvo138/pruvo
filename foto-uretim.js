@@ -58,7 +58,7 @@
   var PENCERELER = [
     { no: "①", ad: "Tür seç", aciklama: "6 seçenekten birini seç: insan figürü, hayvan ve model figürü, kabartma plaket, büst, anahtarlık ya da yapboz." },
     { no: "②", ad: "Resim yükle", aciklama: "Resmi yükle; \"Nasıl olsun?\" kısmında ne istediğini kısaca yaz. Uyumsuz resimde tek kısa mesaj gösterilir." },
-    { no: "③", ad: "Renk, boyut ve malzeme", aciklama: "Renk adedi seçtiğin türe göre değişir (ek renk ₺100), boyut sürgüden ayarlanır; malzemeyi listeden seç. Fiyat ölçüye göre canlı görünür; en uzun boyut mm × 10 TL, en az ₺600." },
+    { no: "③", ad: "Renk, boyut ve malzeme", aciklama: "Renk: Siyah, Beyaz, Gri ya da Renkli (+%15; renkler fotoğrafından otomatik seçilir). Malzeme: PLA ya da PETG (+%30). Boyut sürgüden ayarlanır; fiyat ölçüye göre canlı görünür; en uzun boyut mm × 10 TL, en az ₺600." },
     { no: "④", ad: "Önizleme ve onay", aciklama: "Önizlemeyi gör, onayları ver; Sepete ekle açılır." }
   ];
   var SS_IS = "pruvo_foto_is";
@@ -477,12 +477,43 @@
     }, function () { cb(false, 0, null); });
   }
 
+  /* ============== FOTOĞRAFTAN RENK (R2, Okan 9 Eki) ==============
+     "ürünün renk seçimini müşterinin eklediği resime otomatik yapılsın": seçilen fotoğraf 64×64'e küçültülür,
+     F.fotoRenkleri baskın renkleri filament renklerine eşler (tarayıcıda; kredi 0, harici API YOK). */
+  function fotoRenkCikar(dosya) {
+    if (S.fotoRenkDosya === dosya) return;
+    S.fotoRenkDosya = dosya;
+    S.fotoRenkleri = [];
+    var yenile = function () { if (S.alanSecim && S.tur) { doldurS1Secim(); guncelleS1Buton(); } };
+    if (!dosya || !kok.URL || typeof kok.URL.createObjectURL !== "function" || typeof Image === "undefined") {
+      yenile(); return;
+    }
+    var url;
+    try { url = kok.URL.createObjectURL(dosya); } catch (e) { yenile(); return; }
+    var img = new Image();
+    img.onload = function () {
+      try {
+        var tuval = document.createElement("canvas");
+        tuval.width = 64; tuval.height = 64;
+        var ctx = tuval.getContext("2d");
+        ctx.drawImage(img, 0, 0, 64, 64);
+        if (S.fotoRenkDosya === dosya) S.fotoRenkleri = F.fotoRenkleri(ctx.getImageData(0, 0, 64, 64).data, 4);
+      } catch (e) { S.fotoRenkleri = []; }
+      try { kok.URL.revokeObjectURL(url); } catch (e) { }
+      yenile();
+    };
+    img.onerror = function () { try { kok.URL.revokeObjectURL(url); } catch (e) { } };
+    img.src = url;
+  }
+
   /* ============== OTURUM DEPOSU ============== */
   function ssIsKaydet() {
     if (!S.is) return;
     var kayit = { is: S.is, tur: S.tur, olcu: S.olcu };
     if (false && S.secim) kayit.secim = S.secim;
     if (S.renkler && S.renkler.length) kayit.renkler = S.renkler;
+    kayit.renk_secim = S.renkSecim;
+    kayit.malzeme = S.malzeme;
     if (S.aydinlatmaOnay) kayit.onay = F.onay_surum;
     try { sessionStorage.setItem(SS_IS, JSON.stringify(kayit)); }
     catch (e) { }
@@ -577,13 +608,31 @@
     return !!t && !!t.girdi && t.girdi.indexOf("metin") >= 0;
   }
   // Kayıttan varsayılan seçim: her malzeme bölgesinin ilk malzemesi, her renk bölgesinin ilk rengi.
-    // EK RENK (Okan 8 Eki: "ilk renk ücretsiz, her + renk için +100 TL", en çok 4): palet türünde (plaket/figür/büst)
-  // müşterinin seçtiği renkler; bölge türünde bölgelerde seçilen FARKLI renkler; bölgesiz türde 1. Sunucu AYNI sayımı yapar.
+  // RENK + MALZEME (Okan 9 Eki 17:0x): renk 3 ana renkten biri (ürün TEK renk) ya da "Renkli" (+%15; renkler
+  // müşterinin fotoğrafından OTOMATİK, F.fotoRenkleri — tarayıcıda, kredi 0); Renkli yalnız fotoğraflı akışta.
+  // Malzeme PLA ya da PETG (+%30) kartı. Fiyat F.fiyatKurus(kod, mm, fiyatSecimi()) — sunucu AYNI fonksiyonu çağırır.
+  var RENKLI = "Renkli";
+  function renkliSunulur(kod) {
+    return !!F.renkliSecilebilir(kod) && !!(S.fotoRenkleri && S.fotoRenkleri.length);
+  }
+  function renkliMi() { return S.renkSecim === RENKLI && renkliSunulur(S.tur); }
+  function anaRenk() { return F.ANA_RENKLER.indexOf(S.renkSecim) >= 0 ? S.renkSecim : F.VARSAYILAN_RENK; }
+  function seciliMalzeme() { return F.malzemeBul(S.malzeme) ? S.malzeme : F.VARSAYILAN_MALZEME; }
+  function fiyatSecimi() { return { renkli: renkliMi(), malzeme: seciliMalzeme() }; }
+  // Palet türünde renkler: ana renkte [renk]; Renkli'de fotoğraftan çıkan renkler (türün tavanı kadar).
   function paletRenkleri(kod) {
     var tavan = F.renkTavani(kod) || 1;
-    var r = (S.renkler || []).filter(function (x, i, d) { return F.PLA_RENKLERI.indexOf(x) >= 0 && d.indexOf(x) === i; });
-    if (!r.length) r = [F.PLA_RENKLERI[0]];
-    return r.slice(0, tavan);
+    return renkliMi() ? S.fotoRenkleri.slice(0, tavan) : [anaRenk()];
+  }
+  // Bölge türünde (deterministik seçim): ana renkte TÜM bölgeler o renk; Renkli'de fotoğraf renkleri sırayla
+  // (tavan kadar). Malzeme her bölgeye aynı (yığılı gövdede karışık malzeme yok).
+  function secimiEsle(t) {
+    if (!S.secim) return;
+    var bolgeler = t.renk_bolgeleri || [], fr = renkliMi() ? paletRenkleri(t.kod) : [anaRenk()];
+    for (var i = 0; i < bolgeler.length; i++) S.secim[bolgeler[i].kod + "_renk"] = fr[i % fr.length];
+    for (var m in (t.malzemeler || {})) {
+      if (Object.prototype.hasOwnProperty.call(t.malzemeler, m)) S.secim[m + "_malzeme"] = seciliMalzeme();
+    }
   }
   function renkSayisi(nt) {
     if (!nt) return 1;
@@ -594,43 +643,75 @@
     }
     return Math.max(1, fark.length);
   }
-  // Ödeme kalemi: deterministik türde bölge seçimi (yalnız AKTİF bölgelerin rengi), palet türünde renkler
-  // (sunucu ikisini de kayda karşı doğrular).
+  // Ödeme kalemi: deterministik türde bölge seçimi (yalnız AKTİF bölgelerin rengi), palet türünde renkler,
+  // renkli + malzeme (sunucu hepsini kayda karşı doğrular ve fiyatı kendisi hesaplar).
   function sepetKalemi() {
-    var k = { foto_is: S.is, olcu_mm: S.olcu, adet: S.adet };
+    var k = { foto_is: S.is, olcu_mm: S.olcu, adet: S.adet, renkli: renkliMi(), malzeme: seciliMalzeme() };
     if (F.kolu(S.tur) === "deterministik" && S.secim) k.secim = aktifRenkSecimi();
     if (F.renkPaleti(S.tur)) k.renkler = paletRenkleri(S.tur);
     return k;
   }
-  // Palet seçici: 9 PLA rengi, en az 1, en çok tavan (dolunca kalanlar kapalı); değişince özet yeniden çizilir.
-  function paletSecici(nt, degisti) {
-    var tavan = F.renkTavani(nt.kod) || 1;
-    S.renkler = paletRenkleri(nt.kod);
+  // Renk seçici: tek seçim — Siyah · Beyaz · Gri · Renkli (+%15) (Renkli yalnız fotoğraflı akışta, renkler çıktıysa).
+  function renkSecici(nt, degisti) {
+    var secenek = F.ANA_RENKLER.slice();
+    if (renkliSunulur(nt.kod)) secenek.push(RENKLI);
+    if (secenek.indexOf(S.renkSecim) < 0) S.renkSecim = F.VARSAYILAN_RENK;
     var g = el("div", "foto-uretim-form-grup");
     var fs_ = el("fieldset", "foto-uretim-renk-secim");
-    fs_.appendChild(el("legend", "foto-uretim-form-etiket", "Renkler (1–" + tavan + "; ilk renk dahil, her ek renk +" +
-      F.tlMetni(F.ekRenkKurus(nt.kod) || 0) + ")"));
-    for (var i = 0; i < F.PLA_RENKLERI.length; i++) {
+    fs_.appendChild(el("legend", "foto-uretim-form-etiket", "Renk"));
+    for (var i = 0; i < secenek.length; i++) {
       (function (renk) {
         var lbl = el("label", "foto-uretim-form-secenek-inline");
         var inp = el("input");
-        inp.type = "checkbox"; inp.name = "foto-renk"; inp.value = renk;
-        var secili = S.renkler.indexOf(renk) >= 0;
-        inp.checked = secili;
-        // Tavan doluysa seçilmemiş kutular kapalı; tek seçili kutu kaldırılamaz (en az 1 renk).
-        inp.disabled = (!secili && S.renkler.length >= tavan) || (secili && S.renkler.length === 1);
+        inp.type = "radio"; inp.name = "foto-renk"; inp.value = renk;
+        inp.checked = S.renkSecim === renk;
         inp.addEventListener("change", function (e) {
-          var d = S.renkler.slice();
-          if (e.target.checked) { if (d.indexOf(renk) < 0 && d.length < tavan) d.push(renk); }
-          else if (d.length > 1) { d = d.filter(function (x) { return x !== renk; }); }
-          S.renkler = d;
+          if (!e.target.checked) return;
+          S.renkSecim = renk;
           degisti();
         });
-        ek(lbl, inp, " " + renk);
+        ek(lbl, inp, " " + (renk === RENKLI ? F.RENKLI_ETIKET : renk));
         fs_.appendChild(lbl);
-      })(F.PLA_RENKLERI[i]);
+      })(secenek[i]);
     }
     g.appendChild(fs_);
+    if (renkliMi()) {
+      g.appendChild(el("p", "foto-uretim-ayrinti", "Fotoğrafından seçilen renkler: " + paletRenkleri(nt.kod).join(", ")));
+    }
+    return g;
+  }
+  // Malzeme kartları (2. resim): sıcaklık / ad / kullanım / o malzemeyle güncel fiyat; seçili kart lacivert çerçeveli.
+  function malzemeKartFiyati(nt, kod) {
+    var sec = { renkli: renkliMi(), malzeme: kod };
+    if (F.olcuTuretilmis(nt.kod)) return S.fiyatKurus != null ? F.secimliKurus(S.fiyatKurus, sec) : null;
+    return F.fiyatKurus(nt.kod, S.olcu, sec);
+  }
+  function malzemeKartlari(nt, degisti) {
+    var g = el("div", "foto-uretim-malzeme-kartlar");
+    g.setAttribute("role", "radiogroup");
+    g.setAttribute("aria-label", "Malzeme");
+    g.style.display = "flex"; g.style.flexWrap = "wrap"; g.style.gap = "12px";
+    S.malzemeFiyatEl = {};
+    for (var i = 0; i < F.MALZEMELER.length; i++) {
+      (function (m) {
+        var secili = seciliMalzeme() === m.kod;
+        var b = el("button", "foto-uretim-malzeme-kart");
+        b.type = "button";
+        b.setAttribute("role", "radio");
+        b.setAttribute("aria-checked", secili ? "true" : "false");
+        b.setAttribute("data-malzeme", m.kod);
+        b.style.flex = "1 1 140px"; b.style.textAlign = "left"; b.style.padding = "12px";
+        b.style.borderRadius = "8px"; b.style.cursor = "pointer"; b.style.color = "#12294d";
+        b.style.border = secili ? "2px solid #12294d" : "1px solid #c5cbd3";
+        b.style.background = secili ? "#eef2f8" : "#fff";
+        var satirlar = [el("span", "foto-uretim-malzeme-sicaklik", m.sicaklik), el("strong", null, m.kod),
+          el("span", "foto-uretim-malzeme-kullanim", m.kullanim), el("span", "foto-uretim-malzeme-fiyat", "")];
+        for (var j = 0; j < satirlar.length; j++) { satirlar[j].style.display = "block"; b.appendChild(satirlar[j]); }
+        S.malzemeFiyatEl[m.kod] = satirlar[3];
+        b.addEventListener("click", function () { S.malzeme = m.kod; degisti(); });
+        g.appendChild(b);
+      })(F.MALZEMELER[i]);
+    }
     return g;
   }
   function radyoGrubu(kutu, etiket, ad, liste, secili, cb) {
@@ -1076,6 +1157,7 @@
     while (sec.firstChild) sec.removeChild(sec.firstChild);
     sec.hidden = !S.dosya;
     S.yukleEtiket.hidden = !!S.dosya;
+    fotoRenkCikar(S.dosya || null);
     if (S.dosya) {
       if (kok.URL && typeof kok.URL.createObjectURL === "function") {
         try { S.yukleOnizUrl = kok.URL.createObjectURL(S.dosya); } catch (e) { S.yukleOnizUrl = null; }
@@ -1393,8 +1475,8 @@
     return var_ ? c : null;
   }
 
-  // ③ renk + malzeme: palet türünde 1..tavan renk (paletSecici); bölge türünde bölge başına renk;
-  // malzeme listesi kayıttan (bölge başına; boşsa satır çıkmaz). Malzeme fiyata ETKİ ETMEZ.
+  // ③ renk + malzeme (Okan 9 Eki): renk seçici (3 ana renk / Renkli) + PLA/PETG kartları — TÜM türlerde aynı.
+  // Bölge türünde seçim secimiEsle ile bölgelere yazılır (sunucu `<bolge>_renk` / `<bolge>_malzeme` ister).
   function doldurS1Secim() {
     if (!S.alanSecim || !S.alanMalzeme) return;
     while (S.alanSecim.firstChild) S.alanSecim.removeChild(S.alanSecim.firstChild);
@@ -1402,38 +1484,30 @@
     var t = F.turBul(S.tur);
     if (!t) return;
     if (!S.secim) S.secim = varsayilanSecim(S.tur);
-    if (F.renkPaleti(t.kod)) {
-      S.alanSecim.appendChild(paletSecici(t, function () { doldurS1Secim(); guncelleS1Buton(); }));
-    } else {
-      for (var i = 0; i < (t.renk_bolgeleri || []).length; i++) {
-        (function (b) {
-          var g = el("div", "foto-uretim-form-grup");
-          g.setAttribute("data-renk-bolge", b.kod);
-          radyoGrubu(g, b.ad + " rengi", "foto-renk-" + b.kod, b.renkler || [], S.secim[b.kod + "_renk"], function (d) {
-            S.secim[b.kod + "_renk"] = d;
-            guncelleS1Buton();
-          });
-          S.alanSecim.appendChild(g);
-        })(t.renk_bolgeleri[i]);
-      }
-    }
-    var bolgeler = Object.keys(t.malzemeler || {});
-    S.alanMalzeme.hidden = !bolgeler.length;
-    for (var j = 0; j < bolgeler.length; j++) {
-      (function (bolge) {
-        radyoGrubu(S.alanMalzeme, "Malzeme", "foto-malzeme-" + bolge, t.malzemeler[bolge] || [],
-          S.secim[bolge + "_malzeme"], function (d) { S.secim[bolge + "_malzeme"] = d; guncelleS1Buton(); });
-      })(bolgeler[j]);
-    }
+    var degisti = function () { doldurS1Secim(); guncelleS1Buton(); };
+    S.alanSecim.appendChild(renkSecici(t, degisti));
+    S.renkler = paletRenkleri(t.kod);
+    secimiEsle(t);
+    S.alanMalzeme.hidden = false;
+    S.alanMalzeme.appendChild(el("span", "foto-uretim-form-etiket", "Malzeme"));
+    S.alanMalzeme.appendChild(malzemeKartlari(t, degisti));
     renkKosulGuncelle();
+    canliFiyatGuncelle();
   }
 
-  // ③ CANLI FİYAT — TEK formül (F.fiyatKurus; sunucunun ödemede kullandığı AYNI fonksiyon), renk sayısıyla.
+  // ③ CANLI FİYAT — TEK formül (F.fiyatKurus; sunucunun ödemede kullandığı AYNI fonksiyon), renkli + malzemeyle;
+  // malzeme kartlarının fiyatı da buradan (ölçü değişince kartlar da güncellenir).
   function canliFiyatGuncelle() {
     if (!S.alanCanliFiyat) return;
     var nt = seciliTurBul();
-    var kurus = nt && !F.olcuTuretilmis(nt.kod) ? F.fiyatKurus(nt.kod, S.olcu, renkSayisi(nt)) : null;
+    var kurus = nt && !F.olcuTuretilmis(nt.kod) ? F.fiyatKurus(nt.kod, S.olcu, fiyatSecimi()) : null;
     S.alanCanliFiyat.textContent = kurus != null ? "Fiyat: " + F.tlMetni(kurus) : "";
+    var t = F.turBul(S.tur);
+    for (var m in (S.malzemeFiyatEl || {})) {
+      if (!Object.prototype.hasOwnProperty.call(S.malzemeFiyatEl, m)) continue;
+      var k = t ? malzemeKartFiyati(t, m) : null;
+      S.malzemeFiyatEl[m].textContent = k != null ? F.tlMetni(k) : "";
+    }
   }
 
   /* ============== ④ S1 — ÖNİZLEME İSTEĞİ ==============
@@ -1700,7 +1774,7 @@
      sıfırlanır, o yüzden önizleme beklenirken eski fiyat GÖSTERİLMEZ ("hesaplanıyor" yazar). */
   function olculenFiyatEl(bekliyor) {
     return el("p", "foto-uretim-surgu-fiyat foto-uretim-olculen-fiyat", S.fiyatKurus != null
-      ? S.olcu + " mm → " + F.tlMetni(S.fiyatKurus)
+      ? S.olcu + " mm → " + F.tlMetni(F.secimliKurus(S.fiyatKurus, fiyatSecimi()))
       : bekliyor ? "Fiyat hesaplanıyor — önizlemede ölçülen en uzun boyuttan."
       : "Fiyat hesaplanamadı; yeni önizleme oluştur.");
   }
@@ -1775,17 +1849,15 @@
     }
 
     /* ozet */
-    // Birim fiyat TEK formülden (sunucunun ödemede kullandığı AYNI F.fiyatKurus), renk sayısıyla (ek renk dahil).
+    // Birim fiyat TEK formülden (sunucunun ödemede kullandığı AYNI F.fiyatKurus), renkli + malzeme çarpanıyla.
     var rs = renkSayisi(nt);
-    var ekRenk = nt && rs > 1 ? (rs - 1) * (F.ekRenkKurus(nt.kod) || 0) : 0;
-    var fiyat = nt ? (F.olcuTuretilmis(nt.kod) ? (S.fiyatKurus != null ? S.fiyatKurus + ekRenk : null)
-      : F.fiyatKurus(nt.kod, S.olcu, renkSayisi(nt))) : null;
+    var fiyat = nt ? (F.olcuTuretilmis(nt.kod) ? (S.fiyatKurus != null ? F.secimliKurus(S.fiyatKurus, fiyatSecimi()) : null)
+      : F.fiyatKurus(nt.kod, S.olcu, fiyatSecimi())) : null;
     if (fiyat != null) {
       var urunToplam = fiyat * S.adet;
       var kargo = kargoUcreti(urunToplam);
       var genel = urunToplam + kargo;
       var ozet = el("div", "foto-uretim-ozet");
-      if (ekRenk > 0) ozet.appendChild(el("div", null, "Ek renk ×" + (rs - 1) + ": " + tlMetni(ekRenk) + (S.adet > 1 ? " (adet başı)" : "")));
       ozet.appendChild(el("div", null, "Ürün: " + tlMetni(urunToplam)));
       ozet.appendChild(el("div", null, "Gönderim: " + tlMetni(kargo)));
       ozet.appendChild(el("div", null, "Toplam: " + tlMetni(genel)));
@@ -1881,7 +1953,8 @@
 
   /* ============== ③ → NORMAL SEPET ==============
      Ayrı foto ödeme yolu YOK (sayfa-3adim K1): kalem sitenin sepetine girer, ödeme + müşteri bilgisi normal
-     checkout'ta (karma sepet tek ödeme). Kalem {foto_is, tur, olcu_mm, renkler[], renk_sayisi, onizleme_ref, atif};
+     checkout'ta (karma sepet tek ödeme). Kalem {foto_is, tur, olcu_mm, renkler[], renk_sayisi, renkli, malzeme,
+     onizleme_ref, atif};
      gosterim_kurus YALNIZ sepette gösterim içindir — /baslat'a gitmez, Worker fiyatı yeniden hesaplar. */
   function onizlemeRef() {
     var g = S.gorsel;
@@ -1899,6 +1972,7 @@
     }
     var satir = {
       foto_is: S.is, tur: nt.kod, olcu_mm: S.olcu, renkler: renkler, renk_sayisi: rs,
+      renkli: k.renkli, malzeme: k.malzeme,
       onizleme_ref: onizlemeRef(),
       atif: (typeof kok.pruvoAtifTopla === "function") ? kok.pruvoAtifTopla() : {},
       adet: 1,
@@ -1969,6 +2043,12 @@
         S.olcu = kayit.olcu || null;
         if (kayit.secim && typeof kayit.secim === "object") S.secim = kayit.secim;
         if (Array.isArray(kayit.renkler)) S.renkler = kayit.renkler;
+        if (typeof kayit.renk_secim === "string") S.renkSecim = kayit.renk_secim;
+        if (F.malzemeBul(kayit.malzeme)) S.malzeme = kayit.malzeme;
+        // Renkli önizleme yeniden yüklemede fotoğrafsız döner: fotoğraftan çıkmış renkler kayıttan gelir.
+        if (kayit.renk_secim === RENKLI && Array.isArray(kayit.renkler)) {
+          S.fotoRenkleri = kayit.renkler.filter(function (x) { return F.PLA_RENKLERI.indexOf(x) >= 0; }).slice(0, 4);
+        }
         // Onay yalnız AYNI metin sürümüne verildiyse geri gelir (eski sürüm onayı sayılmaz).
         S.aydinlatmaOnay = kayit.onay === F.onay_surum;
         if (S.tur && seciliTurBul()) cizForm();
