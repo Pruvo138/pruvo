@@ -162,7 +162,7 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
         // Plaketle AYNI izin (render gerçek baskı olmadan açılır; Okan 7 Eki kararı).
         ornek_kanit_izni: ["baski", "render"],
-        // Dürüstlük: figür metni — stilize yorum, en çok 4 renk, birebir değil, insan yüzünde benzerlik zayıf.
+        // Dürüstlük: figür metni — stilize yorum, en çok 4 renk, tam kopya değil (madde 5: insan/hayvan ortak, yüz benzerliği iddiası yok).
         durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün bu önizlemenin en çok 4 renkli, sadeleştirilmiş figür yorumu olarak üretilir; tam kopyası değildir, küçük ayrıntılar sadeleşir.",
         ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun sadeleştirilmiş hâlidir, tam kopyası değildir."
       },

@@ -1156,6 +1156,9 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
     setInterval: ek.zamanlayici ? (fn, ms) => { araliklar.push(ms); yoklamalar.push(fn); return 0; } : setInterval,
     clearInterval: ek.zamanlayici ? () => {} : clearInterval,
     PRUVO_SECENEK: { kargoKurus: () => 25000, kurusMetni: (k) => (k / 100).toFixed(2) + " TL" },
+    // ek.sepet (dizi): sitenin sepet kapısı (index.html window.pruvoSepeteFotoEkle) taklidi — kalemler diziye
+    // GERÇEKTEN yazılır; "sepet kalemi 0" iddiası bu diziden ölçülür (etiketten değil).
+    ...(Array.isArray(ek.sepet) ? { pruvoSepeteFotoEkle: (satir) => { ek.sepet.push(satir); return true; } } : {}),
     turnstile: { render: (k, o) => { if (ek.turnstileOto && o && typeof o.callback === "function") { o.callback("t-jeton"); } return 1; },
                  remove() {}, reset() {} },
     // Durumlu sessionStorage (K3b2): kayit + tur seçimiyle başlar; setItem/removeItem gerçekten yazar/siler
@@ -1789,6 +1792,9 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
     const id2 = (x) => d2().find((n) => n.id === x) || null;
     const dos = id2("foto-dosya");
     if (dos) { dos.files = [{ name: "yuz.jpg", type: "image/jpeg", size: 4096 }]; dos.tetikle("change"); }
+    // Madde 1 (Okan 8 Eki 14:1x): tarif ZORUNLU — fikstür temiz tarifi doldurur (iddia/mutant hedefi değişmez).
+    const ta2 = id2("foto-not");
+    if (ta2) { ta2.value = "deniz manzarası"; ta2.tetikle("input"); }
     const hy = id2("foto-uyum-hayir");
     if (hy) { hy.tetikle("click"); }
     const btn2 = id2("foto-onizle-buton");
@@ -1835,8 +1841,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
      "    if (!!(F && F.kolu && F.kolu(S.tur) === \"deterministik\")) { uretecOnizle(); return; }\n", "", ["KUYRUK"]],
     ["FM-M5 uretec yoklama araligi plaketinki", "var aralik = uretec ? URETEC_YOKLAMA_MS : YOKLAMA_MS;", "var aralik = YOKLAMA_MS;", ["KUYRUK"]],
     ["FM-M6 buton kutusuz acilir (S1 kapisi silindi)",
-     "    var tam = uyumOK && (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&",
-     "    var tam = uyumOK && (!!S.dosya || !fotoGerekir()) &&", ["KUTU_SART"]],
+     "    var tam = uyumOK && notZorunlu && (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&",
+     "    var tam = uyumOK && notZorunlu && (!!S.dosya || !fotoGerekir()) &&", ["KUTU_SART"]],
     ["FM-M7 aydinlatma metni dustu (kutu metinsiz kalir)", "    S.alanOnay.appendChild(det);\n\n", "", ["TEK_KUTU_FORM", "TEK_KUTU_PLAKET"]],
     ["FM-M8 govdeye onay alani girmedi", "aydinlatma_onay: !!S.aydinlatmaOnay, onay_surum: F.onay_surum,", "onay_surum: F.onay_surum,", ["KUYRUK"]],
     ["FM-M9 bool degeri dize olarak yazilir", "S.parametre[a] = e.target.checked === true;", "S.parametre[a] = String(e.target.checked);", ["BOOL"]],
@@ -3121,21 +3127,33 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
      !!mIP && !mIP.yukle && !mIP.not && !mIP.uyum, mIPTALUyg ? JSON.stringify(mIP) : "MUTANT_UYGULANMADI");
 
   // M-IPTAL-FULL (9 Eki onizleme-duzeltme MUTANT-2)
-  const iptalFullDene2 = async (kaynak) => {
+  // sepeteDe=true: İptal yerine B2 + "Sepete ekle" tıklanır — sepet kancasının CANLI olduğunu (kalem
+  // gerçekten yazılabiliyor) kanıtlar; yoksa "sepet 0" iddiası ölü kancada da yeşil yanardı.
+  const iptalFullDene2 = async (kaynak, sepeteDe) => {
+    const sepet = [];
     const e2 = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), acikGercek(veriYukle(VERI_KAYNAK), ["plaket", "bust"]),
       { is: "f".repeat(32), tur: "plaket", olcu: 100, onay: veriYukle(VERI_KAYNAK).onay_surum },
       { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" },
-      { turnstileOto: true, zamanlayici: true });
+      { turnstileOto: true, zamanlayici: true, sepet });
+    if (sepeteDe) {
+      const b2 = [...e2.bolum.agac()].find((n) => n.id === "foto-b2-onay");
+      if (b2) { b2.checked = true; b2.tetikle("change"); }
+      const sip = [...e2.bolum.agac()].find((n) => n.id === "foto-sip-btn");
+      if (sip) sip.tetikle("click");
+      return { sepetKalem: sepet.length };
+    }
     const btn2 = [...e2.bolum.agac()].find((n) => n.id === "foto-iptal-btn");
     if (btn2) btn2.tetikle("click");
     const kartlar2 = [...e2.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-kart"));
     const secili2 = kartlar2.filter((k) => k.getAttribute("aria-pressed") === "true");
     const p1 = [...e2.bolum.agac()].find((n) => n.id === "foto-pencere-1");
-    return { iptal: !!btn2, adim1: p1 ? p1.hidden === false : false, seciliKart: secili2.length };
+    return { iptal: !!btn2, adim1: p1 ? p1.hidden === false : false, seciliKart: secili2.length, sepetKalem: sepet.length };
   };
+  const ipCanli = await iptalFullDene2(EKRAN_KAYNAK, true);
+  ol("M-IPTAL-FULL sepet kancasi CANLI (B2 + 'Sepete ekle' ⇒ sepet kalemi 1)", ipCanli.sepetKalem === 1, JSON.stringify(ipCanli));
   const ipKontrol = await iptalFullDene2(EKRAN_KAYNAK);
   ol("M-IPTAL-FULL kontrol İptal → ① + sepet 0 + tür boş (3/3)",
-     ipKontrol.iptal && ipKontrol.adim1 && ipKontrol.seciliKart === 0,
+     ipKontrol.iptal && ipKontrol.adim1 && ipKontrol.seciliKart === 0 && ipKontrol.sepetKalem === 0,
      JSON.stringify(ipKontrol));
   // capa: iptalBtn'daki S.tur=null + S.kartKod=null iki satırı (unique — başka yerde aynısı yok);
   // mutant: bu iki satır SİLİNİR → ornekCiz'in kartVurgula'sı S.kartKod hâlâ plaket'i gördüğü için
