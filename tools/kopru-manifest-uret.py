@@ -44,7 +44,18 @@ KULLANIM
   python3 tools/kopru-manifest-uret.py               # uretilen satirlari JSON basar (yazmaz)
   python3 tools/kopru-manifest-uret.py --yaz         # 15 satiri manifestte yeniden yazar (idempotent)
   python3 tools/kopru-manifest-uret.py --denetle     # manifest == uretim mi? rc 0 YESIL · 1 KIRMIZI · 3 kayit yok
-  --kayit <yol> (varsayilan KOPRU_KAYIT ya da ~/dev/pruvo-jenerator/jeneratorler/kopru/kopru_kayitlari.json)
+  python3 tools/kopru-manifest-uret.py --kayit-tazele  # TeKiN kaydini repoya sabitler (+ SEMA + KAYNAK_SHA) ve --yaz
+  python3 tools/kopru-manifest-uret.py --bayat       # RAPOR: sabit kayit TeKiN main'in kac commit gerisinde (rc 0)
+  --kayit <yol> (varsayilan KOPRU_KAYIT ya da SABIT kayit <repo>/jenerator/kopru/kopru_kayitlari.json)
+
+SABIT KAYIT (sinif-r-k80, 9 Eki 2026): R/E katmanlari makinedeki CANLI TeKiN kaydini (~/dev/pruvo-jenerator)
+okuyordu -> CI'da `ATLANDI`, pre-push'ta TeKiN her push'unda kirmizi. Artik repoda sha-sabit anlik goruntu:
+  jenerator/kopru/kopru_kayitlari.json  (TeKiN kaydinin bayt-esit kopyasi)
+  jenerator/kopru/uretec_semalari.json  ({betik: {SEMA, <sema_adi>...}} — uretec dosyalarindan ast ile)
+  jenerator/kopru/KAYNAK_SHA            (`KAYNAK_SHA=<TeKiN jenerator commit'i>`)
+Guncelleme YALNIZ bilincli commit'le: `--kayit-tazele` (kopya + sema + sha satiri + manifest --yaz).
+`KOPRU_KAYIT` env yalniz elle karsilastirma icindir (kayit yaninda uretec_semalari.json yoksa eski yol:
+SEMA `<jen>/<betik>` dosyasindan).
   --manifest <yol> (varsayilan <repo>/foto-uretim-veri.js)
 """
 import argparse
@@ -56,7 +67,13 @@ import subprocess
 import sys
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-VARSAYILAN_KAYIT = os.path.expanduser("~/dev/pruvo-jenerator/jeneratorler/kopru/kopru_kayitlari.json")
+SABIT_DIZIN = os.path.join(KOK, "jenerator", "kopru")
+SABIT_KAYIT = os.path.join(SABIT_DIZIN, "kopru_kayitlari.json")
+SEMA_DOSYASI = "uretec_semalari.json"
+SABIT_SHA = os.path.join(SABIT_DIZIN, "KAYNAK_SHA")
+TEKIN_KOK = os.environ.get("KOPRU_TEKIN_KOK") or os.path.expanduser("~/dev/pruvo-jenerator")
+TEKIN_KAYIT_GORELI = "jeneratorler/kopru/kopru_kayitlari.json"
+VARSAYILAN_KAYIT = SABIT_KAYIT
 
 GIRDI_ESLE = {"olcu": "form", "foto": "foto-1", "ses": "ses", "metin": "metin", "konum": "konum", "tarih": "tarih"}
 BILINEN_TIP = ("sayi", "tam", "secim", "metin", "bool", "renk", "dosya", "renk_liste")
@@ -89,15 +106,22 @@ def uretec_semasi(jen, betik, sema_adi=None):
     """Uretec dosyasindaki ust duzey `SEMA = {...}` -> {alan: {anahtar: deger}} (ast; YALNIZ literal degerler,
     `float(ARALIK_MAX_MM)` gibi literal olmayanlar atlanir). Dosya/SEMA yok -> None. Uretec import EDILMEZ.
     `sema_adi` (kayit alani, or. ANAHTARLIK_SEMA) verilirse o sozluk SEMA'nin ustune alan alan yazilir; yoksa None."""
-    yol = os.path.join(jen, betik) if jen and betik else ""
-    if not yol or not os.path.isfile(yol):
-        return None
-    with open(yol, encoding="utf-8") as f:
-        agac = ast.parse(f.read(), yol)
-    taban = _sozluk_oku(agac, "SEMA")
+    if isinstance(jen, dict):  # sabit kayit: uretec_semalari.json (betik -> {sozluk_adi: sozluk})
+        ent = jen.get(betik) if betik else None
+        if not isinstance(ent, dict):
+            return None
+        oku = lambda ad: json.loads(json.dumps(ent[ad])) if isinstance(ent.get(ad), dict) else None  # noqa: E731
+    else:
+        yol = os.path.join(jen, betik) if jen and betik else ""
+        if not yol or not os.path.isfile(yol):
+            return None
+        with open(yol, encoding="utf-8") as f:
+            agac = ast.parse(f.read(), yol)
+        oku = lambda ad: _sozluk_oku(agac, ad)  # noqa: E731
+    taban = oku("SEMA")
     if taban is None or not sema_adi or sema_adi == "SEMA":
         return taban
-    ust = _sozluk_oku(agac, sema_adi)
+    ust = oku(sema_adi)
     if ust is None:
         return None
     for alan, kural in ust.items():
@@ -287,8 +311,105 @@ def teklif_parametreleri(kayit, hatalar):
 
 
 def jenerator_kok(kayit_yolu):
-    """`<jen>/jeneratorler/kopru/kopru_kayitlari.json` -> `<jen>` (cagri.betik bu koke goreli)."""
+    """`<jen>/jeneratorler/kopru/kopru_kayitlari.json` -> `<jen>` (cagri.betik bu koke goreli).
+    Kayit yaninda `uretec_semalari.json` varsa (SABIT kayit) -> o sozluk (dict); uretec deposu GEREKMEZ."""
+    sd = os.path.join(os.path.dirname(os.path.abspath(kayit_yolu)), SEMA_DOSYASI)
+    if os.path.isfile(sd):
+        with open(sd, encoding="utf-8") as f:
+            return json.load(f)
     return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(kayit_yolu))))
+
+
+def uretec_var(jen, betik):
+    """Uretec kaynagi bu betigi taniyor mu (dosya ya da sabit sema kaydi)."""
+    if not jen or not betik:
+        return False
+    if isinstance(jen, dict):
+        return isinstance(jen.get(betik), dict)
+    return os.path.isfile(os.path.join(jen, betik))
+
+
+def semalari_cikar(kayitlar, jen):
+    """Gercek uretec deposundan {betik: {"SEMA": .., <sema_adi>: ..}} (yalniz ast literal; import YOK)."""
+    cikti = {}
+    for k in kayitlar.get("kayitlar") or []:
+        betik = (k.get("cagri") or {}).get("betik")
+        yol = os.path.join(jen, betik) if betik else ""
+        if not yol or not os.path.isfile(yol):
+            continue
+        with open(yol, encoding="utf-8") as f:
+            agac = ast.parse(f.read(), yol)
+        ent = cikti.setdefault(betik, {})
+        for ad in ("SEMA", k.get("sema_adi")):
+            if ad and ad not in ent:
+                s = _sozluk_oku(agac, ad)
+                if s is not None:
+                    ent[ad] = s
+    return cikti
+
+
+def _git(kok, *arg):
+    p = subprocess.run(["git", "-C", kok] + list(arg), capture_output=True, text=True)
+    return p.returncode, p.stdout.strip()
+
+
+def sabit_sha(yol=SABIT_SHA):
+    try:
+        with open(yol, encoding="utf-8") as f:
+            m = re.search(r"^KAYNAK_SHA=([0-9a-f]{40})$", f.read(), re.M)
+        return m.group(1) if m else None
+    except OSError:
+        return None
+
+
+def kayit_tazele(tekin=TEKIN_KOK, dizin=SABIT_DIZIN):
+    """TeKiN kaydi -> repoda sabit kopya + sema + KAYNAK_SHA. Kaynak kirliyse (kayit/uretec HEAD'den farkli) RED."""
+    kaynak = os.path.join(tekin, TEKIN_KAYIT_GORELI)
+    rc, sha = _git(tekin, "rev-parse", "HEAD")
+    if rc != 0 or not re.fullmatch(r"[0-9a-f]{40}", sha) or not os.path.isfile(kaynak):
+        print("HAL=TAZELE-RED sebep=tekin-deposu-yok kok=%s rc=3" % tekin)
+        return 3
+    with open(kaynak, "rb") as f:
+        ham = f.read()
+    kayitlar = json.loads(ham.decode("utf-8"))
+    betikler = sorted({(k.get("cagri") or {}).get("betik") for k in kayitlar.get("kayitlar") or []} - {None})
+    _, kirli = _git(tekin, "status", "--porcelain", "--", TEKIN_KAYIT_GORELI, *betikler)
+    if kirli:
+        print("HAL=TAZELE-RED sebep=kaynak-kirli (KAYNAK_SHA ile bayt-esit olmaz) %s rc=3" % kirli.replace("\n", " | "))
+        return 3
+    semalar = semalari_cikar(kayitlar, tekin)
+    os.makedirs(dizin, exist_ok=True)
+    with open(os.path.join(dizin, "kopru_kayitlari.json"), "wb") as f:
+        f.write(ham)
+    with open(os.path.join(dizin, SEMA_DOSYASI), "w", encoding="utf-8") as f:
+        json.dump(semalar, f, ensure_ascii=False, indent=1, sort_keys=True)
+        f.write("\n")
+    with open(os.path.join(dizin, "KAYNAK_SHA"), "w", encoding="utf-8") as f:
+        f.write("KAYNAK_SHA=%s\n" % sha)
+    print("TAZELE kayit=%d bayt betik=%d sema=%d KAYNAK_SHA=%s" % (len(ham), len(betikler),
+                                                                 sum(len(v) for v in semalar.values()), sha))
+    return 0
+
+
+def bayat_raporu(tekin=TEKIN_KOK, sha_yolu=SABIT_SHA, kayit_yolu=SABIT_KAYIT):
+    """RAPOR satiri (bloklamaz): sabit kayit sha'si TeKiN main'in kac commit gerisinde."""
+    sha = sabit_sha(sha_yolu)
+    if not sha:
+        return "KAYIT_BAYAT=OLCULEMEDI sebep=KAYNAK_SHA-yok"
+    rc, ana = _git(tekin, "rev-parse", "--verify", "-q", "main")
+    if rc != 0 or not ana:
+        return "KAYIT_BAYAT=OLCULEMEDI sebep=tekin-deposu-yok kaynak=%s" % sha[:8]
+    rc, n = _git(tekin, "rev-list", "--count", "%s..%s" % (sha, ana))
+    if rc != 0:
+        return "KAYIT_BAYAT=OLCULEMEDI sebep=KAYNAK_SHA-tekin'de-yok kaynak=%s" % sha[:8]
+    rc2, ham = _git(tekin, "show", "%s:%s" % (ana, TEKIN_KAYIT_GORELI))
+    try:
+        with open(kayit_yolu, encoding="utf-8") as f:
+            ayni = rc2 == 0 and json.loads(ham) == json.load(f)
+    except (OSError, ValueError):
+        ayni = False
+    return "KAYIT_BAYAT=%s kaynak=%s tekin_main=%s kayit_icerik=%s" % (n, sha[:8], ana[:8],
+                                                                      "AYNI" if ayni else "FARKLI")
 
 
 def hepsini_uret(kayitlar, jen=None):
@@ -302,7 +423,7 @@ def hepsini_uret(kayitlar, jen=None):
         betik = (k.get("cagri") or {}).get("betik")
         # Uretec dosyasi VAR ama `sema_adi` sozlugu yok -> KIRMIZI (dosya yoksa — CI / kopya kayit — eski davranis:
         # metin tavani kayittan).
-        if k.get("sema_adi") and sema is None and jen and betik and os.path.isfile(os.path.join(jen, betik)):
+        if k.get("sema_adi") and sema is None and uretec_var(jen, betik):
             hatalar.append("sema-adi-yok:%s=%s" % (k.get("kod"), k.get("sema_adi")))
         s, h = satir_uret(k, sema=sema)
         satirlar[k.get("kod")] = s
@@ -509,7 +630,17 @@ def main():
     kip = ap.add_mutually_exclusive_group()
     kip.add_argument("--yaz", action="store_true")
     kip.add_argument("--denetle", action="store_true")
+    kip.add_argument("--kayit-tazele", action="store_true")
+    kip.add_argument("--bayat", action="store_true")
     a = ap.parse_args()
+    if a.bayat:
+        print(bayat_raporu())
+        return 0
+    if a.kayit_tazele:
+        rc = kayit_tazele()
+        if rc:
+            return rc
+        a.kayit, a.yaz = SABIT_KAYIT, True
     try:
         with open(a.kayit, encoding="utf-8") as f:
             kayitlar = json.load(f)

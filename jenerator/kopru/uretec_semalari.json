@@ -1,0 +1,179 @@
+{
+ "jeneratorler/foto/isimlik_uret.py": {
+  "ANAHTARLIK_SEMA": {
+   "genislik_mm": {
+    "max": 80.0,
+    "min": 30.0,
+    "tip": "float"
+   },
+   "kontur_tasma_mm": {
+    "max": 3.0,
+    "min": 1.0,
+    "tip": "float"
+   }
+  },
+  "SEMA": {
+   "anahtarlik": {
+    "tip": "bool",
+    "varsayilan": false
+   },
+   "anahtarlik_delik_cap_mm": {
+    "max": 4.0,
+    "min": 3.5,
+    "tip": "float",
+    "varsayilan": 3.8
+   },
+   "anahtarlik_kulak_dis_cap_mm": {
+    "max": 9.0,
+    "min": 7.0,
+    "tip": "float",
+    "varsayilan": 8.0
+   },
+   "anahtarlik_kulak_konum": {
+    "secenekler": [
+     "sol-ust",
+     "sag-ust",
+     "ust-orta"
+    ],
+    "tip": "enum",
+    "varsayilan": "sol-ust"
+   },
+   "delik_cap_mm": {
+    "max": 5.0,
+    "min": 4.0,
+    "tip": "float",
+    "varsayilan": 4.5
+   },
+   "genislik_mm": {
+    "max": 400.0,
+    "min": 20.0,
+    "tip": "float",
+    "zorunlu": true
+   },
+   "hizalama": {
+    "secenekler": [
+     "sol",
+     "orta",
+     "sag"
+    ],
+    "tip": "enum",
+    "varsayilan": "orta"
+   },
+   "kenar_payi_mm": {
+    "max": 20.0,
+    "min": 2.0,
+    "tip": "float",
+    "varsayilan": 4.0
+   },
+   "kontur_tasma_mm": {
+    "max": 3.0,
+    "min": 1.0,
+    "tip": "float",
+    "varsayilan": 1.5
+   },
+   "kose_yaricap_mm": {
+    "max": 30.0,
+    "min": 1.0,
+    "tip": "float",
+    "varsayilan": 5.0
+   },
+   "montaj_delikleri": {
+    "tip": "bool",
+    "varsayilan": false
+   },
+   "plaka_sekli": {
+    "secenekler": [
+     "dikdortgen",
+     "yuvarlak-kose",
+     "oval"
+    ],
+    "tip": "enum",
+    "varsayilan": "dikdortgen"
+   },
+   "renk_plaka": {
+    "tip": "str",
+    "uzunluk_max": 7,
+    "varsayilan": "#F2F2F2"
+   },
+   "renk_yazi": {
+    "tip": "str",
+    "uzunluk_max": 7,
+    "varsayilan": "#1A1A1A"
+   },
+   "satirlar": {
+    "oge": {
+     "tip": "str",
+     "uzunluk_max": 400
+    },
+    "tip": "liste",
+    "uzunluk_max": 3,
+    "zorunlu": true
+   },
+   "yazi_tipi": {
+    "tip": "enum",
+    "varsayilan": "sans-kalin"
+   },
+   "yazi_yuksekligi_mm": {
+    "max": 100.0,
+    "min": 6.0,
+    "tip": "float",
+    "varsayilan": 0.0
+   },
+   "yukseklik_mm": {
+    "max": 400.0,
+    "min": 10.0,
+    "tip": "float"
+   }
+  }
+ },
+ "jeneratorler/foto/yapboz_uret.py": {
+  "SEMA": {
+   "gorsel": {
+    "tip": "str",
+    "uzunluk_max": 1024,
+    "zorunlu": true
+   },
+   "kabartma_yon": {
+    "secenekler": [
+     "acik_yuksek",
+     "koyu_yuksek"
+    ],
+    "tip": "enum",
+    "varsayilan": "acik_yuksek"
+   },
+   "renkler": {
+    "oge": {
+     "tip": "str",
+     "uzunluk_max": 7
+    },
+    "tip": "liste",
+    "uzunluk_max": 4,
+    "varsayilan": [
+     "#C8B89A"
+    ]
+   },
+   "satir": {
+    "max": 8,
+    "min": 3,
+    "tip": "int",
+    "varsayilan": 3
+   },
+   "sutun": {
+    "max": 8,
+    "min": 3,
+    "tip": "int",
+    "varsayilan": 4
+   },
+   "tohum": {
+    "max": 2147483647,
+    "min": 0,
+    "tip": "int",
+    "varsayilan": 1
+   },
+   "uzun_kenar_mm": {
+    "tip": "float",
+    "varsayilan": 150.0
+   }
+  }
+ }
+}

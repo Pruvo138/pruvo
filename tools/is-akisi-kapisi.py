@@ -4390,7 +4390,9 @@ def _main_ast_return1_var():
 # bos-taban kolu. Sayi ayni commit'te guncellendi (yukaridaki NON-GROWTH kolu bunu
 # ZORUNLU kilar): ilk yazimda taban tazelenmemisti ve iddialar KOSUYOR ama SAYILMIYORDU
 # — tam da bu sabitin kapattigi olu-kapsam pay sinifi.
-KENDINI_TEST_TABAN = 233
+# 🔴 9 Eki 2026 (sinif-r-k80): 233 -> 236. K80 B1-B3 (yeni ref tabani merge-base, uzak suzgeci,
+# eski-taban mutanti) ayni commit'te sayildi.
+KENDINI_TEST_TABAN = 236
 
 
 KENDINI_TEST_TABAN_TANI = (
@@ -6104,11 +6106,79 @@ def _k80_uzakta_erisilebilir(sha):
     return _k80_git(["rev-list", "-n", "1", commit, "--not", "--remotes"]).strip() == ""
 
 
+def _k80_yeni_ref_tabani(yerel_sha, uzak_ref, kok=ROOT):
+    """YENI ref'in K80 tabani = merge-base(yerel, origin/<hedef dal>), yoksa origin/main.
+
+    🔴 NEDEN (9 Eki 2026, sinif-r-k80, OLCULDU): eski taban `yerel^` (ilk ebeveyn) idi.
+    Birlesim commit'i yeni ref olarak itilince `yerel^..yerel` araligi dalin TUM
+    tarihcesini kapsiyordu: 51 dk / 104 komut (mevcut ref'te 6-9 dk / 14 komut) ve ara
+    commit'lerin ESKI kirmizisi uctaki yesili blokluyordu. Uzak-izleme ref'i hic yoksa
+    ya da ortak ata yoksa eski davranisa (`yerel^`) duser — gevsemez.
+    """
+    dal = uzak_ref[len("refs/heads/"):] if uzak_ref.startswith("refs/heads/") else ""
+    for aday in (["refs/remotes/origin/" + dal] if dal else []) + ["refs/remotes/origin/main"]:
+        try:
+            uzak = _k80_git(["rev-parse", "--verify", "-q", aday + "^{commit}"], kok=kok).strip()
+            return _k80_git(["merge-base", yerel_sha, uzak], kok=kok).strip()
+        except Olculemedi:
+            continue
+    return _k80_git(["rev-parse", yerel_sha + "^"], kok=kok).strip()
+
+
+def _k80_aralik_commitleri(base, hedef, yalniz_yerel, kok=ROOT):
+    """`base..hedef` commit'leri; pre-push'ta (yalniz_yerel) UZAKTA OLMAYANLAR (`--not --remotes`):
+    tarihcesi zaten uzakta olan commit bir kez itilmistir, yeniden KOSULMAZ (uctaki birlesim
+    commit'i dalin yeni adimlarini ilk ebeveynine gore tasir ve ONLARI uc agacinda kosar)."""
+    arg = ["rev-list", "--reverse", "--topo-order", "%s..%s" % (base, hedef)]
+    if yalniz_yerel:
+        arg += ["--not", "--remotes"]
+    return _k80_git(arg, kok=kok).splitlines()
+
+
+def _k80_taban_vakalari(mutant=False):
+    """B1 (a) uzakta olan dal tarihcesi yeni ref'te KOSULMAZ · B2 (b) uzakta olmayan commit KOSAR.
+    mutant=True: eski davranis (taban `yerel^`, uzak suzgeci YOK) -> B1 KIRMIZI olmali."""
+    d = tempfile.mkdtemp(prefix="k80-taban-")
+    hatalar = []
+    try:
+        env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
+                   GIT_COMMITTER_EMAIL="t@t")
+        g = lambda *a: subprocess.run(["git", "-C", d] + list(a), capture_output=True, text=True,  # noqa: E731
+                                      env=env, timeout=30, check=True).stdout.strip()
+        g("init", "-q")
+        agac = g("hash-object", "-t", "tree", "-w", "/dev/null")
+        c = lambda m, *p: g("commit-tree", agac, "-m", m, *sum([["-p", x] for x in p], []))  # noqa: E731
+        a = c("A")
+        g("update-ref", "refs/remotes/origin/main", a)
+        b1 = c("B1 dal", a)
+        g("update-ref", "refs/remotes/origin/kral/x", b1)
+        m = c("M birlesim", a, b1)
+        yerel = c("C yerel", m)
+        if mutant:
+            liste = lambda y, r: _k80_aralik_commitleri(  # noqa: E731
+                _k80_git(["rev-parse", y + "^"], kok=d).strip(), y, False, kok=d)
+        else:
+            liste = lambda y, r: _k80_aralik_commitleri(_k80_yeni_ref_tabani(y, r, kok=d), y, True, kok=d)  # noqa: E731
+        la = liste(m, "refs/heads/yeni")
+        if la != [m]:
+            hatalar.append("K80-B1: uzakta olan dal tarihcesi yeni ref'te KOSULUYOR (%d commit, B1 %s)"
+                           % (len(la), "VAR" if b1 in la else "yok"))
+        lb = liste(yerel, "refs/heads/kral/x")
+        if yerel not in lb or b1 in lb:
+            hatalar.append("K80-B2: uzakta olmayan commit KOSULMADI ya da uzaktaki KOSULDU (%r)"
+                           % [x[:8] for x in lb])
+    except (subprocess.SubprocessError, OSError, Olculemedi) as e:
+        hatalar.append("K80-B0: taban vaka deposu OLCULEMEDI (%s)" % e)
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+    return hatalar
+
+
 def _k80_araliklar(args):
     if args.base or args.hedef:
         if not (args.base and args.hedef):
             raise Olculemedi("--base ve --hedef birlikte zorunlu")
-        return [(args.base, args.hedef)]
+        return [(args.base, args.hedef, False)]
     if args.pre_push:
         araliklar = []
         satir_sayisi = 0
@@ -6127,10 +6197,9 @@ def _k80_araliklar(args):
                 if _k80_uzakta_erisilebilir(yerel_sha):
                     zaten_uzakta += 1
                     continue
-                ebeveyn = _k80_git(["rev-parse", yerel_sha + "^"]).strip()
-                araliklar.append((ebeveyn, yerel_sha))
+                araliklar.append((_k80_yeni_ref_tabani(yerel_sha, _uzak_ref), yerel_sha, True))
             else:
-                araliklar.append((uzak_sha, yerel_sha))
+                araliklar.append((uzak_sha, yerel_sha, True))
         if zaten_uzakta:
             print("K80: YENI REF (%d) uzakta ZATEN erisilebilir commit'i gosteriyor — "
                   "push edilen yeni commit YOK, eklenmis CI adimi olamaz: KAPSAM DISI."
@@ -6165,10 +6234,10 @@ def _k80_araliklar(args):
         except (OSError, ValueError, TypeError) as hata:
             raise Olculemedi("GitHub push olayinin before SHA'si okunamadi: %s" % hata)
     if ci_onceki and ci_hedef and ci_onceki != K80_SIFIR_SHA:
-        return [(ci_onceki, ci_hedef)]
+        return [(ci_onceki, ci_hedef, False)]
     hedef = _k80_git(["rev-parse", "HEAD"]).strip()
     base = _k80_git(["rev-parse", "HEAD^"]).strip()
-    return [(base, hedef)]
+    return [(base, hedef, False)]
 
 
 def yeni_ci_adimi_kontrol(args, tespit_acik=True, yorum_ayrimi=True):
@@ -6176,12 +6245,11 @@ def yeni_ci_adimi_kontrol(args, tespit_acik=True, yorum_ayrimi=True):
         return [], 0, 0
     bulgular, yeni_sayisi, kosulan = [], 0, 0
     tasinan = []                      # (dosya, job, komut) — GORUNUR kalir, bloklamaz
-    for base, hedef in _k80_araliklar(args):
+    for base, hedef, yalniz_yerel in _k80_araliklar(args):
         if subprocess.run(["git", "-C", ROOT, "merge-base", "--is-ancestor", base, hedef],
                           capture_output=True, timeout=30).returncode != 0:
             raise Olculemedi("diff tabani hedefin atasi DEGIL: %s..%s" % (base, hedef))
-        commitler = _k80_git(["rev-list", "--reverse", "--topo-order", "%s..%s"
-                              % (base, hedef)]).splitlines()
+        commitler = _k80_aralik_commitleri(base, hedef, yalniz_yerel)
         for commit in commitler:
             # Committe .github/workflows YOK ise eklenmis CI adimi OLAMAZ. Bu bir
             # VARSAYIM degil olcumdur (`ls-tree` rc=0 + cikti bos); bozuk sha ayri
@@ -6375,7 +6443,11 @@ def _k80_kendini_test(tespit_acik=True):
                 hatalar.append("K80-T7: kosturucu betik yolunu ayristiriciyla AYNI cozmedi")
         except Olculemedi as _e:
             hatalar.append("K80-T7: kosturucu `.mjs` yolunu cozemedi (ikiz tanim) (%s)" % _e)
-    return hatalar, 17   # +5: S4a-S4e (KOK COMMIT tabani, 10 Eyl 2026)
+    # B1-B3 (9 Eki 2026, sinif-r-k80): yeni ref tabani merge-base + uzak suzgeci.
+    hatalar.extend(_k80_taban_vakalari())
+    if not any(h.startswith("K80-B1") for h in _k80_taban_vakalari(mutant=True)):
+        hatalar.append("K80-B3: mutant taban=yerel^ (uzak suzgeci yok) B1'i KIRMIZI yakmadi")
+    return hatalar, 20   # +5: S4a-S4e (KOK COMMIT tabani, 10 Eyl 2026) · +3: B1-B3 (9 Eki 2026)
 
 
 def _k80_mutasyon_kontrol():
