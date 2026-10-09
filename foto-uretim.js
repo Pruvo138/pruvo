@@ -56,7 +56,8 @@
     { kod: "bust", tur: "bust", alt: null, ad: "Büst",
       ret: "Büst için yüzü net görünen bir portre fotoğrafı gerekir." },
     { kod: "anahtarlik", tur: "anahtarlik", alt: null, ad: "Anahtarlık",
-      ret: "Anahtarlık için net bir fotoğraf ya da metin/logo gerekir." },
+      ret: "Anahtarlık için net bir fotoğraf ya da metin/logo gerekir.",
+      yakinda: "Anahtarlık — yakında" },
     { kod: "yapboz", tur: "yapboz", alt: null, ad: "Yapboz",
       ret: "Yapboz için açık-koyu tonları belirgin, yüksek çözünürlüklü fotoğraf gerekir." }
   ];
@@ -819,9 +820,13 @@
         if (sema.tip === "secim") {
           g = el("select", "foto-uretim-form-secenek-girdi");
           var ss = sema.secenekler || [];
+          // Madde 6: değer kodu AYNI kalır, kullanıcıya Türkçe etiket KODDAN TÜRETİLİR (manifest alanı DEĞİL;
+          // üreteç/köprü şemasını kirletmeden UI düzeltmesi — kabul R1/R2 YEŞİL kalır).
+          var etMap = (typeof KUBAR_ETIKET_MAP === "object" ? KUBAR_ETIKET_MAP[a] : null) || null;
           for (var j = 0; j < ss.length; j++) {
-            var op = el("option", null, String(ss[j]));
-            op.value = String(ss[j]);
+            var k = String(ss[j]);
+            var op = el("option", null, etMap && etMap[k] ? etMap[k] : k);
+            op.value = k;
             g.appendChild(op);
           }
           if (S.parametre[a] === undefined && ss.length) S.parametre[a] = ss[0];
@@ -1086,7 +1091,9 @@
       var k = KARTLAR[i];
       if (!acikKodlar || acikKodlar.indexOf(k.tur) < 0) continue;
       var t = F.turBul(k.tur), o = kartOrnegi(t);
-      if (!o) continue;
+      // Madde 4: orneği olmayan kart YAKINDA kartı olarak görünür ama DEVRE DIŞI (tıklanamaz).
+      // Anahtarlık şu an örnek yok → kart çizilir; TeKiN örneği gelince normal kart olur.
+      if (!o) { if (k.yakinda) liste.push({ kart: k, tur: t, ornek: null, kanit: "yakinda" }); continue; }
       liste.push({ kart: k, tur: t, ornek: o, kanit: F.ornekKaniti(o) });
     }
     S.galeriListe = liste;
@@ -1099,14 +1106,23 @@
         d.setAttribute("data-kart", it.kart.kod);
         d.setAttribute("data-tur", it.tur.kod);
         d.setAttribute("aria-pressed", "false");
+        // Madde 4: "Yakında" kartı (orneği olmayan) DEVRE DIŞI — tıklanamaz, aria-disabled=true.
+        var devreDisi = it.kanit === "yakinda";
+        if (devreDisi) {
+          d.disabled = true;
+          d.setAttribute("aria-disabled", "true");
+        }
         var im = el("img");
-        im.src = it.kanit === "render" ? it.ornek.render : it.ornek.baski;
+        im.src = it.kanit === "render" ? it.ornek.render
+          : it.kanit === "yakinda" ? "" : it.ornek.baski;
         im.alt = ""; im.width = 240; im.height = 240; im.decoding = "async";
         if (sira > 0) im.loading = "lazy";
         d.appendChild(im);
-        d.appendChild(el("span", "foto-uretim-kart-ad", it.kart.ad));
-        d.appendChild(el("span", "foto-uretim-kart-etiket", it.kanit === "render" ? "önizleme/render" : "basılmış ürün"));
-        d.addEventListener("click", function () { galeriSec(it.kart.kod); });
+        d.appendChild(el("span", "foto-uretim-kart-ad",
+          devreDisi ? (it.kart.yakinda || it.kart.ad) : it.kart.ad));
+        d.appendChild(el("span", "foto-uretim-kart-etiket",
+          devreDisi ? "yakında" : (it.kanit === "render" ? "önizleme/render" : "basılmış ürün")));
+        if (!devreDisi) d.addEventListener("click", function () { galeriSec(it.kart.kod); });
         ornekBlok.appendChild(d);
       })(liste[n], n);
     }
@@ -1266,6 +1282,11 @@
      ② Resim yükle: kartın foto şartı + dürüstlük + TEK yükleme kutusu + "Nasıl olsun?" + parça kapısı.
      ③ Renk, boyut ve malzeme: renk (palet 1..tavan / bölge rengi) + ölçü sürgüsü + malzeme (kayıttaki
      `malzemeler`; boşsa satır YOK) + form parametreleri + CANLI FİYAT (F.fiyatKurus). */
+  // Madde 6: ham değer kodu AYNI kalır (köprü manifest şemasını kirletmemek için), kullanıcıya UI'da
+  // gösterilecek Türkçe etiket bu sabitten türetilir (tekilko kutucuk KUBAR_ETIKET_MAP).
+  var KUBAR_ETIKET_MAP = {
+    kabartma_yon: { "acik_yuksek": "Açık tonlar yüksek", "koyu_yuksek": "Koyu tonlar yüksek" }
+  };
   function cizForm() {
     if (!S.pencereler.length || !S.tur) return;
     var p2 = S.pencereler[1], p3 = S.pencereler[2];
@@ -1517,7 +1538,7 @@
     var kap = el("div", "foto-uretim-form-grup");
     kap.id = "foto-not-alani";
     S.alanUretimNotu = kap;
-    var lbl = el("label", "foto-uretim-form-etiket", "Nasıl olsun? (isteğe bağlı)");
+    var lbl = el("label", "foto-uretim-form-etiket", "Nasıl olsun?");
     lbl.setAttribute("for", "foto-not");
     kap.appendChild(lbl);
     var ta = el("textarea", "foto-uretim-not");
@@ -1542,7 +1563,7 @@
     say();
     kap.appendChild(ta);
     kap.appendChild(sayac);
-    kap.appendChild(el("p", "foto-uretim-ayrinti", "Notunuz üretime iletilir."));
+    kap.appendChild(el("p", "foto-uretim-ayrinti", "Üretim notu zorunlu; boşsa önizleme oluşturulamaz."));
     S.alanDosya.appendChild(kap);
     notAlaniGoster();
   }
@@ -1795,13 +1816,7 @@
     for (var p = 0; p < maddeler.length; p++) {
       det.appendChild(el("p", null, maddeler[p]));
     }
-    var sonP = el("p");
-    sonP.appendChild(document.createTextNode("Kişisel verilerinle ilgili haklar için "));
-    var glnk = el("a", null, "Gizlilik Politikası");
-    glnk.href = GIZLILIK_URL;
-    sonP.appendChild(glnk);
-    sonP.appendChild(document.createTextNode(" sayfasına bakabilirsin."));
-    det.appendChild(sonP);
+    // Madde 7: gizlilik cümlesi YALNIZ aydinlatma maddesi olarak TEK kez görünür (VERI.onay.aydinlatma).
     S.alanOnay.appendChild(det);
 
     // TEK ONAY KUTUSU (metin sürümü taslak-2): metnin ALTINDA; hak beyanı ve aktarım rızası
@@ -1834,7 +1849,9 @@
     // kuyruğu); fotoğraf yalnız türün girdisinde varsa istenir.
     // K2b: uyum kontrolü geçmeden önizleme/konsept düğmesi AÇILMAZ ("uygun_degil" veya "belirsiz" ise).
     var uyumOK = uyumKontrol(S.tur, S.uretimNotu, S.belirsizCevap) === "uygun";
-    var tam = uyumOK && (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&
+    // Madde 1 (Okan 8 Eki 14:1x): "Nasıl olsun?" üretim notu ZORUNLU; boşken "Önizleme oluştur" KAPALI.
+    var notZorunlu = !!((S.uretimNotu || "").trim());
+    var tam = uyumOK && notZorunlu && (!!S.dosya || !fotoGerekir()) && !!S.aydinlatmaOnay &&
       !!S.captchaToken1 && !!S.tur && !!S.olcu && (!lit || !!null) &&
       formDogrula().ok;
     btn.disabled = !tam;
@@ -1893,7 +1910,7 @@
 
     S.alan.appendChild(el("p", "foto-uretim-ayrinti", false ? "" :
       !!(F && F.kolu && F.kolu(S.tur) === "deterministik") ? ((litofanKaydi() || {}).durustluk || "") :
-      "Önizleme — ürün bunun seçtiğin renk sayısında (1–4) kabartma yorumu olur; birebir aynısı değildir."));
+      "Önizleme — ürün bunun seçtiğin renk sayısında (1–4) kabartma yorumu olur; tam kopyası değildir."));
     if (false && S.secim) {
       var secMetin = [];
       for (var sa in S.secim) {

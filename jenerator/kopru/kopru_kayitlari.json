@@ -1,0 +1,317 @@
+{
+  "surum": "kopru-uret-1.1",
+  "kayitlar": [
+    {
+      "kod": "yapboz",
+      "kategori_adi": "Kabartma yapboz",
+      "uretec": "yapboz_uret",
+      "cagri": {
+        "betik": "jeneratorler/foto/yapboz_uret.py",
+        "bayraklar": [],
+        "girdi_bayragi": "--girdi",
+        "cikti_bayragi": "--cikti"
+      },
+      "girdi_tipi": [
+        "foto"
+      ],
+      "parametreler": [
+        {
+          "ad": "gorsel",
+          "etiket": "Görsel (PNG/JPEG yol)",
+          "tip": "dosya",
+          "zorunlu": true
+        },
+        {
+          "ad": "uzun_kenar_mm",
+          "etiket": "Uzun kenar (plaket)",
+          "tip": "sayi",
+          "min": 100,
+          "max": 280,
+          "varsayilan": 150,
+          "birim": "mm",
+          "zorunlu": true
+        },
+        {
+          "ad": "satir",
+          "etiket": "Satır (parça sayısı dikey)",
+          "tip": "tam",
+          "min": 3,
+          "max": 8,
+          "varsayilan": 3,
+          "birim": "adet"
+        },
+        {
+          "ad": "sutun",
+          "etiket": "Sütun (parça sayısı yatay)",
+          "tip": "tam",
+          "min": 3,
+          "max": 8,
+          "varsayilan": 4,
+          "birim": "adet"
+        },
+        {
+          "ad": "tohum",
+          "etiket": "Tohum (kesim yönü/konumu)",
+          "tip": "tam",
+          "min": 0,
+          "max": 2147483647,
+          "varsayilan": 1
+        },
+        {
+          "ad": "kabartma_yon",
+          "etiket": "Kabartma yönü",
+          "tip": "secim",
+          "secenekler": [
+            "acik_yuksek",
+            "koyu_yuksek"
+          ],
+          "varsayilan": "acik_yuksek"
+        },
+        {
+          "ad": "renkler",
+          "etiket": "Renkler (1..4 parça rengi)",
+          "tip": "renk_liste",
+          "uzunluk_max": 4,
+          "oge": "#RRGGBB",
+          "varsayilan": [
+            "#C8B89A"
+          ]
+        }
+      ],
+      "olcek": {
+        "eksen": "uzun_kenar_mm",
+        "kaynak": "ozet.uzun_kenar_mm",
+        "min_mm": 100,
+        "max_mm": 280,
+        "adim_mm": 10,
+        "belirleyen_parametre": "uzun_kenar_mm"
+      },
+      "cikti": {
+        "stl": null,
+        "uc_mf": "uretec.3mf",
+        "onizleme_png": "onizleme.png",
+        "ozet": "ozet.json",
+        "onizleme_max_px": 800
+      },
+      "renk_bolgeleri": [],
+      "izinli_malzeme": [
+        "PLA",
+        "PETG"
+      ],
+      "ornek": {
+        "girdi": {
+          "gorsel": "<PNG YOLU> (gri gradyan, oran <= 4:1)",
+          "uzun_kenar_mm": 150,
+          "satir": 3,
+          "sutun": 4,
+          "tohum": 1,
+          "kabartma_yon": "acik_yuksek",
+          "renkler": [
+            "#C8B89A"
+          ]
+        }
+      },
+      "varyantlar": [
+        {
+          "ad": "uzun_kenar_mm",
+          "deger": 280
+        },
+        {
+          "ad": "satir",
+          "deger": 4
+        },
+        {
+          "ad": "sutun",
+          "deger": 3
+        },
+        {
+          "ad": "tohum",
+          "deger": 42
+        },
+        {
+          "ad": "kabartma_yon",
+          "deger": "koyu_yuksek"
+        },
+        {
+          "ad": "renkler",
+          "deger": [
+            "#C8B89A",
+            "#6E8FB5"
+          ]
+        }
+      ]
+    },
+    {
+      "kod": "anahtarlik",
+      "kategori_adi": "Anahtarlık (kulakçıklı plastik)",
+      "uretec": "isimlik_uret",
+      "cagri": {
+        "betik": "jeneratorler/foto/isimlik_uret.py",
+        "bayraklar": [],
+        "girdi_bayragi": "--girdi",
+        "cikti_bayragi": "--cikti",
+        "sabit": {
+          "anahtarlik": true
+        }
+      },
+      "sema_adi": "ANAHTARLIK_SEMA",
+      "girdi_tipi": [
+        "metin"
+      ],
+      "parametreler": [
+        {
+          "ad": "satirlar",
+          "etiket": "Yazı (tek satır önerilir; en çok 3 satır)",
+          "tip": "metin",
+          "liste": true,
+          "satir_max": 3,
+          "karakter_max": 40,
+          "zorunlu": true
+        },
+        {
+          "ad": "yazi_tipi",
+          "etiket": "Yazı tipi",
+          "tip": "secim",
+          "secenekler": [
+            "sans-kalin",
+            "script"
+          ],
+          "varsayilan": "script"
+        },
+        {
+          "ad": "hizalama",
+          "etiket": "Hizalama (çok satır)",
+          "tip": "secim",
+          "secenekler": [
+            "sol",
+            "orta",
+            "sag"
+          ],
+          "varsayilan": "orta"
+        },
+        {
+          "ad": "genislik_mm",
+          "etiket": "Uzun kenar (kulak dahil)",
+          "tip": "sayi",
+          "min": 30.0,
+          "max": 80.0,
+          "varsayilan": 45.0,
+          "birim": "mm",
+          "zorunlu": true
+        },
+        {
+          "ad": "anahtarlik_kulak_konum",
+          "etiket": "Kulak konumu",
+          "tip": "secim",
+          "secenekler": [
+            "sol-ust",
+            "sag-ust",
+            "ust-orta"
+          ],
+          "varsayilan": "sol-ust"
+        },
+        {
+          "ad": "kontur_tasma_mm",
+          "etiket": "Taban taşma (yazı çevresi)",
+          "tip": "sayi",
+          "min": 1.0,
+          "max": 3.0,
+          "varsayilan": 1.5,
+          "birim": "mm"
+        },
+        {
+          "ad": "renk_plaka",
+          "etiket": "Taban rengi",
+          "tip": "renk",
+          "varsayilan": "#1A1A1A"
+        },
+        {
+          "ad": "renk_yazi",
+          "etiket": "Yazı rengi",
+          "tip": "renk",
+          "varsayilan": "#F2F2F2"
+        }
+      ],
+      "olcek": {
+        "eksen": "uzun_kenar_mm",
+        "kaynak": "ozet.uzun_kenar_mm",
+        "min_mm": 30,
+        "max_mm": 80,
+        "adim_mm": 5,
+        "belirleyen_parametre": "genislik_mm"
+      },
+      "cikti": {
+        "stl": null,
+        "uc_mf": "uretec.3mf",
+        "onizleme_png": "onizleme.png",
+        "ozet": "ozet.json",
+        "onizleme_max_px": 800
+      },
+      "renk_bolgeleri": [
+        "plaka",
+        "yazi"
+      ],
+      "izinli_malzeme": [
+        "PLA",
+        "PETG",
+        "ASA",
+        "ABS"
+      ],
+      "ornek": {
+        "girdi": {
+          "satirlar": [
+            "Ayşe"
+          ],
+          "yazi_tipi": "script",
+          "genislik_mm": 45.0,
+          "anahtarlik_kulak_konum": "sol-ust",
+          "kontur_tasma_mm": 1.5,
+          "renk_plaka": "#1A1A1A",
+          "renk_yazi": "#F2F2F2"
+        }
+      },
+      "varyantlar": [
+        {
+          "ad": "yazi_tipi",
+          "deger": "sans-kalin"
+        },
+        {
+          "ad": "hizalama",
+          "deger": "sol"
+        },
+        {
+          "ad": "genislik_mm",
+          "deger": 30.0
+        },
+        {
+          "ad": "genislik_mm",
+          "deger": 80.0
+        },
+        {
+          "ad": "anahtarlik_kulak_konum",
+          "deger": "sag-ust"
+        },
+        {
+          "ad": "anahtarlik_kulak_konum",
+          "deger": "ust-orta"
+        },
+        {
+          "ad": "kontur_tasma_mm",
+          "deger": 1.0
+        },
+        {
+          "ad": "kontur_tasma_mm",
+          "deger": 3.0
+        },
+        {
+          "ad": "renk_plaka",
+          "deger": "#1F3A93"
+        },
+        {
+          "ad": "renk_yazi",
+          "deger": "#FFD400"
+        }
+      ]
+    }
+  ]
+}

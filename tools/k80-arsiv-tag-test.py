@@ -23,7 +23,7 @@ N3 NEGATIF   : hic uzak-izleme ref'i YOK -> muafiyet VERILMEZ, aralik kurulur.
 N4 NEGATIF   : cozulmeyen sha -> OLCULEMEDI (fail-closed devrilmez).
 N5 NEGATIF   : itilmemis commit'e TAG (ad muafiyeti YOK) -> aralik kurulur ve P3
                sekli (zincir ici `mkdir`) hala OLCULEMEDI bulgusu uretir.
-M1 MUTANT    : kopyada `_k80_uzakta_erisilebilir` -> `return False` (= onarim oncesi main
+M1 MUTANT    : kopyada `_k80_uzakta_erisilebilir` -> `return False` + yeni-ref tabani `yerel^` (= onarim oncesi main
                davranisi). Beklenen: P1/P2/P3 + N2 (tag araligi geri gelir) KIRMIZI **ve**
                N1/N3/N4/N5 DEGISMEZ (kirmizinin sebebi hedef kola atfedilir).
 M2 MUTANT    : kopyada -> `return True` (asiri genis muafiyet). Beklenen: N1/N2/N5 KIRMIZI.
@@ -51,6 +51,12 @@ SIFIR = "0" * 40
 # Mutasyon capasi: uretim govdesindeki TEK satir. Capa bulunamazsa mutant KURULAMAZ ->
 # batarya KIRMIZI (sessizce "mutant yasadi/oldu" demez).
 CAPA = 'return _k80_git(["rev-list", "-n", "1", commit, "--not", "--remotes"]).strip() == ""'
+# 9 Eki (sinif-r-k80): yeni-ref tabani merge-base + aralikta `--not --remotes` suzgeci geldi ->
+# uzakta olan commit IKINCI ve UCUNCU koldan da kapsam disi. "Onarim oncesi" = uc kol BIRLIKTE
+# geri: muafiyet False + taban `yerel^` + uzak suzgeci yok.
+CAPA_TABAN = '    dal = uzak_ref[len("refs/heads/"):] if uzak_ref.startswith("refs/heads/") else ""'
+ESKI_TABAN = '    return _k80_git(["rev-parse", yerel_sha + "^"], kok=kok).strip()'
+CAPA_SUZGEC = '    if yalniz_yerel:\n        arg += ["--not", "--remotes"]\n'
 
 
 def akis(serit_run):
@@ -91,7 +97,7 @@ class Sahne:
     """uzak(bare) + depo: main(C1) itildi, eski dal (C2, zincir ici `mkdir`) itildi,
     yeni dal (C3) ITILMEDI."""
 
-    def __init__(self, uzak_kur=True, mutant=None):
+    def __init__(self, uzak_kur=True, mutant=None, eski_taban=False):
         self.kok_ust = tempfile.mkdtemp(prefix="pruvo-k80-tag-")
         self.kok = os.path.join(self.kok_ust, "depo")
         uzak = os.path.join(self.kok_ust, "uzak.git")
@@ -103,6 +109,13 @@ class Sahne:
             if govde.count(CAPA) != 1:
                 raise RuntimeError("mutant capasi uretimde tekil degil (%d)" % govde.count(CAPA))
             govde = govde.replace(CAPA, mutant)
+        if eski_taban:
+            if govde.count(CAPA_TABAN) != 1:
+                raise RuntimeError("taban capasi uretimde tekil degil (%d)" % govde.count(CAPA_TABAN))
+            govde = govde.replace(CAPA_TABAN, ESKI_TABAN)
+            if govde.count(CAPA_SUZGEC) != 1:
+                raise RuntimeError("suzgec capasi uretimde tekil degil (%d)" % govde.count(CAPA_SUZGEC))
+            govde = govde.replace(CAPA_SUZGEC, "")
         with open(os.path.join(self.kok, "tools", "is-akisi-kapisi.py"), "w",
                   encoding="utf-8") as f:
             f.write(govde)
@@ -182,9 +195,9 @@ def satir(ref, sha):
     return "%s %s %s %s" % (ref, sha, ref, SIFIR)
 
 
-def vakalar(mutant=None):
+def vakalar(mutant=None, eski_taban=False):
     """-> {vaka: (gecti_mi, aciklama)}"""
-    s = Sahne(mutant=mutant)
+    s = Sahne(mutant=mutant, eski_taban=eski_taban)
     s0 = None
     sonuc = {}
     try:
@@ -205,9 +218,9 @@ def vakalar(mutant=None):
 
         c3_ebeveyn = _git(s.kok, "rev-parse", s.c3 + "^")
         r = s.araliklar([yeni])
-        sonuc["N1"] = (r == [(c3_ebeveyn, s.c3)], "itilmemis dal -> %r" % r)
+        sonuc["N1"] = (r == [(c3_ebeveyn, s.c3, True)], "itilmemis dal -> %r" % r)
         r = s.araliklar([tag, yeni])
-        sonuc["N2"] = (r == [(c3_ebeveyn, s.c3)], "karisik push -> %r" % r)
+        sonuc["N2"] = (r == [(c3_ebeveyn, s.c3, True)], "karisik push -> %r" % r)
         try:
             b, y, k = s.kontrol([yeni_tag])
             olculemedi = any("OLCULEMEDI" in x for x in b)
@@ -221,10 +234,10 @@ def vakalar(mutant=None):
         except s.mod.Olculemedi:
             sonuc["N4"] = (True, "cozulmeyen sha -> OLCULEMEDI")
 
-        s0 = Sahne(uzak_kur=False, mutant=mutant)
+        s0 = Sahne(uzak_kur=False, mutant=mutant, eski_taban=eski_taban)
         c2_ebeveyn = _git(s0.kok, "rev-parse", s0.c2 + "^")
         r = s0.araliklar([satir("refs/tags/hafif-arsiv", s0.c2)])
-        sonuc["N3"] = (r == [(c2_ebeveyn, s0.c2)], "uzak-izleme ref'i yok -> %r" % r)
+        sonuc["N3"] = (r == [(c2_ebeveyn, s0.c2, True)], "uzak-izleme ref'i yok -> %r" % r)
     finally:
         s.temizle()
         if s0 is not None:
@@ -243,7 +256,7 @@ def main():
         hata += 0 if gecti else 1
 
     # M1: onarim oncesi main davranisi. Hedef kol P* KIRMIZI, yan eksen N* DEGISMEZ.
-    m1 = vakalar(mutant="return False")
+    m1 = vakalar(mutant="return False", eski_taban=True)
     m1_hedef = all(not m1[v][0] for v in ("P1", "P2", "P3", "N2"))
     m1_yan = all(m1[v][0] for v in ("N1", "N3", "N4", "N5"))
     print("%s M1 mutant (return False = onarim oncesi): P1/P2/P3/N2 KIRMIZI=%s · N1/N3/N4/N5 YESIL=%s"
