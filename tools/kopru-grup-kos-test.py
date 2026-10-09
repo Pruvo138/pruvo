@@ -189,6 +189,9 @@ def yer_tutucu_vakasi(o):
     p = m.plan_kur(["anahtarlik"])[0]
     vaka("V6 anahtarlik -> anahtarlik kaydi + isimlik_uret.py", p.get("kayit", {}).get("kod") == "anahtarlik"
          and p.get("g", {}).get("betik", "").endswith("isimlik_uret.py"), str(p.get("hata")))
+    ua = m.ornek_girdisi({"ornek": {"girdi": {"satirlar": ["A"]}}, "cagri": {"sabit": {"anahtarlik": True}}}, d)
+    vaka("V6 anahtarlik ornek girdisi kopru cagri.sabit'i tasir (anahtarlik=true)", ua.get("anahtarlik") is True,
+         str(sorted(ua)))
     yok = {q["kod"]: q.get("hata") for q in m.plan_kur(["bust", "plaket"])}
     vaka("V6 kopru kaydi olmayan tur (bust, plaket) -> uretec-ya-da-kayit-yok",
          yok == {"bust": "uretec-ya-da-kayit-yok", "plaket": "uretec-ya-da-kayit-yok"}, str(yok))

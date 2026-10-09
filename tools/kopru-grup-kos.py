@@ -174,6 +174,9 @@ def ornek_girdisi(kayit, dizin):
             else:
                 raise Red("yer-tutucu-cozulemedi:%s" % ad)
         u[ad] = v
+    # Kopru `cagri.sabit` (anahtarlik: {anahtarlik: true}) uretece HER cagride gider — kosucu esle_anahtarlik ile
+    # ayni sozlesme. Yoksa isimlik_uret kulak alanlarini RET eder (9 Eki, anahtarlik-kart olcumu).
+    u.update((kayit.get("cagri") or {}).get("sabit") or {})
     return u
 
 
