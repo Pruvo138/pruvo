@@ -15,7 +15,7 @@ Sahte panel uretim-tik asama kumesi foto.js'ten TURETILIR (tik'in SECMEDIGI asam
 
 Vakalar (D kolu varsayilan tur = bust; kapali M tur = plaket): U1 mutlu yol -> HAZIR=1/1 rc=0 · U2 SUNUCU
 MUTANTI: kapali tur 200 -> GECERSIZ rc=2 · U2b kapali M tura `gorsel-gecersiz` 400 -> GECERSIZ (bekci `hata`
-metnine de bakar) · U2c BUGUNKU CANLI DURUM: hicbir M tur kapali degil, yalniz D anahtarlik kapali (ornegi yok)
+metnine de bakar) · U2c hicbir M tur kapali degil, yalniz bir D turu kapali (9 Eki'den beri fiksturde kurulur)
 -> bekci BILINMEYEN_TUR'a duser, 400 `tur-kapali` -> HAZIR (D kapali tur 503 `kapali` dalina SECILMEZ, 8b0a4a10)
 · U3 3MF delik -> (4) EKSIK · U4 olcek ekseni %10 sapma -> (4) EKSIK · U5 sunucu onaysiz istegi kabul (403) ->
 (5) EKSIK · U6 /acik fiyati mm x 900 -> (3) EKSIK · U7 tur /acik'ta yok -> (1) EKSIK · U8 375 px tasma 6 ->
@@ -480,10 +480,13 @@ def vakalar(kaynak, sadece=None):
     vaka("U2b", u2b)
 
     def u2c(o):
-        # 8b0a4a10 sozlesmesi (BUGUNKU CANLI DURUM): hicbir M tur kapali degil; /acik'te olmayan tek tur D
-        # anahtarlik (ornegi yok) -> sunucuda 503 `kapali`. Bekci onu SECMEZ (yalniz motor M), BILINMEYEN_TUR'a
-        # duser -> 400 `tur-kapali` -> GECERLI, HAZIR. D turu secerse 503 -> GECERSIZ rc 2 (MB33).
+        # 8b0a4a10 sozlesmesi: hicbir M tur kapali degil; /acik'te olmayan tek tur bir D turu -> sunucuda 503
+        # `kapali`. Bekci onu SECMEZ (yalniz motor M), BILINMEYEN_TUR'a duser -> 400 `tur-kapali` -> GECERLI,
+        # HAZIR. D turu secerse 503 -> GECERSIZ rc 2 (MB33). 9 Eki: anahtarlik ornegi geldi, manifestte kapali D
+        # turu kalmadi -> senaryo FIKSTURDE kurulur (D_TUR disindaki ilk D turu /acik'ten cikarilir).
         hazir_ortam(o)
+        if all(k in o.sunucu.ayar["acik"] for k in TUR if TUR[k]["motor"] == "D"):
+            o.sunucu.ayar["acik"].remove(sorted(k for k in TUR if TUR[k]["motor"] == "D" and k != D_TUR)[0])
         kapali = [k for k in TUR if k not in o.sunucu.ayar["acik"]]
         if [TUR[k]["motor"] for k in kapali] != ["D"]:
             return False, "on kosul: kapali turler yalniz tek D tur olmali, bulunan %s" % kapali
@@ -763,8 +766,8 @@ def vakalar(kaynak, sadece=None):
     vaka("U13", u13)
 
     def u14(o):
-        # Kosulan kume = manifestteki TUM D turleri (anahtarlik dahil); ornegi olmayan (anahtarlik) ① EKSIK
-        # (ornek=0, /acik'te yok), ornekli D turleri 6 olcut HAZIR. Sayilar manifestten.
+        # Kosulan kume = manifestteki TUM D turleri (anahtarlik dahil); 9 Eki'den beri ucunun de ornegi VAR ->
+        # ornegsiz D turu 0, HAZIR 3/3 rc 0. Ornek kaydi duserse ornksiz bos olmaz -> KIRMIZI. Sayilar manifestten.
         hazir_ortam(o)
         d = sorted(k for k, t in TUR.items() if t["motor"] == "D")
         dz = [k for k in d if TUR[k].get("ornekler")]
@@ -773,10 +776,9 @@ def vakalar(kaynak, sadece=None):
         rc, son, c = o.kos("--hepsi", "--kol", "D")
         kosulan = sorted(s.split()[1] for s in c.splitlines() if s.startswith("TUR "))
         ornksiz = [k for k in d if k not in dz]
-        ok = (kosulan == d and len(d) == 3 and ornksiz == ["anahtarlik"] and
-              rc == (0 if not ornksiz else 1) and son == "HAZIR=%d/%d rc=%d" % (len(dz), len(d), rc) and
-              all(olcut(c, k, x) == "HAZIR" for k in dz for x in "123456") and
-              all(olcut(c, k, "1") == "EKSIK" for k in ornksiz) and "ornek=0 " in c)
+        ok = (kosulan == d and len(d) == 3 and ornksiz == [] and
+              rc == 0 and son == "HAZIR=%d/%d rc=0" % (len(d), len(d)) and
+              all(olcut(c, k, x) == "HAZIR" for k in d for x in "123456") and "ornek=0 " not in c)
         return ok, "%s %s" % (son, kosulan)
     vaka("U14", u14)
 
