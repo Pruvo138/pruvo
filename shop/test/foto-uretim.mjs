@@ -2520,6 +2520,40 @@ async function renkSenaryolar(fm) {
   return s;
 }
 
+console.log("K1) 2D KONSEPT YOK (Okan 9 Eki: \"bunu tamamen sil\") — uclar 404, /acik konsept alani yok, kaynakta 0");
+{
+  const KONSEPT_UCLARI = [
+    ["/foto/konsept", { govde: onizlemeGovde() }],
+    ["/foto/konsept-durum?konsept=" + "a".repeat(32), {}],
+    ["/foto/konsept-gorsel?konsept=" + "a".repeat(32), {}],
+    ["/yonet/foto/ornek-konsept", { govde: onizlemeGovde(), basliklar: YONET }],
+    ["/yonet/foto/ornek-konsept-durum?konsept=" + "a".repeat(32), { basliklar: YONET }],
+    ["/yonet/foto/ornek-konsept-gorsel?konsept=" + "a".repeat(32), { basliklar: YONET }],
+  ];
+  const kodlar = [];
+  for (const [y, o] of KONSEPT_UCLARI) { kodlar.push((await istek(env, y, o)).kod); }
+  ol("K1a 6 konsept ucu (musteri 3 + panel 3, anahtarli) 404", kodlar.every((k) => k === 404), kodlar.join(","));
+  const ac = await istek(env, "/foto/acik");
+  ol("K1b /foto/acik yanitinda `konsept` alani YOK", !!ac.v && !Object.prototype.hasOwnProperty.call(ac.v, "konsept"),
+     ac.v ? Object.keys(ac.v).join(",") : "yanit-yok");
+  const say = (k) => (k.match(/konsept/gi) || []).length;
+  const veriK = fs.readFileSync(path.join(KOK, "foto-uretim-veri.js"), "utf8");
+  ol("K1c 'konsept' kaynakta 0 (foto-uretim.js · foto-uretim-veri.js · shop/src/foto.js)",
+     say(fs.readFileSync(path.join(KOK, "foto-uretim.js"), "utf8")) === 0 && say(veriK) === 0 && say(fs.readFileSync(path.join(SHOP, "src", "foto.js"), "utf8")) === 0, "");
+  // MUTANT: konsept ucu geri gelir -> K1a KIRMIZI olmali.
+  const kmCapa = '  if (yol === "/foto/acik" && m === "GET") { return acikUcu(env, simdi, telegram); }\n';
+  const km = await mutantModul(kmCapa, kmCapa + '  if (yol === "/foto/konsept" && m === "POST") { return fjson({ konsept: "x" }, 200); }\n');
+  let kmKod = -1;
+  if (km) {
+    const r = await km.fotoUclari(new Request("https://pruvo3d.com/api/shop/foto/konsept", { method: "POST",
+      headers: { "CF-Connecting-IP": "198.51.100.7", "Content-Type": "application/json" }, body: JSON.stringify(onizlemeGovde()) }),
+      env, new URL("https://pruvo3d.com/api/shop/foto/konsept"), "/foto/konsept", null);
+    kmKod = r.status;
+  }
+  ol("M-K1 konsept ucu geri gelirse 404 DEGIL (K1a KIRMIZI yanar)", km !== null && kmKod !== 404,
+     km ? "mutant_kod=" + kmKod : "MUTANT_UYGULANMADI");
+}
+
 console.log("RK) EK RENK — 1-4 renk, ilk renk dahil, her ek renk +100 TL; renk adimi siparisin renk sayisiyla (Okan 8 Eki)");
 {
   const s = await renkSenaryolar(foto);
