@@ -285,6 +285,9 @@
     "min-height:100svh;background:var(--navy);color:#fff;" +
     "box-shadow:0 0 0 100vmax var(--navy);clip-path:inset(0 -100vmax);}" +
     ".foto-uretim[hidden]{display:none!important;}" +
+    // Bölüm içindeki HER `hidden` eleman gizli: sınıf kuralı `display:flex` vb. `[hidden]`ı EZMEZ (9 Eki: "Foto ekle"
+    // kutusu hidden=true iken display:flex ile görünüyordu — Okan "foto ekle çalışmıyor").
+    ".foto-uretim [hidden]{display:none!important;}" +
     // TEK KUTU (K3b): bölümün tek çocuğu; başlıkta ①②③④ göstergesi, altında TEK görünür pencere + Geri/İleri.
     ".foto-uretim-kutu{max-width:1100px;margin:0 auto;background:#fff;color:var(--navy);border-radius:14px;" +
     "padding:20px;box-sizing:border-box;min-width:0;}" +
