@@ -227,21 +227,19 @@ def v23_git_ata(mod):
     """Gerçek git, geçici depo: A -> B zinciri. ata(A,B)=True · ata(B,A)=False ·
     bilinmeyen sha=None. GIT_* ortamı TEMİZLENİR (hook/ayna koşumundan miras kalan
     GIT_DIR geçici depo yerine gerçek depoya yazdırırdı)."""
-    import subprocess
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from git_ortami import sentetik_git  # kanonik GIT_* scrub (fikstur-git-sizinti-kapisi)
     temiz = {a: v for a, v in os.environ.items() if a.startswith("GIT_")}
     for a in temiz:
         del os.environ[a]
     try:
         with tempfile.TemporaryDirectory() as td:
-            def g(*a):
-                return subprocess.run(
-                    ["git", "-C", td, "-c", "user.email=t@t", "-c", "user.name=t",
-                     "-c", "commit.gpgsign=false"] + list(a), capture_output=True, text=True)
-            g("init", "-q")
-            g("commit", "-q", "--allow-empty", "-m", "a")
-            a_sha = g("rev-parse", "HEAD").stdout.strip()
-            g("commit", "-q", "--allow-empty", "-m", "b")
-            b_sha = g("rev-parse", "HEAD").stdout.strip()
+            kw = dict(ayarlar=("-c", "commit.gpgsign=false"), capture_output=True, text=True)
+            sentetik_git(td, "init", "-q", **kw)
+            sentetik_git(td, "commit", "-q", "--allow-empty", "-m", "a", **kw)
+            a_sha = sentetik_git(td, "rev-parse", "HEAD", **kw).stdout.strip()
+            sentetik_git(td, "commit", "-q", "--allow-empty", "-m", "b", **kw)
+            b_sha = sentetik_git(td, "rev-parse", "HEAD", **kw).stdout.strip()
             eski = mod.REPO
             mod.REPO = type(mod.REPO)(td)
             try:
