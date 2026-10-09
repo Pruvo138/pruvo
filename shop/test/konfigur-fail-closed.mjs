@@ -20,7 +20,8 @@
  * global fetch/Request/Response (18+). Dizin calisma sonunda (finally + process 'exit')
  * silinir; bayat kopyalar her kosumun BASINDA da supurulur.
  *
- * KOSTUGU 5 SET:
+ * KOSTUGU 5 SET (+ set 6 KARGO: /baslat siparis toplami = sepet ekranindaki genel toplam,
+ *   V6 + sabit-25000 mutanti M3; Okan 9 Eki ucretsiz gonderim notu ile birlikte eklendi):
  *   (a) REGRESYON — 13 konfigur urununun hepsi, KONFIGURLAR'da VARKEN: fiyat DEGISMEDI
  *       (yeni index == eski index (git HEAD) == front /konfigur.js orakili, birebir kurus).
  *   (b) PARA KANITI — urun D1'de var, KONFIGURLAR'da YOK: 400 "konfigur-urun", sabit fiyat
@@ -512,6 +513,75 @@ if (!sozluk || !jenerik) {
     ham.push("  ❌ KALDI — musteri metni");
   } else {
     ham.push("  ✅ GECTI — musteri metni dogru + marka-temiz; girdi silinince VAKUM kirmizi yaniyor");
+  }
+}
+
+// 6) KARGO = EKRANDAKI GENEL TOPLAM (V6, Okan 9 Eki — sepet "ucretsiz gonderim" notu).
+// Sepet paneli (shop/test/sepet-panel.js test 18) ara 690,00 / 2.499,99 / 2.500,00 icin
+// genel toplami 940,00 / 2.749,99 / 2.500,00 gosterir; Worker'in /baslat'ta D1'e YAZDIGI
+// urun + kargo toplami kurusu kurusuna AYNI olmali (beklenenler BILEREK elle yazili).
+// MUTANT M3 (kaynak kopyasi, gecici aynada): /baslat'ta SECENEK.kargoKurus yerine sabit
+// 25000 -> 2.500,00 sepeti 2.750,00 tahsil eder -> V6 KIRMIZI yanmali (yanmazsa OLU nobetci).
+{
+  baslik("== 6) KARGO: sunucu siparis toplami = sepet ekranindaki genel toplam (V6 + M3) ==");
+  const kargoUrun = (id, fiyat) => ({ id, baslik: "Kargo " + fiyat, kategori: "Ev", fiyat,
+                                      parametrik: 0, gorsel: "", konfigur: "" });
+  const D1_KARGO = [kargoUrun("k690", "690 TL"), kargoUrun("k2346", "2.346 TL"),
+                    kargoUrun("k103", "103 TL"), kargoUrun("k2500", "2.500 TL")];
+  const pla = (id) => ({ id, malzeme: "PLA", renk: "Siyah", adet: 1 });
+  const VAKALAR = [
+    ["ara 690,00", [pla("k690")], 94000],
+    ["ara 2.499,99", [pla("k2346"), { id: "k103", malzeme: "PETG", renk: "Diğer",
+                                      renk_ozel: "mor", adet: 1 }], 274999],
+    ["ara 2.500,00", [pla("k2500")], 250000],
+  ];
+  async function siparisToplami(mod, sepet) {
+    const kayitlar = [];
+    const env = Object.assign({}, ENV, { KATALOG: d1Sahte(D1_KARGO, kayitlar) });
+    const cevap = await mod.default.fetch(new Request("https://pruvo3d.com/api/shop/baslat", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sozlesme_onay: true, odeme: "kart",
+        musteri: { ad: "Test Musteri", tel: "05321112233", eposta: "test@pruvo3d.com",
+                   adres: "Test mahallesi test sokak no 1", sehir: "Mugla" },
+        sepet,
+      }),
+    }), env, { waitUntil() {} });
+    const insert = kayitlar.find((k) => /INSERT INTO siparisler/.test(k.sql));
+    // siparisler INSERT'i: (..., tutar_kurus, kargo_kurus, ...) — ilk iki sayi.
+    const sayilar = insert ? insert.arg.filter((x) => typeof x === "number") : [];
+    return { kod: cevap.status, urun: sayilar[0], kargo: sayilar[1],
+             toplam: insert ? sayilar[0] + sayilar[1] : null };
+  }
+  async function v6(mod, etiket) {
+    const hata = [];
+    for (const [ad, sepet, beklenen] of VAKALAR) {
+      const r = await siparisToplami(mod, sepet);
+      ham.push("    [" + etiket + "] " + ad + ": kod=" + r.kod + " urun=" + r.urun +
+               " kargo=" + r.kargo + " toplam=" + r.toplam + " (ekran " + beklenen + ")");
+      if (r.toplam !== beklenen) { hata.push(ad + ": " + r.toplam + " != " + beklenen); }
+    }
+    return hata;
+  }
+  const v6Hata = await v6(gercekMod, "gercek");
+  const M3_CAPA = "  const kargoKurus = SECENEK.kargoKurus(toplamKurus);\n" +
+                  "  const tahsilatKurus = toplamKurus + kargoKurus;\n\n  // KDV (kalem 8";
+  let m3Hata = null;
+  if (KAYNAK.split(M3_CAPA).length - 1 !== 1) {
+    ham.push("    ❌ M3 capasi kayip/coklu — mutant uygulanamadi");
+  } else {
+    const m3Mod = await indexYukle(KAYNAK.replace(M3_CAPA,
+      M3_CAPA.replace("SECENEK.kargoKurus(toplamKurus)", "25000")));
+    m3Hata = await v6(m3Mod, "M3 sabit 25000");
+  }
+  const m3Kirmizi = Array.isArray(m3Hata) && m3Hata.length > 0;
+  if (v6Hata.length || !m3Kirmizi) {
+    kirmizi += 1;
+    v6Hata.forEach((h) => ham.push("    ❌ V6 " + h));
+    if (!m3Kirmizi) { ham.push("    ❌ M3 SURVIVOR — sabit 25000 mutanti V6'yi kirmizi yakmadi"); }
+    ham.push("  ❌ KALDI — kargo/genel toplam paritesi");
+  } else {
+    ham.push("  ✅ GECTI — V6 3/3 vaka ekranla birebir; M3 KIRMIZI (" + m3Hata.join(" ; ") + ")");
   }
 }
 
