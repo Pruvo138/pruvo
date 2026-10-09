@@ -18,8 +18,10 @@ SÖZLEŞMESİNİ ölçer:
   Y5 SEPET    : ödeme dönüşünde sepeti koruyan oturum anahtarı iki dosyada AYNI dize
   Y6 GÜVENLİK : bölüm DOM'a innerHTML ile veri basmaz; yalnız aynı köken /api/shop uçları
   Y7 SÖZDİZİMİ: node --check (node yoksa OLCULEMEDI, yeşil sayılmaz)
-  Y8 PLAKET   : veri dosyasında plaket VAR, anahtarlık/magnet/figür türü 0; anahtarlık/magnet ekranda 0
-                (BaBa 5 Eki 21:4x(b) — "yalnız plastik üretiyoruz")
+  Y8 PLAKET   : veri dosyasında plaket + figür + anahtarlık tür KAYDI VAR, magnet KAYDI 0; anahtarlığın
+                örnek kaydı 0 (örneksiz tür /acik'te YOK — sunucu davranışı foto-uretim.mjs P1/P5/P7); magnet
+                ekranda 0; anahtarlık ekranda YALNIZ ① KARTLAR satırı olarak (Okan 8 Eki 22:5x + 9 Eki 01:4x)
+  Y14 KARTLAR : ① kart tablosu 6 satır (kod · tur · alt · ad) — sayfa metni tablosu BİREBİR (K3b)
   Y9 TEK TÜR  : tek türde tür grubu gizlenir, adım çubuğu "Ölçü" der (DAVRANIŞ ölçümü sahte
                 DOM'da: shop/test/foto-uretim.mjs S bölümü; bu dosya sözleşmeyi tutar)
   Y10 RENDER  : (Okan 7 Eki: plaket gerçek baskı beklemeden açılır) türe göre `ornek_kanit_izni`
@@ -48,8 +50,8 @@ OTURUM_ANAHTARI = "pruvo_foto_siparis"
 DURUSTLUK = "önizlemenin 4 renkli yorumu"
 RENDER_CUMLE = ("Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, "
                 "birebir aynısı değildir.")
-LITOFAN_CUMLE = ("Üretim dosyasının arkadan ışıkla görüntüsüdür; basılmış panel ışık geldiğinde bu görüntüyü verir, "
-                 "birebir aynısı değildir.")
+# K3a (8 Eki 2026): 15 tür silindi (litofan dahil). 4 kalan türün tamamı foto, litofan yok; LITOFAN_CUMLE
+# eski plaket metninin eşitiydi — yeni evrende bu test artık anlamsız, mutant + kontrol SİLİNDİ.
 
 
 def soyulacak_js(build_metin):
@@ -142,38 +144,62 @@ def kontroller(index, bolum, veri, build):
     s.append(("Y4 '3D baski' / sehir adi YOK", not yasak, ",".join(yasak)))
     s.append(("Y4 ornek sayaci uc gorseli (foto+onizleme+baski) sart kosar",
               re.search(r"o\.foto\s*&&\s*o\.onizleme\s*&&\s*o\.baski", veri) is not None, ""))
-    s.append(("Y5 oturum anahtari iki dosyada ayni", OTURUM_ANAHTARI in bolum and
+    # sayfa-3adim K1: ayri foto odeme yolu KALKTI; foto kalemli siparisin no'sunu normal checkout (index.html)
+    # oturuma yazar, donus ekrani ayni anahtardan okur.
+    s.append(("Y5 oturum anahtari normal checkout'ta yazilir ve okunur",
+              ('sessionStorage.setItem("%s"' % OTURUM_ANAHTARI) in index and
               ('sessionStorage.getItem("%s")' % OTURUM_ANAHTARI) in index, ""))
     s.append(("Y6 bolum innerHTML kullanmaz", "innerHTML" not in bolum, ""))
     uclar = set(re.findall(r'"(/api/[a-z/]+)', bolum))
-    beklenen = {"/api/shop/foto/acik", "/api/shop/foto/onizleme", "/api/shop/foto/durum", "/api/shop/baslat"}
-    s.append(("Y6 bolum uclari = foto uclari + baslat (aynı köken)",
-              beklenen <= uclar and all(u.startswith("/api/shop/") for u in uclar), str(sorted(uclar))))
+    beklenen = {"/api/shop/foto/acik", "/api/shop/foto/onizleme", "/api/shop/foto/durum"}
+    s.append(("Y6 bolum uclari = foto uclari, ayri /baslat YOK (odeme normal sepette; aynı köken)",
+              beklenen <= uclar and "/api/shop/baslat" not in uclar
+              and all(u.startswith("/api/shop/") for u in uclar), str(sorted(uclar))))
     harici = sorted(set(re.findall(r"https?://[A-Za-z0-9.-]+", bolum)))
     izinli = {"https://challenges.cloudflare.com", "https://wa.me"}
     s.append(("Y6 harici adres yalniz bot dogrulayici + WhatsApp", set(harici) <= izinli, str(harici)))
     # Y8 PLAKET (BaBa 5 Eki 21:4x(b)): veri dosyasinin `turler` dizisinde plaket + figur VAR (saglayici
-    # kolunda IKINCI tur, 24 kategori programi #8); metal gerektiren turler (anahtarlik/magnet) YOK.
+    # kolunda IKINCI tur, 24 kategori programi #8). Magnet SUNULMAZ (5 Eki kurali AYNEN). Anahtarlik
+    # (K3d, Okan 8 Eki 22:5x + 9 Eki 01:4x: programin 5. turu) KAYDI VAR ama sayilan ornegi YOK ->
+    # /acik'te YOK, kart cizilmez (sunucu davranisi: shop/test/foto-uretim.mjs P1/P5/P7).
     tb = re.search(r"\bturler:\s*\[(.*?)\n\s*\],", veri, re.S)
     kodlar = re.findall(r'\bkod:\s*"([^"]+)"', tb.group(1)) if tb else []
-    # 8 Eki: figur saglayici kolunda; metal gerektiren turler SUNULMAZ.
-    s.append(("Y8 plaket + figur VAR ve anahtarlik/magnet turu 0",
-              "plaket" in kodlar and "figur" in kodlar and
-              not any(k in kodlar for k in ("anahtarlik", "magnet")), str(kodlar)))
-    eski = [k for k in ("anahtarl", "magnet", "mıknatıs", "miknatis")
+    s.append(("Y8 plaket + figur + anahtarlik tur kaydi VAR, magnet turu 0",
+              all(k in kodlar for k in ("plaket", "figur", "anahtarlik")) and "magnet" not in kodlar, str(kodlar)))
+    ob = re.search(r"\bornekler:\s*\[(.*?)\n\s*\],", veri, re.S)
+    ornek_turleri = re.findall(r'\btur:\s*"([^"]+)"', ob.group(1)) if ob else None
+    s.append(("Y8 anahtarligin ornek kaydi 0 (ornekler dizisi okundu; ornegi olan tur acilir)",
+              ornek_turleri is not None and "anahtarlik" not in ornek_turleri, str(ornek_turleri)))
+    eski = [k for k in ("magnet", "mıknatıs", "miknatis")
             if k in bolum.lower() or k in (tb.group(1).lower() if tb else "")]
-    s.append(("Y8 anahtarlik/magnet secenegi ekranda + tur listesinde 0", not eski, ",".join(eski)))
+    # K3b (Okan 9 Eki 01:4x "5-anahtarlık"): anahtarlık yalnız sayfa metni tablolarında (① KARTLAR satırı +
+    # PENCERELER ① açıklaması, ArTisT metni birebir); bölümün başka yerinde 0.
+    kb = re.search(r"var KARTLAR = \[(.*?)\n  \];", bolum, re.S)
+    pb = re.search(r"var PENCERELER = \[(.*?)\n  \];", bolum, re.S)
+    disari = bolum
+    for blk in (kb, pb):
+        disari = disari.replace(blk.group(0), "") if blk else disari
+    if "anahtarl" in yorumsuz(disari).lower():  # yorum ekrana çıkmaz (Okan alıntısı yorumda)
+        eski.append("anahtarl(KARTLAR disi)")
+    s.append(("Y8 magnet ekranda + tur listesinde 0; anahtarlik bolumde yalniz sayfa metni tablolari (KARTLAR + PENCERELER)", not eski, ",".join(eski)))
+    satirlar = re.findall(r'\{ kod: "([a-z_]+)", tur: "([a-z]+)", alt: (null|"[a-z_]+"), ad: "([^"]+)"', kb.group(1)) if kb else []
+    beklenen = [("insan", "figur", '"insan"', "İnsan figürü"), ("hayvan_model", "figur", '"hayvan_model"', "Hayvan ve model figürü"),
+                ("plaket", "plaket", "null", "Kabartma Plaket"), ("bust", "bust", "null", "Büst"),
+                ("anahtarlik", "anahtarlik", "null", "Anahtarlık"), ("yapboz", "yapboz", "null", "Yapboz")]
+    s.append(("Y14 KARTLAR 6 satir: kod · tur · alt · ad (sayfa metni tablosu birebir; iki figur karti tur figur)",
+              satirlar == beklenen, str(satirlar)))
     # Y9 13:5x (Okan 13:5x: tek tur dali kaldirildi — tur secimi GALERIDEN, 24 kucuk resim izgarasi).
     # Ayri radyo grubu yok; tiklanan kart = secim (function galeriSec).
-    s.append(("Y9 13:5x tur secimi galeriden (tek tur dali kaldirildi, Okan 13:5x)",
-              re.search(r"function galeriSec\(n\)\s*\{", bolum) is not None
-              and "galeriSec(n)" in bolum, ""))
+    s.append(("Y9 tur secimi ① kartindan (kart tiki = galeriSec; ayri tur secici yok)",
+              re.search(r"function galeriSec\(kod\)\s*\{", bolum) is not None
+              and "galeriSec(it.kart.kod)" in bolum, ""))
     s.append(("Y9 adim cubugu tur sayisina gore 'Ölçü' der",
               'F.turler.length > 1 ? "Tür ve ölçü" : "Ölçü"' in bolum, ""))
     # Y10 RENDER ORNEGI (Okan 7 Eki): kanit izni tur kaydinda, izin kontrolu sayacta.
+    # K3a (8 Eki 2026): litofan silindi; 4 kalan tur tamami foto; sadece plaket icin ornek render kitti.
     izinler = dict(re.findall(r'kod:\s*"([a-z]+)",.*?ornek_kanit_izni:\s*(\[[^\]]*\])', veri, re.S))
-    s.append(("Y10 kanit izni: plaket [baski,render] · litofan [baski,render] (Okan 7 Eki G1)",
-              izinler.get("plaket") == '["baski", "render"]' and izinler.get("litofan") == '["baski", "render"]', str(izinler)))
+    s.append(("Y10 kanit izni: plaket [baski,render] (4 kalan tur foto, litofan kalkti)",
+              izinler.get("plaket") == '["baski", "render"]', str(izinler)))
     s.append(("Y10 sayac izin disi kaniti saymaz (izin kontrolu veri dosyasinda)",
               re.search(r"if \(!k \|\| izin\.indexOf\(k\) < 0\) \{ return false; \}", veri) is not None, ""))
     # Y10 RENDER ORNEGI — 50cb58fe sonrasi: `if (it.kanit === "render") { ... } else {` ESKI dali YOK.
@@ -186,13 +212,13 @@ def kontroller(index, bolum, veri, build):
     s.append(("Y10 lightbox ornek_notu tur kaydindan (it.tur.ornek_notu) · bolumde sabit 'kabartmalı' cumlesi 0",
               "it.tur.ornek_notu" in bolum_cleaned and "kabartmalı" not in bolum, ""))
     s.append(("Y10 plaket ornek_notu = karar cumlesi AYNEN", notlar.get("plaket") == RENDER_CUMLE, str(notlar.get("plaket"))))
-    s.append(("Y11 litofan ornek_notu = litofan cumlesi AYNEN ('kabartmalı' 0)",
-              notlar.get("litofan") == LITOFAN_CUMLE, str(notlar.get("litofan"))))
+    # K3a: Y11 litofan ornek_notu kontrolu SİLİNDİ (litofan artık yok; Y10 plaket kontrolü yeterli).
     s.append(("Y10 'gerçek fotoğraf' metni 0 (yorum haric, kodda yok)",
               "gerçek fotoğraf" not in bolum_cleaned, ""))
-    # Y12 SERIT: ol etiketi numara basilmasin (375 px mimar olcumunde 1./2. gorunuyordu).
-    s.append(("Y12 serit kuralinda list-style: none VAR (ol numara basilmasin)",
-              re.search(r"\.foto-uretim-serit\{[^}]*list-style\s*:\s*none", bolum) is not None, ""))
+    # Y12 GOSTERGE (K3b: 3 adim seridi kalkti; kutu basliginda ①②③④ gostergesi): ol numara basilmasin
+    # (375 px mimar olcumunde 1./2. gorunuyordu).
+    s.append(("Y12 gosterge kuralinda list-style: none VAR (ol numara basilmasin)",
+              re.search(r"\.foto-uretim-gosterge\{[^}]*list-style\s*:\s*none", bolum) is not None, ""))
     # Y13 TEK YUKLEME ALANI (Okan 7 Eki 21:5x): ustteki "Foto ekle" kutusu tek dosya girdisi; tiklama
     # ve birakma ayni yoldan (dosyaKoy); tur + 15 MB denetimi orada. Davranis: foto-uretim.mjs S5.
     # 8 Eki 00:3x h.1(e): ses form-parametresinin audio/* girdisi AYNI dosyada olabilir — sayaç
@@ -251,25 +277,34 @@ def main():
         ("M14 bolum sabit durustluk metnine dondu",
          (index, bolum.replace("t && t.durustluk ? t.durustluk : \"\"", "\"Ürün en çok 4 renkle kabartma olarak üretilir\""), veri, build), True),
         ("M4 beyaz listeden dustu", (index, bolum, veri, build.replace('"foto-uretim.js", ', "", 1).replace(', "foto-uretim.js"', "", 1)), True),
-        ("M5 oturum anahtari ayristi", (index, bolum.replace(OTURUM_ANAHTARI, "pruvo_foto_sip"), veri, build), True),
-        ("M6 anahtarlik tur listesine geri eklendi",
-         (index, bolum, veri.replace('kod: "plaket",', 'kod: "plaket",\n      },\n      {\n        kod: "anahtarlik",', 1), build), True),
+        ("M5 oturum anahtari ayristi", (index.replace('setItem("%s"' % OTURUM_ANAHTARI, 'setItem("pruvo_foto_sip"'),
+                                        bolum, veri, build), True),
+        # K3d: anahtarlik kaydi artik VAR; nobetci "ornek YOK"u tutar. M6 = ornek sarti kalkar (anahtarlik
+        # ornegi eklenir) · M6b = kayit silinir (kod kaybolur) · M6c = magnet tur listesine girer.
+        ("M6 anahtarlik ornegi eklendi (ornek sarti kalkti)",
+         (index, bolum, veri.replace("    ornekler: [\n", '    ornekler: [\n      { tur: "anahtarlik", kanit: "render", onizleme: "x", render: "x" },\n', 1), build), True),
+        ("M6b anahtarlik tur kaydi silindi",
+         (index, bolum, veri.replace('kod: "anahtarlik",', 'kod: "anahtarlikYOK",', 1), build), True),
+        ("M6c magnet tur listesine eklendi",
+         (index, bolum, veri.replace('kod: "plaket",', 'kod: "plaket",\n      },\n      {\n        kod: "magnet",', 1), build), True),
         ("M7 galeri tur secici kaldirildi (tek tur dali yerine)",
          (index, re.sub(r"\bgaleriSec\b", "galeriSecYOK", bolum), veri, build), True),
         ("M8 izin kontrolu silindi",
          (index, bolum, veri.replace("if (!k || izin.indexOf(k) < 0) { return false; }", "if (!k) { return false; }", 1), build), True),
         ("M9 abarti cumlesi degisti", (index, bolum, veri.replace("kabartmalı hâlidir, birebir aynısı değildir.", "kabartmalı hâlidir.", 1), build), True),
-        ("M12 litofan cumlesi plaketinkiyle degisti", (index, bolum, veri.replace(LITOFAN_CUMLE, RENDER_CUMLE, 1), build), True),
+        # K3a (8 Eki 2026): M12/M11 litofan referansliydi, litofan silindi — mutant + kontrol SİLİNDİ
+        # (null/no-op mutant YASAK; çapa artık veri dosyasında yok).
         ("M13 bolum sabit cumleye dondu",
          (index, bolum.replace("it.tur.ornek_notu", '"' + RENDER_CUMLE + '"', 1), veri, build), True),
         ("M10 render etiketi 'gerçek fotoğraf' oldu",
          (index, bolum.replace('"önizleme/render"', '"gerçek fotoğraf"'), veri, build), True),
-        ("M11 litofanin render izni geri alindi",
-         (index, bolum, veri.replace('arkadan ışıklı render\'ı).\n        ornek_kanit_izni: ["baski", "render"]',
-                                     'arkadan ışıklı render\'ı).\n        ornek_kanit_izni: ["baski"]', 1), build), True),
         ("K0 kontrol: yorum eklendi", (index.replace("</body>", "<!-- k0 -->\n</body>", 1), bolum, veri, build), False),
-        ("M15 serit kuralindan list-style: none kaldirildi",
-         (index, bolum.replace(".foto-uretim-serit{list-style:none;", ".foto-uretim-serit{", 1), veri, build), True),
+        ("M15 gosterge kuralindan list-style: none kaldirildi",
+         (index, bolum.replace(".foto-uretim-gosterge{list-style:none;", ".foto-uretim-gosterge{", 1), veri, build), True),
+        ("M22 insan karti figur yerine plaket secer",
+         (index, bolum.replace('{ kod: "insan", tur: "figur"', '{ kod: "insan", tur: "plaket"', 1), veri, build), True),
+        ("M23 anahtarlik KARTLAR disinda ekrana yazildi",
+         (index, bolum.replace('var BUST_YONLENDIRME = ', 'var ANAHTARLIK_NOTU = "Anahtarlık";\n  var BUST_YONLENDIRME = ', 1), veri, build), True),
     ]
     # Y13 mutantlari: capa tutmazsa (metin degismezse) mutant KIRMIZI sayilir — sessizce gecmez.
     def bm(eski, yeni):

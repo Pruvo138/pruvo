@@ -98,27 +98,32 @@ function formulSenaryolar(V) {
 function tabansizSenaryo(kaynak) {
   if (kaynak.split(PLAKET_FIYAT).length !== 2) { return false; }
   const V = veriYukle(kaynak.replace(PLAKET_FIYAT, PLAKET_FIYAT.replace(", taban_tl: 600", "")));
-  return V.fiyatKurus("plaket", 120) === null && V.fiyatKurus("litofan", 120) === 120000;
+  // K3a (8 Eki 2026): 15 tür silindi. 4 kalan türün hepsi foto; plaket taban_tl'siz -> null,
+  // yapboz (en_az 10) 120 mm = 120000 etkilenmez.
+  return V.fiyatKurus("plaket", 120) === null && V.fiyatKurus("yapboz", 120) === 120000;
 }
 
 // F8 (Okan 8 Eki 14:0x "slider 10 mm'den baslasin ama min fiyat 600 TL kalsin"): KraL'in elle tuttugu
-// (kopru-disi) sabit eksenli turlerde surgu alt siniri 10 mm ve 10 mm = 600 TL; turetilmis eksende
-// 59 mm = 600 TL, 61 mm = 610 TL. Kopru turlerinin alt siniri TeKiN kaydindan turer (ayri kalem).
-const ELLE_SURGU = ["plaket", "figur", "litofan", "isimlik", "qr", "logo", "muhur", "sablon", "yapboz"];
+// (kopru-disi) sabit eksenli turlerde surgu alt siniri 10 mm ve 10 mm = 600 TL.
+// K3a (8 Eki 2026): 15 tür silindi; hiçbir tür türetilmiş eksen DEĞİL -> "türetilmiş 59/61 mm" kolu YOK.
+// K3d: elle tür kümesi MANIFESTTEN türetilir (sabit liste yazılmaz): köprü kaydı (kopru-manifest-uret.py)
+// `olcu_ekseni` taşır; taşımayan tür KraL'in elle tuttuğu türdür. Küme boşsa ya da plaket yoksa F8 KIRMIZI.
+const elleSurgu = (V) => V.turler.filter((t) => !("olcu_ekseni" in t)).map((t) => t.kod);
 function surguSenaryo(V) {
-  const alt = ELLE_SURGU.filter((k) => { const a = V.olcuAraligi(k); return a && a.en_az === 10 && V.olcuSecenekleri(k)[0] === 10; });
-  const on = ELLE_SURGU.filter((k) => V.fiyatKurus(k, 10) === TABAN_KURUS);
-  const tu = V.turler.find((t) => t.olcu_ekseni === "turetilmis" && V.olcuGecerli(t.kod, 59) && V.olcuGecerli(t.kod, 61));
-  const sinir = !!tu && V.fiyatKurus(tu.kod, 59) === 60000 && V.fiyatKurus(tu.kod, 61) === 61000;
-  return { F8: alt.length === ELLE_SURGU.length && on.length === ELLE_SURGU.length && sinir, alt, on, tu: tu && tu.kod, sinir };
+  const elle = elleSurgu(V);
+  const alt = elle.filter((k) => { const a = V.olcuAraligi(k); return a && a.en_az === 10 && V.olcuSecenekleri(k)[0] === 10; });
+  const on = elle.filter((k) => V.fiyatKurus(k, 10) === TABAN_KURUS);
+  return { F8: elle.includes("plaket") && alt.length === elle.length && on.length === elle.length, elle, alt, on, tu: null, sinir: true };
 }
 
 // F9 (Okan 8 Eki 13:3x "4 renk secimi olmali, ilk renk ucretsiz, her + renk icin +100 TL"; 14:2x plaket/figur/bust
 // "Musteri 1-4 renk secsin"): fiyat = max(600, mm × 10) + (renk − 1) × 100 TL; renk 1..tavan (≤4), digeri null.
 // Bagimsiz carpim — VERI'den OKUNMAZ. Ek renk alani olmayan tur fiyatsiz (fail-closed).
 const EK_RENK_KURUS = 10000;
-const PALET_TURLERI = ["plaket", "figur", "bust"];
+// K3d: palet türleri MANIFESTTEN (`renk_secimi: "palet"` ham alanı); VERI.renkPaleti fonksiyonu buna uymalı.
+const paletTurleri = (V) => V.turler.filter((t) => t.renk_secimi === "palet").map((t) => t.kod);
 function renkSenaryo(V, kaynak) {
+  const PALET_TURLERI = paletTurleri(V);
   const tumAlan = V.turler.every((t) => t.fiyat && t.fiyat.ek_renk_tl === 100 &&
     Number.isInteger(t.fiyat.renk_tavani) && t.fiyat.renk_tavani >= 1 && t.fiyat.renk_tavani <= 4);
   const p = (r) => V.fiyatKurus("plaket", 120, r);
@@ -126,19 +131,24 @@ function renkSenaryo(V, kaynak) {
     p(4) === 120000 + 3 * EK_RENK_KURUS && p(1) === beklenenKurus(120);
   const tabanUstu = V.fiyatKurus("plaket", 10, 3) === TABAN_KURUS + 2 * EK_RENK_KURUS;
   const redler = [5, 0, -1, 1.5, "2", null].every((r) => p(r) === null);
-  // Tavani 1 olan tur (bolgesiz fonksiyonel parca): 2. renk RED.
-  const tek = V.turler.find((t) => t.fiyat && t.fiyat.renk_tavani === 1);
-  const tekOlcu = tek ? V.olcuSecenekleri(tek.kod)[0] : null;
-  const tavanBir = !!tek && V.fiyatKurus(tek.kod, tekOlcu, 1) !== null && V.fiyatKurus(tek.kod, tekOlcu, 2) === null;
-  const palet = PALET_TURLERI.every((k) => V.renkPaleti(k)) && V.turler.filter((t) => V.renkPaleti(t.kod)).length === PALET_TURLERI.length &&
-    V.PLA_RENKLERI.length === 9;
+  // K3d: tavani 1 olan tur kalmadi (yapboz palet, tavan 4). Tavan denetimi HER turde: tavan renk fiyatlanir,
+  // tavan+1 RED; en az bir turun tavani 4'ten kucuk olmali (yoksa tavan+1 = 5 yalniz genel sinira carpar).
+  const tavanlar = V.turler.map((t) => {
+    const n = t.fiyat && t.fiyat.renk_tavani, o = V.olcuSecenekleri(t.kod)[0];
+    return { kod: t.kod, n, ok: V.fiyatKurus(t.kod, o, n) !== null && V.fiyatKurus(t.kod, o, n + 1) === null };
+  });
+  const tek = tavanlar.filter((t) => t.n < 4).map((t) => t.kod + ":" + t.n).join(",");
+  const tavanBir = tavanlar.every((t) => t.ok) && tek !== "";
+  const palet = PALET_TURLERI.length > 0 && PALET_TURLERI.includes("plaket") && PALET_TURLERI.every((k) => V.renkPaleti(k)) &&
+    V.turler.filter((t) => V.renkPaleti(t.kod)).length === PALET_TURLERI.length && V.PLA_RENKLERI.length === 9;
   let eksik = false;
   if (kaynak.split(PLAKET_FIYAT).length === 2) {
     const E = veriYukle(kaynak.replace(PLAKET_FIYAT, PLAKET_FIYAT.replace(", ek_renk_tl: 100", "")));
-    eksik = E.fiyatKurus("plaket", 120) === null && E.fiyatKurus("litofan", 120) === 120000;
+    // K3a: litofan silindi. Yapboz ek_renk yoksa fiyatsız kalır, plaket de öyle.
+    eksik = E.fiyatKurus("plaket", 120) === null && E.fiyatKurus("yapboz", 120) === 120000;
   }
   return { F9: tumAlan && kademe && tabanUstu && redler && tavanBir && palet && eksik,
-           tumAlan, kademe, tabanUstu, redler, tavanBir, palet, eksik, tek: tek && tek.kod };
+           tumAlan, kademe, tabanUstu, redler, tavanBir, palet, eksik, tek, paletTurleri: PALET_TURLERI };
 }
 
 console.log("F1-F3) TEK FORMUL — fiyat_kurus = max(600 TL, en uzun boyut (mm) × 10 TL), kategori farki YOK");
@@ -157,24 +167,25 @@ ol("F6 taban: " + fs1.enDusuk.filter((k) => k >= TABAN_KURUS).length + "/" + kat
 ol("F7 taban_tl'siz tur -> fiyat null (sunulmaz), diger turler etkilenmez", tabansizSenaryo(VERI_KAYNAK), "");
 {
   const sg = surguSenaryo(VERI);
-  const kopruAlt = VERI.turler.filter((t) => !ELLE_SURGU.includes(t.kod) && t.olcu_ekseni === "sabit")
+  const kopruAlt = VERI.turler.filter((t) => !elleSurgu(VERI).includes(t.kod) && t.olcu_ekseni === "sabit")
     .map((t) => t.kod + ":" + t.olcu_mm.en_az);
-  ol("F8 surgu alt siniri 10 mm: " + sg.alt.length + "/" + ELLE_SURGU.length + " elle tur · 10 mm = 600 TL " + sg.on.length + "/" +
-     ELLE_SURGU.length + " · turetilmis " + sg.tu + " 59 mm = 600 TL, 61 mm = 610 TL", sg.F8, JSON.stringify(sg));
+  ol("F8 surgu alt siniri 10 mm: " + sg.alt.length + "/" + sg.elle.length + " elle tur (" + sg.elle.join(",") + ") · 10 mm = 600 TL " + sg.on.length + "/" +
+     sg.elle.length + " · turetilmis " + sg.tu + " 59 mm = 600 TL, 61 mm = 610 TL", sg.F8, JSON.stringify(sg));
   console.log("     bilgi: kopru (TeKiN kaydi) sabit turlerin alt siniri: " + kopruAlt.join(" "));
 }
 console.log("F9) EK RENK — max(600, mm × 10) + (renk − 1) × 100 TL, renk 1..tavan (≤4)");
 {
   const rs = renkSenaryo(VERI, VERI_KAYNAK);
   ol("F9 ek renk: " + VERI.turler.length + "/" + VERI.turler.length + " turde ek_renk_tl=100 + tavan 1..4 · plaket 120 mm 1/2/4 renk = " +
-     [1, 2, 4].map((r) => VERI.tlMetni(VERI.fiyatKurus("plaket", 120, r))).join(" / ") + " · 5/0/1.5/\"2\" null · tavan-1 tur (" + rs.tek +
-     ") 2. renk null · palet turleri " + PALET_TURLERI.join(",") + " · ek_renk_tl'siz tur fiyatsiz", rs.F9, JSON.stringify(rs));
+     [1, 2, 4].map((r) => VERI.tlMetni(VERI.fiyatKurus("plaket", 120, r))).join(" / ") + " · 5/0/1.5/\"2\" null · tavani<4 tur (" + rs.tek +
+     ") tavan+1 renk null (her turde) · palet turleri " + rs.paletTurleri.join(",") + " · ek_renk_tl'siz tur fiyatsiz", rs.F9, JSON.stringify(rs));
 }
 {
   if (VERI_KAYNAK.split(PLAKET_FIYAT).length !== 2) { ol("F2b capa bulundu (tek)", false, PLAKET_FIYAT); }
   const bilinmeyen = veriYukle(VERI_KAYNAK.replace(PLAKET_FIYAT, PLAKET_FIYAT.replace("mm_x_10tl", "mm_x_99tl")));
+  // K3a: litofan silindi. 4 kalan tur: plaket bilinmeyen formul -> null; yapboz (en_az 10) 120 mm = 120000.
   ol("F2b bilinmeyen formul adi -> fiyat null (plaket sunulmaz), diger turler etkilenmez",
-     bilinmeyen.fiyatKurus("plaket", 120) === null && bilinmeyen.fiyatKurus("litofan", 120) === 120000, "");
+     bilinmeyen.fiyatKurus("plaket", 120) === null && bilinmeyen.fiyatKurus("yapboz", 120) === 120000, "");
   ol("F2c TR bicim: 120 mm → 1.200 TL · 1234567 kurus → 12.345,67 TL",
      VERI.fiyatSatiri("plaket", 120) === "120 mm → 1.200 TL" && VERI.tlMetni(1234567) === "12.345,67 TL", VERI.fiyatSatiri("plaket", 120));
 }
@@ -196,9 +207,11 @@ async function sunucuSenaryo(fm) {
 const ss = await sunucuSenaryo(foto);
 ol("F4a sunucu acikTurler: " + ss.ayni + "/" + ss.n + " olcu fiyati VERI.fiyatKurus ile AYNI (" + ss.turSayisi + " tur)", ss.SUNUCU, JSON.stringify(ss));
 const ISTEMCI = fs.readFileSync(path.join(KOK, "foto-uretim.js"), "utf8");
-ol("F4b istemci fiyati TEK formulden: F.fiyatSatiri (sürgü) + F.fiyatKurus (toplam, vitrin); kendi katsayisi yok",
-   /F\.fiyatSatiri\(nt\.kod/.test(ISTEMCI) && /F\.fiyatKurus\(nt\.kod, S\.olcu, renkSayisi\(nt\)\)/.test(ISTEMCI) &&
-   /F\.fiyatKurus\(t\.kod, t\.olcu_mm\.en_az\)/.test(ISTEMCI) && !/VITRIN_TL_MM/.test(ISTEMCI) &&
+// K3b (tek kutu 4 pencere): "₺…'dan itibaren" vitrini KALKTI; fiyat ③'te canlı (canliFiyatGuncelle) + ④ özetinde (cizS3),
+// ikisi de AYNI ifade F.fiyatKurus(nt.kod, S.olcu, renkSayisi(nt)).
+ol("F4b istemci fiyati TEK formulden: F.fiyatSatiri (sürgü) + F.fiyatKurus (③ canli + ④ toplam, 2 yer); vitrin 0; kendi katsayisi yok",
+   /F\.fiyatSatiri\(nt\.kod/.test(ISTEMCI) && (ISTEMCI.match(/F\.fiyatKurus\(nt\.kod, S\.olcu, renkSayisi\(nt\)\)/g) || []).length === 2 &&
+   !/vitrinGuncelle|'dan itibaren/.test(ISTEMCI) && !/VITRIN_TL_MM/.test(ISTEMCI) &&
    // TURETILMIS eksen: bolum fiyati HESAPLAMAZ, yalniz sunucunun durum yanitindaki fiyat_kurus'u okur (tek satir).
    (ISTEMCI.match(/fiyat_kurus/g) || []).length === 2 &&
    /S\.fiyatKurus = typeof veri\.fiyat_kurus === "number" \? veri\.fiyat_kurus : null;/.test(ISTEMCI), "");
@@ -219,8 +232,8 @@ const VERI_MUTANTLAR = [
    "return { en_az: t.olcu_mm.en_cok, en_cok: t.olcu_mm.en_cok };", ["F1", "F3", "F6", "F7", "F8", "F9"]],
   ["FM3 ADIM IZGARASI SILINDI", "return VERI.olcuTuretilmis(kod) || (mm - a.en_az) % adim === 0 || mm === a.en_cok;",
    "return true;", ["F2"]],
-  ["FM5 TURETILMIS DE IZGARAYA BAGLI", "return VERI.olcuTuretilmis(kod) || (mm - a.en_az) % adim === 0 || mm === a.en_cok;",
-   "return (mm - a.en_az) % adim === 0 || mm === a.en_cok;", ["F2", "F8"]],
+  // K3a: FM5 (TURETILMIS DE IZGARAYA BAGLI) SİLİNDİ. Kalan 4 türün TAMAMI foto, hiçbiri türetilmiş değil.
+  // VERI.olcuTuretilmis(kod) her zaman false → mutant no-op olurdu. null/no-op mutant YASAK.
   // Okan 8 Eki tabani: taban kalkinca 60 mm alti turler 600 TL'nin altina iner -> F1/F3/F6 KIRMIZI.
   ["FM6 TABAN KALKTI", "return Math.max(mm * f, taban) + (n - 1) * ek;", "return mm * f + (n - 1) * ek;", ["F1", "F3", "F6", "F8", "F9"]],
   // Tabansiz tur fail-open (taban yoksa 0 sayilir) -> F7 KIRMIZI.

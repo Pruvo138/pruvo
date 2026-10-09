@@ -17,23 +17,30 @@ IKI KATMAN
         da olculur)
   E (TeKiN kaydi diskte varsa; CI'da depo YOK -> `ESLE=ATLANDI kayit-yok` basilir, sessiz gecis DEGIL):
      her kopru kaydi (+ teklif turu bust) icin S1'in DOGRULANMIS parametresi + ornek dosya/renk -> esle_<kod>:
-     E1 ALAN  cikti anahtarlari ⊆ kayit `parametreler` adlari ∪ cagri bayrak adlari
-     E2 TIP   her deger uretecin `SEMA[alan]` kuralina uyar (uretec dosyasindan ast; uretec_ortak._deger_dogrula
-              aynasi; SEMA'da olmayan alan = uretec `bilinmeyen alan` RET'i)
+     E1 ALAN  cikti anahtarlari ⊆ kayit `parametreler` adlari ∪ cagri bayrak adlari ∪ cagri `sabit` anahtarlari
+     E2 TIP   her deger uretecin `SEMA[alan]` kuralina uyar (uretec dosyasindan ast; kayit `sema_adi` doluysa o
+              sozluk SEMA'nin ustune — anahtarlik ANAHTARLIK_SEMA; uretec_ortak._deger_dogrula aynasi; SEMA'da
+              olmayan alan = uretec `bilinmeyen alan` RET'i)
      E3 EKSEN `olcek.belirleyen_parametre` dolu -> cikti[belirleyen] == zarfin olcu_mm'i (surgu = hedef olcu)
-     E4 RENK  donen bolgeler ⊆ manifest renk_bolgeleri ∪ palet_bolgeleri (bust)
-MUTANTLAR (gecici kopyada; calisma agacina YAZMAZ):
-  MA1 esle_braille'e uzun_kenar_mm geri -> E1 ALAN-DISI braille.uzun_kenar_mm
-  MA2 braille buyuk_harf bool -> E2 TIP braille.buyuk_harf
-  MA3 G5 surgu olcusu belirleyen alana yazilmiyor -> E3 EKSEN topo
-  MA4 G5 renk on eki bozuk -> E1 ALAN-DISI topo.renk-
-  MA5 yildiz alt_yazi liste donusumu silindi -> E2 TIP yildiz.alt_yazi
-  MA6 G5 "0 = uretec varsayilani" alani gonderiliyor -> Z SIFIR-GECTI koordinat.kose_yaricap_mm / yildiz.kadir_esigi
-      (8 Eki: manifest 2492ac66 iki alanin formunu min>=1 yapti, dogrulanmis girdi 0 tasimaz; savunma Z katmaninda
-      dogrulanmamis zarfla dogrudan olculur)
-  MS1 manifestte braille metin `max` silindi -> S1 SUNUCU-RED braille=parametre-metin
-  MS2 manifestte braille ust_yazi `zorunlu:false` silindi -> S2 SUNUCU-RED braille-bos.ust_yazi
-  MA7 on adima §2 zarfi (girdi.json) veriliyor -> O1 ON-ADIM topo
+     E4 RENK  donen bolgeler ⊆ manifest renk_bolgeleri ∪ palet_bolgeleri (bust, yapboz); zarfa palet
+              bolgelerinin renkleri de konur (odenen palet rengi esleyiciye ULASIR)
+              + PALET-EKSIK: palet turunde palet_bolgeleri < fiyat.renk_tavani · RENK-DUSTU: renkli palet bolgesi
+              esleme donusunde yok
+     E5 SABIT kayit `cagri.sabit` (anahtarlik: true) ciktida AYNEN (eksikse uretec plaka modunda basar)
+MUTANTLAR (gecici kopyada; calisma agacina YAZMAZ). K3c: kalan kopru turleri yapboz + anahtarlik; silinen
+braille/topo/yildiz/koordinat capali mutantlar bu iki turun capalarina tasindi (null/no-op YASAK). On adimli
+(G5 veri_cek) ve "0 = uretec varsayilani" (G5_SIFIR_VARSAYILAN) turu kalmadi -> O1/Z katmanlari bos kosar,
+eski MA6/MA7 SILINDI (capasi olan tur yok).
+  MA1 esle_anahtarlik'e uzun_kenar_mm eklendi -> E1 ALAN-DISI anahtarlik.uzun_kenar_mm
+  MA2 anahtarlik satirlar listesi tek dizeye birlestirildi -> E2 TIP anahtarlik.satirlar
+  MA3 G5 surgu olcusu belirleyen alana yazilmiyor -> E3 EKSEN anahtarlik.genislik_mm
+  MA3b yapboz surgu olcusu yazilmiyor -> E3 EKSEN yapboz.uzun_kenar_mm
+  MA4 renk on eki bozuk -> E1 ALAN-DISI anahtarlik.renk-
+  MA5 anahtarlik sabiti (anahtarlik:true) silindi -> E5 SABIT anahtarlik.anahtarlik
+  MA6 yapboz palet listesi baska alana yaziliyor -> E1 ALAN-DISI yapboz.renk_listesi
+  MS1 manifestte anahtarlik satirlar `max` silindi -> S1 SUNUCU-RED anahtarlik=parametre-metin
+  MS2 manifestte anahtarlik satirlar `liste:true` silindi -> SUNUCU-RED anahtarlik / E2 TIP anahtarlik.satirlar
+  MS3 manifestte yapboz palet_bolgeleri silindi -> E4 PALET-EKSIK yapboz
   MA0 kontrol: yorum eklendi -> 0 kirmizi
 Cikti son satiri: VAKA_KIRMIZI=<n> SURVIVOR=<n>   (rc 0 yalniz ikisi de 0)
 """
@@ -198,11 +205,12 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
             continue
         n += 1
         cagri = k.get("cagri") or {}
-        kabul = {p.get("ad") for p in k.get("parametreler") or []}
+        sabit = cagri.get("sabit") if isinstance(cagri.get("sabit"), dict) else {}
+        kabul = {p.get("ad") for p in k.get("parametreler") or []} | set(sabit)
         kabul |= {b[2:] for b in list(cagri.get("bayraklar") or []) +
                   [cagri.get(x) for x in ("girdi_bayragi", "cikti_bayragi", "veri_bayragi")]
                   if isinstance(b, str) and b.startswith("--")}
-        sema = URET.uretec_semasi(jen, cagri.get("betik"))
+        sema = URET.uretec_semasi(jen, cagri.get("betik"), k.get("sema_adi"))
         if sema is None and not os.path.isfile(os.path.join(jen, cagri.get("betik") or "")):
             kirmizi.append("URETEC-YOK %s=%s" % (kod, cagri.get("betik")))
             continue
@@ -216,8 +224,9 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
         olcu = next(en_az + i * adim for i in range(1, 50) if p.get(bel) != en_az + i * adim)
         d = tempfile.mkdtemp(prefix="esle-")
         try:
-            g = {"tur": kod, "olcu_mm": olcu, "parametreler": p, "dosyalar": _dosyalar(d),
-                 "renkler": {b["kod"]: b["renkler"][0] for b in t.get("renk_bolgeleri") or []}}
+            renkler = {b["kod"]: b["renkler"][0] for b in t.get("renk_bolgeleri") or []}
+            renkler.update({b: "Beyaz" for b in t.get("palet_bolgeleri") or []})
+            g = {"tur": kod, "olcu_mm": olcu, "parametreler": p, "dosyalar": _dosyalar(d), "renkler": renkler}
             try:
                 # Uretim yolunun secimi (tekin_kos ile ayni nokta; bust -> esle_bust).
                 u, bolgeler = kosucu.esle_fonksiyonu(t, kosucu.cli_tablosu().get(t.get("uretec")))(g, d, rh)
@@ -237,6 +246,9 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
                 r = deger_dogrula(a, u[a], sema[a])
                 if r:
                     kirmizi.append("TIP %s.%s %s" % (kod, a, r))
+        for a, v in sorted(sabit.items()):
+            if u.get(a) != v:
+                kirmizi.append("SABIT %s.%s beklenen=%r gelen=%r" % (kod, a, v, u.get(a)))
         if bel and u.get(bel) != float(olcu):
             kirmizi.append("EKSEN %s.%s beklenen=%s gelen=%s" % (kod, bel, float(olcu), u.get(bel)))
         # Palet turu (bust) bolgeleri manifest palet_bolgeleri'nden (renkler[i] -> palet_bolgeleri[i]).
@@ -244,6 +256,12 @@ def e_katmani(kosucu, kayitlar, jen, turler, deger):
         disi = [b for b in bolgeler if b not in izinli]
         if disi:
             kirmizi.append("RENK %s=%s" % (kod, ",".join(disi)))
+        # RENK-DUSTU (K3c): renklendirilen her palet bolgesi uretece gitmeli — yoksa odenen renk sessizce duser.
+        # (PALET-EKSIK manifest-yalniz -> palet_katmani; kayitsiz CI'da da kosar.)
+        palet = list(t.get("palet_bolgeleri") or [])
+        dusen = [b for b in palet if b not in bolgeler]
+        if dusen:
+            kirmizi.append("RENK-DUSTU %s=%s" % (kod, ",".join(dusen)))
     return kirmizi, n, atlanan
 
 
@@ -283,6 +301,21 @@ def on_adim_katmani(kosucu, turler, deger):
     return kirmizi
 
 
+def palet_katmani(turler, kodlar):
+    """P: PALET-EKSIK (K3c) — fiyatlanan her renk (renk_tavani) bir palet bolgesine baglanmali. Yalniz manifesti
+    okur, TeKiN kaydina bagli DEGIL -> kayitsiz CI'da da kosar (9 Eki: E katmaninda durunca SERIT B'de MS3 SURVIVOR)."""
+    kirmizi = []
+    for kod in sorted(kodlar):
+        t = turler.get(kod)
+        if not t or t.get("renk_secimi") != "palet" or not t.get("uretec"):
+            continue
+        palet = list(t.get("palet_bolgeleri") or [])
+        tavan = (t.get("fiyat") or {}).get("renk_tavani") or 1
+        if len(palet) < tavan:
+            kirmizi.append("PALET-EKSIK %s palet_bolgeleri=%d renk_tavani=%s" % (kod, len(palet), tavan))
+    return kirmizi
+
+
 def kayit_oku():
     try:
         with open(GERCEK_KAYIT, encoding="utf-8") as f:
@@ -297,6 +330,7 @@ def kapi(kosucu_yolu, manifest, kayitlar):
     kirmizi, deger, turler = s_katmani(manifest, set(kos.ESLEMELER))
     kirmizi += on_adim_katmani(kos, turler, deger)
     kirmizi += sifir_katmani(kos, deger)
+    kirmizi += palet_katmani(turler, set(kos.ESLEMELER))
     if kayitlar is None:
         return kirmizi, None, []
     e, n, atlanan = e_katmani(kos, kayitlar, URET.jenerator_kok(GERCEK_KAYIT), turler, deger)
@@ -311,34 +345,34 @@ def _degistir(metin, eski, yeni):
 
 
 MUTANT_KOSUCU = {
-    "MA1 esle_braille'e uzun_kenar_mm geri": (
-        'u["genislik_mm"] = float(g["olcu_mm"])', 'u["uzun_kenar_mm"] = float(g["olcu_mm"])',
-        r"ALAN-DISI braille\.uzun_kenar_mm"),
-    "MA2 braille buyuk_harf bool": (
-        "    u = dict(p)  # braille", "    u = dict(p, buyuk_harf=False)  # braille", r"TIP braille\.buyuk_harf"),
+    "MA1 esle_anahtarlik'e uzun_kenar_mm eklendi": (
+        '    u["anahtarlik"] = True\n', '    u["anahtarlik"] = True\n    u["uzun_kenar_mm"] = float(g["olcu_mm"])\n',
+        r"ALAN-DISI anahtarlik\.uzun_kenar_mm"),
+    "MA2 anahtarlik satirlar tek dizeye birlestirildi": (
+        '    u["anahtarlik"] = True\n', '    u["anahtarlik"] = True\n    u["satirlar"] = "\\n".join(u["satirlar"])\n',
+        r"TIP anahtarlik\.satirlar"),
     "MA3 G5 surgu olcusu belirleyen alana yazilmiyor": (
-        '    u[G5_OLCU_ALANI[kod]] = float(g["olcu_mm"])\n', "", r"EKSEN topo\.olcu_mm"),
-    "MA4 G5 renk on eki bozuk": ('u["renk_" + b] = h', 'u["renk-" + b] = h', r"ALAN-DISI topo\.renk-"),
-    "MA5 yildiz alt_yazi liste donusumu silindi": (
-        '        u["alt_yazi"] = [u["alt_yazi"]] if u["alt_yazi"].strip() else []\n', "        pass\n",
-        r"TIP yildiz\.alt_yazi"),
-    "MA6 G5 0=varsayilan alani gonderiliyor": (
-        "        if u.get(a) == 0:\n            del u[a]\n", "        pass\n", r"SIFIR-GECTI (koordinat\.kose_yaricap_mm|yildiz\.kadir_esigi)"),
-    "MA7 on adima zarf veriliyor": (
-        'oa_komut += [oa["girdi_bayragi"], ugirdi,', 'oa_komut += [oa["girdi_bayragi"], os.path.join(girdi_dizin, "girdi.json"),',
-        r"ON-ADIM topo"),
-    "MA0 kontrol: yorum eklendi -> 0 kirmizi": ("def esle_braille(", "# kontrol\ndef esle_braille(", None),
+        '    u[G5_OLCU_ALANI[kod]] = float(g["olcu_mm"])\n', "", r"EKSEN anahtarlik\.genislik_mm"),
+    "MA3b yapboz surgu olcusu yazilmiyor": (
+        '    u["uzun_kenar_mm"] = float(g["olcu_mm"])\n', "", r"EKSEN yapboz\.uzun_kenar_mm"),
+    "MA4 renk on eki bozuk": ('u["renk_" + b] = h', 'u["renk-" + b] = h', r"ALAN-DISI anahtarlik\.renk-"),
+    "MA5 anahtarlik sabiti silindi": ('    u["anahtarlik"] = True\n', "", r"SABIT anahtarlik\.anahtarlik"),
+    "MA6 yapboz palet listesi baska alana": ('        u["renkler"] = renkler\n', '        u["renk_listesi"] = renkler\n',
+                                            r"ALAN-DISI yapboz\.renk_listesi"),
+    "MA0 kontrol: yorum eklendi -> 0 kirmizi": ("def esle_anahtarlik(", "# kontrol\ndef esle_anahtarlik(", None),
 }
 MUTANT_MANIFEST = {
-    "MS1 manifestte braille metin max silindi": (
-        'etiket: "Turkce metin (Grade-1)",\n            zorunlu: true,\n            max: 400,\n',
-        'etiket: "Turkce metin (Grade-1)",\n            zorunlu: true,\n',
-        r"SUNUCU-RED braille=parametre-metin"),
-    "MS2 manifestte braille ust_yazi zorunlu:false silindi": (
-        'etiket: "Ust duz yazi (ops.)",\n            varsayilan: "",\n            max: 40,\n            zorunlu: false\n',
-        'etiket: "Ust duz yazi (ops.)",\n            varsayilan: "",\n            max: 40\n',
-        r"SUNUCU-RED braille-bos\.ust_yazi=parametre-metin"),
+    "MS1 manifestte anahtarlik satirlar max silindi": (
+        "            satir_max: 3,\n            max: 40,\n", "            satir_max: 3,\n",
+        r"SUNUCU-RED anahtarlik=parametre-metin"),
+    "MS2 manifestte anahtarlik satirlar liste:true silindi": (
+        "            liste: true,\n", "", r"SUNUCU-RED anahtarlik|TIP anahtarlik\.satirlar"),
+    "MS3 manifestte yapboz palet_bolgeleri silindi": (
+        '        palet_bolgeleri: ["renk1", "renk2", "renk3", "renk4"]\n', "", r"PALET-EKSIK yapboz"),
 }
+# Manifest mutantlarindan kalibi YALNIZ E katmaninda yakalananlar (9 Eki olcum: kayitsiz kosumda S `liste:true`
+# silinince REDDETMIYOR -> kalip TIP'ten gelir). Kayit yoksa MA'lar gibi ATLANDI basilir, SURVIVOR sayilmaz.
+E_GEREKEN_MS = {"MS2 manifestte anahtarlik satirlar liste:true silindi"}
 
 
 def mutant(ad, kayitlar):
@@ -363,7 +397,7 @@ def mutant(ad, kayitlar):
             f.write(ks)
         with open(man, "w", encoding="utf-8") as f:
             f.write(ms)
-        if ad in MUTANT_KOSUCU and kayitlar is None and not ad.startswith("MA7"):
+        if (ad in MUTANT_KOSUCU or ad in E_GEREKEN_MS) and kayitlar is None:
             return True, "ATLANDI kayit-yok (E katmani mutanti)"
         kirmizi, _, _ = kapi(kos, man, kayitlar)
         if kalip is None:

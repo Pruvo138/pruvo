@@ -8,12 +8,18 @@ VAKALAR
   V1 --kuru: tur basina 4 adim (render/r2/d1/olcum) + D1 = pruvo-katalog-onizleme -c onizleme toml, canli ad YOK
   V2 mutlu yol: RENDER=ok R2=200 D1=ok HAZIR=evet, adim sirasi render<r2<d1<olcum, KOPRU_GRUP 2/2 rc=0,
      gecici dizin kalmadi
-  V3 braille uretec rc 2 -> RENDER=uretec-rc2 + R2/D1 kosmaz + rolyef yine ok (DEVAM) + rc 1 + gecici dizin kalmadi
+  V3 anahtarlik uretec (isimlik_uret) rc 2 -> RENDER=uretec-rc2 + R2/D1 kosmaz + yapboz yine ok (DEVAM) + rc 1
+     + gecici dizin kalmadi
   V4 HTTP 404 -> R2=404, D1 KOSMAZ (acilmaz), rc 1
   V5 D1 rc 1 -> D1=rc1:..., rc 1
-  V6 yer tutucu: dosya -> gecerli PNG, dizi -> N elemanli sinus; bust -> rolyef kaydi/betigi
+  V6 yer tutucu: dosya (yapboz `gorsel`) -> gecerli PNG; anahtarlik -> anahtarlik kaydi + isimlik_uret.py
+     (kayit URETEC adiyla bulunur, tur adi != uretec adi); kopru kaydi olmayan tur (bust, plaket) ->
+     uretec-ya-da-kayit-yok (fail-closed)
+EVREN (sayfa-3adim K3d): manifest foto-uretim-veri.js TEK KAYNAK; kopru kayitlari yapboz + anahtarlik.
+  Silinen tur grup vakalari yapboz/anahtarlik'a cevrildi; ses'e bagli V7 (dizi yer tutucusu) + MG1 SILINDI
+  (kalan kopru kaydinda `dizi` yer tutucusu yok, tasinamaz).
 MUTANTLAR (KIRMIZI yakmali): MD1 D1 adi canliya · MD2 d1 komutu canli adla kurulur (koruma) ·
-  MR2 R2 200 denetimi silindi · MTMP gecici dizin silme kaldirildi · MG1 genlik [-1,1] sinus -> V7 (kopru-15 SON3)
+  MR2 R2 200 denetimi silindi · MTMP gecici dizin silme kaldirildi
 Cikti son satiri: VAKA_KIRMIZI=<n> SURVIVOR=<n>   (rc 0 yalniz ikisi de 0)
 """
 import importlib.util
@@ -26,7 +32,6 @@ import tempfile
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARAC = os.path.join(KOK, "tools", "kopru-grup-kos.py")
-OLCUM = os.path.join(KOK, "tools", "foto-ornek-uc-uca.py")
 
 SAHTE = r'''
 import json, os, sys
@@ -60,15 +65,14 @@ elif "foto-ornek-uc-uca.py" in s:
 '''
 
 KAYIT = {"surum": 1, "kayitlar": [
-    {"kod": "rolyef", "uretec": "rolyef_uret", "cikti": {"onizleme_png": "onizleme.png"},
-     "parametreler": [{"ad": "gorsel", "tip": "dosya"}, {"ad": "uzun_kenar_mm", "tip": "sayi"}],
-     "ornek": {"girdi": {"gorsel": "<PNG YOLU>, gri gradyan", "uzun_kenar_mm": 120}}},
-    {"kod": "ses", "uretec": "ses_dalgasi_uret", "cikti": {"onizleme_png": "onizleme.png"},
-     "parametreler": [{"ad": "genlik", "tip": "dizi"}],
-     "ornek": {"girdi": {"genlik": "<100 elemanli dizi, sinus>", "cubuk_sayisi": 100}}},
-    {"kod": "braille", "uretec": "braille_uret", "cikti": {"onizleme_png": "onizleme.png"},
-     "parametreler": [{"ad": "metin", "tip": "metin"}],
-     "ornek": {"girdi": {"metin": "Pruvo test 2026"}}},
+    {"kod": "yapboz", "uretec": "yapboz_uret", "cikti": {"onizleme_png": "onizleme.png"},
+     "parametreler": [{"ad": "gorsel", "tip": "dosya"}, {"ad": "uzun_kenar_mm", "tip": "sayi"},
+                      {"ad": "renkler", "tip": "renk_liste"}],
+     "ornek": {"girdi": {"gorsel": "<PNG YOLU> (gri gradyan, oran <= 4:1)", "uzun_kenar_mm": 150,
+                         "renkler": ["#C8B89A"]}}},
+    {"kod": "anahtarlik", "uretec": "isimlik_uret", "cikti": {"onizleme_png": "onizleme.png"},
+     "parametreler": [{"ad": "satirlar", "tip": "metin", "liste": True}, {"ad": "genislik_mm", "tip": "sayi"}],
+     "ornek": {"girdi": {"satirlar": ["Ayşe"], "genislik_mm": 45.0}}},
 ]}
 
 sonuc = {}
@@ -126,13 +130,13 @@ def vakalar(o, kaynak, sus=False):
         r[ad] = bool(gecti)
         if not sus:
             vaka(ad, gecti, ac)
-    turler = ["--tur", "rolyef", "--tur", "braille"]
+    turler = ["--tur", "yapboz", "--tur", "anahtarlik"]
 
     rc, out, _ = o.kos(kaynak, turler + ["--kuru"])
     k = satir(out, "KURU ")
     adimlar = {(s.split()[1], s.split()[2]) for s in k}
     d1 = [s for s in k if "ADIM=d1" in s]
-    yaz("V1 kuru: tur basina 4 adim", rc == 0 and adimlar == {("tur=%s" % t, "ADIM=%s" % a) for t in ("rolyef", "braille")
+    yaz("V1 kuru: tur basina 4 adim", rc == 0 and adimlar == {("tur=%s" % t, "ADIM=%s" % a) for t in ("yapboz", "anahtarlik")
                                                             for a in ("render", "r2", "d1", "olcum")}, "rc=%d" % rc)
     yaz("V1 kuru: D1 onizleme adi + toml, canli ad yok",
         len(d1) == 2 and all("d1 execute pruvo-katalog-onizleme --remote -c shop/wrangler.onizleme.toml" in s
@@ -152,20 +156,20 @@ def vakalar(o, kaynak, sus=False):
         "pruvo-katalog-onizleme" in a and "pruvo-katalog" not in a for a in d1c))
     yaz("V2 gecici dizin silindi", o.artik() == [], str(o.artik()))
 
-    rc, out, c = o.kos(kaynak, turler, SAHTE_HATA="braille_uret.py")
+    rc, out, c = o.kos(kaynak, turler, SAHTE_HATA="isimlik_uret.py")
     ks = satir(out, "KOSU ")
     yaz("V3 uretec hatasi -> rc1 + adim adi + diger tur devam",
-        rc == 1 and any(s.startswith("KOSU tur=braille RENDER=uretec-rc2:") and "R2=- D1=-" in s for s in ks)
-        and any(s.startswith("KOSU tur=rolyef RENDER=ok R2=200 D1=ok") for s in ks)
+        rc == 1 and any(s.startswith("KOSU tur=anahtarlik RENDER=uretec-rc2:") and "R2=- D1=-" in s for s in ks)
+        and any(s.startswith("KOSU tur=yapboz RENDER=ok R2=200 D1=ok") for s in ks)
         and satir(out, "KOPRU_GRUP")[-1:] == ["KOPRU_GRUP turler=2 hazir=2/2 rc=1"], str(ks))
     yaz("V3 hatada gecici dizin silindi", o.artik() == [], str(o.artik()))
 
-    rc, out, c = o.kos(kaynak, ["--tur", "rolyef"], SAHTE_HTTP="404")
+    rc, out, c = o.kos(kaynak, ["--tur", "yapboz"], SAHTE_HTTP="404")
     ks = satir(out, "KOSU ")
     yaz("V4 HTTP 404 -> R2=404 + D1 acilmaz + rc1",
         rc == 1 and ks[:1] and "R2=404 D1=-" in ks[0] and not [a for a in c if "d1" in a], str(ks))
 
-    rc, out, c = o.kos(kaynak, ["--tur", "rolyef"], SAHTE_HATA="d1")
+    rc, out, c = o.kos(kaynak, ["--tur", "yapboz"], SAHTE_HATA="d1")
     ks = satir(out, "KOSU ")
     yaz("V5 D1 hatasi -> D1=rc1 + rc1", rc == 1 and ks[:1] and "D1=rc1:" in ks[0], str(ks))
 
@@ -182,37 +186,13 @@ def yer_tutucu_vakasi(o):
     u = m.ornek_girdisi(KAYIT["kayitlar"][0], d)
     png = open(u["gorsel"], "rb").read() if os.path.isfile(u.get("gorsel", "")) else b""
     vaka("V6 dosya yer tutucusu -> gecerli PNG", png.startswith(b"\x89PNG\r\n\x1a\n") and b"IEND" in png[-12:])
-    for ad, v in genlik_vakasi(m.ornek_girdisi, d).items():
-        vaka(ad, v)
-    p = m.plan_kur(["bust"])[0]
-    vaka("V6 bust -> rolyef kaydi + rolyef_uret.py", p.get("kayit", {}).get("kod") == "rolyef"
-         and p.get("g", {}).get("betik", "").endswith("rolyef_uret.py"), str(p.get("hata")))
+    p = m.plan_kur(["anahtarlik"])[0]
+    vaka("V6 anahtarlik -> anahtarlik kaydi + isimlik_uret.py", p.get("kayit", {}).get("kod") == "anahtarlik"
+         and p.get("g", {}).get("betik", "").endswith("isimlik_uret.py"), str(p.get("hata")))
+    yok = {q["kod"]: q.get("hata") for q in m.plan_kur(["bust", "plaket"])}
+    vaka("V6 kopru kaydi olmayan tur (bust, plaket) -> uretec-ya-da-kayit-yok",
+         yok == {"bust": "uretec-ya-da-kayit-yok", "plaket": "uretec-ya-da-kayit-yok"}, str(yok))
     shutil.rmtree(d, ignore_errors=True)
-
-
-def genlik_vakasi(ornek_girdisi, d):
-    """V7 (kopru-15 SON3): dizi yer tutucusu = foto-ornek-uc-uca.ORNEK_GENLIK BIREBIR (tek kaynak) ve 0..1
-    (uretec/VERI `ses` tipi min 0.0; [-1,1] sinus `RET: genlik[17] < min 0.0` aliyordu)."""
-    s = importlib.util.spec_from_file_location("foto_ornek_uc_uca", OLCUM)
-    m = importlib.util.module_from_spec(s)
-    s.loader.exec_module(m)
-    try:
-        g = ornek_girdisi(KAYIT["kayitlar"][1], d)["genlik"]
-    except Exception:  # cokerse KIRMIZI
-        g = None
-    return {"V7 dizi yer tutucusu -> ORNEK_GENLIK (100 eleman, 0..1, tek kaynak)":
-            isinstance(g, list) and len(g) == 100 and min(g) >= 0 and max(g) <= 1 and g == m.ORNEK_GENLIK}
-
-
-def genlik_kaynakta(kaynak, o):
-    """Mutant kaynagi bellekte yukle -> V7 (mutant dongusu `vakalar`a ek olarak bunu da olcer)."""
-    g = {"__file__": ARAC, "__name__": "kopru_grup_kos_mutant"}
-    exec(compile(kaynak, ARAC, "exec"), g)
-    d = tempfile.mkdtemp(dir=o.tmp, prefix="yt-")
-    try:
-        return genlik_vakasi(g["ornek_girdisi"], d)
-    finally:
-        shutil.rmtree(d, ignore_errors=True)
 
 
 MUTANTLAR = [
@@ -220,9 +200,6 @@ MUTANTLAR = [
     ("MD2 d1 komutu canli adla", '"d1", "execute", D1_ONIZLEME', '"d1", "execute", D1_CANLI'),
     ("MR2 R2 200 denetimi silindi", 'return "200" if durum == "200" else durum', 'return "200"'),
     ("MTMP gecici dizin silme kaldirildi", "shutil.rmtree(dizin, ignore_errors=True)", "pass"),
-    # kopru-15 SON3: ikinci formul ([-1,1] sinus) geri gelirse V7 KIRMIZI.
-    ("MG1 genlik [-1,1] sinus (ikinci formul)", "                v = ornek_genlik()\n",
-     "                v = [round(__import__('math').sin(2 * __import__('math').pi * 3 * i / n), 6) for i in range(n)]\n"),
 ]
 
 
@@ -243,7 +220,6 @@ def main():
                 sv += 1
                 continue
             r = vakalar(o, kaynak.replace(eski, yeni), sus=True)
-            r.update(genlik_kaynakta(kaynak.replace(eski, yeni), o))
             kirmizi = [k for k, v in r.items() if not v]
             if o.artik():
                 for d in o.artik():

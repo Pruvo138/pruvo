@@ -13,8 +13,12 @@ MUTANTLAR (gecici kopyalarda; calisma agacina YAZMAZ):
   MK4 kayitta bilinmeyen girdi · MK5 kosul var olmayan alana bakiyor · MK0 kontrol: editoryal metin degisti
   MK6 manifestte form `ornek` silindi · RENK EKSENI (8 Eki): MK7 manifest renk_tavani > boyanabilir sayi · MK8 kopru
   govde adi parametre sonekinden sapti · MK9 renk_ parametresi silindi (tavan iner); F15 parametresiz govde = BILGI.
-  R katmani: MR1/MR2/MR3 = MK1/MK2/MK3 gercek kopyada;
-  MR4/MR5 sehir enlem / yildiz tarih_saat `ornek`i silindi (kopru-15 SON3).
+  K3c SOZLUK (F16-F21, hermetik): renk_liste -> palet (renk_secimi/palet_bolgeleri/renk_tavani) + bozuk bicim
+  KIRMIZI · metin liste -> {liste, satir_max, max:karakter_max} + bozuk bicim KIRMIZI · sema_adi uste yazimi.
+  R katmani (K3c: gercek kayit = yapboz + anahtarlik; silinen sehir/yildiz/kosul capali MR'ler bu iki kayda
+  tasindi): MR1 renk_liste -> bilinmeyen tip · MR2 palet tavani 4->3 · MR3 adim dusuruldu · MR4 anahtarlik
+  satirlar max silindi · MR5 liste:true silindi · MR6 kayitta satir_max silindi · MR7 renk_liste oge bozuk ·
+  MR8 yapboz renk_secimi silindi · MR9 sema_adi dosyada yok · MR0 kontrol: anahtarlik durustluk metni degisti.
 Cikti son satiri: VAKA_KIRMIZI=<n> SURVIVOR=<n>   (rc 0 yalniz ikisi de 0)
 """
 import importlib.util
@@ -222,6 +226,53 @@ def hermetik():
         rc4, out4 = kos("--denetle", "--kayit", os.path.join(d, "yok.json"), "--manifest", m)
         vaka("F13 kayit yok -> HAL=KAYIT-YOK rc 3 (sessiz YESIL degil)", rc4 == 3 and "HAL=KAYIT-YOK" in out4, out4)
 
+        # ---- K3c SOZLUK: renk_liste (palet) + metin liste + sema_adi ----
+        def tek(params, girdi=("foto",)):
+            return u.satir_uret({"kod": "x", "uretec": "x_uret", "girdi_tipi": list(girdi), "parametreler": params,
+                                 "olcek": {"min_mm": 10, "max_mm": 100, "adim_mm": 5, "belirleyen_parametre": "a"}})
+        rl = {"ad": "renkler", "etiket": "Renkler", "tip": "renk_liste", "uzunluk_max": 3, "oge": "#RRGGBB",
+              "varsayilan": ["#C8B89A"]}
+        s16, h16 = tek([rl])
+        vaka("F16 renk_liste -> palet: renk_secimi palet · palet_bolgeleri renk1..3 · tavan 3 · form/bolge DISI",
+             not h16 and s16["renk_secimi"] == "palet" and s16["palet_bolgeleri"] == ["renk1", "renk2", "renk3"] and
+             s16["renk_tavani"] == 3 and s16["form"] == {} and s16["renk_bolgeleri"] == [], json.dumps([s16, h16])[:300])
+        bozuk = [("oge", dict(rl, oge="#RGB"), r"renk-liste-oge:x\.renkler"),
+                 ("tavan 5", dict(rl, uzunluk_max=5), r"renk-liste-tavani:x\.renkler=5"),
+                 ("tavan bool", dict(rl, uzunluk_max=True), r"renk-liste-tavani:x\.renkler=True"),
+                 ("cift", [rl, dict(rl, ad="renkler2")], r"renk-liste-cift:x\.renkler2"),
+                 ("bolge karisik", [rl, {"ad": "renk_taban", "etiket": "Taban rengi", "tip": "renk"}],
+                  r"renk-liste-bolge-karisik:x")]
+        for ad, prm, kalip in bozuk:
+            _, hb = tek(prm if isinstance(prm, list) else [prm])
+            vaka("F17 renk_liste %s -> KIRMIZI" % ad, any(re.search(kalip, x) for x in hb), json.dumps(hb))
+        ml = {"ad": "satirlar", "etiket": "Yazi", "tip": "metin", "liste": True, "satir_max": 3, "karakter_max": 40,
+              "zorunlu": True}
+        s18, h18 = tek([ml], ("metin",))
+        vaka("F18 metin liste -> {tip metin, etiket, liste, satir_max, max:karakter_max, zorunlu} · girdi metin",
+             not h18 and s18["form"]["satirlar"] == {"tip": "metin", "etiket": "Yazi", "liste": True, "satir_max": 3,
+                                                    "max": 40, "zorunlu": True} and s18["girdi"] == ["metin"] and
+             s18["renk_secimi"] is None and s18["palet_bolgeleri"] is None, json.dumps([s18["form"], h18]))
+        for ad, prm, kalip in [("satir_max yok", {k: v for k, v in ml.items() if k != "satir_max"},
+                                r"metin-satir-max:x\.satirlar"),
+                               ("satir_max 0", dict(ml, satir_max=0), r"metin-satir-max:x\.satirlar"),
+                               ("liste dize", dict(ml, liste="evet"), r"metin-liste-bicimi:x\.satirlar"),
+                               ("karakter_max 0", dict(ml, karakter_max=0), r"metin-tavani-bicimi:x\.satirlar")]:
+            _, hb = tek([prm], ("metin",))
+            vaka("F19 metin %s -> KIRMIZI" % ad, any(re.search(kalip, x) for x in hb), json.dumps(hb))
+        _, h20 = tek([dict(rl, tip="renk_dizi")])
+        vaka("F20 sozlukte olmayan tip yine KIRMIZI", h20 == ["bilinmeyen-tip:x.renkler=renk_dizi"], json.dumps(h20))
+        os.makedirs(os.path.join(d, "jen", "u"))
+        with open(os.path.join(d, "jen", "u", "u.py"), "w", encoding="utf-8") as f:
+            f.write('SEMA = {"g": {"tip": "float", "min": 20.0, "max": 400.0}, "s": {"tip": "str"}}\n'
+                    'DAR_SEMA = {"g": {"tip": "float", "min": 30.0, "max": 80.0}}\n')
+        jen = os.path.join(d, "jen")
+        vaka("F21 sema_adi SEMA'nin ustune alan alan · ad yok -> None · ad yok kaydi -> KIRMIZI sema-adi-yok",
+             u.uretec_semasi(jen, "u/u.py", "DAR_SEMA") == {"g": {"tip": "float", "min": 30.0, "max": 80.0},
+                                                          "s": {"tip": "str"}} and
+             u.uretec_semasi(jen, "u/u.py", "YOK_SEMA") is None and
+             "sema-adi-yok:y=YOK_SEMA" in u.hepsini_uret(
+                 {"kayitlar": [{"kod": "y", "cagri": {"betik": "u/u.py"}, "sema_adi": "YOK_SEMA",
+                                "parametreler": []}]}, jen)[1])
         print("F-MUTANT")
         mutant("MK1 kayitta bool->boolean -> KIRMIZI", k, m, r"bilinmeyen-tip:parca\.kapak=boolean",
                lambda kk, mm: degistir(kk, '"tip": "bool"', '"tip": "boolean"'))
@@ -268,18 +319,39 @@ def gercek():
     finally:
         shutil.rmtree(d, ignore_errors=True)
     print("R-MUTANT")
-    mutant("MR1 gercek kayitta bool->boolean -> KIRMIZI", GERCEK_KAYIT, man, r"bilinmeyen-tip:\w+\.\w+=boolean",
-           lambda kk, mm: degistir(kk, r'"tip":\s*"bool"', '"tip": "boolean"', regex=True))
-    mutant("MR2 gercek manifestte tek kosul silindi -> KIRMIZI", GERCEK_KAYIT, man, r"sapma:\w+\.form\.\w+\.kosul",
-           lambda kk, mm: degistir(mm, r"^\s+kosul: .*\n", "", regex=True))
+    # K3c: gercek kayit yapboz (renk_liste) + anahtarlik (metin liste); eski bool/kosul/sehir/yildiz capalari yok.
+    mutant("MR1 gercek kayitta renk_liste -> renk_dizi (sozlukte yok) -> KIRMIZI", GERCEK_KAYIT, man,
+           r"bilinmeyen-tip:yapboz\.renkler=renk_dizi",
+           lambda kk, mm: degistir(kk, r'"tip":\s*"renk_liste"', '"tip": "renk_dizi"', regex=True))
+    mutant("MR2 gercek kayitta palet tavani 4->3 -> KIRMIZI", GERCEK_KAYIT, man,
+           r"sapma:yapboz\.fiyat\.renk_tavani manifest=4 kopru=3",
+           lambda kk, mm: degistir(kk, r'"uzunluk_max":\s*4,(\s*"oge")', r'"uzunluk_max": 3,\1', regex=True))
     mutant("MR3 gercek manifestte adim dusuruldu -> KIRMIZI", GERCEK_KAYIT, man, r"sapma:\w+\.form\.\w+\.adim",
            lambda kk, mm: degistir(mm, "adim: 0.01,", "adim: 0.001,"))
-    # kopru-15 SON3: sehir/yildiz ornegi manifestteki `ornek`ten; silinirse --denetle adiyla KIRMIZI.
-    mutant("MR4 gercek manifestte sehir enlem ornegi silindi -> KIRMIZI", GERCEK_KAYIT, man,
-           r"sapma:sehir\.form\.enlem\.ornek", lambda kk, mm: degistir(mm, r"^\s+ornek: 41\.0256,?\n", "", regex=True))
-    mutant("MR5 gercek manifestte yildiz tarih_saat ornegi silindi -> KIRMIZI", GERCEK_KAYIT, man,
-           r"sapma:yildiz\.form\.tarih_saat\.ornek",
-           lambda kk, mm: degistir(mm, r'^\s+ornek: "2026-10-07 21:30",?\n', "", regex=True))
+    mutant("MR4 gercek manifestte anahtarlik satirlar max silindi -> KIRMIZI", GERCEK_KAYIT, man,
+           r"sapma:anahtarlik\.form\.satirlar\.max",
+           lambda kk, mm: degistir(mm, "            satir_max: 3,\n            max: 40,\n", "            satir_max: 3,\n"))
+    mutant("MR5 gercek manifestte anahtarlik liste:true silindi -> KIRMIZI", GERCEK_KAYIT, man,
+           r"sapma:anahtarlik\.form\.satirlar\.liste",
+           lambda kk, mm: degistir(mm, "            liste: true,\n", ""))
+    mutant("MR6 gercek kayitta satir_max silindi -> KIRMIZI", GERCEK_KAYIT, man, r"metin-satir-max:anahtarlik\.satirlar",
+           lambda kk, mm: degistir(kk, r'"satir_max":\s*3,\s*', "", regex=True))
+    mutant("MR7 gercek kayitta renk_liste oge bozuk -> KIRMIZI", GERCEK_KAYIT, man, r"renk-liste-oge:yapboz\.renkler",
+           lambda kk, mm: degistir(kk, r'"oge":\s*"#RRGGBB"', '"oge": "#RGB"', regex=True))
+    mutant("MR8 gercek manifestte yapboz renk_secimi silindi -> KIRMIZI", GERCEK_KAYIT, man, r"sapma:yapboz\.renk_secimi",
+           lambda kk, mm: degistir(mm, '        renk_secimi: "palet",\n        palet_bolgeleri: ["renk1"',
+                                   '        palet_bolgeleri: ["renk1"'))
+    # MR9: kayit kopyasi gecici dizinde uretec dosyasini bulamaz -> gercek jenerator koku ile bellekte olculur.
+    u = arac_yukle()
+    kayit = json.load(open(GERCEK_KAYIT, encoding="utf-8"))
+    ak = [k for k in kayit["kayitlar"] if k.get("sema_adi") == "ANAHTARLIK_SEMA"]
+    for k in ak:
+        k["sema_adi"] = "YOK_SEMA"
+    _, h9 = u.hepsini_uret(kayit, u.jenerator_kok(GERCEK_KAYIT))
+    vaka("MR9 gercek kayitta sema_adi uretec dosyasinda yok -> KIRMIZI", len(ak) == 1 and
+         "sema-adi-yok:anahtarlik=YOK_SEMA" in h9, "uygulandi=%d %s" % (len(ak), h9))
+    mutant("MR0 kontrol: anahtarlik durustluk metni degisti -> YESIL kalir", GERCEK_KAYIT, man, None,
+           lambda kk, mm: degistir(mm, 'durustluk: "Metal halka ve zincir', 'durustluk: "Metal halka ya da zincir'))
 
 
 def main():
