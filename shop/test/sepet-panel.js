@@ -277,7 +277,9 @@ async function sayfaKur(ayar) {
   };
   ctx.window = ctx;
   vm.createContext(ctx);
-  vm.runInContext(SECENEK_SRC, ctx, { filename: "secenekler.js" });
+  // ayar.secenekKaynak: test 18 mutantlari secenekler.js'in BELLEK-ICI kopyasini verir
+  // (disk yazimi YOK); verilmezse canli dosya.
+  vm.runInContext(ayar.secenekKaynak || SECENEK_SRC, ctx, { filename: "secenekler.js" });
   vm.runInContext(SCRIPT, ctx, { filename: "index-inline.js" });
   // Enjeksiyon: script YUKLENDI ama fetch .then microtask'i HENUZ kosmadi (senkron kod
   // once biter). Savunma testi burada PRUVO_SECENEK.satirOzeti'ni patlatir -> renderCartPanel
@@ -1089,6 +1091,86 @@ function test16MusteriNotuKablosu() {
     "oAdres sonrasi · odemeYontem oncesi · maxlength=500 · musteri_notu gonderiliyor");
 }
 
+/** 18 — UCRETSIZ GONDERIM NOTU + ESIGE KALAN (Okan 9 Eki, sepet ekran goruntusu):
+ *  Gonderim satirinin altinda iki satir — sabit esik metni + dinamik kalan tutar. Esik ve
+ *  kalan secenekler.js TEK kaynagindan (KARGO_BEDAVA_ESIK_KURUS / kargoBedavaKalanKurus).
+ *  Beklenen metinler BILEREK ELLE yazili (kaynaktan turetilseydi mutant da yesil kalirdi).
+ *  V1 690,00 -> kalan 1.810,00 · V2 2.499,99 -> 0,01 · V3 2.500,00 -> uygulandi + Gonderim 0 ·
+ *  V4 3.000,00 -> uygulandi, kalan 0 · V5 bos sepet -> iki satir gizli.
+ *  MUTANTLAR (secenekler.js bellek kopyasi): M1 esik >= -> > -> TAM OLARAK V3 KIRMIZI ·
+ *  M2 max(0,..) kalkar (negatif kalan) -> TAM OLARAK V4 KIRMIZI · KONTROL -> hicbiri. */
+const KARGO_KATALOG = [
+  ["k690", "690 TL"], ["k2346", "2.346 TL"], ["k103", "103 TL"],
+  ["k2500", "2.500 TL"], ["k3000", "3.000 TL"],
+].map(([id, fiyat]) => ({ id, kategori: "Ev", marka: [], baslik: "Kargo " + fiyat,
+  aciklama: "test", fiyat, gorseller: [] }));
+const pla = (id) => ({ id, malzeme: "PLA", renk: "Siyah", adet: 1 });
+const ESIK_METNI = "2.500 TL ve üzeri siparişlerde gönderim ücretsiz.";
+const UYGULANDI = "Ücretsiz gönderim uygulandı";
+
+async function kargoNotuSenaryolari(secenekKaynak) {
+  const kur = (sepet) => sayfaKur({ sepet, katalog: KARGO_KATALOG, secenekKaynak });
+  const goruntu = (s) => ({
+    esik: s.el("cartKargoEsikRow").style.display === "flex" ? s.el("cartKargoEsik").textContent : null,
+    kalan: s.el("cartKargoKalanRow").style.display === "flex" ? s.el("cartKargoKalan").textContent : null,
+    kargo: s.el("cartKargo").textContent, toplam: s.el("cartTotal").textContent,
+  });
+  const r = {}, iz = {};
+  const tutar = async (ad, sepet, beklenen) => {
+    const s = await kur(sepet);
+    const g = goruntu(s);
+    iz[ad] = g;
+    r[ad] = g.esik === ESIK_METNI && g.kalan === beklenen.kalan &&
+      g.kargo === beklenen.kargo && g.toplam === beklenen.toplam &&
+      (beklenen.ekKosul ? beklenen.ekKosul(s) : true);
+  };
+  await tutar("V1", [pla("k690")],
+    { kalan: "Ücretsiz gönderime 1.810,00 TL kaldı", kargo: "250,00 TL", toplam: "940,00 TL" });
+  await tutar("V2", [pla("k2346"), { id: "k103", malzeme: "PETG", renk: "Diğer", renk_ozel: "mor", adet: 1 }],
+    { kalan: "Ücretsiz gönderime 0,01 TL kaldı", kargo: "250,00 TL", toplam: "2.749,99 TL" });
+  await tutar("V3", [pla("k2500")], { kalan: UYGULANDI, kargo: "0,00 TL", toplam: "2.500,00 TL" });
+  // V4: "kaldi" satiri YOK + kalan fonksiyonu sayfanin kendi PRUVO_SECENEK'inde 0 (negatif degil).
+  await tutar("V4", [pla("k3000")], { kalan: UYGULANDI, kargo: "0,00 TL", toplam: "3.000,00 TL",
+    ekKosul: (s) => s.ctx.PRUVO_SECENEK.kargoBedavaKalanKurus(300000) === 0 &&
+      s.metin("cartKargoKalanRow").indexOf("kaldı") === -1 });
+  {
+    const s = await kur([]);
+    iz.V5 = goruntu(s);
+    r.V5 = s.el("cartKargoEsikRow").style.display === "none" &&
+      s.el("cartKargoKalanRow").style.display === "none";
+  }
+  return { r, iz };
+}
+
+async function test18KargoNotu() {
+  const { r, iz } = await kargoNotuSenaryolari(null);
+  for (const ad of ["V1", "V2", "V3", "V4", "V5"]) {
+    rapor("18 " + ad + " ucretsiz gonderim notu", r[ad] ? [] : [JSON.stringify(iz[ad])],
+      JSON.stringify(iz[ad]));
+  }
+  const MUTANTLAR = [
+    ["M1 esik >= -> > (2.500'de ucret alinir)",
+     "return urunToplamKurus >= KARGO_BEDAVA_ESIK_KURUS ? 0 : KARGO_UCRET_KURUS;",
+     "return urunToplamKurus > KARGO_BEDAVA_ESIK_KURUS ? 0 : KARGO_UCRET_KURUS;", ["V3"]],
+    ["M2 max(0,..) kalkar (negatif kalan)",
+     "return Math.max(0, KARGO_BEDAVA_ESIK_KURUS - (urunToplamKurus > 0 ? urunToplamKurus : 0));",
+     "return KARGO_BEDAVA_ESIK_KURUS - (urunToplamKurus > 0 ? urunToplamKurus : 0);", ["V4"]],
+    ["MK KONTROL (yalniz yorum)", "/* Ücretsiz gönderim eşiğine KALAN", "/* ücretsiz gönderim eşiğine KALAN", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of MUTANTLAR) {
+    if (SECENEK_SRC.split(capa).length - 1 !== 1) {
+      rapor("18 " + ad, ["capa kayip/coklu — mutant uygulanamadi"]);
+      continue;
+    }
+    const m = await kargoNotuSenaryolari(SECENEK_SRC.replace(capa, yerine));
+    const kirmizi = Object.keys(m.r).filter((k) => m.r[k] !== true).sort();
+    const ok = JSON.stringify(kirmizi) === JSON.stringify(olmeli);
+    rapor("18 " + ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+      ok ? [] : ["SURVIVOR/sapma: kirmizi=[" + kirmizi.join(",") + "]"],
+      "kirmizi=[" + kirmizi.join(",") + "]");
+  }
+}
+
 // ---------------------------------------------------------------- akis
 
 async function main() {
@@ -1110,6 +1192,7 @@ async function main() {
   await test15SinifBeyani();
   test16MusteriNotuKablosu();
   test17SepetWaButonuYok();
+  await test18KargoNotu();
   console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" +
     (kalan ? "" : " — HEPSI YESIL ✅"));
   process.exit(kalan ? 1 : 0);

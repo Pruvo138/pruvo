@@ -841,6 +841,8 @@ setTimeout(L,5000);})();
   .cart-total-row strong{font-size:20px;font-weight:800}
   /* KDV dökümü (kalem 8): bilgi satırları — tahsilatı değiştirmez, yalnız gösterim */
   .cart-alt-row.kdv{font-size:12px;color:var(--gray-text)}
+  /* Ücretsiz gönderim notu + eşiğe kalan tutar — ikincil bilgi satırı */
+  .cart-alt-row.kargo-not{font-size:12px;color:var(--gray-text);justify-content:flex-start}
   /* Ödeme yöntemi seçimi (kart / havale-EFT) — form içinde */
   .odeme-yontem{margin-bottom:10px}
   .odeme-yontem label{
@@ -1406,6 +1408,14 @@ setTimeout(L,5000);})();
     <div id="cartKargoRow" class="cart-alt-row" style="display:none">
       <span>Gönderim</span>
       <span id="cartKargo">250,00 TL</span>
+    </div>
+    <!-- ÜCRETSİZ GÖNDERİM NOTU: eşik metni + kalan tutar secenekler.js'ten
+         (KARGO_BEDAVA_ESIK_KURUS / kargoBedavaKalanKurus) — sayı burada ELLE yazılmaz. -->
+    <div id="cartKargoEsikRow" class="cart-alt-row kargo-not" style="display:none">
+      <span id="cartKargoEsik"></span>
+    </div>
+    <div id="cartKargoKalanRow" class="cart-alt-row kargo-not" style="display:none">
+      <span id="cartKargoKalan"></span>
     </div>
     <!-- KDV DÖKÜMÜ (kalem 8, %20 KESİN): fiyatlar KDV dahil, tahsilat DEĞİŞMEZ —
          kargo dahil genel toplam üzerinden tek döküm (secenekler.js kdvAyristir). -->
@@ -2352,6 +2362,19 @@ setTimeout(L,5000);})();
     satir.style.display = goster ? "flex" : "none";
     araRow.style.display = parasal ? "flex" : "none";
     kargoRow.style.display = parasal ? "flex" : "none";
+    // Ücretsiz gönderim notu: yalnız parasal iken (boş sepette YOK). Eşik ve kalan TEK
+    // kaynaktan; kalan 0 ise eşik aşılmıştır (kargoKurus da 0 döner — aynı sabit).
+    document.getElementById("cartKargoEsikRow").style.display = parasal ? "flex" : "none";
+    document.getElementById("cartKargoKalanRow").style.display = parasal ? "flex" : "none";
+    if(parasal){
+      var kalan = PRUVO_SECENEK.kargoBedavaKalanKurus(ara);
+      document.getElementById("cartKargoEsik").textContent =
+        (PRUVO_SECENEK.KARGO_BEDAVA_ESIK_KURUS / 100).toLocaleString("tr-TR") +
+        " TL ve üzeri siparişlerde gönderim ücretsiz.";
+      document.getElementById("cartKargoKalan").textContent = kalan > 0
+        ? "Ücretsiz gönderime " + PRUVO_SECENEK.kurusMetni(kalan) + " kaldı"
+        : "Ücretsiz gönderim uygulandı";
+    }
     // KDV DOKUMU (kalem 8): kargo dahil genel toplam uzerinden tek ayristirma; tahsilat
     // degismez. Parasal durumda dokum satirlari gorunur, eski "KDV dahil" notu gizlenir
     // (ayni bilgi Genel toplam etiketinde).

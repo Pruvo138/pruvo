@@ -305,6 +305,11 @@
     if (!(urunToplamKurus > 0)) { return 0; }
     return urunToplamKurus >= KARGO_BEDAVA_ESIK_KURUS ? 0 : KARGO_UCRET_KURUS;
   }
+  /* Ücretsiz gönderim eşiğine KALAN tutar (sepet paneli notu): eşik − ürün
+     toplamı, asla negatif değil (eşik aşıldıysa 0). Eşik yukarıdaki TEK sabitten okunur. */
+  function kargoBedavaKalanKurus(urunToplamKurus) {
+    return Math.max(0, KARGO_BEDAVA_ESIK_KURUS - (urunToplamKurus > 0 ? urunToplamKurus : 0));
+  }
 
   /* KDV (KESİN %20, 16 Tem gece — değişiklik SADECE işletme onayıyla; paket kalem 8):
      fiyatlar KDV DAHİL, tahsilat DEĞİŞMEZ — bu yalnız döküm + kayıt. net = brüt/(1+oran)
@@ -1487,6 +1492,7 @@
     KARGO_UCRET_KURUS: KARGO_UCRET_KURUS,
     KARGO_BEDAVA_ESIK_KURUS: KARGO_BEDAVA_ESIK_KURUS,
     kargoKurus: kargoKurus,
+    kargoBedavaKalanKurus: kargoBedavaKalanKurus,
     KDV_YUZDE: KDV_YUZDE,
     kdvAyristir: kdvAyristir,
     ODEME_ACIK: ODEME_ACIK,
