@@ -10,11 +10,21 @@ shop/wrangler.onizleme.toml (ayri D1 + ayri kova + statik varliklar, rota/cron y
 
 Statik dizin: sayfa + foto bolumu dosyalari; katalog verisi BOS saplama (urunler.json = [],
 ozet.json = {}) -> onizlemede katalog bos, foto bolumu calisir. Sir dosyasi kopyalanmaz (liste kapali).
+
+SHA DAMGASI + TEK-YUKLEYICI KILIDI (BaBa 17:0x, 9 Eki 2026):
+- statik_kur: statik dizine `onizleme-surum.json` yazar = {"sha", "dal", "kirli"} (HEAD/dal/kirli_sayisi).
+  Yukleme adimi KIRLI agactaysa (kirli>0) YUKLEME REDDEDILIR (rc 2); commit'siz kod onizlemeye cikmaz.
+- yukle: `pruvo-onizleme.lock` uzerinde TEK YUKLEYICI kilidi (fcntl.flock, bloklayan, en cok 900 sn;
+  asilirsa rc 2 "YUKLE RED kilit-zaman-asimi"). Kilit dosyasi is bitince SILINMEZ ama icerigi bos
+  kalir (lock: makinede yeni dosya tek, baska iz YOK).
 """
+import fcntl
+import json
 import os
 import shutil
 import subprocess
 import sys
+import time
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHOP = os.path.join(KOK, "shop")
@@ -28,6 +38,32 @@ DOSYALAR = ["index.html", "foto-uretim.js", "foto-uretim-veri.js", "secenekler.j
             "konfigur.js", "attribution-ref.js", "taban-fiyatlar.js", "filament-veri.js"]
 ANA = "/Users/okan/dev/pruvo"  # ana checkout kokue: 2 dosya oradan alinir (bu branch'te yok)
 SAPLAMA = {"urunler.json": "[]\n", "ozet.json": "{}\n"}
+SURUM_DOSYA = "onizleme-surum.json"  # statik dizine yazilan SHA damgasi (worker'dan okunur)
+KILIT_AD = "pruvo-onizleme.lock"     # TEK YUKLEYICI kilit dosyasi (git-common-dir altinda)
+KILIT_TAVAN = 900                    # flock en cok 900 sn; asarsa rc 2
+
+
+def _git(*args):
+    """git komutunu liste olarak calistir; stdout text (hata stderr)."""
+    return subprocess.run(("git",) + args, cwd=KOK, capture_output=True, text=True)
+
+
+def _kirli_sayisi():
+    p = _git("status", "--porcelain")
+    if p.returncode != 0:
+        return -1
+    return sum(1 for _ in p.stdout.splitlines() if _.strip())
+
+
+def _damga_yazi(cikti=None):
+    """statik dizine SHA damgasi yaz. Icerigi {sha, dal, kirli} (kirli=-1 hata durumu)."""
+    if cikti is None:
+        sha = (_git("rev-parse", "HEAD").stdout or "").strip()
+        dal = (_git("rev-parse", "--abbrev-ref", "HEAD").stdout or "").strip()
+        kirli = _kirli_sayisi()
+        cikti = {"sha": sha, "dal": dal, "kirli": kirli}
+    with open(os.path.join(STATIK, SURUM_DOSYA), "w") as f:
+        json.dump(cikti, f, ensure_ascii=False, sort_keys=True)
 
 
 def statik_kur():
@@ -43,17 +79,65 @@ def statik_kur():
     for ad, icerik in SAPLAMA.items():
         with open(os.path.join(STATIK, ad), "w") as f:
             f.write(icerik)
+    _damga_yazi()
     return sorted(os.listdir(STATIK))
 
 
+def _kilitle():
+    """TEK YUKLEYICI kilidi acar; icerigi bos; geri donen dosya handle ile finally'de unlock.
+
+    Bloklayan mod: 1 sn aralikla LOCK_NB dener; KILIT_TAVAN sn dolunca TimeoutError.
+    """
+    ortak = _git("rev-parse", "--git-common-dir")
+    kok = (ortak.stdout or "").strip() or os.path.join(KOK, ".git")
+    kilit_yol = os.path.join(kok, KILIT_AD)
+    f = open(kilit_yol, "w")
+    baslangic = time.monotonic()
+    while True:
+        try:
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return f
+        except OSError:
+            if time.monotonic() - baslangic >= KILIT_TAVAN:
+                f.close()
+                raise TimeoutError("kilit-zaman-asimi")
+            time.sleep(1)
+
+
 def yukle():
+    fk = None
     try:
+        fk = _kilitle()
+    except TimeoutError:
+        print("YUKLE RED kilit-zaman-asimi")
+        return 2
+    except Exception:
+        print("YUKLE RED kilit-acilamadi")
+        return 2
+    try:
+        kirli = _kirli_sayisi()
+        if kirli > 0:
+            print("YUKLE RED kirli-agac kirli=" + str(kirli))
+            return 2
+        if kirli < 0:
+            print("YUKLE RED git-status-hatasi")
+            return 2
         print("STATIK=" + ",".join(statik_kur()))
         ortam = dict(os.environ, CLOUDFLARE_ACCOUNT_ID=HESAP)
         komut = ["npx", "--no-install", "wrangler", "versions", "upload", "-c", TOML,
                  "--preview-alias", ALIAS, "--message", "foto onizleme (canli degil)"]
         return subprocess.run(komut, cwd=SHOP, env=ortam).returncode
     finally:
+        if fk is not None:
+            try:
+                fcntl.flock(fk.fileno(), fcntl.LOCK_UN)
+            except Exception:
+                pass
+            try:
+                fk.truncate(0)  # kilit dosyasi is bitince SILINMEZ ama icerigi bos kalir
+            except Exception:
+                pass
+            fk.close()
         shutil.rmtree(STATIK, ignore_errors=True)
         print("STATIK_SILINDI=" + str(not os.path.exists(STATIK)))
 
