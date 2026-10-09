@@ -6140,12 +6140,21 @@ def _k80_taban_vakalari(mutant=False):
     mutant=True: eski davranis (taban `yerel^`, uzak suzgeci YOK) -> B1 KIRMIZI olmali."""
     d = tempfile.mkdtemp(prefix="k80-taban-")
     hatalar = []
+    # 🔴 GIT_* MIRASI SOKULUR (9 Eki 2026, OLCULDU — bu vakanin ILK surumu): pre-push kancasi
+    # GIT_DIR'i GERCEK depoya ayarlar; `git -C <gecici> init` o env'le GERCEK depoyu yeniden
+    # baslatti -> ortak .git/config'e `core.bare=true` yazildi (TUM worktree'ler "not a work
+    # tree") ve sahte `refs/remotes/origin/*` GERCEK depoya yazildi. `_k80_git(kok=d)` da ayni
+    # env'i miras alir; bu yuzden os.environ'dan GIT_* bu blok boyunca CIKARILIR ve depo kokunun
+    # gecici dizin oldugu kosumdan ONCE dogrulanir (degilse B0, hicbir sey yazilmaz).
+    eski_git = {k: os.environ.pop(k) for k in list(os.environ) if k.startswith("GIT_")}
     try:
         env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
-                   GIT_COMMITTER_EMAIL="t@t")
+                   GIT_COMMITTER_EMAIL="t@t", GIT_CEILING_DIRECTORIES=os.path.dirname(d))
         g = lambda *a: subprocess.run(["git", "-C", d] + list(a), capture_output=True, text=True,  # noqa: E731
                                       env=env, timeout=30, check=True).stdout.strip()
         g("init", "-q")
+        if os.path.realpath(g("rev-parse", "--absolute-git-dir")) != os.path.realpath(os.path.join(d, ".git")):
+            raise OSError("gecici depo koku gecici dizin DEGIL (GIT_* mirasi?)")
         agac = g("hash-object", "-t", "tree", "-w", "/dev/null")
         c = lambda m, *p: g("commit-tree", agac, "-m", m, *sum([["-p", x] for x in p], []))  # noqa: E731
         a = c("A")
@@ -6170,6 +6179,7 @@ def _k80_taban_vakalari(mutant=False):
     except (subprocess.SubprocessError, OSError, Olculemedi) as e:
         hatalar.append("K80-B0: taban vaka deposu OLCULEMEDI (%s)" % e)
     finally:
+        os.environ.update(eski_git)
         shutil.rmtree(d, ignore_errors=True)
     return hatalar
 
