@@ -392,7 +392,11 @@ def sayi_gecerli(s, v):
 
 
 def metin_gecerli(s, v):
-    """Bos olmayan metin + `max` (karakter) ve `bayt_max` (UTF-8) tavanlari icinde."""
+    """Bos olmayan metin + `max` (karakter) ve `bayt_max` (UTF-8) tavanlari icinde. `liste:true` (K3c): 1..satir_max
+    ogeli dizi, her oge ayni kurala (VERI.parametreDogrula metin dali aynasi)."""
+    if s.get("liste") is True:
+        return isinstance(v, list) and 1 <= len(v) <= (s.get("satir_max") or 0) and \
+            all(metin_gecerli(dict(s, liste=False), x) for x in v)
     if not isinstance(v, str) or not v.strip():
         return False
     return (s.get("max") is None or len(v) <= s["max"]) and \
@@ -430,6 +434,8 @@ def ornek_parametre(t, olcu):
             if s.get("zorunlu") is False:
                 continue
             p[ad] = "https://pruvo3d.com" if s.get("bayt_max") else "PRUVO"
+            if s.get("liste") is True:
+                p[ad] = [p[ad]]
         elif tip == "url":
             p[ad] = "https://pruvo3d.com"
         elif tip == "bool":
@@ -660,7 +666,11 @@ class Cdp:
         for o in self.olaylar:
             m, p = o.get("method"), o.get("params") or {}
             if m == "Runtime.exceptionThrown":
-                n.append("istisna: " + str((p.get("exceptionDetails") or {}).get("text", ""))[:120])
+                # text yalniz "Uncaught" der; teshis icin istisnanin aciklamasi + kaynak satiri da basilir.
+                d = p.get("exceptionDetails") or {}
+                ac = str((d.get("exception") or {}).get("description") or "").split("\n")[0]
+                n.append("istisna: %s %s @%s:%s" % (d.get("text", ""), ac, str(d.get("url") or "").rsplit("/", 1)[-1],
+                                                   d.get("lineNumber")))
             elif m == "Runtime.consoleAPICalled" and p.get("type") == "error":
                 n.append("console.error: " + str([a.get("value") for a in p.get("args") or []])[:120])
             elif m == "Log.entryAdded" and (p.get("entry") or {}).get("level") == "error":
@@ -685,16 +695,16 @@ TARAYICI_JS = r"""
   const b = document.getElementById('fotoUretim');
   if (!b) return {hata: 'bolum-yok'};
   b.scrollIntoView();
-  let radyo = null, tek = false;
+  // sayfa-3adim K3 (Okan 9 Eki 01:0x/01:4x): tek kutu 4 pencere; tur secimi = ① KARTLAR'daki kart
+  // (button.foto-uretim-kart[data-tur]; figur iki kartta — insan/hayvan_model — ilki secilir). Lightbox YOK.
+  let kart = null;
   for (let i = 0; i < 60; i++) {
-    radyo = document.getElementById('foto-tur-' + kod);
-    tek = (!!document.getElementById('foto-olcu') || !!document.querySelector('#fotoUretim .foto-uretim-olculen-not')) &&
-      !document.querySelector('input[name="foto-tur"]');
-    if (radyo || tek) break;
+    kart = document.querySelector('#fotoUretim button.foto-uretim-kart[data-tur="' + kod + '"]');
+    if (kart) break;
     await bekle(250);
   }
-  if (!radyo && !tek) return {hata: 'tur-secilemiyor'};
-  if (radyo) { radyo.click(); await bekle(300); }
+  if (!kart) return {hata: 'tur-secilemiyor'};
+  kart.click(); await bekle(300);
   const surgu = document.getElementById('foto-olcu');
   let fiyat = '';
   if (surgu) {
@@ -712,10 +722,11 @@ TARAYICI_JS = r"""
   const dp = document.querySelector('#fotoUretim .foto-uretim-durustluk p');
   await bekle(500);
   const d = document.documentElement;
-  const fe = document.querySelector('#fotoUretim .foto-uretim-fiyat');
+  const sk = document.querySelector('#fotoUretim button.foto-uretim-kart.secili');
+  const a2 = document.getElementById('foto-pencere-2');
   const olculen_not = !!document.querySelector('#fotoUretim .foto-uretim-olculen-not');
-  const secili = fe ? (fe.getAttribute('data-tur') || '') : '';
-  return {secildi: (!!radyo || tek) && secili === kod, secili_tur: secili, surgu: !!surgu, fiyat: fiyat, onay_kutusu: kutu,
+  const secili = sk ? (sk.getAttribute('data-tur') || '') : '';
+  return {secildi: secili === kod && !!a2 && !a2.hidden, secili_tur: secili, surgu: !!surgu, fiyat: fiyat, onay_kutusu: kutu,
           olculen_not: olculen_not,
           onaysiz_dugme_kapali: !!btn && btn.disabled === true, durustluk: dp ? dp.textContent : '',
           tasma: Math.max(d.scrollWidth - d.clientWidth, document.body.scrollWidth - d.clientWidth),
@@ -1284,7 +1295,10 @@ def mutant_on_kosul(acik_kodlar):
     `kod == 400` yetmez — reddin `hata` metni `tur-kapali` (kaynaktan okunan) OLMALI; aksi (ornek
     bugun figur acilip gorsel-gecersiz 400'e dusmesi) sunucu KAPI KAPALI degil demektir, GECERSIZ."""
     hata_bek = _red_metni_onizleme()
-    kapali = [t["kod"] for t in MAN["turler"] if t["kod"] not in acik_kodlar]
+    # Yalniz SAGLAYICI kolu (motor M) kapali turu: D/R kolundaki kapali tur /foto/onizleme'de once
+    # turHazir'a takilir ve 503 `kapali` doner (9 Eki 2026 olcumu: anahtarlik kaydi geldi, ornegi yok) —
+    # o da fail-closed ama bu bekcinin olctugu `tur-kapali` dali DEGIL; o kod BILINMEYEN_TUR'a duser.
+    kapali = [t["kod"] for t in MAN["turler"] if t["kod"] not in acik_kodlar and t.get("motor") == "M"]
     if kapali:
         kod = kapali[0]
         kaynak = "kapali"

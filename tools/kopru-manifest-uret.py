@@ -12,11 +12,18 @@ SOZLUK (eşleme YALNIZ burada; manifest yorumu bu dosyayi isaret eder):
             tam (ya da sayi + `tam:true`) -> sayi + adim 1
             renk -> form DEGIL, renk_bolgeleri (`renk_<b>` -> {kod:<b>, ad:<etiket - " rengi">, renkler})
             dosya -> form DISI (girdinin kendisi) · bool/secim aynen
-            metin -> aynen + `max` (kayitta yoksa URETECIN `SEMA[ad]` uzunluk tavani: str->uzunluk_max,
+            metin -> aynen + `max` (kayittaki `karakter_max` -> `max`; yoksa URETECIN `SEMA[ad]` uzunluk tavani: str->uzunluk_max,
             yoksa uretec varsayilani 1000; liste->oge.uzunluk_max; ast ile okunur, uretec KOSMAZ; uretec
             dosyasi/alani yok -> KIRMIZI) + `zorunlu:true` degilse `zorunlu:false` (bos/yok = uretec
             varsayilani). NEDEN (kopru-15 ESLE): max'siz metin alanini VERI.parametreDogrula her degerde
             `parametre-metin` ile reddediyordu (braille ⑤ 400).
+            metin + `liste:true` (K3c anahtarlik) -> {tip:"metin", etiket, liste:true, satir_max, max:karakter_max,
+            zorunlu}: deger satir DIZISI (1..satir_max oge, her oge <= max); `satir_max` pozitif tam sayi degilse
+            ya da `liste` true/false degilse KIRMIZI (VERI.parametreDogrula metin dali bu alanlari FAIL-CLOSED olcer)
+            renk_liste (K3c yapboz) -> form DEGIL, manifestin PALET mekanizmasi: renk_secimi "palet" +
+            palet_bolgeleri ["renk1".."renkN"] (N = uzunluk_max, 1..4) + fiyat.renk_tavani = N; kosucu esle_<kod>
+            odenen renkleri SIRAYLA uretecin <ad> listesine (yapboz `renkler`) gecirir. `oge` "#RRGGBB" degilse,
+            ikinci renk_liste ya da renk_* bolgesiyle karisik kayit KIRMIZI
             ses girdili kaydin min/max'siz `sayi` alani (genlik dizisi) -> tip "ses"
             baska tip -> KIRMIZI
   ornek   : kaydin `ornek.girdi.<ad>` degeri form alanina `ornek` olarak AYNEN (yer tutucu `<...>` metni
@@ -27,6 +34,8 @@ SOZLUK (eşleme YALNIZ burada; manifest yorumu bu dosyayi isaret eder):
   olcu_mm : olcek.min_mm/max_mm · fiyat.adim_mm : olcek.adim_mm · malzemeler : {govde: izinli_malzeme}
   olcu_ekseni : olcek.belirleyen_parametre DOLU -> "sabit" (surgu = hedef) · bos/null -> "turetilmis"
             (kopru-15 dilim-3: surgu YOK, fiyat onizlemede OLCULEN uzun kenardan; sunucu kaydindan)
+  sema_adi: kayit `sema_adi` doluysa uretec dosyasinin o adli literal sozlugu SEMA'nin USTUNE (alan alan) yazilir
+            (anahtarlik: isimlik_uret ANAHTARLIK_SEMA genislik/kontur araligini daraltir); ad dosyada yoksa KIRMIZI
   bust    : rolyef `tur_tanimi_teklifi` (alanlar rolyef parametresinin ustune yazilir, sonra ayni sozluk)
 Editoryal alanlar (ad, aciklama, motor, fiyat.formul, ornek_kanit_izni, durustluk, ornek_notu) manifestte
 elle kalir; arac yalniz TURETILEN alanlari yazar/denetler.
@@ -50,7 +59,9 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VARSAYILAN_KAYIT = os.path.expanduser("~/dev/pruvo-jenerator/jeneratorler/kopru/kopru_kayitlari.json")
 
 GIRDI_ESLE = {"olcu": "form", "foto": "foto-1", "ses": "ses", "metin": "metin", "konum": "konum", "tarih": "tarih"}
-BILINEN_TIP = ("sayi", "tam", "secim", "metin", "bool", "renk", "dosya")
+BILINEN_TIP = ("sayi", "tam", "secim", "metin", "bool", "renk", "dosya", "renk_liste")
+RENK_LISTE_OGE = "#RRGGBB"
+RENK_LISTE_TAVAN = 4  # AMS 4 yuva (VERI.renkTavani 1..4)
 KONUM_ADIM = {"enlem": 0.000001, "boylam": 0.000001}
 VARSAYILAN_ADIM = 0.01
 # Bolge renk listeleri (sunum kurali, kayitta YOK): cift sirali bolge acik-once, tek sirali koyu-once ->
@@ -58,7 +69,10 @@ VARSAYILAN_ADIM = 0.01
 RENK_ACIK_ONCE = ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi"]
 RENK_KOYU_ONCE = ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"]
 TEKLIF_KOD = {"rolyef": "bust"}  # tur_tanimi_teklifi -> manifest tur kodu
-TURETILEN = ("girdi", "uretec", "olcu_mm", "renk_bolgeleri", "malzemeler", "form", "olcu_ekseni")
+TURETILEN = ("girdi", "uretec", "olcu_mm", "renk_bolgeleri", "malzemeler", "form", "olcu_ekseni", "renk_secimi",
+             "palet_bolgeleri")
+# Yalniz renk_liste kaydinda DOLU; None -> manifestte alan YAZILMAZ (varsa silinir), --denetle alan yok bekler.
+OPSIYONEL = ("renk_secimi", "palet_bolgeleri")
 
 NODE_OKU = (
     "const vm=require('vm'),fs=require('fs');const k={};"
@@ -71,17 +85,30 @@ class KayitHatasi(Exception):
     pass
 
 
-def uretec_semasi(jen, betik):
+def uretec_semasi(jen, betik, sema_adi=None):
     """Uretec dosyasindaki ust duzey `SEMA = {...}` -> {alan: {anahtar: deger}} (ast; YALNIZ literal degerler,
-    `float(ARALIK_MAX_MM)` gibi literal olmayanlar atlanir). Dosya/SEMA yok -> None. Uretec import EDILMEZ."""
+    `float(ARALIK_MAX_MM)` gibi literal olmayanlar atlanir). Dosya/SEMA yok -> None. Uretec import EDILMEZ.
+    `sema_adi` (kayit alani, or. ANAHTARLIK_SEMA) verilirse o sozluk SEMA'nin ustune alan alan yazilir; yoksa None."""
     yol = os.path.join(jen, betik) if jen and betik else ""
     if not yol or not os.path.isfile(yol):
         return None
     with open(yol, encoding="utf-8") as f:
         agac = ast.parse(f.read(), yol)
+    taban = _sozluk_oku(agac, "SEMA")
+    if taban is None or not sema_adi or sema_adi == "SEMA":
+        return taban
+    ust = _sozluk_oku(agac, sema_adi)
+    if ust is None:
+        return None
+    for alan, kural in ust.items():
+        taban[alan] = dict(taban.get(alan) or {}, **kural)
+    return taban
+
+
+def _sozluk_oku(agac, ad):
     for d in agac.body:
         if (isinstance(d, ast.Assign) and isinstance(d.value, ast.Dict)
-                and any(isinstance(t, ast.Name) and t.id == "SEMA" for t in d.targets)):
+                and any(isinstance(t, ast.Name) and t.id == ad for t in d.targets)):
             sema = {}
             for k, v in zip(d.value.keys, d.value.values):
                 if not (isinstance(k, ast.Constant) and isinstance(v, ast.Dict)):
@@ -137,6 +164,11 @@ def _alan_uret(kayit_kod, girdiler, p, hatalar, sema=None, ornek_girdi=None):
     if tip == "sayi" and "ses" in girdiler and "min" not in p and "max" not in p:
         return {"tip": "ses", "etiket": p.get("etiket") or ad}, None
     alan = {"tip": "sayi" if tip == "tam" else tip}
+    if tip == "metin" and "liste" in p and not isinstance(p["liste"], bool):
+        hatalar.append("metin-liste-bicimi:%s.%s" % (kayit_kod, ad))
+    liste = tip == "metin" and p.get("liste") is True
+    if liste and not _pozitif_tam(p.get("satir_max")):
+        hatalar.append("metin-satir-max:%s.%s" % (kayit_kod, ad))
     adim = None
     if tip == "tam" or (tip == "sayi" and p.get("tam") is True):
         adim = 1
@@ -147,12 +179,16 @@ def _alan_uret(kayit_kod, girdiler, p, hatalar, sema=None, ornek_girdi=None):
     for k, v in p.items():
         if k in ("ad", "tip", "tam", "adim"):
             continue
+        if tip == "metin" and k == "karakter_max":
+            k = "max"
         alan[k] = v
         if k == "max" and adim is not None:
             alan["adim"] = adim
     if adim is not None and "adim" not in alan:
         alan["adim"] = adim
     if tip == "metin":
+        if "max" in alan and not _pozitif_tam(alan["max"]):
+            hatalar.append("metin-tavani-bicimi:%s.%s" % (kayit_kod, ad))
         if "max" not in alan:
             tavan = alan.pop("uzunluk_max", None) or metin_tavani((sema or {}).get(ad))
             if tavan is None:
@@ -167,6 +203,22 @@ def _alan_uret(kayit_kod, girdiler, p, hatalar, sema=None, ornek_girdi=None):
     return alan, None
 
 
+def _pozitif_tam(v):
+    return isinstance(v, int) and not isinstance(v, bool) and v >= 1
+
+
+def _palet_uret(kayit_kod, p, hatalar):
+    """renk_liste parametresi -> palet renk tavani N (1..RENK_LISTE_TAVAN) ya da None (KIRMIZI yazilir)."""
+    n = p.get("uzunluk_max")
+    if not _pozitif_tam(n) or n > RENK_LISTE_TAVAN:
+        hatalar.append("renk-liste-tavani:%s.%s=%r" % (kayit_kod, p.get("ad"), n))
+        return None
+    if p.get("oge") != RENK_LISTE_OGE:
+        hatalar.append("renk-liste-oge:%s.%s=%r" % (kayit_kod, p.get("ad"), p.get("oge")))
+        return None
+    return n
+
+
 def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None, sema=None):
     """TEK fonksiyon: kayit -> manifest satirinin TURETILEN alanlari. Hata listesi ikinci donus."""
     hatalar = []
@@ -178,9 +230,14 @@ def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None, sema=None):
             hatalar.append("bilinmeyen-girdi:%s=%s" % (kod, g))
         else:
             girdi.append(GIRDI_ESLE[g])
-    form, bolgeler = {}, []
+    form, bolgeler, palet = {}, [], None
     ornek_girdi = (kayit.get("ornek") or {}).get("girdi") if isinstance(kayit.get("ornek"), dict) else None
     for p in (parametreler if parametreler is not None else (kayit.get("parametreler") or [])):
+        if p.get("tip") == "renk_liste":
+            if palet is not None:
+                hatalar.append("renk-liste-cift:%s.%s" % (kod, p.get("ad")))
+            palet = _palet_uret(kod, p, hatalar) or 0
+            continue
         alan, bolge = _alan_uret(kod, girdi_tipi, p, hatalar, sema, ornek_girdi)
         if alan is not None:
             form[p["ad"]] = alan
@@ -191,6 +248,8 @@ def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None, sema=None):
         for k in alan.get("kosul") or []:
             if not isinstance(k, dict) or k.get("alan") not in form or not isinstance(k.get("degerler"), list):
                 hatalar.append("kosul-alan:%s.%s->%s" % (kod, ad, k.get("alan") if isinstance(k, dict) else k))
+    if palet and bolgeler:
+        hatalar.append("renk-liste-bolge-karisik:%s" % kod)
     o = kayit.get("olcek") or {}
     satir = {"girdi": girdi, "uretec": kayit.get("uretec") or "",
              "olcu_mm": {"en_az": o.get("min_mm"), "en_cok": o.get("max_mm")},
@@ -201,7 +260,10 @@ def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None, sema=None):
              "fiyat_adim_mm": o.get("adim_mm"),
              # RENK TAVANI (BaBa 8 Eki 15:4x) = uretecin BOYANABILIR renk_* parametre sayisi (en az 1); YAZILMAZ,
              # --denetle manifest fiyat.renk_tavani'yi buna karsi olcer.
-             "renk_tavani": max(1, len(bolgeler)),
+             # PALET (renk_liste): tavan = listenin uzunluk_max'i; renkler[i] -> palet_bolgeleri[i] (VERI.paletBolgeRenkleri).
+             "renk_tavani": palet or max(1, len(bolgeler)),
+             "renk_secimi": "palet" if palet else None,
+             "palet_bolgeleri": ["renk%d" % (i + 1) for i in range(palet)] if palet else None,
              # DINAMIK MIN (BaBa 14:3x / TeKiN 6320f2a): olcek.min_mm_dinamik -> manifest olcu_min_dinamik: true
              # (yalniz true iken yazilir); koşucu onizlemede `kopru_uret.py min-hesapla` sorar.
              "olcu_min_dinamik": o.get("min_mm_dinamik") is True,
@@ -236,7 +298,12 @@ def hepsini_uret(kayitlar, jen=None):
     if not isinstance(kayitlar, dict) or not isinstance(kayitlar.get("kayitlar"), list):
         raise KayitHatasi("kayit bicimi: {'kayitlar': [...]} degil")
     for k in kayitlar["kayitlar"]:
-        sema = uretec_semasi(jen, (k.get("cagri") or {}).get("betik"))
+        sema = uretec_semasi(jen, (k.get("cagri") or {}).get("betik"), k.get("sema_adi"))
+        betik = (k.get("cagri") or {}).get("betik")
+        # Uretec dosyasi VAR ama `sema_adi` sozlugu yok -> KIRMIZI (dosya yoksa — CI / kopya kayit — eski davranis:
+        # metin tavani kayittan).
+        if k.get("sema_adi") and sema is None and jen and betik and os.path.isfile(os.path.join(jen, betik)):
+            hatalar.append("sema-adi-yok:%s=%s" % (k.get("kod"), k.get("sema_adi")))
         s, h = satir_uret(k, sema=sema)
         satirlar[k.get("kod")] = s
         hatalar += h
@@ -321,6 +388,8 @@ def satir_birlestir(mevcut, uretilen):
     """Mevcut satirin anahtar sirasi korunur; TURETILEN alanlar ve fiyat.adim_mm uretimden."""
     s = {}
     for k, v in mevcut.items():
+        if k in OPSIYONEL and uretilen.get(k) is None:
+            continue
         if k in TURETILEN:
             s[k] = uretilen[k]
         elif k == "fiyat" and isinstance(v, dict):
@@ -330,7 +399,7 @@ def satir_birlestir(mevcut, uretilen):
         else:
             s[k] = v
     for k in TURETILEN:
-        if k not in s:
+        if k not in s and not (k in OPSIYONEL and uretilen.get(k) is None):
             s[k] = uretilen[k]
     if uretilen.get("olcu_min_dinamik"):
         s["olcu_min_dinamik"] = True
@@ -392,7 +461,7 @@ def denetle(manifest_yol, uretilen, hatalar, bilgi=None):
             kirmizi.append("tur-yok:%s" % kod)
             continue
         for k in TURETILEN:
-            if json.dumps(t.get(k), sort_keys=True) != json.dumps(_js_esdeger(u[k]), sort_keys=True):
+            if json.dumps(t.get(k), sort_keys=True) != json.dumps(_js_esdeger(u.get(k)), sort_keys=True):
                 kirmizi.append("sapma:%s.%s%s" % (kod, k, _ilk_fark(t.get(k), u[k])))
         if (t.get("fiyat") or {}).get("adim_mm") != u["fiyat_adim_mm"]:
             kirmizi.append("sapma:%s.fiyat.adim_mm" % kod)

@@ -143,8 +143,8 @@ def kapi(kosucu_yol, manifest):
             elif rh[renk[b]].upper() not in hx:
                 kirmizi.append("A1 RENK-GITMEZ %s.%s (%s ciktida yok)" % (kod, b, renk[b]))
                 ok = False
-        if palet:
-            # A3 PALET: 2 renk -> iki_renk true; 1 renk -> yalniz ilk bolge, iki_renk false.
+        if palet and "iki_renk" in form:
+            # A3 PALET (bust): 2 renk -> iki_renk true; 1 renk -> yalniz ilk bolge, iki_renk false.
             if u.get("iki_renk") is not True:
                 kirmizi.append("A3 PALET %s iki renk odendi, iki_renk=%r" % (kod, u.get("iki_renk")))
                 ok = False
@@ -152,6 +152,15 @@ def kapi(kosucu_yol, manifest):
             if u1.get("iki_renk") is not False or d1 != palet[:1]:
                 kirmizi.append("A3 PALET %s tek renk: iki_renk=%r donus=%s" % (kod, u1.get("iki_renk"), d1))
                 ok = False
+        elif palet:
+            # A3 PALET (yapboz, K3c): odenen N renk -> donus palet[:N] ve uretec listesi AYNI sirada N hex.
+            for n in range(1, len(palet) + 1):
+                rn = {b: renk[b] for b in palet[:n]}
+                un, dn = kos_esle(p_ac, rn)
+                liste = [h.upper() for h in un.get("renkler") or []]
+                if dn != palet[:n] or liste != [rh[renk[b]].upper() for b in palet[:n]]:
+                    kirmizi.append("A3 PALET %s %d renk: donus=%s renkler=%s" % (kod, n, dn, liste))
+                    ok = False
         # A2 PASIF: her koşullu bolge tek tek kapatilir; VERI karari == esle karari.
         for b, cl in kosul.items():
             p_kap = dict(p_ac)
@@ -208,20 +217,23 @@ def kapi(kosucu_yol, manifest):
     return kirmizi, tablo
 
 
+# K3a (8 Eki 2026): 15 tür silindi. Kalan 4: plaket/figur/yapboz/bust. Eski mutantlarin
+# cogu silinen turlere (qr/logo/ses/isimlik) bagliydi -> capa noop olurdu. null/no-op mutant YASAK.
+# MR1/MR5 bust icin; yalniz A3 PALET kapsamiyla daraltildi.
 MUTANT_KOSUCU = {
-    "MR1 esle_bust eslemesi silindi": ('    u["iki_renk"] = "rolyef" in secilen\n', "", r"^A3 PALET bust"),
-    "MR2 esle_qr renk_qr dustu": (', renk_qr=_renk(g, "kod", rh))', ")", r"^A1 RENK-GITMEZ qr\.kod"),
-    "MR4 esle_ses yazi donusu silindi": ('["plaka", "cubuk"] + (["yazi"] if str(u.get("baslik") or "").strip() else [])',
-                                         '["plaka", "cubuk"]', r"^A1 URETILMEZ ses\.yazi"),
-    "MR5 uretim esle secimi uretece dondu (tur onceligi silindi)": (
+    # A3 PALET: bust'ta `u["iki_renk"] = "rolyef" in secilen` silinirse iki_renk uyumsuz -> A3 PALET.
+    "MR1 esle_bust iki_renk baglama silindi": ('    u["iki_renk"] = "rolyef" in secilen\n', "", r"^A3 PALET bust"),
+    # ESLE secimi (tur onceligi) silinirse esle_bust yerine varsayilan (tekin_kos uretec) -> A3 PALET.
+    "MR5 esle secimi uretece dondu (tur onceligi silindi)": (
         'return ESLEMELER.get((t or {}).get("kod")) or ESLEMELER.get((g or {}).get("esle"))',
         'return ESLEMELER.get((g or {}).get("esle"))', r"^A(1|3) .*bust"),
+    # K3c A3 PALET (yapboz): odenen palet renkleri uretecin `renkler` listesine gitmezse -> A1 RENK-GITMEZ / A3 PALET.
+    "MR6 esle_yapboz palet listesi uretece gecmiyor": (
+        '    if renkler:\n        u["renkler"] = renkler\n', "", r"^A(1 RENK-GITMEZ|3 PALET) yapboz"),
     "MR0 kontrol: yorum eklendi": ("def esle_bust(g, dizin, rh):\n", "def esle_bust(g, dizin, rh):  # kontrol\n", None),
 }
-MUTANT_MANIFEST = {
-    "MR3 manifest logo renk_kosul silindi": ('        renk_kosul: { taban: [{ alan: "taban", degerler: ["Var"] }] },\n', "",
-                                             r"^A2 (KOSUL-UYUMSUZ|GIZLI-KOSUL) logo\.taban"),
-}
+# MR2/MR3/MR4 silinen tur (qr/logo/ses) bagimliydi — capa artik kaynak dosyada yok; SİLİNDİ.
+MUTANT_MANIFEST = {}
 
 
 def mutant(ad):

@@ -1260,6 +1260,8 @@
   /* Aynı konfigürasyonun tek satırda toplanması için anahtar. ADET BİLEREK DIŞARIDA:
      aynı ürün+malzeme+renk+boy ikinci kez eklenince yeni satır değil, adet artmalı. */
   function satirAnahtari(satir) {
+    // Foto kalemi önizleme işine bağlıdır: aynı önizleme ikinci kez eklenirse aynı satırı günceller.
+    if (satir && satir.foto_is !== undefined) { return "foto|" + satir.foto_is; }
     // yazi_renk (cerceve 2. renk) anahtara girer: farkli yazi rengi AYRI satir olmali,
     // yoksa iki farkli 2-renk konfigurasyonu tek satira toplanip biri sessizce kaybolur.
     return [satir.id, satir.malzeme, satir.renk, satir.renk_ozel || "", satir.boy_etiket || "",
@@ -1271,6 +1273,7 @@
   // fonksiyonel OLMAYAN kategorilerde (seçici hiç gösterilmeyen ürün) detay boş döner —
   // mevcut (öncesi) davranış korunur, mesaj kirlenmez.
   function satirOzeti(urun, satir) {
+    if (satir && satir.foto_is !== undefined) { return fotoSatirOzeti(satir); }
     if (satir && satir.parametreler) { return parametrikSatirOzeti(satir); }
     // HAZIR TICARI MAL: malzeme/renk secimi karsiliksizdir -> ne fiyata ne METNE girer.
     // Metin de susturulur, cunku "Malzeme: ASA (+%60)" yazip liste fiyatini tahsil eden bir
@@ -1370,6 +1373,8 @@
     if (!Array.isArray(ham)) { return []; }
     return ham.map(function (x) {
       if (typeof x === "string") { return bosSatir(x); }
+      // Foto kalemi (katalog id'si yok) kendi süzgecinden geçer; yeniden yüklemede alanları KORUNUR.
+      if (fotoSatirMi(x)) { return fotoSatirSuz(x); }
       if (x && typeof x === "object" && x.id) {
         var s = {
           id: x.id, malzeme: x.malzeme || "PLA", renk: x.renk || "Siyah",
@@ -1396,6 +1401,58 @@
 
   function sepetKaydet(sepet) {
     try { localStorage.setItem(CART_KEY, JSON.stringify(sepet)); } catch (e) { }
+  }
+
+  // ---- FOTOĞRAFTAN ÖZEL ÜRETİM kalemi (normal sepet; ayrı foto ödeme yolu YOK) ----
+  // Kalem: {foto_is, tur, olcu_mm, renkler[], renk_sayisi, onizleme_ref, atif}. Adet SABİT 1.
+  // gosterim_kurus YALNIZ gösterimdir: /baslat'a GÖNDERİLMEZ, Worker (foto.js) fiyatı kendi hesaplar.
+  var FOTO_IS_KALIBI = /^[a-f0-9]{32}$/;   // Worker iş numarası kalıbıyla aynı
+  var FOTO_TUR_KALIBI = /^[a-z0-9-]{1,40}$/;
+  function fotoSatirMi(x) { return !!x && typeof x === "object" && x.foto_is !== undefined; }
+  function fotoRenkler(r) {
+    if (!Array.isArray(r)) { return []; }
+    return r.filter(function (x) { return typeof x === "string" && x.length >= 1 && x.length <= 20; }).slice(0, 8);
+  }
+  function fotoSatirSuz(x) {
+    if (!fotoSatirMi(x) || typeof x.foto_is !== "string" || !FOTO_IS_KALIBI.test(x.foto_is)) { return null; }
+    var tur = typeof x.tur === "string" && FOTO_TUR_KALIBI.test(x.tur) ? x.tur : null;
+    var mm = typeof x.olcu_mm === "number" && Math.floor(x.olcu_mm) === x.olcu_mm && x.olcu_mm > 0 ? x.olcu_mm : null;
+    if (!tur || !mm) { return null; }
+    var renkler = fotoRenkler(x.renkler);
+    var rs = typeof x.renk_sayisi === "number" && Math.floor(x.renk_sayisi) === x.renk_sayisi &&
+      x.renk_sayisi >= 1 && x.renk_sayisi <= 8 ? x.renk_sayisi : Math.max(1, renkler.length);
+    var gk = x.gosterim_kurus;
+    var s = {
+      id: "ozel-foto-" + tur, foto_is: x.foto_is, tur: tur, olcu_mm: mm, renkler: renkler, renk_sayisi: rs,
+      onizleme_ref: typeof x.onizleme_ref === "string" && x.onizleme_ref.length <= 300 ? x.onizleme_ref : "",
+      atif: x.atif && typeof x.atif === "object" && !Array.isArray(x.atif) ? x.atif : {},
+      adet: 1,
+      baslik: typeof x.baslik === "string" && x.baslik ? x.baslik.slice(0, 160) : "Fotoğrafından özel üretim",
+      gosterim_kurus: typeof gk === "number" && Math.floor(gk) === gk && gk > 0 ? gk : null,
+      aydinlatma_onay: x.aydinlatma_onay === true,
+      onay_surum: typeof x.onay_surum === "string" ? x.onay_surum.slice(0, 40) : ""
+    };
+    if (x.secim && typeof x.secim === "object" && !Array.isArray(x.secim)) { s.secim = x.secim; }
+    if (typeof x.gecerlilik === "string" && x.gecerlilik.length <= 40) { s.gecerlilik = x.gecerlilik; }
+    return s;
+  }
+  // /baslat kalemi: seçimler gider, gösterim fiyatı/başlık/onay GİTMEZ (onay gövde düzeyinde gider).
+  function fotoKalemi(satir) {
+    var k = { foto_is: satir.foto_is, tur: satir.tur, olcu_mm: satir.olcu_mm, renkler: fotoRenkler(satir.renkler),
+              renk_sayisi: satir.renk_sayisi, onizleme_ref: satir.onizleme_ref || "", atif: satir.atif || {}, adet: 1 };
+    if (satir.secim) { k.secim = satir.secim; }
+    return k;
+  }
+  function fotoSatirOzeti(satir) {
+    var parcalar = [satir.olcu_mm + " mm", satir.renk_sayisi + " renk" +
+      (satir.renkler && satir.renkler.length ? " (" + satir.renkler.join(", ") + ")" : "")];
+    var k = satir.gosterim_kurus == null ? null : satir.gosterim_kurus;
+    return {
+      detay: parcalar.join(" · "), adet: 1, birimKurus: k, kurus: k,
+      fiyatMetni: k == null ? "Fiyat ödeme adımında hesaplanır" : kurusMetni(k), birimMetni: kurusMetni(k),
+      // Aydınlatma onayı olmayan foto satırı ödeme akışına GİREMEZ (Worker da 400 verir).
+      odenebilir: k != null && satir.aydinlatma_onay === true && !!satir.onay_surum
+    };
   }
 
   root.PRUVO_SECENEK = {
@@ -1475,7 +1532,10 @@
     satirOzeti: satirOzeti,
     CART_KEY: CART_KEY,
     sepetYukle: sepetYukle,
-    sepetKaydet: sepetKaydet
+    sepetKaydet: sepetKaydet,
+    fotoSatirMi: fotoSatirMi,
+    fotoSatirSuz: fotoSatirSuz,
+    fotoKalemi: fotoKalemi
   };
   // Tarayıcıda window, Worker'da (Worker import eder) globalThis — aynı tek kaynak.
 })(typeof window !== "undefined" ? window : globalThis);
