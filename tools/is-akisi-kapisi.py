@@ -6148,10 +6148,9 @@ def _k80_taban_vakalari(mutant=False):
     # gecici dizin oldugu kosumdan ONCE dogrulanir (degilse B0, hicbir sey yazilmaz).
     eski_git = {k: os.environ.pop(k) for k in list(os.environ) if k.startswith("GIT_")}
     try:
-        env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
-                   GIT_COMMITTER_EMAIL="t@t", GIT_CEILING_DIRECTORIES=os.path.dirname(d))
-        g = lambda *a: subprocess.run(["git", "-C", d] + list(a), capture_output=True, text=True,  # noqa: E731
-                                      env=env, timeout=30, check=True).stdout.strip()
+        from git_ortami import sentetik_git
+        g = lambda *a: sentetik_git(d, *a, capture_output=True, text=True,  # noqa: E731
+                                    timeout=30, check=True).stdout.strip()
         g("init", "-q")
         if os.path.realpath(g("rev-parse", "--absolute-git-dir")) != os.path.realpath(os.path.join(d, ".git")):
             raise OSError("gecici depo koku gecici dizin DEGIL (GIT_* mirasi?)")
