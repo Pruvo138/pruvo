@@ -1912,7 +1912,7 @@
 
     S.alan.appendChild(el("p", "foto-uretim-ayrinti", false ? "" :
       !!(F && F.kolu && F.kolu(S.tur) === "deterministik") ? ((litofanKaydi() || {}).durustluk || "") :
-      "Önizleme — ürün bunun seçtiğin renk sayısında (1–4) kabartma yorumu olur; tam kopyası değildir."));
+      "Önizleme — ürün bunun seçtiğin renk sayısında olur; tam kopyası değildir."));
     if (false && S.secim) {
       var secMetin = [];
       for (var sa in S.secim) {

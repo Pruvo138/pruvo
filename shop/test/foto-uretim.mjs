@@ -1965,11 +1965,14 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
     const n3b = p3b ? [...p3b.agac()] : [], n2b = p2b ? [...p2b.agac()] : [];
     s.VA_BUST = [A_RENK, A_OLCU, A_MALZEME].every((m) => metinSay(n3b, m) === 1) && metinSay(n2b, A_NOT) === 1;
     s.VA_DIGER = true;
+    // TUR-A: plaket + yapboz Malzeme cümlesi = büstün Malzeme cümlesi AYNEN (METİN KAYNAĞI "büstteki cümle aynen");
+    // renk/ölçü ve tür notu #4 farklıdır. Anahtarlik'te alan_aciklamalari yok, hiçbiri görünmemeli.
+    const DIGER_BEKLENEN = { plaket: [A_RENK, A_OLCU, A_NOT], yapboz: [A_RENK, A_OLCU, A_NOT], anahtarlik: A_HEPSI };
     for (const kod of ["plaket", "yapboz", "anahtarlik"]) {
       const Vd = sentetik(veriKaynak);
       const ed = await ekranKos(kaynak, Vd, { acik: true, turler: [acikTur(Vd, kod)] }, null, null, { kart: kod });
       const dd = [...ed.bolum.agac()];
-      if (!dd.some((n) => n.id === "foto-olcu") || A_HEPSI.some((m) => metinSay(dd, m) > 0)) s.VA_DIGER = false;
+      if (!dd.some((n) => n.id === "foto-olcu") || DIGER_BEKLENEN[kod].some((m) => metinSay(dd, m) > 0)) s.VA_DIGER = false;
     }
     const VB = sentetik(veriKaynak);
     const ac = acikTur(VB, "yapboz");
@@ -3518,10 +3521,10 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
     ol("M3-5 kabartma_yon option metni kullanıcıya 'Açık tonlar yüksek' / 'Koyu tonlar yüksek' (madde 6, ham kod 0)",
        !hamAcikYuksek && acikYuksekEtiket && koyuYuksekEtiket,
        "ham=" + hamAcikYuksek + " acik=" + acikYuksekEtiket + " koyu=" + koyuYuksekEtiket + " opts=" + JSON.stringify(optMetinleri));
-    // (f) Yapboz dürüstlük cümlesi AYNEN (madde 3).
-    const yapbozCumlesi = "Her yapboz parçası tek renktir; renkler seçtiğin seçeneğe göre belirlenir.";
+    // (f) Yapboz dürüstlük cümlesi AYNEN (madde 3 + TUR-A ⑤ güncelleme).
+    const yapbozCumlesi = "Her yapboz parçası tek renktir. Siyah, Beyaz ya da Gri seçersen tüm parçalar o renk olur; Renkli seçersen parça renkleri fotoğrafından otomatik belirlenir (en çok 4 renk).";
     const yapbozVar = veriKaynak.includes(yapbozCumlesi);
-    ol("M3-6 yapboz dürüstlük cümlesi '" + yapbozCumlesi + "' VERI'de aynen (madde 3)", yapbozVar, "bulundu=" + yapbozVar);
+    ol("M3-6 yapboz dürüstlük cümlesi '" + yapbozCumlesi + "' VERI'de aynen (madde 3 + TUR-A ⑤)", yapbozVar, "bulundu=" + yapbozVar);
     // (g) Gizlilik cümlesi ④'te 1 (madde 7). VERI'de ONCE ve SONRA 1 kez; ekranda da 1 kez.
     // (g.1) VERI'de aydinlatma içinde "Gizlilik Politikası" geçen madde sayısı 1.
     const gizlilikMaddeSayisi = (veriKaynak.match(/Gizlilik Politikası/g) || []).length;
@@ -4069,6 +4072,101 @@ console.log("B2) TUR-B2 sunucu büst boş not");
     const m = await b2SunucuSenaryolar(fm);
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+}
+
+// ---------------------------------------------------------------- TUR-A (10 Eki) metin maddeleri ④⑤⑥⑦⑩ — görünür metin (yapı/fiyat/köprü DOKUNMAZ)
+// ④ ArTisT etiketi bekleyen (METİN KAYNAĞI'nda Türkçe karşılık YOK; UYDURMA yasak).
+// ⑤ Yapboz ② dürüstlük cümlesi (ArTisT 10 Eki, birebir).
+// ⑥ Plaket + yapboz ③ alan açıklamaları (ArTisT 10 Eki, yalnız o türde; büst cümleleri değişmez).
+// ⑦ Büst kart açıklaması "(ters/iki renk opsiyonel)" → "(ters opsiyonel)".
+// ⑩ "kabartma yorumu" ifadesi kaldır (veri + ekran; deterministik-olmayan dalın yedek metni + aydınlatma).
+const A_YAPBOZ_DURUSTLUK = "Her yapboz parçası tek renktir. Siyah, Beyaz ya da Gri seçersen tüm parçalar o renk olur; Renkli seçersen parça renkleri fotoğrafından otomatik belirlenir (en çok 4 renk).";
+const A_PLAKET_RENK = "Siyah, Beyaz ya da Gri seçersen plaket tek renk olur; Renkli seçersen renkler fotoğrafından otomatik seçilir (en çok 4 renk).";
+const A_PLAKET_OLCU = "Plaketin en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.";
+const A_YAPBOZ_RENK = "Siyah, Beyaz ya da Gri seçersen tüm parçalar o renk olur; Renkli seçersen parça renkleri fotoğrafından otomatik belirlenir (en çok 4 renk).";
+const A_YAPBOZ_OLCU = "Yapbozun en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.";
+const A_MALZEME_PAYLASIK = "PLA ev içi kullanım içindir; PETG dış mekân ve genel amaçlı kullanım için daha yüksek sıcaklığa dayanır (+%30).";
+const A_YAPBOZ_SATIR = "Yapbozun dikey kaç parçaya bölüneceği.";
+const A_YAPBOZ_SUTUN = "Yapbozun yatay kaç parçaya bölüneceği.";
+const A_YAPBOZ_KABARTMA = "Fotoğrafın hangi tonlarının daha çok kabaracağını belirler.";
+const A_BUST_ACIKLAMA_YENI = "Fotoğraftan kabartma büst/madalyon (ters opsiyonel).";
+const A_BUST_ACIKLAMA_ESKI = "Fotoğraftan kabartma büst/madalyon (ters/iki renk opsiyonel).";
+const A_BUST_RENK = "Siyah, Beyaz ya da Gri seçersen büst tek renk olur; Renkli seçersen renkler fotoğrafından otomatik seçilir (büstte en çok 2 renk).";
+const A_BUST_OLCU = "Büstün en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.";
+
+async function aEkranAgac(kaynak, veriKaynak, kod) {
+  const V = veriYukle(veriKaynak);
+  const e = await ekranKos(kaynak, V, { acik: true, turler: [{ kod, ad: V.turBul(kod).ad, aciklama: "x", ornek_sayisi: 1,
+    olculer: V.olcuSecenekleri(kod).map((mm) => ({ mm, fiyat_kurus: V.fiyatKurus(kod, mm) })) }] }, null, null, { kart: kod });
+  return [...e.bolum.agac()];
+}
+async function aOlc(kaynakE, kaynakV) {
+  const ddY = await aEkranAgac(kaynakE, kaynakV, "yapboz");
+  const p2y = ddY.find((n) => n.id === "foto-pencere-2");
+  const v1 = p2y ? [...p2y.agac()].filter((n) => n.tagName === "P" && n.textContent === A_YAPBOZ_DURUSTLUK).length === 1 : false;
+  const ddP = await aEkranAgac(kaynakE, kaynakV, "plaket");
+  const p3p = ddP.find((n) => n.id === "foto-pencere-3");
+  const ddP3 = p3p ? [...p3p.agac()] : [];
+  const v2 = [A_PLAKET_RENK, A_PLAKET_OLCU, A_MALZEME_PAYLASIK].every((m) =>
+    ddP3.filter((n) => n.tagName === "P" && n.textContent === m).length === 1);
+  const p3y = ddY.find((n) => n.id === "foto-pencere-3");
+  const ddY3p = p3y ? [...p3y.agac()] : [];
+  const v3 = [A_YAPBOZ_RENK, A_YAPBOZ_OLCU, A_MALZEME_PAYLASIK, A_YAPBOZ_SATIR, A_YAPBOZ_SUTUN, A_YAPBOZ_KABARTMA]
+    .every((m) => ddY3p.filter((n) => n.tagName === "P" && n.textContent === m).length === 1);
+  const v4 = ![A_BUST_RENK, A_BUST_OLCU].some((m) =>
+    ddP3.some((n) => n.tagName === "P" && n.textContent === m) ||
+    ddY3p.some((n) => n.tagName === "P" && n.textContent === m));
+  const v5 = kaynakV.includes(A_BUST_ACIKLAMA_YENI) && !kaynakV.includes(A_BUST_ACIKLAMA_ESKI);
+  const v6 = !kaynakE.includes("kabartma yorumu") && !kaynakV.includes("kabartma yorumu");
+  return { V1: v1, V2: v2, V3: v3, V4: v4, V5: v5, V6: v6 };
+}
+console.log("A) TUR-A metin maddeleri ④⑤⑥⑦⑩");
+{
+  const s0 = await aOlc(EKRAN_KAYNAK, VERI_KAYNAK);
+  ol("V1 yapboz ② dürüstlük cümlesi birebir (TUR-A ⑤)", s0.V1, "");
+  ol("V2 plaket ③'te 3 cümle (renk/ölçü/malzeme) AYNEN; malzeme = büstün malzeme AYNEN (TUR-A ⑥)", s0.V2, "");
+  ol("V3 yapboz ③'te 6 cümle (renk/ölçü/malzeme + satır/sütun/kabartma yönü) AYNEN (TUR-A ⑥)", s0.V3, "");
+  ol("V4 plaket/yapboz ③'te büst-specific renk/ölçü cümleleri YOK (TUR-A ⑥ yalnız o türde)", s0.V4, "");
+  ol("V5 büst kart aciklama '(ters opsiyonel)' VAR, '(ters/iki renk opsiyonel)' YOK (TUR-A ⑦)", s0.V5, "");
+  ol("V6 'kabartma yorumu' EKRAN + VERI'de 0 (TUR-A ⑩)", s0.V6, "");
+
+  // ---- MUTANTLAR (her biri tek başına KIRMIZI) ----
+  const A_MUT = [
+    ["M1 yapboz dürüstlük eski", VERI_KAYNAK, A_YAPBOZ_DURUSTLUK,
+     "Her yapboz parçası tek renktir; renkler seçtiğin seçeneğe göre belirlenir.", ["V1"]],
+    ["M2 plaket alan_aciklamalari silindi", VERI_KAYNAK,
+     '        alan_aciklamalari: {\n          renk: "Siyah, Beyaz ya da Gri seçersen plaket tek renk',
+     '        eski_aciklama_yok: {\n          renk: "Siyah, Beyaz ya da Gri seçersen plaket tek renk', ["V2"]],
+    ["M3 yapboz alan_aciklamalari silindi", VERI_KAYNAK,
+     '        alan_aciklamalari: {\n          renk: "Siyah, Beyaz ya da Gri seçersen tüm parçalar',
+     '        eski_aciklama_yok: {\n          renk: "Siyah, Beyaz ya da Gri seçersen tüm parçalar', ["V3"]],
+    ["M4 yapboz form satir aciklama silindi", VERI_KAYNAK,
+     '            aciklama: "Yapbozun dikey kaç parçaya bölüneceği.",\n',
+     '', ["V3"]],
+    ["M5 yapboz form sutun aciklama silindi", VERI_KAYNAK,
+     '            aciklama: "Yapbozun yatay kaç parçaya bölüneceği.",\n',
+     '', ["V3"]],
+    ["M6 yapboz form kabartma_yon aciklama silindi", VERI_KAYNAK,
+     '            aciklama: "Fotoğrafın hangi tonlarının daha çok kabaracağını belirler.",\n',
+     '', ["V3"]],
+    ["M7 büst kart aciklama eski geri geldi", VERI_KAYNAK, A_BUST_ACIKLAMA_YENI, A_BUST_ACIKLAMA_ESKI, ["V5"]],
+    ["M8 VERI'de 'kabartma yorumu olarak' geri geldi", VERI_KAYNAK,
+     'olarak üretilir; tam kopyası değildir, küçük yazı ve ince ',
+     'kabartma yorumu olarak üretilir; tam kopyası değildir, küçük yazı ve ince ', ["V6"]],
+    ["M9 ekranda 'kabartma yorumu olur' geri geldi", EKRAN_KAYNAK,
+     "ürün bunun seçtiğin renk sayısında olur; tam kopyası değildir.",
+     "ürün bunun seçtiğin renk sayısında (1–4) kabartma yorumu olur; tam kopyası değildir.", ["V6"]],
+    ["A-K0 KONTROL (yorum)", VERI_KAYNAK, "    // TÜRLER — açılışta TEK tür: kabartma PLAKET", "    // TÜRLER — açılışta TEK tür: kabartma PLAKET (kontrol)", []],
+  ];
+  for (const [ad, kaynak, capa, yerine, olmeli] of A_MUT) {
+    if (kaynak.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa.slice(0, 60)); continue; }
+    const mutant = kaynak.replace(capa, yerine);
+    const kayEkr = (kaynak === EKRAN_KAYNAK) ? mutant : EKRAN_KAYNAK;
+    const kayVer = (kaynak === VERI_KAYNAK) ? mutant : VERI_KAYNAK;
+    const sM = await aOlc(kayEkr, kayVer);
+    const kir = Object.keys(sM).filter((x) => sM[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
   }
 }
 

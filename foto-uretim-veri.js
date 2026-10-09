@@ -60,7 +60,7 @@
         { kol: "", metin: "Başkasına ait fotoğraf, marka, logo ya da telifli görsel yükleme; yüklenen görselden " +
             "doğan sorumluluk yükleyene aittir." },
         { kol: "M", metin: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün bu önizlemenin en çok 4 renkli " +
-            "kabartma yorumu olarak üretilir; tam kopyası değildir, küçük yazı ve ince " +
+            "olarak üretilir; tam kopyası değildir, küçük yazı ve ince " +
             "ayrıntılar sadeleşir." },
         { kol: "", metin: "Yüklediğim fotoğrafın bana ait olduğunu ya da kullanma hakkım olduğunu beyan ederim." },
         { kol: "M", metin: "Fotoğrafımın önizleme ve üretim dosyasının hazırlanması için yurt dışındaki hizmet sağlayıcıya aktarılmasına açık rıza veriyorum." },
@@ -145,6 +145,12 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, renk_tavani: 4 },
         // Okan kararı 7 Eki 2026: plaket gerçek baskı beklemeden önizleme + render ile açılır.
         ornek_kanit_izni: ["baski", "render"],
+        // ③ ortak alan açıklamaları — ArTisT 10 Eki 2026 AYNEN; yalnız plakette (büstün cümleleri değişmez).
+        alan_aciklamalari: {
+          renk: "Siyah, Beyaz ya da Gri seçersen plaket tek renk olur; Renkli seçersen renkler fotoğrafından otomatik seçilir (en çok 4 renk).",
+          olcu: "Plaketin en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.",
+          malzeme: "PLA ev içi kullanım içindir; PETG dış mekân ve genel amaçlı kullanım için daha yüksek sıcaklığa dayanır (+%30)."
+        },
         durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün en çok 4 renkle kabartma olarak üretilir — önizlemenin 4 renkli yorumu; tam kopyası değildir, küçük yazı ve ince ayrıntılar sadeleşir.",
         ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, tam kopyası değildir."
       },
@@ -208,6 +214,7 @@
           satir: {
             tip: "sayi",
             etiket: "Satır (parça sayısı dikey)",
+            aciklama: "Yapbozun dikey kaç parçaya bölüneceği.",
             min: 3,
             max: 8,
             adim: 1,
@@ -218,6 +225,7 @@
           sutun: {
             tip: "sayi",
             etiket: "Sütun (parça sayısı yatay)",
+            aciklama: "Yapbozun yatay kaç parçaya bölüneceği.",
             min: 3,
             max: 8,
             adim: 1,
@@ -237,6 +245,7 @@
           kabartma_yon: {
             tip: "secim",
             etiket: "Kabartma yönü",
+            aciklama: "Fotoğrafın hangi tonlarının daha çok kabaracağını belirler.",
             secenekler: ["acik_yuksek", "koyu_yuksek"],
             varsayilan: "acik_yuksek",
             ornek: "acik_yuksek"
@@ -249,11 +258,17 @@
           renk_tavani: 4
         },
         ornek_kanit_izni: ["baski", "render"],
+        // ③ ortak alan açıklamaları — ArTisT 10 Eki 2026 AYNEN; yalnız yapbozda (büstün cümleleri değişmez).
+        alan_aciklamalari: {
+          renk: "Siyah, Beyaz ya da Gri seçersen tüm parçalar o renk olur; Renkli seçersen parça renkleri fotoğrafından otomatik belirlenir (en çok 4 renk).",
+          olcu: "Yapbozun en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.",
+          malzeme: "PLA ev içi kullanım içindir; PETG dış mekân ve genel amaçlı kullanım için daha yüksek sıcaklığa dayanır (+%30)."
+        },
         form_sunum: {
           uzun_kenar_mm: { deger: "olcu" },
           tohum: { deger: "varsayilan" }
         },
-        durustluk: "Her yapboz parçası tek renktir; renkler seçtiğin seçeneğe göre belirlenir.",
+        durustluk: "Her yapboz parçası tek renktir. Siyah, Beyaz ya da Gri seçersen tüm parçalar o renk olur; Renkli seçersen parça renkleri fotoğrafından otomatik belirlenir (en çok 4 renk).",
         ornek_notu: "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir.",
         olcu_ekseni: "sabit",
         renk_secimi: "palet",
@@ -359,7 +374,7 @@
       {
         kod: "bust",
         ad: "Bust/madalyon (rolyef)",
-        aciklama: "Fotoğraftan kabartma büst/madalyon (ters/iki renk opsiyonel).",
+        aciklama: "Fotoğraftan kabartma büst/madalyon (ters opsiyonel).",
         girdi: ["foto-1"],
         motor: "D",
         uretec: "rolyef_uret",
