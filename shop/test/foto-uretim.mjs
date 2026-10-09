@@ -3459,7 +3459,7 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
   // not boşken bile onizle AÇIK. Sırf satırı yorum yapmak yetmez (undefined && x = undefined,
   // yine falsy → buton yine disabled; JS sessiz hata sınıfı).
   // TUR-B ①: not kosulu s1Sebep sirasinda (guncelleS1Buton TEK kaynaktan okur).
-  const mTCapa = "[!((S.uretimNotu || \"\").trim()), S1_SEBEP.not],";
+  const mTCapa = "[!notIstegeBagli(S.tur) && !((S.uretimNotu || \"\").trim()), S1_SEBEP.not],";
   const mTCount = EKRAN_KAYNAK.split(mTCapa).length - 1;
   const mTNot = mTCount === 1 ? await tarifDene2(EKRAN_KAYNAK.split(mTCapa).join("[false, S1_SEBEP.not],")) : null;
   ol("M-TARIF mutant notZorunlu=true ⇒ not boşken onizle AÇIK (KIRMIZI)",
@@ -3950,6 +3950,123 @@ console.log("TB) TUR-B ② MAKINE ANAHTARI ziyaretci sayacina yazilmaz");
     const fm = await mutantModul(capa, yerine);
     if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
     const m = await makineSenaryolar(fm);
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+}
+
+// ---------------------------------------------------------------- TUR-B2 (10 Eki) Okan 01:3x "büstte not zorunlu olmasın"
+// Büst: boş not düğmeyi KAPATMAZ, sebep listesinde "not" YOK, ② cümlesi "İsteğe bağlı…" (ArTisT); diğer türlerde AYNEN.
+// ④ ayrı uyarı satırı YOK: ① sebep cümlesi (not sırada İLK) aynı bilgiyi düğmenin altında verir. Ters ilk durum KAPALI.
+const B2_NOT_ESKI = "Üretim notu zorunlu; boşsa önizleme oluşturulamaz.";
+const B2_NOT_BUST = "İsteğe bağlı: kısa bir not ekleyebilirsin.";
+async function b2Ekran(kaynak, kod, kart) {
+  const V = veriYukle(VERI_KAYNAK);
+  const acik = { acik: true, turler: [{ kod, ad: V.turBul(kod).ad, aciklama: "x", ornek_sayisi: 1,
+    olculer: V.olcuSecenekleri(kod).map((mm) => ({ mm, fiyat_kurus: V.fiyatKurus(kod, mm) })) }] };
+  const e = await ekranKos(kaynak, V, acik, null, { asama: "bekliyor" }, { kart: kart || kod, turnstileOto: true,
+    zamanlayici: true, gorselSahte: true });
+  const id = (x) => [...e.bolum.agac()].find((n) => n.id === x) || null;
+  const ters0 = id("foto-param-ters");
+  const ters = ters0 ? { aria: ters0.getAttribute("aria-checked"), metin: ters0.textContent } : null;
+  const f = id("foto-dosya");
+  if (f) { f.files = [{ name: "yuz.jpg", type: "image/jpeg", size: 4096 }]; f.tetikle("change"); }
+  const hy = id("foto-uyum-hayir");
+  if (hy) { hy.tetikle("click"); }
+  const o = id("foto-aydinlatma-onay");
+  if (o) { o.checked = true; o.tetikle("change"); }
+  const na = id("foto-not-alani");
+  const notMetin = na ? [...na.agac()].filter((n) => n.tagName === "P").map((n) => n.textContent) : [];
+  const b = id("foto-onizle-buton"), sb = id("foto-onizle-sebep");
+  return { acik: !!b && b.disabled === false, kapali: !!b && b.disabled === true,
+           sebep: sb && sb.hidden !== true ? sb.textContent : "", notMetin, ters, notBos: !(id("foto-not") || {}).value };
+}
+async function b2Senaryolar(kaynak) {
+  const s = {}, iz = {};
+  const bu = await b2Ekran(kaynak, "bust"), fi = await b2Ekran(kaynak, "figur", "insan");
+  iz.bust = bu; iz.figur = fi;
+  s.V1 = bu.notBos && bu.acik && bu.sebep === "";
+  s.V2 = fi.notBos && fi.kapali && fi.sebep === SEBEP.not;
+  s.V5 = bu.notMetin.includes(B2_NOT_BUST) && !bu.notMetin.includes(B2_NOT_ESKI) &&
+    fi.notMetin.includes(B2_NOT_ESKI) && !fi.notMetin.includes(B2_NOT_BUST);
+  s.V6 = VERI.turBul("bust").form.ters.varsayilan === false && !!bu.ters && bu.ters.aria === "false" && bu.ters.metin === "Kapalı";
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("B2) TUR-B2 büstte not İSTEĞE BAĞLI (istemci) + Ters ilk durum");
+{
+  const s = await b2Senaryolar(EKRAN_KAYNAK);
+  ol("V1 büst + foto + onay + doğrulama, not BOŞ -> düğme AÇIK, sebep satırı yok", s.V1, JSON.stringify(s.iz.bust));
+  ol("V2 figür aynı durumda not BOŞ -> KAPALI + \"" + SEBEP.not + "\"", s.V2, JSON.stringify(s.iz.figur));
+  ol("V5 ② cümlesi: büst \"" + B2_NOT_BUST + "\" · figür eski cümle", s.V5, JSON.stringify([s.iz.bust.notMetin, s.iz.figur.notMetin]));
+  ol("V6 Ters varsayılan false + ③ düğmesi aria-checked=false \"Kapalı\" başlar", s.V6, JSON.stringify(s.iz.bust.ters));
+  const B2_MUT = [
+    ["M1 büst muafiyeti istemciden kaldırıldı", "  var NOT_ISTEGE_BAGLI_TURLER = [\"bust\"];", "  var NOT_ISTEGE_BAGLI_TURLER = [];", ["V1", "V5"]],
+    ["M1b muafiyet yalnız sebep sırasından silindi", "[!notIstegeBagli(S.tur) && !((S.uretimNotu", "[!((S.uretimNotu", ["V1"]],
+    ["M2 muafiyet tüm türlere yayıldı", "function notIstegeBagli(kod) { return NOT_ISTEGE_BAGLI_TURLER.indexOf(kod) >= 0; }",
+     "function notIstegeBagli(kod) { return true; }", ["V2", "V5"]],
+    ["M5 ② cümlesi türden bağımsız eski", "kap.appendChild(el(\"p\", \"foto-uretim-ayrinti\", notIstegeBagli(S.tur) ?",
+     "kap.appendChild(el(\"p\", \"foto-uretim-ayrinti\", false ?", ["V5"]],
+    ["M6 Ters ilk durum açık", "S.parametre[a] = sema.varsayilan === true;", "S.parametre[a] = true;", ["V6"]],
+    ["B2-K0 KONTROL (yorum)", "  function s1Sebep() {", "  // kontrol\n  function s1Sebep() {", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of B2_MUT) {
+    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa.slice(0, 60)); continue; }
+    const m = await b2Senaryolar(EKRAN_KAYNAK.replace(capa, yerine));
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
+  }
+}
+
+// Sunucu: büst (üreteç önizleme ucu) boş/yok not -> 400 DEĞİL (not "" sayılır); dolu notun doğrulaması AYNEN.
+// Sağlayıcı/kredi SAHTE (P), üreteç kolu sağlayıcıya hiç gitmez. Plaket boş not: ÖLÇÜM satırı (sunucuda boş-not reddi
+// bu turdan önce de YOKTU — uretimNotuDogrula boşu "" sayar; yeni ret kuralı bu turda EKLENMEDİ).
+async function b2SunucuSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('bust', 1, 'x'), ('plaket', 1, 'x')").run();
+  let ipNo = 0;
+  const cag = async (govde) => {
+    const h = { "CF-Connecting-IP": "10.0.9." + (++ipNo), "Content-Type": "application/json" };
+    const r = await fm.fotoUclari(new Request("https://pruvo3d.com/api/shop/foto/onizleme", { method: "POST", headers: h,
+      body: JSON.stringify(govde) }), e2, new URL("https://pruvo3d.com/api/shop/foto/onizleme"), "/foto/onizleme", null);
+    let v = null; try { v = await r.json(); } catch (e) { v = null; }
+    return { kod: r.status, hata: v && v.hata };
+  };
+  const bust = (ek) => onizlemeGovde({ tur: "bust", parametreler: { rolyef_yuksekligi_mm: 3, ters: false },
+    secim: { govde_malzeme: "PLA" }, ...(ek || {}) });
+  const s = {}, iz = {};
+  // Test VERI'sinde büst örneği sayılmıyor (turHazir "gercek-ornek"): örnek şartı bu vakanın ekseni DEĞİL,
+  // yalnız bu senaryo süresince bellekte 1 sayılır, finally'de geri alınır.
+  const asilOrnek = VERI.ornekSayisi;
+  VERI.ornekSayisi = (kod) => (kod === "bust" ? 1 : asilOrnek(kod));
+  try {
+  iz.bos = await cag(bust({ not: "" }));
+  iz.bosluk = await cag(bust({ not: "   " }));
+  iz.yok = await cag(bust());
+  iz.dolu = await cag(bust({ not: "deniz manzarası" }));
+  iz.tel = await cag(bust({ not: "ara 0555 123 45 67" }));
+  iz.plaketBos = await cag(onizlemeGovde({ not: "" }));
+  } finally { VERI.ornekSayisi = asilOrnek; }
+  s.V3 = [iz.bos, iz.bosluk, iz.yok, iz.dolu].every((x) => x.kod === 200) && iz.tel.kod === 400 && iz.tel.hata === "not-kisisel-veri";
+  k.kapat();
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("B2) TUR-B2 sunucu büst boş not");
+{
+  const s = await b2SunucuSenaryolar(foto);
+  ol("V3 sunucu: büst boş/boşluk/yok not -> 200 (400 DEĞİL); dolu not 200, telefonlu not 400 not-kisisel-veri", s.V3, JSON.stringify(s.iz));
+  console.log("  ÖLÇÜM V4 plaket boş not -> " + JSON.stringify(s.iz.plaketBos) + " (sunucuda boş-not reddi yok; kapı istemcide)");
+  const B2S_MUT = [
+    ["M3 sunucu boş notu reddeder (büst muafiyeti yok)", "  if (x === undefined || x === null) { return { ok: true, deger: \"\" }; }\n",
+     "  if (x === undefined || x === null || (typeof x === \"string\" && !x.trim())) { return { ok: false, hata: \"not-bos\" }; }\n", ["V3"]],
+    ["B2S-K0 KONTROL (yorum)", "export function uretimNotuDogrula(x) {\n", "// kontrol\nexport function uretimNotuDogrula(x) {\n", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of B2S_MUT) {
+    const fm = await mutantModul(capa, yerine);
+    if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+    const m = await b2SunucuSenaryolar(fm);
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
   }

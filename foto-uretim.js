@@ -1728,7 +1728,10 @@
     say();
     kap.appendChild(ta);
     kap.appendChild(sayac);
-    kap.appendChild(el("p", "foto-uretim-ayrinti", "Üretim notu zorunlu; boşsa önizleme oluşturulamaz."));
+    // Okan 10 Eki 01:3x: büstte not İSTEĞE BAĞLI (ArTisT cümlesi, icerik/foto-ozel-uretim-sayfa-metni.md);
+    // diğer türlerde zorunluluk cümlesi AYNEN.
+    kap.appendChild(el("p", "foto-uretim-ayrinti", notIstegeBagli(S.tur) ?
+      "İsteğe bağlı: kısa bir not ekleyebilirsin." : "Üretim notu zorunlu; boşsa önizleme oluşturulamaz."));
     S.alanDosya.appendChild(kap);
     notAlaniGoster();
   }
@@ -1812,9 +1815,12 @@
     hak: "Bugünkü önizleme hakkın doldu; yarın yenilenir.",
     program: "Önizleme şu an kapalı; biraz sonra yeniden dene."
   };
+  // Okan 10 Eki 01:3x "büstte not zorunlu olmasın": bu türlerde boş not düğmeyi KAPATMAZ, sebep listesinde "not" YOK.
+  var NOT_ISTEGE_BAGLI_TURLER = ["bust"];
+  function notIstegeBagli(kod) { return NOT_ISTEGE_BAGLI_TURLER.indexOf(kod) >= 0; }
   function s1Sebep() {
     var sira = [
-      [!((S.uretimNotu || "").trim()), S1_SEBEP.not],
+      [!notIstegeBagli(S.tur) && !((S.uretimNotu || "").trim()), S1_SEBEP.not],
       [fotoGerekir() && !S.dosya, S1_SEBEP.foto],
       [!S.aydinlatmaOnay, S1_SEBEP.onay],
       [!S.captchaToken1, S1_SEBEP.dogrulama],
