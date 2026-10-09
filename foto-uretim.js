@@ -1092,7 +1092,7 @@
       if (!acikKodlar || acikKodlar.indexOf(k.tur) < 0) continue;
       var t = F.turBul(k.tur), o = kartOrnegi(t);
       // Madde 4: orneği olmayan kart YAKINDA kartı olarak görünür ama DEVRE DIŞI (tıklanamaz).
-      // Anahtarlık şu an örnek yok → kart çizilir; TeKiN örneği gelince normal kart olur.
+      // Anahtarlık örneği 9 Eki'de eklendi; yakında kolu artık örneği olmayan YENİ tür içindir.
       if (!o) { if (k.yakinda) liste.push({ kart: k, tur: t, ornek: null, kanit: "yakinda" }); continue; }
       liste.push({ kart: k, tur: t, ornek: o, kanit: F.ornekKaniti(o) });
     }

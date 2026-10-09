@@ -431,12 +431,16 @@ const env = envKur(d1, r2);
 // A/B kapali-varsayilani ORNEK 0 iken olcer; veri dosyasindaki kayitlar (7 Eki render ornegi)
 // RO bolumunde dosyanin TEMIZ kopyasindan olculur.
 const VERI_ORNEKLERI = VERI.ornekler.splice(0);
-console.log("A) KAPALI-VARSAYILAN (ornek 0)");
+// K3d (9 Eki): anahtarlık artık sayılan örneği VAR (TeKiN render'ı eklendi) → VERI'de tut; A/B
+// ölçümleri yalnız plaket/yapboz/bust/figur'un geçici silindiği temiz varsayımı kullanır.
+VERI.ornekler.push(...VERI_ORNEKLERI.filter((o) => o.tur === "anahtarlik"));
+console.log("A) KAPALI-VARSAYILAN (plaket/yapboz/bust/figur ornek 0; anahtarlik ornegi VAR)");
 {
   const y = foto.yapilandirma(env);
-  // Onay metni Okan'ca onaylandi (6 Eki); eksik listesi onay kolunu veri dosyasina gore yazar.
-  ol("A1 gercek ornek 0 -> yapilandirma HAZIR DEGIL (onay eksigi yalniz onaysizken listelenir)",
-     !y.hazir && y.eksik.includes("gercek-ornek") &&
+  // K3d (9 Eki TeKiN): anahtarlık artık sayılan örneği VAR → gercek-ornek eksik DEĞİL; yapilandirma
+  // onaylı + ortam tam ise HAZIR. Onay eksigi yalniz onaysizken listelenir.
+  ol("A1 anahtarlık ornegi VAR -> yapilandirma HAZIR (onay eksigi yalniz onaysizken listelenir)",
+     y.hazir && !y.eksik.includes("gercek-ornek") &&
        y.eksik.includes("onay-metni-onayi") === (VERI.onay_onayli !== true), JSON.stringify(y));
   // A1b: onay kapisi veri dosyasinin bugunku halinden BAGIMSIZ olculur (onaysiz -> eksik).
   const onayOnce = VERI.onay_onayli;
@@ -446,9 +450,12 @@ console.log("A) KAPALI-VARSAYILAN (ornek 0)");
   ol("A1b onay bayragi kapali -> eksik listesinde onay-metni-onayi VAR, hazir DEGIL",
      !yb.hazir && yb.eksik.includes("onay-metni-onayi"), JSON.stringify(yb));
   const a = await istek(env, "/foto/acik");
-  ol("A2 /foto/acik -> acik:false", a.kod === 200 && a.v && a.v.acik === false, JSON.stringify(a.v));
+  ol("A2 /foto/acik -> acik:false (panel anahtari yok)", a.kod === 200 && a.v && a.v.acik === false, JSON.stringify(a.v));
   const o = await istek(env, "/foto/onizleme", { govde: onizlemeGovde() });
-  ol("A3 /foto/onizleme -> 503 kapali, saglayiciya istek YOK", o.kod === 503 && protoSayisi() === 0, o.kod);
+  // K3d (9 Eki TeKiN): yapilandirma HAZIR (anahtarlık ornegi) -> 503 "kapali" yerine 400 "tur-kapali"
+  // (plaket panel anahtari yok).
+  ol("A3 /foto/onizleme -> 400 tur-kapali (yapilandirma HAZIR, panel anahtari yok), saglayiciya istek YOK",
+     o.kod === 400 && o.v.hata === "tur-kapali" && protoSayisi() === 0, o.kod);
   const c = await foto.fotoUretimTuru(envKur(d1, r2, { URETIM_API_ANAHTAR: "" }), Date.now(), null);
   ol("A4 anahtarsiz cron D1'e dokunmadan ATLAR", c.atlandi === "yapilandirma", JSON.stringify(c));
   // 8 Eki: tek turun yolu eksikse YALNIZ o tur kapanir (turHazir); hicbir yol yoksa bolum + cron kapali.
@@ -462,33 +469,35 @@ console.log("A) KAPALI-VARSAYILAN (ornek 0)");
 }
 
 /**
- * K3d ORNEK SARTI MUTANTI: anahtarligin sayilan ornegi VARMIS gibi (VERI.ornekSayisi bellekte yamalanir;
- * sunucu ve test AYNI VERI nesnesini okur). fn yamali dunyada kosar, yama finally'de geri alinir.
- * Donus { uygulandi: yama tuttu mu (ornekSayisi("anahtarlik") > 0), sonuc: fn'in donusu }.
+ * K3d ORNEK SARTI MUTANTI (9 Eki, TeKiN render'i): anahtarligin sayilan ornegi YOKMUS gibi
+ * (VERI.ornekSayisi bellekte yamalanir; sunucu ve test AYNI VERI nesnesini okur). fn yamali dunyada
+ * kosar, yama finally'de geri alinir. Donus { uygulandi: yama tuttu mu (ornekSayisi("anahtarlik") === 0),
+ * sonuc: fn'in donusu }.
  */
-async function ornekSartiKalkti(fn) {
+async function ornekSartiKapali(fn) {
   const asil = VERI.ornekSayisi;
-  VERI.ornekSayisi = (kod) => (kod === "anahtarlik" ? 1 : asil(kod));
+  VERI.ornekSayisi = (kod) => (kod === "anahtarlik" ? 0 : asil(kod));
   try {
-    return { uygulandi: VERI.ornekSayisi("anahtarlik") > 0, sonuc: await fn() };
+    return { uygulandi: VERI.ornekSayisi("anahtarlik") === 0, sonuc: await fn() };
   } finally {
     VERI.ornekSayisi = asil;
   }
 }
 
-console.log("P) TUR LISTESI — plaket + figur; magnet SUNULMAZ; anahtarlik KAYITLI ama ORNEKSIZ (sunulmaz)");
+console.log("P) TUR LISTESI — plaket + figur; magnet SUNULMAZ; anahtarlik KAYITLI + sayilan ornegi 1 (9 Eki TeKiN)");
 {
   // 6 Eki (kategori kaydi): tek-tur sozlesmesi yerine "metal gerektiren tur 0 + plaket VAR".
   // 8 Eki (saglayici kopru-15): FIGÜR saglayici kolunda IKINCI tur olarak eklendi.
-  // K3d (Okan 8 Eki 22:5x + 9 Eki 01:4x): anahtarlik programin 5. turu -> KAYDI VAR; sayilan ornegi
-  // YOK -> /acik'te YOK, kart cizilmez, onizleme/siparis RED. Magnet icin 5 Eki kurali AYNEN (kayit 0).
+  // K3d (Okan 8 Eki 22:5x + 9 Eki 01:4x): anahtarlik programin 5. turu -> KAYDI VAR. 9 Eki (TeKiN
+  // render'i): sayilan ornegi 1 -> /acik'te VAR, panel acilis anahtari acilinca gorunur. Magnet
+  // icin 5 Eki kurali AYNEN (kayit 0).
   const p1 = () => VERI.turler.some((t) => t.kod === "plaket") && VERI.turler.some((t) => t.kod === "figur") &&
-    VERI.turler.some((t) => t.kod === "anahtarlik") && VERI.ornekSayisi("anahtarlik") === 0 &&
+    VERI.turler.some((t) => t.kod === "anahtarlik") && VERI.ornekSayisi("anahtarlik") === 1 &&
     !VERI.turler.some((t) => t.kod === "magnet");
-  ol("P1 veri dosyasinda plaket + figur + anahtarlik kaydi VAR, anahtarligin sayilan ornegi 0, magnet kaydi 0",
+  ol("P1 veri dosyasinda plaket + figur + anahtarlik kaydi VAR, anahtarligin sayilan ornegi 1, magnet kaydi 0",
      p1(), JSON.stringify({ kodlar: VERI.turler.map((t) => t.kod), anahtarlik_ornek: VERI.ornekSayisi("anahtarlik") }));
-  const m = await ornekSartiKalkti(async () => p1());
-  ol("P1-M ornek sarti kalkti (anahtarlik ornegi sayilir) -> P1 KIRMIZI", m.uygulandi && m.sonuc === false, JSON.stringify(m));
+  const m = await ornekSartiKapali(async () => p1());
+  ol("P1-M ornek sarti kapali (anahtarlik ornegi sayilmaz) -> P1 KIRMIZI", m.uygulandi && m.sonuc === false, JSON.stringify(m));
   // P2: figur ornegi YOK (varsayilan), bu testte /foto/acik henuz figur'u acmadi; SUNUCU tur tablosu
   //     yine de figur'u BILIR (TUR_ORTAM'da) — yalniz acilis anahtari ile gorunur.
   ol("P2 sunucu tur tablosu plaket + figur (anahtarlik/magnet 0)",
@@ -548,23 +557,26 @@ console.log("B) ACILIS ANAHTARI + TEK FORMUL (Okan 7 Eki 15:4x: fiyat tablosu YO
   const kotu = await istek(env, "/yonet/foto-acik", { govde: { tur: "plaket", acik: "evet" }, basliklar: YONET });
   ol("B5 acik alani boolean degilse 400 (gecersiz-acik)", kotu.kod === 400 && kotu.v.hata === "gecersiz-acik", JSON.stringify(kotu.v));
   // 8 Eki: figur artik gecerli bir tur (acilis anahtari ile); magnet kaydi YOK -> panel 400 gecersiz-tur.
-  // K3d: anahtarlik KAYITLI (panel anahtari yazilabilir) ama ORNEKSIZ -> anahtar acik olsa da /acik'te YOK.
+  // K3d (9 Eki TeKiN): anahtarlik KAYITLI + sayilan ornegi 1 -> panel anahtari acilinca /acik'te VAR,
+  // kapatilinca KAYBOLUR.
   const mg = await istek(env, "/yonet/foto-acik", { govde: { tur: "magnet", acik: true }, basliklar: YONET });
   const anahtarlikAcik = async () => {
     const y = await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik", acik: true }, basliklar: YONET });
     const a = await istek(env, "/foto/acik");
-    const kodlar = ((a.v && a.v.turler) || []).map((t) => t.kod);
+    const acikKodlar = ((a.v && a.v.turler) || []).map((t) => t.kod);
     const k = await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik", acik: false }, basliklar: YONET });
-    return { yaz: y.kod, kapat: k.kod, kodlar, gorunur: kodlar.includes("anahtarlik") };
+    const a2 = await istek(env, "/foto/acik");
+    const kapaliKodlar = ((a2.v && a2.v.turler) || []).map((t) => t.kod);
+    return { yaz: y.kod, kapat: k.kod, acikKodlar, kapaliKodlar, acikta: acikKodlar.includes("anahtarlik"), kapali: !kapaliKodlar.includes("anahtarlik") };
   };
   const p5 = await anahtarlikAcik();
-  ol("P5 panel acilis: magnet 400 gecersiz-tur; anahtarlik anahtari yazilsa da ORNEKSIZ -> /acik'te YOK (plaket acik kalir)",
+  ol("P5 panel acilis: magnet 400 gecersiz-tur; anahtarlik ORNEKLI -> anahtar acilinca /acik'te VAR, kapatilinca YOK (plaket acik kalir)",
      mg.kod === 400 && mg.v && mg.v.hata === "gecersiz-tur" && p5.yaz === 200 && p5.kapat === 200 &&
-       !p5.gorunur && p5.kodlar.includes("plaket"),
+       p5.acikta && p5.kapali && p5.acikKodlar.includes("plaket") && p5.kapaliKodlar.includes("plaket"),
      JSON.stringify({ magnet: mg.v, p5 }));
-  const p5m = await ornekSartiKalkti(anahtarlikAcik);
-  ol("P5-M ornek sarti kalkti -> ORNEKSIZ anahtarlik /acik'te gorunur (P5 KIRMIZI)",
-     p5m.uygulandi && p5m.sonuc.gorunur === true, JSON.stringify(p5m));
+  const p5m = await ornekSartiKapali(anahtarlikAcik);
+  ol("P5-M ornek sarti kapali -> ORNEKLI anahtarlik /acik'te YOK (P5 KIRMIZI)",
+     p5m.uygulandi && p5m.sonuc.acikta === false, JSON.stringify(p5m));
   const tablo = await d1.prepare("SELECT COUNT(*) AS n FROM foto_acik WHERE tur <> 'plaket'").first();
   ol("P5b acilis anahtarinda plaket disi satir 0", tablo.n === 0, tablo.n);
   const oz = await istek(env, "/yonet/foto-ozet", { basliklar: YONET });
@@ -590,16 +602,17 @@ let isNo;
   ol("F3 sihirli bayti tutmayan gorsel -> 400 gorsel-gecersiz", r3.kod === 400 && r3.v.hata === "gorsel-gecersiz", JSON.stringify(r3.v));
   ol("F4 tabloda olmayan olcu -> 400", r4.kod === 400 && r4.v.hata === "gecersiz-olcu", JSON.stringify(r4.v));
   ol("F5 sunulmayan tur magnet -> 400 tur-kapali", r5.kod === 400 && r5.v.hata === "tur-kapali", JSON.stringify(r5.v));
-  // K3d: iddia DALA GORE. Anahtarlik D kolu (uretec onizlemeli): /foto/onizleme uretec ucunda turHazir ONCE
-  // -> orneksiz tur 503 `kapali` (fail-closed). Saglayici (M) kolunda kapali/olmayan tur 400 `tur-kapali`
-  // (F5 magnet = olmayan tur; P7b figur = kayitli ama acilis anahtari YOK).
+  // K3d (9 Eki TeKiN): iddia DALA GORE. Anahtarlik D kolu (uretec onizlemeli) + sayilan ornegi 1 ->
+  // turHazir gecer; panel anahtari yoksa 400 `tur-kapali` (acikAnahtari bossa). Orneksiz tur ise
+  // 503 `kapali` (P7-M mutant). M kolunda kapali/olmayan tur 400 `tur-kapali` (F5 magnet = olmayan
+  // tur; P7b figur = kayitli ama acilis anahtari YOK).
   const r7b = await istek(env, "/foto/onizleme", { govde: onizlemeGovde({ tur: "figur", olcu_mm: 100 }) });
-  ol("P7 D kolu orneksiz tur anahtarlik -> 503 kapali (uretec ucunda turHazir once)",
-     r6.kod === 503 && r6.v.hata === "kapali", JSON.stringify(r6));
+  ol("P7 D kolu ornekli tur anahtarlik (panel anahtari yok) -> 400 tur-kapali (uretc onizlemeli yol)",
+     r6.kod === 400 && r6.v.hata === "tur-kapali", JSON.stringify(r6));
   ol("P7b M kolu kapali tur figur (acilis anahtari yok) -> 400 tur-kapali", r7b.kod === 400 && r7b.v.hata === "tur-kapali", JSON.stringify(r7b));
-  const p7m = await ornekSartiKalkti(() => istek(env, "/foto/onizleme", { govde: onizlemeGovde({ tur: "anahtarlik", olcu_mm: 100 }) }));
-  ol("P7-M ornek sarti kalkti -> anahtarlik turHazir'i gecer, 503 kapali DEGIL (P7 KIRMIZI)",
-     p7m.uygulandi && !(p7m.sonuc.kod === 503 && p7m.sonuc.v.hata === "kapali"), JSON.stringify(p7m));
+  const p7m = await ornekSartiKapali(() => istek(env, "/foto/onizleme", { govde: onizlemeGovde({ tur: "anahtarlik", olcu_mm: 100 }) }));
+  ol("P7-M ornek sarti kapali -> anahtarlik turHazir tutmaz, 503 kapali (P7 KIRMIZI)",
+     p7m.uygulandi && p7m.sonuc.kod === 503 && p7m.sonuc.v.hata === "kapali", JSON.stringify(p7m));
   ol("F6 reddedilen isteklerin hicbiri saglayiciya GITMEDI", protoSayisi() === once, protoSayisi() - once);
 
   const ok = await istek(env, "/foto/onizleme", { govde: onizlemeGovde() });
@@ -818,10 +831,11 @@ console.log("Q) SUNULMAYAN TUR — sunucu reddi (eski/elle yazilmis kayit uzerin
   // eski ('hazir') onizleme 400 foto-onizleme-yok (RED, odeme baslamaz).
   ol("Q1 orneksiz anahtarligin eski ('hazir') onizlemesinden /baslat -> 400 foto-onizleme-yok (odeme baslamaz)",
      b.kod === 400 && b.v.hata === "foto-onizleme-yok", JSON.stringify(b.v));
-  // Q1b: koşucunun 'onizleme-hazir' yaptigi anahtarlik isi + panel anahtari ACIK -> ornek 0 oldugu icin
-  // turHazir tutmaz -> 400 foto-kapali. Mutant (ornek sarti kalkti) bu reddi kaldirir.
+  // Q1b (9 Eki TeKiN): anahtarlik ORNEKLI (ornekSayisi=1). Ornekli + 'onizleme-hazir' + panel acik ->
+  // turHazir gecer, acikAnahtari VAR, olcu araliktaysa (30..80) 200/odeme; aralik disinda 400 gecersiz-olcu.
+  // Mutant (ornek sarti kapali -> ornekSayisi=0) reddi 400 foto-kapali'ya CEVIRIR.
   const isB = "b".repeat(32);
-  await d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'anahtarlik', 100, 'z', ?, 'onizleme-hazir', 'gorev-eski-0002', ?)")
+  await d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'anahtarlik', 100, 'z', ?, 'onizleme-hazir', 'gorev-eski-002', ?)")
     .bind(isB, simdiIso, simdiIso).run();
   const q1b = async () => {
     await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik", acik: true }, basliklar: YONET });
@@ -831,10 +845,11 @@ console.log("Q) SUNULMAYAN TUR — sunucu reddi (eski/elle yazilmis kayit uzerin
     return { kod: r.kod, hata: r.v && r.v.hata };
   };
   const b2 = await q1b();
-  ol("Q1b orneksiz anahtarligin 'onizleme-hazir' isinden /baslat (anahtar acik) -> 400 foto-kapali", b2.kod === 400 && b2.hata === "foto-kapali", JSON.stringify(b2));
-  const q1m = await ornekSartiKalkti(q1b);
-  ol("Q1-M ornek sarti kalkti -> foto-kapali reddi kalkar (Q1b KIRMIZI)",
-     q1m.uygulandi && q1m.sonuc.hata !== "foto-kapali", JSON.stringify(q1m));
+  ol("Q1b ornekli anahtarligin 'onizleme-hazir' isinden /baslat (anahtar acik, olcu aralik disi) -> 400 gecersiz-olcu",
+     b2.kod === 400 && b2.hata === "gecersiz-olcu", JSON.stringify(b2));
+  const q1m = await ornekSartiKapali(q1b);
+  ol("Q1-M ornek sarti kapali -> orneksiz anahtarlik /baslat reddi foto-kapali OLUR (Q1b KIRMIZI)",
+     q1m.uygulandi && q1m.sonuc.hata === "foto-kapali", JSON.stringify(q1m));
   await d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES ('PR-TEST-MAGNET', ?, 'odendi', 1, ?)")
     .bind(simdiIso, JSON.stringify([{ id: "ozel-foto-magnet", foto_is: isA, foto_tur: "magnet", olcu_mm: 100 }])).run();
   await d1.prepare("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel) VALUES ('PR-TEST-ANAHT', 0, ?, 'anahtarlik', 100, 'build-baslat', ?, '2000-01-01T00:00:00.000Z')")
@@ -3276,14 +3291,15 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
     const gizlilikEkranda = (aydinlatmaMetni.match(/Gizlilik Politikası/g) || []).length;
     ol("M3-8 ④ aydinlatma DOM'unda 'Gizlilik Politikası' tam 1 kez (madde 7)",
        gizlilikEkranda === 1, "ekran=" + gizlilikEkranda);
-    // (h) Anahtarlık kartı 1 ve DEVRE DIŞI (madde 4) — 4 DORT + 1 anahtarlık orneği 0 ⇒ 1 Yakında DEVRE DIŞI.
+    // (h) Anahtarlık kartı 1 ve AÇIK (madde 4, 9 Eki TeKiN render'ı) — 4 DORT + 1 anahtarlık orneği 1 ⇒ kart
+    // tıpkı diğerleri gibi AÇIK (Yakında DEVRE DIŞI davranışı YALNIZ orneği olmayan YENİ tür için).
     const eA = await ekranKos(EKRAN_KAYNAK, V, acikGercek(V, ["plaket", "figur", "yapboz", "bust", "anahtarlik"]), undefined, undefined, { turnstileOto: true, zamanlayici: true });
     const kartlarA = [...eA.bolum.agac()].filter((n) => n.classList && n.classList.contains("foto-uretim-kart"));
     const anahtarlikKart = kartlarA.find((k) => k.getAttribute("data-kart") === "anahtarlik");
     const anahtarlikVar = !!anahtarlikKart;
     const anahtarlikDisabled = anahtarlikKart ? (anahtarlikKart.disabled === true && anahtarlikKart.getAttribute("aria-disabled") === "true") : false;
-    ol("M3-9 anahtarlık kartı var VE disabled + aria-disabled=true (madde 4)",
-       anahtarlikVar && anahtarlikDisabled, "var=" + anahtarlikVar + " disabled=" + anahtarlikDisabled);
+    ol("M3-9 anahtarlık kartı var VE AÇIK (ornek=1, ornek=0 olsaydı Yakında DEVRE DIŞI)",
+       anahtarlikVar && !anahtarlikDisabled, "var=" + anahtarlikVar + " disabled=" + anahtarlikDisabled);
   }
 
   // K2b-fin2: düz "aynı" → uygun; "aynısı/aynisini/aynisindan" → uygun_degil.
@@ -3461,8 +3477,9 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     return s;
   };
 
-  // E) ① kart sayısı = /acik: anahtarlık /acik'te olsa da VERI'deki örnek 0 ise kart "Yakında" olarak
-  // ÇİZİLİR ama DEVRE DIŞI (madde 4: TeKiN örneği gelince normal kart olur); yalnız plaket açıkken 1 kart.
+  // E) ① kart sayısı = /acik: anahtarlık /acik'te + VERI'de sayılan örneği 1 (9 Eki TeKiN) → 5 kart
+  // (4 DORT + anahtarlık, tıpkı diğerleri AÇIK). Yalnız plaket açıkken 1 kart. "Yakında" kart 0 (örnek
+  // 0 olsaydı 1 DEVRE DIŞI olurdu; madde 4: artık YALNIZ örneği olmayan YENİ tür için).
   const acikSayisi = async (kaynak) => {
     const V = veriYukle(VERI_KAYNAK);
     const ac = acikGercek(V, DORT);
@@ -3470,12 +3487,10 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     const e1 = await ekranKos(kaynak, V, ac);
     const e2 = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), acikGercek(V, ["plaket"]));
     const n1 = sinifli(e1.bolum, "foto-uretim-kart").length, n2 = sinifli(e2.bolum, "foto-uretim-kart").length;
-    // /acik'te 4 DORT + 1 anahtarlık = 5 tür; KARTLAR'ın 6 satırı (5 + anahtarlık) 5 türle eşleşir →
-    // e1'de 6 kart (5 normal + 1 "Yakında" DEVRE DIŞI). e2'de yalnız plaket → 1 kart, devre dışı 0.
-    // "yakında" 2 kez çıkar: kart adı "Anahtarlık — yakında" + kart etiket "yakında" (her ikisi de DEVRE DIŞI
-    // kart için gösterilir). Doğru iddia: devre dışı kart sayısı 1.
     const devreDisiSayisi = sinifli(e1.bolum, "foto-uretim-kart").filter((k) => k.getAttribute("aria-disabled") === "true").length;
-    const s = { ACIK_SAYISI: n1 === 6 && n2 === 1 && devreDisiSayisi === 1 };
+    // e1'de 6 kart (insan + hayvan_model + plaket + bust + yapboz + anahtarlık = 6; anahtarlık /acik'te
+    // VAR, ornek=1, AÇIK). e2'de yalnız plaket → 1 kart, devre dışı 0. Yakında kart 0 (hepsi ornekli).
+    const s = { ACIK_SAYISI: n1 === 6 && n2 === 1 && devreDisiSayisi === 0 };
     Object.defineProperty(s, "iz", { value: { n1, n2, devreDisiSayisi }, enumerable: false });
     return s;
   };
@@ -3488,7 +3503,7 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     " kart=" + d0.iz.kart.length + " p1_kart_disi_oge=" + d0.iz.p1Disi);
   ol("K3b-1 #fotoUretim cocuk sayisi 1 (tek kutu) + kutu disi oge 0 (bastan sona; govdede bolum disi oge 0)", d0.TEKKUTU, JSON.stringify([d0, d0.iz]));
   ol("K3b-2 ① kart = KARTLAR ∩ /acik: 5/5 (insan · hayvan_model · plaket · bust · yapboz); ① icinde dosya girdisi 0, kart disi oge 0", d0.KART, JSON.stringify(d0.iz));
-  ol("K3b-3 ① kart sayisi /acik'e bagli: 4 DORT + anahtarlık orneği 0 ⇒ 'Yakında' kart 1 (DEVRE DIŞI) → 6 kart; yalnız plaket açıkken 1 kart, 'Yakında' 0", a0.ACIK_SAYISI, JSON.stringify(a0));
+  ol("K3b-3 ① kart sayisi /acik'e bagli: 4 DORT + anahtarlık orneği 1 ⇒ 5 kart (AÇIK), Yakında 0; yalnız plaket açıkken 1 kart", a0.ACIK_SAYISI, JSON.stringify(a0));
   ol("K3b-4 ayni anda gorunen pencere 1 (9 adimin hepsinde)", d0.TEKPENCERE, JSON.stringify(d0.iz.pen));
   ol("K3b-5 ① secimsiz 'İleri' pasif + 'Geri' gizli", d0.ILERI, JSON.stringify(d0));
   ol("K3b-6 insan + hayvan_model ikisi de tur figur secer (② durustluk figur'un) ve ②'ye gecer", d0.INSAN, JSON.stringify(d0.iz));
