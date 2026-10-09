@@ -14,6 +14,8 @@ ozet.json = {}) -> onizlemede katalog bos, foto bolumu calisir. Sir dosyasi kopy
 SHA DAMGASI + TEK-YUKLEYICI KILIDI (BaBa 17:0x, 9 Eki 2026):
 - statik_kur: statik dizine `onizleme-surum.json` yazar = {"sha", "dal", "kirli"} (HEAD/dal/kirli_sayisi).
   Yukleme adimi KIRLI agactaysa (kirli>0) YUKLEME REDDEDILIR (rc 2); commit'siz kod onizlemeye cikmaz.
+  Kirli sayimi statik dizin OLUSMADAN once olculur ve sayimdan YALNIZ `shop/.onizleme-statik/` dislanir
+  (dizin git'e gorunur, ignore degil; temiz agacta sahte kirli=1 basiyordu — 9 Eki). Baska yol dislanmaz.
 - yukle: `pruvo-onizleme.lock` uzerinde TEK YUKLEYICI kilidi (fcntl.flock, bloklayan, en cok 900 sn;
   asilirsa rc 2 "YUKLE RED kilit-zaman-asimi"). Kilit dosyasi is bitince SILINMEZ ama icerigi bos
   kalir (lock: makinede yeni dosya tek, baska iz YOK).
@@ -38,6 +40,7 @@ DOSYALAR = ["index.html", "foto-uretim.js", "foto-uretim-veri.js", "secenekler.j
             "konfigur.js", "attribution-ref.js", "taban-fiyatlar.js", "filament-veri.js"]
 ANA = "/Users/okan/dev/pruvo"  # ana checkout kokue: 2 dosya oradan alinir (bu branch'te yok)
 SAPLAMA = {"urunler.json": "[]\n", "ozet.json": "{}\n"}
+STATIK_GIT = "shop/.onizleme-statik/"  # porcelain yolu (repo kokune gore); kirli sayimindan YALNIZ bu dislanir
 SURUM_DOSYA = "onizleme-surum.json"  # statik dizine yazilan SHA damgasi (worker'dan okunur)
 KILIT_AD = "pruvo-onizleme.lock"     # TEK YUKLEYICI kilit dosyasi (git-common-dir altinda)
 KILIT_TAVAN = 900                    # flock en cok 900 sn; asarsa rc 2
@@ -52,21 +55,26 @@ def _kirli_sayisi():
     p = _git("status", "--porcelain")
     if p.returncode != 0:
         return -1
-    return sum(1 for _ in p.stdout.splitlines() if _.strip())
+    return sum(1 for s in p.stdout.splitlines() if s.strip() and not s[3:].startswith(STATIK_GIT))
+
+
+def _damga_olc():
+    """{sha, dal, kirli} olc (kirli=-1 hata durumu)."""
+    sha = (_git("rev-parse", "HEAD").stdout or "").strip()
+    dal = (_git("rev-parse", "--abbrev-ref", "HEAD").stdout or "").strip()
+    return {"sha": sha, "dal": dal, "kirli": _kirli_sayisi()}
 
 
 def _damga_yazi(cikti=None):
-    """statik dizine SHA damgasi yaz. Icerigi {sha, dal, kirli} (kirli=-1 hata durumu)."""
+    """statik dizine SHA damgasi yaz. cikti verilmezse YAZMA aninda olcer."""
     if cikti is None:
-        sha = (_git("rev-parse", "HEAD").stdout or "").strip()
-        dal = (_git("rev-parse", "--abbrev-ref", "HEAD").stdout or "").strip()
-        kirli = _kirli_sayisi()
-        cikti = {"sha": sha, "dal": dal, "kirli": kirli}
+        cikti = _damga_olc()
     with open(os.path.join(STATIK, SURUM_DOSYA), "w") as f:
         json.dump(cikti, f, ensure_ascii=False, sort_keys=True)
 
 
 def statik_kur():
+    damga = _damga_olc()  # STATIK olusmadan ONCE: dizin sayima girmesin
     if os.path.exists(STATIK):
         shutil.rmtree(STATIK)
     os.mkdir(STATIK)
@@ -79,7 +87,7 @@ def statik_kur():
     for ad, icerik in SAPLAMA.items():
         with open(os.path.join(STATIK, ad), "w") as f:
             f.write(icerik)
-    _damga_yazi()
+    _damga_yazi(damga)
     return sorted(os.listdir(STATIK))
 
 

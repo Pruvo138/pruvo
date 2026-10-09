@@ -9,23 +9,31 @@ Hafif izole: gercek wrangler YOK, gercek ag YOK, gercek urunler.json/STATIK dizi
   - Mutantlar: kaynak metin BELLEKTE okunur, replace edilir, `types.ModuleType + compile/exec` ile
     yeni modul nesnesine derlenir; sys.modules'a KONMAZ; gercek tools/*.py yazilmaz.
 
-Vakalar (5):
+Vakalar (8):
   V1 damga dosyasi icerigi dogru (sha + dal + kirli)
   V2 kirli agac -> yukle rc=2 (YUKLE RED kirli-agac)
   V3 iki eszamanli yukleme SIRALI (ikincisi birincinin bitisinden SONRA baslar, zaman damgasiyla)
   V4 damga uyusmaz -> rc 2 (MAKINE_KOS HATA damga-uyusmaz)
   V5 damga uyusur -> rc 0 (MAKINE_KOS damga=... rc=0)
+  V6 statik dizin varken temiz agacta damga kirli=0 (sayim dizin olusmadan once + shop/.onizleme-statik/ dislanir)
+  V7 gercek kirli dosya varken kirli>=1 (dislama YALNIZ statik dizini kapsar)
+  V8 okuyucu istisnasinda basilan satir kok nedeni tasir (HTTPError=403 + govde) ve istek acik User-Agent gonderir
 
-Mutantlar (4): biri oyle dezenanmis kaynakla yeniden calistirilir; vakalarin en az biri KIRMIZI olmalidir.
+Mutantlar (8): biri oyle dezenanmis kaynakla yeniden calistirilir; vakalarin en az biri KIRMIZI olmalidir.
   M1 damga yazimi silinmis (_damga_yazi cagirisi kaldirilmis) -> V1 KIRMIZI
   M2 kirli denetimi silinmis (kirli>0 -> rc 2 yok) -> V2 KIRMIZI
   M3 flock silinmis (LK_EX|LK_NB yerine pass # MUTANT, AYNI GIRINTI, derlenebilir) -> V3 KIRMIZI
   M4 damga karsilastirmasi silinmis (okunan != beklenen -> rc 0) -> V4 KIRMIZI
+  M5 uyusma dali silinmis (okunan == beklenen hic tutmaz) -> V5 KIRMIZI
+  M6 eski sira (damga statik dizin OLUSTUKTAN sonra olculur) -> V6 KIRMIZI
+  M7 dislama tum yollari dislar -> V7 KIRMIZI
+  M8 hata satirinda kok neden duser (yalniz istisna tipi) -> V8 KIRMIZI
 
 Mutantlarin hedef satiri BIREDEN fazla / hic bulunmazsa veya compile basarisiz olursa o mutant SURVIVOR.
 
 Cikti: "VAKA_KIRMIZI=0 SURVIVOR=0" (hepsi yesil) veya "VAKA_KIRMIZI=<n> SURVIVOR=<n>".
 """
+import contextlib
 import importlib.util
 import io
 import json
@@ -267,6 +275,110 @@ def vaka5_damga_uyusur():
     return True
 
 
+def _statik_git(foto, ek_satirlar):
+    """status --porcelain: statik dizin DISKTE varken onu (test yolu, dislama kapsami DISI) + verilen satirlar.
+
+    Test STATIK'i gecici dizine yonlendirir; gercek agacta bu dizin `?? shop/.onizleme-statik/` gorunur.
+    Burada dizin varken gorunen satir dislama on-ekine UYMAZ -> V6 sayim SIRASINI olcer (dislamayi degil).
+    """
+    taban = foto._git
+
+    def f(*args, **kwargs):
+        if args[:2] == ("status", "--porcelain"):
+            satirlar = list(ek_satirlar)
+            if os.path.exists(foto.STATIK):
+                satirlar.append("?? onizleme-statik-test-dizini/")
+            return subprocess.CompletedProcess(args=args, returncode=0,
+                                               stdout="".join(x + "\n" for x in satirlar), stderr="")
+        return taban(*args, **kwargs)
+    return f
+
+
+def vaka6_statik_temiz():
+    """V6: statik dizin varken temiz agacta damga kirli=0.
+
+    (a) sira: dizin sayima girerse (statik sonrasi sayim) kirli=1 olur.
+    (b) dislama: artik `?? shop/.onizleme-statik/` satiri (onceki kurulumdan kalan dizin) sayilmaz.
+    """
+    tmp = os.path.join(tempfile.mkdtemp(prefix="onizleme-v6-"), "statik")
+    try:
+        foto = _yukle_foto()
+        kur_foto = _kur(foto, tmp, kirli=0)
+        shutil.rmtree(tmp)  # gercek akista dizin statik_kur ONCESI yoktur
+        foto._git = _statik_git(foto, ["?? shop/.onizleme-statik/"])
+        foto.statik_kur()
+        with open(os.path.join(tmp, "onizleme-surum.json")) as f:
+            d = json.load(f)
+        assert d.get("kirli") == 0, "statik dizin varken temiz agacta kirli=%r (0 bekleniyordu)" % d.get("kirli")
+        shutil.rmtree(tmp)  # (b) yalniz artik `?? shop/.onizleme-statik/` satiri kalir
+        assert foto._kirli_sayisi() == 0, "artik statik dizin satiri sayildi"
+        print("V6 sonuc=OK kirli=0 (statik dizin var, agac temiz)")
+        return True
+    finally:
+        shutil.rmtree(os.path.dirname(tmp), ignore_errors=True)
+        if 'kur_foto' in dir() and hasattr(kur_foto, '_TEST_GIT_COMMON_DIR'):
+            shutil.rmtree(kur_foto._TEST_GIT_COMMON_DIR, ignore_errors=True)
+
+
+def vaka7_gercek_kirli():
+    """V7: gercek kirli dosya varken (statik dizin satiri da varken) damga kirli>=1 ve yukle RED."""
+    tmp = os.path.join(tempfile.mkdtemp(prefix="onizleme-v7-"), "statik")
+    try:
+        foto = _yukle_foto()
+        kur_foto = _kur(foto, tmp, kirli=0)
+        shutil.rmtree(tmp)
+        foto._git = _statik_git(foto, ["?? shop/.onizleme-statik/", " M tools/foto-onizleme.py"])
+        foto.statik_kur()
+        with open(os.path.join(tmp, "onizleme-surum.json")) as f:
+            d = json.load(f)
+        assert d.get("kirli", 0) >= 1, "gercek kirli dosya varken kirli=%r" % d.get("kirli")
+        tampon = io.StringIO()
+        with contextlib.redirect_stdout(tampon):
+            rc = foto.yukle()
+        assert rc == 2 and "YUKLE RED kirli-agac" in tampon.getvalue(), "kirli agacta yukle rc=%r" % rc
+        print("V7 sonuc=OK kirli=%d yukle_rc=2" % d["kirli"])
+        return True
+    finally:
+        shutil.rmtree(os.path.dirname(tmp), ignore_errors=True)
+        if 'kur_foto' in dir() and hasattr(kur_foto, '_TEST_GIT_COMMON_DIR'):
+            shutil.rmtree(kur_foto._TEST_GIT_COMMON_DIR, ignore_errors=True)
+
+
+def vaka8_kok_neden():
+    """V8: gercek _http_oku (urlopen sahte: 403 + 'error code: 1010') -> basilan satir kok nedeni tasir."""
+    import urllib.error
+    import urllib.request
+    mak = _yukle_mak()
+    mak.DAMGA_BEKLEME = 0.0
+    eski_kanca = os.environ.pop("ONIZLEME_KOS_HTTP_READER", None)
+    eski_urlopen = urllib.request.urlopen
+    istekler = []
+
+    def sahte_urlopen(istek, timeout=None):
+        istekler.append(istek)
+        raise urllib.error.HTTPError(istek.full_url, 403, "Forbidden", {}, io.BytesIO(b"error code: 1010\n"))
+
+    urllib.request.urlopen = sahte_urlopen
+    tampon = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(tampon):
+            okunan, rc = mak.damga_dogrula(TEST_SHA)
+    finally:
+        urllib.request.urlopen = eski_urlopen
+        if eski_kanca is not None:
+            os.environ["ONIZLEME_KOS_HTTP_READER"] = eski_kanca
+    cikti = tampon.getvalue()
+    assert rc == 2, "okuma hatasinda rc=2 bekleniyordu, geldi=%r" % rc
+    hata_satir = [x for x in cikti.splitlines() if "damga-deneme=1 hata=" in x]
+    assert hata_satir, "hata satiri yok: %r" % cikti[:200]
+    assert "HTTPError=403" in hata_satir[0] and "1010" in hata_satir[0], "kok neden dustu: %r" % hata_satir[0]
+    assert istekler, "urlopen cagrilmadi"
+    ua = istekler[0].get_header("User-agent") or ""
+    assert ua and not ua.startswith("Python-urllib"), "acik User-Agent yok: %r" % ua
+    print("V8 sonuc=OK satir=%r" % hata_satir[0])
+    return True
+
+
 # ---------- Mutant motoru ----------
 
 def _mutant_uygula(etiket, kaynak, hedef, yenisi, hedef_dosya, vakalar, beklenen_kirmizi):
@@ -310,7 +422,7 @@ def mutant1_damga_silindi(vakalar):
     """M1: statik_kur icinden _damga_yazi cagirisi kaldirildi. V1 KIRMIZI olmali."""
     with open(FOTO_PY) as f:
         kaynak = f.read()
-    return _mutant_uygula("M1", kaynak, "    _damga_yazi()\n", "", FOTO_PY, vakalar, {"V1"})
+    return _mutant_uygula("M1", kaynak, "    _damga_yazi(damga)\n", "", FOTO_PY, vakalar, {"V1"})
 
 
 def mutant2_kirli_silindi(vakalar):
@@ -343,6 +455,38 @@ def mutant4_karsilastirma_silindi(vakalar):
     return _mutant_uygula("M4", kaynak, hedef, yenisi, MAK_PY, vakalar, {"V4"})
 
 
+def mutant5_uyusma_silindi(vakalar):
+    """M5: uyusma dali hic tutmaz (okunan == beklenen -> yine deneme). V5 KIRMIZI olmali."""
+    with open(MAK_PY) as f:
+        kaynak = f.read()
+    return _mutant_uygula("M5", kaynak, "            if okunan == beklenen_sha:\n",
+                          "            if False:  # MUTANT\n", MAK_PY, vakalar, {"V5"})
+
+
+def mutant6_eski_sira(vakalar):
+    """M6: eski sira — damga statik dizin olustuktan SONRA (yazma aninda) olculur. V6 KIRMIZI olmali."""
+    with open(FOTO_PY) as f:
+        kaynak = f.read()
+    return _mutant_uygula("M6", kaynak, "    _damga_yazi(damga)\n", "    _damga_yazi()  # MUTANT\n",
+                          FOTO_PY, vakalar, {"V6"})
+
+
+def mutant7_hepsi_dislanir(vakalar):
+    """M7: dislama on-eki bos — tum yollar dislanir. V7 KIRMIZI olmali."""
+    with open(FOTO_PY) as f:
+        kaynak = f.read()
+    return _mutant_uygula("M7", kaynak, "not s[3:].startswith(STATIK_GIT)", 'not s[3:].startswith("")',
+                          FOTO_PY, vakalar, {"V7"})
+
+
+def mutant8_kok_neden_duser(vakalar):
+    """M8: hata satiri yalniz istisna tipini basar (eski davranis). V8 KIRMIZI olmali."""
+    with open(MAK_PY) as f:
+        kaynak = f.read()
+    return _mutant_uygula("M8", kaynak, "hata=%s\" % (deneme, _hata_metni(e)))",
+                          "hata=%s\" % (deneme, type(e).__name__))  # MUTANT", MAK_PY, vakalar, {"V8"})
+
+
 # ---------- Ana akis ----------
 
 def main():
@@ -352,6 +496,9 @@ def main():
         ("V3", vaka3_kilit_sirali),
         ("V4", vaka4_damga_uyusmaz),
         ("V5", vaka5_damga_uyusur),
+        ("V6", vaka6_statik_temiz),
+        ("V7", vaka7_gercek_kirli),
+        ("V8", vaka8_kok_neden),
     ]
     kirmizi = set()
     for ad, fn in vakalar:
@@ -363,7 +510,9 @@ def main():
             kirmizi.add(ad)
     # Mutantlar
     mutantlar = [mutant1_damga_silindi, mutant2_kirli_silindi,
-                 mutant3_flock_silindi, mutant4_karsilastirma_silindi]
+                 mutant3_flock_silindi, mutant4_karsilastirma_silindi,
+                 mutant5_uyusma_silindi, mutant6_eski_sira,
+                 mutant7_hepsi_dislanir, mutant8_kok_neden_duser]
     mutant_sonuc = []
     for mn in mutantlar:
         etiket, durum, sebep, beklenen, gercek_set = mn(vakalar)

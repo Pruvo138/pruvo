@@ -19,6 +19,9 @@ SHA DAMGASI DOGRULAMASI (BaBa 17:0x, 9 Eki 2026):
   karsilastirilir, verilmemisse yalniz basila.
 - Test kancasi: `ONIZLEME_KOS_HTTP_READER` env'i ile gercek aga gidilmeden sahte okuyucu kullanilabilir
   (url -> str; testin hermetik kalmasini saglar).
+- Okuyucu acik User-Agent gonderir: CF, urllib'in varsayilan `Python-urllib/x` imzasini 403 + `error code: 1010`
+  ile reddediyordu (9 Eki olcum; tarayici 200). Okuma hatasi satiri kok nedeni basar
+  (`hata=HTTPError=<kod> <govde>` / `hata=URLError=<reason>`), yalniz istisna tipini DEGIL.
 """
 import argparse
 import json
@@ -37,6 +40,11 @@ AD = "ONIZLEME_MAKINE_ANAHTARI"
 DAMGA_URL = "https://foto-onizleme-pruvo-shop.gmlmz.workers.dev/onizleme-surum.json"
 DAMGA_DENEME = 3
 DAMGA_BEKLEME = 30  # sn
+UA = "pruvo-onizleme-damga/1 (+https://pruvo3d.com)"  # varsayilan Python-urllib imzasi CF 1010 ile reddedilir
+
+
+class OkumaHatasi(RuntimeError):
+    """_http_oku hatasi; metni kok nedeni tasir."""
 
 
 def wrangler():
@@ -49,12 +57,31 @@ def _http_oku(url):
     kanca = os.environ.get("ONIZLEME_KOS_HTTP_READER", "")
     if kanca:
         return shlex.split(kanca)[0]  # sahte okuyucu: komut olarak cagrilamaz, asagidaki fallback
+    import urllib.request
+    istek = urllib.request.Request(url, headers={"User-Agent": UA})
     try:
-        import urllib.request
-        with urllib.request.urlopen(url, timeout=20) as r:
+        with urllib.request.urlopen(istek, timeout=20) as r:
             return r.read().decode("utf-8")
     except Exception as e:
-        raise RuntimeError("http-okuma-hatasi: " + type(e).__name__) from e
+        raise OkumaHatasi("http-okuma-hatasi " + _hata_metni(e)) from e
+
+
+def _hata_metni(e):
+    """Istisnadan kok neden: HTTPError kodu+govde / URLError reason / tip=metin (tek satir, <=200)."""
+    import urllib.error
+    if isinstance(e, urllib.error.HTTPError):
+        try:
+            govde = e.read(120).decode("utf-8", "replace")
+        except Exception:
+            govde = ""
+        m = "HTTPError=%d %s" % (e.code, govde)
+    elif isinstance(e, urllib.error.URLError):
+        m = "URLError=%r" % (e.reason,)
+    elif isinstance(e, OkumaHatasi):
+        m = str(e)
+    else:
+        m = "%s=%s" % (type(e).__name__, e)
+    return " ".join(m.split())[:200]
 
 
 def head_sha_al():
@@ -84,7 +111,7 @@ def damga_dogrula(beklenen_sha):
                 return (okunan, 0)
             print("MAKINE_KOS damga-deneme=%d beklenen=%s okunan=%s" % (deneme, beklenen8, okunan[:8]))
         except Exception as e:
-            print("MAKINE_KOS damga-deneme=%d hata=%s" % (deneme, type(e).__name__))
+            print("MAKINE_KOS damga-deneme=%d hata=%s" % (deneme, _hata_metni(e)))
         if deneme < DAMGA_DENEME:
             time.sleep(DAMGA_BEKLEME)
     print("MAKINE_KOS HATA damga-uyusmaz beklenen=%s okunan=%s" % (beklenen8, okunan[:8]))
