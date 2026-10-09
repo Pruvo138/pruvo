@@ -60,7 +60,7 @@
         { kol: "", metin: "Başkasına ait fotoğraf, marka, logo ya da telifli görsel yükleme; yüklenen görselden " +
             "doğan sorumluluk yükleyene aittir." },
         { kol: "M", metin: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün bu önizlemenin en çok 4 renkli " +
-            "kabartma yorumu olarak üretilir; birebir aynısı değildir, küçük yazı ve ince " +
+            "kabartma yorumu olarak üretilir; tam kopyası değildir, küçük yazı ve ince " +
             "ayrıntılar sadeleşir." },
         { kol: "", metin: "Yüklediğim fotoğrafın bana ait olduğunu ya da kullanma hakkım olduğunu beyan ederim." },
         { kol: "M", metin: "Fotoğrafımın önizleme ve üretim dosyasının hazırlanması için yurt dışındaki hizmet sağlayıcıya aktarılmasına açık rıza veriyorum." },
@@ -138,8 +138,8 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, ek_renk_tl: 100, renk_tavani: 4 },
         // Okan kararı 7 Eki 2026: plaket gerçek baskı beklemeden önizleme + render ile açılır.
         ornek_kanit_izni: ["baski", "render"],
-        durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün en çok 4 renkle kabartma olarak üretilir — önizlemenin 4 renkli yorumu; birebir aynısı değildir, küçük yazı ve ince ayrıntılar sadeleşir.",
-        ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, birebir aynısı değildir."
+        durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün en çok 4 renkle kabartma olarak üretilir — önizlemenin 4 renkli yorumu; tam kopyası değildir, küçük yazı ve ince ayrıntılar sadeleşir.",
+        ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, tam kopyası değildir."
       },
       // FIGÜR — sağlayıcı kolunda İKİNCİ tür (24 kategori programı, kategori listesi #8; plaketle aynı
       // motor/zincir; 1–3 fotoğraf). Örnek görseli henüz yoksa AÇILMAZ (fail-closed: VERI.ornekSayisi 0
@@ -163,8 +163,8 @@
         // Plaketle AYNI izin (render gerçek baskı olmadan açılır; Okan 7 Eki kararı).
         ornek_kanit_izni: ["baski", "render"],
         // Dürüstlük: figür metni — stilize yorum, en çok 4 renk, birebir değil, insan yüzünde benzerlik zayıf.
-        durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün bu önizlemenin en çok 4 renkli, sadeleştirilmiş figür yorumu olarak üretilir; birebir aynısı değildir, küçük ayrıntılar sadeleşir, insan yüzünde benzerlik zayıf olabilir.",
-        ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun sadeleştirilmiş hâlidir, birebir aynısı değildir."
+        durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün bu önizlemenin en çok 4 renkli, sadeleştirilmiş figür yorumu olarak üretilir; tam kopyası değildir, küçük ayrıntılar sadeleşir.",
+        ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun sadeleştirilmiş hâlidir, tam kopyası değildir."
       },
       
       // G2 (7 Eki 2026, mimar kararı) — 6 D türü; üreteçler pruvo-jenerator (G1-SEMA/G2-SEMA).
@@ -243,7 +243,7 @@
           renk_tavani: 4
         },
         ornek_kanit_izni: ["baski", "render"],
-        durustluk: "Yapboz tek renkli kabartmadır; renkli baskı değildir. Parçalar elle takılır; çocuk oyuncağı olarak belgelendirilmemiştir.",
+        durustluk: "Her yapboz parçası tek renktir; 1–4 parça rengi seçebilirsiniz.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir.",
         olcu_ekseni: "sabit",
         renk_secimi: "palet",

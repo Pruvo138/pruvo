@@ -3120,6 +3120,52 @@ const acikGercek = (V, kodlar) => ({ acik: true, turler: kodlar.map((k) => acikG
   ol("M-IPTAL İptal ② çocuklarını silerse ⇒ İptal→yeni tür ② BOŞ (yükleme/not/uyum yok)",
      !!mIP && !mIP.yukle && !mIP.not && !mIP.uyum, mIPTALUyg ? JSON.stringify(mIP) : "MUTANT_UYGULANMADI");
 
+  // M-IPTAL-FULL (9 Eki onizleme-duzeltme MUTANT-2)
+  const iptalFullDene2 = async (kaynak) => {
+    const e2 = await ekranKos(kaynak, veriYukle(VERI_KAYNAK), acikGercek(veriYukle(VERI_KAYNAK), ["plaket", "bust"]),
+      { is: "f".repeat(32), tur: "plaket", olcu: 100, onay: veriYukle(VERI_KAYNAK).onay_surum },
+      { asama: "hazir", tur: "plaket", olcu_mm: 100, fiyat_kurus: 100000, gecerlilik_bitis: "2099-01-01T00:00:00.000Z" },
+      { turnstileOto: true, zamanlayici: true });
+    const btn2 = [...e2.bolum.agac()].find((n) => n.id === "foto-iptal-btn");
+    if (btn2) btn2.tetikle("click");
+    const kartlar2 = [...e2.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-kart"));
+    const secili2 = kartlar2.filter((k) => k.getAttribute("aria-pressed") === "true");
+    const p1 = [...e2.bolum.agac()].find((n) => n.id === "foto-pencere-1");
+    return { iptal: !!btn2, adim1: p1 ? p1.hidden === false : false, seciliKart: secili2.length };
+  };
+  const ipKontrol = await iptalFullDene2(EKRAN_KAYNAK);
+  ol("M-IPTAL-FULL kontrol İptal → ① + sepet 0 + tür boş (3/3)",
+     ipKontrol.iptal && ipKontrol.adim1 && ipKontrol.seciliKart === 0,
+     JSON.stringify(ipKontrol));
+  const mIFCapa = "S.tur = null;";
+  const mIFCount = EKRAN_KAYNAK.split(mIFCapa).length - 1;
+  const mIFMutant = mIFCount === 1 ? await iptalFullDene2(EKRAN_KAYNAK.split(mIFCapa).join("// S.tur = null; // MUTANT")) : null;
+  ol("M-IPTAL-FULL mutant İptal sıfırlaması silinince ⇒ tür boş KIRMIZI",
+     mIFCount === 1 && !!mIFMutant && mIFMutant.seciliKart !== 0,
+     mIFCount === 1 ? JSON.stringify(mIFMutant) : "MUTANT_UYGULANMADI capa_sayisi=" + mIFCount);
+
+  // M-TARIF (9 Eki onizleme-duzeltme MUTANT-1)
+  const tarifDene2 = async (kaynak) => {
+    const V = veriYukle(VERI_KAYNAK);
+    const e3 = await ekranKos(kaynak, V, acikGercek(V, ["plaket"]),
+      undefined, undefined, { turnstileOto: true, zamanlayici: true, kart: "plaket" });
+    const dd3 = [...e3.bolum.agac()];
+    const dosyaInp3 = dd3.find((n) => n.id === "foto-dosya");
+    if (dosyaInp3) { dosyaInp3.files = [{ name: "x.jpg", type: "image/jpeg", size: 1024 }]; dosyaInp3.tetikle("change"); }
+    const onay3 = dd3.find((n) => n.id === "foto-aydinlatma-onay");
+    if (onay3) { onay3.checked = true; onay3.tetikle("change"); }
+    const btn3 = dd3.find((n) => n.id === "foto-onizle-buton");
+    return btn3 ? btn3.disabled : null;
+  };
+  const tarifKontrol = await tarifDene2(EKRAN_KAYNAK);
+  ol("M-TARIF kontrol not boş + onaylı ⇒ onizle disabled=true", tarifKontrol === true, "disabled=" + tarifKontrol);
+  const mTCapa = "var notZorunlu = !!((S.uretimNotu || \"\").trim());";
+  const mTCount = EKRAN_KAYNAK.split(mTCapa).length - 1;
+  const mTNot = mTCount === 1 ? await tarifDene2(EKRAN_KAYNAK.split(mTCapa).join("// notZorunlu silindi")) : null;
+  ol("M-TARIF mutant notZorunlu silinince ⇒ not boşken onizle AÇIK (KIRMIZI)",
+     mTCount === 1 && mTNot === false,
+     mTCount === 1 ? "disabled=" + mTNot : "MUTANT_UYGULANMADI capa_sayisi=" + mTCount);
+
   // K2b-fin2: düz "aynı" → uygun; "aynısı/aynisini/aynisindan" → uygun_degil.
   const ayniDuzGecer = ["annemle aynı gün doğduk", "ayni gun batimi resmine benzer", "aynı boyutta bir tasarım istiyorum"];
   let ayniDuzGecti = 0;
