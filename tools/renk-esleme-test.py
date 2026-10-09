@@ -30,6 +30,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import types
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KOSUCU = os.path.join(KOK, "tools", "foto-uretec-kosucu.py")
@@ -143,8 +144,10 @@ def kapi(kosucu_yol, manifest):
             elif rh[renk[b]].upper() not in hx:
                 kirmizi.append("A1 RENK-GITMEZ %s.%s (%s ciktida yok)" % (kod, b, renk[b]))
                 ok = False
-        if palet and "iki_renk" in form:
-            # A3 PALET (bust): 2 renk -> iki_renk true; 1 renk -> yalniz ilk bolge, iki_renk false.
+        if palet and kod == "bust":
+            # A3 PALET (bust): 2 renk -> iki_renk true; 1 renk -> yalniz ilk bolge, iki_renk false. (Okan 9 Eki: formda
+            # "iki_renk" alani YOK — kosul tur koduna bagli; eskiden form alanina bagliydi, alan kalkinca dal SESSIZCE
+            # yapboz koluna duserdi.)
             if u.get("iki_renk") is not True:
                 kirmizi.append("A3 PALET %s iki renk odendi, iki_renk=%r" % (kod, u.get("iki_renk")))
                 ok = False
@@ -260,8 +263,60 @@ def mutant(ad):
         shutil.rmtree(d, ignore_errors=True)
 
 
+def bust_zinciri(kos):
+    """V5 + V7 (Okan 9 Eki 20:2x): SIPARIS ZINCIRI — kalem (yeni form: iki_renk/uzun_kenar_mm YOK) -> siparis_girdisi ->
+    uretim esle fonksiyonu. V5 Renkli (2 foto rengi) -> iki_renk true + taban/rolyef 2 hex; ana renk -> false + 1 renk;
+    uzun_kenar_mm = olcu_mm (Olcu surgusu). V7 ters acik/kapali -> esle ciktisinda `ters` farkli. -> kirmizi listesi."""
+    turler = {t.get("kod"): t for t in ESLE.node(MANIFEST) if isinstance(t, dict)}
+    t, rh, kirmizi = turler.get("bust"), kos.renk_tablosu(), []
+    if not t:
+        return ["V5 bust kaydi yok"]
+    adlar = []
+    for ad, hx in rh.items():
+        if hx.upper() not in [rh[a].upper() for a in adlar]:
+            adlar.append(ad)
+    d = tempfile.mkdtemp(prefix="renk-esleme-bust-")
+    try:
+        def zincir(renkler, ters):
+            kalem = {"foto_is": "b" * 32, "foto_renkler": renkler, "foto_secim": {"govde_malzeme": "PLA"},
+                     "parametreler": {"rolyef_yuksekligi_mm": 4, "ters": ters}}
+            gi = kos.siparis_girdisi({"urunler": json.dumps([kalem]), "kalem": 0, "is_no": "b" * 32, "tur": "bust",
+                                      "siparis_no": "V5", "olcu_mm": 120}, t)
+            g = dict(gi, dosyalar=ESLE._dosyalar(d))
+            u, don = kos.esle_fonksiyonu(t, kos.cli_tablosu().get(t.get("uretec")))(g, d, rh)
+            return gi, u, don
+        gi, u, don = zincir(adlar[:2], False)
+        if not (u.get("iki_renk") is True and don == ["taban", "rolyef"] and
+                str(u.get("renk_taban")).upper() == rh[adlar[0]].upper() and
+                str(u.get("renk_rolyef")).upper() == rh[adlar[1]].upper() and "iki_renk" not in gi["parametreler"] and
+                "renk_liste" not in u and "renkler" not in u):
+            kirmizi.append("V5 RENKLI iki_renk=%r donus=%s taban=%s rolyef=%s" % (
+                u.get("iki_renk"), don, u.get("renk_taban"), u.get("renk_rolyef")))
+        if u.get("uzun_kenar_mm") != 120.0:
+            kirmizi.append("V5 OLCU uzun_kenar_mm=%r (olcu_mm 120 beklenir)" % u.get("uzun_kenar_mm"))
+        _, u1, d1 = zincir(adlar[:1], False)
+        if not (u1.get("iki_renk") is False and d1 == ["taban"] and str(u1.get("renk_taban")).upper() == rh[adlar[0]].upper() and
+                "renk_liste" not in u1 and "renkler" not in u1):
+            kirmizi.append("V5 ANA RENK iki_renk=%r donus=%s" % (u1.get("iki_renk"), d1))
+        _, ua, _ = zincir(adlar[:1], True)
+        if not (ua.get("ters") is True and u1.get("ters") is False):
+            kirmizi.append("V7 TERS acik=%r kapali=%r" % (ua.get("ters"), u1.get("ters")))
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+    return kirmizi
+
+
+def bellek_modulu(metin):
+    """Mutant BELLEK kopyasi (diske yazma YOK): kosucu kaynagi degistirilip yeni modul nesnesine derlenir."""
+    m = types.ModuleType("kosucu_bellek_mutant")
+    m.__file__ = KOSUCU
+    exec(compile(metin, KOSUCU, "exec"), m.__dict__)
+    return m
+
+
 def main():
     kirmizi, tablo = kapi(KOSUCU, MANIFEST)
+    kirmizi += bust_zinciri(modul("kosucu_bust_zinciri", KOSUCU))
     for kod in sorted(tablo):
         print("ESLEME %-10s %s" % (kod, "BAGLI" if tablo[kod] else "KOPUK"))
     for k in kirmizi:
@@ -275,6 +330,16 @@ def main():
         ok, ek = mutant(ad)
         print("%s %s — %s" % ("✅" if ok else "❌", ad, ek))
         survivor += 0 if ok else 1
+    # M3 (bellek): Renkli bustte iki_renk false gider -> V5 KIRMIZI.
+    ks = open(KOSUCU, encoding="utf-8").read()
+    capa = '    u["iki_renk"] = "rolyef" in secilen\n'
+    if ks.count(capa) != 1:
+        ok, ek = False, "capa %d kez" % ks.count(capa)
+    else:
+        mk = bust_zinciri(bellek_modulu(ks.replace(capa, '    u["iki_renk"] = False\n')))
+        ok, ek = any(k.startswith("V5 RENKLI") for k in mk), "; ".join(mk)[:200] or "KIRMIZI YOK"
+    print("%s %s — %s" % ("✅" if ok else "❌", "M3 Renkli bustte iki_renk false gider (bellek) -> V5", ek))
+    survivor += 0 if ok else 1
     print("VAKA_KIRMIZI=%d SURVIVOR=%d" % (vaka, survivor))
     return 0 if vaka == 0 and survivor == 0 else 1
 

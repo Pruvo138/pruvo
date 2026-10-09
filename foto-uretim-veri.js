@@ -90,6 +90,8 @@
     //   uretec         : üreteç komut kimliği (D/R'de DOLU, M'de "")
     //   form           : parametre şeması { anahtar: {tip:"sayi",min,max,adim,birim} |
     //                    {tip:"secim",secenekler:[..]} | {tip:"bool",etiket,varsayilan} }; {} = parametre yok
+    //                    (③ çizimi: sayi -> sürgü + canlı değer, bool -> aç/kapa düğmesi; isteğe bağlı `aciklama`
+    //                    alanın altında yazar)
     //                    TeKiN köprü türlerinin (kopru_kayitlari.json) satırları ELLE YAZILMAZ: TÜRETİLEN
     //                    alanlar (girdi, uretec, olcu_mm, renk_bolgeleri, malzemeler, form, fiyat.adim_mm)
     //                    tools/kopru-manifest-uret.py --yaz ile üretilir, --denetle sapmayı KIRMIZI yakar;
@@ -358,36 +360,25 @@
         renk_bolgeleri: [],
         renk_secimi: "palet",
         malzemeler: { govde: ["PLA", "PETG"] },
+        // Okan 9 Eki 20:2x: "Boyut" alanı YOK (üretece Ölçü sürgüsünün olcu_mm'si gider, esle_rolyef) · "İki renk" YOK
+        // (Renkli seçilince taban + kabartma iki renk OTOMATİK, esle_bust ödenen renklerden zorlar; tavan 2) ·
+        // kabartma sürgü adımı 0,5 mm (1–8 aralığında 15 kademe; 0,01 sürgüde ayırt edilemez), varsayılan 3 mm (Okan ekranı).
         form: {
-          uzun_kenar_mm: {
-            tip: "sayi",
-            etiket: "Boyut",
-            min: 60,
-            max: 250,
-            adim: 0.01,
-            varsayilan: 120,
-            birim: "mm",
-            ornek: 120
-          },
           rolyef_yuksekligi_mm: {
             tip: "sayi",
             etiket: "Kabartma yüksekliği",
+            aciklama: "Yüzün yüzeyden ne kadar dışarı çıkacağı; yüksek değer daha belirgin, daha kırılgan.",
             min: 1,
             max: 8,
-            adim: 0.01,
-            varsayilan: 4,
+            adim: 0.5,
+            varsayilan: 3,
             birim: "mm",
-            ornek: 4
+            ornek: 3
           },
           ters: {
             tip: "bool",
             etiket: "Ters (negatif)",
-            varsayilan: false,
-            ornek: false
-          },
-          iki_renk: {
-            tip: "bool",
-            etiket: "İki renk",
+            aciklama: "Açıkken görüntü yüzeye kabartma yerine içe oyulur (kalıp/damga görünümü).",
             varsayilan: false,
             ornek: false
           }

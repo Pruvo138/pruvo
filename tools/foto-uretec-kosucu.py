@@ -686,7 +686,7 @@ def esle_rolyef(g, dizin, rh):
         raise KopruRed("gorsel")
     u = {"gorsel": os.path.join(os.path.abspath(dizin), ad),
          "uzun_kenar_mm": float(g["olcu_mm"]),
-         "rolyef_yuksekligi_mm": float(p.get("rolyef_yuksekligi_mm", 4.0)),
+         "rolyef_yuksekligi_mm": float(p.get("rolyef_yuksekligi_mm", 3.0)),
          "gamma": float(p.get("gamma", 1.0)),
          "otomatik_seviye": bool(p.get("otomatik_seviye", True)),
          "ters": bool(p.get("ters", False)),

@@ -859,9 +859,18 @@
     S.formHata.textContent = d.ok ? "" : (PARAMETRE_HATA[d.hata] || "Bu alanları kontrol et.");
     S.formHata.hidden = d.ok;
   }
-  // K3a: form tipleri yalnız secim/sayi/bool (yapboz: parca secim; bust: uzun_kenar_mm/rol_yuksekligi_mm sayi,
-        //   ters/iki_renk bool). metin/url/ses/konum/tarih/svg kaldırıldı.
-        function doldurS1Form() {
+  // ③ FORM KURALI (Okan 9 Eki 20:2x, TÜM türler): sayi -> SÜRGÜ (range) + canlı değer ("3 mm"); bool -> aç/kapa
+  // DÜĞMESİ (role="switch" + aria-checked); secim -> seçenek listesi; metin kutusu YALNIZ yazı girdisi (metin).
+  // Aralık/adım/varsayılan/açıklama form kaydından (TEK kaynak); S.parametre değer tipleri sayı/bool olarak kalır.
+  function sayiVarsayilan(sema) {
+    var v = sema.varsayilan;
+    return typeof v === "number" && isFinite(v) && v >= sema.min && v <= sema.max ? v : sema.min;
+  }
+  function sayiYazi(v, sema) {
+    if (typeof v !== "number" || !isFinite(v)) return "";
+    return String(v).replace(".", ",") + (sema.birim ? " " + sema.birim : "");
+  }
+  function doldurS1Form() {
     if (!S.alanForm) return;
     while (S.alanForm.firstChild) S.alanForm.removeChild(S.alanForm.firstChild);
     if (S.alanYazi) while (S.alanYazi.firstChild) S.alanYazi.removeChild(S.alanYazi.firstChild);
@@ -882,7 +891,7 @@
           (sema.etiket || a) + (sema.tip === "sayi" && sema.birim ? " (" + sema.birim + ")" : ""));
         lbl.setAttribute("for", id);
         hedefKap.appendChild(lbl);
-        var g;
+        var g, deger = null;
         if (sema.tip === "secim") {
           g = el("select", "foto-uretim-form-secenek-girdi");
           var ss = sema.secenekler || [];
@@ -898,24 +907,37 @@
           if (S.parametre[a] === undefined && ss.length) S.parametre[a] = ss[0];
           if (S.parametre[a] !== undefined) g.value = String(S.parametre[a]);
         } else if (sema.tip === "bool") {
-          // Onay kutusu: değer YALNIZ true/false (F.parametreDogrula); varsayılan manifestten.
-          g = el("input", "foto-uretim-form-onay-kutusu");
-          g.type = "checkbox"; g.id = id; g.name = id;
+          // Aç/kapa düğmesi (checkbox DEĞİL): değer YALNIZ true/false (F.parametreDogrula); varsayılan manifestten.
+          g = el("button", "foto-uretim-form-dugme");
+          g.type = "button"; g.id = id; g.name = id;
+          g.setAttribute("role", "switch");
+          g.style.minWidth = "88px"; g.style.padding = "8px 16px"; g.style.borderRadius = "999px"; g.style.cursor = "pointer";
           if (S.parametre[a] !== true && S.parametre[a] !== false) S.parametre[a] = sema.varsayilan === true;
-          g.checked = S.parametre[a] === true;
-          g.addEventListener("change", function (e) {
-            S.parametre[a] = e.target.checked === true;
+          var dugmeCiz = function () {
+            var acik = S.parametre[a] === true;
+            g.setAttribute("aria-checked", acik ? "true" : "false");
+            g.textContent = acik ? "Açık" : "Kapalı";
+            g.style.border = acik ? "2px solid #12294d" : "1px solid #c5cbd3";
+            g.style.background = acik ? "#12294d" : "#fff";
+            g.style.color = acik ? "#fff" : "#12294d";
+          };
+          dugmeCiz();
+          g.addEventListener("click", function () {
+            S.parametre[a] = S.parametre[a] !== true;
+            dugmeCiz();
             formHataGoster();
             guncelleS1Buton();
           });
           hedefKap.appendChild(g);
           return;
         } else if (sema.tip === "sayi") {
-          g = el("input", "foto-uretim-form-secenek-girdi");
-          g.type = "number"; g.min = String(sema.min); g.max = String(sema.max);
+          g = el("input", "foto-uretim-surgu");
+          g.type = "range"; g.min = String(sema.min); g.max = String(sema.max);
           g.step = String(sema.adim > 0 ? sema.adim : 1);
-          if (S.parametre[a] === undefined) S.parametre[a] = sema.min;
+          if (S.parametre[a] === undefined) S.parametre[a] = sayiVarsayilan(sema);
           if (S.parametre[a] !== undefined) g.value = String(S.parametre[a]);
+          deger = el("p", "foto-uretim-surgu-deger", sayiYazi(S.parametre[a], sema));
+          deger.setAttribute("aria-live", "polite");
         } else if (sema.tip === "metin") {
           // K3c metin dalı: liste=true -> textarea (dizi), değilse -> text input (dize). Doğrulama
           // VERI.parametreDogrula'da (metin/l ~661-670); burada kırpma/kesme YAPMA, yalnız
@@ -968,8 +990,10 @@
         g.id = id; g.name = id;
         var degis = function (e) {
           var v = e.target.value;
-          if (sema.tip === "sayi") S.parametre[a] = v === "" ? undefined : Number(v);
-          else if (sema.tip === "secim") {
+          if (sema.tip === "sayi") {
+            S.parametre[a] = v === "" ? undefined : Number(v);
+            if (deger) deger.textContent = sayiYazi(S.parametre[a], sema);
+          } else if (sema.tip === "secim") {
             var ss2 = sema.secenekler || [], bul;
             for (var k = 0; k < ss2.length; k++) { if (String(ss2[k]) === v) { bul = ss2[k]; break; } }
             S.parametre[a] = bul;
@@ -980,7 +1004,11 @@
         g.addEventListener("input", degis);
         g.addEventListener("change", degis);
         hedefKap.appendChild(g);
+        if (deger) hedefKap.appendChild(deger);
       })(alanlar[i], form[alanlar[i]] || {});
+      // Alan açıklaması (form kaydının `aciklama`sı) girdinin ALTINDA; açıklaması olmayan alana metin UYDURULMAZ.
+      var acik_ = (form[alanlar[i]] || {}).aciklama;
+      if (typeof acik_ === "string" && acik_) hedefKap.appendChild(el("p", "foto-uretim-ayrinti", acik_));
       // Alanın tüm düğümleri (etiket + girdi) `data-param` taşır: kosulGuncelle onları birlikte gizler.
       for (var dn = ilkDugum; dn < hedefKap.childNodes.length; dn++) {
         if (hedefKap.childNodes[dn].nodeType === 1) hedefKap.childNodes[dn].setAttribute("data-param", alanlar[i]);
