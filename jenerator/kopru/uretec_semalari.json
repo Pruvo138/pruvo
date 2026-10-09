@@ -126,6 +126,29 @@
    }
   }
  },
+ "jeneratorler/foto/plaket_kulak.py": {
+  "PLAKET_KULAK_SEMA": {
+   "konum": {
+    "secenekler": [
+     "sol-ust",
+     "sag-ust",
+     "ust-orta"
+    ],
+    "tip": "enum",
+    "varsayilan": "sol-ust"
+   },
+   "kulak_dahil_uzun_kenar_mm": {
+    "max": 60.0,
+    "min": 0.0,
+    "tip": "float"
+   },
+   "plaket_uzun_kenar_mm": {
+    "max": 50.0,
+    "min": 0.0,
+    "tip": "float"
+   }
+  }
+ },
  "jeneratorler/foto/yapboz_uret.py": {
   "SEMA": {
    "gorsel": {

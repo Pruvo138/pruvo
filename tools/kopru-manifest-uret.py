@@ -7,7 +7,13 @@ surekli `sayi` alanlarinin `adim`i tasinmamisti -> G4a ② `uretec-red:genel` x4
 araçtan turetilir; `--denetle` manifest kayittan saparsa adiyla KIRMIZI yakar (CI'da test uzerinden).
 
 SOZLUK (eşleme YALNIZ burada; manifest yorumu bu dosyayi isaret eder):
-  girdi   : olcu -> "form" · foto -> "foto-1" · ses/metin/konum/tarih aynen · baska -> KIRMIZI
+  girdi   : olcu -> "form" · foto -> "foto-1" · plaket-3mf -> "foto-1" (saglayici plaketi FOTODAN cikar) ·
+            ses/metin/konum/tarih aynen · baska -> KIRMIZI
+  FOTO KOLU (anahtarlik-foto 9 Eki): KOL_KAYDI'ndaki kayit AYRI tur satiri URETMEZ; ana turun ikinci girdi koludur:
+            ana satira `foto_kolu: {girdi: [<eslenmis>], uretec: <kol uretec'i>}` yazilir. Form/renk/olcu ANA kayittan
+            (kulak konumu ortak `anahtarlik_kulak_konum`). Ana `girdi` DEGISMEZ: foto girdisi ancak sunucu zinciri
+            (saglayici plaket -> kosucu plaket_kulak) baglaninca ana girdiye katilir (yoksa ② foto alir, isimlik
+            fotoyu yok sayar = sessiz hata). Ana kayit yoksa KIRMIZI `kol-ana-yok`.
   tip     : sayi -> sayi + adim (kayittaki `adim`, yoksa 0.01; enlem/boylam 0.000001)
             tam (ya da sayi + `tam:true`) -> sayi + adim 1
             renk -> form DEGIL, renk_bolgeleri (`renk_<b>` -> {kod:<b>, ad:<etiket - " rengi">, renkler})
@@ -75,7 +81,7 @@ TEKIN_KOK = os.environ.get("KOPRU_TEKIN_KOK") or os.path.expanduser("~/dev/pruvo
 TEKIN_KAYIT_GORELI = "jeneratorler/kopru/kopru_kayitlari.json"
 VARSAYILAN_KAYIT = SABIT_KAYIT
 
-GIRDI_ESLE = {"olcu": "form", "foto": "foto-1", "ses": "ses", "metin": "metin", "konum": "konum", "tarih": "tarih"}
+GIRDI_ESLE = {"olcu": "form", "foto": "foto-1", "plaket-3mf": "foto-1", "ses": "ses", "metin": "metin", "konum": "konum", "tarih": "tarih"}
 BILINEN_TIP = ("sayi", "tam", "secim", "metin", "bool", "renk", "dosya", "renk_liste")
 RENK_LISTE_OGE = "#RRGGBB"
 RENK_LISTE_TAVAN = 4  # AMS 4 yuva (VERI.renkTavani 1..4)
@@ -87,9 +93,11 @@ RENK_ACIK_ONCE = ["Beyaz", "Gri", "Ahşap", "Sarı", "Siyah", "Lacivert", "Kırm
 RENK_KOYU_ONCE = ["Siyah", "Lacivert", "Kırmızı", "Yeşil", "Mavi", "Gri", "Beyaz", "Sarı", "Ahşap"]
 TEKLIF_KOD = {"rolyef": "bust"}  # tur_tanimi_teklifi -> manifest tur kodu
 TURETILEN = ("girdi", "uretec", "olcu_mm", "renk_bolgeleri", "malzemeler", "form", "olcu_ekseni", "renk_secimi",
-             "palet_bolgeleri")
+             "palet_bolgeleri", "foto_kolu")
+# Ikinci girdi kolu kayitlari: kayit kodu -> ana tur kodu (yukaridaki FOTO KOLU).
+KOL_KAYDI = {"anahtarlik-foto": "anahtarlik"}
 # Yalniz renk_liste kaydinda DOLU; None -> manifestte alan YAZILMAZ (varsa silinir), --denetle alan yok bekler.
-OPSIYONEL = ("renk_secimi", "palet_bolgeleri")
+OPSIYONEL = ("renk_secimi", "palet_bolgeleri", "foto_kolu")
 
 NODE_OKU = (
     "const vm=require('vm'),fs=require('fs');const k={};"
@@ -288,6 +296,7 @@ def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None, sema=None):
              "renk_tavani": palet or max(1, len(bolgeler)),
              "renk_secimi": "palet" if palet else None,
              "palet_bolgeleri": ["renk%d" % (i + 1) for i in range(palet)] if palet else None,
+             "foto_kolu": None,
              # DINAMIK MIN (BaBa 14:3x / TeKiN 6320f2a): olcek.min_mm_dinamik -> manifest olcu_min_dinamik: true
              # (yalniz true iken yazilir); koşucu onizlemede `kopru_uret.py min-hesapla` sorar.
              "olcu_min_dinamik": o.get("min_mm_dinamik") is True,
@@ -418,7 +427,11 @@ def hepsini_uret(kayitlar, jen=None):
     satirlar, hatalar = {}, []
     if not isinstance(kayitlar, dict) or not isinstance(kayitlar.get("kayitlar"), list):
         raise KayitHatasi("kayit bicimi: {'kayitlar': [...]} degil")
+    kollar = []
     for k in kayitlar["kayitlar"]:
+        if k.get("kod") in KOL_KAYDI:
+            kollar.append(k)
+            continue
         sema = uretec_semasi(jen, (k.get("cagri") or {}).get("betik"), k.get("sema_adi"))
         betik = (k.get("cagri") or {}).get("betik")
         # Uretec dosyasi VAR ama `sema_adi` sozlugu yok -> KIRMIZI (dosya yoksa — CI / kopya kayit — eski davranis:
@@ -441,6 +454,14 @@ def hepsini_uret(kayitlar, jen=None):
             s2["renk_tavani"], s2["kopru_bolgeleri"], s2["renk_sonekleri"] = s["renk_tavani"], [], []
             satirlar[tk] = s2
             hatalar += h2
+    for k in kollar:
+        ana = satirlar.get(KOL_KAYDI[k["kod"]])
+        s, h = satir_uret(k)
+        hatalar += h
+        if ana is None:
+            hatalar.append("kol-ana-yok:%s->%s" % (k["kod"], KOL_KAYDI[k["kod"]]))
+            continue
+        ana["foto_kolu"] = {"girdi": s["girdi"], "uretec": k.get("uretec") or ""}
     return satirlar, hatalar
 
 

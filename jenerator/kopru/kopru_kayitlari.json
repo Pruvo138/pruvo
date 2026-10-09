@@ -1,5 +1,5 @@
 {
-  "surum": "kopru-uret-1.1",
+  "surum": "kopru-uret-1.2",
   "kayitlar": [
     {
       "kod": "yapboz",
@@ -310,6 +310,81 @@
         {
           "ad": "renk_yazi",
           "deger": "#FFD400"
+        }
+      ]
+    },
+    {
+      "kod": "anahtarlik-foto",
+      "kategori_adi": "Anahtarlık (foto, kulakçıklı plaket)",
+      "uretec": "plaket_kulak",
+      "cagri": {
+        "betik": "jeneratorler/foto/plaket_kulak.py",
+        "bayraklar": [],
+        "girdi_bayragi": "--girdi",
+        "cikti_bayragi": "--cikti",
+        "parametre_bayraklari": {
+          "konum": "--konum"
+        }
+      },
+      "sema_adi": "PLAKET_KULAK_SEMA",
+      "girdi_tipi": [
+        "plaket-3mf"
+      ],
+      "parametreler": [
+        {
+          "ad": "plaket",
+          "etiket": "Plaket (3MF dosya; uzun kenar 45 mm'ye kadar önerilir, 50 mm üzeri reddedilir)",
+          "tip": "dosya",
+          "zorunlu": true
+        },
+        {
+          "ad": "konum",
+          "etiket": "Kulakçık konumu",
+          "tip": "secim",
+          "secenekler": [
+            "sol-ust",
+            "sag-ust",
+            "ust-orta"
+          ],
+          "varsayilan": "sol-ust"
+        }
+      ],
+      "olcek": {
+        "eksen": "uzun_kenar_mm",
+        "kaynak": "ozet.uzun_kenar_mm",
+        "min_mm": 0,
+        "max_mm": 60,
+        "adim_mm": 5,
+        "belirleyen_parametre": "plaket"
+      },
+      "cikti": {
+        "stl": null,
+        "uc_mf": "uretec.3mf",
+        "onizleme_png": "onizleme.png",
+        "ozet": "ozet.json",
+        "onizleme_max_px": 800
+      },
+      "renk_bolgeleri": [],
+      "izinli_malzeme": [
+        "PLA",
+        "PETG",
+        "ASA",
+        "ABS"
+      ],
+      "ornek": {
+        "girdi": {
+          "plaket": "<PLAKET 3MF YOLU> (45 mm kare, testte runtime'da uretilir)",
+          "konum": "sol-ust"
+        }
+      },
+      "varyantlar": [
+        {
+          "ad": "konum",
+          "deger": "sag-ust"
+        },
+        {
+          "ad": "konum",
+          "deger": "ust-orta"
         }
       ]
     }

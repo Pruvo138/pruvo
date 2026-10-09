@@ -198,6 +198,43 @@ def yer_tutucu_vakasi(o):
     shutil.rmtree(d, ignore_errors=True)
 
 
+def pb_vakasi(o, kaynak):
+    """FOTO KOLU (anahtarlik-foto, 9 Eki): GERCEK sabit kopru kaydiyla render komutu `cagri.parametre_bayraklari`
+    (--konum, varsayilan sol-ust) + dosya girdisini (--girdi <plaket 3MF>) tasir; plan_kur kol kaydini ana turun
+    `foto_kolu`ndan bulur. Donus (gecti, aciklama). `kaynak` = arac kaynagi (mutant MPB bunu bozar)."""
+    d = tempfile.mkdtemp(dir=o.tmp, prefix="pb-")
+    eski = os.environ.get("KOPRU_ORNEK_PLAKET")
+    try:
+        yol = os.path.join(d, "kgk.py")
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write(kaynak)
+        plaket = os.path.join(d, "ornek.3mf")
+        with open(plaket, "wb") as f:
+            f.write(b"PK\x03\x04")
+        os.environ["KOPRU_ORNEK_PLAKET"] = plaket
+        sp = importlib.util.spec_from_file_location("kgk_pb_%d" % id(d), yol)
+        m = importlib.util.module_from_spec(sp)
+        sp.loader.exec_module(m)
+        with open(os.path.join(KOK, "jenerator", "kopru", "kopru_kayitlari.json"), encoding="utf-8") as f:
+            kk = next(k for k in json.load(f)["kayitlar"] if k.get("kod") == "anahtarlik-foto")
+        p = {"kod": "anahtarlik-foto", "g": {"betik": "jeneratorler/foto/plaket_kulak.py"}, "kayit": kk,
+             "jen": "/JEN", "py": "PY"}
+        with open(os.path.join(d, "girdi.json"), "w", encoding="utf-8") as f:
+            json.dump(m.ornek_girdisi(kk, d), f)
+        uretec = dict(m.render_komutlari(p, d)[0]).get("uretec")
+        bek = ["PY", "/JEN/jeneratorler/foto/plaket_kulak.py", "--konum", "sol-ust", "--girdi", plaket,
+               "--cikti", os.path.join(d, "cikti")]
+        return uretec == bek, str(uretec)
+    except Exception as e:  # cokerse KIRMIZI
+        return False, "istisna %s: %s" % (type(e).__name__, e)
+    finally:
+        if eski is None:
+            os.environ.pop("KOPRU_ORNEK_PLAKET", None)
+        else:
+            os.environ["KOPRU_ORNEK_PLAKET"] = eski
+        shutil.rmtree(d, ignore_errors=True)
+
+
 MUTANTLAR = [
     ("MD1 D1 adi canliya", 'D1_ONIZLEME = "pruvo-katalog-onizleme"', 'D1_ONIZLEME = "pruvo-katalog"'),
     ("MD2 d1 komutu canli adla", '"d1", "execute", D1_ONIZLEME', '"d1", "execute", D1_CANLI'),
@@ -214,6 +251,8 @@ def main():
         print("VAKALAR")
         vakalar(o, kaynak)
         yer_tutucu_vakasi(o)
+        g, ac = pb_vakasi(o, kaynak)
+        vaka("V7 anahtarlik-foto render komutu parametre_bayraklari (--konum sol-ust) + --girdi plaket 3MF", g, ac)
         vk = sum(1 for v in sonuc.values() if not v)
         print("MUTANTLAR")
         sv = 0
@@ -229,6 +268,11 @@ def main():
                     shutil.rmtree(os.path.join(o.tmp, d), ignore_errors=True)
             print(("✅ %s KIRMIZI (%s)" % (ad, ", ".join(kirmizi))) if kirmizi else "❌ %s SURVIVOR" % ad)
             sv += 0 if kirmizi else 1
+        # MPB (foto kolu): parametre bayraklari okunmazsa (konum uretece gitmez) V7 KIRMIZI olmali.
+        eski, yeni = "            uretec += [pb[ad], str(u[ad])]\n", "            pass\n"
+        g = kaynak.count(eski) == 1 and not pb_vakasi(o, kaynak.replace(eski, yeni))[0]
+        print(("✅ %s KIRMIZI (V7)" % "MPB parametre_bayraklari okunmaz") if g else "❌ MPB SURVIVOR")
+        sv += 0 if g else 1
     finally:
         o.sil()
     print("VAKA_KIRMIZI=%d SURVIVOR=%d" % (vk, sv))
