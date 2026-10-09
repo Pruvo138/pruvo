@@ -306,6 +306,32 @@ def bust_zinciri(kos):
     return kirmizi
 
 
+def yapboz_zinciri(kos):
+    """V-B3 + V-B5 (BaBa 9 Eki 20:38): yapboz SIPARIS ZINCIRI — kalem (istemci gövdesi: uzun_kenar_mm/tohum ekranda YOK,
+    VERI.formSunumDegeri doldurur; burada bayat 150 + tohum 1) -> siparis_girdisi -> esle_yapboz. Uretece giden
+    uzun_kenar_mm = olcu_mm (Olcu surgusu, 170) · tohum tam sayi 0..2147483647. -> kirmizi listesi."""
+    turler = {t.get("kod"): t for t in ESLE.node(MANIFEST) if isinstance(t, dict)}
+    t, rh, kirmizi = turler.get("yapboz"), kos.renk_tablosu(), []
+    if not t:
+        return ["V-B yapboz kaydi yok"]
+    d = tempfile.mkdtemp(prefix="renk-esleme-yapboz-")
+    try:
+        kalem = {"foto_is": "c" * 32, "foto_renkler": [], "foto_secim": {"govde_malzeme": "PLA"},
+                 "parametreler": {"uzun_kenar_mm": 150, "satir": 3, "sutun": 4, "tohum": 1, "kabartma_yon": "acik_yuksek"}}
+        gi = kos.siparis_girdisi({"urunler": json.dumps([kalem]), "kalem": 0, "is_no": "c" * 32, "tur": "yapboz",
+                                  "siparis_no": "VB", "olcu_mm": 170}, t)
+        g = dict(gi, dosyalar=ESLE._dosyalar(d))
+        u, _ = kos.esle_fonksiyonu(t, kos.cli_tablosu().get(t.get("uretec")))(g, d, rh)
+        if u.get("uzun_kenar_mm") != 170.0:
+            kirmizi.append("V-B5 OLCU uzun_kenar_mm=%r (olcu_mm 170 beklenir)" % u.get("uzun_kenar_mm"))
+        th = u.get("tohum")
+        if not (isinstance(th, int) and not isinstance(th, bool) and 0 <= th <= 2147483647):
+            kirmizi.append("V-B3 TOHUM tohum=%r (tam sayi 0..2147483647 beklenir)" % th)
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+    return kirmizi
+
+
 def bellek_modulu(metin):
     """Mutant BELLEK kopyasi (diske yazma YOK): kosucu kaynagi degistirilip yeni modul nesnesine derlenir."""
     m = types.ModuleType("kosucu_bellek_mutant")
@@ -317,6 +343,7 @@ def bellek_modulu(metin):
 def main():
     kirmizi, tablo = kapi(KOSUCU, MANIFEST)
     kirmizi += bust_zinciri(modul("kosucu_bust_zinciri", KOSUCU))
+    kirmizi += yapboz_zinciri(modul("kosucu_yapboz_zinciri", KOSUCU))
     for kod in sorted(tablo):
         print("ESLEME %-10s %s" % (kod, "BAGLI" if tablo[kod] else "KOPUK"))
     for k in kirmizi:
@@ -339,6 +366,15 @@ def main():
         mk = bust_zinciri(bellek_modulu(ks.replace(capa, '    u["iki_renk"] = False\n')))
         ok, ek = any(k.startswith("V5 RENKLI") for k in mk), "; ".join(mk)[:200] or "KIRMIZI YOK"
     print("%s %s — %s" % ("✅" if ok else "❌", "M3 Renkli bustte iki_renk false gider (bellek) -> V5", ek))
+    survivor += 0 if ok else 1
+    # M-B2 (bellek): yapbozda uzun_kenar_mm Olcu surgusu yerine sabit 150 gider -> V-B5 KIRMIZI.
+    capa = '    u["uzun_kenar_mm"] = float(g["olcu_mm"])\n    secilen, renkler = [], []\n'
+    if ks.count(capa) != 1:
+        ok, ek = False, "capa %d kez" % ks.count(capa)
+    else:
+        mk = yapboz_zinciri(bellek_modulu(ks.replace(capa, '    u["uzun_kenar_mm"] = 150.0\n    secilen, renkler = [], []\n')))
+        ok, ek = any(k.startswith("V-B5 OLCU") for k in mk), "; ".join(mk)[:200] or "KIRMIZI YOK"
+    print("%s %s — %s" % ("✅" if ok else "❌", "M-B2 yapboz uzun_kenar_mm sabit 150 gider (bellek) -> V-B5", ek))
     survivor += 0 if ok else 1
     print("VAKA_KIRMIZI=%d SURVIVOR=%d" % (vaka, survivor))
     return 0 if vaka == 0 and survivor == 0 else 1

@@ -121,6 +121,9 @@
     //   malzemeler     : bölge -> izinli filament listesi; {} = satır "PLA" (plaket)
     //   ornek_kanit_izni: türü AÇAN örnek kanıtları; listede olmayan kanıt o türde SAYILMAZ
     //                    (alan yoksa/boşsa hiçbir örnek sayılmaz — fail-closed)
+    //   form_sunum     : {alan: {deger: "olcu" | "varsayilan"}} — alan ③'te ÇİZİLMEZ, değeri Ölçü sürgüsünden ya da
+    //                    form varsayılanından gövdeye girer (köprü `form`u değişmeden sunum; VERI.formSunumDegeri)
+    //   alan_aciklamalari: {renk, olcu, malzeme} — ③ ortak alanların altındaki tür cümlesi (yoksa genel cümle)
     //   durustluk      : bölümün üst dürüstlük kutusu (tür bazlı, ZORUNLU; seçili türün metni basılır)
     //   ornek_notu     : render örneğinin altındaki dürüstlük cümlesi (tür bazlı; mimar kararı 7 Eki,
     //                    AYNEN). Boşsa bölüm o türün render örneğini ÇİZMEZ; yeni tür doldurmak ZORUNDA.
@@ -246,6 +249,10 @@
           renk_tavani: 4
         },
         ornek_kanit_izni: ["baski", "render"],
+        form_sunum: {
+          uzun_kenar_mm: { deger: "olcu" },
+          tohum: { deger: "varsayilan" }
+        },
         durustluk: "Her yapboz parçası tek renktir; renkler seçtiğin seçeneğe göre belirlenir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir.",
         olcu_ekseni: "sabit",
@@ -391,7 +398,13 @@
         },
         palet_bolgeleri: ["taban", "rolyef"],
         ornek_kanit_izni: ["baski", "render"],
-        durustluk: "Fotoğraf gri-ton yükseklik haritasına çevrilir; kabartma büst/madalyon olarak üretilir, ince ayrıntılar sadeleşir.",
+        // ③ ortak alan açıklamaları + tür notu #4: ArTisT b25b2804 AYNEN (yalnız büstte; başka türün metni değişmez).
+        alan_aciklamalari: {
+          renk: "Siyah, Beyaz ya da Gri seçersen büst tek renk olur; Renkli seçersen renkler fotoğrafından otomatik seçilir (büstte en çok 2 renk).",
+          olcu: "Büstün en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.",
+          malzeme: "PLA ev içi kullanım içindir; PETG dış mekân ve genel amaçlı kullanım için daha yüksek sıcaklığa dayanır (+%30)."
+        },
+        durustluk: "Siyah, Beyaz ya da Gri seçilirse büst tek renktir; Renkli seçilirse taban + kabartma olmak üzere en çok 2 renk fotoğraftan otomatik belirlenir.",
         ornek_notu: "Üretim dosyasının görüntüsüdür; kabartma büst bu parametrelerle üretilir.",
         olcu_ekseni: "sabit"
       }
@@ -619,6 +632,14 @@
           c.degerler.indexOf(p[c.alan]) < 0) { return false; }
     }
     return true;
+  };
+  // FORM SUNUMU: ekranda çizilmeyen alanın değeri (yoksa undefined -> alan normal çizilir). olcu = Ölçü sürgüsü (mm).
+  VERI.formSunumDegeri = function (kod, alan, olcu) {
+    var t = VERI.turBul(kod), fs = t && t.form_sunum && t.form_sunum[alan], sema = t && t.form ? t.form[alan] : null;
+    if (!fs || !sema) { return undefined; }
+    if (fs.deger === "olcu") { return typeof olcu === "number" && isFinite(olcu) ? olcu : undefined; }
+    if (fs.deger === "varsayilan") { return sema.varsayilan; }
+    return undefined;
   };
   VERI.parametreDogrula = function (kod, p) {
     var t = VERI.turBul(kod);

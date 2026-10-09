@@ -652,6 +652,12 @@
     return k;
   }
   // Renk seçici: tek seçim — Siyah · Beyaz · Gri · Renkli (+%15) (Renkli yalnız fotoğraflı akışta, renkler çıktıysa).
+  // ③ ortak alan (renk/olcu/malzeme) altındaki TÜR cümlesi: kaydın `alan_aciklamalari`sı; yoksa "" (metin uydurulmaz).
+  function alanAciklamasi(kod, alan) {
+    var t = F && typeof F.turBul === "function" ? F.turBul(kod) : null;
+    var m = t && t.alan_aciklamalari ? t.alan_aciklamalari[alan] : "";
+    return typeof m === "string" ? m : "";
+  }
   function renkSecici(nt, degisti) {
     var secenek = F.ANA_RENKLER.slice();
     if (renkliSunulur(nt.kod)) secenek.push(RENKLI);
@@ -675,6 +681,8 @@
       })(secenek[i]);
     }
     g.appendChild(fs_);
+    var renkAcik = alanAciklamasi(nt.kod, "renk");
+    if (renkAcik) g.appendChild(el("p", "foto-uretim-ayrinti", renkAcik));
     if (renkliMi()) {
       g.appendChild(el("p", "foto-uretim-ayrinti", "Fotoğrafından seçilen renkler: " + paletRenkleri(nt.kod).join(", ")));
     }
@@ -761,12 +769,19 @@
   }
   // KOŞULLU ALAN (`kosul`): form sırasıyla, yalnız AKTİF alanların değerleri üzerinden (F.alanAktif —
   // sunucuyla aynı); koşulu sağlanmayan alan gövdeye GİRMEZ ve formda gizlenir.
+  // FORM SUNUMU (BaBa 9 Eki 20:38): kaydın `form_sunum`undaki alan ③'te ÇİZİLMEZ; değeri Ölçü sürgüsünden
+  // (uzun_kenar_mm = olcu_mm) ya da form varsayılanından (tohum) VERI.formSunumDegeri ile gövdeye girer.
+  function sunumAlani(a) {
+    var t = litofanKaydi();
+    return !!(t && t.form_sunum && Object.prototype.hasOwnProperty.call(t.form_sunum, a));
+  }
   function aktifParametreler() {
     var form = formSemasi(), g = {}, aktif = {};
     for (var a in form) {
       if (!Object.prototype.hasOwnProperty.call(form, a)) continue;
       aktif[a] = F.alanAktif(form, a, g);
-      if (aktif[a] && S.parametre[a] !== undefined) g[a] = S.parametre[a];
+      var v = sunumAlani(a) ? F.formSunumDegeri(S.tur, a, S.olcu) : S.parametre[a];
+      if (aktif[a] && v !== undefined) g[a] = v;
     }
     return { govde: g, aktif: aktif };
   }
@@ -874,7 +889,7 @@
     if (!S.alanForm) return;
     while (S.alanForm.firstChild) S.alanForm.removeChild(S.alanForm.firstChild);
     if (S.alanYazi) while (S.alanYazi.firstChild) S.alanYazi.removeChild(S.alanYazi.firstChild);
-    var form = formSemasi(), alanlar = Object.keys(form);
+    var form = formSemasi(), alanlar = Object.keys(form).filter(function (a) { return !sunumAlani(a); });
     // ② YAZI (anahtarlık 9 Eki): girdisi "metin" olan türün metin alanları ② ekranında, foto kutusunun
     // altında; kalan alanlar ③'te. ② "İleri" F.girdiYeterli ile bu alanlara bakar.
     var yaziVar = false;
@@ -1519,6 +1534,8 @@
     S.alanMalzeme.hidden = false;
     S.alanMalzeme.appendChild(el("span", "foto-uretim-form-etiket", "Malzeme"));
     S.alanMalzeme.appendChild(malzemeKartlari(t, degisti));
+    var malzemeAcik = alanAciklamasi(t.kod, "malzeme");
+    if (malzemeAcik) S.alanMalzeme.appendChild(el("p", "foto-uretim-ayrinti", malzemeAcik));
     renkKosulGuncelle();
     canliFiyatGuncelle();
   }
@@ -1654,7 +1671,8 @@
     surgu.addEventListener("change", function (e) { sec(e); if (degisti) degisti(); });
     kap.appendChild(surgu);
     kap.appendChild(yazi);
-    kap.appendChild(el("p", "foto-uretim-ayrinti", "Ölçü, ürünün en uzun boyutudur (en, boy ya da yükseklik)."));
+    kap.appendChild(el("p", "foto-uretim-ayrinti",
+      alanAciklamasi(nt.kod, "olcu") || "Ölçü, ürünün en uzun boyutudur (en, boy ya da yükseklik)."));
     return kap;
   }
 

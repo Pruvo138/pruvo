@@ -1930,7 +1930,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
     const d8 = [...e8.bolum.agac()];
     const p3 = d8.find((n) => n.id === "foto-pencere-3");
     const n3 = p3 ? [...p3.agac()] : [];
-    const sayilar = Object.keys(yt.form).filter((a) => yt.form[a].tip === "sayi");
+    // form_sunum alanı (uzun_kenar_mm, tohum) ③'te ÇİZİLMEZ (V-B); kural çizilen sayi alanlarına.
+    const sayilar = Object.keys(yt.form).filter((a) => yt.form[a].tip === "sayi" && !(yt.form_sunum && a in yt.form_sunum));
     const sw = n3.find((n) => n.id === "foto-param-v8_bool");
     return sayilar.length > 0 && sayilar.every((a) => {
       const g = n3.find((n) => n.id === "foto-param-" + a);
@@ -1943,6 +1944,95 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
     await v8(EKRAN_KAYNAK) === true, "");
   ol("V8-M1 sayi yine number cizilir -> V8 KIRMIZI",
     await v8(EKRAN_KAYNAK.replace("g.type = \"range\"; g.min = String(sema.min);", "g.type = \"number\"; g.min = String(sema.min);")) === false, "");
+  // V-A BÜST ③ ArTisT CÜMLELERİ (b25b2804, AYNEN): Renk / Ölçü / Malzeme altında + dürüstlük = tür notu #4; YALNIZ büstte.
+  const A_RENK = "Siyah, Beyaz ya da Gri seçersen büst tek renk olur; Renkli seçersen renkler fotoğrafından otomatik seçilir (büstte en çok 2 renk).";
+  const A_OLCU = "Büstün en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.";
+  const A_MALZEME = "PLA ev içi kullanım içindir; PETG dış mekân ve genel amaçlı kullanım için daha yüksek sıcaklığa dayanır (+%30).";
+  const A_NOT = "Siyah, Beyaz ya da Gri seçilirse büst tek renktir; Renkli seçilirse taban + kabartma olmak üzere en çok 2 renk fotoğraftan otomatik belirlenir.";
+  const A_HEPSI = [A_RENK, A_OLCU, A_MALZEME, A_NOT];
+  // V-B YAPBOZ ③ (BaBa 9 Eki 20:38): Uzun kenar + Tohum ekranda YOK (değer Ölçü sürgüsü / varsayılan) · satır/sütun
+  // sürgü + canlı "N adet" · kabartma yönü 2 Türkçe etiket (value aynen) · gövdede uzun_kenar_mm = Ölçü, tohum tam sayı.
+  const vab = async (kaynak, veriKaynak = VERI_KAYNAK) => {
+    const s = {};
+    const metinSay = (dd, m) => dd.filter((n) => n.tagName === "P" && n.textContent === m).length;
+    const VA = sentetik(veriKaynak);
+    const eb = await ekranKos(kaynak, VA, { acik: true, turler: [acikTur(VA, "bust")] }, null, null, { kart: "bust" });
+    const db = [...eb.bolum.agac()];
+    const p3b = db.find((n) => n.id === "foto-pencere-3"), p2b = db.find((n) => n.id === "foto-pencere-2");
+    const n3b = p3b ? [...p3b.agac()] : [], n2b = p2b ? [...p2b.agac()] : [];
+    s.VA_BUST = [A_RENK, A_OLCU, A_MALZEME].every((m) => metinSay(n3b, m) === 1) && metinSay(n2b, A_NOT) === 1;
+    s.VA_DIGER = true;
+    for (const kod of ["plaket", "yapboz", "anahtarlik"]) {
+      const Vd = sentetik(veriKaynak);
+      const ed = await ekranKos(kaynak, Vd, { acik: true, turler: [acikTur(Vd, kod)] }, null, null, { kart: kod });
+      const dd = [...ed.bolum.agac()];
+      if (!dd.some((n) => n.id === "foto-olcu") || A_HEPSI.some((m) => metinSay(dd, m) > 0)) s.VA_DIGER = false;
+    }
+    const VB = sentetik(veriKaynak);
+    const ac = acikTur(VB, "yapboz");
+    const e = await ekranKos(kaynak, VB, { acik: true, turler: [ac] }, null, null, { kart: "yapboz" });
+    const d = () => [...e.bolum.agac()];
+    const id = (x) => d().find((n) => n.id === x) || null;
+    const p3 = id("foto-pencere-3");
+    const n3 = p3 ? [...p3.agac()] : [];
+    s.VB1_NUMBER_0 = !!p3 && n3.filter((n) => n.tagName === "INPUT" && n.type === "number").length === 0;
+    s.VB2_RANGE_3 = !!p3 && JSON.stringify(n3.filter((n) => n.tagName === "INPUT" && n.type === "range").map((n) => n.id).sort()) ===
+      JSON.stringify(["foto-olcu", "foto-param-satir", "foto-param-sutun"]);
+    const yazi = (g) => (g && g.parentNode ? g.parentNode.childNodes[g.parentNode.childNodes.indexOf(g) + 1] : null);
+    const sa = id("foto-param-satir"), su = id("foto-param-sutun");
+    const once = [yazi(sa), yazi(su)].map((n) => (n ? n.textContent : ""));
+    let sonra = "";
+    if (sa) { sa.value = "5"; sa.tetikle("input"); sonra = yazi(sa) ? yazi(sa).textContent : ""; }
+    s.VB2_CANLI = !!sa && !!su && sa.min === "3" && sa.max === "8" && sa.step === "1" && su.min === "3" && su.max === "8" &&
+      JSON.stringify(once) === JSON.stringify(["3 adet", "4 adet"]) && sonra === "5 adet";
+    const sec = id("foto-param-kabartma_yon");
+    const ops = sec ? [...sec.agac()].filter((n) => n.tagName === "OPTION") : [];
+    s.VB4_YON = ops.length === 2 && JSON.stringify(ops.map((o) => o.textContent)) === JSON.stringify(["Açık tonlar yüksek", "Koyu tonlar yüksek"]) &&
+      JSON.stringify(ops.map((o) => o.value)) === JSON.stringify(["acik_yuksek", "koyu_yuksek"]);
+    // Ölçü sürgüsünü 170 mm'ye çek, sonra form doğrulamasını tetikle: gövde (VERI.parametreDogrula'ya giden) okunur.
+    const ol_ = id("foto-olcu"), sira = ac.olculer.findIndex((o) => o.mm === 170);
+    if (ol_ && sira >= 0) { ol_.value = String(sira); ol_.tetikle("input"); }
+    if (sa) { sa.value = "4"; sa.tetikle("input"); }
+    const son = VB.cagri.filter((c) => c.kod === "yapboz").pop();
+    const p = son ? JSON.parse(son.p) : {};
+    s.VB3_TOHUM = !d().some((n) => /Tohum/.test(n.textContent || "") && (n.tagName === "LABEL" || n.tagName === "P")) &&
+      !id("foto-param-tohum") && Number.isInteger(p.tohum) && p.tohum >= 0 && p.tohum <= 2147483647;
+    s.VB5_UZUN_KENAR = sira >= 0 && !id("foto-param-uzun_kenar_mm") && !d().some((n) => n.tagName === "LABEL" && /Uzun kenar/.test(n.textContent)) &&
+      p.uzun_kenar_mm === 170 && !!son && son.d.ok === true && p.satir === 4;
+    // Fiyat değişmez: yapboz 100 mm PLA 1.000 TL.
+    s.VB_FIYAT = VB.fiyatKurus("yapboz", 100, { renkli: false, malzeme: "PLA" }) === 100000;
+    Object.defineProperty(s, "iz", { value: { p, once, sonra, istisna: e.istisnaMetni }, enumerable: false });
+    return s;
+  };
+  const sv = await vab(EKRAN_KAYNAK);
+  ol("V-A bust ③ Renk/Ölçü/Malzeme ArTisT cümleleri + tür notu #4 birebir (1×)", sv.VA_BUST, JSON.stringify(sv));
+  ol("V-A2 plaket/yapboz/anahtarlik: büst cümleleri 0", sv.VA_DIGER, JSON.stringify(sv));
+  ol("V-B1 yapboz ③ input[type=number] 0", sv.VB1_NUMBER_0, JSON.stringify(sv));
+  ol("V-B2 yapboz ③ input[type=range] 3 (Ölçü + satır + sütun)", sv.VB2_RANGE_3, JSON.stringify(sv));
+  ol("V-B2b satır/sütun 3..8 adım 1, canlı '3 adet'/'4 adet' -> kaydırınca '5 adet'", sv.VB2_CANLI, JSON.stringify([sv, sv.iz]));
+  ol("V-B3 'Tohum' metni 0 · gövdede tohum tam sayı 0..2147483647", sv.VB3_TOHUM, JSON.stringify([sv, sv.iz]));
+  ol("V-B4 kabartma yönü 2 Türkçe etiket, value aynen", sv.VB4_YON, JSON.stringify(sv));
+  ol("V-B5 'Uzun kenar' alanı 0 · gövdede uzun_kenar_mm = Ölçü sürgüsü (170) + doğrulama ok", sv.VB5_UZUN_KENAR, JSON.stringify([sv, sv.iz]));
+  ol("V-B fiyat değişmez: yapboz 100 mm PLA 1.000 TL", sv.VB_FIYAT, JSON.stringify(sv));
+  const VAB_MUT = [
+    ["M-A ArTisT cümlesi başka türde de çıkar", "ekran",
+     "var t = F && typeof F.turBul === \"function\" ? F.turBul(kod) : null;\n    var m = t && t.alan_aciklamalari",
+     "var t = F && typeof F.turBul === \"function\" ? F.turBul(\"bust\") : null;\n    var m = t && t.alan_aciklamalari", ["VA_DIGER"]],
+    ["M-B1 tohum yine görünür", "veri", "          tohum: { deger: \"varsayilan\" }\n", "", ["VB2_RANGE_3", "VB3_TOHUM"]],
+    ["M-B2js uzun_kenar_mm sabit 150 gider", "veri",
+     "if (fs.deger === \"olcu\") { return typeof olcu === \"number\" && isFinite(olcu) ? olcu : undefined; }",
+     "if (fs.deger === \"olcu\") { return 150; }", ["VB5_UZUN_KENAR"]],
+    ["M-B4 kabartma yönü ham kod", "ekran", "var op = el(\"option\", null, etMap && etMap[k] ? etMap[k] : k);",
+     "var op = el(\"option\", null, k);", ["VB4_YON"]],
+    ["M-VAB-K kontrol (yorum)", "ekran", "// ③ ortak alan (renk/olcu/malzeme) altındaki", "// ortak alan altindaki", []],
+  ];
+  for (const [ad, hedef, capa, yerine, olmeli] of VAB_MUT) {
+    const kay = hedef === "ekran" ? EKRAN_KAYNAK : VERI_KAYNAK;
+    if (kay.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = hedef === "ekran" ? await vab(EKRAN_KAYNAK.replace(capa, yerine)) : await vab(EKRAN_KAYNAK, VERI_KAYNAK.replace(capa, yerine));
+    const kirmizi = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kirmizi) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(m));
+  }
 }
 
 // ================================================================ AN — ANAHTARLIK ② YAZI (9 Eki)
