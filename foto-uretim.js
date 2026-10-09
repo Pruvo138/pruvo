@@ -850,7 +850,55 @@
           g.step = String(sema.adim > 0 ? sema.adim : 1);
           if (S.parametre[a] === undefined) S.parametre[a] = sema.min;
           if (S.parametre[a] !== undefined) g.value = String(S.parametre[a]);
+        } else if (sema.tip === "metin") {
+          // K3c metin dalı: liste=true -> textarea (dizi), değilse -> text input (dize). Doğrulama
+          // VERI.parametreDogrula'da (metin/l ~661-670); burada kırpma/kesme YAPMA, yalnız
+          // sondaki boş satırları at + boşsa undefined. Varsayılan atama YOK (örnek metni müşterinin
+          // siparişine sızmasın).
+          if (sema.liste === true) {
+            g = el("textarea", "foto-uretim-form-secenek-girdi");
+            g.rows = sema.satir_max;
+            g.placeholder = (sema.ornek || []).join("\n");
+            if (Array.isArray(S.parametre[a])) g.value = S.parametre[a].join("\n");
+            g.id = id; g.name = id;
+            g.addEventListener("input", function (e) {
+              var satirlar = e.target.value.split("\n");
+              while (satirlar.length > 0 && satirlar[satirlar.length - 1] === "") satirlar.pop();
+              S.parametre[a] = satirlar.length === 0 ? undefined : satirlar;
+              formHataGoster();
+              guncelleS1Buton();
+            });
+            g.addEventListener("change", function (e) {
+              var satirlar = e.target.value.split("\n");
+              while (satirlar.length > 0 && satirlar[satirlar.length - 1] === "") satirlar.pop();
+              S.parametre[a] = satirlar.length === 0 ? undefined : satirlar;
+              formHataGoster();
+              guncelleS1Buton();
+            });
+            S.alanForm.appendChild(g);
+            return;
+          }
+          g = el("input", "foto-uretim-form-secenek-girdi");
+          g.type = "text";
+          g.maxLength = sema.max;
+          if (typeof S.parametre[a] === "string") g.value = S.parametre[a];
+          g.id = id; g.name = id;
+          g.addEventListener("input", function (e) {
+            var v = e.target.value;
+            S.parametre[a] = v === "" ? undefined : v;
+            formHataGoster();
+            guncelleS1Buton();
+          });
+          g.addEventListener("change", function (e) {
+            var v = e.target.value;
+            S.parametre[a] = v === "" ? undefined : v;
+            formHataGoster();
+            guncelleS1Buton();
+          });
+          S.alanForm.appendChild(g);
+          return;
         }
+        if (!g) return;
         g.id = id; g.name = id;
         var degis = function (e) {
           var v = e.target.value;

@@ -237,6 +237,16 @@ def kontroller(index, bolum, veri, build):
     g = dk.group(1) if dk else ""
     s.append(("Y13c 15 MB ve tur denetimi dosyaKoy icinde",
               "f.size > MAKS_DOSYA_BAYT" in g and r"/^image\/(jpeg|png|webp)$/" in g and '"image/svg+xml"' in g, ""))
+    # Y15 (K3d anahtarlik-metin-ui): VERI.FORM_TIPLERI'nin anahtar kumesi = form kurucusunun cizim
+    # kollarinin kumesi (foto-uretim.js'teki `sema.tip === "<tip>"` gecisleri). Yeni tip eklenince
+    # bolumun cizim kolu da eklenmeli; cizim kolu silinen/eksik tip VERI.parametreDogrula'nin
+    # 'parametre-yakinda' hatasina karsi aciga dusmemeli. Mevcut kapsam: sayi, secim, metin, bool.
+    cizimli = set(re.findall(r'sema\.tip === "([a-z_]+)"', bolum))
+    form_tipleri_blok = re.search(r"VERI\.FORM_TIPLERI\s*=\s*\{([^}]+)\}", veri, re.S)
+    form_anahtarlari = set(re.findall(r"\b([a-z_]+)\s*:\s*true", form_tipleri_blok.group(1) if form_tipleri_blok else ""))
+    s.append(("Y15 her FORM_TIPLERI tipinin cizim dali VAR (sayi/secim/metin/bool esit)",
+              {"sayi", "secim", "metin", "bool"} <= cizimli and form_anahtarlari <= cizimli,
+              "cizim=%s form=%s" % (sorted(cizimli), sorted(form_anahtarlari))))
     return s
 
 
@@ -307,6 +317,11 @@ def main():
          (index, bolum.replace('{ kod: "insan", tur: "figur"', '{ kod: "insan", tur: "plaket"', 1), veri, build), True),
         ("M23 anahtarlik KARTLAR disinda ekrana yazildi",
          (index, bolum.replace('var BUST_YONLENDIRME = ', 'var ANAHTARLIK_NOTU = "Anahtarlık";\n  var BUST_YONLENDIRME = ', 1), veri, build), True),
+        # Y15 mutantlari: cizim kolu <-> FORM_TIPLERI esitlik kapisi (anahtarlik-metin-ui).
+        ("M24 metin cizim dali silindi (sema.tip === 'metin' kolu YOK)",
+         (index, bolum.replace('sema.tip === "metin"', 'sema.tip === "metinYOK"', 1), veri, build), True),
+        ("M25 FORM_TIPLERI'ne sahte 'renk' eklendi (cizim kolu YOK)",
+         (index, bolum, veri.replace('bool: true }', 'bool: true, renk: true }', 1), build), True),
     ]
     # Y13 mutantlari: capa tutmazsa (metin degismezse) mutant KIRMIZI sayilir — sessizce gecmez.
     def bm(eski, yeni):
