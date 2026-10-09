@@ -620,8 +620,10 @@ CREATE TABLE IF NOT EXISTS foto_isler (
   uretim_notu  TEXT NOT NULL DEFAULT '',   -- "Nasil olsun?" notu (<=300, temiz; e-posta/telefon RED). Var olan
                                            -- tabloya: tools/d1-goc/2026-10-07-foto-isler-uretim-notu.sql
   onay_tarih   TEXT NOT NULL DEFAULT '',   -- aydinlatma onayi ani (ISO 8601 UTC); ornek (panel) kolunda bos
-  onay_surum   TEXT NOT NULL DEFAULT ''    -- musterinin onayladigi metin surumu (VERI.onay_surum). Var olan
+  onay_surum   TEXT NOT NULL DEFAULT '',   -- musterinin onayladigi metin surumu (VERI.onay_surum). Var olan
                                            -- tabloya: tools/d1-goc/2026-10-07-foto-onay-kaydi.sql
+  cesit        TEXT NOT NULL DEFAULT ''    -- turun cesidi (VERI.cesitler; anahtarlik 'yazi'|'figur'); '' = turun
+                                           -- varsayilan kolu (eski satir). Var olan tabloya: tools/d1-goc/2026-10-10-foto-cesit.sql
 );
 CREATE INDEX IF NOT EXISTS idx_foto_isler_ziyaretci ON foto_isler (ziyaretci, tarih);
 CREATE INDEX IF NOT EXISTS idx_foto_isler_tarih ON foto_isler (tarih);

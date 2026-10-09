@@ -4170,6 +4170,94 @@ console.log("A) TUR-A metin maddeleri ④⑤⑥⑦⑩");
   }
 }
 
+// ---------------------------------------------------------------- TUR-C2a (10 Eki) anahtarlık ÇEŞİT — sunucu, figür kapısı KAPALI
+// Çeşidin kalıcı yeri D1 foto_isler.cesit; müşteri ucu kapalı çeşidi `cesit-yakinda` ile AÇIKÇA reddeder.
+const C2A_YAZI = { satirlar: ["Ayşe"], yazi_tipi: "script", hizalama: "orta", genislik_mm: 45,
+  anahtarlik_kulak_konum: "sol-ust", kontur_tasma_mm: 1.5 };
+async function c2aSunucuSenaryolar(fm, veriYama) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik', 1, 'x'), ('plaket', 1, 'x')").run();
+  let ipNo = 0;
+  const cag = async (yol, govde) => {
+    const h = { "CF-Connecting-IP": "10.0.7." + (++ipNo), "Content-Type": "application/json" };
+    const u = "https://pruvo3d.com/api/shop" + yol;
+    const r = await fm.fotoUclari(new Request(u, govde ? { method: "POST", headers: h, body: JSON.stringify(govde) } : { headers: h }),
+      e2, new URL(u), yol.split("?")[0], null);
+    let v = null; try { v = await r.json(); } catch (e) { v = null; }
+    return { kod: r.status, v };
+  };
+  const ah = (ek) => onizlemeGovde({ tur: "anahtarlik", olcu_mm: 45, gorsel: undefined, parametreler: C2A_YAZI,
+    secim: { plaka_renk: "Beyaz", yazi_renk: "Siyah", govde_malzeme: "PLA" }, ...(ek || {}) });
+  const satir = async (is) => (await k.d1.prepare("SELECT cesit, asama FROM foto_isler WHERE is_no = ?").bind(is || "").first());
+  const s = {}, iz = {};
+  const asilOrnek = VERI.ornekSayisi;
+  VERI.ornekSayisi = (kod) => (kod === "anahtarlik" ? 1 : asilOrnek(kod));
+  const geri = typeof veriYama === "function" ? veriYama() : null;
+  const proto0 = protoSayisi();
+  try {
+    iz.figur = await cag("/foto/onizleme", ah({ cesit: "figur", gorsel: GORSEL, parametreler: undefined }));
+    iz.xyz = await cag("/foto/onizleme", ah({ cesit: "xyz" }));
+    iz.plaketCesit = await cag("/foto/onizleme", onizlemeGovde({ cesit: "yazi" }));
+    iz.dogrudan = fm.girdiGovdeDogrula("anahtarlik", { cesit: "xyz", parametreler: C2A_YAZI });
+    iz.yok = await cag("/foto/onizleme", ah());
+    iz.yazi = await cag("/foto/onizleme", ah({ cesit: "yazi" }));
+    iz.yokSatir = await satir(iz.yok.v && iz.yok.v.is);
+    iz.yaziSatir = await satir(iz.yazi.v && iz.yazi.v.is);
+    iz.yokDurum = await cag("/foto/durum?is=" + (iz.yok.v && iz.yok.v.is));
+    // ESKİ SATIR (göç öncesi yazılmış: cesit sütunu INSERT'te YOK -> DEFAULT '') = yazı kolu.
+    const eski = "c2a0" + "e".repeat(28);
+    await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama) VALUES (?, 'anahtarlik', 45, 'z', ?, 'uretec-onizleme')")
+      .bind(eski, new Date().toISOString()).run();
+    iz.eskiSatir = await satir(eski);
+    iz.eskiDurum = await cag("/foto/durum?is=" + eski);
+    iz.proto = protoSayisi() - proto0;
+  } finally { VERI.ornekSayisi = asilOrnek; if (geri) { geri(); } }
+  s.V1 = iz.figur.kod === 400 && iz.figur.v && iz.figur.v.hata === "cesit-yakinda";
+  s.V2 = iz.xyz.kod === 400 && iz.xyz.v && iz.xyz.v.hata === "gecersiz-cesit" && iz.plaketCesit.kod === 400 &&
+    iz.plaketCesit.v && iz.plaketCesit.v.hata === "gecersiz-cesit" && iz.dogrudan === "gecersiz-cesit";
+  s.V3 = iz.yok.kod === 200 && iz.yazi.kod === 200 && !!iz.yokSatir && iz.yokSatir.asama === "uretec-onizleme" &&
+    iz.yokDurum.kod === 200 && iz.yokDurum.v && iz.yokDurum.v.asama === "bekliyor" && iz.proto === 0;
+  s.V4 = !!iz.yokSatir && iz.yokSatir.cesit === "yazi" && !!iz.yaziSatir && iz.yaziSatir.cesit === "yazi";
+  s.V8 = !!iz.eskiSatir && iz.eskiSatir.cesit === "" && iz.eskiDurum.kod === 200 && iz.eskiDurum.v &&
+    iz.eskiDurum.v.asama === "bekliyor" && iz.proto === 0;
+  k.kapat();
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("C2a) TUR-C2a anahtarlık çeşit — sunucu (figür kapısı KAPALI)");
+{
+  ol("C2a VERI: anahtarlık çeşitleri [yazi,figur], varsayılan yazi, figür acik:false",
+     JSON.stringify(VERI.cesitler.anahtarlik.secenekler.map((x) => [x.kod, x.acik])) === '[["yazi",true],["figur",false]]' &&
+     VERI.cesitler.anahtarlik.varsayilan === "yazi" && VERI.cesitCoz("anahtarlik") === "yazi" && VERI.cesitCoz("plaket") === "",
+     JSON.stringify(VERI.cesitler));
+  const s = await c2aSunucuSenaryolar(foto);
+  ol("V1 cesit=figur (acik:false) -> 400 cesit-yakinda", s.V1, JSON.stringify(s.iz.figur));
+  ol("V2 cesit=xyz -> 400 gecersiz-cesit (+ çeşitsiz plakette dolu cesit + girdiGovdeDogrula doğrudan)", s.V2,
+     JSON.stringify([s.iz.xyz, s.iz.plaketCesit, s.iz.dogrudan]));
+  ol("V3 cesit yok/'yazi' -> 200 uretec kolu, durum 'bekliyor', sağlayıcı çağrısı 0", s.V3,
+     JSON.stringify([s.iz.yok, s.iz.yazi, s.iz.yokDurum, s.iz.proto]));
+  ol("V4 D1 foto_isler.cesit yazıldı ('yazi')", s.V4, JSON.stringify([s.iz.yokSatir, s.iz.yaziSatir]));
+  ol("V8 eski satır (cesit '') -> yazı kolu (durum 'bekliyor')", s.V8, JSON.stringify([s.iz.eskiSatir, s.iz.eskiDurum]));
+  const C2A_MUT = [
+    ["M1 kapı kontrolü düştü", "  if (!VERI.cesitAcik(turKod, cz)) { return \"cesit-yakinda\"; }\n", "", null, ["V1"]],
+    // M2 kapalı küme açıldı (bellek kopyası: VERI.cesitCoz küme dışını da kabul eder).
+    ["M2 kapalı küme açıldı (VERI.cesitCoz bellek)", null, null, () => {
+      const a = VERI.cesitCoz;
+      VERI.cesitCoz = (kod, c) => (c === undefined ? a(kod, c) : c);
+      return () => { VERI.cesitCoz = a; };
+    }, ["V2"]],
+    ["C2a-K0 KONTROL (yorum)", "export function cesitKapisi(turKod, c) {\n", "// kontrol\nexport function cesitKapisi(turKod, c) {\n", null, []],
+  ];
+  for (const [ad, capa, yerine, yama, olmeli] of C2A_MUT) {
+    const fm = capa === null ? foto : await mutantModul(capa, yerine);
+    if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+    const m = await c2aSunucuSenaryolar(fm, yama);
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+}
+
 await new Promise((c) => setTimeout(c, 0));
 ol("ASENKRON temiz kaynakta (EKRAN_KAYNAK) yakalanmamis istisna 0",
    ASENKRON_ISTISNA.filter((x) => x.temiz).length === 0, JSON.stringify(ASENKRON_ISTISNA.filter((x) => x.temiz).slice(0, 3)));

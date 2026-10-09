@@ -119,6 +119,8 @@ function olcuAraligi(kod) {
 export function girdiGovdeDogrula(turKod, g) {
   const t = VERI.turBul(turKod);
   if (!t || !Array.isArray(t.girdi) || !t.girdi.length) { return "girdi-tanimsiz"; }
+  // CESIT kapali kume (VERI.cesitCoz): kume disi / cesitsiz turde dolu -> gecersiz-cesit.
+  if (VERI.cesitCoz(turKod, g.cesit) === null) { return "gecersiz-cesit"; }
   for (const x of t.girdi) {
     const gt = Object.prototype.hasOwnProperty.call(VERI.GIRDI_TURLERI, x) ? VERI.GIRDI_TURLERI[x] : null;
     if (!gt) { return "girdi-tanimsiz"; }
@@ -134,6 +136,17 @@ export function girdiGovdeDogrula(turKod, g) {
     const sv = VERI.svgDogrula(g.svg);
     if (sv) { return sv; }
   }
+  return "";
+}
+
+/**
+ * MUSTERI CESIT KAPISI (TUR-C2a): kume disi -> `gecersiz-cesit`; sunulmayan (acik:false) cesit -> `cesit-yakinda`
+ * (sessiz DEGIL, acik ret). Panel ornek uclari bu kapidan GECMEZ. Donus "" = gecer.
+ */
+export function cesitKapisi(turKod, c) {
+  const cz = VERI.cesitCoz(turKod, c);
+  if (cz === null) { return "gecersiz-cesit"; }
+  if (!VERI.cesitAcik(turKod, cz)) { return "cesit-yakinda"; }
   return "";
 }
 
@@ -946,6 +959,10 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   const y = yapilandirma(env);
   let g;
   try { g = await request.json(); } catch (e) { g = null; }
+  if (g && typeof g === "object") {
+    const ck = cesitKapisi(g.tur, g.cesit);
+    if (ck) { return fjson({ hata: ck }, 400); }
+  }
   // URETEC KOLU: tarayici onizleyicisi olmayan D/R turu saglayiciya GITMEZ, koşucu kuyruguna girer.
   if (g && typeof g === "object" && uretecOnizlemeTuru(g.tur)) { return uretecOnizlemeUcu(request, env, simdi, g); }
   if (!y.hazir) { return fjson({ hata: "kapali" }, 503); }
@@ -1115,16 +1132,18 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
   await env.OZEL_DOSYA.put(uretecOnizlemeAnahtari(isNo, "girdi.json"), JSON.stringify(girdi),
     { httpMetadata: { contentType: "application/json" } });
   const onay = onayKaydi(VERI.onay_surum, simdi);
+  // CESIT (D1 foto_isler.cesit, TUR-C2a): cozulmus cesit (anahtarlik 'yazi'); cesitsiz tur ''.
+  const cesit = VERI.cesitCoz(tur.kod, g.cesit);
   if (nt.deger) {
     await env.KATALOG.prepare(
-      "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, son_kontrol, hata, uretim_notu, onay_tarih, onay_surum)" +
-      " VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '', ?, ?, ?)"
-    ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi), nt.deger, onay.tarih, onay.surum).run();
+      "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, son_kontrol, hata, uretim_notu, onay_tarih, onay_surum, cesit)" +
+      " VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '', ?, ?, ?, ?)"
+    ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi), nt.deger, onay.tarih, onay.surum, cesit).run();
   } else {
     await env.KATALOG.prepare(
-      "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, son_kontrol, hata, onay_tarih, onay_surum)" +
-      " VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '', ?, ?)"
-    ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi), onay.tarih, onay.surum).run();
+      "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, son_kontrol, hata, onay_tarih, onay_surum, cesit)" +
+      " VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '', ?, ?, ?)"
+    ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi), onay.tarih, onay.surum, cesit).run();
   }
   return fjson({ is: isNo, kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1),
                  yoklama: URETEC_YOKLAMA }, 200);
@@ -1233,7 +1252,7 @@ function onizlemeAnahtari(isNo) { return "foto-onizleme/" + isNo + ".png"; }
 
 async function isGetir(env, isNo) {
   return env.KATALOG.prepare(
-    "SELECT is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, son_kontrol, hata" +
+    "SELECT is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, son_kontrol, hata, cesit" +
     " FROM foto_isler WHERE is_no = ?").bind(isNo).first();
 }
 
