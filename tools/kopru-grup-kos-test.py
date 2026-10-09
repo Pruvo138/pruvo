@@ -199,8 +199,8 @@ def yer_tutucu_vakasi(o):
 
 
 def pb_vakasi(o, kaynak):
-    """FOTO KOLU (anahtarlik-foto, 9 Eki): GERCEK sabit kopru kaydiyla render komutu `cagri.parametre_bayraklari`
-    (--konum, varsayilan sol-ust) + dosya girdisini (--girdi <plaket 3MF>) tasir; plan_kur kol kaydini ana turun
+    """FOTO KOLU (anahtarlik-foto; 10 Eki figur_kulak): GERCEK sabit kopru kaydiyla render komutu
+    `cagri.parametre_bayraklari` (--konum, varsayilan tepe) + dosya girdisini (--girdi <figur 3MF>) tasir; plan_kur kol kaydini ana turun
     `foto_kolu`ndan bulur. Donus (gecti, aciklama). `kaynak` = arac kaynagi (mutant MPB bunu bozar)."""
     d = tempfile.mkdtemp(dir=o.tmp, prefix="pb-")
     eski = os.environ.get("KOPRU_ORNEK_PLAKET")
@@ -217,12 +217,12 @@ def pb_vakasi(o, kaynak):
         sp.loader.exec_module(m)
         with open(os.path.join(KOK, "jenerator", "kopru", "kopru_kayitlari.json"), encoding="utf-8") as f:
             kk = next(k for k in json.load(f)["kayitlar"] if k.get("kod") == "anahtarlik-foto")
-        p = {"kod": "anahtarlik-foto", "g": {"betik": "jeneratorler/foto/plaket_kulak.py"}, "kayit": kk,
+        p = {"kod": "anahtarlik-foto", "g": {"betik": "jeneratorler/foto/figur_kulak.py"}, "kayit": kk,
              "jen": "/JEN", "py": "PY"}
         with open(os.path.join(d, "girdi.json"), "w", encoding="utf-8") as f:
             json.dump(m.ornek_girdisi(kk, d), f)
         uretec = dict(m.render_komutlari(p, d)[0]).get("uretec")
-        bek = ["PY", "/JEN/jeneratorler/foto/plaket_kulak.py", "--konum", "sol-ust", "--girdi", plaket,
+        bek = ["PY", "/JEN/jeneratorler/foto/figur_kulak.py", "--konum", "tepe", "--girdi", plaket,
                "--cikti", os.path.join(d, "cikti")]
         return uretec == bek, str(uretec)
     except Exception as e:  # cokerse KIRMIZI
@@ -252,7 +252,7 @@ def main():
         vakalar(o, kaynak)
         yer_tutucu_vakasi(o)
         g, ac = pb_vakasi(o, kaynak)
-        vaka("V7 anahtarlik-foto render komutu parametre_bayraklari (--konum sol-ust) + --girdi plaket 3MF", g, ac)
+        vaka("V7 anahtarlik-foto render komutu parametre_bayraklari (--konum tepe) + --girdi figur 3MF", g, ac)
         vk = sum(1 for v in sonuc.values() if not v)
         print("MUTANTLAR")
         sv = 0
