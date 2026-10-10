@@ -1860,6 +1860,19 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kutu-oksuz-nobeti-test.py --mutasyon
 
+      # KUTU ILERI SAAT OLCUM KOLU (BaBa 11 Eki 2026 01:03 sinif kapisi) — evler blok
+      # basligina `date`'ten ILERI saat yaziyordu (3. tekrar). Olcum (`tools/kutu-saat-
+      # nobeti.py`, `KUTU_ILERI_SAAT=<n>`) gercek kutuyu CI'dan GOREMEZ -> burada yalniz
+      # MANTIGI kanitlanir: 14 vaka + 2 mutant (ihlal sayilmaz · `x` ust sinira doner).
+      # HERMETIK: gecici dizin, gercek kutuya YAZILMAZ.
+      - name: "Kutu ileri saat nobetcisi kabul testi (SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kutu-saat-nobeti-test.py
+
+      - name: "Kutu ileri saat nobetcisi mutasyon turu (SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kutu-saat-nobeti-test.py --mutasyon
+
       # K308 KABUL BATARYASI (K422, 19 Eyl 2026) — yedek dususu GORUNUR + KALICI
       # + SAYILI mi; 9 vaka + 6 hedef-kol atifli mutant + zararsiz KONTROL.
       # 18 Eyl'e dek kesif `-kabul` ekini tanimadigi icin CI'da HIC kosmadi ve
