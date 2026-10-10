@@ -167,7 +167,8 @@
         motor: "M",
         uretec: "",
         // 60–200 mm (figür en uzun boyutu; plaketin 300 üst sınırı figürde destek/süre yüzünden dar tutuldu).
-        olcu_mm: { en_az: 10, en_cok: 200 },
+        // Okan 10 Eki 12:4x: "slider figürlerde 60mm den başlasın".
+        olcu_mm: { en_az: 60, en_cok: 200 },
         renk_bolgeleri: [],
         renk_secimi: "palet",
         malzemeler: {},
