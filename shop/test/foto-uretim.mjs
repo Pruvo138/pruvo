@@ -5696,5 +5696,94 @@ console.log("RPA) RENK = PALET A — figur anahtarlikta Renkli (kopru renk_modu)
   }
 }
 
+// ---------------------------------------------------------------- RENK = PALET D (④ önizleme palete indirgenir)
+// VERI.paleteIndirge saf fonksiyonu (fotoRenkleri ile AYNI ağırlıklı mesafe); ④ çizimi deterministik kol dışında
+// indirgenmiş kopyayı gösterir. TOLERANS (kabul, anti-alias payı): ayrık renk sayımında kanal farkı ≤ 2 olan renkler
+// TEK renk sayılır ve opak piksellerin %0,5'inden azını tutan renk SAYILMAZ; saydam (alfa < 128) piksel sayılmaz.
+// D1 Renkli 4 renk · D2 plaket Renkli (palet = fotoRenkleri, renkTavani) · D3 Siyah tek -> gri ölçek · D4 sınır.
+function rpdGorsel() {
+  const w = 64, p = new Uint8ClampedArray(w * w * 4);
+  for (let y = 0; y < w; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      p[i] = (x * 4) % 256; p[i + 1] = (y * 4) % 256; p[i + 2] = ((x + y) * 2) % 256;
+      p[i + 3] = x === 0 && y < 8 ? 0 : 255;  // 8 saydam piksel (dokunulmaz)
+    }
+  }
+  return p;
+}
+function rpdAyrik(p) {
+  const say = new Map(); let top = 0;
+  for (let i = 0; i + 3 < p.length; i += 4) {
+    if (p[i + 3] < 128) { continue; }
+    const k = p[i] + "," + p[i + 1] + "," + p[i + 2];
+    say.set(k, (say.get(k) || 0) + 1); top++;
+  }
+  const temsil = [];
+  for (const [k, n] of [...say.entries()].sort((a, b) => b[1] - a[1])) {
+    const c = k.split(",").map(Number);
+    const t = temsil.find((x) => x.c.every((v, j) => Math.abs(v - c[j]) <= 2));
+    if (t) { t.n += n; } else { temsil.push({ c, n }); }
+  }
+  return temsil.filter((x) => x.n / top >= 0.005).map((x) => x.c.join(","));
+}
+function rpdRgb(V, ad) {
+  const h = V.RENK_HEX[ad].replace("#", "");
+  return [0, 2, 4].map((j) => parseInt(h.slice(j, j + 2), 16)).join(",");
+}
+function rpdSenaryo(V) {
+  const s = {}, iz = {}, kaynak = rpdGorsel();
+  const indir = (renkler) => { const p = kaynak.slice(); const r = V.paleteIndirge(p, renkler); return r ? p : null; };
+  const altKume = (a, b) => a.every((x) => b.includes(x));
+  // D1: Renkli 4 renk -> ayrık renk ≤ 4, hepsi palet renginin TAM değeri, en az 2 renk görünür (boş indirgeme değil).
+  const P4 = ["Kırmızı", "Mavi", "Sarı", "Beyaz"], d1 = indir(P4), a1 = d1 ? rpdAyrik(d1) : [];
+  iz.D1 = a1;
+  s.D1 = !!d1 && a1.length >= 2 && a1.length <= 4 && altKume(a1, P4.map((x) => rpdRgb(V, x)));
+  // D2: plaket Renkli -> palet fotoRenkleri(kaynak, renkTavani(plaket)); görseldeki renk kümesi = liste (birebir).
+  const Pp = V.fotoRenkleri(kaynak, V.renkTavani("plaket")), d2 = Pp.length ? indir(Pp) : null, a2 = d2 ? rpdAyrik(d2) : [];
+  iz.D2 = { palet: Pp, ayrik: a2 };
+  s.D2 = !!d2 && Pp.length >= 2 && a2.length === Pp.length && altKume(a2, Pp.map((x) => rpdRgb(V, x)));
+  // D3: Siyah tek renk -> gri ölçek: her opak piksel r = g = b, ton korunur (≥ 8 farklı gri düzey).
+  const d3 = indir(["Siyah"]);
+  let renkli = 0; const duzey = new Set();
+  for (let i = 0; d3 && i + 3 < d3.length; i += 4) {
+    if (d3[i + 3] < 128) { continue; }
+    if (d3[i] !== d3[i + 1] || d3[i + 1] !== d3[i + 2]) { renkli++; }
+    duzey.add(d3[i]);
+  }
+  iz.D3 = { renkli, duzey: duzey.size };
+  s.D3 = !!d3 && renkli === 0 && duzey.size >= 8;
+  // D4: saydam piksel dokunulmaz; bilinmeyen renk / boş palet -> null.
+  s.D4 = !!d1 && d1[3] === 0 && d1[0] === kaynak[0] && d1[1] === kaynak[1] && d1[2] === kaynak[2] &&
+    V.paleteIndirge(kaynak.slice(), ["Mor"]) === null && V.paleteIndirge(kaynak.slice(), []) === null;
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("RPD) RENK = PALET D — ④ onizleme palete indirgenir (VERI.paleteIndirge; tolerans kanal ±2, <%0,5 sayilmaz)");
+{
+  const s = rpdSenaryo(veriYukle(VERI_KAYNAK));
+  ol("D1 Renkli 4 renk -> ayrik renk <= 4, hepsi palet rengi", s.D1, JSON.stringify(s.iz.D1));
+  ol("D2 plaket Renkli -> gorseldeki renk kumesi = fotoRenkleri listesi (birebir)", s.D2, JSON.stringify(s.iz.D2));
+  ol("D3 Siyah tek -> gri olcek (r=g=b, ton korunur)", s.D3, JSON.stringify(s.iz.D3));
+  ol("D4 saydam piksel dokunulmaz; bilinmeyen renk / bos palet -> null", s.D4, "");
+  // ④ çizimi deterministik kol dışında indirgenmiş kopyayı gösterir (kaynak görsel doğrudan img.src'ye verilmez).
+  ol("D5 ④ cizimi paletleGoster -> F.paleteIndirge (deterministik kol disinda)",
+     EKRAN_KAYNAK.includes("if (!F.paleteIndirge(d.data, renkler)) throw") &&
+     EKRAN_KAYNAK.includes("else paletleGoster(img, S.gorsel, renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]);") &&
+     EKRAN_KAYNAK.split("img.src = S.gorsel").length - 1 === 1, "");
+  const capa = "    for (var i = 0; i + 3 < piksel.length; i += 4) {\n      if (piksel[i + 3] < 128) { continue; }\n      if (gri) {";
+  const RPD_MUT = [
+    ["RPD-M1 indirgeme kapali (piksel aynen)", "    return piksel;\n" + capa, ["D1", "D2", "D3"]],
+    ["RPD-M2 gri olcek kapali (Siyah tek de en yakin renge)", capa.replace("if (gri) {", "if (false) {"), ["D3"]],
+    ["RPD-K0 KONTROL (ayni govde)", capa, []],
+  ];
+  for (const [ad, yerine, olmeli] of RPD_MUT) {
+    if (VERI_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = rpdSenaryo(veriYukle(VERI_KAYNAK.replace(capa, yerine)));
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+}
+
 console.log(kirmizi ? "\n❌ " + kirmizi + " iddia KIRMIZI" : "\n✅ HEPSI GECTI");
 process.exit(kirmizi ? 1 : 0);

@@ -976,25 +976,55 @@
   // FOTOĞRAFTAN RENK (deterministik, kredi 0, harici API YOK): piksel dizisi (RGBA, Uint8 benzeri) -> filament
   // renklerine (RENK_HEX) en yakın eşleme -> en sık `tavan` farklı renk (çok sıktan aza). Saydam piksel sayılmaz;
   // %2'nin altındaki renk elenir (gürültü). Hiç renk çıkmazsa [] (bölüm Renkli'yi açmaz).
-  VERI.fotoRenkleri = function (piksel, tavan) {
-    var adlar = VERI.PLA_RENKLERI, hex = [], say = {}, top = 0, i, j;
-    for (i = 0; i < adlar.length; i++) {
-      var h = String(VERI.RENK_HEX[adlar[i]] || "").replace("#", "");
-      hex.push([parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]);
+  // fotoRenkleri ve paleteIndirge ORTAK eşlemesi: filament adları -> [r, g, b] (RENK_HEX) ve ağırlıklı mesafe
+  // 2·dr² + 4·dg² + 3·db² ile en yakın indeks (ikisi AYNI fonksiyonu kullanır; ayrı kopya yok).
+  function renkRgb(adlar) {
+    return adlar.map(function (a) {
+      var h = String(VERI.RENK_HEX[a] || "").replace("#", "");
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+    });
+  }
+  function enYakinRenk(hex, r, g, b) {
+    var en = -1, ed = Infinity;
+    for (var j = 0; j < hex.length; j++) {
+      var dr = r - hex[j][0], dg = g - hex[j][1], db = b - hex[j][2];
+      var d = 2 * dr * dr + 4 * dg * dg + 3 * db * db;
+      if (d < ed) { ed = d; en = j; }
     }
+    return en;
+  }
+  VERI.fotoRenkleri = function (piksel, tavan) {
+    var adlar = VERI.PLA_RENKLERI, hex = renkRgb(adlar), say = {}, top = 0, i;
     for (i = 0; piksel && i + 3 < piksel.length; i += 4) {
       if (piksel[i + 3] < 128) { continue; }
-      var en = -1, ed = Infinity;
-      for (j = 0; j < hex.length; j++) {
-        var dr = piksel[i] - hex[j][0], dg = piksel[i + 1] - hex[j][1], db = piksel[i + 2] - hex[j][2];
-        var d = 2 * dr * dr + 4 * dg * dg + 3 * db * db;
-        if (d < ed) { ed = d; en = j; }
-      }
+      var en = enYakinRenk(hex, piksel[i], piksel[i + 1], piksel[i + 2]);
       say[adlar[en]] = (say[adlar[en]] || 0) + 1; top++;
     }
     var n = Number.isInteger(tavan) && tavan >= 1 ? Math.min(tavan, 4) : 1;
     return adlar.filter(function (a) { return say[a] && say[a] / top >= 0.02; })
       .sort(function (a, b) { return say[b] - say[a] || adlar.indexOf(a) - adlar.indexOf(b); }).slice(0, n);
+  };
+  // ④ ÖNİZLEME PALETE İNDİRGENİR: ④'te gösterilen görsel ③'te seçilen palete deterministik indirgenir — müşteri
+  // ne görürse onu alır (tarayıcıda, kredi 0; kaynak görsel sunucuda AYNEN, üretime giden görsel değişmez).
+  // renkler = seçili filament adları (Renkli: fotoğraftan çıkan renkler; tek renk: [ana renk]). Her opak piksel
+  // fotoRenkleri ile AYNI mesafeyle en yakın palet rengine; tek renk Siyah/Beyaz/Gri ise gri ölçek (ton korunur,
+  // renk tonu yok). Saydam piksel (alfa < 128) dokunulmaz. piksel YERİNDE değişir ve döner; boş palet ya da
+  // bilinmeyen renk -> null (çağıran kaynak görseli gösterir).
+  VERI.paleteIndirge = function (piksel, renkler) {
+    if (!piksel || !Array.isArray(renkler) || !renkler.length ||
+        renkler.some(function (a) { return !VERI.RENK_HEX[a]; })) { return null; }
+    var gri = renkler.length === 1 && VERI.ANA_RENKLER.indexOf(renkler[0]) >= 0, hex = renkRgb(renkler);
+    for (var i = 0; i + 3 < piksel.length; i += 4) {
+      if (piksel[i + 3] < 128) { continue; }
+      if (gri) {
+        var y = Math.round(0.299 * piksel[i] + 0.587 * piksel[i + 1] + 0.114 * piksel[i + 2]);
+        piksel[i] = y; piksel[i + 1] = y; piksel[i + 2] = y;
+        continue;
+      }
+      var c = hex[enYakinRenk(hex, piksel[i], piksel[i + 1], piksel[i + 2])];
+      piksel[i] = c[0]; piksel[i + 1] = c[1]; piksel[i + 2] = c[2];
+    }
+    return piksel;
   };
   // fiyat_kurus = round( max(taban, en uzun boyut (mm) × formülün mm başı kuruşu) × (Renkli ? 1,15 : 1)
   //               × (PETG ? 1,30 : 1) ) — TEK kaynak (bölüm, sunucu, araçlar). secim = {renkli, malzeme}; verilmezse
