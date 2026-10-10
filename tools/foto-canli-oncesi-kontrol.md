@@ -29,7 +29,7 @@ Turnstile sırrı önizleme turunda bir işçi transkriptine basıldı → canl�
 - [ ] Kabul: eski anahtarla `/yonet/foto-ozet` → 404; yenisiyle → 200.
 
 ## 4. Taze zincir kabulü — o gün, o kodla
-- [ ] Önizlemede uçtan uca: `python3 tools/foto-ornek-uc-uca.py --hepsi --kol D --kredi-tavani <N>`
+- [ ] Önizlemede uçtan uca: `python3 tools/foto-ornek-uc-uca.py --hepsi --kol D --kredi-tavani <N> --dilim <etiket> --dilim-tavan <zincir toplam N>`
       → açılacak her tür için ①–⑥ HAZIR (kredi harcaması ≤ N).
 - [ ] Canlı D1 şeması: `foto_acik` tablosu + `foto_isler.uretim_notu/onay_tarih/onay_surum`
       + `foto_uretim.onay_tarih/onay_surum` var (`PRAGMA table_info`).
