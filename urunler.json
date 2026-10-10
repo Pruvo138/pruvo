@@ -1,5 +1,52 @@
 [
   {
+    "id": "c3d-nikon-coolpix-l27-dji-osmo-gimbal-tutucusu",
+    "kategori": "Kamera",
+    "marka": [
+      "Nikon"
+    ],
+    "uyum": [
+      {
+        "marka": "Nikon"
+      }
+    ],
+    "baslik": "Nikon Coolpix L27 için DJI Osmo Gimbal Tutucusu (Kamera Çerçevesi + Taban Plakası)",
+    "aciklama": "Nikon Coolpix L27 kompakt kamerayı DJI Osmo el gimbalına bağlamaya yarayan tutucu. Tek parça yapı; kamerayı saran çerçeve, kamerayı gimbal üzerinde dik taşıyan sap ve gimbala bağlanan düz taban plakasından oluşur. Fotoğraflarda kamera tutucuya takılı olarak Osmo gimbal üzerinde (ön ve arka görünüm) ve tutucu kamerayla birlikte zeminde görülür; kamera ve gimbal ürüne dahil değildir.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddji-osmo-housing-for-nikon-coolpix-l27-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddji-osmo-housing-for-nikon-coolpix-l27-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddji-osmo-housing-for-nikon-coolpix-l27-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "Nengnoinoi"
+    }
+  },
+  {
+    "id": "c3d-nikon-14-24-lee-sw150-baffle-halkasi",
+    "kategori": "Kamera",
+    "marka": [
+      "Nikon"
+    ],
+    "uyum": [
+      {
+        "marka": "Nikon"
+      }
+    ],
+    "baslik": "Nikon AF-S 14-24 mm Objektif için Lee SW150 Filtre Tutucu Baffle Halkası",
+    "aciklama": "Lee SW150 filtre tutucusunun Nikon AF-S NIKKOR 14-24 mm f/2.8G objektifle kullanımı için tasarlanmış siyah baffle (ışık kesici) halkası. Halka biçimli parçanın iki yanında düz uzantılar bulunur. Fotoğraflarda halka tek başına ve Lee SW150 tutucu ile 14-24 mm objektif üzerinde görülür; tutucu ve objektif ürüne dahil değildir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dlee-sw150-baffle-for-nikon-14-24mm-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dlee-sw150-baffle-for-nikon-14-24mm-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "stephanr"
+    }
+  },
+  {
     "id": "pul-rondela-105-mm-dis-8-mm-ic-cap-4-mm-kalinlik",
     "kategori": "Tamirat",
     "marka": [],
