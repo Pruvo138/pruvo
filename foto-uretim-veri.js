@@ -521,6 +521,8 @@
       },
       {
         tur: "anahtarlik",
+        // Çeşit (Okan 10 Eki): ② "Önizlemeden sonra" Örnek'i yalnız bu çeşitte çizilir (yazı örneği figürde ÇIKMAZ).
+        cesit: "yazi",
         kanit: "render",
         olcu_mm: 45,
         onizleme: "https://media.pruvo3d.com/foto/ornek/anahtarlik-1-render.webp",
@@ -545,6 +547,7 @@
   // Bölüm (hangi örnek çizilir) ve sunucu (tür açık mı) AYNI fonksiyonu kullanır.
   VERI.ornekGecerli = function (o) {
     if (!o) { return false; }
+    if (o.cesit !== undefined && !VERI.cesitKaydi(o.tur, o.cesit)) { return false; }
     var t = VERI.turBul(o.tur);
     var k = VERI.ornekKaniti(o);
     var izin = t && Array.isArray(t.ornek_kanit_izni) ? t.ornek_kanit_izni : [];
