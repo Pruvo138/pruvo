@@ -34,31 +34,34 @@
   var MESAFELI_URL = "/mesafeli-satis/";
   var ANA_BOLUM_ID = "fotoUretim";
   var STIL_ID = "fotoUretimStil";
-  // ① KARTLAR — TEK tablo (Okan 9 Eki 01:4x: "1- insan 2- hayvan ve model 3-kabartma plaket, 4-büst,
-  // 5-anahtarlık, 6- yapboz"). kod = kart · tur = üretim türü (manifest/`/acik` kodu) · alt = istemcide tutulan
-  // alt tür (S.altTur; sepet kalemine GİRMEZ) · ad + ret = sayfa metni tablosu (ArTisT c35a848d, BİREBİR).
-  // Türü `/acik` listesinde olmayan kart ÇİZİLMEZ ("Yakında" etiketi YOK).
-  // KARTLAR — `ornek:false` ile işaretlenen kartın örneği ÇİZİLMEZ; ornekCiz nötr yer tutucu + "Örnek
-  // yakında" etiketi basar (kart aktif/tıklanabilir kalır, gizleme YOK). Yeni görsel/URL UYDURMA.
+  // ① KARTLAR — TEK tablo, YALNIZ Okan'ın 6 modeli, Okan'ın SIRASIYLA ve ADLARIYLA (Okan 10 Eki ~16:3x: "1- Anahtarlık –
+  // yazı 2- insan ayakta duran figür 3- pet ayakta duran figür 4- Kabartma plaket 5- Anahtarlık – figür 6- Model figür.
+  // sadece bunları yapalım."). kod = kart · tur = üretim türü (manifest/`/acik` kodu) · alt = figür alt türü (S.altTur;
+  // önizleme isteğine `alt_tur` olarak gider, sağlayıcı istemi SUNUCUDA) · cesit = kartın sabitlediği çeşit (anahtarlık
+  // iki AYRI kart; ② çeşit düğmesi çizilmez) · ad + ret = sayfa metni. Büst/yapboz bu tabloda YOK: hiçbir durumda çizilmez.
+  // Türü `/acik` listesinde olmayan (ya da çeşidi açık olmayan) kart ÇİZİLMEZ ("Yakında" etiketi YOK).
+  // `ornek:false` ile işaretlenen kartın örneği ÇİZİLMEZ; ornekCiz nötr yer tutucu + "Örnek yakında" etiketi basar
+  // (kart aktif/tıklanabilir kalır, gizleme YOK). Yeni görsel/URL UYDURMA.
   var KARTLAR = [
-    { kod: "insan", tur: "figur", alt: "insan", ad: "İnsan figürü", ornek: false,
-      ret: "İnsan figürü için tek kişinin cepheden net fotoğrafı gerekir." },
-    { kod: "hayvan_model", tur: "figur", alt: "hayvan_model", ad: "Hayvan ve model figürü",
-      ret: "Figür için tek hayvan, araç ya da oyuncağın net fotoğrafı gerekir." },
-    { kod: "plaket", tur: "plaket", alt: null, ad: "Kabartma Plaket",
+    { kod: "anahtarlik_yazi", tur: "anahtarlik", alt: null, cesit: "yazi", ad: "Anahtarlık – yazı",
+      ret: "Anahtarlık için kısa bir yazı gerekir." },
+    { kod: "insan", tur: "figur", alt: "insan", ad: "İnsan figürü (ayakta)", ornek: false,
+      ret: "İnsan figürü için tek kişinin ayakta, baştan ayağa tam boy görünen net fotoğrafı gerekir." },
+    { kod: "pet", tur: "figur", alt: "pet", ad: "Pet figürü (ayakta)",
+      ret: "Pet figürü için tek hayvanın ayakta, tam boy görünen net fotoğrafı gerekir." },
+    { kod: "plaket", tur: "plaket", alt: null, ad: "Kabartma plaket",
       ret: "Kabartma plaket için yüksek çözünürlüklü, iyi aydınlatılmış fotoğraf gerekir." },
-    { kod: "bust", tur: "bust", alt: null, ad: "Büst",
-      ret: "Büst için yüzü net görünen bir portre fotoğrafı gerekir." },
-    { kod: "anahtarlik", tur: "anahtarlik", alt: null, ad: "Anahtarlık",
-      ret: "Anahtarlık için net bir fotoğraf ya da kısa bir yazı gerekir." },
-    { kod: "yapboz", tur: "yapboz", alt: null, ad: "Yapboz",
-      ret: "Yapboz için açık-koyu tonları belirgin, yüksek çözünürlüklü fotoğraf gerekir." }
+    { kod: "anahtarlik_figur", tur: "anahtarlik", alt: null, cesit: "figur", ad: "Anahtarlık – figür",
+      ret: "Anahtarlık için net bir fotoğraf gerekir." },
+    { kod: "model", tur: "figur", alt: "model", ad: "Model figür", ornek: false,
+      ret: "Model figür için tek nesne, araç ya da modelin net fotoğrafı gerekir." }
   ];
-  // İnsan kartı ②'de: ret cümlesinin altında tek satır büste yönlendirme (Büst kartına döner).
-  var BUST_YONLENDIRME = "Portre için Büst";
-  // PENCERELER — kutu başlığındaki ①②③④ göstergesi + açıklama (sayfa metni, BİREBİR).
+  // Eski kart/alt tür kodları (oturum deposu, #tur= bağlantısı): `hayvan_model` -> `pet` (geriye uyum; çökmez).
+  var ESKI_KART = { hayvan_model: "pet" };
+  // PENCERELER — kutu başlığındaki ①②③④ göstergesi + açıklama (sayfa metni, BİREBİR). ① açıklaması SABİT DEĞİL:
+  // çizilen (açık) kartlardan türer (pencereAciklamasi -> birinciAciklama).
   var PENCERELER = [
-    { no: "①", ad: "Tür seç", aciklama: "6 seçenekten birini seç: insan figürü, hayvan ve model figürü, kabartma plaket, büst, anahtarlık ya da yapboz." },
+    { no: "①", ad: "Tür seç", aciklama: "" },
     { no: "②", ad: "Resim yükle", aciklama: "Resmi yükle; istersen \"Nasıl olsun?\" kısmında ne istediğini kısaca yaz. Uyumsuz resimde tek kısa mesaj gösterilir." },
     { no: "③", ad: "Renk, boyut ve malzeme", aciklama: "Renk: Siyah, Beyaz, Gri ya da Renkli (+%15; renkler fotoğrafından otomatik seçilir). Malzeme: PLA ya da PETG (+%30). Boyut sürgüden ayarlanır; fiyat ölçüye göre canlı görünür; en uzun boyut mm × 10 TL, en az ₺600." },
     { no: "④", ad: "Önizleme ve onay", aciklama: "Önizlemeyi gör, onayları ver; Sepete ekle açılır." }
@@ -297,9 +300,6 @@
     ".foto-uretim-kart:focus-visible{outline:2px solid var(--navy);outline-offset:2px;}" +
     ".foto-uretim-kartlar>.foto-uretim-blok{grid-column:1/-1;margin:0;}" +
     ".foto-uretim-kart-ret{font-size:14px;font-weight:600;margin:0 0 6px;line-height:1.5;}" +
-    ".foto-uretim-yonlendir{font-size:14px;margin:0 0 12px;}" +
-    ".foto-uretim-yonlendir button{background:none;border:0;padding:0;color:#d1332e;text-decoration:underline;" +
-    "font:inherit;font-weight:700;cursor:pointer;}" +
     ".foto-uretim-gezinti{display:flex;justify-content:space-between;gap:10px;margin:18px 0 0;}" +
     ".foto-uretim-gezinti button{margin-top:0;}" +
     ".foto-uretim-gezinti button[hidden]{display:none;}" +
@@ -525,6 +525,7 @@
     if (!S.is) return;
     var kayit = { is: S.is, tur: S.tur, olcu: S.olcu };
     if (cesitliTur()) kayit.cesit = seciliCesit();
+    if (S.altTur) kayit.alt_tur = S.altTur;
     if (false && S.secim) kayit.secim = S.secim;
     if (S.renkler && S.renkler.length) kayit.renkler = S.renkler;
     kayit.renk_secim = S.renkSecim;
@@ -655,7 +656,16 @@
   // (fotoğrafsız yazı anahtarlık; tek gövde figür anahtarlık) cümle Renkli'yi ANMAZ — ekranda yanlış vaat yok.
   var RENK_CUMLESI_RENKLI = "Renk: Siyah, Beyaz, Gri ya da Renkli (+%15; renkler fotoğrafından otomatik seçilir). ";
   var RENK_CUMLESI_TEK = "Renk: Siyah, Beyaz ya da Gri. ";
+  // ① cümlesi AÇIK kartlardan: "N seçenekten birini seç: a, b, … ya da z." (kart adları, çizim sırasıyla).
+  function birinciAciklama() {
+    var adlar = [];
+    for (var i = 0; S.galeriListe && i < S.galeriListe.length; i++) adlar.push(S.galeriListe[i].kart.ad);
+    if (!adlar.length) return "";
+    var son = adlar.pop();
+    return (adlar.length + 1) + " seçenekten birini seç: " + (adlar.length ? adlar.join(", ") + " ya da " : "") + son + ".";
+  }
   function pencereAciklamasi(n) {
+    if (n === 1) return birinciAciklama();
     var a = PENCERELER[n - 1].aciklama;
     return n === 3 && S.tur && !renkliTurde(S.tur) ? a.replace(RENK_CUMLESI_RENKLI, RENK_CUMLESI_TEK) : a;
   }
@@ -1283,11 +1293,12 @@
      ÇİZİLMEZ. Kart = türün sayılan örneğinin görseli + ad (+ kanıt etiketi: render "Örnek görsel (bilgisayar çizimi)",
      baskı "basılmış ürün" — hukuk kapısı 13:4x). Render örneği türün dürüstlük cümlesi alanı (ornek_notu)
      olmadan çizilmez (fail-closed; "" = ② kutusunda tek cümle, `durustluk` kapsar). acikKodlar: /foto/acik türleri; null = henüz bilinmiyor (kart 0). */
-  function kartOrnegi(t) {
+  // Çeşit sabitleyen kart (anahtarlık yazı/figür) yalnız KENDİ çeşidinin örneğini gösterir (örneği yoksa yer tutucu).
+  function kartOrnegi(t, cesit) {
     if (!t || F.ornekSayisi(t.kod) === 0) return null;
     for (var j = 0; j < F.ornekler.length; j++) {
       var o = F.ornekler[j];
-      if (o && o.tur === t.kod && F.ornekGecerli(o) && (F.ornekKaniti(o) !== "render" || typeof t.ornek_notu === "string")) return o;
+      if (o && o.tur === t.kod && (!cesit || (o.cesit || "") === cesit) && F.ornekGecerli(o) && (F.ornekKaniti(o) !== "render" || typeof t.ornek_notu === "string")) return o;
     }
     return null;
   }
@@ -1297,14 +1308,17 @@
     for (var i = 0; i < KARTLAR.length; i++) {
       var k = KARTLAR[i];
       if (!acikKodlar || acikKodlar.indexOf(k.tur) < 0) continue;
+      // Çeşit kartı yalnız o çeşit AÇIKSA çizilir (sayfaya yalnız düzgün çalışan model).
+      if (k.cesit && !(F.cesitler && F.cesitler[k.tur] && F.cesitAcik(k.tur, k.cesit))) continue;
       var t = F.turBul(k.tur);
       // `ornek:false` (BaBa 10 Eki 06:3x): dürüst yer tutucu — kart AKTİF kalır (disabled DEĞİL), görsel yok,
       // etiket "Örnek yakında". ornekCiz kendi rengi/URL'i UYDURMAZ, yalnız boş img.src + nötr kutu.
       if (k.ornek === false) { liste.push({ kart: k, tur: t, ornek: null, kanit: "ornek-yok" }); continue; }
-      var o = kartOrnegi(t);
-      // Madde 4: orneği olmayan kart YAKINDA kartı olarak görünür ama DEVRE DIŞI (tıklanamaz).
+      var o = kartOrnegi(t, k.cesit);
+      // Yer tutucu: orneği olmayan kart YAKINDA kartı olarak görünür ama DEVRE DIŞI (tıklanamaz).
       // Anahtarlık örneği 9 Eki'de eklendi; yakında kolu artık örneği olmayan YENİ tür içindir.
-      if (!o) { if (k.yakinda) liste.push({ kart: k, tur: t, ornek: null, kanit: "yakinda" }); continue; }
+      // Türün örneği var ama bu kartın (çeşit/alt tür) KENDİ örneği yok -> "Örnek yakında" yer tutucusu.
+      if (!o) { if (F.ornekSayisi(t.kod) > 0) liste.push({ kart: k, tur: t, ornek: null, kanit: "ornek-yok" }); continue; }
       liste.push({ kart: k, tur: t, ornek: o, kanit: F.ornekKaniti(o) });
     }
     S.galeriListe = liste;
@@ -1348,6 +1362,8 @@
     turSecimiYukle();
     if (S.kartKod && !kartListede(S.kartKod)) { S.kartKod = null; S.altTur = null; }
     kartVurgula();
+    // ① açıklaması çizilen kartlardan türer: liste değişince açık pencere 1 ise yeniden yazılır.
+    if (S.pencere === 1 && S.pencereAciklama) S.pencereAciklama.textContent = pencereAciklamasi(1);
   }
   function kartListede(kod) {
     for (var i = 0; i < S.galeriListe.length; i++) { if (S.galeriListe[i].kart.kod === kod) return S.galeriListe[i]; }
@@ -1372,6 +1388,8 @@
     kartVurgula();
     var eski = S.tur;
     S.tur = it.tur.kod;
+    // Aynı tür, başka çeşit kartı (Anahtarlık – yazı <-> Anahtarlık – figür): çeşit değişimi = cesitSec yolu.
+    if (eski === S.tur && it.kart.cesit && it.kart.cesit !== seciliCesit()) cesitSec(it.kart.cesit);
     if (eski !== S.tur) {
       // Önizleme/sepet paneli eski türe aitse sıfırlanır (eski önizleme yeni türün sepetine giremez).
       if (S.adim === "S2" || S.adim === "S3") onizlemeSifirla();
@@ -1379,7 +1397,7 @@
       S.olcu = acilisOlcusu(nt);
       S.parametre = {};
       S.renkler = [];
-      S.cesit = null;
+      S.cesit = it.kart.cesit || null;
       S.secim = varsayilanSecim(S.tur);
       cizCesit();
       // K3a: ②/③ formu (cizForm) henüz çizilmediyse S.alanOlcu/S.alanForm/... null olur; doldur* çağrısı
@@ -1401,7 +1419,7 @@
     pencereGit(2);
   }
 
-  /* ② başı: kartın foto şartı (sayfa metni ret cümlesi) + insan kartında büste yönlendirme (tek satır). */
+  /* ② başı: kartın foto şartı (sayfa metni ret cümlesi). Büst kapsam dışı: yönlendirme YOK. */
   function kartRetGuncelle(it) {
     var r = S.alanKartRet;
     if (!r) return;
@@ -1410,20 +1428,6 @@
     if (S.ornekNotP) S.ornekNotP.hidden = !S.ornekNotP.textContent;
     if (!it) return;
     r.appendChild(el("p", "foto-uretim-kart-ret", it.kart.ret));
-    if (it.kart.alt === "insan" && kartListede("bust")) {
-      var y = el("p", "foto-uretim-yonlendir");
-      var b = el("button", null, BUST_YONLENDIRME);
-      b.type = "button"; b.id = "foto-bust-yonlendir";
-      b.addEventListener("click", function () {
-        pencereGit(1);
-        var d = S.galeriKutu ? S.galeriKutu.childNodes : [];
-        for (var i = 0; i < d.length; i++) {
-          if (d[i].getAttribute("data-kart") === "bust" && typeof d[i].focus === "function") d[i].focus();
-        }
-      });
-      y.appendChild(b);
-      r.appendChild(y);
-    }
   }
 
   /* Tür seçimini URL hash (#tur=<kart>) ve sessionStorage'a yazar (13:5x; yenilemede korunur). */
@@ -1459,12 +1463,14 @@
       if (m) { try { kod = decodeURIComponent(m[1]); } catch (e) { kod = null; } }
     }
     if (!kod || !S.galeriListe) return;
+    if (Object.prototype.hasOwnProperty.call(ESKI_KART, kod)) kod = ESKI_KART[kod];
     for (var i = 0; i < S.galeriListe.length; i++) {
       var it = S.galeriListe[i];
       if (it.kart.kod === kod || it.tur.kod === kod) {
         S.kartKod = it.kart.kod;
         S.altTur = it.kart.alt;
         S.tur = it.tur.kod;
+        if (it.kart.cesit) S.cesit = it.kart.cesit;
         return;
       }
     }
@@ -1586,7 +1592,9 @@
     while (kap.firstChild) kap.removeChild(kap.firstChild);
     var k = cesitliTur() ? F.cesitler[S.tur] : null, liste = [];
     for (var i = 0; k && i < k.secenekler.length; i++) if (k.secenekler[i].acik === true) liste.push(k.secenekler[i]);
-    kap.hidden = liste.length < 2;
+    // Çeşidi kart sabitler (anahtarlık iki AYRI kart): ② çeşit düğmesi çizilmez.
+    var kart = S.kartKod ? kartListede(S.kartKod) : null;
+    kap.hidden = liste.length < 2 || !!(kart && kart.kart.cesit);
     if (kap.hidden) return;
     var secili = seciliCesit();
     var sira = el("div", "foto-uretim-cesit-dugmeler");
@@ -1915,6 +1923,11 @@
   function notAlaniGoster() {
     if (!S.alanUretimNotu) return;
     S.alanUretimNotu.hidden = !S.dosya;
+  }
+
+  // Figür kartının alt türü (insan | pet | model) önizleme isteğine: sağlayıcı istemi SUNUCUDA alt türden kurulur.
+  function altTurGovdeyeKoy(govde) {
+    if (S.tur === "figur" && S.altTur) govde.alt_tur = S.altTur;
   }
 
   function notGovdeyeKoy(govde) {
@@ -2302,10 +2315,20 @@
         S.is = kayit.is;
         // 13:5x: tür seçimi artık kullanıcı TIKINDAN (kart); otomatik ilk-açık KALMAZ.
         S.tur = kayit.tur || S.tur || null;
-        if (S.tur && (!S.kartKod || !kartListede(S.kartKod) || kartListede(S.kartKod).tur.kod !== S.tur)) {
+        // Kart = tür + (varsa) çeşit + alt tür; eski `hayvan_model` kaydı `pet` sayılır (geriye uyum). Oturum deposu
+        // yalnız türü (`figur`) taşıyınca ilk figür kartı seçilmiş olabilir: kaydın alt türü/çeşidi kartla çelişirse
+        // kart kayıttan yeniden seçilir.
+        var kAlt = typeof kayit.alt_tur === "string" ? (ESKI_KART[kayit.alt_tur] || kayit.alt_tur) : null;
+        var kMevcut = S.kartKod ? kartListede(S.kartKod) : null;
+        if (S.tur && (!kMevcut || kMevcut.tur.kod !== S.tur || (kAlt && kMevcut.kart.alt && kMevcut.kart.alt !== kAlt) ||
+            (typeof kayit.cesit === "string" && kMevcut.kart.cesit && kMevcut.kart.cesit !== kayit.cesit))) {
           S.kartKod = null; S.altTur = null;
           for (var ki = 0; ki < S.galeriListe.length; ki++) {
-            if (S.galeriListe[ki].tur.kod === S.tur) { S.kartKod = S.galeriListe[ki].kart.kod; S.altTur = S.galeriListe[ki].kart.alt; break; }
+            var gk = S.galeriListe[ki].kart;
+            if (S.galeriListe[ki].tur.kod !== S.tur) continue;
+            if (gk.cesit && typeof kayit.cesit === "string" && gk.cesit !== kayit.cesit) continue;
+            if (gk.alt && kAlt && gk.alt !== kAlt) continue;
+            S.kartKod = gk.kod; S.altTur = gk.alt; break;
           }
           kartVurgula();
         }
@@ -2461,6 +2484,7 @@
         turnstile_token: jeton
       };
       govde.gorsel = dataUrl;
+      altTurGovdeyeKoy(govde);
       notGovdeyeKoy(govde);
       if (Object.keys(formSemasi()).length) govde.parametreler = parametreGovde();
       jsonPost(ONIZLEME_URL, govde, function (ok, kod, veri) {
@@ -2542,6 +2566,7 @@
         sc.cesit = seciliCesit();
         govde.secim = sc;
       }
+      altTurGovdeyeKoy(govde);
       notGovdeyeKoy(govde);
       jsonPost(ONIZLEME_URL, govde, function (ok, kod, veri) {
         turnsSifirla(S.alanCap1);
