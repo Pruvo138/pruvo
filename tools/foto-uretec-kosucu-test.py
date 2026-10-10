@@ -100,6 +100,88 @@ if mod == "aynen":
 shutil.copyfile(a[0], a[1]); open(a[1], "ab").write(b"ONARILDI"); sys.exit(0)
 '''
 HAM_3MF = b"PK\x03\x04HAM"
+# FIGUR ZINCIRI (BaBa 22:3x) sahteleri: TEST'in kendi 3MF dunya-uzun-kenar okuyucusu (koşucudan BAGIMSIZ; Production
+# p:path bileseni + donusumler) hem sahte denge'de hem vakalarda kullanilir.
+SAHTE_OLC_KOD = r'''
+import re, zipfile
+def sahte_modeller(yol):
+    with zipfile.ZipFile(yol) as z:
+        return {n: z.read(n).decode("utf-8") for n in z.namelist() if n.endswith(".model")}
+def sahte_uzun(md):
+    ns = {}
+    for ad, x in md.items():
+        for m in re.finditer(r'<object\b[^>]*?\bid="(\d+)"[^>]*>(.*?)</object>', x, re.S):
+            vs = [tuple(float(c) for c in v) for v in re.findall(r'<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"', m.group(2))]
+            ks = [(re.search(r'p:path="/?([^"]*)"', k).group(1) if "p:path" in k else ad,
+                   re.search(r'objectid="(\d+)"', k).group(1), (re.search(r'transform="([^"]*)"', k) or [0, ""])[1])
+                  for k in re.findall(r'<component\b[^>]*>', m.group(2))]
+            ns[(ad, m.group(1))] = (vs, ks)
+    def tr(ps, t):
+        if not t:
+            return ps
+        a = [float(v) for v in t.split()]
+        return [(p[0]*a[0]+p[1]*a[3]+p[2]*a[6]+a[9], p[0]*a[1]+p[1]*a[4]+p[2]*a[7]+a[10], p[0]*a[2]+p[1]*a[5]+p[2]*a[8]+a[11]) for p in ps]
+    def pt(k):
+        vs, ks = ns.get(k, ([], []))
+        out = list(vs)
+        for kad, cid, t in ks:
+            out += tr(pt((kad, cid)), t)
+        return out
+    P = []
+    for ad, x in md.items():
+        for it in re.findall(r'<item\b[^>]*>', x):
+            P += tr(pt((ad, re.search(r'objectid="(\d+)"', it).group(1))), (re.search(r'transform="([^"]*)"', it) or [0, ""])[1])
+    return max(max(p[e] for p in P) - min(p[e] for p in P) for e in range(3)) if P else None
+'''
+# Sahte figur_duzelt (TeKiN CLI `--girdi <3mf> --cikti <dizin>` -> duzelt.3mf + tek satir DUZELT=...): FAKE_DUZELT
+# ok (vars.; kabuk birlestir = build'de yalniz ILK item, kaide = koklerin x1.1 buyumesi + <!--kaide--> isareti) |
+# denge (ayni geometri, rc 2 sebep=denge_kopma: saglayici olcusunde kopma, olcek meselesi) | rc1 | geo (rc 2 kabuk_uzak).
+SAHTE_DUZELT = r'''
+import json, os, re, sys, zipfile
+a = sys.argv[1:]; g = a[a.index("--girdi") + 1]; c = a[a.index("--cikti") + 1]; mod = os.environ.get("FAKE_DUZELT", "ok")
+open(os.environ["FAKE_LOG"], "a").write(json.dumps(["duzelt", mod]) + "\n")
+if mod == "rc1":
+    print("DUZELT=RED sebep=beklenmeyen kaide=- birlestir=-"); sys.exit(1)
+if mod == "geo":
+    print("DUZELT=RED sebep=kabuk_uzak kaide=yok birlestir=-"); sys.exit(2)
+os.makedirs(c, exist_ok=True)
+with zipfile.ZipFile(g) as z:
+    og = [(zi, z.read(zi.filename)) for zi in z.infolist()]
+ilk = [True]
+def item(m):
+    if ilk[0]:
+        ilk[0] = False
+        return m.group(0)
+    return ""
+def buyut(m):
+    return 'x="%g" y="%g" z="%g"' % tuple(float(v) * 1.1 for v in m.groups())
+with zipfile.ZipFile(os.path.join(c, "duzelt.3mf"), "w") as z:
+    for zi, b in og:
+        if zi.filename.endswith(".model"):
+            x = re.sub(r'<item\b[^>]*/>', item, b.decode("utf-8"))
+            if "<vertex" in x:
+                x = re.sub(r'x="([^"]+)" y="([^"]+)" z="([^"]+)"', buyut, x).replace("<mesh>", "<!--kaide--><mesh>", 1)
+            b = x.encode("utf-8")
+        z.writestr(zi, b)
+rc = 2 if mod == "denge" else 0
+print("DUZELT=%s sebep=%s kaide=ekle birlestir=1" % ("RED" if rc else "OK", "denge_kopma" if rc else "-")); sys.exit(rc)
+'''
+# Sahte figur_denge (`--girdi <3mf>` -> tek satir DENGE=...): kabuk = build item sayisi (>1 cok_kabuk) ·
+# FAKE_DENGE_KAIDE=zorunlu ve <!--kaide--> yok -> devrilme · uzun kenar > FAKE_DENGE_MAX_MM (vars. 1000) -> kopma ·
+# FAKE_DENGE=rc1 -> beklenmeyen rc 1. Olculen uzun kenari FAKE_LOG'a yazar.
+SAHTE_DENGE = SAHTE_OLC_KOD + r'''
+import json, os, sys
+a = sys.argv[1:]; g = a[a.index("--girdi") + 1]; md = sahte_modeller(g); L = sahte_uzun(md)
+open(os.environ["FAKE_LOG"], "a").write(json.dumps(["denge", round(L, 2)]) + "\n")
+if os.environ.get("FAKE_DENGE") == "rc1":
+    print("DENGE=RED sebep=beklenmeyen"); sys.exit(1)
+x = "".join(md.values()); kabuk = len(re.findall(r"<item\b", x)); mx = float(os.environ.get("FAKE_DENGE_MAX_MM") or 1000)
+sebep = ("cok_kabuk" if kabuk > 1 else "devrilme" if os.environ.get("FAKE_DENGE_KAIDE") == "zorunlu" and
+         "<!--kaide-->" not in x else "kopma" if L > mx else "-")
+print("DENGE=%s sebep=%s pay_mm=9.00 egim_derece=9.0 min_kesit_mm2=99.0 kabuk=%d n=20.0 sigma_varsayim=10 "
+      "max_guvenli_mm=%.1f" % ("RED" if sebep != "-" else "OK", sebep, kabuk, mx)); sys.exit(2 if sebep != "-" else 0)
+'''
+exec(SAHTE_OLC_KOD)
 # Sahte kopru `kopru_uret.py min-hesapla --kategori <kod> --girdi-mh <yol>` (TeKiN sozlesmesi): FAKE_MIN (vars. 10)
 # -> {"min_mm", "neden"}; FAKE_MIN=yok -> rc 2 (yanit yok). Cagriyi FAKE_LOG'a yazar.
 SAHTE_MIN = r'''
@@ -461,13 +543,17 @@ class Ortam:
             with open(os.path.join(self.r2, "foto", SIP, "0", "model.ham.3mf"), "wb") as f:
                 f.write(ham if isinstance(ham, bytes) else HAM_3MF)
 
-    def jen(self, kopru=True):
-        """Sahte uretec deposu; kopru=False -> uc_mf_onar.py YOK."""
-        d = os.path.join(self.d, "jen" if kopru else "jen-bos")
+    def jen(self, kopru=True, zincir=True):
+        """Sahte uretec deposu; kopru=False -> uc_mf_onar.py YOK; zincir=False -> figur_duzelt/figur_denge YOK."""
+        d = os.path.join(self.d, ("jen" if kopru else "jen-bos") + ("" if zincir else "-zincirsiz"))
         os.makedirs(os.path.join(d, "jeneratorler", "foto"), exist_ok=True)
         if kopru:
             with open(os.path.join(d, "jeneratorler", "foto", "uc_mf_onar.py"), "w") as f:
                 f.write(SAHTE_KOPRU)
+        if zincir:
+            for ad, kod in (("figur_duzelt.py", SAHTE_DUZELT), ("figur_denge.py", SAHTE_DENGE)):
+                with open(os.path.join(d, "jeneratorler", "foto", ad), "w") as f:
+                    f.write(kod)
         os.makedirs(os.path.join(d, "jeneratorler", "kopru"), exist_ok=True)
         with open(os.path.join(d, "jeneratorler", "kopru", "kopru_uret.py"), "w") as f:
             f.write(SAHTE_MIN)
@@ -792,12 +878,98 @@ def vakalar(kosucu):
     vaka("T22", t22)
     vaka("T23", t23)
     # ONARIM KUYRUGU (8 Eki 2026): 'onarim-bekliyor' -> kopru -> --olc -> model.3mf + 'hazir' ya da 'elle'.
+    # FIGUR ZINCIRI (22:3x) sonrasi onarilmis model AYNEN teslim = plaket kolu (figur turu artik zincire girer):
+    # plaket zinciri DEGISMEZ -> duzelt/denge CAGRILMAZ, model bayt-ayni onarim ciktisi.
+    def zincir_cagrilari(o):
+        return [json.loads(x)[0] for x in open(o.log) if json.loads(x)[0] in ("duzelt", "denge")]
+
     def t27(o):
-        o.onarim_is()
+        o.onarim_is(tur="plaket")
         rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen())
         u = o.uretim()
         return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
-                o.model() == HAM_3MF + b"ONARILDI"), "%s %s" % (son, u)
+                o.model() == HAM_3MF + b"ONARILDI" and zincir_cagrilari(o) == []), \
+            "%s %s zincir=%s" % (son, u, zincir_cagrilari(o))
+
+    # FIGUR ZINCIRI (insan · pet · model; BaBa 22:3x): onarim -> figur_duzelt -> olcek (KAIDE DAHIL uzun kenar =
+    # siparis olcusu) -> figur_denge. Beklenen uzun kenar testin KENDI okuyucusuyla (sahte_uzun) olculur.
+    def zincir_kos(o, olcu, ham=None, **env):
+        o.onarim_is(olcu=olcu, ham=ham or uretim_3mf())
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen(), FAKE_KOPRU="aynen", **env)
+        m = o.model()
+        L = None
+        if m:
+            y = os.path.join(o.d, "teslim.3mf")
+            with open(y, "wb") as f:
+                f.write(m)
+            L = sahte_uzun(sahte_modeller(y))
+            md = sahte_modeller(y)
+        else:
+            md = {}
+        return son, o.uretim(), m, L, "".join(md.values()), zincir_cagrilari(o), c
+
+    def olcu_tutar(L, olcu):
+        return L is not None and abs(L - olcu) <= olcu * 0.01
+
+    # FZ1 pet kaidesiz (denge: kaide yoksa devrilme) -> duzelt kaide ekler -> 138 mm OK.
+    def fz1(o):
+        son, u, m, L, x, z, c = zincir_kos(o, 138, FAKE_DENGE_KAIDE="zorunlu", FAKE_DENGE_MAX_MM="138.6")
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
+                "<!--kaide-->" in x and olcu_tutar(L, 138) and z == ["duzelt", "denge"] and
+                u["renk_sayisi"] == extruder_say(m)), "%s %s L=%s z=%s" % (son, u, L, z)
+
+    # FZ2 arac 5 kabuk -> duzelt birlestirir -> teslim modeli 1 kabuk, 130 mm OK.
+    def fz2(o):
+        son, u, m, L, x, z, c = zincir_kos(o, 130, ham=uretim_3mf(5), FAKE_DENGE_MAX_MM="300")
+        return (u["asama"] == "hazir" and len(re.findall(r"<item\b", x)) == 1 and olcu_tutar(L, 130) and
+                "kabuk=1" in c), "%s %s L=%s items=%d" % (son, u, L, len(re.findall(r"<item\b", x)))
+
+    # FZ3 insan 130 mm (tavan 105,4 ustu) -> denge RED kopma -> 'elle' uretec-red:denge-kopma, model YAZILMAZ.
+    def fz3(o):
+        son, u, m, L, x, z, c = zincir_kos(o, 130, FAKE_DUZELT="denge", FAKE_DENGE_MAX_MM="105.4")
+        return (son == "HAL=ISLEDI uretildi=0 red=1 ariza=0 rc=0" and u["asama"] == "elle" and
+                u["sebep"] == "uretec-red:denge-kopma" and m is None and z == ["duzelt", "denge"]), \
+            "%s %s z=%s" % (son, u, z)
+
+    # FZ4 insan 105 mm (duzelt saglayici olcusunde denge_kopma rc 2 verir; olcekli denge OK) -> 'hazir'.
+    def fz4(o):
+        son, u, m, L, x, z, c = zincir_kos(o, 105, FAKE_DUZELT="denge", FAKE_DENGE_MAX_MM="105.4")
+        return (u["asama"] == "hazir" and olcu_tutar(L, 105) and z == ["duzelt", "denge"]), \
+            "%s %s L=%s z=%s" % (son, u, L, z)
+
+    # FZ5 duzelt rc 1 / FZ5b rc 2 geometri reddi -> ariza (deneme+1, satir kuyrukta), denge KOSMAZ, model YOK.
+    def fz5(o, mod="rc1"):
+        son, u, m, L, x, z, c = zincir_kos(o, 120, FAKE_DUZELT=mod)
+        return (son == "HAL=ISLEDI uretildi=0 red=0 ariza=1 rc=0" and u["asama"] == "onarim-bekliyor" and
+                u["deneme"] == 1 and m is None and z == ["duzelt"]), "%s %s z=%s" % (son, u, z)
+
+    # FZ6 olcek KAIDE DAHIL: duzelt uzun kenari x1.1 buyutur; teslim uzun kenari = siparis (±%1) ve kaide isareti var.
+    def fz6(o):
+        son, u, m, L, x, z, c = zincir_kos(o, 120)
+        return (u["asama"] == "hazir" and olcu_tutar(L, 120) and "<!--kaide-->" in x), "%s %s L=%s" % (son, u, L)
+
+    # FZ7 denge rc 1 -> ariza (hazir DEGIL). FZ8 figur_duzelt betigi yok -> OLCULEMEDI, is KUYRUKTA.
+    def fz7(o):
+        son, u, m, L, x, z, c = zincir_kos(o, 120, FAKE_DENGE="rc1")
+        return (son == "HAL=ISLEDI uretildi=0 red=0 ariza=1 rc=0" and u["asama"] == "onarim-bekliyor" and
+                m is None), "%s %s" % (son, u)
+
+    def fz8(o):
+        o.onarim_is(ham=uretim_3mf())
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen(zincir=False), FAKE_KOPRU="aynen")
+        u = o.uretim()
+        return (son == "HAL=OLCULEMEDI sebep=figur-duzelt-yok rc=4" and u["asama"] == "onarim-bekliyor" and
+                u["guncel"] == GUNCEL0 and o.model() is None), "%s %s" % (son, u)
+
+    vaka("FZ1", fz1)
+    vaka("FZ2", fz2)
+    vaka("FZ3", fz3)
+    vaka("FZ4", fz4)
+    vaka("FZ5", fz5)
+    vaka("FZ5b", lambda o: fz5(o, "geo"))
+    vaka("FZ6", fz6)
+    vaka("FZ7", fz7)
+    vaka("FZ8", fz8)
 
     def t28(o):
         o.onarim_is()
@@ -892,8 +1064,8 @@ def vakalar(kosucu):
         return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and len(fg) == 1 and
                 oz == (12, (0.0, 0.0, 0.0), (10.0, 20.0, 10.0)) and
                 fg[0]["argv"][:2] == ["--konum", "tepe"] and "figur.stl" in fg[0]["argv"] and m.startswith(b"PK") and
-                m != uretim_3mf() and "konum=tepe" in c), \
-            "%s %s stl=%s fg=%s" % (son, u, oz, [x.get("argv") for x in fg])
+                m != uretim_3mf() and "konum=tepe" in c and zincir_cagrilari(o) == []), \
+            "%s %s stl=%s fg=%s zincir=%s" % (son, u, oz, [x.get("argv") for x in fg], zincir_cagrilari(o))
 
     # figur_kulak red (rc 2, >72 mm) -> 'elle' uretec-red:anahtarlik-boyut, model YAZILMAZ.
     # TUR-C2d K2: >72 mm ret sinifinda tepe -> sirt dususu YOK (uretec TEK kez cagrilir).
@@ -1392,7 +1564,7 @@ MUTANTLAR = {
     "M33": ('        raise Erisilemedi("kopru-yok")\n', "        pass\n", {"T29", "T34"}),
     # erisim yokken kira geri verilmezse satirin jetonu kayar.
     "M34": ("            d1(geri_ver_sql(i, jeton))  # onarim kuyrugu: kira geri (kopru/R2/D1 yok -> is kuyrukta)\n",
-            "            pass\n", {"T29"}),
+            "            pass\n", {"T29", "FZ8"}),
     # ham dosya yoksa kopru yine kosarsa sebep yanlis kovaya duser.
     # TUR-C2a: koşucu girdi.json `uretec` alanini yok sayarsa figur cesidi kulaksiz teslim edilir (T60).
     # TUR-C2c: --kanit-dizin kopyasi yazilmazsa uc-uca olcum araci kulak olcumlerini goremez (T63).
@@ -1478,6 +1650,18 @@ MUTANTLAR = {
             {"T13-anahtarlik", "T14", "T16", "T17", "T22", "T43", "RS1"}),
     # TUR-B ⑧: eski alan atilmazsa eski yapboz isi `RED parametre` ile duser.
     "M4-ESKI": ("    eski_alanlari_at(t.get(\"kod\"), girdi)\n", "", {"V5-ESKI"}),
+    # FIGUR ZINCIRI (22:3x): duzelt atlanirsa kaidesiz pet devrilir, 5 kabuk kalir, cagri sirasi bozulur; olcek
+    # duzeltten ONCE yapilirsa kaide uzun kenari olcunun ustune tasir (koşucu ariza / teslim olcusu tutmaz); denge
+    # RED'i hazir sayilirsa tavan ustu insan teslim edilir.
+    "M-FZ-ATLA": ('    rc, dsatir = _jen_kos(FIGUR_DUZELT_BETIK, ["--girdi", model, "--cikti", dz])\n    duz = os.path.join(dz, "duzelt.3mf")\n',
+                  '    rc, dsatir = 0, "DUZELT=atlandi"\n    duz = model\n',
+                  {"FZ1", "FZ2", "FZ3", "FZ4", "FZ5", "FZ5b", "FZ6", "FZ8"}),
+    "M-FZ-SIRA": ('    L = uc_mf_olcekle(duz, olcekli, olcu) if isinstance(olcu, int) and olcu > 0 else None\n',
+                  '    uc_mf_olcekle(model, olcekli + ".on.3mf", olcu)\n'
+                  '    _jen_kos(FIGUR_DUZELT_BETIK, ["--girdi", olcekli + ".on.3mf", "--cikti", dz + "-on"])\n'
+                  '    shutil.copyfile(os.path.join(dz + "-on", "duzelt.3mf"), olcekli)\n    L = olcu\n',
+                  {"FZ1", "FZ2", "FZ3", "FZ4", "FZ6"}),
+    "M-FZ-RED-HAZIR": ('    if rc == 0 and satir.startswith("DENGE=OK "):\n', '    if rc in (0, 2):\n', {"FZ3"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
 }
 
