@@ -142,6 +142,7 @@ for r in db.execute("SELECT siparis_no, kalem FROM foto_uretim WHERE asama='onar
         kulak = {"konum": "tepe", "dis_cap_olculen_mm": 8.0, "delik_cap_olculen_mm": 3.8, "min_et_mm": 2.1,
                  "bag_genislik_mm": 5.0}
         if os.environ.get("FAKE_KULAK_EKSIK"): kulak.pop("min_et_mm")
+        if os.environ.get("FAKE_KULAK_KONUM") is not None: kulak["konum"] = os.environ["FAKE_KULAK_KONUM"]
         json.dump({"surum": "sahte", "kulak": kulak}, open(os.path.join(k, "ozet.json"), "w"))
         open(os.path.join(k, "onizleme.png"), "wb").write(png(1024, 1024))
     db.execute("UPDATE foto_uretim SET asama='hazir' WHERE siparis_no=?", (r["siparis_no"],)); n += 1
@@ -770,6 +771,19 @@ def vakalar(kaynak, sadece=None):
         return rc == 2 and "HATA --cesit" in c and sum(o.sunucu.ayar["yonet"].values()) == 0, son
     vaka("S18", s18)
 
+    def s19(o):
+        # TUR-C2d: konum ④ ekseninde -> sirt (dusus) HAZIR ve satirda; konum yoksa (bos) ④ EKSIK.
+        rc, son, c, ay, cd = sag_figur(o, 70, FAKE_KULAK_KONUM="sirt")
+        o2 = Ortam(kaynak)
+        try:
+            rc2, son2, c2, _, _ = sag_figur(o2, 70, FAKE_KULAK_KONUM="")
+        finally:
+            o2.kapat()
+        ok = (rc == 0 and olcut(c, "anahtarlik", "4") == "HAZIR" and '"konum": "sirt"' in c and
+              rc2 == 1 and olcut(c2, "anahtarlik", "4") == "EKSIK")
+        return ok, "%s | %s" % (c[-400:], c2[-400:])
+    vaka("S19", s19)
+
     def u7(o):
         hazir_ortam(o)
         o.sunucu.ayar["acik"] = [k for k in ACIK_EVREN if k != D_TUR]
@@ -1150,7 +1164,9 @@ MUTANTLAR = {
     "MB34": ('            govde["cesit"] = tr.cesit\n', '            pass\n', {"S16", "S17"}),
     # TUR-C2c: kulak olcumu ④'ten duserse kulaksiz/eksik ozetli figur HAZIR sayilir -> S17 KIRMIZI.
     "MB35": ("            alanlar = alanlar and kulak_gecerli(tr.kulak) and bool(b)\n",
-             "            alanlar = alanlar and bool(b)\n", {"S17"}),
+             "            alanlar = alanlar and bool(b)\n", {"S17", "S19"}),
+    # TUR-C2d: konum kontrolu duserse konumsuz kanit HAZIR sayilir -> S19 KIRMIZI.
+    "MB36": ("    if kd.get(\"konum\") not in KULAK_KONUMLARI:\n        return False\n", "", {"S19"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }

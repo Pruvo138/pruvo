@@ -917,7 +917,8 @@ def esle_anahtarlik_foto(g, dizin, rh):
     if not isinstance(ad, str) or not DOSYA_ADI_KALIBI.match(ad) or not ad.endswith((".3mf", ".stl")) or \
             not os.path.isfile(os.path.join(dizin, ad)):
         raise KopruRed("gorsel")
-    konum = (g.get("parametreler") or {}).get("figur_kulak_konum", KONUM_VARSAYILAN)
+    # Onarim kolu (figur_kos) konumu zarfin `konum`unda verir (K2 tepe -> sirt dususu; musteri formu degil).
+    konum = (g.get("parametreler") or {}).get("figur_kulak_konum", g.get("konum") or KONUM_VARSAYILAN)
     if konum not in KONUM_SECENEK:
         raise KopruRed("parametre")
     return {"figur": os.path.join(dizin, ad), "konum": konum}, []
@@ -1372,18 +1373,140 @@ def onarim_figur_ureteci(i, t, gecici):
     return u if g.get("cesit") == "figur" and isinstance(u, str) and u and u == fk.get("uretec") else ""
 
 
+def _xml_ad(etiket):
+    return etiket.rsplit("}", 1)[-1]
+
+
+def _xml_yol(e):
+    """Production uzantisi `p:path` (ad alani ne olursa olsun yerel adi `path`); yoksa None."""
+    return next((v for k, v in e.attrib.items() if _xml_ad(k) == "path"), None)
+
+
+def _matris(t):
+    a = [float(x) for x in (t or "1 0 0 0 1 0 0 0 1 0 0 0").split()]
+    if len(a) != 12 or not all(math.isfinite(x) for x in a):
+        raise ValueError("transform bozuk")
+    return a
+
+
+def _matris_carp(ic, dis):
+    """Once `ic` sonra `dis` uygulanan 3MF donusumu (satir vektoru: p' = p*M + T)."""
+    m = [0.0] * 12
+    for r in range(4):
+        for c in range(3):
+            m[r * 3 + c] = sum((ic[r * 3 + k] if r < 3 else ic[9 + k]) * dis[k * 3 + c] for k in range(3)) + \
+                (dis[9 + c] if r == 3 else 0.0)
+    return m
+
+
+def figur_duzlestir(model, stl):
+    """FIGUR KOLU 3MF OKUMA (TUR-C2d, mimar K1-b): onarilmis 3MF (Production `p:path` bilesenleri DAHIL) -> TEK govde
+    ikili STL (dunya koordinati, min kose 0'a otelenmis; deterministik). figur_kulak Production bilesenini OKUYAMAZ
+    (`3mf icinde mesh nesnesi yok`). Donus: None = yazildi; aksi hata metni (cagiran 'elle' uretec-red:genel). Birden
+    cok mesh govdesi -> hata (sessiz birlestirme YOK)."""
+    import xml.etree.ElementTree as ET
+    import zipfile
+    try:
+        z = zipfile.ZipFile(model)
+    except (OSError, zipfile.BadZipFile) as e:
+        return "3mf okunamadi: %s" % type(e).__name__
+    with z:
+        kok = "3D/3dmodel.model"
+        try:
+            rels = z.read("_rels/.rels").decode("utf-8")
+            m = re.search(r'Target="/?([^"]+)"[^>]*Type="[^"]*3dmodel"|Type="[^"]*3dmodel"[^>]*Target="/?([^"]+)"', rels)
+            kok = (m.group(1) or m.group(2)) if m else kok
+        except (KeyError, UnicodeDecodeError):
+            pass
+        agaclar = {}
+
+        def nesneler(yol):
+            yol = yol.lstrip("/")
+            if yol not in agaclar:
+                try:
+                    kokel = ET.fromstring(z.read(yol))
+                except (KeyError, ET.ParseError):
+                    raise ValueError("model parcasi okunamadi: " + yol)
+                agaclar[yol] = ({e.get("id"): e for e in kokel.iter() if _xml_ad(e.tag) == "object"}, kokel)
+            return agaclar[yol]
+
+        govdeler = []
+
+        def coz(yol, oid, mat, derinlik):
+            if derinlik > 8:
+                raise ValueError("bilesen derinligi > 8")
+            nesne = nesneler(yol)[0].get(oid)
+            if nesne is None:
+                raise ValueError("nesne yok: %s#%s" % (yol, oid))
+            for e in nesne:
+                if _xml_ad(e.tag) == "mesh":
+                    govdeler.append((e, mat))
+                elif _xml_ad(e.tag) == "components":
+                    for k in e:
+                        if _xml_ad(k.tag) == "component":
+                            coz(_xml_yol(k) or yol, k.get("objectid"), _matris_carp(_matris(k.get("transform")), mat),
+                                derinlik + 1)
+
+        try:
+            for e in nesneler(kok)[1].iter():
+                if _xml_ad(e.tag) == "item":
+                    coz(_xml_yol(e) or kok, e.get("objectid"), _matris(e.get("transform")), 0)
+            if len(govdeler) != 1:
+                return ("figur cok govdeli (%d govde); tek govde gerekli" % len(govdeler)) if govdeler else \
+                    "3mf icinde mesh nesnesi yok"
+            mesh, mat = govdeler[0]
+            v, u = [], []
+            for e in mesh:
+                if _xml_ad(e.tag) == "vertices":
+                    for x in e:
+                        p = (float(x.get("x")), float(x.get("y")), float(x.get("z")))
+                        v.append(tuple(p[0] * mat[c] + p[1] * mat[3 + c] + p[2] * mat[6 + c] + mat[9 + c]
+                                       for c in range(3)))
+                elif _xml_ad(e.tag) == "triangles":
+                    u = [(int(x.get("v1")), int(x.get("v2")), int(x.get("v3"))) for x in e]
+        except (ValueError, TypeError) as e:
+            return "3mf cozulemedi: %s" % e
+    if not v or not u or any(not 0 <= k < len(v) for t in u for k in t) or \
+            not all(math.isfinite(c) for p in v for c in p):
+        return "3mf mesh bos ya da bozuk"
+    alt = [min(p[c] for p in v) for c in range(3)]
+    v = [tuple(p[c] - alt[c] for c in range(3)) for p in v]
+    with open(stl, "wb") as f:
+        f.write(b"PRUVO figur duz".ljust(80, b"\0") + struct.pack("<I", len(u)))
+        for a, b, c in u:
+            pa, pb, pc = v[a], v[b], v[c]
+            e1, e2 = [pb[k] - pa[k] for k in range(3)], [pc[k] - pa[k] for k in range(3)]
+            n = (e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0])
+            ln = math.sqrt(sum(k * k for k in n)) or 1.0
+            f.write(struct.pack("<12fH", *([k / ln for k in n] + list(pa) + list(pb) + list(pc) + [0])))
+    return None
+
+
+# K2 (TUR-C2d): once tepe; uretec YALNIZ `kulak yerlesmez (tepe)` ile reddederse AYNI iste bir kez sirt. Baska ret
+# sinifinda (>50 mm, cok bilesen, ...) dusus YOK.
+FIGUR_KONUM_SIRASI = ("tepe", "sirt")
+TEPE_RED = re.compile(r"kulak yerlesmez \(tepe\)")
+
+
 def figur_kos(i, t, uretec, model, gecici):
-    """Onarilmis figur -> cesidin ureteci (figur_kulak): zarf dosyalar.figur=figur.3mf, parametre yok (konum
-    varsayilan tepe). Donus (rc, ozet, uretilen model.3mf yolu)."""
-    gd, cd = os.path.join(gecici, "figur-girdi"), os.path.join(gecici, "figur-cikti")
+    """Onarilmis figur -> duz STL (figur_duzlestir) -> cesidin ureteci (figur_kulak): zarf dosyalar.figur=figur.stl,
+    zarf `konum` (FIGUR_KONUM_SIRASI; tepe reddi -> sirt). Donus (rc, ozet, uretilen model.3mf yolu, konum)."""
+    gd = os.path.join(gecici, "figur-girdi")
     os.makedirs(gd)
-    shutil.copyfile(model, os.path.join(gd, "figur.3mf"))
-    with open(os.path.join(gd, "girdi.json"), "w", encoding="utf-8") as f:
-        json.dump({"sozlesme": 1, "kategori": i["tur"], "siparis_no": i["siparis_no"], "kalem": i["kalem"],
-                   "olcu_mm": i["olcu_mm"], "dosyalar": {"figur": "figur.3mf"}, "parametreler": {}}, f)
+    hata = figur_duzlestir(model, os.path.join(gd, "figur.stl"))
+    if hata:
+        return 2, "RED genel: " + hata, os.path.join(gecici, "figur-yok", "model.3mf"), ""
     i["uretec"] = uretec
-    rc, ozet = uretec_kos(i, gd, cd, t)
-    return rc, ozet, os.path.join(cd, "model.3mf")
+    for konum in FIGUR_KONUM_SIRASI:
+        cd = os.path.join(gecici, "figur-cikti-" + konum)
+        with open(os.path.join(gd, "girdi.json"), "w", encoding="utf-8") as f:
+            json.dump({"sozlesme": 1, "kategori": i["tur"], "siparis_no": i["siparis_no"], "kalem": i["kalem"],
+                       "olcu_mm": i["olcu_mm"], "dosyalar": {"figur": "figur.stl"}, "parametreler": {},
+                       "konum": konum}, f)
+        rc, ozet = uretec_kos(i, gd, cd, t)
+        if not (rc == 2 and TEPE_RED.search(ozet)):
+            break
+    return rc, ozet, os.path.join(cd, "model.3mf"), konum
 
 
 def kanit_yaz(i, cd):
@@ -1416,14 +1539,15 @@ def onarim_isle(i, jeton, yaz, t=None):
         if fu == "":
             karar, sebep = "elle", "uretec-uyusmaz"
         elif fu:
-            rc, fozet, cikti = figur_kos(i, t or {}, fu, cikti, gecici)
+            rc, fozet, cikti, konum = figur_kos(i, t or {}, fu, cikti, gecici)
             if rc == 0:
                 kanit_yaz(i, os.path.dirname(cikti))
             if rc == 2:
                 karar, sebep = "elle", red_sebebi(fozet)
             elif rc != 0:
                 karar, sebep = "ariza", "uretec-ariza"
-            ozet = (ozet + " " if ozet else "") + "uretec=" + fu + ("" if rc == 0 else " rc=%s %s" % (rc, fozet))
+            ozet = (ozet + " " if ozet else "") + "uretec=" + fu + (" konum=" + konum if konum else "") + \
+                ("" if rc == 0 else " rc=%s %s" % (rc, fozet))
         if karar == "ariza" and i["deneme"] + 1 >= DENEME_TAVANI:
             karar = "elle"
         if karar == "hazir":

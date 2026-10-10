@@ -96,8 +96,10 @@ KREDI_ONIZLEME = 6
 # CESIT KOLU (TUR-C2c, --cesit figur): anahtarlik figur cesidi saglayici koluna gider (shop/src/foto.js figurKolu).
 # Olcu 45: cesit tavani (olcu_en_cok 50) KULAK DAHIL uzun kenar; saglayici figuru 45 mm, kulak payi 5 mm. Kulak
 # olcumleri koşucunun --kanit-dizin kopyasindan (figur_kulak ozet.json `kulak`) okunur; 4 alan sayi > 0 olmali.
+# TUR-C2d (K2 tepe -> sirt dususu): kullanilan `konum` da ④ ekseninde (tepe|sirt; yoksa EKSIK).
 FIGUR_OLCU_MM = 45
 KULAK_ALANLARI = ("dis_cap_olculen_mm", "delik_cap_olculen_mm", "min_et_mm", "bag_genislik_mm")
+KULAK_KONUMLARI = ("tepe", "sirt")
 KREDI_TIK = {"build-baslat": 30, "analiz": 10, "onarim": 10, "doku": 0}
 # KREDI_TIK_POST: her POST'tan sonra D1 farki tavan asimi KONTROLU (BETIK `ayir` sadece BIR SONRAKI adimi
 # gorur; cum D1 ancak POST sonrasi yakalanir). Renk adiminin kendisi 10 ama KREDI_TIK['renk']=0; zincir
@@ -923,18 +925,21 @@ def cesit_kur(tr, cesit, gecici):
 
 
 def kulak_oku(yol):
-    """figur_kulak ozet.json `kulak` -> {alan: deger} (KULAK_ALANLARI); dosya/alan yoksa None deger."""
+    """figur_kulak ozet.json `kulak` -> {alan: deger} (KULAK_ALANLARI + konum); dosya/alan yoksa None deger."""
     try:
         with open(yol, encoding="utf-8") as f:
             oz = json.load(f)
     except (OSError, ValueError):
         oz = {}
     k = oz.get("kulak") if isinstance(oz, dict) and isinstance(oz.get("kulak"), dict) else {}
-    return {a: k.get(a) for a in KULAK_ALANLARI}
+    return dict({a: k.get(a) for a in KULAK_ALANLARI}, konum=k.get("konum"))
 
 
 def kulak_gecerli(kd):
-    return all(isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0 for v in kd.values())
+    if kd.get("konum") not in KULAK_KONUMLARI:
+        return False
+    return all(isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0
+               for a, v in kd.items() if a in KULAK_ALANLARI) and all(a in kd for a in KULAK_ALANLARI)
 
 
 def onizleme_isi_yaz(tr, bulut, gecici):
