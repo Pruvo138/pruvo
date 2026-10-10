@@ -1357,7 +1357,8 @@ G2_SATIR = {
     },
     "anahtarlik": {
         "alan": {"ad": "Anahtarlık", "girdi": ["metin"], "motor": "D", "uretec": "isimlik_uret",
-                 "olcu_mm": {"en_az": 30, "en_cok": 80, "baslangic": 60},
+                 # Kopru tazele (2e07b88b, jenerator 2f13d23): anahtarlik yazi tavani 300.
+                 "olcu_mm": {"en_az": 30, "en_cok": 300, "baslangic": 60},
                  "fiyat": {"formul": "mm_x_10tl", "adim_mm": 5, "taban_tl": 600, "renk_tavani": 2},
                  "ornek_kanit_izni": ["render"], "renk_secimi": None, "palet_bolgeleri": None, "olcu_ekseni": "sabit",
                  "malzemeler": {"govde": ["PLA", "PETG"]}},
