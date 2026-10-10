@@ -306,6 +306,35 @@ def bust_zinciri(kos):
     return kirmizi
 
 
+def onizleme_zinciri(kos):
+    """R1 + R2 (RENK-ONIZLEME, Okan 10 Eki vaka bde591a7): ONIZLEME ZINCIRI — sunucunun /foto/onizleme girdi.json'u
+    (siparis_no "", renkler = VERI.paletBolgeRenkleri; bicim shop/test/foto-uretim.mjs R1/R2'nin AYNEN olctugu) ->
+    uretim esle fonksiyonu. R1 Renkli {taban: Ahşap, rolyef: Beyaz} -> iki_renk true + 2 bolge; R2 Gri -> 1 bolge."""
+    turler = {t.get("kod"): t for t in ESLE.node(MANIFEST) if isinstance(t, dict)}
+    t, rh, kirmizi = turler.get("bust"), kos.renk_tablosu(), []
+    if not t:
+        return ["R1 bust kaydi yok"]
+    d = tempfile.mkdtemp(prefix="renk-esleme-onizleme-")
+    try:
+        def zincir(renkler):
+            g = {"sozlesme": 1, "kategori": "bust", "siparis_no": "", "kalem": 0, "olcu_mm": 110, "renkler": renkler,
+                 "malzemeler": {"govde": "PLA"}, "parametreler": {"rolyef_yuksekligi_mm": 3, "ters": False},
+                 "dosyalar": ESLE._dosyalar(d)}
+            return kos.esle_fonksiyonu(t, kos.cli_tablosu().get(t.get("uretec")))(g, d, rh)
+        u, don = zincir({"taban": "Ahşap", "rolyef": "Beyaz"})
+        if not (u.get("iki_renk") is True and don == ["taban", "rolyef"] and
+                str(u.get("renk_taban")).upper() == rh["Ahşap"].upper() and
+                str(u.get("renk_rolyef")).upper() == rh["Beyaz"].upper()):
+            kirmizi.append("R1 ONIZLEME RENKLI iki_renk=%r donus=%s taban=%s rolyef=%s" % (
+                u.get("iki_renk"), don, u.get("renk_taban"), u.get("renk_rolyef")))
+        u1, d1 = zincir({"taban": "Gri"})
+        if not (u1.get("iki_renk") is False and d1 == ["taban"] and str(u1.get("renk_taban")).upper() == rh["Gri"].upper()):
+            kirmizi.append("R2 ONIZLEME GRI iki_renk=%r donus=%s taban=%s" % (u1.get("iki_renk"), d1, u1.get("renk_taban")))
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+    return kirmizi
+
+
 def yapboz_zinciri(kos):
     """V-B3 + V-B5 (BaBa 9 Eki 20:38): yapboz SIPARIS ZINCIRI — kalem (istemci gövdesi: uzun_kenar_mm/tohum ekranda YOK,
     VERI.formSunumDegeri doldurur; burada bayat 150 + tohum 1) -> siparis_girdisi -> esle_yapboz. Uretece giden
@@ -344,6 +373,7 @@ def main():
     kirmizi, tablo = kapi(KOSUCU, MANIFEST)
     kirmizi += bust_zinciri(modul("kosucu_bust_zinciri", KOSUCU))
     kirmizi += yapboz_zinciri(modul("kosucu_yapboz_zinciri", KOSUCU))
+    kirmizi += onizleme_zinciri(modul("kosucu_onizleme_zinciri", KOSUCU))
     for kod in sorted(tablo):
         print("ESLEME %-10s %s" % (kod, "BAGLI" if tablo[kod] else "KOPUK"))
     for k in kirmizi:

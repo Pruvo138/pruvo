@@ -1868,6 +1868,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
       JSON.stringify(p0.govde.parametreler) === VARSAYILAN &&
       JSON.stringify(p0.govde.secim) === JSON.stringify({ govde_malzeme: "PLA" }) &&
       e2.araliklar.includes(5000) && !e2.araliklar.includes(3000);
+    // R4 (RENK-ONIZLEME 10 Eki): palet turunun ③ renk secimi onizleme govdesinde (varsayilan ana renk Beyaz, Renkli degil).
+    s.R4_RENK_GOVDE = e2.istekler.length === 1 && JSON.stringify(p0.govde.renkler) === '["Beyaz"]' && p0.govde.renkli === false;
     // PLAKET: form {} -> alan yok, SONRA metni yok.
     const p = await ekranKos(kaynak, sentetik(VERI_KAYNAK), { acik: true, turler: [acikTur(V, "plaket")] }, null, null, { kart: "plaket" });
     const dp = [...p.bolum.agac()];
@@ -1892,6 +1894,7 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
   ol("FM4 plaket (form {}): parametre alani 0, onizleme-sonra metni 0", s0.PLAKET, JSON.stringify(s0));
   ol("FM5 onizlemesiz D: buton onay+dogrulamayla ACILIR -> /foto/onizleme kuyrugu (gorsel + parametre + secim), yoklama 5 sn",
      s0.KUYRUK, JSON.stringify([s0, s0.iz]));
+  ol("R4 palet turu (bust) onizleme govdesinde renk alani: renkler [Beyaz] + renkli false", s0.R4_RENK_GOVDE, JSON.stringify(s0.iz.govde));
   ol("FM6 TEK onay kutusu 'foto-aydinlatma-onay' aydinlatma metninin ALTINDA, D turunde ve plakette GORUNUR; eski 2 kutu 0",
     s0.TEK_KUTU_FORM && s0.TEK_KUTU_PLAKET, JSON.stringify(s0));
   ol("FM7 kutu isaretsizken 'Önizleme oluştur' DISABLED, isaretlenince acilir; govdede aydinlatma_onay + surum (eski alan 0)",
@@ -1900,7 +1903,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
     ["FM-M1 istemci kendi dogrulamasi (her sey gecerli)", "return F.parametreDogrula(S.tur, parametreGovde());", "return { ok: true };", ["AYNI_FONKSIYON", "BOOL", "ILERI_FORM"]],
     ["FM-M2 onizleme-sonra metni dustu", "S.alanOnizlemeSonra.appendChild(el(\"p\", \"foto-uretim-ayrinti\", ONIZLEME_SONRA));", "", ["ONIZLEMESIZ"]],
     ["FM-M4 uretec onizleme yonlendirmesi silindi (saglayici yoluna duser)",
-     "    if (!!(F && F.kolu && F.kolu(S.tur) === \"deterministik\")) { uretecOnizle(); return; }\n", "", ["KUYRUK"]],
+     // Saglayici yolunun govdesinde palet renkleri yok -> R4 de KIRMIZI (renk alani yalniz uretec govdesinde).
+     "    if (!!(F && F.kolu && F.kolu(S.tur) === \"deterministik\")) { uretecOnizle(); return; }\n", "", ["KUYRUK", "R4_RENK_GOVDE"]],
     ["FM-M5 uretec yoklama araligi plaketinki", "var aralik = uretec ? URETEC_YOKLAMA_MS : YOKLAMA_MS;", "var aralik = YOKLAMA_MS;", ["KUYRUK"]],
     ["FM-M6 buton kutusuz acilir (S1 kapisi silindi)",
      // TUR-B ①: S1 kosullari s1Sebep sirasinda (kapi ile cumle TEK kaynak) -> onay kosulu oradan silinir.
@@ -1912,6 +1916,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
     ["M1 sayi yine number cizilir", "g.type = \"range\"; g.min = String(sema.min);", "g.type = \"number\"; g.min = String(sema.min);",
      ["ALANLAR", "V1_NUMBER_0", "V2_RANGE_2"]],
     ["FM-M11 malzeme secimi govdeye girmez", "      if (S.secim) govde.secim = S.secim;\n", "", ["KUYRUK"]],
+    ["MR4 palet renkleri onizleme govdesine girmez",
+     "      if (F.renkPaleti(S.tur)) { govde.renkler = paletRenkleri(S.tur); govde.renkli = renkliMi(); }\n", "", ["R4_RENK_GOVDE"]],
     ["FM-MK kontrol (yorum)", "// FORM ALANLARI — türün", "// form alanlari — turun", []],
   ];
   for (const [ad, capa, yerine, olmeli] of FM_MUT) {
@@ -2907,6 +2913,93 @@ for (const [ad, capa, yerine, olmeli] of RKK_MUTANTLAR) {
   const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
   ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
      Object.keys(s).length === 4 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
+}
+
+/**
+ * RENK-ONIZLEME (Okan 10 Eki): ③'te secilen palet renkleri /foto/onizleme girdi.json'unda bolgelere sirayla
+ * (uretecGirdiJson ile AYNI esleme) — vaka: bust Renkli "Ahşap, Beyaz" onizlemesi `renkler:{}` ile TEK renk basildi.
+ * R1 bust Renkli 2 renk -> {taban, rolyef} · R2 bust Gri -> {taban:"Gri"} · R3 yapboz Renkli 4 -> renk1..4 ·
+ * KURAL bozuk renk 400 (ana renkte 2 renk / tavan asimi / palet disi), eski istemci (alan yok) 200 + {}.
+ */
+async function onizlemeRenkSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const r2 = r2Kur();
+  const yazilan = new Map(), asilPut = r2.put;
+  r2.put = async (a, v, o) => { if (typeof v === "string") { yazilan.set(a, v); } return asilPut(a, v, o); };
+  const e2 = envKur(k.d1, r2);
+  const yedek = VERI.ornekler.splice(0);
+  const s = {};
+  let ipNo = 0;
+  const varsayilan = (tur) => {
+    const p = {}, f = VERI.turBul(tur).form || {};
+    for (const a of Object.keys(f)) { if (f[a].varsayilan !== undefined) { p[a] = f[a].varsayilan; } }
+    return p;
+  };
+  const malzeme = (tur) => {
+    const m = {}, mb = VERI.turBul(tur).malzemeler || {};
+    for (const b of Object.keys(mb)) { m[b + "_malzeme"] = mb[b][0]; }
+    return m;
+  };
+  const onizle = async (tur, olcu, ek) => {
+    const govde = { ...onizlemeGovde({ tur, olcu_mm: olcu, parametreler: varsayilan(tur), secim: malzeme(tur) }), ...ek };
+    const u = "https://pruvo3d.com/api/shop/foto/onizleme";
+    const r = await fm.fotoUclari(new Request(u, { method: "POST", body: JSON.stringify(govde),
+      headers: { "CF-Connecting-IP": "10.0.7." + (++ipNo), "Content-Type": "application/json" } }), e2, new URL(u), "/foto/onizleme", null);
+    let v = null; try { v = await r.json(); } catch (e) { v = null; }
+    const gj = v && v.is ? yazilan.get("foto-uretec-onizleme/" + v.is + "/girdi.json") : null;
+    return { kod: r.status, hata: v && v.hata, renkler: gj ? JSON.parse(gj).renkler : null };
+  };
+  const esit = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const iz = {};
+  try {
+    for (const t of ["bust", "yapboz"]) {
+      VERI.ornekler.push({ tur: t, kanit: "render", olcu_mm: 120, onizleme: "https://media.pruvo3d.com/ro-o.webp",
+                           render: "https://media.pruvo3d.com/ro-r.webp", not: "t" });
+      await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES (?, 1, 'x')").bind(t).run();
+    }
+    iz.r1 = await onizle("bust", 110, { renkler: ["Ahşap", "Beyaz"], renkli: true });
+    iz.r2 = await onizle("bust", 110, { renkler: ["Gri"], renkli: false });
+    iz.r3 = await onizle("yapboz", 150, { renkler: ["Lacivert", "Kırmızı", "Sarı", "Beyaz"], renkli: true });
+    iz.anaIki = await onizle("bust", 110, { renkler: ["Gri", "Beyaz"], renkli: false });
+    iz.tavan = await onizle("bust", 110, { renkler: ["Gri", "Beyaz", "Mavi"], renkli: true });
+    iz.disi = await onizle("bust", 110, { renkler: ["Mor"], renkli: true });
+    iz.eski = await onizle("bust", 110, {});
+    s.R1 = iz.r1.kod === 200 && esit(iz.r1.renkler, { taban: "Ahşap", rolyef: "Beyaz" });
+    s.R2 = iz.r2.kod === 200 && esit(iz.r2.renkler, { taban: "Gri" });
+    s.R3 = iz.r3.kod === 200 && esit(iz.r3.renkler, { renk1: "Lacivert", renk2: "Kırmızı", renk3: "Sarı", renk4: "Beyaz" });
+    s.KURAL = [iz.anaIki, iz.tavan, iz.disi].every((x) => x.kod === 400 && x.hata === "gecersiz-renk") &&
+              iz.eski.kod === 200 && esit(iz.eski.renkler, {});
+  } finally {
+    VERI.ornekler.splice(0, VERI.ornekler.length, ...yedek);
+    k.kapat();
+  }
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+
+console.log("RO) RENK-ONIZLEME — secilen palet renkleri onizleme girdisinde (Okan 10 Eki vaka bde591a7)");
+{
+  const s = await onizlemeRenkSenaryolar(foto);
+  ol("R1 bust Renkli [Ahşap, Beyaz] -> onizleme girdi.json renkler {taban, rolyef} (2 renk)", s.R1 === true, JSON.stringify(s.iz.r1));
+  ol("R2 bust Gri -> onizleme girdi.json renkler {taban: Gri} (1 renk)", s.R2 === true, JSON.stringify(s.iz.r2));
+  ol("R3 yapboz Renkli 4 renk -> renk1..renk4 sirayla", s.R3 === true, JSON.stringify(s.iz.r3));
+  ol("R-KURAL ana renkte 2 renk / tavan asimi / palet disi -> 400 gecersiz-renk · renk alani yok (eski istemci) -> 200 {}",
+     s.KURAL === true, JSON.stringify([s.iz.anaIki, s.iz.tavan, s.iz.disi, s.iz.eski]));
+}
+const RO_MUTANTLAR = [
+  ["MR1 KOPAN HALKA GERI: onizleme girdisi yalniz bolge secimi", "renkler: { ...paletRenk, ...sc.renk }, malzemeler: sc.malzeme,",
+   "renkler: sc.renk, malzemeler: sc.malzeme,", ["R1", "R2", "R3"]],
+  ["MR2 renk kurali atlandi", "    if (!rs) { return fjson({ hata: \"gecersiz-renk\" }, 400); }\n    paletRenk",
+   "    if (!rs) { paletRenk = {}; }\n    else paletRenk", ["KURAL"]],
+  ["MR-K KONTROL (yorum)", "// PALET RENKLERI (RENK-ONIZLEME", "// PALET  RENKLERI (RENK-ONIZLEME", []],
+];
+for (const [ad, capa, yerine, olmeli] of RO_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const s = await onizlemeRenkSenaryolar(fm);
+  const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 4 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s.iz));
 }
 
 // ================================================================ DMIN — DINAMIK ALT SINIR (BaBa 14:3x)

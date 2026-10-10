@@ -1155,6 +1155,16 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
   if (oh) { return fjson({ hata: oh }, 400); }
   const sc = secimDogrula(tur.kod, g.secim);
   if (!sc) { return fjson({ hata: "gecersiz-secim" }, 400); }
+  // PALET RENKLERI (RENK-ONIZLEME, Okan 10 Eki): palet turunde secilen renkler (istemci paletRenkleri: ana renkte
+  // [renk], Renkli'de fotograftan 1..tavan) onizleme girdisinde bolgelere sirayla (uretecGirdiJson ile AYNI esleme);
+  // yoksa uretec varsayilaniyla TEK renk basardi. Alan yoksa (eski istemci) bos; bozuksa 400 (odeme kuraliyla AYNI).
+  let paletRenk = {};
+  if (VERI.renkPaleti(tur.kod) && g.renkler !== undefined) {
+    if (g.renkli !== undefined && typeof g.renkli !== "boolean") { return fjson({ hata: "gecersiz-renk" }, 400); }
+    const rs = renkSayimi(tur.kod, { renkler: g.renkler, renkli: g.renkli }, null);
+    if (!rs) { return fjson({ hata: "gecersiz-renk" }, 400); }
+    paletRenk = VERI.paletBolgeRenkleri(tur.kod, rs.renkler);
+  }
   const kayit = VERI.turBul(tur.kod);
   const dosyalar = {};
   const yazilacak = [];
@@ -1190,7 +1200,7 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
 
   const isNo = yeniIsNo();
   const girdi = { sozlesme: 1, kategori: tur.kod, siparis_no: "", kalem: 0, olcu_mm: olcu,
-                  renkler: sc.renk, malzemeler: sc.malzeme,
+                  renkler: { ...paletRenk, ...sc.renk }, malzemeler: sc.malzeme,
                   parametreler: VERI.parametreDogrula(tur.kod, g.parametreler).deger, dosyalar };
   for (const [ad, bayt, tip] of yazilacak) {
     await env.OZEL_DOSYA.put(uretecOnizlemeAnahtari(isNo, ad), bayt, { httpMetadata: { contentType: tip } });

@@ -2501,6 +2501,9 @@
       if (svgMetin) govde.svg = svgMetin;
       if (Object.keys(formSemasi()).length) govde.parametreler = parametreGovde();
       if (S.secim) govde.secim = S.secim;
+      // Palet türünde ③'te seçilen renkler (ana renkte [renk], Renkli'de fotoğraftan) önizleme girdisine gider;
+      // yoksa önizleme üretecin varsayılanıyla TEK renk basılırdı (RENK-ONIZLEME, Okan 10 Eki).
+      if (F.renkPaleti(S.tur)) { govde.renkler = paletRenkleri(S.tur); govde.renkli = renkliMi(); }
       if (cesitliTur()) {
         var sc = {};
         for (var sa in (S.secim || {})) if (Object.prototype.hasOwnProperty.call(S.secim, sa)) sc[sa] = S.secim[sa];
