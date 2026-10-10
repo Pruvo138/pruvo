@@ -1376,7 +1376,7 @@
       // Önizleme/sepet paneli eski türe aitse sıfırlanır (eski önizleme yeni türün sepetine giremez).
       if (S.adim === "S2" || S.adim === "S3") onizlemeSifirla();
       var nt = seciliTurBul();
-      S.olcu = nt && nt.olculer && nt.olculer[0] ? nt.olculer[0].mm : null;
+      S.olcu = acilisOlcusu(nt);
       S.parametre = {};
       S.renkler = [];
       S.cesit = null;
@@ -1742,11 +1742,21 @@
   // Çeşidin ölçü tavanı (figür: olcu_en_cok 72 mm, kulak dahil) varsa sürgü yalnız tavana kadar ölçüleri sunar (sunucu AYNI tavan).
   function cesitOlculeri(nt) {
     var ck = cesitKaydi();
-    if (!nt || !nt.olculer || !ck || !(ck.olcu_en_cok > 0)) return nt;
+    if (!nt || !nt.olculer || !ck || !Object.prototype.hasOwnProperty.call(ck, "olcu_en_cok")) return nt;
     var k = {};
     for (var a in nt) if (Object.prototype.hasOwnProperty.call(nt, a)) k[a] = nt[a];
-    k.olculer = nt.olculer.filter(function (o) { return o.mm <= ck.olcu_en_cok; });
+    k.olculer = nt.olculer.filter(function (o) {
+      return ck.olcu_en_cok > 0 && o.mm <= ck.olcu_en_cok && !(o.mm < ck.olcu_en_az);
+    });
     return k;
+  }
+  // SÜRGÜ AÇILIŞI (Okan 10 Eki 15:2x "60'tan başlasın"): F.olcuBaslangic sürgünün (çeşit tavanıyla süzülmüş)
+  // listesindeyse o; değilse listenin ilki (alan yoksa olcuBaslangic = en_az -> bugünkü davranış AYNEN).
+  function acilisOlcusu(nt) {
+    if (!nt || !nt.olculer || !nt.olculer.length) return null;
+    var b = F.olcuBaslangic(nt.kod);
+    for (var i = 0; i < nt.olculer.length; i++) { if (nt.olculer[i].mm === b) return b; }
+    return nt.olculer[0].mm;
   }
   function seciliTurBul() {
     if (!S.acikVeri || !S.acikVeri.turler) return null;
@@ -1793,8 +1803,11 @@
    */
   function olcuSurgusu(nt, id, girdi, degisti) {
     var kap = el("div", "foto-uretim-form-grup");
-    var sira = 0;
+    var sira = -1, acilis = acilisOlcusu(nt);
     for (var x = 0; x < nt.olculer.length; x++) { if (nt.olculer[x].mm === S.olcu) sira = x; }
+    // Seçili ölçü bu sürgüde yoksa (ör. çeşit değişti, tavan küçüldü) sürgü AÇILIŞ ölçüsüne döner.
+    for (x = 0; sira < 0 && x < nt.olculer.length; x++) { if (nt.olculer[x].mm === acilis) sira = x; }
+    if (sira < 0) sira = 0;
     S.olcu = nt.olculer[sira].mm;
     var surgu = el("input", "foto-uretim-surgu");
     surgu.type = "range"; surgu.id = id; surgu.name = id;

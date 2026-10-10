@@ -23,7 +23,7 @@
  *                    tur fiyatsiz. (Eski F9 "ek renk +100 TL" Okan 9 Eki emriyle KALKTI.)
  * MUTANTLAR (veri dosyasinin BELLEKTEKI kopyasi / foto.js'in GECICI kopyasi; agaca yazim YOK):
  *   FM1 formul ×100 · FM2 en_az yerine en_cok · FM3 adim izgarasi silindi · FM4 anahtar fail-open ·
- *   FM6 taban kalkti (F6; 10 Eki sonrasi 60 alti durak yok) · FM7 tabansiz tur fail-open (F7) · FM9 Renkli carpani dustu · FM10 PETG carpani
+ *   FM6 taban kalkti (F1,F3,F6,F9; anahtarlik 30..55 tabani gorur) · FM7 tabansiz tur fail-open (F7) · FM9 Renkli carpani dustu · FM10 PETG carpani
  *   dustu · FM11 ASA secilebilir · FM12 renk adedi yeniden ucretlenir (F9)
  *   -> hedef grup KIRMIZI; FM0 (yalniz yorum) -> hicbiri. Olcu EKSENI (X/Y'ye bakan olcum) mutanti
  *   shop/test/foto-uretim.mjs OZ-M1'de (sentetik 3MF orada).
@@ -269,10 +269,11 @@ const VERI_MUTANTLAR = [
    "return true;", ["F2"]],
   // K3a: FM5 (TURETILMIS DE IZGARAYA BAGLI) SİLİNDİ. Kalan 4 türün TAMAMI foto, hiçbiri türetilmiş değil.
   // VERI.olcuTuretilmis(kod) her zaman false → mutant no-op olurdu. null/no-op mutant YASAK.
-  // Okan 8 Eki tabani: taban kalkinca 60 mm alti olculer 600 TL'nin altina iner. Okan 10 Eki ~13:4x sonrasi gercek
-  // veride 60 mm alti durak YOK (F1/F3/F8/F9 tabani goremez) -> yalniz F6 kopya kontrol kolu (plaket 10 mm) KIRMIZI.
+  // Okan 8 Eki tabani: taban kalkinca 60 mm alti olculer 600 TL'nin altina iner. Okan 10 Eki 15:2x anahtarlik 30–300
+  // (acilis 60) sonrasi gercek veride 60 mm alti durak YENIDEN VAR (anahtarlik 30..55) -> F1/F3/F9 tabani GORUR +
+  // F6 kopya kontrol kolu (plaket 10 mm) KIRMIZI.
   ["FM6 TABAN KALKTI", "return VERI.secimliKurus(Math.max(mm * f, taban), secim);", "return VERI.secimliKurus(mm * f, secim);",
-   ["F6"]],
+   ["F1", "F3", "F6", "F9"]],
   // Tabansiz tur fail-open (taban yoksa 0 sayilir) -> F7 KIRMIZI.
   // Okan 10 Eki ~13:4x: plaket alt siniri 60; 10'a geri cekilirse F8 KIRMIZI.
   // Capa plaketin kendi yorum satirini tasir: ayni olcu_mm satiri dinamik-min ile ses turunde de gecer (tek capa sarti).
