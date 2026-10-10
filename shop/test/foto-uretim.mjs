@@ -3820,21 +3820,25 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
 }
 
 // ---------------------------------------------------------------- TUR-B (10 Eki) ① sebep cümlesi + hak · ② makine anahtarı
-// ① "Önizleme oluştur" KAPALIYKEN altında TEK cümle (ilk eksik koşul, sıra: not · foto · onay · doğrulama · hak · program);
-// hepsi tamken düğme AÇIK + cümle GİZLİ. "Bugün N/<sınır>": N sunucu yanıtından, sınır VERI'den (3 YAZILMAZ).
+// ① "Önizleme oluştur" KAPALIYKEN altında TEK cümle (ilk eksik koşul, sıra: not · foto · yazı · onay · doğrulama
+// · hak · program; ArTisT sayfa metni AYNEN); hepsi tamken düğme AÇIK + cümle GİZLİ. "Son 24 saatte kalan
+// önizleme hakkın: N/<sınır>": N sunucu yanıtından, sınır VERI'den (3 YAZILMAZ); "Bugün" YASAK.
+// yazı cümlesi YALNIZ anahtarlık + yazı çeşidi + yazı boşken (F.girdiYeterli aynı kapı).
 const SEBEP = {
   not: "Önce \"Nasıl olsun?\" kısmına kısa bir not yaz.",
   foto: "Önce fotoğrafını yükle.",
+  yazi: "Önce anahtarlığa yazılacak yazıyı gir.",
   onay: "Aydınlatma metnini okuyup onay kutusunu işaretle.",
   dogrulama: "Güvenlik doğrulaması bekleniyor.",
-  hak: "Bugünkü önizleme hakkın doldu; yarın yenilenir.",
-  program: "Önizleme şu an kapalı; biraz sonra yeniden dene.",
+  hak: "Önizleme hakkın doldu; ilk hakkın 24 saat içinde yeniden açılır.",
+  program: "Fotoğraftan sipariş şu an kapalı.",
 };
 async function sebepEkrani(kaynak, a) {
   const V = veriYukle(VERI_KAYNAK);
-  const acik = { acik: true, turler: [{ kod: "plaket", ad: V.turBul("plaket").ad, aciklama: "x", ornek_sayisi: 1,
-    olculer: V.olcuSecenekleri("plaket").map((mm) => ({ mm, fiyat_kurus: V.fiyatKurus("plaket", mm) })) }] };
-  const e = await ekranKos(kaynak, V, acik, null, { asama: "bekliyor" }, { kart: "plaket", turnstileOto: !a.dogrulamaYok,
+  const kod = a && a.kod ? a.kod : "plaket";
+  const acik = { acik: true, turler: [{ kod, ad: V.turBul(kod).ad, aciklama: "x", ornek_sayisi: 1,
+    olculer: V.olcuSecenekleri(kod).map((mm) => ({ mm, fiyat_kurus: V.fiyatKurus(kod, mm) })) }] };
+  const e = await ekranKos(kaynak, V, acik, null, { asama: "bekliyor" }, { kart: kod, turnstileOto: !a.dogrulamaYok,
     zamanlayici: true, gorselSahte: true, postKod: a.postKod, postYanit: a.postYanit });
   const id = (x) => [...e.bolum.agac()].find((n) => n.id === x) || null;
   const f = id("foto-dosya");
@@ -3864,6 +3868,7 @@ async function sebepSenaryolar(kaynak) {
   };
   s.V1_NOT = await tek("not", { notYok: true }, SEBEP.not);
   s.V1_FOTO = await tek("foto", { fotoYok: true }, SEBEP.foto);
+  s.V1_YAZI = await tek("yazi", { kod: "anahtarlik", fotoYok: true, notYok: true }, SEBEP.yazi);
   s.V1_ONAY = await tek("onay", { onayYok: true }, SEBEP.onay);
   s.V1_DOGRULAMA = await tek("dogrulama", { dogrulamaYok: true }, SEBEP.dogrulama);
   s.V1_HAK = await tek("hak", { postKod: 429, postYanit: { hata: "onizleme-siniri", sinir: VERI.sinir_ziyaretci_24s } }, SEBEP.hak);
@@ -3876,27 +3881,42 @@ async function sebepSenaryolar(kaynak) {
   const notlu = await sebepEkrani(kaynak, { fotoYok: true, onayYok: true, dogrulamaYok: true });
   iz.sira = [hepsi.sebep, notlu.sebep];
   s.V1_SIRA = hepsi.kapali && hepsi.sebep === SEBEP.not && notlu.kapali && notlu.sebep === SEBEP.foto;
-  // V2: 429 sonrası S1'de "Bugün 0/<sınır>" görünür; yanıt gelmeden sayı UYDURULMAZ (günlük sınır cümlesi).
-  s.V2_HAK = iz.hak.hak === "Bugün 0/" + VERI.sinir_ziyaretci_24s + " önizleme hakkın kaldı." &&
-    tam.hak === "Günde en çok " + VERI.sinir_ziyaretci_24s + " önizleme hakkın var.";
+  // V2: 429 sonrası S1'de sayaç sunucudan gelen N ile görünür; yanıt gelmeden sayı UYDURULMAZ (sınır cümlesi).
+  // Sayaç biçimi ArTisT'ten (ArTisT 10 Eki, birebir): "Son 24 saatte kalan önizleme hakkın: N/3.".
+  s.V2_HAK = iz.hak.hak === "Son 24 saatte kalan önizleme hakkın: 0/" + VERI.sinir_ziyaretci_24s + "." &&
+    tam.hak === "Son 24 saatte en çok " + VERI.sinir_ziyaretci_24s + " önizleme hakkın var.";
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
 }
-console.log("TB) TUR-B ① SEBEP CÜMLESİ + Bugün N/" + VERI.sinir_ziyaretci_24s);
+console.log("TB) TUR-A2 SEBEP CÜMLESİ + Son 24 saat N/" + VERI.sinir_ziyaretci_24s);
 {
   const s = await sebepSenaryolar(EKRAN_KAYNAK);
   ol("V1 not boş -> \"" + SEBEP.not + "\"", s.V1_NOT, JSON.stringify(s.iz.not));
   ol("V1 fotoğraf yok -> \"" + SEBEP.foto + "\"", s.V1_FOTO, JSON.stringify(s.iz.foto));
+  ol("V1 anahtarlık + yazı çeşidi + yazı boş -> \"" + SEBEP.yazi + "\"", s.V1_YAZI, JSON.stringify(s.iz.yazi));
   ol("V1 aydınlatma onayı yok -> \"" + SEBEP.onay + "\"", s.V1_ONAY, JSON.stringify(s.iz.onay));
   ol("V1 doğrulama yok -> \"" + SEBEP.dogrulama + "\"", s.V1_DOGRULAMA, JSON.stringify(s.iz.dogrulama));
   ol("V1 429 onizleme-siniri -> \"" + SEBEP.hak + "\"", s.V1_HAK, JSON.stringify(s.iz.hak));
   ol("V1 503 kapali -> \"" + SEBEP.program + "\"", s.V1_PROGRAM, JSON.stringify(s.iz.program));
   ol("V1 hepsi tam -> düğme AÇIK, sebep cümlesi 0 (gizli)", s.V1_TAM, JSON.stringify(s.iz.tam));
   ol("V1 sıra: çok eksikte İLK eksik (not; not varken foto)", s.V1_SIRA, JSON.stringify(s.iz.sira));
-  ol("V2 \"Bugün 0/" + VERI.sinir_ziyaretci_24s + "\" 429 sonrası görünür; yanıtsız sayı uydurulmaz", s.V2_HAK, JSON.stringify([s.iz.hak.hak, s.iz.tam.hak]));
+  ol("V2 sayaç \"Son 24 saatte kalan önizleme hakkın: 0/" + VERI.sinir_ziyaretci_24s + ".\" 429 sonrası görünür; yanıtsız sayı uydurulmaz",
+    s.V2_HAK, JSON.stringify([s.iz.hak.hak, s.iz.tam.hak]));
   const TB_MUT = [
     ["M1 sebep sırası ters", "for (var i = 0; i < sira.length; i++) { if (sira[i][0]) return sira[i][1]; }",
      "for (var i = sira.length - 1; i >= 0; i--) { if (sira[i][0]) return sira[i][1]; }", ["V1_SIRA"]],
+    ["M2 eski 'Bugünkü/yarın' sebep hak cümlesi geri geldi",
+     "hak: \"Önizleme hakkın doldu; ilk hakkın 24 saat içinde yeniden açılır.\",",
+     "hak: \"Bugünkü önizleme hakkın doldu; yarın yenilenir.\",", ["V1_HAK"]],
+    ["M3 eski 'biraz sonra' program kapalı geri geldi",
+     "program: \"Fotoğraftan sipariş şu an kapalı.\"",
+     "program: \"Önizleme şu an kapalı; biraz sonra yeniden dene.\"", ["V1_PROGRAM"]],
+    ["M4 sayaç biçimi 'Bugün N/3' geri geldi (ArTisT)",
+     "\"Son 24 saatte kalan önizleme hakkın: \" + S.kalanHak + \"/\" + F.sinir_ziyaretci_24s + \".\"",
+     "\"Bugün \" + S.kalanHak + \"/\" + F.sinir_ziyaretci_24s + \" önizleme hakkın kaldı.\"", ["V2_HAK"]],
+    ["M5 yazı cümlesi sıradan düştü",
+     "      [cesitliTur() && seciliCesit() === \"yazi\" &&",
+     "      [false,", ["V1_YAZI"]],
     ["TB-K0 KONTROL (yorum)", "  function s1Sebep() {", "  // kontrol\n  function s1Sebep() {", []],
   ];
   for (const [ad, capa, yerine, olmeli] of TB_MUT) {

@@ -1903,13 +1903,17 @@
   }
 
   // ① "Önizleme oluştur" kapalıyken gösterilen sebep — SIRA sabit: ilk eksik koşul yazılır, diğerleri yazılmaz.
+  // Cümleler ArTisT sayfa metni bölümünden ("## "Önizleme oluştur" kapalıyken sebep cümlesi") AYNEN — sıra ve
+  // söz değişmez; sabit gün ifadeleri (BAŞLANGIÇ/BTÜ ifadeleri) YASAK (kayan 24 saat; ilk hak boşalınca
+  // yenilenir; program kapalıyken beklemek bir şey değiştirmez). BaBa 05:02 hükmü 2.
   var S1_SEBEP = {
     not: "Önce \"Nasıl olsun?\" kısmına kısa bir not yaz.",
     foto: "Önce fotoğrafını yükle.",
+    yazi: "Önce anahtarlığa yazılacak yazıyı gir.",
     onay: "Aydınlatma metnini okuyup onay kutusunu işaretle.",
     dogrulama: "Güvenlik doğrulaması bekleniyor.",
-    hak: "Bugünkü önizleme hakkın doldu; yarın yenilenir.",
-    program: "Önizleme şu an kapalı; biraz sonra yeniden dene."
+    hak: "Önizleme hakkın doldu; ilk hakkın 24 saat içinde yeniden açılır.",
+    program: "Fotoğraftan sipariş şu an kapalı."
   };
   // Okan 10 Eki 01:3x "büstte not zorunlu olmasın": bu türlerde boş not düğmeyi KAPATMAZ, sebep listesinde "not" YOK.
   var NOT_ISTEGE_BAGLI_TURLER = ["bust"];
@@ -1919,6 +1923,13 @@
       // Not alanı yalnız fotoğraflı girdide çizilir (cizUretimNotu); yazılı anahtarlıkta not istenmez (TUR-C2b).
       [!notIstegeBagli(S.tur) && fotoGerekir() && !((S.uretimNotu || "").trim()), S1_SEBEP.not],
       [fotoGerekir() && !S.dosya, S1_SEBEP.foto],
+      // Anahtarlık + yazı çeşidi: yazı alanı (② "metin" formu) boşsa. cesitliTur() yalnız anahtarlıkta true
+      // (VERI.cesitler); seciliCesit() == "yazi" çeşidi figürden ayırır (figür çeşidinin fotoğraf kapısı
+      // cümle 2'de). F.girdiYeterli aynı kapıyı tutar — yeni mantık UYDURMA.
+      [cesitliTur() && seciliCesit() === "yazi" &&
+       F.girdiYeterli(S.tur, { foto: !!S.dosya, parametreler: parametreGovde(),
+         cesit: seciliCesit() }) !== "",
+       S1_SEBEP.yazi],
       [!S.aydinlatmaOnay, S1_SEBEP.onay],
       [!S.captchaToken1, S1_SEBEP.dogrulama],
       [S.kalanHak === 0, S1_SEBEP.hak],
@@ -1950,11 +1961,12 @@
       S.alanSebep.textContent = tam ? "" : sebep;
       S.alanSebep.hidden = tam || !sebep;
     }
-    // "Bugün N/<sınır>": N yalnız sunucu yanıtından; bilinmiyorsa günlük sınır cümlesi (sayı uydurulmaz).
+    // "Son 24 saatte kalan önizleme hakkın: N/3." — N yalnız sunucu yanıtından; bilinmiyorsa sınır
+    // cümlesi (sayı uydurulmaz; "Bugün" YASAK — kayan 24 saat, takvim günü değil; ArTisT).
     if (S.alanNotu) {
       S.alanNotu.textContent = typeof S.kalanHak === "number" ?
-        "Bugün " + S.kalanHak + "/" + F.sinir_ziyaretci_24s + " önizleme hakkın kaldı." :
-        "Günde en çok " + F.sinir_ziyaretci_24s + " önizleme hakkın var.";
+        "Son 24 saatte kalan önizleme hakkın: " + S.kalanHak + "/" + F.sinir_ziyaretci_24s + "." :
+        "Son 24 saatte en çok " + F.sinir_ziyaretci_24s + " önizleme hakkın var.";
     }
     btn.textContent = lit ? "Siparişe geç" : "Önizleme oluştur";
   }
