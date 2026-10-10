@@ -83,9 +83,11 @@ KAPANIS_BASH = (
 # kapanisin PARCASIDIR. KAPSAM: `send_message` TUM oturumlara gider (devir iletisi
 # baska evin oturumuna yazilir; daraltilacak hedef yok).
 # CronDelete/CronList (7 Eki BaBa): RED'de CronDelete yapilamayinca cron tiki self-clear'i dusurdu -> zombi dongu; CronCreate RED kalir.
+# SendMessage (10 Eki BaBa 13:5x): harness'ın yeni oturumlar-arası ileti aracı; send_message ile AYNI iş (devir iletisi), yeni ad.
 KAPANIS_DEVIR_ARACLARI = (
     "ToolSearch",
     "mcp__ccd_session_mgmt__send_message",
+    "SendMessage",
     "CronDelete",
     "CronList",
 )
