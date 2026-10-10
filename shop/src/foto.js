@@ -1765,7 +1765,7 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   const fk = VERI.fiyatKurus(tur.kod, mm);
   const olcu = fk > 0 ? { mm, fiyat_kurus: fk } : null;
   if (!olcu) { return { hata: { hata: "gecersiz-olcu" }, kod: 400 }; }
-  // MODEL BASINA OLCU (BaBa 22:3x): siparis olcusu isin figur alt turunun araliginda (insan 41..105, pet 60..138, model
+  // MODEL BASINA OLCU (BaBa 22:3x): siparis olcusu isin figur alt turunun araliginda (insan 41..105, pet 60..136, model
   // 60..300); tavan ustu 400 (fiyat formulu zarfa acik, modelin kumesi BURADA istenir). Modelsiz tur: olcuGecerli AYNEN.
   if (!VERI.modelOlcuGecerli(tur.kod, isAlt, mm)) { return { hata: { hata: "gecersiz-olcu" }, kod: 400 }; }
   // DINAMIK MIN (BaBa 14:3x): icerige bagli turde (ses/braille/koordinat) alt sinir onizlemede kopru min-hesapla ile

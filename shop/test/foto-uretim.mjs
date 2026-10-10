@@ -5527,9 +5527,9 @@ async function v6Istemci(kaynak) {
   const yasak = (b) => (b.textContent.match(/büst|yapboz|portre için/gi) || []).length;
   iz.dom = [yasak(e.bolum), yasak(eI.bolum), yasak(eP.bolum), eI.istisna + eP.istisna];
   s.V6_6 = JSON.stringify(iz.dom) === "[0,0,0,0]";
-  // V6-7 (BaBa 22:3x; eski "figür 60–200" iddiası MODEL BAŞINA): figür zarfı 41–300 · insan 41–105 · pet 60–138 · model
+  // V6-7 (BaBa 22:3x; eski "figür 60–200" iddiası MODEL BAŞINA): figür zarfı 41–300 · insan 41–105 · pet 60–136 · model
   // 60–300 · plaket 60–300 · anahtarlık 30–köprü tavanı AYNEN (beklenen sayılar BAĞIMSIZ). İstemci sürgüsü kartın modeline
-  // süzülür: açılış 60 mm, en uç (sürgü max) insan 105 · pet 138 · model 300 — fiyat satırı sürgüden okunur.
+  // süzülür: açılış 60 mm, en uç (sürgü max) insan 105 · pet 136 · model 300 — fiyat satırı sürgüden okunur.
   const eM = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null, { kart: "model" });
   const ar = (k) => { const a = V.olcuAraligi(k); return a ? [a.en_az, a.en_cok] : null; };
   const ma = (m) => { const a = V.modelOlcuAraligi("figur", m); return a ? [a.en_az, a.en_cok] : null; };
@@ -5537,8 +5537,8 @@ async function v6Istemci(kaynak) {
                 anahtarlik: ar("anahtarlik") };
   iz.surgu = { insan: [eI.surguFiyat[0], eI.kaydir], pet: [eP.surguFiyat[0], eP.kaydir], model: [eM.surguFiyat[0], eM.kaydir] };
   s.V6_7 = JSON.stringify(iz.aralik) ===
-      '{"figur":[41,300],"insan":[41,105],"pet":[60,138],"model":[60,300],"plaket":[60,300],"anahtarlik":[30,300]}' &&
-    JSON.stringify(iz.surgu) === '{"insan":["60 mm → 600 TL","105 mm → 1.050 TL"],"pet":["60 mm → 600 TL","138 mm → 1.380 TL"],' +
+      '{"figur":[41,300],"insan":[41,105],"pet":[60,136],"model":[60,300],"plaket":[60,300],"anahtarlik":[30,300]}' &&
+    JSON.stringify(iz.surgu) === '{"insan":["60 mm → 600 TL","105 mm → 1.050 TL"],"pet":["60 mm → 600 TL","136 mm → 1.360 TL"],' +
       '"model":["60 mm → 600 TL","300 mm → 3.000 TL"]}' &&
     V.fiyatKurus("figur", 60) === 60000 && V.fiyatKurus("plaket", 300) === 300000 && V.fiyatKurus("anahtarlik", 30) === 60000;
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
@@ -5604,7 +5604,7 @@ console.log("V6) 6 MODEL — ① kartlar · ① cümlesi · kart→istek · sunu
   ol("V6-5 eski hayvan_model: oturum kodu + iş kaydı → pet kartı (istisna 0) · sunucu hayvan_model → pet istemi", s.V6_5,
      JSON.stringify([z.eski, z.sunucu.eski]));
   ol("V6-6 DOM metninde 'büst' / 'yapboz' / 'Portre için' 0 (① + insan ② + pet ②)", s.V6_6, JSON.stringify(z.dom));
-  ol("V6-7 aralıklar MODEL BAŞINA: figür zarfı 41–300 · insan 41–105 · pet 60–138 · model 60–300 · plaket 60–300 · anahtarlık 30–300 (köprü) · istemci sürgüsü açılış 60, uç 105/138/300", s.V6_7, JSON.stringify([z.aralik, z.surgu]));
+  ol("V6-7 aralıklar MODEL BAŞINA: figür zarfı 41–300 · insan 41–105 · pet 60–136 · model 60–300 · plaket 60–300 · anahtarlık 30–300 (köprü) · istemci sürgüsü açılış 60, uç 105/136/300", s.V6_7, JSON.stringify([z.aralik, z.surgu]));
   const V6_MUT = [
     ["V6-M1 alt tür eşlemesi pet -> hayvan_model'e döner", "e", '{ kod: "pet", tur: "figur", alt: "pet",',
      // kart alt türü kayıttaki (pet) alt türle de çelişir -> kayıttan pet kartı geri yüklenemez (V6_5); sürgü modelin
@@ -5761,13 +5761,14 @@ console.log("MD) MODEL DÜZEYİNDE AÇIKLIK — D1 foto_acik model kodu · sunuc
 }
 
 // ================================================================ FG — FİGÜR ÖLÇÜSÜ MODEL BAŞINA (BaBa 10 Eki 22:3x)
-// Eski tek aralık (60–200) yerine figur kaydı `olcu_modelleri` (TEK kaynak): insan 41–105 · pet 60–138 · model 60–300
-// (tavan = TeKiN figur_denge max_guvenli_mm aşağı; insan tabanı min_guvenli_mm 40,7 yukarı); zarf 41–300, açılış 60.
+// Eski tek aralık (60–200) yerine figur kaydı `olcu_modelleri` (TEK kaynak): insan 41–105 · pet 60–136 · model 60–300
+// (tavan = TeKiN figur_denge max_guvenli_mm aşağı — pet 11 Eki 792ac60: 136,5 -> 136; insan tabanı min_guvenli_mm 40,7
+// yukarı); zarf 41–300, açılış 60. Pet SINIR vakası: 136 GEÇER (sürgü ucu) · 137 RED (hiçbir ızgarada yok -> 400).
 // Beklenen sayılar BAĞIMSIZ (kayıttan okunmaz). Sunucu önizleme ucu + sipariş kapısı modelin dışını 400 gecersiz-olcu
 // ile reddeder: her model alt/üst sınır (OK) + dışı (RED). RED değerlerinden ızgaradakiler (insan 110 · pet 50/140 ·
 // model 50) yalnız MODEL kontrolüyle düşer (fiyat formülü zarfa açık) — sunucu kontrolü kalkınca KIRMIZI yananlar onlar.
-const FG_SINIR = { insan: [41, 105], pet: [60, 138], model: [60, 300] };
-const FG_RED = { insan: [40, 110], pet: [50, 59, 140], model: [50, 59, 310] };
+const FG_SINIR = { insan: [41, 105], pet: [60, 136], model: [60, 300] };
+const FG_RED = { insan: [40, 110], pet: [50, 59, 137, 140], model: [50, 59, 310] };
 async function fgSenaryo(fm, V) {
   const s = {}, iz = {};
   const ad = ["turBul", "olcuAraligi", "olcuGecerli", "olcuSecenekleri", "fiyatKurus", "olcuBaslangic", "modelOlcuAraligi",
@@ -5788,7 +5789,8 @@ async function fgSenaryo(fm, V) {
     s.FG1 = JSON.stringify(iz.zarf) === "[41,300,60]" && JSON.stringify(iz.model) === JSON.stringify(FG_SINIR) &&
       VERI.modelOlcuAraligi("figur", "") === null && VERI.modelOlcuAraligi("figur", "hayvan_model") === null;
     s.FG2 = VERI.fiyatKurus("figur", 41) === 60000 && VERI.fiyatKurus("figur", 105) === 105000 &&
-      VERI.fiyatKurus("figur", 138) === 138000 && VERI.fiyatKurus("figur", 300) === 300000 && VERI.fiyatKurus("figur", 299) === null;
+      VERI.fiyatKurus("figur", 136) === 136000 && VERI.fiyatKurus("figur", 137) === null &&
+      VERI.fiyatKurus("figur", 138) === null && VERI.fiyatKurus("figur", 300) === 300000 && VERI.fiyatKurus("figur", 299) === null;
     // Sunucu önizleme ucu (müşteri): sınır OK -> 200 sağlayıcı 1 · dışı -> 400 gecersiz-olcu sağlayıcı 0.
     const uc = async (govde) => {
       const u = "https://pruvo3d.com/api/shop/foto/onizleme";
@@ -5831,13 +5833,13 @@ async function fgSenaryo(fm, V) {
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
 }
-console.log("FG) FİGÜR ÖLÇÜSÜ MODEL BAŞINA — insan 41–105 · pet 60–138 · model 60–300 (BaBa 22:3x; figur_denge max_guvenli_mm)");
+console.log("FG) FİGÜR ÖLÇÜSÜ MODEL BAŞINA — insan 41–105 · pet 60–136 · model 60–300 (BaBa 22:3x; figur_denge max_guvenli_mm)");
 {
   const s = await fgSenaryo(foto, veriYukle(VERI_KAYNAK));
   const z = s.iz;
-  ol("FG1 figür zarfı 41–300, açılış 60 · insan 41–105 · pet 60–138 · model 60–300 · alt türsüz/eski kod -> null", s.FG1, JSON.stringify([z.zarf, z.model]));
-  ol("FG2 fiyat: 41 -> 600 TL (taban) · 105/138/300 -> 1.050/1.380/3.000 TL · ızgara dışı 299 -> null", s.FG2, "");
-  ol("FG3 sunucu önizleme: her model alt/üst sınır 200 (sağlayıcı 1) · dışı (insan 40/110 · pet 50/59/140 · model 50/59/310) 400 gecersiz-olcu (sağlayıcı 0)", s.FG3, JSON.stringify(z.onz));
+  ol("FG1 figür zarfı 41–300, açılış 60 · insan 41–105 · pet 60–136 · model 60–300 · alt türsüz/eski kod -> null", s.FG1, JSON.stringify([z.zarf, z.model]));
+  ol("FG2 fiyat: 41 -> 600 TL (taban) · 105/136/300 -> 1.050/1.360/3.000 TL · ızgara dışı 137/138 (eski pet tavanı)/299 -> null", s.FG2, "");
+  ol("FG3 sunucu önizleme: her model alt/üst sınır 200 (sağlayıcı 1) · dışı (insan 40/110 · pet 50/59/137/140 · model 50/59/310) 400 gecersiz-olcu (sağlayıcı 0)", s.FG3, JSON.stringify(z.onz));
   ol("FG4 sipariş kapısı: her model alt/üst sınır satır · dışı 400 gecersiz-olcu", s.FG4, JSON.stringify(z.sip));
   ol("FG5 üreteç ölçü doğrulaması figür zarfı: 40 olcu-aralik-disi · 41 aralıkta", s.FG5, JSON.stringify(z.ur));
   const FG_MUT = [
@@ -5860,6 +5862,13 @@ console.log("FG) FİGÜR ÖLÇÜSÜ MODEL BAŞINA — insan 41–105 · pet 60�
     ? await fgSenaryo(foto, veriYukle(VERI_KAYNAK.replace(capaV, "          insan: { en_az: 41, en_cok: 200 },"))) : null;
   const kirV = mv ? Object.keys(mv).filter((x) => mv[x] !== true).sort() : null;
   ol("M-FG-VERI insan tavanı 200 -> KIRMIZI tam olarak [FG1,FG2,FG3,FG4]", JSON.stringify(kirV) === '["FG1","FG2","FG3","FG4"]', JSON.stringify(kirV));
+  // VERİ mutantı: pet tavanı 136 -> 138 (10 Eki eski ölçüm, 11 Eki 792ac60 GEÇERSİZ) -> 136 hiçbir ızgarada kalmaz
+  // (pet 130/138, model 130/140): FG1 aralık · FG2 136 fiyatı null + 138 fiyatlanır · FG3/FG4 pet 136 sınırı 400.
+  const capaP = "          pet: { en_az: 60, en_cok: 136 },";
+  const mp = VERI_KAYNAK.split(capaP).length === 2
+    ? await fgSenaryo(foto, veriYukle(VERI_KAYNAK.replace(capaP, "          pet: { en_az: 60, en_cok: 138 },"))) : null;
+  const kirP = mp ? Object.keys(mp).filter((x) => mp[x] !== true).sort() : null;
+  ol("M-FG-PET pet tavanı 138 (eski) -> KIRMIZI tam olarak [FG1,FG2,FG3,FG4]", JSON.stringify(kirP) === '["FG1","FG2","FG3","FG4"]', JSON.stringify(kirP));
 }
 
 // ================================================================ DZ — ANAHTARLIK–FİGÜR ② DÜRÜSTLÜK CÜMLESİ (ArTisT 874b2a85)
