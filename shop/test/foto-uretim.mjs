@@ -1628,7 +1628,7 @@ async function figurSenaryo(V) {
     s.alt = { plaket: ea("plaket"), bust: ea("bust"), anahtarlik: ea("anahtarlik"), yapboz: ea("yapboz"),
       kulak_en_cok: kulak ? kulak.olcu_en_cok : null };
     s.V4 = s.alt.plaket === 60 && s.alt.bust === 60 && s.alt.anahtarlik === 60 && s.alt.yapboz === 100 &&
-      s.alt.kulak_en_cok === 50 && foto.OLCU_MM_EN_AZ === 60;
+      s.alt.kulak_en_cok === 72 && foto.OLCU_MM_EN_AZ === 60;
     // Istemci surgusu = sunucunun /foto/acik tur kaydindaki olculer dizisi (olcuSurgusu nt.olculer[0]'dan baslar).
     const nt = foto.acikTurler(new Set(["figur"])).find((t) => t.kod === "figur");
     s.ilk = nt && nt.olculer[0] ? nt.olculer[0] : null;
@@ -1644,7 +1644,7 @@ console.log("FG) FIGUR OLCU ALT SINIRI 60 mm (Okan 10 Eki 12:4x)");
   ol("V1 figur araligi en_az 60 · en_cok 200 (60/70/200 gecerli; 59/65 gecersiz)", s.V1, JSON.stringify(s));
   ol("V2 figur 60/100/200 mm = 600/1000/2000 TL (60000/100000/200000 kurus)", s.V2, "");
   ol("V3 sunucu figur 59 mm -> olcu-aralik-disi, 60 mm kabul", s.V3, JSON.stringify({ r59: s.r59, r60: s.r60 }));
-  ol("V4 plaket 60 · bust 60 · anahtarlik 60 · yapboz 100 alt siniri (figur_kulak <=50, OLCU_MM_EN_AZ 60)", s.V4, JSON.stringify(s.alt));
+  ol("V4 plaket 60 · bust 60 · anahtarlik 60 · yapboz 100 alt siniri (figur cesidi tavani 72 kulak dahil, OLCU_MM_EN_AZ 60)", s.V4, JSON.stringify(s.alt));
   ol("V5 istemci surgu listesi figurde 60 mm (600 TL) ile baslar", s.V5, JSON.stringify(s.ilk));
   // MUTANT (kopyada): figur en_az 10'a geri -> V1/V3/V5 KIRMIZI.
   const capa = "olcu_mm: { en_az: 60, en_cok: 200 },";
@@ -1656,9 +1656,9 @@ console.log("FG) FIGUR OLCU ALT SINIRI 60 mm (Okan 10 Eki 12:4x)");
 
 // ================================================================ AH — ANAHTARLIK OLCU ALT SINIRI 60 (Okan 10 Eki ~13:4x)
 // "Anahtarlık 30 mm — 60mm yap": anahtarlik olcu_mm.en_az 60 (en_cok 80; kulak DAHİL en uzun boyut), ③ yazı alanı
-// genislik_mm min 60 = tür en_az. Figür çeşidinin tavanı (köprü figur_kulak ≤ 50 mm; VERI.cesitler TEK sabit) en_az'ın
-// ALTINDA kaldı -> 60..50 BOŞ aralık: istemci çökmez, sunucu 400 gecersiz-olcu (VA5). Figür kolu AKIŞ vakaları (B2 V7,
-// C2a-2, C2b) köprü genişlediğindeki duruma BELLEKTE taşınır: tavan 70 (60 ile 80 ARASI -> tavan kapısı ayırt edici
+// genislik_mm min 60 = tür en_az. Figür çeşidinin tavanı (B2, KraL 10 Eki: köprü 2950833, sürgü KULAK DAHİL; VERI.cesitler
+// TEK sabit) 72 -> boş aralık YOK: sürgü 60/65/70 (adım 5; 75/80 sunulmaz), sunucu 70 kabul, 75 -> 400 (VA5/VB1/VB2).
+// Figür kolu AKIŞ vakaları (B2 V7, C2a-2, C2b) BELLEKTE tavan 70 ile koşar (60 ile 80 ARASI -> tavan kapısı ayırt edici
 // kalır), ölçü 60 kabul, 75 RED. Beklenen sayılar BAĞIMSIZ (kayıttan okunmaz).
 const AH_MM = 60, KULAK_TAVAN_YAMA = 70, KULAK_TAVAN_USTU = 75;
 function kulakTavanYama(V) {
@@ -1666,7 +1666,8 @@ function kulakTavanYama(V) {
   if (c) { c.olcu_en_cok = KULAK_TAVAN_YAMA; }
   return () => { if (c) { c.olcu_en_cok = a; } };
 }
-// VA5 istemci: figür çeşidi (bellek yaması YOK) ②→④; sürgü, boş-aralık notu, düğmeler ve giden istek ölçülür.
+// VA5/VB1 istemci: figür çeşidi (bellek yaması YOK) ②→④; sürgü (en büyük konuma çekilir), boş-aralık notu, düğmeler ve
+// giden istek ölçülür.
 async function ahFigurBosIstemci(V) {
   const acikA = { acik: true, turler: [{ kod: "anahtarlik", ad: V.turBul("anahtarlik").ad, aciklama: "x", ornek_sayisi: 1,
     olculer: V.olcuSecenekleri("anahtarlik").map((mm) => ({ mm, fiyat_kurus: V.fiyatKurus("anahtarlik", mm) })) }] };
@@ -1683,7 +1684,10 @@ async function ahFigurBosIstemci(V) {
   r.ileri2 = !!ileri && ileri.disabled === false;
   if (ileri) { ileri.tetikle("click"); }
   const p3 = id("foto-pencere-3");
-  r.surgu = !!id("foto-olcu");
+  const surgu = id("foto-olcu");
+  r.surgu = !!surgu;
+  r.surguMax = surgu ? Number(surgu.max) : -1;
+  if (surgu) { surgu.value = surgu.max; surgu.tetikle("input"); surgu.tetikle("change"); }
   r.bosNot = p3 ? [...p3.agac()].some((n) => n.tagName === "P" && n.textContent === "Bu tür için ölçü seçeneği yok.") : false;
   r.ileri3 = !!ileri && ileri.disabled === false;
   if (ileri) { ileri.tetikle("click"); }
@@ -1739,18 +1743,21 @@ async function ahSenaryo(V) {
     const g = ((V.turBul("anahtarlik") || {}).form || {}).genislik_mm || {};
     iz.alan = { min: g.min, max: g.max, varsayilan: g.varsayilan, ornek: g.ornek };
     s.VA4 = g.min === 60 && g.min === a.en_az && g.max === a.en_cok && g.varsayilan === 60 && g.ornek === 60;
-    // VA5: figür çeşidi boş aralık (tavan < en_az): istemci çökmez, sürgü yok + not; sunucu 60/50 -> 400, sağlayıcı 0.
+    // VA5 (B2: boş aralık artık YOK): figür çeşidi tavanı ≥ en_az -> istemci çökmez, sürgü VAR, boş-aralık notu 0,
+    // önizleme isteği gider. VB1: sürgü TAM 3 konum (60/65/70; 75/80 sunulmaz), en büyük konumda giden ölçü 70.
+    // VB2: sunucu figür çeşidi 60/70 kabul, 75/80 (tavan 72 üstü) -> 400 gecersiz-olcu.
     const ck = VERI.cesitKaydi("anahtarlik", "figur") || {};
     iz.tavan = ck.olcu_en_cok;
     iz.ist = await ahFigurBosIstemci(V);
+    iz.f60 = await cag(figur(60)); iz.f70 = await cag(figur(70));
     const p0 = protoSayisi();
-    iz.f60 = await cag(figur(60)); iz.f50 = await cag(figur(50));
-    iz.fIstek = iz.ist.istek.length ? await cag(figur(iz.ist.istek[0].olcu)) : null;
+    iz.f75 = await cag(figur(75)); iz.f80 = await cag(figur(80));
     iz.proto = protoSayisi() - p0;
-    s.VA5 = ck.acik === true && ck.olcu_en_cok < a.en_az && iz.ist.istisna === "0:" && iz.ist.surgu === false &&
-      iz.ist.bosNot === true && iz.f60.kod === 400 && iz.f60.hata === "gecersiz-olcu" && iz.f50.kod === 400 &&
-      iz.f50.hata === "gecersiz-olcu" && (iz.fIstek === null || (iz.fIstek.kod === 400 && iz.fIstek.hata === "gecersiz-olcu")) &&
-      iz.proto === 0;
+    s.VA5 = ck.acik === true && ck.olcu_en_cok >= a.en_az && iz.ist.istisna === "0:" && iz.ist.surgu === true &&
+      iz.ist.bosNot === false && iz.ist.btnAcik === true && iz.ist.istek.length === 1 && iz.ist.istek[0].cesit === "figur";
+    s.VB1 = iz.ist.surguMax === 2 && iz.ist.istek.length === 1 && iz.ist.istek[0].olcu === 70;
+    s.VB2 = iz.f60.kod === 200 && iz.f70.kod === 200 && iz.f75.kod === 400 && iz.f75.hata === "gecersiz-olcu" &&
+      iz.f80.kod === 400 && iz.f80.hata === "gecersiz-olcu" && iz.proto === 0;
   } finally {
     for (const a of ad) { VERI[a] = yedek[a]; }
     k.kapat();
@@ -1766,15 +1773,24 @@ console.log("AH) ANAHTARLIK OLCU ALT SINIRI 60 mm (Okan 10 Eki ~13:4x) + figür 
   ol("VA3 sunucu anahtarlik yazi cesidi 59/55 mm -> 400 gecersiz-olcu, 60 mm -> 200; uretec olcu kapisi 59/55 aralik disi",
      s.VA3, JSON.stringify([s.iz.y59, s.iz.y55, s.iz.y60, s.iz.u59, s.iz.u55, s.iz.u60]));
   ol("VA4 yazi alani genislik_mm min 60 = tur en_az (max 80 = en_cok, varsayilan/ornek 60)", s.VA4, JSON.stringify(s.iz.alan));
-  ol("VA5 figur cesidi bos aralik (tavan " + s.iz.tavan + " < 60): istemci istisna 0, surgu yok + 'olcu secenegi yok' notu; sunucu 60/50 -> 400 gecersiz-olcu, saglayici 0",
-     s.VA5, JSON.stringify(s.iz.ist) + " " + JSON.stringify([s.iz.f60, s.iz.f50, s.iz.fIstek, s.iz.proto]));
-  console.log("     bilgi: VA5 istemci (gercek tavan " + s.iz.tavan + "): " + JSON.stringify(s.iz.ist) + " · istek ölçüsüyle sunucu: " + JSON.stringify(s.iz.fIstek));
+  ol("VA5 figur cesidi bos aralik YOK (tavan " + s.iz.tavan + " >= 60): istemci istisna 0, surgu VAR, 'olcu secenegi yok' notu 0, onizleme istegi gider",
+     s.VA5, JSON.stringify(s.iz.ist));
+  ol("VB1 figur cesidi surgusu 60..72 icinde: 3 konum (60/65/70), en buyuk konum 70 gider (75/80 sunulmaz)", s.VB1,
+     JSON.stringify(s.iz.ist));
+  ol("VB2 sunucu figur cesidi 60/70 kabul, 75/80 (tavan 72 ustu) -> 400 gecersiz-olcu, saglayici 0", s.VB2,
+     JSON.stringify([s.iz.f60, s.iz.f70, s.iz.f75, s.iz.f80, s.iz.proto]));
   // MUTANT (kopyada): anahtarlik en_az 30'a geri -> VA1/VA3 KIRMIZI (+VA4 alan=tür eşitliği, +VA5 aralık artık boş değil).
   const capa = "olcu_mm: { en_az: 60, en_cok: 80 },";
   const m = VERI_KAYNAK.split(capa).length === 2
     ? await ahSenaryo(veriYukle(VERI_KAYNAK.replace(capa, "olcu_mm: { en_az: 30, en_cok: 80 },"))) : null;
-  const kir = m ? ["VA1", "VA2", "VA3", "VA4", "VA5"].filter((x) => m[x] !== true) : null;
-  ol("AHM mutant anahtarlik en_az 30 -> KIRMIZI tam olarak [VA1,VA3,VA4,VA5]", JSON.stringify(kir) === '["VA1","VA3","VA4","VA5"]', JSON.stringify(kir));
+  const kir = m ? ["VA1", "VA2", "VA3", "VA4", "VA5", "VB1", "VB2"].filter((x) => m[x] !== true) : null;
+  ol("AHM mutant anahtarlik en_az 30 -> KIRMIZI tam olarak [VA1,VA3,VA4,VB1]", JSON.stringify(kir) === '["VA1","VA3","VA4","VB1"]', JSON.stringify(kir));
+  // MUTANT B2 (kopyada): figur cesidi tavani 80'e -> VB1 (5 konum, 80 gider) + VB2 (75/80 kabul) KIRMIZI.
+  const capaT = "olcu_en_cok: 72, saglayici_tur";
+  const mt = VERI_KAYNAK.split(capaT).length === 2
+    ? await ahSenaryo(veriYukle(VERI_KAYNAK.replace(capaT, "olcu_en_cok: 80, saglayici_tur"))) : null;
+  const kirT = mt ? ["VA1", "VA2", "VA3", "VA4", "VA5", "VB1", "VB2"].filter((x) => mt[x] !== true) : null;
+  ol("VBM mutant figur cesidi tavani 80 -> KIRMIZI tam olarak [VB1,VB2]", JSON.stringify(kirT) === '["VB1","VB2"]', JSON.stringify(kirT));
 }
 
 // ================================================================ PL — PLAKET OLCU ALT SINIRI 60 (Okan 10 Eki ~13:4x)
@@ -2846,7 +2862,7 @@ for (const [ad, capa, yerine, olmeli] of ORNEK_MUTANTLAR) {
 }
 
 const OLCEK_MUTANTLAR = [
-  ["OM-A OLCU KAPISI ATLANDI", "const olc = await ucmfOlcekle(ucmf.tampon, u.olcu_mm);",
+  ["OM-A OLCU KAPISI ATLANDI", "const olc = await ucmfOlcekle(ucmf.tampon, VERI.olcekHedefMm(u.olcu_mm));",
    "const olc = { tampon: ucmf.tampon, olcek: 1, L_once: u.olcu_mm, L_sonra: u.olcu_mm, z_mm: 0 };", ["BUYUK", "BOZUK", "IKIOGE", "ONARIMLI"]],
   ["OM-B OLCEK YANLIS YONE (L/olcu)", "const s = hedefMm / o.L;", "const s = o.L / hedefMm;", ["BUYUK", "ONARIMLI"]],
   ["OM-C TUTMAYAN OLCU R2'YE YAZILDI", "if (!olc.tampon) { return elleDusur(env, u, \"olcu-tutmadi\", ozet, simdi, telegram); }",
