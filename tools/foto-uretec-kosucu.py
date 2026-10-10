@@ -1492,10 +1492,11 @@ def figur_duzlestir(model, stl):
     return None
 
 
-# K2 (TUR-C2d): once tepe; uretec `kulak yerlesmez (tepe)` ile reddederse AYNI iste bir kez sirt. Baska ret
-# sinifinda (>72 mm, cok bilesen, ...) dusus YOK.
+# K2 (TUR-C2d): once tepe; uretec `kulak yerlesmez (tepe)` ya da (BaBa 16:0x 2b, ONERI c) tepe konumunda
+# `kulak dahil uzun kenar ... (konum=tepe` (291,6–300 dik figur: sirtta kulak uzun kenari buyutmez) ile reddederse
+# AYNI iste bir kez sirt; musteriye konum/ret YOK. Baska ret sinifinda (XY uzun kenar, cok bilesen, ...) dusus YOK.
 FIGUR_KONUM_SIRASI = ("tepe", "sirt")
-TEPE_RED = re.compile(r"kulak yerlesmez \(tepe\)")
+TEPE_RED = re.compile(r"kulak yerlesmez \(tepe\)|kulak dahil uzun kenar [0-9.]+ mm > [0-9.]+ mm \(konum=tepe\b")
 # FIGUR OLCU KURALI (B2, KraL 10 Eki; BaBa 14:0x "kulak dahil en uzun boyut", kopru 2950833): anahtarlik figur
 # cesidinde surgu = kulakcik DAHIL en uzun boyut (3 eksen). Sunucu ciplak figuru siparis olcusune olcekler
 # (foto-uretim-veri.js VERI.olcekHedefMm — kuralin TEK yeri); kulak sirtta ya da XY-uzun figurde uzun kenari
