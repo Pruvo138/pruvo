@@ -127,6 +127,9 @@ jobs:
       # + jeton; kanca ortamiyla kilidi BEKLER ve uzak main'i yeniden olcer (YAZ /
       # KAPSANDI / YARIS). d1-yaris-test gercek flock + gercek git fiksturu + 5 izole
       # mutant (SURVIVOR=0); canli D1'e dokunmaz.
+      # K434 IZI (10 Eki): d1-eszamanli-iz-test CLI senkron kolunun ortak git dizinine
+      # eszamanlilik satiri yazdigini, +-60 sn ozetini, 7 gun/256 KB budamasini ve iz
+      # hatasinin rc'ye SIZMADIGINI olcer (2 mutant, SURVIVOR=0); D1'e dokunmaz.
       - name: D1 seq ve tam-katalog yazici kilidi kabul testleri
         run: |
           python3 tools/d1-seq-kilit-test.py
@@ -134,6 +137,7 @@ jobs:
           python3 tools/d1-yazici-kilit-test.py
           python3 tools/d1-dagitik-kilit-test.py
           python3 tools/d1-yaris-test.py
+          python3 tools/d1-eszamanli-iz-test.py
 
       # SITEMAP DAMGA ONBELLEGI — ayni kosum/katalog/dakika olcumunde hijyen-build
       # `önbellekten 29037 · git'ten 1 · çözülemedi 0 · yürünen commit 2 · 0,6 sn`,

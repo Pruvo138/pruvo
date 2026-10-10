@@ -45,6 +45,7 @@ tukenirse kesir uretmek yerine fail-loud durur ve `--seq-normalize` ister.
 """
 
 import argparse
+from datetime import datetime, timedelta, timezone
 import fcntl
 import importlib.util
 import json
@@ -430,6 +431,8 @@ def yazici_kilidi_al(yol=None, bekleme_sn=0.0, kol="YAZICI"):
                     "yayin durdu — bu kol tam onu onler.)"
                     % (os.getpid(), gecen, bekleme_sn, kilit_yolu))
             # YARIS kendi sinifini tasir (main() -> rc=5); metin eskisiyle AYNI kalir.
+            if kol == "YAZICI":
+                _IZ["kilit_bekleme_sn"] = time.monotonic() - basla   # K434 izi
             raise YerelYaziciUcusta(
                 "!! D1 YAZICI UCUSTA — ikinci tam-katalog yazicisi fail-closed DURDU "
                 "(bekleyen PID=%d, kilit=%s%s)."
@@ -446,6 +449,8 @@ def yazici_kilidi_al(yol=None, bekleme_sn=0.0, kol="YAZICI"):
     # YAZICI kolu eski satirini AYNEN basar (komsu batarya onu ariyor). ARAC kolu her
     # wrangler cagrisinda kilit aldigi icin SESSIZDIR — ama BEKLEDIYSE (`duyuruldu`)
     # kimin ne kadar bekledigi de basilir: sessiz bekleme bu turun kapattigi arizadir.
+    if kol == "YAZICI":
+        _IZ["kilit_bekleme_sn"] = time.monotonic() - basla           # K434 izi
     if kol == "YAZICI" or duyuruldu:
         print("D1 yazici kilidi ALINDI (PID=%d, ortak-kilit=%s, kol=%s%s)"
               % (os.getpid(), kilit_yolu, kol,
@@ -1020,6 +1025,7 @@ def dosya_calistir(sql_metin):
             m = r.get("meta") or {}
             yaz += m.get("rows_written") or 0
             oku += m.get("rows_read") or 0
+        _IZ["yazilan"] += yaz                                     # K434 izi (YAZDI/BOS)
         return yaz, oku
     finally:
         os.unlink(yol)
@@ -2424,6 +2430,7 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
             taban = atanan
             sql = satir_sql(u, atanan, arama.haystack(u), h, baski)  # INSERT baski'yi da yazar
             yeni.append(sql)
+            _IZ["atanan_seq"][uid] = atanan                           # K434 izi
             # YENI satir: INSERT VALUES baski'yi DA yazar -> beklentiye baski GIRER.
             izle(izleme, uid, sql, {"hash": h, "baslik": u.get("baslik") or "",
                                     "kategori": u.get("kategori") or "", "baski": baski,
@@ -5074,6 +5081,225 @@ def kendini_test():
     return 0 if kalan[0] == 0 else 1
 
 
+# ── K434 ESZAMANLILIK IZI (10 Eki 2026; 17 Eki'de izden hukum, sonra --eszamanli-sil) ──
+# NEDEN: K434 (5 Eki) "canli >=3 eszamanli push"ta SEQ TUKENDI / YEREL_YARIS kilidi gordu;
+# sinif onarimi (407de895) main'de ama "canli >=3 eszamanli push" olcutu IZ OLMADIGI icin
+# 6 gun olculemedi. Her CLI senkron kosumu bitiste TEK satir ekler; pencere (+-60 sn)
+# icinde >=2 kosum varsa ozet satiri basilir. Dosya yazici kilidinin yanindadir (ortak
+# git dizini) -> tum worktree'ler AYNI dosyayi gorur.
+# 🔴 IZ SENKRONU DEGISTIRMEZ: iz hatasi stderr'e TEK uyari, rc/SystemExit AYNEN doner.
+# 🔴 YALNIZ CLI: modulu import edip main()'i cagiran bataryalar (gercek kilit yolunu
+#    kullananlar dahil) canli ize SAHTE kosum yazmasin diye iz `__name__ == "__main__"`
+#    kosulunda acilir; kabul testi `eszamanli_izli`'yi dogrudan cagirir.
+# 🔴 IZ BIRAKMA TAVANI: her yazimda 7 gunden eski satir duser; > 256 KB ise en eski yari.
+IZ_DOSYA_ADI = "d1-eszamanli.log"
+IZ_PENCERE_SN = 60
+IZ_SAKLAMA_SN = 7 * 86400
+IZ_TAVAN_BAYT = 256 * 1024
+TUKENDI_IMZASI = "SEQ TAM SAYI ARALIGI TUKENDI"
+_IZ = {"yazilan": 0, "kilit_bekleme_sn": 0.0, "seq_monoton": "OLCULEMEDI",
+       "atanan_seq": {}}
+
+
+def _iz_sifirla():
+    _IZ.update({"yazilan": 0, "kilit_bekleme_sn": 0.0, "seq_monoton": "OLCULEMEDI",
+                "atanan_seq": {}})
+
+
+def iz_zaman(dt):
+    return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+
+
+def iz_zaman_coz(metin):
+    return datetime.strptime(metin, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+
+
+def iz_satir_coz(satir):
+    """Doner: {"bas": dt, "bitis": dt, alan: deger...} ya da None (bozuk satir)."""
+    parca = satir.split()
+    if len(parca) < 2:
+        return None
+    try:
+        k = {"bas": iz_zaman_coz(parca[0]), "bitis": iz_zaman_coz(parca[1])}
+    except ValueError:
+        return None
+    for p in parca[2:]:
+        if "=" in p:
+            ad, deger = p.split("=", 1)
+            k[ad] = deger
+    return k
+
+
+def iz_yolu():
+    """Yazici kilidiyle AYNI ortak git dizini (yazici_kilit_yolu fail-closed sys.exit eder)."""
+    return os.path.join(os.path.dirname(yazici_kilit_yolu()), IZ_DOSYA_ADI)
+
+
+def seq_monoton_olc(urunler, mevcut_seq, atanan):
+    """Bu kosumun ATADIGI seq'ler katalog sirasinda komsulariyla kesin azalan mi? '1'/'0'.
+
+    Plan kilit ICINDE kurulur ve geri-okuma yazilani dogrular; atanan seq D1'e giden
+    degerdir. Atama yoksa bozulacak bir sey yok -> '1'."""
+    birlesik = dict(mevcut_seq or {})
+    birlesik.update(atanan)
+    sira = [u.get("id") for u in urunler if isinstance(u, dict) and u.get("id")]
+    sira = [uid for uid in dict.fromkeys(sira) if uid in birlesik]
+    for i, uid in enumerate(sira):
+        if uid not in atanan:
+            continue
+        for j, buyuk_olmali in ((i - 1, True), (i + 1, False)):
+            if 0 <= j < len(sira):
+                try:
+                    komsu, kendi = float(birlesik[sira[j]]), float(birlesik[uid])
+                except (TypeError, ValueError):
+                    continue
+                if (komsu <= kendi) if buyuk_olmali else (komsu >= kendi):
+                    return "0"
+    return "1"
+
+
+def iz_sonuc(rc, hata):
+    """Senkron kosumunun sonucunu iz sinifina indir. (rc, sonuc) doner."""
+    metin = ""
+    if isinstance(hata, SystemExit):
+        if hata.code is None or isinstance(hata.code, int):
+            rc = hata.code or 0
+        else:
+            rc, metin = 1, str(hata.code)
+    elif hata is not None:
+        rc, metin = 1, str(hata)
+    if TUKENDI_IMZASI in metin:
+        return rc, "TUKENDI"
+    if rc == 5:
+        return rc, "YEREL_YARIS"
+    if rc in (0, 4):                    # 4 = baska makine lease'i -> yazma YAPILMADI
+        return rc, "YAZDI" if (rc == 0 and _IZ["yazilan"] > 0) else "BOS"
+    return rc, "HATA"
+
+
+def iz_ekle(yol, satir, simdi):
+    """O_APPEND + TEK write; ayni flock altinda 7 gun / 256 KB budamasi. Kalan kayitlari doner."""
+    fd = os.open(yol, os.O_RDWR | os.O_APPEND | os.O_CREAT, 0o600)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        os.write(fd, satir.encode("utf-8"))
+        os.lseek(fd, 0, os.SEEK_SET)
+        parcalar = []
+        while True:
+            p = os.read(fd, 65536)
+            if not p:
+                break
+            parcalar.append(p)
+        satirlar = b"".join(parcalar).decode("utf-8", "replace").splitlines(True)
+        kalan = []
+        for s in satirlar:
+            k = iz_satir_coz(s)
+            if k and (simdi - k["bas"]).total_seconds() <= IZ_SAKLAMA_SN:
+                kalan.append(s)
+        if sum(len(s.encode("utf-8")) for s in kalan) > IZ_TAVAN_BAYT:
+            kalan = kalan[len(kalan) // 2:]
+        if kalan != satirlar:
+            os.ftruncate(fd, 0)
+            os.write(fd, "".join(kalan).encode("utf-8"))
+        return [iz_satir_coz(s) for s in kalan]
+    finally:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+        finally:
+            os.close(fd)
+
+
+def eszamanli_pencere(kayitlar, bas):
+    return [k for k in kayitlar if abs((k["bas"] - bas).total_seconds()) <= IZ_PENCERE_SN]
+
+
+def eszamanli_ozet(pencere):
+    """n >= 2 ise D1_ESZAMANLI satiri, degilse None (gurultu yok)."""
+    if len(pencere) < 2:
+        return None
+    bekleme = []
+    for k in pencere:
+        try:
+            bekleme.append(float(k.get("kilit_bekleme_sn", "0")))
+        except ValueError:
+            pass
+    return ("D1_ESZAMANLI=%d TUKENDI=%d YEREL_YARIS=%d KILIT_BEKLEME_MAX_SN=%.1f "
+            "SEQ_MONOTON=%d" % (
+                len(pencere),
+                sum(1 for k in pencere if k.get("sonuc") == "TUKENDI"),
+                sum(1 for k in pencere if k.get("sonuc") == "YEREL_YARIS"),
+                max(bekleme or [0.0]),
+                0 if any(k.get("seq_monoton") == "0" for k in pencere) else 1))
+
+
+def eszamanli_izli(govde, yol=None, simdi=None):
+    """govde()'yu kos, bitiste iz satiri ekle; rc / SystemExit / istisna AYNEN doner."""
+    _iz_sifirla()
+    bas = simdi or datetime.now(timezone.utc)
+    t0 = time.monotonic()
+    rc, hata = None, None
+    try:
+        rc = govde()
+    except BaseException as e:                                     # noqa: BLE001
+        hata = e
+    try:
+        _rc, sonuc = iz_sonuc(rc, hata)
+        bitis = bas + timedelta(seconds=time.monotonic() - t0)
+        satir = "%s %s pid=%d sonuc=%s kilit_bekleme_sn=%.1f seq_monoton=%s\n" % (
+            iz_zaman(bas), iz_zaman(bitis), os.getpid(), sonuc,
+            _IZ["kilit_bekleme_sn"], _IZ["seq_monoton"])
+        kayitlar = iz_ekle(yol or iz_yolu(), satir, bitis)
+        ozet = eszamanli_ozet(eszamanli_pencere([k for k in kayitlar if k], bas))
+        if ozet:
+            print(ozet, flush=True)
+    except (Exception, SystemExit) as e:                           # noqa: BLE001
+        neden = (str(e.code) if isinstance(e, SystemExit) else str(e)).strip()
+        sys.stderr.write("!! D1 ESZAMANLI IZI YAZILAMADI (%s: %s) — senkron sonucu "
+                         "DEGISMEDI.\n" % (type(e).__name__, (neden.splitlines() or [""])[0][:200]))
+    if hata is not None:
+        raise hata
+    return rc
+
+
+def eszamanli_rapor(yol=None, simdi=None):
+    """Son 7 gunun ozeti TEK satir (salt okuma; dosya yoksa sifirlar)."""
+    simdi = simdi or datetime.now(timezone.utc)
+    yol = yol or iz_yolu()
+    kayitlar = []
+    if os.path.exists(yol):
+        with open(yol, encoding="utf-8", errors="replace") as f:
+            for s in f:
+                k = iz_satir_coz(s)
+                if k and (simdi - k["bas"]).total_seconds() <= IZ_SAKLAMA_SN:
+                    kayitlar.append(k)
+    kayitlar.sort(key=lambda k: k["bas"])
+    en_buyuk = max([len(eszamanli_pencere(kayitlar, k["bas"])) for k in kayitlar] or [0])
+    # OLAY = +-60 sn zinciriyle bagli, >=2 kosumlu kume.
+    olay, kume, onceki = 0, 0, None
+    for k in kayitlar:
+        if onceki is not None and (k["bas"] - onceki).total_seconds() <= IZ_PENCERE_SN:
+            kume += 1
+        else:
+            olay += 1 if kume >= 2 else 0
+            kume = 1
+        onceki = k["bas"]
+    olay += 1 if kume >= 2 else 0
+    return ("D1_ESZAMANLI_RAPOR gun=7 kosum=%d eszamanli_olay=%d en_buyuk_n=%d tukendi=%d "
+            "yerel_yaris=%d seq_monoton_ihlal=%d" % (
+                len(kayitlar), olay, en_buyuk,
+                sum(1 for k in kayitlar if k.get("sonuc") == "TUKENDI"),
+                sum(1 for k in kayitlar if k.get("sonuc") == "YEREL_YARIS"),
+                sum(1 for k in kayitlar if k.get("seq_monoton") == "0")))
+
+
+def eszamanli_sil(yol=None):
+    yol = yol or iz_yolu()
+    if os.path.exists(yol):
+        os.remove(yol)
+        return "D1_ESZAMANLI_SIL=SILINDI yol=%s" % yol
+    return "D1_ESZAMANLI_SIL=YOKTU yol=%s" % yol
+
+
 def argumanlari_oku():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sema", action="store_true", help="semayi kur")
@@ -5114,6 +5340,11 @@ def argumanlari_oku():
     # + 0; gercek hata → d1-sync.py'nin rc'si disari (fail-closed).
     ap.add_argument("--adim", action="store_true",
                     help="CI senkron adimi: secret/bayatlik/rc=4 tek Python surecinde.")
+    # K434 ESZAMANLILIK IZI (bkz. IZ_DOSYA_ADI blogu) — ikisi de D1'e DOKUNMAZ.
+    ap.add_argument("--eszamanli-rapor", action="store_true", dest="eszamanli_rapor",
+                    help="son 7 gun D1 senkron eszamanlilik izi ozeti (tek satir)")
+    ap.add_argument("--eszamanli-sil", action="store_true", dest="eszamanli_sil",
+                    help="eszamanlilik izi dosyasini sil (K434 kapanisi)")
     return ap.parse_args()
 
 
@@ -5461,8 +5692,13 @@ def _main(a):
     # degere gelmeli" kaydini buraya birakir; yazmadan SONRA bu kayit D1'den geri okunup
     # dogrulanir (bkz. GERI_OKUMA_KOLONLARI bloku).
     izleme = []
+    _IZ["atanan_seq"] = {}
     yeni, degisen, baski_guncelle, silinen, gorulen = diff_plan(
         urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq, izleme)
+    try:                                                          # K434 izi: olcum, karar DEGIL
+        _IZ["seq_monoton"] = seq_monoton_olc(urunler, mevcut_seq, _IZ["atanan_seq"])
+    except Exception:                                             # noqa: BLE001
+        _IZ["seq_monoton"] = "OLCULEMEDI"
     # TABAN FIYAT senkronu: baski'dan BAGIMSIZ + HASH'ten bagimsiz (git'te oldugu icin
     # yetki kapisi da yok — CI da yerel de ayni degeri gorur). Yeni urun taban_fiyat'i
     # INSERT DEFAULT 0 alir, bu UPDATE (ifade sirasinda INSERT'ten SONRA) fiyatini yazar.
@@ -5683,7 +5919,7 @@ def _adim_kos():
     return senkron.returncode
 
 
-def main():
+def main(_izli=False):
     """Yerel flock + D1 lease'i tum okuma-planlama-yazma-dogrulama boyunca tut.
 
     Cikis kodu:
@@ -5697,6 +5933,18 @@ def main():
     a = argumanlari_oku()
     if a.adim:
         return _adim_kos()
+    if a.eszamanli_rapor:
+        print(eszamanli_rapor())
+        return 0
+    if a.eszamanli_sil:
+        print(eszamanli_sil())
+        return 0
+    # K434 IZI: yalniz CLI'dan kosan SENKRON yazici kolu (pre-push/CI/uzlastirici cagrisi);
+    # --sema / --seq-normalize iz DISI. Iz senkronun rc'sini DEGISTIRMEZ. Kilit kablosu
+    # (yerel+dagitik al, finally birak) bu fonksiyonda KALIR; iz onu disaridan sarar.
+    if (__name__ == "__main__" and not _izli and yazici_yolu_mu(a)
+            and not (a.sema or a.seq_normalize)):
+        return eszamanli_izli(lambda: main(_izli=True))
     # YEREL YARIS (26 Eyl) — bkz. YARIS_RC blogu. Ortam degiskeni yoksa bekleme 0 =
     # eski davranis (aninda durur), yalniz rc 1 yerine YARIS_RC + jeton.
     try:
