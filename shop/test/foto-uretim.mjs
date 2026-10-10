@@ -1822,6 +1822,14 @@ console.log("AH) ANAHTARLIK OLCU 30–300 (kopru 80), ACILIS 60 (Okan 10 Eki 15:
   ol("VO3S sahte kopru 300: 30/60/300 mm = 600/600/3000 TL", !!V3 && V3.fiyatKurus("anahtarlik", 30) === 60000 &&
      V3.fiyatKurus("anahtarlik", 60) === 60000 && V3.fiyatKurus("anahtarlik", 300) === 300000, "");
   ol("VO5S sahte kopru 300: figur cesidi tavani 300 (elle sabit yok)", !!V3 && V3.cesitKaydi("anahtarlik", "figur").olcu_en_cok === 300, "");
+  // VO9: sunucu 400 gecersiz-olcu / olcu-aralik-disi -> genel cümle DEĞİL ölçü cümlesi (aralık sürgüden: figür 60–70).
+  const V9 = veriYukle(VERI_KAYNAK);
+  const r9 = await ahFigurBosIstemci(V9, null, { postKod: 400, postYanit: { hata: "gecersiz-olcu" } });
+  const r9b = await ahFigurBosIstemci(V9, null, { postKod: 400, postYanit: { hata: "olcu-aralik-disi" } });
+  const olcuCumle = "Seçtiğin ölçü bu ürün için sunulmuyor; ölçüyü 60–70 mm arasında seçip tekrar dene.";
+  ol("VO9 400 gecersiz-olcu / olcu-aralik-disi -> olcu cumlesi (genel 'hazirlanamiyor' 0)",
+     JSON.stringify(r9.mesaj) === JSON.stringify([olcuCumle]) && JSON.stringify(r9b.mesaj) === JSON.stringify([olcuCumle]),
+     JSON.stringify([r9.mesaj, r9b.mesaj]));
   const H = ["VO1", "VO2", "VO3", "VO4", "VA4", "VA5", "VB1", "VB2", "VO5", "VO6", "VO7"];
   const mk = async (ad_, capa, yeni, bek, kaynakMu) => {
     const ks = kaynakMu ? EKRAN_KAYNAK : VERI_KAYNAK;
