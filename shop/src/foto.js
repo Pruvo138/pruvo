@@ -135,6 +135,18 @@ async function isCesidi(env, isNo) {
   const r = await env.KATALOG.prepare("SELECT cesit FROM foto_isler WHERE is_no = ?").bind(isNo).first();
   return r && typeof r.cesit === "string" ? r.cesit : "";
 }
+/**
+ * Is satirinin figur ALT TURU (D1 foto_isler.alt_tur; siparis kapisi modeli bundan cozer). Satir/sutun yok ya da okuma
+ * herhangi bir hatayla dusuyorsa "" -> figur modeli cozulmez -> KAPALI (fail-closed; goc oncesi semada da 500 YOK).
+ */
+async function isAltTuru(env, isNo) {
+  try {
+    const r = await env.KATALOG.prepare("SELECT alt_tur FROM foto_isler WHERE is_no = ?").bind(isNo).first();
+    return r && typeof r.alt_tur === "string" ? r.alt_tur : "";
+  } catch (e) {
+    return "";
+  }
+}
 /** Tur basina olcu araligi (kayittan); plaket kaydi OLCU_MM_EN_AZ/EN_COK ile AYNI. */
 function olcuAraligi(kod) {
   return VERI.olcuAraligi(kod) || { en_az: OLCU_MM_EN_AZ, en_cok: OLCU_MM_EN_COK };
@@ -240,6 +252,40 @@ export function figurAltTurCoz(x) {
 export function figurIstemi(tur, cesit, altTur) {
   const a = tur === "figur" && !cesit ? figurAltTurCoz(altTur) : "";
   return a ? FIGUR_ALT_ISTEM[a] : "";
+}
+
+/**
+ * 6 MODEL (Okan 10 Eki: "canlida YALNIZ gecen model"): acilis anahtari MODEL duzeyinde. D1 `foto_acik.tur` model
+ * kodunu tasir; modelli turun (anahtarlik, figur) ESKI tur satiri ('anahtarlik' / 'figur') tek basina HICBIR modeli
+ * acmaz (fail-closed). Modelsiz tur (bust, yapboz, litofan, ...) tur koduyla acilir (bugunku gibi); plaket: model
+ * kodu = tur kodu. Kod/sira/ad istemci KARTLAR ile AYNI (foto-uretim.js). Goc: tools/d1-goc/2026-10-10-foto-model-acik.sql
+ */
+export const MODELLER = Object.freeze([
+  Object.freeze({ kod: "anahtarlik_yazi", tur: "anahtarlik", cesit: "yazi", alt: "", ad: "Anahtarlık – yazı" }),
+  Object.freeze({ kod: "insan", tur: "figur", cesit: "", alt: "insan", ad: "İnsan figürü (ayakta)" }),
+  Object.freeze({ kod: "pet", tur: "figur", cesit: "", alt: "pet", ad: "Pet figürü (ayakta)" }),
+  Object.freeze({ kod: "plaket", tur: "plaket", cesit: "", alt: "", ad: "Kabartma plaket" }),
+  Object.freeze({ kod: "anahtarlik_figur", tur: "anahtarlik", cesit: "figur", alt: "", ad: "Anahtarlık – figür" }),
+  Object.freeze({ kod: "model", tur: "figur", cesit: "", alt: "model", ad: "Model figür" }),
+]);
+/** Modelli tur: modeli tur kodundan FARKLI kodla acilan tur (anahtarlik, figur). */
+export function modelliTur(tur) { return MODELLER.some((m) => m.tur === tur && m.kod !== tur); }
+/**
+ * Istegin / isin MODEL KODU: tur + cesit ('' / undefined = turun varsayilan cesidi) + figur alt turu (figurAltTurCoz;
+ * eski hayvan_model -> pet). Modelsiz tur -> tur kodu. Cozulemeyen (alt tursuz figur, kume disi) -> "" = KAPALI.
+ */
+export function modelKodu(tur, cesit, altTur) {
+  if (typeof tur !== "string") { return ""; }
+  if (!modelliTur(tur)) { return tur; }
+  const c = cesit ? cesit : (VERI.cesitCoz(tur, undefined) || "");
+  const a = tur === "figur" && !cesit ? (figurAltTurCoz(altTur) || "") : "";
+  const m = MODELLER.find((x) => x.tur === tur && x.cesit === c && x.alt === a);
+  return m ? m.kod : "";
+}
+/** Model acik mi: model kodu cozulur VE acilis anahtarinda (acikAnahtari kumesi) VAR. */
+export function modelAcik(acik, tur, cesit, altTur) {
+  const k = modelKodu(tur, cesit, altTur);
+  return !!k && acik instanceof Set && acik.has(k);
 }
 
 /** Bir siparis kalemi en cok kac adet (ayni dosyadan coklu baski). */
@@ -400,7 +446,8 @@ export function ornekYapilandirma(env) {
  * ACILIS ANAHTARI (Okan 7 Eki 15:4x: fiyat tablosu KALKTI). Eskiden bir turun ACIK olmasi = fiyat
  * tablosunda satiri var demekti (11:2x kapatmasi satirlar silinerek yapildi); o anahtar burada ACIK
  * yazilir: D1 `foto_acik` (tur, acik). VARSAYILAN KAPALI — satir yok, acik != 1, tablo yok ya da
- * okuma HERHANGI bir hatayla dusuyorsa o tur KAPALI (fail-closed). Donus: acik tur kodlari (Set).
+ * okuma HERHANGI bir hatayla dusuyorsa o tur KAPALI (fail-closed). Donus: acik kodlar (Set; model kodu ya da
+ * modelsiz tur kodu — MODELLER).
  */
 export async function acikAnahtari(env) {
   try {
@@ -418,7 +465,8 @@ export async function acikAnahtari(env) {
 export function acikTurler(acik) {
   const kume = acik instanceof Set ? acik : new Set();
   return VERI.turler
-    .filter((t) => kume.has(t.kod))
+    // Modelli tur: modellerinden en az biri acik (tur satiri tek basina ACMAZ); modelsiz tur: kendi kodu.
+    .filter((t) => (modelliTur(t.kod) ? MODELLER.some((m) => m.tur === t.kod && kume.has(m.kod)) : kume.has(t.kod)))
     .filter((t) => turSunuluyor(t.kod))
     .filter((t) => VERI.ornekSayisi(t.kod) > 0)
     .map((t) => ({
@@ -935,17 +983,22 @@ async function acikUcu(env, simdi, telegram) {
                   ziyaretci_siniri: ziyaretciSiniriVar(env) };
   // Saglayici kolu hazir degilse yalniz hazir deterministik turler acik kalabilir.
   if (!y.hazir && !DETERMINISTIK_TURLER.some((k) => turHazir(env, k).hazir)) {
-    return fjson({ acik: false, turler: [], ...taban }, 200);
+    return fjson({ acik: false, turler: [], modeller: [], ...taban }, 200);
   }
-  let turler = acikTurler(await acikAnahtari(env)).filter((t) => turHazir(env, t.kod).hazir);
-  if (!turler.length) { return fjson({ acik: false, turler: [], ...taban }, 200); }
+  const acik = await acikAnahtari(env);
+  let turler = acikTurler(acik).filter((t) => turHazir(env, t.kod).hazir);
+  if (!turler.length) { return fjson({ acik: false, turler: [], modeller: [], ...taban }, 200); }
   // Havuz (kredi) yalniz saglayici kolunu kapatir; deterministik kol kredi harcamaz.
   if (turler.some((t) => saglayiciTuru(t.kod))) {
     const havuz = await havuzHukmu(env, simdi, telegram);
     if (!havuz.acik) { turler = turler.filter((t) => !saglayiciTuru(t.kod)); }
   }
-  if (!turler.length) { return fjson({ acik: false, turler: [], ...taban }, 200); }
-  return fjson({ acik: true, turler, ...taban }, 200);
+  if (!turler.length) { return fjson({ acik: false, turler: [], modeller: [], ...taban }, 200); }
+  // MODELLER: acik model kodlari (kartin KENDI kodu; istemci kart cizimini bundan yapar). Turu sunulmayan
+  // (hazir degil / havuz esikte) model dusulur; cesit modeli statik cesit bayragiyla VE'lenir.
+  const modeller = MODELLER.filter((m) => acik.has(m.kod) && turler.some((t) => t.kod === m.tur) &&
+    (!m.cesit || !VERI.cesitler[m.tur] || VERI.cesitAcik(m.tur, m.cesit))).map((m) => m.kod);
+  return fjson({ acik: true, turler, modeller, ...taban }, 200);
 }
 
 // ---------------------------------------------------------------- uc: /foto/onizleme
@@ -1049,6 +1102,15 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   }
   // FIGUR CESIDI (kapidan gectiyse = acik:true): uretec yonlendirmesi ATLANIR, is saglayici koluna gider.
   const cesit = g && typeof g === "object" && figurKolu({ cesit: VERI.cesitCoz(g.tur, g.cesit) }) ? "figur" : "";
+  // MODEL KAPISI (6 model): modelli turde istek model koduna cozulur; kodu ACIK degilse 400 — saglayici 0,
+  // kuyruk 0, kredi 0 (uretec ve saglayici kolunun ikisinden de ONCE).
+  if (g && typeof g === "object" && modelliTur(g.tur)) {
+    const at = g.tur === "figur" && !cesit ? figurAltTurCoz(g.alt_tur) : "";
+    if (at === null) { return fjson({ hata: "gecersiz-alt-tur" }, 400); }
+    if (!modelAcik(await acikAnahtari(env), g.tur, VERI.cesitCoz(g.tur, g.cesit), at)) {
+      return fjson({ hata: "model-kapali" }, 400);
+    }
+  }
   // URETEC KOLU: tarayici onizleyicisi olmayan D/R turu saglayiciya GITMEZ, koşucu kuyruguna girer.
   if (!cesit && g && typeof g === "object" && uretecOnizlemeTuru(g.tur)) { return uretecOnizlemeUcu(request, env, simdi, g); }
   if (!y.hazir) { return fjson({ hata: "kapali" }, 503); }
@@ -1120,7 +1182,10 @@ async function onizlemeGonder(env, isNo, tur, olcu, ziyaretci, uri, simdi, teleg
   // Aydinlatma onayi (damga + surum) musteri kolunda her satira; ornek (panel) kolu muaf -> bos.
   const onay = onayKaydi(onaySurum, simdi);
   // CESIT (TUR-C2a): yalniz figur kolunda sutuna yazilir (plaket satiri AYNEN; '' = turun kolu).
-  const ekS = cesit ? ", cesit" : "", ekY = cesit ? ", ?" : "", ekB = cesit ? [cesit] : [];
+  // ALT TUR (6 model): figur alt turu sutuna yazilir — siparis kapisi modeli (insan|pet|model) BUNDAN cozer.
+  const ekA = (cesit ? ["cesit"] : []).concat(altTur ? ["alt_tur"] : []);
+  const ekS = ekA.map((a) => ", " + a).join(""), ekY = ekA.map(() => ", ?").join("");
+  const ekB = (cesit ? [cesit] : []).concat(altTur ? [altTur] : []);
   if (uretimNotu) {
     await env.KATALOG.prepare(
       "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, uretim_notu, onay_tarih, onay_surum" + ekS + ")" +
@@ -1685,8 +1750,14 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   }
   // Turun kendi kolu hazir olmali (deterministik tur saglayici anahtari istemez).
   if (turSunuluyor(is.tur) && !isHazir(env, is)) { return { hata: { hata: "foto-kapali" }, kod: 400 }; }
-  const tur = acikTurler(await acikAnahtari(env)).find((t) => t.kod === is.tur);
+  const acik = await acikAnahtari(env);
+  const tur = acikTurler(acik).find((t) => t.kod === is.tur);
   if (!tur) { return { hata: { hata: "foto-kapali" }, kod: 400 }; }
+  // MODEL KAPISI (6 model): onizlemeden sonra kapanan model sepete/odemeye BAGLANAMAZ (sessiz satis yok).
+  const isAlt = is.tur === "figur" && !is.cesit ? await isAltTuru(env, is.is_no) : "";
+  if (!modelAcik(acik, is.tur, is.cesit || "", isAlt)) {
+    return { hata: { hata: "model-kapali", mesaj: "Fotoğraftan üretim şu an alınamıyor." }, kod: 400 };
+  }
   // TURETILMIS eksen: olcu = onizleme isinin KAYITLI (koşucunun olctugu) olcusu; istemcinin olcu_mm'si OKUNMAZ.
   const mm = VERI.olcuTuretilmis(tur.kod) ? is.olcu_mm : k.olcu_mm;
   const fk = VERI.fiyatKurus(tur.kod, mm);
@@ -2521,6 +2592,12 @@ export async function panelFotoOzet(env, simdi) {
                                    olcu_en_az: olcuAraligi(t.kod).en_az, olcu_en_cok: olcuAraligi(t.kod).en_cok,
                                    olcu_adim: VERI.olcuAdimi(t.kod),
                                    fiyat_en_az_kurus: VERI.fiyatKurus(t.kod, olcuAraligi(t.kod).en_az) })),
+                  // Panel "Satisa acik" tablosu: modelli tur MODEL satirlariyla, modelsiz tur kendi satiriyla.
+                  acilis_satirlari: VERI.turler.filter((t) => turSunuluyor(t.kod))
+                    .flatMap((t) => (modelliTur(t.kod) ? MODELLER.filter((m) => m.tur === t.kod) : [t])
+                      .map((x) => ({ kod: x.kod, ad: x.ad, tur: t.kod,
+                                     olcu_en_az: olcuAraligi(t.kod).en_az, olcu_en_cok: olcuAraligi(t.kod).en_cok,
+                                     fiyat_en_az_kurus: VERI.fiyatKurus(t.kod, olcuAraligi(t.kod).en_az) }))),
                   olcu_en_az: OLCU_MM_EN_AZ, olcu_en_cok: OLCU_MM_EN_COK,
                   ayak_plaket_basi: AYAK_PLAKET_BASI,
                   elle: [], sema: true };
@@ -2563,7 +2640,8 @@ export async function panelFotoOzet(env, simdi) {
 export async function panelFotoAcik(request, env, simdi) {
   let g;
   try { g = await request.json(); } catch (e) { return fjson({ hata: "gecersiz-json" }, 400); }
-  const tur = g && turSunuluyor(g.tur) ? g.tur : null;
+  // Model kodu (6 model) ya da modelsiz tur kodu; modelli turun ESKI tur kodu ('anahtarlik'/'figur') RED.
+  const tur = g && (MODELLER.some((m) => m.kod === g.tur) || (turSunuluyor(g.tur) && !modelliTur(g.tur))) ? g.tur : null;
   if (!tur) { return fjson({ hata: "gecersiz-tur" }, 400); }
   if (typeof g.acik !== "boolean") { return fjson({ hata: "gecersiz-acik" }, 400); }
   if (g.acik) {

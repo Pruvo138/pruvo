@@ -564,10 +564,10 @@ console.log("B) ACILIS ANAHTARI + TEK FORMUL (Okan 7 Eki 15:4x: fiyat tablosu YO
   // kapatilinca KAYBOLUR.
   const mg = await istek(env, "/yonet/foto-acik", { govde: { tur: "magnet", acik: true }, basliklar: YONET });
   const anahtarlikAcik = async () => {
-    const y = await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik", acik: true }, basliklar: YONET });
+    const y = await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik_yazi", acik: true }, basliklar: YONET });
     const a = await istek(env, "/foto/acik");
     const acikKodlar = ((a.v && a.v.turler) || []).map((t) => t.kod);
-    const k = await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik", acik: false }, basliklar: YONET });
+    const k = await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik_yazi", acik: false }, basliklar: YONET });
     const a2 = await istek(env, "/foto/acik");
     const kapaliKodlar = ((a2.v && a2.v.turler) || []).map((t) => t.kod);
     return { yaz: y.kod, kapat: k.kod, acikKodlar, kapaliKodlar, acikta: acikKodlar.includes("anahtarlik"), kapali: !kapaliKodlar.includes("anahtarlik") };
@@ -608,12 +608,19 @@ let isNo;
   // K3d (9 Eki TeKiN): iddia DALA GORE. Anahtarlik D kolu (uretec onizlemeli) + sayilan ornegi 1 ->
   // turHazir gecer; panel anahtari yoksa 400 `tur-kapali` (acikAnahtari bossa). Orneksiz tur ise
   // 503 `kapali` (P7-M mutant). M kolunda kapali/olmayan tur 400 `tur-kapali` (F5 magnet = olmayan
-  // tur; P7b figur = kayitli ama acilis anahtari YOK).
+  // tur; P7b figur = kayitli ama acilis anahtari YOK). 6 MODEL (10 Eki): modelli turde (anahtarlik/figur) kapali
+  // modelin reddi MODEL KAPISINDAN gelir: 400 `model-kapali` (tur-kapali'dan once). P7-M orneksiz 503'u model
+  // ACIKKEN olcer (anahtarlik_yazi panelden acilir/kapatilir).
   const r7b = await istek(env, "/foto/onizleme", { govde: onizlemeGovde({ tur: "figur", olcu_mm: 100 }) });
-  ol("P7 D kolu ornekli tur anahtarlik (panel anahtari yok) -> 400 tur-kapali (uretc onizlemeli yol)",
-     r6.kod === 400 && r6.v.hata === "tur-kapali", JSON.stringify(r6));
-  ol("P7b M kolu kapali tur figur (acilis anahtari yok) -> 400 tur-kapali", r7b.kod === 400 && r7b.v.hata === "tur-kapali", JSON.stringify(r7b));
-  const p7m = await ornekSartiKapali(() => istek(env, "/foto/onizleme", { govde: onizlemeGovde({ tur: "anahtarlik", olcu_mm: 100 }) }));
+  ol("P7 D kolu ornekli tur anahtarlik (panel anahtari yok) -> 400 model-kapali (uretc onizlemeli yol)",
+     r6.kod === 400 && r6.v.hata === "model-kapali", JSON.stringify(r6));
+  ol("P7b M kolu kapali tur figur (acilis anahtari yok) -> 400 model-kapali", r7b.kod === 400 && r7b.v.hata === "model-kapali", JSON.stringify(r7b));
+  const p7m = await ornekSartiKapali(async () => {
+    await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik_yazi", acik: true }, basliklar: YONET });
+    const r = await istek(env, "/foto/onizleme", { govde: onizlemeGovde({ tur: "anahtarlik", olcu_mm: 100 }) });
+    await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik_yazi", acik: false }, basliklar: YONET });
+    return r;
+  });
   ol("P7-M ornek sarti kapali -> anahtarlik turHazir tutmaz, 503 kapali (P7 KIRMIZI)",
      p7m.uygulandi && p7m.sonuc.kod === 503 && p7m.sonuc.v.hata === "kapali", JSON.stringify(p7m));
   ol("F6 reddedilen isteklerin hicbiri saglayiciya GITMEDI", protoSayisi() === once, protoSayisi() - once);
@@ -841,10 +848,10 @@ console.log("Q) SUNULMAYAN TUR — sunucu reddi (eski/elle yazilmis kayit uzerin
   await d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, 'anahtarlik', 305, 'z', ?, 'onizleme-hazir', 'gorev-eski-002', ?)")
     .bind(isB, simdiIso, simdiIso).run();
   const q1b = async () => {
-    await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik", acik: true }, basliklar: YONET });
+    await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik_yazi", acik: true }, basliklar: YONET });
     const r = await istek(env, "/baslat", { govde: { sozlesme_onay: true, aydinlatma_onay: true, onay_surum: VERI.onay_surum, odeme: "kart", musteri, turnstile_token: "j",
       sepet: [{ foto_is: isB, olcu_mm: 305, adet: 1, renkler: ["Beyaz"] }] } });
-    await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik", acik: false }, basliklar: YONET });
+    await istek(env, "/yonet/foto-acik", { govde: { tur: "anahtarlik_yazi", acik: false }, basliklar: YONET });
     return { kod: r.kod, hata: r.v && r.v.hata };
   };
   const b2 = await q1b();
@@ -1165,6 +1172,16 @@ async function ekranKos(kaynak, fotoVeri, acikYanit, kayit, durumYanit, ek) {
   // 6 MODEL: büst/yapboz kartı istemcide HİÇ çizilmez (KARTLAR'da yok). Bu türlerin form/fiyat/ölçü iddiaları
   // ölçülmeye devam etsin diye kart YALNIZ test içinde enjekte edilir (ek.kart bust|yapboz ya da ek.enjekte
   // listesi); enjekte satır eski KARTLAR satırının AYNISIDIR. Ürün kaynağı değişmez (V6-1 enjekte ETMEDEN ölçer).
+  // 6 MODEL (model düzeyinde açıklık): sahte /acik yanıtı `modeller` TAŞIMIYORSA koşum takımı sunucunun "tür açık ->
+  // türün TÜM modelleri açık" halini varsayar (eski vakalar tür-düzeyinde yazıldı; ölçtükleri kart/form ekseni değişmez).
+  // `modeller` açıkça verilen vaka (MA-*) istemcinin model kapısını ölçer; ek.modellerYok -> alan HİÇ yok (fail-closed).
+  if (acikYanit && Array.isArray(acikYanit.turler) && !("modeller" in acikYanit) && !ek.modellerYok) {
+    const kodlar = acikYanit.turler.map((t) => t.kod);
+    const MODEL_TURU = { anahtarlik_yazi: "anahtarlik", insan: "figur", pet: "figur", plaket: "plaket",
+                         anahtarlik_figur: "anahtarlik", model: "figur" };
+    acikYanit = { ...acikYanit, modeller: [...Object.keys(MODEL_TURU).filter((m) => kodlar.includes(MODEL_TURU[m])),
+                                             ...kodlar.filter((k) => !Object.values(MODEL_TURU).includes(k))] };
+  }
   const ENJEKTE_KART = {
     bust: '{ kod: "bust", tur: "bust", alt: null, ad: "Büst", ret: "Büst için yüzü net görünen bir portre fotoğrafı gerekir." }',
     yapboz: '{ kod: "yapboz", tur: "yapboz", alt: null, ad: "Yapboz", ret: "Yapboz için açık-koyu tonları belirgin, yüksek çözünürlüklü fotoğraf gerekir." }',
@@ -1665,7 +1682,7 @@ async function figurSenaryo(V) {
     s.V4 = s.alt.plaket === 60 && s.alt.bust === 60 && s.alt.anahtarlik === 30 && s.alt.yapboz === 100 &&
       s.alt.kulak_en_cok === 291 && foto.OLCU_MM_EN_AZ === 60;
     // Istemci surgusu = sunucunun /foto/acik tur kaydindaki olculer dizisi (olcuSurgusu nt.olculer[0]'dan baslar).
-    const nt = foto.acikTurler(new Set(["figur"])).find((t) => t.kod === "figur");
+    const nt = foto.acikTurler(new Set(["insan"])).find((t) => t.kod === "figur");
     s.ilk = nt && nt.olculer[0] ? nt.olculer[0] : null;
     s.V5 = !!s.ilk && s.ilk.mm === 60 && s.ilk.fiyat_kurus === 60000 && VERI.olcuSecenekleri("figur")[0] === 60;
   } finally {
@@ -1760,7 +1777,7 @@ async function ahSenaryo(V, kaynak) {
   for (const a of ad) { yedek[a] = VERI[a]; VERI[a] = a === "ornekSayisi" ? (() => 1) : V[a]; }
   const k = koprukur(); await k.hazir;
   const e2 = envKur(k.d1, r2Kur());
-  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik', 1, 'x'), ('plaket', 1, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik_yazi', 1, 'x'), ('anahtarlik_figur', 1, 'x'), ('plaket', 1, 'x')").run();
   let ipNo = 0;
   const cag = async (govde) => {
     const h = { "CF-Connecting-IP": "10.0.13." + (++ipNo), "Content-Type": "application/json" };
@@ -1965,7 +1982,7 @@ async function renderSenaryolar(V) {
   const k = koprukur(); await k.hazir;
   const e2 = envKur(k.d1, r2Kur());
   await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x')").run();
-  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('figur', 1, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('insan', 1, 'x'), ('pet', 1, 'x'), ('model', 1, 'x')").run();
   const asil = V.ornekler.slice();
   const yedek = VERI.ornekSayisi;
   VERI.ornekSayisi = (t) => V.ornekSayisi(t);
@@ -3174,7 +3191,10 @@ async function renkKosulSenaryolar(fm) {
     for (const t of ["plaket", "figur", "bust", "yapboz"]) {
       VERI.ornekler.push({ tur: t, kanit: "render", olcu_mm: 100, onizleme: "https://media.pruvo3d.com/rk-o.webp",
                            render: "https://media.pruvo3d.com/rk-r.webp", not: "t" });
-      await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES (?, 1, 'x')").bind(t).run();
+      // 6 MODEL: figur turu model koduyla acilir (tur satiri tek basina acmaz); is satiri alt_tur 'insan' tasir.
+      for (const a of (t === "figur" ? ["insan"] : [t])) {
+        await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES (?, 1, 'x')").bind(a).run();
+      }
     }
     let no = 0;
     const isKur = async (tur, parametreler) => {
@@ -3182,6 +3202,7 @@ async function renkKosulSenaryolar(fm) {
       const asama = fm.uretecOnizlemeTuru(tur) ? "onizleme-hazir" : "hazir";
       await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih) VALUES (?, ?, 100, 'z', ?, ?, 'gorev-rkk', ?)")
         .bind(is, tur, new Date().toISOString(), asama, new Date().toISOString()).run();
+      if (tur === "figur") { await k.d1.prepare("UPDATE foto_isler SET alt_tur = 'insan' WHERE is_no = ?").bind(is).run(); }
       if (parametreler) {
         await r2k.put(fm.uretecOnizlemeAnahtari(is, "girdi.json"),
           new TextEncoder().encode(JSON.stringify({ sozlesme: 1, kategori: tur, parametreler })), {});
@@ -4753,7 +4774,7 @@ async function b2SunucuSenaryolar(fm) {
   const k = koprukur(); await k.hazir;
   const e2 = envKur(k.d1, r2Kur());
   await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('bust', 1, 'x'), ('plaket', 1, 'x'), " +
-    "('figur', 1, 'x'), ('yapboz', 1, 'x'), ('anahtarlik', 1, 'x')").run();
+    "('insan', 1, 'x'), ('pet', 1, 'x'), ('model', 1, 'x'), ('yapboz', 1, 'x'), ('anahtarlik_yazi', 1, 'x'), ('anahtarlik_figur', 1, 'x')").run();
   let ipNo = 0;
   const cag = async (govde) => {
     const h = { "CF-Connecting-IP": "10.0." + (9 + (ipNo >> 8)) + "." + ((++ipNo) & 255), "Content-Type": "application/json" };
@@ -4780,7 +4801,7 @@ async function b2SunucuSenaryolar(fm) {
   const ahSecim = { plaka_renk: "Beyaz", yazi_renk: "Siyah", govde_malzeme: "PLA" };
   const ALTI = {
     plaket: (ek) => onizlemeGovde(ek),
-    figur: (ek) => onizlemeGovde({ tur: "figur", olcu_mm: 100, ...ek }),
+    figur: (ek) => onizlemeGovde({ tur: "figur", olcu_mm: 100, alt_tur: "insan", ...ek }),
     yapboz: (ek) => onizlemeGovde({ tur: "yapboz", olcu_mm: 150, parametreler: { uzun_kenar_mm: 150, satir: 3, sutun: 4,
       tohum: 1, kabartma_yon: "acik_yuksek" }, secim: { govde_malzeme: "PLA" }, ...ek }),
     bust: (ek) => bust(ek),
@@ -4943,7 +4964,7 @@ const C2A_YAZI = { satirlar: ["Ayşe"], yazi_tipi: "script", hizalama: "orta", g
 async function c2aSunucuSenaryolar(fm, veriYama) {
   const k = koprukur(); await k.hazir;
   const e2 = envKur(k.d1, r2Kur());
-  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik', 1, 'x'), ('plaket', 1, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik_yazi', 1, 'x'), ('anahtarlik_figur', 1, 'x'), ('plaket', 1, 'x')").run();
   let ipNo = 0;
   const cag = async (yol, govde) => {
     const h = { "CF-Connecting-IP": "10.0.7." + (++ipNo), "Content-Type": "application/json" };
@@ -5040,7 +5061,7 @@ async function c2a2Senaryolar(fm, veriYama) {
   const yazilan = new Map(), asilPut = r2.put;
   r2.put = async (a, v, o) => { if (typeof v === "string") { yazilan.set(a, v); } return asilPut(a, v, o); };
   const e2 = envKur(k.d1, r2);
-  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik', 1, 'x'), ('plaket', 1, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik_yazi', 1, 'x'), ('anahtarlik_figur', 1, 'x'), ('plaket', 1, 'x')").run();
   let ipNo = 0;
   const cag = async (yol, govde) => {
     const h = { "CF-Connecting-IP": "10.0.9." + (++ipNo), "Content-Type": "application/json" };
@@ -5250,7 +5271,7 @@ async function c2bIstemci(kaynak, veriYama) {
 async function c2bSunucu(fm, veriYama) {
   const k = koprukur(); await k.hazir;
   const e2 = envKur(k.d1, r2Kur());
-  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik', 1, 'x'), ('plaket', 1, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik_yazi', 1, 'x'), ('anahtarlik_figur', 1, 'x'), ('plaket', 1, 'x')").run();
   let ipNo = 0;
   const cag = async (yol, govde) => {
     const h = { "CF-Connecting-IP": "10.0.11." + (++ipNo), "Content-Type": "application/json" };
@@ -5568,7 +5589,7 @@ async function v6Istemci(kaynak) {
 async function v6Sunucu(fm) {
   const k = koprukur(); await k.hazir;
   const e2 = envKur(k.d1, r2Kur());
-  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('figur', 1, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('insan', 1, 'x'), ('pet', 1, 'x'), ('model', 1, 'x')").run();
   let ipNo = 0;
   const cag = async (govde) => {
     const u = "https://pruvo3d.com/api/shop/foto/onizleme";
@@ -5597,7 +5618,8 @@ async function v6Sunucu(fm) {
     /ayakta/i.test(iz.insan.prompt) && /ayakta/i.test(iz.pet.prompt) && !/ayakta/i.test(iz.model.prompt) &&
     /tek kişi/.test(iz.insan.prompt) && /tek hayvan/.test(iz.pet.prompt) &&
     ![iz.insan, iz.pet, iz.model].some((x) => V6_YASAK_ISTEM.test(x.prompt)) &&
-    iz.yok.kod === 200 && iz.yok.prompt === "ALAN-YOK" &&
+    // 6 MODEL: alt tursuz figur istegi hicbir modele cozulmez -> 400 model-kapali, saglayici 0 (fail-closed).
+    iz.yok.kod === 400 && iz.yok.hata === "model-kapali" && iz.yok.cagri === 0 &&
     iz.gecersiz.kod === 400 && iz.gecersiz.hata === "gecersiz-alt-tur" && iz.gecersiz.cagri === 0;
   s.V6_5s = ok(iz.eski) && iz.eski.prompt === iz.pet.prompt;
   k.kapat();
@@ -5618,7 +5640,7 @@ console.log("V6) 6 MODEL — ① kartlar · ① cümlesi · kart→istek · sunu
   ol("V6-2 ① cümlesi açık kartlardan: 6 kart '6 seçenekten …' (adlar) · fikstür 3 kart '3 seçenekten …'", s.V6_2, JSON.stringify([z.c6, z.c3]));
   ol("V6-3 kart → istek: insan/pet/model → figur + alt_tur · anahtarlık yazı/figür → anahtarlik + çeşit · plaket → plaket", s.V6_3,
      JSON.stringify(z.istek));
-  ol("V6-4 sunucu istemi alt türe göre: 'ayakta' insan+pet VAR, model YOK · yasak kelime 0 · alt türsüz istekte prompt alanı YOK · geçersiz alt tür 400 (sağlayıcı 0)",
+  ol("V6-4 sunucu istemi alt türe göre: 'ayakta' insan+pet VAR, model YOK · yasak kelime 0 · alt türsüz istek 400 model-kapali · geçersiz alt tür 400 (sağlayıcı 0)",
      s.V6_4, JSON.stringify(z.sunucu));
   ol("V6-5 eski hayvan_model: oturum kodu + iş kaydı → pet kartı (istisna 0) · sunucu hayvan_model → pet istemi", s.V6_5,
      JSON.stringify([z.eski, z.sunucu.eski]));
@@ -5644,6 +5666,140 @@ console.log("V6) 6 MODEL — ① kartlar · ① cümlesi · kart→istek · sunu
   }
 }
 
+// ---------------------------------------------------------------- MD) MODEL DUZEYINDE ACIKLIK (6 model, 10 Eki)
+// Ücretli prova: uçtan uca YALNIZ anahtarlik_yazi + plaket geçti -> canlıda yalnız onlar. D1 foto_acik MODEL kodu taşır;
+// eski tür satırı (figur/anahtarlik) tek başına HİÇBİR kartı açmaz; sunucu kapalı modelde 400 model-kapali (sağlayıcı 0);
+// panel örnek ucu kapalı modelde de çalışır; sipariş kapısı önizlemeden sonra kapanan modeli bağlamaz.
+const MD_GOC = fs.readFileSync(path.join(SHOP, "..", "tools", "d1-goc", "2026-10-10-foto-model-acik.sql"), "utf8");
+async function mdSenaryo(fm, kaynak) {
+  const s = {}, iz = {};
+  const asilOrnek = VERI.ornekSayisi;
+  VERI.ornekSayisi = () => 1;
+  const ahSecim = { plaka_renk: "Beyaz", yazi_renk: "Siyah", govde_malzeme: "PLA" };
+  const kurulum = async (kodlar) => {
+    const k = koprukur(); await k.hazir;
+    const e = envKur(k.d1, r2Kur());
+    for (const t of kodlar) { await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES (?, 1, 'x')").bind(t).run(); }
+    return { k, e };
+  };
+  let ip = 0;
+  const uc = async (e, yol, govde) => {
+    const u = "https://pruvo3d.com/api/shop" + yol;
+    const r = await fm.fotoUclari(new Request(u, govde ? { method: "POST", headers: { "CF-Connecting-IP": "10.0.88." + (++ip),
+      "Content-Type": "application/json" }, body: JSON.stringify(govde) } : { headers: { "CF-Connecting-IP": "10.0.89." + (++ip) } }),
+      e, new URL(u), yol, null);
+    let v = null; try { v = await r.json(); } catch (er) { v = null; }
+    return { kod: r.status, v };
+  };
+  const figur = (alt) => onizlemeGovde({ tur: "figur", olcu_mm: VERI.olcuSecenekleri("figur")[0], alt_tur: alt });
+  const ahFigur = () => onizlemeGovde({ tur: "anahtarlik", olcu_mm: AH_MM, cesit: "figur", secim: ahSecim });
+  const proto = async (f) => { const c0 = protoSayisi(); const r = await f(); return { kod: r.kod, hata: r.v && r.v.hata, cagri: protoSayisi() - c0 }; };
+  const V = veriYukle(VERI_KAYNAK);
+  const kartlar = (b) => [...b.agac()].filter((n) => n.classList.contains("foto-uretim-kart")).map((n) => n.getAttribute("data-kart"));
+  const birinci = (b) => ([...b.agac()].find((n) => n.classList.contains("foto-uretim-pencere-aciklama")) || {}).textContent || "";
+  try {
+    // MD1: yalnız plaket + anahtarlik_yazi açık -> sunucu /acik modeller tam o ikisi; istemci ① 2 kart, "2 seçenekten…".
+    const a = await kurulum(["plaket", "anahtarlik_yazi"]);
+    const ac = await uc(a.e, "/foto/acik");
+    iz.acik1 = { turler: ((ac.v && ac.v.turler) || []).map((t) => t.kod).sort(), modeller: ac.v && ac.v.modeller };
+    const e1 = await ekranKos(kaynak, V, ac.v);
+    iz.kart1 = kartlar(e1.bolum); iz.c1 = birinci(e1.bolum);
+    s.MD1 = JSON.stringify(iz.acik1.modeller) === '["anahtarlik_yazi","plaket"]' &&
+      JSON.stringify(iz.kart1) === '["anahtarlik_yazi","plaket"]' && iz.c1.startsWith("2 seçenekten") &&
+      !iz.kart1.some((k) => ["anahtarlik_figur", "insan", "pet", "model"].includes(k)) && e1.istisna === 0;
+    // MD2: kapalı model sunucuda 400 model-kapali, sağlayıcı 0 — tür AÇIKKEN de (insan açık / pet kapalı;
+    // anahtarlik_yazi açık / anahtarlik_figur kapalı). Kontrol: açık insan 200, sağlayıcı 1.
+    const b = await kurulum(["plaket", "anahtarlik_yazi", "insan"]);
+    iz.ma2 = { pet: await proto(() => uc(b.e, "/foto/onizleme", figur("pet"))),
+               ahFigur: await proto(() => uc(b.e, "/foto/onizleme", ahFigur())),
+               insan: await proto(() => uc(b.e, "/foto/onizleme", figur("insan"))) };
+    s.MD2 = iz.ma2.pet.kod === 400 && iz.ma2.pet.hata === "model-kapali" && iz.ma2.pet.cagri === 0 &&
+      iz.ma2.ahFigur.kod === 400 && iz.ma2.ahFigur.hata === "model-kapali" && iz.ma2.ahFigur.cagri === 0 &&
+      iz.ma2.insan.kod === 200 && iz.ma2.insan.cagri === 1;
+    // MD3: eski tür satırları ('figur', 'anahtarlik') tek başına -> /acik tür 0 + model 0, kart 0, önizleme 400 sağlayıcı 0.
+    const c = await kurulum(["figur", "anahtarlik"]);
+    const ac3 = await uc(c.e, "/foto/acik");
+    const e3 = await ekranKos(kaynak, V, ac3.v);
+    iz.ma3 = { turler: ((ac3.v && ac3.v.turler) || []).map((t) => t.kod), modeller: ac3.v && ac3.v.modeller, kart: kartlar(e3.bolum),
+               insan: await proto(() => uc(c.e, "/foto/onizleme", figur("insan"))),
+               yazi: await proto(() => uc(c.e, "/foto/onizleme", onizlemeGovde({ tur: "anahtarlik", olcu_mm: AH_MM, cesit: "yazi" }))) };
+    s.MD3 = iz.ma3.turler.length === 0 && JSON.stringify(iz.ma3.modeller) === "[]" && iz.ma3.kart.length === 0 &&
+      iz.ma3.insan.kod === 400 && iz.ma3.insan.cagri === 0 && iz.ma3.yazi.kod === 400 && iz.ma3.yazi.cagri === 0;
+    // MD4: panel örnek ucu kapalı modelde (pet; D1 yalnız plaket) ÇALIŞIR: 200 + sağlayıcı 1.
+    const u4 = "https://pruvo3d.com/api/shop/yonet/foto/ornek-onizleme";
+    const p0 = protoSayisi();
+    const r4 = await fm.panelOrnekOnizleme(new Request(u4, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gorsel: GORSEL, olcu_mm: 100, tur: "figur", alt_tur: "pet" }) }), a.e, Date.now(), null);
+    let v4 = null; try { v4 = await r4.json(); } catch (er) { v4 = null; }
+    iz.ma4 = { kod: r4.status, is: !!(v4 && v4.is), cagri: protoSayisi() - p0 };
+    s.MD4 = iz.ma4.kod === 200 && iz.ma4.is && iz.ma4.cagri === 1;
+    // MD5: sipariş kapısı — hazır figür işi alt_tur 'pet' (pet kapalı) -> model-kapali; 'insan' (açık) -> satır.
+    const iso = new Date().toISOString();
+    const isKur = async (no, alt) => {
+      await b.k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, alt_tur)" +
+        " VALUES (?, 'figur', 100, 'z', ?, 'hazir', ?, ?, ?)").bind(no, iso, "gorev-ma-" + alt, iso, alt).run();
+      return fm.fotoKalemFiyatla(b.e, { foto_is: no, olcu_mm: 100, adet: 1, renkler: ["Beyaz"] }, Date.now());
+    };
+    const fPet = await isKur("ma5p" + "0".repeat(28), "pet"), fIns = await isKur("ma5i" + "0".repeat(28), "insan");
+    iz.ma5 = { pet: fPet.hata || "satir", insan: fIns.hata || (fIns.satir ? "satir" : null) };
+    s.MD5 = !!fPet.hata && fPet.hata.hata === "model-kapali" && !!fIns.satir;
+    // MD6: göç SQL (tools/d1-goc/2026-10-10-foto-model-acik.sql) — eski anahtarlik+figur+plaket+bust -> anahtarlik_yazi,
+    // bust, plaket (figür modeli AÇILMAZ); iki kez koşulunca aynı sonuç.
+    const g = await kurulum(["anahtarlik", "figur", "plaket", "bust"]);
+    const kos = async () => { for (const q of MD_GOC.split("\n").filter((l) => !l.startsWith("--")).join("\n").split(";").map((x) => x.trim()).filter(Boolean)) { await g.k.d1.prepare(q).run(); } };
+    await kos();
+    const r6a = (await g.k.d1.prepare("SELECT tur FROM foto_acik WHERE acik = 1 ORDER BY tur").all()).results.map((x) => x.tur);
+    await kos();
+    const r6b = (await g.k.d1.prepare("SELECT tur FROM foto_acik WHERE acik = 1 ORDER BY tur").all()).results.map((x) => x.tur);
+    iz.ma6 = [r6a, r6b];
+    s.MD6 = JSON.stringify(r6a) === '["anahtarlik_yazi","bust","plaket"]' && JSON.stringify(r6b) === JSON.stringify(r6a);
+    // MD7: panel açma ucu model kodu alır; modelli türün eski tür kodu 400 gecersiz-tur.
+    const pa = async (tur) => (await fm.panelFotoAcik(new Request("https://pruvo3d.com/x", { method: "POST",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tur, acik: true }) }), a.e, Date.now())).status;
+    iz.ma7 = { pet: await pa("pet"), anahtarlik_figur: await pa("anahtarlik_figur"), figur: await pa("figur"),
+               anahtarlik: await pa("anahtarlik"), bust: await pa("bust") };
+    s.MD7 = JSON.stringify(iz.ma7) === '{"pet":200,"anahtarlik_figur":200,"figur":400,"anahtarlik":400,"bust":200}';
+    for (const x of [a, b, c, g]) { x.k.kapat(); }
+  } finally { VERI.ornekSayisi = asilOrnek; }
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("MD) MODEL DÜZEYİNDE AÇIKLIK — D1 foto_acik model kodu · sunucu model kapısı · /acik modeller · eski tür satırı 0 · panel örnek · göç SQL");
+{
+  const s = await mdSenaryo(foto, EKRAN_KAYNAK);
+  const z = s.iz;
+  ol("MD1 yalnız plaket + anahtarlik_yazi açık -> /acik modeller 2 · ① 2 kart, '2 seçenekten…' · anahtarlık–figür/insan/pet/model kartı 0", s.MD1,
+     JSON.stringify([z.acik1, z.kart1, z.c1]));
+  ol("MD2 kapalı model (pet / anahtarlik_figur) tür açıkken de 400 model-kapali, sağlayıcı 0 · açık insan 200 sağlayıcı 1", s.MD2, JSON.stringify(z.ma2));
+  ol("MD3 eski tür satırı (figur/anahtarlik) tek başına: /acik tür 0 + model 0 · kart 0 · önizleme 400 sağlayıcı 0", s.MD3, JSON.stringify(z.ma3));
+  ol("MD4 panel örnek ucu kapalı modelde (pet) çalışır: 200 + sağlayıcı 1", s.MD4, JSON.stringify(z.ma4));
+  ol("MD5 sipariş kapısı: hazır figür işi alt_tur pet (kapalı) -> model-kapali · insan (açık) -> satır", s.MD5, JSON.stringify(z.ma5));
+  ol("MD6 göç SQL: anahtarlik+figur+plaket+bust -> anahtarlik_yazi+bust+plaket (figür modeli açılmaz) · ikinci koşum aynı", s.MD6, JSON.stringify(z.ma6));
+  ol("MD7 panel açma: pet/anahtarlik_figur/bust 200 · eski figur/anahtarlik 400", s.MD7, JSON.stringify(z.ma7));
+  const MD_SUNUCU = [
+    ["M-MD-SUNUCU sunucu model kapısı kalktı", "    if (!modelAcik(await acikAnahtari(env), g.tur, VERI.cesitCoz(g.tur, g.cesit), at)) {",
+     "    if (false) {", ["MD2"]],
+    ["M-MD-TUR tür satırı tüm modelleri açar", '    return new Set((r.results || []).map((x) => x.tur).filter((k) => typeof k === "string"));',
+     '    return new Set((r.results || []).flatMap((x) => [x.tur, ...MODELLER.filter((m) => m.tur === x.tur).map((m) => m.kod)]).filter((k) => typeof k === "string"));',
+     ["MD3"]],
+    ["M-MD-SIPARIS sipariş model kapısı kalktı", '  if (!modelAcik(acik, is.tur, is.cesit || "", isAlt)) {', "  if (false) {", ["MD5"]],
+    ["M-MD-K0 KONTROL (yorum)", "export function modelliTur(tur) {", "// kontrol\nexport function modelliTur(tur) {", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of MD_SUNUCU) {
+    const fm = await mutantModul(capa, yerine);
+    if (!fm) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = await mdSenaryo(fm, EKRAN_KAYNAK);
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+  const capaI = "      if (modeller.indexOf(k.kod) < 0) continue;\n";
+  if (EKRAN_KAYNAK.split(capaI).length - 1 !== 1) { ol("M-MD-ISTEMCI capa bulundu", false, capaI); } else {
+    const m = await mdSenaryo(foto, EKRAN_KAYNAK.replace(capaI, ""));
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol("M-MD-ISTEMCI istemci kart model kontrolü kalktı -> KIRMIZI tam olarak [MD1]", JSON.stringify(kir) === '["MD1"]', JSON.stringify(kir));
+  }
+}
+
 await new Promise((c) => setTimeout(c, 0));
 ol("ASENKRON temiz kaynakta (EKRAN_KAYNAK) yakalanmamis istisna 0",
    ASENKRON_ISTISNA.filter((x) => x.temiz).length === 0, JSON.stringify(ASENKRON_ISTISNA.filter((x) => x.temiz).slice(0, 3)));
@@ -5660,7 +5816,7 @@ async function rpaSenaryo(renkModuFn) {
   VERI.ornekSayisi = (kod) => (kod === "anahtarlik" || kod === "figur" ? 1 : asilOrnek(kod));
   const k = koprukur(); await k.hazir;
   const e2 = envKur(k.d1, r2Kur());
-  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik', 1, 'x')").run();
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik_yazi', 1, 'x'), ('anahtarlik_figur', 1, 'x')").run();
   const iso = new Date().toISOString(), fig = "rpa0" + "f".repeat(28);
   await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, son_kontrol, cesit)" +
     " VALUES (?, 'anahtarlik', 60, 'z', ?, 'hazir', 'gorev-rpa', ?, 0, 'figur')").bind(fig, iso, iso).run();
