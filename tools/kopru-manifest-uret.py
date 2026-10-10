@@ -104,7 +104,11 @@ TURETILEN = ("girdi", "uretec", "olcu_mm", "renk_bolgeleri", "malzemeler", "form
 # Ikinci girdi kolu kayitlari: kayit kodu -> ana tur kodu (yukaridaki FOTO KOLU).
 KOL_KAYDI = {"anahtarlik-foto": "anahtarlik"}
 # UI'da sunulmayan kayitlar (yukaridaki SUNULMAYAN): satir yok.
-SUNULMAYAN = {"anahtarlik-plaket"}
+#   bust-kaide: TeKiN 2950833 yeni kaideli bust ureteci; vitrin `bust` turu rolyef teklifinden — baglama ayri is.
+SUNULMAYAN = {"anahtarlik-plaket", "bust-kaide"}
+# PRUVO ALT SINIRI (Okan 10 Eki ~13:4x "Anahtarlik 30 mm — 60mm yap"): kopru min'i DARALTILIR, asla genisletilmez.
+# tur -> mm; olcu_mm.en_az + olcegi belirleyen form alaninin min/varsayilan/ornek'i max(kopru, alt) olur.
+PRUVO_ALT_SINIR = {"anahtarlik": 60}
 # Yalniz renk_liste kaydinda DOLU; None -> manifestte alan YAZILMAZ (varsa silinir), --denetle alan yok bekler.
 OPSIYONEL = ("renk_secimi", "palet_bolgeleri", "foto_kolu")
 
@@ -312,6 +316,13 @@ def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None, sema=None):
              "olcu_min_dinamik": o.get("min_mm_dinamik") is True,
              "kopru_bolgeleri": list(kayit.get("renk_bolgeleri") or []),
              "renk_sonekleri": [b["kod"] for b in bolgeler]}
+    alt = PRUVO_ALT_SINIR.get(kod)
+    if alt is not None:
+        satir["olcu_mm"]["en_az"] = max(satir["olcu_mm"]["en_az"] or 0, alt)
+        f = form.get(o.get("belirleyen_parametre") or "") or {}
+        for a in ("min", "varsayilan", "ornek"):
+            if isinstance(f.get(a), (int, float)) and f[a] < alt:
+                f[a] = alt
     return satir, hatalar
 
 
