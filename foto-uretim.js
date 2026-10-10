@@ -2227,6 +2227,10 @@
         adimKoy("kapali");
         return;
       }
+      // Okan 10 Eki: çalışmayan bölüm canlıda GÖRÜNMEZ. Bölüm yalnız sunucu açık + en az 1 tür dönünce açılır;
+      // kapalı / hata / boş listede `hidden` kalır (index.html varsayılanı, fail-closed).
+      var anaBolum = document.getElementById(ANA_BOLUM_ID);
+      if (anaBolum) anaBolum.removeAttribute("hidden");
       S.acikVeri = veri;
       // ① kartları: yalnız /acik listesindeki türlerin kartları çizilir.
       if (S.ornekBlok) ornekCiz(S.ornekBlok, veri.turler.map(function (x) { return x.kod; }));
@@ -2538,19 +2542,9 @@
     if (!bolum) return;
     stilEnjeket();
     cizAna(bolum);
-    bolum.removeAttribute("hidden");
+    // Bölüm GİZLİ kalır; /acik açık + tür listesi dönünce acikYukle açar (gizli öğe kesişmez -> gözlemci YOK).
     cizYukleniyor();
-
-    if (typeof IntersectionObserver !== "undefined") {
-      var io = new IntersectionObserver(function (entries) {
-        for (var j = 0; j < entries.length; j++) {
-          if (entries[j].isIntersecting) { acikYukle(); io.disconnect(); break; }
-        }
-      }, { rootMargin: "200px" });
-      io.observe(bolum);
-    } else {
-      acikYukle();
-    }
+    acikYukle();
   }
 
   if (document.readyState === "loading") {
