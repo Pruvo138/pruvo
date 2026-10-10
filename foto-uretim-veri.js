@@ -112,7 +112,10 @@
     //                    Ücret alınan her renk üretime bağlı: tools/renk-esleme-test.py esle_<kod> dönüşüyle ölçer.
     //   palet_bolgeleri: palet türü deterministik üreteçle basılıyorsa renkler[i] -> palet_bolgeleri[i]
     //                    (K3a: kalan 4 türde kullanılmıyor; köprü türlerinde köprü ÜRETİR).
-    //   olcu_mm        : {en_az, en_cok} — en uzun boyut (mm); bu aralık dışı ölçü RED
+    //   olcu_mm        : {en_az, en_cok[, baslangic]} — en uzun boyut (mm); bu aralık dışı ölçü RED. baslangic =
+    //                    sürgünün AÇILIŞ ölçüsü (yoksa en_az; VERI.olcuBaslangic). Anahtarlık (Okan 10 Eki 15:2x
+    //                    "min 30 – max 300", açılış 60): kopru-manifest-uret PRUVO_ARALIK köprüyü yalnız DARALTIR
+    //                    -> en_cok = min(300, köprü); köprü bugün 80 -> 80.
     //   olcu_ekseni    : "sabit" (sürgü = hedef ölçü) | "turetilmis" (köprü kaydında belirleyen parametre YOK:
     //                    sürgü YOK, ölçü form parametrelerinden doğar; fiyat = önizlemede ÖLÇÜLEN uzun kenar ×
     //                    formül — köprü ölçüyü D1 foto_isler.olcu_mm'ye yazar, sunucu ORADAN hesaplar; alan
@@ -290,7 +293,7 @@
         girdi: ["metin"],
         motor: "D",
         uretec: "isimlik_uret",
-        olcu_mm: { en_az: 60, en_cok: 80 },
+        olcu_mm: { en_az: 30, en_cok: 80, baslangic: 60 },
         renk_bolgeleri: [
           {
             kod: "plaka",
@@ -330,7 +333,7 @@
           genislik_mm: {
             tip: "sayi",
             etiket: "Uzun kenar (kulak dahil)",
-            min: 60,
+            min: 30,
             max: 80,
             adim: 0.01,
             varsayilan: 60,
@@ -369,7 +372,13 @@
         durustluk: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
         ornek_notu: "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçimine göre üretilir.",
         olcu_ekseni: "sabit",
-        foto_kolu: { girdi: ["foto-1"], uretec: "figur_kulak" }
+        foto_kolu: {
+          girdi: ["foto-1"],
+          uretec: "figur_kulak",
+          olcu_en_az: 60,
+          olcu_en_cok: 72,
+          renk_bolgesi: 0
+        }
       },
       
       
@@ -606,19 +615,29 @@
   // Kalıcı yer D1 `foto_isler.cesit` ('' = türün varsayılan kolu). Metinler pazarlama sayfa metni satır 16–17 AYNEN.
   //   acik    : false = çeşit sunulmaz; sunucu müşteri isteğini `cesit-yakinda` ile AÇIKÇA reddeder (sessiz değil)
   //   girdi   : çeşidin girdi listesi (yoksa türün `girdi`si); figür = fotoğraf, yazı formu YOK (parametre 0)
-  //   olcu_en_cok : çeşidin ölçü tavanı. TEK sabit (aşağıda figür çeşidi). Figür: köprü `2950833` figur_kulak çıplak
-  //                 figür XY ≤ 72 mm, kulak dahil ≤ 80 mm. Sürgü = KULAKÇIK DAHİL en uzun boyut (KraL 10 Eki, BaBa
-  //                 14:0x); sırt konumunda kulak uzun kenarı büyütmez -> 60..72 HER figür yöneliminde üretilir
-  //                 (tepe sığmazsa koşucu sırta düşer; VERI.olcekHedefMm). 73..80 SUNULMAZ (yalnız bazı yönelimde
-  //                 mümkün -> ödeme sonrası elle düşüşü riski).
+  //   olcu_en_az  : çeşidin ölçü tabanı (tür en_az'ından büyükse). Figür: köprüden TÜRER = foto_kolu.olcu_en_az
+  //                 (max(tür 30, köprü figür kolu min_mm 60) = 60; yerel prova 10 Eki: 30 mm z-yönelimli figürde
+  //                 sırt kulak dahil 31,0 mm -> olcu-tutmadi). Okan "figür 30" köprü kolu inince açılır (TeKiN).
+  //   olcu_en_cok : çeşidin ölçü tavanı. Figür: köprüden TÜRER (elle sayı YOK) = türün foto_kolu.olcu_en_cok
+  //                 (kopru-manifest-uret kol_tavani: min(300, köprü kol max, figur_kulak çıplak ≤ 72 / kulak dahil
+  //                 ≤ 80) -> bugün 72; sürgü adımı 5 ile fiilen 70). Sürgü = KULAKÇIK DAHİL en uzun boyut (KraL
+  //                 10 Eki, BaBa 14:0x); sırt konumunda kulak uzun kenarı büyütmez -> çıplak tavana kadar HER figür
+  //                 yöneliminde üretilir (tepe sığmazsa koşucu sırta düşer; VERI.olcekHedefMm). Kol tavanı yoksa 0
+  //                 (fail-closed: figür ölçüsü sunulmaz). TeKiN köprüyü büyütünce yalnız snapshot tazelenir.
   //   saglayici_tur : önizleme+model sağlayıcıda bu türün yolundan (TUR_ORTAM); üretim sonrası `uretec` koşucuda
+  // Foto kolunun köprüden türeyen ölçü sınırı (alan: olcu_en_az | olcu_en_cok); yoksa 0 (fail-closed).
+  function kolSiniri(kod, alan) {
+    var t = VERI.turBul(kod), fk = t && t.foto_kolu;
+    return fk && Number.isInteger(fk[alan]) && fk[alan] > 0 ? fk[alan] : 0;
+  }
   VERI.cesitler = {
     anahtarlik: {
       varsayilan: "yazi",
       secenekler: [
         { kod: "yazi", ad: "Yazı ile", aciklama: "Kısa bir isim ya da yazı, kabartma harflerle.", acik: true },
         { kod: "figur", ad: "Figür olarak", aciklama: "Yüklediğin fotoğraftan küçük bir figür, tepesinde kulakçık.",
-          acik: true, girdi: ["foto-1"], olcu_en_cok: 72, saglayici_tur: "figur", uretec: "figur_kulak" }
+          acik: true, girdi: ["foto-1"], olcu_en_az: kolSiniri("anahtarlik", "olcu_en_az"),
+          olcu_en_cok: kolSiniri("anahtarlik", "olcu_en_cok"), saglayici_tur: "figur", uretec: "figur_kulak" }
       ]
     }
   };
@@ -788,6 +807,15 @@
     var t = VERI.turBul(kod);
     if (!t || !t.olcu_mm || !(t.olcu_mm.en_az > 0) || !(t.olcu_mm.en_cok >= t.olcu_mm.en_az)) { return null; }
     return { en_az: t.olcu_mm.en_az, en_cok: t.olcu_mm.en_cok };
+  };
+
+  // SÜRGÜ AÇILIŞI (Okan 10 Eki 15:2x "60'tan başlasın, 30–300 aralık"): olcu_mm.baslangic seçilebilir bir ölçüyse
+  // (aralıkta + adım ızgarasında) o; alan yoksa/geçersizse en_az (bugünkü davranış). Bilinmeyen tür -> null.
+  VERI.olcuBaslangic = function (kod) {
+    var a = VERI.olcuAraligi(kod);
+    if (!a) { return null; }
+    var b = VERI.turBul(kod).olcu_mm.baslangic;
+    return b !== undefined && VERI.olcuGecerli(kod, b) ? b : a.en_az;
   };
 
   // ---- FİYAT: TEK FORMÜL (Okan 7 Eki 15:4x) — istemci, sunucu ve araçlar YALNIZ bunu çağırır ----

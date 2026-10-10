@@ -1519,8 +1519,9 @@ def figur_olcu_kabul(i, cd):
     olcu-tutmadi; sessiz teslim YOK)."""
     L = figur_kulak_dahil_mm(cd)
     olcu = i["olcu_mm"]
-    en_az = ((manifest_oku().get(i["tur"]) or {}).get("olcu_mm") or {}).get("en_az", 1)
-    en_cok = cesit_kaydi(i["tur"], "figur").get("olcu_en_cok", 0)
+    ck = cesit_kaydi(i["tur"], "figur")
+    en_az = max(((manifest_oku().get(i["tur"]) or {}).get("olcu_mm") or {}).get("en_az", 1), ck.get("olcu_en_az") or 0)
+    en_cok = ck.get("olcu_en_cok", 0)
     if L is None or not (isinstance(olcu, int) and en_az <= olcu <= en_cok) or \
             abs(L - olcu) > olcu * FIGUR_OLCU_TOLERANS + 1e-9:
         return "RED olcu-tutmadi: kulak dahil %s mm, siparis %s mm (aralik %s..%s)" % (

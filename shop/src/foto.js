@@ -1074,9 +1074,11 @@ function onayKaydi(onaySurum, simdi) {
   return onaySurum ? { tarih: simdiIso(simdi), surum: onaySurum } : { tarih: "", surum: "" };
 }
 
-/** Cesidin olcu tavani (figur: olcu_en_cok 72 mm, kulak dahil); cesitsiz/tavansiz -> uygun. */
+/** Cesidin olcu araligi (figur: kopruden TURER — foto_kolu.olcu_en_az 60 .. olcu_en_cok 72, kulak dahil);
+ *  cesitsiz/sinirsiz -> uygun. */
 function cesitOlcuUygun(tur, cesit, olcu) {
   const ck = cesit ? VERI.cesitKaydi(tur, cesit) : null;
+  if (ck && Number.isInteger(ck.olcu_en_az) && !(Number.isInteger(olcu) && olcu >= ck.olcu_en_az)) { return false; }
   return !ck || !Number.isInteger(ck.olcu_en_cok) || (Number.isInteger(olcu) && olcu <= ck.olcu_en_cok);
 }
 

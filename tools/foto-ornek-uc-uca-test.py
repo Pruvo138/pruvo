@@ -569,7 +569,7 @@ def vakalar(kaynak, sadece=None):
     def s3(o):
         rc, son, c, y = sag(o, 100)
         # Tam zincir: renk -> 'onarim-bekliyor' (foto.js) -> betik kopruyu BIR kez kosar -> 'hazir' -> ④.
-        # Plaket olcu 10..300: ③ /acik fiyatlari 60 mm alti TABANLI (MB32 burada yakalanir).
+        # Plaket olcu 60..300 (60 alti durak yok); MB32 tabani anahtarlik 30..55 ile U14'te yakalanir.
         ok = (rc == 0 and son == "HAZIR=1/1 rc=0" and all(olcut(c, "plaket", x) == "HAZIR" for x in "123456") and
               "KREDI_HARCANAN=46/100" in c and "KOPRU onarim: HAL=ISLEDI" in c)
         return ok, "yonet=%s %s" % (y, c[-900:])
@@ -1205,9 +1205,9 @@ MUTANTLAR = {
     # kosan S3/S6/S9/S12 de 'hazir'a ulasamaz -> KIRMIZI.
     "MB31": ("        if asama == \"onarim-bekliyor\":\n", "        if False:\n",
              {"S3", "S6", "S9", "S12", "S14", "S15"}),
-    # Okan 8 Eki tabani: olcum betigi tabani unutursa 60 mm alti olculer (plaket 10..50 mm; D turlerinin
-    # /acik'teki olculeri >= 60) ③ EKSIK -> S3 KIRMIZI.
-    "MB32": ("    return max(mm * 1000, TABAN_KURUS)\n", "    return mm * 1000\n", {"S3"}),
+    # Okan 8 Eki tabani: olcum betigi tabani unutursa 60 mm alti olculer ③ EKSIK. Okan 10 Eki 15:2x anahtarlik
+    # 30–300: anahtarlik /acik olculeri 30..55 TABANLI (plaket alt siniri 60 -> S3 tabani GOREMEZ) -> U14 KIRMIZI.
+    "MB32": ("    return max(mm * 1000, TABAN_KURUS)\n", "    return mm * 1000\n", {"U14"}),
     # 8b0a4a10: mutant on kosulu YALNIZ M kapali turu secer; filtre kalkarsa ornegi olmayan D anahtarlik
     # secilir, sunucu 503 `kapali` (uretecOnizlemeUcu) -> GECERSIZ rc 2 -> U2c KIRMIZI.
     "MB33": (' if t["kod"] not in acik_kodlar and t.get("motor") == "M"]', ' if t["kod"] not in acik_kodlar]',
