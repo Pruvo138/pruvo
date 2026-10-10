@@ -10,6 +10,10 @@ EVREN (sayfa-3adim K3, manifest foto-uretim-veri.js TEK KAYNAK): plaket · figur
 bust · anahtarlik (motor D, kopru). Sahte /acik GERCEK sunucu gibi yalniz SAYILAN ORNEGI olan turu sunar
 (anahtarlik kayitli, ornegi yok -> /acik'te YOK). Sahte /foto/onizleme shop/src/foto.js dallarini taklit eder:
 kapali D/R turu -> 503 `kapali` (uretecOnizlemeUcu turHazir once); kapali M / bilinmeyen tur -> 400 `tur-kapali`.
+MODEL KAPISI (83f3d436; foto.js MODELLER fiksturde KAYNAKTAN okunur): modelli turde (anahtarlik/figur) istek model
+koduna cozulur, kod D1'de kapali ya da cozulemez (figur alt tursuz) -> 400 `model-kapali` — tip/uretec kapisindan
+ONCE. Fikstur D1'i varsayilan TUM modeller acik (ayar d1_kapali_model ile kapatilir); /acik `modeller` = D1 acik VE
+turu sunulan modeller (gercek acikUcu).
 Sahte panel uretim-tik asama kumesi foto.js'ten TURETILIR (tik'in SECMEDIGI asamalar + renk sonrasi asama =
 'onarim-bekliyor'; saglayici 3MF'i model.ham.3mf olur, 'hazir'i yalniz yerel kopru yazar).
 
@@ -34,6 +38,10 @@ onarim kopru kosusu · S4 tavan 5 -> onizleme istegi 0 · S5 yabanci yarim satir
 S9 --devam-is 'doku'dan -> ④ HAZIR, 20/30 · S10 --devam-is tavan 0 -> rc 2 · S11 --devam-is bilinmeyen is ·
 S12/S13 doku kredisi · S14/S15 onarim kapisi.
 6 MODEL (SPEC-PROVA-6MODEL): V-AT1 --alt-tur insan -> panel govdesinde alt_tur + TUR satirinda MODEL=insan ·
+V-MK1 sunulan figurde D1'de kapali model (pet) -> `kapali_model=pet` 400 model-kapali, HAZIR · V-MK2 canli
+senaryo (figur sunulmuyor, plaket acik): figur tur satirina SECILMEZ -> yok_tur tur-kapali + cozulmez_model=figur
+model-kapali, HAZIR · V-MK3 sunucu kapali modele yanlis kod (400 tur-kapali) -> GECERSIZ rc 2 · V-MK4 /acik
+`modeller` alani yok -> GECERSIZ rc 2.
 V-AT2 --alt-tur figur disi -> HATA rc 2 (panel 0) · DENGE KAPISI (sahte figur_denge.py, FOTO_KOSUCU_JENERATOR):
 V-AT1 OK -> DENGE=HAZIR (girdi = onarilmis model.3mf, sha esit) · V-DG2 RED devrilme -> kart EKSIK · V-DG3 rc 1
 -> OLCULEMEDI + EKSIK · V-DG4 ham `model.ham.3mf` kapiya GITMEZ (cagri 0) · V-KB cesit cok_kabuk -> KABUK=RED.
@@ -213,6 +221,37 @@ def _sunucu_asamalari():
 TIK_DISI, RENK_SONRASI = _sunucu_asamalari()   # bugun: (..., 'onarim-bekliyor'), 'onarim-bekliyor'
 
 
+def _sunucu_modelleri():
+    """shop/src/foto.js MODELLER (kod, tur, cesit, alt) — fikstur model kapisi KAYNAKTAN (betigin okuyucusundan
+    BAGIMSIZ regex; ortak korluk olmasin). Bulunamazsa test COKER."""
+    import re
+    src = open(os.path.join(KOK, "shop", "src", "foto.js"), encoding="utf-8").read()
+    i = src.find("export const MODELLER")
+    blok = src[i:src.find("]);", i)] if i >= 0 else ""
+    ms = [dict(re.findall(r'(kod|tur|cesit|alt): "([a-z_]*)"', x)) for x in re.findall(r"Object\.freeze\(\{([^}]*)\}", blok)]
+    if not ms or any(set(m) != {"kod", "tur", "cesit", "alt"} for m in ms):
+        raise SystemExit("foto.js: MODELLER TURETILEMEDI")
+    return ms
+
+
+MODELLER = _sunucu_modelleri()
+MODELLI = {m["tur"] for m in MODELLER if m["kod"] != m["tur"]}   # bugun: anahtarlik, figur
+
+
+def sahte_model_kodu(g):
+    """foto.js modelKodu + figurAltTurCoz: (kod | "" cozulmez | None gecersiz alt tur)."""
+    tur = g.get("tur")
+    sc = g.get("secim") if isinstance(g.get("secim"), dict) else {}
+    cesit = sc.get("cesit") or g.get("cesit") or ""   # foto.js govdeCesidi (secim.cesit oncelikli)
+    cz = cesit or (TUR.get(tur) or {}).get("cesit_varsayilan") or ""
+    altli = any(m["alt"] for m in MODELLER if m["tur"] == tur)
+    at = (g.get("alt_tur") or "") if altli and not cesit else ""
+    if at and at not in {m["alt"] for m in MODELLER}:
+        return None
+    m = [x["kod"] for x in MODELLER if x["tur"] == tur and x["cesit"] == cz and x["alt"] == at]
+    return m[0] if m else ""
+
+
 def png(w, h):
     ch = lambda t, d: struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xffffffff)
     return (b"\x89PNG\r\n\x1a\n" + ch(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 0, 0, 0, 0)) +
@@ -248,7 +287,10 @@ class Sunucu:
 
     def __init__(self):
         self.ayar = {"acik": [], "carpan": 1000, "kapali_kod": 400, "onaysiz_kod": 400, "db": "",
-                     "durum_carpan": 1000, "r2": "", "yonet": {}, "gorsel_400_yabanci": False}
+                     "durum_carpan": 1000, "r2": "", "yonet": {}, "gorsel_400_yabanci": False,
+                     # MODEL KAPISI: D1'de kapali model kodlari; kapali modele donen hata (V-MK3 yanlis kod);
+                     # /acik `modeller` alanini dusur (V-MK4 eski sunucu).
+                     "d1_kapali_model": set(), "model_hata": "model-kapali", "modeller_yok": False}
         ayar = self.ayar
 
         def panel(h, yontem, g):
@@ -344,7 +386,11 @@ class Sunucu:
                 if self.path == "/api/shop/foto/acik":
                     tl = [{"kod": k, "olculer": [{"mm": mm, "fiyat_kurus": max(mm * ayar["carpan"], TABAN_KURUS)}
                                                  for mm in TUR[k]["olcu_secenekleri"]]} for k in ayar["acik"]]
-                    return self.yanit(200, {"acik": bool(tl), "turler": tl, "onay_surum": MAN["onay_surum"]})
+                    v = {"acik": bool(tl), "turler": tl, "onay_surum": MAN["onay_surum"]}
+                    if not ayar["modeller_yok"]:
+                        v["modeller"] = [m["kod"] for m in MODELLER
+                                         if m["kod"] not in ayar["d1_kapali_model"] and m["tur"] in ayar["acik"]]
+                    return self.yanit(200, v)
                 if self.path.startswith("/api/shop/foto/durum?is="):
                     # Sunucu fiyati: satirin KAYITLI olcusu x formul (shop/src/foto.js uretecDurumYaniti).
                     c = sqlite3.connect(ayar["db"])
@@ -365,6 +411,14 @@ class Sunucu:
                 if self.path.startswith("/api/shop/yonet/"):
                     return panel(self, "POST", g)
                 t = TUR.get(g.get("tur")) or {}
+                if g.get("tur") in MODELLI:
+                    # foto.js onizlemeUcu MODEL KAPISI: uretec + saglayici kolundan ONCE; D1 (acikAnahtari) model
+                    # kodunu tasimiyorsa ya da istek modele cozulmuyorsa 400 `model-kapali`.
+                    mk = sahte_model_kodu(g)
+                    if mk is None:
+                        return self.yanit(400, {"hata": "gecersiz-alt-tur"})
+                    if not mk or mk in ayar["d1_kapali_model"]:
+                        return self.yanit(400, {"hata": ayar["model_hata"]})
                 if g.get("tur") not in ayar["acik"] and t.get("motor") in ("D", "R") and \
                         not t.get("tarayici_onizleyici"):
                     # shop/src/foto.js onizlemeUcu: uretec (D/R) turu uretecOnizlemeUcu'na gider, orada
@@ -551,10 +605,12 @@ def vakalar(kaynak, sadece=None):
         # 8b0a4a10 sozlesmesi: hicbir M tur kapali degil; /acik'te olmayan tek tur bir D turu -> sunucuda 503
         # `kapali`. Bekci onu SECMEZ (yalniz motor M), BILINMEYEN_TUR'a duser -> 400 `tur-kapali` -> GECERLI,
         # HAZIR. D turu secerse 503 -> GECERSIZ rc 2 (MB33). 9 Eki: anahtarlik ornegi geldi, manifestte kapali D
-        # turu kalmadi -> senaryo FIKSTURDE kurulur (D_TUR disindaki ilk D turu /acik'ten cikarilir).
+        # turu kalmadi -> senaryo FIKSTURDE kurulur (D_TUR disindaki ilk D turu /acik'ten cikarilir). 10 Eki:
+        # modelli D tur (anahtarlik) SECILMEZ — bekci modelli turu zaten disarida tutar, MB33 kor kalirdi; yapboz.
         hazir_ortam(o)
         if all(k in o.sunucu.ayar["acik"] for k in TUR if TUR[k]["motor"] == "D"):
-            o.sunucu.ayar["acik"].remove(sorted(k for k in TUR if TUR[k]["motor"] == "D" and k != D_TUR)[0])
+            o.sunucu.ayar["acik"].remove(sorted(k for k in TUR if TUR[k]["motor"] == "D" and k != D_TUR and
+                                                 k not in MODELLI)[0])
         kapali = [k for k in TUR if k not in o.sunucu.ayar["acik"]]
         if [TUR[k]["motor"] for k in kapali] != ["D"]:
             return False, "on kosul: kapali turler yalniz tek D tur olmali, bulunan %s" % kapali
@@ -564,6 +620,49 @@ def vakalar(kaynak, sadece=None):
         return ok, son if ok else c[-900:]
 
     vaka("U2c", u2c)
+
+    def vmk1(o):
+        # Sunulan figurde D1'de KAPALI model (pet): /acik `modeller`'de yok -> bekci onu secer, 400 model-kapali.
+        hazir_ortam(o)
+        o.sunucu.ayar["d1_kapali_model"] = {"pet"}
+        rc, son, c = o.kos("--tur", D_TUR)
+        ok = (rc == 0 and son == "HAZIR=1/1 rc=0" and "GECERSIZ" not in c and
+              "MUTANT kapali-model->400: KIRMIZI-YAKAR(gecerli) kapali_model=pet kod=400 hata=model-kapali" in c)
+        return ok, son if ok else c[-900:]
+
+    vaka("V-MK1", vmk1)
+
+    def vmk2(o):
+        # Canli 10 Eki ariza senaryosu: figur'un hicbir modeli acik degil (/acik'te YOK), plaket acik -> figur tur
+        # satirina SECILMEZ (sunucu model-kapali der); tur satiri BILINMEYEN_TUR'a duser; model satiri cozulmez figur.
+        hazir_ortam(o)
+        o.sunucu.ayar["acik"].remove("figur")
+        rc, son, c = o.kos("--tur", D_TUR)
+        ok = (rc == 0 and son == "HAZIR=1/1 rc=0" and "GECERSIZ" not in c and
+              "cozulmez_model=figur kod=400 hata=model-kapali" in c and
+              "yok_tur=uu-yok-tur kod=400 hata=tur-kapali" in c)
+        return ok, son if ok else c[-900:]
+
+    vaka("V-MK2", vmk2)
+
+    def vmk3(o):
+        # Sunucu kapali modeli YANLIS kodla reddeder (400 tur-kapali) -> model kapisi olculmedi, GECERSIZ rc 2.
+        o.sunucu.ayar["model_hata"] = "tur-kapali"
+        rc, son, c = tek(o)
+        ok = (rc == 2 and son == "HAZIR=0/1 rc=2" and
+              "MUTANT kapali-model->400: GECERSIZ cozulmez_model=figur kod=400 hata=tur-kapali" in c)
+        return ok, son if not ok else c[-900:]
+
+    vaka("V-MK3", vmk3)
+
+    def vmk4(o):
+        # /acik `modeller` alani yok (model kapisi oncesi sunucu) -> bekci kuramaz, GECERSIZ rc 2.
+        o.sunucu.ayar["modeller_yok"] = True
+        rc, son, c = tek(o)
+        ok = rc == 2 and son == "HAZIR=0/1 rc=2" and "MUTANT kapali-model->400: GECERSIZ /acik `modeller`" in c
+        return ok, son if not ok else c[-900:]
+
+    vaka("V-MK4", vmk4)
 
     def u3(o):
         rc, son, c = tek(o, FAKE_DELIK="1")
@@ -1389,7 +1488,8 @@ MUTANTLAR = {
     "MB32": ("    return max(mm * 1000, TABAN_KURUS)\n", "    return mm * 1000\n", {"U14"}),
     # 8b0a4a10: mutant on kosulu YALNIZ M kapali turu secer; filtre kalkarsa ornegi olmayan D anahtarlik
     # secilir, sunucu 503 `kapali` (uretecOnizlemeUcu) -> GECERSIZ rc 2 -> U2c KIRMIZI.
-    "MB33": (' if t["kod"] not in acik_kodlar and t.get("motor") == "M"]', ' if t["kod"] not in acik_kodlar]',
+    "MB33": (' if t["kod"] not in acik_kodlar and t.get("motor") == "M" and\n',
+             ' if t["kod"] not in acik_kodlar and\n',
              {"U2c"}),
     # TUR-C2c: cesit ornek-onizleme govdesine girmezse D turu saglayiciya gidemez (400 gecersiz-tur) -> ② EKSIK.
     "MB34": ('            govde["cesit"] = tr.cesit\n', '            pass\n', {"S16", "S17"}),
@@ -1419,6 +1519,14 @@ MUTANTLAR = {
     # --olcu: cesit olcusu sabite donerse govde 60 -> V-OL1 KIRMIZI.
     "M-OL": ("    mm = olcu or FIGUR_OLCU_MM\n", "    mm = FIGUR_OLCU_MM\n", {"V-OL1"}),
     # CESIT KABUK: cok_kabuk sebebi RED sayilmazsa V-KB KIRMIZI.
+    # 6 MODEL bekcisi (10 Eki ariza): model satiri tur red metnini beklerse kapali model -> GECERSIZ (V-MK1/2);
+    # modelli tur tur satirina geri girerse canli senaryo figur'u secer, model-kapali -> GECERSIZ (V-MK2);
+    # model satiri rc'ye baglanmazsa yanlis kod GECER (V-MK3, V-MK4). U1 de KIRMIZI: model satiri her kosumda.
+    # M-MK-ALT: (5) onay istegi alt_tur tasimazsa figur model kapisinda 400 model-kapali -> ⑤ EKSIK (V-AT1).
+    "M-MK-ALT": ('        g["alt_tur"] = tr.alt_tur\n', '        pass\n', {"V-AT1"}),
+    "M-MK-BEK": ("    bek = _red_metni_model()\n", "    bek = _red_metni_onizleme()\n", {"U1", "V-MK1", "V-MK2"}),
+    "M-MK-TUR": ('              t["kod"] not in modelli]', '              True]', {"V-MK2"}),
+    "M-MK-YOK": ("        if not mm:\n", "        if False:\n", {"V-MK3", "V-MK4"}),
     "M-KB": ('KABUK_RED_SEBEP = ("cok_kabuk", "manifold_degil")', 'KABUK_RED_SEBEP = ("manifold_degil",)', {"V-KB"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),

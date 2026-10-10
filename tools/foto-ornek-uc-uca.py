@@ -24,8 +24,13 @@ Bir kategoride (foto turu) zinciri ONIZLEMEDE olcer; her olcut HAZIR/EKSIK + say
                      tarayicida aydinlatma kutusunda TEK onay kutusu + onaysiz dugme KAPALI + durustluk metni
   (6) 375 px       : mobil emulasyonda (375x812, mobile) tur secili iken yatay tasma 0 + konsol hatasi 0
 
-MUTANT (her kosumda, olcutun on kosulu): acik OLMAYAN bir kategoriye (manifest - /acik; hepsi aciksa
-manifestte OLMAYAN sabit `BILINMEYEN_TUR`) onizleme istegi -> sunucu 400 + `hata="tur-kapali"` DEMELI.
+MUTANT (her kosumda, olcutun on kosulu; IKI AYRI SATIR, ikisi de gecmeli):
+  (a) `kapali-model`: modelli turde (6 model, shop/src/foto.js MODELLER; anahtarlik/figur) KAPALI model ->
+      sunucu MODEL KAPISI 400 + `hata="model-kapali"` DEMELI. Ornek: sunulan turun /acik `modeller`'inde
+      OLMAYAN cesitsiz modeli; yoksa modele COZULEMEYEN istek (figur, alt tursuz -> modelKodu "" = kapali).
+  (b) `acik-olmayan-kategori`: acik OLMAYAN modelsiz kategoriye (manifest - /acik; yoksa manifestte
+      OLMAYAN sabit `BILINMEYEN_TUR`) onizleme istegi -> sunucu 400 + `hata="tur-kapali"` DEMELI.
+      Modelli tur (b)'ye GIRMEZ: sunucuda model kapisi tip kapisindan ONCE kosar (83f3d436).
 Daha gevsek esik (yalniz `kod==400`) bugun figur gercek ve ACIK ture dusup gorsel-gecersiz 400'e
 kacinca KOR gecer; bekci metni KAYNAKTAN okur (`shop/src/foto.js` /foto/onizleme) — farkli 400 ya
 kod 200/4xx/5xx GECERSIZ sayilir (rc 2, HAZIR=0).
@@ -205,7 +210,8 @@ if(mod==='dok'){
   ornek_notu:t.ornek_notu,aydinlatma:F.aydinlatmaMaddeleri(t.kod),
   tarayici_onizleyici:!!(F.TARAYICI_ONIZLEYICI&&F.TARAYICI_ONIZLEYICI[t.uretec]===true),
   turetilmis:F.olcuTuretilmis(t.kod),
-  cesitler:(F.cesitler&&F.cesitler[t.kod])?F.cesitler[t.kod].secenekler:[]}))};
+  cesitler:(F.cesitler&&F.cesitler[t.kod])?F.cesitler[t.kod].secenekler:[],
+  cesit_varsayilan:F.cesitCoz(t.kod,undefined)}))};
  process.stdout.write(JSON.stringify(out));
 } else {
  const g=JSON.parse(process.argv[3]);const r={};
@@ -1402,6 +1408,10 @@ def istek_govdesi(tr, onay):
         return "/api/shop/foto/litofan", g
     g["parametreler"] = tr.parametre
     g["secim"] = tr.secim   # cesit kolunda {"cesit": ...} (istemci govde.secim.cesit, TUR-C2b)
+    if tr.alt_tur:
+        # 6 MODEL: figur istegi model koduna alt_tur ile cozulur; alt tursuz figur sunucu MODEL KAPISINDA
+        # 400 `model-kapali` (83f3d436) -> (5) onay kapisini hic olcemezdi.
+        g["alt_tur"] = tr.alt_tur
     if "foto" in tr.dosyalar:
         g["gorsel"] = "data:image/png;base64," + base64.b64encode(tr.dosyalar["foto"][1]).decode()
     if "svg" in tr.dosyalar:
@@ -1491,21 +1501,87 @@ def olc_3_5_6(tr, acik, tar):
                                                   (" ilk=" + konsol[0]) if konsol else ""))
 
 
-def _red_metni_onizleme():
-    """shop/src/foto.js `onizlemeUcu` fonksiyonu icindeki `if (!tur) { return fjson({ hata: "X" }, 400) }`
-    — X. Kaynaktan okunur; ikinci bir sabit sozluk UYDURULMAZ. Bulunamazsa Ayar (kapali yol)."""
+def _onizleme_govdesi():
+    """shop/src/foto.js `onizlemeUcu` fonksiyon govdesi (bekci metinleri KAYNAKTAN okunur)."""
     import re as _re
     src = open(os.path.join(SHOP, "src", "foto.js"), encoding="utf-8").read()
     m = _re.search(r'async\s+function\s+onizlemeUcu\s*\([^)]*\)\s*\{', src)
     if not m:
         raise Ayar("shop/src/foto.js: onizlemeUcu fonksiyonu bulunamadi (bekci yazisi kaynaktan okunamadi)")
     sonraki = _re.search(r'(?:export\s+)?async\s+function\s+\w+\s*\([^)]*\)\s*\{', src[m.end():])
-    govde = src[m.end(): m.end() + sonraki.start()] if sonraki else src[m.end():]
+    return src[m.end(): m.end() + sonraki.start()] if sonraki else src[m.end():]
+
+
+def _red_metni_onizleme():
+    """shop/src/foto.js `onizlemeUcu` fonksiyonu icindeki `if (!tur) { return fjson({ hata: "X" }, 400) }`
+    — X. Kaynaktan okunur; ikinci bir sabit sozluk UYDURULMAZ. Bulunamazsa Ayar (kapali yol)."""
+    import re as _re
+    govde = _onizleme_govdesi()
     rm = _re.search(r'if\s*\(\s*!\s*tur\s*\)\s*\{\s*return\s+fjson\(\s*\{\s*hata:\s*"([^"]+)"\s*\}\s*,\s*400\s*\)',
                     govde)
     if not rm:
         raise Ayar("shop/src/foto.js: onizlemeUcu /foto/onizleme tur-red metni bulunamadi")
     return rm.group(1)
+
+
+def _red_metni_model():
+    """onizlemeUcu MODEL KAPISI: `if (!modelAcik(...)) { return fjson({ hata: "X" }, 400) }` — X (kaynaktan)."""
+    rm = re.search(r'if\s*\(\s*!\s*modelAcik\(.*?\)\s*\)\s*\{\s*return\s+fjson\(\s*\{\s*hata:\s*"([^"]+)"\s*\}'
+                   r'\s*,\s*400\s*\)', _onizleme_govdesi())
+    if not rm:
+        raise Ayar("shop/src/foto.js: onizlemeUcu model kapisi red metni bulunamadi")
+    return rm.group(1)
+
+
+def sunucu_modelleri():
+    """shop/src/foto.js `MODELLER` (kod, tur, cesit, alt) — KAYNAKTAN; ikinci sozluk UYDURULMAZ. Bos -> Ayar."""
+    src = open(os.path.join(SHOP, "src", "foto.js"), encoding="utf-8").read()
+    i = src.find("export const MODELLER")
+    j = src.find("]);", i)
+    ms = re.findall(r'kod:\s*"([a-z_]+)",\s*tur:\s*"([a-z_]+)",\s*cesit:\s*"([a-z_]*)",\s*alt:\s*"([a-z_]*)"',
+                    src[i:j]) if i >= 0 and j > i else []
+    if not ms:
+        raise Ayar("shop/src/foto.js: MODELLER okunamadi (model bekcisi kurulamadi)")
+    return [{"kod": a, "tur": b, "cesit": c, "alt": d} for a, b, c, d in ms]
+
+
+def modelli_turler(modeller):
+    """Model kodu tur kodundan FARKLI olan tur (foto.js modelliTur): acilisi MODEL duzeyinde."""
+    return {m["tur"] for m in modeller if m["kod"] != m["tur"]}
+
+
+def mutant_model_kosul(acik_kodlar, acik_modeller):
+    """KAPALI model -> sunucu MODEL KAPISI 400 + `model-kapali` (kaynaktan). Donus (gecti, aciklama).
+
+    Ornek secimi: (1) SUNULAN modelli turun /acik `modeller`'inde OLMAYAN cesitsiz modeli (sunucu /acik bu modeli
+    yalniz D1'de kapaliysa duser -> kapi KESIN reddeder); (2) yoksa modele COZULEMEYEN istek (cesit varsayilani +
+    alt tursuz eslesen model yok; bugun figur) -> modelKodu "" -> kapali. Sunulmayan turun modeli SECILMEZ:
+    D1'de acik olabilir (turHazir/havuz /acik'ten duser) ve istek kapidan gecip saglayici koluna ilerler."""
+    if not isinstance(acik_modeller, list):
+        return False, "/acik `modeller` alani YOK — sunucu model kapisi surumu degil (bek_hata=%s)" % _red_metni_model()
+    bek = _red_metni_model()
+    modeller = sunucu_modelleri()
+    modelli = modelli_turler(modeller)
+    harita = {t["kod"]: t for t in MAN["turler"]}
+    acik_m = set(acik_modeller)
+    aday = [m for m in modeller if m["tur"] in modelli and m["tur"] in harita and m["tur"] in acik_kodlar and
+            not m["cesit"] and m["kod"] not in acik_m]
+    govde = {"olcu_mm": 100, "aydinlatma_onay": True, "onay_surum": MAN["onay_surum"]}
+    if aday:
+        m = aday[0]
+        govde.update({"tur": m["tur"], "alt_tur": m["alt"]} if m["alt"] else {"tur": m["tur"]})
+        kaynak, ad = "kapali_model", m["kod"]
+    else:
+        coz = [k for k in sorted(modelli) if k in harita and not any(
+            m["tur"] == k and m["cesit"] == (harita[k].get("cesit_varsayilan") or "") and not m["alt"]
+            for m in modeller)]
+        if not coz:
+            return False, "kapali model ornegi KURULAMADI (sunulan turde kapali model yok, cozulmez modelli tur yok)"
+        govde["tur"] = coz[0]
+        kaynak, ad = "cozulmez_model", coz[0]
+    k, j = post_429("/api/shop/foto/onizleme", govde)
+    gecti = k == 400 and j.get("hata") == bek
+    return gecti, "%s=%s kod=%s hata=%s bek_kod=%s bek_hata=%s" % (kaynak, ad, k, j.get("hata"), 400, bek)
 
 
 def mutant_on_kosul(acik_kodlar):
@@ -1519,7 +1595,11 @@ def mutant_on_kosul(acik_kodlar):
     # Yalniz SAGLAYICI kolu (motor M) kapali turu: D/R kolundaki kapali tur /foto/onizleme'de once
     # turHazir'a takilir ve 503 `kapali` doner (9 Eki 2026 olcumu: anahtarlik kaydi geldi, ornegi yok) —
     # o da fail-closed ama bu bekcinin olctugu `tur-kapali` dali DEGIL; o kod BILINMEYEN_TUR'a duser.
-    kapali = [t["kod"] for t in MAN["turler"] if t["kod"] not in acik_kodlar and t.get("motor") == "M"]
+    # Modelli tur (anahtarlik/figur) SECILMEZ: sunucuda model kapisi tip kapisindan ONCE kosar ve 400
+    # `model-kapali` doner (83f3d436) — o dal mutant_model_kosul satirinda ayrica olculur.
+    modelli = modelli_turler(sunucu_modelleri())
+    kapali = [t["kod"] for t in MAN["turler"] if t["kod"] not in acik_kodlar and t.get("motor") == "M" and
+              t["kod"] not in modelli]
     if kapali:
         kod = kapali[0]
         kaynak = "kapali"
@@ -1619,8 +1699,13 @@ def main(argv=None):
         if k != 200:
             raise Ayar("/foto/acik %s" % k)
         acik_kodlar = {x.get("kod") for x in acik.get("turler") or []}
+        mm, mmac = mutant_model_kosul(acik_kodlar, acik.get("modeller"))
+        print("MUTANT kapali-model->400: %s %s" % ("KIRMIZI-YAKAR(gecerli)" if mm else "GECERSIZ", mmac))
         mg, mac = mutant_on_kosul(acik_kodlar)
         print("MUTANT acik-olmayan-kategori->400: %s %s" % ("KIRMIZI-YAKAR(gecerli)" if mg else "GECERSIZ", mac))
+        if not mm:
+            print("HAZIR=0/%d rc=2" % len(kodlar))
+            return 2
         if not mg:
             print("HAZIR=0/%d rc=2" % len(kodlar))
             return 2
