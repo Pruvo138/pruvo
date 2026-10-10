@@ -57,6 +57,8 @@ parametre -> rc 2 (uretec KOSMAZ). Cikti: `uretec.3mf`->`model.3mf`, `ozet.json`
 renk_sayisi 3MF'teki extruder sayisi OLCULUR), onizleme >= 1024 px tam sayi kat buyutulur. Uretec
 rc 2 -> RET cumlesi RET_KALIPLARI ile koda cevrilir -> `uretec-red:<kod>` (musteri metni manifestte
 `URETEC_RED_METIN`; bilinmeyen -> genel metin).
+URETIM SATIRI `hazir`a gecerken (uretec kolu + onarim kuyrugu) foto_uretim.renk_sayisi = uretilen model.3mf'in
+OLCULEN extruder sayisi (uc_mf_extruder_sayisi; 0 = olculemedi) — giristeki siparis/ornek tavani ezilir.
 """
 import argparse
 import fcntl
@@ -344,16 +346,21 @@ def yeni_jeton(i):
     return max(int(time.time() * 1000), int(i["gorulen"]) + 1)
 
 
-def sonuc_sql(i, jeton, karar, sebep="", olcu=None):
+def sonuc_sql(i, jeton, karar, sebep="", olcu=None, renk=None):
     """karar: hazir | elle | ariza. Son yazim jetona bagli (CAS). `olcu` (yalniz onizleme + hazir):
     TURETILMIS eksenli turde onizlemede OLCULEN uzun kenar (tam mm) satirin olcu_mm'sine yazilir —
-    sunucu fiyati ORADAN hesaplar (shop/src/foto.js uretecDurumYaniti / fotoKalemFiyatla)."""
+    sunucu fiyati ORADAN hesaplar (shop/src/foto.js uretecDurumYaniti / fotoKalemFiyatla).
+    `renk` (yalniz uretim satiri + hazir): uretilen model.3mf'in OLCULEN extruder sayisi (uc_mf_extruder_sayisi;
+    0 = olculemedi) foto_uretim.renk_sayisi'na yazilir — satira girisinde yazilan siparis/ornek tavani (ORNEK:
+    renkTavani) uretilen dosyayi anlatmaz (10 Eki: tek renk 3MF, satir 2)."""
     tablo, kosul = nerede(i)
     kosul += " AND " + jeton_kosulu(i, jeton)
     simdi = simdi_iso()
     if satirli(i):
         if karar == "hazir":
             st = "asama = 'hazir', sebep = '', deneme = 0, guncel = %s" % sql_metin(simdi)
+            if renk is not None:
+                st += ", renk_sayisi = %d" % int(renk)
         elif karar == "elle":
             st = "asama = 'elle', sebep = %s, deneme = 0, guncel = %s" % (sql_metin(sebep), sql_metin(simdi))
         else:
@@ -1681,13 +1688,16 @@ def onarim_isle(i, jeton, yaz, t=None):
                  " rc=%s %s" % (rc, fozet))
         if karar == "ariza" and i["deneme"] + 1 >= DENEME_TAVANI:
             karar = "elle"
+        renk = None
         if karar == "hazir":
             r2_koy(d + "model.3mf", cikti, "model/3mf")
-        _, n = d1(sonuc_sql(i, jeton, karar, sebep))
+            renk = uc_mf_extruder_sayisi(cikti)
+        _, n = d1(sonuc_sql(i, jeton, karar, sebep, renk=renk))
         if n != 1:
             yaz("CAS %s son yazim tutmadi (jeton degismis)" % is_adi(i))
             return "cas"
-        yaz("%s %s%s %s" % (karar.upper(), is_adi(i), (" sebep=" + sebep) if sebep else "", ozet))
+        yaz("%s %s%s %s%s" % (karar.upper(), is_adi(i), (" sebep=" + sebep) if sebep else "", ozet,
+                              " renk_sayisi=%d" % renk if renk is not None else ""))
         return {"hazir": "uretildi", "elle": "red", "ariza": "ariza"}[karar]
     except Erisilemedi:
         try:
@@ -1730,7 +1740,7 @@ def is_isle(i, manifest, yaz):
         girdi_dizin = os.path.join(gecici, "girdi")
         os.makedirs(girdi_dizin)
         cikti = os.path.join(gecici, "cikti")
-        olcu_yaz = None
+        olcu_yaz = renk = None
         sebep = girdi_hazirla(i, t, girdi_dizin) if t.get("motor") in TOLERANS else "kol-uygun-degil"
         if sebep:
             rc, ozet = 2, "RED " + sebep
@@ -1747,6 +1757,8 @@ def is_isle(i, manifest, yaz):
                 for ad in CIKTI_DOSYALARI:
                     r2_koy(a[ad], os.path.join(cikti, ad), tur[ad])
                 karar = "hazir"
+                if satirli(i):
+                    renk = uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf"))
                 if turetilmis(t) and i["kuyruk"] != "siparis":
                     with open(os.path.join(cikti, "olcu.json"), encoding="utf-8") as f:
                         olcu_yaz = olculen_mm(json.load(f).get("uzun_kenar_mm"))
@@ -1758,7 +1770,8 @@ def is_isle(i, manifest, yaz):
         else:
             karar = "elle" if i["deneme"] + 1 >= DENEME_TAVANI else "ariza"
             sebep = "uretec-ariza"
-        _, n = d1(sonuc_sql(i, jeton, karar, sebep, olcu_yaz if karar == "hazir" else None))
+        _, n = d1(sonuc_sql(i, jeton, karar, sebep, olcu_yaz if karar == "hazir" else None,
+                            renk if karar == "hazir" else None))
         if n != 1:
             yaz("CAS %s son yazim tutmadi (jeton degismis)" % is_adi(i))
             return "cas"

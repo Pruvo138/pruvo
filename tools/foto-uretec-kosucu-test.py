@@ -15,6 +15,9 @@ rc=3 · T9 KURU -> yazim 0 · T10 onizleme kuyrugu -> onizleme-hazir · T11 log 
 (onizlemeye bagli siparis, ayni girdi sha -> uretec KOSMAZ) · T12b sha farkli -> uretec yeniden koşar.
 Mutantlar (kosucu kopyasi gecici dizinde): M1 sizdirmaz · M2 KURU · M3 CAS · M4 deneme tavani · M5 jeton geri ·
 M6/M7 kopya kolu · M0 yorum -> 0 kirmizi.
+RENK SUTUNU (10 Eki): 'hazir'da foto_uretim.renk_sayisi = uretilen model.3mf extruder sayisi (giris tavani 2 ezilir):
+RB2-RB4 tek -> 1 · RB1 palet 3 boya -> 3 · RB5 palet 4 boya -> 4 · RS1 uretec kolu (ORNEK kopya) 3 extruder -> 3;
+M-RS-ONARIM / M-RS-SIPARIS / M-RS-SQL.
 
 TEKIN-ORTAK KOPRUSU (yapboz + anahtarlik): T13-<kod> sahte tekin uretecine giden JSON BIREBIR beklenen (form
 AYNEN + olcu alani + palet/bolge renkleri RENK_HEX + anahtarlik sabiti) + onizleme-hazir + olcu.json ·
@@ -440,7 +443,7 @@ class Ortam:
             return sum(1 for s in f if json.loads(s)[:3] == ["r2", "object", "put"])
 
     def uretim(self):
-        r = self.sql("SELECT asama, sebep, deneme, guncel FROM foto_uretim")
+        r = self.sql("SELECT asama, sebep, deneme, guncel, renk_sayisi FROM foto_uretim")
         return r[0] if r else None
 
     def onarim_is(self, ham=True, tur="figur", olcu=130, girdi=None):
@@ -1036,10 +1039,16 @@ def vakalar(kosucu):
     # -> uretilen model.3mf extruder sayisi >= 2 (boya korunur); tek / alan yok / gecersiz -> bugunku STL yolu, bayrak
     # YOK, 1 extruder. Extruder sayisi model.3mf'ten koşucudan BAGIMSIZ okunur (extruder_say).
     BOYA3 = ["4", "841", "0C"]  # durumlar {1}, {1,2} (bolunmus), {3} -> 3 extruder
+    BOYA4 = ["4", "841", "0C", "1C"]  # + {4} (durum 3 + sonraki basamak 1) -> 4 extruder
+    # RENK SUTUNU (10 Eki, is 05255ed0: koşucu tek renk=1 dedi, satir renk_sayisi=2 kaldi): satira girisinde yazilan
+    # tavan (ORNEK: renkTavani = 2) 'hazir'da URETILEN model.3mf'in extruder sayisina (extruder_say, koşucudan
+    # BAGIMSIZ) esitlenir: tek -> 1, palet 3 boya -> 3, palet 4 boya -> 4.
+    RENK_GIRIS = 2
 
-    def renk_vaka(kalem, beklenen_renk, palet):
+    def renk_vaka(kalem, beklenen_renk, palet, boya=None):
         def fn(o):
-            jen = figur_ortami(o, boya=BOYA3, kalem=kalem)
+            jen = figur_ortami(o, boya=boya or BOYA3, kalem=kalem)
+            o.sql("UPDATE foto_uretim SET renk_sayisi = ?", RENK_GIRIS)
             # Onarim girdisinin KENDISI (uretim_3mf zip zaman damgasi tasir; yeniden uretmek saniye siniri flaky'si)
             with open(os.path.join(o.r2, "foto", SIP, "0", "model.ham.3mf"), "rb") as f:
                 ham = f.read()
@@ -1054,7 +1063,7 @@ def vakalar(kosucu):
                 (gb.startswith(b"PRUVO figur duz") and "figur.stl" in av)
             return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
                     av[:2 + len(bayrak)] == ["--konum", "tepe"] + bayrak and av.count("--renk-modu") == len(bayrak) // 2
-                    and girdi_ok and n == beklenen_renk and
+                    and girdi_ok and n == beklenen_renk and u["renk_sayisi"] == n and
                     ("renk_modu=%s renk=%d" % ("palet" if palet else "tek", beklenen_renk)) in c), \
                 "%s %s argv=%s renk=%s" % (son, u, av, n)
         return fn
@@ -1105,6 +1114,25 @@ def vakalar(kosucu):
     vaka("RB2", renk_vaka({"foto_renk_modu": "tek"}, 1, False))    # tek (boyali 3MF bile) -> STL, 1 renk, bayrak YOK
     vaka("RB3", renk_vaka({}, 1, False))                           # eski siparis (alan yok) -> tek STL, 1 renk
     vaka("RB4", renk_vaka({"foto_renk_modu": "Renkli"}, 1, False))  # gecersiz deger -> tek (fail-safe)
+    vaka("RB5", renk_vaka({"foto_renk_modu": "palet"}, 4, True, BOYA4))  # palet 4 boyali -> 4 renk, satir 4
+
+    def rs1(o):
+        # Uretec kolu (uretim satiri uretec-bekliyor -> hazir; T22 ORNEK kopya kolu, 3 extruder'li 3MF): satira girista
+        # yazilan tavan (RENK_GIRIS) -> uretilen model.3mf'in extruder sayisi (3; koşucudan BAGIMSIZ extruder_say).
+        x = G2_VAKA["anahtarlik"]
+        anahtarlik_onizleme(o)
+        o.sql("UPDATE foto_isler SET ziyaretci = 'ornek' WHERE is_no = ?", IS2)
+        o.kos("--uygula", FAKE_TEKIN_EXTRUDER="3")
+        ornek_uretim(o, "anahtarlik", x["olcu"])
+        o.sql("UPDATE foto_uretim SET renk_sayisi = ?", RENK_GIRIS)
+        rc, son, _ = o.kos("--uygula", FAKE_TEKIN_EXTRUDER="3")
+        u = o.uretim()
+        y = os.path.join(o.r2, "foto", ornek_no, "0", "model.3mf")
+        n = extruder_say(open(y, "rb").read()) if os.path.isfile(y) else None
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and n == 3 and
+                u["renk_sayisi"] == n), "%s %s extruder=%s" % (son, u, n)
+
+    vaka("RS1", rs1)
     vaka("T67", t67)
     vaka("T68", t68)
     for ad, fn in (("T1", t1), ("T2", t2), ("T3", t3), ("T4", t4), ("T5", t5), ("T6", t6), ("T7", t7),
@@ -1353,7 +1381,7 @@ MUTANTLAR = {
     "M20": ('"yapboz": esle_yapboz, "anahtarlik": esle_anahtarlik,\n', '"yapboz": esle_yapboz,\n',
             # esle_isimlik form alanlarini (anahtarlik_kulak_konum, liste satirlar) tanimaz -> T14/T16/T17 de.
             # T43 (9 Eki foto kolu): yazi kolunun eslemesi esle_anahtarlik degil -> o da KIRMIZI (iddia eklendi).
-            {"T13-anahtarlik", "T14", "T16", "T17", "T22", "T43"}),
+            {"T13-anahtarlik", "T14", "T16", "T17", "T22", "T43", "RS1"}),
     "M31": ('"sablon": esle_sablon, "yapboz": esle_yapboz, ', '"sablon": esle_sablon, ',
             {"T13-yapboz", "T19", "T20", "T21", "T35", "T36", "V5-ESKI"}),
     # bolge adi manifestten degil sabit `taban`dan okunursa anahtarlik renkleri duser.
@@ -1386,13 +1414,21 @@ MUTANTLAR = {
     # RB1 KIRMIZI; uretec bayragi duserse 3MF tek renk uretilir (renk 1) -> RB1; onarim SELECT'i siparis kalemini
     # okumazsa palet hic secilmez -> RB1.
     "M-RB-STL": ('    figur = "figur.3mf" if palet else "figur.stl"\n    if palet:\n',
-                 '    figur = "figur.stl"\n    if False:\n', {"RB1"}),
-    "M-RB-BAYRAK": ('    if rm == "palet":\n        u["renk_modu"] = "palet"\n', "", {"RB1"}),
+                 '    figur = "figur.stl"\n    if False:\n', {"RB1", "RB5"}),
+    "M-RB-BAYRAK": ('    if rm == "palet":\n        u["renk_modu"] = "palet"\n', "", {"RB1", "RB5"}),
     # palet ciktisi TEK govde + ucgen boyasi: koşucu boyayi saymazsa renk=1 (gercek prova 10 Eki: 4 boyali figur -> 1).
-    "M-RB-BOYA": ("    if not boya:\n        return len(govde)\n", "    if True:\n        return len(govde)\n", {"RB1"}),
+    "M-RB-BOYA": ("    if not boya:\n        return len(govde)\n", "    if True:\n        return len(govde)\n", {"RB1", "RB5"}),
     # bolunmus ucgende yalniz ilk yaprak sayilirsa ("841" -> {1}) durum 2 kaybolur -> renk=2 (RB1).
-    "M-RB-BOLUNMUS": ("            bekleyen += (kod & 3) + 1\n", "            bekleyen += 1\n", {"RB1"}),
-    "M-RB-SELECT": (' u.guncel, s.urunler"\n', ' u.guncel"\n', {"RB1"}),
+    "M-RB-BOLUNMUS": ("            bekleyen += (kod & 3) + 1\n", "            bekleyen += 1\n", {"RB1", "RB5"}),
+    # RENK SUTUNU: 'hazir' yazimi olculen extruder sayisini tasimazsa satir giris tavaninda (2/4) kalir ->
+    # onarim kolu RB1-RB5, uretec (siparis) kolu RS1; SQL kolu ikisini birden.
+    "M-RS-ONARIM": ("            renk = uc_mf_extruder_sayisi(cikti)\n", "            renk = None\n",
+                    {"RB1", "RB2", "RB3", "RB4", "RB5"}),
+    "M-RS-SIPARIS": ('                    renk = uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf"))\n',
+                     "                    renk = None\n", {"RS1"}),
+    "M-RS-SQL": ('                st += ", renk_sayisi = %d" % int(renk)\n', "                pass\n",
+                 {"RB1", "RB2", "RB3", "RB4", "RB5", "RS1"}),
+    "M-RB-SELECT": (' u.guncel, s.urunler"\n', ' u.guncel"\n', {"RB1", "RB5"}),
     "M65": ("        if not (rc == 2 and TEPE_RED.search(ozet)) and not tepe_suresi:\n",
             "        if not rc == 2 and not tepe_suresi:\n", {"T61"}),
     # B2: tepe olcuye sigmadiginda sirt dususu kapali -> tepe kulak dahil > olcu -> kabul reddi ('elle').
@@ -1402,7 +1438,7 @@ MUTANTLAR = {
     "M-B2-KABUL": ("        if red:\n            rc, ozet = 2, red\n", "        if False:\n            rc, ozet = 2, red\n",
                    {"T68"}),
     "M60": ('    if not isinstance(g, dict) or "uretec" not in g:\n', "    if True:\n",
-            {"T60", "T61", "T62", "T63", "T64", "T65", "T66", "T67", "T68", "T64K", "T65K", "RB1", "RB2", "RB3", "RB4", "TS1", "TS2"}),
+            {"T60", "T61", "T62", "T63", "T64", "T65", "T66", "T67", "T68", "T64K", "T65K", "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     # TUR-C2a: girdi.json zorunlu sayilirsa eski is (dosya yok) 'elle'ye duser (T27 = V7).
     "M61": ('    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return None\n',
             '    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return ""\n', {"T27"}),
@@ -1419,9 +1455,9 @@ MUTANTLAR = {
     # ANAHTARLIK FOTO KOLU: foto dali / parametre_bayraklari / >50 mm cumlesi / yazi kolu ayrimi.
     "M45": ('    if (g or {}).get("kol") == "foto":\n        return ESLEMELER.get(g.get("esle"))\n', "",
             {"T40", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K",
-             "RB1", "RB2", "RB3", "RB4", "TS1", "TS2"}),
+             "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     "M46": ("        komut += [pb[ad], str(u[ad])]\n", "        pass\n",
-            {"T41", "T60", "T61", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K", "RB1", "RB2", "RB3", "RB4", "TS1", "TS2"}),
+            {"T41", "T60", "T61", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K", "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     "M47": ('    (r"figur uzun kenar|kulak dahil uzun kenar|kulak yerlesmez", "anahtarlik-boyut"),\n',
             "", {"T42", "T44", "T61", "T65", "T65K"}),
     # 10 Eki figur_kulak: varsayilan konum tepe; STL girdisi de kabul; eski plaket eslemesi geri gelirse KIRMIZI.
@@ -1434,12 +1470,12 @@ MUTANTLAR = {
     "M52": ('    "figur_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/figur_kulak.py",',
             '    "plaket_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/plaket_kulak.py",',
             {"T40", "T41", "T44", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K",
-             "RB1", "RB2", "RB3", "RB4", "TS1", "TS2"}),
+             "RB1", "RB5", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     "M48": ('"anahtarlik-boyut": "Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı;',
             '"anahtarlik-boyut": "Bu fotoğraftan parça çıkmadı;', {"T42", "T44"}, "foto-uretim-veri.js"),
     # Yazi kolu gerilemesi: foto dali her ureteci yakalar -> anahtarlik yazi isi esle_isimlik'e duser (T13/T14/...).
     "M49": ('    if (g or {}).get("kol") == "foto":\n', '    if True:\n',
-            {"T13-anahtarlik", "T14", "T16", "T17", "T22", "T43"}),
+            {"T13-anahtarlik", "T14", "T16", "T17", "T22", "T43", "RS1"}),
     # TUR-B ⑧: eski alan atilmazsa eski yapboz isi `RED parametre` ile duser.
     "M4-ESKI": ("    eski_alanlari_at(t.get(\"kod\"), girdi)\n", "", {"V5-ESKI"}),
     "M0": ("import argparse\n", "import argparse  # kontrol mutanti\n", set()),
