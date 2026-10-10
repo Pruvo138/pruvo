@@ -39,6 +39,7 @@ V-AT1 OK -> DENGE=HAZIR (girdi = onarilmis model.3mf, sha esit) · V-DG2 RED dev
 -> OLCULEMEDI + EKSIK · V-DG4 ham `model.ham.3mf` kapiya GITMEZ (cagri 0) · V-KB cesit cok_kabuk -> KABUK=RED.
 Mutantlar (betik kopyasinda capa degisir; capa != 1 kez -> SURVIVOR): MUTANTLAR sozlugu yorumlari.
 """
+import base64
 import hashlib
 import importlib.util
 import json
@@ -264,6 +265,9 @@ class Sunucu:
                     # panelOrnekOnizleme: D turu (anahtarlik) saglayiciya YALNIZ cesit=figur ile gider (aksi
                     # saglayiciIsi yanlis -> 400 gecersiz-tur); cesit satira yazilir (figurKolu).
                     ayar["son_onizleme"] = dict(g, gorsel="")
+                    gv = str(g.get("gorsel") or "")
+                    ayar["son_gorsel_sha"] = hashlib.sha256(base64.b64decode(gv.split(",", 1)[-1])).hexdigest() \
+                        if gv.startswith("data:") else ""
                     if TUR.get(g.get("tur"), {}).get("motor") == "D" and g.get("cesit") != "figur":
                         return h.yanit(400, {"hata": "gecersiz-tur"})
                     no = "%032x" % (ayar["yonet"][uc] + 0xabc)
@@ -786,12 +790,12 @@ def vakalar(kaynak, sadece=None):
     # TUR-C2c CESIT KOLU (--cesit figur): anahtarlik figur cesidi saglayici koluna gider; ornek-onizleme govdesinde
     # cesit=figur, olcu 60 (B2 kulak dahil); zincir build 30 + renk 10 + onizleme 6 = 46; onarimda koşucu --kanit-dizin ile kulak
     # olcumlerini (ozet.json) + onizleme.png'yi birakir; ④ kulak 4 sayi + kulak dahil uzun = 60 ± tol + onizleme olcer.
-    def sag_figur(o, tavan, **ek):
+    def sag_figur(o, tavan, ekarg=(), **ek):
         hazir_ortam(o, "anahtarlik")
         o.sunucu.ayar["acik"] = [k for k in o.sunucu.ayar["acik"] if k != "figur"]
         cd = os.path.join(o.d, "cikti")
         rc, son, c = o.kos("--tur", "anahtarlik", "--cesit", "figur", "--kredi-tavani", str(tavan),
-                           "--dilim", "test-dilim", "--dilim-tavan", "1000", "--cikti-dizin", cd, **ek)
+                           "--dilim", "test-dilim", "--dilim-tavan", "1000", "--cikti-dizin", cd, *ekarg, **ek)
         return rc, son, c, o.sunucu.ayar, cd
 
     def s16(o):
@@ -834,12 +838,12 @@ def vakalar(kaynak, sadece=None):
     vaka("S19", s19)
 
     # 6 MODEL (SPEC-PROVA-6MODEL): figur alt turu saglayici istegine gider; DENGE kapisi onarilmis model.3mf'te.
-    def sag_alt(o, alt="insan", **ek):
+    def sag_alt(o, alt="insan", ekarg=(), **ek):
         hazir_ortam(o, "figur")
         o.sunucu.ayar["acik"] = [k for k in o.sunucu.ayar["acik"] if k != KAPALI_M]
         cd = os.path.join(o.d, "cikti-alt")
         rc, son, c = o.kos("--tur", "figur", "--alt-tur", alt, "--kredi-tavani", "100", "--dilim", "test-dilim",
-                           "--dilim-tavan", "1000", "--cikti-dizin", cd, **ek)
+                           "--dilim-tavan", "1000", "--cikti-dizin", cd, *ekarg, **ek)
         return rc, son, c, cd
 
     def tur_satiri(c, kod):
@@ -870,6 +874,41 @@ def vakalar(kaynak, sadece=None):
               sum(o.sunucu.ayar["yonet"].values()) == 0)
         return ok, "%s | %s" % (son, son2)
     vaka("V-AT2", v_at2)
+
+    # SPEC-PROVA-6MODEL-2: --foto yerel girdi saglayiciya AYNEN gider (sha esit) + FOTO satiri; gecersiz dosya erken
+    # HATA rc 2 (panel 0). --olcu cesit olcusunu degistirir (govde olcu_mm).
+    def v_ft1(o):
+        fy = os.path.join(o.d, "girdi-insan.png")
+        with open(fy, "wb") as f:
+            f.write(b"\x89PNG\r\n\x1a\n" + bytes(range(256)) * 12)
+        fsha = hashlib.sha256(open(fy, "rb").read()).hexdigest()
+        rc, son, c, cd = sag_alt(o, "insan", ("--foto", fy))
+        g = o.sunucu.ayar.get("son_onizleme") or {}
+        ok = (rc == 0 and o.sunucu.ayar.get("son_gorsel_sha") == fsha and
+              ("FOTO dosya=girdi-insan.png sha256=%s " % fsha) in c and g.get("alt_tur") == "insan")
+        return ok, "sha=%s/%s %s" % (o.sunucu.ayar.get("son_gorsel_sha"), fsha, c[-400:])
+    vaka("V-FT1", v_ft1)
+
+    def v_ft2(o):
+        hazir_ortam(o, "figur")
+        bozuk = os.path.join(o.d, "bozuk.png")
+        with open(bozuk, "wb") as f:
+            f.write(b"GIF89a" + b"x" * 4000)
+        rc, son, c = o.kos("--tur", "figur", "--foto", bozuk, "--kredi-tavani", "100", "--dilim", "test-dilim",
+                           "--dilim-tavan", "1000")
+        rc2, son2, c2 = o.kos("--tur", "figur", "--foto", os.path.join(o.d, "yok.png"))
+        rc3, son3, c3 = o.kos("--tur", "figur", "--tur", "plaket", "--olcu", "60")
+        ok = (rc == 2 and rc2 == 2 and rc3 == 2 and "HATA --foto bozuk.png: bicim-desteksiz" in c and
+              "HATA --foto yok.png: okunamadi" in c2 and "HATA --foto / --olcu" in c3 and
+              sum(o.sunucu.ayar["yonet"].values()) == 0)
+        return ok, "%s | %s | %s" % (son, son2, son3)
+    vaka("V-FT2", v_ft2)
+
+    def v_ol1(o):
+        rc, son, c, ay, cd = sag_figur(o, 70, ("--olcu", "30"))
+        g = ay.get("son_onizleme") or {}
+        return g.get("olcu_mm") == 30 and g.get("cesit") == "figur", "govde=%s %s" % (g, c[-300:])
+    vaka("V-OL1", v_ol1)
 
     def v_dg2(o):
         # RED (devrilme): kapinin satiri aynen rapora; kart EKSIK (6 olcut HAZIR olsa bile), rc 1.
@@ -1375,6 +1414,10 @@ MUTANTLAR = {
                  "    if not girdi or not os.path.isfile(girdi):", {"V-DG4"}),
     "M-DG-TUR": ("    if tr.kod not in DENGE_TURLERI or tr.cesit:\n        return \"-\", \"\"",
                  "    if tr.cesit:\n        return \"-\", \"\"", {"V-DENGE"}),
+    # --foto: dosya ornek gorselin yerine yazilmazsa saglayiciya elips gider -> V-FT1 KIRMIZI.
+    "M-FT": ('                    tr.dosyalar["foto"] = foto\n', '                    pass\n', {"V-FT1"}),
+    # --olcu: cesit olcusu sabite donerse govde 60 -> V-OL1 KIRMIZI.
+    "M-OL": ("    mm = olcu or FIGUR_OLCU_MM\n", "    mm = FIGUR_OLCU_MM\n", {"V-OL1"}),
     # CESIT KABUK: cok_kabuk sebebi RED sayilmazsa V-KB KIRMIZI.
     "M-KB": ('KABUK_RED_SEBEP = ("cok_kabuk", "manifold_degil")', 'KABUK_RED_SEBEP = ("manifold_degil",)', {"V-KB"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
