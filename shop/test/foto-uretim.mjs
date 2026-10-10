@@ -1021,7 +1021,7 @@ let ornekIs = "";
   const altIstem = async (alt) => {
     const p0 = P.protoGovde.length, c0 = protoSayisi();
     const r = await istek(env, "/yonet/foto/ornek-onizleme", { govde: { gorsel: GORSEL, tur: "figur",
-      olcu_mm: VERI.olcuSecenekleri("figur")[0], ...(alt === undefined ? {} : { alt_tur: alt }) }, basliklar: YONET });
+      olcu_mm: VERI.olcuBaslangic("figur"), ...(alt === undefined ? {} : { alt_tur: alt }) }, basliklar: YONET });
     const g = P.protoGovde.slice(p0);
     return { kod: r.kod, hata: r.v && r.v.hata, cagri: protoSayisi() - c0,
       prompt: g.length === 1 ? (Object.prototype.hasOwnProperty.call(g[0], "prompt") ? g[0].prompt : "ALAN-YOK") : null };
@@ -1656,56 +1656,6 @@ function veriYukle(kaynak) {
   return k.PRUVO_FOTO;
 }
 
-// ================================================================ FG — FIGUR OLCU ALT SINIRI 60 (Okan 10 Eki 12:4x)
-// "slider figürlerde 60mm den başlasın": figur kaydi olcu_mm.en_az 60 (en_cok 200); sunucu araligi kayittan
-// TURETIR (ikinci sabit yok), istemci surgusu sunucunun olculer dizisinden. Beklenen sayilar BAGIMSIZ (kayittan okunmaz).
-// figurSenaryo(V): V'nin fonksiyonlari sunucunun global VERI'sine gecici takilir (mutant da sunucudan olculur).
-async function figurSenaryo(V) {
-  const ad = ["turBul", "olcuAraligi", "olcuGecerli", "olcuSecenekleri", "fiyatKurus", "ornekSayisi"];
-  const yedek = {};
-  for (const a of ad) { yedek[a] = VERI[a]; VERI[a] = a === "ornekSayisi" ? (() => 1) : V[a]; }
-  const s = {};
-  try {
-    const a = VERI.olcuAraligi("figur") || {};
-    s.V1 = a.en_az === 60 && a.en_cok === 200 && VERI.olcuGecerli("figur", 60) && VERI.olcuGecerli("figur", 70) &&
-      !VERI.olcuGecerli("figur", 65) && !VERI.olcuGecerli("figur", 59) && VERI.olcuGecerli("figur", 200);
-    s.V2 = VERI.fiyatKurus("figur", 60) === 60000 && VERI.fiyatKurus("figur", 100) === 100000 &&
-      VERI.fiyatKurus("figur", 200) === 200000;
-    const oj = (L) => ({ sozlesme: 1, kategori: "figur", uzun_kenar_mm: L, kutu_mm: { x: L, y: L, z: L }, renk_sayisi: 1, sizdirmaz: true });
-    s.r59 = foto.uretecOlcuDogrula(oj(59), { tur: "figur", olcu_mm: 59 });
-    s.r60 = foto.uretecOlcuDogrula(oj(60), { tur: "figur", olcu_mm: 60 });
-    s.V3 = s.r59 === "olcu-aralik-disi" && s.r60 !== "olcu-aralik-disi";
-    const ea = (k) => (VERI.olcuAraligi(k) || {}).en_az;
-    const kulak = V.cesitKaydi("anahtarlik", "figur");
-    s.alt = { plaket: ea("plaket"), bust: ea("bust"), anahtarlik: ea("anahtarlik"), yapboz: ea("yapboz"),
-      kulak_en_cok: kulak ? kulak.olcu_en_cok : null };
-    s.V4 = s.alt.plaket === 60 && s.alt.bust === 60 && s.alt.anahtarlik === 30 && s.alt.yapboz === 100 &&
-      s.alt.kulak_en_cok === 291 && foto.OLCU_MM_EN_AZ === 60;
-    // Istemci surgusu = sunucunun /foto/acik tur kaydindaki olculer dizisi (olcuSurgusu nt.olculer[0]'dan baslar).
-    const nt = foto.acikTurler(new Set(["insan"])).find((t) => t.kod === "figur");
-    s.ilk = nt && nt.olculer[0] ? nt.olculer[0] : null;
-    s.V5 = !!s.ilk && s.ilk.mm === 60 && s.ilk.fiyat_kurus === 60000 && VERI.olcuSecenekleri("figur")[0] === 60;
-  } finally {
-    for (const a of ad) { VERI[a] = yedek[a]; }
-  }
-  return s;
-}
-console.log("FG) FIGUR OLCU ALT SINIRI 60 mm (Okan 10 Eki 12:4x)");
-{
-  const s = await figurSenaryo(veriYukle(VERI_KAYNAK));
-  ol("V1 figur araligi en_az 60 · en_cok 200 (60/70/200 gecerli; 59/65 gecersiz)", s.V1, JSON.stringify(s));
-  ol("V2 figur 60/100/200 mm = 600/1000/2000 TL (60000/100000/200000 kurus)", s.V2, "");
-  ol("V3 sunucu figur 59 mm -> olcu-aralik-disi, 60 mm kabul", s.V3, JSON.stringify({ r59: s.r59, r60: s.r60 }));
-  ol("V4 plaket 60 · bust 60 · anahtarlik 30 · yapboz 100 alt siniri (figur cesidi tavani 291 kopruden, OLCU_MM_EN_AZ 60)", s.V4, JSON.stringify(s.alt));
-  ol("V5 istemci surgu listesi figurde 60 mm (600 TL) ile baslar", s.V5, JSON.stringify(s.ilk));
-  // MUTANT (kopyada): figur en_az 10'a geri -> V1/V3/V5 KIRMIZI.
-  const capa = "olcu_mm: { en_az: 60, en_cok: 200 },";
-  const m = VERI_KAYNAK.split(capa).length === 2
-    ? await figurSenaryo(veriYukle(VERI_KAYNAK.replace(capa, "olcu_mm: { en_az: 10, en_cok: 200 },"))) : null;
-  const kir = m ? ["V1", "V2", "V3", "V4", "V5"].filter((x) => m[x] !== true) : null;
-  ol("FGM mutant figur en_az 10 -> KIRMIZI tam olarak [V1,V3,V5]", JSON.stringify(kir) === '["V1","V3","V5"]', JSON.stringify(kir));
-}
-
 // ================================================================ AH — ANAHTARLIK ÖLÇÜ 30–300, AÇILIŞ 60 (Okan 10 Eki 15:2x)
 // "anahtarlıkta boyut ... min 30mm - max 300mm" + netleştirme "60'tan başlasın, 30–300 aralık" (yazı VE figür çeşidi).
 // Köprü aralığı yalnız DARALTILIR (kopru-manifest-uret PRUVO_ARALIK): tür en_cok = min(300, köprü yazı 300) = 300 (TeKiN 2f13d23);
@@ -1946,11 +1896,11 @@ async function plSenaryo(V) {
     iz.yazi = iz.ilk ? V.fiyatSatiri("plaket", iz.ilk.mm) : "";
     s.VP4 = !!iz.ilk && iz.ilk.mm === 60 && iz.ilk.fiyat_kurus === 60000 && iz.yazi === "60 mm → 600 TL" &&
       foto.OLCU_MM_EN_AZ === 60;
-    // V-TABLO: figur 60 · plaket 60 · bust 60 · anahtarlik 30 (Okan 10 Eki 15:2x) · yapboz 100 (ust: 200/300/250/300/280).
+    // V-TABLO: figur zarfi 41..300 (model basina, 22:3x) · plaket 60 · bust 60 · anahtarlik 30 (Okan 10 Eki 15:2x) · yapboz 100 (ust: 200/300/250/300/280).
     const ar = (t) => { const x = VERI.olcuAraligi(t) || {}; return [x.en_az, x.en_cok]; };
     iz.tablo = { figur: ar("figur"), plaket: ar("plaket"), bust: ar("bust"), anahtarlik: ar("anahtarlik"), yapboz: ar("yapboz") };
     s.VTABLO = JSON.stringify(iz.tablo) ===
-      '{"figur":[60,200],"plaket":[60,300],"bust":[60,250],"anahtarlik":[30,300],"yapboz":[100,280]}';
+      '{"figur":[41,300],"plaket":[60,300],"bust":[60,250],"anahtarlik":[30,300],"yapboz":[100,280]}';
   } finally {
     for (const a of ad) { VERI[a] = yedek[a]; }
     k.kapat();
@@ -5577,10 +5527,19 @@ async function v6Istemci(kaynak) {
   const yasak = (b) => (b.textContent.match(/büst|yapboz|portre için/gi) || []).length;
   iz.dom = [yasak(e.bolum), yasak(eI.bolum), yasak(eP.bolum), eI.istisna + eP.istisna];
   s.V6_6 = JSON.stringify(iz.dom) === "[0,0,0,0]";
-  // V6-7: fiyat/ölçü aralıkları önceki turlarla AYNI (figür 60–200 · plaket 60–300 · anahtarlık 30–köprü tavanı).
+  // V6-7 (BaBa 22:3x; eski "figür 60–200" iddiası MODEL BAŞINA): figür zarfı 41–300 · insan 41–105 · pet 60–138 · model
+  // 60–300 · plaket 60–300 · anahtarlık 30–köprü tavanı AYNEN (beklenen sayılar BAĞIMSIZ). İstemci sürgüsü kartın modeline
+  // süzülür: açılış 60 mm, en uç (sürgü max) insan 105 · pet 138 · model 300 — fiyat satırı sürgüden okunur.
+  const eM = await ekranKos(kaynak, V, acikGercek(V, V6_TUM), null, null, { kart: "model" });
   const ar = (k) => { const a = V.olcuAraligi(k); return a ? [a.en_az, a.en_cok] : null; };
-  iz.aralik = { figur: ar("figur"), plaket: ar("plaket"), anahtarlik: ar("anahtarlik") };
-  s.V6_7 = JSON.stringify(iz.aralik) === '{"figur":[60,200],"plaket":[60,300],"anahtarlik":[30,300]}' &&
+  const ma = (m) => { const a = V.modelOlcuAraligi("figur", m); return a ? [a.en_az, a.en_cok] : null; };
+  iz.aralik = { figur: ar("figur"), insan: ma("insan"), pet: ma("pet"), model: ma("model"), plaket: ar("plaket"),
+                anahtarlik: ar("anahtarlik") };
+  iz.surgu = { insan: [eI.surguFiyat[0], eI.kaydir], pet: [eP.surguFiyat[0], eP.kaydir], model: [eM.surguFiyat[0], eM.kaydir] };
+  s.V6_7 = JSON.stringify(iz.aralik) ===
+      '{"figur":[41,300],"insan":[41,105],"pet":[60,138],"model":[60,300],"plaket":[60,300],"anahtarlik":[30,300]}' &&
+    JSON.stringify(iz.surgu) === '{"insan":["60 mm → 600 TL","105 mm → 1.050 TL"],"pet":["60 mm → 600 TL","138 mm → 1.380 TL"],' +
+      '"model":["60 mm → 600 TL","300 mm → 3.000 TL"]}' &&
     V.fiyatKurus("figur", 60) === 60000 && V.fiyatKurus("plaket", 300) === 300000 && V.fiyatKurus("anahtarlik", 30) === 60000;
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
@@ -5601,7 +5560,7 @@ async function v6Sunucu(fm) {
   const s = {}, iz = {};
   const asilOrnek = VERI.ornekSayisi;
   VERI.ornekSayisi = (kod) => (kod === "figur" ? 1 : asilOrnek(kod));
-  const olcu = VERI.olcuSecenekleri("figur")[0];
+  const olcu = VERI.olcuBaslangic("figur");
   const istem = async (alt) => {
     const p0 = P.protoGovde.length, c0 = protoSayisi();
     const r = await cag(onizlemeGovde({ tur: "figur", olcu_mm: olcu, ...(alt === undefined ? {} : { alt_tur: alt }) }));
@@ -5645,11 +5604,12 @@ console.log("V6) 6 MODEL — ① kartlar · ① cümlesi · kart→istek · sunu
   ol("V6-5 eski hayvan_model: oturum kodu + iş kaydı → pet kartı (istisna 0) · sunucu hayvan_model → pet istemi", s.V6_5,
      JSON.stringify([z.eski, z.sunucu.eski]));
   ol("V6-6 DOM metninde 'büst' / 'yapboz' / 'Portre için' 0 (① + insan ② + pet ②)", s.V6_6, JSON.stringify(z.dom));
-  ol("V6-7 aralıklar önceki turlarla AYNI: figür 60–200 · plaket 60–300 · anahtarlık 30–300 (köprü)", s.V6_7, JSON.stringify(z.aralik));
+  ol("V6-7 aralıklar MODEL BAŞINA: figür zarfı 41–300 · insan 41–105 · pet 60–138 · model 60–300 · plaket 60–300 · anahtarlık 30–300 (köprü) · istemci sürgüsü açılış 60, uç 105/138/300", s.V6_7, JSON.stringify([z.aralik, z.surgu]));
   const V6_MUT = [
     ["V6-M1 alt tür eşlemesi pet -> hayvan_model'e döner", "e", '{ kod: "pet", tur: "figur", alt: "pet",',
-     // kart alt türü kayıttaki (pet) alt türle de çelişir -> kayıttan pet kartı geri yüklenemez (V6_5).
-     '{ kod: "pet", tur: "figur", alt: "hayvan_model",', ["V6_3", "V6_5"]],
+     // kart alt türü kayıttaki (pet) alt türle de çelişir -> kayıttan pet kartı geri yüklenemez (V6_5); sürgü modelin
+     // ölçü satırını bulamaz (hayvan_model olcu_modelleri'nde YOK) -> pet sürgüsü boş (V6_7, 22:3x).
+     '{ kod: "pet", tur: "figur", alt: "hayvan_model",', ["V6_3", "V6_5", "V6_7"]],
     ["V6-M2 ① cümlesi sabite döner", "e", "    if (n === 1) return birinciAciklama();\n",
      "    if (n === 1) return \"6 seçenekten birini seç: Anahtarlık – yazı, İnsan figürü (ayakta), Pet figürü (ayakta), Kabartma plaket, Anahtarlık – figür ya da Model figür.\";\n",
      ["V6_2"]],
@@ -5691,7 +5651,7 @@ async function mdSenaryo(fm, kaynak) {
     let v = null; try { v = await r.json(); } catch (er) { v = null; }
     return { kod: r.status, v };
   };
-  const figur = (alt) => onizlemeGovde({ tur: "figur", olcu_mm: VERI.olcuSecenekleri("figur")[0], alt_tur: alt });
+  const figur = (alt) => onizlemeGovde({ tur: "figur", olcu_mm: VERI.olcuBaslangic("figur"), alt_tur: alt });
   const ahFigur = () => onizlemeGovde({ tur: "anahtarlik", olcu_mm: AH_MM, cesit: "figur", secim: ahSecim });
   const proto = async (f) => { const c0 = protoSayisi(); const r = await f(); return { kod: r.kod, hata: r.v && r.v.hata, cagri: protoSayisi() - c0 }; };
   const V = veriYukle(VERI_KAYNAK);
@@ -5798,6 +5758,108 @@ console.log("MD) MODEL DÜZEYİNDE AÇIKLIK — D1 foto_acik model kodu · sunuc
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol("M-MD-ISTEMCI istemci kart model kontrolü kalktı -> KIRMIZI tam olarak [MD1]", JSON.stringify(kir) === '["MD1"]', JSON.stringify(kir));
   }
+}
+
+// ================================================================ FG — FİGÜR ÖLÇÜSÜ MODEL BAŞINA (BaBa 10 Eki 22:3x)
+// Eski tek aralık (60–200) yerine figur kaydı `olcu_modelleri` (TEK kaynak): insan 41–105 · pet 60–138 · model 60–300
+// (tavan = TeKiN figur_denge max_guvenli_mm aşağı; insan tabanı min_guvenli_mm 40,7 yukarı); zarf 41–300, açılış 60.
+// Beklenen sayılar BAĞIMSIZ (kayıttan okunmaz). Sunucu önizleme ucu + sipariş kapısı modelin dışını 400 gecersiz-olcu
+// ile reddeder: her model alt/üst sınır (OK) + dışı (RED). RED değerlerinden ızgaradakiler (insan 110 · pet 50/140 ·
+// model 50) yalnız MODEL kontrolüyle düşer (fiyat formülü zarfa açık) — sunucu kontrolü kalkınca KIRMIZI yananlar onlar.
+const FG_SINIR = { insan: [41, 105], pet: [60, 138], model: [60, 300] };
+const FG_RED = { insan: [40, 110], pet: [50, 59, 140], model: [50, 59, 310] };
+async function fgSenaryo(fm, V) {
+  const s = {}, iz = {};
+  const ad = ["turBul", "olcuAraligi", "olcuGecerli", "olcuSecenekleri", "fiyatKurus", "olcuBaslangic", "modelOlcuAraligi",
+              "modelOlcuSecenekleri", "modelOlcuGecerli"];
+  const yedek = {};
+  for (const a of ad) { yedek[a] = VERI[a]; VERI[a] = V[a]; }
+  const asilOrnek = VERI.ornekSayisi;
+  VERI.ornekSayisi = () => 1;
+  const k = koprukur(); await k.hazir;
+  const e = envKur(k.d1, r2Kur());
+  let ip = 0;
+  try {
+    for (const t of ["insan", "pet", "model"]) { await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES (?, 1, 'x')").bind(t).run(); }
+    const a = VERI.olcuAraligi("figur") || {};
+    iz.zarf = [a.en_az, a.en_cok, VERI.olcuBaslangic("figur")];
+    iz.model = {};
+    for (const m of Object.keys(FG_SINIR)) { const x = VERI.modelOlcuAraligi("figur", m) || {}; iz.model[m] = [x.en_az, x.en_cok]; }
+    s.FG1 = JSON.stringify(iz.zarf) === "[41,300,60]" && JSON.stringify(iz.model) === JSON.stringify(FG_SINIR) &&
+      VERI.modelOlcuAraligi("figur", "") === null && VERI.modelOlcuAraligi("figur", "hayvan_model") === null;
+    s.FG2 = VERI.fiyatKurus("figur", 41) === 60000 && VERI.fiyatKurus("figur", 105) === 105000 &&
+      VERI.fiyatKurus("figur", 138) === 138000 && VERI.fiyatKurus("figur", 300) === 300000 && VERI.fiyatKurus("figur", 299) === null;
+    // Sunucu önizleme ucu (müşteri): sınır OK -> 200 sağlayıcı 1 · dışı -> 400 gecersiz-olcu sağlayıcı 0.
+    const uc = async (govde) => {
+      const u = "https://pruvo3d.com/api/shop/foto/onizleme";
+      const c0 = protoSayisi();
+      const r = await fm.fotoUclari(new Request(u, { method: "POST", headers: { "CF-Connecting-IP": "10.0.77." + (++ip),
+        "Content-Type": "application/json" }, body: JSON.stringify(govde) }), e, new URL(u), "/foto/onizleme", null);
+      let v = null; try { v = await r.json(); } catch (er) { v = null; }
+      return r.status + (r.status === 200 ? "" : ":" + (v && v.hata)) + "/" + (protoSayisi() - c0);
+    };
+    iz.onz = {};
+    for (const m of Object.keys(FG_SINIR)) {
+      for (const mm of FG_SINIR[m].concat(FG_RED[m])) { iz.onz[m + mm] = await uc(onizlemeGovde({ tur: "figur", olcu_mm: mm, alt_tur: m })); }
+    }
+    s.FG3 = Object.keys(FG_SINIR).every((m) => FG_SINIR[m].every((mm) => iz.onz[m + mm] === "200/1") &&
+      FG_RED[m].every((mm) => iz.onz[m + mm] === "400:gecersiz-olcu/0"));
+    // Sipariş kapısı (fotoKalemFiyatla): hazır figür işi (alt tür kayıtta) + sepet ölçüsü -> sınır satır · dışı 400.
+    const iso = new Date().toISOString();
+    iz.sip = {};
+    let n = 0;
+    for (const m of Object.keys(FG_SINIR)) {
+      for (const mm of FG_SINIR[m].concat(FG_RED[m])) {
+        const no = "fg" + String(++n).padStart(30, "0");
+        await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, alt_tur)" +
+          " VALUES (?, 'figur', 60, 'z', ?, 'hazir', ?, ?, ?)").bind(no, iso, "gorev-" + no, iso, m).run();
+        const f = await fm.fotoKalemFiyatla(e, { foto_is: no, olcu_mm: mm, adet: 1, renkler: ["Beyaz"] }, Date.now());
+        iz.sip[m + mm] = f.satir ? "satir" : f.kod + ":" + (f.hata && f.hata.hata);
+      }
+    }
+    s.FG4 = Object.keys(FG_SINIR).every((m) => FG_SINIR[m].every((mm) => iz.sip[m + mm] === "satir") &&
+      FG_RED[m].every((mm) => iz.sip[m + mm] === "400:gecersiz-olcu"));
+    // Üreteç ölçü doğrulaması tür zarfını kullanır: 40 aralık dışı, 41 aralıkta.
+    const oj = (L) => ({ sozlesme: 1, kategori: "figur", uzun_kenar_mm: L, kutu_mm: { x: L, y: L, z: L }, renk_sayisi: 1, sizdirmaz: true });
+    iz.ur = [fm.uretecOlcuDogrula(oj(40), { tur: "figur", olcu_mm: 40 }), fm.uretecOlcuDogrula(oj(41), { tur: "figur", olcu_mm: 41 })];
+    s.FG5 = iz.ur[0] === "olcu-aralik-disi" && iz.ur[1] !== "olcu-aralik-disi";
+  } finally {
+    for (const a of ad) { VERI[a] = yedek[a]; }
+    VERI.ornekSayisi = asilOrnek;
+    k.kapat();
+  }
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("FG) FİGÜR ÖLÇÜSÜ MODEL BAŞINA — insan 41–105 · pet 60–138 · model 60–300 (BaBa 22:3x; figur_denge max_guvenli_mm)");
+{
+  const s = await fgSenaryo(foto, veriYukle(VERI_KAYNAK));
+  const z = s.iz;
+  ol("FG1 figür zarfı 41–300, açılış 60 · insan 41–105 · pet 60–138 · model 60–300 · alt türsüz/eski kod -> null", s.FG1, JSON.stringify([z.zarf, z.model]));
+  ol("FG2 fiyat: 41 -> 600 TL (taban) · 105/138/300 -> 1.050/1.380/3.000 TL · ızgara dışı 299 -> null", s.FG2, "");
+  ol("FG3 sunucu önizleme: her model alt/üst sınır 200 (sağlayıcı 1) · dışı (insan 40/110 · pet 50/59/140 · model 50/59/310) 400 gecersiz-olcu (sağlayıcı 0)", s.FG3, JSON.stringify(z.onz));
+  ol("FG4 sipariş kapısı: her model alt/üst sınır satır · dışı 400 gecersiz-olcu", s.FG4, JSON.stringify(z.sip));
+  ol("FG5 üreteç ölçü doğrulaması figür zarfı: 40 olcu-aralik-disi · 41 aralıkta", s.FG5, JSON.stringify(z.ur));
+  const FG_MUT = [
+    ["M-FG-ONIZLEME sunucu önizleme model ölçü kontrolü kalktı", "  if (!VERI.modelOlcuGecerli(tur.kod, altTur, olcu)) { return fjson({ hata: \"gecersiz-olcu\" }, 400); }",
+     "  if (false) { return null; }", ["FG3"]],
+    ["M-FG-SIPARIS sipariş kapısı model ölçü kontrolü kalktı", "  if (!VERI.modelOlcuGecerli(tur.kod, isAlt, mm)) { return { hata: { hata: \"gecersiz-olcu\" }, kod: 400 }; }",
+     "  if (false) { return null; }", ["FG4"]],
+  ];
+  for (const [ad, capa, yerine, olmeli] of FG_MUT) {
+    const fm = await mutantModul(capa, yerine);
+    if (!fm) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = await fgSenaryo(fm, veriYukle(VERI_KAYNAK));
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+  // VERİ mutantı (bellek kopyası): insan tavanı 105 -> 200 (eski tek aralık) -> FG1 + FG3 + FG4 KIRMIZI; 105 hiçbir
+  // modelin ızgarasında kalmaz (insan 100/110) -> fiyatı null (FG2).
+  const capaV = "          insan: { en_az: 41, en_cok: 105 },";
+  const mv = VERI_KAYNAK.split(capaV).length === 2
+    ? await fgSenaryo(foto, veriYukle(VERI_KAYNAK.replace(capaV, "          insan: { en_az: 41, en_cok: 200 },"))) : null;
+  const kirV = mv ? Object.keys(mv).filter((x) => mv[x] !== true).sort() : null;
+  ol("M-FG-VERI insan tavanı 200 -> KIRMIZI tam olarak [FG1,FG2,FG3,FG4]", JSON.stringify(kirV) === '["FG1","FG2","FG3","FG4"]', JSON.stringify(kirV));
 }
 
 await new Promise((c) => setTimeout(c, 0));
