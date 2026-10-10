@@ -617,14 +617,14 @@ def vakalar(kaynak, sadece=None):
     def s9(o):
         # Pre-seed foto_isler (ziyaretci 'ornek', asama 'hazir') + foto_uretim ('doku' satir). zengin harita ile
         # uretim-tik doku->renk->hazir; /foto/ornek-onizleme 0; yalniz yeni adim kredisi (doku 10 + renk 10 = 20).
-        # plaket olcu_secenekleri ortanca = 160 (10..300 = 30 olcu, s[len//2], 8 Eki) (betigin tr.olcu'su) — 100 yazarsak eksen YANLIS olur.
+        # plaket olcu_secenekleri ortanca = 180 (60..300 = 25 olcu, s[len//2]; plaket alt siniri 60, 10 Eki) (betigin tr.olcu'su) — 100 yazarsak eksen YANLIS olur.
         is_no = "f" * 32
         no = "ORNEK-" + is_no[:12]
         c0 = sqlite3.connect(o.db)
         c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
-                   " VALUES (?, 'plaket', 160, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
         c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
-                   " VALUES (?, 0, ?, 'plaket', 160, 'doku', 't', 't')", (no, is_no))
+                   " VALUES (?, 0, ?, 'plaket', 180, 'doku', 't', 't')", (no, is_no))
         c0.commit()
         c0.close()
         o.sunucu.ayar["zengin_harita"] = True
@@ -670,9 +670,9 @@ def vakalar(kaynak, sadece=None):
         no = "ORNEK-" + is_no[:12]
         c0 = sqlite3.connect(o.db)
         c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
-                   " VALUES (?, 'plaket', 160, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
         c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
-                   " VALUES (?, 0, ?, 'plaket', 160, 'analiz', 't', 't')", (no, is_no))
+                   " VALUES (?, 0, ?, 'plaket', 180, 'analiz', 't', 't')", (no, is_no))
         c0.commit()
         c0.close()
         o.sunucu.ayar["zengin_harita"] = True
@@ -691,9 +691,9 @@ def vakalar(kaynak, sadece=None):
         no = "ORNEK-" + is_no[:12]
         c0 = sqlite3.connect(o.db)
         c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
-                   " VALUES (?, 'plaket', 160, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
         c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
-                   " VALUES (?, 0, ?, 'plaket', 160, 'analiz', 't', 't')", (no, is_no))
+                   " VALUES (?, 0, ?, 'plaket', 180, 'analiz', 't', 't')", (no, is_no))
         c0.commit()
         c0.close()
         o.sunucu.ayar["zengin_harita"] = True
@@ -710,13 +710,13 @@ def vakalar(kaynak, sadece=None):
         no = "ORNEK-" + is_no[:12]
         c0 = sqlite3.connect(o.db)
         c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
-                   " VALUES (?, 'plaket', 160, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
         c0.execute("INSERT INTO foto_uretim (siparis_no, kalem, is_no, tur, olcu_mm, asama, tarih, guncel)"
-                   " VALUES (?, 0, ?, 'plaket', 160, 'onarim-bekliyor', 't', 't')", (no, is_no))
+                   " VALUES (?, 0, ?, 'plaket', 180, 'onarim-bekliyor', 't', 't')", (no, is_no))
         c0.commit()
         c0.close()
         d = os.path.join(o.sunucu.ayar["r2"], "foto", no, "0")
-        kutu_3mf(d, 160)
+        kutu_3mf(d, 180)
         os.replace(os.path.join(d, "model.3mf"), os.path.join(d, "model.ham.3mf"))
         with open(os.path.join(d, "model.glb"), "wb") as f:
             f.write(b"glTF\x02\x00\x00\x00\x0c\x00\x00\x00")
@@ -739,8 +739,8 @@ def vakalar(kaynak, sadece=None):
     vaka("S15", s15)
 
     # TUR-C2c CESIT KOLU (--cesit figur): anahtarlik figur cesidi saglayici koluna gider; ornek-onizleme govdesinde
-    # cesit=figur, olcu 45; zincir build 30 + renk 10 + onizleme 6 = 46; onarimda koşucu --kanit-dizin ile kulak
-    # olcumlerini (ozet.json) + onizleme.png'yi birakir; ④ kulak 4 sayi + uzun <= 50 + onizleme olcer.
+    # cesit=figur, olcu 60 (B2 kulak dahil); zincir build 30 + renk 10 + onizleme 6 = 46; onarimda koşucu --kanit-dizin ile kulak
+    # olcumlerini (ozet.json) + onizleme.png'yi birakir; ④ kulak 4 sayi + kulak dahil uzun = 60 ± tol + onizleme olcer.
     def sag_figur(o, tavan, **ek):
         hazir_ortam(o, "anahtarlik")
         o.sunucu.ayar["acik"] = [k for k in o.sunucu.ayar["acik"] if k != "figur"]
@@ -753,8 +753,8 @@ def vakalar(kaynak, sadece=None):
         rc, son, c, ay, cd = sag_figur(o, 70)
         g = ay.get("son_onizleme") or {}
         ok = (rc == 0 and son == "HAZIR=1/1 rc=0" and all(olcut(c, "anahtarlik", x) == "HAZIR" for x in "123456") and
-              g.get("cesit") == "figur" and g.get("olcu_mm") == 45 and "KREDI_HARCANAN=46/70" in c and
-              "KOPRU onarim: HAL=ISLEDI" in c and '"min_et_mm": 2.1' in c and "eksen=cesit-tavan<=50" in c and
+              g.get("cesit") == "figur" and g.get("olcu_mm") == 60 and "KREDI_HARCANAN=46/70" in c and
+              "KOPRU onarim: HAL=ISLEDI" in c and '"min_et_mm": 2.1' in c and "eksen=cesit-kulak-dahil=60" in c and
               sorted(os.listdir(cd) if os.path.isdir(cd) else []) == ["model.3mf", "onizleme.png", "ozet.json"])
         return ok, "govde=%s %s" % (g, c[-900:])
     vaka("S16", s16)
@@ -814,7 +814,7 @@ def vakalar(kaynak, sadece=None):
         is_no = "d" * 32
         c0 = sqlite3.connect(o.db)
         c0.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, gorev)"
-                   " VALUES (?, 'plaket', 160, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
+                   " VALUES (?, 'plaket', 180, 'ornek', 't', 'hazir', 't', 'g')", (is_no,))
         c0.commit()
         c0.close()
         tik0 = o.sunucu.ayar["yonet"].get("/foto/uretim-tik", 0)

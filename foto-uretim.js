@@ -1722,7 +1722,7 @@
     adimKoy("S1");
   }
 
-  // Çeşidin ölçü tavanı (figür: olcu_en_cok 50 mm) varsa sürgü yalnız tavana kadar ölçüleri sunar (sunucu AYNI tavan).
+  // Çeşidin ölçü tavanı (figür: olcu_en_cok 72 mm, kulak dahil) varsa sürgü yalnız tavana kadar ölçüleri sunar (sunucu AYNI tavan).
   function cesitOlculeri(nt) {
     var ck = cesitKaydi();
     if (!nt || !nt.olculer || !ck || !(ck.olcu_en_cok > 0)) return nt;
