@@ -293,7 +293,7 @@
         girdi: ["metin"],
         motor: "D",
         uretec: "isimlik_uret",
-        olcu_mm: { en_az: 30, en_cok: 80, baslangic: 60 },
+        olcu_mm: { en_az: 30, en_cok: 300, baslangic: 60 },
         renk_bolgeleri: [
           {
             kod: "plaka",
@@ -334,7 +334,7 @@
             tip: "sayi",
             etiket: "Uzun kenar (kulak dahil)",
             min: 30,
-            max: 80,
+            max: 300,
             adim: 0.01,
             varsayilan: 60,
             birim: "mm",
@@ -375,8 +375,8 @@
         foto_kolu: {
           girdi: ["foto-1"],
           uretec: "figur_kulak",
-          olcu_en_az: 60,
-          olcu_en_cok: 72,
+          olcu_en_az: 30,
+          olcu_en_cok: 291,
           renk_bolgesi: 0
         }
       },

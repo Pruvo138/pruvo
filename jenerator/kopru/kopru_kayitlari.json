@@ -194,7 +194,7 @@
           "etiket": "Uzun kenar (kulak dahil)",
           "tip": "sayi",
           "min": 30.0,
-          "max": 80.0,
+          "max": 300.0,
           "varsayilan": 45.0,
           "birim": "mm",
           "zorunlu": true
@@ -236,7 +236,7 @@
         "eksen": "uzun_kenar_mm",
         "kaynak": "ozet.uzun_kenar_mm",
         "min_mm": 30,
-        "max_mm": 80,
+        "max_mm": 300,
         "adim_mm": 5,
         "belirleyen_parametre": "genislik_mm"
       },
@@ -285,7 +285,7 @@
         },
         {
           "ad": "genislik_mm",
-          "deger": 80.0
+          "deger": 300.0
         },
         {
           "ad": "anahtarlik_kulak_konum",
@@ -323,7 +323,8 @@
         "girdi_bayragi": "--girdi",
         "cikti_bayragi": "--cikti",
         "parametre_bayraklari": {
-          "konum": "--konum"
+          "konum": "--konum",
+          "renk_modu": "--renk-modu"
         }
       },
       "sema_adi": "FIGUR_KULAK_SEMA",
@@ -333,7 +334,7 @@
       "parametreler": [
         {
           "ad": "figur",
-          "etiket": "Figür (3MF/STL dosya; uzun kenar 72 mm'ye kadar, 72 mm üzeri reddedilir)",
+          "etiket": "Figür (3MF/STL dosya; uzun kenar kulak dahil 300 mm'ye kadar, yatay uzun kenar 291,6 mm üzeri reddedilir)",
           "tip": "dosya",
           "zorunlu": true
         },
@@ -346,13 +347,23 @@
             "sirt"
           ],
           "varsayilan": "tepe"
+        },
+        {
+          "ad": "renk_modu",
+          "etiket": "Renk modu (tek: tek renk; palet: figür 3MF boyası korunur, en çok 4 renk)",
+          "tip": "secim",
+          "secenekler": [
+            "tek",
+            "palet"
+          ],
+          "varsayilan": "tek"
         }
       ],
       "olcek": {
         "eksen": "uzun_kenar_mm",
         "kaynak": "ozet.uzun_kenar_mm",
-        "min_mm": 60,
-        "max_mm": 80,
+        "min_mm": 30,
+        "max_mm": 300,
         "adim_mm": 5,
         "belirleyen_parametre": "figur"
       },
@@ -380,6 +391,10 @@
         {
           "ad": "konum",
           "deger": "sirt"
+        },
+        {
+          "ad": "renk_modu",
+          "deger": "palet"
         }
       ]
     },
