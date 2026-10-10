@@ -1943,11 +1943,13 @@ console.log("RO) RENDER ORNEGI — plaket gercek baski beklemeden acilir (Okan 7
 // 13:4x (kopru-15) MİMAR BULGUSU: dürüstlük testleri GERÇEK iddia: her render kartında "Örnek görsel (bilgisayar çizimi)"
 // etiketi VAR ve "gerçek fotoğraf"/"Gerçek örnekler" iddiası 0 · baskı kaydı kartı "basılmış ürün" der ·
 // türün ornek_notu (render dürüstlük cümlesi) AYNEN görünür. K3b: ızgara + büyütme penceresi KALKTI (Okan
-// 01:0x) → kart ① penceresinde, ornek_notu ② dürüstlük kutusunda (kart seçilince).
+// 01:0x) → kart ① penceresinde, ornek_notu ② dürüstlük kutusunda (kart seçilince). C2 (10 Eki): gerçek plaket
+// ornek_notu "" (② TEK cümle, VM2) -> MEKANİZMA burada bellek yamasıyla (plaket ornek_notu = CUMLE_P) ölçülür.
 console.log("ES) EKRAN — ① kart: render 'Örnek görsel (bilgisayar çizimi)', baski 'basılmış ürün', 'gerçek fotoğraf'/'Gerçek örnekler' 0; ② ornek_notu AYNEN");
 {
   const sinifli = (kok, c) => [...kok.agac()].filter((n) => n.classList.contains(c));
-  const CUMLE_P = "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, tam kopyası değildir.";
+  const CUMLE_P = "TEST render notu: üretim dosyasının görüntüsüdür (bellek yaması; mekanizma ölçümü).";
+  const notYama = (V) => { const t = V.turBul("plaket"); if (t) { t.ornek_notu = CUMLE_P; } return V; };
   const tur = (kod, ad) => ({ kod, ad, aciklama: "x", ornek_sayisi: 1, olculer: [{ mm: 120, fiyat_kurus: 44900 }] });
   const yol = async (kaynak, V) => {
     const e = await ekranKos(kaynak, V, { acik: true, turler: [tur("plaket", "Kabartma plaket")] });
@@ -1962,10 +1964,10 @@ console.log("ES) EKRAN — ① kart: render 'Örnek görsel (bilgisayar çizimi)
     return { kart: !!kart, etiket, not, metin: once + " " + e.bolum.textContent, eski };
   };
   const esDene = async (kaynak) => {
-    const Va = veriYukle(VERI_KAYNAK);
+    const Va = notYama(veriYukle(VERI_KAYNAK));
     Va.ornekler.splice(0, Va.ornekler.length, ...Va.ornekler.filter((o) => o.tur === "plaket"));
     const R = await yol(kaynak, Va);
-    const Vb = veriYukle(VERI_KAYNAK);
+    const Vb = notYama(veriYukle(VERI_KAYNAK));
     Vb.ornekler.splice(0, Vb.ornekler.length, { tur: "plaket", kanit: "baski", olcu_mm: 100, foto: "https://media.pruvo3d.com/b-f.webp",
       onizleme: "https://media.pruvo3d.com/b-o.webp", baski: "https://media.pruvo3d.com/b-b.webp", not: "t" });
     const B = await yol(kaynak, Vb);
@@ -2246,7 +2248,7 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
     s.VA_BUST = [A_RENK, A_OLCU, A_MALZEME].every((m) => metinSay(n3b, m) === 1) && metinSay(n2b, A_NOT) === 1;
     s.VA_DIGER = true;
     // TUR-A: plaket + yapboz Malzeme cümlesi = büstün Malzeme cümlesi AYNEN (METİN KAYNAĞI "büstteki cümle aynen");
-    // renk/ölçü ve tür notu #4 farklıdır. Anahtarlik'te alan_aciklamalari yok, hiçbiri görünmemeli.
+    // renk/ölçü ve tür notu #4 farklıdır. Anahtarlik'te yalnız kendi Ölçü cümlesi (C2); büst cümleleri görünmemeli.
     const DIGER_BEKLENEN = { plaket: [A_RENK, A_OLCU, A_NOT], yapboz: [A_RENK, A_OLCU, A_NOT], anahtarlik: A_HEPSI };
     for (const kod of ["plaket", "yapboz", "anahtarlik"]) {
       const Vd = sentetik(veriKaynak);
@@ -5300,6 +5302,83 @@ console.log("C2b) TUR-C2b anahtarlık 2 çeşit AÇILIŞ — istemci düğmeleri
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol("ME1 mutant (eşik karşılaştırması kalkar, hep göster) -> KIRMIZI tam olarak [E2]",
        JSON.stringify(kir) === JSON.stringify(["E2"]), JSON.stringify(kir));
+  }
+}
+
+// ================================================================ C2 — ② TEK dürüstlük cümlesi + anahtarlık ③ Ölçü
+// BaBa 10 Eki 14:0x + ArTisT sayfa metni (pruvo-pazarlama blob 24b6b59b) AYNEN. Figür (insan + hayvan) ve plaket ②
+// kutusunda TEK cümle = `durustluk`; eski ikinci cümle ekranda 0 (`ornek_notu: ""`, alan DURUR -> render kart kapısı
+// `typeof t.ornek_notu === "string"` kartları korur). Anahtarlık ③ Ölçü cümlesi iki çeşitte. Beklenen metinler BAĞIMSIZ.
+const C2_FIGUR = "Önizleme fotoğrafının stilize bir yorumudur; basılmış figür en çok 4 renkli, sadeleştirilmiş bir hâlidir ve tam kopyası değildir (küçük ayrıntılar sadeleşir).";
+const C2_PLAKET = "Önizleme fotoğrafının stilize bir yorumudur; basılmış plaket en çok 4 renkli, kabartmalı ve sadeleştirilmiş bir hâlidir, tam kopyası değildir (küçük yazı ve ince ayrıntılar sadeleşir).";
+const C2_ESKI = "Önizleme ve üretim dosyasının görüntüsüdür;";
+const C2_OLCU = "Anahtarlığın kulakçık dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.";
+// VM4 beklenen ① kart listesi (C2 ÖNCESİ uç 0c568a8c kaynaklarıyla bu test koşularak ölçüldü): [data-kart, görsel dosyası | null, "Örnek yakında"].
+const C2_KARTLAR = JSON.stringify([["insan", null, true], ["hayvan_model", "figur-1-render.webp", false],
+  ["plaket", "plaket-1-render.webp", false], ["bust", "bust-2-render.webp", false],
+  ["anahtarlik", "anahtarlik-1-render.webp", false], ["yapboz", "yapboz-1-render.webp", false]]);
+async function c2Senaryo(ekranKaynak, veriKaynak) {
+  const s = {}, iz = {};
+  const kod6 = ["plaket", "figur", "yapboz", "bust", "anahtarlik"];
+  const kartla = async (kart) => {
+    const V = veriYukle(veriKaynak);
+    const e = await ekranKos(ekranKaynak, V, acikGercek(V, kod6), null, null, { kart });
+    const d = [...e.bolum.agac()].find((n) => n.classList.contains("foto-uretim-durustluk"));
+    return { e, cumle: d ? d.childNodes.filter((n) => n.tagName === "P" && !n.hidden && n.textContent).map((n) => n.textContent) : null,
+      eski: e.bolum.textContent.indexOf(C2_ESKI) >= 0 };
+  };
+  iz.insan = await kartla("insan"); iz.hayvan = await kartla("hayvan_model"); iz.plaket = await kartla("plaket");
+  const tek = (x, c) => JSON.stringify(x.cumle) === JSON.stringify([c]) && x.eski === false;
+  s.VM1 = tek(iz.insan, C2_FIGUR) && tek(iz.hayvan, C2_FIGUR);
+  s.VM2 = tek(iz.plaket, C2_PLAKET);
+  // VM3: anahtarlık ③ Ölçü cümlesi yazı (varsayılan) ve figür çeşidinde TAM 1×.
+  const an = await kartla("anahtarlik");
+  const say = () => [...an.e.bolum.agac()].filter((n) => n.tagName === "P" && n.textContent === C2_OLCU).length;
+  iz.olcuYazi = say();
+  const fb = [...an.e.bolum.agac()].find((n) => n.tagName === "BUTTON" && n.getAttribute("data-cesit") === "figur");
+  if (fb) { fb.tetikle("click"); }
+  iz.olcuFigur = fb ? say() : -1;
+  s.VM3 = iz.olcuYazi === 1 && iz.olcuFigur === 1;
+  // VM4: ① kart sayısı/görselleri C2 öncesiyle AYNI (render kartları kaybolmaz).
+  const V = veriYukle(veriKaynak);
+  const e = await ekranKos(ekranKaynak, V, acikGercek(V, kod6));
+  iz.kartlar = JSON.stringify([...e.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-kart")).map((k) => {
+    const img = [...k.agac()].find((n) => n.tagName === "IMG");
+    return [k.getAttribute("data-kart"), img && img.src ? img.src.split("/").pop() : null, k.textContent.indexOf("Örnek yakında") >= 0];
+  }));
+  s.VM4 = iz.kartlar === C2_KARTLAR;
+  iz.insan = iz.insan.cumle; iz.hayvan = iz.hayvan.cumle; iz.plaket = iz.plaket.cumle;
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("C2) ② TEK dürüstlük cümlesi (figür + plaket) + anahtarlık ③ Ölçü cümlesi + ① kartlar aynen");
+{
+  const s = await c2Senaryo(EKRAN_KAYNAK, VERI_KAYNAK);
+  ol("VM1 iki figür kartı (insan + hayvan) ② dürüstlük cümlesi TEK (ArTisT), eski ikinci cümle 0", s.VM1,
+     JSON.stringify([s.iz.insan, s.iz.hayvan]));
+  ol("VM2 plaket ② dürüstlük cümlesi TEK (ArTisT), eski ikinci cümle 0", s.VM2, JSON.stringify(s.iz.plaket));
+  ol("VM3 anahtarlık ③ 'Ölçü: kulakçık dahil' cümlesi yazı + figür çeşidinde 1×", s.VM3,
+     JSON.stringify([s.iz.olcuYazi, s.iz.olcuFigur]));
+  ol("VM4 ① kart sayısı/görselleri C2 öncesiyle AYNI (insan 'Örnek yakında', hayvan figur-1-render, büst bust-2, …)", s.VM4,
+     s.iz.kartlar);
+  const C2_MUT = [
+    ["VM-M1 eski ikinci cümle geri (figür ornek_notu)", "veri", 'küçük ayrıntılar sadeleşir).",\n        ornek_notu: ""',
+     'küçük ayrıntılar sadeleşir).",\n        ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun sadeleştirilmiş hâlidir, tam kopyası değildir."',
+     ["VM1"]],
+    ["VM-M2 kart kapısı eski doğruluk sınamasına döndü (render kartları kaybolur)", "ekran",
+     '(F.ornekKaniti(o) !== "render" || typeof t.ornek_notu === "string")', '(F.ornekKaniti(o) !== "render" || t.ornek_notu)',
+     ["VM1", "VM2", "VM4"]],
+    ["VM-M3 anahtarlık ③ Ölçü cümlesi silindi", "veri",
+     '        alan_aciklamalari: {\n          olcu: "Anahtarlığın kulakçık dahil', '        alan_aciklamalari_x: {\n          olcu: "Anahtarlığın kulakçık dahil',
+     ["VM3"]],
+  ];
+  for (const [ad, hedef, capa, yerine, olmeli] of C2_MUT) {
+    const kaynak = hedef === "veri" ? VERI_KAYNAK : EKRAN_KAYNAK;
+    if (kaynak.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa); continue; }
+    const m = hedef === "veri" ? await c2Senaryo(EKRAN_KAYNAK, VERI_KAYNAK.replace(capa, yerine))
+      : await c2Senaryo(EKRAN_KAYNAK.replace(capa, yerine), VERI_KAYNAK);
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
   }
 }
 

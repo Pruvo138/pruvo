@@ -1267,13 +1267,13 @@
 
   /* ① KARTLAR — `KARTLAR` tablosundan; türü `/acik` listesinde olmayan ya da sayılan örneği olmayan kart
      ÇİZİLMEZ. Kart = türün sayılan örneğinin görseli + ad (+ kanıt etiketi: render "Örnek görsel (bilgisayar çizimi)",
-     baskı "basılmış ürün" — hukuk kapısı 13:4x). Render örneği türün dürüstlük cümlesi (ornek_notu)
-     olmadan çizilmez (fail-closed). acikKodlar: /foto/acik türleri; null = henüz bilinmiyor (kart 0). */
+     baskı "basılmış ürün" — hukuk kapısı 13:4x). Render örneği türün dürüstlük cümlesi alanı (ornek_notu)
+     olmadan çizilmez (fail-closed; "" = ② kutusunda tek cümle, `durustluk` kapsar). acikKodlar: /foto/acik türleri; null = henüz bilinmiyor (kart 0). */
   function kartOrnegi(t) {
     if (!t || F.ornekSayisi(t.kod) === 0) return null;
     for (var j = 0; j < F.ornekler.length; j++) {
       var o = F.ornekler[j];
-      if (o && o.tur === t.kod && F.ornekGecerli(o) && (F.ornekKaniti(o) !== "render" || t.ornek_notu)) return o;
+      if (o && o.tur === t.kod && F.ornekGecerli(o) && (F.ornekKaniti(o) !== "render" || typeof t.ornek_notu === "string")) return o;
     }
     return null;
   }
@@ -1393,6 +1393,7 @@
     if (!r) return;
     while (r.firstChild) r.removeChild(r.firstChild);
     if (S.ornekNotP) S.ornekNotP.textContent = it && it.kanit === "render" ? it.tur.ornek_notu || "" : "";
+    if (S.ornekNotP) S.ornekNotP.hidden = !S.ornekNotP.textContent;
     if (!it) return;
     r.appendChild(el("p", "foto-uretim-kart-ret", it.kart.ret));
     if (it.kart.alt === "insan" && kartListede("bust")) {
