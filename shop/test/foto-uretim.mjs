@@ -1009,6 +1009,22 @@ let ornekIs = "";
   P.bakiye = 1000;
   await d1.prepare("UPDATE foto_ayar SET guncel = 0 WHERE anahtar = 'bakiye'").run();
   await istek(env, "/foto/acik");
+  // O12b ALT TUR (6 model prova): panel ornek ucu `alt_tur`u musteri ucuyla AYNI cozer -> saglayici istemi
+  // (insan/pet/model); alt tursuz istekte prompt alani YOK; gecersiz alt tur 400 + saglayiciya istek 0.
+  const altIstem = async (alt) => {
+    const p0 = P.protoGovde.length, c0 = protoSayisi();
+    const r = await istek(env, "/yonet/foto/ornek-onizleme", { govde: { gorsel: GORSEL, tur: "figur",
+      olcu_mm: VERI.olcuSecenekleri("figur")[0], ...(alt === undefined ? {} : { alt_tur: alt }) }, basliklar: YONET });
+    const g = P.protoGovde.slice(p0);
+    return { kod: r.kod, hata: r.v && r.v.hata, cagri: protoSayisi() - c0,
+      prompt: g.length === 1 ? (Object.prototype.hasOwnProperty.call(g[0], "prompt") ? g[0].prompt : "ALAN-YOK") : null };
+  };
+  const ai = { insan: await altIstem("insan"), pet: await altIstem("pet"), model: await altIstem("model"),
+    yok: await altIstem(undefined), gecersiz: await altIstem("bust") };
+  ol("O12b panel ornek alt_tur: insan/pet/model -> istem FIGUR_ALT_ISTEM ile ayni · alt tursuz prompt YOK · gecersiz 400 (saglayici 0)",
+     ["insan", "pet", "model"].every((k) => ai[k].kod === 200 && ai[k].cagri === 1 && ai[k].prompt === foto.FIGUR_ALT_ISTEM[k]) &&
+     ai.yok.kod === 200 && ai.yok.prompt === "ALAN-YOK" &&
+     ai.gecersiz.kod === 400 && ai.gecersiz.hata === "gecersiz-alt-tur" && ai.gecersiz.cagri === 0, JSON.stringify(ai));
   // O13 EKRAN: panel sayfasi "Örnek üret" + "Örnek üretimler" tasir ve script'i DERLENIR.
   const sy = await istek(env, "/yonet/", { basliklar: YONET });
   const html = sy.kod === 200 ? await sy.r.text() : "";

@@ -2598,8 +2598,9 @@ async function ornekIsGetir(env, isNo) {
 }
 
 /**
- * POST /yonet/foto/ornek-onizleme {gorsel, olcu_mm, tur?} — musteri ucuyla AYNI saglayici
+ * POST /yonet/foto/ornek-onizleme {gorsel, olcu_mm, tur?, alt_tur?} — musteri ucuyla AYNI saglayici
  * cagrisi + `foto_isler` satiri; ziyaretci siniri / bot / onay / gercek-ornek kapisi ATLANIR.
+ * `alt_tur` musteri ucuyla AYNI cozucu (figurAltTurCoz): yalniz figur turu (cesitsiz); gecersiz -> 400.
  * Anahtar/taban/tur yolu yoksa 503 (saglayiciya istek 0); havuz esigi AYNEN uygulanir.
  */
 export async function panelOrnekOnizleme(request, env, simdi, telegram) {
@@ -2623,6 +2624,8 @@ export async function panelOrnekOnizleme(request, env, simdi, telegram) {
   if (!olcu || !(VERI.fiyatKurus(tur, olcu) > 0) || !cesitOlcuUygun(tur, cesit, olcu)) {
     return fjson({ hata: "gecersiz-olcu" }, 400);
   }
+  const altTur = tur === "figur" && !cesit ? figurAltTurCoz(g.alt_tur) : "";
+  if (altTur === null) { return fjson({ hata: "gecersiz-alt-tur" }, 400); }
   const gorsel = gorselCoz(g.gorsel);
   if (!gorsel) { return fjson({ hata: "gorsel-gecersiz" }, 400); }
   const havuz = await havuzHukmu(env, simdi, telegram);
@@ -2630,7 +2633,8 @@ export async function panelOrnekOnizleme(request, env, simdi, telegram) {
     return fjson({ hata: "havuz-esikte", bakiye: havuz.bakiye, gereken: havuz.gereken }, 503);
   }
   const isNo = yeniIsNo();
-  const hata = await onizlemeGonder(env, isNo, tur, olcu, ORNEK_ZIYARETCI, gorsel.uri, simdi, telegram, "", "", cesit);
+  const hata = await onizlemeGonder(env, isNo, tur, olcu, ORNEK_ZIYARETCI, gorsel.uri, simdi, telegram, "", "", cesit,
+    altTur);
   if (hata) { return hata; }
   return fjson({ is: isNo }, 200);
 }
