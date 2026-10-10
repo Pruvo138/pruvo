@@ -649,6 +649,9 @@
         { kod: "figur", ad: "Figür olarak", aciklama: "Yüklediğin fotoğraftan küçük bir figür, tepesinde kulakçık.",
           acik: true, girdi: ["foto-1"], olcu_en_az: kolSiniri("anahtarlik", "olcu_en_az"),
           olcu_en_cok: kolSiniri("anahtarlik", "olcu_en_cok"), saglayici_tur: "figur", uretec: "figur_kulak",
+          // ② dürüstlük cümlesi (ArTisT 874b2a85 pazarlama metni ② "Anahtarlık – figür" AYNEN; figür/plaket'in TEK
+          // stilize-yorum cümlesi). Bölüm türün `durustluk`unun altına çeşidinkini basar; yazı çeşidinde alan YOK.
+          durustluk: "Önizleme fotoğrafının stilize bir yorumudur; basılmış anahtarlık en çok 4 renkli, sadeleştirilmiş bir hâlidir ve tam kopyası değildir (küçük ayrıntılar sadeleşir).",
           // ③ renk cümlesi (ArTisT 10 Eki 15:52 AYNEN); Renkli yalnız köprü kolu `renk_modu` palet sunarken çizilir.
           alan_aciklamalari: { renk: "Siyah, Beyaz ya da Gri seçersen anahtarlık tek renk olur; Renkli seçersen renkler fotoğrafından otomatik seçilir (en çok 4 renk)." } }
       ]
