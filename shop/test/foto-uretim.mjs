@@ -3617,7 +3617,9 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     const p1Disi = p1 ? [...p1.agac()].filter((n) => !kartIci.has(n) && !n.classList.contains("foto-uretim-kartlar")).length : -1;
     s.KART = JSON.stringify(kartlar.map((k) => k.getAttribute("data-kart"))) === JSON.stringify(["insan", "hayvan_model", "plaket", "bust", "yapboz"]) &&
       p1Disi === 0 && (p1 ? [...p1.agac()] : []).filter((n) => n.tagName === "INPUT" && n.type === "file").length === 0 &&
-      kartlar.every((k) => [...k.agac()].some((n) => n.tagName === "IMG") && sinifli(k, "foto-uretim-kart-ad").length === 1);
+      // Görsel alanı: img YA DA örneksiz kartın nötr yer tutucusu (A4: boş src'li img kırık simge çizer).
+      kartlar.every((k) => [...k.agac()].some((n) => n.tagName === "IMG" || (n.classList && n.classList.contains("foto-uretim-kart-yer"))) &&
+        sinifli(k, "foto-uretim-kart-ad").length === 1);
     const ileri = byId(b, "foto-ileri"), geri = byId(b, "foto-geri");
     s.ILERI = aktif(b) === "1" && !!ileri && ileri.disabled === true && !!geri && geri.hidden === true;
     e.tik("insan"); pen.push(gorunurPencere(b));
@@ -4026,8 +4028,9 @@ async function a4Senaryolar(kaynak) {
   // disabled da property — atanmamışsa undefined; === false yerine !== true (DEVRE DIŞI yapılmamış) kullanılır.
   const insanSrc = kk.insanImg ? kk.insanImg.src : null;
   const hayvanSrc = kk.hayvanImg ? kk.hayvanImg.src : null;
-  s.V8 = !!kk.insan && !!kk.hayvan && typeof insanSrc === "string" && typeof hayvanSrc === "string" &&
-    insanSrc !== hayvanSrc && kk.insan.disabled !== true && kk.insan.textContent.indexOf(A4_ORNEK_YAKINDA) >= 0;
+  // ArTisT 8. okuma: insan kartında img HİÇ yok (boş src kırık simge çizer); hayvan kartı gerçek görseli taşır.
+  s.V8 = !!kk.insan && !!kk.hayvan && insanSrc === null && typeof hayvanSrc === "string" && hayvanSrc !== "" &&
+    kk.insan.disabled !== true && kk.insan.textContent.indexOf(A4_ORNEK_YAKINDA) >= 0;
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
 }

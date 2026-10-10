@@ -285,6 +285,7 @@
     "color:inherit;font:inherit;min-width:0;}" +
     ".foto-uretim-kart img{display:block;width:100%;aspect-ratio:1/1;height:auto;object-fit:cover;" +
     "border-radius:8px;background:#fff;}" +
+    ".foto-uretim-kart-yer{display:block;width:100%;aspect-ratio:1/1;border-radius:8px;background:#fff;}" +
     ".foto-uretim-kart-ad{display:block;font-size:15px;font-weight:700;color:var(--navy);line-height:1.3;}" +
     ".foto-uretim-kart-etiket{display:block;font-size:11px;color:#5b6573;line-height:1.2;}" +
     ".foto-uretim-kart.secili{border-color:var(--navy);background:#fff;}" +
@@ -1303,12 +1304,17 @@
           d.disabled = true;
           d.setAttribute("aria-disabled", "true");
         }
-        var im = el("img");
-        im.src = it.kanit === "render" ? it.ornek.render
-          : (it.kanit === "yakinda" || it.kanit === "ornek-yok") ? "" : it.ornek.baski;
-        im.alt = ""; im.width = 240; im.height = 240; im.decoding = "async";
-        if (sira > 0) im.loading = "lazy";
-        d.appendChild(im);
+        if (it.kanit === "ornek-yok") {
+          // ArTisT 8. okuma: boş src'li img tarayıcıda KIRIK RESİM simgesi çizer -> img HİÇ eklenmez,
+          // yerine aynı ölçüde nötr kutu (görsel uydurulmaz).
+          d.appendChild(el("span", "foto-uretim-kart-yer"));
+        } else {
+          var im = el("img");
+          im.src = it.kanit === "render" ? it.ornek.render : it.kanit === "yakinda" ? "" : it.ornek.baski;
+          im.alt = ""; im.width = 240; im.height = 240; im.decoding = "async";
+          if (sira > 0) im.loading = "lazy";
+          d.appendChild(im);
+        }
         d.appendChild(el("span", "foto-uretim-kart-ad",
           devreDisi ? (it.kart.yakinda || it.kart.ad) : it.kart.ad));
         d.appendChild(el("span", "foto-uretim-kart-etiket",
