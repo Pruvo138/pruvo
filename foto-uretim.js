@@ -97,6 +97,10 @@
   // Ureteç onizlemesinin yoklamasi: 5 sn aralik, en cok 180 sn (sonra "hazirlaninca gosterilecek").
   var URETEC_YOKLAMA_MS = 5000;
   var URETEC_YOKLAMA_TAVAN_MS = 180000;
+  // ④ "sırada" iken önizleme hazırlayıcısı (yerel koşucu) sağlığı: /foto/durum `hazirlayici_yas_sn` (koşucunun
+  // son tur damgasının yaşı). null (damga yok) ya da tavanın üstü -> cümlenin altında TEK satır; metin TEK yerde.
+  var HAZIRLAYICI_YAS_TAVAN_SN = 600;
+  var HAZIRLAYICI_CEVRIMDISI = "Önizleme hazırlayıcısı şu an çevrimdışı; ekibe haber verildi.";
   var PARAMETRE_HATA = {
     "parametre-aralik": "Değer izinli aralığın dışında.",
     "parametre-adim": "Değer izinli adıma uymuyor.",
@@ -131,6 +135,7 @@
     gorsel: null,
     gecerlilik: null,
     ilerleme: null,
+    hazirlayiciYas: undefined,
     bildirim: "",
     bildirimHata: false,
     yoksIs: null,
@@ -1997,6 +2002,13 @@
       : "Fiyat hesaplanamadı; yeni önizleme oluştur.");
   }
 
+  // Yalnız üreteç kolu "sırada" iken: sunucu alanı GÖNDERDİYSE (null = damga yok) hükmeder; alan yoksa satır yok.
+  function hazirlayiciCevrimdisi() {
+    if (!(F && F.kolu && F.kolu(S.tur) === "deterministik")) return false;
+    var y = S.hazirlayiciYas;
+    return y === null || (typeof y === "number" && y > HAZIRLAYICI_YAS_TAVAN_SN);
+  }
+
   function cizS2() {
     if (!S.alan) return;
     turnsTemizle(S.alanCap1);
@@ -2005,6 +2017,9 @@
     S.alan.appendChild(el("p", null, !!(F && F.kolu && F.kolu(S.tur) === "deterministik") ?
       "Önizlemen sırada; üretim dosyasıyla birlikte hazırlanıyor…" :
       "Önizlemen hazırlanıyor… (genelde 1 dakika)"));
+    if (hazirlayiciCevrimdisi()) {
+      S.alan.appendChild(el("p", "foto-uretim-ayrinti foto-uretim-hazirlayici", HAZIRLAYICI_CEVRIMDISI));
+    }
     var t2 = seciliTurBul();
     if (t2 && F.olcuTuretilmis(t2.kod)) S.alan.appendChild(olculenFiyatEl(true));
     if (typeof S.ilerleme === "number") {
@@ -2325,6 +2340,8 @@
           adimKoy("S1", "Önizlemenin süresi doldu; yeni önizleme oluştur.", true);
           return;
         }
+        S.hazirlayiciYas = Object.prototype.hasOwnProperty.call(veri, "hazirlayici_yas_sn") ?
+          veri.hazirlayici_yas_sn : undefined;
         if (ilk) {
           ssIsKaydet();
           S.ilerleme = typeof veri.ilerleme === "number" ? veri.ilerleme : null;
@@ -2426,6 +2443,7 @@
           S.is = veri.is;
           ssIsKaydet();
           S.ilerleme = null;
+          S.hazirlayiciYas = undefined;
           adimKoy("S2");
           yoksBaslat(S.is);
           return;
@@ -2497,6 +2515,7 @@
           S.is = veri.is;
           ssIsKaydet();
           S.ilerleme = null;
+          S.hazirlayiciYas = undefined;
           adimKoy("S2");
           yoksBaslat(S.is);
           return;

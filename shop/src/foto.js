@@ -1219,8 +1219,20 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
 export function olcuKaynagi(tur) { return VERI.olcuTuretilmis(tur) ? "turetilmis" : "surgu"; }
 
 /** Uretec onizlemesinin durum yaniti: hazir -> gorsel + olcu.json ozeti; kuyrukta -> bekliyor. */
-async function uretecDurumYaniti(env, is) {
-  if (is.asama === "uretec-onizleme") { return fjson({ asama: "bekliyor" }, 200); }
+/**
+ * Onizleme hazirlayicisinin (yerel kosucu) yasi, sn: simdi - foto_ayar.kosucu_son_tik (kosucu her --uygula
+ * turunun sonunda yazar). Damga yok/bozuk -> null (ekran "cevrimdisi" der; uydurulmus taze deger YOK).
+ */
+async function hazirlayiciYasSn(env, simdi) {
+  const k = await ayarOku(env, "kosucu_son_tik");
+  const t = k ? Date.parse(k.deger) : NaN;
+  return Number.isFinite(t) ? Math.max(0, Math.round((simdi - t) / 1000)) : null;
+}
+
+async function uretecDurumYaniti(env, is, simdi) {
+  if (is.asama === "uretec-onizleme") {
+    return fjson({ asama: "bekliyor", hazirlayici_yas_sn: await hazirlayiciYasSn(env, simdi) }, 200);
+  }
   if (is.asama !== "onizleme-hazir") { return durumYaniti(is); }
   let olcu = null;
   try {
@@ -1357,7 +1369,7 @@ async function durumUcu(env, url, simdi) {
   if (!is) { return fjson({ hata: "bulunamadi" }, 404); }
   // Ornek isi (panel) musteri ucunda YOK sayilir: varligi da sizmaz.
   if (ornekMi(is)) { return fjson({ hata: "bulunamadi" }, 404); }
-  if (uretecOnizlemeIsi(is)) { return uretecDurumYaniti(env, is); }
+  if (uretecOnizlemeIsi(is)) { return uretecDurumYaniti(env, is, simdi); }
   return onizlemeIlerle(env, is, simdi, yapilandirma(env).hazir, durumYaniti);
 }
 
