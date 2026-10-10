@@ -59,7 +59,7 @@
   // PENCERELER — kutu başlığındaki ①②③④ göstergesi + açıklama (sayfa metni, BİREBİR).
   var PENCERELER = [
     { no: "①", ad: "Tür seç", aciklama: "6 seçenekten birini seç: insan figürü, hayvan ve model figürü, kabartma plaket, büst, anahtarlık ya da yapboz." },
-    { no: "②", ad: "Resim yükle", aciklama: "Resmi yükle; \"Nasıl olsun?\" kısmında ne istediğini kısaca yaz. Uyumsuz resimde tek kısa mesaj gösterilir." },
+    { no: "②", ad: "Resim yükle", aciklama: "Resmi yükle; istersen \"Nasıl olsun?\" kısmında ne istediğini kısaca yaz. Uyumsuz resimde tek kısa mesaj gösterilir." },
     { no: "③", ad: "Renk, boyut ve malzeme", aciklama: "Renk: Siyah, Beyaz, Gri ya da Renkli (+%15; renkler fotoğrafından otomatik seçilir). Malzeme: PLA ya da PETG (+%30). Boyut sürgüden ayarlanır; fiyat ölçüye göre canlı görünür; en uzun boyut mm × 10 TL, en az ₺600." },
     { no: "④", ad: "Önizleme ve onay", aciklama: "Önizlemeyi gör, onayları ver; Sepete ekle açılır." }
   ];
@@ -1965,7 +1965,7 @@
     // kuyruğu); fotoğraf yalnız türün girdisinde varsa istenir.
     // K2b: uyum kontrolü geçmeden önizleme düğmesi AÇILMAZ ("uygun_degil" ise).
     var uyumOK = uyumKontrol(S.tur, S.uretimNotu) === "uygun";
-    // Madde 1 (Okan 8 Eki 14:1x): "Nasıl olsun?" üretim notu ZORUNLU; boşken "Önizleme oluştur" KAPALI.
+    // Okan 10 Eki 12:5x: "Nasıl olsun?" notu İSTEĞE BAĞLI (8 Eki 14:1x zorunluluğu kalktı); boş not düğmeyi kapatmaz.
     // ① fotoğraf · yazı · onay · doğrulama · günlük hak · program — s1Sebep TEK kaynak (cümle ile kapı aynı).
     var sebep = s1Sebep();
     var tam = uyumOK && !sebep && !!S.tur && !!S.olcu && (!lit || !!null) &&
