@@ -4682,6 +4682,13 @@ jobs:
       # double-run olurdu). Bloklayici (kapsam kapisi `tools/ci-kapsam-test.py` da sayar).
       - name: Filament paketi kabul testleri (26 vaka; urunler.json'a YAZMAZ sha256 kapisi)
         if: ${{ !cancelled() }}
+        # K438 (10 Eki 2026): bu iste CF jetonu YOK (bilerek) -> TEST 5 parite yayin halini
+        # OKUYAMAZ; push'tan sonraki yayin penceresinde (olculen ~24 dk) yeni satirlar TASLAK
+        # oldugu icin "YAYIN HALI OKUNAMADI" yanlis-KIRMIZISI yaniyordu (3. tekrar). Bekleme
+        # cekirdekte (tools/parite-ortak.js onKosulOlc): canli sayi yerele ulasinca on-kosul
+        # BASTAN olculur; kapanmazsa ayni KIRMIZI. Butce eksen B ust siniriyla tavanli.
+        env:
+          PARITE_YAYIN_BEKLE_SN: "2700"
         run: python3 tools/filament-test.py
 
       # STL R2 YUKLEYICI: anahtar turetme (yol-gezinme kapisi: ../ , mutlak yol, ters bolu,
