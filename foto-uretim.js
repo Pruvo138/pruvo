@@ -39,7 +39,8 @@
   // sadece bunları yapalım."). kod = kart · tur = üretim türü (manifest/`/acik` kodu) · alt = figür alt türü (S.altTur;
   // önizleme isteğine `alt_tur` olarak gider, sağlayıcı istemi SUNUCUDA) · cesit = kartın sabitlediği çeşit (anahtarlık
   // iki AYRI kart; ② çeşit düğmesi çizilmez) · ad + ret = sayfa metni. Büst/yapboz bu tabloda YOK: hiçbir durumda çizilmez.
-  // Türü `/acik` listesinde olmayan (ya da çeşidi açık olmayan) kart ÇİZİLMEZ ("Yakında" etiketi YOK).
+  // Türü `/acik` listesinde olmayan, KENDİ kodu `/acik` `modeller` listesinde olmayan (ya da çeşidi açık olmayan) kart
+  // ÇİZİLMEZ ("Yakında" etiketi YOK).
   // `ornek:false` ile işaretlenen kartın örneği ÇİZİLMEZ; ornekCiz nötr yer tutucu + "Örnek yakında" etiketi basar
   // (kart aktif/tıklanabilir kalır, gizleme YOK). Yeni görsel/URL UYDURMA.
   var KARTLAR = [
@@ -1309,13 +1310,21 @@
     }
     return null;
   }
+  // 6 MODEL: /acik `modeller` = açık MODEL kodları (sunucu D1 foto_acik'ten; eski tür satırı hiçbirini açmaz).
+  // Alan yoksa/dizi değilse liste BOŞ -> hiçbir kart çizilmez (fail-closed).
+  function acikModeller() {
+    return S.acikVeri && Array.isArray(S.acikVeri.modeller) ? S.acikVeri.modeller : [];
+  }
   function ornekCiz(ornekBlok, acikKodlar) {
     while (ornekBlok.firstChild) ornekBlok.removeChild(ornekBlok.firstChild);
     var liste = [];
+    var modeller = acikModeller();
     for (var i = 0; i < KARTLAR.length; i++) {
       var k = KARTLAR[i];
       if (!acikKodlar || acikKodlar.indexOf(k.tur) < 0) continue;
-      // Çeşit kartı yalnız o çeşit AÇIKSA çizilir (sayfaya yalnız düzgün çalışan model).
+      // Kart yalnız KENDİ model kodu açıksa çizilir (tür açık olsa bile; sunucu da aynı kodla 400 verir).
+      if (modeller.indexOf(k.kod) < 0) continue;
+      // Çeşit kartı ayrıca statik çeşit bayrağı AÇIKSA çizilir (model listesi VE çeşit bayrağı).
       if (k.cesit && !(F.cesitler && F.cesitler[k.tur] && F.cesitAcik(k.tur, k.cesit))) continue;
       var t = F.turBul(k.tur);
       // `ornek:false` (BaBa 10 Eki 06:3x): dürüst yer tutucu — kart AKTİF kalır (disabled DEĞİL), görsel yok,
