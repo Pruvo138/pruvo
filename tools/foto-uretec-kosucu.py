@@ -279,12 +279,15 @@ def isleri_cek(manifest):
         isler.append({"kuyruk": "onizleme", "is_no": r.get("is_no"), "tur": r.get("tur"),
                       "olcu_mm": r.get("olcu_mm"), "deneme": int(m.group(1)) if m else 0,
                       "gorulen": int(r.get("son_kontrol") or 0)})
-    sat, _ = d1("SELECT siparis_no, kalem, is_no, tur, olcu_mm, deneme, guncel FROM foto_uretim"
-                " WHERE asama = 'onarim-bekliyor' ORDER BY tarih LIMIT " + str(IS_SINIRI))
+    # Onarim kuyrugu siparis kalemini de okur (figur kolu `foto_renk_modu`: Renkli -> palet; RENK=PALET B).
+    sat, _ = d1("SELECT u.siparis_no, u.kalem, u.is_no, u.tur, u.olcu_mm, u.deneme, u.guncel, s.urunler"
+                " FROM foto_uretim u LEFT JOIN siparisler s ON s.siparis_no = u.siparis_no"
+                " WHERE u.asama = 'onarim-bekliyor' ORDER BY u.tarih LIMIT " + str(IS_SINIRI))
     for r in sat:
         isler.append({"kuyruk": "onarim", "siparis_no": r.get("siparis_no"), "kalem": r.get("kalem"),
                       "is_no": r.get("is_no"), "tur": r.get("tur"), "olcu_mm": r.get("olcu_mm"),
-                      "deneme": int(r.get("deneme") or 0), "gorulen": r.get("guncel") or ""})
+                      "deneme": int(r.get("deneme") or 0), "gorulen": r.get("guncel") or "",
+                      "urunler": r.get("urunler") or ""})
     for i in isler:
         t = manifest.get(i["tur"]) or {}
         i["motor"] = t.get("motor", "")
@@ -388,6 +391,17 @@ def siparis_kalemi(urunler, kalem):
     except (ValueError, TypeError):
         k = None
     return k if isinstance(k, dict) else None
+
+
+RENK_MODU_SECENEK = ("tek", "palet")
+
+
+def foto_renk_modu(i):
+    """Figur kolunun uretim renk modu: siparis kaleminin `foto_renk_modu` (shop/src/foto.js; Renkli -> palet).
+    Satir/kalem/alan yok, kalem baska ise ait ya da deger gecersiz -> "tek" (bugunku tek renk yolu AYNEN)."""
+    k = siparis_kalemi(i.get("urunler"), i.get("kalem"))
+    m = k.get("foto_renk_modu") if k and k.get("foto_is") == i.get("is_no") else None
+    return m if m in RENK_MODU_SECENEK else "tek"
 
 
 def siparis_girdisi(i, t):
@@ -920,7 +934,8 @@ def esle_anahtarlik_foto(g, dizin, rh):
     """anahtarlik FOTO kolu (TeKiN kopru kaydi `anahtarlik-foto`, figur_kulak; ② "Figur olarak"): girdi saglayicinin
     FIGUR turu ciktisi (`dosyalar.figur`, 3MF ya da STL), kulakcik konumu `figur_kulak_konum` (tepe|sirt; yoksa
     tepe). Renk bolgesi YOK (tek govde). Figur uzun kenari >72 mm ise uretec rc 2 -> `anahtarlik-boyut`
-    (RET_KALIPLARI)."""
+    (RET_KALIPLARI). Zarf `renk_modu` palet -> `--renk-modu palet` (3MF ucgen boyasi korunur); tek/yok -> bayrak
+    YOK (komut bugunkuyle bayt-ayni)."""
     ad = (g.get("dosyalar") or {}).get("figur")
     if not isinstance(ad, str) or not DOSYA_ADI_KALIBI.match(ad) or not ad.endswith((".3mf", ".stl")) or \
             not os.path.isfile(os.path.join(dizin, ad)):
@@ -929,7 +944,13 @@ def esle_anahtarlik_foto(g, dizin, rh):
     konum = (g.get("parametreler") or {}).get("figur_kulak_konum", g.get("konum") or KONUM_VARSAYILAN)
     if konum not in KONUM_SECENEK:
         raise KopruRed("parametre")
-    return {"figur": os.path.join(dizin, ad), "konum": konum}, []
+    u = {"figur": os.path.join(dizin, ad), "konum": konum}
+    rm = g.get("renk_modu", "tek")
+    if rm not in RENK_MODU_SECENEK:
+        raise KopruRed("parametre")
+    if rm == "palet":
+        u["renk_modu"] = "palet"
+    return u, []
 
 
 def kopru_cagri(uretec):
@@ -1118,15 +1139,58 @@ def tekin_kos(g, t, girdi_dizin, cikti, py, jen):
     return (0 if d.returncode == 0 else 1), (d.stderr.strip().splitlines() or [""])[-1][:200]
 
 
+def boya_durumlari(s):
+    """paint_color (BambuStudio/PrusaSlicer TriangleSelector) -> yaprak durumlari kumesi; bozuk dizge -> None.
+    Onaltilik basamaklar TERS okunur; alt 2 bit bolunen kenar sayisi (0 = yaprak, aksi kenar+1 cocuk), yaprakta ust
+    2 bit durum (3 -> sonraki basamak + 3, 15'ler birikir). Bos dizge = boyasiz ({0})."""
+    try:
+        b = [int(c, 16) for c in reversed(s)]
+    except ValueError:
+        return None
+    k, bekleyen, durumlar = 0, 1, set()
+    while bekleyen:
+        if k >= len(b):
+            return {0} if not b else None
+        kod, k, bekleyen = b[k], k + 1, bekleyen - 1
+        if kod & 3:
+            bekleyen += (kod & 3) + 1
+            continue
+        d = kod >> 2
+        if d == 3:
+            while k < len(b) and b[k] == 15:
+                d, k = d + 15, k + 1
+            if k >= len(b):
+                return None
+            d, k = d + b[k], k + 1
+        durumlar.add(d)
+    return durumlar if k == len(b) else None
+
+
 def uc_mf_extruder_sayisi(yol):
-    """3MF'teki FARKLI extruder sayisi (Metadata/model_settings.config) — OLCULUR; yoksa 0."""
+    """3MF'teki FARKLI extruder sayisi — OLCULUR; yoksa 0. Govde extruder'lari (Metadata/model_settings.config) +
+    UCGEN BOYASI (RENK=PALET B: figur_kulak --renk-modu palet TEK govde yazar, renk ucgen basina `paint_color`'da;
+    durum d>=1 -> extruder d, boyasiz ucgen/durum 0 -> govdenin extruder'i). Boya yoksa bugunku sayim AYNEN;
+    bozuk boya dizgesi -> 0 (olculemedi)."""
     import zipfile
     try:
         with zipfile.ZipFile(yol) as z:
             s = z.read("Metadata/model_settings.config").decode("utf-8")
+            modeller = [z.read(n).decode("utf-8") for n in z.namelist() if n.endswith(".model")]
     except (OSError, KeyError, zipfile.BadZipFile, UnicodeDecodeError):
         return 0
-    return len(set(re.findall(r'key="extruder"\s+value="(\d+)"', s)))
+    govde = set(re.findall(r'key="extruder"\s+value="(\d+)"', s))
+    boya, boyasiz = set(), False
+    for m in modeller:
+        for u in re.findall(r"<triangle\b[^>]*>", m):
+            p = re.search(r'\bpaint_color="([^"]*)"', u)
+            d = boya_durumlari(p.group(1)) if p else {0}
+            if d is None:
+                return 0
+            boya |= {str(x) for x in d if x >= 1}
+            boyasiz = boyasiz or 0 in d
+    if not boya:
+        return len(govde)
+    return len(boya | (govde if boyasiz else set()))
 
 
 def uc_mf_uzun_kenar(yol, oz, eksen=2):
@@ -1535,19 +1599,28 @@ def figur_olcu_kabul(i, cd):
 def figur_kos(i, t, uretec, model, gecici):
     """Onarilmis figur -> duz STL (figur_duzlestir) -> cesidin ureteci (figur_kulak): zarf dosyalar.figur=figur.stl,
     zarf `konum` (FIGUR_KONUM_SIRASI; tepe reddi ya da tepe olcuye sigmadi -> sirt), sonra figur_olcu_kabul.
-    Donus (rc, ozet, uretilen model.3mf yolu, konum)."""
+    PALET (siparis Renkli, foto_renk_modu): STL ucgen boyasini SILER -> onarilmis 3MF AYNEN figur.3mf + zarf
+    renk_modu palet (uretec --renk-modu palet). Donus (rc, ozet, uretilen model.3mf yolu, konum)."""
     gd = os.path.join(gecici, "figur-girdi")
     os.makedirs(gd)
-    hata = figur_duzlestir(model, os.path.join(gd, "figur.stl"))
+    palet = foto_renk_modu(i) == "palet"
+    figur = "figur.3mf" if palet else "figur.stl"
+    if palet:
+        shutil.copyfile(model, os.path.join(gd, figur))
+        hata = ""
+    else:
+        hata = figur_duzlestir(model, os.path.join(gd, "figur.stl"))
     if hata:
         return 2, "RED genel: " + hata, os.path.join(gecici, "figur-yok", "model.3mf"), ""
     i["uretec"] = uretec
     for konum in FIGUR_KONUM_SIRASI:
         cd = os.path.join(gecici, "figur-cikti-" + konum)
+        zarf = {"sozlesme": 1, "kategori": i["tur"], "siparis_no": i["siparis_no"], "kalem": i["kalem"],
+                "olcu_mm": i["olcu_mm"], "dosyalar": {"figur": figur}, "parametreler": {}, "konum": konum}
+        if palet:
+            zarf["renk_modu"] = "palet"
         with open(os.path.join(gd, "girdi.json"), "w", encoding="utf-8") as f:
-            json.dump({"sozlesme": 1, "kategori": i["tur"], "siparis_no": i["siparis_no"], "kalem": i["kalem"],
-                       "olcu_mm": i["olcu_mm"], "dosyalar": {"figur": "figur.stl"}, "parametreler": {},
-                       "konum": konum}, f)
+            json.dump(zarf, f)
         rc, ozet = uretec_kos(i, gd, cd, t)
         if rc == 0 and konum != FIGUR_KONUM_SIRASI[-1] and not figur_tepe_sigar(i, cd):
             continue
@@ -1597,8 +1670,10 @@ def onarim_isle(i, jeton, yaz, t=None):
                 karar, sebep = "elle", red_sebebi(fozet)
             elif rc != 0:
                 karar, sebep = "ariza", "uretec-ariza"
+            # renk = uretilen model.3mf'in OLCULEN extruder sayisi (palet siparisinde renk korunumu kaniti).
             ozet = (ozet + " " if ozet else "") + "uretec=" + fu + (" konum=" + konum if konum else "") + \
-                ("" if rc == 0 else " rc=%s %s" % (rc, fozet))
+                (" renk_modu=%s renk=%d" % (foto_renk_modu(i), uc_mf_extruder_sayisi(cikti)) if rc == 0 else
+                 " rc=%s %s" % (rc, fozet))
         if karar == "ariza" and i["deneme"] + 1 >= DENEME_TAVANI:
             karar = "elle"
         if karar == "hazir":
