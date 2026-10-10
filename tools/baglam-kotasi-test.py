@@ -106,6 +106,8 @@ KOD_EDIT_X = {"file_path": "/Users/okan/dev/pruvo/tools/x.py",
 A_TS = "ToolSearch"
 A_TEMIZLE = "mcp__ccd_session_mgmt__clear_session"
 A_ILET = "mcp__ccd_session_mgmt__send_message"
+# SendMessage (10 Eki BaBa): harness'in yeni oturumlar-arasi ileti araci, send_message ile AYNI is
+A_SM = "SendMessage"
 # Cron oz-devir (7 Eki BaBa, zombi dongu): CronDelete/CronList GECER, CronCreate RED
 CRON_SIL = {"id": "abc12345"}
 CRON_LISTE = {}
@@ -196,6 +198,7 @@ def vaka3b():
                             ("clear_session self", A_TEMIZLE, TEMIZLE_SELF),
                             ("clear_session bos hedef", A_TEMIZLE, TEMIZLE_BOS),
                             ("send_message", A_ILET, ILET),
+                            ("SendMessage", A_SM, ILET),
                             ("DEVAM.md Edit", "Edit", DEFTER_EDIT),
                             ("git commit", "Bash", COMMIT),
                             ("CronDelete", "CronDelete", CRON_SIL),
@@ -205,7 +208,10 @@ def vaka3b():
     for ad, arac, girdi in (("tools/x.py Write", "Write", KOD_WRITE_X),
                             ("tools/x.py Edit", "Edit", KOD_EDIT_X),
                             ("clear_session BASKA oturum (daraltma)", A_TEMIZLE, TEMIZLE_BASKA),
-                            ("CronCreate", "CronCreate", CRON_KUR)):
+                            ("CronCreate", "CronCreate", CRON_KUR),
+                            # onek kacagi kontrolu: listede OLMAYAN benzer adlar RED
+                            ("SendMessageX (onek kacagi yok)", "SendMessageX", ILET),
+                            ("SendMessages (onek kacagi yok)", "SendMessages", ILET)):
         karar, _s = kos(arac, girdi, F["red_510k"])
         iddia("3b-%s @510K -> RED" % ad, karar == "deny", "karar=%s" % karar)
 
@@ -312,6 +318,10 @@ MUTANTLAR = [
     ("M15", "OLDURUCU", '    "CronList",\n', "",
      "3b — CronList listeden silinince 510K'da RED",
      [("CronList", CRON_LISTE, "red_510k", "deny")]),
+    # M-SM (10 Eki BaBa): SendMessage oz-devir uyesi.
+    ("M-SM", "OLDURUCU", '    "SendMessage",\n', "",
+     "3b — SendMessage listeden silinince 510K'da RED",
+     [(A_SM, ILET, "red_510k", "deny")]),
     ("M8", "KONTROL", '"(defter/kutu Write · git commit/push · okuma-olcme)."',
      '"(defter/kutu Write · git commit/push · okuma-olcme). [kontrol metni]"',
      "yalniz RED teshis metninin kuyrugu degisir -> HICBIR iddia degismemeli", None),
