@@ -21,7 +21,7 @@ M-RS-ONARIM / M-RS-SIPARIS / M-RS-SQL.
 
 TEKIN-ORTAK KOPRUSU (yapboz + anahtarlik): T13-<kod> sahte tekin uretecine giden JSON BIREBIR beklenen (form
 AYNEN + olcu alani + palet/bolge renkleri RENK_HEX + anahtarlik sabiti) + onizleme-hazir + olcu.json ·
-T14 RET "kontrast" -> `uretec-red:kontrast` · T16 tanimsiz renk adi · T18 sema disi parametre · T35 palet sira
+T14 RET "kontrast" -> `uretec-red:kontrast` · T14Y duz yazi ince cizgi -> `uretec-red:yazi-ince` + cumle · T16 tanimsiz renk adi · T18 sema disi parametre · T35 palet sira
 boslugu · T36 palet disi bolge -> uretec KOSMAZ · T17 renk_sayisi 3MF'ten OLCULUR · T19 plaka 300 · T20 uzun
 kenar geometriden · T21 yapboz araligi · T22/T23 ORNEK kolu.
 Manifest tutarliligi (V1-V9, node + kosucu modulu): 2 kopru satiri, metinler AYNEN, renk adlari RENK_HEX'te,
@@ -815,6 +815,21 @@ def vakalar(kosucu):
     vaka("T20", t20)
     vaka("T21", t21)
     vaka("T14", t14)
+
+    # T14Y (11 Eki, TeKiN 93a2e1e): anahtarlik-yazi duz yazi dar genislikte ince cizgi RET'i (genislik_mm ipucu) ->
+    # `uretec-red:yazi-ince` + musteri cumlesi (genisligi buyut, en az 40 mm / El yazisi) manifestte BAGIMSIZ sabitle.
+    def t14y(o):
+        anahtarlik_onizleme(o)
+        rc, son, _ = o.kos("--uygula", FAKE_TEKIN_RET="en ince cizgi 0.561 mm < 0.8 mm (genislik_mm'yi buyut / "
+                                                      "metni kisalt / kalin font)")
+        r = o.sql("SELECT asama, hata FROM foto_isler WHERE is_no = ?", IS2)[0]
+        with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(kosucu))), "foto-uretim-veri.js"),
+                  encoding="utf-8") as f:
+            metin = re.findall(r'"yazi-ince": "([^"]*)"', f.read())
+        return (son == "HAL=ISLEDI uretildi=0 red=1 ariza=0 rc=0" and r["asama"] == "basarisiz" and
+                r["hata"] == "uretec-red:yazi-ince" and metin == [YAZI_INCE_CUMLE]), "%s %s metin=%s" % (son, r, metin)
+
+    vaka("T14Y", t14y)
     vaka("T16", t_kosmaz(lambda o: anahtarlik_onizleme(o, {"plaka": "Pembe", "yazi": "Siyah"}), "uretec-red:renk"))
     vaka("T17", t17)
     vaka("T18", t_kosmaz(lambda o: anahtarlik_onizleme(o, parametreler={"satirlar": ["Ada"], "renk": "x"}),
@@ -911,11 +926,11 @@ def vakalar(kosucu):
     def olcu_tutar(L, olcu):
         return L is not None and abs(L - olcu) <= olcu * 0.01
 
-    # FZ1 pet kaidesiz (denge: kaide yoksa devrilme) -> duzelt kaide ekler -> 138 mm OK.
+    # FZ1 pet kaidesiz (denge: kaide yoksa devrilme) -> duzelt kaide ekler -> 136 mm OK (pet tavanı 136,5 — TeKiN 792ac60).
     def fz1(o):
-        son, u, m, L, x, z, c = zincir_kos(o, 138, FAKE_DENGE_KAIDE="zorunlu", FAKE_DENGE_MAX_MM="138.6")
+        son, u, m, L, x, z, c = zincir_kos(o, 136, FAKE_DENGE_KAIDE="zorunlu", FAKE_DENGE_MAX_MM="136.5")
         return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
-                "<!--kaide-->" in x and olcu_tutar(L, 138) and z == ["duzelt", "denge"] and
+                "<!--kaide-->" in x and olcu_tutar(L, 136) and z == ["duzelt", "denge"] and
                 u["renk_sayisi"] == extruder_say(m)), "%s %s L=%s z=%s" % (son, u, L, z)
 
     # FZ2 arac 5 kabuk -> duzelt birlestirir -> teslim modeli 1 kabuk, 130 mm OK.
@@ -1320,6 +1335,8 @@ def vakalar(kosucu):
 # sayilir, yesil denmez). VB3/VB4 (B2) GERCEK figur_kulak.py'yi koşucunun figur_kos'u uzerinden sentetik kapsul
 # figurlerle kosar (0 kredi, yerel): 60 z-uzun -> tepe sigmaz -> sirt · 72 XY-uzun -> tepe · 72 z-uzun -> sirt;
 # kulak dahil uzun kenar = olcu ± tol ve sonuc 'elle' DEGIL.
+YAZI_INCE_CUMLE = ("Bu yazı bu genişlikte çok ince kalıyor; genişliği büyüt (kalın düz harflerde kısa bir isim "
+                   "için en az 40 mm) ya da El yazısı yazı tipini seç.")
 ANAHTARLIK_BOYUT_CUMLE = ("Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı; daha sade bir fotoğraf ya da "
                           "kısa bir yazı deneyin.")
 
@@ -1534,6 +1551,11 @@ MUTANTLAR = {
     "M10": ('    u["uzun_kenar_mm"] = float(g["olcu_mm"])\n', '    u["genislik_mm"] = float(g["olcu_mm"])\n',
             {"T13-yapboz", "V5-ESKI"}),
     "M11": ('    (r"kontrast", "kontrast"),\n', "", {"T14"}),
+    # Yazi-ince (11 Eki): kalip kalkarsa RET "metni kisalt" genel yazi reddine (metin-sigmadi) duser; musteri cumlesi
+    # kalkarsa/degisirse manifest BAGIMSIZ sabite uymaz -> ikisi de T14Y KIRMIZI.
+    "M-YI-KALIP": ('    (r"ince cizgi.*genislik_mm", "yazi-ince"),\n', "", {"T14Y"}),
+    "M-YI-METIN": ('      "yazi-ince": "Bu yazı bu genişlikte çok ince kalıyor;', '      "yazi-yok": "Bu yazı bu genişlikte çok ince kalıyor;',
+                   {"T14Y"}, "foto-uretim-veri.js"),
     "M12": ('"renk_sayisi": uc_mf_extruder_sayisi(os.path.join(cikti, "model.3mf")),',
             '"renk_sayisi": len(bolgeler),', {"T17"}),
     "M13": ('        if any(k not in form for k in (girdi.get("parametreler") or {})):\n            raise KopruRed("parametre")\n',
@@ -1553,7 +1575,7 @@ MUTANTLAR = {
     "M20": ('"yapboz": esle_yapboz, "anahtarlik": esle_anahtarlik,\n', '"yapboz": esle_yapboz,\n',
             # esle_isimlik form alanlarini (anahtarlik_kulak_konum, liste satirlar) tanimaz -> T14/T16/T17 de.
             # T43 (9 Eki foto kolu): yazi kolunun eslemesi esle_anahtarlik degil -> o da KIRMIZI (iddia eklendi).
-            {"T13-anahtarlik", "T14", "T16", "T17", "T22", "T43", "RS1"}),
+            {"T13-anahtarlik", "T14", "T14Y", "T16", "T17", "T22", "T43", "RS1"}),
     "M31": ('"sablon": esle_sablon, "yapboz": esle_yapboz, ', '"sablon": esle_sablon, ',
             {"T13-yapboz", "T19", "T20", "T21", "T35", "T36", "V5-ESKI"}),
     # bolge adi manifestten degil sabit `taban`dan okunursa anahtarlik renkleri duser.
@@ -1647,7 +1669,7 @@ MUTANTLAR = {
             '"anahtarlik-boyut": "Bu fotoğraftan parça çıkmadı;', {"T42", "T44"}, "foto-uretim-veri.js"),
     # Yazi kolu gerilemesi: foto dali her ureteci yakalar -> anahtarlik yazi isi esle_isimlik'e duser (T13/T14/...).
     "M49": ('    if (g or {}).get("kol") == "foto":\n', '    if True:\n',
-            {"T13-anahtarlik", "T14", "T16", "T17", "T22", "T43", "RS1"}),
+            {"T13-anahtarlik", "T14", "T14Y", "T16", "T17", "T22", "T43", "RS1"}),
     # TUR-B ⑧: eski alan atilmazsa eski yapboz isi `RED parametre` ile duser.
     "M4-ESKI": ("    eski_alanlari_at(t.get(\"kod\"), girdi)\n", "", {"V5-ESKI"}),
     # FIGUR ZINCIRI (22:3x): duzelt atlanirsa kaidesiz pet devrilir, 5 kabuk kalir, cagri sirasi bozulur; olcek
@@ -1859,7 +1881,7 @@ def manifest_vakalari():
               mod.ret_kodu("RET: parca kisa kenari 18.0 mm < 24 mm: satir/sutun sayisini azaltin") == "parca" and
               mod.ret_kodu("RET: en ince cizgi 0.512 mm < 0.8 mm (yaziyi buyut: plakayi buyut)") == "metin-sigmadi" and
               mod.ret_kodu("RET: en ince cizgi 0.561 mm < 0.8 mm (genislik_mm'yi buyut / metni kisalt / kalin font)")
-              == "metin-sigmadi" and
+              == "yazi-ince" and
               mod.ret_kodu("RET: ince cizgi (< 0.60 mm) var; ince_cizgi=reddet") == "ince-cizgi" and
               mod.ret_kodu("RET: SVG: desteklenmeyen eleman <text> (metin/filter/gorsel/maske/stil yok)") == "svg" and
               mod.ret_kodu("RET: bilinmeyen alan: x") == "genel")

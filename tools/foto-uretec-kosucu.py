@@ -1022,7 +1022,10 @@ RET_KALIPLARI = [
     (r"parca kisa kenari|satir\*sutun|parca tabladan", "parca"),
     (r"metin cok uzun|modul boyutu", "qr-uzun"),
     (r"fontta bulunmayan|denetim/gorunmez|surrogate", "karakter"),
-    # isimlik_uret anahtarlik kolu (genislik_mm) ince cizgi RET'i "yazi" icermez -> "metni kisalt" yazi reddidir
+    # isimlik_uret anahtarlik kolu (genislik_mm) ince cizgi RET'i (TeKiN 93a2e1e: duz yazi 30 mm "Ayşe" 0,561 mm < 0,8;
+    # duz yazi ~40 mm ister, el yazisi 30 mm'de gecer) -> kendi cumlesi (genisligi buyut / el yazisi); "metni kisalt"
+    # yakalayan genel yazi reddinden ONCE. Plaka kolu ("plakayi buyut") metin-sigmadi'da kalir.
+    (r"ince cizgi.*genislik_mm", "yazi-ince"),
     # (Okan 10 Eki "onizleme yapilamiyor": 30 mm "Ayşe" -> eskiden ince-cizgi "gorsel dene" cumlesi).
     (r"yazi|satir|harf|metni kisalt", "metin-sigmadi"),
     (r"ince cizgi|ink kisa kenari", "ince-cizgi"),

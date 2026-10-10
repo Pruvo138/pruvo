@@ -175,14 +175,14 @@
         // ÖLÇÜ MODEL BAŞINA (BaBa 10 Eki 22:3x; eski tek aralık 60–200 GEÇERSİZ): figürün KAİDE DAHİL en uzun boyutu.
         // TEK kaynak `olcu_modelleri`: istemci sürgüsü (VERI.modelOlcuSecenekleri), sunucu önizleme + sipariş kabulü
         // (VERI.modelOlcuGecerli) ve tür zarfı (VERI.olcuAraligi = modellerin en_az min .. en_cok max) buradan TÜRER.
-        // Tavan = TeKiN figur_denge `max_guvenli_mm` ölçümü (figur_duzelt sonrası gerçek sağlayıcı çıktısı, 10 Eki;
-        // aşağı yuvarlanır): insan 105,4 -> 105 · pet 138,6 -> 138 · model (araç) 300,0 -> 300 (ürün aralığı tavanı).
+        // Tavan = TeKiN figur_denge `max_guvenli_mm` ölçümü (figur_duzelt sonrası gerçek sağlayıcı çıktısı; 10 Eki +
+        // 11 Eki ek dilim `792ac60`, aşağı yuvarlanır): insan 105,4 -> 105 · pet 136,5 -> 136 · model (araç) 300 -> 300.
         // Taban: insan min_guvenli_mm 40,7 (ince_kesit) yukarı -> 41; pet/model 60 (Okan 10 Eki 12:4x "slider figürlerde
         // 60mm"). Sürgü açılışı 60 (baslangic). Tavan aşan iş koşucunun figur_denge kapısında da RED olur.
         olcu_mm: { baslangic: 60 },
         olcu_modelleri: {
           insan: { en_az: 41, en_cok: 105 },
-          pet: { en_az: 60, en_cok: 138 },
+          pet: { en_az: 60, en_cok: 136 },
           model: { en_az: 60, en_cok: 300 }
         },
         renk_bolgeleri: [],
@@ -474,6 +474,8 @@
       "": "Bu girdiyle üretim dosyası hazırlanamadı; girdiyi ya da ölçüyü değiştirip tekrar deneyebilirsin.",
       "kontrast": "Seçtiğin renkler birbirine çok yakın; daha belirgin iki renk seç.",
       "metin-sigmadi": "Yazı bu ölçüye sığmadı; yazıyı kısalt ya da ölçüyü büyüt.",
+      // Anahtarlık–yazı ince çizgi (üreteç tasarım kapısı 0,8 mm; düz yazı kısa isimde ~40 mm ister, el yazısı 30 mm'de geçer).
+      "yazi-ince": "Bu yazı bu genişlikte çok ince kalıyor; genişliği büyüt (kalın düz harflerde kısa bir isim için en az 40 mm) ya da El yazısı yazı tipini seç.",
       "ince-cizgi": "Çizimde çok ince çizgiler var; daha kalın çizgili bir görsel dene.",
       "karakter": "Yazıda üretemediğimiz bir karakter var (ör. emoji); onu çıkarıp tekrar dene.",
       "kisa-kenar": "Kısa kenar uzun kenardan büyük olamaz.",
