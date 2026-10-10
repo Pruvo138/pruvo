@@ -218,6 +218,30 @@ export function uretimNotuDogrula(x) {
   return { ok: true, deger: d };
 }
 
+/**
+ * FIGUR ALT TURU -> saglayici istemi (TEK yer; Okan 10 Eki 6 model: insan/pet ayakta duran figur, model figur).
+ * Istemci yalniz alt tur KODUNU yollar (`alt_tur`); istem metni burada kurulur. Bos not -> istem yalniz foto +
+ * alt tur (not saglayiciya GITMEZ). Eski `hayvan_model` kaydi `pet` sayilir (geriye uyum, cokmez).
+ */
+export const FIGUR_ALT_ISTEM = Object.freeze({
+  insan: "Ayakta duran, tam boy (baştan ayağa), tek kişi, kaideli figür.",
+  pet: "Ayakta duran, tam boy, tek hayvan, kaideli figür.",
+  model: "Fotoğraftaki nesnenin, aracın ya da modelin kaideli figürü.",
+});
+const ESKI_ALT_TUR = Object.freeze({ hayvan_model: "pet" });
+/** `alt_tur` alani: yok -> "" (alt tursuz istek; istem yok) · kapali kume disi / metin degil -> null (RED). */
+export function figurAltTurCoz(x) {
+  if (x === undefined || x === null || x === "") { return ""; }
+  if (typeof x !== "string") { return null; }
+  const a = Object.prototype.hasOwnProperty.call(ESKI_ALT_TUR, x) ? ESKI_ALT_TUR[x] : x;
+  return Object.prototype.hasOwnProperty.call(FIGUR_ALT_ISTEM, a) ? a : null;
+}
+/** Saglayici istemi: yalniz figur TURU (cesitsiz) + bilinen alt tur; digerlerinde "" (govdeye alan YAZILMAZ). */
+export function figurIstemi(tur, cesit, altTur) {
+  const a = tur === "figur" && !cesit ? figurAltTurCoz(altTur) : "";
+  return a ? FIGUR_ALT_ISTEM[a] : "";
+}
+
 /** Bir siparis kalemi en cok kac adet (ayni dosyadan coklu baski). */
 export const FOTO_ADET_EN_COK = 20;
 /** Yuklenen fotografin cozulmus boyut sinirlari (bayt). Bolum gondermeden once kucultur. */
@@ -1038,6 +1062,9 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   if (gh) { return fjson({ hata: gh }, 400); }
   const nt = uretimNotuDogrula(g.not);
   if (!nt.ok) { return fjson({ hata: nt.hata }, 400); }
+  // FIGUR ALT TURU (insan | pet | model; eski hayvan_model -> pet): kapali kume disi -> 400, saglayici 0.
+  const altTur = tur.kod === "figur" && !cesit ? figurAltTurCoz(g.alt_tur) : "";
+  if (altTur === null) { return fjson({ hata: "gecersiz-alt-tur" }, 400); }
   const olcu = Number.isInteger(g.olcu_mm) ? g.olcu_mm : null;
   if (!tur.olculer.some((o) => o.mm === olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
   if (!cesitOlcuUygun(tur.kod, cesit, olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
@@ -1064,7 +1091,7 @@ async function onizlemeUcu(request, env, simdi, telegram) {
 
   const isNo = yeniIsNo();
   const hata = await onizlemeGonder(env, isNo, tur.kod, olcu, ziyaretci, gorsel.uri, simdi, telegram, nt.deger,
-    VERI.onay_surum, cesit);
+    VERI.onay_surum, cesit, altTur);
   if (hata) { return hata; }
   return fjson({ is: isNo, ...kalanHak(env, sayi) }, 200);
 }
@@ -1074,7 +1101,7 @@ function onayKaydi(onaySurum, simdi) {
   return onaySurum ? { tarih: simdiIso(simdi), surum: onaySurum } : { tarih: "", surum: "" };
 }
 
-/** Cesidin olcu araligi (figur: kopruden TURER — foto_kolu.olcu_en_az 60 .. olcu_en_cok 72, kulak dahil);
+/** Cesidin olcu araligi (figur: kopruden TURER — foto_kolu.olcu_en_az 30 .. olcu_en_cok 291, kulak dahil);
  *  cesitsiz/sinirsiz -> uygun. */
 function cesitOlcuUygun(tur, cesit, olcu) {
   const ck = cesit ? VERI.cesitKaydi(tur, cesit) : null;
@@ -1086,7 +1113,7 @@ function cesitOlcuUygun(tur, cesit, olcu) {
  * Is satirini yazar + saglayiciya onizleme gorevini gonderir (musteri ve ornek kolu ORTAK).
  * Basarida null; hatada musteriye/panele donulecek yanit.
  */
-async function onizlemeGonder(env, isNo, tur, olcu, ziyaretci, uri, simdi, telegram, uretimNotu, onaySurum, cesit) {
+async function onizlemeGonder(env, isNo, tur, olcu, ziyaretci, uri, simdi, telegram, uretimNotu, onaySurum, cesit, altTur) {
   // Is satiri SAGLAYICIDAN ONCE yazilir: reddedilen deneme de ziyaretci sinirindan duser
   // (sinir "basarili onizleme" degil "deneme" sayar -> kaba kuvvetle kredi yakilamaz).
   // Uretim notu (dogrulanmis) yalniz doluysa sutuna yazilir: bos notta goc oncesi sema da calisir.
@@ -1114,12 +1141,16 @@ async function onizlemeGonder(env, isNo, tur, olcu, ziyaretci, uri, simdi, teleg
     }), { httpMetadata: { contentType: "application/json" } });
   }
 
-  const c = await saglayici(env, "POST", turYolu(env, yolTuru({ tur, cesit })) + "/v1/prototype", {
+  const prototip = {
     image_url: uri,
     name: "pruvo-" + isNo.slice(0, 12),
     // Arka plan kaldirilir: kabartma urun de arka plani atar; onizleme urune benzesin.
     remove_background: true,
-  });
+  };
+  // Figur alt turu istemi (FIGUR_ALT_ISTEM, tek yer); alt tursuz istekte alan YOK (bugunku govde aynen).
+  const istem = figurIstemi(tur, cesit, altTur);
+  if (istem) { prototip.prompt = istem; }
+  const c = await saglayici(env, "POST", turYolu(env, yolTuru({ tur, cesit })) + "/v1/prototype", prototip);
   const gorev = gorevKimligi(c.govde);
   if (c.kod < 200 || c.kod >= 300 || !gorev) {
     const sebep = c.kod === 400 ? "gorsel-uygun-degil" : (c.kod === 402 ? "kredi" : "saglayici");
