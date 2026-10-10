@@ -57,8 +57,8 @@ function veriYukle(kaynak) {
   return k.PRUVO_FOTO;
 }
 
-/** Formul senaryolari: V = veri nesnesi. Donus {F1, F2, F3, sayi, tablo}. */
-function formulSenaryolar(V) {
+/** Formul senaryolari: V = veri nesnesi, kaynak = V'nin kaynak metni (F6 kontrol kolu kopyasi). Donus {F1, F2, F3, sayi, tablo}. */
+function formulSenaryolar(V, kaynak) {
   const s = { F1: true, F2: true, F3: true, F6: true, sayi: 0, gecen: 0, tablo: [], tabanli: [], enDusuk: [] };
   for (const t of V.turler) {
     const a = t.olcu_mm || {};
@@ -92,9 +92,21 @@ function formulSenaryolar(V) {
     if (a.en_az * 1000 < TABAN_KURUS) { s.tabanli.push(t.kod); }
   }
   if (s.sayi === 0 || s.enDusuk.length === 0) { s.F1 = false; s.F6 = false; }
-  // Kontrol kolu: tabanin GERCEKTEN bastigi tur yoksa F6 hicbir seyi olcmuyor demektir.
-  if (s.tabanli.length === 0) { s.F6 = false; }
+  // Kontrol kolu: tabanin GERCEKTEN bastigi tur yoksa F6 hicbir seyi olcmuyor demektir. Okan 10 Eki ~13:4x
+  // (anahtarlik 60, plaket 60) sonrasi gercek veride HER turun alt siniri >= 60 (60 mm × 10 TL = taban): taban
+  // hicbir durakta basmayabilir -> kol KOPYADA olculur (plaket alt siniri 10'a cekilir; 10/50 mm = 600 TL, 70 mm = 700 TL).
+  s.tabanKopya = s.tabanli.length === 0 ? tabanKopyadaBasar(kaynak) : null;
+  if (s.tabanli.length === 0 && s.tabanKopya !== true) { s.F6 = false; }
   return s;
+}
+
+/** F6 kontrol kolu (kopya): plaketin alt siniri 10'a cekilince 10/50 mm = 600 TL (taban basar), 70 mm = 700 TL. */
+function tabanKopyadaBasar(kaynak) {
+  const re = /(kod: "plaket",[\s\S]*?olcu_mm: \{ en_az: )\d+(, en_cok: \d+ \})/;
+  if (typeof kaynak !== "string" || !re.test(kaynak)) { return false; }
+  const K = veriYukle(kaynak.replace(re, (m, a, b) => a + "10" + b));
+  return K.fiyatKurus("plaket", 10) === TABAN_KURUS && K.fiyatKurus("plaket", 50) === TABAN_KURUS &&
+    K.fiyatKurus("plaket", 70) === 70000;
 }
 
 /** F7: tur kaydindan taban_tl silinince o tur fiyatsiz (null), digerleri etkilenmez. */
@@ -168,7 +180,7 @@ function renkSenaryo(V, kaynak) {
 
 console.log("F1-F3) TEK FORMUL — fiyat_kurus = max(600 TL, en uzun boyut (mm) × 10 TL), kategori farki YOK");
 const VERI = veriYukle(VERI_KAYNAK);
-const fs1 = formulSenaryolar(VERI);
+const fs1 = formulSenaryolar(VERI, VERI_KAYNAK);
 const kategori = VERI.turler.length;
 for (const t of fs1.tablo) {
   console.log("     " + t.kod.padEnd(8) + " " + t.olculer.map((o) => (o.metin || (o.mm + " mm → ?")) + (o.dogru ? "" : " ✗")).join(" · "));
@@ -178,7 +190,7 @@ ol("F2 aralik disi / adim disi / kesirli olcu -> fiyat YOK (null)", fs1.F2, "");
 ol("F3 baslangic fiyati (₺N'dan itibaren) = en_az formulu, sürgü ilk duragi en_az", fs1.F3, "");
 console.log("F6-F7) TABAN 600 TL — her tur, her surgu duragi");
 ol("F6 taban: " + fs1.enDusuk.filter((k) => k >= TABAN_KURUS).length + "/" + kategori + " tur en dusuk fiyat >= 600 TL (" +
-   fs1.tabanli.length + " turde taban basiyor: " + fs1.tabanli.join(",") + ")", fs1.F6 && fs1.enDusuk.length === kategori, "");
+   fs1.tabanli.length + " turde taban basiyor: " + fs1.tabanli.join(",") + (fs1.tabanKopya === null ? "" : " · kopyada plaket 10 mm: " + fs1.tabanKopya) + ")", fs1.F6 && fs1.enDusuk.length === kategori, "");
 ol("F7 taban_tl'siz tur -> fiyat null (sunulmaz), diger turler etkilenmez", tabansizSenaryo(VERI_KAYNAK), "");
 {
   const sg = surguSenaryo(VERI);
@@ -281,7 +293,7 @@ const VERI_MUTANTLAR = [
 for (const [ad, capa, yerine, olmeli] of VERI_MUTANTLAR) {
   if (VERI_KAYNAK.split(capa).length !== 2) { ol(ad + " capa bulundu (tek)", false, capa); continue; }
   const mutant = VERI_KAYNAK.replace(capa, yerine);
-  const s = formulSenaryolar(veriYukle(mutant));
+  const s = formulSenaryolar(veriYukle(mutant), mutant);
   s.F7 = tabansizSenaryo(mutant);
   s.F8 = surguSenaryo(veriYukle(mutant)).F8;
   s.F9 = renkSenaryo(veriYukle(mutant), mutant).F9;
