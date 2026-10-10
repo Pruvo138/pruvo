@@ -97,8 +97,10 @@ CIKTI_DOSYALARI = ["model.3mf", "olcu.json", "onizleme.png"]
 ONIZLEME_DIZIN = "foto-uretec-onizleme/%s/"  # siparis oncesi uretec onizlemesi (shop/src/foto.js ile ayni)
 SIPARIS_KALIBI = re.compile(r"^[A-Za-z0-9-]{6,40}$")  # shop/src/foto.js ile ayni
 IS_KALIBI = re.compile(r"^[0-9a-f]{32}$")
-# Uretec deposu SALT OKUNUR: alt surec __pycache__ yazmaz.
-SALT_OKUMA_ENV = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
+# Uretec deposu SALT OKUNUR: alt surec __pycache__ yazmaz. `npx wrangler` alt surecleri de
+# `~/.wrangler/logs`'a debug logu YAZMAZ (9 Eki: R2 put + D1 sorgu basina 1 dosya birikiyordu;
+# gerekce + kaynak dogrulamasi `tools/d1-sync.py::WRANGLER_LOG_KAPALI`).
+SALT_OKUMA_ENV = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", WRANGLER_WRITE_LOGS="false")
 DOSYA_ADI_KALIBI = re.compile(r"^[a-z_]{1,24}\.(png|jpg|jpeg|svg|wav|3mf)$")
 # ONARIM KAPISI (8 Eki 2026, BaBa hukmu): saglayici renk 3MF'i Worker'da `model.ham.3mf`e yazilir, satir
 # 'onarim-bekliyor'a gecer; Worker ham dosyayi ASLA model.3mf yapmaz. Bu kosucu TeKiN koprusunu

@@ -2525,6 +2525,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/tikayici-kaldirma-test.py
 
+      # WRANGLER LOG NOBETCISI (9 Eki 2026, KraL-WranglerLog) — `~/.wrangler/logs` 2,5 gunde
+      # 3,1 GB birikti. Nobetcinin kendisi MAKINEDE crontab'dan kosar (CI kosucusunda
+      # `~/.wrangler` yoktur); burada yalniz HERMETIK kabul bataryasi kosar: 9 vaka (gecici
+      # dizin) + 9 mutant (izole kopya). Yayin dogrulugu kapisi DEGIL -> `serit-b`.
+      - name: "Wrangler log nobetcisi kabul bataryasi (esik + budama + mutant)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/wrangler-log-nobetcisi-test.py
+
       # HAYALI NOBETCI KAPISI (11 Eyl 2026, BaBa ⑤) — "tools/ icindeki bir YORUM bir .py
       # dosyasini NOBETCI diye aniyorsa o dosya VAR OLMALI". Olculen ariza: ca8c3815
       # supurmesiyle silinen serbest-kume-tekkaynak-test.py'yi DORT yer hala nobetci diye
