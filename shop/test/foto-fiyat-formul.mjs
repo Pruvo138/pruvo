@@ -61,7 +61,10 @@ function veriYukle(kaynak) {
 function formulSenaryolar(V, kaynak) {
   const s = { F1: true, F2: true, F3: true, F6: true, sayi: 0, gecen: 0, tablo: [], tabanli: [], enDusuk: [] };
   for (const t of V.turler) {
-    const a = t.olcu_mm || {};
+    // Beklenen aralik KAYITTAN, VERI'den BAGIMSIZ: model basina olculu figurde (22:3x) kayit `olcu_mm` aralik TASIMAZ ->
+    // zarf burada ham `olcu_modelleri`nden (en kucuk en_az .. en buyuk en_cok) hesaplanir.
+    const a = t.olcu_modelleri ? Object.values(t.olcu_modelleri).reduce((z, m) => ({ en_az: Math.min(z.en_az, m.en_az),
+      en_cok: Math.max(z.en_cok, m.en_cok) }), { en_az: Infinity, en_cok: -Infinity }) : (t.olcu_mm || {});
     const sec = V.olcuSecenekleri(t.kod);
     const orta = sec.length ? sec[Math.floor((sec.length - 1) / 2)] : null;
     const satir = { kod: t.kod, olculer: [] };
@@ -125,7 +128,9 @@ function tabansizSenaryo(kaynak) {
 // `olcu_ekseni` taşır; taşımayan tür KraL'in elle tuttuğu türdür. Küme boşsa ya da plaket yoksa F8 KIRMIZI.
 // Okan 10 Eki 12:4x: "slider figürlerde 60mm den başlasın" -> figürün alt sınırı 60 (60 mm = 600 TL);
 // Okan 10 Eki ~13:4x: "plaket de 60 mm olsun" -> elle türlerin TAMAMI 60.
-const SURGU_ALT_ISTISNA = { figur: 60, plaket: 60 };
+// BaBa 10 Eki 22:3x: figür ölçüsü MODEL BAŞINA (insan 41–105 · pet 60–138 · model 60–300) -> figür zarfının alt sınırı
+// insan tabanı 41 (min_guvenli_mm 40,7 yukarı; 41 mm = 600 TL taban); sürgü açılışı 60 AYNEN (olcu_mm.baslangic).
+const SURGU_ALT_ISTISNA = { figur: 41, plaket: 60 };
 const surguAlt = (k) => SURGU_ALT_ISTISNA[k] || 10;
 const elleSurgu = (V) => V.turler.filter((t) => !("olcu_ekseni" in t)).map((t) => t.kod);
 function surguSenaryo(V) {
@@ -197,7 +202,7 @@ ol("F7 taban_tl'siz tur -> fiyat null (sunulmaz), diger turler etkilenmez", taba
   const sg = surguSenaryo(VERI);
   const kopruAlt = VERI.turler.filter((t) => !elleSurgu(VERI).includes(t.kod) && t.olcu_ekseni === "sabit")
     .map((t) => t.kod + ":" + t.olcu_mm.en_az);
-  ol("F8 surgu alt siniri 60 mm (figur 60 · plaket 60): " + sg.alt.length + "/" + sg.elle.length + " elle tur (" + sg.elle.join(",") + ") · alt sinir = 600 TL " + sg.on.length + "/" +
+  ol("F8 surgu alt siniri (figur zarfi 41 · plaket 60): " + sg.alt.length + "/" + sg.elle.length + " elle tur (" + sg.elle.join(",") + ") · alt sinir = 600 TL " + sg.on.length + "/" +
      sg.elle.length + " · turetilmis " + sg.tu + " 59 mm = 600 TL, 61 mm = 610 TL", sg.F8, JSON.stringify(sg));
   console.log("     bilgi: kopru (TeKiN kaydi) sabit turlerin alt siniri: " + kopruAlt.join(" "));
 }
@@ -272,8 +277,9 @@ const VERI_MUTANTLAR = [
   // Okan 8 Eki tabani: taban kalkinca 60 mm alti olculer 600 TL'nin altina iner. Okan 10 Eki 15:2x anahtarlik 30–300
   // (acilis 60) sonrasi gercek veride 60 mm alti durak YENIDEN VAR (anahtarlik 30..55) -> F1/F3/F9 tabani GORUR +
   // F6 kopya kontrol kolu (plaket 10 mm) KIRMIZI.
+  // F8: figur zarfinin alt siniri 41 mm (22:3x) tabansiz 410 TL olur -> 600 TL alt sinir kolu da KIRMIZI.
   ["FM6 TABAN KALKTI", "return VERI.secimliKurus(Math.max(mm * f, taban), secim);", "return VERI.secimliKurus(mm * f, secim);",
-   ["F1", "F3", "F6", "F9"]],
+   ["F1", "F3", "F6", "F8", "F9"]],
   // Tabansiz tur fail-open (taban yoksa 0 sayilir) -> F7 KIRMIZI.
   // Okan 10 Eki ~13:4x: plaket alt siniri 60; 10'a geri cekilirse F8 KIRMIZI.
   // Capa plaketin kendi yorum satirini tasir: ayni olcu_mm satiri dinamik-min ile ses turunde de gecer (tek capa sarti).

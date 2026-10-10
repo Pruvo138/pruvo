@@ -1130,6 +1130,8 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   const olcu = Number.isInteger(g.olcu_mm) ? g.olcu_mm : null;
   if (!tur.olculer.some((o) => o.mm === olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
   if (!cesitOlcuUygun(tur.kod, cesit, olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
+  // MODEL BASINA OLCU (BaBa 22:3x): figur alt turunun KENDI araligi (VERI.olcu_modelleri; insan tavani 105 ...).
+  if (!VERI.modelOlcuGecerli(tur.kod, altTur, olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
   // ONAY: tek aydinlatma kutusu + musterinin gordugu metin GUNCEL surum.
   const oh = aydinlatmaOnayHatasi(g);
   if (oh) { return fjson({ hata: oh }, 400); }
@@ -1763,6 +1765,9 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   const fk = VERI.fiyatKurus(tur.kod, mm);
   const olcu = fk > 0 ? { mm, fiyat_kurus: fk } : null;
   if (!olcu) { return { hata: { hata: "gecersiz-olcu" }, kod: 400 }; }
+  // MODEL BASINA OLCU (BaBa 22:3x): siparis olcusu isin figur alt turunun araliginda (insan 41..105, pet 60..138, model
+  // 60..300); tavan ustu 400 (fiyat formulu zarfa acik, modelin kumesi BURADA istenir). Modelsiz tur: olcuGecerli AYNEN.
+  if (!VERI.modelOlcuGecerli(tur.kod, isAlt, mm)) { return { hata: { hata: "gecersiz-olcu" }, kod: 400 }; }
   // DINAMIK MIN (BaBa 14:3x): icerige bagli turde (ses/braille/koordinat) alt sinir onizlemede kopru min-hesapla ile
   // olculur (olcu.json min_mm); altindaki olcu URETILEMEZ -> 400. Olcum yoksa (eski onizleme) fail-closed.
   if (VERI.turBul(tur.kod).olcu_min_dinamik === true) {
@@ -2704,6 +2709,8 @@ export async function panelOrnekOnizleme(request, env, simdi, telegram) {
   }
   const altTur = tur === "figur" && !cesit ? figurAltTurCoz(g.alt_tur) : "";
   if (altTur === null) { return fjson({ hata: "gecersiz-alt-tur" }, 400); }
+  // Alt turlu figur ornegi satilan modelin olcusunde (BaBa 22:3x; alt tursuz ornek istemsiz, zarf AYNEN).
+  if (altTur && !VERI.modelOlcuGecerli(tur, altTur, olcu)) { return fjson({ hata: "gecersiz-olcu" }, 400); }
   const gorsel = gorselCoz(g.gorsel);
   if (!gorsel) { return fjson({ hata: "gorsel-gecersiz" }, 400); }
   const havuz = await havuzHukmu(env, simdi, telegram);
