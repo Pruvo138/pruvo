@@ -1400,6 +1400,7 @@
     var it = kartListede(kod);
     if (!it) return;
     S.kartKod = it.kart.kod;
+    var eskiAlt = S.altTur;
     S.altTur = it.kart.alt;
     kartVurgula();
     var eski = S.tur;
@@ -1426,6 +1427,9 @@
         doldurS1Dosya();
         cizUyum();
       }
+    } else if (eskiAlt !== S.altTur && S.alanOlcu) {
+      // Aynı tür, başka model kartı (İnsan <-> Pet <-> Model): sürgü modelin ölçülerine yeniden süzülür (22:3x).
+      doldurS1Olcu();
     }
     if (!S.alanOlcu) cizForm();
     durustlukGuncelle();
@@ -1764,13 +1768,18 @@
   }
 
   // Çeşidin ölçü tavanı (figür: olcu_en_cok 72 mm, kulak dahil) varsa sürgü yalnız tavana kadar ölçüleri sunar (sunucu AYNI tavan).
+  // MODEL BAŞINA ÖLÇÜ (BaBa 22:3x): türde `olcu_modelleri` varsa (figür) sürgü yalnız seçili kartın alt türünün ölçüleri
+  // (F.modelOlcuGecerli; sunucu önizleme + sipariş AYNI fonksiyonla reddeder — insan 41..105, pet 60..138, model 60..300).
   function cesitOlculeri(nt) {
     var ck = cesitKaydi();
-    if (!nt || !nt.olculer || !ck || !Object.prototype.hasOwnProperty.call(ck, "olcu_en_cok")) return nt;
+    var cesitli = !!ck && Object.prototype.hasOwnProperty.call(ck, "olcu_en_cok");
+    var tk = nt && F.turBul ? F.turBul(nt.kod) : null, modelli = !!tk && !!tk.olcu_modelleri && !!F.modelOlcuGecerli;
+    if (!nt || !nt.olculer || (!cesitli && !modelli)) return nt;
     var k = {};
     for (var a in nt) if (Object.prototype.hasOwnProperty.call(nt, a)) k[a] = nt[a];
     k.olculer = nt.olculer.filter(function (o) {
-      return ck.olcu_en_cok > 0 && o.mm <= ck.olcu_en_cok && !(o.mm < ck.olcu_en_az);
+      return (!cesitli || (ck.olcu_en_cok > 0 && o.mm <= ck.olcu_en_cok && !(o.mm < ck.olcu_en_az))) &&
+        (!modelli || F.modelOlcuGecerli(nt.kod, S.altTur || "", o.mm));
     });
     return k;
   }

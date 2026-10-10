@@ -172,9 +172,19 @@
         girdi: ["foto-1-3"],
         motor: "M",
         uretec: "",
-        // 60–200 mm (figür en uzun boyutu; plaketin 300 üst sınırı figürde destek/süre yüzünden dar tutuldu).
-        // Okan 10 Eki 12:4x: "slider figürlerde 60mm den başlasın".
-        olcu_mm: { en_az: 60, en_cok: 200 },
+        // ÖLÇÜ MODEL BAŞINA (BaBa 10 Eki 22:3x; eski tek aralık 60–200 GEÇERSİZ): figürün KAİDE DAHİL en uzun boyutu.
+        // TEK kaynak `olcu_modelleri`: istemci sürgüsü (VERI.modelOlcuSecenekleri), sunucu önizleme + sipariş kabulü
+        // (VERI.modelOlcuGecerli) ve tür zarfı (VERI.olcuAraligi = modellerin en_az min .. en_cok max) buradan TÜRER.
+        // Tavan = TeKiN figur_denge `max_guvenli_mm` ölçümü (figur_duzelt sonrası gerçek sağlayıcı çıktısı, 10 Eki;
+        // aşağı yuvarlanır): insan 105,4 -> 105 · pet 138,6 -> 138 · model (araç) 300,0 -> 300 (ürün aralığı tavanı).
+        // Taban: insan min_guvenli_mm 40,7 (ince_kesit) yukarı -> 41; pet/model 60 (Okan 10 Eki 12:4x "slider figürlerde
+        // 60mm"). Sürgü açılışı 60 (baslangic). Tavan aşan iş koşucunun figur_denge kapısında da RED olur.
+        olcu_mm: { baslangic: 60 },
+        olcu_modelleri: {
+          insan: { en_az: 41, en_cok: 105 },
+          pet: { en_az: 60, en_cok: 138 },
+          model: { en_az: 60, en_cok: 300 }
+        },
         renk_bolgeleri: [],
         renk_secimi: "palet",
         malzemeler: {},
@@ -806,10 +816,51 @@
     return "girdi-eksik";
   };
   // Türün ölçü aralığı (mm, uzun kenar); bilinmeyen tür -> null. Bölüm ve sunucu AYNI fonksiyon.
+  // Model başına ölçülü türde (olcu_modelleri, figür) aralık = modellerin ZARFI (en küçük en_az .. en büyük en_cok);
+  // bozuk model satırı -> null (fail-closed: tür fiyatsız, sunulmaz).
   VERI.olcuAraligi = function (kod) {
     var t = VERI.turBul(kod);
+    if (t && t.olcu_modelleri) { return modelZarfi(t.olcu_modelleri); }
     if (!t || !t.olcu_mm || !(t.olcu_mm.en_az > 0) || !(t.olcu_mm.en_cok >= t.olcu_mm.en_az)) { return null; }
     return { en_az: t.olcu_mm.en_az, en_cok: t.olcu_mm.en_cok };
+  };
+  function aralikGecerli(a) {
+    return !!a && Number.isInteger(a.en_az) && a.en_az > 0 && Number.isInteger(a.en_cok) && a.en_cok >= a.en_az;
+  }
+  function modelZarfi(m) {
+    var z = null;
+    for (var k in m) {
+      if (!Object.prototype.hasOwnProperty.call(m, k)) { continue; }
+      if (!aralikGecerli(m[k])) { return null; }
+      z = z ? { en_az: Math.min(z.en_az, m[k].en_az), en_cok: Math.max(z.en_cok, m[k].en_cok) }
+        : { en_az: m[k].en_az, en_cok: m[k].en_cok };
+    }
+    return z;
+  }
+  // MODEL BAŞINA ÖLÇÜ (BaBa 10 Eki 22:3x): türün `olcu_modelleri` satırı (alt = figür alt türü insan|pet|model).
+  // Modelsiz tür -> türün kendi aralığı (alt okunmaz). Modelli türde bilinmeyen/boş alt ya da bozuk satır -> null.
+  VERI.modelOlcuAraligi = function (kod, alt) {
+    var t = VERI.turBul(kod);
+    if (!t || !t.olcu_modelleri) { return VERI.olcuAraligi(kod); }
+    if (!modelZarfi(t.olcu_modelleri) || typeof alt !== "string" ||
+        !Object.prototype.hasOwnProperty.call(t.olcu_modelleri, alt)) { return null; }
+    return { en_az: t.olcu_modelleri[alt].en_az, en_cok: t.olcu_modelleri[alt].en_cok };
+  };
+  // Modelin sürgü ölçüleri: en_az, aradaki adım KATLARI (sürgü adımıyla hizalı: 50, 60, ...), en_cok. Modelsiz tür ->
+  // VERI.olcuSecenekleri (bugünkü ızgara AYNEN).
+  VERI.modelOlcuSecenekleri = function (kod, alt) {
+    var t = VERI.turBul(kod);
+    if (!t || !t.olcu_modelleri) { return VERI.olcuSecenekleri(kod); }
+    var a = VERI.modelOlcuAraligi(kod, alt), adim = VERI.olcuAdimi(kod), c = [];
+    if (!a || !adim) { return c; }
+    c.push(a.en_az);
+    for (var mm = (Math.floor(a.en_az / adim) + 1) * adim; mm < a.en_cok; mm += adim) { c.push(mm); }
+    if (a.en_cok !== a.en_az) { c.push(a.en_cok); }
+    return c;
+  };
+  // Ölçü bu modelde satılır mı (sunucu önizleme + sipariş kapısı ve istemci sürgüsü AYNI fonksiyon).
+  VERI.modelOlcuGecerli = function (kod, alt, mm) {
+    return Number.isInteger(mm) && VERI.modelOlcuSecenekleri(kod, alt).indexOf(mm) >= 0;
   };
 
   // SÜRGÜ AÇILIŞI (Okan 10 Eki 15:2x "60'tan başlasın, 30–300 aralık"): olcu_mm.baslangic seçilebilir bir ölçüyse
@@ -845,6 +896,15 @@
   // Ölçü (en uzun boyut, mm) bu türde seçilebilir mi: tam sayı, aralıkta, adım ızgarasında
   // (türetilmiş eksende ölçü ölçülür, seçilmez -> ızgara aranmaz; aralık yine şart).
   VERI.olcuGecerli = function (kod, mm) {
+    var t = VERI.turBul(kod);
+    // Model başına ölçülü tür: herhangi bir modelin ızgarasında (fiyat formülü bu kümeye açık; modelin KENDİ kümesini
+    // sunucu ayrıca VERI.modelOlcuGecerli ile ister).
+    if (t && t.olcu_modelleri) {
+      for (var m in t.olcu_modelleri) {
+        if (Object.prototype.hasOwnProperty.call(t.olcu_modelleri, m) && VERI.modelOlcuGecerli(kod, m, mm)) { return true; }
+      }
+      return false;
+    }
     var a = VERI.olcuAraligi(kod), adim = VERI.olcuAdimi(kod);
     if (!a || !adim || !Number.isInteger(mm) || mm < a.en_az || mm > a.en_cok) { return false; }
     return VERI.olcuTuretilmis(kod) || (mm - a.en_az) % adim === 0 || mm === a.en_cok;
@@ -1040,6 +1100,16 @@
   };
   // Sürgünün seçebildiği ölçüler: en_az..en_cok, adım adım (en_cok her zaman dahil).
   VERI.olcuSecenekleri = function (kod) {
+    var t = VERI.turBul(kod);
+    // Model başına ölçülü tür: modellerin ızgaralarının BİRLEŞİMİ (sıralı, tekrarsız); istemci modelinkine süzer.
+    if (t && t.olcu_modelleri) {
+      var b = [];
+      for (var m in t.olcu_modelleri) {
+        if (!Object.prototype.hasOwnProperty.call(t.olcu_modelleri, m)) { continue; }
+        VERI.modelOlcuSecenekleri(kod, m).forEach(function (x) { if (b.indexOf(x) < 0) { b.push(x); } });
+      }
+      return b.sort(function (x, y) { return x - y; });
+    }
     var a = VERI.olcuAraligi(kod), adim = VERI.olcuAdimi(kod), c = [];
     if (!a || !adim) { return c; }
     for (var mm = a.en_az; mm <= a.en_cok; mm += adim) { c.push(mm); }
