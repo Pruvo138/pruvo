@@ -128,7 +128,7 @@ function tabansizSenaryo(kaynak) {
 // `olcu_ekseni` taşır; taşımayan tür KraL'in elle tuttuğu türdür. Küme boşsa ya da plaket yoksa F8 KIRMIZI.
 // Okan 10 Eki 12:4x: "slider figürlerde 60mm den başlasın" -> figürün alt sınırı 60 (60 mm = 600 TL);
 // Okan 10 Eki ~13:4x: "plaket de 60 mm olsun" -> elle türlerin TAMAMI 60.
-// BaBa 10 Eki 22:3x: figür ölçüsü MODEL BAŞINA (insan 41–105 · pet 60–138 · model 60–300) -> figür zarfının alt sınırı
+// BaBa 10 Eki 22:3x: figür ölçüsü MODEL BAŞINA (insan 41–105 · pet 60–136 · model 60–300) -> figür zarfının alt sınırı
 // insan tabanı 41 (min_guvenli_mm 40,7 yukarı; 41 mm = 600 TL taban); sürgü açılışı 60 AYNEN (olcu_mm.baslangic).
 const SURGU_ALT_ISTISNA = { figur: 41, plaket: 60 };
 const surguAlt = (k) => SURGU_ALT_ISTISNA[k] || 10;

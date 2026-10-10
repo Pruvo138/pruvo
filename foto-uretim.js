@@ -1772,7 +1772,7 @@
 
   // Çeşidin ölçü tavanı (figür: olcu_en_cok 72 mm, kulak dahil) varsa sürgü yalnız tavana kadar ölçüleri sunar (sunucu AYNI tavan).
   // MODEL BAŞINA ÖLÇÜ (BaBa 22:3x): türde `olcu_modelleri` varsa (figür) sürgü yalnız seçili kartın alt türünün ölçüleri
-  // (F.modelOlcuGecerli; sunucu önizleme + sipariş AYNI fonksiyonla reddeder — insan 41..105, pet 60..138, model 60..300).
+  // (F.modelOlcuGecerli; sunucu önizleme + sipariş AYNI fonksiyonla reddeder — insan 41..105, pet 60..136, model 60..300).
   function cesitOlculeri(nt) {
     var ck = cesitKaydi();
     var cesitli = !!ck && Object.prototype.hasOwnProperty.call(ck, "olcu_en_cok");
