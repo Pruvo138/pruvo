@@ -371,9 +371,9 @@ def gercek():
     # ana girdi AYNEN. anahtarlik-plaket kopruda ayri kayit, UI'da SUNULMAZ -> satir yok.
     # foto_kolu.olcu_en_cok (kol_tavani) + renk_bolgesi kol uretecinin SEMA'sindan/kaydindan TURER (Okan 10 Eki 15:2x).
     gs, gh = arac_yukle().hepsini_uret(json.load(open(GERCEK_KAYIT, encoding="utf-8")), u0.jenerator_kok(GERCEK_KAYIT))
-    vaka("R-FK1 gercek kayit: anahtarlik-foto satiri YOK + anahtarlik.foto_kolu {foto-1, figur_kulak, tavan 72, bolge 0} + girdi [metin]",
+    vaka("R-FK1 gercek kayit: anahtarlik-foto satiri YOK + anahtarlik.foto_kolu {foto-1, figur_kulak, taban 30, tavan 291, bolge 0} + girdi [metin]",
          "anahtarlik-foto" not in gs and gs["anahtarlik"].get("foto_kolu") == {"girdi": ["foto-1"], "uretec": "figur_kulak",
-                                                                               "olcu_en_az": 60, "olcu_en_cok": 72,
+                                                                               "olcu_en_az": 30, "olcu_en_cok": 291,
                                                                                "renk_bolgesi": 0}
          and gs["anahtarlik"]["girdi"] == ["metin"] and not gh,
          "%s %s %s" % (sorted(gs), gs["anahtarlik"].get("foto_kolu"), gh))
@@ -383,7 +383,7 @@ def gercek():
     mutant("MR10 gercek manifestte anahtarlik foto_kolu silindi -> KIRMIZI", GERCEK_KAYIT, man,
            r"sapma:anahtarlik\.foto_kolu",
            lambda kk, mm: degistir(mm, ',\n        foto_kolu: {\n          girdi: ["foto-1"],\n          uretec: "figur_kulak",\n'
-                                   '          olcu_en_az: 60,\n          olcu_en_cok: 72,\n          renk_bolgesi: 0\n        }', ""))
+                                   '          olcu_en_az: 30,\n          olcu_en_cok: 291,\n          renk_bolgesi: 0\n        }', ""))
     mutant("MR11 gercek kayitta figur-3mf -> figur-stl (sozlukte yok) -> KIRMIZI", GERCEK_KAYIT, man,
            r"bilinmeyen-girdi:anahtarlik-foto=figur-stl",
            lambda kk, mm: degistir(kk, '"figur-3mf"', '"figur-stl"'))
@@ -430,8 +430,8 @@ def gercek():
         fs["figur_uzun_kenar_mm"]["max"] = fs["kulak_dahil_uzun_kenar_mm"]["max"] = float(mm)
         return u0.hepsini_uret(k3, j3)
     r1 = aralik(gs, None)
-    vaka("R-OK1 gercek kopru: olcu_mm {30, 80=min(300,kopru), baslangic 60} · genislik 30/80/60/60 · figur tavani 72",
-         r1 == [{"en_az": 30, "en_cok": 80, "baslangic": 60}, 30, 80, 60, 60, 72], json.dumps(r1))
+    vaka("R-OK1 gercek kopru (2f13d23): olcu_mm {30, 300=min(300,kopru), baslangic 60} · genislik 30/300/60/60 · figur tavani 291",
+         r1 == [{"en_az": 30, "en_cok": 300, "baslangic": 60}, 30, 300, 60, 60, 291], json.dumps(r1))
     s3, h3 = sahte(300)
     r3 = aralik(s3, None)
     vaka("R-OK2 (VO5S) sahte kopru 300: olcu_mm en_cok 300 · genislik max 300 · figur tavani 300 (elle sabit yok)",
