@@ -136,8 +136,8 @@
         girdi: ["foto-1"],
         motor: "M",
         uretec: "",
-        // Okan 6 Eki 2026: "min 60 max 300".
-        olcu_mm: { en_az: 10, en_cok: 300 },
+        // Okan 6 Eki 2026: "min 60 max 300"; Okan 10 Eki ~13:4x: "plaket de 60 mm olsun" (en_cok 300 aynen).
+        olcu_mm: { en_az: 60, en_cok: 300 },
         renk_bolgeleri: [],
         renk_secimi: "palet",
         malzemeler: {},
