@@ -90,7 +90,8 @@ ORNEK_SIPARIS_ONEK = "ORNEK-"
 DENEME_TAVANI = 3
 TOLERANS = {"D": 0.01, "R": 0.03}
 ONIZLEME_MIN_PX = 1024
-URETEC_SURE_SN = 300
+# Test ortami kisa tavan verebilir (FOTO_KOSUCU_URETEC_SURE_SN); uretimde 300 sn AYNEN.
+URETEC_SURE_SN = int(os.environ.get("FOTO_KOSUCU_URETEC_SURE_SN") or 300)
 IS_SINIRI = 20
 LOG_TAVAN_BAYT = 5 * 1024 * 1024
 CIKTI_DOSYALARI = ["model.3mf", "olcu.json", "onizleme.png"]
@@ -1624,7 +1625,11 @@ def figur_kos(i, t, uretec, model, gecici):
         rc, ozet = uretec_kos(i, gd, cd, t)
         if rc == 0 and konum != FIGUR_KONUM_SIRASI[-1] and not figur_tepe_sigar(i, cd):
             continue
-        if not (rc == 2 and TEPE_RED.search(ozet)):
+        # TEPE SURE ASIMI (10 Eki prova ORNEK-05255ed06bc3: tepe kulak aramasi URETEC_SURE_SN'yi asti -> rc 1
+        # 'sure-asimi' -> ariza; ayni girdiyle sirt rc 0, kulak dahil 60,0 mm) tepeye ozgu ret sayilir -> sirt.
+        # Sirt de asarsa (son konum) ariza AYNEN; baska rc 1 (cokme) sirta DUSMEZ.
+        tepe_suresi = rc == 1 and ozet == "sure-asimi" and konum != FIGUR_KONUM_SIRASI[-1]
+        if not (rc == 2 and TEPE_RED.search(ozet)) and not tepe_suresi:
             break
     if rc == 0:
         red = figur_olcu_kabul(i, cd)

@@ -157,6 +157,9 @@ SAHTE_FIGUR = SAHTE_TEKIN.replace(
     # TUR-C2d K2: FAKE_FIGUR_RET_TEPE / _SIRT -> yalniz o konumla cagrilinca "RET: <metin>" rc 2; ozet `kulak.konum`.
     'if os.environ.get("FAKE_TEKIN_RET"):',
     'kn = a[a.index("--konum") + 1] if "--konum" in a else "tepe"\n'
+    # B (10 Eki): FAKE_FIGUR_UYU_<KONUM> -> o konumda N sn uyur (koşucu tavani FOTO_KOSUCU_URETEC_SURE_SN asilir).
+    'if os.environ.get("FAKE_FIGUR_UYU_" + kn.upper()):\n'
+    '    import time; time.sleep(float(os.environ["FAKE_FIGUR_UYU_" + kn.upper()]))\n'
     'if os.environ.get("FAKE_FIGUR_RET_" + kn.upper()):\n'
     '    sys.stderr.write("RET: " + os.environ["FAKE_FIGUR_RET_" + kn.upper()] + "\\n"); sys.exit(2)\n'
     'if os.environ.get("FAKE_TEKIN_RET"):').replace(
@@ -338,7 +341,8 @@ class Ortam:
         self.env["FOTO_KOSUCU_JENERATOR"] = self.jen()
         for k in ("FAKE_D1_KAPALI", "FAKE_R2_KAPALI", "FAKE_CAS_KAYBI", "FAKE_URETEC_MOD", "FOTO_KOSUCU_URETEC_TABLO",
                   "FAKE_TEKIN_RET", "FAKE_TEKIN_EXTRUDER", "FAKE_KOPRU", "FAKE_FIGUR_RET_TEPE", "FAKE_FIGUR_RET_SIRT",
-                  "FAKE_FIGUR_L", "FAKE_FIGUR_L_TEPE", "FAKE_FIGUR_L_SIRT"):
+                  "FAKE_FIGUR_L", "FAKE_FIGUR_L_TEPE", "FAKE_FIGUR_L_SIRT", "FAKE_FIGUR_UYU_TEPE",
+                  "FAKE_FIGUR_UYU_SIRT", "FOTO_KOSUCU_URETEC_SURE_SN"):
             self.env.pop(k, None)
         if tablo:
             t = os.path.join(self.d, "tablo.json")
@@ -937,6 +941,30 @@ def vakalar(kosucu):
                 fg[0]["figur_girdi"] == fg[1]["figur_girdi"] and "konum=sirt" in c and k.get("konum") == "sirt" and
                 (o.model() or b"").startswith(b"PK")), "%s %s fg=%s kulak=%s" % (son, u, [x["argv"][:2] for x in fg], k)
 
+    # B (10 Eki prova ORNEK-05255ed06bc3): tepe kulak aramasi sure tavanini asar (rc 1 sure-asimi) -> AYNI girdiyle
+    # sirt -> hazir (konum=sirt, model yazilir). Eskiden dongu kirilir, is 'ariza' kalirdi (sirt hic denenmezdi).
+    def ts1(o):
+        jen = figur_ortami(o)
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=jen, FAKE_KOPRU="aynen",
+                           FOTO_KOSUCU_URETEC_SURE_SN="1", FAKE_FIGUR_UYU_TEPE="3")
+        u = o.uretim()
+        fg = figur_cagrilari(o)
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
+                [x["argv"][:2] for x in fg] == [["--konum", "tepe"], ["--konum", "sirt"]] and
+                fg[0]["figur_girdi"] == fg[1]["figur_girdi"] and "konum=sirt" in c and
+                (o.model() or b"").startswith(b"PK")), "%s %s fg=%s" % (son, u, [x["argv"][:2] for x in fg])
+
+    # B: tepe + sirt ikisi de sure asarsa ariza AYNEN (sessiz hazir YOK, model YAZILMAZ); sirt bir kez denenir.
+    def ts2(o):
+        jen = figur_ortami(o)
+        rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=jen, FAKE_KOPRU="aynen",
+                           FOTO_KOSUCU_URETEC_SURE_SN="1", FAKE_FIGUR_UYU_TEPE="3", FAKE_FIGUR_UYU_SIRT="3")
+        u = o.uretim()
+        fg = figur_cagrilari(o)
+        return (son == "HAL=ISLEDI uretildi=0 red=0 ariza=1 rc=0" and u["asama"] != "hazir" and o.model() is None and
+                [x["argv"][:2] for x in fg] == [["--konum", "tepe"], ["--konum", "sirt"]]), \
+            "%s %s fg=%s" % (son, u, [x["argv"][:2] for x in fg])
+
     # Tepe + sirt ikisi de reddederse mevcut yol AYNEN: 'elle' uretec-red:anahtarlik-boyut, model YAZILMAZ.
     def t65(o):
         jen = figur_ortami(o)
@@ -1069,6 +1097,8 @@ def vakalar(kosucu):
     vaka("T64", t64)
     vaka("T65", t65)
     vaka("T64K", t64k)
+    vaka("TS1", ts1)
+    vaka("TS2", ts2)
     vaka("T65K", t65k)
     vaka("T66", t66)
     vaka("RB1", renk_vaka({"foto_renk_modu": "palet"}, 3, True))   # palet 3MF -> 3 renk, bayrak VAR
@@ -1346,7 +1376,10 @@ MUTANTLAR = {
             '    hata = shutil.copyfile(model, os.path.join(gd, "figur.stl")) and None\n',
             {"T60", "T66", "VB3", "VB4", "RB2", "RB3", "RB4"}),
     "M64": ('FIGUR_KONUM_SIRASI = ("tepe", "sirt")\n', 'FIGUR_KONUM_SIRASI = ("tepe",)\n',
-            {"T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K"}),
+            {"T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K", "TS1", "TS2"}),
+    # B: tepe sure asiminda sirt dususu kalkarsa is ariza kalir (TS1 KIRMIZI).
+    "M-B-SURE": ('        tepe_suresi = rc == 1 and ozet == "sure-asimi" and konum != FIGUR_KONUM_SIRASI[-1]\n',
+                 '        tepe_suresi = False\n', {"TS1", "TS2"}),
     # C: kulak dahil tepe reddinde sirt dususu kalkarsa (TEPE_RED yalniz `kulak yerlesmez`) T64K KIRMIZI.
     "M-C-SIRT": ('|kulak dahil uzun kenar [0-9.]+ mm > [0-9.]+ mm \\(konum=tepe\\b")', '")', {"T64K", "T65K"}),
     # RENK=PALET B: palette STL'e duzlestirme (boya silinir; gercek uretec gibi sahte de STL+palet'i reddeder) ->
@@ -1360,7 +1393,8 @@ MUTANTLAR = {
     # bolunmus ucgende yalniz ilk yaprak sayilirsa ("841" -> {1}) durum 2 kaybolur -> renk=2 (RB1).
     "M-RB-BOLUNMUS": ("            bekleyen += (kod & 3) + 1\n", "            bekleyen += 1\n", {"RB1"}),
     "M-RB-SELECT": (' u.guncel, s.urunler"\n', ' u.guncel"\n', {"RB1"}),
-    "M65": ("        if not (rc == 2 and TEPE_RED.search(ozet)):\n", "        if not rc == 2:\n", {"T61"}),
+    "M65": ("        if not (rc == 2 and TEPE_RED.search(ozet)) and not tepe_suresi:\n",
+            "        if not rc == 2 and not tepe_suresi:\n", {"T61"}),
     # B2: tepe olcuye sigmadiginda sirt dususu kapali -> tepe kulak dahil > olcu -> kabul reddi ('elle').
     "M-B2-SIRT": ("        if rc == 0 and konum != FIGUR_KONUM_SIRASI[-1] and not figur_tepe_sigar(i, cd):\n            continue\n",
                   "", {"T67", "T68", "VB3", "VB4"}),
@@ -1368,7 +1402,7 @@ MUTANTLAR = {
     "M-B2-KABUL": ("        if red:\n            rc, ozet = 2, red\n", "        if False:\n            rc, ozet = 2, red\n",
                    {"T68"}),
     "M60": ('    if not isinstance(g, dict) or "uretec" not in g:\n', "    if True:\n",
-            {"T60", "T61", "T62", "T63", "T64", "T65", "T66", "T67", "T68", "T64K", "T65K", "RB1", "RB2", "RB3", "RB4"}),
+            {"T60", "T61", "T62", "T63", "T64", "T65", "T66", "T67", "T68", "T64K", "T65K", "RB1", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     # TUR-C2a: girdi.json zorunlu sayilirsa eski is (dosya yok) 'elle'ye duser (T27 = V7).
     "M61": ('    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return None\n',
             '    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return ""\n', {"T27"}),
@@ -1385,9 +1419,9 @@ MUTANTLAR = {
     # ANAHTARLIK FOTO KOLU: foto dali / parametre_bayraklari / >50 mm cumlesi / yazi kolu ayrimi.
     "M45": ('    if (g or {}).get("kol") == "foto":\n        return ESLEMELER.get(g.get("esle"))\n', "",
             {"T40", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K",
-             "RB1", "RB2", "RB3", "RB4"}),
+             "RB1", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     "M46": ("        komut += [pb[ad], str(u[ad])]\n", "        pass\n",
-            {"T41", "T60", "T61", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K", "RB1", "RB2", "RB3", "RB4"}),
+            {"T41", "T60", "T61", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K", "RB1", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     "M47": ('    (r"figur uzun kenar|kulak dahil uzun kenar|kulak yerlesmez", "anahtarlik-boyut"),\n',
             "", {"T42", "T44", "T61", "T65", "T65K"}),
     # 10 Eki figur_kulak: varsayilan konum tepe; STL girdisi de kabul; eski plaket eslemesi geri gelirse KIRMIZI.
@@ -1396,11 +1430,11 @@ MUTANTLAR = {
     "M50": ('KONUM_VARSAYILAN = "tepe"\n', 'KONUM_VARSAYILAN = "sirt"\n', {"T40", "T41"}),
     "M51": ('not ad.endswith((".3mf", ".stl"))', 'not ad.endswith(".3mf")',
             {"T40", "T44", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K",
-             "RB2", "RB3", "RB4"}),
+             "RB2", "RB3", "RB4", "TS1", "TS2"}),
     "M52": ('    "figur_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/figur_kulak.py",',
             '    "plaket_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/plaket_kulak.py",',
             {"T40", "T41", "T44", "T60", "T61", "T63", "T64", "T65", "T67", "T68", "VB3", "VB4", "T64K", "T65K",
-             "RB1", "RB2", "RB3", "RB4"}),
+             "RB1", "RB2", "RB3", "RB4", "TS1", "TS2"}),
     "M48": ('"anahtarlik-boyut": "Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı;',
             '"anahtarlik-boyut": "Bu fotoğraftan parça çıkmadı;', {"T42", "T44"}, "foto-uretim-veri.js"),
     # Yazi kolu gerilemesi: foto dali her ureteci yakalar -> anahtarlik yazi isi esle_isimlik'e duser (T13/T14/...).
