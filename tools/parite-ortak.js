@@ -313,6 +313,35 @@ const YAYIN_UST_SINIRI_SN = sayiEnv("PARITE_YAYIN_UST_SINIRI_SN", 1800, 30, 8640
 // zamanla BUYUR; daralirsa bu sabit YENIDEN OLCULEREK guncellenir.
 const YAYIN_BEKLEME_UST_SINIRI_SN = sayiEnv("PARITE_YAYIN_BEKLEME_UST_SINIRI_SN",
   3600, 30, 86400);
+// ── YAYIN PENCERESINI BEKLE-YENIDEN-OLC (K438, 10 Eki 2026) ─────────────────────────
+// OLCULEN SINIF: CI'da (SERIT B hijyen-a3) CF jetonu BILEREK yok -> yayin hali komutu
+// D1'i OKUYAMAZ (rc != 0). Push'tan sonra deploy'un `yayin` isi satirlari yayinda=1
+// yapana dek yeni urunler TASLAK'tir; parite bu pencereye denk gelirse "YAYIN HALI
+// OKUNAMADI -> fail-closed KIRMIZI" yaniyordu (d227d939: TEST 5 05:39Z, yayin 06:03Z).
+// Pencere kapaninca AYNI kosum BIREBIR. 3. tekrar (12 Eyl · 7 Eki · 10 Eki x2) -> sinif.
+// ONARIM: YALNIZ "hal OKUNAMADI" dalinda ve YALNIZ komut VARKEN (argv null = fikstur,
+// orada bekleme YOK) canli sayiyi yoklar; yerel sayiya ulasinca on-kosulu BASTAN olcer.
+// Hukum DEGISMEZ: pencere kapanmazsa ayni KIRMIZI (+ beklenen sure). Gercek KAYIP /
+// yayinda=1 dallari BEKLEMEZ (orada hal OKUNDU, bekleyecek bir sey yok).
+// 🔴 Bu iki env FIKSTUR_ENV'e GIRMEZ (bilerek): hukmu YESILE CEVIREMEZ, yalniz
+// geciktirir — tam olcum pencere kapandiktan SONRA bastan kosar. Girseydi CI'daki
+// KANONIK kosum "FIKSTUR MODU" sayilir, en iyi ihtimalle exit 3 verirdi (yayin-fikstur W6).
+// Butce eksen B ust sinirini ASAMAZ: bekleme "tikanma"yi pencere gibi gosteremez.
+function yayinBekleAyari(env) {
+  const e = env || process.env;
+  const oku = (ad, varsayilan, alt, ust) => {
+    const ham = e[ad];
+    if (ham === undefined || String(ham).trim() === "") return varsayilan;
+    const n = parseInt(ham, 10);
+    if (!Number.isFinite(n) || n < alt || n > ust) return varsayilan;
+    return n;
+  };
+  const istenen = oku("PARITE_YAYIN_BEKLE_SN", 0, 0, 86400);
+  return {
+    butceSn: Math.min(istenen, YAYIN_BEKLEME_UST_SINIRI_SN),
+    aralikSn: oku("PARITE_YAYIN_BEKLE_ARALIK_SN", 60, 1, 3600),
+  };
+}
 // Yayin hali komutunun kendi sure siniri: asilan kapi OLU kapidir.
 const YAYIN_HALI_ZAMAN_ASIMI_MS = 240000;
 // HEAD commit anini okuma butcesi. Asilirsa OLCULEMEDI -> fail-closed (eski olcuye duser).
@@ -765,7 +794,10 @@ function dk(sn) {
  *   olculemedi[]      -> sonucYaz bunlari 3'e cevirir (0'a ASLA izin vermez).
  * WAF (403) on-kosulda YUKARI ATILIR: duvar varken tum sorgu havuzunu atmak anlamsiz.
  */
-async function onKosulOlc({ uc, yerelIdler, sayac, nonce }) {
+async function onKosulOlc({ uc, yerelIdler, sayac, nonce, bekleme }) {
+  // bekleme: { butceSn, aralikSn, uyku, beklenenSn } — verilmezse env'den (uyku = gercek).
+  // Test uykuyu ENJEKTE eder (gercek bekleme YOK); ozyineleme KALAN butceyi tasir.
+  const bk = bekleme || Object.assign({ uyku: bekle, beklenenSn: 0 }, yayinBekleAyari());
   const notlar = [];
   const olculemedi = [];
   const yerelSayi = yerelIdler.length;
@@ -836,8 +868,39 @@ async function onKosulOlc({ uc, yerelIdler, sayac, nonce }) {
     const hal = yayinHaliOku(eksik);
     if (!hal.olculdu) {
       // 🔴 FAIL-CLOSED: hal OKUNAMADIYSA eski (kati) davranis aynen surer.
-      return kirmiziDon("YAYIN HALI OKUNAMADI (" + hal.sebep + ") -> sinif AYIRT " +
-        "EDILEMEDI, fail-closed KIRMIZI. 'Olcemedim' YESIL SAYILMAZ.");
+      const okunamadi = "YAYIN HALI OKUNAMADI (" + hal.sebep + ") -> sinif AYIRT " +
+        "EDILEMEDI, fail-closed KIRMIZI. 'Olcemedim' YESIL SAYILMAZ.";
+      // K438 BEKLE-YENIDEN-OLC (bkz. yayinBekleAyari): yalniz komut VARKEN (fikstur degil).
+      const beklemeAcik = bk.butceSn > 0 && yayinHaliArgv() !== null;
+      if (!beklemeAcik) return kirmiziDon(okunamadi);
+      let beklenen = 0;
+      let kapandi = false;
+      while (beklenen < bk.butceSn) {
+        const adim = Math.min(bk.aralikSn, bk.butceSn - beklenen);
+        await bk.uyku(adim * 1000);
+        beklenen += adim;
+        let n = null;
+        try {
+          // Nonce HER yoklamada yeni: CDN anahtari ayni kalirsa bayat sayi doner.
+          n = await canliKatalogSayisi(uc, sayac, nonce + "-yb" + (bk.beklenenSn + beklenen));
+        } catch (e) {
+          if (e && e.waf) throw e;                   // duvar: yukari, kosum bosuna
+          n = null;                                  // gecici ariza: yoklama surer
+        }
+        if (n !== null && n >= yerelSayi) { kapandi = true; break; }
+      }
+      const toplam = bk.beklenenSn + beklenen;
+      if (!kapandi) {
+        return kirmiziDon(okunamadi + " | " + toplam + " sn beklendi, yayin penceresi " +
+          "KAPANMADI (butce " + bk.butceSn + " sn).");
+      }
+      // Pencere kapandi: on-kosul BASTAN (taze nonce, KALAN butce). Hukmu o verir.
+      const yeni = await onKosulOlc({ uc, yerelIdler, sayac, nonce: nonce + "-yo" + toplam,
+        bekleme: { butceSn: bk.butceSn - beklenen, aralikSn: bk.aralikSn, uyku: bk.uyku,
+          beklenenSn: toplam } });
+      yeni.notlar.unshift("⏳ YAYIN PENCERESI BEKLENDI: " + okunamadi + " -> " + toplam +
+        " sn sonra canli sayi yerele ulasti (" + yerelSayi + "), on-kosul BASTAN olculdu.");
+      return yeni;
     }
     if (hal.yok.length) {
       return kirmiziDon("GERCEK KAYIP: " + hal.yok.length + " id'nin D1'de SATIRI HIC YOK " +
@@ -1235,6 +1298,6 @@ module.exports = {
   canliKatalogSayisi, d1deOlmayanlar, onKosulOlc, siniflandir,
   sonucYaz, wafYaz, olcumNotu, fazlaKumeTutarli, fazlalikTeshis,
   fiksturBayraklari, fiksturNotu,
-  YAYIN_UST_SINIRI_SN, YAYIN_BEKLEME_UST_SINIRI_SN,
+  YAYIN_UST_SINIRI_SN, YAYIN_BEKLEME_UST_SINIRI_SN, yayinBekleAyari,
   yayinHaliArgv, yayinHaliOku, yerelHeadYasiSn, beklemeSuresi, dk,
 };
