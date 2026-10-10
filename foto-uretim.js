@@ -670,12 +670,16 @@
     return n === 3 && S.tur && !renkliTurde(S.tur) ? a.replace(RENK_CUMLESI_RENKLI, RENK_CUMLESI_TEK) : a;
   }
   function renkliMi() { return S.renkSecim === RENKLI && renkliSunulur(S.tur); }
+  // Seçili çeşit palet çeşidi mi (figür anahtarlık renk_modu palet; F.cesitPaleti — köprüden türer).
+  function cesitPaletMi(kod) { return kod === S.tur && cesitliTur() && F.cesitPaleti(kod, seciliCesit()); }
+  // Renkler paletten mi: palet türü ya da palet çeşidinde Renkli (tek renkte figür bugünkü yol — renkler gönderilmez).
+  function paletTuru(kod) { return F.renkPaleti(kod) || (cesitPaletMi(kod) && renkliMi()); }
   function anaRenk() { return F.ANA_RENKLER.indexOf(S.renkSecim) >= 0 ? S.renkSecim : F.VARSAYILAN_RENK; }
   function seciliMalzeme() { return F.malzemeBul(S.malzeme) ? S.malzeme : F.VARSAYILAN_MALZEME; }
   function fiyatSecimi() { return { renkli: renkliMi(), malzeme: seciliMalzeme() }; }
   // Palet türünde renkler: ana renkte [renk]; Renkli'de fotoğraftan çıkan renkler (türün tavanı kadar).
   function paletRenkleri(kod) {
-    var tavan = F.renkTavani(kod) || 1;
+    var tavan = (cesitPaletMi(kod) ? F.cesitRenkTavani(kod, seciliCesit()) : F.renkTavani(kod)) || 1;
     return renkliMi() ? S.fotoRenkleri.slice(0, tavan) : [anaRenk()];
   }
   // Bölge türünde (deterministik seçim): ana renkte TÜM bölgeler o renk; Renkli'de fotoğraf renkleri sırayla
@@ -690,7 +694,7 @@
   }
   function renkSayisi(nt) {
     if (!nt) return 1;
-    if (F.renkPaleti(nt.kod)) return paletRenkleri(nt.kod).length;
+    if (paletTuru(nt.kod)) return paletRenkleri(nt.kod).length;
     var fark = [], sec = aktifRenkSecimi();
     for (var a in sec) {
       if (Object.prototype.hasOwnProperty.call(sec, a) && /_renk$/.test(a) && fark.indexOf(sec[a]) < 0) fark.push(sec[a]);
@@ -702,7 +706,7 @@
   function sepetKalemi() {
     var k = { foto_is: S.is, olcu_mm: S.olcu, adet: S.adet, renkli: renkliMi(), malzeme: seciliMalzeme() };
     if (F.kolu(S.tur) === "deterministik" && S.secim) k.secim = aktifRenkSecimi();
-    if (F.renkPaleti(S.tur)) k.renkler = paletRenkleri(S.tur);
+    if (paletTuru(S.tur)) k.renkler = paletRenkleri(S.tur);
     return k;
   }
   // Renk seçici: tek seçim — Siyah · Beyaz · Gri · Renkli (+%15) (Renkli yalnız fotoğraflı akışta, renkler çıktıysa).
@@ -710,6 +714,9 @@
   function alanAciklamasi(kod, alan) {
     var t = F && typeof F.turBul === "function" ? F.turBul(kod) : null;
     var m = t && t.alan_aciklamalari ? t.alan_aciklamalari[alan] : "";
+    // Seçili çeşidin kendi cümlesi varsa o geçer (figür anahtarlık ③ renk cümlesi).
+    var ck = kod === S.tur ? cesitKaydi() : null;
+    if (ck && ck.alan_aciklamalari && typeof ck.alan_aciklamalari[alan] === "string") m = ck.alan_aciklamalari[alan];
     return typeof m === "string" ? m : "";
   }
   function renkSecici(nt, degisti) {

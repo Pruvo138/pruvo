@@ -377,7 +377,8 @@
           uretec: "figur_kulak",
           olcu_en_az: 30,
           olcu_en_cok: 291,
-          renk_bolgesi: 0
+          renk_bolgesi: 0,
+          renk_modlari: ["tek", "palet"]
         }
       },
       
@@ -637,7 +638,9 @@
         { kod: "yazi", ad: "Yazı ile", aciklama: "Kısa bir isim ya da yazı, kabartma harflerle.", acik: true },
         { kod: "figur", ad: "Figür olarak", aciklama: "Yüklediğin fotoğraftan küçük bir figür, tepesinde kulakçık.",
           acik: true, girdi: ["foto-1"], olcu_en_az: kolSiniri("anahtarlik", "olcu_en_az"),
-          olcu_en_cok: kolSiniri("anahtarlik", "olcu_en_cok"), saglayici_tur: "figur", uretec: "figur_kulak" }
+          olcu_en_cok: kolSiniri("anahtarlik", "olcu_en_cok"), saglayici_tur: "figur", uretec: "figur_kulak",
+          // ③ renk cümlesi (ArTisT 10 Eki 15:52 AYNEN); Renkli yalnız köprü kolu `renk_modu` palet sunarken çizilir.
+          alan_aciklamalari: { renk: "Siyah, Beyaz ya da Gri seçersen anahtarlık tek renk olur; Renkli seçersen renkler fotoğrafından otomatik seçilir (en çok 4 renk)." } }
       ]
     }
   };
@@ -947,11 +950,28 @@
     if (ck && ck.uretec) {
       var fk = t && t.foto_kolu, cg = ck.girdi || [], foto = false;
       for (var j = 0; j < cg.length; j++) { if (FOTO_GIRDILERI[cg[j]] === true) { foto = true; } }
-      return foto && !!fk && fk.uretec === ck.uretec && fk.renk_bolgesi >= 2;
+      return foto && !!fk && fk.uretec === ck.uretec && (fk.renk_bolgesi >= 2 || VERI.cesitPaleti(kod, cesit));
     }
     var g = t ? (t.girdi || []) : [];
     for (var i = 0; i < g.length; i++) { if (FOTO_GIRDILERI[g[i]] === true) { return true; } }
     return false;
+  };
+  // ÇEŞİT PALETİ (renk = palet, BaBa 16:0x 2a): çeşidin üreteci köprü kolununki VE kolun `renk_modlari`nda "palet"
+  // varsa (figur_kulak tek|palet; köprüden TÜRER, foto_kolu.renk_modlari) Renkli'de renkler fotoğraftan 1..tavan
+  // (palet türüyle AYNI kural), üretim `renk_modu=palet` (sağlayıcı 3MF boyası korunur). Kol/mod yoksa false.
+  VERI.cesitPaleti = function (kod, cesit) {
+    var t = VERI.turBul(kod), fk = t && t.foto_kolu;
+    var ck = cesit === undefined ? null : VERI.cesitKaydi(kod, VERI.cesitCoz(kod, cesit));
+    return !!ck && !!ck.uretec && !!fk && fk.uretec === ck.uretec &&
+      Array.isArray(fk.renk_modlari) && fk.renk_modlari.indexOf("palet") >= 0;
+  };
+  // Çeşit paletinin renk tavanı: köprü renk_modu "palet: … en çok 4 renk" (figur_kulak PALET_MAX_RENK 4 = AMS 4 yuva,
+  // VERI.renkTavani üst sınırıyla AYNI); palet çeşidi değilse null.
+  VERI.cesitRenkTavani = function (kod, cesit) { return VERI.cesitPaleti(kod, cesit) ? 4 : null; };
+  // Üretime giden renk modu (sunucu satırı foto_renk_modu -> koşucu --renk-modu): palet çeşidinde Renkli -> "palet",
+  // aksi HER durumda "tek" (eski sipariş/alan yok = tek; geriye uyum).
+  VERI.renkModu = function (kod, cesit, renkli) {
+    return renkli === true && VERI.cesitPaleti(kod, cesit) ? "palet" : "tek";
   };
   // FOTOĞRAFTAN RENK (deterministik, kredi 0, harici API YOK): piksel dizisi (RGBA, Uint8 benzeri) -> filament
   // renklerine (RENK_HEX) en yakın eşleme -> en sık `tavan` farklı renk (çok sıktan aza). Saydam piksel sayılmaz;

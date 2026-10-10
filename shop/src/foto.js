@@ -1597,14 +1597,16 @@ export function fotoKalemCoz(k) {
  * AKTIF bolgelerde FARKLI renk sayisi <= tavan (renk_kosul'u saglanmayan bolge uretilmez -> sayilmaz, BaBa 8 Eki 15:5x).
  * Renkli yalniz fotografli turde (VERI.renkliSecilebilir). Renk ADEDI fiyata GIRMEZ. Kural bozuksa null (400, fail-closed).
  */
-function renkSayimi(turKod, k, sc, p) {
-  const tavan = VERI.renkTavani(turKod);
-  if (tavan === null) { return null; }
+function renkSayimi(turKod, k, sc, p, cesit) {
   const renkli = k.renkli === true;
-  if (renkli && !VERI.renkliSecilebilir(turKod)) { return null; }
+  // CESIT PALETI (figur anahtarlik renk_modu palet): Renkli'de renkler kalemden, tavan cesidin (4); tek renkte bugunku yol.
+  const cesitPalet = renkli && cesit !== undefined && VERI.cesitPaleti(turKod, cesit);
+  const tavan = cesitPalet ? VERI.cesitRenkTavani(turKod, cesit) : VERI.renkTavani(turKod);
+  if (tavan === null) { return null; }
+  if (renkli && !VERI.renkliSecilebilir(turKod, cesit)) { return null; }
   const izinli = renkli ? VERI.PLA_RENKLERI : VERI.ANA_RENKLER;
   let renkler;
-  if (VERI.renkPaleti(turKod)) {
+  if (VERI.renkPaleti(turKod) || cesitPalet) {
     const r = Array.isArray(k.renkler) ? k.renkler : [];
     if (!r.length || new Set(r).size !== r.length || !r.every((x) => izinli.includes(x))) { return null; }
     renkler = r.slice();
@@ -1702,7 +1704,8 @@ export async function fotoKalemFiyatla(env, k, simdi) {
   }
   if (deterministikIs(is)) { return deterministikSatir(env, tur, olcu, k, is); }
   // Renkler kalemden (palet); birim = TEK formul, renkli + malzeme carpaniyla (istemci tutari OKUNMAZ).
-  const rs = renkSayimi(tur.kod, k, null);
+  // Figur kolunda cesit (D1 foto_isler.cesit) renk kuralina girer: Renkli yalniz palet cesidinde (VERI.cesitPaleti).
+  const rs = renkSayimi(tur.kod, k, null, undefined, figurKolu(is) ? is.cesit : undefined);
   if (!rs) { return RENK_HATASI; }
   const malz = kalemMalzemesi(tur.kod, k);
   if (!malz) { return MALZEME_HATASI; }
@@ -1732,6 +1735,9 @@ export async function fotoKalemFiyatla(env, k, simdi) {
       olcu_kaynagi: olcuKaynagi(tur.kod),
       foto_renkler: rs.renkler,
       foto_renkli: rs.renkli,
+      // RENK MODU (BaBa 16:0x 2a): figur kolunda koşucuya giden `renk_modu` (palet = saglayici 3MF boyasi korunur);
+      // yalniz figur kolunda yazilir, alan yoksa koşucu `tek` sayar (geriye uyum).
+      ...(figurKolu(is) ? { foto_renk_modu: VERI.renkModu(tur.kod, is.cesit, rs.renkli) } : {}),
       // URETIMDE UNUTULMASIN: plaket basina ayak (ayri parca, ayni plakada basilir).
       foto_ayak: AYAK_PLAKET_BASI,
     },
