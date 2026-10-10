@@ -910,8 +910,17 @@
   };
   // "Renkli" bu türde sunulabilir mi: türün girdisi fotoğraf ise (renkler fotoğraftan çıkar). Fotoğrafsız akışta
   // (yazılı anahtarlık, girdi "metin") Renkli GÖRÜNMEZ ve sunucu RED eder (aynı fonksiyon).
-  VERI.renkliSecilebilir = function (kod) {
+  // ÇEŞİT KOLU (Okan 10 Eki "renkli seçeneği yok"): çeşidin kendi üreteci varsa (figür anahtarlık -> figur_kulak)
+  // karar O kolun: fotoğraflı VE köprü kolu en az 2 boyanabilir bölge taşıyorsa (foto_kolu.renk_bolgesi, köprüden
+  // TÜRER); figur_kulak TEK gövde (0) -> Renkli YOK. Çeşit verilmezse/kolsuz çeşitte türün girdisi (aşağı).
+  VERI.renkliSecilebilir = function (kod, cesit) {
     var t = VERI.turBul(kod);
+    var ck = cesit === undefined ? null : VERI.cesitKaydi(kod, VERI.cesitCoz(kod, cesit));
+    if (ck && ck.uretec) {
+      var fk = t && t.foto_kolu, cg = ck.girdi || [], foto = false;
+      for (var j = 0; j < cg.length; j++) { if (FOTO_GIRDILERI[cg[j]] === true) { foto = true; } }
+      return foto && !!fk && fk.uretec === ck.uretec && fk.renk_bolgesi >= 2;
+    }
     var g = t ? (t.girdi || []) : [];
     for (var i = 0; i < g.length; i++) { if (FOTO_GIRDILERI[g[i]] === true) { return true; } }
     return false;
