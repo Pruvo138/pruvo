@@ -71,6 +71,7 @@ SEMA `<jen>/<betik>` dosyasindan).
 import argparse
 import ast
 import json
+import math
 import os
 import re
 import subprocess
@@ -106,9 +107,11 @@ KOL_KAYDI = {"anahtarlik-foto": "anahtarlik"}
 # UI'da sunulmayan kayitlar (yukaridaki SUNULMAYAN): satir yok.
 #   bust-kaide: TeKiN 2950833 yeni kaideli bust ureteci; vitrin `bust` turu rolyef teklifinden — baglama ayri is.
 SUNULMAYAN = {"anahtarlik-plaket", "bust-kaide"}
-# PRUVO ALT SINIRI (Okan 10 Eki ~13:4x "Anahtarlik 30 mm — 60mm yap"): kopru min'i DARALTILIR, asla genisletilmez.
-# tur -> mm; olcu_mm.en_az + olcegi belirleyen form alaninin min/varsayilan/ornek'i max(kopru, alt) olur.
-PRUVO_ALT_SINIR = {"anahtarlik": 60}
+# PRUVO OLCU ARALIGI (Okan 10 Eki ~15:2x "min 30mm - max 300mm", netlestirme "60'tan baslasin, 30–300 aralik"):
+# kopru araligi yalniz DARALTILIR, asla genisletilmez: olcu_mm.en_az = max(kopru, en_az), en_cok = min(kopru, en_cok);
+# olcegi belirleyen form alaninin min/max'i ayni sinira kirpilir. `baslangic` = surgu ACILISI: olcu_mm.baslangic +
+# belirleyen alanin varsayilan/ornek'i (aralik disina duserse en_az). Foto kolu (figur cesidi) tavani: kol_tavani().
+PRUVO_ARALIK = {"anahtarlik": {"en_az": 30, "en_cok": 300, "baslangic": 60}}
 # Yalniz renk_liste kaydinda DOLU; None -> manifestte alan YAZILMAZ (varsa silinir), --denetle alan yok bekler.
 OPSIYONEL = ("renk_secimi", "palet_bolgeleri", "foto_kolu")
 
@@ -140,8 +143,10 @@ def uretec_semasi(jen, betik, sema_adi=None):
             agac = ast.parse(f.read(), yol)
         oku = lambda ad: _sozluk_oku(agac, ad)  # noqa: E731
     taban = oku("SEMA")
-    if taban is None or not sema_adi or sema_adi == "SEMA":
+    if not sema_adi or sema_adi == "SEMA":
         return taban
+    # SEMA'siz uretec (figur_kulak: yalniz FIGUR_KULAK_SEMA) -> sozluk tek basina.
+    taban = taban if taban is not None else {}
     ust = oku(sema_adi)
     if ust is None:
         return None
@@ -316,14 +321,34 @@ def satir_uret(kayit, parametreler=None, kod=None, girdi_tipi=None, sema=None):
              "olcu_min_dinamik": o.get("min_mm_dinamik") is True,
              "kopru_bolgeleri": list(kayit.get("renk_bolgeleri") or []),
              "renk_sonekleri": [b["kod"] for b in bolgeler]}
-    alt = PRUVO_ALT_SINIR.get(kod)
-    if alt is not None:
-        satir["olcu_mm"]["en_az"] = max(satir["olcu_mm"]["en_az"] or 0, alt)
+    ar = PRUVO_ARALIK.get(kod)
+    if ar is not None:
+        om = satir["olcu_mm"]
+        om["en_az"] = max(om["en_az"] or 0, ar["en_az"])
+        om["en_cok"] = min(om["en_cok"] if isinstance(om["en_cok"], (int, float)) else ar["en_cok"], ar["en_cok"])
+        om["baslangic"] = ar["baslangic"] if om["en_az"] <= ar["baslangic"] <= om["en_cok"] else om["en_az"]
         f = form.get(o.get("belirleyen_parametre") or "") or {}
-        for a in ("min", "varsayilan", "ornek"):
-            if isinstance(f.get(a), (int, float)) and f[a] < alt:
-                f[a] = alt
+        if isinstance(f.get("min"), (int, float)) and f["min"] < om["en_az"]:
+            f["min"] = om["en_az"]
+        if isinstance(f.get("max"), (int, float)) and f["max"] > om["en_cok"]:
+            f["max"] = om["en_cok"]
+        for a in ("varsayilan", "ornek"):
+            if isinstance(f.get(a), (int, float)):
+                f[a] = om["baslangic"]
     return satir, hatalar
+
+
+def kol_tavani(kol, sema, ana):
+    """Foto kolunun (figur cesidi) olcu tavani — TEK yer: min(ana turun olcu_mm.en_cok [PRUVO_ARALIK'la kirpilmis],
+    kol kaydinin olcek.max_mm, kol uretec SEMA'sindaki her `*_uzun_kenar_mm.max`) -> tam mm (asagi). Bugun
+    (TeKiN 2950833) figur_kulak ciplak figur <= 72, kulak dahil <= 80 -> 72; surgu adimi 5 ile fiilen 70.
+    SEMA yoksa None (cagiran KIRMIZI yakar: tavansiz figur cesidi SUNULMAZ)."""
+    if not isinstance(sema, dict):
+        return None
+    d = [(ana.get("olcu_mm") or {}).get("en_cok"), (kol.get("olcek") or {}).get("max_mm")]
+    d += [v.get("max") for a, v in sema.items() if a.endswith("_uzun_kenar_mm") and isinstance(v, dict)]
+    d = [x for x in d if isinstance(x, (int, float)) and not isinstance(x, bool)]
+    return int(math.floor(min(d))) if d else None
 
 
 def teklif_parametreleri(kayit, hatalar):
@@ -484,7 +509,17 @@ def hepsini_uret(kayitlar, jen=None):
         if ana is None:
             hatalar.append("kol-ana-yok:%s->%s" % (k["kod"], KOL_KAYDI[k["kod"]]))
             continue
-        ana["foto_kolu"] = {"girdi": s["girdi"], "uretec": k.get("uretec") or ""}
+        tavan = kol_tavani(k, uretec_semasi(jen, (k.get("cagri") or {}).get("betik"), k.get("sema_adi")), ana)
+        if tavan is None:
+            hatalar.append("kol-tavan-yok:%s" % k["kod"])
+        # renk_bolgesi = kol uretecinin boyanabilir bolge sayisi (figur_kulak TEK govde -> 0): Renkli bu kolda
+        # ancak >= 2 iken sunulabilir (VERI.renkliSecilebilir cesit kolu).
+        # olcu_en_az = max(ana turun en_az'i, kol olcek.min_mm): kopru figur kolu bugun 60 (30-z sirt kulak dahil
+        # 31,0 mm -> olcu-tutmadi, yerel prova 10 Eki) -> figur cesidi 60'tan; TeKiN kolu indirince snapshot tazelenir.
+        taban = max([x for x in ((ana.get("olcu_mm") or {}).get("en_az"), (k.get("olcek") or {}).get("min_mm"))
+                     if isinstance(x, (int, float)) and not isinstance(x, bool)] or [0])
+        ana["foto_kolu"] = {"girdi": s["girdi"], "uretec": k.get("uretec") or "", "olcu_en_az": int(math.ceil(taban)),
+                            "olcu_en_cok": tavan, "renk_bolgesi": len(k.get("renk_bolgeleri") or [])}
     return satirlar, hatalar
 
 
