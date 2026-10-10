@@ -254,11 +254,11 @@ G2_VAKA = {
                "beklenen": {"gorsel": "foto.png", "uzun_kenar_mm": 150.0, "satir": 4, "sutun": 5, "tohum": 7,
                             "kabartma_yon": "koyu_yuksek", "renkler": ["#C8B89A", "#12294D"]},
                "renk_sayisi": 2, "parcalar": ["renk1", "renk2"]},
-    "anahtarlik": {"olcu": 45, "renkler": {"plaka": "Beyaz", "yazi": "Lacivert"},
+    "anahtarlik": {"olcu": 60, "renkler": {"plaka": "Beyaz", "yazi": "Lacivert"},
                    "parametreler": {"satirlar": ["Ayşe"], "yazi_tipi": "script", "hizalama": "orta",
                                     "anahtarlik_kulak_konum": "sag-ust", "kontur_tasma_mm": 2},
                    "beklenen": {"satirlar": ["Ayşe"], "yazi_tipi": "script", "hizalama": "orta",
-                                "anahtarlik_kulak_konum": "sag-ust", "kontur_tasma_mm": 2, "genislik_mm": 45.0,
+                                "anahtarlik_kulak_konum": "sag-ust", "kontur_tasma_mm": 2, "genislik_mm": 60.0,
                                 "anahtarlik": True, "renk_plaka": "#F2F2F2", "renk_yazi": "#12294D"},
                    "renk_sayisi": 2, "parcalar": ["plaka", "yazi"]},
 }
@@ -812,7 +812,7 @@ def vakalar(kosucu):
     # TUR-C2d K1: onarim ciktisi GERCEK bicimli Production 3MF (kok yalniz p:path bileseni) -> koşucu tek govde
     # ikili STL'e duzlestirir (donusumler uygulanmis, min 0) -> figur_kulak --girdi figur.stl.
     def figur_ortami(o, **girdi):
-        o.onarim_is(tur="anahtarlik", olcu=45, ham=uretim_3mf(girdi.pop("govde", 1)),
+        o.onarim_is(tur="anahtarlik", olcu=60, ham=uretim_3mf(girdi.pop("govde", 1)),
                     girdi=dict({"cesit": "figur", "uretec": "figur_kulak"}, **girdi))
         jen = o.jen()
         with open(os.path.join(jen, "jeneratorler", "foto", "figur_kulak.py"), "w") as f:
@@ -824,7 +824,7 @@ def vakalar(kosucu):
         return [x for x in log if "figur_girdi" in x]
 
     def t60(o):
-        jen = figur_ortami(o, sozlesme=1, kategori="anahtarlik", olcu_mm=45, dosyalar={}, parametreler={})
+        jen = figur_ortami(o, sozlesme=1, kategori="anahtarlik", olcu_mm=60, dosyalar={}, parametreler={})
         rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=jen, FAKE_KOPRU="aynen")
         u = o.uretim()
         fg = figur_cagrilari(o)
@@ -849,7 +849,7 @@ def vakalar(kosucu):
 
     # girdi.json'da uretec manifestin foto_kolu.uretec'i DEGIL -> fail-closed 'elle' uretec-uyusmaz.
     def t62(o):
-        o.onarim_is(tur="anahtarlik", olcu=45, girdi={"cesit": "figur", "uretec": "isimlik_uret"})
+        o.onarim_is(tur="anahtarlik", olcu=60, girdi={"cesit": "figur", "uretec": "isimlik_uret"})
         rc, son, c = o.kos("--uygula", FOTO_KOSUCU_JENERATOR=o.jen())
         u = o.uretim()
         return (u["asama"] == "elle" and u["sebep"] == "uretec-uyusmaz" and o.model() is None), "%s %s" % (son, u)
@@ -1238,7 +1238,7 @@ G2_SATIR = {
     },
     "anahtarlik": {
         "alan": {"ad": "Anahtarlık", "girdi": ["metin"], "motor": "D", "uretec": "isimlik_uret",
-                 "olcu_mm": {"en_az": 30, "en_cok": 80},
+                 "olcu_mm": {"en_az": 60, "en_cok": 80},
                  "fiyat": {"formul": "mm_x_10tl", "adim_mm": 5, "taban_tl": 600, "renk_tavani": 2},
                  "ornek_kanit_izni": ["render"], "renk_secimi": None, "palet_bolgeleri": None, "olcu_ekseni": "sabit",
                  "malzemeler": {"govde": ["PLA", "PETG"]}},
@@ -1278,7 +1278,7 @@ o.kol={}; for (const t of F.turler) o.kol[t.kod]=F.kolu(t.kod);
 o.red_kontrast=F.uretecRedMetni('uretec-red:kontrast'); o.red_bilinmez=F.uretecRedMetni('uretec-red:yok-boyle');
 o.red_genel=F.uretecRedMetni('uretec-red');
 const P=(kod,p)=>F.parametreDogrula(kod,p), E=(a,b)=>Object.assign({},a,b);
-const an={satirlar:['Ayşe'],yazi_tipi:'script',hizalama:'orta',genislik_mm:45,anahtarlik_kulak_konum:'sol-ust',
+const an={satirlar:['Ayşe'],yazi_tipi:'script',hizalama:'orta',genislik_mm:60,anahtarlik_kulak_konum:'sol-ust',
           kontur_tasma_mm:1.5};
 const yb={uzun_kenar_mm:150,satir:4,sutun:5,tohum:7,kabartma_yon:'koyu_yuksek'};
 const ok=P('anahtarlik',an);
@@ -1449,8 +1449,8 @@ def gercek_vakalar():
                                  (280, {"renk1": "Beyaz", "renk2": "Kırmızı", "renk3": "Mavi", "renk4": "Siyah"}, 5, 6)):
         v.append(("yapboz", olcu, renk, {"satir": sat, "sutun": sut, "tohum": 1, "kabartma_yon": "acik_yuksek"},
                   {"foto": foto}))
-    for olcu, satir, yazi_tipi, kulak, tasma in ((30, ["Ali"], "sans-kalin", "sol-ust", 1.5),
-                                                  (45, ["Ayşe"], "script", "sag-ust", 2),
+    for olcu, satir, yazi_tipi, kulak, tasma in ((60, ["Ali"], "sans-kalin", "sol-ust", 1.5),
+                                                  (70, ["Ayşe"], "script", "sag-ust", 2),
                                                   (80, ["Deniz", "Daire 4"], "sans-kalin", "ust-orta", 3)):
         v.append(("anahtarlik", olcu, {"plaka": "Siyah", "yazi": "Beyaz"},
                   {"satirlar": satir, "yazi_tipi": yazi_tipi, "hizalama": "orta", "anahtarlik_kulak_konum": kulak,

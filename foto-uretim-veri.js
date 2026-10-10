@@ -286,7 +286,8 @@
         girdi: ["metin"],
         motor: "D",
         uretec: "isimlik_uret",
-        olcu_mm: { en_az: 30, en_cok: 80 },
+        // Okan 10 Eki ~13:4x: "Anahtarlık 30 mm — 60mm yap" (kulak DAHİL en uzun boyut; en_cok 80 aynen).
+        olcu_mm: { en_az: 60, en_cok: 80 },
         renk_bolgeleri: [
           {
             kod: "plaka",
@@ -326,13 +327,13 @@
           genislik_mm: {
             tip: "sayi",
             etiket: "Uzun kenar (kulak dahil)",
-            min: 30,
+            min: 60,
             max: 80,
             adim: 0.01,
-            varsayilan: 45,
+            varsayilan: 60,
             birim: "mm",
             zorunlu: true,
-            ornek: 45
+            ornek: 60
           },
           anahtarlik_kulak_konum: {
             tip: "secim",
@@ -596,7 +597,9 @@
   // Kalıcı yer D1 `foto_isler.cesit` ('' = türün varsayılan kolu). Metinler pazarlama sayfa metni satır 16–17 AYNEN.
   //   acik    : false = çeşit sunulmaz; sunucu müşteri isteğini `cesit-yakinda` ile AÇIKÇA reddeder (sessiz değil)
   //   girdi   : çeşidin girdi listesi (yoksa türün `girdi`si); figür = fotoğraf, yazı formu YOK (parametre 0)
-  //   olcu_en_cok : çeşidin ölçü tavanı (figür: köprü figur_kulak figür uzun kenarı ≤ 50 mm)
+  //   olcu_en_cok : çeşidin ölçü tavanı (figür: köprü figur_kulak figür uzun kenarı ≤ 50 mm). TEK sabit (aşağıda
+  //                 figür çeşidi). Anahtarlık en_az 60 iken 60..50 BOŞ aralık: sürgüde ölçü yok, sunucu 400
+  //                 gecersiz-olcu (fail-closed). TeKiN köprüyü 80'e çıkarınca YALNIZ bu değer 80 olur.
   //   saglayici_tur : önizleme+model sağlayıcıda bu türün yolundan (TUR_ORTAM); üretim sonrası `uretec` koşucuda
   VERI.cesitler = {
     anahtarlik: {
