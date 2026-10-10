@@ -1453,7 +1453,8 @@ def manifest_vakalari():
     s["V1"] = (not hata, "satir: %s" % (hata or "evren 5 tur + 2/2 kopru satiri"))
     hata = [k for k, x in G2_SATIR.items() if (tur.get(k) or {}).get("ornek_notu") != x["notu"] or
             (tur.get(k) or {}).get("durustluk") != x["durust"]]
-    bos = [t["kod"] for t in m["turler"] if not t.get("ornek_notu") or not t.get("durustluk")]
+    # C2 (10 Eki): ornek_notu "" = ② TEK cumle (figur + plaket; durustluk kapsar) -> ALAN zorunlu, metni bos olabilir.
+    bos = [t["kod"] for t in m["turler"] if not isinstance(t.get("ornek_notu"), str) or not t.get("durustluk")]
     s["V2"] = (not hata and not bos, "metin farki=%s bos=%s" % (hata, bos))
     adlar = sorted({r for t in m["turler"] for b in t.get("renk_bolgeleri") or [] for r in b.get("renkler") or []})
     disarida = [a for a in adlar if a not in m["renk_hex"]]

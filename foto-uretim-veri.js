@@ -126,7 +126,9 @@
     //   alan_aciklamalari: {renk, olcu, malzeme} — ③ ortak alanların altındaki tür cümlesi (yoksa genel cümle)
     //   durustluk      : bölümün üst dürüstlük kutusu (tür bazlı, ZORUNLU; seçili türün metni basılır)
     //   ornek_notu     : render örneğinin altındaki dürüstlük cümlesi (tür bazlı; mimar kararı 7 Eki,
-    //                    AYNEN). Boşsa bölüm o türün render örneğini ÇİZMEZ; yeni tür doldurmak ZORUNDA.
+    //                    AYNEN). Alan YOKSA bölüm o türün render örneğini ÇİZMEZ; yeni tür yazmak ZORUNDA.
+    //                    "" = ayrı cümle YOK: ② dürüstlük kutusunda TEK cümle (`durustluk`; BaBa 10 Eki 14:0x,
+    //                    figür + plaket — ArTisT stilize-yorum cümlesi render notunu da kapsar).
     // Litofan, gerçek örneği ve açılış anahtarı olmadıkça AÇILMAZ (fail-closed, plaketle aynı kural).
     turler: [
       {
@@ -151,8 +153,9 @@
           olcu: "Plaketin en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.",
           malzeme: "PLA ev içi kullanım içindir; PETG dış mekân ve genel amaçlı kullanım için daha yüksek sıcaklığa dayanır (+%30)."
         },
-        durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün en çok 4 renkle kabartma olarak üretilir — önizlemenin 4 renkli yorumu; tam kopyası değildir, küçük yazı ve ince ayrıntılar sadeleşir.",
-        ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, tam kopyası değildir."
+        // ② TEK cümle (BaBa 10 Eki 14:0x; ArTisT sayfa metni "② stilize-yorum dürüstlük cümlesi" AYNEN).
+        durustluk: "Önizleme fotoğrafının stilize bir yorumudur; basılmış plaket en çok 4 renkli, kabartmalı ve sadeleştirilmiş bir hâlidir, tam kopyası değildir (küçük yazı ve ince ayrıntılar sadeleşir).",
+        ornek_notu: ""
       },
       // FIGÜR — sağlayıcı kolunda İKİNCİ tür (24 kategori programı, kategori listesi #8; plaketle aynı
       // motor/zincir; 1–3 fotoğraf). Örnek görseli henüz yoksa AÇILMAZ (fail-closed: VERI.ornekSayisi 0
@@ -177,8 +180,8 @@
         // Plaketle AYNI izin (render gerçek baskı olmadan açılır; Okan 7 Eki kararı).
         ornek_kanit_izni: ["baski", "render"],
         // Dürüstlük: figür metni — stilize yorum, en çok 4 renk, tam kopya değil (madde 5: insan/hayvan ortak, yüz benzerliği iddiası yok).
-        durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün bu önizlemenin en çok 4 renkli, sadeleştirilmiş figür yorumu olarak üretilir; tam kopyası değildir, küçük ayrıntılar sadeleşir.",
-        ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun sadeleştirilmiş hâlidir, tam kopyası değildir."
+        durustluk: "Önizleme fotoğrafının stilize bir yorumudur; basılmış figür en çok 4 renkli, sadeleştirilmiş bir hâlidir ve tam kopyası değildir (küçük ayrıntılar sadeleşir).",
+        ornek_notu: ""
       },
       
       // G2 (7 Eki 2026, mimar kararı) — 6 D türü; üreteçler pruvo-jenerator (G1-SEMA/G2-SEMA).
@@ -278,7 +281,8 @@
       },
       // ANAHTARLIK (K3c; Okan 22:5x/23:0x: kulakçık, metal halka YOK, taban ₺600) — TeKiN köprü kaydı
       // (isimlik_uret, anahtarlik:true sabiti). Metinler ArTisT tür #5 + tür notu #5 BİREBİR. Örnek kaydı VAR
-      // (TeKiN 9 Eki 10:58, render): sayılan örnek 1, tür /acik'e girer, kart normal çizilir.
+      // (TeKiN 9 Eki 10:58, render): sayılan örnek 1, tür /acik'e girer, kart normal çizilir. C2 (10 Eki):
+      // alan_aciklamalari.olcu = ③ Ölçü cümlesi (iki çeşit ortak; ArTisT "③ Ölçü cümlesi — anahtarlık" AYNEN).
       {
         kod: "anahtarlik",
         ad: "Anahtarlık",
@@ -359,6 +363,9 @@
           renk_tavani: 2
         },
         ornek_kanit_izni: ["render"],
+        alan_aciklamalari: {
+          olcu: "Anahtarlığın kulakçık dahil en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır."
+        },
         durustluk: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
         ornek_notu: "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçimine göre üretilir.",
         olcu_ekseni: "sabit",

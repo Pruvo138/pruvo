@@ -48,8 +48,9 @@ OKU = lambda rel: open(os.path.join(KOK, rel), encoding="utf-8").read()
 
 OTURUM_ANAHTARI = "pruvo_foto_siparis"
 DURUSTLUK = "önizlemenin 4 renkli yorumu"
-RENDER_CUMLE = ("Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, "
-                "tam kopyası değildir.")
+# C2 (10 Eki, BaBa 14:0x): plaket ② TEK cümle = `durustluk` (ArTisT stilize-yorum cümlesi AYNEN); `ornek_notu` "".
+RENDER_CUMLE = ("Önizleme fotoğrafının stilize bir yorumudur; basılmış plaket en çok 4 renkli, kabartmalı ve "
+                "sadeleştirilmiş bir hâlidir, tam kopyası değildir (küçük yazı ve ince ayrıntılar sadeleşir).")
 # K3a (8 Eki 2026): 15 tür silindi (litofan dahil). 4 kalan türün tamamı foto, litofan yok; LITOFAN_CUMLE
 # eski plaket metninin eşitiydi — yeni evrende bu test artık anlamsız, mutant + kontrol SİLİNDİ.
 
@@ -210,11 +211,14 @@ def kontroller(index, bolum, veri, build):
     # "gerçek fotoğraf" ifadesi (yasakli, hukuk kapisi 13:4x) yorum/string ikisinde de 0.
     bolum_cleaned = yorumsuz(bolum)
     notlar = dict(re.findall(r'kod:\s*"([a-z]+)",.*?ornek_notu:\s*"([^"]*)"', veri, re.S))
+    durustluklar = dict(re.findall(r'kod:\s*"([a-z]+)",.*?durustluk:\s*"([^"]*)"', veri, re.S))
     s.append(("Y10 render kartinda 'Örnek görsel (bilgisayar çizimi)' etiketi VAR (galeri)",
               '"Örnek görsel (bilgisayar çizimi)"' in bolum_cleaned, ""))
     s.append(("Y10 lightbox ornek_notu tur kaydindan (it.tur.ornek_notu) · bolumde sabit 'kabartmalı' cumlesi 0",
               "it.tur.ornek_notu" in bolum_cleaned and "kabartmalı" not in bolum, ""))
-    s.append(("Y10 plaket ornek_notu = karar cumlesi AYNEN", notlar.get("plaket") == RENDER_CUMLE, str(notlar.get("plaket"))))
+    s.append(("Y10 plaket ② TEK cumle: durustluk = karar cumlesi AYNEN, ornek_notu ''",
+              durustluklar.get("plaket") == RENDER_CUMLE and notlar.get("plaket") == "",
+              str([durustluklar.get("plaket"), notlar.get("plaket")])))
     # K3a: Y11 litofan ornek_notu kontrolu SİLİNDİ (litofan artık yok; Y10 plaket kontrolü yeterli).
     s.append(("Y10 'gerçek fotoğraf' metni 0 (yorum haric, kodda yok)",
               "gerçek fotoğraf" not in bolum_cleaned, ""))
@@ -310,7 +314,7 @@ def main():
          (index, re.sub(r"\bgaleriSec\b", "galeriSecYOK", bolum), veri, build), True),
         ("M8 izin kontrolu silindi",
          (index, bolum, veri.replace("if (!k || izin.indexOf(k) < 0) { return false; }", "if (!k) { return false; }", 1), build), True),
-        ("M9 abarti cumlesi degisti", (index, bolum, veri.replace("kabartmalı hâlidir, tam kopyası değildir.", "kabartmalı hâlidir.", 1), build), True),
+        ("M9 abarti cumlesi degisti", (index, bolum, veri.replace("kabartmalı ve sadeleştirilmiş bir hâlidir, tam kopyası değildir", "kabartmalı bir hâlidir", 1), build), True),
         # K3a (8 Eki 2026): M12/M11 litofan referansliydi, litofan silindi — mutant + kontrol SİLİNDİ
         # (null/no-op mutant YASAK; çapa artık veri dosyasında yok).
         ("M13 bolum sabit cumleye dondu",
