@@ -1,5 +1,76 @@
 [
   {
+    "id": "c3d-nikon-f-objektif-sony-e-govde-adaptoru",
+    "kategori": "Kamera",
+    "marka": [
+      "Nikon"
+    ],
+    "uyum": [
+      {
+        "marka": "Nikon"
+      }
+    ],
+    "baslik": "Nikon F Bayonetli Objektifler için Sony E-Mount Gövde Adaptörü (Adaptör Halkası)",
+    "aciklama": "Nikon F bayonetli bir objektifi Sony E-Mount aynasız gövdeye bağlamaya yarayan adaptör halkası. Dış yüzeyi tırtıllıdır; halkayı elle tutup takmak ve sökmek kolaylaşır. Fotoğraflarda adaptör, Sony NEX serisi bir gövdeye Nikon AF-S DX 18-55 mm objektifle birlikte takılı olarak ve halkanın iç yüzü görünür biçimde yer alır; gövde ve objektif ürüne dahil değildir.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dsony-e-mount-body-to-nikon-f-mount-lens-adapter-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsony-e-mount-body-to-nikon-f-mount-lens-adapter-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsony-e-mount-body-to-nikon-f-mount-lens-adapter-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY-SA 4.0",
+      "tasarimci": "AlbertKhan3D"
+    }
+  },
+  {
+    "id": "c3d-nikon-z-igne-deligi-pinhole-kapagi",
+    "kategori": "Kamera",
+    "marka": [
+      "Nikon"
+    ],
+    "uyum": [
+      {
+        "marka": "Nikon"
+      }
+    ],
+    "baslik": "Nikon Z Gövdeler için İğne Deliği (Pinhole) Kapağı (Folyo Tutucu Halkalı)",
+    "aciklama": "Nikon Z bayonetli aynasız gövdelerin lens yerine takılan iğne deliği (pinhole) kapağı. Kapak iki parçadan oluşur: gövdeye takılan ana kapak ve ince folyo tabakasını yerinde tutan ayrı bir halka. İğne deliği, halkanın arasına yerleştirilen ince metal folyoya açılır; böylece gövde objektifsiz fotoğraf çekebilir. Z5, Z50, Z6 ve Z7 gövdeleri için belirtilmiştir. Fotoğraflarda kapak bir Nikon Z6 gövdede takılı olarak ve ayrı parçaları (kapak, tutucu halka, folyo karesi) masada görülür; gövde, folyo ve iğne deliği ürüne dahil değildir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dpinhole-cap-for-nikon-z-mount-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dpinhole-cap-for-nikon-z-mount-2.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "aronda"
+    }
+  },
+  {
+    "id": "c3d-nikon-sb-5000-flas-difuzoru",
+    "kategori": "Kamera",
+    "marka": [
+      "Nikon"
+    ],
+    "uyum": [
+      {
+        "marka": "Nikon"
+      }
+    ],
+    "baslik": "Nikon SB-5000 Flaş için Yumuşatıcı Difüzör (Flaş Başlığına Geçmeli)",
+    "aciklama": "Nikon SB-5000 harici flaşın başlığına geçirilen yarı saydam beyaz difüzör. Flaş ışığını dağıtarak sert gölgeleri yumuşatmaya yarar. Fotoğraflarda difüzör SB-5000 flaşın başlığında takılı olarak ve elde tek başına görülür; flaş ürüne dahil değildir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dnikon-sb5000-flash-diffuser-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dnikon-sb5000-flash-diffuser-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dnikon-sb5000-flash-diffuser-3.jpg"
+    ],
+    "lisans": {
+      "tur": "CC BY 4.0",
+      "tasarimci": "ayfaridi"
+    }
+  },
+  {
     "id": "pul-rondela-95-mm-dis-10-mm-ic-cap-4-mm-kalinlik",
     "kategori": "Tamirat",
     "marka": [],
