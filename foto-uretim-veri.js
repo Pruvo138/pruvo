@@ -11,7 +11,7 @@
  *   - 5 Eki kuralı: "render ya da üretilmiş baskı görseli bu listeye GİRMEZ". 7 Eki 2026'da
  *     PLAKET için Okan kararıyla değişti ("bu dosya ok · baskı yapmayacağım böyle tamam":
  *     ilk örnek plaketin üretim dosyası hatasız dilimlendi, fiziksel baskı istenmedi) →
- *     plakette `kanit: "render"` kaydı da sayılır; bölüm onu "önizleme/render" etiketiyle ve
+ *     plakette `kanit: "render"` kaydı da sayılır; bölüm onu "Örnek görsel (bilgisayar çizimi)" etiketiyle ve
  *     abartı cümlesiyle gösterir. Diğer türlerde kural AYNEN durur (yalnız basılmış ürün).
  *   - Sayılan örneği olmayan tür AÇILMAZ (bölümde sipariş formu o tür için çıkmaz, sunucu da
  *     o türe önizleme üretmez). Görseller R2 medya kovasında durur; buraya yalnız adres yazılır.
@@ -359,7 +359,7 @@
         },
         ornek_kanit_izni: ["render"],
         durustluk: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
-        ornek_notu: "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçiminize göre üretilir.",
+        ornek_notu: "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçimine göre üretilir.",
         olcu_ekseni: "sabit",
         foto_kolu: { girdi: ["foto-1"], uretec: "figur_kulak" }
       },
