@@ -1561,7 +1561,9 @@
     var durust = el("div", "foto-uretim-durustluk");
     S.durustP = el("p", null, "");
     S.ornekNotP = el("p", null, "");
-    ek(durust, S.durustP, S.ornekNotP);
+    S.durustCesitP = el("p", "foto-uretim-durustluk-cesit", "");
+    S.durustCesitP.hidden = true;
+    ek(durust, S.durustP, S.ornekNotP, S.durustCesitP);
     p2.appendChild(durust);
     cizYukleKutu(p2);
     S.alanDosya = el("div", "foto-uretim-form-grup");
@@ -1645,6 +1647,7 @@
     if (!cesitliTur() || !F.cesitAcik(S.tur, kod) || kod === seciliCesit()) return;
     S.cesit = kod;
     cizCesit();
+    durustlukGuncelle();
     if (S.alanOlcu) {
       doldurS1Olcu();
       doldurS1Form();
@@ -1806,11 +1809,17 @@
     return null;
   }
 
-  /* Üst dürüstlük kutusu seçili türün manifest metnini basar (tür yoksa ilk türünkini). */
+  /* Üst dürüstlük kutusu seçili türün manifest metnini basar (tür yoksa ilk türünkini). Seçili çeşidin `durustluk`u
+     varsa (Anahtarlık – figür: stilize-yorum cümlesi, ArTisT 874b2a85) altında ikinci paragraf; yoksa paragraf gizli. */
   function durustlukGuncelle() {
     if (!S.durustP || !F) return;
     var t = (S.tur && F.turBul(S.tur)) || (F.turler && F.turler[0]) || null;
     S.durustP.textContent = t && t.durustluk ? t.durustluk : "";
+    if (S.durustCesitP) {
+      var ck = S.tur ? cesitKaydi() : null;
+      S.durustCesitP.textContent = ck && ck.durustluk ? ck.durustluk : "";
+      S.durustCesitP.hidden = !S.durustCesitP.textContent;
+    }
   }
 
   function doldurS1Olcu() {
