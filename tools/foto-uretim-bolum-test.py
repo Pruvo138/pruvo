@@ -186,11 +186,17 @@ def kontroller(index, bolum, veri, build):
     if "anahtarl" in yorumsuz(disari).lower():  # yorum ekrana çıkmaz (Okan alıntısı yorumda)
         eski.append("anahtarl(KARTLAR disi)")
     s.append(("Y8 magnet ekranda + tur listesinde 0; anahtarlik bolumde yalniz sayfa metni tablolari (KARTLAR + PENCERELER)", not eski, ",".join(eski)))
-    satirlar = re.findall(r'\{ kod: "([a-z_]+)", tur: "([a-z]+)", alt: (null|"[a-z_]+"), ad: "([^"]+)"', kb.group(1)) if kb else []
-    beklenen = [("insan", "figur", '"insan"', "İnsan figürü"), ("hayvan_model", "figur", '"hayvan_model"', "Hayvan ve model figürü"),
-                ("plaket", "plaket", "null", "Kabartma Plaket"), ("bust", "bust", "null", "Büst"),
-                ("anahtarlik", "anahtarlik", "null", "Anahtarlık"), ("yapboz", "yapboz", "null", "Yapboz")]
-    s.append(("Y14 KARTLAR 6 satir: kod · tur · alt · ad (sayfa metni tablosu birebir; iki figur karti tur figur)",
+    # 6 MODEL (Okan 10 Eki ~16:3x): Okan'ın sırası + adları; anahtarlık iki AYRI kart (çeşidi kart sabitler);
+    # figür alt türleri insan · pet · model; büst/yapboz satırı YOK.
+    satirlar = re.findall(r'\{ kod: "([a-z_]+)", tur: "([a-z]+)", alt: (null|"[a-z_]+"),(?: cesit: "([a-z]+)",)? ad: "([^"]+)"',
+                          kb.group(1)) if kb else []
+    beklenen = [("anahtarlik_yazi", "anahtarlik", "null", "yazi", "Anahtarlık – yazı"),
+                ("insan", "figur", '"insan"', "", "İnsan figürü (ayakta)"),
+                ("pet", "figur", '"pet"', "", "Pet figürü (ayakta)"),
+                ("plaket", "plaket", "null", "", "Kabartma plaket"),
+                ("anahtarlik_figur", "anahtarlik", "null", "figur", "Anahtarlık – figür"),
+                ("model", "figur", '"model"', "", "Model figür")]
+    s.append(("Y14 KARTLAR 6 satir (6 MODEL): kod · tur · alt · cesit · ad (Okan sirasi/adlari birebir; bust/yapboz 0)",
               satirlar == beklenen, str(satirlar)))
     # Y9 13:5x (Okan 13:5x: tek tur dali kaldirildi — tur secimi GALERIDEN, 24 kucuk resim izgarasi).
     # Ayri radyo grubu yok; tiklanan kart = secim (function galeriSec).
@@ -327,7 +333,7 @@ def main():
         ("M22 insan karti figur yerine plaket secer",
          (index, bolum.replace('{ kod: "insan", tur: "figur"', '{ kod: "insan", tur: "plaket"', 1), veri, build), True),
         ("M23 anahtarlik KARTLAR disinda ekrana yazildi",
-         (index, bolum.replace('var BUST_YONLENDIRME = ', 'var ANAHTARLIK_NOTU = "Anahtarlık";\n  var BUST_YONLENDIRME = ', 1), veri, build), True),
+         (index, bolum.replace('var ESKI_KART = ', 'var ANAHTARLIK_NOTU = "Anahtarlık";\n  var ESKI_KART = ', 1), veri, build), True),
         # Y15 mutantlari: cizim kolu <-> FORM_TIPLERI esitlik kapisi (anahtarlik-metin-ui).
         ("M24 metin cizim dali silindi (sema.tip === 'metin' kolu YOK)",
          (index, bolum.replace('sema.tip === "metin"', 'sema.tip === "metinYOK"', 1), veri, build), True),
