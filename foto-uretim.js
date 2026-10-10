@@ -176,6 +176,8 @@
     ileriBtn: null,
     alanCanliFiyat: null,
     alanKartRet: null,
+    alanCesit: null,
+    cesit: null,
     secim: null,
     renkler: [],
     b2Onay: false,
@@ -514,6 +516,7 @@
   function ssIsKaydet() {
     if (!S.is) return;
     var kayit = { is: S.is, tur: S.tur, olcu: S.olcu };
+    if (cesitliTur()) kayit.cesit = seciliCesit();
     if (false && S.secim) kayit.secim = S.secim;
     if (S.renkler && S.renkler.length) kayit.renkler = S.renkler;
     kayit.renk_secim = S.renkSecim;
@@ -569,7 +572,7 @@
   function ileriAcikMi() {
     if (S.pencere === 1) return !!S.tur;
     if (S.pencere === 2) {
-      return !!S.tur && F.girdiYeterli(S.tur, { foto: !!S.dosya, parametreler: parametreGovde() }) === "" &&
+      return !!S.tur && F.girdiYeterli(S.tur, { foto: !!S.dosya, parametreler: parametreGovde(), cesit: cesitliTur() ? seciliCesit() : undefined }) === "" &&
         uyumKontrol(S.tur, S.uretimNotu) === "uygun";
     }
     if (S.pencere === 3) return !!S.tur && !!S.olcu && formDogrula().ok;
@@ -601,15 +604,32 @@
   // Deterministik kol + tarayıcı önizleyicisi kayıtlı üreteç (bugün litofan).
     // Deterministik kol, tarayıcı önizleyicisi YOK: örnek render + ONIZLEME_SONRA; önizlemeyi koşucu üretir.
     function litofanKaydi() { return F && typeof F.turBul === "function" ? F.turBul(S.tur) : null; }
+  // ÇEŞİT (TUR-C2b; anahtarlık "Yazı ile" / "Figür olarak"): F.cesitler'de kaydı olan türde ② başında seçilir,
+  // varsayılan kaydın `varsayilan`ı; sunulmayan (acik değil) çeşit seçilemez. Çeşidin `girdi`si varsa türün girdisi
+  // yerine o geçer (figür = yalnız fotoğraf, yazı formu YOK). Seçim önizleme isteğinde `govde.secim.cesit` ile gider.
+  function cesitliTur() {
+    return !!(F && F.cesitler && S.tur && Object.prototype.hasOwnProperty.call(F.cesitler, S.tur));
+  }
+  function seciliCesit() {
+    if (!cesitliTur()) return "";
+    var c = S.cesit ? F.cesitCoz(S.tur, S.cesit) : null;
+    return c && F.cesitAcik(S.tur, c) ? c : F.cesitler[S.tur].varsayilan;
+  }
+  function cesitKaydi() { return cesitliTur() ? F.cesitKaydi(S.tur, seciliCesit()) : null; }
+  // ② girdileri: seçili çeşidin listesi, yoksa türün listesi (sunucu girdiGovdeDogrula ile AYNI kural).
+  function girdiListesi() {
+    var ck = cesitKaydi(), t = litofanKaydi();
+    return ck && ck.girdi ? ck.girdi : (t ? t.girdi : null);
+  }
   // Türün girdisinde fotoğraf var mı (kayıt yoksa var say).
   function fotoGerekir() {
-    var t = litofanKaydi();
-    return !t || !t.girdi || t.girdi.indexOf("foto-1") >= 0 || t.girdi.indexOf("foto-1-3") >= 0;
+    var t = litofanKaydi(), g = girdiListesi();
+    return !t || !g || g.indexOf("foto-1") >= 0 || g.indexOf("foto-1-3") >= 0;
   }
   // Türün girdisinde yazı (form metin alanı) var mı — varsa metin alanları ② ekranında çizilir.
   function metinGirdisi() {
-    var t = litofanKaydi();
-    return !!t && !!t.girdi && t.girdi.indexOf("metin") >= 0;
+    var g = girdiListesi();
+    return !!litofanKaydi() && !!g && g.indexOf("metin") >= 0;
   }
   // Kayıttan varsayılan seçim: her malzeme bölgesinin ilk malzemesi, her renk bölgesinin ilk rengi.
   // RENK + MALZEME (Okan 9 Eki 17:0x): renk 3 ana renkten biri (ürün TEK renk) ya da "Renkli" (+%15; renkler
@@ -768,7 +788,9 @@
   // FORM ALANLARI — türün `form` şemasından (sayi/secim/metin/url); doğrulama sunucuyla AYNI
   // fonksiyon (F.parametreDogrula). Şema boşsa alan gizli, gövdeye `parametreler` girmez.
   function formSemasi() {
-    var t = litofanKaydi();
+    var t = litofanKaydi(), ck = cesitKaydi();
+    // Çeşidin girdisinde yazı yoksa (figür) form YOK: parametre gönderilmez (sunucu dolu parametreyi reddeder).
+    if (ck && ck.girdi && ck.girdi.indexOf("metin") < 0) return {};
     return t && t.form && typeof t.form === "object" ? t.form : {};
   }
   // KOŞULLU ALAN (`kosul`): form sırasıyla, yalnız AKTİF alanların değerleri üzerinden (F.alanAktif —
@@ -916,7 +938,7 @@
           var ss = sema.secenekler || [];
           // Madde 6: değer kodu AYNI kalır, kullanıcıya Türkçe etiket KODDAN TÜRETİLİR (manifest alanı DEĞİL;
           // üreteç/köprü şemasını kirletmeden UI düzeltmesi — kabul R1/R2 YEŞİL kalır).
-          var etMap = (typeof KUBAR_ETIKET_MAP === "object" ? KUBAR_ETIKET_MAP[a] : null) || null;
+          var etMap = etiketHaritasi(a);
           for (var j = 0; j < ss.length; j++) {
             var k = String(ss[j]);
             var op = el("option", null, etMap && etMap[k] ? etMap[k] : k);
@@ -1324,7 +1346,9 @@
       S.olcu = nt && nt.olculer && nt.olculer[0] ? nt.olculer[0].mm : null;
       S.parametre = {};
       S.renkler = [];
+      S.cesit = null;
       S.secim = varsayilanSecim(S.tur);
+      cizCesit();
       // K3a: ②/③ formu (cizForm) henüz çizilmediyse S.alanOlcu/S.alanForm/... null olur; doldur* çağrısı
       // istisna fırlatır, dürüstlukGuncelle yarıda kalır. Koruma: form çizilmemişse doldur* atlanır;
       // cizForm aşağıda formu kurar.
@@ -1447,9 +1471,19 @@
      `malzemeler`; boşsa satır YOK) + form parametreleri + CANLI FİYAT (F.fiyatKurus). */
   // Madde 6: ham değer kodu AYNI kalır (köprü manifest şemasını kirletmemek için), kullanıcıya UI'da
   // gösterilecek Türkçe etiket bu sabitten türetilir (tekilko kutucuk KUBAR_ETIKET_MAP).
+  // Anahtarlık ③ (TUR-C2b): pazarlama sayfa metni "Anahtarlık ③ seçenek etiketleri" tablosu AYNEN (figür `tepe`/`sirt` dahil).
+  // Harita ALAN KAVRAMIYLA tutulur: tür önekli alan (`<tür>_kulak_konum`) önek atılarak da aranır (etiketHaritasi).
   var KUBAR_ETIKET_MAP = {
-    kabartma_yon: { "acik_yuksek": "Açık tonlar yüksek", "koyu_yuksek": "Koyu tonlar yüksek" }
+    kabartma_yon: { "acik_yuksek": "Açık tonlar yüksek", "koyu_yuksek": "Koyu tonlar yüksek" },
+    yazi_tipi: { "sans-kalin": "Kalın düz harfler", "script": "El yazısı" },
+    hizalama: { "sol": "Sol", "orta": "Orta", "sag": "Sağ" },
+    kulak_konum: { "sol-ust": "Sol üst", "sag-ust": "Sağ üst", "ust-orta": "Üst orta", "tepe": "Tepede", "sirt": "Sırtta" }
   };
+  function etiketHaritasi(a) {
+    if (Object.prototype.hasOwnProperty.call(KUBAR_ETIKET_MAP, a)) return KUBAR_ETIKET_MAP[a];
+    var on = S.tur ? S.tur + "_" : "", g = on && a.indexOf(on) === 0 ? a.slice(on.length) : "";
+    return g && Object.prototype.hasOwnProperty.call(KUBAR_ETIKET_MAP, g) ? KUBAR_ETIKET_MAP[g] : null;
+  }
   function cizForm() {
     if (!S.pencereler.length || !S.tur) return;
     var p2 = S.pencereler[1], p3 = S.pencereler[2];
@@ -1457,6 +1491,11 @@
     while (p3.firstChild) p3.removeChild(p3.firstChild);
     if (!S.secim) S.secim = varsayilanSecim(S.tur);
 
+    // ② başında ÇEŞİT düğmeleri (TUR-C2b; çeşitsiz türde gizli).
+    S.alanCesit = el("div", "foto-uretim-form-grup foto-uretim-cesit");
+    S.alanCesit.id = "foto-cesit";
+    p2.appendChild(S.alanCesit);
+    cizCesit();
     S.alanKartRet = el("div", "foto-uretim-kart-sart");
     p2.appendChild(S.alanKartRet);
     var durust = el("div", "foto-uretim-durustluk");
@@ -1502,6 +1541,54 @@
     doldurS1Form();
     durustlukGuncelle();
     kartRetGuncelle(kartListede(S.kartKod));
+    guncelleS1Buton();
+  }
+
+  /* ② ÇEŞİT düğmeleri: sunulan her çeşit için bir düğme (ad) + altında açıklama cümlesi (VERI AYNEN); seçili
+     düğme aria-pressed="true". Seçim değişince ② girdileri (foto kutusu / yazı alanı), ③ formu ve ölçü yeniden çizilir. */
+  function cizCesit() {
+    var kap = S.alanCesit;
+    if (!kap) return;
+    while (kap.firstChild) kap.removeChild(kap.firstChild);
+    var k = cesitliTur() ? F.cesitler[S.tur] : null, liste = [];
+    for (var i = 0; k && i < k.secenekler.length; i++) if (k.secenekler[i].acik === true) liste.push(k.secenekler[i]);
+    kap.hidden = liste.length < 2;
+    if (kap.hidden) return;
+    var secili = seciliCesit();
+    var sira = el("div", "foto-uretim-cesit-dugmeler");
+    sira.setAttribute("role", "group");
+    sira.setAttribute("aria-label", "Çeşit seçimi");
+    sira.style.display = "flex"; sira.style.flexWrap = "wrap"; sira.style.gap = "12px";
+    for (var j = 0; j < liste.length; j++) {
+      (function (c) {
+        var kutu = el("div", "foto-uretim-cesit-secenek");
+        kutu.style.flex = "1 1 160px";
+        var b = el("button", "foto-uretim-form-dugme foto-uretim-cesit-dugme", c.ad);
+        b.type = "button";
+        b.setAttribute("data-cesit", c.kod);
+        var acik = c.kod === secili;
+        b.setAttribute("aria-pressed", acik ? "true" : "false");
+        b.style.padding = "8px 16px"; b.style.borderRadius = "999px"; b.style.cursor = "pointer";
+        b.style.border = acik ? "2px solid #12294d" : "1px solid #c5cbd3";
+        b.style.background = acik ? "#12294d" : "#fff";
+        b.style.color = acik ? "#fff" : "#12294d";
+        b.addEventListener("click", function () { cesitSec(c.kod); });
+        ek(kutu, b, el("p", "foto-uretim-ayrinti", c.aciklama));
+        sira.appendChild(kutu);
+      })(liste[j]);
+    }
+    kap.appendChild(sira);
+  }
+  function cesitSec(kod) {
+    if (!cesitliTur() || !F.cesitAcik(S.tur, kod) || kod === seciliCesit()) return;
+    S.cesit = kod;
+    cizCesit();
+    if (S.alanOlcu) {
+      doldurS1Olcu();
+      doldurS1Form();
+      doldurS1Dosya();
+      cizUyum();
+    }
     guncelleS1Buton();
   }
 
@@ -1616,6 +1703,15 @@
     adimKoy("S1");
   }
 
+  // Çeşidin ölçü tavanı (figür: olcu_en_cok 50 mm) varsa sürgü yalnız tavana kadar ölçüleri sunar (sunucu AYNI tavan).
+  function cesitOlculeri(nt) {
+    var ck = cesitKaydi();
+    if (!nt || !nt.olculer || !ck || !(ck.olcu_en_cok > 0)) return nt;
+    var k = {};
+    for (var a in nt) if (Object.prototype.hasOwnProperty.call(nt, a)) k[a] = nt[a];
+    k.olculer = nt.olculer.filter(function (o) { return o.mm <= ck.olcu_en_cok; });
+    return k;
+  }
   function seciliTurBul() {
     if (!S.acikVeri || !S.acikVeri.turler) return null;
     for (var i = 0; i < S.acikVeri.turler.length; i++) {
@@ -1633,7 +1729,7 @@
 
   function doldurS1Olcu() {
     while (S.alanOlcu.firstChild) S.alanOlcu.removeChild(S.alanOlcu.firstChild);
-    var nt = seciliTurBul();
+    var nt = cesitOlculeri(seciliTurBul());
     var tekTur = S.acikVeri.turler.length === 1;
     S.alanOlcu.appendChild(el("label", "foto-uretim-form-etiket",
       tekTur && nt ? nt.ad + " — ölçü (en uzun boyut)" : "Ölçü"));
@@ -1820,7 +1916,8 @@
   function notIstegeBagli(kod) { return NOT_ISTEGE_BAGLI_TURLER.indexOf(kod) >= 0; }
   function s1Sebep() {
     var sira = [
-      [!notIstegeBagli(S.tur) && !((S.uretimNotu || "").trim()), S1_SEBEP.not],
+      // Not alanı yalnız fotoğraflı girdide çizilir (cizUretimNotu); yazılı anahtarlıkta not istenmez (TUR-C2b).
+      [!notIstegeBagli(S.tur) && fotoGerekir() && !((S.uretimNotu || "").trim()), S1_SEBEP.not],
       [fotoGerekir() && !S.dosya, S1_SEBEP.foto],
       [!S.aydinlatmaOnay, S1_SEBEP.onay],
       [!S.captchaToken1, S1_SEBEP.dogrulama],
@@ -2135,6 +2232,7 @@
         }
         S.olcu = kayit.olcu || null;
         if (kayit.secim && typeof kayit.secim === "object") S.secim = kayit.secim;
+        if (typeof kayit.cesit === "string") S.cesit = kayit.cesit;
         if (Array.isArray(kayit.renkler)) S.renkler = kayit.renkler;
         if (typeof kayit.renk_secim === "string") S.renkSecim = kayit.renk_secim;
         if (F.malzemeBul(kayit.malzeme)) S.malzeme = kayit.malzeme;
@@ -2354,6 +2452,12 @@
       if (svgMetin) govde.svg = svgMetin;
       if (Object.keys(formSemasi()).length) govde.parametreler = parametreGovde();
       if (S.secim) govde.secim = S.secim;
+      if (cesitliTur()) {
+        var sc = {};
+        for (var sa in (S.secim || {})) if (Object.prototype.hasOwnProperty.call(S.secim, sa)) sc[sa] = S.secim[sa];
+        sc.cesit = seciliCesit();
+        govde.secim = sc;
+      }
       notGovdeyeKoy(govde);
       jsonPost(ONIZLEME_URL, govde, function (ok, kod, veri) {
         turnsSifirla(S.alanCap1);

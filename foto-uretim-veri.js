@@ -497,8 +497,8 @@
         tur: "bust",
         kanit: "render",
         olcu_mm: 100,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/bust-1-render.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/bust-1-render.webp",
+        onizleme: "https://media.pruvo3d.com/foto/ornek/bust-2-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/bust-2-render.webp",
         not: "100 mm büst/madalyon"
       },
       {
@@ -603,7 +603,7 @@
       secenekler: [
         { kod: "yazi", ad: "Yazı ile", aciklama: "Kısa bir isim ya da yazı, kabartma harflerle.", acik: true },
         { kod: "figur", ad: "Figür olarak", aciklama: "Yüklediğin fotoğraftan küçük bir figür, tepesinde kulakçık.",
-          acik: false, girdi: ["foto-1"], olcu_en_cok: 50, saglayici_tur: "figur", uretec: "figur_kulak" }
+          acik: true, girdi: ["foto-1"], olcu_en_cok: 50, saglayici_tur: "figur", uretec: "figur_kulak" }
       ]
     }
   };

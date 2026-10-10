@@ -175,6 +175,17 @@ export function girdiGovdeDogrula(turKod, g) {
 }
 
 /**
+ * ISTEKTEKI CESIT (TUR-C2b): bolum secimi `secim.cesit` ile gonderir; ust duzey `cesit` de kabul edilir. Ikisi
+ * birden doluysa AYNI olmali, aksi null (kapali kume disi -> gecersiz-cesit). Ikisi de yoksa undefined (varsayilan).
+ */
+export function govdeCesidi(g) {
+  const s = g && g.secim && typeof g.secim === "object" && !Array.isArray(g.secim) ? g.secim.cesit : undefined;
+  if (s === undefined) { return g ? g.cesit : undefined; }
+  if (g.cesit !== undefined && g.cesit !== s) { return null; }
+  return s;
+}
+
+/**
  * MUSTERI CESIT KAPISI (TUR-C2a): kume disi -> `gecersiz-cesit`; sunulmayan (acik:false) cesit -> `cesit-yakinda`
  * (sessiz DEGIL, acik ret). Panel ornek uclari bu kapidan GECMEZ. Donus "" = gecer.
  */
@@ -995,6 +1006,7 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   let g;
   try { g = await request.json(); } catch (e) { g = null; }
   if (g && typeof g === "object") {
+    g.cesit = govdeCesidi(g);
     const ck = cesitKapisi(g.tur, g.cesit);
     if (ck) { return fjson({ hata: ck }, 400); }
   }
