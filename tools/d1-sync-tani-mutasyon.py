@@ -67,8 +67,9 @@ MUTANTLAR = [
      ("B10c",)),
 
     ("M3d KALICI ozel cache DEVRE DISI (paylasilan cache'e geri donus)",
-     "    return dict(os.environ, npm_config_cache=NPM_CACHE_DIZINI)",
-     "    return dict(os.environ)",
+     # 9 Eki: satir `**WRANGLER_LOG_KAPALI` kazandi; mutant YALNIZ cache'i duser, log kapali kalir.
+     "    return dict(os.environ, npm_config_cache=NPM_CACHE_DIZINI, **WRANGLER_LOG_KAPALI)",
+     "    return dict(os.environ, **WRANGLER_LOG_KAPALI)",
      ("E3",)),
 
     ("M4 TEK UCUS kilidi hic ALINMIYOR",

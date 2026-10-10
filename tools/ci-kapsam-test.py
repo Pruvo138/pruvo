@@ -395,6 +395,13 @@ ACIK_KESIF = {
         "nobet bunu gormedi. nobet.yml `serit-b` job'una baglandi; bu kayit "
         "RATCHET'tir — cagri satiri silinirse kapi KIRMIZI yanar. MUAFIYET DEGIL, "
         "kapsam ZORLAMASIDIR.",
+    "tools/wrangler-log-nobetcisi.py":
+        "Makine-yerel nobetci (`~/.wrangler/logs` boyut/yas + `--budama`) ama adi "
+        "`-kapisi.py`/`-test.py` konvansiyonlarina uymaz. sahipsiz-kapi-nobetcisi "
+        "onu nobetci evreninde sayar; kesif disi kalirsa IZIN_LISTESI'ne yazilamaz "
+        "(kural 3: KESFEDILMEYEN giris BAYAT) ve tek yol taban yukseltmek olurdu. "
+        "Kesfe alinir, kapsam sorusu IZIN_LISTESI'ndeki gerekceyle cevaplanir; o "
+        "kayit silinirse kapi KAPSAMSIZ diye KIRMIZI yanar.",
 }
 
 
@@ -3608,6 +3615,11 @@ IZIN_LISTESI = {
     "tools/nobet-dagitilmaz-sebep-test.py": (
         "URETIM KAYNAGI CI'DA YOK: ~/.claude/cron/nobet-kapi.py repoya dahil degil; "
         "test Okan makinesinde canli cron karsisinda kosar."),
+    "tools/wrangler-log-nobetcisi.py": (
+        "MAKINE-YEREL NOBETCI: olctugu `~/.wrangler/logs` dizini CI kosucusunda YOK; "
+        "nobetci Okan makinesinde crontab'da (`27 * * * *` `--budama`) kosar. Kabul "
+        "bataryasi CI'da adiyla kosar: nobet.yml `serit-b` -> "
+        "`tools/wrangler-log-nobetcisi-test.py`."),
     # (KraL-KapiSupurmesi-29Agu: nobet-gorev-jeton-kapisi muafiyeti kaldirildi —
     # kapi silindi.)
 }
