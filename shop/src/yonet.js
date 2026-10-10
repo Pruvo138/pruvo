@@ -2644,10 +2644,11 @@ async function fotoYukle(){
  }
  // ACILIS ANAHTARI — fiyat tablosu YOK (Okan 7 Eki): fiyat = max(600 TL, en uzun boyut (mm) × 10 TL), tek formül.
  // Tür yalnız anahtarı AÇIK + gerçek örneği varsa satılır; varsayılan KAPALI.
+ // 6 MODEL: anahtarlık/figür MODEL satırlarıyla açılır (anahtarlik_yazi … model); eski tür satırı hiçbirini açmaz.
  var acikK={};(o.acik||[]).forEach(function(k){acikK[k]=true;});
  h.push('<div class="kart"><b>Satışa açık türler</b> (fiyat: '+esc(o.fiyat_formulu||"")+'; KDV dahil, kargo ayrı)'+
   '<table class="kucuk"><tr><th>Tür</th><th>Ölçü (mm)</th><th>En düşük</th><th>Durum</th><th></th></tr>'+
-  (o.sunulan_turler||[]).map(function(t){var a=!!acikK[t.kod];return '<tr><td>'+esc(t.ad)+'</td><td>'+
+  (o.acilis_satirlari||o.sunulan_turler||[]).map(function(t){var a=!!acikK[t.kod];return '<tr><td>'+esc(t.ad)+'</td><td>'+
    esc(t.olcu_en_az)+'–'+esc(t.olcu_en_cok)+'</td><td>'+tl(t.fiyat_en_az_kurus)+'</td><td>'+(a?'<b>açık</b>':'kapalı')+
    '</td><td><button class="fotoAcik" data-tur="'+esc(t.kod)+'" data-acik="'+(a?'0':'1')+'">'+(a?'Kapat':'Aç')+
    '</button></td></tr>';}).join("")+'</table></div>');
