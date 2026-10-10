@@ -221,6 +221,41 @@ const MUTANTLAR = [
     yaz: "    return { beklemeSn: 0, headYasSn: null,\n" +
       "      tabani: \"yerel HEAD ani OKUNAMADI -> artefakt yasi (KATI/fail-closed)\" };",
   },
+  // ── K438 BEKLE-YENIDEN-OLC (10 Eki 2026): yayin fiksturunun W1-W6 vakalari yakalar ──
+  {
+    ad: "M-W1 YENIDEN-OLCME KALKTI: canli sayi yerele ulassa da pencere 'kapanmadi' " +
+      "sayilir (CI yanlis-kirmizisi geri gelir)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "        if (n !== null && n >= yerelSayi) { kapandi = true; break; }",
+    yaz: "        if (false) { kapandi = true; break; }",
+  },
+  {
+    ad: "M-W2 BUTCE TAVANI KALKTI: env butcesi eksen B ust sinirini asar (tikanma " +
+      "pencere gibi beklenir)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "    butceSn: Math.min(istenen, YAYIN_BEKLEME_UST_SINIRI_SN),",
+    yaz: "    butceSn: istenen,",
+  },
+  {
+    ad: "M-W3 BEKLEME SIZDI: hal OKUNDUGU halde (GERCEK KAYIP) bekleme dalina girilir",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "    if (!hal.olculdu) {",
+    yaz: "    if (!hal.olculdu || hal.yok.length) {",
+  },
+  {
+    ad: "M-W4 BEKLEME ENV'I FIKSTUR_ENV'E GIRDI: CI'daki kanonik kosum FIKSTUR MODU " +
+      "sayilir (exit 3)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "  \"PARITE_YEREL_HEAD_YAS_SN\",    // yerel HEAD",
+    yaz: "  \"PARITE_YEREL_HEAD_YAS_SN\", \"PARITE_YAYIN_BEKLE_SN\",    // yerel HEAD",
+  },
+  {
+    ad: "K-W KONTROL: bekleme sayaci davranissiz yeniden yazildi -> YESIL kalmali",
+    kontrol: true,
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "        beklenen += adim;",
+    yaz: "        beklenen = beklenen + adim;",
+  },
 
   // ══ KONTROL MUTANTLARI — YESIL KALMALI ═══════════════════════════════════════════
   // 🔴 NEDEN SART ([[beyan-edilmis-survivor]]): kontrol yoksa DAIMA KIRMIZI bir fikstur

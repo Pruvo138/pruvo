@@ -165,10 +165,19 @@ process.stdout.write(JSON.stringify(cikti) + "\\n");
 `;
 
 // ── Cocuk kosum ──────────────────────────────────────────────────────────────
+// Bekleme env'i (K438) disaridan MIRAS alinmaz: hal komutu patlayan senaryolar (Y3...)
+// yoksa butce kadar UYURDU. Senaryo isterse ekEnv ile ACIKCA verir.
+function cocukEnv(env, ekEnv) {
+  for (const a of ["PARITE_YAYIN_BEKLE_SN", "PARITE_YAYIN_BEKLE_ARALIK_SN"]) {
+    if (!ekEnv || ekEnv[a] === undefined) delete env[a];
+  }
+  return env;
+}
 function kostur(dosya, { araUc, urunlerYolu, argv, ekEnv }) {
   return new Promise((cozul) => {
     const c = spawn(process.execPath, [dosya].concat(argv || []), {
-      env: Object.assign({}, process.env, { ARA_UC: araUc, PARITE_URUNLER: urunlerYolu }, ekEnv || {}),
+      env: cocukEnv(Object.assign({}, process.env, { ARA_UC: araUc, PARITE_URUNLER: urunlerYolu },
+        ekEnv || {}), ekEnv),
       cwd: path.dirname(TOOLS),
     });
     let cikti = "", hataAkisi = "", bitti = false;
@@ -267,6 +276,153 @@ function birimOlc() {
   ONA(ORTAK.beklemeSuresi(9999, null).beklemeSn === 9999 &&
       ORTAK.beklemeSuresi(null, 120).beklemeSn === null,
     "B14 FAIL-CLOSED: HEAD okunamazsa artefakt yasina duser · artefakt yoksa OLCULEMEDI");
+}
+
+// ── BEKLE-YENIDEN-OLC (K438): onKosulOlc SUREC ICINDE, uyku ENJEKTE (gercek bekleme YOK) ──
+// Sahte uc: yerel id'lerin `gizli` olanlari ucun HICBIR yuzeyinde gorunmez (taslak).
+// `yayinla()` cagrilinca gizli kume bosalir = deploy'un `yayin` isi bitti.
+function beklemeSunucusu(yerelIdler, gizli) {
+  const iz = { sayimNonce: [] };
+  const sunucu = http.createServer((req, res) => {
+    const u = new URL(req.url, "http://127.0.0.1");
+    const gorunur = yerelIdler.filter((i) => !gizli.has(i));
+    const gonder = (obj) => {
+      res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(obj));
+    };
+    if (u.pathname !== "/katalog") return gonder({ hata: "bilinmeyen yol" });
+    const ham = (u.searchParams.get("ids") || "").split(",").map((s) => s.trim()).filter(Boolean);
+    if (ham.length) {
+      const g = new Set(gorunur);
+      const bulunan = ham.filter((i) => g.has(i));
+      return gonder({ toplam: bulunan.length, urunler: bulunan.map((id) => ({ id })) });
+    }
+    iz.sayimNonce.push(u.searchParams.get("_nonce"));
+    return gonder({ toplam: gorunur.length, sayfa: 1, urunler: [] });
+  });
+  return new Promise((cozul) => {
+    sunucu.listen(0, "127.0.0.1", () => cozul({
+      uc: "http://127.0.0.1:" + sunucu.address().port + "/ara", iz,
+      kapat() {
+        if (typeof sunucu.closeAllConnections === "function") sunucu.closeAllConnections();
+        sunucu.close();
+      },
+    }));
+  });
+}
+
+async function beklemeOlc() {
+  console.log("\n▶ BEKLE-YENIDEN-OLC (K438): yayin hali OKUNAMAZKEN pencere beklenir");
+  const ENV_ADLARI = ["PARITE_YAYIN_HALI", "SAHTE_HAL_SPEC", "PARITE_URUNLER",
+    "PARITE_YAYIN_BEKLE_SN", "PARITE_YAYIN_BEKLE_ARALIK_SN"];
+  const onceki = {};
+  for (const a of ENV_ADLARI) onceki[a] = process.env[a];
+  const gecici = fs.mkdtempSync(path.join(os.tmpdir(), "parite-bekle-"));
+  const betikYolu = path.join(gecici, "sahte-hal.js");
+  fs.writeFileSync(betikYolu, SAHTE_BETIK);
+  const YEREL = urunUret(12, "wb").map((p) => p.id);
+  const TASLAK = YEREL.slice(0, 3);
+  const ARALIK = 60;
+
+  // Tek vaka: sahte uc + hal komutu spec'i + enjekte uyku (k. uykuda yayin biter).
+  async function vaka({ halSpec, argvYok, ayar, yayinlaUykuda }) {
+    for (const a of ENV_ADLARI) delete process.env[a];
+    if (argvYok) {
+      process.env.PARITE_URUNLER = path.join(gecici, "yok.json");    // fikstur -> argv null
+    } else {
+      process.env.PARITE_YAYIN_HALI = JSON.stringify([process.execPath, betikYolu]);
+      process.env.SAHTE_HAL_SPEC = JSON.stringify(halSpec || {});
+    }
+    const gizli = new Set(TASLAK);
+    const s = await beklemeSunucusu(YEREL, gizli);
+    const uykular = [];
+    const uyku = async (ms) => {
+      uykular.push(ms);
+      if (yayinlaUykuda && uykular.length === yayinlaUykuda) gizli.clear();
+    };
+    try {
+      const r = await ORTAK.onKosulOlc({ uc: s.uc, yerelIdler: YEREL, sayac: ORTAK.sayacYeni(),
+        nonce: "w", bekleme: Object.assign({ uyku, beklenenSn: 0 }, ayar) });
+      return { r, uykular, iz: s.iz };
+    } finally {
+      s.kapat();
+    }
+  }
+  const metin = (x) => (x.r.kirmizi || "") + " | " + x.r.notlar.join(" | ");
+  const topla = (u) => u.reduce((a, b) => a + b, 0) / 1000;
+
+  try {
+    // W1 hal komutu rc 1, canli sayi 3. yoklamada yerele esitlenir -> bastan olcum BIREBIR.
+    aktifSenaryo = "W1 BEKLE: hal OKUNAMAZ + pencere 3. yoklamada kapanir -> BIREBIR";
+    const w1 = await vaka({ halSpec: { patla: true }, yayinlaUykuda: 3,
+      ayar: { butceSn: 2700, aralikSn: ARALIK } });
+    ONA(w1.r.kirmizi === null, "W1 bekleme sonrasi KIRMIZI DEGIL", metin(w1));
+    ONA(w1.r.gecikmeModu === false && w1.r.olculemedi.length === 0 &&
+        w1.r.canliSayi === YEREL.length, "W1 bastan olcum BIREBIR (canli = yerel, olculemedi 0)",
+      metin(w1));
+    ONA(w1.uykular.length === 3 && topla(w1.uykular) === 3 * ARALIK,
+      "W1 tam 3 aralik uyudu (enjekte uyku, gercek bekleme YOK)", JSON.stringify(w1.uykular));
+    ONA(/YAYIN PENCERESI BEKLENDI/.test(metin(w1)) && /180 sn/.test(metin(w1)),
+      "W1 beklenen sure notlar'da GORUNUR", metin(w1));
+    ONA(new Set(w1.iz.sayimNonce).size === w1.iz.sayimNonce.length,
+      "W1 her sayim TAZE nonce ile (CDN bayat sayi donduremez)", w1.iz.sayimNonce.join(","));
+
+    // W2 sayi hic esitlenmez + kisa butce -> ayni KIRMIZI + KAPANMADI.
+    aktifSenaryo = "W2 BEKLE: pencere KAPANMAZ -> KIRMIZI + KAPANMADI, butce tavanli";
+    const w2 = await vaka({ halSpec: { patla: true }, ayar: { butceSn: 150, aralikSn: ARALIK } });
+    ONA(w2.r.kirmizi !== null && /YAYIN HALI OKUNAMADI/.test(w2.r.kirmizi) &&
+        /150 sn beklendi, yayin penceresi KAPANMADI/.test(w2.r.kirmizi),
+      "W2 KIRMIZI metni AYNEN + '150 sn beklendi ... KAPANMADI'", metin(w2));
+    ONA(topla(w2.uykular) === 150, "W2 butce ASILMADI (60+60+30)", JSON.stringify(w2.uykular));
+    // Env'den gelen butce eksen B ust sinirini ASAMAZ (cok buyuk istek -> tavan).
+    const tavanli = ORTAK.yayinBekleAyari({ PARITE_YAYIN_BEKLE_SN: "86400" });
+    ONA(tavanli.butceSn === ORTAK.YAYIN_BEKLEME_UST_SINIRI_SN,
+      "W2 env butcesi YAYIN_BEKLEME_UST_SINIRI_SN ile TAVANLI", JSON.stringify(tavanli));
+    const w2b = await vaka({ halSpec: { patla: true }, ayar: tavanli });
+    ONA(w2b.r.kirmizi !== null && topla(w2b.uykular) <= ORTAK.YAYIN_BEKLEME_UST_SINIRI_SN,
+      "W2 tavanli butceyle toplam uyku ust siniri ASMADI", topla(w2b.uykular));
+
+    // W3 bekleme env YOK -> eski davranis, uyku 0.
+    aktifSenaryo = "W3 BEKLE: env YOK -> eski davranis BIT-BIT, uyku 0";
+    const bosAyar = ORTAK.yayinBekleAyari({});
+    ONA(bosAyar.butceSn === 0 && ORTAK.yayinBekleAyari({ PARITE_YAYIN_BEKLE_SN: "0" }).butceSn === 0,
+      "W3 env yok/0 -> butce 0", JSON.stringify(bosAyar));
+    const w3 = await vaka({ halSpec: { patla: true }, yayinlaUykuda: 1, ayar: bosAyar });
+    ONA(w3.uykular.length === 0, "W3 uyku cagrisi 0", JSON.stringify(w3.uykular));
+    ONA(w3.r.kirmizi !== null && /YAYIN HALI OKUNAMADI/.test(w3.r.kirmizi) &&
+        !/beklendi/.test(w3.r.kirmizi), "W3 KIRMIZI metni eski haliyle (bekleme eki YOK)",
+      metin(w3));
+
+    // W4 argv yok (fikstur modu, komut verilmedi) -> bekleme YOK.
+    aktifSenaryo = "W4 BEKLE: argv YOK (fikstur) -> bekleme YOK";
+    const w4 = await vaka({ argvYok: true, yayinlaUykuda: 1,
+      ayar: { butceSn: 2700, aralikSn: ARALIK } });
+    ONA(w4.uykular.length === 0, "W4 uyku cagrisi 0", JSON.stringify(w4.uykular));
+    ONA(w4.r.kirmizi !== null && /FIKSTUR MODU/.test(w4.r.kirmizi),
+      "W4 KIRMIZI (fikstur modu, canli D1 okunmaz)", metin(w4));
+
+    // W5 hal OKUNUR ve satir GERCEKTEN yok -> bekleme YOK, KIRMIZI.
+    aktifSenaryo = "W5 BEKLE: GERCEK KAYIP -> bekleme YOK, KIRMIZI";
+    const w5 = await vaka({ halSpec: { yok: TASLAK }, yayinlaUykuda: 1,
+      ayar: { butceSn: 2700, aralikSn: ARALIK } });
+    ONA(w5.uykular.length === 0, "W5 uyku cagrisi 0 (hal OKUNDU, bekleyecek sey yok)",
+      JSON.stringify(w5.uykular));
+    ONA(w5.r.kirmizi !== null && /GERCEK KAYIP/.test(w5.r.kirmizi), "W5 GERCEK KAYIP KIRMIZI",
+      metin(w5));
+
+    // W6 bekleme env'i FIKSTUR_ENV'de DEGIL (kanonik CI kosumu exit 3'e dusmesin).
+    aktifSenaryo = "W6 BEKLE: env FIKSTUR_ENV'e GIRMEZ";
+    const bay = ORTAK.fiksturBayraklari({ PARITE_YAYIN_BEKLE_SN: "2700",
+      PARITE_YAYIN_BEKLE_ARALIK_SN: "60" });
+    ONA(bay.length === 0, "W6 fiksturBayraklari bekleme env'ini ICERMEZ", bay.join(","));
+    ONA(ORTAK.yayinHaliArgv({ PARITE_YAYIN_BEKLE_SN: "2700" }) !== null,
+      "W6 bekleme env'iyle kanonik komut KORUNUR (argv null'a dusmez)");
+  } finally {
+    for (const a of ENV_ADLARI) {
+      if (onceki[a] === undefined) delete process.env[a]; else process.env[a] = onceki[a];
+    }
+    fs.rmSync(gecici, { recursive: true, force: true });
+  }
 }
 
 // ── Senaryo kosucu ───────────────────────────────────────────────────────────
@@ -578,7 +734,7 @@ async function main() {
   console.log("YAYIN PENCERESI FIKSTURU — %d senaryo (ag YOK, canli D1'e 0 sorgu)",
     senaryolar.length);
   console.log("═".repeat(78));
-  if (!Number.isFinite(yalniz)) birimOlc();
+  if (!Number.isFinite(yalniz)) { birimOlc(); await beklemeOlc(); }
 
   for (let i = 0; i < senaryolar.length; i++) {
     if (Number.isFinite(yalniz) && yalniz !== i) continue;
