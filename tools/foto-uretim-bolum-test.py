@@ -26,7 +26,7 @@ SÖZLEŞMESİNİ ölçer:
                 DOM'da: shop/test/foto-uretim.mjs S bölümü; bu dosya sözleşmeyi tutar)
   Y10 RENDER  : (Okan 7 Eki: plaket gerçek baskı beklemeden açılır) türe göre `ornek_kanit_izni`
                 (plaket baski+render · litofan baski+render — Okan 7 Eki G1) + izin kontrolü veri dosyasında; render
-                dalında "önizleme/render" etiketi + abartı cümlesi AYNEN, "gerçek fotoğraf" 0
+                dalında "Örnek görsel (bilgisayar çizimi)" etiketi + abartı cümlesi AYNEN, "gerçek fotoğraf" 0
                 (DAVRANIŞ: shop/test/foto-uretim.mjs RO/ES bölümü)
 
 ÖNCE-KIRMIZI: aynı kontrol fonksiyonları dosyanın sonunda BELLEKTEKİ mutant metinlere
@@ -206,12 +206,12 @@ def kontroller(index, bolum, veri, build):
     s.append(("Y10 sayac izin disi kaniti saymaz (izin kontrolu veri dosyasinda)",
               re.search(r"if \(!k \|\| izin\.indexOf\(k\) < 0\) \{ return false; \}", veri) is not None, ""))
     # Y10 RENDER ORNEGI — 50cb58fe sonrasi: `if (it.kanit === "render") { ... } else {` ESKI dali YOK.
-    # Render kartta "önizleme/render" etiketi, lightbox'ta tur kaydinin ornek_notu'su basiliyor;
+    # Render kartta "Örnek görsel (bilgisayar çizimi)" etiketi, lightbox'ta tur kaydinin ornek_notu'su basiliyor;
     # "gerçek fotoğraf" ifadesi (yasakli, hukuk kapisi 13:4x) yorum/string ikisinde de 0.
     bolum_cleaned = yorumsuz(bolum)
     notlar = dict(re.findall(r'kod:\s*"([a-z]+)",.*?ornek_notu:\s*"([^"]*)"', veri, re.S))
-    s.append(("Y10 render kartinda 'önizleme/render' etiketi VAR (galeri)",
-              '"önizleme/render"' in bolum_cleaned, ""))
+    s.append(("Y10 render kartinda 'Örnek görsel (bilgisayar çizimi)' etiketi VAR (galeri)",
+              '"Örnek görsel (bilgisayar çizimi)"' in bolum_cleaned, ""))
     s.append(("Y10 lightbox ornek_notu tur kaydindan (it.tur.ornek_notu) · bolumde sabit 'kabartmalı' cumlesi 0",
               "it.tur.ornek_notu" in bolum_cleaned and "kabartmalı" not in bolum, ""))
     s.append(("Y10 plaket ornek_notu = karar cumlesi AYNEN", notlar.get("plaket") == RENDER_CUMLE, str(notlar.get("plaket"))))
@@ -316,7 +316,7 @@ def main():
         ("M13 bolum sabit cumleye dondu",
          (index, bolum.replace("it.tur.ornek_notu", '"' + RENDER_CUMLE + '"', 1), veri, build), True),
         ("M10 render etiketi 'gerçek fotoğraf' oldu",
-         (index, bolum.replace('"önizleme/render"', '"gerçek fotoğraf"'), veri, build), True),
+         (index, bolum.replace('"Örnek görsel (bilgisayar çizimi)"', '"gerçek fotoğraf"'), veri, build), True),
         ("K0 kontrol: yorum eklendi", (index.replace("</body>", "<!-- k0 -->\n</body>", 1), bolum, veri, build), False),
         ("M15 gosterge kuralindan list-style: none kaldirildi",
          (index, bolum.replace(".foto-uretim-gosterge{list-style:none;", ".foto-uretim-gosterge{", 1), veri, build), True),

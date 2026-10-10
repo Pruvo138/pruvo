@@ -59,7 +59,7 @@
  *   RO-M1..RO-M3        : izin kontrolu silindi / izin varsayilani acik / render gorsel sarti
  *                         silindi -> ilgili RO senaryosu KIRMIZI; RO-MK (yalniz yorum) -> hicbiri
  *                         (mutant veri dosyasinin BELLEKTEKI kopyasina uygulanir)
- *   ES                  : bolumde render kaydi "önizleme/render" etiketi + abarti cumlesiyle
+ *   ES                  : bolumde render kaydi "Örnek görsel (bilgisayar çizimi)" etiketi + abarti cumlesiyle
  *                         cizilir, "gerçek fotoğraf" metni 0, ozgun foto gorseli 0; baski kaydi
  *                         eski etiketle (ES-M1/ES-M2 ekran mutantlari KIRMIZI)
  *   AK                  : olceklenmis 3MF'in ALT KENAR kalinligi (Y en kucuk 10 mm serit, Z
@@ -1681,11 +1681,11 @@ console.log("RO) RENDER ORNEGI — plaket gercek baski beklemeden acilir (Okan 7
   }
 }
 
-// 13:4x (kopru-15) MİMAR BULGUSU: dürüstlük testleri GERÇEK iddia: her render kartında "önizleme/render"
+// 13:4x (kopru-15) MİMAR BULGUSU: dürüstlük testleri GERÇEK iddia: her render kartında "Örnek görsel (bilgisayar çizimi)"
 // etiketi VAR ve "gerçek fotoğraf"/"Gerçek örnekler" iddiası 0 · baskı kaydı kartı "basılmış ürün" der ·
 // türün ornek_notu (render dürüstlük cümlesi) AYNEN görünür. K3b: ızgara + büyütme penceresi KALKTI (Okan
 // 01:0x) → kart ① penceresinde, ornek_notu ② dürüstlük kutusunda (kart seçilince).
-console.log("ES) EKRAN — ① kart: render 'önizleme/render', baski 'basılmış ürün', 'gerçek fotoğraf'/'Gerçek örnekler' 0; ② ornek_notu AYNEN");
+console.log("ES) EKRAN — ① kart: render 'Örnek görsel (bilgisayar çizimi)', baski 'basılmış ürün', 'gerçek fotoğraf'/'Gerçek örnekler' 0; ② ornek_notu AYNEN");
 {
   const sinifli = (kok, c) => [...kok.agac()].filter((n) => n.classList.contains(c));
   const CUMLE_P = "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, tam kopyası değildir.";
@@ -1711,7 +1711,7 @@ console.log("ES) EKRAN — ① kart: render 'önizleme/render', baski 'basılmı
       onizleme: "https://media.pruvo3d.com/b-o.webp", baski: "https://media.pruvo3d.com/b-b.webp", not: "t" });
     const B = await yol(kaynak, Vb);
     const kirmizi = [];
-    if (R.etiket !== "önizleme/render") kirmizi.push("ETIKET_RENDER");
+    if (R.etiket !== "Örnek görsel (bilgisayar çizimi)") kirmizi.push("ETIKET_RENDER");
     if (B.etiket !== "basılmış ürün") kirmizi.push("ETIKET_BASKI");
     if (/Gerçek örnek/.test(R.metin + B.metin)) kirmizi.push("BASLIK_GERCEK_ORNEK");
     if (/gerçek fotoğraf/i.test(R.metin)) kirmizi.push("RENDER_GERCEK_FOTOGRAF");
@@ -1723,13 +1723,13 @@ console.log("ES) EKRAN — ① kart: render 'önizleme/render', baski 'basılmı
     return { kirmizi, R, B };
   };
   const s = await esDene(EKRAN_KAYNAK);
-  ol("ES1 render kaydi: kartta etiket 'önizleme/render', 'gerçek fotoğraf' 0, 'Gerçek örnekler' 0; ②'de ornek_notu AYNEN; buyuk kart/isik/izgara 0",
+  ol("ES1 render kaydi: kartta etiket 'Örnek görsel (bilgisayar çizimi)', 'gerçek fotoğraf' 0, 'Gerçek örnekler' 0; ②'de ornek_notu AYNEN; buyuk kart/isik/izgara 0",
      s.kirmizi.length === 0, JSON.stringify(s));
   ol("ES2 baski kaydi: kartta etiket 'basılmış ürün'; 'Basılmış ürün (gerçek fotoğraf)' 0; render cumlesi baskiya yazilmaz",
      s.kirmizi.length === 0, JSON.stringify(s));
   const ES_MUT = [
-    ["ES-M1 baski kart etiketi 'gerçek fotoğraf' yapildi", 'it.kanit === "render" ? "önizleme/render" : "basılmış ürün"',
-     'it.kanit === "render" ? "önizleme/render" : "gerçek fotoğraf"', ["BASKI_GERCEK_FOTOGRAF", "ETIKET_BASKI"]],
+    ["ES-M1 baski kart etiketi 'gerçek fotoğraf' yapildi", 'it.kanit === "render" ? "Örnek görsel (bilgisayar çizimi)" : "basılmış ürün"',
+     'it.kanit === "render" ? "Örnek görsel (bilgisayar çizimi)" : "gerçek fotoğraf"', ["BASKI_GERCEK_FOTOGRAF", "ETIKET_BASKI"]],
     ["ES-M2 ornek_notu ②'ye yazilmadi", 'S.ornekNotP.textContent = it && it.kanit === "render" ? it.tur.ornek_notu || "" : "";',
      'S.ornekNotP.textContent = "";', ["ORNEK_NOTU"]],
     ["ES-M3 render sarti kalkti (render cumlesi baskiya yazilir)", 'S.ornekNotP.textContent = it && it.kanit === "render" ? it.tur.ornek_notu || "" : "";',

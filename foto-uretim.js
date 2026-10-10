@@ -1266,7 +1266,7 @@
   }
 
   /* ① KARTLAR — `KARTLAR` tablosundan; türü `/acik` listesinde olmayan ya da sayılan örneği olmayan kart
-     ÇİZİLMEZ. Kart = türün sayılan örneğinin görseli + ad (+ kanıt etiketi: render "önizleme/render",
+     ÇİZİLMEZ. Kart = türün sayılan örneğinin görseli + ad (+ kanıt etiketi: render "Örnek görsel (bilgisayar çizimi)",
      baskı "basılmış ürün" — hukuk kapısı 13:4x). Render örneği türün dürüstlük cümlesi (ornek_notu)
      olmadan çizilmez (fail-closed). acikKodlar: /foto/acik türleri; null = henüz bilinmiyor (kart 0). */
   function kartOrnegi(t) {
@@ -1325,7 +1325,7 @@
         d.appendChild(el("span", "foto-uretim-kart-etiket",
           devreDisi ? "yakında"
           : it.kanit === "ornek-yok" ? "Örnek yakında"
-          : (it.kanit === "render" ? "önizleme/render" : "basılmış ürün")));
+          : (it.kanit === "render" ? "Örnek görsel (bilgisayar çizimi)" : "basılmış ürün")));
         if (!devreDisi) d.addEventListener("click", function () { galeriSec(it.kart.kod); });
         ornekBlok.appendChild(d);
       })(liste[n], n);
@@ -1891,7 +1891,7 @@
     S.alanOnay.appendChild(el("label", "foto-uretim-form-etiket", "Onaylar"));
     // "Nasıl olsun?" notu: 2D açıldığında da geçerli kalan cümle (onay sürümüne bağlı metin DEĞİŞMEZ).
     S.alanOnay.appendChild(el("p", "foto-uretim-ayrinti",
-      "Not yazarsanız notunuz görsel üretimine iletilir; nota iletişim bilgisi yazmayın."));
+      "Not yazarsan notun görsel üretimine iletilir; nota iletişim bilgisi yazma."));
 
     var det = el("details", "foto-uretim-aydinlatma");
     det.appendChild(el("summary", null, "Aydınlatma metni"));
