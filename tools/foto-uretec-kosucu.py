@@ -1350,8 +1350,42 @@ def onarim_kapisi(ham, cikti):
     return "hazir", "", "olc rc=0"
 
 
-def onarim_isle(i, jeton, yaz):
-    """'onarim-bekliyor' satiri: R2 model.ham.3mf -> kopru -> olcum -> model.3mf + 'hazir' (ya da 'elle')."""
+def onarim_figur_ureteci(i, t, gecici):
+    """FIGUR KOLU (TUR-C2a): onarim kuyrugundaki isin onizleme girdi.json'u (shop/src/foto.js onizlemeGonder).
+    Dosya yok ya da `uretec` alani yok -> None (eski is: onarilmis model AYNEN teslim). `cesit=figur` ve `uretec`
+    manifestin `foto_kolu.uretec`iyle AYNI -> uretec adi; aksi "" (fail-closed: 'elle' uretec-uyusmaz)."""
+    oy = os.path.join(gecici, "onizleme-girdi.json")
+    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):
+        return None
+    try:
+        with open(oy, encoding="utf-8") as f:
+            g = json.load(f)
+    except (OSError, ValueError):
+        return ""
+    if not isinstance(g, dict) or "uretec" not in g:
+        return None
+    fk = t.get("foto_kolu") if isinstance(t.get("foto_kolu"), dict) else {}
+    u = g.get("uretec")
+    return u if g.get("cesit") == "figur" and isinstance(u, str) and u and u == fk.get("uretec") else ""
+
+
+def figur_kos(i, t, uretec, model, gecici):
+    """Onarilmis figur -> cesidin ureteci (figur_kulak): zarf dosyalar.figur=figur.3mf, parametre yok (konum
+    varsayilan tepe). Donus (rc, ozet, uretilen model.3mf yolu)."""
+    gd, cd = os.path.join(gecici, "figur-girdi"), os.path.join(gecici, "figur-cikti")
+    os.makedirs(gd)
+    shutil.copyfile(model, os.path.join(gd, "figur.3mf"))
+    with open(os.path.join(gd, "girdi.json"), "w", encoding="utf-8") as f:
+        json.dump({"sozlesme": 1, "kategori": i["tur"], "siparis_no": i["siparis_no"], "kalem": i["kalem"],
+                   "olcu_mm": i["olcu_mm"], "dosyalar": {"figur": "figur.3mf"}, "parametreler": {}}, f)
+    i["uretec"] = uretec
+    rc, ozet = uretec_kos(i, gd, cd, t)
+    return rc, ozet, os.path.join(cd, "model.3mf")
+
+
+def onarim_isle(i, jeton, yaz, t=None):
+    """'onarim-bekliyor' satiri: R2 model.ham.3mf -> kopru -> olcum -> model.3mf + 'hazir' (ya da 'elle').
+    Figur cesidi (onizleme girdi.json `uretec`): onarilmis model cesidin ureteciyle (figur_kulak) islenir."""
     d = "foto/%s/%s/" % (i["siparis_no"], i["kalem"])
     gecici = tempfile.mkdtemp(prefix="foto-onarim-")
     try:
@@ -1360,6 +1394,16 @@ def onarim_isle(i, jeton, yaz):
             karar, sebep, ozet = "elle", "onarim-ham-yok", ""
         else:
             karar, sebep, ozet = onarim_kapisi(ham, cikti)
+        fu = onarim_figur_ureteci(i, t or {}, gecici) if karar == "hazir" else None
+        if fu == "":
+            karar, sebep = "elle", "uretec-uyusmaz"
+        elif fu:
+            rc, fozet, cikti = figur_kos(i, t or {}, fu, cikti, gecici)
+            if rc == 2:
+                karar, sebep = "elle", red_sebebi(fozet)
+            elif rc != 0:
+                karar, sebep = "ariza", "uretec-ariza"
+            ozet = (ozet + " " if ozet else "") + "uretec=" + fu + ("" if rc == 0 else " rc=%s %s" % (rc, fozet))
         if karar == "ariza" and i["deneme"] + 1 >= DENEME_TAVANI:
             karar = "elle"
         if karar == "hazir":
@@ -1405,7 +1449,7 @@ def is_isle(i, manifest, yaz):
         yaz("CAS %s kiralanamadi (baska kosucu ilerletmis) — yazim yok" % is_adi(i))
         return "cas"
     if i["kuyruk"] == "onarim":
-        return onarim_isle(i, jeton, yaz)
+        return onarim_isle(i, jeton, yaz, t)
     gecici = tempfile.mkdtemp(prefix="foto-kosucu-")
     try:
         girdi_dizin = os.path.join(gecici, "girdi")

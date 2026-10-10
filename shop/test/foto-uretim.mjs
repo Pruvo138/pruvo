@@ -2557,8 +2557,8 @@ const GUNLUK_TAVAN = foto.GUNLUK_ONIZLEME_TAVANI;
 const ORNEK_MUTANTLAR = [
   ["OM1 SEPET RED DALI SILINDI", "  if (ornekMi(is)) { return { hata: { hata: \"foto-onizleme-yok\" }, kod: 400 }; }\n", "", "SEPET"],
   ["OM2 DURUM RED DALI SILINDI",
-   "  if (ornekMi(is)) { return fjson({ hata: \"bulunamadi\" }, 404); }\n  if (uretecOnizlemeTuru(is.tur)) { return uretecDurumYaniti",
-   "  if (uretecOnizlemeTuru(is.tur)) { return uretecDurumYaniti", "DURUM"],
+   "  if (ornekMi(is)) { return fjson({ hata: \"bulunamadi\" }, 404); }\n  if (uretecOnizlemeIsi(is)) { return uretecDurumYaniti",
+   "  if (uretecOnizlemeIsi(is)) { return uretecDurumYaniti", "DURUM"],
   ["OM3 GORSEL RED DALI SILINDI",
    "  if (ornekMi(is)) { return fjson({ hata: \"bulunamadi\" }, 404); }\n  // Uretec onizlemesi",
    "  // Uretec onizlemesi", "GORSEL"],
@@ -4194,12 +4194,14 @@ async function c2aSunucuSenaryolar(fm, veriYama) {
   const asilOrnek = VERI.ornekSayisi;
   VERI.ornekSayisi = (kod) => (kod === "anahtarlik" ? 1 : asilOrnek(kod));
   const geri = typeof veriYama === "function" ? veriYama() : null;
-  const proto0 = protoSayisi();
+  let proto0 = protoSayisi();
   try {
     iz.figur = await cag("/foto/onizleme", ah({ cesit: "figur", gorsel: GORSEL, parametreler: undefined }));
     iz.xyz = await cag("/foto/onizleme", ah({ cesit: "xyz" }));
     iz.plaketCesit = await cag("/foto/onizleme", onizlemeGovde({ cesit: "yazi" }));
     iz.dogrudan = fm.girdiGovdeDogrula("anahtarlik", { cesit: "xyz", parametreler: C2A_YAZI });
+    iz.figurProto = protoSayisi() - proto0;
+    proto0 = protoSayisi();
     iz.yok = await cag("/foto/onizleme", ah());
     iz.yazi = await cag("/foto/onizleme", ah({ cesit: "yazi" }));
     iz.yokSatir = await satir(iz.yok.v && iz.yok.v.is);
@@ -4213,7 +4215,7 @@ async function c2aSunucuSenaryolar(fm, veriYama) {
     iz.eskiDurum = await cag("/foto/durum?is=" + eski);
     iz.proto = protoSayisi() - proto0;
   } finally { VERI.ornekSayisi = asilOrnek; if (geri) { geri(); } }
-  s.V1 = iz.figur.kod === 400 && iz.figur.v && iz.figur.v.hata === "cesit-yakinda";
+  s.V1 = iz.figur.kod === 400 && iz.figur.v && iz.figur.v.hata === "cesit-yakinda" && iz.figurProto === 0;
   s.V2 = iz.xyz.kod === 400 && iz.xyz.v && iz.xyz.v.hata === "gecersiz-cesit" && iz.plaketCesit.kod === 400 &&
     iz.plaketCesit.v && iz.plaketCesit.v.hata === "gecersiz-cesit" && iz.dogrudan === "gecersiz-cesit";
   s.V3 = iz.yok.kod === 200 && iz.yazi.kod === 200 && !!iz.yokSatir && iz.yokSatir.asama === "uretec-onizleme" &&
@@ -4253,6 +4255,112 @@ console.log("C2a) TUR-C2a anahtarlık çeşit — sunucu (figür kapısı KAPALI
     const fm = capa === null ? foto : await mutantModul(capa, yerine);
     if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
     const m = await c2aSunucuSenaryolar(fm, yama);
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+}
+
+// ---------------------------------------------------------------- TUR-C2a-2 (10 Eki) figurKolu dallanma noktalari
+// figurKolu(is) = is.cesit === "figur" (ACIK alan). Figur satiri (dogrudan INSERT; panel/acik bypass'i YOK) durum,
+// gorsel, fiyat ve kuyrukta saglayici koluna gider; V9 musteri figur yolu (bellek acik:true) saglayiciya + girdi.json'a.
+async function c2a2Senaryolar(fm, veriYama) {
+  const k = koprukur(); await k.hazir;
+  const r2 = r2Kur();
+  // Sahte kova dizgiyi bayta cevirmez: dizgi yazimlari (girdi.json) ayrica tutulur.
+  const yazilan = new Map(), asilPut = r2.put;
+  r2.put = async (a, v, o) => { if (typeof v === "string") { yazilan.set(a, v); } return asilPut(a, v, o); };
+  const e2 = envKur(k.d1, r2);
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('anahtarlik', 1, 'x'), ('plaket', 1, 'x')").run();
+  let ipNo = 0;
+  const cag = async (yol, govde) => {
+    const h = { "CF-Connecting-IP": "10.0.9." + (++ipNo), "Content-Type": "application/json" };
+    const u = "https://pruvo3d.com/api/shop" + yol;
+    const r = await fm.fotoUclari(new Request(u, govde ? { method: "POST", headers: h, body: JSON.stringify(govde) } : { headers: h }),
+      e2, new URL(u), yol.split("?")[0], null);
+    let v = null; try { v = await r.json(); } catch (e) { v = null; }
+    return { kod: r.status, v };
+  };
+  const s = {}, iz = {};
+  const asilOrnek = VERI.ornekSayisi;
+  VERI.ornekSayisi = (kod) => (kod === "anahtarlik" || kod === "figur" ? 1 : asilOrnek(kod));
+  const fs0 = VERI.cesitKaydi("anahtarlik", "figur");
+  const geri = typeof veriYama === "function" ? veriYama() : null;
+  const iso = new Date().toISOString();
+  const fig = "c2a2" + "f".repeat(28), fig2 = "c2a2" + "b".repeat(28), no = "PR-C2A2-FIGUR";
+  const ekle = (is, asama, gorev) => k.d1.prepare(
+    "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, hazir_tarih, son_kontrol, cesit)" +
+    " VALUES (?, 'anahtarlik', 45, 'z', ?, ?, ?, ?, 0, 'figur')").bind(is, iso, asama, gorev, iso).run();
+  try {
+    await ekle(fig, "onizleme", "gorev-c2a2-figur");
+    await ekle(fig2, "hazir", "gorev-c2a2-hazir");
+    // DURUM: saglayici GET (figur yolu)
+    let c0 = P.cagri.length;
+    iz.durum = await cag("/foto/durum?is=" + fig);
+    iz.durumCagri = P.cagri.slice(c0).filter((x) => !/balance|TURNSTILE/.test(x));
+    // GORSEL: foto-onizleme/<is>.png (uretec dizini DEGIL)
+    await r2.put("foto-onizleme/" + fig2 + ".png", new Uint8Array([137, 80, 78, 71]), { httpMetadata: { contentType: "image/png" } });
+    iz.gorsel = (await cag("/foto/gorsel?is=" + fig2)).kod;
+    // FIYAT: deterministikSatir'e GITMEZ; birim anahtarligin bugunku formulu AYNEN
+    const fk = await fm.fotoKalemFiyatla(e2, { foto_is: fig2, olcu_mm: 45, adet: 1, renkler: ["Beyaz"] }, Date.now());
+    iz.fiyat = fk.satir ? { id: fk.satir.id, birim: fk.satir.birim_kurus, renkli: fk.satir.foto_renkli,
+      malzeme: fk.satir.malzeme, secim: fk.satir.foto_secim === undefined ? "yok" : "var" } : fk;
+    s.V5fiyat = !!fk.satir && fk.satir.foto_secim === undefined && fk.satir.foto_tur === "anahtarlik" &&
+      fk.satir.birim_kurus === VERI.fiyatKurus("anahtarlik", 45, { renkli: fk.satir.foto_renkli, malzeme: fk.satir.malzeme });
+    // KUYRUK: odenen figur kalemi build-baslat ile girer, zincir figur yolundan build baslatir
+    await k.d1.prepare("INSERT INTO siparisler (siparis_no, tarih, durum, tutar_kurus, urunler) VALUES (?, ?, 'odendi', 1, ?)")
+      .bind(no, iso, JSON.stringify([{ id: "ozel-foto-anahtarlik", foto_is: fig2, foto_tur: "anahtarlik", olcu_mm: 45,
+        foto_renkler: ["Beyaz"] }])).run();
+    c0 = P.cagri.length;
+    await fm.fotoUretimTuru(e2, Date.now(), null);
+    iz.kuyrukCagri = P.cagri.slice(c0).filter((x) => /build/.test(x));
+    iz.kuyruk = await k.d1.prepare("SELECT asama, sebep FROM foto_uretim WHERE siparis_no = ?").bind(no).first();
+    // V9 MUSTERI FIGUR YOLU (bellek acik:true): saglayici prototipi figur yolundan + satir cesit='figur' + girdi.json
+    if (fs0) { fs0.acik = true; }
+    const fg = (ek) => onizlemeGovde({ tur: "anahtarlik", olcu_mm: 45, gorsel: GORSEL, parametreler: undefined,
+      cesit: "figur", ...(ek || {}) });
+    iz.v9param = await cag("/foto/onizleme", fg({ parametreler: C2A_YAZI }));
+    iz.v9buyuk = await cag("/foto/onizleme", fg({ olcu_mm: 60 }));
+    c0 = P.cagri.length;
+    iz.v9 = await cag("/foto/onizleme", fg());
+    iz.v9cagri = P.cagri.slice(c0).filter((x) => /prototype/.test(x));
+    const sat = await k.d1.prepare("SELECT is_no, cesit FROM foto_isler WHERE cesit = 'figur' AND is_no NOT LIKE 'c2a2%'").first();
+    iz.v9satir = sat;
+    const gj = sat ? yazilan.get("foto-uretec-onizleme/" + sat.is_no + "/girdi.json") : null;
+    iz.v9girdi = gj ? JSON.parse(gj) : null;
+  } finally {
+    if (fs0) { fs0.acik = false; }
+    VERI.ornekSayisi = asilOrnek; if (geri) { geri(); }
+  }
+  s.V5 = iz.durumCagri.includes("GET /tur-onek/tur-figur/v1/prototype/gorev-c2a2-figur") && iz.gorsel === 200 &&
+    s.V5fiyat && !!iz.kuyruk && iz.kuyruk.asama !== "uretec-bekliyor" &&
+    iz.kuyrukCagri.includes("POST /tur-onek/tur-figur/v1/build");
+  delete s.V5fiyat;
+  s.V9 = iz.v9param.kod === 400 && iz.v9param.v && iz.v9param.v.hata === "sema-disi-parametre" &&
+    iz.v9buyuk.kod === 400 && iz.v9buyuk.v && iz.v9buyuk.v.hata === "gecersiz-olcu" &&
+    iz.v9cagri.includes("POST /tur-onek/tur-figur/v1/prototype") && !!iz.v9satir && !!iz.v9girdi &&
+    iz.v9girdi.cesit === "figur" && iz.v9girdi.uretec === "figur_kulak" && iz.v9girdi.kategori === "anahtarlik";
+  k.kapat();
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+
+console.log("C2a-2) TUR-C2a-2 figurKolu dallanma noktaları (figür kapısı KAPALI)");
+{
+  const s = await c2a2Senaryolar(foto);
+  ol("V5 figurKolu satırı: durum sağlayıcı GET (figür yolu) · görsel foto-onizleme · fiyat deterministikSatir DIŞI (formül AYNEN) · kuyruk build-baslat",
+     s.V5, JSON.stringify([s.iz.durumCagri, s.iz.gorsel, s.iz.fiyat, s.iz.kuyruk, s.iz.kuyrukCagri]));
+  ol("V9 müşteri figür yolu (bellek acik:true): parametre -> sema-disi-parametre, 60 mm -> gecersiz-olcu, prototip figür yolu + D1 cesit + girdi.json",
+     s.V9, JSON.stringify([s.iz.v9param, s.iz.v9buyuk, s.iz.v9, s.iz.v9cagri, s.iz.v9satir, s.iz.v9girdi]));
+  const hepsi = async (fm) => ({ ...(await c2aSunucuSenaryolar(fm)), ...(await c2a2Senaryolar(fm)) });
+  const C2A2_MUT = [
+    ["M3 figurKolu hep false", "return !!is && is.cesit === \"figur\"; }", "return false; }", ["V5", "V9"]],
+    ["M4 figurKolu hep true", "return !!is && is.cesit === \"figur\"; }", "return !!is; }", ["V3", "V4", "V8"]],
+    ["C2a2-K0 KONTROL (yorum)", "export function figurKolu(is) {", "// kontrol\nexport function figurKolu(is) {", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of C2A2_MUT) {
+    const fm = await mutantModul(capa, yerine);
+    if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+    const m = await hepsi(fm);
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
   }
