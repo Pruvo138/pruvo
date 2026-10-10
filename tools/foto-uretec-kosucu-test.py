@@ -788,9 +788,28 @@ def vakalar(kosucu):
         u = o.uretim()
         return (u["asama"] == "elle" and u["sebep"] == "uretec-uyusmaz" and o.model() is None), "%s %s" % (son, u)
 
+    # TUR-C2c OLCUM ARACI --kanit-dizin: figur ureteci ozet.json + onizleme.png kopyasi <dizin>/<siparis>/ (bayt AYNI
+    # uretecin yazdigi); karar/R2 T60 ile AYNI. Bayraksiz T60 kanit YAZMAZ (launchd yolu degismez).
+    def t63(o):
+        o.onarim_is(tur="anahtarlik", olcu=45, girdi={"cesit": "figur", "uretec": "figur_kulak"})
+        jen = o.jen()
+        with open(os.path.join(jen, "jeneratorler", "foto", "figur_kulak.py"), "w") as f:
+            f.write(SAHTE_FIGUR)
+        kd = os.path.join(o.d, "kanit")
+        rc, son, c = o.kos("--uygula", "--kanit-dizin", kd, FOTO_KOSUCU_JENERATOR=jen)
+        u = o.uretim()
+        k = os.path.join(kd, SIP)
+        dosyalar = sorted(os.listdir(k)) if os.path.isdir(k) else []
+        oz = json.load(open(os.path.join(k, "ozet.json"))) if "ozet.json" in dosyalar else {}
+        pv = open(os.path.join(k, "onizleme.png"), "rb").read(8) if "onizleme.png" in dosyalar else b""
+        return (son == "HAL=ISLEDI uretildi=1 red=0 ariza=0 rc=0" and u["asama"] == "hazir" and
+                dosyalar == ["onizleme.png", "ozet.json"] and oz.get("surum") == "sahte" and
+                pv == b"\x89PNG\r\n\x1a\n" and (o.model() or b"").startswith(b"PK")), "%s %s kanit=%s" % (son, u, dosyalar)
+
     vaka("T60", t60)
     vaka("T61", t61)
     vaka("T62", t62)
+    vaka("T63", t63)
     for ad, fn in (("T1", t1), ("T2", t2), ("T3", t3), ("T4", t4), ("T5", t5), ("T6", t6), ("T7", t7),
                    ("T8", t8), ("T9", t9), ("T10", t10), ("T11", t11), ("T12", t12), ("T12b", t12b)):
         vaka(ad, fn)
@@ -955,7 +974,9 @@ MUTANTLAR = {
             "            pass\n", {"T29"}),
     # ham dosya yoksa kopru yine kosarsa sebep yanlis kovaya duser.
     # TUR-C2a: koşucu girdi.json `uretec` alanini yok sayarsa figur cesidi kulaksiz teslim edilir (T60).
-    "M60": ('    if not isinstance(g, dict) or "uretec" not in g:\n', "    if True:\n", {"T60", "T61", "T62"}),
+    # TUR-C2c: --kanit-dizin kopyasi yazilmazsa uc-uca olcum araci kulak olcumlerini goremez (T63).
+    "M62": ("                kanit_yaz(i, os.path.dirname(cikti))\n", "                pass\n", {"T63"}),
+    "M60": ('    if not isinstance(g, dict) or "uretec" not in g:\n', "    if True:\n", {"T60", "T61", "T62", "T63"}),
     # TUR-C2a: girdi.json zorunlu sayilirsa eski is (dosya yok) 'elle'ye duser (T27 = V7).
     "M61": ('    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return None\n',
             '    if not r2_al(ONIZLEME_DIZIN % i["is_no"] + "girdi.json", oy):\n        return ""\n', {"T27"}),
@@ -970,7 +991,7 @@ MUTANTLAR = {
     "M43": ('        if len(secilen) != pb.index(b):\n            raise KopruRed("renk")\n', "", {"T35"}),
     "M44": ('    if any(b not in pb for b in (g.get("renkler") or {})):\n        raise KopruRed("renk")\n', "", {"T36"}),
     # ANAHTARLIK FOTO KOLU: foto dali / parametre_bayraklari / >50 mm cumlesi / yazi kolu ayrimi.
-    "M45": ('    if (g or {}).get("kol") == "foto":\n        return ESLEMELER.get(g.get("esle"))\n', "", {"T40", "T60", "T61"}),
+    "M45": ('    if (g or {}).get("kol") == "foto":\n        return ESLEMELER.get(g.get("esle"))\n', "", {"T40", "T60", "T61", "T63"}),
     "M46": ("        komut += [pb[ad], str(u[ad])]\n", "        pass\n", {"T41", "T60"}),
     "M47": ('    (r"figur uzun kenar|kulak dahil uzun kenar|kulak yerlesmez", "anahtarlik-boyut"),\n',
             "", {"T42", "T44", "T61"}),
@@ -979,7 +1000,7 @@ MUTANTLAR = {
     "M51": ('not ad.endswith((".3mf", ".stl"))', 'not ad.endswith(".3mf")', {"T40", "T44"}),
     "M52": ('    "figur_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/figur_kulak.py",',
             '    "plaket_kulak": {"bicim": "tekin-ortak", "betik": "jeneratorler/foto/plaket_kulak.py",',
-            {"T40", "T41", "T44", "T60", "T61"}),
+            {"T40", "T41", "T44", "T60", "T61", "T63"}),
     "M48": ('"anahtarlik-boyut": "Bu fotoğraftan anahtarlık boyutunda bir parça çıkmadı;',
             '"anahtarlik-boyut": "Bu fotoğraftan parça çıkmadı;', {"T42", "T44"}, "foto-uretim-veri.js"),
     # Yazi kolu gerilemesi: foto dali her ureteci yakalar -> anahtarlik yazi isi esle_isimlik'e duser (T13/T14/...).

@@ -95,6 +95,9 @@ IS_SINIRI = 20
 LOG_TAVAN_BAYT = 5 * 1024 * 1024
 CIKTI_DOSYALARI = ["model.3mf", "olcu.json", "onizleme.png"]
 ONIZLEME_DIZIN = "foto-uretec-onizleme/%s/"  # siparis oncesi uretec onizlemesi (shop/src/foto.js ile ayni)
+# OLCUM ARACI kanit dizini (--kanit-dizin; launchd VERMEZ -> ""): onarim figur kolunun ham ozet.json (kulak
+# olcumleri) + onizleme.png kopyasi. D1/R2 sozlesmesine GIRMEZ (TUR-C2c, tools/foto-ornek-uc-uca.py --cesit figur).
+KANIT_DIZIN = ""
 SIPARIS_KALIBI = re.compile(r"^[A-Za-z0-9-]{6,40}$")  # shop/src/foto.js ile ayni
 IS_KALIBI = re.compile(r"^[0-9a-f]{32}$")
 # Uretec deposu SALT OKUNUR: alt surec __pycache__ yazmaz.
@@ -1383,6 +1386,21 @@ def figur_kos(i, t, uretec, model, gecici):
     return rc, ozet, os.path.join(cd, "model.3mf")
 
 
+def kanit_yaz(i, cd):
+    """--kanit-dizin verildiyse figur ureteci ciktisi (<cd>.ham/ozet.json + <cd>/onizleme.png) -> <dizin>/<siparis_no>/.
+    Kopya hatasi isin kararini DEGISTIRMEZ (olcum araci eksik dosyayi kendisi EKSIK sayar)."""
+    if not KANIT_DIZIN:
+        return
+    hedef = os.path.join(KANIT_DIZIN, i["siparis_no"])
+    try:
+        os.makedirs(hedef, exist_ok=True)
+        for kaynak in (os.path.join(cd + ".ham", "ozet.json"), os.path.join(cd, "onizleme.png")):
+            if os.path.isfile(kaynak):
+                shutil.copyfile(kaynak, os.path.join(hedef, os.path.basename(kaynak)))
+    except OSError:
+        pass
+
+
 def onarim_isle(i, jeton, yaz, t=None):
     """'onarim-bekliyor' satiri: R2 model.ham.3mf -> kopru -> olcum -> model.3mf + 'hazir' (ya da 'elle').
     Figur cesidi (onizleme girdi.json `uretec`): onarilmis model cesidin ureteciyle (figur_kulak) islenir."""
@@ -1399,6 +1417,8 @@ def onarim_isle(i, jeton, yaz, t=None):
             karar, sebep = "elle", "uretec-uyusmaz"
         elif fu:
             rc, fozet, cikti = figur_kos(i, t or {}, fu, cikti, gecici)
+            if rc == 0:
+                kanit_yaz(i, os.path.dirname(cikti))
             if rc == 2:
                 karar, sebep = "elle", red_sebebi(fozet)
             elif rc != 0:
@@ -1561,6 +1581,8 @@ def main(argv=None):
     ap.add_argument("--log", help="ciktiyi bu dosyaya ekle (5 MB tavan, eskisi silinir)")
     ap.add_argument("--hedef", choices=["canli", "onizleme"], default="canli",
                     help="D1/R2 hedefi (onizleme: shop/wrangler.onizleme.toml; varsayilan canli)")
+    ap.add_argument("--kanit-dizin", default="",
+                    help="olcum araci: onarim figur kolu ozet.json + onizleme.png kopyasi <dizin>/<siparis_no>/")
     ap.add_argument("--donustur-litofan", nargs=3, metavar=("HAM", "CIKTI", "GIRDI"), help=argparse.SUPPRESS)
     ap.add_argument("--donustur-tekin", nargs=4, metavar=("HAM", "CIKTI", "GIRDI", "KOPRU"), help=argparse.SUPPRESS)
     a = ap.parse_args(argv)
@@ -1569,6 +1591,8 @@ def main(argv=None):
     if a.donustur_tekin:
         return donustur_tekin(*a.donustur_tekin)
     hedef_kur(a.hedef)
+    global KANIT_DIZIN
+    KANIT_DIZIN = a.kanit_dizin
     tampon = io.StringIO()
 
     def yaz(s):
