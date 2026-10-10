@@ -548,8 +548,8 @@ console.log("B) ACILIS ANAHTARI + TEK FORMUL (Okan 7 Eki 15:4x: fiyat tablosu YO
   const a2 = await istek(env, "/foto/acik");
   const turler = (a2.v && a2.v.turler) || [];
   const pl = turler.find((t) => t.kod === "plaket");
-  ol("B3 acik:true; plaket olculeri FORMULDEN (100 mm = 100000 kurus, her olcu max(60000, mm x 1000), 10..300 adim 10)",
-     a2.v && a2.v.acik === true && !!pl && pl.olculer.length === 30 &&
+  ol("B3 acik:true; plaket olculeri FORMULDEN (100 mm = 100000 kurus, her olcu max(60000, mm x 1000), 60..300 adim 10)",
+     a2.v && a2.v.acik === true && !!pl && pl.olculer.length === 25 &&
      pl.olculer.every((o) => o.fiyat_kurus === Math.max(o.mm * 1000, 60000) && o.fiyat_kurus === VERI.fiyatKurus("plaket", o.mm)) &&
      pl.olculer.some((o) => o.mm === 100 && o.fiyat_kurus === 100000), JSON.stringify(a2.v));
   ol("P4 /foto/acik sunulan tur sayisi 1 (plaket)", turler.length === 1 && turler[0].kod === "plaket",
@@ -1627,8 +1627,8 @@ async function figurSenaryo(V) {
     const kulak = V.cesitKaydi("anahtarlik", "figur");
     s.alt = { plaket: ea("plaket"), bust: ea("bust"), anahtarlik: ea("anahtarlik"), yapboz: ea("yapboz"),
       kulak_en_cok: kulak ? kulak.olcu_en_cok : null };
-    s.V4 = s.alt.plaket === 10 && s.alt.bust === 60 && s.alt.anahtarlik === 60 && s.alt.yapboz === 100 &&
-      s.alt.kulak_en_cok === 50 && foto.OLCU_MM_EN_AZ === 10;
+    s.V4 = s.alt.plaket === 60 && s.alt.bust === 60 && s.alt.anahtarlik === 60 && s.alt.yapboz === 100 &&
+      s.alt.kulak_en_cok === 50 && foto.OLCU_MM_EN_AZ === 60;
     // Istemci surgusu = sunucunun /foto/acik tur kaydindaki olculer dizisi (olcuSurgusu nt.olculer[0]'dan baslar).
     const nt = foto.acikTurler(new Set(["figur"])).find((t) => t.kod === "figur");
     s.ilk = nt && nt.olculer[0] ? nt.olculer[0] : null;
@@ -1644,7 +1644,7 @@ console.log("FG) FIGUR OLCU ALT SINIRI 60 mm (Okan 10 Eki 12:4x)");
   ol("V1 figur araligi en_az 60 · en_cok 200 (60/70/200 gecerli; 59/65 gecersiz)", s.V1, JSON.stringify(s));
   ol("V2 figur 60/100/200 mm = 600/1000/2000 TL (60000/100000/200000 kurus)", s.V2, "");
   ol("V3 sunucu figur 59 mm -> olcu-aralik-disi, 60 mm kabul", s.V3, JSON.stringify({ r59: s.r59, r60: s.r60 }));
-  ol("V4 plaket 10 · bust 60 · anahtarlik 60 · yapboz 100 alt siniri (figur_kulak <=50, OLCU_MM_EN_AZ 10)", s.V4, JSON.stringify(s.alt));
+  ol("V4 plaket 60 · bust 60 · anahtarlik 60 · yapboz 100 alt siniri (figur_kulak <=50, OLCU_MM_EN_AZ 60)", s.V4, JSON.stringify(s.alt));
   ol("V5 istemci surgu listesi figurde 60 mm (600 TL) ile baslar", s.V5, JSON.stringify(s.ilk));
   // MUTANT (kopyada): figur en_az 10'a geri -> V1/V3/V5 KIRMIZI.
   const capa = "olcu_mm: { en_az: 60, en_cok: 200 },";
@@ -1775,6 +1775,76 @@ console.log("AH) ANAHTARLIK OLCU ALT SINIRI 60 mm (Okan 10 Eki ~13:4x) + figür 
     ? await ahSenaryo(veriYukle(VERI_KAYNAK.replace(capa, "olcu_mm: { en_az: 30, en_cok: 80 },"))) : null;
   const kir = m ? ["VA1", "VA2", "VA3", "VA4", "VA5"].filter((x) => m[x] !== true) : null;
   ol("AHM mutant anahtarlik en_az 30 -> KIRMIZI tam olarak [VA1,VA3,VA4,VA5]", JSON.stringify(kir) === '["VA1","VA3","VA4","VA5"]', JSON.stringify(kir));
+}
+
+// ================================================================ PL — PLAKET OLCU ALT SINIRI 60 (Okan 10 Eki ~13:4x)
+// "plaket de 60 mm olsun": plaket olcu_mm.en_az 60 (en_cok 300 aynen); foto.js OLCU_MM_EN_AZ 60 (manifest plaket ile
+// AYNI). Sunucu araligi kayittan TURETIR; istemci surgusu sunucunun olculer dizisinden. V-TABLO: tum turlerin alt/ust
+// sinirlari tek vakada. Beklenen sayilar BAGIMSIZ (kayittan okunmaz).
+async function plSenaryo(V) {
+  const ad = ["turBul", "olcuAraligi", "olcuGecerli", "olcuSecenekleri", "fiyatKurus", "ornekSayisi", "cesitKaydi"];
+  const yedek = {};
+  for (const a of ad) { yedek[a] = VERI[a]; VERI[a] = a === "ornekSayisi" ? (() => 1) : V[a]; }
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur());
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x')").run();
+  let ipNo = 0;
+  const cag = async (govde) => {
+    const h = { "CF-Connecting-IP": "10.0.14." + (++ipNo), "Content-Type": "application/json" };
+    const u = "https://pruvo3d.com/api/shop/foto/onizleme";
+    const r = await foto.fotoUclari(new Request(u, { method: "POST", headers: h, body: JSON.stringify(govde) }),
+      e2, new URL(u), "/foto/onizleme", null);
+    let v = null; try { v = await r.json(); } catch (er) { v = null; }
+    return { kod: r.status, hata: v && v.hata ? v.hata : "" };
+  };
+  const s = {}, iz = {};
+  try {
+    const a = VERI.olcuAraligi("plaket") || {};
+    s.VP1 = a.en_az === 60 && a.en_cok === 300 && VERI.olcuGecerli("plaket", 60) && VERI.olcuGecerli("plaket", 70) &&
+      VERI.olcuGecerli("plaket", 300) && !VERI.olcuGecerli("plaket", 59) && !VERI.olcuGecerli("plaket", 50) &&
+      !VERI.olcuGecerli("plaket", 10);
+    s.VP2 = VERI.fiyatKurus("plaket", 60) === 60000 && VERI.fiyatKurus("plaket", 300) === 300000;
+    // VP3: sunucu onizleme ucu (59/50 -> 400 gecersiz-olcu, 60 -> 200) + uretec cikti olcu kapisi (aralik disi).
+    const oj = (L) => ({ sozlesme: 1, kategori: "plaket", uzun_kenar_mm: L, kutu_mm: { x: L, y: L, z: 4 }, renk_sayisi: 1, sizdirmaz: true });
+    iz.p59 = await cag(onizlemeGovde({ olcu_mm: 59 })); iz.p50 = await cag(onizlemeGovde({ olcu_mm: 50 }));
+    iz.p60 = await cag(onizlemeGovde({ olcu_mm: 60 }));
+    iz.u59 = foto.uretecOlcuDogrula(oj(59), { tur: "plaket", olcu_mm: 59 });
+    iz.u50 = foto.uretecOlcuDogrula(oj(50), { tur: "plaket", olcu_mm: 50 });
+    s.VP3 = iz.p59.kod === 400 && iz.p59.hata === "gecersiz-olcu" && iz.p50.kod === 400 && iz.p50.hata === "gecersiz-olcu" &&
+      iz.p60.kod === 200 && iz.u59 === "olcu-aralik-disi" && iz.u50 === "olcu-aralik-disi";
+    // VP4: istemci surgusu = /foto/acik plaket olculer dizisi (olcuSurgusu nt.olculer[0]'dan baslar) + surgu yazisi.
+    const nt = foto.acikTurler(new Set(["plaket"])).find((t) => t.kod === "plaket");
+    iz.ilk = nt && nt.olculer[0] ? nt.olculer[0] : null;
+    iz.yazi = iz.ilk ? V.fiyatSatiri("plaket", iz.ilk.mm) : "";
+    s.VP4 = !!iz.ilk && iz.ilk.mm === 60 && iz.ilk.fiyat_kurus === 60000 && iz.yazi === "60 mm → 600 TL" &&
+      foto.OLCU_MM_EN_AZ === 60;
+    // V-TABLO: figur 60 · plaket 60 · bust 60 · anahtarlik 60 · yapboz 100 (ust sinirlar AYNEN: 200/300/250/80/280).
+    const ar = (t) => { const x = VERI.olcuAraligi(t) || {}; return [x.en_az, x.en_cok]; };
+    iz.tablo = { figur: ar("figur"), plaket: ar("plaket"), bust: ar("bust"), anahtarlik: ar("anahtarlik"), yapboz: ar("yapboz") };
+    s.VTABLO = JSON.stringify(iz.tablo) ===
+      '{"figur":[60,200],"plaket":[60,300],"bust":[60,250],"anahtarlik":[60,80],"yapboz":[100,280]}';
+  } finally {
+    for (const a of ad) { VERI[a] = yedek[a]; }
+    k.kapat();
+  }
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("PL) PLAKET OLCU ALT SINIRI 60 mm (Okan 10 Eki ~13:4x) + tum turlerin olcu tablosu");
+{
+  const s = await plSenaryo(veriYukle(VERI_KAYNAK));
+  ol("VP1 plaket araligi en_az 60 · en_cok 300 (60/70/300 gecerli; 59/50/10 gecersiz)", s.VP1, "");
+  ol("VP2 plaket 60 mm = 600 TL (300 mm = 3.000 TL)", s.VP2, "");
+  ol("VP3 sunucu plaket 59/50 mm -> 400 gecersiz-olcu, 60 mm -> 200; uretec olcu kapisi 59/50 aralik disi",
+     s.VP3, JSON.stringify([s.iz.p59, s.iz.p50, s.iz.p60, s.iz.u59, s.iz.u50]));
+  ol("VP4 surgu ilk deger plaket '60 mm → 600 TL' (OLCU_MM_EN_AZ 60)", s.VP4, JSON.stringify([s.iz.ilk, s.iz.yazi]));
+  ol("V-TABLO figur 60 · plaket 60 · bust 60 · anahtarlik 60 · yapboz 100 (ust 200/300/250/80/280 aynen)", s.VTABLO, JSON.stringify(s.iz.tablo));
+  // MUTANT (kopyada): plaket en_az 10'a geri -> VP1/VP3/VP4 KIRMIZI (+V-TABLO).
+  const capa = 'olcu_mm: { en_az: 60, en_cok: 300 },';
+  const m = VERI_KAYNAK.split(capa).length === 2
+    ? await plSenaryo(veriYukle(VERI_KAYNAK.replace(capa, "olcu_mm: { en_az: 10, en_cok: 300 },"))) : null;
+  const kir = m ? ["VP1", "VP2", "VP3", "VP4", "VTABLO"].filter((x) => m[x] !== true) : null;
+  ol("PLM mutant plaket en_az 10 -> KIRMIZI tam olarak [VP1,VP3,VP4,VTABLO]", JSON.stringify(kir) === '["VP1","VP3","VP4","VTABLO"]', JSON.stringify(kir));
 }
 /**
  * Veri nesnesi V (dosya ya da mutant) ile sunucu kapisi: foto.js ornek sayisini V'den okur.
@@ -3953,12 +4023,12 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     const eP = await yeniEkran(kaynak, ["plaket"], null, null, { kart: "plaket" });
     const P = eP.bolum, mmP = eP.V.olcuSecenekleri("plaket");
     kaydir(P, 0); const tabanP = surguYazi(P);
-    kaydir(P, mmP.indexOf(30)); const f30 = fiyat(P);
+    kaydir(P, mmP.indexOf(60)); const f60 = fiyat(P);
     kaydir(P, mmP.indexOf(100)); const f100 = fiyat(P);
     renkSec(P, "Siyah"); const f100r3 = fiyat(P);
     kartSec(P, "PETG"); const f100petg = fiyat(P);
     kartSec(P, "PLA");
-    s.FIYAT = f30 === "Fiyat: 600 TL" && f100 === "Fiyat: 1.000 TL" && f100r3 === "Fiyat: 1.000 TL" && f100petg === "Fiyat: 1.300 TL" &&
+    s.FIYAT = f60 === "Fiyat: 600 TL" && f100 === "Fiyat: 1.000 TL" && f100r3 === "Fiyat: 1.000 TL" && f100petg === "Fiyat: 1.300 TL" &&
       fiyat(P) === "Fiyat: 1.000 TL";
     const eB = await yeniEkran(kaynak, ["bust"], null, null, { kart: "bust" });
     const B = eB.bolum;
@@ -3971,7 +4041,7 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
       kutular(B).every((n) => n.type === "radio") && varsayilanB === "Beyaz" &&
       kutular(P).filter((n) => n.checked).length === 1 && (kutular(P).find((n) => n.checked) || {}).value === "Siyah" &&
       !/\bek renk|Renkler \(1/.test(kaynak);
-    s.TABAN = tabanP === "10 mm → 600 TL" && tabanB === "60 mm → 600 TL" && !!surgu(P) && surgu(P).min === "0";
+    s.TABAN = tabanP === "60 mm → 600 TL" && tabanB === "60 mm → 600 TL" && !!surgu(P) && surgu(P).min === "0";
     const eY = await yeniEkran(kaynak, ["yapboz"], null, null, { kart: "yapboz" });
     const Y = eY.bolum;
     kaydir(Y, eY.V.olcuSecenekleri("yapboz").indexOf(100));
@@ -3990,7 +4060,7 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
       JSON.stringify(yKart) === JSON.stringify([["~55-60°C", "PLA", "Ev içi", "1.000 TL"], ["~70-75°C", "PETG", "Dış mekân / genel amaçlı", "1.300 TL"]]) &&
       ySecili === "PLA" && yPetgSecili === "PETG" && yOnce === "Fiyat: 1.000 TL" && fiyat(Y) === "Fiyat: 1.300 TL" &&
       ![...Y.agac(), ...B.agac(), ...P.agac()].some((n) => /^(ASA|ABS)$/.test(n.value || n.textContent || ""));
-    Object.defineProperty(s, "iz", { value: { f30, f100, f100r3, f100petg, tabanP, tabanB, pDeg, bDeg, varsayilanB, yMalzeme, bMalzeme, pMalzeme, yKart, ySecili, yPetgSecili, yOnce, ySon: fiyat(Y) }, enumerable: false });
+    Object.defineProperty(s, "iz", { value: { f60, f100, f100r3, f100petg, tabanP, tabanB, pDeg, bDeg, varsayilanB, yMalzeme, bMalzeme, pMalzeme, yKart, ySecili, yPetgSecili, yOnce, ySon: fiyat(Y) }, enumerable: false });
     return s;
   };
 
@@ -4064,9 +4134,9 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
   ol("K3b-6 insan + hayvan_model ikisi de tur figur secer (② durustluk figur'un) ve ②'ye gecer", d0.INSAN, JSON.stringify(d0.iz));
   ol("K3b-7 insan kartinda büst yönlendirmesi 1/1 (hayvan_model'de 0); tik ①'e döner", d0.YONLENDIRME, JSON.stringify(d0));
   ol("K3b-8 gezinti: ② dosyasiz ve parca tarifinde (ret cumlesi) İleri pasif, temiz tarifle acik → ③ → ④ (İleri gizli, Geri var) → Geri ③", d0.GEZINTI, JSON.stringify(d0.iz));
-  ol("K3b-9 ③ canli fiyat: 30 mm → 600 TL (taban) · 100 mm → 1.000 TL · Siyah (ana renk) → 1.000 TL · PETG → 1.300 TL · PLA'ya donus 1.000 TL", u0.FIYAT, JSON.stringify(u0.iz));
+  ol("K3b-9 ③ canli fiyat: 60 mm → 600 TL (taban) · 100 mm → 1.000 TL · Siyah (ana renk) → 1.000 TL · PETG → 1.300 TL · PLA'ya donus 1.000 TL", u0.FIYAT, JSON.stringify(u0.iz));
   ol("K3b-10 ③ renk: fotografsiz ekranda tam 3 ana renk radyo (Siyah,Beyaz,Gri; Renkli YOK), varsayilan Beyaz, tek secim; ek renk metni 0", u0.RENK, JSON.stringify(u0.iz));
-  ol("K3b-11 ③ surgu tabani 2 vaka: plaket ilk deger '10 mm → 600 TL' · bust '60 mm → 600 TL'", u0.TABAN, JSON.stringify(u0.iz));
+  ol("K3b-11 ③ surgu tabani 2 vaka: plaket ilk deger '60 mm → 600 TL' · bust '60 mm → 600 TL'", u0.TABAN, JSON.stringify(u0.iz));
   ol("K3b-12 ③ malzeme kartlari HER turde [PLA,PETG] (yapboz · bust · plaket; ASA/ABS 0); kart metni 2. resim AYNEN + canli fiyat 1.000/1.300 TL; varsayilan PLA; PETG tiki ×1,30", u0.MALZEME, JSON.stringify(u0.iz));
   ol("K3b-13 ④ tiksiz 'Sepete ekle' disabled (yalniz B2 ile de kapali)", c0.SEPET, JSON.stringify(c0));
   ol("K3b-14 İptal → ① (secili kart 0, İleri pasif, sepet paneli yok, tek pencere)", c0.IPTAL, JSON.stringify(c0));
