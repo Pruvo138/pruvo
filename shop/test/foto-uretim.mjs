@@ -1399,6 +1399,19 @@ let ekranTek;
      ekranTek.gorunur && ekranTek.tur === 0 && ekranTek.adim2 === "" &&
      JSON.stringify(gostergeEtiketleri) === JSON.stringify(["Tür seç", "Resim yükle", "Renk, boyut ve malzeme", "Önizleme ve onay"]),
      JSON.stringify({ ...ekranTek, gosterge: gostergeEtiketleri }));
+  // KAPALI GİZLİ (Okan 10 Eki: "çalışmayan işi neden canlıya aldın"): program kapalı / tür listesi boşken bölüm ana
+  // sayfada GÖRÜNMEZ (index.html `hidden` varsayılanı korunur); yalnız açık + ≥1 tür dönünce açılır.
+  const kgKapali = await ekranKos(EKRAN_KAYNAK, VERI, { acik: false, turler: [] }, null, null, {});
+  const kgBos = await ekranKos(EKRAN_KAYNAK, VERI, { acik: true, turler: [] }, null, null, {});
+  ol("KG1 program kapali (/acik acik:false) -> bolum GIZLI kalir", kgKapali.gorunur === false, JSON.stringify({ gorunur: kgKapali.gorunur }));
+  ol("KG2 acik ama tur listesi bos -> bolum GIZLI kalir", kgBos.gorunur === false, JSON.stringify({ gorunur: kgBos.gorunur }));
+  ol("KG3 acik + 1 tur -> bolum GORUNUR (S0 ekrani)", ekranTek.gorunur === true, JSON.stringify({ gorunur: ekranTek.gorunur }));
+  const kgMutKaynak = EKRAN_KAYNAK.replace("    cizYukleniyor();\n    acikYukle();",
+    "    bolum.removeAttribute(\"hidden\");\n    cizYukleniyor();\n    acikYukle();");
+  const kgMut = kgMutKaynak !== EKRAN_KAYNAK
+    ? await ekranKos(kgMutKaynak, VERI, { acik: false, turler: [] }, null, null, {}) : null;
+  ol("KG-M1 bolum /acik beklemeden acilir (eski davranis) -> KG1 KIRMIZI yakalanir",
+     !!kgMut && kgMut.gorunur === true, JSON.stringify({ capa: kgMutKaynak !== EKRAN_KAYNAK, gorunur: kgMut && kgMut.gorunur }));
   ol("S1 kart tiki sonrasi ③ olcu SURGUSU 1 + '100 mm → 1.000 TL'; kaydirinca '150 mm → 1.500 TL'; fiyat listesi satiri 0",
      ekranTek.surgu === 1 && ekranTek.olcu === 1 && ekranTek.surguFiyat[0] === "100 mm → 1.000 TL" &&
      ekranTek.kaydir === "150 mm → 1.500 TL" && ekranTek.listeSatiri === 0, JSON.stringify(ekranTek));
