@@ -18,7 +18,8 @@ Bir kategoride (foto turu) zinciri ONIZLEMEDE olcer; her olcut HAZIR/EKSIK + say
                      asama 'hazir' + panel listesi (panelOrnekListe sorgusu) kaydi; 3MF BAGIMSIZ olculur:
                      her nesne su gecirmez (her yonlu kenar tam 1 kez + tersi var) + dunya kutusunun en uzun
                      ekseni olcu_mm +-%1 + olcu.json alanlari dolu (model_sha256 == 3MF sha256)
-  (5) aydinlatma   : manifest durustluk + ornek_notu + aydinlatma maddeleri dolu; sunucu onaysiz istegi 400
+  (5) aydinlatma   : manifest durustluk + aydinlatma maddeleri dolu, ornek_notu ALANI var ("" = ② TEK cumle, C2 10 Eki:
+                     figur + plaket — durustluk kapsar); sunucu onaysiz istegi 400
                      `onay-yok` ile REDDEDER, onayli istek onaya takilmaz (403 bot-dogrulama: yazim 0);
                      tarayicida aydinlatma kutusunda TEK onay kutusu + onaysiz dugme KAPALI + durustluk metni
   (6) 375 px       : mobil emulasyonda (375x812, mobile) tur secili iken yatay tasma 0 + konsol hatasi 0
@@ -129,7 +130,7 @@ if(mod==='dok'){
   ornekler:F.ornekler.filter(o=>o.tur===t.kod&&F.ornekGecerli(o)).map(o=>({kanit:F.ornekKaniti(o),
    gorseller:[o.foto,o.onizleme,o.baski,o.render].filter(Boolean)})),
   renk_bolgeleri:t.renk_bolgeleri||[],malzemeler:t.malzemeler||{},durustluk:t.durustluk||'',
-  ornek_notu:t.ornek_notu||'',aydinlatma:F.aydinlatmaMaddeleri(t.kod),
+  ornek_notu:t.ornek_notu,aydinlatma:F.aydinlatmaMaddeleri(t.kod),
   tarayici_onizleyici:!!(F.TARAYICI_ONIZLEYICI&&F.TARAYICI_ONIZLEYICI[t.uretec]===true),
   turetilmis:F.olcuTuretilmis(t.kod),
   cesitler:(F.cesitler&&F.cesitler[t.kod])?F.cesitler[t.kod].secenekler:[]}))};
@@ -1366,7 +1367,7 @@ def olc_3_5_6(tr, acik, tar):
         tr.koy("3", api_ok and sok, "api=%d olcu=%d surgu=%d uc_yazi=%r beklenen=%r" % (
             1 if api_ok else 0, len(beklenen), 1 if v.get("surgu") else 0, v.get("fiyat"), beklenen_yazi))
     # (5) manifest + sunucu fail-closed + tarayici tek tik.
-    man_ok = bool(t.get("durustluk")) and bool(t.get("ornek_notu")) and bool(t.get("aydinlatma"))
+    man_ok = bool(t.get("durustluk")) and isinstance(t.get("ornek_notu"), str) and bool(t.get("aydinlatma"))
     yol, g = istek_govdesi(tr, False)
     k0, j0 = post_429(yol, g)
     yol, g = istek_govdesi(tr, True)
