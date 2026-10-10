@@ -2095,6 +2095,27 @@
     S.alan.appendChild(btn);
   }
 
+  /* ④ önizleme görselinin palete indirgenmiş kopyası (F.paleteIndirge; tarayıcıda, kredi 0). Kaynak sunucuda AYNEN.
+     Görsel aynı kökenden gelir (canvas okunabilir); tarayıcı desteklemezse ya da okuma hatasında kaynak gösterilir. */
+  function paletleGoster(img, url, renkler) {
+    if (typeof Image !== "function") { img.src = url; return; }
+    var k = new Image();
+    k.onload = function () {
+      try {
+        var c = document.createElement("canvas");
+        c.width = k.naturalWidth || k.width; c.height = k.naturalHeight || k.height;
+        var ctx = c.getContext("2d");
+        ctx.drawImage(k, 0, 0);
+        var d = ctx.getImageData(0, 0, c.width, c.height);
+        if (!F.paleteIndirge(d.data, renkler)) throw new Error("palet");
+        ctx.putImageData(d, 0, 0);
+        img.src = c.toDataURL("image/png");
+      } catch (e) { img.src = url; }
+    };
+    k.onerror = function () { img.src = url; };
+    k.src = url;
+  }
+
   /* ============== S3 ============== */
   function cizS3() {
     if (!S.alan) return;
@@ -2115,9 +2136,12 @@
 
     if (S.gorsel) {
       var img = el("img", "foto-uretim-onizleme-img");
-      img.src = S.gorsel; img.alt = "Önizleme";
+      img.alt = "Önizleme";
       img.width = 300; img.height = 300;
       img.loading = "lazy"; img.decoding = "async";
+      // Deterministik kolun görseli üretecin kendi çizimi (üretilen renklerle); diğer kollarda seçilen palete indirgenir.
+      if (F.kolu && F.kolu(S.tur) === "deterministik") img.src = S.gorsel;
+      else paletleGoster(img, S.gorsel, renkliMi() ? paletRenkleri(S.tur) : [anaRenk()]);
       S.alan.appendChild(img);
     }
 
