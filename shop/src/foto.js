@@ -1155,6 +1155,16 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
   if (oh) { return fjson({ hata: oh }, 400); }
   const sc = secimDogrula(tur.kod, g.secim);
   if (!sc) { return fjson({ hata: "gecersiz-secim" }, 400); }
+  // PALET RENKLERI (RENK-ONIZLEME, Okan 10 Eki): palet turunde secilen renkler (istemci paletRenkleri: ana renkte
+  // [renk], Renkli'de fotograftan 1..tavan) onizleme girdisinde bolgelere sirayla (uretecGirdiJson ile AYNI esleme);
+  // yoksa uretec varsayilaniyla TEK renk basardi. Alan yoksa (eski istemci) bos; bozuksa 400 (odeme kuraliyla AYNI).
+  let paletRenk = {};
+  if (VERI.renkPaleti(tur.kod) && g.renkler !== undefined) {
+    if (g.renkli !== undefined && typeof g.renkli !== "boolean") { return fjson({ hata: "gecersiz-renk" }, 400); }
+    const rs = renkSayimi(tur.kod, { renkler: g.renkler, renkli: g.renkli }, null);
+    if (!rs) { return fjson({ hata: "gecersiz-renk" }, 400); }
+    paletRenk = VERI.paletBolgeRenkleri(tur.kod, rs.renkler);
+  }
   const kayit = VERI.turBul(tur.kod);
   const dosyalar = {};
   const yazilacak = [];
@@ -1190,7 +1200,7 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
 
   const isNo = yeniIsNo();
   const girdi = { sozlesme: 1, kategori: tur.kod, siparis_no: "", kalem: 0, olcu_mm: olcu,
-                  renkler: sc.renk, malzemeler: sc.malzeme,
+                  renkler: { ...paletRenk, ...sc.renk }, malzemeler: sc.malzeme,
                   parametreler: VERI.parametreDogrula(tur.kod, g.parametreler).deger, dosyalar };
   for (const [ad, bayt, tip] of yazilacak) {
     await env.OZEL_DOSYA.put(uretecOnizlemeAnahtari(isNo, ad), bayt, { httpMetadata: { contentType: tip } });
@@ -1219,8 +1229,20 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
 export function olcuKaynagi(tur) { return VERI.olcuTuretilmis(tur) ? "turetilmis" : "surgu"; }
 
 /** Uretec onizlemesinin durum yaniti: hazir -> gorsel + olcu.json ozeti; kuyrukta -> bekliyor. */
-async function uretecDurumYaniti(env, is) {
-  if (is.asama === "uretec-onizleme") { return fjson({ asama: "bekliyor" }, 200); }
+/**
+ * Onizleme hazirlayicisinin (yerel kosucu) yasi, sn: simdi - foto_ayar.kosucu_son_tik (kosucu her --uygula
+ * turunun sonunda yazar). Damga yok/bozuk -> null (ekran "cevrimdisi" der; uydurulmus taze deger YOK).
+ */
+async function hazirlayiciYasSn(env, simdi) {
+  const k = await ayarOku(env, "kosucu_son_tik");
+  const t = k ? Date.parse(k.deger) : NaN;
+  return Number.isFinite(t) ? Math.max(0, Math.round((simdi - t) / 1000)) : null;
+}
+
+async function uretecDurumYaniti(env, is, simdi) {
+  if (is.asama === "uretec-onizleme") {
+    return fjson({ asama: "bekliyor", hazirlayici_yas_sn: await hazirlayiciYasSn(env, simdi) }, 200);
+  }
   if (is.asama !== "onizleme-hazir") { return durumYaniti(is); }
   let olcu = null;
   try {
@@ -1357,7 +1379,7 @@ async function durumUcu(env, url, simdi) {
   if (!is) { return fjson({ hata: "bulunamadi" }, 404); }
   // Ornek isi (panel) musteri ucunda YOK sayilir: varligi da sizmaz.
   if (ornekMi(is)) { return fjson({ hata: "bulunamadi" }, 404); }
-  if (uretecOnizlemeIsi(is)) { return uretecDurumYaniti(env, is); }
+  if (uretecOnizlemeIsi(is)) { return uretecDurumYaniti(env, is, simdi); }
   return onizlemeIlerle(env, is, simdi, yapilandirma(env).hazir, durumYaniti);
 }
 

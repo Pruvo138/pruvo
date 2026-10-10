@@ -2533,6 +2533,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/wrangler-log-nobetcisi-test.py
 
+      # SERIT B UCU KAPISI (10 Eki 2026, BaBa 10:1x) — dal SERIT B kosumu headSha `9d2aa8e8`
+      # iken dal ucu `aec9b6e2` idi; "yesil SERIT B" merge'e yetiyor sanildi. Kapinin
+      # kendisi merge ANINDA elle kosulur (skill merge-kapisi §5); burada yalniz HERMETIK
+      # batarya: gh/git sahte ikiliye yonlenir (AG YOK), 9 vaka + taban + 2 mutant (izole kopya).
+      - name: "SERIT B ucu kapisi kabul bataryasi (headSha == dal ucu, mutant M1/M2)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/serit-b-uc-kapisi-test.py
+
       # HAYALI NOBETCI KAPISI (11 Eyl 2026, BaBa ⑤) — "tools/ icindeki bir YORUM bir .py
       # dosyasini NOBETCI diye aniyorsa o dosya VAR OLMALI". Olculen ariza: ca8c3815
       # supurmesiyle silinen serbest-kume-tekkaynak-test.py'yi DORT yer hala nobetci diye

@@ -1868,6 +1868,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
       JSON.stringify(p0.govde.parametreler) === VARSAYILAN &&
       JSON.stringify(p0.govde.secim) === JSON.stringify({ govde_malzeme: "PLA" }) &&
       e2.araliklar.includes(5000) && !e2.araliklar.includes(3000);
+    // R4 (RENK-ONIZLEME 10 Eki): palet turunun ③ renk secimi onizleme govdesinde (varsayilan ana renk Beyaz, Renkli degil).
+    s.R4_RENK_GOVDE = e2.istekler.length === 1 && JSON.stringify(p0.govde.renkler) === '["Beyaz"]' && p0.govde.renkli === false;
     // PLAKET: form {} -> alan yok, SONRA metni yok.
     const p = await ekranKos(kaynak, sentetik(VERI_KAYNAK), { acik: true, turler: [acikTur(V, "plaket")] }, null, null, { kart: "plaket" });
     const dp = [...p.bolum.agac()];
@@ -1892,6 +1894,7 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
   ol("FM4 plaket (form {}): parametre alani 0, onizleme-sonra metni 0", s0.PLAKET, JSON.stringify(s0));
   ol("FM5 onizlemesiz D: buton onay+dogrulamayla ACILIR -> /foto/onizleme kuyrugu (gorsel + parametre + secim), yoklama 5 sn",
      s0.KUYRUK, JSON.stringify([s0, s0.iz]));
+  ol("R4 palet turu (bust) onizleme govdesinde renk alani: renkler [Beyaz] + renkli false", s0.R4_RENK_GOVDE, JSON.stringify(s0.iz.govde));
   ol("FM6 TEK onay kutusu 'foto-aydinlatma-onay' aydinlatma metninin ALTINDA, D turunde ve plakette GORUNUR; eski 2 kutu 0",
     s0.TEK_KUTU_FORM && s0.TEK_KUTU_PLAKET, JSON.stringify(s0));
   ol("FM7 kutu isaretsizken 'Önizleme oluştur' DISABLED, isaretlenince acilir; govdede aydinlatma_onay + surum (eski alan 0)",
@@ -1900,7 +1903,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
     ["FM-M1 istemci kendi dogrulamasi (her sey gecerli)", "return F.parametreDogrula(S.tur, parametreGovde());", "return { ok: true };", ["AYNI_FONKSIYON", "BOOL", "ILERI_FORM"]],
     ["FM-M2 onizleme-sonra metni dustu", "S.alanOnizlemeSonra.appendChild(el(\"p\", \"foto-uretim-ayrinti\", ONIZLEME_SONRA));", "", ["ONIZLEMESIZ"]],
     ["FM-M4 uretec onizleme yonlendirmesi silindi (saglayici yoluna duser)",
-     "    if (!!(F && F.kolu && F.kolu(S.tur) === \"deterministik\")) { uretecOnizle(); return; }\n", "", ["KUYRUK"]],
+     // Saglayici yolunun govdesinde palet renkleri yok -> R4 de KIRMIZI (renk alani yalniz uretec govdesinde).
+     "    if (!!(F && F.kolu && F.kolu(S.tur) === \"deterministik\")) { uretecOnizle(); return; }\n", "", ["KUYRUK", "R4_RENK_GOVDE"]],
     ["FM-M5 uretec yoklama araligi plaketinki", "var aralik = uretec ? URETEC_YOKLAMA_MS : YOKLAMA_MS;", "var aralik = YOKLAMA_MS;", ["KUYRUK"]],
     ["FM-M6 buton kutusuz acilir (S1 kapisi silindi)",
      // TUR-B ①: S1 kosullari s1Sebep sirasinda (kapi ile cumle TEK kaynak) -> onay kosulu oradan silinir.
@@ -1912,6 +1916,8 @@ console.log("FM) FORM ALANLARI + ONIZLEMESIZ D TURU (gercek bust kaydi: sayi + b
     ["M1 sayi yine number cizilir", "g.type = \"range\"; g.min = String(sema.min);", "g.type = \"number\"; g.min = String(sema.min);",
      ["ALANLAR", "V1_NUMBER_0", "V2_RANGE_2"]],
     ["FM-M11 malzeme secimi govdeye girmez", "      if (S.secim) govde.secim = S.secim;\n", "", ["KUYRUK"]],
+    ["MR4 palet renkleri onizleme govdesine girmez",
+     "      if (F.renkPaleti(S.tur)) { govde.renkler = paletRenkleri(S.tur); govde.renkli = renkliMi(); }\n", "", ["R4_RENK_GOVDE"]],
     ["FM-MK kontrol (yorum)", "// FORM ALANLARI — türün", "// form alanlari — turun", []],
   ];
   for (const [ad, capa, yerine, olmeli] of FM_MUT) {
@@ -2909,6 +2915,93 @@ for (const [ad, capa, yerine, olmeli] of RKK_MUTANTLAR) {
      Object.keys(s).length === 4 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s));
 }
 
+/**
+ * RENK-ONIZLEME (Okan 10 Eki): ③'te secilen palet renkleri /foto/onizleme girdi.json'unda bolgelere sirayla
+ * (uretecGirdiJson ile AYNI esleme) — vaka: bust Renkli "Ahşap, Beyaz" onizlemesi `renkler:{}` ile TEK renk basildi.
+ * R1 bust Renkli 2 renk -> {taban, rolyef} · R2 bust Gri -> {taban:"Gri"} · R3 yapboz Renkli 4 -> renk1..4 ·
+ * KURAL bozuk renk 400 (ana renkte 2 renk / tavan asimi / palet disi), eski istemci (alan yok) 200 + {}.
+ */
+async function onizlemeRenkSenaryolar(fm) {
+  const k = koprukur(); await k.hazir;
+  const r2 = r2Kur();
+  const yazilan = new Map(), asilPut = r2.put;
+  r2.put = async (a, v, o) => { if (typeof v === "string") { yazilan.set(a, v); } return asilPut(a, v, o); };
+  const e2 = envKur(k.d1, r2);
+  const yedek = VERI.ornekler.splice(0);
+  const s = {};
+  let ipNo = 0;
+  const varsayilan = (tur) => {
+    const p = {}, f = VERI.turBul(tur).form || {};
+    for (const a of Object.keys(f)) { if (f[a].varsayilan !== undefined) { p[a] = f[a].varsayilan; } }
+    return p;
+  };
+  const malzeme = (tur) => {
+    const m = {}, mb = VERI.turBul(tur).malzemeler || {};
+    for (const b of Object.keys(mb)) { m[b + "_malzeme"] = mb[b][0]; }
+    return m;
+  };
+  const onizle = async (tur, olcu, ek) => {
+    const govde = { ...onizlemeGovde({ tur, olcu_mm: olcu, parametreler: varsayilan(tur), secim: malzeme(tur) }), ...ek };
+    const u = "https://pruvo3d.com/api/shop/foto/onizleme";
+    const r = await fm.fotoUclari(new Request(u, { method: "POST", body: JSON.stringify(govde),
+      headers: { "CF-Connecting-IP": "10.0.7." + (++ipNo), "Content-Type": "application/json" } }), e2, new URL(u), "/foto/onizleme", null);
+    let v = null; try { v = await r.json(); } catch (e) { v = null; }
+    const gj = v && v.is ? yazilan.get("foto-uretec-onizleme/" + v.is + "/girdi.json") : null;
+    return { kod: r.status, hata: v && v.hata, renkler: gj ? JSON.parse(gj).renkler : null };
+  };
+  const esit = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const iz = {};
+  try {
+    for (const t of ["bust", "yapboz"]) {
+      VERI.ornekler.push({ tur: t, kanit: "render", olcu_mm: 120, onizleme: "https://media.pruvo3d.com/ro-o.webp",
+                           render: "https://media.pruvo3d.com/ro-r.webp", not: "t" });
+      await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES (?, 1, 'x')").bind(t).run();
+    }
+    iz.r1 = await onizle("bust", 110, { renkler: ["Ahşap", "Beyaz"], renkli: true });
+    iz.r2 = await onizle("bust", 110, { renkler: ["Gri"], renkli: false });
+    iz.r3 = await onizle("yapboz", 150, { renkler: ["Lacivert", "Kırmızı", "Sarı", "Beyaz"], renkli: true });
+    iz.anaIki = await onizle("bust", 110, { renkler: ["Gri", "Beyaz"], renkli: false });
+    iz.tavan = await onizle("bust", 110, { renkler: ["Gri", "Beyaz", "Mavi"], renkli: true });
+    iz.disi = await onizle("bust", 110, { renkler: ["Mor"], renkli: true });
+    iz.eski = await onizle("bust", 110, {});
+    s.R1 = iz.r1.kod === 200 && esit(iz.r1.renkler, { taban: "Ahşap", rolyef: "Beyaz" });
+    s.R2 = iz.r2.kod === 200 && esit(iz.r2.renkler, { taban: "Gri" });
+    s.R3 = iz.r3.kod === 200 && esit(iz.r3.renkler, { renk1: "Lacivert", renk2: "Kırmızı", renk3: "Sarı", renk4: "Beyaz" });
+    s.KURAL = [iz.anaIki, iz.tavan, iz.disi].every((x) => x.kod === 400 && x.hata === "gecersiz-renk") &&
+              iz.eski.kod === 200 && esit(iz.eski.renkler, {});
+  } finally {
+    VERI.ornekler.splice(0, VERI.ornekler.length, ...yedek);
+    k.kapat();
+  }
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+
+console.log("RO) RENK-ONIZLEME — secilen palet renkleri onizleme girdisinde (Okan 10 Eki vaka bde591a7)");
+{
+  const s = await onizlemeRenkSenaryolar(foto);
+  ol("R1 bust Renkli [Ahşap, Beyaz] -> onizleme girdi.json renkler {taban, rolyef} (2 renk)", s.R1 === true, JSON.stringify(s.iz.r1));
+  ol("R2 bust Gri -> onizleme girdi.json renkler {taban: Gri} (1 renk)", s.R2 === true, JSON.stringify(s.iz.r2));
+  ol("R3 yapboz Renkli 4 renk -> renk1..renk4 sirayla", s.R3 === true, JSON.stringify(s.iz.r3));
+  ol("R-KURAL ana renkte 2 renk / tavan asimi / palet disi -> 400 gecersiz-renk · renk alani yok (eski istemci) -> 200 {}",
+     s.KURAL === true, JSON.stringify([s.iz.anaIki, s.iz.tavan, s.iz.disi, s.iz.eski]));
+}
+const RO_MUTANTLAR = [
+  ["MR1 KOPAN HALKA GERI: onizleme girdisi yalniz bolge secimi", "renkler: { ...paletRenk, ...sc.renk }, malzemeler: sc.malzeme,",
+   "renkler: sc.renk, malzemeler: sc.malzeme,", ["R1", "R2", "R3"]],
+  ["MR2 renk kurali atlandi", "    if (!rs) { return fjson({ hata: \"gecersiz-renk\" }, 400); }\n    paletRenk",
+   "    if (!rs) { paletRenk = {}; }\n    else paletRenk", ["KURAL"]],
+  ["MR-K KONTROL (yorum)", "// PALET RENKLERI (RENK-ONIZLEME", "// PALET  RENKLERI (RENK-ONIZLEME", []],
+];
+for (const [ad, capa, yerine, olmeli] of RO_MUTANTLAR) {
+  const fm = await mutantModul(capa, yerine);
+  if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+  const s = await onizlemeRenkSenaryolar(fm);
+  const kirmizilar = Object.keys(s).filter((x) => s[x] !== true).sort();
+  ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]",
+     Object.keys(s).length === 4 && JSON.stringify(kirmizilar) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(s.iz));
+}
+
 // ================================================================ DMIN — DINAMIK ALT SINIR (BaBa 14:3x)
 
 /**
@@ -3630,7 +3723,9 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
     const p1Disi = p1 ? [...p1.agac()].filter((n) => !kartIci.has(n) && !n.classList.contains("foto-uretim-kartlar")).length : -1;
     s.KART = JSON.stringify(kartlar.map((k) => k.getAttribute("data-kart"))) === JSON.stringify(["insan", "hayvan_model", "plaket", "bust", "yapboz"]) &&
       p1Disi === 0 && (p1 ? [...p1.agac()] : []).filter((n) => n.tagName === "INPUT" && n.type === "file").length === 0 &&
-      kartlar.every((k) => [...k.agac()].some((n) => n.tagName === "IMG") && sinifli(k, "foto-uretim-kart-ad").length === 1);
+      // Görsel alanı: img YA DA örneksiz kartın nötr yer tutucusu (A4: boş src'li img kırık simge çizer).
+      kartlar.every((k) => [...k.agac()].some((n) => n.tagName === "IMG" || (n.classList && n.classList.contains("foto-uretim-kart-yer"))) &&
+        sinifli(k, "foto-uretim-kart-ad").length === 1);
     const ileri = byId(b, "foto-ileri"), geri = byId(b, "foto-geri");
     s.ILERI = aktif(b) === "1" && !!ileri && ileri.disabled === true && !!geri && geri.hidden === true;
     e.tik("insan"); pen.push(gorunurPencere(b));
@@ -3835,10 +3930,10 @@ console.log("K3b) TEK KUTU 4 PENCERE — kartlar · tek pencere · Geri/İleri �
 }
 
 // ---------------------------------------------------------------- TUR-B (10 Eki) ① sebep cümlesi + hak · ② makine anahtarı
-// ① "Önizleme oluştur" KAPALIYKEN altında TEK cümle (ilk eksik koşul, sıra: not · foto · yazı · onay · doğrulama
-// · hak · program; ArTisT sayfa metni AYNEN); hepsi tamken düğme AÇIK + cümle GİZLİ. "Son 24 saatte kalan
-// önizleme hakkın: N/<sınır>": N sunucu yanıtından, sınır VERI'den (3 YAZILMAZ); "Bugün" YASAK.
-// yazı cümlesi YALNIZ anahtarlık + yazı çeşidi + yazı boşken (F.girdiYeterli aynı kapı).
+// ① "Önizleme oluştur" KAPALIYKEN altında TEK cümle (ilk eksik koşul, sıra — TUR-A4: foto · yazı · not ·
+// onay · doğrulama · hak · program; ArTisT sayfa metni AYNEN); hepsi tamken düğme AÇIK + cümle GİZLİ.
+// "Son 24 saatte kalan önizleme hakkın: N/<sınır>": N sunucu yanıtından, sınır VERI'den (3 YAZILMAZ);
+// "Bugün" YASAK. yazı cümlesi YALNIZ anahtarlık + yazı çeşidi + yazı boşken (F.girdiYeterli aynı kapı).
 const SEBEP = {
   not: "Önce \"Nasıl olsun?\" kısmına kısa bir not yaz.",
   foto: "Önce fotoğrafını yükle.",
@@ -3893,11 +3988,13 @@ async function sebepSenaryolar(kaynak) {
   const tam = await sebepEkrani(kaynak, {});
   iz.tam = tam;
   s.V1_TAM = tam.acik && tam.gizli && tam.sebep === "";
-  // SIRA: birden çok koşul eksikken İLK eksik yazılır (tek eksik vakaları sırayı ölçemez).
-  const hepsi = await sebepEkrani(kaynak, { notYok: true, fotoYok: true, onayYok: true, dogrulamaYok: true });
-  const notlu = await sebepEkrani(kaynak, { fotoYok: true, onayYok: true, dogrulamaYok: true });
-  iz.sira = [hepsi.sebep, notlu.sebep];
-  s.V1_SIRA = hepsi.kapali && hepsi.sebep === SEBEP.not && notlu.kapali && notlu.sebep === SEBEP.foto;
+  // SIRA (TUR-A4): yeni sıra foto · yazı · not · onay · doğrulama · hak · program.
+  //   notlu   = foto VAR + not boş + onay yok + doğrulama yok → foto skip · yazi skip · not fires → SEBEP.not.
+  //   fotosuz = foto YOK + not var  + onay yok + doğrulama yok → foto fires → SEBEP.foto.
+  const notlu = await sebepEkrani(kaynak, { notYok: true, onayYok: true, dogrulamaYok: true });
+  const fotosuz = await sebepEkrani(kaynak, { fotoYok: true, onayYok: true, dogrulamaYok: true });
+  iz.sira = [notlu.sebep, fotosuz.sebep];
+  s.V1_SIRA = notlu.kapali && notlu.sebep === SEBEP.not && fotosuz.kapali && fotosuz.sebep === SEBEP.foto;
   // V2: 429 sonrası S1'de sayaç sunucudan gelen N ile görünür; yanıt gelmeden sayı UYDURULMAZ (sınır cümlesi).
   // Sayaç biçimi ArTisT'ten (ArTisT 10 Eki, birebir): "Son 24 saatte kalan önizleme hakkın: N/3.".
   s.V2_HAK = iz.hak.hak === "Son 24 saatte kalan önizleme hakkın: 0/" + VERI.sinir_ziyaretci_24s + "." &&
@@ -3916,7 +4013,7 @@ console.log("TB) TUR-A2 SEBEP CÜMLESİ + Son 24 saat N/" + VERI.sinir_ziyaretci
   ol("V1 429 onizleme-siniri -> \"" + SEBEP.hak + "\"", s.V1_HAK, JSON.stringify(s.iz.hak));
   ol("V1 503 kapali -> \"" + SEBEP.program + "\"", s.V1_PROGRAM, JSON.stringify(s.iz.program));
   ol("V1 hepsi tam -> düğme AÇIK, sebep cümlesi 0 (gizli)", s.V1_TAM, JSON.stringify(s.iz.tam));
-  ol("V1 sıra: çok eksikte İLK eksik (not; not varken foto)", s.V1_SIRA, JSON.stringify(s.iz.sira));
+  ol("V1 sıra: foto VAR+not boş -> not (foto skip), foto YOK -> foto (yeni sıra)", s.V1_SIRA, JSON.stringify(s.iz.sira));
   ol("V2 sayaç \"Son 24 saatte kalan önizleme hakkın: 0/" + VERI.sinir_ziyaretci_24s + ".\" 429 sonrası görünür; yanıtsız sayı uydurulmaz",
     s.V2_HAK, JSON.stringify([s.iz.hak.hak, s.iz.tam.hak]));
   const TB_MUT = [
@@ -3982,6 +4079,99 @@ console.log("TA3) TUR-A3 503 kapali BİLDİRİMİ — iki önizleme işleyicisi"
   for (const [ad, capa, yerine, olmeli] of A3_MUT) {
     if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa.slice(0, 60)); continue; }
     const m = await kapaliBildirimSenaryolar(EKRAN_KAYNAK.replace(capa, yerine));
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
+  }
+}
+
+// ---------------------------------------------------------------- TUR-A4 (10 Eki, BaBa 06:3x) sebep sırası = ekran sırası · 429 metni tek kaynak · insan kartına dürüst yer tutucu
+// (a) 429 onizleme-siniri dalında sabit "Bugünkü ... Yarın ..." metinleri SİLİNDİ; yerine S1_SEBEP.hak
+//     (değişkenin kendisi, metin kopyası değil). Kaynakta "Yarın yeniden deneyebilirsin" / "Bugünkü önizleme" 0.
+// (b) s1Sebep() sira dizisi ekran sırasına: foto · yazı · not (büstte atla) · onay · doğrulama · hak · program.
+//     S1_SEBEP METİNLERİ + koşul ifadeleri aynen; yalnız SIRA.
+// (c) KARTLAR.insan = { ornek: false } → ornekCiz bu kartta görsel yerine dürüst yer tutucu çizer
+//     (img.src="" + "Örnek yakında" etiketi); kart AKTİF ve tıklanabilir kalır (disabled DEĞİL, gizleme YOK).
+//     hayvan_model kartı aynı türün (figur) GERÇEK örneğini gösterir (img.src=figur-1-render.webp).
+const A4_ORNEK_YAKINDA = "Örnek yakında";
+async function a4Kartlar(kaynak) {
+  const V = veriYukle(VERI_KAYNAK);
+  const DORT_ACIK = acikGercek(V, ["plaket", "figur", "yapboz", "bust"]);
+  const e = await ekranKos(kaynak, V, DORT_ACIK);
+  const kartlar = [...e.bolum.agac()].filter((n) => n.classList.contains("foto-uretim-kart"));
+  const insan = kartlar.find((k) => k.getAttribute("data-kart") === "insan") || null;
+  const hayvan = kartlar.find((k) => k.getAttribute("data-kart") === "hayvan_model") || null;
+  const insanImg = insan && [...insan.agac()].find((n) => n.tagName === "IMG") || null;
+  const hayvanImg = hayvan && [...hayvan.agac()].find((n) => n.tagName === "IMG") || null;
+  return { insan, hayvan, insanImg, hayvanImg, kartlar };
+}
+async function a4Senaryolar(kaynak) {
+  const s = {}, iz = {};
+  // V1 figür fotoğrafsız + not boş → foto cümlesi (yeni sıra: foto önce).
+  const r1 = await sebepEkrani(kaynak, { kod: "figur", notYok: true, fotoYok: true });
+  iz.r1 = r1; s.V1 = r1.kapali && r1.sebep === SEBEP.foto;
+  // V2 fotoğraf var + not boş → not cümlesi (yeni sıra: foto skip, yazi skip, not fires).
+  const r2 = await sebepEkrani(kaynak, { kod: "plaket", notYok: true });
+  iz.r2 = r2; s.V2 = r2.kapali && r2.sebep === SEBEP.not;
+  // V3 büst fotoğrafsız → foto cümlesi (notIstegeBagli("bust")=true → not satırı false).
+  const r3 = await sebepEkrani(kaynak, { kod: "bust", fotoYok: true });
+  iz.r3 = r3; s.V3 = r3.kapali && r3.sebep === SEBEP.foto;
+  // V4 anahtarlık + yazı çeşidi boş → yazı cümlesi.
+  const r4 = await sebepEkrani(kaynak, { kod: "anahtarlik", fotoYok: true, notYok: true });
+  iz.r4 = r4; s.V4 = r4.kapali && r4.sebep === SEBEP.yazi;
+  // V5 hepsi tamam + onay yok → onay cümlesi.
+  const r5 = await sebepEkrani(kaynak, { kod: "plaket", onayYok: true });
+  iz.r5 = r5; s.V5 = r5.kapali && r5.sebep === SEBEP.onay;
+  // V6 kalanHak 0 → hak cümlesi (sunucu 429 sonrası S.kalanHak=0 ile s1Sebep'ten hak).
+  const r6 = await sebepEkrani(kaynak, { kod: "plaket", postKod: 429, postYanit: { hata: "onizleme-siniri", sinir: VERI.sinir_ziyaretci_24s } });
+  iz.r6 = r6; s.V6 = r6.kapali && r6.sebep === SEBEP.hak;
+  // V7 429 onizleme-siniri yanıtı sonrası ekranda SEBEP.hak metni (adimKoy("S1", S1_SEBEP.hak, true)).
+  s.V7 = r6.durum === SEBEP.hak;
+  // V8 insan kartı: img.src ≠ hayvan_model img.src (insan figur örneğini KULLANMAZ), insan kartı not disabled,
+  // insan kartında "Örnek yakında" etiketi var. hayvan_model kartı figur-1-render.webp gösterir.
+  const kk = await a4Kartlar(kaynak);
+  iz.kart = kk;
+  // Sahte DOM'da img.src bir öznitelik DEĞİL property (Oge.setAttribute çağrısı yok); doğrudan property okunur.
+  // disabled da property — atanmamışsa undefined; === false yerine !== true (DEVRE DIŞI yapılmamış) kullanılır.
+  const insanSrc = kk.insanImg ? kk.insanImg.src : null;
+  const hayvanSrc = kk.hayvanImg ? kk.hayvanImg.src : null;
+  // ArTisT 8. okuma: insan kartında img HİÇ yok (boş src kırık simge çizer); hayvan kartı gerçek görseli taşır.
+  s.V8 = !!kk.insan && !!kk.hayvan && insanSrc === null && typeof hayvanSrc === "string" && hayvanSrc !== "" &&
+    kk.insan.disabled !== true && kk.insan.textContent.indexOf(A4_ORNEK_YAKINDA) >= 0;
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("TA4) TUR-A4 sebep sırası + 429 tek kaynak + insan kartı dürüst yer tutucu");
+{
+  const s = await a4Senaryolar(EKRAN_KAYNAK);
+  ol("A4 V1 figür fotoğrafsız + not boş -> foto cümlesi (yeni sıra: foto önce)", s.V1, JSON.stringify(s.iz.r1));
+  ol("A4 V2 fotoğraf var + not boş -> not cümlesi (yeni sıra)", s.V2, JSON.stringify(s.iz.r2));
+  ol("A4 V3 büst fotoğrafsız -> foto cümlesi (büst notIstegeBagli)", s.V3, JSON.stringify(s.iz.r3));
+  ol("A4 V4 anahtarlık + yazı çeşidi boş -> yazı cümlesi", s.V4, JSON.stringify(s.iz.r4));
+  ol("A4 V5 hepsi tamam + onay yok -> onay cümlesi", s.V5, JSON.stringify(s.iz.r5));
+  ol("A4 V6 kalanHak 0 -> hak cümlesi (429 sonrası)", s.V6, JSON.stringify(s.iz.r6));
+  ol("A4 V7 429 onizleme-siniri -> ekranda SEBEP.hak (adimKoy S1_SEBEP.hak)", s.V7, JSON.stringify(s.iz.r6 && s.iz.r6.durum));
+  ol("A4 V8 insan kartı img.src ≠ hayvan_model, not disabled, \"Örnek yakında\" var", s.V8,
+     JSON.stringify({ insan: !!(s.iz.kart && s.iz.kart.insan), insanSrc: s.iz.kart && s.iz.kart.insanImg && s.iz.kart.insanImg.src,
+       hayvanSrc: s.iz.kart && s.iz.kart.hayvanImg && s.iz.kart.hayvanImg.src,
+       insanDisabled: s.iz.kart && s.iz.kart.insan && s.iz.kart.insan.disabled,
+       insanTxt: s.iz.kart && s.iz.kart.insan && s.iz.kart.insan.textContent.slice(0, 80) }));
+  const A4_MUT = [
+    // M1: not satırı foto'nun ÖNÜNE geri alındı (eski sıra); V1 figür+fotoYok+notYok artık not döner (foto KIRMIZI).
+    ["M1 not satırı foto'nun önüne geri alındı (eski sıra)",
+     "      [fotoGerekir() && !S.dosya, S1_SEBEP.foto],\n",
+     "      [!notIstegeBagli(S.tur) && fotoGerekir() && !((S.uretimNotu || \"\").trim()), S1_SEBEP.not],\n      [fotoGerekir() && !S.dosya, S1_SEBEP.foto],\n",
+     ["V1"]],
+    // M2: insan kartı ornek:false kaldırıldı → insan kart figur örneğini gösterir (img.src=figur-1-render.webp ==
+    // hayvan_model img.src), V8 KIRMIZI.
+    ["M2 insan kartı ornek:false kaldırıldı",
+     "{ kod: \"insan\", tur: \"figur\", alt: \"insan\", ad: \"İnsan figürü\", ornek: false,",
+     "{ kod: \"insan\", tur: \"figur\", alt: \"insan\", ad: \"İnsan figürü\",",
+     ["V8"]],
+    ["A4-K0 KONTROL (yorum)", "  function s1Sebep() {", "  // kontrol\n  function s1Sebep() {", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of A4_MUT) {
+    if (EKRAN_KAYNAK.split(capa).length - 1 !== 1) { ol(ad + " capa bulundu", false, capa.slice(0, 60)); continue; }
+    const m = await a4Senaryolar(EKRAN_KAYNAK.replace(capa, yerine));
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
   }
@@ -4638,6 +4828,76 @@ console.log("C2b) TUR-C2b anahtarlık 2 çeşit AÇILIŞ — istemci düğmeleri
     const m = await hepsi(capa === null ? EKRAN_KAYNAK : EKRAN_KAYNAK.replace(capa, yerine), foto, yama);
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
+  }
+}
+
+// ④ HAZIRLAYICI SAĞLIĞI (10 Eki 2026): üreteç işi "sırada" (/foto/durum asama bekliyor) iken sunucunun
+// `hazirlayici_yas_sn` alanı null ya da > 600 ise "sırada" cümlesinin altında TEK satır; ≤ 600 ve diğer aşamalarda YOK.
+// E1 yaş 900 -> VAR · E2 yaş 60 -> YOK · E3 yaş null -> VAR · E4 hazır aşaması + yaş 900 -> YOK (S3 çizildi).
+// Mutant ME1: eşik karşılaştırması kalkar (hep göster) -> tam olarak [E2] KIRMIZI.
+{
+  const HZ_METIN = "Önizleme hazırlayıcısı şu an çevrimdışı; ekibe haber verildi.";
+  const hzIs = "d".repeat(32);
+  const hzKos = async (kaynak, durum) => {
+    const V = veriYukle(VERI_KAYNAK);
+    const e = await ekranKos(kaynak, V, acikGercek(V, ["yapboz"]), { is: hzIs, tur: "yapboz", olcu: 150 }, durum,
+                             { zamanlayici: true });
+    const d = [...e.bolum.agac()];
+    return { satir: d.filter((n) => n.tagName === "P" && n.textContent === HZ_METIN).length,
+             sirada: d.filter((n) => n.tagName === "P" && /^Önizlemen sırada;/.test(n.textContent)).length,
+             s3: d.filter((n) => n.classList.contains("foto-uretim-onizleme-img")).length };
+  };
+  const hzHazir = { asama: "hazir", tur: "yapboz", olcu_mm: 150, gorsel: "/api/shop/foto/gorsel?is=" + hzIs,
+                    gecerlilik_bitis: "2026-10-11T00:00:00.000Z", hazirlayici_yas_sn: 900 };
+  const hzHepsi = async (kaynak) => {
+    const e1 = await hzKos(kaynak, { asama: "bekliyor", hazirlayici_yas_sn: 900 });
+    const e2 = await hzKos(kaynak, { asama: "bekliyor", hazirlayici_yas_sn: 60 });
+    const e3 = await hzKos(kaynak, { asama: "bekliyor", hazirlayici_yas_sn: null });
+    const e4 = await hzKos(kaynak, hzHazir);
+    const r = { E1: e1.sirada === 1 && e1.satir === 1, E2: e2.sirada === 1 && e2.satir === 0,
+                E3: e3.sirada === 1 && e3.satir === 1, E4: e4.s3 === 1 && e4.sirada === 0 && e4.satir === 0 };
+    Object.defineProperty(r, "iz", { value: [e1, e2, e3, e4], enumerable: false });
+    return r;
+  };
+  const hz = await hzHepsi(EKRAN_KAYNAK);
+  ol("E1 ④ sırada + hazirlayici_yas_sn 900 -> çevrimdışı satırı VAR (1×)", hz.E1, JSON.stringify(hz.iz[0]));
+  ol("E2 ④ sırada + hazirlayici_yas_sn 60 -> satır YOK", hz.E2, JSON.stringify(hz.iz[1]));
+  ol("E3 ④ sırada + hazirlayici_yas_sn null (damga yok) -> satır VAR", hz.E3, JSON.stringify(hz.iz[2]));
+  ol("E4 hazır aşaması + yaş 900 -> satır YOK (S3 çizildi)", hz.E4, JSON.stringify(hz.iz[3]));
+  ol("E5 çevrimdışı metni foto-uretim.js'te TEK yerde", EKRAN_KAYNAK.split(HZ_METIN).length - 1 === 1,
+     EKRAN_KAYNAK.split(HZ_METIN).length - 1);
+  // SUNUCU (D0/D1): /foto/durum "bekliyor" yanıtı hazirlayici_yas_sn taşır — damga yok -> null; koşucu damgası
+  // 900 sn önce -> 900 (±2). Alan kümesi yalnız {asama, hazirlayici_yas_sn} (mevcut alan değişmez).
+  {
+    const k = koprukur(); await k.hazir;
+    const e2 = envKur(k.d1, r2Kur());
+    const isNo = "e".repeat(32);
+    await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama) VALUES (?, 'yapboz', 150, 'z', ?, 'uretec-onizleme')")
+      .bind(isNo, new Date().toISOString()).run();
+    const durum = async () => {
+      const u = "https://pruvo3d.com/api/shop/foto/durum?is=" + isNo;
+      const r = await foto.fotoUclari(new Request(u, { headers: { "CF-Connecting-IP": "10.0.9.1" } }), e2, new URL(u), "/foto/durum", null);
+      let v = null; try { v = await r.json(); } catch (e) { v = null; }
+      return { kod: r.status, v };
+    };
+    const d0 = await durum();
+    const t = Date.now() - 900000;
+    await k.d1.prepare("INSERT INTO foto_ayar (anahtar, deger, guncel) VALUES ('kosucu_son_tik', ?, ?)")
+      .bind(new Date(t).toISOString(), t).run();
+    const d1r = await durum();
+    k.kapat();
+    ol("D0 /foto/durum bekliyor + damga yok -> hazirlayici_yas_sn null", d0.kod === 200 && !!d0.v &&
+       d0.v.asama === "bekliyor" && d0.v.hazirlayici_yas_sn === null, JSON.stringify(d0));
+    ol("D1 /foto/durum bekliyor + damga 900 sn önce -> hazirlayici_yas_sn 900 (±2), alanlar {asama, hazirlayici_yas_sn}",
+       d1r.kod === 200 && !!d1r.v && d1r.v.asama === "bekliyor" && Math.abs(d1r.v.hazirlayici_yas_sn - 900) <= 2 &&
+       Object.keys(d1r.v).sort().join(",") === "asama,hazirlayici_yas_sn", JSON.stringify(d1r));
+  }
+  const meCapa = '    return y === null || (typeof y === "number" && y > HAZIRLAYICI_YAS_TAVAN_SN);\n';
+  if (EKRAN_KAYNAK.split(meCapa).length - 1 !== 1) { ol("ME1 capa bulundu", false, meCapa); } else {
+    const m = await hzHepsi(EKRAN_KAYNAK.replace(meCapa, "    return true;\n"));
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol("ME1 mutant (eşik karşılaştırması kalkar, hep göster) -> KIRMIZI tam olarak [E2]",
+       JSON.stringify(kir) === JSON.stringify(["E2"]), JSON.stringify(kir));
   }
 }
 

@@ -105,6 +105,12 @@ KREDI_TIK = {"build-baslat": 30, "analiz": 10, "onarim": 10, "doku": 0}
 # gorur; cum D1 ancak POST sonrasi yakalanir). Renk adiminin kendisi 10 ama KREDI_TIK['renk']=0; zincir
 # sonunda D1 fark ile yakalanir.
 KREDI_TIK_POST_TAVAN_KONTROLU = True
+# DILIM TAVANI (10 Eki): --kredi-tavani KOŞUM basidir; zincir birden cok koşuma (ornek + --devam-is tekrari)
+# bolunurse koşum tavani toplami tutmaz (olculdu: figur 2 x 66 = 132, tavan 70). Dilim defteri ONIZLEME D1
+# `foto_kredi_dilim` (goc dosyasi asagida; betik IF NOT EXISTS ile kendisi uygular); dilim harcanan =
+# SUM(foto_kredi.kredi) WHERE is_no IN (dilimin is_no'lari) + bu koşumda ayrilan (yazilmamis) ust sinir.
+DILIM_GOC = os.path.join(KOK, "tools", "d1-goc", "2026-10-10-foto-kredi-dilim.sql")
+DILIM_DESEN = re.compile(r"^[a-z0-9-]{3,40}$")
 YOKLAMA_SAYI = 120
 OLCUTLER = ["1", "2", "3", "4", "5", "6"]
 ETIKET = {"1": "①", "2": "②", "3": "③", "4": "④", "5": "⑤", "6": "⑥"}
@@ -278,11 +284,37 @@ def yonet(yontem, yol, govde=None):
 class Kredi:
     """FAIL-CLOSED kredi kapisi (saglayici kolu). taban = kosum basi D1 `foto_kredi` toplami; harcanan =
     max(D1 farki, bu kosumda ayrilan ust sinir) — sunucu kaydi gecikse de ayrilan bedel sayilir. D1 okunamazsa
-    Ayar -> kosum OLCULEMEDI (kredi harcanmadan)."""
+    Ayar -> kosum OLCULEMEDI (kredi harcanmadan).
+    DILIM: koşum tavanina EK olarak zincir toplami (DILIM_GOC). dilim_taban = dilimin bu koşumdan ONCEKI D1
+    toplami (--devam-is ile ilk kez kaydedilen is_no'nun gecmis kredisi de tabana girer)."""
 
-    def __init__(self, bulut, tavan):
+    def __init__(self, bulut, tavan, dilim="", dilim_tavan=0):
         self.bulut, self.tavan, self.ayrilan = bulut, tavan, 0
+        self.dilim, self.dilim_tavan = dilim, dilim_tavan
         self.taban = self.toplam()
+        if self.dilim:
+            with open(DILIM_GOC, encoding="utf-8") as f:
+                self.bulut.sql(" ".join(s for s in f.read().splitlines() if s.strip() and not s.startswith("--")))
+            self.dilim_taban = self.dilim_toplam()
+
+    def dilim_toplam(self):
+        r = self.bulut.sql("SELECT COALESCE(SUM(kredi), 0) AS n FROM foto_kredi WHERE is_no IN "
+                           "(SELECT is_no FROM foto_kredi_dilim WHERE dilim = %s)" % sql_metin(self.dilim))
+        return int(r[0]["n"]) if r else 0
+
+    def dilim_harcanan(self):
+        return max(self.dilim_toplam(), self.dilim_taban + self.ayrilan)
+
+    def kaydet(self, is_no, onceki=False):
+        """is_no'yu dilim defterine yazar. onceki=True (--devam-is): gecmis kredisi bu koşumun harcamasi
+        DEGIL, dilim tabanidir."""
+        if not self.dilim:
+            return
+        once = self.dilim_toplam()
+        self.bulut.sql("INSERT OR IGNORE INTO foto_kredi_dilim (dilim, is_no, tarih) VALUES (%s, %s, %s)" % (
+            sql_metin(self.dilim), sql_metin(is_no), sql_metin(simdi_iso())))
+        if onceki:
+            self.dilim_taban += self.dilim_toplam() - once
 
     def toplam(self):
         r = self.bulut.sql("SELECT COALESCE(SUM(kredi), 0) AS n FROM foto_kredi")
@@ -295,6 +327,10 @@ class Kredi:
         h = self.harcanan()
         if h + n > self.tavan:
             return False, "kredi-tavani %d+%d>%d (DUR, saglayiciya istek YOK)" % (h, n, self.tavan)
+        if self.dilim:
+            dh = self.dilim_harcanan()
+            if dh + n > self.dilim_tavan:
+                return False, "kredi-dilim-tavani %d+%d>%d (DUR, saglayiciya istek YOK)" % (dh, n, self.dilim_tavan)
         self.ayrilan = h + n
         return True, ""
 
@@ -1058,6 +1094,8 @@ def saglayici_2(tr, kredi, devam_is_no=""):
         tr.is_no = j["is"]
         # Kosum yarida kesilirse (oturum/zaman tavani) zincir --devam-is <is> ile surer: is_no HEMEN basilir.
         print("ORNEK_IS tur=%s is=%s (devam: --devam-is %s)" % (tr.kod, tr.is_no, tr.is_no), flush=True)
+    # DILIM defteri: yeni is (POST) bu koşumun harcamasi; --devam-is'in gecmis kredisi dilim TABANI.
+    kredi.kaydet(tr.is_no, onceki=bool(devam_is_no))
     d = {}
     for _ in range(YOKLAMA_SAYI):
         k, _, b = yonet("GET", "/foto/ornek-durum?is=" + tr.is_no)
@@ -1125,6 +1163,12 @@ def saglayici_4(tr, kredi):
             if h > kredi.tavan:
                 tr.koy("4", False, "kredi-tavani D1 %d>%d (POST sonrasi, renk oncesi DUR)" % (h, kredi.tavan))
                 return False
+            if kredi.dilim:
+                dh = kredi.dilim_toplam()
+                if dh > kredi.dilim_tavan:
+                    tr.koy("4", False, "kredi-dilim-tavani D1 %d>%d (POST sonrasi, renk oncesi DUR)" % (
+                        dh, kredi.dilim_tavan))
+                    return False
         yokla_bekle()
     tr.koy("4", False, "siparis=%s zaman-asimi asama=%s" % (no, onceki))
     return False
@@ -1398,6 +1442,11 @@ def main(argv=None):
     ap.add_argument("--kol", choices=["D", "M", "R"], help="--hepsi ile: yalniz bu motor")
     ap.add_argument("--kredi-tavani", type=int, default=0,
                     help="saglayici kolu: bu kosumda harcanabilecek kredi (0 = saglayiciya istek YOK, ②④ OLCULMEZ)")
+    ap.add_argument("--dilim", default="",
+                    help="saglayici kolu: zincir/dilim etiketi (^[a-z0-9-]{3,40}$); tavan ZINCIR TOPLAMIDIR (ornek + "
+                         "--devam-is tekrari dahil, ONIZLEME D1 foto_kredi_dilim). --kredi-tavani > 0 iken ZORUNLU.")
+    ap.add_argument("--dilim-tavan", type=int, default=0,
+                    help="dilimin TOPLAM kredi tavani (onceki koşumlar dahil). --kredi-tavani > 0 iken ZORUNLU (> 0).")
     ap.add_argument("--cesit", choices=["figur"], default="",
                     help="tur cesidi (VERI.cesitler; anahtarlik figur -> saglayici kolu). Yalniz TEK --tur ve "
                          "--kredi-tavani > 0 ile gecerli.")
@@ -1408,6 +1457,11 @@ def main(argv=None):
                          "(ornek-onizleme POST'U YAPMAZ, KREDI_ONIZLEME ayirmaz). Yalniz --kredi-tavani > 0 "
                          "ve TEK --tur ile gecerli; --hepsi ile birlikte kullanilamaz.")
     a = ap.parse_args(argv)
+    if a.kredi_tavani > 0 and (not DILIM_DESEN.match(a.dilim or "") or a.dilim_tavan <= 0):
+        print("HATA dilim: --kredi-tavani > 0 iken --dilim <^[a-z0-9-]{3,40}$> ve --dilim-tavan <N > 0> ZORUNLU "
+              "(dilim=%r dilim-tavan=%d; saglayiciya istek YOK)" % (a.dilim, a.dilim_tavan))
+        print("HAZIR=0/0 rc=2")
+        return 2
     if a.devam_is and (a.kredi_tavani <= 0 or len(a.tur) != 1 or a.hepsi):
         print("HATA --devam-is yalniz --kredi-tavani > 0 ve TEK --tur ile gecerli")
         print("HAZIR=0/0 rc=2")
@@ -1485,7 +1539,7 @@ def main(argv=None):
                 olc_4(tr, bulut, gecici)
             else:
                 tr.koy("4", False, "onizleme yok -> ORNEK siparis acilmadi")
-        kredi = Kredi(bulut, a.kredi_tavani) if sag else None
+        kredi = Kredi(bulut, a.kredi_tavani, a.dilim, a.dilim_tavan) if sag else None
         for tr in sag:
             saglayici_2(tr, kredi, devam_is_no=a.devam_is)
             if tr.s["2"][0] and saglayici_4(tr, kredi):
@@ -1518,6 +1572,7 @@ def main(argv=None):
         if kredi:
             print("KREDI_HARCANAN=%d/%d taban=%d ayrilan=%d D1_fark=%d" % (
                 kredi.harcanan(), kredi.tavan, kredi.taban, kredi.ayrilan, kredi.toplam() - kredi.taban))
+            print("DILIM=%s HARCANAN=%d TAVAN=%d" % (kredi.dilim, kredi.dilim_harcanan(), kredi.dilim_tavan))
         print("HAZIR=%d/%d rc=%d" % (n, len(turler), rc))
         return rc
     except Ayar as e:
