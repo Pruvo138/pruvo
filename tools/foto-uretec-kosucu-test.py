@@ -29,15 +29,18 @@ import fcntl
 import hashlib
 import json
 import os
+import plistlib
 import shutil
 import sqlite3
 import struct
 import subprocess
 import sys
 import tempfile
+import time
 import zipfile
 import zlib
 import re
+from datetime import datetime, timezone
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KOSUCU = os.path.join(KOK, "tools", "foto-uretec-kosucu.py")
@@ -439,7 +442,7 @@ def vakalar(kosucu):
 
     def t1(o):
         rc, son, _ = o.kos("--uygula")
-        return rc == 1 and son == "HAL=BOS rc=1" and o.yazimlar() == 0, son
+        return rc == 1 and son == "HAL=BOS rc=1" and o.yazimlar() == 1, "%s yazim=%d" % (son, o.yazimlar())
 
     def t2(o):
         o.siparis_is()
@@ -902,6 +905,37 @@ def vakalar(kosucu):
         return (u["asama"] == "elle" and u["sebep"] == "uretec-red:genel" and o.model() is None and
                 figur_cagrilari(o) == [] and "cok govdeli (2 govde)" in c), "%s %s" % (son, u)
 
+    # SAGLIK DAMGASI (10 Eki): K1 --uygula BOS turu foto_ayar.kosucu_son_tik = taze ISO (+ guncel ms) yazar ·
+    # K2 KURU kip (bos ve is varken) damga YAZMAZ · K1b OLCULEMEDI turu damga yazmaz (bayat damga = cevrimdisi).
+    def damga(o):
+        r_ = o.sql("SELECT deger, guncel FROM foto_ayar WHERE anahtar = 'kosucu_son_tik'")
+        return r_[0] if r_ else None
+
+    def k1(o):
+        once = time.time()
+        rc, son, _ = o.kos("--uygula")
+        d = damga(o)
+        try:
+            t = datetime.strptime(d["deger"], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc).timestamp()
+        except (TypeError, ValueError):
+            t = None
+        return (son == "HAL=BOS rc=1" and d is not None and t is not None and once - 2 <= t <= time.time() + 2
+                and abs(d["guncel"] / 1000.0 - t) < 2), "%s damga=%s" % (son, d)
+
+    def k1b(o):
+        rc, son, _ = o.kos("--uygula", FAKE_D1_KAPALI="1")
+        return son.startswith("HAL=OLCULEMEDI") and damga(o) is None, "%s damga=%s" % (son, damga(o))
+
+    def k2(o):
+        rc, son, _ = o.kos()
+        o.siparis_is()
+        rc2, son2, _ = o.kos()
+        return (son == "HAL=BOS rc=1" and son2 == "HAL=PLAN is=1 rc=0" and damga(o) is None and
+                o.yazimlar() == 0), "%s | %s damga=%s" % (son, son2, damga(o))
+
+    vaka("K1", k1)
+    vaka("K1b", k1b)
+    vaka("K2", k2)
     vaka("T60", t60)
     vaka("T61", t61)
     vaka("T62", t62)
@@ -1039,7 +1073,9 @@ def t44_ci_atlar():
 
 MUTANTLAR = {
     "M1": ('    if o.get("sizdirmaz") is not True:\n        return "sizdirmaz-degil"\n', "", {"T5"}),
-    "M2": ("        if not uygula:\n", "        if False:\n", {"T9"}),
+    "M2": ("    if not uygula:\n", "    if False:\n", {"T9", "K2"}),
+    # SAGLIK DAMGASI: damga yazimi kalkarsa onizleme hazirlayicisi hep "cevrimdisi" gorunur (K1; T1 tek yazim).
+    "MK1": ("            damga_yaz(yaz)\n", "            pass\n", {"K1", "T1"}),
     "M3": ('    if n != 1:\n        yaz("CAS %s kiralanamadi', '    if False:\n        yaz("CAS %s kiralanamadi', {"T6"}),
     "M4": ("DENEME_TAVANI = 3\n", "DENEME_TAVANI = 99\n", {"T4"}),
     "M5": ("            d1(geri_ver_sql(i, jeton))\n", "            pass\n", {"T7", "T34"}),
@@ -1537,12 +1573,52 @@ def gercek(json_yolu=None):
     return 0 if gecen == len(satirlar) else 1
 
 
+def kur_vakalari():
+    """K3 KUR ARACI (10 Eki): `--hedef onizleme` plist'i ayri etiket + ayri log + `--hedef onizleme`; bayraksiz
+    cikti 10 Eki oncesi plist sozlesmesiyle BAYT-ESIT (canli koşucu gerilemesi 0). Yalniz --kuru (diske yazim 0)."""
+    arac = os.path.join(KOK, "tools", "foto-kosucu-kur.py")
+
+    def kuru(*arg):
+        p = subprocess.run([sys.executable, arac] + list(arg), capture_output=True, text=True, timeout=60)
+        return p.returncode, p.stdout
+
+    rc0, c0 = kuru()
+    rc1, c1 = kuru("--hedef", "onizleme")
+    # Eski (bayraksiz) sozlesme: 10 Eki oncesi plist_uret AYNEN (etiket/log/argumanlar).
+    py = shutil.which("python3") or sys.executable
+    eski = {"Label": "com.pruvo.foto-kosucu",
+            "ProgramArguments": [py, os.path.join(KOK, "tools", "foto-uretec-kosucu.py"), "--uygula", "--log",
+                                 os.path.expanduser("~/Library/Logs/pruvo-foto-kosucu.log")],
+            "StartInterval": 120, "RunAtLoad": True, "WorkingDirectory": KOK,
+            "EnvironmentVariables": {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "PYTHONDONTWRITEBYTECODE": "1",
+                                     "FOTO_KOSUCU_PYTHON": py,
+                                     "CLOUDFLARE_ACCOUNT_ID": "<CLOUDFLARE_ACCOUNT_ID --kur aninda ortamdan>"},
+            "StandardOutPath": "/dev/null", "StandardErrorPath": "/dev/null", "ProcessType": "Background"}
+    beklenen0 = plistlib.dumps(eski).decode() + "KURU: diske yazim 0 (hedef %s)\n" % os.path.expanduser(
+        "~/Library/LaunchAgents/com.pruvo.foto-kosucu.plist")
+    try:
+        p1 = plistlib.loads(c1[:c1.rindex("</plist>") + len("</plist>")].encode())
+    except (ValueError, plistlib.InvalidFileException):
+        p1 = {}
+    log1 = os.path.expanduser("~/Library/Logs/pruvo-foto-kosucu-onizleme.log")
+    a1 = p1.get("ProgramArguments") or []
+    ok = (rc0 == 0 and c0 == beklenen0 and rc1 == 0 and p1.get("Label") == "com.pruvo.foto-kosucu-onizleme" and
+          a1[-2:] == ["--hedef", "onizleme"] and a1[2:5] == ["--uygula", "--log", log1] and
+          p1.get("StartInterval") == 120 and
+          c1.rstrip().endswith("(hedef %s)" % os.path.expanduser(
+              "~/Library/LaunchAgents/com.pruvo.foto-kosucu-onizleme.plist")))
+    return {"K3": (ok, "bayraksiz_bayt_esit=%s onizleme=%s %s" % (c0 == beklenen0, p1.get("Label"), a1[2:]))}
+
+
 def main():
     if "--gercek" in sys.argv:
         a = sys.argv
         return gercek(a[a.index("--json") + 1] if "--json" in a else None)
     kirmizi = 0
     for ad, (g, ac) in manifest_vakalari().items():
+        print("%s %s — %s" % ("✅" if g else "❌", ad, ac[:400]))
+        kirmizi += 0 if g else 1
+    for ad, (g, ac) in kur_vakalari().items():
         print("%s %s — %s" % ("✅" if g else "❌", ad, ac[:400]))
         kirmizi += 0 if g else 1
     for ad, (g, ac) in vakalar(KOSUCU).items():

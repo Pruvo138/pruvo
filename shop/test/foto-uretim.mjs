@@ -4725,6 +4725,76 @@ console.log("C2b) TUR-C2b anahtarlık 2 çeşit AÇILIŞ — istemci düğmeleri
   }
 }
 
+// ④ HAZIRLAYICI SAĞLIĞI (10 Eki 2026): üreteç işi "sırada" (/foto/durum asama bekliyor) iken sunucunun
+// `hazirlayici_yas_sn` alanı null ya da > 600 ise "sırada" cümlesinin altında TEK satır; ≤ 600 ve diğer aşamalarda YOK.
+// E1 yaş 900 -> VAR · E2 yaş 60 -> YOK · E3 yaş null -> VAR · E4 hazır aşaması + yaş 900 -> YOK (S3 çizildi).
+// Mutant ME1: eşik karşılaştırması kalkar (hep göster) -> tam olarak [E2] KIRMIZI.
+{
+  const HZ_METIN = "Önizleme hazırlayıcısı şu an çevrimdışı; ekibe haber verildi.";
+  const hzIs = "d".repeat(32);
+  const hzKos = async (kaynak, durum) => {
+    const V = veriYukle(VERI_KAYNAK);
+    const e = await ekranKos(kaynak, V, acikGercek(V, ["yapboz"]), { is: hzIs, tur: "yapboz", olcu: 150 }, durum,
+                             { zamanlayici: true });
+    const d = [...e.bolum.agac()];
+    return { satir: d.filter((n) => n.tagName === "P" && n.textContent === HZ_METIN).length,
+             sirada: d.filter((n) => n.tagName === "P" && /^Önizlemen sırada;/.test(n.textContent)).length,
+             s3: d.filter((n) => n.classList.contains("foto-uretim-onizleme-img")).length };
+  };
+  const hzHazir = { asama: "hazir", tur: "yapboz", olcu_mm: 150, gorsel: "/api/shop/foto/gorsel?is=" + hzIs,
+                    gecerlilik_bitis: "2026-10-11T00:00:00.000Z", hazirlayici_yas_sn: 900 };
+  const hzHepsi = async (kaynak) => {
+    const e1 = await hzKos(kaynak, { asama: "bekliyor", hazirlayici_yas_sn: 900 });
+    const e2 = await hzKos(kaynak, { asama: "bekliyor", hazirlayici_yas_sn: 60 });
+    const e3 = await hzKos(kaynak, { asama: "bekliyor", hazirlayici_yas_sn: null });
+    const e4 = await hzKos(kaynak, hzHazir);
+    const r = { E1: e1.sirada === 1 && e1.satir === 1, E2: e2.sirada === 1 && e2.satir === 0,
+                E3: e3.sirada === 1 && e3.satir === 1, E4: e4.s3 === 1 && e4.sirada === 0 && e4.satir === 0 };
+    Object.defineProperty(r, "iz", { value: [e1, e2, e3, e4], enumerable: false });
+    return r;
+  };
+  const hz = await hzHepsi(EKRAN_KAYNAK);
+  ol("E1 ④ sırada + hazirlayici_yas_sn 900 -> çevrimdışı satırı VAR (1×)", hz.E1, JSON.stringify(hz.iz[0]));
+  ol("E2 ④ sırada + hazirlayici_yas_sn 60 -> satır YOK", hz.E2, JSON.stringify(hz.iz[1]));
+  ol("E3 ④ sırada + hazirlayici_yas_sn null (damga yok) -> satır VAR", hz.E3, JSON.stringify(hz.iz[2]));
+  ol("E4 hazır aşaması + yaş 900 -> satır YOK (S3 çizildi)", hz.E4, JSON.stringify(hz.iz[3]));
+  ol("E5 çevrimdışı metni foto-uretim.js'te TEK yerde", EKRAN_KAYNAK.split(HZ_METIN).length - 1 === 1,
+     EKRAN_KAYNAK.split(HZ_METIN).length - 1);
+  // SUNUCU (D0/D1): /foto/durum "bekliyor" yanıtı hazirlayici_yas_sn taşır — damga yok -> null; koşucu damgası
+  // 900 sn önce -> 900 (±2). Alan kümesi yalnız {asama, hazirlayici_yas_sn} (mevcut alan değişmez).
+  {
+    const k = koprukur(); await k.hazir;
+    const e2 = envKur(k.d1, r2Kur());
+    const isNo = "e".repeat(32);
+    await k.d1.prepare("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama) VALUES (?, 'yapboz', 150, 'z', ?, 'uretec-onizleme')")
+      .bind(isNo, new Date().toISOString()).run();
+    const durum = async () => {
+      const u = "https://pruvo3d.com/api/shop/foto/durum?is=" + isNo;
+      const r = await foto.fotoUclari(new Request(u, { headers: { "CF-Connecting-IP": "10.0.9.1" } }), e2, new URL(u), "/foto/durum", null);
+      let v = null; try { v = await r.json(); } catch (e) { v = null; }
+      return { kod: r.status, v };
+    };
+    const d0 = await durum();
+    const t = Date.now() - 900000;
+    await k.d1.prepare("INSERT INTO foto_ayar (anahtar, deger, guncel) VALUES ('kosucu_son_tik', ?, ?)")
+      .bind(new Date(t).toISOString(), t).run();
+    const d1r = await durum();
+    k.kapat();
+    ol("D0 /foto/durum bekliyor + damga yok -> hazirlayici_yas_sn null", d0.kod === 200 && !!d0.v &&
+       d0.v.asama === "bekliyor" && d0.v.hazirlayici_yas_sn === null, JSON.stringify(d0));
+    ol("D1 /foto/durum bekliyor + damga 900 sn önce -> hazirlayici_yas_sn 900 (±2), alanlar {asama, hazirlayici_yas_sn}",
+       d1r.kod === 200 && !!d1r.v && d1r.v.asama === "bekliyor" && Math.abs(d1r.v.hazirlayici_yas_sn - 900) <= 2 &&
+       Object.keys(d1r.v).sort().join(",") === "asama,hazirlayici_yas_sn", JSON.stringify(d1r));
+  }
+  const meCapa = '    return y === null || (typeof y === "number" && y > HAZIRLAYICI_YAS_TAVAN_SN);\n';
+  if (EKRAN_KAYNAK.split(meCapa).length - 1 !== 1) { ol("ME1 capa bulundu", false, meCapa); } else {
+    const m = await hzHepsi(EKRAN_KAYNAK.replace(meCapa, "    return true;\n"));
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol("ME1 mutant (eşik karşılaştırması kalkar, hep göster) -> KIRMIZI tam olarak [E2]",
+       JSON.stringify(kir) === JSON.stringify(["E2"]), JSON.stringify(kir));
+  }
+}
+
 await new Promise((c) => setTimeout(c, 0));
 ol("ASENKRON temiz kaynakta (EKRAN_KAYNAK) yakalanmamis istisna 0",
    ASENKRON_ISTISNA.filter((x) => x.temiz).length === 0, JSON.stringify(ASENKRON_ISTISNA.filter((x) => x.temiz).slice(0, 3)));

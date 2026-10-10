@@ -1672,33 +1672,56 @@ def log_dondur(yol, tavan=LOG_TAVAN_BAYT):
         pass
 
 
+# SAGLIK DAMGASI (10 Eki 2026): her --uygula turunun SONUNDA (BOS dahil; OLCULEMEDI/KILITLI/KURU haric) hedef
+# D1 foto_ayar.kosucu_son_tik = ISO zaman. /foto/durum `hazirlayici_yas_sn`'yi buradan turetir; damga bayatsa ④
+# "sirada" ekrani hazirlayicinin cevrimdisi oldugunu soyler. Tablo/sutunlar shop/src/foto.js ayarYaz ile AYNI.
+DAMGA_ANAHTAR = "kosucu_son_tik"
+
+
+def damga_yaz(yaz):
+    iso = simdi_iso()
+    try:
+        d1("INSERT INTO foto_ayar (anahtar, deger, guncel) VALUES ('%s', '%s', %d)"
+           " ON CONFLICT(anahtar) DO UPDATE SET deger = excluded.deger, guncel = excluded.guncel"
+           % (DAMGA_ANAHTAR, iso, int(time.time() * 1000)))
+    except Erisilemedi as e:
+        yaz("DAMGA yazilamadi (%s) — ekran hazirlayiciyi cevrimdisi gosterir" % e)
+
+
 def calistir(uygula, yaz):
     fd = kilit_al()
     if fd is None:
         return "HAL=KILITLI rc=3", 3
     try:
-        manifest = manifest_oku()
-        try:
-            isler = isleri_cek(manifest)
-        except Erisilemedi as e:
-            return "HAL=OLCULEMEDI sebep=%s rc=4" % e, 4
-        if not isler:
-            return "HAL=BOS rc=1", 1
-        if not uygula:
-            for i in isler:
-                plan_bas(i, yaz)
-            yaz("KURU: yazim 0 (--uygula yazar)")
-            return "HAL=PLAN is=%d rc=0" % len(isler), 0
-        say = {"uretildi": 0, "red": 0, "ariza": 0, "cas": 0}
-        for i in isler:
-            try:
-                say[is_isle(i, manifest, yaz)] += 1
-            except Erisilemedi as e:
-                yaz("DUR %s erisim yok (%s) — is kuyrukta" % (is_adi(i), e))
-                return "HAL=OLCULEMEDI sebep=%s rc=4" % e, 4
-        return "HAL=ISLEDI uretildi=%d red=%d ariza=%d rc=0" % (say["uretildi"], say["red"], say["ariza"]), 0
+        satir, rc = tur_kos(uygula, yaz)
+        if uygula and rc != 4:
+            damga_yaz(yaz)
+        return satir, rc
     finally:
         os.close(fd)
+
+
+def tur_kos(uygula, yaz):
+    manifest = manifest_oku()
+    try:
+        isler = isleri_cek(manifest)
+    except Erisilemedi as e:
+        return "HAL=OLCULEMEDI sebep=%s rc=4" % e, 4
+    if not isler:
+        return "HAL=BOS rc=1", 1
+    if not uygula:
+        for i in isler:
+            plan_bas(i, yaz)
+        yaz("KURU: yazim 0 (--uygula yazar)")
+        return "HAL=PLAN is=%d rc=0" % len(isler), 0
+    say = {"uretildi": 0, "red": 0, "ariza": 0, "cas": 0}
+    for i in isler:
+        try:
+            say[is_isle(i, manifest, yaz)] += 1
+        except Erisilemedi as e:
+            yaz("DUR %s erisim yok (%s) — is kuyrukta" % (is_adi(i), e))
+            return "HAL=OLCULEMEDI sebep=%s rc=4" % e, 4
+    return "HAL=ISLEDI uretildi=%d red=%d ariza=%d rc=0" % (say["uretildi"], say["red"], say["ariza"]), 0
 
 
 def main(argv=None):
