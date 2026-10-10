@@ -362,18 +362,38 @@ def gercek():
     _, h9 = u.hepsini_uret(kayit, u.jenerator_kok(GERCEK_KAYIT))
     vaka("MR9 gercek kayitta sema_adi uretec dosyasinda yok -> KIRMIZI", len(ak) == 1 and
          "sema-adi-yok:anahtarlik=YOK_SEMA" in h9, "uygulandi=%d %s" % (len(ak), h9))
-    # FOTO KOLU (anahtarlik-foto, 9 Eki): kol kaydi ayri satir URETMEZ; ana satira foto_kolu, ana girdi AYNEN.
+    # FOTO KOLU (anahtarlik-foto, 9 Eki; 10 Eki figur_kulak): kol kaydi ayri satir URETMEZ; ana satira foto_kolu,
+    # ana girdi AYNEN. anahtarlik-plaket kopruda ayri kayit, UI'da SUNULMAZ -> satir yok.
     gs, gh = arac_yukle().hepsini_uret(json.load(open(GERCEK_KAYIT, encoding="utf-8")))
-    vaka("R-FK1 gercek kayit: anahtarlik-foto satiri YOK + anahtarlik.foto_kolu {foto-1, plaket_kulak} + girdi [metin]",
-         "anahtarlik-foto" not in gs and gs["anahtarlik"].get("foto_kolu") == {"girdi": ["foto-1"], "uretec": "plaket_kulak"}
+    vaka("R-FK1 gercek kayit: anahtarlik-foto satiri YOK + anahtarlik.foto_kolu {foto-1, figur_kulak} + girdi [metin]",
+         "anahtarlik-foto" not in gs and gs["anahtarlik"].get("foto_kolu") == {"girdi": ["foto-1"], "uretec": "figur_kulak"}
          and gs["anahtarlik"]["girdi"] == ["metin"] and not gh,
          "%s %s %s" % (sorted(gs), gs["anahtarlik"].get("foto_kolu"), gh))
+    vaka("R-FK2 gercek kayit: anahtarlik-plaket (SUNULMAYAN) satiri YOK, manifestte de YOK",
+         "anahtarlik-plaket" not in gs and 'kod: "anahtarlik-plaket"' not in open(man, encoding="utf-8").read(),
+         "%s" % sorted(gs))
     mutant("MR10 gercek manifestte anahtarlik foto_kolu silindi -> KIRMIZI", GERCEK_KAYIT, man,
            r"sapma:anahtarlik\.foto_kolu",
-           lambda kk, mm: degistir(mm, ',\n        foto_kolu: { girdi: ["foto-1"], uretec: "plaket_kulak" }', ""))
-    mutant("MR11 gercek kayitta plaket-3mf -> plaket-stl (sozlukte yok) -> KIRMIZI", GERCEK_KAYIT, man,
-           r"bilinmeyen-girdi:anahtarlik-foto=plaket-stl",
-           lambda kk, mm: degistir(kk, '"plaket-3mf"', '"plaket-stl"'))
+           lambda kk, mm: degistir(mm, ',\n        foto_kolu: { girdi: ["foto-1"], uretec: "figur_kulak" }', ""))
+    mutant("MR11 gercek kayitta figur-3mf -> figur-stl (sozlukte yok) -> KIRMIZI", GERCEK_KAYIT, man,
+           r"bilinmeyen-girdi:anahtarlik-foto=figur-stl",
+           lambda kk, mm: degistir(kk, '"figur-3mf"', '"figur-stl"'))
+    mutant("MR13 manifestte foto kolu eski plaket_kulak'a doner -> KIRMIZI", GERCEK_KAYIT, man,
+           r"sapma:anahtarlik\.foto_kolu",
+           lambda kk, mm: degistir(mm, 'uretec: "figur_kulak" }', 'uretec: "plaket_kulak" }'))
+    mutant("MR14 SUNULMAYAN disi yeni kayit -> tur-yok KIRMIZI (gizleme listesi genis degil)", GERCEK_KAYIT, man,
+           r"tur-yok:anahtarlik-plaketx",
+           lambda kk, mm: degistir(kk, '"kod": "anahtarlik-plaket"', '"kod": "anahtarlik-plaketx"'))
+    # Form alani `aciklama` editoryal (ArTisT cumlesi): kopru uretmiyorsa tasinir, uretiyorsa kopru kazanir.
+    ft = arac_yukle().form_aciklama_tasi
+    vaka("R-AC1 form aciklama: eksikse manifestten tasinir, uretilen varsa ezilmez, yeni alana uydurulmaz",
+         ft({"a": {"tip": "sayi", "aciklama": "X"}}, {"a": {"tip": "sayi"}}) == {"a": {"tip": "sayi", "aciklama": "X"}}
+         and ft({"a": {"aciklama": "X"}}, {"a": {"aciklama": "Y"}}) == {"a": {"aciklama": "Y"}}
+         and ft({}, {"b": {"tip": "sayi"}}) == {"b": {"tip": "sayi"}})
+    mutant("MR15 gercek manifestte yapboz satir min degisti (aciklama tasinsa da) -> KIRMIZI", GERCEK_KAYIT, man,
+           r"sapma:yapboz\.form",
+           lambda kk, mm: degistir(mm, 'aciklama: "Yapbozun dikey kaç parçaya bölüneceği.",\n            min: 3,',
+                                   'aciklama: "Yapbozun dikey kaç parçaya bölüneceği.",\n            min: 2,'))
     mutant("MR12 gercek kayitta foto kolunun ana turu yok -> KIRMIZI", GERCEK_KAYIT, man,
            r"kol-ana-yok:anahtarlik-foto->anahtarlik",
            lambda kk, mm: degistir(kk, '"kod": "anahtarlik",', '"kod": "anahtarlikx",'))

@@ -1,4 +1,26 @@
 {
+ "jeneratorler/foto/figur_kulak.py": {
+  "FIGUR_KULAK_SEMA": {
+   "figur_uzun_kenar_mm": {
+    "max": 50.0,
+    "min": 0.0,
+    "tip": "float"
+   },
+   "konum": {
+    "secenekler": [
+     "tepe",
+     "sirt"
+    ],
+    "tip": "enum",
+    "varsayilan": "tepe"
+   },
+   "kulak_dahil_uzun_kenar_mm": {
+    "max": 60.0,
+    "min": 0.0,
+    "tip": "float"
+   }
+  }
+ },
  "jeneratorler/foto/isimlik_uret.py": {
   "ANAHTARLIK_SEMA": {
    "genislik_mm": {

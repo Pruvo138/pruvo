@@ -1,5 +1,5 @@
 {
-  "surum": "kopru-uret-1.2",
+  "surum": "kopru-uret-1.3",
   "kayitlar": [
     {
       "kod": "yapboz",
@@ -315,6 +315,76 @@
     },
     {
       "kod": "anahtarlik-foto",
+      "kategori_adi": "Anahtarlık (foto, kulakçıklı figür)",
+      "uretec": "figur_kulak",
+      "cagri": {
+        "betik": "jeneratorler/foto/figur_kulak.py",
+        "bayraklar": [],
+        "girdi_bayragi": "--girdi",
+        "cikti_bayragi": "--cikti",
+        "parametre_bayraklari": {
+          "konum": "--konum"
+        }
+      },
+      "sema_adi": "FIGUR_KULAK_SEMA",
+      "girdi_tipi": [
+        "figur-3mf"
+      ],
+      "parametreler": [
+        {
+          "ad": "figur",
+          "etiket": "Figür (3MF/STL dosya; uzun kenar 50 mm'ye kadar, 50 mm üzeri reddedilir)",
+          "tip": "dosya",
+          "zorunlu": true
+        },
+        {
+          "ad": "konum",
+          "etiket": "Kulakçık konumu",
+          "tip": "secim",
+          "secenekler": [
+            "tepe",
+            "sirt"
+          ],
+          "varsayilan": "tepe"
+        }
+      ],
+      "olcek": {
+        "eksen": "uzun_kenar_mm",
+        "kaynak": "ozet.uzun_kenar_mm",
+        "min_mm": 0,
+        "max_mm": 60,
+        "adim_mm": 5,
+        "belirleyen_parametre": "figur"
+      },
+      "cikti": {
+        "stl": null,
+        "uc_mf": "uretec.3mf",
+        "onizleme_png": "onizleme.png",
+        "ozet": "ozet.json",
+        "onizleme_max_px": 800
+      },
+      "renk_bolgeleri": [],
+      "izinli_malzeme": [
+        "PLA",
+        "PETG",
+        "ASA",
+        "ABS"
+      ],
+      "ornek": {
+        "girdi": {
+          "figur": "<FIGUR 3MF YOLU> (40 mm kapsul+kure, testte runtime'da uretilir)",
+          "konum": "tepe"
+        }
+      },
+      "varyantlar": [
+        {
+          "ad": "konum",
+          "deger": "sirt"
+        }
+      ]
+    },
+    {
+      "kod": "anahtarlik-plaket",
       "kategori_adi": "Anahtarlık (foto, kulakçıklı plaket)",
       "uretec": "plaket_kulak",
       "cagri": {

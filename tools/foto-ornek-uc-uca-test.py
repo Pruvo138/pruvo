@@ -54,7 +54,7 @@ SEMA = os.path.join(KOK, "tools", "d1-sema.sql")
 # foto.js: hermetik kopru-15 ONKOSUL bekcisi `shop/src/foto.js` /foto/onizleme icinde TURE RED metnini
 # okur; test ortaminda `_red_metni_onizleme()` acabilsin diye KOPYA'ya eklenir.
 KOPYA_DOSYALAR = ["foto-uretim-veri.js", "shop/wrangler.toml", "shop/wrangler.onizleme.toml",
-                  "shop/src/foto.js", "tools/foto-onizleme.py"]
+                  "shop/src/foto.js", "tools/foto-onizleme.py", "tools/saglayici-ornek.py"]
 
 SAHTE_WRANGLER = r'''
 import json, os, shutil, sqlite3, sys
@@ -133,6 +133,18 @@ for r in db.execute("SELECT siparis_no, kalem FROM foto_uretim WHERE asama='onar
     if os.environ.get("FAKE_ONARIM_YOK") or not os.path.isfile(os.path.join(d, "model.ham.3mf")):
         db.commit(); print("HAL=OLCULEMEDI sebep=kopru-yok rc=4"); sys.exit(4)
     os.replace(os.path.join(d, "model.ham.3mf"), os.path.join(d, "model.3mf"))
+    # TUR-C2c --kanit-dizin: figur cesidi -> figur_kulak ozet.json (kulak 4 sayi; FAKE_KULAK_EKSIK min_et duser)
+    # + onizleme.png kopyasi <dizin>/<siparis>/ (gercek koşucu kanit_yaz sozlesmesi).
+    c = db.execute("SELECT i.cesit FROM foto_uretim u JOIN foto_isler i ON i.is_no=u.is_no WHERE u.siparis_no=?",
+                   (r["siparis_no"],)).fetchone()
+    if "--kanit-dizin" in sys.argv and c and c[0] == "figur":
+        k = os.path.join(sys.argv[sys.argv.index("--kanit-dizin") + 1], r["siparis_no"]); os.makedirs(k, exist_ok=True)
+        kulak = {"konum": "tepe", "dis_cap_olculen_mm": 8.0, "delik_cap_olculen_mm": 3.8, "min_et_mm": 2.1,
+                 "bag_genislik_mm": 5.0}
+        if os.environ.get("FAKE_KULAK_EKSIK"): kulak.pop("min_et_mm")
+        if os.environ.get("FAKE_KULAK_KONUM") is not None: kulak["konum"] = os.environ["FAKE_KULAK_KONUM"]
+        json.dump({"surum": "sahte", "kulak": kulak}, open(os.path.join(k, "ozet.json"), "w"))
+        open(os.path.join(k, "onizleme.png"), "wb").write(png(1024, 1024))
     db.execute("UPDATE foto_uretim SET asama='hazir' WHERE siparis_no=?", (r["siparis_no"],)); n += 1
 db.commit()
 print("HAL=ISLEDI uretildi=%d red=0 ariza=0 rc=0" % n if n else "HAL=BOS rc=1")
@@ -224,9 +236,15 @@ class Sunucu:
             simdi = "2026-10-08T00:00:00Z"
             try:
                 if uc == "/foto/ornek-onizleme":
+                    # panelOrnekOnizleme: D turu (anahtarlik) saglayiciya YALNIZ cesit=figur ile gider (aksi
+                    # saglayiciIsi yanlis -> 400 gecersiz-tur); cesit satira yazilir (figurKolu).
+                    ayar["son_onizleme"] = dict(g, gorsel="")
+                    if TUR.get(g.get("tur"), {}).get("motor") == "D" and g.get("cesit") != "figur":
+                        return h.yanit(400, {"hata": "gecersiz-tur"})
                     no = "%032x" % (ayar["yonet"][uc] + 0xabc)
-                    c.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev)"
-                              " VALUES (?, ?, ?, 'ornek', ?, 'onizleme', ?)", (no, g["tur"], g["olcu_mm"], simdi, "g-" + no))
+                    c.execute("INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, gorev, cesit)"
+                              " VALUES (?, ?, ?, 'ornek', ?, 'onizleme', ?, ?)",
+                              (no, g["tur"], g["olcu_mm"], simdi, "g-" + no, "figur" if g.get("cesit") == "figur" else ""))
                     c.execute("INSERT INTO foto_kredi (tarih, adim, is_no, gorev, kredi) VALUES (?, 'onizleme', ?, ?, 6)",
                               (simdi, no, "g-" + no))
                     return h.yanit(200, {"is": no})
@@ -717,6 +735,55 @@ def vakalar(kaynak, sadece=None):
         return ok, "yonet=%s %s" % (y, c[-600:])
     vaka("S15", s15)
 
+    # TUR-C2c CESIT KOLU (--cesit figur): anahtarlik figur cesidi saglayici koluna gider; ornek-onizleme govdesinde
+    # cesit=figur, olcu 45; zincir build 30 + renk 10 + onizleme 6 = 46; onarimda koşucu --kanit-dizin ile kulak
+    # olcumlerini (ozet.json) + onizleme.png'yi birakir; ④ kulak 4 sayi + uzun <= 50 + onizleme olcer.
+    def sag_figur(o, tavan, **ek):
+        hazir_ortam(o, "anahtarlik")
+        o.sunucu.ayar["acik"] = [k for k in o.sunucu.ayar["acik"] if k != "figur"]
+        cd = os.path.join(o.d, "cikti")
+        rc, son, c = o.kos("--tur", "anahtarlik", "--cesit", "figur", "--kredi-tavani", str(tavan),
+                           "--cikti-dizin", cd, **ek)
+        return rc, son, c, o.sunucu.ayar, cd
+
+    def s16(o):
+        rc, son, c, ay, cd = sag_figur(o, 70)
+        g = ay.get("son_onizleme") or {}
+        ok = (rc == 0 and son == "HAZIR=1/1 rc=0" and all(olcut(c, "anahtarlik", x) == "HAZIR" for x in "123456") and
+              g.get("cesit") == "figur" and g.get("olcu_mm") == 45 and "KREDI_HARCANAN=46/70" in c and
+              "KOPRU onarim: HAL=ISLEDI" in c and '"min_et_mm": 2.1' in c and "eksen=cesit-tavan<=50" in c and
+              sorted(os.listdir(cd) if os.path.isdir(cd) else []) == ["model.3mf", "onizleme.png", "ozet.json"])
+        return ok, "govde=%s %s" % (g, c[-900:])
+    vaka("S16", s16)
+
+    def s17(o):
+        # Kulak alani eksik (min_et yok) -> ④ HAZIR DEGIL (② saglayici onizlemesi HAZIR kalir).
+        rc, son, c, ay, cd = sag_figur(o, 70, FAKE_KULAK_EKSIK="1")
+        ok = (rc == 1 and olcut(c, "anahtarlik", "2") == "HAZIR" and olcut(c, "anahtarlik", "4") == "EKSIK" and
+              '"min_et_mm": null' in c)
+        return ok, c[-700:]
+    vaka("S17", s17)
+
+    def s18(o):
+        # --cesit kredisiz / --hepsi ile: erken HATA rc 2, panel istegi 0.
+        hazir_ortam(o, "anahtarlik")
+        rc, son, c = o.kos("--tur", "anahtarlik", "--cesit", "figur")
+        return rc == 2 and "HATA --cesit" in c and sum(o.sunucu.ayar["yonet"].values()) == 0, son
+    vaka("S18", s18)
+
+    def s19(o):
+        # TUR-C2d: konum ④ ekseninde -> sirt (dusus) HAZIR ve satirda; konum yoksa (bos) ④ EKSIK.
+        rc, son, c, ay, cd = sag_figur(o, 70, FAKE_KULAK_KONUM="sirt")
+        o2 = Ortam(kaynak)
+        try:
+            rc2, son2, c2, _, _ = sag_figur(o2, 70, FAKE_KULAK_KONUM="")
+        finally:
+            o2.kapat()
+        ok = (rc == 0 and olcut(c, "anahtarlik", "4") == "HAZIR" and '"konum": "sirt"' in c and
+              rc2 == 1 and olcut(c2, "anahtarlik", "4") == "EKSIK")
+        return ok, "%s | %s" % (c[-400:], c2[-400:])
+    vaka("S19", s19)
+
     def u7(o):
         hazir_ortam(o)
         o.sunucu.ayar["acik"] = [k for k in ACIK_EVREN if k != D_TUR]
@@ -1093,6 +1160,13 @@ MUTANTLAR = {
     # secilir, sunucu 503 `kapali` (uretecOnizlemeUcu) -> GECERSIZ rc 2 -> U2c KIRMIZI.
     "MB33": (' if t["kod"] not in acik_kodlar and t.get("motor") == "M"]', ' if t["kod"] not in acik_kodlar]',
              {"U2c"}),
+    # TUR-C2c: cesit ornek-onizleme govdesine girmezse D turu saglayiciya gidemez (400 gecersiz-tur) -> ② EKSIK.
+    "MB34": ('            govde["cesit"] = tr.cesit\n', '            pass\n', {"S16", "S17"}),
+    # TUR-C2c: kulak olcumu ④'ten duserse kulaksiz/eksik ozetli figur HAZIR sayilir -> S17 KIRMIZI.
+    "MB35": ("            alanlar = alanlar and kulak_gecerli(tr.kulak) and bool(b)\n",
+             "            alanlar = alanlar and bool(b)\n", {"S17", "S19"}),
+    # TUR-C2d: konum kontrolu duserse konumsuz kanit HAZIR sayilir -> S19 KIRMIZI.
+    "MB36": ("    if kd.get(\"konum\") not in KULAK_KONUMLARI:\n        return False\n", "", {"S19"}),
     "MB0": ("# ------------------------------------------------------------------ HTTP",
             "# ------------------------------------------------------------------ HTTP (mutant yorum)", set()),
 }

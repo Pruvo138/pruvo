@@ -7,13 +7,16 @@ surekli `sayi` alanlarinin `adim`i tasinmamisti -> G4a ② `uretec-red:genel` x4
 araçtan turetilir; `--denetle` manifest kayittan saparsa adiyla KIRMIZI yakar (CI'da test uzerinden).
 
 SOZLUK (eşleme YALNIZ burada; manifest yorumu bu dosyayi isaret eder):
-  girdi   : olcu -> "form" · foto -> "foto-1" · plaket-3mf -> "foto-1" (saglayici plaketi FOTODAN cikar) ·
+  girdi   : olcu -> "form" · foto -> "foto-1" · plaket-3mf / figur-3mf -> "foto-1" (saglayici plaketi/figuru FOTODAN
+            cikarir) ·
             ses/metin/konum/tarih aynen · baska -> KIRMIZI
   FOTO KOLU (anahtarlik-foto 9 Eki): KOL_KAYDI'ndaki kayit AYRI tur satiri URETMEZ; ana turun ikinci girdi koludur:
             ana satira `foto_kolu: {girdi: [<eslenmis>], uretec: <kol uretec'i>}` yazilir. Form/renk/olcu ANA kayittan
-            (kulak konumu ortak `anahtarlik_kulak_konum`). Ana `girdi` DEGISMEZ: foto girdisi ancak sunucu zinciri
-            (saglayici plaket -> kosucu plaket_kulak) baglaninca ana girdiye katilir (yoksa ② foto alir, isimlik
-            fotoyu yok sayar = sessiz hata). Ana kayit yoksa KIRMIZI `kol-ana-yok`.
+            (kulak konumu ortak `anahtarlik_kulak_konum`). Ana `girdi` DEGISMEZ: foto kolu ② cesit secimiyle
+            ("Figur olarak" -> saglayici figur -> kosucu figur_kulak, 10 Eki) acilir; ana girdiye katilirsa ② cesitsiz
+            foto alir, isimlik fotoyu yok sayar = sessiz hata. Ana kayit yoksa KIRMIZI `kol-ana-yok`.
+  SUNULMAYAN (10 Eki): kopruda AYRI kayit olarak duran ama UI'da SUNULMAYAN kayit (anahtarlik-plaket) manifest
+            satiri URETMEZ ve kontrol edilmez.
   tip     : sayi -> sayi + adim (kayittaki `adim`, yoksa 0.01; enlem/boylam 0.000001)
             tam (ya da sayi + `tam:true`) -> sayi + adim 1
             renk -> form DEGIL, renk_bolgeleri (`renk_<b>` -> {kod:<b>, ad:<etiket - " rengi">, renkler})
@@ -44,7 +47,8 @@ SOZLUK (eşleme YALNIZ burada; manifest yorumu bu dosyayi isaret eder):
             (anahtarlik: isimlik_uret ANAHTARLIK_SEMA genislik/kontur araligini daraltir); ad dosyada yoksa KIRMIZI
   bust    : rolyef `tur_tanimi_teklifi` (alanlar rolyef parametresinin ustune yazilir, sonra ayni sozluk)
 Editoryal alanlar (ad, aciklama, motor, fiyat.formul, ornek_kanit_izni, durustluk, ornek_notu) manifestte
-elle kalir; arac yalniz TURETILEN alanlari yazar/denetler.
+elle kalir; arac yalniz TURETILEN alanlari yazar/denetler. Form alaninin `aciklama`si da editoryaldir (alan
+altindaki tek cumle, ArTisT metni): kopru uretmiyorsa manifestteki deger tasinir, denetimde sapma sayilmaz.
 
 KULLANIM
   python3 tools/kopru-manifest-uret.py               # uretilen satirlari JSON basar (yazmaz)
@@ -81,7 +85,7 @@ TEKIN_KOK = os.environ.get("KOPRU_TEKIN_KOK") or os.path.expanduser("~/dev/pruvo
 TEKIN_KAYIT_GORELI = "jeneratorler/kopru/kopru_kayitlari.json"
 VARSAYILAN_KAYIT = SABIT_KAYIT
 
-GIRDI_ESLE = {"olcu": "form", "foto": "foto-1", "plaket-3mf": "foto-1", "ses": "ses", "metin": "metin", "konum": "konum", "tarih": "tarih"}
+GIRDI_ESLE = {"olcu": "form", "foto": "foto-1", "plaket-3mf": "foto-1", "figur-3mf": "foto-1", "ses": "ses", "metin": "metin", "konum": "konum", "tarih": "tarih"}
 BILINEN_TIP = ("sayi", "tam", "secim", "metin", "bool", "renk", "dosya", "renk_liste")
 RENK_LISTE_OGE = "#RRGGBB"
 RENK_LISTE_TAVAN = 4  # AMS 4 yuva (VERI.renkTavani 1..4)
@@ -99,6 +103,8 @@ TURETILEN = ("girdi", "uretec", "olcu_mm", "renk_bolgeleri", "malzemeler", "form
              "palet_bolgeleri", "foto_kolu")
 # Ikinci girdi kolu kayitlari: kayit kodu -> ana tur kodu (yukaridaki FOTO KOLU).
 KOL_KAYDI = {"anahtarlik-foto": "anahtarlik"}
+# UI'da sunulmayan kayitlar (yukaridaki SUNULMAYAN): satir yok.
+SUNULMAYAN = {"anahtarlik-plaket"}
 # Yalniz renk_liste kaydinda DOLU; None -> manifestte alan YAZILMAZ (varsa silinir), --denetle alan yok bekler.
 OPSIYONEL = ("renk_secimi", "palet_bolgeleri", "foto_kolu")
 
@@ -433,6 +439,8 @@ def hepsini_uret(kayitlar, jen=None):
         raise KayitHatasi("kayit bicimi: {'kayitlar': [...]} degil")
     kollar = []
     for k in kayitlar["kayitlar"]:
+        if k.get("kod") in SUNULMAYAN:
+            continue
         if k.get("kod") in KOL_KAYDI:
             kollar.append(k)
             continue
@@ -530,13 +538,31 @@ def manifest_oku(yol):
     return json.loads(p.stdout)
 
 
+def form_aciklama_tasi(mevcut_form, uretilen_form):
+    """Uretilen form; kopru `aciklama` uretmeyen alana manifestteki editoryal `aciklama` tasinir."""
+    if not isinstance(mevcut_form, dict) or not isinstance(uretilen_form, dict):
+        return uretilen_form
+    cikti = {}
+    for ad, alan in uretilen_form.items():
+        eski = mevcut_form.get(ad)
+        if isinstance(alan, dict) and "aciklama" not in alan and isinstance(eski, dict) and "aciklama" in eski:
+            # Anahtar sirasi manifestteki gibi (--yaz bayt-idempotent kalir); yeni anahtarlar sona.
+            tam = dict(alan, aciklama=eski["aciklama"])
+            sira = [a for a in eski if a in tam] + [a for a in tam if a not in eski]
+            alan = {a: tam[a] for a in sira}
+        cikti[ad] = alan
+    return cikti
+
+
 def satir_birlestir(mevcut, uretilen):
     """Mevcut satirin anahtar sirasi korunur; TURETILEN alanlar ve fiyat.adim_mm uretimden."""
     s = {}
     for k, v in mevcut.items():
         if k in OPSIYONEL and uretilen.get(k) is None:
             continue
-        if k in TURETILEN:
+        if k == "form":
+            s[k] = form_aciklama_tasi(v, uretilen[k])
+        elif k in TURETILEN:
             s[k] = uretilen[k]
         elif k == "fiyat" and isinstance(v, dict):
             s[k] = dict(v, adim_mm=uretilen["fiyat_adim_mm"])
@@ -607,8 +633,9 @@ def denetle(manifest_yol, uretilen, hatalar, bilgi=None):
             kirmizi.append("tur-yok:%s" % kod)
             continue
         for k in TURETILEN:
-            if json.dumps(t.get(k), sort_keys=True) != json.dumps(_js_esdeger(u.get(k)), sort_keys=True):
-                kirmizi.append("sapma:%s.%s%s" % (kod, k, _ilk_fark(t.get(k), u[k])))
+            beklenen = form_aciklama_tasi(t.get(k), u.get(k)) if k == "form" else u.get(k)
+            if json.dumps(t.get(k), sort_keys=True) != json.dumps(_js_esdeger(beklenen), sort_keys=True):
+                kirmizi.append("sapma:%s.%s%s" % (kod, k, _ilk_fark(t.get(k), beklenen)))
         if (t.get("fiyat") or {}).get("adim_mm") != u["fiyat_adim_mm"]:
             kirmizi.append("sapma:%s.fiyat.adim_mm" % kod)
         if (t.get("olcu_min_dinamik") is True) != (u.get("olcu_min_dinamik") is True):

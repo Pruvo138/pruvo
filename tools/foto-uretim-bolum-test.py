@@ -174,10 +174,13 @@ def kontroller(index, bolum, veri, build):
             if k in bolum.lower() or k in (tb.group(1).lower() if tb else "")]
     # K3b (Okan 9 Eki 01:4x "5-anahtarlık"): anahtarlık yalnız sayfa metni tablolarında (① KARTLAR satırı +
     # PENCERELER ① açıklaması, ArTisT metni birebir); bölümün başka yerinde 0.
+    # TUR-A2 (10 Eki): S1_SEBEP kayıtları ArTisT kaynak metni birebir — "anahtarlığa yazılacak" cümlesi
+    # kullanıcıya gösterilen TÜR ADI değil, talimat cümlesi; bölümde başka tür adı geçmemeli.
     kb = re.search(r"var KARTLAR = \[(.*?)\n  \];", bolum, re.S)
     pb = re.search(r"var PENCERELER = \[(.*?)\n  \];", bolum, re.S)
+    sb = re.search(r"var S1_SEBEP = \{.*?\};", bolum, re.S)
     disari = bolum
-    for blk in (kb, pb):
+    for blk in (kb, pb, sb):
         disari = disari.replace(blk.group(0), "") if blk else disari
     if "anahtarl" in yorumsuz(disari).lower():  # yorum ekrana çıkmaz (Okan alıntısı yorumda)
         eski.append("anahtarl(KARTLAR disi)")

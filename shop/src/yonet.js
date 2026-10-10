@@ -2033,6 +2033,12 @@ function makineAnahtariGecerli(request, env, altYol) {
   return onizlemeMi(env) && !!env.ONIZLEME_MAKINE_ANAHTARI && MAKINE_UCLARI.includes(altYol) &&
     sabitEsit(request.headers.get("X-Onizleme-Makine") || "", env.ONIZLEME_MAKINE_ANAHTARI);
 }
+// ② (10 Eki 2026): musteri onizleme uclari (foto.js onizleme · uretec · litofan) GECERLI makine anahtarli istegi
+// ziyaretci/IP sayacina YAZMAZ ve onizleme-siniri ile REDDETMEZ. Karsilastirma YUKARIDAKI kapidan (ornek-onizleme
+// sinifi; YALNIZ ONIZLEME=1). Gecersiz/bos anahtar = siradan ziyaretci (sayilir).
+export function onizlemeMakinesiMi(request, env) {
+  return makineAnahtariGecerli(request, env, "/foto/ornek-onizleme");
+}
 
 export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (!env.YONET_ANAHTAR) { return yon404(); }

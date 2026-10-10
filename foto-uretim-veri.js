@@ -60,7 +60,7 @@
         { kol: "", metin: "Başkasına ait fotoğraf, marka, logo ya da telifli görsel yükleme; yüklenen görselden " +
             "doğan sorumluluk yükleyene aittir." },
         { kol: "M", metin: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün bu önizlemenin en çok 4 renkli " +
-            "kabartma yorumu olarak üretilir; tam kopyası değildir, küçük yazı ve ince " +
+            "olarak üretilir; tam kopyası değildir, küçük yazı ve ince " +
             "ayrıntılar sadeleşir." },
         { kol: "", metin: "Yüklediğim fotoğrafın bana ait olduğunu ya da kullanma hakkım olduğunu beyan ederim." },
         { kol: "M", metin: "Fotoğrafımın önizleme ve üretim dosyasının hazırlanması için yurt dışındaki hizmet sağlayıcıya aktarılmasına açık rıza veriyorum." },
@@ -145,6 +145,12 @@
         fiyat: { formul: "mm_x_10tl", adim_mm: 10, taban_tl: 600, renk_tavani: 4 },
         // Okan kararı 7 Eki 2026: plaket gerçek baskı beklemeden önizleme + render ile açılır.
         ornek_kanit_izni: ["baski", "render"],
+        // ③ ortak alan açıklamaları — ArTisT 10 Eki 2026 AYNEN; yalnız plakette (büstün cümleleri değişmez).
+        alan_aciklamalari: {
+          renk: "Siyah, Beyaz ya da Gri seçersen plaket tek renk olur; Renkli seçersen renkler fotoğrafından otomatik seçilir (en çok 4 renk).",
+          olcu: "Plaketin en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.",
+          malzeme: "PLA ev içi kullanım içindir; PETG dış mekân ve genel amaçlı kullanım için daha yüksek sıcaklığa dayanır (+%30)."
+        },
         durustluk: "Önizleme, fotoğrafının stilize bir yorumudur. Ürün en çok 4 renkle kabartma olarak üretilir — önizlemenin 4 renkli yorumu; tam kopyası değildir, küçük yazı ve ince ayrıntılar sadeleşir.",
         ornek_notu: "Önizleme ve üretim dosyasının görüntüsüdür; basılmış ürün bu yorumun kabartmalı hâlidir, tam kopyası değildir."
       },
@@ -183,6 +189,8 @@
       
       
       
+      // yapboz `alan_aciklamalari` (③ ortak alan açıklamaları) — ArTisT 10 Eki 2026 AYNEN; yalnız yapbozda
+      // (büstün cümleleri değişmez). Satır içinde yorum tutulmaz: kopru-manifest-uret --yaz satırı bütün yeniden yazar.
       {
         kod: "yapboz",
         ad: "Fotoğraftan kabartma yapboz",
@@ -208,6 +216,7 @@
           satir: {
             tip: "sayi",
             etiket: "Satır (parça sayısı dikey)",
+            aciklama: "Yapbozun dikey kaç parçaya bölüneceği.",
             min: 3,
             max: 8,
             adim: 1,
@@ -218,6 +227,7 @@
           sutun: {
             tip: "sayi",
             etiket: "Sütun (parça sayısı yatay)",
+            aciklama: "Yapbozun yatay kaç parçaya bölüneceği.",
             min: 3,
             max: 8,
             adim: 1,
@@ -237,6 +247,7 @@
           kabartma_yon: {
             tip: "secim",
             etiket: "Kabartma yönü",
+            aciklama: "Fotoğrafın hangi tonlarının daha çok kabaracağını belirler.",
             secenekler: ["acik_yuksek", "koyu_yuksek"],
             varsayilan: "acik_yuksek",
             ornek: "acik_yuksek"
@@ -249,11 +260,16 @@
           renk_tavani: 4
         },
         ornek_kanit_izni: ["baski", "render"],
+        alan_aciklamalari: {
+          renk: "Siyah, Beyaz ya da Gri seçersen tüm parçalar o renk olur; Renkli seçersen parça renkleri fotoğrafından otomatik belirlenir (en çok 4 renk).",
+          olcu: "Yapbozun en uzun boyutudur; fiyat bu ölçüye göre canlı hesaplanır.",
+          malzeme: "PLA ev içi kullanım içindir; PETG dış mekân ve genel amaçlı kullanım için daha yüksek sıcaklığa dayanır (+%30)."
+        },
         form_sunum: {
           uzun_kenar_mm: { deger: "olcu" },
           tohum: { deger: "varsayilan" }
         },
-        durustluk: "Her yapboz parçası tek renktir; renkler seçtiğin seçeneğe göre belirlenir.",
+        durustluk: "Her yapboz parçası tek renktir. Siyah, Beyaz ya da Gri seçersen tüm parçalar o renk olur; Renkli seçersen parça renkleri fotoğrafından otomatik belirlenir (en çok 4 renk).",
         ornek_notu: "Üretim dosyasının görüntüsüdür; fotoğrafın açık-koyu tonları kabartma yüksekliğine çevrilir.",
         olcu_ekseni: "sabit",
         renk_secimi: "palet",
@@ -345,7 +361,7 @@
         durustluk: "Metal halka ve zincir dahil değildir; zincir ya da halka takılan kulakçıklı plastik gövde (delik Ø 3,5–4 mm).",
         ornek_notu: "Üretim dosyasının görüntüsüdür; yazı, renk ve kulak konumu seçiminize göre üretilir.",
         olcu_ekseni: "sabit",
-        foto_kolu: { girdi: ["foto-1"], uretec: "plaket_kulak" }
+        foto_kolu: { girdi: ["foto-1"], uretec: "figur_kulak" }
       },
       
       
@@ -359,7 +375,7 @@
       {
         kod: "bust",
         ad: "Bust/madalyon (rolyef)",
-        aciklama: "Fotoğraftan kabartma büst/madalyon (ters/iki renk opsiyonel).",
+        aciklama: "Fotoğraftan kabartma büst/madalyon (ters opsiyonel).",
         girdi: ["foto-1"],
         motor: "D",
         uretec: "rolyef_uret",
@@ -481,8 +497,8 @@
         tur: "bust",
         kanit: "render",
         olcu_mm: 100,
-        onizleme: "https://media.pruvo3d.com/foto/ornek/bust-1-render.webp",
-        render: "https://media.pruvo3d.com/foto/ornek/bust-1-render.webp",
+        onizleme: "https://media.pruvo3d.com/foto/ornek/bust-2-render.webp",
+        render: "https://media.pruvo3d.com/foto/ornek/bust-2-render.webp",
         not: "100 mm büst/madalyon"
       },
       {
@@ -575,6 +591,43 @@
   };
   VERI.FORM_TIPLERI = { sayi: true, secim: true, metin: true, bool: true };
   var FOTO_GIRDILERI = { "foto-1": true, "foto-1-3": true };
+  // ÇEŞİTLER (Okan 22:0x anahtarlık "a yazı ile, b figür olarak"; TUR-C2a 10 Eki): türün ② başındaki çeşit seçimi.
+  // Kalıcı yer D1 `foto_isler.cesit` ('' = türün varsayılan kolu). Metinler pazarlama sayfa metni satır 16–17 AYNEN.
+  //   acik    : false = çeşit sunulmaz; sunucu müşteri isteğini `cesit-yakinda` ile AÇIKÇA reddeder (sessiz değil)
+  //   girdi   : çeşidin girdi listesi (yoksa türün `girdi`si); figür = fotoğraf, yazı formu YOK (parametre 0)
+  //   olcu_en_cok : çeşidin ölçü tavanı (figür: köprü figur_kulak figür uzun kenarı ≤ 50 mm)
+  //   saglayici_tur : önizleme+model sağlayıcıda bu türün yolundan (TUR_ORTAM); üretim sonrası `uretec` koşucuda
+  VERI.cesitler = {
+    anahtarlik: {
+      varsayilan: "yazi",
+      secenekler: [
+        { kod: "yazi", ad: "Yazı ile", aciklama: "Kısa bir isim ya da yazı, kabartma harflerle.", acik: true },
+        { kod: "figur", ad: "Figür olarak", aciklama: "Yüklediğin fotoğraftan küçük bir figür, tepesinde kulakçık.",
+          acik: true, girdi: ["foto-1"], olcu_en_cok: 50, saglayici_tur: "figur", uretec: "figur_kulak" }
+      ]
+    }
+  };
+  // Çeşidin kaydı (tür + kod; yoksa null).
+  VERI.cesitKaydi = function (kod, c) {
+    var k = Object.prototype.hasOwnProperty.call(VERI.cesitler, kod) ? VERI.cesitler[kod] : null;
+    if (!k || typeof c !== "string") { return null; }
+    for (var i = 0; i < k.secenekler.length; i++) { if (k.secenekler[i].kod === c) { return k.secenekler[i]; } }
+    return null;
+  };
+  // İstekteki çeşidi çözer (istemci + sunucu ORTAK): çeşitli türde yok -> varsayılan, küme içi -> kendisi,
+  // küme dışı -> null; çeşitsiz türde yok -> "" , dolu -> null (kapalı küme, fail-closed).
+  VERI.cesitCoz = function (kod, c) {
+    var k = Object.prototype.hasOwnProperty.call(VERI.cesitler, kod) ? VERI.cesitler[kod] : null;
+    if (!k) { return c === undefined ? "" : null; }
+    if (c === undefined) { return k.varsayilan; }
+    return VERI.cesitKaydi(kod, c) ? c : null;
+  };
+  // Çeşit sunuluyor mu (çeşitsiz tür "" -> true; kapalı çeşit -> false).
+  VERI.cesitAcik = function (kod, c) {
+    if (c === "") { return true; }
+    var s = VERI.cesitKaydi(kod, c);
+    return !!s && s.acik === true;
+  };
   // Metinde yasak: C0/C1 kontrol karakterleri (satır sonu dahil), satır/paragraf ayırıcı, yön geçersiz kılıcıları.
   var METIN_KONTROL = /[\u0000-\u001f\u007f-\u009f\u2028\u2029\u202a-\u202e\u2066-\u2069]/;
   function metinOgeGecerli(x, max) {
@@ -685,14 +738,20 @@
   // listesinden EN AZ BİRİ dolu olmalı. g = {foto: bool (fotoğraf verildi mi), parametreler}.
   // "foto-*" -> g.foto === true; "metin" -> formdaki AKTİF metin alanlarından biri dolu VE şemaya uygun.
   // Dönüş "" = yeterli, "girdi-eksik" = hiçbiri yok (fail-closed: liste boş/bilinmeyen girdi -> eksik).
+  // ÇEŞİT (g.cesit, VERI.cesitCoz): çeşidin `girdi`si varsa liste ODUR ve yazı formu sayılmaz (figür = yalnız foto);
+  // çözülemeyen çeşit -> "girdi-eksik".
   VERI.girdiYeterli = function (kod, g) {
     var t = VERI.turBul(kod);
     if (!t || !Array.isArray(t.girdi) || !t.girdi.length) { return "girdi-eksik"; }
     g = g && typeof g === "object" ? g : {};
+    var cz = VERI.cesitCoz(kod, g.cesit);
+    if (cz === null) { return "girdi-eksik"; }
+    var ck = VERI.cesitKaydi(kod, cz);
+    var liste = ck && Array.isArray(ck.girdi) ? ck.girdi : t.girdi;
     var p = g.parametreler && typeof g.parametreler === "object" && !Array.isArray(g.parametreler) ? g.parametreler : {};
     var form = t.form && typeof t.form === "object" ? t.form : {};
-    for (var i = 0; i < t.girdi.length; i++) {
-      var x = t.girdi[i];
+    for (var i = 0; i < liste.length; i++) {
+      var x = liste[i];
       if (FOTO_GIRDILERI[x] === true && g.foto === true) { return ""; }
       if (x === "metin") {
         for (var a in form) {
