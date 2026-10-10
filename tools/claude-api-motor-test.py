@@ -17,12 +17,17 @@ VAKALAR
   butce-kirpma    gun=4,00              -> --max-budget-usd 1.00
   gun-tavani      gun=5,00              -> rc=1 HAL=TAVAN, claude cagrilmaz
   ay-tavani       ay=150,00             -> rc=1 HAL=TAVAN, claude cagrilmaz
-  sonnet-basligi  [MOTOR: claude-api:sonnet] -> model claude-sonnet-*
+  sonnet-basligi  [MOTOR: claude-api:sonnet] -> model BIREBIR MODEL_SONNET
   gecersiz-model  [MOTOR: claude-api:opus]   -> rc=2, claude cagrilmaz
+  (model kimligi onekle DEGIL birebir olculur: 10 Eki isci tarifteki kimligi
+   eski Haiku + var olmayan `claude-sonnet-5` ile degistirmisti, onek testi
+   ikisini de GECIRIYORDU.)
 MUTANTLAR (izole kopyaya uygulanir; her biri en az 1 vakayi KIRMIZI yakmali)
   izin-kontrolu-kalkar  -> izin-644 KIRMIZI
   tavan-kontrolu-kalkar -> gun-tavani KIRMIZI
   deger-loga-sizar      -> sahte-anahtar KIRMIZI
+  haiku-kimligi-eskir   -> sahte-anahtar KIRMIZI
+  sonnet-kimligi-eskir  -> sonnet-basligi KIRMIZI
 
 ON KOSUL: canli isci hatti (`~/.claude/cron`) CI kosucusunda YOKTUR -> ONKOSUL_YOK
 + KABUL=OLCULEMEDI, rc=3 (yesil DEMEZ). Hukum YEREL kosumda okunur; muafiyet
@@ -50,6 +55,8 @@ MOTOR = "claude-api"
 SAHTE_DEGER = "sk-ant-TEST-SAHTE-0000"
 SAHTE_OZET = hashlib.sha256(SAHTE_DEGER.encode()).hexdigest()
 SAYAC_ADI = ".claude-api-sayac.json"
+MODEL_HAIKU = "claude-haiku-5-5"
+MODEL_SONNET = "claude-sonnet-5-5"
 
 # Izole kokte BAGLANMAYANLAR: yeniden yazilan govde + kosumun YAZDIGI durum
 # dosyalari (gercek log/karantina/sayac/tur ciktisi KIRLETILMEZ).
@@ -69,6 +76,11 @@ MUTANTLAR = {
         "    API_KEY=${deger:-$ham}\n",
         '    API_KEY=${deger:-$ham}\n    echo "ANAHTAR=$API_KEY" >> "$LOG"\n',
         "sahte-anahtar"),
+    "haiku-kimligi-eskir": ("uc",
+        "MOTOR_MODEL[claude-api]=" + MODEL_HAIKU + "\n",
+        "MOTOR_MODEL[claude-api]=claude-haiku-4-5-20251001\n", "sahte-anahtar"),
+    "sonnet-kimligi-eskir": ("uc",
+        "sonnet " + MODEL_SONNET + ")", "sonnet claude-sonnet-5)", "sonnet-basligi"),
 }
 
 SAHTE_CLAUDE = r'''#!/usr/bin/env python3
@@ -291,7 +303,7 @@ def vaka_kos(ad, isci_kaynak, uc_kaynak, uc_url, mutant=None):
             ok = s["rc"] == 2 and not s["claude"] and "HAL=MODEL-GECERSIZ" in s["log"]
             return ok, "rc=%d claude_cagri=%d" % (s["rc"], len(s["claude"]))
         if ad == "sonnet-basligi":
-            ok = s["rc"] == 0 and c.get("model", "").startswith("claude-sonnet")
+            ok = s["rc"] == 0 and c.get("model") == MODEL_SONNET
             return ok, "rc=%d model=%s" % (s["rc"], c.get("model"))
         if ad == "ham-bicim":
             ok = s["rc"] == 0 and c.get("anahtar_ortamda") is True
@@ -310,13 +322,13 @@ def vaka_kos(ad, isci_kaynak, uc_kaynak, uc_url, mutant=None):
                 with open(yol, encoding="utf-8") as f:
                     sayac = json.load(f)
             gun = sayac.get("gun", {}).get(datetime.datetime.now().strftime("%Y-%m-%d"))
-            log_satiri = any(l.startswith("MOTOR=claude-api MODEL=claude-haiku")
+            log_satiri = any(l.startswith("MOTOR=claude-api MODEL=" + MODEL_HAIKU + " ")
                              and " USD=0.0123 GUN=0.0123 AY=0.0123 " in l
                              for l in s["log"].splitlines())
             ok = (s["rc"] == 0 and c.get("anahtar_ortamda") is True
                   and c.get("argv_temiz") is True and c.get("uc_durum") == 200
                   and fik.get("anahtar_dogru") is True and fik.get("yol") == "/v1/messages"
-                  and c.get("model", "").startswith("claude-haiku")
+                  and c.get("model") == MODEL_HAIKU
                   and siz == 0 and gun == 0.0123 and log_satiri)
             return ok, ("rc=%d anahtar_ortamda=%s argv_temiz=%s fikstur_anahtar=%s "
                         "model=%s sahte_deger_grep=%d sayac_gun=%s log_satiri=%s"
