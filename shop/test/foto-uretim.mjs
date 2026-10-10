@@ -2385,7 +2385,7 @@ for (const [ad, capa, yerine, olmeli] of NOT_MUTANTLAR) {
 }
 
 const MUTANTLAR = [
-  ["M1 SINIR", "if (!makine && sayi.kisi >= VERI.sinir_ziyaretci_24s) {", "if (false) {", "D"],
+  ["M1 SINIR", "if (!makine && ziyaretciSiniriVar(env) && sayi.kisi >= VERI.sinir_ziyaretci_24s) {", "if (false) {", "D"],
   ["M2 BOT", "if (!(await botDogrula(request, env, g.turnstile_token))) {", "if (false) {", "E"],
   ["M3 ANALIZ", "if (onarimGerekli(p)) {", "if (false) {", "J"],
   // Tur uyeligi MANIFESTTEN (motor M + ortam eslemesi); kapi silinince manifestte olmayan tur acilir.
@@ -3999,6 +3999,7 @@ async function sebepEkrani(kaynak, a) {
   const kod = a && a.kod ? a.kod : "plaket";
   const acik = { acik: true, turler: [{ kod, ad: V.turBul(kod).ad, aciklama: "x", ornek_sayisi: 1,
     olculer: V.olcuSecenekleri(kod).map((mm) => ({ mm, fiyat_kurus: V.fiyatKurus(kod, mm) })) }] };
+  if (a.sinirsiz) { acik.ziyaretci_siniri = false; }
   const e = await ekranKos(kaynak, V, acik, null, { asama: "bekliyor" }, { kart: kod, turnstileOto: !a.dogrulamaYok,
     zamanlayici: true, gorselSahte: true, postKod: a.postKod, postYanit: a.postYanit,
     postAgHatasi: a.postAgHatasi, postGovdesiz: a.postGovdesiz });
@@ -4019,7 +4020,7 @@ async function sebepEkrani(kaynak, a) {
   const b = id("foto-onizle-buton"), sb = id("foto-onizle-sebep"), hk = id("foto-onizle-hak");
   return { kapali: !!b && b.disabled === true, acik: !!b && b.disabled === false,
            sebep: sb && sb.hidden !== true ? sb.textContent : "", gizli: !!sb && sb.hidden === true && sb.textContent === "",
-           hak: hk ? hk.textContent : "", istek: e.istekler.length,
+           hak: hk ? hk.textContent : "", hakGizli: hk ? hk.hidden === true : null, istek: e.istekler.length,
            durum: ([...e.bolum.agac()].find((n) => n.classList.contains("foto-uretim-durum")) || { textContent: "" }).textContent };
 }
 async function sebepSenaryolar(kaynak) {
@@ -4257,7 +4258,9 @@ async function makineSenaryolar(fm) {
   const bos = await cag("10.0.4.1", "");
   const n4 = await sayac("10.0.4.1");
   iz.V4 = { k4, bos, n4 };
-  s.V4 = k4.slice(0, sinir).every((x) => x === 200) && k4[sinir] === 429 && bos === 429 && n4 === sinir;
+  // BaBa 10 Eki 12:5x: ONIZLEME=1'de 24 sa / N hak kapisi KAPALI -> gecersiz/bos anahtar SAYILIR (sayac yazilir)
+  // ama sinirla REDDEDILMEZ (429 yok). Canli davranis V9'da (onizleme-siniri) olculur.
+  s.V4 = k4.every((x) => x === 200) && bos === 200 && n4 === sinir + 2;
   k.kapat();
   Object.defineProperty(s, "iz", { value: iz, enumerable: false });
   return s;
@@ -4266,7 +4269,7 @@ console.log("TB) TUR-B ② MAKINE ANAHTARI ziyaretci sayacina yazilmaz");
 {
   const s = await makineSenaryolar(foto);
   ol("V3 gecerli makine anahtarli 5 ardisik istek -> hepsi 200, IP sayaci 0 -> 0", s.V3, JSON.stringify(s.iz.V3));
-  ol("V4 gecersiz/bos anahtar -> sayilir, sinirda (" + VERI.sinir_ziyaretci_24s + ") 429", s.V4, JSON.stringify(s.iz.V4));
+  ol("V4 gecersiz/bos anahtar -> sayilir (sayac " + (VERI.sinir_ziyaretci_24s + 2) + "), onizleme ortaminda 429 YOK", s.V4, JSON.stringify(s.iz.V4));
   const MK_MUT = [
     ["M2 anahtar kontrolu atlandi (her baslik muaf)", "  return onizlemeMakinesiMi(request, env);\n", "  return true;\n", ["V4"]],
     ["M3 muafiyet kaldirildi", "  if (!request.headers.get(\"X-Onizleme-Makine\")) { return false; }\n", "  return false;\n", ["V3"]],
@@ -4278,6 +4281,80 @@ console.log("TB) TUR-B ② MAKINE ANAHTARI ziyaretci sayacina yazilmaz");
     const m = await makineSenaryolar(fm);
     const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
     ol(ad + " -> KIRMIZI tam olarak [" + olmeli.join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli), JSON.stringify(kir));
+  }
+}
+
+// ---------------------------------------------------------------- TUR-C (10 Eki, BaBa 12:5x) önizleme ortamında 24 sa / N hak kapısı KAPALI
+// Üç çağrı yeri (/foto/onizleme M kolu · /foto/onizleme üreteç kolu · /foto/litofan) aynı ziyaretçiden sinir+1 istek.
+// Canlı env (ONIZLEME yok): sinir+1'inci istek 429 onizleme-siniri. Önizleme env (ONIZLEME=1): 429 YOK, yanıtta
+// kalan hak alanı YOK, /foto/acik ziyaretci_siniri=false. Kalan masraf kapıları (KREDI_TAVAN · Turnstile ·
+// GUNLUK_ONIZLEME_TAVANI) bu turda DEĞİŞMEDİ.
+async function hakSiniriSenaryo(fm, ek) {
+  const k = koprukur(); await k.hazir;
+  const e2 = envKur(k.d1, r2Kur(), ek);
+  await k.d1.prepare("INSERT INTO foto_acik (tur, acik, guncel) VALUES ('plaket', 1, 'x'), ('bust', 1, 'x')").run();
+  const cag = async (yol, govde, ip) => {
+    const u = "https://pruvo3d.com/api/shop" + yol;
+    const h = { "CF-Connecting-IP": ip, "Content-Type": "application/json" };
+    const r = await fm.fotoUclari(new Request(u, govde ? { method: "POST", headers: h, body: JSON.stringify(govde) } : { headers: h }),
+      e2, new URL(u), yol, null);
+    let v = null; try { v = await r.json(); } catch (e) { v = null; }
+    return { kod: r.status, hata: v && v.hata, kalanVar: !!v && "kalan" in v, v };
+  };
+  const bust = onizlemeGovde({ tur: "bust", parametreler: { rolyef_yuksekligi_mm: 3, ters: false }, secim: { govde_malzeme: "PLA" } });
+  // Litofan ucu yalniz PNG kalinlik haritasi alir: 200x150 IHDR'li PNG basligi (pngBoyut olcer) + gorselCoz alt boyu icin dolgu.
+  const ihdr = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52, 0, 0, 0, 200, 0, 0, 0, 150,
+    8, 0, 0, 0, 0, 0, 0, 0, 0, ...new Array(4096).fill(0)];
+  const harita = { ...bust, gorsel: "data:image/png;base64," + Buffer.from(ihdr).toString("base64") };
+  const YERLER = { m_kolu: ["/foto/onizleme", onizlemeGovde()], uretec: ["/foto/onizleme", bust], litofan: ["/foto/litofan", harita] };
+  const asilOrnek = VERI.ornekSayisi;
+  VERI.ornekSayisi = () => 1;
+  const r = {};
+  try {
+    let n = 0;
+    for (const [ad, [yol, govde]] of Object.entries(YERLER)) {
+      const ip = "10.0.20." + (++n), dizi = [];
+      for (let i = 0; i <= VERI.sinir_ziyaretci_24s; i++) { dizi.push(await cag(yol, govde, ip)); }
+      r[ad] = dizi;
+    }
+    const a = await cag("/foto/acik", null, "10.0.20.99");
+    r.acik = a.v ? a.v.ziyaretci_siniri : undefined;
+  } finally { VERI.ornekSayisi = asilOrnek; k.kapat(); }
+  return r;
+}
+async function hakSiniriSenaryolar(fm) {
+  const s = {}, iz = {};
+  const N = VERI.sinir_ziyaretci_24s;
+  iz.canli = await hakSiniriSenaryo(fm);
+  iz.onizleme = await hakSiniriSenaryo(fm, { ONIZLEME: "1" });
+  const yerler = ["m_kolu", "uretec", "litofan"];
+  s.V9 = yerler.every((y) => iz.canli[y].slice(0, N).every((x) => x.kod === 200 && x.kalanVar) &&
+    iz.canli[y][N].kod === 429 && iz.canli[y][N].hata === "onizleme-siniri") && iz.canli.acik === true;
+  s.V10 = yerler.every((y) => iz.onizleme[y].every((x) => x.kod === 200 && !x.kalanVar)) && iz.onizleme.acik === false;
+  Object.defineProperty(s, "iz", { value: iz, enumerable: false });
+  return s;
+}
+console.log("TC) TUR-C önizleme ortamında 24 sa / " + VERI.sinir_ziyaretci_24s + " hak kapısı KAPALI (canlıda AYNEN)");
+{
+  const s = await hakSiniriSenaryolar(foto);
+  const oz = (e) => JSON.stringify(Object.fromEntries(Object.entries(s.iz[e]).map(([a, d]) =>
+    [a, Array.isArray(d) ? d.map((x) => x.kod + (x.hata ? ":" + x.hata : "") + (x.kalanVar ? "+k" : "")) : d])));
+  ol("V9 canlı env (ONIZLEME yok) 3 yerde " + (VERI.sinir_ziyaretci_24s + 1) + ". istek -> 429 onizleme-siniri; kalan hak yanıtta", s.V9, oz("canli"));
+  // İstemci: /foto/acik ziyaretci_siniri=false (önizleme) -> hak satırı GİZLİ; alan yoksa (canlı) GÖRÜNÜR.
+  const hOn = await sebepEkrani(EKRAN_KAYNAK, { sinirsiz: true }), hCanli = await sebepEkrani(EKRAN_KAYNAK, {});
+  ol("V10b istemci önizlemede hak satırı GİZLİ, canlıda görünür", hOn.hakGizli === true && hCanli.hakGizli === false && hOn.acik,
+     JSON.stringify([hOn.hakGizli, hCanli.hakGizli, hOn.acik]));
+  ol("V10 önizleme env (ONIZLEME=1) 3 yerde " + (VERI.sinir_ziyaretci_24s + 1) + ". istek -> 429 DEĞİL (200); kalan alanı yok; ziyaretci_siniri=false", s.V10, oz("onizleme"));
+  const TC_MUT = [
+    ["M1 bayrak koşulu ters", "  return !onizlemeMi(env);\n", "  return onizlemeMi(env);\n", ["V10", "V9"]],
+    ["TC-K0 KONTROL (yorum)", "function ziyaretciSiniriVar(env) {\n", "// kontrol\nfunction ziyaretciSiniriVar(env) {\n", []],
+  ];
+  for (const [ad, capa, yerine, olmeli] of TC_MUT) {
+    const fm = await mutantModul(capa, yerine);
+    if (!fm) { ol(ad + " capa bulundu", false, "capa kayip/coklu: " + capa); continue; }
+    const m = await hakSiniriSenaryolar(fm);
+    const kir = Object.keys(m).filter((x) => m[x] !== true).sort();
+    ol(ad + " -> KIRMIZI tam olarak [" + olmeli.slice().sort().join(",") + "]", JSON.stringify(kir) === JSON.stringify(olmeli.slice().sort()), JSON.stringify(kir));
   }
 }
 

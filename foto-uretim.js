@@ -1977,7 +1977,9 @@
     }
     // "Son 24 saatte kalan önizleme hakkın: N/3." — N yalnız sunucu yanıtından; bilinmiyorsa sınır
     // cümlesi (sayı uydurulmaz; "Bugün" YASAK — kayan 24 saat, takvim günü değil; ArTisT).
+    // Önizleme ortamı (sunucu /foto/acik ziyaretci_siniri:false): hak kapısı KAPALI -> hak satırı GİZLİ.
     if (S.alanNotu) {
+      S.alanNotu.hidden = !!S.acikVeri && S.acikVeri.ziyaretci_siniri === false;
       S.alanNotu.textContent = typeof S.kalanHak === "number" ?
         "Son 24 saatte kalan önizleme hakkın: " + S.kalanHak + "/" + F.sinir_ziyaretci_24s + "." :
         "Son 24 saatte en çok " + F.sinir_ziyaretci_24s + " önizleme hakkın var.";

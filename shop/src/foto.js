@@ -51,7 +51,7 @@
 import "../../foto-uretim-veri.js";
 // "../src/" bilerek: mutant bataryalari foto.js'i shop/<gecici>/ altina TEK dosya kopyalar; bu yol
 // hem shop/src/ hem kopya dizininden ayni modulu bulur.
-import { turnstileHostKabul } from "../src/onizleme.js";
+import { turnstileHostKabul, onizlemeMi } from "../src/onizleme.js";
 
 const VERI = globalThis.PRUVO_FOTO;
 if (!VERI) { throw new Error("foto-uretim-veri.js yuklenemedi — tur/ornek tek kaynagi yok"); }
@@ -892,10 +892,23 @@ export async function havuzHukmu(env, simdi, telegram) {
 
 // ---------------------------------------------------------------- uc: /foto/acik
 
+// BaBa 10 Eki 12:5x: onizleme ortaminda (ONIZLEME=1) ziyaretci 24 sa / N hak kapisi KAPALI — uc cagri yeri
+// (onizleme · uretec onizleme · litofan) bu tek fonksiyondan okur. Canlida AYNEN. Kalan masraf kapilari
+// (KREDI_TAVAN · Turnstile · GUNLUK_ONIZLEME_TAVANI) onizlemede de DURUR.
+function ziyaretciSiniriVar(env) {
+  return !onizlemeMi(env);
+}
+/** Yanita giren kalan hak: onizleme ortaminda alan YOK (istemci sayi uydurmaz, "0/N" basip dugmeyi kilitlemez). */
+function kalanHak(env, sayi) {
+  return ziyaretciSiniriVar(env) ? { kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1) } : {};
+}
+
 async function acikUcu(env, simdi, telegram) {
   const y = yapilandirma(env);
   const sinir = VERI.sinir_ziyaretci_24s;
-  const taban = { onay_surum: VERI.onay_surum, sinir: sinir, gecerlilik_saat: VERI.gecerlilik_saat };
+  // ziyaretci_siniri false = onizleme ortami (24 sa / N hak kapisi KAPALI; istemci hak satirini gostermez).
+  const taban = { onay_surum: VERI.onay_surum, sinir: sinir, gecerlilik_saat: VERI.gecerlilik_saat,
+                  ziyaretci_siniri: ziyaretciSiniriVar(env) };
   // Saglayici kolu hazir degilse yalniz hazir deterministik turler acik kalabilir.
   if (!y.hazir && !DETERMINISTIK_TURLER.some((k) => turHazir(env, k).hazir)) {
     return fjson({ acik: false, turler: [], ...taban }, 200);
@@ -1039,7 +1052,7 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   const makine = await makineIstegi(request, env);
   const ziyaretci = makine ? MAKINE_ZIYARETCI : await ziyaretciOzeti(env, ip);
   const sayi = await onizlemeSayisi(env, ziyaretci, simdi);
-  if (!makine && sayi.kisi >= VERI.sinir_ziyaretci_24s) {
+  if (!makine && ziyaretciSiniriVar(env) && sayi.kisi >= VERI.sinir_ziyaretci_24s) {
     return fjson({ hata: "onizleme-siniri", sinir: VERI.sinir_ziyaretci_24s }, 429);
   }
   if (sayi.genel >= GUNLUK_ONIZLEME_TAVANI) { return fjson({ hata: "kapali" }, 503); }
@@ -1053,7 +1066,7 @@ async function onizlemeUcu(request, env, simdi, telegram) {
   const hata = await onizlemeGonder(env, isNo, tur.kod, olcu, ziyaretci, gorsel.uri, simdi, telegram, nt.deger,
     VERI.onay_surum, cesit);
   if (hata) { return hata; }
-  return fjson({ is: isNo, kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1) }, 200);
+  return fjson({ is: isNo, ...kalanHak(env, sayi) }, 200);
 }
 
 /** Onay kaydi: surum doluysa {tarih: onay ani (ISO), surum}; bos surum (ornek kolu) -> iki alan da bos. */
@@ -1193,7 +1206,7 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
   const ziyaretci = makine ? MAKINE_ZIYARETCI : await ziyaretciOzeti(env, ip);
   const sayi = await onizlemeSayisi(env, ziyaretci, simdi);
   const sinir = VERI.sinir_ziyaretci_24s;
-  if (!makine && sayi.kisi >= sinir) { return fjson({ hata: "onizleme-siniri", sinir }, 429); }
+  if (!makine && ziyaretciSiniriVar(env) && sayi.kisi >= sinir) { return fjson({ hata: "onizleme-siniri", sinir }, 429); }
   if (sayi.genel >= GUNLUK_ONIZLEME_TAVANI) { return fjson({ hata: "kapali" }, 503); }
   const bot = await botDogrula(request, env, g.turnstile_token);
   if (!bot) { return fjson({ hata: "bot-dogrulama" }, 403); }
@@ -1221,7 +1234,7 @@ async function uretecOnizlemeUcu(request, env, simdi, g) {
       " VALUES (?, ?, ?, ?, ?, 'uretec-onizleme', 0, '', ?, ?, ?)"
     ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi), onay.tarih, onay.surum, cesit).run();
   }
-  return fjson({ is: isNo, kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1),
+  return fjson({ is: isNo, ...kalanHak(env, sayi),
                  yoklama: URETEC_YOKLAMA }, 200);
 }
 
@@ -1316,7 +1329,7 @@ async function litofanUcu(request, env, simdi) {
   const ziyaretci = makine ? MAKINE_ZIYARETCI : await ziyaretciOzeti(env, ip);
   const sayi = await onizlemeSayisi(env, ziyaretci, simdi);
   // Plaketle AYNI sayac (foto_isler): litofan haritasi da ziyaretcinin gunluk hakkindan duser.
-  if (!makine && VERI.sinir_ziyaretci_24s <= sayi.kisi) {
+  if (!makine && ziyaretciSiniriVar(env) && VERI.sinir_ziyaretci_24s <= sayi.kisi) {
     return fjson({ hata: "onizleme-siniri", sinir: VERI.sinir_ziyaretci_24s }, 429);
   }
   if (sayi.genel >= GUNLUK_ONIZLEME_TAVANI) { return fjson({ hata: "kapali" }, 503); }
@@ -1330,7 +1343,7 @@ async function litofanUcu(request, env, simdi) {
     "INSERT INTO foto_isler (is_no, tur, olcu_mm, ziyaretci, tarih, asama, hazir_tarih, kredi, onay_tarih, onay_surum)" +
     " VALUES (?, ?, ?, ?, ?, 'hazir', ?, 0, ?, ?)"
   ).bind(isNo, tur.kod, olcu, ziyaretci, simdiIso(simdi), simdiIso(simdi), onay.tarih, onay.surum).run();
-  return fjson({ is: isNo, kalan: Math.max(0, VERI.sinir_ziyaretci_24s - sayi.kisi - 1),
+  return fjson({ is: isNo, ...kalanHak(env, sayi),
                  gecerlilik_bitis: new Date(simdi + VERI.gecerlilik_saat * 3600 * 1000).toISOString() }, 200);
 }
 
