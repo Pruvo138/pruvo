@@ -518,8 +518,13 @@ def hepsini_uret(kayitlar, jen=None):
         # 31,0 mm -> olcu-tutmadi, yerel prova 10 Eki) -> figur cesidi 60'tan; TeKiN kolu indirince snapshot tazelenir.
         taban = max([x for x in ((ana.get("olcu_mm") or {}).get("en_az"), (k.get("olcek") or {}).get("min_mm"))
                      if isinstance(x, (int, float)) and not isinstance(x, bool)] or [0])
+        # renk_modlari = kol kaydinin `renk_modu` parametresinin secenekleri (figur_kulak: tek|palet; palet = figur 3MF
+        # boyasi korunur). "palet" varsa Renkli bu kolda sunulur (VERI.renkliSecilebilir); parametre yoksa [].
+        rm = next((p for p in (k.get("parametreler") or []) if isinstance(p, dict) and p.get("ad") == "renk_modu"), {})
+        modlar = [x for x in (rm.get("secenekler") or []) if isinstance(x, str)]
         ana["foto_kolu"] = {"girdi": s["girdi"], "uretec": k.get("uretec") or "", "olcu_en_az": int(math.ceil(taban)),
-                            "olcu_en_cok": tavan, "renk_bolgesi": len(k.get("renk_bolgeleri") or [])}
+                            "olcu_en_cok": tavan, "renk_bolgesi": len(k.get("renk_bolgeleri") or []),
+                            "renk_modlari": modlar}
     return satirlar, hatalar
 
 

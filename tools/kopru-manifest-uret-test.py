@@ -371,10 +371,11 @@ def gercek():
     # ana girdi AYNEN. anahtarlik-plaket kopruda ayri kayit, UI'da SUNULMAZ -> satir yok.
     # foto_kolu.olcu_en_cok (kol_tavani) + renk_bolgesi kol uretecinin SEMA'sindan/kaydindan TURER (Okan 10 Eki 15:2x).
     gs, gh = arac_yukle().hepsini_uret(json.load(open(GERCEK_KAYIT, encoding="utf-8")), u0.jenerator_kok(GERCEK_KAYIT))
-    vaka("R-FK1 gercek kayit: anahtarlik-foto satiri YOK + anahtarlik.foto_kolu {foto-1, figur_kulak, taban 30, tavan 291, bolge 0} + girdi [metin]",
+    vaka("R-FK1 gercek kayit: anahtarlik-foto satiri YOK + anahtarlik.foto_kolu {foto-1, figur_kulak, taban 30, tavan 291, bolge 0, renk_modlari tek|palet} + girdi [metin]",
          "anahtarlik-foto" not in gs and gs["anahtarlik"].get("foto_kolu") == {"girdi": ["foto-1"], "uretec": "figur_kulak",
                                                                                "olcu_en_az": 30, "olcu_en_cok": 291,
-                                                                               "renk_bolgesi": 0}
+                                                                               "renk_bolgesi": 0,
+                                                                               "renk_modlari": ["tek", "palet"]}
          and gs["anahtarlik"]["girdi"] == ["metin"] and not gh,
          "%s %s %s" % (sorted(gs), gs["anahtarlik"].get("foto_kolu"), gh))
     vaka("R-FK2 gercek kayit: anahtarlik-plaket (SUNULMAYAN) satiri YOK, manifestte de YOK",
@@ -383,7 +384,8 @@ def gercek():
     mutant("MR10 gercek manifestte anahtarlik foto_kolu silindi -> KIRMIZI", GERCEK_KAYIT, man,
            r"sapma:anahtarlik\.foto_kolu",
            lambda kk, mm: degistir(mm, ',\n        foto_kolu: {\n          girdi: ["foto-1"],\n          uretec: "figur_kulak",\n'
-                                   '          olcu_en_az: 30,\n          olcu_en_cok: 291,\n          renk_bolgesi: 0\n        }', ""))
+                                   '          olcu_en_az: 30,\n          olcu_en_cok: 291,\n          renk_bolgesi: 0,\n'
+                                   '          renk_modlari: ["tek", "palet"]\n        }', ""))
     mutant("MR11 gercek kayitta figur-3mf -> figur-stl (sozlukte yok) -> KIRMIZI", GERCEK_KAYIT, man,
            r"bilinmeyen-girdi:anahtarlik-foto=figur-stl",
            lambda kk, mm: degistir(kk, '"figur-3mf"', '"figur-stl"'))
